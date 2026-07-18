@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
 import "./globals.css";
 
@@ -133,6 +134,7 @@ export default function RootLayout({
           {COMPACT_BOOT_SCRIPT}
         </Script>
         {children}
+        <Analytics />
       </body>
     </html>
   );

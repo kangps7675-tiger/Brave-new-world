@@ -81,6 +81,7 @@
     "@anthropic-ai/sdk": "^0.112.1",
     "@google/earthengine": "^1.7.34",
     "@streamparser/json": "^0.0.22",
+    "@vercel/analytics": "^2.0.1",
     "adm-zip": "^0.5.18",
     "drizzle-orm": "^0.45.2",
     "fflate": "^0.8.3",
