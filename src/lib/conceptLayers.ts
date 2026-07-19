@@ -75,6 +75,7 @@ const CONFLICT_THEATER_LAYERS: Record<ConflictConceptTheater, LayerPatch> = {
     ...CARRIER_MIL_WATCH,
     showTzevaAdom: false,
     showEastAsiaAdiz: true,
+    showIslandChains: true,
     showNorthKoreaMissileTests: true,
   },
   "china-taiwan": {
@@ -86,6 +87,7 @@ const CONFLICT_THEATER_LAYERS: Record<ConflictConceptTheater, LayerPatch> = {
     showUsCarriers: true,
     showMilitaryActivity: true,
     showEastAsiaAdiz: true,
+    showIslandChains: true,
     showChinaTaiwanIncidents: true,
     showChinaJapanIncidents: true,
     showChinaPhilippinesIncidents: true,

@@ -92,6 +92,11 @@ export type LayerPrefs = {
   showNeptunPreviousTrails: boolean;
   /** 동아시아 ADIZ (KADIZ/JADIZ/TAIDIZ/북한/CADIZ) */
   showEastAsiaAdiz: boolean;
+  /**
+   * 중국 도련선(적) · 미군 인도·태평양 방어선(청) · 대만 화약고 펄스
+   * @see src/data/islandChains.ts
+   */
+  showIslandChains: boolean;
   /** IRN–CHN–RUS–PRK 축·스포크 외교·군수·하이브리드 관계망 */
   showAxisNetwork: boolean;
   /** World Bank BRI 무역·운송 연결성 (중국→참여국) */
@@ -105,8 +110,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v27: 추정 탄착 포물선 제거 — NEPTUN(실측) + 발사/대치 네온만 */
-export const LAYER_PREFS_KEY = "geowatch-layers-v27";
+/** v28: 중국 도련선 · 미군 인도·태평양 방어선 */
+export const LAYER_PREFS_KEY = "geowatch-layers-v28";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -176,6 +181,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showEastAsiaAdiz: false,
+  showIslandChains: false,
   showAxisNetwork: false,
   showBriTradeConnectivity: false,
   showUsDfcSupplyChain: false,
@@ -185,6 +191,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v27",
   "geowatch-layers-v26",
   "geowatch-layers-v25",
   "geowatch-layers-v24",

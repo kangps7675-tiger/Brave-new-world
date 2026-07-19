@@ -21,7 +21,7 @@ export async function GET() {
       });
     }
 
-    const { data, cached } = await cachedFetchJson("stock-tickers-v3", TTL_MS, fetchStockTickers);
+    const { data, cached } = await cachedFetchJson("stock-tickers-v4", TTL_MS, fetchStockTickers);
     return NextResponse.json({
       receivedAt: new Date().toISOString(),
       cached,

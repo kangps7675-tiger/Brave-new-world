@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     const bucketMs = Math.round(atMs / BUCKET_MS) * BUCKET_MS;
 
     const [{ data: liveTickers }, priceAtEntries] = await Promise.all([
-      cachedFetchJson("stock-tickers-v3", LIVE_TTL_MS, fetchStockTickers),
+      cachedFetchJson("stock-tickers-v4", LIVE_TTL_MS, fetchStockTickers),
       Promise.all(
         symbols.map(async (symbol) => {
           const { data: priceAt } = await cachedFetchJson(

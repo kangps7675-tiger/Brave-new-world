@@ -261,6 +261,7 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showUsChinaIncidents: "미국–중국 군사 마찰",
   showNorthKoreaMissileTests: "북한 미사일·무기 시험",
   showEastAsiaAdiz: "방공식별구역 (ADIZ)",
+  showIslandChains: "도련선 · 미군 방어선",
   showAxisNetwork: "이란·중국·러시아·북한 관계망",
   showBriTradeConnectivity: "일대일로 무역 연결",
   showUsDfcSupplyChain: "미국 DFC 개발금융망",

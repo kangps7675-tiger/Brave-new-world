@@ -69,6 +69,7 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "ai-dc": "showAiDataCenters",
   sanctions: "showSanctionsEntities",
   "east-asia-adiz": "showEastAsiaAdiz",
+  "island-chains": "showIslandChains",
   "axis-network": "showAxisNetwork",
 };
 

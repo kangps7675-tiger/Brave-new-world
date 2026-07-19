@@ -77,6 +77,11 @@ export function yahooQuoteUrl(symbol: string): string {
 
 /** TradingView 심볼 페이지 딥링크 (임베드 아님 · 약관 별도) */
 export function tradingViewSymbolUrl(symbol: string): string {
-  const clean = symbol.replace(/^\^/, "").replace(/=F$/, "");
+  // Yahoo BTC-USD → TradingView BTCUSD 등
+  const clean = symbol
+    .replace(/^\^/, "")
+    .replace(/=F$/, "")
+    .replace(/-USD$/i, "USD")
+    .replace(/\./g, "");
   return `https://www.tradingview.com/symbols/${encodeURIComponent(clean)}/`;
 }

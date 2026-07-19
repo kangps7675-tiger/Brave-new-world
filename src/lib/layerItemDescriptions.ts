@@ -75,6 +75,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "us-china-incidents": "켜면 미국–중국 군사 마찰 지점을 표시합니다.",
   "nk-missile-tests": "켜면 북한 미사일·무기 시험의 발사·실험 위치를 표시합니다.",
   "east-asia-adiz": "켜면 동아시아 방공식별구역(ADIZ)을 표시합니다.",
+  "island-chains":
+    "켜면 중국 도련선(적색 점선)과 미군 인도·태평양 방어선(청색 실선), 대만 화약고 펄스를 표시합니다. 기지에 마우스를 올리면 탐지 반경이 펼쳐집니다.",
   "newfeeds-iran": "켜면 이란·중동 공격 관련 보도 지점을 지도에 표시합니다.",
   "gdelt-ocean": "켜면 대양·해상 지정학 경쟁 관련 뉴스 위치를 표시합니다.",
   "energy-pipelines": "켜면 원유·가스 수송망(송유관·가스관·LNG)을 표시합니다.",

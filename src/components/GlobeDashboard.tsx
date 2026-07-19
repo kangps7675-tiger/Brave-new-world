@@ -1158,6 +1158,7 @@ export function GlobeDashboard({
     showNeptun,
     showNeptunPreviousTrails,
     showEastAsiaAdiz,
+    showIslandChains,
     showAxisNetwork,
     showBriTradeConnectivity,
     showUsDfcSupplyChain,
@@ -1302,6 +1303,7 @@ export function GlobeDashboard({
     });
   };
   const setShowEastAsiaAdiz = (v: boolean) => togglePref("showEastAsiaAdiz", v);
+  const setShowIslandChains = (v: boolean) => togglePref("showIslandChains", v);
   const setShowAxisNetwork = (v: boolean) => togglePref("showAxisNetwork", v);
   const setShowBriTradeConnectivity = (v: boolean) => togglePref("showBriTradeConnectivity", v);
   const setShowUsDfcSupplyChain = (v: boolean) => togglePref("showUsDfcSupplyChain", v);
@@ -5057,6 +5059,16 @@ export function GlobeDashboard({
             accent: "blue",
           },
           {
+            id: "island-chains",
+            label: "도련선 · 미군 방어선",
+            detail: showIslandChains
+              ? "중국 도련(적) · 미 전방/심도(청) · 대만 펄스"
+              : "꺼짐 · 인도·태평양 전략선",
+            checked: layerPrefs.showIslandChains,
+            onChange: setShowIslandChains,
+            accent: "red",
+          },
+          {
             id: "newfeeds-iran",
             label: "이란·중동 공격 소식",
             detail: showNewfeedsIranAttacks
@@ -5260,6 +5272,7 @@ export function GlobeDashboard({
             showWarZones: enabled,
             showDiplomaticTension: enabled,
             showEastAsiaAdiz: enabled,
+            showIslandChains: enabled,
             showChinaTaiwanIncidents: enabled,
             showChinaJapanIncidents: enabled,
             showChinaPhilippinesIncidents: enabled,
@@ -5829,6 +5842,7 @@ export function GlobeDashboard({
     lpg(showCyberIncidents, false),
     lpg(showDiplomaticTension, false),
     lpg(showEastAsiaAdiz, false),
+    lpg(showIslandChains, false),
     lpg(showChinaTaiwanIncidents, false),
     lpg(showChinaJapanIncidents, false),
     lpg(showChinaPhilippinesIncidents, false),
@@ -8137,6 +8151,7 @@ export function GlobeDashboard({
               mapStyleUrl={globeTextures.mapStyleUrl}
               backgroundColor={globeTextures.backgroundColor}
               interactiveLayerIds={mapInteractiveLayerIds}
+              showIslandChains={showIslandChains}
               onGlobeReady={configureGlobe}
               onGlobeMouseMove={handleGlobeMouseMove}
               heatmapsData={tensionHeatmaps}
