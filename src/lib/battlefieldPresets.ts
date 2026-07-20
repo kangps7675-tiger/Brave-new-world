@@ -44,9 +44,13 @@ export function applyBattlefieldPreset(
       return patch(current, {
         showMilitaryActivity: true,
         showAis: true,
+        showShippingLanes: true,
         showLogisticsRisk: true,
         showSubmarineCables: true,
         showOilPipelines: true,
+        showGasPipelines: true,
+        showResources: true,
+        showGemOilGasExtraction: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,
         // 주요전장 이동 뒤에도 전쟁구역 빨간 빗금은 기본 유지
@@ -56,9 +60,11 @@ export function applyBattlefieldPreset(
       });
     case "middle-east":
       return patch(current, {
-        // 호르무즈·홍해 — AIS·군용 ADS-B·송유관 (가스/항로는 수동)
+        // 호르무즈·홍해 등 위험 항로 — AIS·ADS-B(군용) 필수
         showLogisticsRisk: true,
+        showShippingLanes: true,
         showOilPipelines: true,
+        showGasPipelines: true,
         showFirmsFires: true,
         showAis: true,
         showMilitaryActivity: true,

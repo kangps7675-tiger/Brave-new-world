@@ -48,3 +48,12 @@ export const GAS_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
   near: 200,
   village: 400,
 };
+
+/** 광물·자원 매장지 — 전역에서도 전략 거점 표시 */
+export const RESOURCE_POINT_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 36,
+  continent: 56,
+  regional: 90,
+  near: 140,
+  village: 220,
+};

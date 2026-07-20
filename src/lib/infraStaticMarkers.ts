@@ -132,12 +132,132 @@ function chokepointSvg(): string {
   `);
 }
 
-/** 광물·자원 — 결정체 */
-function resourceSvg(mineralColor: string): string {
-  return wrapSvg(`
-    <path d="M16 4 L26 14 L16 28 L6 14 Z" fill="${mineralColor}" stroke="#fff7ed" stroke-width="0.8" opacity="0.92"/>
-    <path d="M16 4 L16 28 M6 14 H26" fill="none" stroke="#1c1917" stroke-width="0.55" opacity="0.35"/>
-  `);
+/** 광물·자원 — 분쟁 빗금 박스 응용: 테두리 박스 안에 자원별 모양을 빽빽히 채움 (하트 제외) */
+type ResourceShapeId =
+  | "circle"
+  | "square"
+  | "triangle"
+  | "diamond"
+  | "hex"
+  | "bar"
+  | "cross"
+  | "ring";
+
+type ResourceStyle = { color: string; shape: ResourceShapeId };
+
+const RESOURCE_STYLES: Record<string, ResourceStyle> = {
+  Lithium: { color: "#38bdf8", shape: "circle" },
+  Cobalt: { color: "#818cf8", shape: "hex" },
+  Copper: { color: "#f59e0b", shape: "square" },
+  Nickel: { color: "#a3e635", shape: "triangle" },
+  "Rare Earths": { color: "#e879f9", shape: "diamond" },
+  Graphite: { color: "#94a3b8", shape: "bar" },
+  PGM: { color: "#f472b6", shape: "ring" },
+  "Platinum Group Metals": { color: "#f472b6", shape: "ring" },
+  Uranium: { color: "#facc15", shape: "cross" },
+  Iron: { color: "#fb7185", shape: "bar" },
+  "Iron Ore": { color: "#fb7185", shape: "bar" },
+  Gold: { color: "#fbbf24", shape: "hex" },
+  Manganese: { color: "#2dd4bf", shape: "diamond" },
+  Titanium: { color: "#7dd3fc", shape: "triangle" },
+  Bauxite: { color: "#d97706", shape: "square" },
+  Oil: { color: "#f97316", shape: "circle" },
+};
+
+function normalizeMineralKey(raw: unknown): string {
+  if (typeof raw !== "string" || !raw.trim()) return "";
+  const t = raw.trim();
+  if (RESOURCE_STYLES[t]) return t;
+  const lower = t.toLowerCase();
+  if (lower.includes("rare earth")) return "Rare Earths";
+  if (lower.includes("platinum") || lower.includes("pgm") || lower.includes("palladium")) {
+    return "Platinum Group Metals";
+  }
+  if (lower.includes("lithium")) return "Lithium";
+  if (lower.includes("cobalt")) return "Cobalt";
+  if (lower.includes("copper")) return "Copper";
+  if (lower.includes("nickel")) return "Nickel";
+  if (lower.includes("graphite")) return "Graphite";
+  if (lower.includes("uranium")) return "Uranium";
+  if (lower.includes("iron")) return "Iron";
+  if (lower.includes("gold")) return "Gold";
+  if (lower.includes("manganese")) return "Manganese";
+  if (lower.includes("titanium")) return "Titanium";
+  if (lower.includes("bauxite")) return "Bauxite";
+  if (lower.includes("oil") || lower.includes("crude")) return "Oil";
+  return t;
+}
+
+export function mineralMarkerColor(mineralType: unknown): string {
+  const key = normalizeMineralKey(mineralType);
+  return RESOURCE_STYLES[key]?.color ?? "#fbbf24";
+}
+
+function mineralShape(mineralType: unknown): ResourceShapeId {
+  const key = normalizeMineralKey(mineralType);
+  return RESOURCE_STYLES[key]?.shape ?? "square";
+}
+
+function shapeAt(shape: ResourceShapeId, cx: number, cy: number, r: number, color: string): string {
+  switch (shape) {
+    case "circle":
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`;
+    case "square": {
+      const s = r * 1.55;
+      return `<rect x="${cx - s / 2}" y="${cy - s / 2}" width="${s}" height="${s}" fill="${color}"/>`;
+    }
+    case "triangle":
+      return `<path d="M${cx} ${cy - r} L${cx + r} ${cy + r * 0.85} L${cx - r} ${cy + r * 0.85} Z" fill="${color}"/>`;
+    case "diamond":
+      return `<path d="M${cx} ${cy - r} L${cx + r} ${cy} L${cx} ${cy + r} L${cx - r} ${cy} Z" fill="${color}"/>`;
+    case "hex": {
+      const a = r;
+      const b = r * 0.55;
+      return `<path d="M${cx} ${cy - a} L${cx + b} ${cy - a * 0.5} L${cx + b} ${cy + a * 0.5} L${cx} ${cy + a} L${cx - b} ${cy + a * 0.5} L${cx - b} ${cy - a * 0.5} Z" fill="${color}"/>`;
+    }
+    case "bar":
+      return `<rect x="${cx - r * 1.1}" y="${cy - r * 0.45}" width="${r * 2.2}" height="${r * 0.9}" rx="0.35" fill="${color}"/>`;
+    case "cross":
+      return `<path d="M${cx - r * 0.35} ${cy - r} H${cx + r * 0.35} V${cy - r * 0.35} H${cx + r} V${cy + r * 0.35} H${cx + r * 0.35} V${cy + r} H${cx - r * 0.35} V${cy + r * 0.35} H${cx - r} V${cy - r * 0.35} H${cx - r * 0.35} Z" fill="${color}"/>`;
+    case "ring":
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${Math.max(0.7, r * 0.45)}"/>`;
+    default:
+      return `<rect x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" fill="${color}"/>`;
+  }
+}
+
+/**
+ * 자원 박스 — 테두리 + 반투명 바탕 + 격자 모양 채움.
+ * 분쟁 빗금 박스와 같은 언어, 빗금 대신 자원별 도형.
+ */
+function resourceSvg(mineralType: unknown): string {
+  const color = mineralMarkerColor(mineralType);
+  const shape = mineralShape(mineralType);
+  const cells: string[] = [];
+  const cols = 4;
+  const rows = 4;
+  const pad = 5.2;
+  const box = 32;
+  const inner = box - pad * 2;
+  const stepX = inner / cols;
+  const stepY = inner / rows;
+  const r = Math.min(stepX, stepY) * 0.28;
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const cx = pad + stepX * (col + 0.5);
+      const cy = pad + stepY * (row + 0.5);
+      cells.push(shapeAt(shape, cx, cy, r, color));
+    }
+  }
+  return wrapSvg(
+    `
+    <rect x="2.5" y="2.5" width="27" height="27" rx="1.2" fill="${color}" fill-opacity="0.14" stroke="${color}" stroke-width="1.35" stroke-opacity="0.95"/>
+    <rect x="4.2" y="4.2" width="23.6" height="23.6" rx="0.6" fill="none" stroke="${color}" stroke-width="0.45" stroke-opacity="0.45"/>
+    ${cells.join("")}
+  `,
+    34,
+    32,
+  );
 }
 
 /** 크리티컬 노드 — 육각 골드 */
@@ -180,26 +300,6 @@ function militaryBaseSvg(): string {
   `);
 }
 
-const MINERAL_COLORS: Record<string, string> = {
-  Lithium: "#38bdf8",
-  Cobalt: "#818cf8",
-  Copper: "#f59e0b",
-  Nickel: "#a3e635",
-  "Rare Earths": "#e879f9",
-  Graphite: "#94a3b8",
-  PGM: "#f472b6",
-  Uranium: "#facc15",
-  Iron: "#fb7185",
-  Gold: "#fbbf24",
-};
-
-export function mineralMarkerColor(mineralType: unknown): string {
-  if (typeof mineralType === "string" && MINERAL_COLORS[mineralType]) {
-    return MINERAL_COLORS[mineralType];
-  }
-  return "#fbbf24";
-}
-
 function iconFor(point: StaticPoint): string {
   switch (point.kind) {
     case "ai-data-center":
@@ -217,7 +317,7 @@ function iconFor(point: StaticPoint): string {
     case "critical-node":
       return criticalNodeSvg();
     case "resource":
-      return resourceSvg(mineralMarkerColor(point.meta?.mineralType));
+      return resourceSvg(point.meta?.mineralType ?? point.meta?.commodity);
     case "airport":
       return airportSvg();
     case "port":

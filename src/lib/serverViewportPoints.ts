@@ -5,6 +5,7 @@ import type { GlobeLodTier } from "@/lib/globeLod";
 import { getServerDataProfile } from "@/lib/serverEnv";
 import {
   MILITARY_BASE_AREA_MAX_BY_TIER,
+  RESOURCE_POINT_MAX_BY_TIER,
   STATIC_POINT_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { filterStaticPointsForView } from "@/lib/staticGlobe";
@@ -102,7 +103,11 @@ export async function queryViewportPoints(
   const all = await loadAllStaticPoints(layer);
   const view = { lat: options.lat, lng: options.lng, altitude: 1 };
   let filtered = filterStaticPointsForView(all, view, options.tier, options.radiusDeg);
-  const cap = options.max ?? STATIC_POINT_MAX_BY_TIER[options.tier];
+  const defaultCap =
+    layer === "resources"
+      ? RESOURCE_POINT_MAX_BY_TIER[options.tier]
+      : STATIC_POINT_MAX_BY_TIER[options.tier];
+  const cap = options.max ?? defaultCap;
   if (cap > 0 && filtered.length > cap) filtered = filtered.slice(0, cap);
   return { points: filtered, total: all.length, returned: filtered.length };
 }

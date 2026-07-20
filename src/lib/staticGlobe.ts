@@ -2,6 +2,7 @@ import type { StaticPoint } from "@/data/geoTypes";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import {
   MILITARY_BASE_AREA_MAX_BY_TIER,
+  RESOURCE_POINT_MAX_BY_TIER,
   STATIC_POINT_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { HTML_STATIC_KINDS, isHtmlStaticKind } from "@/lib/infraStaticMarkers";
@@ -32,10 +33,12 @@ export function filterStaticPointsForView(
 ): StaticPoint[] {
   const pinned: StaticPoint[] = [];
   const military: StaticPoint[] = [];
+  const resources: StaticPoint[] = [];
   const others: StaticPoint[] = [];
   for (const point of points) {
     if (PINNED_STATIC_KINDS.has(point.kind)) pinned.push(point);
     else if (point.kind === "military-base") military.push(point);
+    else if (point.kind === "resource") resources.push(point);
     else others.push(point);
   }
 
@@ -46,6 +49,18 @@ export function filterStaticPointsForView(
       if (radiusDeg > 0 && !bboxNearView(point, view, radiusDeg)) continue;
       visibleOthers.push(point);
       if (visibleOthers.length >= otherMax) break;
+    }
+  }
+
+  const resourceMax = RESOURCE_POINT_MAX_BY_TIER[tier];
+  const resourceRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 48) : radiusDeg;
+  const visibleResources: StaticPoint[] = [];
+  if (resourceMax > 0) {
+    for (const point of resources) {
+      if (resourceRadius > 0 && !bboxNearView(point, view, resourceRadius)) continue;
+      visibleResources.push(point);
+      if (visibleResources.length >= resourceMax) break;
     }
   }
 
@@ -61,7 +76,7 @@ export function filterStaticPointsForView(
     }
   }
 
-  return [...pinned, ...visibleOthers, ...visibleMilitary];
+  return [...pinned, ...visibleResources, ...visibleOthers, ...visibleMilitary];
 }
 
 export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {

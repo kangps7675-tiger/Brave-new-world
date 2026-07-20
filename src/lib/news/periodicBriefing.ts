@@ -11,7 +11,8 @@ import type { ViewerMode } from "@/lib/viewPackages";
  * - 접기: 양피지를 접어 두고, 같은 날 칩으로 다시 펼칠 수 있음
  * - 뉴스 본문: 로컬 시각 기준 6시간 슬롯(0·6·12·18시)마다 갱신
  * - 모드 키 = `daily-YYYY-MM-DD-{conflict|economy}`
- * - 본문 = (지경학) SOTW market-lamp → D1 집계 → 큐레이션 폴백
+ * - 본문 = (지경학) 한국 겨냥 지리경제·기업·거시 하드뉴스 + SOTW Korea 매크로
+ * - 지정학 = 전 세계 지정학 중 한국을 겨냥한 발언·압박 우선
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
  */
 
@@ -828,17 +829,20 @@ function buildFocusLabel(
   const genreLabel =
     lang === "en" ? GENRE_FOCUS_EN[genre ?? ""] : GENRE_FOCUS_KO[genre ?? ""];
   const names = hits.map((h) => (lang === "en" ? h.labelEn : h.labelKo));
+  const koreaTag = isKoreaTargetedSpeech(text)
+    ? lang === "en"
+      ? "Aimed at Korea"
+      : "한국 겨냥"
+    : mentionsSouthKorea(text)
+      ? lang === "en"
+        ? "Korea"
+        : "한국"
+      : null;
   const rivalry =
     US_CHINA_RIVALRY_RE.test(text) && (lang === "en" ? "US–China" : "미·중 경쟁");
-  if (rivalry && names.length === 0 && !genreLabel) return rivalry;
-  if (names.length === 0 && !genreLabel) return undefined;
-  const base =
-    names.length === 0
-      ? genreLabel!
-      : !genreLabel
-        ? names.join(" · ")
-        : `${names.join(" · ")} · ${genreLabel}`;
-  return rivalry ? `${rivalry} · ${base}` : base;
+  const parts = [koreaTag, rivalry || undefined, ...names, genreLabel].filter(Boolean) as string[];
+  if (parts.length === 0) return undefined;
+  return parts.join(" · ");
 }
 
 function deepenSummary(raw: string | undefined, title: string): string {
@@ -877,14 +881,25 @@ function scoreLampCandidate(
     summaryLen >= 700 ? -28 : summaryLen >= 400 ? -16 : summaryLen >= 200 ? -6 : summaryLen >= 80 ? 0 : 30;
   const thinPenalty = summaryLen < 40 ? 40 : 0;
   const rivalryBonus = US_CHINA_RIVALRY_RE.test(blob) ? -22 : 0;
+  const opinionPenalty = isEconomyOpinionPiece(blob, item.publisher || item.source) ? 80 : 0;
+  const hardBonus = isEconomyHardNews(blob, item.econGenre) ? -24 : 18;
+  const koreaTargeted = isKoreaTargetedSpeech(blob);
+  const koreaMention = mentionsSouthKorea(blob);
+  const koreaBonus = koreaTargeted ? -46 : koreaMention ? -30 : 26;
+  const koreaCompanyBonus =
+    entities.some((e) => e.id === "korea" || e.id === "samsung" || e.id === "skhynix" || e.id === "hyundai" || e.id === "bok")
+      ? -18
+      : 0;
   const blocBonus =
-    bloc === "china"
-      ? -16
-      : bloc === "europe" || bloc === "russia" || bloc === "asia"
-        ? -14
-        : bloc === "other"
-          ? -8
-          : 0;
+    bloc === "asia"
+      ? -18
+      : bloc === "china"
+        ? -10
+        : bloc === "europe" || bloc === "russia"
+          ? -6
+          : bloc === "other"
+            ? -4
+            : 0;
   // 당일·최근성 — 시장 주시의 시간축 근거
   const freshnessBonus = isLocalCalendarToday(item.pubDate)
     ? ageMin <= 180
@@ -925,6 +940,10 @@ function scoreLampCandidate(
       depthScore +
       thinPenalty +
       rivalryBonus +
+      opinionPenalty +
+      hardBonus +
+      koreaBonus +
+      koreaCompanyBonus +
       blocBonus +
       freshnessBonus +
       clusterBonus +
@@ -954,8 +973,8 @@ function toFeatured(
 }
 
 /**
- * 사진 필수 · 고신뢰 · 당일 신선도 · 클러스터(다매체) · 미·중·유럽·러·한일 조합.
- * 최소 ECONOMY_LAMP_NEWS_MIN(8)건.
+ * 지경학 등불 — 한국을 겨냥한 지리경제·기업·거시 하드뉴스.
+ * 칼럼·사설·오피니언 제외. 사진 필수.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -963,11 +982,13 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  const withImage = items.filter(
-    (item) => typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8,
-  );
+  const withImage = items.filter((item) => {
+    if (typeof item.imageUrl !== "string" || item.imageUrl.trim().length <= 8) return false;
+    const blob = `${item.title} ${item.summary ?? ""}`;
+    if (isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
+    return true;
+  });
 
-  // 풀 내부 클러스터 크기 — “여러 매체가 같은 사건을 다루는지”
   const clusterMap = new Map<string, number>();
   for (const item of withImage) {
     const key = item.clusterId || lampClusterKey(item.title);
@@ -986,15 +1007,6 @@ export function pickEconomyLampNews(
   const seenEntity = new Set<string>();
   const seenClusters = new Set<string>();
   const genreCounts = new Map<string, number>();
-  const blocCounts: Record<GeoBloc, number> = {
-    us: 0,
-    china: 0,
-    europe: 0,
-    russia: 0,
-    asia: 0,
-    other: 0,
-  };
-  const maxUs = Math.max(2, Math.ceil(target / 3));
 
   const tryPush = (row: ScoredLampNews, relax = false): boolean => {
     const item = row.item;
@@ -1002,8 +1014,13 @@ export function pickEconomyLampNews(
     if (seenLinks.has(key)) return false;
 
     const cKey = item.clusterId || lampClusterKey(item.title);
-    // 같은 사건 클러스터는 1건만 (핫한 대표 기사)
     if (seenClusters.has(cKey) && !relax) return false;
+
+    const blob = `${item.title} ${item.summary ?? ""}`;
+    if (!relax && isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
+    if (!relax && !isEconomyHardNews(blob, item.econGenre) && row.entities.length === 0) {
+      return false;
+    }
 
     const primaryEntity = row.entities[0]?.id;
     if (primaryEntity && seenEntity.has(primaryEntity) && !relax) return false;
@@ -1013,8 +1030,6 @@ export function pickEconomyLampNews(
       return false;
     }
 
-    if (row.bloc === "us" && blocCounts.us >= maxUs && !relax) return false;
-
     const genre = item.econGenre ?? "markets";
     const gCount = genreCounts.get(genre) ?? 0;
     if (!relax && gCount >= 3) return false;
@@ -1023,29 +1038,43 @@ export function pickEconomyLampNews(
     seenClusters.add(cKey);
     if (primaryEntity) seenEntity.add(primaryEntity);
     genreCounts.set(genre, gCount + 1);
-    blocCounts[row.bloc] += 1;
     out.push(toFeatured(row, lang));
     return true;
   };
 
-  // 권역별 최소 1건: 중 → 유럽 → 러 → 한일 → 기타 → 미
-  const priorityBlocs: GeoBloc[] = ["china", "europe", "russia", "asia", "other", "us"];
-  for (const bloc of priorityBlocs) {
-    if (out.length >= target) break;
-    for (const row of scored) {
-      if (row.bloc !== bloc) continue;
-      if (tryPush(row)) break;
-    }
-  }
+  const targeted = scored.filter((row) =>
+    isKoreaTargetedSpeech(`${row.item.title} ${row.item.summary ?? ""}`),
+  );
+  const koreaRelated = scored.filter((row) =>
+    mentionsSouthKorea(`${row.item.title} ${row.item.summary ?? ""}`),
+  );
 
-  for (const row of scored) {
+  for (const row of targeted) {
     if (out.length >= target) break;
     tryPush(row);
   }
-
   if (out.length < target) {
+    for (const row of koreaRelated) {
+      if (out.length >= target) break;
+      tryPush(row);
+    }
+  }
+  if (out.length < target) {
+    for (const row of targeted) {
+      if (out.length >= target) break;
+      tryPush(row, true);
+    }
+    for (const row of koreaRelated) {
+      if (out.length >= target) break;
+      tryPush(row, true);
+    }
+  }
+  // 최후 — 한국 관련 하드뉴스가 전혀 없을 때만 전역 기업·거시로 채움
+  if (out.length === 0) {
     for (const row of scored) {
       if (out.length >= target) break;
+      const blob = `${row.item.title} ${row.item.summary ?? ""}`;
+      if (!isEconomyHardNews(blob, row.item.econGenre) && row.entities.length === 0) continue;
       tryPush(row, true);
     }
   }
@@ -1053,16 +1082,10 @@ export function pickEconomyLampNews(
   return out.slice(0, Math.max(out.length, Math.min(target, scored.length)));
 }
 
-/** 지정학 등불 최소 건수 — 중동·러우 + 아태·북극·대서양 슬롯 확보 */
+/** 지정학 등불 최소 건수 — 한국 겨냥 발언 슬롯 */
 export const CONFLICT_LAMP_NEWS_MIN = 10;
 /** 등불 안 외교 슬롯 상한 — 전쟁만/회담만으로 치우치지 않게 */
 export const CONFLICT_LAMP_DIPLOMACY_MAX = 3;
-/** 아태·인도양 계열 최소 확보 건수 (후보가 있을 때) */
-const CONFLICT_LAMP_APAC_MIN = 3;
-/** 북극·대서양 최소 확보 건수 (후보가 있을 때) */
-const CONFLICT_LAMP_ARCTIC_ATLANTIC_MIN = 1;
-/** 중동+러우 합산 소프트 캡 — 아태·북극·대서양 자리를 비워 둠 */
-const CONFLICT_LAMP_ME_UA_SOFT_CAP = 5;
 
 type ConflictTheater =
   | "middle-east"
@@ -1083,18 +1106,6 @@ const APAC_CONFLICT_THEATERS: ConflictTheater[] = [
 ];
 
 const ARCTIC_ATLANTIC_THEATERS: ConflictTheater[] = ["arctic", "atlantic"];
-
-const CONFLICT_THEATER_PRIORITY: ConflictTheater[] = [
-  "middle-east",
-  "russia-ukraine",
-  "china-taiwan",
-  "korea",
-  "japan",
-  "south-asia",
-  "arctic",
-  "atlantic",
-  "global",
-];
 
 const THEATER_FOCUS_KO: Record<ConflictTheater, string> = {
   "middle-east": "중동",
@@ -1163,6 +1174,60 @@ const CONFLICT_DIPLOMACY_RE =
 
 const CONFLICT_SOFT_NEWS_RE =
   /celebrity|sport|football|soccer|nba|oscar|grammy|fashion|recipe|연예|스포츠|축구|야구|영화제/i;
+
+/** 한국(남한) 언급 — 북한 단독 기사는 제외 */
+const SOUTH_KOREA_MENTION_RE =
+  /\bsouth\s?korea\b|\brepublic of korea\b|\brok\b|\bseoul\b|\busfk\b|\b한국\b|\b서울\b|\b대한민국\b|\b한미\b|\b한일\b|\b한중\b|\b윤석열\b|\blee jae[\s-]?myung\b/i;
+
+const KOREA_GENERIC_RE = /\bkorea\b|\bkorean\b/i;
+
+const NORTH_KOREA_ONLY_RE =
+  /\bnorth\s?korea\b|\bdprk\b|\bpyongyang\b|\bkim\s?jong\b|\b북한\b|\b평양\b/i;
+
+/** 한국을 향한 경고·비난·압박·외교 발언 */
+const KOREA_TARGETED_SPEECH_RE =
+  /warn(?:ed|s|ing)?|threat(?:en(?:ed|s|ing)?|s)?|criticiz(?:e|ed|es|ing)|condemn(?:ed|s|ing)?|slam(?:med|s)?|accus(?:e|ed|es|ing)|pressure|sanction(?:ed|s)?|rebuke|blast(?:ed)?|target(?:ed|s|ing)?|aim(?:ed|s)?\s+at|remark(?:s|ed)?|statement|foreign\s?ministr|spokeswoman|spokesperson|발언|겨냥|경고|비난|압박|비판|규탄|지적|언급|밝혔다|경고했|위협|도발|적대|강력\s?대응|엄중|항의/i;
+
+/** 외부 행위자 ↔ 한국 근접 언급 */
+const KOREA_FOREIGN_ACTOR_NEAR_RE =
+  /(china|beijing|xi\s?jinping|pyongyang|north\s?korea|moscow|kremlin|putin|tokyo|japan|washington|white\s?house|pentagon|중국|베이징|시진핑|평양|북한|모스크바|크렘린|푸틴|도쿄|일본|워싱턴|백악관|국방부).{0,48}(south\s?korea|seoul|rok\b|한국|서울|대한민국|한미|한일|한중)|(south\s?korea|seoul|rok\b|한국|서울|대한민국|한미|한일|한중).{0,48}(china|beijing|pyongyang|north\s?korea|moscow|tokyo|japan|washington|중국|베이징|평양|북한|모스크바|도쿄|일본|워싱턴)/i;
+
+/** 지경학 — 칼럼·사설·오피니언 배제 */
+const ECONOMY_OPINION_RE =
+  /\bop[\s-]?ed\b|\bopinion\b|\beditorial\b|\bcolumn(?:ist)?\b|\bcommentary\b|\bessay\b|\bperspective\b|\banalyst\s?view\b|\bguest\s?essay\b|칼럼|사설|논평|기고|오피니언|시론|해설\s?칼럼|외부\s?기고/i;
+
+/** 지경학 — 기업·거시·지리경제 하드뉴스 */
+const ECONOMY_HARD_NEWS_RE =
+  /earnings|revenue|profit|guidance|gdp|inflation|cpi|ppi|interest\s?rate|policy\s?rate|tariff|sanction|export|import|trade\s?surplus|fdi|investment|m&a|merger|acquisition|supply\s?chain|semiconductor|chip|foundry|factory|plant|capex|bond|yield|won\b|환율|실적|매출|영업이익|gdp|성장률|물가|금리|관세|제재|수출|수입|무역|투자|인수|합병|공급망|반도체|공장|설비투자|원화|환율|지정학\s?리스크|지리경제|geoeconom/i;
+
+function mentionsSouthKorea(text: string): boolean {
+  if (SOUTH_KOREA_MENTION_RE.test(text)) return true;
+  if (NORTH_KOREA_ONLY_RE.test(text) && !SOUTH_KOREA_MENTION_RE.test(text) && !/\bsouth\b|\brok\b|\bseoul\b/i.test(text)) {
+    // 북한만 다루고 남한 맥락이 없으면 제외 — 단 "Korea" + 외부 행위자는 통과 가능
+    if (!KOREA_GENERIC_RE.test(text)) return false;
+  }
+  if (KOREA_GENERIC_RE.test(text) && KOREA_FOREIGN_ACTOR_NEAR_RE.test(text)) return true;
+  if (KOREA_GENERIC_RE.test(text) && !NORTH_KOREA_ONLY_RE.test(text)) return true;
+  return false;
+}
+
+/** 지정학·지경학 공통 — 한국을 겨냥한 발언·압박 신호 */
+function isKoreaTargetedSpeech(text: string): boolean {
+  if (!mentionsSouthKorea(text)) return false;
+  return KOREA_TARGETED_SPEECH_RE.test(text) || KOREA_FOREIGN_ACTOR_NEAR_RE.test(text);
+}
+
+function isEconomyOpinionPiece(text: string, source?: string): boolean {
+  const blob = `${source ?? ""} ${text}`;
+  return ECONOMY_OPINION_RE.test(blob);
+}
+
+function isEconomyHardNews(text: string, genre?: string): boolean {
+  if (genre === "macro" || genre === "markets" || genre === "chips" || genre === "energy" || genre === "shipping") {
+    return true;
+  }
+  return ECONOMY_HARD_NEWS_RE.test(text);
+}
 
 function normalizeConflictTheater(theater?: string): ConflictTheater {
   if (
@@ -1292,15 +1357,23 @@ function buildConflictFocusLabel(
 ): string {
   const theaterLabel = lang === "en" ? THEATER_FOCUS_EN[theater] : THEATER_FOCUS_KO[theater];
   const actors = matchedConflictActors(text).map((a) => (lang === "en" ? a.labelEn : a.labelKo));
+  const koreaTag = isKoreaTargetedSpeech(text)
+    ? lang === "en"
+      ? "Aimed at Korea"
+      : "한국 겨냥"
+    : mentionsSouthKorea(text)
+      ? lang === "en"
+        ? "Korea"
+        : "한국"
+      : null;
   const diplomacyTag = CONFLICT_DIPLOMACY_RE.test(text)
     ? lang === "en"
       ? "Diplomacy"
       : "외교"
     : null;
-  if (actors.length === 0 && !diplomacyTag) return theaterLabel;
-  if (actors.length === 0 && diplomacyTag) return `${theaterLabel} · ${diplomacyTag}`;
-  const base = `${theaterLabel} · ${actors.join(" · ")}`;
-  return diplomacyTag ? `${base} · ${diplomacyTag}` : base;
+  const parts = [koreaTag ?? theaterLabel, ...actors];
+  if (diplomacyTag) parts.push(diplomacyTag);
+  return parts.filter(Boolean).join(" · ");
 }
 
 type ScoredConflictNews = {
@@ -1333,6 +1406,10 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       ? 12
       : 0;
   const softPenalty = CONFLICT_SOFT_NEWS_RE.test(blob) ? 50 : 0;
+  const koreaTargeted = isKoreaTargetedSpeech(blob);
+  const koreaMention = mentionsSouthKorea(blob);
+  // 등불 기본축: 한국 겨냥 발언 > 한국 관련 지정학 > 그 외
+  const koreaBonus = koreaTargeted ? -48 : koreaMention ? -28 : 22;
   // 아태·남아시아·북극·대서양을 중동·러우와 동급으로
   const theaterBonus =
     theater === "middle-east" ||
@@ -1384,6 +1461,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       diplomacyBonus +
       softDiplomacyPenalty +
       softPenalty +
+      koreaBonus +
       theaterBonus +
       freshnessBonus +
       clusterBonus +
@@ -1430,9 +1508,8 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 사진 필수 · 고신뢰 · 전장 다양성 · 본문 스니펫으로 심층 후보.
- * 중동·러우에 치우치지 않도록 아태·인도양·북극·대서양 슬롯을 먼저 확보.
- * 등불 카드 summary는 LAMP_DISPLAY_SUMMARY_MAX로 축약.
+ * 지정학 등불 — 전 세계 지정학 뉴스 중 **한국을 겨냥한 발언·압박**을 우선 채움.
+ * 사진 필수 · 고신뢰. 후보가 부족하면 한국 관련 하드뉴스로 완화.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -1460,29 +1537,7 @@ export function pickConflictLampNews(
   const out: LampFeaturedNews[] = [];
   const seenLinks = new Set<string>();
   const seenClusters = new Set<string>();
-  const theaterCounts: Record<ConflictTheater, number> = {
-    "middle-east": 0,
-    "russia-ukraine": 0,
-    "china-taiwan": 0,
-    korea: 0,
-    japan: 0,
-    "south-asia": 0,
-    arctic: 0,
-    atlantic: 0,
-    global: 0,
-  };
-  const maxPerTheater = Math.max(2, Math.ceil(target / 4));
   let diplomacyCount = 0;
-
-  const apacCount = () =>
-    APAC_CONFLICT_THEATERS.reduce((n, t) => n + theaterCounts[t], 0);
-  const arcticAtlanticCount = () =>
-    ARCTIC_ATLANTIC_THEATERS.reduce((n, t) => n + theaterCounts[t], 0);
-  const meUaCount = () => theaterCounts["middle-east"] + theaterCounts["russia-ukraine"];
-  const diversityShort =
-    () =>
-      apacCount() < CONFLICT_LAMP_APAC_MIN ||
-      arcticAtlanticCount() < CONFLICT_LAMP_ARCTIC_ATLANTIC_MIN;
 
   const tryPush = (row: ScoredConflictNews, relax = false): boolean => {
     const item = row.item;
@@ -1496,89 +1551,54 @@ export function pickConflictLampNews(
     if (!relax && bodyLen < 80 && item.trustTier > 1) return false;
     if (!relax && item.trustTier === 3 && row.clusterSize < 2 && bodyLen < 250) return false;
 
-    if (theaterCounts[row.theater] >= maxPerTheater && !relax) return false;
-
-    // 중동·러우가 아태·북극·대서양 자리를 잠식하지 않도록 소프트 캡
-    if (
-      !relax &&
-      (row.theater === "middle-east" || row.theater === "russia-ukraine") &&
-      meUaCount() >= CONFLICT_LAMP_ME_UA_SOFT_CAP &&
-      diversityShort()
-    ) {
-      return false;
-    }
-
     const blob = `${item.title} ${item.summary ?? ""}`;
+    if (!relax && CONFLICT_SOFT_NEWS_RE.test(blob)) return false;
+
     const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
     if (isDiplomacy && diplomacyCount >= CONFLICT_LAMP_DIPLOMACY_MAX && !relax) return false;
 
     seenLinks.add(key);
     seenClusters.add(cKey);
-    theaterCounts[row.theater] += 1;
     if (isDiplomacy) diplomacyCount += 1;
     out.push(toConflictFeatured(row, lang));
     return true;
   };
 
-  // 1) 아태·남아시아 전장별 최소 1건
-  for (const theater of APAC_CONFLICT_THEATERS) {
-    if (out.length >= target) break;
-    for (const row of scored) {
-      if (row.theater !== theater) continue;
-      if (tryPush(row)) break;
-    }
-  }
+  const targeted = scored.filter((row) =>
+    isKoreaTargetedSpeech(`${row.item.title} ${row.item.summary ?? ""}`),
+  );
+  const koreaRelated = scored.filter((row) =>
+    mentionsSouthKorea(`${row.item.title} ${row.item.summary ?? ""}`),
+  );
 
-  // 2) 북극·대서양 전장별 최소 1건
-  for (const theater of ARCTIC_ATLANTIC_THEATERS) {
-    if (out.length >= target) break;
-    for (const row of scored) {
-      if (row.theater !== theater) continue;
-      if (tryPush(row)) break;
-    }
-  }
-
-  // 3) 중동·러우·글로벌도 전장별 1건
-  for (const theater of CONFLICT_THEATER_PRIORITY) {
-    if (out.length >= target) break;
-    if (
-      (APAC_CONFLICT_THEATERS.includes(theater) || ARCTIC_ATLANTIC_THEATERS.includes(theater)) &&
-      theaterCounts[theater] > 0
-    ) {
-      continue;
-    }
-    for (const row of scored) {
-      if (row.theater !== theater) continue;
-      if (tryPush(row)) break;
-    }
-  }
-
-  // 4) 아태 최소 건수 미달이면 추가 채움
-  if (apacCount() < CONFLICT_LAMP_APAC_MIN) {
-    for (const row of scored) {
-      if (out.length >= target) break;
-      if (!APAC_CONFLICT_THEATERS.includes(row.theater)) continue;
-      if (apacCount() >= CONFLICT_LAMP_APAC_MIN) break;
-      tryPush(row);
-    }
-  }
-
-  // 5) 북극·대서양 최소 미달이면 추가 채움
-  if (arcticAtlanticCount() < CONFLICT_LAMP_ARCTIC_ATLANTIC_MIN) {
-    for (const row of scored) {
-      if (out.length >= target) break;
-      if (!ARCTIC_ATLANTIC_THEATERS.includes(row.theater)) continue;
-      if (arcticAtlanticCount() >= CONFLICT_LAMP_ARCTIC_ATLANTIC_MIN) break;
-      tryPush(row);
-    }
-  }
-
-  for (const row of scored) {
+  // 1) 한국 겨냥 발언 우선
+  for (const row of targeted) {
     if (out.length >= target) break;
     tryPush(row);
   }
 
+  // 2) 한국 관련 지정학 하드뉴스
   if (out.length < target) {
+    for (const row of koreaRelated) {
+      if (out.length >= target) break;
+      tryPush(row);
+    }
+  }
+
+  // 3) 완화 — 남은 겨냥·한국 관련
+  if (out.length < target) {
+    for (const row of targeted) {
+      if (out.length >= target) break;
+      tryPush(row, true);
+    }
+    for (const row of koreaRelated) {
+      if (out.length >= target) break;
+      tryPush(row, true);
+    }
+  }
+
+  // 4) 최후 — 풀이 비면 전역 하드뉴스 (빈 등불 방지)
+  if (out.length === 0) {
     for (const row of scored) {
       if (out.length >= target) break;
       tryPush(row, true);
