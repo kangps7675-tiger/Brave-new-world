@@ -46,9 +46,9 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     titleKo: "1 · 지구본",
     titleEn: "1 · Globe",
     bodyKo:
-      "드래그로 이동·회전, 스크롤로 줌합니다. 빈 바다를 더블클릭하면 그 지점으로 확대됩니다. HOI처럼 지도를 들고 날아다니세요.",
+      "드래그로 이동·회전, 스크롤로 줌합니다. 빈 바다를 더블클릭하면 그 지점으로 확대됩니다. 화면이 사선으로 기울어졌을 때 Alt를 누른 채 드래그하면 기울기·회전을 맞출 수 있습니다 (좌우=돌리기, 위아래=눕히기/세우기).",
     bodyEn:
-      "Drag to pan/rotate, scroll to zoom. Double-click empty ocean to zoom in. Fly the map freely like a strategy game.",
+      "Drag to pan/rotate, scroll to zoom. Double-click empty ocean to zoom in. When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
   },
   {
     id: "nav",

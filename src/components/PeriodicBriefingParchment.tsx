@@ -46,6 +46,7 @@ export function PeriodicBriefingParchment({
         playBreakingDispatch
         titleId="periodic-briefing-title"
         historyHandFont={lang !== "en"}
+        blackInk
       />
     );
   }
@@ -67,9 +68,9 @@ function PhotoNewsLampParchment({
     lang === "en"
       ? "var(--font-intel)"
       : 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif';
-  /** 기사 본문·메타 — 검정 통일 */
+  /** 등불 글자 — 전부 검정 */
   const articleInk = "#000000";
-  const articleInkMuted = "rgba(0,0,0,0.72)";
+  const articleInkMuted = "#000000";
   const exiting = phase === "folding" || phase === "done";
   const news = briefing.featuredNews ?? [];
   const macroRows = briefing.macroTable ?? [];
@@ -270,7 +271,7 @@ function PhotoNewsLampParchment({
     >
       <div className="welcome-letter-stage welcome-letter-stage--economy-lamp w-full">
         <div
-          className={`welcome-letter-card parchment-letter welcome-letter-card--economy-lamp ${
+          className={`welcome-letter-card parchment-letter parchment-letter--lamp-ink welcome-letter-card--economy-lamp ${
             exiting ? "welcome-letter-card--fold-exit" : "welcome-letter-card--unfold-enter"
           }`}
           style={{ fontFamily: parchmentStack }}
