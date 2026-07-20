@@ -401,6 +401,17 @@ main[data-ui-lang="en"]
   max-width: min(96vw, 72rem);
 }
 
+/** 등불 양피지 — 글자색 전부 검정 */
+.parchment-letter--lamp-ink,
+.parchment-letter--lamp-ink :where(p, h1, h2, h3, h4, span, td, th, li, a, button, label, div) {
+  color: #000000 !important;
+}
+.parchment-letter--lamp-ink .welcome-letter-back-mark,
+.parchment-letter--lamp-ink .welcome-letter-back-sub,
+.parchment-letter--lamp-ink .welcome-letter-corner {
+  color: #000000 !important;
+}
+
 .welcome-letter-face {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

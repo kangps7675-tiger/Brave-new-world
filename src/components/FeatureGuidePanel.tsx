@@ -4,6 +4,7 @@ import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 import { GUEST_POLICY_COPY } from "@/lib/auth/guestPolicy";
 import { AUTH_SESSION_POLICY_COPY } from "@/lib/auth/sessionPolicy";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 type FeatureGuidePanelProps = {
@@ -19,19 +20,16 @@ type GuideSection = {
   steps: string[];
 };
 
-const ACCOUNT_GUIDE_SECTIONS: GuideSection[] = [
-  {
-    title: GUEST_POLICY_COPY.ko.title,
-    steps: [...GUEST_POLICY_COPY.ko.steps],
-  },
-  {
-    title: AUTH_SESSION_POLICY_COPY.ko.title,
-    steps: [...AUTH_SESSION_POLICY_COPY.ko.steps],
-  },
-];
+function accountGuideSections(lang: LabelLanguage): GuideSection[] {
+  const guest = GUEST_POLICY_COPY[lang];
+  const session = AUTH_SESSION_POLICY_COPY[lang];
+  return [
+    { title: guest.title, steps: [...guest.steps] },
+    { title: session.title, steps: [...session.steps] },
+  ];
+}
 
-
-const GUIDE_SECTIONS: GuideSection[] = [
+const GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "빠른 시작",
     steps: [
@@ -115,10 +113,95 @@ const GUIDE_SECTIONS: GuideSection[] = [
       "오른쪽 위 ≡ 메뉴에는 레이어 패널, 자료 출처(NASA FIRMS=위성 화재·열 감지, ADS-B=항공기가 쏘는 위치 신호, MarineTraffic=선박 위치 추적), 도움말, 주요전선 탭이 들어 있습니다.",
     ],
   },
-  ...ACCOUNT_GUIDE_SECTIONS,
 ];
 
-const ECONOMY_GUIDE_SECTIONS: GuideSection[] = [
+const GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Quick start",
+    steps: [
+      "Drag to rotate the globe, scroll to zoom. Double-click empty ocean to zoom into that point.",
+      "When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
+      "Use ≡ (top-left) to toggle layers — fronts, news, energy, and more.",
+      "Tap 📰 at the bottom for verified reports, theater news, and Telegram OSINT. Use Key theaters on the right to jump to conflict zones.",
+      "Click pins or conflict zones on the map to open details on the right.",
+    ],
+  },
+  {
+    title: "Daily ranking cards",
+    steps: [
+      "Bottom-left 「Risk TOP 5 / Supply-chain TOP 5」 auto-aggregates daily on UTC.",
+      "▲▼ shows rank change vs yesterday; 「Share card」 exports a 1080×1080 PNG for Threads or Reels.",
+      "Conflict (theater tension) and Economy (chokepoint stress) share the same card template as a pair.",
+    ],
+  },
+  {
+    title: "War zones · Diplomatic tension",
+    steps: [
+      "Open ≡ (top-right) and enable War zones or Diplomatic tension zones. (A layer is an information overlay on the map.)",
+      "Hover a hatched box to see name, risk level, and a one-line summary.",
+      "Click a box for a description, involved actors, and detailed notes on the right.",
+      "Color coding — red = active war, orange = diplomatic tension. Zoom in to reveal narrower sub-regions first.",
+    ],
+  },
+  {
+    title: "AI war regions (demo)",
+    steps: [
+      "Enable 「AI war regions (demo)」 in the layer panel — red circles mark dispute areas and news clusters mentioning combat (powered by GDELT, a public worldwide news analysis feed).",
+      "This is an in-app heuristic demo with no external AI service. It does not auto-enable when you enter the Middle East.",
+      "Hover a circle for region name, tension level, and confidence.",
+      "Click a circle to fly there and open a detail panel on the right.",
+    ],
+  },
+  {
+    title: "Island chains · US defense lines",
+    steps: [
+      "Enable 「Island chains · US defense lines」 in the layer panel (may be on by default in Taiwan/Korea theater packages).",
+      "Red dashed lines are China’s first and second island chains — the dashes drift slowly like a barrier.",
+      "Blue solid lines are US forward containment / strategic depth. Hover blue base markers for detection radii.",
+      "A pulse ring near Taiwan marks where red and blue lines cross — a powder keg.",
+    ],
+  },
+  {
+    title: "Axis network · anti-West conflict history",
+    steps: [
+      "「Axis network」 links hub states (Iran, China, Russia, DPRK) to partners with curved spokes.",
+      "Hub menu → 「Anti-West conflict history」 covers 11 historic flashpoints (Zhenbao, Lang Son, Galwan, Tsorak, and more). Tap a card to fly there and open a parchment brief.",
+      "Use Key theaters (top-right) to jump to Taiwan, Korea, Ukraine, or the Middle East.",
+      "Spoke colors mean relationship type — funding, arms, energy, hybrid, diplomacy.",
+    ],
+  },
+  {
+    title: "News alert pins (GDELT)",
+    steps: [
+      "Toggle 「News · combat」「News · diplomatic tension」「News · protest」 chips (GDELT-based).",
+      "Red, orange, and gray pins appear on the map with a News badge in the strip below.",
+      "Hover a pin for alert type and headline.",
+      "Alliance/protest pins use the same badge. Check the legend at the bottom for color meanings.",
+    ],
+  },
+  {
+    title: "Explore regions · news",
+    steps: [
+      "Use top menus (Conflict regions / Intercontinental friction) to jump to Taiwan, Korea, the Middle East, and more.",
+      "Choosing a region flies the camera and opens an intel sheet filtered to that area.",
+      "The Key fronts tab jumps quickly to major dispute theaters.",
+    ],
+  },
+  {
+    title: "Map controls",
+    steps: [
+      "Drag to rotate, scroll to zoom, double-click empty ocean to zoom in.",
+      "When the camera is tilted: hold Alt and drag to set pitch and bearing — left/right spins, up/down tilts.",
+      "Click a news pin or conflict box to zoom in and open the related intel sheet.",
+      "The top breaking bar or 📰 opens news full-screen (middle-click does the same).",
+      "The 🎯 (map) button on a story card closes the sheet and flies to that location.",
+      "「✕ Map」 or the bottom close control returns you to the globe.",
+      "≡ (top-right) holds layers, sources (NASA FIRMS, ADS-B, MarineTraffic), help, and Key fronts.",
+    ],
+  },
+];
+
+const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "빠른 시작",
     steps: [
@@ -168,7 +251,58 @@ const ECONOMY_GUIDE_SECTIONS: GuideSection[] = [
       "모드를 바꾸면 레이어, 위쪽 메뉴, 아래쪽 정보 창이 함께 바뀝니다.",
     ],
   },
-  ...ACCOUNT_GUIDE_SECTIONS,
+];
+
+const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Quick start",
+    steps: [
+      "Drag and zoom to explore the globe.",
+      "When the view is tilted, Alt + drag adjusts pitch and bearing.",
+      "Use ≡ to toggle oil, gas, shipping, sanctions, and AI DC layers.",
+      "Use 📈 and the ticker for indices, VIX, and economy briefs; pick Suez, Hormuz, and more from the top nav to open related markets.",
+    ],
+  },
+  {
+    title: "Daily supply-chain ranking",
+    steps: [
+      "Bottom-left 「Supply-chain TOP 5」 aggregates AIS and nearby tension signals per chokepoint daily.",
+      "Pair it with the Conflict 「Risk regions」 card the same day for a content engine.",
+    ],
+  },
+  {
+    title: "Sanctions · energy · logistics layers",
+    steps: [
+      "≡ → Infrastructure · markets: sanctions, pipelines, LNG, shipping lanes, chokepoints (narrow trade bottlenecks such as the Strait of Hormuz).",
+      "Hover logistics-risk pins for related market reads like Brent and VIX.",
+      "Economy mode has no live breaking / Telegram ingest — use economy RSS and the ticker strip instead.",
+    ],
+  },
+  {
+    title: "Ticker strip · economy intel",
+    steps: [
+      "The bottom strip streams major indices, VIX, and oil as a ticker.",
+      "📈 opens an intel sheet with economy news and markets.",
+      "News is split by trust tier — official/wire · specialist market media · unverified breaking.",
+    ],
+  },
+  {
+    title: "Geo Markets navigation",
+    steps: [
+      "Jump from search/menus to Hormuz, Suez, finance hubs, TSMC, and more.",
+      "Selecting an item shows related RSS and tickers in the economy region panel.",
+      "Use Key hubs to fly quickly to chokepoints or finance cities.",
+    ],
+  },
+  {
+    title: "Map controls",
+    steps: [
+      "Drag to rotate, scroll to zoom, double-click to zoom into a point.",
+      "When the camera is tilted, Alt + drag adjusts pitch and bearing (left/right = spin, up/down = tilt).",
+      "Use the Conflict | Economy switch at the top to change view mode.",
+      "Switching modes also swaps layers, top menus, and the bottom intel chrome.",
+    ],
+  },
 ];
 
 export function FeatureGuidePanel({
@@ -177,33 +311,46 @@ export function FeatureGuidePanel({
   onClose,
   onRestartTour,
 }: FeatureGuidePanelProps) {
+  const { lang } = useLocale();
+  const en = lang === "en";
   if (!open) return null;
-  const sections = viewerMode === "economy" ? ECONOMY_GUIDE_SECTIONS : GUIDE_SECTIONS;
+
+  const base =
+    viewerMode === "economy"
+      ? en
+        ? ECONOMY_GUIDE_SECTIONS_EN
+        : ECONOMY_GUIDE_SECTIONS_KO
+      : en
+        ? GUIDE_SECTIONS_EN
+        : GUIDE_SECTIONS_KO;
+  const sections = [...base, ...accountGuideSections(lang)];
 
   return (
     <>
       <button
         type="button"
-        aria-label="사용 안내 닫기"
+        aria-label={en ? "Close guide" : "사용 안내 닫기"}
         className="absolute inset-0 z-[58] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside
         className="intel-panel absolute right-3 top-14 z-[62] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
-        aria-label="기능 사용 안내"
+        aria-label={en ? "Feature guide" : "기능 사용 안내"}
       >
         <div className="flex items-start justify-between gap-3 border-b border-sky-300/15 px-4 py-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/70">Guide</p>
-            <h2 className="mt-1 text-lg font-semibold text-sky-50">기능 사용 안내</h2>
+            <h2 className="mt-1 text-lg font-semibold text-sky-50">
+              {en ? "Feature guide" : "기능 사용 안내"}
+            </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-lg border border-sky-200/15 px-2 py-1 text-xs text-sky-100/80 transition hover:border-sky-200/30 hover:text-sky-50"
           >
-            닫기
+            {en ? "Close" : "닫기"}
           </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
@@ -216,9 +363,11 @@ export function FeatureGuidePanel({
               }}
               className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-[12px] font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
             >
-              화면 투어 1→10 다시 보기
+              {en ? "Replay screen tour 1→10" : "화면 투어 1→10 다시 보기"}
               <span className="mt-0.5 block text-[10px] font-normal text-amber-100/60">
-                지구본·탐색·레이어·뉴스 시트·알림을 순서대로 가리킵니다
+                {en
+                  ? "Walks through globe, nav, layers, news sheet, and alerts in order"
+                  : "지구본·탐색·레이어·뉴스 시트·알림을 순서대로 가리킵니다"}
               </span>
             </button>
           ) : null}
