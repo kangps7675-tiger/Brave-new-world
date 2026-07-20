@@ -363,11 +363,11 @@ export function FeatureGuidePanel({
               }}
               className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-[12px] font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
             >
-              {en ? "Replay screen tour 1→10" : "화면 투어 1→10 다시 보기"}
+              {en ? "Start screen tour 1→10" : "화면 투어 1→10 시작"}
               <span className="mt-0.5 block text-[10px] font-normal text-amber-100/60">
                 {en
-                  ? "Walks through globe, nav, layers, news sheet, and alerts in order"
-                  : "지구본·탐색·레이어·뉴스 시트·알림을 순서대로 가리킵니다"}
+                  ? "Optional walkthrough — globe, nav, layers, news sheet, alerts"
+                  : "선택 사항 — 지구본·탐색·레이어·뉴스 시트·알림을 순서대로"}
               </span>
             </button>
           ) : null}
