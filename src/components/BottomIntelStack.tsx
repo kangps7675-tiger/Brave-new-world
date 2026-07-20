@@ -498,10 +498,12 @@ function HeroHeadlineBanner({
   hero,
   onOpenSheet,
   economy = false,
+  viewerMode = "conflict",
 }: {
   hero: HeroBreakingItem;
   onOpenSheet: (theater?: IntelTheaterFilter) => void;
   economy?: boolean;
+  viewerMode?: ViewerMode;
 }) {
   const { lang, t } = useLocale();
   const statusText = heroStatusLabel(hero.heroStatus, lang, economy);
@@ -554,14 +556,17 @@ function HeroHeadlineBanner({
           </span>
         </div>
       </button>
-      <EventMarketReactionCard
-        theater={hero.theater}
-        ageMinutes={hero.ageMinutes}
-        prominent
-      />
+      {!economy ? (
+        <EventMarketReactionCard
+          theater={hero.theater}
+          ageMinutes={hero.ageMinutes}
+          prominent
+        />
+      ) : null}
       <CounterfactualInvestCard
         theater={hero.theater}
         ageMinutes={hero.ageMinutes}
+        viewerMode={viewerMode}
         prominent
       />
       {hero.link ? (
@@ -598,6 +603,7 @@ export function DynamicIntelStack({
   const { lang, t } = useLocale();
   const { payload, preferEconomyNews } = useNewsStreamContext();
   const isEconomy = viewerMode === "economy" || preferEconomyNews;
+  const timelineMode: ViewerMode = isEconomy ? "economy" : "conflict";
   const hero = payload?.hero ?? null;
   const mode = resolveIntelStackMode(hero);
   const isAlert = mode === "alert";
@@ -868,19 +874,27 @@ export function DynamicIntelStack({
         <IntelDragDismissHint economy={isEconomy} />
 
         {isAlert && hero ? (
-          <HeroHeadlineBanner hero={hero} onOpenSheet={onOpenSheet} economy={isEconomy} />
+          <HeroHeadlineBanner
+            hero={hero}
+            onOpenSheet={onOpenSheet}
+            economy={isEconomy}
+            viewerMode={timelineMode}
+          />
         ) : null}
 
-        {!isAlert && hero && !isEconomy ? (
+        {!isAlert && hero ? (
           <>
-            <EventMarketReactionCard
-              theater={hero.theater}
-              ageMinutes={hero.ageMinutes}
-              prominent
-            />
+            {!isEconomy ? (
+              <EventMarketReactionCard
+                theater={hero.theater}
+                ageMinutes={hero.ageMinutes}
+                prominent
+              />
+            ) : null}
             <CounterfactualInvestCard
               theater={hero.theater}
               ageMinutes={hero.ageMinutes}
+              viewerMode={timelineMode}
               prominent
             />
           </>

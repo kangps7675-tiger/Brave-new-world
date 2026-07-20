@@ -8,9 +8,12 @@ import { DailyPredictPanel } from "@/components/DailyPredictPanel";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
 import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
+import type { ViewerMode } from "@/lib/viewPackages";
+import { viewerModeFromPackages } from "@/lib/viewPackages";
 
 type MobileAlertFeedProps = {
   onClose: () => void;
+  viewerMode?: ViewerMode;
 };
 
 /** 화면에 한 번에 보여줄 최대 기사 수 (오래된 건 굳이 다 안 당겨옴) */
@@ -31,9 +34,13 @@ function ageMinutesOf(item: NewsStreamItem): number {
  * (EventMarketReactionCard)을 같이 보여준다. 데이터는 이미 떠 있는 NewsStreamContext를
  * 그대로 읽으므로 추가 폴링·호출이 없다.
  */
-export function MobileAlertFeed({ onClose }: MobileAlertFeedProps) {
-  const { payload } = useNewsStreamContext();
+export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileAlertFeedProps) {
+  const { payload, viewPackages, preferEconomyNews } = useNewsStreamContext();
   const { lang } = useLocale();
+  const viewerMode: ViewerMode =
+    viewerModeProp ??
+    (preferEconomyNews ? "economy" : viewerModeFromPackages(viewPackages));
+  const isEconomy = viewerMode === "economy";
   /** 어제 정답률 — "나 말고도 하고 있다"는 사회적 신호라 예측 참여율에 영향이 큼 */
   const [yesterdayCorrectPct, setYesterdayCorrectPct] = useState<number | null>(null);
 
@@ -110,20 +117,37 @@ export function MobileAlertFeed({ onClose }: MobileAlertFeedProps) {
         </div>
 
         {payload?.hero ? (
-          <div className="border-b border-amber-400/15 px-0 pb-1">
+          <div
+            className={`border-b px-0 pb-1 ${
+              isEconomy ? "border-emerald-400/15" : "border-amber-400/15"
+            }`}
+          >
             <div className="px-3 pb-1 pt-1">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-200/80">
-                {lang === "en" ? "War ↔ Markets" : "전쟁 ↔ 이익"}
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                  isEconomy ? "text-emerald-200/80" : "text-amber-200/80"
+                }`}
+              >
+                {isEconomy
+                  ? lang === "en"
+                    ? "Markets ↔ Timeline"
+                    : "시장 ↔ 타임테이블"
+                  : lang === "en"
+                    ? "War ↔ Markets"
+                    : "전쟁 ↔ 이익"}
               </span>
             </div>
-            <EventMarketReactionCard
-              theater={payload.hero.theater}
-              ageMinutes={payload.hero.ageMinutes}
-              prominent
-            />
+            {!isEconomy ? (
+              <EventMarketReactionCard
+                theater={payload.hero.theater}
+                ageMinutes={payload.hero.ageMinutes}
+                prominent
+              />
+            ) : null}
             <CounterfactualInvestCard
               theater={payload.hero.theater}
               ageMinutes={payload.hero.ageMinutes}
+              viewerMode={viewerMode}
               prominent
             />
           </div>
@@ -141,11 +165,13 @@ export function MobileAlertFeed({ onClose }: MobileAlertFeedProps) {
                   {theaterLabel(group.theater, lang)}
                 </span>
               </div>
-              <EventMarketReactionCard
-                theater={group.theater}
-                ageMinutes={group.ageMinutes}
-                prominent={index === 0}
-              />
+              {!isEconomy ? (
+                <EventMarketReactionCard
+                  theater={group.theater}
+                  ageMinutes={group.ageMinutes}
+                  prominent={index === 0}
+                />
+              ) : null}
               <ul className="px-2 py-1.5">
                 {group.items.slice(0, MAX_ITEMS_PER_THEATER).map((item) => (
                   <li key={item.id}>
