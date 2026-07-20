@@ -63,7 +63,6 @@ const ENERGY_GOLD = ["GC=F", "CL=F", "BZ=F", "DX-Y.NYB"] as const;
 const OIL_GOLD_VIX = ["CL=F", "BZ=F", "GC=F", "^VIX"] as const;
 const ASIA_TECH = ["000001.SS", "^HSI", "^IXIC", "^VIX"] as const;
 const KOREA_ASIA = ["^KS11", "^IXIC", "^HSI", "^VIX"] as const;
-const GLOBAL_RISK = ["^VIX", "^GSPC", "GC=F", "CL=F"] as const;
 /** 물류·에너지·달러 */
 const LOGISTICS_STRESS = ["CL=F", "BZ=F", "DX-Y.NYB", "^VIX", "GC=F"] as const;
 /** 경제 타임테이블 — 증시·공포·달러·금 */

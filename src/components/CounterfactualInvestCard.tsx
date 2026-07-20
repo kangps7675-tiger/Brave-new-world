@@ -102,7 +102,7 @@ export function CounterfactualInvestCard({
     return () => {
       cancelled = true;
     };
-  }, [theater, ageMinutes, viewerMode, chokepointId, catalog?.id, catalog?.anchorDate]);
+  }, [theater, ageMinutes, viewerMode, chokepointId, catalog]);
 
   if (payload === null) return null;
 
