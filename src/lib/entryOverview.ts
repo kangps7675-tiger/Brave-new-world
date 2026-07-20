@@ -59,31 +59,47 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/**
- * 지정학 히어로 — 첫 렌더 부담을 낮춘 슬림 세트.
- * 가스관·GEM·LNG·핵은 패널에서 켜기 (동시 ON 시 HTML/경로 폭증).
- */
+/** 지정학 히어로 — 요청 기본 레이어 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
+  showGdeltAlliance: true,
+  showGdeltProtests: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
+  showAxisNetwork: true,
   showSubmarineCables: true,
+  /** 에너지·자원 — 게이트 직후 overview가 force-on을 덮어도 유지 */
   showOilPipelines: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showResources: true,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+  showNuclearSites: true,
 };
 
-/**
- * 지경학 히어로 — 물류·케이블·송유관 중심. GEM/공항 전량은 줌인 후 또는 수동 ON.
- */
+/** 지경학 히어로 — 요청 기본 레이어 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   showAis: true,
+  showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
   showOilPipelines: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showResources: true,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+  showNuclearSites: true,
+  showAiDataCenters: true,
   showPorts: true,
+  showAirports: true,
 };
 
 /**

@@ -113,7 +113,7 @@ export const HEATMAP_MEANINGFUL_DELTA = 28;
 export const LABEL_MEANINGFUL_DELTA = 56;
 export const PATH_MEANINGFUL_DELTA = 120;
 /** HTML 실루엣 마커는 DOM 비용이 커서 뷰포트 포인트보다 더 세게 캡 */
-export const INFRA_HTML_MARKER_CAP = 48;
+export const INFRA_HTML_MARKER_CAP = 72;
 export const LOD_HYSTERESIS_MARGIN = 0.06;
 /** 분쟁 외교사(역사 모드) — 줌아웃해도 궤도 밖으로 튕기지 않게 상한 */
 export const HISTORY_IMMERSION_MAX_ALTITUDE = 1.38;

@@ -57,17 +57,30 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
+  showGdeltAlliance: true,
+  showGdeltProtests: true,
+  showGdeltOceanCompetition: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
+  showAxisNetwork: true,
   showSubmarineCables: true,
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showTelegramOsint: true,
+  /** 지정학 진입 즉시 NewFeeds 이란·공격 지도 레이어 */
   showNewfeedsIranAttacks: true,
+  /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
   showUsCarriers: true,
-  /** 송유관만 기본 — 가스·GEM·LNG·핵은 수동 (첫 렌더 렉 완화) */
+  /** 에너지·자원 카테고리 — 지정학에서도 패널·기본 ON */
   showOilPipelines: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showResources: true,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+  showNuclearSites: true,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
@@ -78,11 +91,21 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   showAis: true,
+  showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
   showOilPipelines: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showResources: true,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+  showNuclearSites: true,
+  showAiDataCenters: true,
   showPorts: true,
+  showAirports: true,
   /** 유가 민감 — 이란·지역 공격 NewFeeds 지도 */
   showNewfeedsIranAttacks: true,
 };

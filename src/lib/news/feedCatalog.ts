@@ -157,6 +157,14 @@ const KOREA: NewsFeedDef[] = [
     theater: "korea",
     unfiltered: true,
   },
+  {
+    url: G(
+      '("South Korea" OR Seoul OR ROK) (warn OR warning OR threat OR threaten OR criticiz OR condemn OR sanction OR pressure OR slam OR accuse OR "foreign ministry" OR spokeswoman OR remarks OR statement) (China OR Beijing OR Pyongyang OR "North Korea" OR Moscow OR Tokyo OR Washington OR Japan OR Russia)',
+    ),
+    name: "Google News · Remarks aimed at Korea",
+    theater: "korea",
+    unfiltered: true,
+  },
 ];
 
 const JAPAN: NewsFeedDef[] = [
@@ -638,9 +646,19 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Korea OR "South Korea" OR Seoul OR Samsung OR "SK hynix" OR Hyundai OR "Bank of Korea") (stock OR earnings OR chip OR rate OR GDP OR export)',
+      '(Korea OR "South Korea" OR Seoul OR Samsung OR "SK hynix" OR Hyundai OR "Bank of Korea") (stock OR earnings OR chip OR rate OR GDP OR export OR tariff OR "supply chain" OR investment OR FDI OR semiconductor)',
     ),
     name: "Google · Korea Macro · Majors",
+    theater: "korea",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("South Korea" OR Seoul OR Samsung OR "SK hynix" OR Hyundai) (China OR US OR Japan OR tariff OR sanction OR "export control" OR "supply chain" OR chip OR semiconductor) (earnings OR GDP OR export OR investment OR plant OR factory) -opinion -editorial -column',
+    ),
+    name: "Google · Korea Geoeconomic Hard News",
     theater: "korea",
     topic: "economy",
     econGenre: "macro",

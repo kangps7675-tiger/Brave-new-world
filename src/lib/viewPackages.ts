@@ -109,16 +109,20 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showWarZones: false,
       showDiplomaticTension: false,
       showAis: true,
+      showAirTraffic: true,
       showLogisticsRisk: true,
       showCriticalNodes: true,
       showSubmarineCables: true,
       showOilPipelines: true,
+      showGasPipelines: true,
+      showNuclearSites: true,
+      showAiDataCenters: true,
       showPorts: true,
+      showAirports: true,
+      showLngTerminals: false,
+      showShippingLanes: false,
       showBriTradeConnectivity: true,
       showUsDfcSupplyChain: true,
-      showNewfeedsIranAttacks: true,
-      showShippingLanes: false,
-      showLngTerminals: false,
       showInternetExchanges: false,
       showEconomicCenters: false,
       showSubmarineTunnels: false,
@@ -132,13 +136,9 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showUkraineControl: false,
       showNeptun: false,
       showTzevaAdom: false,
+      showNewfeedsIranAttacks: true,
       showUsCarriers: false,
       showMilitaryActivity: false,
-      showAirTraffic: false,
-      showAirports: false,
-      showGasPipelines: false,
-      showNuclearSites: false,
-      showAiDataCenters: false,
     },
     ui: {
       showTicker: true,
@@ -157,16 +157,21 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showWarZones: true,
       showGdeltWar: true,
       showGdeltDiplomatic: true,
+      showGdeltAlliance: true,
+      showGdeltProtests: true,
+      showGdeltOceanCompetition: true,
       showMilitaryActivity: true,
       showAis: true,
       showLogisticsRisk: true,
+      showAxisNetwork: true,
       showSubmarineCables: true,
-      showOilPipelines: true,
       showNeptun: true,
       showNeptunPreviousTrails: false,
+      showTzevaAdom: true,
       showNewfeedsIranAttacks: true,
       showTelegramOsint: true,
       showUsCarriers: true,
+      showDiplomaticTension: true,
       showConflictZones: false,
     },
     ui: {
@@ -211,44 +216,30 @@ type BooleanLayerKey = {
 }[keyof LayerPrefs];
 
 const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
-  "showGemCoalMines",
-  "showGemIronOre",
-  "showGemOilGasExtraction",
-  "showGemOilGasPlants",
-  "showResources",
-  "showGasPipelines",
-  "showLngTerminals",
-  "showNuclearSites",
-  "showAirports",
-  "showAirTraffic",
-  "showAiDataCenters",
   "showUcdpEvents",
   "showArmsEmbargo",
   "showGdeltAlliance",
   "showGdeltProtests",
-  "showGdeltOceanCompetition",
-  "showAxisNetwork",
+  "showMilitaryActivity",
   "showMilitaryBases",
+  "showUsCarriers",
   "showConflictZones",
   "showDiplomaticTension",
-  "showTzevaAdom",
-  // 핵심 전장·물류·송유관은 후순위
+  "showTelegramOsint",
+  "showLngTerminals",
+  // showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
+  // 는 에너지·전장 핵심 — 후순위 드롭
 ];
 
 const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
-  "showGemCoalMines",
-  "showGemIronOre",
-  "showGemOilGasExtraction",
-  "showResources",
-  "showGasPipelines",
-  "showLngTerminals",
-  "showNuclearSites",
   "showDiplomaticTension",
   "showEconomicCenters",
+  "showPorts",
   "showInternetExchanges",
   "showAirports",
-  "showAirTraffic",
-  "showAiDataCenters",
+  "showLngTerminals",
+  "showSubmarineCables",
+  // showOilPipelines · showGasPipelines 유지 — 에너지 지도 핵심
 ];
 
 export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
@@ -291,10 +282,10 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showArmsEmbargo: "무기 금수 국가",
 };
 
-/** Conflict 동시 ON 레이어 hard cap — 렌더 폭증 방지 */
-export const MAX_ON_LAYERS = 16 as const;
+/** Conflict 동시 ON 레이어 hard cap */
+export const MAX_ON_LAYERS = 64 as const;
 /** Economy 동시 ON 레이어 hard cap */
-export const MAX_ON_LAYERS_ECONOMY = 14 as const;
+export const MAX_ON_LAYERS_ECONOMY = 64 as const;
 
 const PACKAGE_BY_ID = Object.fromEntries(
   VIEW_PACKAGES.map((pkg) => [pkg.id, pkg]),

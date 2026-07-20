@@ -2806,7 +2806,10 @@ export function GlobeDashboard({
     ]);
     const priority = html.filter((p) => priorityKinds.has(p.kind));
     const rest = html.filter((p) => !priorityKinds.has(p.kind));
-    const priorityBudget = Math.min(priority.length, Math.max(24, Math.floor(INFRA_HTML_MARKER_CAP * 0.45)));
+    const priorityBudget = Math.min(
+      priority.length,
+      Math.max(36, Math.floor(INFRA_HTML_MARKER_CAP * 0.55)),
+    );
     const pickedPriority = priority.slice(0, priorityBudget);
     const restBudget = Math.max(0, INFRA_HTML_MARKER_CAP - pickedPriority.length);
     return [...pickedPriority, ...rest.slice(0, restBudget)];
@@ -3840,9 +3843,19 @@ export function GlobeDashboard({
     count: 0,
     updatedAt: 0,
   });
-  const pathStabilityRef = useRef<{ signature: string; count: number; updatedAt: number }>({
+  const pathStabilityRef = useRef<{
+    signature: string;
+    count: number;
+    oilCount: number;
+    gasCount: number;
+    cableCount: number;
+    updatedAt: number;
+  }>({
     signature: "",
     count: 0,
+    oilCount: 0,
+    gasCount: 0,
+    cableCount: 0,
     updatedAt: 0,
   });
 
@@ -3895,16 +3908,24 @@ export function GlobeDashboard({
     if (isCameraMoving && !bypass) return;
     const now = Date.now();
     const count = dynamicGlobePaths.length;
-    const hatchCount = dynamicGlobePaths.reduce(
-      (sum, item) =>
+    let oilCount = 0;
+    let gasCount = 0;
+    let cableCount = 0;
+    let hatchCount = 0;
+    for (const item of dynamicGlobePaths) {
+      if (item.kind === "oil-pipeline") oilCount += 1;
+      else if (item.kind === "gas-pipeline") gasCount += 1;
+      else if (item.kind === "submarine-cable") cableCount += 1;
+      else if (
         item.kind === "dispute-hatch" ||
         item.kind === "conflict-hatch" ||
         item.kind === "dispute-zone"
-          ? sum + 1
-          : sum,
-      0,
-    );
-    const signature = `${hatchCount}|${dynamicGlobePaths
+      ) {
+        hatchCount += 1;
+      }
+    }
+    // 앞 96개만 보면 해치·케이블에 밀려 뒤에 붙는 송유관·가스관 유입이 안 잡힘 → 인프라 카운트 포함
+    const signature = `${count}|h${hatchCount}|o${oilCount}|g${gasCount}|c${cableCount}|${dynamicGlobePaths
       .slice(0, 96)
       .map((item) => `${item.kind}:${item.id}`)
       .join("|")}`;
@@ -3914,10 +3935,23 @@ export function GlobeDashboard({
     const cadenceHit = elapsed >= PATH_UPDATE_CADENCE_MS;
     if (
       signature !== prev.signature &&
-      (bypass || meaningfulChange || cadenceHit || prev.updatedAt === 0)
+      (bypass ||
+        meaningfulChange ||
+        cadenceHit ||
+        prev.updatedAt === 0 ||
+        oilCount !== prev.oilCount ||
+        gasCount !== prev.gasCount ||
+        cableCount !== prev.cableCount)
     ) {
       const nextPaths = dynamicGlobePaths;
-      pathStabilityRef.current = { signature, count, updatedAt: now };
+      pathStabilityRef.current = {
+        signature,
+        count,
+        oilCount,
+        gasCount,
+        cableCount,
+        updatedAt: now,
+      };
       // 대량 경로 주입은 다음 프레임으로 미뤄 체크 UI 정지를 피함
       if (count - prev.count >= 40 || count >= 120) {
         const raf = window.requestAnimationFrame(() => {
@@ -7145,7 +7179,7 @@ export function GlobeDashboard({
             const langQs = labelLanguage === "en" ? "en" : "ko";
             const [lampRes, newsRes] = await Promise.all([
               fetch(
-                `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayPart)}&lang=${langQs}`,
+                `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayPart)}&lang=${langQs}&country=${encodeURIComponent("South Korea")}`,
                 { cache: "no-store" },
               ),
               fetch(`/api/news-stream?packages=geo-trader&lang=${langQs}`, { cache: "no-store" }),
@@ -7164,8 +7198,10 @@ export function GlobeDashboard({
                     ? "이번 주 시장 등불"
                     : "오늘의 시장 등불";
 
-            let focusTitle =
-              labelLanguage === "en" ? "Markets in focus" : "시장이 주목하는 뉴스";
+            const focusTitle =
+              labelLanguage === "en"
+                ? "Geoeconomic signals aimed at Korea"
+                : "한국을 겨냥한 지리경제 신호";
             let paragraphs: string[] = [];
             let macroTable = buildLampMacroTable([], labelLanguage);
 
@@ -7185,7 +7221,6 @@ export function GlobeDashboard({
                 }>;
               };
               if (!lamp.disabled) {
-                if (lamp.focusTitle) focusTitle = lamp.focusTitle;
                 paragraphs = shortenEconomyLampParagraphs(lamp.paragraphs ?? [], 1);
                 if (lamp.macros && lamp.macros.length > 0) {
                   macroTable = buildLampMacroTable(lamp.macros, labelLanguage);
@@ -7240,8 +7275,8 @@ export function GlobeDashboard({
                     : "오늘의 전장 등불";
             const focusTitle =
               labelLanguage === "en"
-                ? "High-trust photo desk"
-                : "고신뢰 사진 데스크";
+                ? "Remarks aimed at Korea"
+                : "한국을 겨냥한 발언";
 
             let featuredNews = pickConflictLampNews([], CONFLICT_LAMP_NEWS_MIN, langQs);
             if (newsRes.ok) {
@@ -7497,7 +7532,7 @@ export function GlobeDashboard({
     setShowAirRaidCoach(false);
   }, [periodicBriefing, weeklyRecap]);
 
-  // SENTINEL — 랭킹 전장/초크 순환 fly-to (스크린세이버)
+  // SENTINEL — 지정학=전장/초크, 지경학=초크·경제 중심지 (전장 제외)
   useEffect(() => {
     if (!sentinelActive) return;
     let cancelled = false;
@@ -7521,7 +7556,7 @@ export function GlobeDashboard({
     };
 
     void (async () => {
-      const tour = await fetchSentinelTour();
+      const tour = await fetchSentinelTour(isEconomyViewer ? "economy" : "conflict");
       if (cancelled) return;
       if (tour.length === 0) {
         setSentinelActive(false);
@@ -7534,7 +7569,7 @@ export function GlobeDashboard({
       cancelled = true;
       if (timer != null) window.clearTimeout(timer);
     };
-  }, [sentinelActive, flyTo]);
+  }, [sentinelActive, flyTo, isEconomyViewer]);
 
   const layerDebugPrevRef = useRef<{
     labels: number;
@@ -10262,6 +10297,7 @@ export function GlobeDashboard({
               lang={labelLanguage}
               active={sentinelActive}
               current={sentinelTour[sentinelIndex] ?? null}
+              economyMode={isEconomyViewer}
               onToggle={() => {
                 setSentinelActive((v) => !v);
                 if (!sentinelActive) {
@@ -10306,6 +10342,7 @@ export function GlobeDashboard({
           current={sentinelTour[sentinelIndex] ?? null}
           index={sentinelIndex}
           total={sentinelTour.length}
+          economyMode={isEconomyViewer}
           onExit={() => setSentinelActive(false)}
         />
       ) : null}
