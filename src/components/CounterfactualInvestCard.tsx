@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
 import { tickerDisplayName, type MarketReactionItem } from "@/lib/stockTickers";
 import type { TheaterMarketFilter } from "@/lib/theaterAssets";
+import type { ViewerMode } from "@/lib/viewPackages";
+import type { LogisticsChokepointId } from "@/data/majorEventTimeline";
+import {
+  eventMarketAnchorForViewerMode,
+  pickCounterfactualSymbol,
+  type EventMarketAnchor,
+} from "@/lib/eventMarketAnchors";
 import { renderCounterfactualInvestCard } from "@/lib/counterfactualInvestCard";
 import { shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { trackEvent } from "@/lib/trackClient";
@@ -12,12 +19,19 @@ import { trackEvent } from "@/lib/trackClient";
 type CounterfactualInvestCardProps = {
   theater: TheaterMarketFilter;
   ageMinutes: number;
+  /** conflict=지정학 타임테이블, economy=경제·시장 타임테이블 */
+  viewerMode?: ViewerMode;
+  chokepointId?: LogisticsChokepointId | null;
   /** 히어로 스트립용 — 더 크게 */
   prominent?: boolean;
 };
 
 type ReactionPayload = {
   items?: MarketReactionItem[];
+  anchor?: EventMarketAnchor | null;
+  at?: string | null;
+  source?: "catalog" | "date" | "age";
+  preferredSymbols?: string[];
 };
 
 const STAKE_KRW = 1_000_000;
@@ -38,26 +52,45 @@ function safeTheaterLabel(theater: TheaterMarketFilter, lang: "ko" | "en"): stri
 }
 
 /**
- * "그때 샀으면 얼마 벌었을까" 반사실 카드.
- * EventMarketReactionCard와 같은 /api/stock-tickers/reaction 응답을 재사용 —
- * 판정(σ) 문구 대신 가정 투자금 환산 숫자로 보여준다. 새 API 없음.
+ * "그때 샀으면 얼마였을까" 반사실 카드.
+ * - conflict: 전장 개전·위기 시점
+ * - economy: 경제 타임테이블(금·VIX·증시) 또는 초크포인트 물류 앵커
  */
 export function CounterfactualInvestCard({
   theater,
   ageMinutes,
+  viewerMode = "conflict",
+  chokepointId = null,
   prominent = false,
 }: CounterfactualInvestCardProps) {
   const { lang } = useLocale();
   const ko = lang !== "en";
+  const isEconomy = viewerMode === "economy";
   const [payload, setPayload] = useState<ReactionPayload | null>(null);
   const [busy, setBusy] = useState(false);
+  const catalog = useMemo(
+    () =>
+      eventMarketAnchorForViewerMode({
+        viewerMode,
+        theater,
+        chokepointId,
+      }),
+    [viewerMode, theater, chokepointId],
+  );
 
   useEffect(() => {
     let cancelled = false;
     const params = new URLSearchParams({
       theater,
+      mode: "counterfactual",
+      viewerMode,
       ageMinutes: String(Math.round(ageMinutes)),
     });
+    if (catalog) {
+      params.set("anchorDate", catalog.anchorDate);
+      params.set("anchorId", catalog.id);
+    }
+    if (chokepointId) params.set("chokepointId", chokepointId);
     fetch(`/api/stock-tickers/reaction?${params.toString()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data: ReactionPayload) => {
@@ -69,29 +102,54 @@ export function CounterfactualInvestCard({
     return () => {
       cancelled = true;
     };
-  }, [theater, ageMinutes]);
+  }, [theater, ageMinutes, viewerMode, chokepointId, catalog?.id, catalog?.anchorDate]);
 
   if (payload === null) return null;
 
-  const items = (payload.items ?? []).filter((item) => item.changePercentSinceEvent !== null);
-  if (items.length === 0) return null;
+  const preferred = payload.preferredSymbols ?? catalog?.preferredSymbols ?? [];
+  const top = pickCounterfactualSymbol(payload.items ?? [], preferred);
+  if (!top || top.changePercentSinceEvent == null) return null;
 
-  // 카드는 숫자 하나가 세야 한다 — 절대값 기준 가장 크게 움직인 종목만 노출
-  const top = items.reduce((best, item) =>
-    Math.abs(item.changePercentSinceEvent ?? 0) > Math.abs(best.changePercentSinceEvent ?? 0)
-      ? item
-      : best,
-  );
-  const pct = top.changePercentSinceEvent ?? 0;
+  const pct = top.changePercentSinceEvent;
   const isGain = pct >= 0;
   const resultKrw = STAKE_KRW * (1 + pct / 100);
   const resultUsd = STAKE_USD * (1 + pct / 100);
-  const symbolName = tickerDisplayName(top.symbol, lang);
-  const eventLabel = safeTheaterLabel(theater, lang);
+  const symbol = top.symbol;
+  const symbolName = tickerDisplayName(symbol, lang);
+  const priceAt = top.priceAt;
+  const priceNow = top.priceNow;
+  const anchor = payload.anchor ?? catalog;
+  const eventLabel = anchor
+    ? ko
+      ? anchor.labelKo
+      : anchor.labelEn
+    : safeTheaterLabel(theater, lang);
+  const dateHint = anchor?.anchorDate
+    ? ko
+      ? `${anchor.anchorDate} 기준`
+      : `as of ${anchor.anchorDate}`
+    : null;
+  const priceHint =
+    priceAt != null && priceNow != null
+      ? ko
+        ? `당시 ${priceAt.toLocaleString("en-US", { maximumFractionDigits: 2 })} → 지금 ${priceNow.toLocaleString("en-US", { maximumFractionDigits: 2 })}`
+        : `${priceAt.toLocaleString("en-US", { maximumFractionDigits: 2 })} then → ${priceNow.toLocaleString("en-US", { maximumFractionDigits: 2 })} now`
+      : null;
+  const laneHint = isEconomy
+    ? ko
+      ? "경제 타임테이블"
+      : "Economy timeline"
+    : ko
+      ? "지정학 타임테이블"
+      : "Geopolitics timeline";
 
   async function handleShare() {
     if (busy) return;
-    trackEvent("counterfactual_card_share_click", { theater, symbol: top.symbol }, { lang });
+    trackEvent(
+      "counterfactual_card_share_click",
+      { theater, symbol, viewerMode },
+      { lang, viewerMode },
+    );
     setBusy(true);
     try {
       const blob = await renderCounterfactualInvestCard({
@@ -106,26 +164,46 @@ export function CounterfactualInvestCard({
       await shareOrDownloadImageBlob(
         blob,
         `what-if-${theater}.png`,
-        ko ? "만약에 — 전쟁과 이익" : "What if — war & profit",
         ko
-          ? `${eventLabel} 터진 날 ${symbolName}에 넣었다면 지금 ${formatWon(resultKrw)}`
-          : `Had you bought ${symbolName} that day, it'd be ${formatDollar(resultUsd)} now`,
+          ? isEconomy
+            ? "만약에 — 시장과 이익"
+            : "만약에 — 전쟁과 이익"
+          : isEconomy
+            ? "What if — markets & profit"
+            : "What if — war & profit",
+        ko
+          ? `${eventLabel} 날 ${symbolName}에 넣었다면 지금 ${formatWon(resultKrw)}`
+          : `Had you bought ${symbolName} on ${eventLabel}, it'd be ${formatDollar(resultUsd)} now`,
       );
-      trackEvent("counterfactual_card_share_success", { theater, symbol: top.symbol }, { lang });
+      trackEvent(
+        "counterfactual_card_share_success",
+        { theater, symbol, viewerMode },
+        { lang, viewerMode },
+      );
     } finally {
       setBusy(false);
     }
   }
 
+  const accentBorder = isEconomy ? "border-emerald-400/20" : "border-amber-400/20";
+  const accentBg = isEconomy
+    ? "from-black/35 via-emerald-950/20 to-black/25"
+    : "from-black/35 via-amber-950/20 to-black/25";
+  const accentLabel = isEconomy ? "text-emerald-200/90" : "text-amber-200/90";
+  const accentBtn =
+    isEconomy
+      ? "border-emerald-400/30 text-emerald-200/80 hover:border-emerald-300/50 hover:text-emerald-100"
+      : "border-amber-400/30 text-amber-200/80 hover:border-amber-300/50 hover:text-amber-100";
+
   return (
     <div
-      className={`border-t border-amber-400/20 bg-gradient-to-r from-black/35 via-amber-950/20 to-black/25 ${
+      className={`border-t bg-gradient-to-r ${accentBorder} ${accentBg} ${
         prominent ? "px-3.5 py-2.5" : "px-3 py-2"
       }`}
     >
       <div className="flex items-center gap-2">
         <span
-          className={`shrink-0 font-semibold uppercase tracking-wide text-amber-200/90 ${
+          className={`shrink-0 font-semibold uppercase tracking-wide ${accentLabel} ${
             prominent ? "text-[10px]" : "text-[9px]"
           }`}
         >
@@ -133,14 +211,14 @@ export function CounterfactualInvestCard({
         </span>
         <span className={`min-w-0 flex-1 truncate text-slate-400 ${prominent ? "text-[11px]" : "text-[10px]"}`}>
           {ko
-            ? `${eventLabel} 터진 날 ${symbolName}에 넣었다면`
-            : `Had you bought ${symbolName} the day ${eventLabel} broke —`}
+            ? `${eventLabel} 날 ${symbolName}에 넣었다면`
+            : `Had you bought ${symbolName} on ${eventLabel} —`}
         </span>
         <button
           type="button"
           onClick={() => void handleShare()}
           disabled={busy}
-          className="shrink-0 rounded border border-amber-400/30 bg-black/30 px-2 py-1 text-[9px] font-medium text-amber-200/80 transition hover:border-amber-300/50 hover:text-amber-100 disabled:opacity-40"
+          className={`shrink-0 rounded border bg-black/30 px-2 py-1 text-[9px] font-medium transition disabled:opacity-40 ${accentBtn}`}
         >
           {ko ? "공유" : "Share"}
         </button>
@@ -156,6 +234,13 @@ export function CounterfactualInvestCard({
           {pct.toFixed(1)}%)
         </span>
       </p>
+      {dateHint || priceHint ? (
+        <p className="mt-1 text-[9px] leading-snug text-slate-500">
+          {[laneHint, dateHint, priceHint].filter(Boolean).join(" · ")}
+        </p>
+      ) : (
+        <p className="mt-1 text-[9px] leading-snug text-slate-500">{laneHint}</p>
+      )}
       <p className="mt-1 text-[9px] leading-snug text-slate-600">
         {ko
           ? `${formatWon(STAKE_KRW)} 가정 · 실제 투자 조언 아님 · 수수료·세금 미반영`

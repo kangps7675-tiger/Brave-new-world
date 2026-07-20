@@ -68,31 +68,67 @@ function toTickerItem(
 
 /**
  * 사건(뉴스) 발생 시점 근처 종가 — "이 사건 이후 종목이 얼마나 움직였나" 계산용 앵커 가격.
- * chart() 15분봉에서 atMs와 가장 가까운 바를 고른다. 없으면 null(호출부에서 카드 숨김 처리).
+ * - 최근(~5일): 15분봉 ±45분
+ * - 그 이전(개전일 등): 일봉으로 역추적 — Yahoo 15분봉은 수년 전을 못 줌
  */
 export async function fetchPriceNearTimestamp(
   symbol: string,
   atMs: number,
 ): Promise<number | null> {
+  const ageMs = Date.now() - atMs;
+  const useDaily = ageMs > 5 * 24 * 60 * 60 * 1000;
+
   try {
+    if (useDaily) {
+      const period1 = new Date(atMs - 10 * 24 * 60 * 60 * 1000);
+      const period2 = new Date(atMs + 10 * 24 * 60 * 60 * 1000);
+      const chart = await yahooFinance.chart(symbol, {
+        period1,
+        period2,
+        interval: "1d",
+      });
+      return closestBarClose(chart.quotes ?? [], atMs);
+    }
+
     const period1 = new Date(atMs - 45 * 60 * 1000);
     const period2 = new Date(atMs + 45 * 60 * 1000);
     const chart = await yahooFinance.chart(symbol, { period1, period2, interval: "15m" });
-    let closest: number | null = null;
-    let closestDiff = Infinity;
-    for (const bar of chart.quotes ?? []) {
-      if (typeof bar.close !== "number" || !Number.isFinite(bar.close)) continue;
-      const barDate = bar.date instanceof Date ? bar.date : new Date(bar.date as unknown as string);
-      const diff = Math.abs(barDate.getTime() - atMs);
-      if (diff < closestDiff) {
-        closest = bar.close;
-        closestDiff = diff;
-      }
-    }
-    return closest;
+    return closestBarClose(chart.quotes ?? [], atMs);
   } catch {
-    return null;
+    // 15분 실패 시 일봉 폴백 (경계 구간)
+    try {
+      const period1 = new Date(atMs - 14 * 24 * 60 * 60 * 1000);
+      const period2 = new Date(atMs + 14 * 24 * 60 * 60 * 1000);
+      const chart = await yahooFinance.chart(symbol, {
+        period1,
+        period2,
+        interval: "1d",
+      });
+      return closestBarClose(chart.quotes ?? [], atMs);
+    } catch {
+      return null;
+    }
   }
+}
+
+function closestBarClose(
+  quotes: Array<{ date?: Date | string | null; close?: number | null }>,
+  atMs: number,
+): number | null {
+  let closest: number | null = null;
+  let closestDiff = Infinity;
+  for (const bar of quotes) {
+    if (typeof bar.close !== "number" || !Number.isFinite(bar.close)) continue;
+    const barDate =
+      bar.date instanceof Date ? bar.date : new Date(bar.date as unknown as string);
+    if (!Number.isFinite(barDate.getTime())) continue;
+    const diff = Math.abs(barDate.getTime() - atMs);
+    if (diff < closestDiff) {
+      closest = bar.close;
+      closestDiff = diff;
+    }
+  }
+  return closest;
 }
 
 /**

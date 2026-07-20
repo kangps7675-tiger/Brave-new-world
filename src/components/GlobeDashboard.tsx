@@ -10417,7 +10417,10 @@ export function GlobeDashboard({
       ) : null}
 
       {isCompactUi && showMobileAlertFeed ? (
-        <MobileAlertFeed onClose={() => setShowMobileAlertFeed(false)} />
+        <MobileAlertFeed
+          onClose={() => setShowMobileAlertFeed(false)}
+          viewerMode={viewerMode}
+        />
       ) : null}
 
       {watchFocusLine &&
