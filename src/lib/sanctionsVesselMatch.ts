@@ -45,11 +45,14 @@ function listLabelFromMeta(point: StaticPoint): string {
  */
 function buildSanctionsNameIndex(
   sanctionsPoints: StaticPoint[],
-): Map<string, { name: string; list: string }> {
-  const index = new Map<string, { name: string; list: string }>();
+): Map<string, { entityName: string; list: string }> {
+  const index = new Map<string, { entityName: string; list: string }>();
   for (const point of sanctionsPoints) {
     if (!point.name) continue;
-    index.set(normEntityName(point.name), { name: point.name, list: listLabelFromMeta(point) });
+    index.set(normEntityName(point.name), {
+      entityName: point.name,
+      list: listLabelFromMeta(point),
+    });
   }
   return index;
 }

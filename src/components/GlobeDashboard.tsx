@@ -1544,7 +1544,7 @@ export function GlobeDashboard({
     ) => {
       setLiveBriefingSession((prev) => {
         const snapshot = prev?.snapshot ?? { ...layerPrefsLiveRef.current };
-        const labels = liveBriefingLabel(kind, placeLabel, labelLanguage === "en" ? "en" : "ko");
+        const labels = liveBriefingLabel(kind, placeLabel);
         applyLayerPrefs(applyLayerPatch({ ...layerPrefsLiveRef.current }, patch));
         return {
           kind,

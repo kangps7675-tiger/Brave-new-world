@@ -99,7 +99,7 @@ function PhotoNewsLampParchment({
   const articleInk = "#000000";
   const articleInkMuted = "#000000";
   const exiting = phase === "folding" || phase === "done";
-  const news = briefing.featuredNews ?? [];
+  const news = useMemo(() => briefing.featuredNews ?? [], [briefing.featuredNews]);
   const macroRows = briefing.macroTable ?? [];
   const isEconomy = macroRows.length > 0;
   const mobilePreview = 4;

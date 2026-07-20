@@ -63,7 +63,6 @@ export function applyLayerPatch(prefs: LayerPrefs, patch: LayerPatch): LayerPref
 export function liveBriefingLabel(
   kind: LiveBriefingKind,
   place: string,
-  lang: "ko" | "en",
 ): { ko: string; en: string } {
   if (kind === "air-raid") {
     return {
