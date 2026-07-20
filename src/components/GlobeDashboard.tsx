@@ -15,11 +15,10 @@ import { ShareViewButton } from "@/components/ShareViewButton";
 import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
 import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
 import {
-  hasSeenTensionPrompt,
   markTensionPromptSeen,
   type DailyPrompt,
 } from "@/lib/dailyPrompt";
-import { nextUtcRankDate, type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
+import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { formatWtiBriefingLead } from "@/lib/wti";
 import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
@@ -64,14 +63,14 @@ import {
 import type { EconInsightBrief } from "@/data/econInsightBriefs";
 import {
   ChromeOnboardingCoach,
-  shouldOfferChromeCoach,
   type ChromeCoachStep,
 } from "@/components/ChromeOnboardingCoach";
 import { FirstVisitTour } from "@/components/FirstVisitTour";
+import { clearFirstVisitTourDone } from "@/lib/firstVisitTour";
 import {
-  clearFirstVisitTourDone,
-  shouldOfferFirstVisitTour,
-} from "@/lib/firstVisitTour";
+  TourInviteBanner,
+  shouldOfferTourInvite,
+} from "@/components/TourInviteBanner";
 import {
   FrictionOnboardingCoach,
   shouldOfferFrictionCoach,
@@ -82,10 +81,6 @@ import {
   shouldOfferAirRaidCoach,
 } from "@/components/AirRaidOnboardingCoach";
 import { PeriodicBriefingParchment } from "@/components/PeriodicBriefingParchment";
-import {
-  LampRoleTipBanner,
-  shouldOfferLampRoleTip,
-} from "@/components/LampRoleTipBanner";
 import {
   AirRaidBriefingParchment,
   type AirRaidBriefingContent,
@@ -154,7 +149,7 @@ import {
   fetchSentinelTour,
   type SentinelFlyTarget,
 } from "@/lib/sentinelMode";
-import { resolvePendingAppUpdate, type AppUpdate } from "@/lib/appUpdates";
+import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
 import { DomainGateOverlay } from "@/components/DomainGateOverlay";
 import { LocaleProvider } from "@/contexts/LocaleContext";
@@ -850,12 +845,16 @@ export function GlobeDashboard({
   const [tomorrowTensionPrompt, setTomorrowTensionPrompt] = useState<DailyPrompt | null>(null);
   /** 오늘의 WTI — 사운드·등불·예측 기축 */
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
-  const [showLampRoleTip, setShowLampRoleTip] = useState(false);
+  const [showTourInvite, setShowTourInvite] = useState(false);
   const [airRaidBriefing, setAirRaidBriefing] = useState<AirRaidBriefingContent | null>(null);
   const [airRaidOffer, setAirRaidOffer] = useState<AirRaidOffer | null>(null);
   /** 로컬 자정에 바뀜 — 매일 등불 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
   const weeklyExpanded = Boolean(weeklyRecap) && !weeklyRecapCollapsed;
+  /** 접힌 등불(주간 회고) 칩 — 우하단 FAB(센티널 등)과 겹치지 않게 피함 */
+  const showFoldedParchmentChip = Boolean(
+    weeklyRecap && weeklyRecapCollapsed && !periodicBriefing,
+  );
   /** 등불 양피지가 떠 있거나 아직 오늘 등불이 끝나지 않으면 공습·이슈 UI 정지 */
   const issueUiPausedForLamp =
     weeklyExpanded || Boolean(periodicBriefing) || !weeklyRecapSettled || !dailyLampSettled;
@@ -6993,12 +6992,11 @@ export function GlobeDashboard({
     }
   }
 
-  /** 공습경보 칩에 처음 다가갈 때만 1회 설명 */
+  /** 공습경보 칩에 처음 다가갈 때만 1회 설명 (투어는 기능 안내에서 수동) */
   const maybeOfferAirRaidCoach = useCallback(() => {
     if (isEconomyViewer) return;
     if (issueUiPausedForLamp) return;
     if (entryGate !== null || showModePicker || chromeCoachStep || showFirstVisitTour) return;
-    if (shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) return;
     if (!shouldOfferAirRaidCoach()) return;
     if (showAirRaidCoach) return;
     setShowAirRaidCoach(true);
@@ -7012,19 +7010,12 @@ export function GlobeDashboard({
     showModePicker,
   ]);
 
-  /** 첫 방문 1~10 투어 우선, 없으면 구 크롬 표지 1장 */
-  const offerNavOnboarding = useCallback(() => {
-    if (shouldOfferFirstVisitTour()) {
-      setShowFirstVisitTour(true);
-      return;
-    }
-    if (shouldOfferChromeCoach()) setChromeCoachStep("nav");
-  }, []);
+  /** 화면 투어 — 자동 점화 없음. 기능 안내에서만 시작 */
 
   /**
    * 매일 등불 브리핑 — 지정학·지경학 각각 하루 1회.
    * 첫 방문: 입장 인트로(경고→편지→도메인)가 끝난 뒤에만.
-   * 재방문: 당일 해당 모드 미시청이면 점화. 코치/공습 안내보다 우선.
+   * 재방문: 당일 해당 모드 미시청이면 점화. 투어/WhatsNew는 자동으로 이어지지 않음.
    */
 
   useEffect(() => {
@@ -7096,9 +7087,6 @@ export function GlobeDashboard({
           if (content) {
             setWeeklyRecapCollapsed(startCollapsed);
             setWeeklyRecap(content);
-            if (startCollapsed && (shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) && !chromeCoachStep && !showFirstVisitTour) {
-              window.setTimeout(() => offerNavOnboarding(), 900);
-            }
           }
           setWeeklyRecapSettled(true);
         }
@@ -7142,10 +7130,8 @@ export function GlobeDashboard({
     if (periodicBriefing?.key === lampKey) return;
     if (hasSeenPeriod(lampKey)) {
       setDailyLampSettled(true);
-      // 오늘 등불 이미 봄 → 첫 방문 크롬 코치만 이어서
-      if ((shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) && !chromeCoachStep && !showFirstVisitTour) {
-        const coachTimer = window.setTimeout(() => offerNavOnboarding(), 900);
-        return () => window.clearTimeout(coachTimer);
+      if (shouldOfferTourInvite()) {
+        window.setTimeout(() => setShowTourInvite(true), 900);
       }
       return;
     }
@@ -7451,37 +7437,6 @@ export function GlobeDashboard({
     };
   }, [calendarDayKey]);
 
-  // 등불 종료 후 · 하루 1회 WTI UP/DOWN
-  useEffect(() => {
-    if (!dailyLampSettled || periodicBriefing || entryGate || showModePicker) return;
-    if (weeklyExpanded) return;
-    if (hasSeenTensionPrompt(calendarDayKey)) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const res = await fetch(
-          `/api/daily-prompt?date=${encodeURIComponent(nextUtcRankDate())}`,
-          { cache: "no-store" },
-        );
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { prompt?: DailyPrompt | null };
-        if (!cancelled && data.prompt) setTomorrowTensionPrompt(data.prompt);
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    calendarDayKey,
-    dailyLampSettled,
-    entryGate,
-    periodicBriefing,
-    showModePicker,
-    weeklyExpanded,
-  ]);
-
   // 모드·일자 전환 시 등불 게이트 재시작 (공습·이슈 UI는 settled 전까지 보류)
   useEffect(() => {
     setPeriodicBriefing(null);
@@ -7541,31 +7496,6 @@ export function GlobeDashboard({
     setAirRaidOffer(null);
     setShowAirRaidCoach(false);
   }, [periodicBriefing, weeklyRecap]);
-
-  // Whats new — after welcome + lamp gate; not during play/modals
-  useEffect(() => {
-    if (entryGate !== null || showModePicker) return;
-    if (!readWelcomeGateDone()) return;
-    if (!weeklyRecapSettled || !dailyLampSettled) return;
-    if (weeklyExpanded || Boolean(periodicBriefing)) return;
-    if (tomorrowTensionPrompt || playOverlay || chromeCoachStep) return;
-    if (whatsNewUpdate) return;
-    const pending = resolvePendingAppUpdate(true);
-    if (!pending) return;
-    const t = window.setTimeout(() => setWhatsNewUpdate(pending), 700);
-    return () => window.clearTimeout(t);
-  }, [
-    chromeCoachStep,
-    dailyLampSettled,
-    entryGate,
-    periodicBriefing,
-    playOverlay,
-    showModePicker,
-    tomorrowTensionPrompt,
-    weeklyExpanded,
-    weeklyRecapSettled,
-    whatsNewUpdate,
-  ]);
 
   // SENTINEL — 랭킹 전장/초크 순환 fly-to (스크린세이버)
   useEffect(() => {
@@ -10317,9 +10247,16 @@ export function GlobeDashboard({
         모바일에서 소리가 갑자기 나올 때 즉시 끌 수 있어야 하므로, 모드 선택 오버레이
         (z-[10000]) 위에도 뜨도록 z를 올린다. 단 입장 주의 오버레이(entryGate, z-[10010])는
         자체 인라인 음소거 토글을 이미 크게 노출하고 있어 중복·겹침을 피해 제외.
+        접힌 등불 칩(bottom-24/28 right)이 있으면 스택을 그 위로 올린다.
       */}
       {entryGate === null ? (
-        <div className="pointer-events-none fixed bottom-5 right-4 z-[10020] flex flex-col items-end gap-2 sm:bottom-6 sm:right-5">
+        <div
+          className={`pointer-events-none fixed right-4 z-[10020] flex flex-col items-end gap-2 sm:right-5 ${
+            showFoldedParchmentChip
+              ? "bottom-[10.25rem] sm:bottom-[11.25rem]"
+              : "bottom-5 sm:bottom-6"
+          }`}
+        >
           {entryGate === null && !showModePicker ? (
             <SentinelModeButton
               lang={labelLanguage}
@@ -10504,8 +10441,8 @@ export function GlobeDashboard({
             markWeeklyRecapFolded(weeklyRecap.key);
             recordInterestNews(weeklyRecap.key, weeklyRecap.title || weeklyRecap.key);
             setWeeklyRecapCollapsed(true);
-            if (shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) {
-              window.setTimeout(() => offerNavOnboarding(), 500);
+            if (shouldOfferTourInvite()) {
+              window.setTimeout(() => setShowTourInvite(true), 450);
             }
           }}
         />
@@ -10550,10 +10487,8 @@ export function GlobeDashboard({
               periodicBriefing.title || periodicBriefing.key,
             );
             setPeriodicBriefing(null);
-            if (shouldOfferLampRoleTip()) {
-              window.setTimeout(() => setShowLampRoleTip(true), 450);
-            } else if (shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) {
-              window.setTimeout(() => offerNavOnboarding(), 500);
+            if (shouldOfferTourInvite()) {
+              window.setTimeout(() => setShowTourInvite(true), 450);
             }
           }}
         />
@@ -10617,15 +10552,15 @@ export function GlobeDashboard({
         </div>
       ) : null}
 
-      <LampRoleTipBanner
+      <TourInviteBanner
         lang={labelLanguage}
-        open={showLampRoleTip}
-        onDismiss={() => {
-          setShowLampRoleTip(false);
-          if (shouldOfferFirstVisitTour() || shouldOfferChromeCoach()) {
-            window.setTimeout(() => offerNavOnboarding(), 400);
-          }
+        open={showTourInvite && !showFirstVisitTour && !periodicBriefing && !weeklyExpanded}
+        onAccept={() => {
+          setShowTourInvite(false);
+          clearFirstVisitTourDone();
+          setShowFirstVisitTour(true);
         }}
+        onDismiss={() => setShowTourInvite(false)}
       />
 
       {airRaidOffer && !airRaidBriefing && !issueUiPausedForLamp ? (

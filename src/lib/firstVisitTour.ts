@@ -1,5 +1,6 @@
 /**
  * 첫 방문 유저 1~10 화면 투어 — 크롬·뉴스·알림까지.
+ * 자동 풀투어는 없음. 등불 후 짧은 권유 배너 또는 기능 안내에서 시작.
  */
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -7,6 +8,8 @@ import type { ViewerMode } from "@/lib/viewPackages";
 import type { SpotlightPlacement } from "@/components/UiSpotlightCoachmark";
 
 export const FIRST_VISIT_TOUR_KEY = "geowatch-first-visit-tour-v1";
+/** 등불 후 투어 권유 배너 — 거절/수락 시 다시 안 뜸 */
+export const TOUR_INVITE_KEY = "geowatch-tour-invite-v1";
 
 export type FirstVisitTourStepId =
   | "globe"
@@ -166,9 +169,9 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     titleKo: "10 · 도움말·출처",
     titleEn: "10 · Help & sources",
     bodyKo:
-      "「기능 안내」에서 언제든 다시 볼 수 있고, 출처 버튼으로 데이터 라이선스를 확인합니다. 이 투어는 처음 한 번만 자동으로 뜹니다.",
+      "「기능 안내」에서 언제든 투어를 시작할 수 있고, 출처 버튼으로 데이터 라이선스를 확인합니다.",
     bodyEn:
-      "Open Feature guide anytime to revisit tips; Sources shows data licenses. This tour auto-starts only once.",
+      "Start the tour anytime from Feature guide; Sources shows data licenses.",
   },
 ];
 

@@ -43,6 +43,7 @@ export const GUEST_LOCAL_PREF_KEYS = [
   "geowatch-ui-font-v1",
   /** 첫 방문 1~10 화면 투어 */
   "geowatch-first-visit-tour-v1",
+  "geowatch-tour-invite-v1",
   "cv-intel-dock-collapsed",
   "cv-watch-focus-v1",
   "cv-app-update-seen",
