@@ -1,5 +1,6 @@
 "use client";
 
+import { AcledEventTable } from "@/components/AcledEventTable";
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -191,6 +192,7 @@ export function MethodologySourcesPanel({
                 hapi.humdata.org
               </a>
             </p>
+            <AcledEventTable lang={lang} />
           </section>
 
           <section className="rounded-xl border border-yellow-800/40 bg-yellow-950/20 p-3">

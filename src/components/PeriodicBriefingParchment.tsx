@@ -9,6 +9,8 @@ import {
   emitParchmentUnfoldSound,
 } from "@/components/SoundEffectsBridge";
 import { BRAND_NAME } from "@/lib/brand";
+import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
+import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import { formatWtiTitle, wtiBand, wtiBandLabel } from "@/lib/wti";
@@ -18,6 +20,12 @@ type PeriodicBriefingParchmentProps = {
   lang: LabelLanguage;
   /** 접기 — 하루 종료가 아니라 다시 펼칠 수 있게 접어둠 */
   onDismiss: () => void;
+  /** 잊혀진 경고 — 지도 soft fly */
+  onFlyToForgottenWarning?: (coords: {
+    lat: number;
+    lng: number;
+    altitude?: number;
+  }) => void;
 };
 
 /**
@@ -29,6 +37,7 @@ export function PeriodicBriefingParchment({
   briefing,
   lang,
   onDismiss,
+  onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
   const isPhotoLamp =
     (briefing.featuredNews && briefing.featuredNews.length > 0) ||
@@ -40,7 +49,17 @@ export function PeriodicBriefingParchment({
       <ParchmentLetter
         lang={lang}
         title={briefing.title}
-        paragraphs={briefing.paragraphs}
+        paragraphs={
+          briefing.forgottenWarning
+            ? [
+                ...briefing.paragraphs,
+                briefing.forgottenWarning.lead,
+                lang === "en"
+                  ? briefing.forgottenWarning.summaryEn
+                  : briefing.forgottenWarning.summaryKo,
+              ]
+            : briefing.paragraphs
+        }
         ctaLabel={foldLabel}
         onContinue={onDismiss}
         playBreakingDispatch
@@ -51,13 +70,21 @@ export function PeriodicBriefingParchment({
     );
   }
 
-  return <PhotoNewsLampParchment briefing={briefing} lang={lang} onDismiss={onDismiss} />;
+  return (
+    <PhotoNewsLampParchment
+      briefing={briefing}
+      lang={lang}
+      onDismiss={onDismiss}
+      onFlyToForgottenWarning={onFlyToForgottenWarning}
+    />
+  );
 }
 
 function PhotoNewsLampParchment({
   briefing,
   lang,
   onDismiss,
+  onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
   const [expandedNews, setExpandedNews] = useState(false);
@@ -72,7 +99,7 @@ function PhotoNewsLampParchment({
   const articleInk = "#000000";
   const articleInkMuted = "#000000";
   const exiting = phase === "folding" || phase === "done";
-  const news = briefing.featuredNews ?? [];
+  const news = useMemo(() => briefing.featuredNews ?? [], [briefing.featuredNews]);
   const macroRows = briefing.macroTable ?? [];
   const isEconomy = macroRows.length > 0;
   const mobilePreview = 4;
@@ -161,6 +188,7 @@ function PhotoNewsLampParchment({
               {categoryLabel}
             </p>
           ) : null}
+          <AnnouncementStrip lang={lang} />
           {macroRows.length > 0 ? (
             <table className="w-full border-collapse text-left text-[12px] text-[#3f2e1c] sm:text-[13px]">
               <thead>
@@ -205,9 +233,12 @@ function PhotoNewsLampParchment({
         <>
           {briefing.wti ? (
             <div className="mb-4 rounded-sm border border-[#8b6914]/30 bg-[#f7ecd4]/70 px-3 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
-                {formatWtiTitle(lang !== "en")}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
+                  {formatWtiTitle(lang !== "en")}
+                </p>
+                <EvidenceTierBadge tier="model" lang={lang} surface="light" />
+              </div>
               <div className="mt-1 flex items-end justify-between gap-2">
                 <p className="text-[2rem] font-semibold tabular-nums leading-none tracking-tight text-[#3d2a18]">
                   {Math.round(briefing.wti.score)}
@@ -470,13 +501,36 @@ function PhotoNewsLampParchment({
                         </div>
                       ) : null}
                     </>
-                  ) : (
+                      ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
                         ? "No illustrated wires available right now."
                         : "사진이 있는 와이어를 아직 찾지 못했습니다."}
                     </p>
                   )}
+
+                  {briefing.forgottenWarning ? (
+                    <ForgottenWarningBlock
+                      warning={briefing.forgottenWarning}
+                      lang={lang}
+                      parchmentStack={parchmentStack}
+                      articleInk={articleInk}
+                      onFly={
+                        briefing.forgottenWarning.lat != null &&
+                        briefing.forgottenWarning.lng != null &&
+                        onFlyToForgottenWarning
+                          ? () => {
+                              const w = briefing.forgottenWarning!;
+                              onFlyToForgottenWarning({
+                                lat: w.lat!,
+                                lng: w.lng!,
+                                altitude: w.altitude,
+                              });
+                            }
+                          : undefined
+                      }
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -518,3 +572,101 @@ function PhotoNewsLampParchment({
     </div>
   );
 }
+
+function ForgottenWarningBlock({
+  warning,
+  lang,
+  parchmentStack,
+  articleInk,
+  onFly,
+}: {
+  warning: NonNullable<PeriodicBriefing["forgottenWarning"]>;
+  lang: LabelLanguage;
+  parchmentStack: string;
+  articleInk: string;
+  onFly?: () => void;
+}) {
+  const ko = lang !== "en";
+  const title = ko ? warning.titleKo : warning.titleEn;
+  const summary = ko ? warning.summaryKo : warning.summaryEn;
+
+  return (
+    <section
+      className="overflow-hidden rounded-sm border border-[#6b4a22]/35 bg-[#efe0b8]/70 px-4 py-4 shadow-[0_6px_20px_rgba(61,42,24,0.1)] sm:px-5"
+      aria-label={ko ? "잊혀진 경고" : "Forgotten warning"}
+    >
+      <p
+        className="text-[10px] uppercase tracking-[0.2em] text-[#6b4a22]/8"
+        style={{ fontFamily: parchmentStack }}
+      >
+        {ko ? "잊혀진 경고" : "Forgotten warning"}
+      </p>
+      <p
+        className="mt-1.5 text-[12px] leading-snug text-[#5a3d1c]"
+        style={{ fontFamily: parchmentStack }}
+      >
+        {warning.lead}
+      </p>
+      <h3
+        className="mt-2 text-[1.05rem] leading-snug tracking-[0.02em]"
+        style={{ color: articleInk, fontFamily: parchmentStack }}
+      >
+        {title}
+      </h3>
+      <p
+        className="mt-2 text-[0.92rem] leading-[1.7]"
+        style={{ color: articleInk, fontFamily: parchmentStack }}
+      >
+        {summary}
+      </p>
+      <p className="mt-2 text-[10px] tracking-[0.08em] text-[#6b4a22]/7">
+        {warning.date}
+        {warning.exactAnniversary
+          ? ko
+            ? ` · 정확히 ${warning.yearsAgo}년 전`
+            : ` · exactly ${warning.yearsAgo}y ago`
+          : ko
+            ? ` · 약 ${warning.yearsAgo}년 전`
+            : ` · ~${warning.yearsAgo}y ago`}
+      </p>
+      {onFly ? (
+        <button
+          type="button"
+          onClick={onFly}
+          className="mt-3 rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-[12px] text-[#3d2a18] transition hover:bg-[#f7ecd0]"
+        >
+          {ko ? "지도로" : "Fly to map"}
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
+/**
+ * 거시 지표(무슨 일이 있었나) 위에, 다음 발표 일정(무엇이 다가오나)을 덧붙인다.
+ * FOMC·OPEC+ — 공개 캘린더 기준, 신규 API 없이 정적 유지.
+ */
+function AnnouncementStrip({ lang }: { lang: LabelLanguage }) {
+  const en = lang === "en";
+  const upcoming = upcomingAnnouncements(new Date(), 3);
+  if (upcoming.length === 0) return null;
+
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-1.5 px-1">
+      <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#6b4a22]/6">
+        {en ? "Next" : "다음 발표"}
+      </span>
+      {upcoming.map((ev) => (
+        <span
+          key={ev.id}
+          className="rounded-full border border-[#8b6914]/30 bg-[#f7ecd4]/60 px-2 py-0.5 text-[10px] text-[#3f2e1c]"
+        >
+          {ev.label[lang]} · {ev.date.slice(5)}
+          {" · "}
+          {ev.daysUntil === 0 ? (en ? "today" : "오늘") : `D-${ev.daysUntil}`}
+        </span>
+      ))}
+    </div>
+  );
+}
+

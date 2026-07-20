@@ -1,5 +1,6 @@
 /**
- * 네온 리플 — 상시 시드가 아니라 최신(속보) 사건이 있을 때만 활성화.
+ * 네온 리플 — 최신(속보) 사건이 있으면 그걸 쓰고,
+ * 없으면 시드 앵커로 폴백해 레이어 ON이 빈 화면이 되지 않게 한다.
  */
 
 import {
@@ -20,6 +21,9 @@ import { isInCombatTheater } from "@/lib/theaterCombat";
 
 const CHINA_SEED_MATCH_DEG = 3.2;
 const KOREA_SEED_MATCH_DEG = 2.8;
+/** 폴백 시 dyad당 최대 시드 수 */
+const CHINA_SEED_FALLBACK_PER_DYAD = 2;
+const KOREA_SEED_FALLBACK_MAX = 4;
 
 const MISSILE_EVENT_RE =
   /missile|ballistic|rocket|icbm|irbm|mrbm|slbm|hypersonic|launch\s*test|weapons?\s*test|화성|미사일|로켓|발사체|발사\s*실험|탄도|극초음속|방사포|핵실험/i;
@@ -54,7 +58,38 @@ function isActionableTier(event: ScoredEvent): boolean {
   );
 }
 
-/** 중국 대치 네온: 최신 GDELT가 시드 앵커 근처에 있을 때만 */
+function chinaSeedFallback(
+  enabledDyads: ReadonlySet<ChinaTheaterDyad>,
+): ChinaTheaterIncident[] {
+  const out: ChinaTheaterIncident[] = [];
+  for (const dyad of enabledDyads) {
+    const seeds = CHINA_THEATER_INCIDENTS.filter((s) => s.dyad === dyad)
+      .slice()
+      .sort((a, b) => b.intensity - a.intensity)
+      .slice(0, CHINA_SEED_FALLBACK_PER_DYAD);
+    for (const seed of seeds) {
+      out.push({
+        ...seed,
+        id: `seed-${seed.id}`,
+        intensity: Math.max(0.35, seed.intensity * 0.55),
+      });
+    }
+  }
+  return out;
+}
+
+function koreaSeedFallback(): KoreaMissileIncident[] {
+  return KOREA_MISSILE_INCIDENTS.slice()
+    .sort((a, b) => b.intensity - a.intensity)
+    .slice(0, KOREA_SEED_FALLBACK_MAX)
+    .map((seed) => ({
+      ...seed,
+      id: `seed-nk-${seed.id}`,
+      intensity: Math.max(0.35, seed.intensity * 0.55),
+    }));
+}
+
+/** 중국 대치 네온: 신선 GDELT 우선, 없으면 시드 폴백 */
 export function activateChinaTheaterIncidents(
   enabledDyads: ReadonlySet<ChinaTheaterDyad>,
   events: ScoredEvent[],
@@ -87,10 +122,12 @@ export function activateChinaTheaterIncidents(
       intensity: Math.max(seed.intensity * 0.65, intensityFromEvent(event)),
     });
   }
-  return out;
+
+  if (out.length > 0) return out;
+  return chinaSeedFallback(enabledDyads);
 }
 
-/** 북한 미사일 네온: 최신·미사일 관련 사건이 발생지 근처/한반도에 있을 때만 */
+/** 북한 미사일 네온: 신선·미사일 사건 우선, 없으면 시드 폴백 */
 export function activateKoreaMissileIncidents(
   events: ScoredEvent[],
   now = Date.now(),
@@ -113,7 +150,6 @@ export function activateKoreaMissileIncidents(
       );
       if (!nearSite) continue;
     } else if (inKorea && !missileLike) {
-      // 한반도 안이어도 미사일·발사 키워드가 없으면 스킵 (상시 긴장점 방지)
       continue;
     }
 
@@ -136,10 +172,15 @@ export function activateKoreaMissileIncidents(
       intensity: Math.max(seed.intensity * 0.65, intensityFromEvent(event)),
     });
   }
-  return out;
+
+  if (out.length > 0) return out;
+  return koreaSeedFallback();
 }
 
-/** NewFeeds 공격 점 — published/fetched 시각이 신선할 때만 */
+/**
+ * NewFeeds 공격 점 신선도 (네온 자동활성화 등).
+ * 이란 뉴스 레이어 토글 표시에는 쓰지 않음 — 레이어 ON이면 전체 표시.
+ */
 export function isFreshNewfeedsAttack(
   attack: { publishedAt?: string | null },
   now = Date.now(),

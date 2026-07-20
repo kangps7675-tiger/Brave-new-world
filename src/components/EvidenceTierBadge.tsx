@@ -1,0 +1,73 @@
+"use client";
+
+import type { LabelLanguage } from "@/lib/layerPrefs";
+
+/**
+ * 데이터 신뢰도 계층 — TrustBadgeChip(매체 신뢰도 T1/T2/T3)과는 다른 축.
+ * "이 정보가 애초에 어떤 종류인가"를 표시한다:
+ *   observed   — 센서 하드데이터 (FIRMS, AIS, ADS-B 등 · 검증 불필요)
+ *   reported   — 검증된 매체 보도 (구글뉴스 confirmed/strong 등)
+ *   unverified — 단일소스·텔레그램 등 미검증 주장
+ *   model      — WTI 등 산출/계산된 점수 (원본 관측이 아님)
+ */
+export type EvidenceTier = "observed" | "reported" | "unverified" | "model";
+
+const TIER_STYLE_DARK: Record<EvidenceTier, { bg: string; border: string; text: string }> = {
+  observed: { bg: "bg-emerald-500/15", border: "border-emerald-400/40", text: "text-emerald-200" },
+  reported: { bg: "bg-sky-500/15", border: "border-sky-400/40", text: "text-sky-200" },
+  unverified: { bg: "bg-slate-500/20", border: "border-slate-400/40", text: "text-slate-300" },
+  model: { bg: "bg-violet-500/15", border: "border-violet-400/40", text: "text-violet-200" },
+};
+
+/** 양피지(밝은) 배경용 — 텍스트를 진하게, 배경은 옅게 */
+const TIER_STYLE_LIGHT: Record<EvidenceTier, { bg: string; border: string; text: string }> = {
+  observed: { bg: "bg-emerald-600/10", border: "border-emerald-700/35", text: "text-emerald-900" },
+  reported: { bg: "bg-sky-600/10", border: "border-sky-700/35", text: "text-sky-900" },
+  unverified: { bg: "bg-slate-600/10", border: "border-slate-700/35", text: "text-slate-800" },
+  model: { bg: "bg-violet-600/10", border: "border-violet-700/35", text: "text-violet-900" },
+};
+
+const TIER_LABEL: Record<EvidenceTier, { ko: string; en: string }> = {
+  observed: { ko: "관측", en: "Observed" },
+  reported: { ko: "보도", en: "Reported" },
+  unverified: { ko: "미확인", en: "Unverified" },
+  model: { ko: "모델", en: "Model" },
+};
+
+const TIER_HINT: Record<EvidenceTier, { ko: string; en: string }> = {
+  observed: { ko: "센서 하드데이터 · 검증 불필요", en: "Sensor hard data · no verification needed" },
+  reported: { ko: "매체 보도로 검증됨", en: "Corroborated by media reporting" },
+  unverified: { ko: "단일소스·미검증 주장", en: "Single-source, unverified claim" },
+  model: { ko: "원본 관측이 아닌 산출값", en: "Computed score, not a raw observation" },
+};
+
+export function evidenceTierLabel(tier: EvidenceTier, lang: LabelLanguage): string {
+  return TIER_LABEL[tier][lang];
+}
+
+export function evidenceTierHint(tier: EvidenceTier, lang: LabelLanguage): string {
+  return TIER_HINT[tier][lang];
+}
+
+export function EvidenceTierBadge({
+  tier,
+  lang,
+  surface = "dark",
+  className,
+}: {
+  tier: EvidenceTier;
+  lang: LabelLanguage;
+  /** dark=단말기/패널(기본), light=양피지 편지류 */
+  surface?: "dark" | "light";
+  className?: string;
+}) {
+  const style = surface === "light" ? TIER_STYLE_LIGHT[tier] : TIER_STYLE_DARK[tier];
+  return (
+    <span
+      title={evidenceTierHint(tier, lang)}
+      className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] ${style.bg} ${style.border} ${style.text} ${className ?? ""}`}
+    >
+      {evidenceTierLabel(tier, lang)}
+    </span>
+  );
+}

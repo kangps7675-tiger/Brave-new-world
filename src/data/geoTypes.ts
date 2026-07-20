@@ -275,6 +275,12 @@ export type AisVessel = {
    */
   disguised?: boolean;
   disguisedKind?: "arsenal-ship" | "dark-fleet" | null;
+  /**
+   * OFAC/UN/EU/UK 제재 리스트(sanctions-entities.json) 실매칭 결과.
+   * DisguisedVessel.classification의 서술형 "sanctioned" 표기와 달리
+   * 실제 제재 엔티티명 대조로 확인된 경우만 채워진다.
+   */
+  sanctionsMatch?: { entityName: string; list: string; asOf: string } | null;
 };
 
 export type MilitaryAircraft = {

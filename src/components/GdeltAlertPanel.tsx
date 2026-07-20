@@ -1,6 +1,7 @@
 "use client";
 
 import type { MenuCoreAlert } from "@/lib/regionFilter";
+import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { LocationPinIcon } from "@/components/LocationPinIcon";
 import { TIER_LABELS, isFreshEvent } from "@/data/eventTiers";
 import {
@@ -98,6 +99,9 @@ export function GdeltAlertPanel({
                         <span className="rounded-full border border-orange-300/30 bg-orange-400/10 px-1.5 py-0.5 text-[10px] text-orange-100/90">
                           뉴스
                         </span>
+                      )}
+                      {(
+                        <EvidenceTierBadge tier="unverified" lang="ko" />
                       )}
                       <span className="font-medium text-orange-50">
                         {TIER_LABELS[alert.eventTier]}

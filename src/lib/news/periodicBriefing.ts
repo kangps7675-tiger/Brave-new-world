@@ -67,6 +67,21 @@ export type PeriodicBriefing = {
     deltaScore: number | null;
     lead: string;
   } | null;
+  /** 그날의 잊혀진 경고 — 역사 콜백 1건 */
+  forgottenWarning?: {
+    id: string;
+    date: string;
+    yearsAgo: number;
+    titleKo: string;
+    titleEn: string;
+    summaryKo: string;
+    summaryEn: string;
+    lat: number | null;
+    lng: number | null;
+    altitude?: number;
+    exactAnniversary: boolean;
+    lead: string;
+  } | null;
 };
 
 const STORAGE_PREFIX = "cv-periodic-brief-seen-";

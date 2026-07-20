@@ -86,12 +86,12 @@ const UI = {
   },
   domainGateTitle: { ko: "어느 창으로 들어설까요?", en: "Which window will you enter?" },
   domainUltraLiteOnHint: {
-    ko: "켜짐 · 동시 레이어 최대 5개 · 설정창 없이 가벼운 입장",
-    en: "On · max 5 layers · light entry, no extra setup screens",
+    ko: "켜짐 · 동시 레이어 최대 16개 · 설정창 없이 가벼운 입장",
+    en: "On · max 16 layers · light entry, no extra setup screens",
   },
   domainUltraLiteOffHint: {
-    ko: "꺼짐 · 동시 레이어 최대 20개",
-    en: "Off · max 20 layers at once",
+    ko: "꺼짐 · 동시 레이어 최대 30개",
+    en: "Off · max 30 layers at once",
   },
   layerCapWarnTitle: { ko: "레이어를 더 켤 수 없습니다", en: "Can't enable more layers" },
   layerCapWarnBody: {
@@ -99,8 +99,8 @@ const UI = {
     en: "For performance, you can enable up to {cap} layers at once. Turn one off before enabling another.",
   },
   layerCapWarnUltra: {
-    ko: "Ultra-Lite 모드에서는 상한이 5개입니다.",
-    en: "In Ultra-Lite mode the limit is 5.",
+    ko: "Ultra-Lite 모드에서는 상한이 16개입니다.",
+    en: "In Ultra-Lite mode the limit is 16.",
   },
   layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
   layerClickCautionHint: {
@@ -453,6 +453,22 @@ const UI = {
   econGenreAllHint: {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
+  },
+  doomsdayClockTitle: { ko: "세계 종말 시계", en: "Doomsday Clock" },
+  doomsdayClockToMidnight: { ko: "자정까지", en: "to midnight" },
+  doomsdayClockAtMidnight: { ko: "자정", en: "Midnight" },
+  doomsdayClockMinutesUnit: { ko: "분", en: "min" },
+  doomsdayClockDeltaCloser: {
+    ko: "어제보다 {n}분 더 가까워짐",
+    en: "{n} min closer than yesterday",
+  },
+  doomsdayClockDeltaFarther: {
+    ko: "어제보다 {n}분 멀어짐",
+    en: "{n} min farther than yesterday",
+  },
+  doomsdayClockHint: {
+    ko: "오늘 세계 긴장도(WTI) 기준 · 100%면 자정",
+    en: "Based on today's World Tension Index · midnight at 100%",
   },
 } as const;
 

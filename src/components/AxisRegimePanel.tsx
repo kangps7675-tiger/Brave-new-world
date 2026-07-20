@@ -48,21 +48,21 @@ export function AxisRegimePanel({
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-violet-200/55">
-            11대 · 반서방국 충돌사
+            11대 · 반서방국 충돌사 · 잠금
           </p>
           <h2 className="mt-0.5 text-sm font-medium text-violet-50">
             {hub?.label ?? "전체 허브 · 11대 현장"}
           </h2>
           <p className="mt-1 text-[10px] leading-4 text-violet-100/45">
-            현장 상황 설명 큐레이션. 카드 → 좌표 이동 · 그 순간의 양피지 브리프.
+            나가기(✕) 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다.
           </p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full px-2 py-0.5 text-xs text-violet-100/50 transition hover:bg-white/5 hover:text-violet-50"
+          className="shrink-0 rounded-lg border border-violet-300/25 px-2 py-1 text-[10px] text-violet-100/70 transition hover:border-violet-200/40 hover:text-violet-50"
         >
-          ✕
+          나가기
         </button>
       </div>
 

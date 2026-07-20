@@ -123,9 +123,10 @@ export function mapNewfeedsAttack(raw: NewfeedsAttackRaw): NewfeedsAttackPoint |
 }
 
 export function severityColor(severity: NewfeedsSeverity): string {
-  if (severity === "major") return "rgba(220, 38, 38, 0.9)";
-  if (severity === "high") return "rgba(249, 115, 22, 0.88)";
-  if (severity === "medium") return "rgba(234, 179, 8, 0.82)";
+  // 중·고·대규모는 빨간 계열 구체로 읽히게 (중간=노랑이면 지도에서 잘 안 보임)
+  if (severity === "major") return "rgba(220, 38, 38, 0.95)";
+  if (severity === "high") return "rgba(239, 68, 68, 0.92)";
+  if (severity === "medium") return "rgba(249, 115, 22, 0.9)";
   return "rgba(148, 163, 184, 0.75)";
 }
 

@@ -46,6 +46,18 @@ body {
   min-height: 100dvh;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
+  /* 게임 셸 — 드래그 텍스트 선택·이미지 드래그 복사 차단 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /** ?? ?? ?? ? FAB????? */

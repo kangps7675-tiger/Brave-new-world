@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { UiFontBoot } from "@/components/UiFontBoot";
+import { GameShellGuard } from "@/components/GameShellGuard";
 import { UI_FONT_BOOT_SCRIPT } from "@/lib/fontPrefs";
 import "./globals.css";
 
@@ -156,6 +157,7 @@ export default function RootLayout({
           {UI_FONT_BOOT_SCRIPT}
         </Script>
         <UiFontBoot />
+        <GameShellGuard />
         {children}
         <PwaInstallPrompt />
         <Analytics />

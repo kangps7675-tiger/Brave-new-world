@@ -13,7 +13,7 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "conflict-zones":
     "켜면 분쟁+GDELT 밀도로 추정한 전쟁지역 데모(외부 AI API 없음)를 표시합니다.",
   "arms-embargo": "켜면 무기 금수 조치가 적용된 구역을 표시합니다.",
-  ucdp: "켜면 무력 충돌 사건(UCDP) 위치를 점으로 표시합니다.",
+  ucdp: "켜면 UCDP 무력 충돌·속보 사건 위치를 표시합니다. (흰 네온·속보 계열)",
   "gdelt-war": "켜면 전투·군사 충돌 관련 뉴스 위치를 표시합니다.",
   "gdelt-diplomatic": "켜면 외교·회담 관련 뉴스 위치를 표시합니다.",
   "gdelt-alliance": "켜면 서방 동맹 마찰·IRN·중·러·북 축 관계 뉴스 위치를 표시합니다.",
@@ -77,7 +77,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "east-asia-adiz": "켜면 동아시아 방공식별구역(ADIZ)을 표시합니다.",
   "island-chains":
     "켜면 중국 도련선(적색 점선)과 미군 인도·태평양 방어선(청색 실선), 대만 화약고 펄스를 표시합니다. 기지에 마우스를 올리면 탐지 반경이 펼쳐집니다.",
-  "newfeeds-iran": "켜면 이란·중동 공격 관련 보도 지점을 지도에 표시합니다.",
+  "newfeeds-iran":
+    "켜면 이란 국영·공식 매체 공격 지점을 빨간 구체로 표시합니다. (UCDP 흰 네온과 별개)",
   "gdelt-ocean": "켜면 대양·해상 지정학 경쟁 관련 뉴스 위치를 표시합니다.",
   "energy-pipelines": "켜면 원유·가스 수송망(송유관·가스관·LNG)을 표시합니다.",
   "gem-resources": "켜면 발전·채굴·산업 시설을 자원 종류별로 표시합니다.",
