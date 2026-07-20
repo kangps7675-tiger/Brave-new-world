@@ -46,7 +46,7 @@ export const EAST_ASIA_ADIZ_STYLES: Record<EastAsiaAdizId, EastAsiaAdizStyle> = 
 };
 
 /** 동아시아 ADIZ가 보이기 시작하는 최대 고도 (이하면 표시) — LOD continent 이하 */
-export const EAST_ASIA_ADIZ_MAX_ALTITUDE = 1.72;
+export const EAST_ASIA_ADIZ_MAX_ALTITUDE = 3.2;
 
 export function isEastAsiaAdizVisibleAtAltitude(altitude: number): boolean {
   return altitude <= EAST_ASIA_ADIZ_MAX_ALTITUDE;

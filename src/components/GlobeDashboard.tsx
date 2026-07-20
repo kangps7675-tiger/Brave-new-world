@@ -14,6 +14,8 @@ import { TrustBadgeChip } from "@/components/TrustBadgeChip";
 import { ShareViewButton } from "@/components/ShareViewButton";
 import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
 import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
+import { DoomsdayClock } from "@/components/DoomsdayClock";
+import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
 import {
   markTensionPromptSeen,
   type DailyPrompt,
@@ -81,6 +83,24 @@ import {
   shouldOfferAirRaidCoach,
 } from "@/components/AirRaidOnboardingCoach";
 import { PeriodicBriefingParchment } from "@/components/PeriodicBriefingParchment";
+import { ClearanceThreatChip } from "@/components/ClearanceThreatChip";
+import {
+  hasSeenClearanceChip,
+  localClearanceDay,
+  resolveClearanceStatus,
+  syncClearancePrefs,
+  type ClearanceStatus,
+} from "@/lib/analystClearance";
+import {
+  markAnalystActive,
+  nextUtcRankDate,
+  readDailyPredictPrefs,
+  writeDailyPredictPrefs,
+} from "@/lib/dailyPredictPrefs";
+import {
+  forgottenWarningLead,
+  pickForgottenWarning,
+} from "@/lib/forgottenWarning";
 import {
   AirRaidBriefingParchment,
   type AirRaidBriefingContent,
@@ -368,6 +388,13 @@ import {
   type BattlefieldZone,
 } from "@/lib/battlefieldPresets";
 import {
+  airRaidBriefingLayers,
+  applyLayerPatch,
+  hubBriefingLayers,
+  liveBriefingLabel,
+  type LiveBriefingSession,
+} from "@/lib/eventBriefingSession";
+import {
   eastAsiaAdizToPaths,
   isEastAsiaAdizVisibleAtAltitude,
 } from "@/lib/eastAsiaAdiz";
@@ -524,7 +551,6 @@ import { createKoreaMissileIncidentBadge } from "@/lib/koreaMissileIncidentMarke
 import {
   activateChinaTheaterIncidents,
   activateKoreaMissileIncidents,
-  isFreshNewfeedsAttack,
 } from "@/lib/neonIncidentActivation";
 import {
   createIranNewsNeonBadge,
@@ -843,6 +869,10 @@ export function GlobeDashboard({
   const [weeklyRecapSettled, setWeeklyRecapSettled] = useState(false);
   const [watchFocusLine, setWatchFocusLine] = useState<string | null>(null);
   const [tomorrowTensionPrompt, setTomorrowTensionPrompt] = useState<DailyPrompt | null>(null);
+  /** 인가 강등 위기/강등 칩 */
+  const [clearanceStatus, setClearanceStatus] = useState<ClearanceStatus | null>(null);
+  /** 강등 칩을 닫았거나 불필요 — 등불보다 우선 */
+  const [clearanceChipSettled, setClearanceChipSettled] = useState(false);
   /** 오늘의 WTI — 사운드·등불·예측 기축 */
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
   const [showTourInvite, setShowTourInvite] = useState(false);
@@ -1053,6 +1083,53 @@ export function GlobeDashboard({
       /* 저장 실패는 무시 — 이번 세션에만 적용 */
     }
   }, []);
+
+  const openClearanceRecovery = useCallback(() => {
+    toggleDailyRankPanel(true);
+    void (async () => {
+      try {
+        const targetDate = encodeURIComponent(nextUtcRankDate());
+        const res = await fetch(`/api/daily-prompt?date=${targetDate}`, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { prompt?: DailyPrompt | null };
+        if (data.prompt) setTomorrowTensionPrompt(data.prompt);
+      } catch {
+        /* 패널만 열림 */
+      }
+    })();
+  }, [toggleDailyRankPanel]);
+
+  /** 인가 강등 상태 — 등불보다 먼저 평가 */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isLoading || loadError || !globeReady) return;
+    if (entryGate !== null || showModePicker) return;
+
+    let prefs = readDailyPredictPrefs();
+    prefs = syncClearancePrefs(prefs, localClearanceDay());
+    writeDailyPredictPrefs(prefs);
+    const status = resolveClearanceStatus(prefs);
+    setClearanceStatus(status);
+
+    if (status.kind === "ok") {
+      setClearanceChipSettled(true);
+      return;
+    }
+    if (hasSeenClearanceChip(calendarDayKey)) {
+      setClearanceChipSettled(true);
+    }
+  }, [
+    calendarDayKey,
+    entryGate,
+    globeReady,
+    isLoading,
+    loadError,
+    showModePicker,
+    tomorrowTensionPrompt,
+  ]);
 
   const handleUltraLiteToggle = useCallback(
     (on: boolean) => {
@@ -1268,14 +1345,16 @@ export function GlobeDashboard({
     if (!v) {
       setUkraineFrontLegendEngaged(false);
       if (
-        regionNavSelection?.id === "ukraine" ||
-        regionNavSelection?.id.startsWith("ukraine-")
+        !historyStoryLockedRef.current &&
+        (regionNavSelection?.id === "ukraine" ||
+          regionNavSelection?.id.startsWith("ukraine-"))
       ) {
       setRegionNavSelection(null);
       }
       togglePref("showUkraineControl", v);
       return;
     }
+    if (historyStoryLockedRef.current) return;
     const ukraineSel = navSelectionFromId("ukraine");
     if (ukraineSel) {
       enterTheaterFocusRef.current?.(ukraineSel);
@@ -1356,6 +1435,7 @@ export function GlobeDashboard({
 
   const setShowNeptun = (v: boolean) => {
     if (v) {
+      if (historyStoryLockedRef.current) return;
       neptunZoomPendingRef.current = true;
       immediateUntilRef.current = Date.now() + 1500;
       setRegionNavSelection(null);
@@ -1409,11 +1489,22 @@ export function GlobeDashboard({
   const [frictionActiveStageId, setFrictionActiveStageId] = useState<string | null>(null);
   const frictionEpisodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const historyImmersionRef = useRef(false);
+  /** 분쟁사(regime) 창 안 — 나가기 버튼 전엔 regionNav/모드/줌아웃 탈출 금지 */
+  const historyStoryLockedRef = useRef(false);
+  /** 양피지 이후 실시간 중계 — 레이어 스냅샷 복원용 */
+  const [liveBriefingSession, setLiveBriefingSession] = useState<LiveBriefingSession | null>(null);
 
   const activeHubId = regionNavSelection?.hubId ?? null;
   const hubFocusMode = regionNavSelection?.focusMode ?? null;
   const historyImmersionActive = hubFocusMode === "regime";
+  /** 목록·에피소드 공통 — 나가기 전까지 잠금 */
+  const historyStoryLocked = historyImmersionActive;
+  /** 에피소드 스토리 중 — 카메라 회전 제한 */
+  const historyEpisodeActive = Boolean(
+    historyImmersionActive && (regimeSelectedEpisodeId || frictionEpisodeBrief),
+  );
   historyImmersionRef.current = historyImmersionActive;
+  historyStoryLockedRef.current = historyStoryLocked;
   const hubBriefDoc = useMemo(() => {
     if (!regionNavSelection || !hubBriefOpen) return null;
     return resolveHubBrief(regionNavSelection, labelLanguage);
@@ -1433,9 +1524,43 @@ export function GlobeDashboard({
     }
   }, []);
 
+  const clearRegionNavSelection = useCallback(() => {
+    if (historyStoryLockedRef.current) return;
+    setRegionNavSelection(null);
+  }, []);
+
+  const endLiveBriefing = useCallback(() => {
+    setLiveBriefingSession((prev) => {
+      if (prev) applyLayerPrefs(prev.snapshot);
+      return null;
+    });
+  }, [applyLayerPrefs]);
+
+  const beginLiveBriefing = useCallback(
+    (
+      kind: LiveBriefingSession["kind"],
+      patch: Parameters<typeof applyLayerPatch>[1],
+      placeLabel: string,
+    ) => {
+      setLiveBriefingSession((prev) => {
+        const snapshot = prev?.snapshot ?? { ...layerPrefsLiveRef.current };
+        const labels = liveBriefingLabel(kind, placeLabel, labelLanguage === "en" ? "en" : "ko");
+        applyLayerPrefs(applyLayerPatch({ ...layerPrefsLiveRef.current }, patch));
+        return {
+          kind,
+          snapshot,
+          labelKo: labels.ko,
+          labelEn: labels.en,
+        };
+      });
+    },
+    [applyLayerPrefs, labelLanguage],
+  );
+
   const exitHistoryImmersion = useCallback(() => {
     clearFrictionEpisodeTimer();
     clearHubBriefTimer();
+    historyStoryLockedRef.current = false;
     setFrictionEpisodeBrief(null);
     setRegimeSelectedEpisodeId(null);
     setFrictionActiveStageId(null);
@@ -1445,7 +1570,12 @@ export function GlobeDashboard({
     frictionCoachAwaitHistoryRef.current = false;
     frictionCoachListAckRef.current = false;
     const controls = globeRef.current?.controls();
-    if (controls) controls.maxDistance = 720;
+    if (controls) {
+      controls.maxDistance = 720;
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
+    }
   }, [clearFrictionEpisodeTimer, clearHubBriefTimer]);
 
   const handleFrictionCoachStepChange = useCallback((next: FrictionCoachStep | null) => {
@@ -1526,7 +1656,13 @@ export function GlobeDashboard({
 
   const closeHubBrief = useCallback(() => {
     setHubBriefOpen(false);
-  }, []);
+    const sel = regionNavSelection;
+    if (!sel) return;
+    // 분쟁사는 역사 창 유지 — 실시간 중계 데스크로 전환하지 않음
+    if (sel.focusMode === "regime") return;
+    const place = sel.label || sel.id;
+    beginLiveBriefing("hub", hubBriefingLayers(sel.id), place);
+  }, [beginLiveBriefing, regionNavSelection]);
 
   useEffect(() => {
     return () => {
@@ -1565,10 +1701,18 @@ export function GlobeDashboard({
   }, []);
 
   const closeEconInsight = useCallback(() => {
+    const brief = econInsightBrief;
     setEconInsightOpen(false);
     setEconInsightBrief(null);
     setEconInsightCompact(false);
-  }, []);
+    if (brief?.navId) {
+      beginLiveBriefing(
+        "economy",
+        conceptLayersForEconomyNavId(brief.navId),
+        brief.titleKo || brief.navId,
+      );
+    }
+  }, [beginLiveBriefing, econInsightBrief]);
 
   useEffect(() => {
     return () => {
@@ -2449,7 +2593,7 @@ export function GlobeDashboard({
       return armsPairsToPaths(pairs, labelLanguage);
     }
     if (hubFocusMode === "regime") return [];
-    if (hub === "all") return [];
+    // 허브 미선택(all)이어도 전체 축 스포크 표시 — ON인데 빈 화면 방지
     return axisNetworkToPaths(hub, labelLanguage);
   }, [
     showAxisNetwork,
@@ -3041,14 +3185,13 @@ export function GlobeDashboard({
   const newfeedsAttackDisplayPoints = useMemo<NewfeedsAttackGlobePoint[]>(() => {
     if (!showNewfeedsIranAttacks) return [];
     const iranFronts = (hapiCasualties.fronts ?? []).filter((f) => f.locationCode === "IRN");
-    return newfeedsAttacks
-      .filter((attack) => isFreshNewfeedsAttack(attack))
-      .map((attack) => ({
-        ...attack,
-        markerId: `newfeeds-${attack.id}`,
-        displayKind: "newfeeds-attack" as const,
-        hapiTag: nearestIranHapiTag(attack.lat, attack.lng, iranFronts),
-      }));
+    // NewFeeds = 이란 국영·공식 매체 → 빨간 구체 (흰 네온은 UCDP 속보용)
+    return newfeedsAttacks.map((attack) => ({
+      ...attack,
+      markerId: `newfeeds-${attack.id}`,
+      displayKind: "newfeeds-attack" as const,
+      hapiTag: nearestIranHapiTag(attack.lat, attack.lng, iranFronts),
+    }));
   }, [hapiCasualties.fronts, newfeedsAttacks, showNewfeedsIranAttacks]);
 
   const chinaTheaterIncidentMarkers = useMemo<ChinaTheaterIncidentHtmlMarker[]>(() => {
@@ -3340,16 +3483,21 @@ export function GlobeDashboard({
     );
   }, [immediateUntilRef, isCameraMoving, neptunArchivedTrackPathsRaw]);
 
-  /** 정적 포인트 + AI 전쟁지역 (FIRMS는 전용 불꽃 레이어) */
-  /** 정적 포인트 + AI 전쟁지역 (FIRMS·이란 뉴스는 전용 레이어) */
+  /** 정적 포인트 + AI 전쟁지역 (FIRMS는 전용 불꽃 레이어) + 이란 NewFeeds 공격 구체 */
   const globeDisplayPoints = useMemo<GlobeDisplayPoint[]>(() => {
     const points: GlobeDisplayPoint[] = [
       ...staticGlobePoints.filter((point) => !isHtmlStaticKind(point.kind)),
       ...conflictClusterPoints,
       ...tzevaAdomDisplayPoints,
+      ...newfeedsAttackDisplayPoints,
     ];
     return points;
-  }, [conflictClusterPoints, staticGlobePoints, tzevaAdomDisplayPoints]);
+  }, [
+    conflictClusterPoints,
+    newfeedsAttackDisplayPoints,
+    staticGlobePoints,
+    tzevaAdomDisplayPoints,
+  ]);
 
   const conflictClusterRings = useMemo<PulseRingPoint[]>(
     () => [
@@ -3771,7 +3919,6 @@ export function GlobeDashboard({
       ...frictionStageMarkers,
       ...chinaTheaterIncidentMarkers,
       ...koreaMissileIncidentMarkers,
-      ...newfeedsAttackDisplayPoints,
     ];
     return markers;
   }, [
@@ -3789,7 +3936,6 @@ export function GlobeDashboard({
       civHtmlMarkers,
       neptunHtmlMarkers,
       neptunImpactHtmlMarkers,
-      newfeedsAttackDisplayPoints,
       nuclearStockpileMarkers,
       situationCalloutMarkers,
       ukraineSettlementHtmlMarkers,
@@ -4195,6 +4341,9 @@ export function GlobeDashboard({
           meta: [
             typeLabel,
             hoveredPoint.speedOverGround != null ? `${hoveredPoint.speedOverGround} kn` : null,
+            hoveredPoint.sanctionsMatch
+              ? `제재 확인 · ${hoveredPoint.sanctionsMatch.list} · ${hoveredPoint.sanctionsMatch.entityName} · 스냅샷 ${hoveredPoint.sanctionsMatch.asOf} 기준`
+              : null,
             hoveredPoint.disguised
               ? "출처 https://github.com/arandomguyhere/AIS_Tracker.git"
               : null,
@@ -4212,7 +4361,7 @@ export function GlobeDashboard({
           kind: "static",
           title: firmsCauseTitle(soundKind, lang),
           detail: firmsCauseBody(soundKind, lang),
-          badge: `NASA FIRMS · ${firmsFireSoundLabel(soundKind, lang)}`,
+          badge: `NASA FIRMS · ${firmsFireSoundLabel(soundKind, lang)} · ${evidenceTierLabel("observed", lang)}`,
           meta: [
             hoveredPoint.frp != null ? `FRP ${hoveredPoint.frp} MW` : null,
             hoveredPoint.confidence ? `신뢰도 ${hoveredPoint.confidence}` : null,
@@ -4330,7 +4479,7 @@ export function GlobeDashboard({
       if (hoveredPoint.displayKind === "gdelt-tag-html") {
         return {
           kind: "event",
-          badge: gdeltNewsAlertLabel(lang),
+          badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
           title: hoveredPoint.title || hoveredPoint.category || HOVER.gdeltNews(lang),
           detail: gdeltLocationTagLabel(hoveredPoint.eventTier, lang),
           meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" · ") || undefined,
@@ -4340,7 +4489,7 @@ export function GlobeDashboard({
 
       return {
         kind: "event",
-        badge: gdeltNewsAlertLabel(lang),
+        badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
         title: hoveredPoint.title || `Event ${hoveredPoint.globalEventId}`,
         detail: `${eventTierLabel(hoveredPoint.eventTier, lang)}${
           isFreshEvent(hoveredPoint) ? HOVER.freshBreaking(lang) : ""
@@ -5293,7 +5442,7 @@ export function GlobeDashboard({
                         ? `${threat} · ${newfeedsAttacks.length}건`
                         : `공격 지점 ${newfeedsAttacks.length}건`;
                     })()
-              : "꺼짐 · 중동 지역 보도 집계",
+              : "꺼짐 · 이란 국영·공식 매체 · 빨간 점",
             checked: layerPrefs.showNewfeedsIranAttacks,
             onChange: setShowNewfeedsIranAttacks,
             accent: "orange",
@@ -5664,7 +5813,7 @@ export function GlobeDashboard({
                         ? `${threat} · ${newfeedsAttacks.length}건`
                         : `공격 지점 ${newfeedsAttacks.length}건 · 유가 민감`;
                     })()
-              : "꺼짐 · 유가 민감 · 중동 보도 집계",
+              : "꺼짐 · 유가 민감 · 이란 국영·공식 · 빨간 점",
             checked: layerPrefs.showNewfeedsIranAttacks,
             onChange: setShowNewfeedsIranAttacks,
             accent: "orange",
@@ -6423,7 +6572,11 @@ export function GlobeDashboard({
     const controls = globe.controls();
     if (!controls) return;
     if (historyImmersionActive) {
+      // 분쟁사: 줌아웃으로 창 탈출 불가 — 궤도 상한. 에피소드 중엔 회전도 잠금
       controls.maxDistance = globeDistanceForAltitude(HISTORY_IMMERSION_MAX_ALTITUDE);
+      controls.enableZoom = true;
+      controls.enablePan = !historyEpisodeActive;
+      controls.enableRotate = !historyEpisodeActive;
       const pov = globe.pointOfView();
       if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE) {
         globe.pointOfView(
@@ -6433,8 +6586,11 @@ export function GlobeDashboard({
       }
     } else {
       controls.maxDistance = 720;
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
     }
-  }, [globeReady, historyImmersionActive]);
+  }, [globeReady, historyEpisodeActive, historyImmersionActive]);
 
   function openIntelSheet(options?: {
     theater?: IntelTheaterFilter;
@@ -6463,12 +6619,12 @@ export function GlobeDashboard({
 
   const openIntelFromCoords = useCallback((lat: number, lng: number, altitude = 0.92) => {
     setSelected(null);
-    setRegionNavSelection(null);
+    clearRegionNavSelection();
     setIntelTheaterFilter(newsTheaterFromCoords(lat, lng));
     setIntelSheetOpen(true);
     intelStackRef.current?.openNewsPanel(newsTheaterFromCoords(lat, lng), "news");
     flyTo(lat, lng, altitude);
-  }, [flyTo]);
+  }, [clearRegionNavSelection, flyTo]);
 
   function handleIntelFlyTo(target: MapFlyTarget) {
     if (target.kind === "coords") {
@@ -6542,30 +6698,35 @@ export function GlobeDashboard({
     selection: NavSelection,
     opts?: { openInsight?: boolean },
   ) {
+    if (historyStoryLockedRef.current) return;
     closeLeftPanel();
     setSelected(null);
     setIntelSheetOpen(false);
     setShowDisputeLegendPanel(false);
     setShowLocalAlertPanel(false);
-    setRegionNavSelection(null);
+    clearRegionNavSelection();
     setEconNavSelection(selection);
     rememberEconomyNav(selection);
     setEconNewsPanelReveal(false);
     flyToBounds(selection, 1100, "overview", { pitch: 55, bearing: -20 });
     // 양피지는 nav/허브 직접 선택일 때만 (인트로·패키지 autoEnter는 카메라만)
-    if (opts?.openInsight !== false) {
+    const openInsight = opts?.openInsight !== false;
+    if (openInsight) {
       scheduleEconInsight({ navId: selection.id, compact: false });
     }
-
-    const conceptLayers = conceptLayersForEconomyNavId(selection.id);
-    if (Object.keys(conceptLayers).length > 0) {
-      requestAnimationFrame(() => {
-        toggleCategoryPrefs(conceptLayers);
-      });
+    // 양피지 있으면 닫은 뒤 중계 레이어 ON — 없을 때만 즉시 적용
+    if (!openInsight || !resolveCriticalNodeBrief({ navId: selection.id })) {
+      const conceptLayers = conceptLayersForEconomyNavId(selection.id);
+      if (Object.keys(conceptLayers).length > 0) {
+        requestAnimationFrame(() => {
+          toggleCategoryPrefs(conceptLayers);
+        });
+      }
     }
   }
 
   function enterTheaterFocus(selection: NavSelection, tab: TheaterSidebarTab = "news") {
+    if (historyStoryLockedRef.current) return;
     const config = theaterFocusFromNav(selection);
     if (isUkraineNavId(selection.id)) {
       setUkraineFrontLegendEngaged(true);
@@ -6581,6 +6742,10 @@ export function GlobeDashboard({
     closeEconInsight();
     clearEconInsightTimer();
     setEconNewsPanelReveal(false);
+    setLiveBriefingSession((prev) => {
+      if (prev) applyLayerPrefs(prev.snapshot);
+      return null;
+    });
     setRegionNavSelection(selection);
     rememberConflictNav(selection);
     setRegimeSelectedEpisodeId(null);
@@ -6594,10 +6759,18 @@ export function GlobeDashboard({
     flyToBounds(selection, 1100, "overview");
     scheduleHubBrief(selection);
 
-    const conceptLayers = conceptLayersForConflictNavId(selection.id);
-    requestAnimationFrame(() => {
-      toggleCategoryPrefs(conceptLayers);
-    });
+    // 양피지(허브 브리프)가 뜨면 닫은 뒤 중계 레이어 — 분쟁사·브리프 없음은 즉시
+    const willHubBrief =
+      Boolean(selection.hubId && selection.focusMode) &&
+      Boolean(resolveHubBrief(selection, labelLanguage));
+    if (!willHubBrief && selection.focusMode !== "regime") {
+      const conceptLayers = conceptLayersForConflictNavId(selection.id);
+      if (Object.keys(conceptLayers).length > 0) {
+        requestAnimationFrame(() => {
+          toggleCategoryPrefs(conceptLayers);
+        });
+      }
+    }
 
     if (config.enableUkraineLayers) {
       if (ukraineControl.length === 0 && viinaMeta?.available) {
@@ -6769,8 +6942,9 @@ export function GlobeDashboard({
     theater: ViewTheaterChoice,
     economyHub: EconomyHubChoice = "auto",
   ) {
+    if (historyStoryLockedRef.current) return;
     setIntelSheetOpen(false);
-    setRegionNavSelection(null);
+    clearRegionNavSelection();
     setEconNavSelection(null);
     closeEconInsight();
     clearEconInsightTimer();
@@ -6818,6 +6992,7 @@ export function GlobeDashboard({
   }
 
   function handleViewerModeChange(mode: ViewerMode) {
+    if (historyStoryLockedRef.current) return;
     if (viewerMode === mode) return;
     recordInterestMode(mode);
     handleModeApply(
@@ -6930,12 +7105,14 @@ export function GlobeDashboard({
   }, []);
 
   function openModePickerManual() {
+    if (historyStoryLockedRef.current) return;
     setModePickerLockMode(false);
     setModePickerInitialMode(null);
     setShowModePicker(true);
   }
 
   function handleDomainSelect(mode: ViewerMode, ultraLiteOn: boolean) {
+    if (historyStoryLockedRef.current) return;
     ultraLiteRef.current = ultraLiteOn;
     setUltraLite(ultraLiteOn);
     savePerfPrefs({ ultraLite: ultraLiteOn });
@@ -7057,6 +7234,7 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (chromeCoachStep || showAirRaidCoach) return;
     if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
+    if (!clearanceChipSettled) return;
 
     const offer = resolveMondayWeeklyRecap();
     if (!offer) {
@@ -7134,6 +7312,7 @@ export function GlobeDashboard({
   }, [
     calendarDayKey,
     chromeCoachStep,
+    clearanceChipSettled,
     econInsightOpen,
     entryGate,
     frictionEpisodeBrief,
@@ -7156,6 +7335,7 @@ export function GlobeDashboard({
     if (chromeCoachStep || showAirRaidCoach) return;
     if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
     if (!weeklyRecapSettled || weeklyExpanded) return;
+    if (!clearanceChipSettled) return;
 
     const { dayKey, tier } = resolveLampPeriod();
     const dayPart = calendarDayKey.startsWith("daily-") ? calendarDayKey : dayKey;
@@ -7418,6 +7598,27 @@ export function GlobeDashboard({
             }
           }
           if (content) {
+            const warning = pickForgottenWarning(new Date(), viewerMode);
+            if (warning) {
+              const ko = labelLanguage !== "en";
+              content = {
+                ...content,
+                forgottenWarning: {
+                  id: warning.id,
+                  date: warning.date,
+                  yearsAgo: warning.yearsAgo,
+                  titleKo: warning.titleKo,
+                  titleEn: warning.titleEn,
+                  summaryKo: warning.summaryKo,
+                  summaryEn: warning.summaryEn,
+                  lat: warning.lat,
+                  lng: warning.lng,
+                  altitude: warning.altitude,
+                  exactAnniversary: warning.exactAnniversary,
+                  lead: forgottenWarningLead(warning, ko),
+                },
+              };
+            }
             content = await localizePeriodicBriefing(content, labelLanguage);
             setPeriodicBriefing(content);
           }
@@ -7433,6 +7634,7 @@ export function GlobeDashboard({
   }, [
     calendarDayKey,
     chromeCoachStep,
+    clearanceChipSettled,
     econInsightOpen,
     entryGate,
     frictionEpisodeBrief,
@@ -7482,6 +7684,8 @@ export function GlobeDashboard({
     setTomorrowTensionPrompt(null);
     setAirRaidOffer(null);
     setShowAirRaidCoach(false);
+    setClearanceChipSettled(false);
+    setClearanceStatus(null);
   }, [viewerMode, calendarDayKey]);
 
   useEffect(() => {
@@ -7650,6 +7854,7 @@ export function GlobeDashboard({
   }
 
   function handleExplorationSelect(preset: (typeof EXPLORATION_PRESETS)[number]) {
+    if (historyStoryLockedRef.current) return;
     const zone = battlefieldZoneFromExplorationId(preset.id);
     if (zone) {
       battlefieldManualUntilRef.current = Date.now() + 12_000;
@@ -7671,6 +7876,7 @@ export function GlobeDashboard({
 
   useEffect(() => {
     if (isEconomyViewer || entryGate !== null || showModePicker) return;
+    if (historyStoryLockedRef.current) return;
     if (Date.now() < battlefieldManualUntilRef.current) return;
     const zone = detectBattlefieldZone(
       layerViewState.lat,
@@ -7710,8 +7916,8 @@ export function GlobeDashboard({
   const handleNeptunThreatSelect = useCallback(
     (threat: NeptunLiveThreat) => {
       dismissLayerPanel(true);
-    setRegionNavSelection(null);
-    setIntelSheetOpen(false);
+      clearRegionNavSelection();
+      setIntelSheetOpen(false);
       setUkraineFrontLegendEngaged(true);
       if (!showUkraineControl) togglePref("showUkraineControl", true);
       if (!showNeptun) togglePref("showNeptun", true);
@@ -7720,11 +7926,11 @@ export function GlobeDashboard({
         setSelected({ kind: "neptun-threat", item: threat });
       });
     },
-    [dismissLayerPanel, flyTo, showNeptun, showUkraineControl, togglePref],
+    [clearRegionNavSelection, dismissLayerPanel, flyTo, showNeptun, showUkraineControl, togglePref],
   );
 
   function handleAlertSelect(alert: DisputeAlert) {
-    setRegionNavSelection(null);
+    clearRegionNavSelection();
     setIntelSheetOpen(false);
     setShowDisputeLegendPanel(true);
     flyTo(alert.center.lat, alert.center.lng, 0.88);
@@ -7732,7 +7938,7 @@ export function GlobeDashboard({
   }
 
   function handleGdeltAlertSelect(alert: MenuCoreAlert) {
-    setRegionNavSelection(null);
+    clearRegionNavSelection();
     setIntelSheetOpen(false);
     flyTo(alert.lat, alert.lng, 0.88);
     openSelection({ kind: "event", item: alert });
@@ -8485,7 +8691,18 @@ export function GlobeDashboard({
         searchResults={searchResults}
         onSearchSelect={handleSearchSelect}
         compact={isCompactUi}
-        belowNav={<ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />}
+        belowNav={
+          <div className="flex items-center gap-2">
+            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+            {!isEconomyViewer ? (
+              <DoomsdayClock
+                score={wtiSnapshot?.score ?? null}
+                deltaScore={wtiSnapshot?.deltaScore ?? null}
+                lang={labelLanguage}
+              />
+            ) : null}
+          </div>
+        }
         compactMenuExtra={
           isCompactUi ? (
             <>
@@ -8550,7 +8767,7 @@ export function GlobeDashboard({
           onClose={() => {
             clearHubBriefTimer();
             setHubBriefOpen(false);
-            setRegionNavSelection(null);
+            clearRegionNavSelection();
           }}
         />
       ) : null}
@@ -8738,12 +8955,12 @@ export function GlobeDashboard({
                 if (point.displayKind === "newfeeds-attack") {
                   const base =
                     point.severity === "major"
-                      ? 0.18
+                      ? 0.32
                       : point.severity === "high"
-                        ? 0.15
+                        ? 0.28
                         : point.severity === "medium"
-                          ? 0.12
-                          : 0.1;
+                          ? 0.24
+                          : 0.16;
                   return base * getZoomOutScale(alt);
                 }
                 if (point.displayKind === "conflict-cluster") {
@@ -10090,7 +10307,7 @@ export function GlobeDashboard({
             type="button"
             aria-label={t("ariaCloseRegionNews", labelLanguage)}
             className="absolute inset-0 z-20 bg-black/15 lg:bg-transparent"
-            onClick={() => setRegionNavSelection(null)}
+            onClick={() => clearRegionNavSelection()}
           />
           <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
             {theaterFocusConfig ? (
@@ -10107,7 +10324,7 @@ export function GlobeDashboard({
                 telegramEmbedMode={telegramEmbedMode}
                 telegramChannelCount={TELEGRAM_CHANNEL_COUNT}
                 initialTab={theaterSidebarTab}
-              onClose={() => setRegionNavSelection(null)}
+              onClose={() => clearRegionNavSelection()}
                 onFlyToCoords={(lat, lng, altitude) => flyTo(lat, lng, altitude ?? 0.72)}
                 onSelectGdeltEvent={handleRegionEventSelect}
             />
@@ -10319,6 +10536,30 @@ export function GlobeDashboard({
               }}
             />
           ) : null}
+          {liveBriefingSession ? (
+            <button
+              type="button"
+              onClick={endLiveBriefing}
+              className="pointer-events-auto group flex max-w-[min(72vw,15rem)] items-center gap-2 rounded-full border border-amber-400/45 bg-[rgba(12,10,6,0.92)] px-3 py-2 text-left shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-amber-300/70 hover:bg-[rgba(20,16,8,0.95)]"
+              title={labelLanguage === "en" ? "End live briefing" : "실시간 중계 종료"}
+            >
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400/70 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-200/90">
+                  {labelLanguage === "en" ? "Live brief" : "실시간 중계"}
+                </span>
+                <span className="block truncate text-[11px] font-medium text-stone-100">
+                  {labelLanguage === "en" ? liveBriefingSession.labelEn : liveBriefingSession.labelKo}
+                </span>
+                <span className="block text-[9px] text-stone-400 group-hover:text-amber-200/80">
+                  {labelLanguage === "en" ? "Tap to end" : "탭해서 중계 종료"}
+                </span>
+              </span>
+            </button>
+          ) : null}
           <SoundMuteControl lang={labelLanguage} variant="fab" />
         </div>
       ) : null}
@@ -10473,6 +10714,26 @@ export function GlobeDashboard({
         </div>
       ) : null}
 
+      {clearanceStatus &&
+      clearanceStatus.kind !== "ok" &&
+      entryGate === null &&
+      !showModePicker &&
+      !weeklyExpanded &&
+      !periodicBriefing &&
+      !tomorrowTensionPrompt &&
+      !sentinelActive ? (
+        <ClearanceThreatChip
+          status={clearanceStatus}
+          lang={labelLanguage}
+          dayKey={calendarDayKey}
+          onCta={() => {
+            setClearanceChipSettled(true);
+            openClearanceRecovery();
+          }}
+          onDismiss={() => setClearanceChipSettled(true)}
+        />
+      ) : null}
+
       {weeklyRecap && !weeklyRecapCollapsed ? (
         <PeriodicBriefingParchment
           briefing={weeklyRecap}
@@ -10520,12 +10781,19 @@ export function GlobeDashboard({
         <PeriodicBriefingParchment
           briefing={periodicBriefing}
           lang={labelLanguage}
+          onFlyToForgottenWarning={({ lat, lng, altitude }) => {
+            flyTo(lat, lng, altitude ?? 1.45, 1400);
+          }}
           onDismiss={() => {
             markPeriodSeen(periodicBriefing.key);
             recordInterestNews(
               periodicBriefing.key,
               periodicBriefing.title || periodicBriefing.key,
             );
+            markAnalystActive();
+            const prefs = syncClearancePrefs(readDailyPredictPrefs());
+            writeDailyPredictPrefs(prefs);
+            setClearanceStatus(resolveClearanceStatus(prefs));
             setPeriodicBriefing(null);
             if (shouldOfferTourInvite()) {
               window.setTimeout(() => setShowTourInvite(true), 450);
@@ -10541,6 +10809,9 @@ export function GlobeDashboard({
           onDismiss={() => {
             markTensionPromptSeen(calendarDayKey);
             setTomorrowTensionPrompt(null);
+            const prefs = syncClearancePrefs(readDailyPredictPrefs());
+            writeDailyPredictPrefs(prefs);
+            setClearanceStatus(resolveClearanceStatus(prefs));
           }}
         />
       ) : null}
@@ -10617,8 +10888,15 @@ export function GlobeDashboard({
           briefing={airRaidBriefing}
           lang={labelLanguage}
           onDismiss={() => {
+            const kind = airRaidBriefing.kind;
+            const place =
+              labelLanguage === "en"
+                ? airRaidBriefing.title.replace(/^Air-raid alert\s*·\s*/i, "").trim() ||
+                  "Alert zone"
+                : airRaidBriefing.title.replace(/^공습경보\s*·\s*/, "").trim() || "경보 구역";
             setAirRaidBriefing(null);
             airRaidAutoBusyRef.current = false;
+            beginLiveBriefing("air-raid", airRaidBriefingLayers(kind), place);
           }}
         />
       ) : null}

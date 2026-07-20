@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { HoverHint } from "@/components/HoverHint";
 import {
   TELEGRAM_CATALOG_NOTE,
@@ -157,6 +158,7 @@ export function TelegramIntelFeed({
                 <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] text-cyan-100">
                   Telegram
                 </span>
+                <EvidenceTierBadge tier="unverified" lang={lang} />
                 <span className="font-medium text-sky-50">
                   {TELEGRAM_REGION_LABELS[alert.region as TelegramAlertRegion]}
                 </span>

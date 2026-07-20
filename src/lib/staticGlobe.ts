@@ -25,6 +25,12 @@ const PINNED_STATIC_KINDS = new Set<StaticPoint["kind"]>([
   "critical-node",
 ]);
 
+function isResourceLikeKind(kind: StaticPoint["kind"]): boolean {
+  if (kind === "resource") return true;
+  // GEM 시설은 kind가 gem-* — 예전엔 others로 분류되어 global에서 전부 잘림
+  return typeof kind === "string" && kind.startsWith("gem-");
+}
+
 export function filterStaticPointsForView(
   points: StaticPoint[],
   view: ViewState,
@@ -38,15 +44,18 @@ export function filterStaticPointsForView(
   for (const point of points) {
     if (PINNED_STATIC_KINDS.has(point.kind)) pinned.push(point);
     else if (point.kind === "military-base") military.push(point);
-    else if (point.kind === "resource") resources.push(point);
+    else if (isResourceLikeKind(point.kind)) resources.push(point);
     else others.push(point);
   }
 
   const visibleOthers: StaticPoint[] = [];
   const otherMax = STATIC_POINT_MAX_BY_TIER[tier];
+  // global에서도 카메라 주변만이 아니라 전역 샘플을 일부 보여 줌아웃 ON이 죽지 않게
+  const otherRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 52) : radiusDeg;
   if (otherMax > 0) {
     for (const point of others) {
-      if (radiusDeg > 0 && !bboxNearView(point, view, radiusDeg)) continue;
+      if (otherRadius > 0 && !bboxNearView(point, view, otherRadius)) continue;
       visibleOthers.push(point);
       if (visibleOthers.length >= otherMax) break;
     }
