@@ -115,11 +115,15 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showSubmarineCables: true,
       showOilPipelines: true,
       showGasPipelines: true,
+      showLngTerminals: true,
+      showResources: true,
+      showGemOilGasExtraction: true,
+      showGemCoalMines: true,
+      showGemIronOre: true,
       showNuclearSites: true,
       showAiDataCenters: true,
       showPorts: true,
       showAirports: true,
-      showLngTerminals: false,
       showShippingLanes: false,
       showBriTradeConnectivity: true,
       showUsDfcSupplyChain: true,
@@ -139,6 +143,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showNewfeedsIranAttacks: true,
       showUsCarriers: false,
       showMilitaryActivity: false,
+      showMilitaryBases: false,
+      showDisguisedVessels: false,
     },
     ui: {
       showTicker: true,
@@ -173,6 +179,14 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showUsCarriers: true,
       showDiplomaticTension: true,
       showConflictZones: false,
+      showOilPipelines: true,
+      showGasPipelines: true,
+      showLngTerminals: true,
+      showResources: true,
+      showGemOilGasExtraction: true,
+      showGemCoalMines: true,
+      showGemIronOre: true,
+      showNuclearSites: true,
     },
     ui: {
       showTicker: false,
@@ -226,9 +240,8 @@ const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showConflictZones",
   "showDiplomaticTension",
   "showTelegramOsint",
-  "showLngTerminals",
-  // showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
-  // 는 에너지·전장 핵심 — 후순위 드롭
+  // showLngTerminals · showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
+  // 는 에너지·전장 핵심 — 후순위 드롭 금지
 ];
 
 const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
@@ -237,9 +250,8 @@ const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showPorts",
   "showInternetExchanges",
   "showAirports",
-  "showLngTerminals",
   "showSubmarineCables",
-  // showOilPipelines · showGasPipelines 유지 — 에너지 지도 핵심
+  // showLngTerminals · showOilPipelines · showGasPipelines 유지 — 에너지 지도 핵심
 ];
 
 export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {

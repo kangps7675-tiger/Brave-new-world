@@ -23,7 +23,7 @@ export type NavAnnouncement = {
 };
 
 export const CURRENT_NAV_ANNOUNCEMENT: NavAnnouncement = {
-  id: "2026-07-21-ais-funding-goal",
+  id: "2026-07-21-ais-funding-goal-v2",
   labelKo: "다음 타깃 · 물류 스트레스",
   labelEn: "Next target · Logistics stress",
   bodyKo:

@@ -36,6 +36,8 @@ type HoverNavProps = {
   compact?: boolean;
   /** compact 드롭다운 하단 슬롯 (전장·프리셋 등) */
   compactMenuExtra?: ReactNode;
+  /** 검색창 위 (nav 공지 배너 등) — fixed 스택 최상단 */
+  aboveNav?: ReactNode;
   /** nav 본문·드롭다운 바로 아래 (지정학/지경학 스위치 등) — 메뉴 열림에 따라 함께 이동 */
   belowNav?: ReactNode;
   /** 검색창 옆 「묻기」— 레이어 자동 ON 오버레이 */
@@ -54,6 +56,7 @@ export function HoverNav({
   onSearchSelect,
   compact = false,
   compactMenuExtra,
+  aboveNav,
   belowNav,
   onAskLayersOpen,
   askLayersLabel,
@@ -119,11 +122,20 @@ export function HoverNav({
 
   return (
     <div
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[75] flex flex-col items-center pt-3 ${
-        compact ? "px-[3.4rem] sm:px-14" : "px-2 sm:px-3"
-      }`}
-      style={compact ? { paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))" } : undefined}
+      className="pointer-events-none fixed inset-x-0 top-0 z-[75] flex flex-col"
+      style={{
+        paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
+      }}
     >
+      {aboveNav ? (
+        <div className="pointer-events-auto z-[77] w-full shrink-0">{aboveNav}</div>
+      ) : null}
+
+      <div
+        className={`flex w-full flex-col items-center ${
+          compact ? "px-[3.4rem] sm:px-14" : "px-2 sm:px-3"
+        } ${aboveNav ? "mt-2.5" : "mt-1.5"}`}
+      >
       <nav
         id="app-hover-nav"
         ref={navRef}
@@ -385,8 +397,15 @@ export function HoverNav({
       </nav>
 
       {belowNav ? (
-        <div className="pointer-events-auto z-[76] mt-2 flex justify-center">{belowNav}</div>
+        <div
+          className={`pointer-events-auto z-[76] flex justify-center ${
+            aboveNav ? "mt-3" : "mt-2.5"
+          }`}
+        >
+          {belowNav}
+        </div>
       ) : null}
+      </div>
     </div>
   );
 }

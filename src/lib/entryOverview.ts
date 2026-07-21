@@ -6,6 +6,10 @@ import {
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
+import {
+  ensureResourceLayersOn,
+  SHARED_RESOURCE_LAYER_ON,
+} from "@/lib/viewerChrome";
 
 /**
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
@@ -59,7 +63,7 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 요청 기본 레이어 */
+/** 지정학 히어로 — 요청 기본 레이어 (+ 공통 에너지·자원) */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showWarZones: true,
   showGdeltWar: true,
@@ -71,35 +75,23 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showLogisticsRisk: true,
   showAxisNetwork: true,
   showSubmarineCables: true,
-  /** 에너지·자원 — 게이트 직후 overview가 force-on을 덮어도 유지 */
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showResources: true,
-  showGemOilGasExtraction: true,
-  showGemCoalMines: true,
-  showGemIronOre: true,
-  showNuclearSites: true,
+  ...SHARED_RESOURCE_LAYER_ON,
 };
 
-/** 지경학 히어로 — 요청 기본 레이어 */
+/** 지경학 히어로 — 요청 기본 레이어 (+ 공통 에너지·자원) */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   showAis: true,
   showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showResources: true,
-  showGemOilGasExtraction: true,
-  showGemCoalMines: true,
-  showGemIronOre: true,
-  showNuclearSites: true,
+  ...SHARED_RESOURCE_LAYER_ON,
   showAiDataCenters: true,
   showPorts: true,
   showAirports: true,
+  /** 미·중 공급망 대치 — 게이트 직후 overview가 패키지 ON을 덮지 않도록 히어로에 포함 */
+  showBriTradeConnectivity: true,
+  showUsDfcSupplyChain: true,
 };
 
 /**
@@ -125,7 +117,7 @@ export function buildDomainOverviewPrefs(
     } else {
       next = { ...next, ...ECONOMY_HERO_ON };
     }
-    next = clampPrefsToActiveCap(next, true);
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
     if (mode === "conflict") {
       next = {
         ...next,
@@ -133,12 +125,14 @@ export function buildDomainOverviewPrefs(
         showDiplomaticTension: true,
         showGdeltWar: true,
       };
-      next = clampPrefsToActiveCap(next, true);
+      next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
     }
   } else if (mode === "conflict") {
     next = clampPrefsToActiveCap(next, false);
     next = { ...next, ...CONFLICT_HERO_ON };
-    next = clampPrefsToActiveCap(next, false);
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, false));
+  } else {
+    next = ensureResourceLayersOn(next);
   }
 
   return next;

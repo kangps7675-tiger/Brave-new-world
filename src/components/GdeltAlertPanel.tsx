@@ -15,7 +15,9 @@ type GdeltAlertPanelProps = {
   selectionLabel?: string | null;
   errorMessage?: string | null;
   onSelect: (alert: MenuCoreAlert) => void;
-  onClose: () => void;
+  onClose?: () => void;
+  /** true면 뉴스창 탭 내부에 끼워지는 전체폭 블록으로 렌더 (플로팅 카드 스타일 X) */
+  fullPage?: boolean;
 };
 
 export function GdeltAlertPanel({
@@ -25,10 +27,17 @@ export function GdeltAlertPanel({
   errorMessage,
   onSelect,
   onClose,
+  fullPage = false,
 }: GdeltAlertPanelProps) {
   return (
-    <div className="pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-20 w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md">
-      <div className="flex items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
+    <div
+      className={
+        fullPage
+          ? "flex min-h-0 flex-1 flex-col"
+          : "pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-20 w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md"
+      }
+    >
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[0.24em] text-orange-200/75">GDELT 뉴스 알림</p>
           <p className="mt-0.5 text-xs text-orange-50/90">
@@ -43,14 +52,16 @@ export function GdeltAlertPanel({
                 ? "오프라인"
                 : `${alerts.length}건`}
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="GDELT 경보 닫기"
-            className="rounded-lg border border-orange-300/25 px-2 py-1 text-xs text-orange-100/60 transition hover:border-orange-200/40 hover:text-orange-50"
-          >
-            ✕
-          </button>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="GDELT 경보 닫기"
+              className="rounded-lg border border-orange-300/25 px-2 py-1 text-xs text-orange-100/60 transition hover:border-orange-200/40 hover:text-orange-50"
+            >
+              ✕
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -63,7 +74,13 @@ export function GdeltAlertPanel({
               : "표시할 지정학 속보가 없습니다. 상단 메뉴에서 지역을 고르거나 새로고침을 눌러 보세요."}
         </p>
       ) : (
-        <ul className="max-h-[min(42vh,320px)] divide-y divide-orange-300/10 overflow-y-auto">
+        <ul
+          className={
+            fullPage
+              ? "min-h-0 flex-1 divide-y divide-orange-300/10 overflow-y-auto"
+              : "max-h-[min(42vh,320px)] divide-y divide-orange-300/10 overflow-y-auto"
+          }
+        >
           {alerts.map((alert) => {
             const regionTitle = alert.menuRegion.parentLabel
               ? `${alert.menuRegion.parentLabel} · ${alert.menuRegion.label}`

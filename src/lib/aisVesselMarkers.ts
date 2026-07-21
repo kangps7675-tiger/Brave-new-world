@@ -146,8 +146,8 @@ export function createAisVesselBadge(
       : "잠수함"
     : surface
       ? lang === "en"
-        ? "Surface combatant"
-        : "수상전투함"
+        ? "Destroyer"
+        : "구축함"
       : military
         ? lang === "en"
           ? "Warship"
