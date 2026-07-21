@@ -9079,13 +9079,6 @@ export function GlobeDashboard({
         wtiScore={wtiSnapshot?.score ?? null}
       />
 
-      {!isEconomyViewer && !isCompactUi && !intelSheetOpen && entryGate === null ? (
-        <div className="pointer-events-none fixed left-3 top-[calc(4.5rem+env(safe-area-inset-top,0px))] z-[40] flex flex-col gap-2 sm:left-4">
-          <TopWatchPanel lang={labelLanguage} />
-          <SitrepLog lang={labelLanguage} />
-        </div>
-      ) : null}
-
       {!intelSheetOpen ? (
       <>
       <HoverNav
@@ -10306,33 +10299,45 @@ export function GlobeDashboard({
             </button>
           </HoverHint>
         </div>
-        {!isCompactUi && !isEconomyViewer ? (
-          <UsCarrierFixedToggle
-            checked={showUsCarriers}
-            onChange={setShowUsCarriers}
-            carrierCount={usCarriers.length}
-            deployedCount={deployedCarrierCount}
-          />
-        ) : null}
-        {!isCompactUi && isEconomyViewer ? (
-          <EconomySupplyChainFixedToggle
-            showUsDfc={showUsDfcSupplyChain}
-            showChinaBri={showBriTradeConnectivity}
-            onUsDfcChange={setShowUsDfcSupplyChain}
-            onChinaBriChange={setShowBriTradeConnectivity}
-            usLinkCount={usDfcSupplyPaths.length}
-            chinaLinkCount={briTradePaths.length}
-          />
-        ) : null}
-        {!isCompactUi ? (
-          <div className="cv-desktop-only pointer-events-auto">
-            <ServerDonateChip lang={labelLanguage} />
-          </div>
-        ) : null}
-        {isCompactUi ? (
-          <div className="cv-compact-only pointer-events-auto">
-            <ServerDonateChip lang={labelLanguage} />
-          </div>
+        {/* 레이어 패널이 열리면 항모·후원이 패널을 가리지 않도록 숨김 */}
+        {!showLeftPanel ? (
+          <>
+            {!isCompactUi && !isEconomyViewer ? (
+              <UsCarrierFixedToggle
+                checked={showUsCarriers}
+                onChange={setShowUsCarriers}
+                carrierCount={usCarriers.length}
+                deployedCount={deployedCarrierCount}
+              />
+            ) : null}
+            {!isCompactUi && isEconomyViewer ? (
+              <EconomySupplyChainFixedToggle
+                showUsDfc={showUsDfcSupplyChain}
+                showChinaBri={showBriTradeConnectivity}
+                onUsDfcChange={setShowUsDfcSupplyChain}
+                onChinaBriChange={setShowBriTradeConnectivity}
+                usLinkCount={usDfcSupplyPaths.length}
+                chinaLinkCount={briTradePaths.length}
+              />
+            ) : null}
+            {!isCompactUi ? (
+              <div className="cv-desktop-only pointer-events-auto shrink-0">
+                <ServerDonateChip lang={labelLanguage} />
+              </div>
+            ) : null}
+            {isCompactUi ? (
+              <div className="cv-compact-only pointer-events-auto shrink-0">
+                <ServerDonateChip lang={labelLanguage} />
+              </div>
+            ) : null}
+            {/* 긴장 상승 / 상황 변화 — 항모·후원 아래. 높이 제한으로 좌하단 일일 패널과 겹치지 않게 */}
+            {!isEconomyViewer && !isCompactUi && entryGate === null ? (
+              <div className="flex max-h-[min(46vh,calc(100dvh-16rem))] w-full flex-col gap-2 overflow-y-auto overscroll-contain">
+                <TopWatchPanel lang={labelLanguage} />
+                <SitrepLog lang={labelLanguage} />
+              </div>
+            ) : null}
+          </>
         ) : null}
       </div>
       ) : null}
@@ -10523,7 +10528,7 @@ export function GlobeDashboard({
 
       {showLeftPanel ? (
         <aside
-          className={`intel-panel pointer-events-auto absolute left-3 z-50 flex flex-col gap-4 overflow-y-auto rounded-2xl p-4 shadow-2xl ${
+          className={`intel-panel pointer-events-auto absolute left-3 z-[70] flex flex-col gap-4 overflow-y-auto rounded-2xl p-4 shadow-2xl ${
             isCompactUi
               ? "top-[4.75rem] max-h-[calc(100dvh-5.5rem)] w-[min(calc(100vw-1.5rem),360px)]"
               : "top-14 max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),384px)]"
@@ -11258,7 +11263,7 @@ export function GlobeDashboard({
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto absolute left-3 z-[28] ${
+          className={`cv-desktop-only pointer-events-auto absolute left-3 z-[45] ${
             // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
             telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
           } ${

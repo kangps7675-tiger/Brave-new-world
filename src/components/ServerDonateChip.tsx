@@ -10,8 +10,8 @@ type ServerDonateChipProps = {
 };
 
 /**
- * 데스크톱 전용 — 좌측 크롬(햄버거·항모) 아래 서버비 후원 칩.
- * 클릭 시 QR만 담은 작은 창을 연다. 모달 자체는 DonateQrModal 공유 컴포넌트.
+ * 좌측 크롬(햄버거·항모) 열 안 — 긴장 상승·상황 변화 패널 위쪽.
+ * 레이어 패널이 열리면 부모에서 숨겨 패널을 가리지 않는다.
  */
 export function ServerDonateChip({ lang }: ServerDonateChipProps) {
   const [open, setOpen] = useState(false);
