@@ -5,6 +5,7 @@
 import {
   ALL_NEWS_FEEDS,
   feedsForPackages,
+  isEconomyNewsMode,
   isFeedItemRelevant,
   type NewsFeedDef,
 } from "@/lib/news/feedCatalog";
@@ -178,9 +179,11 @@ export async function buildNewsStream(
   options: BuildNewsStreamOptions = {},
 ): Promise<NewsStreamPayload> {
   const feeds = options.packages ? feedsForPackages(options.packages) : ALL_NEWS_FEEDS;
+  const economyOnly = Boolean(options.packages && isEconomyNewsMode(options.packages));
   const [results, newfeedsIran] = await Promise.all([
     mapPool(feeds, fetchFeedItems, 10),
-    fetchNewfeedsIranNewsItems(30),
+    // 지경학 전용 스트림에는 이란 NewFeeds(defense)를 섞지 않음
+    economyOnly ? Promise.resolve([]) : fetchNewfeedsIranNewsItems(30),
   ]);
   const merged = [...results.flat(), ...newfeedsIran];
 

@@ -16,6 +16,13 @@ import {
 } from "@/lib/stockTickers";
 import { theaterAssetNote } from "@/lib/theaterAssets";
 import { THEATER_CHIP_LABELS, type IntelTheaterFilter } from "@/lib/news/theaterMap";
+import {
+  pickDiverseTickerNews,
+  viewpointLabel,
+  type TickerRelatedNewsPick,
+} from "@/lib/news/tickerRelatedNews";
+import type { NewsStreamItem } from "@/lib/news/types";
+import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
 import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { loadWatchSymbols, toggleWatchSymbol } from "@/lib/watchlistPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -85,6 +92,79 @@ function TickerSparkline({
   );
 }
 
+const VIEWPOINT_CHIP: Record<TickerRelatedNewsPick["viewpoint"], string> = {
+  bullish: "bg-emerald-400/15 text-emerald-200",
+  bearish: "bg-rose-400/15 text-rose-200",
+  macro: "bg-sky-400/15 text-sky-200",
+};
+
+function MarketCardNewsDropdown({
+  picks,
+  lang,
+}: {
+  picks: TickerRelatedNewsPick[];
+  lang: "ko" | "en";
+}) {
+  const [open, setOpen] = useState(false);
+  const count = picks.length;
+  const label =
+    lang === "en"
+      ? count > 0
+        ? `Key news · ${count} viewpoints`
+        : "Key news"
+      : count > 0
+        ? `핵심 뉴스 · 시각 ${count}`
+        : "핵심 뉴스";
+
+  return (
+    <div className="mt-1 border-t border-white/5 pt-1.5">
+      <button
+        type="button"
+        aria-expanded={open}
+        disabled={count === 0}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-1 rounded-md px-1 py-1 text-left text-[10px] font-medium text-emerald-200/75 transition hover:bg-white/5 hover:text-emerald-100 disabled:cursor-default disabled:opacity-45"
+      >
+        <span className="truncate">{label}</span>
+        <span aria-hidden className="shrink-0 text-emerald-300/50">
+          {count === 0 ? "—" : open ? "▴" : "▾"}
+        </span>
+      </button>
+      {open && count > 0 ? (
+        <ul className="mt-1 space-y-1.5">
+          {picks.map(({ item, viewpoint }) => (
+            <li key={item.id}>
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg border border-emerald-400/10 bg-black/30 px-2 py-1.5 transition hover:border-emerald-300/25 hover:bg-emerald-950/40"
+              >
+                <div className="flex flex-wrap items-center gap-1">
+                  <span
+                    className={`rounded px-1 py-px text-[9px] font-semibold ${VIEWPOINT_CHIP[viewpoint]}`}
+                  >
+                    {viewpointLabel(viewpoint, lang)}
+                  </span>
+                  <span className="truncate text-[9px] text-slate-500">{item.source}</span>
+                </div>
+                <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-slate-100/90">
+                  {displayNewsItemTitle(item, lang)}
+                </p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {open && count === 0 ? (
+        <p className="px-1 py-1 text-[10px] text-slate-500">
+          {lang === "en" ? "No related headlines yet." : "관련 헤드라인이 아직 없습니다."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function MarketCard({
   item,
   highlight,
@@ -94,6 +174,7 @@ function MarketCard({
   unwatchLabel,
   yahooLabel,
   lang,
+  relatedNews,
 }: {
   item: StockTickerItem;
   highlight?: boolean;
@@ -103,6 +184,7 @@ function MarketCard({
   unwatchLabel: string;
   yahooLabel: string;
   lang: "ko" | "en";
+  relatedNews: TickerRelatedNewsPick[];
 }) {
   const tone = tickerChangeTone(item.changePercent);
   const name = tickerDisplayName(item.symbol, lang);
@@ -154,6 +236,7 @@ function MarketCard({
           Yahoo ↗
         </a>
       </div>
+      <MarketCardNewsDropdown picks={relatedNews} lang={lang} />
     </div>
   );
 }
@@ -175,6 +258,8 @@ type IntelRelatedMarketsPanelProps = {
   embedInNews?: boolean;
   /** 키워드 필터 (symbol·label) */
   searchQuery?: string;
+  /** 카드 드롭다운용 뉴스 풀 (verified + stateMedia) */
+  newsItems?: NewsStreamItem[];
 };
 
 function matchesTickerSearch(item: StockTickerItem, query: string, lang: "ko" | "en" = "ko"): boolean {
@@ -193,6 +278,7 @@ export function IntelRelatedMarketsPanel({
   fullPage = false,
   embedInNews = false,
   searchQuery = "",
+  newsItems = [],
 }: IntelRelatedMarketsPanelProps) {
   const { lang, t } = useLocale();
   const [tickers, setTickers] = useState<StockTickerItem[] | null>(null);
@@ -210,9 +296,9 @@ export function IntelRelatedMarketsPanel({
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/stock-tickers", { cache: "no-store" });
-      const payload = (await res.json()) as StockTickersResponse;
-      if (res.ok && Array.isArray(payload.tickers) && payload.tickers.length > 0) {
-        setTickers(payload.tickers);
+      const data = (await res.json()) as StockTickersResponse;
+      if (res.ok && Array.isArray(data.tickers) && data.tickers.length > 0) {
+        setTickers(data.tickers);
       }
     } catch {
       // keep last good values
@@ -226,6 +312,18 @@ export function IntelRelatedMarketsPanel({
     const timer = window.setInterval(() => void refresh(), liveTickerPollMs());
     return () => window.clearInterval(timer);
   }, [refresh]);
+
+  const newsPool = useMemo(() => {
+    const economy = newsItems.filter((i) => i.feedTopic === "economy");
+    return economy.length > 0 ? economy : newsItems;
+  }, [newsItems]);
+  const newsBySymbol = useMemo(() => {
+    const map = new Map<string, TickerRelatedNewsPick[]>();
+    for (const entry of STOCK_TICKER_SYMBOLS) {
+      map.set(entry.symbol, pickDiverseTickerNews(entry.symbol, newsPool, 3));
+    }
+    return map;
+  }, [newsPool]);
 
   const marketFilter = theaterFilter as TheaterMarketFilter;
   const allTickers = useMemo(
@@ -259,13 +357,17 @@ export function IntelRelatedMarketsPanel({
   const titleSuffix =
     theaterFilter === "all" ? "" : ` · ${THEATER_CHIP_LABELS[theaterFilter]}`;
 
-  const cardProps = {
-    onToggleWatch: handleToggleWatch,
-    watchLabel: t("addWatch"),
-    unwatchLabel: t("removeWatch"),
-    yahooLabel: t("openYahoo"),
-    lang,
-  };
+  const cardPropsFor = useCallback(
+    (symbol: string) => ({
+      onToggleWatch: handleToggleWatch,
+      watchLabel: t("addWatch"),
+      unwatchLabel: t("removeWatch"),
+      yahooLabel: t("openYahoo"),
+      lang,
+      relatedNews: newsBySymbol.get(symbol) ?? [],
+    }),
+    [handleToggleWatch, t, lang, newsBySymbol],
+  );
 
   const marketBody = (
     <>
@@ -279,7 +381,9 @@ export function IntelRelatedMarketsPanel({
         </p>
         <p className="mt-1 text-xs leading-5 text-emerald-200/60">
           {theaterAssetNote(marketFilter, lang)}
-          {embedInNews ? " · 경제 RSS와 함께 표시" : " · 분쟁·긴장 이벤트와 연동되는 매크로·지수·원자재"}
+          {embedInNews
+            ? " · 카드 ▾에서 상승·하락·매크로 시각 뉴스 3건"
+            : " · 분쟁·긴장 이벤트와 연동되는 매크로·지수·원자재"}
         </p>
         <p className="mt-1 text-[10px] text-slate-500">{t("marketsNotAdvice")}</p>
       </div>
@@ -298,7 +402,7 @@ export function IntelRelatedMarketsPanel({
                     item={item}
                     highlight
                     watched
-                    {...cardProps}
+                    {...cardPropsFor(item.symbol)}
                   />
                 ))}
               </div>
@@ -315,7 +419,8 @@ export function IntelRelatedMarketsPanel({
             </h3>
             {loading && !tickers ? (
               <SkeletonGrid count={4} />
-            ) : filteredRelated.length > 0 || allTickers.some((t) => matchesTickerSearch(t, searchQuery, lang)) ? (
+            ) : filteredRelated.length > 0 ||
+              allTickers.some((t) => matchesTickerSearch(t, searchQuery, lang)) ? (
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 {allTickers
                   .filter((item) => matchesTickerSearch(item, searchQuery, lang))
@@ -325,7 +430,7 @@ export function IntelRelatedMarketsPanel({
                       item={item}
                       highlight={relatedSet.has(item.symbol)}
                       watched={watchSymbols.includes(item.symbol)}
-                      {...cardProps}
+                      {...cardPropsFor(item.symbol)}
                     />
                   ))}
               </div>
@@ -352,7 +457,7 @@ export function IntelRelatedMarketsPanel({
                     item={item}
                     highlight
                     watched={watchSymbols.includes(item.symbol)}
-                    {...cardProps}
+                    {...cardPropsFor(item.symbol)}
                   />
                 ))}
               </div>
@@ -382,7 +487,7 @@ export function IntelRelatedMarketsPanel({
                           item={item}
                           highlight={theaterFilter !== "all" && relatedSet.has(item.symbol)}
                           watched={watchSymbols.includes(item.symbol)}
-                          {...cardProps}
+                          {...cardPropsFor(item.symbol)}
                         />
                       ))}
                     </div>
@@ -429,7 +534,7 @@ export function IntelRelatedMarketsPanel({
                 key={item.symbol}
                 item={item}
                 watched={watchSymbols.includes(item.symbol)}
-                {...cardProps}
+                {...cardPropsFor(item.symbol)}
               />
             ))}
           </div>

@@ -28,7 +28,6 @@ export function surfaceCombatantIconSvg(
 ): string {
   const { width, height } = size;
   const vb = `${SURFACE_COMBATANT_VIEWBOX.width} ${SURFACE_COMBATANT_VIEWBOX.height}`;
-  const glowId = `ddg-glow-${aspect}-${width}`;
   const drawing = SURFACE_COMBATANT_ASPECT_DRAWINGS[aspect];
 
   const details = drawing.details
@@ -56,25 +55,16 @@ export function surfaceCombatantIconSvg(
     ? `<path d="${drawing.axis}" stroke="rgba(250,204,21,0.5)" stroke-width="0.65" stroke-linecap="round" stroke-dasharray="1.5 1.2"/>`
     : "";
 
+  // blur는 헐을 동그란 blob으로 부풀리므로 쓰지 않음 — 윤곽만 또렷하게
   return `
     <svg width="${width}" height="${height}" viewBox="0 0 ${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <filter id="${glowId}" x="-35%" y="-35%" width="170%" height="170%">
-          <feGaussianBlur stdDeviation="1.15" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
-        stroke="rgba(255,255,255,0.94)"
-        stroke-width="1.05"
+        stroke="rgba(255,255,255,0.95)"
+        stroke-width="1.15"
         stroke-linejoin="miter"
         stroke-linecap="square"
-        filter="url(#${glowId})"
       />
       ${axis}
       ${details}
@@ -85,5 +75,5 @@ export function surfaceCombatantIconSvg(
 }
 
 export function surfaceCombatantGlowShadow(fillColor: string = DEFAULT_FILL): string {
-  return `0 0 10px ${fillColor}cc, 0 0 18px ${fillColor}66, 0 2px 6px rgba(0,0,0,0.55)`;
+  return `0 1px 4px rgba(0,0,0,0.65), 0 0 6px ${fillColor}55`;
 }

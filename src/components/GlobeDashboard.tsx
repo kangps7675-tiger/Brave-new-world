@@ -1854,7 +1854,9 @@ export function GlobeDashboard({
       event.preventDefault();
       event.stopPropagation();
       setIntelTheaterFilter(
-        newsTheaterFromCoords(layerCenterRef.current.lat, layerCenterRef.current.lng),
+        isEconomyViewer
+          ? "all"
+          : newsTheaterFromCoords(layerCenterRef.current.lat, layerCenterRef.current.lng),
       );
       setIntelSheetOpen(true);
     };
@@ -1863,7 +1865,7 @@ export function GlobeDashboard({
     return () => {
       mapEl.removeEventListener("mousedown", openNewsFromMiddleClick, true);
     };
-  }, [showLeftPanel, selected, regionNavSelection]);
+  }, [showLeftPanel, selected, regionNavSelection, isEconomyViewer]);
 
   useEffect(() => {
     let mounted = true;
@@ -6902,11 +6904,13 @@ export function GlobeDashboard({
   const openIntelFromCoords = useCallback((lat: number, lng: number, altitude = 0.92) => {
     setSelected(null);
     clearRegionNavSelection();
-    setIntelTheaterFilter(newsTheaterFromCoords(lat, lng));
+    // 지경학 RSS는 대부분 theater=global — 좌표 전장 필터를 걸면 목록이 비게 됨
+    const theater = isEconomyViewer ? "all" : newsTheaterFromCoords(lat, lng);
+    setIntelTheaterFilter(theater);
     setIntelSheetOpen(true);
-    intelStackRef.current?.openNewsPanel(newsTheaterFromCoords(lat, lng), "news");
+    intelStackRef.current?.openNewsPanel(theater, "news");
     flyTo(lat, lng, altitude);
-  }, [clearRegionNavSelection, flyTo]);
+  }, [clearRegionNavSelection, flyTo, isEconomyViewer]);
 
   function handleIntelFlyTo(target: MapFlyTarget) {
     if (target.kind === "coords") {
@@ -9198,7 +9202,8 @@ export function GlobeDashboard({
       <NewsStreamProvider
         visible={
           !showLeftPanel &&
-          (intelSheetOpen ||
+          (isEconomyViewer ||
+            intelSheetOpen ||
             regionNavSelection != null ||
             econNavSelection != null ||
             (!selected && !isUkraineTheaterFocus))
@@ -10899,14 +10904,14 @@ export function GlobeDashboard({
 
       {/*
         음소거 FAB — 첫 진입부터 항상 우측 하단 고정.
-        모바일에서 소리가 갑자기 나올 때 즉시 끌 수 있어야 하므로, 모드 선택 오버레이
-        (z-[10000]) 위에도 뜨도록 z를 올린다. 단 입장 주의 오버레이(entryGate, z-[10010])는
+        모바일에서 소리가 갑자기 나올 때 즉시 끌 수 있어야 하므로, 모드 선택·양피지
+        (z≤10040) 위에도 뜨도록 z-[10050]. 단 입장 주의 오버레이(entryGate)는
         자체 인라인 음소거 토글을 이미 크게 노출하고 있어 중복·겹침을 피해 제외.
         접힌 등불 칩(bottom-24/28 right)이 있으면 스택을 그 위로 올린다.
       */}
       {entryGate === null ? (
         <div
-          className={`pointer-events-none fixed right-4 z-[10020] flex flex-col items-end gap-2 sm:right-5 ${
+          className={`pointer-events-none fixed right-4 z-[10050] flex flex-col items-end gap-2 sm:right-5 ${
             showFoldedParchmentChip
               ? "bottom-[10.25rem] sm:bottom-[11.25rem]"
               : "bottom-5 sm:bottom-6"
