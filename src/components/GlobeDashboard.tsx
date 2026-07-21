@@ -120,11 +120,13 @@ import {
 } from "@/components/AirRaidOfferBanner";
 import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import {
-  approachFromBearing,
   inferIsraelApproachHint,
   tzevaCategoryThreatLabel,
 } from "@/lib/airRaidBriefHints";
-import { geocodeUkraineAlertRegion } from "@/lib/ukraineAlertZones";
+import {
+  isFreshIranAirRaidAttack,
+  isIranAirRaidActive,
+} from "@/lib/airRaidAuto";
 import {
   buildBriefingFromStats,
   buildLampMacroTable,
@@ -992,6 +994,10 @@ export function GlobeDashboard({
   const seenAirRaidKeysRef = useRef<Set<string> | null>(null);
   const airRaidAutoBusyRef = useRef(false);
   const airRaidAutoSeqRef = useRef(0);
+  /** 자동으로 켠 레이어만 해제 시 OFF (유저가 이미 켠 건 유지) */
+  const airRaidAutoEnabledRef = useRef({ tzeva: false, newfeeds: false });
+  /** 배너만 닫은 경우 — 경보 활성 중엔 다시 안 띄움 */
+  const airRaidBannerDismissedKeyRef = useRef<string | null>(null);
 
   const parseEastAsiaAdiz = useCallback(
     (raw: unknown) => raw as FeatureCollection,
@@ -5311,24 +5317,16 @@ export function GlobeDashboard({
     }
   }, []);
 
-  /** 이스라엘 공습경보 레이어 ON일 때만 폴링 (배너·마커 공통) */
+  /** 이스라엘·이란 공습 — 레이어 OFF여도 백그라운드 폴링 (자동 ON/OFF용) */
   useEffect(() => {
-    if (!showTzevaAdom) {
-      setTzevaAdomActive([]);
-      setTzevaAdomHistory([]);
-      setTzevaAdomLive(false);
-      setTzevaAdomGeoRestricted(false);
-      setTzevaAdomError(null);
-      setTzevaAdomStatus("idle");
-      return;
-    }
+    if (isEconomyViewer || !globeReady) return;
     void refreshTzevaAdom();
     const pollMs = liveTzevaPollMs();
     const timer = window.setInterval(() => {
       void refreshTzevaAdom();
     }, pollMs);
     return () => window.clearInterval(timer);
-  }, [refreshTzevaAdom, showTzevaAdom]);
+  }, [globeReady, isEconomyViewer, refreshTzevaAdom]);
 
   const refreshNewfeedsIran = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -5349,22 +5347,15 @@ export function GlobeDashboard({
     }
   }, []);
 
-  /** NewFeeds 이란 지도 공격 — 레이어 ON일 때만 폴링 (국영뉴스는 하단 뉴스 스트림) */
+  /** NewFeeds 이란 — 레이어 OFF여도 백그라운드 폴링 */
   useEffect(() => {
-    if (!showNewfeedsIranAttacks) {
-      setNewfeedsAttacks([]);
-      setNewfeedsThreatLabel(null);
-      setNewfeedsLive(false);
-      setNewfeedsError(null);
-      setNewfeedsStatus("idle");
-      return;
-    }
+    if (isEconomyViewer || !globeReady) return;
     void refreshNewfeedsIran();
     const timer = window.setInterval(() => {
       void refreshNewfeedsIran();
     }, liveNewfeedsPollMs());
     return () => window.clearInterval(timer);
-  }, [refreshNewfeedsIran, showNewfeedsIranAttacks]);
+  }, [globeReady, isEconomyViewer, refreshNewfeedsIran]);
 
   const refreshUkmto = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -8375,25 +8366,130 @@ export function GlobeDashboard({
     [flyTo],
   );
 
-  /** 신규 공습경보 — 최초 1회만 선택 배너 (이후 칩으로만 이동). 등불 닫힌 뒤에만 */
+  /** 이스라엘·이란 신규 공습 — 레이어 자동 ON + fly + 상단 배너 (우크라 NEPTUN 제외) */
+  const engageAirRaidAlert = useCallback(
+    (offer: AirRaidOffer) => {
+      if (airRaidAutoBusyRef.current) return;
+      airRaidAutoBusyRef.current = true;
+      const seq = ++airRaidAutoSeqRef.current;
+      const lang = labelLanguage === "en" ? "en" : "ko";
+      const regionLabel = offer.target.label || (lang === "en" ? "Alert zone" : "경보 구역");
+
+      if (offer.kind === "tzeva") {
+        if (!layerPrefsLiveRef.current.showTzevaAdom) {
+          airRaidAutoEnabledRef.current.tzeva = true;
+          patchLayerPrefsSoft({ showTzevaAdom: true });
+        }
+      } else if (offer.kind === "newfeeds") {
+        if (!layerPrefsLiveRef.current.showNewfeedsIranAttacks) {
+          airRaidAutoEnabledRef.current.newfeeds = true;
+          patchLayerPrefsSoft({ showNewfeedsIranAttacks: true });
+        }
+      }
+
+      if (airRaidBannerDismissedKeyRef.current !== offer.key) {
+        setAirRaidOffer(offer);
+      }
+
+      handleAirRaidFocus(offer.target, offer.kind, { deferSirenUntilArrive: true });
+
+      const wantBrief = shouldOfferAirRaidFlyBrief();
+      if (wantBrief) markAirRaidFlyBriefDone();
+
+      if (!wantBrief) {
+        window.setTimeout(() => {
+          if (seq !== airRaidAutoSeqRef.current) return;
+          airRaidAutoBusyRef.current = false;
+        }, AIR_RAID_FLY_MS + 250);
+        return;
+      }
+
+      void (async () => {
+        try {
+          const res = await fetch("/api/air-raid-brief", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: offer.kind,
+              lang,
+              region: regionLabel,
+              title: offer.title,
+              lat: offer.target.lat,
+              lng: offer.target.lng,
+              since: offer.since,
+              activeCount: offer.activeCount,
+              threatLabel: offer.threatLabel,
+              approachFrom: offer.approachFrom,
+              locationDetail: offer.locationDetail,
+            }),
+          });
+          const data = (await res.json().catch(() => null)) as {
+            title?: string;
+            paragraphs?: string[];
+          } | null;
+          if (seq !== airRaidAutoSeqRef.current) return;
+          const title =
+            data?.title?.trim() ||
+            (lang === "en" ? `Air-raid alert · ${regionLabel}` : `공습경보 · ${regionLabel}`);
+          const paragraphs =
+            Array.isArray(data?.paragraphs) && data.paragraphs.length > 0
+              ? data.paragraphs
+              : lang === "en"
+                ? [
+                    `An air-raid alert was received for ${regionLabel}${offer.since ? ` from ${offer.since}` : ""}.`,
+                    offer.approachFrom ||
+                      "Which direction the threat came from is not confirmed by this alert feed alone.",
+                    "Shelter guidance for that locality comes first; attacker and munition type stay unverified unless stated.",
+                  ]
+                : [
+                    `${regionLabel} 일대에 공습경보가 수신되었습니다${offer.since ? ` · 발령 시각 ${offer.since}` : ""}.`,
+                    offer.approachFrom ||
+                      "어느 쪽에서 날아왔는지는 이 경보 피드만으로 확정할 수 없습니다.",
+                    "해당 위치의 대피·엄폐가 우선이며, 발사 주체·무기 유형은 미확인으로 둡니다.",
+                  ];
+
+          window.setTimeout(() => {
+            if (seq !== airRaidAutoSeqRef.current) return;
+            setAirRaidBriefing({ kind: offer.kind, title, paragraphs });
+            airRaidAutoBusyRef.current = false;
+          }, AIR_RAID_FLY_MS);
+        } catch {
+          if (seq !== airRaidAutoSeqRef.current) return;
+          window.setTimeout(() => {
+            if (seq !== airRaidAutoSeqRef.current) return;
+            setAirRaidBriefing({
+              kind: offer.kind,
+              title: lang === "en" ? `Air-raid alert · ${regionLabel}` : `공습경보 · ${regionLabel}`,
+              paragraphs:
+                lang === "en"
+                  ? [
+                      `An air-raid alert was received for ${regionLabel}.`,
+                      "Further details are unverified.",
+                    ]
+                  : [
+                      `${regionLabel} 일대에 공습경보가 수신되었습니다.`,
+                      "추가 전언은 미확인으로 취급합니다.",
+                    ],
+            });
+            airRaidAutoBusyRef.current = false;
+          }, AIR_RAID_FLY_MS);
+        }
+      })();
+    },
+    [handleAirRaidFocus, labelLanguage, patchLayerPrefsSoft],
+  );
+
   useEffect(() => {
-    if (isEconomyViewer || entryGate !== null || showModePicker) {
-      return;
-    }
-    if (issueUiPausedForLamp) {
-      return;
-    }
-    if (!shouldOfferAirRaidFlyBrief()) {
-      return;
-    }
+    if (isEconomyViewer || entryGate !== null || showModePicker) return;
+    if (issueUiPausedForLamp) return;
 
     const keys: string[] = [];
     const candidates: AirRaidOffer[] = [];
+    const langKey = labelLanguage === "en" ? "en" : "ko";
 
     for (const alert of tzevaAdomActive) {
       const key = `tzeva:${alert.id}`;
       keys.push(key);
-      const langKey = labelLanguage === "en" ? "en" : "ko";
       candidates.push({
         key,
         kind: "tzeva",
@@ -8410,76 +8506,23 @@ export function GlobeDashboard({
       });
     }
 
-    const nearestNeptunThreat = (lat: number, lng: number) => {
-      let best: (typeof neptunThreats)[number] | null = null;
-      let bestKm = 120;
-      for (const threat of neptunThreats) {
-        const dy = (threat.lat - lat) * 111;
-        const dx =
-          (threat.lon - lng) * 111 * Math.cos((lat * Math.PI) / 180);
-        const km = Math.hypot(dx, dy);
-        if (km < bestKm) {
-          bestKm = km;
-          best = threat;
-        }
-      }
-      return best;
-    };
-
-    for (const region of neptunAlerts?.raions ?? []) {
-      const key = `neptun:r:${region.key}`;
+    const freshIran = newfeedsAttacks.filter((a) => isFreshIranAirRaidAttack(a));
+    for (const attack of freshIran) {
+      const key = `newfeeds:${attack.id}`;
       keys.push(key);
-      const coords = geocodeUkraineAlertRegion(region.name, region.oblast, region.key);
-      const near = nearestNeptunThreat(coords.lat, coords.lng);
-      const langKey = labelLanguage === "en" ? "en" : "ko";
-      const bearing =
-        near?.velocity?.bearingDeg ?? near?.heading ?? null;
       candidates.push({
         key,
-        kind: "neptun",
+        kind: "newfeeds",
         target: {
-          lat: coords.lat,
-          lng: coords.lng,
-          label: region.name || region.oblast || region.key,
+          lat: attack.lat,
+          lng: attack.lng,
+          label: attack.location || attack.title || "Iran",
         },
-        title: region.oblast,
-        since: region.since,
-        activeCount:
-          (neptunAlerts?.raions?.length ?? 0) + (neptunAlerts?.oblasts?.length ?? 0),
-        threatLabel: near ? getNeptunTypeLabel(near.type, langKey) : undefined,
-        approachFrom:
-          bearing != null && Number.isFinite(bearing)
-            ? approachFromBearing(bearing, langKey)
-            : undefined,
-        locationDetail: [region.name, region.oblast].filter(Boolean).join(" · ") || undefined,
-      });
-    }
-    for (const region of neptunAlerts?.oblasts ?? []) {
-      const key = `neptun:o:${region.key}`;
-      keys.push(key);
-      const coords = geocodeUkraineAlertRegion(region.name, region.oblast, region.key);
-      const near = nearestNeptunThreat(coords.lat, coords.lng);
-      const langKey = labelLanguage === "en" ? "en" : "ko";
-      const bearing =
-        near?.velocity?.bearingDeg ?? near?.heading ?? null;
-      candidates.push({
-        key,
-        kind: "neptun",
-        target: {
-          lat: coords.lat,
-          lng: coords.lng,
-          label: region.name || region.oblast || region.key,
-        },
-        title: region.oblast,
-        since: region.since,
-        activeCount:
-          (neptunAlerts?.raions?.length ?? 0) + (neptunAlerts?.oblasts?.length ?? 0),
-        threatLabel: near ? getNeptunTypeLabel(near.type, langKey) : undefined,
-        approachFrom:
-          bearing != null && Number.isFinite(bearing)
-            ? approachFromBearing(bearing, langKey)
-            : undefined,
-        locationDetail: [region.name, region.oblast].filter(Boolean).join(" · ") || undefined,
+        title: attack.title,
+        since: attack.publishedAt ?? undefined,
+        activeCount: freshIran.length,
+        threatLabel: attack.severity ? String(attack.severity) : undefined,
+        locationDetail: attack.location || undefined,
       });
     }
 
@@ -8491,43 +8534,49 @@ export function GlobeDashboard({
     const seen = seenAirRaidKeysRef.current;
     const fresh = candidates.find((c) => !seen.has(c.key));
     for (const k of keys) seen.add(k);
-    if (
-      !fresh ||
-      airRaidAutoBusyRef.current ||
-      airRaidOffer ||
-      airRaidBriefing ||
-      periodicBriefing
-    ) {
+    if (!fresh || airRaidAutoBusyRef.current || airRaidBriefing || periodicBriefing) {
       return;
     }
 
-    setAirRaidOffer(fresh);
+    engageAirRaidAlert(fresh);
   }, [
     airRaidBriefing,
-    airRaidOffer,
+    engageAirRaidAlert,
     entryGate,
     isEconomyViewer,
     issueUiPausedForLamp,
     labelLanguage,
-    neptunAlerts,
-    neptunThreats,
+    newfeedsAttacks,
     periodicBriefing,
     showModePicker,
     tzevaAdomActive,
   ]);
 
-  /** 폴링 데이터가 해제이면 배너·빗금 포커스도 즉시 끔 */
+  /** 해제 시 상단 배너·포커스·자동 ON 레이어 함께 끔 (IL/IR만) */
   useEffect(() => {
     const tzevaOn = tzevaAdomActive.length > 0;
-    const neptunOn =
-      (neptunAlerts?.raions?.length ?? 0) + (neptunAlerts?.oblasts?.length ?? 0) > 0;
+    const iranOn = isIranAirRaidActive(newfeedsAttacks);
 
     if (airRaidOffer) {
       if (airRaidOffer.kind === "tzeva" && !tzevaOn) setAirRaidOffer(null);
-      else if (airRaidOffer.kind === "neptun" && !neptunOn) setAirRaidOffer(null);
+      else if (airRaidOffer.kind === "newfeeds" && !iranOn) setAirRaidOffer(null);
     }
 
-    if (!tzevaOn && !neptunOn) {
+    if (!tzevaOn && airRaidAutoEnabledRef.current.tzeva) {
+      airRaidAutoEnabledRef.current.tzeva = false;
+      if (layerPrefsLiveRef.current.showTzevaAdom) {
+        patchLayerPrefsSoft({ showTzevaAdom: false });
+      }
+    }
+    if (!iranOn && airRaidAutoEnabledRef.current.newfeeds) {
+      airRaidAutoEnabledRef.current.newfeeds = false;
+      if (layerPrefsLiveRef.current.showNewfeedsIranAttacks) {
+        patchLayerPrefsSoft({ showNewfeedsIranAttacks: false });
+      }
+    }
+
+    if (!tzevaOn && !iranOn) {
+      airRaidBannerDismissedKeyRef.current = null;
       if (airRaidFocusClearRef.current != null) {
         window.clearTimeout(airRaidFocusClearRef.current);
         airRaidFocusClearRef.current = null;
@@ -8535,101 +8584,14 @@ export function GlobeDashboard({
       setAirRaidFocusPaths([]);
       setAirRaidFocusBox(null);
     }
-  }, [airRaidOffer, neptunAlerts, tzevaAdomActive]);
-
-  const acceptAirRaidOffer = useCallback(() => {
-    const offer = airRaidOffer;
-    if (!offer || airRaidAutoBusyRef.current) return;
-
-    markAirRaidFlyBriefDone();
-    airRaidAutoBusyRef.current = true;
-    setAirRaidOffer(null);
-    const seq = ++airRaidAutoSeqRef.current;
-    const lang = labelLanguage === "en" ? "en" : "ko";
-    const regionLabel = offer.target.label || (lang === "en" ? "Alert zone" : "경보 구역");
-
-    handleAirRaidFocus(offer.target, offer.kind, { deferSirenUntilArrive: true });
-
-    void (async () => {
-      try {
-        const res = await fetch("/api/air-raid-brief", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            kind: offer.kind,
-            lang,
-            region: regionLabel,
-            title: offer.title,
-            lat: offer.target.lat,
-            lng: offer.target.lng,
-            since: offer.since,
-            activeCount: offer.activeCount,
-            threatLabel: offer.threatLabel,
-            approachFrom: offer.approachFrom,
-            locationDetail: offer.locationDetail,
-          }),
-        });
-        const data = (await res.json().catch(() => null)) as {
-          title?: string;
-          paragraphs?: string[];
-        } | null;
-        if (seq !== airRaidAutoSeqRef.current) return;
-        const title =
-          data?.title?.trim() ||
-          (lang === "en" ? `Air-raid alert · ${regionLabel}` : `공습경보 · ${regionLabel}`);
-        const paragraphs =
-          Array.isArray(data?.paragraphs) && data.paragraphs.length > 0
-            ? data.paragraphs
-            : lang === "en"
-              ? [
-                  `An air-raid alert was received for ${regionLabel}${offer.since ? ` from ${offer.since}` : ""}.`,
-                  offer.approachFrom ||
-                    "Which direction the threat came from is not confirmed by this alert feed alone.",
-                  "Shelter guidance for that locality comes first; attacker and munition type stay unverified unless stated.",
-                ]
-              : [
-                  `${regionLabel} 일대에 공습경보가 수신되었습니다${offer.since ? ` · 발령 시각 ${offer.since}` : ""}.`,
-                  offer.approachFrom ||
-                    "어느 쪽에서 날아왔는지는 이 경보 피드만으로 확정할 수 없습니다.",
-                  "해당 위치의 대피·엄폐가 우선이며, 발사 주체·무기 유형은 미확인으로 둡니다.",
-                ];
-
-        window.setTimeout(() => {
-          if (seq !== airRaidAutoSeqRef.current) return;
-          setAirRaidBriefing({
-            kind: offer.kind,
-            title,
-            paragraphs,
-          });
-        }, AIR_RAID_FLY_MS);
-      } catch {
-        if (seq !== airRaidAutoSeqRef.current) return;
-        window.setTimeout(() => {
-          if (seq !== airRaidAutoSeqRef.current) return;
-          setAirRaidBriefing({
-            kind: offer.kind,
-            title: lang === "en" ? `Air-raid alert · ${regionLabel}` : `공습경보 · ${regionLabel}`,
-            paragraphs:
-              lang === "en"
-                ? [
-                    `An air-raid alert was received for ${regionLabel}.`,
-                    "Further details are unverified.",
-                  ]
-                : [
-                    `${regionLabel} 일대에 공습경보가 수신되었습니다.`,
-                    "추가 전언은 미확인으로 취급합니다.",
-                  ],
-          });
-        }, AIR_RAID_FLY_MS);
-      }
-    })();
-  }, [airRaidOffer, handleAirRaidFocus, labelLanguage]);
+  }, [airRaidOffer, newfeedsAttacks, patchLayerPrefsSoft, tzevaAdomActive]);
 
   const dismissAirRaidOffer = useCallback(() => {
-    markAirRaidFlyBriefDone();
+    if (airRaidOffer) {
+      airRaidBannerDismissedKeyRef.current = airRaidOffer.key;
+    }
     setAirRaidOffer(null);
-    airRaidAutoBusyRef.current = false;
-  }, []);
+  }, [airRaidOffer]);
 
   useEffect(() => {
     return () => {
@@ -11317,7 +11279,6 @@ export function GlobeDashboard({
         <AirRaidOfferBanner
           offer={airRaidOffer}
           lang={labelLanguage}
-          onAccept={acceptAirRaidOffer}
           onDismiss={dismissAirRaidOffer}
         />
       ) : null}

@@ -23,17 +23,17 @@ export type NavAnnouncement = {
 };
 
 export const CURRENT_NAV_ANNOUNCEMENT: NavAnnouncement = {
-  id: "2026-07-21-ais-funding-goal-v2",
-  labelKo: "다음 타깃 · 물류 스트레스",
-  labelEn: "Next target · Logistics stress",
+  id: "2026-07-21-ais-funding-plain-v3",
+  labelKo: "후원 목표",
+  labelEn: "Funding goal",
   bodyKo:
-    "실시간 함선 위치(AIS) API를 붙이면 '진짜 막힌 항구'와 '원래 붐비는 곳'을 구분할 근거가 생깁니다. 다만 이 데이터가 월 $199 — 아직 감당이 안 돼서 후원으로 채우려 합니다. 이번 달 목표에 얹었으니 관심 있으시면 도와주세요.",
+    "배에 불이 난 건지, 그냥 붐비는 건지 — 지금 지도만으로는 헷갈릴 때가 있어요. 실시간 배 위치 데이터를 붙이면 구분이 됩니다. 비용이 한 달에 $199라서, 후원으로 채우려 합니다. 가능하시면 도와주세요.",
   bodyEn:
-    "A real-time vessel position (AIS) API would let us tell a truly-jammed port from a normally-busy one. It costs $199/mo, which we can't cover yet — folding it into this month's funding goal. If you'd like to help, it's much appreciated.",
+    "Is a port really blocked, or just busy as usual? Real-time ship positions would tell us apart. That data costs $199 a month, so we’re funding it with donations. If you can chip in, thank you.",
   goalAmountUsd: 199,
   currentAmountUsd: 0,
-  goalReachedKo: "목표 달성 — AIS 실시간 위치 데이터, 곧 켜집니다. 후원해주신 분들 감사합니다.",
-  goalReachedEn: "Goal reached — real-time AIS vessel data is coming online soon. Thank you to everyone who chipped in.",
+  goalReachedKo: "목표 달성 — 실시간 배 위치, 곧 켭니다. 후원해 주신 분들 고맙습니다.",
+  goalReachedEn: "Goal reached — real-time ship positions coming soon. Thank you to everyone who chipped in.",
 };
 
 const STORAGE_KEY = "cv-nav-announcement-seen";
