@@ -32,6 +32,7 @@ import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
+import { chokepointFocusTag } from "@/lib/news/chokepointNews";
 import {
   ECONOMY_GENRE_ORDER,
   economyGenreHint,
@@ -2171,6 +2172,10 @@ function NewsRow({
     economyMode && item.econGenre
       ? economyGenreLabel(item.econGenre, lang)
       : null;
+  const chokeTag = chokepointFocusTag(
+    `${item.title} ${item.summary ?? ""}`,
+    lang === "en" ? "en" : "ko",
+  );
 
   const economyFly = economyMode
     ? resolveEconomyArticleFlyTarget(item.title, item.summary)
@@ -2227,6 +2232,11 @@ function NewsRow({
             >
               {tierLabel}
             </span>
+            {chokeTag ? (
+              <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-rose-500/20 text-rose-100">
+                {lang === "en" ? `Choke · ${chokeTag}` : `초크 · ${chokeTag}`}
+              </span>
+            ) : null}
             {genre ? (
               <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-teal-500/15 text-teal-100">
                 {genre}

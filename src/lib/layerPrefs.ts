@@ -83,6 +83,11 @@ export type LayerPrefs = {
    * @see https://github.com/ktoetotam/NewFeeds
    */
   showNewfeedsIranAttacks: boolean;
+  /**
+   * UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보 — 검은 동그라미 빗금 박스(강도별 흑↔백).
+   * 비공식(리버스 엔지니어링) 엔드포인트 — README「비공식 엔드포인트 사용 원칙」참고.
+   */
+  showUkmtoIncidents: boolean;
   /** 중국↔대만 대치 (대만해협·남중국해·서태평양 · 네온 리플) */
   showChinaTaiwanIncidents: boolean;
   /** 중국↔일본 대치 (동중국해·센카쿠 · 네온 리플) */
@@ -181,6 +186,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showTelegramOsint: true,
   showTzevaAdom: false,
   showNewfeedsIranAttacks: true,
+  showUkmtoIncidents: true,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,

@@ -71,6 +71,8 @@ export function applyBattlefieldPreset(
         showGdeltWar: true,
         showGdeltDiplomatic: true,
         showWarZones: true,
+        showNewfeedsIranAttacks: true,
+        showUsCarriers: true,
         showUkraineControl: false,
         showNeptun: false,
       });

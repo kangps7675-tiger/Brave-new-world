@@ -359,6 +359,18 @@ public/audio/             # 로컬 전투·공습 샘플
 > Public Domain·무료 공개 API·일반 npm 라이브러리는 별도 표기 의무 없이 제외.  
 > 상세: [`docs/copyright-checklist.md`](docs/copyright-checklist.md) · 앱 **「출처」** 패널 (`MethodologySourcesPanel`)
 
+### 비공식(문서화되지 않은) 엔드포인트 사용 원칙
+
+공식 API 문서가 없는 소스라도, 브라우저 네트워크 요청을 분석해 실제 사용 중인 엔드포인트를 확인하고 쓸 수 있다 — 단, 아래 원칙을 지킨다.
+
+- **폴링 주기 여유 있게** — 신규 데이터 발생 빈도에 맞춰 최소 간격 설정 (며칠에 한 번 갱신되는 소스에 초 단위 폴링 금지)
+- **User-Agent에 식별 정보 명시** — 익명 크롤러처럼 위장하지 않음
+- **ToS·라이선스 우선 확인** — Open Government Licence 등 재사용 허용 근거가 있는지 먼저 확인, 명시적 금지가 있으면 사용 안 함
+- **트래픽 규모 커지면 발행 기관에 공식 피드 문의** — 개인 프로젝트 수준을 넘어서면 리버스 엔지니어링 대신 정식 채널 요청
+- **앱 내 「출처」 패널에 비공식 소스임을 명시** — 공식 경보 대체 불가 문구 포함 (NEPTUN·Tzeva Adom과 동일 원칙)
+
+적용 사례: **UKMTO** (`sccd.royalnavy.mod.uk/api/ukmto/all`) — 공식 공개 API 없음, 클라이언트 JS 번들 분석으로 확인한 엔드포인트.
+
 ### ODbL — 출처·라이선스 링크 필수
 
 | 대상 | 앱 내 사용 |
@@ -398,6 +410,7 @@ public/audio/             # 로컬 전투·공습 샘플
 | **PeeringDB** | IXP |
 | **adsb.fi / AISstream** | 군용기·선박 |
 | **Pikud HaOref** | 이스라엘 공습 |
+| **UKMTO** (Royal Navy) | 홍해·호르무즈 등 상선 피습·나포 경보 (비공식 엔드포인트) |
 | **The Space Devs** | 우주 발사 |
 | **Freesound** | 긴장·경제·UI 앰비언트 |
 | **Yahoo Finance** | 티커 |
@@ -411,6 +424,7 @@ public/audio/             # 로컬 전투·공습 샘플
 |------|------|
 | **VIINA** | 렌더링 전용 · export 금지 |
 | **NEPTUN · Tzeva Adom** | 비공식 피드 · **공식 경보 대체 불가** |
+| **UKMTO** | 비공식(리버스 엔지니어링) 엔드포인트 · 예고 없이 변경/차단 가능 · **공식 경보 대체 불가** |
 | **Telegram OSINT** | 채널 글은 운영자 소유 · AI/뉴스 파이프라인 **금지** |
 | **사운드** | 시뮬레이션 UX용 · 실제 전장·경보 대체 아님 |
 

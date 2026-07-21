@@ -211,9 +211,9 @@ export function clearanceThreatCopy(
   if (status.kind === "demoted") {
     return ko
       ? {
-          title: `인가 강등됨 · ${eff}`,
-          subtitle: `이전: ${peak}. 내일 텐션을 제출하면 인가가 회복됩니다.`,
-          cta: "인가 회복하기",
+          title: `인가가 내려갔습니다 · ${eff}`,
+          subtitle: `직전 등급은 ${peak}. 오늘 픽을 내면 한 단계 올라갑니다.`,
+          cta: "인가 다시 올리기",
         }
       : {
           title: `Clearance demoted · ${eff}`,
@@ -224,9 +224,9 @@ export function clearanceThreatCopy(
 
   return ko
     ? {
-        title: `인가 등급 강등 위기 · ${eff}`,
-        subtitle: `내일 텐션을 제출하지 않으면 ${nextLabel}(으)로 하향됩니다.`,
-        cta: "오늘 픽 하기",
+        title: `인가가 곧 내려갑니다 · ${eff}`,
+        subtitle: `오늘 픽을 안 하면 ${nextLabel}로 내려갑니다.`,
+        cta: "오늘 픽하기",
       }
     : {
         title: `Clearance at risk · ${eff}`,

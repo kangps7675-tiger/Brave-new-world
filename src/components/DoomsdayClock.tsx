@@ -8,9 +8,20 @@ type DoomsdayClockProps = {
   score: number | null;
   /** 전일 대비 델타 (WTI 스코어 스케일) */
   deltaScore?: number | null;
+  /** 이 점수를 가져온 시각 (ISO) — 상황판 "기준 시각" 표시용 */
+  asOf?: string | null;
   lang: LabelLanguage;
   className?: string;
 };
+
+function formatAsOfTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${hh}:${mm}Z`;
+}
 
 /**
  * 지정학 뷰 전용 — WTI 전 지구 긴장도를 "자정까지 N분"으로 재포장한 배지.
@@ -35,8 +46,9 @@ function minutesToMidnightFromScore(score: number): number {
   return Math.round(((100 - clamped) / 100) * MAX_MINUTES_TO_MIDNIGHT);
 }
 
-export function DoomsdayClock({ score, deltaScore, lang, className }: DoomsdayClockProps) {
+export function DoomsdayClock({ score, deltaScore, asOf, lang, className }: DoomsdayClockProps) {
   if (score == null || !Number.isFinite(score)) return null;
+  const asOfLabel = formatAsOfTime(asOf);
 
   const minutes = minutesToMidnightFromScore(score);
   const atMidnight = minutes <= 0;
@@ -142,6 +154,11 @@ export function DoomsdayClock({ score, deltaScore, lang, className }: DoomsdayCl
           {timeLabel}
         </span>
         {deltaLabel ? <span className="text-[9px] text-amber-200/60">{deltaLabel}</span> : null}
+        {asOfLabel ? (
+          <span className="text-[9px] tabular-nums text-amber-200/40">
+            {lang === "en" ? "as of" : "기준"} {asOfLabel}
+          </span>
+        ) : null}
       </div>
     </div>
   );

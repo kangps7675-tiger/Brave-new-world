@@ -166,6 +166,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "live-poll",
   },
   {
+    layerId: "ukmto-incidents",
+    source: "UKMTO / Royal Navy (unofficial endpoint)",
+    url: "/api/ukmto",
+    cadence: "Cron ~30 min min-interval (unofficial upstream, polled politely) → D1",
+    attribution: "UK Maritime Trade Operations (Royal Navy) · Open Government Licence",
+    notes:
+      "Merchant vessel attack / boarding / hijack / suspicious-activity warnings (Red Sea, Gulf of Aden, Strait of Hormuz, etc.). No documented public API — endpoint identified via client JS bundle inspection. Not an official alert substitute; see README 비공식 엔드포인트 사용 원칙.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
     layerId: "newfeeds-iran",
     source: "NewFeeds (ktoetotam/NewFeeds)",
     url: "/api/newfeeds-attacks?iran=1 · news via /api/news-stream",

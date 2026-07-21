@@ -18,7 +18,7 @@ type ClearanceThreatChipProps = {
 };
 
 /**
- * 인가 강등 위기 / 강등됨 — 하루 1회 칩.
+ * 인가가 내려가려 하거나 이미 내려간 날 — 하루 한 번 칩.
  */
 export function ClearanceThreatChip({
   status,

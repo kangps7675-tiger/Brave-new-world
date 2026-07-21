@@ -80,7 +80,7 @@ export function AcledEventTable({ lang }: { lang: LabelLanguage }) {
     <div className="mt-3 rounded-lg border border-rose-800/30 bg-black/30 p-2.5">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-200/80">
-          {en ? "Event table (by admin1)" : "사건 테이블 (행정구역별)"}
+          {en ? "Event table (by admin1)" : "지역별 사건 집계"}
         </p>
         <EvidenceTierBadge tier="reported" lang={lang} />
       </div>
@@ -89,7 +89,9 @@ export function AcledEventTable({ lang }: { lang: LabelLanguage }) {
         <p className="text-[11px] text-sky-100/60">{en ? "Loading…" : "불러오는 중…"}</p>
       ) : status === "error" || all.length === 0 ? (
         <p className="text-[11px] text-sky-100/60">
-          {en ? "No live data — try again later." : "지금은 데이터를 못 가져왔습니다. 나중에 다시 시도하세요."}
+          {en
+            ? "No live data — try again later."
+            : "지금은 집계를 못 불러왔습니다. 잠시 뒤 다시 열어 보세요."}
         </p>
       ) : (
         <div className="max-h-72 overflow-y-auto">
@@ -111,7 +113,7 @@ export function AcledEventTable({ lang }: { lang: LabelLanguage }) {
               <p className="mb-1 mt-3 px-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-sky-100/45">
                 {en
                   ? "Gray zone (events, 0 fatalities) — China · Taiwan · Iran"
-                  : "그레이존 (사망 0, 사건만 감지) — 중국·대만·이란"}
+                  : "사상자 없음 · 사건만 잡힌 곳 — 중국·대만·이란"}
               </p>
               <table className="w-full border-collapse text-left text-[11px]">
                 <thead>
@@ -130,7 +132,7 @@ export function AcledEventTable({ lang }: { lang: LabelLanguage }) {
       <p className="mt-2 text-[10px] leading-4 text-sky-100/45">
         {en
           ? "Admin1 × time-window aggregate, not individual dated incidents. Per-event actor-level detail needs a direct ACLED API key (acleddata.com)."
-          : "행정구역×기간 집계이며 개별 일자별 사건이 아닙니다. 행위자 단위 개별 사건은 ACLED 자체 API 키가 별도로 필요합니다(acleddata.com)."}
+          : "지역·기간으로 묶어 본 집계입니다. 날짜·행위자가 찍힌 개별 사건은 아닙니다. 그 수준은 ACLED 직접 API 키가 필요합니다(acleddata.com)."}
       </p>
     </div>
   );

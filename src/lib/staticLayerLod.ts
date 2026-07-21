@@ -42,18 +42,18 @@ export const SUBMARINE_CABLE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
 };
 
 export const OIL_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 16,
-  continent: 32,
-  regional: 80,
-  near: 160,
+  global: 36,
+  continent: 56,
+  regional: 100,
+  near: 180,
   village: 320,
 };
 
 export const GAS_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 20,
-  continent: 40,
-  regional: 100,
-  near: 200,
+  global: 44,
+  continent: 72,
+  regional: 120,
+  near: 220,
   village: 400,
 };
 

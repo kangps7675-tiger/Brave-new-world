@@ -3,6 +3,7 @@ import { apiStubResponse } from "@/lib/apiStub";
 import { fetchAdsbMilitary } from "@/lib/adsbWarmFetch";
 import { BELLINGCAT_ADSB_ATTRIBUTION, getAdsbApiKey } from "@/lib/adsbClient";
 import { readAdsbFromD1, readAdsbFromIngestWorker } from "@/lib/d1MaritimeAir";
+import { demoMilAircraft } from "@/lib/maritimeAirDemo";
 import { adsbMilQuerySchema, parseSearchParams } from "@/lib/apiQuerySchemas";
 import {
   CDN_CACHE,
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 const ADSB_CDN = publicCacheHeaders(CDN_CACHE.adsb);
 
-/** 지정학 — 군용기만 (D1 클라우드 로그 우선) */
+/** 지정학 — 군용기만 (D1 클라우드 로그 우선 → 라이브 → 데모) */
 export async function GET(request: Request) {
   const apiKey = getAdsbApiKey();
   if (!apiKey) {
@@ -67,50 +68,44 @@ export async function GET(request: Request) {
         { headers: ADSB_CDN },
       );
     }
-    return NextResponse.json(
-      {
-        receivedAt: new Date().toISOString(),
-        count: 0,
-        aircraft: [],
-        waiting: true,
-        source: "d1",
-        provider: "d1",
-        mode: "military",
-        attribution: `ADS-B mil — D1 empty; wait for cron warm or ?live=1 · ${BELLINGCAT_ADSB_ATTRIBUTION}`,
-      },
-      { headers: NO_STORE_HEADERS },
-    );
   }
 
   const mil = await fetchAdsbMilitary(max);
-  if (mil.error && mil.aircraft.length === 0) {
+  if (mil.aircraft.length > 0) {
+    const liveAttr =
+      mil.provider === "adsbx"
+        ? "ADSBexchange"
+        : mil.provider === "adsb.fi"
+          ? "adsb.fi"
+          : String(mil.provider ?? "ADS-B");
+
     return NextResponse.json(
       {
-        aircraft: [],
-        error: mil.error,
+        receivedAt: new Date().toISOString(),
+        count: mil.aircraft.length,
+        aircraft: mil.aircraft,
+        attribution: `${liveAttr} · ${BELLINGCAT_ADSB_ATTRIBUTION}`,
         provider: mil.provider,
+        source: "live",
         mode: "military",
       },
-      { status: 502, headers: NO_STORE_HEADERS },
+      { headers: ADSB_CDN },
     );
   }
 
-  const liveAttr =
-    mil.provider === "adsbx"
-      ? "ADSBexchange"
-      : mil.provider === "adsb.fi"
-        ? "adsb.fi"
-        : String(mil.provider ?? "ADS-B");
-
+  const demo = demoMilAircraft().slice(0, max);
   return NextResponse.json(
     {
       receivedAt: new Date().toISOString(),
-      count: mil.aircraft.length,
-      aircraft: mil.aircraft,
-      attribution: `${liveAttr} · ${BELLINGCAT_ADSB_ATTRIBUTION}`,
-      provider: mil.provider,
+      count: demo.length,
+      aircraft: demo,
+      attribution: `ADS-B mil demo · ${BELLINGCAT_ADSB_ATTRIBUTION}`,
+      source: "demo",
+      provider: "demo",
       mode: "military",
+      demo: true,
+      note: mil.error || "live empty — showing demo seeds",
     },
-    { headers: ADSB_CDN },
+    { headers: NO_STORE_HEADERS },
   );
 }

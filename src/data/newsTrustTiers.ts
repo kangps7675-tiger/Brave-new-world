@@ -62,8 +62,8 @@ export const NEWS_TRUST_TIERS: NewsTrustTierCopy[] = [
       en: "Wire services and major independent outlets with real gatekeeping — free to criticize their own governments.",
     },
     criteria: {
-      ko: "편집독립이 제도·소유구조로 확인됨. 국제 신뢰도 평가 상위권. AI 요약·등불 브리핑의 기본 근거로만 사용.",
-      en: "Editorial independence confirmed by charter or ownership. Top-tier international trust. Used as the default basis for AI summaries.",
+      ko: "편집독립이 제도·소유구조로 확인됨. 국제 신뢰도 평가 상위권. AI 요약·등불 브리핑의 기본 근거로만 사용. 정부·군 공보실 발표(각국 국방부·사령부 보도자료 등)는 소속 국가와 무관하게 Tier1 대상이 아님 — Tier3 기준 참고.",
+      en: "Editorial independence confirmed by charter or ownership. Top-tier international trust. Used as the default basis for AI summaries. Government/military public-affairs releases (any country's defense ministry or command press office) are never Tier 1, regardless of nationality — see Tier 3.",
     },
     examples: {
       ko: "통신사: Reuters · AP · AFP · DPA · EFE · ANSA · PTI · 연합뉴스·YTN / 영미권: BBC · WaPo · WSJ · NYT · Guardian · Bloomberg",
@@ -81,12 +81,12 @@ export const NEWS_TRUST_TIERS: NewsTrustTierCopy[] = [
       en: "Treated as mainstream internationally, but editorial tilt shows up repeatedly on some sensitive topics.",
     },
     criteria: {
-      ko: "검증된 매체이나 편향 논란이 있음. AI 요약 가중치는 Tier1보다 낮게. Anadolu는 소유구조상 국영 성격이 있어 v1에서는 Tier2 고정 + 가중치만 낮춤.",
-      en: "Verified outlets with known bias debates. Lower AI weight than Tier 1. Anadolu stays Tier 2 in v1 with reduced weight (state-owned structure).",
+      ko: "검증된 매체이나 편향 논란이 있음. AI 요약 가중치는 Tier1보다 낮게. Anadolu는 소유구조상 국영 성격이 있어 v1에서는 Tier2 고정 + 가중치만 낮춤. 민간 OSINT·안보연구소도 국적 불문 동일 기준으로 여기 포함 — 정부 소속은 아니지만 자금줄·논조 편향 논란이 있음.",
+      en: "Verified outlets with known bias debates. Lower AI weight than Tier 1. Anadolu stays Tier 2 in v1 with reduced weight (state-owned structure). Private OSINT/security-research groups are included here too, same rule regardless of nationality — not government-run, but with known funding or editorial-lean debates.",
     },
     examples: {
-      ko: "CNN · Al Jazeera(카타르 자금·이팔 편향 논란) · The Hindu · Times of India · Anadolu Agency · Fox News · Haaretz · Times of Israel",
-      en: "CNN · Al Jazeera · The Hindu · Times of India · Anadolu Agency · Fox News · Haaretz · Times of Israel",
+      ko: "CNN · Al Jazeera(카타르 자금·이팔 편향 논란) · The Hindu · Times of India · Anadolu Agency · Fox News · Haaretz · Times of Israel / OSINT·안보연구: Bellingcat · ISW · Al-Monitor · The Cradle · Chatham House · Crisis Group · Oryx · The War Zone · Carnegie · Janes · IISS",
+      en: "CNN · Al Jazeera · The Hindu · Times of India · Anadolu Agency · Fox News · Haaretz · Times of Israel / OSINT & security research: Bellingcat · ISW · Al-Monitor · The Cradle · Chatham House · Crisis Group · Oryx · The War Zone · Carnegie · Janes · IISS",
     },
   },
   {
@@ -96,16 +96,16 @@ export const NEWS_TRUST_TIERS: NewsTrustTierCopy[] = [
       en: "Tier 3 · Never for AI summaries · breaking signal only",
     },
     summary: {
-      ko: "국가·정당이 편집장을 직접 임명하고, 정부 발표를 검증 없이 받아쓰는 관영·당영 매체.",
-      en: "State/party outlets where editors are appointed by the state and official statements are often republished unchecked.",
+      ko: "국가·정당이 편집장을 직접 임명하거나, 정부·군이 직접 발신하는 공보 자료를 검증 없이 배포하는 매체 — 국적 불문 동일 기준.",
+      en: "State/party outlets where editors are state-appointed, or any government/military public-affairs office distributing its own statements unchecked — same rule regardless of nationality.",
     },
     criteria: {
-      ko: "기본값 꺼짐 → ‘속보·관영’ 토글을 켠 경우에만 노출. ‘⚠ 당사자 공식입장·검증 전’ 라벨 고정. Tier1이 같은 사건을 확인하면 교체. AI 요약 컨텍스트에는 절대 넣지 않음(섞이면 ‘OO 주장에 따르면’ 형태만).",
-      en: "Off by default — only via the state-media toggle. Fixed ‘party line / unverified’ label. Replaced when Tier 1 confirms. Never injected into AI summary context.",
+      ko: "기본값 꺼짐 → ‘속보·관영’ 토글을 켠 경우에만 노출. ‘⚠ 당사자 공식입장·검증 전’ 라벨 고정. Tier1이 같은 사건을 확인하면 교체. AI 요약 컨텍스트에는 절대 넣지 않음(섞이면 ‘OO 주장에 따르면’ 형태만). 국적 불문 동일 기준 — 미군 CENTCOM·국방부(DoD) 공보자료도 여기 포함.",
+      en: "Off by default — only via the state-media toggle. Fixed ‘party line / unverified’ label. Replaced when Tier 1 confirms. Never injected into AI summary context. Same rule regardless of nationality — includes U.S. CENTCOM / Department of Defense (DoD) public-affairs releases.",
     },
     examples: {
-      ko: "중국: CCTV · CGTN · Xinhua · People's Daily · Global Times · China Daily / 러시아: RT · Sputnik · RIA · TASS / 이란: PressTV · IRNA / 북한: KCNA",
-      en: "China: CCTV · CGTN · Xinhua · People's Daily · Global Times / Russia: RT · Sputnik · RIA · TASS / Iran: PressTV · IRNA / DPRK: KCNA",
+      ko: "중국: CCTV · CGTN · Xinhua · People's Daily · Global Times · China Daily / 러시아: RT · Sputnik · RIA · TASS / 이란: PressTV · IRNA / 북한: KCNA / 미국: CENTCOM · 美 국방부(DoD) 공보자료",
+      en: "China: CCTV · CGTN · Xinhua · People's Daily · Global Times / Russia: RT · Sputnik · RIA · TASS / Iran: PressTV · IRNA / DPRK: KCNA / US: CENTCOM · Dept. of Defense (DoD) public affairs",
     },
   },
 ];

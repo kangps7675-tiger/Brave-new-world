@@ -36,8 +36,18 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "드래그로 지구본을 돌리고, 스크롤로 확대·축소합니다. 빈 바다를 두 번 클릭하면 그 지점으로 확대됩니다.",
       "화면이 사선으로 기울어졌을 때 Alt 키를 누른 채 마우스를 드래그하면 기울기·회전을 조절할 수 있습니다. (좌우=돌리기, 위아래=눕히기/세우기)",
       "좌상단 ≡ 에서 레이어(전선·뉴스·에너지 등)를 켜고 끕니다.",
+      "상단 검색창 옆 「묻기」를 누르면 화면 중앙에 흐린 입력창이 열립니다. 홍해·이란·우크라처럼 물으면 관련 레이어가 켜지고 지도가 이동합니다.",
       "하단 📰 로 검증 보도·전장 뉴스·텔레그램 OSINT를 엽니다. 우측 「주요전장」으로 충돌지에 바로 갈 수 있습니다.",
       "지도 위 핀·분쟁 구역을 클릭하면 오른쪽에 설명이 열립니다.",
+    ],
+  },
+  {
+    title: "묻기로 레이어 켜기",
+    steps: [
+      "상단 검색창 옆 「묻기」 버튼을 누릅니다.",
+      "화면 가운데에 뒤가 흐릿한 반투명 입력창이 열립니다. 「홍해」「이란」「우크라」「오늘 핫한 곳」처럼 짧게 적거나 예시 칩을 탭합니다.",
+      "관련 지도 레이어가 켜지고 카메라가 그쪽으로 이동합니다. 긴 정세 해설이 아니라 지도를 맞추는 기능입니다.",
+      "세밀하게 끄고 켜려면 오른쪽 위 ≡ 레이어 패널(직접 설정)을 쓰세요.",
     ],
   },
   {
@@ -122,8 +132,18 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "Drag to rotate the globe, scroll to zoom. Double-click empty ocean to zoom into that point.",
       "When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
       "Use ≡ (top-left) to toggle layers — fronts, news, energy, and more.",
+      "Tap 「Ask」 next to the top search bar to open a frosted center prompt. Ask about the Red Sea, Iran, or Ukraine to turn on matching layers and fly the map.",
       "Tap 📰 at the bottom for verified reports, theater news, and Telegram OSINT. Use Key theaters on the right to jump to conflict zones.",
       "Click pins or conflict zones on the map to open details on the right.",
+    ],
+  },
+  {
+    title: "Ask → turn on layers",
+    steps: [
+      "Tap 「Ask」 beside the top search bar.",
+      "A frosted, dimmed center dialog opens. Type a short cue (Red Sea, Iran, Ukraine, Today hot) or tap an example chip.",
+      "Matching map layers turn on and the camera flies there. This is for aligning the map — not a long briefing chat.",
+      "For fine control, use the ≡ layer panel (manual checkboxes).",
     ],
   },
   {
@@ -208,6 +228,7 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
       "드래그·줌으로 지구본을 탐색합니다.",
       "화면이 사선으로 기울면 Alt + 드래그로 기울기·회전을 맞춥니다.",
       "≡ 에서 유가·가스·해운·제재·AI DC 레이어를 켭니다.",
+      "검색 옆 「묻기」로 호르무즈·수에즈·항로처럼 물으면 물류·초크 레이어를 맞출 수 있습니다.",
       "하단 📈 와 티커로 지수·VIX·경제 속보를 보고, 상단 nav에서 수에즈·호르무즈 등을 고르면 관련 시장이 열립니다.",
     ],
   },
@@ -260,6 +281,7 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
       "Drag and zoom to explore the globe.",
       "When the view is tilted, Alt + drag adjusts pitch and bearing.",
       "Use ≡ to toggle oil, gas, shipping, sanctions, and AI DC layers.",
+      "Use 「Ask」 beside search to align shipping/chokepoint layers (Hormuz, Suez, lanes).",
       "Use 📈 and the ticker for indices, VIX, and economy briefs; pick Suez, Hormuz, and more from the top nav to open related markets.",
     ],
   },

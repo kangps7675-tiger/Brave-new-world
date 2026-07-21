@@ -19,6 +19,11 @@ const UI = {
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
   layers: { ko: "레이어", en: "Layers" },
+  askLayersButton: { ko: "묻기", en: "Ask" },
+  askLayersButtonHint: {
+    ko: "질문하면 관련 지도 레이어를 켭니다",
+    en: "Ask to turn on matching map layers",
+  },
   backToMap: { ko: "접기", en: "Collapse" },
   closeNewsDock: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
   closeNewsGlobeOnlyAria: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },

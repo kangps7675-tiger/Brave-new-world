@@ -38,6 +38,9 @@ type HoverNavProps = {
   compactMenuExtra?: ReactNode;
   /** nav 본문·드롭다운 바로 아래 (지정학/지경학 스위치 등) — 메뉴 열림에 따라 함께 이동 */
   belowNav?: ReactNode;
+  /** 검색창 옆 「묻기」— 레이어 자동 ON 오버레이 */
+  onAskLayersOpen?: () => void;
+  askLayersLabel?: string;
 };
 
 export function HoverNav({
@@ -52,6 +55,8 @@ export function HoverNav({
   compact = false,
   compactMenuExtra,
   belowNav,
+  onAskLayersOpen,
+  askLayersLabel,
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
@@ -159,6 +164,25 @@ export function HoverNav({
                 aria-label="검색어 지우기"
               >
                 ✕
+              </button>
+            ) : null}
+            {onAskLayersOpen ? (
+              <button
+                type="button"
+                onClick={onAskLayersOpen}
+                aria-haspopup="dialog"
+                aria-label={askLayersLabel || (isEconomy ? "Ask layers" : "묻기")}
+                title={askLayersLabel || (isEconomy ? "Ask → layers" : "묻기 → 레이어")}
+                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] font-medium transition sm:text-xs ${
+                  isEconomy
+                    ? "border-emerald-300/35 bg-emerald-400/15 text-emerald-50 hover:border-emerald-300/55 hover:bg-emerald-400/25"
+                    : "border-sky-300/35 bg-sky-400/15 text-sky-50 hover:border-sky-300/55 hover:bg-sky-400/25"
+                }`}
+              >
+                <span aria-hidden>✧</span>
+                <span className="hidden xs:inline sm:inline">
+                  {askLayersLabel || (isEconomy ? "Ask" : "묻기")}
+                </span>
               </button>
             ) : null}
             {!isEconomy ? (

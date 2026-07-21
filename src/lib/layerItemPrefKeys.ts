@@ -20,6 +20,7 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "telegram-osint": "showTelegramOsint",
   "tzeva-adom": "showTzevaAdom",
   "newfeeds-iran": "showNewfeedsIranAttacks",
+  "ukmto-incidents": "showUkmtoIncidents",
   "china-taiwan-incidents": "showChinaTaiwanIncidents",
   "china-japan-incidents": "showChinaJapanIncidents",
   "china-philippines-incidents": "showChinaPhilippinesIncidents",

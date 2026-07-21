@@ -4,6 +4,7 @@ import path from "path";
 import { SUBMARINE_TUNNEL_SEED } from "@/data/submarineTunnels";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { getServerDataProfile } from "@/lib/serverEnv";
+import { demoCivAircraft, demoMilAircraft } from "@/lib/maritimeAirDemo";
 
 const STUB_AT = () => new Date().toISOString();
 
@@ -29,7 +30,9 @@ export type ApiStubRoute =
   | "daily-predict"
   | "daily-predict-stats"
   | "daily-predict-opponent"
-  | "bunker-sentiment";
+  | "bunker-sentiment"
+  | "sitrep"
+  | "ukmto";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -201,10 +204,26 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
             : demo;
       return { receivedAt: at, vessels, stub: true, classFilter, provider: "stub" };
     }
-    case "adsb-mil":
-      return { receivedAt: at, count: 0, aircraft: [], stub: true };
-    case "adsb-traffic":
-      return { receivedAt: at, count: 0, aircraft: [], stub: true, mode: "civilian" };
+    case "adsb-mil": {
+      const aircraft = demoMilAircraft();
+      return {
+        receivedAt: at,
+        count: aircraft.length,
+        aircraft,
+        stub: true,
+        mode: "military",
+      };
+    }
+    case "adsb-traffic": {
+      const aircraft = demoCivAircraft();
+      return {
+        receivedAt: at,
+        count: aircraft.length,
+        aircraft,
+        stub: true,
+        mode: "civilian",
+      };
+    }
     case "submarine-tunnels":
       return {
         receivedAt: at,
@@ -290,6 +309,11 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
     case "conflict-zones":
     case "arms-embargo-zones":
       return { receivedAt: at, cached: true, count: 0, zones: [], stub: true };
+    case "sitrep":
+      return { events: [], fetchedAt: at, stub: true };
+    case "ukmto":
+      // 실제 공격/나포 데이터를 스텁으로 지어내지 않음 — 빈 배열로 정직하게 폴백
+      return { incidents: [], fetchedAt: at, stub: true };
     default:
       return { stub: true, fetchedAt: at };
   }

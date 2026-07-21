@@ -381,11 +381,11 @@ function PhotoNewsLampParchment({
                   <p className="text-[10px] uppercase tracking-[0.22em] text-[#6b4a22]/7">
                     {isEconomy
                       ? lang === "en"
-                        ? "US · China · Europe · Russia · Korea/Japan — today's hottest (freshness · multi-wire)"
-                        : "미·중·유럽·러·한일 · 당일 핫 (신선도·다매체 중복)"
+                        ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
+                        : "미·중·유럽 · 초크포인트(유가·물류) · 당일 핫"
                       : lang === "en"
-                        ? "Middle East · Ukraine · Taiwan · Korea — war · diplomacy · high trust · photo"
-                        : "중동 · 러우 · 대만 · 한반도 — 전쟁·외교 · 고신뢰 · 사진"}
+                        ? "Middle East · Ukraine · Taiwan · Korea · chokepoints — war · diplomacy"
+                        : "중동 · 러우 · 대만 · 한반도 · 초크포인트 — 전쟁·외교"}
                   </p>
                 </div>
 
@@ -593,13 +593,13 @@ function ForgottenWarningBlock({
   return (
     <section
       className="overflow-hidden rounded-sm border border-[#6b4a22]/35 bg-[#efe0b8]/70 px-4 py-4 shadow-[0_6px_20px_rgba(61,42,24,0.1)] sm:px-5"
-      aria-label={ko ? "잊혀진 경고" : "Forgotten warning"}
+      aria-label={ko ? "그날의 경고" : "Forgotten warning"}
     >
       <p
         className="text-[10px] uppercase tracking-[0.2em] text-[#6b4a22]/8"
         style={{ fontFamily: parchmentStack }}
       >
-        {ko ? "잊혀진 경고" : "Forgotten warning"}
+        {ko ? "그날의 경고" : "Forgotten warning"}
       </p>
       <p
         className="mt-1.5 text-[12px] leading-snug text-[#5a3d1c]"
@@ -623,10 +623,10 @@ function ForgottenWarningBlock({
         {warning.date}
         {warning.exactAnniversary
           ? ko
-            ? ` · 정확히 ${warning.yearsAgo}년 전`
+            ? ` · ${warning.yearsAgo}년 전 바로 그날`
             : ` · exactly ${warning.yearsAgo}y ago`
           : ko
-            ? ` · 약 ${warning.yearsAgo}년 전`
+            ? ` · 대략 ${warning.yearsAgo}년 전`
             : ` · ~${warning.yearsAgo}y ago`}
       </p>
       {onFly ? (
@@ -635,7 +635,7 @@ function ForgottenWarningBlock({
           onClick={onFly}
           className="mt-3 rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-[12px] text-[#3d2a18] transition hover:bg-[#f7ecd0]"
         >
-          {ko ? "지도로" : "Fly to map"}
+          {ko ? "지도에서 보기" : "Fly to map"}
         </button>
       ) : null}
     </section>
@@ -654,7 +654,7 @@ function AnnouncementStrip({ lang }: { lang: LabelLanguage }) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-1.5 px-1">
       <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#6b4a22]/6">
-        {en ? "Next" : "다음 발표"}
+        {en ? "Next" : "다가오는 발표"}
       </span>
       {upcoming.map((ev) => (
         <span
@@ -663,7 +663,13 @@ function AnnouncementStrip({ lang }: { lang: LabelLanguage }) {
         >
           {ev.label[lang]} · {ev.date.slice(5)}
           {" · "}
-          {ev.daysUntil === 0 ? (en ? "today" : "오늘") : `D-${ev.daysUntil}`}
+          {ev.daysUntil === 0
+            ? en
+              ? "today"
+              : "오늘"
+            : en
+              ? `D-${ev.daysUntil}`
+              : `${ev.daysUntil}일 후`}
         </span>
       ))}
     </div>
