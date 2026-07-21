@@ -8,22 +8,28 @@ export type VideoFeedDef = {
   topic: VideoNewsTopic;
 };
 
-/** 지정학 — 국제·안보 방송 YouTube (공개 Atom, API 키 불필요) */
+/**
+ * 동영상 뉴스 폴링 — 공신력 있는 방송·와이어만.
+ * (Atom RSS, API 키 불필요. 채널 ID는 실제 feeds.videos.xml 200 응답으로 검증.)
+ *
+ * 반서방 충돌사 다큐/스토리는 여기 넣지 않음 — 에피소드 큐레이션(스토리)이며 폴링 대상 아님.
+ */
+
+/** 지정학 — 국제·안보 현실 뉴스 */
 export const DEFENSE_VIDEO_FEEDS: VideoFeedDef[] = [
   { channelId: "UC16niRr50-MSBwiO3YDb3RA", name: "BBC News", topic: "defense" },
+  { channelId: "UChqUTb7kYRX8-EiaN3XFrSQ", name: "Reuters", topic: "defense" },
+  { channelId: "UC52X5wxOL_s5yw0dQk7NtgA", name: "Associated Press", topic: "defense" },
   { channelId: "UCNye-wNBqNL5ZzHSJj3l8Bg", name: "Al Jazeera English", topic: "defense" },
   { channelId: "UCknLrEdhRCp1aegoMqRaCZg", name: "DW News", topic: "defense" },
-  { channelId: "UCQfwfsi5VrQ8yKZ-UWmYLbA", name: "France 24", topic: "defense" },
-  { channelId: "UCoMdktPfjR4d1kv5HVBCXOw", name: "Sky News", topic: "defense" },
 ];
 
-/** 지경학 — 시장·매크로 방송 */
+/** 지경학 — 시장·매크로 현실 뉴스 */
 export const ECONOMY_VIDEO_FEEDS: VideoFeedDef[] = [
-  { channelId: "UCAL_4Ls5qWRfXXNlpUM9zwQ", name: "Bloomberg Television", topic: "economy" },
-  { channelId: "UCvJJ_dzjViJCoYgQtZLE2tg", name: "CNBC Television", topic: "economy" },
-  { channelId: "UCEApe0dHxbjC8mUOGb6YeWw", name: "Yahoo Finance", topic: "economy" },
-  { channelId: "UCK7tptUFHhAagtB3azZXNtw", name: "Bloomberg Quicktake", topic: "economy" },
-  { channelId: "UCkJdamoRox6SCbVK5s0CQsA", name: "Wall Street Journal", topic: "economy" },
+  { channelId: "UCIALMKvObZNtJ6AmdCLP7Lg", name: "Bloomberg Television", topic: "economy" },
+  { channelId: "UCo7a6riBFJ3tkeHjvkXPn1g", name: "CNBC International", topic: "economy" },
+  { channelId: "UCoUxsWakJucWg46KW5RsvPw", name: "Financial Times", topic: "economy" },
+  { channelId: "UChqUTb7kYRX8-EiaN3XFrSQ", name: "Reuters", topic: "economy" },
 ];
 
 export function youtubeAtomUrl(channelId: string): string {

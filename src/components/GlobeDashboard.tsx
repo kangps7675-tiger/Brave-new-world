@@ -277,7 +277,10 @@ import {
   type NewfeedsAttacksPayload,
 } from "@/lib/newfeeds";
 import {
+  buildUkmtoBriefingContent,
+  findUkmtoIncident,
   ukmtoIncidentToHatchPaths,
+  type UkmtoBriefingContent,
   type UkmtoIncidentPoint,
 } from "@/lib/ukmtoHatch";
 import {
@@ -971,6 +974,8 @@ export function GlobeDashboard({
   /** UKMTO(Royal Navy) 상선 피습·나포·의심활동 — 비공식 엔드포인트, cron이 D1에 적재한 걸 읽기만 함 */
   const [ukmtoIncidents, setUkmtoIncidents] = useState<UkmtoIncidentPoint[]>([]);
   const [ukmtoStatus, setUkmtoStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const [ukmtoBriefing, setUkmtoBriefing] = useState<UkmtoBriefingContent | null>(null);
+  const ukmtoBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 공습사이렌 포커스 — 사각 틀 없이 해당 지역 빗금만 */
   const [airRaidFocusPaths, setAirRaidFocusPaths] = useState<TransportPath[]>([]);
   const [airRaidFocusBox, setAirRaidFocusBox] = useState<AirRaidFocusBox | null>(null);
@@ -4628,6 +4633,20 @@ export function GlobeDashboard({
     }
 
     if (hoveredPath) {
+      const ukmtoHit = findUkmtoIncident(ukmtoIncidents, hoveredPath);
+      if (ukmtoHit) {
+        return {
+          kind: "path",
+          title: `UKMTO · ${ukmtoHit.incidentTypeName}`,
+          detail:
+            labelLanguage === "en"
+              ? "Merchant vessel security warning"
+              : "상선 보안 경보 · 흑백 빗금",
+          body: ukmtoHit.place || ukmtoHit.detail || undefined,
+          meta: [ukmtoHit.vesselType, ukmtoHit.pinColour].filter(Boolean).join(" · ") || undefined,
+          hint: labelLanguage === "en" ? "Click for brief" : "클릭 · 전보 브리프",
+        };
+      }
       const dispute =
         hoveredPath.kind === "dispute-zone" || hoveredPath.kind === "dispute-hatch"
           ? disputeFromPath(hoveredPath)
@@ -4713,6 +4732,7 @@ export function GlobeDashboard({
     hoveredPoint,
     hoveredPolygon,
     labelLanguage,
+    ukmtoIncidents,
   ]);
 
   useEffect(() => {
@@ -5289,6 +5309,11 @@ export function GlobeDashboard({
     if (!showUkmtoIncidents) {
       setUkmtoIncidents([]);
       setUkmtoStatus("idle");
+      setUkmtoBriefing(null);
+      if (ukmtoBriefTimerRef.current != null) {
+        clearTimeout(ukmtoBriefTimerRef.current);
+        ukmtoBriefTimerRef.current = null;
+      }
       return;
     }
     void refreshUkmto();
@@ -6722,6 +6747,32 @@ export function GlobeDashboard({
     },
     [flyTo],
   );
+
+  /** UKMTO 빗금 클릭 — fly → 전보음 양피지 (공습·허브 브리프와 동일 리듬) */
+  const openUkmtoBrief = useCallback(
+    (incident: UkmtoIncidentPoint) => {
+      skipNextGlobeClickRef.current = true;
+      if (ukmtoBriefTimerRef.current != null) {
+        clearTimeout(ukmtoBriefTimerRef.current);
+        ukmtoBriefTimerRef.current = null;
+      }
+      setUkmtoBriefing(null);
+      flyTo(incident.lat, incident.lng, 0.52, 900, { pitch: 48, bearing: -12 });
+      ukmtoBriefTimerRef.current = setTimeout(() => {
+        ukmtoBriefTimerRef.current = null;
+        setUkmtoBriefing(buildUkmtoBriefingContent(incident, labelLanguage));
+      }, 780);
+    },
+    [flyTo, labelLanguage],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (ukmtoBriefTimerRef.current != null) {
+        clearTimeout(ukmtoBriefTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const globe = globeRef.current;
@@ -8842,6 +8893,14 @@ export function GlobeDashboard({
   }
 
   function handlePathClick(path: TransportPath) {
+    if (path.kind === "dispute-zone" || path.kind === "conflict-hatch") {
+      const incident = findUkmtoIncident(ukmtoIncidents, path);
+      if (incident) {
+        openUkmtoBrief(incident);
+        return;
+      }
+    }
+
     const dispute =
       path.kind === "dispute-zone" || path.kind === "dispute-hatch"
         ? disputeFromPath(path)
@@ -11172,6 +11231,25 @@ export function GlobeDashboard({
             airRaidAutoBusyRef.current = false;
             beginLiveBriefing("air-raid", airRaidBriefingLayers(kind), place);
           }}
+        />
+      ) : null}
+
+      {ukmtoBriefing ? (
+        <ParchmentLetter
+          lang={labelLanguage}
+          title={ukmtoBriefing.title}
+          paragraphs={ukmtoBriefing.paragraphs}
+          signOff={
+            labelLanguage === "en"
+              ? "UKMTO · unofficial maritime advisory\nGlobe Observatory"
+              : "UKMTO · 비공식 해상 경보\n지구본 관측대"
+          }
+          ctaLabel={labelLanguage === "en" ? "Understood" : "확인"}
+          onContinue={() => setUkmtoBriefing(null)}
+          playBreakingDispatch
+          typewriter={false}
+          titleId="ukmto-briefing-title"
+          zIndexClass="z-[10040]"
         />
       ) : null}
       </NewsStreamProvider>
