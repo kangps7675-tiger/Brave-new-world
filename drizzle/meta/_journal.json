@@ -85,6 +85,41 @@
       "when": 1784900000000,
       "tag": "0011_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1785000000000,
+      "tag": "0012_living_timeline_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1785100000000,
+      "tag": "0013_bunker_sentiment",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1785200000000,
+      "tag": "0014_air_raid_and_signal_daily",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1785300000000,
+      "tag": "0015_sitrep_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1785400000000,
+      "tag": "0016_ukmto_incidents",
+      "breakpoints": true
     }
   ]
 }

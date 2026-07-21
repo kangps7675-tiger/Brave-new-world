@@ -538,7 +538,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       return;
     }
 
-    map.once("idle", emitGlobeReady);
+    // idle이 영구히 안 오면 부트 스플래시가 고착될 수 있어 상한 후 강제 ready
+    const idleFallback = window.setTimeout(() => {
+      emitGlobeReady();
+    }, 12_000);
+    map.once("idle", () => {
+      window.clearTimeout(idleFallback);
+      emitGlobeReady();
+    });
   }, [emitGlobeReady, publishZoom]);
 
   const resolveFeature = useCallback(

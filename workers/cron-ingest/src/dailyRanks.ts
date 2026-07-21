@@ -617,26 +617,116 @@ async function loadPrevRanks(
   db: D1Database,
   rankDate: string,
   kind: DailyRankKind,
-): Promise<Map<string, { rank: number; score: number }>> {
-  const map = new Map<string, { rank: number; score: number }>();
+): Promise<Map<string, { rank: number; score: number; detailJson: string | null }>> {
+  const map = new Map<string, { rank: number; score: number; detailJson: string | null }>();
   try {
     const { results } = await db
       .prepare(
-        `SELECT entity_id, rank, score FROM daily_entity_ranks
+        `SELECT entity_id, rank, score, detail_json FROM daily_entity_ranks
          WHERE rank_date = ?1 AND kind = ?2`,
       )
       .bind(rankDate, kind)
-      .all<{ entity_id: string; rank: number; score: number }>();
+      .all<{ entity_id: string; rank: number; score: number; detail_json: string | null }>();
     for (const row of results ?? []) {
       map.set(String(row.entity_id), {
         rank: Number(row.rank) || 0,
         score: Number(row.score) || 0,
+        detailJson: row.detail_json ?? null,
       });
     }
   } catch {
     // first run / missing table
   }
   return map;
+}
+
+/** SITREP 기록 트리거 — 검증등급 전환은 항상, 점수 델타는 이 이상만 */
+const SITREP_SCORE_DELTA_THRESHOLD = 8;
+
+/**
+ * daily_entity_ranks upsert 직후, 전일 대비 "판단이 바뀐 순간"만 sitrep_events에 남긴다.
+ * 원시 사건(뉴스)이 아니라 우리 시스템 자체의 상태 전환 기록.
+ * 테이블이 아직 마이그레이션 안 됐어도(db:generate/db:migrate:remote 전) 조용히 스킵 —
+ * 메인 랭킹 파이프라인은 절대 이것 때문에 실패하지 않는다.
+ */
+async function recordSitrepChanges(
+  db: D1Database,
+  rankDate: string,
+  kind: DailyRankKind,
+  ranked: Array<{
+    entityId: string;
+    labelKo: string;
+    labelEn: string;
+    score: number;
+    deltaScore: number | null;
+    detail: Record<string, unknown> | null;
+  }>,
+  prev: Map<string, { rank: number; score: number; detailJson: string | null }>,
+  updatedAt: string,
+): Promise<void> {
+  if (kind !== "theater") return; // 초크포인트는 베이스라인이 없어 델타가 신호가 아님
+  try {
+    const stmts: D1PreparedStatement[] = [];
+    for (const item of ranked) {
+      const prevHit = prev.get(item.entityId);
+      const nextVerification =
+        (item.detail?.verificationLevel as string | undefined) ?? null;
+      let prevVerification: string | null = null;
+      if (prevHit?.detailJson) {
+        try {
+          const parsed = JSON.parse(prevHit.detailJson) as Record<string, unknown>;
+          prevVerification = (parsed.verificationLevel as string | undefined) ?? null;
+        } catch {
+          prevVerification = null;
+        }
+      }
+
+      const verificationChanged =
+        prevVerification != null &&
+        nextVerification != null &&
+        prevVerification !== nextVerification;
+      const bigDelta =
+        item.deltaScore != null && Math.abs(item.deltaScore) >= SITREP_SCORE_DELTA_THRESHOLD;
+
+      if (!verificationChanged && !bigDelta) continue;
+
+      const eventType = verificationChanged ? "verification-change" : "score-delta";
+      const deltaRounded =
+        item.deltaScore != null ? Math.round(item.deltaScore * 10) / 10 : null;
+      const messageKo = verificationChanged
+        ? `${item.labelKo} · ${prevVerification}→${nextVerification}`
+        : `${item.labelKo} · ${deltaRounded! > 0 ? "+" : ""}${deltaRounded}`;
+      const messageEn = verificationChanged
+        ? `${item.labelEn} · ${prevVerification}→${nextVerification}`
+        : `${item.labelEn} · ${deltaRounded! > 0 ? "+" : ""}${deltaRounded}`;
+
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO sitrep_events (
+               rank_date, entity_id, label_ko, label_en, event_type,
+               message_ko, message_en, delta_score, prev_verification, next_verification, created_at
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)`,
+          )
+          .bind(
+            rankDate,
+            item.entityId,
+            item.labelKo,
+            item.labelEn,
+            eventType,
+            messageKo,
+            messageEn,
+            item.deltaScore,
+            prevVerification,
+            nextVerification,
+            updatedAt,
+          ),
+      );
+    }
+    if (stmts.length > 0) await db.batch(stmts);
+  } catch {
+    // sitrep_events 테이블 미마이그레이션 등 — 메인 파이프라인엔 영향 없음
+  }
 }
 
 async function upsertKind(
@@ -673,6 +763,14 @@ async function upsertKind(
   const maxScore = Math.max(...ranked.map((r) => r.score), 1);
 
   const stmts: D1PreparedStatement[] = [];
+  const sitrepCandidates: Array<{
+    entityId: string;
+    labelKo: string;
+    labelEn: string;
+    score: number;
+    deltaScore: number | null;
+    detail: Record<string, unknown> | null;
+  }> = [];
   ranked.forEach((item, index) => {
     const rank = index + 1;
     const prevHit = prev.get(item.entityId);
@@ -687,6 +785,14 @@ async function upsertKind(
       displayScore,
       displayMax: options.absoluteDisplay ? 100 : maxScore,
     };
+    sitrepCandidates.push({
+      entityId: item.entityId,
+      labelKo: item.labelKo,
+      labelEn: item.labelEn,
+      score: item.score,
+      deltaScore,
+      detail,
+    });
     stmts.push(
       db
         .prepare(
@@ -725,6 +831,7 @@ async function upsertKind(
   if (stmts.length > 0) {
     await db.batch(stmts);
   }
+  await recordSitrepChanges(db, rankDate, kind, sitrepCandidates, prev, updatedAt);
   return { count: ranked.length, ranked };
 }
 

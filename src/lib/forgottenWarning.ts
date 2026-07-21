@@ -211,14 +211,14 @@ export function forgottenWarningLead(
 ): string {
   const when = warning.exactAnniversary
     ? ko
-      ? `정확히 ${warning.yearsAgo}년 전 오늘`
+      ? `오늘로부터 꼭 ${warning.yearsAgo}년 전`
       : `Exactly ${warning.yearsAgo} years ago today`
     : ko
-      ? `약 ${warning.yearsAgo}년 전 이맘때`
+      ? `지금으로부터 약 ${warning.yearsAgo}년 전 이맘때`
       : `Around ${warning.yearsAgo} years ago this season`;
 
   if (ko) {
-    return `${when}, ${warning.titleKo}. 오늘의 텐션과 나란히 두어 보십시오.`;
+    return `${when} — ${warning.titleKo}. 오늘의 긴장도와 나란히 보면 느낌이 달라집니다.`;
   }
   return `${when}: ${warning.titleEn}. Hold it beside today’s tension.`;
 }

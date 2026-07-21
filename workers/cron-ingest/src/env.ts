@@ -80,6 +80,15 @@ export type IngestEnv = {
   AIR_RAID_INGEST_ENABLED?: string;
   /** NEPTUN 베이스 (기본 https://neptun.in.ua) */
   NEPTUN_API_BASE?: string;
+  /**
+   * UKMTO 상선 경보 — 비공식(리버스 엔지니어링) 엔드포인트.
+   * 기본 https://sccd.royalnavy.mod.uk/api/ukmto/all
+   */
+  UKMTO_API_URL?: string;
+  /** "false"/"0" 이면 UKMTO 인제스트 비활성 */
+  UKMTO_INGEST_ENABLED?: string;
+  /** 최소 재폴링 간격(분) — 예의상 여유 있게, 기본 30 */
+  UKMTO_POLL_MIN_INTERVAL_MINUTES?: string;
 };
 
 export type FirmsFireRow = {

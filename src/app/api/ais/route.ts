@@ -12,6 +12,7 @@ import {
   fetchMarineTrafficCommercial,
   getMarineTrafficApiKey,
 } from "@/lib/marineTrafficFetch";
+import { demoAisVessels } from "@/lib/maritimeAirDemo";
 import { aisQuerySchema, parseSearchParams } from "@/lib/apiQuerySchemas";
 import {
   CDN_CACHE,
@@ -159,9 +160,14 @@ async function websocketDataToText(data: MessageEvent["data"]) {
 }
 
 function filterVessels(vessels: AisVessel[], classFilter: AisClassFilter, max: number) {
-  return vessels
-    .filter((v) => matchesAisClassFilter(v.category, classFilter, v.disguised))
-    .slice(0, max);
+  const matched = vessels.filter((v) =>
+    matchesAisClassFilter(v.category, classFilter, v.disguised),
+  );
+  // 지정학 military인데 군함이 없으면 전부 표시 (빈 체크박스 방지)
+  if (matched.length === 0 && classFilter === "military" && vessels.length > 0) {
+    return vessels.slice(0, max);
+  }
+  return matched.slice(0, max);
 }
 
 async function collectFromAisstream(options: {
@@ -357,18 +363,7 @@ export async function GET(request: Request) {
         { headers: AIS_CDN },
       );
     }
-    return NextResponse.json(
-      {
-        receivedAt: new Date().toISOString(),
-        vessels: [],
-        provider: "d1",
-        classFilter,
-        source: "d1",
-        waiting: true,
-        cached: false,
-      },
-      { headers: NO_STORE_HEADERS },
-    );
+    // 예전: waiting 빈 배열 반환 → 체크 ON인데 안 보임. 라이브/데모로 폴백.
   }
 
   const mtKey = getMarineTrafficApiKey();
@@ -389,6 +384,7 @@ export async function GET(request: Request) {
             vessels: filterVessels(mtVessels, "commercial", maxVessels),
             provider: "marinetraffic",
             classFilter,
+            source: "live",
           },
           { headers: AIS_CDN },
         );
@@ -398,40 +394,47 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!aisstreamKey) {
-    return NextResponse.json(
-      {
-        vessels: [],
-        classFilter,
-        error:
-          "AISSTREAM_API_KEY가 없습니다. 민간 선박은 MARINETRAFFIC_API_KEY로도 가능합니다.",
-      },
-      { status: 500 },
-    );
+  if (aisstreamKey) {
+    const result = await collectFromAisstream({
+      apiKey: aisstreamKey,
+      maxVessels,
+      durationMs,
+      bbox: parseBoundingBoxes(searchParams),
+      classFilter,
+      debug,
+    });
+    if (result.vessels.length > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: new Date().toISOString(),
+          vessels: result.vessels,
+          provider: "aisstream",
+          classFilter,
+          source: "live",
+          rawSamples: result.rawSamples,
+          diagnostics: result.diagnostics,
+          error: result.error,
+        },
+        { headers: AIS_CDN },
+      );
+    }
   }
 
-  const result = await collectFromAisstream({
-    apiKey: aisstreamKey,
-    maxVessels,
-    durationMs,
-    bbox: parseBoundingBoxes(searchParams),
-    classFilter,
-    debug,
-  });
-
+  // 최후 — 데모 시드 (체크박스 ON 시 무조건 마커)
+  const demo = demoAisVessels(classFilter === "disguised" ? "all" : classFilter);
   return NextResponse.json(
     {
       receivedAt: new Date().toISOString(),
-      vessels: result.vessels,
-      provider: "aisstream",
+      vessels: demo.slice(0, maxVessels),
+      provider: "demo",
       classFilter,
-      rawSamples: result.rawSamples,
-      diagnostics: result.diagnostics,
-      error: result.error,
+      source: "demo",
+      demo: true,
+      cached: false,
+      note: aisstreamKey
+        ? "live empty — showing demo seeds"
+        : "AISSTREAM_API_KEY missing — showing demo seeds",
     },
-    {
-      status: result.error && result.vessels.length === 0 ? 502 : 200,
-      headers: result.vessels.length === 0 ? NO_STORE_HEADERS : AIS_CDN,
-    },
+    { headers: NO_STORE_HEADERS },
   );
 }

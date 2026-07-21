@@ -20,6 +20,21 @@ export function centerDistanceDeg(center: ViewPoint, view: ViewPoint): number {
   return Math.sqrt(latDist ** 2 + lngDist ** 2);
 }
 
+/** 뷰포트 안 우선, 비면 가장 가까운 N개 — AIS/ADS-B 체크 ON 빈 화면 방지 */
+export function pickInViewOrNearest<T extends ViewPoint>(
+  items: T[],
+  view: ViewPoint,
+  radiusDeg: number,
+  maxCount: number,
+): T[] {
+  if (maxCount <= 0 || items.length === 0) return [];
+  const inView = items.filter((item) => isCenterInView(item, view, radiusDeg));
+  if (inView.length > 0) return inView.slice(0, maxCount);
+  return [...items]
+    .sort((a, b) => centerDistanceDeg(a, view) - centerDistanceDeg(b, view))
+    .slice(0, maxCount);
+}
+
 const EARTH_RADIUS_KM = 6371;
 
 /** Haversine — VIINA 정착지 라벨 뷰포트 반경 필터용 */

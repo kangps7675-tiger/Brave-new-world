@@ -23,7 +23,7 @@ export const MAX_ANGULAR_LINE_WIDTH_PX = 26;
 const CABLE_KINDS = new Set(["submarine-cable"]);
 
 /**
- * 해저 케이블·송유관·가스관 — 일반 path와 반대:
+ * 해저 케이블 — 일반 path와 반대:
  * 줌아웃(멀리) → 굵게, 줌인(가까이) → ~0.1px로 가늘어짐.
  */
 export function cableInverseLineWidth(zoom: number): number {
@@ -82,7 +82,7 @@ export const LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   ],
 ];
 
-/** 케이블·파이프 — 멀리 굵고 가까이 가늘게 */
+/** 케이블 — 멀리 굵고 가까이 가늘게 */
 export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   "interpolate",
   ["linear"],

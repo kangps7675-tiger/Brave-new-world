@@ -22,6 +22,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
     "켜면 이란·중국·러시아·북한 중심 외교·군수·하이브리드 관계망(스포크 포함)을 호로 표시합니다.",
   "telegram-osint": "켜면 공개 텔레그램 채널의 전장·전선 소식을 표시합니다.",
   "tzeva-adom": "켜면 이스라엘 로켓·공습 경보(체바 아돔) 발생 지역을 표시합니다.",
+  "ukmto-incidents":
+    "켜면 UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보를 검은 원 빗금으로 표시합니다.",
   "oil-pipelines": "켜면 주요 송유관 노선을 표시합니다.",
   "gas-pipelines": "켜면 주요 천연가스관 노선을 표시합니다.",
   "lng-terminals": "켜면 LNG(액화천연가스) 수출입 터미널 위치를 표시합니다.",

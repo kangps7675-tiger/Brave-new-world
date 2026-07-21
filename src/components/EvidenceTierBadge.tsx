@@ -5,10 +5,10 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 /**
  * 데이터 신뢰도 계층 — TrustBadgeChip(매체 신뢰도 T1/T2/T3)과는 다른 축.
  * "이 정보가 애초에 어떤 종류인가"를 표시한다:
- *   observed   — 센서 하드데이터 (FIRMS, AIS, ADS-B 등 · 검증 불필요)
- *   reported   — 검증된 매체 보도 (구글뉴스 confirmed/strong 등)
- *   unverified — 단일소스·텔레그램 등 미검증 주장
- *   model      — WTI 등 산출/계산된 점수 (원본 관측이 아님)
+ *   observed   — 위성·AIS·ADS-B 등 센서 신호
+ *   reported   — 매체 보도·교차 확인
+ *   unverified — 텔레그램 등 미확인 전언
+ *   model      — WTI처럼 우리가 만든 점수
  */
 export type EvidenceTier = "observed" | "reported" | "unverified" | "model";
 
@@ -35,10 +35,22 @@ const TIER_LABEL: Record<EvidenceTier, { ko: string; en: string }> = {
 };
 
 const TIER_HINT: Record<EvidenceTier, { ko: string; en: string }> = {
-  observed: { ko: "센서 하드데이터 · 검증 불필요", en: "Sensor hard data · no verification needed" },
-  reported: { ko: "매체 보도로 검증됨", en: "Corroborated by media reporting" },
-  unverified: { ko: "단일소스·미검증 주장", en: "Single-source, unverified claim" },
-  model: { ko: "원본 관측이 아닌 산출값", en: "Computed score, not a raw observation" },
+  observed: {
+    ko: "위성·항적 등 기계가 잡아낸 신호",
+    en: "Machine-sensed signal (satellite, tracks, etc.)",
+  },
+  reported: {
+    ko: "매체가 전하고 교차로 잡힌 내용",
+    en: "Cross-checked media reporting",
+  },
+  unverified: {
+    ko: "한 경로만의 전언 · 아직 확인되지 않음",
+    en: "Single-source claim · not yet confirmed",
+  },
+  model: {
+    ko: "우리가 계산한 점수 · 원본 관측이 아님",
+    en: "Our computed score · not a raw observation",
+  },
 };
 
 export function evidenceTierLabel(tier: EvidenceTier, lang: LabelLanguage): string {

@@ -28,6 +28,15 @@ const SHARED_DEFENSE: NewsFeedDef[] = [
     theater: "global",
     unfiltered: true,
   },
+  // 민간 OSINT·안보연구소 — 국적 불문 Tier2 (src/lib/news/mediaTiers.ts)
+  { url: "https://www.bellingcat.com/feed/", name: "Bellingcat", theater: "global" },
+  { url: "https://www.twz.com/feed", name: "The War Zone", theater: "global" },
+  { url: "https://www.chathamhouse.org/path/whatsnew.xml", name: "Chatham House", theater: "global" },
+  { url: "https://www.crisisgroup.org/rss.xml", name: "Crisis Group", theater: "global" },
+  // Carnegie·Janes·IISS: 공개 RSS 없음(구독제/미공개) → 구글 뉴스 검색으로 대체
+  { url: G("site:carnegieendowment.org"), name: "Carnegie Endowment", theater: "global", unfiltered: true },
+  { url: G("site:janes.com"), name: "Janes", theater: "global", unfiltered: true },
+  { url: G("site:iiss.org"), name: "IISS", theater: "global", unfiltered: true },
 ];
 
 const MIDDLE_EAST: NewsFeedDef[] = [
@@ -46,6 +55,9 @@ const MIDDLE_EAST: NewsFeedDef[] = [
   { url: "https://www.haaretz.com/srv/middle-east-news-rss", name: "Haaretz", theater: "middle-east", unfiltered: true },
   { url: "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml", name: "The National", theater: "middle-east" },
   { url: "https://www.dropsitenews.com/feed", name: "Drop Site", theater: "middle-east" },
+  { url: "https://www.al-monitor.com/rss.xml", name: "Al-Monitor", theater: "middle-east" },
+  { url: "https://thecradle.co/feed", name: "The Cradle", theater: "middle-east", unfiltered: true },
+  { url: G("site:understandingwar.org Iran"), name: "ISW", theater: "middle-east", unfiltered: true },
   {
     url: "https://www.centcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=808&max=20",
     name: "CENTCOM",
@@ -56,6 +68,14 @@ const MIDDLE_EAST: NewsFeedDef[] = [
   { url: G("Iran Israel war military strike"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G("Iran missile drone strike Israel"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G('"Strait of Hormuz" OR "Red Sea" military Iran'), name: "Google News", theater: "middle-east", unfiltered: true },
+  {
+    url: G(
+      '(Hormuz OR Suez OR "Bab el-Mandeb" OR Malacca OR "Taiwan Strait" OR "Panama Canal" OR Bosporus) (navy OR blockade OR mine OR attack OR houthi OR IRGC OR escort OR convoy)',
+    ),
+    name: "Google News · Chokepoint Security",
+    theater: "global",
+    unfiltered: true,
+  },
 ];
 
 const RUSSIA_UKRAINE: NewsFeedDef[] = [
@@ -72,6 +92,9 @@ const RUSSIA_UKRAINE: NewsFeedDef[] = [
   { url: "https://www.rt.com/rss/news/", name: "RT", theater: "russia-ukraine" },
   { url: "https://www.themoscowtimes.com/rss/news", name: "Moscow Times", theater: "russia-ukraine" },
   { url: "https://meduza.io/rss/en/all", name: "Meduza", theater: "russia-ukraine" },
+  { url: "https://www.oryxspioenkop.com/feeds/posts/default", name: "Oryx", theater: "russia-ukraine" },
+  // ISW: 공개 RSS 없음 → 구글 뉴스 검색으로 대체
+  { url: G("site:understandingwar.org Ukraine"), name: "ISW", theater: "russia-ukraine", unfiltered: true },
   { url: G("Russia Ukraine war military"), name: "Google News", theater: "russia-ukraine", unfiltered: true },
   { url: G("Ukraine missile OR drone strike Russia"), name: "Google News", theater: "russia-ukraine", unfiltered: true },
   { url: G("Ukraine front line offensive Russia"), name: "Google News", theater: "russia-ukraine", unfiltered: true },
@@ -523,6 +546,16 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
     unfiltered: true,
   },
   {
+    url: G(
+      '("Red Sea" OR Suez OR Hormuz OR Malacca OR "Taiwan Strait" OR "Panama Canal" OR "Bab el-Mandeb" OR Bosporus) (oil OR crude OR LNG OR freight OR shipping OR tanker OR insurance OR logistics OR reroute)',
+    ),
+    name: "Google · Chokepoint Freight · Oil",
+    theater: "global",
+    topic: "economy",
+    econGenre: "shipping",
+    unfiltered: true,
+  },
+  {
     url: G('"Red Sea" OR Suez OR Hormuz OR "shipping rates" OR "container freight" OR Baltic'),
     name: "Google · Freight Routes",
     theater: "middle-east",
@@ -964,7 +997,7 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
   "economy-macro":
     'Fed OR ECB OR sanctions OR tariff OR "trade war" OR inflation',
   "economy-shipping":
-    '(Maersk OR COSCO OR "Red Sea" OR Suez OR Hormuz OR "shipping rates")',
+    '(Maersk OR COSCO OR "Red Sea" OR Suez OR Hormuz OR Malacca OR "Panama Canal" OR "shipping rates" OR freight OR tanker)',
   "economy-chips":
     '(Nvidia OR TSMC OR ASML OR Samsung OR "SK hynix" OR Intel OR AMD) (chip OR semiconductor OR GPU)',
   "economy-tech":
@@ -978,7 +1011,7 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
 };
 
 export const ECON_RELEVANCE =
-  /oil|gas|lng|opec|brent|wti|crude|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|energy|pipeline|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex/i;
+  /oil|gas|lng|opec|brent|wti|crude|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|malacca|panama|bab[\s-]?el|bosporus|taiwan\s?strait|tanker|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|energy|pipeline|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex/i;
 
 export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   "middle-east":

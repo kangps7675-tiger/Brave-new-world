@@ -25,6 +25,7 @@ import { readBriefingStats, upsertBriefingPeriodStats } from "./briefingStats";
 import { readDailyRanks, readWorldTension, upsertDailyRanks } from "./dailyRanks";
 import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
+import { fetchAndUpsertUkmto } from "./ukmto";
 import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
 import {
   broadcastPush,
@@ -98,6 +99,12 @@ type IngestResult = {
     upserted: number;
     skipped: boolean;
     reason?: string;
+  } | null;
+  ukmto?: {
+    count: number;
+    fetched: number;
+    errors: string[];
+    skipped: boolean;
   } | null;
   error: string | null;
 };
@@ -221,6 +228,24 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       };
     }
 
+    let ukmto: IngestResult["ukmto"] = null;
+    try {
+      const uk = await fetchAndUpsertUkmto(env);
+      ukmto = {
+        count: uk.count,
+        fetched: uk.fetched,
+        errors: uk.errors.slice(0, 6),
+        skipped: uk.skipped,
+      };
+    } catch (error) {
+      ukmto = {
+        count: 0,
+        fetched: 0,
+        errors: [error instanceof Error ? error.message : "ukmto ingest failed"],
+        skipped: false,
+      };
+    }
+
     pruned = await pruneOldRows(env.DB, retentionHours);
     newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
     videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
@@ -308,6 +333,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       airRaid,
       baselineBackfill,
       livingTaiwan,
+      ukmto,
       error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
     };
 
@@ -338,6 +364,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         briefingStats,
         dailyRanks,
         livingTaiwan,
+        ukmto,
       },
     });
 

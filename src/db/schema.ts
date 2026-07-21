@@ -439,6 +439,67 @@ export const dailyEntityRanks = sqliteTable(
 );
 
 /**
+ * SITREP 변화 로그 — 상태 전환(검증등급 변경·유의미한 점수 델타)을 append-only로 기록.
+ * cron-ingest가 매 실행마다 daily_entity_ranks 전일 대비 diff를 감지해서 쓴다.
+ * 원시 사건(뉴스)이 아니라 "우리 시스템 판단이 바뀐 순간"만 기록 — 상황실 로그 컨셉.
+ */
+export const sitrepEvents = sqliteTable(
+  "sitrep_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    rankDate: text("rank_date").notNull(),
+    entityId: text("entity_id").notNull(),
+    labelKo: text("label_ko").notNull(),
+    labelEn: text("label_en").notNull(),
+    /** verification-change | score-delta */
+    eventType: text("event_type").notNull(),
+    messageKo: text("message_ko").notNull(),
+    messageEn: text("message_en").notNull(),
+    deltaScore: real("delta_score"),
+    prevVerification: text("prev_verification"),
+    nextVerification: text("next_verification"),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => ({
+    createdIdx: index("idx_sitrep_created").on(t.createdAt),
+  }),
+);
+
+/**
+ * UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보 — 홍해·호르무즈 등.
+ * 비공식(리버스 엔지니어링) 엔드포인트 — README「비공식 엔드포인트 사용 원칙」참고.
+ * id = 소스 sitecoreId (dedupe 기준, 값 갱신 시 upsert).
+ */
+export const ukmtoIncidents = sqliteTable(
+  "ukmto_incidents",
+  {
+    id: text("id").primaryKey(),
+    incidentNumber: integer("incident_number"),
+    /** Attack | Suspicious Activity | Advisory | Boarding | Hijack 등 */
+    incidentTypeName: text("incident_type_name").notNull(),
+    incidentTypeLevel: integer("incident_type_level"),
+    /** Yellow | Red — 소스 표기 그대로 */
+    pinColour: text("pin_colour"),
+    lat: real("lat").notNull(),
+    lng: real("lng").notNull(),
+    region: text("region"),
+    place: text("place"),
+    vesselName: text("vessel_name"),
+    vesselType: text("vessel_type"),
+    vesselUnderPirateControl: integer("vessel_under_pirate_control").notNull().default(0),
+    crewHeld: integer("crew_held"),
+    detail: text("detail"),
+    utcDateOfIncident: text("utc_date_of_incident"),
+    utcDateCreated: text("utc_date_created"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    geoIdx: index("idx_ukmto_geo").on(t.lat, t.lng),
+    dateIdx: index("idx_ukmto_date").on(t.utcDateOfIncident),
+  }),
+);
+
+/**
  * 게스트 일일 예측 — 내일 긴장도 1위 전장 고르기 / 긴장도 UP·DOWN.
  * PK (target_date, kind, device_id) — 하루 1표 upsert.
  */
@@ -658,6 +719,8 @@ export type BriefingPeriodStatsRow = typeof briefingPeriodStats.$inferSelect;
 export type NewBriefingPeriodStatsRow = typeof briefingPeriodStats.$inferInsert;
 export type DailyEntityRankRow = typeof dailyEntityRanks.$inferSelect;
 export type NewDailyEntityRankRow = typeof dailyEntityRanks.$inferInsert;
+export type SitrepEventRow = typeof sitrepEvents.$inferSelect;
+export type NewSitrepEventRow = typeof sitrepEvents.$inferInsert;
 export type DailyRankPredictionRow = typeof dailyRankPredictions.$inferSelect;
 export type NewDailyRankPredictionRow = typeof dailyRankPredictions.$inferInsert;
 export type DailyPredictionStatsRow = typeof dailyPredictionStats.$inferSelect;
@@ -672,3 +735,5 @@ export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscriptionRow = typeof pushSubscriptions.$inferInsert;
 export type LivingTimelineEntryRow = typeof livingTimelineEntries.$inferSelect;
 export type NewLivingTimelineEntryRow = typeof livingTimelineEntries.$inferInsert;
+export type UkmtoIncidentRow = typeof ukmtoIncidents.$inferSelect;
+export type NewUkmtoIncidentRow = typeof ukmtoIncidents.$inferInsert;
