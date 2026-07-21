@@ -175,3 +175,86 @@ export function ukmtoIncidentToHatchPaths(incident: UkmtoHatchIncident): Transpo
 export function isUkmtoHatchPath(path: TransportPath): boolean {
   return path.id.startsWith("ukmto-zone-") || path.id.startsWith("ukmto-hatch-");
 }
+
+/**
+ * path.id → 사건 id. 외곽선 `ukmto-zone-${id}`, 빗금 `ukmto-hatch-${id}-${i}`.
+ */
+export function ukmtoIncidentIdFromPath(path: { id: string }): string | null {
+  if (path.id.startsWith("ukmto-zone-")) return path.id.slice("ukmto-zone-".length);
+  if (path.id.startsWith("ukmto-hatch-")) {
+    const rest = path.id.slice("ukmto-hatch-".length);
+    const lastDash = rest.lastIndexOf("-");
+    if (lastDash === -1) return rest;
+    const suffix = rest.slice(lastDash + 1);
+    return /^\d+$/.test(suffix) ? rest.slice(0, lastDash) : rest;
+  }
+  return null;
+}
+
+export function findUkmtoIncident(
+  incidents: UkmtoIncidentPoint[],
+  path: { id: string },
+): UkmtoIncidentPoint | null {
+  const id = ukmtoIncidentIdFromPath(path);
+  if (!id) return null;
+  return incidents.find((i) => i.id === id) ?? null;
+}
+
+export type UkmtoBriefingContent = {
+  title: string;
+  paragraphs: string[];
+  lat: number;
+  lng: number;
+  incidentId: string;
+};
+
+export function buildUkmtoBriefingContent(
+  incident: UkmtoIncidentPoint,
+  lang: "ko" | "en",
+): UkmtoBriefingContent {
+  const place =
+    incident.place?.trim() ||
+    incident.region?.trim() ||
+    (lang === "en" ? "Reported location" : "보고 위치");
+  const typeName = incident.incidentTypeName || (lang === "en" ? "Maritime alert" : "해상 경보");
+  const vessel =
+    [incident.vesselName, incident.vesselType].filter(Boolean).join(" · ") || null;
+  const when = incident.utcDateOfIncident?.trim() || null;
+  const detail = incident.detail?.trim() || null;
+  const num =
+    incident.incidentNumber != null && Number.isFinite(incident.incidentNumber)
+      ? String(incident.incidentNumber)
+      : null;
+
+  if (lang === "en") {
+    return {
+      title: `UKMTO · ${typeName}`,
+      paragraphs: [
+        `UKMTO maritime alert · ${typeName} near ${place}.`,
+        vessel ? `Vessel: ${vessel}.` : "Vessel identity not confirmed in this feed.",
+        when ? `UTC time of incident: ${when}.` : "Incident time not stated.",
+        detail ||
+          "Treat as an advisory signal from UKMTO reporting; verify against primary sources before operational use.",
+        num ? `UKMTO incident № ${num}.` : "Incident number not assigned in this feed.",
+      ],
+      lat: incident.lat,
+      lng: incident.lng,
+      incidentId: incident.id,
+    };
+  }
+
+  return {
+    title: `UKMTO · ${typeName}`,
+    paragraphs: [
+      `UKMTO 해상 경보 · ${place} 인근 ${typeName}.`,
+      vessel ? `선박: ${vessel}.` : "선박 신원은 이 피드만으로 확정되지 않습니다.",
+      when ? `사건 시각(UTC): ${when}.` : "사건 시각은 명시되지 않았습니다.",
+      detail ||
+        "UKMTO 보고 신호로 취급하고, 작전에 쓰기 전 1차 출처로 교차확인하세요.",
+      num ? `UKMTO 사건 번호 ${num}.` : "사건 번호는 이 피드에 없습니다.",
+    ],
+    lat: incident.lat,
+    lng: incident.lng,
+    incidentId: incident.id,
+  };
+}

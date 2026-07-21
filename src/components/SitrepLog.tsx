@@ -29,6 +29,7 @@ function formatClock(iso: string): string {
 export function SitrepLog({ lang }: { lang: LabelLanguage }) {
   const [events, setEvents] = useState<SitrepEvent[]>([]);
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
+  const [collapsed, setCollapsed] = useState(true);
   const en = lang === "en";
 
   useEffect(() => {
@@ -58,35 +59,43 @@ export function SitrepLog({ lang }: { lang: LabelLanguage }) {
 
   return (
     <div className="pointer-events-auto w-[min(88vw,17rem)] overflow-hidden rounded-xl border border-amber-400/25 bg-[#0d0a06]/90 shadow-xl backdrop-blur-md">
-      <div className="border-b border-amber-400/10 px-3 py-2">
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2"
+      >
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200/85">
-          SITREP
+          SITREP{events.length > 0 ? ` · ${events.length}` : ""}
         </span>
-      </div>
-      <div className="max-h-40 overflow-y-auto px-3 py-2">
-        {status === "loading" ? (
-          <p className="text-[10px] text-amber-100/40">{en ? "Loading…" : "불러오는 중…"}</p>
-        ) : events.length === 0 ? (
-          <p className="text-[10px] leading-4 text-amber-100/40">
-            {en
-              ? "No status changes logged yet. Quiet is normal."
-              : "아직 기록된 상태 변화가 없습니다. 조용한 게 정상입니다."}
-          </p>
-        ) : (
-          <ul className="space-y-1.5 font-data-mono">
-            {events.map((ev) => (
-              <li key={ev.id} className="flex gap-2 text-[10px] leading-4">
-                <span className="shrink-0 tabular-nums text-amber-300/60">
-                  {formatClock(ev.createdAt)}
-                </span>
-                <span className="min-w-0 text-amber-50/85">
-                  {en ? ev.messageEn : ev.messageKo}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <span className="text-[10px] text-amber-200/50">{collapsed ? "▸" : "▾"}</span>
+      </button>
+
+      {!collapsed ? (
+        <div className="max-h-40 overflow-y-auto border-t border-amber-400/10 px-3 py-2">
+          {status === "loading" ? (
+            <p className="text-[10px] text-amber-100/40">{en ? "Loading…" : "불러오는 중…"}</p>
+          ) : events.length === 0 ? (
+            <p className="text-[10px] leading-4 text-amber-100/40">
+              {en
+                ? "No status changes logged yet. Quiet is normal."
+                : "아직 기록된 상태 변화가 없습니다. 조용한 게 정상입니다."}
+            </p>
+          ) : (
+            <ul className="space-y-1.5 font-data-mono">
+              {events.map((ev) => (
+                <li key={ev.id} className="flex gap-2 text-[10px] leading-4">
+                  <span className="shrink-0 tabular-nums text-amber-300/60">
+                    {formatClock(ev.createdAt)}
+                  </span>
+                  <span className="min-w-0 text-amber-50/85">
+                    {en ? ev.messageEn : ev.messageKo}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

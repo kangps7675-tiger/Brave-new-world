@@ -28,7 +28,7 @@ type Payload = {
 export function TopWatchPanel({ lang }: { lang: LabelLanguage }) {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const en = lang === "en";
 
   useEffect(() => {
