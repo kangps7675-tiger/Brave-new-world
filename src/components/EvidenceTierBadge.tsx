@@ -31,12 +31,12 @@ const TIER_LABEL: Record<EvidenceTier, { ko: string; en: string }> = {
   observed: { ko: "관측", en: "Observed" },
   reported: { ko: "보도", en: "Reported" },
   unverified: { ko: "미확인", en: "Unverified" },
-  model: { ko: "모델", en: "Model" },
+  model: { ko: "추정", en: "Estimate" },
 };
 
 const TIER_HINT: Record<EvidenceTier, { ko: string; en: string }> = {
   observed: {
-    ko: "위성·항적 등 기계가 잡아낸 신호",
+    ko: "위성·항적처럼 기계가 잡아낸 신호",
     en: "Machine-sensed signal (satellite, tracks, etc.)",
   },
   reported: {
@@ -48,7 +48,7 @@ const TIER_HINT: Record<EvidenceTier, { ko: string; en: string }> = {
     en: "Single-source claim · not yet confirmed",
   },
   model: {
-    ko: "우리가 계산한 점수 · 원본 관측이 아님",
+    ko: "우리가 계산한 점수 · 관측 원본이 아님",
     en: "Our computed score · not a raw observation",
   },
 };

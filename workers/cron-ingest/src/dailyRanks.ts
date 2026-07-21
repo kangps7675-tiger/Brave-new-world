@@ -640,7 +640,40 @@ async function loadPrevRanks(
   return map;
 }
 
-/** SITREP 기록 트리거 — 검증등급 전환은 항상, 점수 델타는 이 이상만 */
+/** 검증등급 코드 → 로그용 쉬운 말 (ko) */
+function verificationLabelKo(raw: string | null | undefined): string {
+  if (!raw) return "미상";
+  const key = raw.trim().toLowerCase();
+  const map: Record<string, string> = {
+    confirmed: "확인됨",
+    verified: "확인됨",
+    likely: "가능성 높음",
+    possible: "가능",
+    suspected: "의심",
+    rumored: "소문",
+    unverified: "미확인",
+    contested: "이견",
+  };
+  return map[key] ?? raw;
+}
+
+function verificationLabelEn(raw: string | null | undefined): string {
+  if (!raw) return "unknown";
+  const key = raw.trim().toLowerCase();
+  const map: Record<string, string> = {
+    confirmed: "confirmed",
+    verified: "confirmed",
+    likely: "likely",
+    possible: "possible",
+    suspected: "suspected",
+    rumored: "rumored",
+    unverified: "unverified",
+    contested: "contested",
+  };
+  return map[key] ?? raw;
+}
+
+/** 상황 변화 기록 트리거 — 검증등급 전환은 항상, 점수 변화는 이 이상만 */
 const SITREP_SCORE_DELTA_THRESHOLD = 8;
 
 /**
@@ -694,11 +727,11 @@ async function recordSitrepChanges(
       const deltaRounded =
         item.deltaScore != null ? Math.round(item.deltaScore * 10) / 10 : null;
       const messageKo = verificationChanged
-        ? `${item.labelKo} · ${prevVerification}→${nextVerification}`
-        : `${item.labelKo} · ${deltaRounded! > 0 ? "+" : ""}${deltaRounded}`;
+        ? `${item.labelKo} — 확신도 ${verificationLabelKo(prevVerification)}→${verificationLabelKo(nextVerification)}`
+        : `${item.labelKo} — 긴장 ${deltaRounded! > 0 ? "상승" : "완화"} ${Math.abs(deltaRounded!)}`;
       const messageEn = verificationChanged
-        ? `${item.labelEn} · ${prevVerification}→${nextVerification}`
-        : `${item.labelEn} · ${deltaRounded! > 0 ? "+" : ""}${deltaRounded}`;
+        ? `${item.labelEn} — confidence ${verificationLabelEn(prevVerification)}→${verificationLabelEn(nextVerification)}`
+        : `${item.labelEn} — tension ${deltaRounded! > 0 ? "up" : "down"} ${Math.abs(deltaRounded!)}`;
 
       stmts.push(
         db
