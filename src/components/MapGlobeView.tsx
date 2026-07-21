@@ -1497,11 +1497,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               const alignment = htmlRotationAlignment(enriched);
               const rotKey =
                 alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
+              const milKind = String(
+                (enriched as { militaryKind?: string | null }).militaryKind ?? "",
+              );
+              const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
               const surface =
-                (enriched as { category?: string }).category === "military" &&
-                ["destroyer", "frigate", "corvette", "cruiser", "submarine"].includes(
-                  String((enriched as { militaryKind?: string }).militaryKind ?? ""),
-                );
+                disguised ||
+                ((enriched as { category?: string }).category === "military" &&
+                  milKind !== "carrier");
               const headingRaw = Number(
                 (enriched as { courseOverGround?: number; trueHeading?: number })
                   .courseOverGround ??

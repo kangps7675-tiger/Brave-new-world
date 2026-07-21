@@ -17,8 +17,9 @@ export {
 };
 
 /**
- * 화면 상대 침로에 맞는 8방위 구축함형 실루엣.
- * N=俯視(날카로운 함수·평 함미), E/W=Burke급 옆모습, 대각=3/4.
+ * 화면 상대 침로에 맞는 8방위 수상전투함 실루엣.
+ * 호위·구축·초계·순양·미분류 군함 공용 (항모·잠수함 제외).
+ * N=俯視(날카로운 함수·평 함미·레이돔), E/W=Burke급 옆모습, 대각=3/4.
  */
 export function surfaceCombatantIconSvg(
   fillColor: string = DEFAULT_FILL,
