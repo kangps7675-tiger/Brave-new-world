@@ -364,7 +364,7 @@ import {
   type ViewTheaterChoice,
   type ViewerMode,
 } from "@/lib/viewPackages";
-import { applyViewerMode, getViewerChrome } from "@/lib/viewerChrome";
+import { applyViewerMode, getViewerChrome, stripEconomyMilitaryPatch } from "@/lib/viewerChrome";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 
 import {
@@ -875,6 +875,14 @@ export function GlobeDashboard({
   const [modePickerInitialMode, setModePickerInitialMode] = useState<ViewerMode | null>(null);
   const [entryGate, setEntryGate] = useState<EntryGate>(null);
   const domainThenDetailTimerRef = useRef<number | null>(null);
+
+  /** 모바일에서는 "사전 유저 설명" 양피지를 건너뛴다 — caution(스킵) 경로와 동일하게 처리 */
+  useEffect(() => {
+    if (entryGate === "welcome" && isCompactUi) {
+      markWelcomeGateDone();
+      setEntryGate("domain");
+    }
+  }, [entryGate, isCompactUi]);
   const [chromeCoachStep, setChromeCoachStep] = useState<ChromeCoachStep | null>(null);
   const [showFirstVisitTour, setShowFirstVisitTour] = useState(false);
   const [frictionCoachStep, setFrictionCoachStep] = useState<FrictionCoachStep | null>(null);
@@ -2168,7 +2176,8 @@ export function GlobeDashboard({
     !isEconomyViewer &&
     !intelSheetOpen &&
     !selected &&
-    !regionNavSelection;
+    !regionNavSelection &&
+    !isCompactUi; // 모바일에서는 뉴스창의 텔레그램 탭으로만 노출 — 별도 미니 패널 없음
 
   const isUkraineTheaterFocus = useMemo(() => {
     if (showUkraineControl) return true;
@@ -3060,7 +3069,7 @@ export function GlobeDashboard({
 
   const milDisplayPoints = useMemo<MilGlobePoint[]>(
     () =>
-      showMilitaryActivity
+      !isEconomyViewer && showMilitaryActivity
         ? pickInViewOrNearest(
             milAircraft,
             layerViewState,
@@ -3072,7 +3081,7 @@ export function GlobeDashboard({
             displayKind: "mil" as const,
           }))
         : [],
-    [globeLod.tier, layerViewState, milAircraft, showMilitaryActivity],
+    [globeLod.tier, isEconomyViewer, layerViewState, milAircraft, showMilitaryActivity],
   );
 
   const milHtmlMarkers = useMemo<MilHtmlMarker[]>(
@@ -3109,22 +3118,29 @@ export function GlobeDashboard({
   );
 
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
+    const civilianOnly = isEconomyViewer
+      ? (v: AisVessel) => v.category !== "military"
+      : () => true;
     const live = showAis
       ? pickInViewOrNearest(
-          aisVessels.filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi)),
+          aisVessels
+            .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
+            .filter(civilianOnly),
           layerViewState,
           VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 6,
           liveAisDisplayMax(globeLod.tier),
         )
       : [];
-    const disguised = showDisguisedVessels
-      ? pickInViewOrNearest(
-          disguisedVessels,
-          layerViewState,
-          VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 12,
-          liveAisDisplayMax(globeLod.tier),
-        )
-      : [];
+    // 지경학: 위장·무기고 선박 제외 (경제=민간·물류만)
+    const disguised =
+      !isEconomyViewer && showDisguisedVessels
+        ? pickInViewOrNearest(
+            disguisedVessels,
+            layerViewState,
+            VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 12,
+            liveAisDisplayMax(globeLod.tier),
+          )
+        : [];
     const seen = new Set(live.map((v) => v.mmsi));
     return [...live, ...disguised.filter((v) => !seen.has(v.mmsi))].map((vessel) => ({
       ...vessel,
@@ -3136,6 +3152,7 @@ export function GlobeDashboard({
     carrierAisMerge.matchedMmsi,
     disguisedVessels,
     globeLod.tier,
+    isEconomyViewer,
     layerViewState,
     showAis,
     showDisguisedVessels,
@@ -4052,9 +4069,13 @@ export function GlobeDashboard({
     oilCount: number;
     gasCount: number;
     cableCount: number;
+    briCount: number;
+    dfcCount: number;
     oilSig: string;
     gasSig: string;
     cableSig: string;
+    briSig: string;
+    dfcSig: string;
     updatedAt: number;
   }>({
     signature: "",
@@ -4062,9 +4083,13 @@ export function GlobeDashboard({
     oilCount: 0,
     gasCount: 0,
     cableCount: 0,
+    briCount: 0,
+    dfcCount: 0,
     oilSig: "",
     gasSig: "",
     cableSig: "",
+    briSig: "",
+    dfcSig: "",
     updatedAt: 0,
   });
 
@@ -4120,10 +4145,14 @@ export function GlobeDashboard({
     let oilCount = 0;
     let gasCount = 0;
     let cableCount = 0;
+    let briCount = 0;
+    let dfcCount = 0;
     let hatchCount = 0;
     const oilIds: string[] = [];
     const gasIds: string[] = [];
     const cableIds: string[] = [];
+    const briIds: string[] = [];
+    const dfcIds: string[] = [];
     for (const item of dynamicGlobePaths) {
       if (item.kind === "oil-pipeline") {
         oilCount += 1;
@@ -4134,6 +4163,12 @@ export function GlobeDashboard({
       } else if (item.kind === "submarine-cable") {
         cableCount += 1;
         if (cableIds.length < 24) cableIds.push(item.id);
+      } else if (item.kind === "bri-trade") {
+        briCount += 1;
+        if (briIds.length < 24) briIds.push(item.id);
+      } else if (item.kind === "us-dfc-supply") {
+        dfcCount += 1;
+        if (dfcIds.length < 24) dfcIds.push(item.id);
       } else if (
         item.kind === "dispute-hatch" ||
         item.kind === "conflict-hatch" ||
@@ -4145,8 +4180,10 @@ export function GlobeDashboard({
     const oilSig = oilIds.join(",");
     const gasSig = gasIds.join(",");
     const cableSig = cableIds.join(",");
-    // 앞 96개만 보면 해치에 밀려 송유/가스/케이블 id 교체가 안 잡힘 → 인프라 fingerprint 포함
-    const signature = `${count}|h${hatchCount}|o${oilCount}|g${gasCount}|c${cableCount}|O:${oilSig}|G:${gasSig}|C:${cableSig}|${dynamicGlobePaths
+    const briSig = briIds.join(",");
+    const dfcSig = dfcIds.join(",");
+    // 앞 96개만 보면 해치에 밀려 송유/가스/케이블/BRI/DFC id 교체가 안 잡힘 → 인프라 fingerprint 포함
+    const signature = `${count}|h${hatchCount}|o${oilCount}|g${gasCount}|c${cableCount}|b${briCount}|d${dfcCount}|O:${oilSig}|G:${gasSig}|C:${cableSig}|B:${briSig}|D:${dfcSig}|${dynamicGlobePaths
       .slice(0, 96)
       .map((item) => `${item.kind}:${item.id}`)
       .join("|")}`;
@@ -4158,9 +4195,13 @@ export function GlobeDashboard({
       oilCount !== prev.oilCount ||
       gasCount !== prev.gasCount ||
       cableCount !== prev.cableCount ||
+      briCount !== prev.briCount ||
+      dfcCount !== prev.dfcCount ||
       oilSig !== prev.oilSig ||
       gasSig !== prev.gasSig ||
-      cableSig !== prev.cableSig;
+      cableSig !== prev.cableSig ||
+      briSig !== prev.briSig ||
+      dfcSig !== prev.dfcSig;
     if (
       signature !== prev.signature &&
       (bypass || meaningfulChange || cadenceHit || prev.updatedAt === 0 || infraChanged)
@@ -4173,14 +4214,18 @@ export function GlobeDashboard({
           oilCount,
           gasCount,
           cableCount,
+          briCount,
+          dfcCount,
           oilSig,
           gasSig,
           cableSig,
+          briSig,
+          dfcSig,
           updatedAt: now,
         };
         setGlobePaths([...nextPaths]);
       };
-      // 송유/가스/케이블 토글은 즉시 반영.
+      // 송유/가스/케이블/BRI/DFC 토글은 즉시 반영.
       // (예전: ref를 먼저 갱신 + RAF 예약 → cleanup에서 cancel되면
       //  signature는 이미 먹은 채 setGlobePaths는 스킵 → 체크 ON인데 안 보임)
       if (infraChanged || (count - prev.count < 40 && count < 120)) {
@@ -4815,6 +4860,10 @@ export function GlobeDashboard({
   }, []);
 
   const refreshMilAircraft = useCallback(async () => {
+    if (isEconomyViewer) {
+      setMilAircraft([]);
+      return;
+    }
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
     setMilLoading(true);
     setMilError(null);
@@ -4839,7 +4888,7 @@ export function GlobeDashboard({
     } finally {
       setMilLoading(false);
     }
-  }, []);
+  }, [isEconomyViewer]);
 
   const refreshCivAircraft = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -5044,21 +5093,51 @@ export function GlobeDashboard({
   }, [refreshAis, showAis]);
 
   useEffect(() => {
-    if (!showDisguisedVessels) {
+    if (isEconomyViewer || !showDisguisedVessels) {
       setDisguisedVessels([]);
       return;
     }
     void refreshDisguisedVessels();
-  }, [refreshDisguisedVessels, showDisguisedVessels]);
+  }, [isEconomyViewer, refreshDisguisedVessels, showDisguisedVessels]);
 
   useEffect(() => {
-    if (!showMilitaryActivity) return;
+    if (isEconomyViewer || !showMilitaryActivity) {
+      if (isEconomyViewer) setMilAircraft([]);
+      return;
+    }
     void refreshMilAircraft();
     const timer = window.setInterval(() => {
       void refreshMilAircraft();
     }, liveMilPollMs());
     return () => window.clearInterval(timer);
-  }, [refreshMilAircraft, showMilitaryActivity]);
+  }, [isEconomyViewer, refreshMilAircraft, showMilitaryActivity]);
+
+  // 지경학: 군용 레이어가 soft patch 등으로 켜져도 즉시 OFF
+  useEffect(() => {
+    if (!isEconomyViewer) return;
+    if (
+      showMilitaryActivity ||
+      showMilitaryBases ||
+      showUsCarriers ||
+      showDisguisedVessels
+    ) {
+      patchLayerPrefsSoft(
+        stripEconomyMilitaryPatch({
+          showMilitaryActivity: false,
+          showMilitaryBases: false,
+          showUsCarriers: false,
+          showDisguisedVessels: false,
+        }),
+      );
+    }
+  }, [
+    isEconomyViewer,
+    patchLayerPrefsSoft,
+    showDisguisedVessels,
+    showMilitaryActivity,
+    showMilitaryBases,
+    showUsCarriers,
+  ]);
 
   useEffect(() => {
     if (!showAirTraffic) {
@@ -6141,18 +6220,22 @@ export function GlobeDashboard({
             onChange: setShowAis,
             accent: "blue",
           },
-          {
-            id: "disguised-vessels",
-            label: "위장선박",
-            detail: showDisguisedVessels
-              ? disguisedLoading
-                ? "불러오는 중…"
-                : `시드 ${disguisedVessels.length.toLocaleString()}척 · AIS_Tracker`
-              : "꺼짐",
-            checked: layerPrefs.showDisguisedVessels,
-            onChange: setShowDisguisedVessels,
-            accent: "orange",
-          },
+          ...(isEconomyViewer
+            ? []
+            : [
+                {
+                  id: "disguised-vessels" as const,
+                  label: "위장선박",
+                  detail: showDisguisedVessels
+                    ? disguisedLoading
+                      ? "불러오는 중…"
+                      : `시드 ${disguisedVessels.length.toLocaleString()}척 · AIS_Tracker`
+                    : "꺼짐",
+                  checked: layerPrefs.showDisguisedVessels,
+                  onChange: setShowDisguisedVessels,
+                  accent: "orange" as const,
+                },
+              ]),
         ],
         onToggleAll: (enabled) =>
           toggleCategoryPrefs({
@@ -6171,7 +6254,7 @@ export function GlobeDashboard({
             showLogisticsRisk: enabled,
             showCriticalNodes: enabled,
             showAis: enabled,
-            showDisguisedVessels: enabled,
+            ...(isEconomyViewer ? {} : { showDisguisedVessels: enabled }),
           }),
       },
       {
@@ -8127,7 +8210,10 @@ export function GlobeDashboard({
   const handleAskLayersApply = useCallback(
     (payload: AskLayersApplyPayload) => {
       if (payload.patch && Object.keys(payload.patch).length > 0) {
-        patchLayerPrefsSoft(payload.patch);
+        const patch = isEconomyViewer
+          ? stripEconomyMilitaryPatch(payload.patch)
+          : payload.patch;
+        patchLayerPrefsSoft(patch);
       }
       const intent = payload.intent;
       if (intent === "middle-east" || intent === "red-sea-houthi" || intent === "today-hot") {
@@ -8147,7 +8233,7 @@ export function GlobeDashboard({
         flyTo(payload.fly.lat, payload.fly.lng, payload.fly.altitude);
       }
     },
-    [flyTo, patchLayerPrefsSoft],
+    [flyTo, isEconomyViewer, patchLayerPrefsSoft],
   );
 
   function handleNavNavigate(selection: NavSelection) {
@@ -9002,7 +9088,6 @@ export function GlobeDashboard({
 
       {!intelSheetOpen ? (
       <>
-      <NavAnnouncementBanner lang={labelLanguage} />
       <HoverNav
         viewerMode={viewerMode}
         onNavigate={handleNavNavigate}
@@ -9015,6 +9100,7 @@ export function GlobeDashboard({
         compact={isCompactUi}
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
+        aboveNav={!isCompactUi ? <NavAnnouncementBanner lang={labelLanguage} /> : null}
         belowNav={
           <div className="flex items-center gap-2">
             <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
@@ -10023,7 +10109,7 @@ export function GlobeDashboard({
             compactUi={isCompactUi}
           />
         )}
-        {!isEconomyViewer && !isUkraineTheaterFocus && !selected && !regionNavSelection && bottomAlertPanel === "gdelt" && (
+        {!isEconomyViewer && !isUkraineTheaterFocus && !selected && !regionNavSelection && !isCompactUi && bottomAlertPanel === "gdelt" && (
           <GdeltAlertPanel
             alerts={gdeltMenuCoreAlerts}
             liveStatus={gdeltLoading ? "loading" : gdeltError ? "error" : "ok"}
@@ -10078,6 +10164,15 @@ export function GlobeDashboard({
                   if (target) handleIntelFlyTo(target);
                 }}
                 onEnableLayer={(layerKey) => {
+                  if (
+                    isEconomyViewer &&
+                    (layerKey === "showMilitaryActivity" ||
+                      layerKey === "showUsCarriers" ||
+                      layerKey === "showMilitaryBases" ||
+                      layerKey === "showDisguisedVessels")
+                  ) {
+                    return;
+                  }
                   const key = layerKey as keyof typeof layerPrefs;
                   if (typeof layerPrefs[key] !== "boolean") return;
                   applyLayerPrefs({ ...layerPrefs, [key]: true });
@@ -10123,6 +10218,11 @@ export function GlobeDashboard({
           viinaRuCellCount={ukraineRuCellCount}
           viinaLoading={ukraineControlStatus === "loading"}
           onViinaFlyTo={handleViinaEventFlyTo}
+          showGdelt={!isEconomyViewer && isCompactUi}
+          gdeltAlerts={gdeltMenuCoreAlerts}
+          gdeltLiveStatus={gdeltLoading ? "loading" : gdeltError ? "error" : "ok"}
+          gdeltErrorMessage={gdeltError}
+          onGdeltSelect={handleGdeltAlertSelect}
           initialIntelTab={viewUi.defaultIntelTab}
           autoOpenOnMount={!viewUi.autoEnterTheaterNavId && viewUi.autoOpenIntelSheet}
           onOpenTrust={() => setShowTrustPanel(true)}
@@ -10403,6 +10503,7 @@ export function GlobeDashboard({
       <AskLayersOverlay
         open={askLayersOpen}
         lang={labelLanguage}
+        viewerMode={viewerMode}
         onClose={() => setAskLayersOpen(false)}
         onApply={handleAskLayersApply}
       />
@@ -10781,7 +10882,7 @@ export function GlobeDashboard({
         />
       ) : null}
 
-      {entryGate === "welcome" ? (
+      {entryGate === "welcome" && !isCompactUi ? (
         <WelcomeParchmentLetter
           lang={labelLanguage}
           onContinue={() => setEntryGate("domain")}

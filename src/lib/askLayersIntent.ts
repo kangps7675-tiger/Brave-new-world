@@ -12,7 +12,8 @@ import {
 } from "@/lib/hotTheaterLayers";
 import type { DailyRanksPayload } from "@/lib/dailyRanks";
 import { THEATER_FLY_TO } from "@/lib/news/theaterMap";
-import { LAYER_PREF_LABELS } from "@/lib/viewPackages";
+import { LAYER_PREF_LABELS, type ViewerMode } from "@/lib/viewPackages";
+import { stripEconomyMilitaryPatch } from "@/lib/viewerChrome";
 
 export type AskLayersIntentId =
   | "middle-east"
@@ -275,10 +276,70 @@ export function matchAskLayersIntentByRules(query: string): AskLayersIntentId | 
   return null;
 }
 
-export function resolveAskLayersIntent(
+/** 지경학 — 군용 항공기·함정 없이 항로·에너지·초크만 */
+function buildEconomyAskIntent(
   intent: AskLayersIntentId,
   ranks?: Pick<DailyRanksPayload, "theater" | "chokepoint"> | null,
 ): AskLayersResolved {
+  const fly =
+    intent === "red-sea-houthi"
+      ? FLY["choke-bab-el-mandeb"]
+      : intent === "middle-east" || intent === "today-hot"
+        ? FLY["choke-hormuz"]
+        : intent === "ukraine"
+          ? FLY.ukraine
+          : intent === "korea"
+            ? FLY.korea
+            : intent === "china-taiwan"
+              ? FLY["china-taiwan"]
+              : FLY["choke-hormuz"];
+
+  const labels: Record<AskLayersIntentId, { ko: string; en: string }> = {
+    "shipping-choke": { ko: "해상 초크·항로", en: "Shipping · chokepoints" },
+    "red-sea-houthi": { ko: "홍해·물류 회랑", en: "Red Sea logistics" },
+    "middle-east": { ko: "중동·에너지 초크", en: "Middle East energy chokepoints" },
+    ukraine: { ko: "흑해·곡물 물류", en: "Black Sea grain logistics" },
+    korea: { ko: "동아시아 해운", en: "East Asia shipping" },
+    "china-taiwan": { ko: "대만해협·반도체 물류", en: "Taiwan Strait supply chain" },
+    "today-hot": { ko: "오늘 핫 초크", en: "Today’s hot chokepoint" },
+  };
+
+  const patch = stripEconomyMilitaryPatch({
+    ...SHIPPING_CHOKE_STACK,
+    showNewfeedsIranAttacks:
+      intent === "middle-east" || intent === "red-sea-houthi" || intent === "today-hot",
+  }) as HotTheaterLayerPatch;
+
+  // ranks가 있으면 오늘 핫존 fly만 빌림 (레이어는 경제 스택 유지)
+  let resolvedFly = fly;
+  if (intent === "today-hot" && ranks) {
+    const focus = resolveHotTheaterFocus(ranks);
+    if (focus?.fly) resolvedFly = focus.fly;
+  }
+
+  const label = labels[intent] ?? labels["shipping-choke"];
+  return {
+    intent,
+    patch,
+    fly: resolvedFly,
+    labelKo: label.ko,
+    labelEn: label.en,
+    replyKo:
+      "지경학 모드라 군용 항공기·함정은 켜지 않고, 항로·초크·에너지·민간 AIS만 맞췄습니다.",
+    replyEn:
+      "Economy mode — shipping, chokepoints, energy, and commercial AIS only (no military air/ships).",
+    onKeys: onlyTrueKeys(patch),
+  };
+}
+
+export function resolveAskLayersIntent(
+  intent: AskLayersIntentId,
+  ranks?: Pick<DailyRanksPayload, "theater" | "chokepoint"> | null,
+  mode: ViewerMode = "conflict",
+): AskLayersResolved {
+  if (mode === "economy") {
+    return buildEconomyAskIntent(intent, ranks);
+  }
   return buildForIntent(intent, ranks);
 }
 

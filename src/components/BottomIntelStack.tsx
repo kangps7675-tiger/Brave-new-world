@@ -28,6 +28,8 @@ import { UserAnalyzeButton } from "@/components/UserAnalyzeButton";
 import { UserAnthropicKeyPanel } from "@/components/UserAnthropicKeyPanel";
 import { ViinaFrontEventsPanel } from "@/components/ViinaFrontEventsPanel";
 import { VideoNewsPanel } from "@/components/VideoNewsPanel";
+import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
+import type { MenuCoreAlert } from "@/lib/regionFilter";
 import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
@@ -168,7 +170,7 @@ export type BottomIntelStackHandle = {
   closeNewsPanel: () => void;
 };
 
-export type IntelSheetTab = "news" | "video" | "telegram" | "viina";
+export type IntelSheetTab = "news" | "video" | "telegram" | "viina" | "gdelt";
 
 /** 경제 Intel 전체화면 — RSS vs 동영상 vs 증시 */
 export type EconomyIntelTab = "news" | "video" | "markets";
@@ -1150,8 +1152,10 @@ type IntelSheetTabBarProps = {
   newsCount: number;
   telegramCount: number;
   viinaCount: number;
+  gdeltCount: number;
   showTelegram: boolean;
   showViina: boolean;
+  showGdelt: boolean;
   economyMode?: boolean;
 };
 
@@ -1161,8 +1165,10 @@ function IntelSheetTabBar({
   newsCount,
   telegramCount,
   viinaCount,
+  gdeltCount,
   showTelegram,
   showViina,
+  showGdelt,
   economyMode = false,
   economyTab = "markets",
   onEconomyTabChange,
@@ -1287,6 +1293,24 @@ function IntelSheetTabBar({
           </button>
         </HoverHint>
       ) : null}
+      {showGdelt ? (
+        <HoverHint placement="bottom" title="GDELT" detail="메뉴 연관 핵심 뉴스 속보">
+          <button
+            type="button"
+            onClick={() => onChange("gdelt")}
+            className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+              active === "gdelt"
+                ? "bg-orange-400/20 text-orange-50 ring-1 ring-orange-300/40"
+                : "text-sky-100/65 hover:bg-white/5 hover:text-orange-100"
+            }`}
+          >
+            GDELT
+            {gdeltCount > 0 ? (
+              <span className="ml-1.5 text-[10px] font-medium opacity-70">{gdeltCount}</span>
+            ) : null}
+          </button>
+        </HoverHint>
+      ) : null}
     </div>
   );
 }
@@ -1310,6 +1334,12 @@ type IntelNewsSheetProps = {
   viinaRuCellCount?: number;
   viinaLoading?: boolean;
   onViinaFlyTo?: (event: ViinaFrontEvent) => void;
+  showGdelt?: boolean;
+  gdeltAlerts?: MenuCoreAlert[];
+  gdeltLiveStatus?: "idle" | "loading" | "ok" | "error";
+  gdeltErrorMessage?: string | null;
+  onGdeltSelect?: (alert: MenuCoreAlert) => void;
+  onCloseGdeltLayer?: () => void;
   initialIntelTab?: IntelSheetTab;
   autoOpenOnMount?: boolean;
   onCloseTelegramLayer?: () => void;
@@ -1338,6 +1368,12 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       viinaRuCellCount = 0,
       viinaLoading = false,
       onViinaFlyTo,
+      showGdelt = false,
+      gdeltAlerts = [],
+      gdeltLiveStatus = "idle",
+      gdeltErrorMessage = null,
+      onGdeltSelect,
+      onCloseGdeltLayer,
       initialIntelTab = "news",
       autoOpenOnMount = false,
       onCloseTelegramLayer,
@@ -1372,9 +1408,18 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       onCloseTelegramLayer?.();
     }, [onCloseTelegramLayer]);
 
+    const handleCloseGdeltLayer = useCallback(() => {
+      setSheetTab("news");
+      onCloseGdeltLayer?.();
+    }, [onCloseGdeltLayer]);
+
     useEffect(() => {
       if (sheetTab === "telegram" && !showTelegram) setSheetTab("news");
     }, [sheetTab, showTelegram]);
+
+    useEffect(() => {
+      if (sheetTab === "gdelt" && !showGdelt) setSheetTab("news");
+    }, [sheetTab, showGdelt]);
 
     const openNewsPanel = useCallback(
       (theater: IntelTheaterFilter = "all", tab: IntelSheetTab = "news") => {
@@ -1635,8 +1680,10 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
           newsCount={payload?.verified.length ?? 0}
           telegramCount={telegramAlerts.length}
           viinaCount={viinaEvents.length}
+          gdeltCount={gdeltAlerts.length}
           showTelegram={showTelegram && !preferEconomyNews}
           showViina={showViina && !preferEconomyNews}
+          showGdelt={showGdelt && !preferEconomyNews}
           economyMode={preferEconomyNews}
           economyTab={economyTab}
           onEconomyTabChange={setEconomyTab}
@@ -1829,6 +1876,15 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   ? "middle-east"
                   : "all"
             }
+          />
+        ) : sheetTab === "gdelt" ? (
+          <GdeltAlertPanel
+            alerts={gdeltAlerts}
+            liveStatus={gdeltLiveStatus}
+            errorMessage={gdeltErrorMessage}
+            onSelect={onGdeltSelect ?? (() => {})}
+            onClose={onCloseGdeltLayer ? handleCloseGdeltLayer : undefined}
+            fullPage
           />
         ) : sheetTab === "viina" ? (
           <ViinaFrontEventsPanel

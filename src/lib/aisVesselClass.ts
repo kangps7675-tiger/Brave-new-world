@@ -143,10 +143,10 @@ export function classifyMilitaryKind(input: {
 }
 
 const MILITARY_KIND_LABEL: Record<AisMilitaryKind, { ko: string; en: string }> = {
-  destroyer: { ko: "수상전투함", en: "Surface combatant" },
-  frigate: { ko: "수상전투함", en: "Surface combatant" },
-  corvette: { ko: "수상전투함", en: "Surface combatant" },
-  cruiser: { ko: "수상전투함", en: "Surface combatant" },
+  destroyer: { ko: "구축함", en: "Destroyer" },
+  frigate: { ko: "호위함", en: "Frigate" },
+  corvette: { ko: "초계함", en: "Corvette" },
+  cruiser: { ko: "순양함", en: "Cruiser" },
   submarine: { ko: "잠수함", en: "Submarine" },
   amphibious: { ko: "상륙함", en: "Amphibious" },
   carrier: { ko: "항공모함", en: "Aircraft carrier" },
@@ -249,7 +249,7 @@ export function matchesAisClassFilter(
   if (filter === "all") return true;
   if (filter === "disguised") return Boolean(disguised);
   if (filter === "military") return category === "military";
-  // commercial: include other (대부분 민간 AIS) so the economy map fills up
+  // commercial: 군용 절대 제외. other만 민간 후보로 포함.
   return category === "commercial" || category === "other";
 }
 

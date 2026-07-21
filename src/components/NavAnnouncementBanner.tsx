@@ -28,11 +28,11 @@ export function NavAnnouncementBanner({ lang }: { lang: LabelLanguage }) {
 
   return (
     <>
-      <div className="pointer-events-auto flex w-full items-center gap-2 border-b border-amber-400/25 bg-[#1a1206]/92 px-3 py-1.5 text-[11px] leading-4 text-amber-50/90 backdrop-blur-md sm:px-4">
-        <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-amber-200/90">
+      <div className="pointer-events-auto flex w-full items-start gap-2 border-b border-amber-400/30 bg-[#1a1206]/95 px-3 py-2 text-[11px] leading-4 text-amber-50/90 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md sm:items-center sm:px-4">
+        <span className="mt-0.5 shrink-0 rounded-full border border-amber-400/35 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-amber-200/90 sm:mt-0">
           {en ? CURRENT_NAV_ANNOUNCEMENT.labelEn : CURRENT_NAV_ANNOUNCEMENT.labelKo}
         </span>
-        <span className="min-w-0 flex-1 truncate sm:whitespace-normal sm:truncate-none">
+        <span className="min-w-0 flex-1 whitespace-normal break-keep">
           {goalReached
             ? en
               ? CURRENT_NAV_ANNOUNCEMENT.goalReachedEn

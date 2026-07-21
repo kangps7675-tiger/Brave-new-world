@@ -24,16 +24,20 @@ export type AskLayersApplyPayload = {
 type AskLayersOverlayProps = {
   open: boolean;
   lang: LabelLanguage;
+  viewerMode?: "conflict" | "economy";
   onClose: () => void;
   onApply: (payload: AskLayersApplyPayload) => void;
 };
 
 const EXAMPLES_KO = ["홍해", "이란", "우크라", "오늘 핫한 곳"] as const;
 const EXAMPLES_EN = ["Red Sea", "Iran", "Ukraine", "Today hot"] as const;
+const EXAMPLES_ECON_KO = ["호르무즈", "수에즈", "항로", "오늘 핫한 곳"] as const;
+const EXAMPLES_ECON_EN = ["Hormuz", "Suez", "Shipping", "Today hot"] as const;
 
 export function AskLayersOverlay({
   open,
   lang,
+  viewerMode = "conflict",
   onClose,
   onApply,
 }: AskLayersOverlayProps) {
@@ -78,7 +82,11 @@ export function AskLayersOverlay({
         const res = await fetch("/api/ask-layers", {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ query: q, lang: en ? "en" : "ko" }),
+          body: JSON.stringify({
+            query: q,
+            lang: en ? "en" : "ko",
+            mode: viewerMode,
+          }),
         });
         const data = (await res.json()) as AskLayersApiResult & { error?: string };
         if (!res.ok && !data.reply) {
@@ -109,12 +117,18 @@ export function AskLayersOverlay({
         setLoading(false);
       }
     },
-    [en, loading, onApply],
+    [en, loading, onApply, viewerMode],
   );
 
   if (!open) return null;
 
-  const examples = en ? EXAMPLES_EN : EXAMPLES_KO;
+  const examples = viewerMode === "economy"
+    ? en
+      ? EXAMPLES_ECON_EN
+      : EXAMPLES_ECON_KO
+    : en
+      ? EXAMPLES_EN
+      : EXAMPLES_KO;
 
   return (
     <div
@@ -140,9 +154,13 @@ export function AskLayersOverlay({
               {en ? "Ask → turn on layers" : "묻기 → 레이어 켜기"}
             </h2>
             <p className="mt-1 text-[11px] leading-relaxed text-sky-100/55 sm:text-xs">
-              {en
-                ? "Name a theater or risk (Red Sea, Iran…). We’ll match the map layers."
-                : "전장·위험을 짧게 말하면 관련 지도 레이어를 맞춥니다. 세밀 조정은 ≡ 패널."}
+              {viewerMode === "economy"
+                ? en
+                  ? "Name a chokepoint or trade risk (Hormuz, Suez…). Commercial shipping layers only — no military air/ships."
+                  : "초크·물류를 짧게 말하면 항로·에너지·민간 AIS만 맞춥니다. 군용 항공기·함정은 켜지 않습니다."
+                : en
+                  ? "Name a theater or risk (Red Sea, Iran…). We’ll match the map layers."
+                  : "전장·위험을 짧게 말하면 관련 지도 레이어를 맞춥니다. 세밀 조정은 ≡ 패널."}
             </p>
           </div>
           <button

@@ -15,6 +15,9 @@ const THEME_LABELS: Record<string, { ko: string; en: string; layerKey?: string }
   airTraffic: { ko: "민간 항공", en: "Air traffic", layerKey: "showAirTraffic" },
 };
 
+/** 지경학에서 추천하지 않는 군용·전투 테마 */
+const ECONOMY_BLOCKED_THEMES = new Set(["military", "carriers", "firms"]);
+
 function theaterLabel(id: string): { ko: string; en: string } {
   if (NEWS_THEATERS.has(id) && id in THEATER_CHIP_LABELS) {
     const label = THEATER_CHIP_LABELS[id as NewsTheater];
@@ -24,7 +27,10 @@ function theaterLabel(id: string): { ko: string; en: string } {
 }
 
 /** 프로필 → 추천 칩 2~4개. 신호 부족하면 빈 배열. */
-export function recommendFromInterest(profile: InterestProfile): InterestRecommendChip[] {
+export function recommendFromInterest(
+  profile: InterestProfile,
+  mode: "conflict" | "economy" = "conflict",
+): InterestRecommendChip[] {
   if (profile.eventCount < 2 && profile.buckets.length === 0) return [];
   if (profile.buckets.every((b) => b.score < 0.35) && profile.eventCount < 3) {
     return [];
@@ -49,7 +55,8 @@ export function recommendFromInterest(profile: InterestProfile): InterestRecomme
     });
   }
 
-  for (const b of profile.topThemes.slice(0, 1)) {
+  for (const b of profile.topThemes.slice(0, 3)) {
+    if (mode === "economy" && ECONOMY_BLOCKED_THEMES.has(b.id)) continue;
     const key = `theme:${b.id}`;
     if (used.has(key)) continue;
     used.add(key);
@@ -57,16 +64,20 @@ export function recommendFromInterest(profile: InterestProfile): InterestRecomme
       ko: b.label || b.id,
       en: b.label || b.id,
     };
+    const labelKo = mode === "economy" && b.id === "ais" ? "민간 AIS" : meta.ko;
+    const labelEn =
+      mode === "economy" && b.id === "ais" ? "Commercial AIS" : meta.en;
     chips.push({
       id: key,
       kind: "theme",
-      labelKo: meta.ko,
-      labelEn: meta.en,
+      labelKo,
+      labelEn,
       score: b.score,
       action: meta.layerKey
         ? { type: "enable-layer", layerKey: meta.layerKey }
         : { type: "open-sheet" },
     });
+    break;
   }
 
   for (const b of profile.topSymbols.slice(0, 1)) {

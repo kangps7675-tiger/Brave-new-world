@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
 
   const query = typeof body.query === "string" ? body.query : "";
   const lang = body.lang === "en" ? "en" : "ko";
+  const mode = body.mode === "economy" ? "economy" : "conflict";
   const normalized = normalizeAskQuery(query);
 
   if (!normalized || normalized.length > 280) {
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const cacheKey = `ask-layers:v1:${lang}:${normalized}`;
+  const cacheKey = `ask-layers:v2:${mode}:${lang}:${normalized}`;
   const cached = getCached<AskLayersResponseBody>(cacheKey);
   if (cached) {
     return NextResponse.json({ ...cached, cached: true });
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
 
   const ruleIntent = matchAskLayersIntentByRules(normalized);
   if (ruleIntent) {
-    const resolved = resolveAskLayersIntent(ruleIntent, ranks);
+    const resolved = resolveAskLayersIntent(ruleIntent, ranks, mode);
     const payload = toResponse(resolved, lang, "rules");
     setCached(cacheKey, payload, CACHE_MS);
     return NextResponse.json(payload);
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
     if (llm.ok) {
       const intent = parseIntentFromLlm(llm.text);
       if (intent) {
-        const resolved = resolveAskLayersIntent(intent, ranks);
+        const resolved = resolveAskLayersIntent(intent, ranks, mode);
         const payload = toResponse(resolved, lang, "llm");
         setCached(cacheKey, payload, CACHE_MS);
         return NextResponse.json(payload);
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
   }
 
   // fallback: today-hot 또는 안내만
-  const resolved = resolveAskLayersIntent("today-hot", ranks);
+  const resolved = resolveAskLayersIntent("today-hot", ranks, mode);
   const payload = toResponse(resolved, lang, "fallback");
   // 약간 다른 문구 — 의도 불명
   payload.reply =

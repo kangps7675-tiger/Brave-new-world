@@ -50,10 +50,14 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showSubmarineCables",
   "showOilPipelines",
   "showGasPipelines",
+  "showLngTerminals",
   "showResources",
   "showGemOilGasExtraction",
   "showGemCoalMines",
-  "showLngTerminals",
+  "showGemIronOre",
+  "showNuclearSites",
+  "showBriTradeConnectivity",
+  "showUsDfcSupplyChain",
   "showCityLabels",
 ];
 

@@ -33,6 +33,25 @@ export type BottomStackLayout = "conflict" | "economy";
 
 export type NewsTierLabel = { label: string; detail: string };
 
+/**
+ * 에너지·자원 — 지정학·지경학 공통 기본 ON.
+ * (캡/드롭 후에도 다시 덮어써서 모드 전환·히어로에서 꺼지지 않게 함)
+ */
+export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
+  showOilPipelines: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showResources: true,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+  showNuclearSites: true,
+};
+
+export function ensureResourceLayersOn(prefs: LayerPrefs): LayerPrefs {
+  return { ...prefs, ...SHARED_RESOURCE_LAYER_ON };
+}
+
 export type ViewerChromePreset = {
   mode: ViewerMode;
   packageId: ViewPackageId;
@@ -72,15 +91,7 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showNewfeedsIranAttacks: true,
   /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
   showUsCarriers: true,
-  /** 에너지·자원 카테고리 — 지정학에서도 패널·기본 ON */
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showResources: true,
-  showGemOilGasExtraction: true,
-  showGemCoalMines: true,
-  showGemIronOre: true,
-  showNuclearSites: true,
+  ...SHARED_RESOURCE_LAYER_ON,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
@@ -95,19 +106,25 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showResources: true,
-  showGemOilGasExtraction: true,
-  showGemCoalMines: true,
-  showGemIronOre: true,
-  showNuclearSites: true,
+  ...SHARED_RESOURCE_LAYER_ON,
   showAiDataCenters: true,
   showPorts: true,
   showAirports: true,
   /** 유가 민감 — 이란·지역 공격 NewFeeds 지도 */
   showNewfeedsIranAttacks: true,
+  showBriTradeConnectivity: true,
+  showUsDfcSupplyChain: true,
+};
+
+/**
+ * 지경학에서 절대 ON 금지 — 군용 항공기·함정·기지·위장(무기고) 선박.
+ * 경제 모드는 민간 AIS·민간 ADS-B·파이프·항로 등 경제 연관만.
+ */
+export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
+  showMilitaryBases: false,
+  showMilitaryActivity: false,
+  showUsCarriers: false,
+  showDisguisedVessels: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -126,14 +143,33 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showTzevaAdom: false,
   showConflictZones: false,
   showUcdpEvents: false,
-  showMilitaryBases: false,
-  showMilitaryActivity: false,
-  showUsCarriers: false,
   showFirmsFires: false,
   showSanctionsEntities: false,
   showSubmarineTunnels: false,
   showAxisNetwork: false,
+  ...ECONOMY_MILITARY_BLOCK,
 };
+
+/** 지경학 패치에서 군용 레이어 ON을 제거하고 강제 OFF */
+export function stripEconomyMilitaryPatch(
+  patch: Partial<LayerPrefs>,
+): Partial<LayerPrefs> {
+  const next: Partial<LayerPrefs> = { ...patch };
+  for (const key of Object.keys(ECONOMY_MILITARY_BLOCK) as Array<keyof LayerPrefs>) {
+    if (next[key] === true) {
+      delete next[key];
+    }
+  }
+  return { ...next, ...ECONOMY_MILITARY_BLOCK };
+}
+
+export function enforceEconomyMilitaryOff(prefs: LayerPrefs): LayerPrefs {
+  return { ...prefs, ...ECONOMY_MILITARY_BLOCK };
+}
+
+export function isEconomyMilitaryLayerKey(key: string): boolean {
+  return key in ECONOMY_MILITARY_BLOCK;
+}
 
 export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
   conflict: {
@@ -186,7 +222,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerBullets: [
       "주요 증시·VIX·유가 티커",
       "경제 RSS · 에너지·해운·제재 속보",
-      "초크포인트·오일/가스 파이프·항로 (전선·제재 UI 없음)",
+      "초크포인트·오일/가스 파이프·항로 · 민간 AIS/ADS-B (군용 항공기·함정 없음)",
       "하단: 티커 + 시장 속보",
     ],
     layerPanelTitle: "인프라 · 시장",
@@ -212,7 +248,8 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
     }
   }
 
-  return capLayerCountForMode(next, mode);
+  // 캡으로 잘려도 자원·에너지는 지정학/지경학 공통으로 다시 ON
+  return ensureResourceLayersOn(capLayerCountForMode(next, mode));
 }
 
 export type ApplyViewerModeResult = {
@@ -234,9 +271,11 @@ export function applyViewerMode(
   const effectiveHub = mode === "economy" ? economyHub : "auto";
   const mergedBase = applyViewPackages(packages, effectiveTheater, effectiveHub);
   const chromeLayers = mergeChromeLayers(mergedBase.layers, mode);
-  const conceptLayers = capLayerCountForMode(
-    mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
-    mode,
+  const conceptLayers = ensureResourceLayersOn(
+    capLayerCountForMode(
+      mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
+      mode,
+    ),
   );
   saveLayerPrefs(conceptLayers);
 
