@@ -278,18 +278,58 @@ function logisticsHubSvg(): string {
   `);
 }
 
-function airportSvg(): string {
-  return wrapSvg(`
-    <path d="M16 5 L18 14 L28 16 L18 18 L16 27 L14 18 L4 16 L14 14 Z" fill="#93c5fd" stroke="#dbeafe" stroke-width="0.8"/>
-  `);
+/**
+ * 공항 — 연두색 원 + 흰 항공기(상면) + 활주로 스트라이프.
+ * 참조: public/assets/reference/airport-icon-ref.png (배경만 연두로 변경)
+ */
+export function airportSvg(size = 30): string {
+  return wrapSvg(
+    `
+    <circle cx="16" cy="16" r="15" fill="#a3e635"/>
+    <circle cx="16" cy="16" r="15" fill="none" stroke="#ecfccb" stroke-width="0.6" opacity="0.55"/>
+    <!-- 활주로 스트라이프 (하단 → 날개) -->
+    <path d="M9.2 28.5 L12.6 17.2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.95"/>
+    <path d="M22.8 28.5 L19.4 17.2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.95"/>
+    <!-- 동체 -->
+    <ellipse cx="16" cy="13.2" rx="2.15" ry="7.2" fill="#fff"/>
+    <!-- 주익 -->
+    <path d="M16 12.2 L4.5 16.4 L5.2 17.6 L16 15.1 L26.8 17.6 L27.5 16.4 Z" fill="#fff"/>
+    <!-- 미익 -->
+    <path d="M16 18.8 L11.2 21.6 L11.6 22.5 L16 20.4 L20.4 22.5 L20.8 21.6 Z" fill="#fff"/>
+    <!-- 기수 -->
+    <ellipse cx="16" cy="6.4" rx="1.55" ry="1.9" fill="#fff"/>
+    <!-- 수직미익 -->
+    <path d="M16 19.6 L16 22.8 L17.5 21.2 Z" fill="#fff" opacity="0.95"/>
+  `,
+    size,
+    32,
+  );
 }
 
-function portSvg(): string {
-  return wrapSvg(`
-    <path d="M16 6 V18 M11 10 H21" stroke="#a5f3fc" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M16 18 C9 18 7 23 7 26 M16 18 C23 18 25 23 25 26" fill="none" stroke="#67e8f9" stroke-width="1.5"/>
-    <circle cx="16" cy="8" r="2" fill="#ecfeff"/>
-  `);
+/**
+ * 항구 — 파란 원 + 흰 닻 (참조 아이콘, 닻만 흰색으로).
+ * 참조: public/assets/reference/airport-port-icons-ref.png
+ */
+export function portSvg(size = 30): string {
+  return wrapSvg(
+    `
+    <circle cx="16" cy="16" r="15" fill="#2563eb"/>
+    <circle cx="16" cy="16" r="15" fill="none" stroke="#93c5fd" stroke-width="0.7" opacity="0.65"/>
+    <!-- 고리 -->
+    <circle cx="16" cy="7.2" r="2.35" fill="none" stroke="#fff" stroke-width="1.85"/>
+    <!-- 생크 -->
+    <path d="M16 9.4 V20.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>
+    <!-- 스톡(가로바) -->
+    <path d="M10.2 12.4 H21.8" stroke="#fff" stroke-width="2.05" stroke-linecap="round"/>
+    <!-- 암·플룩 -->
+    <path d="M16 20.2 C10.2 20.2 7.6 24.2 7.2 27.4" fill="none" stroke="#fff" stroke-width="2.05" stroke-linecap="round"/>
+    <path d="M16 20.2 C21.8 20.2 24.4 24.2 24.8 27.4" fill="none" stroke="#fff" stroke-width="2.05" stroke-linecap="round"/>
+    <path d="M7.2 27.4 L5.4 25.2 M24.8 27.4 L26.6 25.2" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+    <circle cx="16" cy="20.2" r="1.35" fill="#fff"/>
+  `,
+    size,
+    32,
+  );
 }
 
 function militaryBaseSvg(): string {

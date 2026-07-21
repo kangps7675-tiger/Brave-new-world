@@ -1170,7 +1170,7 @@ function IntelSheetTabBar({
   showViina,
   showGdelt,
   economyMode = false,
-  economyTab = "markets",
+  economyTab = "news",
   onEconomyTabChange,
 }: IntelSheetTabBarProps & {
   economyTab?: EconomyIntelTab;
@@ -1394,7 +1394,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     } = useNewsStreamContext();
     const { lang, t } = useLocale();
     const [sheetTab, setSheetTab] = useState<IntelSheetTab>(initialIntelTab);
-    const [economyTab, setEconomyTab] = useState<EconomyIntelTab>("markets");
+    const [economyTab, setEconomyTab] = useState<EconomyIntelTab>("news");
     const [economyGenre, setEconomyGenre] = useState<EconomyGenreFilter>("all");
     const [newsSearchQuery, setNewsSearchQuery] = useState("");
     const [marketsSearchQuery, setMarketsSearchQuery] = useState("");
@@ -1497,18 +1497,23 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
 
     useEffect(() => {
       if (!preferEconomyNews) return;
-      setEconomyTab("markets");
+      // 지경학 기본은 RSS·속보. 전장 칩이 숨겨지므로 지역 필터도 리셋.
+      setEconomyTab("news");
       setEconomyGenre("all");
+      setTheaterFilter("all");
       setNewsSearchQuery("");
       setMarketsSearchQuery("");
-    }, [preferEconomyNews]);
+    }, [preferEconomyNews, setTheaterFilter]);
 
     const hero = payload?.hero ?? null;
     const matchesEconomyItem = useCallback(
       (item: NewsStreamItem) => {
-        if (!matchesTheaterFilter(item.theater, theaterFilter)) return false;
-        if (!preferEconomyNews) return true;
-        return matchesEconomyGenreFilter(item.econGenre, economyGenre);
+        if (preferEconomyNews) {
+          // TheaterChipBar가 지경학에선 숨김 — 전장 필터를 적용하면 목록이 비어 보임
+          if (item.feedTopic !== "economy") return false;
+          return matchesEconomyGenreFilter(item.econGenre, economyGenre);
+        }
+        return matchesTheaterFilter(item.theater, theaterFilter);
       },
       [theaterFilter, preferEconomyNews, economyGenre],
     );
@@ -1556,7 +1561,9 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     }, [lang, marketsSearchQuery]);
     const showHero =
       hero != null &&
-      (theaterFilter === "all" || matchesTheaterFilter(hero.theater, theaterFilter));
+      (preferEconomyNews
+        ? hero.feedTopic === "economy"
+        : theaterFilter === "all" || matchesTheaterFilter(hero.theater, theaterFilter));
 
     const flyToTheater = useCallback(
       (theater: NewsTheater) => {
@@ -1677,7 +1684,11 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
         <IntelSheetTabBar
           active={sheetTab}
           onChange={setSheetTab}
-          newsCount={payload?.verified.length ?? 0}
+          newsCount={
+            preferEconomyNews
+              ? (payload?.stats.economy ?? payload?.verified.filter((i) => i.feedTopic === "economy").length ?? 0)
+              : (payload?.verified.length ?? 0)
+          }
           telegramCount={telegramAlerts.length}
           viinaCount={viinaEvents.length}
           gdeltCount={gdeltAlerts.length}
@@ -1731,9 +1742,14 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
 
         {preferEconomyNews && economyTab === "markets" ? (
           <IntelRelatedMarketsPanel
-            theaterFilter={theaterFilter}
+            theaterFilter="all"
             fullPage
             searchQuery={marketsSearchQuery}
+            newsItems={
+              payload
+                ? [...payload.verified, ...payload.stateMedia]
+                : []
+            }
           />
         ) : (preferEconomyNews && economyTab === "video") ||
           (!preferEconomyNews && sheetTab === "video") ? (
@@ -1843,7 +1859,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                           ? lang === "en"
                             ? `No news in ${economyGenreLabel(economyGenre, lang)}.`
                             : `${economyGenreLabel(economyGenre, lang)} 카테고리 뉴스가 없습니다.`
-                          : theaterFilter === "all"
+                          : preferEconomyNews || theaterFilter === "all"
                             ? lang === "en"
                               ? "No news to display."
                               : "표시할 뉴스가 없습니다."

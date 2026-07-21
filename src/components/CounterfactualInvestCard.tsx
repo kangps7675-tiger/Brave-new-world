@@ -68,6 +68,7 @@ export function CounterfactualInvestCard({
   const isEconomy = viewerMode === "economy";
   const [payload, setPayload] = useState<ReactionPayload | null>(null);
   const [busy, setBusy] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const catalog = useMemo(
     () =>
       eventMarketAnchorForViewerMode({
@@ -195,13 +196,24 @@ export function CounterfactualInvestCard({
       ? "border-emerald-400/30 text-emerald-200/80 hover:border-emerald-300/50 hover:text-emerald-100"
       : "border-amber-400/30 text-amber-200/80 hover:border-amber-300/50 hover:text-amber-100";
 
+  const resultText = ko ? `지금 ${formatWon(resultKrw)}` : `now ${formatDollar(resultUsd)}`;
+  const pctText = `(${isGain ? "+" : ""}${pct.toFixed(1)}%)`;
+  const headline = ko
+    ? `${eventLabel} 날 ${symbolName}에 넣었다면`
+    : `Had you bought ${symbolName} on ${eventLabel} —`;
+
   return (
     <div
       className={`border-t bg-gradient-to-r ${accentBorder} ${accentBg} ${
-        prominent ? "px-3.5 py-2.5" : "px-3 py-2"
+        prominent ? "px-3.5 py-2" : "px-3 py-1.5"
       }`}
     >
-      <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-expanded={!collapsed}
+        className="flex w-full items-center gap-2 text-left"
+      >
         <span
           className={`shrink-0 font-semibold uppercase tracking-wide ${accentLabel} ${
             prominent ? "text-[10px]" : "text-[9px]"
@@ -209,43 +221,72 @@ export function CounterfactualInvestCard({
         >
           {ko ? "만약에" : "What if"}
         </span>
-        <span className={`min-w-0 flex-1 truncate text-slate-400 ${prominent ? "text-[11px]" : "text-[10px]"}`}>
-          {ko
-            ? `${eventLabel} 날 ${symbolName}에 넣었다면`
-            : `Had you bought ${symbolName} on ${eventLabel} —`}
-        </span>
-        <button
-          type="button"
-          onClick={() => void handleShare()}
-          disabled={busy}
-          className={`shrink-0 rounded border bg-black/30 px-2 py-1 text-[9px] font-medium transition disabled:opacity-40 ${accentBtn}`}
+        <span
+          className={`min-w-0 flex-1 truncate text-slate-400 ${prominent ? "text-[11px]" : "text-[10px]"}`}
         >
-          {ko ? "공유" : "Share"}
-        </button>
-      </div>
-      <p
-        className={`mt-1.5 font-mono font-bold ${isGain ? "text-emerald-300" : "text-rose-300"} ${
-          prominent ? "text-xl" : "text-base"
-        }`}
-      >
-        {ko ? `지금 ${formatWon(resultKrw)}` : `now ${formatDollar(resultUsd)}`}
-        <span className="ml-2 text-[11px] font-semibold text-slate-400">
-          ({isGain ? "+" : ""}
-          {pct.toFixed(1)}%)
+          {collapsed ? (
+            <>
+              <span className="text-slate-500">{headline}</span>
+              <span
+                className={`ml-1.5 font-mono font-semibold ${
+                  isGain ? "text-emerald-300" : "text-rose-300"
+                }`}
+              >
+                {resultText}
+              </span>
+              <span className="ml-1 text-[10px] text-slate-500">{pctText}</span>
+            </>
+          ) : (
+            headline
+          )}
         </span>
-      </p>
-      {dateHint || priceHint ? (
-        <p className="mt-1 text-[9px] leading-snug text-slate-500">
-          {[laneHint, dateHint, priceHint].filter(Boolean).join(" · ")}
-        </p>
-      ) : (
-        <p className="mt-1 text-[9px] leading-snug text-slate-500">{laneHint}</p>
-      )}
-      <p className="mt-1 text-[9px] leading-snug text-slate-600">
-        {ko
-          ? `${formatWon(STAKE_KRW)} 가정 · 실제 투자 조언 아님 · 수수료·세금 미반영`
-          : "Hypothetical stake · not investment advice · excludes fees & taxes"}
-      </p>
+        <span
+          className={`shrink-0 text-[10px] text-slate-500 transition-transform ${
+            collapsed ? "" : "rotate-180"
+          }`}
+          aria-hidden
+        >
+          ▾
+        </span>
+      </button>
+
+      {!collapsed ? (
+        <div className="mt-1.5 border-t border-white/5 pt-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              className={`font-mono font-bold ${isGain ? "text-emerald-300" : "text-rose-300"} ${
+                prominent ? "text-xl" : "text-base"
+              }`}
+            >
+              {resultText}
+              <span className="ml-2 text-[11px] font-semibold text-slate-400">{pctText}</span>
+            </p>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleShare();
+              }}
+              disabled={busy}
+              className={`shrink-0 rounded border bg-black/30 px-2 py-1 text-[9px] font-medium transition disabled:opacity-40 ${accentBtn}`}
+            >
+              {ko ? "공유" : "Share"}
+            </button>
+          </div>
+          {dateHint || priceHint ? (
+            <p className="mt-1 text-[9px] leading-snug text-slate-500">
+              {[laneHint, dateHint, priceHint].filter(Boolean).join(" · ")}
+            </p>
+          ) : (
+            <p className="mt-1 text-[9px] leading-snug text-slate-500">{laneHint}</p>
+          )}
+          <p className="mt-1 text-[9px] leading-snug text-slate-600">
+            {ko
+              ? `${formatWon(STAKE_KRW)} 가정 · 실제 투자 조언 아님 · 수수료·세금 미반영`
+              : "Hypothetical stake · not investment advice · excludes fees & taxes"}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

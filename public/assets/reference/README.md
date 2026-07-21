@@ -32,13 +32,12 @@ US Navy 항공모함 **공중俯視** 참조 사진입니다.
 - SVG: `src/lib/shadowFleetDeckIcon.ts`
 - 마커: `aisVesselMarkers` — `vessel.disguised` 시 군함 실루엣 대신 사용
 
-## 잠수함
+## 공항 · 항구 마커
 
 | 파일 | 내용 |
 |------|------|
-| `submarine-underwater-aerial.png` | 수중 시가형 헐 주 참조 |
-| `submarine-torpedo-quarter.png` | 3/4·어뢰 발사 보조 |
+| `airport-icon-ref.png` | 항공기 상면 + 활주로 스트라이프 (원 배경은 코드에서 연두색) |
+| `airport-port-icons-ref.png` | 공항·항구 원형 아이콘 세트 (항구 닻 → 흰색) |
 
-- geometry: `src/data/submarineSilhouette.ts`
-- SVG: `src/lib/submarineDeckIcon.ts`
-- 마커: `isAisAspectHullMarker` (submarine)
+- SVG: `src/lib/infraStaticMarkers.ts` — `airportSvg` / `portSvg`
+- 폴백 배지: `src/components/globe/markers/htmlMarkerFactories.ts`

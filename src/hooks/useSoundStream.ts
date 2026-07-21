@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AMBIENT_EVENT_IDS,
   AUDIO_MANIFEST,
   type AudioEventDef,
   type AudioEventId,
@@ -26,6 +25,23 @@ const AMBIENT_FADE_OUT_MS = 900;
 
 const ambientFadeTokens = new WeakMap<HTMLAudioElement, number>();
 let ambientFadeTokenSeq = 0;
+
+function cancelAmbientFade(audio: HTMLAudioElement) {
+  ambientFadeTokens.set(audio, ++ambientFadeTokenSeq);
+}
+
+/** 음소거·세대 무효화 — fade 콜백이 볼륨을 다시 올리지 못하게 즉시 컷 */
+function hardStopAudio(audio: HTMLAudioElement | null | undefined) {
+  if (!audio) return;
+  cancelAmbientFade(audio);
+  try {
+    audio.volume = 0;
+    audio.pause();
+    audio.currentTime = 0;
+  } catch {
+    /* ignore */
+  }
+}
 
 /** rAF 기반 볼륨 램프 — 같은 오디오 엘리먼트에 새 fade가 걸리면 이전 fade는 자동 무효화 */
 function fadeAmbientVolume(
@@ -103,6 +119,9 @@ export type PlaySoundOptions = {
 /**
  * Freesound HQ mp3를 `/api/sound-stream`으로 스트리밍 재생.
  * 브라우저 자동재생 정책: 첫 pointerdown에서 unlock.
+ *
+ * 음소거: hardStopAll + playGen — await audio.play() 이후 fade-in이
+ * 벨 토글을 무시하고 전장음을 되살리는 레이스를 막음.
  */
 export function useSoundStream(options?: UseSoundStreamOptions) {
   const enabledOpt = options?.enabled !== false;
@@ -115,41 +134,57 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
   const ambientBaseVolumeRef = useRef(0);
   const lastOneShotAtRef = useRef(0);
   const altitudeRef = useRef<number | null>(null);
-  /** 배경음악(BGM) — 상황별 앰비언트와 별개 채널. 카메라/모드 전환에 영향받지 않고 계속 흐름 */
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   const bgmIdRef = useRef<AudioEventId | null>(null);
+  const soundEnabledRef = useRef(true);
+  const unlockedRef = useRef(false);
+  const enabledOptRef = useRef(enabledOpt);
+  const playGenRef = useRef(0);
+
+  enabledOptRef.current = enabledOpt;
+
+  const hardStopAll = useCallback(() => {
+    playGenRef.current += 1;
+    hardStopAudio(oneShotRef.current);
+    oneShotRef.current = null;
+    for (const a of overlapPoolRef.current) hardStopAudio(a);
+    overlapPoolRef.current = [];
+    hardStopAudio(ambientRef.current);
+    ambientRef.current = null;
+    ambientIdRef.current = null;
+    hardStopAudio(bgmRef.current);
+    bgmRef.current = null;
+    bgmIdRef.current = null;
+  }, []);
+
+  const isLivePlay = useCallback((gen: number) => {
+    return (
+      enabledOptRef.current &&
+      soundEnabledRef.current &&
+      unlockedRef.current &&
+      gen === playGenRef.current
+    );
+  }, []);
 
   useEffect(() => {
-    setSoundEnabledState(readSoundEnabled());
+    const initial = readSoundEnabled();
+    soundEnabledRef.current = initial;
+    setSoundEnabledState(initial);
 
     const onPref = (event: Event) => {
       const detail = (event as CustomEvent<{ enabled?: boolean }>).detail;
       const next =
         typeof detail?.enabled === "boolean" ? detail.enabled : readSoundEnabled();
+      soundEnabledRef.current = next;
       setSoundEnabledState(next);
-      if (!next) {
-        oneShotRef.current?.pause();
-        for (const a of overlapPoolRef.current) a.pause();
-        overlapPoolRef.current = [];
-        ambientRef.current?.pause();
-        ambientIdRef.current = null;
-        bgmRef.current?.pause();
-        bgmIdRef.current = null;
-      }
+      if (!next) hardStopAll();
     };
     const onStorage = (event: StorageEvent) => {
       if (event.key !== null && event.key !== SOUND_PREF_KEY) return;
       const next = readSoundEnabled();
+      soundEnabledRef.current = next;
       setSoundEnabledState(next);
-      if (!next) {
-        oneShotRef.current?.pause();
-        for (const a of overlapPoolRef.current) a.pause();
-        overlapPoolRef.current = [];
-        ambientRef.current?.pause();
-        ambientIdRef.current = null;
-        bgmRef.current?.pause();
-        bgmIdRef.current = null;
-      }
+      if (!next) hardStopAll();
     };
 
     window.addEventListener(CV_SOUND_PREF_EVENT, onPref);
@@ -158,11 +193,14 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
       window.removeEventListener(CV_SOUND_PREF_EVENT, onPref);
       window.removeEventListener("storage", onStorage);
     };
-  }, []);
+  }, [hardStopAll]);
 
   useEffect(() => {
     if (!enabledOpt || unlocked) return;
-    const unlock = () => setUnlocked(true);
+    const unlock = () => {
+      unlockedRef.current = true;
+      setUnlocked(true);
+    };
     window.addEventListener("pointerdown", unlock, { once: true, passive: true });
     window.addEventListener("keydown", unlock, { once: true });
     return () => {
@@ -171,19 +209,15 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
     };
   }, [enabledOpt, unlocked]);
 
-  const setSoundEnabled = useCallback((next: boolean) => {
-    setSoundEnabledState(next);
-    writeSoundEnabled(next);
-    if (!next) {
-      oneShotRef.current?.pause();
-      for (const a of overlapPoolRef.current) a.pause();
-      overlapPoolRef.current = [];
-      ambientRef.current?.pause();
-      ambientIdRef.current = null;
-      bgmRef.current?.pause();
-      bgmIdRef.current = null;
-    }
-  }, []);
+  const setSoundEnabled = useCallback(
+    (next: boolean) => {
+      soundEnabledRef.current = next;
+      setSoundEnabledState(next);
+      writeSoundEnabled(next);
+      if (!next) hardStopAll();
+    },
+    [hardStopAll],
+  );
 
   const canPlay = enabledOpt && soundEnabled && unlocked;
 
@@ -194,6 +228,7 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
     const ambient = ambientRef.current;
     const ambientId = ambientIdRef.current;
     if (!ambient || !ambientId || !isZoomScaledSound(ambientId)) return;
+    if (!soundEnabledRef.current) return;
     ambient.volume = scaledSoundVolume(
       ambientId,
       ambientBaseVolumeRef.current,
@@ -203,7 +238,8 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
 
   const play = useCallback(
     async (eventId: AudioEventId, playOpts?: PlaySoundOptions) => {
-      if (!canPlay) return;
+      if (!enabledOptRef.current || !soundEnabledRef.current || !unlockedRef.current) return;
+      const gen = playGenRef.current;
       const def = AUDIO_MANIFEST[eventId] as AudioEventDef | undefined;
       if (!def) return;
 
@@ -216,7 +252,6 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
         Number.isFinite(playOpts.durationMs) &&
         playOpts.durationMs > 0;
 
-      // 원샷 스로틀 — 연속 이벤트 폭주 방지 (강제·타임드 버스트는 예외)
       if (!def.loop && !timedBurst && !playOpts?.force) {
         const now = Date.now();
         if (now - lastOneShotAtRef.current < 280) return;
@@ -237,13 +272,12 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
         const targetVolume = scaledSoundVolume(eventId, ambientBase, altitudeRef.current);
 
         if (ambientIdRef.current === eventId && ambientRef.current && !ambientRef.current.paused) {
-          // 같은 앰비언트가 이미 재생 중 — 볼륨만 서서히 목표치로 (줌 연동 등으로 값이 바뀔 때 뚝 끊기지 않게)
+          if (!isLivePlay(gen)) return;
           ambientBaseVolumeRef.current = ambientBase;
           fadeAmbientVolume(ambientRef.current, targetVolume, 400);
           return;
         }
 
-        // 다른 앰비언트로 전환 — 이전 트랙은 서서히 줄여 정지, 새 트랙은 0에서 서서히 올림
         const previous = ambientRef.current;
         if (previous) {
           fadeAmbientVolume(previous, 0, AMBIENT_FADE_OUT_MS, () => previous.pause());
@@ -257,25 +291,31 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
         ambientBaseVolumeRef.current = ambientBase;
         try {
           await audio.play();
-          fadeAmbientVolume(audio, targetVolume, AMBIENT_FADE_IN_MS);
         } catch {
-          /* autoplay / network */
+          return;
         }
+        if (!isLivePlay(gen) || ambientRef.current !== audio) {
+          hardStopAudio(audio);
+          if (ambientRef.current === audio) {
+            ambientRef.current = null;
+            ambientIdRef.current = null;
+          }
+          return;
+        }
+        fadeAmbientVolume(audio, targetVolume, AMBIENT_FADE_IN_MS);
         return;
       }
 
       const audio = new Audio(audioUrlForEvent(eventId, def));
-      // 파도 음량·하드컷은 루프하지 않음 (클립 그대로 + 볼륨 변조)
       const useWave = Boolean(playOpts?.waveVolume) && timedBurst;
       audio.loop = Boolean(timedBurst) && !useWave;
       audio.volume = volume;
 
       if (playOpts?.overlap) {
-        // 끝난 트랙 정리 · 최대 4개 겹침
         overlapPoolRef.current = overlapPoolRef.current.filter((a) => !a.paused && !a.ended);
         if (overlapPoolRef.current.length >= 4) {
           const oldest = overlapPoolRef.current.shift();
-          oldest?.pause();
+          hardStopAudio(oldest);
         }
         overlapPoolRef.current.push(audio);
         audio.addEventListener(
@@ -286,7 +326,7 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
           { once: true },
         );
       } else {
-        oneShotRef.current?.pause();
+        hardStopAudio(oneShotRef.current);
         oneShotRef.current = audio;
       }
 
@@ -296,7 +336,10 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
         const peak = volume;
         const started = performance.now();
         const tickWave = (now: number) => {
-          if (audio.paused || audio.ended) return;
+          if (!isLivePlay(gen) || audio.paused || audio.ended) {
+            if (waveRaf) window.cancelAnimationFrame(waveRaf);
+            return;
+          }
           const phase = ((now - started) / Math.max(400, periodMs)) * Math.PI * 2;
           const wave = (Math.sin(phase) + 1) / 2;
           const factor = minFactor + (maxFactor - minFactor) * wave;
@@ -309,30 +352,38 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
       try {
         await audio.play();
       } catch {
-        /* autoplay / network */
+        hardStopAudio(audio);
+        overlapPoolRef.current = overlapPoolRef.current.filter((a) => a !== audio);
+        if (oneShotRef.current === audio) oneShotRef.current = null;
+        return;
+      }
+      if (!isLivePlay(gen)) {
+        if (waveRaf) window.cancelAnimationFrame(waveRaf);
+        hardStopAudio(audio);
+        overlapPoolRef.current = overlapPoolRef.current.filter((a) => a !== audio);
+        if (oneShotRef.current === audio) oneShotRef.current = null;
+        return;
       }
       if (timedBurst) {
         const ms = playOpts!.durationMs!;
         const chain = playOpts?.chain;
         window.setTimeout(() => {
           if (waveRaf) window.cancelAnimationFrame(waveRaf);
-          audio.pause();
-          audio.currentTime = 0;
+          hardStopAudio(audio);
           if (oneShotRef.current === audio) oneShotRef.current = null;
           overlapPoolRef.current = overlapPoolRef.current.filter((a) => a !== audio);
-          if (chain?.eventId) {
-            void play(chain.eventId, {
-              altitude: altitudeRef.current,
-              volumeScale: chain.volumeScale,
-              durationMs: chain.durationMs,
-              force: chain.force ?? true,
-              overlap: chain.overlap ?? true,
-            });
-          }
+          if (!isLivePlay(gen) || !chain?.eventId) return;
+          void play(chain.eventId, {
+            altitude: altitudeRef.current,
+            volumeScale: chain.volumeScale,
+            durationMs: chain.durationMs,
+            force: chain.force ?? true,
+            overlap: chain.overlap ?? true,
+          });
         }, ms);
       }
     },
-    [canPlay],
+    [isLivePlay],
   );
 
   const stopAmbient = useCallback(() => {
@@ -350,23 +401,15 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
         stopAmbient();
         return;
       }
-      if (!AMBIENT_EVENT_IDS.includes(eventId)) {
-        void play(eventId);
-        return;
-      }
       void play(eventId);
     },
     [play, stopAmbient],
   );
 
-  /**
-   * 배경음악(BGM) — 상황별 앰비언트(ambientRef)와 별개 채널이라, 카메라가 전선/항모/긴장
-   * 구역을 들락거려도 끊기지 않고 계속 흐른다. 실제 멜로디 있는 트랙용(웅웅거리는 앰비언트와
-   * 성격이 다름) — 같은 트랙이 이미 재생 중이면 아무것도 안 함.
-   */
   const playBgm = useCallback(
     async (eventId: AudioEventId) => {
-      if (!canPlay) return;
+      if (!enabledOptRef.current || !soundEnabledRef.current || !unlockedRef.current) return;
+      const gen = playGenRef.current;
       const def = AUDIO_MANIFEST[eventId] as AudioEventDef | undefined;
       if (!def) return;
       if (bgmIdRef.current === eventId && bgmRef.current && !bgmRef.current.paused) return;
@@ -383,12 +426,20 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
       bgmIdRef.current = eventId;
       try {
         await audio.play();
-        fadeAmbientVolume(audio, def.volume, AMBIENT_FADE_IN_MS);
       } catch {
-        /* autoplay / network */
+        return;
       }
+      if (!isLivePlay(gen) || bgmRef.current !== audio) {
+        hardStopAudio(audio);
+        if (bgmRef.current === audio) {
+          bgmRef.current = null;
+          bgmIdRef.current = null;
+        }
+        return;
+      }
+      fadeAmbientVolume(audio, def.volume, AMBIENT_FADE_IN_MS);
     },
-    [canPlay],
+    [isLivePlay],
   );
 
   const stopBgm = useCallback(() => {
@@ -402,11 +453,9 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
 
   useEffect(() => {
     return () => {
-      oneShotRef.current?.pause();
-      ambientRef.current?.pause();
-      bgmRef.current?.pause();
+      hardStopAll();
     };
-  }, []);
+  }, [hardStopAll]);
 
   return {
     play,

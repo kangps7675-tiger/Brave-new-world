@@ -1,9 +1,7 @@
 import { HOVER, staticKindLabel } from "@/lib/hoverLabels";
 import { getZoomOutScale } from "@/lib/zoomScale";
-import {
-  STATIC_MARKER_PALETTE,
-  STATIC_POINT_EMOJI,
-} from "@/lib/staticGlobe";
+import { STATIC_MARKER_PALETTE } from "@/lib/staticGlobe";
+import { airportSvg, portSvg } from "@/lib/infraStaticMarkers";
 import { SITUATION_CALLOUT_ACCENT } from "@/data/situationCalloutTypes";
 import { createWarCasualtyOverlayElement } from "@/lib/warCasualtyOverlay";
 import { createNuclearStockpileElement } from "@/lib/nuclearStockpiles";
@@ -42,7 +40,7 @@ export function createAirportPortBadge(
       ? point.kind
       : "airport";
   const palette = STATIC_MARKER_PALETTE[kind];
-  const isSquareHub = kind === "airport" || kind === "port";
+  const isRoundHub = kind === "airport" || kind === "port";
   const zoomScale = getZoomOutScale(altitude);
   const baseSize =
     kind === "military-base"
@@ -50,9 +48,9 @@ export function createAirportPortBadge(
         ? 28
         : 24
       : Math.max(1, Number(point.tier) || 1) <= 1
-        ? 24
-        : 20;
-  const size = Math.max(10, Math.round(baseSize * zoomScale));
+        ? 30
+        : 26;
+  const size = Math.max(12, Math.round(baseSize * zoomScale));
 
   const el = document.createElement("div");
   el.className = "hub-marker";
@@ -74,23 +72,27 @@ export function createAirportPortBadge(
   el.style.display = "flex";
   el.style.alignItems = "center";
   el.style.justifyContent = "center";
-  el.style.borderRadius = isSquareHub ? "3px" : "6px";
-  el.style.background = isSquareHub
-    ? palette.fill.replace(/[\d.]+\)$/, "0.82)")
+  el.style.borderRadius = isRoundHub ? "9999px" : "6px";
+  el.style.background = isRoundHub
+    ? "transparent"
     : `
     radial-gradient(circle at 35% 28%, rgba(255,255,255,0.28), transparent 42%),
     ${palette.fill}
   `;
-  el.style.border = `1px solid ${palette.rim}`;
-  el.style.boxShadow = `
+  el.style.border = isRoundHub ? "none" : `1px solid ${palette.rim}`;
+  el.style.boxShadow = isRoundHub
+    ? `0 0 10px ${palette.glow}, 0 3px 8px rgba(2, 8, 20, 0.4)`
+    : `
     0 0 0 1px rgba(8, 18, 36, 0.25),
     0 0 10px ${palette.glow},
     0 4px 10px rgba(2, 8, 20, 0.35)
   `;
-  el.style.backdropFilter = "blur(4px)";
-  el.style.setProperty("-webkit-backdrop-filter", "blur(4px)");
+  el.style.backdropFilter = isRoundHub ? "none" : "blur(4px)";
+  if (!isRoundHub) {
+    el.style.setProperty("-webkit-backdrop-filter", "blur(4px)");
+  }
   el.style.color = palette.ink;
-  el.style.fontSize = isSquareHub ? `${Math.round(size * 0.58)}px` : "12px";
+  el.style.fontSize = "12px";
   el.style.lineHeight = "1";
   el.style.transform = "translate(-50%, -50%) scale(0.92)";
   el.style.opacity = "0";
@@ -100,15 +102,19 @@ export function createAirportPortBadge(
   el.style.transition =
     "opacity 320ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms ease, border-color 280ms ease";
 
-  if (kind === "airport" || kind === "port") {
-    el.textContent = STATIC_POINT_EMOJI[kind];
+  if (kind === "airport") {
+    el.innerHTML = airportSvg(size);
+  } else if (kind === "port") {
+    el.innerHTML = portSvg(size);
   } else {
     el.innerHTML = usFlagIconSvg();
   }
 
   el.addEventListener("mouseenter", () => {
     el.style.transform = "translate(-50%, -50%) scale(1.08)";
-    el.style.boxShadow = `
+    el.style.boxShadow = isRoundHub
+      ? `0 0 14px ${palette.glow}, 0 5px 12px rgba(2, 8, 20, 0.45)`
+      : `
       0 0 0 1px rgba(8, 18, 36, 0.28),
       0 0 14px ${palette.glow},
       0 6px 14px rgba(2, 8, 20, 0.4)
@@ -117,7 +123,9 @@ export function createAirportPortBadge(
   });
   el.addEventListener("mouseleave", () => {
     el.style.transform = "translate(-50%, -50%) scale(1)";
-    el.style.boxShadow = `
+    el.style.boxShadow = isRoundHub
+      ? `0 0 10px ${palette.glow}, 0 3px 8px rgba(2, 8, 20, 0.4)`
+      : `
       0 0 0 1px rgba(8, 18, 36, 0.25),
       0 0 10px ${palette.glow},
       0 4px 10px rgba(2, 8, 20, 0.35)

@@ -89,8 +89,8 @@ export function filterStaticPointsForView(
 }
 
 export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
-  airport: "rgba(147, 197, 253, 0.72)",
-  port: "rgba(103, 232, 249, 0.7)",
+  airport: "rgba(163, 230, 53, 0.88)",
+  port: "rgba(37, 99, 235, 0.88)",
   resource: "rgba(251, 191, 36, 0.92)",
   "military-base": "rgba(59, 130, 246, 0.92)",
   "cable-landing": "rgba(167, 139, 250, 0.9)",
@@ -127,7 +127,7 @@ export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
 /** HTML 실루엣 마커 kinds — globe points와 이중 렌더 금지 */
 export const STATIC_EMOJI_KINDS = HTML_STATIC_KINDS;
 
-/** @deprecated 이모지 배지 대신 soft marker 사용; 호환용 유지 */
+/** @deprecated 원형 SVG 배지 사용 — 호환용 심볼만 유지 */
 export const STATIC_POINT_EMOJI: Record<"airport" | "port" | "military-base", string> = {
   airport: "✈️",
   port: "⚓️",
@@ -139,16 +139,16 @@ export const STATIC_MARKER_PALETTE: Record<
   { fill: string; glow: string; ink: string; rim: string }
 > = {
   airport: {
-    fill: "rgba(125, 180, 245, 0.22)",
-    glow: "rgba(96, 165, 250, 0.42)",
-    ink: "rgba(226, 239, 254, 0.95)",
-    rim: "rgba(186, 220, 252, 0.55)",
+    fill: "rgba(163, 230, 53, 0.92)",
+    glow: "rgba(163, 230, 53, 0.45)",
+    ink: "rgba(255, 255, 255, 0.98)",
+    rim: "rgba(236, 252, 203, 0.7)",
   },
   port: {
-    fill: "rgba(56, 189, 248, 0.2)",
-    glow: "rgba(34, 211, 238, 0.38)",
-    ink: "rgba(207, 250, 254, 0.95)",
-    rim: "rgba(165, 243, 252, 0.5)",
+    fill: "rgba(37, 99, 235, 0.92)",
+    glow: "rgba(59, 130, 246, 0.5)",
+    ink: "rgba(255, 255, 255, 0.98)",
+    rim: "rgba(147, 197, 253, 0.65)",
   },
   "military-base": {
     fill: "rgba(37, 99, 235, 0.28)",

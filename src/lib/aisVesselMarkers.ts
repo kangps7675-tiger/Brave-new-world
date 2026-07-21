@@ -43,10 +43,10 @@ function ensureAisMarkerStyles() {
       filter: drop-shadow(0 0 8px rgba(239,68,68,0.7)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-surface="1"] .ais-vessel-icon {
-      filter: drop-shadow(0 0 8px rgba(239,68,68,0.55)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 4px rgba(239,68,68,0.35));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-surface="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 0 12px rgba(239,68,68,0.85)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 7px rgba(239,68,68,0.55));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-submarine="1"] .ais-vessel-icon {
       filter: drop-shadow(0 0 8px rgba(167,139,250,0.55)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
