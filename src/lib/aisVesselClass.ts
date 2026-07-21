@@ -103,7 +103,8 @@ export function classifyMilitaryKind(input: {
     /\bDDG\b/i.test(name) ||
     /\bDDG[-\s]?\d+\b/i.test(name) ||
     /\bDD[-\s]?\d+\b/i.test(name) ||
-    /\b(ARLEIGH\s*BURKE|SEJONG|KONGO|ATAGO|MAYA|TYPE\s*052|TYPE\s*055|HOBART|DARING|HORIZON)\b/i.test(
+    /\bDDH[-\s]?\d+\b/i.test(name) ||
+    /\b(ARLEIGH\s*BURKE|RALPH\s*JOHNSON|SEJONG|KONGO|ATAGO|MAYA|TYPE\s*052|TYPE\s*055|HOBART|DARING|HORIZON|KING\s*SEJONG|CHUNG MUGONG|YULGOK|DAEJOYEONG)\b/i.test(
       name,
     )
   ) {
@@ -115,7 +116,8 @@ export function classifyMilitaryKind(input: {
     /\bFFG\b/i.test(name) ||
     /\bFFG[-\s]?\d+\b/i.test(name) ||
     /\bFF[-\s]?\d+\b/i.test(name) ||
-    /\b(TYPE\s*054|TYPE\s*26|TYPE\s*31|FREMM|MEKO|INCHEON|DAEGU)\b/i.test(name)
+    /\bF[-\s]?\d{2,3}\b/i.test(name) ||
+    /\b(TYPE\s*054|TYPE\s*26|TYPE\s*31|FREMM|MEKO|INCHEON|DAEGU|CHUNGNAM)\b/i.test(name)
   ) {
     return "frigate";
   }
@@ -177,9 +179,21 @@ export function isAisSurfaceCombatant(
   );
 }
 
+/**
+ * 호위함과 동일한 이지스/스텔스 수상함 실루엣을 쓰는 종류.
+ * 잠수함·항모만 제외 — 구축·초계·순양·상륙·순찰·지원·미분류 군함 포함.
+ */
+export function usesSurfaceCombatantDeckIcon(
+  kind: AisMilitaryKind | null | undefined,
+): boolean {
+  if (!kind) return false;
+  if (kind === "submarine" || kind === "carrier") return false;
+  return true;
+}
+
 /** 8방위 실루엣 표지 (수상전투함·잠수함) */
 export function isAisAspectHullMarker(kind: AisMilitaryKind | null | undefined): boolean {
-  return isAisSurfaceCombatant(kind) || kind === "submarine";
+  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine";
 }
 
 export function militaryKindLabel(

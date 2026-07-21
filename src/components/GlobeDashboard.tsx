@@ -6216,15 +6216,15 @@ export function GlobeDashboard({
             : [
                 {
                   id: "disguised-vessels" as const,
-                  label: "위장선박",
+                  label: "위장·그림자함대",
                   detail: showDisguisedVessels
                     ? disguisedLoading
                       ? "불러오는 중…"
-                      : `시드 ${disguisedVessels.length.toLocaleString()}척 · AIS_Tracker`
+                      : `시드 ${disguisedVessels.length.toLocaleString()}척 · 불법 컨테이너/다크플리트`
                     : "꺼짐",
                   checked: layerPrefs.showDisguisedVessels,
                   onChange: setShowDisguisedVessels,
-                  accent: "orange" as const,
+                  accent: "fuchsia" as const,
                 },
               ]),
         ],
@@ -9520,8 +9520,8 @@ export function GlobeDashboard({
                   return milAircraftMarkerRotationDeg(point);
                 }
                 if (point.displayKind === "ais-html") {
-                  // 수상전투함·잠수함: 8방위 실루엣이 진행 방향을 담음 → Marker 회전 없음
-                  if (isAisAspectHullMarker(point.militaryKind)) return 0;
+                  // 수상전투함·잠수함·그림자함대: 8방위 실루엣이 진행 방향을 담음 → Marker 회전 없음
+                  if (isAisAspectHullMarker(point.militaryKind) || point.disguised) return 0;
                   return aisVesselHeadingDeg(point) ?? 0;
                 }
                 return 0;
@@ -9531,7 +9531,9 @@ export function GlobeDashboard({
                   return "map";
                 }
                 if (point.displayKind === "ais-html") {
-                  if (isAisAspectHullMarker(point.militaryKind)) return "viewport";
+                  if (isAisAspectHullMarker(point.militaryKind) || point.disguised) {
+                    return "viewport";
+                  }
                   return "map";
                 }
                 return "viewport";
