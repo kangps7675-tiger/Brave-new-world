@@ -10,6 +10,10 @@ import {
   ensureResourceLayersOn,
   SHARED_RESOURCE_LAYER_ON,
 } from "@/lib/viewerChrome";
+import {
+  CONFLICT_ENTRY_MARITIME_FLY,
+  RED_SEA_HOUTHI_STACK,
+} from "@/lib/hotTheaterLayers";
 
 /**
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
@@ -33,8 +37,14 @@ export const ENTRY_GATE: {
    * LOD tier: global (> 1.65).
    */
   bootAltitude: 2.85,
-  /** 대만 해협 중심 — 첫 화면·도메인 선택 후 flyTo 핀포인트 ([lng, lat] = [119.5, 24.48]) */
-  bootLookAt: { lat: 24.48, lng: 119.5 },
+  /**
+   * 홍해·바브엘만데브 — 2026 지정학 입구 최우선 해상 위협 항로.
+   * ([lng, lat] ≈ [43.35, 12.61])
+   */
+  bootLookAt: {
+    lat: CONFLICT_ENTRY_MARITIME_FLY.lat,
+    lng: CONFLICT_ENTRY_MARITIME_FLY.lng,
+  },
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
   zoomOutAltitude: 2.85,
   zoomOutFlyMs: 1200,
@@ -63,18 +73,20 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 요청 기본 레이어 (+ 공통 에너지·자원) */
+/** 지정학 히어로 — 홍해·해상 위협 스택을 먼저 켠다 (+ 공통 에너지·자원) */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
+  ...RED_SEA_HOUTHI_STACK,
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
-  showGdeltAlliance: true,
   showGdeltProtests: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
   showAxisNetwork: true,
   showSubmarineCables: true,
+  showNewfeedsIranAttacks: true,
+  showUsCarriers: true,
   ...SHARED_RESOURCE_LAYER_ON,
 };
 

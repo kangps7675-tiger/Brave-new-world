@@ -26,6 +26,7 @@ import { readDailyRanks, readWorldTension, upsertDailyRanks } from "./dailyRanks
 import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
+import { fetchAndReplaceNavarea } from "./navarea";
 import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
 import {
   broadcastPush,
@@ -101,6 +102,12 @@ type IngestResult = {
     reason?: string;
   } | null;
   ukmto?: {
+    count: number;
+    fetched: number;
+    errors: string[];
+    skipped: boolean;
+  } | null;
+  navarea?: {
     count: number;
     fetched: number;
     errors: string[];
@@ -246,6 +253,24 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       };
     }
 
+    let navarea: IngestResult["navarea"] = null;
+    try {
+      const na = await fetchAndReplaceNavarea(env);
+      navarea = {
+        count: na.count,
+        fetched: na.fetched,
+        errors: na.errors.slice(0, 6),
+        skipped: na.skipped,
+      };
+    } catch (error) {
+      navarea = {
+        count: 0,
+        fetched: 0,
+        errors: [error instanceof Error ? error.message : "navarea ingest failed"],
+        skipped: false,
+      };
+    }
+
     pruned = await pruneOldRows(env.DB, retentionHours);
     newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
     videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
@@ -334,6 +359,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       baselineBackfill,
       livingTaiwan,
       ukmto,
+      navarea,
       error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
     };
 
@@ -365,6 +391,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         dailyRanks,
         livingTaiwan,
         ukmto,
+        navarea,
       },
     });
 

@@ -28,6 +28,7 @@ export const THEATER_TO_RANK_ENTITY: Record<string, string> = {
   "china-taiwan": "taiwan",
   "russia-ukraine": "ukraine",
   korea: "korea",
+  japan: "japan",
   "middle-east": "middle-east",
   global: "pacific",
 };
@@ -36,6 +37,7 @@ const THEATER_LABELS: Record<string, { ko: string; en: string }> = {
   "china-taiwan": { ko: "대만 해협", en: "Taiwan Strait" },
   "russia-ukraine": { ko: "우크라이나 전선", en: "Ukraine front" },
   korea: { ko: "한반도", en: "Korean Peninsula" },
+  japan: { ko: "일본·인도태평양", en: "Japan · Indo-Pacific" },
   "middle-east": { ko: "중동·이란", en: "Middle East / Iran" },
   global: { ko: "글로벌 전장", en: "Global theaters" },
 };

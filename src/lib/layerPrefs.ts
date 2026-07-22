@@ -88,6 +88,11 @@ export type LayerPrefs = {
    * 비공식(리버스 엔지니어링) 엔드포인트 — README「비공식 엔드포인트 사용 원칙」참고.
    */
   showUkmtoIncidents: boolean;
+  /**
+   * NAVAREA in-force 항행경보 (JHOD XI 등) — 보라색 폴리곤/선.
+   * 일본 근해 훈련·미사일 낙하지·케이블 작업 등. UKMTO와 함께 기본 ON.
+   */
+  showNavareaWarnings: boolean;
   /** 중국↔대만 대치 (대만해협·남중국해·서태평양 · 네온 리플) */
   showChinaTaiwanIncidents: boolean;
   /** 중국↔일본 대치 (동중국해·센카쿠 · 네온 리플) */
@@ -122,8 +127,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v31: 기본 ON 레이어 세트 복원 (가스·GEM·축 관계망 등) */
-export const LAYER_PREFS_KEY = "geowatch-layers-v31";
+/** v32: NAVAREA 보라 폴리곤 + 동맹 갈등(자홍) 레이어 제거 */
+export const LAYER_PREFS_KEY = "geowatch-layers-v32";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -187,6 +192,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showTzevaAdom: false,
   showNewfeedsIranAttacks: true,
   showUkmtoIncidents: true,
+  showNavareaWarnings: true,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,
@@ -205,6 +211,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v31",
   "geowatch-layers-v30",
   "geowatch-layers-v29",
   "geowatch-layers-v28",
@@ -279,6 +286,8 @@ function mergeSavedPrefs(parsed: SavedLayerPrefs): LayerPrefs {
     mobileHomeView: parseMobileHomeView(rest.mobileHomeView),
     /** UI 체크박스 제거 — 지나간 드론·미사일 궤적 강제 OFF */
     showNeptunPreviousTrails: false,
+    /** 자홍 슬롯 → NAVAREA 보라 전용. 동맹 갈등 GDELT 핀 레이어 제거 */
+    showGdeltAlliance: false,
   };
 }
 

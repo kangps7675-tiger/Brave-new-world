@@ -10,6 +10,7 @@ import {
   isChokepointNews,
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
+import { normalizeLampImageUrl } from "@/lib/news/lampThumbnail";
 
 /**
  * 매일 등불 브리핑 — 지정학·지경학 각각 하루 종일 이용.
@@ -18,8 +19,9 @@ import {
  * - 접기: 양피지를 접어 두고, 같은 날 칩으로 다시 펼칠 수 있음
  * - 뉴스 본문: 로컬 시각 기준 6시간 슬롯(0·6·12·18시)마다 갱신
  * - 모드 키 = `daily-YYYY-MM-DD-{conflict|economy}`
- * - 본문 = (지경학) 한국 겨냥 지리경제·기업·거시 하드뉴스 + SOTW Korea 매크로
- * - 지정학 = 전 세계 지정학 중 한국을 겨냥한 발언·압박 우선
+ * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
+ * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
+ * - 등불 카드 썸네일 = RSS 사진 또는 CSS 그라데이션 면 (SVG 없음)
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
  */
 
@@ -31,12 +33,13 @@ export const LAMP_DISPLAY_SUMMARY_MAX = 320;
 /** 등불 뉴스 콘텐츠 갱신 주기 (6시간) */
 export const LAMP_CONTENT_SLOT_HOURS = 6;
 
-/** 지경학·지정학 등불 — 사진 필수 초대형 뉴스 카드 */
+/** 지경학·지정학 등불 — 초대형 뉴스 카드 (썸네일은 RSS 또는 CSS 면) */
 export type LampFeaturedNews = {
   id: string;
   title: string;
   /** 등불용 요약본 (본문 전체가 아님) */
   summary: string;
+  /** RSS http(s) 이미지. 없으면 UI가 CSS 그라데이션 면으로 채움 */
   imageUrl: string;
   link: string;
   source: string;
@@ -651,8 +654,16 @@ const LAMP_NEWS_GENRE_PRIORITY: Record<string, number> = {
 /** 등불 — 초크포인트(해협·운하) 최소 확보 슬롯 */
 export const ECONOMY_LAMP_CHOKE_MIN = 1;
 export const CONFLICT_LAMP_CHOKE_MIN = 2;
+/** 지정학 등불에 일본·인도태평양 하드뉴스 최소 확보 */
+export const CONFLICT_LAMP_JAPAN_MIN = 1;
 /** 지경학 등불 — shipping+energy 합산 상한 (초크 독점 방지) */
 export const ECONOMY_LAMP_CHOKE_GENRE_MAX = 2;
+/** 지경학 등불 — 중국 산업·미중 경제전쟁 soft 목표 (관심도 풀 안에서만) */
+export const ECONOMY_LAMP_CHINA_INDUSTRY_MIN = 1;
+/** 지경학 등불 — 한·일·대만 soft 목표 */
+export const ECONOMY_LAMP_KR_JP_TW_MIN = 1;
+/** 지경학 등불 — 동남아·남아시아·중동 soft 목표 */
+export const ECONOMY_LAMP_ASEAN_SA_MENA_MIN = 1;
 /** 지정학 등불 — 적대 행위자 한국 콕집힘 최대 슬롯 */
 export const CONFLICT_LAMP_ADVERSARY_KOREA_MAX = 2;
 
@@ -690,6 +701,9 @@ const MARKET_FOCUS_ENTITIES: Array<{
   { id: "byd", labelKo: "BYD", labelEn: "BYD", re: /\bbyd\b/i, bloc: "china" },
   { id: "xiaomi", labelKo: "샤오미", labelEn: "Xiaomi", re: /\bxiaomi\b|\b샤오미\b/i, bloc: "china" },
   { id: "pboc", labelKo: "인민은행", labelEn: "PBOC", re: /\bpboc\b|\bpeople'?s bank of china\b|\b인민은행\b/i, bloc: "china" },
+  { id: "crrc", labelKo: "중국중차", labelEn: "CRRC", re: /\bcrrc\b|\b중국중차\b/i, bloc: "china" },
+  { id: "longi", labelKo: "롱지", labelEn: "LONGi", re: /\blongi\b|\b롱지\b/i, bloc: "china" },
+  { id: "nio", labelKo: "니오", labelEn: "NIO", re: /\bnio\b|\b니오\b/i, bloc: "china" },
   // 유럽
   { id: "ecb", labelKo: "ECB", labelEn: "ECB", re: /\becb\b|\beuropean central bank\b|\blagarde\b|\b유럽중앙은행\b|\b라가르드\b/i, bloc: "europe" },
   { id: "eu", labelKo: "EU", labelEn: "EU", re: /\beurozone\b|\beuropean union\b|\beu commission\b|\b유럽연합\b|\b유로존\b/i, bloc: "europe" },
@@ -718,15 +732,32 @@ const MARKET_FOCUS_ENTITIES: Array<{
   { id: "softbank", labelKo: "소프트뱅크", labelEn: "SoftBank", re: /\bsoftbank\b|\b소프트뱅크\b/i, bloc: "asia" },
   { id: "sony", labelKo: "소니", labelEn: "Sony", re: /\bsony\b|\b소니\b/i, bloc: "asia" },
   { id: "boj", labelKo: "일본은행", labelEn: "BOJ", re: /\bbank of japan\b|\bboj\b|\b일본은행\b/i, bloc: "asia" },
-  { id: "tsmc", labelKo: "TSMC", labelEn: "TSMC", re: /\btsmc\b|\btaiwan semiconductor\b|\b대만반도체\b/i, bloc: "other" },
+  { id: "taiwan", labelKo: "대만", labelEn: "Taiwan", re: /\btaiwan\b|\btaipei\b|\b대만\b|\b타이베이\b/i, bloc: "asia" },
+  { id: "tsmc", labelKo: "TSMC", labelEn: "TSMC", re: /\btsmc\b|\btaiwan semiconductor\b|\b대만반도체\b/i, bloc: "asia" },
+  { id: "india", labelKo: "인도", labelEn: "India", re: /\bindia\b|\bindian\b|\bmodi\b|\bmumbai\b|\b인도\b|\b모디\b/i, bloc: "asia" },
+  { id: "asean", labelKo: "아세안", labelEn: "ASEAN", re: /\basean\b|\bindonesia\b|\bvietnam\b|\bthailand\b|\bmalaysia\b|\bphilippines\b|\bsingapore\b|\b아세안\b|\b인도네시아\b|\b베트남\b/i, bloc: "asia" },
   { id: "aramco", labelKo: "아람코", labelEn: "Aramco", re: /\baramco\b|\b아람코\b/i, bloc: "other" },
+  { id: "saudi", labelKo: "사우디", labelEn: "Saudi", re: /\bsaudi\b|\briyadh\b|\bvision\s?2030\b|\b사우디\b|\b리야드\b/i, bloc: "other" },
+  { id: "adnoc", labelKo: "ADNOC", labelEn: "ADNOC", re: /\badnoc\b|\bu\.?a\.?e\.?\b|\bdubai\b|\babu\s?dhabi\b|\b아랍에미리트\b|\b두바이\b/i, bloc: "other" },
   { id: "imf", labelKo: "IMF", labelEn: "IMF", re: /\bimf\b|\binternational monetary fund\b/i, bloc: "other" },
   { id: "opec", labelKo: "OPEC", labelEn: "OPEC", re: /\bopec\b/i, bloc: "other" },
 ];
 
 /** 미·중 경쟁·디리스킹 키워드 — 점수 가산 */
 const US_CHINA_RIVALRY_RE =
-  /us[\s-]?china|u\.?s\.?[\s-]?china|china[\s-]?us|trade war|export control|de-?risk|decoupl|rare earth|chip ban|tariff|제재|관세|미중|미·중|디리스킹|디커플링|희토류|수출통제/i;
+  /us[\s-]?china|u\.?s\.?[\s-]?china|china[\s-]?us|trade war|export control|de-?risk|decoupl|rare earth|chip ban|tariff|entity\s?list|section\s?301|outbound\s?investment|제재|관세|미중|미·중|디리스킹|디커플링|희토류|수출통제|경제전쟁/i;
+
+/** 중국 최신 산업·제조 발전 — 미중 경제전쟁 맥락의 공급측 신호 */
+const CHINA_INDUSTRIAL_RE =
+  /made\s?in\s?china(?:\s?2025)?|new\s?productive\s?forces|industrial\s?policy|advanced\s?manufacturing|smart\s?manufacturing|industrial\s?robot|factory\s?expansion|capacity\s?expansion|gigafactory|shipbuilding|photovoltaic|solar\s?(?:panel|export|capacity)|wind\s?power|high[\s-]?speed\s?rail|power\s?grid|semiconductor\s?self[\s-]?reliab|chip\s?self[\s-]?reliab|중국\s?제조|신질\s?생산력|산업정책|첨단\s?제조|스마트\s?팩토리|산업용\s?로봇|공장\s?증설|생산능력|조선|태양광|풍력|고속철|전력망|반도체\s?자립/i;
+
+/** 한·일·대만 경제·지경학 */
+const KR_JP_TW_ECON_RE =
+  /south\s?korea|seoul|samsung|hynix|hyundai|bank\s?of\s?korea|japan|tokyo|toyota|softbank|sony|bank\s?of\s?japan|\byen\b|nikkei|taiwan|taipei|tsmc|mediatek|\bumc\b|한국|서울|삼성|하이닉스|현대|일본|도쿄|엔화|대만|타이베이/i;
+
+/** 동남아·남아시아·중동 지경학 */
+const ASEAN_SA_MENA_ECON_RE =
+  /\basean\b|indonesia|vietnam|thailand|malaysia|philippines|singapore|malacca|friendshoring|nearshoring|\bindia\b|modi|\brbi\b|rupee|sensex|hambantota|bangladesh|pakistan|maldives|saudi|aramco|adnoc|qatar|u\.?a\.?e\.?|dubai|vision\s?2030|hormuz|red\s?sea|suez|bab[\s-]?el|아세안|인도네시아|베트남|인도|사우디|아람코|두바이|호르무즈|홍해|수에즈/i;
 
 /** 지경학 등불 — 투자·거시 하드 신호 (넓은 타깃군) */
 const ECONOMY_INVEST_RE =
@@ -747,7 +778,8 @@ function detectGeoBloc(
     if (/\beurope\b|\beu\b|\becb\b|\bgermany\b|\bfrance\b|\b유럽\b/i.test(text)) return "europe";
     return "russia";
   }
-  if (theater === "korea" || theater === "japan") return "asia";
+  if (theater === "korea" || theater === "japan" || theater === "south-asia") return "asia";
+  if (theater === "middle-east") return "other";
 
   const blocHit = entities.find((e) => e.bloc !== "us");
   if (blocHit?.bloc === "china") return "china";
@@ -767,11 +799,18 @@ function detectGeoBloc(
     return "europe";
   }
   if (
-    /\bkorea\b|\bkorean\b|\bjapan\b|\bjapanese\b|\bseoul\b|\btokyo\b|\b삼성\b|\b한국\b|\b일본\b|\b도쿄\b|\b서울\b/i.test(
+    /\bkorea\b|\bkorean\b|\bjapan\b|\bjapanese\b|\btaiwan\b|\btaipei\b|\btsmc\b|\basean\b|\bindia\b|\bvietnam\b|\bindonesia\b|\bseoul\b|\btokyo\b|\b삼성\b|\b한국\b|\b일본\b|\b대만\b|\b인도\b|\b도쿄\b|\b서울\b/i.test(
       text,
     )
   ) {
     return "asia";
+  }
+  if (
+    /\bsaudi\b|\bu\.?a\.?e\.?\b|\bdubai\b|\bqatar\b|\baramco\b|\badnoc\b|\biran\b|\bisrael\b|\bhormuz\b|\b사우디\b|\b두바이\b|\b카타르\b|\b이란\b|\b이스라엘\b|\b호르무즈\b/i.test(
+      text,
+    )
+  ) {
+    return "other";
   }
   if (entities.some((e) => e.bloc === "us") && !/\bchina\b|\brussia\b|\beurope\b|\beu\b|\bkorea\b|\bjapan\b/i.test(text)) {
     return "us";
@@ -871,15 +910,23 @@ function buildFocusLabel(
     : null;
   const rivalry =
     US_CHINA_RIVALRY_RE.test(text) && (lang === "en" ? "US–China" : "미·중 경쟁");
+  const chinaIndustry =
+    isChinaIndustrialDevelopmentNews(text) &&
+    (lang === "en" ? "China industry" : "중국 산업");
   const choke = chokepointFocusTag(text, lang);
   const chokeTag = choke
     ? lang === "en"
       ? `Chokepoint · ${choke}`
       : `초크 · ${choke}`
     : null;
-  const parts = [koreaTag, chokeTag || undefined, rivalry || undefined, ...names, genreLabel].filter(
-    Boolean,
-  ) as string[];
+  const parts = [
+    koreaTag,
+    chokeTag || undefined,
+    rivalry || undefined,
+    chinaIndustry || undefined,
+    ...names,
+    genreLabel,
+  ].filter(Boolean) as string[];
   if (parts.length === 0) return undefined;
   return parts.join(" · ");
 }
@@ -920,6 +967,9 @@ function scoreLampCandidate(
     summaryLen >= 700 ? -28 : summaryLen >= 400 ? -16 : summaryLen >= 200 ? -6 : summaryLen >= 80 ? 0 : 30;
   const thinPenalty = summaryLen < 40 ? 40 : 0;
   const rivalryBonus = US_CHINA_RIVALRY_RE.test(blob) ? -22 : 0;
+  const chinaIndustryBonus = isChinaIndustrialDevelopmentNews(blob) ? -26 : 0;
+  const regionalPeerBonus =
+    KR_JP_TW_ECON_RE.test(blob) ? -18 : ASEAN_SA_MENA_ECON_RE.test(blob) ? -14 : 0;
   const opinionPenalty = isEconomyOpinionPiece(blob, item.publisher || item.source) ? 80 : 0;
   const hardBonus = isEconomyHardNews(blob, item.econGenre) ? -24 : 18;
   // 한국 soft — 비한국 강페널티 없음 (넓은 타깃)
@@ -961,19 +1011,22 @@ function scoreLampCandidate(
   // 다매체 중복(클러스터) — 여러 와이어가 같은 사건을 다룰수록 핫
   const clusterBonus =
     clusterSize >= 4 ? -30 : clusterSize >= 3 ? -20 : clusterSize >= 2 ? -12 : 0;
-  // news-stream hero 등급이 있으면 재사용
+  // news-stream hero 등급이 있으면 재사용 — 관심도 1순위
   const breakingBonus =
     typeof item.breakingGrade === "number"
       ? item.breakingGrade >= 8
-        ? -24
+        ? -40
         : item.breakingGrade >= 6
-          ? -14
+          ? -28
           : item.breakingGrade >= 4
-            ? -6
+            ? -14
             : 0
       : typeof item.urgencyScore === "number"
-        ? Math.max(-20, -Math.round(item.urgencyScore / 5))
+        ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
+  // 이미지 있으면 soft 가산(필수는 아님 — 폴백 썸네일)
+  const imageBonus =
+    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -6 : 0;
   // 초크는 유지하되 투자 부스트보다 약하게 (chokepointScoreBonus 결과 축소)
   const chokeRaw = chokepointScoreBonus(blob, "economy");
   const chokeBonus = chokeRaw < 0 ? Math.max(chokeRaw, -12) : chokeRaw;
@@ -995,6 +1048,8 @@ function scoreLampCandidate(
       depthScore +
       thinPenalty +
       rivalryBonus +
+      chinaIndustryBonus +
+      regionalPeerBonus +
       opinionPenalty +
       hardBonus +
       koreaBonus +
@@ -1004,6 +1059,7 @@ function scoreLampCandidate(
       freshnessBonus +
       clusterBonus +
       breakingBonus +
+      imageBonus +
       chokeBonus +
       chokeGenreBonus,
   };
@@ -1014,25 +1070,22 @@ function toFeatured(
   lang: "ko" | "en",
 ): LampFeaturedNews {
   const item = row.item;
+  const blob = `${item.title} ${item.summary ?? ""}`;
   return {
     id: item.id,
     title: item.title,
     summary: deepenSummary(item.summary, item.title),
-    imageUrl: item.imageUrl!.trim(),
+    imageUrl: normalizeLampImageUrl(item.imageUrl),
     link: item.link,
     source: item.publisher || item.source,
     trustTier: item.trustTier,
-    focusLabel: buildFocusLabel(
-      `${item.title} ${item.summary ?? ""}`,
-      item.econGenre,
-      lang,
-    ),
+    focusLabel: buildFocusLabel(blob, item.econGenre, lang),
   };
 }
 
 /**
- * 지경학 등불 — 투자·거시·기업·지경학 하드뉴스(넓은 타깃군).
- * 칼럼·사설·오피니언 제외. 사진 필수. 한국은 soft 보너스만.
+ * 지경학 등불 — 관심도(속보·당일·클러스터) 우선.
+ * 지역·축 할당은 관심도 상위 풀 안에서만 soft 채움. 썸네일 폴백으로 사진 없어도 카드 유지.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1040,20 +1093,20 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  const withImage = items.filter((item) => {
-    if (typeof item.imageUrl !== "string" || item.imageUrl.trim().length <= 8) return false;
+  // 사진 필수 해제 — 관심도 높은 기사 + 폴백 썸네일
+  const pool = items.filter((item) => {
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
     return true;
   });
 
   const clusterMap = new Map<string, number>();
-  for (const item of withImage) {
+  for (const item of pool) {
     const key = item.clusterId || lampClusterKey(item.title);
     clusterMap.set(key, (clusterMap.get(key) ?? 0) + 1);
   }
 
-  const scored = withImage
+  const scored = pool
     .map((item) => {
       const key = item.clusterId || lampClusterKey(item.title);
       return scoreLampCandidate(item, clusterMap.get(key) ?? 1);
@@ -1065,6 +1118,9 @@ export function pickEconomyLampNews(
   const seenEntity = new Set<string>();
   const seenClusters = new Set<string>();
   const genreCounts = new Map<string, number>();
+
+  /** 관심도 상위 풀 — 할당은 이 안에서만 (약한 기사로 채우지 않음) */
+  const interestPool = scored.slice(0, Math.max(target * 3, 18));
 
   const chokeGenreCount = (): number =>
     (genreCounts.get("shipping") ?? 0) + (genreCounts.get("energy") ?? 0);
@@ -1110,6 +1166,20 @@ export function pickEconomyLampNews(
     return true;
   };
 
+  const softFill = (
+    predicate: (row: ScoredLampNews) => boolean,
+    already: (n: LampFeaturedNews) => boolean,
+    min: number,
+  ) => {
+    let filled = out.filter(already).length;
+    if (filled >= min) return;
+    for (const row of interestPool) {
+      if (out.length >= target || filled >= min) break;
+      if (!predicate(row)) continue;
+      if (tryPush(row)) filled += 1;
+    }
+  };
+
   const audience = scored.filter((row) =>
     isEconomyLampAudienceRelevant(
       `${row.item.title} ${row.item.summary ?? ""}`,
@@ -1118,7 +1188,7 @@ export function pickEconomyLampNews(
     ),
   );
 
-  // 1) 넓은 타깃군 (투자·거시·기업·미중·한국 soft)
+  // 1) 관심도 상위 · 넓은 타깃군
   for (const row of audience) {
     if (out.length >= target) break;
     tryPush(row);
@@ -1132,30 +1202,34 @@ export function pickEconomyLampNews(
     }
   }
 
-  // 3) 초크포인트 — 최소 슬롯만
-  const chokeEcon = scored.filter((row) =>
-    isChokepointEconomyNews(`${row.item.title} ${row.item.summary ?? ""}`),
+  // 3~6) soft 다양성 — 관심도 풀 안에서만 (부족해도 약한 기사로 억지 채움 금지)
+  softFill(
+    (row) => isChokepointEconomyNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isChokepointNews(`${n.title} ${n.summary}`),
+    ECONOMY_LAMP_CHOKE_MIN,
   );
-  const chokeAny = scored.filter((row) =>
-    isChokepointNews(`${row.item.title} ${row.item.summary ?? ""}`),
+  softFill(
+    (row) => isChokepointNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isChokepointNews(`${n.title} ${n.summary}`),
+    ECONOMY_LAMP_CHOKE_MIN,
   );
-  let chokeFilled = out.filter((n) =>
-    isChokepointNews(`${n.title} ${n.summary}`),
-  ).length;
-  if (chokeFilled < ECONOMY_LAMP_CHOKE_MIN) {
-    for (const row of chokeEcon) {
-      if (out.length >= target || chokeFilled >= ECONOMY_LAMP_CHOKE_MIN) break;
-      if (tryPush(row, true)) chokeFilled += 1;
-    }
-  }
-  if (chokeFilled < ECONOMY_LAMP_CHOKE_MIN) {
-    for (const row of chokeAny) {
-      if (out.length >= target || chokeFilled >= ECONOMY_LAMP_CHOKE_MIN) break;
-      if (tryPush(row, true)) chokeFilled += 1;
-    }
-  }
+  softFill(
+    (row) => isChinaEconomyWarOrIndustryNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isChinaEconomyWarOrIndustryNews(`${n.title} ${n.summary}`),
+    ECONOMY_LAMP_CHINA_INDUSTRY_MIN,
+  );
+  softFill(
+    (row) => KR_JP_TW_ECON_RE.test(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => KR_JP_TW_ECON_RE.test(`${n.title} ${n.summary}`),
+    ECONOMY_LAMP_KR_JP_TW_MIN,
+  );
+  softFill(
+    (row) => ASEAN_SA_MENA_ECON_RE.test(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => ASEAN_SA_MENA_ECON_RE.test(`${n.title} ${n.summary}`),
+    ECONOMY_LAMP_ASEAN_SA_MENA_MIN,
+  );
 
-  // 4) 부족 시 relax
+  // 7) 부족 시 점수순으로만 채움 (오피니언만 완화)
   if (out.length < target) {
     for (const row of scored) {
       if (out.length >= target) break;
@@ -1290,7 +1364,7 @@ const ECONOMY_OPINION_RE =
 
 /** 지경학 — 기업·거시·지리경제 하드뉴스 */
 const ECONOMY_HARD_NEWS_RE =
-  /earnings|revenue|profit|guidance|gdp|inflation|cpi|ppi|interest\s?rate|policy\s?rate|tariff|sanction|export|import|trade\s?surplus|fdi|investment|m&a|merger|acquisition|supply\s?chain|semiconductor|chip|foundry|factory|plant|capex|bond|yield|won\b|oil|crude|brent|freight|shipping|lng|hormuz|suez|malacca|red\s?sea|환율|실적|매출|영업이익|gdp|성장률|물가|금리|관세|제재|수출|수입|무역|투자|인수|합병|공급망|반도체|공장|설비투자|원화|환율|지정학\s?리스크|지리경제|geoeconom|유가|원유|운임|해운|호르무즈|수에즈/i;
+  /earnings|revenue|profit|guidance|gdp|inflation|cpi|ppi|interest\s?rate|policy\s?rate|tariff|sanction|export|import|trade\s?surplus|fdi|investment|m&a|merger|acquisition|supply\s?chain|semiconductor|chip|foundry|factory|plant|capex|bond|yield|won\b|oil|crude|brent|freight|shipping|lng|hormuz|suez|malacca|red\s?sea|industrial\s?policy|made\s?in\s?china|new\s?productive\s?forces|advanced\s?manufacturing|shipbuilding|photovoltaic|환율|실적|매출|영업이익|gdp|성장률|물가|금리|관세|제재|수출|수입|무역|투자|인수|합병|공급망|반도체|공장|설비투자|원화|환율|지정학\s?리스크|지리경제|geoeconom|유가|원유|운임|해운|호르무즈|수에즈|중국\s?제조|신질\s?생산력|산업정책|첨단\s?제조/i;
 
 function mentionsSouthKorea(text: string): boolean {
   if (SOUTH_KOREA_MENTION_RE.test(text)) return true;
@@ -1329,7 +1403,7 @@ function isAdversaryKoreaSingledOut(text: string): boolean {
   return adversaryNearKorea || (pressure && ADVERSARY_KOREA_SPEAKER_RE.test(text));
 }
 
-/** 지경학 등불 — 넓은 타깃군 (투자·거시·기업·미중·한국 soft) */
+/** 지경학 등불 — 넓은 타깃군 (투자·거시·기업·미중·중국 산업·한국 soft) */
 function isEconomyLampAudienceRelevant(
   text: string,
   entities: ReturnType<typeof matchedFocusEntities>,
@@ -1338,11 +1412,32 @@ function isEconomyLampAudienceRelevant(
   if (entities.length > 0) return true;
   if (ECONOMY_INVEST_RE.test(text)) return true;
   if (US_CHINA_RIVALRY_RE.test(text)) return true;
+  if (isChinaIndustrialDevelopmentNews(text)) return true;
+  if (KR_JP_TW_ECON_RE.test(text)) return true;
+  if (ASEAN_SA_MENA_ECON_RE.test(text)) return true;
   if (mentionsSouthKorea(text)) return true;
-  if (genre === "macro" || genre === "markets" || genre === "chips" || genre === "tech") {
+  if (genre === "macro" || genre === "markets" || genre === "chips" || genre === "tech" || genre === "infra") {
     return isEconomyHardNews(text, genre);
   }
   return false;
+}
+
+function isChinaIndustrialDevelopmentNews(text: string): boolean {
+  if (!/\bchina\b|\bchinese\b|\bbeijing\b|\b중국\b|\b베이징\b/i.test(text)) return false;
+  if (CHINA_INDUSTRIAL_RE.test(text)) return true;
+  // 중국 챔피언 + 생산·수출·설비 맥락
+  return (
+    /\b(huawei|alibaba|tencent|bytedance|smic|catl|byd|xiaomi|crrc|longi|nio|xpeng|li\s?auto|화웨이|알리바바|텐센트|샤오미)\b/i.test(
+      text,
+    ) &&
+    /\b(factory|plant|production|export|capacity|manufactur|chip|ev\b|battery|solar|robot|AI|공장|생산|수출|설비|반도체|전기차|배터리|태양광|로봇)\b/i.test(
+      text,
+    )
+  );
+}
+
+function isChinaEconomyWarOrIndustryNews(text: string): boolean {
+  return US_CHINA_RIVALRY_RE.test(text) || isChinaIndustrialDevelopmentNews(text);
 }
 
 function isEconomyOpinionPiece(text: string, source?: string): boolean {
@@ -1543,6 +1638,13 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
   // 적대 콕집힘 soft만 — 비한국 강페널티·일반 한국 언급 대폭 가산 제거
   const adversaryKorea = isAdversaryKoreaSingledOut(blob);
   const koreaBonus = adversaryKorea ? -36 : mentionsSouthKorea(blob) ? -4 : 0;
+  // 일본·인도태평양 안보 하드뉴스 — 중동·러우에 밀리지 않도록 가산
+  const japanHard =
+    theater === "japan" &&
+    /defense|military|security|missile|senkaku|okinawa|sdf|alliance|aukus|quad|pla|china|north\s?korea|국방|안보|미사일|센카쿠|오키나와|동맹|자위대/i.test(
+      blob,
+    );
+  const japanBonus = japanHard ? -14 : theater === "japan" ? -6 : 0;
   // 아태·남아시아·북극·대서양을 중동·러우와 동급으로
   const theaterBonus =
     theater === "middle-east" ||
@@ -1569,15 +1671,17 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
   const breakingBonus =
     typeof item.breakingGrade === "number"
       ? item.breakingGrade >= 8
-        ? -24
+        ? -40
         : item.breakingGrade >= 6
-          ? -14
+          ? -28
           : item.breakingGrade >= 4
-            ? -6
+            ? -14
             : 0
       : typeof item.urgencyScore === "number"
-        ? Math.max(-20, -Math.round(item.urgencyScore / 5))
+        ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
+  const imageBonus =
+    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -6 : 0;
   // Tier3 단독·짧은 본문은 가혹하게
   const tier3Thin =
     item.trustTier === 3 && clusterSize < 2 && summaryLen < 300 ? 35 : 0;
@@ -1596,10 +1700,12 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       softDiplomacyPenalty +
       softPenalty +
       koreaBonus +
+      japanBonus +
       theaterBonus +
       freshnessBonus +
       clusterBonus +
       breakingBonus +
+      imageBonus +
       tier3Thin +
       chokeBonus,
   };
@@ -1632,7 +1738,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
     id: item.id,
     title: item.title,
     summary: deepenSummary(item.summary, item.title),
-    imageUrl: item.imageUrl!.trim(),
+    imageUrl: normalizeLampImageUrl(item.imageUrl),
     link: item.link,
     source: item.publisher || item.source,
     trustTier: item.trustTier,
@@ -1643,9 +1749,8 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 전역 전장·외교 하드뉴스 본체.
- * 적대 행위자가 한국을 콕 집는 기사만 최대 2슬롯 soft 우선. 동맹 화자 제외.
- * 사진 필수 · 고신뢰.
+ * 지정학 등불 — 관심도 우선 전역 하드뉴스.
+ * 적대→한국 콕집힘은 soft 우선(최대 2). 썸네일 폴백으로 사진 없어도 카드 유지.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -1653,22 +1758,22 @@ export function pickConflictLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, CONFLICT_LAMP_NEWS_MIN);
-  const withImage = items.filter(
-    (item) => typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8,
-  );
+  const pool = items;
 
   const clusterMap = new Map<string, number>();
-  for (const item of withImage) {
+  for (const item of pool) {
     const key = item.clusterId || lampClusterKey(item.title);
     clusterMap.set(key, (clusterMap.get(key) ?? 0) + 1);
   }
 
-  const scored = withImage
+  const scored = pool
     .map((item) => {
       const key = item.clusterId || lampClusterKey(item.title);
       return scoreConflictCandidate(item, clusterMap.get(key) ?? 1);
     })
     .sort((a, b) => a.score - b.score);
+
+  const interestPool = scored.slice(0, Math.max(target * 3, 24));
 
   const out: LampFeaturedNews[] = [];
   const seenLinks = new Set<string>();
@@ -1702,6 +1807,20 @@ export function pickConflictLampNews(
     return true;
   };
 
+  const softFill = (
+    predicate: (row: ScoredConflictNews) => boolean,
+    already: (n: LampFeaturedNews) => boolean,
+    min: number,
+  ) => {
+    let filled = out.filter(already).length;
+    if (filled >= min) return;
+    for (const row of interestPool) {
+      if (out.length >= target || filled >= min) break;
+      if (!predicate(row)) continue;
+      if (tryPush(row)) filled += 1;
+    }
+  };
+
   const singledOut = scored.filter((row) =>
     isAdversaryKoreaSingledOut(`${row.item.title} ${row.item.summary ?? ""}`),
   );
@@ -1713,7 +1832,7 @@ export function pickConflictLampNews(
     tryPush(row);
   }
 
-  // 2) 전역 하드뉴스 본체 (점수순)
+  // 2) 전역 하드뉴스 본체 (점수순 = 관심도)
   if (out.length < target) {
     for (const row of scored) {
       if (out.length >= target) break;
@@ -1721,30 +1840,22 @@ export function pickConflictLampNews(
     }
   }
 
-  // 3) 초크포인트 — 해협·운하·봉쇄 축 확보
-  const chokeSec = scored.filter((row) =>
-    isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
+  // 3) soft 다양성 — 관심도 풀 안
+  const japanIds = new Set(
+    scored.filter((row) => row.theater === "japan").map((row) => row.item.id),
   );
-  const chokeAny = scored.filter((row) =>
-    isChokepointNews(`${row.item.title} ${row.item.summary ?? ""}`),
+  softFill(
+    (row) => row.theater === "japan",
+    (n) => japanIds.has(n.id),
+    CONFLICT_LAMP_JAPAN_MIN,
   );
-  let chokeFilled = out.filter((n) =>
-    isChokepointNews(`${n.title} ${n.summary}`),
-  ).length;
-  if (chokeFilled < CONFLICT_LAMP_CHOKE_MIN) {
-    for (const row of chokeSec) {
-      if (out.length >= target || chokeFilled >= CONFLICT_LAMP_CHOKE_MIN) break;
-      if (tryPush(row)) chokeFilled += 1;
-    }
-  }
-  if (chokeFilled < CONFLICT_LAMP_CHOKE_MIN) {
-    for (const row of chokeAny) {
-      if (out.length >= target || chokeFilled >= CONFLICT_LAMP_CHOKE_MIN) break;
-      if (tryPush(row, true)) chokeFilled += 1;
-    }
-  }
+  softFill(
+    (row) => isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isChokepointSecurityNews(`${n.title} ${n.summary}`),
+    CONFLICT_LAMP_CHOKE_MIN,
+  );
 
-  // 4) 부족 시 relax (한국 전용 패스 없음)
+  // 4) 부족 시 relax
   if (out.length < target) {
     for (const row of scored) {
       if (out.length >= target) break;

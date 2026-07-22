@@ -89,6 +89,21 @@ export type IngestEnv = {
   UKMTO_INGEST_ENABLED?: string;
   /** 최소 재폴링 간격(분) — 예의상 여유 있게, 기본 30 */
   UKMTO_POLL_MIN_INTERVAL_MINUTES?: string;
+  /**
+   * JHOD NAVAREA XI 공개 TXT.
+   * 기본 https://www1.kaiho.mlit.go.jp/TUHO/freetext/NavareaXI.txt
+   * "off" 이면 JHOD 피드 스킵
+   */
+  NAVAREA_JHOD_XI_URL?: string;
+  /**
+   * NGA NAVAREA TXT URL 목록 (콤마 구분).
+   * 예: https://.../navarea_iv.txt,https://.../navarea_xii.txt
+   */
+  NAVAREA_NGA_TXT_URLS?: string;
+  /** "false"/"0" 이면 NAVAREA 인제스트 비활성 */
+  NAVAREA_INGEST_ENABLED?: string;
+  /** 최소 재폴링 간격(분) — 정부 TXT 예의상 15~30, 기본 30 */
+  NAVAREA_POLL_MIN_INTERVAL_MINUTES?: string;
 };
 
 export type FirmsFireRow = {

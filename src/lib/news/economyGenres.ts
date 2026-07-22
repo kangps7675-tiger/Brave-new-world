@@ -59,7 +59,7 @@ const GENRE_HINTS: Record<LabelLanguage, Record<EconomyNewsGenre, string>> = {
     energy: "Exxon · Shell · Aramco · Chevron · OPEC · LNG",
     shipping: "Maersk · COSCO · 운임 · 호르무즈 · 수에즈 · 말라카 · 홍해",
     infra: "희토류 · 해저케이블 · 데이터센터 · FDI",
-    macro: "연준 · ECB · 관세 · 제재 · IMF",
+    macro: "연준 · ECB · 관세 · 제재 · IMF · 미중 · 중국 산업",
     markets: "Reuters · WSJ · CNBC · FT · 지수·속보",
   },
   en: {
@@ -68,8 +68,8 @@ const GENRE_HINTS: Record<LabelLanguage, Record<EconomyNewsGenre, string>> = {
     auto: "Tesla · BYD · Toyota · Hyundai · CATL · batteries",
     energy: "Exxon · Shell · Aramco · Chevron · OPEC · LNG · Hormuz oil",
     shipping: "Maersk · COSCO · freight · Hormuz · Suez · Malacca · Red Sea",
-    infra: "Rare earths · subsea cables · data centers · FDI",
-    macro: "Fed · ECB · tariffs · sanctions · IMF",
+    infra: "Rare earths · subsea cables · data centers · FDI · China industry",
+    macro: "Fed · ECB · tariffs · sanctions · IMF · US–China · China industry",
     markets: "Reuters · WSJ · CNBC · FT · indices",
   },
 };

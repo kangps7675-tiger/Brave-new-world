@@ -163,7 +163,6 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showWarZones: true,
       showGdeltWar: true,
       showGdeltDiplomatic: true,
-      showGdeltAlliance: true,
       showGdeltProtests: true,
       showGdeltOceanCompetition: true,
       showMilitaryActivity: true,
@@ -219,6 +218,7 @@ export const DEFAULT_PACKAGE_SELECTION: ViewPackageId[] = [RECOMMENDED_PACKAGE_I
 export const VIEW_THEATER_OPTIONS: Array<{ id: ViewTheaterChoice; label: string }> = [
   { id: "auto", label: "자동" },
   { id: "korea", label: "한반도" },
+  { id: "japan", label: "일본" },
   { id: "china-taiwan", label: "대만" },
   { id: "russia-ukraine", label: "우크라" },
   { id: "middle-east", label: "중동" },
@@ -261,6 +261,8 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showGdeltWar: "뉴스 · 전투·충돌",
   showGdeltDiplomatic: "뉴스 · 외교 긴장",
   showGdeltAlliance: "뉴스 · 동맹 갈등",
+  showUkmtoIncidents: "UKMTO 상선 피습·나포 경보",
+  showNavareaWarnings: "NAVAREA 항행경보",
   showGdeltProtests: "뉴스 · 시위",
   showGdeltOceanCompetition: "뉴스 · 대양 경쟁",
   showTelegramOsint: "텔레그램 전장 소식",
@@ -385,6 +387,7 @@ function resolveAutoTheaterNavId(
 ): string | null {
   if (!ids.includes("frontline-live")) return null;
   if (theater === "korea") return "korea";
+  if (theater === "japan") return "senkaku";
   if (theater === "china-taiwan") return "taiwan";
   if (theater === "russia-ukraine") return "ukraine";
   if (theater === "middle-east") return "middle-east";

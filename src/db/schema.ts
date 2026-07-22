@@ -500,6 +500,33 @@ export const ukmtoIncidents = sqliteTable(
 );
 
 /**
+ * NAVAREA in-force 경고 (JHOD / NGA TXT → cron 스냅샷 교체).
+ * id = `{region}-{yy}-{num}` (예: XI-26-0330, IV-26-0695).
+ */
+export const navareaFeatures = sqliteTable(
+  "navarea_features",
+  {
+    id: text("id").primaryKey(),
+    region: text("region").notNull(),
+    source: text("source").notNull(),
+    warningDate: text("warning_date").notNull(),
+    areaHint: text("area_hint"),
+    description: text("description").notNull(),
+    geometryType: text("geometry_type").notNull(),
+    geojson: text("geojson").notNull(),
+    radiusNm: real("radius_nm"),
+    lat: real("lat"),
+    lng: real("lng"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    regionIdx: index("idx_navarea_region").on(t.region),
+    dateIdx: index("idx_navarea_date").on(t.warningDate),
+    geoIdx: index("idx_navarea_geo").on(t.lat, t.lng),
+  }),
+);
+
+/**
  * 게스트 일일 예측 — 내일 긴장도 1위 전장 고르기 / 긴장도 UP·DOWN.
  * PK (target_date, kind, device_id) — 하루 1표 upsert.
  */
@@ -737,3 +764,5 @@ export type LivingTimelineEntryRow = typeof livingTimelineEntries.$inferSelect;
 export type NewLivingTimelineEntryRow = typeof livingTimelineEntries.$inferInsert;
 export type UkmtoIncidentRow = typeof ukmtoIncidents.$inferSelect;
 export type NewUkmtoIncidentRow = typeof ukmtoIncidents.$inferInsert;
+export type NavareaFeatureRow = typeof navareaFeatures.$inferSelect;
+export type NewNavareaFeatureRow = typeof navareaFeatures.$inferInsert;

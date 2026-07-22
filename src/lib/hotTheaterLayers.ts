@@ -63,13 +63,26 @@ export const RED_SEA_HOUTHI_STACK: HotTheaterLayerPatch = {
   showMilitaryActivity: true,
   showWarZones: true,
   showUkmtoIncidents: true,
+  showNavareaWarnings: true,
 };
+
+/**
+ * 2026 기준 지정학 입구 최우선 해상 위협:
+ * 호르무즈 위기 이후 홍해·바브엘만데브가 가장 위태로운 항로.
+ */
+export const CONFLICT_ENTRY_MARITIME_FLY = ENTITY_FLY["choke-bab-el-mandeb"]!;
 
 const RED_SEA_CHOKE_IDS = new Set([
   "choke-bab-el-mandeb",
   "choke-suez",
   "choke-hormuz",
 ]);
+
+const MARITIME_CHOKE_PRIORITY = [
+  "choke-bab-el-mandeb",
+  "choke-hormuz",
+  "choke-suez",
+] as const;
 
 function theaterToConcept(
   entityId: string,
@@ -87,27 +100,31 @@ function isRedSeaHot(chokepoints: DailyRankEntry[]): boolean {
   );
 }
 
-function pickFly(
-  theaterId: string | null,
-  chokeId: string | null,
-  redSeaChokeHot: boolean,
-): { lat: number; lng: number; altitude: number } | null {
-  // 홍해 초크가 실제로 뜨거울 때만 바브엘만데브 우선
-  if (redSeaChokeHot && chokeId === "choke-bab-el-mandeb") {
-    return ENTITY_FLY["choke-bab-el-mandeb"] ?? null;
+function pickPriorityMaritimeChoke(
+  chokepoints: DailyRankEntry[],
+): string | null {
+  for (const id of MARITIME_CHOKE_PRIORITY) {
+    if (chokepoints.some((c) => c.entityId === id && c.rank <= 5)) return id;
   }
-  if (redSeaChokeHot && chokeId && ENTITY_FLY[chokeId]) {
-    return ENTITY_FLY[chokeId];
-  }
-  if (chokeId === "choke-hormuz") return ENTITY_FLY["choke-hormuz"];
-  if (theaterId && ENTITY_FLY[theaterId]) return ENTITY_FLY[theaterId];
-  if (chokeId && ENTITY_FLY[chokeId]) return ENTITY_FLY[chokeId];
+  const top = chokepoints[0];
+  if (top && RED_SEA_CHOKE_IDS.has(top.entityId)) return top.entityId;
   return null;
+}
+
+function pickFly(
+  priorityMaritimeId: string | null,
+): { lat: number; lng: number; altitude: number } {
+  // 지정학 입구: 대만·우크라 전장보다 해상 초크를 항상 먼저
+  if (priorityMaritimeId && ENTITY_FLY[priorityMaritimeId]) {
+    return ENTITY_FLY[priorityMaritimeId];
+  }
+  return CONFLICT_ENTRY_MARITIME_FLY;
 }
 
 /**
  * daily-ranks 응답 → ON-only 레이어 패치 + 카메라 후보.
  * OFF는 건드리지 않음(유저가 켠 다른 레이어 유지).
+ * 지정학에서는 홍해·호르무즈 해상 위협을 최우선으로 연다.
  */
 export function resolveHotTheaterFocus(
   ranks: Pick<DailyRanksPayload, "theater" | "chokepoint">,
@@ -116,12 +133,23 @@ export function resolveHotTheaterFocus(
   const chokepoints = ranks.chokepoint ?? [];
   const topTheater = theaters[0] ?? null;
   const topChoke = chokepoints[0] ?? null;
-  if (!topTheater && !topChoke) return null;
+  if (!topTheater && !topChoke) {
+    // ranks 비어도 지정학 입구용 기본 해상 위협 포커스
+    return {
+      theaterId: "middle-east",
+      chokeId: "choke-bab-el-mandeb",
+      patch: { ...RED_SEA_HOUTHI_STACK },
+      fly: CONFLICT_ENTRY_MARITIME_FLY,
+      labelKo: "홍해·바브엘만데브 해상 위협",
+      labelEn: "Red Sea · Bab el-Mandeb maritime threat",
+    };
+  }
 
   const theaterId = topTheater?.entityId ?? null;
   const chokeId = topChoke?.entityId ?? null;
   const redSeaChokeHot = isRedSeaHot(chokepoints);
   const middleEastHot = theaterId === "middle-east";
+  const priorityMaritimeId = pickPriorityMaritimeChoke(chokepoints);
 
   let patch: HotTheaterLayerPatch = {};
   const concept = theaterId ? theaterToConcept(theaterId) : null;
@@ -135,29 +163,44 @@ export function resolveHotTheaterFocus(
     };
   }
 
-  // 홍해·후티 회랑(초크 TOP3) 또는 중동 전장 1위 → 항로·FIRMS·NewFeeds 보강
-  if (redSeaChokeHot || middleEastHot) {
-    patch = { ...patch, ...RED_SEA_HOUTHI_STACK };
-  }
+  // 지정학 핫 포커스: 홍해·해상 위협 스택을 항상 먼저 연다
+  patch = { ...patch, ...RED_SEA_HOUTHI_STACK };
 
-  if (chokeId === "choke-hormuz" || middleEastHot) {
+  if (
+    chokeId === "choke-hormuz" ||
+    priorityMaritimeId === "choke-hormuz" ||
+    middleEastHot
+  ) {
     patch = { ...patch, showNewfeedsIranAttacks: true, showFirmsFires: true };
   }
 
+  const flyChokeId = priorityMaritimeId || "choke-bab-el-mandeb";
   const labelKo =
-    redSeaChokeHot && middleEastHot
-      ? "중동·홍해 핫존"
-      : topTheater?.labelKo || topChoke?.labelKo || "핫 전장";
+    flyChokeId === "choke-bab-el-mandeb"
+      ? "홍해·바브엘만데브 해상 위협"
+      : flyChokeId === "choke-hormuz"
+        ? "호르무즈 해협 해상 위협"
+        : flyChokeId === "choke-suez"
+          ? "수에즈·홍해 회랑"
+          : redSeaChokeHot && middleEastHot
+            ? "중동·홍해 핫존"
+            : topTheater?.labelKo || topChoke?.labelKo || "핫 전장";
   const labelEn =
-    redSeaChokeHot && middleEastHot
-      ? "Middle East · Red Sea hot zone"
-      : topTheater?.labelEn || topChoke?.labelEn || "Hot theater";
+    flyChokeId === "choke-bab-el-mandeb"
+      ? "Red Sea · Bab el-Mandeb maritime threat"
+      : flyChokeId === "choke-hormuz"
+        ? "Strait of Hormuz maritime threat"
+        : flyChokeId === "choke-suez"
+          ? "Suez · Red Sea corridor"
+          : redSeaChokeHot && middleEastHot
+            ? "Middle East · Red Sea hot zone"
+            : topTheater?.labelEn || topChoke?.labelEn || "Hot theater";
 
   return {
     theaterId,
-    chokeId,
+    chokeId: flyChokeId,
     patch,
-    fly: pickFly(theaterId, chokeId, redSeaChokeHot),
+    fly: pickFly(priorityMaritimeId),
     labelKo,
     labelEn,
   };

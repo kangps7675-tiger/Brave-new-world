@@ -25,6 +25,7 @@ const CTA_BY_THEATER: Partial<Record<NewsTheater, string>> = {
   "middle-east": "중동 전선을 자세히 보려면 이 버튼을 누르세요",
   "china-taiwan": "대만해협·남중국해를 자세히 보려면 이 버튼을 누르세요",
   korea: "DMZ·한반도 전선을 자세히 보려면 이 버튼을 누르세요",
+  japan: "센카쿠·오키나와·인도태평양 전장을 자세히 보려면 이 버튼을 누르세요",
 };
 
 /** nav id → NavSelection (허브·주장·기존 전장 모두) */

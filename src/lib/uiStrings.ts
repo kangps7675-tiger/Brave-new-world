@@ -514,11 +514,15 @@ export function theaterLabel(theater: NewsTheater, lang: LabelLanguage): string 
 
 export const VIEW_THEATER_LABELS: Record<
   LabelLanguage,
-  Record<"auto" | "korea" | "china-taiwan" | "russia-ukraine" | "middle-east" | "global", string>
+  Record<
+    "auto" | "korea" | "japan" | "china-taiwan" | "russia-ukraine" | "middle-east" | "global",
+    string
+  >
 > = {
   ko: {
     auto: "자동",
     korea: "한반도",
+    japan: "일본",
     "china-taiwan": "대만",
     "russia-ukraine": "우크라",
     "middle-east": "중동",
@@ -527,6 +531,7 @@ export const VIEW_THEATER_LABELS: Record<
   en: {
     auto: "Auto",
     korea: "Korea",
+    japan: "Japan",
     "china-taiwan": "Taiwan",
     "russia-ukraine": "Ukraine",
     "middle-east": "Middle East",

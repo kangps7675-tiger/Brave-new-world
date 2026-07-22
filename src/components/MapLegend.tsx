@@ -57,11 +57,6 @@ export function MapLegend({
         glowColor="rgba(251, 146, 60, 0.42)"
       />
       <LegendDotSwatch
-        tier="alliance"
-        label={t("legendAlliance")}
-        detail={t("legendAllianceDetail")}
-      />
-      <LegendDotSwatch
         tier="protest"
         label={t("legendProtest")}
         detail={t("legendProtestDetail")}
