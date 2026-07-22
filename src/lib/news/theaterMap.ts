@@ -13,6 +13,7 @@ export const THEATER_CHIP_ORDER: NewsTheater[] = [
   "russia-ukraine",
   "china-taiwan",
   "korea",
+  "japan",
   "global",
 ];
 

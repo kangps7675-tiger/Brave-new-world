@@ -118,6 +118,13 @@ import {
   markAirRaidFlyBriefDone,
   shouldOfferAirRaidFlyBrief,
 } from "@/components/AirRaidOfferBanner";
+import { MaritimeAlertOfferBanner, type MaritimeAlertOffer } from "@/components/MaritimeAlertOfferBanner";
+import {
+  buildNavareaBriefingContent,
+  isSecurityCriticalNavarea,
+  isUkmtoOfferWorthy,
+  type NavareaBriefingContent,
+} from "@/lib/navareaSecurity";
 import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import {
   inferIsraelApproachHint,
@@ -258,6 +265,7 @@ import {
   liveTelegramSyncPollMs,
   liveTzevaPollMs,
   liveNewfeedsPollMs,
+  liveNavareaPollMs,
   liveUsCarriersPollMs,
   shouldDeferLiveNetworkRefresh,
 } from "@/lib/liveRenderGuard";
@@ -285,6 +293,12 @@ import {
   type UkmtoBriefingContent,
   type UkmtoIncidentPoint,
 } from "@/lib/ukmtoHatch";
+import {
+  findNavareaFeature,
+  navareaFeaturesToPaths,
+  parseNavareaApiPayload,
+  type NavareaFeaturePoint,
+} from "@/lib/navareaHatch";
 import {
   localizeNewfeedsCategory,
   localizeNewfeedsLocation,
@@ -407,6 +421,7 @@ import {
   hotTheaterSessionConsumed,
   markHotTheaterSessionApplied,
   resolveHotTheaterFocus,
+  CONFLICT_ENTRY_MARITIME_FLY,
 } from "@/lib/hotTheaterLayers";
 import {
   airRaidBriefingLayers,
@@ -986,6 +1001,20 @@ export function GlobeDashboard({
   const [ukmtoStatus, setUkmtoStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [ukmtoBriefing, setUkmtoBriefing] = useState<UkmtoBriefingContent | null>(null);
   const ukmtoBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** NAVAREA in-force — 보라 폴리곤, cron D1 스냅샷 */
+  const [navareaFeatures, setNavareaFeatures] = useState<NavareaFeaturePoint[]>([]);
+  const [navareaStatus, setNavareaStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const [navareaBriefing, setNavareaBriefing] = useState<NavareaBriefingContent | null>(null);
+  const navareaBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 안보 직결 해상 경보 — 동의 창 (NAVAREA 훈련·미사일 / UKMTO 피습) */
+  const [maritimeOffer, setMaritimeOffer] = useState<MaritimeAlertOffer | null>(null);
+  const maritimeOfferPayloadRef = useRef<{
+    source: "navarea" | "ukmto";
+    navarea?: NavareaFeaturePoint;
+    ukmto?: UkmtoIncidentPoint;
+  } | null>(null);
+  const seenMaritimeAlertKeysRef = useRef<Set<string> | null>(null);
+  const maritimeOfferBusyRef = useRef(false);
   /** 공습사이렌 포커스 — 사각 틀 없이 해당 지역 빗금만 */
   const [airRaidFocusPaths, setAirRaidFocusPaths] = useState<TransportPath[]>([]);
   const [airRaidFocusBox, setAirRaidFocusBox] = useState<AirRaidFocusBox | null>(null);
@@ -1335,6 +1364,7 @@ export function GlobeDashboard({
     showTzevaAdom,
     showNewfeedsIranAttacks,
     showUkmtoIncidents,
+    showNavareaWarnings,
     showChinaTaiwanIncidents,
     showChinaJapanIncidents,
     showChinaPhilippinesIncidents,
@@ -1469,6 +1499,7 @@ export function GlobeDashboard({
   const setShowTzevaAdom = (v: boolean) => togglePref("showTzevaAdom", v);
   const setShowNewfeedsIranAttacks = (v: boolean) => togglePref("showNewfeedsIranAttacks", v);
   const setShowUkmtoIncidents = (v: boolean) => togglePref("showUkmtoIncidents", v);
+  const setShowNavareaWarnings = (v: boolean) => togglePref("showNavareaWarnings", v);
   const setShowChinaTaiwanIncidents = (v: boolean) => togglePref("showChinaTaiwanIncidents", v);
   const setShowChinaJapanIncidents = (v: boolean) => togglePref("showChinaJapanIncidents", v);
   const setShowChinaPhilippinesIncidents = (v: boolean) =>
@@ -2793,6 +2824,12 @@ export function GlobeDashboard({
     return out;
   }, [showUkmtoIncidents, ukmtoIncidents]);
 
+  /** NAVAREA → 보라색 폴리곤/선 */
+  const navareaHatchPaths = useMemo<TransportPath[]>(() => {
+    if (!showNavareaWarnings || navareaFeatures.length === 0) return [];
+    return navareaFeaturesToPaths(navareaFeatures);
+  }, [showNavareaWarnings, navareaFeatures]);
+
   const rawGlobePaths = useMemo<TransportPath[]>(
     () => [
       ...visibleDisputeBoundaries,
@@ -2809,6 +2846,7 @@ export function GlobeDashboard({
       ...railPaths,
       ...armsEmbargoFramePaths,
       ...ukmtoHatchPaths,
+      ...navareaHatchPaths,
     ],
     [
       armsEmbargoFramePaths,
@@ -2820,6 +2858,7 @@ export function GlobeDashboard({
       frictionWarZonePaths,
       railPaths,
       ukmtoHatchPaths,
+      navareaHatchPaths,
       visibleCables,
       visibleDisputeBoundaries,
       visibleGasPipelines,
@@ -4686,6 +4725,26 @@ export function GlobeDashboard({
     }
 
     if (hoveredPath) {
+      const navareaHit = findNavareaFeature(navareaFeatures, hoveredPath);
+      if (navareaHit) {
+        const shortDesc =
+          navareaHit.description.length > 160
+            ? `${navareaHit.description.slice(0, 157)}…`
+            : navareaHit.description;
+        return {
+          kind: "path",
+          title: `NAVAREA ${navareaHit.region} · ${navareaHit.id}`,
+          detail:
+            labelLanguage === "en"
+              ? "In-force navigational warning"
+              : "항행경보 · 보라색 구역",
+          body: navareaHit.areaHint || shortDesc || undefined,
+          meta: [navareaHit.source.toUpperCase(), navareaHit.geometryType]
+            .filter(Boolean)
+            .join(" · "),
+          hint: labelLanguage === "en" ? "Click for brief" : "클릭 · 전보 브리프",
+        };
+      }
       const ukmtoHit = findUkmtoIncident(ukmtoIncidents, hoveredPath);
       if (ukmtoHit) {
         return {
@@ -4786,6 +4845,7 @@ export function GlobeDashboard({
     hoveredPolygon,
     labelLanguage,
     ukmtoIncidents,
+    navareaFeatures,
   ]);
 
   useEffect(() => {
@@ -5359,8 +5419,13 @@ export function GlobeDashboard({
     return () => window.clearInterval(timer);
   }, [globeReady, isEconomyViewer, refreshNewfeedsIran]);
 
-  const refreshUkmto = useCallback(async () => {
-    if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
+  const refreshUkmto = useCallback(async (opts?: { force?: boolean }) => {
+    if (
+      !opts?.force &&
+      shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)
+    ) {
+      return;
+    }
     setUkmtoStatus((prev) => (prev === "idle" ? "loading" : prev));
     try {
       const res = await fetch("/api/ukmto", { cache: "no-store" });
@@ -5376,6 +5441,7 @@ export function GlobeDashboard({
   /**
    * UKMTO — cron이 30분 최소 간격으로 상류를 찌르고 D1에 적재한 걸 클라이언트는 읽기만 함.
    * 원본이 며칠에 한 번꼴로 갱신되는 소스라 클라이언트 폴링도 넉넉하게(10분).
+   * 지정학 입구 fly 중에는 defer로 첫 페치가 스킵되지 않도록 force + idle 재시도.
    */
   useEffect(() => {
     if (!showUkmtoIncidents) {
@@ -5388,12 +5454,174 @@ export function GlobeDashboard({
       }
       return;
     }
-    void refreshUkmto();
+    void refreshUkmto({ force: true });
+    const retryMs = Math.max(ENTRY_GATE.zoomOutFlyMs, 1200) + 400;
+    const retryTimer = window.setTimeout(() => {
+      void refreshUkmto({ force: true });
+    }, retryMs);
     const timer = window.setInterval(() => {
       void refreshUkmto();
     }, 10 * 60 * 1000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(retryTimer);
+      window.clearInterval(timer);
+    };
   }, [refreshUkmto, showUkmtoIncidents]);
+
+  const refreshNavarea = useCallback(async (opts?: { force?: boolean }) => {
+    if (
+      !opts?.force &&
+      shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)
+    ) {
+      return;
+    }
+    setNavareaStatus((prev) => (prev === "idle" ? "loading" : prev));
+    try {
+      const res = await fetch("/api/navarea", { cache: "no-store" });
+      if (!res.ok) throw new Error(`navarea HTTP ${res.status}`);
+      const payload = await res.json();
+      setNavareaFeatures(parseNavareaApiPayload(payload));
+      setNavareaStatus("ok");
+    } catch {
+      setNavareaStatus("error");
+    }
+  }, []);
+
+  /**
+   * NAVAREA — cron 스냅샷을 뉴스 리듬으로 폴링 (liveNavareaPollMs).
+   * 최신 in-force 경고 위주 · 상류 TXT는 Worker 30분 스로틀.
+   */
+  useEffect(() => {
+    if (!showNavareaWarnings) {
+      setNavareaFeatures([]);
+      setNavareaStatus("idle");
+      return;
+    }
+    void refreshNavarea({ force: true });
+    const retryMs = Math.max(ENTRY_GATE.zoomOutFlyMs, 1200) + 400;
+    const retryTimer = window.setTimeout(() => {
+      void refreshNavarea({ force: true });
+    }, retryMs);
+    const timer = window.setInterval(() => {
+      void refreshNavarea();
+    }, liveNavareaPollMs());
+    return () => {
+      window.clearTimeout(retryTimer);
+      window.clearInterval(timer);
+    };
+  }, [refreshNavarea, showNavareaWarnings]);
+
+  /**
+   * 안보 직결 해상 경보 — 신규 NAVAREA(훈련·미사일) / UKMTO(Attack·Hijack·Boarding)
+   * 등장 시 동의 창. 첫 스냅샷은 seen만 채우고 팝업 안 띄움.
+   */
+  useEffect(() => {
+    if (isEconomyViewer || entryGate !== null || showModePicker) return;
+    if (issueUiPausedForLamp) return;
+    if (airRaidBriefing || airRaidOffer || periodicBriefing) return;
+    if (ukmtoBriefing || navareaBriefing || maritimeOffer) return;
+    if (maritimeOfferBusyRef.current) return;
+
+    const lang = labelLanguage === "en" ? "en" : "ko";
+    type Candidate = {
+      key: string;
+      offer: MaritimeAlertOffer;
+      payload: NonNullable<typeof maritimeOfferPayloadRef.current>;
+    };
+    const candidates: Candidate[] = [];
+
+    if (showNavareaWarnings) {
+      for (const f of navareaFeatures) {
+        if (!isSecurityCriticalNavarea(f)) continue;
+        const brief = buildNavareaBriefingContent(f, labelLanguage);
+        if (!brief) continue;
+        const kindKo =
+          brief.kind === "missile" ? "미사일·발사 위험" : "군사 훈련·사격";
+        const kindEn =
+          brief.kind === "missile" ? "Missile / launch hazard" : "Military exercise";
+        candidates.push({
+          key: `navarea:${f.id}`,
+          offer: {
+            key: `navarea:${f.id}`,
+            source: "navarea",
+            title:
+              lang === "en"
+                ? `${kindEn} · NAVAREA ${f.region}`
+                : `${kindKo} · NAVAREA ${f.region}`,
+            subtitle: lang === "en" ? "Maritime security · NAVAREA" : "해상 안보 · NAVAREA",
+            body:
+              f.areaHint ||
+              (lang === "en"
+                ? "A new in-force navigational warning may affect nearby waters."
+                : "새로 유효해진 항행경보가 인근 해역에 영향을 줄 수 있습니다."),
+            lat: brief.lat,
+            lng: brief.lng,
+            navareaKind: brief.kind,
+          },
+          payload: { source: "navarea", navarea: f },
+        });
+      }
+    }
+
+    if (showUkmtoIncidents) {
+      for (const inc of ukmtoIncidents) {
+        if (!isUkmtoOfferWorthy(inc.incidentTypeName)) continue;
+        if (!Number.isFinite(inc.lat) || !Number.isFinite(inc.lng)) continue;
+        candidates.push({
+          key: `ukmto:${inc.id}`,
+          offer: {
+            key: `ukmto:${inc.id}`,
+            source: "ukmto",
+            title:
+              lang === "en"
+                ? `UKMTO · ${inc.incidentTypeName}`
+                : `UKMTO · ${inc.incidentTypeName}`,
+            subtitle:
+              lang === "en" ? "Merchant vessel threat" : "상선 피습·나포 경보",
+            body:
+              inc.place ||
+              inc.detail ||
+              (lang === "en"
+                ? "A new high-severity UKMTO maritime alert was reported."
+                : "고위협 UKMTO 해상 경보가 새로 보고되었습니다."),
+            lat: inc.lat,
+            lng: inc.lng,
+          },
+          payload: { source: "ukmto", ukmto: inc },
+        });
+      }
+    }
+
+    const keys = candidates.map((c) => c.key);
+    if (seenMaritimeAlertKeysRef.current === null) {
+      seenMaritimeAlertKeysRef.current = new Set(keys);
+      return;
+    }
+    const seen = seenMaritimeAlertKeysRef.current;
+    const fresh = candidates.find((c) => !seen.has(c.key));
+    for (const k of keys) seen.add(k);
+    if (!fresh) return;
+
+    maritimeOfferBusyRef.current = true;
+    maritimeOfferPayloadRef.current = fresh.payload;
+    setMaritimeOffer(fresh.offer);
+  }, [
+    airRaidBriefing,
+    airRaidOffer,
+    entryGate,
+    isEconomyViewer,
+    issueUiPausedForLamp,
+    labelLanguage,
+    maritimeOffer,
+    navareaBriefing,
+    navareaFeatures,
+    periodicBriefing,
+    showModePicker,
+    showNavareaWarnings,
+    showUkmtoIncidents,
+    ukmtoBriefing,
+    ukmtoIncidents,
+  ]);
 
   useEffect(() => {
     if (!showFirmsFires) {
@@ -5688,6 +5916,20 @@ export function GlobeDashboard({
             accent: "orange",
           },
           {
+            id: "navarea-warnings",
+            label: "NAVAREA 항행경보",
+            detail: showNavareaWarnings
+              ? navareaStatus === "loading"
+                ? "불러오는 중…"
+                : navareaStatus === "error"
+                  ? "피드 오류"
+                  : `유효 ${navareaFeatures.length.toLocaleString()}건 · 훈련·낙하지·케이블`
+              : "꺼짐 · 일본 근해·대만 주변 · 보라 구역",
+            checked: layerPrefs.showNavareaWarnings,
+            onChange: setShowNavareaWarnings,
+            accent: "violet",
+          },
+          {
             id: "tzeva-adom",
             label: "이스라엘 로켓·공습 경보",
             detail: showTzevaAdom
@@ -5787,16 +6029,6 @@ export function GlobeDashboard({
             presentation: "tag",
           },
           {
-            id: "gdelt-alliance",
-            label: "뉴스 · 동맹 갈등",
-            detail: showGdeltAlliance
-              ? `${layerPanelGdeltCounts.alliance.toLocaleString()}건`
-              : "꺼짐",
-            checked: layerPrefs.showGdeltAlliance,
-            onChange: setShowGdeltAlliance,
-            accent: "emerald",
-          },
-          {
             id: "gdelt-protest",
             label: "뉴스 · 시위",
             detail: showGdeltProtests
@@ -5883,13 +6115,14 @@ export function GlobeDashboard({
             showNorthKoreaMissileTests: enabled,
             showNewfeedsIranAttacks: enabled,
             showTzevaAdom: enabled,
+            showUkmtoIncidents: enabled,
+            showNavareaWarnings: enabled,
             showAxisNetwork: enabled,
             showConflictZones: enabled,
             showArmsEmbargo: enabled,
             showUcdpEvents: enabled,
             showGdeltWar: enabled,
             showGdeltDiplomatic: enabled,
-            showGdeltAlliance: enabled,
             showGdeltProtests: enabled,
             showNeptunPreviousTrails: false,
           });
@@ -6072,6 +6305,20 @@ export function GlobeDashboard({
             onChange: setShowUkmtoIncidents,
             accent: "orange",
           },
+          {
+            id: "navarea-warnings",
+            label: "NAVAREA 항행경보",
+            detail: showNavareaWarnings
+              ? navareaStatus === "loading"
+                ? "불러오는 중…"
+                : navareaStatus === "error"
+                  ? "피드 오류"
+                  : `유효 ${navareaFeatures.length.toLocaleString()}건 · 물류·해상 제약`
+              : "꺼짐 · 항행 폐쇄·훈련 구역",
+            checked: layerPrefs.showNavareaWarnings,
+            onChange: setShowNavareaWarnings,
+            accent: "violet",
+          },
         ],
         onToggleAll: (enabled) =>
           toggleCategoryPrefs({
@@ -6096,6 +6343,8 @@ export function GlobeDashboard({
             showResources: enabled,
             showNuclearSites: enabled,
             showNewfeedsIranAttacks: enabled,
+            showUkmtoIncidents: enabled,
+            showNavareaWarnings: enabled,
           }),
       },
       {
@@ -6456,12 +6705,17 @@ export function GlobeDashboard({
     lpg(gdeltFetchedAt, null),
     lpg(gdeltLoading, false),
     lpg(refreshGdeltEvents, null),
-    lpg(showGdeltAlliance, false),
     lpg(showGdeltDiplomatic, false),
     lpg(showGdeltOceanCompetition, false),
     lpg(showGdeltLayers, false),
     lpg(showGdeltProtests, false),
     lpg(showGdeltWar, false),
+    lpg(showUkmtoIncidents, false),
+    lpg(ukmtoStatus, "idle"),
+    lpg(ukmtoIncidents.length, 0),
+    lpg(showNavareaWarnings, false),
+    lpg(navareaStatus, "idle"),
+    lpg(navareaFeatures.length, 0),
     lpg(labelPlaces.length, 0),
     lpg(globeLod.label, ""),
     lpg(milAircraft.length, 0),
@@ -6833,6 +7087,8 @@ export function GlobeDashboard({
         ukmtoBriefTimerRef.current = null;
       }
       setUkmtoBriefing(null);
+      setNavareaBriefing(null);
+      setMaritimeOffer(null);
       flyTo(incident.lat, incident.lng, 0.52, 900, { pitch: 48, bearing: -12 });
       ukmtoBriefTimerRef.current = setTimeout(() => {
         ukmtoBriefTimerRef.current = null;
@@ -6842,10 +7098,61 @@ export function GlobeDashboard({
     [flyTo, labelLanguage],
   );
 
+  /** NAVAREA 구역 클릭 또는 동의 수락 — fly → 전보음 양피지 */
+  const openNavareaBrief = useCallback(
+    (feature: NavareaFeaturePoint) => {
+      const brief = buildNavareaBriefingContent(feature, labelLanguage);
+      if (!brief) return;
+      skipNextGlobeClickRef.current = true;
+      if (navareaBriefTimerRef.current != null) {
+        clearTimeout(navareaBriefTimerRef.current);
+        navareaBriefTimerRef.current = null;
+      }
+      setNavareaBriefing(null);
+      setUkmtoBriefing(null);
+      setMaritimeOffer(null);
+      flyTo(brief.lat, brief.lng, 0.55, 900, { pitch: 48, bearing: -10 });
+      navareaBriefTimerRef.current = setTimeout(() => {
+        navareaBriefTimerRef.current = null;
+        setNavareaBriefing(brief);
+      }, 780);
+    },
+    [flyTo, labelLanguage],
+  );
+
+  const dismissMaritimeOffer = useCallback(() => {
+    maritimeOfferBusyRef.current = false;
+    maritimeOfferPayloadRef.current = null;
+    setMaritimeOffer(null);
+  }, []);
+
+  const acceptMaritimeOffer = useCallback(() => {
+    const payload = maritimeOfferPayloadRef.current;
+    setMaritimeOffer(null);
+    maritimeOfferBusyRef.current = false;
+    if (!payload) return;
+    if (payload.source === "navarea" && payload.navarea) {
+      if (!layerPrefsLiveRef.current.showNavareaWarnings) {
+        patchLayerPrefsSoft({ showNavareaWarnings: true });
+      }
+      openNavareaBrief(payload.navarea);
+      return;
+    }
+    if (payload.source === "ukmto" && payload.ukmto) {
+      if (!layerPrefsLiveRef.current.showUkmtoIncidents) {
+        patchLayerPrefsSoft({ showUkmtoIncidents: true });
+      }
+      openUkmtoBrief(payload.ukmto);
+    }
+  }, [openNavareaBrief, openUkmtoBrief, patchLayerPrefsSoft]);
+
   useEffect(() => {
     return () => {
       if (ukmtoBriefTimerRef.current != null) {
         clearTimeout(ukmtoBriefTimerRef.current);
+      }
+      if (navareaBriefTimerRef.current != null) {
+        clearTimeout(navareaBriefTimerRef.current);
       }
     };
   }, []);
@@ -6920,6 +7227,14 @@ export function GlobeDashboard({
     const center = THEATER_FLY_TO[target.theater];
     flyTo(center.lat, center.lng, center.altitude);
   }
+
+  const handleTelegramFlyToPlace = useCallback(
+    (place: { lat: number; lng: number; label: string }) => {
+      if (isEconomyViewer) return;
+      flyTo(place.lat, place.lng, 0.88);
+    },
+    [flyTo, isEconomyViewer],
+  );
 
   const computeRegionFitAltitude = useCallback((bbox: RegionBBox, fallbackAltitude: number) => {
     const latSpan = Math.max(REGION_MIN_SPAN_DEG, (bbox.maxLat - bbox.minLat) * REGION_FIT_PADDING);
@@ -7420,23 +7735,38 @@ export function GlobeDashboard({
     handleModeApply(mode, "auto", "auto");
     applyLayerPrefs(overviewPrefs);
 
+    // 지정학: 홍해·바브엘만데브(최우선 해상 위협)로 바로 진입
+    const entryLook =
+      mode === "conflict"
+        ? CONFLICT_ENTRY_MARITIME_FLY
+        : {
+            lat: ENTRY_GATE.bootLookAt.lat,
+            lng: ENTRY_GATE.bootLookAt.lng,
+            altitude: ENTRY_GATE.bootAltitude,
+          };
+
     layerCenterRef.current = {
-      lat: ENTRY_GATE.bootLookAt.lat,
-      lng: ENTRY_GATE.bootLookAt.lng,
+      lat: entryLook.lat,
+      lng: entryLook.lng,
     };
-    layerAltitudeRef.current = ENTRY_GATE.bootAltitude;
-    layerLodTierRef.current = getGlobeLod(ENTRY_GATE.bootAltitude).tier;
+    layerAltitudeRef.current = entryLook.altitude;
+    layerLodTierRef.current = getGlobeLod(entryLook.altitude).tier;
     setFilterCenter({
-      lat: ENTRY_GATE.bootLookAt.lat,
-      lng: ENTRY_GATE.bootLookAt.lng,
+      lat: entryLook.lat,
+      lng: entryLook.lng,
     });
-    setLayerAltitude(ENTRY_GATE.bootAltitude);
+    setLayerAltitude(entryLook.altitude);
     flyTo(
-      ENTRY_GATE.bootLookAt.lat,
-      ENTRY_GATE.bootLookAt.lng,
-      ENTRY_GATE.bootAltitude,
+      entryLook.lat,
+      entryLook.lng,
+      entryLook.altitude,
       ENTRY_GATE.zoomOutFlyMs,
     );
+
+    if (mode === "conflict") {
+      battlefieldSoftZoneRef.current = "middle-east";
+      battlefieldManualUntilRef.current = Date.now() + 24_000;
+    }
 
     // 도메인 직후는 광역 히어로만 — 전장/허브 자동 fly·양피지 금지
     packageTheaterFocusPlayedRef.current = true;
@@ -8951,6 +9281,11 @@ export function GlobeDashboard({
         openUkmtoBrief(incident);
         return;
       }
+      const navarea = findNavareaFeature(navareaFeatures, path);
+      if (navarea) {
+        openNavareaBrief(navarea);
+        return;
+      }
     }
 
     const dispute =
@@ -10069,6 +10404,7 @@ export function GlobeDashboard({
             channelCount={TELEGRAM_CHANNEL_COUNT}
             onClose={closeTelegramOsintLayer}
             compactUi={isCompactUi}
+            onFlyToPlace={isEconomyViewer ? undefined : handleTelegramFlyToPlace}
           />
         )}
         {!isEconomyViewer && !isUkraineTheaterFocus && !selected && !regionNavSelection && !isCompactUi && bottomAlertPanel === "gdelt" && (
@@ -10174,6 +10510,7 @@ export function GlobeDashboard({
           telegramEmbedMode={telegramEmbedMode}
           telegramChannelCount={TELEGRAM_CHANNEL_COUNT}
           onCloseTelegramLayer={closeTelegramOsintLayer}
+          onTelegramFlyToPlace={isEconomyViewer ? undefined : handleTelegramFlyToPlace}
           showViina={!isEconomyViewer && showUkraineControl}
           viinaEvents={viinaFrontEvents}
           viinaControlDate={ukraineControlDate}
@@ -11290,6 +11627,20 @@ export function GlobeDashboard({
         />
       ) : null}
 
+      {maritimeOffer &&
+      !airRaidBriefing &&
+      !airRaidOffer &&
+      !ukmtoBriefing &&
+      !navareaBriefing &&
+      !issueUiPausedForLamp ? (
+        <MaritimeAlertOfferBanner
+          offer={maritimeOffer}
+          lang={labelLanguage}
+          onAccept={acceptMaritimeOffer}
+          onDismiss={dismissMaritimeOffer}
+        />
+      ) : null}
+
       {airRaidBriefing ? (
         <AirRaidBriefingParchment
           briefing={airRaidBriefing}
@@ -11323,6 +11674,25 @@ export function GlobeDashboard({
           playBreakingDispatch
           typewriter={false}
           titleId="ukmto-briefing-title"
+          zIndexClass="z-[10040]"
+        />
+      ) : null}
+
+      {navareaBriefing ? (
+        <ParchmentLetter
+          lang={labelLanguage}
+          title={navareaBriefing.title}
+          paragraphs={navareaBriefing.paragraphs}
+          signOff={
+            labelLanguage === "en"
+              ? "NAVAREA · official navigational warning\nGlobe Observatory"
+              : "NAVAREA · 공식 항행 경보\n지구본 관측대"
+          }
+          ctaLabel={labelLanguage === "en" ? "Understood" : "확인"}
+          onContinue={() => setNavareaBriefing(null)}
+          playBreakingDispatch
+          typewriter={false}
+          titleId="navarea-briefing-title"
           zIndexClass="z-[10040]"
         />
       ) : null}

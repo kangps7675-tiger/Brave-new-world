@@ -1343,6 +1343,8 @@ type IntelNewsSheetProps = {
   initialIntelTab?: IntelSheetTab;
   autoOpenOnMount?: boolean;
   onCloseTelegramLayer?: () => void;
+  /** 텔레그램 본문 지명 → 지도 fly (지정학) */
+  onTelegramFlyToPlace?: (place: { lat: number; lng: number; label: string }) => void;
   /** 뉴스 신뢰도 등급 패널 */
   onOpenTrust?: () => void;
 };
@@ -1377,6 +1379,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       initialIntelTab = "news",
       autoOpenOnMount = false,
       onCloseTelegramLayer,
+      onTelegramFlyToPlace,
       onOpenTrust,
     },
     ref,
@@ -1885,6 +1888,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
             fullPage
             compactUi
             onClose={onCloseTelegramLayer ? handleCloseTelegramLayer : undefined}
+            onFlyToPlace={onTelegramFlyToPlace}
             regionFilter={
               theaterFilter === "russia-ukraine"
                 ? "ukraine"

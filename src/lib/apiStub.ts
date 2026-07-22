@@ -32,7 +32,8 @@ export type ApiStubRoute =
   | "daily-predict-opponent"
   | "bunker-sentiment"
   | "sitrep"
-  | "ukmto";
+  | "ukmto"
+  | "navarea";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -314,6 +315,13 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
     case "ukmto":
       // 실제 공격/나포 데이터를 스텁으로 지어내지 않음 — 빈 배열로 정직하게 폴백
       return { incidents: [], fetchedAt: at, stub: true };
+    case "navarea":
+      return {
+        type: "FeatureCollection",
+        features: [],
+        fetchedAt: at,
+        stub: true,
+      };
     default:
       return { stub: true, fetchedAt: at };
   }

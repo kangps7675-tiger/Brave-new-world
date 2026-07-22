@@ -193,33 +193,48 @@ const KOREA: NewsFeedDef[] = [
 const JAPAN: NewsFeedDef[] = [
   { url: "https://feeds.bbci.co.uk/news/world/asia/rss.xml", name: "BBC", theater: "japan" },
   { url: "https://rss.nytimes.com/services/xml/rss/nyt/AsiaPacific.xml", name: "NYT", theater: "japan" },
+  { url: "https://feeds.reuters.com/Reuters/worldNews", name: "Reuters", theater: "japan" },
+  {
+    url: "https://www.japantimes.co.jp/feed/",
+    name: "Japan Times",
+    theater: "japan",
+    unfiltered: true,
+  },
   {
     url: G(
-      '(Japan OR "Tokyo") AND (security OR defense OR "maritime") AND (site:kyodonews.net OR site:nikkei.com OR site:japantimes.co.jp)',
+      '(Japan OR "Tokyo" OR Okinawa OR Senkaku OR "Self-Defense Force" OR SDF) AND (security OR defense OR maritime OR missile OR China OR PLA OR "North Korea") AND (site:kyodonews.net OR site:nikkei.com OR site:japantimes.co.jp OR site:nhk.or.jp)',
     ),
-    name: "Google News",
+    name: "Google News · Japan Security",
     theater: "japan",
     unfiltered: true,
   },
   {
-    url: G("Japan military Senkaku defense"),
-    name: "Google News",
+    url: G("Japan military Senkaku defense Okinawa missile"),
+    name: "Google News · Japan Military",
     theater: "japan",
     unfiltered: true,
   },
   {
     url: G(
-      '(AUKUS OR Quad OR "Indo-Pacific" OR "trilateral" OR "US Japan Australia") (defense OR security OR submarine OR alliance OR exercise)',
+      '(AUKUS OR Quad OR "Indo-Pacific" OR "trilateral" OR "US Japan" OR "Japan Australia" OR "Japan South Korea") (defense OR security OR submarine OR alliance OR exercise OR summit)',
     ),
-    name: "Google News · AUKUS · Quad",
+    name: "Google News · AUKUS · Quad · Japan",
     theater: "japan",
     unfiltered: true,
   },
   {
     url: G(
-      '(Japan OR Australia OR "Self-Defense Force") (China OR PLA OR missile OR "counterstrike" OR "defense budget" OR Okinawa)',
+      '(Japan OR "Self-Defense Force" OR Tokyo) (China OR PLA OR "counterstrike" OR "defense budget" OR "extended deterrence" OR "collective security" OR "remote islands")',
     ),
     name: "Google News · Japan · Indo-Pacific Defense",
+    theater: "japan",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Japan OR Tokyo) ("North Korea" OR Pyongyang OR abductee OR missile OR "ballistic missile") (security OR defense OR intercept OR diplomacy)',
+    ),
+    name: "Google News · Japan–North Korea",
     theater: "japan",
     unfiltered: true,
   },
@@ -649,6 +664,36 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
+      '(China OR Beijing OR Chinese) ("industrial policy" OR "Made in China 2025" OR "new productive forces" OR "advanced manufacturing" OR "smart manufacturing" OR robotics OR "industrial robot" OR "factory expansion" OR gigafactory OR "capacity expansion") (EV OR battery OR solar OR semiconductor OR chip OR AI OR shipbuilding OR steel OR export)',
+    ),
+    name: "Google · China Industrial Policy",
+    theater: "china-taiwan",
+    topic: "economy",
+    econGenre: "infra",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(China OR Chinese OR Beijing) (BYD OR CATL OR Huawei OR SMIC OR "CRRC" OR Longi OR "Tongwei" OR DJI OR Xiaomi OR "NIO" OR "XPeng" OR "Li Auto") (factory OR plant OR production OR export OR capacity OR EV OR battery OR solar OR chip OR robot OR AI)',
+    ),
+    name: "Google · China Industry Champions",
+    theater: "china-taiwan",
+    topic: "economy",
+    econGenre: "tech",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(China OR Chinese) (solar OR photovoltaic OR "wind power" OR "green hydrogen" OR "power grid" OR "high-speed rail" OR shipbuilding OR "container ship" OR "LNG carrier") (export OR capacity OR investment OR subsidy OR plant)',
+    ),
+    name: "Google · China Clean Tech · Shipbuilding",
+    theater: "china-taiwan",
+    topic: "economy",
+    econGenre: "infra",
+    unfiltered: true,
+  },
+  {
+    url: G(
       '(Huawei OR Alibaba OR Tencent OR ByteDance OR "SMIC" OR CATL OR BYD OR Xiaomi) (China OR Chinese) (stock OR earnings OR AI OR chip OR EV OR export)',
     ),
     name: "Google · China Tech · Majors",
@@ -659,7 +704,7 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '("US China" OR "U.S.-China" OR "China US" OR "trade war" OR "export control" OR "rare earth" OR de-risking OR decoupling) (tariff OR semiconductor OR EV OR investment)',
+      '("US China" OR "U.S.-China" OR "China US" OR "trade war" OR "export control" OR "rare earth" OR de-risking OR decoupling OR "entity list" OR "outbound investment") (tariff OR semiconductor OR EV OR solar OR battery OR investment OR sanction)',
     ),
     name: "Google · US–China Rivalry",
     theater: "global",
@@ -669,7 +714,17 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Japan OR Korea OR India OR ASEAN OR "Bank of Japan" OR "Bank of Korea" OR RBI) (rate OR inflation OR GDP OR semiconductor OR supply chain)',
+      '("US China" OR "U.S.-China" OR "China US" OR Washington OR Beijing) (tariff OR "Section 301" OR "chip ban" OR "entity list" OR "outbound investment screen" OR "critical minerals" OR "rare earth export") (economy OR trade OR industry OR semiconductor OR EV)',
+    ),
+    name: "Google · US–China Economic War",
+    theater: "global",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Japan OR Korea OR India OR ASEAN OR Taiwan OR "Bank of Japan" OR "Bank of Korea" OR RBI OR "Central Bank of Taiwan") (rate OR inflation OR GDP OR semiconductor OR supply chain OR FDI)',
     ),
     name: "Google · Asia Macro · Peers",
     theater: "global",
@@ -699,7 +754,17 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Japan OR Tokyo OR Toyota OR SoftBank OR Sony OR "Bank of Japan" OR yen) (stock OR earnings OR rate OR GDP OR semiconductor OR export)',
+      '("South Korea" OR Seoul OR Samsung OR "SK hynix" OR Hyundai OR POSCO OR "LG Energy") (EV OR battery OR shipbuilding OR "memory chip" OR HBM OR fab OR plant OR export OR FDI)',
+    ),
+    name: "Google · Korea Industry · Export",
+    theater: "korea",
+    topic: "economy",
+    econGenre: "chips",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Japan OR Tokyo OR Toyota OR SoftBank OR Sony OR "Bank of Japan" OR yen OR Nikkei) (stock OR earnings OR rate OR GDP OR semiconductor OR export OR inflation)',
     ),
     name: "Google · Japan Macro · Majors",
     theater: "japan",
@@ -707,8 +772,172 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
     econGenre: "macro",
     unfiltered: true,
   },
+  {
+    url: G(
+      '(Japan OR Tokyo OR Toyota OR Sony OR SoftBank OR Keyence OR "Tokyo Electron" OR FastRetailing) (China OR US OR ASEAN OR tariff OR "supply chain" OR semiconductor OR FDI OR plant OR factory) (earnings OR investment OR export) -opinion -editorial',
+    ),
+    name: "Google · Japan Geoeconomic Hard News",
+    theater: "japan",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Japan OR "Bank of Japan" OR yen OR "carry trade") (rate OR hike OR cut OR intervention OR "bond yield" OR ETF OR "fiscal")',
+    ),
+    name: "Google · Japan Rates · Yen",
+    theater: "japan",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Taiwan OR Taipei OR TSMC OR "Taiwan Semiconductor" OR UMC OR MediaTek OR ASE) (GDP OR export OR chip OR fab OR foundry OR investment OR "AI chip" OR Apple OR Nvidia)',
+    ),
+    name: "Google · Taiwan Macro · Chips",
+    theater: "china-taiwan",
+    topic: "economy",
+    econGenre: "chips",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Taiwan OR Taipei OR TSMC) (China OR Beijing OR US OR "export control" OR "supply chain" OR FDI OR "advanced node" OR "CoWoS" OR packaging) (semiconductor OR fab OR investment OR earnings)',
+    ),
+    name: "Google · Taiwan Geoeconomic Hard News",
+    theater: "china-taiwan",
+    topic: "economy",
+    econGenre: "chips",
+    unfiltered: true,
+  },
 
-  // —— 유럽 · 러시아 거시/에너지/제재 ——
+  // —— 동남아 · 남아시아 지경학 ——
+  {
+    url: G(
+      '(ASEAN OR Indonesia OR Vietnam OR Thailand OR Malaysia OR Philippines OR Singapore OR "Jakarta" OR Hanoi) (FDI OR "supply chain" OR semiconductor OR EV OR battery OR nickel OR tin OR "data center" OR GDP OR inflation OR tariff)',
+    ),
+    name: "Google · ASEAN Macro · Supply Chain",
+    theater: "global",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Vietnam OR Indonesia OR Malaysia OR Thailand OR Philippines) (China OR US OR Japan OR Korea OR Taiwan) (factory OR plant OR FDI OR "friendshoring" OR "nearshoring" OR relocation OR chip OR EV)',
+    ),
+    name: "Google · ASEAN Friendshoring · FDI",
+    theater: "global",
+    topic: "economy",
+    econGenre: "infra",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Indonesia OR "Nickel" OR Freeport OR "EV battery" OR Vietnam OR "Samsung Vietnam" OR "Intel Malaysia" OR Singapore OR "Jurong Island") (mining OR smelter OR fab OR investment OR export OR plant)',
+    ),
+    name: "Google · ASEAN Critical Minerals · Plants",
+    theater: "global",
+    topic: "economy",
+    econGenre: "infra",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Malacca OR "Strait of Malacca" OR Singapore OR "South China Sea" OR Natuna) (shipping OR freight OR LNG OR oil OR chokepoint OR insurance OR logistics)',
+    ),
+    name: "Google · SE Asia Chokepoints · Shipping",
+    theater: "global",
+    topic: "economy",
+    econGenre: "shipping",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(India OR Modi OR Mumbai OR "Reserve Bank of India" OR RBI OR rupee OR Sensex OR Nifty) (GDP OR inflation OR rate OR FDI OR semiconductor OR "PLI" OR export OR tariff OR "bond")',
+    ),
+    name: "Google · India Macro · Markets",
+    theater: "south-asia",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(India OR Modi) (China OR US OR Russia OR Middle East OR ASEAN OR "supply chain" OR semiconductor OR "critical minerals" OR oil OR LNG OR "rupee trade") (trade OR investment OR FDI OR sanction OR tariff)',
+    ),
+    name: "Google · India Geoeconomic Hard News",
+    theater: "south-asia",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Sri Lanka" OR Hambantota OR Bangladesh OR Pakistan OR Maldives OR "Bay of Bengal" OR "Indian Ocean") (port OR debt OR BRI OR China OR India OR IMF OR shipping OR LNG OR investment)',
+    ),
+    name: "Google · South Asia Ports · Debt · BRI",
+    theater: "south-asia",
+    topic: "economy",
+    econGenre: "infra",
+    unfiltered: true,
+  },
+
+  // —— 중동 지경학 (에너지·투자·항로) ——
+  {
+    url: G(
+      '(Saudi OR "Saudi Arabia" OR Aramco OR Riyadh OR "Vision 2030" OR PIF OR "Public Investment Fund") (oil OR LNG OR investment OR IPO OR AI OR "data center" OR tourism OR petrochemical)',
+    ),
+    name: "Google · Saudi · Vision 2030",
+    theater: "middle-east",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(UAE OR Dubai OR Abu OR ADNOC OR "QatarEnergy" OR Qatar OR "Qatar Investment Authority" OR Kuwait OR Bahrain) (oil OR LNG OR investment OR sovereign OR AI OR finance OR trade)',
+    ),
+    name: "Google · Gulf Sovereign · Energy",
+    theater: "middle-east",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Iran OR Tehran OR "shadow fleet" OR Hormuz OR "Israeli" OR Israel) (oil OR sanction OR shipping OR insurance OR "oil export" OR tanker OR economy)',
+    ),
+    name: "Google · Iran · Hormuz Oil Economy",
+    theater: "middle-east",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Red Sea" OR Suez OR "Bab el-Mandeb" OR Hormuz) (freight OR insurance OR reroute OR tanker OR LNG OR crude OR shipping OR premium)',
+    ),
+    name: "Google · Middle East Chokepoint Freight",
+    theater: "middle-east",
+    topic: "economy",
+    econGenre: "shipping",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Israel OR Tel Aviv OR "Tel Aviv Stock" OR "Bank of Israel") (tech OR cybersecurity OR IPO OR investment OR gas OR Leviathan OR economy OR rate)',
+    ),
+    name: "Google · Israel Tech · Energy Economy",
+    theater: "middle-east",
+    topic: "economy",
+    econGenre: "tech",
+    unfiltered: true,
+  },
+
+  // —— 유럽 · 러시아 거시/에너지/제재 (기존 유지) ——
   {
     url: G(
       '(ECB OR "European Central Bank" OR Lagarde OR Eurozone OR Germany OR France OR "EU Commission") (rate OR inflation OR GDP OR fiscal OR industrial)',
@@ -727,6 +956,16 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
     theater: "global",
     topic: "economy",
     econGenre: "markets",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(EU OR Brussels OR "European Commission" OR CBAM OR "Critical Raw Materials" OR "Net-Zero Industry") (China OR US OR tariff OR subsidy OR industrial OR semiconductor OR EV)',
+    ),
+    name: "Google · EU Industrial · Trade Policy",
+    theater: "global",
+    topic: "economy",
+    econGenre: "macro",
     unfiltered: true,
   },
   {
@@ -995,23 +1234,31 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
   "economy-energy":
     '("Exxon Mobil" OR Chevron OR Shell OR Aramco OR OPEC OR Brent OR LNG)',
   "economy-macro":
-    'Fed OR ECB OR sanctions OR tariff OR "trade war" OR inflation',
+    'Fed OR ECB OR sanctions OR tariff OR "trade war" OR inflation OR China OR "industrial policy"',
   "economy-shipping":
     '(Maersk OR COSCO OR "Red Sea" OR Suez OR Hormuz OR Malacca OR "Panama Canal" OR "shipping rates" OR freight OR tanker)',
   "economy-chips":
-    '(Nvidia OR TSMC OR ASML OR Samsung OR "SK hynix" OR Intel OR AMD) (chip OR semiconductor OR GPU)',
+    '(Nvidia OR TSMC OR ASML OR Samsung OR "SK hynix" OR Intel OR AMD OR SMIC OR Huawei) (chip OR semiconductor OR GPU)',
   "economy-tech":
-    '(Apple OR Microsoft OR Google OR Amazon OR Meta OR OpenAI) (stock OR AI OR cloud OR earnings)',
+    '(Apple OR Microsoft OR Google OR Amazon OR Meta OR OpenAI OR Huawei OR Alibaba OR Tencent) (stock OR AI OR cloud OR earnings)',
   "economy-auto":
     '(Tesla OR BYD OR Toyota OR Hyundai OR CATL) (EV OR battery OR earnings)',
   "economy-infra-critical":
-    '("critical minerals" OR "rare earth" OR "subsea cable" OR "data center") investment',
+    '("critical minerals" OR "rare earth" OR "subsea cable" OR "data center" OR "Made in China" OR "new productive forces") investment',
   "economy-infra-bri":
     '"Belt and Road" OR BRI OR AIIB OR "port investment" OR FDI',
+  "economy-china-industry":
+    '(China OR Beijing) ("industrial policy" OR "Made in China 2025" OR "new productive forces" OR "advanced manufacturing" OR solar OR shipbuilding OR BYD OR CATL OR SMIC OR Huawei)',
+  "economy-korea-japan-taiwan":
+    '(Korea OR Japan OR Taiwan OR Samsung OR "SK hynix" OR Toyota OR TSMC) (chip OR GDP OR export OR FDI OR rate)',
+  "economy-asean-south-asia":
+    '(ASEAN OR Indonesia OR Vietnam OR India OR Malacca OR Hambantota) (FDI OR "supply chain" OR nickel OR semiconductor OR port OR BRI)',
+  "economy-middle-east":
+    '(Saudi OR Aramco OR ADNOC OR Qatar OR UAE OR Hormuz OR "Red Sea" OR "Vision 2030") (oil OR LNG OR investment OR shipping)',
 };
 
 export const ECON_RELEVANCE =
-  /oil|gas|lng|opec|brent|wti|crude|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|malacca|panama|bab[\s-]?el|bosporus|taiwan\s?strait|tanker|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|energy|pipeline|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex/i;
+  /oil|gas|lng|opec|brent|wti|crude|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|malacca|panama|bab[\s-]?el|bosporus|taiwan\s?strait|tanker|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|energy|pipeline|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|nickel|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex|china|chinese|beijing|huawei|alibaba|tencent|smic|pboc|renminbi|industrial\s?policy|made\s?in\s?china|new\s?productive\s?forces|advanced\s?manufacturing|shipbuilding|photovoltaic|solar\s?panel|de-?risk|decoupl|entity\s?list|section\s?301|export\s?control|korea|seoul|japan|tokyo|taiwan|taipei|asean|indonesia|vietnam|thailand|malaysia|philippines|singapore|india|modi|rupee|rbi|sensex|saudi|aramco|adnoc|qatar|uae|dubai|vision\s?2030|friendshoring|nearshoring|pli\b|hambantota/i;
 
 export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   "middle-east":
@@ -1023,7 +1270,7 @@ export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   korea:
     /north\s?korea|south\s?korea|pyongyang|seoul|dmz|dprk|kim\s?jong|korean\s?peninsula|icbm|ballistic|rok\b|usfk|diplomacy|summit|trilateral|alliance|foreign\s?minister/i,
   japan:
-    /japan|tokyo|okinawa|senkaku|self[\s-]?defense\s?force|sdf|yasukuni|north\s?korea\s?japan|aukus|quad\b|indo[\s-]?pacific|australia|diplomacy|summit|alliance|foreign\s?minister|state\s?visit|counterstrike|defense\s?budget/i,
+    /japan|tokyo|okinawa|senkaku|diaoyu|self[\s-]?defense\s?force|sdf|yasukuni|north\s?korea\s?japan|japan[\s-]?korea|korea[\s-]?japan|aukus|quad\b|indo[\s-]?pacific|australia|diplomacy|summit|alliance|foreign\s?minister|state\s?visit|counterstrike|defense\s?budget|remote\s?islands|extended\s?deterrence|일본|도쿄|오키나와|센카쿠|자위대|방위|인도태평양/i,
   "south-asia":
     /india|pakistan|kashmir|afghanistan|taliban|myanmar|bangladesh|sri\s?lanka|nepal|maldives|modi|rawalpindi|line\s?of\s?actual\s?control|lac\b|indian\s?ocean|bay\s?of\s?bengal|andaman|hambantota|string\s?of\s?pearls|central\s?asia|kazakh|uzbek|turkmen|kyrgyz|tajik|diplomacy|summit|brics|quad|foreign\s?policy|strategic\s?partnership/i,
   arctic:

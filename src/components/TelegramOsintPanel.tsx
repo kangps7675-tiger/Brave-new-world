@@ -1,6 +1,9 @@
 "use client";
 
-import { TelegramIntelFeed } from "@/components/TelegramIntelFeed";
+import {
+  TelegramIntelFeed,
+  type TelegramFlyPlace,
+} from "@/components/TelegramIntelFeed";
 import {
   TELEGRAM_CHANNEL_COUNT,
   type TelegramAlert,
@@ -16,6 +19,7 @@ type TelegramOsintPanelProps = {
   channelCount?: number;
   onClose: () => void;
   compactUi?: boolean;
+  onFlyToPlace?: (place: TelegramFlyPlace) => void;
 };
 
 export function TelegramOsintPanel({
@@ -28,6 +32,7 @@ export function TelegramOsintPanel({
   channelCount = TELEGRAM_CHANNEL_COUNT,
   onClose,
   compactUi = false,
+  onFlyToPlace,
 }: TelegramOsintPanelProps) {
   return (
     <div
@@ -47,6 +52,7 @@ export function TelegramOsintPanel({
         channelCount={channelCount}
         onClose={onClose}
         compactUi={compactUi}
+        onFlyToPlace={onFlyToPlace}
       />
     </div>
   );

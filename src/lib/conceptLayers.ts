@@ -11,6 +11,7 @@ type LayerPatch = Partial<Record<BooleanLayerKey, boolean>>;
 type ConflictConceptTheater =
   | "russia-ukraine"
   | "korea"
+  | "japan"
   | "china-taiwan"
   | "middle-east"
   | "global";
@@ -63,6 +64,8 @@ const MIDDLE_EAST_STACK: LayerPatch = {
   showShippingLanes: true,
   showPorts: true,
   showFirmsFires: true,
+  showUkmtoIncidents: true,
+  showNavareaWarnings: true,
   showTzevaAdom: false,
   showNewfeedsIranAttacks: true,
 };
@@ -77,12 +80,21 @@ const CONFLICT_THEATER_LAYERS: Record<ConflictConceptTheater, LayerPatch> = {
     showIslandChains: true,
     showNorthKoreaMissileTests: true,
   },
+  japan: {
+    ...CONFLICT_BASE,
+    ...NO_UKRAINE,
+    ...CARRIER_MIL_WATCH,
+    showTzevaAdom: false,
+    showIslandChains: true,
+    showChinaJapanIncidents: true,
+    showShippingLanes: true,
+    showLogisticsRisk: true,
+  },
   "china-taiwan": {
     ...CONFLICT_BASE,
     ...NO_UKRAINE,
     showTzevaAdom: false,
     showConflictZones: true,
-    showGdeltAlliance: true,
     showUsCarriers: true,
     showMilitaryActivity: true,
     showIslandChains: true,
@@ -240,6 +252,14 @@ export function conflictTheaterFromNavId(navId: string): ViewTheaterChoice {
     return "korea";
   }
   if (
+    key === "japan" ||
+    key === "senkaku" ||
+    key.includes("okinawa") ||
+    key.includes("japan")
+  ) {
+    return "japan";
+  }
+  if (
     key === "taiwan" ||
     key.includes("taiwan") ||
     key.includes("spratly") ||
@@ -284,7 +304,6 @@ export function conceptLayersForConflictNavId(navId: string): LayerPatch {
   const key = navId.toLowerCase();
   const hubAxis: LayerPatch = {
     showAxisNetwork: true,
-    showGdeltAlliance: true,
     showDiplomaticTension: true,
     showWarZones: true,
   };

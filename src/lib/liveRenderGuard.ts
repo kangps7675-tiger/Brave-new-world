@@ -146,6 +146,11 @@ export function liveNewsPollMs(): number {
   return isClientApiStubMode() ? 90_000 : 150_000;
 }
 
+/** NAVAREA D1 스냅샷 — 뉴스 스트림과 같은 리듬 (상류 TXT는 cron 30분) */
+export function liveNavareaPollMs(): number {
+  return liveNewsPollMs();
+}
+
 /** 동영상 뉴스(메타) — 본 뉴스보다 훨씬 느리게 */
 export function liveVideoNewsPollMs(): number {
   return isClientApiStubMode() ? 5 * 60_000 : 10 * 60_000;

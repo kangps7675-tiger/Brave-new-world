@@ -24,6 +24,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "tzeva-adom": "켜면 이스라엘 로켓·공습 경보(체바 아돔) 발생 지역을 표시합니다.",
   "ukmto-incidents":
     "켜면 UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보를 검은 원 빗금으로 표시합니다.",
+  "navarea-warnings":
+    "켜면 NAVAREA 항행경보(훈련·미사일 낙하지·케이블 작업 등)를 보라색 구역으로 표시합니다. 일본 근해·대만 주변 관심사 반영.",
   "oil-pipelines": "켜면 주요 송유관 노선을 표시합니다.",
   "gas-pipelines": "켜면 주요 천연가스관 노선을 표시합니다.",
   "lng-terminals": "켜면 LNG(액화천연가스) 수출입 터미널 위치를 표시합니다.",

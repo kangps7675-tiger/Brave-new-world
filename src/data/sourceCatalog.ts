@@ -177,6 +177,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
   },
   {
+    layerId: "navarea-warnings",
+    source: "JHOD NAVAREA XI · NGA NAVAREA IV/XII (public TXT)",
+    url: "/api/navarea",
+    cadence: "Cron self-throttle ~30 min (worker */10, NAVAREA min-interval) → D1 snapshot replace",
+    attribution: "Japan Coast Guard (JHOD) · U.S. NGA Navigational Warnings",
+    notes:
+      "Sources publish event-driven into static TXT (no webhook). GeoWatch polls; each successful poll recomputes the full in-force snapshot and replaces by region. IDs are region-prefixed (XI-26-0330, IV-26-0695). Optional ?region=XI filter. Prefer 15–30 min poll — not FIRMS/AIS cadence.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
     layerId: "newfeeds-iran",
     source: "NewFeeds (ktoetotam/NewFeeds)",
     url: "/api/newfeeds-attacks?iran=1 · news via /api/news-stream",

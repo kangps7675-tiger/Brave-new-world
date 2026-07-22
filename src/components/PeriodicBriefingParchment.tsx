@@ -14,6 +14,11 @@ import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import { formatWtiTitle, wtiBand, wtiBandLabel } from "@/lib/wti";
+import {
+  LAMP_THUMB_GRADIENT,
+  LAMP_THUMB_LABEL,
+  resolveLampThumbTheme,
+} from "@/lib/news/lampThumbnail";
 
 type PeriodicBriefingParchmentProps = {
   briefing: PeriodicBriefing;
@@ -397,25 +402,15 @@ function PhotoNewsLampParchment({
                           key={item.id}
                           className="overflow-hidden rounded-sm border border-[#8b6914]/25 bg-[#f7ecd4]/55 shadow-[0_8px_28px_rgba(61,42,24,0.12)]"
                         >
-                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#d4c4a0] sm:aspect-[2/1]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={item.imageUrl}
-                              alt=""
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              onError={(event) => {
-                                (event.currentTarget as HTMLImageElement).style.visibility =
-                                  "hidden";
-                              }}
-                            />
-                            {item.isDiplomacy ? (
-                              <span className="absolute left-3 top-3 rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/92 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5a3d1c]">
-                                {lang === "en" ? "Diplomacy" : "외교"}
-                              </span>
-                            ) : null}
-                          </div>
+                          <LampCardHero
+                            imageUrl={item.imageUrl}
+                            title={item.title}
+                            summary={item.summary}
+                            focusLabel={item.focusLabel}
+                            isDiplomacy={item.isDiplomacy}
+                            isEconomy={isEconomy}
+                            lang={lang}
+                          />
                           <div className="flex items-stretch gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5">
                             <div className="min-w-0 flex-1" style={{ color: articleInk }}>
                               <div
@@ -569,6 +564,70 @@ function PhotoNewsLampParchment({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+}
+
+function LampCardHero({
+  imageUrl,
+  title,
+  summary,
+  focusLabel,
+  isDiplomacy,
+  isEconomy,
+  lang,
+}: {
+  imageUrl: string;
+  title: string;
+  summary: string;
+  focusLabel?: string;
+  isDiplomacy?: boolean;
+  isEconomy: boolean;
+  lang: LabelLanguage;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const hasPhoto = Boolean(imageUrl) && !imgFailed;
+  const theme = resolveLampThumbTheme({
+    mode: isEconomy ? "economy" : "conflict",
+    title,
+    summary,
+    focusLabel,
+  });
+  const label = lang === "en" ? LAMP_THUMB_LABEL[theme].en : LAMP_THUMB_LABEL[theme].ko;
+
+  return (
+    <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#d4c4a0] sm:aspect-[2/1]">
+      {hasPhoto ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <div
+          className={`flex h-full w-full flex-col justify-end bg-gradient-to-br ${LAMP_THUMB_GRADIENT[theme]} px-5 py-4`}
+          aria-hidden
+        >
+          <p className="text-[10px] uppercase tracking-[0.28em] text-[#f5ead2]/55">
+            {isEconomy ? (lang === "en" ? "Market lamp" : "시장 등불") : lang === "en" ? "War lamp" : "전장 등불"}
+          </p>
+          <p className="mt-1 text-[1.35rem] tracking-[0.08em] text-[#f5ead2]/92">{label}</p>
+          {focusLabel ? (
+            <p className="mt-1 max-w-[90%] truncate text-[12px] text-[#f5ead2]/65">{focusLabel}</p>
+          ) : null}
+        </div>
+      )}
+      {isDiplomacy ? (
+        <span className="absolute left-3 top-3 rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/92 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5a3d1c]">
+          {lang === "en" ? "Diplomacy" : "외교"}
+        </span>
+      ) : null}
     </div>
   );
 }
