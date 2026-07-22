@@ -568,8 +568,6 @@ function PhotoNewsLampParchment({
   );
 }
 
-}
-
 function LampCardHero({
   imageUrl,
   title,
