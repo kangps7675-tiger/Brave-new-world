@@ -1488,7 +1488,6 @@ export function GlobeDashboard({
   const setShowFirmsFires = (v: boolean) => togglePref("showFirmsFires", v);
   const setShowGdeltWar = (v: boolean) => togglePref("showGdeltWar", v);
   const setShowGdeltDiplomatic = (v: boolean) => togglePref("showGdeltDiplomatic", v);
-  const setShowGdeltAlliance = (v: boolean) => togglePref("showGdeltAlliance", v);
   const setShowGdeltProtests = (v: boolean) => togglePref("showGdeltProtests", v);
   const setShowGdeltOceanCompetition = (v: boolean) =>
     togglePref("showGdeltOceanCompetition", v);
