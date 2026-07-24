@@ -10,7 +10,6 @@ import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
 import { NavAnnouncementBanner } from "@/components/NavAnnouncementBanner";
 import { type DailyPrompt } from "@/lib/dailyPrompt";
 import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
-import { formatWtiBriefingLead } from "@/lib/wti";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import { NeptunLayerPanel } from "@/components/NeptunLayerPanel";
 import { NeptunThreatDetailPanel } from "@/components/NeptunThreatDetailPanel";
@@ -67,7 +66,6 @@ import {
 } from "@/data/criticalNodes";
 import type { EconInsightBrief } from "@/data/econInsightBriefs";
 import { type ChromeCoachStep, shouldOfferChromeCoach } from "@/components/ChromeOnboardingCoach";
-import { shouldOfferTourInvite } from "@/components/TourInviteBanner";
 import {
   shouldOfferFrictionCoach,
   type FrictionCoachStep,
@@ -85,10 +83,6 @@ import {
   readDailyPredictPrefs,
   writeDailyPredictPrefs,
 } from "@/lib/dailyPredictPrefs";
-import {
-  forgottenWarningLead,
-  pickForgottenWarning,
-} from "@/lib/forgottenWarning";
 import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchment";
 import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import {
@@ -103,7 +97,6 @@ import {
   pickEconomyLampNews,
   resolveLampPeriod,
   resolveMondayWeeklyRecap,
-  shortenEconomyLampParagraphs,
   weeklyRecapStorageKey,
   weeklyRecapTitle,
   CONFLICT_LAMP_NEWS_MIN,
@@ -6432,6 +6425,107 @@ export function GlobeDashboard({
   ]);
 
   /** 화면 투어 — 자동 점화 없음. 기능 안내에서만 시작 */
+
+  /** 월요일 주간 회고 — 등불보다 먼저 settle */
+  useEffect(() => {
+    if (isLoading || loadError || !globeReady) return;
+    if (entryGate !== null || showModePicker) return;
+    if (chromeCoachStep || showAirRaidCoach) return;
+    if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
+    if (!clearanceChipSettled) return;
+
+    const offer = resolveMondayWeeklyRecap();
+    if (!offer) {
+      if (!weeklyRecapSettled) setWeeklyRecapSettled(true);
+      if (weeklyRecap) setWeeklyRecap(null);
+      return;
+    }
+
+    const storageKey = weeklyRecapStorageKey(offer.weekKey, viewerMode);
+    if (weeklyRecap?.key === storageKey) {
+      if (!weeklyRecapSettled) setWeeklyRecapSettled(true);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        let content: PeriodicBriefing | null = null;
+        const langQs = labelLanguage === "en" ? "en" : "ko";
+        try {
+          const res = await fetch(
+            `/api/briefing-stats?tier=weekly&key=${encodeURIComponent(offer.weekKey)}&lang=${langQs}&viewerMode=${viewerMode}`,
+            { cache: "no-store" },
+          );
+          if (res.ok) {
+            const payload = (await res.json()) as {
+              stats?: BriefingPeriodStats | null;
+              briefing?: PeriodicBriefing | null;
+            };
+            content =
+              payload.briefing ??
+              buildBriefingFromStats(
+                payload.stats ?? null,
+                "weekly",
+                offer.weekKey,
+                labelLanguage,
+                viewerMode,
+              );
+          }
+        } catch {
+          /* fall through */
+        }
+        if (!content) {
+          content = buildPeriodicBriefing(viewerMode, labelLanguage);
+        }
+        if (content) {
+          const focusHint =
+            watchFocusLine ??
+            (labelLanguage === "en"
+              ? "Monday recap — why you come back each week"
+              : "월요일 리캡 — 매주 오는 이유");
+          content = {
+            ...content,
+            tier: "weekly",
+            key: storageKey,
+            title: weeklyRecapTitle(viewerMode, labelLanguage, focusHint),
+          };
+          content = await localizePeriodicBriefing(content, labelLanguage);
+        }
+        if (!cancelled) {
+          const startCollapsed = hasFoldedWeeklyRecap(storageKey);
+          if (content) {
+            setWeeklyRecapCollapsed(startCollapsed);
+            setWeeklyRecap(content);
+          }
+          setWeeklyRecapSettled(true);
+        }
+      })();
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    calendarDayKey,
+    chromeCoachStep,
+    clearanceChipSettled,
+    econInsightOpen,
+    entryGate,
+    frictionEpisodeBrief,
+    globeReady,
+    hubBriefOpen,
+    isLoading,
+    labelLanguage,
+    loadError,
+    showAirRaidCoach,
+    showModePicker,
+    viewerMode,
+    watchFocusLine,
+    weeklyRecap,
+    weeklyRecapSettled,
+  ]);
 
   /**
    * 매일 등불 — 지정학·지경학 각각 하루 1회.
