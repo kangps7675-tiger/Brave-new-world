@@ -334,36 +334,43 @@ export async function GET(request: Request) {
       max: maxVessels,
     });
     if (fromD1 && fromD1.count > 0) {
-      return NextResponse.json(
-        {
-          receivedAt: fromD1.receivedAt,
-          vessels: filterVessels(fromD1.vessels, classFilter, maxVessels),
-          provider: "d1",
-          classFilter,
-          source: "d1",
-          cached: true,
-        },
-        { headers: AIS_CDN },
-      );
+      const vessels = filterVessels(fromD1.vessels, classFilter, maxVessels);
+      if (vessels.length > 0) {
+        return NextResponse.json(
+          {
+            receivedAt: fromD1.receivedAt,
+            vessels,
+            provider: "d1",
+            classFilter,
+            source: "d1",
+            cached: true,
+          },
+          { headers: AIS_CDN },
+        );
+      }
     }
     const fromWorker = await readAisFromIngestWorker({
       category: d1Category,
       max: maxVessels,
     });
     if (fromWorker && fromWorker.count > 0) {
-      return NextResponse.json(
-        {
-          receivedAt: fromWorker.receivedAt,
-          vessels: filterVessels(fromWorker.vessels, classFilter, maxVessels),
-          provider: "ingest-worker",
-          classFilter,
-          source: "ingest-worker",
-          cached: true,
-        },
-        { headers: AIS_CDN },
-      );
+      const vessels = filterVessels(fromWorker.vessels, classFilter, maxVessels);
+      if (vessels.length > 0) {
+        return NextResponse.json(
+          {
+            receivedAt: fromWorker.receivedAt,
+            vessels,
+            provider: "ingest-worker",
+            classFilter,
+            source: "ingest-worker",
+            cached: true,
+          },
+          { headers: AIS_CDN },
+        );
+      }
     }
-    // 예전: waiting 빈 배열 반환 → 체크 ON인데 안 보임. 라이브/데모로 폴백.
+    // 캐시가 비었거나 필터 후 0척: waiting 빈 배열 대신 라이브/데모로 폴백.
+    // 지정학(군용)은 aisstream, 지경학(민간)은 MT → aisstream 경로.
   }
 
   const mtKey = getMarineTrafficApiKey();

@@ -322,20 +322,27 @@ export async function fetchAisVessels(
   const mtKey = getMarineTrafficKey(env);
   const aisstreamKey = getAisstreamKey(env);
   const errors: string[] = [];
+  const byMmsi = new Map<string, AisVesselRow>();
 
+  // 지경학용 민간(화물·탱커·여객) — MarineTraffic
   if (mtKey) {
     const mt = await fetchMarineTraffic(mtKey, max);
     errors.push(...mt.errors);
-    if (mt.vessels.length > 0) {
-      return { vessels: mt.vessels, errors };
+    for (const vessel of mt.vessels) {
+      byMmsi.set(vessel.mmsi, vessel);
     }
   }
 
+  // 지정학용 군함 포함 — aisstream (MT만 쓰면 민간만 D1에 쌓여 지정학에 일반 AIS가 섞이거나 군용이 비는 문제)
   if (aisstreamKey) {
     const stream = await fetchAisstream(aisstreamKey, max);
     errors.push(...stream.errors);
-    if (stream.vessels.length > 0) {
-      return { vessels: stream.vessels, errors };
+    for (const vessel of stream.vessels) {
+      const prev = byMmsi.get(vessel.mmsi);
+      // 군함은 stream 분류 우선, 그 외는 기존(MT) 유지
+      if (!prev || vessel.category === "military") {
+        byMmsi.set(vessel.mmsi, vessel);
+      }
     }
   }
 
@@ -343,7 +350,9 @@ export async function fetchAisVessels(
     errors.push("MARINETRAFFIC_API_KEY and AISSTREAM_API_KEY missing — AIS skipped");
   } else if (!mtKey) {
     errors.push("MARINETRAFFIC_API_KEY missing — using aisstream only");
+  } else if (!aisstreamKey) {
+    errors.push("AISSTREAM_API_KEY missing — commercial MT only (no military AIS warm)");
   }
 
-  return { vessels: [], errors };
+  return { vessels: Array.from(byMmsi.values()).slice(0, max), errors };
 }

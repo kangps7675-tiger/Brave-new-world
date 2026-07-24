@@ -304,7 +304,13 @@ export async function readAisFromIngestWorker(options: {
     if (!res.ok) return null;
     const payload = (await res.json()) as { vessels?: AisVessel[] };
     if (!Array.isArray(payload.vessels) || payload.vessels.length === 0) return null;
-    const vessels = payload.vessels.map(ensureMilitaryKind);
+    const vessels = payload.vessels
+      .map(ensureMilitaryKind)
+      .filter((v) => {
+        if (!options.category || options.category === "all") return true;
+        return v.category === options.category;
+      });
+    if (vessels.length === 0) return null;
     return {
       source: "d1",
       receivedAt: new Date().toISOString(),
