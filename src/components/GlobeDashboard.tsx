@@ -9292,6 +9292,8 @@ export function GlobeDashboard({
           placeLabel={newsPerspectives.placeLabel}
           kind={newsPerspectives.kind}
           perspectives={newsPerspectives.perspectives ?? []}
+          theater={newsPerspectives.theater}
+          ageMinutes={60}
           lang={labelLanguage}
           onClose={() => setNewsPerspectives(null)}
         />

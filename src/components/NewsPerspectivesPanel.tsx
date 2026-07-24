@@ -1,6 +1,8 @@
 "use client";
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
+import type { TheaterMarketFilter } from "@/lib/theaterAssets";
 
 export type NewsPerspectiveView = {
   title: string;
@@ -16,6 +18,10 @@ type NewsPerspectivesPanelProps = {
   placeLabel?: string;
   kind: "war" | "tension" | "diplomatic";
   perspectives: NewsPerspectiveView[];
+  /** 전장 — 관련 시장 반응 조회용 (전쟁과 이익을 한 화면에) */
+  theater?: TheaterMarketFilter;
+  /** 사건 경과 시간(분). 시장 반응 판정 기준 */
+  ageMinutes?: number;
   lang: LabelLanguage;
   onClose: () => void;
 };
@@ -39,6 +45,8 @@ export function NewsPerspectivesPanel({
   placeLabel,
   kind,
   perspectives,
+  theater,
+  ageMinutes,
   lang,
   onClose,
 }: NewsPerspectivesPanelProps) {
@@ -114,6 +122,16 @@ export function NewsPerspectivesPanel({
           );
         })}
       </div>
+
+      {/* 전쟁 → 이익: 이 사건이 관련 시장을 움직였는지 (지정학 ↔ 지경학 연결) */}
+      {theater ? (
+        <div className="border-t border-slate-500/15">
+          <p className="px-3.5 pt-2 text-[10px] font-semibold tracking-wide text-slate-400">
+            {en ? "Market reaction" : "시장 반응"}
+          </p>
+          <EventMarketReactionCard theater={theater} ageMinutes={ageMinutes ?? 60} prominent />
+        </div>
+      ) : null}
 
       <p className="border-t border-slate-500/15 px-3.5 py-2 text-[9px] leading-4 text-slate-500">
         {en

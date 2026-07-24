@@ -27,6 +27,7 @@ import type { NeptunImpactFlash } from "@/lib/neptunImpactFlash";
 import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
 import type { MergedViewConfig } from "@/lib/viewPackages";
 import type { PlaceLabelTier } from "@/lib/placeLabelColors";
+import type { NewsTheater } from "@/lib/news/types";
 
 export type Selection =
   | { kind: "event"; item: ConflictEvent }
@@ -245,6 +246,8 @@ export type NewsStreamNeonMarker = {
   kind: "war" | "tension" | "diplomatic";
   accent: "red" | "orange" | "blue" | "cyan" | "white";
   intensity: number;
+  /** 전장 — 관점 패널 시장 반응 카드용 */
+  theater?: NewsTheater;
   placeLabel?: string;
   /** 같은 사건을 보도한 여러 매체 관점 (한 사건, 여러 시각) */
   perspectives?: {
