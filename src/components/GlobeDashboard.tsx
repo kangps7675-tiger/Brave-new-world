@@ -7,11 +7,12 @@ import { CursorHoverCard } from "@/components/CursorHoverCard";
 import { DisputeZoneLegend } from "@/components/DisputeZoneLegend";
 import { UkraineFrontLegend, UkraineFrontLegendContent } from "@/components/UkraineFrontLegend";
 import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
-import { FeatureGuideButton, FeatureGuidePanel } from "@/components/FeatureGuidePanel";
-import { MethodologySourcesPanel, SourcesLinkButton } from "@/components/MethodologySourcesPanel";
+import { FeatureGuidePanel } from "@/components/FeatureGuidePanel";
+import { MethodologySourcesPanel } from "@/components/MethodologySourcesPanel";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
 import { ShareViewButton } from "@/components/ShareViewButton";
+import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
 import { TelegramOsintPanel } from "@/components/TelegramOsintPanel";
@@ -26,7 +27,6 @@ import { LayerPanelLanguagePicker } from "@/components/LayerPanelLanguagePicker"
 import { CompactPresetChips } from "@/components/CompactPresetChips";
 import { HoverNav } from "@/components/HoverNav";
 import { HoverHint } from "@/components/HoverHint";
-import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { useCompactUi } from "@/hooks/useCompactUi";
 import {
   buildCompactPrefs,
@@ -84,7 +84,6 @@ import {
 import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import { geocodeUkraineAlertRegion } from "@/lib/ukraineAlertZones";
 import {
-  buildBriefingFromStats,
   buildLampMacroTable,
   buildPeriodicBriefing,
   hasSeenPeriod,
@@ -93,13 +92,11 @@ import {
   pickConflictLampNews,
   pickEconomyLampNews,
   resolveLampPeriod,
-  shortenEconomyLampParagraphs,
   CONFLICT_LAMP_NEWS_MIN,
   ECONOMY_LAMP_NEWS_MIN,
   type PeriodicBriefing,
 } from "@/lib/news/periodicBriefing";
 import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
-import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
 import {
   recordInterestFromSelection,
   recordInterestMode,
@@ -368,6 +365,8 @@ import {
   aisDisplayTypeLabel,
   aisMilitaryKindColor,
   isAisAspectHullMarker,
+  matchesAisClassFilter,
+  type AisClassFilter,
 } from "@/lib/aisVesselClass";
 import { COUNTRY_BORDER_PATH_COLOR, COUNTRY_FILL_ALTITUDE, COUNTRY_TEXTURE_MODE_FILL, POLYGON_NO_STROKE } from "@/lib/countryColors";
 import { getPlaceLabelColor, getPlaceLabelDotRadius, getPlaceLabelSize, getPlaceLabelTier } from "@/lib/placeLabelColors";
@@ -2741,10 +2740,17 @@ export function GlobeDashboard({
     [civDisplayPoints],
   );
 
+  /** 지정학=군용 함정만, 지경학=민간(화물·탱커·여객 등) — ADS-B mil/civ 분리와 동일 */
+  const aisClassFilter = useMemo<AisClassFilter>(
+    () => (isEconomyViewer ? "commercial" : "military"),
+    [isEconomyViewer],
+  );
+
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(
     () =>
       showAis
         ? aisVessels
+            .filter((vessel) => matchesAisClassFilter(vessel.category, aisClassFilter))
             .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
             .filter((vessel) =>
               isCenterInView(vessel, layerViewState, VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 6),
@@ -2756,7 +2762,14 @@ export function GlobeDashboard({
               displayKind: "ais" as const,
             }))
         : [],
-    [aisVessels, carrierAisMerge.matchedMmsi, globeLod.tier, layerViewState, showAis],
+    [
+      aisClassFilter,
+      aisVessels,
+      carrierAisMerge.matchedMmsi,
+      globeLod.tier,
+      layerViewState,
+      showAis,
+    ],
   );
 
   const aisHtmlMarkers = useMemo<AisHtmlMarker[]>(
@@ -4282,9 +4295,8 @@ export function GlobeDashboard({
 
     try {
       const max = liveAisFetchMax();
-      const aisClass = isEconomyViewer ? "commercial" : "military";
       const response = await fetch(
-        `/api/ais?seconds=8&max=${max}&class=${aisClass}&provider=auto`,
+        `/api/ais?seconds=8&max=${max}&class=${aisClassFilter}&provider=auto`,
         { cache: "no-store" },
       );
       const payload = (await response.json()) as {
@@ -4296,13 +4308,18 @@ export function GlobeDashboard({
         throw new Error(payload.error || `AIS 요청 실패: ${response.status}`);
       }
 
-      setAisVessels((payload.vessels || []).slice(0, max));
+      // 서버 필터 누락·모드 전환 잔여분 대비 — 클라이언트에서도 카테고리 강제
+      setAisVessels(
+        (payload.vessels || [])
+          .filter((vessel) => matchesAisClassFilter(vessel.category, aisClassFilter))
+          .slice(0, max),
+      );
     } catch (error) {
       setAisError(error instanceof Error ? error.message : "AIS 로드 실패");
     } finally {
       setAisLoading(false);
     }
-  }, [isEconomyViewer]);
+  }, [aisClassFilter]);
 
   const refreshMilAircraft = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -4525,7 +4542,15 @@ export function GlobeDashboard({
   }, [layerAltitude, layerViewState, showFirmsFires]);
 
   useEffect(() => {
-    if (!showAis) return;
+    // 지정학↔지경학 전환 시 이전 모드 선박(민간/군용)이 남지 않게 즉시 비움
+    setAisVessels([]);
+  }, [aisClassFilter]);
+
+  useEffect(() => {
+    if (!showAis) {
+      setAisVessels([]);
+      return;
+    }
     void refreshAis();
     const timer = window.setInterval(() => {
       void refreshAis();
@@ -5530,7 +5555,7 @@ export function GlobeDashboard({
             id: "ais",
             label: isEconomyViewer ? "민간 선박 (AIS)" : "군용 함정 (AIS)",
             detail: showAis
-              ? `${isEconomyViewer ? "민간" : "군용"} ${aisVessels.length.toLocaleString()}척`
+              ? `${isEconomyViewer ? "민간" : "군용"} ${aisDisplayPoints.length.toLocaleString()}척`
               : "꺼짐",
             checked: layerPrefs.showAis,
             onChange: setShowAis,
@@ -6744,15 +6769,21 @@ export function GlobeDashboard({
   ]);
 
   /**
-   * 매일 등불 브리핑 — 지정학·지경학 각각 하루 1회.
-   * 첫 방문: 입장 인트로(경고→편지→도메인)가 끝난 뒤에만.
-   * 재방문: 당일 해당 모드 미시청이면 점화. 코치/공습 안내보다 우선.
+   * 매일 등불 — 지정학·지경학 각각 하루 1회.
+   * SLA: 게이트 해제 후 미시청이면 **5초 안에 반드시** 양피지 점화.
+   * 네트워크는 그 안에 되면 쓰고, 안 되면 buildPeriodicBriefing 폴백.
+   * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
   useEffect(() => {
     if (isLoading || loadError || !globeReady) return;
     if (entryGate !== null || showModePicker) return;
     if (chromeCoachStep || showAirRaidCoach) return;
-    if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
+
+    // 다른 양피지 점유 중 — 지도 잠금만 풀고, 닫히면 deps로 재점화
+    if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) {
+      setDailyLampSettled(true);
+      return;
+    }
 
     const { dayKey, tier } = resolveLampPeriod();
     const dayPart = calendarDayKey.startsWith("daily-") ? calendarDayKey : dayKey;
@@ -6761,7 +6792,6 @@ export function GlobeDashboard({
     if (periodicBriefing?.key === lampKey) return;
     if (hasSeenPeriod(lampKey)) {
       setDailyLampSettled(true);
-      // 오늘 등불 이미 봄 → 첫 방문 크롬 코치만 이어서
       if (shouldOfferChromeCoach() && !chromeCoachStep) {
         const coachTimer = window.setTimeout(() => setChromeCoachStep("nav"), 900);
         return () => window.clearTimeout(coachTimer);
@@ -6769,233 +6799,170 @@ export function GlobeDashboard({
       return;
     }
 
+    const LAMP_HARD_DEADLINE_MS = 5_000;
+    const NEWS_BUDGET_MS = 3_500;
+    const MACRO_ENRICH_MS = 2_500;
+
+    const fetchWithTimeout = async (url: string, ms: number): Promise<Response | null> => {
+      const ctrl = new AbortController();
+      const abortTimer = window.setTimeout(() => ctrl.abort(), ms);
+      try {
+        return await fetch(url, { cache: "no-store", signal: ctrl.signal });
+      } catch {
+        return null;
+      } finally {
+        window.clearTimeout(abortTimer);
+      }
+    };
+
+    const curatedFallback = (): PeriodicBriefing | null => {
+      const base = buildPeriodicBriefing(viewerMode, labelLanguage);
+      return base ? { ...base, key: lampKey, tier } : null;
+    };
+
     let cancelled = false;
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        let content: PeriodicBriefing | null = null;
-        if (viewerMode === "economy") {
-          try {
-            const langQs = labelLanguage === "en" ? "en" : "ko";
-            const [lampRes, newsRes] = await Promise.all([
-              fetch(
-                `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayPart)}&lang=${langQs}`,
-                { cache: "no-store" },
-              ),
-              fetch(`/api/news-stream?packages=geo-trader&lang=${langQs}`, { cache: "no-store" }),
-            ]);
+    let shown = false;
+    let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
 
-            const kicker =
-              labelLanguage === "en"
-                ? tier === "monthly"
-                  ? "This month's market lamp"
-                  : tier === "weekly"
-                    ? "This week's market lamp"
-                    : "Today's market lamp"
-                : tier === "monthly"
-                  ? "이번 달 시장 등불"
-                  : tier === "weekly"
-                    ? "이번 주 시장 등불"
-                    : "오늘의 시장 등불";
+    const ignite = (content: PeriodicBriefing | null) => {
+      if (cancelled || shown) return;
+      shown = true;
+      if (deadlineTimer != null) {
+        clearTimeout(deadlineTimer);
+        deadlineTimer = null;
+      }
+      if (content) setPeriodicBriefing(content);
+      setDailyLampSettled(true);
+    };
 
-            let focusTitle =
-              labelLanguage === "en" ? "Markets in focus" : "시장이 주목하는 뉴스";
-            let paragraphs: string[] = [];
-            let macroTable = buildLampMacroTable([], labelLanguage);
+    // 5초 하드 데드라인 — 네트워크와 무관하게 폴백 점화
+    deadlineTimer = setTimeout(() => {
+      ignite(curatedFallback());
+    }, LAMP_HARD_DEADLINE_MS);
 
-            if (lampRes.ok) {
-              const lamp = (await lampRes.json()) as {
-                disabled?: boolean;
-                focusTitle?: string;
-                paragraphs?: string[];
-                macros?: Array<{
-                  name?: string | null;
-                  id?: string | null;
-                  inflationPct?: number | null;
-                  gdpGrowthPct?: number | null;
-                  unemploymentPct?: number | null;
-                  gdpPerCapitaUsd?: number | null;
-                  gdpUsd?: number | null;
-                }>;
-              };
-              if (!lamp.disabled) {
-                if (lamp.focusTitle) focusTitle = lamp.focusTitle;
-                paragraphs = shortenEconomyLampParagraphs(lamp.paragraphs ?? [], 1);
-                if (lamp.macros && lamp.macros.length > 0) {
-                  macroTable = buildLampMacroTable(lamp.macros, labelLanguage);
-                }
-              }
-            }
+    void (async () => {
+      const langQs = labelLanguage === "en" ? "en" : "ko";
+      const isEconomy = viewerMode === "economy";
 
-            let featuredNews = pickEconomyLampNews([], ECONOMY_LAMP_NEWS_MIN, langQs);
-            if (newsRes.ok) {
-              const newsPayload = (await newsRes.json()) as NewsStreamPayload;
-              const pool: NewsStreamItem[] = [
-                ...(newsPayload.hero ? [newsPayload.hero] : []),
-                ...(newsPayload.verified ?? []),
-                ...(newsPayload.stateMedia ?? []),
-              ];
-              featuredNews = pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs);
-            }
+      const kicker = isEconomy
+        ? labelLanguage === "en"
+          ? tier === "monthly"
+            ? "This month's market lamp"
+            : tier === "weekly"
+              ? "This week's market lamp"
+              : "Today's market lamp"
+          : tier === "monthly"
+            ? "이번 달 시장 등불"
+            : tier === "weekly"
+              ? "이번 주 시장 등불"
+              : "오늘의 시장 등불"
+        : labelLanguage === "en"
+          ? tier === "monthly"
+            ? "This month's theater lamp"
+            : tier === "weekly"
+              ? "This week's theater lamp"
+              : "Today's theater lamp"
+          : tier === "monthly"
+            ? "이번 달 전장 등불"
+            : tier === "weekly"
+              ? "이번 주 전장 등불"
+              : "오늘의 전장 등불";
 
-            if (macroTable.length > 0 || featuredNews.length > 0 || paragraphs.length > 0) {
-              content = {
-                tier,
-                key: lampKey,
-                title: `${kicker}\n${focusTitle}`,
-                // 지경학은 표·뉴스가 본문 — 긴 서술 브리핑은 쓰지 않음
-                paragraphs: [],
-                macroTable,
-                featuredNews,
-              };
-            }
-          } catch {
-            // fall through
-          }
-        } else {
-          // 지정학 — 전장 사진 뉴스 등불 (브리핑 서술 대신)
-          try {
-            const langQs = labelLanguage === "en" ? "en" : "ko";
-            const newsRes = await fetch(
-              `/api/news-stream?packages=conflict-watch&lang=${langQs}`,
-              { cache: "no-store" },
-            );
-            const kicker =
-              labelLanguage === "en"
-                ? tier === "monthly"
-                  ? "This month's theater lamp"
-                  : tier === "weekly"
-                    ? "This week's theater lamp"
-                    : "Today's theater lamp"
-                : tier === "monthly"
-                  ? "이번 달 전장 등불"
-                  : tier === "weekly"
-                    ? "이번 주 전장 등불"
-                    : "오늘의 전장 등불";
-            const focusTitle =
-              labelLanguage === "en"
-                ? "High-trust photo desk"
-                : "고신뢰 사진 데스크";
+      let focusTitle = isEconomy
+        ? labelLanguage === "en"
+          ? "Markets in focus"
+          : "시장이 주목하는 뉴스"
+        : labelLanguage === "en"
+          ? "High-trust photo desk"
+          : "고신뢰 사진 데스크";
 
-            let featuredNews = pickConflictLampNews([], CONFLICT_LAMP_NEWS_MIN, langQs);
-            if (newsRes.ok) {
-              const newsPayload = (await newsRes.json()) as NewsStreamPayload;
-              const pool: NewsStreamItem[] = [
-                ...(newsPayload.hero ? [newsPayload.hero] : []),
-                ...(newsPayload.verified ?? []),
-                ...(newsPayload.stateMedia ?? []),
-              ];
-              featuredNews = pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs);
-            }
+      let macroTable = buildLampMacroTable([], labelLanguage);
+      let featuredNews = isEconomy
+        ? pickEconomyLampNews([], 1, langQs)
+        : pickConflictLampNews([], 1, langQs);
 
-            if (featuredNews.length > 0) {
-              content = {
-                tier,
-                key: lampKey,
-                title: `${kicker}\n${focusTitle}`,
-                paragraphs: [],
-                featuredNews,
-              };
-            }
-          } catch {
-            // fall through
-          }
+      // 뉴스 — 데드라인 안의 예산만 사용
+      try {
+        const newsUrl = isEconomy
+          ? `/api/news-stream?packages=geo-trader&lang=${langQs}`
+          : `/api/news-stream?packages=conflict-watch&lang=${langQs}`;
+        const newsRes = await fetchWithTimeout(newsUrl, NEWS_BUDGET_MS);
+        if (newsRes?.ok) {
+          const newsPayload = (await newsRes.json()) as NewsStreamPayload;
+          const pool: NewsStreamItem[] = [
+            ...(newsPayload.hero ? [newsPayload.hero] : []),
+            ...(newsPayload.verified ?? []),
+            ...(newsPayload.stateMedia ?? []),
+          ];
+          featuredNews = isEconomy
+            ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
+            : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs);
         }
-        if (!content) {
-          try {
-            const res = await fetch(
-              `/api/briefing-stats?tier=${tier}&lang=${labelLanguage === "en" ? "en" : "ko"}&viewerMode=${viewerMode}`,
-              { cache: "no-store" },
-            );
-            if (res.ok) {
-              const payload = (await res.json()) as {
-                stats?: BriefingPeriodStats | null;
-                briefing?: PeriodicBriefing | null;
-              };
-              content =
-                payload.briefing ??
-                buildBriefingFromStats(
-                  payload.stats ?? null,
-                  tier,
-                  dayPart,
-                  labelLanguage,
-                  viewerMode,
-                );
-              if (content) content = { ...content, key: lampKey };
-            }
-          } catch {
-            // fall through to curated
-          }
+      } catch {
+        /* ignore */
+      }
+
+      if (cancelled) return;
+
+      if (featuredNews.length > 0) {
+        ignite({
+          tier,
+          key: lampKey,
+          title: `${kicker}\n${focusTitle}`,
+          paragraphs: [],
+          macroTable,
+          featuredNews,
+        });
+      } else {
+        // 뉴스 실패/부족 — 즉시 시드 폴백 (briefing-stats 대기 금지)
+        ignite(curatedFallback());
+      }
+
+      if (cancelled || !isEconomy) return;
+
+      // 점화 후 보강만 — 실패해도 등불은 이미 떠 있음
+      try {
+        const lampRes = await fetchWithTimeout(
+          `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayPart)}&lang=${langQs}`,
+          MACRO_ENRICH_MS,
+        );
+        if (!lampRes?.ok || cancelled) return;
+        const lamp = (await lampRes.json()) as {
+          disabled?: boolean;
+          focusTitle?: string;
+          macros?: Array<{
+            name?: string | null;
+            id?: string | null;
+            inflationPct?: number | null;
+            gdpGrowthPct?: number | null;
+            unemploymentPct?: number | null;
+            gdpPerCapitaUsd?: number | null;
+            gdpUsd?: number | null;
+          }>;
+        };
+        if (lamp.disabled) return;
+        if (lamp.focusTitle) focusTitle = lamp.focusTitle;
+        if (lamp.macros && lamp.macros.length > 0) {
+          macroTable = buildLampMacroTable(lamp.macros, labelLanguage);
         }
-        if (!content) {
-          content = buildPeriodicBriefing(viewerMode, labelLanguage);
-          if (content) content = { ...content, key: lampKey };
-        }
-        // 사진 뉴스 폴백 — 모드별 picker
-        if (content) {
-          const langQs = labelLanguage === "en" ? "en" : "ko";
-          const needNews = !content.featuredNews || content.featuredNews.length === 0;
-          if (viewerMode === "economy") {
-            if (needNews) {
-              try {
-                const newsRes = await fetch(
-                  `/api/news-stream?packages=geo-trader&lang=${langQs}`,
-                  { cache: "no-store" },
-                );
-                if (newsRes.ok) {
-                  const newsPayload = (await newsRes.json()) as NewsStreamPayload;
-                  const pool: NewsStreamItem[] = [
-                    ...(newsPayload.hero ? [newsPayload.hero] : []),
-                    ...(newsPayload.verified ?? []),
-                    ...(newsPayload.stateMedia ?? []),
-                  ];
-                  content = {
-                    ...content,
-                    paragraphs: [],
-                    featuredNews: pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs),
-                  };
-                }
-              } catch {
-                /* keep content */
-              }
-            } else {
-              content = { ...content, paragraphs: [] };
-            }
-          } else if (needNews) {
-            try {
-              const newsRes = await fetch(
-                `/api/news-stream?packages=conflict-watch&lang=${langQs}`,
-                { cache: "no-store" },
-              );
-              if (newsRes.ok) {
-                const newsPayload = (await newsRes.json()) as NewsStreamPayload;
-                const pool: NewsStreamItem[] = [
-                  ...(newsPayload.hero ? [newsPayload.hero] : []),
-                  ...(newsPayload.verified ?? []),
-                  ...(newsPayload.stateMedia ?? []),
-                ];
-                content = {
-                  ...content,
-                  paragraphs: [],
-                  featuredNews: pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
-                };
-              }
-            } catch {
-              /* keep content */
-            }
-          } else if (content.featuredNews && content.featuredNews.length > 0) {
-            content = { ...content, paragraphs: [] };
-          }
-        }
-        if (!cancelled) {
-          if (content) setPeriodicBriefing(content);
-          setDailyLampSettled(true);
-        }
-      })();
-    }, 1400);
+        if (macroTable.length === 0) return;
+        setPeriodicBriefing((prev) => {
+          if (!prev || prev.key !== lampKey) return prev;
+          return {
+            ...prev,
+            title: `${kicker}\n${focusTitle}`,
+            macroTable,
+            paragraphs: [],
+          };
+        });
+      } catch {
+        /* ignore enrich */
+      }
+    })();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      if (deadlineTimer != null) clearTimeout(deadlineTimer);
     };
   }, [
     calendarDayKey,
@@ -9131,13 +9098,15 @@ export function GlobeDashboard({
         ) : null}
         {!isCompactUi ? (
           <div className="cv-desktop-only pointer-events-auto flex shrink-0 items-center gap-2">
-            <TrustBadgeChip lang={labelLanguage} onClick={() => setShowTrustPanel(true)} />
-            <SourcesLinkButton onClick={() => setShowSourcesPanel(true)} />
-            {entryGate === null && !showModePicker ? (
-              <ParchmentProTipChip lang={labelLanguage} />
-            ) : null}
-            <ShareViewButton getCanvas={() => globeRef.current?.renderer().domElement ?? null} />
-            <FeatureGuideButton viewerMode={viewerMode} onClick={() => setShowFeatureGuide(true)} />
+            <UtilityChromeMenu
+              lang={labelLanguage}
+              showProTip={entryGate === null && !showModePicker}
+              getCanvas={() => globeRef.current?.renderer().domElement ?? null}
+              onTrust={() => setShowTrustPanel(true)}
+              onSources={() => setShowSourcesPanel(true)}
+              onTour={() => setChromeCoachStep("nav")}
+              onHelp={() => setShowFeatureGuide(true)}
+            />
           </div>
         ) : (
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">

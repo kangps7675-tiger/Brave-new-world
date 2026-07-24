@@ -313,38 +313,49 @@ export async function GET(request: Request) {
       max: maxVessels,
     });
     if (fromD1 && fromD1.count > 0) {
-      return NextResponse.json({
-        receivedAt: fromD1.receivedAt,
-        vessels: filterVessels(fromD1.vessels, classFilter, maxVessels),
-        provider: "d1",
-        classFilter,
-        source: "d1",
-        cached: true,
-      });
+      const vessels = filterVessels(fromD1.vessels, classFilter, maxVessels);
+      if (vessels.length > 0) {
+        return NextResponse.json({
+          receivedAt: fromD1.receivedAt,
+          vessels,
+          provider: "d1",
+          classFilter,
+          source: "d1",
+          cached: true,
+        });
+      }
     }
     const fromWorker = await readAisFromIngestWorker({
       category: d1Category,
       max: maxVessels,
     });
     if (fromWorker && fromWorker.count > 0) {
+      const vessels = filterVessels(fromWorker.vessels, classFilter, maxVessels);
+      if (vessels.length > 0) {
+        return NextResponse.json({
+          receivedAt: fromWorker.receivedAt,
+          vessels,
+          provider: "ingest-worker",
+          classFilter,
+          source: "ingest-worker",
+          cached: true,
+        });
+      }
+    }
+    // 지정학(군용): D1에 민간만 있으면 라이브 aisstream으로 폴백
+    // 지경학(민간): MT 키 경로 아래에서 처리
+    if (classFilter !== "military" || !process.env.AISSTREAM_API_KEY) {
       return NextResponse.json({
-        receivedAt: fromWorker.receivedAt,
-        vessels: filterVessels(fromWorker.vessels, classFilter, maxVessels),
-        provider: "ingest-worker",
+        receivedAt: new Date().toISOString(),
+        vessels: [],
+        provider: "d1",
         classFilter,
-        source: "ingest-worker",
-        cached: true,
+        source: "d1",
+        waiting: true,
+        cached: false,
       });
     }
-    return NextResponse.json({
-      receivedAt: new Date().toISOString(),
-      vessels: [],
-      provider: "d1",
-      classFilter,
-      source: "d1",
-      waiting: true,
-      cached: false,
-    });
+    // fall through to aisstream for military
   }
 
   const mtKey = getMarineTrafficApiKey();

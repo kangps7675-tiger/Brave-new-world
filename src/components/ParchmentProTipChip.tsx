@@ -8,7 +8,7 @@ type ParchmentProTipChipProps = {
   lang: LabelLanguage;
 };
 
-const COPY = {
+export const PARCHMENT_PRO_TIP_COPY = {
   ko: {
     label: "꿀팁!",
     tips: [
@@ -24,6 +24,8 @@ const COPY = {
     ],
   },
 } as const;
+
+const COPY = PARCHMENT_PRO_TIP_COPY;
 
 /**
  * 우상단 고정 슬롯 — 양피지 천조각 꿀팁, 호버·포커스 시 짧은 드롭다운 (데스크톱만).
