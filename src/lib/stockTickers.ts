@@ -34,7 +34,44 @@ export type MarketReactionItem = {
   priceAt: number | null;
   priceNow: number | null;
   changePercentSinceEvent: number | null;
+  /** 벤치마크(S&P500) 동일구간 변동을 뺀 초과 변동 — 시장 전체 흐름과 사건 반응을 분리 */
+  excessChangePercent?: number | null;
+  /** 평소 일간 변동폭(σ) 대비 몇 배로 움직였나 — 판정의 핵심 수치 */
+  sigma?: number | null;
 };
+
+/**
+ * 사건이 시장에 영향을 줬는지에 대한 판정.
+ * - impact: 2σ 이상 — 뚜렷한 반응
+ * - mild: 1~2σ — 약한 반응
+ * - none: 1σ 미만 — 평소 변동 범위(= 영향 없음)
+ * - pending: 장 마감·데이터 부족으로 아직 판정 불가
+ */
+export type MarketReactionVerdict = "impact" | "mild" | "none" | "pending";
+
+/** 이 값 이상이면 "뚜렷한 반응" — 알림 푸시 임계값이기도 하다 */
+export const REACTION_IMPACT_SIGMA = 2;
+export const REACTION_MILD_SIGMA = 1;
+
+export function verdictFromSigma(
+  sigma: number | null | undefined,
+  marketOpen: boolean,
+): MarketReactionVerdict {
+  if (sigma == null || !Number.isFinite(sigma)) return "pending";
+  // 장이 닫혀 있는데 거의 안 움직인 건 "영향 없음"이 아니라 "아직 모름"
+  if (!marketOpen && Math.abs(sigma) < REACTION_MILD_SIGMA) return "pending";
+  const abs = Math.abs(sigma);
+  if (abs >= REACTION_IMPACT_SIGMA) return "impact";
+  if (abs >= REACTION_MILD_SIGMA) return "mild";
+  return "none";
+}
+
+export function verdictLabel(verdict: MarketReactionVerdict, ko: boolean): string {
+  if (verdict === "impact") return ko ? "시장 반응 확인됨" : "Market reacted";
+  if (verdict === "mild") return ko ? "약한 반응" : "Mild reaction";
+  if (verdict === "none") return ko ? "시장은 반응하지 않음" : "No market reaction";
+  return ko ? "판정 대기 (장 마감)" : "Pending (market closed)";
+}
 
 /**
  * Yahoo 심볼 → 사람이 읽는 이름 (CL=F → WTI 원유 등).
@@ -45,6 +82,7 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   "CL=F": { ko: "WTI 원유", en: "WTI Crude Oil" },
   "BZ=F": { ko: "브렌트유", en: "Brent Crude" },
   "GC=F": { ko: "금 선물", en: "Gold Futures" },
+  "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
   "DX-Y.NYB": { ko: "달러 인덱스", en: "US Dollar Index" },
   "^GSPC": { ko: "S&P 500", en: "S&P 500" },
   "^IXIC": { ko: "나스닥", en: "Nasdaq Composite" },
@@ -64,6 +102,7 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "CL=F", label: "WTI Crude Oil" },
   { symbol: "BZ=F", label: "Brent Crude" },
   { symbol: "GC=F", label: "Gold Futures" },
+  { symbol: "BTC-USD", label: "Bitcoin" },
   { symbol: "DX-Y.NYB", label: "US Dollar Index" },
   { symbol: "^GSPC", label: "S&P 500" },
   { symbol: "^IXIC", label: "Nasdaq" },
@@ -85,22 +124,24 @@ export function tickerDisplayName(
   return symbol.replace(/^\^/, "").replace(/=F$/, "");
 }
 
-/** 하단 스크롤 스트립 — 매크로·에너지·미국 지수 (지정학 트레이더 우선) */
+/** 하단 스크롤 스트립 — 매크로·에너지·비트코인·미국 지수 */
 export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
   "CL=F",
   "BZ=F",
   "GC=F",
+  "BTC-USD",
   "DX-Y.NYB",
   "^GSPC",
   "^IXIC",
 ];
 
-export type MarketGroupId = "risk" | "commodities" | "us-equities" | "asia";
+export type MarketGroupId = "risk" | "commodities" | "crypto" | "us-equities" | "asia";
 
 export const MARKET_GROUPS: Array<{ id: MarketGroupId; label: string; symbols: string[] }> = [
   { id: "risk", label: "리스크 · 달러", symbols: ["^VIX", "DX-Y.NYB"] },
   { id: "commodities", label: "에너지 · 금", symbols: ["CL=F", "BZ=F", "GC=F"] },
+  { id: "crypto", label: "암호화폐", symbols: ["BTC-USD"] },
   { id: "us-equities", label: "미국 지수", symbols: ["^GSPC", "^IXIC"] },
   { id: "asia", label: "아시아 지수", symbols: ["^N225", "^KS11", "^HSI", "000001.SS"] },
 ];
@@ -134,6 +175,11 @@ export const THEATER_RELATED_SYMBOLS: Record<TheaterMarketFilter, string[]> = {
   korea: theaterAssetSymbols("korea"),
   japan: theaterAssetSymbols("japan"),
   "south-asia": theaterAssetSymbols("south-asia"),
+  "southeast-asia": theaterAssetSymbols("southeast-asia"),
+  "south-america": theaterAssetSymbols("south-america"),
+  africa: theaterAssetSymbols("africa"),
+  arctic: theaterAssetSymbols("arctic"),
+  atlantic: theaterAssetSymbols("atlantic"),
   global: theaterAssetSymbols("global"),
 };
 

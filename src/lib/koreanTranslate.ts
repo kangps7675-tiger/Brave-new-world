@@ -36,7 +36,7 @@ async function fetchTranslation(text: string, targetLang: LabelLanguage): Promis
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
   const res = await fetch(url, {
     signal: AbortSignal.timeout(8000),
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; ConflictView/1.0)" },
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" },
     cache: "no-store",
   });
   if (!res.ok) return text;

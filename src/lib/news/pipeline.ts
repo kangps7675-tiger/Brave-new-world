@@ -5,6 +5,7 @@
 import {
   ALL_NEWS_FEEDS,
   feedsForPackages,
+  isEconomyNewsMode,
   isFeedItemRelevant,
   type NewsFeedDef,
 } from "@/lib/news/feedCatalog";
@@ -25,10 +26,10 @@ import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
 import type { ViewPackageId } from "@/lib/viewPackages";
 
 const URGENCY =
-  /\b(breaking|urgent|just\s?in|live|attack|strike|missile|drone|explosion|war|invasion|ceasefire|nuclear|killed|dead|shelling|airstrike|bomb|blockade|escalat|retaliat|offensive|clash|troops|carrier|hormuz)\b/i;
+  /\b(breaking|urgent|just\s?in|live|attack|strike|missile|drone|explosion|war|invasion|ceasefire|nuclear|killed|dead|shelling|airstrike|bomb|blockade|escalat|retaliat|offensive|clash|troops|carrier|hormuz|suez|malacca|bab[\s-]?el[\s-]?mandeb|taiwan\s?strait|panama\s?canal|red\s?sea)\b/i;
 
 const ECON_URGENCY =
-  /\b(breaking|surge|plunge|crash|rally|cut|hike|sanction|embargo|blockade|default|bankrupt|strike|shutdown|record\s?high|record\s?low|selloff|soar|tumble)\b/i;
+  /\b(breaking|surge|plunge|crash|rally|cut|hike|sanction|embargo|blockade|default|bankrupt|strike|shutdown|record\s?high|record\s?low|selloff|soar|tumble|hormuz|suez|malacca|freight|tanker|lng|oil\s?price|brent|wti|red\s?sea|shipping\s?rate)\b/i;
 
 function stableId(title: string, link: string, theater: NewsTheater): string {
   const key = `${theater}:${title.toLowerCase().slice(0, 80)}:${link.slice(0, 60)}`;
@@ -178,9 +179,11 @@ export async function buildNewsStream(
   options: BuildNewsStreamOptions = {},
 ): Promise<NewsStreamPayload> {
   const feeds = options.packages ? feedsForPackages(options.packages) : ALL_NEWS_FEEDS;
+  const economyOnly = Boolean(options.packages && isEconomyNewsMode(options.packages));
   const [results, newfeedsIran] = await Promise.all([
     mapPool(feeds, fetchFeedItems, 10),
-    fetchNewfeedsIranNewsItems(30),
+    // 지경학 전용 스트림에는 이란 NewFeeds(defense)를 섞지 않음
+    economyOnly ? Promise.resolve([]) : fetchNewfeedsIranNewsItems(30),
   ]);
   const merged = [...results.flat(), ...newfeedsIran];
 

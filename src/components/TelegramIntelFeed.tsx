@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { HoverHint } from "@/components/HoverHint";
 import {
   TELEGRAM_CATALOG_NOTE,
@@ -8,8 +9,14 @@ import {
   type TelegramAlert,
   type TelegramAlertRegion,
 } from "@/lib/telegramAlerts";
+import {
+  resolveTelegramPlace,
+  type TelegramPlaceHit,
+} from "@/lib/telegramPlaceMatch";
 import { useLocale } from "@/contexts/LocaleContext";
 import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
+
+export type TelegramFlyPlace = Pick<TelegramPlaceHit, "lat" | "lng" | "label">;
 
 type TelegramIntelFeedProps = {
   alerts: TelegramAlert[];
@@ -26,6 +33,8 @@ type TelegramIntelFeedProps = {
   onClose?: () => void;
   /** 모바일 — 더 큰 탭 타겟 */
   compactUi?: boolean;
+  /** 본문 지명 정확 매칭 시 지도로 이동 (지정학) */
+  onFlyToPlace?: (place: TelegramFlyPlace) => void;
 };
 
 function TelegramCloseButton({
@@ -76,6 +85,7 @@ export function TelegramIntelFeed({
   regionFilter = "all",
   onClose,
   compactUi = false,
+  onFlyToPlace,
 }: TelegramIntelFeedProps) {
   const { lang } = useLocale();
   const filtered =
@@ -88,6 +98,15 @@ export function TelegramIntelFeed({
     [filtered],
   );
   const localizedMap = useLocalizedTextMap(koreanEntries, lang);
+
+  const placeById = useMemo(() => {
+    const map = new Map<string, TelegramPlaceHit>();
+    for (const alert of filtered) {
+      const hit = resolveTelegramPlace(alert.text, alert.region);
+      if (hit) map.set(alert.id, hit);
+    }
+    return map;
+  }, [filtered]);
 
   const shellClass = fullPage
     ? "flex min-h-0 flex-1 flex-col"
@@ -151,23 +170,48 @@ export function TelegramIntelFeed({
               : "max-h-[min(42vh,320px)] divide-y divide-sky-300/10 overflow-y-auto"
           }
         >
-          {filtered.map((alert) => (
-            <li key={alert.id} className={`${fullPage ? "mx-3 rounded-lg px-4 py-3 hover:bg-white/5" : "px-3 py-2.5"}`}>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-                <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] text-cyan-100">
-                  Telegram
-                </span>
-                <span className="font-medium text-sky-50">
-                  {TELEGRAM_REGION_LABELS[alert.region as TelegramAlertRegion]}
-                </span>
-                <span className="text-slate-500">{formatTime(alert.receivedAt)}</span>
-              </div>
-              <p className="mt-1 truncate text-[11px] text-sky-100/70">@{alert.channelUsername}</p>
-              <p className="mt-1 line-clamp-4 text-[11px] leading-5 text-slate-300">
-                {localizedDisplayText(localizedMap, alert.id, alert.text)}
-              </p>
-            </li>
-          ))}
+          {filtered.map((alert) => {
+            const place = placeById.get(alert.id) ?? null;
+            return (
+              <li
+                key={alert.id}
+                className={`${fullPage ? "mx-3 rounded-lg px-4 py-3 hover:bg-white/5" : "px-3 py-2.5"}`}
+              >
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                  <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] text-cyan-100">
+                    Telegram
+                  </span>
+                  <EvidenceTierBadge tier="unverified" lang={lang} />
+                  <span className="font-medium text-sky-50">
+                    {TELEGRAM_REGION_LABELS[alert.region as TelegramAlertRegion]}
+                  </span>
+                  <span className="text-slate-500">{formatTime(alert.receivedAt)}</span>
+                </div>
+                <p className="mt-1 truncate text-[11px] text-sky-100/70">@{alert.channelUsername}</p>
+                <p className="mt-1 line-clamp-4 text-[11px] leading-5 text-slate-300">
+                  {localizedDisplayText(localizedMap, alert.id, alert.text)}
+                </p>
+                {place ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded border border-amber-300/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-100/90">
+                      {lang === "en" ? `Place · ${place.label}` : `위치 · ${place.label}`}
+                    </span>
+                    {onFlyToPlace ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onFlyToPlace({ lat: place.lat, lng: place.lng, label: place.label })
+                        }
+                        className="rounded-md border border-sky-300/40 bg-sky-500/15 px-2 py-1 text-[10px] font-medium text-sky-50 transition hover:border-sky-300/60 hover:bg-sky-500/25"
+                      >
+                        {lang === "en" ? `Fly · ${place.label}` : `여기로 · ${place.label}`}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
 

@@ -15,6 +15,11 @@ type UiSpotlightCoachmarkProps = {
   /** 전체 설명 스킵 (첫 화면용) */
   skipLabel?: string;
   onSkip?: () => void;
+  /** 이전 단계 */
+  backLabel?: string;
+  onBack?: () => void;
+  /** 예: 3 / 10 */
+  progressLabel?: string;
   /** 말풍선·화살표가 타겟의 아래(기본) / 위 */
   placement?: SpotlightPlacement;
   accent?: "sky" | "amber" | "emerald" | "rose" | "violet";
@@ -33,6 +38,9 @@ export function UiSpotlightCoachmark({
   onDismiss,
   skipLabel,
   onSkip,
+  backLabel,
+  onBack,
+  progressLabel,
   placement = "below",
   accent = "sky",
 }: UiSpotlightCoachmarkProps) {
@@ -184,20 +192,32 @@ export function UiSpotlightCoachmark({
         className={`pointer-events-auto absolute max-w-[min(88vw,300px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${tone.card}`}
         style={{ left: bubbleLeft, top: bubbleTop }}
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] opacity-70">{title}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] opacity-70">
+          {progressLabel ? `${progressLabel} · ` : ""}
+          {title}
+        </p>
         <p className="mt-1.5 leading-snug">{body}</p>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          {skipLabel && onSkip ? (
-            <button
-              type="button"
-              onClick={onSkip}
-              className={`rounded-full border px-3 py-1 text-xs opacity-80 ${tone.btn}`}
-            >
-              {skipLabel}
-            </button>
-          ) : (
-            <span />
-          )}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            {skipLabel && onSkip ? (
+              <button
+                type="button"
+                onClick={onSkip}
+                className={`rounded-full border px-3 py-1 text-xs opacity-80 ${tone.btn}`}
+              >
+                {skipLabel}
+              </button>
+            ) : null}
+            {backLabel && onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className={`rounded-full border px-3 py-1 text-xs opacity-80 ${tone.btn}`}
+              >
+                {backLabel}
+              </button>
+            ) : null}
+          </div>
           <button
             type="button"
             onClick={onDismiss}

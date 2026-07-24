@@ -6,6 +6,14 @@ import {
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
+import {
+  ensureResourceLayersOn,
+  SHARED_RESOURCE_LAYER_ON,
+} from "@/lib/viewerChrome";
+import {
+  CONFLICT_ENTRY_MARITIME_FLY,
+  RED_SEA_HOUTHI_STACK,
+} from "@/lib/hotTheaterLayers";
 
 /**
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
@@ -29,7 +37,14 @@ export const ENTRY_GATE: {
    * LOD tier: global (> 1.65).
    */
   bootAltitude: 2.85,
-  bootLookAt: { lat: 18, lng: 35 },
+  /**
+   * 홍해·바브엘만데브 — 2026 지정학 입구 최우선 해상 위협 항로.
+   * ([lng, lat] ≈ [43.35, 12.61])
+   */
+  bootLookAt: {
+    lat: CONFLICT_ENTRY_MARITIME_FLY.lat,
+    lng: CONFLICT_ENTRY_MARITIME_FLY.lng,
+  },
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
   zoomOutAltitude: 2.85,
   zoomOutFlyMs: 1200,
@@ -58,34 +73,37 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 요청 기본 레이어 */
+/** 지정학 히어로 — 홍해·해상 위협 스택을 먼저 켠다 (+ 공통 에너지·자원) */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
+  ...RED_SEA_HOUTHI_STACK,
   showWarZones: true,
-  showEastAsiaAdiz: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
-  showGdeltAlliance: true,
   showGdeltProtests: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
   showAxisNetwork: true,
   showSubmarineCables: true,
+  showNewfeedsIranAttacks: true,
+  showUsCarriers: true,
+  ...SHARED_RESOURCE_LAYER_ON,
 };
 
-/** 지경학 히어로 — 요청 기본 레이어 */
+/** 지경학 히어로 — 요청 기본 레이어 (+ 공통 에너지·자원) */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   showAis: true,
   showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showNuclearSites: true,
+  ...SHARED_RESOURCE_LAYER_ON,
   showAiDataCenters: true,
   showPorts: true,
   showAirports: true,
+  /** 미·중 공급망 대치 — 게이트 직후 overview가 패키지 ON을 덮지 않도록 히어로에 포함 */
+  showBriTradeConnectivity: true,
+  showUsDfcSupplyChain: true,
 };
 
 /**
@@ -111,7 +129,7 @@ export function buildDomainOverviewPrefs(
     } else {
       next = { ...next, ...ECONOMY_HERO_ON };
     }
-    next = clampPrefsToActiveCap(next, true);
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
     if (mode === "conflict") {
       next = {
         ...next,
@@ -119,12 +137,14 @@ export function buildDomainOverviewPrefs(
         showDiplomaticTension: true,
         showGdeltWar: true,
       };
-      next = clampPrefsToActiveCap(next, true);
+      next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
     }
   } else if (mode === "conflict") {
     next = clampPrefsToActiveCap(next, false);
     next = { ...next, ...CONFLICT_HERO_ON };
-    next = clampPrefsToActiveCap(next, false);
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, false));
+  } else {
+    next = ensureResourceLayersOn(next);
   }
 
   return next;

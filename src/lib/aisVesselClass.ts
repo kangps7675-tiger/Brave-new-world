@@ -3,9 +3,11 @@
  * ITU-R M.1371 ship and cargo type; MarineTraffic generic: 2/4/6/7/8.
  */
 
+import { lookupDisguisedVessel } from "@/data/disguisedVessels";
+
 export type AisVesselCategory = "military" | "commercial" | "other";
 
-export type AisClassFilter = "military" | "commercial" | "all";
+export type AisClassFilter = "military" | "commercial" | "all" | "disguised";
 
 /**
  * 항모 레이어에 안 잡힌 군함의 함종.
@@ -101,7 +103,8 @@ export function classifyMilitaryKind(input: {
     /\bDDG\b/i.test(name) ||
     /\bDDG[-\s]?\d+\b/i.test(name) ||
     /\bDD[-\s]?\d+\b/i.test(name) ||
-    /\b(ARLEIGH\s*BURKE|SEJONG|KONGO|ATAGO|MAYA|TYPE\s*052|TYPE\s*055|HOBART|DARING|HORIZON)\b/i.test(
+    /\bDDH[-\s]?\d+\b/i.test(name) ||
+    /\b(ARLEIGH\s*BURKE|RALPH\s*JOHNSON|SEJONG|KONGO|ATAGO|MAYA|TYPE\s*052|TYPE\s*055|HOBART|DARING|HORIZON|KING\s*SEJONG|CHUNG MUGONG|YULGOK|DAEJOYEONG)\b/i.test(
       name,
     )
   ) {
@@ -113,7 +116,8 @@ export function classifyMilitaryKind(input: {
     /\bFFG\b/i.test(name) ||
     /\bFFG[-\s]?\d+\b/i.test(name) ||
     /\bFF[-\s]?\d+\b/i.test(name) ||
-    /\b(TYPE\s*054|TYPE\s*26|TYPE\s*31|FREMM|MEKO|INCHEON|DAEGU)\b/i.test(name)
+    /\bF[-\s]?\d{2,3}\b/i.test(name) ||
+    /\b(TYPE\s*054|TYPE\s*26|TYPE\s*31|FREMM|MEKO|INCHEON|DAEGU|CHUNGNAM)\b/i.test(name)
   ) {
     return "frigate";
   }
@@ -141,10 +145,10 @@ export function classifyMilitaryKind(input: {
 }
 
 const MILITARY_KIND_LABEL: Record<AisMilitaryKind, { ko: string; en: string }> = {
-  destroyer: { ko: "수상전투함", en: "Surface combatant" },
-  frigate: { ko: "수상전투함", en: "Surface combatant" },
-  corvette: { ko: "수상전투함", en: "Surface combatant" },
-  cruiser: { ko: "수상전투함", en: "Surface combatant" },
+  destroyer: { ko: "구축함", en: "Destroyer" },
+  frigate: { ko: "호위함", en: "Frigate" },
+  corvette: { ko: "초계함", en: "Corvette" },
+  cruiser: { ko: "순양함", en: "Cruiser" },
   submarine: { ko: "잠수함", en: "Submarine" },
   amphibious: { ko: "상륙함", en: "Amphibious" },
   carrier: { ko: "항공모함", en: "Aircraft carrier" },
@@ -175,9 +179,21 @@ export function isAisSurfaceCombatant(
   );
 }
 
+/**
+ * 호위함과 동일한 이지스/스텔스 수상함 실루엣을 쓰는 종류.
+ * 잠수함·항모만 제외 — 구축·초계·순양·상륙·순찰·지원·미분류 군함 포함.
+ */
+export function usesSurfaceCombatantDeckIcon(
+  kind: AisMilitaryKind | null | undefined,
+): boolean {
+  if (!kind) return false;
+  if (kind === "submarine" || kind === "carrier") return false;
+  return true;
+}
+
 /** 8방위 실루엣 표지 (수상전투함·잠수함) */
 export function isAisAspectHullMarker(kind: AisMilitaryKind | null | undefined): boolean {
-  return isAisSurfaceCombatant(kind) || kind === "submarine";
+  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine";
 }
 
 export function militaryKindLabel(
@@ -238,14 +254,16 @@ export function aisShipTypeLabel(shipType: number | null | undefined): string | 
   return generic[g] ?? `Type ${shipType}`;
 }
 
-/** 지정학: 군함만. 지경학: 민간(화물·탱커·여객 등). unknown은 민간 다수로 간주해 경제에만 포함. */
+/** 지정학: 군함만. 지경학: 민간. disguised: AIS_Tracker 위장·다크플리트. */
 export function matchesAisClassFilter(
   category: AisVesselCategory,
   filter: AisClassFilter,
+  disguised?: boolean,
 ): boolean {
   if (filter === "all") return true;
+  if (filter === "disguised") return Boolean(disguised);
   if (filter === "military") return category === "military";
-  // commercial: include other (대부분 민간 AIS) so the economy map fills up
+  // commercial: 군용 절대 제외. other만 민간 후보로 포함.
   return category === "commercial" || category === "other";
 }
 
@@ -294,24 +312,32 @@ export function aisMilitaryKindColor(kind: AisMilitaryKind | null | undefined): 
 }
 
 export function parseAisClassFilter(raw: string | null): AisClassFilter {
-  if (raw === "military" || raw === "commercial" || raw === "all") return raw;
+  if (raw === "military" || raw === "commercial" || raw === "all" || raw === "disguised") {
+    return raw;
+  }
   return "all";
 }
 
-/** category / militaryKind / labels 한 번에 */
+/** category / militaryKind / labels 한 번에 (+ AIS_Tracker 위장 매칭) */
 export function enrichAisClassification(input: {
   shipType?: number | null;
   shipName?: string | null;
+  mmsi?: string | null;
 }): {
   category: AisVesselCategory;
   shipTypeLabel: string | null;
   militaryKind: AisMilitaryKind | null;
+  disguised: boolean;
+  disguisedKind: "arsenal-ship" | "dark-fleet" | null;
 } {
   const shipType = input.shipType ?? null;
   const category = classifyAisVessel(input);
+  const hit = lookupDisguisedVessel({ mmsi: input.mmsi, shipName: input.shipName });
   return {
     category,
     shipTypeLabel: aisShipTypeLabel(shipType),
     militaryKind: category === "military" ? classifyMilitaryKind(input) : null,
+    disguised: hit != null,
+    disguisedKind: hit?.kind ?? null,
   };
 }

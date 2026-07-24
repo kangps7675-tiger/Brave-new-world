@@ -81,7 +81,13 @@ export function VideoNewsPanel({
     <>
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         <p className="mb-3 px-1 text-[11px] leading-relaxed text-slate-400">
-          메타만 미리 받아 두고, 재생은 클릭할 때만 로드합니다. 폴링 간격이 본 뉴스보다 깁니다.
+          {economyMode
+            ? labelLanguage === "en"
+              ? "Bloomberg · CNBC International · FT · Reuters — live market video only. Metadata polls; play on click. Historical docs are not polled."
+              : "Bloomberg · CNBC International · FT · Reuters — 시장·매크로 현실 영상만. 메타만 폴링, 재생은 클릭 시."
+            : labelLanguage === "en"
+              ? "BBC · Reuters · AP · Al Jazeera · DW — live geopolitics video only. Metadata polls; play on click. Anti-west conflict docs stay curated (no poll)."
+              : "BBC · Reuters · AP · Al Jazeera · DW — 지정학 현실 뉴스만. 메타만 폴링, 재생은 클릭 시. 반서방 충돌사 다큐는 스토리 큐레이션(폴링 없음)."}
         </p>
 
         {loading && !payload ? (

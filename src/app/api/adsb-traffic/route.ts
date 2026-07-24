@@ -11,13 +11,21 @@ import {
 } from "@/lib/adsbClient";
 import { distNmToBbox } from "@/lib/adsbWarmFetch";
 import { readAdsbFromD1, readAdsbFromIngestWorker } from "@/lib/d1MaritimeAir";
+import { demoCivAircraft } from "@/lib/maritimeAirDemo";
 import { adsbTrafficQuerySchema, parseSearchParams } from "@/lib/apiQuerySchemas";
+import {
+  CDN_CACHE,
+  NO_STORE_HEADERS,
+  publicCacheHeaders,
+} from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const ADSB_CDN = publicCacheHeaders(CDN_CACHE.adsb);
+
 /**
- * 지경학(민간 항공 운항) — D1 클라우드 로그 우선, miss 시 live.
+ * 지경학(민간 항공 운항) — D1 → 라이브 → 데모.
  * GET /api/adsb-traffic?lat=&lng=&dist=&max=
  */
 export async function GET(request: Request) {
@@ -46,45 +54,44 @@ export async function GET(request: Request) {
       ...bbox,
     });
     if (fromD1 && fromD1.count > 0) {
-      return NextResponse.json({
-        receivedAt: fromD1.receivedAt,
-        count: fromD1.count,
-        aircraft: fromD1.aircraft,
-        attribution: "ADS-B civilian hubs (via Cloudflare D1 cron warm)",
-        source: "d1",
-        provider: "d1",
-        mode: "civilian",
-        excluded: "military (dbFlags & 1)",
-        cached: true,
-        bbox,
-      });
+      return NextResponse.json(
+        {
+          receivedAt: fromD1.receivedAt,
+          count: fromD1.count,
+          aircraft: fromD1.aircraft,
+          attribution: "ADS-B civilian hubs (via Cloudflare D1 cron warm)",
+          source: "d1",
+          provider: "d1",
+          mode: "civilian",
+          excluded: "military (dbFlags & 1)",
+          cached: true,
+          bbox,
+        },
+        { headers: ADSB_CDN },
+      );
     }
-    const fromWorker = await readAdsbFromIngestWorker({ mode: "civ", max, ...bbox });
-    if (fromWorker && fromWorker.count > 0) {
-      return NextResponse.json({
-        receivedAt: fromWorker.receivedAt,
-        count: fromWorker.count,
-        aircraft: fromWorker.aircraft,
-        attribution: "ADS-B civ (via Cloudflare cron worker)",
-        source: "ingest-worker",
-        provider: "ingest-worker",
-        mode: "civilian",
-        excluded: "military (dbFlags & 1)",
-        cached: true,
-        bbox,
-      });
-    }
-    return NextResponse.json({
-      receivedAt: new Date().toISOString(),
-      count: 0,
-      aircraft: [],
-      waiting: true,
-      source: "d1",
-      provider: "d1",
-      mode: "civilian",
-      attribution: "ADS-B civ — D1 empty; wait for cron warm or ?live=1",
-      bbox,
+    const fromWorker = await readAdsbFromIngestWorker({
+      mode: "civ",
+      max,
+      ...bbox,
     });
+    if (fromWorker && fromWorker.count > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: fromWorker.receivedAt,
+          count: fromWorker.count,
+          aircraft: fromWorker.aircraft,
+          attribution: "ADS-B civ (via Cloudflare cron worker)",
+          source: "ingest-worker",
+          provider: "ingest-worker",
+          mode: "civilian",
+          excluded: "military (dbFlags & 1)",
+          cached: true,
+          bbox,
+        },
+        { headers: ADSB_CDN },
+      );
+    }
   }
 
   const { url, source } = civilianTrafficUrl(lat, lng, dist);
@@ -94,47 +101,52 @@ export async function GET(request: Request) {
       cache: "no-store",
       headers: adsbAuthHeaders(source === "adsbx" ? apiKey : null),
     });
-    if (!response.ok) {
-      return NextResponse.json(
-        {
-          aircraft: [],
-          error: `ADS-B traffic HTTP ${response.status} (${source})`,
-          source: url,
-        },
-        { status: 502 },
-      );
+    if (response.ok) {
+      const payload = (await readAdsbJsonBody(response)) as {
+        ac?: unknown[];
+        aircraft?: unknown[];
+      };
+      const aircraft: TrackedAircraft[] = [];
+      for (const raw of extractAircraftList(payload as never)) {
+        const item = normalizeAdsbAircraft(raw, { excludeMilitary: true });
+        if (!item) continue;
+        aircraft.push(item);
+        if (aircraft.length >= max) break;
+      }
+      if (aircraft.length > 0) {
+        return NextResponse.json(
+          {
+            receivedAt: new Date().toISOString(),
+            count: aircraft.length,
+            aircraft,
+            attribution: source === "adsbx" ? "ADSBexchange" : "adsb.fi",
+            source: url,
+            provider: source,
+            mode: "civilian",
+            excluded: "military (dbFlags & 1)",
+          },
+          { headers: ADSB_CDN },
+        );
+      }
     }
-
-    const payload = (await readAdsbJsonBody(response)) as {
-      ac?: unknown[];
-      aircraft?: unknown[];
-    };
-    const aircraft: TrackedAircraft[] = [];
-    for (const raw of extractAircraftList(payload as never)) {
-      const item = normalizeAdsbAircraft(raw, { excludeMilitary: true });
-      if (!item) continue;
-      aircraft.push(item);
-      if (aircraft.length >= max) break;
-    }
-
-    return NextResponse.json({
-      receivedAt: new Date().toISOString(),
-      count: aircraft.length,
-      aircraft,
-      attribution: source === "adsbx" ? "ADSBexchange" : "adsb.fi",
-      source: url,
-      provider: source,
-      mode: "civilian",
-      excluded: "military (dbFlags & 1)",
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        aircraft: [],
-        error: error instanceof Error ? error.message : "ADS-B traffic fetch failed",
-        source: url,
-      },
-      { status: 502 },
-    );
+  } catch {
+    // fall through to demo
   }
+
+  const demo = demoCivAircraft().slice(0, max);
+  return NextResponse.json(
+    {
+      receivedAt: new Date().toISOString(),
+      count: demo.length,
+      aircraft: demo,
+      attribution: "ADS-B civ demo",
+      source: "demo",
+      provider: "demo",
+      mode: "civilian",
+      demo: true,
+      bbox,
+      note: "live empty — showing demo seeds",
+    },
+    { headers: NO_STORE_HEADERS },
+  );
 }

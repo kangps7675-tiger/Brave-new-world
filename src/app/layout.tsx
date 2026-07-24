@@ -4,6 +4,10 @@ import { Analytics } from "@vercel/analytics/next";
 import { Inter, JetBrains_Mono, Merriweather } from "next/font/google";
 import localFont from "next/font/local";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { UiFontBoot } from "@/components/UiFontBoot";
+import { GameShellGuard } from "@/components/GameShellGuard";
+import { UI_FONT_BOOT_SCRIPT } from "@/lib/fontPrefs";
 import "./globals.css";
 
 /** Wanted Sans — jsDelivr 가변 동적 서브셋 (OFL) https://github.com/wanteddev/wanted-sans */
@@ -95,10 +99,42 @@ const sbAgro = localFont({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://confilct-view.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "멋진 신세계",
   description:
     "Aldous Huxley 《Brave New World》를 모티브로—전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+  openGraph: {
+    type: "website",
+    siteName: "멋진 신세계",
+    title: "멋진 신세계 — 3D 지구본 관측대",
+    description:
+      "전쟁과 이익이 같은 지도를 공유한다. 지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+    url: "/",
+    locale: "ko_KR",
+    images: [
+      {
+        url: "/brand/og-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "멋진 신세계 — 전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "멋진 신세계 — 3D 지구본 관측대",
+    description:
+      "지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+    images: ["/brand/og-1200x630.png"],
+  },
+  icons: {
+    icon: [{ url: "/brand/icon-512.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/brand/apple-icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -145,7 +181,13 @@ export default function RootLayout({
         <Script id="cv-compact-boot" strategy="beforeInteractive">
           {COMPACT_BOOT_SCRIPT}
         </Script>
+        <Script id="cv-ui-font-boot" strategy="beforeInteractive">
+          {UI_FONT_BOOT_SCRIPT}
+        </Script>
+        <UiFontBoot />
+        <GameShellGuard />
         {children}
+        <PwaInstallPrompt />
         <Analytics />
       </body>
     </html>

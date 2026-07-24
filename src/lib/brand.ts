@@ -1,4 +1,8 @@
-/** 사용자-facing 브랜드. 인프라 식별자(conflict-view, geowatch-*)는 유지. */
+/**
+ * 사용자-facing 브랜드 — 검색·입소문·재방문용 표기 통일.
+ * 한국어 「멋진 신세계」·영어 Huxley 원제 「Brave New World」.
+ * 인프라 식별자(localStorage `geowatch-*`, 패키지명 등)는 마이그레이션 없이 유지.
+ */
 export const BRAND_NAME = {
   ko: "멋진 신세계",
   en: "Brave New World",
@@ -6,7 +10,7 @@ export const BRAND_NAME = {
 
 export const BRAND_MOTIF = {
   ko: "Aldous Huxley · Brave New World",
-  en: "After Aldous Huxley",
+  en: "After Aldous Huxley · Brave New World",
 } as const;
 
 export const BRAND_TAGLINE = {
@@ -14,6 +18,6 @@ export const BRAND_TAGLINE = {
   en: "Shells on one shore. Fortunes on the other.",
 } as const;
 
-export function brandName(lang: "ko" | "en"): string {
+export function brandName(lang: "ko" | "en" = "ko"): string {
   return BRAND_NAME[lang];
 }

@@ -4,6 +4,7 @@ import path from "path";
 import { SUBMARINE_TUNNEL_SEED } from "@/data/submarineTunnels";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { getServerDataProfile } from "@/lib/serverEnv";
+import { demoCivAircraft, demoMilAircraft } from "@/lib/maritimeAirDemo";
 
 const STUB_AT = () => new Date().toISOString();
 
@@ -23,7 +24,17 @@ export type ApiStubRoute =
   | "conflict-zones"
   | "arms-embargo-zones"
   | "sanctions-entities"
-  | "briefing-stats";
+  | "briefing-stats"
+  | "daily-ranks"
+  | "daily-prompt"
+  | "daily-predict"
+  | "daily-predict-stats"
+  | "daily-predict-opponent"
+  | "bunker-sentiment"
+  | "sitrep"
+  | "ukmto"
+  | "navarea"
+  | "military-exercises";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -31,6 +42,53 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
   switch (route) {
     case "briefing-stats":
       return { fetchedAt: at, source: "stub", stats: null };
+    case "bunker-sentiment":
+      return {
+        date: at.slice(0, 10),
+        total: 0,
+        stable: 0,
+        bunker: 0,
+        panicPct: null,
+        myPick: null,
+        ok: true,
+      };
+    case "daily-ranks":
+      return {
+        date: at.slice(0, 10),
+        fetchedAt: at,
+        source: "empty",
+        theater: [],
+        chokepoint: [],
+        worldTension: null,
+        yesterdayCorrectPct: null,
+      };
+    case "daily-prompt":
+      return {
+        ok: true,
+        prompt: null,
+        targetDate: at.slice(0, 10),
+      };
+    case "daily-predict":
+      return {
+        ok: true,
+        targetDate: at.slice(0, 10),
+        pickEntityId: "ukraine",
+        createdAt: at,
+        source: "stub",
+      };
+    case "daily-predict-stats":
+      return {
+        date: at.slice(0, 10),
+        today: at.slice(0, 10),
+        fetchedAt: at,
+        stats: null,
+      };
+    case "daily-predict-opponent":
+      return {
+        date: at.slice(0, 10),
+        kind: "tension-dir",
+        opponentPick: null,
+      };
     case "ais": {
       const classFilter = request
         ? new URL(request.url).searchParams.get("class") || "all"
@@ -148,10 +206,26 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
             : demo;
       return { receivedAt: at, vessels, stub: true, classFilter, provider: "stub" };
     }
-    case "adsb-mil":
-      return { receivedAt: at, count: 0, aircraft: [], stub: true };
-    case "adsb-traffic":
-      return { receivedAt: at, count: 0, aircraft: [], stub: true, mode: "civilian" };
+    case "adsb-mil": {
+      const aircraft = demoMilAircraft();
+      return {
+        receivedAt: at,
+        count: aircraft.length,
+        aircraft,
+        stub: true,
+        mode: "military",
+      };
+    }
+    case "adsb-traffic": {
+      const aircraft = demoCivAircraft();
+      return {
+        receivedAt: at,
+        count: aircraft.length,
+        aircraft,
+        stub: true,
+        mode: "civilian",
+      };
+    }
     case "submarine-tunnels":
       return {
         receivedAt: at,
@@ -237,6 +311,20 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
     case "conflict-zones":
     case "arms-embargo-zones":
       return { receivedAt: at, cached: true, count: 0, zones: [], stub: true };
+    case "sitrep":
+      return { events: [], fetchedAt: at, stub: true };
+    case "ukmto":
+      // 실제 공격/나포 데이터를 스텁으로 지어내지 않음 — 빈 배열로 정직하게 폴백
+      return { incidents: [], fetchedAt: at, stub: true };
+    case "navarea":
+      return {
+        type: "FeatureCollection",
+        features: [],
+        fetchedAt: at,
+        stub: true,
+      };
+    case "military-exercises":
+      return { exercises: [], fetchedAt: at, stub: true };
     default:
       return { stub: true, fetchedAt: at };
   }

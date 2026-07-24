@@ -36,6 +36,15 @@ import {
   isGemFacilityKind,
   ensureGemFacilityImages,
 } from "@/lib/gemFacilityIcons";
+import {
+  islandChainsBasesGeoJson,
+  islandChainsChinaGeoJson,
+  islandChainsChinaHighlightGeoJson,
+  islandChainsRadarGeoJson,
+  islandChainsTaiwanPulseGeoJson,
+  islandChainsUsGeoJson,
+  islandChainsUsHighlightGeoJson,
+} from "@/data/islandChains";
 
 /**
  * GlobeLayerProps(Record)와 intersection하면 index signature가 콜백을 unknown으로 넓힙니다.
@@ -49,6 +58,8 @@ export interface MapGlobeViewProps {
   onGlobeMouseMove?: (coords: { lat: number; lng: number } | null) => void;
   /** MapLibre feature picking 대상 — VIINA 근접 줌에서 폴리곤 제외 등 */
   interactiveLayerIds?: readonly string[];
+  /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
+  showIslandChains?: boolean;
   [key: string]: unknown;
 }
 
@@ -63,13 +74,32 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-fill",
   "ukraine-micro-defense",
   "ukraine-micro-combat-circle",
+  "island-chains-bases",
 ] as const;
+
+/** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
+const CHINA_DASH_SEQUENCE: [number, number, number][] = [
+  [0, 4, 3],
+  [0.5, 4, 2.5],
+  [1, 4, 2],
+  [1.5, 4, 1.5],
+  [2, 4, 1],
+  [2.5, 4, 0.5],
+  [3, 4, 0.01],
+  [0, 0.5, 3.5],
+  [0, 1, 3],
+  [0, 1.5, 2.5],
+  [0, 2, 2],
+  [0, 2.5, 1.5],
+  [0, 3, 1],
+  [0, 3.5, 0.5],
+];
 
 export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(function MapGlobeView(
   props,
   ref,
 ) {
-  const { mapStyleUrl, backgroundColor = "#02040a" } = props;
+  const { mapStyleUrl, backgroundColor = "#02040a", showIslandChains = false } = props;
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
@@ -86,6 +116,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const [mapLoaded, setMapLoaded] = useState(false);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
+  /** 도련선/방어선 — 호버 기지 레이더 */
+  const [hoveredIslandBaseId, setHoveredIslandBaseId] = useState<string | null>(null);
   /** onMove는 프레임마다 오므로 zoom→GeoJSON 재빌드는 idle 시에만 */
   const mapZoomRef = useRef(2);
   const mapBearingRef = useRef(0);
@@ -187,11 +219,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const interactiveLayerIds = useMemo(() => {
     const fromProps = props.interactiveLayerIds;
-    if (Array.isArray(fromProps) && fromProps.length > 0) {
-      return [...fromProps];
+    const base =
+      Array.isArray(fromProps) && fromProps.length > 0
+        ? [...fromProps]
+        : [...INTERACTIVE_LAYERS];
+    if (showIslandChains && !base.includes("island-chains-bases")) {
+      base.push("island-chains-bases");
     }
-    return [...INTERACTIVE_LAYERS];
-  }, [props.interactiveLayerIds]);
+    return base;
+  }, [props.interactiveLayerIds, showIslandChains]);
 
   const pointLat = asFn<unknown, number>(props.pointLat, () => 0);
   const pointLng = asFn<unknown, number>(props.pointLng, () => 0);
@@ -502,7 +538,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       return;
     }
 
-    map.once("idle", emitGlobeReady);
+    // idle이 영구히 안 오면 부트 스플래시가 고착될 수 있어 상한 후 강제 ready
+    const idleFallback = window.setTimeout(() => {
+      emitGlobeReady();
+    }, 12_000);
+    map.once("idle", () => {
+      window.clearTimeout(idleFallback);
+      emitGlobeReady();
+    });
   }, [emitGlobeReady, publishZoom]);
 
   const resolveFeature = useCallback(
@@ -522,8 +565,26 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   );
 
   const handleMapClick = useCallback(
-    (event: { lngLat: { lat: number; lng: number }; features?: { layer?: { id?: string }; properties?: { index?: number } }[] }) => {
+    (event: {
+      lngLat: { lat: number; lng: number };
+      features?: { layer?: { id?: string }; properties?: { index?: number; id?: unknown } }[];
+    }) => {
       const features = event.features ?? [];
+
+      /**
+       * 모바일엔 호버가 없다 — 기지를 탭하면 같은 방식으로 선이 드러나고,
+       * 빈 곳을 탭하면 닫힌다. (데스크톱 호버 동작은 그대로 유지)
+       */
+      const baseFeature = features.find((f) => f.layer?.id === "island-chains-bases");
+      const tappedBaseId = baseFeature?.properties?.id;
+      if (typeof tappedBaseId === "string" && tappedBaseId.length > 0) {
+        // 토글이 아니라 항상 선택 — 터치에서는 tap 직전 합성 mousemove가 이미
+        // 같은 값을 넣어두는 경우가 있어, 토글로 두면 즉시 꺼져 버린다.
+        setHoveredIslandBaseId(tappedBaseId);
+        return;
+      }
+      if (hoveredIslandBaseId) setHoveredIslandBaseId(null);
+
       for (const feature of features) {
         const layerId = feature.layer?.id;
         const index = feature.properties?.index;
@@ -545,13 +606,23 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       onGlobeClick?.({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     },
-    [onGlobeClick, onPathClick, onPointClick, onPolygonClick, resolveFeature],
+    [
+      hoveredIslandBaseId,
+      onGlobeClick,
+      onPathClick,
+      onPointClick,
+      onPolygonClick,
+      resolveFeature,
+    ],
   );
 
   const handleMapMouseMove = useCallback(
     (event: {
       lngLat: { lat: number; lng: number };
-      features?: { layer?: { id?: string }; properties?: { index?: number } }[];
+      features?: {
+        layer?: { id?: string };
+        properties?: { index?: number; id?: string };
+      }[];
     }) => {
       const { lat, lng } = event.lngLat;
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -559,6 +630,18 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
 
       const features = event.features ?? [];
+      let baseHit: string | null = null;
+      for (const feature of features) {
+        if (feature.layer?.id === "island-chains-bases") {
+          const id = feature.properties?.id;
+          if (typeof id === "string" && id.length > 0) {
+            baseHit = id;
+            break;
+          }
+        }
+      }
+      setHoveredIslandBaseId(baseHit);
+
       for (const feature of features) {
         const layerId = feature.layer?.id;
         const index = feature.properties?.index;
@@ -587,6 +670,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const handleMapMouseLeave = useCallback(() => {
     onGlobeMouseMoveRef.current?.(null);
+    setHoveredIslandBaseId(null);
     onPointHover?.(null);
     onPathHover?.(null);
     onPolygonHover?.(null);
@@ -678,6 +762,154 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded, notifyChange]);
 
+  /**
+   * 체크박스가 켜지면 전체 선을 은은하게 상시 표시하고(발견성·안정감),
+   * 기지를 호버(모바일은 탭)하면 그 기지가 걸친 선만 위에 겹쳐 강조한다.
+   * 호버 전용으로 두면 선이 있는지조차 모르는 유저가 생겨서 둘을 함께 둔다.
+   */
+  const activeIslandBaseId = showIslandChains ? hoveredIslandBaseId : null;
+  const chinaChainsFc = useMemo(() => islandChainsChinaGeoJson(), []);
+  const usLinesFc = useMemo(() => islandChainsUsGeoJson(), []);
+  const chinaHighlightFc = useMemo(
+    () => islandChainsChinaHighlightGeoJson(activeIslandBaseId),
+    [activeIslandBaseId],
+  );
+  const usHighlightFc = useMemo(
+    () => islandChainsUsHighlightGeoJson(activeIslandBaseId),
+    [activeIslandBaseId],
+  );
+  const basesFc = useMemo(() => islandChainsBasesGeoJson(), []);
+  const taiwanPulseFc = useMemo(() => islandChainsTaiwanPulseGeoJson(), []);
+  const radarFc = useMemo(
+    () => islandChainsRadarGeoJson(activeIslandBaseId),
+    [activeIslandBaseId],
+  );
+
+  /** 중국 도련선 점선 흐름 + 대만 펄스 — 100ms (내장 GPU 친화) */
+  useEffect(() => {
+    if (!mapLoaded || !showIslandChains) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let step = 0;
+    const id = window.setInterval(() => {
+      if (!map.getLayer("island-chains-china")) return;
+      step = (step + 1) % CHINA_DASH_SEQUENCE.length;
+      const dash = CHINA_DASH_SEQUENCE[step]!;
+      try {
+        map.setPaintProperty("island-chains-china", "line-dasharray", dash);
+        if (map.getLayer("island-chains-taiwan-pulse")) {
+          const t = step / CHINA_DASH_SEQUENCE.length;
+          const wave = Math.abs(Math.sin(t * Math.PI * 2));
+          map.setPaintProperty(
+            "island-chains-taiwan-pulse",
+            "circle-radius",
+            14 + wave * 22,
+          );
+          map.setPaintProperty(
+            "island-chains-taiwan-pulse",
+            "circle-opacity",
+            0.12 + wave * 0.38,
+          );
+          map.setPaintProperty(
+            "island-chains-taiwan-pulse",
+            "circle-stroke-opacity",
+            0.35 + wave * 0.55,
+          );
+        }
+      } catch {
+        /* style reload race */
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, showIslandChains]);
+
+  useEffect(() => {
+    if (!showIslandChains) setHoveredIslandBaseId(null);
+  }, [showIslandChains]);
+
+  /**
+   * Alt + 좌클릭 드래그 → pitch / bearing 조절.
+   * flyTo로 사선으로 눕힌 카메라를 유저가 바로잡을 수 있게 함.
+   * (기본은 우클릭·Ctrl 드래그가 MapLibre rotate — Alt는 별도 단축키)
+   */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const canvas = map.getCanvas();
+    if (!canvas) return;
+
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    let panWasEnabled = true;
+    let rotateWasEnabled = true;
+
+    const finish = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (panWasEnabled) map.dragPan.enable();
+      if (rotateWasEnabled) map.dragRotate.enable();
+      canvas.style.cursor = "";
+    };
+
+    const onDown = (event: MouseEvent) => {
+      if (!event.altKey || event.button !== 0) return;
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      panWasEnabled = map.dragPan.isEnabled();
+      rotateWasEnabled = map.dragRotate.isEnabled();
+      map.dragPan.disable();
+      map.dragRotate.disable();
+      canvas.style.cursor = "move";
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    const onMove = (event: MouseEvent) => {
+      if (!dragging) return;
+      if (!event.altKey) {
+        finish();
+        return;
+      }
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      if (dx === 0 && dy === 0) return;
+      // 좌우 → 베어링(회전), 위아래 → 피치(눕히기/세우기)
+      const nextBearing = map.getBearing() - dx * 0.45;
+      const nextPitch = Math.max(0, Math.min(85, map.getPitch() - dy * 0.35));
+      map.jumpTo({ bearing: nextBearing, pitch: nextPitch });
+      event.preventDefault();
+    };
+
+    const onUp = () => finish();
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "Alt") finish();
+    };
+
+    canvas.addEventListener("mousedown", onDown, true);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      finish();
+      canvas.removeEventListener("mousedown", onDown, true);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [mapLoaded]);
+
   const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 2.25 });
 
   return (
@@ -730,22 +962,43 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         ) : null}
 
         {axisHubCountriesGeoJson.features.length > 0 ? (
-          <Source id="axis-hub-countries-source" type="geojson" data={axisHubCountriesGeoJson}>
+          <Source
+            id="axis-hub-countries-source"
+            type="geojson"
+            data={axisHubCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
             <Layer
               id="axis-hub-countries-fill"
               type="fill"
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#dc2626"],
                 "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.28],
+                "fill-antialias": true,
               }}
             />
             <Layer
               id="axis-hub-countries-outline"
               type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
               paint={{
-                "line-color": ["coalesce", ["get", "stroke"], "rgba(248,113,113,0.75)"],
-                "line-width": 1.2,
-                "line-opacity": 0.85,
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(248,113,113,0.9)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.6,
+                  6,
+                  1.1,
+                  10,
+                  1.6,
+                ],
+                "line-opacity": 0.92,
               }}
             />
           </Source>
@@ -877,6 +1130,156 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
             />
           </Source>
+        ) : null}
+
+        {showIslandChains ? (
+          <>
+            {/* 상시 표시 — 체크박스만 켜도 전체 선이 은은하게 보인다 */}
+            <Source id="island-chains-china-source" type="geojson" data={chinaChainsFc}>
+              <Layer
+                id="island-chains-china"
+                type="line"
+                paint={{
+                  "line-color": ["coalesce", ["get", "color"], "#ef4444"],
+                  "line-width": 1.8,
+                  "line-opacity": 0.42,
+                  "line-dasharray": [0, 4, 3],
+                }}
+              />
+            </Source>
+            <Source id="island-chains-us-source" type="geojson" data={usLinesFc}>
+              <Layer
+                id="island-chains-us-glow"
+                type="line"
+                paint={{
+                  "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
+                  "line-width": 6,
+                  "line-opacity": 0.14,
+                  "line-blur": 1.2,
+                }}
+              />
+              <Layer
+                id="island-chains-us"
+                type="line"
+                paint={{
+                  "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
+                  "line-width": 2.4,
+                  "line-opacity": 0.5,
+                }}
+              />
+            </Source>
+
+            {/* 호버·탭 강조 — 해당 기지가 걸친 선만 위에 겹쳐 촤악 살아난다 */}
+            {chinaHighlightFc.features.length > 0 ? (
+              <Source
+                id="island-chains-china-highlight-source"
+                type="geojson"
+                data={chinaHighlightFc}
+              >
+                <Layer
+                  id="island-chains-china-highlight"
+                  type="line"
+                  paint={{
+                    "line-color": ["coalesce", ["get", "color"], "#ef4444"],
+                    "line-width": 3.2,
+                    "line-opacity": 0.95,
+                    "line-dasharray": [0, 4, 3],
+                    "line-opacity-transition": { duration: 280, delay: 0 },
+                    "line-width-transition": { duration: 280, delay: 0 },
+                  }}
+                />
+              </Source>
+            ) : null}
+            {usHighlightFc.features.length > 0 ? (
+              <Source
+                id="island-chains-us-highlight-source"
+                type="geojson"
+                data={usHighlightFc}
+              >
+                <Layer
+                  id="island-chains-us-highlight-glow"
+                  type="line"
+                  paint={{
+                    "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
+                    "line-width": 9,
+                    "line-opacity": 0.3,
+                    "line-blur": 1.4,
+                    "line-opacity-transition": { duration: 280, delay: 0 },
+                  }}
+                />
+                <Layer
+                  id="island-chains-us-highlight"
+                  type="line"
+                  paint={{
+                    "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
+                    "line-width": 4,
+                    "line-opacity": 1,
+                    "line-opacity-transition": { duration: 280, delay: 0 },
+                  }}
+                />
+              </Source>
+            ) : null}
+            <Source id="island-chains-taiwan-source" type="geojson" data={taiwanPulseFc}>
+              <Layer
+                id="island-chains-taiwan-pulse"
+                type="circle"
+                paint={{
+                  "circle-color": "rgba(239, 68, 68, 0.15)",
+                  "circle-radius": 18,
+                  "circle-opacity": 0.28,
+                  "circle-stroke-width": 2,
+                  "circle-stroke-color": "#ef4444",
+                  "circle-stroke-opacity": 0.65,
+                  "circle-pitch-alignment": "map",
+                }}
+              />
+            </Source>
+            {radarFc.features.length > 0 ? (
+              <Source id="island-chains-radar-source" type="geojson" data={radarFc}>
+                <Layer
+                  id="island-chains-radar-fill"
+                  type="fill"
+                  paint={{
+                    "fill-color": "rgba(59, 130, 246, 0.14)",
+                    "fill-opacity": 0.85,
+                  }}
+                />
+                <Layer
+                  id="island-chains-radar-outline"
+                  type="line"
+                  paint={{
+                    "line-color": "rgba(147, 197, 253, 0.85)",
+                    "line-width": 1.4,
+                    "line-opacity": 0.9,
+                    "line-dasharray": [1.2, 1.2],
+                  }}
+                />
+              </Source>
+            ) : null}
+            <Source id="island-chains-bases-source" type="geojson" data={basesFc}>
+              <Layer
+                id="island-chains-bases"
+                type="circle"
+                paint={{
+                  "circle-color": "#93c5fd",
+                  "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    2,
+                    3.2,
+                    5,
+                    5.5,
+                    8,
+                    7,
+                  ],
+                  "circle-opacity": 0.95,
+                  "circle-stroke-width": 1.4,
+                  "circle-stroke-color": "#1e3a8a",
+                }}
+              />
+            </Source>
+          </>
         ) : null}
 
         {/* Ukraine front LOD: soft macro/micro overlap */}
@@ -1094,11 +1497,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               const alignment = htmlRotationAlignment(enriched);
               const rotKey =
                 alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
+              const milKind = String(
+                (enriched as { militaryKind?: string | null }).militaryKind ?? "",
+              );
+              const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
               const surface =
-                (enriched as { category?: string }).category === "military" &&
-                ["destroyer", "frigate", "corvette", "cruiser", "submarine"].includes(
-                  String((enriched as { militaryKind?: string }).militaryKind ?? ""),
-                );
+                disguised ||
+                ((enriched as { category?: string }).category === "military" &&
+                  milKind !== "carrier");
               const headingRaw = Number(
                 (enriched as { courseOverGround?: number; trueHeading?: number })
                   .courseOverGround ??
@@ -1112,6 +1518,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   ? String(rotKey)
                   : "0";
               const bearingKey = surface ? String(mapBearingDeg) : "0";
+              const pitchAlignment =
+                (item as { displayKind?: string }).displayKind === "casualty-skull"
+                  ? "map"
+                  : "viewport";
               return (
               <Marker
                 key={`html-marker-${id}-r${rotKey}-b${bearingKey}-h${headingKey}`}
@@ -1120,7 +1530,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 anchor="center"
                 rotation={rotation}
                 rotationAlignment={alignment}
-                pitchAlignment="viewport"
+                pitchAlignment={pitchAlignment}
+                /* 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임 */
+                opacityWhenCovered={0}
               >
                 <div
                   ref={(node) => {

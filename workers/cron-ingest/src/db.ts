@@ -429,6 +429,32 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0005
   }
 
+  let airRaidDeleted = 0;
+  try {
+    const airCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const air = await db
+      .prepare(`DELETE FROM air_raid_alerts WHERE ingested_at < ?`)
+      .bind(airCutoff)
+      .run();
+    airRaidDeleted = air.meta.changes ?? 0;
+  } catch {
+    // until migration 0014
+  }
+
+  let signalDailyDeleted = 0;
+  try {
+    const signalCutoff = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    const sig = await db
+      .prepare(`DELETE FROM theater_signal_daily WHERE signal_date < ?`)
+      .bind(signalCutoff)
+      .run();
+    signalDailyDeleted = sig.meta.changes ?? 0;
+  } catch {
+    // until migration 0014
+  }
+
   return {
     firmsDeleted: firms.meta.changes ?? 0,
     gdeltDeleted: gdelt.meta.changes ?? 0,
@@ -437,6 +463,8 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     aisDeleted,
     adsbDeleted,
     telegramDeleted,
+    airRaidDeleted,
+    signalDailyDeleted,
     cutoff,
   };
 }

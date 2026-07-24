@@ -11,7 +11,11 @@ const {
   compactStaticPoint,
   roundCoord,
 } = require("./compact-json");
-const { lineGeometryToPoints, pointsBbox, capArray } = require("./static-path-utils");
+const {
+  lineGeometryToPoints,
+  pointsBbox,
+  capArrayGeographic,
+} = require("./static-path-utils");
 
 const GEM_ROOT =
   process.env.GEM_DATA_DIR ||
@@ -100,11 +104,13 @@ function convertPipelineGeoJson(geo, kind, idPrefix, caps) {
   }
 
   paths.sort((a, b) => a._rank - b._rank || b._length - a._length);
-  return capArray(
-    paths.map(({ _rank, _length, ...rest }) => rest),
-    caps.lite,
-    caps.full,
-  );
+  const cleaned = paths.map(({ _rank, _length, ...rest }) => rest);
+  return capArrayGeographic(cleaned, caps.lite, caps.full, (path) => {
+    const pts = path.points;
+    if (!pts?.length) return { lat: NaN, lng: NaN };
+    const mid = pts[Math.floor(pts.length / 2)];
+    return { lat: mid.lat, lng: mid.lng };
+  });
 }
 
 function convertLngTerminals(geo) {

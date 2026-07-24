@@ -9,6 +9,7 @@ export type LayerToggleAccent =
   | "orange"
   | "amber"
   | "fuchsia"
+  | "violet"
   | "blue"
   | "cyan"
   | "white"
@@ -56,6 +57,8 @@ function accentClass(accent: LayerToggleAccent) {
       return "accent-amber-400";
     case "fuchsia":
       return "accent-fuchsia-400";
+    case "violet":
+      return "accent-violet-400";
     case "blue":
       return "accent-blue-400";
     case "cyan":
@@ -82,6 +85,8 @@ function tagAccentClasses(accent: LayerToggleAccent, checked: boolean) {
       return "border-amber-400/45 bg-amber-500/15 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.12)]";
     case "fuchsia":
       return "border-fuchsia-400/45 bg-fuchsia-500/15 text-fuchsia-100";
+    case "violet":
+      return "border-violet-400/45 bg-violet-500/15 text-violet-100 shadow-[0_0_12px_rgba(168,85,247,0.14)]";
     case "blue":
       return "border-blue-400/45 bg-blue-500/15 text-blue-100";
     case "cyan":
@@ -288,6 +293,8 @@ export function LayerDropdownToggle({
                 ? `rounded-full px-2 py-0.5 ${
                     accent === "fuchsia"
                       ? "bg-fuchsia-500/15 text-fuchsia-200"
+                      : accent === "violet"
+                        ? "bg-violet-500/15 text-violet-200"
                       : accent === "orange"
                         ? "bg-orange-500/15 text-orange-200"
                         : accent === "amber"

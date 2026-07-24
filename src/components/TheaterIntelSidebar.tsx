@@ -198,6 +198,7 @@ export function TheaterIntelSidebar({
           channelCount={telegramChannelCount}
           fullPage
           regionFilter={telegramRegion}
+          onFlyToPlace={(place) => onFlyToCoords(place.lat, place.lng, 0.88)}
         />
       )}
     </div>

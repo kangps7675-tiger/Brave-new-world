@@ -10,9 +10,16 @@ import type { TelegramAlert, TelegramAlertsPayload } from "@/lib/telegramAlerts"
 import { translateTelegramAlerts } from "@/lib/telegramTranslate";
 import { isTelegramOsintEnabled } from "@/lib/serverEnv";
 import { readTelegramAlertsFromD1 } from "@/lib/d1LiveSnapshots";
+import {
+  CDN_CACHE,
+  NO_STORE_HEADERS,
+  publicCacheHeaders,
+} from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const TG_CDN = publicCacheHeaders(CDN_CACHE.telegram);
 
 const LIVE_FILE = path.join(process.cwd(), "public", "data", "live", "telegram-alerts.json");
 const SEED_FILE = path.join(process.cwd(), "public", "data", "telegram-alerts-seed.json");
@@ -92,11 +99,14 @@ export async function GET() {
   const store = getTelegramAlertStore();
   if (store.alerts.length > 0) {
     const alerts = await translateTelegramAlerts(store.alerts);
-    return NextResponse.json({
-      fetchedAt: store.lastIngestAt ?? new Date().toISOString(),
-      live: true,
-      alerts,
-    } satisfies TelegramAlertsPayload);
+    return NextResponse.json(
+      {
+        fetchedAt: store.lastIngestAt ?? new Date().toISOString(),
+        live: true,
+        alerts,
+      } satisfies TelegramAlertsPayload,
+      { headers: TG_CDN },
+    );
   }
 
   // 공유 소스 (D1 / cron 워커) — 배포 환경에서 방문자 공통 피드
@@ -104,24 +114,30 @@ export async function GET() {
   if (shared && shared.length > 0) {
     replaceTelegramAlerts(shared);
     const alerts = await translateTelegramAlerts(shared);
-    return NextResponse.json({
-      fetchedAt: new Date().toISOString(),
-      live: true,
-      alerts,
-      source: "embed",
-    } satisfies TelegramAlertsPayload);
+    return NextResponse.json(
+      {
+        fetchedAt: new Date().toISOString(),
+        live: true,
+        alerts,
+        source: "embed",
+      } satisfies TelegramAlertsPayload,
+      { headers: TG_CDN },
+    );
   }
 
   if (telegramOsintEnabled() && !seedAllowed()) {
-    return NextResponse.json({
-      fetchedAt: new Date().toISOString(),
-      live: false,
-      alerts: [],
-      waiting: true,
-    } satisfies TelegramAlertsPayload & { waiting?: boolean });
+    return NextResponse.json(
+      {
+        fetchedAt: new Date().toISOString(),
+        live: false,
+        alerts: [],
+        waiting: true,
+      } satisfies TelegramAlertsPayload & { waiting?: boolean },
+      { headers: NO_STORE_HEADERS },
+    );
   }
 
   const seedPayload = readSeedPayload();
   const alerts = await translateTelegramAlerts(seedPayload.alerts);
-  return NextResponse.json({ ...seedPayload, alerts });
+  return NextResponse.json({ ...seedPayload, alerts }, { headers: TG_CDN });
 }

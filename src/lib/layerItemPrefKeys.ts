@@ -20,6 +20,8 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "telegram-osint": "showTelegramOsint",
   "tzeva-adom": "showTzevaAdom",
   "newfeeds-iran": "showNewfeedsIranAttacks",
+  "ukmto-incidents": "showUkmtoIncidents",
+  "navarea-warnings": "showNavareaWarnings",
   "china-taiwan-incidents": "showChinaTaiwanIncidents",
   "china-japan-incidents": "showChinaJapanIncidents",
   "china-philippines-incidents": "showChinaPhilippinesIncidents",
@@ -56,6 +58,7 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "logistics-risk": "showLogisticsRisk",
   "critical-nodes": "showCriticalNodes",
   ais: "showAis",
+  "disguised-vessels": "showDisguisedVessels",
   "military-bases": "showMilitaryBases",
   "military-air": "showMilitaryActivity",
   "air-traffic": "showAirTraffic",
@@ -69,6 +72,7 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "ai-dc": "showAiDataCenters",
   sanctions: "showSanctionsEntities",
   "east-asia-adiz": "showEastAsiaAdiz",
+  "island-chains": "showIslandChains",
   "axis-network": "showAxisNetwork",
 };
 

@@ -28,11 +28,11 @@ export type BreakingGradeResult = {
   urgencyScore: number;
 };
 
-/** 충격 — 교전·핵·호르무즈·시장 쇼크 등 */
+/** 충격 — 교전·핵·초크포인트·시장 쇼크 등 */
 const IMPACT_CRITICAL =
-  /\b(nuclear|invasion|hormuz|genocide|massacre|assassinate|default|bankrupt|record\s?crash|black\s?swan)\b/i;
+  /\b(nuclear|invasion|hormuz|suez|malacca|bab[\s-]?el[\s-]?mandeb|taiwan\s?strait|panama\s?canal|red\s?sea|genocide|massacre|assassinate|default|bankrupt|record\s?crash|black\s?swan)\b/i;
 const IMPACT_HIGH =
-  /\b(missile|airstrike|drone\s?strike|explosion|war|offensive|ceasefire\s?collapse|sanction|embargo|blockade|crash|plunge|selloff|surge|soar|tumble)\b/i;
+  /\b(missile|airstrike|drone\s?strike|explosion|war|offensive|ceasefire\s?collapse|sanction|embargo|blockade|crash|plunge|selloff|surge|soar|tumble|bosporus|gibraltar)\b/i;
 const IMPACT_MED =
   /\b(attack|strike|shelling|clash|troops|carrier|escalat|retaliat|killed|dead|bomb|hike|cut|rally|shutdown|breaking|urgent|just\s?in)\b/i;
 

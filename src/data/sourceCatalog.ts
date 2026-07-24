@@ -44,7 +44,7 @@ export const PRIMARY_LIVE_SOURCES: PrimaryLiveSource[] = [
     url: "https://www.adsbexchange.com/",
     layers: "군용기·민간 항적 (/api/adsb-mil, /api/adsb-traffic)",
     noteKo:
-      "ADS-B 항적. 워커는 Worker IP 호환 소스(adsb.lol 등) 우선, 키 있으면 ADSBexchange. 지도 표기: ADS-B.",
+      "ADS-B 항적. 워커는 Worker IP 호환 소스(adsb.lol 등) 우선, 키 있으면 ADSBexchange. 군용 ICAO hex는 Bellingcat Turnstone(adsb-history) modes.csv로 보강. 출처: https://github.com/bellingcat/adsb-history.git · 지도 표기: ADS-B.",
   },
   {
     id: "marinetraffic",
@@ -52,9 +52,9 @@ export const PRIMARY_LIVE_SOURCES: PrimaryLiveSource[] = [
     nameEn: "MarineTraffic AIS",
     product: "exportvessels · aisstream.io 폴백",
     url: "https://www.marinetraffic.com/",
-    layers: "선박 AIS (/api/ais)",
+    layers: "선박 AIS (/api/ais) · 위장선박 (/api/ais-disguised)",
     noteKo:
-      "민간 화물·탱커·여객 등. MarineTraffic 키 실패 시 AISstream 폴백. 지도 표기: MarineTraffic · AIS.",
+      "민간 화물·탱커·여객 등. MarineTraffic 키 실패 시 AISstream 폴백. 위장·다크플리트 시드는 AIS_Tracker(https://github.com/arandomguyhere/AIS_Tracker.git). 지도 표기: MarineTraffic · AIS.",
   },
 ];
 
@@ -88,12 +88,13 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "military-activity",
-    source: "ADS-B (군용기)",
+    source: "ADS-B (군용기) + Bellingcat Turnstone hex DB",
     url: "/api/adsb-mil",
     cadence: "Cron warm ~10m · toggle on-demand D1",
-    attribution: "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi",
+    attribution:
+      "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi · Military hex: https://github.com/bellingcat/adsb-history.git",
     notes:
-      "Military aircraft via ADS-B. Cron → D1 `adsb_aircraft` (mode=mil). User toggle reads D1 first; ?live=1 forces upstream.",
+      "Military aircraft via ADS-B. Cron → D1 `adsb_aircraft` (mode=mil). ICAO hex military flags enriched from Bellingcat/Turnstone modes.csv (adsb-history, MIT). User toggle reads D1 first; ?live=1 forces upstream.",
     status: "shipped",
     ingest: "cached-api",
   },
@@ -104,7 +105,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Cron hub warm ~10m · toggle on-demand D1",
     attribution: "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi",
     notes:
-      "Civilian ADS-B traffic (exclude dbFlags&1). Cron warms hub grids into D1; viewport query prefers D1 bbox then live.",
+      "Civilian ADS-B traffic (exclude dbFlags&1 and Bellingcat military hex). Cron warms hub grids into D1; viewport query prefers D1 bbox then live.",
     status: "shipped",
     ingest: "cached-api",
   },
@@ -120,11 +121,23 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
   },
   {
+    layerId: "disguised-vessels",
+    source: "AIS_Tracker (위장·다크플리트 선박)",
+    url: "/api/ais-disguised",
+    cadence: "Static seed (OSINT watchlist)",
+    attribution:
+      "https://github.com/arandomguyhere/AIS_Tracker.git — vessels DB · dark_fleet.py · demo_data",
+    notes:
+      "Civilian vessels conducting military missions / dark fleet / arsenal-ship seed from AIS_Tracker. Seed positions + name/MMSI match against live AIS when available.",
+    status: "shipped",
+    ingest: "static-build",
+  },
+  {
     layerId: "tunnels",
-    source: "Conflict View submarine tunnel seed → D1",
+    source: "멋진 신세계 submarine tunnel seed → D1",
     url: "/api/submarine-tunnels",
     cadence: "On demand (seeded once)",
-    attribution: "Conflict View logistics seed",
+    attribution: "멋진 신세계 logistics seed",
     notes:
       "Major undersea tunnels (Eurotunnel, Seikan, Marmaray, …). Stored in D1 `submarine_tunnels`; fetched only when layer toggled ON.",
     status: "shipped",
@@ -151,6 +164,39 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Tzeva Adom rocket/missile alerts via AlertsHistory.json — same feed as DavidTheExplorer/Tzeva-Adom-API. Geo-restricted to Israeli IP; use OREF_HISTORY_URL proxy abroad.",
     status: "shipped",
     ingest: "live-poll",
+  },
+  {
+    layerId: "ukmto-incidents",
+    source: "UKMTO / Royal Navy (unofficial endpoint)",
+    url: "/api/ukmto",
+    cadence: "Cron ~30 min min-interval (unofficial upstream, polled politely) → D1",
+    attribution: "UK Maritime Trade Operations (Royal Navy) · Open Government Licence",
+    notes:
+      "Merchant vessel attack / boarding / hijack / suspicious-activity warnings (Red Sea, Gulf of Aden, Strait of Hormuz, etc.). No documented public API — endpoint identified via client JS bundle inspection. Not an official alert substitute; see README 비공식 엔드포인트 사용 원칙.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
+    layerId: "navarea-warnings",
+    source: "JHOD NAVAREA XI · NGA NAVAREA IV/XII (public TXT)",
+    url: "/api/navarea",
+    cadence: "Cron self-throttle ~30 min (worker */10, NAVAREA min-interval) → D1 snapshot replace",
+    attribution: "Japan Coast Guard (JHOD) · U.S. NGA Navigational Warnings",
+    notes:
+      "Sources publish event-driven into static TXT (no webhook). 멋진 신세계 polls; each successful poll recomputes the full in-force snapshot and replaces by region. IDs are region-prefixed (XI-26-0330, IV-26-0695). Optional ?region=XI filter. Prefer 15–30 min poll — not FIRMS/AIS cadence.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
+    layerId: "military-exercises",
+    source: "NAVAREA exercise notices · news_stream keyword slice → D1 military_exercises",
+    url: "/api/military-exercises",
+    cadence: "Cron with NAVAREA/news ingest · client poll ~3 min (auto-alert even if layer off)",
+    attribution: "Underlying NAVAREA / outlet credits per exercise sources_json",
+    notes:
+      "Normalized military exercise zones (cyan hatch). Confidence: announced / announced_osint / unverified; client may soft-bump to announced_rf when ADS-B/AIS points fall in bbox — RF is a bonus, not proof. DPRK/IR auto-alert does not force military ADS-B ON. See docs/exercise-alerts.md.",
+    status: "shipped",
+    ingest: "cached-api",
   },
   {
     layerId: "newfeeds-iran",
@@ -494,6 +540,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     attribution: "Mediazona · BBC Russian Service · CSIS (WIA est.) · Meduza",
     notes:
       "Reference API retained. Globe overlay now prefers HAPI active-front fatalities; Mediazona remains named RU KIA lower bound for methodology.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
+    layerId: "living-conflict-taiwan",
+    source: "GDELT Doc 2.0 (query_tag=taiwan-tension) · optional Telegram OSINT",
+    url: "/api/living-conflict/taiwan-strait",
+    cadence: "Cron heuristic curate · daily · seed baseline always available",
+    attribution: "GDELT Project · Telegram public channels (when available)",
+    notes:
+      "진행형 대만해협 타임라인. LLM 없이 점수·시간 상위 헤드라인을 1~2줄로 압축. 「자동 요약 · 오보 가능」 고지. 수동 검수는 시드/JSON 덮어쓰기.",
     status: "shipped",
     ingest: "cached-api",
   },

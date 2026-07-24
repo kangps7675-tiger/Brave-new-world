@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { fetchSotwCountryCard, getSotwApiKey, SOTW_ATTRIBUTION } from "@/lib/sotw";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const WORLD_CDN = publicCacheHeaders(CDN_CACHE.worldStats);
 
 /**
  * GET /api/world-stats/countries?country=Iran|USA|…
@@ -26,7 +29,7 @@ export async function GET(request: Request) {
 
   try {
     const card = await fetchSotwCountryCard(country);
-    return NextResponse.json(card);
+    return NextResponse.json(card, { headers: WORLD_CDN });
   } catch (error) {
     return NextResponse.json(
       {

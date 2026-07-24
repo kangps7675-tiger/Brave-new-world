@@ -1,6 +1,6 @@
 /**
  * 우크라 전장 GDELT 전투·충돌 — 하늘색·시안 네온 점 + 물결 리플.
- * 이란(흰 네온) / 중국(빨간 네온)과 전장 색을 구분.
+ * 흰 네온은 UCDP 속보용. 이란 NewFeeds(국영·공식)는 빨간 구체(별도 레이어).
  */
 
 import { isFreshEvent, type ScoredEvent } from "@/data/eventTiers";

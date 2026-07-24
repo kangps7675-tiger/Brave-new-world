@@ -51,6 +51,31 @@ export const THEATER_ASSETS: Record<TheaterMarketFilter, TheaterAssetEntry> = {
     noteKo: "유가·금·인도 인접 시장",
     noteEn: "Oil · gold · India-adjacent markets",
   },
+  "southeast-asia": {
+    symbols: ["BZ=F", "^HSI", "^IXIC", "^VIX", "DX-Y.NYB", "^GSPC"],
+    noteKo: "유가·아시아 지수 — 남중국해·말라카 물류 리스크",
+    noteEn: "Oil · Asia indices — South China Sea / Malacca logistics risk",
+  },
+  "south-america": {
+    symbols: ["CL=F", "BZ=F", "GC=F", "^VIX", "DX-Y.NYB", "^GSPC"],
+    noteKo: "유가·금 — 베네수엘라·가이아나·남미 안보 프리미엄",
+    noteEn: "Oil · gold — Venezuela / Guyana / LatAm security premium",
+  },
+  africa: {
+    symbols: ["GC=F", "BZ=F", "^VIX", "DX-Y.NYB", "^GSPC", "CL=F"],
+    noteKo: "금·유가 — 사헬·수단·아프리카 분쟁 리스크",
+    noteEn: "Gold · oil — Sahel / Sudan / Africa conflict risk",
+  },
+  arctic: {
+    symbols: ["BZ=F", "CL=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
+    noteKo: "에너지·금·달러 — 북극 항로·자원 리스크",
+    noteEn: "Energy · gold · dollar — Arctic route / resource risk",
+  },
+  atlantic: {
+    symbols: ["DX-Y.NYB", "^GSPC", "^VIX", "BZ=F", "GC=F", "^IXIC"],
+    noteKo: "달러·미국 지수 — 대서양·NATO 안보 프리미엄",
+    noteEn: "Dollar · US indices — Atlantic / NATO security premium",
+  },
   global: {
     symbols: ["^VIX", "^GSPC", "^IXIC", "BZ=F", "GC=F", "DX-Y.NYB"],
     noteKo: "방산·매크로 헤지 지표",
@@ -77,6 +102,11 @@ export function yahooQuoteUrl(symbol: string): string {
 
 /** TradingView 심볼 페이지 딥링크 (임베드 아님 · 약관 별도) */
 export function tradingViewSymbolUrl(symbol: string): string {
-  const clean = symbol.replace(/^\^/, "").replace(/=F$/, "");
+  // Yahoo BTC-USD → TradingView BTCUSD 등
+  const clean = symbol
+    .replace(/^\^/, "")
+    .replace(/=F$/, "")
+    .replace(/-USD$/i, "USD")
+    .replace(/\./g, "");
   return `https://www.tradingview.com/symbols/${encodeURIComponent(clean)}/`;
 }

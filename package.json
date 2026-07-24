@@ -78,11 +78,13 @@
     "cf:r2:upload:audio": "node scripts/r2-upload-data.js --audio-only",
     "cf:r2:upload:audio:dry": "node scripts/r2-upload-data.js --audio-only --dry-run",
     "axis:arms:build": "node scripts/build-axis-arms.js",
+    "axis:hubs:build": "node scripts/build-axis-hub-countries.js",
     "axis:vdem:build": "node scripts/build-axis-vdem.js",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",
+    "@block65/webcrypto-web-push": "^1.0.2",
     "@google/earthengine": "^1.7.34",
     "@streamparser/json": "^0.0.22",
     "@vercel/analytics": "^2.0.1",

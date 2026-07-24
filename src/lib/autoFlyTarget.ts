@@ -42,7 +42,7 @@ function matchesKeywords(text: string, keywords: string[]): boolean {
 /** alertScore 최상위 → nav id (가장 뜨거운 충돌지) */
 export function hottestConflictNavId(alerts: DisputeAlert[]): string {
   const top = alerts[0];
-  if (!top) return "ukraine";
+  if (!top) return "taiwan";
 
   const fromMenu = top.menuRegion.id;
   if (navSelectionFromId(fromMenu)) return fromMenu;

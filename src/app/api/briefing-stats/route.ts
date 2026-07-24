@@ -9,9 +9,12 @@ import {
 } from "@/lib/briefingPeriodStats";
 import { rewriteLampNarrative } from "@/lib/llm/lampNarrative";
 import { buildBriefingFromStats } from "@/lib/news/periodicBriefing";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const BRIEFING_CDN = publicCacheHeaders(CDN_CACHE.briefing);
 
 const briefingStatsQuerySchema = z
   .object({
@@ -72,12 +75,15 @@ export async function GET(request: Request) {
         };
       }
     }
-    return NextResponse.json({
-      fetchedAt: new Date().toISOString(),
-      source,
-      stats,
-      briefing,
-    });
+    return NextResponse.json(
+      {
+        fetchedAt: new Date().toISOString(),
+        source,
+        stats,
+        briefing,
+      },
+      { headers: BRIEFING_CDN },
+    );
   };
 
   const fromD1 = await readBriefingStatsFromD1({ key, tier });

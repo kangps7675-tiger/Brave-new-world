@@ -10,6 +10,8 @@ import {
 import {
   canEnableLayer,
   clampPrefsToActiveCap,
+  enableLayerEvictingCap,
+  enableLayerWithCap,
   isLayerCapCountedKey,
 } from "@/lib/layerExclusiveCap";
 
@@ -57,6 +59,8 @@ export function useLayerPrefsController(
         saveLayerPrefs(clamped);
         immediateUntilRef.current = Date.now() + LAYER_IMMEDIATE_RENDER_MS;
       } else {
+        // soft batch도 경로 레이어(BRI/DFC 등)가 카메라 쓰로틀에 막히지 않게 짧게 우회
+        immediateUntilRef.current = Date.now() + LAYER_IMMEDIATE_RENDER_MS;
         // localStorage 동기 write가 체크 입력과 겹치지 않게
         window.setTimeout(() => saveLayerPrefs(draftRef.current), 0);
       }
@@ -95,15 +99,23 @@ export function useLayerPrefsController(
   const togglePref = useCallback(
     <K extends keyof LayerPrefs>(key: K, value: LayerPrefs[K]) => {
       const ultra = ultraLiteRef?.current ?? false;
-      if (
-        value === true &&
-        isLayerCapCountedKey(key) &&
-        !canEnableLayer(draftRef.current, key, ultra)
-      ) {
-        return;
+      let next: LayerPrefs;
+
+      if (value === true && isLayerCapCountedKey(key)) {
+        if (!canEnableLayer(draftRef.current, key, ultra)) {
+          // 일반: 거부(패널이 경고). Ultra: 낮은 우선순위 레이어를 비워 자리 확보
+          if (ultra) {
+            next = enableLayerEvictingCap(draftRef.current, key, true);
+          } else {
+            return;
+          }
+        } else {
+          next = enableLayerWithCap(draftRef.current, key, ultra);
+        }
+      } else {
+        next = { ...draftRef.current, [key]: value };
       }
 
-      const next = { ...draftRef.current, [key]: value };
       draftRef.current = next;
 
       if (INSTANT_KEYS.has(key)) {

@@ -17,8 +17,8 @@ export type ViewPackageId = "conflict-watch" | "geo-trader" | "frontline-live" |
 /** 상단 스위치 — 지정학 뷰어 vs 경제·시장 뷰어 (패키지 1:1) */
 export type ViewerMode = "conflict" | "economy";
 
-export const CONFLICT_VIEWER_PACKAGE: ViewPackageId = "frontline-live";
-export const ECONOMY_VIEWER_PACKAGE: ViewPackageId = "geo-trader";
+export const CONFLICT_VIEWER_PACKAGE = "frontline-live" as const;
+export const ECONOMY_VIEWER_PACKAGE = "geo-trader" as const;
 
 export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
   return mode === "economy" ? [ECONOMY_VIEWER_PACKAGE] : [CONFLICT_VIEWER_PACKAGE];
@@ -26,7 +26,14 @@ export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
 
 export function viewerModeFromPackages(packages: ViewPackageId[]): ViewerMode {
   const ids = packages.filter((id) => id !== "custom");
-  if (ids.length === 1 && ids[0] === ECONOMY_VIEWER_PACKAGE) return "economy";
+  // 경제 패키지만 있으면 지경학 (혼재·단독 모두)
+  if (
+    ids.includes(ECONOMY_VIEWER_PACKAGE) &&
+    !ids.includes(CONFLICT_VIEWER_PACKAGE) &&
+    !ids.includes("conflict-watch")
+  ) {
+    return "economy";
+  }
   return "conflict";
 }
 
@@ -95,7 +102,7 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   },
   {
     id: "geo-trader",
-    label: "지정학 트레이더",
+    label: "지경학 트레이더",
     tagline: "유가·VIX·제재",
     description: "VIX · 유가 · 금 · 제재 · 에너지",
     layers: {
@@ -108,11 +115,15 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showSubmarineCables: true,
       showOilPipelines: true,
       showGasPipelines: true,
+      showLngTerminals: true,
+      showResources: true,
+      showGemOilGasExtraction: true,
+      showGemCoalMines: true,
+      showGemIronOre: true,
       showNuclearSites: true,
       showAiDataCenters: true,
       showPorts: true,
       showAirports: true,
-      showLngTerminals: false,
       showShippingLanes: false,
       showBriTradeConnectivity: true,
       showUsDfcSupplyChain: true,
@@ -132,6 +143,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showNewfeedsIranAttacks: true,
       showUsCarriers: false,
       showMilitaryActivity: false,
+      showMilitaryBases: false,
+      showDisguisedVessels: false,
     },
     ui: {
       showTicker: true,
@@ -148,10 +161,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       // 우크라 전선은 ModePicker/내비「우크라」세부 선택 시에만
       showUkraineControl: false,
       showWarZones: true,
-      showEastAsiaAdiz: true,
       showGdeltWar: true,
       showGdeltDiplomatic: true,
-      showGdeltAlliance: true,
       showGdeltProtests: true,
       showGdeltOceanCompetition: true,
       showMilitaryActivity: true,
@@ -167,6 +178,14 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showUsCarriers: true,
       showDiplomaticTension: true,
       showConflictZones: false,
+      showOilPipelines: true,
+      showGasPipelines: true,
+      showLngTerminals: true,
+      showResources: true,
+      showGemOilGasExtraction: true,
+      showGemCoalMines: true,
+      showGemIronOre: true,
+      showNuclearSites: true,
     },
     ui: {
       showTicker: false,
@@ -199,9 +218,14 @@ export const DEFAULT_PACKAGE_SELECTION: ViewPackageId[] = [RECOMMENDED_PACKAGE_I
 export const VIEW_THEATER_OPTIONS: Array<{ id: ViewTheaterChoice; label: string }> = [
   { id: "auto", label: "자동" },
   { id: "korea", label: "한반도" },
+  { id: "japan", label: "일본" },
   { id: "china-taiwan", label: "대만" },
   { id: "russia-ukraine", label: "우크라" },
   { id: "middle-east", label: "중동" },
+  // 아래 3개는 지정학(전선·긴장) 전용 — 지경학 허브와 무관
+  { id: "southeast-asia", label: "동남아" },
+  { id: "south-america", label: "남미" },
+  { id: "africa", label: "아프리카" },
   { id: "global", label: "글로벌" },
 ];
 
@@ -219,12 +243,9 @@ const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showUsCarriers",
   "showConflictZones",
   "showDiplomaticTension",
-  "showLngTerminals",
-  "showGasPipelines",
-  "showOilPipelines",
   "showTelegramOsint",
-  // showWarZones · showFirmsFires · showLogisticsRisk · showShippingLanes · showGdeltWar
-  // 는 이란·우크라 등 활성 전장 핵심 — 후순위 드롭
+  // showLngTerminals · showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
+  // 는 에너지·전장 핵심 — 후순위 드롭 금지
 ];
 
 const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
@@ -232,12 +253,9 @@ const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showEconomicCenters",
   "showPorts",
   "showInternetExchanges",
-  "showGasPipelines",
-  "showLngTerminals",
-  "showOilPipelines",
-  "showSubmarineCables",
   "showAirports",
-  // showWarZones 유지 — 호르무즈 등 초크포인트와 함께 해석
+  "showSubmarineCables",
+  // showLngTerminals · showOilPipelines · showGasPipelines 유지 — 에너지 지도 핵심
 ];
 
 export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
@@ -247,6 +265,8 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showGdeltWar: "뉴스 · 전투·충돌",
   showGdeltDiplomatic: "뉴스 · 외교 긴장",
   showGdeltAlliance: "뉴스 · 동맹 갈등",
+  showUkmtoIncidents: "UKMTO 상선 피습·나포 경보",
+  showNavareaWarnings: "NAVAREA 항행경보",
   showGdeltProtests: "뉴스 · 시위",
   showGdeltOceanCompetition: "뉴스 · 대양 경쟁",
   showTelegramOsint: "텔레그램 전장 소식",
@@ -261,9 +281,12 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showUsChinaIncidents: "미국–중국 군사 마찰",
   showNorthKoreaMissileTests: "북한 미사일·무기 시험",
   showEastAsiaAdiz: "방공식별구역 (ADIZ)",
+  showIslandChains: "도련선 · 미군 방어선",
   showAxisNetwork: "이란·중국·러시아·북한 관계망",
   showBriTradeConnectivity: "일대일로 무역 연결",
   showUsDfcSupplyChain: "미국 DFC 개발금융망",
+  showAis: "선박 AIS",
+  showDisguisedVessels: "위장선박 (AIS_Tracker)",
   showSanctionsEntities: "제재 대상",
   showOilPipelines: "송유관",
   showLngTerminals: "LNG(액화가스) 터미널",
@@ -368,6 +391,7 @@ function resolveAutoTheaterNavId(
 ): string | null {
   if (!ids.includes("frontline-live")) return null;
   if (theater === "korea") return "korea";
+  if (theater === "japan") return "senkaku";
   if (theater === "china-taiwan") return "taiwan";
   if (theater === "russia-ukraine") return "ukraine";
   if (theater === "middle-east") return "middle-east";

@@ -20,7 +20,7 @@ export function InterestRecommendChips({
   onEnableLayer,
 }: Props) {
   const { lang } = useLocale();
-  const { chips } = useInterestProfile();
+  const { chips } = useInterestProfile(economy ? "economy" : "conflict");
 
   if (chips.length === 0) return null;
 
@@ -31,6 +31,15 @@ export function InterestRecommendChips({
       return;
     }
     if (action.type === "enable-layer" && onEnableLayer) {
+      if (
+        economy &&
+        (action.layerKey === "showMilitaryActivity" ||
+          action.layerKey === "showUsCarriers" ||
+          action.layerKey === "showMilitaryBases" ||
+          action.layerKey === "showDisguisedVessels")
+      ) {
+        return;
+      }
       onEnableLayer(action.layerKey);
       return;
     }

@@ -64,6 +64,46 @@ export type IngestEnv = {
   AIS_MAX_VESSELS?: string;
   ADSB_MIL_MAX?: string;
   ADSB_CIV_PER_HUB?: string;
+  /** Web Push VAPID — `wrangler secret put VAPID_PRIVATE_KEY` */
+  VAPID_PRIVATE_KEY?: string;
+  /** Public key (base64url) — wrangler [vars] 또는 secret */
+  VAPID_PUBLIC_KEY?: string;
+  /** mailto: or https: contact for VAPID JWT */
+  VAPID_SUBJECT?: string;
+  /**
+   * OREF(이스라엘 공습경보) 프록시 — CF Worker가 403이면 이스라엘 IP 경유 URL.
+   * 예: https://your-proxy.example/oref/history.json
+   */
+  OREF_HISTORY_URL?: string;
+  OREF_ACTIVE_URL?: string;
+  /** "false"/"0" 이면 공습경보 인제스트 비활성 */
+  AIR_RAID_INGEST_ENABLED?: string;
+  /** NEPTUN 베이스 (기본 https://neptun.in.ua) */
+  NEPTUN_API_BASE?: string;
+  /**
+   * UKMTO 상선 경보 — 비공식(리버스 엔지니어링) 엔드포인트.
+   * 기본 https://sccd.royalnavy.mod.uk/api/ukmto/all
+   */
+  UKMTO_API_URL?: string;
+  /** "false"/"0" 이면 UKMTO 인제스트 비활성 */
+  UKMTO_INGEST_ENABLED?: string;
+  /** 최소 재폴링 간격(분) — 예의상 여유 있게, 기본 30 */
+  UKMTO_POLL_MIN_INTERVAL_MINUTES?: string;
+  /**
+   * JHOD NAVAREA XI 공개 TXT.
+   * 기본 https://www1.kaiho.mlit.go.jp/TUHO/freetext/NavareaXI.txt
+   * "off" 이면 JHOD 피드 스킵
+   */
+  NAVAREA_JHOD_XI_URL?: string;
+  /**
+   * NGA NAVAREA TXT URL 목록 (콤마 구분).
+   * 예: https://.../navarea_iv.txt,https://.../navarea_xii.txt
+   */
+  NAVAREA_NGA_TXT_URLS?: string;
+  /** "false"/"0" 이면 NAVAREA 인제스트 비활성 */
+  NAVAREA_INGEST_ENABLED?: string;
+  /** 최소 재폴링 간격(분) — 정부 TXT 예의상 15~30, 기본 30 */
+  NAVAREA_POLL_MIN_INTERVAL_MINUTES?: string;
 };
 
 export type FirmsFireRow = {

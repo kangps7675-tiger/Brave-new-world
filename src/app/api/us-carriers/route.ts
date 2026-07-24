@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import type { UsCarrier } from "@/data/usCarriers";
 import { US_CARRIERS_SEED } from "@/data/usCarriers";
 import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const CARRIERS_CDN = publicCacheHeaders(CDN_CACHE.carriers);
 
 type CarrierPayload = {
   carriers?: UsCarrier[];
@@ -37,13 +40,16 @@ async function loadCarrierFile(): Promise<{
 export async function GET() {
   try {
     const { carriers, updatedAt, source } = await loadCarrierFile();
-    return NextResponse.json({
-      receivedAt: new Date().toISOString(),
-      updatedAt,
-      source,
-      count: carriers.length,
-      carriers,
-    });
+    return NextResponse.json(
+      {
+        receivedAt: new Date().toISOString(),
+        updatedAt,
+        source,
+        count: carriers.length,
+        carriers,
+      },
+      { headers: CARRIERS_CDN },
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -51,7 +57,7 @@ export async function GET() {
         carriers: US_CARRIERS_SEED,
         count: US_CARRIERS_SEED.length,
       },
-      { status: 500 },
+      { status: 500, headers: CARRIERS_CDN },
     );
   }
 }

@@ -1,8 +1,10 @@
 "use client";
 
+import { AcledEventTable } from "@/components/AcledEventTable";
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 
+import { DISCLAIMER_EN, DISCLAIMER_KO } from "@/components/LegalDisclaimerFooter";
 import {
   OPENALEX_ATTRIBUTION_EN,
   OPENALEX_ATTRIBUTION_KO,
@@ -59,39 +61,51 @@ export function MethodologySourcesPanel({
   onClose,
   onOpenTrust,
 }: MethodologySourcesPanelProps) {
+  const { lang } = useLocale();
   if (!open) return null;
 
   const shipped = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "shipped");
   const planned = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "planned");
+  const isEn = lang === "en";
 
   return (
     <>
       <button
         type="button"
-        aria-label="데이터 출처 패널 닫기"
+        aria-label={isEn ? "Close sources panel" : "데이터 출처 패널 닫기"}
         className="absolute inset-0 z-[58] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside
         className="intel-panel absolute right-3 top-14 z-[62] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),400px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
-        aria-label="데이터 출처 및 라이선스"
+        aria-label={isEn ? "Sources and licenses" : "데이터 출처 및 라이선스"}
       >
         <div className="flex items-start justify-between gap-3 border-b border-sky-300/15 px-4 py-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/70">Sources</p>
-            <h2 className="mt-1 text-lg font-semibold text-sky-50">데이터 출처 · 라이선스</h2>
+            <h2 className="mt-1 text-lg font-semibold text-sky-50">
+              {isEn ? "Sources · Licenses" : "데이터 출처 · 라이선스"}
+            </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-lg border border-sky-200/15 px-2 py-1 text-xs text-sky-100/80 transition hover:border-sky-200/30 hover:text-sky-50"
           >
-            닫기
+            {isEn ? "Close" : "닫기"}
           </button>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          <section className="rounded-xl border border-amber-500/30 bg-amber-950/25 p-3">
+            <h3 className="text-sm font-medium text-amber-100">
+              {isEn ? "Disclaimer" : "면책"}
+            </h3>
+            <p className="mt-2 text-[12px] leading-5 text-sky-100/85">
+              {isEn ? DISCLAIMER_EN : DISCLAIMER_KO}
+            </p>
+          </section>
           {onOpenTrust ? (
             <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
               <h3 className="text-sm font-medium text-sky-50">뉴스 · OSINT 신뢰도 등급</h3>
@@ -178,6 +192,7 @@ export function MethodologySourcesPanel({
                 hapi.humdata.org
               </a>
             </p>
+            <AcledEventTable lang={lang} />
           </section>
 
           <section className="rounded-xl border border-yellow-800/40 bg-yellow-950/20 p-3">
@@ -234,6 +249,45 @@ export function MethodologySourcesPanel({
                   </a>
                 </li>
               ))}
+            </ul>
+          </section>
+
+          <section className="rounded-xl border border-orange-800/40 bg-orange-950/20 p-3">
+            <h3 className="text-sm font-medium text-orange-100">OSINT GitHub 시드 · 보강 DB</h3>
+            <p className="mt-1.5 text-[11px] leading-5 text-sky-100/65">
+              군용기 hex 보강·위장선박 시드는 아래 저장소에서 가져왔으며, 지도·API attribution에도
+              동일 URL을 표기합니다.
+            </p>
+            <ul className="mt-3 space-y-3">
+              <li className="rounded-lg border border-orange-800/30 bg-black/20 px-2.5 py-2">
+                <p className="text-[12px] font-semibold text-orange-50">군용기 — Bellingcat Turnstone</p>
+                <p className="mt-1 text-[11px] leading-5 text-sky-100/75">
+                  adsb-history modes.csv (military=t, ~28k ICAO hex)로 군용 기체 판별 보강.
+                </p>
+                <a
+                  href="https://github.com/bellingcat/adsb-history.git"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1.5 inline-block break-all font-mono text-[10px] text-orange-200/90 underline decoration-orange-400/35 underline-offset-2 hover:text-orange-100"
+                >
+                  https://github.com/bellingcat/adsb-history.git
+                </a>
+              </li>
+              <li className="rounded-lg border border-orange-800/30 bg-black/20 px-2.5 py-2">
+                <p className="text-[12px] font-semibold text-orange-50">위장선박 — AIS_Tracker</p>
+                <p className="mt-1 text-[11px] leading-5 text-sky-100/75">
+                  vessels / dark_fleet 시드(무기고 개조·다크플리트). 레이어: 위장선박 ·
+                  /api/ais-disguised.
+                </p>
+                <a
+                  href="https://github.com/arandomguyhere/AIS_Tracker.git"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1.5 inline-block break-all font-mono text-[10px] text-orange-200/90 underline decoration-orange-400/35 underline-offset-2 hover:text-orange-100"
+                >
+                  https://github.com/arandomguyhere/AIS_Tracker.git
+                </a>
+              </li>
             </ul>
           </section>
 

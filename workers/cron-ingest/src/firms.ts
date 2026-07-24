@@ -35,6 +35,8 @@ export function buildFirmsAreaUrl(options: {
   north: number;
   dayRange?: number;
   source?: string;
+  /** YYYY-MM-DD — range ends on this date (archive / SP) */
+  endDate?: string;
 }) {
   const {
     mapKey,
@@ -44,10 +46,16 @@ export function buildFirmsAreaUrl(options: {
     north,
     dayRange = 1,
     source = DEFAULT_SOURCE,
+    endDate,
   } = options;
   const bbox = `${west},${south},${east},${north}`;
-  const days = Math.min(5, Math.max(1, dayRange));
-  return `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${mapKey}/${source}/${bbox}/${days}`;
+  // NRT max ~10; SP archive chunks often use up to 10
+  const days = Math.min(10, Math.max(1, dayRange));
+  const base = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${mapKey}/${source}/${bbox}/${days}`;
+  if (endDate && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+    return `${base}/${endDate}`;
+  }
+  return base;
 }
 
 export function parseFirmsCsv(

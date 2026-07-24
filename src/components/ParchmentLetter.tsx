@@ -80,10 +80,14 @@ export type ParchmentLetterProps = {
   /** 본문을 타자기처럼 한 글자씩 출력 (분쟁 외교사 등) */
   typewriter?: boolean;
   /**
-   * true면 반서방 11대 현장 전용 RIDI Batang 필체.
-   * 기본(false)은 Wanted Sans.
+   * true면 반서방 11대·첫입장(한글) 등 RIDI Batang 필체.
+   * 기본(false)은 Wanted Sans / EN Merriweather.
    */
   historyHandFont?: boolean;
+  /** true면 Intel UI(Inter) — 첫입장 영문 편지 등 */
+  intelFont?: boolean;
+  /** 등불 등 — 글자색 전부 검정 */
+  blackInk?: boolean;
   /** dialog 접근성 라벨 id */
   titleId?: string;
   zIndexClass?: string;
@@ -104,6 +108,8 @@ export function ParchmentLetter({
   playBreakingDispatch = false,
   typewriter = false,
   historyHandFont = false,
+  intelFont = false,
+  blackInk = false,
   titleId = "parchment-letter-title",
   zIndexClass = "z-[10000]",
 }: ParchmentLetterProps) {
@@ -115,15 +121,17 @@ export function ParchmentLetter({
   /** 타이핑 중 본문 하단 자동 추적. 유저가 스크롤하면 false. */
   const autoScrollFollowRef = useRef(true);
   const programmaticScrollRef = useRef(false);
-  const parchmentStack = historyHandFont
-    ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
-    : lang === "en"
-      ? "var(--font-parchment-en)"
-      : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';
+  const parchmentStack = intelFont
+    ? "var(--font-intel)"
+    : historyHandFont
+      ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
+      : lang === "en"
+        ? "var(--font-parchment-en)"
+        : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';
   const bodyFont = parchmentStack;
   const titleFont = parchmentStack;
   const resolvedBackMark = backMark ?? (lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko);
-  const resolvedBackSub = backSub ?? (lang === "en" ? "멋진 신세계" : "Brave New World");
+  const resolvedBackSub = backSub ?? (lang === "en" ? BRAND_NAME.ko : BRAND_NAME.en);
 
   const fullBody = useMemo(() => paragraphs.join("\n\n"), [paragraphs]);
   const totalChars = fullBody.length;
@@ -264,7 +272,11 @@ export function ParchmentLetter({
         <div
           className={`welcome-letter-card parchment-letter ${
             historyHandFont ? "parchment-letter--history" : ""
-          } ${exiting ? "welcome-letter-card--fold-exit" : "welcome-letter-card--unfold-enter"}`}
+          } ${intelFont ? "parchment-letter--intel" : ""} ${
+            blackInk ? "parchment-letter--lamp-ink" : ""
+          } ${
+            exiting ? "welcome-letter-card--fold-exit" : "welcome-letter-card--unfold-enter"
+          }`}
           style={{ fontFamily: bodyFont }}
         >
           <div className="welcome-parchment welcome-letter-face welcome-letter-face--front relative flex max-h-[min(92vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-sm shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
@@ -278,7 +290,9 @@ export function ParchmentLetter({
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-8 py-9 sm:px-14 sm:py-11">
               <h1
                 id={titleId}
-                className="welcome-letter-title shrink-0 whitespace-pre-line text-center text-[1.7rem] leading-[1.55] tracking-[0.06em] text-[#3d2a18] sm:text-[2.15rem] sm:leading-[1.5] sm:tracking-[0.08em]"
+                className={`welcome-letter-title shrink-0 whitespace-pre-line text-center text-[1.7rem] leading-[1.4] tracking-[0.03em] sm:text-[2.15rem] sm:leading-[1.35] sm:tracking-[0.04em] ${
+                  blackInk ? "text-black" : "text-[#3d2a18]"
+                }`}
                 style={{ fontFamily: titleFont, fontWeight: 400 }}
               >
                 {title}
@@ -286,7 +300,9 @@ export function ParchmentLetter({
               <div className="welcome-letter-divider mx-auto mt-4 shrink-0" aria-hidden />
               <div
                 ref={bodyScrollRef}
-                className="welcome-letter-body mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain text-[1.06rem] leading-[1.95] tracking-[0.03em] text-[#3f2e1c] sm:text-[1.12rem] sm:leading-[2] sm:tracking-[0.035em]"
+                className={`welcome-letter-body mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain text-[1.02rem] leading-[1.65] tracking-[0.012em] sm:text-[1.08rem] sm:leading-[1.7] sm:tracking-[0.015em] ${
+                  blackInk ? "text-black" : "text-[#3f2e1c]"
+                }`}
                 style={{ fontFamily: bodyFont, fontWeight: 400 }}
                 aria-live="polite"
               >
@@ -302,7 +318,9 @@ export function ParchmentLetter({
                 ))}
                 {signOff && typingDone ? (
                   <p
-                    className="whitespace-pre-line pb-2 pt-2 text-right text-[1.02rem] leading-relaxed tracking-[0.04em] text-[#5a4428]"
+                    className={`whitespace-pre-line pb-2 pt-2 text-right text-[1.02rem] leading-relaxed tracking-[0.04em] ${
+                      blackInk ? "text-black" : "text-[#5a4428]"
+                    }`}
                     style={{
                       fontFamily: parchmentStack,
                       fontStyle: lang === "en" ? "italic" : "normal",
@@ -319,7 +337,9 @@ export function ParchmentLetter({
                 type="button"
                 onClick={handleContinue}
                 disabled={phase !== "idle"}
-                className="rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.06em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70"
+                className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.06em] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
+                  blackInk ? "text-black" : "text-[#3d2a18]"
+                }`}
                 style={{ fontFamily: titleFont, fontWeight: 400 }}
               >
                 {typewriter && !typingDone

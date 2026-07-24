@@ -93,7 +93,7 @@ async function fetchChannel(
     const res = await fetch(`${PREVIEW_BASE}${channel.username}`, {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; ConflictView/1.0; +https://t.me)",
+        "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0; +https://t.me)",
         "Accept-Language": "en,ru,uk,fa",
       },
     });

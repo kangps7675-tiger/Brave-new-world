@@ -64,13 +64,13 @@ export function FrictionHistoryChrome({
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-[10px] uppercase tracking-[0.2em] text-violet-200/55">
-            {ko ? "역사 모드 · 나가지 않음" : "History mode · locked in"}
+            {ko ? "역사 모드 · 잠금" : "History mode · locked"}
           </p>
           <h2 className="mt-0.5 truncate text-sm font-medium text-violet-50">{episode.title}</h2>
           <p className="mt-1 text-[10px] leading-4 text-violet-100/50">
             {ko
-              ? "줌아웃해도 이 창은 유지됩니다. 전개 순서를 따라 콜아웃을 누르세요."
-              : "Zooming out won’t eject you. Follow stages via callouts."}
+              ? "나가기 버튼을 누르기 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다."
+              : "You can’t leave until you press Exit. Zoom and mode switches won’t eject you."}
           </p>
         </div>
         <button

@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
+import { brandName } from "@/lib/brand";
 import { captureMapAsImage, shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { trackEvent } from "@/lib/trackClient";
 
@@ -18,10 +19,11 @@ type ShareViewButtonProps = {
  */
 export function ShareViewButton({
   getCanvas,
-  siteName = "멋진 신세계",
+  siteName,
   className = "",
 }: ShareViewButtonProps) {
   const { t, lang } = useLocale();
+  const resolvedSiteName = siteName ?? brandName(lang === "en" ? "en" : "ko");
   const [busy, setBusy] = useState(false);
 
   const handleShare = useCallback(async () => {
@@ -33,21 +35,21 @@ export function ShareViewButton({
     setBusy(true);
     try {
       const url = typeof window !== "undefined" ? window.location.host : "";
-      const blob = await captureMapAsImage(canvas, { siteName, url });
+      const blob = await captureMapAsImage(canvas, { siteName: resolvedSiteName, url });
       if (!blob) return;
 
-      const filename = `${siteName.replace(/\s+/g, "-")}-${Date.now()}.png`;
+      const filename = `${resolvedSiteName.replace(/\s+/g, "-")}-${Date.now()}.png`;
       await shareOrDownloadImageBlob(
         blob,
         filename,
-        siteName,
-        lang === "en" ? `Captured from ${siteName}` : `${siteName}에서 캡처`,
+        resolvedSiteName,
+        lang === "en" ? `Captured from ${resolvedSiteName}` : `${resolvedSiteName}에서 캡처`,
       );
       trackEvent("share_view_success", undefined, { lang });
     } finally {
       setBusy(false);
     }
-  }, [busy, getCanvas, lang, siteName]);
+  }, [busy, getCanvas, lang, resolvedSiteName]);
 
   return (
     <HoverHint placement="bottom" title={t("hoverShareView")} detail={t("hoverShareViewHint")}>

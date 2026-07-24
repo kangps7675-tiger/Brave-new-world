@@ -21,6 +21,87 @@ function p(
   return { label, lat, lng, altitude, keys };
 }
 
+/** 초크포인트(해협·운하) — 유가·물류 뉴스 「지도보러가기」 */
+const CHOKEPOINT_PLACES: PlaceAlias[] = [
+  p(
+    "호르무즈 해협",
+    26.55,
+    56.25,
+    1.15,
+    "hormuz",
+    "strait of hormuz",
+    "호르무즈",
+  ),
+  p(
+    "수에즈 운하",
+    30.45,
+    32.35,
+    1.2,
+    "suez",
+    "suez canal",
+    "수에즈",
+  ),
+  p(
+    "바브엘만데브·홍해",
+    12.58,
+    43.33,
+    1.25,
+    "bab el-mandeb",
+    "bab-el-mandeb",
+    "bab al-mandab",
+    "바브엘만데브",
+    "red sea",
+    "홍해",
+  ),
+  p(
+    "말라카 해협",
+    2.5,
+    101.5,
+    1.2,
+    "malacca",
+    "strait of malacca",
+    "말라카",
+  ),
+  p(
+    "대만해협",
+    24.5,
+    119.5,
+    1.15,
+    "taiwan strait",
+    "대만해협",
+  ),
+  p(
+    "파나마 운하",
+    9.08,
+    -79.68,
+    1.15,
+    "panama canal",
+    "파나마 운하",
+    "파나마운하",
+  ),
+  p(
+    "보스포루스",
+    41.12,
+    29.05,
+    1.1,
+    "bosporus",
+    "bosphorus",
+    "보스포루스",
+    "dardanelles",
+    "다르다넬스",
+  ),
+  p("지브롤터", 36.14, -5.35, 1.15, "gibraltar", "지브롤터"),
+  p(
+    "희망봉",
+    -34.35,
+    18.47,
+    1.4,
+    "cape of good hope",
+    "good hope",
+    "희망봉",
+  ),
+];
+
 /** 파이프·에너지 회랑 */
 const ENERGY_ROUTE_PLACES: PlaceAlias[] = [
   p(
@@ -214,6 +295,7 @@ function navPlaces(): PlaceAlias[] {
 }
 
 const ALL_PLACES: PlaceAlias[] = [
+  ...CHOKEPOINT_PLACES,
   ...navPlaces(),
   ...ENERGY_ROUTE_PLACES,
   ...INVESTMENT_AND_CITY_PLACES,

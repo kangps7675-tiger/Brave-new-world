@@ -7,6 +7,7 @@ import {
 } from "@/data/audioManifest";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { useSoundStream, type PlaySoundOptions } from "@/hooks/useSoundStream";
+import { wtiAmbientVolumeScale } from "@/lib/wti";
 
 /** 공습경보·A급 속보 타전·양피지 UI 버스 — 티커/일반 UI 클릭음은 차단 */
 export const CV_SOUND_EVENT = "cv-sound";
@@ -222,6 +223,11 @@ type SoundEffectsBridgeProps = {
   cameraAltitude?: number;
   /** 전선 원샷 풀·베드 볼륨 LOD */
   globeLodTier?: GlobeLodTier;
+  /**
+   * 오늘의 WTI (0–100). 긴장·대만해협 앰비언트 음량에 매핑.
+   * 음원 없는 dashboard-bgm 도 나중에 같은 곡선(wtiBgmVolumeScale) 사용.
+   */
+  wtiScore?: number | null;
 };
 
 /**
@@ -229,6 +235,7 @@ type SoundEffectsBridgeProps = {
  * - 공습경보: 칩/버튼 fly 시에만 (emitDashboardSound)
  * - 그 외: 카메라가 해당 지역·레이어 위에 있을 때 자동 재생 (클릭 없음)
  * - 전선: LOD별 원샷 풀 (regional=포격/짧은폭격, close=near+village 통일 · 총성+포격+드론 연속)
+ * - 긴장 앰비언트: WTI 숫자가 강도 (계기판 = 사운드)
  */
 export function SoundEffectsBridge({
   viewerMode,
@@ -238,6 +245,7 @@ export function SoundEffectsBridge({
   economyAmbient = null,
   cameraAltitude,
   globeLodTier,
+  wtiScore = null,
 }: SoundEffectsBridgeProps) {
   const { play, setAmbient, stopAmbient, setCameraAltitude, canPlay } = useSoundStream();
 
@@ -246,6 +254,7 @@ export function SoundEffectsBridge({
   const firmsInViewRef = useRef(false);
   const frontlineAmbient = conflictAmbient === "frontline";
   const frontlineLod = toFrontlineSoundLod(globeLodTier);
+  const wtiVol = wtiAmbientVolumeScale(wtiScore);
 
   useEffect(() => {
     setCameraAltitude(cameraAltitude);
@@ -355,11 +364,11 @@ export function SoundEffectsBridge({
         return;
       }
       if (conflictAmbient === "taiwan-tension") {
-        setAmbient("taiwan-strait-tension");
+        void play("taiwan-strait-tension", { volumeScale: wtiVol });
         return;
       }
       if (conflictAmbient === "tension") {
-        setAmbient("dispute-tension-high");
+        void play("dispute-tension-high", { volumeScale: wtiVol });
         return;
       }
       if (conflictAmbient === "carrier") {
@@ -390,6 +399,7 @@ export function SoundEffectsBridge({
     setAmbient,
     stopAmbient,
     viewerMode,
+    wtiVol,
   ]);
 
   // 실제 교전 전장 — LOD 가중 풀

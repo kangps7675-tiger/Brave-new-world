@@ -14,6 +14,9 @@ const bodySchema = z.object({
   lng: z.number().finite(),
   since: z.string().trim().max(80).optional(),
   activeCount: z.number().int().positive().max(500).optional(),
+  threatLabel: z.string().trim().max(120).optional(),
+  approachFrom: z.string().trim().max(320).optional(),
+  locationDetail: z.string().trim().max(200).optional(),
 });
 
 export async function POST(req: Request) {

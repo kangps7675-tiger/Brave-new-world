@@ -18,7 +18,8 @@ export {
 
 /**
  * 화면 상대 침로에 맞는 8방위 수상전투함 실루엣.
- * N=俯視선수↑, E/W=옆모습, S=俯視선수↓, 대각=3/4.
+ * 호위·구축·초계·순양·미분류 군함 공용 (항모·잠수함 제외).
+ * N=俯視(날카로운 함수·평 함미·레이돔), E/W=Burke급 옆모습, 대각=3/4.
  */
 export function surfaceCombatantIconSvg(
   fillColor: string = DEFAULT_FILL,
@@ -27,45 +28,52 @@ export function surfaceCombatantIconSvg(
 ): string {
   const { width, height } = size;
   const vb = `${SURFACE_COMBATANT_VIEWBOX.width} ${SURFACE_COMBATANT_VIEWBOX.height}`;
-  const glowId = `ddg-glow-${aspect}-${width}`;
   const drawing = SURFACE_COMBATANT_ASPECT_DRAWINGS[aspect];
 
   const details = drawing.details
     .map(
       (d) =>
-        `<path d="${d}" fill="rgba(15,23,42,0.42)" stroke="rgba(255,255,255,0.5)" stroke-width="0.7" stroke-linejoin="round"/>`,
+        `<path d="${d}" fill="rgba(15,23,42,0.48)" stroke="rgba(255,255,255,0.55)" stroke-width="0.65" stroke-linejoin="round"/>`,
+    )
+    .join("");
+
+  const highlights = (drawing.highlights ?? [])
+    .map(
+      (d) =>
+        `<path d="${d}" fill="rgba(248,250,252,0.72)" stroke="rgba(255,255,255,0.35)" stroke-width="0.4" stroke-linejoin="round"/>`,
+    )
+    .join("");
+
+  const radomes = (drawing.radomes ?? [])
+    .map(
+      (r) =>
+        `<circle cx="${r.cx}" cy="${r.cy}" r="${r.r}" fill="rgba(248,250,252,0.88)" stroke="rgba(15,23,42,0.45)" stroke-width="0.55"/>`,
     )
     .join("");
 
   const axis = drawing.axis
-    ? `<path d="${drawing.axis}" stroke="rgba(250,204,21,0.55)" stroke-width="0.7" stroke-linecap="round"/>`
+    ? `<path d="${drawing.axis}" stroke="rgba(250,204,21,0.5)" stroke-width="0.65" stroke-linecap="round" stroke-dasharray="1.5 1.2"/>`
     : "";
 
+  // blur는 헐을 동그란 blob으로 부풀리므로 쓰지 않음 — 윤곽만 또렷하게
   return `
     <svg width="${width}" height="${height}" viewBox="0 0 ${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <filter id="${glowId}" x="-35%" y="-35%" width="170%" height="170%">
-          <feGaussianBlur stdDeviation="1.2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
-        stroke="rgba(255,255,255,0.92)"
-        stroke-width="1.1"
-        stroke-linejoin="round"
-        filter="url(#${glowId})"
+        stroke="rgba(255,255,255,0.95)"
+        stroke-width="1.15"
+        stroke-linejoin="miter"
+        stroke-linecap="square"
       />
       ${axis}
       ${details}
+      ${highlights}
+      ${radomes}
     </svg>
   `.trim();
 }
 
 export function surfaceCombatantGlowShadow(fillColor: string = DEFAULT_FILL): string {
-  return `0 0 10px ${fillColor}cc, 0 0 18px ${fillColor}66, 0 2px 6px rgba(0,0,0,0.55)`;
+  return `0 1px 4px rgba(0,0,0,0.65), 0 0 6px ${fillColor}55`;
 }

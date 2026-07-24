@@ -1,8 +1,8 @@
-/** 우크라이나 주(oblast) · 주요 도시 대략 좌표 — NEPTUN 경보명 매칭용 */
+/** 우크라이나 주(oblast) · 주요 도시 대략 좌표 — NEPTUN 경보명 · 텔레그램 지명 매칭용 */
 
-type ZoneEntry = { name: string; lat: number; lng: number };
+export type UkraineZoneEntry = { name: string; lat: number; lng: number };
 
-const UKRAINE_ZONES: ZoneEntry[] = [
+const UKRAINE_ZONES: UkraineZoneEntry[] = [
   { name: "Kyiv", lat: 50.45, lng: 30.52 },
   { name: "Київ", lat: 50.45, lng: 30.52 },
   { name: "Kyiv City", lat: 50.45, lng: 30.52 },
@@ -57,6 +57,11 @@ const UKRAINE_ZONES: ZoneEntry[] = [
 ];
 
 const UKRAINE_FALLBACK = { lat: 48.5, lng: 34.0 };
+
+/** 텔레그램 등 지명 사전용 — 복사본 */
+export function listUkraineAlertZones(): readonly UkraineZoneEntry[] {
+  return UKRAINE_ZONES;
+}
 
 function normalize(s: string): string {
   return s

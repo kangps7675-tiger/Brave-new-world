@@ -9,6 +9,9 @@ import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
 /** AIS/ADS-B D1 신선도 (Cron 10분 주기보다 약간 길게) */
 export const AIS_D1_TTL_MS = 15 * 60_000;
 export const ADSB_D1_TTL_MS = 12 * 60_000;
+/** 신선 데이터 없을 때 체크박스 빈 화면 방지용 스태일 허용 상한 */
+export const AIS_D1_STALE_FALLBACK_MS = 48 * 60 * 60_000;
+export const ADSB_D1_STALE_FALLBACK_MS = 6 * 60 * 60_000;
 
 function isFresh(ingestedAt: string, maxAgeMs: number): boolean {
   const ts = Date.parse(ingestedAt);
@@ -20,6 +23,7 @@ function rowToAis(row: typeof aisVessels.$inferSelect): AisVessel {
   const classified = enrichAisClassification({
     shipType: row.shipType,
     shipName: row.shipName,
+    mmsi: row.mmsi,
   });
   return {
     id: row.id,
@@ -35,23 +39,33 @@ function rowToAis(row: typeof aisVessels.$inferSelect): AisVessel {
     shipTypeLabel: classified.shipTypeLabel ?? row.shipTypeLabel,
     category: classified.category,
     militaryKind: classified.militaryKind,
+    disguised: classified.disguised || undefined,
+    disguisedKind: classified.disguisedKind,
   };
 }
 
 function ensureMilitaryKind(vessel: AisVessel): AisVessel {
-  if (vessel.militaryKind != null || vessel.category !== "military") {
+  const needsKind = vessel.category === "military" && vessel.militaryKind == null;
+  const needsDisguised = vessel.disguised == null;
+  if (!needsKind && !needsDisguised) {
     if (vessel.category !== "military") return { ...vessel, militaryKind: null };
     return vessel;
   }
   const classified = enrichAisClassification({
     shipType: vessel.shipType,
     shipName: vessel.shipName,
+    mmsi: vessel.mmsi,
   });
   return {
     ...vessel,
     category: classified.category,
     shipTypeLabel: classified.shipTypeLabel ?? vessel.shipTypeLabel,
-    militaryKind: classified.militaryKind,
+    militaryKind:
+      classified.category === "military"
+        ? classified.militaryKind ?? vessel.militaryKind
+        : null,
+    disguised: classified.disguised || vessel.disguised || undefined,
+    disguisedKind: classified.disguisedKind ?? vessel.disguisedKind ?? null,
   };
 }
 
@@ -69,11 +83,25 @@ export async function readAisFromD1(options: {
       .orderBy(desc(aisVessels.ingestedAt))
       .limit(Math.min(options.max * 3, 2000));
 
-    const fresh = rows.filter((r) => isFresh(r.ingestedAt, maxAge));
-    const filtered =
+    const byCategory = (pool: typeof rows) =>
       !options.category || options.category === "all"
-        ? fresh
-        : fresh.filter((r) => r.category === options.category);
+        ? pool
+        : pool.filter((r) => r.category === options.category);
+
+    let filtered = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge)));
+    // 신선 데이터가 카테고리/TTL에 걸리면 스태일이라도 노출 (빈 체크박스 방지)
+    if (filtered.length === 0) {
+      filtered = byCategory(
+        rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS)),
+      );
+    }
+    // 지정학 military인데 군함이 0이면 all로 완화
+    if (
+      filtered.length === 0 &&
+      options.category === "military"
+    ) {
+      filtered = rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS));
+    }
     const vessels = filtered.slice(0, options.max).map(rowToAis);
     if (vessels.length === 0) return null;
     return {
@@ -235,9 +263,14 @@ export async function readAdsbFromD1(options: {
           .orderBy(desc(adsbAircraft.ingestedAt))
           .limit(options.max);
 
-    const aircraft = rows
+    let aircraft = rows
       .filter((r) => isFresh(r.ingestedAt, maxAge))
       .map(rowToAircraft);
+    if (aircraft.length === 0) {
+      aircraft = rows
+        .filter((r) => isFresh(r.ingestedAt, ADSB_D1_STALE_FALLBACK_MS))
+        .map(rowToAircraft);
+    }
     if (aircraft.length === 0) return null;
     return {
       source: "d1",

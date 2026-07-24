@@ -1,6 +1,6 @@
 # 저작권 · 데이터 라이선스 체크리스트
 
-Conflict View 목표 문서용. **법률 자문이 아닙니다.** 유료 SaaS 직전에는 변호사 검토를 권장합니다.
+멋진 신세계 목표 문서용. **법률 자문이 아닙니다.** 유료 SaaS 직전에는 변호사 검토를 권장합니다.
 
 ## VIINA (ODbL) — 핵심 원칙
 
@@ -21,6 +21,7 @@ Conflict View 목표 문서용. **법률 자문이 아닙니다.** 유료 SaaS �
 - [ ] **VIINA 렌더링 전용** — `public/data/`에 VIINA 원본 GeoJSON **미배포** (또는 배포 시 별도 ODbL Share-Alike 검토)
 - [ ] **공개 API 금지** — `/api/**` 경로로 VIINA 타일·셀·폴리곤 bulk export **없음**
 - [ ] **Export 버튼 금지** — "GeoJSON 다운로드", "데이터보내기" 등 VIINA 좌표+속성 통째 반출 UI 없음
+- [ ] **스크rape 게이트** — `/api/render/ukraine-control*` 는 `cv_viina_gate` HttpOnly 쿠키 + same-origin만 허용 (`viinaRenderGate.ts`)
 - [ ] 서버 내부 캐시(Supabase 등)는 허용하되, **클라이언트/외부 API 응답에 raw 필드 미포함**
 - [ ] 코드 리뷰 시 `src/lib/licensing/viinaPolicy.ts` 정책 준수 확인
 - [ ] 유료화 전 법률 자문 1회
@@ -33,12 +34,16 @@ Conflict View 목표 문서용. **법률 자문이 아닙니다.** 유료 SaaS �
 | 클릭 시 정보 패널에 텍스트·상태 표시 | 사용자 GeoJSON/CSV export |
 | 서버에서 가공 후 **화면 출력만** | `public/` 정적 파일로 가공본 무제한 배포 (Share-Alike 검토 필요) |
 | SaaS 구독·로그인·기능 제한 | VIINA 데이터 재판매 전용 API |
+| 동일 출처 UI의 렌더 세션 fetch | curl/스크립트/타 도메인에서 렌더 캐시 덤프 |
 
 ### 코드 정책
 
 - 정책 상수: `src/lib/licensing/viinaPolicy.ts`
+- 스크rape 게이트: `src/lib/licensing/viinaRenderGate.ts` · `GET /api/render/viina-session`
 - 신규 API 라우트에 VIINA 데이터 포함 시 `rejectViinaPublicDataApi()` 사용
 - 환경 변수 `VIINA_RENDERING_ONLY=true` (기본) — `false`여도 공개 export API는 구현하지 않음
+- 서명 시크릿: `VIINA_RENDER_GATE_SECRET` (없으면 `INGEST_CRON_SECRET` 폴백)
+- 로컬 curl 디버그 전용: `VIINA_RENDER_GATE_RELAX=true` (프로덕션 금지)
 
 ---
 

@@ -6,6 +6,7 @@ const path = require("path");
 const XLSX = require("xlsx");
 const { OUT_DIR, IS_LITE } = require("./build-profile");
 const { writeJsonArrayFile, compactStaticPoint, roundCoord } = require("./compact-json");
+const { capArrayGeographic } = require("./static-path-utils");
 
 const GEM_ROOT =
   process.env.GEM_DATA_DIR ||
@@ -360,8 +361,11 @@ function convertTracker(def) {
   }
 
   points.sort((a, b) => a._rank - b._rank || b._cap - a._cap || a.name.localeCompare(b.name));
-  const cap = IS_LITE ? def.caps.lite : def.caps.full;
-  return points.slice(0, cap).map(({ _rank, _cap, ...rest }) => rest);
+  const cleaned = points.map(({ _rank, _cap, ...rest }) => rest);
+  return capArrayGeographic(cleaned, def.caps.lite, def.caps.full, (p) => ({
+    lat: p.lat,
+    lng: p.lng,
+  }));
 }
 
 function main() {

@@ -34,3 +34,23 @@ export async function translateNewsStreamPayload(
     stateMedia,
   };
 }
+
+/**
+ * ko 캐시가 영문 원문으로 남아 있으면 재번역.
+ * 샘플 제목 과반이 이미 한글이면 스킵.
+ */
+export async function ensureKoreanNewsPayload(
+  payload: NewsStreamPayload,
+): Promise<NewsStreamPayload> {
+  if (!isKoreanTranslationEnabled()) return payload;
+  const { isMostlyKorean } = await import("@/lib/koreanTranslate");
+  const sample = [
+    ...(payload.hero ? [payload.hero.title] : []),
+    ...payload.verified.slice(0, 6).map((i) => i.title),
+    ...payload.stateMedia.slice(0, 3).map((i) => i.title),
+  ].filter(Boolean);
+  if (sample.length === 0) return payload;
+  const englishHeavy = sample.filter((t) => !isMostlyKorean(t)).length;
+  if (englishHeavy === 0) return payload;
+  return translateNewsStreamPayload(payload, "ko");
+}

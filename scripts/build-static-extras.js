@@ -151,7 +151,7 @@ async function buildLandingsFromMirrors(precision) {
         meta: { source: "submarine_cable_information" },
       });
     }
-  } catch (error) {
+    } catch (error) {
     console.warn("   착륙점 미러 fetch 실패:", error.message);
   }
   return landings;

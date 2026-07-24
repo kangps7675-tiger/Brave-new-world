@@ -1,5 +1,5 @@
 /**
- * SIPRI Arms Transfers — Conflict View 출처 표기
+ * SIPRI Arms Transfers — 멋진 신세계 출처 표기
  *
  * 축 허브 「무기거래」호·목록은 SIPRI Arms Transfers Database /
  * Trade Register 파생 요약을 씁니다. 원 DB 재배포는 하지 않습니다.
