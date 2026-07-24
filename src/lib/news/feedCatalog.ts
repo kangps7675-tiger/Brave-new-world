@@ -1,6 +1,18 @@
 import type { NewsFeedTopic, NewsTheater } from "@/lib/news/types";
 import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
 import { DEFAULT_PACKAGE_SELECTION, type ViewPackageId } from "@/lib/viewPackages";
+import {
+  isJapanGeopoliticsNews,
+  JAPAN_GEOPOLITICS_QUERY_ANCHOR,
+  JAPAN_GEOPOLITICS_QUERY_TOPIC,
+} from "@/lib/news/japanGeopolitics";
+import {
+  CONFLICT_NEWS_NEGATIVES,
+  isAfricaConflictNews,
+  isGeopoliticsOnlyTheater,
+  isSouthAmericaConflictNews,
+  isSoutheastAsiaConflictNews,
+} from "@/lib/news/regionalConflictNews";
 
 export type NewsFeedDef = {
   url: string;
@@ -68,12 +80,153 @@ const MIDDLE_EAST: NewsFeedDef[] = [
   { url: G("Iran Israel war military strike"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G("Iran missile drone strike Israel"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G('"Strait of Hormuz" OR "Red Sea" military Iran'), name: "Google News", theater: "middle-east", unfiltered: true },
+  // —— 중동 부족·종족·미승인·사실상 자치체 (지정학 defense 전용) ——
+  {
+    url: G(
+      '(tribe OR tribal OR Bedouin OR clan OR sheikh OR "tribal federation" OR "Sunni tribes" OR "Anbar tribes" OR "Sinai tribes" OR "Negev Bedouin") (Iraq OR Syria OR Yemen OR Jordan OR Sinai OR Negev OR "Saudi Arabia" OR Libya OR "Middle East") (conflict OR militia OR security OR politics OR autonomy OR revolt OR ceasefire)',
+    ),
+    name: "Google News · ME Tribes · Clans",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Kurd OR Kurds OR Kurdistan OR KRG OR Erbil OR YPG OR PYD OR PKK OR Rojava OR AANES OR "Syrian Democratic Forces" OR SDF OR "Iraqi Kurdistan") (Syria OR Iraq OR Turkey OR Iran) (autonomy OR militia OR conflict OR referendum OR security OR diplomacy)',
+    ),
+    name: "Google News · Kurds · Rojava · KRG",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Druze OR Yazidi OR Assyrian OR Chaldean OR Turkmen OR Circassian OR Baloch OR Ahwazi OR "Arabistan" OR Amazigh OR Berber OR Copt OR Mandaean) (Syria OR Iraq OR Iran OR Lebanon OR Jordan OR Egypt OR "Middle East" OR "North Africa") (rights OR conflict OR militia OR autonomy OR attack OR politics)',
+    ),
+    name: "Google News · ME Ethnic · Minorities",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Iranian Kurdistan" OR "PJAK" OR Balochistan OR "Jaish al-Adl" OR Ahwaz OR Ahwazi OR "Khuzestan Arab") (Iran OR Tehran) (attack OR autonomy OR minority OR crackdown OR militia OR rights)',
+    ),
+    name: "Google News · Iran Ethnic · Periphery",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Somaliland OR Puntland OR "Northern Cyprus" OR TRNC OR Sahrawi OR "Western Sahara" OR SADR OR "South Yemen" OR STC OR "Southern Transitional Council" OR Rojava OR AANES OR "de facto state" OR "unrecognized state") (independence OR unrecognized OR "de facto" OR referendum OR recognition OR diplomacy OR conflict OR autonomy)',
+    ),
+    name: "Google News · ME · Unrecognized · De Facto",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Hashd al-Shaabi" OR "Popular Mobilization" OR PMF OR "tribal militia" OR "Sunni Awakening" OR Sahwa OR "Houthi tribes" OR "Hadhramaut" OR "Marib tribes" OR Shabwa OR "Abyan" OR "Qahtan") (Iraq OR Yemen OR Syria) (militia OR security OR politics OR clash OR government)',
+    ),
+    name: "Google News · ME Tribal Militias",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Sweida OR Suwayda OR Druze OR "Alawite" OR "Sunni Arab" OR "Shia militia" OR "tribal sheikh" OR "coastal Syria") (Syria OR Lebanon OR Iraq) (protest OR autonomy OR clash OR security OR government)',
+    ),
+    name: "Google News · Levant Communities · Autonomy",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Libya OR Fezzan OR Cyrenaica OR Tripolitania OR "Haftar" OR Amazigh OR Tuareg OR Tebu OR "Western Sahara" OR Polisario OR Sahrawi) (tribe OR tribal OR autonomy OR militia OR unrecognized OR conflict OR diplomacy)',
+    ),
+    name: "Google News · Maghreb · Sahara · Tribes",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Northern Cyprus" OR TRNC OR "Turkish Republic of Northern Cyprus" OR Somaliland OR "Hargeisa") (recognition OR diplomacy OR election OR unrecognized OR independence OR Turkey OR Ethiopia OR "United Nations")',
+    ),
+    name: "Google News · TRNC · Somaliland Recognition",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+];
+
+/** 전 세계 그림자함대·제재 회피 유조선 — 지정학(defense) 전용 */
+const SHADOW_FLEET_GOOGLE: NewsFeedDef[] = [
   {
     url: G(
       '(Hormuz OR Suez OR "Bab el-Mandeb" OR Malacca OR "Taiwan Strait" OR "Panama Canal" OR Bosporus) (navy OR blockade OR mine OR attack OR houthi OR IRGC OR escort OR convoy)',
     ),
     name: "Google News · Chokepoint Security",
     theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("shadow fleet" OR "dark fleet" OR "ghost fleet" OR "ghost tanker" OR "sanctioned tanker") (oil OR crude OR shipping OR tanker OR AIS OR sanction)',
+    ),
+    name: "Google News · Shadow Fleet",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("AIS spoofing" OR "AIS dark" OR "AIS switch-off" OR "ship-to-ship" OR "STS transfer" OR "flag of convenience" OR "deceptive shipping" OR "vessel identity") (tanker OR oil OR sanction OR Russia OR Iran OR Venezuela)',
+    ),
+    name: "Google News · Shadow Fleet · AIS · STS",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Russian shadow fleet" OR "Iran shadow fleet" OR "Iran oil smuggling" OR "price cap evasion" OR "G7 price cap" OR "oil price cap" OR "Venezuela oil") (tanker OR shipping OR sanction OR crude)',
+    ),
+    name: "Google News · Shadow Fleet · Russia · Iran",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("shadow fleet" OR "dark fleet" OR "sanctioned tanker") (seizure OR boarding OR "port state" OR insurance OR P&I OR "classification society" OR "false flag" OR Panama OR Liberia OR "Cook Islands")',
+    ),
+    name: "Google News · Shadow Fleet · Enforcement",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("shadow fleet" OR "dark fleet" OR "ghost tanker") (China OR India OR Turkey OR UAE OR "ship-to-ship" OR "blended crude" OR "opaque ownership")',
+    ),
+    name: "Google News · Shadow Fleet · Buyers · Hubs",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("그림자 함대" OR "다크 플릿" OR "제재 유조선" OR "그림자함대") (원유 OR 제재 OR 해운 OR 유조선 OR 러시아 OR 이란)',
+    ),
+    name: "Google News · Shadow Fleet · KO",
+    theater: "global",
+    topic: "defense",
     unfiltered: true,
   },
 ];
@@ -136,6 +289,52 @@ const CHINA_TAIWAN: NewsFeedDef[] = [
     ),
     name: "Google News · South China Sea",
     theater: "china-taiwan",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("South China Sea" OR "nine-dash" OR "nine dash" OR "artificial island" OR "militarized island" OR Mischief OR Fiery OR Subi OR "Woody Island") (PLA OR PLAN OR China OR Beijing OR base OR runway OR missile OR radar)',
+    ),
+    name: "Google News · SCS · Islands · PLA",
+    theater: "china-taiwan",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("South China Sea" OR "West Philippine Sea" OR Scarborough OR "Second Thomas" OR Ayungin OR "Reed Bank" OR "BRP Sierra Madre") (Philippines OR Manila OR "coast guard" OR "water cannon" OR blockade OR confrontation OR militia)',
+    ),
+    name: "Google News · SCS · Philippines Clash",
+    theater: "china-taiwan",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("South China Sea" OR "freedom of navigation" OR FONOP OR "Taiwan Strait transit") (US OR Navy OR "7th Fleet" OR Australia OR Britain OR Japan OR "allied transit" OR destroyer OR carrier)',
+    ),
+    name: "Google News · SCS · FONOP · Allies",
+    theater: "china-taiwan",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("South China Sea" OR Paracel OR Spratly OR "West Philippine Sea") (Vietnam OR Hanoi OR Malaysia OR Indonesia OR Natuna OR Brunei OR ASEAN OR "code of conduct" OR claim OR EEZ)',
+    ),
+    name: "Google News · SCS · Claimants · ASEAN",
+    theater: "china-taiwan",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("남중국해" OR "서필리핀해" OR 스프래틀리 OR 파라셀 OR 스카보로) (중국 OR 필리핀 OR 베트남 OR 해경 OR 해군 OR 분쟁 OR 대치 OR PLA)',
+    ),
+    name: "Google News · SCS · KO",
+    theater: "china-taiwan",
+    topic: "defense",
     unfiltered: true,
   },
   {
@@ -144,6 +343,7 @@ const CHINA_TAIWAN: NewsFeedDef[] = [
     ),
     name: "Google News · Pacific Theater",
     theater: "china-taiwan",
+    topic: "defense",
     unfiltered: true,
   },
 ];
@@ -191,6 +391,7 @@ const KOREA: NewsFeedDef[] = [
 ];
 
 const JAPAN: NewsFeedDef[] = [
+  // 와이어는 지정학 키워드 필터 통과분만 (unfiltered 금지)
   { url: "https://feeds.bbci.co.uk/news/world/asia/rss.xml", name: "BBC", theater: "japan" },
   { url: "https://rss.nytimes.com/services/xml/rss/nyt/AsiaPacific.xml", name: "NYT", theater: "japan" },
   { url: "https://feeds.reuters.com/Reuters/worldNews", name: "Reuters", theater: "japan" },
@@ -198,25 +399,27 @@ const JAPAN: NewsFeedDef[] = [
     url: "https://www.japantimes.co.jp/feed/",
     name: "Japan Times",
     theater: "japan",
-    unfiltered: true,
+    // 내정·사회 혼입 방지 — THEATER_RELEVANCE / isJapanGeopoliticsNews로 거름
   },
   {
     url: G(
-      '(Japan OR "Tokyo" OR Okinawa OR Senkaku OR "Self-Defense Force" OR SDF) AND (security OR defense OR maritime OR missile OR China OR PLA OR "North Korea") AND (site:kyodonews.net OR site:nikkei.com OR site:japantimes.co.jp OR site:nhk.or.jp)',
+      `${JAPAN_GEOPOLITICS_QUERY_ANCHOR} AND ${JAPAN_GEOPOLITICS_QUERY_TOPIC} AND (site:kyodonews.net OR site:nikkei.com OR site:japantimes.co.jp OR site:nhk.or.jp OR site:reuters.com)`,
     ),
     name: "Google News · Japan Security",
     theater: "japan",
     unfiltered: true,
   },
   {
-    url: G("Japan military Senkaku defense Okinawa missile"),
+    url: G(
+      '(Japan OR SDF OR Okinawa OR Senkaku OR Kuril OR "Northern Territories") (military OR missile OR PLA OR Russia OR "coast guard" OR "gray zone" OR defense OR drill OR deployment)',
+    ),
     name: "Google News · Japan Military",
     theater: "japan",
     unfiltered: true,
   },
   {
     url: G(
-      '(AUKUS OR Quad OR "Indo-Pacific" OR "trilateral" OR "US Japan" OR "Japan Australia" OR "Japan South Korea") (defense OR security OR submarine OR alliance OR exercise OR summit)',
+      '(AUKUS OR Quad OR "Indo-Pacific" OR "US-Japan" OR "Japan Australia" OR "Japan South Korea" OR trilateral) (defense OR security OR submarine OR alliance OR exercise OR deterrence)',
     ),
     name: "Google News · AUKUS · Quad · Japan",
     theater: "japan",
@@ -224,7 +427,7 @@ const JAPAN: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Japan OR "Self-Defense Force" OR Tokyo) (China OR PLA OR "counterstrike" OR "defense budget" OR "extended deterrence" OR "collective security" OR "remote islands")',
+      '(Japan OR SDF OR "Self-Defense Force") (China OR PLA OR Russia OR Kuril OR "Northern Territories" OR Taiwan OR counterstrike OR "extended deterrence" OR "defense budget" OR "remote islands" OR Nansei OR Yonaguni)',
     ),
     name: "Google News · Japan · Indo-Pacific Defense",
     theater: "japan",
@@ -232,7 +435,7 @@ const JAPAN: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Japan OR Tokyo) ("North Korea" OR Pyongyang OR abductee OR missile OR "ballistic missile") (security OR defense OR intercept OR diplomacy)',
+      '(Japan OR Tokyo OR SDF) ("North Korea" OR Pyongyang OR abductee OR ICBM OR "ballistic missile") (security OR defense OR intercept OR sanction)',
     ),
     name: "Google News · Japan–North Korea",
     theater: "japan",
@@ -284,6 +487,144 @@ const SOUTH_ASIA: NewsFeedDef[] = [
     ),
     name: "Google News · South Asia Security",
     theater: "south-asia",
+    unfiltered: true,
+  },
+];
+
+/** 동남아 — 지정학(남중국해·미얀마 등)만. topic=defense, 지경학 피드와 분리 */
+const SOUTHEAST_ASIA: NewsFeedDef[] = [
+  {
+    url: G(
+      `(ASEAN OR Vietnam OR Philippines OR Indonesia OR Malaysia OR Myanmar OR "South China Sea" OR Scarborough OR Spratly OR Malacca OR Tatmadaw OR Arakan) (military OR navy OR militia OR PLA OR confrontation OR missile OR exercise OR "coast guard" OR junta OR rebel OR strike) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · SE Asia Security",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `("South China Sea" OR "West Philippine Sea" OR Scarborough OR Spratly OR Paracel) (PLA OR PLAN OR "coast guard" OR militia OR confrontation OR navy OR Philippines OR Vietnam) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · South China Sea",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `("Second Thomas Shoal" OR Ayungin OR Scarborough OR "West Philippine Sea" OR "BRP Sierra Madre" OR "Reed Bank") (Philippines OR "coast guard" OR China OR "water cannon" OR blockade OR resupply OR collision) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · SCS · PH–CN Flashpoints",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Natuna OR "North Natuna" OR Paracel OR Spratly OR "Vanguard Bank" OR Luconia OR "Louisa Reef") (Indonesia OR Vietnam OR Malaysia OR Brunei OR China OR EEZ OR navy OR "coast guard" OR militia OR fishing) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · SCS · Natuna · Claimants",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `("South China Sea" OR "code of conduct" OR "ASEAN China") (ASEAN OR diplomacy OR summit OR mediation OR claim OR arbitration OR UNCLOS) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · SCS · ASEAN Diplomacy",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Myanmar OR Burma OR Tatmadaw OR Rakhine OR Arakan OR PDF OR "military council") (military OR junta OR rebel OR strike OR offensive OR militia OR airstrike) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Myanmar Conflict",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Philippines OR Marawi OR "Abu Sayyaf" OR Moro OR Indonesia OR Malaysia) (military OR navy OR militia OR terror OR base OR exercise OR China) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · SE Asia Insurgency",
+    theater: "southeast-asia",
+    topic: "defense",
+    unfiltered: true,
+  },
+];
+
+/** 남미 — 지정학(국경·무장·외세 군사)만. topic=defense */
+const SOUTH_AMERICA: NewsFeedDef[] = [
+  {
+    url: G(
+      `(Venezuela OR Guyana OR Essequibo OR Colombia OR FARC OR ELN) (military OR militia OR border OR navy OR missile OR deployment OR clash OR armed) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · LatAm Frontline",
+    theater: "south-america",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Venezuela OR Maduro OR Caracas) (military OR Russia OR Iran OR China OR sanction OR navy OR base OR missile) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Venezuela Security",
+    theater: "south-america",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Brazil OR Argentina OR Chile OR Peru OR Bolivia OR Ecuador) (military OR navy OR border OR exercise OR Russia OR China OR "security cooperation" OR base) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · South America Military",
+    theater: "south-america",
+    topic: "defense",
+    unfiltered: true,
+  },
+];
+
+/** 아프리카 — 지정학(사헬·수단·콩고 등)만. topic=defense */
+const AFRICA: NewsFeedDef[] = [
+  {
+    url: G(
+      `(Sahel OR Mali OR Niger OR Burkina OR Wagner OR "Africa Corps") (military OR militia OR jihad OR coup OR strike OR drone OR Russia OR junta) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Sahel Conflict",
+    theater: "africa",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Sudan OR Darfur OR RSF OR Hemedti OR "Rapid Support") (military OR militia OR war OR strike OR offensive OR siege) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Sudan War",
+    theater: "africa",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Congo OR DRC OR M23 OR Rwanda OR Somalia OR "Al-Shabaab" OR Libya OR Haftar OR Ethiopia OR Tigray) (military OR militia OR rebel OR war OR offensive OR drone) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Africa Frontline",
+    theater: "africa",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      `(Nigeria OR "Boko Haram" OR ISWAP OR Mozambique OR "Cabo Delgado" OR Chad OR CAR) (military OR militia OR jihad OR strike OR insurgency) ${CONFLICT_NEWS_NEGATIVES}`,
+    ),
+    name: "Google News · Africa Insurgency",
+    theater: "africa",
+    topic: "defense",
     unfiltered: true,
   },
 ];
@@ -908,7 +1249,7 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Iran OR Tehran OR "shadow fleet" OR Hormuz OR "Israeli" OR Israel) (oil OR sanction OR shipping OR insurance OR "oil export" OR tanker OR economy)',
+      '(Iran OR Tehran OR Hormuz OR "Israeli" OR Israel) (oil OR sanction OR shipping OR insurance OR "oil export" OR tanker OR economy)',
     ),
     name: "Google · Iran · Hormuz Oil Economy",
     theater: "middle-east",
@@ -980,7 +1321,7 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Russia OR Ukraine) (sanction OR "oil price cap" OR pipeline OR LNG OR "shadow fleet" OR grain OR wheat)',
+      '(Russia OR Ukraine) (sanction OR "oil price cap" OR pipeline OR LNG OR grain OR wheat)',
     ),
     name: "Google · Russia–EU Energy · Trade",
     theater: "russia-ukraine",
@@ -1168,7 +1509,7 @@ const DIPLOMACY_GOOGLE: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Japan OR Tokyo) (diplomacy OR summit OR "foreign minister" OR "security partnership" OR "Quad" OR "state visit")',
+      '(Japan OR Tokyo OR SDF OR Okinawa OR Kuril OR "Northern Territories") (diplomacy OR summit OR "foreign minister" OR "security partnership" OR Quad OR AUKUS OR alliance OR China OR Russia OR "North Korea" OR Taiwan OR deterrence OR "defense cooperation" OR "peace treaty") -election -tourism -yen -Nikkei',
     ),
     name: "Google News · Japan Diplomacy",
     theater: "japan",
@@ -1198,13 +1539,13 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
   "us-china-rivalry":
     '("US China" OR "US-China" OR "great power competition") (military OR navy OR Taiwan OR Indo-Pacific)',
   "south-china-sea":
-    '("South China Sea" OR Scarborough OR Spratly OR "West Philippine Sea") (China OR Philippines OR navy)',
+    '("South China Sea" OR Scarborough OR Spratly OR Paracel OR "West Philippine Sea" OR "nine-dash" OR "Second Thomas" OR Natuna OR FONOP) (China OR Philippines OR Vietnam OR navy OR "coast guard")',
   "pacific-theater":
     '(Guam OR "Philippine Sea" OR "island chain") (China OR PLA OR US OR Navy)',
   korea:
     '(North Korea OR Pyongyang) AND (missile OR nuclear OR "Kim Jong Un") AND (site:nknews.org OR site:dailynk.com OR site:yna.co.kr)',
   japan:
-    '(Japan OR "Tokyo") AND (security OR defense OR "maritime") AND (site:kyodonews.net OR site:nikkei.com OR site:japantimes.co.jp)',
+    `${JAPAN_GEOPOLITICS_QUERY_ANCHOR} AND ${JAPAN_GEOPOLITICS_QUERY_TOPIC}`,
   "aukus-quad":
     '(AUKUS OR Quad OR "Indo-Pacific") (defense OR security OR alliance OR submarine)',
   "south-asia-india":
@@ -1231,6 +1572,12 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
     '(Venezuela OR Cuba OR Nicaragua) (Russia OR China OR Iran) (diplomacy OR summit OR partnership)',
   "diplomacy-sahel-russia":
     '(Mali OR Niger OR Burkina OR Sahel) (Russia OR China) (diplomacy OR partnership OR "security agreement")',
+  "shadow-fleet":
+    '("shadow fleet" OR "dark fleet" OR "ghost fleet" OR "sanctioned tanker" OR "AIS spoofing" OR "ship-to-ship" OR "price cap evasion") (oil OR tanker OR sanction)',
+  "middle-east-tribes":
+    '(tribe OR tribal OR Bedouin OR clan OR Kurd OR Druze OR Yazidi OR Baloch OR Amazigh) (Iraq OR Syria OR Yemen OR Iran OR Libya OR "Middle East") (autonomy OR militia OR conflict)',
+  "middle-east-unrecognized":
+    '(Somaliland OR "Northern Cyprus" OR TRNC OR Sahrawi OR "Western Sahara" OR Rojava OR STC OR "South Yemen" OR KRG) (unrecognized OR "de facto" OR independence OR recognition)',
   "economy-energy":
     '("Exxon Mobil" OR Chevron OR Shell OR Aramco OR OPEC OR Brent OR LNG)',
   "economy-macro":
@@ -1262,23 +1609,29 @@ export const ECON_RELEVANCE =
 
 export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   "middle-east":
-    /iran|israel|idf|irgc|hezbollah|hamas|houthi|lebanon|gaza|tehran|tel\s?aviv|jerusalem|yemen|iraq|syria|gulf|hormuz|red\s?sea|missile|strike|nuclear|centcom|middle\s?east|west\s?bank|golan|khamenei|netanyahu|drone|saudi|emirates|uae|gcc|abraham\s?accords|normalization|diplomacy|summit|mediation/i,
+    /iran|israel|idf|irgc|hezbollah|hamas|houthi|lebanon|gaza|tehran|tel\s?aviv|jerusalem|yemen|iraq|syria|gulf|hormuz|red\s?sea|missile|strike|nuclear|centcom|middle\s?east|west\s?bank|golan|khamenei|netanyahu|drone|saudi|emirates|uae|gcc|abraham\s?accords|normalization|diplomacy|summit|mediation|tribe|tribal|bedouin|clan|sheikh|kurd|kurdistan|krg|erbil|ypg|pyd|pkk|rojava|aanes|sdf\b|druze|yazidi|assyrian|chaldean|turkmen|circassian|baloch|ahwazi|amazigh|berber|tuareg|tebu|copt|mandaean|pjak|jaish\s?al[\s-]?adl|somaliland|puntland|hargeisa|northern\s?cyprus|trnc|sahrawi|western\s?sahara|polisario|sadr\b|south\s?yemen|stc\b|hashd|popular\s?mobilization|pmf\b|sahwa|sweida|suwayda|alawite|hadhramaut|marib|shabwa|abyan|fezzan|cyrenaica|tripolitania|haftar|libya|de\s?facto|unrecognized|autonomy|부족|종족|쿠르드|드루즈|예지디|소말릴란드|로자바|미승인|베두인|투아레그/i,
   "russia-ukraine":
-    /ukrain|russia|russian|putin|zelensky|kyiv|kharkiv|odesa|dnipro|donbas|crimea|sevastopol|kremlin|moscow|belgorod|wagner|himars|atacms|shahed|nato|diplomacy|summit|negotiation|peace\s?talks|foreign\s?minister/i,
+    /ukrain|russia|russian|putin|zelensky|kyiv|kharkiv|odesa|dnipro|donbas|crimea|sevastopol|kremlin|moscow|belgorod|wagner|himars|atacms|shahed|nato|diplomacy|summit|negotiation|peace\s?talks|foreign\s?minister|shadow\s?fleet|dark\s?fleet|oil\s?price\s?cap/i,
   "china-taiwan":
-    /china|taiwan|taipei|beijing|pla|strait|senkaku|diaoyu|south\s?china\s?sea|west\s?philippine\s?sea|scarborough|spratly|paracel|xi\s?jinping|cross[\s-]?strait|kinmen|us[\s-]?china|indo[\s-]?pacific|guam|philippine\s?sea|first\s?island\s?chain|second\s?island\s?chain|great\s?power\s?competition|diplomacy|summit|bilateral|strategic\s?dialogue|state\s?visit/i,
+    /china|taiwan|taipei|beijing|pla|strait|senkaku|diaoyu|south\s?china\s?sea|west\s?philippine\s?sea|scarborough|spratly|paracel|nine[\s-]?dash|artificial\s?island|fonop|freedom\s?of\s?navigation|second\s?thomas|ayungin|reed\s?bank|mischief|fiery\s?cross|subi\b|woody\s?island|maritime\s?militia|coast\s?guard|xi\s?jinping|cross[\s-]?strait|kinmen|us[\s-]?china|indo[\s-]?pacific|guam|philippine\s?sea|first\s?island\s?chain|second\s?island\s?chain|great\s?power\s?competition|diplomacy|summit|bilateral|strategic\s?dialogue|state\s?visit|남중국해|서필리핀해|스프래틀리|파라셀|스카보로/i,
   korea:
     /north\s?korea|south\s?korea|pyongyang|seoul|dmz|dprk|kim\s?jong|korean\s?peninsula|icbm|ballistic|rok\b|usfk|diplomacy|summit|trilateral|alliance|foreign\s?minister/i,
   japan:
-    /japan|tokyo|okinawa|senkaku|diaoyu|self[\s-]?defense\s?force|sdf|yasukuni|north\s?korea\s?japan|japan[\s-]?korea|korea[\s-]?japan|aukus|quad\b|indo[\s-]?pacific|australia|diplomacy|summit|alliance|foreign\s?minister|state\s?visit|counterstrike|defense\s?budget|remote\s?islands|extended\s?deterrence|일본|도쿄|오키나와|센카쿠|자위대|방위|인도태평양/i,
+    /okinawa|senkaku|diaoyu|nansei|yonaguni|kuril|kurils|northern\s?territor|habomai|shikotan|kunashiri|kunashir|etorofu|iturup|self[\s-]?defense\s?force|\bsdf\b|jmsdf|usfj|yokosuka|sasebo|kadena|aukus|quad\b|indo[\s-]?pacific|foip|extended\s?deterrence|counterstrike|defense\s?budget|remote\s?islands|gray\s?zone|adiz|pla\b|plan\b|ballistic|abductee|trilateral|us[\s-]?japan|japan[\s-]?australia|japan[\s-]?korea|korea[\s-]?japan|north\s?korea|pyongyang|china|russia|taiwan|missile|defense|security|military|alliance|exercise|drill|maritime|일본|도쿄|오키나와|센카쿠|쿠릴|북방영토|자위대|방위|안보|미사일|동맹|인도태평양|확장억제|반격능력|미일|한일|러시아/i,
   "south-asia":
     /india|pakistan|kashmir|afghanistan|taliban|myanmar|bangladesh|sri\s?lanka|nepal|maldives|modi|rawalpindi|line\s?of\s?actual\s?control|lac\b|indian\s?ocean|bay\s?of\s?bengal|andaman|hambantota|string\s?of\s?pearls|central\s?asia|kazakh|uzbek|turkmen|kyrgyz|tajik|diplomacy|summit|brics|quad|foreign\s?policy|strategic\s?partnership/i,
+  "southeast-asia":
+    /vietnam|philippines?|indonesia|malaysia|thailand|singapore|myanmar|burma|cambodia|laos?|brunei|asean|south\s?china\s?sea|west\s?philippine\s?sea|scarborough|spratly|paracel|nine[\s-]?dash|second\s?thomas|ayungin|reed\s?bank|natuna|vanguard\s?bank|luconia|code\s?of\s?conduct|unclos|malacca|tatmadaw|arakan|rakhine|pdf\b|marawi|moro|abu\s?sayyaf|pla\b|plan\b|coast\s?guard|maritime\s?militia|militia|junta|rebel|missile|navy|military|exercise|동남아|베트남|필리핀|인도네시아|미얀마|남중국해|서필리핀해|나타누아|말라카/i,
+  "south-america":
+    /venezuela|guyana|essequibo|colombia|farc|eln\b|brazil|argentina|chile|peru|bolivia|ecuador|paraguay|uruguay|suriname|latin\s?america|south\s?america|maduro|caracas|military|militia|border|navy|missile|sanction|russia|iran|china|armed|clash|남미|베네수엘라|가이아나|콜롬비아/i,
+  africa:
+    /africa|sahel|mali|niger|burkina|sudan|darfur|rsf\b|hemedti|congo|drc\b|m23\b|ethiopia|tigray|somalia|al[\s-]?shabaab|libya|haftar|wagner|africa\s?corps|mozambique|cabo\s?delgado|chad|cameroon|nigeria|boko\s?haram|iswap|eritrea|south\s?sudan|military|militia|jihad|coup|rebel|drone|strike|war|아프리카|사헬|말리|니제르|수단|콩고|소말리아|와그너/i,
   arctic:
     /arctic|high\s?north|northern\s?sea\s?route|northwest\s?passage|svalbard|greenland|barents|arctic\s?council|icebreaker|arctic\s?lng|polar\s?silk|북극|북해항로|그린란드|스발바르/i,
   atlantic:
     /north\s?atlantic|giuk|atlantic\s?fleet|second\s?fleet|transatlantic|atlantic\s?alliance|anti[\s-]?submarine|sea\s?lines|iceland|azores|대서양|대서양동맹|지유케이/i,
   global:
-    /military|defense|war|conflict|strike|missile|pentagon|nato|sanction|geopolitic|great\s?game|central\s?asia|diplomacy|diplomatic|summit|alliance|embassy|foreign\s?minister|bilateral|multilateral|realignment|state\s?visit|strategic\s?partnership|brics|g7|sco\b|csto|multipolar|global\s?south|non[\s-]?aligned|venezuela|cuba|nicaragua|sahel|wagner|africa\s?corps|crink|axis\s?of\s?upheaval/i,
+    /military|defense|war|conflict|strike|missile|pentagon|nato|sanction|geopolitic|great\s?game|central\s?asia|diplomacy|diplomatic|summit|alliance|embassy|foreign\s?minister|bilateral|multilateral|realignment|state\s?visit|strategic\s?partnership|brics|g7|sco\b|csto|multipolar|global\s?south|non[\s-]?aligned|venezuela|cuba|nicaragua|sahel|wagner|africa\s?corps|crink|axis\s?of\s?upheaval|shadow\s?fleet|dark\s?fleet|ghost\s?fleet|ghost\s?tanker|ais\s?spoof|ship[\s-]?to[\s-]?ship|sts\s?transfer|price\s?cap\s?evasion|sanctioned\s?tanker|deceptive\s?shipping|그림자\s?함대|다크\s?플릿|제재\s?유조선/i,
 };
 
 const NOISE =
@@ -1291,8 +1644,12 @@ export const ALL_NEWS_FEEDS: NewsFeedDef[] = dedupeFeedsByUrl([
   ...KOREA,
   ...JAPAN,
   ...SOUTH_ASIA,
+  ...SOUTHEAST_ASIA,
+  ...SOUTH_AMERICA,
+  ...AFRICA,
   ...ARCTIC,
   ...ATLANTIC,
+  ...SHADOW_FLEET_GOOGLE,
   ...CENTRAL_ASIA_GOOGLE,
   ...DIPLOMACY_GOOGLE,
   ...SHARED_DEFENSE,
@@ -1332,8 +1689,25 @@ export function isFeedItemRelevant(
   feed: NewsFeedDef,
 ): boolean {
   if (NOISE.test(title)) return false;
-  if (feed.unfiltered) return true;
+  if (feed.unfiltered) {
+    // Google 쿼리도 사회·지경학 혼입 시 한 번 더 거름
+    if (feed.theater === "japan" && feed.topic !== "economy") {
+      return isJapanGeopoliticsNews(`${title} ${category || ""}`);
+    }
+    // 동남아·남미·아프리카 — 지정학만 (지경학 topic 피드가 있어도 전장 필터는 충돌 전용)
+    if (isGeopoliticsOnlyTheater(feed.theater) && feed.topic !== "economy") {
+      const blob = `${title} ${category || ""}`;
+      if (feed.theater === "southeast-asia") return isSoutheastAsiaConflictNews(blob);
+      if (feed.theater === "south-america") return isSouthAmericaConflictNews(blob);
+      return isAfricaConflictNews(blob);
+    }
+    return true;
+  }
   const blob = `${title} ${category || ""}`;
   if (feed.topic === "economy") return ECON_RELEVANCE.test(blob);
+  if (feed.theater === "japan") return isJapanGeopoliticsNews(blob);
+  if (feed.theater === "southeast-asia") return isSoutheastAsiaConflictNews(blob);
+  if (feed.theater === "south-america") return isSouthAmericaConflictNews(blob);
+  if (feed.theater === "africa") return isAfricaConflictNews(blob);
   return THEATER_RELEVANCE[feed.theater].test(blob);
 }

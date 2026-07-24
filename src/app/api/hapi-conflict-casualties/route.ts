@@ -41,7 +41,7 @@ async function fetchLocationRows(
     const res = await fetch(url.toString(), {
       headers: {
         Accept: "application/json",
-        "User-Agent": "ConflictView/1.0 (casualty fronts; mailto:kangps7675@gmail.com)",
+        "User-Agent": "BraveNewWorld/1.0 (casualty fronts; mailto:kangps7675@gmail.com)",
       },
       signal: AbortSignal.timeout(90_000),
       next: { revalidate: 0 },

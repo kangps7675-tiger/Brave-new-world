@@ -557,7 +557,7 @@ function PhotoNewsLampParchment({
                 {lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko}
               </p>
               <p className="welcome-letter-back-sub" style={{ fontFamily: parchmentStack }}>
-                {lang === "en" ? "멋진 신세계" : "Brave New World"}
+                {lang === "en" ? BRAND_NAME.ko : BRAND_NAME.en}
               </p>
               <div className="welcome-letter-back-lines" />
             </div>

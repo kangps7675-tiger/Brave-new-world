@@ -27,6 +27,7 @@ import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
+import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
 import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
 import {
   broadcastPush,
@@ -110,6 +111,13 @@ type IngestResult = {
   navarea?: {
     count: number;
     fetched: number;
+    errors: string[];
+    skipped: boolean;
+  } | null;
+  militaryExercises?: {
+    count: number;
+    fromNavarea: number;
+    fromNews: number;
     errors: string[];
     skipped: boolean;
   } | null;
@@ -271,6 +279,26 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       };
     }
 
+    let militaryExercises: IngestResult["militaryExercises"] = null;
+    try {
+      const ex = await fetchAndUpsertMilitaryExercises(env);
+      militaryExercises = {
+        count: ex.count,
+        fromNavarea: ex.fromNavarea,
+        fromNews: ex.fromNews,
+        errors: ex.errors.slice(0, 6),
+        skipped: ex.skipped,
+      };
+    } catch (error) {
+      militaryExercises = {
+        count: 0,
+        fromNavarea: 0,
+        fromNews: 0,
+        errors: [error instanceof Error ? error.message : "military exercise ingest failed"],
+        skipped: false,
+      };
+    }
+
     pruned = await pruneOldRows(env.DB, retentionHours);
     newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
     videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
@@ -360,6 +388,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       livingTaiwan,
       ukmto,
       navarea,
+      militaryExercises,
       error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
     };
 

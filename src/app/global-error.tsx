@@ -24,7 +24,7 @@ export default function GlobalError({
           }}
         >
           <p style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase", opacity: 0.6 }}>
-            Conflict View
+            멋진 신세계
           </p>
           <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>앱을 복구할 수 없습니다</h1>
           <p style={{ maxWidth: 420, fontSize: 14, lineHeight: 1.6, opacity: 0.7, margin: 0 }}>

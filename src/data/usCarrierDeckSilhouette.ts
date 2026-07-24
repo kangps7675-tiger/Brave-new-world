@@ -20,7 +20,7 @@ export const CARRIER_DECK_REFERENCE = {
   description:
     "US Navy aircraft carrier top-down aerial — angled port deck, starboard island, axial runway",
   bowDirection: "east" as const,
-  sourceNote: "Conflict View design reference (user-provided aerial photo, 2026)",
+  sourceNote: "멋진 신세계 design reference (user-provided aerial photo, 2026)",
 };
 
 /**

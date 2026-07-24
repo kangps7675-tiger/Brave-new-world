@@ -1,4 +1,9 @@
-import type { FrictionEpisode } from "@/data/frictionEpisodes";
+import {
+  episodeLocationName,
+  episodeNote,
+  episodeBriefing,
+  type FrictionEpisode,
+} from "@/data/frictionEpisodes";
 
 /** OpenAlex Works 메타 — 전문 재배포 없음, DOI·링크만 */
 export type FrictionOpenAlexWork = {
@@ -1219,7 +1224,7 @@ export function frictionParchmentParagraphs(
 
     if (lang === "en") {
       paragraphs.push(
-        `The map returns to ${ep.locationName}. In ${yearSpan}, ${six.whenEn.replace(/\.$/, "")}. There, ${six.whoEn.replace(/\.$/, "")} stood across a line that was never only ink on a chart.`,
+        `The map returns to ${episodeLocationName(ep, "en")}. In ${yearSpan}, ${six.whenEn.replace(/\.$/, "")}. There, ${six.whoEn.replace(/\.$/, "")} stood across a line that was never only ink on a chart.`,
       );
       paragraphs.push(
         `What unfolded was ${six.whatEn.replace(/\.$/, "")}. The reason was never thin: ${six.whyEn}`,
@@ -1238,7 +1243,8 @@ export function frictionParchmentParagraphs(
         paragraphs.push(`Follow the arc of the years. ${arc}.`);
       }
       paragraphs.push(...body);
-      if (ep.note) paragraphs.push(ep.note);
+      const noteEn = episodeNote(ep, "en");
+      if (noteEn) paragraphs.push(noteEn);
       if (significance) {
         paragraphs.push(
           `What remains afterward is not a footnote alone. ${significance.en}`,
@@ -1293,10 +1299,11 @@ export function frictionParchmentParagraphs(
   // deep 문서 없을 때 — 단문 briefing을 문학적 틀로 감싼다
   if (lang === "en") {
     const whoBit = whoParties ? ` ${whoParties} stand in the record.` : "";
+    const fallbackNote = episodeNote(ep, "en");
     return [
-      `The lamp of history settles on ${ep.locationName} (${yearSpan}).${whoBit}`,
-      ep.briefing,
-      ...(ep.note ? [ep.note] : []),
+      `The lamp of history settles on ${episodeLocationName(ep, "en")} (${yearSpan}).${whoBit}`,
+      episodeBriefing(ep, "en"),
+      ...(fallbackNote ? [fallbackNote] : []),
       ...(significance
         ? [`What remains afterward is not a footnote alone. ${significance.en}`]
         : []),

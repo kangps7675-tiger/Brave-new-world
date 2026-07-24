@@ -14,6 +14,11 @@ import {
   type ReactNode,
 } from "react";
 import { InterestRecommendChips } from "@/components/InterestRecommendChips";
+import { useInterestProfile } from "@/hooks/useInterestProfile";
+import {
+  interestTheaterScores,
+  sortNewsByInterest,
+} from "@/lib/interest/applyFromInterest";
 import { LivingTaiwanFollowChip } from "@/components/LivingConflictPanel";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
 import { MapLegend } from "@/components/MapLegend";
@@ -43,6 +48,7 @@ import {
   type EconomyGenreFilter,
 } from "@/lib/news/economyGenres";
 import { isEconomyNewsMode } from "@/lib/news/feedCatalog";
+import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 import type { ViewPackageId, ViewerMode } from "@/lib/viewPackages";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -187,6 +193,9 @@ const THEATER_LABELS: Record<
   korea: { ko: "한반도", en: "Korea" },
   japan: { ko: "일본", en: "Japan" },
   "south-asia": { ko: "남아시아", en: "South Asia" },
+  "southeast-asia": { ko: "동남아", en: "SE Asia" },
+  "south-america": { ko: "남미", en: "LatAm" },
+  africa: { ko: "아프리카", en: "Africa" },
   arctic: { ko: "북극", en: "Arctic" },
   atlantic: { ko: "대서양", en: "Atlantic" },
   global: { ko: "글로벌", en: "Global" },
@@ -265,14 +274,12 @@ function emptyPayload(): NewsStreamPayload {
   };
 }
 
-function sortNewsItems(items: NewsStreamItem[], preferEconomy: boolean): NewsStreamItem[] {
-  if (!preferEconomy) return items;
-  return [...items].sort((a, b) => {
-    const ae = a.feedTopic === "economy" ? 0 : 1;
-    const be = b.feedTopic === "economy" ? 0 : 1;
-    if (ae !== be) return ae - be;
-    return Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0");
-  });
+function sortNewsItems(
+  items: NewsStreamItem[],
+  preferEconomy: boolean,
+  theaterScores: Record<string, number> = {},
+): NewsStreamItem[] {
+  return sortNewsByInterest(items, theaterScores, preferEconomy);
 }
 
 function filterNewsByQuery(items: NewsStreamItem[], query: string): NewsStreamItem[] {
@@ -353,6 +360,8 @@ type NewsStreamProviderProps = {
   onTheaterFilterChange: (v: IntelTheaterFilter) => void;
   viewPackages?: ViewPackageId[];
   labelLanguage?: LabelLanguage;
+  /** 지도 네온 태그용 — 폴링 페이로드 동기화 */
+  onPayloadChange?: (payload: NewsStreamPayload | null) => void;
 };
 
 export function NewsStreamProvider({
@@ -362,12 +371,15 @@ export function NewsStreamProvider({
   onTheaterFilterChange,
   viewPackages = [],
   labelLanguage = "ko",
+  onPayloadChange,
 }: NewsStreamProviderProps) {
   const [payload, setPayload] = useState<NewsStreamPayload | null>(null);
   const [showTier3, setShowTier3] = useState(true);
   const preferEconomyNews = isEconomyNewsMode(viewPackages);
   const packagesKey = viewPackages.join(",");
   const langKey = labelLanguage;
+  const onPayloadChangeRef = useRef(onPayloadChange);
+  onPayloadChangeRef.current = onPayloadChange;
 
   const refresh = useCallback(async () => {
     try {
@@ -381,9 +393,15 @@ export function NewsStreamProvider({
       const qs = params.toString() ? `?${params.toString()}` : "";
       const newsRes = await fetch(`/api/news-stream${qs}`, { cache: "no-store" });
       const data = (await newsRes.json()) as NewsStreamPayload;
-      setPayload(newsRes.ok ? data : { ...emptyPayload(), error: data.error });
+      const next = newsRes.ok ? data : { ...emptyPayload(), error: data.error };
+      setPayload(next);
+      onPayloadChangeRef.current?.(next);
     } catch {
-      setPayload((prev) => prev ?? emptyPayload());
+      setPayload((prev) => {
+        const next = prev ?? emptyPayload();
+        onPayloadChangeRef.current?.(next);
+        return next;
+      });
     }
   }, [labelLanguage, viewPackages]);
 
@@ -687,7 +705,7 @@ export function DynamicIntelStack({
     };
   }, [fabOnly, mode, viewerMode, todayBriefing, isAlert, dockCollapsed]);
 
-  const showLegend = !fabOnly && !dockCollapsed && viewerMode === "conflict";
+  const showLegend = !fabOnly && !dockCollapsed;
   const showCompactTicker = !fabOnly && !dockCollapsed && (viewerMode === "economy" || showTicker);
   const showFab = fabOnly || !isAlert || dockCollapsed;
 
@@ -932,9 +950,10 @@ export function DynamicIntelStack({
       <div className="flex items-end justify-center gap-2">
         {showLegend ? (
           <MapLegend
-            deployedCarrierCount={deployedCarrierCount}
+            variant={isEconomy ? "economy" : "conflict"}
+            deployedCarrierCount={isEconomy ? 0 : deployedCarrierCount}
             showAllCarriers={showAllCarriers}
-            className="pointer-events-none w-max max-w-[min(96vw,960px)]"
+            className="w-max"
           />
         ) : null}
         {showFab ? (
@@ -1014,6 +1033,9 @@ function TheaterChipBar({
     korea: t("hoverTheaterKoreaHint"),
     japan: t("hoverTheaterJapanHint"),
     "south-asia": t("hoverTheaterSouthAsiaHint"),
+    "southeast-asia": t("hoverTheaterSeAsiaHint"),
+    "south-america": t("hoverTheaterSouthAmericaHint"),
+    africa: t("hoverTheaterAfricaHint"),
     arctic: t("hoverTheaterArcticHint"),
     atlantic: t("hoverTheaterAtlanticHint"),
     global: t("hoverTheaterGlobalHint"),
@@ -1396,6 +1418,13 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       labelLanguage,
     } = useNewsStreamContext();
     const { lang, t } = useLocale();
+    const { profile: interestProfile } = useInterestProfile(
+      preferEconomyNews ? "economy" : "conflict",
+    );
+    const interestTheaterBoost = useMemo(
+      () => interestTheaterScores(interestProfile),
+      [interestProfile],
+    );
     const [sheetTab, setSheetTab] = useState<IntelSheetTab>(initialIntelTab);
     const [economyTab, setEconomyTab] = useState<EconomyIntelTab>("news");
     const [economyGenre, setEconomyGenre] = useState<EconomyGenreFilter>("all");
@@ -1514,6 +1543,8 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
         if (preferEconomyNews) {
           // TheaterChipBar가 지경학에선 숨김 — 전장 필터를 적용하면 목록이 비어 보임
           if (item.feedTopic !== "economy") return false;
+          // 동남아·남미·아프리카는 지정학 전용 — 지경학 시트에 절대 노출하지 않음
+          if (isGeopoliticsOnlyTheater(item.theater)) return false;
           return matchesEconomyGenreFilter(item.econGenre, economyGenre);
         }
         return matchesTheaterFilter(item.theater, theaterFilter);
@@ -1523,14 +1554,17 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     const tier1Items = sortNewsItems(
       payload?.verified.filter((i) => i.trustTier === 1 && matchesEconomyItem(i)) ?? [],
       preferEconomyNews,
+      interestTheaterBoost,
     );
     const tier2Items = sortNewsItems(
       payload?.verified.filter((i) => i.trustTier === 2 && matchesEconomyItem(i)) ?? [],
       preferEconomyNews,
+      interestTheaterBoost,
     );
     const tier3Items = sortNewsItems(
       payload?.stateMedia.filter((i) => matchesEconomyItem(i)) ?? [],
       preferEconomyNews,
+      interestTheaterBoost,
     );
     const displayTier1 = filterNewsByQuery(tier1Items, newsSearchQuery);
     const displayTier2 = filterNewsByQuery(tier2Items, newsSearchQuery);

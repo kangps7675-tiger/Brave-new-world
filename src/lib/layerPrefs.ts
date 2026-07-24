@@ -93,6 +93,11 @@ export type LayerPrefs = {
    * 일본 근해 훈련·미사일 낙하지·케이블 작업 등. UKMTO와 함께 기본 ON.
    */
   showNavareaWarnings: boolean;
+  /**
+   * 군사 훈련 구역 — 공시·OSINT 다층 (항적만으로 북중러이란 “정확” 불가).
+   * 신규 감지 시 자동 ON → fly → 전보 양피지.
+   */
+  showMilitaryExercises: boolean;
   /** 중국↔대만 대치 (대만해협·남중국해·서태평양 · 네온 리플) */
   showChinaTaiwanIncidents: boolean;
   /** 중국↔일본 대치 (동중국해·센카쿠 · 네온 리플) */
@@ -127,8 +132,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v32: NAVAREA 보라 폴리곤 + 동맹 갈등(자홍) 레이어 제거 */
-export const LAYER_PREFS_KEY = "geowatch-layers-v32";
+/** v33: 군사 훈련 경보 레이어 (공시·OSINT 다층) */
+export const LAYER_PREFS_KEY = "geowatch-layers-v33";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -193,6 +198,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showNewfeedsIranAttacks: true,
   showUkmtoIncidents: true,
   showNavareaWarnings: true,
+  showMilitaryExercises: false,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,
@@ -211,6 +217,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v32",
   "geowatch-layers-v31",
   "geowatch-layers-v30",
   "geowatch-layers-v29",

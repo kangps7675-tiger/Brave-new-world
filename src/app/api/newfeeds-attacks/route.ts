@@ -42,11 +42,11 @@ export async function GET(request: Request) {
   try {
     const [attacksRes, threatRes] = await Promise.all([
       fetch(NEWFEEDS_ATTACKS_URL, {
-        headers: { Accept: "application/json", "User-Agent": "ConflictView/1.0" },
+        headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/1.0" },
         next: { revalidate: 300 },
       }),
       fetch(NEWFEEDS_THREAT_URL, {
-        headers: { Accept: "application/json", "User-Agent": "ConflictView/1.0" },
+        headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/1.0" },
         next: { revalidate: 300 },
       }).catch(() => null),
     ]);

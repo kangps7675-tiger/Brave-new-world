@@ -173,8 +173,10 @@ export type CasualtySkullHtmlMarker = {
   locationCode?: string;
   lat: number;
   lng: number;
-  killed: number;
+      killed: number;
   wounded: number;
+  /** 부상 숫자 대신 표시 (UCDP 미집계 등) */
+  woundedDisplay?: string;
   killedLabel: string;
   woundedLabel: string;
   asOf: string;
@@ -232,6 +234,31 @@ export type FrictionStageHtmlMarker = {
   active: boolean;
 };
 
+export type NewsStreamNeonMarker = {
+  markerId: string;
+  displayKind: "news-stream-neon";
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  link: string;
+  kind: "war" | "tension" | "diplomatic";
+  accent: "red" | "orange" | "blue" | "cyan" | "white";
+  intensity: number;
+};
+
+export type TelegramNeonMarker = {
+  markerId: string;
+  displayKind: "telegram-neon";
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  title: string;
+  accent: "white";
+  intensity: number;
+};
+
 export type GlobeDisplayPoint =
   | GlobePoint
   | GdeltTagHtmlMarker
@@ -267,7 +294,9 @@ export type HtmlOverlayMarker =
   | NuclearStockpileHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
-  | NewfeedsAttackGlobePoint;
+  | NewfeedsAttackGlobePoint
+  | NewsStreamNeonMarker
+  | TelegramNeonMarker;
 
 export type HoverCard =
   | {

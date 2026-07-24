@@ -175,6 +175,7 @@ export function createCasualtySkullBadge(
     lng: marker.lng,
     killed: marker.killed,
     wounded: marker.wounded,
+    woundedDisplay: marker.woundedDisplay,
     killedLabel: marker.killedLabel,
     woundedLabel: marker.woundedLabel,
     elegyLines: marker.elegyLines,

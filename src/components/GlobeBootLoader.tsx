@@ -118,6 +118,7 @@ export function GlobeBootLoader({
       clearTimeout(dashboardBootTimerRef.current);
       dashboardBootTimerRef.current = null;
     }
+    setDashboardProgress(100);
     dismissLoadingOverlay();
   }, [dismissLoadingOverlay]);
 

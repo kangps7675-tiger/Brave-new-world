@@ -186,7 +186,7 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
-    "User-Agent": "ConflictView/1.0",
+    "User-Agent": "BraveNewWorld/1.0",
   };
   if (apiKey) {
     headers["x-api-key"] = apiKey;

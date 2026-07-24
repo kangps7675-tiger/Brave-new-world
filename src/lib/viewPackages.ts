@@ -222,6 +222,10 @@ export const VIEW_THEATER_OPTIONS: Array<{ id: ViewTheaterChoice; label: string 
   { id: "china-taiwan", label: "대만" },
   { id: "russia-ukraine", label: "우크라" },
   { id: "middle-east", label: "중동" },
+  // 아래 3개는 지정학(전선·긴장) 전용 — 지경학 허브와 무관
+  { id: "southeast-asia", label: "동남아" },
+  { id: "south-america", label: "남미" },
+  { id: "africa", label: "아프리카" },
   { id: "global", label: "글로벌" },
 ];
 
