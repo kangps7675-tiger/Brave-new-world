@@ -5,6 +5,7 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { CursorHoverCard } from "@/components/CursorHoverCard";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
+import { NewsPerspectivesPanel } from "@/components/NewsPerspectivesPanel";
 import { DoomsdayClock } from "@/components/DoomsdayClock";
 import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
 import { NavAnnouncementBanner } from "@/components/NavAnnouncementBanner";
@@ -809,6 +810,8 @@ export function GlobeDashboard({
   const frictionCoachListAckRef = useRef(false);
   const [showAirRaidCoach, setShowAirRaidCoach] = useState(false);
   const [periodicBriefing, setPeriodicBriefing] = useState<PeriodicBriefing | null>(null);
+  /** 뉴스 네온 — 매체 2개 이상이면 관점 조합 패널 */
+  const [newsPerspectives, setNewsPerspectives] = useState<NewsStreamNeonMarker | null>(null);
   /** 오늘 등불 파이프라인 종료 여부(표시·스킵·이미 봄). false면 공습/이슈 UI 보류 */
   const [dailyLampSettled, setDailyLampSettled] = useState(false);
   const [weeklyRecap, setWeeklyRecap] = useState<PeriodicBriefing | null>(null);
@@ -6859,6 +6862,7 @@ export function GlobeDashboard({
   // 모드·일자 전환 시 등불 게이트 재시작 (공습·이슈 UI는 settled 전까지 보류)
   useEffect(() => {
     setPeriodicBriefing(null);
+    setNewsPerspectives(null);
     setDailyLampSettled(false);
     setWeeklyRecap(null);
     setWeeklyRecapCollapsed(false);
@@ -6869,6 +6873,31 @@ export function GlobeDashboard({
     setClearanceChipSettled(false);
     setClearanceStatus(null);
   }, [viewerMode, calendarDayKey, clearAirRaidOffer]);
+
+  // 양피지·인텔시트 등 대형 패널이 열리면 관점 패널 닫기 (겹침 방지)
+  useEffect(() => {
+    if (
+      periodicBriefing ||
+      weeklyExpanded ||
+      intelSheetOpen ||
+      hubBriefOpen ||
+      frictionEpisodeBrief ||
+      econInsightOpen ||
+      airRaidBriefing ||
+      exerciseBriefing
+    ) {
+      setNewsPerspectives(null);
+    }
+  }, [
+    airRaidBriefing,
+    econInsightOpen,
+    exerciseBriefing,
+    frictionEpisodeBrief,
+    hubBriefOpen,
+    intelSheetOpen,
+    periodicBriefing,
+    weeklyExpanded,
+  ]);
 
   useEffect(() => {
     const focus = loadWatchFocus();
@@ -7354,12 +7383,17 @@ export function GlobeDashboard({
             intensity: item.intensity,
             title: `${kindLabel}\n${item.title}`,
             ariaLabel: item.title,
+            perspectiveCount: item.perspectives?.length ?? 1,
           },
           {
             onClick: () => {
               skipNextGlobeClickRef.current = true;
-              if (item.link) window.open(item.link, "_blank", "noopener,noreferrer");
               flyTo(item.lat, item.lng, 0.85);
+              if (item.perspectives && item.perspectives.length >= 2) {
+                setNewsPerspectives(item);
+                return;
+              }
+              if (item.link) window.open(item.link, "_blank", "noopener,noreferrer");
             },
           },
         );
@@ -9251,6 +9285,19 @@ export function GlobeDashboard({
         frictionEpisodeBrief={frictionEpisodeBrief}
         onCloseFrictionBrief={() => setFrictionEpisodeBrief(null)}
       />
+
+      {newsPerspectives ? (
+        <NewsPerspectivesPanel
+          headline={newsPerspectives.title}
+          placeLabel={newsPerspectives.placeLabel}
+          kind={newsPerspectives.kind}
+          perspectives={newsPerspectives.perspectives ?? []}
+          theater={newsPerspectives.theater}
+          ageMinutes={60}
+          lang={labelLanguage}
+          onClose={() => setNewsPerspectives(null)}
+        />
+      ) : null}
 
       </NewsStreamProvider>
     </main>
