@@ -99,10 +99,38 @@ const sbAgro = localFont({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://confilct-view.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "멋진 신세계",
   description:
     "Aldous Huxley 《Brave New World》를 모티브로—전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+  openGraph: {
+    type: "website",
+    siteName: "멋진 신세계",
+    title: "멋진 신세계 — 3D 지구본 관측대",
+    description:
+      "전쟁과 이익이 같은 지도를 공유한다. 지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+    url: "/",
+    locale: "ko_KR",
+    images: [
+      {
+        url: "/brand/og-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "멋진 신세계 — 전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "멋진 신세계 — 3D 지구본 관측대",
+    description:
+      "지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+    images: ["/brand/og-1200x630.png"],
+  },
   icons: {
     icon: [{ url: "/brand/icon-512.png", sizes: "512x512", type: "image/png" }],
     apple: [{ url: "/brand/apple-icon-180.png", sizes: "180x180", type: "image/png" }],

@@ -65,7 +65,7 @@ function stubSeedResponse(extraHeaders?: Record<string, string>): NextResponse {
 async function fetchNeptunLive(): Promise<NeptunPayload> {
   const headers = {
     Accept: "application/json",
-    "User-Agent": "GeoWatch/1.0 (+https://neptun.in.ua/)",
+    "User-Agent": "BraveNewWorld/1.0 (+https://neptun.in.ua/)",
   };
 
   const [threatsRes, alertsRes] = await Promise.all([

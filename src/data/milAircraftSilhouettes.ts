@@ -20,7 +20,7 @@ export const MIL_AIRCRAFT_REFERENCE = {
     "Military aircraft top-down orthographic silhouettes by role (fighter, bomber, heli, tanker, …)",
   noseDirection: "north" as const,
   sourceNote:
-    "Conflict View original paths inspired by public aerial/orthographic silhouette conventions (2026)",
+    "멋진 신세계 original paths inspired by public aerial/orthographic silhouette conventions (2026)",
 };
 
 export type MilAircraftIconSize = {

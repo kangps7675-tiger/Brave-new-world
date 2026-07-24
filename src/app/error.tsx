@@ -18,7 +18,7 @@ export default function Error({
       role="alert"
       className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#02040a] px-6 text-center"
     >
-      <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/60">Conflict View</p>
+      <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/60">멋진 신세계</p>
       <h1 className="text-lg font-semibold text-slate-50">일시적인 오류가 발생했습니다</h1>
       <p className="max-w-md text-sm leading-6 text-slate-400">
         {error.message || "페이지를 다시 불러와 주세요."}

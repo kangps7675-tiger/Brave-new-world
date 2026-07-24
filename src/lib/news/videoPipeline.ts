@@ -77,7 +77,7 @@ async function fetchFeedItems(feed: VideoFeedDef): Promise<VideoNewsItem[]> {
       cache: "no-store",
       headers: {
         Accept: "application/atom+xml, application/xml, text/xml, */*",
-        "User-Agent": "ConflictView/1.0 VideoNews Reader",
+        "User-Agent": "BraveNewWorld/1.0 VideoNews Reader",
       },
       signal: AbortSignal.timeout(12_000),
     });

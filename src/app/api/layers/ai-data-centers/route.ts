@@ -42,7 +42,7 @@ async function loadAiDataCenters(): Promise<StaticPoint[]> {
     cache: "no-store",
     headers: {
       Accept: "application/sparql-results+json",
-      "User-Agent": "ConflictView/1.0 (educational globe; contact local-dev)",
+      "User-Agent": "BraveNewWorld/1.0 (educational globe; contact local-dev)",
     },
   });
   if (!response.ok) throw new Error(`Wikidata HTTP ${response.status}`);

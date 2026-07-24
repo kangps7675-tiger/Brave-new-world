@@ -4,7 +4,7 @@ Aldous Huxley 《Brave New World》를 모티브로 한 3D 지구본 관측대�
 
 > **한 줄:** 지정학으로 축과 전선을 보고, 지경학으로 돈과 물류를 본다.
 
-- **npm 패키지명:** `geowatch` · **사용자 브랜드:** 멋진 신세계
+- **npm 패키지명:** `geowatch` (인프라) · **사용자 브랜드:** 멋진 신세계 / Brave New World
 - **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · react-map-gl · Tailwind CSS
 - **언어:** UI 기본 한국어 · 입장 주의창·레이어 패널에서 **English** 전환 (`labelLanguage`)
 - **UX 시나리오 상세:** [`docs/ux-scenarios.md`](docs/ux-scenarios.md)

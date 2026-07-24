@@ -182,7 +182,7 @@ function deny(reason: GateFailReason): ViinaGateResult {
     reason,
     policy: "viina-rendering-only",
     message:
-      "VIINA render data is only available to the Conflict View UI (same-origin session). Bulk fetch and export are blocked.",
+      "VIINA render data is only available to the 멋진 신세계 UI (same-origin session). Bulk fetch and export are blocked.",
   };
   return {
     ok: false,

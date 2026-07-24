@@ -1,4 +1,10 @@
-import { FRICTION_EPISODES, type FrictionEpisode } from "@/data/frictionEpisodes";
+import {
+  FRICTION_EPISODES,
+  episodeTitle,
+  episodeLocationName,
+  episodeBriefing,
+  type FrictionEpisode,
+} from "@/data/frictionEpisodes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 const CARD_SIZE = 1080;
@@ -112,7 +118,7 @@ export async function renderFrictionEpisodeCard(
   let cursorY = yearY + Math.round(CARD_SIZE * 0.09);
   ctx.font = `700 ${Math.round(CARD_SIZE * 0.052)}px system-ui, sans-serif`;
   ctx.fillStyle = "#f8fafc";
-  const titleLines = wrapText(ctx, episode.title, contentWidth, 2);
+  const titleLines = wrapText(ctx, episodeTitle(episode, lang), contentWidth, 2);
   const titleLineHeight = Math.round(CARD_SIZE * 0.062);
   for (const line of titleLines) {
     ctx.fillText(line, pad, cursorY);
@@ -123,13 +129,13 @@ export async function renderFrictionEpisodeCard(
   cursorY += Math.round(CARD_SIZE * 0.012);
   ctx.font = `500 ${Math.round(CARD_SIZE * 0.03)}px system-ui, sans-serif`;
   ctx.fillStyle = "rgba(148, 197, 231, 0.85)";
-  ctx.fillText(`📍 ${episode.locationName}`, pad, cursorY);
+  ctx.fillText(`📍 ${episodeLocationName(episode, lang)}`, pad, cursorY);
 
   // 브리핑 본문
   cursorY += Math.round(CARD_SIZE * 0.06);
   ctx.font = `400 ${Math.round(CARD_SIZE * 0.032)}px system-ui, sans-serif`;
   ctx.fillStyle = "rgba(226, 232, 240, 0.92)";
-  const bodyLines = wrapText(ctx, episode.briefing, contentWidth, 7);
+  const bodyLines = wrapText(ctx, episodeBriefing(episode, lang), contentWidth, 7);
   const bodyLineHeight = Math.round(CARD_SIZE * 0.046);
   for (const line of bodyLines) {
     ctx.fillText(line, pad, cursorY);

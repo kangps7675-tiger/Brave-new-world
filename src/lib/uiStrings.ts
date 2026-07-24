@@ -256,6 +256,18 @@ const UI = {
     ko: "인도·파키스탄·LAC 등 남아시아 뉴스만 필터링합니다.",
     en: "Filter to India · Pakistan · LAC / South Asia.",
   },
+  hoverTheaterSeAsiaHint: {
+    ko: "동남아·남중국해 전선·긴장 뉴스만 (사회이슈 제외).",
+    en: "SE Asia · South China Sea frontline/tension only (no social issues).",
+  },
+  hoverTheaterSouthAmericaHint: {
+    ko: "남미 전선·군사 긴장 뉴스만 (사회이슈 제외).",
+    en: "South America frontline/military tension only (no social issues).",
+  },
+  hoverTheaterAfricaHint: {
+    ko: "아프리카 전선·무력 분쟁 뉴스만 (사회이슈 제외).",
+    en: "Africa frontline/armed conflict only (no social issues).",
+  },
   hoverTheaterArcticHint: {
     ko: "북극 항로·하이노스·그린란드 안보 뉴스만 필터링합니다.",
     en: "Filter to Arctic routes · High North · Greenland security.",
@@ -268,6 +280,7 @@ const UI = {
     ko: "글로벌 방산·안보 뉴스만 필터링합니다.",
     en: "Filter to global defense · security news.",
   },
+  legendDropdown: { ko: "범례", en: "Legend" },
   legendOps: { ko: "작전중", en: "Ops" },
   legendUsCarriers: { ko: "미 항모 {n}척", en: "{n} US carriers" },
   legendShowAll: { ko: " · 전체 표시", en: " · show all" },
@@ -284,6 +297,16 @@ const UI = {
   legendProtestDetail: { ko: "집회·시위", en: "Rally · protest" },
   legendFresh: { ko: "최신", en: "Fresh" },
   legendFreshDetail: { ko: "속보 테두리", en: "Breaking border" },
+  legendEconLane: { ko: "항로", en: "Lane" },
+  legendEconLaneDetail: { ko: "해운로", en: "Shipping route" },
+  legendEconChoke: { ko: "초크", en: "Choke" },
+  legendEconChokeDetail: { ko: "물류 병목", en: "Logistics choke" },
+  legendEconCritical: { ko: "크리티컬", en: "Critical" },
+  legendEconCriticalDetail: { ko: "MIT 노드", en: "MIT node" },
+  legendEconPipe: { ko: "에너지", en: "Energy" },
+  legendEconPipeDetail: { ko: "파이프·LNG", en: "Pipe · LNG" },
+  legendEconPort: { ko: "항구", en: "Port" },
+  legendEconPortDetail: { ko: "항만·허브", en: "Port · hub" },
   legendUaTitle: { ko: "우크라이나 점령·주장", en: "Ukraine control · claims" },
   legendUaRuOcc: { ko: "RU 점령", en: "RU occupied" },
   legendUaUaOcc: { ko: "UA 점령", en: "UA controlled" },
@@ -491,6 +514,9 @@ export const THEATER_LABELS: Record<LabelLanguage, Record<NewsTheater, string>> 
     korea: "한반도",
     japan: "일본",
     "south-asia": "남아시아",
+    "southeast-asia": "동남아",
+    "south-america": "남미",
+    africa: "아프리카",
     arctic: "북극",
     atlantic: "대서양",
     global: "글로벌",
@@ -502,6 +528,9 @@ export const THEATER_LABELS: Record<LabelLanguage, Record<NewsTheater, string>> 
     korea: "Korea",
     japan: "Japan",
     "south-asia": "South Asia",
+    "southeast-asia": "SE Asia",
+    "south-america": "South America",
+    africa: "Africa",
     arctic: "Arctic",
     atlantic: "Atlantic",
     global: "Global",
@@ -515,7 +544,16 @@ export function theaterLabel(theater: NewsTheater, lang: LabelLanguage): string 
 export const VIEW_THEATER_LABELS: Record<
   LabelLanguage,
   Record<
-    "auto" | "korea" | "japan" | "china-taiwan" | "russia-ukraine" | "middle-east" | "global",
+    | "auto"
+    | "korea"
+    | "japan"
+    | "china-taiwan"
+    | "russia-ukraine"
+    | "middle-east"
+    | "southeast-asia"
+    | "south-america"
+    | "africa"
+    | "global",
     string
   >
 > = {
@@ -526,6 +564,9 @@ export const VIEW_THEATER_LABELS: Record<
     "china-taiwan": "대만",
     "russia-ukraine": "우크라",
     "middle-east": "중동",
+    "southeast-asia": "동남아",
+    "south-america": "남미",
+    africa: "아프리카",
     global: "글로벌",
   },
   en: {
@@ -535,6 +576,9 @@ export const VIEW_THEATER_LABELS: Record<
     "china-taiwan": "Taiwan",
     "russia-ukraine": "Ukraine",
     "middle-east": "Middle East",
+    "southeast-asia": "SE Asia",
+    "south-america": "South America",
+    africa: "Africa",
     global: "Global",
   },
 };

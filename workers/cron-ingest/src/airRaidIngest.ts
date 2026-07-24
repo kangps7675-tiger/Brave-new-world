@@ -200,7 +200,7 @@ async function fetchNeptunRows(env: IngestEnv): Promise<{
   const base = ((env.NEPTUN_API_BASE || "").trim() || NEPTUN_DEFAULT).replace(/\/$/, "");
   const headers = {
     Accept: "application/json",
-    "User-Agent": "ConflictView-Ingest/1.0 (+air-raid)",
+    "User-Agent": "BraveNewWorld-Ingest/1.0 (+air-raid)",
   };
   try {
     const [threatsRes, alertsRes] = await Promise.all([

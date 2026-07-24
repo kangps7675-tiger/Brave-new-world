@@ -51,6 +51,21 @@ export const THEATER_ASSETS: Record<TheaterMarketFilter, TheaterAssetEntry> = {
     noteKo: "유가·금·인도 인접 시장",
     noteEn: "Oil · gold · India-adjacent markets",
   },
+  "southeast-asia": {
+    symbols: ["BZ=F", "^HSI", "^IXIC", "^VIX", "DX-Y.NYB", "^GSPC"],
+    noteKo: "유가·아시아 지수 — 남중국해·말라카 물류 리스크",
+    noteEn: "Oil · Asia indices — South China Sea / Malacca logistics risk",
+  },
+  "south-america": {
+    symbols: ["CL=F", "BZ=F", "GC=F", "^VIX", "DX-Y.NYB", "^GSPC"],
+    noteKo: "유가·금 — 베네수엘라·가이아나·남미 안보 프리미엄",
+    noteEn: "Oil · gold — Venezuela / Guyana / LatAm security premium",
+  },
+  africa: {
+    symbols: ["GC=F", "BZ=F", "^VIX", "DX-Y.NYB", "^GSPC", "CL=F"],
+    noteKo: "금·유가 — 사헬·수단·아프리카 분쟁 리스크",
+    noteEn: "Gold · oil — Sahel / Sudan / Africa conflict risk",
+  },
   arctic: {
     symbols: ["BZ=F", "CL=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
     noteKo: "에너지·금·달러 — 북극 항로·자원 리스크",

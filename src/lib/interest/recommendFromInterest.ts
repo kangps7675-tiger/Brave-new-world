@@ -1,5 +1,6 @@
 import type { NewsTheater } from "@/lib/news/types";
 import { THEATER_CHIP_LABELS } from "@/lib/news/theaterMap";
+import { INTEREST_THEME_LAYERS } from "@/lib/interest/applyFromInterest";
 import type {
   InterestProfile,
   InterestRecommendChip,
@@ -8,11 +9,27 @@ import type {
 const NEWS_THEATERS = new Set<string>(Object.keys(THEATER_CHIP_LABELS));
 
 const THEME_LABELS: Record<string, { ko: string; en: string; layerKey?: string }> = {
-  ais: { ko: "해상 AIS", en: "Maritime AIS", layerKey: "showAis" },
-  carriers: { ko: "미 항모", en: "US carriers", layerKey: "showUsCarriers" },
-  firms: { ko: "열점·화재", en: "FIRMS fires", layerKey: "showFirmsFires" },
-  military: { ko: "군용 항적", en: "Mil aircraft", layerKey: "showMilitaryActivity" },
-  airTraffic: { ko: "민간 항공", en: "Air traffic", layerKey: "showAirTraffic" },
+  ais: { ko: "해상 AIS", en: "Maritime AIS", layerKey: INTEREST_THEME_LAYERS.ais.layerKey },
+  carriers: {
+    ko: "미 항모",
+    en: "US carriers",
+    layerKey: INTEREST_THEME_LAYERS.carriers.layerKey,
+  },
+  firms: {
+    ko: "열점·화재",
+    en: "FIRMS fires",
+    layerKey: INTEREST_THEME_LAYERS.firms.layerKey,
+  },
+  military: {
+    ko: "군용 항적",
+    en: "Mil aircraft",
+    layerKey: INTEREST_THEME_LAYERS.military.layerKey,
+  },
+  airTraffic: {
+    ko: "민간 항공",
+    en: "Air traffic",
+    layerKey: INTEREST_THEME_LAYERS.airTraffic.layerKey,
+  },
 };
 
 /** 지경학에서 추천하지 않는 군용·전투 테마 */

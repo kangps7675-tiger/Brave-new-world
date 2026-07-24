@@ -11,6 +11,8 @@ import {
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
 import { normalizeLampImageUrl } from "@/lib/news/lampThumbnail";
+import { isJapanGeopoliticsNews } from "@/lib/news/japanGeopolitics";
+import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
 /**
  * 매일 등불 브리핑 — 지정학·지경학 각각 하루 종일 이용.
@@ -778,8 +780,11 @@ function detectGeoBloc(
     if (/\beurope\b|\beu\b|\becb\b|\bgermany\b|\bfrance\b|\b유럽\b/i.test(text)) return "europe";
     return "russia";
   }
-  if (theater === "korea" || theater === "japan" || theater === "south-asia") return "asia";
+  if (theater === "korea" || theater === "japan" || theater === "south-asia" || theater === "southeast-asia") {
+    return "asia";
+  }
   if (theater === "middle-east") return "other";
+  if (theater === "south-america" || theater === "africa") return "other";
 
   const blocHit = entities.find((e) => e.bloc !== "us");
   if (blocHit?.bloc === "china") return "china";
@@ -1094,7 +1099,9 @@ export function pickEconomyLampNews(
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
   // 사진 필수 해제 — 관심도 높은 기사 + 폴백 썸네일
+  // 동남아·남미·아프리카 지정학 전용 전장은 지경학 등불에서 제외
   const pool = items.filter((item) => {
+    if (isGeopoliticsOnlyTheater(item.theater)) return false;
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
     return true;
@@ -1252,6 +1259,9 @@ type ConflictTheater =
   | "korea"
   | "japan"
   | "south-asia"
+  | "southeast-asia"
+  | "south-america"
+  | "africa"
   | "arctic"
   | "atlantic"
   | "global";
@@ -1261,6 +1271,12 @@ const APAC_CONFLICT_THEATERS: ConflictTheater[] = [
   "korea",
   "japan",
   "south-asia",
+  "southeast-asia",
+];
+
+const GLOBAL_SOUTH_CONFLICT_THEATERS: ConflictTheater[] = [
+  "south-america",
+  "africa",
 ];
 
 const ARCTIC_ATLANTIC_THEATERS: ConflictTheater[] = ["arctic", "atlantic"];
@@ -1272,6 +1288,9 @@ const THEATER_FOCUS_KO: Record<ConflictTheater, string> = {
   korea: "한반도",
   japan: "일본·인도태평양",
   "south-asia": "남아시아·인도양",
+  "southeast-asia": "동남아·남중국해",
+  "south-america": "남미 전선",
+  africa: "아프리카 전선",
   arctic: "북극",
   atlantic: "대서양",
   global: "글로벌 국방",
@@ -1284,6 +1303,9 @@ const THEATER_FOCUS_EN: Record<ConflictTheater, string> = {
   korea: "Korean Peninsula",
   japan: "Japan · Indo-Pacific",
   "south-asia": "South Asia · Indian Ocean",
+  "southeast-asia": "SE Asia · South China Sea",
+  "south-america": "South America frontline",
+  africa: "Africa frontline",
   arctic: "Arctic",
   atlantic: "Atlantic",
   global: "Global defense",
@@ -1460,6 +1482,9 @@ function normalizeConflictTheater(theater?: string): ConflictTheater {
     theater === "korea" ||
     theater === "japan" ||
     theater === "south-asia" ||
+    theater === "southeast-asia" ||
+    theater === "south-america" ||
+    theater === "africa" ||
     theater === "arctic" ||
     theater === "atlantic" ||
     theater === "global"
@@ -1510,14 +1535,43 @@ function inferGeoTheater(text: string): ConflictTheater | null {
     return "south-asia";
   }
   if (
-    /\bindia\b|\bpakistan\b|\bbangladesh\b|\bmyanmar\b|\bafghanistan\b|\btaliban\b|인도\b|미얀마|아프간/i.test(
-      text,
-    ) &&
+    /\bindia\b|\bpakistan\b|\bbangladesh\b|\bafghanistan\b|\btaliban\b|인도\b|아프간/i.test(text) &&
     /military|missile|border|navy|security|conflict|geopolit|defense|전쟁|미사일|국경|안보/i.test(
       text,
     )
   ) {
     return "south-asia";
+  }
+  // 동남아 — 미얀마·ASEAN·남중국해 (중국·대만 광역보다 먼저)
+  if (
+    /asean|vietnam|philippines?|indonesia|malaysia|myanmar|burma|tatmadaw|arakan|rakhine|scarborough|spratly|paracel|malacca|marawi|abu\s?sayyaf|동남아|베트남|필리핀|인도네시아|미얀마|말라카/i.test(
+      text,
+    ) &&
+    /military|navy|militia|junta|rebel|missile|pla\b|coast\s?guard|confrontation|strike|war|군사|해군|민병|쿠데타|미사일/i.test(
+      text,
+    )
+  ) {
+    return "southeast-asia";
+  }
+  if (
+    /venezuela|guyana|essequibo|colombia|farc|eln\b|maduro|latin\s?america|south\s?america|남미|베네수엘라|가이아나|콜롬비아/i.test(
+      text,
+    ) &&
+    /military|militia|border|navy|missile|armed|clash|russia|iran|china|군사|민병|국경|해군/i.test(
+      text,
+    )
+  ) {
+    return "south-america";
+  }
+  if (
+    /sahel|mali|niger|burkina|sudan|darfur|rsf\b|congo|drc\b|m23\b|somalia|al[\s-]?shabaab|libya|haftar|wagner|africa\s?corps|ethiopia|tigray|boko\s?haram|아프리카|사헬|말리|니제르|수단|콩고|소말리아|와그너/i.test(
+      text,
+    ) &&
+    /military|militia|jihad|coup|rebel|war|drone|strike|offensive|군사|민병|쿠데타|반군|전쟁/i.test(
+      text,
+    )
+  ) {
+    return "africa";
   }
   if (
     /taiwan|pla\b|south\s?china\s?sea|west\s?philippine|scarborough|spratly|paracel|us[\s-]?china|china[\s-]?us|great\s?power\s?competition|first\s?island|second\s?island|guam|philippine\s?sea|대만|남중국해|미중|괌/i.test(
@@ -1527,16 +1581,13 @@ function inferGeoTheater(text: string): ConflictTheater | null {
     return "china-taiwan";
   }
   if (
-    /aukus|quad\b|indo[\s-]?pacific|okinawa|senkaku|self[\s-]?defense\s?force|\bsdf\b|인도태평양|오키나와|센카쿠/i.test(
+    /aukus|quad\b|indo[\s-]?pacific|okinawa|senkaku|kuril|northern\s?territor|self[\s-]?defense\s?force|\bsdf\b|인도태평양|오키나와|센카쿠|쿠릴|북방영토/i.test(
       text,
     )
   ) {
     return "japan";
   }
-  if (
-    /\bjapan\b|\btokyo\b|일본|도쿄/i.test(text) &&
-    /defense|military|security|missile|alliance|china|korea|국방|안보|미사일|동맹|중국/i.test(text)
-  ) {
+  if (isJapanGeopoliticsNews(text)) {
     return "japan";
   }
   return null;
@@ -1552,7 +1603,7 @@ function resolveConflictTheater(item: NewsPickInput): ConflictTheater {
   // 중동·러우 피드는 유지하되, 아태·북극·대서양 키워드가 뚜렷하면 재분류
   if (feedTheater === "middle-east" || feedTheater === "russia-ukraine") {
     const strongGeo =
-      /taiwan|south\s?china\s?sea|indo[\s-]?pacific|aukus|north\s?korea|pyongyang|indian\s?ocean|arctic|high\s?north|northern\s?sea\s?route|giuk|north\s?atlantic|대만|남중국해|인도태평양|북한|인도양|북극|북해항로|대서양|지유케이/i.test(
+      /taiwan|south\s?china\s?sea|indo[\s-]?pacific|aukus|north\s?korea|pyongyang|indian\s?ocean|asean|myanmar|venezuela|sahel|sudan|congo|arctic|high\s?north|northern\s?sea\s?route|giuk|north\s?atlantic|대만|남중국해|인도태평양|북한|인도양|동남아|미얀마|베네수엘라|사헬|수단|콩고|북극|북해항로|대서양|지유케이/i.test(
         blob,
       );
     return strongGeo ? inferred : feedTheater;
@@ -1561,6 +1612,7 @@ function resolveConflictTheater(item: NewsPickInput): ConflictTheater {
   if (
     feedTheater === "global" ||
     APAC_CONFLICT_THEATERS.includes(feedTheater) ||
+    GLOBAL_SOUTH_CONFLICT_THEATERS.includes(feedTheater) ||
     ARCTIC_ATLANTIC_THEATERS.includes(feedTheater)
   ) {
     return inferred;
@@ -1638,13 +1690,9 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
   // 적대 콕집힘 soft만 — 비한국 강페널티·일반 한국 언급 대폭 가산 제거
   const adversaryKorea = isAdversaryKoreaSingledOut(blob);
   const koreaBonus = adversaryKorea ? -36 : mentionsSouthKorea(blob) ? -4 : 0;
-  // 일본·인도태평양 안보 하드뉴스 — 중동·러우에 밀리지 않도록 가산
-  const japanHard =
-    theater === "japan" &&
-    /defense|military|security|missile|senkaku|okinawa|sdf|alliance|aukus|quad|pla|china|north\s?korea|국방|안보|미사일|센카쿠|오키나와|동맹|자위대/i.test(
-      blob,
-    );
-  const japanBonus = japanHard ? -14 : theater === "japan" ? -6 : 0;
+  // 일본·인도태평양 — 지정학 하드만 가산 (내정·사회 탈락)
+  const japanGeo = theater === "japan" && isJapanGeopoliticsNews(blob);
+  const japanBonus = japanGeo ? -16 : theater === "japan" ? 40 : 0;
   // 아태·남아시아·북극·대서양을 중동·러우와 동급으로
   const theaterBonus =
     theater === "middle-east" ||
@@ -1653,6 +1701,9 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
     theater === "korea" ||
     theater === "japan" ||
     theater === "south-asia" ||
+    theater === "southeast-asia" ||
+    theater === "south-america" ||
+    theater === "africa" ||
     theater === "arctic" ||
     theater === "atlantic"
       ? -12
@@ -1795,6 +1846,8 @@ export function pickConflictLampNews(
 
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (!relax && CONFLICT_SOFT_NEWS_RE.test(blob)) return false;
+    // 일본 전장 태그는 지정학 키워드만 (내정·사회 배제)
+    if (!relax && row.theater === "japan" && !isJapanGeopoliticsNews(blob)) return false;
 
     const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
     if (isDiplomacy && diplomacyCount >= CONFLICT_LAMP_DIPLOMACY_MAX && !relax) return false;
@@ -1842,10 +1895,18 @@ export function pickConflictLampNews(
 
   // 3) soft 다양성 — 관심도 풀 안
   const japanIds = new Set(
-    scored.filter((row) => row.theater === "japan").map((row) => row.item.id),
+    scored
+      .filter(
+        (row) =>
+          row.theater === "japan" &&
+          isJapanGeopoliticsNews(`${row.item.title} ${row.item.summary ?? ""}`),
+      )
+      .map((row) => row.item.id),
   );
   softFill(
-    (row) => row.theater === "japan",
+    (row) =>
+      row.theater === "japan" &&
+      isJapanGeopoliticsNews(`${row.item.title} ${row.item.summary ?? ""}`),
     (n) => japanIds.has(n.id),
     CONFLICT_LAMP_JAPAN_MIN,
   );

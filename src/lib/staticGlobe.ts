@@ -31,6 +31,53 @@ function isResourceLikeKind(kind: StaticPoint["kind"]): boolean {
   return typeof kind === "string" && kind.startsWith("gem-");
 }
 
+/**
+ * kind별 공평 배분(라운드로빈) 선택.
+ *
+ * 예전에는 merge 순서 선착순으로 상한을 채워, 공항(수천 개)이 켜져 있으면
+ * 뒤에 병합되는 kind(제재 대상·우주 발사·IXP 등)는 체크해도 슬롯이 없어
+ * "켰는데 안 나옴"이 됐다. kind마다 번갈아 뽑아 모든 ON 레이어가
+ * 최소한 일부라도 보이게 한다.
+ */
+export function pickFairByKind<T extends StaticPoint>(
+  points: T[],
+  view: ViewState,
+  radiusDeg: number,
+  max: number,
+): T[] {
+  if (max <= 0) return [];
+  const inView =
+    radiusDeg > 0 ? points.filter((p) => bboxNearView(p, view, radiusDeg)) : points;
+  if (inView.length <= max) return inView;
+
+  const byKind = new Map<string, T[]>();
+  for (const point of inView) {
+    const bucket = byKind.get(point.kind);
+    if (bucket) bucket.push(point);
+    else byKind.set(point.kind, [point]);
+  }
+  if (byKind.size <= 1) return inView.slice(0, max);
+
+  const kinds = [...byKind.keys()];
+  const cursors = new Map<string, number>(kinds.map((k) => [k, 0]));
+  const out: T[] = [];
+  while (out.length < max) {
+    let advanced = false;
+    for (const kind of kinds) {
+      const bucket = byKind.get(kind)!;
+      const cursor = cursors.get(kind)!;
+      if (cursor < bucket.length) {
+        out.push(bucket[cursor]);
+        cursors.set(kind, cursor + 1);
+        advanced = true;
+        if (out.length >= max) break;
+      }
+    }
+    if (!advanced) break;
+  }
+  return out;
+}
+
 export function filterStaticPointsForView(
   points: StaticPoint[],
   view: ViewState,
@@ -48,30 +95,25 @@ export function filterStaticPointsForView(
     else others.push(point);
   }
 
-  const visibleOthers: StaticPoint[] = [];
-  const otherMax = STATIC_POINT_MAX_BY_TIER[tier];
-  // global에서도 카메라 주변만이 아니라 전역 샘플을 일부 보여 줌아웃 ON이 죽지 않게
+  // global에서도 카메라 주변만이 아니라 전역 샘플을 일부 보여 줌아웃 ON이 죽지 않게.
+  // kind별 라운드로빈 — 선착순 상한이 뒤 순서 레이어를 굶기던 문제 수정.
   const otherRadius =
     tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 52) : radiusDeg;
-  if (otherMax > 0) {
-    for (const point of others) {
-      if (otherRadius > 0 && !bboxNearView(point, view, otherRadius)) continue;
-      visibleOthers.push(point);
-      if (visibleOthers.length >= otherMax) break;
-    }
-  }
+  const visibleOthers = pickFairByKind(
+    others,
+    view,
+    otherRadius,
+    STATIC_POINT_MAX_BY_TIER[tier],
+  );
 
-  const resourceMax = RESOURCE_POINT_MAX_BY_TIER[tier];
   const resourceRadius =
     tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 48) : radiusDeg;
-  const visibleResources: StaticPoint[] = [];
-  if (resourceMax > 0) {
-    for (const point of resources) {
-      if (resourceRadius > 0 && !bboxNearView(point, view, resourceRadius)) continue;
-      visibleResources.push(point);
-      if (visibleResources.length >= resourceMax) break;
-    }
-  }
+  const visibleResources = pickFairByKind(
+    resources,
+    view,
+    resourceRadius,
+    RESOURCE_POINT_MAX_BY_TIER[tier],
+  );
 
   const militaryMax = MILITARY_BASE_AREA_MAX_BY_TIER[tier];
   const militaryRadius =

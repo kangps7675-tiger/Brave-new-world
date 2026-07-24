@@ -131,7 +131,7 @@ export function ParchmentLetter({
   const bodyFont = parchmentStack;
   const titleFont = parchmentStack;
   const resolvedBackMark = backMark ?? (lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko);
-  const resolvedBackSub = backSub ?? (lang === "en" ? "멋진 신세계" : "Brave New World");
+  const resolvedBackSub = backSub ?? (lang === "en" ? BRAND_NAME.ko : BRAND_NAME.en);
 
   const fullBody = useMemo(() => paragraphs.join("\n\n"), [paragraphs]);
   const totalChars = fullBody.length;

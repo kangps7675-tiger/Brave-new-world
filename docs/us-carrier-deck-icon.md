@@ -1,6 +1,6 @@
 # US 항공모함 갑판 아이콘 (CVN Deck Silhouette)
 
-Conflict View 지도 마커용 **공중俯視 항모 실루엣** 설계 문서입니다.  
+멋진 신세계 지도 마커용 **공중俯視 항모 실루엣** 설계 문서입니다.  
 데이터·아이콘·렌더링을 바꿀 때 이 문서와 `src/data/usCarrierDeckSilhouette.ts`를 함께 참고하세요.
 
 ## 참조 이미지

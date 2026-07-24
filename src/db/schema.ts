@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 /**
- * D1 schema (Drizzle) — Conflict View
+ * D1 schema (Drizzle) — 멋진 신세계
  *
  * - firms_fires: Cron ingest 라이브 산불/열원 (NASA FIRMS)
  * - ukraine_control_paths: 점령/주장 테두리·빗금 사전계산 path
@@ -527,6 +527,39 @@ export const navareaFeatures = sqliteTable(
 );
 
 /**
+ * 군사 훈련 경보 — 공시·OSINT·(보너스) RF 다층.
+ * 항적만으로 북·중·러·이란을 “정확”히 보는 용도가 아님.
+ */
+export const militaryExercises = sqliteTable(
+  "military_exercises",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    actorsJson: text("actors_json").notNull().default("[]"),
+    coalition: text("coalition"),
+    theater: text("theater"),
+    lat: real("lat"),
+    lng: real("lng"),
+    geojson: text("geojson"),
+    startsAt: text("starts_at"),
+    endsAt: text("ends_at"),
+    announcedAt: text("announced_at"),
+    /** announced | announced_rf | announced_osint | unverified */
+    confidence: text("confidence").notNull().default("announced"),
+    sourcesJson: text("sources_json").notNull().default("[]"),
+    rfGapNote: text("rf_gap_note"),
+    active: integer("active").notNull().default(1),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    activeIdx: index("idx_military_exercises_active").on(t.active, t.announcedAt),
+    theaterIdx: index("idx_military_exercises_theater").on(t.theater),
+    geoIdx: index("idx_military_exercises_geo").on(t.lat, t.lng),
+  }),
+);
+
+/**
  * 게스트 일일 예측 — 내일 긴장도 1위 전장 고르기 / 긴장도 UP·DOWN.
  * PK (target_date, kind, device_id) — 하루 1표 upsert.
  */
@@ -766,3 +799,5 @@ export type UkmtoIncidentRow = typeof ukmtoIncidents.$inferSelect;
 export type NewUkmtoIncidentRow = typeof ukmtoIncidents.$inferInsert;
 export type NavareaFeatureRow = typeof navareaFeatures.$inferSelect;
 export type NewNavareaFeatureRow = typeof navareaFeatures.$inferInsert;
+export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
+export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;

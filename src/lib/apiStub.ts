@@ -33,7 +33,8 @@ export type ApiStubRoute =
   | "bunker-sentiment"
   | "sitrep"
   | "ukmto"
-  | "navarea";
+  | "navarea"
+  | "military-exercises";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -322,6 +323,8 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
         fetchedAt: at,
         stub: true,
       };
+    case "military-exercises":
+      return { exercises: [], fetchedAt: at, stub: true };
     default:
       return { stub: true, fetchedAt: at };
   }

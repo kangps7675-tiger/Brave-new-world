@@ -9,9 +9,13 @@ import { loadPerfPrefs, savePerfPrefs } from "@/lib/ultraLiteMode";
 
 type DomainGateOverlayProps = {
   onSelect: (mode: ViewerMode, ultraLite: boolean) => void;
+  /** 선택 진입 — 환영 편지 (기본 플로우에서는 건너뜀) */
+  onOpenLetter?: () => void;
+  /** 선택 진입 — 성능·사운드 주의 안내 */
+  onOpenCaution?: () => void;
 };
 
-export function DomainGateOverlay({ onSelect }: DomainGateOverlayProps) {
+export function DomainGateOverlay({ onSelect, onOpenLetter, onOpenCaution }: DomainGateOverlayProps) {
   const { lang } = useLocale();
   const [ultraLite, setUltraLite] = useState(false);
 
@@ -98,6 +102,29 @@ export function DomainGateOverlay({ onSelect }: DomainGateOverlayProps) {
             </span>
           </button>
         </div>
+
+        {(onOpenLetter || onOpenCaution) ? (
+          <div className="mt-5 flex items-center justify-center gap-5 text-[12px] text-slate-500">
+            {onOpenLetter ? (
+              <button
+                type="button"
+                onClick={onOpenLetter}
+                className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-300"
+              >
+                {lang === "en" ? "Read the welcome letter" : "환영 편지 읽기"}
+              </button>
+            ) : null}
+            {onOpenCaution ? (
+              <button
+                type="button"
+                onClick={onOpenCaution}
+                className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-300"
+              >
+                {lang === "en" ? "Performance & sound notes" : "성능·사운드 안내"}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

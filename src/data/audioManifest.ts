@@ -1,5 +1,5 @@
 /**
- * Conflict View — 사운드 지휘소(Manifest)
+ * 멋진 신세계 — 사운드 지휘소(Manifest)
  *
  * Freesound HQ mp3는 `/api/sound-stream` 프록시. `freesoundId`가 있으면 텍스트 검색보다 우선
  * (오매칭·잡음 차단). ID는 페이지 설명·태그를 기준으로 큐레이션한 값.
