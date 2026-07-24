@@ -1,6 +1,6 @@
 import { clampGlobeAltitude } from "@/lib/globeCamera";
 
-/** Conflict View 단일 베이스맵 — Carto Dark Matter (레이어 가독용 다크 벡터) */
+/** 멋진 신세계 단일 베이스맵 — Carto Dark Matter (레이어 가독용 다크 벡터) */
 export const MAPLIBRE_STYLE_URL =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 

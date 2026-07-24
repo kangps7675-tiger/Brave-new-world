@@ -15,7 +15,7 @@ compatibility_date = "2025-10-11"
 workers_dev = true
 
 # Optional: allow lightweight URL/Buffer helpers if needed later
-compatibility_flags = []
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 # Theater FIRMS day window (1–5). SNPP+NOAA20+NOAA21 병합이라 2일이면 충분.
@@ -26,6 +26,12 @@ FIRMS_MAX_PER_THEATER = "400"
 GDELT_MAX_POINTS = "250"
 # Retain window for prune (hours)
 RETENTION_HOURS = "48"
+# Web Push VAPID (public — private은 wrangler secret)
+VAPID_PUBLIC_KEY = "BBVEwTmDSfLWMTtvbYbLwJhK_i4ZUvB_yW9aoUtGy80oi5GwIlWE6oVIHJJ0MR9yyGaeKVFEc4_ZvMNEff-PUhk"
+VAPID_SUBJECT = "mailto:kangps7675@gmail.com"
+# NAVAREA TXT 폴링 최소 간격(분). 소스 자체는 이벤트 발행이지만 웹훅 없음 →
+# cron이 확인할 때만 지도에 반영. 15~30 권장 (너무 짧으면 봇 취급 위험).
+NAVAREA_POLL_MIN_INTERVAL_MINUTES = "30"
 
 [[d1_databases]]
 binding = "DB"
@@ -33,7 +39,9 @@ database_name = "conflict-view-db"
 database_id = "7e44bacd-d2f1-4c77-84c2-7be6b90fa0ae"
 migrations_dir = "drizzle"
 
-# Every 10 minutes
+# Every 10 minutes — FIRMS/AIS 등 빠른 레이어용.
+# NAVAREA는 웹훅이 없는 정적 TXT라 폴링이 필요하지만, 정부기관 예우상
+# navarea.ts 내부 min-interval(기본 30분)로 자체 스로틀한다 (크론을 늦출 필요 없음).
 [triggers]
 crons = ["*/10 * * * *"]
 

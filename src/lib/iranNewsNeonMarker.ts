@@ -1,9 +1,11 @@
 /**
- * 이란 NewFeeds 공격·뉴스 — 하얀 네온 점 + 물결(리플) 파형.
- * HAPI(IRN) 집계와 구분: 여기는 사건 단위 위치 마커.
+ * 이란 NewFeeds HTML 폴백 배지 (기본 표시는 MapLibre 빨간 구체).
+ * NewFeeds = 이란 국영·공식 매체 → 빨간 구체 — 흰 네온(UCDP 속보)과 혼용하지 않음.
  */
 
-import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
+import type { NewfeedsAttackPoint, NewfeedsSeverity } from "@/lib/newfeeds";
+import { severityColor } from "@/lib/newfeeds";
+import { localizeNewfeedsLocation, localizeNewfeedsTitle } from "@/lib/newfeedsI18n";
 
 export const IRAN_NEWS_NEON_ROOT = "iran-news-neon-marker";
 
@@ -18,10 +20,10 @@ function ensureStyles() {
     @keyframes iran-news-ripple {
       0% {
         transform: translate(-50%, -50%) scale(0.3);
-        opacity: 0.9;
+        opacity: 0.85;
       }
       65% {
-        opacity: 0.28;
+        opacity: 0.22;
       }
       100% {
         transform: translate(-50%, -50%) scale(1.7);
@@ -31,15 +33,15 @@ function ensureStyles() {
     @keyframes iran-news-core-glow {
       0%, 100% {
         box-shadow:
-          0 0 5px 1px rgba(255, 255, 255, 0.95),
-          0 0 12px 4px rgba(255, 255, 255, 0.45),
-          0 0 22px 8px rgba(200, 230, 255, 0.25);
+          0 0 5px 1px rgba(239, 68, 68, 0.95),
+          0 0 12px 4px rgba(220, 38, 38, 0.5),
+          0 0 22px 8px rgba(185, 28, 28, 0.28);
       }
       50% {
         box-shadow:
-          0 0 7px 2px rgba(255, 255, 255, 1),
-          0 0 18px 6px rgba(255, 255, 255, 0.65),
-          0 0 28px 10px rgba(180, 220, 255, 0.35);
+          0 0 7px 2px rgba(248, 113, 113, 1),
+          0 0 18px 6px rgba(239, 68, 68, 0.7),
+          0 0 28px 10px rgba(220, 38, 38, 0.4);
       }
     }
     .${IRAN_NEWS_NEON_ROOT} {
@@ -57,8 +59,8 @@ function ensureStyles() {
       width: 20px;
       height: 20px;
       border-radius: 9999px;
-      border: 1.5px solid rgba(255, 255, 255, 0.88);
-      box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.4);
+      border: 1.5px solid rgba(239, 68, 68, 0.9);
+      box-shadow: 0 0 10px 1px rgba(220, 38, 38, 0.45);
       animation: iran-news-ripple 2.6s ease-out infinite;
       pointer-events: none;
     }
@@ -76,7 +78,7 @@ function ensureStyles() {
       height: 8px;
       margin: -4px 0 0 -4px;
       border-radius: 9999px;
-      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8f4ff 45%, #a8c8e8 100%);
+      background: radial-gradient(circle at 35% 30%, #fecaca 0%, #ef4444 45%, #b91c1c 100%);
       animation: iran-news-core-glow 1.9s ease-in-out infinite;
       pointer-events: none;
     }
@@ -108,6 +110,19 @@ function severityIntensity(severity: string | undefined): number {
   return 0.45;
 }
 
+function parseRgba(color: string): { r: number; g: number; b: number; a: number } | null {
+  const m = color.match(
+    /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/,
+  );
+  if (!m) return null;
+  return {
+    r: Number(m[1]),
+    g: Number(m[2]),
+    b: Number(m[3]),
+    a: m[4] != null ? Number(m[4]) : 1,
+  };
+}
+
 export type IranNewsNeonAttack = NewfeedsAttackPoint & {
   markerId: string;
   /** 가장 가까운 HAPI IRN admin1 태그 */
@@ -124,23 +139,24 @@ export function createIranNewsNeonBadge(
 ): HTMLElement {
   ensureStyles();
   const intensity = severityIntensity(attack.severity);
+  const sev = (attack.severity || "medium") as NewfeedsSeverity;
+  const fill = severityColor(sev);
+  const rgba = parseRgba(fill);
   const root = document.createElement("div");
   root.className = IRAN_NEWS_NEON_ROOT;
   root.dataset.markerId = attack.markerId;
   root.dataset.severity = attack.severity || "low";
+  const title = localizeNewfeedsTitle(attack.title, lang);
+  const location = localizeNewfeedsLocation(attack.location, lang);
   const tagLine = attack.hapiTag
-    ? lang === "en"
-      ? `HAPI · ${attack.hapiTag}`
-      : `HAPI · ${attack.hapiTag}`
+    ? `HAPI · ${attack.hapiTag}`
     : "";
-  root.title = [attack.title, attack.location, tagLine].filter(Boolean).join("\n");
+  root.title = [title, location, tagLine].filter(Boolean).join("\n");
   root.setAttribute("role", "img");
   root.setAttribute(
     "aria-label",
     escapeAttr(
-      lang === "en"
-        ? `Iran incident · ${attack.title}`
-        : `이란 사건 · ${attack.title}`,
+      lang === "en" ? `Iran incident · ${title}` : `이란 사건 · ${title}`,
     ),
   );
   root.style.opacity = String(0.75 + intensity * 0.25);
@@ -151,6 +167,10 @@ export function createIranNewsNeonBadge(
     const size = 16 + intensity * 10;
     ripple.style.width = `${size}px`;
     ripple.style.height = `${size}px`;
+    if (rgba) {
+      ripple.style.borderColor = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.9)`;
+      ripple.style.boxShadow = `0 0 10px 1px rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.45)`;
+    }
     root.appendChild(ripple);
   }
 
@@ -160,6 +180,9 @@ export function createIranNewsNeonBadge(
   core.style.width = `${corePx}px`;
   core.style.height = `${corePx}px`;
   core.style.margin = `${-corePx / 2}px 0 0 ${-corePx / 2}px`;
+  if (rgba) {
+    core.style.background = `radial-gradient(circle at 35% 30%, rgba(254, 226, 226, 0.95) 0%, rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.95) 48%, rgba(${Math.max(0, rgba.r - 40)}, ${Math.max(0, rgba.g - 20)}, ${Math.max(0, rgba.b - 20)}, 1) 100%)`;
+  }
   root.appendChild(core);
 
   root.addEventListener("mouseenter", () => handlers?.onHover?.(attack));

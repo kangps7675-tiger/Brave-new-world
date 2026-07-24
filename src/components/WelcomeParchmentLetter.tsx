@@ -21,7 +21,7 @@ const LETTER_KO = {
   ],
   signOff: `${BRAND_NAME.ko}\n지구본 관측대에서`,
   backMark: BRAND_NAME.ko,
-  backSub: "Brave New World",
+  backSub: BRAND_NAME.en,
 };
 
 const LETTER_EN = {
@@ -40,7 +40,7 @@ const LETTER_EN = {
   ],
   signOff: `${BRAND_NAME.en}\nFrom the Globe Observatory`,
   backMark: BRAND_NAME.en,
-  backSub: "멋진 신세계",
+  backSub: BRAND_NAME.ko,
 };
 
 type WelcomeParchmentLetterProps = {
@@ -61,6 +61,8 @@ export function WelcomeParchmentLetter({ lang, onContinue }: WelcomeParchmentLet
       ctaLabel={t("welcomeLetterCta", lang)}
       onContinue={onContinue}
       titleId="welcome-letter-title"
+      historyHandFont={lang !== "en"}
+      intelFont={lang === "en"}
     />
   );
 }

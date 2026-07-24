@@ -1,3 +1,8 @@
+import {
+  finalizeLayerPrefsWithAffinity,
+  noteLayerAffinityAttendance,
+} from "@/lib/layerAffinityPrefs";
+
 export type LabelLanguage = "en" | "ko";
 
 export type LayerPrefs = {
@@ -9,6 +14,8 @@ export type LayerPrefs = {
   showCityLabels: boolean;
   showRailGlow: boolean;
   showAis: boolean;
+  /** 위장·다크플리트 선박 (AIS_Tracker OSINT 시드) */
+  showDisguisedVessels: boolean;
   showShippingLanes: boolean;
   showSubmarineCables: boolean;
   /** 해저터널 인프라 (D1 클라우드 로그 · 토글 시 온디맨드) */
@@ -76,6 +83,21 @@ export type LayerPrefs = {
    * @see https://github.com/ktoetotam/NewFeeds
    */
   showNewfeedsIranAttacks: boolean;
+  /**
+   * UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보 — 검은 동그라미 빗금 박스(강도별 흑↔백).
+   * 비공식(리버스 엔지니어링) 엔드포인트 — README「비공식 엔드포인트 사용 원칙」참고.
+   */
+  showUkmtoIncidents: boolean;
+  /**
+   * NAVAREA in-force 항행경보 (JHOD XI 등) — 보라색 폴리곤/선.
+   * 일본 근해 훈련·미사일 낙하지·케이블 작업 등. UKMTO와 함께 기본 ON.
+   */
+  showNavareaWarnings: boolean;
+  /**
+   * 군사 훈련 구역 — 공시·OSINT 다층 (항적만으로 북중러이란 “정확” 불가).
+   * 신규 감지 시 자동 ON → fly → 전보 양피지.
+   */
+  showMilitaryExercises: boolean;
   /** 중국↔대만 대치 (대만해협·남중국해·서태평양 · 네온 리플) */
   showChinaTaiwanIncidents: boolean;
   /** 중국↔일본 대치 (동중국해·센카쿠 · 네온 리플) */
@@ -92,6 +114,11 @@ export type LayerPrefs = {
   showNeptunPreviousTrails: boolean;
   /** 동아시아 ADIZ (KADIZ/JADIZ/TAIDIZ/북한/CADIZ) */
   showEastAsiaAdiz: boolean;
+  /**
+   * 중국 도련선(적) · 미군 인도·태평양 방어선(청) · 대만 화약고 펄스
+   * @see src/data/islandChains.ts
+   */
+  showIslandChains: boolean;
   /** IRN–CHN–RUS–PRK 축·스포크 외교·군수·하이브리드 관계망 */
   showAxisNetwork: boolean;
   /** World Bank BRI 무역·운송 연결성 (중국→참여국) */
@@ -105,8 +132,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v27: 추정 탄착 포물선 제거 — NEPTUN(실측) + 발사/대치 네온만 */
-export const LAYER_PREFS_KEY = "geowatch-layers-v27";
+/** v33: 군사 훈련 경보 레이어 (공시·OSINT 다층) */
+export const LAYER_PREFS_KEY = "geowatch-layers-v33";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -115,6 +142,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showCityLabels: false,
   showRailGlow: false,
   showAis: false,
+  showDisguisedVessels: false,
   showShippingLanes: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
@@ -168,6 +196,9 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showTelegramOsint: true,
   showTzevaAdom: false,
   showNewfeedsIranAttacks: true,
+  showUkmtoIncidents: true,
+  showNavareaWarnings: true,
+  showMilitaryExercises: false,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,
@@ -176,6 +207,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showEastAsiaAdiz: false,
+  showIslandChains: false,
   showAxisNetwork: false,
   showBriTradeConnectivity: false,
   showUsDfcSupplyChain: false,
@@ -185,6 +217,12 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v32",
+  "geowatch-layers-v31",
+  "geowatch-layers-v30",
+  "geowatch-layers-v29",
+  "geowatch-layers-v28",
+  "geowatch-layers-v27",
   "geowatch-layers-v26",
   "geowatch-layers-v25",
   "geowatch-layers-v24",
@@ -255,6 +293,8 @@ function mergeSavedPrefs(parsed: SavedLayerPrefs): LayerPrefs {
     mobileHomeView: parseMobileHomeView(rest.mobileHomeView),
     /** UI 체크박스 제거 — 지나간 드론·미사일 궤적 강제 OFF */
     showNeptunPreviousTrails: false,
+    /** 자홍 슬롯 → NAVAREA 보라 전용. 동맹 갈등 GDELT 핀 레이어 제거 */
+    showGdeltAlliance: false,
   };
 }
 
@@ -304,14 +344,16 @@ export function loadLayerPrefs(): LayerPrefs {
   try {
     const v21Raw = localStorage.getItem(LAYER_PREFS_KEY);
     if (v21Raw) {
-      return mergeSavedPrefs(JSON.parse(v21Raw) as SavedLayerPrefs);
+      return finalizeLayerPrefsWithAffinity(
+        mergeSavedPrefs(JSON.parse(v21Raw) as SavedLayerPrefs),
+      );
     }
 
     const v19Raw = localStorage.getItem("geowatch-layers-v19");
     if (v19Raw) {
       const migrated = migrateV19ToV20(JSON.parse(v19Raw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return migrated;
+      return finalizeLayerPrefsWithAffinity(migrated);
     }
 
     for (const legacyKey of LEGACY_LAYER_KEYS) {
@@ -319,11 +361,14 @@ export function loadLayerPrefs(): LayerPrefs {
       if (!legacyRaw) continue;
       const migrated = mergeSavedPrefs(JSON.parse(legacyRaw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return migrated;
+      return finalizeLayerPrefsWithAffinity(migrated);
     }
 
     // 첫 방문(저장된 prefs 없음) — 리퍼러/브라우저 언어로 기본 표시 언어만 추정
-    return { ...DEFAULT_LAYER_PREFS, labelLanguage: detectDefaultLabelLanguage() };
+    return finalizeLayerPrefsWithAffinity({
+      ...DEFAULT_LAYER_PREFS,
+      labelLanguage: detectDefaultLabelLanguage(),
+    });
   } catch {
     return DEFAULT_LAYER_PREFS;
   }
@@ -333,4 +378,5 @@ export function saveLayerPrefs(prefs: LayerPrefs) {
   if (typeof window === "undefined") return;
   if (!shouldPersistLayerPrefs()) return;
   localStorage.setItem(LAYER_PREFS_KEY, JSON.stringify(prefs));
+  noteLayerAffinityAttendance(prefs);
 }

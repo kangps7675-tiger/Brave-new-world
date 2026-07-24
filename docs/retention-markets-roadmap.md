@@ -66,15 +66,31 @@
 
 ## 3.5 관심 프로필 · 맞춤 추천 (P0 로컬)
 
-> **상태:** P0 구현 — `geowatch-interest-v1` localStorage · For you 칩 · 로그인 이관 키 등록.
+> **상태:** P0+ — `geowatch-interest-v1` localStorage · For you 칩 · **행동 스코어로 뉴스 가중·레이어 soft ON** · 로그인 이관 키 등록.  
+> **하지 않음:** 고정 관심 프리셋 픽커(중동 화약고 등). 알고리즘만.
 
 | Phase | 내용 |
 |-------|------|
-| **P0 (지금)** | 클릭·모드·관심종목·등불/왜중요 신호를 기기 로컬에 적재. 하단 인텔 스택 **맞춤(For you)** 칩 2~4개. |
+| **P0 (지금)** | 클릭·모드·관심종목·등불/왜중요 신호를 기기 로컬에 적재. 하단 **맞춤(For you)** 칩 2~4개. |
+| **P0.5 (지금)** | `applyFromInterest` — 관심 전장으로 Intel 뉴스 정렬 가중 · 일 1회 테마/전장 레이어 soft ON(끄기 없음). |
 | **P1** | 로그인 시 `InterestStore` → 계정 문서. `onFirstLoginMigrateLocal: ask` 로 로컬 merge. |
-| 이후 | 등불 기사 재정렬 · HoverNav 빈 입력 추천 (이번 범위 밖) |
+| 이후 | 푸시 알림은 유료 티어 · HoverNav 빈 입력 추천 |
 
 코드: `src/lib/interest/*` · `InterestRecommendChips` · `guestPolicy.GUEST_LOCAL_PREF_KEYS`.
+
+관련(별도): 군사 훈련 자동 경보·confidence는 [exercise-alerts.md](./exercise-alerts.md).
+
+---
+
+## 3.6 일일 긴장도 랭킹 · 내일 1위 예측 (P0 MVP)
+
+> **상태:** P0 구현 — 점수 안정화 + 게스트 예측 + 「어제 맞춘 %」.
+
+**점수 공식 (cron `dailyRanks.ts`):** 성분 `log1p` 가중 → `0.55*raw + 0.45*prev` EMA → 일일 `|Δ| ≤ max(prev,12)*0.4` 캡. 순위는 안정화 점수, `detail_json`에 `rawScore`/`smoothScore`/`displayScore`(당일 max 대비 0–100).
+
+**예측 루프:** 오늘 전장 TOP에서 **내일 긴장도 1위** 고르기 → `deviceId`(localStorage) 익명 1표 upsert → UTC cron이 랭킹 upsert 직후 정산 → `daily_prediction_stats.correct_pct` → UI 「어제 맞춘 N%」. 로그인·포인트·복수 문항은 다음 단계 (`guestPolicy` 키만 예고).
+
+코드: `workers/cron-ingest/src/dailyRanks.ts` · `dailyPredictions.ts` · `DailyPredictPanel` · `POST /api/daily-predict`.
 
 ---
 
@@ -136,7 +152,7 @@ UI: Intel 관련 시장 패널 · 경제 허브 패널에 “왜 이 심볼?” 
 
 ## 8. 비목표
 
-- Conflict View = 증권 앱
+- 멋진 신세계 = 증권 앱
 - 푸시로 매수 타이밍 알림
 - Telegram 기반 자동 트레이딩 시그널
 
@@ -148,5 +164,7 @@ UI: Intel 관련 시장 패널 · 경제 허브 패널에 “왜 이 심볼?” 
   - [ ] “오늘 핫한 곳”이 24h 내 갱신되거나 stale 표시
   - [ ] 기본 세션이 무음/저음으로도 사용 가능
   - [ ] 심볼 UI에 투자 권유 아님 고지
-  - [x] 로컬 관심 신호 → For you 칩 (게스 트 기기)
+  - [x] 로컬 관심 신호 → For you 칩 (게스트 기기)
+  - [x] 긴장도 점수 log1p+EMA+일일 cap + 내일 1위 예측 MVP
   - [ ] 로그인 시 관심 프로필 계정 merge
+  - [ ] 로그인 시 예측 deviceId → 계정 연동

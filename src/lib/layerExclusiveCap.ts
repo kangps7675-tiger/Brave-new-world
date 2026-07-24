@@ -1,13 +1,14 @@
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /**
- * 레이어 동시 ON 캡 — 해제(사실상 무제한).
- * Ultra-Lite만 약한 상한을 남겨 저사양 모드 의미를 유지한다.
+ * 레이어 동시 ON 캡
+ * - 일반: 30
+ * - Ultra-Lite: 16 (저사양)
  */
-export const ACTIVE_LAYER_CAP_DEFAULT = Number.POSITIVE_INFINITY;
+export const ACTIVE_LAYER_CAP_DEFAULT = 30;
 
 /** ultra-lite — 무거운 폴링 레이어를 줄이는 소프트 상한 */
-export const ACTIVE_LAYER_CAP_ULTRA = 12;
+export const ACTIVE_LAYER_CAP_ULTRA = 16;
 
 /**
  * 캡 집계에서 제외:
@@ -25,13 +26,17 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showWarZones",
   "showDiplomaticTension",
   "showEastAsiaAdiz",
+  "showIslandChains",
   "showAxisNetwork",
   "showGdeltWar",
   "showGdeltOceanCompetition",
   "showFirmsFires",
+  "showUkmtoIncidents",
+  "showNavareaWarnings",
   "showMilitaryActivity",
   "showAirTraffic",
   "showAis",
+  "showDisguisedVessels",
   "showTzevaAdom",
   "showNewfeedsIranAttacks",
   "showChinaTaiwanIncidents",
@@ -45,6 +50,16 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showLogisticsRisk",
   "showCriticalNodes",
   "showSubmarineCables",
+  "showOilPipelines",
+  "showGasPipelines",
+  "showLngTerminals",
+  "showResources",
+  "showGemOilGasExtraction",
+  "showGemCoalMines",
+  "showGemIronOre",
+  "showNuclearSites",
+  "showBriTradeConnectivity",
+  "showUsDfcSupplyChain",
   "showCityLabels",
 ];
 
@@ -66,21 +81,71 @@ export function activeLayerCap(ultraLite: boolean): number {
   return ultraLite ? ACTIVE_LAYER_CAP_ULTRA : ACTIVE_LAYER_CAP_DEFAULT;
 }
 
-/** 끄기(false)는 항상 OK. 일반 모드는 캡 없음. Ultra-Lite만 상한. */
+/** 끄기(false)는 항상 OK. ON은 일반 30 / Ultra 16 상한. */
 export function canEnableLayer(
   prefs: LayerPrefs,
   key: keyof LayerPrefs,
   ultraLite: boolean,
 ): boolean {
-  if (!ultraLite) return true;
   if (!isLayerCapCountedKey(key)) return true;
   if (prefs[key] === true) return true;
-  return countActiveLayers(prefs) < activeLayerCap(true);
+  return countActiveLayers(prefs) < activeLayerCap(ultraLite);
+}
+
+/**
+ * 캡이 남아 있으면 ON. 초과면 prefs 그대로(호출측에서 거부·경고).
+ * Ultra에서만 자리 비우기가 필요하면 enableLayerEvictingCap 사용.
+ */
+export function enableLayerWithCap(
+  prefs: LayerPrefs,
+  key: keyof LayerPrefs,
+  ultraLite: boolean,
+): LayerPrefs {
+  if (!isLayerCapCountedKey(key)) {
+    return { ...prefs, [key]: true } as LayerPrefs;
+  }
+  if (prefs[key] === true) return prefs;
+  if (!canEnableLayer(prefs, key, ultraLite)) return prefs;
+  return { ...prefs, [key]: true } as LayerPrefs;
+}
+
+/**
+ * Ultra-Lite 전용 — 캡 초과 시 우선순위 낮은 레이어를 끄고 새 레이어 ON.
+ */
+export function enableLayerEvictingCap(
+  prefs: LayerPrefs,
+  key: keyof LayerPrefs,
+  ultraLite: boolean,
+): LayerPrefs {
+  const next = { ...prefs, [key]: true } as LayerPrefs;
+  if (!isLayerCapCountedKey(key)) return next;
+  if (prefs[key] === true) return prefs;
+
+  const cap = activeLayerCap(ultraLite);
+  if (countActiveLayers(next) <= cap) return next;
+
+  const priorityIndex = new Map(
+    LAYER_CAP_KEEP_PRIORITY.map((k, index) => [k, index] as const),
+  );
+  const victims = (Object.keys(next) as Array<keyof LayerPrefs>).filter(
+    (k) => k !== key && isLayerCapCountedKey(k) && next[k] === true,
+  );
+  victims.sort((a, b) => {
+    const pa = priorityIndex.get(a) ?? 10_000;
+    const pb = priorityIndex.get(b) ?? 10_000;
+    if (pa !== pb) return pb - pa;
+    return String(b).localeCompare(String(a));
+  });
+
+  for (const victim of victims) {
+    if (countActiveLayers(next) <= cap) break;
+    (next as Record<string, boolean | string>)[victim as string] = false;
+  }
+  return next;
 }
 
 /**
  * prefs가 캡을 넘으면 우선순위 밖·뒤쪽 ON을 끈다.
- * 일반 모드(cap=∞)에서는 no-op.
  */
 export function clampPrefsToActiveCap(
   prefs: LayerPrefs,

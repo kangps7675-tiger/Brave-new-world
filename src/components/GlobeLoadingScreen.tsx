@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { BUNDLE_PROGRESS_CAP } from "@/lib/bootLoadingProgress";
 
 function loadingStageLabel(progress: number): string {
-  if (progress < BUNDLE_PROGRESS_CAP) return "앱 준비 중…";
-  if (progress < 45) return "3D 지구본 엔진 로드…";
-  if (progress < 78) return "지도·데이터 받는 중…";
-  if (progress < 95) return "레이어 연결 중…";
-  return "거의 다 됐어요…";
+  if (progress < BUNDLE_PROGRESS_CAP) return "DECRYPTING ENCRYPTED STREAM…";
+  if (progress < 45) return "INITIALIZING GLOBE RENDER CORE…";
+  if (progress < 78) return "SYNCING GEOINT / FININT BUFFERS…";
+  if (progress < 95) return "LINKING LAYER PIPELINES…";
+  return "OPERATOR NODE READY…";
 }
 
 const VERT = `

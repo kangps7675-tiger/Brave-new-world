@@ -3,6 +3,7 @@ import {
   adsbMilQuerySchema,
   adsbTrafficQuerySchema,
   firmsFiresQuerySchema,
+  gdeltQuerySchema,
   parseSearchParams,
 } from "@/lib/apiQuerySchemas";
 import { PRIMARY_LIVE_SOURCES, catalogCaption, getSourceNote } from "@/data/sourceCatalog";
@@ -72,5 +73,23 @@ describe("apiQuerySchemas", () => {
       expect(result.data.max).toBe(400);
       expect(result.data.live).toBe(true);
     }
+  });
+
+  it("rejects gdelt theme=war with allowed-values message", () => {
+    const result = parseSearchParams(
+      new URLSearchParams({ theme: "war" }),
+      gdeltQuerySchema,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const themeIssue = result.issues.find((i) => i.path.includes("theme"));
+      expect(themeIssue?.message).toContain("허용값: cyber, election");
+    }
+  });
+
+  it("allows gdelt without theme", () => {
+    const result = parseSearchParams(new URLSearchParams(), gdeltQuerySchema);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.theme).toBeUndefined();
   });
 });

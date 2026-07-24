@@ -118,6 +118,7 @@ export function GlobeBootLoader({
       clearTimeout(dashboardBootTimerRef.current);
       dashboardBootTimerRef.current = null;
     }
+    setDashboardProgress(100);
     dismissLoadingOverlay();
   }, [dismissLoadingOverlay]);
 
@@ -208,6 +209,20 @@ export function GlobeBootLoader({
   const showLoadingOverlay = overlayVisible;
   /** 패키지 완료(또는 기존 유저) 후 대시보드 마운트 — 로딩 뒤 상호작용 */
   const mountDashboard = pickerDone && Dashboard !== null;
+
+  /**
+   * 모드 피커가 꺼진 기본 경로에서는 beginDashboardLoading()이 호출되지 않아
+   * 45초 failsafe가 안 걸렸고, globeReady/isLoading이 안 풀리면 스플래시가 영구 고착됐다.
+   * 대시보드 마운트 시 타이머가 없으면 여기서 보강한다.
+   */
+  useEffect(() => {
+    if (!mountDashboard) return;
+    if (dashboardOverlayDoneRef.current) return;
+    if (dashboardBootTimerRef.current != null) return;
+    dashboardBootTimerRef.current = setTimeout(() => {
+      finishDashboardLoading();
+    }, DASHBOARD_BOOT_TIMEOUT_MS);
+  }, [finishDashboardLoading, mountDashboard]);
 
   return (
     <ErrorBoundary name="globe-boot">

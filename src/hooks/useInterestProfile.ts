@@ -10,32 +10,32 @@ import type {
   InterestState,
 } from "@/lib/interest/interestTypes";
 
-function readProfile(): {
+function readProfile(mode: "conflict" | "economy"): {
   state: InterestState;
   profile: InterestProfile;
   chips: InterestRecommendChip[];
 } {
   const state = getInterestStore().load();
   const profile = deriveInterestProfile(state);
-  const chips = recommendFromInterest(profile);
+  const chips = recommendFromInterest(profile, mode);
   return { state, profile, chips };
 }
 
-export function useInterestProfile() {
+export function useInterestProfile(mode: "conflict" | "economy" = "conflict") {
   const [profile, setProfile] = useState<InterestProfile>(() =>
     typeof window === "undefined"
       ? { buckets: [], topTheaters: [], topThemes: [], topSymbols: [], eventCount: 0 }
-      : readProfile().profile,
+      : readProfile(mode).profile,
   );
   const [chips, setChips] = useState<InterestRecommendChip[]>(() =>
-    typeof window === "undefined" ? [] : readProfile().chips,
+    typeof window === "undefined" ? [] : readProfile(mode).chips,
   );
 
   const refresh = useCallback(() => {
-    const next = readProfile();
+    const next = readProfile(mode);
     setProfile(next.profile);
     setChips(next.chips);
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     refresh();

@@ -22,6 +22,18 @@ import { fetchFirmsForTheaters } from "./firms";
 import { fetchGdeltTensionPoints } from "./gdeltExport";
 import { fetchTelegramAlerts } from "./telegram";
 import { readBriefingStats, upsertBriefingPeriodStats } from "./briefingStats";
+import { readDailyRanks, readWorldTension, upsertDailyRanks } from "./dailyRanks";
+import { curateLivingTaiwan } from "./livingTaiwan";
+import { fetchAndUpsertAirRaids } from "./airRaidIngest";
+import { fetchAndUpsertUkmto } from "./ukmto";
+import { fetchAndReplaceNavarea } from "./navarea";
+import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
+import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
+import {
+  broadcastPush,
+  deletePushSubscription,
+  upsertPushSubscription,
+} from "./push";
 
 export type { IngestEnv };
 
@@ -56,12 +68,58 @@ type IngestResult = {
     aisDeleted?: number;
     adsbDeleted?: number;
     telegramDeleted?: number;
+    airRaidDeleted?: number;
+    signalDailyDeleted?: number;
     cutoff: string;
   };
+  airRaid?: {
+    count: number;
+    tzevaCount: number;
+    neptunCount: number;
+    geoRestricted: boolean;
+    errors: string[];
+  } | null;
+  baselineBackfill?: {
+    ran: boolean;
+    rowsUpserted?: number;
+    errors?: string[];
+  } | null;
   briefingStats?: {
     dailyKey: string;
     weeklyKey: string;
     monthlyKey: string;
+  } | null;
+  dailyRanks?: {
+    rankDate: string;
+    theaterCount: number;
+    chokepointCount: number;
+    worldTension: number;
+  } | null;
+  livingTaiwan?: {
+    conflictId: string;
+    entryDate: string;
+    upserted: number;
+    skipped: boolean;
+    reason?: string;
+  } | null;
+  ukmto?: {
+    count: number;
+    fetched: number;
+    errors: string[];
+    skipped: boolean;
+  } | null;
+  navarea?: {
+    count: number;
+    fetched: number;
+    errors: string[];
+    skipped: boolean;
+  } | null;
+  militaryExercises?: {
+    count: number;
+    fromNavarea: number;
+    fromNews: number;
+    errors: string[];
+    skipped: boolean;
   } | null;
   error: string | null;
 };
@@ -165,6 +223,82 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       telegramCount = await upsertTelegramAlerts(env.DB, telegram.alerts);
     }
 
+    let airRaid: IngestResult["airRaid"] = null;
+    try {
+      const air = await fetchAndUpsertAirRaids(env);
+      airRaid = {
+        count: air.count,
+        tzevaCount: air.tzevaCount,
+        neptunCount: air.neptunCount,
+        geoRestricted: air.geoRestricted,
+        errors: air.errors.slice(0, 6),
+      };
+    } catch (error) {
+      airRaid = {
+        count: 0,
+        tzevaCount: 0,
+        neptunCount: 0,
+        geoRestricted: false,
+        errors: [error instanceof Error ? error.message : "air raid ingest failed"],
+      };
+    }
+
+    let ukmto: IngestResult["ukmto"] = null;
+    try {
+      const uk = await fetchAndUpsertUkmto(env);
+      ukmto = {
+        count: uk.count,
+        fetched: uk.fetched,
+        errors: uk.errors.slice(0, 6),
+        skipped: uk.skipped,
+      };
+    } catch (error) {
+      ukmto = {
+        count: 0,
+        fetched: 0,
+        errors: [error instanceof Error ? error.message : "ukmto ingest failed"],
+        skipped: false,
+      };
+    }
+
+    let navarea: IngestResult["navarea"] = null;
+    try {
+      const na = await fetchAndReplaceNavarea(env);
+      navarea = {
+        count: na.count,
+        fetched: na.fetched,
+        errors: na.errors.slice(0, 6),
+        skipped: na.skipped,
+      };
+    } catch (error) {
+      navarea = {
+        count: 0,
+        fetched: 0,
+        errors: [error instanceof Error ? error.message : "navarea ingest failed"],
+        skipped: false,
+      };
+    }
+
+    let militaryExercises: IngestResult["militaryExercises"] = null;
+    try {
+      const ex = await fetchAndUpsertMilitaryExercises(env);
+      militaryExercises = {
+        count: ex.count,
+        fromNavarea: ex.fromNavarea,
+        fromNews: ex.fromNews,
+        errors: ex.errors.slice(0, 6),
+        skipped: ex.skipped,
+      };
+    } catch (error) {
+      militaryExercises = {
+        count: 0,
+        fromNavarea: 0,
+        fromNews: 0,
+        errors: [error instanceof Error ? error.message : "military exercise ingest failed"],
+        skipped: false,
+      };
+    }
+
     pruned = await pruneOldRows(env.DB, retentionHours);
     newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
     videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
@@ -184,6 +318,43 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     } catch (error) {
       console.warn(
         "[ingest] briefing stats upsert skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    let dailyRanks: IngestResult["dailyRanks"] = null;
+    try {
+      dailyRanks = await upsertDailyRanks(env.DB);
+    } catch (error) {
+      console.warn(
+        "[ingest] daily ranks upsert skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    let baselineBackfill: IngestResult["baselineBackfill"] = null;
+    try {
+      const light = await maybeLightBaselineBackfill(env);
+      baselineBackfill = light.ran
+        ? {
+            ran: true,
+            rowsUpserted: light.detail?.rowsUpserted,
+            errors: light.detail?.errors,
+          }
+        : { ran: false };
+    } catch (error) {
+      baselineBackfill = {
+        ran: false,
+        errors: [error instanceof Error ? error.message : "baseline backfill failed"],
+      };
+    }
+
+    let livingTaiwan: IngestResult["livingTaiwan"] = null;
+    try {
+      livingTaiwan = await curateLivingTaiwan(env.DB);
+    } catch (error) {
+      console.warn(
+        "[ingest] living taiwan curate skipped:",
         error instanceof Error ? error.message : error,
       );
     }
@@ -211,6 +382,13 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       adsbErrors,
       pruned,
       briefingStats,
+      dailyRanks,
+      airRaid,
+      baselineBackfill,
+      livingTaiwan,
+      ukmto,
+      navarea,
+      militaryExercises,
       error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
     };
 
@@ -239,6 +417,10 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         disputeHatchWarm,
         ukraineHatchWarm,
         briefingStats,
+        dailyRanks,
+        livingTaiwan,
+        ukmto,
+        navarea,
       },
     });
 
@@ -300,7 +482,17 @@ const ALLOWED_TRACK_EVENTS = new Set([
   "share_view_success",
   "friction_card_share_click",
   "friction_card_share_success",
+  "daily_rank_card_share_click",
+  "daily_rank_card_share_success",
+  "daily_predict_submit",
+  "daily_predict_change",
   "mobile_home_view_toggle",
+  "pwa_prompt_shown",
+  "pwa_prompt_accept",
+  "pwa_prompt_dismiss",
+  "pwa_installed",
+  "push_subscribed",
+  "push_subscribe_denied",
 ]);
 
 function authorizeManual(request: Request, env: IngestEnv): boolean {
@@ -349,9 +541,107 @@ const worker = {
           adsb: "GET /adsb?mode=mil|civ&west&south&east&north&max=400",
           briefingStats:
             "GET /briefing-stats?key=daily-YYYY-MM-DD|weekly-YYYY-Www|monthly-YYYY-MM or ?tier=daily|weekly|monthly",
+          dailyRanks:
+            "GET /daily-ranks?date=YYYY-MM-DD&kind=theater|chokepoint&limit=5",
+          dailyPredictionStats:
+            "GET /daily-prediction-stats?date=YYYY-MM-DD&kind=theater",
+          dailyPredict:
+            "POST /daily-predict (Bearer INGEST_CRON_SECRET; body targetDate,kind,deviceId,pickEntityId)",
           track: "POST /track (Bearer INGEST_CRON_SECRET, D1-less hosts like Vercel forward here)",
+          pushSubscribe: "POST /push/subscribe (public; body endpoint,keys)",
+          pushUnsubscribe: "POST /push/unsubscribe (body endpoint)",
+          pushSend: "POST /push/send (Bearer INGEST_CRON_SECRET; body title,body,url,tag)",
         },
       });
+    }
+
+    if (url.pathname === "/push/subscribe" && request.method === "POST") {
+      try {
+        const body = (await request.json()) as {
+          endpoint?: string;
+          keys?: { p256dh?: string; auth?: string };
+          lang?: string;
+          userAgent?: string;
+        };
+        const endpoint = typeof body.endpoint === "string" ? body.endpoint.trim() : "";
+        const p256dh = typeof body.keys?.p256dh === "string" ? body.keys.p256dh.trim() : "";
+        const auth = typeof body.keys?.auth === "string" ? body.keys.auth.trim() : "";
+        if (!endpoint.startsWith("https://") || !p256dh || !auth) {
+          return Response.json({ ok: false, error: "invalid subscription" }, { status: 400 });
+        }
+        if (endpoint.length > 2048 || p256dh.length > 200 || auth.length > 100) {
+          return Response.json({ ok: false, error: "subscription too large" }, { status: 400 });
+        }
+        await upsertPushSubscription(env.DB, {
+          endpoint,
+          p256dh,
+          auth,
+          userAgent:
+            typeof body.userAgent === "string"
+              ? body.userAgent.slice(0, 256)
+              : (request.headers.get("user-agent") || "").slice(0, 256) || null,
+          lang: typeof body.lang === "string" ? body.lang.slice(0, 8) : null,
+        });
+        return Response.json({ ok: true });
+      } catch (error) {
+        return Response.json(
+          {
+            ok: false,
+            error: error instanceof Error ? error.message : "subscribe failed",
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (url.pathname === "/push/unsubscribe" && request.method === "POST") {
+      try {
+        const body = (await request.json()) as { endpoint?: string };
+        const endpoint = typeof body.endpoint === "string" ? body.endpoint.trim() : "";
+        if (!endpoint) {
+          return Response.json({ ok: false, error: "endpoint required" }, { status: 400 });
+        }
+        await deletePushSubscription(env.DB, endpoint);
+        return Response.json({ ok: true });
+      } catch (error) {
+        return Response.json(
+          {
+            ok: false,
+            error: error instanceof Error ? error.message : "unsubscribe failed",
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (url.pathname === "/push/send" && request.method === "POST") {
+      if (!authorizeManual(request, env)) {
+        return Response.json({ error: "unauthorized" }, { status: 401 });
+      }
+      try {
+        const body = (await request.json()) as {
+          title?: string;
+          body?: string;
+          url?: string;
+          tag?: string;
+        };
+        const title = typeof body.title === "string" ? body.title.trim() : "";
+        if (!title || title.length > 120) {
+          return Response.json({ ok: false, error: "title required (≤120)" }, { status: 400 });
+        }
+        const result = await broadcastPush(env, {
+          title,
+          body: typeof body.body === "string" ? body.body.slice(0, 500) : "",
+          url: typeof body.url === "string" ? body.url.slice(0, 500) : "/",
+          tag: typeof body.tag === "string" ? body.tag.slice(0, 64) : "cv-push",
+        });
+        return Response.json(result, { status: result.ok ? 200 : 500 });
+      } catch (error) {
+        return Response.json(
+          { ok: false, error: error instanceof Error ? error.message : "send failed" },
+          { status: 500 },
+        );
+      }
     }
 
     if (url.pathname === "/track" && request.method === "POST") {
@@ -422,8 +712,192 @@ const worker = {
           fetchedAt: new Date().toISOString(),
           source: "d1-cron",
           stats: null,
-          error: error instanceof Error ? error.message : "briefing-stats read failed",
+          error: error instanceof Error ? error.message : "briefing-stats failed",
         });
+      }
+    }
+
+    if (url.pathname === "/daily-ranks") {
+      const date = (url.searchParams.get("date") || "").trim() || undefined;
+      const kindRaw = (url.searchParams.get("kind") || "").trim();
+      const kind =
+        kindRaw === "theater" || kindRaw === "chokepoint" ? kindRaw : undefined;
+      const limit = Number(url.searchParams.get("limit") || "5");
+      try {
+        const ranks = await readDailyRanks(env.DB, {
+          date,
+          kind,
+          limit: Number.isFinite(limit) ? limit : 5,
+        });
+        let yesterdayCorrectPct: number | null = null;
+        try {
+          const { readPredictionStats } = await import("./dailyPredictions");
+          const { prevUtcRankDate } = await import("./dailyRanks");
+          const stats = await readPredictionStats(env.DB, {
+            date: prevUtcRankDate(),
+            kind: "theater",
+          });
+          if (stats && Number(stats.total) > 0) {
+            yesterdayCorrectPct = Number(stats.correct_pct);
+          }
+        } catch {
+          // optional attach
+        }
+        let worldTension: Awaited<ReturnType<typeof readWorldTension>> = null;
+        try {
+          worldTension = await readWorldTension(env.DB, date);
+        } catch {
+          worldTension = null;
+        }
+        return jsonPublic({
+          fetchedAt: new Date().toISOString(),
+          source: "d1-cron",
+          date: date || null,
+          kind: kind || "all",
+          ranks,
+          worldTension,
+          yesterdayCorrectPct,
+        });
+      } catch (error) {
+        return jsonPublic({
+          fetchedAt: new Date().toISOString(),
+          source: "d1-cron",
+          ranks: [],
+          error: error instanceof Error ? error.message : "daily-ranks failed",
+        });
+      }
+    }
+
+    if (url.pathname === "/daily-prediction-stats") {
+      const date = (url.searchParams.get("date") || "").trim() || undefined;
+      const kindRaw = (url.searchParams.get("kind") || "").trim();
+      const kind =
+        kindRaw === "tension-dir" ? "tension-dir" : kindRaw === "theater" ? "theater" : "tension-dir";
+      try {
+        const { readPredictionStats } = await import("./dailyPredictions");
+        const stats = await readPredictionStats(env.DB, { date, kind });
+        return jsonPublic({
+          fetchedAt: new Date().toISOString(),
+          source: "d1-cron",
+          date: date || null,
+          kind,
+          stats: stats
+            ? {
+                targetDate: stats.target_date,
+                kind: stats.kind,
+                total: Number(stats.total) || 0,
+                correct: Number(stats.correct) || 0,
+                correctPct: Number(stats.correct_pct) || 0,
+                winnerEntityId: stats.winner_entity_id,
+                resolvedAt: stats.resolved_at,
+              }
+            : null,
+        });
+      } catch (error) {
+        return jsonPublic({
+          fetchedAt: new Date().toISOString(),
+          source: "d1-cron",
+          stats: null,
+          error:
+            error instanceof Error
+              ? error.message
+              : "daily-prediction-stats failed",
+        });
+      }
+    }
+
+    if (url.pathname === "/daily-prompt") {
+      try {
+        const dateParam = (url.searchParams.get("date") || "").trim();
+        const { nextUtcRankDate, utcRankDate } = await import("./dailyRanks");
+        const { readPrompt, upsertTomorrowPrompt } = await import("./dailyPrompts");
+        const targetDate =
+          /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : nextUtcRankDate();
+        let prompt = await readPrompt(env.DB, targetDate);
+        if (!prompt) {
+          await upsertTomorrowPrompt(env.DB, { rankDate: utcRankDate() });
+          prompt = await readPrompt(env.DB, targetDate);
+        }
+        return Response.json({
+          ok: true,
+          prompt: prompt
+            ? {
+                targetDate: prompt.target_date,
+                subjectKind: prompt.subject_kind,
+                subjectId: prompt.subject_id,
+                labelKo: prompt.label_ko,
+                labelEn: prompt.label_en,
+                baselineScore: Number(prompt.baseline_score) || 0,
+                questionKo: prompt.question_ko,
+                questionEn: prompt.question_en,
+                createdAt: prompt.created_at,
+              }
+            : null,
+        });
+      } catch (error) {
+        return Response.json(
+          {
+            ok: false,
+            error: error instanceof Error ? error.message : "daily-prompt failed",
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (url.pathname === "/daily-predict" && request.method === "POST") {
+      if (!authorizeManual(request, env)) {
+        return Response.json({ error: "unauthorized" }, { status: 401 });
+      }
+      try {
+        const body = (await request.json()) as {
+          targetDate?: string;
+          kind?: string;
+          deviceId?: string;
+          pickEntityId?: string;
+        };
+        const targetDate = (body.targetDate || "").trim();
+        const deviceId = (body.deviceId || "").trim();
+        const pickEntityId = (body.pickEntityId || "").trim();
+        const kind =
+          body.kind === "tension-dir"
+            ? "tension-dir"
+            : body.kind === "theater"
+              ? "theater"
+              : null;
+        const { THEATER_ENTITY_IDS } = await import("./dailyRanks");
+        const pickOk =
+          kind === "tension-dir"
+            ? pickEntityId === "up" || pickEntityId === "down"
+            : Boolean(pickEntityId && THEATER_ENTITY_IDS.includes(pickEntityId));
+        if (
+          !/^\d{4}-\d{2}-\d{2}$/.test(targetDate) ||
+          !kind ||
+          !deviceId ||
+          deviceId.length > 80 ||
+          !pickOk
+        ) {
+          return Response.json({ error: "invalid body" }, { status: 400 });
+        }
+        const { upsertPrediction } = await import("./dailyPredictions");
+        const result = await upsertPrediction(env.DB, {
+          targetDate,
+          kind,
+          deviceId,
+          pickEntityId,
+        });
+        if (!result.ok) {
+          return Response.json({ error: result.error }, { status: 500 });
+        }
+        return Response.json({ ok: true, createdAt: result.createdAt });
+      } catch (error) {
+        return Response.json(
+          {
+            error:
+              error instanceof Error ? error.message : "daily-predict failed",
+          },
+          { status: 500 },
+        );
       }
     }
 
@@ -670,6 +1144,30 @@ const worker = {
       }
       const result = await runIngest(env);
       ctx.waitUntil(Promise.resolve());
+      return Response.json(result, { status: result.ok ? 200 : 502 });
+    }
+
+    if (
+      url.pathname === "/backfill-baseline" &&
+      (request.method === "POST" || request.method === "GET")
+    ) {
+      if (!authorizeManual(request, env)) {
+        return Response.json({ error: "unauthorized" }, { status: 401 });
+      }
+      const days = Math.min(
+        90,
+        Math.max(7, Number(url.searchParams.get("days") || "90") || 90),
+      );
+      const archiveChunks = Math.min(
+        12,
+        Math.max(0, Number(url.searchParams.get("archiveChunks") || "6") || 6),
+      );
+      const result = await runBaselineBackfill(env, {
+        days,
+        firmsDays: 5,
+        includeArchive: archiveChunks > 0,
+        archiveChunks,
+      });
       return Response.json(result, { status: result.ok ? 200 : 502 });
     }
 

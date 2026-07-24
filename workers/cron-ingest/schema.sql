@@ -105,3 +105,147 @@ CREATE TABLE IF NOT EXISTS ingest_runs (
   error TEXT,
   detail_json TEXT
 );
+
+CREATE TABLE IF NOT EXISTS living_timeline_entries (
+  id TEXT NOT NULL PRIMARY KEY,
+  conflict_id TEXT NOT NULL,
+  entry_date TEXT NOT NULL,
+  headline_ko TEXT NOT NULL,
+  headline_en TEXT NOT NULL,
+  source_urls_json TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_living_timeline_conflict_date
+  ON living_timeline_entries (conflict_id, entry_date);
+
+CREATE INDEX IF NOT EXISTS idx_living_timeline_date
+  ON living_timeline_entries (entry_date);
+
+CREATE TABLE IF NOT EXISTS bunker_sentiment_votes (
+  vote_date TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  pick TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (vote_date, device_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bunker_sentiment_date
+  ON bunker_sentiment_votes (vote_date);
+
+CREATE TABLE IF NOT EXISTS air_raid_alerts (
+  id TEXT PRIMARY KEY NOT NULL,
+  source TEXT NOT NULL,
+  theater_id TEXT NOT NULL,
+  region TEXT,
+  title TEXT,
+  severity INTEGER NOT NULL DEFAULT 3,
+  alert_at TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 0,
+  detail_json TEXT,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_theater_at
+  ON air_raid_alerts (theater_id, alert_at);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_source_at
+  ON air_raid_alerts (source, alert_at);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_ingested
+  ON air_raid_alerts (ingested_at);
+
+CREATE TABLE IF NOT EXISTS theater_signal_daily (
+  signal_date TEXT NOT NULL,
+  theater_id TEXT NOT NULL,
+  mentions REAL NOT NULL DEFAULT 0,
+  points REAL NOT NULL DEFAULT 0,
+  fire_count REAL NOT NULL DEFAULT 0,
+  telegram_count REAL NOT NULL DEFAULT 0,
+  air_raid_score REAL NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (signal_date, theater_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_theater_signal_daily_theater
+  ON theater_signal_daily (theater_id, signal_date);
+
+CREATE TABLE IF NOT EXISTS ukmto_incidents (
+  id TEXT PRIMARY KEY NOT NULL,
+  incident_number INTEGER,
+  incident_type_name TEXT NOT NULL,
+  incident_type_level INTEGER,
+  pin_colour TEXT,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  region TEXT,
+  place TEXT,
+  vessel_name TEXT,
+  vessel_type TEXT,
+  vessel_under_pirate_control INTEGER NOT NULL DEFAULT 0,
+  crew_held INTEGER,
+  detail TEXT,
+  utc_date_of_incident TEXT,
+  utc_date_created TEXT,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ukmto_geo
+  ON ukmto_incidents (lat, lng);
+
+CREATE INDEX IF NOT EXISTS idx_ukmto_date
+  ON ukmto_incidents (utc_date_of_incident);
+
+CREATE TABLE IF NOT EXISTS navarea_features (
+  id TEXT PRIMARY KEY NOT NULL,
+  region TEXT NOT NULL,
+  source TEXT NOT NULL,
+  warning_date TEXT NOT NULL,
+  area_hint TEXT,
+  description TEXT NOT NULL,
+  geometry_type TEXT NOT NULL,
+  geojson TEXT NOT NULL,
+  radius_nm REAL,
+  lat REAL,
+  lng REAL,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_navarea_region
+  ON navarea_features (region);
+
+CREATE INDEX IF NOT EXISTS idx_navarea_date
+  ON navarea_features (warning_date);
+
+CREATE INDEX IF NOT EXISTS idx_navarea_geo
+  ON navarea_features (lat, lng);
+
+CREATE TABLE IF NOT EXISTS military_exercises (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  summary TEXT,
+  actors_json TEXT NOT NULL DEFAULT '[]',
+  coalition TEXT,
+  theater TEXT,
+  lat REAL,
+  lng REAL,
+  geojson TEXT,
+  starts_at TEXT,
+  ends_at TEXT,
+  announced_at TEXT,
+  confidence TEXT NOT NULL DEFAULT 'announced',
+  sources_json TEXT NOT NULL DEFAULT '[]',
+  rf_gap_note TEXT,
+  active INTEGER NOT NULL DEFAULT 1,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_military_exercises_active
+  ON military_exercises (active, announced_at);
+
+CREATE INDEX IF NOT EXISTS idx_military_exercises_theater
+  ON military_exercises (theater);
+
+CREATE INDEX IF NOT EXISTS idx_military_exercises_geo
+  ON military_exercises (lat, lng);
+

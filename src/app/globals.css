@@ -17,18 +17,19 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  /* Apple HIG / Material 최소 터치 타겟 */
+  /* Apple HIG / Material ?? ?? ?? */
   --tap-target-min: 44px;
-  /* Wanted Sans — 한글 UI·양피지 기본 (반서방 11대 현장만 RIDI Batang 유지) */
+  /* Wanted Sans — UI 기본. 유저 선택 시 --font-ui 가 덮어씀 */
   --font-wanted: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont,
     system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
-  /* 영문 Inter — next/font --font-inter 변수와 스택 (Intel UI·양피지 영문) */
-  --font-ui-en: var(--font-inter), var(--font-wanted), ui-sans-serif, system-ui, sans-serif;
-  --font-intel: var(--font-inter), var(--font-wanted), ui-sans-serif, system-ui, sans-serif;
-  /* 영문 양피지 장문(레터) Merriweather — 일일 뉴스 등불 기사는 --font-intel 사용 */
+  --font-ui: var(--font-wanted);
+  /* EN Inter + next/font --font-inter (Intel UI) */
+  --font-ui-en: var(--font-inter), var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-intel: var(--font-inter), var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  /* 양피지 EN Merriweather */
   --font-parchment-en: var(--font-merriweather), var(--font-wanted), Georgia, "Times New Roman",
     serif;
-  /* 좌표·수치 JetBrains Mono */
+  /* 데이터 JetBrains Mono */
   --font-data-mono: var(--font-jetbrains-mono), var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -39,23 +40,35 @@ body {
     radial-gradient(ellipse 42% 32% at 82% 14%, rgba(69, 243, 255, 0.03) 0%, transparent 54%),
     radial-gradient(ellipse 38% 28% at 14% 86%, rgba(255, 0, 127, 0.025) 0%, transparent 50%),
     var(--background);
-  font-family: var(--font-wanted);
+  font-family: var(--font-ui);
   letter-spacing: -0.01em;
   min-height: 100vh;
   min-height: 100dvh;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
+  /* 게임 셸 — 드래그 텍스트 선택·이미지 드래그 복사 차단 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
-/** 터치 타겟 토큰 — FAB·칩·핸들 */
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/** ?? ?? ?? ? FAB????? */
 .tap-target {
   min-height: var(--tap-target-min);
   min-width: var(--tap-target-min);
 }
 
 /**
- * Hydration 전 플래시 가드.
- * layout 인라인 스크립트가 html[data-compact]를 먼저 세팅한다.
+ * Hydration ? ??? ??.
+ * layout ??? ????? html[data-compact]? ?? ????.
  */
 html[data-compact="1"] .cv-desktop-only {
   display: none !important;
@@ -64,23 +77,32 @@ html[data-compact="0"] .cv-compact-only {
   display: none !important;
 }
 
+/**
+ * MapLibre ???: ??(???) HTML ?? ?? opacityWhenCovered=0.2 ?? ??.
+ * ???? ? ? ?? ?? ?? ?? ??? ??? ?? ?.
+ */
+.maplibregl-marker-covered,
+.maplibregl-marker-occluded {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
-/** 지경학 상단 nav — Wanted Sans */
+/** 지경학 nav — UI 글꼴 */
 .font-nav-economy,
 .hover-nav--economy {
-  font-family: var(--font-wanted);
+  font-family: var(--font-ui);
   letter-spacing: -0.01em;
 }
 
-/** 양피지 기본 — Wanted Sans (환영·등불·허브·지경학) */
+/** 경제 인사이트 패널 본문 — UI (역사 양피지는 --history) */
 .econ-insight-parchment,
 .parchment-letter {
-  font-family: var(--font-wanted);
+  font-family: var(--font-ui);
   font-optical-sizing: auto;
   font-style: normal;
 }
 
-/** 반서방국 11대 현장(분쟁 외교사)만 RIDI Batang 필체 유지 */
+/** ???? 11? ??(?? ???)? RIDI Batang ?? ?? */
 .parchment-letter--history {
   font-family: var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang",
     serif;
@@ -88,14 +110,14 @@ html[data-compact="0"] .cv-compact-only {
   font-style: normal;
 }
 
-/** 지정학·지경학 뉴스/속보 헤드라인 — Wanted Sans */
+/** 뉴스 헤드라인 — UI 글꼴 */
 .font-news-headline {
-  font-family: var(--font-wanted);
+  font-family: var(--font-ui);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/** 영문 UI — Inter (라틴) + Wanted (한글 폴백) */
+/** ?? UI ? Inter (??) + Wanted (?? ??) */
 .font-en,
 [data-ui-lang="en"] .font-news-headline,
 main[data-ui-lang="en"] {
@@ -117,15 +139,17 @@ main[data-viewer="economy"] .font-en,
   font-family: var(--font-ui-en);
 }
 
-/** 영문 양피지·긴 브리핑 — Merriweather (한글은 Wanted 폴백) */
-main[data-ui-lang="en"] .parchment-letter:not(.parchment-letter--history),
+/** EN 양피지 — Merriweather (RIDI 필체·Intel UI 편지는 제외) */
+main[data-ui-lang="en"] .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel),
 main[data-ui-lang="en"] .econ-insight-parchment,
-main[data-ui-lang="en"] .welcome-parchment {
+main[data-ui-lang="en"]
+  .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel)
+  .welcome-parchment {
   font-family: var(--font-parchment-en);
   font-optical-sizing: auto;
 }
 
-/** 좌표·시각·티커 수치 — JetBrains Mono */
+/** ???????? ?? ? JetBrains Mono */
 .font-mono,
 .font-data-mono {
   font-family: var(--font-data-mono) !important;
@@ -154,7 +178,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
-  font-family: var(--font-wanted);
+  font-family: var(--font-ui);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -175,7 +199,7 @@ main[data-ui-lang="en"] .welcome-parchment {
     inset 0 0 60px rgba(120, 80, 30, 0.08);
 }
 
-/* 양피지 우측 — 비슷한 톤의 글래스 투명 사이드 레일 */
+/* ??? ?? ? ??? ?? ??? ?? ??? ?? */
 .welcome-letter-face--front.welcome-parchment::after {
   content: "";
   pointer-events: none;
@@ -213,7 +237,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   }
 }
 
-/* 옛 편지지 — 이중·삼중 금빛 테두리 */
+/* ? ??? ? ????? ?? ??? */
 .welcome-parchment-edge {
   margin: 11px;
   border-radius: 1px;
@@ -230,7 +254,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   background-size: 18px 18px, 22px 22px;
 }
 
-/* 변 중앙 장식 점선·필리그리 */
+/* ? ?? ?? ??????? */
 .welcome-parchment-filigree {
   margin: 18px;
   border: 1px dashed rgba(110, 78, 28, 0.16);
@@ -257,7 +281,7 @@ main[data-ui-lang="en"] .welcome-parchment {
 
 .welcome-letter-divider::before,
 .welcome-letter-divider::after {
-  content: "✦";
+  content: "?";
   position: absolute;
   top: 50%;
   transform: translateY(-52%);
@@ -274,7 +298,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   right: 42%;
 }
 
-/** 네비 옆 양피지 꿀팁 — 찢어진 천조각 */
+/** ?? ? ??? ?? ? ??? ??? */
 .parchment-pro-tip-chip,
 .parchment-pro-tip-drop {
   background:
@@ -333,7 +357,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   text-wrap: balance;
 }
 
-/* 편지지 본문 — 사이드 스크롤바 숨김 (우측 글래스 레일과 겹침 방지) */
+/* ??? ?? ? ??? ???? ?? (?? ??? ??? ?? ??) */
 .welcome-letter-body {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -346,7 +370,7 @@ main[data-ui-lang="en"] .welcome-parchment {
 }
 
 .welcome-letter-scrim {
-  /* 뒷배경 줌아웃 지구본이 비치도록 — 완전 불투명 금지 */
+  /* ??? ??? ???? ???? ? ?? ??? ?? */
   background: rgba(2, 4, 10, 0.72);
   backdrop-filter: blur(3px);
   transition:
@@ -371,7 +395,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   perspective-origin: 50% 35%;
 }
 
-/** 지경학 시장 등불 — 뷰포트 거의 채우는 대형 양피지 */
+/** ??? ?? ?? ? ??? ?? ??? ?? ??? */
 .welcome-letter-stage--economy-lamp {
   max-width: min(96vw, 72rem);
 }
@@ -387,6 +411,17 @@ main[data-ui-lang="en"] .welcome-parchment {
 
 .welcome-letter-card--economy-lamp {
   max-width: min(96vw, 72rem);
+}
+
+/** 등불 양피지 — 글자색 전부 검정 */
+.parchment-letter--lamp-ink,
+.parchment-letter--lamp-ink :where(p, h1, h2, h3, h4, span, td, th, li, a, button, label, div) {
+  color: #000000 !important;
+}
+.parchment-letter--lamp-ink .welcome-letter-back-mark,
+.parchment-letter--lamp-ink .welcome-letter-back-sub,
+.parchment-letter--lamp-ink .welcome-letter-corner {
+  color: #000000 !important;
 }
 
 .welcome-letter-face {
@@ -409,7 +444,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   justify-content: center;
   border-radius: 2px;
   overflow: hidden;
-  /* 앞면 기준 뒤집힌 뒷면 — 접히면 카메라 쪽으로 옴 */
+  /* ?? ?? ??? ?? ? ??? ??? ??? ? */
   transform: rotateX(180deg) translateZ(1px);
   background:
     radial-gradient(ellipse 100% 70% at 50% 40%, rgba(236, 214, 170, 0.95) 0%, transparent 60%),
@@ -494,7 +529,7 @@ main[data-ui-lang="en"] .welcome-parchment {
     transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     opacity: 1;
   }
-  /* 접히며 뒷면이 드러남 */
+  /* ??? ??? ??? */
   38% {
     transform: translate3d(0, 2%, 0) rotateX(96deg) scale(0.97);
     opacity: 1;
@@ -503,7 +538,7 @@ main[data-ui-lang="en"] .welcome-parchment {
     transform: translate3d(0, -8vh, 24px) rotateX(180deg) scale(0.94);
     opacity: 1;
   }
-  /* 뒷면이 보인 채로 위로 */
+  /* ??? ?? ?? ?? */
   100% {
     transform: translate3d(0, -120vh, 40px) rotateX(180deg) scale(0.86);
     opacity: 0;
@@ -545,7 +580,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   width: min(100vw, var(--intel-sidebar-width));
 }
 
-/* 좁은 화면: 우측 뉴스도 하단 도크로 — 지구본 상단 유지 */
+/* ?? ??: ?? ??? ?? ??? ? ??? ?? ?? */
 @media (max-width: 1023px) {
   .intel-sidebar-right {
     top: auto !important;
@@ -678,7 +713,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   animation: intel-stack-focus-flash-keyframes 0.9s ease-out;
 }
 
-/* 하단 뉴스 도크: 지정학·지경학 공통 — 열리면 화면 가득 */
+/* ?? ?? ??: ??????? ?? ? ??? ?? ?? */
 .intel-news-sheet {
   height: 100vh;
   height: 100dvh;
@@ -720,7 +755,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   background: rgba(148, 163, 184, 0.45);
 }
 
-/** 하단 고정 intel 스택 — home indicator 여유 */
+/** ?? ?? intel ?? ? home indicator ?? */
 .intel-stack {
   bottom: calc(0.75rem + var(--safe-bottom)) !important;
 }
@@ -733,7 +768,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   bottom: calc(0.75rem + var(--safe-bottom)) !important;
 }
 
-/** 시트/도크 드래그 핸들 — 시각 막대는 얇지만 탭 영역은 44px */
+/** ??/?? ??? ?? ? ?? ??? ??? ? ??? 44px */
 .intel-drag-handle {
   min-height: var(--tap-target-min);
   justify-content: center;
@@ -906,7 +941,7 @@ main[data-ui-lang="en"] .welcome-parchment {
   }
 }
 
-/* 전쟁구역 사상자 — Wanted Sans (숫자·라벨) */
+/* ???? ??? ? Wanted Sans (?????) */
 .war-casualty-overlay .casualty-count-num,
 .war-casualty-overlay .casualty-count-label {
   font-family: var(--font-wanted);
@@ -919,4 +954,318 @@ main[data-ui-lang="en"] .welcome-parchment {
     0 0 2px rgba(0, 0, 0, 0.95),
     0 1px 6px rgba(0, 0, 0, 0.85),
     0 0 14px rgba(0, 0, 0, 0.55);
+}
+
+/* ?? ???? ???? ?? ??? ?? */
+.tension-spike-cut {
+  position: fixed;
+  inset: 0;
+  z-index: 10040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+.tension-spike-cut__veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 45%, rgba(8, 10, 16, 0.72), rgba(2, 3, 6, 0.92));
+  backdrop-filter: blur(2px);
+  transition: background 0.35s ease, opacity 0.35s ease;
+}
+.tension-spike-cut--cutting .tension-spike-cut__veil {
+  background: #000;
+  opacity: 1;
+}
+.tension-spike-cut__panel {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 26rem);
+  padding: 1.35rem 1.4rem 1.1rem;
+  border: 1px solid rgba(255, 214, 140, 0.28);
+  background: linear-gradient(165deg, rgba(28, 22, 14, 0.94), rgba(10, 12, 18, 0.96));
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  animation: tension-cut-in 0.38s ease-out;
+}
+.tension-spike-cut__kicker {
+  margin: 0 0 0.55rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 196, 110, 0.85);
+}
+.tension-spike-cut__telegraph {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(240, 232, 210, 0.92);
+}
+.tension-spike-cut__ask {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+.tension-spike-cut__destinations {
+  display: grid;
+  gap: 0.45rem;
+}
+.tension-spike-cut__dest {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(255, 214, 140, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.tension-spike-cut__dest:hover,
+.tension-spike-cut__dest:focus-visible {
+  border-color: rgba(255, 196, 110, 0.55);
+  background: rgba(255, 196, 110, 0.08);
+  outline: none;
+}
+.tension-spike-cut__dest-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.tension-spike-cut__dest-hint {
+  font-size: 0.72rem;
+  color: rgba(220, 210, 190, 0.65);
+}
+.tension-spike-cut__dismiss {
+  display: block;
+  margin: 0.85rem auto 0;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 170, 0.55);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.tension-spike-cut__cutting-label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.9);
+  animation: tension-cut-flash 0.42s ease-in;
+}
+@keyframes tension-cut-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tension-cut-flash {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.85;
+  }
+}
+
+/* 진입 캐주션 터미널 부팅 — 다음 화면(양피지 편지)의 세피아 톤과
+   이어지도록 초록 대신 호박색(amber) 계열로 통일 — 캐주션→편지 톤 낙차 완화 */
+.entry-terminal-boot {
+  background: #0a0703;
+}
+.entry-terminal-boot__scan {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 180, 60, 0.035) 2px,
+      rgba(255, 180, 60, 0.035) 4px
+    ),
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(90, 55, 10, 0.25), transparent 70%);
+  animation: entry-scan-drift 8s linear infinite;
+}
+@keyframes entry-scan-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 40px, 0 0; }
+}
+.entry-terminal-boot__panel {
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: rgba(14, 10, 4, 0.94);
+  padding: 1.15rem 1.2rem 1.25rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 24px 80px rgba(0, 0, 0, 0.75), inset 0 0 40px rgba(50, 30, 5, 0.35);
+}
+.entry-terminal-boot__header {
+  margin: 0;
+  font-size: 0.62rem;
+  line-height: 1.45;
+  color: rgba(252, 211, 77, 0.95);
+  letter-spacing: 0.02em;
+}
+.entry-terminal-boot__phase {
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(20, 13, 4, 0.45);
+  padding: 0.75rem 0.85rem;
+}
+.entry-terminal-boot__phase-id {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgba(252, 211, 77, 0.85);
+}
+.entry-terminal-boot__phase-tag {
+  margin: 0.25rem 0 0;
+  font-size: 0.68rem;
+  color: rgba(251, 191, 36, 0.95);
+}
+.entry-terminal-boot__cta {
+  border: 1px solid rgba(251, 191, 36, 0.7);
+  background: rgba(245, 158, 11, 0.18);
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: rgba(254, 243, 199, 0.95);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.entry-terminal-boot__cta:hover {
+  background: rgba(245, 158, 11, 0.28);
+  border-color: rgba(252, 211, 77, 0.85);
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.28);
+}
+
+.classification-watermark {
+  pointer-events: none;
+  position: fixed;
+  left: 50%;
+  z-index: 45;
+  transform: translateX(-50%);
+  font-family: var(--font-data-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: rgba(248, 113, 113, 0.28);
+  white-space: nowrap;
+  user-select: none;
+}
+.classification-watermark--top {
+  top: max(0.35rem, env(safe-area-inset-top, 0px));
+}
+.classification-watermark--bottom {
+  bottom: max(1.85rem, calc(1.55rem + env(safe-area-inset-bottom, 0px)));
+}
+
+.legal-disclaimer-footer {
+  pointer-events: none;
+  position: fixed;
+  left: 50%;
+  bottom: max(0.2rem, env(safe-area-inset-bottom, 0px));
+  z-index: 46;
+  width: min(96vw, 52rem);
+  transform: translateX(-50%);
+  padding: 0.15rem 0.5rem 0.25rem;
+  text-align: center;
+  font-family: var(--font-data-mono);
+  user-select: none;
+}
+
+.legal-disclaimer-footer__text {
+  margin: 0;
+  font-size: 8px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: rgba(148, 163, 184, 0.55);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+@media (max-width: 640px) {
+  .legal-disclaimer-footer {
+    width: min(98vw, 100%);
+    padding-inline: 0.35rem;
+  }
+
+  .legal-disclaimer-footer__text {
+    font-size: 7px;
+    line-height: 1.3;
+  }
+
+  .classification-watermark--bottom {
+    bottom: max(2.15rem, calc(1.9rem + env(safe-area-inset-bottom, 0px)));
+  }
+}
+
+.ops-terminal-log {
+  pointer-events: none;
+  position: fixed;
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  bottom: max(2.35rem, calc(2.1rem + env(safe-area-inset-bottom, 0px)));
+  z-index: 35;
+  max-width: min(42vw, 18rem);
+  font-family: var(--font-data-mono);
+  font-size: 9px;
+  line-height: 1.35;
+  color: rgba(110, 231, 183, 0.45);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+.ops-terminal-log__line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+  animation: ops-log-in 0.35s ease-out;
+}
+@keyframes ops-log-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 0.85; transform: none; }
+}
+
+.access-denied-flash {
+  pointer-events: none;
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  z-index: 10050;
+  transform: translate(-50%, -50%);
+  padding: 0.85rem 1.25rem;
+  border: 1px solid rgba(248, 113, 113, 0.65);
+  background: rgba(40, 8, 8, 0.92);
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.35);
+  text-align: center;
+  animation: access-denied-pop 0.7s ease-out forwards;
+}
+.access-denied-flash__code {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(254, 202, 202, 0.95);
+}
+.access-denied-flash__sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  color: rgba(252, 165, 165, 0.7);
+}
+@keyframes access-denied-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .ops-terminal-log { display: none; }
+  .classification-watermark { font-size: 7px; letter-spacing: 0.14em; }
 }

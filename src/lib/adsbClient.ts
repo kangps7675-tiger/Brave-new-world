@@ -1,5 +1,11 @@
 import { gunzipSync } from "zlib";
+import {
+  BELLINGCAT_ADSB_ATTRIBUTION,
+  isBellingcatMilitaryHex,
+} from "@/data/bellingcatMilitaryDb";
 import type { MilitaryAircraft } from "@/data/geoTypes";
+
+export { BELLINGCAT_ADSB_ATTRIBUTION };
 
 /** ADS-B 트래킹 기체 (군용·민간 공통 스키마) */
 export type TrackedAircraft = MilitaryAircraft;
@@ -117,14 +123,17 @@ export function normalizeAdsbAircraft(
   raw: AdsbRawAircraft,
   options?: { requireMilitary?: boolean; excludeMilitary?: boolean },
 ): TrackedAircraft | null {
-  const military = isMilitaryDbFlags(raw);
-  // /mil 피드처럼 dbFlags 없는 경우: requireMilitary면 통과
+  const hex = (raw.hex || "").toLowerCase();
+  const flaggedMil = isMilitaryDbFlags(raw);
+  const knownMil = isBellingcatMilitaryHex(hex);
+  const military = flaggedMil || knownMil;
+
+  // /mil 피드: dbFlags 없으면 통과. dbFlags=민항이어도 Bellingcat mil hex면 유지.
   if (options?.requireMilitary) {
     if (raw.dbFlags != null && raw.dbFlags !== "" && !military) return null;
   }
   if (options?.excludeMilitary && military) return null;
 
-  const hex = (raw.hex || "").toLowerCase();
   const coord = pickCoord(raw);
   if (!hex || !coord) return null;
 
@@ -169,6 +178,7 @@ export function normalizeAdsbAircraft(
     rssi: numOrNull(raw.rssi),
     acasAdvisory: acas,
     timestamp: new Date().toISOString(),
+    bellingcatMilitary: knownMil || undefined,
   };
 }
 
@@ -176,7 +186,7 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
-    "User-Agent": "ConflictView/1.0",
+    "User-Agent": "BraveNewWorld/1.0",
   };
   if (apiKey) {
     headers["x-api-key"] = apiKey;

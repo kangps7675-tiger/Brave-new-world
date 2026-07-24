@@ -12,6 +12,11 @@ export type FrictionLens = "china" | "russia" | "iran" | "north_korea" | "global
 export type FrictionEpisode = {
   id: string;
   title: string;
+  /** English 전환용 — 없으면 한국어 폴백 */
+  titleEn?: string;
+  locationNameEn?: string;
+  briefingEn?: string;
+  noteEn?: string;
   lens: FrictionLens;
   /** [경도, 위도] */
   coordinates: readonly [number, number];
@@ -33,6 +38,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "sino-soviet-border-1969",
     title: "중소 국경 분쟁 (1969)",
+    titleEn: "Sino-Soviet Border Conflict (1969)",
+    locationNameEn: "Zhenbao Island, Ussuri River (Damansky Island)",
+    briefingEn:
+      "In March 1969, Chinese and Soviet border units clashed on Zhenbao Island (Damansky in Soviet usage) in the Ussuri River. The fighting, over the island's ownership and border interpretation, is recorded as causing casualties on the order of dozens to hundreds on both sides. Further border skirmishes and a diplomatic-military standoff followed that year — a case where the Sino-Soviet split within the communist bloc broke into open armed conflict.",
     lens: "china",
     coordinates: [133.84, 46.64],
     zoom: 7,
@@ -48,6 +57,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "sino-vietnamese-war-1979",
     title: "중월전쟁 (1979)",
+    titleEn: "Sino-Vietnamese War (1979)",
+    locationNameEn: "Lạng Sơn border area, northern Vietnam",
+    briefingEn:
+      "On 17 February 1979 the People's Liberation Army attacked across Vietnam's northern border. The background combined Vietnam's intervention in Cambodia (ousting the Khmer Rouge), ethnic-minority and boat-people issues, and the Soviet–Vietnam treaty. Major fighting lasted about a month before China announced a withdrawal; literature offers casualty estimates in the tens of thousands on both sides.",
     lens: "china",
     coordinates: [106.76, 21.85],
     zoom: 6.5,
@@ -63,6 +76,12 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "galwan-valley-clash-2020",
     title: "갈완 계곡 충돌 (2020)",
+    titleEn: "Galwan Valley Clash (2020)",
+    locationNameEn: "Galwan Valley, Ladakh · Line of Actual Control (LAC)",
+    noteEn:
+      "India is a democracy — not a pure 'intra-anti-Western' case, but a public record of border friction on the China hub.",
+    briefingEn:
+      "On 15–16 June 2020, Indian and Chinese troops clashed in the Galwan Valley near the Line of Actual Control. Under agreements restricting firearms, the fighting was reported as hand-to-hand combat with clubs and improvised weapons. India officially announced 20 deaths including an officer; China later acknowledged 4 in its own statement. Both sides then combined forward deployments with rounds of talks as relations cooled.",
     lens: "china",
     coordinates: [78.2, 34.37],
     zoom: 8,
@@ -79,6 +98,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "russo-georgian-war-2008",
     title: "러시아–조지아 전쟁 (2008)",
+    titleEn: "Russo-Georgian War (2008)",
+    locationNameEn: "Tskhinvali, South Ossetia",
+    briefingEn:
+      "In August 2008, after fighting between Georgian forces and South Ossetian separatists escalated, Russia intervened militarily. Combat unfolded over a matter of days, after which Russia recognized the independence of Abkhazia and South Ossetia. Georgia and most UN member states regard them as Georgian territory. International organizations and reporting put casualties and displaced persons in the thousands to tens of thousands.",
     lens: "russia",
     coordinates: [43.96, 42.22],
     zoom: 7.5,
@@ -94,6 +117,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "nagorno-karabakh-war-2020",
     title: "제2차 나고르노-카라바흐 전쟁 (2020)",
+    titleEn: "Second Nagorno-Karabakh War (2020)",
+    locationNameEn: "Shusha (Şuşa)",
+    briefingEn:
+      "From 27 September 2020, Azerbaijan and Armenia (with the Artsakh/Nagorno-Karabakh side) fought a roughly 44-day war. Azerbaijan gained the battlefield advantage, and a Russia-brokered joint statement sealed a ceasefire in November. Military deaths are counted and estimated in the thousands, and the impact of drones and precision strikes on the battlefield was widely reported. Russia was involved as CSTO member and mediator, not a belligerent.",
     lens: "russia",
     coordinates: [46.75, 39.76],
     zoom: 7,
@@ -109,6 +136,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "iran-iraq-war-1980",
     title: "이란–이라크 전쟁 (1980–1988)",
+    titleEn: "Iran–Iraq War (1980–1988)",
+    locationNameEn: "Shatt al-Arab / Arvand Rud waterway",
+    briefingEn:
+      "In September 1980 Iraq invaded Iran; the war ended in 1988 with acceptance of UN Resolution 598. The stated causes and background include the Shatt al-Arab waterway and border interpretation, and regional security perceptions after Iran's 1979 Islamic Revolution. Combined death and injury estimates vary by source from hundreds of thousands to around a million, and chemical weapons use is documented in international investigations and rulings.",
     lens: "iran",
     coordinates: [48.43, 30.43],
     zoom: 6.5,
@@ -125,6 +156,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "tunb-islands-dispute-1971",
     title: "톰브·아부무사 제도 점령 (1971)",
+    titleEn: "Seizure of the Tunbs and Abu Musa (1971)",
+    locationNameEn: "Greater Tunb, Persian Gulf",
+    briefingEn:
+      "On 30 November 1971, timed to Britain's withdrawal from the Persian Gulf, Iran landed forces on and took control of Greater and Lesser Tunb (and, through related arrangements, Abu Musa). The newly formed United Arab Emirates has claimed sovereignty ever since, while Iran maintains effective control. The islands and strait remain a recurring agenda item in bilateral and Gulf diplomacy.",
     lens: "iran",
     coordinates: [55.27, 26.26],
     zoom: 8.5,
@@ -140,6 +175,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "cambodian-vietnamese-war-1978",
     title: "베트남–캄보디아 전쟁 (1978–1979)",
+    titleEn: "Cambodian–Vietnamese War (1978–1979)",
+    locationNameEn: "Phnom Penh, Cambodia",
+    briefingEn:
+      "In December 1978 Vietnamese forces invaded Cambodia (Democratic Kampuchea under the Khmer Rouge). Phnom Penh fell in January 1979 and a pro-Vietnamese government was installed. Preceding border clashes, the Khmer Rouge atrocities, and Cold War diplomatic alignments form the background. The intervention is widely described as one direct trigger of the 1979 Sino-Vietnamese War.",
     lens: "global",
     coordinates: [104.91, 11.55],
     zoom: 7,
@@ -156,6 +195,10 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "eritrean-ethiopian-war-1998",
     title: "에티오피아–에리트레아 전쟁 (1998–2000)",
+    titleEn: "Eritrean–Ethiopian War (1998–2000)",
+    locationNameEn: "Badme area",
+    briefingEn:
+      "In May 1998, clashes over control of border areas such as Badme escalated into full-scale war, halted by the Algiers Agreement in 2000. The war was marked by trench warfare and mass troop deployments, with death estimates in the tens of thousands. Border demarcation went through subsequent arbitration and implementation; the dispute centered on territory, sovereignty, and logistics access.",
     lens: "global",
     coordinates: [37.94, 14.53],
     zoom: 7.5,
@@ -172,6 +215,12 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "sino-north-korean-border-clash-1969",
     title: "조·중 국경 긴장 (1960년대 말)",
+    titleEn: "DPRK–China Border Tensions (late 1960s)",
+    locationNameEn: "Border area around Mt. Paektu",
+    noteEn:
+      "Primary open sources on individual incidents are limited. Reflects reporting and research on deteriorating DPRK–China relations and border tension during the Sino-Soviet split and Cultural Revolution.",
+    briefingEn:
+      "In the late 1960s, amid the Sino-Soviet dispute and China's Cultural Revolution, DPRK–China relations also deteriorated. Research and memoirs mention border-area tension, propaganda campaigns, and reports of small-scale friction — though no single documented open battle on the scale of Zhenbao Island. The point of this lens: even inside a 'blood alliance,' distrust accumulated in the same period as the 1969 Sino-Soviet border clashes.",
     lens: "north_korea",
     coordinates: [128.05, 42.01],
     zoom: 7.5,
@@ -188,6 +237,12 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   {
     id: "ussr-north-korea-maritime-friction-1980s",
     title: "북·소 통항·주권 마찰 (1980년대)",
+    titleEn: "DPRK–USSR Transit & Sovereignty Friction (1980s)",
+    locationNameEn: "Tumen River estuary · East Sea boundary waters",
+    noteEn:
+      "Represents a recurring zone of Cold War-era sensitivity over the Soviet Pacific Fleet, transit, fishing, and airspace rather than a single dated naval battle.",
+    briefingEn:
+      "During the Cold War the Soviet Union expanded naval and air activity toward the Pacific, and North Korea showed sovereignty sensitivities over territorial waters, airspace, and base access. Open sources record friction and negotiation over fishing, transit, and intelligence collection, but resist reduction to a single 1985 'naval battle.' We read it as a caution about dependency — a contrast to today's Russia–DPRK military closeness.",
     lens: "north_korea",
     coordinates: [130.65, 42.43],
     zoom: 8,
@@ -202,6 +257,23 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
       "냉전기 소련은 태평양 방면 해군·항공 활동을 확대했고, 북한은 영해·영공·기지 접근을 둘러싼 주권 민감성을 드러냈습니다. 공개 자료는 어업·통항·정보 수집 등에 대한 마찰·교섭 기록을 남기며, 단일한 1985년 ‘해전’으로 고정하기는 어렵습니다. 오늘날 러–북 군수 밀착과 대조되는, 종속 관계에 대한 경계 사례로 읽습니다.",
   },
 ] as const;
+
+/** labelLanguage에 따른 텍스트 해석 — EN 필드 없으면 KO 폴백 */
+export function episodeTitle(ep: FrictionEpisode, lang: "ko" | "en"): string {
+  return lang === "en" && ep.titleEn ? ep.titleEn : ep.title;
+}
+
+export function episodeLocationName(ep: FrictionEpisode, lang: "ko" | "en"): string {
+  return lang === "en" && ep.locationNameEn ? ep.locationNameEn : ep.locationName;
+}
+
+export function episodeBriefing(ep: FrictionEpisode, lang: "ko" | "en"): string {
+  return lang === "en" && ep.briefingEn ? ep.briefingEn : ep.briefing;
+}
+
+export function episodeNote(ep: FrictionEpisode, lang: "ko" | "en"): string | undefined {
+  return lang === "en" && ep.noteEn ? ep.noteEn : ep.note;
+}
 
 export function episodeLat(ep: FrictionEpisode): number {
   return ep.coordinates[1];

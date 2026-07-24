@@ -7,6 +7,14 @@ import {
   NEWFEEDS_REPO_URL,
   type NewfeedsAttackPoint,
 } from "@/lib/newfeeds";
+import {
+  formatNewfeedsSeverityMeta,
+  localizeNewfeedsLocation,
+  localizeNewfeedsThreatLabel,
+  localizeNewfeedsTitle,
+  NEWFEEDS_UI,
+  newfeedsUi,
+} from "@/lib/newfeedsI18n";
 import type { AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 
 type NewFeedsIranPanelProps = {
@@ -46,10 +54,10 @@ export function NewFeedsIranPanel({
 }: NewFeedsIranPanelProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const en = lang === "en";
 
   const topAttacks = useMemo(() => attacks.slice(0, 10), [attacks]);
   const urgent = attacks.some((a) => a.severity === "major" || a.severity === "high");
+  const threatLocalized = localizeNewfeedsThreatLabel(threatLabel, lang);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,19 +69,13 @@ export function NewFeedsIranPanel({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const statusLine = threatLabel
-    ? threatLabel
+  const statusLine = threatLocalized
+    ? NEWFEEDS_UI.threatCount(threatLocalized, attacks.length, lang)
     : liveStatus === "loading"
-      ? en
-        ? "Loading…"
-        : "불러오는 중…"
+      ? newfeedsUi("loading", lang)
       : liveStatus === "error"
-        ? en
-          ? "Feed error"
-          : "피드 오류"
-        : en
-          ? `${attacks.length} mapped events`
-          : `지도 ${attacks.length}건`;
+        ? newfeedsUi("feedError", lang)
+        : NEWFEEDS_UI.mappedCount(attacks.length, lang);
 
   const listBody = (
     <div className="max-h-[min(22rem,50vh)] space-y-2 overflow-y-auto px-3 py-2.5">
@@ -81,36 +83,39 @@ export function NewFeedsIranPanel({
 
       {topAttacks.length > 0 ? (
         <ul className="space-y-1.5">
-          {topAttacks.map((attack) => (
-            <li key={attack.id}>
-              <button
-                type="button"
-                onClick={() =>
-                  onFocusAttack?.({
-                    lat: attack.lat,
-                    lng: attack.lng,
-                    label: attack.location || attack.title,
-                  })
-                }
-                className="w-full rounded-md border border-red-400/15 bg-red-950/30 px-2 py-1.5 text-left transition hover:border-red-300/35 hover:bg-red-950/50"
-              >
-                <p className="line-clamp-2 text-[11px] leading-4 text-red-50">{attack.title}</p>
-                <p className="mt-0.5 text-[10px] text-red-200/55">
-                  {[attack.severity, attack.location, formatTime(attack.publishedAt, lang)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                <p className="mt-0.5 text-[9px] text-red-200/40">
-                  {attack.sourceName} · {NEWFEEDS_ATTRIBUTION_SHORT}
-                </p>
-              </button>
-            </li>
-          ))}
+          {topAttacks.map((attack) => {
+            const title = localizeNewfeedsTitle(attack.title, lang);
+            const location = localizeNewfeedsLocation(attack.location, lang);
+            const severity = formatNewfeedsSeverityMeta(attack.severity, lang);
+            return (
+              <li key={attack.id}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onFocusAttack?.({
+                      lat: attack.lat,
+                      lng: attack.lng,
+                      label: location || title,
+                    })
+                  }
+                  className="w-full rounded-md border border-red-400/15 bg-red-950/30 px-2 py-1.5 text-left transition hover:border-red-300/35 hover:bg-red-950/50"
+                >
+                  <p className="line-clamp-2 text-[11px] leading-4 text-red-50">{title}</p>
+                  <p className="mt-0.5 text-[10px] text-red-200/55">
+                    {[severity, location, formatTime(attack.publishedAt, lang)]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                  <p className="mt-0.5 text-[9px] text-red-200/40">
+                    {attack.sourceName} · {NEWFEEDS_ATTRIBUTION_SHORT}
+                  </p>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       ) : liveStatus === "ok" ? (
-        <p className="text-[10px] text-red-200/55">
-          {en ? "No Iran-linked mapped events yet." : "이란 관련 지도 이벤트가 아직 없습니다."}
-        </p>
+        <p className="text-[10px] text-red-200/55">{newfeedsUi("empty", lang)}</p>
       ) : null}
 
       <a
@@ -119,9 +124,7 @@ export function NewFeedsIranPanel({
         rel="noopener noreferrer"
         className="block border-t border-red-300/15 pt-2 text-[9px] leading-4 text-red-200/45 underline-offset-2 hover:text-red-100 hover:underline"
       >
-        {en
-          ? `Source: ${NEWFEEDS_ATTRIBUTION_SHORT} (MIT) · GitHub`
-          : `출처: ${NEWFEEDS_ATTRIBUTION_SHORT} (MIT) · GitHub`}
+        {NEWFEEDS_UI.sourceLine(NEWFEEDS_ATTRIBUTION_SHORT, lang)}
       </a>
     </div>
   );
@@ -131,10 +134,18 @@ export function NewFeedsIranPanel({
       <button
         type="button"
         aria-expanded={open}
-        title={en ? "Iran mapped events · NewFeeds" : "이란 지도 이벤트 · NewFeeds"}
+        title={newfeedsUi("titleAttr", lang)}
         onClick={() => {
           const first = attacks[0];
-          if (first) onFocusAttack?.({ lat: first.lat, lng: first.lng, label: first.location || first.title });
+          if (first) {
+            const title = localizeNewfeedsTitle(first.title, lang);
+            const location = localizeNewfeedsLocation(first.location, lang);
+            onFocusAttack?.({
+              lat: first.lat,
+              lng: first.lng,
+              label: location || title,
+            });
+          }
           setOpen((v) => !v);
         }}
         className={
@@ -157,11 +168,11 @@ export function NewFeedsIranPanel({
           }`}
         />
         {compact ? (
-          <span>IR</span>
+          <span>{newfeedsUi("brandShort", lang)}</span>
         ) : (
           <div className="min-w-0 text-left">
             <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/80">
-              {en ? "Iran · NewFeeds" : "이란 · NewFeeds"}
+              {newfeedsUi("brand", lang)}
             </p>
             <p className="truncate text-[11px] font-medium tracking-tight opacity-90">{statusLine}</p>
           </div>

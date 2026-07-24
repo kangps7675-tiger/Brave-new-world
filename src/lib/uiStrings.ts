@@ -15,10 +15,15 @@ const UI = {
   cityLabelsEn: { ko: "도시명 영문", en: "English place names" },
   cityLabelsKo: { ko: "도시명 한글", en: "Korean place names" },
   viewSettings: { ko: "보기 설정", en: "View settings" },
-  viewSettingsHint: { ko: "지정학 · 경제·시장 보기 모드", en: "Geopolitics · markets view mode" },
+  viewSettingsHint: { ko: "GEOINT · FININT 단말기 모드", en: "GEOINT · FININT terminal mode" },
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
   layers: { ko: "레이어", en: "Layers" },
+  askLayersButton: { ko: "묻기", en: "Ask" },
+  askLayersButtonHint: {
+    ko: "질문하면 관련 지도 레이어를 켭니다",
+    en: "Ask to turn on matching map layers",
+  },
   backToMap: { ko: "접기", en: "Collapse" },
   closeNewsDock: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
   closeNewsGlobeOnlyAria: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
@@ -73,12 +78,12 @@ const UI = {
     en: "Pick a view mode · switch anytime from the top bar",
   },
   modePickerDetailConflictTitle: {
-    ko: "지정학 — 어디를 먼저 볼까요?",
-    en: "Geopolitics — where to focus first?",
+    ko: "GEOINT — 어디를 먼저 볼까요?",
+    en: "GEOINT — where to focus first?",
   },
   modePickerDetailEconomyTitle: {
-    ko: "지경학 — 어느 허브로 갈까요?",
-    en: "Geoeconomics — which hub first?",
+    ko: "FININT — 어느 허브로 갈까요?",
+    en: "FININT — which hub first?",
   },
   modePickerDetailSubtitle: {
     ko: "관심 지역을 고르거나 자동으로 두면 신호가 이끕니다",
@@ -86,12 +91,12 @@ const UI = {
   },
   domainGateTitle: { ko: "어느 창으로 들어설까요?", en: "Which window will you enter?" },
   domainUltraLiteOnHint: {
-    ko: "켜짐 · 동시 레이어 최대 5개 · 설정창 없이 가벼운 입장",
-    en: "On · max 5 layers · light entry, no extra setup screens",
+    ko: "켜짐 · 동시 레이어 최대 16개 · 설정창 없이 가벼운 입장",
+    en: "On · max 16 layers · light entry, no extra setup screens",
   },
   domainUltraLiteOffHint: {
-    ko: "꺼짐 · 동시 레이어 최대 20개",
-    en: "Off · max 20 layers at once",
+    ko: "꺼짐 · 동시 레이어 최대 30개",
+    en: "Off · max 30 layers at once",
   },
   layerCapWarnTitle: { ko: "레이어를 더 켤 수 없습니다", en: "Can't enable more layers" },
   layerCapWarnBody: {
@@ -99,8 +104,8 @@ const UI = {
     en: "For performance, you can enable up to {cap} layers at once. Turn one off before enabling another.",
   },
   layerCapWarnUltra: {
-    ko: "Ultra-Lite 모드에서는 상한이 5개입니다.",
-    en: "In Ultra-Lite mode the limit is 5.",
+    ko: "Ultra-Lite 모드에서는 상한이 16개입니다.",
+    en: "In Ultra-Lite mode the limit is 16.",
   },
   layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
   layerClickCautionHint: {
@@ -251,10 +256,31 @@ const UI = {
     ko: "인도·파키스탄·LAC 등 남아시아 뉴스만 필터링합니다.",
     en: "Filter to India · Pakistan · LAC / South Asia.",
   },
+  hoverTheaterSeAsiaHint: {
+    ko: "동남아·남중국해 전선·긴장 뉴스만 (사회이슈 제외).",
+    en: "SE Asia · South China Sea frontline/tension only (no social issues).",
+  },
+  hoverTheaterSouthAmericaHint: {
+    ko: "남미 전선·군사 긴장 뉴스만 (사회이슈 제외).",
+    en: "South America frontline/military tension only (no social issues).",
+  },
+  hoverTheaterAfricaHint: {
+    ko: "아프리카 전선·무력 분쟁 뉴스만 (사회이슈 제외).",
+    en: "Africa frontline/armed conflict only (no social issues).",
+  },
+  hoverTheaterArcticHint: {
+    ko: "북극 항로·하이노스·그린란드 안보 뉴스만 필터링합니다.",
+    en: "Filter to Arctic routes · High North · Greenland security.",
+  },
+  hoverTheaterAtlanticHint: {
+    ko: "북대서양·GIUK·NATO 해상 안보 뉴스만 필터링합니다.",
+    en: "Filter to North Atlantic · GIUK · NATO maritime security.",
+  },
   hoverTheaterGlobalHint: {
     ko: "글로벌 방산·안보 뉴스만 필터링합니다.",
     en: "Filter to global defense · security news.",
   },
+  legendDropdown: { ko: "범례", en: "Legend" },
   legendOps: { ko: "작전중", en: "Ops" },
   legendUsCarriers: { ko: "미 항모 {n}척", en: "{n} US carriers" },
   legendShowAll: { ko: " · 전체 표시", en: " · show all" },
@@ -271,6 +297,16 @@ const UI = {
   legendProtestDetail: { ko: "집회·시위", en: "Rally · protest" },
   legendFresh: { ko: "최신", en: "Fresh" },
   legendFreshDetail: { ko: "속보 테두리", en: "Breaking border" },
+  legendEconLane: { ko: "항로", en: "Lane" },
+  legendEconLaneDetail: { ko: "해운로", en: "Shipping route" },
+  legendEconChoke: { ko: "초크", en: "Choke" },
+  legendEconChokeDetail: { ko: "물류 병목", en: "Logistics choke" },
+  legendEconCritical: { ko: "크리티컬", en: "Critical" },
+  legendEconCriticalDetail: { ko: "MIT 노드", en: "MIT node" },
+  legendEconPipe: { ko: "에너지", en: "Energy" },
+  legendEconPipeDetail: { ko: "파이프·LNG", en: "Pipe · LNG" },
+  legendEconPort: { ko: "항구", en: "Port" },
+  legendEconPortDetail: { ko: "항만·허브", en: "Port · hub" },
   legendUaTitle: { ko: "우크라이나 점령·주장", en: "Ukraine control · claims" },
   legendUaRuOcc: { ko: "RU 점령", en: "RU occupied" },
   legendUaUaOcc: { ko: "UA 점령", en: "UA controlled" },
@@ -293,23 +329,34 @@ const UI = {
   ariaCloseRegionNews: { ko: "지역 뉴스 패널 닫기", en: "Close regional news panel" },
   ariaCloseInfoPanel: { ko: "정보 패널 닫기", en: "Close info panel" },
   ariaCloseEconomyRegion: { ko: "경제 지역 패널 닫기", en: "Close economy region panel" },
-  domainConflictTitle: { ko: "지정학의 창", en: "Window of Geopolitics" },
+  domainConflictTitle: { ko: "GEOINT", en: "GEOINT" },
   domainConflictHint: {
-    ko: "전선과 분쟁, 군사·외교의 긴장을 따라갑니다",
-    en: "Follow front lines, disputes, and military–diplomatic tension",
+    ko: "Geospatial Intelligence — 전선·분쟁·군사·외교",
+    en: "Geospatial Intelligence — fronts, disputes, mil–diplomatic",
   },
-  domainEconomyTitle: { ko: "지경학의 창", en: "Window of Geoeconomics" },
+  domainEconomyTitle: { ko: "FININT", en: "FININT" },
   domainEconomyHint: {
-    ko: "에너지와 물류, 항로와 시장의 맥을 읽습니다",
-    en: "Read energy, logistics, sea lanes, and markets",
+    ko: "Financial Intelligence — 에너지·물류·항로·시장",
+    en: "Financial Intelligence — energy, logistics, lanes, markets",
   },
   welcomeLetterCta: { ko: "편지를 접고 신세계로", en: "Fold the letter — enter the New World" },
   hubBriefCta: { ko: "편지를 접기", en: "Fold the letter" },
   entryCautionMustRead: { ko: "반드시 읽어주세요", en: "Please read this carefully" },
-  entryCautionTitle: { ko: "주의", en: "Caution" },
+  entryCautionTitle: {
+    ko: "RESTRICTED · 오퍼레이터 인가",
+    en: "RESTRICTED · OPERATOR CLEARANCE",
+  },
   entryCautionSubtitle: {
-    ko: "입장 전에 꼭 확인해 주세요",
-    en: "Please read before entering",
+    ko: "귀하의 접속은 임시 작전 요원(OPERATOR NODE)으로 식별됩니다. 본 단말기는 오픈소스 인텔리전스(OSINT) 상황판입니다.",
+    en: "Your session is logged as a temporary OPERATOR NODE. This terminal is an open-source intelligence (OSINT) board.",
+  },
+  entryCautionPhase1: {
+    ko: "IP·브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부 무단 반출·스크레이핑은 금지됩니다.",
+    en: "IP and hardware fingerprint are logged as an active observer. Unauthorized export or scraping is prohibited.",
+  },
+  entryCautionPhase2: {
+    ko: "GEOINT(지리·전선) · FININT(공급망·시장) 피드를 동기화합니다. 레이어를 많이 켜면 렉이 납니다 — UI 동시 ON 일반 {uiCap} · Ultra-Lite {ultraCap} · 패키지 hard cap GEOINT {conflictCap} · FININT {economyCap}.",
+    en: "Syncing GEOINT (theater) and FININT (supply · markets) feeds. Many layers cause lag — concurrent ON {uiCap} / Ultra-Lite {ultraCap}; package hard caps GEOINT {conflictCap} · FININT {economyCap}.",
   },
   entryCautionLagLabel: { ko: "성능", en: "Performance" },
   entryCautionLagBody: {
@@ -324,14 +371,24 @@ const UI = {
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나나요", en: "When sound plays" },
   entryCautionSoundWhen: {
     ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): 줌 LOD — 멀리 포격/짧은폭격 · near 이하 총성+포격+드론 연속(near 이탈까지)\n• 대만해협: 시계 틱 긴장음 · 한반도/고긴장: rumble\n• 항모 갑판: 미 항모가 화면 안에 있을 때\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > 경제중심 레이어\n• 티커·모드 전환·일반 클릭으로는 소리가 나지 않습니다",
-    en: "• Air-raid siren: only when you fly via the alert chip/button\n• SOS Morse for S-grade breaking only (A = banner silent · Tier3 alone cannot be S)\n• NEPTUN / FIRMS combat: layer ON + event enters the viewport\n• Frontline (Ukraine / Middle East): LOD — far artillery/short blasts · at near-or-closer continuous gunfire+artillery+drone until you leave near\n• Taiwan Strait: ticking tension · Korea / high-tension: rumble\n• Carrier deck: when a US carrier is in view\n• Economy ambient: pipeline > datacenter > port > economic hubs\n• Ticker, mode switch, and normal UI clicks stay silent",
+    en: "• Air-raid siren: only when you fly via the alert chip/button\n• SOS Morse for S-grade breaking only (A = banner silent · Tier3 alone cannot be S)\n• NEPTUN / FIRMS combat: layer ON + event enters the viewport\n• Frontline (Ukraine / Middle East): LOD — far artillery/short blasts · at near-or-closer continuous gunfire+artillery+drone until you leave near\n• Taiwan Strait: ticking tension · Korea / high-tension: rumble\n• Carrier deck: when a US carrier is in view\n• Economy ambient: pipeline > datacenter · port · economic hubs\n• Ticker, mode switch, and normal UI clicks stay silent",
+  },
+  entryCautionPhase4: {
+    ko: "본 피드는 공개 소스·와이어·위성/선박 오픈데이터를 가공한 상황판입니다. 공식 경보 대체가 아니며, 무단 반출·왜곡 시 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
+    en: "This feed is a situation board built from open sources, wires, and open vessel/satellite data — not a substitute for official alerts. Unauthorized export or distortion may terminate node access. Initialize as an autonomous intel observer?",
   },
   entryCautionCta: { ko: "확인했습니다 — 편지로", en: "Got it — continue to letter" },
-  entryCautionSkip: { ko: "스킵하시겠습니까?", en: "Skip the intro?" },
-  entryCautionSkipHint: {
-    ko: "경고·편지를 건너뛰고 지정학·지경학 선택으로",
-    en: "Skip caution & letter — go to domain choice",
+  entryCautionCtaHint: {
+    ko: "인가 후 환영 편지 → GEOINT / FININT 창 선택",
+    en: "After ACK → welcome letter → GEOINT / FININT window",
   },
+  entryCautionSkip: { ko: "스킵 · 도메인", en: "SKIP · DOMAIN" },
+  entryCautionSkipHint: {
+    ko: "경고·편지를 건너뛰고 GEOINT·FININT 선택으로",
+    en: "Skip caution & letter — GEOINT / FININT choice",
+  },
+  /** 하단 메인 CTA 옆 — 처음 방문자가 놓치기 쉬운 코너 스킵 대신 눈에 띄는 위치에 배치 */
+  entryCautionSkipCta: { ko: "지금 바로 보기 →", en: "Skip straight to the map →" },
   domainGateSubtitle: {
     ko: "창을 고르면 바로 입장합니다 — 추가 세부 설정창 없음. 빠른 선택을 원하면 아래 초기화 모드를 켜세요.",
     en: "Pick a window and enter at once — no extra setup screens. For a lighter start, turn on Init mode below.",
@@ -360,15 +417,18 @@ const UI = {
     ko: "자동이면 RSS·분쟁 신호 기준 가장 핫한 지정학·투자 허브로 이동합니다",
     en: "Auto flies to the hottest geopolitical · investment hub",
   },
-  modeStartConflict: { ko: "지정학으로 시작", en: "Start in Geopolitics" },
-  modeStartEconomy: { ko: "경제, 시장 으로 시작", en: "Start in Markets" },
-  viewerModeLabel: { ko: "뷰어 모드", en: "Viewer mode" },
-  modeConflict: { ko: "지정학", en: "Geopolitics" },
-  modeConflictHint: { ko: "전선 · 분쟁 · OSINT · 군사 뉴스", en: "Frontline · conflict · OSINT · military news" },
-  modeEconomy: { ko: "지경학", en: "Markets" },
+  modeStartConflict: { ko: "GEOINT로 시작", en: "Initialize GEOINT" },
+  modeStartEconomy: { ko: "FININT로 시작", en: "Initialize FININT" },
+  viewerModeLabel: { ko: "단말기 모드", en: "Terminal mode" },
+  modeConflict: { ko: "GEOINT", en: "GEOINT" },
+  modeConflictHint: {
+    ko: "Geospatial Intelligence · 전선 · OSINT",
+    en: "Geospatial Intelligence · frontline · OSINT",
+  },
+  modeEconomy: { ko: "FININT", en: "FININT" },
   modeEconomyHint: {
-    ko: "증시 · 유가 · 빅테크·반도체·전기차 RSS",
-    en: "Stocks · oil · Big Tech · semis · EV RSS",
+    ko: "Financial Intelligence · 공급망 · 증시",
+    en: "Financial Intelligence · supply chain · markets",
   },
   intelNews: { ko: "Intel 뉴스", en: "Intel news" },
   intelEconomy: { ko: "경제·증시", en: "Markets" },
@@ -382,14 +442,14 @@ const UI = {
   intelSheetNews: { ko: "Tier별 뉴스 · 분석", en: "Tier news · analysis" },
   intelSheetTelegram: { ko: "Telegram OSINT · Raw", en: "Telegram OSINT · Raw" },
   intelSheetViina: { ko: "VIINA · 우크라이나 전선", en: "VIINA · Ukraine front" },
-  intelSheetVideo: { ko: "동영상 뉴스 · 클릭 재생", en: "Video news · play on click" },
+  intelSheetVideo: { ko: "동영상 뉴스 · 공신력 채널", en: "Video news · trusted channels" },
   intelSheetVideoTab: { ko: "동영상 뉴스", en: "Video" },
   intelSheetEconomyNews: { ko: "경제 · RSS · 속보", en: "Economy · RSS · breaking" },
   intelSheetMarkets: { ko: "증시 · 매크로 · 지수", en: "Markets · macro · indices" },
   hoverSheetVideo: { ko: "동영상 뉴스", en: "Video news" },
   hoverSheetVideoHint: {
-    ko: "유튜브 메타만 표시합니다. 재생은 클릭 시에만 로드됩니다.",
-    en: "YouTube metadata only. Playback loads on click.",
+    ko: "BBC·Reuters·AP·Bloomberg 등 공신력 채널 최신 영상만. 메타만 폴링하고 재생은 클릭 시.",
+    en: "Trusted outlets only (BBC, Reuters, AP, Bloomberg…). Metadata polls; play on click.",
   },
   aiDigestLabel: { ko: "AI 요약 (참고용)", en: "AI digest (for reference)" },
   aiDigestClose: { ko: "AI 요약 닫기", en: "Close AI digest" },
@@ -422,6 +482,22 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
+  doomsdayClockTitle: { ko: "세계 종말 시계", en: "Doomsday Clock" },
+  doomsdayClockToMidnight: { ko: "자정까지", en: "to midnight" },
+  doomsdayClockAtMidnight: { ko: "자정", en: "Midnight" },
+  doomsdayClockMinutesUnit: { ko: "분", en: "min" },
+  doomsdayClockDeltaCloser: {
+    ko: "어제보다 {n}분 더 가까워짐",
+    en: "{n} min closer than yesterday",
+  },
+  doomsdayClockDeltaFarther: {
+    ko: "어제보다 {n}분 멀어짐",
+    en: "{n} min farther than yesterday",
+  },
+  doomsdayClockHint: {
+    ko: "오늘 세계 긴장도(WTI) 기준 · 100%면 자정",
+    en: "Based on today's World Tension Index · midnight at 100%",
+  },
 } as const;
 
 export type UiStringKey = keyof typeof UI;
@@ -438,6 +514,11 @@ export const THEATER_LABELS: Record<LabelLanguage, Record<NewsTheater, string>> 
     korea: "한반도",
     japan: "일본",
     "south-asia": "남아시아",
+    "southeast-asia": "동남아",
+    "south-america": "남미",
+    africa: "아프리카",
+    arctic: "북극",
+    atlantic: "대서양",
     global: "글로벌",
   },
   en: {
@@ -447,6 +528,11 @@ export const THEATER_LABELS: Record<LabelLanguage, Record<NewsTheater, string>> 
     korea: "Korea",
     japan: "Japan",
     "south-asia": "South Asia",
+    "southeast-asia": "SE Asia",
+    "south-america": "South America",
+    africa: "Africa",
+    arctic: "Arctic",
+    atlantic: "Atlantic",
     global: "Global",
   },
 };
@@ -457,22 +543,42 @@ export function theaterLabel(theater: NewsTheater, lang: LabelLanguage): string 
 
 export const VIEW_THEATER_LABELS: Record<
   LabelLanguage,
-  Record<"auto" | "korea" | "china-taiwan" | "russia-ukraine" | "middle-east" | "global", string>
+  Record<
+    | "auto"
+    | "korea"
+    | "japan"
+    | "china-taiwan"
+    | "russia-ukraine"
+    | "middle-east"
+    | "southeast-asia"
+    | "south-america"
+    | "africa"
+    | "global",
+    string
+  >
 > = {
   ko: {
     auto: "자동",
     korea: "한반도",
+    japan: "일본",
     "china-taiwan": "대만",
     "russia-ukraine": "우크라",
     "middle-east": "중동",
+    "southeast-asia": "동남아",
+    "south-america": "남미",
+    africa: "아프리카",
     global: "글로벌",
   },
   en: {
     auto: "Auto",
     korea: "Korea",
+    japan: "Japan",
     "china-taiwan": "Taiwan",
     "russia-ukraine": "Ukraine",
     "middle-east": "Middle East",
+    "southeast-asia": "SE Asia",
+    "south-america": "South America",
+    africa: "Africa",
     global: "Global",
   },
 };

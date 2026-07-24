@@ -148,10 +148,66 @@ function capArray(items, liteMax, fullMax) {
   return items.length <= limit ? items : items.slice(0, limit);
 }
 
+/** 경도·위도 → 대략적 권역 (lite 샘플이 미주만 채워지지 않게) */
+function geoRegionBucket(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "other";
+  if (lng < -30) return "amer";
+  if (lng < 40 && lat > 35) return "eu";
+  if (lng >= 25 && lng < 65 && lat < 42) return "me";
+  if (lng < 55 && lat < 35) return "afr";
+  if (lng < 100) return "casia";
+  if (lng < 140 && lat >= 15) return "easia";
+  if (lng < 155) return "seasia";
+  if (lat < -10) return "oce";
+  return "other";
+}
+
+/**
+ * lite 캡: 권역 라운드로빈으로 전 세계 분산.
+ * full 캡: 기존처럼 앞에서 자름 (이미 정렬된 입력 가정).
+ */
+function capArrayGeographic(items, liteMax, fullMax, getLatLng) {
+  const limit = IS_LITE ? liteMax : fullMax;
+  if (items.length <= limit) return items;
+  if (!IS_LITE || typeof getLatLng !== "function") {
+    return items.slice(0, limit);
+  }
+
+  const buckets = new Map();
+  for (const item of items) {
+    const { lat, lng } = getLatLng(item) || {};
+    const key = geoRegionBucket(lat, lng);
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(item);
+  }
+
+  const keys = [...buckets.keys()].sort(
+    (a, b) => (buckets.get(b)?.length || 0) - (buckets.get(a)?.length || 0),
+  );
+  const cursors = Object.fromEntries(keys.map((k) => [k, 0]));
+  const picked = [];
+  while (picked.length < limit) {
+    let progressed = false;
+    for (const key of keys) {
+      const list = buckets.get(key);
+      const i = cursors[key];
+      if (!list || i >= list.length) continue;
+      picked.push(list[i]);
+      cursors[key] = i + 1;
+      progressed = true;
+      if (picked.length >= limit) break;
+    }
+    if (!progressed) break;
+  }
+  return picked;
+}
+
 module.exports = {
   simplifyLine,
   polygonRingToCenterline,
   lineGeometryToPoints,
   pointsBbox,
   capArray,
+  geoRegionBucket,
+  capArrayGeographic,
 };

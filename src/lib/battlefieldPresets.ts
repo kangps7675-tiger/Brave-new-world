@@ -39,16 +39,18 @@ export function applyBattlefieldPreset(
         showTelegramOsint: true,
         showMilitaryActivity: false,
         showAis: false,
-        showEastAsiaAdiz: false,
       });
     case "taiwan":
       return patch(current, {
-        showEastAsiaAdiz: true,
         showMilitaryActivity: true,
         showAis: true,
         showShippingLanes: true,
         showLogisticsRisk: true,
         showSubmarineCables: true,
+        showOilPipelines: true,
+        showGasPipelines: true,
+        showResources: true,
+        showGemOilGasExtraction: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,
         // 주요전장 이동 뒤에도 전쟁구역 빨간 빗금은 기본 유지
@@ -65,17 +67,20 @@ export function applyBattlefieldPreset(
         showGasPipelines: true,
         showFirmsFires: true,
         showAis: true,
+        showPorts: true,
+        showUkmtoIncidents: true,
+        showNavareaWarnings: true,
         showMilitaryActivity: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,
         showWarZones: true,
+        showNewfeedsIranAttacks: true,
+        showUsCarriers: true,
         showUkraineControl: false,
         showNeptun: false,
-        showEastAsiaAdiz: false,
       });
     case "korea":
       return patch(current, {
-        showEastAsiaAdiz: true,
         showMilitaryActivity: true,
         showMilitaryBases: true,
         showAis: true,

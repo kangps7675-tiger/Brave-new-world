@@ -3,6 +3,10 @@ import { getDb } from "@/db";
 import { loadViinaRenderData } from "@/lib/viinaServerData";
 import { VIINA_POLICY } from "@/lib/licensing/viinaPolicy";
 import {
+  assertViinaRenderAccess,
+  isViinaCronAuthorized,
+} from "@/lib/licensing/viinaRenderGate";
+import {
   filterHatchPathsByView,
   precomputeUkraineHatchPaths,
   type UkraineHatchLod,
@@ -27,11 +31,9 @@ function parseLod(raw: string | null): UkraineHatchLod {
 function authorizeWarm(request: Request): boolean {
   const secret =
     process.env.INGEST_CRON_SECRET?.trim() || process.env.NEWS_WARM_SECRET?.trim();
-  if (!secret) return true;
-  const header = request.headers.get("authorization") || "";
-  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  // 시크릿이 없으면 프로덕션에서 오픈 워밍 금지 — 로컬만 허용
+  if (!secret) return process.env.NODE_ENV !== "production";
+  return isViinaCronAuthorized(request);
 }
 
 function splitZones(features: NonNullable<ReturnType<typeof loadViinaRenderData>>["features"]) {
@@ -102,12 +104,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "viina-rendering-disabled" }, { status: 404 });
   }
 
+  const gate = assertViinaRenderAccess(request);
+  if (!gate.ok) return gate.response;
+
   const { searchParams } = new URL(request.url);
   const lod = parseLod(searchParams.get("lod"));
   const lat = Number(searchParams.get("lat"));
   const lng = Number(searchParams.get("lng"));
   const radius = Math.min(20, Math.max(2, Number(searchParams.get("radius") || 8)));
-  const max = Math.min(8000, Math.max(200, Number(searchParams.get("max") || 4000)));
+  // bulk 덤프 완화 — 뷰포트 없으면 상한 더 낮춤
+  const hasView = Number.isFinite(lat) && Number.isFinite(lng);
+  const max = Math.min(
+    hasView ? 4000 : 1500,
+    Math.max(200, Number(searchParams.get("max") || (hasView ? 4000 : 1500))),
+  );
 
   try {
     const ensured = await ensureHatchPayload(lod);
@@ -122,7 +132,7 @@ export async function GET(request: Request) {
     }
 
     let paths = ensured.payload.paths;
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (hasView) {
       paths = filterHatchPathsByView(paths, { lat, lng }, radius, max);
     } else if (paths.length > max) {
       paths = paths.slice(0, max);
@@ -138,12 +148,14 @@ export async function GET(request: Request) {
         source: ensured.source,
         paths,
         attribution: "VIINA (rendering-only produced work)",
+        exportForbidden: true,
       },
       {
         headers: {
-          "Cache-Control": "private, max-age=300",
+          "Cache-Control": "private, no-store",
           "X-Viina-Policy": "rendering-only",
           "X-Hatch-Source": ensured.source,
+          "X-Content-Type-Options": "nosniff",
         },
       },
     );

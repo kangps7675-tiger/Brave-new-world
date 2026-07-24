@@ -2,6 +2,7 @@
 
 import type { TransportPath } from "@/data/geoTypes";
 import type { UkraineHatchLod } from "@/lib/ukraineHatchPrecompute";
+import { ensureViinaRenderSession } from "@/lib/viinaPrefetch";
 
 export type UkraineHatchPathsPayload = {
   generatedAt: string;
@@ -43,14 +44,16 @@ export function prefetchUkraineHatchPaths(
   if (options?.radius) params.set("radius", String(options.radius));
   if (options?.max) params.set("max", String(options.max));
 
-  const request = fetch(`/api/render/ukraine-control-paths?${params}`, {
-    cache: "no-store",
-  })
-    .then(async (res) => {
+  const request = ensureViinaRenderSession()
+    .then(async (ok) => {
+      if (!ok) return null;
+      const res = await fetch(`/api/render/ukraine-control-paths?${params}`, {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
       if (!res.ok) return null;
       const payload = (await res.json()) as UkraineHatchPathsPayload;
       if (!payload?.paths?.length) return null;
-      // 뷰포트 요청이 아닐 때만 전체 캐시 저장
       if (!options?.lat) {
         cacheByLod.set(lod, payload);
       }

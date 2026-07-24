@@ -13,7 +13,7 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "conflict-zones":
     "켜면 분쟁+GDELT 밀도로 추정한 전쟁지역 데모(외부 AI API 없음)를 표시합니다.",
   "arms-embargo": "켜면 무기 금수 조치가 적용된 구역을 표시합니다.",
-  ucdp: "켜면 무력 충돌 사건(UCDP) 위치를 점으로 표시합니다.",
+  ucdp: "켜면 UCDP 무력 충돌 사건 위치의 사상자(사망·부상)를 표시합니다. (부상은 UCDP 미집계)",
   "gdelt-war": "켜면 전투·군사 충돌 관련 뉴스 위치를 표시합니다.",
   "gdelt-diplomatic": "켜면 외교·회담 관련 뉴스 위치를 표시합니다.",
   "gdelt-alliance": "켜면 서방 동맹 마찰·IRN·중·러·북 축 관계 뉴스 위치를 표시합니다.",
@@ -22,6 +22,10 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
     "켜면 이란·중국·러시아·북한 중심 외교·군수·하이브리드 관계망(스포크 포함)을 호로 표시합니다.",
   "telegram-osint": "켜면 공개 텔레그램 채널의 전장·전선 소식을 표시합니다.",
   "tzeva-adom": "켜면 이스라엘 로켓·공습 경보(체바 아돔) 발생 지역을 표시합니다.",
+  "ukmto-incidents":
+    "켜면 UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보를 검은 원 빗금으로 표시합니다.",
+  "navarea-warnings":
+    "켜면 NAVAREA 항행경보(훈련·미사일 낙하지·케이블 작업 등)를 보라색 구역으로 표시합니다. 일본 근해·대만 주변 관심사 반영.",
   "oil-pipelines": "켜면 주요 송유관 노선을 표시합니다.",
   "gas-pipelines": "켜면 주요 천연가스관 노선을 표시합니다.",
   "lng-terminals": "켜면 LNG(액화천연가스) 수출입 터미널 위치를 표시합니다.",
@@ -52,12 +56,12 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "logistics-risk": "켜면 해협·운하 등 해상 요충과 물류 거점을 표시합니다.",
   "critical-nodes":
     "켜면 해상·케이블·에너지·금융 등 핵심 인프라 병목을 표시합니다.",
-  ais: "켜면 AIS 선박을 표시합니다. 지정학=군용 함정, 지경학=민간 화물·탱커·여객선.",
-  "military-bases": "켜면 주요 군사기지 위치를 표시합니다.",
+  ais: "켜면 AIS 선박을 표시합니다. 지정학=군용 함정, 지경학=민간 화물·탱커·여객선(군용 제외).",
+  "military-bases": "켜면 주요 군사기지 위치를 표시합니다. 지정학 전용.",
   "air-traffic":
     "켜면 민간 항공기 운항(ADS-B)을 표시합니다. 군용은 제외하며 지경학 모드 경제활동 레이어입니다.",
   "military-air":
-    "켜면 군사 항공기(ADS-B) 실시간 항적을 기종별 실루엣으로 표시합니다. 클릭하면 상세.",
+    "켜면 군사 항공기(ADS-B) 실시간 항적을 기종별 실루엣으로 표시합니다. 지정학 전용 · 지경학에서는 사용하지 않습니다.",
   intel: "켜면 정찰·감시 등 정보 수집 거점을 표시합니다.",
   refugee: "켜면 난민 캠프·대규모 인구 이동 관련 지점을 표시합니다.",
   firms:
@@ -75,7 +79,10 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "us-china-incidents": "켜면 미국–중국 군사 마찰 지점을 표시합니다.",
   "nk-missile-tests": "켜면 북한 미사일·무기 시험의 발사·실험 위치를 표시합니다.",
   "east-asia-adiz": "켜면 동아시아 방공식별구역(ADIZ)을 표시합니다.",
-  "newfeeds-iran": "켜면 이란·중동 공격 관련 보도 지점을 지도에 표시합니다.",
+  "island-chains":
+    "켜면 중국 도련선(적색 점선)과 미군 인도·태평양 방어선(청색 실선), 대만 화약고 펄스를 표시합니다. 기지에 마우스를 올리면 탐지 반경이 펼쳐집니다.",
+  "newfeeds-iran":
+    "켜면 이란 국영·공식 매체 공격 지점을 빨간 구체로 표시합니다. (UCDP 흰 네온과 별개)",
   "gdelt-ocean": "켜면 대양·해상 지정학 경쟁 관련 뉴스 위치를 표시합니다.",
   "energy-pipelines": "켜면 원유·가스 수송망(송유관·가스관·LNG)을 표시합니다.",
   "gem-resources": "켜면 발전·채굴·산업 시설을 자원 종류별로 표시합니다.",

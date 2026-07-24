@@ -30,7 +30,7 @@ async function readSeedFile(): Promise<MediazonaCasualtySnapshot> {
 async function scrapeLiveCount(): Promise<{ count: number; scrapedAt: string } | null> {
   try {
     const res = await fetch("https://en.zona.media/", {
-      headers: { "User-Agent": "ConflictView/1.0 (casualty attribution)" },
+      headers: { "User-Agent": "BraveNewWorld/1.0 (casualty attribution)" },
       next: { revalidate: 0 },
       signal: AbortSignal.timeout(12_000),
     });

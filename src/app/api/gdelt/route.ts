@@ -3,14 +3,25 @@ import { fetchLatestGdeltEvents } from "@/lib/gdeltParse";
 import { fetchGdeltThemeCached, type GdeltTheme } from "@/lib/gdeltTheme";
 import { apiStubResponse } from "@/lib/apiStub";
 import { readGdeltPointsFromD1, readGdeltFromIngestWorker } from "@/lib/d1LiveSnapshots";
-import { gdeltQuerySchema, parseSearchParams } from "@/lib/apiQuerySchemas";
+import {
+  GDELT_THEMES,
+  gdeltQuerySchema,
+  parseSearchParams,
+} from "@/lib/apiQuerySchemas";
 import { fetchOceanGeopoliticsGdelt } from "@/lib/gdeltOceanGeo";
 import type { ConflictEvent, EventTier } from "@/data/geoTypes";
 import { isOceanGeopoliticsTag } from "@/lib/oceanGeopoliticsTheaters";
+import {
+  CDN_CACHE,
+  NO_STORE_HEADERS,
+  publicCacheHeaders,
+} from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
+
+const GDELT_CDN = publicCacheHeaders(CDN_CACHE.gdelt);
 
 function tierFromQueryTag(tag: string | null): EventTier {
   const t = (tag || "").toLowerCase();
@@ -70,7 +81,13 @@ export async function GET(request: Request) {
     const parsed = parseSearchParams(searchParams, gdeltQuerySchema);
     if (!parsed.ok) {
       return NextResponse.json(
-        { error: parsed.error, issues: parsed.issues, events: [] },
+        {
+          error: parsed.error,
+          issues: parsed.issues,
+          hint: "theme은 cyber|election만 허용. 전쟁·외교 등은 theme 없이 GET /api/gdelt → events[].eventTier",
+          allowedThemes: GDELT_THEMES,
+          events: [],
+        },
         { status: 400 },
       );
     }
@@ -79,23 +96,29 @@ export async function GET(request: Request) {
 
     if (theme === "cyber" || theme === "election") {
       if (!preferLive) {
-        return NextResponse.json({
-          theme,
-          cached: false,
-          waiting: true,
-          fetchedAt: new Date().toISOString(),
-          events: [],
-          attribution: "GDELT theme — use ?live=1 or future cron table",
-        });
+        return NextResponse.json(
+          {
+            theme,
+            cached: false,
+            waiting: true,
+            fetchedAt: new Date().toISOString(),
+            events: [],
+            attribution: "GDELT theme — use ?live=1 or future cron table",
+          },
+          { headers: NO_STORE_HEADERS },
+        );
       }
       const { data, cached } = await fetchGdeltThemeCached(theme);
-      return NextResponse.json({
-        theme,
-        cached,
-        fetchedAt: new Date().toISOString(),
-        events: data,
-        attribution: "GDELT Project",
-      });
+      return NextResponse.json(
+        {
+          theme,
+          cached,
+          fetchedAt: new Date().toISOString(),
+          events: data,
+          attribution: "GDELT Project",
+        },
+        { headers: GDELT_CDN },
+      );
     }
 
     // Cron 스냅샷 + 대양(태평양·대서양·북극) Geo 보강
@@ -131,15 +154,18 @@ export async function GET(request: Request) {
         /* ocean geo optional */
       }
 
-      return NextResponse.json({
-        fetchedAt,
-        cached,
-        source,
-        waiting: events.length === 0,
-        events,
-        attribution:
-          "GDELT Project · land theaters + Pacific/Atlantic/Arctic competition",
-      });
+      return NextResponse.json(
+        {
+          fetchedAt,
+          cached,
+          source,
+          waiting: events.length === 0,
+          events,
+          attribution:
+            "GDELT Project · land theaters + Pacific/Atlantic/Arctic competition",
+        },
+        { headers: events.length === 0 ? NO_STORE_HEADERS : GDELT_CDN },
+      );
     }
 
     const sliceCount = parsed.data.slices;
@@ -149,12 +175,15 @@ export async function GET(request: Request) {
     );
     try {
       const ocean = await fetchOceanGeopoliticsGdelt(48);
-      return NextResponse.json({
-        ...payload,
-        events: mergeUnique((payload.events as ConflictEvent[]) || [], ocean),
-      });
+      return NextResponse.json(
+        {
+          ...payload,
+          events: mergeUnique((payload.events as ConflictEvent[]) || [], ocean),
+        },
+        { headers: GDELT_CDN },
+      );
     } catch {
-      return NextResponse.json(payload);
+      return NextResponse.json(payload, { headers: GDELT_CDN });
     }
   } catch (error) {
     return NextResponse.json(
@@ -162,7 +191,7 @@ export async function GET(request: Request) {
         error: error instanceof Error ? error.message : "GDELT 수신 실패",
         events: [],
       },
-      { status: 500 },
+      { status: 500, headers: NO_STORE_HEADERS },
     );
   }
 }

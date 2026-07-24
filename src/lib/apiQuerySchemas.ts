@@ -47,8 +47,15 @@ export const aisQuerySchema = z.object({
   bbox: z.string().optional(),
 });
 
+/** theme=cyber|election 전용. 전쟁 등은 theme 없이 /api/gdelt → events[].eventTier */
+export const GDELT_THEMES = ["cyber", "election"] as const;
+
 export const gdeltQuerySchema = z.object({
-  theme: z.enum(["cyber", "election"]).optional(),
+  theme: z
+    .enum(GDELT_THEMES, {
+      error: "허용값: cyber, election (전쟁은 theme 아님 — /api/gdelt → eventTier)",
+    })
+    .optional(),
   live: liveFlagSchema,
   slices: z.coerce.number().int().min(1).max(48).optional(),
 });

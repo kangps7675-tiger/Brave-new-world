@@ -1,5 +1,10 @@
 import type { AdsbAircraftRow, IngestEnv } from "./env";
 import { getAdsbApiKey } from "./db";
+import milHexPayload from "./data/bellingcat-mil-hexes.json";
+
+const BELLINGCAT_MIL_HEX = new Set(
+  (milHexPayload.hexes as string[]).map((h) => h.toLowerCase()),
+);
 
 const ADSB_FI_MIL_URL = "https://opendata.adsb.fi/api/v2/mil";
 const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
@@ -65,15 +70,18 @@ function pickCoord(raw: RawAc): { lat: number; lng: number } | null {
 }
 
 function isMilitary(raw: RawAc): boolean {
-  if (raw.dbFlags == null || raw.dbFlags === "") return false;
-  const flags = Number(raw.dbFlags);
-  return Number.isFinite(flags) && (flags & 1) === 1;
+  if (raw.dbFlags != null && raw.dbFlags !== "") {
+    const flags = Number(raw.dbFlags);
+    if (Number.isFinite(flags) && (flags & 1) === 1) return true;
+  }
+  const hex = (raw.hex || "").toLowerCase();
+  return Boolean(hex && BELLINGCAT_MIL_HEX.has(hex));
 }
 
 function authHeaders(apiKey: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "User-Agent": "ConflictView/1.0",
+    "User-Agent": "BraveNewWorld/1.0",
   };
   if (apiKey) {
     headers["x-api-key"] = apiKey;

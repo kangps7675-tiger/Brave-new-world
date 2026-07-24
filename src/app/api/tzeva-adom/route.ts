@@ -7,9 +7,16 @@ import { geocodeOrefRegion } from "@/lib/israelAlertZones";
 import { fetchOrefAlerts } from "@/lib/tzevaAdomFetch";
 import { getTzevaAdomStore, replaceTzevaAdomData } from "@/lib/tzevaAdomStore";
 import type { TzevaAdomAlert, TzevaAdomPayload } from "@/lib/tzevaAdom";
+import {
+  CDN_CACHE,
+  NO_STORE_HEADERS,
+  publicCacheHeaders,
+} from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const TZEVA_CDN = publicCacheHeaders(CDN_CACHE.tzeva);
 
 const LIVE_FILE = path.join(process.cwd(), "public", "data", "live", "tzeva-adom.json");
 const SEED_FILE = path.join(process.cwd(), "public", "data", "tzeva-adom-seed.json");
@@ -61,23 +68,26 @@ function enrichPayload(payload: TzevaAdomPayload): TzevaAdomPayload {
 export async function GET() {
   if (!tzevaAdomEnabled()) {
     const seed = readSeedPayload();
-    return NextResponse.json({ ...seed, live: false, stub: true });
+    return NextResponse.json(
+      { ...seed, live: false, stub: true },
+      { headers: NO_STORE_HEADERS },
+    );
   }
 
   const livePayload = readLivePayload();
   if (livePayload) {
     const enriched = enrichPayload(livePayload);
     replaceTzevaAdomData(enriched.active ?? [], enriched.history ?? [], enriched.fetchedAt);
-    return NextResponse.json(enriched);
+    return NextResponse.json(enriched, { headers: TZEVA_CDN });
   }
 
   if (isApiStubMode()) {
-    return NextResponse.json(readSeedPayload());
+    return NextResponse.json(readSeedPayload(), { headers: NO_STORE_HEADERS });
   }
 
   const now = Date.now();
   if (cachePayload && now - cacheAt < CACHE_MS) {
-    return NextResponse.json(cachePayload);
+    return NextResponse.json(cachePayload, { headers: TZEVA_CDN });
   }
 
   const result = await fetchOrefAlerts({
@@ -106,5 +116,7 @@ export async function GET() {
 
   cachePayload = enrichPayload(payload);
   cacheAt = now;
-  return NextResponse.json(cachePayload);
+  return NextResponse.json(cachePayload, {
+    headers: result.error ? NO_STORE_HEADERS : TZEVA_CDN,
+  });
 }

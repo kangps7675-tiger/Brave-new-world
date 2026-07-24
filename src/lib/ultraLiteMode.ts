@@ -21,8 +21,6 @@ export const ULTRA_LITE_FORCE_OFF: Array<keyof LayerPrefs> = [
   "showDiplomaticTension",
   "showConflictZones",
   "showArmsEmbargo",
-  "showGasPipelines",
-  "showOilPipelines",
   "showSubmarineCables",
   "showInternetExchanges",
   "showAiDataCenters",

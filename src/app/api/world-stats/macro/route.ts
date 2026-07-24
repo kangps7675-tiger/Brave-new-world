@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSotwApiKey, SOTW_ATTRIBUTION } from "@/lib/sotw";
 import { fetchSotwMacroDeep } from "@/lib/sotwMacro";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const WORLD_CDN = publicCacheHeaders(CDN_CACHE.worldStats);
 
 /**
  * GET /api/world-stats/macro?country=Iran|USA|…
@@ -26,7 +29,7 @@ export async function GET(request: Request) {
 
   try {
     const macro = await fetchSotwMacroDeep(country);
-    return NextResponse.json(macro);
+    return NextResponse.json(macro, { headers: WORLD_CDN });
   } catch (error) {
     return NextResponse.json(
       {

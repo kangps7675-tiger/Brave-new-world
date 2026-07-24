@@ -31,7 +31,7 @@ function stableNewfeedsId(title: string, link: string, id?: string): string {
 export async function fetchNewfeedsIranNewsItems(limit = 30): Promise<NewsStreamItem[]> {
   try {
     const res = await fetch(NEWFEEDS_IRAN_FEED_URL, {
-      headers: { Accept: "application/json", "User-Agent": "ConflictView/1.0" },
+      headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/1.0" },
       next: { revalidate: 300 },
     });
     if (!res.ok) return [];

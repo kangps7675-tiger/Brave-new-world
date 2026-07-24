@@ -2,6 +2,7 @@ import type { StaticPoint } from "@/data/geoTypes";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import {
   MILITARY_BASE_AREA_MAX_BY_TIER,
+  RESOURCE_POINT_MAX_BY_TIER,
   STATIC_POINT_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { HTML_STATIC_KINDS, isHtmlStaticKind } from "@/lib/infraStaticMarkers";
@@ -24,6 +25,59 @@ const PINNED_STATIC_KINDS = new Set<StaticPoint["kind"]>([
   "critical-node",
 ]);
 
+function isResourceLikeKind(kind: StaticPoint["kind"]): boolean {
+  if (kind === "resource") return true;
+  // GEM 시설은 kind가 gem-* — 예전엔 others로 분류되어 global에서 전부 잘림
+  return typeof kind === "string" && kind.startsWith("gem-");
+}
+
+/**
+ * kind별 공평 배분(라운드로빈) 선택.
+ *
+ * 예전에는 merge 순서 선착순으로 상한을 채워, 공항(수천 개)이 켜져 있으면
+ * 뒤에 병합되는 kind(제재 대상·우주 발사·IXP 등)는 체크해도 슬롯이 없어
+ * "켰는데 안 나옴"이 됐다. kind마다 번갈아 뽑아 모든 ON 레이어가
+ * 최소한 일부라도 보이게 한다.
+ */
+export function pickFairByKind<T extends StaticPoint>(
+  points: T[],
+  view: ViewState,
+  radiusDeg: number,
+  max: number,
+): T[] {
+  if (max <= 0) return [];
+  const inView =
+    radiusDeg > 0 ? points.filter((p) => bboxNearView(p, view, radiusDeg)) : points;
+  if (inView.length <= max) return inView;
+
+  const byKind = new Map<string, T[]>();
+  for (const point of inView) {
+    const bucket = byKind.get(point.kind);
+    if (bucket) bucket.push(point);
+    else byKind.set(point.kind, [point]);
+  }
+  if (byKind.size <= 1) return inView.slice(0, max);
+
+  const kinds = [...byKind.keys()];
+  const cursors = new Map<string, number>(kinds.map((k) => [k, 0]));
+  const out: T[] = [];
+  while (out.length < max) {
+    let advanced = false;
+    for (const kind of kinds) {
+      const bucket = byKind.get(kind)!;
+      const cursor = cursors.get(kind)!;
+      if (cursor < bucket.length) {
+        out.push(bucket[cursor]);
+        cursors.set(kind, cursor + 1);
+        advanced = true;
+        if (out.length >= max) break;
+      }
+    }
+    if (!advanced) break;
+  }
+  return out;
+}
+
 export function filterStaticPointsForView(
   points: StaticPoint[],
   view: ViewState,
@@ -32,22 +86,34 @@ export function filterStaticPointsForView(
 ): StaticPoint[] {
   const pinned: StaticPoint[] = [];
   const military: StaticPoint[] = [];
+  const resources: StaticPoint[] = [];
   const others: StaticPoint[] = [];
   for (const point of points) {
     if (PINNED_STATIC_KINDS.has(point.kind)) pinned.push(point);
     else if (point.kind === "military-base") military.push(point);
+    else if (isResourceLikeKind(point.kind)) resources.push(point);
     else others.push(point);
   }
 
-  const visibleOthers: StaticPoint[] = [];
-  const otherMax = STATIC_POINT_MAX_BY_TIER[tier];
-  if (otherMax > 0) {
-    for (const point of others) {
-      if (radiusDeg > 0 && !bboxNearView(point, view, radiusDeg)) continue;
-      visibleOthers.push(point);
-      if (visibleOthers.length >= otherMax) break;
-    }
-  }
+  // global에서도 카메라 주변만이 아니라 전역 샘플을 일부 보여 줌아웃 ON이 죽지 않게.
+  // kind별 라운드로빈 — 선착순 상한이 뒤 순서 레이어를 굶기던 문제 수정.
+  const otherRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 52) : radiusDeg;
+  const visibleOthers = pickFairByKind(
+    others,
+    view,
+    otherRadius,
+    STATIC_POINT_MAX_BY_TIER[tier],
+  );
+
+  const resourceRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 48) : radiusDeg;
+  const visibleResources = pickFairByKind(
+    resources,
+    view,
+    resourceRadius,
+    RESOURCE_POINT_MAX_BY_TIER[tier],
+  );
 
   const militaryMax = MILITARY_BASE_AREA_MAX_BY_TIER[tier];
   const militaryRadius =
@@ -61,12 +127,12 @@ export function filterStaticPointsForView(
     }
   }
 
-  return [...pinned, ...visibleOthers, ...visibleMilitary];
+  return [...pinned, ...visibleResources, ...visibleOthers, ...visibleMilitary];
 }
 
 export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
-  airport: "rgba(147, 197, 253, 0.72)",
-  port: "rgba(103, 232, 249, 0.7)",
+  airport: "rgba(163, 230, 53, 0.88)",
+  port: "rgba(37, 99, 235, 0.88)",
   resource: "rgba(251, 191, 36, 0.92)",
   "military-base": "rgba(59, 130, 246, 0.92)",
   "cable-landing": "rgba(167, 139, 250, 0.9)",
@@ -103,7 +169,7 @@ export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
 /** HTML 실루엣 마커 kinds — globe points와 이중 렌더 금지 */
 export const STATIC_EMOJI_KINDS = HTML_STATIC_KINDS;
 
-/** @deprecated 이모지 배지 대신 soft marker 사용; 호환용 유지 */
+/** @deprecated 원형 SVG 배지 사용 — 호환용 심볼만 유지 */
 export const STATIC_POINT_EMOJI: Record<"airport" | "port" | "military-base", string> = {
   airport: "✈️",
   port: "⚓️",
@@ -115,16 +181,16 @@ export const STATIC_MARKER_PALETTE: Record<
   { fill: string; glow: string; ink: string; rim: string }
 > = {
   airport: {
-    fill: "rgba(125, 180, 245, 0.22)",
-    glow: "rgba(96, 165, 250, 0.42)",
-    ink: "rgba(226, 239, 254, 0.95)",
-    rim: "rgba(186, 220, 252, 0.55)",
+    fill: "rgba(163, 230, 53, 0.92)",
+    glow: "rgba(163, 230, 53, 0.45)",
+    ink: "rgba(255, 255, 255, 0.98)",
+    rim: "rgba(236, 252, 203, 0.7)",
   },
   port: {
-    fill: "rgba(56, 189, 248, 0.2)",
-    glow: "rgba(34, 211, 238, 0.38)",
-    ink: "rgba(207, 250, 254, 0.95)",
-    rim: "rgba(165, 243, 252, 0.5)",
+    fill: "rgba(37, 99, 235, 0.92)",
+    glow: "rgba(59, 130, 246, 0.5)",
+    ink: "rgba(255, 255, 255, 0.98)",
+    rim: "rgba(147, 197, 253, 0.65)",
   },
   "military-base": {
     fill: "rgba(37, 99, 235, 0.28)",

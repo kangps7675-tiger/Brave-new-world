@@ -2,7 +2,7 @@
  * 네온 점 + 물방울 리플 — 중국 대치(빨강) / 북한 미사일(주황) / 우크라 GDELT(시안) 공용.
  */
 
-export type NeonRippleAccent = "red" | "orange" | "cyan";
+export type NeonRippleAccent = "red" | "orange" | "cyan" | "blue" | "white";
 
 export const NEON_RIPPLE_MARKER_ROOT = "neon-ripple-incident-marker";
 
@@ -61,9 +61,41 @@ const ACCENT_CSS: Record<
           0 0 28px 10px rgba(69, 243, 255, 0.4);
       }`,
   },
+  blue: {
+    border: "rgba(96, 165, 250, 0.92)",
+    glow: "rgba(59, 130, 246, 0.5)",
+    core: "radial-gradient(circle at 35% 30%, #eff6ff 0%, #60a5fa 42%, #1d4ed8 100%)",
+    keyGlow: `
+      0%, 100% {
+        box-shadow:
+          0 0 4px 1px rgba(147, 197, 253, 0.95),
+          0 0 10px 3px rgba(59, 130, 246, 0.55);
+      }
+      50% {
+        box-shadow:
+          0 0 6px 2px rgba(191, 219, 254, 1),
+          0 0 16px 5px rgba(37, 99, 235, 0.75);
+      }`,
+  },
+  white: {
+    border: "rgba(255, 255, 255, 0.9)",
+    glow: "rgba(248, 250, 252, 0.55)",
+    core: "radial-gradient(circle at 35% 30%, #ffffff 0%, #e2e8f0 45%, #94a3b8 100%)",
+    keyGlow: `
+      0%, 100% {
+        box-shadow:
+          0 0 4px 1px rgba(255, 255, 255, 0.95),
+          0 0 10px 3px rgba(226, 232, 240, 0.55);
+      }
+      50% {
+        box-shadow:
+          0 0 6px 2px rgba(255, 255, 255, 1),
+          0 0 16px 5px rgba(248, 250, 252, 0.8);
+      }`,
+  },
 };
 
-const STYLE_VERSION = "cyan-v1";
+const STYLE_VERSION = "blue-white-v1";
 
 function ensureStyles() {
   if (typeof document === "undefined") return;
@@ -89,6 +121,8 @@ function ensureStyles() {
     @keyframes neon-ripple-core-red { ${ACCENT_CSS.red.keyGlow} }
     @keyframes neon-ripple-core-orange { ${ACCENT_CSS.orange.keyGlow} }
     @keyframes neon-ripple-core-cyan { ${ACCENT_CSS.cyan.keyGlow} }
+    @keyframes neon-ripple-core-blue { ${ACCENT_CSS.blue.keyGlow} }
+    @keyframes neon-ripple-core-white { ${ACCENT_CSS.white.keyGlow} }
     .${NEON_RIPPLE_MARKER_ROOT} {
       position: relative;
       width: 28px;
@@ -146,6 +180,22 @@ function ensureStyles() {
     .${NEON_RIPPLE_MARKER_ROOT}[data-accent="cyan"] .neon-ripple-core {
       background: ${ACCENT_CSS.cyan.core};
       animation: neon-ripple-core-cyan 1.8s ease-in-out infinite;
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="blue"] .neon-ripple-wave {
+      border: 1.5px solid ${ACCENT_CSS.blue.border};
+      box-shadow: 0 0 8px 1px ${ACCENT_CSS.blue.glow};
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="blue"] .neon-ripple-core {
+      background: ${ACCENT_CSS.blue.core};
+      animation: neon-ripple-core-blue 1.8s ease-in-out infinite;
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="white"] .neon-ripple-wave {
+      border: 1.5px solid ${ACCENT_CSS.white.border};
+      box-shadow: 0 0 8px 1px ${ACCENT_CSS.white.glow};
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="white"] .neon-ripple-core {
+      background: ${ACCENT_CSS.white.core};
+      animation: neon-ripple-core-white 1.8s ease-in-out infinite;
     }
   `;
   document.head.appendChild(style);

@@ -750,49 +750,42 @@ export function useGlobeStaticLayers(options: {
   const visibleShipping = useMemo(() => {
     if (!options.showShippingLanes) return [];
     const max = SHIPPING_LANE_MAX_BY_TIER[options.globeTier];
-    return filterPaths(shippingPaths, options.viewState, options.radiusDeg, max);
+    // viewport-paths API가 이미 컷 — 클라 재필터는 이동 중 stale 응답을 전부 버릴 수 있음
+    return shippingPaths.slice(0, max);
   }, [
     options.globeTier,
-    options.radiusDeg,
     options.showShippingLanes,
-    options.viewState,
     shippingPaths,
   ]);
 
   const visibleCables = useMemo(() => {
     if (!options.showSubmarineCables) return [];
     const max = SUBMARINE_CABLE_MAX_BY_TIER[options.globeTier];
-    return filterPaths(cablePaths, options.viewState, options.radiusDeg, max);
+    return cablePaths.slice(0, max);
   }, [
     cablePaths,
     options.globeTier,
-    options.radiusDeg,
     options.showSubmarineCables,
-    options.viewState,
   ]);
 
   const visibleOilPipelines = useMemo(() => {
     if (!options.showOilPipelines) return [];
     const max = OIL_PIPELINE_MAX_BY_TIER[options.globeTier];
-    return filterPaths(oilPipelinePaths, options.viewState, options.radiusDeg, max);
+    return oilPipelinePaths.slice(0, max);
   }, [
     oilPipelinePaths,
     options.globeTier,
-    options.radiusDeg,
     options.showOilPipelines,
-    options.viewState,
   ]);
 
   const visibleGasPipelines = useMemo(() => {
     if (!options.showGasPipelines) return [];
     const max = GAS_PIPELINE_MAX_BY_TIER[options.globeTier];
-    return filterPaths(gasPipelinePaths, options.viewState, options.radiusDeg, max);
+    return gasPipelinePaths.slice(0, max);
   }, [
     gasPipelinePaths,
     options.globeTier,
-    options.radiusDeg,
     options.showGasPipelines,
-    options.viewState,
   ]);
 
   const visibleStaticPoints = useMemo(() => {

@@ -33,12 +33,27 @@ export const GUEST_LOCAL_PREF_KEYS = [
   "geowatch-view-config-v1",
   "geowatch-watch-symbols-v1",
   "geowatch-interest-v1",
+  /** 게스트 예측 deviceId — 로그인 시 계정 연동 후보 */
+  "geowatch-predict-device-v1",
+  /** 로컬 스트릭·오늘 픽 캐시 */
+  "geowatch-predict-prefs-v1",
+  /** 진행형 분쟁 팔로우 */
+  "geowatch-living-conflicts-v1",
+  /** UI 글꼴 프리셋·커스텀 Google family */
+  "geowatch-ui-font-v1",
+  /** 첫 방문 1~10 화면 투어 */
+  "geowatch-first-visit-tour-v1",
+  "geowatch-tour-invite-v1",
   "cv-intel-dock-collapsed",
+  "cv-watch-focus-v1",
+  "cv-app-update-seen",
   // 등불·온보딩은 prefix 매칭으로 수집
 ] as const;
 
 export const GUEST_LOCAL_PREF_PREFIXES = [
   "cv-periodic-brief-seen-",
+  "cv-periodic-brief-folded-",
+  "cv-weekly-recap-folded-",
 ] as const;
 
 export const GUEST_POLICY_COPY = {

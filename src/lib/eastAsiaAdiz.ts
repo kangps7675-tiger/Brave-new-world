@@ -11,7 +11,7 @@ export type EastAsiaAdizStyle = {
   pattern: "slash" | "backslash" | "horizontal" | "cross";
 };
 
-/** 5국 ADIZ — 한=시안 · 일=회 · 대=아조르 · 중=황토황 · 북=자홍 (외교주황·전투빨강 비겹침) */
+/** 5국 ADIZ — 한=시안 · 일=회 · 대=아조르 · 중=황토황 · 북=슬레이트 (자홍→NAVAREA 보라 양보) */
 export const EAST_ASIA_ADIZ_STYLES: Record<EastAsiaAdizId, EastAsiaAdizStyle> = {
   kadiz: {
     id: "kadiz",
@@ -33,8 +33,9 @@ export const EAST_ASIA_ADIZ_STYLES: Record<EastAsiaAdizId, EastAsiaAdizStyle> = 
   },
   "dprk-adiz": {
     id: "dprk-adiz",
-    outline: "rgba(255, 0, 85, 0.92)",
-    hatch: "rgba(255, 0, 85, 0.5)",
+    // 자홍 제거 — NAVAREA 보라와 분리. 북한 ADIZ는 슬레이트
+    outline: "rgba(148, 163, 184, 0.92)",
+    hatch: "rgba(148, 163, 184, 0.45)",
     pattern: "slash",
   },
   cadiz: {
@@ -46,7 +47,7 @@ export const EAST_ASIA_ADIZ_STYLES: Record<EastAsiaAdizId, EastAsiaAdizStyle> = 
 };
 
 /** 동아시아 ADIZ가 보이기 시작하는 최대 고도 (이하면 표시) — LOD continent 이하 */
-export const EAST_ASIA_ADIZ_MAX_ALTITUDE = 1.72;
+export const EAST_ASIA_ADIZ_MAX_ALTITUDE = 3.2;
 
 export function isEastAsiaAdizVisibleAtAltitude(altitude: number): boolean {
   return altitude <= EAST_ASIA_ADIZ_MAX_ALTITUDE;

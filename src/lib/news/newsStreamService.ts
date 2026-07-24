@@ -1,5 +1,8 @@
 import { buildNewsStream } from "@/lib/news/pipeline";
-import { translateNewsStreamPayload } from "@/lib/news/translateNews";
+import {
+  ensureKoreanNewsPayload,
+  translateNewsStreamPayload,
+} from "@/lib/news/translateNews";
 import {
   NEWS_D1_TTL_MS,
   readNewsStreamFromD1,
@@ -103,12 +106,21 @@ export async function resolveNewsStream(options: {
 
   if (!options.preferLive) {
     const mem = readNewsMemoryCache(key);
-    if (mem) return { payload: mem, source: "memory" };
+    if (mem) {
+      const payload =
+        options.lang === "ko" ? await ensureKoreanNewsPayload(mem) : mem;
+      if (payload !== mem) writeNewsMemoryCache(key, payload);
+      return { payload, source: "memory" };
+    }
 
     const fromD1 = await readNewsStreamFromD1(key, NEWS_D1_TTL_MS);
     if (fromD1?.payload) {
-      writeNewsMemoryCache(key, fromD1.payload);
-      return { payload: fromD1.payload, source: "d1", ageMs: fromD1.ageMs };
+      const payload =
+        options.lang === "ko"
+          ? await ensureKoreanNewsPayload(fromD1.payload)
+          : fromD1.payload;
+      writeNewsMemoryCache(key, payload);
+      return { payload, source: "d1", ageMs: fromD1.ageMs };
     }
   }
 

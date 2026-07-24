@@ -269,6 +269,18 @@ export type AisVessel = {
   category: "military" | "commercial" | "other";
   /** 군함 함종 (비군함 null). 선명·헐넘버 휴리스틱 */
   militaryKind?: import("@/lib/aisVesselClass").AisMilitaryKind | null;
+  /**
+   * AIS_Tracker 위장·다크플리트·무기고 개조 선박 매칭.
+   * @see https://github.com/arandomguyhere/AIS_Tracker.git
+   */
+  disguised?: boolean;
+  disguisedKind?: "arsenal-ship" | "dark-fleet" | null;
+  /**
+   * OFAC/UN/EU/UK 제재 리스트(sanctions-entities.json) 실매칭 결과.
+   * DisguisedVessel.classification의 서술형 "sanctioned" 표기와 달리
+   * 실제 제재 엔티티명 대조로 확인된 경우만 채워진다.
+   */
+  sanctionsMatch?: { entityName: string; list: string; asOf: string } | null;
 };
 
 export type MilitaryAircraft = {
@@ -320,6 +332,11 @@ export type MilitaryAircraft = {
   /** ACAS RA advisory text if present */
   acasAdvisory: string | null;
   timestamp: string | null;
+  /**
+   * Bellingcat Turnstone modes.csv military hex match.
+   * @see https://github.com/bellingcat/adsb-history.git
+   */
+  bellingcatMilitary?: boolean;
 };
 
 export type UsCarrierStatus = "deployed" | "home" | "maintenance";

@@ -102,10 +102,6 @@ export const WELCOME_GATE_KEY = "geowatch-welcome-gate-v1";
 
 export const FLOW_PATH_KINDS = new Set([
   "shipping-lane",
-  "submarine-cable",
-  "msr",
-  "oil-pipeline",
-  "gas-pipeline",
   "msr",
   "neptun-projection",
   "axis-link",

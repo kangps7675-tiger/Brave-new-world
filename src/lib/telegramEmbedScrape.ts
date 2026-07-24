@@ -96,7 +96,7 @@ async function fetchPost(
   try {
     const res = await fetch(`https://t.me/${channel}/${postId}?embed=1&mode=tme`, {
       signal: AbortSignal.timeout(4000),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; ConflictView/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" },
       cache: "no-store",
     });
     if (!res.ok) return null;

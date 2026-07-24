@@ -27,6 +27,7 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
 
   return (
     <div
+      id="view-mode-switcher"
       className="flex rounded-full border border-sky-200/15 bg-[#0f1d35]/88 p-0.5 shadow-lg backdrop-blur-xl"
       role="tablist"
       aria-label={t("viewerModeLabel")}

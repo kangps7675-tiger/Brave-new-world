@@ -11,6 +11,8 @@ export type WarCasualtyOverlayInput = {
   wounded: number;
   killedLabel: string;
   woundedLabel: string;
+  /** 부상 숫자 대신 표시할 문자열 (예: 미집계) */
+  woundedDisplay?: string;
   elegyLines?: readonly [string, string];
   /** 부상 줄 호버 시 짧은 설명 (고정 추정치 등). 없으면 부상 전용 팁 없음 */
   woundedNote?: string;
@@ -99,13 +101,13 @@ export function getCasualtyOverlayMetrics(scale: number): CasualtyOverlayMetrics
   const s = Math.max(0.45, Math.min(1.35, scale));
   return {
     scale: s,
-    numPx: 26,
-    labelPx: 11,
-    elegyPx: 13,
-    notePx: 11,
-    iconPx: 26,
-    rowGapPx: 7,
-    blockGapPx: 9,
+    numPx: 34,
+    labelPx: 14,
+    elegyPx: 14,
+    notePx: 12,
+    iconPx: 30,
+    rowGapPx: 8,
+    blockGapPx: 10,
   };
 }
 
@@ -117,9 +119,9 @@ export function applyCasualtyOverlayMetrics(
 ): void {
   const m = getCasualtyOverlayMetrics(scale);
   const visScale = visible ? m.scale : m.scale * 0.86;
-  // bottom-center 앵커 — 라벨이 전선 좌표 바로 위에 붙음
-  el.style.transform = `translate(-50%, -100%) scale(${visScale})`;
-  el.style.transformOrigin = "50% 100%";
+  // 좌표 중심에 붙임 — 위로 띄우지 않음 (지면/전선에 고정)
+  el.style.transform = `translate(-50%, -50%) scale(${visScale})`;
+  el.style.transformOrigin = "50% 50%";
 
   const counts = el.querySelector<HTMLElement>(".casualty-skull-counts");
   if (counts) counts.style.gap = `${m.rowGapPx}px`;
@@ -243,18 +245,25 @@ export function createWarCasualtyOverlayElement(
   counts.style.position = "relative";
   counts.style.transition = "opacity 0.35s ease";
 
-  const row = (iconSvg: string, count: number, label: string, kind: "killed" | "wounded") => {
+  const row = (
+    iconSvg: string,
+    count: number,
+    label: string,
+    kind: "killed" | "wounded",
+    displayOverride?: string,
+  ) => {
     const wrap = document.createElement("div");
     wrap.className = `casualty-row casualty-row-${kind}`;
     wrap.style.display = "flex";
     wrap.style.alignItems = "center";
     wrap.style.whiteSpace = "nowrap";
     wrap.style.cursor = "default";
+    const numText = displayOverride ?? formatCasualtyCount(count);
     wrap.innerHTML = `
       ${iconSvg}
       <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1">
         <div class="casualty-count-num" style="color:#ffffff;font-family:${numberFont};font-weight:700;font-size:${metrics.numPx}px;letter-spacing:0.01em;font-variant-numeric:tabular-nums;-webkit-text-stroke:0.25px rgba(0,0,0,0.35)">${escapeHtml(
-          formatCasualtyCount(count),
+          numText,
         )}</div>
         <div class="casualty-count-label" style="color:rgba(255,255,255,0.92);font-family:${numberFont};font-weight:700;font-size:${metrics.labelPx}px;letter-spacing:0.02em">${escapeHtml(
           label,
@@ -266,7 +275,13 @@ export function createWarCasualtyOverlayElement(
   const killedRow = row(skullSvg(metrics.iconPx), input.killed, input.killedLabel, "killed");
   const woundedRow = input.hideWounded
     ? null
-    : row(woundedSvg(metrics.iconPx), input.wounded, input.woundedLabel, "wounded");
+    : row(
+        woundedSvg(metrics.iconPx),
+        input.wounded,
+        input.woundedLabel,
+        "wounded",
+        input.woundedDisplay,
+      );
   counts.append(killedRow);
   if (woundedRow) counts.append(woundedRow);
 
