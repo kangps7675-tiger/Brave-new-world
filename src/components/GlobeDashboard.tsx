@@ -35,7 +35,6 @@ import {
   trackLayerToggle,
 } from "@/lib/analyticsEvents";
 import { SceneLinkButton } from "@/components/SceneLinkButton";
-import { isClientNeptunEnabled } from "@/lib/runtimeConfig.client";
 import { DashboardOverlayHost } from "@/components/globe/DashboardOverlayHost";
 import { useSceneDeeplink } from "@/components/globe/hooks/useSceneDeeplink";
 import { useAmbientSoundSelectors } from "@/components/globe/hooks/useAmbientSoundSelectors";
@@ -59,7 +58,6 @@ import {
 import { useNeptunGlobeLayer } from "@/components/globe/hooks/useNeptunGlobeLayer";
 import { useLiveOverlayMarkers } from "@/components/globe/hooks/useLiveOverlayMarkers";
 import { buildDailyTourScenes } from "@/lib/dailyTour";
-import { trackEvent } from "@/lib/trackClient";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
 import { resolveHubBrief } from "@/data/hubBriefs";
 import { resolveCriticalNodeBrief } from "@/data/resolveCriticalNodeBrief";
@@ -125,7 +123,6 @@ import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
 import {
   recordInterestFromSelection,
   recordInterestMode,
-  recordInterestNews,
   recordInterestTheme,
 } from "@/lib/interest/recordInterest";
 import { useLocalCalendarDayKey } from "@/hooks/useLocalCalendarDayKey";
@@ -248,7 +245,6 @@ import {
   localizeNewfeedsCategory,
   localizeNewfeedsLocation,
   localizeNewfeedsSummary,
-  localizeNewfeedsThreatLabel,
   localizeNewfeedsTitle,
   newfeedsUi,
 } from "@/lib/newfeedsI18n";
@@ -290,7 +286,6 @@ import {
 import { filterFirmsToTheaters } from "@/lib/firmsTheaters";
 import { useDataSync } from "@/hooks/useDataSync";
 import { useGlobeStaticLayers } from "@/hooks/useGlobeStaticLayers";
-import { localizeLayerCategories } from "@/lib/layerPanel/layerPanelLabels";
 import { useLayerPrefsController } from "@/hooks/useLayerPrefsController";
 import {
   applyViewPackages,
@@ -350,7 +345,6 @@ import {
   resolveInterestSoftApply,
 } from "@/lib/interest/applyFromInterest";
 import {
-  airRaidBriefingLayers,
   applyLayerPatch,
   hubBriefingLayers,
   liveBriefingLabel,
@@ -519,10 +513,7 @@ import {
 import {
   type SituationCallout,
 } from "@/data/situationCalloutTypes";
-import {
-  resolveActiveWarTheaterAt,
-  resolveCombatTheaterAt,
-} from "@/lib/theaterCombat";
+import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import {
   ACLED_HOME_URL,
   HAPI_ATTRIBUTION,
@@ -1577,7 +1568,7 @@ export function GlobeDashboard({
         };
       });
     },
-    [applyLayerPrefs, labelLanguage],
+    [applyLayerPrefs],
   );
 
   const exitHistoryImmersion = useCallback(() => {
@@ -6993,7 +6984,7 @@ export function GlobeDashboard({
     setShowAirRaidCoach(false);
     setClearanceChipSettled(false);
     setClearanceStatus(null);
-  }, [viewerMode, calendarDayKey]);
+  }, [viewerMode, calendarDayKey, clearAirRaidOffer]);
 
   useEffect(() => {
     const focus = loadWatchFocus();
@@ -7041,7 +7032,7 @@ export function GlobeDashboard({
     if (!periodicBriefing && !weeklyRecap) return;
     clearAirRaidOffer();
     setShowAirRaidCoach(false);
-  }, [periodicBriefing, weeklyRecap]);
+  }, [periodicBriefing, weeklyRecap, clearAirRaidOffer]);
 
   // SENTINEL — 지정학=전장/초크, 지경학=초크·경제 중심지 (전장 제외)
   useEffect(() => {
