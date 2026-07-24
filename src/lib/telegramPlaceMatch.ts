@@ -308,10 +308,7 @@ const SOURCE_CUE_EN = /\b(from|by|launched\s+by|fired\s+(from|by))\b/i;
 type PlaceOccurrence = { hit: TelegramPlaceHit; index: number; matchLen: number };
 
 /** 텍스트에서 매칭된 지명들을 등장 위치·매칭 길이와 함께 (라벨당 최초 1회) */
-function collectPlaceOccurrences(
-  rawText: string,
-  regionHint?: TelegramAlertRegion,
-): PlaceOccurrence[] {
+function collectPlaceOccurrences(rawText: string): PlaceOccurrence[] {
   const haystack = normalizePlaceKey(rawText);
   if (haystack.length < 3) return [];
   const byLabel = new Map<string, PlaceOccurrence>();
@@ -366,7 +363,7 @@ export function resolveImpactPlace(
   if (!raw) return null;
   const fallback = resolveTelegramPlace(raw, regionHint);
 
-  const occ = collectPlaceOccurrences(raw, regionHint);
+  const occ = collectPlaceOccurrences(raw);
   if (occ.length <= 1) return fallback; // 지명 0~1개면 구분할 게 없음
 
   const haystack = normalizePlaceKey(raw);
