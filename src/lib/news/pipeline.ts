@@ -49,6 +49,14 @@ function clusterKey(title: string): string {
     .join("-");
 }
 
+/**
+ * 최종 뉴스 출력 상한 — "한 사건, 여러 관점"을 위해 재료를 넉넉히.
+ * 번역은 이 목록에만 도므로(전건 아님) 부하는 이 값에 선형 비례.
+ * 성능 여유 보고 이 숫자만 조정하면 된다.
+ */
+const VERIFIED_MAX = 130; // 기존 80
+const STATE_MEDIA_MAX = 60; // 기존 40
+
 function isValidPubDate(pubDate: string | undefined): boolean {
   if (!pubDate) return false;
   const ts = Date.parse(pubDate);
@@ -208,8 +216,8 @@ export async function buildNewsStream(
   return {
     fetchedAt: new Date().toISOString(),
     hero,
-    verified: verified.slice(0, 80),
-    stateMedia: stateMedia.slice(0, 40),
+    verified: verified.slice(0, VERIFIED_MAX),
+    stateMedia: stateMedia.slice(0, STATE_MEDIA_MAX),
     stats: {
       total: deduped.length,
       tier1: deduped.filter((i) => i.trustTier === 1).length,

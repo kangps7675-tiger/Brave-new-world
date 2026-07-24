@@ -46,6 +46,8 @@ function stripHtml(html: string): string {
 
 /** RSS 본문 스니펫 — 심층 기사 판별용 (등불 카드 요약 길이와 별개) */
 const RSS_BODY_SNIPPET_MAX = 1000;
+/** 피드당 파싱 상한 — "한 사건, 여러 관점"용 재료 확보 (기존 15) */
+const PER_FEED_MAX_ITEMS = 25;
 
 function truncateSummary(text: string, max = RSS_BODY_SNIPPET_MAX): string {
   const clean = text.trim();
@@ -104,7 +106,7 @@ export function parseRssXml(xml: string): RawRssItem[] {
       ? blocks
       : Array.from(xml.matchAll(/<entry[\s>]([\s\S]*?)<\/entry>/gi)).map((m) => m[1]);
 
-  for (const block of entries.slice(0, 15)) {
+  for (const block of entries.slice(0, PER_FEED_MAX_ITEMS)) {
     let title = tagContent(block, "title");
     const link = atomLink(block);
     const pubDate =

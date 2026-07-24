@@ -130,6 +130,35 @@ function ensureStyles() {
       pointer-events: auto;
       transform: translate(-50%, -50%);
       cursor: pointer;
+      transition: transform 0.12s ease-out, filter 0.12s ease-out;
+    }
+    /* 호버 어포던스 — "누를 수 있다"를 밝기·크기로 알림 */
+    .${NEON_RIPPLE_MARKER_ROOT}:hover {
+      transform: translate(-50%, -50%) scale(1.35);
+      filter: brightness(1.6) drop-shadow(0 0 6px rgba(255,255,255,0.55));
+      z-index: 5;
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}:focus-visible {
+      outline: 2px solid rgba(255,255,255,0.8);
+      outline-offset: 2px;
+      border-radius: 9999px;
+    }
+    /* 관점 여러 개 — 사건 보도 매체 수 배지 */
+    .${NEON_RIPPLE_MARKER_ROOT} .neon-ripple-count {
+      position: absolute;
+      left: 62%;
+      top: 12%;
+      min-width: 13px;
+      height: 13px;
+      padding: 0 3px;
+      border-radius: 9999px;
+      background: rgba(10,16,32,0.92);
+      border: 1px solid rgba(255,255,255,0.55);
+      color: #f8fafc;
+      font: 700 8.5px/13px ui-sans-serif, system-ui, sans-serif;
+      text-align: center;
+      pointer-events: none;
+      box-shadow: 0 0 4px rgba(0,0,0,0.6);
     }
     .${NEON_RIPPLE_MARKER_ROOT} .neon-ripple-wave {
       position: absolute;
@@ -208,6 +237,8 @@ export function createNeonRippleIncidentBadge(
     intensity: number;
     title: string;
     ariaLabel: string;
+    /** 이 사건을 보도한 매체 수. 2 이상이면 개수 배지 표시 */
+    perspectiveCount?: number;
   },
   handlers?: {
     onHover?: (active: boolean) => void;
@@ -216,12 +247,15 @@ export function createNeonRippleIncidentBadge(
 ): HTMLElement {
   ensureStyles();
   const intensity = Math.min(1, Math.max(0.35, opts.intensity));
+  const count = opts.perspectiveCount ?? 1;
   const root = document.createElement("div");
   root.className = NEON_RIPPLE_MARKER_ROOT;
   root.dataset.markerId = opts.markerId;
   root.dataset.accent = opts.accent;
   root.title = opts.title;
-  root.setAttribute("role", "img");
+  // 클릭 가능한 버튼임을 접근성에도 노출 (스크린리더·키보드)
+  root.setAttribute("role", "button");
+  root.setAttribute("tabindex", "0");
   root.setAttribute("aria-label", opts.ariaLabel);
   root.style.opacity = String(0.72 + intensity * 0.28);
 
@@ -238,11 +272,27 @@ export function createNeonRippleIncidentBadge(
   core.className = "neon-ripple-core";
   root.appendChild(core);
 
+  // 관점(매체) 2개 이상이면 개수 배지 — "여긴 눌러서 여러 시각을 볼 수 있다"
+  if (count >= 2) {
+    const badge = document.createElement("span");
+    badge.className = "neon-ripple-count";
+    badge.textContent = count > 9 ? "9+" : String(count);
+    root.appendChild(badge);
+  }
+
   root.addEventListener("mouseenter", () => handlers?.onHover?.(true));
   root.addEventListener("mouseleave", () => handlers?.onHover?.(false));
   root.addEventListener("click", (ev) => {
     ev.stopPropagation();
     handlers?.onClick?.();
+  });
+  // 키보드 접근 — Enter/Space로도 열림
+  root.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " ") {
+      ev.preventDefault();
+      ev.stopPropagation();
+      handlers?.onClick?.();
+    }
   });
 
   return root;

@@ -245,6 +245,14 @@ export type NewsStreamNeonMarker = {
   kind: "war" | "tension" | "diplomatic";
   accent: "red" | "orange" | "blue" | "cyan" | "white";
   intensity: number;
+  placeLabel?: string;
+  /** 같은 사건을 보도한 여러 매체 관점 (한 사건, 여러 시각) */
+  perspectives?: {
+    title: string;
+    link: string;
+    source: string;
+    trustTier: number;
+  }[];
 };
 
 export type TelegramNeonMarker = {
