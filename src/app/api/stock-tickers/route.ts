@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { fetchStockTickers, stubStockTickers } from "@/lib/stockTickersFetch";
+import { FRED_ATTRIBUTION, hasFredApiKey } from "@/lib/fred";
 import {
   CDN_CACHE,
   NO_STORE_HEADERS,
@@ -11,8 +12,8 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Yahoo Finance IP 차단 방지 — 10분 서버 메모리 캐시 */
-const TTL_MS = 10 * 60 * 1000;
+/** Yahoo 15분 폴링에 맞춤 — 서버 메모리 캐시 (IP 차단 완화) */
+const TTL_MS = 12 * 60 * 1000;
 const STOCK_CDN = publicCacheHeaders(CDN_CACHE.stock);
 
 export async function GET() {
@@ -30,13 +31,15 @@ export async function GET() {
       );
     }
 
-    const { data, cached } = await cachedFetchJson("stock-tickers-v4", TTL_MS, fetchStockTickers);
+    const { data, cached } = await cachedFetchJson("stock-tickers-v6", TTL_MS, fetchStockTickers);
     return NextResponse.json(
       {
         receivedAt: new Date().toISOString(),
         cached,
         tickers: data,
-        attribution: "Yahoo Finance (via yahoo-finance2)",
+        attribution: hasFredApiKey()
+          ? `Yahoo Finance (증시 15분) · ${FRED_ATTRIBUTION} (원자재·달러 보완)`
+          : "Yahoo Finance (via yahoo-finance2)",
       },
       { headers: STOCK_CDN },
     );

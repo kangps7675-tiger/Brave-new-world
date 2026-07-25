@@ -41,7 +41,7 @@ export const CDN_CACHE = {
   tzeva: { sMaxAge: 8, swr: 15 } satisfies PublicCacheOpts,
   /** NewFeeds ~5min */
   newfeeds: { sMaxAge: 120, swr: 300 } satisfies PublicCacheOpts,
-  /** Yahoo tickers ~15min */
+  /** Yahoo 증시 티커 ~15min poll */
   stock: { sMaxAge: 300, swr: 600 } satisfies PublicCacheOpts,
   /** SOTW / world-stats */
   worldStats: { sMaxAge: 600, swr: 1800 } satisfies PublicCacheOpts,
@@ -53,5 +53,13 @@ export const CDN_CACHE = {
   /** 진행형 분쟁 — 일일 갱신, CDN 짧게 */
   livingConflict: { sMaxAge: 120, swr: 600 } satisfies PublicCacheOpts,
   carriers: { sMaxAge: 120, swr: 300 } satisfies PublicCacheOpts,
+  /** CelesTrak TLE — 하루 단위 갱신, CDN 6–12h */
+  satellites: { sMaxAge: 6 * 3600, swr: 12 * 3600 } satisfies PublicCacheOpts,
+  /** OSM Overpass pipelines — 줌인 보강, 1h */
+  pipelinesOsm: { sMaxAge: 3600, swr: 7200 } satisfies PublicCacheOpts,
+  /** IMF PortWatch 초크 통과량 — 주간(화) 갱신, CDN 6–12h (초·분 폴링 금지) */
+  portwatch: { sMaxAge: 6 * 3600, swr: 12 * 3600 } satisfies PublicCacheOpts,
+  /** GPSJam 일별 CSV — 하루 1회 갱신, CDN 6–12h */
+  gpsjam: { sMaxAge: 6 * 3600, swr: 12 * 3600 } satisfies PublicCacheOpts,
   tunnels: { sMaxAge: 300, swr: 900 } satisfies PublicCacheOpts,
 } as const;

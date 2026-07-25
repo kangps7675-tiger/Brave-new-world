@@ -4,6 +4,11 @@ import {
   type StockTickerItem,
   type StockTickerSymbol,
 } from "@/lib/stockTickers";
+import {
+  fetchFredReadingsBySymbol,
+  hasFredApiKey,
+  symbolHasFredSeries,
+} from "@/lib/fred";
 
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
@@ -205,11 +210,57 @@ export async function fetchStockTickers(): Promise<StockTickerItem[]> {
   return inflightLiveFetch;
 }
 
+/**
+ * FININT 티커 — Yahoo 15분 폴링이 뼈대, FRED는 원자재·달러 보완.
+ *
+ * - 항상: 주요 증시 지수(VIX·S&P·나스닥·아시아) + BTC 등은 Yahoo quote + 15분봉 스파크라인.
+ * - FRED 키가 있으면: 유가·가스·금·달러만 FRED 일간으로 덮어씀 (없으면 그 심볼도 Yahoo).
+ * - FRED 키가 없으면: 전부 Yahoo.
+ */
 async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
-  const symbols = STOCK_TICKER_SYMBOLS.map((item) => item.symbol);
+  // 증시 지수는 항상 Yahoo. FRED 보완 심볼도 키가 없거나 실패하면 Yahoo가 담당.
+  const yahooItems = await fetchYahooTickers(STOCK_TICKER_SYMBOLS);
+  const bySymbol = new Map(yahooItems.map((item) => [item.symbol, item]));
+
+  if (hasFredApiKey()) {
+    const fredSymbols = STOCK_TICKER_SYMBOLS.filter((c) => symbolHasFredSeries(c.symbol)).map(
+      (c) => c.symbol,
+    );
+    const fredReadings = await fetchFredReadingsBySymbol(fredSymbols);
+    for (const config of STOCK_TICKER_SYMBOLS) {
+      const fred = fredReadings.get(config.symbol);
+      if (!fred || fred.price == null) continue;
+      bySymbol.set(config.symbol, {
+        symbol: config.symbol,
+        label: config.label,
+        price: fred.price,
+        changePercent: fred.changePercent,
+        sparkline: fred.sparkline.length > 0 ? fred.sparkline : (bySymbol.get(config.symbol)?.sparkline ?? []),
+      });
+    }
+  }
+
+  return STOCK_TICKER_SYMBOLS.map(
+    (config) =>
+      bySymbol.get(config.symbol) ?? {
+        symbol: config.symbol,
+        label: config.label,
+        price: null,
+        changePercent: null,
+        sparkline: [],
+      },
+  );
+}
+
+/** Yahoo quote + 15분봉 스파크라인 — 증시 지수 본선 · FRED 보완 심볼의 폴백 */
+async function fetchYahooTickers(
+  configs: StockTickerSymbol[],
+): Promise<StockTickerItem[]> {
+  if (configs.length === 0) return [];
+  const symbols = configs.map((item) => item.symbol);
   const [quotes, sparklines] = await Promise.all([
     yahooFinance.quote(symbols),
-    Promise.all(STOCK_TICKER_SYMBOLS.map((config) => fetchSparkline(config.symbol))),
+    Promise.all(configs.map((config) => fetchSparkline(config.symbol))),
   ]);
   const quoteBySymbol = new Map<string, Record<string, unknown>>();
 
@@ -218,7 +269,7 @@ async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
     if (symbol) quoteBySymbol.set(symbol, quote);
   }
 
-  return STOCK_TICKER_SYMBOLS.map((config, index) =>
+  return configs.map((config, index) =>
     toTickerItem(config, quoteBySymbol.get(config.symbol), sparklines[index] ?? []),
   );
 }

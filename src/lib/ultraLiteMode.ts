@@ -25,6 +25,8 @@ export const ULTRA_LITE_FORCE_OFF: Array<keyof LayerPrefs> = [
   "showInternetExchanges",
   "showAiDataCenters",
   "showSpaceLaunches",
+  "showReconSatellites",
+  "showGpsInterference",
   "showElectionEvents",
   "showCyberIncidents",
   "showSanctionsEntities",
@@ -54,6 +56,7 @@ export const ULTRA_LITE_HEAVY_RENDER_KEYS = new Set<keyof LayerPrefs>([
   "showUcdpEvents",
   "showWarZones",
   "showIntelHotspots",
+  "showGpsInterference",
 ]);
 
 export function isUltraLiteHeavyRenderKey(key: keyof LayerPrefs | undefined): boolean {

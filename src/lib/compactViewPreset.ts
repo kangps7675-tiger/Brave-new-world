@@ -81,6 +81,7 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
       showOilPipelines: true,
       showGasPipelines: true,
       showLngTerminals: true,
+      showSubseaPipelines: true,
       showNewfeedsIranAttacks: true,
     },
   },
@@ -102,7 +103,8 @@ export function compactPresetsForMode(mode: ViewerMode): CompactChipDef[] {
 }
 
 export function defaultCompactChipId(mode: ViewerMode): CompactChipId {
-  return mode === "economy" ? "lanes" : "frontline";
+  // 지경학 진입 시 송유관·가스관·LNG가 바로 보이도록 energy 기본
+  return mode === "economy" ? "energy" : "frontline";
 }
 
 function allLayersOff(base: LayerPrefs): LayerPrefs {

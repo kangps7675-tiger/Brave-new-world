@@ -52,6 +52,7 @@ export const PATH_LAYER_COLORS = {
   "submarine-cable": "rgba(196, 181, 253, 0.92)",
   "oil-pipeline": "rgba(251, 191, 36, 0.95)",
   "gas-pipeline": "rgba(52, 211, 153, 0.92)",
+  "subsea-pipeline": "rgba(45, 212, 191, 0.94)",
 } as const;
 
 export const STATIC_KIND_LABELS: Record<StaticPoint["kind"], string> = {

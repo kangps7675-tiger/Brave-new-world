@@ -27,12 +27,15 @@
     "dfc:build": "node scripts/build-us-dfc-supply-chain.js",
     "static:build": "node scripts/build-static-extras.js full",
     "gem:build": "node scripts/build-gem-layers.js",
+    "emodnet:pipelines": "node scripts/build-emodnet-pipelines.js",
+    "deposits:build": "node scripts/build-resource-deposits.js",
     "gem:build:lite": "node scripts/build-data-profile.js lite && node scripts/build-gem-layers.js",
     "gem:build:all": "node scripts/build-data-profile.js lite && node scripts/build-gem-layers.js && node scripts/build-data-profile.js full && node scripts/build-gem-layers.js",
     "gem:trackers": "node scripts/build-gem-trackers.js",
     "gem:trackers:lite": "node scripts/build-gem-trackers.js lite",
     "gem:trackers:full": "node scripts/build-gem-trackers.js full",
     "gem:trackers:all": "npm run gem:trackers:lite && npm run gem:trackers:full",
+    "gscpi:build": "node scripts/build-gscpi.js",
     "sigint:fetch": "node scripts/fetch-sigint-layers.js",
     "sigint:convert": "node scripts/convert-sigint-layers.js",
     "data:ucdp": "node scripts/fetch-ucdp-events.js",
@@ -92,6 +95,7 @@
     "drizzle-orm": "^0.45.2",
     "fflate": "^0.8.3",
     "fuse.js": "^7.4.2",
+    "h3-js": "^4.5.0",
     "iconv-lite": "^0.7.3",
     "maplibre-gl": "^5.24.0",
     "next": "14.2.35",
@@ -99,6 +103,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-map-gl": "^8.1.1",
+    "satellite.js": "6.0.2",
     "shapefile": "^0.6.6",
     "yahoo-finance2": "^3.15.4",
     "zod": "^4.4.3"
@@ -120,6 +125,7 @@
     "tsx": "^4.23.0",
     "typescript": "^5",
     "vitest": "^4.1.10",
-    "wrangler": "^4.110.0"
+    "wrangler": "^4.110.0",
+    "xlsx": "^0.18.5"
   }
 }

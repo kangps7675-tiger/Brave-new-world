@@ -136,7 +136,7 @@ export function liveUsCarriersPollMs(): number {
   return isClientApiStubMode() ? 5 * 60_000 : 8 * 60_000;
 }
 
-/** Yahoo 티커 스트립 */
+/** Yahoo 티커 스트립 — 증시 지수 15분 폴링 */
 export function liveTickerPollMs(): number {
   return isClientApiStubMode() ? 10 * 60_000 : 15 * 60_000;
 }

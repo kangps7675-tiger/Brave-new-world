@@ -127,12 +127,15 @@ export type UseLayerPanelCategoriesArgs = {
   showOilPipelines: boolean;
   showGasPipelines: boolean;
   showLngTerminals: boolean;
+  showSubseaPipelines: boolean;
   visibleOilPipelines: unknown[];
   visibleGasPipelines: unknown[];
+  visibleSubseaPipelines: unknown[];
   visibleStaticPoints: Array<{ kind: string }>;
   staticCounts: {
     oilPipelines?: number;
     gasPipelines?: number;
+    subseaPipelines?: number;
     lngTerminals?: number;
     shipping?: number;
     cables?: number;
@@ -142,11 +145,13 @@ export type UseLayerPanelCategoriesArgs = {
     criticalNodes?: number;
     militaryBases?: number;
     resources?: number;
+    resourceDeposits?: number;
     gemResources?: Record<string, number>;
   };
   setShowOilPipelines: (v: boolean) => void;
   setShowGasPipelines: (v: boolean) => void;
   setShowLngTerminals: (v: boolean) => void;
+  setShowSubseaPipelines: (v: boolean) => void;
   togglePref: (key: keyof LayerPrefs, v: boolean) => void;
   showResources: boolean;
   showNuclearSites: boolean;
@@ -175,6 +180,10 @@ export type UseLayerPanelCategoriesArgs = {
   setShowInternetExchanges: (v: boolean) => void;
   showLogisticsRisk: boolean;
   setShowLogisticsRisk: (v: boolean) => void;
+  showLogisticsStress: boolean;
+  setShowLogisticsStress: (v: boolean) => void;
+  showGscpiGauge: boolean;
+  setShowGscpiGauge: (v: boolean) => void;
   showCriticalNodes: boolean;
   setShowCriticalNodes: (v: boolean) => void;
   showAis: boolean;
@@ -211,6 +220,14 @@ export type UseLayerPanelCategoriesArgs = {
   setShowElectionEvents: (v: boolean) => void;
   showSpaceLaunches: boolean;
   setShowSpaceLaunches: (v: boolean) => void;
+  showReconSatellites: boolean;
+  setShowReconSatellites: (v: boolean) => void;
+  reconSatCount: number;
+  showGpsInterference: boolean;
+  setShowGpsInterference: (v: boolean) => void;
+  gpsJamCellCount: number;
+  gpsJamDate: string | null;
+  gpsJamStatus: "idle" | "loading" | "ok" | "error";
   showAirTraffic: boolean;
   civAircraft: unknown[];
   setShowAirTraffic: (v: boolean) => void;
@@ -346,13 +363,16 @@ export function useLayerPanelCategories({
   showOilPipelines,
   showGasPipelines,
   showLngTerminals,
+  showSubseaPipelines,
   visibleOilPipelines,
   visibleGasPipelines,
+  visibleSubseaPipelines,
   visibleStaticPoints,
   staticCounts,
   setShowOilPipelines,
   setShowGasPipelines,
   setShowLngTerminals,
+  setShowSubseaPipelines,
   togglePref,
   showResources,
   showNuclearSites,
@@ -381,6 +401,10 @@ export function useLayerPanelCategories({
   setShowInternetExchanges,
   showLogisticsRisk,
   setShowLogisticsRisk,
+  showLogisticsStress,
+  setShowLogisticsStress,
+  showGscpiGauge,
+  setShowGscpiGauge,
   showCriticalNodes,
   setShowCriticalNodes,
   showAis,
@@ -417,6 +441,14 @@ export function useLayerPanelCategories({
   setShowElectionEvents,
   showSpaceLaunches,
   setShowSpaceLaunches,
+  showReconSatellites,
+  setShowReconSatellites,
+  reconSatCount,
+  showGpsInterference,
+  setShowGpsInterference,
+  gpsJamCellCount,
+  gpsJamDate,
+  gpsJamStatus,
   showAirTraffic,
   civAircraft,
   setShowAirTraffic,
@@ -449,6 +481,7 @@ export function useLayerPanelCategories({
     if (!showLeftPanel || !layerPanelReady) {
       return EMPTY_LAYER_CATEGORIES;
     }
+    // ☰ 패널 드래프트 스냅샷 — 드롭다운(즉시 반영)에서는 스냅샷을 쓰지 않음
     if (categorySnapshotRef.current !== null) {
       return categorySnapshotRef.current;
     }
@@ -939,14 +972,20 @@ export function useLayerPanelCategories({
                 showOilPipelines && "송유관",
                 showGasPipelines && "가스관",
                 showLngTerminals && "LNG",
+                showSubseaPipelines && "해저관",
               ]
                 .filter(Boolean)
                 .join(" · ") || "꺼짐 · 파이프라인·터미널",
-            checked: showOilPipelines || showGasPipelines || showLngTerminals,
+            checked:
+              showOilPipelines ||
+              showGasPipelines ||
+              showLngTerminals ||
+              showSubseaPipelines,
             onChange: (enabled) => {
               setShowOilPipelines(enabled);
               setShowGasPipelines(enabled);
               setShowLngTerminals(enabled);
+              setShowSubseaPipelines(enabled);
             },
             accent: "orange",
             presentation: "dropdown",
@@ -980,6 +1019,16 @@ export function useLayerPanelCategories({
                 checked: layerPrefs.showLngTerminals,
                 onChange: setShowLngTerminals,
                 accent: "orange",
+              },
+              {
+                id: "subsea-pipelines",
+                label: "해저 파이프라인",
+                detail: showSubseaPipelines
+                  ? `${visibleSubseaPipelines.length.toLocaleString()}개 · EMODnet`
+                  : off(staticCounts.subseaPipelines),
+                checked: layerPrefs.showSubseaPipelines,
+                onChange: setShowSubseaPipelines,
+                accent: "cyan",
               },
             ],
           },
@@ -1056,7 +1105,9 @@ export function useLayerPanelCategories({
               {
                 id: "resources",
                 label: "광물·자원 매장지",
-                detail: showResources ? "광물·자원 매장지" : off(staticCounts.resources),
+                detail: showResources
+                  ? `매장면 ${staticCounts.resourceDeposits ?? 0} · 점 ${staticCounts.resources ?? 0}`
+                  : off(staticCounts.resources),
                 checked: layerPrefs.showResources,
                 onChange: setShowResources,
                 accent: "orange",
@@ -1141,6 +1192,7 @@ export function useLayerPanelCategories({
             showOilPipelines: enabled,
             showGasPipelines: enabled,
             showLngTerminals: enabled,
+            showSubseaPipelines: enabled,
             showGemCoalPlants: enabled,
             showGemCoalMines: enabled,
             showGemCoalTerminals: enabled,
@@ -1260,6 +1312,29 @@ export function useLayerPanelCategories({
             accent: "orange",
           },
           {
+            id: "logistics-stress",
+            label: "물류 스트레스 색상",
+            detail: showLogisticsStress
+              ? "초크 링·마커를 UKMTO·PortWatch 등급색"
+              : "꺼짐 · 기본 주황",
+            checked: layerPrefs.showLogisticsStress,
+            onChange: setShowLogisticsStress,
+            accent: "red",
+          },
+          ...(isEconomyViewer
+            ? [
+                {
+                  id: "gscpi-gauge" as const,
+                  label: "GSCPI 공급망 압력",
+                  detail: showGscpiGauge ? "NY Fed 게이지 칩" : "꺼짐",
+                  checked: layerPrefs.showGscpiGauge,
+                  onChange: setShowGscpiGauge,
+                  accent: "emerald" as const,
+                  modes: ["economy"] as Array<"conflict" | "economy">,
+                },
+              ]
+            : []),
+          {
             id: "critical-nodes",
             label: "핵심 인프라 노드",
             detail: showCriticalNodes
@@ -1339,7 +1414,7 @@ export function useLayerPanelCategories({
       {
         id: "military",
         title: "군사 · 안보",
-        hint: "기지, 항공, 난민",
+        hint: "기지, 항공, 정찰위성, 난민",
         items: [
           {
             id: "military-bases",
@@ -1371,6 +1446,35 @@ export function useLayerPanelCategories({
             onChange: setShowIntelHotspots,
             accent: "orange",
           },
+          ...(isEconomyViewer
+            ? []
+            : [
+                {
+                  id: "recon-satellites",
+                  label: "정찰위성",
+                  detail: showReconSatellites
+                    ? `${reconSatCount.toLocaleString()}기 · 전역 시야에서만 표시`
+                    : "꺼짐 · 전역 시야(고고도) 전용",
+                  checked: layerPrefs.showReconSatellites,
+                  onChange: setShowReconSatellites,
+                  accent: "violet" as const,
+                },
+                {
+                  id: "gps-interference",
+                  label: "GPS 재밍 (GPSJam)",
+                  detail: showGpsInterference
+                    ? gpsJamStatus === "loading"
+                      ? "불러오는 중…"
+                      : gpsJamStatus === "error"
+                        ? "로드 실패 · 전전일 폴백 확인"
+                        : `${gpsJamCellCount.toLocaleString()}셀 · ${gpsJamDate ?? "—"} · 솔로`
+                    : "꺼짐 · ON 시 다른 레이어 숨김",
+                  checked: layerPrefs.showGpsInterference,
+                  onChange: setShowGpsInterference,
+                  accent: "red" as const,
+                  modes: ["conflict"] as Array<"conflict" | "economy">,
+                },
+              ]),
           {
             id: "refugee",
             label: "난민 캠프",
@@ -1398,6 +1502,7 @@ export function useLayerPanelCategories({
             showMilitaryBases: enabled,
             showMilitaryActivity: enabled,
             showIntelHotspots: enabled,
+            ...(isEconomyViewer ? {} : { showReconSatellites: enabled }),
             showRefugeeCamps: enabled,
           }),
       },
@@ -1522,9 +1627,43 @@ export function useLayerPanelCategories({
       },
     ];
     const allowed = new Set(viewerChromePreset.layerCategoryIds);
-    const filtered = allCategories.filter((cat) =>
-      allowed.has(cat.id as (typeof viewerChromePreset.layerCategoryIds)[number]),
-    );
+    const mode = isEconomyViewer ? "economy" : "conflict";
+    const MODE_ONLY: Record<string, Array<"conflict" | "economy">> = {
+      "military-bases": ["conflict"],
+      "military-air": ["conflict"],
+      intel: ["conflict"],
+      "recon-satellites": ["conflict"],
+      "gps-interference": ["conflict"],
+      "disguised-vessels": ["conflict"],
+      ucdp: ["conflict"],
+      "gdelt-war": ["conflict"],
+      "gdelt-protest": ["conflict"],
+      "telegram-osint": ["conflict"],
+      neptun: ["conflict"],
+      "tzeva-adom": ["conflict"],
+      "ai-dc": ["economy"],
+      economic: ["economy"],
+      sanctions: ["economy"],
+      "air-traffic": ["economy"],
+      "us-dfc-supply": ["economy"],
+      "bri-trade": ["economy"],
+      "gscpi-gauge": ["economy"],
+    };
+    const filterItems = (items: LayerToggleItem[]): LayerToggleItem[] =>
+      items
+        .map((item) => {
+          const modes = item.modes ?? MODE_ONLY[item.id];
+          if (modes && !modes.includes(mode)) return null;
+          if (item.options?.length) {
+            return { ...item, options: filterItems(item.options) };
+          }
+          return item;
+        })
+        .filter((x): x is LayerToggleItem => x != null);
+    const filtered = allCategories
+      .filter((cat) => allowed.has(cat.id as (typeof viewerChromePreset.layerCategoryIds)[number]))
+      .map((cat) => ({ ...cat, items: filterItems(cat.items) }))
+      .filter((cat) => cat.items.length > 0);
     return localizeLayerCategories(filtered, labelLanguage === "en" ? "en" : "ko");
     /* eslint-disable react-hooks/exhaustive-deps -- lpg() freezes deps when panel closed; setShow* use togglePref */
   }, [
@@ -1602,6 +1741,7 @@ export function useLayerPanelCategories({
     lpg(showElectionEvents, false),
     lpg(showFirmsFires, false),
     lpg(showGasPipelines, false),
+    lpg(showSubseaPipelines, false),
     lpg(showIntelHotspots, false),
     lpg(showInternetExchanges, false),
     lpg(showLngTerminals, false),
@@ -1611,6 +1751,8 @@ export function useLayerPanelCategories({
     lpg(showOilPipelines, false),
     lpg(showPorts, false),
     lpg(showLogisticsRisk, false),
+    lpg(showLogisticsStress, false),
+    lpg(showGscpiGauge, false),
     lpg(showCriticalNodes, false),
     lpg(showRailGlow, false),
     lpg(showRefugeeCamps, false),
@@ -1618,6 +1760,10 @@ export function useLayerPanelCategories({
     lpg(showSanctionsEntities, false),
     lpg(showShippingLanes, false),
     lpg(showSpaceLaunches, false),
+    lpg(showReconSatellites, false),
+    lpg(showGpsInterference, false),
+    lpg(gpsJamCellCount, 0),
+    lpg(gpsJamDate, null),
     lpg(showSubmarineCables, false),
     lpg(showSubmarineTunnels, false),
     lpg(showTelegramOsint, false),

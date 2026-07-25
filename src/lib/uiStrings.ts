@@ -329,6 +329,16 @@ const UI = {
   ariaCloseRegionNews: { ko: "지역 뉴스 패널 닫기", en: "Close regional news panel" },
   ariaCloseInfoPanel: { ko: "정보 패널 닫기", en: "Close info panel" },
   ariaCloseEconomyRegion: { ko: "경제 지역 패널 닫기", en: "Close economy region panel" },
+  chromeUtilityHide: { ko: "숨기기", en: "Hide" },
+  chromeUtilityShow: { ko: "버튼 보이기", en: "Show buttons" },
+  chromeUtilityHideAria: {
+    ko: "상단 유틸 버튼 숨기기",
+    en: "Hide top utility buttons",
+  },
+  chromeUtilityShowAria: {
+    ko: "상단 유틸 버튼 다시 보이기",
+    en: "Show top utility buttons",
+  },
   domainConflictTitle: { ko: "GEOINT", en: "GEOINT" },
   domainConflictHint: {
     ko: "Geospatial Intelligence — 전선·분쟁·군사·외교",

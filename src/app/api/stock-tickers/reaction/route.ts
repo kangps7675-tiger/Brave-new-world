@@ -102,7 +102,7 @@ export async function GET(request: Request) {
 
     const [{ data: liveTickers }, priceAtEntries, volEntries, benchAnchor, benchNow] =
       await Promise.all([
-        cachedFetchJson("stock-tickers-v4", LIVE_TTL_MS, fetchStockTickers),
+        cachedFetchJson("stock-tickers-v6", LIVE_TTL_MS, fetchStockTickers),
         Promise.all(
           symbols.map(async (symbol) => {
             const { data } = await anchorPrice(symbol);

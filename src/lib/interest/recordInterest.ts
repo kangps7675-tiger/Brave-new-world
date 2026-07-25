@@ -111,6 +111,12 @@ export function recordInterestFromSelection(selection: Selection): void {
       recordInterestEntity(`carrier:${c.id}`, c.name, 1.4);
       break;
     }
+    case "recon-sat": {
+      const s = selection.item;
+      recordInterestTheme("recon-satellites", "Recon satellites", 1.2);
+      recordInterestEntity(`recon-sat:${s.markerId}`, s.name, 1.3);
+      break;
+    }
     case "mil": {
       const a = selection.item;
       if (selection.traffic === "civil") {

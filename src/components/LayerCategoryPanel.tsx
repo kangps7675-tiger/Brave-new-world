@@ -31,6 +31,11 @@ export type LayerToggleItem = {
   cautionTag?: string | null;
   /** 경고 태그 호버 후킹 문구 */
   cautionHint?: string | null;
+  /**
+   * 지정학/지경학 노출 제한. 없으면 양쪽.
+   * 카테고리 필터 후 항목 단위로 한 번 더 거른다.
+   */
+  modes?: Array<"conflict" | "economy">;
 };
 
 export type LayerCategory = {

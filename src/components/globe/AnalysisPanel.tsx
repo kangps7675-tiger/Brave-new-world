@@ -1,6 +1,6 @@
 "use client";
 
-import type { DisputeArea, DisputeOverview } from "@/data/geoTypes";
+import type { DisputeArea, DisputeOverview, StaticPoint } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -17,6 +17,25 @@ import { ukraineControlStatusLabel } from "@/lib/ukraineSettlementLabels";
 import type { AnalysisSelection } from "@/components/globe/types";
 import { Metric } from "@/components/globe/Metric";
 import { formatDateTime, hostFromUrl } from "@/components/globe/formatters";
+import {
+  reconCountryLabel,
+  reconDisclaimer,
+  reconSensorLabel,
+} from "@/lib/reconSatellites";
+import { reconCountryAccent } from "@/lib/reconSatellitePropagate";
+import { LogisticsStressCard } from "@/components/LogisticsStressCard";
+import { CountryEconomicRiskCard } from "@/components/CountryEconomicRiskCard";
+import { stressForChokepoint, type ChokepointAisObservation } from "@/lib/chokepointStressForUi";
+import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import type { LabelLanguage } from "@/lib/layerPrefs";
+
+function chokepointTitle(point: StaticPoint, lang: LabelLanguage): string {
+  if (lang === "en") {
+    const en = point.meta?.nameEn;
+    return typeof en === "string" && en.trim() ? en : point.name;
+  }
+  return point.name;
+}
 
 function formatViinaDate(value: string | null | undefined) {
   if (!value || !/^\d{8}$/.test(value)) return value || "N/A";
@@ -85,16 +104,76 @@ export function AnalysisPanel({
   ukraineControlDate,
   ukraineRuCellCount,
   disputeOverview,
+  ukmtoIncidents = [],
+  aisByChokeId = {},
 }: {
   selection: AnalysisSelection;
   onClose: () => void;
   ukraineControlDate?: string | null;
   ukraineRuCellCount?: number;
   disputeOverview?: DisputeOverview | null;
+  /** 초크포인트 물류 스트레스 A급 신호 */
+  ukmtoIncidents?: UkmtoIncidentPoint[];
+  /** PortWatch B급 통과량 관측 */
+  aisByChokeId?: Record<string, ChokepointAisObservation>;
 }) {
   const { lang } = useLocale();
+  if (selection.kind === "chokepoint") {
+    const point = selection.item;
+    const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
+    const title = chokepointTitle(point, labelLang);
+    const stress = stressForChokepoint(
+      point,
+      ukmtoIncidents,
+      aisByChokeId[point.id] ?? null,
+    );
+    const riskNote = point.meta?.riskNote;
+    const throughput = point.meta?.throughput;
+    const relatedTickers = point.meta?.relatedTickers;
+    return (
+      <div className="flex flex-col gap-4">
+        <PanelHeader
+          eyebrow={labelLang === "en" ? "Maritime chokepoint" : "해상 초크포인트"}
+          title={title}
+          badge={labelLang === "en" ? "Logistics stress" : "물류 스트레스"}
+          onClose={onClose}
+        />
+        <LogisticsStressCard title={title} stress={stress} lang={labelLang} />
+        {(typeof riskNote === "string" && riskNote) ||
+        (typeof throughput === "string" && throughput) ||
+        (typeof relatedTickers === "string" && relatedTickers) ? (
+          <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+              {labelLang === "en" ? "Atlas note" : "아틀라스 메모"}
+            </p>
+            <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
+              {typeof riskNote === "string" && riskNote ? (
+                <MetaRow
+                  label={labelLang === "en" ? "Risk" : "리스크"}
+                  value={riskNote}
+                />
+              ) : null}
+              {typeof throughput === "string" && throughput ? (
+                <MetaRow
+                  label={labelLang === "en" ? "Throughput" : "통항"}
+                  value={throughput}
+                />
+              ) : null}
+              {typeof relatedTickers === "string" && relatedTickers ? (
+                <MetaRow
+                  label={labelLang === "en" ? "Related" : "관련 티커"}
+                  value={relatedTickers}
+                />
+              ) : null}
+            </dl>
+          </section>
+        ) : null}
+      </div>
+    );
+  }
   if (selection.kind === "country") {
     const country = selection.item;
+    const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
     return (
       <div className="flex flex-col gap-4">
         <PanelHeader
@@ -109,6 +188,7 @@ export function AnalysisPanel({
           <Metric label="Lat" value={country.center.lat.toString()} />
           <Metric label="Lng" value={country.center.lng.toString()} />
         </section>
+        <CountryEconomicRiskCard iso3={country.isoA3} lang={labelLang} />
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4 text-sm leading-6 text-slate-300">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">원본 이름</p>
           <p className="mt-3">{country.nameLong}</p>
@@ -158,6 +238,51 @@ export function AnalysisPanel({
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Notes</p>
           <p className="mt-3">{carrier.notes}</p>
         </section>
+      </div>
+    );
+  }
+
+  if (selection.kind === "recon-sat") {
+    const sat = selection.item;
+    const langKey = lang === "en" ? "en" : "ko";
+    const accent = reconCountryAccent(sat.country);
+    const country = reconCountryLabel(sat.country, langKey);
+    const sensor = reconSensorLabel(sat.sensor, langKey);
+    const family = langKey === "en" ? sat.familyEn : sat.familyKo;
+    return (
+      <div className="flex flex-col gap-4">
+        <PanelHeader
+          eyebrow={langKey === "en" ? "Recon / surveillance sat" : "정찰·감시 위성"}
+          title={sat.name}
+          badge={`${country} · ${sensor}`}
+          onClose={onClose}
+        />
+        <section
+          className="rounded-xl border p-4"
+          style={{ borderColor: `${accent}55`, backgroundColor: `${accent}12` }}
+        >
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-300/80">
+            {langKey === "en" ? "Family (inferred)" : "계열(추정)"}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-100">{family}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-300">
+            {langKey === "en"
+              ? "Passing overhead → theoretical horizon footprint (not an imaging tasking)."
+              : "이 상공을 지남 → 이론상 가시권(촬영 임무가 아님)."}
+          </p>
+        </section>
+        <section className="grid grid-cols-2 gap-3">
+          <Metric label={langKey === "en" ? "Altitude" : "고도"} value={`${sat.altKm.toFixed(0)} km`} />
+          <Metric label={langKey === "en" ? "Horizon≈" : "가시권≈"} value={`${sat.horizonDeg.toFixed(1)}°`} />
+          <Metric label="Lat" value={sat.lat.toFixed(2)} />
+          <Metric label="Lng" value={sat.lng.toFixed(2)} />
+        </section>
+        <section className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-4 text-[12px] leading-5 text-amber-50/90">
+          {reconDisclaimer(langKey)}
+        </section>
+        <p className="text-[10px] leading-4 text-slate-500">
+          Orbital elements: CelesTrak (T.S. Kelso) · SGP4 in-browser
+        </p>
       </div>
     );
   }

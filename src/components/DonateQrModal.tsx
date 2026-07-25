@@ -12,7 +12,7 @@ type DonateQrModalProps = {
   detail?: string;
 };
 
-/** 후원 QR 모달 — ServerDonateChip과 NavAnnouncementBanner가 공유하는 단일 모달. */
+/** 후원 QR 모달 — ServerDonateChip 등에서 사용. */
 export function DonateQrModal({ lang, open, onClose, title, detail }: DonateQrModalProps) {
   const isEn = lang === "en";
   const resolvedTitle = title ?? (isEn ? "☕ Server tip jar" : "☕ 서버비 후원");

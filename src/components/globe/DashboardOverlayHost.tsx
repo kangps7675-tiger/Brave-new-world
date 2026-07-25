@@ -1,13 +1,15 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
-import { FeatureGuideButton, FeatureGuidePanel } from "@/components/FeatureGuidePanel";
-import { MethodologySourcesPanel, SourcesLinkButton } from "@/components/MethodologySourcesPanel";
+import { FeatureGuidePanel } from "@/components/FeatureGuidePanel";
+import { MethodologySourcesPanel } from "@/components/MethodologySourcesPanel";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
-import { ShareViewButton } from "@/components/ShareViewButton";
 import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
+import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
 import { TopWatchPanel } from "@/components/TopWatchPanel";
 import { SitrepLog } from "@/components/SitrepLog";
@@ -18,13 +20,11 @@ import {
   type AskLayersApplyPayload,
 } from "@/components/AskLayersOverlay";
 import { HoverHint } from "@/components/HoverHint";
-import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { ExplorationTabs } from "@/components/ExplorationTabs";
 import { ModePickerOverlay } from "@/components/ModePickerOverlay";
-import { SceneLinkButton } from "@/components/SceneLinkButton";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
-import { DiscordLinkButton } from "@/components/DiscordLinkButton";
+import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import {
   ChromeOnboardingCoach,
@@ -97,6 +97,8 @@ import type { NeptunAlerts } from "@/lib/neptun";
 import { ServerDonateChip } from "@/components/ServerDonateChip";
 import { UsCarrierFixedToggle } from "@/components/UsCarrierFixedToggle";
 import { EconomySupplyChainFixedToggle } from "@/components/EconomySupplyChainFixedToggle";
+import { BRI_TRADE_LINK_COUNT } from "@/lib/briTradePaths";
+import { US_DFC_LINK_COUNT } from "@/lib/usDfcSupplyPaths";
 import { HamburgerIcon } from "@/components/globe/HamburgerIcon";
 import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
 import type { EntryGate, Selection } from "@/components/globe/types";
@@ -152,6 +154,8 @@ export type DashboardOverlayHostProps = {
   selected: Selection | null;
   regionNavSelection: NavSelection | null;
   econNavSelection: NavSelection | null;
+  /** 우측 사이드·관점 패널이 떠 있으면 상단 유틸·탐색 탭 숨김 (겹침 방지) */
+  rightDockOpen?: boolean;
   showModePicker: boolean;
   entryGate: EntryGate;
   globeReady: boolean;
@@ -163,6 +167,8 @@ export type DashboardOverlayHostProps = {
   showBriTradeConnectivity: boolean;
   usDfcSupplyPaths: TransportPath[];
   briTradePaths: TransportPath[];
+  /** NY Fed GSCPI 게이지 칩 표시 */
+  showGscpiGauge?: boolean;
   issueUiPausedForLamp: boolean;
   showNeptun: boolean;
   neptunAlertCount: number;
@@ -311,6 +317,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     selected,
     regionNavSelection,
     econNavSelection,
+    rightDockOpen = false,
     showModePicker,
     entryGate,
     globeReady,
@@ -322,6 +329,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showBriTradeConnectivity,
     usDfcSupplyPaths,
     briTradePaths,
+    showGscpiGauge = true,
     issueUiPausedForLamp,
     showNeptun,
     neptunAlertCount,
@@ -442,6 +450,22 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetAirRaidBriefing,
   } = props;
 
+  const [navToolsEl, setNavToolsEl] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isCompactUi) {
+      setNavToolsEl(null);
+      return;
+    }
+    const sync = () => {
+      setNavToolsEl(document.getElementById("hover-nav-desktop-tools"));
+    };
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [isCompactUi]);
+
   return (
     <>
       {showIntroHint && !intelSheetOpen && (
@@ -522,7 +546,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             </button>
           </HoverHint>
         </div>
-        {/* 레이어 패널이 열리면 항모·후원이 패널을 가리지 않도록 숨김 */}
+        {/* 레이어 패널이 열리면 항모·공급망·후원이 패널을 가리지 않도록 숨김 */}
         {!showLeftPanel ? (
           <>
             {!isCompactUi && !isEconomyViewer ? (
@@ -539,8 +563,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 showChinaBri={showBriTradeConnectivity}
                 onUsDfcChange={onSetShowUsDfcSupplyChain}
                 onChinaBriChange={onSetShowBriTradeConnectivity}
-                usLinkCount={usDfcSupplyPaths.length}
-                chinaLinkCount={briTradePaths.length}
+                usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
+                chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
+                vertical
               />
             ) : null}
             {!isCompactUi ? (
@@ -553,9 +578,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 <ServerDonateChip lang={labelLanguage} />
               </div>
             ) : null}
-            {/* 긴장 상승 / 상황 변화 — 항모·후원 아래. 높이 제한으로 좌하단 일일 패널과 겹치지 않게 */}
+            {/* 지경학: GSCPI 공급망 압력 칩 · 지정학: 긴장 상승 + 배경 GSCPI */}
+            {showGscpiGauge && isEconomyViewer && !isCompactUi && entryGate === null ? (
+              <div className="pointer-events-auto shrink-0">
+                <GscpiGaugeFromData lang={labelLanguage} compact />
+              </div>
+            ) : null}
             {!isEconomyViewer && !isCompactUi && entryGate === null ? (
               <div className="flex max-h-[min(46vh,calc(100dvh-16rem))] w-full flex-col gap-2 overflow-y-auto overscroll-contain">
+                {showGscpiGauge ? (
+                  <div className="pointer-events-auto shrink-0">
+                    <GscpiGaugeFromData lang={labelLanguage} compact />
+                  </div>
+                ) : null}
                 <TopWatchPanel lang={labelLanguage} />
                 <SitrepLog lang={labelLanguage} />
               </div>
@@ -565,100 +600,130 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       </div>
       ) : null}
 
-      {/* 데스크톱: 우상단 공습·주요전장·도움말 — 뉴스 시트 열리면 상단을 가리지 않도록 숨김 */}
-      {!intelSheetOpen ? (
-      <div
-        className="pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2"
-        style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
-      >
-        {/* 모바일 항모 토글은 검색창 아래 드롭다운(compactMenuExtra)으로 이동 — 상단 혼잡 완화 */}
-        {!isCompactUi &&
-        !issueUiPausedForLamp &&
-        ((!isEconomyViewer &&
-          (showNeptun || neptunAlertCount > 0 || showTzevaAdom || showNewfeedsIranAttacks)) ||
-          (isEconomyViewer && showNewfeedsIranAttacks)) ? (
-          <div
-            id="air-raid-chrome"
-            className="cv-desktop-only pointer-events-auto flex items-start gap-2"
-            onPointerEnter={onMaybeOfferAirRaidCoach}
-            onFocusCapture={onMaybeOfferAirRaidCoach}
-          >
-            {!isEconomyViewer &&
-            (showNeptun || neptunAlertCount > 0 || showTzevaAdom) ? (
-              <UnifiedAirRaidDropdown
-                showUkraine={showNeptun || neptunAlertCount > 0}
-                showIsrael={showTzevaAdom}
-                neptunAlerts={neptunAlerts}
-                neptunLive={neptunLive}
-                neptunStatus={neptunStatus}
-                neptunError={neptunError}
-                tzevaActive={tzevaAdomActive}
-                tzevaHistory={tzevaAdomHistory}
-                tzevaLive={tzevaAdomLive}
-                tzevaStatus={tzevaAdomStatus}
-                tzevaGeoRestricted={tzevaAdomGeoRestricted}
-                tzevaError={tzevaAdomError}
-                lang={labelLanguage}
-                onFocusUkraine={(target) => onAirRaidFocus(target, "neptun")}
-                onFocusIsrael={(target) => onAirRaidFocus(target, "tzeva")}
-              />
-            ) : null}
-            {showNewfeedsIranAttacks ? (
-              <NewFeedsIranPanel
-                attacks={newfeedsAttacks}
-                threatLabel={newfeedsThreatLabel}
-                live={newfeedsLive}
-                liveStatus={newfeedsStatus}
-                error={newfeedsError}
-                lang={labelLanguage}
-                onFocusAttack={(target) => onAirRaidFocus(target, "newfeeds")}
-              />
-            ) : null}
-          </div>
-        ) : null}
-        {!isCompactUi && !showLeftPanel && !econNavSelection ? (
-          <ExplorationTabs
-            presets={isEconomyViewer ? ECON_EXPLORATION_PRESETS : EXPLORATION_PRESETS}
-            activeId={regionNavSelection?.id ?? null}
-            onSelect={onExplorationSelect}
-            variant={isEconomyViewer ? "hubs" : "fronts"}
-            label={t(
-              isEconomyViewer ? "hoverExplorationHubs" : "hoverExplorationFronts",
-              labelLanguage,
-            )}
-            hint={t(
-              isEconomyViewer ? "hoverExplorationHubsHint" : "hoverExplorationFrontsHint",
-              labelLanguage,
-            )}
-          />
-        ) : null}
-        {!isCompactUi ? (
-          <div className="cv-desktop-only pointer-events-auto flex shrink-0 items-center gap-2">
-            <TrustBadgeChip lang={labelLanguage} onClick={() => onSetShowTrustPanel(true)} />
-            <SourcesLinkButton onClick={() => onSetShowSourcesPanel(true)} />
-            {entryGate === null && !showModePicker ? (
-              <ParchmentProTipChip lang={labelLanguage} />
-            ) : null}
-            {!isEconomyViewer && tourScenes.length > 0 ? (
-              <button
-                type="button"
-                aria-label={labelLanguage === "en" ? "Play today's tour" : "오늘의 투어 재생"}
-                onClick={() => {
-                  trackEvent("tour_start", { scenes: tourScenes.length }, { lang: labelLanguage });
-                  onSetTourActive(true);
-                }}
-                className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-200/20 bg-[#4a3a1e]/55 px-2.5 text-[11px] font-medium text-amber-50/90 shadow-lg backdrop-blur-md transition hover:border-amber-200/40 hover:bg-[#5d4a26]/65"
-              >
-                <span aria-hidden>🎬</span>
-                <span>{labelLanguage === "en" ? "Tour" : "투어"}</span>
-              </button>
-            ) : null}
-            <DiscordLinkButton lang={labelLanguage} />
-            <SceneLinkButton getScene={getSceneForShare} />
-            <ShareViewButton getCanvas={() => globeRef.current?.renderer().domElement ?? null} />
-            <FeatureGuideButton viewerMode={viewerMode} onClick={() => onSetShowFeatureGuide(true)} />
-          </div>
-        ) : (
+      {/* 데스크톱 우상단 → HoverNav 포털. 모바일 compact만 우측 유지 */}
+      {!intelSheetOpen && !isCompactUi && navToolsEl
+        ? createPortal(
+            <>
+              {!issueUiPausedForLamp &&
+              ((!isEconomyViewer &&
+                (showNeptun || neptunAlertCount > 0 || showTzevaAdom || showNewfeedsIranAttacks)) ||
+                (isEconomyViewer && showNewfeedsIranAttacks)) ? (
+                <div
+                  id="air-raid-chrome"
+                  className="pointer-events-auto flex items-start gap-2"
+                  onPointerEnter={onMaybeOfferAirRaidCoach}
+                  onFocusCapture={onMaybeOfferAirRaidCoach}
+                >
+                  {!isEconomyViewer &&
+                  (showNeptun || neptunAlertCount > 0 || showTzevaAdom) ? (
+                    <UnifiedAirRaidDropdown
+                      showUkraine={showNeptun || neptunAlertCount > 0}
+                      showIsrael={showTzevaAdom}
+                      neptunAlerts={neptunAlerts}
+                      neptunLive={neptunLive}
+                      neptunStatus={neptunStatus}
+                      neptunError={neptunError}
+                      tzevaActive={tzevaAdomActive}
+                      tzevaHistory={tzevaAdomHistory}
+                      tzevaLive={tzevaAdomLive}
+                      tzevaStatus={tzevaAdomStatus}
+                      tzevaGeoRestricted={tzevaAdomGeoRestricted}
+                      tzevaError={tzevaAdomError}
+                      lang={labelLanguage}
+                      onFocusUkraine={(target) => onAirRaidFocus(target, "neptun")}
+                      onFocusIsrael={(target) => onAirRaidFocus(target, "tzeva")}
+                    />
+                  ) : null}
+                  {showNewfeedsIranAttacks ? (
+                    <NewFeedsIranPanel
+                      attacks={newfeedsAttacks}
+                      threatLabel={newfeedsThreatLabel}
+                      live={newfeedsLive}
+                      liveStatus={newfeedsStatus}
+                      error={newfeedsError}
+                      lang={labelLanguage}
+                      onFocusAttack={(target) => onAirRaidFocus(target, "newfeeds")}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+              {!showLeftPanel &&
+              !rightDockOpen &&
+              !econNavSelection &&
+              !regionNavSelection &&
+              !selected ? (
+                <ExplorationTabs
+                  presets={isEconomyViewer ? ECON_EXPLORATION_PRESETS : EXPLORATION_PRESETS}
+                  activeId={null}
+                  onSelect={onExplorationSelect}
+                  variant={isEconomyViewer ? "hubs" : "fronts"}
+                  label={t(
+                    isEconomyViewer ? "hoverExplorationHubs" : "hoverExplorationFronts",
+                    labelLanguage,
+                  )}
+                  hint={t(
+                    isEconomyViewer ? "hoverExplorationHubsHint" : "hoverExplorationFrontsHint",
+                    labelLanguage,
+                  )}
+                />
+              ) : null}
+              <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+                <UtilityChromeMenu
+                  lang={labelLanguage}
+                  showProTip={entryGate === null && !showModePicker}
+                  getCanvas={() => globeRef.current?.renderer().domElement ?? null}
+                  getScene={getSceneForShare}
+                  onTrust={() => onSetShowTrustPanel(true)}
+                  onSources={() => onSetShowSourcesPanel(true)}
+                  onTour={() => {
+                    if (!isEconomyViewer && tourScenes.length > 0) {
+                      trackEvent("tour_start", { scenes: tourScenes.length }, { lang: labelLanguage });
+                      onSetTourActive(true);
+                    }
+                  }}
+                  onHelp={() => onSetShowFeatureGuide(true)}
+                />
+                {entryGate === null && !showModePicker ? (
+                  <>
+                    <SentinelModeButton
+                      lang={labelLanguage}
+                      active={sentinelActive}
+                      current={sentinelTour[sentinelIndex] ?? null}
+                      economyMode={isEconomyViewer}
+                      onToggle={() => {
+                        onSetSentinelActive((v) => !v);
+                        if (!sentinelActive) {
+                          onSetPlayOverlay(null);
+                          onSetShowMobileAlertFeed(false);
+                        }
+                      }}
+                    />
+                    {!issueUiPausedForLamp && playOverlay === null && !sentinelActive ? (
+                      <PlayHubButton
+                        lang={labelLanguage}
+                        onPick={(kind) => {
+                          if (kind === "where" && whereIsItPool.length < 4) return;
+                          onSetPlayOverlay(kind);
+                          if (kind === "where") {
+                            onSetShowCityLabels(false);
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <SoundMuteControl lang={labelLanguage} variant="fab" />
+                  </>
+                ) : null}
+              </div>
+            </>,
+            navToolsEl,
+          )
+        : null}
+
+      {!intelSheetOpen && isCompactUi ? (
+        <div
+          className="pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2"
+          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
+        >
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">
             <button
               type="button"
@@ -675,8 +740,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               onClick={() => onSetShowTrustPanel(true)}
             />
           </div>
-        )}
-      </div>
+        </div>
       ) : null}
 
       {/* 모바일: 공습 경보는 하단 아이콘 — 상단 허브·주요전장 메뉴를 가리지 않음. 등불 중에는 숨김 */}
@@ -767,13 +831,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
 
       {/*
-        음소거 FAB — 첫 진입부터 항상 우측 하단 고정.
-        모바일에서 소리가 갑자기 나올 때 즉시 끌 수 있어야 하므로, 모드 선택·양피지
-        (z≤10040) 위에도 뜨도록 z-[10050]. 단 입장 주의 오버레이(entryGate)는
-        자체 인라인 음소거 토글을 이미 크게 노출하고 있어 중복·겹침을 피해 제외.
-        접힌 등불 칩(bottom-24/28 right)이 있으면 스택을 그 위로 올린다.
+        음소거·세션 FAB — 데스크톱은 HoverNav 포털로 이관.
+        모바일 compact만 우하단 유지. 실시간 중계 종료 칩은 양쪽.
       */}
-      {entryGate === null ? (
+      {entryGate === null && (isCompactUi || liveBriefingSession) ? (
         <div
           className={`pointer-events-none fixed right-4 z-[10050] flex flex-col items-end gap-2 sm:right-5 ${
             showFoldedParchmentChip
@@ -781,7 +842,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               : "bottom-5 sm:bottom-6"
           }`}
         >
-          {entryGate === null && !showModePicker ? (
+          {isCompactUi && entryGate === null && !showModePicker ? (
             <SentinelModeButton
               lang={labelLanguage}
               active={sentinelActive}
@@ -796,7 +857,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               }}
             />
           ) : null}
-          {!issueUiPausedForLamp && playOverlay === null && !sentinelActive ? (
+          {isCompactUi && !issueUiPausedForLamp && playOverlay === null && !sentinelActive ? (
             <PlayHubButton
               lang={labelLanguage}
               onPick={(kind) => {
@@ -832,7 +893,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               </span>
             </button>
           ) : null}
-          <SoundMuteControl lang={labelLanguage} variant="fab" />
+          {isCompactUi ? <SoundMuteControl lang={labelLanguage} variant="fab" /> : null}
         </div>
       ) : null}
 

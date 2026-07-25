@@ -8,6 +8,7 @@ import {
   OIL_PIPELINE_MAX_BY_TIER,
   SHIPPING_LANE_MAX_BY_TIER,
   SUBMARINE_CABLE_MAX_BY_TIER,
+  SUBSEA_PIPELINE_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { COUNTRY_POLYGON_MAX_BY_TIER, bboxNearView, isCenterInView } from "@/lib/viewportCull";
 import {
@@ -23,6 +24,7 @@ const FILE_BY_LAYER: Record<ViewportPathLayer, string> = {
   "submarine-cables": "submarine-cables.json",
   "oil-pipelines": "oil-pipelines.json",
   "gas-pipelines": "gas-pipelines.json",
+  "subsea-pipelines": "subsea-pipelines.json",
   "dispute-boundaries": "dispute-boundaries.json",
 };
 
@@ -38,6 +40,7 @@ const DEFAULT_MAX: Record<ViewportPathLayer, Record<GlobeLodTier, number>> = {
   "submarine-cables": SUBMARINE_CABLE_MAX_BY_TIER,
   "oil-pipelines": OIL_PIPELINE_MAX_BY_TIER,
   "gas-pipelines": GAS_PIPELINE_MAX_BY_TIER,
+  "subsea-pipelines": SUBSEA_PIPELINE_MAX_BY_TIER,
   "dispute-boundaries": {
     global: 40,
     continent: 80,

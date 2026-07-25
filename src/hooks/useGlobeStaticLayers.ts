@@ -6,6 +6,7 @@ import type {
   ConflictZoneFeature,
   DisputeOverview,
   MilitaryBaseArea,
+  ResourceDepositArea,
   StaticPoint,
   TransportPath,
 } from "@/data/geoTypes";
@@ -20,8 +21,10 @@ import {
   GAS_PIPELINE_MAX_BY_TIER,
   MILITARY_BASE_AREA_MAX_BY_TIER,
   OIL_PIPELINE_MAX_BY_TIER,
+  RESOURCE_DEPOSIT_MAX_BY_TIER,
   SHIPPING_LANE_MAX_BY_TIER,
   SUBMARINE_CABLE_MAX_BY_TIER,
+  SUBSEA_PIPELINE_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { filterStaticPointsForView } from "@/lib/staticGlobe";
 import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
@@ -95,6 +98,26 @@ function filterMilitaryBaseAreas(
   return visible;
 }
 
+function filterResourceDeposits(
+  areas: ResourceDepositArea[],
+  view: ViewState,
+  tier: GlobeLodTier,
+  radiusDeg: number,
+) {
+  const maxCount = RESOURCE_DEPOSIT_MAX_BY_TIER[tier];
+  if (maxCount <= 0) return [];
+  const effectiveRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 40) : radiusDeg;
+  const ranked = [...areas].sort((a, b) => (a.tier ?? 9) - (b.tier ?? 9));
+  const visible: ResourceDepositArea[] = [];
+  for (const area of ranked) {
+    if (effectiveRadius > 0 && !centerNearView(area.center, view, effectiveRadius + 2)) continue;
+    visible.push(area);
+    if (visible.length >= maxCount) break;
+  }
+  return visible;
+}
+
 async function fetchApiJson(apiPath: string): Promise<ApiPointsPayload> {
   const response = await fetch(apiPath, { cache: "no-store" });
   if (!response.ok) throw new Error(`${apiPath}: ${response.status}`);
@@ -129,6 +152,7 @@ export function useGlobeStaticLayers(options: {
   showOilPipelines: boolean;
   showGasPipelines: boolean;
   showLngTerminals: boolean;
+  showSubseaPipelines?: boolean;
   gemShow?: GemShowFlags;
   showAirports: boolean;
   showPorts: boolean;
@@ -156,6 +180,8 @@ export function useGlobeStaticLayers(options: {
   const [cablePaths, setCablePaths] = useState<TransportPath[]>([]);
   const [oilPipelinePaths, setOilPipelinePaths] = useState<TransportPath[]>([]);
   const [gasPipelinePaths, setGasPipelinePaths] = useState<TransportPath[]>([]);
+  const [subseaPipelinePaths, setSubseaPipelinePaths] = useState<TransportPath[]>([]);
+  const [osmPipelinePaths, setOsmPipelinePaths] = useState<TransportPath[]>([]);
   const [lngTerminals, setLngTerminals] = useState<StaticPoint[]>([]);
   const [gemPointsByLayer, setGemPointsByLayer] = useState<
     Partial<Record<GemResourceLayerId, StaticPoint[]>>
@@ -164,6 +190,7 @@ export function useGlobeStaticLayers(options: {
   const [ports, setPorts] = useState<StaticPoint[]>([]);
   const [militaryBases, setMilitaryBases] = useState<StaticPoint[]>([]);
   const [militaryBaseAreas, setMilitaryBaseAreas] = useState<MilitaryBaseArea[]>([]);
+  const [resourceDeposits, setResourceDeposits] = useState<ResourceDepositArea[]>([]);
   const [resources, setResources] = useState<StaticPoint[]>([]);
   const [cableLandings, setCableLandings] = useState<StaticPoint[]>([]);
   const [nuclearSites, setNuclearSites] = useState<StaticPoint[]>([]);
@@ -428,6 +455,80 @@ export function useGlobeStaticLayers(options: {
   ]);
 
   useEffect(() => {
+    if (!options.showSubseaPipelines) {
+      setSubseaPipelinePaths([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void fetchViewportLayer("subsea-pipelines", setSubseaPipelinePaths);
+    }, 340);
+    return () => window.clearTimeout(timer);
+  }, [
+    fetchViewportLayer,
+    options.showSubseaPipelines,
+    options.viewState.lat,
+    options.viewState.lng,
+    options.globeTier,
+    options.radiusDeg,
+    reloadToken,
+  ]);
+
+  /** OSM Overpass — regional+ 에서 GEM oil/gas/subsea 보강 */
+  useEffect(() => {
+    const wantDetail =
+      (options.showOilPipelines ||
+        options.showGasPipelines ||
+        options.showSubseaPipelines) &&
+      (options.globeTier === "regional" ||
+        options.globeTier === "near" ||
+        options.globeTier === "village");
+    if (!wantDetail) {
+      setOsmPipelinePaths([]);
+      return;
+    }
+    const lat = options.viewState.lat;
+    const lng = options.viewState.lng;
+    const half = Math.min(12, Math.max(3, options.radiusDeg || 6));
+    const south = lat - half;
+    const north = lat + half;
+    const west = lng - half;
+    const east = lng + half;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const qs = new URLSearchParams({
+            south: String(south),
+            west: String(west),
+            north: String(north),
+            east: String(east),
+          });
+          const res = await fetch(`/api/pipelines-osm?${qs}`, { cache: "default" });
+          if (!res.ok) throw new Error(`pipelines-osm ${res.status}`);
+          const payload = (await res.json()) as { paths?: TransportPath[] };
+          if (cancelled) return;
+          setOsmPipelinePaths(Array.isArray(payload.paths) ? payload.paths : []);
+        } catch {
+          if (!cancelled) setOsmPipelinePaths([]);
+        }
+      })();
+    }, 700);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    options.globeTier,
+    options.radiusDeg,
+    options.showGasPipelines,
+    options.showOilPipelines,
+    options.showSubseaPipelines,
+    options.viewState.lat,
+    options.viewState.lng,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
     if (!options.showLngTerminals) {
       setLngTerminals([]);
       return;
@@ -545,10 +646,32 @@ export function useGlobeStaticLayers(options: {
   useEffect(() => {
     if (!options.showResources) {
       setResources([]);
+      setResourceDeposits([]);
       return;
     }
     const timer = window.setTimeout(() => {
       void fetchViewportPoints("resources", setResources);
+      void (async () => {
+        try {
+          const response = await fetch(dataPath("resource-deposits.json"), { cache: "force-cache" });
+          if (!response.ok) return;
+          const raw = (await response.json()) as unknown;
+          const list = Array.isArray(raw) ? raw : [];
+          const deposits = list.filter(
+            (item): item is ResourceDepositArea =>
+              Boolean(
+                item &&
+                  typeof item === "object" &&
+                  typeof (item as ResourceDepositArea).id === "string" &&
+                  (item as ResourceDepositArea).geometry &&
+                  (item as ResourceDepositArea).center,
+              ),
+          );
+          setResourceDeposits(deposits);
+        } catch {
+          setResourceDeposits([]);
+        }
+      })();
     }, 320);
     return () => window.clearTimeout(timer);
   }, [
@@ -768,24 +891,60 @@ export function useGlobeStaticLayers(options: {
     options.showSubmarineCables,
   ]);
 
+  const withPipelineAlt = useCallback((paths: TransportPath[], alt = 0.012): TransportPath[] => {
+    return paths.map((path) => ({
+      ...path,
+      points: path.points.map((pt) => (pt.alt != null ? pt : { ...pt, alt })),
+    }));
+  }, []);
+
   const visibleOilPipelines = useMemo(() => {
     if (!options.showOilPipelines) return [];
     const max = OIL_PIPELINE_MAX_BY_TIER[options.globeTier];
-    return oilPipelinePaths.slice(0, max);
+    const osmOil = osmPipelinePaths.filter((p) => p.kind === "oil-pipeline");
+    const gem = oilPipelinePaths.slice(0, max);
+    const seen = new Set(gem.map((p) => p.id));
+    const extra = osmOil.filter((p) => !seen.has(p.id)).slice(0, 40);
+    return withPipelineAlt([...gem, ...extra]);
   }, [
     oilPipelinePaths,
     options.globeTier,
     options.showOilPipelines,
+    osmPipelinePaths,
+    withPipelineAlt,
   ]);
 
   const visibleGasPipelines = useMemo(() => {
     if (!options.showGasPipelines) return [];
     const max = GAS_PIPELINE_MAX_BY_TIER[options.globeTier];
-    return gasPipelinePaths.slice(0, max);
+    const osmGas = osmPipelinePaths.filter((p) => p.kind === "gas-pipeline");
+    const gem = gasPipelinePaths.slice(0, max);
+    const seen = new Set(gem.map((p) => p.id));
+    const extra = osmGas.filter((p) => !seen.has(p.id)).slice(0, 40);
+    return withPipelineAlt([...gem, ...extra]);
   }, [
     gasPipelinePaths,
     options.globeTier,
     options.showGasPipelines,
+    osmPipelinePaths,
+    withPipelineAlt,
+  ]);
+
+  const visibleSubseaPipelines = useMemo(() => {
+    if (!options.showSubseaPipelines) return [];
+    const max = SUBSEA_PIPELINE_MAX_BY_TIER[options.globeTier];
+    const base = subseaPipelinePaths.slice(0, max);
+    const seen = new Set(base.map((p) => p.id));
+    const osmSubsea = osmPipelinePaths
+      .filter((p) => p.kind === "subsea-pipeline" && !seen.has(p.id))
+      .slice(0, 40);
+    return withPipelineAlt([...base, ...osmSubsea], 0.01);
+  }, [
+    options.globeTier,
+    options.showSubseaPipelines,
+    subseaPipelinePaths,
+    osmPipelinePaths,
+    withPipelineAlt,
   ]);
 
   const visibleStaticPoints = useMemo(() => {
@@ -793,7 +952,12 @@ export function useGlobeStaticLayers(options: {
     if (options.showAirports) merged.push(...airports);
     if (options.showPorts) merged.push(...ports);
     if (options.showMilitaryBases) merged.push(...militaryBases);
-    if (options.showResources) merged.push(...resources);
+    if (options.showResources) {
+      const covered = new Set(
+        resourceDeposits.map((d) => d.linkedPointId).filter((id): id is string => Boolean(id)),
+      );
+      merged.push(...resources.filter((p) => !covered.has(p.id)));
+    }
     if (options.showCableLandings) merged.push(...cableLandings);
     if (options.showNuclearSites) merged.push(...nuclearSites);
     if (options.showInternetExchanges) merged.push(...internetExchanges);
@@ -855,6 +1019,7 @@ export function useGlobeStaticLayers(options: {
     options.viewState,
     ports,
     refugeeCamps,
+    resourceDeposits,
     resources,
     sanctionsEntities,
     spaceLaunches,
@@ -876,6 +1041,22 @@ export function useGlobeStaticLayers(options: {
     options.radiusDeg,
     options.showMilitaryBases,
     options.viewState,
+  ]);
+
+  const visibleResourceDeposits = useMemo(() => {
+    if (!options.showResources) return [];
+    return filterResourceDeposits(
+      resourceDeposits,
+      options.viewState,
+      options.globeTier,
+      options.radiusDeg,
+    );
+  }, [
+    options.globeTier,
+    options.radiusDeg,
+    options.showResources,
+    options.viewState,
+    resourceDeposits,
   ]);
 
   const visibleConflictZones = useMemo(() => {
@@ -930,8 +1111,10 @@ export function useGlobeStaticLayers(options: {
     visibleCables,
     visibleOilPipelines,
     visibleGasPipelines,
+    visibleSubseaPipelines,
     visibleStaticPoints,
     visibleMilitaryBaseAreas,
+    visibleResourceDeposits,
     visibleConflictZones,
     visibleArmsEmbargoZones,
     disputeOverviews,
@@ -941,6 +1124,7 @@ export function useGlobeStaticLayers(options: {
       cables: cablePaths.length,
       oilPipelines: oilPipelinePaths.length,
       gasPipelines: gasPipelinePaths.length,
+      subseaPipelines: subseaPipelinePaths.length,
       lngTerminals: lngTerminals.length,
       gemResources: Object.fromEntries(
         GEM_RESOURCE_LAYERS.map((l) => [l.id, gemPointsByLayer[l.id]?.length ?? 0]),
@@ -950,6 +1134,7 @@ export function useGlobeStaticLayers(options: {
       militaryBases: militaryBases.length,
       militaryBaseAreas: militaryBaseAreas.length,
       resources: resources.length,
+      resourceDeposits: resourceDeposits.length,
       cableLandings: cableLandings.length,
       nuclearSites: nuclearSites.length,
       internetExchanges: internetExchanges.length,

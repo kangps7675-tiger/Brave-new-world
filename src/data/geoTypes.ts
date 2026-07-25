@@ -114,6 +114,7 @@ export type TransportPath = {
     | "submarine-cable"
     | "oil-pipeline"
     | "gas-pipeline"
+    | "subsea-pipeline"
     | "arms-embargo"
     | "dispute-zone"
     | "dispute-hatch"
@@ -139,6 +140,8 @@ export type TransportPath = {
     | "neptun-trail"
     | "neptun-projection"
     | "neptun-trail-archived"
+    /** 정찰위성 선택 시 향후 지상 궤적(상시 금지) */
+    | "recon-orbit"
     /** IRN–CHN–RUS–PRK 축·스포크 관계망 호 */
     | "axis-link"
     /** World Bank BRI 무역·운송 연결성 (chn→국가·도시) */
@@ -157,6 +160,8 @@ export type TransportPath = {
     maxLng: number;
   };
   points: TransportPathPoint[];
+  /** Optional source/status/capacity fields (GEM, EMODnet, OSM) */
+  meta?: Record<string, string | number | null>;
 };
 
 export type TransportPathPoint = {
@@ -243,6 +248,25 @@ export type MilitaryBaseArea = {
   area?: number;
   footprint?: number;
   tier?: number;
+};
+
+/** 전략 광물·자원 매장지 footprint (불규칙 폴리곤) */
+export type ResourceDepositArea = {
+  id: string;
+  kind: "resource-deposit";
+  name: string;
+  mineral: string;
+  country?: string | null;
+  center: { lat: number; lng: number };
+  geometry: GeoJsonGeometry;
+  tier?: number;
+  linkedPointId?: string | null;
+  bbox?: {
+    minLat: number;
+    minLng: number;
+    maxLat: number;
+    maxLng: number;
+  };
 };
 
 export type DisputeOverview = {

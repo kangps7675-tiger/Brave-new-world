@@ -161,7 +161,19 @@ const RESOURCE_STYLES: Record<string, ResourceStyle> = {
   Manganese: { color: "#2dd4bf", shape: "diamond" },
   Titanium: { color: "#7dd3fc", shape: "triangle" },
   Bauxite: { color: "#d97706", shape: "square" },
-  Oil: { color: "#f97316", shape: "circle" },
+  Oil: { color: "#78350f", shape: "circle" },
+  Gas: { color: "#38bdf8", shape: "circle" },
+  Coal: { color: "#18181b", shape: "square" },
+  Phosphate: { color: "#84cc16", shape: "hex" },
+  Potash: { color: "#c084fc", shape: "diamond" },
+  Diamond: { color: "#a5f3fc", shape: "diamond" },
+  Tin: { color: "#a16207", shape: "bar" },
+  Tungsten: { color: "#64748b", shape: "cross" },
+  Molybdenum: { color: "#6366f1", shape: "hex" },
+  Zinc: { color: "#4ade80", shape: "square" },
+  Chromium: { color: "#22c55e", shape: "triangle" },
+  Silver: { color: "#e2e8f0", shape: "circle" },
+  Helium: { color: "#f472b6", shape: "ring" },
 };
 
 function normalizeMineralKey(raw: unknown): string {
@@ -184,7 +196,19 @@ function normalizeMineralKey(raw: unknown): string {
   if (lower.includes("manganese")) return "Manganese";
   if (lower.includes("titanium")) return "Titanium";
   if (lower.includes("bauxite")) return "Bauxite";
+  if (lower.includes("coal")) return "Coal";
+  if (lower.includes("helium")) return "Helium";
+  if (lower.includes("gas") || lower.includes("lng")) return "Gas";
   if (lower.includes("oil") || lower.includes("crude")) return "Oil";
+  if (lower.includes("phosphate") || lower.includes("phosphor")) return "Phosphate";
+  if (lower.includes("potash")) return "Potash";
+  if (lower.includes("diamond")) return "Diamond";
+  if (lower.includes("tungsten") || lower.includes("wolfram")) return "Tungsten";
+  if (lower.includes("molybdenum") || lower.includes("moly")) return "Molybdenum";
+  if (lower.includes("chromium") || lower.includes("chrome")) return "Chromium";
+  if (lower.includes("silver")) return "Silver";
+  if (lower.includes("zinc")) return "Zinc";
+  if (lower.includes("tin")) return "Tin";
   return t;
 }
 
@@ -394,12 +418,22 @@ function ensureStyles() {
       animation: choke-glow-pulse 2.8s ease-in-out infinite;
       display: flex; align-items: center; justify-content: center;
     }
+    .infra-static-marker-root[data-kind="chokepoint"][data-stress="elevated"] .infra-static-glow {
+      background: radial-gradient(circle, rgba(248,113,113,0.55) 0%, rgba(239,68,68,0.18) 55%, transparent 72%);
+      animation: choke-glow-pulse 1.6s ease-in-out infinite;
+    }
+    .infra-static-marker-root[data-kind="chokepoint"][data-stress="watch"] .infra-static-glow {
+      background: radial-gradient(circle, rgba(251,191,36,0.5) 0%, rgba(245,158,11,0.15) 55%, transparent 72%);
+    }
+    .infra-static-marker-root[data-kind="chokepoint"][data-stress="normal"] .infra-static-glow {
+      background: radial-gradient(circle, rgba(52,211,153,0.45) 0%, rgba(16,185,129,0.12) 55%, transparent 72%);
+    }
   `;
   document.head.appendChild(style);
 }
 
 export function createInfraStaticBadge(
-  point: StaticPoint & { markerId?: string },
+  point: StaticPoint & { markerId?: string; stressLevel?: string },
   handlers: {
     onHover: (point: (StaticPoint & { markerId?: string }) | null) => void;
     onClick?: (point: StaticPoint & { markerId?: string }) => void;
@@ -411,6 +445,9 @@ export function createInfraStaticBadge(
   const outer = document.createElement("div");
   outer.className = "infra-static-marker-root";
   outer.dataset.kind = point.kind;
+  if (point.kind === "chokepoint" && point.stressLevel) {
+    outer.dataset.stress = point.stressLevel;
+  }
 
   const btn = document.createElement("button");
   btn.type = "button";

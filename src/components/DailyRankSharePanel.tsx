@@ -22,6 +22,7 @@ import {
   wtiBandLabel,
 } from "@/lib/wti";
 import { BunkerSentimentVote } from "@/components/BunkerSentimentVote";
+import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 
 type DailyRankSharePanelProps = {
   lang: LabelLanguage;
@@ -253,6 +254,10 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
         busy={busyKind === "theater"}
         onShare={() => void share("theater")}
       />
+      {/* PortWatch 초크 TOP과 짝 — 전 세계 종합 공급망 압력 */}
+      <div className="sm:col-span-2">
+        <GscpiGaugeFromData lang={lang} />
+      </div>
       <RankList
         title={ko ? "공급망 TOP 5" : "Supply chain TOP 5"}
         accentClass="text-sky-300/90"

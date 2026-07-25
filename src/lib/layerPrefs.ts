@@ -23,6 +23,8 @@ export type LayerPrefs = {
   showOilPipelines: boolean;
   showGasPipelines: boolean;
   showLngTerminals: boolean;
+  /** EMODnet Human Activities — 유럽 해역 해저 송유·가스관 */
+  showSubseaPipelines: boolean;
   /** GEM 자원 트래커 — 지구본 체크박스 */
   showGemCoalPlants: boolean;
   showGemCoalMines: boolean;
@@ -43,6 +45,13 @@ export type LayerPrefs = {
   showPorts: boolean;
   /** 해상 초크포인트 · 핵심 물류 거점(터널·교량) */
   showLogisticsRisk: boolean;
+  /**
+   * 물류 스트레스 색상 — 초크포인트 링/카드를 UKMTO·PortWatch 등급색으로.
+   * showLogisticsRisk와 함께 쓸 때 elevated=빨강.
+   */
+  showLogisticsStress: boolean;
+  /** NY Fed GSCPI 게이지 칩 (지경학 UI) — 지도 레이어 아님 */
+  showGscpiGauge: boolean;
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
@@ -57,6 +66,16 @@ export type LayerPrefs = {
   /** 미 해군 항공모함 위치 추적 */
   showUsCarriers: boolean;
   showSpaceLaunches: boolean;
+  /**
+   * 정찰·감시 위성 — CelesTrak TLE + 클라이언트 SGP4.
+   * 가시권 원은 이론상 지평선이며 촬영 영역이 아님.
+   */
+  showReconSatellites: boolean;
+  /**
+   * GPSJam GNSS 재밍 추정 히트맵 (H3).
+   * ON 시 솔로 모드 — 다른 레이어 전부 OFF.
+   */
+  showGpsInterference: boolean;
   showIntelHotspots: boolean;
   showAiDataCenters: boolean;
   showEconomicCenters: boolean;
@@ -132,8 +151,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v33: 군사 훈련 경보 레이어 (공시·OSINT 다층) */
-export const LAYER_PREFS_KEY = "geowatch-layers-v33";
+/** v35: GPSJam GNSS 재밍 히트맵 */
+export const LAYER_PREFS_KEY = "geowatch-layers-v35";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -149,6 +168,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showOilPipelines: false,
   showGasPipelines: false,
   showLngTerminals: false,
+  showSubseaPipelines: false,
   showGemCoalPlants: false,
   showGemCoalMines: false,
   showGemCoalTerminals: false,
@@ -167,6 +187,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showAirports: false,
   showPorts: false,
   showLogisticsRisk: false,
+  showLogisticsStress: true,
+  showGscpiGauge: true,
   showCriticalNodes: false,
   showMilitaryBases: false,
   showResources: false,
@@ -178,6 +200,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showAirTraffic: false,
   showUsCarriers: false,
   showSpaceLaunches: false,
+  showReconSatellites: false,
+  showGpsInterference: false,
   showIntelHotspots: false,
   showAiDataCenters: false,
   showEconomicCenters: false,
@@ -217,6 +241,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v34",
+  "geowatch-layers-v33",
   "geowatch-layers-v32",
   "geowatch-layers-v31",
   "geowatch-layers-v30",

@@ -35,8 +35,8 @@ export const LAYER_CATEGORY_COPY: Record<
   military: {
     title: { ko: "군사 · 안보", en: "Military & security" },
     hint: {
-      ko: "기지, 항공, 난민",
-      en: "Bases, aviation, refugees",
+      ko: "기지, 항공, 정찰위성, 난민",
+      en: "Bases, aviation, recon satellites, refugees",
     },
   },
   live: {
@@ -95,6 +95,7 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   "oil-pipelines": { ko: "송유관", en: "Oil pipelines" },
   "gas-pipelines": { ko: "가스관", en: "Gas pipelines" },
   "lng-terminals": { ko: "LNG(액화가스) 터미널", en: "LNG terminals" },
+  "subsea-pipelines": { ko: "해저 파이프라인", en: "Subsea pipelines" },
   "gem-resources": { ko: "발전·채굴·산업 시설", en: "Power, mining & industrial sites" },
   "gem-group-coal": { ko: "석탄 (발전·광산·터미널)", en: "Coal" },
   "gem-group-power": { ko: "원자력·재생에너지", en: "Nuclear & renewables" },
@@ -127,6 +128,8 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   ports: { ko: "항구", en: "Ports" },
   ixp: { ko: "인터넷 교환점", en: "Internet exchange points" },
   "logistics-risk": { ko: "해상 요충·물류 거점", en: "Maritime chokepoints & logistics hubs" },
+  "logistics-stress": { ko: "물류 스트레스 색상", en: "Logistics stress colors" },
+  "gscpi-gauge": { ko: "GSCPI 공급망 압력", en: "GSCPI supply-chain pressure" },
   "critical-nodes": { ko: "핵심 인프라 노드", en: "Critical infrastructure nodes" },
   ais: { ko: "위장·그림자함대", en: "Spoofed & shadow fleet vessels" },
   "disguised-vessels": { ko: "위장·그림자함대", en: "Spoofed & shadow fleet vessels" },
@@ -138,6 +141,8 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   cyber: { ko: "사이버 공격", en: "Cyber attacks" },
   election: { ko: "선거 사건", en: "Election events" },
   space: { ko: "우주 발사", en: "Space launches" },
+  "recon-satellites": { ko: "정찰위성 (전역 시야)", en: "Recon satellites (global view)" },
+  "gps-interference": { ko: "GPS 재밍 (GPSJam)", en: "GPS interference (GPSJam)" },
   "air-traffic": { ko: "항공기 운항", en: "Flight activity" },
   economic: { ko: "경제 중심지", en: "Economic hubs" },
   "ai-dc": { ko: "AI 데이터센터", en: "AI data centers" },

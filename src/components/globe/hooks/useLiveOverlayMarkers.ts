@@ -33,6 +33,8 @@ import { INFRA_HTML_MARKER_CAP } from "@/components/globe/constants";
 export type UseLiveOverlayMarkersOptions = {
   staticGlobePoints: StaticGlobePoint[];
   showLogisticsRisk: boolean;
+  /** id → CSS color for choke glow rings (stress palette) */
+  chokeGlowColorById?: Record<string, string>;
   usCarriers: UsCarrier[];
   aisVessels: AisVessel[];
   disguisedVessels: AisVessel[];
@@ -65,6 +67,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     civAircraft,
     globeLodTier,
     layerViewState,
+    chokeGlowColorById,
   } = opts;
 
   /** 인프라 HTML 실루엣 마커 (공항·항구·DC·핵·초크 등) — DOM 비용 때문에 강하게 캡 */
@@ -96,7 +99,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
 
   const chokeGlowRings = useMemo<PulseRingPoint[]>(() => {
     if (!showLogisticsRisk) return [];
-    return chokeGlowRingSeed().map((p) => ({
+    return chokeGlowRingSeed(undefined, (id) => chokeGlowColorById?.[id]).map((p) => ({
       pulseKind: "choke-glow" as const,
       id: p.id,
       lat: p.lat,
@@ -104,8 +107,9 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
       glow: p.glow,
       radiusScale: p.radiusScale,
       markerId: `choke-glow-${p.id}`,
+      ...(p.color ? { color: p.color } : {}),
     }));
-  }, [showLogisticsRisk]);
+  }, [showLogisticsRisk, chokeGlowColorById]);
 
   const carrierAisMerge = useMemo(
     () => mergeCarriersWithAisPositions(usCarriers, aisVessels),

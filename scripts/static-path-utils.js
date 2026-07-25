@@ -163,13 +163,13 @@ function geoRegionBucket(lat, lng) {
 }
 
 /**
- * lite 캡: 권역 라운드로빈으로 전 세계 분산.
- * full 캡: 기존처럼 앞에서 자름 (이미 정렬된 입력 가정).
+ * 권역 라운드로빈으로 전 세계 분산 캡.
+ * getLatLng가 있으면 lite/full 모두 지리 분산 (없으면 앞에서 자름).
  */
 function capArrayGeographic(items, liteMax, fullMax, getLatLng) {
   const limit = IS_LITE ? liteMax : fullMax;
   if (items.length <= limit) return items;
-  if (!IS_LITE || typeof getLatLng !== "function") {
+  if (typeof getLatLng !== "function") {
     return items.slice(0, limit);
   }
 

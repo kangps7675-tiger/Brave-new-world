@@ -17,9 +17,19 @@ const {
   capArrayGeographic,
 } = require("./static-path-utils");
 
-const GEM_ROOT =
-  process.env.GEM_DATA_DIR ||
-  path.resolve(__dirname, "..", "..", "..", "gem-data");
+function resolveGemRoot() {
+  const candidates = [
+    process.env.GEM_DATA_DIR,
+    path.resolve(__dirname, "..", "..", "..", "gem-data"),
+    path.resolve(process.env.USERPROFILE || process.env.HOME || "", "Downloads", "gem-data"),
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return candidates[0] || path.resolve(__dirname, "..", "..", "..", "gem-data");
+}
+
+const GEM_ROOT = resolveGemRoot();
 
 const STATUS_RANK = {
   operating: 1,
@@ -35,6 +45,12 @@ const STATUS_RANK = {
 const LITE_STATUSES = new Set(["operating", "construction"]);
 const FULL_STATUSES = new Set(["operating", "construction", "proposed"]);
 
+/** GEM has no offshore boolean — name/location keyword heuristic for subsea layer. */
+const OFFSHORE_STRONG =
+  /\b(subsea|offshore|under\s*water|underwater|seabed|submarine\s+pipe|marine\s+pipe|louisiana\s+offshore\s+oil\s+port)\b/i;
+const OFFSHORE_SEA_LOC =
+  /\b(gulf of mexico|north sea|baltic sea|norwegian sea|barents|mediterranean|adriatic|caspian|persian gulf|arabian gulf|red sea|south china sea|east china sea|yellow sea|bohai|timor sea|java sea|andaman|bay of bengal|caribbean|gulf of guinea|gulf of thailand|makassar|black sea|celtic sea|irish sea|aegean|sulu sea|celebes|luzon|shoal block|green canyon|ship shoal)\b/i;
+
 function statusRank(status) {
   const key = String(status || "")
     .trim()
@@ -47,6 +63,23 @@ function statusAllowed(status) {
     .trim()
     .toLowerCase();
   return IS_LITE ? LITE_STATUSES.has(key) : FULL_STATUSES.has(key);
+}
+
+function isOffshorePipeline(props) {
+  const nameBlob = [
+    props.PipelineName,
+    props.SegmentName,
+    props.OtherEnglishNames,
+    props.OtherLanguagePrimaryPipelineName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  if (OFFSHORE_STRONG.test(nameBlob)) return true;
+  const locBlob = [props.StartLocation, props.EndLocation, props.FuelSource]
+    .filter(Boolean)
+    .join(" ");
+  if (OFFSHORE_STRONG.test(locBlob) || OFFSHORE_SEA_LOC.test(locBlob)) return true;
+  return false;
 }
 
 function loadGeoJson(relativePath) {
@@ -63,16 +96,20 @@ function pipelineName(props) {
   return `${props.PipelineName || props.ProjectID || "Pipeline"}${segment}`;
 }
 
-function convertPipelineGeoJson(geo, kind, idPrefix, caps) {
+function convertPipelineGeoJson(geo, kind, idPrefix, caps, options = {}) {
   if (!geo?.features) return [];
 
   const maxPts = IS_LITE ? 24 : 48;
   const precision = IS_LITE ? 2 : 3;
   const paths = [];
+  const forceKind = options.forceKind || null;
+  const onlyOffshore = Boolean(options.onlyOffshore);
+  const idTag = options.idTag || idPrefix;
 
   for (const [index, feature] of geo.features.entries()) {
     const props = feature.properties || {};
     if (!statusAllowed(props.Status)) continue;
+    if (onlyOffshore && !isOffshorePipeline(props)) continue;
 
     const rank = statusRank(props.Status);
     const name = pipelineName(props);
@@ -81,8 +118,8 @@ function convertPipelineGeoJson(geo, kind, idPrefix, caps) {
     for (const [pathIndex, points] of segments.entries()) {
       if (points.length < 2) continue;
       paths.push({
-        id: `${idPrefix}-${props.ProjectID || index}-${pathIndex}`,
-        kind,
+        id: `${idTag}-${props.ProjectID || index}-${pathIndex}`,
+        kind: forceKind || kind,
         name,
         scalerank: rank,
         lengthKm: Number(props.LengthMergedKm) || null,
@@ -92,10 +129,11 @@ function convertPipelineGeoJson(geo, kind, idPrefix, caps) {
           source: "gem",
           status: props.Status || null,
           fuel: props.Fuel || null,
-          country: props.CountriesOrAreas || props["Start CountryOrArea"] || null,
+          country: props.CountriesOrAreas || props.StartCountryOrArea || null,
           owner: props.Owner || null,
           capacity: props.Capacity || null,
           capacityUnits: props.CapacityUnits || null,
+          offshore: onlyOffshore || isOffshorePipeline(props) ? "yes" : null,
         },
         _rank: rank,
         _length: points.length,
@@ -105,6 +143,7 @@ function convertPipelineGeoJson(geo, kind, idPrefix, caps) {
 
   paths.sort((a, b) => a._rank - b._rank || b._length - a._length);
   const cleaned = paths.map(({ _rank, _length, ...rest }) => rest);
+  if (!caps) return cleaned;
   return capArrayGeographic(cleaned, caps.lite, caps.full, (path) => {
     const pts = path.points;
     if (!pts?.length) return { lat: NaN, lng: NaN };
@@ -148,10 +187,39 @@ function convertLngTerminals(geo) {
   }
 
   points.sort((a, b) => a._rank - b._rank || a.name.localeCompare(b.name));
-  const cap = IS_LITE ? 100 : 350;
+  const cap = IS_LITE ? 200 : 500;
   return points
     .slice(0, cap)
     .map(({ _rank, ...rest }) => rest);
+}
+
+/** Worldwide offshore/subsea segments from GEM oil+gas trackers (for subsea layer merge). */
+function extractGemOffshorePipelines() {
+  if (!fs.existsSync(GEM_ROOT)) return [];
+  const oil = convertPipelineGeoJson(
+    loadGeoJson("GEM-GOIT-Oil-NGL-Pipelines-2026-06/GEM-GOIT-Oil-NGL-Pipelines-2026-06.geojson"),
+    "oil-pipeline",
+    "gem-oil",
+    null,
+    { onlyOffshore: true, forceKind: "subsea-pipeline", idTag: "gem-subsea-oil" },
+  );
+  const gas = convertPipelineGeoJson(
+    loadGeoJson("GEM-GGIT-Gas-Pipelines-2025-11/GEM-GGIT-Gas-Pipelines-2025-11.geojson"),
+    "gas-pipeline",
+    "gem-gas",
+    null,
+    { onlyOffshore: true, forceKind: "subsea-pipeline", idTag: "gem-subsea-gas" },
+  );
+  // MultiLineString 세그먼트 폭발 방지: 프로젝트당 최장 1개
+  const best = new Map();
+  for (const path of [...oil, ...gas]) {
+    const key = String(path.id).replace(/-\d+$/, "");
+    const prev = best.get(key);
+    if (!prev || (path.points?.length || 0) > (prev.points?.length || 0)) {
+      best.set(key, path);
+    }
+  }
+  return [...best.values()];
 }
 
 function buildGemLayers() {
@@ -166,14 +234,14 @@ function buildGemLayers() {
     loadGeoJson("GEM-GOIT-Oil-NGL-Pipelines-2026-06/GEM-GOIT-Oil-NGL-Pipelines-2026-06.geojson"),
     "oil-pipeline",
     "gem-oil",
-    { lite: 180, full: 900 },
+    { lite: 400, full: 1200 },
   );
 
   const gas = convertPipelineGeoJson(
     loadGeoJson("GEM-GGIT-Gas-Pipelines-2025-11/GEM-GGIT-Gas-Pipelines-2025-11.geojson"),
     "gas-pipeline",
     "gem-gas",
-    { lite: 280, full: 1400 },
+    { lite: 700, full: 1800 },
   );
 
   const lng = convertLngTerminals(
@@ -209,5 +277,5 @@ function main() {
 if (require.main === module) {
   main();
 } else {
-  module.exports = { buildGemLayers, main };
+  module.exports = { buildGemLayers, extractGemOffshorePipelines, main };
 }

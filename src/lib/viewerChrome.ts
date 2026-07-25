@@ -41,6 +41,7 @@ export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
   showOilPipelines: true,
   showGasPipelines: true,
   showLngTerminals: true,
+  showSubseaPipelines: true,
   showResources: true,
   showGemOilGasExtraction: true,
   showGemCoalMines: true,
@@ -81,6 +82,7 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
+  showLogisticsStress: true,
   showShippingLanes: true,
   showPorts: true,
   showFirmsFires: true,
@@ -102,12 +104,15 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAiDataCenters: false,
   showAirTraffic: false,
   showSubmarineTunnels: false,
+  showGscpiGauge: false,
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   showAis: true,
   showAirTraffic: true,
   showLogisticsRisk: true,
+  showLogisticsStress: true,
+  showGscpiGauge: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
   ...SHARED_RESOURCE_LAYER_ON,
@@ -129,6 +134,8 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryActivity: false,
   showUsCarriers: false,
   showDisguisedVessels: false,
+  showReconSatellites: false,
+  showGpsInterference: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -152,6 +159,7 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showSubmarineTunnels: false,
   showAxisNetwork: false,
   ...ECONOMY_MILITARY_BLOCK,
+  showGpsInterference: false,
 };
 
 /** 지경학 패치에서 군용 레이어 ON을 제거하고 강제 OFF */

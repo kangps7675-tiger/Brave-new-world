@@ -81,6 +81,7 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   "^VIX": { ko: "VIX 공포지수", en: "VIX Fear Index" },
   "CL=F": { ko: "WTI 원유", en: "WTI Crude Oil" },
   "BZ=F": { ko: "브렌트유", en: "Brent Crude" },
+  "NG=F": { ko: "천연가스", en: "Natural Gas" },
   "GC=F": { ko: "금 선물", en: "Gold Futures" },
   "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
   "DX-Y.NYB": { ko: "달러 인덱스", en: "US Dollar Index" },
@@ -93,14 +94,16 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
 };
 
 /**
- * Yahoo Finance — API 키 없이 동작 검증된 심볼만 (Massive 무료 미지원 아시아·원자재 대체).
+ * Yahoo Finance — 주요 증시 지수·BTC의 15분 폴링 소스 (API 키 없음).
+ * 원자재·달러(CL/BZ/NG/GC/DX)는 FRED가 있으면 일간으로 보완, 없으면 여기 Yahoo.
  * label은 영문 짧은 표기(API 기본값). UI는 tickerDisplayName() 사용.
- * @see `/api/stock-tickers` · `yahoo-finance2`
+ * @see `/api/stock-tickers` · `yahoo-finance2` · `fred.ts`
  */
 export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "^VIX", label: "VIX Fear Index" },
   { symbol: "CL=F", label: "WTI Crude Oil" },
   { symbol: "BZ=F", label: "Brent Crude" },
+  { symbol: "NG=F", label: "Natural Gas" },
   { symbol: "GC=F", label: "Gold Futures" },
   { symbol: "BTC-USD", label: "Bitcoin" },
   { symbol: "DX-Y.NYB", label: "US Dollar Index" },
@@ -129,6 +132,7 @@ export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
   "CL=F",
   "BZ=F",
+  "NG=F",
   "GC=F",
   "BTC-USD",
   "DX-Y.NYB",
@@ -140,7 +144,7 @@ export type MarketGroupId = "risk" | "commodities" | "crypto" | "us-equities" | 
 
 export const MARKET_GROUPS: Array<{ id: MarketGroupId; label: string; symbols: string[] }> = [
   { id: "risk", label: "리스크 · 달러", symbols: ["^VIX", "DX-Y.NYB"] },
-  { id: "commodities", label: "에너지 · 금", symbols: ["CL=F", "BZ=F", "GC=F"] },
+  { id: "commodities", label: "에너지 · 금", symbols: ["CL=F", "BZ=F", "NG=F", "GC=F"] },
   { id: "crypto", label: "암호화폐", symbols: ["BTC-USD"] },
   { id: "us-equities", label: "미국 지수", symbols: ["^GSPC", "^IXIC"] },
   { id: "asia", label: "아시아 지수", symbols: ["^N225", "^KS11", "^HSI", "000001.SS"] },
