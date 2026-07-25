@@ -38,13 +38,16 @@ export function useReconSatelliteLayer(opts: {
         // 브라우저 HTTP 캐시 + 서버 CDN — 초단위 재요청 금지
         cache: "default",
       });
-      if (!res.ok) throw new Error(`satellites HTTP ${res.status}`);
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => null)) as {
         satellites?: ReconTleSatellite[];
         fetchedAt?: string;
         error?: string;
-      };
+      } | null;
       if (ctrl.signal.aborted) return;
+      if (!res.ok) {
+        throw new Error(payload?.error ?? `satellites HTTP ${res.status}`);
+      }
+      if (!payload) throw new Error("satellites 응답 파싱 실패");
       setTle(payload.satellites ?? []);
       setFetchedAt(payload.fetchedAt ?? new Date().toISOString());
       setStatus("ok");

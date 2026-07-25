@@ -310,8 +310,8 @@ export function MethodologySourcesPanel({
             </h3>
             <p className="mt-2 text-[12px] leading-5 text-sky-100/80">
               {isEn
-                ? "Orbital elements: CelesTrak (T.S. Kelso). Military + active GP TLEs are filtered by public recon-family name patterns; positions are SGP4-propagated in the browser. Horizon rings are theoretical footprints — not imaging tasking."
-                : "궤도요소: CelesTrak (T.S. Kelso). military·active GP TLE를 공개 정찰 계열 이름 패턴으로만 걸러 쓰고, 위치는 브라우저 SGP4로 계산합니다. 가시권 원은 이론상 지평선일 뿐 촬영 영역이 아닙니다."}
+                ? "Orbital elements: CelesTrak (T.S. Kelso). GP TLEs from the military and earth-resources groups plus recon-family name queries, filtered by public recon-family patterns; navigation, comms and early-warning series are excluded, as are debris and TLEs older than 45 days. Positions are SGP4-propagated in the browser. Horizon rings are theoretical footprints — not imaging tasking."
+                : "궤도요소: CelesTrak (T.S. Kelso). military·resource 그룹과 정찰 계열 이름 질의로 받은 GP TLE를 공개 정찰 계열 패턴으로 걸러 쓰며, 항법·통신·조기경보 계열과 파편, 45일 지난 TLE는 제외합니다. 위치는 브라우저 SGP4로 계산합니다. 가시권 원은 이론상 지평선일 뿐 촬영 영역이 아닙니다."}
             </p>
             <p className="mt-2 text-[11px] leading-5 text-sky-100/65">
               API:{" "}

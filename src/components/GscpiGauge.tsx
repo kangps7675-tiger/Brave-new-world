@@ -24,7 +24,19 @@ type GscpiGaugeProps = {
  */
 export function GscpiGauge({ reading, lang, compact = false, className = "" }: GscpiGaugeProps) {
   const en = lang === "en";
-  if (!reading) return null;
+  // 데이터 로딩 전에도 칩 자리를 지킨다 (조용히 사라지면 지표가 없는 것처럼 보임)
+  if (!reading) {
+    if (!compact) return null;
+    return (
+      <div
+        className={`inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-[#0a1f18]/85 px-2.5 py-1 text-[11px] font-medium text-emerald-100/70 ${className}`}
+        title={gscpiDisclaimer(lang)}
+      >
+        <span className="opacity-80">{en ? "Shipping congestion" : "물류 혼잡도"}</span>
+        <span className="tabular-nums opacity-60">{en ? "loading…" : "불러오는 중…"}</span>
+      </div>
+    );
+  }
 
   const color = gscpiLevelColor(reading.level);
   const score = gscpiScore100(reading.value);

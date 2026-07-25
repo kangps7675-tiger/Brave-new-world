@@ -1081,9 +1081,9 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 이미지 있으면 soft 가산(필수는 아님 — 폴백 썸네일)
+  // 등불은 대형 컬러 사진 데스크 — 사진 있는 기사를 강하게 끌어올림(필수는 아님)
   const imageBonus =
-    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -6 : 0;
+    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -34 : 0;
   // 초크는 유지하되 투자 부스트보다 약하게 (chokepointScoreBonus 결과 축소)
   const chokeRaw = chokepointScoreBonus(blob, "economy");
   const chokeBonus = chokeRaw < 0 ? Math.max(chokeRaw, -12) : chokeRaw;
@@ -1786,8 +1786,9 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
+  // 대형 사진 데스크 — 사진 기사 우선 (지경학과 동일 강도)
   const imageBonus =
-    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -6 : 0;
+    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -34 : 0;
   // Tier3 단독·짧은 본문은 가혹하게
   const tier3Thin =
     item.trustTier === 3 && clusterSize < 2 && summaryLen < 300 ? 35 : 0;

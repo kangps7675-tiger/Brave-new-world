@@ -38,6 +38,7 @@ export function useLayerPrefsController(
   const [applyGeneration, setApplyGeneration] = useState(0);
 
   const draftRef = useRef<LayerPrefs>(DEFAULT_LAYER_PREFS);
+  const committedRef = useRef<LayerPrefs>(DEFAULT_LAYER_PREFS);
   const lastToggleAtRef = useRef(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const immediateUntilRef = useRef(0);
@@ -67,6 +68,7 @@ export function useLayerPrefsController(
       startTransition(() => {
         setLayerPrefs(clamped);
         setDraftPrefs(clamped);
+        committedRef.current = clamped;
         // deferred(패널 체크)에서는 generation 강제 재계산을 건너뛰어 순간 정지를 줄임
         if (intent === "immediate") {
           setApplyGeneration((n) => n + 1);
@@ -91,6 +93,7 @@ export function useLayerPrefsController(
     const ultra = ultraLiteRef?.current ?? false;
     const clamped = clampPrefsToActiveCap(loaded, ultra);
     draftRef.current = clamped;
+    committedRef.current = clamped;
     setLayerPrefs(clamped);
     setDraftPrefs(clamped);
     return () => clearDebounce();
@@ -185,6 +188,7 @@ export function useLayerPrefsController(
   /**
    * 레이어 패널 체크용 — 지도에는 곧 반영하되 immediate 우회·동기 재계산을 피함.
    * 연속 토글은 BATCH_DEBOUNCE_MS로 합쳐서 한 번만 flush.
+   * deferMapApplyRef가 true면 지도에 안 올리고 draft만 갱신 (확인 바에서 적용).
    */
   const patchLayerPrefsSoft = useCallback(
     (patch: Partial<LayerPrefs>) => {
@@ -194,6 +198,10 @@ export function useLayerPrefsController(
       draftRef.current = next;
       lastToggleAtRef.current = Date.now();
       setDraftPrefs(next);
+
+      if (deferMapApplyRef?.current) {
+        return;
+      }
 
       const onlyInstant =
         Object.keys(patch).length > 0 &&
@@ -206,8 +214,29 @@ export function useLayerPrefsController(
       }
       scheduleBatchFlush();
     },
-    [clearDebounce, flushPrefs, scheduleBatchFlush, ultraLiteRef],
+    [clearDebounce, deferMapApplyRef, flushPrefs, scheduleBatchFlush, ultraLiteRef],
   );
+
+  /** 패널 체크만 초안 — 지도/저장은 건드리지 않음 */
+  const patchDraftOnly = useCallback(
+    (patch: Partial<LayerPrefs>) => {
+      const ultra = ultraLiteRef?.current ?? false;
+      let next = { ...draftRef.current, ...patch };
+      next = clampPrefsToActiveCap(next, ultra);
+      draftRef.current = next;
+      setDraftPrefs(next);
+    },
+    [ultraLiteRef],
+  );
+
+  /** 미적용 draft를 현재 지도(committed)로 되돌림 */
+  const discardDraftPrefs = useCallback(() => {
+    clearDebounce();
+    setBatchPending(false);
+    const committed = committedRef.current;
+    draftRef.current = committed;
+    setDraftPrefs(committed);
+  }, [clearDebounce]);
 
   return {
     layerPrefs,
@@ -216,6 +245,8 @@ export function useLayerPrefsController(
     toggleCategoryPrefs,
     applyLayerPrefs,
     patchLayerPrefsSoft,
+    patchDraftOnly,
+    discardDraftPrefs,
     flushPendingPrefs,
     batchPending,
     applyGeneration,

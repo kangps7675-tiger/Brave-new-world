@@ -223,6 +223,8 @@ export type UseLayerPanelCategoriesArgs = {
   showReconSatellites: boolean;
   setShowReconSatellites: (v: boolean) => void;
   reconSatCount: number;
+  reconSatStatus?: "idle" | "loading" | "ok" | "error";
+  reconSatError?: string | null;
   showGpsInterference: boolean;
   setShowGpsInterference: (v: boolean) => void;
   gpsJamCellCount: number;
@@ -444,6 +446,8 @@ export function useLayerPanelCategories({
   showReconSatellites,
   setShowReconSatellites,
   reconSatCount,
+  reconSatStatus = "idle",
+  reconSatError = null,
   showGpsInterference,
   setShowGpsInterference,
   gpsJamCellCount,
@@ -1453,8 +1457,14 @@ export function useLayerPanelCategories({
                   id: "recon-satellites",
                   label: "정찰위성",
                   detail: showReconSatellites
-                    ? `${reconSatCount.toLocaleString()}기 · 전역 시야에서만 표시`
-                    : "꺼짐 · 전역 시야(고고도) 전용",
+                    ? reconSatStatus === "loading"
+                      ? "TLE 불러오는 중…"
+                      : reconSatStatus === "error"
+                        ? `TLE 로드 실패${reconSatError ? ` · ${reconSatError}` : ""}`
+                        : reconSatCount > 0
+                          ? `${reconSatCount.toLocaleString()}기 · SGP4 실시간`
+                          : "CelesTrak 응답 없음 · 잠시 후 재시도"
+                    : "꺼짐 · 공개 TLE 기반 위치",
                   checked: layerPrefs.showReconSatellites,
                   onChange: setShowReconSatellites,
                   accent: "violet" as const,
@@ -1502,7 +1512,12 @@ export function useLayerPanelCategories({
             showMilitaryBases: enabled,
             showMilitaryActivity: enabled,
             showIntelHotspots: enabled,
-            ...(isEconomyViewer ? {} : { showReconSatellites: enabled }),
+            ...(isEconomyViewer
+              ? {}
+              : {
+                  showReconSatellites: enabled,
+                  showGpsInterference: enabled,
+                }),
             showRefugeeCamps: enabled,
           }),
       },
@@ -1669,6 +1684,8 @@ export function useLayerPanelCategories({
   }, [
     layerPanelActive,
     layerPanelReady,
+    // 모드가 바뀌면 군사·안보 항목(정찰위성·GPS 재밍) 구성이 달라짐 — 반드시 재계산
+    isEconomyViewer,
     lpg(layerPanelGdeltCounts.alliance, 0),
     lpg(layerPanelGdeltCounts.diplomatic, 0),
     lpg(layerPanelGdeltCounts.protest, 0),
@@ -1761,7 +1778,11 @@ export function useLayerPanelCategories({
     lpg(showShippingLanes, false),
     lpg(showSpaceLaunches, false),
     lpg(showReconSatellites, false),
+    lpg(reconSatCount, 0),
+    lpg(reconSatStatus, "idle"),
+    lpg(reconSatError, null),
     lpg(showGpsInterference, false),
+    lpg(gpsJamStatus, "idle"),
     lpg(gpsJamCellCount, 0),
     lpg(gpsJamDate, null),
     lpg(showSubmarineCables, false),

@@ -8,6 +8,7 @@ import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { NewsPerspectivesPanel } from "@/components/NewsPerspectivesPanel";
 import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
 import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
+import { GlobeSpinToggle } from "@/components/GlobeSpinToggle";
 import { type DailyPrompt } from "@/lib/dailyPrompt";
 import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
@@ -178,6 +179,7 @@ import {
   type UkraineGdeltNeonMarker,
 } from "@/lib/ukraineGdeltNeonMarker";
 import { createNeonRippleIncidentBadge } from "@/lib/neonRippleIncidentMarker";
+import { deconflictTheaterHtmlOverlays } from "@/lib/htmlOverlayDeconflict";
 import { buildNewsStreamMapTags } from "@/lib/news/newsStreamMapTags";
 import { buildTelegramMapDots } from "@/lib/telegramMapMarkers";
 import { buildUcdpCasualtyMarkers } from "@/lib/ucdpCasualtyMarkers";
@@ -297,6 +299,7 @@ import {
   viewerModeFromPackages,
   type MergedViewConfig,
   type ViewPackageId,
+  type ViewPackageUi,
   type ViewTheaterChoice,
   type ViewerMode,
 } from "@/lib/viewPackages";
@@ -755,6 +758,7 @@ export function GlobeDashboard({
   const [data, setData] = useState<AppData>(emptyData);
   const [showLeftPanel, setShowLeftPanel] = useState(false);
   const [layerDropdownOpen, setLayerDropdownOpen] = useState(false);
+  const [layerPanelDirty, setLayerPanelDirty] = useState(false);
   const deferLayerMapApplyRef = useRef(false);
   const panelDraftPatchRef = useRef<Partial<LayerPrefs>>({});
   const categorySnapshotRef = useRef<LayerCategory[] | null>(null);
@@ -767,10 +771,15 @@ export function GlobeDashboard({
   useEffect(() => {
     if (showLeftPanel && !prevShowLeftPanelRef.current) {
       layerPanelSessionRef.current += 1;
+      setLayerPanelDirty(false);
+      panelDraftPatchRef.current = {};
     }
     prevShowLeftPanelRef.current = showLeftPanel;
-    // 패널이 열려 있어도 체크는 지도에 반영 — draft-only defer 끄기
-    deferLayerMapApplyRef.current = false;
+    // 패널이 열려 있을 때는 체크 → draft만 (상단 확인 바에서 적용)
+    deferLayerMapApplyRef.current = showLeftPanel;
+    if (!showLeftPanel) {
+      setLayerPanelDirty(false);
+    }
   }, [showLeftPanel]);
 
   useEffect(() => {
@@ -787,7 +796,15 @@ export function GlobeDashboard({
     if (theater && theater !== "auto") return theater;
     return "all";
   });
-  const [viewUi, setViewUi] = useState(() => initialViewConfig?.ui ?? { showTicker: true, defaultIntelTab: "news" as const, autoOpenIntelSheet: false, openLayerPanel: false });
+  const [viewUi, setViewUi] = useState<ViewPackageUi>(() => ({
+    ...(initialViewConfig?.ui ?? {
+      showTicker: true,
+      defaultIntelTab: "news" as const,
+      openLayerPanel: false,
+    }),
+    // 뉴스 시트는 지구본을 가리므로 첫 진입 시 항상 닫아 둔다.
+    autoOpenIntelSheet: false,
+  }));
   const [viewTheater, setViewTheater] = useState<ViewTheaterChoice>(
     () => initialViewConfig?.theater ?? "auto",
   );
@@ -893,6 +910,9 @@ export function GlobeDashboard({
     null,
   );
   const [globeReady, setGlobeReady] = useState(false);
+  /** 은은한 지구 자전 — 기본 ON, 정지 버튼으로 끔 */
+  const [globeSpinEnabled, setGlobeSpinEnabled] = useState(true);
+  const globeSpinEnabledRef = useRef(true);
   const [showIntroHint, setShowIntroHint] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   /** 양피지 나오기 전 — 반투명 로딩으로 “곧 뜬다” 암시 */
@@ -1040,7 +1060,8 @@ export function GlobeDashboard({
     toggleCategoryPrefs,
     applyLayerPrefs,
     patchLayerPrefsSoft,
-    flushPendingPrefs,
+    patchDraftOnly,
+    discardDraftPrefs,
     batchPending,
     applyGeneration,
     immediateUntilRef,
@@ -1253,10 +1274,11 @@ export function GlobeDashboard({
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === "boolean") trackLayerToggle(key, value);
       }
-      // 체크는 켜지되, soft batch로 지구본 멈춤(immediate 전체 재계산)을 피함
-      patchLayerPrefsSoft(patch);
+      // 패널 안에서는 draft만 — 지도 반영은 상단 「설정」에서
+      patchDraftOnly(patch);
+      setLayerPanelDirty(true);
     },
-    [patchLayerPrefsSoft],
+    [patchDraftOnly],
   );
 
   const handlePanelLangDraft = useCallback(
@@ -1265,10 +1287,32 @@ export function GlobeDashboard({
         ...panelDraftPatchRef.current,
         labelLanguage: lang,
       };
-      patchLayerPrefsSoft({ labelLanguage: lang });
+      patchDraftOnly({ labelLanguage: lang });
+      setLayerPanelDirty(true);
     },
-    [patchLayerPrefsSoft],
+    [patchDraftOnly],
   );
+
+  const confirmLayerPanelDraft = useCallback(() => {
+    deferLayerMapApplyRef.current = false;
+    applyLayerPrefs(draftPrefs);
+    panelDraftPatchRef.current = {};
+    setLayerPanelDirty(false);
+    // 패널이 열려 있으면 다시 defer — 추가 체크는 또 확인 필요
+    if (showLeftPanel) {
+      deferLayerMapApplyRef.current = true;
+    }
+  }, [applyLayerPrefs, draftPrefs, showLeftPanel]);
+
+  const cancelLayerPanelDraft = useCallback(() => {
+    discardDraftPrefs();
+    panelDraftPatchRef.current = {};
+    setLayerPanelDirty(false);
+    layerPanelSessionRef.current += 1;
+    // frozen 카테고리 체크 UI를 커밋 상태로 다시 맞춤
+    categorySnapshotRef.current = null;
+    setFrozenPanelCategories(null);
+  }, [discardDraftPrefs]);
 
   const {
     showWarZones,
@@ -1865,11 +1909,11 @@ export function GlobeDashboard({
   const {
     satellites: reconSatelliteMarkers,
     tleCount: reconTleCount,
+    status: reconSatStatus,
+    error: reconSatError,
   } = useReconSatelliteLayer({
-    enabled:
-      showReconSatellites &&
-      !isEconomyViewer &&
-      layerAltitude >= 1.35,
+    // 전역 시야 전용 게이트를 풀었다 — 줌인 상태에서도 filterCenter 컬링으로만 줄인다
+    enabled: showReconSatellites && !isEconomyViewer,
     filterCenter,
     keepMarkerId: selectedReconMarkerId,
   });
@@ -3825,7 +3869,8 @@ export function GlobeDashboard({
       ...koreaMissileIncidentMarkers,
       ...reconSatelliteMarkers,
     ];
-    return markers;
+    // MapLibre는 htmlAltitude 미지원 — 사망자·콜아웃·뉴스네온이 한 좌표에 묶이지 않게 분리
+    return deconflictTheaterHtmlOverlays(markers);
   }, [
       aisHtmlMarkers,
       airportPortHtmlMarkers,
@@ -5629,6 +5674,8 @@ export function GlobeDashboard({
     showReconSatellites,
     setShowReconSatellites,
     reconSatCount: reconSatelliteMarkers.length || reconTleCount,
+    reconSatStatus,
+    reconSatError,
     showGpsInterference,
     setShowGpsInterference,
     gpsJamCellCount: gpsJamPolygons.length,
@@ -5660,14 +5707,6 @@ export function GlobeDashboard({
   });
 
 
-  const applyPanelDraft = useCallback(() => {
-    // soft batch가 대기 중이면 한 번만 flush (immediate 전체 재적용 금지)
-    flushPendingPrefs();
-    panelDraftPatchRef.current = {};
-    categorySnapshotRef.current = null;
-    setFrozenPanelCategories(null);
-  }, [flushPendingPrefs]);
-
   useEffect(() => {
     categorySnapshotRef.current = null;
     setFrozenPanelCategories(null);
@@ -5692,19 +5731,27 @@ export function GlobeDashboard({
 
   const dismissLayerPanel = useCallback(
     (closePanel = true) => {
+      // 미적용 체크는 버리고 닫기 (「설정」을 누른 것만 지도에 남음)
+      if (layerPanelDirty) {
+        discardDraftPrefs();
+        panelDraftPatchRef.current = {};
+        setLayerPanelDirty(false);
+      }
       deferLayerMapApplyRef.current = false;
-      // 패널을 먼저 내려 UI가 막히지 않게 함 — draft flush는 그 다음 프레임
       if (closePanel) {
         setShowLeftPanel(false);
       }
-      const flush = () => applyPanelDraft();
+      const flush = () => {
+        categorySnapshotRef.current = null;
+        setFrozenPanelCategories(null);
+      };
       if (closePanel && typeof window !== "undefined") {
         window.requestAnimationFrame(flush);
       } else {
         flush();
       }
     },
-    [applyPanelDraft],
+    [discardDraftPrefs, layerPanelDirty],
   );
 
   const toggleLeftPanel = useCallback(() => {
@@ -5735,6 +5782,10 @@ export function GlobeDashboard({
     panelDraftPatchRef.current = {};
     deferLayerMapApplyRef.current = false;
     applyLayerPrefs(next);
+    setLayerPanelDirty(false);
+    if (showLeftPanel) {
+      deferLayerMapApplyRef.current = true;
+    }
 
     const base = categorySnapshotRef.current ?? frozenPanelCategories;
     if (base) {
@@ -5750,7 +5801,7 @@ export function GlobeDashboard({
       setFrozenPanelCategories(updated);
     }
     layerPanelSessionRef.current += 1;
-  }, [applyLayerPrefs, frozenPanelCategories, layerPrefs.labelLanguage]);
+  }, [applyLayerPrefs, frozenPanelCategories, layerPrefs.labelLanguage, showLeftPanel]);
 
   function configureGlobe() {
     if (configuredGlobe.current) return;
@@ -5774,8 +5825,8 @@ export function GlobeDashboard({
     controls.dampingFactor = 0.08;
     controls.minDistance = globeDistanceForAltitude(MIN_GLOBE_ALTITUDE);
     controls.maxDistance = 720;
-    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.18;
+    controls.autoRotate = globeSpinEnabledRef.current;
 
     const syncViewState = () => {
       if (moveIdleTimerRef.current != null) {
@@ -5888,6 +5939,10 @@ export function GlobeDashboard({
       if (!pov) {
         isCameraMovingRef.current = false;
         setIsCameraMoving(false);
+        if (globeSpinEnabledRef.current) {
+          const c = globeRef.current?.controls();
+          if (c) c.autoRotate = true;
+        }
         return;
       }
       const nextAlt = clampGlobeAltitude(pov.altitude);
@@ -5906,6 +5961,10 @@ export function GlobeDashboard({
         if (cameraIdleClearBlocked(Date.now(), cameraTweenUntilRef.current)) return;
         isCameraMovingRef.current = false;
         setIsCameraMoving(false);
+        if (globeSpinEnabledRef.current) {
+          const c = globeRef.current?.controls();
+          if (c) c.autoRotate = true;
+        }
       }, CAMERA_IDLE_DEBOUNCE_MS);
     }, busyMs);
   },
@@ -6049,6 +6108,7 @@ export function GlobeDashboard({
       controls.enableZoom = true;
       controls.enablePan = !historyEpisodeActive;
       controls.enableRotate = !historyEpisodeActive;
+      controls.autoRotate = false;
       const pov = globe.pointOfView();
       if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE) {
         globe.pointOfView(
@@ -6061,8 +6121,25 @@ export function GlobeDashboard({
       controls.enableZoom = true;
       controls.enablePan = true;
       controls.enableRotate = true;
+      controls.autoRotate = globeSpinEnabled;
     }
-  }, [globeReady, historyEpisodeActive, historyImmersionActive]);
+  }, [globeReady, globeSpinEnabled, historyEpisodeActive, historyImmersionActive]);
+
+  useEffect(() => {
+    globeSpinEnabledRef.current = globeSpinEnabled;
+  }, [globeSpinEnabled]);
+
+  /** 자전 중에도 뷰포트 필터가 너무 오래 굳지 않게 가끔 중심만 동기화 */
+  useEffect(() => {
+    if (!globeReady || !globeSpinEnabled) return;
+    const id = window.setInterval(() => {
+      const pov = globeRef.current?.pointOfView();
+      if (!pov) return;
+      layerCenterRef.current = { lat: pov.lat, lng: pov.lng };
+      setFilterCenter({ lat: pov.lat, lng: pov.lng });
+    }, 2800);
+    return () => window.clearInterval(id);
+  }, [globeReady, globeSpinEnabled]);
 
   function openIntelSheet(options?: {
     theater?: IntelTheaterFilter;
@@ -6395,7 +6472,7 @@ export function GlobeDashboard({
     // 모드·패키지는 동기 적용 — startTransition에 넣으면 entryGate가 먼저 풀리며
     // 한 프레임(또는 더 길게) 지정학으로 남아 등불·전장 이펙트가 잘못 점화됨.
     applyLayerPrefs(merged.layers);
-    setViewUi(merged.ui);
+    setViewUi({ ...merged.ui, autoOpenIntelSheet: false });
     setViewTheater(theater);
     setViewEconomyHub(economyHub);
     setViewPackages(packages.filter((id) => id !== "custom"));
@@ -6409,12 +6486,6 @@ export function GlobeDashboard({
     startTransition(() => {
       if (merged.ui.openLayerPanel && !isCompactUi) {
         setShowLeftPanel(true);
-      }
-      if (merged.ui.autoOpenIntelSheet) {
-        openIntelSheet({
-          theater: theater !== "auto" ? theater : "all",
-          tab: merged.ui.defaultIntelTab,
-        });
       }
     });
   }
@@ -8102,6 +8173,21 @@ export function GlobeDashboard({
           showGscpi={showGscpiGauge}
         />
       ) : null}
+      {entryGate === null && !showModePicker && !intelSheetOpen ? (
+        <div
+          className="pointer-events-none fixed left-3 z-[70] sm:left-4"
+          style={{
+            bottom:
+              "calc(var(--bottom-intel-stack-clearance, 3.25rem) + 0.85rem + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <GlobeSpinToggle
+            spinning={globeSpinEnabled}
+            onToggle={() => setGlobeSpinEnabled((v) => !v)}
+            lang={labelLanguage}
+          />
+        </div>
+      ) : null}
       <HoverNav
         viewerMode={viewerMode}
         onNavigate={handleNavNavigate}
@@ -8273,7 +8359,9 @@ export function GlobeDashboard({
           className="globe-shell relative h-full w-full overflow-hidden"
           style={{
             backgroundColor: globeTextures.backgroundColor,
-            transform: isCompactUi ? undefined : "translateY(var(--hover-nav-height, 0px))",
+            transform: isCompactUi
+              ? undefined
+              : "translateY(var(--hover-nav-base-height, 0px))",
             transition: isCompactUi ? undefined : "transform 180ms ease",
           }}
         >
@@ -8650,6 +8738,18 @@ export function GlobeDashboard({
                   el.style.transform = isVisible
                     ? "translate(-50%, -100%) scale(1)"
                     : "translate(-50%, -100%) scale(0.86)";
+                  return;
+                }
+                if (el.classList.contains("situation-callout") || el.classList.contains("ua-callout")) {
+                  el.style.transform = isVisible
+                    ? "translate(-50%, -100%) scale(1)"
+                    : "translate(-50%, -100%) scale(0.86)";
+                  return;
+                }
+                if (el.classList.contains("neon-ripple-incident-marker")) {
+                  el.style.transform = isVisible
+                    ? "translate(-50%, -50%) scale(1)"
+                    : "translate(-50%, -50%) scale(0.86)";
                   return;
                 }
                 if (el.classList.contains("friction-episode-pin") || el.classList.contains("friction-stage-callout")) {
@@ -9201,8 +9301,6 @@ export function GlobeDashboard({
               aria-hidden={!stackVisible}
             >
               <IntelCompactBar
-                deployedCarrierCount={deployedCarrierCount}
-                showAllCarriers={showUsCarriers}
                 showTicker={viewUi.showTicker}
                 viewerMode={viewerMode}
                 pauseUpdates={isCameraMoving}
@@ -9274,7 +9372,7 @@ export function GlobeDashboard({
           gdeltErrorMessage={gdeltError}
           onGdeltSelect={handleGdeltAlertSelect}
           initialIntelTab={viewUi.defaultIntelTab}
-          autoOpenOnMount={!viewUi.autoEnterTheaterNavId && viewUi.autoOpenIntelSheet}
+          autoOpenOnMount={false}
           onOpenTrust={() => setShowTrustPanel(true)}
         />
 
@@ -9450,6 +9548,36 @@ export function GlobeDashboard({
               : "top-14 max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),384px)]"
           }`}
         >
+        {layerPanelDirty ? (
+          <div
+            role="dialog"
+            aria-label={t("layerApplyConfirm", labelLanguage)}
+            className="sticky top-0 z-20 -mx-1 mb-1 rounded-xl border border-sky-300/40 bg-[#0a1830]/96 px-3 py-2.5 shadow-lg backdrop-blur-md"
+          >
+            <p className="text-[13px] font-semibold text-sky-50">
+              {t("layerApplyConfirm", labelLanguage)}
+            </p>
+            <p className="mt-0.5 text-[11px] text-sky-100/65">
+              {t("layerApplyConfirmHint", labelLanguage)}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={confirmLayerPanelDraft}
+                className="rounded-lg border border-sky-300/50 bg-sky-500/25 px-3 py-1.5 text-[12px] font-semibold text-sky-50 hover:bg-sky-500/40"
+              >
+                {t("layerApplyConfirmYes", labelLanguage)}
+              </button>
+              <button
+                type="button"
+                onClick={cancelLayerPanelDraft}
+                className="rounded-lg border border-white/15 bg-transparent px-3 py-1.5 text-[12px] text-slate-200 hover:border-white/30 hover:text-white"
+              >
+                {t("cancel", labelLanguage)}
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.32em] text-sky-200/70">
@@ -9527,7 +9655,7 @@ export function GlobeDashboard({
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
             {t("layers", labelLanguage)}
           </p>
-          <p className="mt-1 text-[11px] text-slate-600">켜진 레이어가 있는 주제는 자동으로 펼쳐집니다 · 체크하면 바로 지도에 반영됩니다</p>
+          <p className="mt-1 text-[11px] text-slate-600">{t("layerDraftHint", labelLanguage)}</p>
           <div className="mt-3 text-sm">
             {frozenPanelCategories ? (
             <LayerCategoryDraftHost
@@ -9535,7 +9663,11 @@ export function GlobeDashboard({
               categories={frozenPanelCategories}
               ultraLite={ultraLite}
               batchStatus={
-                batchPending ? "레이어 일괄 적용 중… 잠시 후 지구본에 반영됩니다." : null
+                layerPanelDirty
+                  ? t("layerApplyConfirmHint", labelLanguage)
+                  : batchPending
+                    ? "레이어 일괄 적용 중… 잠시 후 지구본에 반영됩니다."
+                    : null
               }
               autoExpandCategoryId={isEconomyViewer ? "energy" : "conflict"}
               autoExpandWhen={showUkraineControl}
@@ -9680,7 +9812,7 @@ export function GlobeDashboard({
             className="absolute inset-0 z-20 bg-black/20 lg:bg-black/10"
             onClick={() => setSelected(null)}
           />
-          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-30 h-full overflow-y-auto border-l border-slate-800/80 p-4 shadow-2xl">
+          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-30 flex h-full flex-col overflow-y-auto border-l border-slate-800/80 p-4 shadow-2xl">
             {selected.kind === "neptun-threat" ? (
               <NeptunThreatDetailPanel
                 threat={selected.item}
@@ -9693,11 +9825,12 @@ export function GlobeDashboard({
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="mb-3 text-xs text-amber-200/80 transition hover:text-amber-100"
+                className="mb-3 shrink-0 text-xs text-amber-200/80 transition hover:text-amber-100"
               >
                 ← {regionNavSelection.label} 뉴스 목록
               </button>
             )}
+            <div className="flex min-h-0 flex-1 flex-col">
             <AnalysisPanel
               selection={selected}
               onClose={() => setSelected(null)}
@@ -9709,6 +9842,7 @@ export function GlobeDashboard({
               ukmtoIncidents={ukmtoIncidents}
               aisByChokeId={portWatchByChokeId}
             />
+            </div>
               </>
             )}
           </aside>

@@ -63,7 +63,8 @@ const RULES: Rule[] = [
     cls: { country: "russia", sensor: "optical", familyKo: "페르소나·바르스-M — 러시아 광학 정찰", familyEn: "Persona / Bars-M — Russian optical recon" },
   },
   {
-    test: /\b(kosmos|cosmos)\b/i,
+    // 2400번대 이후만 — 그 이전 코스모스는 대부분 퇴역·비정찰 위성이라 오탐이 된다
+    test: /\b(kosmos|cosmos)[- ]?(2[4-9]\d\d|[3-9]\d{3,})\b/i,
     cls: { country: "russia", sensor: "unknown", familyKo: "코스모스 — 러시아 군용 다목적(정찰 포함)", familyEn: "Kosmos — Russian military multi-purpose (incl. recon)" },
   },
   // 미국 — USA 지정(군사, 명칭 비공개 다수), NROL, KH/Keyhole 계열
@@ -150,11 +151,47 @@ RULES[RULES.length - 1] = {
 };
 
 /**
+ * 정찰이 아님이 공개적으로 분명한 계열 — 항법·통신·조기경보·기상.
+ * "USA nnn" 병기 이름(예: `NAVSTAR 43 (USA 132)`)이 많아서, 규칙보다 먼저 걸러야
+ * GPS·통신위성이 정찰위성으로 표시되는 오탐을 막을 수 있다.
+ */
+const NON_RECON = new RegExp(
+  [
+    "navstar",
+    "\\bgps\\b",
+    "milstar",
+    "dscs",
+    "\\bwgs\\b",
+    "\\bufo\\b",
+    "fltsatcom",
+    "sbirs",
+    "\\bdsp\\b",
+    "aehf",
+    "muos",
+    "tdrs",
+    "glonass",
+    "\\betalon\\b",
+    "meteor",
+    "\\bgonets\\b",
+    "\\bstrela\\b",
+    "\\bparus\\b",
+    "\\braduga\\b",
+    "\\bgorizont\\b",
+    "\\bmolniya\\b",
+    "\\bekran\\b",
+    "\\bluch\\b",
+    "\\bblagovest\\b",
+  ].join("|"),
+  "i",
+);
+
+/**
  * 위성 이름을 정찰 계열로 분류. 알려진 계열이 아니면 null(=지도에 안 올림).
  * 정찰로 "추정"되는 것만 반환하며, 실제 임무는 기밀일 수 있음.
  */
 export function classifyReconSatellite(name: string | undefined | null): ReconSatelliteClass | null {
   if (!name) return null;
+  if (NON_RECON.test(name)) return null;
   for (const rule of RULES) {
     if (rule.test.test(name)) return rule.cls;
   }

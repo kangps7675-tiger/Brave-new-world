@@ -19,6 +19,16 @@ const UI = {
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
   layers: { ko: "레이어", en: "Layers" },
+  layerApplyConfirm: { ko: "설정하시겠습니까?", en: "Apply these layer settings?" },
+  layerApplyConfirmHint: {
+    ko: "체크한 레이어를 지구본에 반영합니다.",
+    en: "Apply checked layers to the globe.",
+  },
+  layerApplyConfirmYes: { ko: "설정", en: "Apply" },
+  layerDraftHint: {
+    ko: "체크 후 상단에서 「설정」을 누르면 지도에 반영됩니다.",
+    en: "Check layers, then tap Apply at the top to update the map.",
+  },
   askLayersButton: { ko: "묻기", en: "Ask" },
   askLayersButtonHint: {
     ko: "질문하면 관련 지도 레이어를 켭니다",
@@ -27,6 +37,8 @@ const UI = {
   backToMap: { ko: "접기", en: "Collapse" },
   closeNewsDock: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
   closeNewsGlobeOnlyAria: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
+  globeSpinPause: { ko: "자전 정지", en: "Pause spin" },
+  globeSpinResume: { ko: "자전 재생", en: "Resume spin" },
   closeTelegramOsint: { ko: "텔레그램 OSINT 닫기", en: "Close Telegram OSINT" },
   closeTelegramOsintHint: {
     ko: "창을 닫으면 레이어 체크박스에서도 꺼집니다.",
