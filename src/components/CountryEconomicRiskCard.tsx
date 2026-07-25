@@ -10,6 +10,9 @@ type Props = {
   lang: LabelLanguage;
 };
 
+type LoadState = "loading" | "ready" | "empty";
+type EmptyReason = "no-iso" | "stub" | "no-data" | "error";
+
 const BAND_ACCENT: Record<CountryEconomicRisk["band"], string> = {
   high: "#f43f5e",
   elevated: "#fb923c",
@@ -81,39 +84,113 @@ function IndicatorRow({ reading, lang }: { reading: WbIndicatorReading; lang: La
   );
 }
 
+function emptyCopy(reason: EmptyReason, ko: boolean): { title: string; body: string } {
+  switch (reason) {
+    case "no-iso":
+      return ko
+        ? {
+            title: "ISO 코드 없음",
+            body: "이 영토에는 ISO A3가 없어 World Bank 지표를 조회할 수 없습니다.",
+          }
+        : {
+            title: "No ISO code",
+            body: "This territory has no ISO A3, so World Bank indicators cannot be loaded.",
+          };
+    case "stub":
+      return ko
+        ? {
+            title: "Stub 모드",
+            body: "개발 stub 모드에서는 World Bank 실데이터를 불러오지 않습니다.",
+          }
+        : {
+            title: "Stub mode",
+            body: "World Bank live data is disabled while API stub mode is on.",
+          };
+    case "error":
+      return ko
+        ? {
+            title: "일시 실패",
+            body: "World Bank 응답을 받지 못했습니다. 잠시 후 다시 눌러 보세요.",
+          }
+        : {
+            title: "Temporary failure",
+            body: "Could not reach World Bank. Try selecting the country again.",
+          };
+    default:
+      return ko
+        ? {
+            title: "데이터 없음",
+            body: "World Bank 공개 지표를 찾지 못했습니다 (미수교·소국·데이터 미제공).",
+          }
+        : {
+            title: "No data",
+            body: "No World Bank indicators available for this country.",
+          };
+  }
+}
+
 export function CountryEconomicRiskCard({ iso3, lang }: Props) {
   const ko = lang !== "en";
   const [data, setData] = useState<CountryEconomicRisk | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "empty">("loading");
+  const [state, setState] = useState<LoadState>("loading");
+  const [emptyReason, setEmptyReason] = useState<EmptyReason>("no-data");
 
   useEffect(() => {
     if (!iso3 || !/^[A-Za-z]{3}$/.test(iso3)) {
+      setData(null);
+      setEmptyReason("no-iso");
       setState("empty");
       return;
     }
     let cancelled = false;
+    setData(null);
     setState("loading");
     void (async () => {
       try {
         const res = await fetch(`/api/world-bank/country?iso=${encodeURIComponent(iso3)}`, {
           headers: { Accept: "application/json" },
         });
-        if (!res.ok || cancelled) {
-          if (!cancelled) setState("empty");
+        if (cancelled) return;
+        if (!res.ok) {
+          setEmptyReason("error");
+          setState("empty");
           return;
         }
-        const payload = (await res.json()) as CountryEconomicRisk & { indicators?: WbIndicatorReading[] };
+        const payload = (await res.json()) as CountryEconomicRisk & {
+          indicators?: WbIndicatorReading[];
+          stub?: boolean;
+          error?: string;
+        };
         if (cancelled) return;
+        if (payload.stub) {
+          setData(payload);
+          setEmptyReason("stub");
+          setState("empty");
+          return;
+        }
+        if (
+          payload.error &&
+          !(Array.isArray(payload.indicators) && payload.indicators.some((r) => r.value != null))
+        ) {
+          setData(payload);
+          setEmptyReason("error");
+          setState("empty");
+          return;
+        }
         const hasAny = Array.isArray(payload.indicators) && payload.indicators.some((r) => r.value != null);
         if (!hasAny) {
           setData(payload);
+          setEmptyReason("no-data");
           setState("empty");
           return;
         }
         setData(payload);
         setState("ready");
       } catch {
-        if (!cancelled) setState("empty");
+        if (!cancelled) {
+          setEmptyReason("error");
+          setState("empty");
+        }
       }
     })();
     return () => {
@@ -121,17 +198,19 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
     };
   }, [iso3]);
 
-  if (state === "empty" && !data?.indicators?.length) {
+  const title = ko ? "경제 위협도" : "Economic threat";
+
+  if (state === "empty") {
+    const copy = emptyCopy(emptyReason, ko);
     return (
       <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-          {ko ? "지국 경제 위험도" : "Economic risk"}
-        </p>
-        <p className="mt-3 text-sm text-slate-500">
-          {ko
-            ? "World Bank 공개 지표를 찾지 못했습니다 (미수교·소국·데이터 미제공)."
-            : "No World Bank indicators available for this country."}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{title}</p>
+          <span className="rounded-full border border-slate-600/60 bg-slate-700/20 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+            {copy.title}
+          </span>
+        </div>
+        <p className="mt-3 text-sm text-slate-500">{copy.body}</p>
         <p className="mt-2 text-[10px] text-slate-600">World Bank Open Data</p>
       </section>
     );
@@ -143,9 +222,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
   return (
     <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-          {ko ? "지국 경제 위험도" : "Economic risk"}
-        </p>
+        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{title}</p>
         <span
           className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
           style={{ color: accent, backgroundColor: `${accent}1f`, border: `1px solid ${accent}55` }}
@@ -167,7 +244,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
               {score ?? "—"}
             </p>
             <p className="pb-1 text-[11px] leading-snug text-slate-500">
-              {ko ? "종합 위험 지수" : "Composite risk"}
+              {ko ? "종합 위협 지수" : "Composite threat"}
               <br />
               {ko ? "0 안정 · 100 위기" : "0 stable · 100 crisis"}
             </p>

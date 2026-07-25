@@ -151,12 +151,13 @@ export function createSituationCalloutBadge(callout: SituationCalloutMarker): HT
   el.style.color = "#e2e8f0";
   el.style.fontSize = "11px";
   el.style.lineHeight = "1.35";
-  el.style.transform = "translate(-50%, -110%)";
+  // Marker.offset이 위로 띄움 — CSS는 앵커만 맞춤 (사망자·네온과 한 덩어리로 안 보이게)
+  el.style.transform = "translate(-50%, -100%)";
   el.style.opacity = "1";
-  el.style.pointerEvents = "auto";
+  el.style.pointerEvents = "none";
   el.style.userSelect = "none";
   el.style.cursor = "default";
-  el.style.zIndex = "5";
+  el.style.zIndex = "4";
   el.style.boxShadow = "0 4px 14px rgba(0,0,0,0.35)";
   el.innerHTML = `<div style="font-weight:700;color:${accent.title};margin-bottom:2px">${escapeHtml(
     callout.title,

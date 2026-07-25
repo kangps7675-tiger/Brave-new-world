@@ -481,6 +481,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const handleMove = useCallback(
     (event: { viewState: { zoom: number; bearing?: number } }) => {
+      // 은은한 자전 jumpTo — 매 프레임 notify하면 isCameraMoving이 풀리지 않음
+      if (methods.controls().isAutoRotateFrame) {
+        mapZoomRef.current = event.viewState.zoom;
+        return;
+      }
+
       mapZoomRef.current = event.viewState.zoom;
       const rawBearing = event.viewState.bearing ?? mapRef.current?.getMap()?.getBearing() ?? 0;
       const quantized =
@@ -501,7 +507,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }, 420);
       notifyChange();
     },
-    [notifyChange, publishZoom],
+    [methods, notifyChange, publishZoom],
   );
 
   useEffect(() => {
@@ -1485,12 +1491,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {htmlElement
           ? htmlElementsData.map((item, index) => {
-              const id =
-                (item as { markerId?: string; id?: string }).markerId ??
-                (item as { id?: string }).id ??
-                index;
+              const displayKind = String(
+                (item as { displayKind?: string }).displayKind ?? "",
+              );
+              // markerId만 키로 씀 — bare `id` 폴백은 종류 간 키 충돌로
+              // 사망자·콜아웃·뉴스 네온이 한 Marker에 묶이는 원인이 됨
+              const markerId = String(
+                (item as { markerId?: string }).markerId ??
+                  `${displayKind || "html"}-${index}`,
+              );
               const enriched =
-                (item as { displayKind?: string }).displayKind === "ais-html"
+                displayKind === "ais-html"
                   ? { ...(item as object), mapBearingDeg }
                   : item;
               const rotation = htmlRotation(enriched);
@@ -1518,16 +1529,27 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   ? String(rotKey)
                   : "0";
               const bearingKey = surface ? String(mapBearingDeg) : "0";
-              const pitchAlignment =
-                (item as { displayKind?: string }).displayKind === "casualty-skull"
-                  ? "map"
-                  : "viewport";
+              // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
+              const pitchAlignment = "viewport" as const;
+              // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
+              // (음수=왼쪽/위). 전장에서 사망자·콜아웃·네온이 겹쳐 묶이지 않게 함.
+              const markerOffset =
+                displayKind === "casualty-skull"
+                  ? ([0, 30] as [number, number])
+                  : displayKind === "situation-callout"
+                    ? ([-12, -42] as [number, number])
+                    : displayKind === "news-stream-neon" ||
+                        displayKind === "ukraine-gdelt-neon" ||
+                        displayKind === "telegram-neon"
+                      ? ([18, 8] as [number, number])
+                      : undefined;
               return (
               <Marker
-                key={`html-marker-${id}-r${rotKey}-b${bearingKey}-h${headingKey}`}
+                key={`html-marker-${markerId}-r${rotKey}-b${bearingKey}-h${headingKey}`}
                 longitude={htmlLng(item)}
                 latitude={htmlLat(item)}
                 anchor="center"
+                offset={markerOffset}
                 rotation={rotation}
                 rotationAlignment={alignment}
                 pitchAlignment={pitchAlignment}
@@ -1537,25 +1559,35 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 <div
                   ref={(node) => {
                     if (!node) return;
-                    // killed/label 등이 바뀌면 DOM을 다시 그려 사망 숫자가 갱신되게 함
+                    // markerId·본문까지 시그에 포함 — 종류별 공통 sig로 DOM이 재사용되며
+                    // 사망자/콜아웃/네온이 한 노드에 섞이던 문제 방지
                     const typed = enriched as {
+                      markerId?: string;
                       displayKind?: string;
                       killed?: number;
                       wounded?: number;
                       warheads?: number;
-                      labelLanguage?: string;
                       killedLabel?: string;
+                      title?: string;
+                      body?: string;
+                      accent?: string;
+                      link?: string;
                       mapBearingDeg?: number;
                       courseOverGround?: number | null;
                       trueHeading?: number | null;
                       militaryKind?: string | null;
                     };
                     const sig = [
-                      typed.displayKind ?? "",
+                      typed.markerId ?? markerId,
+                      typed.displayKind ?? displayKind,
                       typed.killed ?? "",
                       typed.wounded ?? "",
                       typed.warheads ?? "",
                       typed.killedLabel ?? "",
+                      typed.title ?? "",
+                      typed.body ?? "",
+                      typed.accent ?? "",
+                      typed.link ?? "",
                       typed.mapBearingDeg ?? "",
                       typed.courseOverGround ?? "",
                       typed.trueHeading ?? "",

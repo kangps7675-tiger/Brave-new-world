@@ -27,6 +27,8 @@ export type MapGlobeControls = {
   enableZoom: boolean;
   enablePan: boolean;
   enableRotate: boolean;
+  /** 자동 자전 jumpTo가 유발한 move 이벤트인지 (리스너가 무시할 때 사용) */
+  readonly isAutoRotateFrame: boolean;
   addEventListener: (type: "change", listener: () => void) => void;
   removeEventListener: (type: "change", listener: () => void) => void;
 };
@@ -57,6 +59,11 @@ function distanceToAltitude(distance: number): number {
   return clampGlobeAltitude(distance / 100 - 1);
 }
 
+/** OrbitControls 0.18 ≈ 은은한 속도 → 경도 °/초 */
+function degPerSecFromSpeed(speed: number): number {
+  return Math.max(0.15, speed * 4.5);
+}
+
 export function createMapGlobeMethods(
   mapRef: RefObject<MapRef | null>,
   changeListenersRef: MutableRefObject<Set<ChangeListener>>,
@@ -72,6 +79,12 @@ export function createMapGlobeMethods(
     enablePan: true,
     enableRotate: true,
   };
+
+  let autoRotateRaf: number | null = null;
+  let lastAutoRotateTs = 0;
+  let inAutoRotateFrame = false;
+  let userPointerDown = false;
+  let interactionBound = false;
 
   const applyInteractionFlags = () => {
     const map = mapRef.current?.getMap();
@@ -121,6 +134,74 @@ export function createMapGlobeMethods(
     map.setMaxZoom(altitudeToMapLibreZoom(minAlt));
   };
 
+  const bindInteractionPause = () => {
+    if (interactionBound) return;
+    const map = mapRef.current?.getMap();
+    const canvas = map?.getCanvas();
+    if (!map || !canvas) return;
+    interactionBound = true;
+
+    const onDown = () => {
+      userPointerDown = true;
+    };
+    const onUp = () => {
+      userPointerDown = false;
+    };
+
+    canvas.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
+    window.addEventListener("pointercancel", onUp, { passive: true });
+    map.on("dragstart", onDown);
+    map.on("dragend", onUp);
+  };
+
+  const stopAutoRotateLoop = () => {
+    if (autoRotateRaf != null) {
+      window.cancelAnimationFrame(autoRotateRaf);
+      autoRotateRaf = null;
+    }
+    lastAutoRotateTs = 0;
+  };
+
+  const ensureAutoRotateLoop = () => {
+    bindInteractionPause();
+    if (autoRotateRaf != null) return;
+
+    const step = (now: number) => {
+      autoRotateRaf = window.requestAnimationFrame(step);
+      if (!controlState.autoRotate) {
+        lastAutoRotateTs = 0;
+        return;
+      }
+      const map = mapRef.current?.getMap();
+      if (!map || userPointerDown) {
+        lastAutoRotateTs = 0;
+        return;
+      }
+
+      const dt = lastAutoRotateTs ? Math.min(0.05, (now - lastAutoRotateTs) / 1000) : 0;
+      lastAutoRotateTs = now;
+      if (dt <= 0) return;
+
+      const c = map.getCenter();
+      let nextLng = c.lng + degPerSecFromSpeed(controlState.autoRotateSpeed) * dt;
+      if (nextLng > 180) nextLng -= 360;
+      if (nextLng < -180) nextLng += 360;
+
+      inAutoRotateFrame = true;
+      try {
+        map.jumpTo({ center: [nextLng, c.lat] });
+      } finally {
+        // react-map-gl onMove가 동기/다음 틱에 올 수 있어 한 프레임 유지
+        window.requestAnimationFrame(() => {
+          inAutoRotateFrame = false;
+        });
+      }
+    };
+
+    autoRotateRaf = window.requestAnimationFrame(step);
+  };
+
   const controlsProxy: MapGlobeControls = {
     get enableDamping() {
       return controlState.enableDamping;
@@ -153,12 +234,17 @@ export function createMapGlobeMethods(
     },
     set autoRotate(v: boolean) {
       controlState.autoRotate = v;
+      if (v) ensureAutoRotateLoop();
+      else stopAutoRotateLoop();
     },
     get autoRotateSpeed() {
       return controlState.autoRotateSpeed;
     },
     set autoRotateSpeed(v: number) {
       controlState.autoRotateSpeed = v;
+    },
+    get isAutoRotateFrame() {
+      return inAutoRotateFrame;
     },
     get enableZoom() {
       return controlState.enableZoom;

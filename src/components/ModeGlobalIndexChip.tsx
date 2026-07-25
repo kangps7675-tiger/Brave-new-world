@@ -37,7 +37,7 @@ export function ModeGlobalIndexChip({
     <div
       className={`pointer-events-auto fixed right-3 z-[80] flex flex-col items-end sm:right-4 ${className}`}
       style={{
-        top: "calc(var(--hover-nav-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)))",
+        top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)))",
       }}
     >
       {isEconomy ? (

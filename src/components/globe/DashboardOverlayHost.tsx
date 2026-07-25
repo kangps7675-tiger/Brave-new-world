@@ -24,6 +24,7 @@ import { ModePickerOverlay } from "@/components/ModePickerOverlay";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
+import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import {
   ChromeOnboardingCoach,
@@ -660,9 +661,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 />
               ) : null}
               <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+                {entryGate === null && !showModePicker ? (
+                  <ParchmentProTipChip lang={labelLanguage} />
+                ) : null}
                 <UtilityChromeMenu
                   lang={labelLanguage}
-                  showProTip={entryGate === null && !showModePicker}
+                  showProTip={false}
                   getCanvas={() => globeRef.current?.renderer().domElement ?? null}
                   getScene={getSceneForShare}
                   onTrust={() => onSetShowTrustPanel(true)}

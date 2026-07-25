@@ -21,7 +21,6 @@ import {
 } from "@/lib/interest/applyFromInterest";
 import { LivingTaiwanFollowChip } from "@/components/LivingConflictPanel";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
-import { MapLegend } from "@/components/MapLegend";
 import { HoverHint } from "@/components/HoverHint";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard";
@@ -432,14 +431,12 @@ export function NewsStreamProvider({
 }
 
 type IntelCompactBarProps = {
-  deployedCarrierCount?: number;
-  showAllCarriers?: boolean;
   showTicker?: boolean;
   viewerMode?: ViewerMode;
   /** 카메라 tween/드래그 중 티커 폴링·스크롤 일시정지 */
   pauseUpdates?: boolean;
   /**
-   * 모바일 우크라 전선 등 — 티커·범례·투데이칩을 숨기고 📰/📈 FAB만 유지.
+   * 모바일 우크라 전선 등 — 티커·투데이칩을 숨기고 📰/📈 FAB만 유지.
    * 전선 지도 가독성을 지키면서 Intel 시트 진입 경로를 남긴다.
    */
   fabOnly?: boolean;
@@ -610,8 +607,6 @@ function HeroHeadlineBanner({
 }
 
 export function DynamicIntelStack({
-  deployedCarrierCount = 0,
-  showAllCarriers = false,
   showTicker = true,
   viewerMode = "conflict",
   pauseUpdates = false,
@@ -705,7 +700,6 @@ export function DynamicIntelStack({
     };
   }, [fabOnly, mode, viewerMode, todayBriefing, isAlert, dockCollapsed]);
 
-  const showLegend = !fabOnly && !dockCollapsed;
   const showCompactTicker = !fabOnly && !dockCollapsed && (viewerMode === "economy" || showTicker);
   const showFab = fabOnly || !isAlert || dockCollapsed;
 
@@ -947,16 +941,8 @@ export function DynamicIntelStack({
         ) : null}
       </div>
 
-      <div className="flex items-end justify-center gap-2">
-        {showLegend ? (
-          <MapLegend
-            variant={isEconomy ? "economy" : "conflict"}
-            deployedCarrierCount={isEconomy ? 0 : deployedCarrierCount}
-            showAllCarriers={showAllCarriers}
-            className="w-max"
-          />
-        ) : null}
-        {showFab ? (
+      {showFab ? (
+        <div className="flex items-end justify-center">
           <HoverHint
             placement="top"
             title={isEconomy ? t("hoverEconomyFab") : t("hoverIntelFab")}
@@ -975,8 +961,8 @@ export function DynamicIntelStack({
               {isEconomy ? "📈" : "📰"}
             </button>
           </HoverHint>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

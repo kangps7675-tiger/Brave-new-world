@@ -249,7 +249,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "6–12 hours (TLE)",
     attribution: "Orbital elements: CelesTrak (T.S. Kelso)",
     notes:
-      "Military + active GP TLEs filtered by public recon-family name patterns. Positions computed client-side via SGP4; horizon ring is theoretical footprint, not imaging activity.",
+      "GP TLEs from the military and earth-resources groups plus recon-family name queries, filtered by public recon-family patterns. Navigation, comms and early-warning series, debris, and TLEs older than 45 days are dropped. Positions computed client-side via SGP4; horizon ring is theoretical footprint, not imaging activity.",
     status: "shipped",
     ingest: "cached-api",
   },

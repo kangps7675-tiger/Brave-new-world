@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getNavMenuGroups } from "@/data/econNavRegions";
 import {
   HUB_DEFINITIONS,
@@ -143,59 +143,89 @@ export function HoverNav({
   /** 데스크톱: 상시 슬림 노출, 호버·핀이면 확장 */
   const chromeExpanded = compact || pinnedOpen || hoveredOpen;
 
+  const clearHideTimer = useCallback(() => {
+    if (hideTimerRef.current != null) {
+      window.clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+
+  const revealChrome = useCallback(() => {
+    if (compact) return;
+    clearHideTimer();
+    setHoveredOpen(true);
+  }, [clearHideTimer, compact]);
+
+  const collapseChrome = useCallback(() => {
+    setHoveredOpen(false);
+    // 호버로 펼쳐진 서브메뉴도 같이 닫아 "뗐는데도 열려 있는" 상태를 막음
+    setOpenKey(null);
+    setOpenHubId(null);
+  }, []);
+
+  const scheduleHideChrome = useCallback(() => {
+    if (compact || pinnedOpen) return;
+    clearHideTimer();
+    hideTimerRef.current = window.setTimeout(() => {
+      collapseChrome();
+      hideTimerRef.current = null;
+    }, HIDE_DELAY_MS);
+  }, [clearHideTimer, collapseChrome, compact, pinnedOpen]);
+
   /** 메뉴·검색 고정이 풀렸을 때 마우스가 크롬 밖이면 접기 */
   useEffect(() => {
     if (compact || pinnedOpen) return;
     const el = chromeRef.current;
     if (el && el.matches(":hover")) return;
-    setHoveredOpen(false);
-  }, [compact, pinnedOpen]);
+    collapseChrome();
+  }, [collapseChrome, compact, pinnedOpen]);
 
-  /** 글로브 셸이 내려갈 높이 — ResizeObserver */
+  /**
+   * 호버로 펼친 상태에서 포인터가 크롬 밖으로 나가면 접는다.
+   * 드롭다운이 재배치되는 순간 mouseleave가 씹히는 경우가 있어 문서 레벨에서 한 번 더 본다.
+   */
   useEffect(() => {
+    if (compact || !hoveredOpen) return;
+    const onPointerMove = (event: PointerEvent) => {
+      const el = chromeRef.current;
+      if (!el || el.contains(event.target as Node)) return;
+      // 크롬 아래로 충분히 벗어났을 때만 — 경계에서 열고 닫히며 진동하는 것을 막음
+      if (event.clientY <= el.getBoundingClientRect().bottom + 24) return;
+      scheduleHideChrome();
+    };
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => document.removeEventListener("pointermove", onPointerMove);
+  }, [compact, hoveredOpen, scheduleHideChrome]);
+
+  /**
+   * 높이 CSS 변수 두 개를 publish.
+   * - `--hover-nav-height`: 실제 높이 (우상단 칩 등 겹침 회피용)
+   * - `--hover-nav-base-height`: 호버로 펼치기 전 기준 높이. 글로브 셸 오프셋은 이 값만 쓴다.
+   *   호버·드롭다운 높이 변화가 지도를 밀어 흔드는 것을 막기 위함.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
     if (compact) {
-      document.documentElement.style.setProperty("--hover-nav-height", "0px");
+      root.style.setProperty("--hover-nav-height", "0px");
+      root.style.setProperty("--hover-nav-base-height", "0px");
       return;
     }
     const el = chromeRef.current;
     if (!el) return;
     const publish = () => {
-      const h = Math.ceil(el.getBoundingClientRect().height);
-      document.documentElement.style.setProperty(
-        "--hover-nav-height",
-        `${Math.max(0, h)}px`,
-      );
+      const h = Math.max(0, Math.ceil(el.getBoundingClientRect().height));
+      root.style.setProperty("--hover-nav-height", `${h}px`);
+      if (!hoveredOpen) root.style.setProperty("--hover-nav-base-height", `${h}px`);
     };
     publish();
     const ro = new ResizeObserver(() => publish());
     ro.observe(el);
     return () => {
       ro.disconnect();
-      document.documentElement.style.setProperty("--hover-nav-height", "0px");
+      root.style.setProperty("--hover-nav-height", "0px");
+      root.style.setProperty("--hover-nav-base-height", "0px");
     };
-  }, [compact, chromeExpanded, belowNav, showDesktopToolsSlot]);
-
-  const clearHideTimer = () => {
-    if (hideTimerRef.current != null) {
-      window.clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = null;
-    }
-  };
-
-  const revealChrome = () => {
-    if (compact) return;
-    clearHideTimer();
-    setHoveredOpen(true);
-  };
-
-  const scheduleHideChrome = () => {
-    if (compact || pinnedOpen) return;
-    clearHideTimer();
-    hideTimerRef.current = window.setTimeout(() => {
-      setHoveredOpen(false);
-      hideTimerRef.current = null;
-    }, HIDE_DELAY_MS);
-  };
+  }, [compact, chromeExpanded, hoveredOpen, belowNav, showDesktopToolsSlot]);
 
   return (
     <div

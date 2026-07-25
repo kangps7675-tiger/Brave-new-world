@@ -617,9 +617,8 @@ function LampCardHero({
   lang: LabelLanguage;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
-  /** 지경학은 지역 컬러 요약면을 우선 — 지정학과 같은 지역 브리핑 톤 */
-  const preferColorFace = isEconomy;
-  const hasPhoto = !preferColorFace && Boolean(imageUrl) && !imgFailed;
+  /** 지정학·지경학 모두 대형 컬러 사진 우선. 없거나 실패하면 지역 컬러 면 */
+  const hasPhoto = Boolean(imageUrl) && !imgFailed;
   const theme = resolveLampThumbTheme({
     mode: isEconomy ? "economy" : "conflict",
     theater,

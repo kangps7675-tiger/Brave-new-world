@@ -51,7 +51,22 @@ export function WorldTensionChip({
   lang,
   className,
 }: WorldTensionChipProps) {
-  if (score == null || !Number.isFinite(score)) return null;
+  // 점수가 아직 없으면 사라지지 않고 "집계 중"으로 자리를 지킨다
+  if (score == null || !Number.isFinite(score)) {
+    return (
+      <div
+        className={`flex items-center gap-2 rounded-full border border-slate-400/25 bg-black/55 px-2.5 py-1.5 ${className ?? ""}`}
+        title={t("worldTensionHint", lang)}
+      >
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300/85">
+          {t("worldTensionTitle", lang)}
+        </span>
+        <span className="text-[11px] font-medium tabular-nums text-slate-400/70">
+          {lang === "en" ? "computing…" : "집계 중…"}
+        </span>
+      </div>
+    );
+  }
 
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   const band = wtiBand(clamped);

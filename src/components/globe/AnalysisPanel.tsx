@@ -175,7 +175,7 @@ export function AnalysisPanel({
     const country = selection.item;
     const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex min-h-full flex-col gap-4">
         <PanelHeader
           eyebrow="Natural Earth Country"
           title={country.name}
@@ -188,11 +188,13 @@ export function AnalysisPanel({
           <Metric label="Lat" value={country.center.lat.toString()} />
           <Metric label="Lng" value={country.center.lng.toString()} />
         </section>
-        <CountryEconomicRiskCard iso3={country.isoA3} lang={labelLang} />
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4 text-sm leading-6 text-slate-300">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">원본 이름</p>
           <p className="mt-3">{country.nameLong}</p>
         </section>
+        <div className="mt-auto">
+          <CountryEconomicRiskCard iso3={country.isoA3} lang={labelLang} />
+        </div>
       </div>
     );
   }
