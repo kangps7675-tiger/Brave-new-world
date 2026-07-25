@@ -6,8 +6,8 @@ import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { CursorHoverCard } from "@/components/CursorHoverCard";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { NewsPerspectivesPanel } from "@/components/NewsPerspectivesPanel";
-import { DoomsdayClock } from "@/components/DoomsdayClock";
 import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
+import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
 import { type DailyPrompt } from "@/lib/dailyPrompt";
 import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
@@ -160,8 +160,6 @@ import type { NavSelection, RegionBBox } from "@/data/navRegions";
 import { EXPLORATION_PRESETS, toNavSelection } from "@/data/navRegions";
 import { ECON_EXPLORATION_PRESETS, econNavSelectionFromId } from "@/data/econNavRegions";
 import {
-  hottestConflictNavId,
-  hottestEconomyNavId,
   type EconomyHubChoice,
 } from "@/lib/autoFlyTarget";
 import {
@@ -296,7 +294,6 @@ import { useLayerPrefsController } from "@/hooks/useLayerPrefsController";
 import {
   applyViewPackages,
   DEFAULT_PACKAGE_SELECTION,
-  resolveIntroFlyTarget,
   viewerModeFromPackages,
   type MergedViewConfig,
   type ViewPackageId,
@@ -344,8 +341,9 @@ import {
   hotTheaterSessionConsumed,
   markHotTheaterSessionApplied,
   resolveHotTheaterFocus,
-  CONFLICT_ENTRY_MARITIME_FLY,
+  type HotTheaterFocus,
 } from "@/lib/hotTheaterLayers";
+import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
 import {
   markInterestSoftApplyToday,
   resolveInterestSoftApply,
@@ -848,6 +846,8 @@ export function GlobeDashboard({
   /** WTI 기준 시각 — 상황판 "as of" 표시용 */
   const [wtiFetchedAt, setWtiFetchedAt] = useState<string | null>(null);
   const [showTourInvite, setShowTourInvite] = useState(false);
+  /** 전역 입장 후 — 핫 지역 이동 선택창 (수락 시에만 fly) */
+  const [hotTheaterOffer, setHotTheaterOffer] = useState<HotTheaterFocus | null>(null);
   const [airRaidBriefing, setAirRaidBriefing] = useState<AirRaidBriefingContent | null>(null);
   /** 로컬 자정에 바뀜 — 매일 등불 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
@@ -6498,48 +6498,20 @@ export function GlobeDashboard({
 
     introPlayedRef.current = true;
 
-    // 지정학 기본 레이어에 우크라가 있어도 인트로로 우크라 강제 진입하지 않음
+    // 전역 궤도만 유지 — 핫 지역 자동 fly 금지 (선택창에서만 이동)
     if (showUkraineControl) {
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
       return;
     }
 
-    const topAlert = localDisputeAlerts[0];
-    const introTarget = resolveIntroFlyTarget({
-      viewerMode,
-      theater: viewTheater,
-      economyHub: viewEconomyHub,
-      topAlert: topAlert ? { lat: topAlert.center.lat, lng: topAlert.center.lng } : null,
-      conflictNavId: hottestConflictNavId(localDisputeAlerts),
-      economyNavId: hottestEconomyNavId(localDisputeAlerts),
-    });
-
     const startTimer = window.setTimeout(() => {
       setShowIntroHint(true);
-      if (introTarget?.kind === "coords") {
-        flyTo(
-          introTarget.lat,
-          introTarget.lng,
-          introTarget.altitude ?? ORBITAL_OVERVIEW_ALTITUDE,
-          INTRO_CAMERA_DURATION_MS,
-        );
-      } else if (introTarget?.kind === "exploration") {
-        if (isEconomyViewer) {
-          const sel = econNavSelectionFromId(introTarget.presetId);
-          if (sel) {
-            // 인트로: 핫 허브로 카메라만 — 양피지/강제 패널 포커스 금지
-            flyToBounds(sel, INTRO_CAMERA_DURATION_MS, "overview", {
-              pitch: 55,
-              bearing: -20,
-            });
-          }
-        } else {
-          const preset = EXPLORATION_PRESETS.find((item) => item.id === introTarget.presetId);
-          if (preset) {
-            enterTheaterFocusRef.current(toNavSelection(preset.navItem, preset.groupId));
-          }
-        }
-      }
+      flyTo(
+        ENTRY_GATE.bootLookAt.lat,
+        ENTRY_GATE.bootLookAt.lng,
+        ENTRY_GATE.bootAltitude,
+        INTRO_CAMERA_DURATION_MS,
+      );
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
     }, INTRO_CAMERA_DELAY_MS);
 
@@ -6554,19 +6526,13 @@ export function GlobeDashboard({
   }, [
     entryGate,
     flyTo,
-    flyToBounds,
     globeReady,
     initialViewConfig?.ui.autoEnterEconNavId,
     initialViewConfig?.ui.autoEnterTheaterNavId,
-    isEconomyViewer,
     isLoading,
     loadError,
-    localDisputeAlerts,
     showModePicker,
     showUkraineControl,
-    viewEconomyHub,
-    viewTheater,
-    viewerMode,
     viewUi.autoEnterEconNavId,
     viewUi.autoEnterTheaterNavId,
   ]);
@@ -6622,15 +6588,12 @@ export function GlobeDashboard({
     handleModeApply(mode, "auto", "auto");
     applyLayerPrefs(overviewPrefs);
 
-    // 지정학: 홍해·바브엘만데브(최우선 해상 위협)로 바로 진입
-    const entryLook =
-      mode === "conflict"
-        ? CONFLICT_ENTRY_MARITIME_FLY
-        : {
-            lat: ENTRY_GATE.bootLookAt.lat,
-            lng: ENTRY_GATE.bootLookAt.lng,
-            altitude: ENTRY_GATE.bootAltitude,
-          };
+    // 첫 화면은 전역 궤도 유지 — 핫 지역 줌인은 선택창 수락 후에만
+    const entryLook = {
+      lat: ENTRY_GATE.bootLookAt.lat,
+      lng: ENTRY_GATE.bootLookAt.lng,
+      altitude: ENTRY_GATE.bootAltitude,
+    };
 
     layerCenterRef.current = {
       lat: entryLook.lat,
@@ -6649,11 +6612,6 @@ export function GlobeDashboard({
       entryLook.altitude,
       ENTRY_GATE.zoomOutFlyMs,
     );
-
-    if (mode === "conflict") {
-      battlefieldSoftZoneRef.current = "middle-east";
-      battlefieldManualUntilRef.current = Date.now() + 24_000;
-    }
 
     // 도메인 직후는 광역 히어로만 — 전장/허브 자동 fly·양피지 금지
     packageTheaterFocusPlayedRef.current = true;
@@ -7072,73 +7030,86 @@ export function GlobeDashboard({
     };
   }, [calendarDayKey]);
 
-  // 세션 1회: daily-ranks 핫 전장·초크 → 핵심 뉴스 레이어 ON (+ 홍해면 입구로 카메라)
+  // 세션 1회: daily-ranks 핫 전장·초크 → 선택창 (수락 시에만 레이어·카메라)
   useEffect(() => {
     if (!globeReady || isLoading || entryGate !== null || showModePicker) return;
     if (hotTheaterSessionConsumed()) return;
+    if (hotTheaterOffer) return;
     let cancelled = false;
-    void (async () => {
-      try {
-        const res = await fetch("/api/daily-ranks?limit=3", {
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-        });
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as DailyRanksPayload;
-        const focus = resolveHotTheaterFocus(data);
-        if (!focus || cancelled) return;
-        markHotTheaterSessionApplied();
-        if (isEconomyViewer) {
-          patchLayerPrefsSoft({
-            showShippingLanes: true,
-            showLogisticsRisk: true,
-            showPorts: true,
-            showOilPipelines: true,
-            showGasPipelines: true,
-            showLngTerminals: true,
-            showSubseaPipelines: true,
-            showAis: true,
-            showNewfeedsIranAttacks: focus.theaterId === "middle-east",
+    const delay = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch("/api/daily-ranks?limit=3", {
+            cache: "no-store",
+            headers: { Accept: "application/json" },
           });
-        } else {
-          patchLayerPrefsSoft(focus.patch);
-          if (focus.theaterId === "middle-east") {
-            battlefieldSoftZoneRef.current = "middle-east";
-            battlefieldManualUntilRef.current = Date.now() + 24_000;
-          } else if (focus.theaterId === "ukraine") {
-            battlefieldSoftZoneRef.current = "ukraine";
-            battlefieldManualUntilRef.current = Date.now() + 24_000;
-          } else if (focus.theaterId === "taiwan") {
-            battlefieldSoftZoneRef.current = "taiwan";
-            battlefieldManualUntilRef.current = Date.now() + 24_000;
-          } else if (focus.theaterId === "korea") {
-            battlefieldSoftZoneRef.current = "korea";
-            battlefieldManualUntilRef.current = Date.now() + 24_000;
-          }
+          if (!res.ok || cancelled) return;
+          const data = (await res.json()) as DailyRanksPayload;
+          const focus = resolveHotTheaterFocus(data);
+          if (!focus || cancelled) return;
+          setHotTheaterOffer(focus);
+        } catch {
+          /* ranks 없으면 선택창 생략 */
         }
-        if (focus.fly) {
-          const target = focus.fly;
-          window.setTimeout(() => {
-            if (cancelled) return;
-            flyTo(target.lat, target.lng, target.altitude);
-          }, 1000);
-        }
-      } catch {
-        /* ranks 없으면 기본 prefs 유지 */
-      }
-    })();
+      })();
+    }, 900);
     return () => {
       cancelled = true;
+      window.clearTimeout(delay);
     };
   }, [
     entryGate,
-    flyTo,
     globeReady,
-    isEconomyViewer,
+    hotTheaterOffer,
     isLoading,
-    patchLayerPrefsSoft,
     showModePicker,
   ]);
+
+  const acceptHotTheaterOffer = useCallback(() => {
+    const focus = hotTheaterOffer;
+    setHotTheaterOffer(null);
+    if (!focus) return;
+    markHotTheaterSessionApplied();
+    if (isEconomyViewer) {
+      patchLayerPrefsSoft({
+        showShippingLanes: true,
+        showLogisticsRisk: true,
+        showPorts: true,
+        showGasPipelines: true,
+        showLngTerminals: true,
+        showResources: true,
+        showAis: true,
+        showNewfeedsIranAttacks: focus.theaterId === "middle-east",
+      });
+    } else {
+      patchLayerPrefsSoft(focus.patch);
+      const softZone =
+        focus.theaterId === "middle-east" ||
+        focus.chokeId === "choke-bab-el-mandeb" ||
+        focus.chokeId === "choke-hormuz" ||
+        focus.chokeId === "choke-suez"
+          ? "middle-east"
+          : focus.theaterId === "ukraine" || focus.theaterId === "russia-ukraine"
+            ? "ukraine"
+            : focus.theaterId === "taiwan" || focus.theaterId === "china-taiwan"
+              ? "taiwan"
+              : focus.theaterId === "korea"
+                ? "korea"
+                : null;
+      if (softZone) {
+        battlefieldSoftZoneRef.current = softZone;
+        battlefieldManualUntilRef.current = Date.now() + 24_000;
+      }
+    }
+    if (focus.fly) {
+      flyTo(focus.fly.lat, focus.fly.lng, focus.fly.altitude);
+    }
+  }, [flyTo, hotTheaterOffer, isEconomyViewer, patchLayerPrefsSoft]);
+
+  const dismissHotTheaterOffer = useCallback(() => {
+    setHotTheaterOffer(null);
+    markHotTheaterSessionApplied();
+  }, []);
 
   // 일 1회: 관심 프로필 soft 레이어 ON만 (끄기 없음 · 프리셋 픽커 없음)
   useEffect(() => {
@@ -8121,6 +8092,16 @@ export function GlobeDashboard({
 
       {!intelSheetOpen ? (
       <>
+      {entryGate === null && !showModePicker ? (
+        <ModeGlobalIndexChip
+          viewerMode={viewerMode}
+          lang={labelLanguage}
+          wtiScore={wtiSnapshot?.score ?? null}
+          wtiDelta={wtiSnapshot?.deltaScore ?? null}
+          wtiAsOf={wtiFetchedAt}
+          showGscpi={showGscpiGauge}
+        />
+      ) : null}
       <HoverNav
         viewerMode={viewerMode}
         onNavigate={handleNavNavigate}
@@ -8144,14 +8125,6 @@ export function GlobeDashboard({
                 lang={labelLanguage}
                 open={layerDropdownOpen}
                 onOpenChange={setLayerDropdownOpen}
-              />
-            ) : null}
-            {!isEconomyViewer ? (
-              <DoomsdayClock
-                score={wtiSnapshot?.score ?? null}
-                deltaScore={wtiSnapshot?.deltaScore ?? null}
-                asOf={wtiFetchedAt}
-                lang={labelLanguage}
               />
             ) : null}
           </div>
@@ -9332,7 +9305,6 @@ export function GlobeDashboard({
         deployedCarrierCount={deployedCarrierCount}
         showUsDfcSupplyChain={showUsDfcSupplyChain}
         showBriTradeConnectivity={showBriTradeConnectivity}
-        showGscpiGauge={showGscpiGauge}
         usDfcSupplyPaths={usDfcSupplyPaths}
         briTradePaths={briTradePaths}
         issueUiPausedForLamp={issueUiPausedForLamp}
@@ -9454,6 +9426,21 @@ export function GlobeDashboard({
         onBeginLiveBriefing={beginLiveBriefing}
         onSetAirRaidBriefing={setAirRaidBriefing}
       />
+
+      {hotTheaterOffer &&
+      entryGate === null &&
+      !showModePicker &&
+      !issueUiPausedForLamp &&
+      !periodicBriefing &&
+      !weeklyExpanded &&
+      !tomorrowTensionPrompt ? (
+        <HotTheaterOfferBanner
+          focus={hotTheaterOffer}
+          lang={labelLanguage}
+          onAccept={acceptHotTheaterOffer}
+          onDismiss={dismissHotTheaterOffer}
+        />
+      ) : null}
 
       {showLeftPanel ? (
         <aside

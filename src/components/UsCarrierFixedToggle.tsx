@@ -10,20 +10,23 @@ type UsCarrierFixedToggleProps = {
   deployedCount?: number;
   /** 모바일 상단 — 짧은 라벨 */
   compact?: boolean;
+  /** 우측 레일에서는 left, 상단 바에서는 bottom */
+  hintPlacement?: "top" | "bottom" | "left" | "right";
 };
 
-/** 지도 상단 고정 — 작전중 항모는 항상 표시, 토글 시 전체 함대 */
+/** 지도 고정 토글 — 작전중 항모는 항상 표시, 토글 시 전체 함대 */
 export function UsCarrierFixedToggle({
   checked,
   onChange,
   carrierCount = 0,
   deployedCount = 0,
   compact = false,
+  hintPlacement = "bottom",
 }: UsCarrierFixedToggleProps) {
   const { t, lang } = useLocale();
   return (
     <HoverHint
-      placement="bottom"
+      placement={hintPlacement}
       title={t("hoverUsCarrierTrack")}
       detail={checked ? t("hoverUsCarrierAll") : t("hoverUsCarrierDeployed")}
     >

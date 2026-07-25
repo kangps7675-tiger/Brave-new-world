@@ -1313,10 +1313,10 @@ export function useLayerPanelCategories({
           },
           {
             id: "logistics-stress",
-            label: "물류 스트레스 색상",
+            label: "위험·정체 해협 색 표시",
             detail: showLogisticsStress
-              ? "초크 링·마커를 UKMTO·PortWatch 등급색"
-              : "꺼짐 · 기본 주황",
+              ? "위험하거나 막힌 곳을 붉게 (UKMTO·PortWatch 기준)"
+              : "꺼짐 · 모두 주황색",
             checked: layerPrefs.showLogisticsStress,
             onChange: setShowLogisticsStress,
             accent: "red",
@@ -1325,8 +1325,8 @@ export function useLayerPanelCategories({
             ? [
                 {
                   id: "gscpi-gauge" as const,
-                  label: "GSCPI 공급망 압력",
-                  detail: showGscpiGauge ? "NY Fed 게이지 칩" : "꺼짐",
+                  label: "전 세계 물류 혼잡도",
+                  detail: showGscpiGauge ? "우상단에 0~100 점수 표시" : "꺼짐",
                   checked: layerPrefs.showGscpiGauge,
                   onChange: setShowGscpiGauge,
                   accent: "emerald" as const,

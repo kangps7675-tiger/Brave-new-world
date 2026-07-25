@@ -16,8 +16,8 @@ import { placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
 type HoverHintProps = {
   title: string;
   detail?: string;
-  /** 툴팁이 버튼 위/아래 중 어디에 뜰지 */
-  placement?: "top" | "bottom";
+  /** 툴팁이 버튼 기준 어디에 뜰지 */
+  placement?: "top" | "bottom" | "left" | "right";
   className?: string;
   /**
    * true면 터치에서 탭으로 툴팁 pin.
@@ -57,11 +57,15 @@ export function HoverHint({
     const anchor = root.getBoundingClientRect();
     const width = tip?.offsetWidth || Math.min(300, window.innerWidth - VIEWPORT_EDGE_PAD * 2);
     const height = tip?.offsetHeight || 64;
+    const preferred =
+      placement === "top" || placement === "left"
+        ? "above"
+        : "below";
     const placed = placeNearAnchor({
       anchor,
       width,
       height,
-      preferred: placement === "top" ? "above" : "below",
+      preferred,
       gap: 8,
     });
     setCoords({ left: placed.left, top: placed.top });

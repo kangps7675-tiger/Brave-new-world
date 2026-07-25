@@ -9,7 +9,6 @@ import { MethodologySourcesPanel } from "@/components/MethodologySourcesPanel";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
 import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
-import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
 import { TopWatchPanel } from "@/components/TopWatchPanel";
 import { SitrepLog } from "@/components/SitrepLog";
@@ -167,8 +166,6 @@ export type DashboardOverlayHostProps = {
   showBriTradeConnectivity: boolean;
   usDfcSupplyPaths: TransportPath[];
   briTradePaths: TransportPath[];
-  /** NY Fed GSCPI 게이지 칩 표시 */
-  showGscpiGauge?: boolean;
   issueUiPausedForLamp: boolean;
   showNeptun: boolean;
   neptunAlertCount: number;
@@ -329,7 +326,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showBriTradeConnectivity,
     usDfcSupplyPaths,
     briTradePaths,
-    showGscpiGauge = true,
     issueUiPausedForLamp,
     showNeptun,
     neptunAlertCount,
@@ -546,58 +542,54 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             </button>
           </HoverHint>
         </div>
-        {/* 레이어 패널이 열리면 항모·공급망·후원이 패널을 가리지 않도록 숨김 */}
-        {!showLeftPanel ? (
-          <>
-            {!isCompactUi && !isEconomyViewer ? (
-              <UsCarrierFixedToggle
-                checked={showUsCarriers}
-                onChange={onSetShowUsCarriers}
-                carrierCount={usCarriers.length}
-                deployedCount={deployedCarrierCount}
-              />
-            ) : null}
-            {!isCompactUi && isEconomyViewer ? (
-              <EconomySupplyChainFixedToggle
-                showUsDfc={showUsDfcSupplyChain}
-                showChinaBri={showBriTradeConnectivity}
-                onUsDfcChange={onSetShowUsDfcSupplyChain}
-                onChinaBriChange={onSetShowBriTradeConnectivity}
-                usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
-                chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
-                vertical
-              />
-            ) : null}
-            {!isCompactUi ? (
-              <div className="cv-desktop-only pointer-events-auto shrink-0">
-                <ServerDonateChip lang={labelLanguage} />
-              </div>
-            ) : null}
-            {isCompactUi ? (
-              <div className="cv-compact-only pointer-events-auto shrink-0">
-                <ServerDonateChip lang={labelLanguage} />
-              </div>
-            ) : null}
-            {/* 지경학: GSCPI 공급망 압력 칩 · 지정학: 긴장 상승 + 배경 GSCPI */}
-            {showGscpiGauge && isEconomyViewer && !isCompactUi && entryGate === null ? (
-              <div className="pointer-events-auto shrink-0">
-                <GscpiGaugeFromData lang={labelLanguage} compact />
-              </div>
-            ) : null}
-            {!isEconomyViewer && !isCompactUi && entryGate === null ? (
-              <div className="flex max-h-[min(46vh,calc(100dvh-16rem))] w-full flex-col gap-2 overflow-y-auto overscroll-contain">
-                {showGscpiGauge ? (
-                  <div className="pointer-events-auto shrink-0">
-                    <GscpiGaugeFromData lang={labelLanguage} compact />
-                  </div>
-                ) : null}
-                <TopWatchPanel lang={labelLanguage} />
-                <SitrepLog lang={labelLanguage} />
-              </div>
-            ) : null}
-          </>
+        {/* 모바일: 후원만 좌측 유지. 데스크톱 항모·공급망·GSCPI·Watch는 우측 레일 */}
+        {!showLeftPanel && isCompactUi ? (
+          <div className="cv-compact-only pointer-events-auto shrink-0">
+            <ServerDonateChip lang={labelLanguage} />
+          </div>
         ) : null}
       </div>
+      ) : null}
+
+      {/* 데스크톱 우측 레일 — 항모/공급망 토글 + 후원 + GSCPI·Watch (좌측 겹침 해소) */}
+      {!intelSheetOpen &&
+      !isCompactUi &&
+      !showLeftPanel &&
+      !rightDockOpen &&
+      !selected ? (
+        <div
+          className="cv-desktop-only pointer-events-none absolute right-3 z-[60] flex max-h-[min(70vh,calc(100dvh-8rem))] flex-col items-end gap-2 overflow-y-auto overscroll-contain"
+          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
+        >
+          {!isEconomyViewer ? (
+            <UsCarrierFixedToggle
+              checked={showUsCarriers}
+              onChange={onSetShowUsCarriers}
+              carrierCount={usCarriers.length}
+              deployedCount={deployedCarrierCount}
+              hintPlacement="left"
+            />
+          ) : (
+            <EconomySupplyChainFixedToggle
+              showUsDfc={showUsDfcSupplyChain}
+              showChinaBri={showBriTradeConnectivity}
+              onUsDfcChange={onSetShowUsDfcSupplyChain}
+              onChinaBriChange={onSetShowBriTradeConnectivity}
+              usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
+              chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
+              vertical
+            />
+          )}
+          <div className="pointer-events-auto shrink-0">
+            <ServerDonateChip lang={labelLanguage} />
+          </div>
+          {!isEconomyViewer && entryGate === null ? (
+            <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-2">
+              <TopWatchPanel lang={labelLanguage} />
+              <SitrepLog lang={labelLanguage} />
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {/* 데스크톱 우상단 → HoverNav 포털. 모바일 compact만 우측 유지 */}

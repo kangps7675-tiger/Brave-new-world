@@ -34,23 +34,63 @@ export type BottomStackLayout = "conflict" | "economy";
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 에너지·자원 — 지정학·지경학 공통 기본 ON.
- * (캡/드롭 후에도 다시 덮어써서 모드 전환·히어로에서 꺼지지 않게 함)
+ * 지정학 자원 히어로 — 전역 첫 화면: 해저관 + 송유관 + 원자력.
+ * (나머지는 수동 체크 — 잡음 줄이고 차별감)
  */
-export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
+export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
   showSubseaPipelines: true,
-  showResources: true,
-  showGemOilGasExtraction: true,
-  showGemCoalMines: true,
-  showGemIronOre: true,
+  showOilPipelines: true,
   showNuclearSites: true,
 };
 
-export function ensureResourceLayersOn(prefs: LayerPrefs): LayerPrefs {
-  return { ...prefs, ...SHARED_RESOURCE_LAYER_ON };
+/** 지정학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
+  showGasPipelines: false,
+  showLngTerminals: false,
+  showResources: false,
+  showGemOilGasExtraction: false,
+  showGemCoalMines: false,
+  showGemIronOre: false,
+};
+
+/**
+ * 지경학 자원 히어로 — 전역 첫 화면: 매장지 면 + 가스관 + LNG.
+ */
+export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
+  showResources: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+};
+
+/** 지경학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
+  showOilPipelines: false,
+  showSubseaPipelines: false,
+  showNuclearSites: false,
+  showGemOilGasExtraction: false,
+  showGemCoalMines: false,
+  showGemIronOre: false,
+};
+
+/** @deprecated 모드별 히어로 사용 — 레거시 합집합(전부 ON) */
+export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
+  ...CONFLICT_RESOURCE_HERO_ON,
+  ...ECONOMY_RESOURCE_HERO_ON,
+  showGemOilGasExtraction: true,
+  showGemCoalMines: true,
+  showGemIronOre: true,
+};
+
+export function resourceHeroLayersForMode(mode: ViewerMode): Partial<LayerPrefs> {
+  return mode === "economy" ? ECONOMY_RESOURCE_HERO_ON : CONFLICT_RESOURCE_HERO_ON;
+}
+
+/** 캡/드롭 후에도 모드 히어로 자원만 다시 ON (비히어로는 사용자 토글 유지) */
+export function ensureResourceLayersOn(
+  prefs: LayerPrefs,
+  mode: ViewerMode = "conflict",
+): LayerPrefs {
+  return { ...prefs, ...resourceHeroLayersForMode(mode) };
 }
 
 export type ViewerChromePreset = {
@@ -97,7 +137,7 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showNewfeedsIranAttacks: true,
   /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
   showUsCarriers: true,
-  ...SHARED_RESOURCE_LAYER_ON,
+  ...CONFLICT_RESOURCE_HERO_ON,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
@@ -105,6 +145,7 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAirTraffic: false,
   showSubmarineTunnels: false,
   showGscpiGauge: false,
+  ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
@@ -115,7 +156,7 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   showGscpiGauge: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
-  ...SHARED_RESOURCE_LAYER_ON,
+  ...ECONOMY_RESOURCE_HERO_ON,
   showAiDataCenters: true,
   showPorts: true,
   showAirports: true,
@@ -159,6 +200,7 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showSubmarineTunnels: false,
   showAxisNetwork: false,
   ...ECONOMY_MILITARY_BLOCK,
+  ...ECONOMY_RESOURCE_HERO_OFF,
   showGpsInterference: false,
 };
 
@@ -207,7 +249,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       "우크라이나 전선·NEPTUN 드론·미사일 궤적",
       "GDELT 전투·외교 뉴스 핀",
       "Telegram OSINT · VIINA 점령지",
-      "에너지·자원: 송유관·가스관·LNG·광물·원자력",
+      "에너지 히어로: 해저관 · 송유관 · 원자력",
       "하단: 속보 + GDELT 범례",
     ],
     layerPanelTitle: "레이어 · 전선",
@@ -234,7 +276,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerBullets: [
       "주요 증시·VIX·유가 티커",
       "경제 RSS · 에너지·해운·제재 속보",
-      "초크포인트·오일/가스 파이프·항로 · 민간 AIS/ADS-B (군용 항공기·함정 없음)",
+      "자원 히어로: 매장지 · 가스관 · LNG · 항로 · 민간 AIS/ADS-B",
       "하단: 티커 + 시장 속보",
     ],
     layerPanelTitle: "인프라 · 시장",
@@ -260,8 +302,8 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
     }
   }
 
-  // 캡으로 잘려도 자원·에너지는 지정학/지경학 공통으로 다시 ON
-  return ensureResourceLayersOn(capLayerCountForMode(next, mode));
+  // 캡으로 잘려도 모드별 자원 히어로만 다시 ON
+  return ensureResourceLayersOn(capLayerCountForMode(next, mode), mode);
 }
 
 export type ApplyViewerModeResult = {
@@ -288,6 +330,7 @@ export function applyViewerMode(
       mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
       mode,
     ),
+    mode,
   );
   saveLayerPrefs(conceptLayers);
 

@@ -54,10 +54,10 @@ export function latestGscpiReading(series: GscpiPoint[]): GscpiReading | null {
 
 export function gscpiLevelLabel(level: GscpiLevel, lang: "ko" | "en"): string {
   const map: Record<GscpiLevel, { ko: string; en: string }> = {
-    loose: { ko: "완화 (평균 이하)", en: "Below normal" },
-    normal: { ko: "정상 범위", en: "Normal" },
-    elevated: { ko: "경계", en: "Elevated" },
-    high: { ko: "높음 (스트레스)", en: "High stress" },
+    loose: { ko: "원활", en: "Smooth" },
+    normal: { ko: "보통", en: "Normal" },
+    elevated: { ko: "혼잡", en: "Congested" },
+    high: { ko: "매우 혼잡", en: "Severe" },
   };
   return lang === "en" ? map[level].en : map[level].ko;
 }
@@ -81,8 +81,13 @@ export function formatSigma(value: number): string {
   return `${sign}${value.toFixed(2)}σ`;
 }
 
+/** 표준편차(-2σ~+4σ)를 일반 사용자용 0~100 점수로 환산 */
+export function gscpiScore100(value: number): number {
+  return Math.round(Math.max(0, Math.min(100, ((value + 2) / 6) * 100)));
+}
+
 export function gscpiDisclaimer(lang: "ko" | "en"): string {
   return lang === "en"
-    ? "NY Fed GSCPI — monthly composite (freight rates, delivery times, backlogs), in std-dev from historical mean. Background macro indicator, not real-time."
-    : "NY Fed GSCPI — 월간 종합(운임·배송지연·백로그), 역사적 평균 대비 표준편차. 실시간이 아닌 배경 거시지표입니다.";
+    ? "How congested global shipping is — 0–100 score (100 = most congested). From the NY Fed GSCPI monthly index (freight rates, delivery delays, backlogs). Monthly, not live."
+    : "전 세계 물류가 얼마나 막혀 있는지 0~100으로 나타낸 점수(100이면 가장 혼잡). NY Fed 공급망 압력지수(운임·배송지연·주문적체) 기준이며, 실시간이 아닌 월 단위 값입니다.";
 }
