@@ -65,6 +65,11 @@ function compactTransportPath(path, options = {}) {
   ];
   entry.p = path.points.map((point) => [round(point.lng), round(point.lat)]);
 
+  if (path.meta && typeof path.meta === "object") {
+    const meta = omitEmpty(path.meta);
+    if (Object.keys(meta).length > 0) entry.m = meta;
+  }
+
   return entry;
 }
 

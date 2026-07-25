@@ -7,11 +7,11 @@ import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
 import {
+  CONFLICT_RESOURCE_HERO_ON,
+  ECONOMY_RESOURCE_HERO_ON,
   ensureResourceLayersOn,
-  SHARED_RESOURCE_LAYER_ON,
 } from "@/lib/viewerChrome";
 import {
-  CONFLICT_ENTRY_MARITIME_FLY,
   RED_SEA_HOUTHI_STACK,
 } from "@/lib/hotTheaterLayers";
 
@@ -19,10 +19,9 @@ import {
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
  *
  * 순서(하드코딩):
- * 1. 로딩 — 뒷배경 고도 = 로딩 셰이더(z≈3.85)와 동일 visual (altitude 2.85)
- * 2. 환영 편지지
- * 3. 지정학 / 지경학 선택
- * 4. 전역 지구본 히어로 (ModePicker 세부창 없음) → 상단 주요전장 드롭다운
+ * 1. 로딩 — 전역 궤도 (altitude 2.85)
+ * 2. 환영 편지지 / 도메인 선택
+ * 3. 전역 지구본 히어로 유지 → "핫 지역으로 갈까요?" 선택창 후에만 줌인
  */
 /** 고도는 런타임에 LOD 앵커로 바뀌므로 literal이 되면 안 됨 (`as const` 금지). */
 export const ENTRY_GATE: {
@@ -38,12 +37,12 @@ export const ENTRY_GATE: {
    */
   bootAltitude: 2.85,
   /**
-   * 홍해·바브엘만데브 — 2026 지정학 입구 최우선 해상 위협 항로.
-   * ([lng, lat] ≈ [43.35, 12.61])
+   * 전역 시야 중심 — 특정 초크/전장에 붙이지 않음.
+   * (아프리카·유럽·중동·남아가 한 화면에 들어오는 중립 앵커)
    */
   bootLookAt: {
-    lat: CONFLICT_ENTRY_MARITIME_FLY.lat,
-    lng: CONFLICT_ENTRY_MARITIME_FLY.lng,
+    lat: 18,
+    lng: 25,
   },
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
   zoomOutAltitude: 2.85,
@@ -73,7 +72,7 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 홍해·해상 위협 스택을 먼저 켠다 (+ 공통 에너지·자원) */
+/** 지정학 히어로 — 홍해·해상 위협 + 자원(해저관·송유관·원자력) */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...RED_SEA_HOUTHI_STACK,
   showWarZones: true,
@@ -87,17 +86,17 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showSubmarineCables: true,
   showNewfeedsIranAttacks: true,
   showUsCarriers: true,
-  ...SHARED_RESOURCE_LAYER_ON,
+  ...CONFLICT_RESOURCE_HERO_ON,
 };
 
-/** 지경학 히어로 — 요청 기본 레이어 (+ 공통 에너지·자원) */
+/** 지경학 히어로 — 시장 기본 + 자원(매장지·가스관·LNG) */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   showAis: true,
   showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
   showSubmarineCables: true,
-  ...SHARED_RESOURCE_LAYER_ON,
+  ...ECONOMY_RESOURCE_HERO_ON,
   showAiDataCenters: true,
   showPorts: true,
   showAirports: true,
@@ -129,7 +128,7 @@ export function buildDomainOverviewPrefs(
     } else {
       next = { ...next, ...ECONOMY_HERO_ON };
     }
-    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode);
     if (mode === "conflict") {
       next = {
         ...next,
@@ -137,14 +136,14 @@ export function buildDomainOverviewPrefs(
         showDiplomaticTension: true,
         showGdeltWar: true,
       };
-      next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true));
+      next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode);
     }
   } else if (mode === "conflict") {
     next = clampPrefsToActiveCap(next, false);
     next = { ...next, ...CONFLICT_HERO_ON };
-    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, false));
+    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, false), mode);
   } else {
-    next = ensureResourceLayersOn(next);
+    next = ensureResourceLayersOn(next, mode);
   }
 
   return next;

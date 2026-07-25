@@ -48,6 +48,10 @@ export type LampFeaturedNews = {
   trustTier: 1 | 2 | 3;
   /** 예: Nvidia · 반도체 / 중동 · IDF */
   focusLabel?: string;
+  /** 지역·전장 버킷 — 사이드 집계·컬러 면 */
+  theater?: string;
+  /** 지경학 장르 — 컬러 테마·라벨 */
+  econGenre?: string;
   /** 외교·정상회담 등 — 뱃지·슬롯 캡용 */
   isDiplomacy?: boolean;
   /** 외교 카드용 한 줄 훅 (왜 중요한지 맛보기) */
@@ -899,15 +903,57 @@ function matchedFocusEntities(text: string) {
   return MARKET_FOCUS_ENTITIES.filter((e) => e.re.test(text));
 }
 
+/** 지경학 등불 — 지역 요약 라벨 (지정학 전장 라벨과 동일 축, 시장 톤) */
+const ECONOMY_REGION_FOCUS_KO: Record<string, string> = {
+  "middle-east": "중동",
+  "russia-ukraine": "러·우 · 에너지",
+  "china-taiwan": "미·중 · 아태",
+  korea: "한반도",
+  japan: "일본",
+  "south-asia": "남아시아",
+  "southeast-asia": "동남아",
+  "south-america": "남미",
+  africa: "아프리카",
+  arctic: "북극",
+  atlantic: "대서양",
+  global: "글로벌",
+};
+
+const ECONOMY_REGION_FOCUS_EN: Record<string, string> = {
+  "middle-east": "Middle East",
+  "russia-ukraine": "Russia–Ukraine · energy",
+  "china-taiwan": "US–China · Asia-Pacific",
+  korea: "Korean Peninsula",
+  japan: "Japan",
+  "south-asia": "South Asia",
+  "southeast-asia": "SE Asia",
+  "south-america": "South America",
+  africa: "Africa",
+  arctic: "Arctic",
+  atlantic: "Atlantic",
+  global: "Global",
+};
+
+function economyRegionLabel(
+  theater: string | undefined,
+  lang: "ko" | "en",
+): string | undefined {
+  if (!theater) return undefined;
+  const map = lang === "en" ? ECONOMY_REGION_FOCUS_EN : ECONOMY_REGION_FOCUS_KO;
+  return map[theater];
+}
+
 function buildFocusLabel(
   text: string,
   genre: string | undefined,
   lang: "ko" | "en",
+  theater?: string,
 ): string | undefined {
   const hits = matchedFocusEntities(text).slice(0, 2);
   const genreLabel =
     lang === "en" ? GENRE_FOCUS_EN[genre ?? ""] : GENRE_FOCUS_KO[genre ?? ""];
   const names = hits.map((h) => (lang === "en" ? h.labelEn : h.labelKo));
+  const regionTag = economyRegionLabel(theater, lang);
   const koreaTag = mentionsSouthKorea(text)
     ? lang === "en"
       ? "Korea"
@@ -924,8 +970,9 @@ function buildFocusLabel(
       ? `Chokepoint · ${choke}`
       : `초크 · ${choke}`
     : null;
+  // 지정학과 같이 지역을 맨 앞에 — 사이드 집계·컬러 면 라벨용
   const parts = [
-    koreaTag,
+    koreaTag ?? regionTag,
     chokeTag || undefined,
     rivalry || undefined,
     chinaIndustry || undefined,
@@ -933,7 +980,12 @@ function buildFocusLabel(
     genreLabel,
   ].filter(Boolean) as string[];
   if (parts.length === 0) return undefined;
-  return parts.join(" · ");
+  // koreaTag가 지역을 대체해도 theater가 있으면 중복 제거 후 지역 유지
+  const deduped: string[] = [];
+  for (const p of parts) {
+    if (!deduped.includes(p)) deduped.push(p);
+  }
+  return deduped.join(" · ");
 }
 
 function deepenSummary(raw: string | undefined, title: string): string {
@@ -1076,6 +1128,7 @@ function toFeatured(
 ): LampFeaturedNews {
   const item = row.item;
   const blob = `${item.title} ${item.summary ?? ""}`;
+  const theater = item.theater?.trim() || undefined;
   return {
     id: item.id,
     title: item.title,
@@ -1084,7 +1137,9 @@ function toFeatured(
     link: item.link,
     source: item.publisher || item.source,
     trustTier: item.trustTier,
-    focusLabel: buildFocusLabel(blob, item.econGenre, lang),
+    theater,
+    econGenre: item.econGenre,
+    focusLabel: buildFocusLabel(blob, item.econGenre, lang, theater),
   };
 }
 
@@ -1793,6 +1848,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
     link: item.link,
     source: item.publisher || item.source,
     trustTier: item.trustTier,
+    theater: row.theater,
     focusLabel: buildConflictFocusLabel(blob, row.theater, lang),
     isDiplomacy,
     matterHook: buildMatterHook(blob, row.theater, isDiplomacy, lang),

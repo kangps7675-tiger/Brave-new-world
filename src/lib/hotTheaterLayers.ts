@@ -2,15 +2,15 @@
  * 오늘 핫한 전장·초크 → 유저가 바로 봐야 할 뉴스/전황 레이어 패치.
  * daily-ranks TOP을 읽어 conceptLayers 스택에 얹는다.
  *
- * 후티(홍해) 전용 공습경보 API는 아직 없음.
- * 1차: bab-el-mandeb / red-sea 핫이면 항로·초크·FIRMS·GDELT·NewFeeds를 켠다.
- * 2차(추후): UKMTO·CENTCOM 해상경보 → Tzeva/NEPTUN처럼 airRaidIngest 복제.
+ * 핫존은 그 순간의 랭킹이 정한다 — 홍해/특정 초크를 하드코딩하지 않는다.
+ * 홍해·후티 스택은 TOP이 그 초크일 때만 켠다.
  */
 
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { DailyRankEntry, DailyRanksPayload } from "@/lib/dailyRanks";
 import { conceptLayersForConflict } from "@/lib/conceptLayers";
 import { THEATER_FLY_TO } from "@/lib/news/theaterMap";
+import type { NewsTheater } from "@/lib/news/types";
 
 type BooleanLayerKey = {
   [K in keyof LayerPrefs]: LayerPrefs[K] extends boolean ? K : never;
@@ -44,12 +44,23 @@ const ENTITY_FLY: Record<string, { lat: number; lng: number; altitude: number }>
     lng: THEATER_FLY_TO.korea.lng,
     altitude: 0.75,
   },
+  japan: THEATER_FLY_TO.japan,
+  "south-asia": THEATER_FLY_TO["south-asia"],
+  "southeast-asia": THEATER_FLY_TO["southeast-asia"],
+  "south-america": THEATER_FLY_TO["south-america"],
+  africa: THEATER_FLY_TO.africa,
+  arctic: THEATER_FLY_TO.arctic,
+  atlantic: THEATER_FLY_TO.atlantic,
   "choke-hormuz": { lat: 26.58, lng: 56.25, altitude: 0.72 },
   "choke-suez": { lat: 31.25, lng: 32.34, altitude: 0.85 },
   "choke-bab-el-mandeb": { lat: 12.61, lng: 43.35, altitude: 0.8 },
+  "choke-malacca": { lat: 2.5, lng: 101.5, altitude: 0.85 },
+  "choke-taiwan": { lat: 24.48, lng: 119.5, altitude: 0.9 },
+  "choke-gibraltar": { lat: 35.95, lng: -5.6, altitude: 0.85 },
+  "choke-good-hope": { lat: -34.35, lng: 18.48, altitude: 1.2 },
 };
 
-/** 홍해·후티 회랑 — 공식 경보 전 MVP 레이어 */
+/** 홍해·후티 회랑 — TOP이 홍해 계열일 때만 사용 */
 export const RED_SEA_HOUTHI_STACK: HotTheaterLayerPatch = {
   showShippingLanes: true,
   showLogisticsRisk: true,
@@ -66,10 +77,7 @@ export const RED_SEA_HOUTHI_STACK: HotTheaterLayerPatch = {
   showNavareaWarnings: true,
 };
 
-/**
- * 2026 기준 지정학 입구 최우선 해상 위협:
- * 호르무즈 위기 이후 홍해·바브엘만데브가 가장 위태로운 항로.
- */
+/** @deprecated 입구 자동 홍해 fly는 제거됨. 좌표 맵 참조용으로만 유지. */
 export const CONFLICT_ENTRY_MARITIME_FLY = ENTITY_FLY["choke-bab-el-mandeb"]!;
 
 const RED_SEA_CHOKE_IDS = new Set([
@@ -78,53 +86,62 @@ const RED_SEA_CHOKE_IDS = new Set([
   "choke-hormuz",
 ]);
 
-const MARITIME_CHOKE_PRIORITY = [
-  "choke-bab-el-mandeb",
-  "choke-hormuz",
-  "choke-suez",
-] as const;
+const MARITIME_BASE_STACK: HotTheaterLayerPatch = {
+  showShippingLanes: true,
+  showLogisticsRisk: true,
+  showPorts: true,
+  showAis: true,
+  showUkmtoIncidents: true,
+  showNavareaWarnings: true,
+  showUsCarriers: true,
+};
 
 function theaterToConcept(
   entityId: string,
 ): "russia-ukraine" | "korea" | "china-taiwan" | "middle-east" | null {
-  if (entityId === "ukraine") return "russia-ukraine";
+  if (entityId === "ukraine" || entityId === "russia-ukraine") return "russia-ukraine";
   if (entityId === "korea") return "korea";
-  if (entityId === "taiwan") return "china-taiwan";
+  if (entityId === "taiwan" || entityId === "china-taiwan") return "china-taiwan";
   if (entityId === "middle-east") return "middle-east";
   return null;
 }
 
-function isRedSeaHot(chokepoints: DailyRankEntry[]): boolean {
-  return chokepoints.some(
-    (c) => RED_SEA_CHOKE_IDS.has(c.entityId) && c.rank <= 3,
-  );
-}
-
-function pickPriorityMaritimeChoke(
-  chokepoints: DailyRankEntry[],
-): string | null {
-  for (const id of MARITIME_CHOKE_PRIORITY) {
-    if (chokepoints.some((c) => c.entityId === id && c.rank <= 5)) return id;
+function flyForEntity(entityId: string): { lat: number; lng: number; altitude: number } | null {
+  if (ENTITY_FLY[entityId]) return ENTITY_FLY[entityId]!;
+  if (Object.prototype.hasOwnProperty.call(THEATER_FLY_TO, entityId)) {
+    return THEATER_FLY_TO[entityId as NewsTheater];
   }
-  const top = chokepoints[0];
-  if (top && RED_SEA_CHOKE_IDS.has(top.entityId)) return top.entityId;
   return null;
 }
 
-function pickFly(
-  priorityMaritimeId: string | null,
-): { lat: number; lng: number; altitude: number } {
-  // 지정학 입구: 대만·우크라 전장보다 해상 초크를 항상 먼저
-  if (priorityMaritimeId && ENTITY_FLY[priorityMaritimeId]) {
-    return ENTITY_FLY[priorityMaritimeId];
+function patchForHotEntry(entry: DailyRankEntry): HotTheaterLayerPatch {
+  if (entry.kind === "chokepoint") {
+    if (RED_SEA_CHOKE_IDS.has(entry.entityId)) {
+      return { ...RED_SEA_HOUTHI_STACK };
+    }
+    return {
+      ...MARITIME_BASE_STACK,
+      showFirmsFires: true,
+      showGdeltWar: true,
+      showGdeltDiplomatic: true,
+    };
   }
-  return CONFLICT_ENTRY_MARITIME_FLY;
+
+  const concept = theaterToConcept(entry.entityId);
+  if (concept) {
+    return { ...conceptLayersForConflict(concept) };
+  }
+  return {
+    showWarZones: true,
+    showGdeltWar: true,
+    showGdeltDiplomatic: true,
+    showMilitaryActivity: true,
+  };
 }
 
 /**
- * daily-ranks 응답 → ON-only 레이어 패치 + 카메라 후보.
- * OFF는 건드리지 않음(유저가 켠 다른 레이어 유지).
- * 지정학에서는 홍해·호르무즈 해상 위협을 최우선으로 연다.
+ * daily-ranks 응답 → 그 순간 가장 핫한 1곳.
+ * 전장 TOP vs 초크 TOP을 score로 비교. 데이터 없으면 null (가짜 홍해 폴백 없음).
  */
 export function resolveHotTheaterFocus(
   ranks: Pick<DailyRanksPayload, "theater" | "chokepoint">,
@@ -133,76 +150,25 @@ export function resolveHotTheaterFocus(
   const chokepoints = ranks.chokepoint ?? [];
   const topTheater = theaters[0] ?? null;
   const topChoke = chokepoints[0] ?? null;
-  if (!topTheater && !topChoke) {
-    // ranks 비어도 지정학 입구용 기본 해상 위협 포커스
-    return {
-      theaterId: "middle-east",
-      chokeId: "choke-bab-el-mandeb",
-      patch: { ...RED_SEA_HOUTHI_STACK },
-      fly: CONFLICT_ENTRY_MARITIME_FLY,
-      labelKo: "홍해·바브엘만데브 해상 위협",
-      labelEn: "Red Sea · Bab el-Mandeb maritime threat",
-    };
-  }
+  if (!topTheater && !topChoke) return null;
 
-  const theaterId = topTheater?.entityId ?? null;
-  const chokeId = topChoke?.entityId ?? null;
-  const redSeaChokeHot = isRedSeaHot(chokepoints);
-  const middleEastHot = theaterId === "middle-east";
-  const priorityMaritimeId = pickPriorityMaritimeChoke(chokepoints);
-
-  let patch: HotTheaterLayerPatch = {};
-  const concept = theaterId ? theaterToConcept(theaterId) : null;
-  if (concept) {
-    patch = { ...conceptLayersForConflict(concept) };
+  let winner: DailyRankEntry;
+  if (topTheater && topChoke) {
+    winner = topTheater.score >= topChoke.score ? topTheater : topChoke;
   } else {
-    patch = {
-      showWarZones: true,
-      showGdeltWar: true,
-      showGdeltDiplomatic: true,
-    };
+    winner = (topTheater ?? topChoke)!;
   }
 
-  // 지정학 핫 포커스: 홍해·해상 위협 스택을 항상 먼저 연다
-  patch = { ...patch, ...RED_SEA_HOUTHI_STACK };
-
-  if (
-    chokeId === "choke-hormuz" ||
-    priorityMaritimeId === "choke-hormuz" ||
-    middleEastHot
-  ) {
-    patch = { ...patch, showNewfeedsIranAttacks: true, showFirmsFires: true };
-  }
-
-  const flyChokeId = priorityMaritimeId || "choke-bab-el-mandeb";
-  const labelKo =
-    flyChokeId === "choke-bab-el-mandeb"
-      ? "홍해·바브엘만데브 해상 위협"
-      : flyChokeId === "choke-hormuz"
-        ? "호르무즈 해협 해상 위협"
-        : flyChokeId === "choke-suez"
-          ? "수에즈·홍해 회랑"
-          : redSeaChokeHot && middleEastHot
-            ? "중동·홍해 핫존"
-            : topTheater?.labelKo || topChoke?.labelKo || "핫 전장";
-  const labelEn =
-    flyChokeId === "choke-bab-el-mandeb"
-      ? "Red Sea · Bab el-Mandeb maritime threat"
-      : flyChokeId === "choke-hormuz"
-        ? "Strait of Hormuz maritime threat"
-        : flyChokeId === "choke-suez"
-          ? "Suez · Red Sea corridor"
-          : redSeaChokeHot && middleEastHot
-            ? "Middle East · Red Sea hot zone"
-            : topTheater?.labelEn || topChoke?.labelEn || "Hot theater";
+  const theaterId = winner.kind === "theater" ? winner.entityId : topTheater?.entityId ?? null;
+  const chokeId = winner.kind === "chokepoint" ? winner.entityId : null;
 
   return {
     theaterId,
-    chokeId: flyChokeId,
-    patch,
-    fly: pickFly(priorityMaritimeId),
-    labelKo,
-    labelEn,
+    chokeId,
+    patch: patchForHotEntry(winner),
+    fly: flyForEntity(winner.entityId),
+    labelKo: winner.labelKo,
+    labelEn: winner.labelEn,
   };
 }
 

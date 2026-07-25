@@ -45,7 +45,7 @@ function linkToPath(link: DfcLink, lang: "ko" | "en"): TransportPath {
     name,
     scalerank: 1,
     lengthKm: null,
-    accentColor: `rgba(59, 130, 246, ${(0.38 + weight * 0.52).toFixed(3)})`,
+    accentColor: `rgba(59, 130, 246, ${(0.55 + weight * 0.4).toFixed(3)})`,
     bbox: {
       minLat: Math.min(link.olat, link.lat),
       minLng: Math.min(link.olng, link.lng),
@@ -69,7 +69,8 @@ export function usDfcSupplyPathsToTransport(lang: "ko" | "en" = "ko"): Transport
 
 export function usDfcSupplyStrokeWidth(path: TransportPath): number {
   const amount = amountById.get(path.id) ?? 0;
-  return 0.8 + normalizedAmount(amount) * 1.8;
+  return 1.35 + normalizedAmount(amount) * 2.2;
 }
 
 export const US_DFC_SUPPLY_SUMMARY = dfcData.summary;
+export const US_DFC_LINK_COUNT = links.length;

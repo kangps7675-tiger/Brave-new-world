@@ -25,6 +25,8 @@ IRONSIGHT/.next/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+build-out.log
+build-out.txt
 
 # local env files
 .env

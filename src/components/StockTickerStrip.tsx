@@ -226,7 +226,7 @@ export function StockTickerStrip({
             Markets
           </span>
           <span className="text-[10px] text-slate-500">
-            {mode === "alert" ? "전장 연관 · 변동성 강조" : "10분 갱신"}
+            {mode === "alert" ? "전장 연관 · 변동성 강조" : "Yahoo 15분 · FRED 보완"}
           </span>
         </div>
       ) : null}

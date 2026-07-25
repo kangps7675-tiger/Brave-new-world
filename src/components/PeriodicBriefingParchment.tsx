@@ -106,11 +106,13 @@ function PhotoNewsLampParchment({
   const exiting = phase === "folding" || phase === "done";
   const news = useMemo(() => briefing.featuredNews ?? [], [briefing.featuredNews]);
   const macroRows = briefing.macroTable ?? [];
-  const isEconomy = macroRows.length > 0;
+  /** 거시 표 실패해도 키로 지경학 판별 — 지역 요약·컬러 면이 빠지지 않게 */
+  const isEconomy =
+    /-economy(?:$|-)/.test(briefing.key) || macroRows.length > 0;
   const mobilePreview = 4;
   const visibleNews =
-    !isEconomy && isNarrow && !expandedNews ? news.slice(0, mobilePreview) : news;
-  const canExpandNews = !isEconomy && isNarrow && news.length > mobilePreview && !expandedNews;
+    isNarrow && !expandedNews ? news.slice(0, mobilePreview) : news;
+  const canExpandNews = isNarrow && news.length > mobilePreview && !expandedNews;
   const titleLines = briefing.title.split("\n");
   const kicker = titleLines[0] ?? briefing.title;
   const subtitle =
@@ -124,23 +126,31 @@ function PhotoNewsLampParchment({
         : "오늘의 전장 데스크");
 
   const theaterRows = useMemo(() => {
-    if (isEconomy) return [];
     const counts = new Map<string, number>();
     for (const item of news) {
       const label = (item.focusLabel ?? "").split("·")[0]?.trim() || item.focusLabel || "—";
       counts.set(label, (counts.get(label) ?? 0) + 1);
     }
-    return Array.from(counts.entries()).map(([theater, count]) => ({ theater, count }));
-  }, [isEconomy, news]);
+    return Array.from(counts.entries())
+      .map(([theater, count]) => ({ theater, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [news]);
 
-  const categoryLabel = isEconomy
+  const regionCategoryLabel = isEconomy
     ? lang === "en"
-      ? "Macro snapshot"
-      : "거시 스냅샷"
+      ? "Regions in frame"
+      : "담긴 지역"
     : lang === "en"
       ? "Theaters in frame"
       : "담긴 전장";
-  const categoryCount = isEconomy ? macroRows.length : theaterRows.length;
+  const categoryLabel = isEconomy
+    ? lang === "en"
+      ? "Macro · regions"
+      : "거시 · 지역"
+    : regionCategoryLabel;
+  const categoryCount = isEconomy
+    ? macroRows.length + theaterRows.length
+    : theaterRows.length;
   const categorySummary =
     categoryCount > 0
       ? lang === "en"
@@ -184,13 +194,55 @@ function PhotoNewsLampParchment({
     }, reduced ? 80 : PARCHMENT_FOLD_EXIT_MS);
   }, [onDismiss, phase]);
 
+  const regionList = (
+    <>
+      {!isNarrow || isEconomy ? (
+        <p
+          className={`mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7 ${
+            isEconomy ? "mt-4" : ""
+          }`}
+        >
+          {regionCategoryLabel}
+        </p>
+      ) : null}
+      {theaterRows.length > 0 ? (
+        <ul className="space-y-1.5 px-1">
+          {theaterRows.map((row) => (
+            <li
+              key={row.theater}
+              className="flex items-baseline justify-between gap-2 border-b border-[#8b6914]/12 py-2 text-[13px] text-[#3f2e1c]"
+            >
+              <span className="font-medium">{row.theater}</span>
+              <span className="tabular-nums text-[#6b4a22]/75">{row.count}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="px-1 text-[12px] leading-relaxed text-[#5a4428]/7">
+          {lang === "en"
+            ? isEconomy
+              ? "Color desk below — regional market briefs."
+              : "Photo desk below — multi-theater selection."
+            : isEconomy
+              ? "아래 컬러 데스크에서 지역별 시장 요약본을 보세요."
+              : "아래 사진 데스크에서 전장별 고신뢰 뉴스를 보세요."}
+        </p>
+      )}
+      <p className="mt-4 px-1 text-[11px] leading-relaxed text-[#5a4428]/65">
+        {lang === "en"
+          ? "Summaries stay short. Open → for the full article."
+          : "등불은 요약본입니다. 원문은 → 로 이동합니다."}
+      </p>
+    </>
+  );
+
   const categoryBody = (
     <>
       {isEconomy ? (
         <>
           {!isNarrow ? (
             <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
-              {categoryLabel}
+              {lang === "en" ? "Macro snapshot" : "거시 스냅샷"}
             </p>
           ) : null}
           <AnnouncementStrip lang={lang} />
@@ -229,10 +281,11 @@ function PhotoNewsLampParchment({
           ) : (
             <p className="px-1 text-[12px] leading-relaxed text-[#5a4428]/7">
               {lang === "en"
-                ? "Macro table unavailable — news desk below."
-                : "거시 표 데이터를 불러오지 못했습니다. 아래 뉴스 데스크를 보세요."}
+                ? "Macro table unavailable — regional news desk below."
+                : "거시 표 데이터를 불러오지 못했습니다. 아래 지역 뉴스 데스크를 보세요."}
             </p>
           )}
+          {regionList}
         </>
       ) : (
         <>
@@ -261,35 +314,7 @@ function PhotoNewsLampParchment({
               </p>
             </div>
           ) : null}
-          {!isNarrow ? (
-            <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
-              {categoryLabel}
-            </p>
-          ) : null}
-          {theaterRows.length > 0 ? (
-            <ul className="space-y-1.5 px-1">
-              {theaterRows.map((row) => (
-                <li
-                  key={row.theater}
-                  className="flex items-baseline justify-between gap-2 border-b border-[#8b6914]/12 py-2 text-[13px] text-[#3f2e1c]"
-                >
-                  <span className="font-medium">{row.theater}</span>
-                  <span className="tabular-nums text-[#6b4a22]/75">{row.count}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-1 text-[12px] leading-relaxed text-[#5a4428]/7">
-              {lang === "en"
-                ? "Photo desk below — multi-theater selection."
-                : "아래 사진 데스크에서 전장별 고신뢰 뉴스를 보세요."}
-            </p>
-          )}
-          <p className="mt-4 px-1 text-[11px] leading-relaxed text-[#5a4428]/65">
-            {lang === "en"
-              ? "Summaries stay short. Open → for the full article."
-              : "등불은 요약본입니다. 원문은 → 로 이동합니다."}
-          </p>
+          {regionList}
         </>
       )}
     </>
@@ -407,6 +432,8 @@ function PhotoNewsLampParchment({
                             title={item.title}
                             summary={item.summary}
                             focusLabel={item.focusLabel}
+                            theater={item.theater}
+                            econGenre={item.econGenre}
                             isDiplomacy={item.isDiplomacy}
                             isEconomy={isEconomy}
                             lang={lang}
@@ -573,6 +600,8 @@ function LampCardHero({
   title,
   summary,
   focusLabel,
+  theater,
+  econGenre,
   isDiplomacy,
   isEconomy,
   lang,
@@ -581,14 +610,20 @@ function LampCardHero({
   title: string;
   summary: string;
   focusLabel?: string;
+  theater?: string;
+  econGenre?: string;
   isDiplomacy?: boolean;
   isEconomy: boolean;
   lang: LabelLanguage;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const hasPhoto = Boolean(imageUrl) && !imgFailed;
+  /** 지경학은 지역 컬러 요약면을 우선 — 지정학과 같은 지역 브리핑 톤 */
+  const preferColorFace = isEconomy;
+  const hasPhoto = !preferColorFace && Boolean(imageUrl) && !imgFailed;
   const theme = resolveLampThumbTheme({
     mode: isEconomy ? "economy" : "conflict",
+    theater,
+    econGenre,
     title,
     summary,
     focusLabel,

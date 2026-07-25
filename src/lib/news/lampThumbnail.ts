@@ -11,7 +11,11 @@ export type LampThumbTheme =
   | "shipping"
   | "china"
   | "asia"
-  | "middle-east";
+  | "middle-east"
+  | "europe"
+  | "americas"
+  | "africa"
+  | "russia";
 
 /** Tailwind 그라데이션 — 양피지 톤에 맞춘 어두운 면 */
 export const LAMP_THUMB_GRADIENT: Record<LampThumbTheme, string> = {
@@ -23,6 +27,10 @@ export const LAMP_THUMB_GRADIENT: Record<LampThumbTheme, string> = {
   china: "from-[#3a1e20] via-[#2a181a] to-[#1e1416]",
   asia: "from-[#1e2836] via-[#1a222e] to-[#161a24]",
   "middle-east": "from-[#3a2a1a] via-[#2a2016] to-[#1e1812]",
+  europe: "from-[#1c2438] via-[#182032] to-[#141a28]",
+  americas: "from-[#1e2e28] via-[#1a2620] to-[#161e1a]",
+  africa: "from-[#3a2e18] via-[#2a2414] to-[#1e1a12]",
+  russia: "from-[#1c2838] via-[#182230] to-[#141c28]",
 };
 
 export const LAMP_THUMB_LABEL: Record<
@@ -37,7 +45,38 @@ export const LAMP_THUMB_LABEL: Record<
   china: { ko: "중국", en: "China" },
   asia: { ko: "아시아", en: "Asia" },
   "middle-east": { ko: "중동", en: "MENA" },
+  europe: { ko: "유럽", en: "Europe" },
+  americas: { ko: "미주", en: "Americas" },
+  africa: { ko: "아프리카", en: "Africa" },
+  russia: { ko: "러·우", en: "Russia–UA" },
 };
+
+/** theater → 지역 컬러 면 (장르보다 우선하되 chips/energy/shipping은 장르가 이김) */
+function themeFromTheater(theater: string | undefined): LampThumbTheme | null {
+  switch (theater) {
+    case "china-taiwan":
+      return "china";
+    case "middle-east":
+      return "middle-east";
+    case "korea":
+    case "japan":
+    case "south-asia":
+    case "southeast-asia":
+    case "arctic":
+      return "asia";
+    case "russia-ukraine":
+      return "russia";
+    case "south-america":
+    case "atlantic":
+      return "americas";
+    case "africa":
+      return "africa";
+    case "global":
+      return null;
+    default:
+      return null;
+  }
+}
 
 export function resolveLampThumbTheme(input: {
   mode?: "economy" | "conflict";
@@ -48,34 +87,40 @@ export function resolveLampThumbTheme(input: {
   focusLabel?: string;
 }): LampThumbTheme {
   const blob = `${input.title ?? ""} ${input.summary ?? ""} ${input.focusLabel ?? ""}`;
-  if (/china|chinese|beijing|미·중|미중|중국/i.test(blob) || input.theater === "china-taiwan") {
-    if (input.econGenre === "chips" || /chip|semiconductor|tsmc|smic|반도체/i.test(blob)) {
-      return "chips";
-    }
-    return "china";
+
+  // 장르 하드 신호는 지역보다 우선 (반도체·에너지·해운 카드 정체성)
+  if (input.econGenre === "chips" || /chip|semiconductor|gpu|반도체/i.test(blob)) {
+    return "chips";
   }
-  if (
-    input.theater === "middle-east" ||
-    /hormuz|red\s?sea|suez|saudi|aramco|iran|israel|호르무즈|홍해/i.test(blob)
-  ) {
-    return "middle-east";
+  if (input.econGenre === "energy" || /oil|lng|opec|brent|유가|원유/i.test(blob)) {
+    return "energy";
   }
-  if (
-    input.theater === "korea" ||
-    input.theater === "japan" ||
-    input.theater === "south-asia" ||
-    /korea|japan|taiwan|asean|india|한국|일본|대만|아세안|인도/i.test(blob)
-  ) {
-    return "asia";
-  }
-  if (input.econGenre === "chips" || /chip|semiconductor|gpu|반도체/i.test(blob)) return "chips";
-  if (input.econGenre === "energy" || /oil|lng|opec|brent|유가|원유/i.test(blob)) return "energy";
   if (
     input.econGenre === "shipping" ||
     /shipping|freight|chokepoint|운임|해운/i.test(blob)
   ) {
     return "shipping";
   }
+
+  const fromTheater = themeFromTheater(input.theater);
+  if (fromTheater) return fromTheater;
+
+  if (/china|chinese|beijing|미·중|미중|중국/i.test(blob)) return "china";
+  if (
+    /hormuz|red\s?sea|suez|saudi|aramco|iran|israel|호르무즈|홍해/i.test(blob)
+  ) {
+    return "middle-east";
+  }
+  if (
+    /korea|japan|taiwan|asean|india|한국|일본|대만|아세안|인도/i.test(blob)
+  ) {
+    return "asia";
+  }
+  if (/europe|eu\b|ecb|eurozone|유럽|유로/i.test(blob)) return "europe";
+  if (/russia|ukraine|러시아|우크라이나/i.test(blob)) return "russia";
+  if (/africa|아프리카/i.test(blob)) return "africa";
+  if (/brazil|argentina|latin|남미|브라질/i.test(blob)) return "americas";
+
   if (input.mode === "conflict") return "conflict";
   return "economy";
 }

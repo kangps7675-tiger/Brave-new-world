@@ -2,6 +2,8 @@
 const nextConfig = {
   // 기존 unused-vars가 build를 막지 않도록 (webpack 번들 오류와 별개)
   eslint: { ignoreDuringBuilds: true },
+  // 로컬/저메모리에서 next 내장 tsc가 OOM 나므로 게이트는 `npx tsc --noEmit`
+  typescript: { ignoreBuildErrors: true },
   experimental: {
     optimizePackageImports: ["maplibre-gl"],
     // wrangler/miniflare를 서버 번들에 넣으면 blake3-wasm·esbuild가 깨짐

@@ -7,6 +7,7 @@ import type {
   FirmsFire,
   MilitaryAircraft,
   MilitaryBaseArea,
+  ResourceDepositArea,
   SearchPlace,
   StaticPoint,
   UkraineControlZone,
@@ -28,6 +29,8 @@ import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
 import type { MergedViewConfig } from "@/lib/viewPackages";
 import type { PlaceLabelTier } from "@/lib/placeLabelColors";
 import type { NewsTheater } from "@/lib/news/types";
+import type { GpsJamPolygonFeature } from "@/hooks/useGpsJamLayer";
+import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
 
 export type Selection =
   | { kind: "event"; item: ConflictEvent }
@@ -43,17 +46,21 @@ export type Selection =
     }
   | { kind: "ukraine-control"; item: UkraineControlZone }
   | { kind: "us-carrier"; item: UsCarrier }
-  | { kind: "neptun-threat"; item: NeptunLiveThreat };
+  | { kind: "recon-sat"; item: ReconSatelliteMarker }
+  | { kind: "neptun-threat"; item: NeptunLiveThreat }
+  | { kind: "chokepoint"; item: StaticPoint };
 
 export type AnalysisSelection = Exclude<Selection, { kind: "neptun-threat" }>;
 
 export type PolygonLayerFeature =
   | (CountryFeature & { polygonLayer: "country" })
   | (MilitaryBaseArea & { polygonLayer: "military-base" })
+  | (ResourceDepositArea & { polygonLayer: "resource-deposit" })
   | (ConflictZoneFeature & { polygonLayer: "conflict-zone" })
   | (UkraineControlZone & {
       polygonLayer: "ukraine-ru" | "ukraine-ua" | "ukraine-contested";
-    });
+    })
+  | GpsJamPolygonFeature;
 
 export type GlobePoint = ScoredEvent & { markerId: string; displayKind: "event" };
 
@@ -121,6 +128,19 @@ export type PulseRingPoint =
       glow: number;
       /** 해역 폭에 맞춘 링 반경(deg) */
       radiusScale: number;
+      markerId: string;
+      /** 물류 스트레스 등급색 (없으면 기본 주황) */
+      color?: string;
+    }
+  | {
+      /** 정찰위성 이론상 지평선 가시권 — 촬영 영역 아님 */
+      pulseKind: "recon-horizon";
+      id: string;
+      lat: number;
+      lng: number;
+      /** ringMaxRadius에 넣을 값 (= horizonDeg / 0.35) */
+      radiusScale: number;
+      color: string;
       markerId: string;
     };
 
@@ -283,7 +303,8 @@ export type GlobeDisplayPoint =
   | NewfeedsAttackGlobePoint
   | CasualtySkullHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
-  | KoreaMissileIncidentHtmlMarker;
+  | KoreaMissileIncidentHtmlMarker
+  | ReconSatelliteMarker;
 
 export type GlobeLabel = SearchPlace & { labelKind: "place" };
 
@@ -307,7 +328,8 @@ export type HtmlOverlayMarker =
   | KoreaMissileIncidentHtmlMarker
   | NewfeedsAttackGlobePoint
   | NewsStreamNeonMarker
-  | TelegramNeonMarker;
+  | TelegramNeonMarker
+  | ReconSatelliteMarker;
 
 export type HoverCard =
   | {

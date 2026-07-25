@@ -10,8 +10,7 @@ type ServerDonateChipProps = {
 };
 
 /**
- * 좌측 크롬(햄버거·항모) 열 안 — 긴장 상승·상황 변화 패널 위쪽.
- * 레이어 패널이 열리면 부모에서 숨겨 패널을 가리지 않는다.
+ * 우측 크롬(항모·공급망 토글) 열 — 레이어 패널·우측 분석 독이 열리면 부모에서 숨김.
  */
 export function ServerDonateChip({ lang }: ServerDonateChipProps) {
   const [open, setOpen] = useState(false);

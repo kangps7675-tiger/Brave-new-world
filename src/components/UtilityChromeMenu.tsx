@@ -6,6 +6,9 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { captureMapAsImage, shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { PARCHMENT_PRO_TIP_COPY } from "@/components/ParchmentProTipChip";
 import { trackEvent } from "@/lib/trackClient";
+import { buildSceneUrl } from "@/lib/sceneLink";
+import type { LayerPrefs } from "@/lib/layerPrefs";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 const DISCORD_INVITE =
   typeof process !== "undefined"
@@ -16,6 +19,14 @@ type UtilityChromeMenuProps = {
   lang: LabelLanguage;
   showProTip?: boolean;
   getCanvas: () => HTMLCanvasElement | null;
+  /** 카메라·모드·레이어 스냅샷 — 진짜 장면 딥링크(?scene=…)용 */
+  getScene?: () => {
+    mode: ViewerMode;
+    lat: number;
+    lng: number;
+    altitude: number;
+    prefs: LayerPrefs;
+  } | null;
   onTrust: () => void;
   onSources: () => void;
   onTour: () => void;
@@ -64,6 +75,7 @@ export function UtilityChromeMenu({
   lang,
   showProTip = true,
   getCanvas,
+  getScene,
   onTrust,
   onSources,
   onTour,
@@ -135,18 +147,21 @@ export function UtilityChromeMenu({
   }, [dismiss, getCanvas, lang, shareBusy, siteName]);
 
   const handleSceneLink = useCallback(async () => {
-    const href = typeof window !== "undefined" ? window.location.href : "";
+    if (typeof window === "undefined") return;
+    // 카메라·모드·레이어가 담긴 진짜 딥링크(?scene=…). 없으면 현재 URL 폴백.
+    const scene = getScene?.();
+    const href = scene ? buildSceneUrl(window.location.origin, scene) : window.location.href;
     if (!href) return;
     try {
       await navigator.clipboard.writeText(href);
       setSceneStatus("ok");
-      trackEvent("scene_link_copy", undefined, { lang });
+      trackEvent("scene_link_copy", { deep: scene ? 1 : 0 }, { lang });
       window.setTimeout(() => setSceneStatus("idle"), 1600);
     } catch {
       setSceneStatus("fail");
       window.setTimeout(() => setSceneStatus("idle"), 1600);
     }
-  }, [lang]);
+  }, [getScene, lang]);
 
   const handleDiscord = useCallback(() => {
     if (!DISCORD_INVITE) return;

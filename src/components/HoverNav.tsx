@@ -36,14 +36,18 @@ type HoverNavProps = {
   compact?: boolean;
   /** compact 드롭다운 하단 슬롯 (전장·프리셋 등) */
   compactMenuExtra?: ReactNode;
-  /** 검색창 위 (nav 공지 배너 등) — fixed 스택 최상단 */
-  aboveNav?: ReactNode;
   /** nav 본문·드롭다운 바로 아래 (지정학/지경학 스위치 등) — 메뉴 열림에 따라 함께 이동 */
   belowNav?: ReactNode;
+  /** 데스크톱 확장 시 우측 도구·경보 슬롯 (포털 타깃 #hover-nav-desktop-tools) */
+  showDesktopToolsSlot?: boolean;
   /** 검색창 옆 「묻기」— 레이어 자동 ON 오버레이 */
   onAskLayersOpen?: () => void;
   askLayersLabel?: string;
+  /** 투어·코치 등 — 호버와 무관하게 상단 크롬을 고정 노출 */
+  forceVisible?: boolean;
 };
+
+const HIDE_DELAY_MS = 220;
 
 export function HoverNav({
   viewerMode,
@@ -56,16 +60,21 @@ export function HoverNav({
   onSearchSelect,
   compact = false,
   compactMenuExtra,
-  aboveNav,
   belowNav,
+  showDesktopToolsSlot = false,
   onAskLayersOpen,
   askLayersLabel,
+  forceVisible = false,
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [openHubId, setOpenHubId] = useState<string | null>(null);
+  /** 데스크톱: 상단 호버로 내려온 상태 (compact는 항상 노출) */
+  const [hoveredOpen, setHoveredOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const chromeRef = useRef<HTMLDivElement>(null);
+  const hideTimerRef = useRef<number | null>(null);
   const isEconomy = viewerMode === "economy";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
@@ -81,6 +90,12 @@ export function HoverNav({
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
+    };
   }, []);
 
   function handleSelect(
@@ -119,6 +134,68 @@ export function HoverNav({
     : "bg-sky-400/15 text-sky-50 shadow-[inset_0_0_0_1px_rgba(125,211,252,0.25)]";
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
+  const pinnedOpen =
+    compact ||
+    forceVisible ||
+    menuExpanded ||
+    searchResults.length > 0 ||
+    query.trim().length > 0;
+  /** 데스크톱: 상시 슬림 노출, 호버·핀이면 확장 */
+  const chromeExpanded = compact || pinnedOpen || hoveredOpen;
+
+  /** 메뉴·검색 고정이 풀렸을 때 마우스가 크롬 밖이면 접기 */
+  useEffect(() => {
+    if (compact || pinnedOpen) return;
+    const el = chromeRef.current;
+    if (el && el.matches(":hover")) return;
+    setHoveredOpen(false);
+  }, [compact, pinnedOpen]);
+
+  /** 글로브 셸이 내려갈 높이 — ResizeObserver */
+  useEffect(() => {
+    if (compact) {
+      document.documentElement.style.setProperty("--hover-nav-height", "0px");
+      return;
+    }
+    const el = chromeRef.current;
+    if (!el) return;
+    const publish = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty(
+        "--hover-nav-height",
+        `${Math.max(0, h)}px`,
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(() => publish());
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.setProperty("--hover-nav-height", "0px");
+    };
+  }, [compact, chromeExpanded, belowNav, showDesktopToolsSlot]);
+
+  const clearHideTimer = () => {
+    if (hideTimerRef.current != null) {
+      window.clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  };
+
+  const revealChrome = () => {
+    if (compact) return;
+    clearHideTimer();
+    setHoveredOpen(true);
+  };
+
+  const scheduleHideChrome = () => {
+    if (compact || pinnedOpen) return;
+    clearHideTimer();
+    hideTimerRef.current = window.setTimeout(() => {
+      setHoveredOpen(false);
+      hideTimerRef.current = null;
+    }, HIDE_DELAY_MS);
+  };
 
   return (
     <div
@@ -127,24 +204,55 @@ export function HoverNav({
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
       }}
     >
-      {aboveNav ? (
-        <div className="pointer-events-auto z-[77] w-full shrink-0">{aboveNav}</div>
+      <div
+        ref={chromeRef}
+        className={`pointer-events-auto flex w-full flex-col items-center transition-[padding] duration-200 ease-out ${
+          compact ? "px-[3.4rem] sm:px-14" : "mt-1.5 px-2 sm:px-3"
+        }`}
+        onMouseEnter={revealChrome}
+        onMouseLeave={scheduleHideChrome}
+        onFocusCapture={revealChrome}
+      >
+      {/* 접힘: 슬림 스트립 — 모드 스위치·아래Nav만. 확장은 검색 행 표시 */}
+      {!compact && !chromeExpanded && belowNav ? (
+        <div className="z-[76] mb-1 flex w-full max-w-3xl items-center justify-center gap-2">
+          {belowNav}
+          <button
+            type="button"
+            onMouseEnter={revealChrome}
+            onClick={revealChrome}
+            className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-medium shadow-md backdrop-blur-md transition ${
+              isEconomy
+                ? "border-emerald-200/20 bg-[#0a1f18]/80 text-emerald-100/80"
+                : "border-sky-200/20 bg-[#162a48]/80 text-sky-100/80"
+            }`}
+            aria-label="메뉴 펼치기"
+          >
+            <SearchIcon className="opacity-60" />
+            <span>메뉴</span>
+          </button>
+        </div>
       ) : null}
 
       <div
-        className={`flex w-full flex-col items-center ${
-          compact ? "px-[3.4rem] sm:px-14" : "px-2 sm:px-3"
-        } ${aboveNav ? "mt-2.5" : "mt-1.5"}`}
+        className={`flex w-full flex-col items-center transition-[max-height,opacity,transform] duration-300 ease-out ${
+          compact || chromeExpanded
+            ? "max-h-[90vh] translate-y-0 opacity-100"
+            : "pointer-events-none max-h-0 -translate-y-2 overflow-hidden opacity-0"
+        }`}
       >
       <nav
         id="app-hover-nav"
         ref={navRef}
-        className={`pointer-events-auto w-full transition-all duration-300 ease-out ${
+        aria-hidden={!(compact || chromeExpanded)}
+        className={`w-full transition-all duration-300 ease-out ${
           compact
             ? "max-w-full"
             : isEconomy
               ? `max-w-md sm:max-w-lg ${menuExpanded ? "max-w-3xl sm:max-w-4xl" : ""}`
-              : "max-w-md sm:max-w-lg"
+              : showDesktopToolsSlot
+                ? "max-w-5xl sm:max-w-6xl"
+                : "max-w-md sm:max-w-lg"
         } ${isEconomy ? "hover-nav--economy font-nav-economy" : "hover-nav--conflict"}`}
       >
         <div
@@ -396,15 +504,17 @@ export function HoverNav({
         ) : null}
       </nav>
 
-      {belowNav ? (
+      {showDesktopToolsSlot && (compact || chromeExpanded) ? (
         <div
-          className={`pointer-events-auto z-[76] flex justify-center ${
-            aboveNav ? "mt-3" : "mt-2.5"
-          }`}
-        >
-          {belowNav}
-        </div>
+          id="hover-nav-desktop-tools"
+          className="z-[76] mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 sm:max-w-6xl"
+        />
       ) : null}
+
+      {(compact || chromeExpanded) && belowNav ? (
+        <div className="z-[76] mt-2.5 flex justify-center">{belowNav}</div>
+      ) : null}
+      </div>
       </div>
     </div>
   );

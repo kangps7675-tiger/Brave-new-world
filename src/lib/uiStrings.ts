@@ -329,6 +329,16 @@ const UI = {
   ariaCloseRegionNews: { ko: "지역 뉴스 패널 닫기", en: "Close regional news panel" },
   ariaCloseInfoPanel: { ko: "정보 패널 닫기", en: "Close info panel" },
   ariaCloseEconomyRegion: { ko: "경제 지역 패널 닫기", en: "Close economy region panel" },
+  chromeUtilityHide: { ko: "숨기기", en: "Hide" },
+  chromeUtilityShow: { ko: "버튼 보이기", en: "Show buttons" },
+  chromeUtilityHideAria: {
+    ko: "상단 유틸 버튼 숨기기",
+    en: "Hide top utility buttons",
+  },
+  chromeUtilityShowAria: {
+    ko: "상단 유틸 버튼 다시 보이기",
+    en: "Show top utility buttons",
+  },
   domainConflictTitle: { ko: "GEOINT", en: "GEOINT" },
   domainConflictHint: {
     ko: "Geospatial Intelligence — 전선·분쟁·군사·외교",
@@ -482,21 +492,12 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
-  doomsdayClockTitle: { ko: "세계 종말 시계", en: "Doomsday Clock" },
-  doomsdayClockToMidnight: { ko: "자정까지", en: "to midnight" },
-  doomsdayClockAtMidnight: { ko: "자정", en: "Midnight" },
-  doomsdayClockMinutesUnit: { ko: "분", en: "min" },
-  doomsdayClockDeltaCloser: {
-    ko: "어제보다 {n}분 더 가까워짐",
-    en: "{n} min closer than yesterday",
-  },
-  doomsdayClockDeltaFarther: {
-    ko: "어제보다 {n}분 멀어짐",
-    en: "{n} min farther than yesterday",
-  },
-  doomsdayClockHint: {
-    ko: "오늘 세계 긴장도(WTI) 기준 · 100%면 자정",
-    en: "Based on today's World Tension Index · midnight at 100%",
+  worldTensionTitle: { ko: "세계 긴장도", en: "World tension" },
+  worldTensionDeltaUp: { ko: "어제보다 {n}점 올라감", en: "up {n} from yesterday" },
+  worldTensionDeltaDown: { ko: "어제보다 {n}점 내려감", en: "down {n} from yesterday" },
+  worldTensionHint: {
+    ko: "전 세계 분쟁·군사 활동을 0~100으로 요약한 점수 (100에 가까울수록 위험)",
+    en: "Global conflict and military activity as a 0–100 score (closer to 100 = more dangerous)",
   },
 } as const;
 

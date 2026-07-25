@@ -15,6 +15,7 @@ type CompactTransport = {
   n?: string | null;
   b: [number, number, number, number];
   p: [number, number][];
+  m?: Record<string, string | number | null>;
 };
 
 type CompactPlace = {
@@ -52,6 +53,7 @@ export function expandTransportPath(raw: CompactTransport | TransportPath): Tran
     lengthKm: null,
     bbox: { minLat, minLng, maxLat, maxLng },
     points: raw.p.map(([lng, lat]) => ({ lng, lat })),
+    ...(raw.m && Object.keys(raw.m).length > 0 ? { meta: raw.m } : {}),
   };
 }
 

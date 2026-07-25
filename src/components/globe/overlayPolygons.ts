@@ -17,7 +17,7 @@ export function overlayPolygonsEqual(
 
 export function isUkraineViinaPolygonLayer(
   layer?: PolygonLayerFeature["polygonLayer"],
-): boolean {
+): layer is "ukraine-ru" | "ukraine-ua" | "ukraine-contested" {
   return (
     layer === "ukraine-ru" || layer === "ukraine-ua" || layer === "ukraine-contested"
   );

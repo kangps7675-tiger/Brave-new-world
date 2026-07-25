@@ -689,10 +689,24 @@ async function main() {
   console.log(`   dispute-overviews: ${overviews.length}`);
 
   try {
+    const { main: buildResourceDeposits } = require("./build-resource-deposits.js");
+    buildResourceDeposits();
+  } catch (error) {
+    console.warn("   resource deposits skipped:", error.message);
+  }
+
+  try {
     const { main: buildGemLayers } = require("./build-gem-layers.js");
     buildGemLayers();
   } catch (error) {
     console.warn("   gem layers skipped:", error.message);
+  }
+
+  try {
+    const { main: buildEmodnetPipelines } = require("./build-emodnet-pipelines.js");
+    await buildEmodnetPipelines();
+  } catch (error) {
+    console.warn("   emodnet pipelines skipped:", error.message);
   }
 }
 

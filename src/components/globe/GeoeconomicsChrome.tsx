@@ -54,6 +54,7 @@ export function GeoeconomicsChrome({
   return (
     <>
       {econNavSelection &&
+        isEconomyViewer &&
         !hasAnalysisSelection &&
         !econInsightOpen &&
         (econNewsPanelReveal ||
@@ -62,7 +63,7 @@ export function GeoeconomicsChrome({
             <button
               type="button"
               aria-label={t("ariaCloseEconomyRegion", labelLanguage)}
-              className="absolute inset-0 z-20 bg-black/15 lg:bg-transparent"
+              className="absolute inset-0 z-20 bg-black/20 lg:bg-black/10"
               onClick={onCloseEconNavSelection}
             />
             <EconomyRegionPanel

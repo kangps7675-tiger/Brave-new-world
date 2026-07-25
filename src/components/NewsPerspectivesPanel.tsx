@@ -55,7 +55,7 @@ export function NewsPerspectivesPanel({
 
   return (
     <aside
-      className="pointer-events-auto absolute right-3 top-20 z-40 flex max-h-[min(78vh,560px)] w-[min(94vw,380px)] flex-col overflow-hidden rounded-2xl border border-slate-500/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-[5.75rem] z-[72] flex max-h-[min(72vh,560px)] w-[min(94vw,380px)] flex-col overflow-hidden rounded-2xl border border-slate-500/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl"
       role="dialog"
       aria-modal="false"
       aria-label={en ? "News perspectives" : "사건 관점 모음"}

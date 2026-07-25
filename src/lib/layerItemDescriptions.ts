@@ -29,6 +29,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "oil-pipelines": "켜면 주요 송유관 노선을 표시합니다.",
   "gas-pipelines": "켜면 주요 천연가스관 노선을 표시합니다.",
   "lng-terminals": "켜면 LNG(액화천연가스) 수출입 터미널 위치를 표시합니다.",
+  "subsea-pipelines":
+    "켜면 EMODnet 유럽 해역 해저 송유·가스관(Nord Stream 등)을 표시합니다.",
   "gem-coal-plants": "켜면 석탄 발전소를 표시합니다.",
   "gem-coal-mines": "켜면 석탄 광산을 표시합니다.",
   "gem-coal-terminals": "켜면 석탄 터미널을 표시합니다.",
@@ -69,6 +71,10 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   cyber: "켜면 사이버 공격·침해 관련 사건 위치를 표시합니다.",
   election: "켜면 선거·정치 리스크와 관련된 사건 위치를 표시합니다.",
   space: "켜면 우주 발사·관련 활동 위치를 표시합니다.",
+  "recon-satellites":
+    "켜면 공개 TLE 기반 정찰·감시 위성 위치를 표시합니다(지정학 전용). 궤적선·가시권은 선택 시에만 보이며, 촬영 영역이 아닙니다.",
+  "gps-interference":
+    "켜면 GPSJam(항공기 GNSS 이상 보고) 기반 재밍 추정 히트맵을 표시합니다. ON 시 다른 레이어는 숨깁니다. 재밍원·장비 위치는 표시하지 않습니다.",
   economic: "켜면 주요 경제·금융 중심지 위치를 표시합니다.",
   "ai-dc": "켜면 AI·데이터센터 관련 거점 위치를 표시합니다.",
   "east-asia-neon":

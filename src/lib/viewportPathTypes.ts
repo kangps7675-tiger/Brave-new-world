@@ -6,6 +6,7 @@ export type ViewportPathLayer =
   | "submarine-cables"
   | "oil-pipelines"
   | "gas-pipelines"
+  | "subsea-pipelines"
   | "dispute-boundaries";
 
 export const VIEWPORT_PATH_LAYERS: ViewportPathLayer[] = [
@@ -14,6 +15,7 @@ export const VIEWPORT_PATH_LAYERS: ViewportPathLayer[] = [
   "submarine-cables",
   "oil-pipelines",
   "gas-pipelines",
+  "subsea-pipelines",
   "dispute-boundaries",
 ];
 

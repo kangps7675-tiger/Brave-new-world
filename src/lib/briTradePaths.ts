@@ -29,11 +29,11 @@ type BriCityLink = {
 const BRI_BASE_COLOR = "rgba(230, 180, 34";
 
 function impactAlpha(pct: number): number {
-  return Math.min(0.92, Math.max(0.38, 0.32 + pct / 45));
+  return Math.min(0.95, Math.max(0.55, 0.48 + pct / 40));
 }
 
 function impactStroke(pct: number): number {
-  return Math.min(2.4, Math.max(0.85, 0.7 + pct / 18));
+  return Math.min(3.2, Math.max(1.4, 1.2 + pct / 16));
 }
 
 function impactPeakAlt(pct: number): number {
@@ -113,3 +113,7 @@ export function briTradeStrokeWidth(path: TransportPath): number {
   const pct = match ? parseFloat(match[1]) : 4;
   return impactStroke(pct);
 }
+
+export const BRI_TRADE_LINK_COUNT =
+  (briData.countryLinks as BriCountryLink[]).length +
+  (briData.cityLinks as BriCityLink[]).length;

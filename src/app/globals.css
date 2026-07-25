@@ -580,7 +580,18 @@ main[data-ui-lang="en"]
   width: min(100vw, var(--intel-sidebar-width));
 }
 
-/* ?? ??: ?? ??? ?? ??? ? ??? ?? ?? */
+/* 데스크톱: 상단 HoverNav·유틸 버튼 아래로 내려 닫기 버튼이 가려지지 않게 */
+@media (min-width: 1024px) {
+  .intel-sidebar-right {
+    top: 5.5rem !important;
+    bottom: 0 !important;
+    height: auto !important;
+    max-height: calc(100% - 5.5rem);
+    z-index: 70;
+  }
+}
+
+/* 좁은 화면: 하단 시트로 전환 — 상단 메뉴를 가리지 않음 */
 @media (max-width: 1023px) {
   .intel-sidebar-right {
     top: auto !important;

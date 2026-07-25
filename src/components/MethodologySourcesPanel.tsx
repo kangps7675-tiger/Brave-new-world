@@ -121,6 +121,21 @@ export function MethodologySourcesPanel({
               </button>
             </section>
           ) : null}
+          <section className="rounded-xl border border-amber-800/40 bg-amber-950/20 p-3">
+            <h3 className="text-sm font-medium text-amber-100">
+              {isEn ? "Logistics stress (chokepoints)" : "물류 스트레스 (초크포인트)"}
+            </h3>
+            <p className="mt-2 text-[12px] leading-5 text-sky-100/80">
+              {isEn
+                ? "Observation-based estimate at maritime chokepoints. Grade and siren require A-grade (UKMTO) only. B-grade vessel transit comes from IMF PortWatch (live). Oil volatility (C) is not connected yet."
+                : "해상 초크포인트 관측 기반 추정. 등급·사이렌은 A급(UKMTO)만으로 확정합니다. B급 통과량은 IMF PortWatch 실측입니다. 유가 변동성(C)은 아직 미연결입니다."}
+            </p>
+            <p className="mt-2 text-[11px] leading-5 text-sky-100/65">
+              {isEn
+                ? "Chokepoint transits: IMF PortWatch (IMF/Oxford) · UKMTO(A·live) · oil volatility(C) pending"
+                : "Chokepoint transits: IMF PortWatch (IMF/Oxford) · UKMTO(A·실측) · 유가변동성(C) 미연결"}
+            </p>
+          </section>
           <section className="rounded-xl border border-violet-800/40 bg-violet-950/20 p-3">
             <h3 className="text-sm font-medium text-violet-100">
               OpenAlex — 학술 참고문헌 ({OPENALEX_POLICY.product})
@@ -250,6 +265,67 @@ export function MethodologySourcesPanel({
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="rounded-xl border border-amber-800/40 bg-amber-950/20 p-3">
+            <h3 className="text-sm font-medium text-amber-100">
+              {isEn
+                ? "Energy infrastructure — GEM · EMODnet · OSM"
+                : "에너지 인프라 — GEM · EMODnet · OSM"}
+            </h3>
+            <p className="mt-2 text-[12px] leading-5 text-sky-100/80">
+              {isEn
+                ? "Oil/gas pipelines and LNG terminals: Global Energy Monitor (CC BY 4.0). Subsea layer merges GEM offshore segments worldwide with EMODnet Human Activities (European seas). Zoomed-in detail merges OpenStreetMap Overpass (substance oil|gas|petroleum and location=underwater|offshore)."
+                : "송유관·가스관·LNG: Global Energy Monitor (CC BY 4.0). 해저관: GEM 전 세계 offshore 구간 + EMODnet(유럽 해역). 줌인 시 OpenStreetMap Overpass(substance oil|gas|petroleum · location=underwater|offshore)로 보강합니다."}
+            </p>
+            <p className="mt-2 text-[11px] leading-5 text-sky-100/65">
+              {isEn ? "APIs / data:" : "API·데이터:"}{" "}
+              <a
+                href="https://globalenergymonitor.org/download-data"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-amber-400/40 underline-offset-2 hover:text-sky-50"
+              >
+                globalenergymonitor.org
+              </a>
+              {" · "}
+              <a
+                href="https://emodnet.ec.europa.eu/en/human-activities"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-amber-400/40 underline-offset-2 hover:text-sky-50"
+              >
+                EMODnet Human Activities
+              </a>
+              {" · "}
+              /api/pipelines-osm
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-violet-800/40 bg-violet-950/20 p-3">
+            <h3 className="text-sm font-medium text-violet-100">
+              {isEn
+                ? "CelesTrak — recon / surveillance orbits"
+                : "CelesTrak — 정찰·감시 위성 궤도"}
+            </h3>
+            <p className="mt-2 text-[12px] leading-5 text-sky-100/80">
+              {isEn
+                ? "Orbital elements: CelesTrak (T.S. Kelso). Military + active GP TLEs are filtered by public recon-family name patterns; positions are SGP4-propagated in the browser. Horizon rings are theoretical footprints — not imaging tasking."
+                : "궤도요소: CelesTrak (T.S. Kelso). military·active GP TLE를 공개 정찰 계열 이름 패턴으로만 걸러 쓰고, 위치는 브라우저 SGP4로 계산합니다. 가시권 원은 이론상 지평선일 뿐 촬영 영역이 아닙니다."}
+            </p>
+            <p className="mt-2 text-[11px] leading-5 text-sky-100/65">
+              API:{" "}
+              <a
+                href="https://celestrak.org/"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-violet-400/40 underline-offset-2 hover:text-sky-50"
+              >
+                celestrak.org
+              </a>
+              {" · "}
+              /api/satellites
+            </p>
           </section>
 
           <section className="rounded-xl border border-orange-800/40 bg-orange-950/20 p-3">

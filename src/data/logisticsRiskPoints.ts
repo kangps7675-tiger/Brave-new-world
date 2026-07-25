@@ -206,7 +206,10 @@ export const LOGISTICS_RISK_POINTS: StaticPoint[] = [
 ];
 
 /** 초크포인트 은은한 주황 링용 — logisticsRisk 레이어 ON일 때 */
-export function chokeGlowRingSeed(points: StaticPoint[] = LOGISTICS_RISK_POINTS) {
+export function chokeGlowRingSeed(
+  points: StaticPoint[] = LOGISTICS_RISK_POINTS,
+  colorForId?: (id: string) => string | undefined,
+) {
   return points
     .filter((p) => p.kind === "chokepoint")
     .map((p) => ({
@@ -215,5 +218,6 @@ export function chokeGlowRingSeed(points: StaticPoint[] = LOGISTICS_RISK_POINTS)
       lng: p.lng,
       glow: typeof p.meta?.glow === "number" ? p.meta.glow : p.tier === 1 ? 1 : 0.55,
       radiusScale: CHOKE_RING_RADIUS_DEG[p.id] ?? 0.35,
+      ...(colorForId?.(p.id) ? { color: colorForId(p.id)! } : {}),
     }));
 }

@@ -243,6 +243,28 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
   },
   {
+    layerId: "recon-satellites",
+    source: "CelesTrak (T.S. Kelso)",
+    url: "/api/satellites",
+    cadence: "6–12 hours (TLE)",
+    attribution: "Orbital elements: CelesTrak (T.S. Kelso)",
+    notes:
+      "Military + active GP TLEs filtered by public recon-family name patterns. Positions computed client-side via SGP4; horizon ring is theoretical footprint, not imaging activity.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
+    layerId: "gps-interference",
+    source: "GPSJam.org (John Wiseman)",
+    url: "/api/gps-jam",
+    cadence: "Daily CSV (~04:00 UTC) · CDN 6–12h",
+    attribution: "GPS interference: GPSJam.org (John Wiseman) · ADS-B Exchange",
+    notes:
+      "Share of aircraft reporting GNSS anomalies per H3 res-4 cell. MIN_AIRCRAFT filter applied. Does NOT show jammer/equipment locations. Unofficial static feed; solo mode when ON.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
     layerId: "cyber-incidents",
     source: "GDELT Geo 2.0",
     url: "/api/gdelt?theme=cyber",
@@ -307,14 +329,14 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "logistics-risk",
-    source: "Curated seed",
-    url: "src/data/logisticsRiskPoints.ts",
-    cadence: "Project versioned",
-    attribution: "멋진 신세계 editorial",
+    source: "IMF PortWatch (IMF/Oxford) · curated choke atlas",
+    url: "/api/portwatch",
+    cadence: "PortWatch weekly (Tue); atlas project-versioned",
+    attribution: "Chokepoint transits: IMF PortWatch (IMF/Oxford)",
     notes:
-      "Maritime chokepoints (Suez, Hormuz, Malacca, etc.) and critical logistics hubs (Eurotunnel, Crimea bridge). Hover shows risk note and related macro tickers.",
+      "Maritime chokepoints (Suez, Hormuz, Malacca, etc.). B-grade transit stress from IMF PortWatch daily volumes (7d vs 30d baseline); A-grade from UKMTO. Oil volatility (C) not connected. Hover/click shows LogisticsStressCard.",
     status: "shipped",
-    ingest: "static-build",
+    ingest: "cached-api",
   },
   {
     layerId: "critical-nodes",
@@ -358,6 +380,29 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "static-build",
   },
   {
+    layerId: "subsea-pipelines",
+    source: "GEM offshore + EMODnet Human Activities",
+    url: "/data/{profile}/subsea-pipelines.json",
+    cadence: "Static build (GEM keywords + EMODnet WFS)",
+    attribution:
+      "Global Energy Monitor (CC BY 4.0); EMODnet Human Activities (European Commission)",
+    notes:
+      "Worldwide offshore/subsea oil·gas from GEM name/location heuristics, plus European seas from EMODnet WFS. Zoomed-in OSM underwater merges client-side.",
+    status: "shipped",
+    ingest: "static-build",
+  },
+  {
+    layerId: "pipelines-osm",
+    source: "OpenStreetMap (Overpass)",
+    url: "/api/pipelines-osm",
+    cadence: "On zoom (regional+), 1h cache",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes:
+      "Viewport Overpass: man_made=pipeline (substance oil|gas|petroleum) and location=underwater|offshore|seabed. Merged with GEM/EMODnet when zoomed in.",
+    status: "shipped",
+    ingest: "cached-api",
+  },
+  {
     layerId: "economic-centers",
     source: "Local build + World Bank context",
     url: "/api/layers/economic-centers",
@@ -389,6 +434,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Key critical mineral deposits and processing sites (mapped to resources).",
     status: "shipped",
     ingest: "mapped-existing",
+  },
+  {
+    layerId: "resource-deposits",
+    source: "Curated strategic deposit footprints",
+    url: "/data/{profile}/resource-deposits.json",
+    cadence: "Static build (scripts/build-resource-deposits.js)",
+    attribution: "Conflict View curated outlines (approximate extents)",
+    notes:
+      "Irregular Polygon footprints for major lithium/REE/uranium/titanium/copper belts. Not cadastral geology — thematic map extents. Shown with showResources.",
+    status: "shipped",
+    ingest: "static-build",
   },
   {
     layerId: "internet-exchanges",
