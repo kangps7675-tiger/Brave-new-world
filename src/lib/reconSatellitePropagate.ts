@@ -19,8 +19,15 @@ export type ReconTleInput = ReconTleSatellite;
 export type ReconSatelliteMarker = ReconTleInput & {
   markerId: string;
   displayKind: "recon-sat-html";
+  /** SGP4 지상 궤적 (진실·호버·선택·지평선 링) */
   lat: number;
   lng: number;
+  /**
+   * 지도 마커용 좌표. 전역 뷰에서는 궤도 헤일로로 밀어 올린 위치,
+   * 지도 줌에서는 lat/lng와 동일.
+   */
+  orbitLat: number;
+  orbitLng: number;
   altKm: number;
   /** 이론상 지평선 가시권 반경(도) — 촬영 영역 아님 */
   horizonDeg: number;
@@ -58,6 +65,84 @@ function haversineDeg(aLat: number, aLng: number, bLat: number, bLng: number): n
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return (2 * Math.asin(Math.min(1, Math.sqrt(h))) * 180) / Math.PI;
+}
+
+/** 북=0·시계방향 방위각(도) */
+function bearingDeg(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const φ1 = toRad(aLat);
+  const φ2 = toRad(bLat);
+  const Δλ = toRad(bLng - aLng);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+/** 출발점에서 bearing·거리(도)만큼 이동한 지점 */
+function destinationDeg(
+  lat: number,
+  lng: number,
+  bearing: number,
+  distanceDeg: number,
+): { lat: number; lng: number } {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const toDeg = (r: number) => (r * 180) / Math.PI;
+  const δ = toRad(distanceDeg);
+  const θ = toRad(bearing);
+  const φ1 = toRad(lat);
+  const λ1 = toRad(lng);
+  const sinφ2 =
+    Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ);
+  const φ2 = Math.asin(Math.max(-1, Math.min(1, sinφ2)));
+  const λ2 =
+    λ1 +
+    Math.atan2(
+      Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
+      Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2),
+    );
+  return {
+    lat: Math.max(-85, Math.min(85, toDeg(φ2))),
+    lng: ((toDeg(λ2) + 540) % 360) - 180,
+  };
+}
+
+/**
+ * 카메라 고도 → 궤도 연출 강도 0..1.
+ * 지도 위주(regional 이하)=0, 둥근 지구가 보이는 전역≈1.
+ */
+export function reconOrbitViewFactor(cameraAltitude: number): number {
+  if (!Number.isFinite(cameraAltitude) || cameraAltitude <= 1.15) return 0;
+  if (cameraAltitude >= 1.9) return 1;
+  return (cameraAltitude - 1.15) / (1.9 - 1.15);
+}
+
+/**
+ * MapLibre HTML 마커는 지표면에만 붙으므로, 전역 뷰에서는
+ * 카메라 주시점→지상궤적 방향으로 고도만큼 각거리를 밀어
+ * 지구 디스크 바깥(궤도 헤일로)처럼 보이게 한다.
+ * 줌인(factor≈0)이면 지상 궤적 그대로.
+ */
+export function liftReconSatForOrbitView(
+  sat: { lat: number; lng: number; altKm: number; headingDeg?: number },
+  camera: { lat: number; lng: number; altitude: number },
+): { lat: number; lng: number } {
+  const f = reconOrbitViewFactor(camera.altitude);
+  if (f <= 0.001) return { lat: sat.lat, lng: sat.lng };
+
+  const dist = haversineDeg(camera.lat, camera.lng, sat.lat, sat.lng);
+  // LEO~400km → ~3°, 고궤도일수록 더 바깥. 시각용 클램프.
+  const altFrac = Math.max(0, sat.altKm) / 6371;
+  const liftDeg = Math.min(16, 2.4 + altFrac * 20) * f;
+
+  if (dist < 0.4) {
+    // 주시점 직상공 — 진행 방향(없으면 북)으로만 밀어 점이 겹치지 않게
+    const heading =
+      sat.headingDeg != null && Number.isFinite(sat.headingDeg) ? sat.headingDeg : 0;
+    return destinationDeg(camera.lat, camera.lng, heading, liftDeg);
+  }
+
+  const bearing = bearingDeg(camera.lat, camera.lng, sat.lat, sat.lng);
+  return destinationDeg(camera.lat, camera.lng, bearing, dist + liftDeg);
 }
 
 /** ECI 위치+속도 → 대략적인 지상 진행 방향(도) */
@@ -113,6 +198,8 @@ export function propagateReconSatellite(
       displayKind: "recon-sat-html",
       lat,
       lng,
+      orbitLat: lat,
+      orbitLng: lng,
       altKm,
       horizonDeg: horizonRadiusDeg(altKm),
       headingDeg,
@@ -187,4 +274,23 @@ export function cullReconSatellites(
     }
   }
   return picked;
+}
+
+/** 컬링 이후 — 카메라에 맞춰 orbitLat/Lng만 갱신 (lat/lng 지상궤적은 유지) */
+export function applyReconOrbitLift(
+  markers: ReconSatelliteMarker[],
+  camera: { lat: number; lng: number; altitude: number },
+): ReconSatelliteMarker[] {
+  if (markers.length === 0) return markers;
+  if (reconOrbitViewFactor(camera.altitude) <= 0.001) {
+    return markers.map((m) =>
+      m.orbitLat === m.lat && m.orbitLng === m.lng
+        ? m
+        : { ...m, orbitLat: m.lat, orbitLng: m.lng },
+    );
+  }
+  return markers.map((m) => {
+    const lifted = liftReconSatForOrbitView(m, camera);
+    return { ...m, orbitLat: lifted.lat, orbitLng: lifted.lng };
+  });
 }

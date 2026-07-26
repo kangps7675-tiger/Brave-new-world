@@ -19,9 +19,9 @@ export function BasemapModeToggle({ mode, onChange }: BasemapModeToggleProps) {
       hint: t("basemapIntelHint"),
     },
     {
-      id: "photo",
-      label: t("basemapPhoto"),
-      hint: t("basemapPhotoHint"),
+      id: "terrain",
+      label: t("basemapTerrain"),
+      hint: t("basemapTerrainHint"),
     },
   ];
 
@@ -45,7 +45,7 @@ export function BasemapModeToggle({ mode, onChange }: BasemapModeToggleProps) {
               }}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition sm:px-4 ${
                 active
-                  ? item.id === "photo"
+                  ? item.id === "terrain"
                     ? "bg-amber-400/20 text-amber-50 ring-1 ring-amber-300/35"
                     : "bg-sky-400/25 text-sky-50 ring-1 ring-sky-300/35"
                   : "text-sky-100/60 hover:bg-white/5 hover:text-sky-50"

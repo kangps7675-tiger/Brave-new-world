@@ -1,8 +1,6 @@
 /** Mineral deposit polygon fill — energy 군 단일 톤 (광종은 알파만 미세 차). */
 
-import { groupRgba, hexToRgba, LAYER_GROUP_HEX } from "@/lib/layerColorGroups";
-
-const ENERGY = LAYER_GROUP_HEX.energy;
+import { groupHex, groupRgba, hexToRgba } from "@/lib/layerColorGroups";
 
 /** 광종별 채움 알파 — 색상은 전부 energy 앰버 */
 const DEPOSIT_ALPHA: Record<string, number> = {
@@ -41,8 +39,8 @@ const DEPOSIT_ALPHA: Record<string, number> = {
 const DEFAULT_FILL_ALPHA = 0.7;
 
 function strokeForFillAlpha(alpha: number): string {
-  // 스트로크는 채움보다 밝게
-  return hexToRgba(ENERGY, Math.min(0.95, alpha + 0.18));
+  // 스트로크는 채움보다 진하게 — 색상은 활성 베이스맵 톤의 energy 기준색
+  return hexToRgba(groupHex("energy"), Math.min(0.95, alpha + 0.18));
 }
 
 export function normalizeDepositMineral(raw: unknown): string {

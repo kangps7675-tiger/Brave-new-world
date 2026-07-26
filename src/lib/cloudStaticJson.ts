@@ -127,14 +127,15 @@ export async function loadCloudStaticJson<T>(
     }
   }
 
+  // CDN이 404/빈 배열이면 로컬 public/data 폴백 (subsea-pipelines 등 CDN 미업로드 대응)
   const fromCdn = await fetchCdnJson<T>(safe, resolved);
-  if (fromCdn != null) {
+  if (fromCdn != null && !(Array.isArray(fromCdn) && fromCdn.length === 0)) {
     memoryCache.set(cacheKey, fromCdn);
     return fromCdn;
   }
 
   const fromR2 = await readR2Json<T>(safe, resolved);
-  if (fromR2 != null) {
+  if (fromR2 != null && !(Array.isArray(fromR2) && fromR2.length === 0)) {
     memoryCache.set(cacheKey, fromR2);
     return fromR2;
   }
@@ -143,6 +144,16 @@ export async function loadCloudStaticJson<T>(
   if (fromFs != null) {
     memoryCache.set(cacheKey, fromFs);
     return fromFs;
+  }
+
+  // CDN이 빈 배열만 준 경우에도 그걸 쓰기보다 null
+  if (fromCdn != null) {
+    memoryCache.set(cacheKey, fromCdn);
+    return fromCdn;
+  }
+  if (fromR2 != null) {
+    memoryCache.set(cacheKey, fromR2);
+    return fromR2;
   }
 
   return null;

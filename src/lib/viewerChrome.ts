@@ -172,6 +172,10 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
  */
 export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryBases: false,
+  showMissileSilos: false,
+  showStrategicMissileBases: false,
+  showMissileTestSites: false,
+  showMissileSiloFields: false,
   showMilitaryActivity: false,
   showUsCarriers: false,
   showDisguisedVessels: false,

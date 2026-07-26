@@ -104,6 +104,29 @@ export type IngestEnv = {
   NAVAREA_INGEST_ENABLED?: string;
   /** 최소 재폴링 간격(분) — 정부 TXT 예의상 15~30, 기본 30 */
   NAVAREA_POLL_MIN_INTERVAL_MINUTES?: string;
+  /** "false"/"0" 이면 레퍼런스 감시(CSIS Beyond Parallel · NTI) 비활성 */
+  REFERENCE_MONITOR_ENABLED?: string;
+  /** 최소 재폴링 간격(분) — 분석물이라 여유 있게, 기본 360(6시간) */
+  REFERENCE_MONITOR_POLL_MIN_INTERVAL_MINUTES?: string;
+  /** 채널당 가져올 최대 항목 수 (기본 20) */
+  REFERENCE_MONITOR_MAX_PER_CHANNEL?: string;
+  /** 이 점수 미만은 저장 안 함 — 모금·행사 글 컷 (기본 2) */
+  REFERENCE_MONITOR_MIN_RELEVANCE?: string;
+  /**
+   * CSIS Beyond Parallel RSS.
+   * 기본 https://beyondparallel.csis.org/feed/ — "off" 이면 스킵
+   */
+  CSIS_BEYOND_PARALLEL_FEED_URL?: string;
+  /**
+   * NTI WordPress REST 베이스 (/feed/ 는 빈 채널이라 REST 사용).
+   * 기본 https://www.nti.org/wp-json/wp/v2 — "off" 이면 스킵
+   */
+  NTI_REST_BASE_URL?: string;
+  /**
+   * NTI REST 가 Cloudflare 챌린지로 막혔을 때 폴백할 sitemap 인덱스.
+   * 기본 https://www.nti.org/sitemap_index.xml — "off" 이면 폴백 없음
+   */
+  NTI_SITEMAP_INDEX_URL?: string;
 };
 
 export type FirmsFireRow = {

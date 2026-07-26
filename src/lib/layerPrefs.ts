@@ -55,6 +55,17 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
+  /** PLARF 확인 사일로 점 (중국 미사일 사일로군) */
+  showMissileSilos: boolean;
+  /** 러시아 RVSN 전략미사일 사단 주둔지 */
+  showStrategicMissileBases: boolean;
+  /** 인도·파키스탄 미사일 시험장 (NTI/CNS) */
+  showMissileTestSites: boolean;
+  /**
+   * PLARF 조사 후보 격자 — 확인된 사일로가 아님.
+   * 연구가 새 후보지를 찾으려 훑은 서부 중국 광역 범위.
+   */
+  showMissileSiloFields: boolean;
   showResources: boolean;
   showNuclearSites: boolean;
   showInternetExchanges: boolean;
@@ -151,8 +162,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v35: GPSJam GNSS 재밍 히트맵 */
-export const LAYER_PREFS_KEY = "geowatch-layers-v35";
+/** v36: PLARF 사일로 · RVSN 주둔지 · NTI 시험장 · 조사 격자 */
+export const LAYER_PREFS_KEY = "geowatch-layers-v36";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -191,6 +202,10 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGscpiGauge: true,
   showCriticalNodes: false,
   showMilitaryBases: false,
+  showMissileSilos: false,
+  showStrategicMissileBases: false,
+  showMissileTestSites: false,
+  showMissileSiloFields: false,
   showResources: false,
   showNuclearSites: false,
   showInternetExchanges: false,
@@ -241,6 +256,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v35",
   "geowatch-layers-v34",
   "geowatch-layers-v33",
   "geowatch-layers-v32",

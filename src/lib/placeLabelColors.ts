@@ -1,4 +1,5 @@
 import type { PlaceKind } from "@/data/geoTypes";
+import type { BasemapTone } from "@/lib/basemapTone";
 import { EXTREME_ZOOM_ALTITUDE } from "@/lib/globeCamera";
 
 /** 대도시(150만+) · 소도시(10~150만) · 읍·면(3~10만) · 마을(3만 미만) */
@@ -89,8 +90,27 @@ export function getPlaceLabelDotRadius(tier: PlaceLabelTier, altitude: number): 
   return base[tier] * getPlaceLabelScreenScale(altitude);
 }
 
-/** glow=true 이면 도시 이름 강조 — 조금 더 밝게 */
-export function getPlaceLabelColor(tier: PlaceLabelTier, glow: boolean): string {
+/**
+ * glow=true 이면 도시 이름 강조 — 조금 더 밝게.
+ * 밝은 베이스맵(지형 벡터)에서는 같은 위계를 저명도 잉크로 뒤집는다.
+ */
+export function getPlaceLabelColor(
+  tier: PlaceLabelTier,
+  glow: boolean,
+  tone: BasemapTone = "dark",
+): string {
+  if (tone === "light") {
+    switch (tier) {
+      case "megacity":
+        return glow ? "rgba(88, 38, 0, 0.98)" : "rgba(102, 52, 8, 0.9)";
+      case "city":
+        return glow ? "rgba(104, 56, 0, 0.96)" : "rgba(118, 70, 10, 0.88)";
+      case "town":
+        return glow ? "rgba(58, 48, 30, 0.94)" : "rgba(72, 62, 44, 0.86)";
+      case "village":
+        return glow ? "rgba(24, 28, 36, 0.94)" : "rgba(38, 44, 54, 0.86)";
+    }
+  }
   switch (tier) {
     case "megacity":
       return glow ? "rgba(255, 200, 50, 0.96)" : "rgba(255, 185, 40, 0.86)";

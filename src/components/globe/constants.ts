@@ -4,6 +4,7 @@ import type { PolygonLayerFeature } from "@/components/globe/types";
 import { CYBER_WAR_ROOM_THEME } from "@/lib/cyberWarRoomTheme";
 import { CAMERA_IDLE_DEBOUNCE_MS } from "@/lib/globePerformance";
 import { groupRgba, pathKindRgba } from "@/lib/layerColorGroups";
+import type { BasemapTone } from "@/lib/basemapTone";
 
 /** Ukraine territorial-control map colors (MapLibre / hatch fallbacks) */
 export const US_BASE_FILL = "rgba(37, 99, 235, 0.32)";
@@ -27,35 +28,65 @@ export const US_BASE_STROKE = "rgba(96, 165, 250, 0.85)";
 export const US_BASE_ALTITUDE = 0.0022;
 export const CONFLICT_ZONE_ALTITUDE = 0.0016;
 /** 무기금수: crisis 군 테두리 */
-export const ARMS_EMBARGO_STROKE = groupRgba("crisis", 0.92);
+export const ARMS_EMBARGO_STROKE = groupRgba("crisis", 0.92, "dark");
 export const ARMS_EMBARGO_STROKE_WIDTH = 0.72;
+
+export function armsEmbargoStroke(tone: BasemapTone = "dark"): string {
+  return groupRgba("crisis", 0.92, tone);
+}
 export const INTEL_MISSILE_ARC = CYBER_WAR_ROOM_THEME.intel.missileArc;
 export const INTEL_NASA_FIRE = CYBER_WAR_ROOM_THEME.intel.nasaFire;
 export const TZEVA_ADOM_MARKER = "#ff1744";
 
-export const INFRA_COLORS = {
-  rail: {
-    dim: groupRgba("infra", 0.48),
-    glow: groupRgba("infra", 0.72),
-  },
-  city: {
-    dim: "rgba(255, 255, 255, 0.42)",
-    glow: groupRgba("energy", 0.55),
-  },
+function buildInfraColors(tone: BasemapTone) {
+  return {
+    rail: {
+      dim: groupRgba("infra", 0.48, tone),
+      glow: groupRgba("infra", 0.72, tone),
+    },
+    city: {
+      dim: tone === "light" ? "rgba(30, 38, 52, 0.5)" : "rgba(255, 255, 255, 0.42)",
+      glow: groupRgba("energy", 0.55, tone),
+    },
+  } as const;
+}
+
+const INFRA_COLORS_BY_TONE = {
+  dark: buildInfraColors("dark"),
+  light: buildInfraColors("light"),
 } as const;
+
+export const INFRA_COLORS = INFRA_COLORS_BY_TONE.dark;
+
+export function infraColors(tone: BasemapTone = "dark") {
+  return INFRA_COLORS_BY_TONE[tone];
+}
 
 export const INFRA_STROKE = {
   rail: { dim: 0.28, glow: 0.82 },
 } as const;
 
 /** 경로 레이어 — 군 단위 통일 (항로=infra, 케이블=digital, 파이프=energy) */
-export const PATH_LAYER_COLORS = {
-  "shipping-lane": pathKindRgba("shipping-lane", 0.82),
-  "submarine-cable": pathKindRgba("submarine-cable", 0.86),
-  "oil-pipeline": pathKindRgba("oil-pipeline", 0.88),
-  "gas-pipeline": pathKindRgba("gas-pipeline", 0.84),
-  "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.86),
+function buildPathLayerColors(tone: BasemapTone) {
+  return {
+    "shipping-lane": pathKindRgba("shipping-lane", 0.82, tone),
+    "submarine-cable": pathKindRgba("submarine-cable", 0.86, tone),
+    "oil-pipeline": pathKindRgba("oil-pipeline", 0.88, tone),
+    "gas-pipeline": pathKindRgba("gas-pipeline", 0.84, tone),
+    "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.86, tone),
+  } as const;
+}
+
+const PATH_LAYER_COLORS_BY_TONE = {
+  dark: buildPathLayerColors("dark"),
+  light: buildPathLayerColors("light"),
 } as const;
+
+export const PATH_LAYER_COLORS = PATH_LAYER_COLORS_BY_TONE.dark;
+
+export function pathLayerColors(tone: BasemapTone = "dark") {
+  return PATH_LAYER_COLORS_BY_TONE[tone];
+}
 
 export const STATIC_KIND_LABELS: Record<StaticPoint["kind"], string> = {
   airport: "공항",
@@ -71,6 +102,9 @@ export const STATIC_KIND_LABELS: Record<StaticPoint["kind"], string> = {
   "economic-center": "경제 중심지",
   "sanctions-entity": "제재 대상",
   "space-launch": "우주 발사",
+  "missile-silo": "미사일 사일로",
+  "strategic-missile-base": "전략미사일 부대",
+  "missile-test-site": "미사일 시험장",
   "lng-terminal": "액화가스 터미널",
   chokepoint: "해상 초크포인트",
   "logistics-hub": "핵심 물류 거점",

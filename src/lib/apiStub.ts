@@ -34,6 +34,7 @@ export type ApiStubRoute =
   | "sitrep"
   | "ukmto"
   | "navarea"
+  | "reference-monitor"
   | "military-exercises";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
@@ -316,6 +317,8 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
     case "ukmto":
       // 실제 공격/나포 데이터를 스텁으로 지어내지 않음 — 빈 배열로 정직하게 폴백
       return { incidents: [], fetchedAt: at, stub: true };
+    case "reference-monitor":
+      return { items: [], sources: [], fetchedAt: at, stub: true };
     case "navarea":
       return {
         type: "FeatureCollection",

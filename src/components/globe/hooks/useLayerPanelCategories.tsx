@@ -144,6 +144,10 @@ export type UseLayerPanelCategoriesArgs = {
     logisticsRisk?: number;
     criticalNodes?: number;
     militaryBases?: number;
+    missileSilos?: number;
+    strategicMissileBases?: number;
+    missileTestSites?: number;
+    missileSiloFields?: number;
     resources?: number;
     resourceDeposits?: number;
     gemResources?: Record<string, number>;
@@ -197,6 +201,15 @@ export type UseLayerPanelCategoriesArgs = {
   showMilitaryBases: boolean;
   visibleMilitaryBaseAreas: unknown[];
   setShowMilitaryBases: (v: boolean) => void;
+  showMissileSilos: boolean;
+  setShowMissileSilos: (v: boolean) => void;
+  showStrategicMissileBases: boolean;
+  setShowStrategicMissileBases: (v: boolean) => void;
+  showMissileTestSites: boolean;
+  setShowMissileTestSites: (v: boolean) => void;
+  showMissileSiloFields: boolean;
+  setShowMissileSiloFields: (v: boolean) => void;
+  visibleMissileSiloFields: unknown[];
   showMilitaryActivity: boolean;
   milAircraft: unknown[];
   setShowMilitaryActivity: (v: boolean) => void;
@@ -420,6 +433,15 @@ export function useLayerPanelCategories({
   showMilitaryBases,
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
+  showMissileSilos,
+  setShowMissileSilos,
+  showStrategicMissileBases,
+  setShowStrategicMissileBases,
+  showMissileTestSites,
+  setShowMissileTestSites,
+  showMissileSiloFields,
+  setShowMissileSiloFields,
+  visibleMissileSiloFields,
   showMilitaryActivity,
   milAircraft,
   setShowMilitaryActivity,
@@ -1433,6 +1455,74 @@ export function useLayerPanelCategories({
             accent: "blue",
           },
           {
+            id: "strategic-missile",
+            label: "전략 미사일 시설",
+            detail:
+              [
+                showMissileSilos && "사일로",
+                showStrategicMissileBases && "RVSN",
+                showMissileTestSites && "시험장",
+                showMissileSiloFields && "조사격자",
+              ]
+                .filter(Boolean)
+                .join(" · ") || "꺼짐 · PLARF·RVSN·남아시아",
+            checked:
+              showMissileSilos ||
+              showStrategicMissileBases ||
+              showMissileTestSites ||
+              showMissileSiloFields,
+            onChange: (enabled) => {
+              setShowMissileSilos(enabled);
+              setShowStrategicMissileBases(enabled);
+              setShowMissileTestSites(enabled);
+              setShowMissileSiloFields(enabled);
+            },
+            accent: "red",
+            presentation: "dropdown",
+            options: [
+              {
+                id: "missile-silos",
+                label: "PLARF 미사일 사일로",
+                detail: showMissileSilos
+                  ? `사일로 ${visibleStaticPoints.filter((p) => p.kind === "missile-silo").length.toLocaleString()} · 위먼·하미·항긴기`
+                  : off(staticCounts.missileSilos),
+                checked: layerPrefs.showMissileSilos,
+                onChange: setShowMissileSilos,
+                accent: "red",
+              },
+              {
+                id: "strategic-missile-bases",
+                label: "러시아 전략미사일 부대",
+                detail: showStrategicMissileBases
+                  ? `주둔지 ${visibleStaticPoints.filter((p) => p.kind === "strategic-missile-base").length}`
+                  : off(staticCounts.strategicMissileBases),
+                checked: layerPrefs.showStrategicMissileBases,
+                onChange: setShowStrategicMissileBases,
+                accent: "red",
+              },
+              {
+                id: "missile-test-sites",
+                label: "인도·파키스탄 미사일 시험장",
+                detail: showMissileTestSites
+                  ? `시험장 ${visibleStaticPoints.filter((p) => p.kind === "missile-test-site").length}`
+                  : off(staticCounts.missileTestSites),
+                checked: layerPrefs.showMissileTestSites,
+                onChange: setShowMissileTestSites,
+                accent: "red",
+              },
+              {
+                id: "missile-silo-fields",
+                label: "PLARF 후보 조사 격자",
+                detail: showMissileSiloFields
+                  ? `격자 ${visibleMissileSiloFields.length.toLocaleString()} · 확인 사일로 아님`
+                  : off(staticCounts.missileSiloFields),
+                checked: layerPrefs.showMissileSiloFields,
+                onChange: setShowMissileSiloFields,
+                accent: "orange",
+              },
+            ],
+          },
+          {
             id: "military-air",
             label: "군사 항공기",
             detail: showMilitaryActivity
@@ -1510,6 +1600,10 @@ export function useLayerPanelCategories({
         onToggleAll: (enabled) =>
           toggleCategoryPrefs({
             showMilitaryBases: enabled,
+            showMissileSilos: enabled,
+            showStrategicMissileBases: enabled,
+            showMissileTestSites: enabled,
+            showMissileSiloFields: enabled,
             showMilitaryActivity: enabled,
             showIntelHotspots: enabled,
             ...(isEconomyViewer
@@ -1764,6 +1858,11 @@ export function useLayerPanelCategories({
     lpg(showLngTerminals, false),
     lpg(showMilitaryActivity, false),
     lpg(showMilitaryBases, false),
+    lpg(showMissileSilos, false),
+    lpg(showStrategicMissileBases, false),
+    lpg(showMissileTestSites, false),
+    lpg(showMissileSiloFields, false),
+    lpg(visibleMissileSiloFields, []),
     lpg(showNuclearSites, false),
     lpg(showOilPipelines, false),
     lpg(showPorts, false),

@@ -500,6 +500,43 @@ export const ukmtoIncidents = sqliteTable(
 );
 
 /**
+ * 레퍼런스 감시 — CSIS Beyond Parallel RSS · NTI WordPress REST 폴링.
+ *
+ * 속보 스트림(news_stream_*)과 분리한다. 이쪽은 분석·리포트라 수명이 길고,
+ * 발행 후 조용히 갱신되는 일이 잦아 published_at 대신 updated_at으로 변경을 잡는다.
+ * id = `{source}:{url 해시}` — 같은 글이 재발행돼도 한 행.
+ */
+export const referenceMonitorItems = sqliteTable(
+  "reference_monitor_items",
+  {
+    id: text("id").primaryKey(),
+    /** csis-beyond-parallel | nti */
+    source: text("source").notNull(),
+    sourceLabel: text("source_label").notNull(),
+    /** rss | article | atomic-pulse | news — 소스 내 구획 */
+    channel: text("channel").notNull(),
+    url: text("url").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    author: text("author"),
+    categoriesJson: text("categories_json").notNull().default("[]"),
+    /** 우리 도메인 매칭 태그 — dprk | plarf-silo | missile-test | nuclear … */
+    topicsJson: text("topics_json").notNull().default("[]"),
+    relevance: integer("relevance").notNull().default(0),
+    publishedAt: text("published_at"),
+    updatedAt: text("updated_at"),
+    firstSeenAt: text("first_seen_at").notNull(),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    sourceIdx: index("idx_reference_monitor_source").on(t.source, t.publishedAt),
+    updatedIdx: index("idx_reference_monitor_updated").on(t.updatedAt),
+    relevanceIdx: index("idx_reference_monitor_relevance").on(t.relevance, t.publishedAt),
+    firstSeenIdx: index("idx_reference_monitor_first_seen").on(t.firstSeenAt),
+  }),
+);
+
+/**
  * NAVAREA in-force 경고 (JHOD / NGA TXT → cron 스냅샷 교체).
  * id = `{region}-{yy}-{num}` (예: XI-26-0330, IV-26-0695).
  */
@@ -799,5 +836,7 @@ export type UkmtoIncidentRow = typeof ukmtoIncidents.$inferSelect;
 export type NewUkmtoIncidentRow = typeof ukmtoIncidents.$inferInsert;
 export type NavareaFeatureRow = typeof navareaFeatures.$inferSelect;
 export type NewNavareaFeatureRow = typeof navareaFeatures.$inferInsert;
+export type ReferenceMonitorItemRow = typeof referenceMonitorItems.$inferSelect;
+export type NewReferenceMonitorItemRow = typeof referenceMonitorItems.$inferInsert;
 export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
 export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;

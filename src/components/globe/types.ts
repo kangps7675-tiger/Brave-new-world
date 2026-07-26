@@ -8,6 +8,7 @@ import type {
   MilitaryAircraft,
   MilitaryBaseArea,
   ResourceDepositArea,
+  MissileSiloFieldArea,
   SearchPlace,
   StaticPoint,
   UkraineControlZone,
@@ -56,6 +57,7 @@ export type PolygonLayerFeature =
   | (CountryFeature & { polygonLayer: "country" })
   | (MilitaryBaseArea & { polygonLayer: "military-base" })
   | (ResourceDepositArea & { polygonLayer: "resource-deposit" })
+  | (MissileSiloFieldArea & { polygonLayer: "missile-silo-field" })
   | (ConflictZoneFeature & { polygonLayer: "conflict-zone" })
   | (UkraineControlZone & {
       polygonLayer: "ukraine-ru" | "ukraine-ua" | "ukraine-contested";

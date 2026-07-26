@@ -1,11 +1,11 @@
 /**
  * Nav 베이스맵 모드
  * - intel: Carto Dark Matter (다크 벡터, 레이어 가독)
- * - photo(위성): MapLibre 호환 OSM 벡터 스타일 (OpenFreeMap Liberty)
- * 사진 래스터(Esri 등)는 쓰지 않는다. 모드 전환은 mapStyle URL 교체.
+ * - terrain(지형): MapLibre 호환 OSM 벡터 스타일 (OpenFreeMap Liberty)
+ *   + DEM 기복 + 고줌 3D 건물. 사진 래스터(Esri 등)는 쓰지 않는다.
  */
 
-export type BasemapMode = "intel" | "photo";
+export type BasemapMode = "intel" | "terrain";
 
 /** Fog payload — maplibre-gl 버전별 FogSpecification export 유무와 무관하게 사용 */
 export type BasemapFogSpec = {
@@ -23,15 +23,21 @@ export const INTEL_VECTOR_STYLE_URL =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
 /**
- * 위성(벡터) — MapLibre 생태계 공개 스타일 (OpenFreeMap Liberty).
+ * 지형(벡터) — MapLibre 생태계 공개 스타일 (OpenFreeMap Liberty).
  * MapLibre GL 공식 예제·문서에서 사용하는 키 불필요 OSM 벡터 타일 스타일.
  * @see https://openfreemap.org/ · https://maplibre.org/maplibre-gl-js/docs/examples/display-buildings-in-3d/
  */
-export const PHOTO_VECTOR_STYLE_URL =
+export const TERRAIN_VECTOR_STYLE_URL =
   "https://tiles.openfreemap.org/styles/liberty";
 
-export const PHOTO_VECTOR_ATTRIBUTION =
+/** @deprecated use TERRAIN_VECTOR_STYLE_URL */
+export const PHOTO_VECTOR_STYLE_URL = TERRAIN_VECTOR_STYLE_URL;
+
+export const TERRAIN_VECTOR_ATTRIBUTION =
   "© OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors";
+
+/** @deprecated use TERRAIN_VECTOR_ATTRIBUTION */
+export const PHOTO_VECTOR_ATTRIBUTION = TERRAIN_VECTOR_ATTRIBUTION;
 
 /** AWS Terrarium DEM (키 불필요) */
 export const AWS_TERRARIUM_TILES =
@@ -61,30 +67,32 @@ export function isOwnMapLayerId(layerId: string): boolean {
   return OWN_LAYER_ID_RE.test(layerId);
 }
 
+/** localStorage 레거시 `"photo"` → `"terrain"` */
 export function parseBasemapMode(value: unknown): BasemapMode {
-  return value === "photo" ? "photo" : "intel";
+  if (value === "terrain" || value === "photo") return "terrain";
+  return "intel";
 }
 
 /** 모드별 MapLibre style.json URL */
 export function styleUrlForBasemapMode(mode: BasemapMode): string {
-  return mode === "photo" ? PHOTO_VECTOR_STYLE_URL : INTEL_VECTOR_STYLE_URL;
+  return mode === "terrain" ? TERRAIN_VECTOR_STYLE_URL : INTEL_VECTOR_STYLE_URL;
 }
 
 export type TerrainExaggeration = {
   intel: number;
-  photo: number;
+  terrain: number;
 };
 
 export const TERRAIN_EXAGGERATION: TerrainExaggeration = {
   intel: 0.6,
-  photo: 1.4,
+  terrain: 1.4,
 };
 
 export const BUILDINGS_MIN_ZOOM = 14;
 
-/** MapLibre fog — photo: 옅은 파란 대기 / intel: 다크 사이버 */
+/** MapLibre fog — terrain: 옅은 파란 대기 / intel: 다크 사이버 */
 export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
-  if (mode === "photo") {
+  if (mode === "terrain") {
     return {
       color: "rgb(186, 210, 235)",
       "high-color": "rgb(36, 92, 223)",

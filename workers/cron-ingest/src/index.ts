@@ -27,6 +27,7 @@ import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
+import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
 import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
 import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
 import {
@@ -111,6 +112,15 @@ type IngestResult = {
   navarea?: {
     count: number;
     fetched: number;
+    errors: string[];
+    skipped: boolean;
+  } | null;
+  referenceMonitor?: {
+    count: number;
+    fetched: number;
+    csis: number;
+    nti: number;
+    ntiPath: string;
     errors: string[];
     skipped: boolean;
   } | null;
@@ -279,6 +289,30 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       };
     }
 
+    let referenceMonitor: IngestResult["referenceMonitor"] = null;
+    try {
+      const rm = await fetchAndUpsertReferenceMonitor(env);
+      referenceMonitor = {
+        count: rm.count,
+        fetched: rm.fetched,
+        csis: rm.csis,
+        nti: rm.nti,
+        ntiPath: rm.ntiPath,
+        errors: rm.errors.slice(0, 6),
+        skipped: rm.skipped,
+      };
+    } catch (error) {
+      referenceMonitor = {
+        count: 0,
+        fetched: 0,
+        csis: 0,
+        nti: 0,
+        ntiPath: "error",
+        errors: [error instanceof Error ? error.message : "reference monitor ingest failed"],
+        skipped: false,
+      };
+    }
+
     let militaryExercises: IngestResult["militaryExercises"] = null;
     try {
       const ex = await fetchAndUpsertMilitaryExercises(env);
@@ -388,6 +422,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       livingTaiwan,
       ukmto,
       navarea,
+      referenceMonitor,
       militaryExercises,
       error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
     };
@@ -421,6 +456,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         livingTaiwan,
         ukmto,
         navarea,
+        referenceMonitor,
       },
     });
 

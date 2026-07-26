@@ -134,6 +134,23 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   ais: { ko: "위장·그림자함대", en: "Spoofed & shadow fleet vessels" },
   "disguised-vessels": { ko: "위장·그림자함대", en: "Spoofed & shadow fleet vessels" },
   "military-bases": { ko: "미군 기지", en: "US military bases" },
+  "strategic-missile": {
+    ko: "전략 미사일 시설",
+    en: "Strategic missile infrastructure",
+  },
+  "missile-silos": { ko: "PLARF 미사일 사일로", en: "PLARF missile silos" },
+  "strategic-missile-bases": {
+    ko: "러시아 전략미사일 부대",
+    en: "Russian strategic missile bases",
+  },
+  "missile-test-sites": {
+    ko: "인도·파키스탄 미사일 시험장",
+    en: "India–Pakistan missile test sites",
+  },
+  "missile-silo-fields": {
+    ko: "PLARF 후보 조사 격자",
+    en: "PLARF candidate survey grids",
+  },
   "military-air": { ko: "군사 항공기", en: "Military aircraft" },
   intel: { ko: "정보 수집 거점", en: "Intelligence collection sites" },
   refugee: { ko: "난민 캠프", en: "Refugee camps" },

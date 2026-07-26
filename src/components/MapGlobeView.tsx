@@ -75,7 +75,7 @@ export interface MapGlobeViewProps {
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
   showIslandChains?: boolean;
-  /** 인텔(다크 벡터) / 위성(MapLibre OSM 벡터) — mapStyleUrl 교체로 전환 */
+  /** 인텔(다크 벡터) / 지형(MapLibre OSM 벡터+DEM) — mapStyleUrl 교체로 전환 */
   basemapMode?: BasemapMode;
   /** Ultra-Lite: 3D 건물·야간불빛 OFF, 지형 exaggeration 하향 */
   ultraLite?: boolean;
@@ -170,7 +170,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
 
-  const showVectorBuildings = basemapMode === "photo" && !ultraLite;
+  const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
+
+  /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
+  const isLightBasemap = basemapMode === "terrain";
+  const labelHaloColor = isLightBasemap ? "rgba(255,255,255,0.92)" : "rgba(2,4,10,0.75)";
+  const labelHaloWidth = isLightBasemap ? 1.6 : 1;
+  const pointStrokeColor = isLightBasemap
+    ? "rgba(255,255,255,0.9)"
+    : "rgba(2,4,10,0.55)";
+  const pointStrokeWidth = isLightBasemap ? 1 : 0.5;
 
   const methods = useMemo(
     () => createMapGlobeMethods(mapRef, changeListenersRef),
@@ -1071,7 +1080,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           {...({ encoding: "terrarium" } as Record<string, unknown>)}
         />
 
-        {/* 위성(벡터) 모드 · 고줌 3D 건물 — OpenFreeMap planet */}
+        {/* 지형 모드 · 고줌 3D 건물 — OpenFreeMap planet */}
         {showVectorBuildings ? (
           <Source
             id={BASEMAP_SOURCE_IDS.buildings}
@@ -1232,8 +1241,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-color": ["get", "color"],
                 "circle-radius": CIRCLE_RADIUS_BY_ZOOM,
                 "circle-opacity": 0.92,
-                "circle-stroke-width": 0.5,
-                "circle-stroke-color": "rgba(2,4,10,0.55)",
+                "circle-stroke-width": pointStrokeWidth,
+                "circle-stroke-color": pointStrokeColor,
               }}
             />
             <Layer
@@ -1625,8 +1634,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
               paint={{
                 "text-color": ["get", "color"],
-                "text-halo-color": "rgba(2,4,10,0.75)",
-                "text-halo-width": 1,
+                "text-halo-color": labelHaloColor,
+                "text-halo-width": labelHaloWidth,
               }}
             />
           </Source>
@@ -1741,7 +1750,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                       courseOverGround?: number | null;
                       trueHeading?: number | null;
                       militaryKind?: string | null;
+                      headingDeg?: number;
+                      lat?: number;
+                      orbitLat?: number;
                     };
+                    const reconHalo =
+                      (typed.displayKind ?? displayKind) === "recon-sat-html" &&
+                      typed.orbitLat != null &&
+                      typed.lat != null &&
+                      Math.abs(typed.orbitLat - typed.lat) > 0.12;
                     const sig = [
                       typed.markerId ?? markerId,
                       typed.displayKind ?? displayKind,
@@ -1757,6 +1774,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                       typed.courseOverGround ?? "",
                       typed.trueHeading ?? "",
                       typed.militaryKind ?? "",
+                      reconHalo ? "halo" : "ground",
+                      typed.headingDeg != null
+                        ? String(Math.round((((typed.headingDeg % 360) + 360) % 360) / 15) * 15)
+                        : "",
+                      // 톤이 바뀌면 팔레트가 달라지므로 DOM을 다시 만들어야 함
+                      basemapMode,
                     ].join("|");
                     if (node.dataset.markerSig === sig && node.childElementCount > 0) return;
                     node.replaceChildren();

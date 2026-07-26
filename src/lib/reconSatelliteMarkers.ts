@@ -74,7 +74,7 @@ export function createReconSatelliteBadge(
     onHover?: (sat: ReconSatelliteMarker | null) => void;
     onClick?: (sat: ReconSatelliteMarker) => void;
   },
-  opts?: { lang?: "ko" | "en"; showLabel?: boolean },
+  opts?: { lang?: "ko" | "en"; showLabel?: boolean; orbitHalo?: boolean },
 ): HTMLElement {
   ensureStyles();
   const lang = opts?.lang ?? "ko";
@@ -82,6 +82,7 @@ export function createReconSatelliteBadge(
   const root = document.createElement("div");
   root.className = RECON_SAT_MARKER_ROOT_CLASS;
   root.dataset.markerId = sat.markerId;
+  if (opts?.orbitHalo) root.dataset.orbitHalo = "1";
 
   const btn = document.createElement("button");
   btn.type = "button";
@@ -95,10 +96,22 @@ export function createReconSatelliteBadge(
       : `정찰위성 ${sat.name}, ${country}`,
   );
   const heading = Number.isFinite(sat.headingDeg) ? sat.headingDeg : 0;
-  // 아이콘 기본 방향(안테나 위) → 진행 방향으로 회전. 삼각형 화살표로 이동방향 보강.
-  btn.innerHTML = `<span class="recon-sat-dir" style="color:${color};transform:rotate(${heading}deg)"></span>${satIconSvg(color)}`;
+  // 전역 궤도 헤일로: 화살표 없이 점·아이콘만. 지도 줌: 진행 방향 표시.
+  if (opts?.orbitHalo) {
+    btn.innerHTML = satIconSvg(color);
+  } else {
+    btn.innerHTML = `<span class="recon-sat-dir" style="color:${color};transform:rotate(${heading}deg)"></span>${satIconSvg(color)}`;
+  }
   const icon = btn.querySelector<SVGElement>(".recon-sat-icon");
-  if (icon) icon.style.transform = `rotate(${heading}deg)`;
+  if (icon) {
+    icon.style.transform = `rotate(${heading}deg)`;
+    if (opts?.orbitHalo) {
+      // 전역 궤도: 조금 작게 + 외곽 글로우로 "공간에 떠 있는" 느낌
+      icon.style.width = "16px";
+      icon.style.height = "16px";
+      icon.style.filter = `drop-shadow(0 0 5px ${color}99) drop-shadow(0 1px 2px rgba(0,0,0,0.85))`;
+    }
+  }
   if (opts?.showLabel) {
     const label = document.createElement("span");
     label.className = "recon-sat-label";
