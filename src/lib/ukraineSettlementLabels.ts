@@ -1,5 +1,10 @@
 import type { UkraineSettlement } from "@/data/geoTypes";
-import { isMegacityLabelVisible, type PlaceLabelTier } from "@/lib/placeLabelColors";
+import { activeBasemapTone, type BasemapTone } from "@/lib/basemapTone";
+import {
+  getPlaceLabelColor,
+  isMegacityLabelVisible,
+  type PlaceLabelTier,
+} from "@/lib/placeLabelColors";
 
 /** 비대도시 거주지 — 이 고도 이하에서만 이름 표시 */
 export const UA_SETTLEMENT_MAX_VISIBLE_ALTITUDE = 0.05;
@@ -55,24 +60,30 @@ export function getUkraineSettlementLabelAltitude(altitude: number): number {
   return 0.003;
 }
 
-/** 대도시 = 노란색 · 그 외 전선 마을 = 하얀색 */
-export function getUkraineSettlementLabelColor(tier: PlaceLabelTier): string {
-  if (tier === "megacity") return "rgba(255, 214, 0, 0.98)";
-  return "rgba(255, 255, 255, 0.9)";
+/** 인텔 = 노랑/흰색 · 지형(밝은 맵) = 어두운 잉크 */
+export function getUkraineSettlementLabelColor(
+  tier: PlaceLabelTier,
+  tone: BasemapTone = activeBasemapTone(),
+): string {
+  return getPlaceLabelColor(tier, true, tone);
 }
 
 export function createUkraineSettlementLabelElement(
   name: string,
   tier: PlaceLabelTier,
 ): HTMLElement {
+  const tone = activeBasemapTone();
   const el = document.createElement("span");
   el.textContent = name || "마을";
   el.className = "ua-settlement-label";
   el.style.fontWeight = "700";
   el.style.fontFamily = 'ui-sans-serif, system-ui, "Segoe UI", sans-serif';
   el.style.fontSize = tier === "megacity" ? "11px" : "9px";
-  el.style.color = getUkraineSettlementLabelColor(tier);
-  el.style.textShadow = "0 0 4px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.85)";
+  el.style.color = getUkraineSettlementLabelColor(tier, tone);
+  el.style.textShadow =
+    tone === "light"
+      ? "0 0 2px rgba(255,255,255,0.98), 0 1px 3px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.65)"
+      : "0 0 4px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.85)";
   el.style.whiteSpace = "nowrap";
   el.style.pointerEvents = "none";
   el.style.userSelect = "none";

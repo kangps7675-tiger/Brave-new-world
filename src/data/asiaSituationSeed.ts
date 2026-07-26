@@ -86,13 +86,5 @@ export const KOREA_SITUATION_CALLOUTS: SituationCallout[] = [
     body: "해상 교전·초계 빈발",
     side: "neutral",
   },
-  {
-    id: "kr-east-coast",
-    theater: "korea",
-    lat: 39.1,
-    lng: 127.5,
-    title: "동해안 미사일 벨트",
-    body: "발사·추적 · 동해 접근로",
-    side: "red",
-  },
+  // 미사일 벨트(전술·작전·전략)는 koreaMissileBeltSeed — 시설 콜아웃 + 폴리곤
 ];

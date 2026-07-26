@@ -35,7 +35,8 @@ export type ApiStubRoute =
   | "ukmto"
   | "navarea"
   | "reference-monitor"
-  | "military-exercises";
+  | "military-exercises"
+  | "ship-movements";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -328,6 +329,16 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
       };
     case "military-exercises":
       return { exercises: [], fetchedAt: at, stub: true };
+    case "ship-movements":
+      return {
+        observations: [],
+        weeks: [],
+        view: "timeline",
+        lang: "ko",
+        fetchedAt: at,
+        disclaimer: "공개 관측 기록입니다. 실시간 AIS 위치가 아닙니다.",
+        stub: true,
+      };
     default:
       return { stub: true, fetchedAt: at };
   }

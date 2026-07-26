@@ -188,7 +188,6 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
       items: category.items.map((item) => wrapItem(item)),
     }));
   }, [
-    applyItem,
     categories,
     onPatch,
     showCapWarn,

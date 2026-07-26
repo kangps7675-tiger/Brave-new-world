@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getNavMenuGroups } from "@/data/econNavRegions";
 import {
   HUB_DEFINITIONS,
@@ -10,6 +10,7 @@ import {
   selectionForHubNetwork,
   selectionForRegime,
   selectionForRegimeOverview,
+  selectionForWestpacPulseOverview,
   type HubDefinition,
 } from "@/data/hubNav";
 import {
@@ -20,6 +21,8 @@ import {
   type NavSubItem,
 } from "@/data/navRegions";
 import type { SearchPlace } from "@/data/geoTypes";
+import type { LabelLanguage } from "@/lib/layerPrefs";
+import { t } from "@/lib/uiStrings";
 import { getViewerChrome } from "@/lib/viewerChrome";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -43,11 +46,11 @@ type HoverNavProps = {
   /** 검색창 옆 「묻기」— 레이어 자동 ON 오버레이 */
   onAskLayersOpen?: () => void;
   askLayersLabel?: string;
-  /** 투어·코치 등 — 호버와 무관하게 상단 크롬을 고정 노출 */
+  /** UI 문구 언어 (이벤트 메뉴 등) */
+  labelLanguage?: LabelLanguage;
+  /** @deprecated 데스크톱은 상시 고정 — 호환용으로만 유지 */
   forceVisible?: boolean;
 };
-
-const HIDE_DELAY_MS = 220;
 
 export function HoverNav({
   viewerMode,
@@ -64,19 +67,14 @@ export function HoverNav({
   showDesktopToolsSlot = false,
   onAskLayersOpen,
   askLayersLabel,
-  forceVisible = false,
+  labelLanguage = "ko",
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [openHubId, setOpenHubId] = useState<string | null>(null);
-  /** 데스크톱: 상단 호버로 내려온 상태 (compact는 항상 노출) */
-  const [hoveredOpen, setHoveredOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
-  /** 접힘 상태에서 항상 보이는 슬림 스트립 — 지도 오프셋(base) 기준 */
-  const slimStripRef = useRef<HTMLDivElement>(null);
-  const hideTimerRef = useRef<number | null>(null);
   const isEconomy = viewerMode === "economy";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
@@ -92,12 +90,6 @@ export function HoverNav({
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
-    };
   }, []);
 
   function handleSelect(
@@ -136,77 +128,17 @@ export function HoverNav({
     : "bg-sky-400/15 text-sky-50 shadow-[inset_0_0_0_1px_rgba(125,211,252,0.25)]";
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
-  const pinnedOpen =
-    compact ||
-    forceVisible ||
-    menuExpanded ||
-    searchResults.length > 0 ||
-    query.trim().length > 0;
-  /** 데스크톱: 상시 슬림 노출, 호버·핀이면 확장 */
-  const chromeExpanded = compact || pinnedOpen || hoveredOpen;
-
-  const clearHideTimer = useCallback(() => {
-    if (hideTimerRef.current != null) {
-      window.clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = null;
-    }
-  }, []);
-
-  const revealChrome = useCallback(() => {
-    if (compact) return;
-    clearHideTimer();
-    setHoveredOpen(true);
-  }, [clearHideTimer, compact]);
-
-  const collapseChrome = useCallback(() => {
-    setHoveredOpen(false);
-    // 호버로 펼쳐진 서브메뉴도 같이 닫아 "뗐는데도 열려 있는" 상태를 막음
-    setOpenKey(null);
-    setOpenHubId(null);
-  }, []);
-
-  const scheduleHideChrome = useCallback(() => {
-    if (compact || pinnedOpen) return;
-    clearHideTimer();
-    hideTimerRef.current = window.setTimeout(() => {
-      collapseChrome();
-      hideTimerRef.current = null;
-    }, HIDE_DELAY_MS);
-  }, [clearHideTimer, collapseChrome, compact, pinnedOpen]);
-
-  /** 메뉴·검색 고정이 풀렸을 때 마우스가 크롬 밖이면 접기 */
-  useEffect(() => {
-    if (compact || pinnedOpen) return;
-    const el = chromeRef.current;
-    if (el && el.matches(":hover")) return;
-    collapseChrome();
-  }, [collapseChrome, compact, pinnedOpen]);
 
   /**
-   * 호버로 펼친 상태에서 포인터가 크롬 밖으로 나가면 접는다.
-   * 드롭다운이 재배치되는 순간 mouseleave가 씹히는 경우가 있어 문서 레벨에서 한 번 더 본다.
-   */
-  useEffect(() => {
-    if (compact || !hoveredOpen) return;
-    const onPointerMove = (event: PointerEvent) => {
-      const el = chromeRef.current;
-      if (!el || el.contains(event.target as Node)) return;
-      // 크롬 아래로 충분히 벗어났을 때만 — 경계에서 열고 닫히며 진동하는 것을 막음
-      if (event.clientY <= el.getBoundingClientRect().bottom + 24) return;
-      scheduleHideChrome();
-    };
-    document.addEventListener("pointermove", onPointerMove, { passive: true });
-    return () => document.removeEventListener("pointermove", onPointerMove);
-  }, [compact, hoveredOpen, scheduleHideChrome]);
-
-  /**
-   * `--hover-nav-height`: 크롬 실제 높이 (호버로 펼치면 커짐). 정보용.
-   * cleanup에서 0으로 리셋하지 않는다 — dep 변경마다 0으로 튀면 이 값을 쓰는 곳이 깜빡인다.
+   * 데스크톱: 상시 고정 바.
+   * `--hover-nav-height` / `--hover-nav-base-height` 모두 실제 크롬 높이
+   * (지도 오프셋·우상단 칩이 같은 기준을 쓰도록 동기화).
    */
   useEffect(() => {
     const root = document.documentElement;
     if (compact) {
       root.style.setProperty("--hover-nav-height", "0px");
+      root.style.setProperty("--hover-nav-base-height", "0px");
       return;
     }
     const el = chromeRef.current;
@@ -214,38 +146,13 @@ export function HoverNav({
     const publish = () => {
       const h = Math.max(0, Math.ceil(el.getBoundingClientRect().height));
       root.style.setProperty("--hover-nav-height", `${h}px`);
-    };
-    publish();
-    const ro = new ResizeObserver(publish);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [compact, chromeExpanded, belowNav, showDesktopToolsSlot]);
-
-  /**
-   * `--hover-nav-base-height`: 지도 셸 오프셋·우측 칩 기준.
-   * 접힘 상태에서 "항상 보이는 슬림 스트립" 높이만 반영한다.
-   * 펼침(hover/pin) 중에는 갱신하지 않아 값이 고정 → 호버 인/아웃 시 지도가 흔들리지 않는다.
-   * (기존엔 애니메이션 중인 크롬 높이를 재고 cleanup이 0으로 리셋해 화면이 출렁였음)
-   */
-  useEffect(() => {
-    const root = document.documentElement;
-    if (compact) {
-      root.style.setProperty("--hover-nav-base-height", "0px");
-      return;
-    }
-    // 펼쳐진 동안에는 마지막 접힘 높이를 유지 (슬림 스트립은 이때 언마운트됨)
-    if (chromeExpanded) return;
-    const el = slimStripRef.current;
-    const publish = () => {
-      const h = el ? Math.max(0, Math.ceil(el.getBoundingClientRect().height)) : 0;
       root.style.setProperty("--hover-nav-base-height", `${h}px`);
     };
     publish();
-    if (!el) return;
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, chromeExpanded, belowNav]);
+  }, [compact, belowNav, showDesktopToolsSlot, menuExpanded]);
 
   return (
     <div
@@ -256,49 +163,15 @@ export function HoverNav({
     >
       <div
         ref={chromeRef}
-        className={`pointer-events-auto flex w-full flex-col items-center transition-[padding] duration-200 ease-out ${
+        className={`pointer-events-auto flex w-full flex-col items-center ${
           compact ? "px-[3.4rem] sm:px-14" : "mt-1.5 px-2 sm:px-3"
         }`}
-        onMouseEnter={revealChrome}
-        onMouseLeave={scheduleHideChrome}
-        onFocusCapture={revealChrome}
       >
-      {/* 접힘: 슬림 스트립 — 모드 스위치·아래Nav만. 확장은 검색 행 표시 */}
-      {!compact && !chromeExpanded && belowNav ? (
-        <div
-          ref={slimStripRef}
-          className="z-[76] mb-1 flex w-full max-w-3xl items-center justify-center gap-2"
-        >
-          {belowNav}
-          <button
-            type="button"
-            onMouseEnter={revealChrome}
-            onClick={revealChrome}
-            className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-medium shadow-md backdrop-blur-md transition ${
-              isEconomy
-                ? "border-emerald-200/20 bg-[#0a1f18]/80 text-emerald-100/80"
-                : "border-sky-200/20 bg-[#162a48]/80 text-sky-100/80"
-            }`}
-            aria-label="메뉴 펼치기"
-          >
-            <SearchIcon className="opacity-60" />
-            <span>메뉴</span>
-          </button>
-        </div>
-      ) : null}
-
-      <div
-        className={`flex w-full flex-col items-center transition-[max-height,opacity,transform] duration-300 ease-out ${
-          compact || chromeExpanded
-            ? "max-h-[90vh] translate-y-0 opacity-100"
-            : "pointer-events-none max-h-0 -translate-y-2 overflow-hidden opacity-0"
-        }`}
-      >
+      <div className="flex w-full flex-col items-center">
       <nav
         id="app-hover-nav"
         ref={navRef}
-        aria-hidden={!(compact || chromeExpanded)}
-        className={`w-full transition-all duration-300 ease-out ${
+        className={`w-full ${
           compact
             ? "max-w-full"
             : isEconomy
@@ -441,8 +314,21 @@ export function HoverNav({
                 className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-violet-300/25 bg-violet-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-violet-50 transition hover:border-violet-200/45 hover:bg-violet-500/25"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-violet-300" />
-                반서방국 분쟁사
-                <span className="text-[9px] font-normal text-violet-200/60">11대 현장</span>
+                {t("regimeConflictsNav", labelLanguage)}
+                <span className="text-[9px] font-normal text-violet-200/60">
+                  {t("regimeConflictsNavHint", labelLanguage)}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleHubNavigate(selectionForWestpacPulseOverview())}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-cyan-50 transition hover:border-cyan-200/45 hover:bg-cyan-500/25"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                {t("westpacShipMovesNav", labelLanguage)}
+                <span className="text-[9px] font-normal text-cyan-200/60">
+                  {t("westpacShipMovesNavHint", labelLanguage)}
+                </span>
               </button>
               <ul className="space-y-1">
                 {HUB_DEFINITIONS.map((hub) => (
@@ -557,14 +443,14 @@ export function HoverNav({
         ) : null}
       </nav>
 
-      {showDesktopToolsSlot && (compact || chromeExpanded) ? (
+      {showDesktopToolsSlot ? (
         <div
           id="hover-nav-desktop-tools"
           className="z-[76] mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 sm:max-w-6xl"
         />
       ) : null}
 
-      {(compact || chromeExpanded) && belowNav ? (
+      {belowNav ? (
         <div className="z-[76] mt-2.5 flex justify-center">{belowNav}</div>
       ) : null}
       </div>

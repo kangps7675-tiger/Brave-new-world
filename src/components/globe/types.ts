@@ -20,6 +20,7 @@ import type { ScoredEvent } from "@/data/eventTiers";
 import type { ChinaTheaterIncident } from "@/data/chinaTheaterIncidentsSeed";
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import type { SituationCallout } from "@/data/situationCalloutTypes";
+import type { MissileBeltArea } from "@/data/koreaMissileBeltSeed";
 import type { FirmsSoundKind } from "@/lib/firmsSoundClassify";
 import type { GdeltTagHtmlMarker } from "@/lib/gdeltLocationTagMarker";
 import type { UkraineGdeltNeonMarker } from "@/lib/ukraineGdeltNeonMarker";
@@ -32,6 +33,13 @@ import type { PlaceLabelTier } from "@/lib/placeLabelColors";
 import type { NewsTheater } from "@/lib/news/types";
 import type { GpsJamPolygonFeature } from "@/hooks/useGpsJamLayer";
 import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
+import type { PublicShipObservation } from "@/lib/shipMovements/types";
+import type { ShipMovementHtmlMarker } from "@/lib/shipMovements/globeOverlay";
+import type { MilitaryExerciseHtmlMarker } from "@/lib/militaryExerciseMarkers";
+import type {
+  ReefWatchFeatureHtmlMarker,
+  ReefWatchTrafficHtmlMarker,
+} from "@/lib/reefWatchMarkers";
 
 export type Selection =
   | { kind: "event"; item: ConflictEvent }
@@ -47,6 +55,7 @@ export type Selection =
     }
   | { kind: "ukraine-control"; item: UkraineControlZone }
   | { kind: "us-carrier"; item: UsCarrier }
+  | { kind: "ship-movement"; item: PublicShipObservation }
   | { kind: "recon-sat"; item: ReconSatelliteMarker }
   | { kind: "neptun-threat"; item: NeptunLiveThreat }
   | { kind: "chokepoint"; item: StaticPoint };
@@ -58,6 +67,7 @@ export type PolygonLayerFeature =
   | (MilitaryBaseArea & { polygonLayer: "military-base" })
   | (ResourceDepositArea & { polygonLayer: "resource-deposit" })
   | (MissileSiloFieldArea & { polygonLayer: "missile-silo-field" })
+  | (MissileBeltArea & { polygonLayer: "missile-belt" })
   | (ConflictZoneFeature & { polygonLayer: "conflict-zone" })
   | (UkraineControlZone & {
       polygonLayer: "ukraine-ru" | "ukraine-ua" | "ukraine-contested";
@@ -114,6 +124,16 @@ export type PulseRingPoint =
     }
   | {
       pulseKind: "friction";
+      id: string;
+      lat: number;
+      lng: number;
+      radiusScale: number;
+      color: string;
+      markerId: string;
+      label: string;
+    }
+  | {
+      pulseKind: "ship-movement";
       id: string;
       lat: number;
       lng: number;
@@ -336,6 +356,10 @@ export type HtmlOverlayMarker =
   | NeptunImpactHtmlMarker
   | FrictionPinHtmlMarker
   | FrictionStageHtmlMarker
+  | ShipMovementHtmlMarker
+  | MilitaryExerciseHtmlMarker
+  | ReefWatchFeatureHtmlMarker
+  | ReefWatchTrafficHtmlMarker
   | CasualtySkullHtmlMarker
   | NuclearStockpileHtmlMarker
   | SafecastGaugeHtmlMarker

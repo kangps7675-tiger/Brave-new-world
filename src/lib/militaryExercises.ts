@@ -34,6 +34,11 @@ export type MilitaryExercise = {
   id: string;
   title: string;
   summary: string | null;
+  /** 원자료 수행자 코드(PRC/ROC/US/JP/MULTI) */
+  performer?: string | null;
+  /** 실사격·합동초계·준비태세 등 원자료 분류 */
+  exerciseKind?: string | null;
+  locationLabel?: string | null;
   actors: ExerciseActor[];
   coalition: string | null;
   theater: NewsTheater | null;

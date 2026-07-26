@@ -93,6 +93,8 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "china-japan-incidents": "켜면 중국–일본 대치·마찰 지점을 표시합니다.",
   "china-philippines-incidents": "켜면 중국–필리핀 남중국해 해상 충돌 지점을 표시합니다.",
   "us-china-incidents": "켜면 미국–중국 군사 마찰 지점을 표시합니다.",
+  "reef-watch":
+    "켜면 ReefWatch 남중국해 77개 암초·인공섬을 표시하고, OpenSky로 각 feature ±16km 근접 항적을 폴링합니다. 위성 변화 탐지 전체 파이프라인이 아니라 feature-centric 트래픽 브리지입니다.",
   "nk-missile-tests": "켜면 북한 미사일·무기 시험의 발사·실험 위치를 표시합니다.",
   "east-asia-adiz": "켜면 동아시아 방공식별구역(ADIZ)을 표시합니다.",
   "island-chains":

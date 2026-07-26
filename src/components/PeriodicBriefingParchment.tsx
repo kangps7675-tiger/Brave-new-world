@@ -34,9 +34,9 @@ type PeriodicBriefingParchmentProps = {
 };
 
 /**
- * 전장/시장 등불 — 입장 온보딩 이후, 지정학·지경학 각각 하루 종일.
+ * 지정학/지경학 등불 — 입장 온보딩 이후, 각각 하루 종일.
  * 접으면 칩으로 다시 펼칠 수 있고, 뉴스 본문은 6시간마다 갱신.
- * 사진 뉴스(featuredNews)가 있으면 대형 양피지, 없으면 기존 텍스트 편지.
+ * 지정학·지경학 모두 사진 데스크(지역별 심층). 과거사건 텍스트 양피지는 쓰지 않음.
  */
 export function PeriodicBriefingParchment({
   briefing,
@@ -44,28 +44,19 @@ export function PeriodicBriefingParchment({
   onDismiss,
   onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
+  const isConflictLamp = /-conflict(?:$|-)/.test(briefing.key);
   const isPhotoLamp =
+    isConflictLamp ||
     (briefing.featuredNews && briefing.featuredNews.length > 0) ||
     (briefing.macroTable && briefing.macroTable.length > 0);
-  const foldLabel = lang === "en" ? "Fold" : "접기";
 
   if (!isPhotoLamp) {
     return (
       <ParchmentLetter
         lang={lang}
         title={briefing.title}
-        paragraphs={
-          briefing.forgottenWarning
-            ? [
-                ...briefing.paragraphs,
-                briefing.forgottenWarning.lead,
-                lang === "en"
-                  ? briefing.forgottenWarning.summaryEn
-                  : briefing.forgottenWarning.summaryKo,
-              ]
-            : briefing.paragraphs
-        }
-        ctaLabel={foldLabel}
+        paragraphs={briefing.paragraphs}
+        ctaLabel={lang === "en" ? "Fold" : "접기"}
         onContinue={onDismiss}
         playBreakingDispatch
         titleId="periodic-briefing-title"
@@ -120,10 +111,10 @@ function PhotoNewsLampParchment({
     (lang === "en"
       ? isEconomy
         ? "Macro desk"
-        : "Today's theater desk"
+        : "Global regional deep desk"
       : isEconomy
         ? "거시 데스크"
-        : "오늘의 전장 데스크");
+        : "전 세계 지역별 심층 데스크");
 
   const theaterRows = useMemo(() => {
     const counts = new Map<string, number>();
@@ -141,8 +132,8 @@ function PhotoNewsLampParchment({
       ? "Regions in frame"
       : "담긴 지역"
     : lang === "en"
-      ? "Theaters in frame"
-      : "담긴 전장";
+      ? "Regions in frame"
+      : "담긴 지역";
   const categoryLabel = isEconomy
     ? lang === "en"
       ? "Macro · regions"
@@ -225,13 +216,13 @@ function PhotoNewsLampParchment({
               : "Photo desk below — multi-theater selection."
             : isEconomy
               ? "아래 컬러 데스크에서 지역별 시장 요약본을 보세요."
-              : "아래 사진 데스크에서 전장별 고신뢰 뉴스를 보세요."}
+              : "아래 사진 데스크에서 지역별 심층 뉴스를 보세요."}
         </p>
       )}
       <p className="mt-4 px-1 text-[11px] leading-relaxed text-[#5a4428]/65">
         {lang === "en"
-          ? "Summaries stay short. Open → for the full article."
-          : "등불은 요약본입니다. 원문은 → 로 이동합니다."}
+          ? "Summaries are at least ~300 characters. Open → for the full article."
+          : "요약은 약 300자 이상입니다. 원문은 → 로 이동합니다."}
       </p>
     </>
   );
@@ -414,8 +405,8 @@ function PhotoNewsLampParchment({
                         ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
                         : "미·중·유럽 · 초크포인트(유가·물류) · 당일 핫"
                       : lang === "en"
-                        ? "Middle East · Ukraine · Taiwan · Korea · chokepoints — war · diplomacy"
-                        : "중동 · 러우 · 대만 · 한반도 · 초크포인트 — 전쟁·외교"}
+                        ? "Worldwide regional deep desk — clear photos · 6h refresh"
+                        : "전 세계 지역별 심층 — 선명 사진 · 6시간 갱신"}
                   </p>
                 </div>
 
@@ -526,8 +517,8 @@ function PhotoNewsLampParchment({
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
-                        ? "No illustrated wires available right now."
-                        : "사진이 있는 와이어를 아직 찾지 못했습니다."}
+                        ? "Loading the regional photo desk…"
+                        : "지역별 심층 사진 데스크를 불러오는 중…"}
                     </p>
                   )}
 
@@ -647,7 +638,7 @@ function LampCardHero({
           aria-hidden
         >
           <p className="text-[10px] uppercase tracking-[0.28em] text-[#f5ead2]/55">
-            {isEconomy ? (lang === "en" ? "Market lamp" : "시장 등불") : lang === "en" ? "War lamp" : "전장 등불"}
+            {isEconomy ? (lang === "en" ? "Market lamp" : "시장 등불") : lang === "en" ? "Geopolitics lamp" : "지정학 등불"}
           </p>
           <p className="mt-1 text-[1.35rem] tracking-[0.08em] text-[#f5ead2]/92">{label}</p>
           {focusLabel ? (

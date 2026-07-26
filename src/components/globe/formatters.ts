@@ -1,6 +1,6 @@
 import type { SearchPlace } from "@/data/geoTypes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { WELCOME_GATE_KEY } from "@/components/globe/constants";
+import { LANG_CHOICE_KEY, WELCOME_GATE_KEY } from "@/components/globe/constants";
 
 export function truncateOverview(text: string, maxLen = 140) {
   const trimmed = text.trim();
@@ -103,6 +103,25 @@ export function markWelcomeGateDone() {
   if (forceEntryGateReplay()) return;
   try {
     localStorage.setItem(WELCOME_GATE_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function readLangChoiceDone(): boolean {
+  if (typeof window === "undefined") return true;
+  if (forceEntryGateReplay()) return false;
+  try {
+    return localStorage.getItem(LANG_CHOICE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markLangChoiceDone() {
+  if (forceEntryGateReplay()) return;
+  try {
+    localStorage.setItem(LANG_CHOICE_KEY, "1");
   } catch {
     // ignore
   }

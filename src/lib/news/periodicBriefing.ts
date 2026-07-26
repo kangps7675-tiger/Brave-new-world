@@ -1,4 +1,3 @@
-import { FRICTION_EPISODES } from "@/data/frictionEpisodes";
 import { allEconInsightBriefs } from "@/data/econInsightBriefs";
 import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -29,8 +28,9 @@ import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
 export type BriefingTier = "monthly" | "weekly" | "daily";
 
-/** 등불 카드에 보이는 요약 상한 — RSS 본문 스니펫(1000)과 분리 */
-export const LAMP_DISPLAY_SUMMARY_MAX = 320;
+/** 등불 카드 요약 — 최소 300자, RSS 본문 스니펫(1000) 범위 안에서 자름 */
+export const LAMP_DISPLAY_SUMMARY_MIN = 300;
+export const LAMP_DISPLAY_SUMMARY_MAX = 520;
 
 /** 등불 뉴스 콘텐츠 갱신 주기 (6시간) */
 export const LAMP_CONTENT_SLOT_HOURS = 6;
@@ -345,14 +345,14 @@ function hashKeyToIndex(key: string, mod: number): number {
 
 const LAMP_TITLE = {
   ko: {
-    daily: "오늘의 전장 등불",
-    weekly: "이번 주 전장 등불",
-    monthly: "이번 달 전장 등불",
+    daily: "오늘의 지정학 등불",
+    weekly: "이번 주 지정학 등불",
+    monthly: "이번 달 지정학 등불",
   },
   en: {
-    daily: "Today's frontline lamp",
-    weekly: "This week's frontline lamp",
-    monthly: "This month's frontline lamp",
+    daily: "Today's geopolitics lamp",
+    weekly: "This week's geopolitics lamp",
+    monthly: "This month's geopolitics lamp",
   },
 } as const;
 
@@ -383,39 +383,15 @@ function pickKoreanLines(lines: string[], limit = 2): string[] {
   return lines.filter(looksMostlyKorean).slice(0, limit);
 }
 
-function partyLabel(parties: string[]): string {
-  if (parties.length === 0) return "관련 세력";
-  return parties.join("·");
-}
-
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
-  if (FRICTION_EPISODES.length === 0) return null;
   const ko = lang !== "en";
-  const episode = FRICTION_EPISODES[hashKeyToIndex(dayKey, FRICTION_EPISODES.length)];
   const kicker = ko ? LAMP_TITLE.ko[tier] : LAMP_TITLE.en[tier];
-  const yearText = episode.yearEnd
-    ? `${episode.historicalYear}–${episode.yearEnd}`
-    : `${episode.historicalYear}`;
-  const who = partyLabel(episode.parties);
-
   return {
     tier,
     key: dayKey,
-    title: `${kicker}\n${episode.title}`,
-    paragraphs: ko
-      ? [
-          // 언제 · 어디서 · 누가
-          `보고드립니다. ${yearText}, ${episode.locationName}에서 ${who}이(가) 충돌했습니다. 금일 정례 보고는 라이브 집계가 비어 있어 이 사례를 기준 자료로 다룹니다.`,
-          // 무엇을 · 왜
-          episode.briefing,
-          // 어떻게
-          "이상은 확인된 과거 기록에 근거한 정리이며, 오늘의 긴장을 판단하는 참고 자료입니다. 상세 내용은 지도 허브 「반서방국 충돌사」에서 확인하실 수 있습니다. 다음 보고는 6시간마다 갱신됩니다.",
-        ]
-      : [
-          `Briefing. In ${yearText}, at ${episode.locationName}, ${who} collided. With live aggregates empty, today's report uses this case as reference material.`,
-          episode.briefing,
-          "The above is drawn from verified historical record and serves as reference for reading today's tension. Full detail is available in the Frictions hub. The next report updates every 6 hours.",
-        ],
+    title: `${kicker}\n${ko ? "전 세계 지역별 심층 데스크" : "Global regional deep desk"}`,
+    paragraphs: [],
+    featuredNews: [],
   };
 }
 
@@ -989,13 +965,35 @@ function buildFocusLabel(
 }
 
 function deepenSummary(raw: string | undefined, title: string): string {
-  const clean = (raw ?? "").replace(/\s+/g, " ").trim();
+  let clean = (raw ?? "").replace(/\s+/g, " ").trim();
   const max = LAMP_DISPLAY_SUMMARY_MAX;
-  if (clean.length >= 160) return clean.slice(0, max);
-  if (clean.length >= 40 && !clean.toLowerCase().includes(title.toLowerCase().slice(0, 24))) {
-    return `${title}. ${clean}`.slice(0, max);
+  const min = LAMP_DISPLAY_SUMMARY_MIN;
+  const titleTrim = title.replace(/\s+/g, " ").trim();
+
+  if (
+    clean.length < min &&
+    titleTrim.length > 0 &&
+    !clean.toLowerCase().includes(titleTrim.toLowerCase().slice(0, 24))
+  ) {
+    clean = `${titleTrim}. ${clean}`.trim();
   }
-  return clean.length > 0 ? clean.slice(0, max) : title;
+
+  if (clean.length === 0) return titleTrim.slice(0, max);
+
+  if (clean.length > max) {
+    const sliced = clean.slice(0, max);
+    const lastStop = Math.max(
+      sliced.lastIndexOf("。"),
+      sliced.lastIndexOf(". "),
+      sliced.lastIndexOf("…"),
+      sliced.lastIndexOf("! "),
+      sliced.lastIndexOf("? "),
+    );
+    if (lastStop >= min) return sliced.slice(0, lastStop + 1).trim();
+    return sliced.trim();
+  }
+
+  return clean;
 }
 
 type ScoredLampNews = {
@@ -1019,9 +1017,17 @@ function scoreLampCandidate(
   const genreScore = LAMP_NEWS_GENRE_PRIORITY[item.econGenre ?? ""] ?? 40;
   const tierScore = (item.trustTier - 1) * 28;
   const companyScore = entities.length === 0 ? 35 : Math.max(0, 12 - entities.length * 14);
-  // RSS 본문 스니펫 길이로 심층도 추정 (등불 표시 길이와 무관)
+  // RSS 본문 스니펫 길이로 심층도 추정 (등불 표시 길이와 무관) — 300자+ 가산
   const depthScore =
-    summaryLen >= 700 ? -28 : summaryLen >= 400 ? -16 : summaryLen >= 200 ? -6 : summaryLen >= 80 ? 0 : 30;
+    summaryLen >= 700
+      ? -32
+      : summaryLen >= LAMP_DISPLAY_SUMMARY_MIN
+        ? -22
+        : summaryLen >= 200
+          ? -6
+          : summaryLen >= 80
+            ? 0
+            : 30;
   const thinPenalty = summaryLen < 40 ? 40 : 0;
   const rivalryBonus = US_CHINA_RIVALRY_RE.test(blob) ? -22 : 0;
   const chinaIndustryBonus = isChinaIndustrialDevelopmentNews(blob) ? -26 : 0;
@@ -1725,9 +1731,17 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
   const summaryLen = (item.summary ?? "").trim().length;
   const ageMin = ageMinutes(item.pubDate);
   const tierScore = (item.trustTier - 1) * 30;
-  // 본문 스니펫으로 심층도 추정 — 표시용 요약과 분리
+  // 본문 스니펫으로 심층도 추정 — 300자+ 심층 우선
   const depthScore =
-    summaryLen >= 700 ? -30 : summaryLen >= 400 ? -18 : summaryLen >= 200 ? -8 : summaryLen >= 80 ? 4 : 36;
+    summaryLen >= 700
+      ? -34
+      : summaryLen >= LAMP_DISPLAY_SUMMARY_MIN
+        ? -24
+        : summaryLen >= 200
+          ? -8
+          : summaryLen >= 80
+            ? 4
+            : 36;
   const thinPenalty = summaryLen < 50 ? 45 : 0;
   const hardBonus = CONFLICT_HARD_NEWS_RE.test(blob) ? -18 : 0;
   const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
@@ -1898,6 +1912,8 @@ export function pickConflictLampNews(
     if (seenClusters.has(cKey) && !relax) return false;
 
     const bodyLen = (item.summary ?? "").trim().length;
+    // 심층 요약(300자+) 우선 — 짧은 속보 헤드라인만 있는 건 relax 때만
+    if (!relax && bodyLen < LAMP_DISPLAY_SUMMARY_MIN && item.trustTier > 1) return false;
     if (!relax && bodyLen < 80 && item.trustTier > 1) return false;
     if (!relax && item.trustTier === 3 && row.clusterSize < 2 && bodyLen < 250) return false;
 

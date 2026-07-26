@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { recordInterestNews } from "@/lib/interest/recordInterest";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
@@ -35,7 +35,7 @@ export function LampWhyMattersButton({
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<string | null>(null);
-  const hasKey = useMemo(() => hasUserAnthropicApiKey(), [open, text, loading]);
+  const hasKey = hasUserAnthropicApiKey();
 
   const run = useCallback(async () => {
     if (loading || !title.trim()) return;

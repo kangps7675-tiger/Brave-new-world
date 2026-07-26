@@ -537,6 +537,85 @@ export const referenceMonitorItems = sqliteTable(
 );
 
 /**
+ * USNI·JSO 주간 함선 이동 보고서 (원문 메타).
+ * 공개 API는 파생 사실만 — 원문 전문은 보관용.
+ */
+export const shipMovementReports = sqliteTable(
+  "ship_movement_reports",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(),
+    sourceLabel: text("source_label").notNull(),
+    url: text("url").notNull(),
+    title: text("title").notNull(),
+    titleKo: text("title_ko").notNull(),
+    titleEn: text("title_en").notNull(),
+    summaryKo: text("summary_ko"),
+    summaryEn: text("summary_en"),
+    publishedAt: text("published_at"),
+    weekStart: text("week_start"),
+    contentHash: text("content_hash").notNull(),
+    rawExcerpt: text("raw_excerpt"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    sourceIdx: index("idx_ship_move_reports_source").on(t.source, t.publishedAt),
+    weekIdx: index("idx_ship_move_reports_week").on(t.weekStart),
+  }),
+);
+
+/**
+ * 주간 함선 관측 — 승인 전에는 공개 지도에 올리지 않음.
+ */
+export const shipMovementObservations = sqliteTable(
+  "ship_movement_observations",
+  {
+    id: text("id").primaryKey(),
+    reportId: text("report_id").notNull(),
+    vesselKey: text("vessel_key").notNull(),
+    vesselName: text("vessel_name"),
+    hullNumber: text("hull_number"),
+    navyCode: text("navy_code"),
+    navyLabelKo: text("navy_label_ko"),
+    navyLabelEn: text("navy_label_en"),
+    titleKo: text("title_ko").notNull(),
+    titleEn: text("title_en").notNull(),
+    summaryKo: text("summary_ko"),
+    summaryEn: text("summary_en"),
+    locationLabelKo: text("location_label_ko"),
+    locationLabelEn: text("location_label_en"),
+    missingLocationNoteKo: text("missing_location_note_ko"),
+    missingLocationNoteEn: text("missing_location_note_en"),
+    observedAt: text("observed_at"),
+    locationStatus: text("location_status").notNull(),
+    confidence: text("confidence").notNull(),
+    vesselConfidence: text("vessel_confidence").notNull().default("low"),
+    method: text("method").notNull().default("none"),
+    mapEligible: integer("map_eligible").notNull().default(0),
+    lat: real("lat"),
+    lng: real("lng"),
+    precisionKm: real("precision_km"),
+    placeId: text("place_id"),
+    evidenceJson: text("evidence_json").notNull().default("[]"),
+    reviewStatus: text("review_status").notNull().default("pending"),
+    reviewNote: text("review_note"),
+    reviewedAt: text("reviewed_at"),
+    weekStart: text("week_start"),
+    source: text("source").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (t) => ({
+    reviewIdx: index("idx_ship_move_obs_review").on(t.reviewStatus, t.updatedAt),
+    weekIdx: index("idx_ship_move_obs_week").on(t.weekStart),
+    vesselIdx: index("idx_ship_move_obs_vessel").on(t.vesselKey),
+    geoIdx: index("idx_ship_move_obs_geo").on(t.lat, t.lng),
+    reportIdx: index("idx_ship_move_obs_report").on(t.reportId),
+  }),
+);
+
+/**
  * NAVAREA in-force 경고 (JHOD / NGA TXT → cron 스냅샷 교체).
  * id = `{region}-{yy}-{num}` (예: XI-26-0330, IV-26-0695).
  */
@@ -838,5 +917,9 @@ export type NavareaFeatureRow = typeof navareaFeatures.$inferSelect;
 export type NewNavareaFeatureRow = typeof navareaFeatures.$inferInsert;
 export type ReferenceMonitorItemRow = typeof referenceMonitorItems.$inferSelect;
 export type NewReferenceMonitorItemRow = typeof referenceMonitorItems.$inferInsert;
+export type ShipMovementReportRow = typeof shipMovementReports.$inferSelect;
+export type NewShipMovementReportRow = typeof shipMovementReports.$inferInsert;
+export type ShipMovementObservationRow = typeof shipMovementObservations.$inferSelect;
+export type NewShipMovementObservationRow = typeof shipMovementObservations.$inferInsert;
 export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
 export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;

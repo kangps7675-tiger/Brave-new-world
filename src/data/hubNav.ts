@@ -6,7 +6,13 @@ import {
 } from "@/data/axisNetwork";
 import type { NavSelection, NavSubItem, RegionBBox } from "@/data/navRegions";
 
-export type HubFocusMode = "network" | "ally" | "claim" | "arms" | "regime";
+export type HubFocusMode =
+  | "network"
+  | "ally"
+  | "claim"
+  | "arms"
+  | "regime"
+  | "westpac-pulse";
 
 export type HubClaim = {
   id: string;
@@ -416,6 +422,21 @@ export function selectionForRegimeOverview(): NavSelection {
     bbox: { minLat: -20, maxLat: 70, minLng: -20, maxLng: 145 },
     groupId: "axis-hubs",
     focusMode: "regime",
+  };
+}
+
+/** HoverNav 이벤트 메뉴 — USNI·JSO 공개 관측 기반 주간 함선 이동기 */
+export function selectionForWestpacPulseOverview(): NavSelection {
+  return {
+    id: "westpac-ship-movements-overview",
+    label: "서태평양 주간 함선 이동기",
+    lat: 22,
+    lng: 128,
+    altitude: 1.65,
+    description: "공개 관측 기반 주간 함선 이동 기록 (실시간 AIS 아님)",
+    bbox: { minLat: 5, maxLat: 42, minLng: 110, maxLng: 150 },
+    groupId: "axis-hubs",
+    focusMode: "westpac-pulse",
   };
 }
 

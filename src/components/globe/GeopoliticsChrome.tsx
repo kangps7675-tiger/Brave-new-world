@@ -13,6 +13,7 @@ import { AxisArmsPanel } from "@/components/AxisArmsPanel";
 import { AxisRegimePanel } from "@/components/AxisRegimePanel";
 import { FrictionHistoryChrome } from "@/components/FrictionHistoryChrome";
 import { LivingConflictPanel } from "@/components/LivingConflictPanel";
+import { WeeklyShipMovesPanel } from "@/components/WeeklyShipMovesPanel";
 import type { HubBriefDoc } from "@/data/hubBriefs";
 import type { AxisHubId } from "@/data/axisNetwork";
 import type { NavSelection } from "@/data/navRegions";
@@ -23,6 +24,7 @@ import { frictionParchmentParagraphs } from "@/data/frictionEpisodeDeep";
 import type { FrictionTimelineStage } from "@/data/frictionEpisodeDeep";
 import { filterArmsForHub, type AxisArmsPayload } from "@/lib/axisArmsPaths";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import type { TheaterFocusConfig, TheaterSidebarTab } from "@/lib/theaterFocus";
 import type { BottomAlertPanel } from "@/lib/localOverlayPolicy";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
@@ -55,6 +57,13 @@ export type GeopoliticsHubChromeProps = {
   livingTaiwanOpen: boolean;
   onLivingTaiwanClose: () => void;
   onLivingTaiwanFlyToMap: (lat: number, lng: number, altitude: number) => void;
+  westpacPulseOpen: boolean;
+  shipMovesLoading: boolean;
+  shipMovesTimeline: PublicShipObservation[];
+  shipMovesDisclaimer: string | null;
+  shipMovesSelectedId: string | null;
+  onShipMoveSelect: (obs: PublicShipObservation) => void;
+  onWestpacPulseClose: () => void;
 };
 
 export function GeopoliticsHubChrome({
@@ -77,6 +86,13 @@ export function GeopoliticsHubChrome({
   livingTaiwanOpen,
   onLivingTaiwanClose,
   onLivingTaiwanFlyToMap,
+  westpacPulseOpen,
+  shipMovesLoading,
+  shipMovesTimeline,
+  shipMovesDisclaimer,
+  shipMovesSelectedId,
+  onShipMoveSelect,
+  onWestpacPulseClose,
 }: GeopoliticsHubChromeProps) {
   return (
     <>
@@ -118,6 +134,19 @@ export function GeopoliticsHubChrome({
           open={livingTaiwanOpen}
           onClose={onLivingTaiwanClose}
           onFlyToMap={onLivingTaiwanFlyToMap}
+        />
+      ) : null}
+
+      {!isEconomyViewer ? (
+        <WeeklyShipMovesPanel
+          open={westpacPulseOpen}
+          lang={labelLanguage}
+          loading={shipMovesLoading}
+          observations={shipMovesTimeline}
+          disclaimer={shipMovesDisclaimer}
+          selectedId={shipMovesSelectedId}
+          onSelect={onShipMoveSelect}
+          onClose={onWestpacPulseClose}
         />
       ) : null}
     </>

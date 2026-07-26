@@ -3,7 +3,7 @@
 import { EntryCautionOverlay } from "@/components/EntryCautionOverlay";
 import { WelcomeParchmentLetter } from "@/components/WelcomeParchmentLetter";
 import { DomainGateOverlay } from "@/components/DomainGateOverlay";
-import { markWelcomeGateDone } from "@/components/globe/formatters";
+import { markLangChoiceDone, markWelcomeGateDone } from "@/components/globe/formatters";
 import type { EntryGate } from "@/components/globe/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
@@ -13,6 +13,8 @@ type EntryGateHostProps = {
   isCompactUi: boolean;
   labelLanguage: LabelLanguage;
   onLabelLanguageChange: (lang: LabelLanguage) => void;
+  /** caution에서 언어 확정·통과 시 — 등불 게이트 해제 */
+  onLangChoiceConfirmed?: () => void;
   onSetGate: (gate: EntryGate) => void;
   onDomainSelect: (mode: ViewerMode, ultraLite: boolean) => void;
 };
@@ -27,19 +29,31 @@ export function EntryGateHost({
   isCompactUi,
   labelLanguage,
   onLabelLanguageChange,
+  onLangChoiceConfirmed,
   onSetGate,
   onDomainSelect,
 }: EntryGateHostProps) {
+  const confirmLang = (lang: LabelLanguage) => {
+    onLabelLanguageChange(lang);
+    markLangChoiceDone();
+    onLangChoiceConfirmed?.();
+  };
+
+  /** 경고 화면을 지나갈 때 — 현재 선택(기본값 포함)을 확정으로 간주 */
+  const leaveCaution = (next: EntryGate) => {
+    markLangChoiceDone();
+    onLangChoiceConfirmed?.();
+    if (next === "domain") markWelcomeGateDone();
+    onSetGate(next);
+  };
+
   if (entryGate === "caution") {
     return (
       <EntryCautionOverlay
         lang={labelLanguage}
-        onLangChange={onLabelLanguageChange}
-        onContinue={() => onSetGate("welcome")}
-        onSkipToDomain={() => {
-          markWelcomeGateDone();
-          onSetGate("domain");
-        }}
+        onLangChange={confirmLang}
+        onContinue={() => leaveCaution("welcome")}
+        onSkipToDomain={() => leaveCaution("domain")}
       />
     );
   }

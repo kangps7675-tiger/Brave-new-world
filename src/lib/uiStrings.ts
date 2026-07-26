@@ -168,6 +168,23 @@ const UI = {
     ko: "작전 배치 항모만 표시합니다.",
     en: "Show deployed carriers only.",
   },
+  hoverGpsJam: { ko: "GPS 재밍 (GPSJam)", en: "GPS interference (GPSJam)" },
+  hoverGpsJamOff: {
+    ko: "켜면 다른 레이어를 숨기고 GNSS 재밍 추정 히트맵만 표시합니다.",
+    en: "Turns off other layers and shows the GNSS interference heatmap alone.",
+  },
+  hoverGpsJamOn: {
+    ko: "솔로 모드 — 재밍 히트맵만 표시 중. 끄면 이전 레이어를 복원합니다.",
+    en: "Solo mode — interference heatmap only. Off restores previous layers.",
+  },
+  hoverGpsJamLoading: {
+    ko: "GPSJam 데이터를 불러오는 중…",
+    en: "Loading GPSJam data…",
+  },
+  hoverGpsJamError: {
+    ko: "GPSJam 데이터를 불러오지 못했습니다.",
+    en: "Failed to load GPSJam data.",
+  },
   hoverLegendReopen: {
     ko: "닫힌 범례 패널을 다시 엽니다.",
     en: "Reopen the closed legend panel.",
@@ -523,6 +540,53 @@ const UI = {
     ko: "전 세계 분쟁·군사 활동을 0~100으로 요약한 점수 (100에 가까울수록 위험)",
     en: "Global conflict and military activity as a 0–100 score (closer to 100 = more dangerous)",
   },
+  westpacShipMovesNav: {
+    ko: "서태평양 주간 함선 이동기",
+    en: "Westpac Weekly Ship Moves",
+  },
+  westpacShipMovesNavHint: {
+    ko: "공개 관측",
+    en: "Public obs.",
+  },
+  regimeConflictsNav: {
+    ko: "반서방국 분쟁사",
+    en: "Intra-bloc conflicts",
+  },
+  regimeConflictsNavHint: {
+    ko: "11대 현장",
+    en: "11 sites",
+  },
+  westpacShipMovesTitle: {
+    ko: "주간 함선 이동 기록",
+    en: "Weekly ship movement record",
+  },
+  westpacShipMovesDisclaimer: {
+    ko: "공개 관측 기반 주간 기록입니다. 실시간 AIS 위치가 아닙니다.",
+    en: "Public observation weekly record — not live AIS positions.",
+  },
+  westpacLocationUnknown: {
+    ko: "위치 공개 관측 없음",
+    en: "No public location fix",
+  },
+  westpacMapEligibleOnly: {
+    ko: "지도에는 승인·좌표 확정 건만 표시",
+    en: "Map shows approved fixes with coordinates only",
+  },
+  westpacConfidenceObserved: { ko: "직접 관측", en: "Observed" },
+  westpacConfidenceReported: { ko: "보도 서술", en: "Reported" },
+  westpacConfidenceEstimated: { ko: "추정", en: "Estimated" },
+  westpacVesselUncertain: { ko: "식별 불확실", en: "ID uncertain" },
+  westpacTrailLegend: {
+    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다",
+    en: "Lines connect public observations — not actual tracks",
+  },
+  westpacEmptyTimeline: {
+    ko: "승인된 주간 기록이 아직 없습니다.",
+    en: "No approved weekly records yet.",
+  },
+  westpacLoading: { ko: "불러오는 중…", en: "Loading…" },
+  westpacExit: { ko: "나가기", en: "Exit" },
+  westpacOpenSource: { ko: "출처", en: "Source" },
 } as const;
 
 export type UiStringKey = keyof typeof UI;

@@ -38,11 +38,15 @@ export function applyBattlefieldPreset(
         showGdeltDiplomatic: true,
         showTelegramOsint: true,
         showMilitaryActivity: false,
+        showMilitaryBases: true,
+        showUsCarriers: true,
         showAis: false,
       });
     case "taiwan":
       return patch(current, {
         showMilitaryActivity: true,
+        showMilitaryBases: true,
+        showUsCarriers: true,
         showAis: true,
         showShippingLanes: true,
         showLogisticsRisk: true,
@@ -71,6 +75,7 @@ export function applyBattlefieldPreset(
         showUkmtoIncidents: true,
         showNavareaWarnings: true,
         showMilitaryActivity: true,
+        showMilitaryBases: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,
         showWarZones: true,
@@ -83,6 +88,7 @@ export function applyBattlefieldPreset(
       return patch(current, {
         showMilitaryActivity: true,
         showMilitaryBases: true,
+        showUsCarriers: true,
         showAis: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,

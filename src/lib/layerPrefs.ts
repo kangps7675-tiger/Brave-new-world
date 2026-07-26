@@ -136,6 +136,13 @@ export type LayerPrefs = {
   showChinaPhilippinesIncidents: boolean;
   /** 미국↔중국 군사마찰 (서태평양·남중국해 · 네온 리플) */
   showUsChinaIncidents: boolean;
+  /** USNI·JSO 공개 관측 기반 주간 함선 이동 (승인+mapEligible만 지도) */
+  showWeeklyShipMoves: boolean;
+  /**
+   * ReefWatch — 남중국해 암초·인공섬 feature 모니터링 + OpenSky 근접 항적
+   * @see https://github.com/NinhGhoster/ReefWatch
+   */
+  showReefWatch: boolean;
   /** 북한 미사일·무기실험 (주황 네온 · 발사·실험 발생지) */
   showNorthKoreaMissileTests: boolean;
   /** NEPTUN — 우크라이나 드론·미사일·탄도미사일 실시간 궤적 (neptun.in.ua) */
@@ -162,8 +169,8 @@ export type LayerPrefs = {
 
 export type MobileHomeView = "alerts" | "globe";
 
-/** v36: PLARF 사일로 · RVSN 주둔지 · NTI 시험장 · 조사 격자 */
-export const LAYER_PREFS_KEY = "geowatch-layers-v36";
+/** v38: ReefWatch 남중국해 feature 모니터링 */
+export const LAYER_PREFS_KEY = "geowatch-layers-v38";
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -242,6 +249,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,
   showUsChinaIncidents: false,
+  showWeeklyShipMoves: false,
+  showReefWatch: false,
   showNorthKoreaMissileTests: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,
@@ -256,6 +265,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
 };
 
 const LEGACY_LAYER_KEYS = [
+  "geowatch-layers-v37",
+  "geowatch-layers-v36",
   "geowatch-layers-v35",
   "geowatch-layers-v34",
   "geowatch-layers-v33",

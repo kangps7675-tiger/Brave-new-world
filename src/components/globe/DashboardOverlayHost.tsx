@@ -70,9 +70,12 @@ import {
   type MaritimeAlertOffer,
 } from "@/components/MaritimeAlertOfferBanner";
 import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
+import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
 import {
+  clearLampFolded,
   clearWeeklyRecapFolded,
+  markLampFolded,
   markPeriodSeen,
   markWeeklyRecapFolded,
   type PeriodicBriefing,
@@ -98,7 +101,9 @@ import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
 import type { NeptunAlerts } from "@/lib/neptun";
 import { ServerDonateChip } from "@/components/ServerDonateChip";
 import { UsCarrierFixedToggle } from "@/components/UsCarrierFixedToggle";
+import { GpsJamFixedToggle } from "@/components/GpsJamFixedToggle";
 import { EconomySupplyChainFixedToggle } from "@/components/EconomySupplyChainFixedToggle";
+import { FinintTicker } from "@/components/FinintTicker";
 import { BRI_TRADE_LINK_COUNT } from "@/lib/briTradePaths";
 import { US_DFC_LINK_COUNT } from "@/lib/usDfcSupplyPaths";
 import { HamburgerIcon } from "@/components/globe/HamburgerIcon";
@@ -165,6 +170,10 @@ export type DashboardOverlayHostProps = {
   showUsCarriers: boolean;
   usCarriers: UsCarrier[];
   deployedCarrierCount: number;
+  showGpsInterference: boolean;
+  gpsJamStatus: "idle" | "loading" | "ok" | "error";
+  gpsJamCellCount: number;
+  gpsJamDate: string | null;
   showUsDfcSupplyChain: boolean;
   showBriTradeConnectivity: boolean;
   usDfcSupplyPaths: TransportPath[];
@@ -205,6 +214,7 @@ export type DashboardOverlayHostProps = {
   whatsNewUpdate: AppUpdate | null;
   tomorrowTensionPrompt: DailyPrompt | null;
   periodicBriefing: PeriodicBriefing | null;
+  foldedPeriodicBriefing: PeriodicBriefing | null;
   weeklyExpanded: boolean;
   tourActive: boolean;
   modePickerInitialMode: ViewerMode | null;
@@ -222,6 +232,7 @@ export type DashboardOverlayHostProps = {
   weeklyRecap: PeriodicBriefing | null;
   weeklyRecapCollapsed: boolean;
   showLampPreparing: boolean;
+  showLanguageGate: boolean;
   showDailyRankPanel: boolean;
   telegramMiniPanelVisible: boolean;
   showTourInvite: boolean;
@@ -238,6 +249,7 @@ export type DashboardOverlayHostProps = {
   onCloseLeftPanel: () => void;
   onToggleLeftPanel: () => void;
   onSetShowUsCarriers: (v: boolean) => void;
+  onSetShowGpsInterference: (v: boolean) => void;
   onSetShowUsDfcSupplyChain: (v: boolean) => void;
   onSetShowBriTradeConnectivity: (v: boolean) => void;
   onSetShowQuickStart: (v: boolean) => void;
@@ -265,6 +277,8 @@ export type DashboardOverlayHostProps = {
   flyTo: FlyToFn;
   onSetWhatsNewUpdate: (v: AppUpdate | null) => void;
   onLabelLanguageChange: (lang: LabelLanguage) => void;
+  onConfirmLabelLanguage: (lang: LabelLanguage) => void;
+  onLangChoiceConfirmed: () => void;
   onSetEntryGate: (gate: EntryGate) => void;
   onDomainSelect: (mode: ViewerMode, ultraLite: boolean) => void;
   onModeApply: (
@@ -283,6 +297,7 @@ export type DashboardOverlayHostProps = {
   onSetWeeklyRecapCollapsed: (v: boolean) => void;
   onSetShowTourInvite: (v: boolean) => void;
   onSetPeriodicBriefing: (v: PeriodicBriefing | null) => void;
+  onSetFoldedPeriodicBriefing: (v: PeriodicBriefing | null) => void;
   onSetTomorrowTensionPrompt: (v: DailyPrompt | null) => void;
   onSetClearanceStatus: (v: ClearanceStatus | null) => void;
   onToggleDailyRankPanel: (next: boolean) => void;
@@ -327,6 +342,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showUsCarriers,
     usCarriers,
     deployedCarrierCount,
+    showGpsInterference,
+    gpsJamStatus,
+    gpsJamCellCount,
+    gpsJamDate,
     showUsDfcSupplyChain,
     showBriTradeConnectivity,
     usDfcSupplyPaths,
@@ -367,6 +386,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     whatsNewUpdate,
     tomorrowTensionPrompt,
     periodicBriefing,
+    foldedPeriodicBriefing,
     weeklyExpanded,
     tourActive,
     modePickerInitialMode,
@@ -384,6 +404,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     weeklyRecap,
     weeklyRecapCollapsed,
     showLampPreparing,
+    showLanguageGate,
     showDailyRankPanel,
     telegramMiniPanelVisible,
     showTourInvite,
@@ -400,6 +421,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onCloseLeftPanel,
     onToggleLeftPanel,
     onSetShowUsCarriers,
+    onSetShowGpsInterference,
     onSetShowUsDfcSupplyChain,
     onSetShowBriTradeConnectivity,
     onSetShowQuickStart,
@@ -423,6 +445,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     flyTo,
     onSetWhatsNewUpdate,
     onLabelLanguageChange,
+    onConfirmLabelLanguage,
+    onLangChoiceConfirmed,
     onSetEntryGate,
     onDomainSelect,
     onModeApply,
@@ -437,6 +461,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetWeeklyRecapCollapsed,
     onSetShowTourInvite,
     onSetPeriodicBriefing,
+    onSetFoldedPeriodicBriefing,
     onSetTomorrowTensionPrompt,
     onSetClearanceStatus,
     onToggleDailyRankPanel,
@@ -574,23 +599,43 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           }}
         >
           {!isEconomyViewer ? (
-            <UsCarrierFixedToggle
-              checked={showUsCarriers}
-              onChange={onSetShowUsCarriers}
-              carrierCount={usCarriers.length}
-              deployedCount={deployedCarrierCount}
-              hintPlacement="left"
-            />
+            <>
+              <GpsJamFixedToggle
+                checked={showGpsInterference}
+                onChange={onSetShowGpsInterference}
+                status={gpsJamStatus}
+                cellCount={gpsJamCellCount}
+                date={gpsJamDate}
+                hintPlacement="left"
+              />
+              {/* GPSJam 솔로 중에는 항모 토글 숨김 — 작전중 잔여 표시와 충돌 방지 */}
+              {!showGpsInterference ? (
+                <UsCarrierFixedToggle
+                  checked={showUsCarriers}
+                  onChange={onSetShowUsCarriers}
+                  carrierCount={usCarriers.length}
+                  deployedCount={deployedCarrierCount}
+                  hintPlacement="left"
+                />
+              ) : null}
+            </>
           ) : (
-            <EconomySupplyChainFixedToggle
-              showUsDfc={showUsDfcSupplyChain}
-              showChinaBri={showBriTradeConnectivity}
-              onUsDfcChange={onSetShowUsDfcSupplyChain}
-              onChinaBriChange={onSetShowBriTradeConnectivity}
-              usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
-              chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
-              vertical
-            />
+            <>
+              <EconomySupplyChainFixedToggle
+                showUsDfc={showUsDfcSupplyChain}
+                showChinaBri={showBriTradeConnectivity}
+                onUsDfcChange={onSetShowUsDfcSupplyChain}
+                onChinaBriChange={onSetShowBriTradeConnectivity}
+                usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
+                chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
+                vertical
+              />
+              {entryGate === null ? (
+                <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
+                  <FinintTicker />
+                </div>
+              ) : null}
+            </>
           )}
           <div className="pointer-events-auto shrink-0">
             <ServerDonateChip lang={labelLanguage} />
@@ -970,9 +1015,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         isCompactUi={isCompactUi}
         labelLanguage={labelLanguage}
         onLabelLanguageChange={onLabelLanguageChange}
+        onLangChoiceConfirmed={onLangChoiceConfirmed}
         onSetGate={onSetEntryGate}
         onDomainSelect={onDomainSelect}
       />
+
+      {showLanguageGate ? (
+        <LanguageGateOverlay lang={labelLanguage} onSelect={onConfirmLabelLanguage} />
+      ) : null}
 
       {showModePicker ? (
         <ModePickerOverlay
@@ -1107,7 +1157,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {weeklyRecap && weeklyRecapCollapsed && !periodicBriefing ? (
+      {weeklyRecap &&
+      weeklyRecapCollapsed &&
+      !periodicBriefing &&
+      !foldedPeriodicBriefing ? (
         <button
           type="button"
           onClick={() => {
@@ -1135,6 +1188,35 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         </button>
       ) : null}
 
+      {foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded ? (
+        <button
+          type="button"
+          onClick={() => {
+            clearLampFolded(foldedPeriodicBriefing.key);
+            onSetPeriodicBriefing(foldedPeriodicBriefing);
+            onSetFoldedPeriodicBriefing(null);
+          }}
+          className="pointer-events-auto absolute bottom-24 right-3 z-[47] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-[13px] text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
+          aria-label={
+            labelLanguage === "en"
+              ? "Reopen today's lamp news"
+              : "오늘의 등불뉴스 다시 펼치기"
+          }
+        >
+          <span className="text-base leading-none" aria-hidden>
+            {"\uD83C\uDFEE"}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate font-medium tracking-[0.04em]">
+              {labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
+            </span>
+            <span className="mt-0.5 block truncate text-[10px] text-[#6b4a22]/75">
+              {labelLanguage === "en" ? "Tap to unfold again" : "눌러서 다시 펼치기"}
+            </span>
+          </span>
+        </button>
+      ) : null}
+
       <LampPreparingOverlay open={showLampPreparing} lang={labelLanguage} />
 
       {periodicBriefing && !weeklyExpanded && !sentinelActive ? (
@@ -1146,6 +1228,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           }}
           onDismiss={() => {
             markPeriodSeen(periodicBriefing.key);
+            markLampFolded(periodicBriefing.key);
             recordInterestNews(
               periodicBriefing.key,
               periodicBriefing.title || periodicBriefing.key,
@@ -1154,6 +1237,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             const prefs = syncClearancePrefs(readDailyPredictPrefs());
             writeDailyPredictPrefs(prefs);
             onSetClearanceStatus(resolveClearanceStatus(prefs));
+            onSetFoldedPeriodicBriefing(periodicBriefing);
             onSetPeriodicBriefing(null);
             if (shouldOfferTourInvite()) {
               window.setTimeout(() => onSetShowTourInvite(true), 450);

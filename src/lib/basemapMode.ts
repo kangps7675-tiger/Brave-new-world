@@ -118,7 +118,17 @@ export type BasemapMapLike = {
   setFog: (fog: BasemapFogSpec | null) => void;
   setTerrain: (terrain: { source: string; exaggeration?: number } | null) => void;
   getSource: (id: string) => unknown;
+  setProjection?: (projection: { type: string }) => void;
 };
+
+/** 스타일 교체 후 Mercator 리셋 방지 — 항상 3D 지구본 투영 */
+export function applyBasemapGlobeProjection(map: BasemapMapLike): void {
+  try {
+    map.setProjection?.({ type: "globe" });
+  } catch {
+    /* projection unsupported */
+  }
+}
 
 export function applyBasemapFog(map: BasemapMapLike, mode: BasemapMode): void {
   try {

@@ -52,6 +52,8 @@ scripts/telegram-osint/.session/
 /scripts/processed/
 /output/
 /vendor/VIINA/
+# GPL-3.0 upstream — keep local; do not amalgamate into src/ (see docs/third-party/cross-strait-signal.md)
+/vendor/cross-strait-signal/
 /private/viina-render/
 /public/data/live/
 

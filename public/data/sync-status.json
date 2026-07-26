@@ -1,17 +1,17 @@
 {
-  "running": false,
+  "running": true,
   "lastSuccessAt": "2026-07-12T14:50:06.258Z",
   "lastError": null,
   "source": "never-synced",
   "note": "Run npm run data:sync or POST /api/data-sync to refresh SIGINT snapshots + regional tensions.",
-  "lastStartAt": "2026-07-12T14:48:30.061Z",
+  "lastStartAt": "2026-07-26T17:34:46.992Z",
   "mode": "default",
   "sources": {
     "tensions": "scripts/data/*-tensions-seed.json (curated)",
     "gdelt": "skipped",
     "viina": "skipped"
   },
-  "updatedAt": "2026-07-12T14:50:06.261Z",
+  "updatedAt": "2026-07-26T17:34:47.074Z",
   "lastDurationMs": 96197,
   "steps": [
     {
