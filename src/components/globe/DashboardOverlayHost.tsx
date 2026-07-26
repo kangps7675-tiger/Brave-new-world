@@ -58,6 +58,8 @@ import {
   type AirRaidBriefingContent,
 } from "@/components/AirRaidBriefingParchment";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
+import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
+import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
 import { ExerciseOfferBanner, type ExerciseOffer } from "@/components/ExerciseOfferBanner";
 import {
   ExerciseBriefingParchment,
@@ -225,6 +227,7 @@ export type DashboardOverlayHostProps = {
   showTourInvite: boolean;
   airRaidOffer: AirRaidOffer | null;
   airRaidBriefing: AirRaidBriefingContent | null;
+  adsbEmergencyOffer: AdsbEmergencyOffer | null;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
   maritimeOffer: MaritimeAlertOffer | null;
@@ -284,6 +287,7 @@ export type DashboardOverlayHostProps = {
   onSetClearanceStatus: (v: ClearanceStatus | null) => void;
   onToggleDailyRankPanel: (next: boolean) => void;
   onDismissAirRaidOffer: () => void;
+  onDismissAdsbEmergencyOffer: () => void;
   onDismissExerciseOffer: () => void;
   onSetExerciseBriefing: (v: ExerciseBriefingContent | null) => void;
   onAcceptMaritimeOffer: () => void;
@@ -385,6 +389,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showTourInvite,
     airRaidOffer,
     airRaidBriefing,
+    adsbEmergencyOffer,
     exerciseOffer,
     exerciseBriefing,
     maritimeOffer,
@@ -436,6 +441,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetClearanceStatus,
     onToggleDailyRankPanel,
     onDismissAirRaidOffer,
+    onDismissAdsbEmergencyOffer,
     onDismissExerciseOffer,
     onSetExerciseBriefing,
     onAcceptMaritimeOffer,
@@ -1236,10 +1242,24 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
+      {adsbEmergencyOffer &&
+      !airRaidOffer &&
+      !airRaidBriefing &&
+      !exerciseBriefing &&
+      !exerciseOffer &&
+      !issueUiPausedForLamp ? (
+        <AdsbEmergencyBanner
+          offer={adsbEmergencyOffer}
+          lang={labelLanguage}
+          onDismiss={onDismissAdsbEmergencyOffer}
+        />
+      ) : null}
+
       {exerciseOffer &&
       !exerciseBriefing &&
       !airRaidBriefing &&
       !airRaidOffer &&
+      !adsbEmergencyOffer &&
       !issueUiPausedForLamp ? (
         <ExerciseOfferBanner
           offer={exerciseOffer}
@@ -1251,6 +1271,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {maritimeOffer &&
       !airRaidBriefing &&
       !airRaidOffer &&
+      !adsbEmergencyOffer &&
       !exerciseBriefing &&
       !exerciseOffer &&
       !ukmtoBriefing &&

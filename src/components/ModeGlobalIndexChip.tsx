@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
+import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -15,12 +16,15 @@ type ModeGlobalIndexChipProps = {
   wtiAsOf?: string | null;
   /** 지경학 GSCPI 게이지 표시 여부 */
   showGscpi?: boolean;
+  /** NOAA SWPC 우주기상 칩 */
+  showSwpc?: boolean;
   className?: string;
 };
 
 /**
  * 우상단 고정 — 모드별 전 세계 단일 지표.
  * 지정학: 세계 긴장도(WTI) · 지경학: 물류 혼잡도(GSCPI, 월간). 둘 다 0~100 점수.
+ * 하단에 NOAA SWPC 우주기상 칩을 보조로 표시.
  * HoverNav 높이만큼 아래로 밀어 겹침을 피한다.
  */
 export function ModeGlobalIndexChip({
@@ -30,6 +34,7 @@ export function ModeGlobalIndexChip({
   wtiDelta,
   wtiAsOf,
   showGscpi = true,
+  showSwpc = true,
   className = "",
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
@@ -62,7 +67,7 @@ export function ModeGlobalIndexChip({
   return (
     <div
       ref={ref}
-      className={`pointer-events-auto fixed right-3 z-[80] flex flex-col items-end sm:right-4 ${className}`}
+      className={`pointer-events-auto fixed right-3 z-[80] flex flex-col items-end gap-1.5 sm:right-4 ${className}`}
       style={{
         top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)))",
       }}
@@ -80,6 +85,7 @@ export function ModeGlobalIndexChip({
           className="shadow-lg backdrop-blur-md"
         />
       )}
+      {showSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
     </div>
   );
 }
