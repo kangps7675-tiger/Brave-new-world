@@ -61,5 +61,9 @@ export const CDN_CACHE = {
   portwatch: { sMaxAge: 6 * 3600, swr: 12 * 3600 } satisfies PublicCacheOpts,
   /** GPSJam 일별 CSV — 하루 1회 갱신, CDN 6–12h */
   gpsjam: { sMaxAge: 6 * 3600, swr: 12 * 3600 } satisfies PublicCacheOpts,
+  /** NOAA SWPC — scales/Kp, CDN 10–20min */
+  swpc: { sMaxAge: 600, swr: 1200 } satisfies PublicCacheOpts,
+  /** Safecast near nuclear — 1–2h */
+  safecast: { sMaxAge: 3600, swr: 7200 } satisfies PublicCacheOpts,
   tunnels: { sMaxAge: 300, swr: 900 } satisfies PublicCacheOpts,
 } as const;

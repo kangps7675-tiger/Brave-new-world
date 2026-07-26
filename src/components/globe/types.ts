@@ -223,6 +223,18 @@ export type NuclearStockpileHtmlMarker = {
   year: number;
 };
 
+export type SafecastGaugeHtmlMarker = {
+  markerId: string;
+  displayKind: "safecast-gauge";
+  siteId: string;
+  siteName: string;
+  lat: number;
+  lng: number;
+  usvPerH: number | null;
+  level: "normal" | "elevated" | "high" | "extreme" | "unknown";
+  capturedAt: string | null;
+};
+
 export type SituationCalloutMarker = SituationCallout & {
   markerId: string;
   displayKind: "situation-callout";
@@ -324,6 +336,7 @@ export type HtmlOverlayMarker =
   | FrictionStageHtmlMarker
   | CasualtySkullHtmlMarker
   | NuclearStockpileHtmlMarker
+  | SafecastGaugeHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
   | NewfeedsAttackGlobePoint

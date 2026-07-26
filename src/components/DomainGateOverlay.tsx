@@ -9,9 +9,9 @@ import { loadPerfPrefs, savePerfPrefs } from "@/lib/ultraLiteMode";
 
 type DomainGateOverlayProps = {
   onSelect: (mode: ViewerMode, ultraLite: boolean) => void;
-  /** 선택 진입 — 환영 편지 (기본 플로우에서는 건너뜀) */
+  /** 선택 진입 — 환영 편지 다시 읽기 */
   onOpenLetter?: () => void;
-  /** 선택 진입 — 성능·사운드 주의 안내 */
+  /** 선택 진입 — 주의 화면 다시 보기 */
   onOpenCaution?: () => void;
 };
 

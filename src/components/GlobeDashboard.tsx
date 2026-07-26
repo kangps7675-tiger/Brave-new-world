@@ -610,6 +610,9 @@ import { chokeStressHex } from "@/lib/chokeStressColor";
 import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
 import { usePortWatchObservations } from "@/hooks/usePortWatchObservations";
 import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsStressSiren";
+import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { useSafecastNearNuclear } from "@/hooks/useSafecastNearNuclear";
+import { createSafecastGaugeBadge } from "@/lib/safecastRadiationMarker";
 import type {
   CasualtySkullHtmlMarker,
   ChinaTheaterIncidentHtmlMarker,
@@ -629,6 +632,7 @@ import type {
   NewsStreamNeonMarker,
   NewfeedsAttackGlobePoint,
   NuclearStockpileHtmlMarker,
+  SafecastGaugeHtmlMarker,
   PolygonLayerFeature,
   PulseRingPoint,
   SituationCalloutMarker,
@@ -3749,6 +3753,8 @@ export function GlobeDashboard({
    * 전장 사상자 마커와 좌표가 겹치면(예: 이스라엘 ↔ 가자·남레바논) 사상자 군집에서
    * 밀어내 표기 위치가 겹치지 않게 함.
    */
+  const safecastReadings = useSafecastNearNuclear(showNuclearSites && !isEconomyViewer);
+
   const nuclearStockpileMarkers = useMemo<NuclearStockpileHtmlMarker[]>(() => {
     if (isEconomyViewer) return [];
     const casualtyPts = casualtySkullMarkers.map((m) => ({ lat: m.lat, lng: m.lng }));
@@ -3810,6 +3816,21 @@ export function GlobeDashboard({
     });
   }, [casualtySkullMarkers, isEconomyViewer]);
 
+  const safecastGaugeMarkers = useMemo<SafecastGaugeHtmlMarker[]>(() => {
+    if (!showNuclearSites || isEconomyViewer) return [];
+    return safecastReadings.map((r) => ({
+      markerId: `safecast-${r.siteId}`,
+      displayKind: "safecast-gauge" as const,
+      siteId: r.siteId,
+      siteName: r.siteName,
+      lat: r.lat,
+      lng: r.lng,
+      usvPerH: r.usvPerH,
+      level: r.level,
+      capturedAt: r.capturedAt,
+    }));
+  }, [isEconomyViewer, safecastReadings, showNuclearSites]);
+
   const ukraineSettlementHtmlMarkers = useMemo<UkraineSettlementHtmlMarker[]>(() => {
     if (!showUkraineControl) return [];
     if (mapZoom <= SETTLEMENT_DETAIL_MIN_MAP_ZOOM) return [];
@@ -3852,6 +3873,7 @@ export function GlobeDashboard({
       ...situationCalloutMarkers,
       ...visibleCasualtySkullMarkers,
       ...nuclearStockpileMarkers,
+      ...safecastGaugeMarkers,
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
       ...milHtmlMarkers,
@@ -3890,6 +3912,7 @@ export function GlobeDashboard({
       neptunHtmlMarkers,
       neptunImpactHtmlMarkers,
       nuclearStockpileMarkers,
+      safecastGaugeMarkers,
       situationCalloutMarkers,
       ukraineSettlementHtmlMarkers,
       usCarrierHtmlMarkers,
@@ -6063,6 +6086,18 @@ export function GlobeDashboard({
     flyTo,
   });
 
+  const { adsbEmergencyOffer, dismissAdsbEmergencyOffer } = useAdsbEmergencyAlert({
+    paused:
+      isEconomyViewer ||
+      entryGate !== null ||
+      showModePicker ||
+      issueUiPausedForLamp ||
+      Boolean(airRaidBriefing) ||
+      Boolean(airRaidOffer) ||
+      Boolean(periodicBriefing),
+    flyTo,
+  });
+
   /** 해상 경보 브리프 — useMaritimeAlertBriefs 훅 (분리 3단계) */
   const {
     ukmtoBriefing,
@@ -6613,9 +6648,8 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (readWelcomeGateDone()) return;
     if (hasPendingScene()) return; // 딥링크 진입은 게이트 생략
-    // 전환율: 첫 방문도 주의·편지 없이 도메인 선택으로 직행.
-    // 주의·편지는 DomainGateOverlay 하단 링크로 선택 진입.
-    setEntryGate("domain");
+    // 첫 방문: 주의 → 환영 편지 → 도메인 선택
+    setEntryGate("caution");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryGate, globeReady, isLoading, loadError, showModePicker]);
 
@@ -7871,6 +7905,9 @@ export function GlobeDashboard({
           labelLanguage === "en" ? "en" : "ko",
           alt,
         );
+      }
+      if (item.displayKind === "safecast-gauge") {
+        return createSafecastGaugeBadge(item, labelLanguage === "en" ? "en" : "ko");
       }
       if (item.displayKind === "ua-settlement-html") {
         return createUkraineSettlementLabelElement(
@@ -9463,6 +9500,7 @@ export function GlobeDashboard({
         showTourInvite={showTourInvite}
         airRaidOffer={airRaidOffer}
         airRaidBriefing={airRaidBriefing}
+        adsbEmergencyOffer={adsbEmergencyOffer}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
         maritimeOffer={maritimeOffer}
@@ -9514,6 +9552,7 @@ export function GlobeDashboard({
         onSetClearanceStatus={setClearanceStatus}
         onToggleDailyRankPanel={toggleDailyRankPanel}
         onDismissAirRaidOffer={dismissAirRaidOffer}
+        onDismissAdsbEmergencyOffer={dismissAdsbEmergencyOffer}
         onDismissExerciseOffer={dismissExerciseOffer}
         onSetExerciseBriefing={setExerciseBriefing}
         onAcceptMaritimeOffer={acceptMaritimeOffer}

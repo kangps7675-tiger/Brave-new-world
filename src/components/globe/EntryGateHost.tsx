@@ -18,8 +18,9 @@ type EntryGateHostProps = {
 };
 
 /**
- * 입장 게이트 오버레이 묶음 — 기본 플로우는 domain 직행,
- * 주의(caution)·환영 편지(welcome)는 도메인 게이트 하단 링크로 선택 진입.
+ * 입장 게이트 오버레이 묶음 — 첫 방문 플로우: caution → welcome → domain.
+ * 도메인 게이트 하단 링크로 편지·주의를 다시 열 수 있음.
+ * 모바일(compact)은 welcome을 건너뛰고 domain으로 간다.
  */
 export function EntryGateHost({
   entryGate,
