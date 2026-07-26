@@ -3,6 +3,7 @@ import type { LayerCategory } from "@/components/LayerCategoryPanel";
 import type { PolygonLayerFeature } from "@/components/globe/types";
 import { CYBER_WAR_ROOM_THEME } from "@/lib/cyberWarRoomTheme";
 import { CAMERA_IDLE_DEBOUNCE_MS } from "@/lib/globePerformance";
+import { groupRgba, pathKindRgba } from "@/lib/layerColorGroups";
 
 /** Ukraine territorial-control map colors (MapLibre / hatch fallbacks) */
 export const US_BASE_FILL = "rgba(37, 99, 235, 0.32)";
@@ -25,8 +26,8 @@ export const UKRAINE_COMBAT_ZONE_LINE = "rgba(100, 116, 139, 0.72)";
 export const US_BASE_STROKE = "rgba(96, 165, 250, 0.85)";
 export const US_BASE_ALTITUDE = 0.0022;
 export const CONFLICT_ZONE_ALTITUDE = 0.0016;
-/** 무기금수: 면 채움 없이 사각 테두리만 */
-export const ARMS_EMBARGO_STROKE = "#c084fc";
+/** 무기금수: crisis 군 테두리 */
+export const ARMS_EMBARGO_STROKE = groupRgba("crisis", 0.92);
 export const ARMS_EMBARGO_STROKE_WIDTH = 0.72;
 export const INTEL_MISSILE_ARC = CYBER_WAR_ROOM_THEME.intel.missileArc;
 export const INTEL_NASA_FIRE = CYBER_WAR_ROOM_THEME.intel.nasaFire;
@@ -34,12 +35,12 @@ export const TZEVA_ADOM_MARKER = "#ff1744";
 
 export const INFRA_COLORS = {
   rail: {
-    dim: "rgba(150, 105, 65, 0.58)",
-    glow: "rgba(210, 165, 105, 0.74)",
+    dim: groupRgba("infra", 0.48),
+    glow: groupRgba("infra", 0.72),
   },
   city: {
-    dim: "rgba(255, 255, 255, 0.52)",
-    glow: "rgba(255, 214, 60, 0.66)",
+    dim: "rgba(255, 255, 255, 0.42)",
+    glow: groupRgba("energy", 0.55),
   },
 } as const;
 
@@ -47,12 +48,13 @@ export const INFRA_STROKE = {
   rail: { dim: 0.28, glow: 0.82 },
 } as const;
 
+/** 경로 레이어 — 군 단위 통일 (항로=infra, 케이블=digital, 파이프=energy) */
 export const PATH_LAYER_COLORS = {
-  "shipping-lane": "rgba(56, 189, 248, 0.88)",
-  "submarine-cable": "rgba(196, 181, 253, 0.92)",
-  "oil-pipeline": "rgba(251, 191, 36, 0.95)",
-  "gas-pipeline": "rgba(52, 211, 153, 0.92)",
-  "subsea-pipeline": "rgba(45, 212, 191, 0.94)",
+  "shipping-lane": pathKindRgba("shipping-lane", 0.82),
+  "submarine-cable": pathKindRgba("submarine-cable", 0.86),
+  "oil-pipeline": pathKindRgba("oil-pipeline", 0.88),
+  "gas-pipeline": pathKindRgba("gas-pipeline", 0.84),
+  "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.86),
 } as const;
 
 export const STATIC_KIND_LABELS: Record<StaticPoint["kind"], string> = {

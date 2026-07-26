@@ -6,6 +6,11 @@ import {
   STATIC_POINT_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { HTML_STATIC_KINDS, isHtmlStaticKind } from "@/lib/infraStaticMarkers";
+import {
+  markerPaletteForGroup,
+  staticKindColorGroup,
+  staticKindRgba,
+} from "@/lib/layerColorGroups";
 import { getZoomOutScale } from "@/lib/zoomScale";
 
 type ViewState = { lat: number; lng: number };
@@ -131,39 +136,39 @@ export function filterStaticPointsForView(
 }
 
 export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
-  airport: "rgba(163, 230, 53, 0.88)",
-  port: "rgba(37, 99, 235, 0.88)",
-  resource: "rgba(251, 191, 36, 0.92)",
-  "military-base": "rgba(59, 130, 246, 0.92)",
-  "cable-landing": "rgba(167, 139, 250, 0.9)",
-  "nuclear-site": "rgba(250, 204, 21, 0.92)",
-  "internet-exchange": "rgba(45, 212, 191, 0.88)",
-  "refugee-camp": "rgba(251, 146, 60, 0.9)",
-  "ucdp-event": "rgba(248, 113, 113, 0.88)",
-  "ai-data-center": "rgba(59, 130, 246, 0.92)",
-  "economic-center": "rgba(52, 211, 153, 0.9)",
-  "sanctions-entity": "rgba(244, 114, 182, 0.9)",
-  "space-launch": "rgba(96, 165, 250, 0.9)",
-  "lng-terminal": "rgba(251, 146, 60, 0.98)",
-  chokepoint: "rgba(251, 113, 133, 0.95)",
-  "logistics-hub": "rgba(244, 63, 94, 0.92)",
-  "submarine-tunnel": "rgba(125, 211, 252, 0.95)",
-  "critical-node": "rgba(250, 204, 21, 0.95)",
-  "gem-coal-plant": "rgba(120, 113, 108, 0.95)",
-  "gem-coal-mine": "rgba(68, 64, 60, 0.95)",
-  "gem-coal-terminal": "rgba(168, 162, 158, 0.92)",
-  "gem-nuclear": "rgba(250, 204, 21, 0.95)",
-  "gem-solar": "rgba(245, 158, 11, 0.92)",
-  "gem-wind": "rgba(34, 211, 238, 0.92)",
-  "gem-hydro": "rgba(14, 165, 233, 0.92)",
-  "gem-geothermal": "rgba(251, 113, 133, 0.9)",
-  "gem-bioenergy": "rgba(74, 222, 128, 0.9)",
-  "gem-oil-gas-plant": "rgba(249, 115, 22, 0.92)",
-  "gem-oil-gas-extraction": "rgba(217, 119, 6, 0.92)",
-  "gem-iron-ore": "rgba(185, 28, 28, 0.9)",
-  "gem-cement": "rgba(163, 163, 163, 0.92)",
-  "gem-steel": "rgba(100, 116, 139, 0.92)",
-  "gem-chemical": "rgba(168, 85, 247, 0.9)",
+  airport: staticKindRgba("airport"),
+  port: staticKindRgba("port"),
+  resource: staticKindRgba("resource"),
+  "military-base": staticKindRgba("military-base"),
+  "cable-landing": staticKindRgba("cable-landing"),
+  "nuclear-site": staticKindRgba("nuclear-site"),
+  "internet-exchange": staticKindRgba("internet-exchange"),
+  "refugee-camp": staticKindRgba("refugee-camp"),
+  "ucdp-event": staticKindRgba("ucdp-event"),
+  "ai-data-center": staticKindRgba("ai-data-center"),
+  "economic-center": staticKindRgba("economic-center"),
+  "sanctions-entity": staticKindRgba("sanctions-entity"),
+  "space-launch": staticKindRgba("space-launch"),
+  "lng-terminal": staticKindRgba("lng-terminal"),
+  chokepoint: staticKindRgba("chokepoint"),
+  "logistics-hub": staticKindRgba("logistics-hub"),
+  "submarine-tunnel": staticKindRgba("submarine-tunnel"),
+  "critical-node": staticKindRgba("critical-node"),
+  "gem-coal-plant": staticKindRgba("gem-coal-plant"),
+  "gem-coal-mine": staticKindRgba("gem-coal-mine"),
+  "gem-coal-terminal": staticKindRgba("gem-coal-terminal"),
+  "gem-nuclear": staticKindRgba("gem-nuclear"),
+  "gem-solar": staticKindRgba("gem-solar"),
+  "gem-wind": staticKindRgba("gem-wind"),
+  "gem-hydro": staticKindRgba("gem-hydro"),
+  "gem-geothermal": staticKindRgba("gem-geothermal"),
+  "gem-bioenergy": staticKindRgba("gem-bioenergy"),
+  "gem-oil-gas-plant": staticKindRgba("gem-oil-gas-plant"),
+  "gem-oil-gas-extraction": staticKindRgba("gem-oil-gas-extraction"),
+  "gem-iron-ore": staticKindRgba("gem-iron-ore"),
+  "gem-cement": staticKindRgba("gem-cement"),
+  "gem-steel": staticKindRgba("gem-steel"),
+  "gem-chemical": staticKindRgba("gem-chemical"),
 };
 
 /** HTML 실루엣 마커 kinds — globe points와 이중 렌더 금지 */
@@ -180,24 +185,9 @@ export const STATIC_MARKER_PALETTE: Record<
   "airport" | "port" | "military-base",
   { fill: string; glow: string; ink: string; rim: string }
 > = {
-  airport: {
-    fill: "rgba(163, 230, 53, 0.92)",
-    glow: "rgba(163, 230, 53, 0.45)",
-    ink: "rgba(255, 255, 255, 0.98)",
-    rim: "rgba(236, 252, 203, 0.7)",
-  },
-  port: {
-    fill: "rgba(37, 99, 235, 0.92)",
-    glow: "rgba(59, 130, 246, 0.5)",
-    ink: "rgba(255, 255, 255, 0.98)",
-    rim: "rgba(147, 197, 253, 0.65)",
-  },
-  "military-base": {
-    fill: "rgba(37, 99, 235, 0.28)",
-    glow: "rgba(59, 130, 246, 0.55)",
-    ink: "rgba(239, 246, 255, 0.98)",
-    rim: "rgba(147, 197, 253, 0.72)",
-  },
+  airport: markerPaletteForGroup(staticKindColorGroup("airport")),
+  port: markerPaletteForGroup(staticKindColorGroup("port")),
+  "military-base": markerPaletteForGroup(staticKindColorGroup("military-base")),
 };
 
 export function isEmojiStaticKind(kind: StaticPoint["kind"]): boolean {

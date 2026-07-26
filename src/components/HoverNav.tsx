@@ -74,6 +74,8 @@ export function HoverNav({
   const [hoveredOpen, setHoveredOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
+  /** 접힘 상태에서 항상 보이는 슬림 스트립 — 지도 오프셋(base) 기준 */
+  const slimStripRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<number | null>(null);
   const isEconomy = viewerMode === "economy";
   const chrome = getViewerChrome(viewerMode);
@@ -198,16 +200,13 @@ export function HoverNav({
   }, [compact, hoveredOpen, scheduleHideChrome]);
 
   /**
-   * 높이 CSS 변수 두 개를 publish.
-   * - `--hover-nav-height`: 실제 높이 (우상단 칩 등 겹침 회피용)
-   * - `--hover-nav-base-height`: 호버로 펼치기 전 기준 높이. 글로브 셸 오프셋은 이 값만 쓴다.
-   *   호버·드롭다운 높이 변화가 지도를 밀어 흔드는 것을 막기 위함.
+   * `--hover-nav-height`: 크롬 실제 높이 (호버로 펼치면 커짐). 정보용.
+   * cleanup에서 0으로 리셋하지 않는다 — dep 변경마다 0으로 튀면 이 값을 쓰는 곳이 깜빡인다.
    */
   useEffect(() => {
     const root = document.documentElement;
     if (compact) {
       root.style.setProperty("--hover-nav-height", "0px");
-      root.style.setProperty("--hover-nav-base-height", "0px");
       return;
     }
     const el = chromeRef.current;
@@ -215,17 +214,38 @@ export function HoverNav({
     const publish = () => {
       const h = Math.max(0, Math.ceil(el.getBoundingClientRect().height));
       root.style.setProperty("--hover-nav-height", `${h}px`);
-      if (!hoveredOpen) root.style.setProperty("--hover-nav-base-height", `${h}px`);
     };
     publish();
-    const ro = new ResizeObserver(() => publish());
+    const ro = new ResizeObserver(publish);
     ro.observe(el);
-    return () => {
-      ro.disconnect();
-      root.style.setProperty("--hover-nav-height", "0px");
+    return () => ro.disconnect();
+  }, [compact, chromeExpanded, belowNav, showDesktopToolsSlot]);
+
+  /**
+   * `--hover-nav-base-height`: 지도 셸 오프셋·우측 칩 기준.
+   * 접힘 상태에서 "항상 보이는 슬림 스트립" 높이만 반영한다.
+   * 펼침(hover/pin) 중에는 갱신하지 않아 값이 고정 → 호버 인/아웃 시 지도가 흔들리지 않는다.
+   * (기존엔 애니메이션 중인 크롬 높이를 재고 cleanup이 0으로 리셋해 화면이 출렁였음)
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (compact) {
       root.style.setProperty("--hover-nav-base-height", "0px");
+      return;
+    }
+    // 펼쳐진 동안에는 마지막 접힘 높이를 유지 (슬림 스트립은 이때 언마운트됨)
+    if (chromeExpanded) return;
+    const el = slimStripRef.current;
+    const publish = () => {
+      const h = el ? Math.max(0, Math.ceil(el.getBoundingClientRect().height)) : 0;
+      root.style.setProperty("--hover-nav-base-height", `${h}px`);
     };
-  }, [compact, chromeExpanded, hoveredOpen, belowNav, showDesktopToolsSlot]);
+    publish();
+    if (!el) return;
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [compact, chromeExpanded, belowNav]);
 
   return (
     <div
@@ -245,7 +265,10 @@ export function HoverNav({
       >
       {/* 접힘: 슬림 스트립 — 모드 스위치·아래Nav만. 확장은 검색 행 표시 */}
       {!compact && !chromeExpanded && belowNav ? (
-        <div className="z-[76] mb-1 flex w-full max-w-3xl items-center justify-center gap-2">
+        <div
+          ref={slimStripRef}
+          className="z-[76] mb-1 flex w-full max-w-3xl items-center justify-center gap-2"
+        >
           {belowNav}
           <button
             type="button"

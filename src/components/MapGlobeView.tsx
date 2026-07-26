@@ -45,6 +45,21 @@ import {
   islandChainsUsGeoJson,
   islandChainsUsHighlightGeoJson,
 } from "@/data/islandChains";
+import {
+  applyBasemapFog,
+  applyBasemapTerrain,
+  AWS_TERRARIUM_ATTRIBUTION,
+  AWS_TERRARIUM_TILES,
+  BASEMAP_LAYER_IDS,
+  BASEMAP_SOURCE_IDS,
+  BUILDINGS_MIN_ZOOM,
+  DEFAULT_BASEMAP_MODE,
+  OPENFREEMAP_ATTRIBUTION,
+  OPENFREEMAP_PLANET_URL,
+  parseBasemapMode,
+  type BasemapMapLike,
+  type BasemapMode,
+} from "@/lib/basemapMode";
 
 /**
  * GlobeLayerProps(Record)와 intersection하면 index signature가 콜백을 unknown으로 넓힙니다.
@@ -60,6 +75,10 @@ export interface MapGlobeViewProps {
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
   showIslandChains?: boolean;
+  /** 인텔(다크 벡터) / 위성(MapLibre OSM 벡터) — mapStyleUrl 교체로 전환 */
+  basemapMode?: BasemapMode;
+  /** Ultra-Lite: 3D 건물·야간불빛 OFF, 지형 exaggeration 하향 */
+  ultraLite?: boolean;
   [key: string]: unknown;
 }
 
@@ -99,7 +118,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   props,
   ref,
 ) {
-  const { mapStyleUrl, backgroundColor = "#02040a", showIslandChains = false } = props;
+  const {
+    mapStyleUrl,
+    backgroundColor = "#02040a",
+    showIslandChains = false,
+  } = props;
+  /** index signature로 unknown이 되므로 명시 파싱 */
+  const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
+  const ultraLite = Boolean(props.ultraLite);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
@@ -112,6 +138,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const onGlobeMouseMoveRef = useRef<
     ((coords: { lat: number; lng: number } | null) => void) | undefined
   >(onGlobeMouseMove);
+  const basemapModeRef = useRef<BasemapMode>(basemapMode);
+  const ultraLiteRef = useRef(ultraLite);
   const [, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
@@ -133,6 +161,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     onGlobeMouseMoveRef.current = onGlobeMouseMove;
   }, [onGlobeMouseMove]);
+
+  useEffect(() => {
+    basemapModeRef.current = basemapMode;
+  }, [basemapMode]);
+
+  useEffect(() => {
+    ultraLiteRef.current = ultraLite;
+  }, [ultraLite]);
+
+  const showVectorBuildings = basemapMode === "photo" && !ultraLite;
 
   const methods = useMemo(
     () => createMapGlobeMethods(mapRef, changeListenersRef),
@@ -539,20 +577,97 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       /* 아이콘 로드 실패 시 circle 폴백 없음 — 재시도는 스타일 리로드 시 */
     });
 
+    const applyVisuals = () => {
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapTerrain(m, basemapModeRef.current, {
+        ultraLite: ultraLiteRef.current,
+      });
+    };
+
     if (map.isStyleLoaded()) {
+      applyVisuals();
       emitGlobeReady();
       return;
     }
 
     // idle이 영구히 안 오면 부트 스플래시가 고착될 수 있어 상한 후 강제 ready
     const idleFallback = window.setTimeout(() => {
+      applyVisuals();
       emitGlobeReady();
     }, 12_000);
     map.once("idle", () => {
       window.clearTimeout(idleFallback);
+      applyVisuals();
       emitGlobeReady();
     });
   }, [emitGlobeReady, publishZoom]);
+
+  /**
+   * 베이스맵 모드 전환 후 fog·terrain exaggeration.
+   * 스타일 URL 자체는 상위 mapStyleUrl prop으로 교체된다.
+   */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const apply = () => {
+      if (movingRef.current) return;
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapFog(m, basemapMode);
+      applyBasemapTerrain(m, basemapMode, { ultraLite });
+    };
+
+    if (movingRef.current) {
+      const onIdle = () => {
+        map.off("idle", onIdle);
+        apply();
+      };
+      map.on("idle", onIdle);
+      return () => {
+        map.off("idle", onIdle);
+      };
+    }
+
+    apply();
+    return undefined;
+  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl]);
+
+  /** terrain DEM 소스가 React로 붙은 뒤 setTerrain 재적용 */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const tryTerrain = () => {
+      if (movingRef.current) return;
+      applyBasemapTerrain(map as unknown as BasemapMapLike, basemapModeRef.current, {
+        ultraLite: ultraLiteRef.current,
+      });
+    };
+    const t = window.setTimeout(tryTerrain, 80);
+    map.once("idle", tryTerrain);
+    return () => {
+      window.clearTimeout(t);
+      map.off("idle", tryTerrain);
+    };
+  }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl]);
+
+  /** 스타일 로드 후 fog 재적용 (URL 교체 시) */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const sync = () => {
+      if (movingRef.current) return;
+      applyBasemapFog(map as unknown as BasemapMapLike, basemapModeRef.current);
+    };
+    sync();
+    map.once("idle", sync);
+    return () => {
+      map.off("idle", sync);
+    };
+  }, [mapLoaded, mapStyleUrl, basemapMode]);
 
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
@@ -945,6 +1060,56 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         onMouseLeave={handleMapMouseLeave}
         cursor="grab"
       >
+        {/* DEM — 상시 소스, exaggeration만 모드별로 조절 */}
+        <Source
+          id={BASEMAP_SOURCE_IDS.terrain}
+          type="raster-dem"
+          tiles={[AWS_TERRARIUM_TILES]}
+          tileSize={256}
+          maxzoom={15}
+          attribution={AWS_TERRARIUM_ATTRIBUTION}
+          {...({ encoding: "terrarium" } as Record<string, unknown>)}
+        />
+
+        {/* 위성(벡터) 모드 · 고줌 3D 건물 — OpenFreeMap planet */}
+        {showVectorBuildings ? (
+          <Source
+            id={BASEMAP_SOURCE_IDS.buildings}
+            type="vector"
+            url={OPENFREEMAP_PLANET_URL}
+            attribution={OPENFREEMAP_ATTRIBUTION}
+          >
+            <Layer
+              id={BASEMAP_LAYER_IDS.buildings}
+              type="fill-extrusion"
+              {...({
+                "source-layer": "building",
+                minzoom: BUILDINGS_MIN_ZOOM,
+                filter: ["!=", ["get", "hide_3d"], true],
+                paint: {
+                  "fill-extrusion-color": "#c4b8a8",
+                  "fill-extrusion-opacity": 0.72,
+                  "fill-extrusion-height": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    BUILDINGS_MIN_ZOOM,
+                    0,
+                    BUILDINGS_MIN_ZOOM + 1,
+                    ["coalesce", ["get", "render_height"], ["get", "height"], 10],
+                  ],
+                  "fill-extrusion-base": [
+                    "coalesce",
+                    ["get", "render_min_height"],
+                    ["get", "min_height"],
+                    0,
+                  ],
+                },
+              } as Record<string, unknown>)}
+            />
+          </Source>
+        ) : null}
+
         {polygonsGeoJson.features.length > 0 ? (
           <Source id="map-polygons" type="geojson" data={polygonsGeoJson}>
             <Layer

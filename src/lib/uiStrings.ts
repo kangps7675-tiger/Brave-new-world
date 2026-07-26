@@ -452,6 +452,17 @@ const UI = {
     ko: "Financial Intelligence · 공급망 · 증시",
     en: "Financial Intelligence · supply chain · markets",
   },
+  basemapModeLabel: { ko: "지도 표시 모드", en: "Basemap mode" },
+  basemapIntel: { ko: "인텔", en: "Intel" },
+  basemapIntelHint: {
+    ko: "다크 벡터 · 레이어 가독성 우선",
+    en: "Dark vector · layer readability first",
+  },
+  basemapPhoto: { ko: "위성", en: "Map" },
+  basemapPhotoHint: {
+    ko: "MapLibre 벡터 지도 · 지형 · 고줌 3D 건물",
+    en: "MapLibre vector map · terrain · 3D buildings at high zoom",
+  },
   intelNews: { ko: "Intel 뉴스", en: "Intel news" },
   intelEconomy: { ko: "경제·증시", en: "Markets" },
   heroAccordingTo: { ko: "에 따르면 ", en: " reports " },

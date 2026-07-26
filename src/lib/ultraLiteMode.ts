@@ -1,18 +1,27 @@
 import {
+  DEFAULT_BASEMAP_MODE,
+  parseBasemapMode,
+  type BasemapMode,
+} from "@/lib/basemapMode";
+import {
   DEFAULT_LAYER_PREFS,
   type LayerPrefs,
 } from "@/lib/layerPrefs";
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 
-export const PERF_PREFS_KEY = "geowatch-perf-v22";
+export const PERF_PREFS_KEY = "geowatch-perf-v23";
+const LEGACY_PERF_PREFS_KEYS = ["geowatch-perf-v22"] as const;
 
 export type PerfPrefs = {
   /** 내장 그래픽·8GB RAM용 — 레이어 캡·핀 상한·무거운 레이어 강제 OFF */
   ultraLite: boolean;
+  /** 인텔(다크 벡터) / 위성(사진) 베이스맵 */
+  basemapMode: BasemapMode;
 };
 
 export const DEFAULT_PERF_PREFS: PerfPrefs = {
   ultraLite: false,
+  basemapMode: DEFAULT_BASEMAP_MODE,
 };
 
 /** ultra-lite ON 시 강제 OFF (슬롯·GPU 부담) */
@@ -62,27 +71,47 @@ export const ULTRA_LITE_HEAVY_RENDER_KEYS = new Set<keyof LayerPrefs>([
 export function isUltraLiteHeavyRenderKey(key: keyof LayerPrefs | undefined): boolean {
   return Boolean(key && ULTRA_LITE_HEAVY_RENDER_KEYS.has(key));
 }
+function readPerfPrefsRaw(): string | null {
+  const raw = localStorage.getItem(PERF_PREFS_KEY) ?? sessionStorage.getItem(PERF_PREFS_KEY);
+  if (raw) return raw;
+  for (const key of LEGACY_PERF_PREFS_KEYS) {
+    const legacy = localStorage.getItem(key) ?? sessionStorage.getItem(key);
+    if (legacy) return legacy;
+  }
+  return null;
+}
+
 export function loadPerfPrefs(): PerfPrefs {
   if (typeof window === "undefined") return DEFAULT_PERF_PREFS;
   try {
-    const raw = localStorage.getItem(PERF_PREFS_KEY);
-    // 이전 개발 세션 값도 한 번 승계한다.
-    const legacyRaw = raw ?? sessionStorage.getItem(PERF_PREFS_KEY);
+    const legacyRaw = readPerfPrefsRaw();
     if (!legacyRaw) return DEFAULT_PERF_PREFS;
     const parsed = JSON.parse(legacyRaw) as Partial<PerfPrefs>;
-    return { ultraLite: Boolean(parsed.ultraLite) };
+    return {
+      ultraLite: Boolean(parsed.ultraLite),
+      basemapMode: parseBasemapMode(parsed.basemapMode),
+    };
   } catch {
     return DEFAULT_PERF_PREFS;
   }
 }
 
-export function savePerfPrefs(prefs: PerfPrefs): void {
+/** Partial merge — ultraLite만 바꿔도 basemapMode 유지 */
+export function savePerfPrefs(prefs: Partial<PerfPrefs>): void {
   if (typeof window === "undefined") return;
-  const payload = JSON.stringify(prefs);
+  const next: PerfPrefs = { ...loadPerfPrefs(), ...prefs };
+  const payload = JSON.stringify(next);
   try {
-    // 개발·배포 모두 브라우저 재시작 뒤에도 Ultra-Lite 선택을 유지한다.
     localStorage.setItem(PERF_PREFS_KEY, payload);
     sessionStorage.removeItem(PERF_PREFS_KEY);
+    for (const key of LEGACY_PERF_PREFS_KEYS) {
+      try {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch {
+        /* ignore */
+      }
+    }
   } catch {
     /* ignore quota */
   }

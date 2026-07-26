@@ -305,6 +305,11 @@ import {
 } from "@/lib/viewPackages";
 import { applyViewerMode, getViewerChrome, stripEconomyMilitaryPatch } from "@/lib/viewerChrome";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
+import { BasemapModeToggle } from "@/components/BasemapModeToggle";
+import {
+  DEFAULT_BASEMAP_MODE,
+  type BasemapMode,
+} from "@/lib/basemapMode";
 
 import {
   anyDisputeOverlay,
@@ -1057,6 +1062,7 @@ export function GlobeDashboard({
   const firmsFetchBusyRef = useRef(false);
   const ultraLiteRef = useRef(false);
   const [ultraLite, setUltraLite] = useState(false);
+  const [basemapMode, setBasemapMode] = useState<BasemapMode>(DEFAULT_BASEMAP_MODE);
   const {
     layerPrefs,
     draftPrefs,
@@ -1075,10 +1081,16 @@ export function GlobeDashboard({
     const perf = loadPerfPrefs();
     ultraLiteRef.current = perf.ultraLite;
     setUltraLite(perf.ultraLite);
+    setBasemapMode(perf.basemapMode);
     if (perf.ultraLite) {
       applyLayerPrefs(applyUltraLiteToLayerPrefs(loadLayerPrefs()));
     }
   }, [applyLayerPrefs]);
+
+  const handleBasemapModeChange = useCallback((mode: BasemapMode) => {
+    setBasemapMode(mode);
+    savePerfPrefs({ basemapMode: mode });
+  }, []);
 
   /** 장면 딥링크(?scene=1) — 게이트 생략 후 모드·레이어·카메라 적용 */
   const { hasPendingScene } = useSceneDeeplink({
@@ -2279,7 +2291,7 @@ export function GlobeDashboard({
     [layerAltitude],
   );
 
-  const globeTextures = useMemo(() => getGlobeTextures(), []);
+  const globeTextures = useMemo(() => getGlobeTextures(basemapMode), [basemapMode]);
   const isVectorBaseMap = globeTextures.vectorBase;
 
   const {
@@ -8240,8 +8252,9 @@ export function GlobeDashboard({
         askLayersLabel={t("askLayersButton", labelLanguage)}
         forceVisible={Boolean(chromeCoachStep) || showFirstVisitTour || layerDropdownOpen}
         belowNav={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+            <BasemapModeToggle mode={basemapMode} onChange={handleBasemapModeChange} />
             {!isCompactUi ? (
               <LayerQuickDropdown
                 categories={layerCategories}
@@ -8408,6 +8421,8 @@ export function GlobeDashboard({
               ref={globeRef}
               mapStyleUrl={globeTextures.mapStyleUrl}
               backgroundColor={globeTextures.backgroundColor}
+              basemapMode={basemapMode}
+              ultraLite={ultraLite}
               interactiveLayerIds={mapInteractiveLayerIds}
               showIslandChains={showIslandChains}
               onGlobeReady={configureGlobe}
