@@ -40,6 +40,8 @@ export type UseLiveOverlayMarkersOptions = {
   disguisedVessels: AisVessel[];
   isEconomyViewer: boolean;
   showUsCarriers: boolean;
+  /** GPSJam 솔로 — 작전중 항모 잔여 표시까지 완전 숨김 */
+  showGpsInterference?: boolean;
   showMilitaryActivity: boolean;
   showAirTraffic: boolean;
   showAis: boolean;
@@ -59,6 +61,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     disguisedVessels,
     isEconomyViewer,
     showUsCarriers,
+    showGpsInterference = false,
     showMilitaryActivity,
     showAirTraffic,
     showAis,
@@ -118,10 +121,10 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
 
   const visibleUsCarriers = useMemo(
     () =>
-      isEconomyViewer
+      isEconomyViewer || showGpsInterference
         ? []
         : filterVisibleCarriers(carrierAisMerge.carriers, showUsCarriers),
-    [carrierAisMerge.carriers, isEconomyViewer, showUsCarriers],
+    [carrierAisMerge.carriers, isEconomyViewer, showGpsInterference, showUsCarriers],
   );
 
   const deployedCarrierCount = useMemo(

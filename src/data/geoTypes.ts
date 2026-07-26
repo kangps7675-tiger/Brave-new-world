@@ -147,7 +147,9 @@ export type TransportPath = {
     /** World Bank BRI 무역·운송 연결성 (chn→국가·도시) */
     | "bri-trade"
     /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
-    | "us-dfc-supply";
+    | "us-dfc-supply"
+    /** 주간 함선 이동 — 공개 관측 연결선 (실제 항적 아님) */
+    | "ship-movement-trail";
   name: string | null;
   scalerank: number;
   lengthKm: number | null;

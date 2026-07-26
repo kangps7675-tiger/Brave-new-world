@@ -18,7 +18,7 @@ export type NavSelection = {
   parentLabel?: string;
   /** 반서방 축 허브 렌즈 */
   hubId?: "IRN" | "CHN" | "RUS" | "PRK";
-  focusMode?: "network" | "ally" | "claim" | "arms" | "regime";
+  focusMode?: "network" | "ally" | "claim" | "arms" | "regime" | "westpac-pulse";
   claimId?: string;
   allyCode?: string;
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { SoundMuteControl } from "@/components/SoundMuteControl";
+import { LanguagePickButtons } from "@/components/LanguagePickButtons";
 import { brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { ACTIVE_LAYER_CAP_DEFAULT, ACTIVE_LAYER_CAP_ULTRA } from "@/lib/layerExclusiveCap";
@@ -17,6 +18,7 @@ type EntryCautionOverlayProps = {
 
 /**
  * 진입 주의창 — 첩보국 단말기 부팅 연출 + 성능·사운드 실무 고지.
+ * 맨 위 대형 한/영 선택 후 본문·스킵.
  */
 export function EntryCautionOverlay({
   lang,
@@ -36,33 +38,7 @@ export function EntryCautionOverlay({
     >
       <div className="entry-terminal-boot__scan" aria-hidden />
       <div className="entry-terminal-boot__panel relative my-auto w-full max-w-xl">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2" role="group" aria-label="Language mode">
-            <button
-              type="button"
-              onClick={() => onLangChange("en")}
-              aria-pressed={lang === "en"}
-              className={`rounded border px-2.5 py-1 text-[10px] font-medium tracking-wide transition font-en ${
-                lang === "en"
-                  ? "border-amber-400/45 bg-amber-500/15 text-amber-100"
-                  : "border-slate-600/40 bg-black/40 text-slate-500 hover:border-amber-400/30 hover:text-amber-100/80"
-              }`}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              onClick={() => onLangChange("ko")}
-              aria-pressed={lang === "ko"}
-              className={`rounded border px-2.5 py-1 text-[11px] font-medium tracking-wide transition ${
-                lang === "ko"
-                  ? "border-amber-400/45 bg-amber-500/15 text-amber-100"
-                  : "border-slate-600/40 bg-black/40 text-slate-500 hover:border-amber-400/30 hover:text-amber-100/80"
-              }`}
-            >
-              KO
-            </button>
-          </div>
+        <div className="mb-1 flex justify-end">
           <button
             type="button"
             onClick={onSkipToDomain}
@@ -71,6 +47,10 @@ export function EntryCautionOverlay({
           >
             {t("entryCautionSkip", lang)}
           </button>
+        </div>
+
+        <div className="mb-4 rounded-xl border border-amber-400/25 bg-amber-500/[0.06] px-3 py-3 sm:px-4 sm:py-3.5">
+          <LanguagePickButtons lang={lang} onChange={onLangChange} size="large" />
         </div>
 
         <pre className="entry-terminal-boot__header font-data-mono whitespace-pre-wrap">

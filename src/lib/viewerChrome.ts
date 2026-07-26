@@ -93,6 +93,20 @@ export function ensureResourceLayersOn(
   return { ...prefs, ...resourceHeroLayersForMode(mode) };
 }
 
+/** 지정학 대치 구도 — 미군기지·항모 (미사일 벨트와 함께 보는 핵심) */
+export const CONFLICT_CONFRONTATION_LAYER_ON: Partial<LayerPrefs> = {
+  showMilitaryBases: true,
+  showUsCarriers: true,
+};
+
+export function ensureConfrontationLayersOn(
+  prefs: LayerPrefs,
+  mode: ViewerMode = "conflict",
+): LayerPrefs {
+  if (mode !== "conflict") return prefs;
+  return { ...prefs, ...CONFLICT_CONFRONTATION_LAYER_ON };
+}
+
 export type ViewerChromePreset = {
   mode: ViewerMode;
   packageId: ViewPackageId;
@@ -137,6 +151,8 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showNewfeedsIranAttacks: true,
   /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
   showUsCarriers: true,
+  /** 지정학 진입 즉시 미군기지 — 미사일 벨트·대치 구도와 함께 표시 */
+  showMilitaryBases: true,
   ...CONFLICT_RESOURCE_HERO_ON,
 };
 
@@ -179,6 +195,8 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryActivity: false,
   showUsCarriers: false,
   showDisguisedVessels: false,
+  showWeeklyShipMoves: false,
+  showReefWatch: false,
   showReconSatellites: false,
   showGpsInterference: false,
 };
@@ -306,8 +324,11 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
     }
   }
 
-  // 캡으로 잘려도 모드별 자원 히어로만 다시 ON
-  return ensureResourceLayersOn(capLayerCountForMode(next, mode), mode);
+  // 캡으로 잘려도 모드별 자원 히어로 + 대치(미군기지·항모) 다시 ON
+  return ensureConfrontationLayersOn(
+    ensureResourceLayersOn(capLayerCountForMode(next, mode), mode),
+    mode,
+  );
 }
 
 export type ApplyViewerModeResult = {
@@ -329,9 +350,12 @@ export function applyViewerMode(
   const effectiveHub = mode === "economy" ? economyHub : "auto";
   const mergedBase = applyViewPackages(packages, effectiveTheater, effectiveHub);
   const chromeLayers = mergeChromeLayers(mergedBase.layers, mode);
-  const conceptLayers = ensureResourceLayersOn(
-    capLayerCountForMode(
-      mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
+  const conceptLayers = ensureConfrontationLayersOn(
+    ensureResourceLayersOn(
+      capLayerCountForMode(
+        mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
+        mode,
+      ),
       mode,
     ),
     mode,

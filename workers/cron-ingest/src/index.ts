@@ -56,6 +56,7 @@ type IngestResult = {
   tunnelsWarm?: WarmResult;
   disputeHatchWarm?: WarmResult;
   ukraineHatchWarm?: WarmResult;
+  shipMovementsWarm?: WarmResult;
   firmsErrors: string[];
   gdeltErrors: string[];
   telegramErrors: string[];
@@ -181,6 +182,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
   let tunnelsWarm: IngestResult["tunnelsWarm"];
   let disputeHatchWarm: IngestResult["disputeHatchWarm"];
   let ukraineHatchWarm: IngestResult["ukraineHatchWarm"];
+  let shipMovementsWarm: IngestResult["shipMovementsWarm"];
 
   try {
     const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 1)));
@@ -341,6 +343,11 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     tunnelsWarm = await warmEndpoint(env.TUNNELS_WARM_URL, env, "tunnels");
     disputeHatchWarm = await warmEndpoint(env.DISPUTE_HATCH_WARM_URL, env, "dispute-hatch");
     ukraineHatchWarm = await warmEndpoint(env.UKRAINE_HATCH_WARM_URL, env, "ukraine-hatch");
+    shipMovementsWarm = await warmEndpoint(
+      env.SHIP_MOVEMENTS_WARM_URL,
+      env,
+      "ship-movements",
+    );
 
     const finishedAt = new Date().toISOString();
     const hardFail =
@@ -409,6 +416,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       tunnelsWarm,
       disputeHatchWarm,
       ukraineHatchWarm,
+      shipMovementsWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,
@@ -451,6 +459,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         tunnelsWarm,
         disputeHatchWarm,
         ukraineHatchWarm,
+        shipMovementsWarm,
         briefingStats,
         dailyRanks,
         livingTaiwan,
@@ -472,7 +481,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         gdeltCount,
         ok: false,
         error: message,
-        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm },
+        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm },
       });
     } catch {
       // ignore secondary logging failure
@@ -492,6 +501,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       tunnelsWarm,
       disputeHatchWarm,
       ukraineHatchWarm,
+      shipMovementsWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,

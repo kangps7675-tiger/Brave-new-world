@@ -1,6 +1,7 @@
 import type { UsCarrier } from "@/data/usCarriers";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
+import { isLightTone } from "@/lib/basemapTone";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 
 export const CARRIER_MARKER_ROOT_CLASS = "carrier-marker-root";
@@ -127,10 +128,15 @@ export function createUsCarrierBadge(
   label.style.lineHeight = "1.2";
   label.style.letterSpacing = "0.01em";
   label.style.textAlign = "center";
-  label.style.color = "rgba(248, 250, 252, 0.96)";
+  const lightMap = isLightTone();
+  label.style.color = lightMap
+    ? "rgba(24, 28, 36, 0.94)"
+    : "rgba(248, 250, 252, 0.96)";
   label.style.whiteSpace = "normal";
   label.style.wordBreak = "break-word";
-  label.style.textShadow = `0 0 6px ${color}bb, 0 1px 3px rgba(0,0,0,0.92)`;
+  label.style.textShadow = lightMap
+    ? "0 0 2px rgba(255,255,255,0.98), 0 1px 2px rgba(255,255,255,0.9)"
+    : `0 0 6px ${color}bb, 0 1px 3px rgba(0,0,0,0.92)`;
   label.style.pointerEvents = "none";
 
   inner.append(iconWrap, ...(statusBadge ? [statusBadge] : []), label);

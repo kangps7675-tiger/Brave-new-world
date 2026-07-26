@@ -93,6 +93,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showGdeltOceanCompetition: true,
       showTelegramOsint: true,
       showUkraineControl: false,
+      showMilitaryBases: true,
+      showUsCarriers: true,
     },
     ui: {
       showTicker: false,
@@ -177,6 +179,7 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showNewfeedsIranAttacks: true,
       showTelegramOsint: true,
       showUsCarriers: true,
+      showMilitaryBases: true,
       showDiplomaticTension: true,
       showConflictZones: false,
       showOilPipelines: true,
@@ -241,13 +244,11 @@ const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showGdeltAlliance",
   "showGdeltProtests",
   "showMilitaryActivity",
-  "showMilitaryBases",
-  "showUsCarriers",
   "showConflictZones",
   "showDiplomaticTension",
   "showTelegramOsint",
-  // showLngTerminals · showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
-  // 는 에너지·전장 핵심 — 후순위 드롭 금지
+  // showMilitaryBases · showUsCarriers · showLngTerminals · showOilPipelines · showGasPipelines · showWarZones · showFirmsFires · showLogisticsRisk
+  // 는 대치·에너지·전장 핵심 — 후순위 드롭 금지
 ];
 
 const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
@@ -289,6 +290,8 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showUsDfcSupplyChain: "미국 DFC 개발금융망",
   showAis: "선박 AIS",
   showDisguisedVessels: "위장선박 (AIS_Tracker)",
+  showWeeklyShipMoves: "주간 함선 이동기",
+  showReefWatch: "ReefWatch 남중국해",
   showSanctionsEntities: "제재 대상",
   showOilPipelines: "송유관",
   showLngTerminals: "LNG(액화가스) 터미널",

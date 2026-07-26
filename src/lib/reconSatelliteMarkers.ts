@@ -1,5 +1,6 @@
 import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
 import { reconCountryAccent } from "@/lib/reconSatellitePropagate";
+import { isLightTone } from "@/lib/basemapTone";
 import { reconCountryLabel, reconSensorLabel } from "@/lib/reconSatellites";
 
 export const RECON_SAT_MARKER_ROOT_CLASS = "recon-sat-marker-root";
@@ -115,7 +116,11 @@ export function createReconSatelliteBadge(
   if (opts?.showLabel) {
     const label = document.createElement("span");
     label.className = "recon-sat-label";
-    label.style.color = color;
+    const lightMap = isLightTone();
+    label.style.color = lightMap ? "rgba(24, 28, 36, 0.94)" : color;
+    label.style.textShadow = lightMap
+      ? "0 0 2px rgba(255,255,255,0.98), 0 1px 2px rgba(255,255,255,0.9)"
+      : "0 1px 2px rgba(0,0,0,0.9)";
     label.textContent = sat.name.replace(/\s+/g, " ").trim().slice(0, 18);
     btn.appendChild(label);
   }

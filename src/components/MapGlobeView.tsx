@@ -47,6 +47,7 @@ import {
 } from "@/data/islandChains";
 import {
   applyBasemapFog,
+  applyBasemapGlobeProjection,
   applyBasemapTerrain,
   AWS_TERRARIUM_ATTRIBUTION,
   AWS_TERRARIUM_TILES,
@@ -419,7 +420,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         return isGemFacilityKind(kind) ? gemFacilityIconId(kind) : undefined;
       },
     });
-  }, [pointsData]);
+    // basemapMode: 톤별 pointColor가 accessors에만 있고 data ref는 안 바뀌므로 강제 재빌드
+  }, [pointsData, basemapMode]);
 
   const pathsGeoJson = useMemo(() => {
     const a = accessorsRef.current;
@@ -434,7 +436,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           ? String((item as { kind?: string }).kind ?? "")
           : undefined,
     });
-  }, [deferredPathsData]);
+  }, [deferredPathsData, basemapMode]);
 
   const priorityPathsGeoJson = useMemo(() => {
     if (priorityPathsData.length === 0) {
@@ -452,7 +454,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           ? String((item as { kind?: string }).kind ?? "")
           : undefined,
     });
-  }, [priorityPathsData]);
+  }, [priorityPathsData, basemapMode]);
 
   const polygonsGeoJson = useMemo(() => {
     const a = accessorsRef.current;
@@ -496,7 +498,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       color: a.labelColor,
       dotRadius: a.labelDotRadius,
     });
-  }, [labelsData]);
+    // basemapMode: 지형(밝은) 전환 시 글자색을 어두운 팔레트로 다시 bake
+  }, [labelsData, basemapMode]);
 
   const heatmapCollections = useMemo(() => buildHeatmapGeoJson(heatmapsData), [heatmapsData]);
 
@@ -578,7 +581,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
-    map.setProjection({ type: "globe" });
+    const m = map as unknown as BasemapMapLike;
+    applyBasemapGlobeProjection(m);
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
 
@@ -587,7 +591,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     });
 
     const applyVisuals = () => {
-      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapModeRef.current);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
@@ -613,8 +617,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [emitGlobeReady, publishZoom]);
 
   /**
-   * 베이스맵 모드 전환 후 fog·terrain exaggeration.
-   * 스타일 URL 자체는 상위 mapStyleUrl prop으로 교체된다.
+   * 베이스맵 모드 전환 후 globe 투영·fog·terrain exaggeration.
+   * 스타일 URL 교체 시 대부분의 style.json에 projection이 없어 Mercator로 떨어지므로
+   * 매번 globe를 다시 씌운다.
    */
   useEffect(() => {
     if (!mapLoaded) return;
@@ -624,6 +629,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const apply = () => {
       if (movingRef.current) return;
       const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapMode);
       applyBasemapTerrain(m, basemapMode, { ultraLite });
     };
@@ -650,7 +656,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!map) return;
     const tryTerrain = () => {
       if (movingRef.current) return;
-      applyBasemapTerrain(map as unknown as BasemapMapLike, basemapModeRef.current, {
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
     };
@@ -662,14 +670,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl]);
 
-  /** 스타일 로드 후 fog 재적용 (URL 교체 시) */
+  /** 스타일 로드 후 fog·globe 재적용 (URL 교체 시) */
   useEffect(() => {
     if (!mapLoaded) return;
     const map = mapRef.current?.getMap();
     if (!map) return;
     const sync = () => {
       if (movingRef.current) return;
-      applyBasemapFog(map as unknown as BasemapMapLike, basemapModeRef.current);
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapFog(m, basemapModeRef.current);
     };
     sync();
     map.once("idle", sync);
@@ -873,6 +883,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const map = mapRef.current?.getMap();
     if (!map) return;
     const onStyle = () => {
+      // OpenFreeMap Liberty 등 projection 미포함 스타일은 Mercator로 리셋됨 → 지구본 재적용
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapTerrain(m, basemapModeRef.current, {
+        ultraLite: ultraLiteRef.current,
+      });
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
     };

@@ -3,7 +3,7 @@
  *
  * 소스(JHOD/NGA)는 상황이 생기면 그때 TXT에 추가하는 이벤트 발행이지만
  * 웹훅/푸시가 없어 멋진 신세계가 주기적으로 fetch해야만 지도에 반영된다.
- * Worker cron(*/10)은 다른 레이어 때문에 자주 돌고, 이 모듈은
+ * Worker cron(매 10분)은 다른 레이어 때문에 자주 돌고, 이 모듈은
  * NAVAREA_POLL_MIN_INTERVAL_MINUTES(기본 30)로 자체 스로틀한다.
  *
  * TXT → parseNavareaText → region 단위 DELETE + INSERT (append-only 금지).

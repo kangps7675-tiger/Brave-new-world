@@ -193,6 +193,14 @@ export type UseLayerPanelCategoriesArgs = {
   showAis: boolean;
   aisVessels: unknown[];
   setShowAis: (v: boolean) => void;
+  showWeeklyShipMoves: boolean;
+  weeklyShipMoveCount: number;
+  setShowWeeklyShipMoves: (v: boolean) => void;
+  showReefWatch: boolean;
+  reefWatchFeatureCount: number;
+  reefWatchTrafficCount: number;
+  reefWatchStatus?: "idle" | "loading" | "ok" | "error";
+  setShowReefWatch: (v: boolean) => void;
   showDisguisedVessels: boolean;
   disguisedLoading: boolean;
   disguisedVessels: unknown[];
@@ -425,6 +433,14 @@ export function useLayerPanelCategories({
   showAis,
   aisVessels,
   setShowAis,
+  showWeeklyShipMoves,
+  weeklyShipMoveCount,
+  setShowWeeklyShipMoves,
+  showReefWatch,
+  reefWatchFeatureCount,
+  reefWatchTrafficCount,
+  reefWatchStatus = "idle",
+  setShowReefWatch,
   showDisguisedVessels,
   disguisedLoading,
   disguisedVessels,
@@ -1395,6 +1411,48 @@ export function useLayerPanelCategories({
             ? []
             : [
                 {
+                  id: "weekly-ship-moves" as const,
+                  label:
+                    labelLanguage === "en"
+                      ? "Weekly ship moves (public obs.)"
+                      : "주간 함선 이동기 (공개 관측)",
+                  detail: showWeeklyShipMoves
+                    ? labelLanguage === "en"
+                      ? `Map fixes ${weeklyShipMoveCount.toLocaleString()}`
+                      : `지도 확정 ${weeklyShipMoveCount.toLocaleString()}건`
+                    : labelLanguage === "en"
+                      ? "Off"
+                      : "꺼짐",
+                  checked: layerPrefs.showWeeklyShipMoves,
+                  onChange: setShowWeeklyShipMoves,
+                  accent: "cyan" as const,
+                },
+                {
+                  id: "reef-watch" as const,
+                  label:
+                    labelLanguage === "en"
+                      ? "ReefWatch SCS features"
+                      : "ReefWatch 남중국해 암초",
+                  detail: showReefWatch
+                    ? reefWatchStatus === "error"
+                      ? labelLanguage === "en"
+                        ? "Fetch error · cached features may be empty"
+                        : "조회 실패 · 재시도 중"
+                      : labelLanguage === "en"
+                        ? `${reefWatchFeatureCount} features · ${reefWatchTrafficCount} aircraft`
+                        : `관측지 ${reefWatchFeatureCount}곳 · 항적 ${reefWatchTrafficCount}`
+                    : labelLanguage === "en"
+                      ? "Off · OpenSky near reefs"
+                      : "꺼짐 · 암초 근접 OpenSky",
+                  checked: layerPrefs.showReefWatch,
+                  onChange: setShowReefWatch,
+                  accent: "cyan" as const,
+                },
+              ]),
+          ...(isEconomyViewer
+            ? []
+            : [
+                {
                   id: "disguised-vessels" as const,
                   label:
                     labelLanguage === "en"
@@ -1434,7 +1492,13 @@ export function useLayerPanelCategories({
             showLogisticsRisk: enabled,
             showCriticalNodes: enabled,
             showAis: enabled,
-            ...(isEconomyViewer ? {} : { showDisguisedVessels: enabled }),
+            ...(isEconomyViewer
+              ? {}
+              : {
+                  showDisguisedVessels: enabled,
+                  showWeeklyShipMoves: enabled,
+                  showReefWatch: enabled,
+                }),
           }),
       },
       {
@@ -1786,6 +1850,12 @@ export function useLayerPanelCategories({
     lpg(layerPanelGdeltCounts.war, 0),
     lpg(ukraineGdeltNeonMarkers.length, 0),
     lpg(aisVessels.length, 0),
+    lpg(showWeeklyShipMoves, false),
+    lpg(weeklyShipMoveCount, 0),
+    lpg(showReefWatch, false),
+    lpg(reefWatchFeatureCount, 0),
+    lpg(reefWatchTrafficCount, 0),
+    lpg(reefWatchStatus, "idle"),
     lpg(disguisedVessels.length, 0),
     lpg(disguisedLoading, false),
     lpg(disguisedError, null),

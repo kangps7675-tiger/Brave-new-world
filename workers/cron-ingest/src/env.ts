@@ -127,6 +127,11 @@ export type IngestEnv = {
    * 기본 https://www.nti.org/sitemap_index.xml — "off" 이면 폴백 없음
    */
   NTI_SITEMAP_INDEX_URL?: string;
+  /**
+   * Next 주간 함선 이동기 워밍 URL
+   * 예: https://your-app.example/api/ship-movements/warm
+   */
+  SHIP_MOVEMENTS_WARM_URL?: string;
 };
 
 export type FirmsFireRow = {

@@ -27,6 +27,8 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "china-japan-incidents": "showChinaJapanIncidents",
   "china-philippines-incidents": "showChinaPhilippinesIncidents",
   "us-china-incidents": "showUsChinaIncidents",
+  "weekly-ship-moves": "showWeeklyShipMoves",
+  "reef-watch": "showReefWatch",
   "nk-missile-tests": "showNorthKoreaMissileTests",
   "oil-pipelines": "showOilPipelines",
   "gas-pipelines": "showGasPipelines",

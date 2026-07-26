@@ -1,4 +1,5 @@
 import type { StaticPoint } from "@/data/geoTypes";
+import { isLightTone } from "@/lib/basemapTone";
 import { staticKindLabel } from "@/lib/hoverLabels";
 
 /** HTML 실루엣 마커로 그리는 정적 포인트 kinds (globe points와 이중 렌더 금지) */
@@ -469,8 +470,10 @@ export function createInfraStaticBadge(
 
   const label = document.createElement("span");
   label.textContent = point.name;
-  label.style.cssText =
-    "margin-top:2px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:600;color:rgba(248,250,252,0.92);text-shadow:0 1px 3px rgba(0,0,0,0.9);pointer-events:none;";
+  const lightMap = isLightTone();
+  label.style.cssText = lightMap
+    ? "margin-top:2px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:700;color:rgba(24,28,36,0.94);text-shadow:0 0 2px rgba(255,255,255,0.98),0 1px 2px rgba(255,255,255,0.9);pointer-events:none;"
+    : "margin-top:2px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:600;color:rgba(248,250,252,0.92);text-shadow:0 1px 3px rgba(0,0,0,0.9);pointer-events:none;";
   // 데이터센터는 건물 도면만 — 이름/이모지 캡션 없음
   if (
     point.kind !== "ai-data-center" &&

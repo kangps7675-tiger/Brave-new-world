@@ -9,6 +9,7 @@ import type { ViewerMode } from "@/lib/viewPackages";
 import {
   CONFLICT_RESOURCE_HERO_ON,
   ECONOMY_RESOURCE_HERO_ON,
+  ensureConfrontationLayersOn,
   ensureResourceLayersOn,
 } from "@/lib/viewerChrome";
 import {
@@ -136,12 +137,18 @@ export function buildDomainOverviewPrefs(
         showDiplomaticTension: true,
         showGdeltWar: true,
       };
-      next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode);
+      next = ensureConfrontationLayersOn(
+        ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode),
+        mode,
+      );
     }
   } else if (mode === "conflict") {
     next = clampPrefsToActiveCap(next, false);
     next = { ...next, ...CONFLICT_HERO_ON };
-    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, false), mode);
+    next = ensureConfrontationLayersOn(
+      ensureResourceLayersOn(clampPrefsToActiveCap(next, false), mode),
+      mode,
+    );
   } else {
     next = ensureResourceLayersOn(next, mode);
   }

@@ -27,6 +27,8 @@ export type ChinaTheaterIncident = {
   bodyEn: string;
   /** 0–1 · 리플 세기 */
   intensity: number;
+  /** 동적 사건의 원문 기사 링크 */
+  sourceUrl?: string;
 };
 
 export const CHINA_THEATER_INCIDENTS: ChinaTheaterIncident[] = [

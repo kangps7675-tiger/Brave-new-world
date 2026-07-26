@@ -69,6 +69,14 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
     en: "China–Philippines maritime clashes",
   },
   "us-china-incidents": { ko: "미국–중국 군사 마찰", en: "US–China military friction" },
+  "weekly-ship-moves": {
+    ko: "주간 함선 이동기",
+    en: "Weekly ship moves",
+  },
+  "reef-watch": {
+    ko: "ReefWatch 남중국해 암초",
+    en: "ReefWatch SCS features",
+  },
   "nk-missile-tests": { ko: "북한 미사일·무기 시험", en: "North Korea missile & weapons tests" },
   "war-zones": { ko: "전쟁·교전 구역", en: "War zones" },
   "diplomatic-tension": { ko: "외교 긴장 구역", en: "Diplomatic tension zones" },

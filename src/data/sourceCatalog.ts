@@ -99,6 +99,18 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
   },
   {
+    layerId: "reef-watch",
+    source: "ReefWatch feature registry + OpenSky Network",
+    url: "/api/reefwatch",
+    cadence: "Client poll 3 min while ON · server cache 90s · one combined SCS bbox request",
+    attribution:
+      "ReefWatch (MIT) https://github.com/NinhGhoster/ReefWatch · OpenSky Network https://opensky-network.org/",
+    notes:
+      "Feature-centric SCS monitoring bridge. Renders 77 Spratly/Paracel features from ReefWatch target_features.json. Polls OpenSky once over the combined bbox (quick_check policy) and attributes aircraft only within ±0.15° (~16.7 km) of a feature. Not a live battlefield truth engine; Planet/imagery ingest stays optional upstream.",
+    status: "shipped",
+    ingest: "live-poll",
+  },
+  {
     layerId: "air-traffic",
     source: "ADS-B (민간 항적)",
     url: "/api/adsb-traffic",
