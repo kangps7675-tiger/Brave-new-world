@@ -1,58 +1,54 @@
-/** Mineral deposit polygon fill colors (thematic map style). */
+/** Mineral deposit polygon fill — energy 군 단일 톤 (광종은 알파만 미세 차). */
 
-const DEPOSIT_FILL: Record<string, string> = {
-  Lithium: "rgba(249, 115, 22, 0.78)",
-  "Rare Earths": "rgba(220, 38, 38, 0.78)",
-  Uranium: "rgba(203, 213, 225, 0.82)",
-  Titanium: "rgba(71, 85, 105, 0.82)",
-  Copper: "rgba(245, 158, 11, 0.72)",
-  Nickel: "rgba(163, 230, 53, 0.72)",
-  Cobalt: "rgba(129, 140, 248, 0.72)",
-  Graphite: "rgba(148, 163, 184, 0.75)",
-  "Platinum Group Metals": "rgba(244, 114, 182, 0.72)",
-  PGM: "rgba(244, 114, 182, 0.72)",
-  Iron: "rgba(251, 113, 133, 0.72)",
-  "Iron Ore": "rgba(251, 113, 133, 0.72)",
-  Bauxite: "rgba(217, 119, 6, 0.72)",
-  Oil: "rgba(120, 53, 15, 0.7)",
-  Gas: "rgba(56, 189, 248, 0.6)",
-  "Natural Gas": "rgba(56, 189, 248, 0.6)",
-  Coal: "rgba(24, 24, 27, 0.82)",
-  Gold: "rgba(251, 191, 36, 0.75)",
-  Manganese: "rgba(45, 212, 191, 0.72)",
-  Phosphate: "rgba(132, 204, 22, 0.72)",
-  Potash: "rgba(192, 132, 252, 0.72)",
-  Diamond: "rgba(165, 243, 252, 0.78)",
-  Tin: "rgba(161, 98, 7, 0.75)",
-  Tungsten: "rgba(100, 116, 139, 0.78)",
-  Molybdenum: "rgba(99, 102, 241, 0.72)",
-  Zinc: "rgba(74, 222, 128, 0.72)",
-  Lead: "rgba(113, 113, 122, 0.75)",
-  Chromium: "rgba(34, 197, 94, 0.72)",
-  Silver: "rgba(226, 232, 240, 0.8)",
-  Helium: "rgba(244, 114, 182, 0.55)",
+import { groupRgba, hexToRgba, LAYER_GROUP_HEX } from "@/lib/layerColorGroups";
+
+const ENERGY = LAYER_GROUP_HEX.energy;
+
+/** 광종별 채움 알파 — 색상은 전부 energy 앰버 */
+const DEPOSIT_ALPHA: Record<string, number> = {
+  Lithium: 0.72,
+  "Rare Earths": 0.78,
+  Uranium: 0.7,
+  Titanium: 0.66,
+  Copper: 0.74,
+  Nickel: 0.7,
+  Cobalt: 0.72,
+  Graphite: 0.62,
+  "Platinum Group Metals": 0.76,
+  PGM: 0.76,
+  Iron: 0.74,
+  "Iron Ore": 0.74,
+  Bauxite: 0.7,
+  Oil: 0.78,
+  Gas: 0.64,
+  "Natural Gas": 0.64,
+  Coal: 0.55,
+  Gold: 0.8,
+  Manganese: 0.7,
+  Phosphate: 0.68,
+  Potash: 0.7,
+  Diamond: 0.66,
+  Tin: 0.72,
+  Tungsten: 0.68,
+  Molybdenum: 0.7,
+  Zinc: 0.7,
+  Lead: 0.64,
+  Chromium: 0.72,
+  Silver: 0.62,
+  Helium: 0.58,
 };
 
-const DEPOSIT_STROKE: Record<string, string> = {
-  Lithium: "rgba(254, 215, 170, 0.95)",
-  "Rare Earths": "rgba(254, 202, 202, 0.95)",
-  Uranium: "rgba(241, 245, 249, 0.9)",
-  Titanium: "rgba(148, 163, 184, 0.9)",
-  Oil: "rgba(253, 186, 116, 0.9)",
-  Gas: "rgba(186, 230, 253, 0.95)",
-  "Natural Gas": "rgba(186, 230, 253, 0.95)",
-  Coal: "rgba(113, 113, 122, 0.9)",
-  Gold: "rgba(254, 243, 199, 0.95)",
-  Phosphate: "rgba(217, 249, 157, 0.9)",
-  Potash: "rgba(233, 213, 255, 0.95)",
-  Diamond: "rgba(207, 250, 254, 0.95)",
-  Silver: "rgba(255, 255, 255, 0.85)",
-};
+const DEFAULT_FILL_ALPHA = 0.7;
+
+function strokeForFillAlpha(alpha: number): string {
+  // 스트로크는 채움보다 밝게
+  return hexToRgba(ENERGY, Math.min(0.95, alpha + 0.18));
+}
 
 export function normalizeDepositMineral(raw: unknown): string {
   if (typeof raw !== "string" || !raw.trim()) return "";
   const t = raw.trim();
-  if (DEPOSIT_FILL[t]) return t;
+  if (DEPOSIT_ALPHA[t] != null) return t;
   const lower = t.toLowerCase();
   if (lower.includes("rare earth")) return "Rare Earths";
   if (lower.includes("platinum") || lower.includes("pgm")) return "Platinum Group Metals";
@@ -86,10 +82,12 @@ export function normalizeDepositMineral(raw: unknown): string {
 
 export function mineralDepositFill(mineral: unknown): string {
   const key = normalizeDepositMineral(mineral);
-  return DEPOSIT_FILL[key] ?? "rgba(251, 191, 36, 0.7)";
+  const alpha = DEPOSIT_ALPHA[key] ?? DEFAULT_FILL_ALPHA;
+  return groupRgba("energy", alpha);
 }
 
 export function mineralDepositStroke(mineral: unknown): string {
   const key = normalizeDepositMineral(mineral);
-  return DEPOSIT_STROKE[key] ?? "rgba(255, 255, 255, 0.55)";
+  const alpha = DEPOSIT_ALPHA[key] ?? DEFAULT_FILL_ALPHA;
+  return strokeForFillAlpha(alpha);
 }

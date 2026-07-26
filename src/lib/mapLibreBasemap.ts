@@ -1,8 +1,12 @@
 import { clampGlobeAltitude } from "@/lib/globeCamera";
+import {
+  INTEL_VECTOR_STYLE_URL,
+  styleUrlForBasemapMode,
+  type BasemapMode,
+} from "@/lib/basemapMode";
 
-/** 멋진 신세계 단일 베이스맵 — Carto Dark Matter (레이어 가독용 다크 벡터) */
-export const MAPLIBRE_STYLE_URL =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+/** 인텔 기본 — Carto Dark Matter (레이어 가독용 다크 벡터) */
+export const MAPLIBRE_STYLE_URL = INTEL_VECTOR_STYLE_URL;
 
 export type MapLibreCamera = {
   longitude: number;
@@ -51,6 +55,6 @@ export function mapLibreZoomToAltitude(zoom: number): number {
   return clampGlobeAltitude(2 ** ((9.25 - z) / 2.35) - 0.06);
 }
 
-export function getMapLibreStyleUrl(): string {
-  return MAPLIBRE_STYLE_URL;
+export function getMapLibreStyleUrl(mode: BasemapMode = "intel"): string {
+  return styleUrlForBasemapMode(mode);
 }
