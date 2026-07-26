@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -32,9 +33,35 @@ export function ModeGlobalIndexChip({
   className = "",
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
+  const ref = useRef<HTMLDivElement>(null);
+
+  /**
+   * 우측 상단 레일(항모·후원·Watch 등)이 이 칩 아래로 비켜설 수 있게
+   * 실제 높이를 `--mode-index-chip-height`로 publish. 언마운트 시 0으로 복구.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = ref.current;
+    if (!el) {
+      root.style.setProperty("--mode-index-chip-height", "0px");
+      return;
+    }
+    const publish = () => {
+      const h = Math.max(0, Math.ceil(el.getBoundingClientRect().height));
+      root.style.setProperty("--mode-index-chip-height", `${h}px`);
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.setProperty("--mode-index-chip-height", "0px");
+    };
+  }, []);
 
   return (
     <div
+      ref={ref}
       className={`pointer-events-auto fixed right-3 z-[80] flex flex-col items-end sm:right-4 ${className}`}
       style={{
         top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)))",

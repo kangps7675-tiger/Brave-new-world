@@ -559,8 +559,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !rightDockOpen &&
       !selected ? (
         <div
-          className="cv-desktop-only pointer-events-none absolute right-3 z-[60] flex max-h-[min(70vh,calc(100dvh-8rem))] flex-col items-end gap-2 overflow-y-auto overscroll-contain"
-          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
+          className="cv-desktop-only pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
+          style={{
+            // 세계 긴장도(ModeGlobalIndexChip) 아래로 비켜서 겹치지 않게
+            top: "calc(var(--hover-nav-base-height, 0px) + var(--mode-index-chip-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
+            maxHeight:
+              "calc(100dvh - var(--hover-nav-base-height, 0px) - var(--mode-index-chip-height, 0px) - 6rem)",
+          }}
         >
           {!isEconomyViewer ? (
             <UsCarrierFixedToggle
@@ -718,7 +723,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {!intelSheetOpen && isCompactUi ? (
         <div
           className="pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2"
-          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
+          style={{
+            // 세계 긴장도 칩 아래로 — 우상단 겹침 방지
+            top: "calc(var(--mode-index-chip-height, 0px) + max(0.75rem, env(safe-area-inset-top, 0px)) + 0.4rem)",
+          }}
         >
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">
             <button
