@@ -82,7 +82,7 @@ export const LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   ],
 ];
 
-/** 케이블 — 멀리 굵고 가까이 가늘게 */
+/** 케이블 — 멀리 굵고 가까이 가늘게 (줌인에서도 최소 굵기 유지) */
 export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   "interpolate",
   ["linear"],
@@ -90,7 +90,7 @@ export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   1.2,
   2.6,
   9,
-  0.1,
+  0.55,
 ];
 
 export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = [

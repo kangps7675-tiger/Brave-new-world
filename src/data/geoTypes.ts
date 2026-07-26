@@ -185,6 +185,12 @@ export type StaticPointKind =
   | "economic-center"
   | "sanctions-entity"
   | "space-launch"
+  /** PLARF 사일로 개별 지점 (중국 사일로군) */
+  | "missile-silo"
+  /** 전략미사일 부대 주둔지 — 러시아 RVSN 사단급 */
+  | "strategic-missile-base"
+  /** 탄도미사일 시험장·발사시설 (NTI/CNS 트래커) */
+  | "missile-test-site"
   | "lng-terminal"
   | "chokepoint"
   | "logistics-hub"
@@ -267,6 +273,19 @@ export type ResourceDepositArea = {
     maxLat: number;
     maxLng: number;
   };
+};
+
+/**
+ * PLARF 후보 조사 격자 셀 — 확인된 사일로가 아님.
+ * 서부 중국 광역을 훑은 연구 범위이며 3개 사일로군과 겹치지 않는다.
+ */
+export type MissileSiloFieldArea = {
+  id: string;
+  kind: "missile-silo-field";
+  name: string;
+  gridId: string;
+  center: { lat: number; lng: number };
+  geometry: GeoJsonGeometry;
 };
 
 export type DisputeOverview = {

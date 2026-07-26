@@ -405,9 +405,10 @@ import {
   THEATER_ENTRY_MIN_ALTITUDE,
 } from "@/lib/globeCamera";
 import {
-  STATIC_POINT_COLORS,
+  staticPointColor,
   staticPointRadius,
 } from "@/lib/staticGlobe";
+import { setActiveBasemapTone, type BasemapTone } from "@/lib/basemapTone";
 import { createInfraStaticBadge, isHtmlStaticKind } from "@/lib/infraStaticMarkers";
 import { mineralDepositFill, mineralDepositStroke } from "@/lib/resourceDepositStyle";
 import {
@@ -649,15 +650,16 @@ import type {
   Selection,
 } from "@/components/globe/types";
 import {
-  ARMS_EMBARGO_STROKE,
   ARMS_EMBARGO_STROKE_WIDTH,
+  armsEmbargoStroke,
+  infraColors,
+  pathLayerColors,
   CONFLICT_ZONE_ALTITUDE,
   EMPTY_LAYER_CATEGORIES,
   EMPTY_OVERLAY_POLYGONS,
   FLOW_PATH_KINDS,
   HEATMAP_MEANINGFUL_DELTA,
   HISTORY_IMMERSION_MAX_ALTITUDE,
-  INFRA_COLORS,
   INFRA_STROKE,
   INTEL_MISSILE_ARC,
   INTEL_NASA_FIRE,
@@ -667,7 +669,6 @@ import {
   LABEL_MEANINGFUL_DELTA,
   LAYER_ALTITUDE_SYNC_MIN_DELTA,
   MOVING_IDLE_DELAY_MS,
-  PATH_LAYER_COLORS,
   PATH_MEANINGFUL_DELTA,
   REGION_FIT_PADDING,
   REGION_MAX_ALTITUDE,
@@ -773,6 +774,8 @@ export function GlobeDashboard({
   const categorySnapshotRef = useRef<LayerCategory[] | null>(null);
   const layerPanelSessionRef = useRef(0);
   const prevShowLeftPanelRef = useRef(false);
+  /** 패널 열 때 커밋 스냅샷 — 취소 시 복원 */
+  const panelOpenSnapshotRef = useRef<LayerPrefs | null>(null);
   const [intelSheetOpen, setIntelSheetOpen] = useState(false);
   const [layerPanelReady, setLayerPanelReady] = useState(false);
   const [frozenPanelCategories, setFrozenPanelCategories] = useState<LayerCategory[] | null>(null);
@@ -782,10 +785,12 @@ export function GlobeDashboard({
       layerPanelSessionRef.current += 1;
       setLayerPanelDirty(false);
       panelDraftPatchRef.current = {};
+      panelOpenSnapshotRef.current = { ...layerPrefsLiveRef.current };
     }
     prevShowLeftPanelRef.current = showLeftPanel;
-    // 패널이 열려 있을 때는 체크 → draft만 (상단 확인 바에서 적용)
-    deferLayerMapApplyRef.current = showLeftPanel;
+    // 패널 체크는 soft-apply로 지도에 바로 반영(배치). defer 하면 송유/가스/케이블이
+    // 「설정」 전까지 영원히 안 보이는 것처럼 난다.
+    deferLayerMapApplyRef.current = false;
     if (!showLeftPanel) {
       setLayerPanelDirty(false);
     }
@@ -1092,6 +1097,21 @@ export function GlobeDashboard({
     savePerfPrefs({ basemapMode: mode });
   }, []);
 
+  /** 지형(밝은 벡터) 베이스맵이면 라벨·마커 팔레트를 저명도로 뒤집는다 */
+  const basemapTone: BasemapTone = basemapMode === "terrain" ? "light" : "dark";
+
+  // 명령형 마커 팩토리는 prop을 못 받으므로 전역 톤 + html[data-basemap-tone]으로 전달
+  useEffect(() => {
+    setActiveBasemapTone(basemapTone);
+  }, [basemapTone]);
+
+  const tonedPathColors = useMemo(() => pathLayerColors(basemapTone), [basemapTone]);
+  const tonedInfraColors = useMemo(() => infraColors(basemapTone), [basemapTone]);
+  const tonedArmsEmbargoStroke = useMemo(
+    () => armsEmbargoStroke(basemapTone),
+    [basemapTone],
+  );
+
   /** 장면 딥링크(?scene=1) — 게이트 생략 후 모드·레이어·카메라 적용 */
   const { hasPendingScene } = useSceneDeeplink({
     globeReady,
@@ -1290,11 +1310,11 @@ export function GlobeDashboard({
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === "boolean") trackLayerToggle(key, value);
       }
-      // 패널 안에서는 draft만 — 지도 반영은 상단 「설정」에서
-      patchDraftOnly(patch);
+      // 지도에는 soft 배치로 즉시 반영. 상단 「설정」은 강제 flush·저장 확인용.
+      patchLayerPrefsSoft(patch);
       setLayerPanelDirty(true);
     },
-    [patchDraftOnly],
+    [patchLayerPrefsSoft],
   );
 
   const handlePanelLangDraft = useCallback(
@@ -1313,22 +1333,25 @@ export function GlobeDashboard({
     deferLayerMapApplyRef.current = false;
     applyLayerPrefs(draftPrefs);
     panelDraftPatchRef.current = {};
+    panelOpenSnapshotRef.current = { ...draftPrefs };
     setLayerPanelDirty(false);
-    // 패널이 열려 있으면 다시 defer — 추가 체크는 또 확인 필요
-    if (showLeftPanel) {
-      deferLayerMapApplyRef.current = true;
-    }
-  }, [applyLayerPrefs, draftPrefs, showLeftPanel]);
+  }, [applyLayerPrefs, draftPrefs]);
 
   const cancelLayerPanelDraft = useCallback(() => {
-    discardDraftPrefs();
+    const snap = panelOpenSnapshotRef.current;
+    if (snap) {
+      deferLayerMapApplyRef.current = false;
+      applyLayerPrefs(snap);
+    } else {
+      discardDraftPrefs();
+    }
     panelDraftPatchRef.current = {};
     setLayerPanelDirty(false);
     layerPanelSessionRef.current += 1;
     // frozen 카테고리 체크 UI를 커밋 상태로 다시 맞춤
     categorySnapshotRef.current = null;
     setFrozenPanelCategories(null);
-  }, [discardDraftPrefs]);
+  }, [applyLayerPrefs, discardDraftPrefs]);
 
   const {
     showWarZones,
@@ -1366,6 +1389,10 @@ export function GlobeDashboard({
     showGscpiGauge,
     showCriticalNodes,
     showMilitaryBases,
+    showMissileSilos,
+    showStrategicMissileBases,
+    showMissileTestSites,
+    showMissileSiloFields,
     showResources,
     showNuclearSites,
     showInternetExchanges,
@@ -1510,6 +1537,11 @@ export function GlobeDashboard({
   const setShowGscpiGauge = (v: boolean) => togglePref("showGscpiGauge", v);
   const setShowCriticalNodes = (v: boolean) => togglePref("showCriticalNodes", v);
   const setShowMilitaryBases = (v: boolean) => togglePref("showMilitaryBases", v);
+  const setShowMissileSilos = (v: boolean) => togglePref("showMissileSilos", v);
+  const setShowStrategicMissileBases = (v: boolean) =>
+    togglePref("showStrategicMissileBases", v);
+  const setShowMissileTestSites = (v: boolean) => togglePref("showMissileTestSites", v);
+  const setShowMissileSiloFields = (v: boolean) => togglePref("showMissileSiloFields", v);
   const setShowResources = (v: boolean) => togglePref("showResources", v);
   const setShowNuclearSites = (v: boolean) => togglePref("showNuclearSites", v);
   const setShowInternetExchanges = (v: boolean) => togglePref("showInternetExchanges", v);
@@ -1931,6 +1963,7 @@ export function GlobeDashboard({
     // 전역 시야 전용 게이트를 풀었다 — 줌인 상태에서도 filterCenter 컬링으로만 줄인다
     enabled: showReconSatellites && !isEconomyViewer,
     filterCenter,
+    cameraAltitude: layerAltitude,
     keepMarkerId: selectedReconMarkerId,
   });
 
@@ -2387,6 +2420,10 @@ export function GlobeDashboard({
     showLogisticsRisk,
     showCriticalNodes,
     showMilitaryBases,
+    showMissileSilos,
+    showStrategicMissileBases,
+    showMissileTestSites,
+    showMissileSiloFields,
     showResources,
     showCableLandings: showSubmarineCables,
     showNuclearSites,
@@ -2412,6 +2449,7 @@ export function GlobeDashboard({
     visibleSubseaPipelines,
     visibleStaticPoints,
     visibleMilitaryBaseAreas,
+    visibleMissileSiloFields,
     visibleResourceDeposits,
     visibleConflictZones,
     visibleArmsEmbargoZones,
@@ -2494,6 +2532,18 @@ export function GlobeDashboard({
         })),
       );
     }
+    if (
+      !showGpsInterference &&
+      showMissileSiloFields &&
+      visibleMissileSiloFields.length > 0
+    ) {
+      layers.push(
+        ...visibleMissileSiloFields.map((area) => ({
+          ...area,
+          polygonLayer: "missile-silo-field" as const,
+        })),
+      );
+    }
 
     return layers.length > 0 ? layers : EMPTY_OVERLAY_POLYGONS;
   }, [
@@ -2503,6 +2553,8 @@ export function GlobeDashboard({
     visibleMilitaryBaseAreas,
     showResources,
     visibleResourceDeposits,
+    showMissileSiloFields,
+    visibleMissileSiloFields,
   ]);
 
   const disputeZonePaths = useMemo<TransportPath[]>(() => {
@@ -3982,11 +4034,13 @@ export function GlobeDashboard({
     count: number;
     oilCount: number;
     gasCount: number;
+    subseaCount: number;
     cableCount: number;
     briCount: number;
     dfcCount: number;
     oilSig: string;
     gasSig: string;
+    subseaSig: string;
     cableSig: string;
     briSig: string;
     dfcSig: string;
@@ -3996,11 +4050,13 @@ export function GlobeDashboard({
     count: 0,
     oilCount: 0,
     gasCount: 0,
+    subseaCount: 0,
     cableCount: 0,
     briCount: 0,
     dfcCount: 0,
     oilSig: "",
     gasSig: "",
+    subseaSig: "",
     cableSig: "",
     briSig: "",
     dfcSig: "",
@@ -4052,18 +4108,18 @@ export function GlobeDashboard({
   }, [applyGeneration, immediateUntilRef, isCameraMoving, rawGlobeLabels]);
 
   useEffect(() => {
-    const bypass = Date.now() < immediateUntilRef.current || isVectorBaseMap;
-    if (isCameraMoving && !bypass) return;
     const now = Date.now();
     const count = dynamicGlobePaths.length;
     let oilCount = 0;
     let gasCount = 0;
+    let subseaCount = 0;
     let cableCount = 0;
     let briCount = 0;
     let dfcCount = 0;
     let hatchCount = 0;
     const oilIds: string[] = [];
     const gasIds: string[] = [];
+    const subseaIds: string[] = [];
     const cableIds: string[] = [];
     const briIds: string[] = [];
     const dfcIds: string[] = [];
@@ -4074,6 +4130,9 @@ export function GlobeDashboard({
       } else if (item.kind === "gas-pipeline") {
         gasCount += 1;
         if (gasIds.length < 24) gasIds.push(item.id);
+      } else if (item.kind === "subsea-pipeline") {
+        subseaCount += 1;
+        if (subseaIds.length < 24) subseaIds.push(item.id);
       } else if (item.kind === "submarine-cable") {
         cableCount += 1;
         if (cableIds.length < 24) cableIds.push(item.id);
@@ -4093,29 +4152,36 @@ export function GlobeDashboard({
     }
     const oilSig = oilIds.join(",");
     const gasSig = gasIds.join(",");
+    const subseaSig = subseaIds.join(",");
     const cableSig = cableIds.join(",");
     const briSig = briIds.join(",");
     const dfcSig = dfcIds.join(",");
-    // 앞 96개만 보면 해치에 밀려 송유/가스/케이블/BRI/DFC id 교체가 안 잡힘 → 인프라 fingerprint 포함
-    const signature = `${count}|h${hatchCount}|o${oilCount}|g${gasCount}|c${cableCount}|b${briCount}|d${dfcCount}|O:${oilSig}|G:${gasSig}|C:${cableSig}|B:${briSig}|D:${dfcSig}|${dynamicGlobePaths
-      .slice(0, 96)
-      .map((item) => `${item.kind}:${item.id}`)
-      .join("|")}`;
     const prev = pathStabilityRef.current;
-    const elapsed = now - prev.updatedAt;
-    const meaningfulChange = Math.abs(count - prev.count) >= PATH_MEANINGFUL_DELTA;
-    const cadenceHit = elapsed >= PATH_UPDATE_CADENCE_MS;
     const infraChanged =
       oilCount !== prev.oilCount ||
       gasCount !== prev.gasCount ||
+      subseaCount !== prev.subseaCount ||
       cableCount !== prev.cableCount ||
       briCount !== prev.briCount ||
       dfcCount !== prev.dfcCount ||
       oilSig !== prev.oilSig ||
       gasSig !== prev.gasSig ||
+      subseaSig !== prev.subseaSig ||
       cableSig !== prev.cableSig ||
       briSig !== prev.briSig ||
       dfcSig !== prev.dfcSig;
+    // 자원 인프라는 카메라 이동 중에도 반영 — 팬 중 fetch 완료 후 영구 스킵 방지
+    const bypass =
+      Date.now() < immediateUntilRef.current || isVectorBaseMap || infraChanged;
+    if (isCameraMoving && !bypass) return;
+    // 앞 96개만 보면 해치에 밀려 인프라 id 교체가 안 잡힘 → fingerprint 포함
+    const signature = `${count}|h${hatchCount}|o${oilCount}|g${gasCount}|s${subseaCount}|c${cableCount}|b${briCount}|d${dfcCount}|O:${oilSig}|G:${gasSig}|S:${subseaSig}|C:${cableSig}|B:${briSig}|D:${dfcSig}|${dynamicGlobePaths
+      .slice(0, 96)
+      .map((item) => `${item.kind}:${item.id}`)
+      .join("|")}`;
+    const elapsed = now - prev.updatedAt;
+    const meaningfulChange = Math.abs(count - prev.count) >= PATH_MEANINGFUL_DELTA;
+    const cadenceHit = elapsed >= PATH_UPDATE_CADENCE_MS;
     if (
       signature !== prev.signature &&
       (bypass || meaningfulChange || cadenceHit || prev.updatedAt === 0 || infraChanged)
@@ -4127,11 +4193,13 @@ export function GlobeDashboard({
           count,
           oilCount,
           gasCount,
+          subseaCount,
           cableCount,
           briCount,
           dfcCount,
           oilSig,
           gasSig,
+          subseaSig,
           cableSig,
           briSig,
           dfcSig,
@@ -4139,7 +4207,7 @@ export function GlobeDashboard({
         };
         setGlobePaths([...nextPaths]);
       };
-      // 송유/가스/케이블/BRI/DFC 토글은 즉시 반영.
+      // 인프라 토글은 즉시 반영.
       // (예전: ref를 먼저 갱신 + RAF 예약 → cleanup에서 cancel되면
       //  signature는 이미 먹은 채 setGlobePaths는 스킵 → 체크 ON인데 안 보임)
       if (infraChanged || (count - prev.count < 40 && count < 120)) {
@@ -4603,6 +4671,18 @@ export function GlobeDashboard({
             lang === "en"
               ? "Approximate deposit extent (curated outline)"
               : "매장 범위 개략 윤곽 (큐레이션)",
+        };
+      }
+      if (hoveredPolygon.polygonLayer === "missile-silo-field") {
+        return {
+          kind: "polygon",
+          title: hoveredPolygon.gridId || hoveredPolygon.name,
+          detail: lang === "en" ? "PLARF survey grid cell" : "PLARF 후보 조사 격자",
+          meta: lang === "en" ? "not a confirmed silo" : "확인 사일로 아님",
+          hint:
+            lang === "en"
+              ? "Area screened for candidate sites — disjoint from known silo fields"
+              : "새 후보지 탐색 범위 · 확인된 사일로군과 겹치지 않음",
         };
       }
       if (hoveredPolygon.polygonLayer === "conflict-zone") {
@@ -5683,6 +5763,15 @@ export function GlobeDashboard({
     showMilitaryBases,
     visibleMilitaryBaseAreas,
     setShowMilitaryBases,
+    showMissileSilos,
+    setShowMissileSilos,
+    showStrategicMissileBases,
+    setShowStrategicMissileBases,
+    showMissileTestSites,
+    setShowMissileTestSites,
+    showMissileSiloFields,
+    setShowMissileSiloFields,
+    visibleMissileSiloFields,
     showMilitaryActivity,
     milAircraft,
     setShowMilitaryActivity,
@@ -5766,9 +5855,10 @@ export function GlobeDashboard({
 
   const dismissLayerPanel = useCallback(
     (closePanel = true) => {
-      // 미적용 체크는 버리고 닫기 (「설정」을 누른 것만 지도에 남음)
+      // soft-apply 중인 초안이 있으면 닫을 때 커밋(버리기 → 체크했는데 안 보임 방지)
       if (layerPanelDirty) {
-        discardDraftPrefs();
+        deferLayerMapApplyRef.current = false;
+        applyLayerPrefs(draftPrefs);
         panelDraftPatchRef.current = {};
         setLayerPanelDirty(false);
       }
@@ -5786,7 +5876,7 @@ export function GlobeDashboard({
         flush();
       }
     },
-    [discardDraftPrefs, layerPanelDirty],
+    [applyLayerPrefs, draftPrefs, layerPanelDirty],
   );
 
   const toggleLeftPanel = useCallback(() => {
@@ -5818,9 +5908,6 @@ export function GlobeDashboard({
     deferLayerMapApplyRef.current = false;
     applyLayerPrefs(next);
     setLayerPanelDirty(false);
-    if (showLeftPanel) {
-      deferLayerMapApplyRef.current = true;
-    }
 
     const base = categorySnapshotRef.current ?? frozenPanelCategories;
     if (base) {
@@ -7697,7 +7784,9 @@ export function GlobeDashboard({
           },
           {
             lang: labelLanguage === "en" ? "en" : "ko",
-            showLabel: layerAltitude < 2.2,
+            // 전역 궤도 헤일로에서는 라벨 끄고 아이콘만 — 지도 줌에서만 이름
+            showLabel: layerAltitude < 1.35,
+            orbitHalo: layerAltitude > 1.35,
           },
         );
       }
@@ -8131,6 +8220,12 @@ export function GlobeDashboard({
       return;
     }
 
+    if (feature.polygonLayer === "missile-silo-field") {
+      skipNextGlobeClickRef.current = true;
+      flyTo(feature.center.lat, feature.center.lng, 0.55);
+      return;
+    }
+
     if (feature.polygonLayer === "conflict-zone") {
       openIntelFromCoords(feature.center.lat, feature.center.lng, 0.85);
       return;
@@ -8470,7 +8565,7 @@ export function GlobeDashboard({
                     if (risk === "high") return "rgba(251, 191, 36, 0.92)";
                     return "rgba(110, 231, 183, 0.88)";
                   }
-                  return STATIC_POINT_COLORS[point.kind];
+                  return staticPointColor(point.kind, basemapTone);
                 }
                 if (point.displayKind === "mil") return "rgba(248, 113, 113, 0.92)";
                 if (point.displayKind === "ais") {
@@ -8721,8 +8816,16 @@ export function GlobeDashboard({
                 return 2.2;
               }}
               htmlElementsData={htmlOverlayMarkers}
-              htmlLat={(point: HtmlOverlayMarker) => point.lat}
-              htmlLng={(point: HtmlOverlayMarker) => point.lng}
+              htmlLat={(point: HtmlOverlayMarker) =>
+                point.displayKind === "recon-sat-html"
+                  ? (point.orbitLat ?? point.lat)
+                  : point.lat
+              }
+              htmlLng={(point: HtmlOverlayMarker) =>
+                point.displayKind === "recon-sat-html"
+                  ? (point.orbitLng ?? point.lng)
+                  : point.lng
+              }
               htmlAltitude={(point: HtmlOverlayMarker) =>
                 point.displayKind === "casualty-skull"
                   ? 0.0008
@@ -8834,7 +8937,7 @@ export function GlobeDashboard({
               }
               labelColor={(item: GlobeLabel) => {
                 const tier = getPlaceLabelTier(item.population, item.type, item.scalerank);
-                return getPlaceLabelColor(tier, showCityLabels);
+                return getPlaceLabelColor(tier, showCityLabels, basemapTone);
               }}
               labelResolution={2}
               labelsTransitionDuration={0}
@@ -8860,6 +8963,9 @@ export function GlobeDashboard({
                 if (feature.polygonLayer === "resource-deposit") {
                   return mineralDepositFill(feature.mineral);
                 }
+                if (feature.polygonLayer === "missile-silo-field") {
+                  return "rgba(180, 83, 9, 0.18)";
+                }
                 if (feature.polygonLayer === "conflict-zone") {
                   return COUNTRY_TEXTURE_MODE_FILL;
                 }
@@ -8880,6 +8986,7 @@ export function GlobeDashboard({
                 if (isUkraineViinaPolygonLayer(feature.polygonLayer)) return 1;
                 if (feature.polygonLayer === "gps-jam") return 1;
                 if (feature.polygonLayer === "resource-deposit") return 0.88;
+                if (feature.polygonLayer === "missile-silo-field") return 0.55;
                 return 0.72;
               }}
               // sideColor 미설정 — falsy(undefined)는 polished 파서에서 런타임 오류 유발
@@ -8899,6 +9006,9 @@ export function GlobeDashboard({
                 if (feature.polygonLayer === "resource-deposit") {
                   return mineralDepositStroke(feature.mineral);
                 }
+                if (feature.polygonLayer === "missile-silo-field") {
+                  return "rgba(180, 83, 9, 0.55)";
+                }
                 if (feature.polygonLayer === "conflict-zone") return "rgba(248,113,113,0.7)";
                 if (feature.polygonLayer === "ukraine-ru") return UKRAINE_RU_STROKE;
                 if (feature.polygonLayer === "ukraine-ua") return UKRAINE_UA_STROKE;
@@ -8916,6 +9026,7 @@ export function GlobeDashboard({
                 if (feature.polygonLayer === "country") return COUNTRY_FILL_ALTITUDE;
                 if (feature.polygonLayer === "military-base") return US_BASE_ALTITUDE;
                 if (feature.polygonLayer === "resource-deposit") return 0.0035;
+                if (feature.polygonLayer === "missile-silo-field") return 0.0025;
                 if (feature.polygonLayer === "conflict-zone") return CONFLICT_ZONE_ALTITUDE;
                 if (feature.polygonLayer === "gps-jam") return 0.01;
                 if (isUkraineViinaPolygonLayer(feature.polygonLayer)) {
@@ -9043,9 +9154,9 @@ export function GlobeDashboard({
                 if (path.kind === "country-border") {
                   return globeTextures.vectorBase ? globeTextures.borderColor : COUNTRY_BORDER_PATH_COLOR;
                 }
-                if (path.kind === "oil-pipeline") return PATH_LAYER_COLORS["oil-pipeline"];
-                if (path.kind === "gas-pipeline") return PATH_LAYER_COLORS["gas-pipeline"];
-                if (path.kind === "subsea-pipeline") return PATH_LAYER_COLORS["subsea-pipeline"];
+                if (path.kind === "oil-pipeline") return tonedPathColors["oil-pipeline"];
+                if (path.kind === "gas-pipeline") return tonedPathColors["gas-pipeline"];
+                if (path.kind === "subsea-pipeline") return tonedPathColors["subsea-pipeline"];
                 if (FLOW_PATH_KINDS.has(path.kind)) return INTEL_MISSILE_ARC;
                 if (path.kind === "dispute-boundary") return "rgba(251, 191, 36, 0.92)";
                 if (path.kind === "dispute-zone") {
@@ -9066,9 +9177,9 @@ export function GlobeDashboard({
                   if (zone) return getConflictZoneHatchColor(zone);
                   return TENSION_GRADE_STYLES.medium.hatch;
                 }
-                if (path.kind === "shipping-lane") return PATH_LAYER_COLORS["shipping-lane"];
-                if (path.kind === "submarine-cable") return PATH_LAYER_COLORS["submarine-cable"];
-                if (path.kind === "arms-embargo") return ARMS_EMBARGO_STROKE;
+                if (path.kind === "shipping-lane") return tonedPathColors["shipping-lane"];
+                if (path.kind === "submarine-cable") return tonedPathColors["submarine-cable"];
+                if (path.kind === "arms-embargo") return tonedArmsEmbargoStroke;
                 if (path.kind === "msr") return "rgba(250, 204, 21, 0.9)";
                 if (
                   path.kind === "ukraine-ru-occupied" ||
@@ -9110,7 +9221,7 @@ export function GlobeDashboard({
                 if (path.kind === "ru-advance" || path.kind === "ru-axis") {
                   return UKRAINE_RU_FRONT_LINE;
                 }
-                return showRailGlow ? INFRA_COLORS.rail.glow : INFRA_COLORS.rail.dim;
+                return showRailGlow ? tonedInfraColors.rail.glow : tonedInfraColors.rail.dim;
               }}
               pathStroke={(path: TransportPath) => {
                 if (isAirRaidFocusPath(path)) {
@@ -9136,8 +9247,8 @@ export function GlobeDashboard({
                 if (path.kind === "conflict-hatch") return 0.62;
                 if (path.kind === "shipping-lane") return 0.48;
                 if (path.kind === "submarine-cable") {
-                  // 해저 케이블: cableInverseLineWidth (줌아웃↑굵게 · 줌인→~0.1)
-                  return 0.1;
+                  // 해저 케이블: cable widthMode (줌아웃↑ · 줌인 최소 ~0.55)
+                  return 0.55;
                 }
                 if (
                   path.kind === "oil-pipeline" ||

@@ -703,6 +703,13 @@ async function main() {
   }
 
   try {
+    const { main: buildStrategicMissile } = require("./build-strategic-missile-data.js");
+    buildStrategicMissile();
+  } catch (error) {
+    console.warn("   strategic missile skipped:", error.message);
+  }
+
+  try {
     const { main: buildEmodnetPipelines } = require("./build-emodnet-pipelines.js");
     await buildEmodnetPipelines();
   } catch (error) {

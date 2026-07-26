@@ -18,6 +18,9 @@ export type ViewportPointLayer =
   | "resources"
   | "cable-landings"
   | "nuclear-sites"
+  | "missile-silos"
+  | "strategic-missile-bases"
+  | "missile-test-sites"
   | "internet-exchanges"
   | "refugee-camps"
   | "ucdp-events"
@@ -45,6 +48,9 @@ const FILE_BY_LAYER: Record<ViewportPointLayer, string> = {
   resources: "resources.json",
   "cable-landings": "cable-landings.json",
   "nuclear-sites": "nuclear-sites.json",
+  "missile-silos": "missile-silos.json",
+  "strategic-missile-bases": "strategic-missile-bases.json",
+  "missile-test-sites": "missile-test-sites.json",
   "internet-exchanges": "internet-exchanges.json",
   "refugee-camps": "refugee-camps.json",
   "ucdp-events": "ucdp-events.json",

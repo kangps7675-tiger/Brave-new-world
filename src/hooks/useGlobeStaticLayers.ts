@@ -6,6 +6,7 @@ import type {
   ConflictZoneFeature,
   DisputeOverview,
   MilitaryBaseArea,
+  MissileSiloFieldArea,
   ResourceDepositArea,
   StaticPoint,
   TransportPath,
@@ -35,8 +36,51 @@ import {
   type GemResourcePrefKey,
 } from "@/lib/gemResourceCatalog";
 import type { ViewportPointLayer } from "@/lib/serverViewportPoints";
+import type { MissileSiloField } from "@/lib/strategicMissile";
 
 const CRITICAL_NODE_STATIC_POINTS = criticalNodesAsStaticPoints();
+
+/** 조사 격자 560개 — 줌 단계별 상한 (확인 사일로가 아니라 연구 범위) */
+const MISSILE_SILO_FIELD_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 40,
+  continent: 80,
+  regional: 160,
+  near: 280,
+  village: 400,
+};
+
+function fieldToArea(field: MissileSiloField): MissileSiloFieldArea | null {
+  if (!Array.isArray(field.ring) || field.ring.length < 4) return null;
+  const [lng, lat] = field.centroid;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return {
+    id: field.id,
+    kind: "missile-silo-field",
+    name: field.gridId || field.id,
+    gridId: field.gridId,
+    center: { lat, lng },
+    geometry: {
+      type: "Polygon",
+      coordinates: [field.ring],
+    },
+  };
+}
+
+function filterMissileSiloFields(
+  areas: MissileSiloFieldArea[],
+  viewState: ViewState,
+  tier: GlobeLodTier,
+  radiusDeg: number,
+): MissileSiloFieldArea[] {
+  const max = MISSILE_SILO_FIELD_MAX_BY_TIER[tier];
+  const effectiveRadius =
+    tier === "global" ? 0 : tier === "continent" ? Math.max(radiusDeg, 40) : radiusDeg;
+  const inView =
+    effectiveRadius <= 0
+      ? areas
+      : areas.filter((area) => centerNearView(area.center, viewState, effectiveRadius + 2));
+  return inView.slice(0, max);
+}
 
 type GemShowFlags = Partial<Record<GemResourcePrefKey, boolean>>;
 
@@ -159,6 +203,10 @@ export function useGlobeStaticLayers(options: {
   showLogisticsRisk?: boolean;
   showCriticalNodes?: boolean;
   showMilitaryBases: boolean;
+  showMissileSilos?: boolean;
+  showStrategicMissileBases?: boolean;
+  showMissileTestSites?: boolean;
+  showMissileSiloFields?: boolean;
   showResources: boolean;
   showCableLandings: boolean;
   showNuclearSites?: boolean;
@@ -194,6 +242,10 @@ export function useGlobeStaticLayers(options: {
   const [resources, setResources] = useState<StaticPoint[]>([]);
   const [cableLandings, setCableLandings] = useState<StaticPoint[]>([]);
   const [nuclearSites, setNuclearSites] = useState<StaticPoint[]>([]);
+  const [missileSilos, setMissileSilos] = useState<StaticPoint[]>([]);
+  const [strategicMissileBases, setStrategicMissileBases] = useState<StaticPoint[]>([]);
+  const [missileTestSites, setMissileTestSites] = useState<StaticPoint[]>([]);
+  const [missileSiloFields, setMissileSiloFields] = useState<MissileSiloFieldArea[]>([]);
   const [internetExchanges, setInternetExchanges] = useState<StaticPoint[]>([]);
   const [refugeeCamps, setRefugeeCamps] = useState<StaticPoint[]>([]);
   const [ucdpEvents, setUcdpEvents] = useState<StaticPoint[]>([]);
@@ -723,6 +775,87 @@ export function useGlobeStaticLayers(options: {
   ]);
 
   useEffect(() => {
+    if (!options.showMissileSilos) {
+      setMissileSilos([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void fetchViewportPoints("missile-silos", setMissileSilos);
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [
+    fetchViewportPoints,
+    options.showMissileSilos,
+    options.viewState.lat,
+    options.viewState.lng,
+    options.globeTier,
+    options.radiusDeg,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
+    if (!options.showStrategicMissileBases) {
+      setStrategicMissileBases([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void fetchViewportPoints("strategic-missile-bases", setStrategicMissileBases);
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [
+    fetchViewportPoints,
+    options.showStrategicMissileBases,
+    options.viewState.lat,
+    options.viewState.lng,
+    options.globeTier,
+    options.radiusDeg,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
+    if (!options.showMissileTestSites) {
+      setMissileTestSites([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void fetchViewportPoints("missile-test-sites", setMissileTestSites);
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [
+    fetchViewportPoints,
+    options.showMissileTestSites,
+    options.viewState.lat,
+    options.viewState.lng,
+    options.globeTier,
+    options.radiusDeg,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
+    if (!options.showMissileSiloFields) return;
+    if (loadedRef.current.missileSiloFields) return;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const response = await fetch("/api/layers/strategic-missile?dataset=fields", {
+            cache: "force-cache",
+          });
+          if (!response.ok) return;
+          const payload = (await response.json()) as { fields?: MissileSiloField[] };
+          const areas = (payload.fields ?? [])
+            .map(fieldToArea)
+            .filter((area): area is MissileSiloFieldArea => area != null);
+          setMissileSiloFields(areas);
+          loadedRef.current.missileSiloFields = true;
+        } catch {
+          setMissileSiloFields([]);
+        }
+      })();
+    }, 360);
+    return () => window.clearTimeout(timer);
+  }, [options.showMissileSiloFields, reloadToken]);
+
+  useEffect(() => {
     if (!options.showInternetExchanges) {
       setInternetExchanges([]);
       return;
@@ -960,6 +1093,9 @@ export function useGlobeStaticLayers(options: {
     }
     if (options.showCableLandings) merged.push(...cableLandings);
     if (options.showNuclearSites) merged.push(...nuclearSites);
+    if (options.showMissileSilos) merged.push(...missileSilos);
+    if (options.showStrategicMissileBases) merged.push(...strategicMissileBases);
+    if (options.showMissileTestSites) merged.push(...missileTestSites);
     if (options.showInternetExchanges) merged.push(...internetExchanges);
     if (options.showRefugeeCamps) merged.push(...refugeeCamps);
     if (options.showUcdpEvents) merged.push(...ucdpEvents);
@@ -994,6 +1130,8 @@ export function useGlobeStaticLayers(options: {
     internetExchanges,
     lngTerminals,
     militaryBases,
+    missileSilos,
+    missileTestSites,
     nuclearSites,
     options.gemShow,
     options.globeTier,
@@ -1008,12 +1146,15 @@ export function useGlobeStaticLayers(options: {
     options.showLogisticsRisk,
     options.showCriticalNodes,
     options.showMilitaryBases,
+    options.showMissileSilos,
+    options.showMissileTestSites,
     options.showNuclearSites,
     options.showPorts,
     options.showRefugeeCamps,
     options.showResources,
     options.showSanctionsEntities,
     options.showSpaceLaunches,
+    options.showStrategicMissileBases,
     options.showSubmarineTunnels,
     options.showUcdpEvents,
     options.viewState,
@@ -1023,6 +1164,7 @@ export function useGlobeStaticLayers(options: {
     resources,
     sanctionsEntities,
     spaceLaunches,
+    strategicMissileBases,
     submarineTunnels,
     ucdpEvents,
   ]);
@@ -1040,6 +1182,22 @@ export function useGlobeStaticLayers(options: {
     options.globeTier,
     options.radiusDeg,
     options.showMilitaryBases,
+    options.viewState,
+  ]);
+
+  const visibleMissileSiloFields = useMemo(() => {
+    if (!options.showMissileSiloFields) return [];
+    return filterMissileSiloFields(
+      missileSiloFields,
+      options.viewState,
+      options.globeTier,
+      options.radiusDeg,
+    );
+  }, [
+    missileSiloFields,
+    options.globeTier,
+    options.radiusDeg,
+    options.showMissileSiloFields,
     options.viewState,
   ]);
 
@@ -1114,6 +1272,7 @@ export function useGlobeStaticLayers(options: {
     visibleSubseaPipelines,
     visibleStaticPoints,
     visibleMilitaryBaseAreas,
+    visibleMissileSiloFields,
     visibleResourceDeposits,
     visibleConflictZones,
     visibleArmsEmbargoZones,
@@ -1137,6 +1296,10 @@ export function useGlobeStaticLayers(options: {
       resourceDeposits: resourceDeposits.length,
       cableLandings: cableLandings.length,
       nuclearSites: nuclearSites.length,
+      missileSilos: missileSilos.length,
+      strategicMissileBases: strategicMissileBases.length,
+      missileTestSites: missileTestSites.length,
+      missileSiloFields: missileSiloFields.length,
       internetExchanges: internetExchanges.length,
       refugeeCamps: refugeeCamps.length,
       ucdpEvents: ucdpEvents.length,

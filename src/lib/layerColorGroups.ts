@@ -1,7 +1,11 @@
 /**
  * 레이어 색 — 시설군(5) 단위 통일.
  * idle 지구는 채도를 낮춰 정보국 무드, 세부 구분은 아이콘·호버에 맡긴다.
+ *
+ * 밝은 베이스맵(지형 벡터)에서는 같은 색군의 저명도 버전을 써서 대비를 유지한다.
  */
+
+import { activeBasemapTone, type BasemapTone } from "@/lib/basemapTone";
 
 export type LayerColorGroup =
   | "crisis"
@@ -10,7 +14,7 @@ export type LayerColorGroup =
   | "energy"
   | "digital";
 
-/** 군별 기준색 (hex) — 글로브·경로·포인트가 공유 */
+/** 군별 기준색 (hex) — 어두운 베이스맵 */
 export const LAYER_GROUP_HEX: Record<LayerColorGroup, string> = {
   /** 경보·분쟁·제재 신호 */
   crisis: "#e85d4c",
@@ -24,6 +28,22 @@ export const LAYER_GROUP_HEX: Record<LayerColorGroup, string> = {
   digital: "#9b8ec4",
 };
 
+/** 밝은 베이스맵용 — 같은 색상환, 명도만 낮춤 */
+export const LAYER_GROUP_HEX_LIGHT: Record<LayerColorGroup, string> = {
+  crisis: "#b3261e",
+  military: "#0e5b6b",
+  infra: "#274b66",
+  energy: "#8a5300",
+  digital: "#463a8c",
+};
+
+export function groupHex(
+  group: LayerColorGroup,
+  tone: BasemapTone = activeBasemapTone(),
+): string {
+  return tone === "light" ? LAYER_GROUP_HEX_LIGHT[group] : LAYER_GROUP_HEX[group];
+}
+
 export function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
   const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
@@ -33,8 +53,17 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export function groupRgba(group: LayerColorGroup, alpha: number): string {
-  return hexToRgba(LAYER_GROUP_HEX[group], alpha);
+/** 밝은 배경에서는 반투명이 배경에 씻겨 나가므로 불투명도를 올린다 */
+function toneAlpha(alpha: number, tone: BasemapTone): number {
+  return tone === "light" ? Math.min(1, alpha + 0.1) : alpha;
+}
+
+export function groupRgba(
+  group: LayerColorGroup,
+  alpha: number,
+  tone: BasemapTone = activeBasemapTone(),
+): string {
+  return hexToRgba(groupHex(group, tone), toneAlpha(alpha, tone));
 }
 
 /** 정적 포인트 kind → 색군 */
@@ -60,6 +89,9 @@ export function staticKindColorGroup(
       return "crisis";
     case "military-base":
     case "space-launch":
+    case "missile-silo":
+    case "strategic-missile-base":
+    case "missile-test-site":
       return "military";
     case "airport":
     case "port":
@@ -142,23 +174,42 @@ const KIND_ALPHA: Record<string, number> = {
   "ai-data-center": 0.86,
 };
 
-export function staticKindRgba(kind: string): string {
+export function staticKindRgba(
+  kind: string,
+  tone: BasemapTone = activeBasemapTone(),
+): string {
   const group = staticKindColorGroup(kind);
   const alpha = KIND_ALPHA[kind] ?? 0.84;
-  return groupRgba(group, alpha);
+  return groupRgba(group, alpha, tone);
 }
 
-export function pathKindRgba(kind: string, alpha = 0.86): string {
-  return groupRgba(pathKindColorGroup(kind), alpha);
+export function pathKindRgba(
+  kind: string,
+  alpha = 0.86,
+  tone: BasemapTone = activeBasemapTone(),
+): string {
+  return groupRgba(pathKindColorGroup(kind), alpha, tone);
 }
 
-export function markerPaletteForGroup(group: LayerColorGroup): {
+export function markerPaletteForGroup(
+  group: LayerColorGroup,
+  tone: BasemapTone = activeBasemapTone(),
+): {
   fill: string;
   glow: string;
   ink: string;
   rim: string;
 } {
-  const hex = LAYER_GROUP_HEX[group];
+  const hex = groupHex(group, tone);
+  if (tone === "light") {
+    // 밝은 지도 위 배지: 진한 칩 + 흰 글자 + 흰 링으로 지도와 분리
+    return {
+      fill: hexToRgba(hex, group === "military" ? 0.82 : 0.95),
+      glow: "rgba(255, 255, 255, 0.85)",
+      ink: "rgba(255, 255, 255, 0.98)",
+      rim: "rgba(255, 255, 255, 0.9)",
+    };
+  }
   return {
     fill: hexToRgba(hex, group === "military" ? 0.32 : 0.88),
     glow: hexToRgba(hex, 0.42),

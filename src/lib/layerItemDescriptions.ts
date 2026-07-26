@@ -60,6 +60,16 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
     "켜면 해상·케이블·에너지·금융 등 핵심 인프라 병목을 표시합니다.",
   ais: "켜면 AIS 선박을 표시합니다. 지정학=군용 함정, 지경학=민간 화물·탱커·여객선(군용 제외).",
   "military-bases": "켜면 주요 군사기지 위치를 표시합니다. 지정학 전용.",
+  "strategic-missile":
+    "켜면 중국 PLARF 사일로·러시아 RVSN 주둔지·인도·파키스탄 시험장 등 전략 미사일 시설을 표시합니다.",
+  "missile-silos":
+    "켜면 중국 PLARF 미사일 사일로군(위먼·하미·항긴기)의 확인 사일로 위치를 표시합니다. 위성영상 판독 결과이며 공식 확인이 아닙니다.",
+  "strategic-missile-bases":
+    "켜면 러시아 전략로켓군(RVSN) 사단 주둔지를 표시합니다. 좌표는 주둔 도시이지 발사 진지가 아닙니다.",
+  "missile-test-sites":
+    "켜면 인도·파키스탄 미사일 시험장 위치를 표시합니다. NTI/CNS 트래커 기준.",
+  "missile-silo-fields":
+    "켜면 PLARF 연구가 새 후보지를 찾으려 훑은 서부 중국 조사 격자를 표시합니다. 확인된 사일로가 아니며 3개 사일로군과 겹치지 않습니다.",
   "air-traffic":
     "켜면 민간 항공기 운항(ADS-B)을 표시합니다. 군용은 제외하며 지경학 모드 경제활동 레이어입니다.",
   "military-air":

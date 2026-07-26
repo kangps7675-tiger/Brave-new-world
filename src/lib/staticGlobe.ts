@@ -6,6 +6,7 @@ import {
   STATIC_POINT_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
 import { HTML_STATIC_KINDS, isHtmlStaticKind } from "@/lib/infraStaticMarkers";
+import { activeBasemapTone, type BasemapTone } from "@/lib/basemapTone";
 import {
   markerPaletteForGroup,
   staticKindColorGroup,
@@ -135,41 +136,72 @@ export function filterStaticPointsForView(
   return [...pinned, ...visibleResources, ...visibleOthers, ...visibleMilitary];
 }
 
-export const STATIC_POINT_COLORS: Record<StaticPoint["kind"], string> = {
-  airport: staticKindRgba("airport"),
-  port: staticKindRgba("port"),
-  resource: staticKindRgba("resource"),
-  "military-base": staticKindRgba("military-base"),
-  "cable-landing": staticKindRgba("cable-landing"),
-  "nuclear-site": staticKindRgba("nuclear-site"),
-  "internet-exchange": staticKindRgba("internet-exchange"),
-  "refugee-camp": staticKindRgba("refugee-camp"),
-  "ucdp-event": staticKindRgba("ucdp-event"),
-  "ai-data-center": staticKindRgba("ai-data-center"),
-  "economic-center": staticKindRgba("economic-center"),
-  "sanctions-entity": staticKindRgba("sanctions-entity"),
-  "space-launch": staticKindRgba("space-launch"),
-  "lng-terminal": staticKindRgba("lng-terminal"),
-  chokepoint: staticKindRgba("chokepoint"),
-  "logistics-hub": staticKindRgba("logistics-hub"),
-  "submarine-tunnel": staticKindRgba("submarine-tunnel"),
-  "critical-node": staticKindRgba("critical-node"),
-  "gem-coal-plant": staticKindRgba("gem-coal-plant"),
-  "gem-coal-mine": staticKindRgba("gem-coal-mine"),
-  "gem-coal-terminal": staticKindRgba("gem-coal-terminal"),
-  "gem-nuclear": staticKindRgba("gem-nuclear"),
-  "gem-solar": staticKindRgba("gem-solar"),
-  "gem-wind": staticKindRgba("gem-wind"),
-  "gem-hydro": staticKindRgba("gem-hydro"),
-  "gem-geothermal": staticKindRgba("gem-geothermal"),
-  "gem-bioenergy": staticKindRgba("gem-bioenergy"),
-  "gem-oil-gas-plant": staticKindRgba("gem-oil-gas-plant"),
-  "gem-oil-gas-extraction": staticKindRgba("gem-oil-gas-extraction"),
-  "gem-iron-ore": staticKindRgba("gem-iron-ore"),
-  "gem-cement": staticKindRgba("gem-cement"),
-  "gem-steel": staticKindRgba("gem-steel"),
-  "gem-chemical": staticKindRgba("gem-chemical"),
+const STATIC_POINT_KINDS: StaticPoint["kind"][] = [
+  "airport",
+  "port",
+  "resource",
+  "military-base",
+  "cable-landing",
+  "nuclear-site",
+  "internet-exchange",
+  "refugee-camp",
+  "ucdp-event",
+  "ai-data-center",
+  "economic-center",
+  "sanctions-entity",
+  "space-launch",
+  "missile-silo",
+  "strategic-missile-base",
+  "missile-test-site",
+  "lng-terminal",
+  "chokepoint",
+  "logistics-hub",
+  "submarine-tunnel",
+  "critical-node",
+  "gem-coal-plant",
+  "gem-coal-mine",
+  "gem-coal-terminal",
+  "gem-nuclear",
+  "gem-solar",
+  "gem-wind",
+  "gem-hydro",
+  "gem-geothermal",
+  "gem-bioenergy",
+  "gem-oil-gas-plant",
+  "gem-oil-gas-extraction",
+  "gem-iron-ore",
+  "gem-cement",
+  "gem-steel",
+  "gem-chemical",
+];
+
+function buildStaticPointColors(
+  tone: BasemapTone,
+): Record<StaticPoint["kind"], string> {
+  const out = {} as Record<StaticPoint["kind"], string>;
+  for (const kind of STATIC_POINT_KINDS) {
+    out[kind] = staticKindRgba(kind, tone);
+  }
+  return out;
+}
+
+const STATIC_POINT_COLORS_BY_TONE: Record<
+  BasemapTone,
+  Record<StaticPoint["kind"], string>
+> = {
+  dark: buildStaticPointColors("dark"),
+  light: buildStaticPointColors("light"),
 };
+
+/** @deprecated 톤 인지 필요 시 staticPointColor(kind, tone) 사용 */
+export const STATIC_POINT_COLORS = STATIC_POINT_COLORS_BY_TONE.dark;
+
+export function staticPointColor(
+  kind: StaticPoint["kind"],
+  tone: BasemapTone = "dark",
+): string {
+  return STATIC_POINT_COLORS_BY_TONE[tone][kind] ?? STATIC_POINT_COLORS_BY_TONE.dark[kind];
+}
 
 /** HTML 실루엣 마커 kinds — globe points와 이중 렌더 금지 */
 export const STATIC_EMOJI_KINDS = HTML_STATIC_KINDS;
@@ -181,14 +213,35 @@ export const STATIC_POINT_EMOJI: Record<"airport" | "port" | "military-base", st
   "military-base": "🇺🇸",
 };
 
-export const STATIC_MARKER_PALETTE: Record<
-  "airport" | "port" | "military-base",
-  { fill: string; glow: string; ink: string; rim: string }
+type HubMarkerKind = "airport" | "port" | "military-base";
+type MarkerPalette = { fill: string; glow: string; ink: string; rim: string };
+
+function buildMarkerPalettes(tone: BasemapTone): Record<HubMarkerKind, MarkerPalette> {
+  return {
+    airport: markerPaletteForGroup(staticKindColorGroup("airport"), tone),
+    port: markerPaletteForGroup(staticKindColorGroup("port"), tone),
+    "military-base": markerPaletteForGroup(staticKindColorGroup("military-base"), tone),
+  };
+}
+
+const STATIC_MARKER_PALETTE_BY_TONE: Record<
+  BasemapTone,
+  Record<HubMarkerKind, MarkerPalette>
 > = {
-  airport: markerPaletteForGroup(staticKindColorGroup("airport")),
-  port: markerPaletteForGroup(staticKindColorGroup("port")),
-  "military-base": markerPaletteForGroup(staticKindColorGroup("military-base")),
+  dark: buildMarkerPalettes("dark"),
+  light: buildMarkerPalettes("light"),
 };
+
+/** @deprecated 톤 인지 필요 시 staticMarkerPalette(kind) 사용 */
+export const STATIC_MARKER_PALETTE = STATIC_MARKER_PALETTE_BY_TONE.dark;
+
+/** 명령형 마커 팩토리용 — 인자 생략 시 전역 활성 톤 */
+export function staticMarkerPalette(
+  kind: HubMarkerKind,
+  tone: BasemapTone = activeBasemapTone(),
+): MarkerPalette {
+  return STATIC_MARKER_PALETTE_BY_TONE[tone][kind];
+}
 
 export function isEmojiStaticKind(kind: StaticPoint["kind"]): boolean {
   return isHtmlStaticKind(kind);
@@ -209,6 +262,10 @@ export function staticPointRadius(kind: StaticPoint["kind"], altitude = 1): numb
     "economic-center": 0.21,
     "sanctions-entity": 0.18,
     "space-launch": 0.22,
+    // 사일로는 수십~수백 개가 한 필드에 몰려 있어 개별 점을 작게 잡는다
+    "missile-silo": 0.14,
+    "strategic-missile-base": 0.26,
+    "missile-test-site": 0.22,
     "lng-terminal": 0.28,
     chokepoint: 0.28,
     "logistics-hub": 0.26,

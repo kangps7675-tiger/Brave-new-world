@@ -32,6 +32,12 @@ VAPID_SUBJECT = "mailto:kangps7675@gmail.com"
 # NAVAREA TXT 폴링 최소 간격(분). 소스 자체는 이벤트 발행이지만 웹훅 없음 →
 # cron이 확인할 때만 지도에 반영. 15~30 권장 (너무 짧으면 봇 취급 위험).
 NAVAREA_POLL_MIN_INTERVAL_MINUTES = "30"
+# 레퍼런스 감시 (CSIS Beyond Parallel RSS · NTI WordPress REST).
+# 위성영상 분석·시설 프로파일이라 시간 단위로 안 바뀐다 → 6시간이면 충분.
+REFERENCE_MONITOR_POLL_MIN_INTERVAL_MINUTES = "360"
+REFERENCE_MONITOR_MAX_PER_CHANNEL = "20"
+# 지도 주제와 안 걸리는 모금·행사 글 컷
+REFERENCE_MONITOR_MIN_RELEVANCE = "2"
 
 [[d1_databases]]
 binding = "DB"

@@ -1,6 +1,6 @@
 import { HOVER, staticKindLabel } from "@/lib/hoverLabels";
 import { getZoomOutScale } from "@/lib/zoomScale";
-import { STATIC_MARKER_PALETTE } from "@/lib/staticGlobe";
+import { staticMarkerPalette } from "@/lib/staticGlobe";
 import { airportSvg, portSvg } from "@/lib/infraStaticMarkers";
 import { SITUATION_CALLOUT_ACCENT } from "@/data/situationCalloutTypes";
 import { createWarCasualtyOverlayElement } from "@/lib/warCasualtyOverlay";
@@ -39,7 +39,7 @@ export function createAirportPortBadge(
     point.kind === "airport" || point.kind === "port" || point.kind === "military-base"
       ? point.kind
       : "airport";
-  const palette = STATIC_MARKER_PALETTE[kind];
+  const palette = staticMarkerPalette(kind);
   const isRoundHub = kind === "airport" || kind === "port";
   const zoomScale = getZoomOutScale(altitude);
   const baseSize =

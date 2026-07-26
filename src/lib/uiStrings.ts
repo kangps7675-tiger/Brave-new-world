@@ -21,13 +21,13 @@ const UI = {
   layers: { ko: "레이어", en: "Layers" },
   layerApplyConfirm: { ko: "설정하시겠습니까?", en: "Apply these layer settings?" },
   layerApplyConfirmHint: {
-    ko: "체크한 레이어를 지구본에 반영합니다.",
-    en: "Apply checked layers to the globe.",
+    ko: "이미 지도에 반영된 선택을 저장합니다.",
+    en: "Save the layer choices already shown on the map.",
   },
   layerApplyConfirmYes: { ko: "설정", en: "Apply" },
   layerDraftHint: {
-    ko: "체크 후 상단에서 「설정」을 누르면 지도에 반영됩니다.",
-    en: "Check layers, then tap Apply at the top to update the map.",
+    ko: "체크하면 지도에 바로 반영됩니다. 상단 「설정」으로 저장을 확정할 수 있습니다.",
+    en: "Checks apply to the map right away. Use Apply at the top to confirm.",
   },
   askLayersButton: { ko: "묻기", en: "Ask" },
   askLayersButtonHint: {
@@ -458,11 +458,12 @@ const UI = {
     ko: "다크 벡터 · 레이어 가독성 우선",
     en: "Dark vector · layer readability first",
   },
-  basemapPhoto: { ko: "위성", en: "Map" },
-  basemapPhotoHint: {
-    ko: "MapLibre 벡터 지도 · 지형 · 고줌 3D 건물",
-    en: "MapLibre vector map · terrain · 3D buildings at high zoom",
+  basemapTerrain: { ko: "지형", en: "Terrain" },
+  basemapTerrainHint: {
+    ko: "밝은 벡터 · DEM 기복 · 고줌 3D 건물",
+    en: "Light vector · DEM relief · 3D buildings at high zoom",
   },
+
   intelNews: { ko: "Intel 뉴스", en: "Intel news" },
   intelEconomy: { ko: "경제·증시", en: "Markets" },
   heroAccordingTo: { ko: "에 따르면 ", en: " reports " },

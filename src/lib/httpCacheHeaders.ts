@@ -66,4 +66,6 @@ export const CDN_CACHE = {
   /** Safecast near nuclear — 1–2h */
   safecast: { sMaxAge: 3600, swr: 7200 } satisfies PublicCacheOpts,
   tunnels: { sMaxAge: 300, swr: 900 } satisfies PublicCacheOpts,
+  /** CSIS Beyond Parallel · NTI 레퍼런스 감시 — cron 6h 폴링, CDN 30–60min */
+  referenceMonitor: { sMaxAge: 1800, swr: 3600 } satisfies PublicCacheOpts,
 } as const;

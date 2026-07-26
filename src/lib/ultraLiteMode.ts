@@ -15,7 +15,7 @@ const LEGACY_PERF_PREFS_KEYS = ["geowatch-perf-v22"] as const;
 export type PerfPrefs = {
   /** 내장 그래픽·8GB RAM용 — 레이어 캡·핀 상한·무거운 레이어 강제 OFF */
   ultraLite: boolean;
-  /** 인텔(다크 벡터) / 위성(사진) 베이스맵 */
+  /** 인텔(다크 벡터) / 지형(밝은 벡터+DEM) 베이스맵 */
   basemapMode: BasemapMode;
 };
 
@@ -40,6 +40,8 @@ export const ULTRA_LITE_FORCE_OFF: Array<keyof LayerPrefs> = [
   "showCyberIncidents",
   "showSanctionsEntities",
   "showNeptunPreviousTrails",
+  "showMissileSilos",
+  "showMissileSiloFields",
 ];
 
 /**
@@ -60,6 +62,10 @@ export const ULTRA_LITE_HEAVY_RENDER_KEYS = new Set<keyof LayerPrefs>([
   "showMilitaryActivity",
   "showAirTraffic",
   "showMilitaryBases",
+  "showMissileSilos",
+  "showStrategicMissileBases",
+  "showMissileTestSites",
+  "showMissileSiloFields",
   "showShippingLanes",
   "showTelegramOsint",
   "showUcdpEvents",
