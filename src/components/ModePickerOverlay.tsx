@@ -170,7 +170,6 @@ export function ModePickerOverlay({
                     type="button"
                     aria-pressed={active}
                     title={hoverTitle}
-                    aria-description={hoverTitle}
                     onClick={() => setTheater(opt.id)}
                     className={`rounded-full border px-3 py-1.5 text-xs transition ${
                       active
@@ -198,7 +197,6 @@ export function ModePickerOverlay({
                     type="button"
                     aria-pressed={active}
                     title={hoverTitle}
-                    aria-description={hoverTitle}
                     onClick={() => setEconomyHub(opt.id)}
                     className={`rounded-full border px-3 py-1.5 text-xs transition ${
                       active

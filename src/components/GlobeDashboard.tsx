@@ -3891,7 +3891,6 @@ export function GlobeDashboard({
     globeLod.tier,
     isEconomyViewer,
     showDiplomaticTension,
-    showMilitaryActivity,
     showNewfeedsIranAttacks,
     showTzevaAdom,
     showUkraineControl,
@@ -6329,7 +6328,7 @@ export function GlobeDashboard({
       setFrozenPanelCategories(updated);
     }
     layerPanelSessionRef.current += 1;
-  }, [applyLayerPrefs, frozenPanelCategories, layerPrefs.labelLanguage, showLeftPanel]);
+  }, [applyLayerPrefs, frozenPanelCategories, layerPrefs.labelLanguage]);
 
   function configureGlobe() {
     if (configuredGlobe.current) return;

@@ -68,7 +68,6 @@ export function HoverNav({
   onAskLayersOpen,
   askLayersLabel,
   labelLanguage = "ko",
-  forceVisible: _forceVisible = false,
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);

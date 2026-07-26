@@ -402,6 +402,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   };
 
   const pointsGeoJson = useMemo(() => {
+    // basemapMode: 톤별 pointColor가 accessors에만 있고 data ref는 안 바뀌므로 강제 재빌드
+    void basemapMode;
     const a = accessorsRef.current;
     return buildPointsGeoJson(pointsData, {
       lat: a.pointLat,
@@ -420,10 +422,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         return isGemFacilityKind(kind) ? gemFacilityIconId(kind) : undefined;
       },
     });
-    // basemapMode: 톤별 pointColor가 accessors에만 있고 data ref는 안 바뀌므로 강제 재빌드
   }, [pointsData, basemapMode]);
 
   const pathsGeoJson = useMemo(() => {
+    void basemapMode;
     const a = accessorsRef.current;
     return buildPathsGeoJson(deferredPathsData, {
       points: a.pathPoints,
@@ -439,6 +441,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [deferredPathsData, basemapMode]);
 
   const priorityPathsGeoJson = useMemo(() => {
+    void basemapMode;
     if (priorityPathsData.length === 0) {
       return { type: "FeatureCollection" as const, features: [] };
     }
@@ -489,6 +492,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [firmsFiresData]);
 
   const labelsGeoJson = useMemo(() => {
+    // basemapMode: 지형(밝은) 전환 시 글자색을 어두운 팔레트로 다시 bake
+    void basemapMode;
     const a = accessorsRef.current;
     return buildLabelsGeoJson(labelsData, {
       lat: a.labelLat,
@@ -498,7 +503,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       color: a.labelColor,
       dotRadius: a.labelDotRadius,
     });
-    // basemapMode: 지형(밝은) 전환 시 글자색을 어두운 팔레트로 다시 bake
   }, [labelsData, basemapMode]);
 
   const heatmapCollections = useMemo(() => buildHeatmapGeoJson(heatmapsData), [heatmapsData]);
