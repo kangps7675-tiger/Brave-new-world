@@ -11,6 +11,8 @@ import { TheaterDetailCta } from "@/components/TheaterDetailCta";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import { AxisArmsPanel } from "@/components/AxisArmsPanel";
 import { AxisRegimePanel } from "@/components/AxisRegimePanel";
+import { DisputeHotspotPanel } from "@/components/DisputeHotspotPanel";
+import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import { FrictionHistoryChrome } from "@/components/FrictionHistoryChrome";
 import { LivingConflictPanel } from "@/components/LivingConflictPanel";
 import { WeeklyShipMovesPanel } from "@/components/WeeklyShipMovesPanel";
@@ -64,6 +66,11 @@ export type GeopoliticsHubChromeProps = {
   shipMovesSelectedId: string | null;
   onShipMoveSelect: (obs: PublicShipObservation) => void;
   onWestpacPulseClose: () => void;
+  disputesOverviewOpen: boolean;
+  disputeHotspots: DisputeHotspotEntry[];
+  disputeHotspotSelectedId: string | null;
+  onSelectDisputeHotspot: (hotspot: DisputeHotspotEntry) => void;
+  onDisputesOverviewClose: () => void;
 };
 
 export function GeopoliticsHubChrome({
@@ -93,6 +100,11 @@ export function GeopoliticsHubChrome({
   shipMovesSelectedId,
   onShipMoveSelect,
   onWestpacPulseClose,
+  disputesOverviewOpen,
+  disputeHotspots,
+  disputeHotspotSelectedId,
+  onSelectDisputeHotspot,
+  onDisputesOverviewClose,
 }: GeopoliticsHubChromeProps) {
   return (
     <>
@@ -113,6 +125,16 @@ export function GeopoliticsHubChrome({
           lang={labelLanguage}
           onSelectEpisode={onRegimeSelectEpisode}
           onClose={onExitHistoryImmersion}
+        />
+      ) : null}
+
+      {disputesOverviewOpen && !hubBriefOpen ? (
+        <DisputeHotspotPanel
+          hotspots={disputeHotspots}
+          selectedId={disputeHotspotSelectedId}
+          lang={labelLanguage}
+          onSelect={onSelectDisputeHotspot}
+          onClose={onDisputesOverviewClose}
         />
       ) : null}
 

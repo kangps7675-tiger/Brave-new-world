@@ -17,6 +17,8 @@ export type LayerPrefs = {
   /** 위장·다크플리트 선박 (AIS_Tracker OSINT 시드) */
   showDisguisedVessels: boolean;
   showShippingLanes: boolean;
+  /** 미 국무부 LSIB(Large Scale International Boundaries) 공식 경계선 */
+  showLsibBoundary: boolean;
   showSubmarineCables: boolean;
   /** 해저터널 인프라 (D1 클라우드 로그 · 토글 시 온디맨드) */
   showSubmarineTunnels: boolean;
@@ -181,6 +183,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showAis: false,
   showDisguisedVessels: false,
   showShippingLanes: false,
+  showLsibBoundary: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
   showOilPipelines: false,

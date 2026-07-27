@@ -7,7 +7,8 @@ export type ViewportPathLayer =
   | "oil-pipelines"
   | "gas-pipelines"
   | "subsea-pipelines"
-  | "dispute-boundaries";
+  | "dispute-boundaries"
+  | "lsib-boundaries";
 
 export const VIEWPORT_PATH_LAYERS: ViewportPathLayer[] = [
   "railroads",
@@ -17,6 +18,7 @@ export const VIEWPORT_PATH_LAYERS: ViewportPathLayer[] = [
   "gas-pipelines",
   "subsea-pipelines",
   "dispute-boundaries",
+  "lsib-boundaries",
 ];
 
 export function isViewportPathLayer(value: string): value is ViewportPathLayer {

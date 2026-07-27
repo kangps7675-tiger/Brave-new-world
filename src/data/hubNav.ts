@@ -12,7 +12,8 @@ export type HubFocusMode =
   | "claim"
   | "arms"
   | "regime"
-  | "westpac-pulse";
+  | "westpac-pulse"
+  | "disputes";
 
 export type HubClaim = {
   id: string;
@@ -422,6 +423,21 @@ export function selectionForRegimeOverview(): NavSelection {
     bbox: { minLat: -20, maxLat: 70, minLng: -20, maxLng: 145 },
     groupId: "axis-hubs",
     focusMode: "regime",
+  };
+}
+
+/** 상단 nav의 국경·영토 분쟁 진입점 — LSIB(미 국무부) + 실제 분쟁 큐레이션 56건 */
+export function selectionForDisputesOverview(): NavSelection {
+  return {
+    id: "territorial-disputes-overview",
+    label: "국경·영토 분쟁 (LSIB)",
+    lat: 20,
+    lng: 70,
+    altitude: 2.3,
+    description: "미 국무부 LSIB 경계 데이터 + 실제 영토·해양 분쟁 큐레이션",
+    bbox: { minLat: -20, maxLat: 70, minLng: -20, maxLng: 145 },
+    groupId: "axis-hubs",
+    focusMode: "disputes",
   };
 }
 

@@ -190,6 +190,7 @@ export function useGlobeStaticLayers(options: {
   globeTier: GlobeLodTier;
   radiusDeg: number;
   showDisputeBoundaries: boolean;
+  showLsibBoundary: boolean;
   showShippingLanes: boolean;
   showSubmarineCables: boolean;
   showSubmarineTunnels?: boolean;
@@ -224,6 +225,7 @@ export function useGlobeStaticLayers(options: {
   reloadToken?: number;
 }) {
   const [disputeBoundaryPaths, setDisputeBoundaryPaths] = useState<TransportPath[]>([]);
+  const [lsibBoundaryPaths, setLsibBoundaryPaths] = useState<TransportPath[]>([]);
   const [shippingPaths, setShippingPaths] = useState<TransportPath[]>([]);
   const [cablePaths, setCablePaths] = useState<TransportPath[]>([]);
   const [oilPipelinePaths, setOilPipelinePaths] = useState<TransportPath[]>([]);
@@ -398,6 +400,25 @@ export function useGlobeStaticLayers(options: {
   }, [
     fetchViewportLayer,
     options.showDisputeBoundaries,
+    options.viewState.lat,
+    options.viewState.lng,
+    options.globeTier,
+    options.radiusDeg,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
+    if (!options.showLsibBoundary) {
+      setLsibBoundaryPaths([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void fetchViewportLayer("lsib-boundaries", setLsibBoundaryPaths);
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [
+    fetchViewportLayer,
+    options.showLsibBoundary,
     options.viewState.lat,
     options.viewState.lng,
     options.globeTier,
@@ -1003,6 +1024,20 @@ export function useGlobeStaticLayers(options: {
     options.viewState,
   ]);
 
+  const visibleLsibBoundary = useMemo(() => {
+    if (!options.showLsibBoundary) return [];
+    const maxByTier: Record<GlobeLodTier, number> = {
+      global: 260,
+      continent: 400,
+      regional: 530,
+      near: 530,
+      village: 530,
+    };
+    const max = maxByTier[options.globeTier];
+    // viewport-paths API가 이미 컷 — 클라 재필터는 이동 중 stale 응답을 전부 버릴 수 있음
+    return lsibBoundaryPaths.slice(0, max);
+  }, [lsibBoundaryPaths, options.globeTier, options.showLsibBoundary]);
+
   const visibleShipping = useMemo(() => {
     if (!options.showShippingLanes) return [];
     const max = SHIPPING_LANE_MAX_BY_TIER[options.globeTier];
@@ -1265,6 +1300,7 @@ export function useGlobeStaticLayers(options: {
 
   return {
     visibleDisputeBoundaries: visibleDisputeBoundariesFiltered,
+    visibleLsibBoundary,
     visibleShipping,
     visibleCables,
     visibleOilPipelines,
@@ -1279,6 +1315,7 @@ export function useGlobeStaticLayers(options: {
     disputeOverviews,
     counts: {
       disputeBoundaries: disputeBoundaryPaths.length,
+      lsibBoundary: lsibBoundaryPaths.length,
       shipping: shippingPaths.length,
       cables: cablePaths.length,
       oilPipelines: oilPipelinePaths.length,
