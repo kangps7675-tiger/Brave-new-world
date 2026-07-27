@@ -36,6 +36,7 @@ import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import type { ShipMovementHtmlMarker } from "@/lib/shipMovements/globeOverlay";
 import type { MilitaryExerciseHtmlMarker } from "@/lib/militaryExerciseMarkers";
+import type { FinancialHubHtmlMarker } from "@/lib/financialMarketHubMarkers";
 import type {
   ReefWatchFeatureHtmlMarker,
   ReefWatchTrafficHtmlMarker,
@@ -303,6 +304,8 @@ export type NewsStreamNeonMarker = {
   /** 전장 — 관점 패널 시장 반응 카드용 */
   theater?: NewsTheater;
   placeLabel?: string;
+  /** 기사 경과 분 — 시장 반응 */
+  ageMinutes?: number;
   /** 같은 사건을 보도한 여러 매체 관점 (한 사건, 여러 시각) */
   perspectives?: {
     title: string;
@@ -358,6 +361,7 @@ export type HtmlOverlayMarker =
   | FrictionStageHtmlMarker
   | ShipMovementHtmlMarker
   | MilitaryExerciseHtmlMarker
+  | FinancialHubHtmlMarker
   | ReefWatchFeatureHtmlMarker
   | ReefWatchTrafficHtmlMarker
   | CasualtySkullHtmlMarker

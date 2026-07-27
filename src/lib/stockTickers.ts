@@ -10,6 +10,7 @@ export {
   THEATER_ASSETS,
   theaterAssetNote,
   theaterAssetSymbols,
+  theaterPrimarySymbols,
   yahooQuoteUrl,
   tradingViewSymbolUrl,
 } from "@/lib/theaterAssets";
@@ -23,8 +24,16 @@ export type StockTickerItem = {
   symbol: string;
   label: string;
   price: number | null;
+  /**
+   * 전 영업일(또는 직전 관측) 대비 등락 %.
+   * Yahoo·FRED·해운 프록시 모두 같은 기준 — 장중 순간 변동이 아님.
+   */
   changePercent: number | null;
-  /** 최근 2일 15분봉 종가 — 미니 스파크라인용 */
+  /** 등락 기준 — 항상 전일(직전 관측) 대비 */
+  changeBasis?: "prev-day";
+  /** 관측일 YYYY-MM-DD (FRED 등 일간 소스) */
+  asOf?: string | null;
+  /** 최근 일봉 종가 — 전일대비 추세 스파크라인 */
   sparkline: number[];
 };
 
@@ -79,23 +88,32 @@ export function verdictLabel(verdict: MarketReactionVerdict, ko: boolean): strin
  */
 export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = {
   "^VIX": { ko: "VIX 공포지수", en: "VIX Fear Index" },
-  "CL=F": { ko: "WTI 원유", en: "WTI Crude Oil" },
-  "BZ=F": { ko: "브렌트유", en: "Brent Crude" },
-  "NG=F": { ko: "천연가스", en: "Natural Gas" },
+  "CL=F": { ko: "WTI 원유 선물", en: "WTI Crude Oil" },
+  "BZ=F": { ko: "브렌트유 선물", en: "Brent Crude" },
+  "NG=F": { ko: "천연가스 선물", en: "Natural Gas" },
+  "ZW=F": { ko: "밀 선물", en: "Wheat Futures" },
+  "ZC=F": { ko: "옥수수 선물", en: "Corn Futures" },
   "GC=F": { ko: "금 선물", en: "Gold Futures" },
+  SMH: { ko: "반도체 ETF (SMH)", en: "Semiconductor ETF (SMH)" },
+  TSM: { ko: "TSMC ADR", en: "TSMC ADR" },
+  "005930.KS": { ko: "삼성전자", en: "Samsung Electronics" },
   "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
   "DX-Y.NYB": { ko: "달러 인덱스", en: "US Dollar Index" },
   "^GSPC": { ko: "S&P 500", en: "S&P 500" },
   "^IXIC": { ko: "나스닥", en: "Nasdaq Composite" },
+  "^DJI": { ko: "다우존스", en: "Dow Jones" },
   "^N225": { ko: "니케이 225", en: "Nikkei 225" },
   "^KS11": { ko: "코스피", en: "KOSPI" },
   "^HSI": { ko: "항셍지수", en: "Hang Seng" },
   "000001.SS": { ko: "상하이종합", en: "Shanghai Composite" },
+  "^FTSE": { ko: "FTSE 100", en: "FTSE 100" },
+  "^GDAXI": { ko: "DAX", en: "DAX" },
+  "^FCHI": { ko: "CAC 40", en: "CAC 40" },
 };
 
 /**
- * Yahoo Finance — 주요 증시 지수·BTC의 15분 폴링 소스 (API 키 없음).
- * 원자재·달러(CL/BZ/NG/GC/DX)는 FRED가 있으면 일간으로 보완, 없으면 여기 Yahoo.
+ * Yahoo Finance — 가격 폴링 소스 (API 키 없음).
+ * 등락%는 전 영업일 종가 대비로 통일. 원자재·달러는 FRED가 있으면 일간 관측으로 보완.
  * label은 영문 짧은 표기(API 기본값). UI는 tickerDisplayName() 사용.
  * @see `/api/stock-tickers` · `yahoo-finance2` · `fred.ts`
  */
@@ -104,15 +122,24 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "CL=F", label: "WTI Crude Oil" },
   { symbol: "BZ=F", label: "Brent Crude" },
   { symbol: "NG=F", label: "Natural Gas" },
+  { symbol: "ZW=F", label: "Wheat Futures" },
+  { symbol: "ZC=F", label: "Corn Futures" },
   { symbol: "GC=F", label: "Gold Futures" },
+  { symbol: "SMH", label: "VanEck Semiconductor ETF" },
+  { symbol: "TSM", label: "TSMC ADR" },
+  { symbol: "005930.KS", label: "Samsung Electronics" },
   { symbol: "BTC-USD", label: "Bitcoin" },
   { symbol: "DX-Y.NYB", label: "US Dollar Index" },
   { symbol: "^GSPC", label: "S&P 500" },
   { symbol: "^IXIC", label: "Nasdaq" },
+  { symbol: "^DJI", label: "Dow Jones" },
   { symbol: "^N225", label: "Nikkei 225" },
   { symbol: "^KS11", label: "KOSPI" },
   { symbol: "^HSI", label: "Hang Seng" },
   { symbol: "000001.SS", label: "Shanghai Composite" },
+  { symbol: "^FTSE", label: "FTSE 100" },
+  { symbol: "^GDAXI", label: "DAX" },
+  { symbol: "^FCHI", label: "CAC 40" },
 ];
 
 /** Yahoo 심볼을 한글/영문 표시명으로. 없으면 기존 label·심볼 정제. */
@@ -127,7 +154,7 @@ export function tickerDisplayName(
   return symbol.replace(/^\^/, "").replace(/=F$/, "");
 }
 
-/** 하단 스크롤 스트립 — 매크로·에너지·비트코인·미국 지수 */
+/** 하단 스크롤 스트립 — 매크로·에너지·미국 지수 (전장 primary는 mergeTickerStripSymbols로 앞에 붙임) */
 export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
   "CL=F",
@@ -140,14 +167,49 @@ export const TICKER_STRIP_SYMBOLS: string[] = [
   "^IXIC",
 ];
 
-export type MarketGroupId = "risk" | "commodities" | "crypto" | "us-equities" | "asia";
+/**
+ * 전역 코어 스트립 + 전장 primary를 merge.
+ * highlight에만 있는 심볼(곡물·반도체 등)도 앞에 넣어 화면에 보이게 한다.
+ */
+export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const symbol of highlightSymbols) {
+    if (!symbol || seen.has(symbol)) continue;
+    seen.add(symbol);
+    out.push(symbol);
+  }
+  for (const symbol of TICKER_STRIP_SYMBOLS) {
+    if (seen.has(symbol)) continue;
+    seen.add(symbol);
+    out.push(symbol);
+  }
+  return out;
+}
+
+export type MarketGroupId =
+  | "risk"
+  | "commodities"
+  | "crypto"
+  | "us-equities"
+  | "asia"
+  | "europe";
 
 export const MARKET_GROUPS: Array<{ id: MarketGroupId; label: string; symbols: string[] }> = [
   { id: "risk", label: "리스크 · 달러", symbols: ["^VIX", "DX-Y.NYB"] },
-  { id: "commodities", label: "에너지 · 금", symbols: ["CL=F", "BZ=F", "NG=F", "GC=F"] },
+  {
+    id: "commodities",
+    label: "에너지 · 곡물 · 금",
+    symbols: ["CL=F", "BZ=F", "NG=F", "ZW=F", "ZC=F", "GC=F"],
+  },
   { id: "crypto", label: "암호화폐", symbols: ["BTC-USD"] },
-  { id: "us-equities", label: "미국 지수", symbols: ["^GSPC", "^IXIC"] },
-  { id: "asia", label: "아시아 지수", symbols: ["^N225", "^KS11", "^HSI", "000001.SS"] },
+  { id: "us-equities", label: "미국 지수", symbols: ["^GSPC", "^IXIC", "^DJI", "SMH", "TSM"] },
+  {
+    id: "asia",
+    label: "아시아 지수",
+    symbols: ["^N225", "^KS11", "^HSI", "000001.SS", "005930.KS"],
+  },
+  { id: "europe", label: "유럽 지수", symbols: ["^FTSE", "^GDAXI", "^FCHI"] },
 ];
 
 export function formatTickerPrice(price: number | null): string {
@@ -159,10 +221,15 @@ export function formatTickerPrice(price: number | null): string {
   return price.toFixed(2);
 }
 
-export function formatTickerChangePercent(changePercent: number | null): string {
+export function formatTickerChangePercent(
+  changePercent: number | null,
+  options?: { lang?: LabelLanguage; withBasis?: boolean },
+): string {
   if (changePercent === null) return "—";
   const sign = changePercent > 0 ? "+" : "";
-  return `${sign}${changePercent.toFixed(1)}%`;
+  const pct = `${sign}${changePercent.toFixed(1)}%`;
+  if (!options?.withBasis) return pct;
+  return options.lang === "en" ? `${pct} d/d` : `전일 ${pct}`;
 }
 
 export function tickerChangeTone(changePercent: number | null): "up" | "down" | "flat" {

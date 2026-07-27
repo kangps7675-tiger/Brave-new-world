@@ -14,13 +14,32 @@ const PREVIEW_BASE = "https://t.me/s/";
 const POSTS_PER_CHANNEL = 3;
 const FETCH_BATCH = 10;
 const FETCH_TIMEOUT_MS = 6000;
-const MAX_TEXT = 3000;
+const MAX_TEXT = 4096;
 
 type ParsedPost = {
   postId: number;
   text: string;
   date: string;
+  mediaKind: "video" | "photo" | "none";
 };
+
+function detectMediaKind(block: string): "video" | "photo" | "none" {
+  if (
+    /tgme_widget_message_video|tgme_widget_message_roundvideo|video_files|js-message_video/i.test(
+      block,
+    )
+  ) {
+    return "video";
+  }
+  if (
+    /tgme_widget_message_photo|tgme_widget_message_photo_wrap|background-image:\s*url\(/i.test(
+      block,
+    )
+  ) {
+    return "photo";
+  }
+  return "none";
+}
 
 function decodeEntities(input: string): string {
   return input
@@ -49,10 +68,13 @@ function codePoint(n: number): string {
 function stripHtml(raw: string): string {
   return decodeEntities(
     raw
-      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
       .replace(/<[^>]+>/g, ""),
   )
-    .replace(/\s+/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[^\S\n]+/g, " ")
     .trim();
 }
 
@@ -69,16 +91,23 @@ function parsePreview(html: string, username: string): ParsedPost[] {
     const postId = Number.parseInt(idMatch[2], 10);
     if (!Number.isFinite(postId)) continue;
 
+    const mediaKind = detectMediaKind(block);
     const textMatch = block.match(
       /<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)<\/div>/s,
     );
-    const text = textMatch ? stripHtml(textMatch[1]) : "";
-    if (!text) continue;
+    let text = textMatch ? stripHtml(textMatch[1].replace(/<br\s*\/?>/gi, "\n")) : "";
+    if (!text) {
+      if (mediaKind === "none") continue;
+      text =
+        mediaKind === "video"
+          ? "[영상] 캡션 없음 — 원문에서 확인"
+          : "[사진] 캡션 없음 — 원문에서 확인";
+    }
 
     const dateMatch = block.match(/<time[^>]*datetime="([^"]+)"/);
     const date = dateMatch ? dateMatch[1] : new Date().toISOString();
 
-    posts.push({ postId, text: text.slice(0, MAX_TEXT), date });
+    posts.push({ postId, text: text.slice(0, MAX_TEXT), date, mediaKind });
   }
 
   // 최신 postId 우선

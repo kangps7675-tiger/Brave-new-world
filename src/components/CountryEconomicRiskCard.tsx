@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CountryEconomicRisk, WbIndicatorReading } from "@/lib/worldBank";
 import { riskBandLabel } from "@/lib/worldBank";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { primaryChokesForIso } from "@/data/isoChokeMap";
+import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
+import {
+  countSanctionsByIso3,
+  sanctionsCountForIso,
+} from "@/lib/sanctionsSnapshotCount";
+import { expandStaticPoints } from "@/lib/compactData";
+import type { StaticPoint } from "@/data/geoTypes";
 
 type Props = {
   iso3: string | null;
@@ -20,6 +28,14 @@ const BAND_ACCENT: Record<CountryEconomicRisk["band"], string> = {
   low: "#34d399",
   unknown: "#64748b",
 };
+
+function chokeLabel(id: string, ko: boolean): string {
+  const p = LOGISTICS_RISK_POINTS.find((x) => x.id === id);
+  if (!p) return id.replace(/^choke-/, "");
+  if (ko) return p.name;
+  const en = p.meta && typeof p.meta.nameEn === "string" ? p.meta.nameEn : null;
+  return en ?? p.name;
+}
 
 function Sparkbars({ history, accent }: { history: Array<{ year: string; value: number }>; accent: string }) {
   if (history.length < 2) {
@@ -134,6 +150,30 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
   const [data, setData] = useState<CountryEconomicRisk | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [emptyReason, setEmptyReason] = useState<EmptyReason>("no-data");
+  const [sanctionsCounts, setSanctionsCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/layers/sanctions-entities", {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok || cancelled) return;
+        const payload = (await res.json()) as { points?: unknown[] };
+        const raw = Array.isArray(payload.points) ? payload.points : [];
+        const points = expandStaticPoints(
+          raw as Parameters<typeof expandStaticPoints>[0],
+        ) as StaticPoint[];
+        if (!cancelled) setSanctionsCounts(countSanctionsByIso3(points));
+      } catch {
+        /* optional tag */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!iso3 || !/^[A-Za-z]{3}$/.test(iso3)) {
@@ -198,6 +238,41 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
     };
   }, [iso3]);
 
+  const scoreIndicators = useMemo(
+    () => (data?.indicators ?? []).filter((r) => r.id !== "energyImports"),
+    [data],
+  );
+
+  const vulnerabilityTags = useMemo(() => {
+    if (!iso3) return [] as Array<{ key: string; label: string }>;
+    const tags: Array<{ key: string; label: string }> = [];
+    const energy = data?.indicators.find((r) => r.id === "energyImports");
+    if (energy?.value != null && Number.isFinite(energy.value)) {
+      tags.push({
+        key: "energy",
+        label: ko
+          ? `에너지 순수입 ${energy.value.toFixed(0)}%`
+          : `Energy import ${energy.value.toFixed(0)}%`,
+      });
+    }
+    const chokes = primaryChokesForIso(iso3);
+    if (chokes.length > 0) {
+      const names = chokes.slice(0, 2).map((id) => chokeLabel(id, ko));
+      tags.push({
+        key: "choke",
+        label: ko ? `관문 ${names.join("·")}` : `Choke ${names.join("·")}`,
+      });
+    }
+    const sanc = sanctionsCountForIso(sanctionsCounts, iso3);
+    if (sanc > 0) {
+      tags.push({
+        key: "sanctions",
+        label: ko ? `제재 스냅샷 ${sanc}` : `Sanctions snap ${sanc}`,
+      });
+    }
+    return tags;
+  }, [data, iso3, ko, sanctionsCounts]);
+
   const title = ko ? "경제 위협도" : "Economic threat";
 
   if (state === "empty") {
@@ -255,13 +330,36 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
               style={{ width: `${score ?? 0}%`, backgroundColor: accent }}
             />
           </div>
+          {vulnerabilityTags.length > 0 ? (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {vulnerabilityTags.map((tag) => (
+                <span
+                  key={tag.key}
+                  className="rounded-full border border-slate-600/50 bg-slate-800/40 px-2 py-0.5 text-[10px] text-slate-300"
+                >
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <div className="mt-3 divide-y divide-white/5">
-            {data?.indicators.map((reading) => (
+            {scoreIndicators.map((reading) => (
               <IndicatorRow key={reading.id} reading={reading} lang={lang} />
             ))}
           </div>
           <p className="mt-3 text-[10px] text-slate-600">
-            World Bank Open Data · {ko ? "연간 지표 (최신값 지연 가능)" : "annual (may lag)"}
+            World Bank Open Data
+            {vulnerabilityTags.some((t) => t.key === "choke")
+              ? ko
+                ? " · curated chokepoints"
+                : " · curated chokepoints"
+              : ""}
+            {vulnerabilityTags.some((t) => t.key === "sanctions")
+              ? ko
+                ? " · sanctions snapshot"
+                : " · sanctions snapshot"
+              : ""}
+            {ko ? " · 연간 지표 (최신값 지연 가능)" : " · annual (may lag)"}
           </p>
         </>
       )}

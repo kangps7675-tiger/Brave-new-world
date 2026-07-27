@@ -5,6 +5,7 @@
 
 import type { DailyRankEntry, WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { displayTensionScore } from "@/lib/dailyRanks";
+import { formatTensionDriverLine } from "@/lib/tensionDrivers";
 
 export type TensionCutDestination = "market" | "route" | "front";
 
@@ -15,6 +16,9 @@ export type TensionSpikeSnapshot = {
   worldScore: number | null;
   /** 전장 행이 없어 세계 긴장도로 대리 트리거 */
   proxy: boolean;
+  /** 유저친화 원인 한 줄 (σ 없음) */
+  driverKo: string | null;
+  driverEn: string | null;
   telegraphKo: string;
   telegraphEn: string;
 };
@@ -72,14 +76,26 @@ export function evaluateTaiwanTensionSpike(input: {
 
     if (!spiked) return null;
 
-    const deltaBit =
+    const rising = theaterDelta == null || theaterDelta >= 0;
+    const driverKo = formatTensionDriverLine(taiwan.detail, "ko", { rising });
+    const driverEn = formatTensionDriverLine(taiwan.detail, "en", { rising });
+
+    const deltaBitKo =
       theaterDelta != null && theaterDelta !== 0
         ? theaterDelta > 0
-          ? ` · Δ+${theaterDelta}`
-          : ` · Δ${theaterDelta}`
+          ? ` · 어제보다 +${theaterDelta}`
+          : ` · 어제보다 ${theaterDelta}`
         : "";
-    const chokeBit =
+    const deltaBitEn =
+      theaterDelta != null && theaterDelta !== 0
+        ? theaterDelta > 0
+          ? ` · vs yesterday +${theaterDelta}`
+          : ` · vs yesterday ${theaterDelta}`
+        : "";
+    const chokeBitKo =
       chokeScore != null ? ` · 해협 초크 ${Math.round(chokeScore)}` : "";
+    const chokeBitEn =
+      chokeScore != null ? ` · strait choke ${Math.round(chokeScore)}` : "";
 
     return {
       theaterScore,
@@ -87,8 +103,10 @@ export function evaluateTaiwanTensionSpike(input: {
       chokeScore,
       worldScore: world && Number.isFinite(world.score) ? world.score : null,
       proxy: false,
-      telegraphKo: `해협 긴장 ${Math.round(theaterScore)}${deltaBit}${chokeBit} · 칩·항로·전선 컷 대기`,
-      telegraphEn: `Strait tension ${Math.round(theaterScore)}${deltaBit}${chokeBit} · cut ready`,
+      driverKo,
+      driverEn,
+      telegraphKo: `해협 긴장 ${Math.round(theaterScore)}${deltaBitKo}${chokeBitKo} · 칩·항로·전선 컷 대기`,
+      telegraphEn: `Strait tension ${Math.round(theaterScore)}${deltaBitEn}${chokeBitEn} · cut ready`,
     };
   }
 
@@ -100,6 +118,8 @@ export function evaluateTaiwanTensionSpike(input: {
       chokeScore: choke ? displayTensionScore(choke) : null,
       worldScore: score,
       proxy: true,
+      driverKo: null,
+      driverEn: null,
       telegraphKo: `세계 긴장 ${Math.round(score)} · 대만 전장 행 대기 — 컷 체험 가능`,
       telegraphEn: `World tension ${Math.round(score)} · Taiwan row pending — cut preview`,
     };

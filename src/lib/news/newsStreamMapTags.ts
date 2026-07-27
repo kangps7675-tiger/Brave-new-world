@@ -32,6 +32,8 @@ export type NewsStreamMapTag = {
   theater: NewsTheater;
   /** 위치 매칭 근거 라벨 (검증·툴팁용) */
   placeLabel?: string;
+  /** 대표 기사 경과 분 — 시장 반응 카드용 */
+  ageMinutes: number;
   /**
    * 같은 사건(같은 좌표·성격)을 보도한 여러 매체 관점.
    * 대표 기사 포함, 신뢰등급 순. 클릭 시 "한 사건, 여러 관점"으로 표시.
@@ -117,6 +119,12 @@ function ageHours(pubDate: string | undefined): number | null {
   return (Date.now() - ts) / 3_600_000;
 }
 
+function ageMinutesOf(item: NewsStreamItem): number {
+  const h = ageHours(item.pubDate);
+  if (h == null) return 60;
+  return Math.max(0, Math.round(h * 60));
+}
+
 /** 한 마커에 담을 최대 관점 수 (UI 과부하 방지) */
 const MAX_PERSPECTIVES_PER_MARKER = 8;
 
@@ -181,6 +189,9 @@ export function buildNewsStreamMapTags(items: NewsStreamItem[]): NewsStreamMapTa
         existing.kind = kind;
         existing.accent = accent;
       }
+      // 최신 기사 age로 갱신
+      const age = ageMinutesOf(item);
+      if (age < existing.ageMinutes) existing.ageMinutes = age;
       continue;
     }
 
@@ -199,6 +210,7 @@ export function buildNewsStreamMapTags(items: NewsStreamItem[]): NewsStreamMapTa
       intensity: intensityFromItem(item),
       theater: item.theater,
       placeLabel: label,
+      ageMinutes: ageMinutesOf(item),
       perspectives: [perspective],
     });
   }

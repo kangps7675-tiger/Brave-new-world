@@ -75,11 +75,11 @@ export function FinintTicker() {
             해운 시장(운임 대리지표)
           </h2>
           <p className="mt-0.5 text-[10px] text-slate-500">
-            실시간 운임 지수가 아닌 관련 상장 자산의 종가입니다.
+            등락은 전일 종가 대비입니다. 실시간 운임 지수가 아닙니다.
           </p>
         </div>
         <span className="text-[9px] font-medium tracking-wider text-slate-600">
-          YAHOO · 1H
+          전일대비 · 1H
         </span>
       </div>
 
@@ -108,7 +108,7 @@ export function FinintTicker() {
                     {item.symbol}
                   </span>
                   <span className={`text-[11px] font-medium ${tone}`}>
-                    {formatSigned(item.changePercent, "%")}
+                    전일 {formatSigned(item.changePercent, "%")}
                   </span>
                 </div>
                 <p className="mt-1 truncate text-[10px] text-slate-500" title={item.name}>

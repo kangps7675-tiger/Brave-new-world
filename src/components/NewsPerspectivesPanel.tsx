@@ -22,6 +22,8 @@ type NewsPerspectivesPanelProps = {
   theater?: TheaterMarketFilter;
   /** 사건 경과 시간(분). 시장 반응 판정 기준 */
   ageMinutes?: number;
+  /** 지경학이면 사건↔시장 라벨 */
+  viewerMode?: "conflict" | "economy";
   lang: LabelLanguage;
   onClose: () => void;
 };
@@ -47,6 +49,7 @@ export function NewsPerspectivesPanel({
   perspectives,
   theater,
   ageMinutes,
+  viewerMode = "conflict",
   lang,
   onClose,
 }: NewsPerspectivesPanelProps) {
@@ -129,7 +132,12 @@ export function NewsPerspectivesPanel({
           <p className="px-3.5 pt-2 text-[10px] font-semibold tracking-wide text-slate-400">
             {en ? "Market reaction" : "시장 반응"}
           </p>
-          <EventMarketReactionCard theater={theater} ageMinutes={ageMinutes ?? 60} prominent />
+          <EventMarketReactionCard
+            theater={theater}
+            ageMinutes={ageMinutes ?? 60}
+            prominent
+            viewerMode={viewerMode}
+          />
         </div>
       ) : null}
 

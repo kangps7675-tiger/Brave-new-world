@@ -13,6 +13,8 @@ import {
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
 const LIVE_FETCH_TIMEOUT_MS = 20_000;
+/** 일봉 스파크라인 — 전일대비 추세용 */
+const DAILY_SPARK_DAYS = 40;
 
 let inflightLiveFetch: Promise<StockTickerItem[]> | null = null;
 
@@ -23,6 +25,8 @@ export function stubStockTickers(): StockTickerItem[] {
     label: config.label,
     price: null,
     changePercent: null,
+    changeBasis: "prev-day",
+    asOf: null,
     sparkline: [],
   }));
 }
@@ -51,22 +55,52 @@ function normalizeQuoteList(
   return [];
 }
 
+function finiteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * 전 영업일 종가 대비 %.
+ * 1) previousClose + 현재가 직접 계산
+ * 2) Yahoo regularMarketChangePercent (이미 전일대비)
+ * 3) 일봉 스파크라인 마지막 두 점
+ */
+function prevDayChangePercent(
+  quote: Record<string, unknown> | undefined,
+  sparkline: number[],
+): number | null {
+  const price = finiteNumber(quote?.regularMarketPrice);
+  const prevClose = finiteNumber(quote?.regularMarketPreviousClose);
+  if (price != null && prevClose != null && prevClose !== 0) {
+    return ((price - prevClose) / prevClose) * 100;
+  }
+
+  const yahooDayChange = finiteNumber(quote?.regularMarketChangePercent);
+  if (yahooDayChange != null) return yahooDayChange;
+
+  if (sparkline.length >= 2) {
+    const latest = sparkline[sparkline.length - 1]!;
+    const prev = sparkline[sparkline.length - 2]!;
+    if (prev !== 0) return ((latest - prev) / prev) * 100;
+  }
+  return null;
+}
+
 function toTickerItem(
   config: StockTickerSymbol,
   quote: Record<string, unknown> | undefined,
   sparkline: number[],
 ): StockTickerItem {
-  const priceRaw = quote?.regularMarketPrice;
-  const changeRaw = quote?.regularMarketChangePercent;
-  const price = typeof priceRaw === "number" && Number.isFinite(priceRaw) ? priceRaw : null;
-  const changePercent =
-    typeof changeRaw === "number" && Number.isFinite(changeRaw) ? changeRaw : null;
+  const price = finiteNumber(quote?.regularMarketPrice);
+  const changePercent = prevDayChangePercent(quote, sparkline);
 
   return {
     symbol: config.symbol,
     label: config.label,
     price,
     changePercent,
+    changeBasis: "prev-day",
+    asOf: null,
     sparkline,
   };
 }
@@ -184,11 +218,12 @@ export function isUsMarketLikelyOpen(at: Date = new Date()): boolean {
   return true;
 }
 
-async function fetchSparkline(symbol: string): Promise<number[]> {
+/** 일봉 종가 스파크라인 — 전일대비 추세와 같은 축 */
+async function fetchDailySparkline(symbol: string): Promise<number[]> {
   try {
     const chart = await yahooFinance.chart(symbol, {
-      period1: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      interval: "15m",
+      period1: new Date(Date.now() - DAILY_SPARK_DAYS * 24 * 60 * 60 * 1000),
+      interval: "1d",
     });
     return (chart.quotes ?? [])
       .map((bar) => bar.close)
@@ -211,14 +246,13 @@ export async function fetchStockTickers(): Promise<StockTickerItem[]> {
 }
 
 /**
- * FININT 티커 — Yahoo 15분 폴링이 뼈대, FRED는 원자재·달러 보완.
+ * FININT 티커 — 등락은 전부 전일(직전 관측) 대비.
  *
- * - 항상: 주요 증시 지수(VIX·S&P·나스닥·아시아) + BTC 등은 Yahoo quote + 15분봉 스파크라인.
- * - FRED 키가 있으면: 유가·가스·금·달러만 FRED 일간으로 덮어씀 (없으면 그 심볼도 Yahoo).
+ * - Yahoo: 현재가 + previousClose로 전일대비 %, 일봉 스파크라인.
+ * - FRED 키가 있으면: 유가·가스·금·달러만 FRED 일간 관측으로 덮어씀.
  * - FRED 키가 없으면: 전부 Yahoo.
  */
 async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
-  // 증시 지수는 항상 Yahoo. FRED 보완 심볼도 키가 없거나 실패하면 Yahoo가 담당.
   const yahooItems = await fetchYahooTickers(STOCK_TICKER_SYMBOLS);
   const bySymbol = new Map(yahooItems.map((item) => [item.symbol, item]));
 
@@ -235,7 +269,12 @@ async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
         label: config.label,
         price: fred.price,
         changePercent: fred.changePercent,
-        sparkline: fred.sparkline.length > 0 ? fred.sparkline : (bySymbol.get(config.symbol)?.sparkline ?? []),
+        changeBasis: "prev-day",
+        asOf: fred.asOf,
+        sparkline:
+          fred.sparkline.length > 0
+            ? fred.sparkline
+            : (bySymbol.get(config.symbol)?.sparkline ?? []),
       });
     }
   }
@@ -247,12 +286,14 @@ async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
         label: config.label,
         price: null,
         changePercent: null,
+        changeBasis: "prev-day" as const,
+        asOf: null,
         sparkline: [],
       },
   );
 }
 
-/** Yahoo quote + 15분봉 스파크라인 — 증시 지수 본선 · FRED 보완 심볼의 폴백 */
+/** Yahoo quote + 일봉 스파크라인 — 전일대비 등락 */
 async function fetchYahooTickers(
   configs: StockTickerSymbol[],
 ): Promise<StockTickerItem[]> {
@@ -260,7 +301,7 @@ async function fetchYahooTickers(
   const symbols = configs.map((item) => item.symbol);
   const [quotes, sparklines] = await Promise.all([
     yahooFinance.quote(symbols),
-    Promise.all(configs.map((config) => fetchSparkline(config.symbol))),
+    Promise.all(configs.map((config) => fetchDailySparkline(config.symbol))),
   ]);
   const quoteBySymbol = new Map<string, Record<string, unknown>>();
 

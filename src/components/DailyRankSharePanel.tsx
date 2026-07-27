@@ -21,6 +21,7 @@ import {
   wtiBand,
   wtiBandLabel,
 } from "@/lib/wti";
+import { formatTensionDriverLine } from "@/lib/tensionDrivers";
 import { BunkerSentimentVote } from "@/components/BunkerSentimentVote";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 
@@ -83,8 +84,8 @@ function WorldTensionHero({
       </div>
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
         {ko
-          ? "서비스의 단일 기축. 전장별 GDELT·FIRMS·텔레그램을 7일 평균 대비 z-score로 정규화한 뒤 가중합. VIX·GPR처럼 이 숫자가 사운드·브리핑·예측을 구동합니다."
-          : "Product spine index. Theater GDELT / FIRMS / Telegram z-scored vs 7-day baseline, then blended. Like VIX or GPR — this number drives sound, briefing, and the daily puzzle."}
+          ? "서비스의 단일 기축. 전장별 뉴스·위성 화재·현장 경보가 평소보다 얼마나 튀었는지를 모아 점수로 만듭니다. 이 숫자가 사운드·브리핑·예측을 움직입니다."
+          : "Product spine index. Combines how far news, satellite hotspots, and field alerts sit above each theater’s usual level. This number drives sound, briefing, and the daily puzzle."}
       </p>
       <BunkerSentimentVote lang={lang} />
     </div>
@@ -137,17 +138,30 @@ function RankList({
                   ? "text-emerald-400"
                   : "text-rose-400";
             const score = displayTensionScore(entry);
+            const rising =
+              entry.deltaScore == null ? score >= 60 : entry.deltaScore >= 0;
+            const driver = formatTensionDriverLine(entry.detail, ko ? "ko" : "en", {
+              rising,
+              max: 1,
+            });
             return (
               <li
                 key={`${entry.kind}-${entry.entityId}`}
-                className="flex items-baseline justify-between gap-2 text-[12px] text-slate-200"
+                className="text-[12px] text-slate-200"
               >
-                <span className="min-w-0 truncate">
-                  <span className="mr-1.5 font-semibold text-slate-400">{entry.rank}.</span>
-                  {dailyRankLabel(entry, ko ? "ko" : "en")}
-                  <span className="ml-1.5 tabular-nums text-slate-600">{score}</span>
-                </span>
-                <span className={`shrink-0 tabular-nums ${deltaClass}`}>{delta}</span>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="min-w-0 truncate">
+                    <span className="mr-1.5 font-semibold text-slate-400">{entry.rank}.</span>
+                    {dailyRankLabel(entry, ko ? "ko" : "en")}
+                    <span className="ml-1.5 tabular-nums text-slate-600">{score}</span>
+                  </span>
+                  <span className={`shrink-0 tabular-nums ${deltaClass}`}>{delta}</span>
+                </div>
+                {driver ? (
+                  <p className="mt-0.5 pl-5 text-[10px] leading-snug text-slate-500">
+                    {driver}
+                  </p>
+                ) : null}
               </li>
             );
           })}

@@ -44,6 +44,8 @@ export async function GET(request: Request) {
   const arterialMaxRank = searchParams.get("arterialMaxRank")
     ? Number(searchParams.get("arterialMaxRank"))
     : undefined;
+  const viewerMode =
+    searchParams.get("viewerMode") === "economy" ? "economy" : "conflict";
 
   try {
     const result = await queryViewportPaths(layerRaw, {
@@ -54,6 +56,7 @@ export async function GET(request: Request) {
       max: Number.isFinite(max) ? max : undefined,
       maxScalerank: Number.isFinite(maxScalerank) ? maxScalerank : undefined,
       arterialMaxRank: Number.isFinite(arterialMaxRank) ? arterialMaxRank : undefined,
+      viewerMode,
     });
 
     return NextResponse.json(

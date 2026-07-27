@@ -23,8 +23,8 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** 전장당 심볼이 6~7개라 전부 조회하면 Yahoo 호출이 늘어남 — 핵심 상위 N개만 */
-const MAX_SYMBOLS = 4;
+/** 전장당 연관 선물·지수 전부 (테이블 길이만큼) */
+const MAX_SYMBOLS = 16;
 /** 앵커 가격은 시간이 지나도 바뀌지 않는 과거 값이라 넉넉하게 캐시 */
 const ANCHOR_TTL_MS = 6 * 60 * 60 * 1000;
 const LIVE_TTL_MS = 10 * 60 * 1000;

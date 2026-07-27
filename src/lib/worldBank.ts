@@ -18,7 +18,8 @@ export type WbIndicatorId =
   | "inflation"
   | "unemployment"
   | "govDebt"
-  | "currentAccount";
+  | "currentAccount"
+  | "energyImports";
 
 type IndicatorConfig = {
   id: WbIndicatorId;
@@ -90,6 +91,21 @@ const INDICATORS: IndicatorConfig[] = [
     safe: 2,
     danger: -12,
     weight: 0.1,
+  },
+  /**
+   * 에너지 순수입 의존 (% of energy use). 태그·참고용 — 종합 점수 가중치 0.
+   * 양수 = 순수입(의존), 음수 = 순수출.
+   */
+  {
+    id: "energyImports",
+    code: "EG.IMP.CONS.ZS",
+    labelKo: "에너지 순수입 의존",
+    labelEn: "Energy imports, net",
+    unit: "%",
+    higherIsRiskier: true,
+    safe: 0,
+    danger: 80,
+    weight: 0,
   },
 ];
 
@@ -209,10 +225,11 @@ export async function fetchCountryEconomicRisk(iso3: string): Promise<CountryEco
     }),
   );
 
-  // 가중 평균 (값 있는 지표만, 가중치 재정규화)
+  // 가중 평균 (값 있는 지표만, 가중치 재정규화) — weight 0(태그 전용)은 제외
   let weighted = 0;
   let weightSum = 0;
   for (const config of INDICATORS) {
+    if (config.weight <= 0) continue;
     const reading = readings.find((r) => r.id === config.id);
     if (reading && reading.riskScore != null) {
       weighted += reading.riskScore * config.weight;

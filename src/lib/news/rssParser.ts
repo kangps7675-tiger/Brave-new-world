@@ -47,7 +47,7 @@ function stripHtml(html: string): string {
 /** RSS 본문 스니펫 — 심층 기사 판별용 (등불 카드 요약 길이와 별개) */
 const RSS_BODY_SNIPPET_MAX = 1000;
 /** 피드당 파싱 상한 — "한 사건, 여러 관점"용 재료 확보 (기존 15) */
-const PER_FEED_MAX_ITEMS = 25;
+const PER_FEED_MAX_ITEMS = 40; // 모바일 홈·전체 풀링 확대
 
 function truncateSummary(text: string, max = RSS_BODY_SNIPPET_MAX): string {
   const clean = text.trim();

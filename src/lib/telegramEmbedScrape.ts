@@ -13,11 +13,35 @@ const STATE_FILE = path.join(LIVE_DIR, "telegram-embed-state.json");
 const POSTS_PER_CHANNEL = 2;
 const AHEAD_CHECK = 12;
 
+type CachedPost = {
+  text: string;
+  date: string;
+  mediaKind: "video" | "photo" | "none";
+};
+
 type EmbedState = {
   latestKnownIds: Record<string, number>;
-  postCache: Record<string, { text: string; date: string }>;
+  postCache: Record<string, CachedPost>;
   updatedAt: string;
 };
+
+function detectMediaKind(html: string): "video" | "photo" | "none" {
+  if (
+    /tgme_widget_message_video|tgme_widget_message_roundvideo|video_files|js-message_video/i.test(
+      html,
+    )
+  ) {
+    return "video";
+  }
+  if (
+    /tgme_widget_message_photo|tgme_widget_message_photo_wrap|background-image:\s*url\(/i.test(
+      html,
+    )
+  ) {
+    return "photo";
+  }
+  return "none";
+}
 
 let memoryState: EmbedState | null = null;
 
@@ -89,9 +113,10 @@ async function fetchPost(
   channel: string,
   postId: number,
   state: EmbedState,
-): Promise<{ text: string; date: string } | null> {
+): Promise<CachedPost | null> {
   const cacheKey = `${channel}/${postId}`;
-  if (state.postCache[cacheKey]) return state.postCache[cacheKey];
+  const cached = state.postCache[cacheKey];
+  if (cached && "mediaKind" in cached) return cached;
 
   try {
     const res = await fetch(`https://t.me/${channel}/${postId}?embed=1&mode=tme`, {
@@ -101,27 +126,39 @@ async function fetchPost(
     });
     if (!res.ok) return null;
     const html = await res.text();
-    const textMatch = html.match(
-      /<div class="tgme_widget_message_text js-message_text"[^>]*>(.*?)<\/div>/s,
-    );
-    if (!textMatch) return null;
+    if (!/tgme_widget_message/i.test(html)) return null;
 
-    const text = textMatch[1]
-      .replace(/<br\s*\/?>/gi, " ")
-      .replace(/<[^>]+>/g, "")
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, " ")
-      .trim();
+    const mediaKind = detectMediaKind(html);
+    const textMatch = html.match(
+      /<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)<\/div>/s,
+    );
+    let text = textMatch
+      ? textMatch[1]
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/p>/gi, "\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/[ \t]+\n/g, "\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .replace(/[^\S\n]+/g, " ")
+          .trim()
+      : "";
+
+    if (!text) {
+      if (mediaKind === "none") return null;
+      text =
+        mediaKind === "video"
+          ? "[영상] 캡션 없음 — 아래 미리보기에서 확인"
+          : "[사진] 캡션 없음 — 아래 미리보기에서 확인";
+    }
 
     const dateMatch = html.match(/<time[^>]*datetime="([^"]+)"/);
     const date = dateMatch ? dateMatch[1] : new Date().toISOString();
-    if (!text) return null;
-
-    const result = { text, date };
+    const result: CachedPost = { text, date, mediaKind };
     state.postCache[cacheKey] = result;
     return result;
   } catch {
@@ -175,17 +212,17 @@ async function findLatestPostId(channel: string, state: EmbedState): Promise<num
 function toAlert(
   channel: TelegramChannelDef,
   postId: number,
-  text: string,
-  date: string,
+  post: CachedPost,
 ): TelegramAlert {
   return {
     id: `embed-${channel.username}-${postId}`,
     channelUsername: channel.username,
     channelTitle: channel.label,
     region: channel.theater === "ukraine" ? "ukraine" : "middle-east",
-    text: text.slice(0, 4000),
-    receivedAt: date,
+    text: post.text.slice(0, 4096),
+    receivedAt: post.date,
     messageUrl: `https://t.me/${channel.username}/${postId}`,
+    mediaKind: post.mediaKind,
   };
 }
 
@@ -218,7 +255,7 @@ export async function syncTelegramEmbedAlerts(options?: {
         const posts: TelegramAlert[] = [];
         for (const id of ids) {
           const post = await fetchPost(channel.username, id, state);
-          if (post) posts.push(toAlert(channel, id, post.text, post.date));
+          if (post) posts.push(toAlert(channel, id, post));
         }
         return posts;
       }),

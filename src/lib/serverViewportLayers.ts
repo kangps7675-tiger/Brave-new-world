@@ -4,12 +4,17 @@ import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { getServerDataProfile } from "@/lib/serverEnv";
 import {
+  ECONOMY_GAS_PIPELINE_MAX_BY_TIER,
+  ECONOMY_OIL_PIPELINE_MAX_BY_TIER,
+  ECONOMY_SUBMARINE_CABLE_MAX_BY_TIER,
+  ECONOMY_SUBSEA_PIPELINE_MAX_BY_TIER,
   GAS_PIPELINE_MAX_BY_TIER,
   OIL_PIPELINE_MAX_BY_TIER,
   SHIPPING_LANE_MAX_BY_TIER,
   SUBMARINE_CABLE_MAX_BY_TIER,
   SUBSEA_PIPELINE_MAX_BY_TIER,
 } from "@/lib/staticLayerLod";
+import type { ViewerMode } from "@/lib/viewPackages";
 import { COUNTRY_POLYGON_MAX_BY_TIER, bboxNearView, isCenterInView } from "@/lib/viewportCull";
 import {
   isViewportPathLayer,
@@ -58,6 +63,26 @@ const DEFAULT_MAX: Record<ViewportPathLayer, Record<GlobeLodTier, number>> = {
     village: 530,
   },
 };
+
+const ECONOMY_INFRA_MAX: Partial<
+  Record<ViewportPathLayer, Record<GlobeLodTier, number>>
+> = {
+  "submarine-cables": ECONOMY_SUBMARINE_CABLE_MAX_BY_TIER,
+  "oil-pipelines": ECONOMY_OIL_PIPELINE_MAX_BY_TIER,
+  "gas-pipelines": ECONOMY_GAS_PIPELINE_MAX_BY_TIER,
+  "subsea-pipelines": ECONOMY_SUBSEA_PIPELINE_MAX_BY_TIER,
+};
+
+function defaultMaxForLayer(
+  layer: ViewportPathLayer,
+  tier: GlobeLodTier,
+  mode: ViewerMode = "conflict",
+): number {
+  if (mode === "economy" && ECONOMY_INFRA_MAX[layer]) {
+    return ECONOMY_INFRA_MAX[layer]![tier] ?? 0;
+  }
+  return DEFAULT_MAX[layer][tier] ?? 200;
+}
 
 const pathCache = new Map<string, TransportPath[]>();
 const countryCache = new Map<string, CountryFeature[]>();
@@ -175,10 +200,12 @@ export async function queryViewportPaths(
     max?: number;
     maxScalerank?: number;
     arterialMaxRank?: number;
+    viewerMode?: ViewerMode;
   },
 ) {
   const all = await loadAllTransportPaths(layer);
-  const defaultMax = DEFAULT_MAX[layer][options.tier] ?? 200;
+  const mode = options.viewerMode === "economy" ? "economy" : "conflict";
+  const defaultMax = defaultMaxForLayer(layer, options.tier, mode);
   const maxCount = Math.min(options.max ?? defaultMax, defaultMax || options.max || 0);
   if (maxCount <= 0) {
     return { paths: [] as TransportPath[], total: all.length, returned: 0 };
