@@ -673,6 +673,80 @@ function verificationLabelEn(raw: string | null | undefined): string {
   return map[key] ?? raw;
 }
 
+type SitrepSignalKey =
+  | "mentions"
+  | "points"
+  | "fireCount"
+  | "telegramCount"
+  | "airRaidScore";
+
+const SITREP_SIGNALS: Array<{ key: SitrepSignalKey; ko: string; en: string }> = [
+  { key: "fireCount", ko: "위성 화재", en: "satellite hotspots" },
+  { key: "mentions", ko: "뉴스 언급", en: "news mentions" },
+  { key: "points", ko: "관련 기사", en: "news coverage" },
+  { key: "telegramCount", ko: "현장 경보", en: "field alerts" },
+  { key: "airRaidScore", ko: "공습 경보", en: "air-raid alerts" },
+];
+
+function sitrepIntensity(z: number, lang: "ko" | "en"): string {
+  const abs = Math.abs(z);
+  const up = z > 0;
+  if (lang === "en") {
+    if (abs >= 2) return up ? "far above usual" : "far below usual";
+    if (abs >= 1.2) return up ? "well above usual" : "well below usual";
+    if (abs >= 0.7) return up ? "above usual" : "below usual";
+    return up ? "a bit above usual" : "a bit below usual";
+  }
+  if (abs >= 2) return up ? "평소보다 훨씬 많음" : "평소보다 훨씬 적음";
+  if (abs >= 1.2) return up ? "평소보다 많음" : "평소보다 적음";
+  if (abs >= 0.7) return up ? "평소보다 다소 많음" : "평소보다 다소 적음";
+  return up ? "평소보다 살짝 많음" : "평소보다 살짝 적음";
+}
+
+/** Sitrep용 원인 접미 — σ/z-score 없이 쉬운 말만 */
+function sitrepDriverSuffix(
+  detail: Record<string, unknown> | null,
+  rising: boolean,
+  lang: "ko" | "en",
+): string {
+  if (!detail) return "";
+  const components =
+    detail.components && typeof detail.components === "object"
+      ? (detail.components as Record<string, unknown>)
+      : null;
+  const raw =
+    (detail.zScores && typeof detail.zScores === "object"
+      ? (detail.zScores as Record<string, unknown>)
+      : null) ??
+    (components?.zScores && typeof components.zScores === "object"
+      ? (components.zScores as Record<string, unknown>)
+      : null);
+  if (!raw) return "";
+
+  const ranked = SITREP_SIGNALS.map((meta) => {
+    const z = Number(raw[meta.key]);
+    return Number.isFinite(z) ? { meta, z } : null;
+  })
+    .filter((row): row is { meta: (typeof SITREP_SIGNALS)[number]; z: number } => row != null)
+    .filter((row) => Math.abs(row.z) >= 0.7)
+    .filter((row) => (rising ? row.z > 0 : row.z < 0))
+    .sort((a, b) => Math.abs(b.z) - Math.abs(a.z))
+    .slice(0, 2);
+
+  if (ranked.length === 0) return "";
+
+  const bits = ranked.map(({ meta, z }) => {
+    const label = lang === "en" ? meta.en : meta.ko;
+    const how = sitrepIntensity(z, lang);
+    return lang === "en" ? `${label} (${how})` : `${label}(${how})`;
+  });
+
+  if (lang === "en") {
+    return rising ? ` · Mainly: ${bits.join("; ")}` : ` · Easing: ${bits.join("; ")}`;
+  }
+  return rising ? ` · 주요인: ${bits.join(", ")}` : ` · 완화 요인: ${bits.join(", ")}`;
+}
+
 /** 상황 변화 기록 트리거 — 검증등급 전환은 항상, 점수 변화는 이 이상만 */
 const SITREP_SCORE_DELTA_THRESHOLD = 8;
 
@@ -726,12 +800,19 @@ async function recordSitrepChanges(
       const eventType = verificationChanged ? "verification-change" : "score-delta";
       const deltaRounded =
         item.deltaScore != null ? Math.round(item.deltaScore * 10) / 10 : null;
+      const rising = deltaRounded != null && deltaRounded > 0;
+      const driverKo = !verificationChanged
+        ? sitrepDriverSuffix(item.detail, rising, "ko")
+        : "";
+      const driverEn = !verificationChanged
+        ? sitrepDriverSuffix(item.detail, rising, "en")
+        : "";
       const messageKo = verificationChanged
         ? `${item.labelKo} — 확신도 ${verificationLabelKo(prevVerification)}→${verificationLabelKo(nextVerification)}`
-        : `${item.labelKo} — 긴장 ${deltaRounded! > 0 ? "상승" : "완화"} ${Math.abs(deltaRounded!)}`;
+        : `${item.labelKo} — 긴장 ${deltaRounded! > 0 ? "상승" : "완화"} ${Math.abs(deltaRounded!)}${driverKo}`;
       const messageEn = verificationChanged
         ? `${item.labelEn} — confidence ${verificationLabelEn(prevVerification)}→${verificationLabelEn(nextVerification)}`
-        : `${item.labelEn} — tension ${deltaRounded! > 0 ? "up" : "down"} ${Math.abs(deltaRounded!)}`;
+        : `${item.labelEn} — tension ${deltaRounded! > 0 ? "up" : "down"} ${Math.abs(deltaRounded!)}${driverEn}`;
 
       stmts.push(
         db

@@ -54,8 +54,8 @@ function clusterKey(title: string): string {
  * 번역은 이 목록에만 도므로(전건 아님) 부하는 이 값에 선형 비례.
  * 성능 여유 보고 이 숫자만 조정하면 된다.
  */
-const VERIFIED_MAX = 130; // 기존 80
-const STATE_MEDIA_MAX = 60; // 기존 40
+const VERIFIED_MAX = 240; // 기존 130 · 모바일 홈 3배 풀링
+const STATE_MEDIA_MAX = 120; // 기존 60
 
 function isValidPubDate(pubDate: string | undefined): boolean {
   if (!pubDate) return false;

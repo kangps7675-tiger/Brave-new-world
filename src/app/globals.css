@@ -1057,10 +1057,16 @@ main[data-ui-lang="en"]
   color: rgba(255, 196, 110, 0.85);
 }
 .tension-spike-cut__telegraph {
-  margin: 0 0 1rem;
+  margin: 0 0 0.55rem;
   font-size: 0.82rem;
   line-height: 1.45;
   color: rgba(240, 232, 210, 0.92);
+}
+.tension-spike-cut__driver {
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgba(255, 210, 150, 0.78);
 }
 .tension-spike-cut__ask {
   margin: 0 0 0.65rem;

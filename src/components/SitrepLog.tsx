@@ -47,6 +47,10 @@ function formatClock(iso: string, en: boolean): string {
 }
 
 function eventLine(ev: SitrepEvent, en: boolean): string {
+  // 서버가 이미 쉬운 말 원인(주요인/Mainly)을 붙여 둔 메시지를 우선
+  const stored = (en ? ev.messageEn : ev.messageKo)?.trim();
+  if (stored) return stored;
+
   const place = en ? ev.labelEn || ev.entityId : ev.labelKo || ev.entityId;
   if (ev.eventType === "verification-change") {
     const from = verificationPlain(ev.prevVerification, en);
@@ -65,7 +69,6 @@ function eventLine(ev: SitrepEvent, en: boolean): string {
     }
     return d > 0 ? `${place} — 긴장 상승 ${abs}` : `${place} — 긴장 완화 ${abs}`;
   }
-  // 예전 메시지에 영문 코드가 남아 있으면 그대로 두되, 새 포맷 우선
   return en ? ev.messageEn : ev.messageKo;
 }
 

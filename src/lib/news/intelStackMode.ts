@@ -69,8 +69,10 @@ export function resolveIntelStackClearance(
   return mode === "alert" ? INTEL_STACK_CLEARANCE_ALERT : INTEL_STACK_CLEARANCE_CALM;
 }
 
-/** alert 모드 티커 하이라이트 — 전장 연관 심볼 상위 4개 */
-export function heroHighlightSymbols(hero: HeroBreakingItem | null, limit = 4): string[] {
+/** alert/calm 티커 하이라이트 — 전장 연관 심볼 전부 */
+export function heroHighlightSymbols(hero: HeroBreakingItem | null, limit?: number): string[] {
   if (!hero) return [];
-  return theaterAssetSymbols(hero.theater).slice(0, limit);
+  const symbols = theaterAssetSymbols(hero.theater);
+  if (limit == null || !Number.isFinite(limit) || limit < 0) return symbols;
+  return symbols.slice(0, limit);
 }

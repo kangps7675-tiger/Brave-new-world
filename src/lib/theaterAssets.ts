@@ -1,5 +1,6 @@
 /**
  * 전장·초크포인트 → 관련 ETF·원자재·지수 심볼 (해석용, 매매 권유 아님).
+ * 배열 앞쪽이 primary 해석 순서. 스트립·반응 API는 목록 전체를 사용한다.
  * @see docs/retention-markets-roadmap.md
  */
 
@@ -18,73 +19,83 @@ export type TheaterAssetEntry = {
 export const THEATER_ASSETS: Record<TheaterMarketFilter, TheaterAssetEntry> = {
   all: {
     symbols: ["^VIX", "CL=F", "BZ=F", "GC=F", "DX-Y.NYB", "^GSPC", "^IXIC"],
-    noteKo: "글로벌 리스크·에너지·주요 지수",
-    noteEn: "Global risk · energy · major indices",
+    noteKo: "글로벌 리스크·에너지·주요 지수 (해석용 · 투자 권유 아님)",
+    noteEn: "Global risk · energy · major indices (interpretive · not advice)",
   },
   "middle-east": {
-    symbols: ["CL=F", "BZ=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC", "^IXIC"],
-    noteKo: "유가·금·달러 — 중동·호르무즈 리스크 프리미엄",
-    noteEn: "Oil · gold · dollar — Middle East / Hormuz risk premium",
+    symbols: ["CL=F", "BZ=F", "NG=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
+    noteKo: "원유·천연가스 — 중동·호르무즈 에너지 리스크 (해석용)",
+    noteEn: "Oil · natural gas — Middle East / Hormuz energy risk (interpretive)",
   },
   "russia-ukraine": {
-    symbols: ["CL=F", "BZ=F", "GC=F", "^GSPC", "DX-Y.NYB", "^VIX", "^IXIC"],
-    noteKo: "유가·금·미국 지수 — 유럽 전쟁·에너지 프리미엄",
-    noteEn: "Oil · gold · US indices — European war / energy premium",
+    symbols: ["ZW=F", "ZC=F", "CL=F", "BZ=F", "GC=F", "DX-Y.NYB", "^VIX"],
+    noteKo: "밀·옥수수·에너지 — 흑해 곡물·유럽 전쟁 프리미엄 (해석용)",
+    noteEn: "Wheat · corn · energy — Black Sea grain / Europe war premium (interpretive)",
   },
   "china-taiwan": {
-    symbols: ["000001.SS", "^HSI", "^IXIC", "DX-Y.NYB", "^GSPC", "^VIX"],
-    noteKo: "중국·홍콩·미국 기술주 — 대만해협·반도체 서플라이",
-    noteEn: "China · HK · US tech — Taiwan Strait / chip supply",
+    symbols: ["SMH", "TSM", "^IXIC", "000001.SS", "^HSI", "^VIX", "DX-Y.NYB"],
+    noteKo: "반도체 ETF·TSMC — 대만해협 칩 서플라이 (해석용)",
+    noteEn: "Semi ETF · TSMC — Taiwan Strait chip supply (interpretive)",
   },
   korea: {
-    symbols: ["^KS11", "^IXIC", "^HSI", "^VIX", "BZ=F", "^GSPC"],
-    noteKo: "KOSPI·미국 지수 — 한반도·북핵 리스크",
-    noteEn: "KOSPI · US indices — Korean Peninsula / nuclear risk",
+    symbols: ["^KS11", "SMH", "005930.KS", "^IXIC", "^VIX", "BZ=F", "^GSPC"],
+    noteKo: "코스피·반도체·삼성 — 한반도·칩 서플라이 리스크 (해석용)",
+    noteEn: "KOSPI · semis · Samsung — Peninsula / chip supply risk (interpretive)",
   },
   japan: {
-    symbols: ["^N225", "^HSI", "^IXIC", "^GSPC", "BZ=F", "^VIX"],
-    noteKo: "니케이·아시아 지수·유가 — 동북아 안보",
-    noteEn: "Nikkei · Asia indices · oil — Northeast Asia security",
+    symbols: ["^N225", "SMH", "^IXIC", "BZ=F", "^HSI", "^GSPC", "^VIX"],
+    noteKo: "니케이·반도체·유가 — 동북아 안보·서플라이 (해석용)",
+    noteEn: "Nikkei · semis · oil — Northeast Asia security / supply (interpretive)",
   },
   "south-asia": {
     symbols: ["BZ=F", "GC=F", "^HSI", "DX-Y.NYB", "^GSPC", "^VIX"],
-    noteKo: "유가·금·인도 인접 시장",
-    noteEn: "Oil · gold · India-adjacent markets",
+    noteKo: "유가·금 — 인도 인접·남아시아 안보 프리미엄 (해석용)",
+    noteEn: "Oil · gold — South Asia security premium (interpretive)",
   },
   "southeast-asia": {
-    symbols: ["BZ=F", "^HSI", "^IXIC", "^VIX", "DX-Y.NYB", "^GSPC"],
-    noteKo: "유가·아시아 지수 — 남중국해·말라카 물류 리스크",
-    noteEn: "Oil · Asia indices — South China Sea / Malacca logistics risk",
+    symbols: ["BZ=F", "CL=F", "SMH", "^HSI", "^IXIC", "^VIX", "DX-Y.NYB"],
+    noteKo: "유가·반도체 — 남중국해·말라카 물류·칩 리스크 (해석용)",
+    noteEn: "Oil · semis — SCS / Malacca logistics · chip risk (interpretive)",
   },
   "south-america": {
     symbols: ["CL=F", "BZ=F", "GC=F", "^VIX", "DX-Y.NYB", "^GSPC"],
-    noteKo: "유가·금 — 베네수엘라·가이아나·남미 안보 프리미엄",
-    noteEn: "Oil · gold — Venezuela / Guyana / LatAm security premium",
+    noteKo: "유가·금 — 베네수엘라·가이아나·남미 안보 프리미엄 (해석용)",
+    noteEn: "Oil · gold — Venezuela / Guyana / LatAm security premium (interpretive)",
   },
   africa: {
-    symbols: ["GC=F", "BZ=F", "^VIX", "DX-Y.NYB", "^GSPC", "CL=F"],
-    noteKo: "금·유가 — 사헬·수단·아프리카 분쟁 리스크",
-    noteEn: "Gold · oil — Sahel / Sudan / Africa conflict risk",
+    symbols: ["GC=F", "BZ=F", "CL=F", "^VIX", "DX-Y.NYB", "^GSPC"],
+    noteKo: "금·유가 — 사헬·수단·아프리카 분쟁 리스크 (해석용)",
+    noteEn: "Gold · oil — Sahel / Sudan / Africa conflict risk (interpretive)",
   },
   arctic: {
-    symbols: ["BZ=F", "CL=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
-    noteKo: "에너지·금·달러 — 북극 항로·자원 리스크",
-    noteEn: "Energy · gold · dollar — Arctic route / resource risk",
+    symbols: ["BZ=F", "CL=F", "NG=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
+    noteKo: "에너지·금 — 북극 항로·자원 리스크 (해석용)",
+    noteEn: "Energy · gold — Arctic route / resource risk (interpretive)",
   },
   atlantic: {
     symbols: ["DX-Y.NYB", "^GSPC", "^VIX", "BZ=F", "GC=F", "^IXIC"],
-    noteKo: "달러·미국 지수 — 대서양·NATO 안보 프리미엄",
-    noteEn: "Dollar · US indices — Atlantic / NATO security premium",
+    noteKo: "달러·미국 지수 — 대서양·NATO 안보 프리미엄 (해석용)",
+    noteEn: "Dollar · US indices — Atlantic / NATO security premium (interpretive)",
   },
   global: {
     symbols: ["^VIX", "^GSPC", "^IXIC", "BZ=F", "GC=F", "DX-Y.NYB"],
-    noteKo: "방산·매크로 헤지 지표",
-    noteEn: "Defense / macro hedge indicators",
+    noteKo: "리스크·매크로 헤지 지표 (해석용 · 투자 권유 아님)",
+    noteEn: "Risk · macro hedge indicators (interpretive · not advice)",
   },
 };
 
 export function theaterAssetSymbols(filter: TheaterMarketFilter): string[] {
   return THEATER_ASSETS[filter]?.symbols ?? THEATER_ASSETS.all.symbols;
+}
+
+/** 전장 연관 심볼 전체 (limit 주면 앞에서만) */
+export function theaterPrimarySymbols(
+  filter: TheaterMarketFilter,
+  limit?: number,
+): string[] {
+  const all = theaterAssetSymbols(filter);
+  if (limit == null || !Number.isFinite(limit) || limit < 0) return all;
+  return all.slice(0, limit);
 }
 
 export function theaterAssetNote(

@@ -57,6 +57,11 @@ export function TensionSpikeCutOverlay({
             {spike.proxy ? (en ? " · PREVIEW" : " · 체험") : ""}
           </p>
           <p className="tension-spike-cut__telegraph font-data-mono">{telegraph}</p>
+          {(en ? spike.driverEn : spike.driverKo) ? (
+            <p className="tension-spike-cut__driver">
+              {en ? spike.driverEn : spike.driverKo}
+            </p>
+          ) : null}
           <p className="tension-spike-cut__ask">
             {en ? "Where do you cut to?" : "어디로 잘라 넘길까요?"}
           </p>

@@ -70,7 +70,7 @@ export function buildTodayBriefingFromHero(
   lang: LabelLanguage,
 ): TodayBriefing {
   const theaterName = THEATER_LABELS[lang][hero.theater];
-  const symbols = theaterAssetSymbols(hero.theater).slice(0, 3).join(" · ");
+  const symbols = theaterAssetSymbols(hero.theater).join(" · ");
   const status =
     hero.heroStatus === "confirmed"
       ? lang === "en"
@@ -122,7 +122,7 @@ export function buildTodayBriefing(
 
   const theaterName = THEATER_LABELS[lang][theater];
   const count = payload?.stats.theaters[theater] ?? 0;
-  const symbols = theaterAssetSymbols(theater).slice(0, 3).join(" · ");
+  const symbols = theaterAssetSymbols(theater).join(" · ");
 
   return {
     theater,

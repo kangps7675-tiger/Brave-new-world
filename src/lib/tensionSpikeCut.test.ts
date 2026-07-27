@@ -10,6 +10,7 @@ function theater(
   entityId: string,
   score: number,
   deltaScore: number | null = null,
+  detail: Record<string, unknown> = {},
 ): DailyRankEntry {
   return {
     rankDate: "2026-07-19",
@@ -22,7 +23,7 @@ function theater(
     prevRank: null,
     deltaRank: null,
     deltaScore,
-    detail: { displayScore: score },
+    detail: { displayScore: score, ...detail },
     updatedAt: "2026-07-19T00:00:00Z",
   };
 }
@@ -35,6 +36,30 @@ describe("evaluateTaiwanTensionSpike", () => {
     expect(spike).not.toBeNull();
     expect(spike?.proxy).toBe(false);
     expect(spike?.theaterScore).toBe(TAIWAN_SPIKE_SCORE);
+  });
+
+  it("explains drivers in plain language without sigma", () => {
+    const spike = evaluateTaiwanTensionSpike({
+      theater: [
+        theater("taiwan", TAIWAN_SPIKE_SCORE, 5, {
+          components: {
+            zScores: {
+              fireCount: 2.4,
+              mentions: 1.3,
+              points: 0.2,
+              telegramCount: 0,
+              airRaidScore: 0,
+            },
+          },
+        }),
+      ],
+    });
+    expect(spike?.driverKo).toContain("주요인");
+    expect(spike?.driverKo).toContain("위성 화재");
+    expect(spike?.driverKo).toContain("평소보다");
+    expect(spike?.driverKo).not.toMatch(/σ|z-score/i);
+    expect(spike?.driverEn).toMatch(/Mainly:/);
+    expect(spike?.telegraphKo).toContain("어제보다 +5");
   });
 
   it("triggers on world proxy when Taiwan row missing", () => {

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   formatTickerChangePercent,
   formatTickerPrice,
+  mergeTickerStripSymbols,
   STOCK_TICKER_SYMBOLS,
-  TICKER_STRIP_SYMBOLS,
   tickerChangeTone,
   tickerDisplayName,
   type StockTickerItem,
@@ -15,6 +15,7 @@ import { TICKER_SPIKE_THRESHOLD_PERCENT, type IntelStackMode } from "@/lib/news/
 import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { t } from "@/lib/uiStrings";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -44,10 +45,7 @@ export type StockTickerStripProps = {
 };
 
 function orderStripSymbols(highlightSymbols: string[]): string[] {
-  const base = [...TICKER_STRIP_SYMBOLS];
-  const highlight = highlightSymbols.filter((s) => base.includes(s));
-  const rest = base.filter((s) => !highlight.includes(s));
-  return [...highlight, ...rest];
+  return mergeTickerStripSymbols(highlightSymbols);
 }
 
 function TickerSparkline({
@@ -134,9 +132,15 @@ function TickerRow({
   lang: LabelLanguage;
 }) {
   const tone = tickerChangeTone(item.changePercent);
-  const changeText = formatTickerChangePercent(item.changePercent);
+  const changeText = formatTickerChangePercent(item.changePercent, {
+    lang,
+    withBasis: true,
+  });
   const spikeBadge = showSpike && highlighted ? formatSpikeBadge(item.changePercent) : null;
   const name = tickerDisplayName(item.symbol, lang);
+  const titleBits = [item.symbol];
+  if (item.asOf) titleBits.push(lang === "en" ? `as of ${item.asOf}` : `${item.asOf} 관측`);
+  titleBits.push(lang === "en" ? "change vs prior day" : "등락은 전일 대비");
 
   return (
     <span
@@ -144,7 +148,7 @@ function TickerRow({
         highlighted ? (spikeBadge ? "ticker-row--spike" : "ticker-row--highlight") : ""
       }`}
     >
-      <span className={highlighted ? "font-semibold text-rose-100" : "text-slate-300"} title={item.symbol}>
+      <span className={highlighted ? "font-semibold text-rose-100" : "text-slate-300"} title={titleBits.join(" · ")}>
         {name}
       </span>
       <TickerSparkline data={item.sparkline} tone={tone} />
@@ -185,8 +189,8 @@ export function StockTickerStrip({
   pausedRef.current = paused;
 
   const orderedSymbols = useMemo(
-    () => orderStripSymbols(mode === "alert" ? highlightSymbols : []),
-    [highlightSymbols, mode],
+    () => orderStripSymbols(highlightSymbols),
+    [highlightSymbols],
   );
 
   const highlightSet = useMemo(() => new Set(highlightSymbols), [highlightSymbols]);
@@ -217,16 +221,20 @@ export function StockTickerStrip({
       className={`pointer-events-auto w-full overflow-hidden backdrop-blur-md ${alertStripClass(mode, alertTone)} ${
         showHeader ? "rounded-b-2xl" : "h-10 rounded-none"
       }`}
-      aria-label="글로벌 매크로·주요 증시 티커"
+      aria-label={t("hoverStockTickerTheater", lang)}
       style={paused ? { animationPlayState: "paused" } : undefined}
     >
       {showHeader ? (
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-1.5">
           <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-200/85">
-            Markets
+            {t("marketsStripTitle", lang)}
           </span>
           <span className="text-[10px] text-slate-500">
-            {mode === "alert" ? "전장 연관 · 변동성 강조" : "Yahoo 15분 · FRED 보완"}
+            {mode === "alert"
+              ? t("marketsStripAlertHint", lang)
+              : highlightSymbols.length > 0
+                ? t("marketsStripTheaterHint", lang)
+                : t("marketsStripCalmHint", lang)}
           </span>
         </div>
       ) : null}
@@ -248,7 +256,7 @@ export function StockTickerStrip({
                 } satisfies StockTickerItem;
               })();
             if (!item) return null;
-            const highlighted = mode === "alert" && highlightSet.has(item.symbol);
+            const highlighted = highlightSet.has(item.symbol);
             return (
               <TickerRow
                 key={item.symbol}

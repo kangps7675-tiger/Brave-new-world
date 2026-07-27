@@ -4,6 +4,9 @@ import { useEffect, useRef } from "react";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
 import { SwpcStatusChip } from "@/components/SwpcStatusChip";
+import { FreightStressChip } from "@/components/FreightStressChip";
+import { PortWatchStressChip } from "@/components/PortWatchStressChip";
+import { MarketSessionChip } from "@/components/MarketSessionChip";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -23,9 +26,8 @@ type ModeGlobalIndexChipProps = {
 
 /**
  * 우상단 고정 — 모드별 전 세계 단일 지표.
- * 지정학: 세계 긴장도(WTI) · 지경학: 물류 혼잡도(GSCPI, 월간). 둘 다 0~100 점수.
- * 하단에 NOAA SWPC 우주기상 칩을 보조로 표시.
- * HoverNav 높이만큼 아래로 밀어 겹침을 피한다.
+ * 지정학: 세계 긴장도(WTI).
+ * 지경학: GSCPI + 해운 프록시 + PortWatch 3칩 + 세션 개장 (합산 점수 없음).
  */
 export function ModeGlobalIndexChip({
   viewerMode,
@@ -73,9 +75,16 @@ export function ModeGlobalIndexChip({
       }}
     >
       {isEconomy ? (
-        showGscpi ? (
-          <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
-        ) : null
+        <>
+          {showGscpi ? (
+            <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
+          ) : null}
+          <div className="flex flex-wrap justify-end gap-1.5">
+            <FreightStressChip lang={lang} />
+            <PortWatchStressChip lang={lang} />
+          </div>
+          <MarketSessionChip lang={lang} />
+        </>
       ) : (
         <WorldTensionChip
           score={wtiScore}

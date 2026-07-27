@@ -195,6 +195,23 @@ const UI = {
     en: "Open the full story on an external site.",
   },
   hoverStockTicker: { ko: "증시 티커", en: "Market ticker" },
+  hoverStockTickerTheater: {
+    ko: "전장 민감 원자재·선물 티커",
+    en: "Theater-sensitive commodities & futures",
+  },
+  marketsStripTitle: { ko: "시장", en: "Markets" },
+  marketsStripCalmHint: {
+    ko: "등락은 전일 대비 · Yahoo·FRED · 투자 권유 아님",
+    en: "Change vs prior day · Yahoo/FRED · not advice",
+  },
+  marketsStripTheaterHint: {
+    ko: "이 전장 민감 자산 · 등락은 전일 대비 · 투자 권유 아님",
+    en: "Theater-sensitive assets · vs prior day · not advice",
+  },
+  marketsStripAlertHint: {
+    ko: "전장 연관 · 전일대비 변동 강조 · 투자 권유 아님",
+    en: "Theater-linked · prior-day moves · not advice",
+  },
   hoverViewOnMap: { ko: "지도에서 보기", en: "View on map" },
   hoverViewOnMapHint: {
     ko: "뉴스 시트를 닫고 해당 전장 위치로 지구본이 이동합니다.",
@@ -219,10 +236,6 @@ const UI = {
   hoverSheetViinaHint: {
     ko: "점령·경합 셀 기반 전선 이벤트 (화면 표시 전용)",
     en: "Front events from occupation/contest cells (display-only)",
-  },
-  hoverSheetTelegramHint: {
-    ko: "Raw OSINT 피드 · RSS/GDELT·AI 요약과 분리",
-    en: "Raw OSINT feed · separate from RSS/GDELT/AI digests",
   },
   hoverTier3Title: { ko: "관영·미검증 속보", en: "State / unverified briefs" },
   hoverTier3Hint: {
@@ -491,7 +504,13 @@ const UI = {
   itemsCount: { ko: "건", en: " items" },
   economyCount: { ko: "경제", en: "economy" },
   intelSheetNews: { ko: "Tier별 뉴스 · 분석", en: "Tier news · analysis" },
-  intelSheetTelegram: { ko: "Telegram OSINT · Raw", en: "Telegram OSINT · Raw" },
+  intelSheetTelegram: { ko: "Telegram OSINT · 전문", en: "Telegram OSINT · full text" },
+  intelSheetTelegramVideo: {
+    ko: "텔레그램 영상 · 전선 미디어",
+    en: "Telegram video · frontline media",
+  },
+  intelSheetTelegramTab: { ko: "텔레그램", en: "Telegram" },
+  intelSheetTelegramVideoTab: { ko: "텔레그램 영상", en: "TG Video" },
   intelSheetViina: { ko: "VIINA · 우크라이나 전선", en: "VIINA · Ukraine front" },
   intelSheetVideo: { ko: "동영상 뉴스 · 공신력 채널", en: "Video news · trusted channels" },
   intelSheetVideoTab: { ko: "동영상 뉴스", en: "Video" },
@@ -501,6 +520,16 @@ const UI = {
   hoverSheetVideoHint: {
     ko: "BBC·Reuters·AP·Bloomberg 등 공신력 채널 최신 영상만. 메타만 폴링하고 재생은 클릭 시.",
     en: "Trusted outlets only (BBC, Reuters, AP, Bloomberg…). Metadata polls; play on click.",
+  },
+  hoverSheetTelegram: { ko: "텔레그램 OSINT", en: "Telegram OSINT" },
+  hoverSheetTelegramHint: {
+    ko: "공개 채널 전문. AI 요약·RSS와 분리된 raw OSINT. 사실 단정 금지.",
+    en: "Full public-channel text. Raw OSINT, separate from AI/RSS. Not verified fact.",
+  },
+  hoverSheetTelegramVideo: { ko: "텔레그램 영상", en: "Telegram video" },
+  hoverSheetTelegramVideoHint: {
+    ko: "전선·미사일·드론 등 공개 채널 영상만 모음. 눌러야 t.me 미리보기 로드.",
+    en: "Frontline/missile/drone clips from public channels. Load t.me preview on tap.",
   },
   aiDigestLabel: { ko: "AI 요약 (참고용)", en: "AI digest (for reference)" },
   aiDigestClose: { ko: "AI 요약 닫기", en: "Close AI digest" },

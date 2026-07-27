@@ -1,12 +1,12 @@
 /**
  * FRED — Federal Reserve Bank of St. Louis (api.stlouisfed.org).
  *
- * FININT 티커의 **원자재·달러 보완** 소스. 주요 증시 지수(VIX·S&P·나스닥·아시아)는
- * Yahoo 15분 폴링이 담당하고, FRED는 유가·가스·금·달러처럼 지경학 위기가
- * 자원 가격에 미치는 일간 공식 수치를 얹는다.
+ * FININT 티커의 **원자재·달러 보완** 소스. 등락은 Yahoo와 같이 **전일(직전 관측) 대비**.
+ * 주요 증시 지수는 Yahoo가 담당하고, FRED는 유가·가스·금·달러의 일간 공식 수치를 얹는다.
  *
  * 주의:
  * - FRED는 **일간/영업일 관측**이라 실시간이 아니다(보통 하루~며칠 지연).
+ * - changePercent는 최신 관측 ÷ 직전 관측 — 전일 대비와 같은 축.
  * - API 키가 필요하다. 키는 서버 env `FRED_API_KEY`에서만 읽는다(NEXT_PUBLIC_ 금지).
  *   키가 없으면 `null`을 돌려주고, 호출부가 Yahoo로 폴백한다.
  */

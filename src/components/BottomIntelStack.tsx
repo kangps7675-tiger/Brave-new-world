@@ -27,7 +27,7 @@ import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard"
 import { StockTickerStrip } from "@/components/StockTickerStrip";
 import { IntelRelatedMarketsPanel } from "@/components/IntelRelatedMarketsPanel";
 import { IntelSheetSearchBar, type IntelSearchResult } from "@/components/IntelSheetSearchBar";
-import { TelegramIntelFeed } from "@/components/TelegramIntelFeed";
+import { TelegramIntelFeed, alertMatchesMediaFilter } from "@/components/TelegramIntelFeed";
 import { UserAnalyzeButton } from "@/components/UserAnalyzeButton";
 import { UserAnthropicKeyPanel } from "@/components/UserAnthropicKeyPanel";
 import { ViinaFrontEventsPanel } from "@/components/ViinaFrontEventsPanel";
@@ -175,7 +175,13 @@ export type BottomIntelStackHandle = {
   closeNewsPanel: () => void;
 };
 
-export type IntelSheetTab = "news" | "video" | "telegram" | "viina" | "gdelt";
+export type IntelSheetTab =
+  | "news"
+  | "video"
+  | "telegram"
+  | "telegram-video"
+  | "viina"
+  | "gdelt";
 
 /** 경제 Intel 전체화면 — RSS vs 동영상 vs 증시 */
 export type EconomyIntelTab = "news" | "video" | "markets";
@@ -574,13 +580,12 @@ function HeroHeadlineBanner({
           </span>
         </div>
       </button>
-      {!economy ? (
-        <EventMarketReactionCard
+      <EventMarketReactionCard
           theater={hero.theater}
           ageMinutes={hero.ageMinutes}
           prominent
+          viewerMode={viewerMode}
         />
-      ) : null}
       <CounterfactualInvestCard
         theater={hero.theater}
         ageMinutes={hero.ageMinutes}
@@ -617,13 +622,20 @@ export function DynamicIntelStack({
   onOpenLivingTaiwan,
 }: IntelCompactBarProps) {
   const { lang, t } = useLocale();
-  const { payload, preferEconomyNews } = useNewsStreamContext();
+  const { payload, preferEconomyNews, theaterFilter } = useNewsStreamContext();
   const isEconomy = viewerMode === "economy" || preferEconomyNews;
   const timelineMode: ViewerMode = isEconomy ? "economy" : "conflict";
   const hero = payload?.hero ?? null;
   const mode = resolveIntelStackMode(hero);
   const isAlert = mode === "alert";
-  const highlightSymbols = isAlert && hero ? heroHighlightSymbols(hero) : [];
+  const highlightSymbols = useMemo(() => {
+    if (isAlert && hero) return heroHighlightSymbols(hero);
+    if (hero) return theaterAssetSymbols(hero.theater);
+    if (theaterFilter && theaterFilter !== "all") {
+      return theaterAssetSymbols(theaterFilter);
+    }
+    return [];
+  }, [hero, isAlert, theaterFilter]);
   const [todayHidden, setTodayHidden] = useState(false);
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const lastBreakingHeroIdRef = useRef<string | null>(null);
@@ -899,13 +911,12 @@ export function DynamicIntelStack({
 
         {!isAlert && hero ? (
           <>
-            {!isEconomy ? (
-              <EventMarketReactionCard
-                theater={hero.theater}
-                ageMinutes={hero.ageMinutes}
-                prominent
-              />
-            ) : null}
+            <EventMarketReactionCard
+              theater={hero.theater}
+              ageMinutes={hero.ageMinutes}
+              prominent
+              viewerMode={timelineMode}
+            />
             <CounterfactualInvestCard
               theater={hero.theater}
               ageMinutes={hero.ageMinutes}
@@ -918,15 +929,15 @@ export function DynamicIntelStack({
         {showCompactTicker ? (
           <HoverHint
             placement="top"
-            title={t("hoverStockTicker")}
+            title={t("hoverStockTickerTheater")}
             detail={
               isAlert
                 ? lang === "en"
-                  ? `Related symbols · SPIKE at ${TICKER_SPIKE_THRESHOLD_PERCENT}%+ (10m refresh)`
-                  : `연관 심볼 · ${TICKER_SPIKE_THRESHOLD_PERCENT}%↑ 변동 시 SPIKE (10분 갱신)`
+                  ? `Theater assets · SPIKE at ${TICKER_SPIKE_THRESHOLD_PERCENT}%+ (10m refresh) · not advice`
+                  : `전장 민감 자산 · ${TICKER_SPIKE_THRESHOLD_PERCENT}%↑ 변동 시 SPIKE (10분 갱신) · 투자 권유 아님`
                 : lang === "en"
-                  ? "WTI · Brent · major indices (10m refresh)"
-                  : "WTI·Brent·주요 지수 등 글로벌 매크로 (10분 갱신)"
+                  ? "Theater-sensitive commodities & futures (10m refresh) · not advice"
+                  : "전장 민감 원자재·선물 (10분 갱신) · 투자 권유 아님"
             }
             className="w-full"
           >
@@ -1159,6 +1170,7 @@ type IntelSheetTabBarProps = {
   onChange: (tab: IntelSheetTab) => void;
   newsCount: number;
   telegramCount: number;
+  telegramVideoCount: number;
   viinaCount: number;
   gdeltCount: number;
   showTelegram: boolean;
@@ -1172,6 +1184,7 @@ function IntelSheetTabBar({
   onChange,
   newsCount,
   telegramCount,
+  telegramVideoCount,
   viinaCount,
   gdeltCount,
   showTelegram,
@@ -1284,7 +1297,11 @@ function IntelSheetTabBar({
         </HoverHint>
       ) : null}
       {showTelegram ? (
-        <HoverHint placement="bottom" title="Telegram" detail={t("hoverSheetTelegramHint")}>
+        <HoverHint
+          placement="bottom"
+          title={t("hoverSheetTelegram")}
+          detail={t("hoverSheetTelegramHint")}
+        >
           <button
             type="button"
             onClick={() => onChange("telegram")}
@@ -1294,9 +1311,33 @@ function IntelSheetTabBar({
                 : "text-sky-100/65 hover:bg-white/5 hover:text-cyan-100"
             }`}
           >
-            Telegram
+            {t("intelSheetTelegramTab")}
             {telegramCount > 0 ? (
               <span className="ml-1.5 text-[10px] font-medium opacity-70">{telegramCount}</span>
+            ) : null}
+          </button>
+        </HoverHint>
+      ) : null}
+      {showTelegram ? (
+        <HoverHint
+          placement="bottom"
+          title={t("hoverSheetTelegramVideo")}
+          detail={t("hoverSheetTelegramVideoHint")}
+        >
+          <button
+            type="button"
+            onClick={() => onChange("telegram-video")}
+            className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+              active === "telegram-video"
+                ? "bg-fuchsia-400/20 text-fuchsia-50 ring-1 ring-fuchsia-300/40"
+                : "text-sky-100/65 hover:bg-white/5 hover:text-fuchsia-100"
+            }`}
+          >
+            {t("intelSheetTelegramVideoTab")}
+            {telegramVideoCount > 0 ? (
+              <span className="ml-1.5 text-[10px] font-medium opacity-70">
+                {telegramVideoCount}
+              </span>
             ) : null}
           </button>
         </HoverHint>
@@ -1386,12 +1427,13 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       onCloseGdeltLayer,
       initialIntelTab = "news",
       autoOpenOnMount = false,
-      onCloseTelegramLayer,
+      onCloseTelegramLayer: _onCloseTelegramLayer,
       onTelegramFlyToPlace,
       onOpenTrust,
     },
     ref,
   ) {
+    void _onCloseTelegramLayer;
     const {
       payload,
       refresh,
@@ -1421,10 +1463,9 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     const [sheetDragY, setSheetDragY] = useState(0);
     const [sheetDragging, setSheetDragging] = useState(false);
 
-    const handleCloseTelegramLayer = useCallback(() => {
+    const handleLeaveTelegramTab = useCallback(() => {
       setSheetTab("news");
-      onCloseTelegramLayer?.();
-    }, [onCloseTelegramLayer]);
+    }, []);
 
     const handleCloseGdeltLayer = useCallback(() => {
       setSheetTab("news");
@@ -1432,8 +1473,25 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     }, [onCloseGdeltLayer]);
 
     useEffect(() => {
-      if (sheetTab === "telegram" && !showTelegram) setSheetTab("news");
+      if (
+        (sheetTab === "telegram" || sheetTab === "telegram-video") &&
+        !showTelegram
+      ) {
+        setSheetTab("news");
+      }
     }, [sheetTab, showTelegram]);
+
+    const telegramVideoCount = useMemo(
+      () => telegramAlerts.filter((a) => alertMatchesMediaFilter(a, "video")).length,
+      [telegramAlerts],
+    );
+
+    const telegramRegionFilter =
+      theaterFilter === "russia-ukraine"
+        ? ("ukraine" as const)
+        : theaterFilter === "middle-east"
+          ? ("middle-east" as const)
+          : ("all" as const);
 
     useEffect(() => {
       if (sheetTab === "gdelt" && !showGdelt) setSheetTab("news");
@@ -1647,7 +1705,11 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     ? t("intelSheetVideo")
                     : sheetTab === "telegram"
                       ? t("intelSheetTelegram")
-                      : t("intelSheetViina")}
+                      : sheetTab === "telegram-video"
+                        ? t("intelSheetTelegramVideo")
+                        : sheetTab === "gdelt"
+                          ? "GDELT"
+                          : t("intelSheetViina")}
               {sheetTab === "news" || (preferEconomyNews && economyTab === "news") ? (
                 <>
                   <span className="ml-2 text-xs text-sky-200/50">
@@ -1713,6 +1775,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               : (payload?.verified.length ?? 0)
           }
           telegramCount={telegramAlerts.length}
+          telegramVideoCount={telegramVideoCount}
           viinaCount={viinaEvents.length}
           gdeltCount={gdeltAlerts.length}
           showTelegram={showTelegram && !preferEconomyNews}
@@ -1896,7 +1959,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               <AnalysisPanel hero={hero} payload={payload} open={open} />
             </div>
           </>
-        ) : sheetTab === "telegram" ? (
+        ) : sheetTab === "telegram" || sheetTab === "telegram-video" ? (
           <TelegramIntelFeed
             alerts={telegramAlerts}
             live={telegramLive}
@@ -1907,15 +1970,10 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
             channelCount={telegramChannelCount}
             fullPage
             compactUi
-            onClose={onCloseTelegramLayer ? handleCloseTelegramLayer : undefined}
+            mediaFilter={sheetTab === "telegram-video" ? "video" : "all"}
+            onClose={handleLeaveTelegramTab}
             onFlyToPlace={onTelegramFlyToPlace}
-            regionFilter={
-              theaterFilter === "russia-ukraine"
-                ? "ukraine"
-                : theaterFilter === "middle-east"
-                  ? "middle-east"
-                  : "all"
-            }
+            regionFilter={telegramRegionFilter}
           />
         ) : sheetTab === "gdelt" ? (
           <GdeltAlertPanel
@@ -2071,7 +2129,7 @@ function AnalysisPanel({
   }, [open, hero?.id]);
 
   const relatedSymbols = hero
-    ? theaterAssetSymbols(hero.theater).slice(0, 4).join(" · ")
+    ? theaterAssetSymbols(hero.theater).join(" · ")
     : "";
 
   if (!open || dismissed) return null;

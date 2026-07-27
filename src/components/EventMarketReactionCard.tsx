@@ -17,6 +17,8 @@ type EventMarketReactionCardProps = {
   ageMinutes: number;
   /** 히어로 스트립용 — 더 크게 */
   prominent?: boolean;
+  /** 지경학이면 라벨·배지 카피 조정 */
+  viewerMode?: "conflict" | "economy";
 };
 
 type ReactionPayload = {
@@ -47,9 +49,11 @@ export function EventMarketReactionCard({
   theater,
   ageMinutes,
   prominent = false,
+  viewerMode = "conflict",
 }: EventMarketReactionCardProps) {
   const { lang } = useLocale();
   const ko = lang !== "en";
+  const isEconomy = viewerMode === "economy";
   const [payload, setPayload] = useState<ReactionPayload | null>(null);
   const [expanded, setExpanded] = useState(false);
 
@@ -58,6 +62,7 @@ export function EventMarketReactionCard({
     const params = new URLSearchParams({
       theater,
       ageMinutes: String(Math.round(ageMinutes)),
+      viewerMode,
     });
     fetch(`/api/stock-tickers/reaction?${params.toString()}`, { cache: "no-store" })
       .then((res) => res.json())
@@ -75,7 +80,7 @@ export function EventMarketReactionCard({
     return () => {
       cancelled = true;
     };
-  }, [theater, ageMinutes, prominent]);
+  }, [theater, ageMinutes, prominent, viewerMode]);
 
   if (payload === null) {
     return (
@@ -94,6 +99,14 @@ export function EventMarketReactionCard({
   const peak = payload.peakSigma;
   const sigmaText =
     peak != null && Number.isFinite(peak) ? `${Math.abs(peak).toFixed(1)}σ` : null;
+  const marketOpen = payload.marketOpen;
+  const pairLabel = isEconomy
+    ? ko
+      ? "사건 ↔ 시장"
+      : "Event ↔ Markets"
+    : ko
+      ? "전쟁 ↔ 이익"
+      : "War ↔ Markets";
   const headline =
     verdict === "impact"
       ? ko
@@ -128,8 +141,27 @@ export function EventMarketReactionCard({
             prominent ? "text-[10px]" : "text-[9px]"
           }`}
         >
-          {ko ? "전쟁 ↔ 이익" : "War ↔ Markets"}
+          {pairLabel}
         </span>
+        {typeof marketOpen === "boolean" ? (
+          <span
+            className={`shrink-0 rounded border px-1.5 py-0.5 font-semibold ${
+              prominent ? "text-[10px]" : "text-[9px]"
+            } ${
+              marketOpen
+                ? "border-teal-400/45 bg-teal-500/15 text-teal-200"
+                : "border-slate-500/40 bg-slate-700/20 text-slate-400"
+            }`}
+          >
+            {marketOpen
+              ? ko
+                ? "장중"
+                : "Open"
+              : ko
+                ? "장마감"
+                : "Closed"}
+          </span>
+        ) : null}
         <span
           className={`shrink-0 rounded border px-1.5 py-0.5 font-semibold ${VERDICT_CLASS[verdict]} ${
             prominent ? "text-[11px]" : "text-[10px]"

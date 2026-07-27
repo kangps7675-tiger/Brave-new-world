@@ -61,6 +61,11 @@ import {
   createMilitaryExerciseMarkerElement,
   militaryExerciseHtmlMarkers,
 } from "@/lib/militaryExerciseMarkers";
+import {
+  createFinancialHubMarkerElement,
+  financialHubHtmlMarkers,
+} from "@/lib/financialMarketHubMarkers";
+import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { useNeptunGlobeLayer } from "@/components/globe/hooks/useNeptunGlobeLayer";
 import { useLiveOverlayMarkers } from "@/components/globe/hooks/useLiveOverlayMarkers";
 import { useReconSatelliteLayer } from "@/components/globe/hooks/useReconSatelliteLayer";
@@ -924,6 +929,11 @@ export function GlobeDashboard({
     useState<PeriodicBriefing | null>(null);
   /** 뉴스 네온 — 매체 2개 이상이면 관점 조합 패널 */
   const [newsPerspectives, setNewsPerspectives] = useState<NewsStreamNeonMarker | null>(null);
+  const [economyAttackReaction, setEconomyAttackReaction] = useState<{
+    ageMinutes: number;
+    title: string;
+  } | null>(null);
+  const [financialHubTick, setFinancialHubTick] = useState(0);
   /** 오늘 등불 파이프라인 종료 여부(표시·스킵·이미 봄). false면 공습/이슈 UI 보류 */
   const [dailyLampSettled, setDailyLampSettled] = useState(false);
   const [weeklyRecap, setWeeklyRecap] = useState<PeriodicBriefing | null>(null);
@@ -1271,6 +1281,7 @@ export function GlobeDashboard({
     setPeriodicBriefing(null);
     setFoldedPeriodicBriefing(null);
     setNewsPerspectives(null);
+    setEconomyAttackReaction(null);
     setDailyLampSettled(false);
     setWeeklyRecap(null);
     setWeeklyRecapCollapsed(false);
@@ -2502,6 +2513,7 @@ export function GlobeDashboard({
     viewState: layerViewState,
     globeTier: globeLod.tier,
     radiusDeg: pathRadiusDeg,
+    viewerMode,
     showDisputeBoundaries: showAnyDisputeOverlay && globeReady,
     showLsibBoundary: showLsibBoundary && globeReady,
     showShippingLanes,
@@ -3192,6 +3204,19 @@ export function GlobeDashboard({
         ? militaryExerciseHtmlMarkers(displayMilitaryExercises)
         : [],
     [displayMilitaryExercises, showMilitaryExercises],
+  );
+
+  useEffect(() => {
+    if (!isEconomyViewer) return;
+    const timer = window.setInterval(() => setFinancialHubTick((n) => n + 1), 60_000);
+    return () => window.clearInterval(timer);
+  }, [isEconomyViewer]);
+
+  const financialHubMarkers = useMemo(
+    () => (isEconomyViewer ? financialHubHtmlMarkers(new Date()) : []),
+    // financialHubTick forces 1-min refresh
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isEconomyViewer, financialHubTick],
   );
 
   const reefWatchFeatureMarkers = useMemo(
@@ -4212,6 +4237,7 @@ export function GlobeDashboard({
       ...frictionPinMarkers,
       ...frictionStageMarkers,
       ...exerciseHtmlMarkers,
+      ...financialHubMarkers,
       ...reefWatchFeatureMarkers,
       ...reefWatchTrafficMarkers,
       ...shipMoveHtmlMarkers,
@@ -4229,6 +4255,7 @@ export function GlobeDashboard({
       reconSatelliteMarkers,
       visibleCasualtySkullMarkers,
       exerciseHtmlMarkers,
+      financialHubMarkers,
       reefWatchFeatureMarkers,
       reefWatchTrafficMarkers,
       frictionPinMarkers,
@@ -8487,6 +8514,17 @@ export function GlobeDashboard({
                 },
                 "newfeeds",
               );
+              if (isEconomyViewer) {
+                const pub = atk.publishedAt ? Date.parse(atk.publishedAt) : NaN;
+                const ageMinutes = Number.isFinite(pub)
+                  ? Math.max(0, Math.round((Date.now() - pub) / 60_000))
+                  : 60;
+                setEconomyAttackReaction({
+                  ageMinutes,
+                  title:
+                    localizeNewfeedsTitle(atk.title, labelLanguage) || atk.title,
+                });
+              }
             },
           },
         );
@@ -8532,6 +8570,12 @@ export function GlobeDashboard({
           }
           flyTo(item.lat, item.lng, 0.72);
         });
+      }
+      if (item.displayKind === "financial-hub-html") {
+        return createFinancialHubMarkerElement(
+          item,
+          labelLanguage === "en" ? "en" : "ko",
+        );
       }
       if (item.displayKind === "reefwatch-feature-html") {
         return createReefWatchFeatureMarkerElement(item, () => {
@@ -8697,6 +8741,16 @@ export function GlobeDashboard({
         },
         "newfeeds",
       );
+      if (isEconomyViewer) {
+        const pub = point.publishedAt ? Date.parse(point.publishedAt) : NaN;
+        const ageMinutes = Number.isFinite(pub)
+          ? Math.max(0, Math.round((Date.now() - pub) / 60_000))
+          : 60;
+        setEconomyAttackReaction({
+          ageMinutes,
+          title: localizeNewfeedsTitle(point.title, labelLanguage) || point.title,
+        });
+      }
       return;
     }
     if (point.displayKind === "event") {
@@ -10180,7 +10234,7 @@ export function GlobeDashboard({
           onClose={() => setIntelSheetOpen(false)}
           onOpen={() => setIntelSheetOpen(true)}
           onFlyToMap={handleIntelFlyTo}
-          showTelegram={!isEconomyViewer && showTelegramOsint}
+          showTelegram={!isEconomyViewer}
           telegramAlerts={telegramAlerts}
           telegramLive={telegramLive}
           telegramStatus={telegramStatus}
@@ -10733,10 +10787,43 @@ export function GlobeDashboard({
           kind={newsPerspectives.kind}
           perspectives={newsPerspectives.perspectives ?? []}
           theater={newsPerspectives.theater}
-          ageMinutes={60}
+          ageMinutes={newsPerspectives.ageMinutes ?? 60}
+          viewerMode={viewerMode}
           lang={labelLanguage}
           onClose={() => setNewsPerspectives(null)}
         />
+      ) : null}
+
+      {economyAttackReaction && isEconomyViewer ? (
+        <aside
+          className="pointer-events-auto absolute left-3 top-[5.75rem] z-[72] w-[min(94vw,360px)] overflow-hidden rounded-2xl border border-amber-400/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl sm:left-4"
+          role="dialog"
+          aria-label={labelLanguage === "en" ? "Event market reaction" : "사건 시장 반응"}
+        >
+          <div className="flex items-start justify-between gap-2 border-b border-white/10 px-3 py-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200/80">
+                {labelLanguage === "en" ? "Event ↔ Markets" : "사건 ↔ 시장"}
+              </p>
+              <p className="mt-0.5 truncate text-[12px] text-slate-200">
+                {economyAttackReaction.title}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="shrink-0 rounded-lg border border-slate-500/30 px-2 py-1 text-[11px] text-slate-300"
+              onClick={() => setEconomyAttackReaction(null)}
+            >
+              {labelLanguage === "en" ? "Close" : "닫기"}
+            </button>
+          </div>
+          <EventMarketReactionCard
+            theater="middle-east"
+            ageMinutes={economyAttackReaction.ageMinutes}
+            prominent
+            viewerMode="economy"
+          />
+        </aside>
       ) : null}
 
       </NewsStreamProvider>

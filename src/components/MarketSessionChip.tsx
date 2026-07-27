@@ -1,0 +1,41 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { LabelLanguage } from "@/lib/layerPrefs";
+import { openHubCount } from "@/lib/marketSessions";
+
+type Props = {
+  lang: LabelLanguage;
+  className?: string;
+};
+
+/** 세션 N/6 개장 — 1분 갱신 */
+export function MarketSessionChip({ lang, className = "" }: Props) {
+  const ko = lang !== "en";
+  const [count, setCount] = useState(() => openHubCount());
+
+  useEffect(() => {
+    const tick = () => setCount(openHubCount());
+    tick();
+    const timer = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div
+      className={`rounded-lg border border-teal-400/30 bg-[#06141a]/90 px-2.5 py-1.5 shadow-lg backdrop-blur-md ${className}`}
+      title={ko ? "6대 금융허브 정규장" : "6 major market sessions"}
+    >
+      <p className="text-[9px] font-semibold uppercase tracking-wider text-teal-200/85">
+        {ko ? "세션" : "Sessions"}
+      </p>
+      <p className="mt-0.5 font-mono text-[12px] font-semibold tabular-nums text-teal-100">
+        {count.open}
+        <span className="text-[10px] font-normal text-slate-500">/{count.total}</span>{" "}
+        <span className="text-[10px] font-medium text-slate-400">
+          {ko ? "개장" : "open"}
+        </span>
+      </p>
+    </div>
+  );
+}

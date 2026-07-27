@@ -1,4 +1,5 @@
 import type { GlobeLodTier } from "@/lib/globeLod";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 /**
  * 항로 — 줌아웃에서도 켜면 바로 보이게 최소치 유지.
@@ -83,3 +84,84 @@ export const RESOURCE_POINT_MAX_BY_TIER: Record<GlobeLodTier, number> = {
   near: 160,
   village: 240,
 };
+
+/**
+ * 지경학 — 줌아웃에서 파이프/케이블 다이어트.
+ * global/continent = 0 (초크·크리티컬 노드만 지도 골격).
+ * regional = GEM 간선. near/village = 상세 + OSM.
+ */
+export const ECONOMY_SUBMARINE_CABLE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 0,
+  continent: 0,
+  regional: 48,
+  near: 160,
+  village: 320,
+};
+
+export const ECONOMY_OIL_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 0,
+  continent: 0,
+  regional: 80,
+  near: 240,
+  village: 400,
+};
+
+export const ECONOMY_GAS_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 0,
+  continent: 0,
+  regional: 100,
+  near: 280,
+  village: 480,
+};
+
+export const ECONOMY_SUBSEA_PIPELINE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
+  global: 0,
+  continent: 0,
+  regional: 60,
+  near: 200,
+  village: 360,
+};
+
+export type InfraPathLodKind =
+  | "submarine-cables"
+  | "oil-pipelines"
+  | "gas-pipelines"
+  | "subsea-pipelines";
+
+const CONFLICT_PATH_CAPS: Record<InfraPathLodKind, Record<GlobeLodTier, number>> = {
+  "submarine-cables": SUBMARINE_CABLE_MAX_BY_TIER,
+  "oil-pipelines": OIL_PIPELINE_MAX_BY_TIER,
+  "gas-pipelines": GAS_PIPELINE_MAX_BY_TIER,
+  "subsea-pipelines": SUBSEA_PIPELINE_MAX_BY_TIER,
+};
+
+const ECONOMY_PATH_CAPS: Record<InfraPathLodKind, Record<GlobeLodTier, number>> = {
+  "submarine-cables": ECONOMY_SUBMARINE_CABLE_MAX_BY_TIER,
+  "oil-pipelines": ECONOMY_OIL_PIPELINE_MAX_BY_TIER,
+  "gas-pipelines": ECONOMY_GAS_PIPELINE_MAX_BY_TIER,
+  "subsea-pipelines": ECONOMY_SUBSEA_PIPELINE_MAX_BY_TIER,
+};
+
+export function pathMaxForMode(
+  kind: InfraPathLodKind,
+  tier: GlobeLodTier,
+  mode: ViewerMode = "conflict",
+): number {
+  const table = mode === "economy" ? ECONOMY_PATH_CAPS : CONFLICT_PATH_CAPS;
+  return table[kind][tier] ?? 0;
+}
+
+/** 지경학: GEM 파이프·케이블은 regional+ 에서만 fetch */
+export function economyAllowsGemInfra(tier: GlobeLodTier): boolean {
+  return tier === "regional" || tier === "near" || tier === "village";
+}
+
+/** 지경학: OSM·LNG·AI DC는 near+ 상세 뷰 */
+export function economyAllowsDetailInfra(tier: GlobeLodTier): boolean {
+  return tier === "near" || tier === "village";
+}
+
+/** 지정학 OSM은 기존처럼 regional+ */
+export function conflictAllowsOsmPipelines(tier: GlobeLodTier): boolean {
+  return tier === "regional" || tier === "near" || tier === "village";
+}

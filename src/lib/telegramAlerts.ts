@@ -8,6 +8,8 @@ import {
 
 export type TelegramAlertRegion = "ukraine" | "middle-east" | "global";
 
+export type TelegramMediaKind = "video" | "photo" | "none";
+
 export type TelegramAlert = {
   id: string;
   channelUsername: string;
@@ -16,6 +18,8 @@ export type TelegramAlert = {
   text: string;
   receivedAt: string;
   messageUrl?: string | null;
+  /** 공개 임베드 HTML에서 감지한 미디어 (영상·사진). 호스팅/재배포 아님 — t.me 원문 embed용 */
+  mediaKind?: TelegramMediaKind | null;
 };
 
 export type TelegramAlertsPayload = {
