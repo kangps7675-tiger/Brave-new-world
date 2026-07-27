@@ -43,6 +43,19 @@ const CONFLICT_BASE: LayerPatch = {
   showTelegramOsint: true,
 };
 
+/** 국경·영토 분쟁 (LSIB) — 미 국무부 경계선 + 실제 분쟁·긴장 구역만 강조 */
+const TERRITORIAL_DISPUTES_STACK: LayerPatch = {
+  showLsibBoundary: true,
+  showWarZones: true,
+  showDiplomaticTension: true,
+  showConflictZones: true,
+  showGdeltWar: false,
+  showGdeltDiplomatic: false,
+  showTelegramOsint: false,
+  showUkraineControl: false,
+  showNeptun: false,
+};
+
 /** 항모·군사 동정 — 한반도·중동·걸프 전선 */
 const CARRIER_MIL_WATCH: LayerPatch = {
   showUsCarriers: true,
@@ -302,6 +315,9 @@ export function conceptLayersForConflict(theater: ViewTheaterChoice): LayerPatch
 
 export function conceptLayersForConflictNavId(navId: string): LayerPatch {
   const key = navId.toLowerCase();
+  if (key === "territorial-disputes-overview") {
+    return TERRITORIAL_DISPUTES_STACK;
+  }
   const hubAxis: LayerPatch = {
     showAxisNetwork: true,
     showDiplomaticTension: true,

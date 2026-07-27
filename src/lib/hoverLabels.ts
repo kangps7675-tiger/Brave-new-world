@@ -52,6 +52,7 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   "gas-pipeline": { ko: "가스 파이프라인 (GEM)", en: "Gas pipeline (GEM)" },
   "subsea-pipeline": { ko: "해저 파이프라인 (EMODnet)", en: "Subsea pipeline (EMODnet)" },
   "dispute-boundary": { ko: "분쟁 경계선", en: "Dispute boundary" },
+  "lsib-boundary": { ko: "LSIB 국경선 (미 국무부)", en: "LSIB boundary (US Dept. of State)" },
   "country-border": { ko: "국경선", en: "Country border" },
   coastline: { ko: "해안선", en: "Coastline" },
   rail: { ko: "철도", en: "Railway" },

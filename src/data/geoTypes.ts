@@ -110,6 +110,8 @@ export type TransportPath = {
     | "coastline"
     | "dispute-boundary"
     | "country-border"
+    /** 미 국무부 LSIB(Large Scale International Boundaries) — RANK 1=공식 국경, 2/3=분쟁·특수선 */
+    | "lsib-boundary"
     | "shipping-lane"
     | "submarine-cable"
     | "oil-pipeline"

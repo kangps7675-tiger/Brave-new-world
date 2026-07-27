@@ -171,6 +171,9 @@ export type UseLayerPanelCategoriesArgs = {
   showShippingLanes: boolean;
   visibleShipping: unknown[];
   setShowShippingLanes: (v: boolean) => void;
+  showLsibBoundary: boolean;
+  visibleLsibBoundary: unknown[];
+  setShowLsibBoundary: (v: boolean) => void;
   showSubmarineCables: boolean;
   visibleCables: unknown[];
   setShowSubmarineCables: (v: boolean) => void;
@@ -411,6 +414,9 @@ export function useLayerPanelCategories({
   showShippingLanes,
   visibleShipping,
   setShowShippingLanes,
+  showLsibBoundary,
+  visibleLsibBoundary,
+  setShowLsibBoundary,
   showSubmarineCables,
   visibleCables,
   setShowSubmarineCables,
@@ -705,6 +711,16 @@ export function useLayerPanelCategories({
               : "꺼짐 · 실전투·폭격급 긴장",
             checked: layerPrefs.showWarZones,
             onChange: setShowWarZones,
+            accent: "red",
+          },
+          {
+            id: "lsib-boundary",
+            label: "LSIB 국경선 (미 국무부)",
+            detail: showLsibBoundary
+              ? `${visibleLsibBoundary.length.toLocaleString()}개 · 실선(공식)·점선(분쟁)`
+              : "꺼짐 · 공식 국경 + 분쟁·특수선",
+            checked: layerPrefs.showLsibBoundary,
+            onChange: setShowLsibBoundary,
             accent: "red",
           },
           {
@@ -1945,6 +1961,8 @@ export function useLayerPanelCategories({
     lpg(showResources, false),
     lpg(showSanctionsEntities, false),
     lpg(showShippingLanes, false),
+    lpg(showLsibBoundary, false),
+    lpg(visibleLsibBoundary.length, 0),
     lpg(showSpaceLaunches, false),
     lpg(showReconSatellites, false),
     lpg(reconSatCount, 0),

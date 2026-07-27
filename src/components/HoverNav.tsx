@@ -11,6 +11,7 @@ import {
   selectionForRegime,
   selectionForRegimeOverview,
   selectionForWestpacPulseOverview,
+  selectionForDisputesOverview,
   type HubDefinition,
 } from "@/data/hubNav";
 import {
@@ -328,6 +329,17 @@ export function HoverNav({
                 {t("westpacShipMovesNav", labelLanguage)}
                 <span className="text-[9px] font-normal text-cyan-200/60">
                   {t("westpacShipMovesNavHint", labelLanguage)}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleHubNavigate(selectionForDisputesOverview())}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
+                {t("disputesOverviewNav", labelLanguage)}
+                <span className="text-[9px] font-normal text-rose-200/60">
+                  {t("disputesOverviewNavHint", labelLanguage)}
                 </span>
               </button>
               <ul className="space-y-1">

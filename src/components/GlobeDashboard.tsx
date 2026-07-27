@@ -19,10 +19,12 @@ import { LayerCategoryDraftHost } from "@/components/LayerCategoryDraftHost";
 import { LayerPanelLanguagePicker } from "@/components/LayerPanelLanguagePicker";
 import { UiFontPicker } from "@/components/UiFontPicker";
 import { CompactPresetChips } from "@/components/CompactPresetChips";
+import { MobileHomeView } from "@/components/MobileHomeView";
 import { LayerQuickDropdown } from "@/components/LayerQuickDropdown";
 import { HoverNav } from "@/components/HoverNav";
 import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { useCompactUi } from "@/hooks/useCompactUi";
+import { usePhoneUi } from "@/hooks/usePhoneUi";
 import {
   buildCompactPrefs,
   compactPresetsForMode,
@@ -474,6 +476,7 @@ import {
   TENSION_GRADE_STYLES,
 } from "@/lib/disputeHatch";
 import { getCachedDisputeHatchPaths } from "@/lib/disputeHatchCache";
+import { buildDisputeHotspots, type DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import { selectViinaPolygons } from "@/lib/viinaLod";
 import {
   prefetchUkraineControl,
@@ -879,6 +882,8 @@ export function GlobeDashboard({
   const viewerChromePreset = getViewerChrome(viewerMode);
   const isEconomyViewer = viewerMode === "economy";
   const isCompactUi = useCompactUi();
+  // 폰: 지구본을 mount하지 않고 텍스트/알림 뷰만. 태블릿/데스크톱만 3D 지구본.
+  const isPhoneUi = usePhoneUi();
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
   const desktopSnapshotRef = useRef<{ layers: LayerPrefs; ultraLite: boolean } | null>(null);
   const compactWasActiveRef = useRef(false);
@@ -1447,6 +1452,7 @@ export function GlobeDashboard({
     showAis,
     showDisguisedVessels,
     showShippingLanes,
+    showLsibBoundary,
     showSubmarineCables,
     showSubmarineTunnels,
     showOilPipelines,
@@ -1612,6 +1618,7 @@ export function GlobeDashboard({
   const setShowAis = (v: boolean) => togglePref("showAis", v);
   const setShowDisguisedVessels = (v: boolean) => togglePref("showDisguisedVessels", v);
   const setShowShippingLanes = (v: boolean) => togglePref("showShippingLanes", v);
+  const setShowLsibBoundary = (v: boolean) => togglePref("showLsibBoundary", v);
   const setShowSubmarineCables = (v: boolean) => togglePref("showSubmarineCables", v);
   const setShowSubmarineTunnels = (v: boolean) => togglePref("showSubmarineTunnels", v);
   const setShowOilPipelines = (v: boolean) => togglePref("showOilPipelines", v);
@@ -1753,6 +1760,7 @@ export function GlobeDashboard({
   const econInsightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [theaterSidebarTab, setTheaterSidebarTab] = useState<TheaterSidebarTab>("news");
   const [regimeSelectedEpisodeId, setRegimeSelectedEpisodeId] = useState<string | null>(null);
+  const [disputeHotspotSelectedId, setDisputeHotspotSelectedId] = useState<string | null>(null);
   const [frictionEpisodeBrief, setFrictionEpisodeBrief] = useState<FrictionEpisode | null>(null);
   const [frictionActiveStageId, setFrictionActiveStageId] = useState<string | null>(null);
   const frictionEpisodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1766,6 +1774,7 @@ export function GlobeDashboard({
   const hubFocusMode = regionNavSelection?.focusMode ?? null;
   const historyImmersionActive = hubFocusMode === "regime";
   const westpacPulseActive = hubFocusMode === "westpac-pulse";
+  const disputesOverviewActive = hubFocusMode === "disputes";
   const showShipMovesLayer = showWeeklyShipMoves || westpacPulseActive;
   /** 목록·에피소드 공통 — 나가기 전까지 잠금 */
   const historyStoryLocked = historyImmersionActive;
@@ -2201,8 +2210,10 @@ export function GlobeDashboard({
 
   const bootReadyRef = useRef(false);
   useEffect(() => {
+    // 폰은 지구본을 mount하지 않으므로 globeReady가 영영 false — 부팅을 막지 않도록 준비된 것으로 간주.
+    const globeMountReady = globeReady || isPhoneUi;
     const progress = computeDashboardBootProgress({
-      globeReady,
+      globeReady: globeMountReady,
       isLoading,
       appDataLoadProgress,
     });
@@ -2211,7 +2222,7 @@ export function GlobeDashboard({
     if (
       !bootReadyRef.current &&
       progress >= 100 &&
-      globeReady &&
+      globeMountReady &&
       !isLoading
     ) {
       bootReadyRef.current = true;
@@ -2220,6 +2231,7 @@ export function GlobeDashboard({
   }, [
     appDataLoadProgress,
     globeReady,
+    isPhoneUi,
     isLoading,
     onBootProgress,
     onBootReady,
@@ -2491,6 +2503,7 @@ export function GlobeDashboard({
     globeTier: globeLod.tier,
     radiusDeg: pathRadiusDeg,
     showDisputeBoundaries: showAnyDisputeOverlay && globeReady,
+    showLsibBoundary: showLsibBoundary && globeReady,
     showShippingLanes,
     showSubmarineCables,
     showSubmarineTunnels,
@@ -2542,6 +2555,7 @@ export function GlobeDashboard({
 
   const {
     visibleDisputeBoundaries,
+    visibleLsibBoundary,
     visibleShipping,
     visibleCables,
     visibleOilPipelines,
@@ -2556,6 +2570,12 @@ export function GlobeDashboard({
     disputeOverviews,
     counts: staticCounts,
   } = staticLayers;
+
+  /** 국경·영토 분쟁 핫스팟 — disputes.json(실제 폴리곤) × dispute-overviews.json(한국어 개요) 매칭 실데이터 */
+  const disputeHotspots = useMemo<DisputeHotspotEntry[]>(
+    () => buildDisputeHotspots(data.disputes ?? [], disputeOverviews),
+    [data.disputes, disputeOverviews],
+  );
 
   const countryPolygonData = useMemo<PolygonLayerFeature[]>(() => {
     const withGeometry = (data.countries ?? []).filter((country) => Boolean(country.geometry));
@@ -3193,6 +3213,7 @@ export function GlobeDashboard({
   const rawGlobePaths = useMemo<TransportPath[]>(
     () => [
       ...visibleDisputeBoundaries,
+      ...visibleLsibBoundary,
       ...disputeZonePaths,
       ...frictionWarZonePaths,
       ...eastAsiaAdizPaths,
@@ -3228,6 +3249,7 @@ export function GlobeDashboard({
       shipMoveTrailPaths,
       visibleCables,
       visibleDisputeBoundaries,
+      visibleLsibBoundary,
       visibleGasPipelines,
       visibleOilPipelines,
       visibleSubseaPipelines,
@@ -6130,6 +6152,9 @@ export function GlobeDashboard({
     showShippingLanes,
     visibleShipping,
     setShowShippingLanes,
+    showLsibBoundary,
+    visibleLsibBoundary,
+    setShowLsibBoundary,
     showSubmarineCables,
     visibleCables,
     setShowSubmarineCables,
@@ -9029,6 +9054,17 @@ export function GlobeDashboard({
           setShipMovesSelectedId(null);
           setRegionNavSelection(null);
         }}
+        disputesOverviewOpen={disputesOverviewActive}
+        disputeHotspots={disputeHotspots}
+        disputeHotspotSelectedId={disputeHotspotSelectedId}
+        onSelectDisputeHotspot={(hotspot) => {
+          setDisputeHotspotSelectedId(hotspot.id);
+          flyTo(hotspot.center.lat, hotspot.center.lng, 0.95, 1400, { pitch: 45 });
+        }}
+        onDisputesOverviewClose={() => {
+          setDisputeHotspotSelectedId(null);
+          setRegionNavSelection(null);
+        }}
       />
 
       <NewsStreamProvider
@@ -9047,6 +9083,14 @@ export function GlobeDashboard({
         onPayloadChange={setNewsStreamPayload}
       >
         <div className="relative flex min-h-0 flex-1 flex-col">
+          {isPhoneUi ? (
+            <MobileHomeView
+              viewerMode={viewerMode}
+              onViewerModeChange={handleViewerModeChange}
+              labelLanguage={labelLanguage}
+              onLabelLanguageChange={setLabelLanguage}
+            />
+          ) : null}
       <section
         ref={mapSectionRef}
         id="map-globe-section"
@@ -9066,6 +9110,7 @@ export function GlobeDashboard({
           }}
         >
           <div className="absolute inset-0 z-10">
+          {!isPhoneUi ? (
           <PausedMapGlobeView
               interactionPaused={showLeftPanel}
               ref={globeRef}
@@ -9742,6 +9787,12 @@ export function GlobeDashboard({
                 if (path.kind === "subsea-pipeline") return tonedPathColors["subsea-pipeline"];
                 if (FLOW_PATH_KINDS.has(path.kind)) return INTEL_MISSILE_ARC;
                 if (path.kind === "dispute-boundary") return "rgba(251, 191, 36, 0.92)";
+                if (path.kind === "lsib-boundary") {
+                  // RANK 1(공식 국경)=슬레이트 실선 · RANK 2/3(분쟁·특수선)=붉은 점선
+                  return (path.scalerank ?? 1) >= 2
+                    ? "rgba(244, 63, 94, 0.88)"
+                    : "rgba(148, 163, 184, 0.6)";
+                }
                 if (path.kind === "dispute-zone") {
                   const dispute = disputeFromPath(path);
                   if (dispute) return getDisputeOutlineColor(dispute);
@@ -9828,6 +9879,7 @@ export function GlobeDashboard({
                     : 1.05;
                 }
                 if (path.kind === "dispute-boundary") return 0.52;
+                if (path.kind === "lsib-boundary") return (path.scalerank ?? 1) >= 2 ? 0.85 : 0.55;
                 if (path.kind === "dispute-zone") return 1.35;
                 if (path.kind === "dispute-hatch") return 0.55;
                 if (path.kind === "conflict-hatch") return 0.62;
@@ -9896,6 +9948,9 @@ export function GlobeDashboard({
                 if (path.kind === "ukraine-ru-claim" || path.kind === "ukraine-ua-claim") {
                   return 0.22;
                 }
+                if (path.kind === "lsib-boundary") {
+                  return (path.scalerank ?? 1) >= 2 ? 0.3 : 0;
+                }
                 return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
               }}
               pathDashGap={(path: TransportPath) => {
@@ -9907,6 +9962,9 @@ export function GlobeDashboard({
                 if (path.kind === "ua-advance" || path.kind === "ru-advance") return 0.18;
                 if (path.kind === "ukraine-ru-claim" || path.kind === "ukraine-ua-claim") {
                   return 0.14;
+                }
+                if (path.kind === "lsib-boundary") {
+                  return (path.scalerank ?? 1) >= 2 ? 0.16 : 0;
                 }
                 return FLOW_PATH_KINDS.has(path.kind) ? 0.12 : 0;
               }}
@@ -9952,6 +10010,21 @@ export function GlobeDashboard({
                   </div>
                 `;
                 }
+                if (path.kind === "lsib-boundary") {
+                  const status = path.meta?.status ? String(path.meta.status) : "";
+                  const rank = path.scalerank ?? 1;
+                  const rankLine =
+                    rank >= 2
+                      ? escapeHtml(lang === "en" ? "Disputed / special line" : "분쟁·특수선")
+                      : escapeHtml(lang === "en" ? "Official boundary" : "공식 국경선");
+                  return `
+                    <div style="max-width: 280px">
+                      <strong>${escapeHtml(path.name || pathKindLabel(path.kind, lang))}</strong><br/>
+                      ${rankLine}${status ? `<br/><span style="opacity:0.8">${escapeHtml(status)}</span>` : ""}
+                      <br/><span style="opacity:0.55;font-size:10px">LSIB v11.4 · US Dept. of State</span>
+                    </div>
+                  `;
+                }
                 const kindLabel = pathKindLabel(path.kind, lang);
                 const lengthLabel =
                   path.lengthKm && Number.isFinite(path.lengthKm)
@@ -9975,6 +10048,7 @@ export function GlobeDashboard({
               onPathClick={(path: TransportPath) => handlePathClick(path)}
               onGlobeClick={(coords: { lat: number; lng: number }) => handleGlobeClick(coords)}
             />
+          ) : null}
           {loadError && (
             <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-auto sm:bottom-6 sm:max-w-md">
               <LoadErrorBanner message={loadError} compact />

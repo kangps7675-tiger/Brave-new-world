@@ -26,6 +26,7 @@ const FILE_BY_LAYER: Record<ViewportPathLayer, string> = {
   "gas-pipelines": "gas-pipelines.json",
   "subsea-pipelines": "subsea-pipelines.json",
   "dispute-boundaries": "dispute-boundaries.json",
+  "lsib-boundaries": "lsib-boundary.json",
 };
 
 const DEFAULT_MAX: Record<ViewportPathLayer, Record<GlobeLodTier, number>> = {
@@ -47,6 +48,14 @@ const DEFAULT_MAX: Record<ViewportPathLayer, Record<GlobeLodTier, number>> = {
     regional: 140,
     near: 220,
     village: 320,
+  },
+  // LSIB(미 국무부) — 395개 경계 레코드가 530개 라인 세그먼트로 분해됨. 전역에서도 나라 윤곽이 보이게 상한을 넉넉히 둠.
+  "lsib-boundaries": {
+    global: 260,
+    continent: 400,
+    regional: 530,
+    near: 530,
+    village: 530,
   },
 };
 

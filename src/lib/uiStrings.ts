@@ -556,6 +556,14 @@ const UI = {
     ko: "11대 현장",
     en: "11 sites",
   },
+  disputesOverviewNav: {
+    ko: "국경·영토 분쟁 (LSIB)",
+    en: "Territorial disputes (LSIB)",
+  },
+  disputesOverviewNavHint: {
+    ko: "실데이터 56건",
+    en: "56 curated sites",
+  },
   westpacShipMovesTitle: {
     ko: "주간 함선 이동 기록",
     en: "Weekly ship movement record",
