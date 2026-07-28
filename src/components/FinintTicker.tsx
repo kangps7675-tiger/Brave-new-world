@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 export interface FreightIndex {
   symbol: string;
@@ -61,20 +62,28 @@ export function FinintTicker() {
     };
   }, []);
 
+  const light = useBasemapTone() === "light";
+
   return (
     <section
-      className="overflow-hidden rounded-xl border border-sky-300/15 bg-[#071225]/85 shadow-lg backdrop-blur-md"
+      className="finint-ticker tone-chip overflow-hidden rounded-xl border border-sky-300/15 bg-[#071225]/85 shadow-lg backdrop-blur-md"
       aria-labelledby="finint-ticker-title"
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+      <div
+        className={`flex items-center justify-between border-b px-3 py-2 ${
+          light ? "border-slate-300/50" : "border-white/10"
+        }`}
+      >
         <div>
           <h2
             id="finint-ticker-title"
-            className="text-xs font-semibold tracking-wide text-sky-50"
+            className={`text-xs font-semibold tracking-wide ${
+              light ? "text-slate-800" : "text-sky-50"
+            }`}
           >
             해운 시장(운임 대리지표)
           </h2>
-          <p className="mt-0.5 text-[10px] text-slate-500">
+          <p className={`mt-0.5 text-[10px] ${light ? "text-slate-600" : "text-slate-500"}`}>
             등락은 전일 종가 대비입니다. 실시간 운임 지수가 아닙니다.
           </p>
         </div>

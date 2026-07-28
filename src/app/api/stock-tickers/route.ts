@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import { logApiRoute } from "@/lib/apiRouteLog";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { fetchStockTickers, stubStockTickers } from "@/lib/stockTickersFetch";
 import { FRED_ATTRIBUTION, hasFredApiKey } from "@/lib/fred";
@@ -16,7 +18,10 @@ export const dynamic = "force-dynamic";
 const TTL_MS = 12 * 60 * 1000;
 const STOCK_CDN = publicCacheHeaders(CDN_CACHE.stock);
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.stock);
+  if (limited) return limited;
+
   try {
     if (isApiStubMode()) {
       return NextResponse.json(
@@ -46,12 +51,14 @@ export async function GET() {
       { headers: STOCK_CDN },
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : "stock-tickers failed";
+    logApiRoute("/api/stock-tickers", "error", "fetch_failed", { message });
     return NextResponse.json(
       {
         receivedAt: new Date().toISOString(),
         cached: false,
         tickers: [],
-        error: error instanceof Error ? error.message : "stock-tickers failed",
+        error: message,
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

@@ -129,16 +129,29 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
-   * A급 속보(alert 히어로) 타전 — SOS 모스 + 스태틱
-   * https://freesound.org/s/395815/ · daytripper · CC BY 4.0
+   * A급 속보(alert 히어로) 타전 — 모스 전보
+   * https://freesound.org/s/553739/ · christislord · CC0
    */
   "hero-breaking": {
     eventId: "hero-breaking",
-    freesoundQuery: "SOS Mayday Morse Code shortwave static",
-    freesoundId: 395815,
-    volume: 0.34,
+    freesoundQuery: "morse code telegraph radio cw",
+    freesoundId: 553739,
+    volume: 0.42,
     category: "conflict",
-    note: "FS#395815 daytripper SOS Mayday Morse · BY 4.0 · A급 속보 타전",
+    note: "FS#553739 christislord John316MorseCode · CC0 · 등불/양피지 속보 타전",
+  },
+
+  /**
+   * 속보·양피지 타전 깔개 — 어두운 임팩트 (모스와 겹침 · 초반 쾅 강조)
+   * https://freesound.org/s/587014/ · Victor_Natas · CC BY 4.0
+   */
+  "breaking-dark-bed": {
+    eventId: "breaking-dark-bed",
+    freesoundQuery: "something dark ominous drone hit",
+    freesoundId: 587014,
+    volume: 0.92,
+    category: "conflict",
+    note: "FS#587014 Victor_Natas Something dark · BY 4.0 · 모스와 겹침 · 초반 임팩트 크게",
   },
 
   /**
@@ -374,14 +387,242 @@ export const AUDIO_MANIFEST = {
     note: "FS#369880 SpliceSound Alarm clock beep · VIX 경고",
   },
 
-  /** 유가 급등 — 산업 압력/파이프 히스 */
+  /** 유가 급등 · LNG 터미널 클릭 — 산업 압력/파이프 히스 (CC0) */
   "oil-spike": {
     eventId: "oil-spike",
     freesoundQuery: "steam pipe pressure release hiss short",
     freesoundId: 234782,
     volume: 0.3,
     category: "economy",
-    note: "FS#234782 wubitog Steam/hiss · 배관 압력 해제",
+    note: "FS#234782 wubitog Steam/hiss · CL=F/BZ=F SPIKE + LNG 클릭 · CC0",
+  },
+
+  // ── Infra / mobility click oneshots ─────────────────────────────
+
+  /** 민간기 겹침 A — 항공기 패스 */
+  "aircraft-civil-pass": {
+    eventId: "aircraft-civil-pass",
+    freesoundQuery: "airplane flyby pass",
+    freesoundId: 424831,
+    volume: 0.28,
+    category: "ambient",
+    note: "FS#424831 sctang Airplane · CC0 · 민간기 클릭(겹침)",
+  },
+  /** 민간기 겹침 B — PA */
+  "aircraft-civil-pa": {
+    eventId: "aircraft-civil-pa",
+    freesoundQuery: "airplane cabin pa announcement",
+    freesoundId: 177560,
+    volume: 0.2,
+    category: "ambient",
+    note: "FS#177560 festivus31 Airplane PA · CC0 · 민간기 클릭(겹침)",
+  },
+  /** 군용기 */
+  "aircraft-military": {
+    eventId: "aircraft-military",
+    freesoundQuery: "jet engine start military",
+    freesoundId: 789950,
+    volume: 0.34,
+    category: "conflict",
+    note: "FS#789950 DerrickMckinnon Starting of jet engine · CC-BY",
+  },
+  /** AIS 상선 */
+  "ais-merchant": {
+    eventId: "ais-merchant",
+    freesoundQuery: "riverside water boat ambient",
+    freesoundId: 843948,
+    volume: 0.26,
+    category: "ambient",
+    note: "FS#843948 freekit Riverside · CC-BY · AIS 상선 클릭",
+  },
+  /** 항모 클릭 저음 깔개 (갑판 앰비언트 아래) */
+  "carrier-radio-bed": {
+    eventId: "carrier-radio-bed",
+    freesoundQuery: "carrier frequency radio hum",
+    freesoundId: 806273,
+    volume: 0.14,
+    category: "ambient",
+    note: "FS#806273 R2dxu Carrier frequency · CC0 · 항모 클릭 저음",
+  },
+  /** 군용 잠수함 */
+  "mil-submarine": {
+    eventId: "mil-submarine",
+    freesoundQuery: "sailing vessel at sea ambient",
+    freesoundId: 177036,
+    volume: 0.28,
+    category: "conflict",
+    note: "FS#177036 Trebblofang sailing-vessel-at-sea · CC0",
+  },
+  /** 위장·다크플리트 */
+  "disguised-vessel": {
+    eventId: "disguised-vessel",
+    freesoundQuery: "rescue vessel engine",
+    freesoundId: 510902,
+    volume: 0.26,
+    category: "conflict",
+    note: "FS#510902 Lydmakeren Rescue_vessel_engine · CC0",
+  },
+  /** 정찰위성 */
+  "recon-satellite": {
+    eventId: "recon-satellite",
+    freesoundQuery: "NOAA satellite telemetry beep",
+    freesoundId: 189860,
+    volume: 0.24,
+    category: "conflict",
+    note: "FS#189860 saphe NOAA 19 satellite · CC-BY",
+  },
+  /** 공항 */
+  "airport-walla": {
+    eventId: "airport-walla",
+    freesoundQuery: "airport terminal walla ambient",
+    freesoundId: 113606,
+    volume: 0.3,
+    category: "ambient",
+    note: "FS#113606 costaipsa WALLA_airport · CC-BY",
+  },
+  /** 초크포인트 */
+  "chokepoint-drone": {
+    eventId: "chokepoint-drone",
+    freesoundQuery: "low drone tension ambient",
+    freesoundId: 44823,
+    volume: 0.22,
+    category: "ambient",
+    note: "FS#44823 tim.kahn dronnee · CC-BY",
+  },
+  /** 물류 허브 */
+  "logistics-hub-crane": {
+    eventId: "logistics-hub-crane",
+    freesoundQuery: "crane ship unloading sand",
+    freesoundId: 130017,
+    volume: 0.3,
+    category: "ambient",
+    note: "FS#130017 abuurman Crane ship unloading · CC-BY",
+  },
+  /** 항로 */
+  "shipping-lane-sea": {
+    eventId: "shipping-lane-sea",
+    freesoundQuery: "sea cliffs waves dramatic",
+    freesoundId: 693576,
+    volume: 0.24,
+    category: "ambient",
+    note: "FS#693576 Philip_Goddard Sea dramatics · CC-BY-NC",
+  },
+  /** 철도 */
+  "rail-freight": {
+    eventId: "rail-freight",
+    freesoundQuery: "freight train pass rail clacks",
+    freesoundId: 455775,
+    volume: 0.32,
+    category: "ambient",
+    note: "FS#455775 kyles freight train pass · CC0",
+  },
+  /** 해저터널 */
+  "submarine-tunnel-ambience": {
+    eventId: "submarine-tunnel-ambience",
+    freesoundQuery: "tunnel traffic ambience",
+    freesoundId: 474404,
+    volume: 0.26,
+    category: "ambient",
+    note: "FS#474404 klankbeeld tunnel traffic · CC-BY",
+  },
+  /** 해저 파이프라인 */
+  "subsea-pipeline": {
+    eventId: "subsea-pipeline",
+    freesoundQuery: "water pipe flow",
+    freesoundId: 554314,
+    volume: 0.24,
+    category: "ambient",
+    note: "FS#554314 finneganmilla water pipe · CC0",
+  },
+  /** 원전 */
+  "nuclear-plant": {
+    eventId: "nuclear-plant",
+    freesoundQuery: "energy plant inside atmo",
+    freesoundId: 530974,
+    volume: 0.22,
+    category: "ambient",
+    note: "FS#530974 TimoSchmied Wind energy plant · CC-BY · 원전/발전",
+  },
+  /** 석유·가스 플랜트 */
+  "oil-gas-plant": {
+    eventId: "oil-gas-plant",
+    freesoundQuery: "industrial plant ambient",
+    freesoundId: 58823,
+    volume: 0.26,
+    category: "economy",
+    note: "FS#58823 ERH ab6b industrial · CC-BY-NC",
+  },
+  /** 석탄 광산·채굴·터미널 */
+  "coal-mining": {
+    eventId: "coal-mining",
+    freesoundQuery: "open pit mining plant",
+    freesoundId: 410422,
+    volume: 0.28,
+    category: "economy",
+    note: "FS#410422 jb_stems Open-pit Mining · CC-BY-NC",
+  },
+  /** 철광·철강·시멘트·화학 */
+  "heavy-industry": {
+    eventId: "heavy-industry",
+    freesoundQuery: "scrapyard industrial ambient",
+    freesoundId: 157714,
+    volume: 0.28,
+    category: "economy",
+    note: "FS#157714 geogblog Solways Scrapyard · CC0",
+  },
+  /** 해저케이블 */
+  "submarine-cable": {
+    eventId: "submarine-cable",
+    freesoundQuery: "digital data bolts glitch short",
+    freesoundId: 829569,
+    volume: 0.22,
+    category: "ambient",
+    note: "FS#829569 tboneaudio Data Bolts · CC0",
+  },
+  /** 군사기지 겹침 A — 헬기 */
+  "mil-base-heli": {
+    eventId: "mil-base-heli",
+    freesoundQuery: "helicopter pass",
+    freesoundId: 741812,
+    volume: 0.26,
+    category: "conflict",
+    note: "FS#741812 inspire153 Helicopter · CC0 · 기지 클릭(겹침)",
+  },
+  /** 군사기지 겹침 B — 군중/행진 */
+  "mil-base-crowd": {
+    eventId: "mil-base-crowd",
+    freesoundQuery: "military crowd marching chant",
+    freesoundId: 768932,
+    volume: 0.2,
+    category: "conflict",
+    note: "FS#768932 jerry.berumen military marching · CC-BY · 기지 클릭(겹침)",
+  },
+  /** 군사기지 겹침 C — 기갑 */
+  "mil-base-armor": {
+    eventId: "mil-base-armor",
+    freesoundQuery: "tank moving armor",
+    freesoundId: 329800,
+    volume: 0.24,
+    category: "conflict",
+    note: "FS#329800 greatmganga t26_moving · CC0 · 기지 클릭(겹침)",
+  },
+  /** 미사일 사일로 */
+  "missile-silo": {
+    eventId: "missile-silo",
+    freesoundQuery: "horror ambience low tense",
+    freesoundId: 135836,
+    volume: 0.22,
+    category: "conflict",
+    note: "FS#135836 klankbeeld horror ambience 14 · CC-BY",
+  },
+  /** 탄도미사일 통과 */
+  "ballistic-travel": {
+    eventId: "ballistic-travel",
+    freesoundQuery: "ballistic missile travel whoosh",
+    freesoundId: 501328,
+    volume: 0.36,
+    category: "conflict",
+    note: "FS#501328 Asteroiderer ballistic_travel · CC0 · NEPTUN 탄도·시험장",
   },
 
   /** 항만 레이어 앰비언스 */

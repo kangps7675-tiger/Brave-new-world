@@ -19,8 +19,8 @@ type DisputeInput = Parameters<typeof disputeMatchesWarDiplomaticLayers>[0] &
   Parameters<typeof isCombatHazard>[0] &
   Parameters<typeof resolveDisputeCenter>[0] & { tension?: string };
 
-export type ConflictAmbient = "frontline" | "taiwan-tension" | "tension" | "carrier" | null;
-export type EconomyAmbient = "port" | "construction" | "datacenter" | "pipeline" | null;
+export type ConflictAmbient = "frontline" | "taiwan-tension" | "tension" | null;
+export type EconomyAmbient = "port" | "lng" | "construction" | "datacenter" | "pipeline" | null;
 
 type AmbientSoundInputs = {
   isEconomyViewer: boolean;
@@ -34,8 +34,6 @@ type AmbientSoundInputs = {
   showAnyDisputeOverlay: boolean;
   showWarZones: boolean;
   showDiplomaticTension: boolean;
-  visibleUsCarriers: ViewCenter[];
-  showUsCarriers: boolean;
   showOilPipelines: boolean;
   showGasPipelines: boolean;
   showAiDataCenters: boolean;
@@ -50,7 +48,9 @@ type AmbientSoundInputs = {
  * 앰비언트 사운드 셀렉터 — GlobeDashboard에서 추출 (분리 2단계).
  * 카메라·레이어 상태로 "지금 어떤 배경음이 맞는가"만 계산한다. 재생은 호출측.
  *
- * 우선순위: frontline > taiwan-tension > tension > carrier (지정학) / 지경학은 별도.
+ * 우선순위: frontline > taiwan-tension > tension (지정학)
+ * 항모 갑판은 클릭 전용 — 여기 포함하지 않음.
+ * 지경학: pipeline → datacenter → port → lng(미세) → construction
  */
 export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
   conflictAmbient: ConflictAmbient;
@@ -67,8 +67,6 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
     showAnyDisputeOverlay,
     showWarZones,
     showDiplomaticTension,
-    visibleUsCarriers,
-    showUsCarriers,
     showOilPipelines,
     showGasPipelines,
     showAiDataCenters,
@@ -140,40 +138,21 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
     taiwanTension,
   ]);
 
-  /** 미 항모가 뷰에 있으면 갑판 앰비언스 */
-  const carrier = useMemo(() => {
-    if (isEconomyViewer || frontline || taiwanTension || tension || !showUsCarriers) {
-      return false;
-    }
-    if (visibleUsCarriers.length === 0) return false;
-    const radiusDeg = VIEWPORT_RADIUS_BY_TIER[globeTier] + 4;
-    return visibleUsCarriers.some((c) =>
-      isCenterInView({ lat: c.lat, lng: c.lng }, layerViewState, radiusDeg),
-    );
-  }, [
-    frontline,
-    globeTier,
-    isEconomyViewer,
-    layerViewState,
-    showUsCarriers,
-    taiwanTension,
-    tension,
-    visibleUsCarriers,
-  ]);
+  /** 미 항모 — 클릭 전용 (패스오버 앰비언트 제거) */
 
   const conflictAmbient = useMemo((): ConflictAmbient => {
     if (frontline) return "frontline";
     if (taiwanTension) return "taiwan-tension";
     if (tension) return "tension";
-    if (carrier) return "carrier";
     return null;
-  }, [carrier, frontline, taiwanTension, tension]);
+  }, [frontline, taiwanTension, tension]);
 
   const economyAmbient = useMemo((): EconomyAmbient => {
     if (!isEconomyViewer) return null;
     if (showOilPipelines || showGasPipelines) return "pipeline";
     if (showAiDataCenters || showInternetExchanges) return "datacenter";
-    if (showPorts || showShippingLanes || showLngTerminals) return "port";
+    if (showPorts || showShippingLanes) return "port";
+    if (showLngTerminals) return "lng";
     if (showEconomicCenters) return "construction";
     return null;
   }, [

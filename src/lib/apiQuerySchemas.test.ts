@@ -5,6 +5,9 @@ import {
   firmsFiresQuerySchema,
   gdeltQuerySchema,
   parseSearchParams,
+  shipMovementsQuerySchema,
+  stockReactionQuerySchema,
+  viewportPathsQuerySchema,
 } from "@/lib/apiQuerySchemas";
 import { PRIMARY_LIVE_SOURCES, catalogCaption, getSourceNote } from "@/data/sourceCatalog";
 
@@ -91,5 +94,50 @@ describe("apiQuerySchemas", () => {
     const result = parseSearchParams(new URLSearchParams(), gdeltQuerySchema);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.theme).toBeUndefined();
+  });
+
+  it("parses viewport-paths defaults", () => {
+    const result = parseSearchParams(
+      new URLSearchParams({ lat: "10", lng: "120" }),
+      viewportPathsQuerySchema,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.layer).toBe("railroads");
+      expect(result.data.radius).toBe(16);
+    }
+  });
+
+  it("rejects invalid viewport lat", () => {
+    expect(
+      parseSearchParams(
+        new URLSearchParams({ lat: "999", lng: "0" }),
+        viewportPathsQuerySchema,
+      ).ok,
+    ).toBe(false);
+  });
+
+  it("parses ship-movements and rejects bad week", () => {
+    expect(
+      parseSearchParams(
+        new URLSearchParams({ view: "map", lang: "en" }),
+        shipMovementsQuerySchema,
+      ).ok,
+    ).toBe(true);
+    expect(
+      parseSearchParams(
+        new URLSearchParams({ week: "not-a-date" }),
+        shipMovementsQuerySchema,
+      ).ok,
+    ).toBe(false);
+  });
+
+  it("parses stock reaction query", () => {
+    const result = parseSearchParams(
+      new URLSearchParams({ ageMinutes: "30" }),
+      stockReactionQuerySchema,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.ageMinutes).toBe(30);
   });
 });

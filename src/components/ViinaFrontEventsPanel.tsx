@@ -38,7 +38,7 @@ export function ViinaFrontEventsPanel({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-1 py-2">
+      <div className="intel-scroll-y min-h-0 flex-1 px-1 py-2">
         {loading ? (
           <p className="py-12 text-center text-sm text-slate-500">VIINA 전선 데이터 동기화 중…</p>
         ) : events.length === 0 ? (

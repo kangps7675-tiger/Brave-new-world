@@ -392,6 +392,27 @@ const UI = {
     en: "Financial Intelligence — energy, logistics, lanes, markets",
   },
   welcomeLetterCta: { ko: "편지를 접고 신세계로", en: "Fold the letter — enter the New World" },
+  welcomeBriefBody: {
+    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대입니다. GEOINT와 FININT 중 어느 창으로 들어설지, 다음에서 고르십시오.",
+    en: "An observatory where war and profit share one screen. Next, choose which window to open — GEOINT or FININT.",
+  },
+  welcomeBriefQuote: {
+    ko: "\"보이는 모든 것은 현재 벌어지는 실제 상황입니다.\"",
+    en: "\"Everything you see is a real situation unfolding now.\"",
+  },
+  welcomeBriefCta: {
+    ko: "[ 문을 열고 신세계로 ]",
+    en: "[ OPEN THE DOOR — ENTER ]",
+  },
+  welcomeBriefReopen: {
+    ko: "환영 메시지 다시 보기",
+    en: "Read the welcome again",
+  },
+  welcomeLetterReopen: {
+    ko: "환영 편지 읽기",
+    en: "Read the welcome letter",
+  },
+
   hubBriefCta: { ko: "편지를 접기", en: "Fold the letter" },
   entryCautionMustRead: { ko: "반드시 읽어주세요", en: "Please read this carefully" },
   entryCautionTitle: {
@@ -417,13 +438,13 @@ const UI = {
   },
   entryCautionSoundLabel: { ko: "소리", en: "Sound" },
   entryCautionSoundBody: {
-    ko: "체크박스를 켠다고 바로 소리가 나지는 않습니다. 레이어는 ‘그 위의 소리가 날 수 있게’ 조건을 여는 것이고, 실제로는 카메라가 해당 지역·이벤트에 들어올 때 자동으로 납니다. 공습 사이렌은 칩/버튼으로 지역을 이동할 때만 울립니다. 이어폰을 쓰시거나, 원치 않으면 아래에서 소리를 꺼 주세요. 이후에도 벨 버튼으로 언제든 끌 수 있습니다.",
-    en: "Turning a checkbox on does not play sound by itself. Layers only allow sound when you are over that area — audio starts when the camera enters the region or event. Air-raid sirens play only when you fly via the alert chip/button. Use headphones, or mute below. You can toggle the bell anytime afterward.",
+    ko: "체크박스만 켠다고 바로 소리가 나지는 않습니다. 전장·긴장 앰비언트는 카메라가 해당 지역에 들어올 때, 공항·항모·선박·파이프 등 인프라는 지도에서 누를 때 납니다. 공습 사이렌은 칩/버튼 fly 전용입니다. 이어폰을 쓰시거나, 원치 않으면 아래에서 소리를 꺼 주세요.",
+    en: "A checkbox alone does not play sound. Theater/tension ambients start when the camera enters the area; airports, carriers, ships, pipelines and other infrastructure play when you click them on the map. Air-raid sirens play only on alert-chip fly. Use headphones, or mute below.",
   },
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나나요", en: "When sound plays" },
   entryCautionSoundWhen: {
-    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): 줌 LOD — 멀리 포격/짧은폭격 · near 이하 총성+포격+드론 연속(near 이탈까지)\n• 대만해협: 시계 틱 긴장음 · 한반도/고긴장: rumble\n• 항모 갑판: 미 항모가 화면 안에 있을 때\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > 경제중심 레이어\n• 티커·모드 전환·일반 클릭으로는 소리가 나지 않습니다",
-    en: "• Air-raid siren: only when you fly via the alert chip/button\n• SOS Morse for S-grade breaking only (A = banner silent · Tier3 alone cannot be S)\n• NEPTUN / FIRMS combat: layer ON + event enters the viewport\n• Frontline (Ukraine / Middle East): LOD — far artillery/short blasts · at near-or-closer continuous gunfire+artillery+drone until you leave near\n• Taiwan Strait: ticking tension · Korea / high-tension: rumble\n• Carrier deck: when a US carrier is in view\n• Economy ambient: pipeline > datacenter · port · economic hubs\n• Ticker, mode switch, and normal UI clicks stay silent",
+    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): 줌 LOD — 멀리 포격/짧은폭격 · near 이하 총성+포격+드론 연속\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
+    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline (Ukraine / Middle East): LOD gunfire/artillery/drone\n• Taiwan Strait tick · Korea / high-tension rumble\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
     ko: "본 피드는 공개 소스·와이어·위성/선박 오픈데이터를 가공한 상황판입니다. 공식 경보 대체가 아니며, 무단 반출·왜곡 시 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
@@ -562,12 +583,12 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
-  worldTensionTitle: { ko: "세계 긴장도", en: "World tension" },
+  worldTensionTitle: { ko: "긴장지수 · GTI", en: "Tension · GTI" },
   worldTensionDeltaUp: { ko: "어제보다 {n}점 올라감", en: "up {n} from yesterday" },
   worldTensionDeltaDown: { ko: "어제보다 {n}점 내려감", en: "down {n} from yesterday" },
   worldTensionHint: {
-    ko: "전 세계 분쟁·군사 활동을 0~100으로 요약한 점수 (100에 가까울수록 위험)",
-    en: "Global conflict and military activity as a 0–100 score (closer to 100 = more dangerous)",
+    ko: "글로벌 긴장지수(GTI) — 전 세계 분쟁·군사 활동을 0~100으로 요약한 점수(GTS). 원유 티커(WTI)와 무관합니다.",
+    en: "Global Tension Index (GTI) — global conflict as a 0–100 score (GTS). Unrelated to WTI crude oil.",
   },
   westpacShipMovesNav: {
     ko: "서태평양 주간 함선 이동기",

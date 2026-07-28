@@ -4,7 +4,7 @@ import { forwardRef, memo } from "react";
 import { MapGlobeView } from "@/components/MapGlobeView";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 
-type PausedMapGlobeProps = React.ComponentProps<typeof MapGlobeView> & {
+export type PausedMapGlobeProps = React.ComponentProps<typeof MapGlobeView> & {
   interactionPaused: boolean;
 };
 

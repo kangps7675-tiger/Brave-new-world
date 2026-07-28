@@ -37,4 +37,7 @@ if (needsBuild) {
   console.log("[ci-deploy] .open-next present — skipping rebuild");
 }
 
+/** stub OFF 배포 시 스펙·체크리스트 게이트 (API_STUB_MODE=false) */
+run("node", [path.join(__dirname, "verify-stub-off-gate.js")]);
+
 run("opennextjs-cloudflare", ["deploy"]);

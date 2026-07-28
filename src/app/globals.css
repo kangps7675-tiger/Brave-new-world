@@ -190,20 +190,22 @@ main[data-ui-lang="en"]
 
 /*
  * 지형(밝은 벡터) 베이스맵 — 어두운 지도용 검정 후광은 밝은 배경에서
- * 글자를 뭉개므로 흰 후광으로 뒤집는다. 색상 자체는 JS 톤 팔레트가 담당.
+ * 글자를 뭉개므로 밝은 후광 + 통일 슬레이트 잉크(JS 톤 팔레트)로 대비.
  */
 [data-basemap-tone="light"] .city-label-marker {
   text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.98),
-    0 1px 3px rgba(255, 255, 255, 0.92),
-    0 0 10px rgba(255, 255, 255, 0.7);
+    0 0 2px rgba(255, 255, 255, 1),
+    0 0 4px rgba(255, 255, 255, 0.95),
+    0 1px 3px rgba(255, 255, 255, 0.9),
+    0 0 10px rgba(248, 250, 252, 0.85);
 }
 
 [data-basemap-tone="light"] .ua-settlement-label {
   text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.98),
+    0 0 2px rgba(255, 255, 255, 1),
+    0 0 4px rgba(255, 255, 255, 0.95),
     0 1px 3px rgba(255, 255, 255, 0.9),
-    0 0 8px rgba(255, 255, 255, 0.65) !important;
+    0 0 8px rgba(248, 250, 252, 0.8) !important;
 }
 
 .welcome-parchment {
@@ -588,18 +590,226 @@ main[data-ui-lang="en"]
 }
 
 /*
- * 지형(밝은 벡터) 베이스맵 — 반투명 다크 패널이 밝은 지도에 씻겨 경계가 사라짐.
- * 불투명도를 올리고 시안 테두리를 흰 테두리로 바꿔 지도와 분리한다.
+ * 지형(밝은 벡터) 베이스맵 — 크롬·패널·칩 전체 톤.
+ * 글자: 통일 슬레이트 잉크. 패널: 따뜻한 페이퍼. 성격별 액센트만 색으로 구분.
  */
 [data-basemap-tone="light"] {
-  --panel: rgba(12, 17, 24, 0.92);
-  --panel-border: rgba(255, 255, 255, 0.3);
+  --foreground: #1e293b;
+  --panel: rgba(255, 252, 248, 0.94);
+  --panel-border: rgba(30, 41, 59, 0.18);
+  --accent: rgba(15, 118, 110, 0.9);
+  --tone-ink: #1e293b;
+  --tone-ink-muted: #475569;
+  --tone-ink-faint: #64748b;
+  --tone-panel: rgba(255, 252, 248, 0.95);
+  --tone-panel-strong: rgba(255, 255, 255, 0.98);
+  --tone-panel-shadow: 0 14px 40px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --tone-geo: #0e7490;
+  --tone-econ: #047857;
+  --tone-alert: #be123c;
+  --tone-warn: #b45309;
+  --tone-info: #1d4ed8;
+  --tone-mil: #0f766e;
 }
 
 [data-basemap-tone="light"] .intel-panel {
-  box-shadow:
-    0 18px 48px rgba(8, 20, 40, 0.32),
-    0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: var(--tone-ink);
+  background: var(--tone-panel);
+  border-color: var(--panel-border);
+  box-shadow: var(--tone-panel-shadow);
+  backdrop-filter: blur(18px) saturate(1.05);
+}
+
+[data-basemap-tone="light"] .intel-panel .text-sky-50,
+[data-basemap-tone="light"] .intel-panel .text-sky-100,
+[data-basemap-tone="light"] .intel-panel .text-sky-100\/50,
+[data-basemap-tone="light"] .intel-panel .text-sky-100\/65,
+[data-basemap-tone="light"] .intel-panel .text-sky-100\/90,
+[data-basemap-tone="light"] .intel-panel .text-sky-200\/70,
+[data-basemap-tone="light"] .intel-panel .text-slate-100,
+[data-basemap-tone="light"] .intel-panel .text-slate-200,
+[data-basemap-tone="light"] .intel-panel .text-slate-300 {
+  color: var(--tone-ink) !important;
+}
+
+[data-basemap-tone="light"] .intel-panel .text-slate-400,
+[data-basemap-tone="light"] .intel-panel .text-slate-500,
+[data-basemap-tone="light"] .intel-panel .text-slate-600,
+[data-basemap-tone="light"] .intel-panel .text-sky-100\/65 {
+  color: var(--tone-ink-muted) !important;
+}
+
+[data-basemap-tone="light"] .intel-panel .border-slate-800,
+[data-basemap-tone="light"] .intel-panel .border-slate-800\/90,
+[data-basemap-tone="light"] .intel-panel .border-slate-700\/80,
+[data-basemap-tone="light"] .intel-panel .bg-black\/25,
+[data-basemap-tone="light"] .intel-panel .bg-black\/20,
+[data-basemap-tone="light"] .intel-panel .bg-slate-950\/30,
+[data-basemap-tone="light"] .intel-panel .bg-slate-900\/40 {
+  border-color: rgba(30, 41, 59, 0.14) !important;
+  background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+/* 상단 HoverNav — 페이퍼 크롬 + 통일 잉크 */
+[data-basemap-tone="light"] #app-hover-nav .rounded-2xl,
+[data-basemap-tone="light"] #app-hover-nav .rounded-b-2xl {
+  background: var(--tone-panel-strong) !important;
+  border-color: rgba(30, 41, 59, 0.16) !important;
+  box-shadow: var(--tone-panel-shadow) !important;
+  color: var(--tone-ink);
+}
+
+[data-basemap-tone="light"] #app-hover-nav input,
+[data-basemap-tone="light"] #app-hover-nav button,
+[data-basemap-tone="light"] #app-hover-nav .text-sky-50\/90,
+[data-basemap-tone="light"] #app-hover-nav .text-sky-50,
+[data-basemap-tone="light"] #app-hover-nav .text-emerald-50\/90,
+[data-basemap-tone="light"] #app-hover-nav .text-emerald-50,
+[data-basemap-tone="light"] #app-hover-nav .text-sky-100\/40,
+[data-basemap-tone="light"] #app-hover-nav .text-emerald-100\/40 {
+  color: var(--tone-ink) !important;
+}
+
+[data-basemap-tone="light"] #app-hover-nav input::placeholder {
+  color: var(--tone-ink-faint) !important;
+  opacity: 0.85;
+}
+
+[data-basemap-tone="light"] #app-hover-nav .text-sky-200\/50,
+[data-basemap-tone="light"] #app-hover-nav .text-emerald-200\/50 {
+  color: var(--tone-ink-muted) !important;
+}
+
+[data-basemap-tone="light"] #basemap-mode-toggle {
+  background: var(--tone-panel-strong) !important;
+  border-color: rgba(30, 41, 59, 0.16) !important;
+  box-shadow: var(--tone-panel-shadow) !important;
+}
+
+[data-basemap-tone="light"] #basemap-mode-toggle button {
+  color: var(--tone-ink-muted);
+}
+
+[data-basemap-tone="light"] #basemap-mode-toggle button[aria-selected="true"] {
+  color: var(--tone-ink) !important;
+}
+
+/* 성격별 칩·스트립 — 페이퍼 바탕 + 액센트 테두리 */
+[data-basemap-tone="light"] .tone-chip,
+[data-basemap-tone="light"] .freight-stress-chip,
+[data-basemap-tone="light"] .portwatch-stress-chip,
+[data-basemap-tone="light"] .market-session-chip,
+[data-basemap-tone="light"] .finint-ticker,
+[data-basemap-tone="light"] .world-tension-chip,
+[data-basemap-tone="light"] .gscpi-gauge,
+[data-basemap-tone="light"] .swpc-status-chip {
+  background: var(--tone-panel-strong) !important;
+  color: var(--tone-ink) !important;
+  box-shadow: var(--tone-panel-shadow) !important;
+}
+
+[data-basemap-tone="light"] .freight-stress-chip {
+  border-color: rgba(14, 116, 144, 0.45) !important;
+}
+
+[data-basemap-tone="light"] .portwatch-stress-chip {
+  border-color: rgba(91, 33, 182, 0.4) !important;
+}
+
+[data-basemap-tone="light"] .market-session-chip {
+  border-color: rgba(15, 118, 110, 0.45) !important;
+}
+
+[data-basemap-tone="light"] .map-attribution-bar {
+  background: rgba(255, 252, 248, 0.92) !important;
+  border-color: rgba(30, 41, 59, 0.14) !important;
+  color: var(--tone-ink-muted) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+}
+
+[data-basemap-tone="light"] .map-attribution-bar a {
+  color: var(--tone-geo) !important;
+}
+
+/* 하단 인텔 스택·텔레그램 등 */
+[data-basemap-tone="light"] .intel-scroll-y,
+[data-basemap-tone="light"] .telegram-intel-feed,
+[data-basemap-tone="light"] .viina-front-events {
+  color: var(--tone-ink);
+}
+
+[data-basemap-tone="light"] .hub-marker svg,
+[data-basemap-tone="light"] .location-pin-marker svg,
+[data-basemap-tone="light"] .neptun-threat-marker__svg,
+[data-basemap-tone="light"] .infra-static-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 1px 2px rgba(15, 23, 42, 0.4));
+}
+
+[data-basemap-tone="light"] .gdelt-location-tag-pin,
+[data-basemap-tone="light"] .location-pin-marker.gdelt-news-pin {
+  animation: none;
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 1))
+    drop-shadow(0 1px 2px rgba(15, 23, 42, 0.35));
+}
+
+/* 지도 위 HTML 콜아웃·핀 라벨 — 통일 잉크 + 흰 후광 */
+[data-basemap-tone="light"] .situation-callout,
+[data-basemap-tone="light"] .ua-callout,
+[data-basemap-tone="light"] .friction-episode-pin,
+[data-basemap-tone="light"] .friction-stage-callout,
+[data-basemap-tone="light"] .gdelt-news-alert-marker,
+[data-basemap-tone="light"] .ship-movement-pin,
+[data-basemap-tone="light"] .carrier-status-badge {
+  color: var(--tone-ink) !important;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 1),
+    0 1px 3px rgba(255, 255, 255, 0.95);
+}
+
+/* 셸 우주 배경은 인텔과 동일 유지 — 지형 모드에서도 space-ambient 덮어쓰지 않음 */
+
+/* BottomIntelStack / 다크 반투명 카드 — 페이퍼로 뒤집기 */
+[data-basemap-tone="light"] .intel-stack-shell,
+[data-basemap-tone="light"] .tone-surface {
+  background: var(--tone-panel-strong) !important;
+  border-color: rgba(30, 41, 59, 0.16) !important;
+  color: var(--tone-ink) !important;
+  box-shadow: var(--tone-panel-shadow) !important;
+}
+
+[data-basemap-tone="light"] .tone-surface--alert {
+  border-color: rgba(190, 18, 60, 0.4) !important;
+}
+
+[data-basemap-tone="light"] .tone-surface--geo {
+  border-color: rgba(14, 116, 144, 0.4) !important;
+}
+
+[data-basemap-tone="light"] .tone-surface--econ {
+  border-color: rgba(4, 120, 87, 0.4) !important;
+}
+
+[data-basemap-tone="light"] .tone-surface--warn {
+  border-color: rgba(180, 83, 9, 0.45) !important;
+}
+
+.intel-sidebar-right {
+  width: min(100vw, var(--intel-sidebar-width));
+  /* 셸은 스크롤하지 않음 — 제스처 뺏김 방지. 스크롤은 .intel-scroll-y 한 곳에서만 */
+  overflow: hidden;
+}
+
+/* 유일한 세로 스크롤 포트: 위·아래 터치 스크롤 (중첩 overflow-y-auto 금지) */
+.intel-scroll-y {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .intel-panel {
@@ -607,10 +817,6 @@ main[data-ui-lang="en"]
   background: var(--panel);
   box-shadow: 0 20px 60px rgba(4, 12, 28, 0.55);
   backdrop-filter: blur(16px);
-}
-
-.intel-sidebar-right {
-  width: min(100vw, var(--intel-sidebar-width));
 }
 
 /* 데스크톱: 상단 HoverNav·유틸 버튼 아래로 내려 닫기 버튼이 가려지지 않게 */
@@ -705,24 +911,6 @@ main[data-ui-lang="en"]
   overflow: visible;
 }
 
-/*
- * 밝은 베이스맵에서 마커 실루엣이 지도에 묻히지 않도록 흰 테두리 후광을 준다.
- * 네온 글로우 계열은 밝은 배경에서 안 보이므로 대비 그림자로 대체.
- */
-[data-basemap-tone="light"] .hub-marker svg,
-[data-basemap-tone="light"] .location-pin-marker svg,
-[data-basemap-tone="light"] .neptun-threat-marker__svg {
-  filter:
-    drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.95))
-    drop-shadow(0 1px 2px rgba(15, 23, 42, 0.45));
-}
-
-[data-basemap-tone="light"] .gdelt-location-tag-pin,
-[data-basemap-tone="light"] .location-pin-marker.gdelt-news-pin {
-  animation: none;
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
-}
-
 .carrier-marker-root.carrier-marker-deployed .carrier-marker--deployed svg {
   animation: carrier-deployed-pulse 2.2s ease-in-out infinite;
 }
@@ -785,6 +973,7 @@ main[data-ui-lang="en"]
   transform: translateY(110%);
   visibility: hidden;
   pointer-events: none;
+  overflow: hidden; /* 시트 셸은 스크롤 안 함 — 본문 .intel-scroll-y만 */
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top: 1px solid rgba(125, 211, 252, 0.16);
@@ -830,10 +1019,11 @@ main[data-ui-lang="en"]
   bottom: calc(0.75rem + var(--safe-bottom)) !important;
 }
 
-/** ??/?? ??? ?? ? ?? ??? ??? ? ??? 44px */
+/** 독/시트 드래그 핸들 — pan-y로 세로 제스처 허용, dismiss는 JS에서 하향만 확정 */
 .intel-drag-handle {
   min-height: var(--tap-target-min);
   justify-content: center;
+  touch-action: pan-y;
 }
 
 .intel-stack--collapsed .intel-news-sheet__handle {

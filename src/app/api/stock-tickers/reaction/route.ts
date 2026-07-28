@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import {
+  parseSearchParams,
+  stockReactionQuerySchema,
+} from "@/lib/apiQuerySchemas";
+import { logApiRoute } from "@/lib/apiRouteLog";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import {
   fetchDailyVolatilityPercent,
@@ -7,7 +13,11 @@ import {
   fetchStockTickers,
   isUsMarketLikelyOpen,
 } from "@/lib/stockTickersFetch";
-import { theaterAssetSymbols, type TheaterMarketFilter } from "@/lib/theaterAssets";
+import {
+  THEATER_ASSETS,
+  theaterAssetSymbols,
+  type TheaterMarketFilter,
+} from "@/lib/theaterAssets";
 import {
   resolveMarketBacktraceMs,
   type EventMarketAnchor,
@@ -35,19 +45,34 @@ const BUCKET_MS = 15 * 60 * 1000;
 /** 시장 전체 흐름 제거용 벤치마크 (S&P500) */
 const BENCHMARK_SYMBOL = "^GSPC";
 
+function isTheaterMarketFilter(value: string): value is TheaterMarketFilter {
+  return value in THEATER_ASSETS;
+}
+
 export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.stockReaction);
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
-  const theater = (searchParams.get("theater") || "all") as TheaterMarketFilter;
-  const ageMinutesRaw = Number(searchParams.get("ageMinutes"));
-  const ageMinutes = Number.isFinite(ageMinutesRaw) ? Math.max(0, ageMinutesRaw) : 0;
-  const anchorDate = searchParams.get("anchorDate");
-  const anchorId = searchParams.get("anchorId");
-  const chokepointId = searchParams.get("chokepointId");
-  const viewerModeRaw = searchParams.get("viewerMode");
-  const viewerMode: ViewerMode =
-    viewerModeRaw === "economy" ? "economy" : "conflict";
+  const parsed = parseSearchParams(searchParams, stockReactionQuerySchema);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error, issues: parsed.issues },
+      { status: 400 },
+    );
+  }
+
+  const theaterRaw = parsed.data.theater;
+  const theater: TheaterMarketFilter = isTheaterMarketFilter(theaterRaw)
+    ? theaterRaw
+    : "all";
+  const ageMinutes = parsed.data.ageMinutes;
+  const anchorDate = parsed.data.anchorDate ?? null;
+  const anchorId = parsed.data.anchorId ?? null;
+  const chokepointId = parsed.data.chokepointId;
+  const viewerMode: ViewerMode = parsed.data.viewerMode;
   /** counterfactual = 모드별 타임테이블 카탈로그 / reaction = 뉴스 age만 */
-  const mode = searchParams.get("mode") === "counterfactual" ? "counterfactual" : "reaction";
+  const mode = parsed.data.mode;
 
   if (isApiStubMode()) {
     return NextResponse.json({
@@ -200,6 +225,8 @@ export async function GET(request: Request) {
         : null,
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "market-reaction failed";
+    logApiRoute("/api/stock-tickers/reaction", "error", "fetch_failed", { message });
     return NextResponse.json(
       {
         receivedAt: new Date().toISOString(),
@@ -209,7 +236,7 @@ export async function GET(request: Request) {
         anchor: null,
         at: null,
         source: "age",
-        error: error instanceof Error ? error.message : "market-reaction failed",
+        error: message,
       },
       { status: 502 },
     );

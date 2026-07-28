@@ -7,6 +7,7 @@ import {
   swpcBandLabel,
   type SwpcSnapshot,
 } from "@/lib/swpc";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type Props = {
   lang: LabelLanguage;
@@ -18,6 +19,7 @@ type Props = {
  */
 export function SwpcStatusChip({ lang, className = "" }: Props) {
   const en = lang === "en";
+  const light = useBasemapTone() === "light";
   const [data, setData] = useState<SwpcSnapshot | null>(null);
 
   useEffect(() => {
@@ -43,7 +45,9 @@ export function SwpcStatusChip({ lang, className = "" }: Props) {
   if (!data) {
     return (
       <div
-        className={`inline-flex items-center gap-1.5 rounded-full border border-sky-200/20 bg-[#0a1520]/85 px-2.5 py-1 text-[11px] font-medium text-sky-100/70 ${className}`}
+        className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border border-sky-200/20 bg-[#0a1520]/85 px-2.5 py-1 text-[11px] font-medium ${
+          light ? "text-slate-700" : "text-sky-100/70"
+        } ${className}`}
         title={en ? "NOAA SWPC" : "NOAA 우주기상"}
       >
         <span className="opacity-80">{en ? "Space weather" : "우주기상"}</span>
@@ -59,17 +63,21 @@ export function SwpcStatusChip({ lang, className = "" }: Props) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
+      className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
       style={{
         borderColor: `${color}55`,
-        color,
-        background: "rgba(8, 18, 32, 0.88)",
+        color: light ? "#1e293b" : color,
+        background: light ? "rgba(255, 252, 248, 0.97)" : "rgba(8, 18, 32, 0.88)",
       }}
       title={en ? data.summaryEn : data.summaryKo}
     >
       <span className="opacity-80">{title}</span>
-      <span className="font-bold tabular-nums">{detail}</span>
-      <span className="opacity-70">{swpcBandLabel(data.band, !en)}</span>
+      <span className="font-bold tabular-nums" style={{ color }}>
+        {detail}
+      </span>
+      <span className="opacity-70" style={{ color }}>
+        {swpcBandLabel(data.band, !en)}
+      </span>
     </div>
   );
 }

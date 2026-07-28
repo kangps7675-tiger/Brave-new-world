@@ -92,7 +92,7 @@ export function getPlaceLabelDotRadius(tier: PlaceLabelTier, altitude: number): 
 
 /**
  * glow=true 이면 도시 이름 강조 — 조금 더 밝게.
- * 밝은 베이스맵(지형 벡터)에서는 같은 위계를 저명도 잉크로 뒤집는다.
+ * 밝은 베이스맵(지형 벡터)에서는 통일 슬레이트 잉크(위계는 명도·불투명도만).
  */
 export function getPlaceLabelColor(
   tier: PlaceLabelTier,
@@ -100,15 +100,16 @@ export function getPlaceLabelColor(
   tone: BasemapTone = "dark",
 ): string {
   if (tone === "light") {
+    /* 단일 잉크 패밀리 — 밝은 OSM/지형 위에 읽히는 슬레이트 */
     switch (tier) {
       case "megacity":
-        return glow ? "rgba(88, 38, 0, 0.98)" : "rgba(102, 52, 8, 0.9)";
+        return glow ? "rgba(15, 23, 42, 0.98)" : "rgba(30, 41, 59, 0.94)";
       case "city":
-        return glow ? "rgba(104, 56, 0, 0.96)" : "rgba(118, 70, 10, 0.88)";
+        return glow ? "rgba(30, 41, 59, 0.96)" : "rgba(51, 65, 85, 0.92)";
       case "town":
-        return glow ? "rgba(58, 48, 30, 0.94)" : "rgba(72, 62, 44, 0.86)";
+        return glow ? "rgba(51, 65, 85, 0.94)" : "rgba(71, 85, 105, 0.9)";
       case "village":
-        return glow ? "rgba(24, 28, 36, 0.94)" : "rgba(38, 44, 54, 0.86)";
+        return glow ? "rgba(71, 85, 105, 0.92)" : "rgba(100, 116, 139, 0.88)";
     }
   }
   switch (tier) {

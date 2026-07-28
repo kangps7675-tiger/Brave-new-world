@@ -17,10 +17,10 @@ import { shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
-  formatWtiTitle,
-  wtiBand,
-  wtiBandLabel,
-} from "@/lib/wti";
+  formatGtiTitle,
+  gtiBand,
+  gtiBandLabel,
+} from "@/lib/gti";
 import { formatTensionDriverLine } from "@/lib/tensionDrivers";
 import { BunkerSentimentVote } from "@/components/BunkerSentimentVote";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
@@ -33,9 +33,11 @@ type DailyRankSharePanelProps = {
 function WorldTensionHero({
   tension,
   lang,
+  topTheater,
 }: {
   tension: WorldTensionSnapshot;
   lang: LabelLanguage;
+  topTheater?: DailyRankEntry | null;
 }) {
   const ko = lang !== "en";
   const delta = formatWorldTensionDelta(tension.deltaScore, ko ? "ko" : "en");
@@ -47,19 +49,32 @@ function WorldTensionHero({
         : "text-emerald-400";
   const score = Math.round(tension.score);
   const fill = Math.max(0, Math.min(100, tension.score));
-  const band = wtiBandLabel(wtiBand(tension.score), ko);
+  const band = gtiBandLabel(gtiBand(tension.score), ko);
+  const rising =
+    tension.deltaScore == null ? score >= 55 : tension.deltaScore >= 0;
+  const driver = topTheater
+    ? formatTensionDriverLine(topTheater.detail, ko ? "ko" : "en", {
+        rising,
+        max: 2,
+      })
+    : null;
+  const whyLine = driver
+    ? ko
+      ? `${dailyRankLabel(topTheater!, "ko")} — ${driver}`
+      : `${dailyRankLabel(topTheater!, "en")} — ${driver}`
+    : null;
 
   return (
     <div className="rounded-lg border border-rose-500/25 bg-gradient-to-br from-rose-950/40 via-slate-950/60 to-slate-950/80 p-3 sm:col-span-2">
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300/80">
-            {formatWtiTitle(ko)}
+            {formatGtiTitle(ko)}
           </p>
           <p className="mt-1 text-[11px] leading-snug text-slate-400">
             {ko
-              ? `서비스 단일 기축 · ${band}`
-              : `Product spine · ${band}`}
+              ? `긴장지수(GTI) · ${band}`
+              : `Tension index (GTI) · ${band}`}
           </p>
         </div>
         <div className="text-right">
@@ -75,18 +90,25 @@ function WorldTensionHero({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={score}
-        aria-label={formatWtiTitle(ko)}
+        aria-label={formatGtiTitle(ko)}
       >
         <div
           className="h-full rounded-full bg-gradient-to-r from-amber-500/80 via-rose-500 to-rose-300"
           style={{ width: `${fill}%` }}
         />
       </div>
-      <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-        {ko
-          ? "서비스의 단일 기축. 전장별 뉴스·위성 화재·현장 경보가 평소보다 얼마나 튀었는지를 모아 점수로 만듭니다. 이 숫자가 사운드·브리핑·예측을 움직입니다."
-          : "Product spine index. Combines how far news, satellite hotspots, and field alerts sit above each theater’s usual level. This number drives sound, briefing, and the daily puzzle."}
-      </p>
+      {whyLine ? (
+        <p className="mt-2 rounded-md border border-rose-400/20 bg-rose-950/30 px-2 py-1.5 text-[11px] leading-snug text-rose-100/90">
+          {ko ? "왜 지금: " : "Why now: "}
+          {whyLine}
+        </p>
+      ) : (
+        <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+          {ko
+            ? "서비스의 단일 기축(GTI). 전장별 뉴스·위성 화재·현장 경보가 평소보다 얼마나 튀었는지를 모아 0–100 점수(GTS)로 만듭니다. 원유 WTI와 무관합니다."
+            : "Product spine (GTI): theater news, satellite hotspots, and field alerts blended into a 0–100 score (GTS). Unrelated to WTI crude."}
+        </p>
+      )}
       <BunkerSentimentVote lang={lang} />
     </div>
   );
@@ -258,7 +280,11 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
       aria-label={ko ? "일일 랭킹" : "Daily rankings"}
     >
       {payload.worldTension ? (
-        <WorldTensionHero tension={payload.worldTension} lang={lang} />
+        <WorldTensionHero
+          tension={payload.worldTension}
+          lang={lang}
+          topTheater={payload.theater[0] ?? null}
+        />
       ) : null}
       <RankList
         title={ko ? "위험 지역 TOP 5" : "Risk theaters TOP 5"}

@@ -36,6 +36,10 @@ import {
   TELEGRAM_OSINT_CHECKLIST,
 } from "@/lib/licensing/telegramOsintPolicy";
 import {
+  FREESOUND_ATTRIBUTIONS,
+  formatFreesoundCredit,
+} from "@/lib/audioAttribution";
+import {
   NEWS_LAYER_SOURCE_CATALOG,
   PRIMARY_LIVE_SOURCES,
 } from "@/data/sourceCatalog";
@@ -121,6 +125,34 @@ export function MethodologySourcesPanel({
               </button>
             </section>
           ) : null}
+          <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
+            <h3 className="text-sm font-medium text-sky-50">
+              {isEn ? "Freesound audio (attribution required)" : "Freesound 음원 (저작물 명시)"}
+            </h3>
+            <p className="mt-2 text-[12px] leading-5 text-sky-100/80">
+              {isEn
+                ? "Only CC-BY / CC-BY-NC samples are listed. CC0 (public domain dedication) assets are omitted — no attribution obligation."
+                : "CC-BY · CC-BY-NC 만 수록합니다. CC0(저작권 포기) 음원은 명시 의무가 없어 제외했습니다."}
+            </p>
+            <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto text-[11px] leading-5 text-sky-100/75">
+              {FREESOUND_ATTRIBUTIONS.map((credit) => (
+                <li key={credit.freesoundId}>
+                  <a
+                    href={credit.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-sky-400/40 underline-offset-2 hover:text-sky-50"
+                  >
+                    {formatFreesoundCredit(credit)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[10px] leading-4 text-sky-100/55">
+              Source: freesound.org · Creative Commons
+            </p>
+          </section>
+
           <section className="rounded-xl border border-amber-800/40 bg-amber-950/20 p-3">
             <h3 className="text-sm font-medium text-amber-100">
               {isEn ? "Logistics stress (chokepoints)" : "물류 스트레스 (초크포인트)"}

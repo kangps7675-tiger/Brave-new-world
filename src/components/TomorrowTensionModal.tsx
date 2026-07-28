@@ -15,7 +15,7 @@ import { shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { renderTensionStreakCard } from "@/lib/tensionStreakCard";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { WTI } from "@/lib/wti";
+import { GTI } from "@/lib/gti";
 
 type Props = {
   lang: LabelLanguage;
@@ -145,21 +145,21 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
       await shareOrDownloadImageBlob(
         blob,
         `analyst-tier-${targetDate}.png`,
-        ko ? `${WTI.ticker} 애널리스트` : `${WTI.ticker} analyst`,
+        ko ? `${GTI.ticker} 애널리스트` : `${GTI.ticker} analyst`,
         ko
           ? rate != null
-            ? `적중률 ${rate}% · ${tierLabel} · ${WTI.ticker}`
-            : `${tierLabel} · ${WTI.ticker}`
+            ? `적중률 ${rate}% · ${tierLabel} · ${GTI.ticker}`
+            : `${tierLabel} · ${GTI.ticker}`
           : rate != null
-            ? `${rate}% hit · ${tierLabel} · ${WTI.ticker}`
-            : `${tierLabel} · ${WTI.ticker}`,
+            ? `${rate}% hit · ${tierLabel} · ${GTI.ticker}`
+            : `${tierLabel} · ${GTI.ticker}`,
       );
       trackEvent(
         "analyst_tier_share_success",
         {
           streak,
           targetDate,
-          spine: "WTI",
+          spine: "GTI",
           hits: prefs.hits,
           attempts: prefs.attempts,
           tier: tierLabel,
@@ -189,7 +189,7 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
       <div className="w-full max-w-md overflow-hidden rounded-xl border border-amber-500/30 bg-[#0b1220] shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
         <div className="border-b border-white/10 px-5 py-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-300/90">
-            {ko ? `${WTI.ticker} · 내일의 세계 긴장도` : `${WTI.ticker} · Tomorrow’s tension`}
+            {ko ? `${GTI.ticker} · 내일의 세계 긴장도` : `${GTI.ticker} · Tomorrow’s tension`}
           </p>
           <p className="mt-2 text-2xl font-semibold leading-tight text-amber-50">
             {hitRate != null
@@ -214,8 +214,8 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
           </h2>
           <p className="mt-2 text-[12px] leading-relaxed text-slate-500">
             {ko
-              ? `${WTI.hookKo} ${WTI.ethicsKo} 하루 한 번, 전 세계 같은 문제.`
-              : `${WTI.hookEn} ${WTI.ethicsEn} One shared puzzle per day.`}
+              ? `${GTI.hookKo} ${GTI.ethicsKo} 하루 한 번, 전 세계 같은 문제.`
+              : `${GTI.hookEn} ${GTI.ethicsEn} One shared puzzle per day.`}
           </p>
         </div>
 

@@ -13,7 +13,7 @@ import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
-import { formatWtiTitle, wtiBand, wtiBandLabel } from "@/lib/wti";
+import { formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
 import {
   LAMP_THUMB_GRADIENT,
   LAMP_THUMB_LABEL,
@@ -284,7 +284,7 @@ function PhotoNewsLampParchment({
             <div className="mb-4 rounded-sm border border-[#8b6914]/30 bg-[#f7ecd4]/70 px-3 py-3">
               <div className="flex items-center gap-1.5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
-                  {formatWtiTitle(lang !== "en")}
+                  {formatGtiTitle(lang !== "en")}
                 </p>
                 <EvidenceTierBadge tier="model" lang={lang} surface="light" />
               </div>
@@ -293,7 +293,7 @@ function PhotoNewsLampParchment({
                   {Math.round(briefing.wti.score)}
                 </p>
                 <p className="pb-0.5 text-[11px] text-[#6b4a22]/8">
-                  {wtiBandLabel(wtiBand(briefing.wti.score), lang !== "en")}
+                  {gtiBandLabel(gtiBand(briefing.wti.score), lang !== "en")}
                   {briefing.wti.deltaScore != null &&
                   Math.abs(briefing.wti.deltaScore) >= 0.05
                     ? ` · ${briefing.wti.deltaScore > 0 ? "+" : ""}${Math.round(briefing.wti.deltaScore * 10) / 10}`

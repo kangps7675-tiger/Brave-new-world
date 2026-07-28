@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
 import type { GlobeLodTier } from "@/lib/globeLod";
+import {
+  parseSearchParams,
+  viewportPathsQuerySchema,
+} from "@/lib/apiQuerySchemas";
 import { isViewportPathLayer } from "@/lib/viewportPathTypes";
 import { queryViewportPaths } from "@/lib/serverViewportLayers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const TIERS = new Set<GlobeLodTier>([
-  "global",
-  "continent",
-  "regional",
-  "near",
-  "village",
-]);
 
 /**
  * 대형 transport JSON을 서버에서 expand+뷰포트 필터 후 일부만 반환.
@@ -20,42 +16,39 @@ const TIERS = new Set<GlobeLodTier>([
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const layerRaw = searchParams.get("layer") || "railroads";
+  const parsed = parseSearchParams(searchParams, viewportPathsQuerySchema);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error, issues: parsed.issues, paths: [] },
+      { status: 400 },
+    );
+  }
+
+  const {
+    layer: layerRaw,
+    lat,
+    lng,
+    tier,
+    radius: radiusDeg,
+    max,
+    maxScalerank,
+    arterialMaxRank,
+    viewerMode,
+  } = parsed.data;
+
   if (!isViewportPathLayer(layerRaw)) {
     return NextResponse.json({ error: "invalid-layer", paths: [] }, { status: 400 });
   }
-
-  const lat = Number(searchParams.get("lat"));
-  const lng = Number(searchParams.get("lng"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return NextResponse.json({ error: "lat/lng required", paths: [] }, { status: 400 });
-  }
-
-  const tierRaw = (searchParams.get("tier") || "regional") as GlobeLodTier;
-  const tier = TIERS.has(tierRaw) ? tierRaw : "regional";
-  const radiusDeg = Math.min(
-    80,
-    Math.max(0, Number(searchParams.get("radius") || 16)),
-  );
-  const max = searchParams.get("max") ? Number(searchParams.get("max")) : undefined;
-  const maxScalerank = searchParams.get("maxScalerank")
-    ? Number(searchParams.get("maxScalerank"))
-    : undefined;
-  const arterialMaxRank = searchParams.get("arterialMaxRank")
-    ? Number(searchParams.get("arterialMaxRank"))
-    : undefined;
-  const viewerMode =
-    searchParams.get("viewerMode") === "economy" ? "economy" : "conflict";
 
   try {
     const result = await queryViewportPaths(layerRaw, {
       lat,
       lng,
       radiusDeg,
-      tier,
-      max: Number.isFinite(max) ? max : undefined,
-      maxScalerank: Number.isFinite(maxScalerank) ? maxScalerank : undefined,
-      arterialMaxRank: Number.isFinite(arterialMaxRank) ? arterialMaxRank : undefined,
+      tier: tier as GlobeLodTier,
+      max,
+      maxScalerank,
+      arterialMaxRank,
       viewerMode,
     });
 

@@ -11,7 +11,7 @@ type Props = {
 };
 
 /**
- * WTI 옆 — STABLE vs HEAD TO BUNKER.
+ * GTI 옆 — STABLE vs HEAD TO BUNKER.
  * 자유텍스트 없음. 패닉 %만 집계.
  */
 export function BunkerSentimentVote({ lang }: Props) {

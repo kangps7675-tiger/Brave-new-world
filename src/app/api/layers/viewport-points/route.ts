@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import {
+  parseSearchParams,
+  viewportPointsQuerySchema,
+} from "@/lib/apiQuerySchemas";
+import {
   isViewportPointLayer,
   queryViewportMilitaryBaseAreas,
   queryViewportPoints,
@@ -9,30 +13,20 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIERS = new Set<GlobeLodTier>([
-  "global",
-  "continent",
-  "regional",
-  "near",
-  "village",
-]);
-
 /**
  * 공항·항구·기지 등 정적 포인트를 서버에서 뷰포트 필터 후 일부만 반환.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const layer = searchParams.get("layer") || "airports";
-  const lat = Number(searchParams.get("lat"));
-  const lng = Number(searchParams.get("lng"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return NextResponse.json({ error: "lat/lng required" }, { status: 400 });
+  const parsed = parseSearchParams(searchParams, viewportPointsQuerySchema);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error, issues: parsed.issues, points: [] },
+      { status: 400 },
+    );
   }
 
-  const tierRaw = (searchParams.get("tier") || "regional") as GlobeLodTier;
-  const tier = TIERS.has(tierRaw) ? tierRaw : "regional";
-  const radiusDeg = Math.min(90, Math.max(0, Number(searchParams.get("radius") || 16)));
-  const max = searchParams.get("max") ? Number(searchParams.get("max")) : undefined;
+  const { layer, lat, lng, tier, radius: radiusDeg, max } = parsed.data;
 
   try {
     if (layer === "military-base-areas") {
@@ -40,8 +34,8 @@ export async function GET(request: Request) {
         lat,
         lng,
         radiusDeg,
-        tier,
-        max: Number.isFinite(max) ? max : undefined,
+        tier: tier as GlobeLodTier,
+        max,
       });
       return NextResponse.json(
         {
@@ -64,8 +58,8 @@ export async function GET(request: Request) {
       lat,
       lng,
       radiusDeg,
-      tier,
-      max: Number.isFinite(max) ? max : undefined,
+      tier: tier as GlobeLodTier,
+      max,
     });
 
     return NextResponse.json(

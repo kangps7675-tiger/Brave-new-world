@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import {
+  parseSearchParams,
+  shipMovementsQuerySchema,
+} from "@/lib/apiQuerySchemas";
+import { logApiRoute } from "@/lib/apiRouteLog";
 import { apiStubResponse } from "@/lib/apiStub";
 import {
   listApprovedMapObservations,
@@ -16,14 +22,22 @@ export const dynamic = "force-dynamic";
  * ?view=timeline (기본) — 승인된 사실(위치 미상 포함)
  */
 export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.shipMovements);
+  if (limited) return limited;
+
   const stub = apiStubResponse("ship-movements", request);
   if (stub) return stub;
 
   const url = new URL(request.url);
-  const lang = url.searchParams.get("lang") === "en" ? "en" : "ko";
-  const week = url.searchParams.get("week");
-  const view = url.searchParams.get("view") === "map" ? "map" : "timeline";
-  const navy = url.searchParams.get("navy");
+  const parsed = parseSearchParams(url.searchParams, shipMovementsQuerySchema);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error, issues: parsed.issues, observations: [], weeks: [] },
+      { status: 400 },
+    );
+  }
+
+  const { lang, week, view, navy } = parsed.data;
 
   try {
     const db = await getDb();
@@ -61,7 +75,9 @@ export async function GET(request: Request) {
         },
       },
     );
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "ship-movements failed";
+    logApiRoute("/api/ship-movements", "error", "query_failed", { message });
     return NextResponse.json(
       {
         observations: [],
@@ -69,12 +85,13 @@ export async function GET(request: Request) {
         view,
         lang,
         fetchedAt: new Date().toISOString(),
+        error: message,
         disclaimer:
           lang === "en"
             ? "Public observation record — not live AIS positions."
             : "공개 관측 기록입니다. 실시간 AIS 위치가 아닙니다.",
       },
-      { status: 200, headers: { "Cache-Control": "public, s-maxage=60" } },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
     );
   }
 }

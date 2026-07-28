@@ -26,6 +26,7 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
 import { getViewerChrome } from "@/lib/viewerChrome";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type HoverNavProps = {
   viewerMode: ViewerMode;
@@ -77,6 +78,7 @@ export function HoverNav({
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
   const isEconomy = viewerMode === "economy";
+  const light = useBasemapTone() === "light";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
 
@@ -120,13 +122,37 @@ export function HoverNav({
     setOpenHubId(null);
   }
 
-  const borderTone = isEconomy ? "border-emerald-200/10" : "border-sky-200/10";
-  const bgTone = isEconomy ? "bg-[#0a1f18]/45" : "bg-[#162a48]/45";
-  const menuBg = isEconomy ? "bg-[#0a1f18]/75" : "bg-[#162a48]/75";
-  const accentHover = isEconomy ? "hover:bg-emerald-400/10" : "hover:bg-sky-400/10";
-  const accentActive = isEconomy
-    ? "bg-emerald-400/15 text-emerald-50 shadow-[inset_0_0_0_1px_rgba(52,211,153,0.25)]"
-    : "bg-sky-400/15 text-sky-50 shadow-[inset_0_0_0_1px_rgba(125,211,252,0.25)]";
+  const borderTone = light
+    ? isEconomy
+      ? "border-emerald-800/20"
+      : "border-slate-400/25"
+    : isEconomy
+      ? "border-emerald-200/10"
+      : "border-sky-200/10";
+  const bgTone = light
+    ? "bg-white/95"
+    : isEconomy
+      ? "bg-[#0a1f18]/45"
+      : "bg-[#162a48]/45";
+  const menuBg = light
+    ? "bg-white/98"
+    : isEconomy
+      ? "bg-[#0a1f18]/75"
+      : "bg-[#162a48]/75";
+  const accentHover = light
+    ? isEconomy
+      ? "hover:bg-emerald-700/10"
+      : "hover:bg-cyan-700/10"
+    : isEconomy
+      ? "hover:bg-emerald-400/10"
+      : "hover:bg-sky-400/10";
+  const accentActive = light
+    ? isEconomy
+      ? "bg-emerald-700/12 text-emerald-950 shadow-[inset_0_0_0_1px_rgba(4,120,87,0.35)]"
+      : "bg-cyan-700/12 text-slate-900 shadow-[inset_0_0_0_1px_rgba(14,116,144,0.35)]"
+    : isEconomy
+      ? "bg-emerald-400/15 text-emerald-50 shadow-[inset_0_0_0_1px_rgba(52,211,153,0.25)]"
+      : "bg-sky-400/15 text-sky-50 shadow-[inset_0_0_0_1px_rgba(125,211,252,0.25)]";
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
 
@@ -189,16 +215,24 @@ export function HoverNav({
         >
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
             <SearchIcon
-              className={`shrink-0 ${isEconomy ? "text-emerald-200/50" : "text-sky-200/50"}`}
+              className={`shrink-0 ${
+                light
+                  ? "text-slate-500"
+                  : isEconomy
+                    ? "text-emerald-200/50"
+                    : "text-sky-200/50"
+              }`}
             />
             <input
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
               placeholder={chrome.searchPlaceholder}
               className={`min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:opacity-35 sm:text-sm ${
-                isEconomy
-                  ? "text-emerald-50/90 placeholder:text-emerald-100/35"
-                  : "text-sky-50/90 placeholder:text-sky-100/35"
+                light
+                  ? "text-slate-800 placeholder:text-slate-500"
+                  : isEconomy
+                    ? "text-emerald-50/90 placeholder:text-emerald-100/35"
+                    : "text-sky-50/90 placeholder:text-sky-100/35"
               }`}
             />
             {query ? (
@@ -206,7 +240,11 @@ export function HoverNav({
                 type="button"
                 onClick={() => onQueryChange("")}
                 className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs transition hover:opacity-90 ${
-                  isEconomy ? "text-emerald-100/40 hover:text-emerald-50" : "text-sky-100/40 hover:text-sky-50"
+                  light
+                    ? "text-slate-500 hover:text-slate-800"
+                    : isEconomy
+                      ? "text-emerald-100/40 hover:text-emerald-50"
+                      : "text-sky-100/40 hover:text-sky-50"
                 }`}
                 aria-label="검색어 지우기"
               >
@@ -221,9 +259,13 @@ export function HoverNav({
                 aria-label={askLayersLabel || (isEconomy ? "Ask layers" : "묻기")}
                 title={askLayersLabel || (isEconomy ? "Ask → layers" : "묻기 → 레이어")}
                 className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] font-medium transition sm:text-xs ${
-                  isEconomy
-                    ? "border-emerald-300/35 bg-emerald-400/15 text-emerald-50 hover:border-emerald-300/55 hover:bg-emerald-400/25"
-                    : "border-sky-300/35 bg-sky-400/15 text-sky-50 hover:border-sky-300/55 hover:bg-sky-400/25"
+                  light
+                    ? isEconomy
+                      ? "border-emerald-700/35 bg-emerald-700/10 text-emerald-950 hover:border-emerald-700/55 hover:bg-emerald-700/15"
+                      : "border-cyan-700/35 bg-cyan-700/10 text-slate-900 hover:border-cyan-700/55 hover:bg-cyan-700/15"
+                    : isEconomy
+                      ? "border-emerald-300/35 bg-emerald-400/15 text-emerald-50 hover:border-emerald-300/55 hover:bg-emerald-400/25"
+                      : "border-sky-300/35 bg-sky-400/15 text-sky-50 hover:border-sky-300/55 hover:bg-sky-400/25"
                 }`}
               >
                 <span aria-hidden>✧</span>
@@ -268,7 +310,7 @@ export function HoverNav({
 
           {searchResults.length > 0 && (
             <div
-              className={`absolute left-0 right-0 top-full z-40 max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} bg-[#0f1d35]/92 shadow-2xl backdrop-blur-xl`}
+              className={`absolute left-0 right-0 top-full z-40 max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
             >
               {searchResults.map((place) => (
                 <button

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import { logApiRoute } from "@/lib/apiRouteLog";
 import {
   CROSS_STRAIT_SIGNAL_ATTRIBUTION,
   normalizeCrossStraitExercises,
@@ -80,7 +82,10 @@ function objectValue(value: unknown, key: string): unknown {
   return value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.crossStrait);
+  if (limited) return limited;
+
   const requests = [
     ["exercises", "/api/military/exercises?with_geo=true&days=365"],
     ["incursions", "/api/military/incursions?days=30"],
@@ -110,6 +115,12 @@ export async function GET() {
     attribution: CROSS_STRAIT_SIGNAL_ATTRIBUTION,
     ...(errors.length ? { errors } : {}),
   };
+
+  if (errors.length) {
+    logApiRoute("/api/cross-strait-signal", "warn", "partial_upstream_failure", {
+      errors,
+    });
+  }
 
   return NextResponse.json(payload, {
     headers: {

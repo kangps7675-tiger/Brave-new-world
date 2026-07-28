@@ -16,19 +16,19 @@ const PROMPT_CDN = publicCacheHeaders(CDN_CACHE.dailyPrompt);
 
 async function syntheticPrompt(targetDate: string): Promise<DailyPrompt | null> {
   const payload = await loadDailyRanks({ date: utcRankDate(), limit: 5 });
-  // 메인 = WTI. 랭킹 행이 없으면 전장/초크 폴백.
+  // 메인 = GTI. 랭킹 행이 없으면 전장/초크 폴백.
   if (payload.worldTension) {
     const score = Math.round(payload.worldTension.score * 10) / 10;
     return {
       targetDate,
       subjectKind: "world",
       subjectId: "global",
-      labelKo: "세계 긴장도 지수 (WTI)",
-      labelEn: "World Tension Index (WTI)",
+      labelKo: "글로벌 긴장지수 (GTI)",
+      labelEn: "Global Tension Index (GTI)",
       baselineScore: score,
-      questionKo: "내일 이 시간, 세계 긴장도 지수(WTI)는 오를까 내릴까?",
+      questionKo: "내일 이 시간, 글로벌 긴장지수(GTI)는 오를까 내릴까?",
       questionEn:
-        "By this time tomorrow, will the World Tension Index (WTI) go UP or DOWN?",
+        "By this time tomorrow, will the Global Tension Index (GTI) go UP or DOWN?",
       createdAt: new Date().toISOString(),
     };
   }

@@ -1,8 +1,11 @@
 # 재방문 · 시장 해석 로드맵 (추후 설계)
 
-> **상태:** P0 일부 구현 — `theaterAssets` · watchlist(localStorage) · Yahoo 딥링크 · 「오늘 핫한 곳」규칙 기반 3줄 · 투자 권유 아님 고지. TradingView 임베드·증권 딥링크·일일 cron은 미구현.  
+> **상태 (코드 기준):**  
+> - **구현됨:** `theaterAssets` 전장 심볼 전체 · watchlist(localStorage) · Yahoo 딥링크 · TradingView **심볼 URL** (`tradingViewSymbolUrl`) · 「오늘 핫한 곳」규칙 기반 브리핑 · 투자 권유 아님 고지.  
+> - **미구현:** TradingView **임베드/위젯** · 국내 증권·토스 딥링크 · 전용 일일 cron UX(맵 프리셋 칩).  
+> - LLM digest 연동은 [`llm-news-digest.md`](./llm-news-digest.md) (스캐폴딩만).  
 > **포지션:** 매매 앱이 아니라 **지정학/초크포인트 → 시장 리스크 해석기**  
-> **관련:** `src/lib/theaterAssets.ts` · `src/lib/watchlistPrefs.ts` · `src/lib/news/todayBriefing.ts` · `IntelRelatedMarketsPanel` · `heroHighlightSymbols`
+> **관련:** `src/lib/theaterAssets.ts` · `src/lib/watchlistPrefs.ts` · `src/lib/news/todayBriefing.ts` · `IntelRelatedMarketsPanel` · `heroHighlightSymbols` · [`deferred-status.md`](./deferred-status.md)
 
 ---
 
@@ -96,12 +99,12 @@
 
 ## 4. 전장 → 심볼 매핑 (해석 테이블)
 
-기존 `STOCK_TICKER_SYMBOLS` / `heroHighlightSymbols`를 **명시적 테이블**로 승격.
+정본: `src/lib/theaterAssets.ts` (`THEATER_ASSETS`). 스트립·반응 API·브리핑은 **목록 전체**를 사용한다 (`theaterPrimarySymbols` / `heroHighlightSymbols` — `limit` 옵셔널).
 
 ```ts
-// 추후: src/lib/theaterAssets.ts (예시)
+// 현행: src/lib/theaterAssets.ts
 type TheaterAssetMap = Record<
-  string, // NewsTheater | chokepoint id
+  string, // NewsTheater | "all"
   { symbols: string[]; noteKo: string; noteEn: string }
 >;
 ```
@@ -121,12 +124,12 @@ UI: Intel 관련 시장 패널 · 경제 허브 패널에 “왜 이 심볼?” 
 
 ## 5. TradingView · 시세
 
-| Phase | 내용 |
-|-------|------|
-| 지금 | Yahoo 티커 스트립 + 전장 하이라이트 |
-| P1 | watchlist (localStorage) |
-| P2 | 심볼 상세에 TradingView embed (약관 OK 시) |
-| P3 | theaterAssets 노트 + digest `relatedSymbols` 연결 |
+| Phase | 내용 | 상태 |
+|-------|------|------|
+| 지금 | Yahoo 티커 스트립 + 전장 하이라이트 + 심볼 Yahoo/TV URL | 구현 |
+| P1 | watchlist (localStorage) | 구현 |
+| P2 | 심볼 상세에 TradingView **embed** (약관 OK 시) | 미구현 |
+| P3 | digest `relatedSymbols` ∩ theaterAssets | digest 배치 대기 |
 
 ---
 

@@ -215,7 +215,7 @@ const EMA_PREV = 0.45;
 const MAX_DAY_DELTA_RATIO = 0.4;
 /** 전장별 베이스라인 창 — 최근 N일 대비 이탈(z-score). 가용 일수만큼 사용. */
 const BASELINE_DAYS = 90;
-/** 세계 긴장도 = 평균·최고치 혼합 (HOI World Tension / GPR 스타일 간판 숫자) */
+/** GTI (글로벌 긴장지수) = 평균·최고치 혼합 (GPR / HOI-style 간판 숫자) */
 const WORLD_AVG_WEIGHT = 0.55;
 const WORLD_MAX_WEIGHT = 0.45;
 const WORLD_ENTITY_ID = "global";
@@ -988,8 +988,8 @@ async function upsertWorldTension(
       rankDate,
       "world",
       WORLD_ENTITY_ID,
-      "세계 긴장도 지수 (WTI)",
-      "World Tension Index (WTI)",
+      "글로벌 긴장지수 (GTI)",
+      "Global Tension Index (GTI)",
       score,
       1,
       prevHit?.rank ?? null,
@@ -999,10 +999,11 @@ async function upsertWorldTension(
         ...detail,
         displayScore: Math.round(score * 10) / 10,
         displayMax: 100,
-        ticker: "WTI",
-        blurbKo: "전장별 평소 대비 이탈(z-score) 가중합 · 평균+최고치 혼합 — 서비스 단일 기축",
-        blurbEn: "Baseline z-score blend of theater signals · avg+max mix — product spine index",
-        analogy: "VIX / GPR / HOI4 World Tension — headline currency of this product",
+        ticker: "GTI",
+        scoreTicker: "GTS",
+        blurbKo: "전장별 평소 대비 이탈(z-score) 가중합 · 평균+최고치 혼합 — 서비스 단일 기축(GTI)",
+        blurbEn: "Baseline z-score blend of theater signals · avg+max mix — product spine (GTI)",
+        analogy: "VIX / GPR / HOI4-style tension — headline currency of this product",
       }),
       updatedAt,
     );

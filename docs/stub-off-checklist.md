@@ -41,10 +41,12 @@ curl https://conflict-view-ingest.<subdomain>.workers.dev/latest
 
 ## [x] 방패 3 — 레이어 기본 OFF · 개수 제한
 
+> **정본:** `src/lib/layerExclusiveCap.ts` · `src/lib/viewPackages.ts` (문서 숫자와 다르면 코드를 따름)
+
 | 항목 | 값 |
 |------|-----|
-| UI 동시 ON | 일반 5 / Ultra-Lite 3 (`layerExclusiveCap`) |
-| 패키지 hard cap | 11–12 (`viewPackages`) |
+| UI 동시 ON | 일반 **30** / Ultra-Lite **16** (`ACTIVE_LAYER_CAP_*`) |
+| 패키지 hard cap | 지정학·지경학 각 **64** (`MAX_ON_LAYERS` / `MAX_ON_LAYERS_ECONOMY`) |
 | 크롬 force-on | 전쟁구역·우크라·NEPTUN·GDELT·Telegram — **AIS/ADS-B/항모는 토글 시만** |
 
 ---
@@ -57,3 +59,15 @@ curl https://conflict-view-ingest.<subdomain>.workers.dev/latest
 4. 서버 재시작 후 Ultra-Lite·레이어 소수만 ON으로 스모크
 
 아직 끄지 말 것: 가드 코드 자체. 끄기만 하는 것은 **env 스위치**입니다.
+
+---
+
+## 배포 게이트 (고정)
+
+| 명령 | 언제 |
+|------|------|
+| `npm run verify:product-spec` | CI 항상 (README·체크리스트·캡·폴링 숫자 SSOT) |
+| `npm run verify:stub-off-gate` | `API_STUB_MODE=false` 또는 `FORCE_STUB_OFF_GATE=1` · `cf:ci-deploy`에 포함 |
+
+`scripts/ci-deploy.js`는 stub OFF env일 때 스펙 검증 실패 시 배포를 중단합니다.  
+D1 `/latest` 행 확인·warm secrets는 여전히 **운영 수동** 전제입니다.

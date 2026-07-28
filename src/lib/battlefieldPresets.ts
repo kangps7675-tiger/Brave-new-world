@@ -33,6 +33,7 @@ export function applyBattlefieldPreset(
         showUkraineControl: true,
         showNeptun: true,
         showNeptunPreviousTrails: false,
+        showUkraineStrikesOnRussia: true,
         showWarZones: true,
         showGdeltWar: true,
         showGdeltDiplomatic: true,

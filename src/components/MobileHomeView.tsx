@@ -24,7 +24,7 @@ import {
 import type { TzevaAdomPayload } from "@/lib/tzevaAdom";
 import { theaterLabel } from "@/lib/uiStrings";
 import type { ViewerMode } from "@/lib/viewPackages";
-import { wtiBand, wtiBandLabel } from "@/lib/wti";
+import { gtiBand, gtiBandLabel } from "@/lib/gti";
 
 type MobileHomeViewProps = {
   viewerMode: ViewerMode;
@@ -375,7 +375,7 @@ export function MobileHomeView({
           ? "Geo-economics"
           : "지경학";
 
-  const band = wti ? wtiBand(wti.score) : null;
+  const band = wti ? gtiBand(wti.score) : null;
 
   return (
     <div
@@ -441,7 +441,7 @@ export function MobileHomeView({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-6">
+      <div className="intel-scroll-y min-h-0 flex-1 px-3 pb-6">
         {/* 히어로 — 탭별 안내 */}
         {tab === "markets" ? (
           <div className="mt-3 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.07] px-3 py-2.5">
@@ -494,10 +494,10 @@ export function MobileHomeView({
                 <div className="flex items-end justify-between gap-2">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-orange-200/80">
-                      {en ? "World tension" : "세계 긴장도"}
+                      {en ? "GTI · Global tension" : "GTI · 글로벌 긴장지수"}
                     </p>
                     <p className="mt-0.5 text-[10px] text-slate-500">
-                      {band ? wtiBandLabel(band, !en) : null}
+                      {band ? gtiBandLabel(band, !en) : null}
                       {wti.asOf
                         ? ` · ${new Date(wti.asOf).toISOString().slice(11, 16)}Z`
                         : ""}

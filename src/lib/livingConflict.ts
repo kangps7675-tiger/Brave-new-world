@@ -105,7 +105,7 @@ export async function loadLivingConflict(
   };
 }
 
-/** 수동 검수 덮어쓰기용 — 현재는 시드만; 추후 JSON override 확장 */
+/** 수동 검수 덮어쓰기용 — 현재는 시드(+D1 merge)만; JSON override 확장 추후. @see docs/deferred-status.md */
 export async function loadLivingConflictWithOverrides(
   id: string,
 ): Promise<LivingConflictApiPayload | null> {

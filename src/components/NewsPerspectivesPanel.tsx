@@ -98,7 +98,7 @@ export function NewsPerspectivesPanel({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-2.5 py-2.5">
+      <div className="intel-scroll-y min-h-0 flex-1 space-y-1.5 px-2.5 py-2.5">
         {perspectives.map((p, i) => {
           const badge = tierBadge(p.trustTier, lang);
           return (

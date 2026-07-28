@@ -639,7 +639,13 @@ export function DynamicIntelStack({
   const [todayHidden, setTodayHidden] = useState(false);
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const lastBreakingHeroIdRef = useRef<string | null>(null);
-  const dockDragRef = useRef<{ startY: number; dragging: boolean } | null>(null);
+  /** pending: 방향 판별 전 · active: 하향 dismiss 드래그 확정(위로 스크롤은 가로채지 않음) */
+  const dockDragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    pending: boolean;
+    active: boolean;
+  } | null>(null);
   const [dockDragY, setDockDragY] = useState(0);
 
   /** S급만 SOS 모스 (A는 배너만 · 사이렌 없음) */
@@ -728,30 +734,55 @@ export function DynamicIntelStack({
 
   const onDockHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
-    dockDragRef.current = { startY: event.clientY, dragging: true };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    dockDragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      pending: true,
+      active: false,
+    };
   }, []);
 
   const onDockHandlePointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dockDragRef.current;
-    if (!drag?.dragging) return;
-    const delta = Math.max(0, event.clientY - drag.startY);
-    setDockDragY(delta);
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const delta = event.clientY - drag.startY;
+    if (drag.pending) {
+      if (delta <= -8) {
+        // 위로 스와이프 → 스크롤/제스처에 양보 (capture 하지 않음)
+        dockDragRef.current = null;
+        setDockDragY(0);
+        return;
+      }
+      if (delta < 10) return;
+      drag.pending = false;
+      drag.active = true;
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+    if (!drag.active) return;
+    setDockDragY(Math.max(0, delta));
   }, []);
 
   const onDockHandlePointerUp = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       const drag = dockDragRef.current;
       dockDragRef.current = null;
-      if (!drag?.dragging) return;
-      try {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      } catch {
-        /* ignore */
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (drag.active) {
+        try {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        } catch {
+          /* ignore */
+        }
+        const delta = Math.max(0, event.clientY - drag.startY);
+        if (delta > 56) collapseDock();
+        else setDockDragY(0);
+        return;
       }
-      const delta = Math.max(0, event.clientY - drag.startY);
-      if (delta > 56) collapseDock();
-      else setDockDragY(0);
+      setDockDragY(0);
     },
     [collapseDock],
   );
@@ -881,7 +912,7 @@ export function DynamicIntelStack({
         }`}
       >
         <div
-          className="intel-drag-handle flex cursor-grab touch-none flex-col items-center gap-1 px-3 pb-1 pt-2 active:cursor-grabbing"
+          className="intel-drag-handle flex cursor-grab touch-pan-y flex-col items-center gap-1 px-3 pb-1 pt-2 active:cursor-grabbing"
           onPointerDown={onDockHandlePointerDown}
           onPointerMove={onDockHandlePointerMove}
           onPointerUp={onDockHandlePointerUp}
@@ -1459,7 +1490,12 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     const [newsSearchQuery, setNewsSearchQuery] = useState("");
     const [marketsSearchQuery, setMarketsSearchQuery] = useState("");
     const autoOpenedRef = useRef(false);
-    const sheetDragRef = useRef<{ startY: number; dragging: boolean } | null>(null);
+    const sheetDragRef = useRef<{
+      pointerId: number;
+      startY: number;
+      pending: boolean;
+      active: boolean;
+    } | null>(null);
     const [sheetDragY, setSheetDragY] = useState(0);
     const [sheetDragging, setSheetDragging] = useState(false);
 
@@ -1533,15 +1569,38 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
 
     const onSheetHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
       if (event.button !== 0) return;
-      sheetDragRef.current = { startY: event.clientY, dragging: true };
-      setSheetDragging(true);
-      event.currentTarget.setPointerCapture(event.pointerId);
+      sheetDragRef.current = {
+        pointerId: event.pointerId,
+        startY: event.clientY,
+        pending: true,
+        active: false,
+      };
     }, []);
 
     const onSheetHandlePointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
       const drag = sheetDragRef.current;
-      if (!drag?.dragging) return;
-      setSheetDragY(Math.max(0, event.clientY - drag.startY));
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const delta = event.clientY - drag.startY;
+      if (drag.pending) {
+        if (delta <= -8) {
+          // 위로 스와이프 → 본문 스크롤에 양보
+          sheetDragRef.current = null;
+          setSheetDragging(false);
+          setSheetDragY(0);
+          return;
+        }
+        if (delta < 10) return;
+        drag.pending = false;
+        drag.active = true;
+        setSheetDragging(true);
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
+      if (!drag.active) return;
+      setSheetDragY(Math.max(0, delta));
     }, []);
 
     const onSheetHandlePointerUp = useCallback(
@@ -1549,15 +1608,19 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
         const drag = sheetDragRef.current;
         sheetDragRef.current = null;
         setSheetDragging(false);
-        if (!drag?.dragging) return;
-        try {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        } catch {
-          /* ignore */
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        if (drag.active) {
+          try {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          } catch {
+            /* ignore */
+          }
+          const delta = Math.max(0, event.clientY - drag.startY);
+          if (delta > 72) closeNewsPanel();
+          else setSheetDragY(0);
+          return;
         }
-        const delta = Math.max(0, event.clientY - drag.startY);
-        if (delta > 72) closeNewsPanel();
-        else setSheetDragY(0);
+        setSheetDragY(0);
       },
       [closeNewsPanel],
     );
@@ -1671,7 +1734,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
         }
       >
         <div
-          className="intel-drag-handle flex shrink-0 cursor-grab touch-none flex-col items-center gap-1 px-3 pb-1 pt-2 active:cursor-grabbing"
+          className="intel-drag-handle flex shrink-0 cursor-grab touch-pan-y flex-col items-center gap-1 px-3 pb-1 pt-2 active:cursor-grabbing"
           onPointerDown={onSheetHandlePointerDown}
           onPointerMove={onSheetHandlePointerMove}
           onPointerUp={onSheetHandlePointerUp}
@@ -1894,7 +1957,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               </div>
             ) : null}
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-1 py-2">
+            <div className="intel-scroll-y min-h-0 flex-1 px-1 py-2">
               {!payload ? (
                 <p className="py-12 text-center text-sm text-slate-500">뉴스 스트림 동기화 중…</p>
               ) : (

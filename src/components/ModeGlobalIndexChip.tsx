@@ -13,7 +13,7 @@ import type { ViewerMode } from "@/lib/viewPackages";
 type ModeGlobalIndexChipProps = {
   viewerMode: ViewerMode;
   lang: LabelLanguage;
-  /** WTI 점수 (지정학) */
+  /** GTI 점수 (지정학) */
   wtiScore: number | null;
   wtiDelta?: number | null;
   wtiAsOf?: string | null;
@@ -26,7 +26,7 @@ type ModeGlobalIndexChipProps = {
 
 /**
  * 우상단 고정 — 모드별 전 세계 단일 지표.
- * 지정학: 세계 긴장도(WTI).
+ * 지정학: 글로벌 긴장지수(GTI).
  * 지경학: GSCPI + 해운 프록시 + PortWatch 3칩 + 세션 개장 (합산 점수 없음).
  */
 export function ModeGlobalIndexChip({

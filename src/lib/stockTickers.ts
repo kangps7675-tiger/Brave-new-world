@@ -88,7 +88,7 @@ export function verdictLabel(verdict: MarketReactionVerdict, ko: boolean): strin
  */
 export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = {
   "^VIX": { ko: "VIX 공포지수", en: "VIX Fear Index" },
-  "CL=F": { ko: "WTI 원유 선물", en: "WTI Crude Oil" },
+  "CL=F": { ko: "WTI 원유", en: "WTI crude" },
   "BZ=F": { ko: "브렌트유 선물", en: "Brent Crude" },
   "NG=F": { ko: "천연가스 선물", en: "Natural Gas" },
   "ZW=F": { ko: "밀 선물", en: "Wheat Futures" },
@@ -119,7 +119,7 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
  */
 export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "^VIX", label: "VIX Fear Index" },
-  { symbol: "CL=F", label: "WTI Crude Oil" },
+  { symbol: "CL=F", label: "WTI crude" },
   { symbol: "BZ=F", label: "Brent Crude" },
   { symbol: "NG=F", label: "Natural Gas" },
   { symbol: "ZW=F", label: "Wheat Futures" },

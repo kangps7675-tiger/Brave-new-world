@@ -77,7 +77,7 @@ export type PeriodicBriefing = {
   featuredNews?: LampFeaturedNews[];
   /** 지경학 — 텍스트 브리핑 대신 표로 보여주는 거시 지표 */
   macroTable?: LampMacroRow[];
-  /** 지정학 등불 사이드 — 오늘의 WTI (세계 긴장도 지수) */
+  /** 지정학 등불 사이드 — 오늘의 GTI (글로벌 긴장지수) */
   wti?: {
     score: number;
     deltaScore: number | null;
@@ -2061,7 +2061,7 @@ export function shortenEconomyLampParagraphs(paragraphs: string[], max = 1): str
 }
 
 /**
- * 한글 UI일 때 등불 본문(제목·문단·뉴스 카드·거시표·WTI)을 최대한 한국어로 맞춤.
+ * 한글 UI일 때 등불 본문(제목·문단·뉴스 카드·거시표·GTI)을 최대한 한국어로 맞춤.
  * 이미 한글이 주를 이루면 재번역하지 않음.
  */
 export async function localizePeriodicBriefing(
