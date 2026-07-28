@@ -19,6 +19,9 @@ import type { ViinaLod } from "@/lib/viinaLod";
 
 export type LayerPanelHostProps = {
   isCompactUi: boolean;
+  /** tablet | desktop-wide 등 — 패널 폭·높이 조정 */
+  isTabletUi?: boolean;
+  isDesktopWideUi?: boolean;
   labelLanguage: LabelLanguage;
   layerPanelDirty: boolean;
   onConfirmDraft: () => void;
@@ -76,6 +79,8 @@ export type LayerPanelHostProps = {
 /** 좌측 레이어 패널 — GlobeDashboard에서 추출 (분리 5단계) */
 export function LayerPanelHost({
   isCompactUi,
+  isTabletUi = false,
+  isDesktopWideUi = false,
   labelLanguage,
   layerPanelDirty,
   onConfirmDraft,
@@ -129,13 +134,17 @@ export function LayerPanelHost({
   generatedAt,
   loadError,
 }: LayerPanelHostProps) {
+  const panelSizeClass = isTabletUi
+    ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)] w-[min(42vw,400px)]"
+    : isDesktopWideUi
+      ? "top-14 max-h-[calc(100vh-5rem)] w-[min(calc(100vw-2rem),420px)]"
+      : isCompactUi
+        ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)] w-[min(calc(100vw-1.5rem),340px)]"
+        : "top-14 max-h-[calc(100vh-5rem)] w-[min(calc(100vw-1.5rem),360px)]";
+
   return (
     <aside
-      className={`intel-panel intel-scroll-y pointer-events-auto absolute left-3 z-[70] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${
-        isCompactUi
-          ? "top-[4.75rem] max-h-[calc(100dvh-5.5rem)] w-[min(calc(100vw-1.5rem),360px)]"
-          : "top-14 max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),384px)]"
-      }`}
+      className={`intel-panel intel-scroll-y pointer-events-auto absolute left-3 z-[110] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelSizeClass}`}
     >
       {layerPanelDirty ? (
         <div

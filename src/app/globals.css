@@ -67,14 +67,50 @@ select,
 }
 
 /**
- * Hydration ? ??? ??.
- * layout ??? ????? html[data-compact]? ?? ????.
+ * Hydration 전 레이아웃 게이트.
+ * layout 인라인 스크립트가 html[data-compact] / html[data-device]를 설정한다.
  */
 html[data-compact="1"] .cv-desktop-only {
   display: none !important;
 }
 html[data-compact="0"] .cv-compact-only {
   display: none !important;
+}
+
+/* 기기 프로파일 전용 표시 */
+html[data-device="phone"] .cv-tablet-only,
+html[data-device="desktop"] .cv-tablet-only,
+html[data-device="desktop-wide"] .cv-tablet-only {
+  display: none !important;
+}
+html[data-device="phone"] .cv-desktop-wide-only,
+html[data-device="tablet"] .cv-desktop-wide-only,
+html[data-device="desktop"] .cv-desktop-wide-only {
+  display: none !important;
+}
+html:not([data-device="tablet"]):not([data-device="desktop"]):not([data-device="desktop-wide"])
+  .cv-globe-chrome-only {
+  display: none !important;
+}
+
+/* 프로파일별 사이드바·탭 타깃 */
+html[data-device="tablet"] {
+  --intel-sidebar-width: 400px;
+  --tap-target-min: 44px;
+  --device-panel-gap: 0.85rem;
+}
+html[data-device="desktop"] {
+  --intel-sidebar-width: 480px;
+  --tap-target-min: 40px;
+  --device-panel-gap: 1rem;
+}
+html[data-device="desktop-wide"] {
+  --intel-sidebar-width: 560px;
+  --tap-target-min: 40px;
+  --device-panel-gap: 1.15rem;
+}
+html[data-device="phone"] {
+  --tap-target-min: 44px;
 }
 
 /**
@@ -848,6 +884,37 @@ main[data-ui-lang="en"]
     border-top-right-radius: 1.25rem;
     box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.45);
   }
+}
+
+/*
+ * 태블릿: 하단 시트 대신 우측 독 — 지도와 패널을 동시에 쓰도록.
+ * (max-width:1023 규칙보다 특이성 높게)
+ */
+html[data-device="tablet"] .intel-sidebar-right {
+  top: 5rem !important;
+  bottom: 0 !important;
+  left: auto !important;
+  right: 0 !important;
+  width: min(100%, var(--intel-sidebar-width)) !important;
+  max-width: min(42vw, var(--intel-sidebar-width));
+  height: auto !important;
+  max-height: calc(100% - 5rem);
+  padding-bottom: var(--safe-bottom);
+  border-left: 1px solid rgba(125, 211, 252, 0.16) !important;
+  border-top: none !important;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35);
+  z-index: 70;
+}
+
+/* 와이드 데스크톱: 우측 패널 여유 */
+html[data-device="desktop-wide"] .intel-sidebar-right {
+  max-height: calc(100% - 5.5rem);
+}
+
+html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
+  max-width: min(calc(100vw - 2rem), 420px);
 }
 
 .stock-ticker-scroll {
