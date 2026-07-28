@@ -8,12 +8,8 @@ import { NewsPerspectivesPanel } from "@/components/NewsPerspectivesPanel";
 import { type DailyPrompt } from "@/lib/dailyPrompt";
 import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
-import { NeptunLayerPanel } from "@/components/NeptunLayerPanel";
 import { NeptunThreatDetailPanel } from "@/components/NeptunThreatDetailPanel";
 import { type LayerCategory } from "@/components/LayerCategoryPanel";
-import { LayerCategoryDraftHost } from "@/components/LayerCategoryDraftHost";
-import { LayerPanelLanguagePicker } from "@/components/LayerPanelLanguagePicker";
-import { UiFontPicker } from "@/components/UiFontPicker";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { MapAttributionBar } from "@/components/MapAttributionBar";
 import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
@@ -67,10 +63,6 @@ import {
 } from "@/components/globe/hooks/useTensionSpikeCut";
 import { useGpsJamLayer } from "@/hooks/useGpsJamLayer";
 import { buildGpsJamSoloPatch } from "@/lib/gpsJamSolo";
-import {
-  gpsJamDisclaimer,
-  gpsJamLevelLabel,
-} from "@/lib/gpsJam";
 import {
   reconCountryAccent,
   sampleReconOrbitTrack,
@@ -147,7 +139,6 @@ import {
   recordInterestTheme,
 } from "@/lib/interest/recordInterest";
 import { useLocalCalendarDayKey } from "@/hooks/useLocalCalendarDayKey";
-import { SoundMuteControl } from "@/components/SoundMuteControl";
 import {
   SENTINEL_CYCLE_MS,
   fetchSentinelTour,
@@ -156,24 +147,17 @@ import {
 import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
 import { LocaleProvider } from "@/contexts/LocaleContext";
-import {
-  HOVER,
-  hatchStyleLabelLocalized,
-  pathKindLabel,
-  tensionLabel,
-} from "@/lib/hoverLabels";
 import { t } from "@/lib/uiStrings";
 import { markViewerIntroDone } from "@/components/ViewerIntroOverlay";
 import { GeoeconomicsChrome } from "@/components/globe/GeoeconomicsChrome";
 import { markQuickStartDone } from "@/components/QuickStartCoach";
-import type { NavSelection, RegionBBox } from "@/data/navRegions";
+import type { NavSelection } from "@/data/navRegions";
 import { EXPLORATION_PRESETS, toNavSelection } from "@/data/navRegions";
 import { econNavSelectionFromId } from "@/data/econNavRegions";
 import {
   type EconomyHubChoice,
 } from "@/lib/autoFlyTarget";
 import {
-  conceptLayersForConflictNavId,
   conceptLayersForEconomyNavId,
 } from "@/lib/conceptLayers";
 import { pickGdeltTensionTags, pickGdeltTierPins } from "@/lib/gdeltLocationTags";
@@ -191,10 +175,8 @@ import {
 } from "@/lib/regionFilter";
 import {
   buildTensionHeatmaps,
-  diplomaticHeatmapColor,
-  warHeatmapColor,
 } from "@/lib/tensionHeatmap";
-import { getGlobeLod, globeLodFromTier, type GlobeLodTier } from "@/lib/globeLod";
+import { getGlobeLod, globeLodFromTier } from "@/lib/globeLod";
 import { getTransportLod } from "@/lib/transportLod";
 import { expandPlaces } from "@/lib/compactData";
 import { dataPath } from "@/lib/dataProfile";
@@ -225,10 +207,6 @@ import {
 } from "@/lib/telegramAlerts";
 import type { TzevaAdomAlert, TzevaAdomPayload } from "@/lib/tzevaAdom";
 import {
-  NEWFEEDS_ATTRIBUTION_SHORT,
-  severityColor,
-  severityHint,
-  severityLabel,
   type NewfeedsAttackPoint,
   type NewfeedsAttacksPayload,
 } from "@/lib/newfeeds";
@@ -243,11 +221,8 @@ import {
   type NavareaFeaturePoint,
 } from "@/lib/navareaHatch";
 import {
-  localizeNewfeedsCategory,
   localizeNewfeedsLocation,
-  localizeNewfeedsSummary,
   localizeNewfeedsTitle,
-  newfeedsUi,
 } from "@/lib/newfeedsI18n";
 import { type NeptunLiveThreat } from "@/lib/neptun";
 import { SoundEffectsBridge } from "@/components/SoundEffectsBridge";
@@ -258,8 +233,6 @@ import {
   AIR_RAID_SIREN_DELAY_MS,
   buildAirRaidFocusBox,
   buildAirRaidFocusHatchPaths,
-  airRaidFocusBoxPolygon,
-  isAirRaidFocusPath,
   playAirRaidSirenAfterFly,
   type AirRaidFocusBox,
   type AirRaidSirenKind,
@@ -296,16 +269,7 @@ import {
   type LabelLanguage,
   type LayerPrefs,
 } from "@/lib/layerPrefs";
-import {
-  translateOrefRegion,
-  translateOrefTitle,
-  tzevaUi,
-} from "@/lib/tzevaAdomI18n";
 import { LAYER_ITEM_PREF_KEYS } from "@/lib/layerItemPrefKeys";
-import {
-  activeLayerCap,
-  countActiveLayers,
-} from "@/lib/layerExclusiveCap";
 import {
   applyNormalCapToLayerPrefs,
   applyUltraLiteToLayerPrefs,
@@ -344,10 +308,9 @@ import {
   isEastAsiaAdizVisibleAtAltitude,
 } from "@/lib/eastAsiaAdiz";
 import { axisNetworkToPaths } from "@/lib/axisNetworkPaths";
-import { briTradePathsToTransport, briTradeStrokeWidth } from "@/lib/briTradePaths";
+import { briTradePathsToTransport } from "@/lib/briTradePaths";
 import {
   usDfcSupplyPathsToTransport,
-  usDfcSupplyStrokeWidth,
 } from "@/lib/usDfcSupplyPaths";
 import { paintAxisHubCountriesGeoJson } from "@/lib/axisHubCountryPolygons";
 import {
@@ -355,7 +318,7 @@ import {
   filterArmsForHub,
   type AxisArmsPayload,
 } from "@/lib/axisArmsPaths";
-import { AXIS_HUB_META, type AxisHubId } from "@/data/axisNetwork";
+import { type AxisHubId } from "@/data/axisNetwork";
 import { hubById, type HubClaim } from "@/data/hubNav";
 import {
   altitudeFromEpisodeZoom,
@@ -369,31 +332,8 @@ import {
 import { useLazyJsonObject } from "@/hooks/useLazyJson";
 import type { FeatureCollection } from "geojson";
 import { getGlobeTextures } from "@/lib/mapStyles";
-import { getZoomOutScale } from "@/lib/zoomScale";
-import {
-  clampGlobeAltitude,
-  EXTREME_ZOOM_ALTITUDE,
-  globeDistanceForAltitude,
-  MIN_GLOBE_ALTITUDE,
-  COMPACT_THEATER_MAX_SPAN_DEG,
-  ORBITAL_OVERVIEW_ALTITUDE,
-  THEATER_ENTRY_MIN_ALTITUDE,
-} from "@/lib/globeCamera";
-import {
-  staticPointColor,
-  staticPointRadius,
-} from "@/lib/staticGlobe";
 import { setActiveBasemapTone, type BasemapTone } from "@/lib/basemapTone";
 import { isHtmlStaticKind } from "@/lib/infraStaticMarkers";
-import { mineralDepositFill, mineralDepositStroke } from "@/lib/resourceDepositStyle";
-import {
-  aisCommercialPointColor,
-  aisDisplayTypeLabel,
-  aisMilitaryKindColor,
-  isAisAspectHullMarker,
-} from "@/lib/aisVesselClass";
-import { COUNTRY_BORDER_PATH_COLOR, COUNTRY_FILL_ALTITUDE, COUNTRY_TEXTURE_MODE_FILL, POLYGON_NO_STROKE } from "@/lib/countryColors";
-import { getPlaceLabelColor, getPlaceLabelDotRadius, getPlaceLabelSize, getPlaceLabelTier } from "@/lib/placeLabelColors";
 import { filterMajorCityLabels } from "@/lib/placeLod";
 import {
   resolveBottomAlertPanel,
@@ -401,16 +341,10 @@ import {
   shouldCloseLocalForGdelt,
 } from "@/lib/localOverlayPolicy";
 import {
-  CAMERA_IDLE_DEBOUNCE_MS,
   HEATMAP_UPDATE_CADENCE_MS,
   LABEL_UPDATE_CADENCE_MS,
   PATH_UPDATE_CADENCE_MS,
 } from "@/lib/globePerformance";
-import {
-  cameraBusyUntilAfterFly,
-  cameraFlyBusyMs,
-  cameraIdleClearBlocked,
-} from "@/lib/cameraBusyGuard";
 import { useCameraViewport } from "@/hooks/useCameraViewport";
 import {
   COUNTRY_POLYGON_MAX_BY_TIER,
@@ -431,13 +365,6 @@ import {
   disputeGeometryBbox,
   disputeMatchesWarDiplomaticLayers,
   geometryToAccentOutlineAndHatch,
-  getConflictZoneHatchColor,
-  getConflictZoneOutlineColor,
-  getDisputeHatchColor,
-  getDisputeHatchStyle,
-  getDisputeOutlineColor,
-  isCombatHazard,
-  parseConflictHatchGrade,
   rankDisputesForDisplay,
   TENSION_GRADE_STYLES,
 } from "@/lib/disputeHatch";
@@ -450,7 +377,6 @@ import {
 } from "@/lib/viinaPrefetch";
 import { prefetchNeptun } from "@/lib/neptunPrefetch";
 import { buildViinaFrontEvents, type ViinaFrontEvent } from "@/lib/viinaFrontEvents";
-import { computeUkraineFrontFitBbox } from "@/lib/ukraineFrontPaths";
 import {
   buildUkraineMacroGeoJson,
   buildUkraineMacroSeedGeoJson,
@@ -467,7 +393,6 @@ import type { DisputeHatchLod } from "@/lib/disputeHatchPrecompute";
 import {
   isInUkraineTheater,
 } from "@/lib/ukraineSettlementLabels";
-import { UKRAINE_SITUATION_PATHS } from "@/data/ukraineSituationSeed";
 import {
   KOREA_MISSILE_BELTS,
 } from "@/data/koreaMissileBeltSeed";
@@ -525,7 +450,6 @@ import type {
 import {
   isFreshEvent,
   scoreEvents,
-  TIER_LABELS,
   type ScoredEvent,
 } from "@/data/eventTiers";
 import {
@@ -547,7 +471,6 @@ import {
 import {
   navSelectionFromId,
   theaterFocusFromNav,
-  isUkraineNavId,
   type TheaterSidebarTab,
 } from "@/lib/theaterFocus";
 import {
@@ -603,79 +526,33 @@ import type {
   PulseRingPoint,
   StaticGlobePoint,
   TzevaAdomGlobePoint,
-  ViewState,
   Selection,
 } from "@/components/globe/types";
 import {
-  ARMS_EMBARGO_STROKE_WIDTH,
   armsEmbargoStroke,
   infraColors,
   pathLayerColors,
-  CONFLICT_ZONE_ALTITUDE,
   EMPTY_LAYER_CATEGORIES,
   EMPTY_OVERLAY_POLYGONS,
-  FLOW_PATH_KINDS,
   HEATMAP_MEANINGFUL_DELTA,
-  HISTORY_IMMERSION_MAX_ALTITUDE,
-  INFRA_STROKE,
-  INTEL_MISSILE_ARC,
-  INTEL_NASA_FIRE,
   INTRO_CAMERA_DELAY_MS,
   INTRO_CAMERA_DURATION_MS,
   INTRO_SESSION_KEY,
   LABEL_MEANINGFUL_DELTA,
-  LAYER_ALTITUDE_SYNC_MIN_DELTA,
-  MOVING_IDLE_DELAY_MS,
   PATH_MEANINGFUL_DELTA,
-  REGION_FIT_PADDING,
-  REGION_MAX_ALTITUDE,
-  REGION_MIN_ALTITUDE,
-  REGION_MIN_SPAN_DEG,
-  STATIC_KIND_LABELS,
-  TZEVA_ADOM_MARKER,
-  US_BASE_ALTITUDE,
-  US_BASE_FILL,
-  US_BASE_STROKE,
-  UKRAINE_COMBAT_ZONE_LINE,
-  UKRAINE_CONTESTED_FILL,
-  UKRAINE_CONTESTED_STROKE,
-  UKRAINE_CONTROL_ALTITUDE,
-  UKRAINE_RU_CLAIM_LINE,
-  UKRAINE_RU_FILL,
-  UKRAINE_RU_FRONT_LINE,
-  UKRAINE_RU_OCCUPIED_LINE,
-  UKRAINE_RU_STROKE,
-  UKRAINE_UA_CLAIM_LINE,
-  UKRAINE_UA_FILL,
-  UKRAINE_UA_FRONT_LINE,
-  UKRAINE_UA_GAIN_LINE,
-  UKRAINE_UA_OCCUPIED_LINE,
-  UKRAINE_UA_STROKE,
   emptyData,
 } from "@/components/globe/constants";
 import { geometryToBorderPaths } from "@/components/globe/geometryToBorderPaths";
 import {
-  isUkraineViinaPolygonLayer,
   overlayPolygonsEqual,
-  ukraineCombatZoneStroke,
-  ukraineHatchStroke,
-  ukraineThinOutlineStroke,
 } from "@/components/globe/overlayPolygons";
 import {
-  clamp,
-  escapeHtml,
-  formatDateTime,
-  getSafePlaceLabel,
-  hostFromUrl,
-  longitudeDistance,
   markWelcomeGateDone,
   markLangChoiceDone,
   readWelcomeGateDone,
   readLangChoiceDone,
-  truncateOverview,
 } from "@/components/globe/formatters";
 import {
-  applyHtmlOverlayPointerEvents,
   getStableLodTier,
 } from "@/components/globe/htmlOverlayPointerEvents";
 import { createDashboardHtmlOverlayElement } from "@/components/globe/markers/createDashboardHtmlOverlayElement";
@@ -1677,25 +1554,16 @@ export function GlobeDashboard({
   historyStoryLockedRef.current = historyStoryLocked;
 
   const {
-    configuredGlobe,
-    lastViewUpdateAt,
-    lastFilterCenterUpdateAt,
     layerCenterRef,
     layerAltitudeRef,
     layerLodTierRef,
-    moveIdleTimerRef,
-    renderStabilizeIdleRef,
     isCameraMovingRef,
-    cameraTweenUntilRef,
-    flyBusyTimerRef,
     viewState,
-    setViewState,
     filterCenter,
     setFilterCenter,
     layerAltitude,
     setLayerAltitude,
     isCameraMoving,
-    setIsCameraMoving,
     configureGlobe,
     flyTo,
     computeRegionFitAltitude,
@@ -3377,7 +3245,6 @@ export function GlobeDashboard({
   const {
     airportPortHtmlMarkers,
     chokeGlowRings,
-    visibleUsCarriers,
     deployedCarrierCount,
     usCarrierLabelOffsets,
     usCarrierHtmlMarkers,
@@ -4611,7 +4478,6 @@ export function GlobeDashboard({
    */
   const {
     refreshGdeltEvents,
-    refreshFirmsFires,
   } = useLiveGeoFeedPolling({
     isCameraMovingRef,
     isEconomyViewer,
@@ -5215,7 +5081,6 @@ export function GlobeDashboard({
     enterEconomyRegionFocus,
     flyToTheaterDetail,
     enterTheaterFocusRef,
-    enterEconomyRegionFocusRef,
   } = useTheaterNavigation({
     flyTo,
     flyToBounds,

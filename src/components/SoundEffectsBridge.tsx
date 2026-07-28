@@ -10,6 +10,7 @@ import { useSoundStream, type PlaySoundOptions } from "@/hooks/useSoundStream";
 import { gtiAmbientVolumeScale } from "@/lib/gti";
 import {
   CV_LAYER_SOUND_EVENT,
+  emitLayerClickSounds,
   type LayerSoundDetail,
 } from "@/lib/infraClickSounds";
 
@@ -55,21 +56,20 @@ export function emitOilSpikeSound() {
   });
 }
 
-/** A급 속보·등불/양피지 경보 — 모스 타전 + Something dark (초반 쾅 임팩트) */
+/** A급 속보·등불/양피지 경보 — 모스 타전 + Something dark 동시 겹침 */
 export function emitBreakingDispatchSound() {
-  // 어두운 임팩트를 먼저·크게 — 가슴이 철렁할 초반 쾅
-  emitDashboardSound("breaking-dark-bed", {
-    force: true,
-    overlap: true,
-    volumeScale: 1.85,
-    durationMs: 10_000,
-  });
-  emitDashboardSound("hero-breaking", {
-    force: true,
-    overlap: true,
-    volumeScale: 0.95,
-    durationMs: 12_000,
-  });
+  emitLayerClickSounds([
+    {
+      eventId: "breaking-dark-bed",
+      volumeScale: 1.85,
+      durationMs: 10_000,
+    },
+    {
+      eventId: "hero-breaking",
+      volumeScale: 0.95,
+      durationMs: 12_000,
+    },
+  ]);
 }
 
 /** 양피지 펼칠 때 — 종이 바스락 */
