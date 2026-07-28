@@ -29,6 +29,7 @@ const CAP_EXEMPT_KEYS = new Set<keyof LayerPrefs>([
 export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showUkraineControl",
   "showNeptun",
+  "showUkraineStrikesOnRussia",
   "showWarZones",
   "showDiplomaticTension",
   "showEastAsiaAdiz",

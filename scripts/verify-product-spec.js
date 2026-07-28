@@ -34,13 +34,41 @@ function extractConst(src, name) {
   return Number(m[1]);
 }
 
+/** SSOT: geowatch.config caps — layerExclusiveCap re-exports GEOWATCH_CONFIG */
+function extractConfigCap(configSrc, key) {
+  const re = new RegExp(`${key}:\\s*(\\d+)`);
+  const m = configSrc.match(re);
+  if (!m) {
+    console.error(`[verify-product-spec] FAIL: caps.${key} not found in geowatch.config`);
+    process.exitCode = 1;
+    return null;
+  }
+  return Number(m[1]);
+}
+
+function mustExportCapAlias(capSrc, name, configToken) {
+  if (!capSrc.includes(`export const ${name}`) || !capSrc.includes(configToken)) {
+    console.error(
+      `[verify-product-spec] FAIL: ${name} must re-export ${configToken} from GEOWATCH_CONFIG`,
+    );
+    process.exitCode = 1;
+    return false;
+  }
+  console.log(`[verify-product-spec] OK ${name} → ${configToken}`);
+  return true;
+}
+
 const capSrc = read("src/lib/layerExclusiveCap.ts");
+const configSrc = read("src/config/geowatch.config.ts");
 const pkgSrc = read("src/lib/viewPackages.ts");
 const guardSrc = read("src/lib/liveRenderGuard.ts");
 const specSrc = read("src/lib/productSpec.ts");
 
-const DEFAULT = extractConst(capSrc, "ACTIVE_LAYER_CAP_DEFAULT");
-const ULTRA = extractConst(capSrc, "ACTIVE_LAYER_CAP_ULTRA");
+mustExportCapAlias(capSrc, "ACTIVE_LAYER_CAP_DEFAULT", "fullModeMaxLayers");
+mustExportCapAlias(capSrc, "ACTIVE_LAYER_CAP_ULTRA", "ultraLiteMaxLayers");
+
+const DEFAULT = extractConfigCap(configSrc, "fullModeMaxLayers");
+const ULTRA = extractConfigCap(configSrc, "ultraLiteMaxLayers");
 const HARD = extractConst(pkgSrc, "MAX_ON_LAYERS");
 const HARD_E = extractConst(pkgSrc, "MAX_ON_LAYERS_ECONOMY");
 
@@ -61,8 +89,10 @@ mustInclude(
   "productSpec re-exports caps",
 );
 mustInclude("src/lib/productSpec.ts", "newsRss: 150_000", "productSpec news poll");
-mustInclude("src/lib/liveRenderGuard.ts", "150_000", "liveRenderGuard news 150s");
-mustInclude("src/lib/liveRenderGuard.ts", "15_000", "liveRenderGuard tzeva 15s");
+mustInclude("src/lib/liveRenderGuard.ts", "LIVE.newsRssMs", "liveRenderGuard news SSOT");
+mustInclude("src/lib/liveRenderGuard.ts", "LIVE.tzevaMs", "liveRenderGuard tzeva SSOT");
+mustInclude("src/config/geowatch.config.ts", "newsRssMs: 150_000", "config news 150s");
+mustInclude("src/config/geowatch.config.ts", "tzevaMs: 15_000", "config tzeva 15s");
 mustInclude("docs/stub-off-checklist.md", `일반 **${DEFAULT}**`, "stub-off UI cap default");
 mustInclude("docs/stub-off-checklist.md", `Ultra-Lite **${ULTRA}**`, "stub-off UI cap ultra");
 mustInclude("docs/stub-off-checklist.md", `**${HARD}**`, "stub-off package hard");
@@ -74,18 +104,21 @@ mustInclude("README.md", `일반 **${DEFAULT}**`, "README default cap");
 mustInclude("README.md", `Ultra-Lite **${ULTRA}**`, "README ultra cap");
 mustInclude("README.md", `**${HARD}**`, "README hard cap");
 
-// productSpec STUB_OFF_POLL_MS must mirror guard return values for stub-off path
+// liveRenderGuard stub-OFF path must read GEOWATCH_CONFIG.polling (SSOT)
 const checks = [
-  ["liveTzevaPollMs", "15_000"],
-  ["liveTelegramPollMs", "30_000"],
-  ["liveNewsPollMs", "150_000"],
-  ["liveAisPollMs", "90_000"],
-  ["liveMilPollMs", "75_000"],
-  ["liveTickerPollMs", "15 * 60_000"],
+  ["liveTzevaPollMs", "LIVE.tzevaMs", "tzevaMs: 15_000"],
+  ["liveTelegramPollMs", "LIVE.telegramMs", "telegramMs: 30_000"],
+  ["liveNewsPollMs", "LIVE.newsRssMs", "newsRssMs: 150_000"],
+  ["liveAisPollMs", "LIVE.aisMs", "aisMs: 90_000"],
+  ["liveMilPollMs", "LIVE.milAdsbMs", "milAdsbMs: 75_000"],
+  ["liveTickerPollMs", "LIVE.tickerMs", "tickerMs: 15 * 60_000"],
 ];
-for (const [fn, token] of checks) {
-  if (!guardSrc.includes(fn) || !guardSrc.includes(token)) {
-    console.error(`[verify-product-spec] FAIL guard ${fn} missing ${token}`);
+for (const [fn, guardToken, configToken] of checks) {
+  if (!guardSrc.includes(fn) || !guardSrc.includes(guardToken)) {
+    console.error(`[verify-product-spec] FAIL guard ${fn} missing ${guardToken}`);
+    process.exitCode = 1;
+  } else if (!configSrc.includes(configToken)) {
+    console.error(`[verify-product-spec] FAIL config missing ${configToken} for ${fn}`);
     process.exitCode = 1;
   } else {
     console.log(`[verify-product-spec] OK guard ${fn}`);

@@ -16,10 +16,9 @@ type ConflictConceptTheater =
   | "middle-east"
   | "global";
 
+/** 우크라 전장 내비 — 전선 폴리곤만 강제(NEPTUN·타격은 LIVE_COMPANIONS / 지정학 FORCE_ON) */
 const UKRAINE_STACK: LayerPatch = {
   showUkraineControl: true,
-  showNeptun: true,
-  showNeptunPreviousTrails: false,
   showWarZones: true,
   showDiplomaticTension: true,
   showGdeltWar: true,
@@ -28,10 +27,21 @@ const UKRAINE_STACK: LayerPatch = {
   showTzevaAdom: false,
 };
 
+/**
+ * NEPTUN(공습·드론·미사일 궤적) + 우크라→러 타격 화염.
+ * 전선 폴리곤(showUkraineControl)은 포함하지 않음 — 별도 토글.
+ */
+export const UKRAINE_LIVE_COMPANIONS: LayerPatch = {
+  showNeptun: true,
+  showNeptunPreviousTrails: false,
+  showUkraineStrikesOnRussia: true,
+};
+
 const NO_UKRAINE: LayerPatch = {
   showUkraineControl: false,
   showNeptun: false,
   showNeptunPreviousTrails: false,
+  showUkraineStrikesOnRussia: false,
 };
 
 const CONFLICT_BASE: LayerPatch = {
@@ -304,7 +314,7 @@ export function conflictTheaterFromNavId(navId: string): ViewTheaterChoice {
 }
 
 export function conceptLayersForConflict(theater: ViewTheaterChoice): LayerPatch {
-  // auto/미지정: 우크라 전선 OFF — 전장「우크라」·내비 우크라 선택 시에만 UKRAINE_STACK
+  // auto/미지정: 우크라 묶음 OFF — 전장「우크라」·내비 우크라·지정학 FORCE_ON 시에만
   if (theater === "auto") return { ...CONFLICT_BASE, ...NO_UKRAINE };
   if (theater === "all") return { ...CONFLICT_BASE, ...NO_UKRAINE };
   if (theater in CONFLICT_THEATER_LAYERS) {

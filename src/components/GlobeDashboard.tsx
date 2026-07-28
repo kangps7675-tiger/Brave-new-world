@@ -159,6 +159,7 @@ import {
 } from "@/lib/autoFlyTarget";
 import {
   conceptLayersForEconomyNavId,
+  UKRAINE_LIVE_COMPANIONS,
 } from "@/lib/conceptLayers";
 import { pickGdeltTensionTags, pickGdeltTierPins } from "@/lib/gdeltLocationTags";
 import {
@@ -1359,7 +1360,8 @@ export function GlobeDashboard({
       enterTheaterFocusRef.current?.(ukraineSel);
       return;
     }
-    togglePref("showUkraineControl", v);
+    // 전선만 — NEPTUN/타격 묶음과 분리
+    togglePref("showUkraineControl", true);
   };
   const showAnyDisputeOverlay = anyDisputeOverlay({ showWarZones, showDiplomaticTension });
 
@@ -1465,8 +1467,14 @@ export function GlobeDashboard({
   const setShowUsChinaIncidents = (v: boolean) => togglePref("showUsChinaIncidents", v);
   const setShowNorthKoreaMissileTests = (v: boolean) =>
     togglePref("showNorthKoreaMissileTests", v);
-  const setShowUkraineStrikesOnRussia = (v: boolean) =>
-    togglePref("showUkraineStrikesOnRussia", v);
+  const setShowUkraineStrikesOnRussia = (v: boolean) => {
+    if (v) {
+      if (historyStoryLockedRef.current) return;
+      toggleCategoryPrefs(UKRAINE_LIVE_COMPANIONS);
+      return;
+    }
+    togglePref("showUkraineStrikesOnRussia", false);
+  };
 
   const setShowNeptun = (v: boolean) => {
     if (v) {
@@ -1475,7 +1483,8 @@ export function GlobeDashboard({
       immediateUntilRef.current = Date.now() + 1500;
       setRegionNavSelection(null);
       setSelected(null);
-      togglePref("showNeptun", true);
+      // 공습·드론 궤적 + 타격 화염 (전선 제외)
+      toggleCategoryPrefs(UKRAINE_LIVE_COMPANIONS);
       return;
     }
     toggleCategoryPrefs({

@@ -160,10 +160,11 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
     id: "frontline-live",
     label: "전선 실시간",
     tagline: "우크라·중동",
-    description: "NEPTUN · 공습 경보 · GDELT (우크라 전선은 전장 선택 시)",
+    description: "NEPTUN 공습/드론 · 타격 화염 · GDELT (우크라 전선은 전장 선택 시)",
     layers: {
-      // 우크라 전선은 ModePicker/내비「우크라」세부 선택 시에만
+      // 전선 폴리곤은 ModePicker/내비「우크라」선택 시에만
       showUkraineControl: false,
+      showUkraineStrikesOnRussia: true,
       showWarZones: true,
       showGdeltWar: true,
       showGdeltDiplomatic: true,

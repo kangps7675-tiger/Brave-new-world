@@ -127,7 +127,8 @@ export type ViewerChromePreset = {
 };
 
 const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
-  // 우크라 전선은 전장/내비 세부 선택(UKRAINE_STACK) 시에만 ON
+  // NEPTUN 공습/드론 · 타격 화염 (전선 폴리곤은 전장/체크박스에서 별도)
+  showUkraineStrikesOnRussia: true,
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
@@ -212,6 +213,7 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showGdeltOceanCompetition: false,
   showTelegramOsint: false,
   showUkraineControl: false,
+  showUkraineStrikesOnRussia: false,
   showNeptun: false,
   showNeptunPreviousTrails: false,
   showTzevaAdom: false,
@@ -268,9 +270,9 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerTitle: "지정학",
     modePickerTagline: "전선 · GDELT · Telegram OSINT",
     modePickerBullets: [
-      "우크라이나 전선·NEPTUN 드론·미사일 궤적",
+      "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
       "GDELT 전투·외교 뉴스 핀",
-      "Telegram OSINT · VIINA 점령지",
+      "Telegram OSINT · VIINA 전선(전장 선택 시)",
       "에너지 히어로: 해저관 · 송유관 · 원자력",
       "하단: 속보 + GDELT 범례",
     ],
