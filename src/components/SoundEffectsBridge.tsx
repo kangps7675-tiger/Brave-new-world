@@ -55,19 +55,20 @@ export function emitOilSpikeSound() {
   });
 }
 
-/** A급 속보·등불/양피지 경보 — SOS 모스 타전 + Something dark 깔개 겹침 */
+/** A급 속보·등불/양피지 경보 — 모스 타전 + Something dark (초반 쾅 임팩트) */
 export function emitBreakingDispatchSound() {
-  emitDashboardSound("hero-breaking", {
-    force: true,
-    overlap: true,
-    volumeScale: 0.9,
-    durationMs: 9000,
-  });
+  // 어두운 임팩트를 먼저·크게 — 가슴이 철렁할 초반 쾅
   emitDashboardSound("breaking-dark-bed", {
     force: true,
     overlap: true,
-    volumeScale: 0.75,
-    durationMs: 9000,
+    volumeScale: 1.85,
+    durationMs: 10_000,
+  });
+  emitDashboardSound("hero-breaking", {
+    force: true,
+    overlap: true,
+    volumeScale: 0.95,
+    durationMs: 12_000,
   });
 }
 

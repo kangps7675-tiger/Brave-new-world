@@ -144,14 +144,6 @@ export const FREESOUND_ATTRIBUTIONS: readonly FreesoundAttribution[] = [
     eventIds: ["frontline-bombing"],
   },
   {
-    freesoundId: 395815,
-    title: "SOS Mayday Morse Code - 988 Hz @ 20wpm with Background Static.wav",
-    author: "daytripper",
-    license: "CC-BY",
-    url: "https://freesound.org/s/395815/",
-    eventIds: ["hero-breaking"],
-  },
-  {
     freesoundId: 587014,
     title: "Something dark",
     author: "Victor_Natas",

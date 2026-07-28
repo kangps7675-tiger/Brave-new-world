@@ -129,29 +129,29 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
-   * A급 속보(alert 히어로) 타전 — SOS 모스 + 스태틱
-   * https://freesound.org/s/395815/ · daytripper · CC BY 4.0
+   * A급 속보(alert 히어로) 타전 — 모스 전보
+   * https://freesound.org/s/553739/ · christislord · CC0
    */
   "hero-breaking": {
     eventId: "hero-breaking",
-    freesoundQuery: "SOS Mayday Morse Code shortwave static",
-    freesoundId: 395815,
-    volume: 0.34,
+    freesoundQuery: "morse code telegraph radio cw",
+    freesoundId: 553739,
+    volume: 0.42,
     category: "conflict",
-    note: "FS#395815 daytripper SOS Mayday Morse · BY 4.0 · A급 속보 타전",
+    note: "FS#553739 christislord John316MorseCode · CC0 · 등불/양피지 속보 타전",
   },
 
   /**
-   * 속보·양피지 타전 깔개 — 어두운 드론 (모스와 겹침)
+   * 속보·양피지 타전 깔개 — 어두운 임팩트 (모스와 겹침 · 초반 쾅 강조)
    * https://freesound.org/s/587014/ · Victor_Natas · CC BY 4.0
    */
   "breaking-dark-bed": {
     eventId: "breaking-dark-bed",
-    freesoundQuery: "something dark ominous drone",
+    freesoundQuery: "something dark ominous drone hit",
     freesoundId: 587014,
-    volume: 0.22,
+    volume: 0.92,
     category: "conflict",
-    note: "FS#587014 Victor_Natas Something dark · BY 4.0 · 등불/양피지 속보 모스와 겹침",
+    note: "FS#587014 Victor_Natas Something dark · BY 4.0 · 모스와 겹침 · 초반 임팩트 크게",
   },
 
   /**

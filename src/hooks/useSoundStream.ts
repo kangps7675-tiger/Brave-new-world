@@ -17,7 +17,7 @@ import {
 import { isZoomScaledSound, scaledSoundVolume } from "@/lib/soundDistanceScale";
 
 /** 로컬/스트림 URL — 캐시 버스팅으로 예전 개짖음 MP3 무효화 */
-const AUDIO_URL_BUST = "v18-fpv-uav-537598";
+const AUDIO_URL_BUST = "v19-morse-553739-dark";
 
 /** 앰비언트 시작 시 서서히 커짐(팍 안 켜지게) · 전환/정지 시 서서히 작아짐 */
 const AMBIENT_FADE_IN_MS = 1800;

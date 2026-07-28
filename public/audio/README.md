@@ -62,8 +62,8 @@
 |----------|-------|----------|
 | `frontline-bombing` | [161806](https://freesound.org/s/161806/) | **CC-BY-NC** |
 | `frontline-fpv-detonation` | [840902](https://freesound.org/s/840902/) | **CC-BY** |
-| `hero-breaking` | [395815](https://freesound.org/s/395815/) | **CC-BY** |
-| `breaking-dark-bed` | [587014](https://freesound.org/s/587014/) Victor_Natas Something dark · 모스와 겹침 | **CC-BY** |
+| `hero-breaking` | [553739](https://freesound.org/s/553739/) christislord Morse · CC0 |
+| `breaking-dark-bed` | [587014](https://freesound.org/s/587014/) Victor_Natas Something dark · 모스와 겹침 · 초반 쾅 | **CC-BY** |
 | `firms-exercise` | [612277](https://freesound.org/s/612277/) | **CC-BY-NC** |
 | `firms-wildfire-crackle` | [620324](https://freesound.org/s/620324/) | **CC-BY** |
 | `construction-ambient` | [159470](https://freesound.org/s/159470/) | **CC-BY** |
