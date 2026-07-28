@@ -28,13 +28,13 @@ export const LAYER_GROUP_HEX: Record<LayerColorGroup, string> = {
   digital: "#9b8ec4",
 };
 
-/** 밝은 베이스맵용 — 같은 색상환, 명도만 낮춤 */
+/** 밝은 베이스맵용 — 같은 색상환, 채도·대비를 올려 지형 위에 또렷하게 */
 export const LAYER_GROUP_HEX_LIGHT: Record<LayerColorGroup, string> = {
-  crisis: "#b3261e",
-  military: "#0e5b6b",
-  infra: "#274b66",
-  energy: "#8a5300",
-  digital: "#463a8c",
+  crisis: "#9f1239",
+  military: "#0f766e",
+  infra: "#1e3a5f",
+  energy: "#92400e",
+  digital: "#5b21b6",
 };
 
 export function groupHex(

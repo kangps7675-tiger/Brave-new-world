@@ -77,8 +77,8 @@ export function GdeltAlertPanel({
         <ul
           className={
             fullPage
-              ? "min-h-0 flex-1 divide-y divide-orange-300/10 overflow-y-auto"
-              : "max-h-[min(42vh,320px)] divide-y divide-orange-300/10 overflow-y-auto"
+              ? "intel-scroll-y min-h-0 flex-1 divide-y divide-orange-300/10"
+              : "intel-scroll-y max-h-[min(42vh,320px)] divide-y divide-orange-300/10"
           }
         >
           {alerts.map((alert) => {

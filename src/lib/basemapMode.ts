@@ -90,17 +90,9 @@ export const TERRAIN_EXAGGERATION: TerrainExaggeration = {
 
 export const BUILDINGS_MIN_ZOOM = 14;
 
-/** MapLibre fog — terrain: 옅은 파란 대기 / intel: 다크 사이버 */
+/** MapLibre fog — 모드 공통 우주 배경(다크). 지형도 인텔과 같은 우주 후광 */
 export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
-  if (mode === "terrain") {
-    return {
-      color: "rgb(186, 210, 235)",
-      "high-color": "rgb(36, 92, 223)",
-      "horizon-blend": 0.025,
-      "space-color": "rgb(4, 6, 18)",
-      "star-intensity": 0.55,
-    };
-  }
+  void mode;
   return {
     color: "rgb(8, 12, 24)",
     "high-color": "rgb(12, 28, 48)",
@@ -110,10 +102,14 @@ export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
   };
 }
 
+/** 캔버스·스타일 background 레이어 — 인텔과 동일 우주색 */
+export const BASEMAP_SPACE_BACKGROUND = "#0b0c10";
+
 /** MapLibre Map — 구조적 타이핑으로 버전 차이 흡수 */
 export type BasemapMapLike = {
   getStyle: () => { layers?: { id: string; type?: string }[] } | undefined;
   setLayoutProperty: (layerId: string, name: string, value: unknown) => void;
+  setPaintProperty?: (layerId: string, name: string, value: unknown) => void;
   getLayer: (id: string) => unknown;
   setFog: (fog: BasemapFogSpec | null) => void;
   setTerrain: (terrain: { source: string; exaggeration?: number } | null) => void;
@@ -135,6 +131,26 @@ export function applyBasemapFog(map: BasemapMapLike, mode: BasemapMode): void {
     map.setFog(fogForBasemapMode(mode));
   } catch {
     /* fog unsupported */
+  }
+}
+
+/**
+ * Liberty 등 밝은 스타일의 background 레이어를 우주색으로 덮어
+ * 지구본 바깥이 하늘색으로 보이지 않게 한다.
+ */
+export function applyBasemapSpaceBackground(map: BasemapMapLike): void {
+  try {
+    const layers = map.getStyle()?.layers ?? [];
+    for (const layer of layers) {
+      if (layer.type !== "background") continue;
+      map.setPaintProperty?.(layer.id, "background-color", BASEMAP_SPACE_BACKGROUND);
+    }
+    // 관례적 id도 한 번 더 시도
+    if (map.getLayer("background")) {
+      map.setPaintProperty?.("background", "background-color", BASEMAP_SPACE_BACKGROUND);
+    }
+  } catch {
+    /* paint unsupported */
   }
 }
 

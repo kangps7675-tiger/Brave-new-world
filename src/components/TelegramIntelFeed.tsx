@@ -365,8 +365,8 @@ export function TelegramIntelFeed({
         <ul
           className={
             fullPage
-              ? "min-h-0 flex-1 divide-y divide-sky-300/10 overflow-y-auto px-1 py-2"
-              : "max-h-[min(52vh,480px)] divide-y divide-sky-300/10 overflow-y-auto"
+              ? "intel-scroll-y min-h-0 flex-1 divide-y divide-sky-300/10 px-1 py-2"
+              : "intel-scroll-y max-h-[min(52vh,480px)] divide-y divide-sky-300/10"
           }
         >
           {filtered.map((alert) => (

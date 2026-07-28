@@ -7,7 +7,11 @@ import {
 } from "@/data/audioManifest";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { useSoundStream, type PlaySoundOptions } from "@/hooks/useSoundStream";
-import { wtiAmbientVolumeScale } from "@/lib/wti";
+import { gtiAmbientVolumeScale } from "@/lib/gti";
+import {
+  CV_LAYER_SOUND_EVENT,
+  type LayerSoundDetail,
+} from "@/lib/infraClickSounds";
 
 /** 공습경보·A급 속보 타전·양피지 UI 버스 — 티커/일반 UI 클릭음은 차단 */
 export const CV_SOUND_EVENT = "cv-sound";
@@ -21,6 +25,7 @@ const DASHBOARD_BUS_EVENT_IDS = new Set<AudioEventId>([
   "parchment-unfold",
   "parchment-fold",
   "parchment-flyaway",
+  "oil-spike",
 ]);
 
 export type DashboardSoundDetail = {
@@ -38,6 +43,15 @@ export function emitDashboardSound(
       detail: { eventId, ...playOpts } satisfies DashboardSoundDetail,
     }),
   );
+}
+
+/** 유가 SPIKE (CL=F / BZ=F) — StockTickerStrip */
+export function emitOilSpikeSound() {
+  emitDashboardSound("oil-spike", {
+    force: true,
+    volumeScale: 0.95,
+    durationMs: 4200,
+  });
 }
 
 /** A급 속보 히어로 슬라이드업 시 SOS 모스 타전 */
@@ -204,8 +218,15 @@ function frontlineBedVolumeScale(lod: FrontlineSoundLod): number {
   return 0.68;
 }
 
-export type EconomyAmbientKind = "port" | "construction" | "datacenter" | "pipeline" | null;
-export type ConflictAmbientKind = "frontline" | "taiwan-tension" | "tension" | "carrier" | null;
+export type EconomyAmbientKind =
+  | "port"
+  | "lng"
+  | "construction"
+  | "datacenter"
+  | "pipeline"
+  | null;
+/** 항모는 클릭 전용 — 패스오버 앰비언트에서 제외 */
+export type ConflictAmbientKind = "frontline" | "taiwan-tension" | "tension" | null;
 
 type SoundEffectsBridgeProps = {
   viewerMode?: "conflict" | "economy";
@@ -214,17 +235,19 @@ type SoundEffectsBridgeProps = {
   /** 뷰포트 안 FIRMS 전투(폭격 추정) 화재가 있으면 true */
   firmsCombatInView?: boolean;
   /**
-   * 지정학 앰비언스 우선순위: frontline > taiwan-tension > tension > carrier
-   * (전선 교전음 윈도우는 frontline일 때만)
+   * 지정학 앰비언스 우선순위: frontline > taiwan-tension > tension
+   * (전선 교전음 윈도우는 frontline일 때만 · 항모는 클릭)
    */
   conflictAmbient?: ConflictAmbientKind;
   /** 경제 허브/항만/파이프 등 해당 레이어 */
   economyAmbient?: EconomyAmbientKind;
+  /** ReefWatch 근접 항적이 화면에 보이면 — 미세 자동음 */
+  reefWatchTrafficVisible?: boolean;
   cameraAltitude?: number;
   /** 전선 원샷 풀·베드 볼륨 LOD */
   globeLodTier?: GlobeLodTier;
   /**
-   * 오늘의 WTI (0–100). 긴장·대만해협 앰비언트 음량에 매핑.
+   * 오늘의 GTI (0–100). 긴장·대만해협 앰비언트 음량에 매핑.
    * 음원 없는 dashboard-bgm 도 나중에 같은 곡선(wtiBgmVolumeScale) 사용.
    */
   wtiScore?: number | null;
@@ -233,9 +256,11 @@ type SoundEffectsBridgeProps = {
 /**
  * 사운드 규칙
  * - 공습경보: 칩/버튼 fly 시에만 (emitDashboardSound)
- * - 그 외: 카메라가 해당 지역·레이어 위에 있을 때 자동 재생 (클릭 없음)
- * - 전선: LOD별 원샷 풀 (regional=포격/짧은폭격, close=near+village 통일 · 총성+포격+드론 연속)
- * - 긴장 앰비언트: WTI 숫자가 강도 (계기판 = 사운드)
+ * - 인프라·이동체: 클릭 시 (emitLayerClickSounds)
+ * - 전장/긴장/경제 레이어: 카메라가 해당 지역·레이어 위에 있을 때 자동
+ * - ReefWatch 항적: 화면에 보이면 미세 자동
+ * - 전선: LOD별 원샷 풀
+ * - 긴장 앰비언트: GTI 숫자가 강도
  */
 export function SoundEffectsBridge({
   viewerMode,
@@ -243,6 +268,7 @@ export function SoundEffectsBridge({
   firmsCombatInView = false,
   conflictAmbient = null,
   economyAmbient = null,
+  reefWatchTrafficVisible = false,
   cameraAltitude,
   globeLodTier,
   wtiScore = null,
@@ -254,7 +280,7 @@ export function SoundEffectsBridge({
   const firmsInViewRef = useRef(false);
   const frontlineAmbient = conflictAmbient === "frontline";
   const frontlineLod = toFrontlineSoundLod(globeLodTier);
-  const wtiVol = wtiAmbientVolumeScale(wtiScore);
+  const wtiVol = gtiAmbientVolumeScale(wtiScore);
 
   useEffect(() => {
     setCameraAltitude(cameraAltitude);
@@ -277,7 +303,7 @@ export function SoundEffectsBridge({
     firmsInViewRef.current = firmsCombatInView;
   }, [canPlay, firmsCombatInView, neptunImpactInView]);
 
-  // 공습경보 · A급 속보 타전
+  // 공습경보 · A급 속보 타전 · oil-spike
   useEffect(() => {
     const onBus = (event: Event) => {
       const detail = (event as CustomEvent<DashboardSoundDetail>).detail;
@@ -297,6 +323,50 @@ export function SoundEffectsBridge({
     window.addEventListener(CV_SOUND_EVENT, onBus);
     return () => window.removeEventListener(CV_SOUND_EVENT, onBus);
   }, [cameraAltitude, play]);
+
+  // 인프라·이동체 레이어 클릭 (겹침 허용)
+  useEffect(() => {
+    const onLayer = (event: Event) => {
+      const detail = (event as CustomEvent<LayerSoundDetail>).detail;
+      const cues = detail?.cues;
+      if (!cues?.length) return;
+      for (const cue of cues) {
+        if (!(cue.eventId in AUDIO_MANIFEST)) continue;
+        void play(cue.eventId, {
+          altitude: detail.altitude ?? cameraAltitude,
+          volumeScale: cue.volumeScale ?? detail.volumeScale ?? 1,
+          durationMs: cue.durationMs ?? detail.durationMs,
+          force: true,
+          overlap: true,
+        });
+      }
+    };
+    window.addEventListener(CV_LAYER_SOUND_EVENT, onLayer);
+    return () => window.removeEventListener(CV_LAYER_SOUND_EVENT, onLayer);
+  }, [cameraAltitude, play]);
+
+  // ReefWatch 근접 항적 — 화면 보일 때 아주 미세한 민간기 패스 (클릭 없음)
+  useEffect(() => {
+    if (!canPlay || !primedRef.current || !reefWatchTrafficVisible) return;
+    let cancelled = false;
+    let timer: number | null = null;
+    const tick = () => {
+      if (cancelled) return;
+      void play("aircraft-civil-pass", {
+        altitude: cameraAltitude,
+        volumeScale: 0.09,
+        force: true,
+        overlap: true,
+        durationMs: 2800,
+      });
+      timer = window.setTimeout(tick, 11_000 + Math.floor(Math.random() * 9_000));
+    };
+    timer = window.setTimeout(tick, 2_500 + Math.floor(Math.random() * 2_000));
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+    };
+  }, [cameraAltitude, canPlay, play, reefWatchTrafficVisible]);
 
   // NEPTUN 탄착 지역 진입
   useEffect(() => {
@@ -371,10 +441,6 @@ export function SoundEffectsBridge({
         void play("dispute-tension-high", { volumeScale: wtiVol });
         return;
       }
-      if (conflictAmbient === "carrier") {
-        setAmbient("carrier-deck-ambient");
-        return;
-      }
       stopAmbient();
       return;
     }
@@ -383,7 +449,10 @@ export function SoundEffectsBridge({
       if (economyAmbient === "pipeline") setAmbient("pipeline-hum");
       else if (economyAmbient === "datacenter") setAmbient("datacenter-hum");
       else if (economyAmbient === "port") setAmbient("port-ambient");
-      else if (economyAmbient === "construction") setAmbient("construction-ambient");
+      else if (economyAmbient === "lng") {
+        // LNG만 ON — 간접음 미세
+        void play("port-ambient", { volumeScale: 0.38 });
+      } else if (economyAmbient === "construction") setAmbient("construction-ambient");
       else stopAmbient();
       return;
     }

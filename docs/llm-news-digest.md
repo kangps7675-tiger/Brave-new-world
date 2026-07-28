@@ -1,8 +1,8 @@
 # LLM 뉴스 다이제스트 (추후 설계)
 
-> **상태:** P0 스캐폴딩 구현됨 (`digestTypes` · `public/data/live/news-digest.json` · `GET /api/news-digest` · Intel AnalysisPanel 캐시 바인딩). LLM 배치·온디맨드는 미구현.  
+> **상태:** P0 스캐폴딩만 — `digestTypes` · `public/data/live/news-digest.json` · `GET /api/news-digest` · Intel AnalysisPanel 캐시 바인딩. **LLM 배치·온디맨드 파이프라인은 미구현** (설계 문서).  
 > **원칙:** 검증 매체만 LLM · OSINT(Telegram)는 사람 눈 · AI는 사실 단정 금지  
-> **관련:** `src/lib/licensing/telegramOsintPolicy.ts` · `src/lib/news/digestTypes.ts` · `src/app/api/news-digest/route.ts` · Intel AnalysisPanel (`BottomIntelStack`)
+> **관련:** `src/lib/licensing/telegramOsintPolicy.ts` · `src/lib/news/digestTypes.ts` · `src/app/api/news-digest/route.ts` · Intel AnalysisPanel (`BottomIntelStack`) · [`deferred-status.md`](./deferred-status.md)
 
 ---
 

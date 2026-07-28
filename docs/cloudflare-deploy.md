@@ -70,6 +70,8 @@ npm run cf:ingest:deploy
 
 **전체 데이터 계층(2층 + 가드):** [`docs/data-architecture-2tier.md`](./data-architecture-2tier.md)
 
+**stub OFF 배포 게이트:** [`docs/stub-off-checklist.md`](./stub-off-checklist.md) · `npm run verify:stub-off-gate` (`API_STUB_MODE=false` 시 `cf:ci-deploy`가 강제).
+
 ## R2 정적 데이터 (public/data)
 
 대용량 `public/data/{lite,full}` 은 Workers 번들이 아니라 **R2**에 올리는 것을 권장합니다.

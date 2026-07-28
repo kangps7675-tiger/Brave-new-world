@@ -41,6 +41,8 @@ import {
   type FrictionCoachStep,
 } from "@/components/FrictionOnboardingCoach";
 import { AirRaidOnboardingCoach } from "@/components/AirRaidOnboardingCoach";
+import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
+import type { HotTheaterFocus } from "@/lib/hotTheaterLayers";
 import { PeriodicBriefingParchment } from "@/components/PeriodicBriefingParchment";
 import { ClearanceThreatChip } from "@/components/ClearanceThreatChip";
 import {
@@ -69,6 +71,9 @@ import {
   MaritimeAlertOfferBanner,
   type MaritimeAlertOffer,
 } from "@/components/MaritimeAlertOfferBanner";
+import { TensionSpikeCutOverlay } from "@/components/TensionSpikeCutOverlay";
+import type { TensionSpikeSnapshot } from "@/lib/tensionSpikeCut";
+import { canShowOverlayBanner, buildOverlayBannerCandidates } from "@/lib/overlayQueue";
 import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
 import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
@@ -242,6 +247,10 @@ export type DashboardOverlayHostProps = {
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
   maritimeOffer: MaritimeAlertOffer | null;
+  /** 대만 해협 긴장 컷 — 오버레이 큐 tensionCut */
+  tensionSpike: TensionSpikeSnapshot | null;
+  /** 오늘의 핫 전장 오퍼 — 오버레이 큐 hotTheater */
+  hotTheaterOffer: HotTheaterFocus | null;
   ukmtoBriefing: UkmtoBriefingContent | null;
   navareaBriefing: NavareaBriefingContent | null;
   globeRef: RefObject<MapGlobeMethods | null>;
@@ -307,6 +316,10 @@ export type DashboardOverlayHostProps = {
   onSetExerciseBriefing: (v: ExerciseBriefingContent | null) => void;
   onAcceptMaritimeOffer: () => void;
   onDismissMaritimeOffer: () => void;
+  onDismissTensionSpike: () => void;
+  onTensionSpikeJump: (destination: import("@/lib/tensionSpikeCut").TensionCutDestination) => void;
+  onAcceptHotTheaterOffer: () => void;
+  onDismissHotTheaterOffer: () => void;
   onCloseUkmtoBriefing: () => void;
   onCloseNavareaBriefing: () => void;
   onReleaseAirRaidAutoBusy: () => void;
@@ -414,6 +427,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     exerciseOffer,
     exerciseBriefing,
     maritimeOffer,
+    tensionSpike,
+    hotTheaterOffer,
     ukmtoBriefing,
     navareaBriefing,
     globeRef,
@@ -471,6 +486,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetExerciseBriefing,
     onAcceptMaritimeOffer,
     onDismissMaritimeOffer,
+    onDismissTensionSpike,
+    onTensionSpikeJump,
+    onAcceptHotTheaterOffer,
+    onDismissHotTheaterOffer,
     onCloseUkmtoBriefing,
     onCloseNavareaBriefing,
     onReleaseAirRaidAutoBusy,
@@ -1289,7 +1308,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               </button>
               {/* 위로 올라간 만큼 화면 위로 넘치지 않게 — 넘치면 내부 스크롤 */}
               <div
-                className={`overflow-y-auto overscroll-contain ${
+                className={`intel-scroll-y ${
                   telegramMiniPanelVisible
                     ? "max-h-[calc(100vh-29rem)]"
                     : "max-h-[calc(100vh-9rem)]"
@@ -1300,7 +1319,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             </div>
           ) : (
             <LegendReopenButton
-              label={labelLanguage === "en" ? "Daily · WTI" : "오늘의 지수 · 예측"}
+              label={labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
               onClick={() => onToggleDailyRankPanel(true)}
             />
           )}
@@ -1318,56 +1337,91 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         onDismiss={() => onSetShowTourInvite(false)}
       />
 
-      {airRaidOffer && !airRaidBriefing && !exerciseBriefing && !issueUiPausedForLamp ? (
-        <AirRaidOfferBanner
-          offer={airRaidOffer}
-          lang={labelLanguage}
-          onDismiss={onDismissAirRaidOffer}
-        />
-      ) : null}
+      {(() => {
+        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치 */
+        const briefingBusy = Boolean(
+          airRaidBriefing ||
+            exerciseBriefing ||
+            ukmtoBriefing ||
+            navareaBriefing ||
+            issueUiPausedForLamp,
+        );
+        const bannerCandidates = buildOverlayBannerCandidates({
+          briefingBusy,
+          airRaidOffer: Boolean(airRaidOffer),
+          adsbEmergencyOffer: Boolean(adsbEmergencyOffer),
+          exerciseOffer: Boolean(exerciseOffer),
+          maritimeOffer: Boolean(maritimeOffer),
+          tensionSpike: Boolean(tensionSpike),
+          hotTheaterOffer: Boolean(hotTheaterOffer),
+          coachActive: Boolean(
+            chromeCoachStep ||
+              showAirRaidCoach ||
+              frictionCoachStep ||
+              showFirstVisitTour,
+          ),
+          isEconomyViewer,
+          entryGateOpen: entryGate !== null,
+          modePickerOpen: showModePicker,
+        });
+        const show = (kind: Parameters<typeof canShowOverlayBanner>[0]) =>
+          canShowOverlayBanner(kind, bannerCandidates);
 
-      {adsbEmergencyOffer &&
-      !airRaidOffer &&
-      !airRaidBriefing &&
-      !exerciseBriefing &&
-      !exerciseOffer &&
-      !issueUiPausedForLamp ? (
-        <AdsbEmergencyBanner
-          offer={adsbEmergencyOffer}
-          lang={labelLanguage}
-          onDismiss={onDismissAdsbEmergencyOffer}
-        />
-      ) : null}
+        return (
+          <>
+            {show("airRaid") && airRaidOffer ? (
+              <AirRaidOfferBanner
+                offer={airRaidOffer}
+                lang={labelLanguage}
+                onDismiss={onDismissAirRaidOffer}
+              />
+            ) : null}
 
-      {exerciseOffer &&
-      !exerciseBriefing &&
-      !airRaidBriefing &&
-      !airRaidOffer &&
-      !adsbEmergencyOffer &&
-      !issueUiPausedForLamp ? (
-        <ExerciseOfferBanner
-          offer={exerciseOffer}
-          lang={labelLanguage}
-          onDismiss={onDismissExerciseOffer}
-        />
-      ) : null}
+            {show("adsbEmergency") && adsbEmergencyOffer ? (
+              <AdsbEmergencyBanner
+                offer={adsbEmergencyOffer}
+                lang={labelLanguage}
+                onDismiss={onDismissAdsbEmergencyOffer}
+              />
+            ) : null}
 
-      {maritimeOffer &&
-      !airRaidBriefing &&
-      !airRaidOffer &&
-      !adsbEmergencyOffer &&
-      !exerciseBriefing &&
-      !exerciseOffer &&
-      !ukmtoBriefing &&
-      !navareaBriefing &&
-      !issueUiPausedForLamp ? (
-        <MaritimeAlertOfferBanner
-          offer={maritimeOffer}
-          lang={labelLanguage}
-          onAccept={onAcceptMaritimeOffer}
-          onDismiss={onDismissMaritimeOffer}
-        />
-      ) : null}
+            {show("exercise") && exerciseOffer ? (
+              <ExerciseOfferBanner
+                offer={exerciseOffer}
+                lang={labelLanguage}
+                onDismiss={onDismissExerciseOffer}
+              />
+            ) : null}
+
+            {show("maritime") && maritimeOffer ? (
+              <MaritimeAlertOfferBanner
+                offer={maritimeOffer}
+                lang={labelLanguage}
+                onAccept={onAcceptMaritimeOffer}
+                onDismiss={onDismissMaritimeOffer}
+              />
+            ) : null}
+
+            {show("tensionCut") && tensionSpike ? (
+              <TensionSpikeCutOverlay
+                spike={tensionSpike}
+                lang={labelLanguage === "en" ? "en" : "ko"}
+                onJump={onTensionSpikeJump}
+                onDismiss={onDismissTensionSpike}
+              />
+            ) : null}
+
+            {show("hotTheater") && hotTheaterOffer ? (
+              <HotTheaterOfferBanner
+                focus={hotTheaterOffer}
+                lang={labelLanguage}
+                onAccept={onAcceptHotTheaterOffer}
+                onDismiss={onDismissHotTheaterOffer}
+              />
+            ) : null}
+          </>
+        );
+      })()}
 
       {airRaidBriefing ? (
         <AirRaidBriefingParchment

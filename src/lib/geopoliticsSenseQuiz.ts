@@ -3,8 +3,8 @@
  * 실제 있었던 사건·가격 반응을 고정 뱅크로 둔다 (라이브 API 대기 없음).
  */
 
-import type { AnalystTierId } from "@/lib/wti";
-import { analystTierLabel } from "@/lib/wti";
+import type { AnalystTierId } from "@/lib/gti";
+import { analystTierLabel } from "@/lib/gti";
 
 export type SenseChoice = {
   id: string;
@@ -163,7 +163,7 @@ export function scoreSenseQuiz(correctCount: number, total: number): number {
   return Math.round((100 * correctCount) / total);
 }
 
-/** 퀴즈 점수 → 과시용 등급 (WTI 애널리스트 라벨 재사용) */
+/** 퀴즈 점수 → 과시용 등급 (GTI 애널리스트 라벨 재사용) */
 export function senseQuizTierFromScore(score: number): AnalystTierId {
   if (score >= 80) return "chief";
   if (score >= 60) return "senior";

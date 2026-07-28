@@ -80,6 +80,7 @@ type ViewPackageDef = {
 
 export const VIEW_PACKAGES: ViewPackageDef[] = [
   {
+    /** 레거시 — 활성 지정학 기본은 `frontline-live` (`CONFLICT_VIEWER_PACKAGE`). 병합·마이그레이션용으로 유지. */
     id: "conflict-watch",
     label: "분쟁 상황판",
     tagline: "영토·뉴스·OSINT",

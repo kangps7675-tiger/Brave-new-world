@@ -11,6 +11,7 @@ import {
   tickerChangeTone,
   tickerDisplayName,
   yahooQuoteUrl,
+  tradingViewSymbolUrl,
   type StockTickerItem,
   type TheaterMarketFilter,
 } from "@/lib/stockTickers";
@@ -226,15 +227,26 @@ function MarketCard({
         <span className="font-mono text-base font-medium text-slate-50">
           {formatTickerPrice(item.price)}
         </span>
-        <a
-          href={yahooQuoteUrl(item.symbol)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="truncate text-[10px] text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
-          title={`${yahooLabel} · ${item.symbol}`}
-        >
-          Yahoo ↗
-        </a>
+        <div className="flex shrink-0 items-center gap-2">
+          <a
+            href={yahooQuoteUrl(item.symbol)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate text-[10px] text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
+            title={`${yahooLabel} · ${item.symbol}`}
+          >
+            Yahoo ↗
+          </a>
+          <a
+            href={tradingViewSymbolUrl(item.symbol)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate text-[10px] text-sky-300/75 underline-offset-2 hover:text-sky-200 hover:underline"
+            title={`TradingView · ${item.symbol} · not advice`}
+          >
+            TV ↗
+          </a>
+        </div>
       </div>
       <MarketCardNewsDropdown picks={relatedNews} lang={lang} />
     </div>
@@ -509,8 +521,8 @@ export function IntelRelatedMarketsPanel({
       <div
         className={
           embedInNews
-            ? "overflow-y-auto"
-            : "flex min-h-0 flex-1 flex-col overflow-y-auto"
+            ? "intel-scroll-y"
+            : "intel-scroll-y flex min-h-0 flex-1 flex-col"
         }
       >
         {marketBody}

@@ -16,6 +16,9 @@ import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
+import { emitOilSpikeSound } from "@/components/SoundEffectsBridge";
+
+const OIL_SPIKE_SYMBOLS = new Set(["CL=F", "BZ=F"]);
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -194,6 +197,8 @@ export function StockTickerStrip({
   );
 
   const highlightSet = useMemo(() => new Set(highlightSymbols), [highlightSymbols]);
+  const oilSpikeArmedRef = useRef(false);
+  const lastOilSpikeAtRef = useRef(0);
 
   const refresh = useCallback(async () => {
     if (pausedRef.current) return;
@@ -215,6 +220,26 @@ export function StockTickerStrip({
     const timer = window.setInterval(() => void refresh(), liveTickerPollMs());
     return () => window.clearInterval(timer);
   }, [refresh]);
+
+  // CL=F / BZ=F SPIKE → oil-spike (쿨다운 · 재진입 시에만)
+  useEffect(() => {
+    if (!tickers?.length) return;
+    const oilSpiking = tickers.some((item) => {
+      if (!OIL_SPIKE_SYMBOLS.has(item.symbol)) return false;
+      const pct = item.changePercent;
+      return pct != null && Math.abs(pct) >= TICKER_SPIKE_THRESHOLD_PERCENT;
+    });
+    if (!oilSpiking) {
+      oilSpikeArmedRef.current = false;
+      return;
+    }
+    if (oilSpikeArmedRef.current) return;
+    oilSpikeArmedRef.current = true;
+    const now = Date.now();
+    if (now - lastOilSpikeAtRef.current < 45_000) return;
+    lastOilSpikeAtRef.current = now;
+    emitOilSpikeSound();
+  }, [tickers]);
 
   return (
     <div

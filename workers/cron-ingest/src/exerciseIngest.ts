@@ -206,7 +206,7 @@ async function deactivateStaleNavareaExercises(
 
 /**
  * 간단 RSS 키워드 슬라이스 — news_stream_items 가 있을 때만.
- * unverified 로 적재 (관영 화이트리스트는 추후).
+ * unverified 로 적재 (관영 화이트리스트 승격은 추후 — docs/exercise-alerts.md · deferred-status.md).
  */
 async function ingestNewsKeywordExercises(
   db: D1Database,

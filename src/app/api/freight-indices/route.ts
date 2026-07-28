@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import { logApiRoute } from "@/lib/apiRouteLog";
 
 export const runtime = "nodejs";
 
@@ -85,7 +87,10 @@ async function fetchFreightIndex(
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.freight);
+  if (limited) return limited;
+
   const settled = await Promise.all(
     SHIPPING_ASSETS.map(async (asset) => {
       try {
@@ -105,6 +110,9 @@ export async function GET() {
     .map((item) => item.error);
 
   if (indices.length === 0) {
+    logApiRoute("/api/freight-indices", "error", "all_symbols_failed", {
+      errors,
+    });
     return NextResponse.json(
       {
         indices: [],
@@ -113,6 +121,12 @@ export async function GET() {
       },
       { status: 502 },
     );
+  }
+
+  if (errors.length > 0) {
+    logApiRoute("/api/freight-indices", "warn", "partial_upstream_failure", {
+      errors,
+    });
   }
 
   return NextResponse.json({

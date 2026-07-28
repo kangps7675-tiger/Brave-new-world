@@ -14,7 +14,7 @@ import {
 import { getOrCreatePredictionDeviceId } from "@/lib/predictionDeviceId";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { WTI } from "@/lib/wti";
+import { GTI } from "@/lib/gti";
 
 type DailyPredictPanelProps = {
   lang: LabelLanguage;
@@ -175,7 +175,7 @@ export function DailyPredictPanel({
     <div className="rounded-lg border border-amber-500/25 bg-slate-950/50 p-3 sm:col-span-2">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-300/90">
-          {ko ? `${WTI.ticker} · 내일의 긴장도` : `${WTI.ticker} · Tomorrow’s tension`}
+          {ko ? `${GTI.ticker} · 내일의 긴장도` : `${GTI.ticker} · Tomorrow’s tension`}
         </h3>
         <p className="text-[11px] tabular-nums text-slate-400">{pctLabel}</p>
       </div>
@@ -265,7 +265,7 @@ export function DailyPredictPanel({
         <span className="tabular-nums text-slate-600">UTC {targetDate}</span>
       </div>
       <p className="mt-2 text-[10px] leading-snug text-slate-600">
-        {ko ? WTI.ethicsKo : WTI.ethicsEn}
+        {ko ? GTI.ethicsKo : GTI.ethicsEn}
       </p>
     </div>
   );

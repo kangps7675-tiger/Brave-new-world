@@ -2,12 +2,13 @@
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { wtiBand, wtiBandLabel, type WtiBand } from "@/lib/wti";
+import { gtiBand, gtiBandLabel, type GtiBand } from "@/lib/gti";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type WorldTensionChipProps = {
-  /** WTI 전 지구 긴장도 점수 (0~100) */
+  /** GTI 전 지구 긴장도 점수 (0~100 · GTS) */
   score: number | null;
-  /** 전일 대비 델타 (WTI 스코어 스케일) */
+  /** 전일 대비 델타 (GTI 스코어 스케일) */
   deltaScore?: number | null;
   /** 이 점수를 가져온 시각 (ISO) — 상황판 "기준 시각" 표시용 */
   asOf?: string | null;
@@ -18,7 +19,19 @@ type WorldTensionChipProps = {
 const RING_RADIUS = 13;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function bandColor(band: WtiBand): string {
+function bandColor(band: GtiBand, light: boolean): string {
+  if (light) {
+    switch (band) {
+      case "critical":
+        return "#be123c";
+      case "high":
+        return "#c2410c";
+      case "elevated":
+        return "#b45309";
+      default:
+        return "#047857";
+    }
+  }
   switch (band) {
     case "critical":
       return "#f87171";
@@ -41,8 +54,8 @@ function formatAsOfTime(iso: string | null | undefined): string | null {
 }
 
 /**
- * 지정학 뷰 우상단 — 전 세계 긴장도를 "67/100 · 고조"처럼 점수로 보여주는 배지.
- * 링 게이지가 곧 점수 비율이라 별도 설명 없이도 읽힌다.
+ * 지정학 뷰 우상단 — 긴장지수(GTI)를 "67/100 · 고조"처럼 점수로 보여주는 배지.
+ * 원유 티커(WTI)와 무관.
  */
 export function WorldTensionChip({
   score,
@@ -51,17 +64,26 @@ export function WorldTensionChip({
   lang,
   className,
 }: WorldTensionChipProps) {
+  const light = useBasemapTone() === "light";
   // 점수가 아직 없으면 사라지지 않고 "집계 중"으로 자리를 지킨다
   if (score == null || !Number.isFinite(score)) {
     return (
       <div
-        className={`flex items-center gap-2 rounded-full border border-slate-400/25 bg-black/55 px-2.5 py-1.5 ${className ?? ""}`}
+        className={`world-tension-chip tone-chip flex items-center gap-2 rounded-full border border-slate-400/25 bg-black/55 px-2.5 py-1.5 ${className ?? ""}`}
         title={t("worldTensionHint", lang)}
       >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300/85">
+        <span
+          className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
+            light ? "text-slate-700" : "text-slate-300/85"
+          }`}
+        >
           {t("worldTensionTitle", lang)}
         </span>
-        <span className="text-[11px] font-medium tabular-nums text-slate-400/70">
+        <span
+          className={`text-[11px] font-medium tabular-nums ${
+            light ? "text-slate-600" : "text-slate-400/70"
+          }`}
+        >
           {lang === "en" ? "computing…" : "집계 중…"}
         </span>
       </div>
@@ -69,8 +91,8 @@ export function WorldTensionChip({
   }
 
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const band = wtiBand(clamped);
-  const color = bandColor(band);
+  const band = gtiBand(clamped);
+  const color = bandColor(band, light);
   const urgent = band === "critical";
   const asOfLabel = formatAsOfTime(asOf);
 
@@ -82,11 +104,11 @@ export function WorldTensionChip({
         : t("worldTensionDeltaDown", lang).replace("{n}", String(Math.abs(delta)))
       : null;
 
-  const bandLabel = wtiBandLabel(band, lang !== "en");
+  const bandLabel = gtiBandLabel(band, lang !== "en");
 
   return (
     <div
-      className={`flex items-center gap-2 rounded-full border bg-black/55 px-2.5 py-1.5 transition-colors ${
+      className={`world-tension-chip tone-chip flex items-center gap-2 rounded-full border bg-black/55 px-2.5 py-1.5 transition-colors ${
         urgent ? "animate-pulse" : ""
       } ${className ?? ""}`}
       style={{ borderColor: `${color}59` }}
@@ -99,8 +121,8 @@ export function WorldTensionChip({
           cx="16"
           cy="16"
           r={RING_RADIUS}
-          fill="rgba(6,10,18,0.85)"
-          stroke="rgba(148,163,184,0.28)"
+          fill={light ? "rgba(255,252,248,0.95)" : "rgba(6,10,18,0.85)"}
+          stroke={light ? "rgba(30,41,59,0.22)" : "rgba(148,163,184,0.28)"}
           strokeWidth="3"
         />
         <circle
@@ -127,16 +149,26 @@ export function WorldTensionChip({
         </text>
       </svg>
       <div className="flex flex-col leading-tight">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300/85">
+        <span
+          className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
+            light ? "text-slate-700" : "text-slate-300/85"
+          }`}
+        >
           {t("worldTensionTitle", lang)}
         </span>
         <span className="text-[11px] font-medium tabular-nums" style={{ color }}>
           {clamped}
           <span className="opacity-60">/100</span> · {bandLabel}
         </span>
-        {deltaLabel ? <span className="text-[9px] text-slate-400/70">{deltaLabel}</span> : null}
+        {deltaLabel ? (
+          <span className={`text-[9px] ${light ? "text-slate-600" : "text-slate-400/70"}`}>
+            {deltaLabel}
+          </span>
+        ) : null}
         {asOfLabel ? (
-          <span className="text-[9px] tabular-nums text-slate-400/45">
+          <span
+            className={`text-[9px] tabular-nums ${light ? "text-slate-500" : "text-slate-400/45"}`}
+          >
             {lang === "en" ? "as of" : "기준"} {asOfLabel}
           </span>
         ) : null}

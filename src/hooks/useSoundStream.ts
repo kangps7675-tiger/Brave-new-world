@@ -313,7 +313,7 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
 
       if (playOpts?.overlap) {
         overlapPoolRef.current = overlapPoolRef.current.filter((a) => !a.paused && !a.ended);
-        if (overlapPoolRef.current.length >= 4) {
+        if (overlapPoolRef.current.length >= 6) {
           const oldest = overlapPoolRef.current.shift();
           hardStopAudio(oldest);
         }

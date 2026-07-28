@@ -139,7 +139,7 @@ export function TheaterIntelSidebar({
             </label>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-slate-800 bg-black/20">
+          <div className="intel-scroll-y min-h-0 flex-1 rounded-xl border border-slate-800 bg-black/20">
             {gdeltEvents.length === 0 && rssItems.length === 0 ? (
               <p className="p-4 text-sm leading-6 text-slate-500">
                 이 전장의 실시간 뉴스를 불러오는 중이거나 아직 항목이 없습니다.
@@ -188,18 +188,20 @@ export function TheaterIntelSidebar({
           </div>
         </div>
       ) : (
-        <TelegramIntelFeed
-          alerts={telegramAlerts}
-          live={telegramLive}
-          liveStatus={telegramStatus}
-          needsAuth={telegramNeedsAuth}
-          sessionExists={telegramSessionExists}
-          embedMode={telegramEmbedMode}
-          channelCount={telegramChannelCount}
-          fullPage
-          regionFilter={telegramRegion}
-          onFlyToPlace={(place) => onFlyToCoords(place.lat, place.lng, 0.88)}
-        />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <TelegramIntelFeed
+            alerts={telegramAlerts}
+            live={telegramLive}
+            liveStatus={telegramStatus}
+            needsAuth={telegramNeedsAuth}
+            sessionExists={telegramSessionExists}
+            embedMode={telegramEmbedMode}
+            channelCount={telegramChannelCount}
+            fullPage
+            regionFilter={telegramRegion}
+            onFlyToPlace={(place) => onFlyToCoords(place.lat, place.lng, 0.88)}
+          />
+        </div>
       )}
     </div>
   );

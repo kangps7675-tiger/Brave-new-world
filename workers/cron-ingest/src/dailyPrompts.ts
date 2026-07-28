@@ -100,12 +100,12 @@ function buildQuestion(
   questionKo: string;
   questionEn: string;
 } {
-  // 메인 문제 = WTI. 전장·초크포인트는 보너스 프레임.
+  // 메인 문제 = GTI. 전장·초크포인트는 보너스 프레임.
   if (subjectKind === "world") {
     return {
-      questionKo: "내일 이 시간, 세계 긴장도 지수(WTI)는 오를까 내릴까?",
+      questionKo: "내일 이 시간, 글로벌 긴장지수(GTI)는 오를까 내릴까?",
       questionEn:
-        "By this time tomorrow, will the World Tension Index (WTI) go UP or DOWN?",
+        "By this time tomorrow, will the Global Tension Index (GTI) go UP or DOWN?",
     };
   }
   return {
@@ -144,7 +144,7 @@ export async function upsertTomorrowPrompt(
   const candidates = await loadCandidates(db, rankDate);
   if (candidates.length === 0) return null;
 
-  // 메인 기축 = WTI(world/global). 없으면 전장·초크포인트 폴백(보너스).
+  // 메인 기축 = GTI(world/global). 없으면 전장·초크포인트 폴백(보너스).
   const world = candidates.find(
     (c) => c.kind === "world" && c.entity_id === "global",
   );

@@ -7,7 +7,7 @@ import {
   analystTierFromStats,
   analystTierLabel,
   type AnalystTierId,
-} from "@/lib/wti";
+} from "@/lib/gti";
 import type { DailyPredictPrefs } from "@/lib/dailyPredictPrefs";
 
 const TIER_RANK: Record<AnalystTierId, number> = {

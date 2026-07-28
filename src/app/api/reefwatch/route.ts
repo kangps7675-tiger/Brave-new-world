@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
+import { logApiRoute } from "@/lib/apiRouteLog";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import {
   SCS_BBOX,
@@ -67,7 +69,10 @@ async function fetchOpenSkyStates(): Promise<{
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = enforceIpRateLimit(request, RATE_PRESETS.reefwatch);
+  if (limited) return limited;
+
   if (isApiStubMode()) {
     const payload = demoReefWatchPayload();
     return NextResponse.json(payload, {
@@ -94,11 +99,15 @@ export async function GET() {
     const result = await fetchOpenSkyStates();
     if (result.status === 429 || result.status === 403) {
       errors.push(`opensky: rate limited (${result.status})`);
+      logApiRoute("/api/reefwatch", "warn", "opensky_rate_limited", {
+        status: result.status,
+      });
       const payload = buildReefWatchPayload({
         traffic: cache?.payload.traffic ?? [],
         openskyStatus: {
           status: "rate_limited",
-          latestObservationAt: cache?.payload.sourceHealth.opensky.latestObservationAt ?? null,
+          latestObservationAt:
+            cache?.payload.sourceHealth.opensky.latestObservationAt ?? null,
           observationCount: cache?.payload.traffic.length ?? 0,
           querySeconds: result.querySeconds,
           message: `OpenSky HTTP ${result.status}`,
@@ -136,6 +145,9 @@ export async function GET() {
     errors.push(
       `opensky: ${error instanceof Error ? error.message : "fetch failed"}`,
     );
+    logApiRoute("/api/reefwatch", "error", "opensky_fetch_failed", {
+      message: errors[0],
+    });
     if (cache) {
       return NextResponse.json(
         {
@@ -164,7 +176,7 @@ export async function GET() {
       features,
     });
     return NextResponse.json(payload, {
-      status: 200,
+      status: 502,
       headers: {
         "Cache-Control": "no-store",
         "X-ReefWatch-Cache": "error",

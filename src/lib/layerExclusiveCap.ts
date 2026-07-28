@@ -1,14 +1,15 @@
+import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /**
- * 레이어 동시 ON 캡
- * - 일반: 30
- * - Ultra-Lite: 16 (저사양)
+ * 레이어 동시 ON 캡 — 정본 `@/config/geowatch.config`
+ * - 일반: fullModeMaxLayers
+ * - Ultra-Lite: ultraLiteMaxLayers
  */
-export const ACTIVE_LAYER_CAP_DEFAULT = 30;
+export const ACTIVE_LAYER_CAP_DEFAULT = GEOWATCH_CONFIG.caps.fullModeMaxLayers;
 
 /** ultra-lite — 무거운 폴링 레이어를 줄이는 소프트 상한 */
-export const ACTIVE_LAYER_CAP_ULTRA = 16;
+export const ACTIVE_LAYER_CAP_ULTRA = GEOWATCH_CONFIG.caps.ultraLiteMaxLayers;
 
 /**
  * 캡 집계에서 제외:

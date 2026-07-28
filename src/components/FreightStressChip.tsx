@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { FreightIndex } from "@/components/FinintTicker";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type Props = {
   lang: LabelLanguage;
@@ -38,28 +39,41 @@ export function FreightStressChip({ lang, className = "" }: Props) {
     };
   }, []);
 
+  const light = useBasemapTone() === "light";
   const pct = item?.changePercent;
   const tone =
     pct == null
-      ? "text-slate-400"
+      ? light
+        ? "text-slate-600"
+        : "text-slate-400"
       : pct > 0.5
-        ? "text-rose-300"
+        ? light
+          ? "text-rose-700"
+          : "text-rose-300"
         : pct < -0.5
-          ? "text-emerald-300"
-          : "text-slate-300";
+          ? light
+            ? "text-emerald-700"
+            : "text-emerald-300"
+          : light
+            ? "text-slate-700"
+            : "text-slate-300";
 
   return (
     <div
-      className={`rounded-lg border border-sky-400/25 bg-[#071225]/88 px-2.5 py-1.5 shadow-lg backdrop-blur-md ${className}`}
+      className={`freight-stress-chip tone-chip rounded-lg border border-sky-400/25 bg-[#071225]/88 px-2.5 py-1.5 shadow-lg backdrop-blur-md ${className}`}
       title={ko ? "해운 프록시(BDRY) · Yahoo 종가 전일대비" : "Shipping proxy (BDRY) · Yahoo close"}
     >
-      <p className="text-[9px] font-semibold uppercase tracking-wider text-sky-200/80">
+      <p
+        className={`text-[9px] font-semibold uppercase tracking-wider ${
+          light ? "text-cyan-800" : "text-sky-200/80"
+        }`}
+      >
         {ko ? "해운 프록시" : "Shipping proxy"}
       </p>
       <div className="mt-0.5 flex items-baseline gap-1.5">
-        <span className="text-[10px] text-slate-500">BDRY</span>
+        <span className={`text-[10px] ${light ? "text-slate-600" : "text-slate-500"}`}>BDRY</span>
         {error || pct == null ? (
-          <span className="text-[11px] text-slate-500">—</span>
+          <span className={`text-[11px] ${light ? "text-slate-600" : "text-slate-500"}`}>—</span>
         ) : (
           <span className={`font-mono text-[12px] font-semibold tabular-nums ${tone}`}>
             {ko ? "전일 " : "d/d "}

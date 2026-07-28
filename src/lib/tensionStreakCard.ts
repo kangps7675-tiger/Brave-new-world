@@ -37,7 +37,7 @@ export async function renderTensionStreakCard(options: {
 
   ctx.fillStyle = "rgba(251, 191, 36, 0.9)";
   ctx.font = "600 18px Inter, Wanted Sans, sans-serif";
-  ctx.fillText(ko ? "WTI · 애널리스트 카드" : "WTI · Analyst card", 48, 52);
+  ctx.fillText(ko ? "GTI · 애널리스트 카드" : "GTI · Analyst card", 48, 52);
 
   // 주인공: 적중률 + 등급
   ctx.fillStyle = "#f8fafc";

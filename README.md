@@ -74,8 +74,11 @@ Aldous Huxley 《Brave New World》를 모티브로 한 3D 지구본 관측대�
 
 - **체크 즉시 지도 반영** — 패널을 닫을 때까지 기다리지 않음 (`handlePanelDraftPatch` → `applyLayerPrefs`)
 - **KO / EN** 라벨 언어도 즉시 적용
-- **동시 ON 상한:** 일반 모드 **무제한** · Ultra-Lite **12개** (`layerExclusiveCap.ts`)
-- 카테고리 「전체」/「끔」 · Ultra-Lite 캡 초과 시 경고 UI (`LayerCategoryDraftHost`)
+- **동시 ON 상한 (코드 정본):** 일반 **30** · Ultra-Lite **16** — [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap.ts`
+- **오버레이 top-1:** [`src/lib/overlayQueue.ts`](src/lib/overlayQueue.ts) (우선순위도 geowatch.config) — 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치
+- **폴링(stub OFF):** geowatch.config `polling.*` → `liveRenderGuard.ts`
+- 패키지 hard cap: 지정학·지경학 각 **64** (`viewPackages` `MAX_ON_LAYERS*`) — UI 캡보다 느슨한 안전망
+- 카테고리 「전체」/「끔」 · 캡 초과 시 경고 UI (`LayerCategoryDraftHost`)
 - **제거됨:** 「지나간 미사일·드론 궤적」체크박스 — 저장 시 강제 OFF (`layerPrefs` v21)
 
 ### 카테고리별 레이어
@@ -215,7 +218,7 @@ Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cl
 | `SYNC_POLL_MS` | `300000` | `/api/data-sync` 폴링 |
 | `NEWS_TRANSLATE_KO` / `TELEGRAM_TRANSLATE_KO` | `true` | 자동 한국어 번역 |
 
-전체: [`.env.local.example`](.env.local.example)
+템플릿: [`.env.example`](.env.example) (안내) · [`.env.local.example`](.env.local.example) (Next) · [`.dev.vars.example`](.dev.vars.example) (Wrangler)
 
 > **보안:** API 키·운영 플래그는 `NEXT_PUBLIC_` 없이 서버 전용. 클라이언트는 `initRuntimeConfig()` 경로만 사용.
 
@@ -271,7 +274,7 @@ Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cl
 | lite / full | `DATA_PROFILE` — 창고 해상도 옵션 |
 | gzip JSON | `fetchJsonPreferGzip` · `compress-data-gzip.js` |
 | JSON 워커 | `jsonParse.worker.ts` |
-| 레이어 캡 | 일반 무제한 · Ultra-Lite 12 |
+| 레이어 캡 | 일반 30 · Ultra-Lite 16 — SSOT [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap` · 패키지 hard 64 |
 | 뷰포트 LOD | NEPTUN·VIINA·정적 포인트 tier별 상한 |
 | `cameraBusyGuard` | tween/드래그 중 무거운 갱신 pause |
 
@@ -317,10 +320,27 @@ src/
     viewerChrome.ts · viewPackages.ts · ultraLiteMode.ts
     licensing/ (viina · sipri · vdem · telegram · ironsight)
 docs/
-  ux-scenarios.md         # UX 시나리오 (현행 제품 기준)
+  ux-scenarios.md · stub-off-checklist.md · deferred-status.md
   cloudflare-deploy.md · data-architecture-2tier.md · vercel-cdn-and-workers-fs.md
+IRONSIGHT/                # 별도 서브프로젝트 (본 앱 핵심 경로와 분리 · Telegram 카탈로그만 MIT 인용)
 public/audio/             # 로컬 전투·공습 샘플
 ```
+
+---
+
+## 문서 vs 코드 · 미완 항목
+
+수치·플래그는 **코드가 정본**이다. 요약: [`docs/deferred-status.md`](docs/deferred-status.md)
+
+| 항목 | 현행 |
+|------|------|
+| 레이어 UI 캡 | `ACTIVE_LAYER_CAP_DEFAULT=30` / `ULTRA=16` |
+| 지정학 기본 패키지 | `frontline-live` (`CONFLICT_VIEWER_PACKAGE`) — `conflict-watch`는 레거시 정의 유지 |
+| ModePicker 부트 | `shouldShowModePicker(): false` |
+| stub OFF | D1 cron + warm secrets + (권장) R2 — [`docs/stub-off-checklist.md`](docs/stub-off-checklist.md) · `npm run verify:stub-off-gate` |
+| 스펙 SSOT | 캡·폴링 숫자 — `npm run verify:product-spec` (`layerExclusiveCap` · `liveRenderGuard` · README) |
+| 시장 로드맵 | Yahoo·전장 심볼·watchlist P0 · TV/증권 임베드·일일 cron 일부 미완 — [`docs/retention-markets-roadmap.md`](docs/retention-markets-roadmap.md) |
+| LLM digest | 스캐폴딩만 — [`docs/llm-news-digest.md`](docs/llm-news-digest.md) |
 
 ---
 

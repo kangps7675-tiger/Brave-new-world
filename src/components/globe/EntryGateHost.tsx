@@ -1,6 +1,7 @@
 "use client";
 
 import { EntryCautionOverlay } from "@/components/EntryCautionOverlay";
+import { WelcomeBriefOverlay } from "@/components/WelcomeBriefOverlay";
 import { WelcomeParchmentLetter } from "@/components/WelcomeParchmentLetter";
 import { DomainGateOverlay } from "@/components/DomainGateOverlay";
 import { markLangChoiceDone, markWelcomeGateDone } from "@/components/globe/formatters";
@@ -21,8 +22,8 @@ type EntryGateHostProps = {
 
 /**
  * 입장 게이트 오버레이 묶음 — 첫 방문 플로우: caution → welcome → domain.
+ * 데스크톱: 양피지 편지 / 모바일(compact): 짧은 브랜드 welcome.
  * 도메인 게이트 하단 링크로 편지·주의를 다시 열 수 있음.
- * 모바일(compact)은 welcome을 건너뛰고 domain으로 간다.
  */
 export function EntryGateHost({
   entryGate,
@@ -47,6 +48,11 @@ export function EntryGateHost({
     onSetGate(next);
   };
 
+  const leaveWelcome = () => {
+    markWelcomeGateDone();
+    onSetGate("domain");
+  };
+
   if (entryGate === "caution") {
     return (
       <EntryCautionOverlay
@@ -58,11 +64,16 @@ export function EntryGateHost({
     );
   }
 
-  if (entryGate === "welcome" && !isCompactUi) {
+  if (entryGate === "welcome") {
+    if (isCompactUi) {
+      return (
+        <WelcomeBriefOverlay lang={labelLanguage} onContinue={leaveWelcome} />
+      );
+    }
     return (
       <WelcomeParchmentLetter
         lang={labelLanguage}
-        onContinue={() => onSetGate("domain")}
+        onContinue={leaveWelcome}
       />
     );
   }
@@ -71,8 +82,9 @@ export function EntryGateHost({
     return (
       <DomainGateOverlay
         onSelect={onDomainSelect}
-        onOpenLetter={isCompactUi ? undefined : () => onSetGate("welcome")}
+        onOpenLetter={() => onSetGate("welcome")}
         onOpenCaution={() => onSetGate("caution")}
+        letterLinkCompact={isCompactUi}
       />
     );
   }

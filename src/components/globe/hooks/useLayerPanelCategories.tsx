@@ -50,13 +50,16 @@ export type UseLayerPanelCategoriesArgs = {
   showChinaPhilippinesIncidents: boolean;
   showUsChinaIncidents: boolean;
   showNorthKoreaMissileTests: boolean;
+  showUkraineStrikesOnRussia: boolean;
   setShowChinaTaiwanIncidents: (v: boolean) => void;
   setShowChinaJapanIncidents: (v: boolean) => void;
   setShowChinaPhilippinesIncidents: (v: boolean) => void;
   setShowUsChinaIncidents: (v: boolean) => void;
   setShowNorthKoreaMissileTests: (v: boolean) => void;
+  setShowUkraineStrikesOnRussia: (v: boolean) => void;
   chinaTheaterIncidentMarkers: Array<{ dyad: string }>;
   koreaMissileIncidentMarkers: unknown[];
+  russiaStrikeIncidentMarkers: unknown[];
   showWarZones: boolean;
   disputeZoneOutlineCount: number;
   setShowWarZones: (v: boolean) => void;
@@ -312,13 +315,16 @@ export function useLayerPanelCategories({
   showChinaPhilippinesIncidents,
   showUsChinaIncidents,
   showNorthKoreaMissileTests,
+  showUkraineStrikesOnRussia,
   setShowChinaTaiwanIncidents,
   setShowChinaJapanIncidents,
   setShowChinaPhilippinesIncidents,
   setShowUsChinaIncidents,
   setShowNorthKoreaMissileTests,
+  setShowUkraineStrikesOnRussia,
   chinaTheaterIncidentMarkers,
   koreaMissileIncidentMarkers,
+  russiaStrikeIncidentMarkers,
   showWarZones,
   disputeZoneOutlineCount,
   setShowWarZones,
@@ -700,6 +706,16 @@ export function useLayerPanelCategories({
                 checked: layerPrefs.showNorthKoreaMissileTests,
                 onChange: setShowNorthKoreaMissileTests,
                 accent: "orange",
+              },
+              {
+                id: "ukraine-strikes-russia",
+                label: "우크라이나 → 러시아 타격 (보도·미확인)",
+                detail: showUkraineStrikesOnRussia
+                  ? `피격 지점 ${russiaStrikeIncidentMarkers.length}곳 · 보도·미확인`
+                  : "꺼짐 · 자주 피격지·시설 (GDELT)",
+                checked: layerPrefs.showUkraineStrikesOnRussia,
+                onChange: setShowUkraineStrikesOnRussia,
+                accent: "red",
               },
             ],
           },
@@ -1928,8 +1944,10 @@ export function useLayerPanelCategories({
     lpg(showChinaPhilippinesIncidents, false),
     lpg(showUsChinaIncidents, false),
     lpg(showNorthKoreaMissileTests, false),
+    lpg(showUkraineStrikesOnRussia, false),
     lpg(chinaTheaterIncidentMarkers.length, 0),
     lpg(koreaMissileIncidentMarkers.length, 0),
+    lpg(russiaStrikeIncidentMarkers.length, 0),
     lpg(showAxisNetwork, false),
     lpg(showBriTradeConnectivity, false),
     lpg(showUsDfcSupplyChain, false),

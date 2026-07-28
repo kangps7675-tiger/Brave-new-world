@@ -9,13 +9,20 @@ import { loadPerfPrefs, savePerfPrefs } from "@/lib/ultraLiteMode";
 
 type DomainGateOverlayProps = {
   onSelect: (mode: ViewerMode, ultraLite: boolean) => void;
-  /** 선택 진입 — 환영 편지 다시 읽기 */
+  /** 선택 진입 — 환영 편지/메시지 다시 읽기 */
   onOpenLetter?: () => void;
   /** 선택 진입 — 주의 화면 다시 보기 */
   onOpenCaution?: () => void;
+  /** compact면 짧은 welcome 재열기 라벨 사용 */
+  letterLinkCompact?: boolean;
 };
 
-export function DomainGateOverlay({ onSelect, onOpenLetter, onOpenCaution }: DomainGateOverlayProps) {
+export function DomainGateOverlay({
+  onSelect,
+  onOpenLetter,
+  onOpenCaution,
+  letterLinkCompact = false,
+}: DomainGateOverlayProps) {
   const { lang } = useLocale();
   const [ultraLite, setUltraLite] = useState(false);
 
@@ -111,7 +118,7 @@ export function DomainGateOverlay({ onSelect, onOpenLetter, onOpenCaution }: Dom
                 onClick={onOpenLetter}
                 className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-300"
               >
-                {lang === "en" ? "Read the welcome letter" : "환영 편지 읽기"}
+                {t(letterLinkCompact ? "welcomeBriefReopen" : "welcomeLetterReopen", lang)}
               </button>
             ) : null}
             {onOpenCaution ? (

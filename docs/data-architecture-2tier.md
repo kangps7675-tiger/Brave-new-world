@@ -39,7 +39,7 @@
 
 ### 기둥 2 — 레이어 기본 OFF + 동시 ON 상한
 
-- `layerPrefs` · `layerExclusiveCap` · Ultra-Lite · 패키지 hard cap.
+- `layerPrefs` · `layerExclusiveCap` (UI 동시 ON: 일반 30 / Ultra-Lite 16) · 패키지 hard cap 64 (`viewPackages`).
 - 입장 시 전 레이어 ON 금지.
 
 ### 기둥 3 — D1/R2 미리 채우기 (서버 짬통)

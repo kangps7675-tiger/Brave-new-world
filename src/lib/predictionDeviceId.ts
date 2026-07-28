@@ -1,6 +1,7 @@
 /**
  * 게스트 예측용 익명 deviceId — localStorage UUID.
  * 로그인 계정 연동은 추후 (guestPolicy 키만 예고).
+ * @see docs/deferred-status.md · docs/retention-markets-roadmap.md §3.6
  */
 
 export const PREDICTION_DEVICE_ID_KEY = "geowatch-predict-device-v1";

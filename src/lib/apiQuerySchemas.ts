@@ -60,11 +60,64 @@ export const gdeltQuerySchema = z.object({
   slices: z.coerce.number().int().min(1).max(48).optional(),
 });
 
+export const globeLodTierSchema = z.enum([
+  "global",
+  "continent",
+  "regional",
+  "near",
+  "village",
+]);
+
+export const viewportPathsQuerySchema = z.object({
+  layer: z.string().min(1).max(64).optional().default("railroads"),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  tier: globeLodTierSchema.optional().default("regional"),
+  radius: z.coerce.number().min(0).max(80).optional().default(16),
+  max: z.coerce.number().int().min(1).max(5000).optional(),
+  maxScalerank: z.coerce.number().int().min(0).max(20).optional(),
+  arterialMaxRank: z.coerce.number().int().min(0).max(20).optional(),
+  viewerMode: z.enum(["conflict", "economy"]).optional().default("conflict"),
+});
+
+export const viewportPointsQuerySchema = z.object({
+  layer: z.string().min(1).max(64).optional().default("airports"),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  tier: globeLodTierSchema.optional().default("regional"),
+  radius: z.coerce.number().min(0).max(90).optional().default(16),
+  max: z.coerce.number().int().min(1).max(5000).optional(),
+});
+
+export const shipMovementsQuerySchema = z.object({
+  lang: z.enum(["ko", "en"]).optional().default("ko"),
+  week: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  view: z.enum(["map", "timeline"]).optional().default("timeline"),
+  navy: z.string().max(32).optional(),
+});
+
+export const stockReactionQuerySchema = z.object({
+  theater: z.string().min(1).max(64).optional().default("all"),
+  ageMinutes: z.coerce.number().min(0).max(60 * 24 * 365).optional().default(0),
+  anchorDate: z.string().max(32).optional(),
+  anchorId: z.string().max(128).optional(),
+  chokepointId: z.string().max(64).optional(),
+  viewerMode: z.enum(["conflict", "economy"]).optional().default("conflict"),
+  mode: z.enum(["reaction", "counterfactual"]).optional().default("reaction"),
+});
+
 export type FirmsFiresQuery = z.infer<typeof firmsFiresQuerySchema>;
 export type AdsbMilQuery = z.infer<typeof adsbMilQuerySchema>;
 export type AdsbTrafficQuery = z.infer<typeof adsbTrafficQuerySchema>;
 export type AisQuery = z.infer<typeof aisQuerySchema>;
 export type GdeltQuery = z.infer<typeof gdeltQuerySchema>;
+export type ViewportPathsQuery = z.infer<typeof viewportPathsQuerySchema>;
+export type ViewportPointsQuery = z.infer<typeof viewportPointsQuerySchema>;
+export type ShipMovementsQuery = z.infer<typeof shipMovementsQuerySchema>;
+export type StockReactionQuery = z.infer<typeof stockReactionQuerySchema>;
 
 /** Parse URLSearchParams with a Zod schema; returns 400 payload on failure. */
 export function parseSearchParams<T extends z.ZodTypeAny>(

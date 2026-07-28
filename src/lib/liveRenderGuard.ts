@@ -1,6 +1,9 @@
+import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { FIRMS_FIRE_MAX_BY_TIER } from "@/lib/viewportCull";
 import { isClientApiStubMode } from "@/lib/runtimeConfig.client";
+
+const LIVE = GEOWATCH_CONFIG.polling;
 
 /** 줌아웃일수록 HTML 마커(ADS-B/AIS) DOM 비용을 강하게 컷 */
 const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
@@ -52,39 +55,39 @@ export function firmsLiveFetchMax(tier: GlobeLodTier): number {
 /** 서버 FIRMS hard cap과 동일 값 (route.ts 로컬 상수) — query max 무시 상한 */
 export const FIRMS_SERVER_HARD_CAP = 900;
 
-/** Tzeva: 라이브 3s는 과함 → 15s */
+/** Tzeva: stub 3s · live = SSOT */
 export function liveTzevaPollMs(): number {
-  return isClientApiStubMode() ? 3_000 : 15_000;
+  return isClientApiStubMode() ? 3_000 : LIVE.tzevaMs;
 }
 
-/** NewFeeds Iran attacks/news: upstream 5min cache → client 60s / 5min */
+/** NewFeeds Iran attacks/news: stub 60s · live = SSOT */
 export function liveNewfeedsPollMs(): number {
-  return isClientApiStubMode() ? 60_000 : 5 * 60_000;
+  return isClientApiStubMode() ? 60_000 : LIVE.newfeedsMs;
 }
 
-/** Telegram alerts: 라이브 12s → 30s */
+/** Telegram alerts: stub 12s · live = SSOT */
 export function liveTelegramPollMs(): number {
-  return isClientApiStubMode() ? 12_000 : 30_000;
+  return isClientApiStubMode() ? 12_000 : LIVE.telegramMs;
 }
 
-/** Telegram sync POST: 라이브 60s → 120s */
+/** Telegram sync POST: stub 60s · live = SSOT */
 export function liveTelegramSyncPollMs(): number {
-  return isClientApiStubMode() ? 60_000 : 120_000;
+  return isClientApiStubMode() ? 60_000 : LIVE.telegramSyncMs;
 }
 
 /** FIRMS bbox/주기 갱신 */
 export function liveFirmsPollMs(): number {
-  return isClientApiStubMode() ? 3 * 60_000 : 5 * 60_000;
+  return isClientApiStubMode() ? 3 * 60_000 : LIVE.firmsMs;
 }
 
 /** GDELT 이벤트 폴링 */
 export function liveGdeltPollMs(): number {
-  return isClientApiStubMode() ? 15 * 60_000 : 20 * 60_000;
+  return isClientApiStubMode() ? 15 * 60_000 : LIVE.gdeltMs;
 }
 
 /** AIS 선박 */
 export function liveAisPollMs(): number {
-  return isClientApiStubMode() ? 60_000 : 90_000;
+  return isClientApiStubMode() ? 60_000 : LIVE.aisMs;
 }
 
 export function liveAisFetchMax(): number {
@@ -98,7 +101,7 @@ export function liveAisDisplayMax(tier: GlobeLodTier): number {
 
 /** ADS-B 군용기 */
 export function liveMilPollMs(): number {
-  return isClientApiStubMode() ? 45_000 : 75_000;
+  return isClientApiStubMode() ? 45_000 : LIVE.milAdsbMs;
 }
 
 export function liveMilFetchMax(): number {
@@ -111,7 +114,7 @@ export function liveMilDisplayMax(tier: GlobeLodTier): number {
 
 /** 민간 항적 (지경학) */
 export function liveAirTrafficPollMs(): number {
-  return isClientApiStubMode() ? 40_000 : 55_000;
+  return isClientApiStubMode() ? 40_000 : LIVE.airTrafficMs;
 }
 
 export function liveAirTrafficFetchMax(): number {
@@ -133,17 +136,17 @@ export function airTrafficDistNm(altitude: number): number {
 
 /** 미 항모 */
 export function liveUsCarriersPollMs(): number {
-  return isClientApiStubMode() ? 5 * 60_000 : 8 * 60_000;
+  return isClientApiStubMode() ? 5 * 60_000 : LIVE.usCarriersMs;
 }
 
-/** Yahoo 티커 스트립 — 증시 지수 15분 폴링 */
+/** Yahoo 티커 스트립 — stub OFF = SSOT tickerMs */
 export function liveTickerPollMs(): number {
-  return isClientApiStubMode() ? 10 * 60_000 : 15 * 60_000;
+  return isClientApiStubMode() ? 10 * 60_000 : LIVE.tickerMs;
 }
 
-/** Intel 뉴스 스트림 (RSS) — stub OFF 시 더 느리게 */
+/** Intel 뉴스 스트림 (RSS) — stub OFF 시 SSOT */
 export function liveNewsPollMs(): number {
-  return isClientApiStubMode() ? 90_000 : 150_000;
+  return isClientApiStubMode() ? 90_000 : LIVE.newsRssMs;
 }
 
 /** NAVAREA D1 스냅샷 — 뉴스 스트림과 같은 리듬 (상류 TXT는 cron 30분) */
@@ -153,7 +156,7 @@ export function liveNavareaPollMs(): number {
 
 /** 동영상 뉴스(메타) — 본 뉴스보다 훨씬 느리게 */
 export function liveVideoNewsPollMs(): number {
-  return isClientApiStubMode() ? 5 * 60_000 : 10 * 60_000;
+  return isClientApiStubMode() ? 5 * 60_000 : LIVE.videoNewsMs;
 }
 
 /** 동영상 클립 상한 (클릭 재생 · 카드만) */

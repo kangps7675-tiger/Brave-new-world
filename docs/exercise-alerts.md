@@ -33,3 +33,4 @@
 - 공개 RF 공백은 정상이다. 항적 없음 ≠ 훈련 없음.
 - `unverified`는 속보 후보일 뿐 공식 확인이 아니다.
 - NAVAREA 스냅샷·뉴스 키워드에 의존하므로 전 세계 훈련을 완전 커버하지 않는다.
+- 뉴스 키워드 ingest는 `unverified`만 — **관영 매체 화이트리스트 승격은 추후** (`workers/cron-ingest/src/exerciseIngest.ts`).

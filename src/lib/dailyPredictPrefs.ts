@@ -18,7 +18,7 @@ import {
   analystTierFromStats,
   analystTierLabel,
   type AnalystTierId,
-} from "@/lib/wti";
+} from "@/lib/gti";
 
 export { nextUtcRankDate, prevUtcRankDate, utcRankDate };
 

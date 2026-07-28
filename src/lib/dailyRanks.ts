@@ -40,7 +40,7 @@ export type DailyRanksPayload = {
 };
 
 /**
- * 공식 WTI 행(kind=world)이 없을 때의 대체 산출.
+ * 공식 GTI 행(kind=world)이 없을 때의 대체 산출.
  * cron `upsertWorldTension`과 같은 축(전장 평균·최고 혼합)을 쓰되, 이미 0–100으로
  * 정규화된 전장 점수에서 바로 계산한다. 값이 없으면 null.
  */
@@ -329,7 +329,7 @@ export async function loadDailyRanks(options: {
   limit?: number;
 } = {}): Promise<DailyRanksPayload> {
   const date = options.date || utcRankDate();
-  /** world 행이 비어도 전장 점수가 있으면 WTI를 대체 산출 — 칩·사운드가 죽지 않게 */
+  /** world 행이 비어도 전장 점수가 있으면 GTI를 대체 산출 — 칩·사운드가 죽지 않게 */
   const withTensionFallback = (payload: DailyRanksPayload): DailyRanksPayload =>
     payload.worldTension
       ? payload

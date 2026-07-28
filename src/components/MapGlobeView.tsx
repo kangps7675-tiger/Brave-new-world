@@ -42,12 +42,12 @@ import {
   islandChainsChinaHighlightGeoJson,
   islandChainsRadarGeoJson,
   islandChainsTaiwanPulseGeoJson,
-  islandChainsUsGeoJson,
   islandChainsUsHighlightGeoJson,
 } from "@/data/islandChains";
 import {
   applyBasemapFog,
   applyBasemapGlobeProjection,
+  applyBasemapSpaceBackground,
   applyBasemapTerrain,
   AWS_TERRARIUM_ATTRIBUTION,
   AWS_TERRARIUM_TILES,
@@ -188,6 +188,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   );
 
   useImperativeHandle(ref, () => methods, [methods]);
+
+  useEffect(() => {
+    return () => {
+      methods.dispose();
+    };
+  }, [methods]);
 
   const pointsData = useMemo(() => (props.pointsData as unknown[]) ?? [], [props.pointsData]);
   const pathsData = useMemo(() => (props.pathsData as unknown[]) ?? [], [props.pathsData]);
@@ -597,6 +603,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const applyVisuals = () => {
       applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapSpaceBackground(m);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
@@ -635,6 +642,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapMode);
+      applyBasemapSpaceBackground(m);
       applyBasemapTerrain(m, basemapMode, { ultraLite });
     };
 
@@ -684,6 +692,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapSpaceBackground(m);
     };
     sync();
     map.once("idle", sync);
@@ -891,6 +900,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapSpaceBackground(m);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
@@ -914,13 +924,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [mapLoaded, notifyChange]);
 
   /**
-   * 체크박스가 켜지면 전체 선을 은은하게 상시 표시하고(발견성·안정감),
-   * 기지를 호버(모바일은 탭)하면 그 기지가 걸친 선만 위에 겹쳐 강조한다.
-   * 호버 전용으로 두면 선이 있는지조차 모르는 유저가 생겨서 둘을 함께 둔다.
+   * 중국 도련선은 체크박스가 켜지면 전체를 은은하게 상시 표시하고(발견성·안정감),
+   * 기지를 호버(모바일은 탭)하면 그 기지가 걸친 구간만 위에 겹쳐 강조한다.
+   * 미군 기지망(거미줄)은 반대로 상시 표시하지 않고, 기지를 호버·탭했을 때만
+   * 그 기지에 연결된 간선(허브·스포크)만 그린다 — 태평양 전역에 항상 깔린 선이 아니다.
+   * 호버 전용으로 두면 선이 있는지조차 모르는 유저가 생겨서 기지 점(circle)은 항상 보이게 둔다.
    */
   const activeIslandBaseId = showIslandChains ? hoveredIslandBaseId : null;
   const chinaChainsFc = useMemo(() => islandChainsChinaGeoJson(), []);
-  const usLinesFc = useMemo(() => islandChainsUsGeoJson(), []);
   const chinaHighlightFc = useMemo(
     () => islandChainsChinaHighlightGeoJson(activeIslandBaseId),
     [activeIslandBaseId],
@@ -1348,27 +1359,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 }}
               />
             </Source>
-            <Source id="island-chains-us-source" type="geojson" data={usLinesFc}>
-              <Layer
-                id="island-chains-us-glow"
-                type="line"
-                paint={{
-                  "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
-                  "line-width": 6,
-                  "line-opacity": 0.14,
-                  "line-blur": 1.2,
-                }}
-              />
-              <Layer
-                id="island-chains-us"
-                type="line"
-                paint={{
-                  "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
-                  "line-width": 2.4,
-                  "line-opacity": 0.5,
-                }}
-              />
-            </Source>
+            {/* 미군 기지망은 상시 표시 없음 — 기지를 호버·탭했을 때만 아래 highlight 블록에서 그린다 */}
 
             {/* 호버·탭 강조 — 해당 기지가 걸친 선만 위에 겹쳐 촤악 살아난다 */}
             {chinaHighlightFc.features.length > 0 ? (
@@ -1392,6 +1383,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               </Source>
             ) : null}
             {usHighlightFc.features.length > 0 ? (
+              /* 거미줄 — hub(사령부 간) 간선은 굵고 밝게, spoke(전방기지) 간선은 가늘게 */
               <Source
                 id="island-chains-us-highlight-source"
                 type="geojson"
@@ -1402,9 +1394,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   type="line"
                   paint={{
                     "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
-                    "line-width": 9,
-                    "line-opacity": 0.3,
-                    "line-blur": 1.4,
+                    "line-width": ["case", ["==", ["get", "tier"], "hub"], 10, 6],
+                    "line-opacity": ["case", ["==", ["get", "tier"], "hub"], 0.32, 0.22],
+                    "line-blur": 1.3,
                     "line-opacity-transition": { duration: 280, delay: 0 },
                   }}
                 />
@@ -1413,8 +1405,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   type="line"
                   paint={{
                     "line-color": ["coalesce", ["get", "color"], "#3b82f6"],
-                    "line-width": 4,
+                    "line-width": ["case", ["==", ["get", "tier"], "hub"], 4.5, 2.6],
                     "line-opacity": 1,
+                    "line-dasharray": ["case", ["==", ["get", "tier"], "hub"], ["literal", [1, 0]], ["literal", [2, 1.4]]],
                     "line-opacity-transition": { duration: 280, delay: 0 },
                   }}
                 />

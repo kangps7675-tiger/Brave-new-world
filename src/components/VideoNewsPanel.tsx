@@ -79,7 +79,7 @@ export function VideoNewsPanel({
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+      <div className="intel-scroll-y min-h-0 flex-1 px-3 py-3">
         <p className="mb-3 px-1 text-[11px] leading-relaxed text-slate-400">
           {economyMode
             ? labelLanguage === "en"

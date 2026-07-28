@@ -30,7 +30,8 @@ export function getGlobeTextures(basemapMode: BasemapMode = "intel"): GlobeTextu
     mapStyleUrl: getMapLibreStyleUrl(basemapMode),
     globeImageUrl: null,
     bumpImageUrl: null,
-    backgroundColor: isTerrain ? "#0a1628" : globe.backgroundColor,
+    // 지형·인텔 공통 — 지구본 뒤 우주 배경
+    backgroundColor: globe.backgroundColor,
     oceanColor: isTerrain ? "#1a3a5c" : globe.oceanColor,
     landFillColor: polygon.defaultFill,
     // 네온 시안 해안선·국경은 밝은 벡터 지도에서 사라짐 → 저명도 틸로 교체

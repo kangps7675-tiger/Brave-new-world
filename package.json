@@ -14,6 +14,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify:product-spec": "node scripts/verify-product-spec.js",
+    "verify:stub-off-gate": "node scripts/verify-stub-off-gate.js",
     "gdelt:fetch": "node scripts/gdelt-fetch.js",
     "data:simplify": "node scripts/simplify-natural-earth.js",
     "data:build": "node scripts/build-local-data.js full",

@@ -9,6 +9,7 @@ import {
   gscpiScore100,
   type GscpiReading,
 } from "@/lib/gscpi";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type GscpiGaugeProps = {
   reading: GscpiReading | null;
@@ -24,12 +25,15 @@ type GscpiGaugeProps = {
  */
 export function GscpiGauge({ reading, lang, compact = false, className = "" }: GscpiGaugeProps) {
   const en = lang === "en";
+  const light = useBasemapTone() === "light";
   // 데이터 로딩 전에도 칩 자리를 지킨다 (조용히 사라지면 지표가 없는 것처럼 보임)
   if (!reading) {
     if (!compact) return null;
     return (
       <div
-        className={`inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-[#0a1f18]/85 px-2.5 py-1 text-[11px] font-medium text-emerald-100/70 ${className}`}
+        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-[#0a1f18]/85 px-2.5 py-1 text-[11px] font-medium ${
+          light ? "text-slate-700" : "text-emerald-100/70"
+        } ${className}`}
         title={gscpiDisclaimer(lang)}
       >
         <span className="opacity-80">{en ? "Shipping congestion" : "물류 혼잡도"}</span>
@@ -53,27 +57,29 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
   if (compact) {
     return (
       <div
-        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
+        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
         style={{
           borderColor: `${color}55`,
-          color,
-          background: "rgba(10, 31, 24, 0.85)",
+          color: light ? "#1e293b" : color,
+          background: light ? "rgba(255, 252, 248, 0.97)" : "rgba(10, 31, 24, 0.85)",
         }}
         title={gscpiDisclaimer(lang)}
       >
         <span className="opacity-80">{title}</span>
-        <span className="font-bold tabular-nums">
+        <span className="font-bold tabular-nums" style={{ color }}>
           {score}
           <span className="font-medium opacity-60">/100</span>
         </span>
-        <span className="opacity-70">{gscpiLevelLabel(reading.level, lang)}</span>
+        <span className="opacity-70" style={{ color }}>
+          {gscpiLevelLabel(reading.level, lang)}
+        </span>
       </div>
     );
   }
 
   return (
     <div
-      className={`rounded-2xl border border-slate-600/30 bg-[#0b1020]/90 px-4 py-3 shadow-lg backdrop-blur-md ${className}`}
+      className={`gscpi-gauge tone-chip rounded-2xl border border-slate-600/30 bg-[#0b1020]/90 px-4 py-3 shadow-lg backdrop-blur-md ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-semibold tracking-wide text-slate-300">

@@ -147,6 +147,8 @@ export type LayerPrefs = {
   showReefWatch: boolean;
   /** 북한 미사일·무기실험 (주황 네온 · 발사·실험 발생지) */
   showNorthKoreaMissileTests: boolean;
+  /** 우크라이나 → 러시아 타격 (보도·미확인 · 자주 피격지 네온) */
+  showUkraineStrikesOnRussia: boolean;
   /** NEPTUN — 우크라이나 드론·미사일·탄도미사일 실시간 궤적 (neptun.in.ua) */
   showNeptun: boolean;
   /** 사라진 드론·미사일의 지나간 이동 경로 */
@@ -255,6 +257,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWeeklyShipMoves: false,
   showReefWatch: false,
   showNorthKoreaMissileTests: false,
+  showUkraineStrikesOnRussia: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showEastAsiaAdiz: false,

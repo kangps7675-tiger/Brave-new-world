@@ -673,6 +673,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "live-api",
   },
   {
+    layerId: "ukraine-strikes-russia",
+    source: "GDELT live · 러시아 피격지 앵커",
+    url: "/api/gdelt + src/data/russiaStrikeIncidentsSeed.ts",
+    cadence: "Live GDELT · layer toggle",
+    attribution: "GDELT · reported strikes on Russian targets (unverified)",
+    notes:
+      "우크라이나 → 러시아(및 점령지) 타격. 러시아는 공식 실시간 방공 경보를 공개하지 않아 궤적·탄착 불가 — 자주 피격되는 지점(벨고로드·쿠르스크·엥겔스·세바스토폴·정유소 등) 앵커에 최신(24h) GDELT 속보가 러시아 표적 지명과 함께 있을 때만 점등. 모두 「보도·미확인」. NEPTUN(우크라로 오는 위협)의 반대 방향.",
+    status: "shipped",
+    ingest: "live-api",
+  },
+  {
     layerId: "china-theater-incidents",
     source: "GDELT live · China theater dens (dyad layers)",
     url: "/api/gdelt + src/data/chinaTheaterIncidentsSeed.ts",

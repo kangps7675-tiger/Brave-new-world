@@ -117,11 +117,11 @@ export function SitrepLog({ lang }: { lang: LabelLanguage }) {
       >
         <span className="min-w-0">
           <span className="block text-[11px] font-semibold tracking-tight text-amber-100/95">
-            {en ? "What changed" : "상황 변화"}
+            {en ? "Sitrep · what changed" : "Sitrep · 상황 변화"}
             {events.length > 0 ? ` · ${events.length}` : ""}
           </span>
           <span className="block text-[9px] text-amber-200/45">
-            {en ? "big shifts only" : "큰 변화만"}
+            {en ? "tension drivers · big shifts" : "긴장 원인 · 큰 변화만"}
           </span>
         </span>
         <span className="shrink-0 text-[10px] text-amber-200/50">{collapsed ? "▸" : "▾"}</span>

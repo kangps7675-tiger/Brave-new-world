@@ -1,3 +1,4 @@
+import type { Map as MapLibreMap } from "maplibre-gl";
 import type { MutableRefObject, RefObject } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
 import { clampGlobeAltitude, MIN_GLOBE_ALTITUDE } from "@/lib/globeCamera";
@@ -38,6 +39,8 @@ export type MapGlobeMethods = {
   toGlobeCoords: (x: number, y: number) => { lat: number; lng: number } | null;
   controls: () => MapGlobeControls;
   renderer: () => { domElement: HTMLCanvasElement | null };
+  /** 언마운트 시 RAF·pointer 리스너 해제 */
+  dispose: () => void;
 };
 
 type ChangeListener = () => void;
@@ -85,6 +88,10 @@ export function createMapGlobeMethods(
   let inAutoRotateFrame = false;
   let userPointerDown = false;
   let interactionBound = false;
+  let interactionCanvas: HTMLCanvasElement | null = null;
+  let interactionMap: MapLibreMap | null = null;
+  let onPointerDown: (() => void) | null = null;
+  let onPointerUp: (() => void) | null = null;
 
   const applyInteractionFlags = () => {
     const map = mapRef.current?.getMap();
@@ -134,25 +141,48 @@ export function createMapGlobeMethods(
     map.setMaxZoom(altitudeToMapLibreZoom(minAlt));
   };
 
+  const unbindInteractionPause = () => {
+    if (!interactionBound) return;
+    if (interactionCanvas && onPointerDown) {
+      interactionCanvas.removeEventListener("pointerdown", onPointerDown);
+    }
+    if (onPointerUp) {
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    }
+    if (interactionMap && onPointerDown && onPointerUp) {
+      interactionMap.off("dragstart", onPointerDown);
+      interactionMap.off("dragend", onPointerUp);
+    }
+    interactionBound = false;
+    interactionCanvas = null;
+    interactionMap = null;
+    onPointerDown = null;
+    onPointerUp = null;
+    userPointerDown = false;
+  };
+
   const bindInteractionPause = () => {
     if (interactionBound) return;
     const map = mapRef.current?.getMap();
     const canvas = map?.getCanvas();
     if (!map || !canvas) return;
     interactionBound = true;
+    interactionCanvas = canvas;
+    interactionMap = map;
 
-    const onDown = () => {
+    onPointerDown = () => {
       userPointerDown = true;
     };
-    const onUp = () => {
+    onPointerUp = () => {
       userPointerDown = false;
     };
 
-    canvas.addEventListener("pointerdown", onDown, { passive: true });
-    window.addEventListener("pointerup", onUp, { passive: true });
-    window.addEventListener("pointercancel", onUp, { passive: true });
-    map.on("dragstart", onDown);
-    map.on("dragend", onUp);
+    canvas.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    map.on("dragstart", onPointerDown);
+    map.on("dragend", onPointerUp);
   };
 
   const stopAutoRotateLoop = () => {
@@ -346,6 +376,13 @@ export function createMapGlobeMethods(
     renderer() {
       const canvas = mapRef.current?.getCanvas() ?? null;
       return { domElement: canvas };
+    },
+
+    dispose() {
+      controlState.autoRotate = false;
+      stopAutoRotateLoop();
+      unbindInteractionPause();
+      changeListenersRef.current.clear();
     },
   };
 }
