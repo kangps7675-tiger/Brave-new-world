@@ -51,6 +51,7 @@ import {
 } from "@/lib/newfeedsI18n";
 import { CHINA_THEATER_DYAD_LABEL, CHINA_THEATER_SEA_LABEL } from "@/data/chinaTheaterIncidentsSeed";
 import { KOREA_MISSILE_ANCHOR_LABEL, KOREA_MISSILE_KIND_LABEL } from "@/data/koreaMissileIncidentsSeed";
+import { RUSSIA_STRIKE_KIND_LABEL } from "@/data/russiaStrikeIncidentsSeed";
 import { ACLED_HOME_URL, HAPI_ATTRIBUTION, HAPI_SOURCE_LINE } from "@/lib/hapiConflictCasualties";
 import { gdeltNewsAlertLabel } from "@/lib/gdeltNewsAlert";
 import { gdeltLocationTagLabel } from "@/lib/gdeltLocationTags";
@@ -393,6 +394,21 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
           lang === "en"
             ? "DPRK launch / event dens (no confirmed splash)"
             : "북한 발사·실험 발생지 (탄착 미확정)",
+        hint: lang === "en" ? "Click to fly to location" : "클릭하면 해당 위치로 이동",
+      };
+    }
+    if (hoveredPoint.displayKind === "russia-strike-incident") {
+      const kind = RUSSIA_STRIKE_KIND_LABEL[hoveredPoint.kind][lang];
+      return {
+        kind: "event",
+        badge: kind,
+        title: lang === "en" ? hoveredPoint.titleEn : hoveredPoint.titleKo,
+        detail: lang === "en" ? "reported · unverified" : "보도 · 미확인",
+        body: lang === "en" ? hoveredPoint.bodyEn : hoveredPoint.bodyKo,
+        meta:
+          lang === "en"
+            ? "Ukraine → Russia strike hotspot (no confirmed trajectory)"
+            : "우크라 → 러 타격 핫스팟 (궤적 미확정)",
         hint: lang === "en" ? "Click to fly to location" : "클릭하면 해당 위치로 이동",
       };
     }
