@@ -142,6 +142,19 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
+   * 속보·양피지 타전 깔개 — 어두운 드론 (모스와 겹침)
+   * https://freesound.org/s/587014/ · Victor_Natas · CC BY 4.0
+   */
+  "breaking-dark-bed": {
+    eventId: "breaking-dark-bed",
+    freesoundQuery: "something dark ominous drone",
+    freesoundId: 587014,
+    volume: 0.22,
+    category: "conflict",
+    note: "FS#587014 Victor_Natas Something dark · BY 4.0 · 등불/양피지 속보 모스와 겹침",
+  },
+
+  /**
    * 전선 총격 — 원거리 교전 (기관총·박격포·소총 혼합).
    * https://freesound.org/s/404334/ Firefight · TheBuilder15 · CC0
    */

@@ -22,6 +22,7 @@ const DASHBOARD_BUS_EVENT_IDS = new Set<AudioEventId>([
   "tzeva-all-clear",
   "neptun-air-alert",
   "hero-breaking",
+  "breaking-dark-bed",
   "parchment-unfold",
   "parchment-fold",
   "parchment-flyaway",
@@ -54,11 +55,18 @@ export function emitOilSpikeSound() {
   });
 }
 
-/** A급 속보 히어로 슬라이드업 시 SOS 모스 타전 */
+/** A급 속보·등불/양피지 경보 — SOS 모스 타전 + Something dark 깔개 겹침 */
 export function emitBreakingDispatchSound() {
   emitDashboardSound("hero-breaking", {
     force: true,
+    overlap: true,
     volumeScale: 0.9,
+    durationMs: 9000,
+  });
+  emitDashboardSound("breaking-dark-bed", {
+    force: true,
+    overlap: true,
+    volumeScale: 0.75,
     durationMs: 9000,
   });
 }

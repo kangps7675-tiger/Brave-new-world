@@ -152,6 +152,14 @@ export const FREESOUND_ATTRIBUTIONS: readonly FreesoundAttribution[] = [
     eventIds: ["hero-breaking"],
   },
   {
+    freesoundId: 587014,
+    title: "Something dark",
+    author: "Victor_Natas",
+    license: "CC-BY",
+    url: "https://freesound.org/s/587014/",
+    eventIds: ["breaking-dark-bed"],
+  },
+  {
     freesoundId: 612277,
     title: "10835 big fire loop.wav",
     author: "Robinhood76",
