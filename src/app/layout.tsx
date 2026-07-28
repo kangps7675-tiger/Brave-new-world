@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Inter, JetBrains_Mono, Merriweather } from "next/font/google";
 import localFont from "next/font/local";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
+import { DEVICE_BOOT_SCRIPT } from "@/hooks/deviceQueries";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { UiFontBoot } from "@/components/UiFontBoot";
 import { GameShellGuard } from "@/components/GameShellGuard";
@@ -180,6 +181,9 @@ export default function RootLayout({
       >
         <Script id="cv-compact-boot" strategy="beforeInteractive">
           {COMPACT_BOOT_SCRIPT}
+        </Script>
+        <Script id="cv-device-boot" strategy="beforeInteractive">
+          {DEVICE_BOOT_SCRIPT}
         </Script>
         <Script id="cv-ui-font-boot" strategy="beforeInteractive">
           {UI_FONT_BOOT_SCRIPT}

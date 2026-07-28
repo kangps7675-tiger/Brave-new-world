@@ -15,6 +15,7 @@ import { MapAttributionBar } from "@/components/MapAttributionBar";
 import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { useCompactUi } from "@/hooks/useCompactUi";
 import { usePhoneUi } from "@/hooks/usePhoneUi";
+import { useDeviceProfile } from "@/hooks/deviceProfile";
 import {
   buildCompactPrefs,
   compactPresetsForMode,
@@ -655,6 +656,9 @@ export function GlobeDashboard({
   const isCompactUi = useCompactUi();
   // 폰: 지구본을 mount하지 않고 텍스트/알림 뷰만. 태블릿/데스크톱만 3D 지구본.
   const isPhoneUi = usePhoneUi();
+  const deviceProfile = useDeviceProfile();
+  const isTabletUi = deviceProfile === "tablet";
+  const isDesktopWideUi = deviceProfile === "desktop-wide";
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
   const desktopSnapshotRef = useRef<{ layers: LayerPrefs; ultraLite: boolean } | null>(null);
   const compactWasActiveRef = useRef(false);
@@ -7279,6 +7283,8 @@ export function GlobeDashboard({
       {showLeftPanel ? (
         <LayerPanelHost
           isCompactUi={isCompactUi}
+          isTabletUi={isTabletUi}
+          isDesktopWideUi={isDesktopWideUi}
           labelLanguage={labelLanguage}
           layerPanelDirty={layerPanelDirty}
           onConfirmDraft={confirmLayerPanelDraft}

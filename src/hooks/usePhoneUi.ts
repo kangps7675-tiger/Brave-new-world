@@ -1,6 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { PHONE_QUERY } from "@/hooks/phoneQuery";
+
+export { PHONE_QUERY };
 
 /**
  * 휴대폰(폰) 전용 게이트 — 태블릿·데스크톱은 제외.
@@ -13,8 +16,6 @@ import { useSyncExternalStore } from "react";
  * iPad(iOS13+)는 데스크톱 UA("Macintosh")로 위장하고 화면도 커서 폰으로 잡히지 않는다 → 태블릿은 지구본 유지.
  * 안드로이드 태블릿은 UA에 "Mobile"이 없어 폰 정규식에 걸리지 않는다 → 태블릿은 지구본 유지.
  */
-export const PHONE_QUERY =
-  "(max-width: 640px) and (pointer: coarse), ((pointer: coarse) and (max-height: 480px))";
 
 /** 폰 UA — 태블릿은 의도적으로 제외 (Android 태블릿엔 "Mobile"이 없음) */
 const PHONE_UA =
