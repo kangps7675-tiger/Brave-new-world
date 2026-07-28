@@ -517,8 +517,8 @@ function PhotoNewsLampParchment({
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
-                        ? "Loading the regional photo desk…"
-                        : "지역별 심층 사진 데스크를 불러오는 중…"}
+                        ? "No desk cards in this slot — fold and reopen after the next 6-hour refresh."
+                        : "이 슬롯에 데스크 카드가 없습니다. 접었다가 다음 6시간 갱신 후 다시 펼쳐 보세요."}
                     </p>
                   )}
 

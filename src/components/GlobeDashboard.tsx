@@ -116,6 +116,7 @@ import {
   lampSeenKey,
   pickConflictLampNews,
   pickEconomyLampNews,
+  ensureLampFeaturedNews,
   resolveLampPeriod,
   resolveMondayWeeklyRecap,
   weeklyRecapStorageKey,
@@ -5644,16 +5645,21 @@ export function GlobeDashboard({
         setDailyLampSettled(true);
         return;
       }
-      // 데드라인 셸/빈 데스크를 라이브 사진 뉴스로 교체
+      // 데드라인 셸/시드 데스크를 라이브 사진 뉴스로 교체
       const upgradeBriefing = (prev: PeriodicBriefing | null) => {
         if (!prev || prev.key !== lampKey) return prev;
-        const prevN = prev.featuredNews?.length ?? 0;
-        const nextN = content.featuredNews?.length ?? 0;
+        const prevNews = prev.featuredNews ?? [];
+        const nextNews = content.featuredNews ?? [];
+        const prevN = prevNews.length;
+        const nextN = nextNews.length;
         if (nextN === 0) return prev;
+        const prevLive = prevNews.filter((n) => !n.id.startsWith("seed-")).length;
+        const nextLive = nextNews.filter((n) => !n.id.startsWith("seed-")).length;
+        if (nextLive > prevLive) return content;
         if (nextN > prevN) return content;
         if (prevN === 0 && nextN > 0) return content;
-        const prevPhotos = (prev.featuredNews ?? []).filter((n) => n.imageUrl).length;
-        const nextPhotos = (content.featuredNews ?? []).filter((n) => n.imageUrl).length;
+        const prevPhotos = prevNews.filter((n) => n.imageUrl).length;
+        const nextPhotos = nextNews.filter((n) => n.imageUrl).length;
         if (nextPhotos > prevPhotos) return content;
         return prev;
       };
@@ -5706,11 +5712,23 @@ export function GlobeDashboard({
           : "전 세계 지역별 심층 데스크";
 
       let macroTable = buildLampMacroTable([], labelLanguage);
-      let featuredNews = isEconomy
-        ? pickEconomyLampNews([], 1, langQs)
-        : pickConflictLampNews([], 1, langQs);
+      let featuredNews = ensureLampFeaturedNews(
+        [],
+        isEconomy ? "economy" : "conflict",
+        labelLanguage,
+      );
 
-      // 뉴스 — 데드라인 안의 예산만 사용
+      // 개봉 즉시 시드 데스크 점화 — 빈 ‘불러오는 중’ 화면 금지. 라이브는 아래에서 업그레이드.
+      ignite({
+        tier,
+        key: lampKey,
+        title: `${kicker}\n${focusTitle}`,
+        paragraphs: [],
+        macroTable,
+        featuredNews,
+      });
+
+      // 뉴스 — 데드라인 안의 예산만 사용 후 업그레이드
       try {
         const newsUrl = isEconomy
           ? `/api/news-stream?packages=geo-trader&lang=${langQs}`
@@ -5723,32 +5741,31 @@ export function GlobeDashboard({
                 ...(newsPayload.verified ?? []),
                 ...(newsPayload.stateMedia ?? []),
               ];
-          featuredNews = isEconomy
-            ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
-            : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs);
+          featuredNews = ensureLampFeaturedNews(
+            isEconomy
+              ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
+              : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
+            isEconomy ? "economy" : "conflict",
+            labelLanguage,
+          );
         }
       } catch {
-        /* ignore */
+        /* ignore — 시드 데스크 유지 */
       }
 
       if (cancelled) return;
 
-            if (featuredNews.length > 0) {
-        ignite(
-          {
-                tier,
-                key: lampKey,
-                title: `${kicker}\n${focusTitle}`,
-                paragraphs: [],
+      ignite(
+        {
+          tier,
+          key: lampKey,
+          title: `${kicker}\n${focusTitle}`,
+          paragraphs: [],
           macroTable,
-                featuredNews,
-          },
-          { upgrade: true },
-        );
-      } else {
-        // 뉴스 실패/부족 — 사진 데스크 셸 (과거사건 양피지 금지)
-        ignite(curatedFallback(), { upgrade: true });
-      }
+          featuredNews,
+        },
+        { upgrade: true },
+      );
 
       if (cancelled || !isEconomy) return;
 
@@ -5784,7 +5801,12 @@ export function GlobeDashboard({
             ...prev,
             title: `${kicker}\n${focusTitle}`,
             macroTable,
-                    paragraphs: [],
+            paragraphs: [],
+            featuredNews: ensureLampFeaturedNews(
+              prev.featuredNews ?? [],
+              "economy",
+              labelLanguage,
+            ),
           };
         };
         if (lampWasFolded) {

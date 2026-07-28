@@ -1287,7 +1287,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto absolute left-3 z-[45] ${
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[82] ${
             // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
             telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
           } ${
