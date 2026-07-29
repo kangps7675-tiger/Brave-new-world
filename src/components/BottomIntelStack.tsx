@@ -21,6 +21,10 @@ import {
 } from "@/lib/interest/applyFromInterest";
 import { LivingTaiwanFollowChip } from "@/components/LivingConflictPanel";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
+import {
+  shouldOpenBreakingFlash,
+  wasBreakingFlashClaimed,
+} from "@/lib/news/breakingFlash";
 import { HoverHint } from "@/components/HoverHint";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard";
@@ -648,16 +652,23 @@ export function DynamicIntelStack({
   } | null>(null);
   const [dockDragY, setDockDragY] = useState(0);
 
-  /** S급만 SOS 모스 (A는 배너만 · 사이렌 없음) */
+  /** S급만 SOS 모스 (A는 배너만 · 사이렌 없음). 귀중 속보 양피지가 타전하면 그쪽으로 음향 위임 */
   useEffect(() => {
     if (!isAlert || !hero?.id || !resolveBreakingSos(hero)) {
       if (!isAlert) lastBreakingHeroIdRef.current = null;
       return;
     }
     if (lastBreakingHeroIdRef.current === hero.id) return;
+    if (
+      wasBreakingFlashClaimed(hero.id) ||
+      shouldOpenBreakingFlash(hero, isEconomy)
+    ) {
+      lastBreakingHeroIdRef.current = hero.id;
+      return;
+    }
     lastBreakingHeroIdRef.current = hero.id;
     emitBreakingDispatchSound();
-  }, [isAlert, hero, hero?.id, hero?.breakingRank]);
+  }, [isAlert, hero, hero?.id, hero?.breakingRank, isEconomy]);
 
   useEffect(() => {
     setTodayHidden(isTodayBriefingDismissed());
@@ -1720,7 +1731,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     return (
       <div
         id="intel-news-sheet"
-        className={`intel-news-sheet fixed inset-x-0 bottom-0 z-[44] flex flex-col ${
+        className={`intel-news-sheet fixed inset-x-0 bottom-0 z-[120] flex flex-col ${
           open ? "intel-news-sheet--open" : ""
         } ${sheetDragging ? "intel-news-sheet--dragging" : ""}`}
         role="dialog"

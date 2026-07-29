@@ -101,7 +101,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--bottom-intel-stack-clearance,5.5rem)+0.5rem)] z-[45] flex justify-center px-3"
+      className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--bottom-intel-stack-clearance,5.5rem)+0.5rem)] z-[120] flex justify-center px-3"
       role="dialog"
       aria-label="빠른 시작 안내"
     >

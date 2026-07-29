@@ -144,7 +144,7 @@ export function LayerPanelHost({
 
   return (
     <aside
-      className={`intel-panel intel-scroll-y pointer-events-auto absolute left-3 z-[110] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelSizeClass}`}
+      className={`intel-panel intel-scroll-y pointer-events-auto absolute left-3 z-[120] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelSizeClass}`}
     >
       {layerPanelDirty ? (
         <div

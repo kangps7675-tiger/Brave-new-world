@@ -54,7 +54,7 @@ export function LampRoleTipBanner({ lang, open, onDismiss }: Props) {
 
   return (
     <div
-      className="pointer-events-auto fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-[90] mx-auto max-w-md rounded-lg border border-[#c4a574]/45 bg-[#1a1510]/92 px-4 py-3 text-[#f3e6c8] shadow-xl backdrop-blur-md sm:inset-x-auto sm:right-4 sm:left-auto"
+      className="pointer-events-auto fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-[120] mx-auto max-w-md rounded-lg border border-[#c4a574]/45 bg-[#1a1510]/92 px-4 py-3 text-[#f3e6c8] shadow-xl backdrop-blur-md sm:inset-x-auto sm:right-4 sm:left-auto"
       role="status"
     >
       <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4b896]/7">

@@ -235,7 +235,7 @@ export type EconomyAmbientKind =
   | "pipeline"
   | null;
 /** 항모는 클릭 전용 — 패스오버 앰비언트에서 제외 */
-export type ConflictAmbientKind = "frontline" | "taiwan-tension" | "tension" | null;
+export type ConflictAmbientKind = "global" | "frontline" | "taiwan-tension" | "tension" | null;
 
 type SoundEffectsBridgeProps = {
   viewerMode?: "conflict" | "economy";
@@ -244,8 +244,8 @@ type SoundEffectsBridgeProps = {
   /** 뷰포트 안 FIRMS 전투(폭격 추정) 화재가 있으면 true */
   firmsCombatInView?: boolean;
   /**
-   * 지정학 앰비언스 우선순위: frontline > taiwan-tension > tension
-   * (전선 교전음 윈도우는 frontline일 때만 · 항모는 클릭)
+   * 지정학 앰비언스 우선순위: frontline > taiwan-tension > tension > global
+   * (전선 교전음 윈도우는 frontline일 때만 · 항모는 클릭 · global=전역/대륙 LOD)
    */
   conflictAmbient?: ConflictAmbientKind;
   /** 경제 허브/항만/파이프 등 해당 레이어 */
@@ -450,6 +450,10 @@ export function SoundEffectsBridge({
         void play("dispute-tension-high", { volumeScale: wtiVol });
         return;
       }
+      if (conflictAmbient === "global") {
+        setAmbient("globe-global-thunder");
+        return;
+      }
       stopAmbient();
       return;
     }
@@ -462,7 +466,10 @@ export function SoundEffectsBridge({
         // LNG만 ON — 간접음 미세
         void play("port-ambient", { volumeScale: 0.38 });
       } else if (economyAmbient === "construction") setAmbient("construction-ambient");
-      else stopAmbient();
+      else if (globeLodTier === "global" || globeLodTier === "continent") {
+        // 허브 레이어 앰비언트 없을 때 전역·대륙 LOD 뇌우
+        setAmbient("globe-global-thunder");
+      } else stopAmbient();
       return;
     }
 
@@ -473,6 +480,7 @@ export function SoundEffectsBridge({
     conflictAmbient,
     economyAmbient,
     frontlineLod,
+    globeLodTier,
     play,
     setAmbient,
     stopAmbient,

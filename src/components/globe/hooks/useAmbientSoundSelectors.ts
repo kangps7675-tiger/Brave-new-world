@@ -19,7 +19,7 @@ type DisputeInput = Parameters<typeof disputeMatchesWarDiplomaticLayers>[0] &
   Parameters<typeof isCombatHazard>[0] &
   Parameters<typeof resolveDisputeCenter>[0] & { tension?: string };
 
-export type ConflictAmbient = "frontline" | "taiwan-tension" | "tension" | null;
+export type ConflictAmbient = "global" | "frontline" | "taiwan-tension" | "tension" | null;
 export type EconomyAmbient = "port" | "lng" | "construction" | "datacenter" | "pipeline" | null;
 
 type AmbientSoundInputs = {
@@ -48,9 +48,10 @@ type AmbientSoundInputs = {
  * 앰비언트 사운드 셀렉터 — GlobeDashboard에서 추출 (분리 2단계).
  * 카메라·레이어 상태로 "지금 어떤 배경음이 맞는가"만 계산한다. 재생은 호출측.
  *
- * 우선순위: frontline > taiwan-tension > tension (지정학)
+ * 우선순위: frontline > taiwan-tension > tension > global(전역·대륙) (지정학)
  * 항모 갑판은 클릭 전용 — 여기 포함하지 않음.
  * 지경학: pipeline → datacenter → port → lng(미세) → construction
+ *         · 전역/대륙이고 허브 앰비언트 없으면 global thunder
  */
 export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
   conflictAmbient: ConflictAmbient;
@@ -144,8 +145,15 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
     if (frontline) return "frontline";
     if (taiwanTension) return "taiwan-tension";
     if (tension) return "tension";
+    // 전역·대륙 LOD — 지구본을 멀리 볼 때 상시 뇌우 앰비언트
+    if (
+      !isEconomyViewer &&
+      (globeTier === "global" || globeTier === "continent")
+    ) {
+      return "global";
+    }
     return null;
-  }, [frontline, taiwanTension, tension]);
+  }, [frontline, globeTier, isEconomyViewer, taiwanTension, tension]);
 
   const economyAmbient = useMemo((): EconomyAmbient => {
     if (!isEconomyViewer) return null;

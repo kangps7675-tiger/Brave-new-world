@@ -36,9 +36,9 @@ type FrictionOnboardingCoachProps = {
 
 const COPY = {
   ko: {
-    listTitle: "11대 · 분쟁외교사 목록",
+    listTitle: "영토분쟁 · 진영 내부 목록",
     listBody:
-      "각 카드가 한 현장입니다. 누르면 그 좌표로 이동하고 양피지 브리프가 열립니다. 연도·렌즈로 구분하세요. ✕ 로 역사 모드를 종료합니다.",
+      "각 카드가 한 현장입니다. 누르면 좌표로 이동하고 양피지 브리프가 열립니다. 「영토분쟁」에서는 국경·화약고와 한 아카이브로 포괄 열람할 수 있습니다. ✕ 로 역사 모드를 종료합니다.",
     listCta: "다음 — 현장 고르기",
     historyTitle: "역사 모드 조작",
     historyBody:
@@ -47,9 +47,9 @@ const COPY = {
     skip: "스킵",
   },
   en: {
-    listTitle: "11 sites · friction list",
+    listTitle: "Territorial archive · intra-bloc",
     listBody:
-      "Each card is one site. Tap to fly there and open the parchment brief. Years and lenses help you scan. Use ✕ to leave history mode.",
+      "Each card is one site. Tap to fly there and open the parchment brief. In Territorial disputes you can browse them with border kegs as one archive. Use ✕ to leave history mode.",
     listCta: "Next — pick a site",
     historyTitle: "History mode controls",
     historyBody:

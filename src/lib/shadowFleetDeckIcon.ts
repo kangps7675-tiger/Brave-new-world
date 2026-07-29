@@ -1,97 +1,61 @@
 import {
   SHADOW_FLEET_ASPECT_DRAWINGS,
   SHADOW_FLEET_MARKER_SIZE,
-  SHADOW_FLEET_VIEWBOX,
   shadowFleetAspectFromRelativeHeading,
+  shadowFleetFacingFromRelativeHeading,
   shadowFleetRelativeHeading,
   type ShadowFleetAspect,
 } from "@/data/shadowFleetSilhouette";
 
-const DEFAULT_FILL = "#db2777";
+/** 위장선박 AIS — 빨강 실루엣 */
+const DEFAULT_FILL = "#ef4444";
 
 export {
   shadowFleetAspectFromRelativeHeading,
+  shadowFleetFacingFromRelativeHeading,
   shadowFleetRelativeHeading,
   type ShadowFleetAspect,
   SHADOW_FLEET_MARKER_SIZE,
 };
 
 /**
- * 위장·다크플리트(불법 그림자 함대) — 컨테이너/화물선형 8방위 실루엣.
- * 흘수선 적색 · 컨테이너 스택 · 선미/중부 함교.
+ * 위장·다크플리트 — Farnborough식 상선 옆모습 실루엣 (빨강 통일).
  */
 export function shadowFleetIconSvg(
   fillColor: string = DEFAULT_FILL,
   size: { width: number; height: number } = SHADOW_FLEET_MARKER_SIZE,
-  aspect: ShadowFleetAspect = "n",
+  aspect: ShadowFleetAspect = "e",
 ): string {
   const { width, height } = size;
-  const vb = `${SHADOW_FLEET_VIEWBOX.width} ${SHADOW_FLEET_VIEWBOX.height}`;
-  const glowId = `shadow-fleet-glow-${aspect}-${width}`;
   const drawing = SHADOW_FLEET_ASPECT_DRAWINGS[aspect];
-
-  const boot = drawing.bootStripe
-    ? `<path d="${drawing.bootStripe}" fill="#b91c1c" stroke="rgba(127,29,29,0.85)" stroke-width="0.45" stroke-linejoin="round"/>`
-    : "";
-
-  const containers = (drawing.containers ?? [])
-    .map(
-      (d, i) =>
-        `<path d="${d}" fill="${i % 2 === 0 ? "rgba(30,41,59,0.88)" : "rgba(71,85,105,0.9)"}" stroke="rgba(244,114,182,0.5)" stroke-width="0.45" stroke-linejoin="round"/>`,
-    )
-    .join("");
+  const detailFill = "rgba(127,29,29,0.92)";
 
   const details = drawing.details
     .map(
       (d) =>
-        `<path d="${d}" fill="rgba(15,23,42,0.55)" stroke="rgba(248,250,252,0.5)" stroke-width="0.55" stroke-linejoin="round"/>`,
+        `<path d="${d}" fill="${detailFill}" stroke="rgba(254,226,226,0.35)" stroke-width="0.35" stroke-linejoin="round"/>`,
     )
     .join("");
 
-  const highlights = (drawing.highlights ?? [])
+  const wires = (drawing.wires ?? [])
     .map(
-      (d) =>
-        `<path d="${d}" fill="rgba(248,250,252,0.78)" stroke="rgba(255,255,255,0.35)" stroke-width="0.35" stroke-linejoin="round"/>`,
+      (w) =>
+        `<path d="${w}" fill="none" stroke="rgba(254,202,202,0.75)" stroke-width="0.55" stroke-linecap="round"/>`,
     )
     .join("");
-
-  const radomes = (drawing.radomes ?? [])
-    .map(
-      (r) =>
-        `<circle cx="${r.cx}" cy="${r.cy}" r="${r.r}" fill="rgba(226,232,240,0.9)" stroke="rgba(15,23,42,0.45)" stroke-width="0.5"/>`,
-    )
-    .join("");
-
-  const axis = drawing.axis
-    ? `<path d="${drawing.axis}" stroke="rgba(244,114,182,0.45)" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.4 1.1"/>`
-    : "";
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <filter id="${glowId}" x="-35%" y="-35%" width="170%" height="170%">
-          <feGaussianBlur stdDeviation="1.1" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
+    <svg width="${width}" height="${height}" viewBox="0 8 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
         stroke="rgba(255,255,255,0.88)"
         stroke-width="1.0"
-        stroke-linejoin="miter"
-        stroke-linecap="square"
-        filter="url(#${glowId})"
+        stroke-linejoin="round"
+        stroke-linecap="round"
       />
-      ${boot}
-      ${containers}
-      ${axis}
       ${details}
-      ${highlights}
-      ${radomes}
+      ${wires}
     </svg>
   `.trim();
 }

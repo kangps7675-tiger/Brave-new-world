@@ -18,8 +18,9 @@ US Navy 항공모함 **공중俯視** 참조 사진입니다.
 | `us-ddg-arleigh-burke-aerial.png` | 알레이버크급 보조 |
 
 - geometry: `src/data/surfaceCombatantSilhouette.ts`
-- SVG: `src/lib/surfaceCombatantDeckIcon.ts`
-- 마커: `src/lib/aisVesselMarkers.ts` (`usesSurfaceCombatantDeckIcon` — 잠수함·항모만 제외)
+- SVG: `src/lib/surfaceCombatantDeckIcon.ts` (`warshipProfileIconSvg` = 옆모습+웨이크 아이콘)
+- AIS 마커: `src/lib/aisVesselMarkers.ts`
+- 주간 함정 이동기 핀: `src/lib/shipMovements/globeOverlay.ts` (점 → 구축함 실루엣)
 
 ## 위장·다크플리트 (불법 그림자 함대 · 컨테이너/화물선형)
 

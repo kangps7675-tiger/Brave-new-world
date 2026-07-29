@@ -78,6 +78,14 @@ export const FREESOUND_ATTRIBUTIONS: readonly FreesoundAttribution[] = [
     eventIds: ["shipping-lane-sea"],
   },
   {
+    freesoundId: 658248,
+    title: "thunder in the city 1358 220519_0361.ogg",
+    author: "klankbeeld",
+    license: "CC-BY",
+    url: "https://freesound.org/s/658248/",
+    eventIds: ["globe-global-thunder"],
+  },
+  {
     freesoundId: 474404,
     title: "tunnel traffic ambience 190610_0020.ogg",
     author: "klankbeeld",

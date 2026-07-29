@@ -13,7 +13,10 @@ import { AxisArmsPanel } from "@/components/AxisArmsPanel";
 import { AxisRegimePanel } from "@/components/AxisRegimePanel";
 import { DisputeHotspotPanel } from "@/components/DisputeHotspotPanel";
 import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
+import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { FrictionHistoryChrome } from "@/components/FrictionHistoryChrome";
+import { TerritorialHistoryChrome } from "@/components/TerritorialHistoryChrome";
 import { LivingConflictPanel } from "@/components/LivingConflictPanel";
 import { WeeklyShipMovesPanel } from "@/components/WeeklyShipMovesPanel";
 import type { HubBriefDoc } from "@/data/hubBriefs";
@@ -22,11 +25,18 @@ import type { NavSelection } from "@/data/navRegions";
 import type { FrictionEpisode } from "@/data/frictionEpisodes";
 import type { ScoredEvent } from "@/data/eventTiers";
 import type { Selection } from "@/components/globe/types";
-import { frictionParchmentParagraphs } from "@/data/frictionEpisodeDeep";
-import type { FrictionTimelineStage } from "@/data/frictionEpisodeDeep";
+import {
+  frictionParchmentParagraphs,
+  type FrictionTimelineStage,
+} from "@/data/frictionEpisodeDeep";
+import { territorialParchmentParagraphs } from "@/data/territorialDisputeDeep";
 import { filterArmsForHub, type AxisArmsPayload } from "@/lib/axisArmsPaths";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
+import {
+  shipMovementParchmentParagraphs,
+  type ShipTrailMode,
+} from "@/lib/shipMovements/shipMovementBrief";
 import type { TheaterFocusConfig, TheaterSidebarTab } from "@/lib/theaterFocus";
 import type { BottomAlertPanel } from "@/lib/localOverlayPolicy";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
@@ -55,6 +65,12 @@ export type GeopoliticsHubChromeProps = {
   onSelectFrictionStage: (stage: FrictionTimelineStage) => void;
   onOpenFrictionBrief: () => void;
   onBackToFrictionList: () => void;
+  activeTerritorialEpisode?: TerritorialDisputeEpisode | null;
+  territorialActiveStageId?: string | null;
+  territorialRevealedStageIds?: string[];
+  onSelectTerritorialStage?: (stage: FrictionTimelineStage) => void;
+  onOpenTerritorialBrief?: () => void;
+  onBackToTerritorialList?: () => void;
   isEconomyViewer: boolean;
   livingTaiwanOpen: boolean;
   onLivingTaiwanClose: () => void;
@@ -64,12 +80,22 @@ export type GeopoliticsHubChromeProps = {
   shipMovesTimeline: PublicShipObservation[];
   shipMovesDisclaimer: string | null;
   shipMovesSelectedId: string | null;
+  shipMovesTrailMode: ShipTrailMode;
+  shipMovesFocusGroupKey: string | null;
+  westpacNewsPool?: NewsStreamItem[];
   onShipMoveSelect: (obs: PublicShipObservation) => void;
+  onShipTrailModeChange: (mode: ShipTrailMode) => void;
+  onShipVesselSelect: (groupKey: string, observations: PublicShipObservation[]) => void;
+  onShipMoveBrief: (observations: PublicShipObservation[], focusId?: string | null) => void;
   onWestpacPulseClose: () => void;
   disputesOverviewOpen: boolean;
   disputeHotspots: DisputeHotspotEntry[];
   disputeHotspotSelectedId: string | null;
+  disputeEpisodeSelectedId?: string | null;
+  disputeFrictionSelectedId?: string | null;
   onSelectDisputeHotspot: (hotspot: DisputeHotspotEntry) => void;
+  onSelectDisputeEpisode?: (episode: TerritorialDisputeEpisode) => void;
+  onSelectDisputeFriction?: (episode: FrictionEpisode) => void;
   onDisputesOverviewClose: () => void;
 };
 
@@ -89,6 +115,12 @@ export function GeopoliticsHubChrome({
   onSelectFrictionStage,
   onOpenFrictionBrief,
   onBackToFrictionList,
+  activeTerritorialEpisode = null,
+  territorialActiveStageId = null,
+  territorialRevealedStageIds = [],
+  onSelectTerritorialStage,
+  onOpenTerritorialBrief,
+  onBackToTerritorialList,
   isEconomyViewer,
   livingTaiwanOpen,
   onLivingTaiwanClose,
@@ -98,12 +130,22 @@ export function GeopoliticsHubChrome({
   shipMovesTimeline,
   shipMovesDisclaimer,
   shipMovesSelectedId,
+  shipMovesTrailMode,
+  shipMovesFocusGroupKey,
+  westpacNewsPool = [],
   onShipMoveSelect,
+  onShipTrailModeChange,
+  onShipVesselSelect,
+  onShipMoveBrief,
   onWestpacPulseClose,
   disputesOverviewOpen,
   disputeHotspots,
   disputeHotspotSelectedId,
+  disputeEpisodeSelectedId = null,
+  disputeFrictionSelectedId = null,
   onSelectDisputeHotspot,
+  onSelectDisputeEpisode,
+  onSelectDisputeFriction,
   onDisputesOverviewClose,
 }: GeopoliticsHubChromeProps) {
   return (
@@ -128,12 +170,19 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {disputesOverviewOpen && !hubBriefOpen ? (
+      {disputesOverviewOpen &&
+      !hubBriefOpen &&
+      !disputeEpisodeSelectedId &&
+      !disputeFrictionSelectedId ? (
         <DisputeHotspotPanel
           hotspots={disputeHotspots}
           selectedId={disputeHotspotSelectedId}
+          selectedEpisodeId={disputeEpisodeSelectedId}
+          selectedFrictionId={disputeFrictionSelectedId}
           lang={labelLanguage}
           onSelect={onSelectDisputeHotspot}
+          onSelectEpisode={onSelectDisputeEpisode}
+          onSelectFriction={onSelectDisputeFriction}
           onClose={onDisputesOverviewClose}
         />
       ) : null}
@@ -147,6 +196,22 @@ export function GeopoliticsHubChrome({
           onExitHistory={onExitHistoryImmersion}
           onOpenBrief={onOpenFrictionBrief}
           onBackToList={onBackToFrictionList}
+        />
+      ) : null}
+
+      {disputesOverviewOpen &&
+      activeTerritorialEpisode &&
+      !hubBriefOpen &&
+      !activeFrictionEpisode ? (
+        <TerritorialHistoryChrome
+          episode={activeTerritorialEpisode}
+          lang={labelLanguage}
+          activeStageId={territorialActiveStageId}
+          revealedStageIds={territorialRevealedStageIds}
+          onSelectStage={(stage) => onSelectTerritorialStage?.(stage)}
+          onExitHistory={onExitHistoryImmersion}
+          onOpenBrief={() => onOpenTerritorialBrief?.()}
+          onBackToList={onBackToTerritorialList}
         />
       ) : null}
 
@@ -167,7 +232,13 @@ export function GeopoliticsHubChrome({
           observations={shipMovesTimeline}
           disclaimer={shipMovesDisclaimer}
           selectedId={shipMovesSelectedId}
+          trailMode={shipMovesTrailMode}
+          focusGroupKey={shipMovesFocusGroupKey}
+          newsPool={westpacNewsPool}
+          onTrailModeChange={onShipTrailModeChange}
           onSelect={onShipMoveSelect}
+          onSelectVessel={onShipVesselSelect}
+          onOpenBrief={onShipMoveBrief}
           onClose={onWestpacPulseClose}
         />
       ) : null}
@@ -398,9 +469,13 @@ export function GeopoliticsSidebarChrome({
   onFlyToCoords,
   onSelectGdeltEvent,
 }: GeopoliticsSidebarChromeProps) {
+  // 서태평양·영토분쟁은 전용 패널이 관련 기사/에피소드를 담당 — 무관한 GDELT/RSS 사이드바 억제
+  const focus = regionNavSelection?.focusMode;
   if (
     !regionNavSelection ||
     regionNavSelection.hubId ||
+    focus === "westpac-pulse" ||
+    focus === "disputes" ||
     isEconomyViewer ||
     selected ||
     showLeftPanel
@@ -413,10 +488,10 @@ export function GeopoliticsSidebarChrome({
       <button
         type="button"
         aria-label={t("ariaCloseRegionNews", labelLanguage)}
-        className="absolute inset-0 z-20 bg-black/20 lg:bg-black/10"
+        className="absolute inset-0 z-[119] bg-black/20 lg:bg-black/10"
         onClick={onClearRegionNav}
       />
-      <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-30 flex h-full min-h-0 flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+      <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[120] flex h-full min-h-0 flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
         {theaterFocusConfig ? (
           <TheaterIntelSidebar
             selection={regionNavSelection}
@@ -447,6 +522,11 @@ export type GeopoliticsParchmentChromeProps = {
   onCloseHubBrief: () => void;
   frictionEpisodeBrief: FrictionEpisode | null;
   onCloseFrictionBrief: () => void;
+  territorialEpisodeBrief?: TerritorialDisputeEpisode | null;
+  onCloseTerritorialBrief?: () => void;
+  shipMovementBriefTrack?: PublicShipObservation[] | null;
+  shipMovementBriefFocusId?: string | null;
+  onCloseShipMovementBrief?: () => void;
 };
 
 export function GeopoliticsParchmentChrome({
@@ -455,7 +535,21 @@ export function GeopoliticsParchmentChrome({
   onCloseHubBrief,
   frictionEpisodeBrief,
   onCloseFrictionBrief,
+  territorialEpisodeBrief = null,
+  onCloseTerritorialBrief,
+  shipMovementBriefTrack = null,
+  shipMovementBriefFocusId = null,
+  onCloseShipMovementBrief,
 }: GeopoliticsParchmentChromeProps) {
+  const shipBrief =
+    shipMovementBriefTrack && shipMovementBriefTrack.length > 0
+      ? shipMovementParchmentParagraphs(
+          shipMovementBriefTrack,
+          labelLanguage === "en" ? "en" : "ko",
+          shipMovementBriefFocusId,
+        )
+      : null;
+
   return (
     <>
       {hubBriefDoc ? (
@@ -493,6 +587,57 @@ export function GeopoliticsParchmentChrome({
           typewriter
           historyHandFont
           titleId="friction-episode-letter-title"
+          zIndexClass="z-[9990]"
+        />
+      ) : null}
+
+      {territorialEpisodeBrief ? (
+        <ParchmentLetter
+          lang={labelLanguage}
+          title={
+            labelLanguage === "en"
+              ? territorialEpisodeBrief.titleEn
+              : territorialEpisodeBrief.title
+          }
+          paragraphs={territorialParchmentParagraphs(
+            territorialEpisodeBrief,
+            labelLanguage === "en" ? "en" : "ko",
+          )}
+          signOff={
+            labelLanguage === "en"
+              ? `${territorialEpisodeBrief.historicalYear}${
+                  territorialEpisodeBrief.yearEnd
+                    ? `–${territorialEpisodeBrief.yearEnd}`
+                    : ""
+                }\nGlobe Observatory · territorial brief`
+              : `${territorialEpisodeBrief.historicalYear}${
+                  territorialEpisodeBrief.yearEnd
+                    ? `–${territorialEpisodeBrief.yearEnd}`
+                    : ""
+                }\n지구본 관측대 · 영토분쟁사`
+          }
+          ctaLabel={t("hubBriefCta", labelLanguage)}
+          onContinue={() => onCloseTerritorialBrief?.()}
+          playBreakingDispatch
+          typewriter
+          historyHandFont
+          titleId="territorial-episode-letter-title"
+          zIndexClass="z-[9990]"
+        />
+      ) : null}
+
+      {shipBrief ? (
+        <ParchmentLetter
+          lang={labelLanguage}
+          title={shipBrief.title}
+          paragraphs={shipBrief.paragraphs}
+          signOff={shipBrief.signOff}
+          ctaLabel={t("hubBriefCta", labelLanguage)}
+          onContinue={() => onCloseShipMovementBrief?.()}
+          playBreakingDispatch
+          typewriter
+          historyHandFont
+          titleId="ship-movement-brief-letter-title"
           zIndexClass="z-[9990]"
         />
       ) : null}

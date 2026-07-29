@@ -16,6 +16,8 @@ import type {
 import { normalizeLabelText } from "@/components/globe/formatters";
 import { frictionDeepDoc, type FrictionTimelineStage } from "@/data/frictionEpisodeDeep";
 import type { FrictionEpisode } from "@/data/frictionEpisodes";
+import { territorialDeepDoc } from "@/data/territorialDisputeDeep";
+import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
 import type { MilitaryAircraft, UsCarrier } from "@/data/geoTypes";
 import type { NavSelection } from "@/data/navRegions";
 import { createAisVesselBadge } from "@/lib/aisVesselMarkers";
@@ -43,7 +45,7 @@ import {
 import { createReconSatelliteBadge } from "@/lib/reconSatelliteMarkers";
 import { createReefWatchFeatureMarkerElement, createReefWatchTrafficMarkerElement } from "@/lib/reefWatchMarkers";
 import { createSafecastGaugeBadge } from "@/lib/safecastRadiationMarker";
-import { createShipMovementPinElement } from "@/lib/shipMovements/globeOverlay";
+import { createShipMovementPinElement, trailGroupKey } from "@/lib/shipMovements/globeOverlay";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import { createUkraineGdeltNeonBadge } from "@/lib/ukraineGdeltNeonMarker";
 import { createUkraineSettlementLabelElement } from "@/lib/ukraineSettlementLabels";
@@ -77,6 +79,7 @@ export type CreateDashboardHtmlOverlayElementDeps = {
   displayMilitaryExercises: MilitaryExercise[];
   combinedShipMovesMap: PublicShipObservation[];
   activeFrictionEpisode: FrictionEpisode | null;
+  activeTerritorialEpisode: TerritorialDisputeEpisode | null;
 
   skipNextGlobeClickRef: { current: boolean };
 
@@ -108,6 +111,7 @@ export type CreateDashboardHtmlOverlayElementDeps = {
   }) => void;
   handleNeptunThreatSelect: (threat: NeptunLiveThreat) => void;
   selectFrictionStage: (stage: FrictionTimelineStage) => void;
+  selectTerritorialStage: (stage: FrictionTimelineStage) => void;
   clearRegionNavSelection: () => void;
   closeEconInsight: () => void;
 
@@ -122,6 +126,7 @@ export type CreateDashboardHtmlOverlayElementDeps = {
   setEconomyAttackReaction: (value: { ageMinutes: number; title: string } | null) => void;
   setExerciseBriefing: (content: ExerciseBriefingContent | null) => void;
   setShipMovesSelectedId: (id: string | null) => void;
+  setShipMovesFocusGroupKey?: (key: string | null) => void;
 };
 
 /**
@@ -523,18 +528,32 @@ export function createDashboardHtmlOverlayElement(
         const obs = deps.combinedShipMovesMap.find((o) => o.id === item.id);
         if (obs) {
           deps.setShipMovesSelectedId(obs.id);
+          deps.setShipMovesFocusGroupKey?.(trailGroupKey(obs));
           deps.openSelection({ kind: "ship-movement", item: obs });
         }
         deps.flyTo(item.lat, item.lng, 0.85);
       },
+      item.navyCode,
     );
   }
   if (item.displayKind === "friction-stage") {
-    return createFrictionStageCalloutElement(item.order, item.label, item.active, () => {
-      const deep = frictionDeepDoc(deps.activeFrictionEpisode?.id ?? "");
-      const stage = deep?.stages.find((st) => st.id === item.id);
-      if (stage) deps.selectFrictionStage(stage);
-    });
+    return createFrictionStageCalloutElement(
+      item.order,
+      item.label,
+      item.active,
+      () => {
+        if (item.tone === "rose") {
+          const deep = territorialDeepDoc(deps.activeTerritorialEpisode?.id ?? "");
+          const stage = deep?.stages.find((st) => st.id === item.id);
+          if (stage) deps.selectTerritorialStage(stage);
+          return;
+        }
+        const deep = frictionDeepDoc(deps.activeFrictionEpisode?.id ?? "");
+        const stage = deep?.stages.find((st) => st.id === item.id);
+        if (stage) deps.selectFrictionStage(stage);
+      },
+      item.tone ?? "violet",
+    );
   }
   if (item.displayKind === "static" && isHtmlStaticKind(item.kind)) {
     return createInfraStaticBadge(

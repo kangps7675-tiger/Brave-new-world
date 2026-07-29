@@ -35,14 +35,14 @@ export function DonateQrModal({ lang, open, onClose, title, detail }: DonateQrMo
       <button
         type="button"
         aria-label={isEn ? "Close tip jar" : "후원 창 닫기"}
-        className="fixed inset-0 z-[90] bg-[#0a1528]/55 backdrop-blur-[2px]"
+        className="fixed inset-0 z-[119] bg-[#0a1528]/55 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={resolvedTitle}
-        className="fixed left-1/2 top-1/2 z-[91] w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-amber-300/25 bg-[#1a140c]/95 shadow-2xl backdrop-blur-xl"
+        className="fixed left-1/2 top-1/2 z-[120] w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-amber-300/25 bg-[#1a140c]/95 shadow-2xl backdrop-blur-xl"
       >
         <div className="flex items-center justify-between gap-3 border-b border-amber-200/15 px-4 py-3">
           <p className="text-sm font-semibold text-amber-50">{resolvedTitle}</p>

@@ -13,7 +13,7 @@ import {
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 type AxisRegimePanelProps = {
-  /** null이면 특정 허브 필터 없이 전체 11대 에피소드 */
+  /** null이면 특정 허브 필터 없이 진영 내부(bloc) 전체 */
   hubId: AxisHubId | null;
   selectedEpisodeId: string | null;
   lang?: LabelLanguage;
@@ -29,7 +29,7 @@ const LENS_LABEL: Record<string, { ko: string; en: string }> = {
   global: { ko: "공통·블록", en: "Cross-bloc" },
 };
 
-/** 11대 큐레이션 분쟁 외교사 — 에피소드 클릭 → soft fly + 양피지 */
+/** 영토분쟁 아카이브 · 진영 내부(bloc) 렌즈 — 에피소드 클릭 → soft fly + 양피지 */
 export function AxisRegimePanel({
   hubId,
   selectedEpisodeId,
@@ -49,15 +49,20 @@ export function AxisRegimePanel({
   return (
     <aside
       id="axis-regime-panel"
-      className="pointer-events-auto absolute right-3 top-20 z-40 flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/20 bg-[#120e18]/92 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-20 z-[120] flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/20 bg-[#120e18]/92 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-violet-200/55">
-            {en ? "11 curated · intra-bloc conflicts · locked" : "11대 · 반서방국 충돌사 · 잠금"}
+            {en
+              ? `Territorial archive · intra-bloc · ${FRICTION_EPISODES.length} · locked`
+              : `영토분쟁 아카이브 · 진영 내부 · ${FRICTION_EPISODES.length}건 · 잠금`}
           </p>
           <h2 className="mt-0.5 text-sm font-medium text-violet-50">
-            {hub?.label ?? (en ? "All hubs · 11 sites" : "전체 허브 · 11대 현장")}
+            {hub?.label ??
+              (en
+                ? `All hubs · ${FRICTION_EPISODES.length} sites`
+                : `전체 허브 · ${FRICTION_EPISODES.length}건`)}
           </h2>
           <p className="mt-1 text-[10px] leading-4 text-violet-100/45">
             {en

@@ -89,7 +89,7 @@ export function TheaterDropdownCoachmark({
   }
 
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[90]" role="dialog" aria-modal="true">
+    <div className="pointer-events-auto fixed inset-0 z-[120]" role="dialog" aria-modal="true">
       <button
         type="button"
         className="absolute inset-0 bg-transparent"

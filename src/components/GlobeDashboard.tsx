@@ -106,6 +106,12 @@ import {
 } from "@/lib/dailyPredictPrefs";
 import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchment";
 import {
+  buildBreakingFlashBriefing,
+  claimBreakingFlash,
+  shouldOpenBreakingFlash,
+  type BreakingFlashBriefing,
+} from "@/lib/news/breakingFlash";
+import {
   buildBriefingFromStats,
   buildLampMacroTable,
   buildPeriodicBriefing,
@@ -460,6 +466,17 @@ import {
   type FrictionTimelineStage,
 } from "@/data/frictionEpisodeDeep";
 import {
+  altitudeFromTerritorialZoom,
+  territorialDeepDoc,
+  territorialEpisodeLat,
+  territorialEpisodeLng,
+  territorialEpisodeWarGeometry,
+} from "@/data/territorialDisputeDeep";
+import {
+  territorialEpisodeById,
+  type TerritorialDisputeEpisode,
+} from "@/data/territorialDisputeEpisodes";
+import {
   GeopoliticsHubChrome,
   GeopoliticsMapChrome,
   GeopoliticsParchmentChrome,
@@ -489,6 +506,12 @@ import {
   shipMovementPulseRings,
   shipMovementTrailPaths,
 } from "@/lib/shipMovements/globeOverlay";
+import {
+  groupKeyForObservation,
+  observationsForGroupKey,
+  vesselTrackFlyTarget,
+  type ShipTrailMode,
+} from "@/lib/shipMovements/shipMovementBrief";
 import {
   buildPlaIncursionHeatPaths,
   type CrossStraitSignalPayload,
@@ -724,6 +747,8 @@ export function GlobeDashboard({
   /** 전역 입장 후 — 핫 지역 이동 선택창 (수락 시에만 fly) */
   const [hotTheaterOffer, setHotTheaterOffer] = useState<HotTheaterFocus | null>(null);
   const [airRaidBriefing, setAirRaidBriefing] = useState<AirRaidBriefingContent | null>(null);
+  /** 귀중한 속보 타전 양피지 — S급·고충격만 */
+  const [breakingFlash, setBreakingFlash] = useState<BreakingFlashBriefing | null>(null);
   /** 로컬 자정에 바뀜 — 매일 등불 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
   const weeklyExpanded = Boolean(weeklyRecap) && !weeklyRecapCollapsed;
@@ -913,6 +938,12 @@ export function GlobeDashboard({
   const [shipMovesLoading, setShipMovesLoading] = useState(false);
   const [shipMovesDisclaimer, setShipMovesDisclaimer] = useState<string | null>(null);
   const [shipMovesSelectedId, setShipMovesSelectedId] = useState<string | null>(null);
+  const [shipMovesTrailMode, setShipMovesTrailMode] = useState<ShipTrailMode>("fleet");
+  const [shipMovesFocusGroupKey, setShipMovesFocusGroupKey] = useState<string | null>(null);
+  const [shipMovesBriefTrack, setShipMovesBriefTrack] = useState<PublicShipObservation[] | null>(
+    null,
+  );
+  const [shipMovesBriefFocusId, setShipMovesBriefFocusId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement>(null);
   const [hoverPointer, setHoverPointer] = useState<{ x: number; y: number } | null>(null);
   const [hoverGlobeCoords, setHoverGlobeCoords] = useState<{ lat: number; lng: number } | null>(
@@ -1543,6 +1574,19 @@ export function GlobeDashboard({
   const [theaterSidebarTab, setTheaterSidebarTab] = useState<TheaterSidebarTab>("news");
   const [regimeSelectedEpisodeId, setRegimeSelectedEpisodeId] = useState<string | null>(null);
   const [disputeHotspotSelectedId, setDisputeHotspotSelectedId] = useState<string | null>(null);
+  const [disputeEpisodeSelectedId, setDisputeEpisodeSelectedId] = useState<string | null>(null);
+  const [territorialEpisodeBrief, setTerritorialEpisodeBrief] =
+    useState<TerritorialDisputeEpisode | null>(null);
+  const [territorialActiveStageId, setTerritorialActiveStageId] = useState<string | null>(null);
+  const [territorialRevealedStageIds, setTerritorialRevealedStageIds] = useState<string[]>([]);
+  const territorialSequenceRef = useRef<number[]>([]);
+
+  const clearTerritorialSequence = useCallback(() => {
+    for (const timer of territorialSequenceRef.current) {
+      window.clearTimeout(timer);
+    }
+    territorialSequenceRef.current = [];
+  }, []);
   const [frictionEpisodeBrief, setFrictionEpisodeBrief] = useState<FrictionEpisode | null>(null);
   const [frictionActiveStageId, setFrictionActiveStageId] = useState<string | null>(null);
   const frictionEpisodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1554,7 +1598,15 @@ export function GlobeDashboard({
 
   const activeHubId = regionNavSelection?.hubId ?? null;
   const hubFocusMode = regionNavSelection?.focusMode ?? null;
-  const historyImmersionActive = hubFocusMode === "regime";
+  const historyImmersionActive =
+    hubFocusMode === "regime" ||
+    (hubFocusMode === "disputes" &&
+      Boolean(
+        regimeSelectedEpisodeId ||
+          frictionEpisodeBrief ||
+          disputeEpisodeSelectedId ||
+          territorialEpisodeBrief,
+      ));
   const westpacPulseActive = hubFocusMode === "westpac-pulse";
   const disputesOverviewActive = hubFocusMode === "disputes";
   const showShipMovesLayer = showWeeklyShipMoves || westpacPulseActive;
@@ -1654,11 +1706,16 @@ export function GlobeDashboard({
 
   const exitHistoryImmersion = useCallback(() => {
     clearFrictionEpisodeTimer();
+    clearTerritorialSequence();
     clearHubBriefTimer();
     historyStoryLockedRef.current = false;
     setFrictionEpisodeBrief(null);
     setRegimeSelectedEpisodeId(null);
     setFrictionActiveStageId(null);
+    setDisputeEpisodeSelectedId(null);
+    setTerritorialEpisodeBrief(null);
+    setTerritorialActiveStageId(null);
+    setTerritorialRevealedStageIds([]);
     setHubBriefOpen(false);
     setRegionNavSelection(null);
     setFrictionCoachStep(null);
@@ -1671,7 +1728,7 @@ export function GlobeDashboard({
       controls.enablePan = true;
       controls.enableRotate = true;
     }
-  }, [clearFrictionEpisodeTimer, clearHubBriefTimer]);
+  }, [clearFrictionEpisodeTimer, clearHubBriefTimer, clearTerritorialSequence]);
 
   const handleFrictionCoachStepChange = useCallback((next: FrictionCoachStep | null) => {
     setFrictionCoachStep((prev) => {
@@ -2803,7 +2860,7 @@ export function GlobeDashboard({
   }, [activeHubId, hubFocusMode, regionNavSelection?.claimId]);
 
   const frictionRingPoints = useMemo<PulseRingPoint[]>(() => {
-    if (hubFocusMode !== "regime") return [];
+    if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") return [];
     const ep =
       frictionEpisodeBrief ??
       (regimeSelectedEpisodeId ? frictionEpisodeById(regimeSelectedEpisodeId) : null);
@@ -2824,7 +2881,7 @@ export function GlobeDashboard({
 
   /** 분쟁 외교사 선택 시 — 체크박스 없이 해당 좌표만 전쟁구역 빗금 */
   const activeFrictionEpisode = useMemo<FrictionEpisode | null>(() => {
-    if (hubFocusMode !== "regime") return null;
+    if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") return null;
     if (frictionEpisodeBrief) return frictionEpisodeBrief;
     if (regimeSelectedEpisodeId) return frictionEpisodeById(regimeSelectedEpisodeId) ?? null;
     return null;
@@ -2864,7 +2921,12 @@ export function GlobeDashboard({
   }, [activeFrictionEpisode]);
 
   const frictionStageMarkers = useMemo<FrictionStageHtmlMarker[]>(() => {
-    if (!activeFrictionEpisode || hubFocusMode !== "regime") return [];
+    if (
+      !activeFrictionEpisode ||
+      (hubFocusMode !== "regime" && hubFocusMode !== "disputes")
+    ) {
+      return [];
+    }
     const deep = frictionDeepDoc(activeFrictionEpisode.id);
     if (!deep) return [];
     return deep.stages.map((stage) => ({
@@ -2882,12 +2944,87 @@ export function GlobeDashboard({
     }));
   }, [activeFrictionEpisode, frictionActiveStageId, hubFocusMode, labelLanguage]);
 
+  const activeTerritorialEpisode = useMemo<TerritorialDisputeEpisode | null>(() => {
+    if (hubFocusMode !== "disputes") return null;
+    if (territorialEpisodeBrief) return territorialEpisodeBrief;
+    return territorialEpisodeById(disputeEpisodeSelectedId);
+  }, [disputeEpisodeSelectedId, hubFocusMode, territorialEpisodeBrief]);
+
+  const territorialWarZonePaths = useMemo<TransportPath[]>(() => {
+    if (!activeTerritorialEpisode) return [];
+    const style = TENSION_GRADE_STYLES.combat;
+    return geometryToAccentOutlineAndHatch(
+      `territorial-war-${activeTerritorialEpisode.id}`,
+      activeTerritorialEpisode.locationName,
+      territorialEpisodeWarGeometry(activeTerritorialEpisode),
+      {
+        outlineKind: "dispute-zone",
+        hatchKind: "conflict-hatch",
+        outlineColor: "rgba(251,113,133,0.88)",
+        hatchColor: style.hatch,
+        pattern: style.pattern,
+        preferDetailSegments: false,
+      },
+    );
+  }, [activeTerritorialEpisode]);
+
+  const territorialPinMarkers = useMemo(() => {
+    if (!activeTerritorialEpisode) return [];
+    return [
+      {
+        markerId: `territorial-pin-${activeTerritorialEpisode.id}`,
+        displayKind: "friction-pin" as const,
+        id: activeTerritorialEpisode.id,
+        lat: territorialEpisodeLat(activeTerritorialEpisode),
+        lng: territorialEpisodeLng(activeTerritorialEpisode),
+        label: `${activeTerritorialEpisode.title} · ${activeTerritorialEpisode.locationName}`,
+        color: "rgba(251, 113, 133, 0.92)",
+      },
+    ];
+  }, [activeTerritorialEpisode]);
+
+  const territorialStageMarkers = useMemo<FrictionStageHtmlMarker[]>(() => {
+    if (!activeTerritorialEpisode || hubFocusMode !== "disputes") return [];
+    const deep = territorialDeepDoc(activeTerritorialEpisode.id);
+    if (!deep) return [];
+    return deep.stages
+      .filter((stage) => territorialRevealedStageIds.includes(stage.id))
+      .map((stage) => ({
+        markerId: `territorial-stage-${stage.id}`,
+        displayKind: "friction-stage" as const,
+        id: stage.id,
+        lat: stage.coordinates[1],
+        lng: stage.coordinates[0],
+        order: stage.order,
+        active: stage.id === territorialActiveStageId,
+        tone: "rose" as const,
+        label:
+          labelLanguage === "en"
+            ? `${stage.order}. ${stage.titleEn}`
+            : `${stage.order}. ${stage.titleKo}`,
+      }));
+  }, [
+    activeTerritorialEpisode,
+    hubFocusMode,
+    labelLanguage,
+    territorialActiveStageId,
+    territorialRevealedStageIds,
+  ]);
+
   const combinedShipMovesMap = useMemo(() => {
     const byId = new Map<string, PublicShipObservation>();
     for (const item of shipMovesMap) byId.set(item.id, item);
     for (const item of crossStraitSignal?.shipObservations ?? []) byId.set(item.id, item);
     return [...byId.values()];
   }, [crossStraitSignal?.shipObservations, shipMovesMap]);
+
+  /** 추정 경로용 — 타임라인(다주 관측) + 맵 관측을 합쳐 함정별 이동을 잇는다 */
+  const combinedShipMovesForTrails = useMemo(() => {
+    const byId = new Map<string, PublicShipObservation>();
+    for (const item of shipMovesTimeline) byId.set(item.id, item);
+    for (const item of combinedShipMovesMap) byId.set(item.id, item);
+    return [...byId.values()];
+  }, [combinedShipMovesMap, shipMovesTimeline]);
 
   const combinedMilitaryExercises = useMemo(() => {
     const byId = new Map<string, MilitaryExercise>();
@@ -2896,28 +3033,47 @@ export function GlobeDashboard({
     return [...byId.values()].filter((item) => item.active);
   }, [crossStraitSignal?.exercises, militaryExercises]);
 
+  const shipMovesLayerObservations = useMemo(() => {
+    if (shipMovesTrailMode === "vessel") {
+      if (!shipMovesFocusGroupKey) return [];
+      return observationsForGroupKey(combinedShipMovesMap, shipMovesFocusGroupKey);
+    }
+    return combinedShipMovesMap;
+  }, [combinedShipMovesMap, shipMovesFocusGroupKey, shipMovesTrailMode]);
+
+  const shipMovesTrailObservations = useMemo(() => {
+    if (shipMovesTrailMode === "vessel") {
+      if (!shipMovesFocusGroupKey) return [];
+      return observationsForGroupKey(combinedShipMovesForTrails, shipMovesFocusGroupKey);
+    }
+    return combinedShipMovesForTrails;
+  }, [combinedShipMovesForTrails, shipMovesFocusGroupKey, shipMovesTrailMode]);
+
   const shipMoveHtmlMarkers = useMemo(
     () =>
       showShipMovesLayer && !isEconomyViewer
-        ? shipMovementHtmlMarkers(combinedShipMovesMap)
+        ? shipMovementHtmlMarkers(shipMovesLayerObservations)
         : [],
-    [combinedShipMovesMap, isEconomyViewer, showShipMovesLayer],
+    [isEconomyViewer, shipMovesLayerObservations, showShipMovesLayer],
   );
 
   const shipMovePulseRings = useMemo(
     () =>
       showShipMovesLayer && !isEconomyViewer
-        ? shipMovementPulseRings(combinedShipMovesMap)
+        ? shipMovementPulseRings(shipMovesLayerObservations)
         : [],
-    [combinedShipMovesMap, isEconomyViewer, showShipMovesLayer],
+    [isEconomyViewer, shipMovesLayerObservations, showShipMovesLayer],
   );
 
   const shipMoveTrailPaths = useMemo(
     () =>
       showShipMovesLayer && !isEconomyViewer
-        ? shipMovementTrailPaths(combinedShipMovesMap, labelLanguage === "en" ? "en" : "ko")
+        ? shipMovementTrailPaths(
+            shipMovesTrailObservations,
+            labelLanguage === "en" ? "en" : "ko",
+          )
         : [],
-    [combinedShipMovesMap, isEconomyViewer, labelLanguage, showShipMovesLayer],
+    [isEconomyViewer, labelLanguage, shipMovesTrailObservations, showShipMovesLayer],
   );
 
   /** UKMTO 사건 → 검은 동그라미 빗금 박스 (강도별 흑↔백) — dispute-zone/conflict-hatch kind 재사용 */
@@ -3021,6 +3177,7 @@ export function GlobeDashboard({
       ...visibleLsibBoundary,
       ...disputeZonePaths,
       ...frictionWarZonePaths,
+      ...territorialWarZonePaths,
       ...eastAsiaAdizPaths,
       ...plaIncursionHeatPaths,
       ...axisNetworkPaths,
@@ -3047,6 +3204,7 @@ export function GlobeDashboard({
       eastAsiaAdizPaths,
       plaIncursionHeatPaths,
       frictionWarZonePaths,
+      territorialWarZonePaths,
       railPaths,
       ukmtoHatchPaths,
       navareaHatchPaths,
@@ -3706,6 +3864,8 @@ export function GlobeDashboard({
       ...neptunImpactHtmlMarkers,
       ...frictionPinMarkers,
       ...frictionStageMarkers,
+      ...territorialPinMarkers,
+      ...territorialStageMarkers,
       ...exerciseHtmlMarkers,
       ...financialHubMarkers,
       ...reefWatchFeatureMarkers,
@@ -3732,6 +3892,8 @@ export function GlobeDashboard({
       reefWatchTrafficMarkers,
       frictionPinMarkers,
       frictionStageMarkers,
+      territorialPinMarkers,
+      territorialStageMarkers,
       shipMoveHtmlMarkers,
       gdeltTagHtmlMarkers,
       ukraineGdeltNeonMarkers,
@@ -4906,6 +5068,67 @@ export function GlobeDashboard({
     [flyTo],
   );
 
+  const selectTerritorialStage = useCallback(
+    (stage: FrictionTimelineStage) => {
+      setTerritorialActiveStageId(stage.id);
+      setTerritorialRevealedStageIds((prev) =>
+        prev.includes(stage.id) ? prev : [...prev, stage.id],
+      );
+      flyTo(stage.coordinates[1], stage.coordinates[0], 0.72, 900, {
+        pitch: 48,
+        bearing: -8,
+      });
+    },
+    [flyTo],
+  );
+
+  const beginTerritorialEpisode = useCallback(
+    (episode: TerritorialDisputeEpisode) => {
+      clearTerritorialSequence();
+      clearFrictionEpisodeTimer();
+      setRegimeSelectedEpisodeId(null);
+      setFrictionEpisodeBrief(null);
+      setFrictionActiveStageId(null);
+      setDisputeEpisodeSelectedId(episode.id);
+      setTerritorialEpisodeBrief(null);
+      setTerritorialActiveStageId(null);
+      setTerritorialRevealedStageIds([]);
+
+      flyTo(
+        territorialEpisodeLat(episode),
+        territorialEpisodeLng(episode),
+        altitudeFromTerritorialZoom(episode.zoom),
+        1100,
+        { pitch: 48, bearing: -6 },
+      );
+
+      const deep = territorialDeepDoc(episode.id);
+      const stages = [...(deep?.stages ?? [])].sort((a, b) => a.order - b.order);
+      stages.forEach((stage, index) => {
+        const timer = window.setTimeout(() => {
+          setTerritorialRevealedStageIds((prev) =>
+            prev.includes(stage.id) ? prev : [...prev, stage.id],
+          );
+          setTerritorialActiveStageId(stage.id);
+          flyTo(stage.coordinates[1], stage.coordinates[0], 0.7, 850, {
+            pitch: 50,
+            bearing: -10 + index * 4,
+          });
+        }, 650 + index * 900);
+        territorialSequenceRef.current.push(timer);
+      });
+
+      const parchmentTimer = window.setTimeout(
+        () => {
+          setTerritorialEpisodeBrief(episode);
+        },
+        650 + stages.length * 900 + 700,
+      );
+      territorialSequenceRef.current.push(parchmentTimer);
+    },
+    [clearFrictionEpisodeTimer, clearTerritorialSequence, flyTo],
+  );
+
   /** 공습 포커스 정리 — 빗금·박스·지연 타이머 */
   const clearAirRaidFocus = useCallback(() => {
     if (airRaidFocusClearRef.current != null) {
@@ -4940,13 +5163,43 @@ export function GlobeDashboard({
     newfeedsAttacks,
     airRaidBriefing,
     setAirRaidBriefing,
-    briefingBlocked: Boolean(periodicBriefing) || Boolean(exerciseBriefing),
+    briefingBlocked:
+      Boolean(periodicBriefing) || Boolean(exerciseBriefing) || Boolean(breakingFlash),
     handleAirRaidFocus: (target, kind, options) =>
       handleAirRaidFocusRef.current(target, kind, options),
     patchLayerPrefsSoft,
     layerPrefsLiveRef,
     clearAirRaidFocus,
   });
+
+  /** 귀중한 속보 — 히어로가 S/고충격일 때만 양피지 타전 (등불과 동일 사운드) */
+  useEffect(() => {
+    if (entryGate !== null || showModePicker) return;
+    if (!langChoiceDone) return;
+    if (periodicBriefing || airRaidBriefing || exerciseBriefing || weeklyExpanded) return;
+    if (breakingFlash) return;
+    const hero = newsStreamPayload?.hero;
+    if (!shouldOpenBreakingFlash(hero, isEconomyViewer)) return;
+    if (!hero || !claimBreakingFlash(hero.id)) return;
+    setBreakingFlash(
+      buildBreakingFlashBriefing(hero, labelLanguage, isEconomyViewer),
+    );
+  }, [
+    newsStreamPayload?.hero,
+    newsStreamPayload?.hero?.id,
+    newsStreamPayload?.hero?.breakingRank,
+    newsStreamPayload?.hero?.breakingGrade,
+    isEconomyViewer,
+    labelLanguage,
+    entryGate,
+    showModePicker,
+    langChoiceDone,
+    periodicBriefing,
+    airRaidBriefing,
+    exerciseBriefing,
+    weeklyExpanded,
+    breakingFlash,
+  ]);
 
   const { exerciseOffer, dismissExerciseOffer } = useExerciseAlertAuto({
     paused:
@@ -4956,10 +5209,12 @@ export function GlobeDashboard({
       issueUiPausedForLamp ||
       Boolean(airRaidBriefing) ||
       Boolean(airRaidOffer) ||
-      Boolean(periodicBriefing),
+      Boolean(periodicBriefing) ||
+      Boolean(breakingFlash),
     labelLanguage,
     exercises: displayMilitaryExercises,
-    briefingBlocked: Boolean(periodicBriefing) || Boolean(airRaidBriefing),
+    briefingBlocked:
+      Boolean(periodicBriefing) || Boolean(airRaidBriefing) || Boolean(breakingFlash),
     exerciseBriefing,
     setExerciseBriefing,
     flyTo,
@@ -5712,23 +5967,9 @@ export function GlobeDashboard({
           : "전 세계 지역별 심층 데스크";
 
       let macroTable = buildLampMacroTable([], labelLanguage);
-      let featuredNews = ensureLampFeaturedNews(
-        [],
-        isEconomy ? "economy" : "conflict",
-        labelLanguage,
-      );
+      let featuredNews: ReturnType<typeof pickConflictLampNews> = [];
 
-      // 개봉 즉시 시드 데스크 점화 — 빈 ‘불러오는 중’ 화면 금지. 라이브는 아래에서 업그레이드.
-      ignite({
-        tier,
-        key: lampKey,
-        title: `${kicker}\n${focusTitle}`,
-        paragraphs: [],
-        macroTable,
-        featuredNews,
-      });
-
-      // 뉴스 — 데드라인 안의 예산만 사용 후 업그레이드
+      // 뉴스 — 선명 사진+고임팩트 심층만. 사진 없는 시드 점화 금지.
       try {
         const newsUrl = isEconomy
           ? `/api/news-stream?packages=geo-trader&lang=${langQs}`
@@ -5745,27 +5986,30 @@ export function GlobeDashboard({
             isEconomy
               ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
               : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
-            isEconomy ? "economy" : "conflict",
-            labelLanguage,
           );
         }
       } catch {
-        /* ignore — 시드 데스크 유지 */
+        /* ignore */
       }
 
       if (cancelled) return;
 
-      ignite(
-        {
-          tier,
-          key: lampKey,
-          title: `${kicker}\n${focusTitle}`,
-          paragraphs: [],
-          macroTable,
-          featuredNews,
-        },
-        { upgrade: true },
-      );
+      if (featuredNews.length > 0) {
+        ignite(
+          {
+            tier,
+            key: lampKey,
+            title: `${kicker}\n${focusTitle}`,
+            paragraphs: [],
+            macroTable,
+            featuredNews,
+          },
+          { upgrade: true },
+        );
+      } else {
+        // 사진 있는 라이브 기사 없음 — 셸만 (빈 데스크 문구). 시드 가짜 카드 없음.
+        ignite(curatedFallback(), { upgrade: true });
+      }
 
       if (cancelled || !isEconomy) return;
 
@@ -5802,11 +6046,7 @@ export function GlobeDashboard({
             title: `${kicker}\n${focusTitle}`,
             macroTable,
             paragraphs: [],
-            featuredNews: ensureLampFeaturedNews(
-              prev.featuredNews ?? [],
-              "economy",
-              labelLanguage,
-            ),
+            featuredNews: ensureLampFeaturedNews(prev.featuredNews ?? []),
           };
         };
         if (lampWasFolded) {
@@ -6438,6 +6678,7 @@ export function GlobeDashboard({
         displayMilitaryExercises,
         combinedShipMovesMap,
         activeFrictionEpisode,
+        activeTerritorialEpisode,
         skipNextGlobeClickRef,
         handleHtmlMarkerHover,
         openIntelFromCoords,
@@ -6450,6 +6691,7 @@ export function GlobeDashboard({
         handleInfraStaticClick,
         handleNeptunThreatSelect,
         selectFrictionStage,
+        selectTerritorialStage,
         clearRegionNavSelection,
         closeEconInsight,
         setHoveredCarrier,
@@ -6463,9 +6705,11 @@ export function GlobeDashboard({
         setEconomyAttackReaction,
         setExerciseBriefing,
         setShipMovesSelectedId,
+        setShipMovesFocusGroupKey,
       }),
     [
       activeFrictionEpisode,
+      activeTerritorialEpisode,
       combinedShipMovesMap,
       displayMilitaryExercises,
       flyTo,
@@ -6485,8 +6729,10 @@ export function GlobeDashboard({
       clearRegionNavSelection,
       closeEconInsight,
       selectFrictionStage,
+      selectTerritorialStage,
       usCarrierLabelOffsets,
       layerAltitude,
+      setShipMovesFocusGroupKey,
     ],
   );
 
@@ -6806,6 +7052,7 @@ export function GlobeDashboard({
         showGscpiGauge={showGscpiGauge}
         globeSpinEnabled={globeSpinEnabled}
         setGlobeSpinEnabled={setGlobeSpinEnabled}
+        telegramMiniPanelVisible={telegramMiniPanelVisible}
         handleNavNavigate={handleNavNavigate}
         liveUpdatedAt={liveUpdatedAt}
         dataGeneratedAt={data.generatedAt}
@@ -6846,8 +7093,6 @@ export function GlobeDashboard({
         handleCompactChipSelect={handleCompactChipSelect}
         globeRef={globeRef}
         getSceneForShare={getSceneForShare}
-        setShowTrustPanel={setShowTrustPanel}
-        setShowSourcesPanel={setShowSourcesPanel}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
       />
@@ -6893,6 +7138,20 @@ export function GlobeDashboard({
           setRegimeSelectedEpisodeId(null);
           setFrictionActiveStageId(null);
         }}
+        activeTerritorialEpisode={activeTerritorialEpisode}
+        territorialActiveStageId={territorialActiveStageId}
+        territorialRevealedStageIds={territorialRevealedStageIds}
+        onSelectTerritorialStage={selectTerritorialStage}
+        onOpenTerritorialBrief={() => {
+          if (activeTerritorialEpisode) setTerritorialEpisodeBrief(activeTerritorialEpisode);
+        }}
+        onBackToTerritorialList={() => {
+          clearTerritorialSequence();
+          setTerritorialEpisodeBrief(null);
+          setDisputeEpisodeSelectedId(null);
+          setTerritorialActiveStageId(null);
+          setTerritorialRevealedStageIds([]);
+        }}
         isEconomyViewer={isEconomyViewer}
         livingTaiwanOpen={livingTaiwanOpen}
         onLivingTaiwanClose={() => setLivingTaiwanOpen(false)}
@@ -6906,8 +7165,16 @@ export function GlobeDashboard({
         shipMovesTimeline={shipMovesTimeline}
         shipMovesDisclaimer={shipMovesDisclaimer}
         shipMovesSelectedId={shipMovesSelectedId}
+        shipMovesTrailMode={shipMovesTrailMode}
+        shipMovesFocusGroupKey={shipMovesFocusGroupKey}
+        westpacNewsPool={[
+          ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+          ...(newsStreamPayload?.verified ?? []),
+          ...(newsStreamPayload?.stateMedia ?? []),
+        ]}
         onShipMoveSelect={(obs) => {
           setShipMovesSelectedId(obs.id);
+          setShipMovesFocusGroupKey(groupKeyForObservation(obs));
           openSelection({ kind: "ship-movement", item: obs });
           if (
             obs.mapEligible &&
@@ -6919,19 +7186,84 @@ export function GlobeDashboard({
             flyTo(obs.lat, obs.lng, 0.85);
           }
         }}
+        onShipTrailModeChange={(mode) => {
+          setShipMovesTrailMode(mode);
+          if (mode === "fleet") {
+            setShipMovesFocusGroupKey(null);
+          }
+        }}
+        onShipVesselSelect={(groupKey, track) => {
+          setShipMovesTrailMode("vessel");
+          setShipMovesFocusGroupKey(groupKey);
+          const latest = track[track.length - 1] ?? track[0] ?? null;
+          if (latest) {
+            setShipMovesSelectedId(latest.id);
+            openSelection({ kind: "ship-movement", item: latest });
+          }
+          const fly = vesselTrackFlyTarget(track);
+          if (fly) flyTo(fly.lat, fly.lng, fly.altitude);
+          setShipMovesBriefTrack(track);
+          setShipMovesBriefFocusId(latest?.id ?? null);
+        }}
+        onShipMoveBrief={(track, focusId) => {
+          setShipMovesBriefTrack(track);
+          setShipMovesBriefFocusId(focusId ?? null);
+          if (track[0]) {
+            setShipMovesFocusGroupKey(groupKeyForObservation(track[0]));
+          }
+        }}
         onWestpacPulseClose={() => {
           setShipMovesSelectedId(null);
+          setShipMovesFocusGroupKey(null);
+          setShipMovesTrailMode("fleet");
+          setShipMovesBriefTrack(null);
+          setShipMovesBriefFocusId(null);
           setRegionNavSelection(null);
         }}
         disputesOverviewOpen={disputesOverviewActive}
         disputeHotspots={disputeHotspots}
         disputeHotspotSelectedId={disputeHotspotSelectedId}
+        disputeEpisodeSelectedId={disputeEpisodeSelectedId}
+        disputeFrictionSelectedId={regimeSelectedEpisodeId}
         onSelectDisputeHotspot={(hotspot) => {
           setDisputeHotspotSelectedId(hotspot.id);
           flyTo(hotspot.center.lat, hotspot.center.lng, 0.95, 1400, { pitch: 45 });
         }}
+        onSelectDisputeEpisode={(episode) => {
+          beginTerritorialEpisode(episode);
+        }}
+        onSelectDisputeFriction={(episode) => {
+          clearTerritorialSequence();
+          setDisputeEpisodeSelectedId(null);
+          setTerritorialEpisodeBrief(null);
+          setTerritorialActiveStageId(null);
+          setTerritorialRevealedStageIds([]);
+          clearFrictionEpisodeTimer();
+          setRegimeSelectedEpisodeId(episode.id);
+          setFrictionEpisodeBrief(null);
+          flyTo(
+            episodeLat(episode),
+            episodeLng(episode),
+            altitudeFromEpisodeZoom(episode.zoom),
+            1100,
+            { pitch: episode.pitch, bearing: episode.bearing },
+          );
+          const deep = frictionDeepDoc(episode.id);
+          setFrictionActiveStageId(deep?.stages[0]?.id ?? null);
+          frictionEpisodeTimerRef.current = setTimeout(() => {
+            frictionEpisodeTimerRef.current = null;
+            setFrictionEpisodeBrief(episode);
+          }, 750);
+        }}
         onDisputesOverviewClose={() => {
+          clearTerritorialSequence();
           setDisputeHotspotSelectedId(null);
+          setDisputeEpisodeSelectedId(null);
+          setTerritorialEpisodeBrief(null);
+          setTerritorialActiveStageId(null);
+          setTerritorialRevealedStageIds([]);
+          setRegimeSelectedEpisodeId(null);
+          setFrictionEpisodeBrief(null);
           setRegionNavSelection(null);
         }}
       />
@@ -6983,6 +7315,7 @@ export function GlobeDashboard({
             lang={labelLanguage}
             layerPrefs={layerPrefs}
             onOpenSources={() => setShowSourcesPanel(true)}
+            onOpenTrust={() => setShowTrustPanel(true)}
           />
         ) : null}
 
@@ -7228,6 +7561,8 @@ export function GlobeDashboard({
         showTourInvite={showTourInvite}
         airRaidOffer={airRaidOffer}
         airRaidBriefing={airRaidBriefing}
+        breakingFlash={breakingFlash}
+        onDismissBreakingFlash={() => setBreakingFlash(null)}
         adsbEmergencyOffer={adsbEmergencyOffer}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
@@ -7395,10 +7730,10 @@ export function GlobeDashboard({
           <button
             type="button"
             aria-label={t("ariaCloseInfoPanel", labelLanguage)}
-            className="absolute inset-0 z-20 bg-black/20 lg:bg-black/10"
+            className="absolute inset-0 z-[119] bg-black/20 lg:bg-black/10"
             onClick={() => setSelected(null)}
           />
-          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[120] flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
             {selected.kind === "neptun-threat" ? (
               <div className="intel-scroll-y min-h-0 flex-1">
                 <NeptunThreatDetailPanel
@@ -7472,6 +7807,14 @@ export function GlobeDashboard({
         onCloseHubBrief={closeHubBrief}
         frictionEpisodeBrief={frictionEpisodeBrief}
         onCloseFrictionBrief={() => setFrictionEpisodeBrief(null)}
+        territorialEpisodeBrief={territorialEpisodeBrief}
+        onCloseTerritorialBrief={() => setTerritorialEpisodeBrief(null)}
+        shipMovementBriefTrack={shipMovesBriefTrack}
+        shipMovementBriefFocusId={shipMovesBriefFocusId}
+        onCloseShipMovementBrief={() => {
+          setShipMovesBriefTrack(null);
+          setShipMovesBriefFocusId(null);
+        }}
       />
 
       {newsPerspectives ? (
@@ -7490,7 +7833,7 @@ export function GlobeDashboard({
 
       {economyAttackReaction && isEconomyViewer ? (
         <aside
-          className="pointer-events-auto absolute left-3 top-[5.75rem] z-[72] w-[min(94vw,360px)] overflow-hidden rounded-2xl border border-amber-400/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl sm:left-4"
+          className="pointer-events-auto absolute left-3 top-[5.75rem] z-[120] w-[min(94vw,360px)] overflow-hidden rounded-2xl border border-amber-400/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl sm:left-4"
           role="dialog"
           aria-label={labelLanguage === "en" ? "Event market reaction" : "사건 시장 반응"}
         >

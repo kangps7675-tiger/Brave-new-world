@@ -294,6 +294,8 @@ export type FrictionStageHtmlMarker = {
   label: string;
   order: number;
   active: boolean;
+  /** violet=반서방 · rose=영토분쟁 */
+  tone?: "violet" | "rose";
 };
 
 export type NewsStreamNeonMarker = {

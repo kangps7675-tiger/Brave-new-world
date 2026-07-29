@@ -80,6 +80,18 @@ export function newsTheaterFromCoords(lat: number, lng: number): NewsTheater {
 
 export function newsTheaterFromNavId(id: string): IntelTheaterFilter {
   const key = id.toLowerCase();
+  // 서태평양 함선 이동기 — 인도태평양·중·대 전장으로 스코프
+  if (
+    key.includes("westpac") ||
+    key.includes("ship-movement") ||
+    key.includes("fleet-tracker")
+  ) {
+    return "china-taiwan";
+  }
+  // 국경·영토 분쟁 개요 — 잡식 global 대신 동아시아 중심(세부 매칭은 에피소드 패널)
+  if (key.includes("territorial-disputes") || key.includes("dispute-hotspot")) {
+    return "china-taiwan";
+  }
   if (key.includes("ukraine") || key.includes("west-russia") || key === "hub-rus" || key.startsWith("claim-rus") || key.startsWith("ally-rus")) {
     return "russia-ukraine";
   }

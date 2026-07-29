@@ -341,6 +341,21 @@ export const AUDIO_MANIFEST = {
 
   // ── Ambient ──────────────────────────────────────────────────────
 
+  /**
+   * 지구본 전역·대륙 LOD 배경 — 도시 먼 뇌우·비
+   * https://freesound.org/s/658248/ · klankbeeld · CC BY 4.0
+   * thunder in the city 1358 220519_0361.ogg
+   */
+  "globe-global-thunder": {
+    eventId: "globe-global-thunder",
+    freesoundQuery: "thunder in the city rain distant storm",
+    freesoundId: 658248,
+    volume: 0.11,
+    loop: true,
+    category: "ambient",
+    note: "FS#658248 klankbeeld thunder in the city · BY 4.0 · 전역/대륙 LOD 상시 앰비언트",
+  },
+
   /** 전선 줌 — 먼 포격 rumble 베드 (루프) */
   "frontline-artillery-ambient": {
     eventId: "frontline-artillery-ambient",
@@ -444,14 +459,14 @@ export const AUDIO_MANIFEST = {
     category: "ambient",
     note: "FS#806273 R2dxu Carrier frequency · CC0 · 항모 클릭 저음",
   },
-  /** 군용 잠수함 */
+  /** 군용 잠수함 — 소나 핑 */
   "mil-submarine": {
     eventId: "mil-submarine",
-    freesoundQuery: "sailing vessel at sea ambient",
-    freesoundId: 177036,
-    volume: 0.28,
+    freesoundQuery: "submarine sonar ping underwater",
+    freesoundId: 713525,
+    volume: 0.26,
     category: "conflict",
-    note: "FS#177036 Trebblofang sailing-vessel-at-sea · CC0",
+    note: "FS#713525 tgerginov Sonar · CC0 · 군 잠수함 클릭",
   },
   /** 위장·다크플리트 */
   "disguised-vessel": {

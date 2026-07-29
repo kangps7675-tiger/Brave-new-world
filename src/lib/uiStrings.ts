@@ -443,8 +443,8 @@ const UI = {
   },
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나나요", en: "When sound plays" },
   entryCautionSoundWhen: {
-    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): 줌 LOD — 멀리 포격/짧은폭격 · near 이하 총성+포격+드론 연속\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
-    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline (Ukraine / Middle East): LOD gunfire/artillery/drone\n• Taiwan Strait tick · Korea / high-tension rumble\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
+    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): 줌 LOD — 멀리 포격/짧은폭격 · near 이하 총성+포격+드론 연속\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
+    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline (Ukraine / Middle East): LOD gunfire/artillery/drone\n• Taiwan Strait tick · Korea / high-tension rumble\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
     ko: "본 피드는 공개 소스·와이어·위성/선박 오픈데이터를 가공한 상황판입니다. 공식 경보 대체가 아니며, 무단 반출·왜곡 시 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
@@ -598,21 +598,21 @@ const UI = {
     ko: "공개 관측",
     en: "Public obs.",
   },
-  regimeConflictsNav: {
-    ko: "반서방국 분쟁사",
-    en: "Intra-bloc conflicts",
-  },
-  regimeConflictsNavHint: {
-    ko: "11대 현장",
-    en: "11 sites",
-  },
   disputesOverviewNav: {
-    ko: "국경·영토 분쟁 (LSIB)",
-    en: "Territorial disputes (LSIB)",
+    ko: "영토분쟁",
+    en: "Territorial disputes",
   },
   disputesOverviewNavHint: {
-    ko: "실데이터 56건",
-    en: "56 curated sites",
+    ko: "포괄 아카이브",
+    en: "Full archive",
+  },
+  regimeConflictsNav: {
+    ko: "영토분쟁",
+    en: "Territorial disputes",
+  },
+  regimeConflictsNavHint: {
+    ko: "진영·국경",
+    en: "Bloc · border",
   },
   westpacShipMovesTitle: {
     ko: "주간 함선 이동 기록",
@@ -635,8 +635,8 @@ const UI = {
   westpacConfidenceEstimated: { ko: "추정", en: "Estimated" },
   westpacVesselUncertain: { ko: "식별 불확실", en: "ID uncertain" },
   westpacTrailLegend: {
-    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다",
-    en: "Lines connect public observations — not actual tracks",
+    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다. 전체/함선별 모드와 양피지 브리프로 경위를 읽으세요.",
+    en: "Lines connect public observations — not AIS tracks. Use All/Per-ship modes and the parchment brief.",
   },
   westpacEmptyTimeline: {
     ko: "승인된 주간 기록이 아직 없습니다.",
@@ -645,6 +645,7 @@ const UI = {
   westpacLoading: { ko: "불러오는 중…", en: "Loading…" },
   westpacExit: { ko: "나가기", en: "Exit" },
   westpacOpenSource: { ko: "출처", en: "Source" },
+  westpacBriefOpen: { ko: "양피지 브리프", en: "Parchment brief" },
 } as const;
 
 export type UiStringKey = keyof typeof UI;

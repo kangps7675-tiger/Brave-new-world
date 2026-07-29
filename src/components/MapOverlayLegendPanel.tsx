@@ -53,7 +53,7 @@ export function MapOverlayLegendPanel({
 
   return (
     <div
-      className="pointer-events-auto absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-20 w-[min(92vw,440px)] -translate-x-1/2"
+      className="pointer-events-auto absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-[120] w-[min(92vw,440px)] -translate-x-1/2"
     >
       <div
         className={`overflow-hidden rounded-2xl border ${styles.border} bg-[#0a1830]/82 shadow-2xl backdrop-blur-md`}

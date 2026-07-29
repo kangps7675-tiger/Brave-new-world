@@ -60,7 +60,7 @@ export function ViewerIntroOverlay({
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-[46] flex justify-center px-3"
+      className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-[120] flex justify-center px-3"
       role="dialog"
       aria-label={`${chrome.modePickerTitle} 시작 안내`}
     >

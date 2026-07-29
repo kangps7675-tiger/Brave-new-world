@@ -86,10 +86,10 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "축 관계망 · 반서방국 충돌사",
+    title: "축 관계망 · 영토분쟁 아카이브",
     steps: [
       "「축 관계망」을 켜면 이란·중국·러시아·북한 같은 중심 나라(허브)와 그 상대들(스포크)이 곡선으로 이어져 표시됩니다.",
-      "위쪽 허브 메뉴 → 「반서방국 충돌사」를 열면 역사 속 11개 충돌 현장(전바오섬·랑선·갈완·츠힌발리 등)을 설명합니다. 카드를 누르면 화면이 부드럽게 그 현장으로 이동하며 옛 문서 느낌의 설명 카드(양피지)가 펼쳐집니다.",
+      "위쪽 메뉴 → 「영토분쟁」을 열면 진영 내부 충돌과 국경·화약고가 하나의 포괄 아카이브로 이어집니다. 렌즈로 걸러 보고, 카드를 누르면 맵 연출과 양피지 서술이 펼쳐집니다.",
       "오른쪽 위 「주요전장」 목록에서 대만·한반도·우크라이나·중동 같은 충돌지로 한 번에 이동할 수 있습니다.",
       "이어 주는 곡선의 색은 관계의 종류입니다 — 자금 후원 · 무기 지원 · 에너지 · 복합(하이브리드) · 외교.",
     ],
@@ -352,11 +352,11 @@ export function FeatureGuidePanel({
       <button
         type="button"
         aria-label={en ? "Close guide" : "사용 안내 닫기"}
-        className="absolute inset-0 z-[58] bg-[#0a1528]/50 backdrop-blur-[1px]"
+        className="absolute inset-0 z-[119] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside
-        className="intel-panel absolute right-3 top-14 z-[62] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className="intel-panel absolute right-3 top-14 z-[120] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
         aria-label={en ? "Feature guide" : "기능 사용 안내"}
       >

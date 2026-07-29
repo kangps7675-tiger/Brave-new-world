@@ -59,6 +59,8 @@ import {
   AirRaidBriefingParchment,
   type AirRaidBriefingContent,
 } from "@/components/AirRaidBriefingParchment";
+import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
+import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
@@ -243,6 +245,9 @@ export type DashboardOverlayHostProps = {
   showTourInvite: boolean;
   airRaidOffer: AirRaidOffer | null;
   airRaidBriefing: AirRaidBriefingContent | null;
+  /** 귀중한 속보 타전 양피지 */
+  breakingFlash: BreakingFlashBriefing | null;
+  onDismissBreakingFlash: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
@@ -423,6 +428,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showTourInvite,
     airRaidOffer,
     airRaidBriefing,
+    breakingFlash,
+    onDismissBreakingFlash,
     adsbEmergencyOffer,
     exerciseOffer,
     exerciseBriefing,
@@ -558,7 +565,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <button
           type="button"
           aria-label={t("ariaClosePanel", labelLanguage)}
-          className="absolute inset-0 z-20 bg-[#0a1528]/40 backdrop-blur-[1px]"
+          className="absolute inset-0 z-[119] bg-[#0a1528]/40 backdrop-blur-[1px]"
           onClick={onCloseLeftPanel}
         />
       ) : null}
@@ -611,10 +618,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <div
           className="cv-desktop-only pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
           style={{
-            // 세계 긴장도(ModeGlobalIndexChip) 아래로 비켜서 겹치지 않게
-            top: "calc(var(--hover-nav-base-height, 0px) + var(--mode-index-chip-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
-            maxHeight:
-              "calc(100dvh - var(--hover-nav-base-height, 0px) - var(--mode-index-chip-height, 0px) - 6rem)",
+            // GTI(우상단 하드코딩)와 연동하지 않음 — 우측 사이드 독립 배치
+            top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
+            maxHeight: "calc(100dvh - var(--hover-nav-base-height, 0px) - 6rem)",
           }}
         >
           {!isEconomyViewer ? (
@@ -744,8 +750,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   showProTip={false}
                   getCanvas={() => globeRef.current?.renderer().domElement ?? null}
                   getScene={getSceneForShare}
-                  onTrust={() => onSetShowTrustPanel(true)}
-                  onSources={() => onSetShowSourcesPanel(true)}
                   onTour={() => {
                     if (!isEconomyViewer && tourScenes.length > 0) {
                       trackEvent("tour_start", { scenes: tourScenes.length }, { lang: labelLanguage });
@@ -794,8 +798,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <div
           className="pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2"
           style={{
-            // 세계 긴장도 칩 아래로 — 우상단 겹침 방지
-            top: "calc(var(--mode-index-chip-height, 0px) + max(0.75rem, env(safe-area-inset-top, 0px)) + 0.4rem)",
+            // GTI와 연동하지 않음 — 모바일 우측 유틸 독립 배치
+            top: "max(3.25rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))",
           }}
         >
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">
@@ -1186,7 +1190,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             clearWeeklyRecapFolded(weeklyRecap.key);
             onSetWeeklyRecapCollapsed(false);
           }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[46] flex max-w-[min(16rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-[#6b4a22]/55 bg-[#e8d4a8]/95 px-3 py-2.5 text-left text-[13px] text-[#3d2a18] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] sm:bottom-28 sm:right-4"
+          className="pointer-events-auto absolute bottom-24 right-3 z-[120] flex max-w-[min(16rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-[#6b4a22]/55 bg-[#e8d4a8]/95 px-3 py-2.5 text-left text-[13px] text-[#3d2a18] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] sm:bottom-28 sm:right-4"
           aria-label={
             labelLanguage === "en"
               ? "Reopen weekly recap"
@@ -1215,7 +1219,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetPeriodicBriefing(foldedPeriodicBriefing);
             onSetFoldedPeriodicBriefing(null);
           }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[47] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-[13px] text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
+          className="pointer-events-auto absolute bottom-24 right-3 z-[120] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-[13px] text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
           aria-label={
             labelLanguage === "en"
               ? "Reopen today's lamp news"
@@ -1287,7 +1291,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[82] ${
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[120] ${
             // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
             telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
           } ${
@@ -1438,6 +1442,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onReleaseAirRaidAutoBusy();
             onBeginLiveBriefing("air-raid", airRaidBriefingLayers(kind), place);
           }}
+        />
+      ) : null}
+
+      {breakingFlash && !airRaidBriefing ? (
+        <BreakingFlashParchment
+          briefing={breakingFlash}
+          lang={labelLanguage}
+          onDismiss={onDismissBreakingFlash}
         />
       ) : null}
 

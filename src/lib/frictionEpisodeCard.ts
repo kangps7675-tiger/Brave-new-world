@@ -11,12 +11,12 @@ const CARD_SIZE = 1080;
 
 const COPY = {
   ko: {
-    kicker: "반서방·권위주의 진영 충돌사",
+    kicker: "영토분쟁 아카이브 · 진영 내부",
     parties: "당사국",
     brand: "멋진 신세계",
   },
   en: {
-    kicker: "Frictions within the anti-West bloc",
+    kicker: "Territorial archive · intra-bloc",
     parties: "Parties",
     brand: "Brave New World",
   },

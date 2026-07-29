@@ -8,8 +8,6 @@ import {
   selectionForArms,
   selectionForClaim,
   selectionForHubNetwork,
-  selectionForRegime,
-  selectionForRegimeOverview,
   selectionForWestpacPulseOverview,
   selectionForDisputesOverview,
   type HubDefinition,
@@ -183,7 +181,9 @@ export function HoverNav({
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[75] flex flex-col"
+      className={`pointer-events-none fixed inset-x-0 top-0 flex flex-col ${
+        menuExpanded ? "z-[90]" : "z-[75]"
+      }`}
       style={{
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
       }}
@@ -195,10 +195,13 @@ export function HoverNav({
         }`}
       >
       <div className="flex w-full flex-col items-center">
+      {/* 메뉴 드롭다운이 토글 줄(belowNav) 위에 오도록 — expanded 시 nav만 높은 스택 */}
       <nav
         id="app-hover-nav"
         ref={navRef}
-        className={`w-full ${
+        className={`relative w-full ${
+          menuExpanded ? "z-[100]" : "z-[60]"
+        } ${
           compact
             ? "max-w-full"
             : isEconomy
@@ -278,17 +281,19 @@ export function HoverNav({
               <button
                 type="button"
                 aria-expanded={hubMenuOpen}
-                aria-label="탐색 메뉴"
+                aria-label="화약고 · 지정학 아카이브 메뉴"
+                title="화약고 · 지정학적 아카이브"
                 onClick={() => {
                   setHubMenuOpen((v) => !v);
                   setOpenHubId(null);
                 }}
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
+                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] font-medium transition sm:text-xs ${
                   hubMenuOpen
                     ? "border-sky-300/40 bg-sky-400/20 text-sky-50"
                     : "border-sky-200/20 bg-sky-400/10 text-sky-100/80 hover:border-sky-300/35"
                 }`}
               >
+                <span className="hidden xs:inline sm:inline">화약고</span>
                 <ChevronDown className={`transition ${hubMenuOpen ? "rotate-180" : ""}`} />
               </button>
             ) : (
@@ -310,7 +315,7 @@ export function HoverNav({
 
           {searchResults.length > 0 && (
             <div
-              className={`absolute left-0 right-0 top-full z-40 max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
+              className={`absolute left-0 right-0 top-full z-[110] max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
             >
               {searchResults.map((place) => (
                 <button
@@ -344,7 +349,7 @@ export function HoverNav({
 
         {!isEconomy ? (
           <div
-            className={`overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`relative z-[110] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               hubMenuOpen
                 ? "max-h-[min(78vh,36rem)] opacity-100"
                 : "pointer-events-none max-h-0 border-transparent opacity-0 shadow-none"
@@ -353,13 +358,13 @@ export function HoverNav({
             <div className="max-h-[min(78vh,36rem)] space-y-2 overflow-y-auto px-2 py-2">
               <button
                 type="button"
-                onClick={() => handleHubNavigate(selectionForRegimeOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-violet-300/25 bg-violet-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-violet-50 transition hover:border-violet-200/45 hover:bg-violet-500/25"
+                onClick={() => handleHubNavigate(selectionForDisputesOverview())}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-300" />
-                {t("regimeConflictsNav", labelLanguage)}
-                <span className="text-[9px] font-normal text-violet-200/60">
-                  {t("regimeConflictsNavHint", labelLanguage)}
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
+                {t("disputesOverviewNav", labelLanguage)}
+                <span className="text-[9px] font-normal text-rose-200/60">
+                  {t("disputesOverviewNavHint", labelLanguage)}
                 </span>
               </button>
               <button
@@ -371,17 +376,6 @@ export function HoverNav({
                 {t("westpacShipMovesNav", labelLanguage)}
                 <span className="text-[9px] font-normal text-cyan-200/60">
                   {t("westpacShipMovesNavHint", labelLanguage)}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleHubNavigate(selectionForDisputesOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
-                {t("disputesOverviewNav", labelLanguage)}
-                <span className="text-[9px] font-normal text-rose-200/60">
-                  {t("disputesOverviewNavHint", labelLanguage)}
                 </span>
               </button>
               <ul className="space-y-1">
@@ -406,7 +400,7 @@ export function HoverNav({
 
         {isEconomy ? (
           <div
-            className={`overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`relative z-[110] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               navOpen ? "max-h-[80vh] opacity-100" : "pointer-events-none max-h-0 opacity-0"
             }`}
           >
@@ -500,12 +494,20 @@ export function HoverNav({
       {showDesktopToolsSlot ? (
         <div
           id="hover-nav-desktop-tools"
-          className="z-[76] mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 sm:max-w-6xl"
+          className={`mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 sm:max-w-6xl ${
+            menuExpanded ? "relative z-[40]" : "relative z-[76]"
+          }`}
         />
       ) : null}
 
       {belowNav ? (
-        <div className="z-[76] mt-2.5 flex justify-center">{belowNav}</div>
+        <div
+          className={`mt-2.5 flex justify-center ${
+            menuExpanded ? "relative z-[40]" : "relative z-[76]"
+          }`}
+        >
+          {belowNav}
+        </div>
       ) : null}
       </div>
       </div>
@@ -604,10 +606,10 @@ function HubDropdown({
             </button>
             <button
               type="button"
-              onClick={() => onNavigate(selectionForRegime(hub))}
-              className="rounded-md px-2.5 py-2 text-left text-[11px] text-violet-100/90 transition hover:bg-violet-400/10"
+              onClick={() => onNavigate(selectionForDisputesOverview())}
+              className="rounded-md px-2.5 py-2 text-left text-[11px] text-rose-100/90 transition hover:bg-rose-400/10"
             >
-              반서방국 충돌사
+              영토분쟁 아카이브
             </button>
           </div>
         </div>

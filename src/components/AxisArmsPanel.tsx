@@ -34,7 +34,7 @@ export function AxisArmsPanel({
   const citationText = armsCitationLabel(citation, lang);
 
   return (
-    <aside className="pointer-events-auto absolute right-3 top-20 z-40 flex max-h-[min(70vh,520px)] w-[min(92vw,320px)] flex-col overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/92 shadow-2xl backdrop-blur-xl">
+    <aside className="pointer-events-auto absolute right-3 top-20 z-[120] flex max-h-[min(70vh,520px)] w-[min(92vw,320px)] flex-col overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/92 shadow-2xl backdrop-blur-xl">
       <div className="flex items-start justify-between gap-2 border-b border-orange-200/10 px-3 py-2.5">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-orange-200/55">
