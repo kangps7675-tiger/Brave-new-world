@@ -341,6 +341,21 @@ export const AUDIO_MANIFEST = {
 
   // ── Ambient ──────────────────────────────────────────────────────
 
+  /**
+   * 지구본 전역·대륙 LOD 배경 — 도시 먼 뇌우·비
+   * https://freesound.org/s/658248/ · klankbeeld · CC BY 4.0
+   * thunder in the city 1358 220519_0361.ogg
+   */
+  "globe-global-thunder": {
+    eventId: "globe-global-thunder",
+    freesoundQuery: "thunder in the city rain distant storm",
+    freesoundId: 658248,
+    volume: 0.11,
+    loop: true,
+    category: "ambient",
+    note: "FS#658248 klankbeeld thunder in the city · BY 4.0 · 전역/대륙 LOD 상시 앰비언트",
+  },
+
   /** 전선 줌 — 먼 포격 rumble 베드 (루프) */
   "frontline-artillery-ambient": {
     eventId: "frontline-artillery-ambient",
