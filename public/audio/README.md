@@ -32,7 +32,7 @@
 | `aircraft-military` | [789950](https://freesound.org/s/789950/) | 군용기 클릭 | **CC-BY** |
 | `ais-merchant` | [843948](https://freesound.org/s/843948/) | AIS 상선 클릭 | **CC-BY** |
 | `carrier-deck-ambient` + `carrier-radio-bed` | [162449](https://freesound.org/s/162449/) · [806273](https://freesound.org/s/806273/) | 미 항모 **클릭** (라디오 저음 깔개) | CC0 |
-| `mil-submarine` | [177036](https://freesound.org/s/177036/) | 군 잠수함 클릭 | CC0 |
+| `mil-submarine` | [713525](https://freesound.org/s/713525/) | 군 잠수함 클릭 (Sonar) | CC0 |
 | `disguised-vessel` | [510902](https://freesound.org/s/510902/) | 위장선박 클릭 | CC0 |
 | `recon-satellite` | [189860](https://freesound.org/s/189860/) | 정찰위성 클릭 | **CC-BY** |
 | `airport-walla` | [113606](https://freesound.org/s/113606/) | 공항 클릭 | **CC-BY** |

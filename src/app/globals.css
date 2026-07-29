@@ -855,14 +855,14 @@ main[data-ui-lang="en"]
   backdrop-filter: blur(16px);
 }
 
-/* 데스크톱: 상단 HoverNav·유틸 버튼 아래로 내려 닫기 버튼이 가려지지 않게 */
+/* 데스크톱: 닫기 있는 사이드바는 HoverNav(max 100) 위 — uiStack Z_ABOVE_NAV */
 @media (min-width: 1024px) {
   .intel-sidebar-right {
     top: 5.5rem !important;
     bottom: 0 !important;
     height: auto !important;
     max-height: calc(100% - 5.5rem);
-    z-index: 70;
+    z-index: 120;
   }
 }
 
@@ -905,7 +905,7 @@ html[data-device="tablet"] .intel-sidebar-right {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35);
-  z-index: 70;
+  z-index: 120;
 }
 
 /* 와이드 데스크톱: 우측 패널 여유 */

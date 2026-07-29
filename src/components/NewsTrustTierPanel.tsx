@@ -39,11 +39,11 @@ export function NewsTrustTierPanel({ open, onClose, lang }: NewsTrustTierPanelPr
       <button
         type="button"
         aria-label={isEn ? "Close trust grades panel" : "신뢰도 패널 닫기"}
-        className="absolute inset-0 z-[58] bg-[#0a1528]/50 backdrop-blur-[1px]"
+        className="absolute inset-0 z-[119] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside
-        className="intel-panel absolute right-3 top-14 z-[62] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),420px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className="intel-panel absolute right-3 top-14 z-[120] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),420px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
         aria-label={trustPanelTitle(tLang)}
       >

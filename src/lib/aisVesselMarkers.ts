@@ -5,12 +5,13 @@ import {
   aisCommercialPointColor,
   aisDisplayTypeLabel,
   aisMilitaryKindColor,
+  AIS_SURFACE_COMBATANT_FILL,
   isAisAspectHullMarker,
   usesSurfaceCombatantDeckIcon,
 } from "@/lib/aisVesselClass";
 import {
   SHADOW_FLEET_MARKER_SIZE,
-  shadowFleetAspectFromRelativeHeading,
+  shadowFleetFacingFromRelativeHeading,
   shadowFleetIconSvg,
   shadowFleetRelativeHeading,
 } from "@/lib/shadowFleetDeckIcon";
@@ -18,6 +19,7 @@ import {
   surfaceCombatantAspectFromRelativeHeading,
   surfaceCombatantIconSvg,
   surfaceCombatantRelativeHeading,
+  warshipProfileIconSvg,
 } from "@/lib/surfaceCombatantDeckIcon";
 import { submarineIconSvg } from "@/lib/submarineDeckIcon";
 
@@ -40,13 +42,13 @@ function ensureAisMarkerStyles() {
       filter: drop-shadow(0 0 8px rgba(125,211,252,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-military="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 0 8px rgba(239,68,68,0.7)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 0 5px rgba(239,68,68,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.85));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-surface="1"] .ais-vessel-icon {
-      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 4px rgba(239,68,68,0.35));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-surface="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 7px rgba(239,68,68,0.55));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.48));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-submarine="1"] .ais-vessel-icon {
       filter: drop-shadow(0 0 8px rgba(167,139,250,0.55)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
@@ -55,10 +57,10 @@ function ensureAisMarkerStyles() {
       filter: drop-shadow(0 0 12px rgba(167,139,250,0.85)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-shadow="1"] .ais-vessel-icon {
-      filter: drop-shadow(0 0 8px rgba(219,39,119,0.6)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 3px rgba(239,68,68,0.45));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-shadow="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 0 12px rgba(219,39,119,0.95)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 5px rgba(239,68,68,0.55));
     }
   `;
   document.head.appendChild(style);
@@ -85,8 +87,11 @@ export function aisVesselHeadingDeg(
 }
 
 function shipColor(vessel: AisVessel): string {
-  if (vessel.disguised) return "#db2777";
+  if (vessel.disguised) return "#ef4444";
   if (vessel.category === "military") {
+    if (usesSurfaceCombatantDeckIcon(vessel.militaryKind)) {
+      return AIS_SURFACE_COMBATANT_FILL;
+    }
     return aisMilitaryKindColor(vessel.militaryKind);
   }
   const c = aisCommercialPointColor(vessel.shipType);
@@ -94,11 +99,12 @@ function shipColor(vessel: AisVessel): string {
 }
 
 function aisShipIconSvg(color: string, size: number, military: boolean): string {
+  if (military) {
+    return warshipProfileIconSvg(color, { width: size + 8, height: Math.round((size + 8) * 0.7) }, "e");
+  }
   const w = size;
   const h = size;
-  const body = military
-    ? "M16 2 L22 12 L20 12 L20 26 L12 26 L12 12 L10 12 Z"
-    : "M16 1.5 L24 14 L19 14 L19 28 L13 28 L13 14 L8 14 Z";
+  const body = "M16 1.5 L24 14 L19 14 L19 28 L13 28 L13 14 L8 14 Z";
   return `
     <svg width="${w}" height="${h}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="${body}" fill="${color}" stroke="rgba(255,255,255,0.9)" stroke-width="1.1" stroke-linejoin="round"/>
@@ -136,7 +142,7 @@ export function createAisVesselBadge(
   const aspect =
     aspectHull && relative != null
       ? disguised
-        ? shadowFleetAspectFromRelativeHeading(relative)
+        ? shadowFleetFacingFromRelativeHeading(relative)
         : surfaceCombatantAspectFromRelativeHeading(relative)
       : null;
 

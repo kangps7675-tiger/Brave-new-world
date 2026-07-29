@@ -132,7 +132,7 @@ export function LivingConflictPanel({
   return (
     <aside
       id="living-conflict-panel"
-      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 z-[48] flex max-h-[min(58vh,480px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-amber-300/25 bg-[#100e0a]/94 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 z-[120] flex max-h-[min(58vh,480px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-amber-300/25 bg-[#100e0a]/94 shadow-2xl backdrop-blur-xl"
       role="complementary"
       aria-label={title}
     >

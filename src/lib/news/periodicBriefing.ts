@@ -9,7 +9,7 @@ import {
   isChokepointNews,
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
-import { normalizeLampImageUrl } from "@/lib/news/lampThumbnail";
+import { normalizeLampImageUrl, hasLampPhoto } from "@/lib/news/lampThumbnail";
 import { isJapanGeopoliticsNews } from "@/lib/news/japanGeopolitics";
 import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
@@ -544,25 +544,17 @@ export function seedLampFeaturedNews(
   ];
 }
 
-/** 라이브 픽이 비거나 부족하면 시드로 채워 양피지 ‘불러오는 중’ 고정을 막음 */
+/**
+ * 라이브 대형 사진 기사만 유지 — 이미지 없는 시드 패딩 금지.
+ * (등불은 선명 사진 필수)
+ */
 export function ensureLampFeaturedNews(
   picked: LampFeaturedNews[],
-  mode: "conflict" | "economy",
-  lang: LabelLanguage,
-  minCount = mode === "economy" ? 4 : 5,
+  _mode: "conflict" | "economy",
+  _lang: LabelLanguage,
+  _minCount = 1,
 ): LampFeaturedNews[] {
-  if (picked.length >= minCount) return picked;
-  const seed = seedLampFeaturedNews(mode, lang);
-  if (picked.length === 0) return seed;
-  const seen = new Set(picked.map((n) => n.id));
-  const merged = [...picked];
-  for (const s of seed) {
-    if (merged.length >= minCount) break;
-    if (seen.has(s.id)) continue;
-    seen.add(s.id);
-    merged.push(s);
-  }
-  return merged;
+  return picked.filter((n) => hasLampPhoto(n.imageUrl));
 }
 
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
@@ -573,7 +565,7 @@ function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguag
     key: dayKey,
     title: `${kicker}\n${ko ? "전 세계 지역별 심층 데스크" : "Global regional deep desk"}`,
     paragraphs: [],
-    featuredNews: seedLampFeaturedNews("conflict", lang),
+    featuredNews: [],
   };
 }
 
@@ -583,7 +575,6 @@ function buildEconFallback(tier: BriefingTier, dayKey: string, lang: LabelLangua
   const ko = lang !== "en";
   const brief = briefs[hashKeyToIndex(dayKey, briefs.length)];
   const kicker = ko ? LAMP_TITLE_ECON.ko[tier] : LAMP_TITLE_ECON.en[tier];
-  const featuredNews = seedLampFeaturedNews("economy", lang);
 
   if (ko) {
     const koLines = pickKoreanLines(brief.paragraphs, 2);
@@ -603,7 +594,7 @@ function buildEconFallback(tier: BriefingTier, dayKey: string, lang: LabelLangua
         ...whatWhy.slice(0, 2),
         "이상은 확인된 자료에 근거한 정리이며, 수치는 시리즈별 기준 시점이 다를 수 있습니다. 다음 보고는 6시간마다 갱신됩니다.",
       ],
-      featuredNews,
+      featuredNews: [],
     };
   }
 
@@ -617,7 +608,7 @@ function buildEconFallback(tier: BriefingTier, dayKey: string, lang: LabelLangua
       ...brief.paragraphs.slice(0, 2),
       "This organizes verified material only; series may differ in reference date. The next report updates every 6 hours.",
     ],
-    featuredNews,
+    featuredNews: [],
   };
 }
 
@@ -1269,9 +1260,15 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 등불은 대형 컬러 사진 데스크 — 사진 있는 기사를 강하게 끌어올림(필수는 아님)
-  const imageBonus =
-    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -34 : 0;
+  // 등불은 대형 선명 사진 필수 — 점수 가산은 보조(풀에서 이미 필터)
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 물류·에너지 스트레스 사건 강력 우선
+  const logisticsStressBonus =
+    item.econGenre === "shipping" || item.econGenre === "energy" || isChokepointEconomyNews(blob)
+      ? -42
+      : isChokepointNews(blob)
+        ? -28
+        : 0;
   // 초크는 유지하되 투자 부스트보다 약하게 (chokepointScoreBonus 결과 축소)
   const chokeRaw = chokepointScoreBonus(blob, "economy");
   const chokeBonus = chokeRaw < 0 ? Math.max(chokeRaw, -12) : chokeRaw;
@@ -1305,6 +1302,7 @@ function scoreLampCandidate(
       clusterBonus +
       breakingBonus +
       imageBonus +
+      logisticsStressBonus +
       chokeBonus +
       chokeGenreBonus,
   };
@@ -1332,8 +1330,7 @@ function toFeatured(
 }
 
 /**
- * 지경학 등불 — 관심도(속보·당일·클러스터) 우선.
- * 지역·축 할당은 관심도 상위 풀 안에서만 soft 채움. 썸네일 폴백으로 사진 없어도 카드 유지.
+ * 지경학 등불 — 물류·시장 충격 심층 + 대형 선명 사진 필수.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1341,9 +1338,9 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  // 사진 필수 해제 — 관심도 높은 기사 + 폴백 썸네일
-  // 동남아·남미·아프리카 지정학 전용 전장은 지경학 등불에서 제외
+  // 사진 필수 · 지정학 전용 전장·오피니언 제외
   const pool = items.filter((item) => {
+    if (!hasLampPhoto(item.imageUrl)) return false;
     if (isGeopoliticsOnlyTheater(item.theater)) return false;
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
@@ -1377,6 +1374,7 @@ export function pickEconomyLampNews(
 
   const tryPush = (row: ScoredLampNews, relax = false): boolean => {
     const item = row.item;
+    if (!hasLampPhoto(item.imageUrl)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
 
@@ -1590,6 +1588,10 @@ const CONFLICT_ACTOR_RE: Array<{ id: string; labelKo: string; labelEn: string; r
 
 const CONFLICT_HARD_NEWS_RE =
   /strike|missile|drone|airstrike|air.?raid|offensive|invasion|artillery|front.?line|ceasefire|sanction|deployment|exercise|nuclear|bombard|shelling|intercept|blockade|chokepoint|hormuz|suez|malacca|공습|미사일|드론|타격|공세|전선|휴전|제재|배치|핵|포격|봉쇄|호르무즈|수에즈|말라카/i;
+
+/** 긴장도를 급격히 끌어올릴 수 있는 고충격 속보 */
+const CONFLICT_TENSION_SPIKE_RE =
+  /nuclear|warhead|hypersonic|invasion|massacre|genocide|escalat|red\s?line|carrier\s?strike|assassinate|tactical\s?nuke|핵탄두|침공|학살|확전|레드라인|항모타격|암살|전술핵/i;
 
 /** 외교·동맹 재편 — 전쟁과 함께 지정학 등불에 올릴 축 */
 const CONFLICT_DIPLOMACY_RE =
@@ -1982,9 +1984,14 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 대형 사진 데스크 — 사진 기사 우선 (지경학과 동일 강도)
-  const imageBonus =
-    typeof item.imageUrl === "string" && item.imageUrl.trim().length > 8 ? -34 : 0;
+  // 대형 선명 사진 필수 — 없으면 가혹 페널티(풀에서도 필터)
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 긴장 강도를 끌어올리는 무서운 군사·확전 속보 우선
+  const tensionSpikeBonus = CONFLICT_TENSION_SPIKE_RE.test(blob)
+    ? -45
+    : CONFLICT_HARD_NEWS_RE.test(blob)
+      ? -22
+      : 0;
   // Tier3 단독·짧은 본문은 가혹하게
   const tier3Thin =
     item.trustTier === 3 && clusterSize < 2 && summaryLen < 300 ? 35 : 0;
@@ -2009,6 +2016,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       clusterBonus +
       breakingBonus +
       imageBonus +
+      tensionSpikeBonus +
       tier3Thin +
       chokeBonus,
   };
@@ -2053,8 +2061,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 관심도 우선 전역 하드뉴스.
- * 적대→한국 콕집힘은 soft 우선(최대 2). 썸네일 폴백으로 사진 없어도 카드 유지.
+ * 지정학 등불 — 긴장 강도·무서운 속보 심층 + 대형 선명 사진 필수.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -2062,7 +2069,7 @@ export function pickConflictLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, CONFLICT_LAMP_NEWS_MIN);
-  const pool = items;
+  const pool = items.filter((item) => hasLampPhoto(item.imageUrl));
 
   const clusterMap = new Map<string, number>();
   for (const item of pool) {
@@ -2087,6 +2094,7 @@ export function pickConflictLampNews(
 
   const tryPush = (row: ScoredConflictNews, relax = false): boolean => {
     const item = row.item;
+    if (!hasLampPhoto(item.imageUrl)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
 

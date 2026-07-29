@@ -184,12 +184,75 @@ describe("ko/en UI strings", () => {
     expect(t("westpacShipMovesNav", "en")).toMatch(/Ship/i);
     expect(t("westpacLocationUnknown", "ko")).not.toMatch(/[A-Za-z]{4,}/);
     expect(t("westpacLocationUnknown", "en")).not.toMatch(/[가-힣]/);
-    expect(t("regimeConflictsNav", "ko")).toMatch(/분쟁/);
-    expect(t("regimeConflictsNav", "en")).toMatch(/conflict/i);
+    expect(t("disputesOverviewNav", "ko")).toMatch(/영토/);
+    expect(t("disputesOverviewNav", "en")).toMatch(/Territorial/i);
   });
 });
 
 describe("globe trail policy", () => {
+  it("같은 함정의 연속 좌표는 추정 이동경로(폴리라인)를 만든다", () => {
+    const rows: PublicShipObservation[] = [
+      {
+        id: "a",
+        reportId: "r1",
+        vesselKey: "usn:cvn-73:uss george washington",
+        vesselName: "USS George Washington",
+        hullNumber: "CVN-73",
+        navyCode: "USN",
+        navyLabel: "미 해군",
+        title: "Philippine Sea",
+        summary: null,
+        locationLabel: "필리핀해",
+        missingLocationNote: null,
+        observedAt: "2026-07-14T00:00:00.000Z",
+        locationStatus: "broad",
+        confidence: "reported",
+        vesselConfidence: "high",
+        method: "gazetteer-sea",
+        mapEligible: true,
+        lat: 18.0,
+        lng: 130.0,
+        precisionKm: 80,
+        weekStart: "2026-07-14",
+        source: "usni-fleet-tracker",
+        sourceUrl: "https://example.com/a",
+        evidenceQuotes: [],
+      },
+      {
+        id: "b",
+        reportId: "r2",
+        vesselKey: "usn:cvn-73:uss george washington",
+        vesselName: "USS George Washington",
+        hullNumber: "CVN-73",
+        navyCode: "USN",
+        navyLabel: "미 해군",
+        title: "Near Kume",
+        summary: null,
+        locationLabel: "구메섬 남서",
+        missingLocationNote: null,
+        observedAt: "2026-07-20T00:00:00.000Z",
+        locationStatus: "precise",
+        confidence: "reported",
+        vesselConfidence: "high",
+        method: "relative-bearing",
+        mapEligible: true,
+        lat: 25.7,
+        lng: 126.1,
+        precisionKm: 20,
+        weekStart: "2026-07-14",
+        source: "usni-fleet-tracker",
+        sourceUrl: "https://example.com/b",
+        evidenceQuotes: [],
+      },
+    ];
+    const paths = shipMovementTrailPaths(rows, "ko");
+    expect(paths).toHaveLength(1);
+    expect(paths[0]!.points).toHaveLength(2);
+    expect(paths[0]!.name).toMatch(/George Washington/);
+    expect(paths[0]!.name).toMatch(/→/);
+    expect(paths[0]!.kind).toBe("ship-movement-trail");
+  });
+
   it("좌표 없는 관측은 연결선을 만들지 않는다", () => {
     const rows: PublicShipObservation[] = [
       {

@@ -82,7 +82,7 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
 
   return (
     <div
-      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[47] flex max-h-[55vh] flex-col rounded-t-2xl border-t border-sky-300/20 bg-[#050b18]/97 shadow-2xl backdrop-blur-xl"
+      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[120] flex max-h-[55vh] flex-col rounded-t-2xl border-t border-sky-300/20 bg-[#050b18]/97 shadow-2xl backdrop-blur-xl"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       role="dialog"
       aria-modal="false"

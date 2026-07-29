@@ -103,20 +103,32 @@ export function createFrictionStageCalloutElement(
   title: string,
   active: boolean,
   onClick: () => void,
+  tone: "violet" | "rose" = "violet",
 ): HTMLElement {
   const el = document.createElement("button");
   el.type = "button";
-  el.className = "friction-stage-callout pointer-events-auto";
+  el.className =
+    tone === "rose"
+      ? "friction-stage-callout territorial-stage-callout pointer-events-auto"
+      : "friction-stage-callout pointer-events-auto";
   el.setAttribute("aria-label", title);
   el.title = title;
+  const border =
+    tone === "rose" ? "rgba(251,113,133,0.45)" : "rgba(196,181,253,0.45)";
+  const bg = tone === "rose" ? "rgba(22,13,16,0.92)" : "rgba(18,14,24,0.92)";
+  const color = tone === "rose" ? "#ffe4e6" : "#ede9fe";
+  const outline =
+    tone === "rose" ? "rgba(251,113,133,0.85)" : "rgba(167,139,250,0.85)";
+  const badgeBg =
+    tone === "rose" ? "rgba(244,63,94,0.35)" : "rgba(139,92,246,0.35)";
   el.style.cssText = [
     "display:flex",
     "align-items:center",
     "gap:6px",
     "transform:translate(-50%,-100%)",
-    "border:1px solid rgba(196,181,253,0.45)",
-    "background:rgba(18,14,24,0.92)",
-    "color:#ede9fe",
+    `border:1px solid ${border}`,
+    `background:${bg}`,
+    `color:${color}`,
     "border-radius:999px",
     "padding:6px 10px",
     "font-size:11px",
@@ -125,11 +137,11 @@ export function createFrictionStageCalloutElement(
     "white-space:nowrap",
     "max-width:min(70vw,220px)",
     "box-shadow:0 8px 24px rgba(0,0,0,0.45)",
-    active ? "outline:2px solid rgba(167,139,250,0.85)" : "",
+    active ? `outline:2px solid ${outline}` : "",
   ]
     .filter(Boolean)
     .join(";");
-  el.innerHTML = `<span style="display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:999px;background:rgba(139,92,246,0.35);font-size:10px">${order}</span><span style="overflow:hidden;text-overflow:ellipsis">${title.replace(/</g, "&lt;")}</span>`;
+  el.innerHTML = `<span style="display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:999px;background:${badgeBg};font-size:10px">${order}</span><span style="overflow:hidden;text-overflow:ellipsis">${title.replace(/</g, "&lt;")}</span>`;
   el.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();

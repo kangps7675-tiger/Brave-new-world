@@ -1846,6 +1846,11 @@ export function useLayerPanelCategories({
       "telegram-osint": ["conflict"],
       neptun: ["conflict"],
       "tzeva-adom": ["conflict"],
+      /** 전선·점령·타격 — 지정학 전용 */
+      ukraine: ["conflict"],
+      "ukraine-strikes-russia": ["conflict"],
+      "war-zones": ["conflict"],
+      "conflict-zones": ["conflict"],
       "ai-dc": ["economy"],
       economic: ["economy"],
       sanctions: ["economy"],

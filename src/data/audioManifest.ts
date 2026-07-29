@@ -444,14 +444,14 @@ export const AUDIO_MANIFEST = {
     category: "ambient",
     note: "FS#806273 R2dxu Carrier frequency · CC0 · 항모 클릭 저음",
   },
-  /** 군용 잠수함 */
+  /** 군용 잠수함 — 소나 핑 */
   "mil-submarine": {
     eventId: "mil-submarine",
-    freesoundQuery: "sailing vessel at sea ambient",
-    freesoundId: 177036,
-    volume: 0.28,
+    freesoundQuery: "submarine sonar ping underwater",
+    freesoundId: 713525,
+    volume: 0.26,
     category: "conflict",
-    note: "FS#177036 Trebblofang sailing-vessel-at-sea · CC0",
+    note: "FS#713525 tgerginov Sonar · CC0 · 군 잠수함 클릭",
   },
   /** 위장·다크플리트 */
   "disguised-vessel": {

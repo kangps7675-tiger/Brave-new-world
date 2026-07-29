@@ -125,9 +125,22 @@ export function resolveLampThumbTheme(input: {
   return "economy";
 }
 
-/** http(s) RSS 이미지만 통과 — 그 외는 빈 문자열 (CSS 플레이스홀더) */
+/** http(s) RSS 이미지만 통과 — 트래커·파비콘·1px 등 소형/비사진 제외 */
 export function normalizeLampImageUrl(imageUrl: string | undefined | null): string {
   const raw = typeof imageUrl === "string" ? imageUrl.trim() : "";
-  if (raw.length > 8 && /^https?:\/\//i.test(raw)) return raw;
-  return "";
+  if (raw.length <= 8 || !/^https?:\/\//i.test(raw)) return "";
+  // 선명 대형 사진 데스크 — 트래킹 픽셀·아이콘·플레이스홀더 배제
+  if (
+    /(?:favicon|sprite|pixel|1x1|tracking|badge\.svg|\.svg(?:\?|$)|\/icon[-_/]|\/icons\/|placeholder|data:image)/i.test(
+      raw,
+    )
+  ) {
+    return "";
+  }
+  return raw;
+}
+
+/** 등불 카드용 — 유효한 대형 사진 URL이 있는지 */
+export function hasLampPhoto(imageUrl: string | undefined | null): boolean {
+  return normalizeLampImageUrl(imageUrl).length > 0;
 }

@@ -290,9 +290,15 @@ export function aisCommercialPointColor(shipType: number | null | undefined): st
   }
 }
 
-/** 함종별 포인트 틴트 (군함 점·마커) */
+/** AIS 수상전투함 HTML 실루엣 — 검정 채움 + 약한 빨간 글로우 */
+export const AIS_SURFACE_COMBATANT_FILL = "#0c0c0e";
+
+/** 줌아웃 MapLibre 점용 — 검은 실루엣과 짝을 이루는 연한 빨강 틴트 */
+export const AIS_SURFACE_COMBATANT_POINT = "#f87171";
+
+/** 함종별 포인트/실루엣 틴트 (군함) */
 export function aisMilitaryKindColor(kind: AisMilitaryKind | null | undefined): string {
-  if (isAisSurfaceCombatant(kind)) return "#ef4444";
+  if (isAisSurfaceCombatant(kind)) return AIS_SURFACE_COMBATANT_FILL;
   switch (kind) {
     case "submarine":
       return "#7c3aed";
@@ -307,8 +313,18 @@ export function aisMilitaryKindColor(kind: AisMilitaryKind | null | undefined): 
     case "law-enforcement":
       return "#38bdf8";
     default:
-      return "#ef4444";
+      return AIS_SURFACE_COMBATANT_FILL;
   }
+}
+
+/** MapLibre circle 등 — 수상전투함은 점이 안 묻히게 연한 빨강 */
+export function aisMilitaryMapPointColor(
+  kind: AisMilitaryKind | null | undefined,
+): string {
+  if (isAisSurfaceCombatant(kind) || kind == null || kind === "unknown") {
+    return AIS_SURFACE_COMBATANT_POINT;
+  }
+  return aisMilitaryKindColor(kind);
 }
 
 export function parseAisClassFilter(raw: string | null): AisClassFilter {

@@ -598,21 +598,21 @@ const UI = {
     ko: "공개 관측",
     en: "Public obs.",
   },
-  regimeConflictsNav: {
-    ko: "반서방국 분쟁사",
-    en: "Intra-bloc conflicts",
-  },
-  regimeConflictsNavHint: {
-    ko: "11대 현장",
-    en: "11 sites",
-  },
   disputesOverviewNav: {
-    ko: "국경·영토 분쟁 (LSIB)",
-    en: "Territorial disputes (LSIB)",
+    ko: "영토분쟁",
+    en: "Territorial disputes",
   },
   disputesOverviewNavHint: {
-    ko: "실데이터 56건",
-    en: "56 curated sites",
+    ko: "포괄 아카이브",
+    en: "Full archive",
+  },
+  regimeConflictsNav: {
+    ko: "영토분쟁",
+    en: "Territorial disputes",
+  },
+  regimeConflictsNavHint: {
+    ko: "진영·국경",
+    en: "Bloc · border",
   },
   westpacShipMovesTitle: {
     ko: "주간 함선 이동 기록",
@@ -635,8 +635,8 @@ const UI = {
   westpacConfidenceEstimated: { ko: "추정", en: "Estimated" },
   westpacVesselUncertain: { ko: "식별 불확실", en: "ID uncertain" },
   westpacTrailLegend: {
-    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다",
-    en: "Lines connect public observations — not actual tracks",
+    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다. 전체/함선별 모드와 양피지 브리프로 경위를 읽으세요.",
+    en: "Lines connect public observations — not AIS tracks. Use All/Per-ship modes and the parchment brief.",
   },
   westpacEmptyTimeline: {
     ko: "승인된 주간 기록이 아직 없습니다.",
@@ -645,6 +645,7 @@ const UI = {
   westpacLoading: { ko: "불러오는 중…", en: "Loading…" },
   westpacExit: { ko: "나가기", en: "Exit" },
   westpacOpenSource: { ko: "출처", en: "Source" },
+  westpacBriefOpen: { ko: "양피지 브리프", en: "Parchment brief" },
 } as const;
 
 export type UiStringKey = keyof typeof UI;

@@ -14,6 +14,13 @@ import type { NeptunPayload } from "@/lib/neptun";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import {
+  ECONOMY_GENRE_ORDER,
+  economyGenreLabel,
+  matchesEconomyGenreFilter,
+  type EconomyGenreFilter,
+  type EconomyNewsGenre,
+} from "@/lib/news/economyGenres";
+import {
   formatTickerChangePercent,
   formatTickerPrice,
   pickRelatedTickers,
@@ -156,7 +163,9 @@ export function MobileHomeView({
   const en = lang === "en";
 
   const [tab, setTab] = useState<MobileTab>(() => tabFromViewer(viewerMode));
+  /** 지정학: 전장 필터 / 지경학: 경제 장르 필터 */
   const [theaterFilter, setTheaterFilter] = useState<NewsTheater | "all">("all");
+  const [economyGenreFilter, setEconomyGenreFilter] = useState<EconomyGenreFilter>("all");
   const [transits, setTransits] = useState<Record<string, ChokeTransit>>({});
   const [wti, setWti] = useState<{ score: number; delta: number | null; asOf: string | null } | null>(
     null,
@@ -171,6 +180,8 @@ export function MobileHomeView({
 
   const selectTab = (next: MobileTab) => {
     setTab(next);
+    setTheaterFilter("all");
+    setEconomyGenreFilter("all");
     if (next === "conflict") onViewerModeChange("conflict");
     if (next === "economy") onViewerModeChange("economy");
   };
@@ -300,15 +311,22 @@ export function MobileHomeView({
       .slice()
       .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
       .filter((item) => {
-        if (theaterFilter !== "all" && item.theater !== theaterFilter) return false;
-        if (tab === "economy") return item.feedTopic === "economy" || !item.feedTopic;
-        if (tab === "conflict") return item.feedTopic !== "economy";
+        if (tab === "economy") {
+          // 지경학: 경제 피드만 — 전장(지정학) 뉴스·전선 반응 카드 제외
+          if (item.feedTopic !== "economy") return false;
+          return matchesEconomyGenreFilter(item.econGenre, economyGenreFilter);
+        }
+        if (tab === "conflict") {
+          if (item.feedTopic === "economy") return false;
+          if (theaterFilter !== "all" && item.theater !== theaterFilter) return false;
+          return true;
+        }
         return true;
       })
       .slice(0, MAX_ITEMS);
-  }, [payload, theaterFilter, tab]);
+  }, [payload, theaterFilter, economyGenreFilter, tab]);
 
-  const groups = useMemo(() => {
+  const theaterGroups = useMemo(() => {
     const byTheater = new Map<NewsTheater, NewsStreamItem[]>();
     for (const item of items) {
       const list = byTheater.get(item.theater) ?? [];
@@ -317,12 +335,38 @@ export function MobileHomeView({
     }
     return Array.from(byTheater.entries())
       .map(([theater, list]) => ({
-        theater,
+        key: theater,
+        kind: "theater" as const,
         items: list,
         ageMinutes: ageMinutesOf(list[0]),
       }))
       .sort((a, b) => a.ageMinutes - b.ageMinutes);
   }, [items]);
+
+  const economyGroups = useMemo(() => {
+    const byGenre = new Map<EconomyNewsGenre, NewsStreamItem[]>();
+    for (const item of items) {
+      const genre = item.econGenre ?? "markets";
+      const list = byGenre.get(genre) ?? [];
+      list.push(item);
+      byGenre.set(genre, list);
+    }
+    const orderIndex = new Map(ECONOMY_GENRE_ORDER.map((g, i) => [g, i]));
+    return Array.from(byGenre.entries())
+      .map(([genre, list]) => ({
+        key: genre,
+        kind: "genre" as const,
+        items: list,
+        ageMinutes: ageMinutesOf(list[0]),
+      }))
+      .sort((a, b) => {
+        const age = a.ageMinutes - b.ageMinutes;
+        if (age !== 0) return age;
+        return (orderIndex.get(a.key) ?? 99) - (orderIndex.get(b.key) ?? 99);
+      });
+  }, [items]);
+
+  const groups = tab === "economy" ? economyGroups : theaterGroups;
 
   const freshest = groups[0]?.ageMinutes ?? Number.POSITIVE_INFINITY;
   const liveCount = items.filter((i) => ageMinutesOf(i) <= LIVE_AGE_MIN).length;
@@ -343,8 +387,8 @@ export function MobileHomeView({
   }, [tickers]);
 
   const economyRelated = useMemo(
-    () => pickRelatedTickers(tickers, theaterFilter === "all" ? "all" : theaterFilter),
-    [tickers, theaterFilter],
+    () => pickRelatedTickers(tickers, "all"),
+    [tickers],
   );
 
   /** 전장별 사상자 합계 — 해운 탭처럼 '전선 단위 전체 숫자' */
@@ -418,25 +462,61 @@ export function MobileHomeView({
           </label>
           <label className="block">
             <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500">
-              {en ? "Category" : "카테고리"}
+              {tab === "economy"
+                ? en
+                  ? "Theme"
+                  : "테마"
+                : tab === "conflict"
+                  ? en
+                    ? "Front"
+                    : "주요전선"
+                  : en
+                    ? "Category"
+                    : "카테고리"}
             </span>
-            <select
-              value={theaterFilter}
-              onChange={(e) => setTheaterFilter(e.target.value as NewsTheater | "all")}
-              className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
-              aria-label={en ? "Filter by theater" : "전장 카테고리"}
-              disabled={tab === "markets"}
-            >
-              {THEATER_FILTERS.map((id) => (
-                <option key={id} value={id}>
-                  {id === "all"
-                    ? en
-                      ? "All theaters"
-                      : "전체 전장"
-                    : theaterLabel(id, lang)}
-                </option>
-              ))}
-            </select>
+            {tab === "economy" ? (
+              <select
+                value={economyGenreFilter}
+                onChange={(e) =>
+                  setEconomyGenreFilter(e.target.value as EconomyGenreFilter)
+                }
+                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
+                aria-label={en ? "Filter by theme" : "지경학 테마"}
+              >
+                <option value="all">{en ? "All themes" : "전체 테마"}</option>
+                {ECONOMY_GENRE_ORDER.map((id) => (
+                  <option key={id} value={id}>
+                    {economyGenreLabel(id, lang)}
+                  </option>
+                ))}
+              </select>
+            ) : tab === "conflict" ? (
+              <select
+                value={theaterFilter}
+                onChange={(e) => setTheaterFilter(e.target.value as NewsTheater | "all")}
+                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
+                aria-label={en ? "Filter by theater" : "주요전선"}
+              >
+                {THEATER_FILTERS.map((id) => (
+                  <option key={id} value={id}>
+                    {id === "all"
+                      ? en
+                        ? "All fronts"
+                        : "전체 전선"
+                      : theaterLabel(id, lang)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select
+                disabled
+                value="all"
+                className="tap-target w-full rounded-lg border border-white/10 bg-[#0a1428]/60 px-2.5 py-2 text-[13px] font-semibold text-slate-500"
+                aria-label={en ? "Category unavailable" : "카테고리 없음"}
+              >
+                <option value="all">{en ? "Indices only" : "지수만 표시"}</option>
+              </select>
+            )}
           </label>
         </div>
       </header>
@@ -646,8 +726,8 @@ export function MobileHomeView({
                   </p>
                   <p className="mt-0.5 text-[10px] text-slate-500">
                     {en
-                      ? "Tickers linked to the selected theater · ~15 min refresh"
-                      : "선택한 전장과 연관된 종목 · 약 15분 갱신"}
+                      ? "Geo-econ themes · energy · shipping · chips · ~15 min refresh"
+                      : "지경학 테마 · 에너지·해운·반도체 등 · 약 15분 갱신"}
                   </p>
                 </div>
                 <ul className="divide-y divide-white/[0.06]">
@@ -695,14 +775,23 @@ export function MobileHomeView({
         {/* 뉴스 피드 — 증시 탭 제외 */}
         {tab !== "markets" ? (
           <div className="mt-4 space-y-3">
-            {groups.map((group, index) => (
+            {groups.map((group, index) => {
+              const groupTitle =
+                group.kind === "genre"
+                  ? economyGenreLabel(group.key as EconomyNewsGenre, lang)
+                  : theaterLabel(group.key as NewsTheater, lang);
+              const reactionTheater =
+                group.kind === "theater"
+                  ? (group.key as NewsTheater)
+                  : null;
+              return (
               <section
-                key={group.theater}
+                key={`${group.kind}-${group.key}`}
                 className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]"
               >
                 <div className="flex items-center justify-between border-b border-white/5 px-3 py-2">
                   <span className="text-[12px] font-semibold text-sky-100/90">
-                    {theaterLabel(group.theater, lang)}
+                    {groupTitle}
                   </span>
                   <span
                     className={`text-[10.5px] tabular-nums ${
@@ -713,11 +802,14 @@ export function MobileHomeView({
                   </span>
                 </div>
 
-                <EventMarketReactionCard
-                  theater={group.theater}
-                  ageMinutes={group.ageMinutes}
-                  prominent={index === 0}
-                />
+                {reactionTheater ? (
+                  <EventMarketReactionCard
+                    theater={reactionTheater}
+                    ageMinutes={group.ageMinutes}
+                    prominent={index === 0}
+                    viewerMode="conflict"
+                  />
+                ) : null}
 
                 <ul className="divide-y divide-white/5">
                   {group.items.slice(0, MAX_PER_THEATER).map((item) => {
@@ -742,7 +834,8 @@ export function MobileHomeView({
                   })}
                 </ul>
               </section>
-            ))}
+              );
+            })}
 
             {groups.length === 0 ? (
               <p className="py-10 text-center text-[12.5px] text-slate-500">

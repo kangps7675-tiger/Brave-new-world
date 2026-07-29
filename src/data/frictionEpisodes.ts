@@ -1,5 +1,6 @@
 /**
- * 반서방·권위주의 진영 내부 분쟁 외교사 — 11대 큐레이션 에피소드.
+ * 영토분쟁 아카이브 · 진영 내부(bloc) 렌즈 — 큐레이션 에피소드.
+ * UI에서는 국경·화약고와 합쳐 `territorialArchive`로 노출.
  * coordinates: [lng, lat] (GeoJSON). 내부 fly는 lat/lng로 변환.
  * 브리핑은 공개 기록·표준 명칭·연도 위주.
  * 양피지 본문(frictionParchmentParagraphs)은 사실 위에 문학적 논픽션 줄글을 가미한다.
@@ -75,25 +76,25 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   },
   {
     id: "galwan-valley-clash-2020",
-    title: "갈완 계곡 충돌 (2020)",
-    titleEn: "Galwan Valley Clash (2020)",
-    locationNameEn: "Galwan Valley, Ladakh · Line of Actual Control (LAC)",
+    title: "중인 국경·LAC 분쟁 (1962–)",
+    titleEn: "Sino–Indian Border / LAC Conflict (1962–)",
+    locationNameEn: "Himalaya · Aksai Chin · Doklam · Galwan (LAC)",
     noteEn:
-      "India is a democracy — not a pure 'intra-anti-Western' case, but a public record of border friction on the China hub.",
+      "India is a democracy — not a pure 'intra-anti-Western' case, but a public record of China-hub border friction from 1962 through Galwan.",
     briefingEn:
-      "On 15–16 June 2020, Indian and Chinese troops clashed in the Galwan Valley near the Line of Actual Control. Under agreements restricting firearms, the fighting was reported as hand-to-hand combat with clubs and improvised weapons. India officially announced 20 deaths including an officer; China later acknowledged 4 in its own statement. Both sides then combined forward deployments with rounds of talks as relations cooled.",
+      "The 1962 Sino–Indian War left an ambiguous Line of Actual Control. Doklam 2017 tested gray-zone infrastructure without gunfire; Galwan 2020 turned lethal under firearm restraints. One unfinished Himalayan frontier—not three separate wars.",
     lens: "china",
     coordinates: [78.2, 34.37],
-    zoom: 8,
+    zoom: 6.5,
     pitch: 50,
     bearing: 15,
-    historicalYear: 2020,
-    locationName: "라다크 갈완 계곡 · 실질통제선(LAC)",
+    historicalYear: 1962,
+    locationName: "히말라야 · 아크사이친 · 도클람 · 갈완 (LAC)",
     parties: ["CHN", "IND"],
-    radiusScale: 1.4,
-    note: "인도는 민주주의 국가. ‘반서방국간’ 순수 사례는 아니나 중국 허브 국경 마찰의 공개 기록이다.",
+    radiusScale: 2.0,
+    note: "인도는 민주주의 국가. ‘반서방국간’ 순수 사례는 아니나 중국 허브 국경 마찰의 공개 연속사다.",
     briefing:
-      "2020년 6월 15~16일, 인도·중국이 실질통제선(LAC) 부근 갈완 계곡에서 충돌했습니다. 양측은 총기 사용 제한 합의 하에서 육탄·둔기 중심의 난투로 보도되었습니다. 인도 측은 장교·사병 20명 사망을 공식 발표했고, 중국 측은 이후 자체 발표에서 4명 사망을 인정했습니다. 이후 양국은 전방 배치와 회담을 병행하며 관계가 냉각되었습니다.",
+      "1962년 중인전쟁이 모호한 실질통제선(LAC)을 남긴 뒤, 2017 도클람은 총성 없는 인프라 대치로, 2020 갈완은 총기 제한 하 육탄 충돌로 같은 미획정 국경을 다시 켰습니다. 세 사건이 아니라 하나의 히말라야 전선 연속사입니다.",
   },
   {
     id: "russo-georgian-war-2008",
@@ -116,22 +117,23 @@ export const FRICTION_EPISODES: readonly FrictionEpisode[] = [
   },
   {
     id: "nagorno-karabakh-war-2020",
-    title: "제2차 나고르노-카라바흐 전쟁 (2020)",
-    titleEn: "Second Nagorno-Karabakh War (2020)",
-    locationNameEn: "Shusha (Şuşa)",
+    title: "나고르노-카라바흐 분쟁 (1988–2023)",
+    titleEn: "Nagorno-Karabakh Conflict (1988–2023)",
+    locationNameEn: "Nagorno-Karabakh / Artsakh · Shusha",
     briefingEn:
-      "From 27 September 2020, Azerbaijan and Armenia (with the Artsakh/Nagorno-Karabakh side) fought a roughly 44-day war. Azerbaijan gained the battlefield advantage, and a Russia-brokered joint statement sealed a ceasefire in November. Military deaths are counted and estimated in the thousands, and the impact of drones and precision strikes on the battlefield was widely reported. Russia was involved as CSTO member and mediator, not a belligerent.",
+      "From the late-Soviet First Karabakh War (1988–94) through a long freeze, the Second War of 2020, and Azerbaijan’s 2023 offensive that ended the unrecognized republic, this is one continuous post-Soviet territorial conflict. Russia mediated and peacekept but was not the primary belligerent; Armenia and Azerbaijan (with Artsakh) fought over status and land. Casualties across the arc run into the thousands to tens of thousands depending on period and source.",
     lens: "russia",
     coordinates: [46.75, 39.76],
     zoom: 7,
     pitch: 45,
     bearing: 10,
-    historicalYear: 2020,
-    locationName: "슈샤(Şuşa / Shusha)",
+    historicalYear: 1988,
+    yearEnd: 2023,
+    locationName: "나고르노-카라바흐/아르차흐 · 슈샤",
     parties: ["AZE", "ARM"],
     radiusScale: 1.7,
     briefing:
-      "2020년 9월 27일부터 약 44일간, 아제르바이잔과 아르메니아(및 아르차흐/나고르노-카라바흐 측)가 전면전에 들어갔습니다. 아제르바이잔이 전장을 유리하게 이끌었고, 11월 러시아 중재 공동성명으로 휴전이 성사되었습니다. 군 사망자는 수천 명대로 집계·추정되며, 드론·정밀타격이 전장 양상에 미친 영향이 널리 보고되었습니다. 러시아는 CSTO·중재자 역할로 관여했으나 당사자 간 전쟁은 아닙니다.",
+      "소련 말 제1차 카라바흐 전쟁(1988–94)부터 장기 동결, 2020년 제2차 전쟁, 2023년 아제르바이잔의 공세로 미인정 공화국이 해체되기까지—하나의 포스트소련 영토 분쟁 연속사입니다. 러시아는 중재·평화유지로 관여했으나 주교전 당사자는 아르메니아·아제르바이잔(아르차흐)입니다. 시기·출처에 따라 사상자는 수천~수만 명대로 집계·추정됩니다.",
   },
   {
     id: "iran-iraq-war-1980",

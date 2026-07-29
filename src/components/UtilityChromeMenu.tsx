@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { trustChipLabel, type TrustLang } from "@/data/newsTrustTiers";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { captureMapAsImage, shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { PARCHMENT_PRO_TIP_COPY } from "@/components/ParchmentProTipChip";
@@ -27,8 +26,6 @@ type UtilityChromeMenuProps = {
     altitude: number;
     prefs: LayerPrefs;
   } | null;
-  onTrust: () => void;
-  onSources: () => void;
   onTour: () => void;
   onHelp: () => void;
   siteName?: string;
@@ -45,7 +42,6 @@ const MENU_COPY = {
     sceneFail: "복사 실패",
     share: "공유",
     shareBusy: "공유 중…",
-    sources: "자료출처",
     help: "도움말",
   },
   en: {
@@ -58,33 +54,25 @@ const MENU_COPY = {
     sceneFail: "Copy failed",
     share: "Share",
     shareBusy: "Sharing…",
-    sources: "Sources",
     help: "Help",
   },
 } as const;
 
-function toTrustLang(lang: LabelLanguage): TrustLang {
-  return lang === "en" ? "en" : "ko";
-}
-
 /**
- * 우상단 유틸 칩(신뢰도~도움말)을 하나로 묶은 드롭다운.
- * 열리면 지구본 위에 겹친다.
+ * 우상단 유틸(투어·공유·도움말)을 하나로 묶은 드롭다운.
+ * 신뢰도·자료출처는 MapAttributionBar(지구본)에서 연다.
  */
 export function UtilityChromeMenu({
   lang,
   showProTip = true,
   getCanvas,
   getScene,
-  onTrust,
-  onSources,
   onTour,
   onHelp,
   siteName = "멋진 신세계",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
   const tipCopy = PARCHMENT_PRO_TIP_COPY[lang] ?? PARCHMENT_PRO_TIP_COPY.ko;
-  const trustLabel = trustChipLabel(toTrustLang(lang));
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -199,26 +187,6 @@ export function UtilityChromeMenu({
           className="absolute right-0 top-[calc(100%+0.4rem)] z-[85] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border border-sky-300/20 bg-[#0c1a2e]/94 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-md"
         >
           <div className="max-h-[min(70vh,28rem)] space-y-0.5 overflow-y-auto p-1.5">
-            <button
-              type="button"
-              role="menuitem"
-              className={itemClass}
-              onClick={() => runAndClose(onTrust)}
-            >
-              <span aria-hidden>🛡</span>
-              <span>{trustLabel}</span>
-            </button>
-
-            <button
-              type="button"
-              role="menuitem"
-              className={itemClass}
-              onClick={() => runAndClose(onSources)}
-            >
-              <span aria-hidden>📜</span>
-              <span>{copy.sources}</span>
-            </button>
-
             {showProTip ? (
               <div className="rounded-lg">
                 <button

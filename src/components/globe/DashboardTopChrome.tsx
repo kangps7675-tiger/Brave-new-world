@@ -42,6 +42,8 @@ export interface DashboardTopChromeProps {
   showGscpiGauge: boolean;
   globeSpinEnabled: boolean;
   setGlobeSpinEnabled: Dispatch<SetStateAction<boolean>>;
+  /** 좌하단 텔레그램 OSINT 미니 패널 — 켜지면 자전 토글을 그 위로 밀어 올린다 */
+  telegramMiniPanelVisible?: boolean;
   handleNavNavigate: (selection: NavSelection) => void;
   liveUpdatedAt: string | null;
   dataGeneratedAt: string | null;
@@ -107,6 +109,7 @@ export function DashboardTopChrome({
   showGscpiGauge,
   globeSpinEnabled,
   setGlobeSpinEnabled,
+  telegramMiniPanelVisible = false,
   handleNavNavigate,
   liveUpdatedAt,
   dataGeneratedAt,
@@ -168,10 +171,14 @@ export function DashboardTopChrome({
       ) : null}
       {entryGate === null && !showModePicker && !intelSheetOpen ? (
         <div
-          className="pointer-events-none fixed left-3 z-[70] sm:left-4"
+          className={`pointer-events-none fixed left-3 sm:left-4 ${
+            telegramMiniPanelVisible ? "z-[125]" : "z-[70]"
+          }`}
           style={{
-            bottom:
-              "calc(var(--bottom-intel-stack-clearance, 3.25rem) + 0.85rem + env(safe-area-inset-bottom, 0px))",
+            // 텔레그램 미니 패널(bottom 1.25rem · 리스트 max min(52vh,480px) · 헤더/푸터) 위로
+            bottom: telegramMiniPanelVisible
+              ? "calc(min(52vh, 480px) + 8.5rem + env(safe-area-inset-bottom, 0px))"
+              : "calc(var(--bottom-intel-stack-clearance, 3.25rem) + 0.85rem + env(safe-area-inset-bottom, 0px))",
           }}
         >
           <GlobeSpinToggle
@@ -277,8 +284,6 @@ export function DashboardTopChrome({
                   showProTip={entryGate === null && !showModePicker}
                   getCanvas={() => globeRef.current?.renderer().domElement ?? null}
                   getScene={getSceneForShare}
-                  onTrust={() => setShowTrustPanel(true)}
-                  onSources={() => setShowSourcesPanel(true)}
                   onTour={() => setChromeCoachStep("nav")}
                   onHelp={() => setShowFeatureGuide(true)}
                 />

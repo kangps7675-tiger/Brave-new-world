@@ -13,6 +13,7 @@ type GlobeSpinToggleProps = {
 /**
  * 지구본 은은한 자전 ON/OFF.
  * 좌하단 — HoverNav·우상단 지표·하단 인텔 도크와 겹치지 않게 배치.
+ * 텔레그램 OSINT 미니 패널이 열리면 DashboardTopChrome이 위로 밀어 올린다.
  */
 export function GlobeSpinToggle({
   spinning,

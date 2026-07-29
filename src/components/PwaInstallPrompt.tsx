@@ -186,7 +186,7 @@ export function PwaInstallPrompt() {
 
   return (
     <div
-      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[92] px-3"
+      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[120] px-3"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
       role="dialog"
       aria-modal="false"

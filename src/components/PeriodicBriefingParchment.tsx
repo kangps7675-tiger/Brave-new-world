@@ -517,8 +517,8 @@ function PhotoNewsLampParchment({
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
-                        ? "No desk cards in this slot — fold and reopen after the next 6-hour refresh."
-                        : "이 슬롯에 데스크 카드가 없습니다. 접었다가 다음 6시간 갱신 후 다시 펼쳐 보세요."}
+                        ? "No clear photo deep-desk cards in this slot — fold and reopen after the next 6-hour refresh."
+                        : "이 슬롯에 선명 사진·심층 데스크 카드가 없습니다. 접었다가 다음 6시간 갱신 후 다시 펼쳐 보세요."}
                     </p>
                   )}
 

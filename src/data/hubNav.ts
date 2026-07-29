@@ -397,11 +397,11 @@ export function selectionForArms(hub: HubDefinition): NavSelection {
 export function selectionForRegime(hub: HubDefinition): NavSelection {
   return {
     id: `hub-${hub.hubId.toLowerCase()}-regime`,
-    label: `${hub.label} · 반서방국 충돌사`,
+    label: `${hub.label} · 진영 내부 충돌사`,
     lat: hub.lat,
     lng: hub.lng,
     altitude: hub.altitude,
-    description: "진영 내부 충돌 현장 · 상황 설명 큐레이션",
+    description: "영토분쟁 아카이브 · 진영 내부 렌즈",
     bbox: hub.bbox,
     actorCountries: [hub.iso],
     groupId: "axis-hubs",
@@ -411,30 +411,31 @@ export function selectionForRegime(hub: HubDefinition): NavSelection {
   };
 }
 
-/** 상단 nav의 전체 분쟁사 진입점 — 특정 허브 필터 없이 11대 에피소드 표시 */
+/** 상단 nav의 전체 분쟁사 진입점 — 영토분쟁 아카이브의 진영 내부 렌즈 */
 export function selectionForRegimeOverview(): NavSelection {
   return {
     id: "axis-regime-overview",
-    label: "반서방국 분쟁사",
+    label: "진영 내부 충돌사",
     lat: 34,
     lng: 76,
     altitude: 2.15,
-    description: "반서방 진영 내부의 주요 충돌 현장 11대 큐레이션",
+    description: "영토분쟁 아카이브 · 진영 내부(bloc) 렌즈 큐레이션",
     bbox: { minLat: -20, maxLat: 70, minLng: -20, maxLng: 145 },
     groupId: "axis-hubs",
     focusMode: "regime",
   };
 }
 
-/** 상단 nav의 국경·영토 분쟁 진입점 — LSIB(미 국무부) + 실제 분쟁 큐레이션 56건 */
+/** 상단 nav의 영토분쟁 통합 진입점 — 진영 내부 + 국경·화약고 포괄 아카이브 */
 export function selectionForDisputesOverview(): NavSelection {
   return {
     id: "territorial-disputes-overview",
-    label: "국경·영토 분쟁 (LSIB)",
+    label: "영토분쟁",
     lat: 20,
     lng: 70,
     altitude: 2.3,
-    description: "미 국무부 LSIB 경계 데이터 + 실제 영토·해양 분쟁 큐레이션",
+    description:
+      "진영 내부 충돌·국경 화약고·오늘날 핫스팟을 하나의 포괄 아카이브로",
     bbox: { minLat: -20, maxLat: 70, minLng: -20, maxLng: 145 },
     groupId: "axis-hubs",
     focusMode: "disputes",

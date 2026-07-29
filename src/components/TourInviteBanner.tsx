@@ -72,7 +72,7 @@ export function TourInviteBanner({ lang, open, onAccept, onDismiss }: Props) {
 
   return (
     <div
-      className="pointer-events-auto fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-[90] mx-auto max-w-md rounded-lg border border-sky-400/35 bg-[#0c1524]/94 px-4 py-3 text-sky-50 shadow-xl backdrop-blur-md sm:inset-x-auto sm:right-4 sm:left-auto"
+      className="pointer-events-auto fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-[120] mx-auto max-w-md rounded-lg border border-sky-400/35 bg-[#0c1524]/94 px-4 py-3 text-sky-50 shadow-xl backdrop-blur-md sm:inset-x-auto sm:right-4 sm:left-auto"
       role="dialog"
       aria-label={en ? "Screen tour invite" : "화면 투어 안내"}
     >
