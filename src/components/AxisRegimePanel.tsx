@@ -49,11 +49,11 @@ export function AxisRegimePanel({
   return (
     <aside
       id="axis-regime-panel"
-      className="pointer-events-auto absolute right-3 top-20 z-[120] flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/20 bg-[#120e18]/92 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-20 z-[600] flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/20 bg-[#120e18]/92 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-violet-200/55">
+          <p className="text-micro uppercase tracking-[0.2em] text-violet-200/55">
             {en
               ? `Territorial archive · intra-bloc · ${FRICTION_EPISODES.length} · locked`
               : `영토분쟁 아카이브 · 진영 내부 · ${FRICTION_EPISODES.length}건 · 잠금`}
@@ -64,7 +64,7 @@ export function AxisRegimePanel({
                 ? `All hubs · ${FRICTION_EPISODES.length} sites`
                 : `전체 허브 · ${FRICTION_EPISODES.length}건`)}
           </h2>
-          <p className="mt-1 text-[10px] leading-4 text-violet-100/45">
+          <p className="mt-1 text-micro leading-4 text-violet-100/45">
             {en
               ? "This panel stays locked until you exit (✕). Zoom and mode switches will not leave it."
               : "나가기(✕) 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다."}
@@ -73,7 +73,7 @@ export function AxisRegimePanel({
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg border border-violet-300/25 px-2 py-1 text-[10px] text-violet-100/70 transition hover:border-violet-200/40 hover:text-violet-50"
+          className="shrink-0 rounded-lg border border-violet-300/25 px-2 py-1 text-micro text-violet-100/70 transition hover:border-violet-200/40 hover:text-violet-50"
         >
           {en ? "Exit" : "나가기"}
         </button>
@@ -81,7 +81,7 @@ export function AxisRegimePanel({
 
       {hubId ? (
       <div className="flex items-center gap-2 border-b border-violet-200/10 px-3 py-1.5">
-        <label className="flex cursor-pointer items-center gap-1.5 text-[10px] text-violet-100/70">
+        <label className="flex cursor-pointer items-center gap-1.5 text-micro text-violet-100/70">
           <input
             type="checkbox"
             checked={showGlobal}
@@ -113,16 +113,16 @@ export function AxisRegimePanel({
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-medium text-violet-50">{episodeTitle(ep, lang)}</p>
-                  <span className="shrink-0 text-[9px] text-violet-200/45">
+                  <p className="text-meta font-medium text-violet-50">{episodeTitle(ep, lang)}</p>
+                  <span className="shrink-0 text-micro text-violet-200/45">
                     {ep.historicalYear}
                     {ep.yearEnd ? `–${ep.yearEnd}` : ""}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-violet-100/55">
+                <p className="mt-0.5 text-micro text-violet-100/55">
                   {episodeLocationName(ep, lang)}
                 </p>
-                <p className="mt-0.5 text-[9px] uppercase tracking-wider text-violet-200/35">
+                <p className="mt-0.5 text-micro uppercase tracking-wider text-violet-200/35">
                   {LENS_LABEL[ep.lens]?.[en ? "en" : "ko"] ?? ep.lens}
                 </p>
               </button>
@@ -131,7 +131,7 @@ export function AxisRegimePanel({
         )}
       </div>
 
-      <p className="border-t border-violet-200/10 px-3 py-2 text-[9px] leading-4 text-violet-100/40">
+      <p className="border-t border-violet-200/10 px-3 py-2 text-micro leading-4 text-violet-100/40">
         {en
           ? "Coordinates mark representative battle/site points. Based on public records, described without distortion. No exhaustive V-Dem timeline is used."
           : "좌표는 교전·현장 대표점(경도·위도). 공개 기록 기반 · 왜곡 없이 서술. V-Dem 전수 연표는 사용하지 않음."}

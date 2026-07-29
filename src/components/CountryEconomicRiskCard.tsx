@@ -82,15 +82,15 @@ function IndicatorRow({ reading, lang }: { reading: WbIndicatorReading; lang: La
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <div className="min-w-0">
-        <p className="truncate text-[11px] text-slate-300">{label}</p>
+        <p className="truncate text-meta text-slate-300">{label}</p>
         {reading.year ? (
-          <p className="text-[9px] text-slate-500">{reading.year}</p>
+          <p className="text-micro text-slate-500">{reading.year}</p>
         ) : null}
       </div>
       <div className="flex items-center gap-2">
         <Sparkbars history={reading.history} accent={accent} />
         <span
-          className="w-14 text-right font-mono text-[12px] tabular-nums"
+          className="w-14 text-right font-mono text-caption tabular-nums"
           style={{ color: accent }}
         >
           {valueText}
@@ -281,12 +281,12 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
       <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{title}</p>
-          <span className="rounded-full border border-slate-600/60 bg-slate-700/20 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+          <span className="rounded-full border border-slate-600/60 bg-slate-700/20 px-2 py-0.5 text-micro font-semibold text-slate-400">
             {copy.title}
           </span>
         </div>
         <p className="mt-3 text-sm text-slate-500">{copy.body}</p>
-        <p className="mt-2 text-[10px] text-slate-600">World Bank Open Data</p>
+        <p className="mt-2 text-micro text-slate-600">World Bank Open Data</p>
       </section>
     );
   }
@@ -299,7 +299,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{title}</p>
         <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          className="rounded-full px-2 py-0.5 text-micro font-semibold"
           style={{ color: accent, backgroundColor: `${accent}1f`, border: `1px solid ${accent}55` }}
         >
           {data ? riskBandLabel(data.band, ko) : ko ? "불러오는 중" : "Loading"}
@@ -318,7 +318,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
             <p className="font-mono text-[2.25rem] font-semibold leading-none tabular-nums" style={{ color: accent }}>
               {score ?? "—"}
             </p>
-            <p className="pb-1 text-[11px] leading-snug text-slate-500">
+            <p className="pb-1 text-meta leading-snug text-slate-500">
               {ko ? "종합 위협 지수" : "Composite threat"}
               <br />
               {ko ? "0 안정 · 100 위기" : "0 stable · 100 crisis"}
@@ -335,7 +335,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
               {vulnerabilityTags.map((tag) => (
                 <span
                   key={tag.key}
-                  className="rounded-full border border-slate-600/50 bg-slate-800/40 px-2 py-0.5 text-[10px] text-slate-300"
+                  className="rounded-full border border-slate-600/50 bg-slate-800/40 px-2 py-0.5 text-micro text-slate-300"
                 >
                   {tag.label}
                 </span>
@@ -347,7 +347,7 @@ export function CountryEconomicRiskCard({ iso3, lang }: Props) {
               <IndicatorRow key={reading.id} reading={reading} lang={lang} />
             ))}
           </div>
-          <p className="mt-3 text-[10px] text-slate-600">
+          <p className="mt-3 text-micro text-slate-600">
             World Bank Open Data
             {vulnerabilityTags.some((t) => t.key === "choke")
               ? ko

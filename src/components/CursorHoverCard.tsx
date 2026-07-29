@@ -72,7 +72,7 @@ export function CursorHoverCard({
       ref={ref}
       className={
         className ??
-        "pointer-events-none absolute z-[70] max-w-[min(88vw,340px)] rounded-xl border border-sky-300/25 bg-[#0a1830]/90 px-3 py-2 text-xs shadow-xl backdrop-blur-md"
+        "pointer-events-none absolute z-[200] max-w-[min(88vw,340px)] rounded-xl border border-sky-300/25 bg-[#0a1830]/90 px-3 py-2 text-xs shadow-xl backdrop-blur-md"
       }
       style={{ left: position.left, top: position.top }}
     >
@@ -83,7 +83,7 @@ export function CursorHoverCard({
           {title ? <p className="font-medium text-sky-100">{title}</p> : null}
           {badge ? (
             <p className="mt-1">
-              <span className="inline-flex rounded-full border border-orange-300/35 bg-orange-400/15 px-2 py-0.5 text-[10px] font-medium text-orange-100">
+              <span className="inline-flex rounded-full border border-orange-300/35 bg-orange-400/15 px-2 py-0.5 text-micro font-medium text-orange-100">
                 {badge}
               </span>
             </p>
@@ -91,9 +91,9 @@ export function CursorHoverCard({
           {detail ? (
             <p className={badge ? "mt-1.5 text-sky-100/85" : "mt-1 text-sky-100/85"}>{detail}</p>
           ) : null}
-          {body ? <p className="mt-1.5 text-[11px] leading-4 text-sky-100/70">{body}</p> : null}
-          {meta ? <p className="mt-1 text-[10px] text-sky-200/55">{meta}</p> : null}
-          {hint ? <p className="mt-1 text-[10px] text-sky-200/45">{hint}</p> : null}
+          {body ? <p className="mt-1.5 text-meta leading-4 text-sky-100/70">{body}</p> : null}
+          {meta ? <p className="mt-1 text-micro text-sky-200/55">{meta}</p> : null}
+          {hint ? <p className="mt-1 text-micro text-sky-200/45">{hint}</p> : null}
         </>
       )}
     </div>

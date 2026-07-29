@@ -64,7 +64,7 @@ export function SceneLinkButton({ getScene, className = "" }: SceneLinkButtonPro
       type="button"
       aria-label={lang === "en" ? "Copy a link to this scene" : "이 장면 링크 복사"}
       onClick={handleCopy}
-      className={`flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-[11px] font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65 ${className}`}
+      className={`flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65 ${className}`}
     >
       <span aria-hidden>{copied ? "✓" : "🔗"}</span>
       <span>

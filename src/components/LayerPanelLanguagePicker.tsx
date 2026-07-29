@@ -25,7 +25,7 @@ export const LayerPanelLanguagePicker = memo(function LayerPanelLanguagePicker({
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {t("displayLanguage", lang)}
       </p>
-      <p className="mt-1 text-[11px] text-slate-600">{t("displayLanguageHint", lang)}</p>
+      <p className="mt-1 text-meta text-slate-600">{t("displayLanguageHint", lang)}</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           type="button"

@@ -1,9 +1,10 @@
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { isMostlyKorean, translateTextToKorean } from "@/lib/koreanTranslate";
 
-const FLASH_SUMMARY_MIN = 300;
-const FLASH_SUMMARY_MAX = 520;
+const FLASH_SUMMARY_MIN = 180;
+const FLASH_SUMMARY_MAX = 420;
 
-/** 속보 양피지용 심층 요약 — 등불과 동일 길이대 */
+/** 속보 양피지용 심층 요약 — 위중 타전용 (과도한 패딩 지양) */
 export function deepenSummaryForFlash(
   raw: string | undefined,
   title: string,
@@ -19,10 +20,10 @@ export function deepenSummaryForFlash(
   ) {
     clean = `${titleTrim}. ${clean}`.trim();
   }
-  if (clean.length < 80) {
+  if (clean.length < 60) {
     clean = ko
-      ? `${titleTrim}. 현장에서 확인된 속보를 바탕으로 정세·시장 영향 경로를 즉시 정리합니다. 교차 확인이 이어지는 대로 등불·인텔 스택에 반영됩니다.`
-      : `${titleTrim}. Immediate desk note on situation and market transmission paths. Updates land on the lamp and intel stack as corroboration arrives.`;
+      ? `${titleTrim}. 교차확인된 와이어를 바탕으로 즉시 타전합니다.`
+      : `${titleTrim}. Immediate flash from corroborated wires.`;
   }
   if (clean.length > FLASH_SUMMARY_MAX) {
     const sliced = clean.slice(0, FLASH_SUMMARY_MAX);
@@ -30,9 +31,33 @@ export function deepenSummaryForFlash(
       sliced.lastIndexOf("。"),
       sliced.lastIndexOf(". "),
       sliced.lastIndexOf("…"),
+      sliced.lastIndexOf("다. "),
     );
     if (lastStop >= FLASH_SUMMARY_MIN) return sliced.slice(0, lastStop + 1).trim();
     return sliced.trim();
   }
   return clean;
+}
+
+/**
+ * 한글 UI면 제목·요약을 무조건 한국어로 (이미 한글이면 유지).
+ * 번역 실패 시 원문 반환 — 호출측에서 타전 문장 골격은 한국어 템플릿.
+ */
+export async function ensureFlashCopyKorean(parts: {
+  title: string;
+  summary?: string;
+}): Promise<{ title: string; summary: string }> {
+  let title = parts.title.replace(/\s+/g, " ").trim();
+  let summary = (parts.summary ?? "").replace(/\s+/g, " ").trim();
+  try {
+    if (title && !isMostlyKorean(title)) {
+      title = await translateTextToKorean(title);
+    }
+    if (summary && !isMostlyKorean(summary)) {
+      summary = await translateTextToKorean(summary);
+    }
+  } catch {
+    /* keep original */
+  }
+  return { title, summary };
 }

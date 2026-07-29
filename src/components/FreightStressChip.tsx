@@ -64,18 +64,18 @@ export function FreightStressChip({ lang, className = "" }: Props) {
       title={ko ? "해운 프록시(BDRY) · Yahoo 종가 전일대비" : "Shipping proxy (BDRY) · Yahoo close"}
     >
       <p
-        className={`text-[9px] font-semibold uppercase tracking-wider ${
+        className={`text-micro font-semibold uppercase tracking-wider ${
           light ? "text-cyan-800" : "text-sky-200/80"
         }`}
       >
         {ko ? "해운 프록시" : "Shipping proxy"}
       </p>
       <div className="mt-0.5 flex items-baseline gap-1.5">
-        <span className={`text-[10px] ${light ? "text-slate-600" : "text-slate-500"}`}>BDRY</span>
+        <span className={`text-micro ${light ? "text-slate-600" : "text-slate-500"}`}>BDRY</span>
         {error || pct == null ? (
-          <span className={`text-[11px] ${light ? "text-slate-600" : "text-slate-500"}`}>—</span>
+          <span className={`text-meta ${light ? "text-slate-600" : "text-slate-500"}`}>—</span>
         ) : (
-          <span className={`font-mono text-[12px] font-semibold tabular-nums ${tone}`}>
+          <span className={`font-mono text-caption font-semibold tabular-nums ${tone}`}>
             {ko ? "전일 " : "d/d "}
             {pct > 0 ? "+" : ""}
             {pct.toFixed(1)}%

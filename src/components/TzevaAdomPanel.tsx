@@ -146,7 +146,7 @@ export function TzevaAdomPanel({
   }
 
   return (
-    <div ref={rootRef} className="pointer-events-auto relative z-[55]">
+    <div ref={rootRef} className="pointer-events-auto relative z-[100]">
       <button
         type="button"
         aria-expanded={open}
@@ -182,11 +182,11 @@ export function TzevaAdomPanel({
           <>
             <span className="min-w-0 flex-1 text-left">
               <span className="flex items-center gap-1.5">
-                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/80">
+                <span className="block truncate text-micro font-semibold uppercase tracking-[0.14em] text-red-200/80">
                   {tzevaUi("brand", lang)}
                 </span>
                 {!hasActive && live ? (
-                  <span className="shrink-0 animate-pulse rounded border border-emerald-400/45 px-1 text-[8px] font-bold uppercase tracking-wider text-emerald-300">
+                  <span className="shrink-0 animate-pulse rounded border border-emerald-400/45 px-1 text-micro font-bold uppercase tracking-wider text-emerald-300">
                     Live
                   </span>
                 ) : null}
@@ -211,7 +211,7 @@ export function TzevaAdomPanel({
       </button>
 
       <div
-        className={`absolute right-0 z-[70] w-[min(92vw,320px)] origin-top transition-all duration-200 ease-out ${
+        className={`absolute right-0 z-[200] w-[min(92vw,320px)] origin-top transition-all duration-200 ease-out ${
           compact ? "bottom-full mb-1.5 origin-bottom" : "top-full"
         } ${
           open
@@ -227,21 +227,21 @@ export function TzevaAdomPanel({
           }`}
         >
           <div className="border-b border-red-400/15 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-200/75">
+            <p className="text-micro font-semibold uppercase tracking-[0.18em] text-red-200/75">
               {tzevaUi("brand", lang)}
             </p>
-            <p className="mt-0.5 text-[11px] text-red-100/55">{tzevaUi("subtitle", lang)}</p>
+            <p className="mt-0.5 text-meta text-red-100/55">{tzevaUi("subtitle", lang)}</p>
           </div>
 
           <div className="max-h-64 overflow-y-auto overscroll-contain p-1.5">
             {geoRestricted || liveStatus === "geo-blocked" ? (
-              <p className="px-2 py-3 text-[11px] leading-relaxed text-amber-200/90">
+              <p className="px-2 py-3 text-meta leading-relaxed text-amber-200/90">
                 {tzevaUi("geoHint", lang)}
               </p>
             ) : error ? (
-              <p className="px-2 py-3 text-[11px] text-red-200/85">{error}</p>
+              <p className="px-2 py-3 text-meta text-red-200/85">{error}</p>
             ) : list.length === 0 ? (
-              <p className="px-2 py-3 font-mono text-[11px] text-slate-500">
+              <p className="px-2 py-3 font-mono text-meta text-slate-500">
                 {tzevaUi("awaiting", lang)}
               </p>
             ) : (
@@ -259,7 +259,7 @@ export function TzevaAdomPanel({
                         onClick={() => focusAlert(alert)}
                         className="w-full px-2.5 py-2 text-left transition hover:bg-red-500/10"
                       >
-                        <div className="flex flex-wrap items-center gap-x-1.5 text-[9px] text-slate-500">
+                        <div className="flex flex-wrap items-center gap-x-1.5 text-micro text-slate-500">
                           <span className="text-slate-400">{formatTime(alert.alertDate, lang)}</span>
                           {isLive ? (
                             <span className="rounded border border-red-400/35 px-1 text-red-200">
@@ -267,10 +267,10 @@ export function TzevaAdomPanel({
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-0.5 text-[12px] font-semibold leading-snug text-slate-50">
+                        <p className="mt-0.5 text-caption font-semibold leading-snug text-slate-50">
                           {region}
                         </p>
-                        <p className="mt-0.5 text-[10px] leading-snug text-slate-400">{title}</p>
+                        <p className="mt-0.5 text-micro leading-snug text-slate-400">{title}</p>
                       </button>
                     </li>
                   );
@@ -279,7 +279,7 @@ export function TzevaAdomPanel({
             )}
           </div>
 
-          <p className="border-t border-red-950/40 px-3 py-1.5 font-mono text-[8px] text-slate-600">
+          <p className="border-t border-red-950/40 px-3 py-1.5 font-mono text-micro text-slate-600">
             {tzevaUi("source", lang)}
           </p>
         </div>

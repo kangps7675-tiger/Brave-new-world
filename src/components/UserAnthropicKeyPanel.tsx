@@ -85,10 +85,10 @@ export function UserAnthropicKeyPanel({ compact = false }: { compact?: boolean }
         className="flex w-full items-center justify-between gap-2 text-left"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="text-[11px] font-medium text-violet-100/90">
+        <span className="text-meta font-medium text-violet-100/90">
           {lang === "en" ? "Your Anthropic API key (BYOK)" : "본인 Anthropic API 키 (BYOK)"}
         </span>
-        <span className="text-[10px] text-violet-300/60">
+        <span className="text-micro text-violet-300/60">
           {savedMasked
             ? savedMasked
             : status?.stubMode
@@ -104,7 +104,7 @@ export function UserAnthropicKeyPanel({ compact = false }: { compact?: boolean }
 
       {open ? (
         <div className="mt-2 space-y-2">
-          <p className="text-[10px] leading-4 text-violet-200/55">
+          <p className="text-micro leading-4 text-violet-200/55">
             {lang === "en"
               ? "User analysis bills your key. Site server key (if any) is for editorial digest only — never for this button."
               : "유저 분석 비용은 본인 키에서만 나갑니다. 사이트 서버 키는 긴급 뉴스 편집용이며 이 버튼에 쓰지 않습니다."}
@@ -122,21 +122,21 @@ export function UserAnthropicKeyPanel({ compact = false }: { compact?: boolean }
             <button
               type="button"
               onClick={save}
-              className="rounded bg-violet-500/80 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-violet-400"
+              className="rounded bg-violet-500/80 px-2.5 py-1 text-meta font-medium text-white hover:bg-violet-400"
             >
               {lang === "en" ? "Save" : "저장"}
             </button>
             <button
               type="button"
               onClick={clear}
-              className="rounded border border-violet-400/30 px-2.5 py-1 text-[11px] text-violet-200/80 hover:bg-violet-900/40"
+              className="rounded border border-violet-400/30 px-2.5 py-1 text-meta text-violet-200/80 hover:bg-violet-900/40"
             >
               {lang === "en" ? "Clear" : "삭제"}
             </button>
           </div>
-          {msg ? <p className="text-[10px] text-violet-200/70">{msg}</p> : null}
+          {msg ? <p className="text-micro text-violet-200/70">{msg}</p> : null}
           {status ? (
-            <p className="text-[10px] text-violet-300/45">
+            <p className="text-micro text-violet-300/45">
               {lang === "en" ? "Server digest LLM: " : "서버 편집 digest: "}
               {status.digestLlmReady
                 ? lang === "en"

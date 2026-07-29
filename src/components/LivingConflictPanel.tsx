@@ -49,10 +49,10 @@ function SixWBlock({ sixW, ko }: { sixW: LivingSixW; ko: boolean }) {
     <dl className="space-y-2 px-3 py-2">
       {rows.map((row) => (
         <div key={row.k}>
-          <dt className="text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-200/55">
+          <dt className="text-micro font-semibold uppercase tracking-[0.16em] text-amber-200/55">
             {row.k}
           </dt>
-          <dd className="mt-0.5 text-[11px] leading-4 text-slate-200/85">{row.v}</dd>
+          <dd className="mt-0.5 text-meta leading-4 text-slate-200/85">{row.v}</dd>
         </div>
       ))}
     </dl>
@@ -132,17 +132,17 @@ export function LivingConflictPanel({
   return (
     <aside
       id="living-conflict-panel"
-      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 z-[120] flex max-h-[min(58vh,480px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-amber-300/25 bg-[#100e0a]/94 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 z-[600] flex max-h-[min(58vh,480px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-amber-300/25 bg-[#100e0a]/94 shadow-2xl backdrop-blur-xl"
       role="complementary"
       aria-label={title}
     >
       <div className="flex items-start justify-between gap-2 border-b border-amber-200/10 px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-amber-200/55">
+          <p className="text-micro uppercase tracking-[0.2em] text-amber-200/55">
             {ko ? "진행형 분쟁 · 팔로우" : "Living conflict · follow"}
           </p>
           <h2 className="mt-0.5 truncate text-sm font-medium text-amber-50">{title}</h2>
-          <p className="mt-1 text-[10px] leading-4 text-amber-100/50">
+          <p className="mt-1 text-micro leading-4 text-amber-100/50">
             {ko
               ? "11대 분쟁사와 같은 6하원칙. 「어제 이후」는 매일 붙습니다."
               : "Same 6W format as archived theaters. 「Since yesterday」 grows daily."}
@@ -151,7 +151,7 @@ export function LivingConflictPanel({
         <button
           type="button"
           onClick={onClose}
-          className="tap-target shrink-0 rounded-lg border border-amber-300/25 px-2 py-1 text-[10px] text-amber-100/70 transition hover:border-amber-200/40 hover:text-amber-50"
+          className="tap-target shrink-0 rounded-lg border border-amber-300/25 px-2 py-1 text-micro text-amber-100/70 transition hover:border-amber-200/40 hover:text-amber-50"
         >
           {ko ? "닫기" : "Close"}
         </button>
@@ -161,7 +161,7 @@ export function LivingConflictPanel({
         <button
           type="button"
           onClick={handleFollow}
-          className={`tap-target min-h-[44px] flex-1 rounded-lg border px-2 text-[11px] font-medium transition ${
+          className={`tap-target min-h-[44px] flex-1 rounded-lg border px-2 text-meta font-medium transition ${
             following
               ? "border-amber-300/50 bg-amber-500/25 text-amber-50"
               : "border-amber-300/25 bg-amber-500/10 text-amber-50 hover:border-amber-200/40"
@@ -173,7 +173,7 @@ export function LivingConflictPanel({
           type="button"
           onClick={handleFly}
           disabled={!data}
-          className="tap-target min-h-[44px] shrink-0 rounded-lg border border-sky-300/25 bg-sky-500/10 px-2 text-[11px] font-medium text-sky-50 transition hover:border-sky-200/40 disabled:opacity-50"
+          className="tap-target min-h-[44px] shrink-0 rounded-lg border border-sky-300/25 bg-sky-500/10 px-2 text-meta font-medium text-sky-50 transition hover:border-sky-200/40 disabled:opacity-50"
         >
           {ko ? "지도에서 보기" : "View on map"}
         </button>
@@ -181,7 +181,7 @@ export function LivingConflictPanel({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loadError && !data ? (
-          <p className="px-3 py-4 text-[12px] text-rose-200/80">
+          <p className="px-3 py-4 text-caption text-rose-200/80">
             {ko ? "불러오지 못했습니다. 시드로 재시도하세요." : "Failed to load. Try again."}
           </p>
         ) : null}
@@ -189,14 +189,14 @@ export function LivingConflictPanel({
         {data ? (
           <>
             <div className="border-b border-amber-200/10">
-              <p className="px-3 pt-2 text-[9px] uppercase tracking-[0.18em] text-amber-200/45">
+              <p className="px-3 pt-2 text-micro uppercase tracking-[0.18em] text-amber-200/45">
                 {ko ? "6하원칙" : "Six W"}
               </p>
               <SixWBlock sixW={data.sixW} ko={ko} />
             </div>
 
             <div className="border-b border-amber-200/10 px-2 py-2">
-              <p className="px-1 pb-1.5 text-[9px] uppercase tracking-[0.18em] text-amber-200/45">
+              <p className="px-1 pb-1.5 text-micro uppercase tracking-[0.18em] text-amber-200/45">
                 {ko ? "고정 타임라인" : "Fixed stages"}
               </p>
               <ol className="space-y-1.5">
@@ -205,13 +205,13 @@ export function LivingConflictPanel({
                     key={stage.id}
                     className="rounded-xl border border-amber-200/10 bg-amber-500/5 px-2.5 py-2"
                   >
-                    <span className="text-[10px] font-semibold text-amber-200/70">
+                    <span className="text-micro font-semibold text-amber-200/70">
                       {stage.order}. {stage.yearLabel}
                     </span>
-                    <p className="mt-0.5 text-[12px] font-medium text-amber-50">
+                    <p className="mt-0.5 text-caption font-medium text-amber-50">
                       {ko ? stage.titleKo : stage.titleEn}
                     </p>
-                    <p className="mt-0.5 line-clamp-2 text-[10px] leading-4 text-amber-100/55">
+                    <p className="mt-0.5 line-clamp-2 text-micro leading-4 text-amber-100/55">
                       {ko ? stage.bodyKo : stage.bodyEn}
                     </p>
                   </li>
@@ -220,11 +220,11 @@ export function LivingConflictPanel({
             </div>
 
             <div className="px-2 py-2">
-              <p className="px-1 pb-1.5 text-[9px] uppercase tracking-[0.18em] text-sky-200/55">
+              <p className="px-1 pb-1.5 text-micro uppercase tracking-[0.18em] text-sky-200/55">
                 {ko ? "어제 이후" : "Since yesterday"}
               </p>
               {data.livingEntries.length === 0 ? (
-                <p className="px-1 text-[11px] text-slate-400">
+                <p className="px-1 text-meta text-slate-400">
                   {ko ? "아직 추가된 줄이 없습니다." : "No living entries yet."}
                 </p>
               ) : (
@@ -234,10 +234,10 @@ export function LivingConflictPanel({
                       key={entry.id}
                       className="rounded-xl border border-sky-300/15 bg-sky-500/5 px-2.5 py-2"
                     >
-                      <span className="text-[10px] tabular-nums text-sky-200/60">
+                      <span className="text-micro tabular-nums text-sky-200/60">
                         {entry.entryDate}
                       </span>
-                      <p className="mt-0.5 text-[12px] leading-snug text-sky-50">
+                      <p className="mt-0.5 text-caption leading-snug text-sky-50">
                         {ko ? entry.headlineKo : entry.headlineEn}
                       </p>
                       {entry.sourceUrls[0] ? (
@@ -245,7 +245,7 @@ export function LivingConflictPanel({
                           href={entry.sourceUrls[0]}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-1 inline-block text-[10px] text-sky-300/70 underline decoration-sky-400/30 underline-offset-2"
+                          className="mt-1 inline-block text-micro text-sky-300/70 underline decoration-sky-400/30 underline-offset-2"
                         >
                           {ko ? "출처" : "Source"}
                         </a>
@@ -257,12 +257,12 @@ export function LivingConflictPanel({
             </div>
           </>
         ) : (
-          <p className="px-3 py-4 text-[12px] text-slate-400">{ko ? "불러오는 중…" : "Loading…"}</p>
+          <p className="px-3 py-4 text-caption text-slate-400">{ko ? "불러오는 중…" : "Loading…"}</p>
         )}
       </div>
 
       <div className="border-t border-amber-200/10 px-3 py-2">
-        <p className="text-[9px] leading-4 text-slate-500">
+        <p className="text-micro leading-4 text-slate-500">
           {data?.attribution ??
             (ko
               ? "GDELT · 자동 요약 · 오보 가능"
@@ -320,19 +320,19 @@ export function LivingTaiwanFollowChip({
       onClick={onOpen}
       className="pointer-events-auto flex w-full items-start gap-2 overflow-hidden rounded-2xl border border-amber-400/30 bg-[#120e08]/90 px-3 py-2 text-left shadow-lg backdrop-blur-md transition hover:border-amber-300/50"
     >
-      <span className="mt-0.5 shrink-0 rounded-md border border-amber-400/35 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-200/90">
+      <span className="mt-0.5 shrink-0 rounded-md border border-amber-400/35 bg-amber-500/15 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-[0.14em] text-amber-200/90">
         {following ? (ko ? "팔로우 중" : "Following") : ko ? "팔로우" : "Follow"}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-medium text-amber-50">
+        <span className="block text-meta font-medium text-amber-50">
           {ko ? "대만해협 팔로우" : "Follow Taiwan Strait"}
         </span>
         {latest ? (
-          <span className="mt-0.5 line-clamp-2 block text-[10px] leading-4 text-amber-100/55">
+          <span className="mt-0.5 line-clamp-2 block text-micro leading-4 text-amber-100/55">
             {latest}
           </span>
         ) : (
-          <span className="mt-0.5 block text-[10px] text-amber-100/45">
+          <span className="mt-0.5 block text-micro text-amber-100/45">
             {ko ? "어제 이후 · 매일 갱신" : "Since yesterday · daily"}
           </span>
         )}

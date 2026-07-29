@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { LayerPrefs } from "@/lib/layerPrefs";
+import { useDialog } from "@/hooks/useDialog";
 
 export type AskLayersApiResult = {
   intent: string | null;
@@ -41,6 +42,8 @@ export function AskLayersOverlay({
   onClose,
   onApply,
 }: AskLayersOverlayProps) {
+  /** 이미 Escape·초기 포커스가 있었지만 트랩이 없었다. 입력창에 포커스를 준다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose, initialFocus: "input" });
   const titleId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [query, setQuery] = useState("");
@@ -132,7 +135,7 @@ export function AskLayersOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[12000] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
     >
       <button
@@ -142,6 +145,8 @@ export function AskLayersOverlay({
         onClick={onClose}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -153,7 +158,7 @@ export function AskLayersOverlay({
             <h2 id={titleId} className="text-sm font-semibold text-sky-50 sm:text-base">
               {en ? "Ask → turn on layers" : "묻기 → 레이어 켜기"}
             </h2>
-            <p className="mt-1 text-[11px] leading-relaxed text-sky-100/55 sm:text-xs">
+            <p className="mt-1 text-meta leading-relaxed text-sky-100/55 sm:text-xs">
               {viewerMode === "economy"
                 ? en
                   ? "Name a chokepoint or trade risk (Hormuz, Suez…). Commercial shipping layers only — no military air/ships."
@@ -182,7 +187,7 @@ export function AskLayersOverlay({
                 setQuery(ex);
                 void submit(ex);
               }}
-              className="rounded-full border border-sky-300/25 bg-sky-400/10 px-2.5 py-1 text-[11px] text-sky-100/85 transition hover:border-sky-300/45 hover:bg-sky-400/20 disabled:opacity-40"
+              className="rounded-full border border-sky-300/25 bg-sky-400/10 px-2.5 py-1 text-meta text-sky-100/85 transition hover:border-sky-300/45 hover:bg-sky-400/20 disabled:opacity-40"
             >
               {ex}
             </button>
@@ -245,14 +250,14 @@ export function AskLayersOverlay({
                 {result.chips.map((chip) => (
                   <span
                     key={chip.key}
-                    className="rounded-md border border-emerald-300/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-100/90"
+                    className="rounded-md border border-emerald-300/25 bg-emerald-400/10 px-2 py-0.5 text-micro text-emerald-100/90"
                   >
                     {chip.label}
                   </span>
                 ))}
               </div>
             ) : null}
-            <p className="mt-2 text-[10px] text-sky-100/40">
+            <p className="mt-2 text-micro text-sky-100/40">
               {result.source === "rules"
                 ? en
                   ? "Matched by keywords"

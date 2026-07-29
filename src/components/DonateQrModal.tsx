@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { useDialog } from "@/hooks/useDialog";
 
 type DonateQrModalProps = {
   lang: LabelLanguage;
@@ -14,6 +15,8 @@ type DonateQrModalProps = {
 
 /** 후원 QR 모달 — ServerDonateChip 등에서 사용. */
 export function DonateQrModal({ lang, open, onClose, title, detail }: DonateQrModalProps) {
+  /** 닫을 수 있는 모달 — 기존 Escape 처리는 훅으로 통일 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open, onClose });
   const isEn = lang === "en";
   const resolvedTitle = title ?? (isEn ? "☕ Server tip jar" : "☕ 서버비 후원");
   const resolvedDetail =
@@ -35,14 +38,16 @@ export function DonateQrModal({ lang, open, onClose, title, detail }: DonateQrMo
       <button
         type="button"
         aria-label={isEn ? "Close tip jar" : "후원 창 닫기"}
-        className="fixed inset-0 z-[119] bg-[#0a1528]/55 backdrop-blur-[2px]"
+        className="fixed inset-0 z-[500] bg-[#0a1528]/55 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={resolvedTitle}
-        className="fixed left-1/2 top-1/2 z-[120] w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-amber-300/25 bg-[#1a140c]/95 shadow-2xl backdrop-blur-xl"
+        className="fixed left-1/2 top-1/2 z-[600] w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-amber-300/25 bg-[#1a140c]/95 shadow-2xl backdrop-blur-xl"
       >
         <div className="flex items-center justify-between gap-3 border-b border-amber-200/15 px-4 py-3">
           <p className="text-sm font-semibold text-amber-50">{resolvedTitle}</p>
@@ -63,7 +68,7 @@ export function DonateQrModal({ lang, open, onClose, title, detail }: DonateQrMo
             className="h-[min(70vw,17.5rem)] w-[min(70vw,17.5rem)] rounded-xl bg-white p-2"
             draggable={false}
           />
-          <p className="text-center text-[11px] leading-5 text-amber-100/65">{resolvedDetail}</p>
+          <p className="text-center text-meta leading-5 text-amber-100/65">{resolvedDetail}</p>
         </div>
       </div>
     </>

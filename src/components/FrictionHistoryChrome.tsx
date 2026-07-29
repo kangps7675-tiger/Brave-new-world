@@ -59,15 +59,15 @@ export function FrictionHistoryChrome({
   return (
     <aside
       id="friction-history-chrome"
-      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] left-3 z-[120] flex max-h-[min(52vh,420px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/25 bg-[#120e18]/94 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] left-3 z-[600] flex max-h-[min(52vh,420px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-violet-300/25 bg-[#120e18]/94 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-violet-200/55">
+          <p className="text-micro uppercase tracking-[0.2em] text-violet-200/55">
             {ko ? "역사 모드 · 잠금" : "History mode · locked"}
           </p>
           <h2 className="mt-0.5 truncate text-sm font-medium text-violet-50">{episode.title}</h2>
-          <p className="mt-1 text-[10px] leading-4 text-violet-100/50">
+          <p className="mt-1 text-micro leading-4 text-violet-100/50">
             {ko
               ? "나가기 버튼을 누르기 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다."
               : "You can’t leave until you press Exit. Zoom and mode switches won’t eject you."}
@@ -76,7 +76,7 @@ export function FrictionHistoryChrome({
         <button
           type="button"
           onClick={onExitHistory}
-          className="tap-target shrink-0 rounded-lg border border-violet-300/25 px-2 py-1 text-[10px] text-violet-100/70 transition hover:border-violet-200/40 hover:text-violet-50"
+          className="tap-target shrink-0 rounded-lg border border-violet-300/25 px-2 py-1 text-micro text-violet-100/70 transition hover:border-violet-200/40 hover:text-violet-50"
         >
           {ko ? "역사 나가기" : "Exit history"}
         </button>
@@ -87,7 +87,7 @@ export function FrictionHistoryChrome({
           <button
             type="button"
             onClick={onBackToList}
-            className="tap-target min-h-[44px] shrink-0 rounded-lg border border-violet-300/25 px-2 text-[11px] text-violet-100/75 transition hover:border-violet-200/40 hover:text-violet-50"
+            className="tap-target min-h-[44px] shrink-0 rounded-lg border border-violet-300/25 px-2 text-meta text-violet-100/75 transition hover:border-violet-200/40 hover:text-violet-50"
           >
             {ko ? "목록" : "List"}
           </button>
@@ -95,7 +95,7 @@ export function FrictionHistoryChrome({
         <button
           type="button"
           onClick={onOpenBrief}
-          className="tap-target min-h-[44px] flex-1 rounded-lg border border-amber-300/25 bg-amber-500/10 px-2 text-[11px] font-medium text-amber-50 transition hover:border-amber-200/40"
+          className="tap-target min-h-[44px] flex-1 rounded-lg border border-amber-300/25 bg-amber-500/10 px-2 text-meta font-medium text-amber-50 transition hover:border-amber-200/40"
         >
           {ko ? "양피지 다시 읽기" : "Reopen parchment"}
         </button>
@@ -103,7 +103,7 @@ export function FrictionHistoryChrome({
           type="button"
           onClick={handleShareCard}
           disabled={cardBusy}
-          className="tap-target min-h-[44px] shrink-0 rounded-lg border border-sky-300/25 bg-sky-500/10 px-2 text-[11px] font-medium text-sky-50 transition hover:border-sky-200/40 disabled:opacity-60"
+          className="tap-target min-h-[44px] shrink-0 rounded-lg border border-sky-300/25 bg-sky-500/10 px-2 text-meta font-medium text-sky-50 transition hover:border-sky-200/40 disabled:opacity-60"
         >
           {cardBusy ? "…" : ko ? "카드 공유" : "Share card"}
         </button>
@@ -124,14 +124,14 @@ export function FrictionHistoryChrome({
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] font-semibold text-violet-200/70">
+                  <span className="text-micro font-semibold text-violet-200/70">
                     {stage.order}. {stage.yearLabel}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[12px] font-medium">
+                <p className="mt-0.5 text-caption font-medium">
                   {ko ? stage.titleKo : stage.titleEn}
                 </p>
-                <p className="mt-0.5 line-clamp-2 text-[10px] leading-4 text-violet-100/55">
+                <p className="mt-0.5 line-clamp-2 text-micro leading-4 text-violet-100/55">
                   {ko ? stage.bodyKo : stage.bodyEn}
                 </p>
               </button>
@@ -142,12 +142,12 @@ export function FrictionHistoryChrome({
 
       {deep && deep.openAlex.length > 0 ? (
         <div className="border-t border-violet-200/10 px-3 py-2">
-          <p className="text-[9px] uppercase tracking-[0.18em] text-violet-200/45">
+          <p className="text-micro uppercase tracking-[0.18em] text-violet-200/45">
             {OPENALEX_POLICY.sourceName} · Works
           </p>
           <ul className="mt-1 space-y-1">
             {deep.openAlex.slice(0, 2).map((w) => (
-              <li key={w.openAlexId} className="text-[10px] leading-4 text-violet-100/55">
+              <li key={w.openAlexId} className="text-micro leading-4 text-violet-100/55">
                 <a
                   href={w.url}
                   target="_blank"

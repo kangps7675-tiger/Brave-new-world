@@ -2,7 +2,7 @@
  * 공개/관리자용 주간 함선 이동 조회 헬퍼.
  */
 
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, or, sql } from "drizzle-orm";
 import type { AppDb } from "@/db/client";
 import { shipMovementObservations } from "@/db/schema";
 import type {
@@ -60,7 +60,7 @@ export function toPublicObservation(
   };
 }
 
-/** 공개 지도용 — 승인 + mapEligible + 좌표 */
+/** 공개 지도용 — 승인 + (정밀 mapEligible 또는 광역 해역 추정) + 좌표 */
 export async function listApprovedMapObservations(
   db: AppDb,
   opts?: { week?: string | null; limit?: number },
@@ -68,7 +68,10 @@ export async function listApprovedMapObservations(
   const limit = Math.min(300, Math.max(1, opts?.limit ?? 120));
   const clauses = [
     eq(shipMovementObservations.reviewStatus, "approved"),
-    eq(shipMovementObservations.mapEligible, 1),
+    or(
+      eq(shipMovementObservations.mapEligible, 1),
+      eq(shipMovementObservations.locationStatus, "broad"),
+    ),
     sql`${shipMovementObservations.lat} IS NOT NULL`,
     sql`${shipMovementObservations.lng} IS NOT NULL`,
   ];

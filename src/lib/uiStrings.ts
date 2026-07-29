@@ -120,9 +120,66 @@ const UI = {
     en: "In Ultra-Lite mode the limit is 16.",
   },
   layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
+  /** 상한 도달 — 항목 뱃지·상세·상태바 (P0-7) */
+  layerCapTag: { ko: "상한", en: "At cap" },
+  layerCapDetailSuffix: { ko: "상한 {active}/{cap}", en: "cap {active}/{cap}" },
+  layerCapStatusOk: { ko: "활성 레이어 {active}/{cap}", en: "Active layers {active}/{cap}" },
+  layerCapStatusFull: {
+    ko: "활성 레이어 {active}/{cap} — 새 항목을 켜려면 하나를 끄세요",
+    en: "Active layers {active}/{cap} — turn one off to enable another",
+  },
   layerClickCautionHint: {
     ko: "컴퓨터 사양이 안 좋으신가요? 빠끄!! Ultra-Lite인데 이거 켜면 렉 각입니다.",
     en: "Low-spec PC? Hold up!! Turning this on in Ultra-Lite can lag hard.",
+  },
+  /** 분석 패널 섹션 라벨 (P1-5) */
+  analysisOriginalName: { ko: "원본 이름", en: "Original name" },
+  analysisStatus: { ko: "상태", en: "Status" },
+  analysisSituation: { ko: "전황 설명", en: "Situation" },
+  analysisRegionOverview: { ko: "지역 개요", en: "Region overview" },
+  analysisAiWarZone: { ko: "AI 전쟁지역 (데모)", en: "AI war zone (demo)" },
+  analysisLivePosition: { ko: "실시간 위치", en: "Live position" },
+  analysisDetail: { ko: "상세", en: "Details" },
+  analysisEventMeta: { ko: "실제 이벤트 메타데이터", en: "Raw event metadata" },
+  analysisSourceLink: { ko: "원문 링크", en: "Source link" },
+  analysisNoSourceUrl: {
+    ko: "GDELT 이벤트에 source URL이 없습니다.",
+    en: "This GDELT event has no source URL.",
+  },
+  /** 하단 인텔 (P1-5) */
+  intelStreamSyncing: { ko: "뉴스 스트림 동기화 중…", en: "Syncing news stream…" },
+  /** 상단 nav (P1-5) */
+  navPowderKeg: { ko: "화약고", en: "Flashpoints" },
+  navAllyCountries: { ko: "우군 국가", en: "Allied states" },
+  /** 공유 장면 카드 — 폰 (P2-3-A) */
+  sceneCardKicker: { ko: "공유된 장면", en: "Shared view" },
+  sceneCardWhat: { ko: "이 장면에서 보던 것", en: "What this view showed" },
+  sceneCardCoordsOnly: {
+    ko: "이름 붙은 지역 밖의 좌표입니다",
+    en: "Coordinates outside a named region",
+  },
+  sceneCardDesktopCta: {
+    ko: "데스크톱에서 지도로 열기",
+    en: "Open the map on desktop",
+  },
+  sceneCardDesktopHint: {
+    ko: "3D 지구본은 데스크톱·태블릿에서 동작합니다. 링크를 복사해 두었다가 큰 화면에서 열어 보세요.",
+    en: "The 3D globe runs on desktop and tablet. Copy the link and open it on a larger screen.",
+  },
+  sceneCardCopyLink: { ko: "링크 복사", en: "Copy link" },
+  sceneCardCopied: { ko: "복사했습니다", en: "Copied" },
+  sceneCardDismiss: { ko: "오늘의 브리핑 보기", en: "See today's briefing" },
+  /** 레이어 패널 탭 (P1-3) */
+  layerTabLayers: { ko: "레이어", en: "Layers" },
+  layerTabSettings: { ko: "설정", en: "Settings" },
+  layerTabData: { ko: "데이터", en: "Data" },
+  /** 레이어 검색 (P1-3) */
+  layerSearchPlaceholder: { ko: "레이어 검색…", en: "Search layers…" },
+  layerSearchClear: { ko: "검색 지우기", en: "Clear search" },
+  layerSearchCount: { ko: "{n}개 일치", en: "{n} matches" },
+  layerSearchEmpty: {
+    ko: "일치하는 레이어가 없습니다",
+    en: "No layers match",
   },
   layerToggleAll: { ko: "전체", en: "All" },
   layerToggleOff: { ko: "끔", en: "Off" },
@@ -427,14 +484,25 @@ const UI = {
     ko: "IP·브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부 무단 반출·스크레이핑은 금지됩니다.",
     en: "IP and hardware fingerprint are logged as an active observer. Unauthorized export or scraping is prohibited.",
   },
+  /**
+   * P1-10 — 캡 숫자 4개({uiCap}/{ultraCap}/{conflictCap}/{economyCap})를 걷어냈다.
+   *
+   * 면책 목적은 정당하지만 전달이 실패하고 있었다. 지도를 아직 못 본 사람에게
+   * "패키지 hard cap 64"는 해독 불가능한 숫자다. 게다가 hard cap은 내부
+   * 안전망이라 **사용자에게 보일 이유가 없다.**
+   *
+   * 면책은 숫자가 아니라 **결과와 대처**로 전달한다:
+   *   "레이어를 많이 켜면 느려집니다 → 저사양이면 Ultra-Lite를 켜세요"
+   * 정확한 상한은 레이어 패널의 상한 카운터가 상시 보여준다.
+   */
   entryCautionPhase2: {
-    ko: "GEOINT(지리·전선) · FININT(공급망·시장) 피드를 동기화합니다. 레이어를 많이 켜면 렉이 납니다 — UI 동시 ON 일반 {uiCap} · Ultra-Lite {ultraCap} · 패키지 hard cap GEOINT {conflictCap} · FININT {economyCap}.",
-    en: "Syncing GEOINT (theater) and FININT (supply · markets) feeds. Many layers cause lag — concurrent ON {uiCap} / Ultra-Lite {ultraCap}; package hard caps GEOINT {conflictCap} · FININT {economyCap}.",
+    ko: "GEOINT(지리·전선) · FININT(공급망·시장) 피드를 동기화합니다. 레이어를 많이 켜면 지도가 느려질 수 있습니다 — 필요한 것만 켜세요.",
+    en: "Syncing GEOINT (theater) and FININT (supply · markets) feeds. Enabling many layers can slow the map — turn on only what you need.",
   },
   entryCautionLagLabel: { ko: "성능", en: "Performance" },
   entryCautionLagBody: {
-    ko: "체크포인트(레이어)를 많이 켜면 렉이 날 수 있습니다. UI 동시 ON 상한은 일반 {uiCap}개 · Ultra-Lite {ultraCap}개이며, 보기 패키지 hard cap은 지정학 {conflictCap}개 · 지경학 {economyCap}개입니다. 상한에 가깝게 켜 두면 프레임이 떨어질 수 있으니 필요한 레이어만 선택하세요.",
-    en: "Turning on many layer checkpoints can cause lag. Concurrent ON caps are {uiCap} (normal) · {ultraCap} (Ultra-Lite). View-package hard caps are {conflictCap} (geopolitics) · {economyCap} (geoeconomics). Stay below the caps and enable only what you need.",
+    ko: "레이어를 많이 켜면 지도가 느려질 수 있습니다. 컴퓨터 사양이 낮다면 아래에서 Ultra-Lite를 켜 주세요 — 무거운 레이어를 자동으로 줄입니다. 정확한 상한은 레이어 패널에서 확인할 수 있습니다.",
+    en: "Enabling many layers can slow the map. On a low-spec machine, turn on Ultra-Lite below — it trims the heaviest layers automatically. The exact limit is shown in the layers panel.",
   },
   entryCautionSoundLabel: { ko: "소리", en: "Sound" },
   entryCautionSoundBody: {
@@ -463,8 +531,12 @@ const UI = {
   /** 하단 메인 CTA 옆 — 처음 방문자가 놓치기 쉬운 코너 스킵 대신 눈에 띄는 위치에 배치 */
   entryCautionSkipCta: { ko: "지금 바로 보기 →", en: "Skip straight to the map →" },
   domainGateSubtitle: {
-    ko: "창을 고르면 바로 입장합니다 — 추가 세부 설정창 없음. 빠른 선택을 원하면 아래 초기화 모드를 켜세요.",
-    en: "Pick a window and enter at once — no extra setup screens. For a lighter start, turn on Init mode below.",
+    ko: "지금 세계 어디서 무슨 일이 벌어지는지, 지도 하나로.",
+    en: "See where the world is tense today — on one map.",
+  },
+  domainGateDetailHint: {
+    ko: "창을 고르면 바로 입장합니다. 빠른 선택을 원하면 아래 초기화 모드를 켜세요.",
+    en: "Pick a window and enter at once. For a lighter start, turn on Init mode below.",
   },
   domainUltraLiteLabel: { ko: "초기화 모드 (가볍게)", en: "Init mode (lite)" },
   domainUltraLiteHook: {
@@ -476,6 +548,62 @@ const UI = {
   soundToggleLabel: { ko: "소리 on/off", en: "Sound on/off" },
   soundMuteAria: { ko: "소리 끄기", en: "Mute sound" },
   soundUnmuteAria: { ko: "소리 켜기", en: "Unmute sound" },
+  /** 기본 OFF 상태에서 한 번도 선택한 적 없는 유저용 유도 */
+  soundNudgeTitle: { ko: "소리를 켜면 더 생생합니다", en: "Sound makes it real" },
+  soundNudgeBody: {
+    ko: "공습 경보·속보 타전음이 실제 시각에 울립니다. 지금은 꺼져 있습니다.",
+    en: "Air-raid sirens and breaking-news signals play in real time. Currently muted.",
+  },
+  soundNudgeAccept: { ko: "소리 켜기", en: "Turn on sound" },
+  soundNudgeDismiss: { ko: "계속 끄기", en: "Stay muted" },
+  /** FPS 프로브 → Ultra-Lite 자동 제안 */
+  ultraLiteOfferTitle: { ko: "가볍게 볼까요?", en: "Switch to a lighter view?" },
+  ultraLiteOfferBody: {
+    ko: "이 기기에서 지도가 버거워 보입니다. 무거운 레이어를 줄이면 훨씬 부드러워집니다.",
+    en: "The map looks heavy on this device. Trimming the heaviest layers makes it much smoother.",
+  },
+  ultraLiteOfferBodyCritical: {
+    ko: "이 기기에서 지도가 많이 끊깁니다. 가벼운 모드를 권합니다.",
+    en: "The map is stuttering badly on this device. A lighter mode is recommended.",
+  },
+  ultraLiteOfferAccept: { ko: "가볍게 보기", en: "Go lighter" },
+  ultraLiteOfferDismiss: { ko: "그대로 보기", en: "Keep as is" },
+  ultraLiteOfferMeasured: { ko: "측정: 약 {fps}fps", en: "Measured: ~{fps}fps" },
+  /** 레이어 패널 — 기존 하드코딩 한국어 대체 (EN 모드 누수 해소) */
+  layerPerformance: { ko: "성능", en: "Performance" },
+  layerUltraLiteHint: {
+    ko: "저사양(내장 GPU·8GB)용 Ultra-Lite — 동시 레이어 {cap}개·핀 축소·무거운 레이어 강제 OFF",
+    en: "Ultra-Lite for low-end GPUs — {cap} layers max, fewer pins, heavy layers forced off",
+  },
+  layerUltraLiteToggle: { ko: "Ultra-Lite 모드", en: "Ultra-Lite mode" },
+  layerCapStatus: {
+    ko: "일반 캡 {full}개 · 현재 활성 {active}/{cap}",
+    en: "Standard cap {full} · active {active}/{cap}",
+  },
+  layerListLoading: { ko: "레이어 목록 준비 중…", en: "Loading layers…" },
+  layerBatchApplying: {
+    ko: "레이어 일괄 적용 중… 잠시 후 지구본에 반영됩니다.",
+    en: "Applying layers… the globe updates shortly.",
+  },
+  layerDataStatus: { ko: "데이터 상태", en: "Data status" },
+  layerGeneratedAt: { ko: "생성 시각", en: "Generated" },
+  layerSnapshotNote: {
+    ko: "정적 스냅샷은 약 6시간마다 갱신됩니다. NASA FIRMS · ADS-B · AIS는 실시간 레이어입니다.",
+    en: "Static snapshots refresh about every 6 hours. NASA FIRMS · ADS-B · AIS are live layers.",
+  },
+  layerRailLoading: { ko: "철도 데이터 로딩 중…", en: "Loading rail data…" },
+  layerCurrentScale: { ko: "현재 배율", en: "Current scale" },
+  layerEventCount: { ko: "이벤트 {n}개", en: "{n} events" },
+  layerOccupationOverview: { ko: "점령 개요", en: "Occupation overview" },
+  layerOccupationZoomIn: { ko: "점령(줌인 필요)", en: "Occupation (zoom in)" },
+  layerAisRefresh: { ko: "배 위치 새로고침", en: "Refresh vessel positions" },
+  layerAisRefreshing: { ko: "배 위치 불러오는 중…", en: "Loading vessels…" },
+  layerSnapshotSync: { ko: "스냅샷 데이터 동기화", en: "Sync snapshot data" },
+  layerSnapshotSyncing: { ko: "스냅샷 동기화 중…", en: "Syncing snapshot…" },
+  layerMetricDisputes: { ko: "로컬 분쟁", en: "Local disputes" },
+  layerMetricRail: { ko: "철도", en: "Rail" },
+  layerMetricCountries: { ko: "국가", en: "Countries" },
+  layerMetricCityLabels: { ko: "도시 라벨", en: "City labels" },
   modePickerPreview: { ko: "시작하면 보이는 것", en: "What you'll see on start" },
   modePickerAdvancedShow: { ko: "레이어 직접 설정 (고급)", en: "Custom layers (advanced)" },
   modePickerAdvancedHide: { ko: "고급 옵션 숨기기", en: "Hide advanced options" },
@@ -626,9 +754,24 @@ const UI = {
     ko: "위치 공개 관측 없음",
     en: "No public location fix",
   },
+  westpacLocationBroad: {
+    ko: "광역 해역 추정",
+    en: "Estimated sea area",
+  },
+  westpacLocationUnresolved: {
+    ko: "지명 미매칭",
+    en: "Place unresolved",
+  },
   westpacMapEligibleOnly: {
-    ko: "지도에는 승인·좌표 확정 건만 표시",
-    en: "Map shows approved fixes with coordinates only",
+    ko: "지도: 정밀·해협 핀 + 광역 해역 추정(≈). 좌표 없는 건은 목록만.",
+    en: "Map: precise/chokepoint pins + estimated sea areas (≈). Off-map items stay in the list.",
+  },
+  westpacFilterAll: { ko: "전체", en: "All" },
+  westpacFilterOnMap: { ko: "지도", en: "On map" },
+  westpacFilterOffMap: { ko: "미확정", en: "Unresolved" },
+  westpacEmptyOnMapHint: {
+    ko: "승인 기록은 있지만 지도에 올릴 좌표가 없습니다. 아래 미확정 목록을 확인하세요.",
+    en: "Approved records exist, but none have map coordinates yet. Check the unresolved list below.",
   },
   westpacConfidenceObserved: { ko: "직접 관측", en: "Observed" },
   westpacConfidenceReported: { ko: "보도 서술", en: "Reported" },

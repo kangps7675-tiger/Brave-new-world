@@ -60,7 +60,7 @@ export function NeptunPanel({
       >
         <div>
           <p
-            className={`font-mono text-[10px] uppercase tracking-[0.28em] ${
+            className={`font-mono text-micro uppercase tracking-[0.28em] ${
               hasAlerts ? "text-orange-200/90" : "text-[#45f3ff]/80"
             }`}
           >
@@ -75,7 +75,7 @@ export function NeptunPanel({
           </p>
         </div>
         <span
-          className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] ${
+          className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-micro ${
             hasAlerts
               ? "border-orange-300/40 bg-orange-500/20 text-orange-100 animate-pulse"
               : live
@@ -109,13 +109,13 @@ export function NeptunPanel({
           </p>
         ) : null}
 
-        <p className="mb-3 text-[11px] leading-5 text-slate-400">
+        <p className="mb-3 text-meta leading-5 text-slate-400">
           정보 수집용 비공식 피드입니다. 생명 안전 관련 결정에는 공식 경보를 우선하세요.
         </p>
 
         {hasAlerts ? (
           <section className="mb-4">
-            <h3 className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-orange-200/80">
+            <h3 className="mb-2 font-mono text-micro uppercase tracking-[0.2em] text-orange-200/80">
               공식 공습 경보
             </h3>
             <ul className="space-y-2">
@@ -128,7 +128,7 @@ export function NeptunPanel({
                   {alert.oblast ? (
                     <p className="mt-0.5 text-xs text-orange-100/70">{alert.oblast}</p>
                   ) : null}
-                  <p className="mt-1 font-mono text-[10px] text-orange-200/60">
+                  <p className="mt-1 font-mono text-micro text-orange-200/60">
                     {formatTime(alert.since)}
                   </p>
                 </li>
@@ -138,7 +138,7 @@ export function NeptunPanel({
         ) : null}
 
         <section>
-          <h3 className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-sky-200/80">
+          <h3 className="mb-2 font-mono text-micro uppercase tracking-[0.2em] text-sky-200/80">
             활성 위협 트랙
           </h3>
           {threats.length === 0 ? (
@@ -169,7 +169,7 @@ export function NeptunPanel({
                           <p className="mt-0.5 text-xs text-slate-300">{threat.title}</p>
                         ) : null}
                       </div>
-                      <span className="shrink-0 rounded border border-slate-500/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-slate-400">
+                      <span className="shrink-0 rounded border border-slate-500/30 px-1.5 py-0.5 font-mono text-micro uppercase text-slate-400">
                         {threat.confidenceLevel}
                       </span>
                     </div>
@@ -181,7 +181,7 @@ export function NeptunPanel({
                         {threat.explanationShort}
                       </p>
                     ) : null}
-                    <p className="mt-1.5 font-mono text-[10px] text-slate-500">
+                    <p className="mt-1.5 font-mono text-micro text-slate-500">
                       {formatTime(threat.updatedAt)}
                       {threat.flying && threat.velocity?.speedKmh
                         ? ` · ${Math.round(threat.velocity.speedKmh)} km/h`
@@ -200,7 +200,7 @@ export function NeptunPanel({
         </section>
       </div>
 
-      <div className="shrink-0 border-t border-slate-600/25 px-4 py-2.5 text-[10px] text-slate-500">
+      <div className="shrink-0 border-t border-slate-600/25 px-4 py-2.5 text-micro text-slate-500">
         <p>서버 시각: {formatTime(serverTime)}</p>
         <p className="mt-1">
           데이터:{" "}

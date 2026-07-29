@@ -112,7 +112,7 @@ export function ParchmentProTipChip({ lang }: ParchmentProTipChipProps) {
         ref={tipRef}
         id={menuId}
         role="tooltip"
-        className={`parchment-pro-tip-drop econ-insight-parchment pointer-events-none fixed z-[90] min-w-[12rem] max-w-[min(78vw,18.5rem)] px-3 py-2.5 text-[0.72rem] leading-snug tracking-[0.02em] text-[#4a3418] shadow-[0_10px_28px_rgba(0,0,0,0.42)] transition-all duration-150 ${
+        className={`parchment-pro-tip-drop econ-insight-parchment pointer-events-none fixed z-[300] min-w-[12rem] max-w-[min(78vw,18.5rem)] px-3 py-2.5 text-[0.72rem] leading-snug tracking-[0.02em] text-[#4a3418] shadow-[0_10px_28px_rgba(0,0,0,0.42)] transition-all duration-150 ${
           open
             ? "translate-y-0 scale-100 opacity-100"
             : "translate-y-1 scale-[0.98] opacity-0"

@@ -116,23 +116,23 @@ export function SitrepLog({ lang }: { lang: LabelLanguage }) {
         }
       >
         <span className="min-w-0">
-          <span className="block text-[11px] font-semibold tracking-tight text-amber-100/95">
+          <span className="block text-meta font-semibold tracking-tight text-amber-100/95">
             {en ? "Sitrep · what changed" : "Sitrep · 상황 변화"}
             {events.length > 0 ? ` · ${events.length}` : ""}
           </span>
-          <span className="block text-[9px] text-amber-200/45">
+          <span className="block text-micro text-amber-200/45">
             {en ? "tension drivers · big shifts" : "긴장 원인 · 큰 변화만"}
           </span>
         </span>
-        <span className="shrink-0 text-[10px] text-amber-200/50">{collapsed ? "▸" : "▾"}</span>
+        <span className="shrink-0 text-micro text-amber-200/50">{collapsed ? "▸" : "▾"}</span>
       </button>
 
       {!collapsed ? (
         <div className="max-h-40 overflow-y-auto border-t border-amber-400/10 px-3 py-2">
           {status === "loading" ? (
-            <p className="text-[10px] text-amber-100/40">{en ? "Loading…" : "불러오는 중…"}</p>
+            <p className="text-micro text-amber-100/40">{en ? "Loading…" : "불러오는 중…"}</p>
           ) : events.length === 0 ? (
-            <p className="text-[10px] leading-4 text-amber-100/40">
+            <p className="text-micro leading-4 text-amber-100/40">
               {en
                 ? "No big changes yet. Quiet days are normal."
                 : "아직 큰 변화가 없습니다. 조용한 날이 보통입니다."}
@@ -140,7 +140,7 @@ export function SitrepLog({ lang }: { lang: LabelLanguage }) {
           ) : (
             <ul className="space-y-1.5">
               {events.map((ev) => (
-                <li key={ev.id} className="flex gap-2 text-[10px] leading-4">
+                <li key={ev.id} className="flex gap-2 text-micro leading-4">
                   <span className="shrink-0 tabular-nums text-amber-300/60">
                     {formatClock(ev.createdAt, en)}
                   </span>

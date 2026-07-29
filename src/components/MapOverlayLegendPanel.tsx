@@ -53,7 +53,7 @@ export function MapOverlayLegendPanel({
 
   return (
     <div
-      className="pointer-events-auto absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-[120] w-[min(92vw,440px)] -translate-x-1/2"
+      className="pointer-events-auto absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-[600] w-[min(92vw,440px)] -translate-x-1/2"
     >
       <div
         className={`overflow-hidden rounded-2xl border ${styles.border} bg-[#0a1830]/82 shadow-2xl backdrop-blur-md`}
@@ -62,7 +62,7 @@ export function MapOverlayLegendPanel({
           className={`flex items-center justify-between gap-3 border-b ${styles.headerBorder} px-3 py-2.5`}
         >
           <div className="min-w-0 flex-1">
-            <p className={`text-[10px] uppercase tracking-[0.22em] ${styles.label}`}>{title}</p>
+            <p className={`text-micro uppercase tracking-[0.22em] ${styles.label}`}>{title}</p>
             {subtitle ? <p className="mt-0.5 text-xs text-sky-50/90">{subtitle}</p> : null}
           </div>
           <button
@@ -74,7 +74,7 @@ export function MapOverlayLegendPanel({
             ✕
           </button>
         </div>
-        <div className="px-4 py-3 text-[11px] text-sky-100/85">{children}</div>
+        <div className="px-4 py-3 text-meta text-sky-100/85">{children}</div>
       </div>
     </div>
   );
@@ -102,7 +102,7 @@ export function LegendReopenButton({
       <button
         type="button"
         onClick={onClick}
-        className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[11px] shadow-lg backdrop-blur-md transition ${accentClass}`}
+        className={`pointer-events-auto rounded-full border px-3 py-1.5 text-meta shadow-lg backdrop-blur-md transition ${accentClass}`}
       >
         {label}
       </button>

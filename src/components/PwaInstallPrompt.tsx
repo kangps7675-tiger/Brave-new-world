@@ -186,7 +186,7 @@ export function PwaInstallPrompt() {
 
   return (
     <div
-      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[120] px-3"
+      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[600] px-3"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
       role="dialog"
       aria-modal="false"
@@ -197,8 +197,8 @@ export function PwaInstallPrompt() {
           🛰️
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold text-sky-50">홈 화면에 추가</p>
-          <p className="mt-1 text-[11px] leading-4 text-slate-300/80">
+          <p className="text-body font-semibold text-sky-50">홈 화면에 추가</p>
+          <p className="mt-1 text-meta leading-4 text-slate-300/80">
             {iosMode
               ? "하단 공유 버튼 → “홈 화면에 추가”를 누르면 앱처럼 바로 열 수 있습니다."
               : "앱처럼 바로 열고, 상황 변화 알림도 받을 수 있습니다."}
@@ -208,7 +208,7 @@ export function PwaInstallPrompt() {
               <button
                 type="button"
                 onClick={install}
-                className="tap-target min-h-[36px] rounded-lg border border-sky-300/35 bg-sky-500/15 px-3 text-[12px] font-medium text-sky-50 transition hover:border-sky-200/50 hover:bg-sky-500/25"
+                className="tap-target min-h-[36px] rounded-lg border border-sky-300/35 bg-sky-500/15 px-3 text-caption font-medium text-sky-50 transition hover:border-sky-200/50 hover:bg-sky-500/25"
               >
                 추가하기
               </button>
@@ -216,7 +216,7 @@ export function PwaInstallPrompt() {
             <button
               type="button"
               onClick={dismiss}
-              className="tap-target min-h-[36px] rounded-lg px-2.5 text-[12px] text-slate-400 transition hover:text-slate-200"
+              className="tap-target min-h-[36px] rounded-lg px-2.5 text-caption text-slate-400 transition hover:text-slate-200"
             >
               나중에
             </button>
@@ -226,7 +226,7 @@ export function PwaInstallPrompt() {
           type="button"
           onClick={dismiss}
           aria-label="닫기"
-          className="tap-target -mr-1 -mt-1 flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-lg text-[13px] text-slate-500 transition hover:text-slate-300"
+          className="tap-target -mr-1 -mt-1 flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-lg text-body text-slate-500 transition hover:text-slate-300"
         >
           ✕
         </button>

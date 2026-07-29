@@ -1,5 +1,6 @@
 "use client";
 
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LampWhyMattersButton } from "@/components/LampWhyMattersButton";
 import { ParchmentLetter, PARCHMENT_FOLD_EXIT_MS } from "@/components/ParchmentLetter";
@@ -14,6 +15,7 @@ import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import { formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
+import { useDialog } from "@/hooks/useDialog";
 import {
   LAMP_THUMB_GRADIENT,
   LAMP_THUMB_LABEL,
@@ -82,6 +84,8 @@ function PhotoNewsLampParchment({
   onDismiss,
   onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
+  /** 브리핑 양피지 — Escape로 접는다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onDismiss });
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
   const [expandedNews, setExpandedNews] = useState(false);
   /** 모바일 — 전장/거시 카테고리 패널 접기 (기본 접힘) */
@@ -168,7 +172,7 @@ function PhotoNewsLampParchment({
 
   useEffect(() => {
     emitParchmentUnfoldSound();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = prefersReducedMotion();
     if (!reduced) emitBreakingDispatchSound();
   }, []);
 
@@ -177,8 +181,7 @@ function PhotoNewsLampParchment({
     setPhase("folding");
     emitParchmentFoldSound();
     const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      prefersReducedMotion();
     window.setTimeout(() => {
       setPhase("done");
       onDismiss();
@@ -189,7 +192,7 @@ function PhotoNewsLampParchment({
     <>
       {!isNarrow || isEconomy ? (
         <p
-          className={`mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7 ${
+          className={`mb-2 px-1 text-micro font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7 ${
             isEconomy ? "mt-4" : ""
           }`}
         >
@@ -201,7 +204,7 @@ function PhotoNewsLampParchment({
           {theaterRows.map((row) => (
             <li
               key={row.theater}
-              className="flex items-baseline justify-between gap-2 border-b border-[#8b6914]/12 py-2 text-[13px] text-[#3f2e1c]"
+              className="flex items-baseline justify-between gap-2 border-b border-[#8b6914]/12 py-2 text-body text-[#3f2e1c]"
             >
               <span className="font-medium">{row.theater}</span>
               <span className="tabular-nums text-[#6b4a22]/75">{row.count}</span>
@@ -209,7 +212,7 @@ function PhotoNewsLampParchment({
           ))}
         </ul>
       ) : (
-        <p className="px-1 text-[12px] leading-relaxed text-[#5a4428]/7">
+        <p className="px-1 text-caption leading-relaxed text-[#5a4428]/7">
           {lang === "en"
             ? isEconomy
               ? "Color desk below — regional market briefs."
@@ -219,7 +222,7 @@ function PhotoNewsLampParchment({
               : "아래 사진 데스크에서 지역별 심층 뉴스를 보세요."}
         </p>
       )}
-      <p className="mt-4 px-1 text-[11px] leading-relaxed text-[#5a4428]/65">
+      <p className="mt-4 px-1 text-meta leading-relaxed text-[#5a4428]/65">
         {lang === "en"
           ? "Summaries are at least ~300 characters. Open → for the full article."
           : "요약은 약 300자 이상입니다. 원문은 → 로 이동합니다."}
@@ -232,15 +235,15 @@ function PhotoNewsLampParchment({
       {isEconomy ? (
         <>
           {!isNarrow ? (
-            <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
+            <p className="mb-2 px-1 text-micro font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
               {lang === "en" ? "Macro snapshot" : "거시 스냅샷"}
             </p>
           ) : null}
           <AnnouncementStrip lang={lang} />
           {macroRows.length > 0 ? (
-            <table className="w-full border-collapse text-left text-[12px] text-[#3f2e1c] sm:text-[13px]">
+            <table className="w-full border-collapse text-left text-caption text-[#3f2e1c] sm:text-body">
               <thead>
-                <tr className="border-b border-[#8b6914]/30 text-[10px] uppercase tracking-[0.14em] text-[#6b4a22]/65">
+                <tr className="border-b border-[#8b6914]/30 text-micro uppercase tracking-[0.14em] text-[#6b4a22]/65">
                   <th className="py-2 pr-2 font-medium">
                     {lang === "en" ? "Country" : "국가"}
                   </th>
@@ -270,7 +273,7 @@ function PhotoNewsLampParchment({
               </tbody>
             </table>
           ) : (
-            <p className="px-1 text-[12px] leading-relaxed text-[#5a4428]/7">
+            <p className="px-1 text-caption leading-relaxed text-[#5a4428]/7">
               {lang === "en"
                 ? "Macro table unavailable — regional news desk below."
                 : "거시 표 데이터를 불러오지 못했습니다. 아래 지역 뉴스 데스크를 보세요."}
@@ -283,7 +286,7 @@ function PhotoNewsLampParchment({
           {briefing.wti ? (
             <div className="mb-4 rounded-sm border border-[#8b6914]/30 bg-[#f7ecd4]/70 px-3 py-3">
               <div className="flex items-center gap-1.5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
+                <p className="text-micro font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
                   {formatGtiTitle(lang !== "en")}
                 </p>
                 <EvidenceTierBadge tier="model" lang={lang} surface="light" />
@@ -292,7 +295,7 @@ function PhotoNewsLampParchment({
                 <p className="text-[2rem] font-semibold tabular-nums leading-none tracking-tight text-[#3d2a18]">
                   {Math.round(briefing.wti.score)}
                 </p>
-                <p className="pb-0.5 text-[11px] text-[#6b4a22]/8">
+                <p className="pb-0.5 text-meta text-[#6b4a22]/8">
                   {gtiBandLabel(gtiBand(briefing.wti.score), lang !== "en")}
                   {briefing.wti.deltaScore != null &&
                   Math.abs(briefing.wti.deltaScore) >= 0.05
@@ -300,7 +303,7 @@ function PhotoNewsLampParchment({
                     : ""}
                 </p>
               </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-[#5a4428]/85">
+              <p className="mt-2 text-meta leading-relaxed text-[#5a4428]/85">
                 {briefing.wti.lead}
               </p>
             </div>
@@ -313,7 +316,9 @@ function PhotoNewsLampParchment({
 
   return (
     <div
-      className={`welcome-letter-scrim fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 ${
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`welcome-letter-scrim fixed inset-0 z-[800] flex items-center justify-center p-2 sm:p-4 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}
       role="dialog"
@@ -335,7 +340,7 @@ function PhotoNewsLampParchment({
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
               <aside className="flex w-full shrink-0 flex-col border-b border-[#8b6914]/25 bg-[#efe2c0]/55 md:w-[min(32%,22rem)] md:border-b-0 md:border-r md:border-[#8b6914]/25">
                 <div className="px-5 pb-3 pt-6 sm:px-6 sm:pt-8">
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-[#7a5a2e]/75">
+                  <p className="text-micro uppercase tracking-[0.28em] text-[#7a5a2e]/75">
                     {lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko}
                   </p>
                   <h1
@@ -360,10 +365,10 @@ function PhotoNewsLampParchment({
                         className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
                       >
                         <span className="min-w-0">
-                          <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
+                          <span className="block text-micro font-semibold uppercase tracking-[0.2em] text-[#6b4a22]/7">
                             {categoryLabel}
                           </span>
-                          <span className="mt-0.5 block truncate text-[13px] text-[#3f2e1c]">
+                          <span className="mt-0.5 block truncate text-body text-[#3f2e1c]">
                             {categorySummary}
                             {!categoryOpen && theaterRows.length > 0
                               ? ` · ${theaterRows
@@ -399,7 +404,7 @@ function PhotoNewsLampParchment({
 
               <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                 <div className="shrink-0 border-b border-[#8b6914]/20 px-5 py-3 sm:px-7">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-[#6b4a22]/7">
+                  <p className="text-micro uppercase tracking-[0.22em] text-[#6b4a22]/7">
                     {isEconomy
                       ? lang === "en"
                         ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
@@ -432,7 +437,7 @@ function PhotoNewsLampParchment({
                           <div className="flex items-stretch gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5">
                             <div className="min-w-0 flex-1" style={{ color: articleInk }}>
                               <div
-                                className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.16em]"
+                                className="flex flex-wrap items-center gap-2 text-micro uppercase tracking-[0.16em]"
                                 style={{ color: articleInkMuted }}
                               >
                                 <span>{item.source}</span>
@@ -458,7 +463,7 @@ function PhotoNewsLampParchment({
                               </h2>
                               {item.matterHook ? (
                                 <p
-                                  className="mt-2 text-[12px] leading-snug sm:text-[13px]"
+                                  className="mt-2 text-caption leading-snug sm:text-body"
                                   style={{ color: articleInkMuted, fontFamily: parchmentStack }}
                                 >
                                   {item.matterHook}
@@ -505,7 +510,7 @@ function PhotoNewsLampParchment({
                           <button
                             type="button"
                             onClick={() => setExpandedNews(true)}
-                            className="rounded-sm border border-[#8b6914]/4 bg-[#efe0b8] px-4 py-2 text-[13px] text-[#3d2a18] hover:bg-[#f7ecd0]"
+                            className="rounded-sm border border-[#8b6914]/4 bg-[#efe0b8] px-4 py-2 text-body text-[#3d2a18] hover:bg-[#f7ecd0]"
                           >
                             {lang === "en"
                               ? `Show ${news.length - mobilePreview} more`
@@ -558,7 +563,7 @@ function PhotoNewsLampParchment({
               >
                 {lang === "en" ? "Fold" : "접기"}
               </button>
-              <p className="mt-2 text-[11px] tracking-[0.04em] text-[#6b4a22]/65" style={{ fontFamily: parchmentStack }}>
+              <p className="mt-2 text-meta tracking-[0.04em] text-[#6b4a22]/65" style={{ fontFamily: parchmentStack }}>
                 {lang === "en"
                   ? "Fold to keep exploring — reopen anytime today. News refreshes every 6 hours."
                   : "접어두면 지도를 보고, 오늘 하루 언제든 다시 펼칠 수 있습니다. 뉴스는 6시간마다 갱신됩니다."}
@@ -637,17 +642,17 @@ function LampCardHero({
           className={`flex h-full w-full flex-col justify-end bg-gradient-to-br ${LAMP_THUMB_GRADIENT[theme]} px-5 py-4`}
           aria-hidden
         >
-          <p className="text-[10px] uppercase tracking-[0.28em] text-[#f5ead2]/55">
+          <p className="text-micro uppercase tracking-[0.28em] text-[#f5ead2]/55">
             {isEconomy ? (lang === "en" ? "Market lamp" : "시장 등불") : lang === "en" ? "Geopolitics lamp" : "지정학 등불"}
           </p>
           <p className="mt-1 text-[1.35rem] tracking-[0.08em] text-[#f5ead2]/92">{label}</p>
           {focusLabel ? (
-            <p className="mt-1 max-w-[90%] truncate text-[12px] text-[#f5ead2]/65">{focusLabel}</p>
+            <p className="mt-1 max-w-[90%] truncate text-caption text-[#f5ead2]/65">{focusLabel}</p>
           ) : null}
         </div>
       )}
       {isDiplomacy ? (
-        <span className="absolute left-3 top-3 rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/92 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5a3d1c]">
+        <span className="absolute left-3 top-3 rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/92 px-2 py-0.5 text-micro font-semibold uppercase tracking-[0.14em] text-[#5a3d1c]">
           {lang === "en" ? "Diplomacy" : "외교"}
         </span>
       ) : null}
@@ -678,13 +683,13 @@ function ForgottenWarningBlock({
       aria-label={ko ? "그날의 경고" : "Forgotten warning"}
     >
       <p
-        className="text-[10px] uppercase tracking-[0.2em] text-[#6b4a22]/8"
+        className="text-micro uppercase tracking-[0.2em] text-[#6b4a22]/8"
         style={{ fontFamily: parchmentStack }}
       >
         {ko ? "그날의 경고" : "Forgotten warning"}
       </p>
       <p
-        className="mt-1.5 text-[12px] leading-snug text-[#5a3d1c]"
+        className="mt-1.5 text-caption leading-snug text-[#5a3d1c]"
         style={{ fontFamily: parchmentStack }}
       >
         {warning.lead}
@@ -701,7 +706,7 @@ function ForgottenWarningBlock({
       >
         {summary}
       </p>
-      <p className="mt-2 text-[10px] tracking-[0.08em] text-[#6b4a22]/7">
+      <p className="mt-2 text-micro tracking-[0.08em] text-[#6b4a22]/7">
         {warning.date}
         {warning.exactAnniversary
           ? ko
@@ -715,7 +720,7 @@ function ForgottenWarningBlock({
         <button
           type="button"
           onClick={onFly}
-          className="mt-3 rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-[12px] text-[#3d2a18] transition hover:bg-[#f7ecd0]"
+          className="mt-3 rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-caption text-[#3d2a18] transition hover:bg-[#f7ecd0]"
         >
           {ko ? "지도에서 보기" : "Fly to map"}
         </button>
@@ -735,13 +740,13 @@ function AnnouncementStrip({ lang }: { lang: LabelLanguage }) {
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-1.5 px-1">
-      <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#6b4a22]/6">
+      <span className="text-micro font-semibold uppercase tracking-[0.16em] text-[#6b4a22]/6">
         {en ? "Next" : "다가오는 발표"}
       </span>
       {upcoming.map((ev) => (
         <span
           key={ev.id}
-          className="rounded-full border border-[#8b6914]/30 bg-[#f7ecd4]/60 px-2 py-0.5 text-[10px] text-[#3f2e1c]"
+          className="rounded-full border border-[#8b6914]/30 bg-[#f7ecd4]/60 px-2 py-0.5 text-micro text-[#3f2e1c]"
         >
           {ev.label[lang]} · {ev.date.slice(5)}
           {" · "}

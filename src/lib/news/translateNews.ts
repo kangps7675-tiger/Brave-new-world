@@ -14,7 +14,8 @@ async function translateNewsItem(item: NewsStreamItem): Promise<NewsStreamItem> 
 
 async function translateHero(hero: HeroBreakingItem): Promise<HeroBreakingItem> {
   const title = await translateTextToKorean(hero.title);
-  return { ...hero, title };
+  const summary = hero.summary ? await translateTextToKorean(hero.summary) : undefined;
+  return { ...hero, title, summary };
 }
 
 export async function translateNewsStreamPayload(

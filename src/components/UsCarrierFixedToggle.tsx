@@ -33,7 +33,7 @@ export function UsCarrierFixedToggle({
       <label
         className={`pointer-events-auto flex cursor-pointer items-center shadow-lg backdrop-blur-md transition hover:border-sky-200/35 ${
           compact
-            ? "h-10 gap-1.5 rounded-xl border border-sky-300/25 bg-[#0a1830]/88 px-2.5 text-[11px] text-sky-50"
+            ? "h-10 gap-1.5 rounded-xl border border-sky-300/25 bg-[#0a1830]/88 px-2.5 text-meta text-sky-50"
             : "gap-2.5 rounded-full border border-sky-300/25 bg-[#0a1830]/82 px-3.5 py-2 text-xs text-sky-50"
         }`}
       >
@@ -47,17 +47,17 @@ export function UsCarrierFixedToggle({
           {compact ? (lang === "en" ? "CVN" : "항모") : t("hoverUsCarrierTrack")}
         </span>
         {!compact && !checked && deployedCount > 0 ? (
-          <span className="text-[10px] text-sky-100/50">
+          <span className="text-micro text-sky-100/50">
             {lang === "en" ? "Deployed only" : "작전중만 표시"}
           </span>
         ) : null}
         {deployedCount > 0 ? (
-          <span className="rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-red-100">
+          <span className="rounded-full bg-red-500/20 px-1.5 py-0.5 text-micro font-semibold text-red-100">
             {deployedCount}
           </span>
         ) : null}
         {!compact && checked && carrierCount > 0 ? (
-          <span className="text-[10px] text-sky-100/45">{carrierCount}</span>
+          <span className="text-micro text-sky-100/45">{carrierCount}</span>
         ) : null}
       </label>
     </HoverHint>

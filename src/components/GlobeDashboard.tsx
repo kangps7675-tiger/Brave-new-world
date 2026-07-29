@@ -106,9 +106,10 @@ import {
 } from "@/lib/dailyPredictPrefs";
 import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchment";
 import {
-  buildBreakingFlashBriefing,
+  buildBreakingFlashBriefingForLang,
   claimBreakingFlash,
   shouldOpenBreakingFlash,
+  wasBreakingFlashClaimed,
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
 import {
@@ -502,6 +503,7 @@ import {
 } from "@/lib/news/theaterMap";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import {
+  isMapDisplayableShipObservation,
   shipMovementHtmlMarkers,
   shipMovementPulseRings,
   shipMovementTrailPaths,
@@ -530,6 +532,9 @@ import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
 import { usePortWatchObservations } from "@/hooks/usePortWatchObservations";
 import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsStressSiren";
 import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { useUltraLiteAutoOffer } from "@/hooks/useUltraLiteAutoOffer";
+import { useScreenState } from "@/components/globe/hooks/useScreenState";
+import { useFirstImpressionController } from "@/hooks/useFirstImpressionController";
 import { useLiveGeoFeedPolling } from "@/components/globe/hooks/useLiveGeoFeedPolling";
 import type {
   ChinaTheaterIncidentHtmlMarker,
@@ -3015,8 +3020,12 @@ export function GlobeDashboard({
     const byId = new Map<string, PublicShipObservation>();
     for (const item of shipMovesMap) byId.set(item.id, item);
     for (const item of crossStraitSignal?.shipObservations ?? []) byId.set(item.id, item);
+    // 구 mapEligible=0 broad 등 — 타임라인에만 있어도 추정 해역으로 표시
+    for (const item of shipMovesTimeline) {
+      if (isMapDisplayableShipObservation(item)) byId.set(item.id, item);
+    }
     return [...byId.values()];
-  }, [crossStraitSignal?.shipObservations, shipMovesMap]);
+  }, [crossStraitSignal?.shipObservations, shipMovesMap, shipMovesTimeline]);
 
   /** 추정 경로용 — 타임라인(다주 관측) + 맵 관측을 합쳐 함정별 이동을 잇는다 */
   const combinedShipMovesForTrails = useMemo(() => {
@@ -5172,7 +5181,7 @@ export function GlobeDashboard({
     clearAirRaidFocus,
   });
 
-  /** 귀중한 속보 — 히어로가 S/고충격일 때만 양피지 타전 (등불과 동일 사운드) */
+  /** 귀중한 속보 — S/고충격만 양피지 타전 · 한글 강제 · 전장 fly-to */
   useEffect(() => {
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
@@ -5180,15 +5189,33 @@ export function GlobeDashboard({
     if (breakingFlash) return;
     const hero = newsStreamPayload?.hero;
     if (!shouldOpenBreakingFlash(hero, isEconomyViewer)) return;
-    if (!hero || !claimBreakingFlash(hero.id)) return;
-    setBreakingFlash(
-      buildBreakingFlashBriefing(hero, labelLanguage, isEconomyViewer),
-    );
+    if (!hero || wasBreakingFlashClaimed(hero.id)) return;
+
+    let cancelled = false;
+    void (async () => {
+      const briefing = await buildBreakingFlashBriefingForLang(
+        hero,
+        labelLanguage,
+        isEconomyViewer,
+      );
+      if (cancelled) return;
+      if (!claimBreakingFlash(hero.id)) return;
+      setBreakingFlash(briefing);
+      if (briefing.theater && briefing.theater !== "global") {
+        handleIntelFlyTo(flyTargetForTheater(briefing.theater));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     newsStreamPayload?.hero,
     newsStreamPayload?.hero?.id,
     newsStreamPayload?.hero?.breakingRank,
     newsStreamPayload?.hero?.breakingGrade,
+    newsStreamPayload?.hero?.title,
+    newsStreamPayload?.hero?.summary,
     isEconomyViewer,
     labelLanguage,
     entryGate,
@@ -5257,6 +5284,69 @@ export function GlobeDashboard({
       Boolean(periodicBriefing),
     flyTo,
   });
+
+  /**
+   * FPS 프로브 → Ultra-Lite 1회 제안.
+   * enabled는 반드시 globeReady — 부트 스파이크를 저사양으로 오독하지 않는다.
+   * Compact/Phone은 이미 가벼운 경로이므로 측정하지 않는다.
+   * 첫 90초(firstImpression) 동안은 재지 않는다.
+   */
+  const [mapElForImpression, setMapElForImpression] = useState<HTMLElement | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!globeReady) {
+      setMapElForImpression(null);
+      return;
+    }
+    setMapElForImpression(containerRef.current);
+  }, [globeReady, size.width, size.height]);
+
+  const applyFirstImpressionPatch = useCallback(
+    (patch: Parameters<typeof patchLayerPrefsSoft>[0]) => {
+      patchLayerPrefsSoft(patch);
+    },
+    [patchLayerPrefsSoft],
+  );
+
+  /**
+   * 화면 상태 파생 (P2-1 8단계) — 게이트 조합을 이름 붙은 판정으로.
+   *
+   * 아래 두 훅은 같은 조건을 각각 6·7항으로 다시 조합하고 있었다.
+   * 하나만 바뀌어도 두 곳을 같이 고쳐야 하고, 빠뜨리면 조용히 어긋난다.
+   * 판정을 한 곳에 모아 `screen.canRunFirstImpression` / `canMeasurePerf`로 읽는다.
+   */
+  const screen = useScreenState({
+    entryGate,
+    showModePicker,
+    showLeftPanel,
+    intelSheetOpen,
+    globeReady,
+    isLoading,
+    loadError,
+    isPhoneUi,
+    isCompactUi,
+  });
+
+  const firstImpression = useFirstImpressionController({
+    enabled: screen.canRunFirstImpression,
+    isPhone: isPhoneUi,
+    hasGti: Boolean(wtiSnapshot),
+    hasMarketLink: Boolean(
+      hotTheaterOffer?.theaterId || hotTheaterOffer?.chokeId,
+    ),
+    hotTheaterFocus: hotTheaterOffer,
+    flyTo,
+    mapElement: mapElForImpression,
+    onApplyHotTheaterPatch: applyFirstImpressionPatch,
+    onHotTheaterAutoConsumed: () => setHotTheaterOffer(null),
+  });
+
+  const ultraLiteAutoOffer = useUltraLiteAutoOffer(
+    /** 측정 가능 상태 + 첫 90초가 끝났을 때만 */
+    screen.canMeasurePerf && firstImpression.onboardingReady,
+    handleUltraLiteToggle,
+  );
 
   /** 해상 경보 브리프 — useMaritimeAlertBriefs 훅 (분리 3단계) */
   const {
@@ -5574,8 +5664,12 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (readWelcomeGateDone()) return;
     if (hasPendingScene()) return; // 딥링크 진입은 게이트 생략
-    // 첫 방문: 주의 → 환영 편지 → 도메인 선택
-    setEntryGate("caution");
+    // P0-2: 주의/환영 풀스크린 강등 — 도메인 선택만. 편지는 DomainGate 링크로.
+    markWelcomeGateDone();
+    markLangChoiceDone();
+    setLangChoiceDone(true);
+    setLangChoiceChecked(true);
+    setEntryGate("domain");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryGate, globeReady, isLoading, loadError, showModePicker]);
 
@@ -5699,6 +5793,7 @@ export function GlobeDashboard({
   const maybeOfferAirRaidCoach = useCallback(() => {
     if (isEconomyViewer) return;
     if (issueUiPausedForLamp) return;
+    if (!firstImpression.onboardingReady) return;
     if (entryGate !== null || showModePicker || chromeCoachStep || showFirstVisitTour) return;
     if (!shouldOfferAirRaidCoach()) return;
     if (showAirRaidCoach) return;
@@ -5706,6 +5801,7 @@ export function GlobeDashboard({
   }, [
     chromeCoachStep,
     entryGate,
+    firstImpression.onboardingReady,
     isEconomyViewer,
     issueUiPausedForLamp,
     showAirRaidCoach,
@@ -5851,7 +5947,11 @@ export function GlobeDashboard({
     const lampWasFolded = hasFoldedLamp(lampKey);
     if (hasSeenPeriod(lampKey) && !lampWasFolded) {
       setDailyLampSettled(true);
-      if (shouldOfferChromeCoach() && !chromeCoachStep) {
+      if (
+        firstImpression.onboardingReady &&
+        shouldOfferChromeCoach() &&
+        !chromeCoachStep
+      ) {
         const coachTimer = window.setTimeout(() => setChromeCoachStep("nav"), 900);
         return () => window.clearTimeout(coachTimer);
       }
@@ -6069,6 +6169,7 @@ export function GlobeDashboard({
     clearanceChipSettled,
     econInsightOpen,
     entryGate,
+    firstImpression.onboardingReady,
     frictionEpisodeBrief,
     foldedPeriodicBriefing,
     globeReady,
@@ -7176,14 +7277,12 @@ export function GlobeDashboard({
           setShipMovesSelectedId(obs.id);
           setShipMovesFocusGroupKey(groupKeyForObservation(obs));
           openSelection({ kind: "ship-movement", item: obs });
-          if (
-            obs.mapEligible &&
-            obs.lat != null &&
-            obs.lng != null &&
-            Number.isFinite(obs.lat) &&
-            Number.isFinite(obs.lng)
-          ) {
-            flyTo(obs.lat, obs.lng, 0.85);
+          if (isMapDisplayableShipObservation(obs)) {
+            flyTo(
+              obs.lat!,
+              obs.lng!,
+              obs.locationStatus === "broad" ? 1.15 : 0.85,
+            );
           }
         }}
         onShipTrailModeChange={(mode) => {
@@ -7572,9 +7671,18 @@ export function GlobeDashboard({
         tensionSpike={tensionSpike}
         onDismissTensionSpike={dismissTensionSpike}
         onTensionSpikeJump={onTensionSpikeJump}
-        hotTheaterOffer={hotTheaterOffer}
+        hotTheaterOffer={
+          firstImpression.suppressHotTheaterOffer ? null : hotTheaterOffer
+        }
         onAcceptHotTheaterOffer={acceptHotTheaterOffer}
         onDismissHotTheaterOffer={dismissHotTheaterOffer}
+        ultraLiteOfferVisible={ultraLiteAutoOffer.visible}
+        ultraLiteOfferProbe={ultraLiteAutoOffer.probe}
+        onAcceptUltraLiteOffer={ultraLiteAutoOffer.accept}
+        onDismissUltraLiteOffer={ultraLiteAutoOffer.dismiss}
+        gtiHeroSnapshot={wtiSnapshot}
+        gtiHeroVisible={firstImpression.gtiHeroVisible}
+        soundUnmuteReady={firstImpression.onboardingReady}
         globeRef={globeRef}
         intelStackRef={intelStackRef}
         onCloseLeftPanel={closeLeftPanel}
@@ -7730,10 +7838,10 @@ export function GlobeDashboard({
           <button
             type="button"
             aria-label={t("ariaCloseInfoPanel", labelLanguage)}
-            className="absolute inset-0 z-[119] bg-black/20 lg:bg-black/10"
+            className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
             onClick={() => setSelected(null)}
           />
-          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[120] flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
             {selected.kind === "neptun-threat" ? (
               <div className="intel-scroll-y min-h-0 flex-1">
                 <NeptunThreatDetailPanel
@@ -7833,22 +7941,22 @@ export function GlobeDashboard({
 
       {economyAttackReaction && isEconomyViewer ? (
         <aside
-          className="pointer-events-auto absolute left-3 top-[5.75rem] z-[120] w-[min(94vw,360px)] overflow-hidden rounded-2xl border border-amber-400/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl sm:left-4"
+          className="pointer-events-auto absolute left-3 top-[5.75rem] z-[600] w-[min(94vw,360px)] overflow-hidden rounded-2xl border border-amber-400/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl sm:left-4"
           role="dialog"
           aria-label={labelLanguage === "en" ? "Event market reaction" : "사건 시장 반응"}
         >
           <div className="flex items-start justify-between gap-2 border-b border-white/10 px-3 py-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200/80">
+              <p className="text-micro font-semibold uppercase tracking-wider text-amber-200/80">
                 {labelLanguage === "en" ? "Event ↔ Markets" : "사건 ↔ 시장"}
               </p>
-              <p className="mt-0.5 truncate text-[12px] text-slate-200">
+              <p className="mt-0.5 truncate text-caption text-slate-200">
                 {economyAttackReaction.title}
               </p>
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-lg border border-slate-500/30 px-2 py-1 text-[11px] text-slate-300"
+              className="shrink-0 rounded-lg border border-slate-500/30 px-2 py-1 text-meta text-slate-300"
               onClick={() => setEconomyAttackReaction(null)}
             >
               {labelLanguage === "en" ? "Close" : "닫기"}

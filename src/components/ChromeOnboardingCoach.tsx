@@ -1,6 +1,7 @@
 "use client";
 
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
+import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 export const CHROME_COACH_KEY = "geowatch-chrome-coach-v4";
@@ -18,15 +19,13 @@ export function readChromeCoachDone(): boolean {
 
 export function markChromeCoachDone(): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(CHROME_COACH_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  // 저장 키 기록 + 세션 예산 차감을 함께 처리
+  markNudgeShown("chromeCoach");
 }
 
+/** 미열람 + 이번 세션 온보딩 예산이 남아 있을 때만 */
 export function shouldOfferChromeCoach(): boolean {
-  return !readChromeCoachDone();
+  return canShowNudge("chromeCoach", !readChromeCoachDone());
 }
 
 type ChromeOnboardingCoachProps = {

@@ -14,6 +14,7 @@ import {
 import { economyHubLabel } from "@/lib/autoFlyTarget";
 import { conceptLayerKeysForSelection } from "@/lib/conceptLayers";
 import { LAYER_PREF_LABELS, VIEW_THEATER_OPTIONS, type ViewTheaterChoice } from "@/lib/viewPackages";
+import { useDialog } from "@/hooks/useDialog";
 
 type ModePickerOverlayProps = {
   initialMode?: ViewerMode;
@@ -51,6 +52,8 @@ export function ModePickerOverlay({
   onCustom,
   onCancel,
 }: ModePickerOverlayProps) {
+  /** 취소 가능할 때만 Escape 허용 — 취소 수단이 없으면 게이트다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onCancel, closeOnEscape: Boolean(onCancel) });
   const { lang } = useLocale();
   const [mode, setMode] = useState<ViewerMode>(initialMode);
   const [theater, setTheater] = useState<ViewTheaterChoice>(initialTheater);
@@ -90,13 +93,15 @@ export function ModePickerOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto bg-[#02040a]/95 p-4 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[800] flex items-center justify-center overflow-y-auto bg-[#02040a]/95 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="mode-picker-title"
     >
       <div className="my-auto w-full max-w-2xl rounded-2xl border border-orange-400/20 bg-[#0a1428]/95 p-6 shadow-2xl sm:p-8">
-        <p className="text-center text-[11px] font-medium tracking-[0.28em] text-orange-200/75 sm:tracking-[0.36em]">
+        <p className="text-center text-meta font-medium tracking-[0.28em] text-orange-200/75 sm:tracking-[0.36em]">
           {brandName(lang)}
         </p>
         <h1
@@ -135,10 +140,10 @@ export function ModePickerOverlay({
                   className={`relative flex flex-col rounded-xl border px-4 py-5 text-left transition ${accent}`}
                 >
                   <span className="text-base font-semibold">{preset.title}</span>
-                  <span className="mt-1 text-[11px] text-slate-400">{preset.tagline}</span>
+                  <span className="mt-1 text-meta text-slate-400">{preset.tagline}</span>
                   <ul className="mt-3 space-y-1">
                     {preset.bullets.slice(0, 3).map((line) => (
-                      <li key={line} className="flex gap-2 text-[10px] leading-snug text-slate-300">
+                      <li key={line} className="flex gap-2 text-micro leading-snug text-slate-300">
                         <span className={m === "economy" ? "text-emerald-300/80" : "text-orange-300/80"}>
                           ·
                         </span>
@@ -155,7 +160,7 @@ export function ModePickerOverlay({
         {activeMode === "conflict" ? (
           <div className="mt-6">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{t("modePickerTheater", lang)}</p>
-            <p className="mt-1 text-[11px] text-slate-600">{t("modePickerTheaterHint", lang)}</p>
+            <p className="mt-1 text-meta text-slate-600">{t("modePickerTheaterHint", lang)}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {VIEW_THEATER_OPTIONS.filter((opt) => opt.id !== "global").map((opt) => {
                 const active = theater === opt.id;
@@ -186,7 +191,7 @@ export function ModePickerOverlay({
         ) : (
           <div className="mt-6">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{t("modePickerHub", lang)}</p>
-            <p className="mt-1 text-[11px] text-slate-600">{t("modePickerHubHint", lang)}</p>
+            <p className="mt-1 text-meta text-slate-600">{t("modePickerHubHint", lang)}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {ECONOMY_HUB_OPTIONS.map((opt) => {
                 const active = economyHub === opt.id;
@@ -213,10 +218,10 @@ export function ModePickerOverlay({
         )}
 
         <div className="mt-5 space-y-2 rounded-lg border border-slate-800 bg-black/25 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
+          <p className="text-micro uppercase tracking-[0.18em] text-slate-500">
             {t("modePickerPreview", lang)}
           </p>
-          <ul className="mt-1.5 space-y-1 text-[11px] leading-snug text-slate-300">
+          <ul className="mt-1.5 space-y-1 text-meta leading-snug text-slate-300">
             {preview.map((line) => (
               <li key={line} className="flex gap-2">
                 <span
@@ -229,7 +234,7 @@ export function ModePickerOverlay({
               </li>
             ))}
           </ul>
-          <p className="pt-1 text-[10px] leading-snug text-slate-500">
+          <p className="pt-1 text-micro leading-snug text-slate-500">
             {layerHoverTitle(
               activeMode,
               activeMode === "conflict" ? theater : "auto",
@@ -242,7 +247,7 @@ export function ModePickerOverlay({
           <button
             type="button"
             onClick={() => setShowAdvanced((v) => !v)}
-            className="text-[11px] text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
+            className="text-meta text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
           >
             {showAdvanced ? t("modePickerAdvancedHide", lang) : t("modePickerAdvancedShow", lang)}
           </button>

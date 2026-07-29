@@ -86,10 +86,10 @@ export function UkraineFrontLegendContent({
     <div className={compact ? "space-y-2" : "space-y-2.5"}>
       {!compact && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-300/15 pb-2">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-sky-200/75">
+          <p className="text-micro uppercase tracking-[0.22em] text-sky-200/75">
             {t("legendUaTitle")}
           </p>
-          <p className="text-[10px] text-sky-100/50">
+          <p className="text-micro text-sky-100/50">
             VIINA{dateLabel ? ` · ${dateLabel}` : ""}
             {lodLabel ? ` · ${lodLabel}` : ""}
           </p>

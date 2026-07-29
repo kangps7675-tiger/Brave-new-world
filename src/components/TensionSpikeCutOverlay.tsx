@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useDialog } from "@/hooks/useDialog";
 import {
   TENSION_CUT_DESTINATIONS,
   type TensionCutDestination,
@@ -22,6 +23,8 @@ export function TensionSpikeCutOverlay({
   onJump,
   onDismiss,
 }: TensionSpikeCutOverlayProps) {
+  /** 긴장 컷 — 전체화면을 덮으므로 Escape 탈출구가 반드시 필요하다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onDismiss });
   const [phase, setPhase] = useState<Phase>("offer");
   const en = lang === "en";
 
@@ -44,6 +47,8 @@ export function TensionSpikeCutOverlay({
 
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       className={`tension-spike-cut ${phase === "cutting" ? "tension-spike-cut--cutting" : ""}`}
       role="dialog"
       aria-modal="true"

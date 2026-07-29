@@ -23,6 +23,7 @@ export type ShipMovementHtmlMarker = {
   label: string;
   confidence: PublicShipObservation["confidence"];
   vesselConfidence: PublicShipObservation["vesselConfidence"];
+  locationStatus: PublicShipObservation["locationStatus"];
   precisionKm: number | null;
   sourceUrl: string;
   navyLabel: string | null;
@@ -42,17 +43,27 @@ export type ShipMovementPulseRing = {
 
 const NEAR_DEG = 0.08; // ~9km — 같은 장소 중복 제거
 
+/** 좌표가 있고, 정밀/해협 승인 또는 광역 해역 추정으로 지도에 올릴 수 있는지 */
+export function isMapDisplayableShipObservation(
+  o: PublicShipObservation,
+): boolean {
+  if (
+    o.lat == null ||
+    o.lng == null ||
+    !Number.isFinite(o.lat) ||
+    !Number.isFinite(o.lng)
+  ) {
+    return false;
+  }
+  if (o.mapEligible) return true;
+  // 구 DB: broad인데 mapEligible=0 이어도 해역 중심 좌표가 있으면 추정 표시
+  return o.locationStatus === "broad";
+}
+
 export function mapEligibleShipObservations(
   observations: PublicShipObservation[],
 ): PublicShipObservation[] {
-  return observations.filter(
-    (o) =>
-      o.mapEligible &&
-      o.lat != null &&
-      o.lng != null &&
-      Number.isFinite(o.lat) &&
-      Number.isFinite(o.lng),
-  );
+  return observations.filter(isMapDisplayableShipObservation);
 }
 
 export function shipMovementHtmlMarkers(
@@ -70,6 +81,7 @@ export function shipMovementHtmlMarkers(
       o.id,
     confidence: o.confidence,
     vesselConfidence: o.vesselConfidence,
+    locationStatus: o.locationStatus,
     precisionKm: o.precisionKm,
     sourceUrl: o.sourceUrl,
     navyLabel: o.navyLabel,
@@ -82,12 +94,14 @@ export function shipMovementPulseRings(
 ): ShipMovementPulseRing[] {
   return mapEligibleShipObservations(observations).map((o) => {
     const km = o.precisionKm ?? 40;
+    const broad = o.locationStatus === "broad";
     return {
       pulseKind: "ship-movement" as const,
       id: o.id,
       lat: o.lat!,
       lng: o.lng!,
-      radiusScale: Math.max(0.7, Math.min(9, km / 35)),
+      // 광역 해역: 더 큰 불확실 링
+      radiusScale: Math.max(0.7, Math.min(broad ? 12 : 9, km / (broad ? 28 : 35))),
       color: shipNavyPulseColor(o.navyCode),
       markerId: `ship-move-ring-${o.id}`,
       label: o.locationLabel || o.title,
@@ -226,9 +240,11 @@ export function createShipMovementPinElement(
   vesselUncertain: boolean,
   onClick?: () => void,
   navyCode?: string | null,
+  locationStatus?: PublicShipObservation["locationStatus"],
 ): HTMLElement {
   const root = document.createElement("div");
   root.className = "ship-movement-pin";
+  const broad = locationStatus === "broad";
   root.style.cssText = [
     "transform:translate(-50%,-70%)",
     "pointer-events:auto",
@@ -253,12 +269,13 @@ export function createShipMovementPinElement(
     `height:${SURFACE_COMBATANT_PROFILE_SIZE.height}px`,
     "display:block",
     `filter:drop-shadow(0 1px 3px rgba(0,0,0,0.85)) drop-shadow(0 0 6px ${fill}88)`,
-    confidence === "estimated" ? "opacity:0.82" : "opacity:1",
+    broad || confidence === "estimated" ? "opacity:0.72" : "opacity:1",
   ].join(";");
   icon.innerHTML = warshipProfileIconSvg(fill, SURFACE_COMBATANT_PROFILE_SIZE, "e");
 
   const tag = document.createElement("div");
-  tag.textContent = vesselUncertain ? `? ${label}` : label;
+  const prefix = broad ? "≈ " : vesselUncertain ? "? " : "";
+  tag.textContent = `${prefix}${label}`;
   tag.style.cssText = [
     "max-width:148px",
     "overflow:hidden",
@@ -269,7 +286,7 @@ export function createShipMovementPinElement(
     "color:#fff8ed",
     "text-shadow:0 1px 3px rgba(0,0,0,0.85)",
     "background:rgba(15,23,42,0.82)",
-    `border:1px ${confidence === "observed" ? "solid" : "dashed"} ${fill}99`,
+    `border:1px ${broad || confidence !== "observed" ? "dashed" : "solid"} ${fill}99`,
     "border-radius:6px",
     "padding:1px 6px",
   ].join(";");

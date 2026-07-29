@@ -265,6 +265,45 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
+   * 전역 궤도 — 먼 천둥 A (천둥만 · 비/바람 베드 없음)
+   * https://freesound.org/s/712017/ · AudioPapkin · CC0
+   */
+  "global-thunder-a": {
+    eventId: "global-thunder-a",
+    freesoundQuery: "thunder rumble distant",
+    freesoundId: 712017,
+    volume: 0.11,
+    category: "ambient",
+    note: "FS#712017 AudioPapkin Thunder · CC0 · 전역뷰 먼 천둥",
+  },
+
+  /**
+   * 전역 궤도 — 먼 천둥 B
+   * https://freesound.org/s/810746/ · mokasza · CC BY 4.0
+   */
+  "global-thunder-b": {
+    eventId: "global-thunder-b",
+    freesoundQuery: "loud thunder rumble",
+    freesoundId: 810746,
+    volume: 0.1,
+    category: "ambient",
+    note: "FS#810746 mokasza loud thunder 02 · CC-BY · 전역뷰 먼 천둥",
+  },
+
+  /**
+   * 전역 궤도 — 먼 천둥 C
+   * https://freesound.org/s/242013/ · sgossner · CC0
+   */
+  "global-thunder-c": {
+    eventId: "global-thunder-c",
+    freesoundQuery: "thunder powerful mono distant",
+    freesoundId: 242013,
+    volume: 0.12,
+    category: "ambient",
+    note: "FS#242013 sgossner Thunder Powerful mono · CC0 · 전역뷰 먼 천둥",
+  },
+
+  /**
    * FIRMS 폭격 추정 — 원거리 미사일/폭발
    * https://freesound.org/s/741267/ · the_yura · CC0
    */

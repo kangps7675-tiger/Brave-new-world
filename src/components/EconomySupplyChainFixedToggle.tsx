@@ -54,7 +54,7 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "U.S. DFC" : "미국 DFC"}
             </span>
             {usLinkCount > 0 ? (
-              <span className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-[10px] font-semibold text-blue-100">
+              <span className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
                 {usLinkCount}
               </span>
             ) : null}
@@ -86,7 +86,7 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "Belt & Road" : "일대일로"}
             </span>
             {chinaLinkCount > 0 ? (
-              <span className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-[10px] font-semibold text-amber-100">
+              <span className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
                 {chinaLinkCount}
               </span>
             ) : null}
@@ -109,7 +109,7 @@ export function EconomySupplyChainFixedToggle({
           {lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
         </span>
         {showUsDfc && usLinkCount > 0 ? (
-          <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-100">
+          <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
             {usLinkCount}
           </span>
         ) : null}
@@ -126,7 +126,7 @@ export function EconomySupplyChainFixedToggle({
           {lang === "en" ? "China Belt and Road" : "중국 일대일로"}
         </span>
         {showChinaBri && chinaLinkCount > 0 ? (
-          <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-100">
+          <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
             {chinaLinkCount}
           </span>
         ) : null}

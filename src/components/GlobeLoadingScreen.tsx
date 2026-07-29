@@ -356,7 +356,7 @@ export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScr
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-black transition-opacity duration-700 ease-out"
+      className="fixed inset-0 z-[700] flex flex-col items-center justify-center overflow-hidden bg-black transition-opacity duration-700 ease-out"
       style={{
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? "none" : "auto",

@@ -34,7 +34,7 @@ export function AirRaidBriefingParchment({
       playBreakingDispatch
       typewriter={false}
       titleId="air-raid-briefing-title"
-      zIndexClass="z-[10040]"
+      zIndexClass="z-[900]"
     />
   );
 }

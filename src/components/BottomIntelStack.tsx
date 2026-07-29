@@ -85,6 +85,7 @@ import {
   type MapFlyTarget,
 } from "@/lib/news/theaterMap";
 import { resolveEconomyArticleFlyTarget } from "@/lib/news/economyMapFly";
+import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 
 const INTEL_DRAG_HINT_KEY = "geowatch-intel-drag-hint-v1";
 
@@ -97,13 +98,14 @@ function readIntelDragHintDismissed(): boolean {
   }
 }
 
+/** 미열람 + 이번 세션 온보딩 예산이 남아 있을 때만 (가장 낮은 우선순위) */
+function shouldOfferIntelDragHint(): boolean {
+  return canShowNudge("intelDragHint", !readIntelDragHintDismissed());
+}
+
 function dismissIntelDragHint(): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(INTEL_DRAG_HINT_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  markNudgeShown("intelDragHint");
 }
 
 function IntelNewsCloseButton({
@@ -133,7 +135,8 @@ function IntelDragDismissHint({ economy = false }: { economy?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(!readIntelDragHintDismissed());
+    // 미열람 + 세션 예산 잔여일 때만 (가장 낮은 우선순위 넛지)
+    setVisible(shouldOfferIntelDragHint());
   }, []);
 
   const hide = useCallback(() => {
@@ -161,12 +164,12 @@ function IntelDragDismissHint({ economy = false }: { economy?: boolean }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold">{t("intelDragDismissTitle")}</p>
-        <p className={`mt-0.5 text-[11px] leading-snug ${subTone}`}>{t("intelDragDismissBody")}</p>
+        <p className={`mt-0.5 text-meta leading-snug ${subTone}`}>{t("intelDragDismissBody")}</p>
       </div>
       <button
         type="button"
         onClick={hide}
-        className={`shrink-0 rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${btnTone}`}
+        className={`shrink-0 rounded-lg border px-2.5 py-1 text-micro font-medium transition ${btnTone}`}
       >
         {t("intelDragDismissGotIt")}
       </button>
@@ -482,7 +485,7 @@ function TodayHotspotChip({
     >
       <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-1.5">
         <span
-          className={`text-[10px] font-bold uppercase tracking-[0.18em] ${
+          className={`text-micro font-bold uppercase tracking-[0.18em] ${
             economy ? "text-emerald-200/90" : "text-amber-200/90"
           }`}
         >
@@ -491,7 +494,7 @@ function TodayHotspotChip({
         <button
           type="button"
           onClick={onDismiss}
-          className="text-[10px] text-slate-500 transition hover:text-slate-300"
+          className="text-micro text-slate-500 transition hover:text-slate-300"
         >
           {t("todayHotDismiss")}
         </button>
@@ -502,7 +505,7 @@ function TodayHotspotChip({
         className="flex w-full flex-col gap-1 px-3 py-2.5 text-left transition hover:brightness-110"
       >
         <p className="font-news-headline text-xs font-semibold leading-snug text-slate-50">{briefing.headline}</p>
-        <ol className="space-y-0.5 text-[11px] leading-5 text-slate-400">
+        <ol className="space-y-0.5 text-meta leading-5 text-slate-400">
           {briefing.lines.map((line, i) => (
             <li key={i} className="line-clamp-2">
               <span className="mr-1 text-slate-600">{i + 1}.</span>
@@ -511,7 +514,7 @@ function TodayHotspotChip({
           ))}
         </ol>
         <span
-          className={`mt-1 text-[10px] font-semibold uppercase tracking-wider ${
+          className={`mt-1 text-micro font-semibold uppercase tracking-wider ${
             economy ? "text-emerald-300/90" : "text-amber-300/90"
           }`}
         >
@@ -543,10 +546,10 @@ function HeroHeadlineBanner({
       aria-label={`${lang === "en" ? "Breaking" : "속보"}: ${displayNewsItemTitle(hero, lang)}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-white/12 bg-black/20 px-3 py-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-red-200/90">
+        <span className="text-micro font-bold uppercase tracking-[0.22em] text-red-200/90">
           {lang === "en" ? "Headline" : "헤드라인"}
         </span>
-        <span className="text-[10px] text-slate-500">{theaterLabel(hero.theater, lang)}</span>
+        <span className="text-micro text-slate-500">{theaterLabel(hero.theater, lang)}</span>
       </div>
       <button
         type="button"
@@ -559,12 +562,12 @@ function HeroHeadlineBanner({
               ⚠
             </span>
           ) : (
-            <span className="shrink-0 text-[10px] text-red-400" aria-hidden>
+            <span className="shrink-0 text-micro text-red-400" aria-hidden>
               ●
             </span>
           )}
           <span
-            className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${heroBadgeClass(hero.heroStatus, economy)}`}
+            className={`shrink-0 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wide ${heroBadgeClass(hero.heroStatus, economy)}`}
           >
             {statusText}
           </span>
@@ -576,10 +579,10 @@ function HeroHeadlineBanner({
               : ""}
             {displayNewsItemTitle(hero, lang)}
           </span>
-          <span className="shrink-0 text-[10px] text-slate-500">
+          <span className="shrink-0 text-micro text-slate-500">
             {formatAge(hero.ageMinutes, lang)}
           </span>
-          <span className="hero-open-cta-arrow shrink-0 text-[10px] font-bold uppercase tracking-wider text-sky-300">
+          <span className="hero-open-cta-arrow shrink-0 text-micro font-bold uppercase tracking-wider text-sky-300">
             {t("openPanel")}
           </span>
         </div>
@@ -604,7 +607,7 @@ function HeroHeadlineBanner({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="rounded-lg border border-slate-600/60 px-2 py-1 text-[10px] text-slate-300 hover:border-slate-400 hover:text-slate-100"
+              className="rounded-lg border border-slate-600/60 px-2 py-1 text-micro text-slate-300 hover:border-slate-400 hover:text-slate-100"
             >
               {t("openOriginal")}
             </a>
@@ -847,10 +850,10 @@ export function DynamicIntelStack({
           >
             <span className="intel-news-sheet__handle shrink-0" aria-hidden />
             <span className="min-w-0">
-              <span className="block text-[11px] font-medium text-sky-50/90">
+              <span className="block text-meta font-medium text-sky-50/90">
                 {t("intelDockGlobeFullscreen")}
               </span>
-              <span className="block truncate text-[10px] text-sky-200/55">
+              <span className="block truncate text-micro text-sky-200/55">
                 {t("intelDockExpandHint")}
               </span>
             </span>
@@ -936,7 +939,7 @@ export function DynamicIntelStack({
           title={t("intelDockCollapseHint")}
         >
           <span className="intel-news-sheet__handle" aria-hidden />
-          <span className="text-[10px] tracking-wide text-sky-200/45">
+          <span className="text-micro tracking-wide text-sky-200/45">
             {t("intelDockCollapseHint")}
           </span>
         </div>
@@ -1106,7 +1109,7 @@ function TheaterChipBar({
               >
                 {chip.label}
                 {chip.count != null && chip.count > 0 ? (
-                  <span className="ml-1 text-[10px] opacity-70">{chip.count}</span>
+                  <span className="ml-1 text-micro opacity-70">{chip.count}</span>
                 ) : null}
               </button>
             </HoverHint>
@@ -1145,7 +1148,7 @@ function EconomyGenreChipBar({
 
   return (
     <div className="shrink-0 border-b border-emerald-400/15 px-4 py-2">
-      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300/70">
+      <p className="mb-1.5 text-micro font-semibold uppercase tracking-wider text-emerald-300/70">
         {t("econGenreBar")}
       </p>
       <div className="flex gap-1.5 overflow-x-auto pb-0.5">
@@ -1167,7 +1170,7 @@ function EconomyGenreChipBar({
               >
                 {chip.label}
                 {chip.count != null && chip.count > 0 ? (
-                  <span className="ml-1 text-[10px] opacity-70">{chip.count}</span>
+                  <span className="ml-1 text-micro opacity-70">{chip.count}</span>
                 ) : null}
               </button>
             </HoverHint>
@@ -1199,7 +1202,7 @@ function FlyToMapButton({
           e.stopPropagation();
           onClick();
         }}
-        className="shrink-0 rounded-lg border border-sky-400/25 bg-sky-950/40 px-2 py-1 text-[10px] font-medium text-sky-100 transition hover:border-sky-300/50 hover:bg-sky-900/50"
+        className="shrink-0 rounded-lg border border-sky-400/25 bg-sky-950/40 px-2 py-1 text-micro font-medium text-sky-100 transition hover:border-sky-300/50 hover:bg-sky-900/50"
       >
         {label}
       </button>
@@ -1268,7 +1271,7 @@ function IntelSheetTabBar({
         >
           RSS · 속보
           {newsCount > 0 ? (
-            <span className="ml-1.5 text-[10px] font-medium opacity-70">{newsCount}</span>
+            <span className="ml-1.5 text-micro font-medium opacity-70">{newsCount}</span>
           ) : null}
         </button>
         <button
@@ -1303,7 +1306,7 @@ function IntelSheetTabBar({
         >
           뉴스
           {newsCount > 0 ? (
-            <span className="ml-1.5 text-[10px] font-medium opacity-70">{newsCount}</span>
+            <span className="ml-1.5 text-micro font-medium opacity-70">{newsCount}</span>
           ) : null}
         </button>
       </HoverHint>
@@ -1333,7 +1336,7 @@ function IntelSheetTabBar({
           >
             VIINA
             {viinaCount > 0 ? (
-              <span className="ml-1.5 text-[10px] font-medium opacity-70">{viinaCount}</span>
+              <span className="ml-1.5 text-micro font-medium opacity-70">{viinaCount}</span>
             ) : null}
           </button>
         </HoverHint>
@@ -1355,7 +1358,7 @@ function IntelSheetTabBar({
           >
             {t("intelSheetTelegramTab")}
             {telegramCount > 0 ? (
-              <span className="ml-1.5 text-[10px] font-medium opacity-70">{telegramCount}</span>
+              <span className="ml-1.5 text-micro font-medium opacity-70">{telegramCount}</span>
             ) : null}
           </button>
         </HoverHint>
@@ -1377,7 +1380,7 @@ function IntelSheetTabBar({
           >
             {t("intelSheetTelegramVideoTab")}
             {telegramVideoCount > 0 ? (
-              <span className="ml-1.5 text-[10px] font-medium opacity-70">
+              <span className="ml-1.5 text-micro font-medium opacity-70">
                 {telegramVideoCount}
               </span>
             ) : null}
@@ -1397,7 +1400,7 @@ function IntelSheetTabBar({
           >
             GDELT
             {gdeltCount > 0 ? (
-              <span className="ml-1.5 text-[10px] font-medium opacity-70">{gdeltCount}</span>
+              <span className="ml-1.5 text-micro font-medium opacity-70">{gdeltCount}</span>
             ) : null}
           </button>
         </HoverHint>
@@ -1731,7 +1734,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     return (
       <div
         id="intel-news-sheet"
-        className={`intel-news-sheet fixed inset-x-0 bottom-0 z-[120] flex flex-col ${
+        className={`intel-news-sheet fixed inset-x-0 bottom-0 z-[600] flex flex-col ${
           open ? "intel-news-sheet--open" : ""
         } ${sheetDragging ? "intel-news-sheet--dragging" : ""}`}
         role="dialog"
@@ -1758,14 +1761,14 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
           title={t("intelDockCollapseHint")}
         >
           <span className="intel-news-sheet__handle" aria-hidden />
-          <span className="text-[10px] tracking-wide text-sky-200/45">
+          <span className="text-micro tracking-wide text-sky-200/45">
             {t("intelDockCollapseHint")}
           </span>
         </div>
         {open ? <IntelDragDismissHint economy={preferEconomyNews} /> : null}
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-sky-300/10 px-4 pb-3 pt-1.5">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/70">Intel Stack</p>
+            <p className="text-micro uppercase tracking-[0.28em] text-sky-200/70">Intel Stack</p>
             <p className="text-sm text-sky-50/95">
               {preferEconomyNews
                 ? economyTab === "markets"
@@ -1795,7 +1798,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                       </span>
                     ) : null}
                   </span>
-                  <span className="ml-2 rounded border border-sky-400/25 px-1.5 py-0.5 text-[10px] text-sky-200/80">
+                  <span className="ml-2 rounded border border-sky-400/25 px-1.5 py-0.5 text-micro text-sky-200/80">
                     {lang === "ko" ? t("translationKo") : t("translationEn")}
                   </span>
                 </>
@@ -1809,7 +1812,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   <button
                     type="button"
                     onClick={onOpenTrust}
-                    className="text-[10px] font-medium text-sky-200/80 underline-offset-2 transition hover:text-sky-100 hover:underline"
+                    className="text-micro font-medium text-sky-200/80 underline-offset-2 transition hover:text-sky-100 hover:underline"
                   >
                     등급이란?
                   </button>
@@ -1819,7 +1822,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   title={t("hoverTier3Title")}
                   detail={t("hoverTier3Hint")}
                 >
-                  <label className="flex cursor-pointer items-center gap-1.5 text-[10px] text-amber-200/80">
+                  <label className="flex cursor-pointer items-center gap-1.5 text-micro text-amber-200/80">
                     <input
                       type="checkbox"
                       checked={showTier3}
@@ -1929,14 +1932,14 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${heroBadgeClass(hero!.heroStatus, preferEconomyNews)}`}
+                        className={`rounded-full border px-2 py-0.5 text-micro font-semibold ${heroBadgeClass(hero!.heroStatus, preferEconomyNews)}`}
                       >
                         {heroStatusLabel(hero!.heroStatus, lang, preferEconomyNews)}
                       </span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-meta text-slate-400">
                         {newsStreamTheaterLabel(hero!.theater, lang)}
                       </span>
-                      <span className="text-[11px] text-slate-500">{formatAge(hero!.ageMinutes, lang)}</span>
+                      <span className="text-meta text-slate-500">{formatAge(hero!.ageMinutes, lang)}</span>
                     </div>
                     <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-50">
                       {displayNewsItemTitle(hero!, lang)}
@@ -1970,7 +1973,9 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
 
             <div className="intel-scroll-y min-h-0 flex-1 px-1 py-2">
               {!payload ? (
-                <p className="py-12 text-center text-sm text-slate-500">뉴스 스트림 동기화 중…</p>
+                <p className="py-12 text-center text-sm text-slate-500">
+                  {t("intelStreamSyncing")}
+                </p>
               ) : (
                 <div className="mx-3 flex flex-col gap-3">
                   <TierSection
@@ -2130,7 +2135,7 @@ function TierSection({
         }`}
       >
         <p className="text-xs font-semibold text-sky-50/95">{label}</p>
-        <p className="mt-0.5 text-[11px] text-sky-100/50">{detail}</p>
+        <p className="mt-0.5 text-meta text-sky-100/50">{detail}</p>
       </div>
       <ul className="divide-y divide-sky-300/8">
         {items.map((item) => (
@@ -2216,14 +2221,14 @@ function AnalysisPanel({
       <div className="flex items-start justify-between gap-2 border-b border-violet-400/15 px-4 py-2.5">
         <div className="min-w-0">
           <p className="text-xs font-semibold text-violet-100">{t("aiDigestLabel")}</p>
-          <p className="mt-0.5 text-[11px] text-violet-200/55">{t("aiDigestPolicy")}</p>
+          <p className="mt-0.5 text-meta text-violet-200/55">{t("aiDigestPolicy")}</p>
         </div>
         <button
           type="button"
           onClick={() => setDismissed(true)}
           aria-label={t("aiDigestClose")}
           title={t("aiDigestClose")}
-          className="shrink-0 rounded border border-violet-400/30 bg-violet-950/50 px-2 py-1 text-[11px] font-medium text-violet-100/90 transition hover:border-violet-300/50 hover:bg-violet-900/60 hover:text-violet-50"
+          className="shrink-0 rounded border border-violet-400/30 bg-violet-950/50 px-2 py-1 text-meta font-medium text-violet-100/90 transition hover:border-violet-300/50 hover:bg-violet-900/60 hover:text-violet-50"
         >
           {t("close")}
         </button>
@@ -2246,7 +2251,7 @@ function AnalysisPanel({
                 <li key={i}>{line}</li>
               ))}
             </ol>
-            <p className="text-[10px] uppercase tracking-wider text-violet-300/60">
+            <p className="text-micro uppercase tracking-wider text-violet-300/60">
               {digest.confidence} · {digest.model}
             </p>
             {digest.link ? (
@@ -2263,7 +2268,7 @@ function AnalysisPanel({
         ) : (
           <>
             {digestChecked ? (
-              <p className="text-[11px] text-violet-200/50">{t("aiDigestFail")}</p>
+              <p className="text-meta text-violet-200/50">{t("aiDigestFail")}</p>
             ) : null}
             {hero && theaterLabelText ? (
               <p>
@@ -2337,7 +2342,7 @@ function AnalysisPanel({
               ↗
             </span>
           </a>
-          <div className="rounded-lg border border-violet-400/15 bg-violet-950/25 px-3 py-2.5 text-[11px] leading-5 text-violet-100/75">
+          <div className="rounded-lg border border-violet-400/15 bg-violet-950/25 px-3 py-2.5 text-meta leading-5 text-violet-100/75">
             <p className="font-medium text-violet-100/90">
               {lang === "en" ? "Why this button exists" : "이 버튼이 필요한 이유"}
             </p>
@@ -2450,7 +2455,7 @@ function NewsRow({
         <span className="min-h-0 min-w-0 flex-1">
           <span className="mb-1 inline-flex flex-wrap items-center gap-2">
             <span
-              className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
+              className={`rounded px-1.5 py-0.5 text-micro font-bold ${
                 item.trustTier === 1
                   ? "bg-emerald-500/20 text-emerald-100"
                   : tier3
@@ -2461,21 +2466,21 @@ function NewsRow({
               {tierLabel}
             </span>
             {chokeTag ? (
-              <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-rose-500/20 text-rose-100">
+              <span className="rounded px-1.5 py-0.5 text-micro font-semibold bg-rose-500/20 text-rose-100">
                 {lang === "en" ? `Choke · ${chokeTag}` : `초크 · ${chokeTag}`}
               </span>
             ) : null}
             {genre ? (
-              <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-teal-500/15 text-teal-100">
+              <span className="rounded px-1.5 py-0.5 text-micro font-semibold bg-teal-500/15 text-teal-100">
                 {genre}
               </span>
             ) : null}
             {economyFly ? (
-              <span className="rounded px-1.5 py-0.5 text-[9px] text-emerald-200/70">
+              <span className="rounded px-1.5 py-0.5 text-micro text-emerald-200/70">
                 {economyFly.label}
               </span>
             ) : null}
-            <span className="text-[11px] text-slate-500">{item.source}</span>
+            <span className="text-meta text-slate-500">{item.source}</span>
           </span>
           <span className="line-clamp-2 text-sm font-medium leading-5 text-slate-100">
             {displayTitle}
@@ -2485,7 +2490,7 @@ function NewsRow({
               {item.summary}
             </span>
           ) : null}
-          <span className="mt-1 block text-[11px] text-slate-500">
+          <span className="mt-1 block text-meta text-slate-500">
             {newsStreamTheaterLabel(item.theater, lang)} · {formatPubAge(item.pubDate, lang)}
           </span>
         </span>

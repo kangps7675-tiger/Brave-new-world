@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PARCHMENT_FOLD_EXIT_MS } from "@/components/ParchmentLetter";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import {
   insightRiskToCss,
   type EconInsightBrief,
@@ -10,6 +11,7 @@ import {
 } from "@/data/econInsightBriefs";
 import { localizeEconInsightBrief } from "@/data/criticalNodeKoreanBriefs";
 import { CRITICAL_NODES_ATTRIBUTION } from "@/data/criticalNodes";
+import { useDialog } from "@/hooks/useDialog";
 import {
   emitParchmentFoldSound,
   emitParchmentUnfoldSound,
@@ -102,6 +104,12 @@ export function EconInsightParchment({
   onOpenNews,
   compact = false,
 }: EconInsightParchmentProps) {
+  /**
+   * 경제 인사이트 양피지 (P1-7).
+   * Escape는 「지도만 보기」와 같은 의미 — 이 양피지를 접고 지도로 돌아간다.
+   * 「뉴스 열기」는 다른 곳으로 이동하는 동작이라 Escape에 매핑하지 않는다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onMapOnly });
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
   const [worldStats, setWorldStats] = useState<WorldStatsMacro | null>(null);
   const [typedChars, setTypedChars] = useState(0);
@@ -131,8 +139,7 @@ export function EconInsightParchment({
     typingSkipRef.current = false;
     setTypedChars(0);
     const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      prefersReducedMotion();
     if (!TYPEWRITER_ENABLED || reduced || totalChars === 0) {
       typingSkipRef.current = true;
       setTypedChars(totalChars);
@@ -223,8 +230,7 @@ export function EconInsightParchment({
       setPhase("folding");
       emitParchmentFoldSound();
       const reduced =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        prefersReducedMotion();
       window.setTimeout(() => {
         setPhase("done");
         next();
@@ -244,7 +250,9 @@ export function EconInsightParchment({
 
   return (
     <div
-      className={`welcome-letter-scrim fixed inset-0 z-[9990] flex items-center justify-center p-3 sm:p-6 ${
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`welcome-letter-scrim fixed inset-0 z-[700] flex items-center justify-center p-3 sm:p-6 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}
       role="dialog"

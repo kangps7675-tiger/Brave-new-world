@@ -37,7 +37,7 @@ export function LoadErrorBanner({ message, compact = false, className = "" }: Lo
     >
       <p className="font-medium leading-snug">{friendly}</p>
       {!compact ? (
-        <p className="mt-1 text-[11px] leading-5 text-rose-100/75">
+        <p className="mt-1 text-meta leading-5 text-rose-100/75">
           연결은 정상인데 계속 실패하면 로컬 개발 환경에서 데이터 빌드가 필요할 수 있습니다.
         </p>
       ) : null}
@@ -49,12 +49,12 @@ export function LoadErrorBanner({ message, compact = false, className = "" }: Lo
         >
           새로고침
         </button>
-        <details className="text-[11px] text-rose-100/70">
+        <details className="text-meta text-rose-100/70">
           <summary className="cursor-pointer select-none text-rose-100/85 hover:text-rose-50">
             개발자 안내
           </summary>
           <p className="mt-2 leading-5">{message}</p>
-          <p className="mt-1 font-mono text-[10px] leading-4 text-rose-100/60">
+          <p className="mt-1 font-mono text-micro leading-4 text-rose-100/60">
             npm run data:refresh
             <br />
             npm run data:build

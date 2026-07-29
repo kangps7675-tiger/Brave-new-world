@@ -124,7 +124,7 @@ function MarketCardNewsDropdown({
         aria-expanded={open}
         disabled={count === 0}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-1 rounded-md px-1 py-1 text-left text-[10px] font-medium text-emerald-200/75 transition hover:bg-white/5 hover:text-emerald-100 disabled:cursor-default disabled:opacity-45"
+        className="flex w-full items-center justify-between gap-1 rounded-md px-1 py-1 text-left text-micro font-medium text-emerald-200/75 transition hover:bg-white/5 hover:text-emerald-100 disabled:cursor-default disabled:opacity-45"
       >
         <span className="truncate">{label}</span>
         <span aria-hidden className="shrink-0 text-emerald-300/50">
@@ -143,13 +143,13 @@ function MarketCardNewsDropdown({
               >
                 <div className="flex flex-wrap items-center gap-1">
                   <span
-                    className={`rounded px-1 py-px text-[9px] font-semibold ${VIEWPOINT_CHIP[viewpoint]}`}
+                    className={`rounded px-1 py-px text-micro font-semibold ${VIEWPOINT_CHIP[viewpoint]}`}
                   >
                     {viewpointLabel(viewpoint, lang)}
                   </span>
-                  <span className="truncate text-[9px] text-slate-500">{item.source}</span>
+                  <span className="truncate text-micro text-slate-500">{item.source}</span>
                 </div>
-                <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-slate-100/90">
+                <p className="mt-0.5 line-clamp-2 text-meta leading-snug text-slate-100/90">
                   {displayNewsItemTitle(item, lang)}
                 </p>
               </a>
@@ -158,7 +158,7 @@ function MarketCardNewsDropdown({
         </ul>
       ) : null}
       {open && count === 0 ? (
-        <p className="px-1 py-1 text-[10px] text-slate-500">
+        <p className="px-1 py-1 text-micro text-slate-500">
           {lang === "en" ? "No related headlines yet." : "관련 헤드라인이 아직 없습니다."}
         </p>
       ) : null}
@@ -232,7 +232,7 @@ function MarketCard({
             href={yahooQuoteUrl(item.symbol)}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate text-[10px] text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
+            className="truncate text-micro text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
             title={`${yahooLabel} · ${item.symbol}`}
           >
             Yahoo ↗
@@ -241,7 +241,7 @@ function MarketCard({
             href={tradingViewSymbolUrl(item.symbol)}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate text-[10px] text-sky-300/75 underline-offset-2 hover:text-sky-200 hover:underline"
+            className="truncate text-micro text-sky-300/75 underline-offset-2 hover:text-sky-200 hover:underline"
             title={`TradingView · ${item.symbol} · not advice`}
           >
             TV ↗
@@ -397,7 +397,7 @@ export function IntelRelatedMarketsPanel({
             ? " · 카드 ▾에서 상승·하락·매크로 시각 뉴스 3건"
             : " · 분쟁·긴장 이벤트와 연동되는 매크로·지수·원자재"}
         </p>
-        <p className="mt-1 text-[10px] text-slate-500">{t("marketsNotAdvice")}</p>
+        <p className="mt-1 text-micro text-slate-500">{t("marketsNotAdvice")}</p>
       </div>
 
       <div className={`space-y-5 ${embedInNews ? "px-3 py-3" : "px-4 py-4"}`}>
@@ -419,7 +419,7 @@ export function IntelRelatedMarketsPanel({
                 ))}
               </div>
             ) : (
-              <p className="text-[11px] text-slate-500">{t("watchlistEmpty")}</p>
+              <p className="text-meta text-slate-500">{t("watchlistEmpty")}</p>
             )}
           </section>
         ) : null}
@@ -510,7 +510,7 @@ export function IntelRelatedMarketsPanel({
           : null}
       </div>
 
-      <p className={`text-[10px] text-slate-500 ${embedInNews ? "px-3 pb-3" : "px-4 pb-4"}`}>
+      <p className={`text-micro text-slate-500 ${embedInNews ? "px-3 pb-3" : "px-4 pb-4"}`}>
         Yahoo Finance · 10분 캐시 · {t("marketsNotAdvice")}
       </p>
     </>
@@ -534,7 +534,7 @@ export function IntelRelatedMarketsPanel({
     <section className="shrink-0 border-t-2 border-emerald-400/25 bg-emerald-950/20">
       <div className="border-b border-emerald-400/15 px-4 py-2.5">
         <p className="text-xs font-semibold text-emerald-100">주요 연관 증시{titleSuffix}</p>
-        <p className="mt-0.5 text-[11px] text-emerald-200/55">{theaterMarketBlurb(marketFilter)}</p>
+        <p className="mt-0.5 text-meta text-emerald-200/55">{theaterMarketBlurb(marketFilter)}</p>
       </div>
       <div className="px-4 py-3">
         {loading && !tickers ? (
@@ -551,7 +551,7 @@ export function IntelRelatedMarketsPanel({
             ))}
           </div>
         )}
-        <p className="mt-2 text-[10px] text-slate-500">Yahoo Finance · 10분 캐시</p>
+        <p className="mt-2 text-micro text-slate-500">Yahoo Finance · 10분 캐시</p>
       </div>
     </section>
   );

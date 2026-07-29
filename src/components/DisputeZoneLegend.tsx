@@ -59,7 +59,7 @@ export function DisputeZoneLegendContent() {
   const { t } = useLocale();
   return (
     <div className="space-y-2.5">
-      <p className="text-[11px] leading-relaxed text-sky-100/50">{t("legendDisputeBody")}</p>
+      <p className="text-meta leading-relaxed text-sky-100/50">{t("legendDisputeBody")}</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {LEGEND_GRADES.map((grade) => {
           const spec = TENSION_GRADE_STYLES[grade];

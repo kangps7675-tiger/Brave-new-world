@@ -60,7 +60,7 @@ export function ViewerIntroOverlay({
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-[120] flex justify-center px-3"
+      className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-[600] flex justify-center px-3"
       role="dialog"
       aria-label={`${chrome.modePickerTitle} 시작 안내`}
     >
@@ -74,7 +74,7 @@ export function ViewerIntroOverlay({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p
-              className={`text-[10px] font-medium uppercase tracking-[0.28em] ${
+              className={`text-micro font-medium uppercase tracking-[0.28em] ${
                 isEconomy ? "text-emerald-200/70" : "text-sky-200/70"
               }`}
             >
@@ -88,7 +88,7 @@ export function ViewerIntroOverlay({
               {chrome.modePickerTitle} — 시작하면 보이는 것
             </h2>
             <p
-              className={`mt-1 text-[11px] ${
+              className={`mt-1 text-meta ${
                 isEconomy ? "text-emerald-100/55" : "text-sky-100/55"
               }`}
             >
@@ -98,7 +98,7 @@ export function ViewerIntroOverlay({
           <button
             type="button"
             onClick={finish}
-            className={`shrink-0 rounded-lg border px-2 py-1 text-[11px] transition ${
+            className={`shrink-0 rounded-lg border px-2 py-1 text-meta transition ${
               isEconomy
                 ? "border-emerald-200/15 text-emerald-100/60 hover:text-emerald-50"
                 : "border-sky-200/15 text-sky-100/60 hover:text-sky-50"
@@ -113,7 +113,7 @@ export function ViewerIntroOverlay({
           {chrome.modePickerBullets.map((line) => (
             <li
               key={line}
-              className={`rounded-full border px-2.5 py-1 text-[11px] leading-snug ${
+              className={`rounded-full border px-2.5 py-1 text-meta leading-snug ${
                 isEconomy
                   ? "border-emerald-400/25 bg-emerald-950/40 text-emerald-100/90"
                   : "border-sky-400/25 bg-sky-950/40 text-sky-100/90"
@@ -132,7 +132,7 @@ export function ViewerIntroOverlay({
           }`}
         >
           <p
-            className={`text-[11px] leading-snug ${
+            className={`text-meta leading-snug ${
               isEconomy ? "text-emerald-100/80" : "text-sky-100/80"
             }`}
           >
@@ -142,7 +142,7 @@ export function ViewerIntroOverlay({
             <button
               type="button"
               onClick={openTrust}
-              className={`mt-2 text-[11px] font-semibold underline-offset-2 transition hover:underline ${
+              className={`mt-2 text-meta font-semibold underline-offset-2 transition hover:underline ${
                 isEconomy ? "text-emerald-200" : "text-sky-200"
               }`}
             >

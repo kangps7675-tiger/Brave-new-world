@@ -31,7 +31,7 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
     if (!compact) return null;
     return (
       <div
-        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-[#0a1f18]/85 px-2.5 py-1 text-[11px] font-medium ${
+        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-[#0a1f18]/85 px-2.5 py-1 text-meta font-medium ${
           light ? "text-slate-700" : "text-emerald-100/70"
         } ${className}`}
         title={gscpiDisclaimer(lang)}
@@ -57,7 +57,7 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
   if (compact) {
     return (
       <div
-        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
+        className={`gscpi-gauge tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-meta font-medium ${className}`}
         style={{
           borderColor: `${color}55`,
           color: light ? "#1e293b" : color,
@@ -82,22 +82,22 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
       className={`gscpi-gauge tone-chip rounded-2xl border border-slate-600/30 bg-[#0b1020]/90 px-4 py-3 shadow-lg backdrop-blur-md ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold tracking-wide text-slate-300">
+        <p className="text-meta font-semibold tracking-wide text-slate-300">
           {en ? "Global shipping congestion" : "전 세계 물류 혼잡도"}
         </p>
-        <span className="text-[10px] text-slate-500">{reading.date}</span>
+        <span className="text-micro text-slate-500">{reading.date}</span>
       </div>
 
       <div className="mt-2 flex items-baseline gap-2">
         <span className="text-2xl font-bold" style={{ color }}>
           {score}
-          <span className="text-[13px] font-medium opacity-60">/100</span>
+          <span className="text-body font-medium opacity-60">/100</span>
         </span>
-        <span className="text-[12px] font-medium" style={{ color }}>
+        <span className="text-caption font-medium" style={{ color }}>
           {gscpiLevelLabel(reading.level, lang)}
         </span>
         {deltaText ? (
-          <span className="text-[11px] text-slate-400">{en ? deltaTextEn : deltaText}</span>
+          <span className="text-meta text-slate-400">{en ? deltaTextEn : deltaText}</span>
         ) : null}
       </div>
 
@@ -107,12 +107,12 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
           style={{ width: `${score}%`, background: color }}
         />
       </div>
-      <div className="mt-1 flex justify-between text-[8px] text-slate-600">
+      <div className="mt-1 flex justify-between text-micro text-slate-600">
         <span>{en ? "0 · smooth" : "0 · 원활"}</span>
         <span>{en ? "100 · severe" : "100 · 매우 혼잡"}</span>
       </div>
 
-      <p className="mt-2.5 border-t border-slate-600/20 pt-2 text-[9px] leading-4 text-slate-500">
+      <p className="mt-2.5 border-t border-slate-600/20 pt-2 text-micro leading-4 text-slate-500">
         {gscpiDisclaimer(lang)} (GSCPI {formatSigma(reading.value)})
       </p>
     </div>

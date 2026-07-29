@@ -1,6 +1,7 @@
 "use client";
 
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
+import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 
 export const FRICTION_COACH_KEY = "geowatch-friction-coach-v1";
 
@@ -17,15 +18,12 @@ export function readFrictionCoachDone(): boolean {
 
 export function markFrictionCoachDone(): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(FRICTION_COACH_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  markNudgeShown("frictionCoach");
 }
 
+/** 미열람 + 이번 세션 온보딩 예산이 남아 있을 때만 */
 export function shouldOfferFrictionCoach(): boolean {
-  return !readFrictionCoachDone();
+  return canShowNudge("frictionCoach", !readFrictionCoachDone());
 }
 
 type FrictionOnboardingCoachProps = {

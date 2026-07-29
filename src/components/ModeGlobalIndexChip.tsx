@@ -44,7 +44,7 @@ export function ModeGlobalIndexChip({
 
   return (
     <div
-      className={`pointer-events-auto fixed z-[90] flex flex-col items-end gap-1.5 ${className}`}
+      className={`pointer-events-auto fixed z-[300] flex flex-col items-end gap-1.5 ${className}`}
       style={{
         top: "max(0.75rem, env(safe-area-inset-top, 0px))",
         right: "max(0.75rem, env(safe-area-inset-right, 0px))",

@@ -1,6 +1,7 @@
 "use client";
 
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
+import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 
 export const AIR_RAID_COACH_KEY = "geowatch-air-raid-coach-v1";
 
@@ -15,15 +16,12 @@ export function readAirRaidCoachDone(): boolean {
 
 export function markAirRaidCoachDone(): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(AIR_RAID_COACH_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  markNudgeShown("airRaidCoach");
 }
 
+/** 미열람 + 이번 세션 온보딩 예산이 남아 있을 때만 */
 export function shouldOfferAirRaidCoach(): boolean {
-  return !readAirRaidCoachDone();
+  return canShowNudge("airRaidCoach", !readAirRaidCoachDone());
 }
 
 type AirRaidOnboardingCoachProps = {

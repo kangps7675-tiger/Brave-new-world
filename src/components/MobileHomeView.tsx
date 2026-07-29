@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useNewsStreamContext } from "@/components/BottomIntelStack";
+import { SharedSceneCard } from "@/components/SharedSceneCard";
+import { usePhoneSceneLanding } from "@/hooks/usePhoneSceneLanding";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { FinintTicker } from "@/components/FinintTicker";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
@@ -228,6 +230,9 @@ export function MobileHomeView({
   const { lang: locale } = useLocale();
   const lang = labelLanguage;
   const en = lang === "en";
+
+  /** 공유 장면 링크(?scene=)를 폰에서 잡는다 — 훅은 조기 반환보다 위 (P2-3-A) */
+  const sceneLanding = usePhoneSceneLanding(true);
 
   const [tab, setTab] = useState<MobileTab>(() => tabFromViewer(viewerMode));
   /** 지정학: 전장 필터 / 지경학: 경제 장르 필터 */
@@ -491,9 +496,38 @@ export function MobileHomeView({
 
   const band = wti ? gtiBand(wti.score) : null;
 
+  /**
+   * 공유 장면 링크가 폰에서 열렸으면 **카드가 먼저다** (P2-3-A).
+   *
+   * 지금까지는 `?scene=`이 지구본 경로에서만 해석돼, 폰에서 열면 아무것도
+   * 못 보고 일반 홈으로 떨어졌다 — 유입은 있는데 장면이 전달되지 않으니
+   * 재공유도 없었다. 카드를 먼저 보여주고, 닫으면 평소 3탭으로 돌아간다.
+   */
+  if (sceneLanding.scene) {
+    return (
+      <div
+        className="fixed inset-0 z-[700] overflow-y-auto bg-[#04070f] text-slate-100"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        <SharedSceneCard
+          scene={sceneLanding.scene}
+          lang={lang}
+          gtiSnapshot={
+            wti ? { score: wti.score, deltaScore: wti.delta, prevScore: null } : null
+          }
+          shareUrl={sceneLanding.shareUrl ?? undefined}
+          onDismiss={sceneLanding.dismiss}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[9000] flex flex-col bg-[#04070f] text-slate-100"
+      className="fixed inset-0 z-[700] flex flex-col bg-[#04070f] text-slate-100"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -501,13 +535,13 @@ export function MobileHomeView({
     >
       <header className="shrink-0 border-b border-white/10 bg-[#04070f]/95 px-3 pb-2.5 pt-2.5 backdrop-blur">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[12px] font-semibold tracking-wide text-sky-200/90">
+          <span className="text-caption font-semibold tracking-wide text-sky-200/90">
             {brandName(locale)}
           </span>
           <button
             type="button"
             onClick={() => onLabelLanguageChange(en ? "ko" : "en")}
-            className="tap-target rounded-md border border-white/15 px-2 py-1 text-[11px] font-medium text-slate-300"
+            className="tap-target rounded-md border border-white/15 px-2 py-1 text-meta font-medium text-slate-300"
             aria-label={en ? "한국어로 전환" : "Switch to English"}
           >
             {en ? "한국어" : "EN"}
@@ -516,13 +550,13 @@ export function MobileHomeView({
 
         <div className="mt-2 grid grid-cols-2 gap-2">
           <label className="block">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500">
+            <span className="mb-1 block text-micro font-medium uppercase tracking-wide text-slate-500">
               {en ? "Section" : "메뉴"}
             </span>
             <select
               value={tab}
               onChange={(e) => selectTab(e.target.value as MobileTab)}
-              className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
+              className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
               aria-label={en ? "Select section" : "메뉴 선택"}
             >
               <option value="conflict">{en ? "Geopolitics" : "지정학"}</option>
@@ -531,7 +565,7 @@ export function MobileHomeView({
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500">
+            <span className="mb-1 block text-micro font-medium uppercase tracking-wide text-slate-500">
               {tab === "economy"
                 ? en
                   ? "Theme"
@@ -550,7 +584,7 @@ export function MobileHomeView({
                 onChange={(e) =>
                   setEconomyGenreFilter(e.target.value as EconomyGenreFilter)
                 }
-                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
+                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
                 aria-label={en ? "Filter by theme" : "지경학 테마"}
               >
                 <option value="all">{en ? "All themes" : "전체 테마"}</option>
@@ -564,7 +598,7 @@ export function MobileHomeView({
               <select
                 value={theaterFilter}
                 onChange={(e) => setTheaterFilter(e.target.value as NewsTheater | "all")}
-                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-[13px] font-semibold text-slate-100"
+                className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
                 aria-label={en ? "Filter by theater" : "주요전선"}
               >
                 {THEATER_FILTERS.map((id) => (
@@ -581,7 +615,7 @@ export function MobileHomeView({
               <select
                 disabled
                 value="all"
-                className="tap-target w-full rounded-lg border border-white/10 bg-[#0a1428]/60 px-2.5 py-2 text-[13px] font-semibold text-slate-500"
+                className="tap-target w-full rounded-lg border border-white/10 bg-[#0a1428]/60 px-2.5 py-2 text-body font-semibold text-slate-500"
                 aria-label={en ? "Category unavailable" : "카테고리 없음"}
               >
                 <option value="all">{en ? "Indices only" : "지수만 표시"}</option>
@@ -598,7 +632,7 @@ export function MobileHomeView({
             <p className="text-[12.5px] font-semibold text-emerald-100">
               {en ? "Major equity indices" : "주요 주가지수"}
             </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-emerald-100/70">
+            <p className="mt-1 text-meta leading-relaxed text-emerald-100/70">
               {en
                 ? "Prices refresh about every 15 minutes (Yahoo delayed quotes)."
                 : "주가는 약 15분마다 갱신됩니다 (Yahoo 지연 시세)."}
@@ -643,10 +677,10 @@ export function MobileHomeView({
               <div className="rounded-xl border border-orange-400/30 bg-orange-500/[0.08] px-3 py-2.5">
                 <div className="flex items-end justify-between gap-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-orange-200/80">
+                    <p className="text-meta font-semibold uppercase tracking-wide text-orange-200/80">
                       {en ? "GTI · Global tension" : "GTI · 글로벌 긴장지수"}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-slate-500">
+                    <p className="mt-0.5 text-micro text-slate-500">
                       {band ? gtiBandLabel(band, !en) : null}
                       {wti.asOf
                         ? ` · ${new Date(wti.asOf).toISOString().slice(11, 16)}Z`
@@ -659,7 +693,7 @@ export function MobileHomeView({
                     </p>
                     {wti.delta != null ? (
                       <p
-                        className={`text-[11px] tabular-nums ${
+                        className={`text-meta tabular-nums ${
                           wti.delta > 0
                             ? "text-rose-300"
                             : wti.delta < 0
@@ -678,7 +712,7 @@ export function MobileHomeView({
 
             {airRaids.length > 0 ? (
               <div className="rounded-xl border border-rose-400/35 bg-rose-500/[0.08] px-3 py-2.5">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-rose-200/85">
+                <p className="text-meta font-semibold uppercase tracking-wide text-rose-200/85">
                   {en ? "Air-raid alerts" : "공습 경보"}
                 </p>
                 <ul className="mt-1.5 space-y-1.5">
@@ -698,7 +732,7 @@ export function MobileHomeView({
                           {hit.detail}
                         </p>
                       </div>
-                      <span className="shrink-0 text-[10px] tabular-nums text-rose-200/70">
+                      <span className="shrink-0 text-micro tabular-nums text-rose-200/70">
                         {agoLabel(
                           Math.max(0, (Date.now() - new Date(hit.when).getTime()) / 60_000),
                           lang,
@@ -712,7 +746,7 @@ export function MobileHomeView({
 
             {frontTotals.length > 0 ? (
               <div className="rounded-xl border border-white/12 bg-white/[0.04] px-3 py-2.5">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                <p className="text-meta font-semibold uppercase tracking-wide text-slate-300">
                   {en ? "Frontline casualties" : "전선 사상자"}
                 </p>
                 <p className="mt-0.5 text-[9.5px] text-slate-600">
@@ -790,7 +824,7 @@ export function MobileHomeView({
                   <p className="text-xs font-semibold text-sky-50">
                     {en ? "Related markets" : "연관 증시"}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-slate-500">
+                  <p className="mt-0.5 text-micro text-slate-500">
                     {en
                       ? "Geo-econ themes · energy · shipping · chips · ~15 min refresh"
                       : "지경학 테마 · 에너지·해운·반도체 등 · 약 15분 갱신"}
@@ -805,7 +839,7 @@ export function MobileHomeView({
             ) : null}
             {stressedChokes.length > 0 ? (
               <div className="rounded-xl border border-amber-400/25 bg-amber-500/[0.06] px-3 py-2.5">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/80">
+                <p className="text-meta font-semibold uppercase tracking-wide text-amber-200/80">
                   {en ? "Chokepoint transits down" : "초크포인트 통과량 감소"}
                 </p>
                 <ul className="mt-1.5 space-y-1">
@@ -843,7 +877,7 @@ export function MobileHomeView({
                 className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]"
               >
                 <div className="flex items-center justify-between border-b border-white/5 px-3 py-2">
-                  <span className="text-[12px] font-semibold text-sky-100/90">
+                  <span className="text-caption font-semibold text-sky-100/90">
                     {groupTitle}
                   </span>
                   <span
@@ -875,7 +909,7 @@ export function MobileHomeView({
                           rel="noopener noreferrer"
                           className="block px-3 py-2.5 transition active:bg-white/5"
                         >
-                          <p className="text-[13px] leading-snug text-slate-100">{item.title}</p>
+                          <p className="text-body leading-snug text-slate-100">{item.title}</p>
                           <p className="mt-1 flex items-center gap-1.5 text-[10.5px] text-slate-500">
                             <span className="truncate">{item.publisher ?? item.source}</span>
                             <span aria-hidden>·</span>
@@ -898,7 +932,7 @@ export function MobileHomeView({
           </div>
         ) : null}
 
-        <p className="mt-5 text-center text-[10px] leading-4 text-slate-600">
+        <p className="mt-5 text-center text-micro leading-4 text-slate-600">
           {en
             ? "Times follow each source. Open on desktop for the 3D map."
             : "시각은 각 출처 기준. 3D 지도는 데스크톱에서 볼 수 있어요."}

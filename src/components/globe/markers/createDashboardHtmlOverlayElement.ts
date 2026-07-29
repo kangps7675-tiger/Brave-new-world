@@ -531,9 +531,10 @@ export function createDashboardHtmlOverlayElement(
           deps.setShipMovesFocusGroupKey?.(trailGroupKey(obs));
           deps.openSelection({ kind: "ship-movement", item: obs });
         }
-        deps.flyTo(item.lat, item.lng, 0.85);
+        deps.flyTo(item.lat, item.lng, item.locationStatus === "broad" ? 1.15 : 0.85);
       },
       item.navyCode,
+      item.locationStatus,
     );
   }
   if (item.displayKind === "friction-stage") {

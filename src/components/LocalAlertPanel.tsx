@@ -30,14 +30,14 @@ export function LocalAlertPanel({
   onClose,
 }: LocalAlertPanelProps) {
   return (
-    <div className="pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[120] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md">
+    <div className="pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[600] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md">
       <div className="flex items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-orange-200/75">로컬 경보</p>
+          <p className="text-micro uppercase tracking-[0.24em] text-orange-200/75">로컬 경보</p>
           <p className="mt-0.5 text-xs text-orange-50/90">분쟁·요충지 · 로컬 데이터</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-[10px] text-orange-100/80">
+          <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-micro text-orange-100/80">
             {dataStatus === "loading" ? "로딩 중" : dataStatus === "error" ? "오류" : `${alerts.length}건`}
           </span>
           <button
@@ -80,16 +80,16 @@ export function LocalAlertPanel({
                     />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-meta">
                       <span className="font-medium text-orange-50">{alert.name}</span>
-                      <span className="rounded-full bg-orange-300/10 px-1.5 py-0.5 text-[10px] text-orange-100/80">
+                      <span className="rounded-full bg-orange-300/10 px-1.5 py-0.5 text-micro text-orange-100/80">
                         긴장 {TENSION_LABEL[alert.tension]}
                       </span>
                     </span>
-                    <span className="mt-1 block truncate text-[11px] text-orange-100/70">
+                    <span className="mt-1 block truncate text-meta text-orange-100/70">
                       {regionTitle}
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                    <span className="mt-0.5 block truncate text-meta text-slate-400">
                       {alert.type || "분쟁 구역"}
                       {alert.matchedEventCount > 0 ? ` · 매칭 ${alert.matchedEventCount}` : ""}
                     </span>

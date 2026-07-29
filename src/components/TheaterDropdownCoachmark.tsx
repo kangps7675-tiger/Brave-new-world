@@ -2,6 +2,8 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { markTheaterCoachmarkDone, readTheaterCoachmarkDone } from "@/lib/battlefieldPresets";
+import { canShowNudge } from "@/lib/onboardingBudget";
+import { useDialog } from "@/hooks/useDialog";
 import { placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
 
 type TheaterDropdownCoachmarkProps = {
@@ -26,6 +28,17 @@ export function TheaterDropdownCoachmark({
   const [bubblePos, setBubblePos] = useState<{ left: number; top: number; placement: "above" | "below" } | null>(
     null,
   );
+  /**
+   * 전체화면을 덮는 코치마크인데 키보드로 닫을 방법이 없었다 (P1-7).
+   * 훅은 아래 조기 반환(`if (!open || !anchor) return null`)보다 위에 있어야 한다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({
+    open,
+    onClose: () => {
+      markTheaterCoachmarkDone();
+      onDismiss();
+    },
+  });
 
   useLayoutEffect(() => {
     if (!open) {
@@ -89,7 +102,13 @@ export function TheaterDropdownCoachmark({
   }
 
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[120]" role="dialog" aria-modal="true">
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className="pointer-events-auto fixed inset-0 z-[600] outline-none"
+      role="dialog"
+      aria-modal="true"
+    >
       <button
         type="button"
         className="absolute inset-0 bg-transparent"
@@ -142,6 +161,7 @@ export function TheaterDropdownCoachmark({
   );
 }
 
+/** 미열람 + 이번 세션 온보딩 예산이 남아 있을 때만 */
 export function shouldOfferTheaterCoachmark(): boolean {
-  return !readTheaterCoachmarkDone();
+  return canShowNudge("theaterCoach", !readTheaterCoachmarkDone());
 }

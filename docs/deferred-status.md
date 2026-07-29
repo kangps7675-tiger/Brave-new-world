@@ -55,7 +55,18 @@
 |------|------|------|
 | 시장 HUD 전일대비 통일 | **반영됨** | BDRY·티커 |
 | 시장 해석 깊이 (딥링크·브리프) vs 복잡도 | **다음** | 합산 점수 금지 · 카드/딥링크만 검토 |
-| 오버레이 큐 | **반영됨** | `overlayQueue.ts` 공습 > 해상 > 긴장컷 > 코치 |
+| 오버레이 큐 | **반영됨** | `overlayQueue.ts` 공습 > 해상 > 긴장컷 > 핫전장 > 코치 > Ultra-Lite |
+| 첫 90초 · 소리 기본 OFF | **반영됨** | `DEFAULT_SOUND_ENABLED` + `useSoundEnabled`/`useSoundStream` 초기값 동기 |
+| 첫 90초 · 언어 자동 감지 | **반영됨** (게이트 유지) | `detectDefaultLabelLanguage` · EN i18n(P1-5) 전 `LanguageGate` 제거 금지 |
+| 첫 90초 · Ultra-Lite FPS 제안 | **반영됨** | `useUltraLiteAutoOffer` · `UltraLiteOfferBanner` · `enabled←globeReady` |
+| P0-1 온보딩 예산제 | **반영됨** | `onboardingBudget.ts` · 넛지 8종 배선 · 테스트는 vitest에 localStorage 스텁 필요 |
+| P0-4 소리 기본 OFF | **반영됨** | `DEFAULT_SOUND_ENABLED = false` |
+| P0-5 개발 노트 삭제 | **반영됨** | `LayerPanelHost` 노출 문구 제거 (주석만 잔존) |
+| P0-6 reduced-motion | **반영됨** | `useReducedMotion` · `verify:reduced-motion` |
+| P0-7 캡 피드백 | **반영됨** | `emitLayerCapRejected` · `LayerCapToast` OverlayHost 마운트 |
+| P0-2/3 첫 90초 | **반영됨** | `useFirstImpressionController` · `GtiHeroMoment` · 게이트→도메인만 · 가치제안 문구 |
+| globals.css 인코딩 | **반영됨** | `???` 주석 0건 |
+| 진입 퍼널 KPI 계측 | **미착수** | `trackEvent`만 있음 |
 | 스펙 SSOT 검증 | **반영됨** | `npm run verify:product-spec` |
 | 전장→심볼 · Yahoo 딥링크 · watchlist | P0 구현 | `theaterAssets` · `IntelRelatedMarketsPanel` |
 | TradingView **심볼 URL** | 헬퍼 + UI 링크 | `tradingViewSymbolUrl` — **임베드·위젯 미구현** |

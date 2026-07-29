@@ -89,11 +89,11 @@ export function IntelSheetSearchBar({
                     {item.title}
                   </span>
                   {item.subtitle ? (
-                    <span className="mt-0.5 block truncate text-[11px] text-slate-500">{item.subtitle}</span>
+                    <span className="mt-0.5 block truncate text-meta text-slate-500">{item.subtitle}</span>
                   ) : null}
                 </span>
                 {item.badge ? (
-                  <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-slate-400">
+                  <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-micro text-slate-400">
                     {item.badge}
                   </span>
                 ) : null}

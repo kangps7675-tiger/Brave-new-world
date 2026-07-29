@@ -79,7 +79,7 @@ export function NewFeedsIranPanel({
 
   const listBody = (
     <div className="max-h-[min(22rem,50vh)] space-y-2 overflow-y-auto px-3 py-2.5">
-      {error ? <p className="text-[10px] leading-4 text-red-200">{error}</p> : null}
+      {error ? <p className="text-micro leading-4 text-red-200">{error}</p> : null}
 
       {topAttacks.length > 0 ? (
         <ul className="space-y-1.5">
@@ -100,13 +100,13 @@ export function NewFeedsIranPanel({
                   }
                   className="w-full rounded-md border border-red-400/15 bg-red-950/30 px-2 py-1.5 text-left transition hover:border-red-300/35 hover:bg-red-950/50"
                 >
-                  <p className="line-clamp-2 text-[11px] leading-4 text-red-50">{title}</p>
-                  <p className="mt-0.5 text-[10px] text-red-200/55">
+                  <p className="line-clamp-2 text-meta leading-4 text-red-50">{title}</p>
+                  <p className="mt-0.5 text-micro text-red-200/55">
                     {[severity, location, formatTime(attack.publishedAt, lang)]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
-                  <p className="mt-0.5 text-[9px] text-red-200/40">
+                  <p className="mt-0.5 text-micro text-red-200/40">
                     {attack.sourceName} · {NEWFEEDS_ATTRIBUTION_SHORT}
                   </p>
                 </button>
@@ -115,14 +115,14 @@ export function NewFeedsIranPanel({
           })}
         </ul>
       ) : liveStatus === "ok" ? (
-        <p className="text-[10px] text-red-200/55">{newfeedsUi("empty", lang)}</p>
+        <p className="text-micro text-red-200/55">{newfeedsUi("empty", lang)}</p>
       ) : null}
 
       <a
         href={NEWFEEDS_REPO_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="block border-t border-red-300/15 pt-2 text-[9px] leading-4 text-red-200/45 underline-offset-2 hover:text-red-100 hover:underline"
+        className="block border-t border-red-300/15 pt-2 text-micro leading-4 text-red-200/45 underline-offset-2 hover:text-red-100 hover:underline"
       >
         {NEWFEEDS_UI.sourceLine(NEWFEEDS_ATTRIBUTION_SHORT, lang)}
       </a>
@@ -130,7 +130,7 @@ export function NewFeedsIranPanel({
   );
 
   return (
-    <div ref={rootRef} className="pointer-events-auto relative z-[55]">
+    <div ref={rootRef} className="pointer-events-auto relative z-[100]">
       <button
         type="button"
         aria-expanded={open}
@@ -150,7 +150,7 @@ export function NewFeedsIranPanel({
         }}
         className={
           compact
-            ? `relative flex h-11 w-11 items-center justify-center rounded-full border text-[12px] font-semibold shadow-lg backdrop-blur-md transition ${
+            ? `relative flex h-11 w-11 items-center justify-center rounded-full border text-caption font-semibold shadow-lg backdrop-blur-md transition ${
                 urgent
                   ? "animate-pulse border-red-400/50 bg-[#2a0c12]/85 text-red-50"
                   : "border-red-300/25 bg-[#1a0c10]/7 text-red-100/90"
@@ -171,17 +171,17 @@ export function NewFeedsIranPanel({
           <span>{newfeedsUi("brandShort", lang)}</span>
         ) : (
           <div className="min-w-0 text-left">
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/80">
+            <p className="truncate text-micro font-semibold uppercase tracking-[0.14em] text-red-200/80">
               {newfeedsUi("brand", lang)}
             </p>
-            <p className="truncate text-[11px] font-medium tracking-tight opacity-90">{statusLine}</p>
+            <p className="truncate text-meta font-medium tracking-tight opacity-90">{statusLine}</p>
           </div>
         )}
       </button>
 
       {open ? (
         <div
-          className={`absolute right-0 z-[60] mt-0 w-[min(18rem,calc(100vw-5rem))] overflow-hidden border border-red-400/25 bg-[#1a0c10]/95 text-red-50 shadow-xl backdrop-blur-md ${
+          className={`absolute right-0 z-[200] mt-0 w-[min(18rem,calc(100vw-5rem))] overflow-hidden border border-red-400/25 bg-[#1a0c10]/95 text-red-50 shadow-xl backdrop-blur-md ${
             compact ? "bottom-full mb-1.5 rounded-2xl" : "top-full rounded-b-2xl rounded-tl-2xl border-t-0"
           }`}
         >

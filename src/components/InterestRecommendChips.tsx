@@ -61,13 +61,13 @@ export function InterestRecommendChips({
     >
       <div className="flex items-center gap-2 border-b border-white/8 px-3 py-1.5">
         <span
-          className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${
+          className={`text-micro font-semibold uppercase tracking-[0.16em] ${
             economy ? "text-emerald-200/70" : "text-violet-200/75"
           }`}
         >
           {lang === "en" ? "For you" : "맞춤"}
         </span>
-        <span className="text-[10px] text-slate-400/70">
+        <span className="text-micro text-slate-400/70">
           {lang === "en" ? "from this device" : "이 기기 기록"}
         </span>
       </div>
@@ -77,7 +77,7 @@ export function InterestRecommendChips({
             key={chip.id}
             type="button"
             onClick={() => handleClick(chip)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+            className={`rounded-full border px-2.5 py-1 text-meta font-medium transition ${
               economy
                 ? "border-emerald-400/25 bg-emerald-950/50 text-emerald-100 hover:border-emerald-300/45 hover:bg-emerald-900/55"
                 : "border-violet-400/30 bg-violet-950/45 text-violet-100 hover:border-violet-300/50 hover:bg-violet-900/50"

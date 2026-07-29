@@ -117,7 +117,7 @@ export function AnalysisPanel({
   /** PortWatch B급 통과량 관측 */
   aisByChokeId?: Record<string, ChokepointAisObservation>;
 }) {
-  const { lang } = useLocale();
+  const { lang, t } = useLocale();
   if (selection.kind === "chokepoint") {
     const point = selection.item;
     const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
@@ -189,7 +189,7 @@ export function AnalysisPanel({
           <Metric label="Lng" value={country.center.lng.toString()} />
         </section>
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4 text-sm leading-6 text-slate-300">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">원본 이름</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisOriginalName")}</p>
           <p className="mt-3">{country.nameLong}</p>
         </section>
         <div className="mt-auto">
@@ -219,9 +219,9 @@ export function AnalysisPanel({
           }}
         >
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-300/80">상태</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-300/80">{t("analysisStatus")}</p>
             {operational ? (
-              <span className="rounded-full border border-red-400/40 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-100">
+              <span className="rounded-full border border-red-400/40 bg-red-500/20 px-2 py-0.5 text-micro font-semibold text-red-100">
                 작전중
               </span>
             ) : null}
@@ -279,10 +279,10 @@ export function AnalysisPanel({
           <Metric label="Lat" value={sat.lat.toFixed(2)} />
           <Metric label="Lng" value={sat.lng.toFixed(2)} />
         </section>
-        <section className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-4 text-[12px] leading-5 text-amber-50/90">
+        <section className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-4 text-caption leading-5 text-amber-50/90">
           {reconDisclaimer(langKey)}
         </section>
-        <p className="text-[10px] leading-4 text-slate-500">
+        <p className="text-micro leading-4 text-slate-500">
           Orbital elements: CelesTrak (T.S. Kelso) · SGP4 in-browser
         </p>
       </div>
@@ -300,7 +300,7 @@ export function AnalysisPanel({
           onClose={onClose}
         />
         <section className="rounded-xl border border-red-900/50 bg-red-950/20 p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">전황 설명</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">{t("analysisSituation")}</p>
           <p className="mt-3 text-sm leading-6 text-slate-300">
             VIINA 거주지 단위 영토 통제 데이터입니다. 화면 렌더링 전용이며 원본 데이터는 공개 API로
             제공되지 않습니다 (ODbL Produced Work).
@@ -328,7 +328,7 @@ export function AnalysisPanel({
         />
         {disputeOverview?.overviewKo && (
           <section className="rounded-xl border border-amber-900/35 bg-amber-950/15 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-amber-200/70">지역 개요</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-amber-200/70">{t("analysisRegionOverview")}</p>
             <p className="mt-3 text-sm leading-6 text-slate-200">{disputeOverview.overviewKo}</p>
             {disputeOverview.parties.length > 0 && (
               <p className="mt-3 text-xs text-slate-400">
@@ -336,7 +336,7 @@ export function AnalysisPanel({
               </p>
             )}
             {disputeOverview.updatedAt && (
-              <p className="mt-1 text-[10px] text-slate-500">갱신 {disputeOverview.updatedAt}</p>
+              <p className="mt-1 text-micro text-slate-500">갱신 {disputeOverview.updatedAt}</p>
             )}
           </section>
         )}
@@ -375,7 +375,7 @@ export function AnalysisPanel({
           onClose={onClose}
         />
         <section className="rounded-xl border border-red-900/35 bg-red-950/15 p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">AI 전쟁지역 (데모)</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">{t("analysisAiWarZone")}</p>
           <p className="mt-3 text-sm leading-6 text-slate-200">
             {zone.aiSummary ||
               "외부 AI API 없음 · 분쟁 구역 + GDELT 전투 뉴스 밀도 휴리스틱 데모입니다."}
@@ -434,7 +434,7 @@ export function AnalysisPanel({
           <Metric label="구분" value={categoryLabel} />
         </section>
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">실시간 위치</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisLivePosition")}</p>
           <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
             <MetaRow label="좌표" value={`${vessel.lat}, ${vessel.lng}`} />
             <MetaRow label="수신 시각" value={vessel.timestamp || "N/A"} />
@@ -487,7 +487,7 @@ export function AnalysisPanel({
           <span>
             {milAircraftRoleLabel(kind, "ko")}
             {ac.type ? ` · ${ac.type}` : ""}
-            <span className="mt-0.5 block text-[10px] text-slate-500">
+            <span className="mt-0.5 block text-micro text-slate-500">
               {isCivil
                 ? "민간 운항 · 군용(dbFlags&1) 제외 · 출처 ADS-B"
                 : "탑다운 실루엣 · 출처 ADS-B"}
@@ -536,7 +536,7 @@ export function AnalysisPanel({
           />
         </section>
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">상세</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisDetail")}</p>
           <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
             <MetaRow label="좌표" value={`${ac.lat.toFixed(4)}, ${ac.lng.toFixed(4)}`} />
             <MetaRow
@@ -582,7 +582,7 @@ export function AnalysisPanel({
         <Metric label="Goldstein" value={event.goldsteinScale?.toString() || "N/A"} />
       </section>
       <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">실제 이벤트 메타데이터</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisEventMeta")}</p>
         <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
           <MetaRow label="좌표" value={`${event.lat}, ${event.lng}`} />
           <MetaRow label="카테고리" value={event.category} />
@@ -597,7 +597,7 @@ export function AnalysisPanel({
         </dl>
       </section>
       <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">원문 링크</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisSourceLink")}</p>
         {event.sourceUrl ? (
           <a
             href={event.sourceUrl}
@@ -608,7 +608,7 @@ export function AnalysisPanel({
             {event.sourceUrl}
           </a>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">GDELT 이벤트에 source URL이 없습니다.</p>
+          <p className="mt-3 text-sm text-slate-500">{t("analysisNoSourceUrl")}</p>
         )}
       </section>
       <p className="mt-auto text-xs leading-5 text-slate-500">

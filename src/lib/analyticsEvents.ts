@@ -40,3 +40,31 @@ export function trackShareScene(method: string) {
 export function trackDeeplinkOpen(mode: string | null) {
   safeTrack("deeplink_open", { mode: mode ?? "unknown" });
 }
+
+/**
+ * 공유 장면 링크가 **어디서 열렸고 무엇을 봤는가** (P2-3).
+ *
+ * 성장 루프의 성공 기준은 "폰에 지구본이 뜨는가"가 아니라
+ * **공유 링크 오픈 → 장면 이해 → 재공유**가 끊기지 않는가다.
+ * 그런데 지금까지는 `deeplink_open`만 있어 **기기 구분이 없었다** —
+ * 폰에서 열려 아무것도 못 보고 나간 케이스가 데스크톱 성공과 섞여 있었다.
+ * 카드를 넣어도 좋아졌는지 알 수 없으므로 먼저 나눈다.
+ *
+ * @param surface  "globe"(지도로 재현) | "card"(폰 카드) | "lost"(둘 다 아님)
+ */
+export function trackSceneOpen(
+  surface: "globe" | "card" | "lost",
+  mode: string | null,
+  placeResolved?: boolean,
+) {
+  safeTrack("scene_open", {
+    surface,
+    mode: mode ?? "unknown",
+    placeResolved: placeResolved ?? false,
+  });
+}
+
+/** 폰 카드에서 링크 복사 — 재공유 의도의 대리 지표 */
+export function trackSceneCardCopy(mode: string | null) {
+  safeTrack("scene_card_copy", { mode: mode ?? "unknown" });
+}

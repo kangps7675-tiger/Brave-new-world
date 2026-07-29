@@ -72,19 +72,19 @@ export function LayerQuickDropdown({
   const isEn = lang === "en";
 
   return (
-    <div ref={rootRef} className="relative z-[80]">
+    <div ref={rootRef} className="relative z-[200]">
       <button
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => onOpenChange(!open)}
-        className="flex h-9 items-center gap-1.5 rounded-xl border border-sky-200/20 bg-[#162a48]/70 px-3 text-[11px] font-medium text-sky-50/95 shadow-md backdrop-blur-md transition hover:border-sky-300/40 hover:bg-[#1e3a5f]/75"
+        className="flex h-9 items-center gap-1.5 rounded-xl border border-sky-200/20 bg-[#162a48]/70 px-3 text-meta font-medium text-sky-50/95 shadow-md backdrop-blur-md transition hover:border-sky-300/40 hover:bg-[#1e3a5f]/75"
       >
         <span>{isEn ? "Layers" : "레이어"}</span>
-        <span className="rounded-full bg-sky-400/20 px-1.5 py-0.5 text-[10px] tabular-nums text-sky-100">
+        <span className="rounded-full bg-sky-400/20 px-1.5 py-0.5 text-micro tabular-nums text-sky-100">
           {checkedCount}
         </span>
-        <span aria-hidden className={`text-[9px] opacity-60 transition ${open ? "rotate-180" : ""}`}>
+        <span aria-hidden className={`text-micro opacity-60 transition ${open ? "rotate-180" : ""}`}>
           ▾
         </span>
       </button>
@@ -93,7 +93,7 @@ export function LayerQuickDropdown({
         <div
           role="dialog"
           aria-label={isEn ? "Layer quick toggles" : "레이어 빠른 토글"}
-          className="absolute left-1/2 top-[calc(100%+0.45rem)] z-[90] w-[min(92vw,44rem)] -translate-x-1/2 overflow-hidden rounded-2xl border border-sky-200/20 bg-[#0c1528]/95 shadow-2xl backdrop-blur-xl"
+          className="absolute left-1/2 top-[calc(100%+0.45rem)] z-[300] w-[min(92vw,44rem)] -translate-x-1/2 overflow-hidden rounded-2xl border border-sky-200/20 bg-[#0c1528]/95 shadow-2xl backdrop-blur-xl"
         >
           <div className="border-b border-sky-200/10 px-3 py-2">
             <input
@@ -115,7 +115,7 @@ export function LayerQuickDropdown({
                     key={cat.id}
                     className="rounded-xl border border-sky-200/10 bg-slate-950/35 p-2.5"
                   >
-                    <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-200/55">
+                    <h3 className="mb-2 text-micro font-semibold uppercase tracking-[0.14em] text-sky-200/55">
                       {cat.title}
                     </h3>
                     <ul className="space-y-1">
@@ -130,10 +130,10 @@ export function LayerQuickDropdown({
                               onChange={(e) => item.onChange(e.target.checked)}
                             />
                             <span className="min-w-0">
-                              <span className="block text-[11px] font-medium text-sky-50/95">
+                              <span className="block text-meta font-medium text-sky-50/95">
                                 {item.label}
                               </span>
-                              <span className="block text-[10px] leading-4 text-sky-100/40">
+                              <span className="block text-micro leading-4 text-sky-100/40">
                                 {item.detail}
                               </span>
                             </span>
@@ -150,7 +150,7 @@ export function LayerQuickDropdown({
                                       disabled={opt.disabled}
                                       onChange={(e) => opt.onChange(e.target.checked)}
                                     />
-                                    <span className="text-[10px] text-sky-100/85">{opt.label}</span>
+                                    <span className="text-micro text-sky-100/85">{opt.label}</span>
                                   </label>
                                 </li>
                               ))}

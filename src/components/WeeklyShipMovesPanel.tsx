@@ -13,6 +13,7 @@ import {
   groupShipObservationsByVessel,
   type ShipTrailMode,
 } from "@/lib/shipMovements/shipMovementBrief";
+import { isMapDisplayableShipObservation } from "@/lib/shipMovements/globeOverlay";
 import { SHIP_NAVY_LEGEND, shipNavyFillColor } from "@/lib/shipMovements/navyColors";
 import { warshipProfileIconSvg } from "@/lib/surfaceCombatantDeckIcon";
 import { t } from "@/lib/uiStrings";
@@ -36,11 +37,28 @@ type WeeklyShipMovesPanelProps = {
 };
 
 type PanelTab = "timeline" | "reports";
+type LocationFilter = "all" | "on-map" | "off-map";
 
 function confidenceLabel(c: PublicShipObservation["confidence"], lang: LabelLanguage) {
   if (c === "observed") return t("westpacConfidenceObserved", lang);
   if (c === "reported") return t("westpacConfidenceReported", lang);
   return t("westpacConfidenceEstimated", lang);
+}
+
+function locationBadge(
+  obs: PublicShipObservation,
+  lang: LabelLanguage,
+): { text: string; tone: "amber" | "sky" | "cyan" } | null {
+  if (isMapDisplayableShipObservation(obs)) {
+    if (obs.locationStatus === "broad") {
+      return { text: t("westpacLocationBroad", lang), tone: "sky" };
+    }
+    return null;
+  }
+  if (obs.locationStatus === "unresolved") {
+    return { text: t("westpacLocationUnresolved", lang), tone: "amber" };
+  }
+  return { text: t("westpacLocationUnknown", lang), tone: "amber" };
 }
 
 /** Nav 이벤트 메뉴 immersion — 전체/함선별 경로 + 양피지 브리프 */
@@ -61,6 +79,7 @@ export function WeeklyShipMovesPanel({
   onClose,
 }: WeeklyShipMovesPanelProps) {
   const [weekFilter, setWeekFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>("all");
   const [tab, setTab] = useState<PanelTab>("timeline");
 
   const weeks = useMemo(() => {
@@ -71,10 +90,35 @@ export function WeeklyShipMovesPanel({
     return [...set].sort((a, b) => b.localeCompare(a));
   }, [observations]);
 
-  const filtered = useMemo(() => {
+  const weekFiltered = useMemo(() => {
     if (weekFilter === "all") return observations;
     return observations.filter((o) => o.weekStart === weekFilter);
   }, [observations, weekFilter]);
+
+  const locationCounts = useMemo(() => {
+    let onMap = 0;
+    let broad = 0;
+    let off = 0;
+    for (const o of weekFiltered) {
+      if (isMapDisplayableShipObservation(o)) {
+        onMap += 1;
+        if (o.locationStatus === "broad") broad += 1;
+      } else {
+        off += 1;
+      }
+    }
+    return { onMap, broad, off };
+  }, [weekFiltered]);
+
+  const filtered = useMemo(() => {
+    if (locationFilter === "on-map") {
+      return weekFiltered.filter(isMapDisplayableShipObservation);
+    }
+    if (locationFilter === "off-map") {
+      return weekFiltered.filter((o) => !isMapDisplayableShipObservation(o));
+    }
+    return weekFiltered;
+  }, [locationFilter, weekFiltered]);
 
   const vesselGroups = useMemo(
     () => groupShipObservationsByVessel(filtered),
@@ -103,27 +147,34 @@ export function WeeklyShipMovesPanel({
   return (
     <aside
       id="weekly-ship-moves-panel"
-      className="pointer-events-auto absolute right-3 top-20 z-[120] flex max-h-[min(78vh,560px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-cyan-300/20 bg-[#0a1620]/92 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-20 z-[600] flex max-h-[min(78vh,560px)] w-[min(94vw,360px)] flex-col overflow-hidden rounded-2xl border border-cyan-300/20 bg-[#0a1620]/92 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex items-start justify-between gap-2 border-b border-cyan-200/10 px-3 py-2.5">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-200/55">
+          <p className="text-micro uppercase tracking-[0.2em] text-cyan-200/55">
             USNI · JSO
           </p>
           <h2 className="mt-0.5 text-sm font-medium text-cyan-50">
             {t("westpacShipMovesTitle", lang)}
           </h2>
-          <p className="mt-1 text-[10px] leading-4 text-cyan-100/50">
+          <p className="mt-1 text-micro leading-4 text-cyan-100/50">
             {disclaimer || t("westpacShipMovesDisclaimer", lang)}
           </p>
-          <p className="mt-1 text-[9px] text-cyan-200/40">
+          <p className="mt-1 text-micro text-cyan-200/40">
             {t("westpacMapEligibleOnly", lang)}
           </p>
+          {!loading && weekFiltered.length > 0 ? (
+            <p className="mt-1.5 text-micro font-medium text-cyan-100/70">
+              {en
+                ? `Map ${locationCounts.onMap} · Broad ${locationCounts.broad} · Unresolved ${locationCounts.off}`
+                : `지도 ${locationCounts.onMap} · 광역 ${locationCounts.broad} · 미확정 ${locationCounts.off}`}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg border border-cyan-300/25 px-2 py-1 text-[10px] text-cyan-100/70 transition hover:border-cyan-200/40 hover:text-cyan-50"
+          className="shrink-0 rounded-lg border border-cyan-300/25 px-2 py-1 text-micro text-cyan-100/70 transition hover:border-cyan-200/40 hover:text-cyan-50"
         >
           {t("westpacExit", lang)}
         </button>
@@ -133,7 +184,7 @@ export function WeeklyShipMovesPanel({
         <button
           type="button"
           onClick={() => setTab("timeline")}
-          className={`rounded-md px-2.5 py-0.5 text-[10px] ${
+          className={`rounded-md px-2.5 py-0.5 text-micro ${
             tab === "timeline"
               ? "bg-cyan-500/25 text-cyan-50"
               : "text-cyan-100/55 hover:bg-cyan-500/10"
@@ -144,7 +195,7 @@ export function WeeklyShipMovesPanel({
         <button
           type="button"
           onClick={() => setTab("reports")}
-          className={`rounded-md px-2.5 py-0.5 text-[10px] ${
+          className={`rounded-md px-2.5 py-0.5 text-micro ${
             tab === "reports"
               ? "bg-cyan-500/25 text-cyan-50"
               : "text-cyan-100/55 hover:bg-cyan-500/10"
@@ -162,7 +213,7 @@ export function WeeklyShipMovesPanel({
             <button
               type="button"
               onClick={() => onTrailModeChange("fleet")}
-              className={`rounded-md px-2 py-0.5 text-[9px] ${
+              className={`rounded-md px-2 py-0.5 text-micro ${
                 trailMode === "fleet"
                   ? "bg-amber-500/20 text-amber-50"
                   : "text-cyan-100/50 hover:bg-cyan-500/10"
@@ -173,7 +224,7 @@ export function WeeklyShipMovesPanel({
             <button
               type="button"
               onClick={() => onTrailModeChange("vessel")}
-              className={`rounded-md px-2 py-0.5 text-[9px] ${
+              className={`rounded-md px-2 py-0.5 text-micro ${
                 trailMode === "vessel"
                   ? "bg-amber-500/20 text-amber-50"
                   : "text-cyan-100/50 hover:bg-cyan-500/10"
@@ -182,7 +233,34 @@ export function WeeklyShipMovesPanel({
               {en ? "Per ship" : "함선별"}
             </button>
           </div>
-          <p className="text-[9px] leading-4 text-cyan-100/40">
+          <div className="flex flex-wrap gap-1">
+            {(
+              [
+                ["all", "westpacFilterAll"],
+                ["on-map", "westpacFilterOnMap"],
+                ["off-map", "westpacFilterOffMap"],
+              ] as const
+            ).map(([key, labelKey]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setLocationFilter(key)}
+                className={`rounded-md px-2 py-0.5 text-micro ${
+                  locationFilter === key
+                    ? "bg-sky-500/25 text-sky-50"
+                    : "text-cyan-100/50 hover:bg-cyan-500/10"
+                }`}
+              >
+                {t(labelKey, lang)}
+                {key === "on-map"
+                  ? ` ${locationCounts.onMap}`
+                  : key === "off-map"
+                    ? ` ${locationCounts.off}`
+                    : ""}
+              </button>
+            ))}
+          </div>
+          <p className="text-micro leading-4 text-cyan-100/40">
             {trailMode === "fleet"
               ? en
                 ? "Every hull’s estimated track at once. Select a fix, then open the parchment brief."
@@ -196,7 +274,7 @@ export function WeeklyShipMovesPanel({
               <button
                 type="button"
                 onClick={() => setWeekFilter("all")}
-                className={`rounded-md px-2 py-0.5 text-[10px] ${
+                className={`rounded-md px-2 py-0.5 text-micro ${
                   weekFilter === "all"
                     ? "bg-cyan-500/25 text-cyan-50"
                     : "text-cyan-100/55 hover:bg-cyan-500/10"
@@ -209,7 +287,7 @@ export function WeeklyShipMovesPanel({
                   key={w}
                   type="button"
                   onClick={() => setWeekFilter(w)}
-                  className={`rounded-md px-2 py-0.5 text-[10px] ${
+                  className={`rounded-md px-2 py-0.5 text-micro ${
                     weekFilter === w
                       ? "bg-cyan-500/25 text-cyan-50"
                       : "text-cyan-100/55 hover:bg-cyan-500/10"
@@ -232,7 +310,7 @@ export function WeeklyShipMovesPanel({
               const track = observations.filter((o) => groupKeyForObservation(o) === key);
               onOpenBrief(track.length > 0 ? track : [selectedObs], selectedObs.id);
             }}
-            className="w-full rounded-lg border border-amber-300/30 bg-amber-500/10 px-2.5 py-1.5 text-[10px] font-medium text-amber-50 transition hover:border-amber-200/45"
+            className="w-full rounded-lg border border-amber-300/30 bg-amber-500/10 px-2.5 py-1.5 text-micro font-medium text-amber-50 transition hover:border-amber-200/45"
           >
             {en ? "Open parchment brief" : "양피지 브리프 열기"}
           </button>
@@ -242,7 +320,7 @@ export function WeeklyShipMovesPanel({
       <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-2 py-2">
         {tab === "reports" ? (
           <>
-            <p className="px-2 pb-1 text-[9px] leading-4 text-cyan-100/45">
+            <p className="px-2 pb-1 text-micro leading-4 text-cyan-100/45">
               {en
                 ? "Primary: USNI/JSO reports this desk polls. Secondary: naval RSS matched to Westpac keywords."
                 : "1순위: 이 데스크가 폴링하는 USNI·JSO 보고서. 2순위: 서태평양 해군 키워드로 걸러진 RSS."}
@@ -261,19 +339,19 @@ export function WeeklyShipMovesPanel({
                 className="block w-full rounded-lg border border-cyan-200/15 bg-cyan-500/8 px-2.5 py-2 text-left transition hover:bg-cyan-500/14"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-medium text-cyan-50">{r.title}</p>
-                  <span className="shrink-0 text-[9px] text-cyan-200/45">
+                  <p className="text-meta font-medium text-cyan-50">{r.title}</p>
+                  <span className="shrink-0 text-micro text-cyan-200/45">
                     {(r.publishedAt || r.weekStart || "—").slice(0, 10)}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-amber-100/75">{r.sourceLabel}</p>
+                <p className="mt-0.5 text-micro text-amber-100/75">{r.sourceLabel}</p>
                 {r.vesselHints.length > 0 ? (
-                  <p className="mt-0.5 line-clamp-1 text-[10px] text-cyan-100/55">
+                  <p className="mt-0.5 line-clamp-1 text-micro text-cyan-100/55">
                     {r.vesselHints.slice(0, 4).join(" · ")}
                   </p>
                 ) : null}
                 {r.summary ? (
-                  <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-cyan-100/45">
+                  <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-cyan-100/45">
                     {r.summary}
                   </p>
                 ) : null}
@@ -288,16 +366,16 @@ export function WeeklyShipMovesPanel({
                 className="block w-full rounded-lg border border-sky-200/12 bg-sky-500/5 px-2.5 py-2 text-left transition hover:bg-sky-500/10"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-medium text-sky-50">{item.title}</p>
-                  <span className="shrink-0 text-[9px] text-sky-200/45">
+                  <p className="text-meta font-medium text-sky-50">{item.title}</p>
+                  <span className="shrink-0 text-micro text-sky-200/45">
                     {item.pubDate?.slice(0, 10) || "—"}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-sky-100/65">
+                <p className="mt-0.5 text-micro text-sky-100/65">
                   {item.publisher || item.source} · RSS
                 </p>
                 {item.summary ? (
-                  <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-sky-100/45">
+                  <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-sky-100/45">
                     {item.summary}
                   </p>
                 ) : null}
@@ -306,26 +384,106 @@ export function WeeklyShipMovesPanel({
           </>
         ) : loading ? (
           <p className="px-2 py-4 text-xs text-cyan-100/45">{t("westpacLoading", lang)}</p>
-        ) : trailMode === "vessel" ? (
-          vesselGroups.length === 0 ? (
+        ) : weekFiltered.length > 0 && locationCounts.onMap === 0 && locationFilter !== "off-map" ? (
+          <p className="px-2 py-3 text-meta leading-snug text-amber-100/75">
+            {t("westpacEmptyOnMapHint", lang)}
+          </p>
+        ) : null}
+        {tab === "timeline" && !loading ? (
+          trailMode === "vessel" ? (
+            vesselGroups.length === 0 ? (
+              <p className="px-2 py-4 text-xs text-cyan-100/45">
+                {t("westpacEmptyTimeline", lang)}
+              </p>
+            ) : (
+              vesselGroups.map((g) => {
+                const active = focusGroupKey === g.groupKey;
+                const routeStops = g.observations
+                  .map((o) => o.locationLabel)
+                  .filter((s): s is string => Boolean(s && s.length > 0));
+                const uniqueStops: string[] = [];
+                for (const s of routeStops) {
+                  if (uniqueStops[uniqueStops.length - 1] !== s) uniqueStops.push(s);
+                }
+                const offCount = g.observations.filter(
+                  (o) => !isMapDisplayableShipObservation(o),
+                ).length;
+                return (
+                  <button
+                    key={g.groupKey}
+                    type="button"
+                    onClick={() => onSelectVessel(g.groupKey, g.observations)}
+                    className={`flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
+                      active
+                        ? "border-cyan-300/45 bg-cyan-500/20"
+                        : "border-cyan-200/10 bg-cyan-500/5 hover:bg-cyan-500/10"
+                    }`}
+                  >
+                    <span
+                      className="mt-0.5 shrink-0 opacity-90"
+                      style={{ width: 40, height: 28 }}
+                      aria-hidden
+                      dangerouslySetInnerHTML={{
+                        __html: warshipProfileIconSvg(
+                          shipNavyFillColor(g.navyCode),
+                          { width: 40, height: 28 },
+                          "e",
+                        ),
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="text-meta font-medium text-cyan-50">{g.label}</p>
+                        <span className="shrink-0 text-micro text-cyan-200/45">
+                          {(g.latestAt || "—").slice(0, 10)}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-micro text-cyan-100/60">
+                        {[g.navyLabel, en ? `${g.observations.length} fixes` : `관측 ${g.observations.length}건`]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      {uniqueStops.length > 0 ? (
+                        <p className="mt-0.5 line-clamp-2 text-micro text-cyan-100/50">
+                          {uniqueStops.slice(0, 5).join(" → ")}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-micro text-amber-100/65">
+                          {t("westpacLocationUnknown", lang)}
+                        </p>
+                      )}
+                      <p className="mt-1 text-micro uppercase tracking-wide text-cyan-200/45">
+                        {en
+                          ? `${g.mapPointCount} map · ${offCount} unresolved · tap for track + brief`
+                          : `지도 ${g.mapPointCount} · 미확정 ${offCount} · 탭하면 경로+양피지`}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
+            )
+          ) : filtered.length === 0 ? (
             <p className="px-2 py-4 text-xs text-cyan-100/45">
-              {t("westpacEmptyTimeline", lang)}
+              {weekFiltered.length === 0
+                ? t("westpacEmptyTimeline", lang)
+                : en
+                  ? "No items in this filter."
+                  : "이 필터에 해당하는 항목이 없습니다."}
             </p>
           ) : (
-            vesselGroups.map((g) => {
-              const active = focusGroupKey === g.groupKey;
-              const routeStops = g.observations
-                .map((o) => o.locationLabel)
-                .filter((s): s is string => Boolean(s && s.length > 0));
-              const uniqueStops: string[] = [];
-              for (const s of routeStops) {
-                if (uniqueStops[uniqueStops.length - 1] !== s) uniqueStops.push(s);
-              }
+            filtered.map((obs) => {
+              const active = selectedId === obs.id;
+              const onMap = isMapDisplayableShipObservation(obs);
+              const badge = locationBadge(obs, lang);
+              const loc =
+                obs.locationLabel ||
+                obs.missingLocationNote ||
+                t("westpacLocationUnknown", lang);
               return (
                 <button
-                  key={g.groupKey}
+                  key={obs.id}
                   type="button"
-                  onClick={() => onSelectVessel(g.groupKey, g.observations)}
+                  onClick={() => onSelect(obs)}
                   className={`flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
                     active
                       ? "border-cyan-300/45 bg-cyan-500/20"
@@ -333,12 +491,12 @@ export function WeeklyShipMovesPanel({
                   }`}
                 >
                   <span
-                    className="mt-0.5 shrink-0 opacity-90"
+                    className={`mt-0.5 shrink-0 ${onMap ? "opacity-90" : "opacity-45"}`}
                     style={{ width: 40, height: 28 }}
                     aria-hidden
                     dangerouslySetInnerHTML={{
                       __html: warshipProfileIconSvg(
-                        shipNavyFillColor(g.navyCode),
+                        shipNavyFillColor(obs.navyCode),
                         { width: 40, height: 28 },
                         "e",
                       ),
@@ -346,114 +504,55 @@ export function WeeklyShipMovesPanel({
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-[11px] font-medium text-cyan-50">{g.label}</p>
-                      <span className="shrink-0 text-[9px] text-cyan-200/45">
-                        {(g.latestAt || "—").slice(0, 10)}
+                      <p className="text-meta font-medium text-cyan-50">{obs.title}</p>
+                      <span className="shrink-0 text-micro text-cyan-200/45">
+                        {obs.observedAt?.slice(0, 10) || obs.weekStart || "—"}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[10px] text-cyan-100/60">
-                      {[g.navyLabel, en ? `${g.observations.length} fixes` : `관측 ${g.observations.length}건`]
+                    <p className="mt-0.5 text-micro text-cyan-100/60">
+                      {[obs.vesselName, obs.hullNumber, obs.navyLabel]
                         .filter(Boolean)
-                        .join(" · ")}
+                        .join(" · ") || "—"}
                     </p>
-                    {uniqueStops.length > 0 ? (
-                      <p className="mt-0.5 line-clamp-2 text-[10px] text-cyan-100/50">
-                        {uniqueStops.slice(0, 5).join(" → ")}
-                      </p>
-                    ) : (
-                      <p className="mt-0.5 text-[10px] text-amber-100/65">
-                        {t("westpacLocationUnknown", lang)}
-                      </p>
-                    )}
-                    <p className="mt-1 text-[8px] uppercase tracking-wide text-cyan-200/45">
-                      {en
-                        ? `${g.mapPointCount} map points · tap for track + brief`
-                        : `지도 ${g.mapPointCount}점 · 탭하면 경로+양피지`}
-                    </p>
+                    <p className="mt-0.5 text-micro text-cyan-100/50">{loc}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded border border-cyan-200/20 px-1.5 py-0.5 text-micro uppercase tracking-wide text-cyan-100/55">
+                        {confidenceLabel(obs.confidence, lang)}
+                      </span>
+                      {badge ? (
+                        <span
+                          className={`rounded border px-1.5 py-0.5 text-micro ${
+                            badge.tone === "sky"
+                              ? "border-sky-200/30 text-sky-100/75"
+                              : "border-amber-200/25 text-amber-100/70"
+                          }`}
+                        >
+                          {badge.text}
+                        </span>
+                      ) : null}
+                      {obs.vesselConfidence === "low" ? (
+                        <span className="rounded border border-fuchsia-200/25 px-1.5 py-0.5 text-micro text-fuchsia-100/70">
+                          {t("westpacVesselUncertain", lang)}
+                        </span>
+                      ) : null}
+                      {obs.sourceUrl ? (
+                        <a
+                          href={obs.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-micro text-cyan-200/55 underline-offset-2 hover:underline"
+                        >
+                          {t("westpacOpenSource", lang)} ↗
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 </button>
               );
             })
           )
-        ) : filtered.length === 0 ? (
-          <p className="px-2 py-4 text-xs text-cyan-100/45">
-            {t("westpacEmptyTimeline", lang)}
-          </p>
-        ) : (
-          filtered.map((obs) => {
-            const active = selectedId === obs.id;
-            const hasFix = obs.lat != null && obs.lng != null && obs.mapEligible;
-            const loc =
-              obs.locationLabel ||
-              obs.missingLocationNote ||
-              t("westpacLocationUnknown", lang);
-            return (
-              <button
-                key={obs.id}
-                type="button"
-                onClick={() => onSelect(obs)}
-                className={`flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
-                  active
-                    ? "border-cyan-300/45 bg-cyan-500/20"
-                    : "border-cyan-200/10 bg-cyan-500/5 hover:bg-cyan-500/10"
-                }`}
-              >
-                <span
-                  className="mt-0.5 shrink-0 opacity-90"
-                  style={{ width: 40, height: 28 }}
-                  aria-hidden
-                  dangerouslySetInnerHTML={{
-                    __html: warshipProfileIconSvg(
-                      shipNavyFillColor(obs.navyCode),
-                      { width: 40, height: 28 },
-                      "e",
-                    ),
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-[11px] font-medium text-cyan-50">{obs.title}</p>
-                    <span className="shrink-0 text-[9px] text-cyan-200/45">
-                      {obs.observedAt?.slice(0, 10) || obs.weekStart || "—"}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-[10px] text-cyan-100/60">
-                    {[obs.vesselName, obs.hullNumber, obs.navyLabel]
-                      .filter(Boolean)
-                      .join(" · ") || "—"}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-cyan-100/50">{loc}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className="rounded border border-cyan-200/20 px-1.5 py-0.5 text-[8px] uppercase tracking-wide text-cyan-100/55">
-                      {confidenceLabel(obs.confidence, lang)}
-                    </span>
-                    {!hasFix ? (
-                      <span className="rounded border border-amber-200/25 px-1.5 py-0.5 text-[8px] text-amber-100/70">
-                        {t("westpacLocationUnknown", lang)}
-                      </span>
-                    ) : null}
-                    {obs.vesselConfidence === "low" ? (
-                      <span className="rounded border border-fuchsia-200/25 px-1.5 py-0.5 text-[8px] text-fuchsia-100/70">
-                        {t("westpacVesselUncertain", lang)}
-                      </span>
-                    ) : null}
-                    {obs.sourceUrl ? (
-                      <a
-                        href={obs.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[8px] text-cyan-200/55 underline-offset-2 hover:underline"
-                      >
-                        {t("westpacOpenSource", lang)} ↗
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-              </button>
-            );
-          })
-        )}
+        ) : null}
       </div>
       <div className="border-t border-cyan-200/10 px-3 py-1.5">
         {tab !== "reports" ? (
@@ -461,7 +560,7 @@ export function WeeklyShipMovesPanel({
             {SHIP_NAVY_LEGEND.map((entry) => (
               <span
                 key={entry.code}
-                className="inline-flex items-center gap-1 text-[8px] text-cyan-100/55"
+                className="inline-flex items-center gap-1 text-micro text-cyan-100/55"
               >
                 <span
                   className="inline-block h-1.5 w-1.5 rounded-full"
@@ -473,7 +572,7 @@ export function WeeklyShipMovesPanel({
             ))}
           </div>
         ) : null}
-        <p className="text-[9px] text-cyan-100/40">
+        <p className="text-micro text-cyan-100/40">
           {tab === "reports"
             ? en
               ? "Links open the polled source pages (USNI/JSO) or matched naval RSS."

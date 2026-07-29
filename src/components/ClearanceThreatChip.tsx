@@ -54,7 +54,7 @@ export function ClearanceThreatChip({
   const threat = status.kind === "threat";
 
   return (
-    <div className="pointer-events-auto absolute left-1/2 top-3 z-[48] w-[min(94vw,26rem)] -translate-x-1/2 px-2 sm:top-4">
+    <div className="pointer-events-auto absolute left-1/2 top-3 z-[100] w-[min(94vw,26rem)] -translate-x-1/2 px-2 sm:top-4">
       <div
         className={`relative overflow-hidden rounded-sm border px-3 py-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.4)] backdrop-blur-md ${
           threat
@@ -63,10 +63,10 @@ export function ClearanceThreatChip({
         }`}
         role="status"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-inherit/90 sm:text-[12px]">
+        <p className="text-meta font-semibold uppercase tracking-[0.14em] text-inherit/90 sm:text-caption">
           {copy.title}
         </p>
-        <p className="mt-1 text-[11px] leading-snug tracking-[0.02em] text-inherit/75 sm:text-[12px]">
+        <p className="mt-1 text-meta leading-snug tracking-[0.02em] text-inherit/75 sm:text-caption">
           {copy.subtitle}
         </p>
         <div className="mt-2.5 flex items-center gap-2">
@@ -76,7 +76,7 @@ export function ClearanceThreatChip({
               dismiss();
               onCta();
             }}
-            className={`rounded-sm border px-3 py-1.5 text-[11px] font-semibold tracking-[0.06em] transition sm:text-[12px] ${
+            className={`rounded-sm border px-3 py-1.5 text-meta font-semibold tracking-[0.06em] transition sm:text-caption ${
               threat
                 ? "border-amber-400/50 bg-amber-500/20 text-amber-50 hover:bg-amber-500/30"
                 : "border-rose-400/45 bg-rose-500/20 text-rose-50 hover:bg-rose-500/30"
@@ -87,7 +87,7 @@ export function ClearanceThreatChip({
           <button
             type="button"
             onClick={dismiss}
-            className="rounded-sm px-2 py-1.5 text-[10px] tracking-[0.04em] text-inherit/55 transition hover:text-inherit/85"
+            className="rounded-sm px-2 py-1.5 text-micro tracking-[0.04em] text-inherit/55 transition hover:text-inherit/85"
             aria-label={ko ? "닫기" : "Dismiss"}
           >
             {ko ? "닫기" : "Dismiss"}

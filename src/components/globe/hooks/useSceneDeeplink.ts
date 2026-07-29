@@ -9,7 +9,7 @@ import {
   clearSceneParamsFromUrl,
   type SceneLinkState,
 } from "@/lib/sceneLink";
-import { trackDeeplinkOpen } from "@/lib/analyticsEvents";
+import { trackDeeplinkOpen, trackSceneOpen } from "@/lib/analyticsEvents";
 
 type UseSceneDeeplinkOptions = {
   globeReady: boolean;
@@ -53,6 +53,8 @@ export function useSceneDeeplink({
     pendingSceneRef.current = null;
     clearSceneParamsFromUrl();
     trackDeeplinkOpen(scene.mode);
+    /** 지도로 실제 재현된 경우 — 폰 카드(`surface: "card"`)와 구분해 센다 (P2-3) */
+    trackSceneOpen("globe", scene.mode);
 
     selectDomainRef.current(scene.mode, ultraLiteRef.current);
 

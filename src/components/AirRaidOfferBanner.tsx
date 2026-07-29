@@ -88,7 +88,7 @@ export function AirRaidOfferBanner({
 
   return (
     <div
-      className="pointer-events-auto fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[10030] w-[min(94vw,32rem)] -translate-x-1/2"
+      className="pointer-events-auto fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[800] w-[min(94vw,32rem)] -translate-x-1/2"
       role="alert"
       aria-live="assertive"
       aria-labelledby="air-raid-active-title"
@@ -105,13 +105,13 @@ export function AirRaidOfferBanner({
             className="text-[14px] font-semibold tracking-wide text-red-50"
           >
             {copy.headline}
-            <span className="ml-2 text-[11px] font-medium text-red-200/80">
+            <span className="ml-2 text-meta font-medium text-red-200/80">
               {kindBadge(offer.kind, lang)}
             </span>
           </p>
           <p className="mt-1 truncate text-[16px] font-semibold text-white">{region}</p>
           {offer.activeCount > 1 ? (
-            <p className="mt-0.5 text-[11px] text-red-200/70">
+            <p className="mt-0.5 text-meta text-red-200/70">
               {lang === "en"
                 ? `${offer.activeCount} zones active`
                 : `활성 구역 ${offer.activeCount}곳`}
@@ -119,14 +119,14 @@ export function AirRaidOfferBanner({
           ) : null}
         </div>
         <div className="relative flex items-start gap-3 px-4 py-3">
-          <p id="air-raid-active-body" className="min-w-0 flex-1 text-[12px] leading-relaxed text-red-50/85">
+          <p id="air-raid-active-body" className="min-w-0 flex-1 text-caption leading-relaxed text-red-50/85">
             {copy.body}
           </p>
           {onDismiss ? (
             <button
               type="button"
               onClick={onDismiss}
-              className="shrink-0 rounded-md border border-white/15 bg-transparent px-2.5 py-1 text-[11px] text-red-100/75 transition hover:bg-white/5 hover:text-red-50"
+              className="shrink-0 rounded-md border border-white/15 bg-transparent px-2.5 py-1 text-meta text-red-100/75 transition hover:bg-white/5 hover:text-red-50"
             >
               {copy.dismiss}
             </button>

@@ -168,7 +168,7 @@ export default function ShipMovementsAdminPage() {
             key={item.id}
             className="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
           >
-            <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
+            <div className="flex flex-wrap items-center gap-2 text-meta uppercase tracking-wide text-slate-400">
               <span>{item.locationStatus}</span>
               <span>·</span>
               <span>{item.source}</span>

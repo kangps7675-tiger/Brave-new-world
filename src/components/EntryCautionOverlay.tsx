@@ -2,11 +2,10 @@
 
 import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { LanguagePickButtons } from "@/components/LanguagePickButtons";
+import { useDialog } from "@/hooks/useDialog";
 import { brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { ACTIVE_LAYER_CAP_DEFAULT, ACTIVE_LAYER_CAP_ULTRA } from "@/lib/layerExclusiveCap";
 import { t } from "@/lib/uiStrings";
-import { MAX_ON_LAYERS, MAX_ON_LAYERS_ECONOMY } from "@/lib/viewPackages";
 
 type EntryCautionOverlayProps = {
   lang: LabelLanguage;
@@ -28,10 +27,19 @@ export function EntryCautionOverlay({
 }: EntryCautionOverlayProps) {
   const soundWhenLines = t("entryCautionSoundWhen", lang).split("\n").filter(Boolean);
   const en = lang === "en";
+  /**
+   * 진입 게이트 — 포커스를 가두고 첫 포커스를 옮긴다 (P1-7).
+   * Escape는 막는다: 이 화면은 "닫기"가 아니라 「인가」 또는 「스킵」 중
+   * 하나를 **고르는** 화면이고, 두 선택의 결과가 다르다.
+   * Escape에 둘 중 하나를 임의로 매핑하면 사용자 의도를 추측하는 셈이다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, closeOnEscape: false });
 
   return (
     <div
-      className="entry-terminal-boot fixed inset-0 z-[10010] flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="entry-terminal-boot fixed inset-0 z-[800] flex items-center justify-center overflow-y-auto p-3 outline-none sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="entry-caution-title"
@@ -43,7 +51,7 @@ export function EntryCautionOverlay({
             type="button"
             onClick={onSkipToDomain}
             title={t("entryCautionSkipHint", lang)}
-            className="shrink-0 rounded border border-slate-600/40 bg-black/40 px-2 py-1 text-[9px] font-medium tracking-wide text-slate-500 transition hover:border-amber-400/30 hover:text-amber-100/80"
+            className="shrink-0 rounded border border-slate-600/40 bg-black/40 px-2 py-1 text-micro font-medium tracking-wide text-slate-500 transition hover:border-amber-400/30 hover:text-amber-100/80"
           >
             {t("entryCautionSkip", lang)}
           </button>
@@ -63,11 +71,11 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
 
         <h1
           id="entry-caution-title"
-          className="mt-4 text-center font-data-mono text-[11px] tracking-[0.2em] text-amber-300/90 sm:text-xs"
+          className="mt-4 text-center font-data-mono text-meta tracking-[0.2em] text-amber-300/90 sm:text-xs"
         >
           {t("entryCautionTitle", lang)}
         </h1>
-        <p className="mt-1.5 text-center text-[12px] leading-relaxed text-amber-100/75 sm:text-[13px]">
+        <p className="mt-1.5 text-center text-caption leading-relaxed text-amber-100/75 sm:text-body">
           {t("entryCautionSubtitle", lang)}
         </p>
 
@@ -79,7 +87,7 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
             <p className="entry-terminal-boot__phase-tag font-data-mono">
               [INITIALIZING SECURE TUNNEL]
             </p>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-200">
+            <p className="mt-2 text-body leading-relaxed text-slate-200">
               {t("entryCautionPhase1", lang)}
             </p>
           </li>
@@ -90,12 +98,9 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
             <p className="entry-terminal-boot__phase-tag font-data-mono">
               [DECRYPTING RAW DATA STREAM]
             </p>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-200">
-              {t("entryCautionPhase2", lang)
-                .replace("{uiCap}", String(ACTIVE_LAYER_CAP_DEFAULT))
-                .replace("{ultraCap}", String(ACTIVE_LAYER_CAP_ULTRA))
-                .replace("{conflictCap}", String(MAX_ON_LAYERS))
-                .replace("{economyCap}", String(MAX_ON_LAYERS_ECONOMY))}
+            <p className="mt-2 text-body leading-relaxed text-slate-200">
+              {/* P1-10 — 캡 숫자 4개 제거. 정확한 상한은 레이어 패널이 상시 보여준다 */}
+              {t("entryCautionPhase2", lang)}
             </p>
           </li>
           <li className="entry-terminal-boot__phase">
@@ -105,19 +110,19 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
             <p className="entry-terminal-boot__phase-tag font-data-mono">
               [COMPLIANCE · ACOUSTIC]
             </p>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-200">
+            <p className="mt-2 text-body leading-relaxed text-slate-200">
               {t("entryCautionSoundBody", lang)}
             </p>
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-400/70">
+            <p className="mt-2 text-micro font-semibold uppercase tracking-[0.18em] text-amber-400/70">
               {t("entryCautionSoundWhenTitle", lang)}
             </p>
-            <ul className="mt-1.5 space-y-1 text-[12px] leading-relaxed text-slate-400">
+            <ul className="mt-1.5 space-y-1 text-caption leading-relaxed text-slate-400">
               {soundWhenLines.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
             <div className="mt-3">
-              <p className="mb-1.5 text-[11px] font-medium text-slate-400">
+              <p className="mb-1.5 text-meta font-medium text-slate-400">
                 {t("soundToggleLabel", lang)}
               </p>
               <SoundMuteControl lang={lang} variant="inline" />
@@ -130,7 +135,7 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
             <p className="entry-terminal-boot__phase-tag font-data-mono">
               [OPERATOR MANDATE]
             </p>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-200">
+            <p className="mt-2 text-body leading-relaxed text-slate-200">
               {t("entryCautionPhase4", lang)}
             </p>
           </li>
@@ -145,7 +150,7 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
             ? "[ ACKNOWLEDGE & INITIALIZE TERMINAL NODE ]"
             : "[ 인가 · 단말기 노드 초기화 ]"}
         </button>
-        <p className="mt-2 text-center text-[10px] leading-snug text-slate-500">
+        <p className="mt-2 text-center text-micro leading-snug text-slate-500">
           {t("entryCautionCtaHint", lang)}
         </p>
 
@@ -157,7 +162,7 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
         <button
           type="button"
           onClick={onSkipToDomain}
-          className="mt-2.5 w-full rounded border border-slate-600/50 bg-black/30 px-4 py-2 text-[12px] font-medium tracking-wide text-slate-300 transition hover:border-amber-400/40 hover:bg-amber-500/[0.06] hover:text-amber-100"
+          className="mt-2.5 w-full rounded border border-slate-600/50 bg-black/30 px-4 py-2 text-caption font-medium tracking-wide text-slate-300 transition hover:border-amber-400/40 hover:bg-amber-500/[0.06] hover:text-amber-100"
         >
           {t("entryCautionSkipCta", lang)}
         </button>

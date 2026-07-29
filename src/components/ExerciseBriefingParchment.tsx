@@ -77,7 +77,7 @@ export function ExerciseBriefingParchment({ briefing, lang, onDismiss }: Props) 
       playBreakingDispatch
       typewriter={false}
       titleId="exercise-briefing-title"
-      zIndexClass="z-[10040]"
+      zIndexClass="z-[900]"
     />
   );
 }

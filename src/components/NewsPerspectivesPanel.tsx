@@ -58,7 +58,7 @@ export function NewsPerspectivesPanel({
 
   return (
     <aside
-      className="pointer-events-auto absolute right-3 top-[5.75rem] z-[120] flex max-h-[min(72vh,560px)] w-[min(94vw,380px)] flex-col overflow-hidden rounded-2xl border border-slate-500/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-[5.75rem] z-[600] flex max-h-[min(72vh,560px)] w-[min(94vw,380px)] flex-col overflow-hidden rounded-2xl border border-slate-500/25 bg-[#0b1020]/95 shadow-2xl backdrop-blur-xl"
       role="dialog"
       aria-modal="false"
       aria-label={en ? "News perspectives" : "사건 관점 모음"}
@@ -67,22 +67,22 @@ export function NewsPerspectivesPanel({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              className="rounded-full px-2 py-0.5 text-micro font-semibold"
               style={{ color: k.color, border: `1px solid ${k.color}55` }}
             >
               {en ? k.en : k.ko}
             </span>
             {placeLabel ? (
-              <span className="text-[11px] text-slate-400">📍 {placeLabel}</span>
+              <span className="text-meta text-slate-400">📍 {placeLabel}</span>
             ) : null}
-            <span className="text-[11px] text-slate-500">
+            <span className="text-meta text-slate-500">
               · {en ? `${perspectives.length} sources` : `${perspectives.length}개 매체`}
             </span>
           </div>
-          <h2 className="mt-1.5 text-[13px] font-semibold leading-snug text-slate-50">
+          <h2 className="mt-1.5 text-body font-semibold leading-snug text-slate-50">
             {headline}
           </h2>
-          <p className="mt-1 text-[10px] leading-4 text-slate-500">
+          <p className="mt-1 text-micro leading-4 text-slate-500">
             {en
               ? "How different outlets are reporting the same event."
               : "같은 사건을 매체별로 어떻게 보도하는지 비교합니다."}
@@ -92,7 +92,7 @@ export function NewsPerspectivesPanel({
           type="button"
           onClick={onClose}
           aria-label={en ? "Close" : "닫기"}
-          className="shrink-0 rounded-lg border border-slate-500/30 px-2 py-1 text-[11px] text-slate-300 transition hover:border-slate-300/50 hover:text-slate-100"
+          className="shrink-0 rounded-lg border border-slate-500/30 px-2 py-1 text-meta text-slate-300 transition hover:border-slate-300/50 hover:text-slate-100"
         >
           {en ? "Close" : "닫기"}
         </button>
@@ -110,11 +110,11 @@ export function NewsPerspectivesPanel({
               className="block rounded-xl border border-slate-500/15 bg-slate-500/5 px-3 py-2.5 transition hover:border-slate-300/30 hover:bg-slate-500/10"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-[11px] font-medium text-slate-300">
+                <span className="truncate text-meta font-medium text-slate-300">
                   {p.source || (en ? "Unknown source" : "출처 미상")}
                 </span>
                 <span
-                  className="shrink-0 rounded px-1.5 py-[1px] text-[9px] font-semibold"
+                  className="shrink-0 rounded px-1.5 py-[1px] text-micro font-semibold"
                   style={{ color: badge.color, border: `1px solid ${badge.color}55` }}
                 >
                   {badge.label}
@@ -129,7 +129,7 @@ export function NewsPerspectivesPanel({
       {/* 전쟁 → 이익: 이 사건이 관련 시장을 움직였는지 (지정학 ↔ 지경학 연결) */}
       {theater ? (
         <div className="border-t border-slate-500/15">
-          <p className="px-3.5 pt-2 text-[10px] font-semibold tracking-wide text-slate-400">
+          <p className="px-3.5 pt-2 text-micro font-semibold tracking-wide text-slate-400">
             {en ? "Market reaction" : "시장 반응"}
           </p>
           <EventMarketReactionCard
@@ -141,7 +141,7 @@ export function NewsPerspectivesPanel({
         </div>
       ) : null}
 
-      <p className="border-t border-slate-500/15 px-3.5 py-2 text-[9px] leading-4 text-slate-500">
+      <p className="border-t border-slate-500/15 px-3.5 py-2 text-micro leading-4 text-slate-500">
         {en
           ? "Grouped by location & event type. Outlet framing may differ; compare sources."
           : "위치·사건 성격 기준 묶음. 매체마다 관점이 다를 수 있으니 비교해서 보세요."}

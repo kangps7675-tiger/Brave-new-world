@@ -159,7 +159,7 @@ function TickerRow({
         {formatTickerPrice(item.price)}
       </span>
       {spikeBadge ? (
-        <span className="ticker-spike-badge rounded px-1 py-0.5 text-[10px] font-bold tracking-wide text-rose-100">
+        <span className="ticker-spike-badge rounded px-1 py-0.5 text-micro font-bold tracking-wide text-rose-100">
           {spikeBadge}
         </span>
       ) : (
@@ -251,10 +251,10 @@ export function StockTickerStrip({
     >
       {showHeader ? (
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-200/85">
+          <span className="text-micro font-bold uppercase tracking-[0.22em] text-emerald-200/85">
             {t("marketsStripTitle", lang)}
           </span>
-          <span className="text-[10px] text-slate-500">
+          <span className="text-micro text-slate-500">
             {mode === "alert"
               ? t("marketsStripAlertHint", lang)
               : highlightSymbols.length > 0

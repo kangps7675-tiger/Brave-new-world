@@ -995,7 +995,7 @@ export function useLayerPanelCategories({
                 </button>
                 {gdeltError ? <p className="mt-2 text-xs leading-5 text-red-200">{gdeltError}</p> : null}
                 {gdeltFetchedAt ? (
-                  <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                  <p className="mt-2 text-meta leading-5 text-slate-500">
                     뉴스 갱신: {formatDateTime(gdeltFetchedAt)}
                   </p>
                 ) : null}

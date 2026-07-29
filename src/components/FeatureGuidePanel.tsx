@@ -352,17 +352,17 @@ export function FeatureGuidePanel({
       <button
         type="button"
         aria-label={en ? "Close guide" : "사용 안내 닫기"}
-        className="absolute inset-0 z-[119] bg-[#0a1528]/50 backdrop-blur-[1px]"
+        className="absolute inset-0 z-[500] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside
-        className="intel-panel absolute right-3 top-14 z-[120] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className="intel-panel absolute right-3 top-14 z-[600] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
         aria-label={en ? "Feature guide" : "기능 사용 안내"}
       >
         <div className="flex items-start justify-between gap-3 border-b border-sky-300/15 px-4 py-3">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.28em] text-sky-200/70">Guide</p>
+            <p className="text-micro uppercase tracking-[0.28em] text-sky-200/70">Guide</p>
             <h2 className="mt-1 text-lg font-semibold text-sky-50">
               {en ? "Feature guide" : "기능 사용 안내"}
             </h2>
@@ -383,10 +383,10 @@ export function FeatureGuidePanel({
                 onClose();
                 onRestartTour();
               }}
-              className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-[12px] font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+              className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
             >
               {en ? "Start screen tour 1→10" : "화면 투어 1→10 시작"}
-              <span className="mt-0.5 block text-[10px] font-normal text-amber-100/60">
+              <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
                 {en
                   ? "Optional walkthrough — globe, nav, layers, news sheet, alerts"
                   : "선택 사항 — 지구본·탐색·레이어·뉴스 시트·알림을 순서대로"}
@@ -396,7 +396,7 @@ export function FeatureGuidePanel({
           {sections.map((section) => (
             <section key={section.title} className="rounded-xl border border-sky-300/12 bg-black/20 p-3">
               <h3 className="text-sm font-medium text-sky-50/95">{section.title}</h3>
-              <ol className="mt-2.5 list-decimal space-y-1.5 pl-4 text-[12px] leading-5 text-sky-100/75">
+              <ol className="mt-2.5 list-decimal space-y-1.5 pl-4 text-caption leading-5 text-sky-100/75">
                 {section.steps.map((step) => (
                   <li key={step}>{step}</li>
                 ))}
@@ -429,7 +429,7 @@ export function FeatureGuideButton({
         id="feature-guide-button"
         aria-label={t("hoverHelpOpenAria")}
         onClick={onClick}
-        className="flex h-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-[11px] font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+        className="flex h-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
       >
         {t("hoverHelp")}
       </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialog } from "@/hooks/useDialog";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NavareaSecurityKind } from "@/lib/navareaSecurity";
 
@@ -42,12 +43,23 @@ const COPY = {
 export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: Props) {
   const copy = lang === "en" ? COPY.en : COPY.ko;
   const violet = offer.source === "navarea";
+  /**
+   * aria-modal 제거 (P1-7) — 상단 제안 배너이지 사용자를 막는 모달이 아니다.
+   * 뒤의 지도·nav는 살아 있는데 aria-modal은 "바깥은 비활성"이라고 알린다.
+   * Escape로 닫히게 하고 포커스는 가두지 않는다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({
+    open: true,
+    onClose: onDismiss,
+    trapFocus: false,
+  });
 
   return (
     <div
-      className="pointer-events-auto fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[10030] w-[min(94vw,32rem)] -translate-x-1/2"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="pointer-events-auto fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[800] w-[min(94vw,32rem)] -translate-x-1/2 outline-none"
       role="dialog"
-      aria-modal="true"
       aria-labelledby="maritime-alert-offer-title"
       aria-describedby="maritime-alert-offer-body"
     >
@@ -68,8 +80,8 @@ export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: P
           <p
             className={
               violet
-                ? "text-[11px] font-medium uppercase tracking-[0.16em] text-violet-200/75"
-                : "text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-300/75"
+                ? "text-meta font-medium uppercase tracking-[0.16em] text-violet-200/75"
+                : "text-meta font-medium uppercase tracking-[0.16em] text-zinc-300/75"
             }
           >
             {offer.subtitle}
@@ -86,8 +98,8 @@ export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: P
             id="maritime-alert-offer-body"
             className={
               violet
-                ? "text-[12px] leading-relaxed text-violet-50/85"
-                : "text-[12px] leading-relaxed text-zinc-100/85"
+                ? "text-caption leading-relaxed text-violet-50/85"
+                : "text-caption leading-relaxed text-zinc-100/85"
             }
           >
             {offer.body}
@@ -95,8 +107,8 @@ export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: P
           <p
             className={
               violet
-                ? "text-[12px] font-medium text-violet-100"
-                : "text-[12px] font-medium text-zinc-100"
+                ? "text-caption font-medium text-violet-100"
+                : "text-caption font-medium text-zinc-100"
             }
           >
             {copy.ask}
@@ -107,8 +119,8 @@ export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: P
               onClick={onAccept}
               className={
                 violet
-                  ? "rounded-md border border-violet-300/50 bg-violet-500/25 px-3.5 py-1.5 text-[12px] font-semibold text-violet-50 hover:bg-violet-500/40"
-                  : "rounded-md border border-zinc-300/40 bg-zinc-100/15 px-3.5 py-1.5 text-[12px] font-semibold text-zinc-50 hover:bg-zinc-100/25"
+                  ? "rounded-md border border-violet-300/50 bg-violet-500/25 px-3.5 py-1.5 text-caption font-semibold text-violet-50 hover:bg-violet-500/40"
+                  : "rounded-md border border-zinc-300/40 bg-zinc-100/15 px-3.5 py-1.5 text-caption font-semibold text-zinc-50 hover:bg-zinc-100/25"
               }
             >
               {copy.yes}
@@ -116,7 +128,7 @@ export function MaritimeAlertOfferBanner({ offer, lang, onAccept, onDismiss }: P
             <button
               type="button"
               onClick={onDismiss}
-              className="rounded-md border border-white/10 bg-transparent px-3 py-1.5 text-[12px] text-white/70 hover:bg-white/5 hover:text-white"
+              className="rounded-md border border-white/10 bg-transparent px-3 py-1.5 text-caption text-white/70 hover:bg-white/5 hover:text-white"
             >
               {copy.no}
             </button>

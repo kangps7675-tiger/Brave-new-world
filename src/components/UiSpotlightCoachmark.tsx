@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { useDialog } from "@/hooks/useDialog";
 import { placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
 
 export type SpotlightPlacement = "below" | "above";
@@ -45,6 +46,15 @@ export function UiSpotlightCoachmark({
   accent = "sky",
 }: UiSpotlightCoachmarkProps) {
   const bubbleRef = useRef<HTMLDivElement>(null);
+  /**
+   * 전체화면 스포트라이트 — 키보드로 빠져나갈 수단이 없었다 (P1-7).
+   * Escape는 「건너뛰기」가 있으면 그쪽, 없으면 닫기로 보낸다.
+   * 훅은 조기 반환보다 위에 있어야 한다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({
+    open,
+    onClose: onSkip ?? onDismiss,
+  });
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const [bubblePos, setBubblePos] = useState<{
     left: number;
@@ -143,7 +153,13 @@ export function UiSpotlightCoachmark({
               };
 
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[120]" role="dialog" aria-modal="true">
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className="pointer-events-auto fixed inset-0 z-[600] outline-none"
+      role="dialog"
+      aria-modal="true"
+    >
       <button
         type="button"
         className="absolute inset-0 bg-transparent"
@@ -192,7 +208,7 @@ export function UiSpotlightCoachmark({
         className={`pointer-events-auto absolute max-w-[min(88vw,300px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${tone.card}`}
         style={{ left: bubbleLeft, top: bubbleTop }}
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] opacity-70">
+        <p className="text-meta font-semibold uppercase tracking-[0.16em] opacity-70">
           {progressLabel ? `${progressLabel} · ` : ""}
           {title}
         </p>

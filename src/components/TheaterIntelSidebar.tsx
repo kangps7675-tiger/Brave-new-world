@@ -128,7 +128,7 @@ export function TheaterIntelSidebar({
               RSS·GDELT{" "}
               <span className="text-slate-200">{rssItems.length + gdeltEvents.length}건</span>
             </span>
-            <label className="flex cursor-pointer items-center gap-1.5 text-[10px] text-amber-200/80">
+            <label className="flex cursor-pointer items-center gap-1.5 text-micro text-amber-200/80">
               <input
                 type="checkbox"
                 checked={showTier3}
@@ -167,7 +167,7 @@ export function TheaterIntelSidebar({
                             ? ` · ${localizedDisplayText(localizedMap, `gdelt-co:${event.id}`, event.country)}`
                             : ""}
                         </span>
-                        <span className="mt-0.5 block text-[10px] text-slate-500">
+                        <span className="mt-0.5 block text-micro text-slate-500">
                           탭하면 해당 지역으로 이동
                         </span>
                       </span>
@@ -262,14 +262,14 @@ function TheaterNewsRow({
         onClick={handleClick}
         className="flex w-full gap-3 px-3 py-3 text-left transition hover:bg-sky-300/5"
       >
-        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center text-[10px] text-sky-300/80">
+        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center text-micro text-sky-300/80">
           {matched ? "📍" : "📰"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="line-clamp-2 text-sm font-medium leading-snug text-slate-100">
             {title}
           </span>
-          <span className="mt-1 block text-[11px] text-slate-500">
+          <span className="mt-1 block text-meta text-slate-500">
             {item.source}
             {matched ? " · 지도 좌표 연결됨" : " · 외부 기사"}
           </span>

@@ -8,12 +8,14 @@ import {
   type LayerPrefs,
 } from "@/lib/layerPrefs";
 import {
+  activeLayerCap,
   canEnableLayer,
   clampPrefsToActiveCap,
   enableLayerEvictingCap,
   enableLayerWithCap,
   isLayerCapCountedKey,
 } from "@/lib/layerExclusiveCap";
+import { emitLayerCapRejected } from "@/lib/layerCapNotice";
 
 export type LayerRenderIntent = "immediate" | "deferred";
 
@@ -22,7 +24,7 @@ const BATCH_DEBOUNCE_MS = 400;
 /** 단일 토글 직후 쓰로틀·카메라 동결 우회 유지 시간 */
 export const LAYER_IMMEDIATE_RENDER_MS = 900;
 
-const INSTANT_KEYS = new Set<keyof LayerPrefs>(["labelLanguage", "mobileHomeView"]);
+const INSTANT_KEYS = new Set<keyof LayerPrefs>(["labelLanguage"]);
 
 type BooleanLayerKey = {
   [K in keyof LayerPrefs]: LayerPrefs[K] extends boolean ? K : never;
@@ -106,10 +108,21 @@ export function useLayerPrefsController(
 
       if (value === true && isLayerCapCountedKey(key)) {
         if (!canEnableLayer(draftRef.current, key, ultra)) {
-          // 일반: 거부(패널이 경고). Ultra: 낮은 우선순위 레이어를 비워 자리 확보
+          // 일반: 거부. Ultra: 낮은 우선순위 레이어를 비워 자리 확보
           if (ultra) {
             next = enableLayerEvictingCap(draftRef.current, key, true);
           } else {
+            /**
+             * 예전에는 여기서 그냥 return했다("패널이 경고"라는 전제).
+             * 그런데 레이어를 켜는 경로는 패널만이 아니다 — 퀵 드롭다운·고정 토글·
+             * 「묻기」는 아무 반응 없이 실패했다. 거부 사실을 알려서
+             * 조용한 실패를 없앤다. (레이어 패널은 자체 인라인 경고를 계속 쓴다.)
+             */
+            emitLayerCapRejected({
+              key: String(key),
+              cap: activeLayerCap(ultra),
+              ultraLite: ultra,
+            });
             return;
           }
         } else {

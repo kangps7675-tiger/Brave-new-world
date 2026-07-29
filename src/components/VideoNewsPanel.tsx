@@ -80,7 +80,7 @@ export function VideoNewsPanel({
   return (
     <>
       <div className="intel-scroll-y min-h-0 flex-1 px-3 py-3">
-        <p className="mb-3 px-1 text-[11px] leading-relaxed text-slate-400">
+        <p className="mb-3 px-1 text-meta leading-relaxed text-slate-400">
           {economyMode
             ? labelLanguage === "en"
               ? "Bloomberg · CNBC International · FT · Reuters — live market video only. Metadata polls; play on click. Historical docs are not polled."
@@ -121,10 +121,10 @@ export function VideoNewsPanel({
                 </div>
                 <div className="space-y-1.5 px-3 py-2.5">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${chip}`}>
+                    <span className={`rounded px-1.5 py-0.5 text-micro font-medium ${chip}`}>
                       {item.source}
                     </span>
-                    <span className="text-[10px] text-slate-500">{formatAge(item.publishedAt)}</span>
+                    <span className="text-micro text-slate-500">{formatAge(item.publishedAt)}</span>
                   </div>
                   <p className="line-clamp-2 text-sm font-medium leading-snug text-slate-50">
                     {item.title}
@@ -136,7 +136,7 @@ export function VideoNewsPanel({
         )}
 
         {payload && payload.items.length > 0 ? (
-          <p className="mt-4 px-1 text-[10px] text-slate-500">
+          <p className="mt-4 px-1 text-micro text-slate-500">
             {payload.stats.total}클립 · {payload.stats.sources}채널
             {payload.source ? ` · ${payload.source}` : ""}
           </p>
@@ -145,7 +145,7 @@ export function VideoNewsPanel({
 
       {playing ? (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[600] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal
           aria-label={playing.title}
@@ -157,7 +157,7 @@ export function VideoNewsPanel({
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] text-slate-400">{playing.source}</p>
+                <p className="text-meta text-slate-400">{playing.source}</p>
                 <p className="text-sm font-semibold text-slate-50">{playing.title}</p>
               </div>
               <button
@@ -181,7 +181,7 @@ export function VideoNewsPanel({
               href={playing.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-center text-[11px] text-sky-300/80 underline-offset-2 hover:underline"
+              className="text-center text-meta text-sky-300/80 underline-offset-2 hover:underline"
             >
               YouTube에서 열기
             </a>

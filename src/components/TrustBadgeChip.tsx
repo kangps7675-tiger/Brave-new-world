@@ -33,8 +33,8 @@ export function TrustBadgeChip({ lang, onClick, compact = false }: TrustBadgeChi
         onClick={onClick}
         className={
           compact
-            ? "pointer-events-auto flex h-9 items-center gap-1 rounded-xl border border-sky-300/25 bg-[#0f2744]/85 px-2.5 text-[11px] font-medium text-sky-50 shadow-lg backdrop-blur-md transition hover:border-sky-300/45 hover:bg-[#16355a]/90"
-            : "pointer-events-auto flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-sky-300/25 bg-[#1e3a5f]/55 px-2.5 text-[11px] font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-300/45 hover:bg-[#254875]/65"
+            ? "pointer-events-auto flex h-9 items-center gap-1 rounded-xl border border-sky-300/25 bg-[#0f2744]/85 px-2.5 text-meta font-medium text-sky-50 shadow-lg backdrop-blur-md transition hover:border-sky-300/45 hover:bg-[#16355a]/90"
+            : "pointer-events-auto flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-sky-300/25 bg-[#1e3a5f]/55 px-2.5 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-300/45 hover:bg-[#254875]/65"
         }
       >
         <span aria-hidden>🛡</span>

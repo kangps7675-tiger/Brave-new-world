@@ -1,3 +1,4 @@
+import { markNudgeShown } from "@/lib/onboardingBudget";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { RegionBBox } from "@/data/navRegions";
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
@@ -147,9 +148,8 @@ export function readTheaterCoachmarkDone(): boolean {
 
 export function markTheaterCoachmarkDone(): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(THEATER_COACHMARK_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  markNudgeShown("theaterCoach");
 }
+
+/* 노출 게이트(`shouldOfferTheaterCoachmark`)는 실제 호출부가 있는
+   `@/components/TheaterDropdownCoachmark`에 있다 — 여기에 중복 정의하지 말 것. */

@@ -159,7 +159,7 @@ export function UtilityChromeMenu({
   }, [dismiss, lang]);
 
   const itemClass =
-    "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-sky-50/95 transition hover:bg-sky-400/12 disabled:opacity-55";
+    "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-sky-50/95 transition hover:bg-sky-400/12 disabled:opacity-55";
 
   return (
     <div ref={rootRef} className="relative">
@@ -170,11 +170,11 @@ export function UtilityChromeMenu({
         aria-controls={menuId}
         aria-label={copy.triggerAria}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-3 text-[11px] font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+        className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-3 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
       >
         <span aria-hidden>☰</span>
         <span>{copy.trigger}</span>
-        <span aria-hidden className="text-[9px] opacity-70">
+        <span aria-hidden className="text-micro opacity-70">
           {open ? "▴" : "▾"}
         </span>
       </button>
@@ -184,7 +184,7 @@ export function UtilityChromeMenu({
           id={menuId}
           role="menu"
           aria-label={copy.trigger}
-          className="absolute right-0 top-[calc(100%+0.4rem)] z-[85] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border border-sky-300/20 bg-[#0c1a2e]/94 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-md"
+          className="absolute right-0 top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border border-sky-300/20 bg-[#0c1a2e]/94 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-md"
         >
           <div className="max-h-[min(70vh,28rem)] space-y-0.5 overflow-y-auto p-1.5">
             {showProTip ? (
@@ -198,12 +198,12 @@ export function UtilityChromeMenu({
                 >
                   <span aria-hidden>✦</span>
                   <span>{tipCopy.label}</span>
-                  <span aria-hidden className="ml-auto text-[9px] opacity-70">
+                  <span aria-hidden className="ml-auto text-micro opacity-70">
                     {tipsOpen ? "▴" : "▾"}
                   </span>
                 </button>
                 {tipsOpen ? (
-                  <ol className="m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-[11px] leading-snug text-sky-100/75">
+                  <ol className="m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-meta leading-snug text-sky-100/75">
                     {tipCopy.tips.map((tip, index) => (
                       <li key={tip} className="flex gap-1.5">
                         <span className="shrink-0 tabular-nums opacity-60">{index + 1}.</span>
