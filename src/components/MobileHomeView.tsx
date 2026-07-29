@@ -16,6 +16,7 @@ import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import {
   formatTickerChangePercent,
   formatTickerPrice,
+  MARKET_GROUPS,
   pickRelatedTickers,
   tickerChangeTone,
   tickerDisplayName,
@@ -45,19 +46,11 @@ const LIVE_AGE_MIN = 20;
 /** 초크포인트 통과량이 이만큼(%) 이상 줄면 눈에 띄게 */
 const STRESS_DROP_PCT = 12;
 
-const INDEX_SYMBOLS = [
-  "^GSPC",
-  "^IXIC",
-  "^DJI",
-  "^N225",
-  "^KS11",
-  "^HSI",
-  "000001.SS",
-  "^FTSE",
-  "^GDAXI",
-  "^FCHI",
-  "^VIX",
-] as const;
+const SPARKLINE_STROKE = {
+  up: "#34d399",
+  down: "#fb7185",
+  flat: "#94a3b8",
+} as const;
 
 const THEATER_FILTERS: Array<NewsTheater | "all"> = [
   "all",
@@ -108,6 +101,80 @@ const TONE_CLASS = {
   down: "text-rose-400",
   flat: "text-slate-400",
 } as const;
+
+function MobileTickerSparkline({
+  data,
+  tone,
+}: {
+  data: number[];
+  tone: keyof typeof SPARKLINE_STROKE;
+}) {
+  const width = 88;
+  const height = 28;
+
+  if (data.length < 2) {
+    return <span className="block h-7 w-full max-w-[88px] rounded bg-white/[0.04]" />;
+  }
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * width;
+      const y = height - ((value - min) / range) * (height - 4) - 2;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const area = `0,${height} ${points} ${width},${height}`;
+  const stroke = SPARKLINE_STROKE[tone];
+
+  return (
+    <svg
+      width="100%"
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="h-7 w-full max-w-[7.5rem]"
+      aria-hidden
+    >
+      <polygon fill={stroke} fillOpacity="0.12" points={area} />
+      <polyline
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
+  );
+}
+
+function MobileMarketRow({ item, lang }: { item: StockTickerItem; lang: LabelLanguage }) {
+  const tone = tickerChangeTone(item.changePercent);
+  return (
+    <li className="grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,7.5rem)_auto] items-center gap-2.5 px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="truncate text-[12.5px] font-semibold leading-tight text-slate-100">
+          {tickerDisplayName(item.symbol, lang)}
+        </p>
+        <p className="mt-0.5 truncate text-[10px] text-slate-600">{item.symbol}</p>
+      </div>
+      <div className="flex min-w-0 justify-center">
+        <MobileTickerSparkline data={item.sparkline} tone={tone} />
+      </div>
+      <div className="min-w-[4.25rem] text-right">
+        <p className="text-[12.5px] font-semibold tabular-nums leading-tight text-slate-50">
+          {formatTickerPrice(item.price)}
+        </p>
+        <p className={`mt-0.5 text-[11px] tabular-nums leading-tight ${TONE_CLASS[tone]}`}>
+          {formatTickerChangePercent(item.changePercent)}
+        </p>
+      </div>
+    </li>
+  );
+}
 
 function ageMinutesOf(item: NewsStreamItem): number {
   const ts = new Date(item.pubDate).getTime();
@@ -335,11 +402,14 @@ export function MobileHomeView({
       .sort((a, b) => (a.changePct ?? 0) - (b.changePct ?? 0));
   }, [transits]);
 
-  const indexTickers = useMemo(() => {
+  const marketGroups = useMemo(() => {
     const bySymbol = new Map(tickers.map((t) => [t.symbol, t]));
-    return INDEX_SYMBOLS.map((symbol) => bySymbol.get(symbol)).filter(
-      (t): t is StockTickerItem => t != null,
-    );
+    return MARKET_GROUPS.map((group) => ({
+      ...group,
+      items: group.symbols
+        .map((symbol) => bySymbol.get(symbol))
+        .filter((t): t is StockTickerItem => t != null),
+    })).filter((group) => group.items.length > 0);
   }, [tickers]);
 
   const economyRelated = useMemo(
@@ -592,43 +662,39 @@ export function MobileHomeView({
 
         {/* —— 증시 —— */}
         {tab === "markets" ? (
-          <div className="mt-3 overflow-hidden rounded-xl border border-emerald-300/20 bg-[#071225]/85">
-            <div className="border-b border-white/10 px-3 py-2">
+          <div className="mt-3 space-y-2.5">
+            <div className="px-0.5">
               <p className="text-xs font-semibold text-emerald-50">
-                {en ? "Global indices" : "글로벌 지수"}
+                {en ? "Markets desk" : "증시 데스크"}
+              </p>
+              <p className="mt-0.5 text-[10px] text-slate-500">
+                {en
+                  ? "40 watchlist · sparkline · price & d/d on the right · ~12 min cache"
+                  : "관심종목 40 · 추세 그래프 · 우측 가격·전일대비 · 약 12분 캐시"}
               </p>
             </div>
-            {indexTickers.length === 0 ? (
-              <p className="px-3 py-6 text-center text-[12px] text-slate-500">
+            {marketGroups.length === 0 ? (
+              <div className="overflow-hidden rounded-xl border border-emerald-300/20 bg-[#071225]/85 px-3 py-6 text-center text-[12px] text-slate-500">
                 {en ? "Loading market data…" : "증시 데이터 불러오는 중…"}
-              </p>
+              </div>
             ) : (
-              <ul className="divide-y divide-white/[0.06]">
-                {indexTickers.map((item) => {
-                  const tone = tickerChangeTone(item.changePercent);
-                  return (
-                    <li
-                      key={item.symbol}
-                      className="flex items-center justify-between gap-3 px-3 py-2.5"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-semibold text-slate-100">
-                          {tickerDisplayName(item.symbol, lang)}
-                        </p>
-                        <p className="text-[10px] text-slate-600">{item.symbol}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[13px] font-semibold tabular-nums text-slate-50">
-                          {formatTickerPrice(item.price)}
-                        </p>
-                        <p className={`text-[11px] tabular-nums ${TONE_CLASS[tone]}`}>
-                          {formatTickerChangePercent(item.changePercent)}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              marketGroups.map((group) => (
+                <section
+                  key={group.id}
+                  className="overflow-hidden rounded-xl border border-emerald-300/15 bg-[#071225]/85"
+                >
+                  <div className="border-b border-white/[0.07] px-3 py-1.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-200/70">
+                      {en ? group.labelEn : group.label}
+                    </p>
+                  </div>
+                  <ul className="divide-y divide-white/[0.05]">
+                    {group.items.map((item) => (
+                      <MobileMarketRow key={item.symbol} item={item} lang={lang} />
+                    ))}
+                  </ul>
+                </section>
+              ))
             )}
           </div>
         ) : null}
@@ -651,22 +717,9 @@ export function MobileHomeView({
                   </p>
                 </div>
                 <ul className="divide-y divide-white/[0.06]">
-                  {economyRelated.slice(0, 8).map((item) => {
-                    const tone = tickerChangeTone(item.changePercent);
-                    return (
-                      <li
-                        key={item.symbol}
-                        className="flex items-center justify-between gap-3 px-3 py-2"
-                      >
-                        <span className="truncate text-[12.5px] font-medium text-slate-200">
-                          {tickerDisplayName(item.symbol, lang)}
-                        </span>
-                        <span className={`text-[12px] tabular-nums ${TONE_CLASS[tone]}`}>
-                          {formatTickerChangePercent(item.changePercent)}
-                        </span>
-                      </li>
-                    );
-                  })}
+                  {economyRelated.slice(0, 12).map((item) => (
+                    <MobileMarketRow key={item.symbol} item={item} lang={lang} />
+                  ))}
                 </ul>
               </div>
             ) : null}
