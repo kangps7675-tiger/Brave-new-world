@@ -83,11 +83,11 @@ export function FinintTicker() {
           >
             해운 시장(운임 대리지표)
           </h2>
-          <p className={`mt-0.5 text-[10px] ${light ? "text-slate-600" : "text-slate-500"}`}>
+          <p className={`mt-0.5 text-micro ${light ? "text-slate-600" : "text-slate-500"}`}>
             등락은 전일 종가 대비입니다. 실시간 운임 지수가 아닙니다.
           </p>
         </div>
-        <span className="text-[9px] font-medium tracking-wider text-slate-600">
+        <span className="text-micro font-medium tracking-wider text-slate-600">
           전일대비 · 1H
         </span>
       </div>
@@ -113,22 +113,22 @@ export function FinintTicker() {
             return (
               <div key={item.symbol} className="min-w-0 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold text-sky-100">
+                  <span className="text-meta font-semibold text-sky-100">
                     {item.symbol}
                   </span>
-                  <span className={`text-[11px] font-medium ${tone}`}>
+                  <span className={`text-meta font-medium ${tone}`}>
                     전일 {formatSigned(item.changePercent, "%")}
                   </span>
                 </div>
-                <p className="mt-1 truncate text-[10px] text-slate-500" title={item.name}>
+                <p className="mt-1 truncate text-micro text-slate-500" title={item.name}>
                   {item.name}
                 </p>
                 <div className="mt-1 flex items-baseline gap-1.5">
                   <span className="text-sm font-semibold tabular-nums text-slate-100">
                     {item.value.toFixed(2)}
                   </span>
-                  <span className="text-[9px] text-slate-600">{item.unit}</span>
-                  <span className={`text-[10px] tabular-nums ${tone}`}>
+                  <span className="text-micro text-slate-600">{item.unit}</span>
+                  <span className={`text-micro tabular-nums ${tone}`}>
                     {formatSigned(item.change)}
                   </span>
                 </div>

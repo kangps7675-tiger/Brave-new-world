@@ -58,10 +58,10 @@ export function NeptunLayerPanel({
     <div className="rounded-xl border border-orange-300/20 bg-orange-950/15 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-orange-200/75">우크라 공중 경보</p>
+          <p className="text-micro uppercase tracking-[0.22em] text-orange-200/75">우크라 공중 경보</p>
           <p className="mt-0.5 text-xs text-orange-50/90">드론·미사일 추적 · 항목을 누르면 해당 위치로 이동</p>
         </div>
-        <span className="shrink-0 rounded-full border border-orange-300/25 bg-orange-400/10 px-2 py-0.5 text-[10px] text-orange-100/85">
+        <span className="shrink-0 rounded-full border border-orange-300/25 bg-orange-400/10 px-2 py-0.5 text-micro text-orange-100/85">
           {alertItems.length > 0
             ? `경보 ${alertItems.length}`
             : live
@@ -86,7 +86,7 @@ export function NeptunLayerPanel({
 
       {alertItems.length > 0 ? (
         <section className="mb-3">
-          <h3 className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-orange-200/70">
+          <h3 className="mb-1.5 text-micro font-medium uppercase tracking-[0.18em] text-orange-200/70">
             공습 경보 지역
           </h3>
           <ul className="space-y-1.5">
@@ -97,11 +97,11 @@ export function NeptunLayerPanel({
               >
                 <p className="font-medium">{alertNames[alert.key] ?? alert.name}</p>
                 {alert.oblast ? (
-                  <p className="mt-0.5 text-[11px] text-orange-100/65">
+                  <p className="mt-0.5 text-meta text-orange-100/65">
                     {alertOblasts[alert.key] ?? alert.oblast}
                   </p>
                 ) : null}
-                <p className="mt-1 text-[10px] text-orange-200/55">{formatTime(alert.since)}</p>
+                <p className="mt-1 text-micro text-orange-200/55">{formatTime(alert.since)}</p>
               </li>
             ))}
           </ul>
@@ -109,7 +109,7 @@ export function NeptunLayerPanel({
       ) : null}
 
       <section>
-        <h3 className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-sky-200/70">
+        <h3 className="mb-1.5 text-micro font-medium uppercase tracking-[0.18em] text-sky-200/70">
           활성 드론·미사일
         </h3>
         {threats.length === 0 ? (
@@ -138,22 +138,22 @@ export function NeptunLayerPanel({
                         {typeLabel}
                         {threat.count && threat.count > 1 ? ` ×${threat.count}` : ""}
                       </span>
-                      <span className="shrink-0 text-[10px] text-slate-400">
+                      <span className="shrink-0 text-micro text-slate-400">
                         {neptunConfidenceLabel(threat.confidenceLevel, lang)}
                       </span>
                     </span>
                     {copy?.title ? (
-                      <span className="mt-0.5 block text-[11px] text-slate-300">{copy.title}</span>
+                      <span className="mt-0.5 block text-meta text-slate-300">{copy.title}</span>
                     ) : null}
                     {copy?.location ? (
-                      <span className="mt-0.5 block text-[11px] text-slate-400">{copy.location}</span>
+                      <span className="mt-0.5 block text-meta text-slate-400">{copy.location}</span>
                     ) : null}
                     {copy?.explanation ? (
-                      <span className="mt-1 block text-[11px] leading-5 text-slate-400">
+                      <span className="mt-1 block text-meta leading-5 text-slate-400">
                         {copy.explanation}
                       </span>
                     ) : null}
-                    <span className="mt-1 text-[10px] text-slate-500">
+                    <span className="mt-1 text-micro text-slate-500">
                       {formatTime(threat.updatedAt)}
                       {threat.trail?.length ? ` · 궤적 ${threat.trail.length}점` : ""}
                     </span>
@@ -165,7 +165,7 @@ export function NeptunLayerPanel({
         )}
       </section>
 
-      <p className="mt-2 text-[10px] leading-4 text-slate-500">
+      <p className="mt-2 text-micro leading-4 text-slate-500">
         갱신 {formatTime(serverTime)} · 비공식 피드 · 공식 경보 우선
       </p>
     </div>

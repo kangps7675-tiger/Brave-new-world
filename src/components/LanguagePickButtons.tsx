@@ -23,7 +23,7 @@ export function LanguagePickButtons({
     <div className="w-full" role="group" aria-label="Language / 언어">
       <p
         className={`text-center font-medium tracking-wide text-amber-100/70 ${
-          hero ? "text-[13px] sm:text-sm" : "text-[11px] sm:text-xs"
+          hero ? "text-body sm:text-sm" : "text-meta sm:text-xs"
         }`}
       >
         Select language · 언어 선택

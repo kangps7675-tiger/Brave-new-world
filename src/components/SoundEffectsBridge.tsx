@@ -137,6 +137,21 @@ const GUNFIRE_IDS = new Set<AudioEventId>([
   "frontline-gunfire-distant-auto",
 ]);
 
+/** 전역·대륙 궤도 — 먼 천둥만 (비/바람 베드 제외 · 3종 로테이션) */
+const GLOBAL_THUNDER_POOL: readonly AudioEventId[] = [
+  "global-thunder-a",
+  "global-thunder-b",
+  "global-thunder-c",
+] as const;
+
+function pickGlobalThunder(exclude: AudioEventId | null): AudioEventId {
+  const pool =
+    exclude == null
+      ? GLOBAL_THUNDER_POOL
+      : GLOBAL_THUNDER_POOL.filter((id) => id !== exclude);
+  return pool[Math.floor(Math.random() * pool.length)] ?? GLOBAL_THUNDER_POOL[0];
+}
+
 function toFrontlineSoundLod(tier: GlobeLodTier | undefined): FrontlineSoundLod {
   // near·village 통일 → close (고도 ≤ ~0.72)
   if (tier === "near" || tier === "village") return "close";
@@ -376,6 +391,63 @@ export function SoundEffectsBridge({
       if (timer != null) window.clearTimeout(timer);
     };
   }, [cameraAltitude, canPlay, play, reefWatchTrafficVisible]);
+
+  // 전역·대륙 궤도 — 먼 천둥 원샷만 불규칙·겹침 (전장/긴장 앰비언트와 분리)
+  useEffect(() => {
+    if (!canPlay || !primedRef.current) return;
+    const orbitFar =
+      globeLodTier === "global" || globeLodTier === "continent";
+    if (!orbitFar) return;
+    // 줌인해 전장·긴장 구역이면 천둥 중단
+    if (conflictAmbient != null) return;
+
+    let cancelled = false;
+    let timer: number | null = null;
+    let echoTimer: number | null = null;
+    let lastId: AudioEventId | null = null;
+
+    const fireOne = (id: AudioEventId, volumeScale: number) => {
+      void play(id, {
+        altitude: cameraAltitude,
+        volumeScale,
+        force: true,
+        overlap: true,
+        durationMs: 6_500 + Math.floor(Math.random() * 2_500),
+      });
+    };
+
+    const schedule = (delayMs: number) => {
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        const id = pickGlobalThunder(lastId);
+        lastId = id;
+        // 멀리서 듣는 수준 — 가끔 조금 더 크게
+        const vol = 0.72 + Math.random() * 0.45;
+        fireOne(id, vol);
+
+        // ~25% 확률로 짧은 간격 두 번째 천둥 겹침 (다른 클립)
+        if (Math.random() < 0.28) {
+          const echo = pickGlobalThunder(id);
+          echoTimer = window.setTimeout(() => {
+            if (cancelled) return;
+            fireOne(echo, 0.45 + Math.random() * 0.35);
+          }, 900 + Math.floor(Math.random() * 2_200));
+        }
+
+        // 다음 천둥까지 불규칙 간격 (8~28초)
+        schedule(8_000 + Math.floor(Math.random() * 20_000));
+      }, delayMs);
+    };
+
+    // 첫 천둥은 입장 직후 살짝 늦게
+    schedule(3_500 + Math.floor(Math.random() * 4_500));
+
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+      if (echoTimer != null) window.clearTimeout(echoTimer);
+    };
+  }, [cameraAltitude, canPlay, conflictAmbient, globeLodTier, play]);
 
   // NEPTUN 탄착 지역 진입
   useEffect(() => {

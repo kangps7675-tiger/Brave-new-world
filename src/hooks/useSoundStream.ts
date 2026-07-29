@@ -10,6 +10,7 @@ import { joinAudioCdnUrl } from "@/lib/cloudAudio";
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
 import {
   CV_SOUND_PREF_EVENT,
+  DEFAULT_SOUND_ENABLED,
   SOUND_PREF_KEY,
   readSoundEnabled,
   writeSoundEnabled,
@@ -126,7 +127,8 @@ export type PlaySoundOptions = {
 export function useSoundStream(options?: UseSoundStreamOptions) {
   const enabledOpt = options?.enabled !== false;
   const [unlocked, setUnlocked] = useState(false);
-  const [soundEnabled, setSoundEnabledState] = useState(true);
+  /** 기본 OFF 정책 — 하드코딩 true 금지 (useEffect 전 첫 프레임 누수 방지) */
+  const [soundEnabled, setSoundEnabledState] = useState(DEFAULT_SOUND_ENABLED);
   const oneShotRef = useRef<HTMLAudioElement | null>(null);
   const overlapPoolRef = useRef<HTMLAudioElement[]>([]);
   const ambientRef = useRef<HTMLAudioElement | null>(null);
@@ -136,7 +138,12 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
   const altitudeRef = useRef<number | null>(null);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   const bgmIdRef = useRef<AudioEventId | null>(null);
-  const soundEnabledRef = useRef(true);
+  /**
+   * ⚠️ 이 ref가 진짜 게이트다 — `isLivePlay()`가 읽는 값.
+   * `true`로 두면 useEffect가 돌기 전에 도착한 재생 요청이 통과해
+   * **음소거 상태에서 사이렌이 한 번 새어 나간다.** 기본값과 반드시 일치시킬 것.
+   */
+  const soundEnabledRef = useRef(DEFAULT_SOUND_ENABLED);
   const unlockedRef = useRef(false);
   const enabledOptRef = useRef(enabledOpt);
   const playGenRef = useRef(0);

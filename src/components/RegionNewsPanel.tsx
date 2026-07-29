@@ -100,7 +100,7 @@ export function RegionNewsPanel({
                         : ""}
                     </span>
                     {event.sourceUrl && (
-                      <span className="mt-1 block truncate text-[10px] text-slate-600">
+                      <span className="mt-1 block truncate text-micro text-slate-600">
                         {hostFromUrl(event.sourceUrl)}
                       </span>
                     )}

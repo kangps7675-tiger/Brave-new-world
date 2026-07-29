@@ -77,7 +77,7 @@ export function EvidenceTierBadge({
   return (
     <span
       title={evidenceTierHint(tier, lang)}
-      className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] ${style.bg} ${style.border} ${style.text} ${className ?? ""}`}
+      className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-[0.08em] ${style.bg} ${style.border} ${style.text} ${className ?? ""}`}
     >
       {evidenceTierLabel(tier, lang)}
     </span>

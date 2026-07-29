@@ -5,6 +5,7 @@ import { parseJsoPressIndex } from "./jso";
 import { parseUsniFleetTrackerRss } from "./usni";
 import { t } from "@/lib/uiStrings";
 import {
+  isMapDisplayableShipObservation,
   mapEligibleShipObservations,
   shipMovementTrailPaths,
 } from "./globeOverlay";
@@ -69,7 +70,7 @@ describe("geocodeObservation location quality", () => {
     expect(got.confidence).toBe("estimated");
   });
 
-  it("광역 해역만 있으면 mapEligible false", () => {
+  it("광역 해역은 추정 표시용 mapEligible", () => {
     const got = geocodeObservation(
       baseObs({
         location: {
@@ -82,8 +83,10 @@ describe("geocodeObservation location quality", () => {
       }),
     );
     expect(got.locationStatus).toBe("broad");
-    expect(got.mapEligible).toBe(false);
+    expect(got.mapEligible).toBe(true);
+    expect(got.confidence).toBe("estimated");
     expect(got.lat).not.toBeNull();
+    expect(got.precisionKm).toBeGreaterThan(100);
   });
 
   it("위치 문장 없으면 missing·좌표 null", () => {
@@ -310,5 +313,36 @@ describe("globe trail policy", () => {
     ];
     expect(mapEligibleShipObservations(rows)).toHaveLength(1);
     expect(shipMovementTrailPaths(rows, "ko")).toHaveLength(0);
+  });
+
+  it("구 DB broad(mapEligible=0)도 좌표 있으면 지도 표시", () => {
+    const row: PublicShipObservation = {
+      id: "broad-legacy",
+      reportId: "r1",
+      vesselKey: "usn:cvn-73",
+      vesselName: "USS George Washington",
+      hullNumber: "CVN-73",
+      navyCode: "USN",
+      navyLabel: "미 해군",
+      title: "Philippine Sea",
+      summary: null,
+      locationLabel: "필리핀해",
+      missingLocationNote: null,
+      observedAt: "2026-07-14T00:00:00.000Z",
+      locationStatus: "broad",
+      confidence: "estimated",
+      vesselConfidence: "high",
+      method: "gazetteer-sea",
+      mapEligible: false,
+      lat: 20.0,
+      lng: 135.0,
+      precisionKm: 250,
+      weekStart: "2026-07-14",
+      source: "usni-fleet-tracker",
+      sourceUrl: "https://example.com",
+      evidenceQuotes: [],
+    };
+    expect(isMapDisplayableShipObservation(row)).toBe(true);
+    expect(mapEligibleShipObservations([row])).toHaveLength(1);
   });
 });

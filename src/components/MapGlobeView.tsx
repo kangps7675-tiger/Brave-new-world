@@ -1,5 +1,6 @@
 "use client";
 
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import {
   forwardRef,
   useCallback,
@@ -839,8 +840,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     if (!mapLoaded || firmsFiresData.length === 0) return;
     if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      prefersReducedMotion()
     ) {
       return;
     }
@@ -951,8 +951,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     if (!mapLoaded || !showIslandChains) return;
     if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      prefersReducedMotion()
     ) {
       return;
     }

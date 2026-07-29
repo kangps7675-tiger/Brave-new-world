@@ -6,7 +6,6 @@ import type { LayerPrefs } from "@/lib/layerPrefs";
 
 const PRESERVE_KEYS = new Set<keyof LayerPrefs>([
   "labelLanguage",
-  "mobileHomeView",
   "showGpsInterference",
 ]);
 

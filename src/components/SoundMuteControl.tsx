@@ -109,7 +109,7 @@ export function SoundMuteControl({
         <span className="font-medium">{label}</span>
       </span>
       <span
-        className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+        className={`rounded-full px-2.5 py-1 text-meta font-bold uppercase tracking-wider ${
           soundEnabled ? "bg-amber-300/20 text-amber-100" : "bg-slate-700 text-slate-400"
         }`}
       >

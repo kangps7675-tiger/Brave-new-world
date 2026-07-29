@@ -4,7 +4,10 @@
  */
 
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
-import { trailGroupKey } from "@/lib/shipMovements/globeOverlay";
+import {
+  isMapDisplayableShipObservation,
+  trailGroupKey,
+} from "@/lib/shipMovements/globeOverlay";
 
 export type ShipTrailMode = "fleet" | "vessel";
 
@@ -122,9 +125,7 @@ export function groupShipObservationsByVessel(
       navyCode: head.navyCode,
       hullNumber: head.hullNumber,
       observations: sorted,
-      mapPointCount: sorted.filter(
-        (o) => o.mapEligible && o.lat != null && o.lng != null,
-      ).length,
+      mapPointCount: sorted.filter(isMapDisplayableShipObservation).length,
       latestAt: head.observedAt || head.weekStart,
     });
   }
@@ -149,9 +150,7 @@ export function groupKeyForObservation(o: PublicShipObservation): string {
 export function vesselTrackFlyTarget(
   observations: PublicShipObservation[],
 ): { lat: number; lng: number; altitude: number } | null {
-  const pts = observations.filter(
-    (o) => o.mapEligible && o.lat != null && o.lng != null,
-  );
+  const pts = observations.filter(isMapDisplayableShipObservation);
   if (pts.length === 0) return null;
   const lats = pts.map((o) => o.lat!);
   const lngs = pts.map((o) => o.lng!);
@@ -207,7 +206,11 @@ export function shipMovementParchmentParagraphs(
           const method = methodEn(o.method);
           const km =
             o.precisionKm != null ? ` · ~${Math.round(o.precisionKm)} km precision` : "";
-          const map = o.mapEligible && o.lat != null ? " · on map" : " · off map";
+          const map = isMapDisplayableShipObservation(o)
+            ? o.locationStatus === "broad"
+              ? " · estimated sea on map"
+              : " · on map"
+            : " · off map";
           return `${when} — ${where} (${conf}, ${st}, ${method}${km}${map})`;
         })
         .join("\n");
@@ -235,8 +238,10 @@ export function shipMovementParchmentParagraphs(
             ? `; reported precision about ${Math.round(focus.precisionKm)} km`
             : ""
         }. ${
-          focus.mapEligible && focus.lat != null && focus.lng != null
-            ? `Map pin near ${focus.lat.toFixed(2)}°, ${focus.lng.toFixed(2)}°.`
+          isMapDisplayableShipObservation(focus)
+            ? focus.locationStatus === "broad"
+              ? `Estimated sea area near ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}° (not a precise pin).`
+              : `Map pin near ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}°.`
             : focus.missingLocationNote ||
               "This item has no map-eligible coordinate—kept on the timeline for the narrative only."
         }`,
@@ -275,7 +280,11 @@ export function shipMovementParchmentParagraphs(
           const method = methodKo(o.method);
           const km =
             o.precisionKm != null ? ` · 정밀도 약 ${Math.round(o.precisionKm)} km` : "";
-          const map = o.mapEligible && o.lat != null ? " · 지도 표시" : " · 지도 제외";
+          const map = isMapDisplayableShipObservation(o)
+            ? o.locationStatus === "broad"
+              ? " · 광역 해역 추정"
+              : " · 지도 표시"
+            : " · 지도 제외";
           return `${when} — ${where} (${conf}, ${st}, ${method}${km}${map})`;
         })
         .join("\n");
@@ -303,8 +312,10 @@ export function shipMovementParchmentParagraphs(
             ? `, 정밀도 약 ${Math.round(focus.precisionKm)} km`
             : ""
         }. ${
-          focus.mapEligible && focus.lat != null && focus.lng != null
-            ? `지도 핀 대략 ${focus.lat.toFixed(2)}°, ${focus.lng.toFixed(2)}°.`
+          isMapDisplayableShipObservation(focus)
+            ? focus.locationStatus === "broad"
+              ? `광역 해역 추정 표시 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}° (정밀 핀 아님).`
+              : `지도 핀 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}°.`
             : focus.missingLocationNote ||
               "지도에 올릴 좌표가 없어 타임라인 서술용으로만 남깁니다."
         }`,

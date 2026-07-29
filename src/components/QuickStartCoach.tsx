@@ -101,7 +101,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--bottom-intel-stack-clearance,5.5rem)+0.5rem)] z-[120] flex justify-center px-3"
+      className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--bottom-intel-stack-clearance,5.5rem)+0.5rem)] z-[600] flex justify-center px-3"
       role="dialog"
       aria-label="빠른 시작 안내"
     >
@@ -115,7 +115,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
         <div className="flex items-start justify-between gap-3">
           <div>
             <p
-              className={`text-[10px] font-medium uppercase tracking-[0.28em] ${
+              className={`text-micro font-medium uppercase tracking-[0.28em] ${
                 isEconomy ? "text-emerald-200/65" : "text-sky-200/65"
               }`}
             >
@@ -125,7 +125,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
               {current.title}
             </h3>
             <p
-              className={`mt-1.5 text-[12px] leading-5 ${
+              className={`mt-1.5 text-caption leading-5 ${
                 isEconomy ? "text-emerald-100/78" : "text-sky-100/78"
               }`}
             >
@@ -135,7 +135,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
           <button
             type="button"
             onClick={finish}
-            className={`shrink-0 rounded-lg border px-2 py-1 text-[11px] transition ${
+            className={`shrink-0 rounded-lg border px-2 py-1 text-meta transition ${
               isEconomy
                 ? "border-emerald-200/15 text-emerald-100/60 hover:text-emerald-50"
                 : "border-sky-200/15 text-sky-100/60 hover:text-sky-50"
@@ -170,7 +170,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
               type="button"
               disabled={isFirst}
               onClick={() => setStep((s) => Math.max(0, s - 1))}
-              className={`rounded-lg border px-2.5 py-1.5 text-[11px] transition ${
+              className={`rounded-lg border px-2.5 py-1.5 text-meta transition ${
                 isFirst
                   ? "cursor-not-allowed border-transparent text-slate-500/50"
                   : isEconomy
@@ -183,7 +183,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
             <button
               type="button"
               onClick={finish}
-              className={`rounded-lg px-2 py-1.5 text-[11px] transition ${
+              className={`rounded-lg px-2 py-1.5 text-meta transition ${
                 isEconomy ? "text-emerald-100/55 hover:text-emerald-100" : "text-sky-100/55 hover:text-sky-100"
               }`}
             >
@@ -195,7 +195,7 @@ export function QuickStartCoach({ visible, viewerMode, onDismiss }: QuickStartCo
                 if (isLast) finish();
                 else setStep((s) => s + 1);
               }}
-              className={`rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition ${
+              className={`rounded-lg border px-3 py-1.5 text-meta font-semibold transition ${
                 isEconomy
                   ? "border-emerald-300/35 bg-emerald-400/15 text-emerald-50 hover:bg-emerald-400/25"
                   : "border-sky-300/35 bg-sky-400/15 text-sky-50 hover:bg-sky-400/25"

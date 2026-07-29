@@ -48,8 +48,9 @@ type HoverNavProps = {
   askLayersLabel?: string;
   /** UI 문구 언어 (이벤트 메뉴 등) */
   labelLanguage?: LabelLanguage;
-  /** @deprecated 데스크톱은 상시 고정 — 호환용으로만 유지 */
-  forceVisible?: boolean;
+  /* forceVisible 삭제 (P2-5) — 컴포넌트가 읽지도 않던 prop.
+     상단 nav의 hover-reveal 모델은 폐기됐고 데스크톱은 상시 고정이다.
+     (컴포넌트 이름 `HoverNav`도 그 시절 잔재 — 리네임은 별건) */
 };
 
 export function HoverNav({
@@ -182,7 +183,7 @@ export function HoverNav({
   return (
     <div
       className={`pointer-events-none fixed inset-x-0 top-0 flex flex-col ${
-        menuExpanded ? "z-[90]" : "z-[75]"
+        menuExpanded ? "z-[300]" : "z-[200]"
       }`}
       style={{
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
@@ -200,7 +201,7 @@ export function HoverNav({
         id="app-hover-nav"
         ref={navRef}
         className={`relative w-full ${
-          menuExpanded ? "z-[100]" : "z-[60]"
+          menuExpanded ? "z-[300]" : "z-[200]"
         } ${
           compact
             ? "max-w-full"
@@ -261,7 +262,7 @@ export function HoverNav({
                 aria-haspopup="dialog"
                 aria-label={askLayersLabel || (isEconomy ? "Ask layers" : "묻기")}
                 title={askLayersLabel || (isEconomy ? "Ask → layers" : "묻기 → 레이어")}
-                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] font-medium transition sm:text-xs ${
+                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-meta font-medium transition sm:text-xs ${
                   light
                     ? isEconomy
                       ? "border-emerald-700/35 bg-emerald-700/10 text-emerald-950 hover:border-emerald-700/55 hover:bg-emerald-700/15"
@@ -287,13 +288,15 @@ export function HoverNav({
                   setHubMenuOpen((v) => !v);
                   setOpenHubId(null);
                 }}
-                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] font-medium transition sm:text-xs ${
+                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-meta font-medium transition sm:text-xs ${
                   hubMenuOpen
                     ? "border-sky-300/40 bg-sky-400/20 text-sky-50"
                     : "border-sky-200/20 bg-sky-400/10 text-sky-100/80 hover:border-sky-300/35"
                 }`}
               >
-                <span className="hidden xs:inline sm:inline">화약고</span>
+                <span className="hidden xs:inline sm:inline">
+                  {t("navPowderKeg", labelLanguage)}
+                </span>
                 <ChevronDown className={`transition ${hubMenuOpen ? "rotate-180" : ""}`} />
               </button>
             ) : (
@@ -315,7 +318,7 @@ export function HoverNav({
 
           {searchResults.length > 0 && (
             <div
-              className={`absolute left-0 right-0 top-full z-[110] max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
+              className={`absolute left-0 right-0 top-full z-[400] max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
             >
               {searchResults.map((place) => (
                 <button
@@ -333,7 +336,7 @@ export function HoverNav({
                     </span>
                   </span>
                   <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] uppercase ${
+                    className={`rounded-full border px-2 py-0.5 text-micro uppercase ${
                       isEconomy
                         ? "border-emerald-200/15 text-emerald-100/45"
                         : "border-sky-200/15 text-sky-100/45"
@@ -349,7 +352,7 @@ export function HoverNav({
 
         {!isEconomy ? (
           <div
-            className={`relative z-[110] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`relative z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               hubMenuOpen
                 ? "max-h-[min(78vh,36rem)] opacity-100"
                 : "pointer-events-none max-h-0 border-transparent opacity-0 shadow-none"
@@ -359,22 +362,22 @@ export function HoverNav({
               <button
                 type="button"
                 onClick={() => handleHubNavigate(selectionForDisputesOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-meta font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
                 {t("disputesOverviewNav", labelLanguage)}
-                <span className="text-[9px] font-normal text-rose-200/60">
+                <span className="text-micro font-normal text-rose-200/60">
                   {t("disputesOverviewNavHint", labelLanguage)}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => handleHubNavigate(selectionForWestpacPulseOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-500/15 px-2 py-2 text-[11px] font-semibold tracking-wide text-cyan-50 transition hover:border-cyan-200/45 hover:bg-cyan-500/25"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-500/15 px-2 py-2 text-meta font-semibold tracking-wide text-cyan-50 transition hover:border-cyan-200/45 hover:bg-cyan-500/25"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
                 {t("westpacShipMovesNav", labelLanguage)}
-                <span className="text-[9px] font-normal text-cyan-200/60">
+                <span className="text-micro font-normal text-cyan-200/60">
                   {t("westpacShipMovesNavHint", labelLanguage)}
                 </span>
               </button>
@@ -384,6 +387,7 @@ export function HoverNav({
                     key={hub.id}
                     hub={hub}
                     open={openHubId === hub.id}
+                    labelLanguage={labelLanguage}
                     onToggle={() =>
                       setOpenHubId((prev) => (prev === hub.id ? null : hub.id))
                     }
@@ -400,16 +404,16 @@ export function HoverNav({
 
         {isEconomy ? (
           <div
-            className={`relative z-[110] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`relative z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               navOpen ? "max-h-[80vh] opacity-100" : "pointer-events-none max-h-0 opacity-0"
             }`}
           >
             <div className="px-4 py-3">
               <div className="mb-3 flex items-center justify-between gap-3 px-1">
-                <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-200/80">
+                <p className="text-micro uppercase tracking-[0.28em] text-emerald-200/80">
                   {chrome.navHeaderLabel}
                 </p>
-                <p className="text-[10px] text-emerald-100/45">
+                <p className="text-micro text-emerald-100/45">
                   {liveStatus === "loading" && "로컬 데이터 로딩 중…"}
                   {liveStatus === "ok" && lastUpdated && `로컬 갱신 ${formatShortTime(lastUpdated)}`}
                   {liveStatus === "error" && "로컬 데이터 로드 실패"}
@@ -420,7 +424,7 @@ export function HoverNav({
               <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-4">
                 {navGroups.map((group) => (
                   <div key={group.id} className="min-w-[260px]">
-                    <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.22em] text-emerald-100/55">
+                    <p className="mb-2 px-1 text-micro uppercase tracking-[0.22em] text-emerald-100/55">
                       {group.label}
                     </p>
                     <ul className="space-y-1">
@@ -468,7 +472,7 @@ export function HoverNav({
                                       className={`block w-full rounded-lg px-2.5 py-2 text-left text-xs transition ${accentHover}`}
                                     >
                                       <span className="block text-emerald-50/95">{sub.label}</span>
-                                      <span className="mt-0.5 block text-[10px] leading-4 text-emerald-100/40">
+                                      <span className="mt-0.5 block text-micro leading-4 text-emerald-100/40">
                                         {sub.description}
                                       </span>
                                     </button>
@@ -494,8 +498,10 @@ export function HoverNav({
       {showDesktopToolsSlot ? (
         <div
           id="hover-nav-desktop-tools"
-          className={`mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 sm:max-w-6xl ${
-            menuExpanded ? "relative z-[40]" : "relative z-[76]"
+          className={`mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-3 sm:max-w-6xl ${
+            // 도구 줄(주요전장·꿀팁·메뉴)이 belowNav(인텔/지형·레이어)보다 항상 위
+            // — 메뉴 드롭다운이 토글 줄에 가리지 않도록
+            menuExpanded ? "relative z-[100]" : "relative z-[200]"
           }`}
         />
       ) : null}
@@ -503,7 +509,7 @@ export function HoverNav({
       {belowNav ? (
         <div
           className={`mt-2.5 flex justify-center ${
-            menuExpanded ? "relative z-[40]" : "relative z-[76]"
+            menuExpanded ? "relative z-[100]" : "relative z-[100]"
           }`}
         >
           {belowNav}
@@ -518,11 +524,13 @@ export function HoverNav({
 function HubDropdown({
   hub,
   open,
+  labelLanguage,
   onToggle,
   onNavigate,
 }: {
   hub: HubDefinition;
   open: boolean;
+  labelLanguage: LabelLanguage;
   onToggle: () => void;
   onNavigate: (selection: NavSelection) => void;
 }) {
@@ -562,24 +570,26 @@ function HubDropdown({
             className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-sky-50 transition hover:bg-sky-400/10"
           >
             <span className="font-medium">{hub.label} · 국경 · 우군 관계망</span>
-            <span className="mt-0.5 block text-[10px] leading-4 text-sky-100/45">{hub.description}</span>
+            <span className="mt-0.5 block text-micro leading-4 text-sky-100/45">{hub.description}</span>
           </button>
 
-          <p className="mt-1.5 px-2 text-[9px] uppercase tracking-[0.18em] text-sky-200/45">우군 국가</p>
+          <p className="mt-1.5 px-2 text-micro uppercase tracking-[0.18em] text-sky-200/45">
+            {t("navAllyCountries", labelLanguage)}
+          </p>
           <div className="mt-0.5 space-y-0.5">
             {hub.allies.map((ally) => (
               <button
                 key={ally.code}
                 type="button"
                 onClick={() => onNavigate(selectionForAlly(hub, ally))}
-                className="block w-full rounded-md px-2.5 py-1.5 text-left text-[11px] text-sky-100/90 transition hover:bg-white/5"
+                className="block w-full rounded-md px-2.5 py-1.5 text-left text-meta text-sky-100/90 transition hover:bg-white/5"
               >
                 {ally.nameKo}
               </button>
             ))}
           </div>
 
-          <p className="mt-1.5 px-2 text-[9px] uppercase tracking-[0.18em] text-sky-200/45">
+          <p className="mt-1.5 px-2 text-micro uppercase tracking-[0.18em] text-sky-200/45">
             영유권 주장 및 영향
           </p>
           <div className="mt-0.5 space-y-0.5">
@@ -588,10 +598,10 @@ function HubDropdown({
                 key={claim.id}
                 type="button"
                 onClick={() => onNavigate(selectionForClaim(hub, claim))}
-                className="block w-full rounded-md px-2.5 py-1.5 text-left text-[11px] transition hover:bg-white/5"
+                className="block w-full rounded-md px-2.5 py-1.5 text-left text-meta transition hover:bg-white/5"
               >
                 <span className="text-sky-50/95">{claim.label}</span>
-                <span className="mt-0.5 block text-[10px] leading-4 text-sky-100/40">{claim.description}</span>
+                <span className="mt-0.5 block text-micro leading-4 text-sky-100/40">{claim.description}</span>
               </button>
             ))}
           </div>
@@ -600,14 +610,14 @@ function HubDropdown({
             <button
               type="button"
               onClick={() => onNavigate(selectionForArms(hub))}
-              className="rounded-md px-2.5 py-2 text-left text-[11px] text-orange-100/90 transition hover:bg-orange-400/10"
+              className="rounded-md px-2.5 py-2 text-left text-meta text-orange-100/90 transition hover:bg-orange-400/10"
             >
               무기거래 (SIPRI)
             </button>
             <button
               type="button"
               onClick={() => onNavigate(selectionForDisputesOverview())}
-              className="rounded-md px-2.5 py-2 text-left text-[11px] text-rose-100/90 transition hover:bg-rose-400/10"
+              className="rounded-md px-2.5 py-2 text-left text-meta text-rose-100/90 transition hover:bg-rose-400/10"
             >
               영토분쟁 아카이브
             </button>

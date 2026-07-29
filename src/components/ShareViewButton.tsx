@@ -58,7 +58,7 @@ export function ShareViewButton({
         aria-label={t("hoverShareViewAria")}
         onClick={handleShare}
         disabled={busy}
-        className={`flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-[11px] font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65 disabled:opacity-60 ${className}`}
+        className={`flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65 disabled:opacity-60 ${className}`}
       >
         <span aria-hidden>{busy ? "⏳" : "📤"}</span>
         <span>{t("shareView")}</span>

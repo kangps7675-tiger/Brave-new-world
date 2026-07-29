@@ -30,22 +30,22 @@ export function MarketSessionChip({ lang, className = "" }: Props) {
       title={ko ? "6대 금융허브 정규장" : "6 major market sessions"}
     >
       <p
-        className={`text-[9px] font-semibold uppercase tracking-wider ${
+        className={`text-micro font-semibold uppercase tracking-wider ${
           light ? "text-teal-800" : "text-teal-200/85"
         }`}
       >
         {ko ? "세션" : "Sessions"}
       </p>
       <p
-        className={`mt-0.5 font-mono text-[12px] font-semibold tabular-nums ${
+        className={`mt-0.5 font-mono text-caption font-semibold tabular-nums ${
           light ? "text-teal-900" : "text-teal-100"
         }`}
       >
         {count.open}
-        <span className={`text-[10px] font-normal ${light ? "text-slate-600" : "text-slate-500"}`}>
+        <span className={`text-micro font-normal ${light ? "text-slate-600" : "text-slate-500"}`}>
           /{count.total}
         </span>{" "}
-        <span className={`text-[10px] font-medium ${light ? "text-slate-600" : "text-slate-400"}`}>
+        <span className={`text-micro font-medium ${light ? "text-slate-600" : "text-slate-400"}`}>
           {ko ? "개장" : "open"}
         </span>
       </p>

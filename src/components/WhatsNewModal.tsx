@@ -54,7 +54,7 @@ export function WhatsNewModal({ lang, update, onDismiss, onCta }: Props) {
       }
       onContinue={() => finish(wantsPlay ? "cta" : "dismiss")}
       titleId="whats-new-title"
-      zIndexClass="z-[10028]"
+      zIndexClass="z-[800]"
     />
   );
 }

@@ -252,7 +252,8 @@ export function geocodeObservation(
     return {
       ...obs,
       locationStatus: "broad",
-      mapEligible: false,
+      // 해역 중심점 추정 표시 — 정밀 핀이 아니라 넓은 불확실 영역
+      mapEligible: true,
       confidence: "estimated",
       method: "gazetteer-sea",
       lat: entry.lat,

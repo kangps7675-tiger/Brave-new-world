@@ -153,9 +153,21 @@ export function DashboardTopChrome({
 }: DashboardTopChromeProps) {
   if (intelSheetOpen) return null;
 
+  /**
+   * 게이트 조합 파생 (P2-1 8단계).
+   * 아래에서 `entryGate === null && !showModePicker`가 세 번 반복됐다.
+   * 하나만 빠뜨려도 게이트 위로 크롬이 새어 나온다 — 한 번만 계산한다.
+   *
+   * 이 컴포넌트는 `intelSheetOpen`일 때 이미 위에서 return하므로
+   * `screen.canShowChrome`과 동치다. `useScreenState`를 직접 쓰지 않는 이유는
+   * 여기가 props만 받는 순수 프레젠테이션 컴포넌트이기 때문 —
+   * 상위에서 `screen`을 내려주게 되면 이 지역 파생은 지운다.
+   */
+  const chromeVisible = entryGate === null && !showModePicker;
+
   return (
     <>
-      {entryGate === null && !showModePicker ? (
+      {chromeVisible ? (
         <ModeGlobalIndexChip
           viewerMode={viewerMode}
           lang={labelLanguage}
@@ -165,10 +177,10 @@ export function DashboardTopChrome({
           showGscpi={showGscpiGauge}
         />
       ) : null}
-      {entryGate === null && !showModePicker && !intelSheetOpen ? (
+      {chromeVisible && !intelSheetOpen ? (
         <div
           className={`pointer-events-none fixed left-3 sm:left-4 ${
-            telegramMiniPanelVisible ? "z-[125]" : "z-[70]"
+            telegramMiniPanelVisible ? "z-[600]" : "z-[200]"
           }`}
           style={{
             // 텔레그램 미니 패널(bottom 1.25rem · 리스트 max min(52vh,480px) · 헤더/푸터) 위로
@@ -277,7 +289,7 @@ export function DashboardTopChrome({
               <div className="flex items-center gap-2">
                 <UtilityChromeMenu
                   lang={labelLanguage}
-                  showProTip={entryGate === null && !showModePicker}
+                  showProTip={chromeVisible}
                   getCanvas={() => globeRef.current?.renderer().domElement ?? null}
                   getScene={getSceneForShare}
                   onTour={() => setChromeCoachStep("nav")}

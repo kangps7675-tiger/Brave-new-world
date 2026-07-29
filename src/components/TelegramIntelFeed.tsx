@@ -131,13 +131,13 @@ function TelegramAlertCard({
     <li
       className={`${fullPage ? "mx-3 rounded-lg px-4 py-3 hover:bg-white/5" : "px-3 py-2.5"}`}
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-        <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] text-cyan-100">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-meta">
+        <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-micro text-cyan-100">
           Telegram
         </span>
         <EvidenceTierBadge tier="unverified" lang={lang} />
         {mediaLabel ? (
-          <span className="rounded-full border border-violet-300/40 bg-violet-500/15 px-1.5 py-0.5 text-[10px] text-violet-100">
+          <span className="rounded-full border border-violet-300/40 bg-violet-500/15 px-1.5 py-0.5 text-micro text-violet-100">
             {mediaLabel}
           </span>
         ) : null}
@@ -146,13 +146,13 @@ function TelegramAlertCard({
         </span>
         <span className="text-slate-500">{formatTime(alert.receivedAt)}</span>
       </div>
-      <p className="mt-1 text-[11px] text-sky-100/70">@{alert.channelUsername}</p>
-      <p className="mt-1 whitespace-pre-wrap break-words text-[12px] leading-5 text-slate-200">
+      <p className="mt-1 text-meta text-sky-100/70">@{alert.channelUsername}</p>
+      <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200">
         {text}
       </p>
       {place ? (
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="rounded border border-amber-300/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-100/90">
+          <span className="rounded border border-amber-300/30 bg-amber-500/10 px-1.5 py-0.5 text-micro text-amber-100/90">
             {lang === "en" ? `Place · ${place.label}` : `위치 · ${place.label}`}
           </span>
           {onFlyToPlace ? (
@@ -161,7 +161,7 @@ function TelegramAlertCard({
               onClick={() =>
                 onFlyToPlace({ lat: place.lat, lng: place.lng, label: place.label })
               }
-              className="rounded-md border border-sky-300/40 bg-sky-500/15 px-2 py-1 text-[10px] font-medium text-sky-50 transition hover:border-sky-300/60 hover:bg-sky-500/25"
+              className="rounded-md border border-sky-300/40 bg-sky-500/15 px-2 py-1 text-micro font-medium text-sky-50 transition hover:border-sky-300/60 hover:bg-sky-500/25"
             >
               {lang === "en" ? `Fly · ${place.label}` : `여기로 · ${place.label}`}
             </button>
@@ -174,7 +174,7 @@ function TelegramAlertCard({
             href={alert.messageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-slate-400/35 bg-slate-500/10 px-2 py-1 text-[10px] font-medium text-slate-100 transition hover:border-slate-300/55 hover:bg-slate-500/20"
+            className="rounded-md border border-slate-400/35 bg-slate-500/10 px-2 py-1 text-micro font-medium text-slate-100 transition hover:border-slate-300/55 hover:bg-slate-500/20"
           >
             {lang === "en" ? "Open on Telegram" : "텔레그램 원문"}
           </a>
@@ -182,7 +182,7 @@ function TelegramAlertCard({
             <button
               type="button"
               onClick={() => setShowEmbed((v) => !v)}
-              className={`rounded-md border px-2 py-1 text-[10px] font-medium transition ${
+              className={`rounded-md border px-2 py-1 text-micro font-medium transition ${
                 preferMediaCta
                   ? "border-violet-300/55 bg-violet-500/25 text-violet-50 hover:border-violet-200/70 hover:bg-violet-500/35"
                   : "border-violet-300/45 bg-violet-500/15 text-violet-50 hover:border-violet-300/65 hover:bg-violet-500/25"
@@ -217,7 +217,7 @@ function TelegramAlertCard({
             referrerPolicy="no-referrer"
             allow="encrypted-media; fullscreen; picture-in-picture"
           />
-          <p className="border-t border-violet-300/15 px-2 py-1.5 text-[10px] leading-4 text-violet-100/65">
+          <p className="border-t border-violet-300/15 px-2 py-1.5 text-micro leading-4 text-violet-100/65">
             {lang === "en"
               ? "Official t.me embed · not rehosted. Graphic combat footage may appear."
               : "공식 t.me 임베드 · 재호스팅 없음. 전장·폭격 영상이 포함될 수 있습니다."}
@@ -276,7 +276,7 @@ export function TelegramIntelFeed({
       {!fullPage ? (
         <div className="flex items-center justify-between gap-3 border-b border-sky-300/15 px-3 py-2.5">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-sky-200/75">
+            <p className="text-micro uppercase tracking-[0.24em] text-sky-200/75">
               {isVideoDesk ? "Telegram Video" : "Telegram OSINT"}
             </p>
             <p className="mt-0.5 text-xs text-sky-50/90">
@@ -322,7 +322,7 @@ export function TelegramIntelFeed({
             </div>
           </div>
           <p
-            className={`mt-1 text-[11px] leading-5 ${
+            className={`mt-1 text-meta leading-5 ${
               isVideoDesk ? "text-violet-200/65" : "text-cyan-200/60"
             }`}
           >
@@ -358,7 +358,7 @@ export function TelegramIntelFeed({
             <p>속보를 불러오는 중입니다…</p>
           )}
           {!fullPage ? (
-            <p className="mt-2 text-[10px] text-slate-600">{TELEGRAM_CATALOG_NOTE}</p>
+            <p className="mt-2 text-micro text-slate-600">{TELEGRAM_CATALOG_NOTE}</p>
           ) : null}
         </div>
       ) : (
@@ -385,7 +385,7 @@ export function TelegramIntelFeed({
       )}
 
       {!fullPage ? (
-        <p className="border-t border-sky-300/10 px-3 py-2 text-[10px] leading-4 text-slate-500">
+        <p className="border-t border-sky-300/10 px-3 py-2 text-micro leading-4 text-slate-500">
           Raw 피드 · 전문 표시 · 영상/사진은 사용자가 로드할 때만 t.me 임베드
         </p>
       ) : null}
@@ -404,7 +404,7 @@ function LiveBadge({
 }) {
   return (
     <span
-      className={`rounded-full border px-2 py-0.5 text-[10px] ${
+      className={`rounded-full border px-2 py-0.5 text-micro ${
         live
           ? "border-emerald-300/35 bg-emerald-400/15 text-emerald-100"
           : "border-sky-300/25 bg-sky-400/10 text-sky-100/80"

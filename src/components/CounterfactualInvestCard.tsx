@@ -216,13 +216,13 @@ export function CounterfactualInvestCard({
       >
         <span
           className={`shrink-0 font-semibold uppercase tracking-wide ${accentLabel} ${
-            prominent ? "text-[10px]" : "text-[9px]"
+            prominent ? "text-micro" : "text-micro"
           }`}
         >
           {ko ? "만약에" : "What if"}
         </span>
         <span
-          className={`min-w-0 flex-1 truncate text-slate-400 ${prominent ? "text-[11px]" : "text-[10px]"}`}
+          className={`min-w-0 flex-1 truncate text-slate-400 ${prominent ? "text-meta" : "text-micro"}`}
         >
           {collapsed ? (
             <>
@@ -234,14 +234,14 @@ export function CounterfactualInvestCard({
               >
                 {resultText}
               </span>
-              <span className="ml-1 text-[10px] text-slate-500">{pctText}</span>
+              <span className="ml-1 text-micro text-slate-500">{pctText}</span>
             </>
           ) : (
             headline
           )}
         </span>
         <span
-          className={`shrink-0 text-[10px] text-slate-500 transition-transform ${
+          className={`shrink-0 text-micro text-slate-500 transition-transform ${
             collapsed ? "" : "rotate-180"
           }`}
           aria-hidden
@@ -259,7 +259,7 @@ export function CounterfactualInvestCard({
               }`}
             >
               {resultText}
-              <span className="ml-2 text-[11px] font-semibold text-slate-400">{pctText}</span>
+              <span className="ml-2 text-meta font-semibold text-slate-400">{pctText}</span>
             </p>
             <button
               type="button"
@@ -268,19 +268,19 @@ export function CounterfactualInvestCard({
                 void handleShare();
               }}
               disabled={busy}
-              className={`shrink-0 rounded border bg-black/30 px-2 py-1 text-[9px] font-medium transition disabled:opacity-40 ${accentBtn}`}
+              className={`shrink-0 rounded border bg-black/30 px-2 py-1 text-micro font-medium transition disabled:opacity-40 ${accentBtn}`}
             >
               {ko ? "공유" : "Share"}
             </button>
           </div>
           {dateHint || priceHint ? (
-            <p className="mt-1 text-[9px] leading-snug text-slate-500">
+            <p className="mt-1 text-micro leading-snug text-slate-500">
               {[laneHint, dateHint, priceHint].filter(Boolean).join(" · ")}
             </p>
           ) : (
-            <p className="mt-1 text-[9px] leading-snug text-slate-500">{laneHint}</p>
+            <p className="mt-1 text-micro leading-snug text-slate-500">{laneHint}</p>
           )}
-          <p className="mt-1 text-[9px] leading-snug text-slate-600">
+          <p className="mt-1 text-micro leading-snug text-slate-600">
             {ko
               ? `${formatWon(STAKE_KRW)} 가정 · 실제 투자 조언 아님 · 수수료·세금 미반영`
               : "Hypothetical stake · not investment advice · excludes fees & taxes"}

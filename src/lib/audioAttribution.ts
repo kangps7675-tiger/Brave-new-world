@@ -160,6 +160,14 @@ export const FREESOUND_ATTRIBUTIONS: readonly FreesoundAttribution[] = [
     eventIds: ["breaking-dark-bed"],
   },
   {
+    freesoundId: 810746,
+    title: "loud thunder 02",
+    author: "mokasza",
+    license: "CC-BY",
+    url: "https://freesound.org/s/810746/",
+    eventIds: ["global-thunder-b"],
+  },
+  {
     freesoundId: 612277,
     title: "10835 big fire loop.wav",
     author: "Robinhood76",

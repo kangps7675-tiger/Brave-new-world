@@ -488,10 +488,10 @@ export function GeopoliticsSidebarChrome({
       <button
         type="button"
         aria-label={t("ariaCloseRegionNews", labelLanguage)}
-        className="absolute inset-0 z-[119] bg-black/20 lg:bg-black/10"
+        className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
         onClick={onClearRegionNav}
       />
-      <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[120] flex h-full min-h-0 flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+      <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full min-h-0 flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
         {theaterFocusConfig ? (
           <TheaterIntelSidebar
             selection={regionNavSelection}
@@ -563,7 +563,7 @@ export function GeopoliticsParchmentChrome({
           playBreakingDispatch={hubBriefDoc.playBreakingDispatch}
           typewriter={hubBriefDoc.playBreakingDispatch}
           titleId="hub-brief-letter-title"
-          zIndexClass="z-[9990]"
+          zIndexClass="z-[700]"
         />
       ) : null}
 
@@ -587,7 +587,7 @@ export function GeopoliticsParchmentChrome({
           typewriter
           historyHandFont
           titleId="friction-episode-letter-title"
-          zIndexClass="z-[9990]"
+          zIndexClass="z-[700]"
         />
       ) : null}
 
@@ -622,7 +622,7 @@ export function GeopoliticsParchmentChrome({
           typewriter
           historyHandFont
           titleId="territorial-episode-letter-title"
-          zIndexClass="z-[9990]"
+          zIndexClass="z-[700]"
         />
       ) : null}
 
@@ -638,7 +638,7 @@ export function GeopoliticsParchmentChrome({
           typewriter
           historyHandFont
           titleId="ship-movement-brief-letter-title"
-          zIndexClass="z-[9990]"
+          zIndexClass="z-[700]"
         />
       ) : null}
     </>

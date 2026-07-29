@@ -72,6 +72,7 @@ describe("overlayQueue", () => {
       tensionSpike: true,
       hotTheaterOffer: true,
       coachActive: true,
+      ultraLiteOffer: true,
       isEconomyViewer: false,
       entryGateOpen: false,
       modePickerOpen: false,
@@ -80,6 +81,7 @@ describe("overlayQueue", () => {
     expect(c.maritime).toBe(false);
     expect(c.tensionCut).toBe(false);
     expect(c.hotTheater).toBe(false);
+    expect(c.ultraLite).toBe(false);
     expect(c.coach).toBe(true);
   });
 
@@ -93,12 +95,23 @@ describe("overlayQueue", () => {
       tensionSpike: true,
       hotTheaterOffer: true,
       coachActive: false,
+      ultraLiteOffer: true,
       isEconomyViewer: true,
       entryGateOpen: false,
       modePickerOpen: false,
     });
     expect(c.tensionCut).toBe(false);
     expect(c.hotTheater).toBe(true);
+    expect(c.ultraLite).toBe(true);
+  });
+
+  it("picks coach over ultraLite", () => {
+    expect(
+      resolveTopOverlayBanner({
+        coach: true,
+        ultraLite: true,
+      }),
+    ).toBe("coach");
   });
 });
 
@@ -111,5 +124,6 @@ describe("geowatch.config SSOT", () => {
   it("overlay priorities match config", () => {
     expect(GEOWATCH_CONFIG.overlay.bannerPriority.airRaid).toBe(10);
     expect(GEOWATCH_CONFIG.overlay.bannerPriority.hotTheater).toBe(55);
+    expect(GEOWATCH_CONFIG.overlay.bannerPriority.ultraLite).toBe(65);
   });
 });

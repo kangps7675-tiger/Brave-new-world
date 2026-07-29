@@ -16,6 +16,7 @@ import { renderTensionStreakCard } from "@/lib/tensionStreakCard";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { GTI } from "@/lib/gti";
+import { useDialog } from "@/hooks/useDialog";
 
 type Props = {
   lang: LabelLanguage;
@@ -27,6 +28,8 @@ type Props = {
  * 하루 한 번 — 전 세계 동일 UP/DOWN 문제 (긴장도 지표만).
  */
 export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
+  /** 닫을 수 있는 모달 — Escape로 닫는다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onDismiss });
   const ko = lang !== "en";
   const targetDate = prompt.targetDate || nextUtcRankDate();
   const [pick, setPick] = useState<"up" | "down" | null>(null);
@@ -181,14 +184,16 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[10020] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[800] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm outline-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="tomorrow-tension-title"
     >
       <div className="w-full max-w-md overflow-hidden rounded-xl border border-amber-500/30 bg-[#0b1220] shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
         <div className="border-b border-white/10 px-5 py-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-300/90">
+          <p className="text-micro font-semibold uppercase tracking-[0.22em] text-amber-300/90">
             {ko ? `${GTI.ticker} · 내일의 세계 긴장도` : `${GTI.ticker} · Tomorrow’s tension`}
           </p>
           <p className="mt-2 text-2xl font-semibold leading-tight text-amber-50">
@@ -198,7 +203,7 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
                 : `${hitRate}% hit · ${tierLabel}`
               : tierLabel}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-meta text-slate-500">
             {ko ? `연속 ${streak}일` : `streak ${streak}d`}
             {yesterdayPct != null
               ? ko
@@ -212,7 +217,7 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
           >
             {question}
           </h2>
-          <p className="mt-2 text-[12px] leading-relaxed text-slate-500">
+          <p className="mt-2 text-caption leading-relaxed text-slate-500">
             {ko
               ? `${GTI.hookKo} ${GTI.ethicsKo} 하루 한 번, 전 세계 같은 문제.`
               : `${GTI.hookEn} ${GTI.ethicsEn} One shared puzzle per day.`}
@@ -246,7 +251,7 @@ export function TomorrowTensionModal({ lang, prompt, onDismiss }: Props) {
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-5 py-3 text-[11px] text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-5 py-3 text-meta text-slate-500">
           <span className="tabular-nums">UTC {targetDate}</span>
         </div>
 

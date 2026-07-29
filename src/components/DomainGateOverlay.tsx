@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDialog } from "@/hooks/useDialog";
+import { zc } from "@/lib/uiStack";
 import { useLocale } from "@/contexts/LocaleContext";
 import { brandName } from "@/lib/brand";
 import { t } from "@/lib/uiStrings";
@@ -25,6 +27,12 @@ export function DomainGateOverlay({
 }: DomainGateOverlayProps) {
   const { lang } = useLocale();
   const [ultraLite, setUltraLite] = useState(false);
+  /**
+   * 도메인 선택은 **반드시 골라야** 통과하는 게이트다.
+   * Escape로 닫으면 아무 모드도 안 정해진 상태가 되므로 closeOnEscape=false.
+   * 대신 포커스 트랩·초기 포커스는 적용해 키보드로 조작할 수 있게 한다.
+   */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, closeOnEscape: false });
 
   useEffect(() => {
     setUltraLite(loadPerfPrefs().ultraLite);
@@ -40,13 +48,15 @@ export function DomainGateOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto bg-[#02040a]/95 p-4 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`fixed inset-0 ${zc("gate")} flex items-center justify-center overflow-y-auto bg-[#02040a]/95 p-4 outline-none backdrop-blur-sm`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="domain-gate-title"
     >
       <div className="my-auto w-full max-w-2xl rounded-2xl border border-sky-400/20 bg-[#0a1428]/95 p-6 shadow-2xl sm:p-8">
-        <p className="text-center text-[11px] font-medium tracking-[0.28em] text-sky-200/70 sm:tracking-[0.36em]">
+        <p className="text-center text-meta font-medium tracking-[0.28em] text-sky-200/70 sm:tracking-[0.36em]">
           {brandName(lang)}
         </p>
         <h1
@@ -55,7 +65,12 @@ export function DomainGateOverlay({
         >
           {t("domainGateTitle", lang)}
         </h1>
-        <p className="mt-2 text-center text-sm text-slate-400">{t("domainGateSubtitle", lang)}</p>
+        <p className="mt-2 text-center text-sm text-slate-300">
+          {t("domainGateSubtitle", lang)}
+        </p>
+        <p className="mt-1 text-center text-caption text-slate-500">
+          {t("domainGateDetailHint", lang)}
+        </p>
 
         <div className="mt-6 rounded-2xl border border-amber-400/25 bg-amber-500/[0.07] px-4 py-4">
           <div className="flex items-center justify-between gap-4">
@@ -79,10 +94,10 @@ export function DomainGateOverlay({
               />
             </button>
           </div>
-          <p className="mt-2.5 text-[13px] font-medium leading-snug text-amber-100/95">
+          <p className="mt-2.5 text-body font-medium leading-snug text-amber-100/95">
             {t("domainUltraLiteHook", lang)}
           </p>
-          <p className="mt-1.5 text-[11px] text-amber-200/55">
+          <p className="mt-1.5 text-meta text-amber-200/55">
             {ultraLite ? t("domainUltraLiteOnHint", lang) : t("domainUltraLiteOffHint", lang)}
           </p>
         </div>
@@ -111,7 +126,7 @@ export function DomainGateOverlay({
         </div>
 
         {(onOpenLetter || onOpenCaution) ? (
-          <div className="mt-5 flex items-center justify-center gap-5 text-[12px] text-slate-500">
+          <div className="mt-5 flex items-center justify-center gap-5 text-caption text-slate-500">
             {onOpenLetter ? (
               <button
                 type="button"

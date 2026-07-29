@@ -42,7 +42,13 @@ import {
 } from "@/components/FrictionOnboardingCoach";
 import { AirRaidOnboardingCoach } from "@/components/AirRaidOnboardingCoach";
 import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
+import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
+import { LayerCapToast } from "@/components/LayerCapToast";
+import { GtiHeroMoment } from "@/components/GtiHeroMoment";
+import { SoundUnmuteNudge } from "@/components/SoundUnmuteNudge";
+import type { PerfProbeResult } from "@/lib/perfProbe";
 import type { HotTheaterFocus } from "@/lib/hotTheaterLayers";
+import type { WorldTensionSnapshot } from "@/lib/dailyRanks";
 import { PeriodicBriefingParchment } from "@/components/PeriodicBriefingParchment";
 import { ClearanceThreatChip } from "@/components/ClearanceThreatChip";
 import {
@@ -256,6 +262,17 @@ export type DashboardOverlayHostProps = {
   tensionSpike: TensionSpikeSnapshot | null;
   /** 오늘의 핫 전장 오퍼 — 오버레이 큐 hotTheater */
   hotTheaterOffer: HotTheaterFocus | null;
+  /**
+   * FPS 프로브 Ultra-Lite 제안 — 오버레이 큐 ultraLite.
+   * 강제 적용 없음. LanguageGate·진입 게이트가 열린 동안은 후보에서 제외.
+   */
+  ultraLiteOfferVisible: boolean;
+  ultraLiteOfferProbe: PerfProbeResult | null;
+  /** 첫 90초 GTI 히어로 (gti 단계만) */
+  gtiHeroSnapshot: WorldTensionSnapshot | null;
+  gtiHeroVisible: boolean;
+  /** 첫 90초 종료 후 소리 언뮤트 유도 */
+  soundUnmuteReady: boolean;
   ukmtoBriefing: UkmtoBriefingContent | null;
   navareaBriefing: NavareaBriefingContent | null;
   globeRef: RefObject<MapGlobeMethods | null>;
@@ -325,6 +342,8 @@ export type DashboardOverlayHostProps = {
   onTensionSpikeJump: (destination: import("@/lib/tensionSpikeCut").TensionCutDestination) => void;
   onAcceptHotTheaterOffer: () => void;
   onDismissHotTheaterOffer: () => void;
+  onAcceptUltraLiteOffer: () => void;
+  onDismissUltraLiteOffer: () => void;
   onCloseUkmtoBriefing: () => void;
   onCloseNavareaBriefing: () => void;
   onReleaseAirRaidAutoBusy: () => void;
@@ -436,6 +455,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     maritimeOffer,
     tensionSpike,
     hotTheaterOffer,
+    ultraLiteOfferVisible,
+    ultraLiteOfferProbe,
+    gtiHeroSnapshot,
+    gtiHeroVisible,
+    soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
     globeRef,
@@ -497,6 +521,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onTensionSpikeJump,
     onAcceptHotTheaterOffer,
     onDismissHotTheaterOffer,
+    onAcceptUltraLiteOffer,
+    onDismissUltraLiteOffer,
     onCloseUkmtoBriefing,
     onCloseNavareaBriefing,
     onReleaseAirRaidAutoBusy,
@@ -520,6 +546,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     return () => obs.disconnect();
   }, [isCompactUi]);
 
+  /**
+   * 게이트 파생 (P2-1 8단계).
+   *
+   * 이 파일에서 `entryGate === null`이 13곳, 그중 `&& !showModePicker`까지
+   * 붙는 조합이 6곳 반복됐다. 새 오버레이를 추가할 때마다 어느 조합을
+   * 써야 하는지 매번 옆줄을 보고 베끼는 상태였다.
+   *
+   * `gateClear` = 게이트·모드피커가 모두 닫힘 = 오버레이를 띄워도 되는 상태.
+   * (상위에서 `screen`을 prop으로 내려주게 되면 이 지역 파생은 지운다.)
+   */
+  const gateClosed = entryGate === null;
+  const gateClear = gateClosed && !showModePicker;
+
   return (
     <>
       {showIntroHint && !intelSheetOpen && (
@@ -541,20 +580,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           !econNavSelection &&
           !intelSheetOpen &&
           !showModePicker &&
-          entryGate === null
+          gateClosed
         }
         viewerMode={viewerMode}
         onDismiss={() => onSetShowQuickStart(false)}
       />
 
       <ViewerIntroOverlay
-        visible={
-          showViewerIntro &&
-          !showModePicker &&
-          entryGate === null &&
-          globeReady &&
-          !isLoading
-        }
+        visible={showViewerIntro && gateClear && globeReady && !isLoading}
         viewerMode={viewerMode}
         onDismiss={() => onSetShowViewerIntro(false)}
         onOpenTrust={() => onSetShowTrustPanel(true)}
@@ -565,14 +598,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <button
           type="button"
           aria-label={t("ariaClosePanel", labelLanguage)}
-          className="absolute inset-0 z-[119] bg-[#0a1528]/40 backdrop-blur-[1px]"
+          className="absolute inset-0 z-[500] bg-[#0a1528]/40 backdrop-blur-[1px]"
           onClick={onCloseLeftPanel}
         />
       ) : null}
 
       {!intelSheetOpen ? (
       <div
-        className="pointer-events-none absolute left-3 z-[60] flex flex-col items-start gap-2"
+        className="pointer-events-none absolute left-3 z-[200] flex flex-col items-start gap-2"
         style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
       >
         <div className="pointer-events-auto flex shrink-0 items-center gap-2">
@@ -616,7 +649,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !rightDockOpen &&
       !selected ? (
         <div
-          className="cv-desktop-only pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
+          className="cv-desktop-only pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
           style={{
             // GTI(우상단 하드코딩)와 연동하지 않음 — 우측 사이드 독립 배치
             top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
@@ -655,7 +688,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
                 vertical
               />
-              {entryGate === null ? (
+              {gateClosed ? (
                 <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
                   <FinintTicker />
                 </div>
@@ -665,7 +698,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           <div className="pointer-events-auto shrink-0">
             <ServerDonateChip lang={labelLanguage} />
           </div>
-          {!isEconomyViewer && entryGate === null ? (
+          {!isEconomyViewer && gateClosed ? (
             <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-2">
               <TopWatchPanel lang={labelLanguage} />
               <SitrepLog lang={labelLanguage} />
@@ -741,9 +774,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   )}
                 />
               ) : null}
-              <div className="pointer-events-auto flex shrink-0 items-center gap-2">
-                {entryGate === null && !showModePicker ? (
-                  <ParchmentProTipChip lang={labelLanguage} />
+              <div className="pointer-events-auto flex shrink-0 items-center gap-3">
+                {gateClear ? (
+                  <div className="mx-1 shrink-0">
+                    <ParchmentProTipChip lang={labelLanguage} />
+                  </div>
                 ) : null}
                 <UtilityChromeMenu
                   lang={labelLanguage}
@@ -758,7 +793,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   }}
                   onHelp={() => onSetShowFeatureGuide(true)}
                 />
-                {entryGate === null && !showModePicker ? (
+                {gateClear ? (
                   <>
                     <SentinelModeButton
                       lang={labelLanguage}
@@ -796,7 +831,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {!intelSheetOpen && isCompactUi ? (
         <div
-          className="pointer-events-none absolute right-3 z-[60] flex flex-col items-end gap-2"
+          className="pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2"
           style={{
             // GTI와 연동하지 않음 — 모바일 우측 유틸 독립 배치
             top: "max(3.25rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))",
@@ -830,7 +865,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         (isEconomyViewer && showNewfeedsIranAttacks)) ? (
         <div
           id="air-raid-chrome"
-          className="cv-compact-only pointer-events-none absolute bottom-[calc(var(--bottom-intel-stack-clearance)+0.65rem+env(safe-area-inset-bottom,0px))] right-3 z-[55] flex flex-col items-end gap-2"
+          className="cv-compact-only pointer-events-none absolute bottom-[calc(var(--bottom-intel-stack-clearance)+0.65rem+env(safe-area-inset-bottom,0px))] right-3 z-[100] flex flex-col items-end gap-2"
         >
           <div
             className="pointer-events-auto flex flex-col items-end gap-2"
@@ -912,15 +947,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         음소거·세션 FAB — 데스크톱은 HoverNav 포털로 이관.
         모바일 compact만 우하단 유지. 실시간 중계 종료 칩은 양쪽.
       */}
-      {entryGate === null && (isCompactUi || liveBriefingSession) ? (
+      {gateClosed && (isCompactUi || liveBriefingSession) ? (
         <div
-          className={`pointer-events-none fixed right-4 z-[10050] flex flex-col items-end gap-2 sm:right-5 ${
+          className={`pointer-events-none fixed right-4 z-[900] flex flex-col items-end gap-2 sm:right-5 ${
             showFoldedParchmentChip
               ? "bottom-[10.25rem] sm:bottom-[11.25rem]"
               : "bottom-5 sm:bottom-6"
           }`}
         >
-          {isCompactUi && entryGate === null && !showModePicker ? (
+          {isCompactUi && gateClear ? (
             <SentinelModeButton
               lang={labelLanguage}
               active={sentinelActive}
@@ -959,13 +994,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-200/90">
+                <span className="block truncate text-micro font-semibold uppercase tracking-[0.14em] text-amber-200/90">
                   {labelLanguage === "en" ? "Live brief" : "실시간 중계"}
                 </span>
-                <span className="block truncate text-[11px] font-medium text-stone-100">
+                <span className="block truncate text-meta font-medium text-stone-100">
                   {labelLanguage === "en" ? liveBriefingSession.labelEn : liveBriefingSession.labelKo}
                 </span>
-                <span className="block text-[9px] text-stone-400 group-hover:text-amber-200/80">
+                <span className="block text-micro text-stone-400 group-hover:text-amber-200/80">
                   {labelLanguage === "en" ? "Tap to end" : "탭해서 중계 종료"}
                 </span>
               </span>
@@ -1000,8 +1035,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {whatsNewUpdate &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !playOverlay &&
       !tomorrowTensionPrompt &&
       !periodicBriefing &&
@@ -1061,8 +1095,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {chromeCoachStep &&
       !showFirstVisitTour &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !hubBriefOpen &&
       !frictionEpisodeBrief &&
       !frictionCoachStep ? (
@@ -1075,8 +1108,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {showFirstVisitTour &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !hubBriefOpen &&
       !frictionEpisodeBrief ? (
         <FirstVisitTour
@@ -1096,8 +1128,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {frictionCoachStep &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !chromeCoachStep &&
       !showFirstVisitTour &&
       !isEconomyViewer ? (
@@ -1110,8 +1141,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {showAirRaidCoach &&
       !issueUiPausedForLamp &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !chromeCoachStep &&
       !showFirstVisitTour &&
       !frictionCoachStep &&
@@ -1133,13 +1163,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {watchFocusLine &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !weeklyExpanded &&
       !periodicBriefing &&
       !sentinelActive ? (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-[42] w-[min(92vw,28rem)] -translate-x-1/2 px-2 sm:top-4">
-          <p className="rounded-sm border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-[11px] leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-[12px]">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[100] w-[min(92vw,28rem)] -translate-x-1/2 px-2 sm:top-4">
+          <p className="rounded-sm border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
             {watchFocusLine}
           </p>
         </div>
@@ -1147,8 +1176,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {clearanceStatus &&
       clearanceStatus.kind !== "ok" &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !weeklyExpanded &&
       !periodicBriefing &&
       !tomorrowTensionPrompt &&
@@ -1190,7 +1218,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             clearWeeklyRecapFolded(weeklyRecap.key);
             onSetWeeklyRecapCollapsed(false);
           }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[120] flex max-w-[min(16rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-[#6b4a22]/55 bg-[#e8d4a8]/95 px-3 py-2.5 text-left text-[13px] text-[#3d2a18] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] sm:bottom-28 sm:right-4"
+          className="pointer-events-auto absolute bottom-24 right-3 z-[600] flex max-w-[min(16rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-[#6b4a22]/55 bg-[#e8d4a8]/95 px-3 py-2.5 text-left text-body text-[#3d2a18] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] sm:bottom-28 sm:right-4"
           aria-label={
             labelLanguage === "en"
               ? "Reopen weekly recap"
@@ -1204,7 +1232,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <span className="block truncate font-medium tracking-[0.04em]">
               {labelLanguage === "en" ? "Last week's recap" : "지난주 회고"}
             </span>
-            <span className="mt-0.5 block truncate text-[10px] text-[#6b4a22]/75">
+            <span className="mt-0.5 block truncate text-micro text-[#6b4a22]/75">
               {labelLanguage === "en" ? "Monday rhythm" : "매주 월요일"}
             </span>
           </span>
@@ -1219,7 +1247,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetPeriodicBriefing(foldedPeriodicBriefing);
             onSetFoldedPeriodicBriefing(null);
           }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[120] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-[13px] text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
+          className="pointer-events-auto absolute bottom-24 right-3 z-[600] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-body text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
           aria-label={
             labelLanguage === "en"
               ? "Reopen today's lamp news"
@@ -1233,7 +1261,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <span className="block truncate font-medium tracking-[0.04em]">
               {labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
             </span>
-            <span className="mt-0.5 block truncate text-[10px] text-[#6b4a22]/75">
+            <span className="mt-0.5 block truncate text-micro text-[#6b4a22]/75">
               {labelLanguage === "en" ? "Tap to unfold again" : "눌러서 다시 펼치기"}
             </span>
           </span>
@@ -1284,14 +1312,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {!isCompactUi &&
-      entryGate === null &&
-      !showModePicker &&
+      gateClear &&
       !periodicBriefing &&
       !weeklyExpanded &&
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[120] ${
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] ${
             // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
             telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
           } ${
@@ -1306,7 +1333,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 onClick={() => onToggleDailyRankPanel(false)}
                 aria-label={labelLanguage === "en" ? "Collapse daily panel" : "일일 패널 접기"}
                 title={labelLanguage === "en" ? "Collapse" : "접기"}
-                className="absolute -top-2.5 right-0 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-600/60 bg-slate-950/90 text-[11px] text-slate-300 shadow-lg backdrop-blur-md transition hover:border-slate-400 hover:text-slate-100"
+                className="absolute -top-2.5 right-0 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-600/60 bg-slate-950/90 text-meta text-slate-300 shadow-lg backdrop-blur-md transition hover:border-slate-400 hover:text-slate-100"
               >
                 ✕
               </button>
@@ -1342,7 +1369,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       />
 
       {(() => {
-        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치 */
+        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
         const briefingBusy = Boolean(
           airRaidBriefing ||
             exerciseBriefing ||
@@ -1364,6 +1391,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               frictionCoachStep ||
               showFirstVisitTour,
           ),
+          // 언어 게이트·양피지 준비 중엔 묻지 않는다 (첫 90초 주인공은 지도·속보)
+          ultraLiteOffer: ultraLiteOfferVisible && !showLanguageGate && !showLampPreparing,
           isEconomyViewer,
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,
@@ -1423,6 +1452,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 onDismiss={onDismissHotTheaterOffer}
               />
             ) : null}
+
+            {show("ultraLite") ? (
+              <UltraLiteOfferBanner
+                probe={ultraLiteOfferProbe}
+                lang={labelLanguage}
+                onAccept={onAcceptUltraLiteOffer}
+                onDismiss={onDismissUltraLiteOffer}
+              />
+            ) : null}
           </>
         );
       })()}
@@ -1476,7 +1514,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           playBreakingDispatch
           typewriter={false}
           titleId="ukmto-briefing-title"
-          zIndexClass="z-[10040]"
+          zIndexClass="z-[900]"
         />
       ) : null}
 
@@ -1495,9 +1533,21 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           playBreakingDispatch
           typewriter={false}
           titleId="navarea-briefing-title"
-          zIndexClass="z-[10040]"
+          zIndexClass="z-[900]"
         />
       ) : null}
+
+      {gtiHeroSnapshot ? (
+        <GtiHeroMoment
+          snapshot={gtiHeroSnapshot}
+          lang={labelLanguage}
+          visible={gtiHeroVisible}
+        />
+      ) : null}
+
+      <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />
+
+      <LayerCapToast lang={labelLanguage} suppressed={showLeftPanel} />
     </>
   );
 }

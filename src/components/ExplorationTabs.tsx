@@ -48,7 +48,7 @@ export function ExplorationTabs({
   return (
     <div
       ref={rootRef}
-      className={`pointer-events-auto relative z-[55] ${stretch ? "w-full" : ""}`}
+      className={`pointer-events-auto relative z-[100] ${stretch ? "w-full" : ""}`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -80,7 +80,7 @@ export function ExplorationTabs({
         </HoverHint>
 
         <div
-          className={`absolute top-full z-[70] origin-top transition-all duration-200 ease-out ${
+          className={`absolute top-full z-[200] origin-top transition-all duration-200 ease-out ${
             stretch ? "left-0 right-0 w-full" : "right-0 w-[min(92vw,240px)]"
           } ${
             open
@@ -107,7 +107,7 @@ export function ExplorationTabs({
                     >
                       <span className="text-sm font-semibold leading-tight">{preset.label}</span>
                       <span
-                        className={`mt-0.5 text-[11px] leading-snug ${
+                        className={`mt-0.5 text-meta leading-snug ${
                           active ? "text-sky-100/75" : "text-sky-200/50"
                         }`}
                       >

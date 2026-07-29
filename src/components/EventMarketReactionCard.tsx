@@ -87,7 +87,7 @@ export function EventMarketReactionCard({
       <div
         className={`border-t border-white/8 bg-black/20 ${prominent ? "px-3.5 py-2.5" : "px-3 py-1.5"}`}
       >
-        <span className="text-[10px] text-slate-600">…</span>
+        <span className="text-micro text-slate-600">…</span>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export function EventMarketReactionCard({
       >
         <span
           className={`shrink-0 font-semibold uppercase tracking-wide text-amber-200/90 ${
-            prominent ? "text-[10px]" : "text-[9px]"
+            prominent ? "text-micro" : "text-micro"
           }`}
         >
           {pairLabel}
@@ -146,7 +146,7 @@ export function EventMarketReactionCard({
         {typeof marketOpen === "boolean" ? (
           <span
             className={`shrink-0 rounded border px-1.5 py-0.5 font-semibold ${
-              prominent ? "text-[10px]" : "text-[9px]"
+              prominent ? "text-micro" : "text-micro"
             } ${
               marketOpen
                 ? "border-teal-400/45 bg-teal-500/15 text-teal-200"
@@ -164,20 +164,20 @@ export function EventMarketReactionCard({
         ) : null}
         <span
           className={`shrink-0 rounded border px-1.5 py-0.5 font-semibold ${VERDICT_CLASS[verdict]} ${
-            prominent ? "text-[11px]" : "text-[10px]"
+            prominent ? "text-meta" : "text-micro"
           }`}
         >
           {verdictLabel(verdict, ko)}
         </span>
         {sigmaText && verdict !== "pending" ? (
-          <span className="font-mono text-[10px] text-slate-400">{sigmaText}</span>
+          <span className="font-mono text-micro text-slate-400">{sigmaText}</span>
         ) : null}
         <span
-          className={`min-w-0 flex-1 truncate ${prominent ? "text-[12px] text-slate-200" : "text-[10px] text-slate-400"}`}
+          className={`min-w-0 flex-1 truncate ${prominent ? "text-caption text-slate-200" : "text-micro text-slate-400"}`}
         >
           {headline}
         </span>
-        <span className="ml-auto shrink-0 text-[10px] text-slate-500">
+        <span className="ml-auto shrink-0 text-micro text-slate-500">
           {expanded ? "▲" : "▼"}
         </span>
       </button>
@@ -191,7 +191,7 @@ export function EventMarketReactionCard({
               <div
                 key={item.symbol}
                 className={`flex items-baseline justify-between gap-2 ${
-                  prominent ? "text-[12px]" : "text-[10px]"
+                  prominent ? "text-caption" : "text-micro"
                 }`}
               >
                 <span className="min-w-0 truncate text-slate-300" title={item.symbol}>
@@ -216,7 +216,7 @@ export function EventMarketReactionCard({
               </div>
             );
           })}
-          <p className="pt-0.5 text-[9px] leading-snug text-slate-500">
+          <p className="pt-0.5 text-micro leading-snug text-slate-500">
             {ko
               ? "S&P500 동일구간 변동을 뺀 뒤, 종목별 평소 일간 변동폭(σ)으로 환산한 값입니다."
               : "Benchmark-adjusted move, scaled by each symbol’s typical daily volatility (σ)."}

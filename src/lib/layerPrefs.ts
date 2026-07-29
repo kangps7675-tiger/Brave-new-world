@@ -167,14 +167,45 @@ export type LayerPrefs = {
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
   labelLanguage: LabelLanguage;
-  /** 모바일 기본 화면 — "alerts"(수첩형 알림 리스트) | "globe"(3D 지도) */
-  mobileHomeView: MobileHomeView;
 };
 
-export type MobileHomeView = "alerts" | "globe";
+/* 삭제됨 (P2-5): mobileHomeView / MobileHomeView.
+   타입·기본값("globe")·파서·INSTANT_KEYS까지 갖췄지만 **읽는 곳이 없었다.**
+   폰 분기는 `usePhoneUi()`만 보고, 정책이 "폰 = 지구본 절대 미마운트"로
+   굳으면서 스위치만 남았다.
+   "혹시 나중에"로 죽은 스위치를 안고 가는 게 이 코드베이스가 부채를 쌓은 방식이라
+   지운다. 모바일 전략(P2-3)에서 지구본 옵션을 되살리기로 하면 그때 다시 넣으면 된다
+   (boolean pref 하나 = 5줄). */
 
-/** v38: ReefWatch 남중국해 feature 모니터링 */
+/**
+ * 레이어 prefs 저장 키.
+ *
+ * ⚠️ **이 버전을 더 올리지 말 것** (P1-8).
+ *
+ * v1 → v38까지 릴리스마다 버전을 올려 왔는데, 버전이 바뀌면 기존 키를 못 찾아
+ * `DEFAULT_LAYER_PREFS`로 떨어진다 = **재방문자의 레이어 설정이 통째로 초기화된다.**
+ * 30개를 공들여 조합해 둔 사용자가 다음 방문에 그걸 잃는다.
+ *
+ * 새 레이어를 추가할 때는:
+ *   ① 버전을 올리지 말고
+ *   ② `DEFAULT_LAYER_PREFS`에 기본값을 추가하고
+ *   ③ `mergeSavedPrefs`가 저장본에 없는 키를 기본값으로 채우게 둔다 (이미 그렇게 동작)
+ *
+ * 저장 구조 자체를 바꿔야 할 때만 버전을 올리고, 반드시 `PREF_MIGRATIONS`에
+ * 변환 함수를 등록할 것. 그래야 사용자 설정이 살아서 넘어온다.
+ */
 export const LAYER_PREFS_KEY = "geowatch-layers-v38";
+
+/**
+ * 구조 변경 마이그레이션 등록부.
+ *
+ * key: 출발 저장 키 → value: 그 저장본을 현재 구조로 바꾸는 함수.
+ * 값 이름만 바뀌는 정도는 여기서 처리하고, 필드 추가는 마이그레이션이 필요 없다
+ * (mergeSavedPrefs가 기본값으로 채운다).
+ */
+export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLayerPrefs> = {
+  // 예시) "geowatch-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
+};
 
 /** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
@@ -266,53 +297,32 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showBriTradeConnectivity: false,
   showUsDfcSupplyChain: false,
   labelLanguage: "ko",
-  /** 모바일 기본은 지도 화면 */
-  mobileHomeView: "globe",
 };
 
-const LEGACY_LAYER_KEYS = [
-  "geowatch-layers-v37",
-  "geowatch-layers-v36",
-  "geowatch-layers-v35",
-  "geowatch-layers-v34",
-  "geowatch-layers-v33",
-  "geowatch-layers-v32",
-  "geowatch-layers-v31",
-  "geowatch-layers-v30",
-  "geowatch-layers-v29",
-  "geowatch-layers-v28",
-  "geowatch-layers-v27",
-  "geowatch-layers-v26",
-  "geowatch-layers-v25",
-  "geowatch-layers-v24",
-  "geowatch-layers-v23",
-  "geowatch-layers-v22",
-  "geowatch-layers-v20",
-  "geowatch-layers-v19",
-  "geowatch-layers-v18",
-  "geowatch-layers-v17",
-  "geowatch-layers-v16",
-  "geowatch-layers-v15",
-  "geowatch-layers-v14",
-  "geowatch-layers-v13",
-  "geowatch-layers-v11",
-  "geowatch-layers-v10",
-  "geowatch-layers-v9",
-  "geowatch-layers-v8",
-  "geowatch-layers-v7",
-  "geowatch-layers-v6",
-  "geowatch-layers-v4",
-  "geowatch-layers-v3",
-] as const;
+/** 현재 저장 키의 버전 번호 — LAYER_PREFS_KEY에서 파싱 */
+export const LAYER_PREFS_VERSION = Number(
+  /-v(\d+)$/.exec(LAYER_PREFS_KEY)?.[1] ?? "0",
+);
+
+/**
+ * 구버전 저장 키 — **자동 생성** (P1-8).
+ *
+ * 예전에는 이 목록을 손으로 관리했다. 릴리스마다 새 버전을 앞에 끼워 넣어야
+ * 했는데, 실제로 확인해 보니 **v21 · v12 · v5 · v2 · v1이 빠져 있었다.**
+ * 그 버전에서 마지막으로 방문한 사용자는 레이어 설정을 통째로 잃는다.
+ *
+ * 사람이 관리하는 목록은 언젠가 빠진다. 현재 버전에서 1까지 역순으로
+ * 생성하면 구멍이 생길 수 없고, 버전을 올려도 목록을 손댈 필요가 없다.
+ * (없는 키는 getItem이 null을 돌려줄 뿐이라 비용도 무시할 수준)
+ */
+const LEGACY_LAYER_KEYS: readonly string[] = Array.from(
+  { length: Math.max(0, LAYER_PREFS_VERSION - 1) },
+  (_, i) => `geowatch-layers-v${LAYER_PREFS_VERSION - 1 - i}`,
+);
 
 function parseLabelLanguage(value: unknown): LabelLanguage {
   if (value === "en" || value === "ko") return value;
   return DEFAULT_LAYER_PREFS.labelLanguage;
-}
-
-function parseMobileHomeView(value: unknown): MobileHomeView {
-  if (value === "alerts" || value === "globe") return value;
-  return DEFAULT_LAYER_PREFS.mobileHomeView;
 }
 
 type SavedLayerPrefs = Partial<LayerPrefs> & {
@@ -349,7 +359,6 @@ function mergeSavedPrefs(parsed: SavedLayerPrefs): LayerPrefs {
           ? showRoadCityGlow
           : DEFAULT_LAYER_PREFS.showCityLabels,
     labelLanguage: parseLabelLanguage(rest.labelLanguage),
-    mobileHomeView: parseMobileHomeView(rest.mobileHomeView),
     /** UI 체크박스 제거 — 지나간 드론·미사일 궤적 강제 OFF */
     showNeptunPreviousTrails: false,
     /** 자홍 슬롯 → NAVAREA 보라 전용. 동맹 갈등 GDELT 핀 레이어 제거 */
@@ -375,23 +384,67 @@ function shouldPersistLayerPrefs(): boolean {
 }
 
 /**
- * 저장된 prefs가 없는 신규 방문자용 기본 언어 추정.
- * - Reddit에서 유입 → en (r/geopolitics 등 영어권 커뮤니티 타겟)
- * - 브라우저 언어가 한국어 → ko
- * - 그 외 → en
- * 실패 시 DEFAULT_LAYER_PREFS.labelLanguage("ko")로 안전하게 폴백.
+ * 영어 **지배적** 커뮤니티만 — 리퍼러를 EN 신호로 쓸 수 있는 곳.
+ *
+ * 판단 기준: "이 사이트에서 온 사람은 영어 사용자일 가능성이 압도적인가?"
+ * reddit·HN은 예. threads·x는 **아니다** — 국제 SNS라 한국인 비중이 크고,
+ * 실제로 국내 계정으로 홍보 중이다. 이런 곳은 리퍼러를 판정에 쓰지 않고
+ * 브라우저 언어·타임존으로 넘긴다(아래 2·3단계가 한국인을 정확히 잡는다).
+ *
+ * 즉 리퍼러는 "확실할 때만 쓰는 지름길"이고, 애매하면 안 쓰는 게 맞다.
  */
-function detectDefaultLabelLanguage(): LabelLanguage {
-  try {
-    const referrer = document.referrer || "";
-    if (/reddit\.com/i.test(referrer)) return "en";
+const EN_REFERRER_PATTERN = /reddit\.com|news\.ycombinator\.com/i;
 
+/**
+ * 저장된 prefs가 없는 신규 방문자용 기본 언어 추정.
+ *
+ * 판정 순서 — **명시적 신호 > 추정 신호**:
+ *  1. `navigator.languages` 어디에든 ko가 있으면 → ko
+ *     (유저가 직접 설정한 값. 리퍼러 따위가 덮어쓰면 안 된다)
+ *  2. 영어 지배적 커뮤니티 리퍼러(reddit·HN) → en
+ *     — threads·x 등 국제 SNS는 중립. 리퍼러로 판정하지 않고 3으로 넘긴다
+ *  3. 타임존이 Asia/Seoul이면 → ko
+ *  4. 그 외 → en
+ *  실패 시 DEFAULT_LAYER_PREFS.labelLanguage("ko")로 안전하게 폴백.
+ *
+ * ⚠️ 2번이 핵심 — `languages[0]`만 보면 안 된다.
+ * 영문 macOS/Windows를 쓰는 한국인은 `["en-US", "ko-KR"]`이 흔하다.
+ * primary만 보면 이들이 전부 en으로 던져지는데, 진입 게이트를 걷어낸 뒤에는
+ * **직접 고를 기회조차 없다.** (게이트가 있을 땐 KO를 고를 수 있었다.)
+ * i18n이 미완인 동안 이 오판의 비용은 "반쯤 한국어인 EN 화면"이므로,
+ * **의심스러우면 ko 쪽으로 기운다.**
+ *
+ * 2026-07 결정: 진입 화면에서 한/영을 **묻지 않는다**. 이 함수가 정답을 고르고,
+ * 유저는 nav의 KO/EN 토글로 언제든 뒤집는다. (첫 90초에 숙제를 주지 않는다.)
+ * 게이트 제거 작업에서 재사용해야 하므로 export.
+ */
+export function detectDefaultLabelLanguage(): LabelLanguage {
+  try {
     const navLangs =
       typeof navigator.languages !== "undefined" && navigator.languages.length > 0
         ? navigator.languages
         : [navigator.language];
-    const primary = (navLangs[0] || "").toLowerCase();
-    return primary.startsWith("ko") ? "ko" : "en";
+
+    // 1. primary가 아니라 전체 목록에서 ko를 찾는다 (영문 OS 한국인 구제).
+    //    유저가 직접 설정한 값이므로 리퍼러보다 우선한다.
+    const prefersKorean = navLangs.some((tag) =>
+      (tag || "").toLowerCase().startsWith("ko"),
+    );
+    if (prefersKorean) return "ko";
+
+    // 2. 영어 지배적 커뮤니티에서 왔고, 브라우저에 ko도 없다 → en
+    const referrer = document.referrer || "";
+    if (EN_REFERRER_PATTERN.test(referrer)) return "en";
+
+    // 3. 타임존 보조 신호 — 언어 목록에 ko가 없어도 한국에서 접속했다면 ko
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+      if (tz === "Asia/Seoul") return "ko";
+    } catch {
+      /* Intl 미지원 — 무시 */
+    }
+
+    return "en";
   } catch {
     return DEFAULT_LAYER_PREFS.labelLanguage;
   }
@@ -399,7 +452,14 @@ function detectDefaultLabelLanguage(): LabelLanguage {
 
 export function loadLayerPrefs(): LayerPrefs {
   if (typeof window === "undefined") return DEFAULT_LAYER_PREFS;
-  if (!shouldPersistLayerPrefs()) return DEFAULT_LAYER_PREFS;
+  /**
+   * dev는 레이어 prefs를 저장하지 않지만, **언어 감지는 dev에서도 돌아야 한다.**
+   * (기존에는 여기서 바로 return해서 dev가 항상 ko로 고정 → EN 경로를 개발 중
+   *  한 번도 못 보는 상태였다. i18n 누락이 오래 안 잡힌 원인 중 하나.)
+   */
+  if (!shouldPersistLayerPrefs()) {
+    return { ...DEFAULT_LAYER_PREFS, labelLanguage: detectDefaultLabelLanguage() };
+  }
   try {
     const v21Raw = localStorage.getItem(LAYER_PREFS_KEY);
     if (v21Raw) {

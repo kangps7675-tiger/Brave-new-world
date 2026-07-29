@@ -32,7 +32,7 @@ export function GlobeSpinToggle({
       aria-pressed={!spinning}
       aria-label={label}
       title={label}
-      className={`pointer-events-auto flex h-11 items-center gap-2 rounded-full border px-3.5 text-[12px] font-medium shadow-lg backdrop-blur-md transition ${
+      className={`pointer-events-auto flex h-11 items-center gap-2 rounded-full border px-3.5 text-caption font-medium shadow-lg backdrop-blur-md transition ${
         spinning
           ? "border-sky-300/25 bg-[#0a1830]/80 text-sky-100 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
           : "border-amber-300/35 bg-[#1a1408]/85 text-amber-100 hover:border-amber-200/50 hover:bg-[#241a0c]/92"

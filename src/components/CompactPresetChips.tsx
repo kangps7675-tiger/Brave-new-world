@@ -38,7 +38,7 @@ export function CompactPresetChips({
             type="button"
             aria-pressed={active}
             onClick={() => onSelect(chip.id)}
-            className={`tap-target min-h-[44px] min-w-[4.5rem] rounded-full border px-3 py-2 text-[12px] font-semibold tracking-tight shadow-lg backdrop-blur-md transition ${
+            className={`tap-target min-h-[44px] min-w-[4.5rem] rounded-full border px-3 py-2 text-caption font-semibold tracking-tight shadow-lg backdrop-blur-md transition ${
               active
                 ? economy
                   ? "border-emerald-300/55 bg-emerald-500/25 text-emerald-50"

@@ -46,10 +46,10 @@ export function MapLegend({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((v) => !v)}
-          className={`tap-target inline-flex min-h-[36px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-medium shadow-lg backdrop-blur-md transition ${btn}`}
+          className={`tap-target inline-flex min-h-[36px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-meta font-medium shadow-lg backdrop-blur-md transition ${btn}`}
         >
           <span>{t("legendDropdown")}</span>
-          <span className="text-[10px] opacity-70" aria-hidden>
+          <span className="text-micro opacity-70" aria-hidden>
             {open ? "▾" : "▴"}
           </span>
         </button>
@@ -60,7 +60,7 @@ export function MapLegend({
           id={panelId}
           role="region"
           aria-label={t("legendDropdown")}
-          className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-2xl border px-5 py-2.5 text-[11px] shadow-lg backdrop-blur-md ${shell}`}
+          className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-2xl border px-5 py-2.5 text-meta shadow-lg backdrop-blur-md ${shell}`}
         >
           {isEconomy ? (
             <EconomyLegendBody divider={divider} />
@@ -97,7 +97,7 @@ function ConflictLegendBody({
               __html: carrierDeckIconSvg("deployed", { width: 30, height: 13 }),
             }}
           />
-          <span className="rounded-full border border-red-400/40 bg-red-500/20 px-2 py-0.5 text-[10px] font-medium text-red-100">
+          <span className="rounded-full border border-red-400/40 bg-red-500/20 px-2 py-0.5 text-micro font-medium text-red-100">
             {t("legendOps")}
           </span>
           <span className="text-sky-100/45">
@@ -107,7 +107,7 @@ function ConflictLegendBody({
         </div>
       ) : null}
       <div className={`flex items-center gap-2 border-r pr-5 ${divider}`}>
-        <span className="rounded-full border border-orange-300/35 bg-orange-400/15 px-2 py-0.5 text-[10px] font-medium text-orange-100">
+        <span className="rounded-full border border-orange-300/35 bg-orange-400/15 px-2 py-0.5 text-micro font-medium text-orange-100">
           {t("legendNewsAlert")}
         </span>
         <span className="text-sky-100/45">{t("legendGdeltPin")}</span>

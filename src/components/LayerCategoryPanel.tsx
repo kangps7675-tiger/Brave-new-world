@@ -149,20 +149,20 @@ function LayerCautionTag({ tag, hint }: { tag: string; hint: string }) {
         tabIndex={0}
         role="note"
         aria-label={hint}
-        className="cursor-help rounded border border-amber-400/55 bg-amber-500/25 px-1.5 py-px text-[9px] font-semibold tracking-wide text-amber-50 outline-none ring-amber-300/40 focus-visible:ring-2"
+        className="cursor-help rounded border border-amber-400/55 bg-amber-500/25 px-1.5 py-px text-micro font-semibold tracking-wide text-amber-50 outline-none ring-amber-300/40 focus-visible:ring-2"
       >
         {tag}
       </span>
       <span
         role="tooltip"
         aria-hidden={!open}
-        className={`pointer-events-none absolute left-0 bottom-full z-[95] mb-1.5 w-max max-w-[min(72vw,220px)] rounded-lg border border-amber-300/35 bg-[#2a1a08]/97 px-2.5 py-2 text-left shadow-xl backdrop-blur-md transition-all duration-200 ${
+        className={`pointer-events-none absolute left-0 bottom-full z-[300] mb-1.5 w-max max-w-[min(72vw,220px)] rounded-lg border border-amber-300/35 bg-[#2a1a08]/97 px-2.5 py-2 text-left shadow-xl backdrop-blur-md transition-all duration-200 ${
           open
             ? "translate-y-0 scale-100 opacity-100"
             : "pointer-events-none translate-y-0.5 scale-[0.96] opacity-0"
         }`}
       >
-        <span className="block text-[11px] font-medium leading-snug text-amber-50">{hint}</span>
+        <span className="block text-meta font-medium leading-snug text-amber-50">{hint}</span>
       </span>
     </span>
   );
@@ -190,13 +190,14 @@ export function LayerTagToggle({
       type="button"
       aria-pressed={checked}
       onClick={() => onChange(!checked)}
-      className={`min-w-0 rounded-full border px-3 py-2 text-left text-xs transition ${tagAccentClasses(accent, checked)}`}
+      /* 터치 타깃 (P1-6) — 칩도 44px 확보 */
+      className={`min-h-[var(--tap-target-min)] min-w-0 rounded-full border px-3 py-2 text-left text-xs transition ${tagAccentClasses(accent, checked)}`}
     >
       <span className="flex min-w-0 items-center gap-1.5">
         <span className="block min-w-0 truncate font-medium">{label}</span>
         {cautionTag && cautionHint ? <LayerCautionTag tag={cautionTag} hint={cautionHint} /> : null}
       </span>
-      <span className="mt-0.5 block truncate text-[10px] opacity-75">{detail}</span>
+      <span className="mt-0.5 block truncate text-micro opacity-75">{detail}</span>
     </button>
   );
 }
@@ -221,8 +222,13 @@ export function LayerToggle({
   cautionHint?: string | null;
 }) {
   return (
+    /**
+     * 터치 타깃 (P1-6): 행 전체가 라벨이므로 행 높이가 곧 타깃 크기다.
+     * 기존 py-1.5(≈36px)를 min-h 44px로 올려 WCAG 권장치를 맞춘다.
+     * 체크박스 자체(16px)는 시각 요소일 뿐 — 실제로 눌리는 건 행 전체다.
+     */
     <label
-      className={`flex items-center justify-between gap-3 rounded-lg px-1 py-1.5 transition ${
+      className={`flex min-h-[var(--tap-target-min)] items-center justify-between gap-3 rounded-lg px-2 py-2 transition ${
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-900/40"
       }`}
     >
@@ -238,10 +244,35 @@ export function LayerToggle({
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
-        className={`h-4 w-4 shrink-0 ${accentClass(accent)}`}
+        className={`h-5 w-5 shrink-0 ${accentClass(accent)}`}
       />
     </label>
   );
+}
+
+/**
+ * 검색어 필터 (P1-3).
+ *
+ * 부모가 일치하면 하위를 통째로 보여주고, 하위만 일치하면 그 하위만 남긴 부모를
+ * 돌려준다. 중첩 드롭다운이 있어서 재귀로 처리한다.
+ * 라벨과 설명(detail)을 모두 본다 — 사용자는 "배" 같은 설명 단어로도 찾는다.
+ */
+export function filterLayerItem(
+  item: LayerToggleItem,
+  term: string,
+): LayerToggleItem | null {
+  const hit =
+    item.label.toLowerCase().includes(term) || item.detail.toLowerCase().includes(term);
+
+  if (item.options?.length) {
+    if (hit) return item;
+    const kept = item.options
+      .map((opt) => filterLayerItem(opt, term))
+      .filter((opt): opt is LayerToggleItem => opt !== null);
+    return kept.length > 0 ? { ...item, options: kept } : null;
+  }
+
+  return hit ? item : null;
 }
 
 /** 드롭다운/중첩 포함 리프 체크 수 */
@@ -285,7 +316,7 @@ export function LayerDropdownToggle({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 rounded-lg py-1.5 text-left transition hover:bg-slate-900/40"
+        className="flex min-h-[var(--tap-target-min)] w-full items-center justify-between gap-3 rounded-lg px-1 py-2 text-left transition hover:bg-slate-900/40"
       >
         <span className="min-w-0">
           <span className="block truncate text-slate-200">{label}</span>
@@ -367,6 +398,14 @@ export function LayerCategoryPanel({
   const { t } = useLocale();
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
   const [storageLoaded, setStorageLoaded] = useState(false);
+  /**
+   * 레이어 검색 (P1-3).
+   * 100개가 넘는 레이어를 카테고리 아코디언 + 중첩 드롭다운으로만 찾아야 했다.
+   * **이름을 아는 사용자조차 찾을 수 없었다.** 검색은 이 패널의 최소 요구사항이다.
+   */
+  const [query, setQuery] = useState("");
+  const searchTerm = query.trim().toLowerCase();
+  const searching = searchTerm.length > 0;
 
   useEffect(() => {
     try {
@@ -428,17 +467,65 @@ export function LayerCategoryPanel({
     });
   }, []);
 
+  /** 검색어와 일치하는 항목만 남긴 카테고리 (검색 중이 아니면 원본) */
+  const visibleCategories = searching
+    ? categories
+        .map((category) => ({
+          ...category,
+          items: category.items
+            .map((item) => filterLayerItem(item, searchTerm))
+            .filter((item): item is LayerToggleItem => item !== null),
+        }))
+        .filter((category) => category.items.length > 0)
+    : categories;
+
+  const matchCount = searching
+    ? visibleCategories.reduce(
+        (n, c) => n + c.items.reduce((m, i) => m + countLayerLeaves(i).total, 0),
+        0,
+      )
+    : 0;
+
   return (
     <div className="space-y-2">
+      {/* 레이어 검색 (P1-3) — 100개 넘는 목록에서 이름으로 바로 찾는다 */}
+      <div className="relative">
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t("layerSearchPlaceholder")}
+          aria-label={t("layerSearchPlaceholder")}
+          className="min-h-[var(--tap-target-min)] w-full rounded-lg border border-slate-700/80 bg-black/30 px-3 py-2 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+        />
+        {searching ? (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label={t("layerSearchClear")}
+            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded text-slate-400 transition hover:text-slate-100"
+          >
+            ✕
+          </button>
+        ) : null}
+      </div>
+      {searching ? (
+        <p className="px-1 text-meta text-slate-500">
+          {matchCount > 0
+            ? t("layerSearchCount").replace("{n}", String(matchCount))
+            : t("layerSearchEmpty")}
+        </p>
+      ) : null}
       {batchStatus ? (
-        <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-2 text-[11px] leading-4 text-sky-100/90">
+        <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-2 text-meta leading-4 text-sky-100/90">
           {batchStatus}
         </p>
       ) : null}
-      {categories.map((category) => {
+      {visibleCategories.map((category) => {
         const activeCount = category.items.reduce((n, item) => n + countLayerLeaves(item).on, 0);
         const totalCount = category.items.reduce((n, item) => n + countLayerLeaves(item).total, 0);
-        const isOpen = openMap[category.id] ?? false;
+        // 검색 중에는 결과를 바로 보여준다 — 다시 펼치게 하지 않는다
+        const isOpen = searching || (openMap[category.id] ?? false);
 
         return (
           <div
@@ -456,7 +543,7 @@ export function LayerCategoryPanel({
               >
                 <span className="block text-sm font-medium text-slate-100">{category.title}</span>
                 {category.hint ? (
-                  <span className="block text-[11px] text-slate-500">{category.hint}</span>
+                  <span className="block text-meta text-slate-500">{category.hint}</span>
                 ) : null}
               </button>
               <div className="flex shrink-0 items-center gap-2 text-xs text-slate-500">
@@ -465,14 +552,14 @@ export function LayerCategoryPanel({
                     <button
                       type="button"
                       onClick={() => category.onToggleAll?.(true)}
-                      className="rounded border border-slate-700/80 px-1.5 py-0.5 text-[10px] text-slate-400 transition hover:border-sky-400/40 hover:text-sky-200"
+                      className="rounded border border-slate-700/80 px-1.5 py-0.5 text-micro text-slate-400 transition hover:border-sky-400/40 hover:text-sky-200"
                     >
                       {t("layerToggleAll")}
                     </button>
                     <button
                       type="button"
                       onClick={() => category.onToggleAll?.(false)}
-                      className="rounded border border-slate-700/80 px-1.5 py-0.5 text-[10px] text-slate-400 transition hover:border-slate-600 hover:text-slate-300"
+                      className="rounded border border-slate-700/80 px-1.5 py-0.5 text-micro text-slate-400 transition hover:border-slate-600 hover:text-slate-300"
                     >
                       {t("layerToggleOff")}
                     </button>

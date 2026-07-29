@@ -45,7 +45,7 @@ export function SwpcStatusChip({ lang, className = "" }: Props) {
   if (!data) {
     return (
       <div
-        className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border border-sky-200/20 bg-[#0a1520]/85 px-2.5 py-1 text-[11px] font-medium ${
+        className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border border-sky-200/20 bg-[#0a1520]/85 px-2.5 py-1 text-meta font-medium ${
           light ? "text-slate-700" : "text-sky-100/70"
         } ${className}`}
         title={en ? "NOAA SWPC" : "NOAA 우주기상"}
@@ -63,7 +63,7 @@ export function SwpcStatusChip({ lang, className = "" }: Props) {
 
   return (
     <div
-      className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`}
+      className={`swpc-status-chip tone-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-meta font-medium ${className}`}
       style={{
         borderColor: `${color}55`,
         color: light ? "#1e293b" : color,

@@ -17,8 +17,33 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  /* Apple HIG / Material ?? ?? ?? */
+  /* Apple HIG / Material 최소 터치 타깃 */
   --tap-target-min: 44px;
+
+  /* ══ 타이포 스케일 (P1-1) ═══════════════════════════════════════
+   * 이전 상태: UI 텍스트의 약 80%가 12px 미만이었다
+   * (text-[9~11px] 715회 vs 12px+ 170회). 9px 텍스트는 사실상 비가시다.
+   *
+   * 임의 px(`text-[10px]`)을 흩뿌리는 대신 **의미 단위 4단계**로 묶고,
+   * 실제 크기는 여기 네 줄에서만 조정한다. 치환을 다시 돌릴 필요 없이
+   * 이 값만 바꾸면 전역 밀도가 조절된다.
+   *
+   *   micro    법적 고지·출처 등 거의 읽지 않는 것   (구 8·9·10px)
+   *   meta     라벨·시각·카운트                      (구 11px)
+   *   caption  보조 설명                             (구 12px)
+   *   body     본문                                  (구 13px)
+   *
+   * 밀집 칩에서 넘칠 위험이 있으면 이 값을 1px씩 내려 조정할 것.
+   * 단 --fs-micro는 11px 밑으로 내리지 말 것 — 그 아래는 읽히지 않는다.
+   */
+  --fs-micro: 11px;
+  --fs-meta: 12px;
+  --fs-caption: 13px;
+  --fs-body: 14px;
+  --lh-micro: 1.45;
+  --lh-meta: 1.45;
+  --lh-caption: 1.5;
+  --lh-body: 1.55;
   /* Wanted Sans — UI 기본. 유저 선택 시 --font-ui 가 덮어씀 */
   --font-wanted: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont,
     system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
@@ -60,10 +85,46 @@ select,
   user-select: text;
 }
 
-/** ?? ?? ?? ? FAB????? */
+/** 최소 터치 타깃 — 아이콘 버튼·FAB 공통 */
 .tap-target {
   min-height: var(--tap-target-min);
   min-width: var(--tap-target-min);
+}
+
+/* ═══ 터치 기기 최소 타깃 (P1-6) ══════════════════════════════════
+ * 감사 시점: `py-0.5`/`py-1` 버튼이 242곳. 대부분 32px 미만이라
+ * WCAG 권장(44px)은커녕 최소치(24px)에도 못 미치는 것이 섞여 있었다.
+ * 태블릿은 지구본을 유지하므로 레이어 패널 조작이 사실상 불가능했다.
+ *
+ * ── 왜 전역이 아니라 `pointer: coarse`인가 ────────────────────────
+ * 242곳을 일일이 키우면 **데스크톱 밀집 UI가 무너진다.** 그런데 문제가
+ * 실제로 발생하는 건 손가락으로 누를 때다. 마우스는 정밀해서 작은 타깃도
+ * 문제가 덜하다. 그래서 터치 기기에서만 최소 높이를 보장한다 —
+ * 한 규칙으로 242곳을 덮으면서 데스크톱 레이아웃은 그대로 둔다.
+ *
+ * 예외가 필요하면 `.tap-exempt`를 붙인다 (본문 안 인라인 링크 버튼 등).
+ * ══════════════════════════════════════════════════════════════ */
+@media (pointer: coarse) {
+  button:not(.tap-exempt),
+  [role="button"]:not(.tap-exempt),
+  [role="switch"]:not(.tap-exempt),
+  [role="tab"]:not(.tap-exempt),
+  summary:not(.tap-exempt) {
+    min-height: var(--tap-target-min);
+  }
+
+  /* 아이콘만 있는 정사각 버튼은 가로도 확보 */
+  button.tap-square,
+  [role="button"].tap-square {
+    min-width: var(--tap-target-min);
+  }
+
+  /* 체크박스·라디오 자체도 손가락으로 눌린다 (행 전체가 라벨이어도) */
+  input[type="checkbox"]:not(.tap-exempt),
+  input[type="radio"]:not(.tap-exempt) {
+    min-height: 20px;
+    min-width: 20px;
+  }
 }
 
 /**
@@ -114,8 +175,8 @@ html[data-device="phone"] {
 }
 
 /**
- * MapLibre ???: ??(???) HTML ?? ?? opacityWhenCovered=0.2 ?? ??.
- * ???? ? ? ?? ?? ?? ?? ??? ??? ?? ?.
+ * MapLibre 마커: 지구본 뒤편(가려진) HTML 마커는 기본 opacityWhenCovered=0.2로
+ * 흐릿하게 남는다. 반대편 마커가 비쳐 보이면 위치를 오독하므로 완전히 숨긴다.
  */
 .maplibregl-marker-covered,
 .maplibregl-marker-occluded {
@@ -138,7 +199,7 @@ html[data-device="phone"] {
   font-style: normal;
 }
 
-/** ???? 11? ??(?? ???)? RIDI Batang ?? ?? */
+/** 분쟁 외교사 11개 에피소드(역사 양피지) — RIDI Batang 명조 */
 .parchment-letter--history {
   font-family: var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang",
     serif;
@@ -153,7 +214,7 @@ html[data-device="phone"] {
   letter-spacing: -0.02em;
 }
 
-/** ?? UI ? Inter (??) + Wanted (?? ??) */
+/** 영문 UI — Inter 우선, Wanted 폴백 */
 .font-en,
 [data-ui-lang="en"] .font-news-headline,
 main[data-ui-lang="en"] {
@@ -185,7 +246,7 @@ main[data-ui-lang="en"]
   font-optical-sizing: auto;
 }
 
-/** ???????? ?? ? JetBrains Mono */
+/** 수치·좌표 등 데이터 표기 — JetBrains Mono (tabular-nums) */
 .font-mono,
 .font-data-mono {
   font-family: var(--font-data-mono) !important;
@@ -255,7 +316,7 @@ main[data-ui-lang="en"]
     inset 0 0 60px rgba(120, 80, 30, 0.08);
 }
 
-/* ??? ?? ? ??? ?? ??? ?? ??? ?? */
+/* 양피지 앞면 상단 오버레이 — 접힌 자국·그림자 레이어 */
 .welcome-letter-face--front.welcome-parchment::after {
   content: "";
   pointer-events: none;
@@ -293,7 +354,7 @@ main[data-ui-lang="en"]
   }
 }
 
-/* ? ??? ? ????? ?? ??? */
+/* 양피지 테두리 — 안쪽 이중선 프레임 */
 .welcome-parchment-edge {
   margin: 11px;
   border-radius: 1px;
@@ -310,7 +371,7 @@ main[data-ui-lang="en"]
   background-size: 18px 18px, 22px 22px;
 }
 
-/* ? ?? ?? ??????? */
+/* 양피지 안쪽 점선 장식(필리그리) */
 .welcome-parchment-filigree {
   margin: 18px;
   border: 1px dashed rgba(110, 78, 28, 0.16);
@@ -354,7 +415,7 @@ main[data-ui-lang="en"]
   right: 42%;
 }
 
-/** ?? ? ??? ?? ? ??? ??? */
+/** 프로팁 칩·드롭 — 양피지와 동일한 종이 질감 */
 .parchment-pro-tip-chip,
 .parchment-pro-tip-drop {
   background:
@@ -370,6 +431,8 @@ main[data-ui-lang="en"]
 .parchment-pro-tip-chip {
   clip-path: polygon(4% 10%, 14% 2%, 86% 0%, 98% 16%, 94% 84%, 78% 98%, 12% 96%, 0% 70%);
   transform: rotate(-1.4deg);
+  /* rotate·clip이 이웃(주요전장·메뉴) 레이아웃 폭을 침범하지 않게 */
+  margin-inline: 0.35rem;
 }
 
 .parchment-pro-tip-drop {
@@ -413,7 +476,7 @@ main[data-ui-lang="en"]
   text-wrap: balance;
 }
 
-/* ??? ?? ? ??? ???? ?? (?? ??? ??? ?? ??) */
+/* 편지 본문 스크롤바 숨김 (Firefox·IE·WebKit 각각 처리) */
 .welcome-letter-body {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -426,7 +489,7 @@ main[data-ui-lang="en"]
 }
 
 .welcome-letter-scrim {
-  /* ??? ??? ???? ???? ? ?? ??? ?? */
+  /* 편지 뒤 스크림 — 배경을 어둡게 깔고 블러 (전환은 아래 transition) */
   background: rgba(2, 4, 10, 0.72);
   backdrop-filter: blur(3px);
   transition:
@@ -451,7 +514,7 @@ main[data-ui-lang="en"]
   perspective-origin: 50% 35%;
 }
 
-/** ??? ?? ?? ? ??? ?? ??? ?? ??? */
+/** 지경학 등불 편지 — 스코어보드가 들어가 기본보다 넓게 */
 .welcome-letter-stage--economy-lamp {
   max-width: min(96vw, 72rem);
 }
@@ -500,7 +563,7 @@ main[data-ui-lang="en"]
   justify-content: center;
   border-radius: 2px;
   overflow: hidden;
-  /* ?? ?? ??? ?? ? ??? ??? ??? ? */
+  /* 편지 뒷면 — X축 180도 뒤집어 앞면과 겹치는 면 */
   transform: rotateX(180deg) translateZ(1px);
   background:
     radial-gradient(ellipse 100% 70% at 50% 40%, rgba(236, 214, 170, 0.95) 0%, transparent 60%),
@@ -585,7 +648,7 @@ main[data-ui-lang="en"]
     transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     opacity: 1;
   }
-  /* ??? ??? ??? */
+  /* 접히는 중간 단계 — 아직 화면 안 */
   38% {
     transform: translate3d(0, 2%, 0) rotateX(96deg) scale(0.97);
     opacity: 1;
@@ -594,21 +657,117 @@ main[data-ui-lang="en"]
     transform: translate3d(0, -8vh, 24px) rotateX(180deg) scale(0.94);
     opacity: 1;
   }
-  /* ??? ?? ?? ?? */
+  /* 위로 날아가 사라지는 마지막 단계 */
   100% {
     transform: translate3d(0, -120vh, 40px) rotateX(180deg) scale(0.86);
     opacity: 0;
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   prefers-reduced-motion — 전면 대응
+   ───────────────────────────────────────────────────────────────────
+   이 앱은 공습 사이렌 컷 · 전면 플래시 · 스캔라인 · 무한 펄스를 쓴다.
+   전정 장애 · 편두통 · 광과민 사용자에게 이건 취향이 아니라 건강 문제다.
+   따라서 접근성 항목이 아니라 **안전 항목**으로 취급한다.
+
+   이전 상태: @keyframes 19종 중 환영 편지 1블록만 대응 (커버리지 5%).
+   가장 위험한 tension-cut-flash · access-denied-pop · entry-scan-drift는
+   전부 무방비였다.
+
+   ── 처리 원칙 ──────────────────────────────────────────────────────
+   ① 기본(전역): duration 0.01ms + iteration 1
+      → `forwards` 채우기가 있는 등장/퇴장은 **최종 상태로 즉시 점프**한다.
+        (`animation: none`으로 끄면 opacity:0 시작 요소가 영영 안 보이거나,
+         사라져야 할 요소가 화면에 남는다. 그래서 끄지 않고 '즉시 완료'.)
+      → 무한 반복은 iteration 1로 잘려 자동으로 멈춘다.
+   ② 위험군(플래시·스캔·글로우): 위에 더해 animation을 완전히 죽이고
+      안전한 정적 상태를 명시한다. 0.01ms라도 '한 번 번쩍'이면 안 되기 때문.
+   ③ 예외(.motion-essential): 로딩 인디케이터처럼 **멈추면 고장으로 보이는**
+      것만 모션을 유지한다. 다만 사람이 어지럽지 않게 느리게.
+   ═══════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .welcome-letter-card--unfold-enter,
-  .welcome-letter-card--fold-exit {
-    animation-duration: 0.01ms;
-    animation-iteration-count: 1;
+  /* ① 전역 기본 — 등장/퇴장은 즉시 완료, 무한 반복은 1회로 종료 */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
+
+  /* ── ⚠️ animation:none 금지 목록 ────────────────────────────────
+     아래 둘은 `forwards`로 **사라지는 것이 최종 상태**다.
+     `animation: none`으로 끄면 시작 상태(보임)에 멈춰 화면에 영구히 남는다.
+       · .access-denied-flash  — opacity 기본값 없음 + z-index 10050
+         → 끄면 빨간 경고판이 앱 전체를 덮은 채 안 사라진다
+       · .welcome-letter-card--fold-exit — 접혀 날아가는 편지지
+     따라서 이 둘은 위 ① 전역 규칙(0.01ms)에 맡겨 **최종 상태로 즉시 점프**시킨다.
+     결과: 번쩍임 없음 + 정상적으로 사라짐. 절대 아래 목록에 넣지 말 것.
+     ──────────────────────────────────────────────────────────── */
+
+  /* ② 위험군 A — 일회성 플래시 (fill 없음 → 꺼도 안전) */
+  .intel-stack-focus-flash {
+    animation: none !important;
+    filter: none;
+  }
+  /* 「채널 컷」 문구 — 깜빡임만 제거하고 글자는 그대로 보이게 */
+  .tension-spike-cut__cutting-label {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* ② 위험군 B — 끊임없이 흐르는 스캔라인. 광과민 유발 위험군 */
+  .entry-terminal-boot__scan {
+    animation: none !important;
+    opacity: 0.25;
+  }
+
+  /* ② 위험군 C — 무한 펄스·글로우 (①로도 멈추지만 의도를 명시) */
+  .gdelt-location-tag-pin,
+  .location-pin-marker.gdelt-news-pin,
+  .carrier-marker-root.carrier-marker-deployed .carrier-marker--deployed svg,
+  .carrier-marker-root.carrier-marker-deployed .carrier-status-badge,
+  .carrier-legend-deck-swatch,
+  .intel-open-fab,
+  .hero-breaking-breaking,
+  .hero-breaking-confirmed,
+  .hero-breaking-unverified,
+  .hero-open-cta-arrow,
+  .neptun-threat-marker--flying .neptun-threat-marker__ring,
+  .animate-pulse,
+  .animate-ping {
+    animation: none !important;
+  }
+
+  /* 타이핑 커서 — 멈춘 채 두면 '입력 불가'로 오해되므로 실선으로 고정 */
+  .parchment-type-caret {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* 스크림·오버레이 페이드는 전환 자체를 제거 */
   .welcome-letter-scrim {
-    transition: none;
+    transition: none !important;
+  }
+
+  /* ── 정보 손실 방지 ────────────────────────────────────────────
+     표시와 은폐를 **모두 애니메이션에 의존하던** 요소는 0.01ms 점프 시
+     "한 번도 안 보이고" 끝난다. 모션은 줄었지만 메시지가 사라진 것이므로
+     실패다. 이런 요소는 정적으로 보여주고, 은폐는 JS 타이머에 맡긴다.
+     ──────────────────────────────────────────────────────────── */
+  .access-denied-flash--static {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* ③ 예외 — 멈추면 '멈춘 것'처럼 보이는 진행 표시만 유지 (느리게) */
+  .motion-essential {
+    animation-duration: 1.8s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 
@@ -1030,7 +1189,7 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
   animation: intel-stack-focus-flash-keyframes 0.9s ease-out;
 }
 
-/* ?? ?? ??: ??????? ?? ? ??? ?? ?? */
+/* 뉴스 시트 전체화면 — dvh 우선, 하단 세이프에어리어 확보 */
 .intel-news-sheet {
   height: 100vh;
   height: 100dvh;
@@ -1260,7 +1419,7 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
   }
 }
 
-/* ???? ??? ? Wanted Sans (?????) */
+/* 사상자 카운터 숫자·라벨 — Wanted Sans */
 .war-casualty-overlay .casualty-count-num,
 .war-casualty-overlay .casualty-count-label {
   font-family: var(--font-wanted);
@@ -1275,7 +1434,7 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
     0 0 14px rgba(0, 0, 0, 0.55);
 }
 
-/* ?? ???? ???? ?? ??? ?? */
+/* 긴장 스파이크 컷 — 전체화면 오버레이 */
 .tension-spike-cut {
   position: fixed;
   inset: 0;

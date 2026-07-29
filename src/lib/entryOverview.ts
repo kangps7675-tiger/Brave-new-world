@@ -51,17 +51,9 @@ export const ENTRY_GATE: {
   afterZoomOutHoldMs: 0,
 };
 
-/** @deprecated ENTRY_GATE.bootAltitude / zoomOutAltitude 사용 */
-export const DOMAIN_OVERVIEW_ALTITUDE = ENTRY_GATE.zoomOutAltitude;
-
-/** @deprecated ENTRY_GATE.bootLookAt */
-export const DOMAIN_OVERVIEW_LOOK_AT = ENTRY_GATE.bootLookAt;
-
-/** @deprecated ENTRY_GATE.zoomOutFlyMs */
-export const DOMAIN_OVERVIEW_FLY_MS = ENTRY_GATE.zoomOutFlyMs;
-
-/** @deprecated 세부 ModePicker 제거 — 더 이상 사용하지 않음 */
-export const DOMAIN_OVERVIEW_THEN_DETAIL_MS = 0;
+/* 삭제됨 (P2-5): DOMAIN_OVERVIEW_ALTITUDE / _LOOK_AT / _FLY_MS / _THEN_DETAIL_MS.
+   ENTRY_GATE로 대체된 뒤 자기 파일 외 참조가 0건인 채 남아 있던 별칭이다.
+   필요하면 ENTRY_GATE.zoomOutAltitude / bootLookAt / zoomOutFlyMs를 직접 쓸 것. */
 
 function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   const next = { ...base };

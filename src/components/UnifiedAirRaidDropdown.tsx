@@ -233,7 +233,7 @@ export function UnifiedAirRaidDropdown({
   if (!showUkraine && !showIsrael) return null;
 
   return (
-    <div ref={rootRef} className="pointer-events-auto relative z-[55]">
+    <div ref={rootRef} className="pointer-events-auto relative z-[100]">
       <button
         type="button"
         aria-expanded={open}
@@ -270,16 +270,16 @@ export function UnifiedAirRaidDropdown({
           <>
             <span className="min-w-0 flex-1 text-left">
               <span className="flex items-center gap-1.5">
-                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/80">
+                <span className="block truncate text-micro font-semibold uppercase tracking-[0.14em] text-red-200/80">
                   {t("brand", lang)}
                 </span>
                 {totalActive > 0 ? (
-                  <span className="shrink-0 rounded border border-red-400/45 bg-red-950/50 px-1 text-[8px] font-bold tabular-nums text-red-200">
+                  <span className="shrink-0 rounded border border-red-400/45 bg-red-950/50 px-1 text-micro font-bold tabular-nums text-red-200">
                     {totalActive}
                   </span>
                 ) : null}
                 {!hasActive && anyLive ? (
-                  <span className="shrink-0 animate-pulse rounded border border-emerald-400/45 px-1 text-[8px] font-bold uppercase tracking-wider text-emerald-300">
+                  <span className="shrink-0 animate-pulse rounded border border-emerald-400/45 px-1 text-micro font-bold uppercase tracking-wider text-emerald-300">
                     Live
                   </span>
                 ) : null}
@@ -299,7 +299,7 @@ export function UnifiedAirRaidDropdown({
         ) : (
           <>
             {totalActive > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-[8px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-micro font-bold text-white">
                 {totalActive > 9 ? "9+" : totalActive}
               </span>
             ) : (
@@ -318,7 +318,7 @@ export function UnifiedAirRaidDropdown({
       </button>
 
       <div
-        className={`absolute right-0 z-[70] w-[min(92vw,340px)] origin-top transition-all duration-200 ease-out ${
+        className={`absolute right-0 z-[200] w-[min(92vw,340px)] origin-top transition-all duration-200 ease-out ${
           compact ? "bottom-full mb-1.5 origin-bottom" : "top-full"
         } ${
           open
@@ -332,10 +332,10 @@ export function UnifiedAirRaidDropdown({
           }`}
         >
           <div className="border-b border-red-400/15 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-200/75">
+            <p className="text-micro font-semibold uppercase tracking-[0.18em] text-red-200/75">
               {t("brand", lang)}
             </p>
-            <p className="mt-0.5 text-[11px] text-red-100/55">
+            <p className="mt-0.5 text-meta text-red-100/55">
               {lang === "en" ? "Ukraine · Israel live desks" : "우크라이나 · 이스라엘 통합 경보"}
             </p>
           </div>
@@ -346,22 +346,22 @@ export function UnifiedAirRaidDropdown({
               <section className="border-b border-red-400/20">
                 <div className="sticky top-0 z-[1] flex items-baseline justify-between gap-2 bg-[#220e14]/95 px-3 py-2 backdrop-blur-sm">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-100/90">
+                    <p className="text-micro font-semibold uppercase tracking-[0.16em] text-red-100/90">
                       {t("ukraine", lang)}
                     </p>
-                    <p className="text-[10px] text-red-100/45">{t("ukraineSub", lang)}</p>
+                    <p className="text-micro text-red-100/45">{t("ukraineSub", lang)}</p>
                   </div>
                   {uaActive ? (
-                    <span className="rounded border border-red-400/35 px-1.5 py-0.5 text-[9px] text-red-200">
+                    <span className="rounded border border-red-400/35 px-1.5 py-0.5 text-micro text-red-200">
                       {uaList.length}
                     </span>
                   ) : null}
                 </div>
                 <div className="p-1.5">
                   {neptunError ? (
-                    <p className="px-2 py-2 text-[11px] text-red-200/85">{neptunError}</p>
+                    <p className="px-2 py-2 text-meta text-red-200/85">{neptunError}</p>
                   ) : uaList.length === 0 ? (
-                    <p className="px-2 py-2 font-mono text-[11px] text-slate-500">
+                    <p className="px-2 py-2 font-mono text-meta text-slate-500">
                       {t("awaiting", lang)}
                     </p>
                   ) : (
@@ -375,7 +375,7 @@ export function UnifiedAirRaidDropdown({
                             onClick={() => focusUkraine(alert)}
                             className="w-full px-2.5 py-2 text-left transition hover:bg-red-500/10"
                           >
-                            <div className="flex flex-wrap items-center gap-x-1.5 text-[9px] text-slate-500">
+                            <div className="flex flex-wrap items-center gap-x-1.5 text-micro text-slate-500">
                               <span className="text-slate-400">
                                 {formatTime(alert.since, lang)}
                               </span>
@@ -386,11 +386,11 @@ export function UnifiedAirRaidDropdown({
                                 {alert.scope === "oblast" ? t("oblast", lang) : t("raion", lang)}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-[12px] font-semibold leading-snug text-slate-50">
+                            <p className="mt-0.5 text-caption font-semibold leading-snug text-slate-50">
                               {alert.name || alert.key}
                             </p>
                             {alert.oblast && alert.oblast !== alert.name ? (
-                              <p className="mt-0.5 text-[10px] leading-snug text-slate-400">
+                              <p className="mt-0.5 text-micro leading-snug text-slate-400">
                                 {alert.oblast}
                               </p>
                             ) : null}
@@ -400,7 +400,7 @@ export function UnifiedAirRaidDropdown({
                     </ul>
                   )}
                 </div>
-                <p className="border-t border-red-950/30 px-3 py-1 font-mono text-[8px] text-slate-600">
+                <p className="border-t border-red-950/30 px-3 py-1 font-mono text-micro text-slate-600">
                   {t("sourceUa", lang)}
                 </p>
               </section>
@@ -411,26 +411,26 @@ export function UnifiedAirRaidDropdown({
               <section>
                 <div className="sticky top-0 z-[1] flex items-baseline justify-between gap-2 bg-[#220e14]/95 px-3 py-2 backdrop-blur-sm">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-100/90">
+                    <p className="text-micro font-semibold uppercase tracking-[0.16em] text-red-100/90">
                       {t("israel", lang)}
                     </p>
-                    <p className="text-[10px] text-red-100/45">{t("israelSub", lang)}</p>
+                    <p className="text-micro text-red-100/45">{t("israelSub", lang)}</p>
                   </div>
                   {ilActive ? (
-                    <span className="rounded border border-red-400/35 px-1.5 py-0.5 text-[9px] text-red-200">
+                    <span className="rounded border border-red-400/35 px-1.5 py-0.5 text-micro text-red-200">
                       {tzevaActive.length}
                     </span>
                   ) : null}
                 </div>
                 <div className="p-1.5">
                   {tzevaGeoRestricted || tzevaStatus === "geo-blocked" ? (
-                    <p className="px-2 py-2 text-[11px] leading-relaxed text-amber-200/90">
+                    <p className="px-2 py-2 text-meta leading-relaxed text-amber-200/90">
                       {tzevaUi("geoHint", lang)}
                     </p>
                   ) : tzevaError ? (
-                    <p className="px-2 py-2 text-[11px] text-red-200/85">{tzevaError}</p>
+                    <p className="px-2 py-2 text-meta text-red-200/85">{tzevaError}</p>
                   ) : ilList.length === 0 ? (
-                    <p className="px-2 py-2 font-mono text-[11px] text-slate-500">
+                    <p className="px-2 py-2 font-mono text-meta text-slate-500">
                       {t("awaiting", lang)}
                     </p>
                   ) : (
@@ -449,7 +449,7 @@ export function UnifiedAirRaidDropdown({
                               onClick={() => focusIsrael(alert)}
                               className="w-full px-2.5 py-2 text-left transition hover:bg-red-500/10"
                             >
-                              <div className="flex flex-wrap items-center gap-x-1.5 text-[9px] text-slate-500">
+                              <div className="flex flex-wrap items-center gap-x-1.5 text-micro text-slate-500">
                                 <span className="text-slate-400">
                                   {formatTime(alert.alertDate, lang)}
                                 </span>
@@ -459,10 +459,10 @@ export function UnifiedAirRaidDropdown({
                                   </span>
                                 ) : null}
                               </div>
-                              <p className="mt-0.5 text-[12px] font-semibold leading-snug text-slate-50">
+                              <p className="mt-0.5 text-caption font-semibold leading-snug text-slate-50">
                                 {region}
                               </p>
-                              <p className="mt-0.5 text-[10px] leading-snug text-slate-400">
+                              <p className="mt-0.5 text-micro leading-snug text-slate-400">
                                 {title}
                               </p>
                             </button>
@@ -472,7 +472,7 @@ export function UnifiedAirRaidDropdown({
                     </ul>
                   )}
                 </div>
-                <p className="border-t border-red-950/30 px-3 py-1 font-mono text-[8px] text-slate-600">
+                <p className="border-t border-red-950/30 px-3 py-1 font-mono text-micro text-slate-600">
                   {t("sourceIl", lang)}
                 </p>
               </section>

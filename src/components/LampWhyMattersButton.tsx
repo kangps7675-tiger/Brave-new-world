@@ -158,7 +158,7 @@ export function LampWhyMattersButton({
         type="button"
         disabled={loading || !title.trim()}
         onClick={toggle}
-        className="rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-[12px] tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-60"
+        className="rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-3 py-1.5 text-caption tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-60"
       >
         {loading
           ? lang === "en"
@@ -174,22 +174,22 @@ export function LampWhyMattersButton({
       {open ? (
         <div className="mt-3 rounded-sm border border-[#8b6914]/25 bg-[#f3e6c8]/7 px-3 py-3 sm:px-4">
           {meta ? (
-            <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-[#6b4a22]/6">
+            <p className="mb-2 text-micro uppercase tracking-[0.14em] text-[#6b4a22]/6">
               {meta}
             </p>
           ) : null}
           {error ? (
-            <p className="text-[13px] leading-relaxed text-[#8b3a2a]">{error}</p>
+            <p className="text-body leading-relaxed text-[#8b3a2a]">{error}</p>
           ) : null}
           {loading && !text ? (
-            <p className="text-[13px] leading-relaxed text-[#5a4428]/75">
+            <p className="text-body leading-relaxed text-[#5a4428]/75">
               {lang === "en"
                 ? "Tracing cause → effect…"
                 : "원인 → 결과를 정리하는 중…"}
             </p>
           ) : null}
           {text ? (
-            <div className="whitespace-pre-wrap text-[13px] leading-[1.75] text-[#3f2e1c] sm:text-[14px] sm:leading-[1.8]">
+            <div className="whitespace-pre-wrap text-body leading-[1.75] text-[#3f2e1c] sm:text-[14px] sm:leading-[1.8]">
               {text}
             </div>
           ) : null}

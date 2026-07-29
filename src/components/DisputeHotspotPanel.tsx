@@ -105,11 +105,11 @@ export function DisputeHotspotPanel({
   return (
     <aside
       id="dispute-hotspot-panel"
-      className="pointer-events-auto absolute right-3 top-20 z-[120] flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-rose-300/25 bg-[#160d10]/92 shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto absolute right-3 top-20 z-[600] flex max-h-[min(78vh,560px)] w-[min(94vw,340px)] flex-col overflow-hidden rounded-2xl border border-rose-300/25 bg-[#160d10]/92 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex items-start justify-between gap-2 border-b border-rose-200/10 px-3 py-2.5">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-rose-200/60">
+          <p className="text-micro uppercase tracking-[0.2em] text-rose-200/60">
             {en
               ? `${archiveAll.length} episodes · past → powder kegs`
               : `${archiveAll.length}건 · 과거→화약고`}
@@ -117,7 +117,7 @@ export function DisputeHotspotPanel({
           <h2 className="mt-0.5 text-sm font-medium text-rose-50">
             {en ? "Territorial archive" : "영토분쟁 아카이브"}
           </h2>
-          <p className="mt-1 text-[10px] leading-4 text-rose-100/45">
+          <p className="mt-1 text-micro leading-4 text-rose-100/45">
             {en
               ? "One comprehensive archive: intra-bloc clashes and border flashpoints in a single timeline."
               : "진영 내부 충돌과 국경·화약고를 하나의 타임라인으로 — 포괄 작성·열람."}
@@ -126,7 +126,7 @@ export function DisputeHotspotPanel({
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg border border-rose-300/25 px-2 py-1 text-[10px] text-rose-100/70 transition hover:border-rose-200/40 hover:text-rose-50"
+          className="shrink-0 rounded-lg border border-rose-300/25 px-2 py-1 text-micro text-rose-100/70 transition hover:border-rose-200/40 hover:text-rose-50"
         >
           {en ? "Exit" : "나가기"}
         </button>
@@ -136,7 +136,7 @@ export function DisputeHotspotPanel({
         <button
           type="button"
           onClick={() => setTab("archive")}
-          className={`rounded-md px-2.5 py-0.5 text-[10px] ${
+          className={`rounded-md px-2.5 py-0.5 text-micro ${
             tab === "archive"
               ? "bg-rose-500/25 text-rose-50"
               : "text-rose-100/55 hover:bg-rose-500/10"
@@ -147,7 +147,7 @@ export function DisputeHotspotPanel({
         <button
           type="button"
           onClick={() => setTab("hotspots")}
-          className={`rounded-md px-2.5 py-0.5 text-[10px] ${
+          className={`rounded-md px-2.5 py-0.5 text-micro ${
             tab === "hotspots"
               ? "bg-rose-500/25 text-rose-50"
               : "text-rose-100/55 hover:bg-rose-500/10"
@@ -169,7 +169,7 @@ export function DisputeHotspotPanel({
                   key={key}
                   type="button"
                   onClick={() => setLens(key)}
-                  className={`rounded-md px-2 py-0.5 text-[9px] ${
+                  className={`rounded-md px-2 py-0.5 text-micro ${
                     active
                       ? "bg-amber-500/20 text-amber-50"
                       : "text-rose-100/50 hover:bg-rose-500/10"
@@ -185,7 +185,7 @@ export function DisputeHotspotPanel({
             <button
               type="button"
               onClick={() => setContinent("all")}
-              className={`rounded-md px-2 py-0.5 text-[9px] ${
+              className={`rounded-md px-2 py-0.5 text-micro ${
                 continent === "all"
                   ? "bg-sky-500/20 text-sky-50"
                   : "text-rose-100/50 hover:bg-rose-500/10"
@@ -204,7 +204,7 @@ export function DisputeHotspotPanel({
                   key={key}
                   type="button"
                   onClick={() => setContinent(key)}
-                  className={`rounded-md px-2 py-0.5 text-[9px] ${
+                  className={`rounded-md px-2 py-0.5 text-micro ${
                     active
                       ? "bg-sky-500/20 text-sky-50"
                       : "text-rose-100/50 hover:bg-rose-500/10"
@@ -251,21 +251,21 @@ export function DisputeHotspotPanel({
                 >
                   <div className="flex items-baseline justify-between gap-2">
                     <p
-                      className={`text-[11px] font-medium ${
+                      className={`text-meta font-medium ${
                         isBloc ? "text-violet-50" : "text-rose-50"
                       }`}
                     >
                       {archiveEpisodeTitle(ep, en ? "en" : "ko")}
                     </p>
                     <span
-                      className={`shrink-0 text-[9px] ${
+                      className={`shrink-0 text-micro ${
                         isBloc ? "text-violet-200/55" : "text-rose-200/55"
                       }`}
                     >
                       {archiveYearLabel(ep)}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[9px] uppercase tracking-[0.12em] text-amber-200/55">
+                  <p className="mt-0.5 text-micro uppercase tracking-[0.12em] text-amber-200/55">
                     {en
                       ? isBloc
                         ? "Intra-bloc"
@@ -279,12 +279,12 @@ export function DisputeHotspotPanel({
                       : ARCHIVE_CONTINENT_LABEL[ep.continent].ko}
                   </p>
                   {ep.parties.length > 0 ? (
-                    <p className="mt-0.5 text-[10px] text-amber-200/85">
+                    <p className="mt-0.5 text-micro text-amber-200/85">
                       {ep.parties.join(" · ")}
                     </p>
                   ) : null}
                   <p
-                    className={`mt-0.5 line-clamp-1 text-[10px] ${
+                    className={`mt-0.5 line-clamp-1 text-micro ${
                       isBloc ? "text-violet-100/55" : "text-rose-100/55"
                     }`}
                   >
@@ -296,21 +296,21 @@ export function DisputeHotspotPanel({
 
             {activeTerritorial ? (
               <div className="mt-2 space-y-2 rounded-lg border border-rose-300/20 bg-rose-950/40 px-2.5 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-rose-200/50">
+                <p className="text-micro uppercase tracking-[0.16em] text-rose-200/50">
                   {en ? "Then" : "당시"}
                 </p>
-                <p className="text-[11px] leading-relaxed text-rose-50/90">
+                <p className="text-meta leading-relaxed text-rose-50/90">
                   {en ? activeTerritorial.briefingEn : activeTerritorial.briefing}
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-amber-200/55">
+                <p className="text-micro uppercase tracking-[0.16em] text-amber-200/55">
                   {en ? "Now · living link" : "오늘날 · 현세 연결"}
                 </p>
-                <p className="text-[11px] leading-relaxed text-amber-50/85">
+                <p className="text-meta leading-relaxed text-amber-50/85">
                   {en ? activeTerritorial.presentLinkEn : activeTerritorial.presentLinkKo}
                 </p>
                 {activeTerritorial.linkedHotspotIds.some((id) => hotspotById.has(id)) ? (
                   <>
-                    <p className="text-[10px] text-rose-100/50">
+                    <p className="text-micro text-rose-100/50">
                       {en ? "Linked current sites" : "연결된 현재 핫스팟"}
                     </p>
                     <div className="flex flex-col gap-1">
@@ -322,7 +322,7 @@ export function DisputeHotspotPanel({
                             key={id}
                             type="button"
                             onClick={() => onSelect(h)}
-                            className={`rounded-md border px-2 py-1.5 text-left text-[10px] transition ${
+                            className={`rounded-md border px-2 py-1.5 text-left text-micro transition ${
                               selectedId === id
                                 ? "border-amber-300/40 bg-amber-500/15 text-amber-50"
                                 : "border-rose-200/15 text-rose-100/75 hover:bg-rose-500/10"
@@ -361,18 +361,18 @@ export function DisputeHotspotPanel({
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-medium text-rose-50">{hotspot.name}</p>
-                  <span className="flex shrink-0 items-center gap-1 text-[9px] text-rose-200/55">
+                  <p className="text-meta font-medium text-rose-50">{hotspot.name}</p>
+                  <span className="flex shrink-0 items-center gap-1 text-micro text-rose-200/55">
                     <span className={`h-1.5 w-1.5 rounded-full ${tensionMeta.dot}`} />
                     {en ? tensionMeta.en : tensionMeta.ko}
                   </span>
                 </div>
                 {hotspot.parties.length > 0 ? (
-                  <p className="mt-0.5 text-[10px] text-amber-200/85">
+                  <p className="mt-0.5 text-micro text-amber-200/85">
                     {hotspot.parties.join(" vs ")}
                   </p>
                 ) : null}
-                <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-rose-100/55">
+                <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-rose-100/55">
                   {hotspot.overviewKo}
                 </p>
               </button>
@@ -381,7 +381,7 @@ export function DisputeHotspotPanel({
         )}
       </div>
 
-      <p className="border-t border-rose-200/10 px-3 py-2 text-[9px] leading-4 text-rose-100/40">
+      <p className="border-t border-rose-200/10 px-3 py-2 text-micro leading-4 text-rose-100/40">
         {en
           ? "Filter by lens and continent. Selecting an episode opens the map sequence and parchment brief."
           : "렌즈·대륙으로 걸러 보세요. 에피소드를 고르면 맵 연출과 양피지 서술이 이어집니다."}

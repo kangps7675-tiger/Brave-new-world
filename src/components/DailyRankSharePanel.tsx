@@ -68,10 +68,10 @@ function WorldTensionHero({
     <div className="rounded-lg border border-rose-500/25 bg-gradient-to-br from-rose-950/40 via-slate-950/60 to-slate-950/80 p-3 sm:col-span-2">
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300/80">
+          <p className="text-micro font-semibold uppercase tracking-[0.18em] text-rose-300/80">
             {formatGtiTitle(ko)}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-slate-400">
+          <p className="mt-1 text-meta leading-snug text-slate-400">
             {ko
               ? `긴장지수(GTI) · ${band}`
               : `Tension index (GTI) · ${band}`}
@@ -81,7 +81,7 @@ function WorldTensionHero({
           <p className="text-3xl font-black tabular-nums tracking-tight text-rose-100">
             {score}
           </p>
-          <p className={`text-[11px] tabular-nums ${deltaClass}`}>{delta}</p>
+          <p className={`text-meta tabular-nums ${deltaClass}`}>{delta}</p>
         </div>
       </div>
       <div
@@ -98,12 +98,12 @@ function WorldTensionHero({
         />
       </div>
       {whyLine ? (
-        <p className="mt-2 rounded-md border border-rose-400/20 bg-rose-950/30 px-2 py-1.5 text-[11px] leading-snug text-rose-100/90">
+        <p className="mt-2 rounded-md border border-rose-400/20 bg-rose-950/30 px-2 py-1.5 text-meta leading-snug text-rose-100/90">
           {ko ? "왜 지금: " : "Why now: "}
           {whyLine}
         </p>
       ) : (
-        <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+        <p className="mt-2 text-micro leading-relaxed text-slate-500">
           {ko
             ? "서비스의 단일 기축(GTI). 전장별 뉴스·위성 화재·현장 경보가 평소보다 얼마나 튀었는지를 모아 0–100 점수(GTS)로 만듭니다. 원유 WTI와 무관합니다."
             : "Product spine (GTI): theater news, satellite hotspots, and field alerts blended into a 0–100 score (GTS). Unrelated to WTI crude."}
@@ -133,20 +133,20 @@ function RankList({
   return (
     <div className="rounded-lg border border-slate-800/80 bg-slate-950/50 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${accentClass}`}>
+        <h3 className={`text-meta font-semibold uppercase tracking-[0.14em] ${accentClass}`}>
           {title}
         </h3>
         <button
           type="button"
           disabled={busy || entries.length === 0}
           onClick={onShare}
-          className="rounded border border-slate-700/80 px-2 py-0.5 text-[10px] text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40"
+          className="rounded border border-slate-700/80 px-2 py-0.5 text-micro text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40"
         >
           {busy ? (ko ? "만드는 중…" : "Rendering…") : ko ? "카드 공유" : "Share card"}
         </button>
       </div>
       {entries.length === 0 ? (
-        <p className="text-[11px] text-slate-500">
+        <p className="text-meta text-slate-500">
           {ko ? "오늘 집계가 아직 없습니다." : "No ranking snapshot yet."}
         </p>
       ) : (
@@ -169,7 +169,7 @@ function RankList({
             return (
               <li
                 key={`${entry.kind}-${entry.entityId}`}
-                className="text-[12px] text-slate-200"
+                className="text-caption text-slate-200"
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="min-w-0 truncate">
@@ -180,7 +180,7 @@ function RankList({
                   <span className={`shrink-0 tabular-nums ${deltaClass}`}>{delta}</span>
                 </div>
                 {driver ? (
-                  <p className="mt-0.5 pl-5 text-[10px] leading-snug text-slate-500">
+                  <p className="mt-0.5 pl-5 text-micro leading-snug text-slate-500">
                     {driver}
                   </p>
                 ) : null}

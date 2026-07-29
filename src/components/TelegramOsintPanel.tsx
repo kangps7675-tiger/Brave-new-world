@@ -36,7 +36,7 @@ export function TelegramOsintPanel({
 }: TelegramOsintPanelProps) {
   return (
     <div
-      className={`pointer-events-auto absolute z-[120] ${
+      className={`pointer-events-auto absolute z-[600] ${
         compactUi
           ? "bottom-[calc(var(--bottom-intel-stack-clearance)+0.5rem+env(safe-area-inset-bottom,0px))] left-3 w-[min(calc(100vw-1.5rem),320px)]"
           : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] left-4 w-[min(88vw,280px)]"

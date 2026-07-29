@@ -2,6 +2,7 @@
  * 지정학 — 전쟁구역 사상자 HTML 오버레이 (사망/부상 + 호버 타입라이터 애도).
  * 우크라·중동 등 전장 공통. 숫자 출처는 전장별로 주입.
  */
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
 export type WarCasualtyOverlayInput = {
   theaterId: string;
@@ -428,8 +429,7 @@ export function createWarCasualtyOverlayElement(
     clearTimer();
     elegyActive = true;
     const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      prefersReducedMotion();
     const skipType = reduced || casualtyElegyAlreadyTyped(theaterId);
 
     if (skipType) {

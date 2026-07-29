@@ -45,6 +45,8 @@ export const GEOWATCH_CONFIG = {
       tensionCut: 50,
       hotTheater: 55,
       coach: 60,
+      /** FPS 프로브 제안 — 긴급 배너·코치보다 뒤. 강제 적용 없음 */
+      ultraLite: 65,
     },
   },
 } as const;

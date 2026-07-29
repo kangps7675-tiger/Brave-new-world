@@ -14,7 +14,8 @@ export type OverlayBannerKind =
   | "maritime"
   | "tensionCut"
   | "hotTheater"
-  | "coach";
+  | "coach"
+  | "ultraLite";
 
 /** 낮을수록 우선 — SSOT */
 export const OVERLAY_BANNER_PRIORITY: Record<OverlayBannerKind, number> = {
@@ -32,6 +33,8 @@ export type BuildOverlayBannerCandidatesInput = {
   tensionSpike: boolean;
   hotTheaterOffer: boolean;
   coachActive: boolean;
+  /** FPS 프로브 Ultra-Lite 제안 (강제 아님) */
+  ultraLiteOffer: boolean;
   isEconomyViewer: boolean;
   entryGateOpen: boolean;
   modePickerOpen: boolean;
@@ -53,6 +56,7 @@ export function buildOverlayBannerCandidates(
     tensionSpike,
     hotTheaterOffer,
     coachActive,
+    ultraLiteOffer,
     isEconomyViewer,
     entryGateOpen,
     modePickerOpen,
@@ -68,6 +72,7 @@ export function buildOverlayBannerCandidates(
     tensionCut: tensionSpike && !briefingBusy && !isEconomyViewer && gateClear,
     hotTheater: hotTheaterOffer && !briefingBusy && gateClear,
     coach: coachActive && gateClear,
+    ultraLite: ultraLiteOffer && !briefingBusy && gateClear,
   };
 }
 

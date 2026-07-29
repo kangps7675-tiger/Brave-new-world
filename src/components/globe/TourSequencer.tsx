@@ -85,16 +85,16 @@ export function TourSequencer({
   const scene = scenes[Math.min(index, scenes.length - 1)];
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[9600] flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[700] flex justify-center px-4">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-amber-200/25 bg-[#0b1020]/90 px-5 py-4 shadow-2xl backdrop-blur-md">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[10px] font-semibold tracking-[0.3em] text-amber-200/70">
+          <p className="text-micro font-semibold tracking-[0.3em] text-amber-200/70">
             {lang === "en" ? "TODAY'S TOUR" : "오늘의 투어"} · {index + 1}/{scenes.length}
           </p>
           <button
             type="button"
             onClick={() => onStopRef.current()}
-            className="rounded-lg border border-slate-500/40 px-2 py-0.5 text-[11px] text-slate-300 transition hover:border-slate-300/60 hover:text-slate-100"
+            className="rounded-lg border border-slate-500/40 px-2 py-0.5 text-meta text-slate-300 transition hover:border-slate-300/60 hover:text-slate-100"
           >
             {lang === "en" ? "Exit" : "종료"}
           </button>

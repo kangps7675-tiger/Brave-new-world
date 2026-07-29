@@ -72,6 +72,9 @@
 | `flyto-arrive` / `parchment-flyaway` | [833599](https://freesound.org/s/833599/) | **CC-BY** |
 | `mode-switch` / `ui-click` | [458586](https://freesound.org/s/458586/) | **CC-BY** |
 | `boot-ready` | [413749](https://freesound.org/s/413749/) | **CC-BY** |
+| `global-thunder-a` | [712017](https://freesound.org/s/712017/) AudioPapkin Thunder | CC0 |
+| `global-thunder-b` | [810746](https://freesound.org/s/810746/) mokasza loud thunder 02 | **CC-BY** |
+| `global-thunder-c` | [242013](https://freesound.org/s/242013/) sgossner Thunder Powerful | CC0 |
 
 CC0 항목은 저작물 명시 의무 없음 → Sources 패널·`audioAttribution.ts`에서 제외.
 
@@ -80,6 +83,7 @@ CC0 항목은 저작물 명시 의무 없음 → Sources 패널·`audioAttributi
 ## 재생 규칙
 
 - **지정학 앰비언트:** 전선 → 대만해협 틱 → 긴장 rumble (항모는 **클릭만**)
+- **전역·대륙 궤도:** 먼 천둥 원샷만 불규칙 겹침 (`global-thunder-a/b/c` · FS#712017 / 810746 / 242013)
 - **지경학 앰비언트:** 파이프라인 → 데이터센터 → 항구 → LNG(미세) → 경제중심
 - **인프라·이동체:** 해당 피처/경로를 **누를 때** 원샷 (겹침 허용)
 - 공습 사이렌: 칩/버튼 fly 전용

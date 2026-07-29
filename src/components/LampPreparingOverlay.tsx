@@ -34,17 +34,17 @@ export function LampPreparingOverlay({ open, lang }: Props) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-[10020] flex items-end justify-center bg-black/[0.12] pb-[max(5.5rem,env(safe-area-inset-bottom))] transition-opacity duration-300 sm:items-center sm:pb-0"
+      className="pointer-events-none fixed inset-0 z-[800] flex items-end justify-center bg-black/[0.12] pb-[max(5.5rem,env(safe-area-inset-bottom))] transition-opacity duration-300 sm:items-center sm:pb-0"
       role="status"
       aria-live="polite"
       aria-busy="true"
       aria-label={title}
     >
       <div className="mb-6 px-4 text-center sm:mb-0">
-        <p className="text-[13px] font-medium tracking-wide text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">
+        <p className="text-body font-medium tracking-wide text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">
           {title}
         </p>
-        <p className="mt-1 max-w-[16rem] text-[11px] leading-relaxed text-white/45 drop-shadow-[0_1px_6px_rgba(0,0,0,0.55)]">
+        <p className="mt-1 max-w-[16rem] text-meta leading-relaxed text-white/45 drop-shadow-[0_1px_6px_rgba(0,0,0,0.55)]">
           {hint}
         </p>
       </div>

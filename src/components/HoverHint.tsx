@@ -138,7 +138,7 @@ export function HoverHint({
         ref={tipRef}
         id={tooltipId}
         role="tooltip"
-        className={`pointer-events-none fixed z-[90] w-max max-w-[min(88vw,300px)] whitespace-normal rounded-xl border border-sky-300/30 bg-[#0a1830]/96 px-3 py-2 text-left shadow-2xl backdrop-blur-md transition-all duration-150 ${visibleClass}`}
+        className={`pointer-events-none fixed z-[300] w-max max-w-[min(88vw,300px)] whitespace-normal rounded-xl border border-sky-300/30 bg-[#0a1830]/96 px-3 py-2 text-left shadow-2xl backdrop-blur-md transition-all duration-150 ${visibleClass}`}
         style={
           coords
             ? { left: coords.left, top: coords.top }
@@ -147,10 +147,10 @@ export function HoverHint({
       >
         <span className="block text-xs font-semibold leading-snug text-sky-50">{title}</span>
         {detail ? (
-          <span className="mt-1 block text-[11px] leading-5 text-sky-100/78">{detail}</span>
+          <span className="mt-1 block text-meta leading-5 text-sky-100/78">{detail}</span>
         ) : null}
         {pinOnTouch ? (
-          <span className="mt-1.5 block text-[10px] text-sky-200/45 sm:hidden">{t("hoverTapToPin")}</span>
+          <span className="mt-1.5 block text-micro text-sky-200/45 sm:hidden">{t("hoverTapToPin")}</span>
         ) : null}
       </span>
     </span>

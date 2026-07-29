@@ -74,19 +74,19 @@ export function TopWatchPanel({ lang }: { lang: LabelLanguage }) {
         }
       >
         <span className="min-w-0">
-          <span className="block text-[11px] font-semibold tracking-tight text-amber-100/95">
+          <span className="block text-meta font-semibold tracking-tight text-amber-100/95">
             {en ? "Rising tension" : "긴장 상승"}
           </span>
-          <span className="block text-[9px] text-amber-200/45">
+          <span className="block text-micro text-amber-200/45">
             {en ? "vs yesterday · estimate" : "어제 대비 · 추정"}
           </span>
         </span>
-        <span className="shrink-0 text-[10px] text-amber-200/50">{collapsed ? "▸" : "▾"}</span>
+        <span className="shrink-0 text-micro text-amber-200/50">{collapsed ? "▸" : "▾"}</span>
       </button>
 
       {!collapsed ? (
         status === "loading" || top.length === 0 ? (
-          <p className="px-3 pb-2.5 text-[11px] text-amber-100/50">
+          <p className="px-3 pb-2.5 text-meta text-amber-100/50">
             {status === "loading"
               ? en
                 ? "Loading…"
@@ -114,14 +114,14 @@ export function TopWatchPanel({ lang }: { lang: LabelLanguage }) {
                     : "보합";
               return (
                 <li key={entry.entityId} className="flex items-center gap-2 px-3 py-1.5">
-                  <span className="w-3.5 shrink-0 text-[10px] tabular-nums text-amber-200/40">
+                  <span className="w-3.5 shrink-0 text-micro tabular-nums text-amber-200/40">
                     {i + 1}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-amber-50/90">
+                  <span className="min-w-0 flex-1 truncate text-meta text-amber-50/90">
                     {en ? entry.labelEn : entry.labelKo}
                   </span>
                   <span
-                    className={`shrink-0 text-[10px] font-medium tabular-nums ${
+                    className={`shrink-0 text-micro font-medium tabular-nums ${
                       rising ? "text-red-300" : easing ? "text-emerald-300" : "text-amber-200/50"
                     }`}
                     title={deltaLabel}

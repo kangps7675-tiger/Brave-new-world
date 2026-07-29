@@ -112,7 +112,7 @@ export function NewsArticleCard({
             <div
               className={`flex h-full w-full flex-col justify-end bg-gradient-to-br p-3 ${THEATER_GRADIENT[item.theater]}`}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">
+              <span className="text-micro font-semibold uppercase tracking-[0.2em] text-white/55">
                 {THEATER_LABELS[item.theater]}
               </span>
               <span className="mt-1 line-clamp-2 text-xs font-medium leading-4 text-white/85">
@@ -122,12 +122,12 @@ export function NewsArticleCard({
           )}
           <div className="absolute left-2 top-2 flex items-center gap-1.5">
             <span
-              className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-sm ${tierBadgeClass(item.trustTier, tier3)}`}
+              className={`rounded-full border px-1.5 py-0.5 text-micro font-bold backdrop-blur-sm ${tierBadgeClass(item.trustTier, tier3)}`}
             >
               {tierLabel}
             </span>
             {tier3 ? (
-              <span className="rounded-full border border-amber-400/35 bg-black/45 px-1.5 py-0.5 text-[9px] text-amber-100 backdrop-blur-sm">
+              <span className="rounded-full border border-amber-400/35 bg-black/45 px-1.5 py-0.5 text-micro text-amber-100 backdrop-blur-sm">
                 미확인
               </span>
             ) : null}
@@ -135,18 +135,18 @@ export function NewsArticleCard({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-3">
-          <h3 className="line-clamp-2 text-[12px] font-semibold leading-4 text-slate-50 group-hover:text-white">
+          <h3 className="line-clamp-2 text-caption font-semibold leading-4 text-slate-50 group-hover:text-white">
             {displayTitle}
           </h3>
           {displaySummary ? (
-            <p className="line-clamp-2 text-[10px] leading-4 text-slate-400">{displaySummary}</p>
+            <p className="line-clamp-2 text-micro leading-4 text-slate-400">{displaySummary}</p>
           ) : (
-            <p className="line-clamp-2 text-[10px] leading-4 text-slate-500">
+            <p className="line-clamp-2 text-micro leading-4 text-slate-500">
               {item.source} · {isEconomy ? "경제·시장" : `${THEATER_LABELS[item.theater]} 분쟁·안보`}{" "}
               관련 보도
             </p>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-[10px] text-slate-500">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-micro text-slate-500">
             <span className="truncate">{item.source}</span>
             <span className="shrink-0">{formatAge(item.pubDate)}</span>
           </div>
@@ -161,7 +161,7 @@ export function NewsArticleCard({
               e.stopPropagation();
               onFlyToMap(flyTarget);
             }}
-            className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+            className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
           >
             지도보러가기
             <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>

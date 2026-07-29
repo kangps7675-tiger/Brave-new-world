@@ -66,17 +66,17 @@ export function BunkerSentimentVote({ lang }: Props) {
   return (
     <div className="mt-3 border-t border-white/10 pt-3">
       <div className="mb-2 flex items-baseline justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        <p className="text-micro font-semibold uppercase tracking-[0.14em] text-slate-400">
           {ko ? "벙커 감성지수" : "Bunker sentiment"}
         </p>
         {panic != null && snap && snap.total > 0 ? (
-          <p className="text-[11px] tabular-nums text-amber-200/90">
+          <p className="text-meta tabular-nums text-amber-200/90">
             {ko
               ? `요원 패닉 ${panic}% · ${snap.total}표`
               : `Agent panic ${panic}% · ${snap.total} votes`}
           </p>
         ) : (
-          <p className="text-[10px] text-slate-500">
+          <p className="text-micro text-slate-500">
             {ko ? "첫 표가 지수를 엽니다" : "Cast the first vote"}
           </p>
         )}
@@ -88,8 +88,8 @@ export function BunkerSentimentVote({ lang }: Props) {
           onClick={() => void vote("stable")}
           className={
             my === "stable"
-              ? "rounded-lg border border-emerald-400/60 bg-emerald-950/50 py-2 text-[11px] font-bold tracking-wide text-emerald-200"
-              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-[11px] font-semibold tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50"
+              ? "rounded-lg border border-emerald-400/60 bg-emerald-950/50 py-2 text-meta font-bold tracking-wide text-emerald-200"
+              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-meta font-semibold tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50"
           }
         >
           STABLE
@@ -100,8 +100,8 @@ export function BunkerSentimentVote({ lang }: Props) {
           onClick={() => void vote("bunker")}
           className={
             my === "bunker"
-              ? "rounded-lg border border-rose-400/60 bg-rose-950/50 py-2 text-[11px] font-bold tracking-wide text-rose-200"
-              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-[11px] font-semibold tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50"
+              ? "rounded-lg border border-rose-400/60 bg-rose-950/50 py-2 text-meta font-bold tracking-wide text-rose-200"
+              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-meta font-semibold tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50"
           }
         >
           HEAD TO BUNKER

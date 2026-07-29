@@ -3,6 +3,7 @@
 import { LanguagePickButtons } from "@/components/LanguagePickButtons";
 import { brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { useDialog } from "@/hooks/useDialog";
 
 type LanguageGateOverlayProps = {
   lang: LabelLanguage;
@@ -14,15 +15,19 @@ type LanguageGateOverlayProps = {
  * caution을 스킵한 재방문·개발 기본 ko에도 적용.
  */
 export function LanguageGateOverlay({ lang, onSelect }: LanguageGateOverlayProps) {
+  /** 언어 선택 게이트 — 고르지 않고 빠져나갈 수 없다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, closeOnEscape: false });
   return (
     <div
-      className="fixed inset-0 z-[10025] flex items-center justify-center overflow-y-auto bg-[#02040a]/96 p-4 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[800] flex items-center justify-center overflow-y-auto bg-[#02040a]/96 p-4 backdrop-blur-sm outline-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="lang-gate-title"
     >
       <div className="my-auto w-full max-w-md rounded-2xl border border-amber-400/25 bg-[#0a1428]/95 p-6 shadow-2xl sm:p-8">
-        <p className="text-center text-[11px] font-medium tracking-[0.28em] text-amber-200/65">
+        <p className="text-center text-meta font-medium tracking-[0.28em] text-amber-200/65">
           {brandName(lang)}
         </p>
         <h1
@@ -32,7 +37,7 @@ export function LanguageGateOverlay({ lang, onSelect }: LanguageGateOverlayProps
           Language
         </h1>
         <p className="mt-1.5 text-center text-sm text-slate-400">언어를 선택한 뒤 등불이 켜집니다</p>
-        <p className="mt-0.5 text-center text-[12px] text-slate-500">
+        <p className="mt-0.5 text-center text-caption text-slate-500">
           Choose a language before today&apos;s lamp briefing
         </p>
         <div className="mt-6">

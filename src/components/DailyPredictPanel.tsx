@@ -174,10 +174,10 @@ export function DailyPredictPanel({
   return (
     <div className="rounded-lg border border-amber-500/25 bg-slate-950/50 p-3 sm:col-span-2">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-300/90">
+        <h3 className="text-meta font-semibold uppercase tracking-[0.14em] text-amber-300/90">
           {ko ? `${GTI.ticker} · 내일의 긴장도` : `${GTI.ticker} · Tomorrow’s tension`}
         </h3>
-        <p className="text-[11px] tabular-nums text-slate-400">{pctLabel}</p>
+        <p className="text-meta tabular-nums text-slate-400">{pctLabel}</p>
       </div>
       <p className="mb-1 text-lg font-semibold leading-snug text-amber-50">
         {hitRate != null
@@ -186,7 +186,7 @@ export function DailyPredictPanel({
             : `${hitRate}% hit · ${tierLabel}`
           : tierLabel}
       </p>
-      <p className="mb-3 text-[11px] text-slate-500">
+      <p className="mb-3 text-meta text-slate-500">
         {ko ? `연속 ${streak}일` : `streak ${streak}d`}
         {status === "ok"
           ? ko
@@ -199,7 +199,7 @@ export function DailyPredictPanel({
             : ""}
       </p>
       {duelReady && myYesterdayPick && duelResult ? (
-        <p className="mb-3 text-[11px] leading-snug text-slate-400">
+        <p className="mb-3 text-meta leading-snug text-slate-400">
           {ko ? "어제 맞대결 · " : "Yesterday’s duel · "}
           <span className={myYesterdayPick === "up" ? "text-emerald-300" : "text-rose-300"}>
             {ko ? "나 " : "You "}
@@ -234,7 +234,7 @@ export function DailyPredictPanel({
           </span>
         </p>
       ) : null}
-      <p className="mb-3 text-[12px] leading-snug text-slate-300">{question}</p>
+      <p className="mb-3 text-caption leading-snug text-slate-300">{question}</p>
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -261,10 +261,10 @@ export function DailyPredictPanel({
           DOWN ↓
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-micro text-slate-500">
         <span className="tabular-nums text-slate-600">UTC {targetDate}</span>
       </div>
-      <p className="mt-2 text-[10px] leading-snug text-slate-600">
+      <p className="mt-2 text-micro leading-snug text-slate-600">
         {ko ? GTI.ethicsKo : GTI.ethicsEn}
       </p>
     </div>

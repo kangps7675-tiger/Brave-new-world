@@ -94,7 +94,7 @@ export function UserAnalyzeButton({ title, source, link, theater, excerpt }: Pro
         type="button"
         disabled={loading || !title}
         onClick={() => void run()}
-        className="rounded bg-violet-500/90 px-3 py-1.5 text-[11px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-violet-400"
+        className="rounded bg-violet-500/90 px-3 py-1.5 text-meta font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-violet-400"
       >
         {loading
           ? lang === "en"
@@ -104,10 +104,10 @@ export function UserAnalyzeButton({ title, source, link, theater, excerpt }: Pro
             ? "Analyze with my key"
             : "내 키로 분석"}
       </button>
-      {meta ? <p className="text-[10px] text-violet-300/55">{meta}</p> : null}
-      {error ? <p className="text-[11px] text-rose-300/90">{error}</p> : null}
+      {meta ? <p className="text-micro text-violet-300/55">{meta}</p> : null}
+      {error ? <p className="text-meta text-rose-300/90">{error}</p> : null}
       {text ? (
-        <pre className="whitespace-pre-wrap rounded border border-violet-400/15 bg-black/25 px-2.5 py-2 text-[12px] leading-5 text-violet-50/90">
+        <pre className="whitespace-pre-wrap rounded border border-violet-400/15 bg-black/25 px-2.5 py-2 text-caption leading-5 text-violet-50/90">
           {text}
         </pre>
       ) : null}

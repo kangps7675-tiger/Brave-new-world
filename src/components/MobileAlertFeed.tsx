@@ -82,7 +82,7 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
 
   return (
     <div
-      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[120] flex max-h-[55vh] flex-col rounded-t-2xl border-t border-sky-300/20 bg-[#050b18]/97 shadow-2xl backdrop-blur-xl"
+      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[600] flex max-h-[55vh] flex-col rounded-t-2xl border-t border-sky-300/20 bg-[#050b18]/97 shadow-2xl backdrop-blur-xl"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       role="dialog"
       aria-modal="false"
@@ -93,14 +93,14 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
       </div>
 
       <div className="flex shrink-0 items-center justify-between border-b border-sky-200/10 px-3.5 py-2.5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-100/85">
+        <p className="text-meta font-semibold uppercase tracking-[0.16em] text-sky-100/85">
           {lang === "en" ? "Alerts" : "알림"}
         </p>
         <button
           type="button"
           onClick={onClose}
           aria-label={lang === "en" ? "Close" : "닫기"}
-          className="tap-target flex min-h-[32px] min-w-[32px] items-center justify-center rounded-lg text-[13px] text-sky-200/70 transition hover:bg-white/5 hover:text-sky-50"
+          className="tap-target flex min-h-[32px] min-w-[32px] items-center justify-center rounded-lg text-body text-sky-200/70 transition hover:bg-white/5 hover:text-sky-50"
         >
           ✕
         </button>
@@ -124,7 +124,7 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
           >
             <div className="px-3 pb-1 pt-1">
               <span
-                className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                className={`text-micro font-semibold uppercase tracking-[0.14em] ${
                   isEconomy ? "text-emerald-200/80" : "text-amber-200/80"
                 }`}
               >
@@ -154,14 +154,14 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
         ) : null}
 
         {groups.length === 0 ? (
-          <p className="px-3 py-8 text-center text-[12px] text-slate-500">
+          <p className="px-3 py-8 text-center text-caption text-slate-500">
             {lang === "en" ? "No recent alerts." : "최근 알림이 없습니다."}
           </p>
         ) : (
           groups.map((group, index) => (
             <div key={group.theater} className="border-b border-white/5 last:border-b-0">
               <div className="px-3 pb-1 pt-2.5">
-                <span className="text-[11px] font-semibold text-sky-200/80">
+                <span className="text-meta font-semibold text-sky-200/80">
                   {theaterLabel(group.theater, lang)}
                 </span>
               </div>
@@ -179,7 +179,7 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg px-1.5 py-1.5 text-[12px] leading-snug text-slate-200 transition hover:bg-white/5"
+                      className="block rounded-lg px-1.5 py-1.5 text-caption leading-snug text-slate-200 transition hover:bg-white/5"
                     >
                       {item.title}
                     </a>

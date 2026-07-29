@@ -3,6 +3,7 @@
 import { BRAND_MOTIF, BRAND_NAME, BRAND_TAGLINE, brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
+import { useDialog } from "@/hooks/useDialog";
 
 type WelcomeBriefOverlayProps = {
   lang: LabelLanguage;
@@ -14,18 +15,22 @@ type WelcomeBriefOverlayProps = {
  * caution → domain 사이에 브랜드·취지 한 화면만 둔다.
  */
 export function WelcomeBriefOverlay({ lang, onContinue }: WelcomeBriefOverlayProps) {
+  /** 진입 게이트 — 계속하기를 눌러야 통과. Escape로 건너뛰면 안 된다 (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, closeOnEscape: false });
   const en = lang === "en";
 
   return (
     <div
-      className="entry-terminal-boot fixed inset-0 z-[10010] flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="entry-terminal-boot fixed inset-0 z-[800] flex items-center justify-center overflow-y-auto p-3 sm:p-4 outline-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-brief-brand"
     >
       <div className="entry-terminal-boot__scan" aria-hidden />
       <div className="entry-terminal-boot__panel relative my-auto w-full max-w-md">
-        <p className="text-center font-data-mono text-[9px] tracking-[0.28em] text-amber-400/55">
+        <p className="text-center font-data-mono text-micro tracking-[0.28em] text-amber-400/55">
           {BRAND_MOTIF[lang]}
         </p>
 
@@ -43,7 +48,7 @@ export function WelcomeBriefOverlay({ lang, onContinue }: WelcomeBriefOverlayPro
           {brandName(lang)}
         </h1>
         {!en ? (
-          <p className="mt-1.5 text-center font-data-mono text-[10px] tracking-[0.22em] text-slate-400">
+          <p className="mt-1.5 text-center font-data-mono text-micro tracking-[0.22em] text-slate-400">
             {BRAND_NAME.en}
           </p>
         ) : null}
@@ -52,11 +57,11 @@ export function WelcomeBriefOverlay({ lang, onContinue }: WelcomeBriefOverlayPro
           {BRAND_TAGLINE[lang]}
         </p>
 
-        <p className="mt-4 text-center text-[13px] leading-relaxed text-slate-300">
+        <p className="mt-4 text-center text-body leading-relaxed text-slate-300">
           {t("welcomeBriefBody", lang)}
         </p>
 
-        <p className="mt-5 text-center font-data-mono text-[10px] tracking-[0.12em] text-slate-500">
+        <p className="mt-5 text-center font-data-mono text-micro tracking-[0.12em] text-slate-500">
           {t("welcomeBriefQuote", lang)}
         </p>
 

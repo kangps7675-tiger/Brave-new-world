@@ -73,14 +73,14 @@ export function WorldTensionChip({
         title={t("worldTensionHint", lang)}
       >
         <span
-          className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
+          className={`text-micro font-semibold uppercase tracking-[0.12em] ${
             light ? "text-slate-700" : "text-slate-300/85"
           }`}
         >
           {t("worldTensionTitle", lang)}
         </span>
         <span
-          className={`text-[11px] font-medium tabular-nums ${
+          className={`text-meta font-medium tabular-nums ${
             light ? "text-slate-600" : "text-slate-400/70"
           }`}
         >
@@ -150,24 +150,24 @@ export function WorldTensionChip({
       </svg>
       <div className="flex flex-col leading-tight">
         <span
-          className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
+          className={`text-micro font-semibold uppercase tracking-[0.12em] ${
             light ? "text-slate-700" : "text-slate-300/85"
           }`}
         >
           {t("worldTensionTitle", lang)}
         </span>
-        <span className="text-[11px] font-medium tabular-nums" style={{ color }}>
+        <span className="text-meta font-medium tabular-nums" style={{ color }}>
           {clamped}
           <span className="opacity-60">/100</span> · {bandLabel}
         </span>
         {deltaLabel ? (
-          <span className={`text-[9px] ${light ? "text-slate-600" : "text-slate-400/70"}`}>
+          <span className={`text-micro ${light ? "text-slate-600" : "text-slate-400/70"}`}>
             {deltaLabel}
           </span>
         ) : null}
         {asOfLabel ? (
           <span
-            className={`text-[9px] tabular-nums ${light ? "text-slate-500" : "text-slate-400/45"}`}
+            className={`text-micro tabular-nums ${light ? "text-slate-500" : "text-slate-400/45"}`}
           >
             {lang === "en" ? "as of" : "기준"} {asOfLabel}
           </span>

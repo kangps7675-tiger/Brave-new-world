@@ -1,5 +1,36 @@
 # GlobeDashboard.tsx 분리 로드맵 + 작업 로그
 
+## 8단계: 화면 상태 파생 (`useScreenState`) (2026-07-29)
+
+- **`lib/screenState.ts`** (순수) + **`globe/hooks/useScreenState.ts`** (memo 래퍼).
+- **왜:** 7단계까지 줄 수는 10,885 → 7,971로 잘 줄었지만 **조건 중복은 그대로**였다.
+  게이트 변수 참조가 `entryGate` 62 · `isCompactUi` 56 · `showModePicker` 53 ·
+  `globeReady` 48 · `showLeftPanel` 42 · `isLoading` 38 · `intelSheetOpen` 33 —
+  **약 330회**. 호출부마다 "지금 이걸 보여도 되는가"를 다시 조합하고,
+  하나 빠뜨리면 조용히 겹침 버그가 된다.
+- **접근:** 상태를 옮기지 않는다. 기존 값 → *이름 붙은 판정*으로 바꾸는 순수 파생이라
+  회귀 위험이 낮고, 구식 조건과 공존하며 한 곳씩 옮길 수 있다.
+
+  ```
+  before  entryGate === null && !showModePicker && !intelSheetOpen
+  after   screen.canShowChrome
+  ```
+
+- 제공: `phase`(booting/gate/modePicker/map/layerPanel/intelSheet) ·
+  `mapInteractive` · `canShowChrome` · `canShowBanner` · `canShowOnboarding` ·
+  `canMeasurePerf` · `canRunFirstImpression` · `isGateOpen` / `isPanelOpen`
+- **판정 규칙 두 가지 주의점 (테스트로 고정):**
+  - `isLoading`은 `mapInteractive`에 넣지 않는다 — 데이터 재조회로 깜빡여서
+    지도가 매번 "조작 불가"로 잠깐 바뀐다.
+  - 온보딩은 배너보다 **한 단계 더 보수적** — 로딩 중 코치마크는
+    "아직 아무것도 안 보이는데 설명부터"가 된다.
+- 첫 적용: `useFirstImpressionController`(6항) · `useUltraLiteAutoOffer`(7항) —
+  같은 조합을 각각 다시 쓰던 두 곳을 `screen.canRunFirstImpression` /
+  `screen.canMeasurePerf`로 교체.
+- 테스트 `screenState.test.ts` 23건. 나머지 호출부는 점진 이관.
+
+---
+
 ## HTML overlay factory 배선 + 미사용 import 정리 (2026-07-28)
 
 - **`createDashboardHtmlOverlayElement`** (`src/components/globe/markers/createDashboardHtmlOverlayElement.ts`) —

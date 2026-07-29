@@ -1,8 +1,10 @@
 "use client";
 
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_NAME } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { useDialog } from "@/hooks/useDialog";
 import {
   emitBreakingDispatchSound,
   emitParchmentFoldSound,
@@ -111,8 +113,10 @@ export function ParchmentLetter({
   intelFont = false,
   blackInk = false,
   titleId = "parchment-letter-title",
-  zIndexClass = "z-[10000]",
+  zIndexClass = "z-[800]",
 }: ParchmentLetterProps) {
+  /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
   const [typedChars, setTypedChars] = useState(0);
   const bodyScrollRef = useRef<HTMLDivElement>(null);
@@ -153,8 +157,7 @@ export function ParchmentLetter({
     autoScrollFollowRef.current = true;
     setTypedChars(0);
     const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      prefersReducedMotion();
     if (reduced || totalChars === 0) {
       typingSkipRef.current = true;
       setTypedChars(totalChars);
@@ -248,8 +251,7 @@ export function ParchmentLetter({
     setPhase("folding");
     emitParchmentFoldSound();
     const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      prefersReducedMotion();
     window.setTimeout(() => {
       setPhase("done");
       onContinue();
@@ -260,6 +262,8 @@ export function ParchmentLetter({
 
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       className={`welcome-letter-scrim fixed inset-0 ${zIndexClass} flex items-center justify-center p-3 sm:p-6 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}

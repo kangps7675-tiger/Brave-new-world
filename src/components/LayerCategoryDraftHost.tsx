@@ -20,6 +20,12 @@ import { isUltraLiteHeavyRenderKey } from "@/lib/ultraLiteMode";
 import { useLocale } from "@/contexts/LocaleContext";
 import { t } from "@/lib/uiStrings";
 
+/**
+ * detail 뒤에 붙였던 상한 표시를 걷어내는 패턴.
+ * ko "· 상한 3/30" / en "· cap 3/30" 양쪽을 다 지워야 언어 전환 시 찌꺼기가 남지 않는다.
+ */
+const CAP_SUFFIX_PATTERN = / · (상한|cap) .*/i;
+
 function walkChecked(item: LayerToggleItem, map: Record<string, boolean>) {
   map[item.id] = item.checked;
   if (item.options?.length) {
@@ -121,15 +127,32 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
       const counted = key ? isLayerCapCountedKey(key) : false;
       const blocked = !isOn && atCap && counted;
       const heavy = ultraLite && isUltraLiteHeavyRenderKey(key);
+      const capSuffix = t("layerCapDetailSuffix", lang)
+        .replace("{active}", String(activeCount))
+        .replace("{cap}", String(cap));
+      const baseDetail = item.detail.replace(CAP_SUFFIX_PATTERN, "");
       return {
         ...item,
         checked: isOn,
-        disabled: item.disabled || blocked,
-        detail: blocked
-          ? `${item.detail.replace(/ · 상한.*/, "")} · 상한 ${activeCount}/${cap}`
-          : item.detail.replace(/ · 상한.*/, ""),
-        cautionTag: heavy ? t("layerClickCautionTag", lang) : item.cautionTag,
-        cautionHint: heavy ? t("layerClickCautionHint", lang) : item.cautionHint,
+        /**
+         * 상한에 걸린 항목을 `disabled`로 두지 않는다.
+         * disabled면 클릭이 아예 먹지 않아 **왜 안 되는지 알 방법이 없다** —
+         * 상한 표시는 10px로 잘려 있어 사실상 안 보인다.
+         * 대신 클릭을 받아 `applyItem`이 상한 경고를 띄우게 한다.
+         * (끄는 동작은 언제나 허용되므로 blocked는 OFF 항목에만 걸린다.)
+         */
+        disabled: item.disabled,
+        detail: blocked ? `${baseDetail} · ${capSuffix}` : baseDetail,
+        cautionTag: blocked
+          ? t("layerCapTag", lang)
+          : heavy
+            ? t("layerClickCautionTag", lang)
+            : item.cautionTag,
+        cautionHint: blocked
+          ? t("layerCapWarnBody", lang).replace("{cap}", String(cap))
+          : heavy
+            ? t("layerClickCautionHint", lang)
+            : item.cautionHint,
         onChange: (value: boolean) => applyItem(item.id, value),
       };
     },
@@ -202,12 +225,12 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
       {capWarn ? (
         <div
           role="alert"
-          className="rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-2.5 text-[12px] leading-relaxed text-amber-50"
+          className="rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-2.5 text-caption leading-relaxed text-amber-50"
         >
           <p className="font-semibold">{t("layerCapWarnTitle", lang)}</p>
           <p className="mt-1 text-amber-100/90">{warnBody}</p>
           {ultraLite ? (
-            <p className="mt-1 text-[11px] text-amber-200/70">{t("layerCapWarnUltra", lang)}</p>
+            <p className="mt-1 text-meta text-amber-200/70">{t("layerCapWarnUltra", lang)}</p>
           ) : null}
         </div>
       ) : null}
@@ -215,9 +238,9 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
         categories={wrappedCategories}
         batchStatus={
           batchStatus ??
-          (atCap
-            ? `활성 레이어 ${activeCount}/${cap} — 새 항목을 켜려면 하나를 끄세요${ultraLite ? " (Ultra-Lite)" : ""}`
-            : `활성 레이어 ${activeCount}/${cap}${ultraLite ? " · Ultra-Lite" : ""}`)
+          `${t(atCap ? "layerCapStatusFull" : "layerCapStatusOk", lang)
+            .replace("{active}", String(activeCount))
+            .replace("{cap}", String(cap))}${ultraLite ? " · Ultra-Lite" : ""}`
         }
         autoExpandCategoryId={autoExpandCategoryId}
         autoExpandWhen={autoExpandWhen}

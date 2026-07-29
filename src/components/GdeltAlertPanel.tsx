@@ -34,18 +34,18 @@ export function GdeltAlertPanel({
       className={
         fullPage
           ? "flex min-h-0 flex-1 flex-col"
-          : "pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[120] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md"
+          : "pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[600] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md"
       }
     >
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-orange-200/75">GDELT 뉴스 알림</p>
+          <p className="text-micro uppercase tracking-[0.24em] text-orange-200/75">GDELT 뉴스 알림</p>
           <p className="mt-0.5 text-xs text-orange-50/90">
             {selectionLabel ? `${selectionLabel} · 메뉴 핵심 뉴스` : "메뉴 연관 핵심 뉴스"}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-[10px] text-orange-100/80">
+          <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-micro text-orange-100/80">
             {liveStatus === "loading"
               ? "동기화 중"
               : liveStatus === "error"
@@ -101,10 +101,10 @@ export function GdeltAlertPanel({
                     <LocationPinIcon tier={alert.eventTier} size={16} fresh={fresh || marked} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-meta">
                       {marked ? (
                         <span
-                          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                          className={`rounded-full px-1.5 py-0.5 text-micro font-semibold ${
                             alert.importanceGrade === "S"
                               ? "border border-yellow-300/50 bg-yellow-400/20 text-yellow-100"
                               : "border border-orange-300/40 bg-orange-400/15 text-orange-100"
@@ -113,7 +113,7 @@ export function GdeltAlertPanel({
                           {gdeltImportanceShortLabel(alert.importanceGrade)}
                         </span>
                       ) : (
-                        <span className="rounded-full border border-orange-300/30 bg-orange-400/10 px-1.5 py-0.5 text-[10px] text-orange-100/90">
+                        <span className="rounded-full border border-orange-300/30 bg-orange-400/10 px-1.5 py-0.5 text-micro text-orange-100/90">
                           뉴스
                         </span>
                       )}
@@ -124,7 +124,7 @@ export function GdeltAlertPanel({
                         {TIER_LABELS[alert.eventTier]}
                       </span>
                       {fresh && (
-                        <span className="rounded-full bg-yellow-400/15 px-1.5 py-0.5 text-[10px] text-yellow-200">
+                        <span className="rounded-full bg-yellow-400/15 px-1.5 py-0.5 text-micro text-yellow-200">
                           최신
                         </span>
                       )}
@@ -132,10 +132,10 @@ export function GdeltAlertPanel({
                         <span className="text-slate-500">{alert.eventDate}</span>
                       )}
                     </span>
-                    <span className="mt-1 block truncate text-[11px] text-orange-100/70">
+                    <span className="mt-1 block truncate text-meta text-orange-100/70">
                       {regionTitle}
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                    <span className="mt-0.5 block truncate text-meta text-slate-400">
                       {alert.category}
                       {alert.actor1Country || alert.actor2Country
                         ? ` · ${alert.actor1Country || "?"} ↔ ${alert.actor2Country || "?"}`

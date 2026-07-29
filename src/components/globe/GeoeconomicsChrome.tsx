@@ -63,7 +63,7 @@ export function GeoeconomicsChrome({
             <button
               type="button"
               aria-label={t("ariaCloseEconomyRegion", labelLanguage)}
-              className="absolute inset-0 z-[119] bg-black/20 lg:bg-black/10"
+              className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
               onClick={onCloseEconNavSelection}
             />
             <EconomyRegionPanel

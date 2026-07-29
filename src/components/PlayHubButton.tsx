@@ -31,7 +31,7 @@ export function PlayHubButton({ lang, onPick }: Props) {
       </button>
 
       {open ? (
-        <div className="absolute bottom-11 right-0 z-[10026] w-56 overflow-hidden rounded-xl border border-amber-400/30 bg-[#0a1220]/96 shadow-2xl backdrop-blur-md">
+        <div className="absolute bottom-11 right-0 z-[800] w-56 overflow-hidden rounded-xl border border-amber-400/30 bg-[#0a1220]/96 shadow-2xl backdrop-blur-md">
           <button
             type="button"
             onClick={() => {
@@ -40,10 +40,10 @@ export function PlayHubButton({ lang, onPick }: Props) {
             }}
             className="block w-full border-b border-white/10 px-3 py-2.5 text-left transition hover:bg-amber-500/10"
           >
-            <span className="block text-[12px] font-semibold text-amber-100">
+            <span className="block text-caption font-semibold text-amber-100">
               {ko ? "여기 어디게" : "Where is this?"}
             </span>
-            <span className="mt-0.5 block text-[10px] text-slate-400">
+            <span className="mt-0.5 block text-micro text-slate-400">
               {ko ? "실제 전장 좌표 · 지구본 돌리기" : "Real theater coords · spin the globe"}
             </span>
           </button>
@@ -55,10 +55,10 @@ export function PlayHubButton({ lang, onPick }: Props) {
             }}
             className="block w-full px-3 py-2.5 text-left transition hover:bg-violet-500/10"
           >
-            <span className="block text-[12px] font-semibold text-violet-100">
+            <span className="block text-caption font-semibold text-violet-100">
               {ko ? "지정학 감각 테스트" : "Geopolitics sense"}
             </span>
-            <span className="mt-0.5 block text-[10px] text-slate-400">
+            <span className="mt-0.5 block text-micro text-slate-400">
               {ko ? "5문제 · 결과 카드 공유" : "5 questions · share your score"}
             </span>
           </button>

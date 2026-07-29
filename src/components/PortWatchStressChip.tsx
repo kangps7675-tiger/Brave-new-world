@@ -52,7 +52,7 @@ export function PortWatchStressChip({ lang, className = "" }: Props) {
       title={ko ? "IMF PortWatch · elevated 초크 수" : "IMF PortWatch · elevated chokes"}
     >
       <p
-        className={`text-[9px] font-semibold uppercase tracking-wider ${
+        className={`text-micro font-semibold uppercase tracking-wider ${
           light ? "text-violet-800" : "text-violet-200/80"
         }`}
       >
@@ -60,16 +60,16 @@ export function PortWatchStressChip({ lang, className = "" }: Props) {
       </p>
       <div className="mt-0.5 flex items-center gap-1.5">
         <span
-          className={`font-mono text-[12px] font-semibold tabular-nums ${
+          className={`font-mono text-caption font-semibold tabular-nums ${
             light ? "text-slate-800" : "text-slate-100"
           }`}
         >
           {summary.elevatedPlus}
-          <span className={`text-[10px] font-normal ${light ? "text-slate-600" : "text-slate-500"}`}>
+          <span className={`text-micro font-normal ${light ? "text-slate-600" : "text-slate-500"}`}>
             /{summary.totalChokes}
           </span>
         </span>
-        <span className={`rounded border px-1 py-px text-[9px] font-semibold ${bandTone}`}>
+        <span className={`rounded border px-1 py-px text-micro font-semibold ${bandTone}`}>
           {bandLabel}
         </span>
       </div>
