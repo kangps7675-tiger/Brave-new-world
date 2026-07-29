@@ -213,7 +213,7 @@ export function shipMovementTrailPaths(
             : `기사·관측 근거 추정 경로 — 실시간 AIS 아님. ${stopNote}`,
         vesselKey: sorted[0]!.vesselKey,
         stopCount: sorted.length,
-        navyCode: navyCode ?? undefined,
+        navyCode: navyCode ?? null,
       },
     });
   }
