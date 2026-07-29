@@ -90,8 +90,6 @@ export interface DashboardTopChromeProps {
     altitude: number;
     prefs: LayerPrefs;
   } | null;
-  setShowTrustPanel: Dispatch<SetStateAction<boolean>>;
-  setShowSourcesPanel: Dispatch<SetStateAction<boolean>>;
   setChromeCoachStep: Dispatch<SetStateAction<ChromeCoachStep | null>>;
   setShowFeatureGuide: Dispatch<SetStateAction<boolean>>;
 }
@@ -150,8 +148,6 @@ export function DashboardTopChrome({
   handleCompactChipSelect,
   globeRef,
   getSceneForShare,
-  setShowTrustPanel,
-  setShowSourcesPanel,
   setChromeCoachStep,
   setShowFeatureGuide,
 }: DashboardTopChromeProps) {

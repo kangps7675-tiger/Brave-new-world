@@ -107,6 +107,6 @@ export function warshipProfileIconSvg(
   );
 }
 
-export function surfaceCombatantGlowShadow(_fillColor: string = DEFAULT_FILL): string {
+export function surfaceCombatantGlowShadow(): string {
   return `0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(239,68,68,0.38)`;
 }

@@ -548,12 +548,7 @@ export function seedLampFeaturedNews(
  * 라이브 대형 사진 기사만 유지 — 이미지 없는 시드 패딩 금지.
  * (등불은 선명 사진 필수)
  */
-export function ensureLampFeaturedNews(
-  picked: LampFeaturedNews[],
-  _mode: "conflict" | "economy",
-  _lang: LabelLanguage,
-  _minCount = 1,
-): LampFeaturedNews[] {
+export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
   return picked.filter((n) => hasLampPhoto(n.imageUrl));
 }
 

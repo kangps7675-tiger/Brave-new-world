@@ -471,7 +471,6 @@ import {
   territorialEpisodeLat,
   territorialEpisodeLng,
   territorialEpisodeWarGeometry,
-  territorialParchmentParagraphs,
 } from "@/data/territorialDisputeDeep";
 import {
   territorialEpisodeById,
@@ -5987,8 +5986,6 @@ export function GlobeDashboard({
             isEconomy
               ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
               : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
-            isEconomy ? "economy" : "conflict",
-            labelLanguage,
           );
         }
       } catch {
@@ -6049,11 +6046,7 @@ export function GlobeDashboard({
             title: `${kicker}\n${focusTitle}`,
             macroTable,
             paragraphs: [],
-            featuredNews: ensureLampFeaturedNews(
-              prev.featuredNews ?? [],
-              "economy",
-              labelLanguage,
-            ),
+            featuredNews: ensureLampFeaturedNews(prev.featuredNews ?? []),
           };
         };
         if (lampWasFolded) {
@@ -7100,8 +7093,6 @@ export function GlobeDashboard({
         handleCompactChipSelect={handleCompactChipSelect}
         globeRef={globeRef}
         getSceneForShare={getSceneForShare}
-        setShowTrustPanel={setShowTrustPanel}
-        setShowSourcesPanel={setShowSourcesPanel}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
       />
