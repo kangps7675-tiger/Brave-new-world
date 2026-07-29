@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data, cached } = await cachedFetchJson("stock-tickers-v8-prevday", TTL_MS, fetchStockTickers);
+    const { data, cached } = await cachedFetchJson("stock-tickers-v9-40", TTL_MS, fetchStockTickers);
     return NextResponse.json(
       {
         receivedAt: new Date().toISOString(),

@@ -487,7 +487,7 @@ export function IntelRelatedMarketsPanel({
               return (
                 <section key={group.id}>
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {group.label}
+                    {lang === "en" ? group.labelEn : group.label}
                   </h3>
                   {loading && !tickers ? (
                     <SkeletonGrid count={items.length} />
