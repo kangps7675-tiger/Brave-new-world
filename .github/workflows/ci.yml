@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [dev, main]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -15,7 +19,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          # Match local lockfile generation (npm 11 / Node 24)
+          node-version: "24"
           cache: npm
 
       - name: Install
@@ -45,15 +50,17 @@ jobs:
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
-          # gitleaks 가 이력 전체를 훑을 수 있도록
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
 
       # 프로덕션 high/critical — Next 14 잠금 항목만 게이트 스크립트에서 allowlist.
@@ -64,7 +71,10 @@ jobs:
         run: npm audit || true
         continue-on-error: true
 
+      # gitleaks-action@v2 needs pull-requests:read for PR commits API;
+      # run the binary directly so contents:read is enough.
       - name: Secret scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz" \
+            | sudo tar xz -C /usr/local/bin gitleaks
+          gitleaks detect --source . --verbose --redact --no-banner
