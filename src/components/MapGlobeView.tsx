@@ -48,6 +48,7 @@ import {
 import {
   applyBasemapFog,
   applyBasemapGlobeProjection,
+  applyBasemapPlaceLabelScale,
   applyBasemapSpaceBackground,
   applyBasemapTerrain,
   AWS_TERRARIUM_ATTRIBUTION,
@@ -87,7 +88,8 @@ export interface MapGlobeViewProps {
 const INTERACTIVE_LAYERS = [
   "map-points",
   "map-gem-facilities",
-  "map-paths",
+  "map-paths-solid",
+  "map-paths-dashed",
   "map-polygons-fill",
   "map-rings",
   "firms-flame",
@@ -97,6 +99,10 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-combat-circle",
   "island-chains-bases",
 ] as const;
+
+function isMapPathsLayer(layerId: string): boolean {
+  return layerId === "map-paths-solid" || layerId === "map-paths-dashed";
+}
 
 /** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
 const CHINA_DASH_SEQUENCE: [number, number, number][] = [
@@ -176,8 +182,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
   const isLightBasemap = basemapMode === "terrain";
-  const labelHaloColor = isLightBasemap ? "rgba(255,255,255,0.92)" : "rgba(2,4,10,0.75)";
-  const labelHaloWidth = isLightBasemap ? 1.6 : 1;
+  const labelHaloColor = isLightBasemap ? "rgba(255,255,255,0.95)" : "rgba(2,4,10,0.75)";
+  const labelHaloWidth = isLightBasemap ? 2 : 1;
   const pointStrokeColor = isLightBasemap
     ? "rgba(255,255,255,0.9)"
     : "rgba(2,4,10,0.55)";
@@ -207,10 +213,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const [deferredPathsData, setDeferredPathsData] = useState(pathsData);
   const pathsContentKey = useMemo(() => {
     if (pathsData.length === 0) return "0";
-    const head = pathsData[0] as { id?: string } | undefined;
-    const mid = pathsData[Math.floor(pathsData.length / 2)] as { id?: string } | undefined;
-    const tail = pathsData[pathsData.length - 1] as { id?: string } | undefined;
-    return `${pathsData.length}:${head?.id ?? ""}:${mid?.id ?? ""}:${tail?.id ?? ""}`;
+    const head = pathsData[0] as { id?: string; kind?: string } | undefined;
+    const mid = pathsData[Math.floor(pathsData.length / 2)] as
+      | { id?: string; kind?: string }
+      | undefined;
+    const tail = pathsData[pathsData.length - 1] as { id?: string; kind?: string } | undefined;
+    let bri = 0;
+    let dfc = 0;
+    for (const raw of pathsData) {
+      const kind = (raw as { kind?: string } | undefined)?.kind;
+      if (kind === "bri-trade") bri += 1;
+      else if (kind === "us-dfc-supply") dfc += 1;
+    }
+    return `${pathsData.length}:b${bri}:d${dfc}:${head?.id ?? ""}:${mid?.id ?? ""}:${tail?.id ?? ""}`;
   }, [pathsData]);
 
   useEffect(() => {
@@ -608,6 +623,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
     };
 
     if (map.isStyleLoaded()) {
@@ -645,6 +661,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapFog(m, basemapMode);
       applyBasemapSpaceBackground(m);
       applyBasemapTerrain(m, basemapMode, { ultraLite });
+      applyBasemapPlaceLabelScale(m, basemapMode);
     };
 
     if (movingRef.current) {
@@ -694,6 +711,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapGlobeProjection(m);
       applyBasemapFog(m, basemapModeRef.current);
       applyBasemapSpaceBackground(m);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
     };
     sync();
     map.once("idle", sync);
@@ -710,7 +728,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (layerId === "firms-flame") {
         return firmsFiresData[index] ?? null;
       }
-      if (layerId === "map-paths") return deferredPathsData[index] ?? null;
+      if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
       if (layerId === "map-rings") return ringsData[index] ?? null;
       return null;
@@ -749,7 +767,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onPointClick?.(item);
           return;
         }
-        if (layerId === "map-paths") {
+        if (isMapPathsLayer(layerId)) {
           onPathClick?.(item);
           return;
         }
@@ -806,7 +824,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onPointHover?.(item);
           return;
         }
-        if (layerId === "map-paths") {
+        if (isMapPathsLayer(layerId)) {
           onPathHover?.(item);
           return;
         }
@@ -904,6 +922,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
     };
@@ -1217,19 +1236,35 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {pathsGeoJson.features.length > 0 ? (
           <Source id="map-paths-source" type="geojson" data={pathsGeoJson}>
+            {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등) */}
             <Layer
-              id="map-paths"
+              id="map-paths-solid"
               type="line"
+              filter={["<=", ["get", "dashLength"], 0]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
               paint={{
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
-                "line-opacity": 0.92,
-                "line-dasharray": [
-                  "case",
-                  [">", ["get", "dashLength"], 0],
-                  ["literal", [2, 1.2]],
-                  ["literal", [1, 0]],
-                ],
+                "line-opacity": 0.95,
+              }}
+            />
+            {/* 점선 — 고정 dasharray + 필터 (data-driven dash 회피) */}
+            <Layer
+              id="map-paths-dashed"
+              type="line"
+              filter={[">", ["get", "dashLength"], 0]}
+              layout={{
+                "line-cap": "butt",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.9,
+                "line-dasharray": [2, 1.2],
               }}
             />
           </Source>
@@ -1699,10 +1734,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 (enriched as { militaryKind?: string | null }).militaryKind ?? "",
               );
               const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
-              const surface =
+              // 수상함·잠수함·항모·위장선 — 모두 옆모습 E/W
+              const sideProfileHull =
                 disguised ||
                 ((enriched as { category?: string }).category === "military" &&
-                  milKind !== "carrier");
+                  milKind !== "" &&
+                  milKind !== "unknown");
               const headingRaw = Number(
                 (enriched as { courseOverGround?: number; trueHeading?: number })
                   .courseOverGround ??
@@ -1710,12 +1747,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   0,
               );
               const relHeading = (((headingRaw - mapBearingDeg) % 360) + 360) % 360;
-              const headingKey = surface
-                ? String(Math.round(relHeading / 45) * 45)
+              const headingKey = sideProfileHull
+                ? relHeading > 180
+                  ? "w"
+                  : "e"
                 : alignment === "map"
                   ? String(rotKey)
                   : "0";
-              const bearingKey = surface ? String(mapBearingDeg) : "0";
+              const bearingKey = sideProfileHull ? String(mapBearingDeg) : "0";
               // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
               const pitchAlignment = "viewport" as const;
               // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리

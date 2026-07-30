@@ -168,7 +168,7 @@ function MobileMarketRow({ item, lang }: { item: StockTickerItem; lang: LabelLan
         <p className="truncate text-[12.5px] font-semibold leading-tight text-slate-100">
           {tickerDisplayName(item.symbol, lang)}
         </p>
-        <p className="mt-0.5 truncate text-[10px] text-slate-600">{item.symbol}</p>
+        <p className="mt-0.5 truncate text-micro text-slate-600">{item.symbol}</p>
       </div>
       <div className="flex min-w-0 justify-center">
         <MobileTickerSparkline data={item.sparkline} tone={tone} />
@@ -177,7 +177,7 @@ function MobileMarketRow({ item, lang }: { item: StockTickerItem; lang: LabelLan
         <p className="text-[12.5px] font-semibold tabular-nums leading-tight text-slate-50">
           {formatTickerPrice(item.price)}
         </p>
-        <p className={`mt-0.5 text-[11px] tabular-nums leading-tight ${TONE_CLASS[tone]}`}>
+        <p className={`mt-0.5 text-meta tabular-nums leading-tight ${TONE_CLASS[tone]}`}>
           {formatTickerChangePercent(item.changePercent)}
         </p>
       </div>
@@ -781,14 +781,14 @@ export function MobileHomeView({
               <p className="text-xs font-semibold text-emerald-50">
                 {en ? "Markets desk" : "증시 데스크"}
               </p>
-              <p className="mt-0.5 text-[10px] text-slate-500">
+              <p className="mt-0.5 text-micro text-slate-500">
                 {en
                   ? "40 watchlist · sparkline · price & d/d on the right · ~12 min cache"
                   : "관심종목 40 · 추세 그래프 · 우측 가격·전일대비 · 약 12분 캐시"}
               </p>
             </div>
             {marketGroups.length === 0 ? (
-              <div className="overflow-hidden rounded-xl border border-emerald-300/20 bg-[#071225]/85 px-3 py-6 text-center text-[12px] text-slate-500">
+              <div className="overflow-hidden rounded-xl border border-emerald-300/20 bg-[#071225]/85 px-3 py-6 text-center text-caption text-slate-500">
                 {en ? "Loading market data…" : "증시 데이터 불러오는 중…"}
               </div>
             ) : (
@@ -798,7 +798,7 @@ export function MobileHomeView({
                   className="overflow-hidden rounded-xl border border-emerald-300/15 bg-[#071225]/85"
                 >
                   <div className="border-b border-white/[0.07] px-3 py-1.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-200/70">
+                    <p className="text-micro font-semibold uppercase tracking-wider text-emerald-200/70">
                       {en ? group.labelEn : group.label}
                     </p>
                   </div>

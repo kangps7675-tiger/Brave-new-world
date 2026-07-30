@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
  * 비공식 정적 피드 — User-Agent에 사이트 식별 명시(익명 크롤러 위장 금지).
  */
 const TTL_MS = 6 * 60 * 60 * 1000;
-const CACHE_KEY = "gpsjam:h3_4";
+const CACHE_KEY = "gpsjam:h3_4:lookback10";
 const GPSJAM_CDN = publicCacheHeaders(CDN_CACHE.gpsjam);
 const ATTRIBUTION =
   "GPS interference: GPSJam.org (John Wiseman) · ADS-B Exchange";
@@ -53,16 +53,23 @@ async function fetchCsv(daysAgo: number): Promise<{ date: string; text: string }
   return { date, text };
 }
 
+/** 전일부터 거슬러 올라가며 가장 최근 가용 CSV 사용 (발행 지연·공백일 대비) */
+const LOOKBACK_DAYS = 10;
+
 async function loadSnapshot(): Promise<GpsJamSnapshot> {
-  // 전일 우선, 발행 지연 시 전전일 폴백
-  let hit = await fetchCsv(1);
+  let hit: { date: string; text: string } | null = null;
   let daysAgo = 1;
-  if (!hit) {
-    hit = await fetchCsv(2);
-    daysAgo = 2;
+  for (let ago = 1; ago <= LOOKBACK_DAYS; ago += 1) {
+    hit = await fetchCsv(ago);
+    if (hit) {
+      daysAgo = ago;
+      break;
+    }
   }
   if (!hit) {
-    throw new Error("GPSJam CSV unavailable for yesterday and day-before");
+    throw new Error(
+      `GPSJam CSV unavailable for the last ${LOOKBACK_DAYS} UTC days (gpsjam.org/data)`,
+    );
   }
   const cells = parseGpsJamCsv(hit.text); // MIN_AIRCRAFT + low 제외
   return {

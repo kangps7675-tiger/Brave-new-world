@@ -9,6 +9,7 @@ import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { UiFontBoot } from "@/components/UiFontBoot";
 import { GameShellGuard } from "@/components/GameShellGuard";
 import { UI_FONT_BOOT_SCRIPT } from "@/lib/fontPrefs";
+import { SITE_URL, absoluteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
 /** Wanted Sans — jsDelivr 가변 동적 서브셋 (OFL) https://github.com/wanteddev/wanted-sans */
@@ -100,36 +101,37 @@ const sbAgro = localFont({
   display: "swap",
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://confilct-view.vercel.app";
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "멋진 신세계",
+  title: "멋진 신세계 — The war and the money, on one globe",
   description:
-    "Aldous Huxley 《Brave New World》를 모티브로—전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+    "전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대. A 3D globe that overlays live conflict data with the trade, shipping and energy routes it disrupts.",
+  alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     type: "website",
-    siteName: "멋진 신세계",
-    title: "멋진 신세계 — 3D 지구본 관측대",
+    siteName: "멋진 신세계 / Brave New World",
+    title: "멋진 신세계 — The war and the money, on one globe",
     description:
-      "전쟁과 이익이 같은 지도를 공유한다. 지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+      "지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본. Live conflict, shipping, energy and market layers on a single interactive globe.",
     url: "/",
     locale: "ko_KR",
+    // 영어권이 1차 타깃이므로 대체 로케일을 명시한다.
+    // (스크레이퍼가 ko_KR 하나만 보고 한국어 전용으로 분류하는 걸 막는다.)
+    alternateLocale: ["en_US"],
     images: [
       {
         url: "/brand/og-1200x630.png",
         width: 1200,
         height: 630,
-        alt: "멋진 신세계 — 전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대",
+        alt: "Brave New World — a 3D globe overlaying war and trade",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "멋진 신세계 — 3D 지구본 관측대",
+    title: "멋진 신세계 — The war and the money, on one globe",
     description:
-      "지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본.",
+      "Live conflict, shipping, energy and market layers on a single interactive 3D globe.",
     images: ["/brand/og-1200x630.png"],
   },
   icons: {

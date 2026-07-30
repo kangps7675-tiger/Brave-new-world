@@ -94,7 +94,7 @@ function ConflictLegendBody({
           <span
             className="carrier-legend-deck-swatch shrink-0"
             dangerouslySetInnerHTML={{
-              __html: carrierDeckIconSvg("deployed", { width: 30, height: 13 }),
+              __html: carrierDeckIconSvg({ width: 42, height: 24 }),
             }}
           />
           <span className="rounded-full border border-red-400/40 bg-red-500/20 px-2 py-0.5 text-micro font-medium text-red-100">

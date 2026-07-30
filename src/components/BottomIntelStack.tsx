@@ -19,7 +19,6 @@ import {
   interestTheaterScores,
   sortNewsByInterest,
 } from "@/lib/interest/applyFromInterest";
-import { LivingTaiwanFollowChip } from "@/components/LivingConflictPanel";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
 import {
   shouldOpenBreakingFlash,
@@ -458,8 +457,6 @@ type IntelCompactBarProps = {
   onFlyToTheater?: (theater: NewsTheater) => void;
   /** 맞춤 칩 → 레이어 ON */
   onEnableLayer?: (layerKey: string) => void;
-  /** 대만해협 진행형 패널 열기 */
-  onOpenLivingTaiwan?: () => void;
 };
 
 function TodayHotspotChip({
@@ -626,7 +623,6 @@ export function DynamicIntelStack({
   onOpenSheet,
   onFlyToTheater,
   onEnableLayer,
-  onOpenLivingTaiwan,
 }: IntelCompactBarProps) {
   const { lang, t } = useLocale();
   const { payload, preferEconomyNews, theaterFilter } = useNewsStreamContext();
@@ -899,10 +895,6 @@ export function DynamicIntelStack({
           onOpen={handleTodayOpen}
           onDismiss={handleTodayDismiss}
         />
-      ) : null}
-
-      {!fabOnly && !dockCollapsed && !isEconomy && onOpenLivingTaiwan ? (
-        <LivingTaiwanFollowChip lang={lang} onOpen={onOpenLivingTaiwan} />
       ) : null}
 
       {!fabOnly && !dockCollapsed ? (

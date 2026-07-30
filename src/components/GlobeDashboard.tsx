@@ -303,6 +303,7 @@ import {
   resolveHotTheaterFocus,
   type HotTheaterFocus,
 } from "@/lib/hotTheaterLayers";
+import { resolveTensionCutNav } from "@/lib/tensionSpikeCut";
 import {
   markInterestSoftApplyToday,
   resolveInterestSoftApply,
@@ -3955,6 +3956,12 @@ export function GlobeDashboard({
   const [globeLabels, setGlobeLabels] = useState(rawGlobeLabels);
   const [globePaths, setGlobePaths] = useState(rawGlobePaths);
 
+  // DFC/BRI 토글 직후 throttle 게이트를 우회해 즉시 경로 반영
+  useEffect(() => {
+    if (!showBriTradeConnectivity && !showUsDfcSupplyChain) return;
+    setGlobePaths([...rawGlobePaths]);
+  }, [showBriTradeConnectivity, showUsDfcSupplyChain, rawGlobePaths]);
+
   const dynamicGlobePaths = useMemo(() => rawGlobePaths, [rawGlobePaths]);
 
   const heatmapStabilityRef = useRef<{ signature: string; points: number; updatedAt: number }>({
@@ -6295,7 +6302,7 @@ export function GlobeDashboard({
     markHotTheaterSessionApplied();
   }, []);
 
-  // 대만 해협 긴장 스파이크 → 컷 오퍼 (프로토타입)
+  // 핫 전장·초크 긴장 스파이크 → 렌즈 컷 오퍼
   const { tensionSpike, dismissTensionSpike } = useTensionSpikeCut({
     enabled: !isEconomyViewer,
     blocked: entryGate !== null || showModePicker || Boolean(airRaidBriefing) || issueUiPausedForLamp,
@@ -6304,18 +6311,21 @@ export function GlobeDashboard({
 
   const onTensionSpikeJump = useCallback(
     (destination: TensionCutDestination) => {
+      if (!tensionSpike) {
+        dismissTensionSpike();
+        return;
+      }
+      const target = resolveTensionCutNav(tensionSpike.entityId, destination);
       const selection =
-        destination === "market"
-          ? econNavSelectionFromId("taiwan-chip")
-          : destination === "route"
-            ? econNavSelectionFromId("taiwan-strait-econ")
-            : navSelectionFromId("taiwan-strait");
+        (target.economyNavId ? econNavSelectionFromId(target.economyNavId) : null) ??
+        (target.conflictNavId ? navSelectionFromId(target.conflictNavId) : null);
       if (selection) {
         flyToBounds(selection, 1100, "overview");
       }
       dismissTensionSpike();
+      markHotTheaterSessionApplied();
     },
-    [dismissTensionSpike, flyToBounds],
+    [dismissTensionSpike, flyToBounds, tensionSpike],
   );
 
   // 일 1회: 관심 프로필 soft 레이어 ON만 (끄기 없음 · 프리셋 픽커 없음)
@@ -7525,9 +7535,6 @@ export function GlobeDashboard({
                   const themeId = themeByLayer[layerKey] ?? layerKey;
                   recordInterestTheme(themeId, layerKey, 1.1);
                 }}
-                onOpenLivingTaiwan={
-                  isEconomyViewer ? undefined : () => setLivingTaiwanOpen(true)
-                }
               />
             </div>
           );
@@ -7669,10 +7676,15 @@ export function GlobeDashboard({
         ukmtoBriefing={ukmtoBriefing}
         navareaBriefing={navareaBriefing}
         tensionSpike={tensionSpike}
-        onDismissTensionSpike={dismissTensionSpike}
+        onDismissTensionSpike={() => {
+          dismissTensionSpike();
+          markHotTheaterSessionApplied();
+        }}
         onTensionSpikeJump={onTensionSpikeJump}
         hotTheaterOffer={
-          firstImpression.suppressHotTheaterOffer ? null : hotTheaterOffer
+          tensionSpike || firstImpression.suppressHotTheaterOffer
+            ? null
+            : hotTheaterOffer
         }
         onAcceptHotTheaterOffer={acceptHotTheaterOffer}
         onDismissHotTheaterOffer={dismissHotTheaterOffer}

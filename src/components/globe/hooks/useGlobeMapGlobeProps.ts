@@ -284,7 +284,7 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "mil") return "rgba(248, 113, 113, 0.92)";
       if (point.displayKind === "ais") {
         if (point.category === "military") {
-          const hex = aisMilitaryMapPointColor(point.militaryKind);
+          const hex = aisMilitaryMapPointColor();
           const r = parseInt(hex.slice(1, 3), 16);
           const g = parseInt(hex.slice(3, 5), 16);
           const b = parseInt(hex.slice(5, 7), 16);
@@ -972,8 +972,8 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "recon-orbit") return 1.35;
       if (path.kind === "neptun-projection") return 1.05;
       if (path.kind === "axis-link") return 1.35;
-      if (path.kind === "bri-trade") return briTradeStrokeWidth(path);
-      if (path.kind === "us-dfc-supply") return usDfcSupplyStrokeWidth(path);
+      if (path.kind === "bri-trade") return Math.max(2.4, briTradeStrokeWidth(path));
+      if (path.kind === "us-dfc-supply") return Math.max(2.4, usDfcSupplyStrokeWidth(path));
       if (path.kind === "coastline") return 0.38;
       if (path.kind === "country-border") {
         return globeTextures.vectorBase
@@ -1053,6 +1053,8 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "lsib-boundary") {
         return (path.scalerank ?? 1) >= 2 ? 0.3 : 0;
       }
+      // DFC·BRI는 MapLibre에서 점선 data-driven이 얇게/안 보이는 경우가 있어 실선 유지
+      if (path.kind === "bri-trade" || path.kind === "us-dfc-supply") return 0;
       return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
     },
     pathDashGap: (path: TransportPath) => {

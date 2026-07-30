@@ -4,6 +4,7 @@ import {
   SURFACE_COMBATANT_PROFILE_SIZE,
   SURFACE_COMBATANT_VIEWBOX,
   surfaceCombatantAspectFromRelativeHeading,
+  surfaceCombatantFacingFromRelativeHeading,
   surfaceCombatantRelativeHeading,
   type SurfaceCombatantAspect,
   type SurfaceCombatantIconSize,
@@ -13,15 +14,16 @@ const DEFAULT_FILL = "#0c0c0e";
 
 export {
   surfaceCombatantAspectFromRelativeHeading,
+  surfaceCombatantFacingFromRelativeHeading,
   surfaceCombatantRelativeHeading,
   SURFACE_COMBATANT_PROFILE_SIZE,
   type SurfaceCombatantAspect,
 };
 
 /**
- * 화면 상대 침로에 맞는 8방위 수상전투함 실루엣.
+ * 화면 상대 침로에 맞는 수상전투함 실루엣.
  * 호위·구축·초계·순양·미분류 군함 공용 (항모·잠수함 제외).
- * N=俯視, E/W=아이콘형 옆모습(+웨이크), 대각=3/4.
+ * AIS 지도는 옆모습(E/W)만 — 조감·대각 미사용.
  */
 export function surfaceCombatantIconSvg(
   fillColor: string = DEFAULT_FILL,

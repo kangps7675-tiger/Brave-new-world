@@ -21,6 +21,8 @@ export const MAX_ANGULAR_LINE_WIDTH_PX = 26;
 
 /** 해저 케이블만 — 줌인 시 가늘어짐. 송유관·가스관은 일반 path (줌인해도 보이도록). */
 const CABLE_KINDS = new Set(["submarine-cable"]);
+/** DFC·BRI 등 경제 연결 호 — 전 줌에서 최소 굵기 유지 */
+const FLOW_ARC_KINDS = new Set(["bri-trade", "us-dfc-supply", "axis-link"]);
 
 /**
  * 해저 케이블 — 일반 path와 반대:
@@ -38,49 +40,80 @@ function angularToPixelRadius(angular: number, zoom: number): number {
   return Math.min(MAX_ANGULAR_POINT_RADIUS_PX, Math.max(2, angular * Math.pow(2, zoom - 0.5) * 14));
 }
 
-/** MapLibre paint — 줌 중에도 끊김 없이 점 크기 추적 (GeoJSON 재빌드 불필요) */
-export const CIRCLE_RADIUS_BY_ZOOM: ZoomExpr = [
-  "min",
-  MAX_ANGULAR_POINT_RADIUS_PX,
-  [
-    "max",
-    2,
-    [
-      "*",
-      ["get", "angularRadius"],
-      ["*", ["^", 2, ["-", ["zoom"], 0.5]], 14],
-    ],
-  ],
-];
+/**
+ * ⚠️ MapLibre 표현식 규칙 (실측으로 발견한 버그, 2026-07-29)
+ *
+ * `["zoom"]`은 **최상위 `interpolate`/`step`의 직접 입력**으로만 쓸 수 있다.
+ * 산술식 안에 중첩하면 `addLayer`가 검증에서 던지고 **레이어가 지도에 아예
+ * 올라가지 않는다.** 프로덕션 콘솔에 이 에러가 반복 기록되고 있었다:
+ *
+ *   layers.map-paths.paint.line-width: "zoom" expression may only be used as
+ *   input to a top-level "step" or "interpolate" expression.
+ *
+ * 이전 코드는 `["*", ["^", 2, ["-", ["zoom"], 0.5]], 14]`처럼 zoom을 중첩해서
+ * 썼다. TypeScript는 `ZoomExpr = any`라 못 잡고, tsc·vitest·build도 전부
+ * 통과한다 — **런타임 스타일 검증에서만 드러난다.**
+ *
+ * ── 수정 방식 ──────────────────────────────────────────────────────
+ * 최상위 `interpolate`로 바꾸고, **각 줌 스톱의 출력값**에서 feature 속성
+ * (`angularRadius` 등)과 클램프를 계산한다. 스톱을 정수 줌마다 두면
+ * 원래 곡선(2^zoom 지수 증가 + min/max 클램프)을 사실상 그대로 재현한다.
+ *
+ * 클램프를 interpolate **밖**에 두면(`["min", MAX, [interpolate…]]`) zoom이
+ * 최상위가 아니게 되어 **같은 에러가 난다.** 반드시 스톱 안쪽에 둘 것.
+ */
 
-export const RING_RADIUS_BY_ZOOM: ZoomExpr = [
-  "min",
+/** 줌 스톱 — 지구본에서 실제로 쓰이는 범위 */
+const ZOOM_STOPS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22];
+
+/**
+ * `clamp(min, max, featureProp × k × 2^(zoom − offset))`를
+ * 스펙에 맞는 최상위 interpolate로 만든다.
+ */
+function angularScaleByZoom(
+  featureProp: string,
+  k: number,
+  offset: number,
+  floor: number,
+  ceil: number,
+): ZoomExpr {
+  const stops: unknown[] = [];
+  for (const z of ZOOM_STOPS) {
+    const factor = k * Math.pow(2, z - offset);
+    stops.push(z, [
+      "min",
+      ceil,
+      ["max", floor, ["*", ["get", featureProp], factor]],
+    ]);
+  }
+  return ["interpolate", ["linear"], ["zoom"], ...stops];
+}
+
+/** MapLibre paint — 줌 중에도 끊김 없이 점 크기 추적 (GeoJSON 재빌드 불필요) */
+export const CIRCLE_RADIUS_BY_ZOOM: ZoomExpr = angularScaleByZoom(
+  "angularRadius",
+  14,
+  0.5,
+  2,
   MAX_ANGULAR_POINT_RADIUS_PX,
-  [
-    "max",
-    2,
-    [
-      "*",
-      ["get", "angularRadius"],
-      ["*", ["^", 2, ["-", ["zoom"], 0.5]], 14],
-    ],
-  ],
-];
+);
+
+export const RING_RADIUS_BY_ZOOM: ZoomExpr = angularScaleByZoom(
+  "angularRadius",
+  14,
+  0.5,
+  2,
+  MAX_ANGULAR_POINT_RADIUS_PX,
+);
 
 /** 일반 path 굵기 */
-export const LINE_WIDTH_BY_ZOOM: ZoomExpr = [
-  "min",
+export const LINE_WIDTH_BY_ZOOM: ZoomExpr = angularScaleByZoom(
+  "strokeAngular",
+  5.5,
+  2,
+  0.35,
   MAX_ANGULAR_LINE_WIDTH_PX,
-  [
-    "max",
-    0.35,
-    [
-      "*",
-      ["get", "strokeAngular"],
-      ["*", ["^", 2, ["-", ["zoom"], 2]], 5.5],
-    ],
-  ],
-];
+);
 
 /** 케이블 — 멀리 굵고 가까이 가늘게 (줌인에서도 최소 굵기 유지) */
 export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
@@ -93,51 +126,127 @@ export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   0.55,
 ];
 
-export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
-  "case",
-  ["==", ["get", "widthMode"], "cable"],
-  CABLE_LINE_WIDTH_BY_ZOOM,
-  LINE_WIDTH_BY_ZOOM,
+/** DFC·BRI·축 연결 — 멀리서도 안 사라지게 바닥 굵기 */
+export const FLOW_ARC_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  1,
+  2.4,
+  3,
+  2.8,
+  6,
+  3.4,
+  10,
+  2.6,
 ];
+
+/** 위 두 테이블을 JS에서 평가 — 스톱 안쪽에 상수로 박기 위해 */
+function lerpTable(stops: Array<[number, number]>, z: number): number {
+  if (z <= stops[0]![0]) return stops[0]![1];
+  const last = stops[stops.length - 1]!;
+  if (z >= last[0]) return last[1];
+  for (let i = 0; i < stops.length - 1; i += 1) {
+    const [z0, v0] = stops[i]!;
+    const [z1, v1] = stops[i + 1]!;
+    if (z >= z0 && z <= z1) {
+      const t = z1 === z0 ? 0 : (z - z0) / (z1 - z0);
+      return v0 + (v1 - v0) * t;
+    }
+  }
+  return last[1];
+}
+
+const CABLE_TABLE: Array<[number, number]> = [
+  [1.2, 2.6],
+  [9, 0.55],
+];
+const FLOW_TABLE: Array<[number, number]> = [
+  [1, 2.4],
+  [3, 2.8],
+  [6, 3.4],
+  [10, 2.6],
+];
+
+/**
+ * ⚠️ 중첩 순서가 중요하다.
+ *
+ * 이전 코드는 `case` **안에** zoom interpolate를 넣었다:
+ *   ["case", …, CABLE_LINE_WIDTH_BY_ZOOM, …]   ← zoom이 최상위가 아님 = 위반
+ *
+ * 그래서 `interpolate`를 밖으로 빼고 각 줌 스톱 **안에서** `case`로 분기한다.
+ * 케이블·flow는 feature 속성과 무관한 순수 줌 함수라 JS에서 미리 평가해
+ * 스칼라로 박고, 기본 path만 feature 속성(`strokeAngular`)을 쓴다.
+ */
+export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = (() => {
+  const stops: unknown[] = [];
+  for (const z of ZOOM_STOPS) {
+    const defaultFactor = 5.5 * Math.pow(2, z - 2);
+    stops.push(z, [
+      "case",
+      ["==", ["get", "widthMode"], "cable"],
+      lerpTable(CABLE_TABLE, z),
+      ["==", ["get", "widthMode"], "flow"],
+      lerpTable(FLOW_TABLE, z),
+      [
+        "min",
+        MAX_ANGULAR_LINE_WIDTH_PX,
+        ["max", 0.35, ["*", ["get", "strokeAngular"], defaultFactor]],
+      ],
+    ]);
+  }
+  return ["interpolate", ["linear"], ["zoom"], ...stops];
+})();
 
 export const LABEL_TEXT_SIZE_BY_ZOOM: ZoomExpr = [
-  "max",
-  9,
-  ["*", ["get", "baseSize"], ["^", 2, ["*", ["-", ["zoom"], 2], 0.12]]],
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  // baseSize는 예전 globe °(≈0.06–0.15) — px로 환산하지 않으면 max(9,…)에 항상 걸림
+  2,
+  ["max", 12, ["*", ["get", "baseSize"], 100]],
+  6,
+  ["max", 14, ["*", ["get", "baseSize"], 120]],
+  10,
+  ["max", 16, ["*", ["get", "baseSize"], 145]],
+  13,
+  ["max", 18, ["*", ["get", "baseSize"], 165]],
 ];
 
-export const LABEL_DOT_RADIUS_BY_ZOOM: ZoomExpr = [
-  "max",
-  1.5,
-  ["*", ["get", "baseDotRadius"], ["^", 2, ["*", ["-", ["zoom"], 2], 0.1]]],
+/** 도시 라벨 점 — zoom이 `^`/`*` 안에 있어 같은 위반이었다 (위 주석 참조) */
+export const LABEL_DOT_RADIUS_BY_ZOOM: ZoomExpr = (() => {
+  const stops: unknown[] = [];
+  for (const z of ZOOM_STOPS) {
+    const factor = Math.pow(2, (z - 2) * 0.1);
+    stops.push(z, ["max", 1.5, ["*", ["get", "baseDotRadius"], factor]]);
+  }
+  return ["interpolate", ["linear"], ["zoom"], ...stops];
+})();
+
+/**
+ * FIRMS — 기준 배율 × 줌.
+ * 이전 코드는 zoom interpolate를 `*`/`max`/`min` **안에** 넣어 위반이었다.
+ * 줌 계수는 feature와 무관하므로 JS에서 평가해 스톱에 상수로 박는다.
+ */
+const FIRMS_ZOOM_TABLE: Array<[number, number]> = [
+  [1.5, 0.55],
+  [4, 1],
+  [7, 1.35],
+  [10, 1.55],
 ];
 
-/** FIRMS — 기준 배율 × 줌. 재빌드 없이 연속 스케일 */
-export const FIRMS_ICON_SIZE_BY_ZOOM: ZoomExpr = [
-  "min",
-  0.72,
-  [
-    "max",
-    0.22,
-    [
-      "*",
-      ["get", "iconSizeFactor"],
-      [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        1.5,
-        0.55,
-        4,
-        1,
-        7,
-        1.35,
-        10,
-        1.55,
-      ],
-    ],
-  ],
-];
+export const FIRMS_ICON_SIZE_BY_ZOOM: ZoomExpr = (() => {
+  const stops: unknown[] = [];
+  for (const z of ZOOM_STOPS) {
+    const factor = lerpTable(FIRMS_ZOOM_TABLE, z);
+    stops.push(z, [
+      "min",
+      0.72,
+      ["max", 0.22, ["*", ["get", "iconSizeFactor"], factor]],
+    ]);
+  }
+  return ["interpolate", ["linear"], ["zoom"], ...stops];
+})();
 
 export function buildPointsGeoJson<T>(
   items: T[],
@@ -190,7 +299,12 @@ export function buildPathsGeoJson<T>(
       const pts = accessors.points(item);
       if (!pts || pts.length < 2) return [];
       const kind = accessors.kind?.(item);
-      const widthMode = kind && CABLE_KINDS.has(kind) ? "cable" : "angular";
+      const widthMode =
+        kind && CABLE_KINDS.has(kind)
+          ? "cable"
+          : kind && FLOW_ARC_KINDS.has(kind)
+            ? "flow"
+            : "angular";
       return [
         {
           type: "Feature" as const,
@@ -205,6 +319,7 @@ export function buildPathsGeoJson<T>(
             widthMode,
             dashLength: accessors.dashLength(item),
             dashGap: accessors.dashGap(item),
+            kind: kind ?? "",
           },
         },
       ];

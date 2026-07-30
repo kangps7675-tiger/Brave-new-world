@@ -40,7 +40,19 @@ const LOUD_ONESHOT_IDS = new Set<AudioEventId>([
   "frontline-fpv-detonation",
   "firms-combat-burst",
 ]);
+/** 전선 포격·총성 — regional LOD 진입부터 크게 들리게 */
+const FRONTLINE_ONESHOT_HARD_CAP = 0.9;
+const FRONTLINE_ONESHOT_IDS = new Set<AudioEventId>([
+  "frontline-gunfire",
+  "frontline-gunfire-distant-auto",
+  "frontline-bombing",
+  "frontline-artillery-shot",
+  "frontline-mlrs",
+  "frontline-fpv-drone",
+]);
 const AMBIENT_HARD_CAP = 0.22;
+/** 전선 rumble 베드만 상한 상향 */
+const FRONTLINE_AMBIENT_HARD_CAP = 0.42;
 
 /** altitude 높을수록(멀수록) 작음 · 줌인일수록 커짐 */
 export function zoomVolumeFactor(altitude: number): number {
@@ -67,9 +79,13 @@ export function scaledSoundVolume(
   const factor = zoomVolumeFactor(alt);
   const raw = baseVolume * factor;
   const cap = AMBIENT_ZOOM_IDS.has(eventId)
-    ? AMBIENT_HARD_CAP
+    ? eventId === "frontline-artillery-ambient"
+      ? FRONTLINE_AMBIENT_HARD_CAP
+      : AMBIENT_HARD_CAP
     : LOUD_ONESHOT_IDS.has(eventId)
       ? LOUD_ONESHOT_HARD_CAP
-      : ONE_SHOT_HARD_CAP;
+      : FRONTLINE_ONESHOT_IDS.has(eventId)
+        ? FRONTLINE_ONESHOT_HARD_CAP
+        : ONE_SHOT_HARD_CAP;
   return Math.min(cap, Math.max(0, raw));
 }

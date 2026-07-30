@@ -13,6 +13,7 @@ import { BRAND_NAME } from "@/lib/brand";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { isArticleUrl } from "@/lib/news/articleLink";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import { formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
 import { useDialog } from "@/hooks/useDialog";
@@ -224,8 +225,8 @@ function PhotoNewsLampParchment({
       )}
       <p className="mt-4 px-1 text-meta leading-relaxed text-[#5a4428]/65">
         {lang === "en"
-          ? "Summaries are at least ~300 characters. Open → for the full article."
-          : "요약은 약 300자 이상입니다. 원문은 → 로 이동합니다."}
+          ? "Summaries are at least ~300 characters. Open 「Article」 for the full source piece."
+          : "요약은 약 300자 이상입니다. 개별 원문은 「원문」으로 이동합니다."}
       </p>
     </>
   );
@@ -487,20 +488,29 @@ function PhotoNewsLampParchment({
                               ) : null}
                             </div>
                             <div className="flex shrink-0 flex-col items-center justify-center gap-2 self-center">
-                              <a
-                                href={item.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center rounded-full border border-[#8b6914]/4 bg-[#efe0b8] px-3 py-3 text-[#3d2a18] transition hover:bg-[#f7ecd0] sm:px-4"
-                                aria-label={
-                                  lang === "en" ? `Open: ${item.title}` : `보러가기: ${item.title}`
-                                }
-                                title={lang === "en" ? "Open article" : "보러가기"}
-                              >
-                                <span className="text-xl leading-none sm:text-2xl" aria-hidden>
-                                  →
+                              {isArticleUrl(item.link) ? (
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center rounded-full border border-[#8b6914]/4 bg-[#efe0b8] px-3 py-2.5 text-caption font-medium tracking-[0.06em] text-[#3d2a18] transition hover:bg-[#f7ecd0] sm:px-4"
+                                  aria-label={
+                                    lang === "en"
+                                      ? `Open article: ${item.title}`
+                                      : `원문 보기: ${item.title}`
+                                  }
+                                  title={lang === "en" ? "Open article" : "원문"}
+                                >
+                                  {lang === "en" ? "Article" : "원문"}
+                                </a>
+                              ) : (
+                                <span
+                                  className="max-w-[4.5rem] text-center text-micro leading-snug text-[#6b4a22]/65"
+                                  title={item.source}
+                                >
+                                  {item.source}
                                 </span>
-                              </a>
+                              )}
                             </div>
                           </div>
                         </article>
@@ -522,8 +532,8 @@ function PhotoNewsLampParchment({
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
-                        ? "No clear photo deep-desk cards in this slot — fold and reopen after the next 6-hour refresh."
-                        : "이 슬롯에 선명 사진·심층 데스크 카드가 없습니다. 접었다가 다음 6시간 갱신 후 다시 펼쳐 보세요."}
+                        ? "This 6-hour slot lacks photo-backed article cards. Fold and reopen after the next refresh (0 / 6 / 12 / 18)."
+                        : "이번 6시간 슬롯에 사진 있는 원문 카드가 부족합니다. 접었다가 다음 갱신(0·6·12·18시) 후 다시 펼쳐 보세요."}
                     </p>
                   )}
 

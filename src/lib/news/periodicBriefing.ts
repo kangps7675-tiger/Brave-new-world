@@ -9,6 +9,7 @@ import {
   isChokepointNews,
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
+import { isArticleUrl } from "@/lib/news/articleLink";
 import { normalizeLampImageUrl, hasLampPhoto } from "@/lib/news/lampThumbnail";
 import { isJapanGeopoliticsNews } from "@/lib/news/japanGeopolitics";
 import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
@@ -22,7 +23,8 @@ import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
  * - 모드 키 = `daily-YYYY-MM-DD-{conflict|economy}`
  * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
  * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
- * - 등불 카드 썸네일 = RSS 사진 또는 CSS 그라데이션 면 (SVG 없음)
+ * - 등불 카드 = 선명 사진 + 개별 원문 URL (섹션/종합 링크·시드 패딩 금지)
+ * - RSS 이미지 없으면 서버가 기사 og:image로 보강; 그래도 없으면 빈 데스크
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
  */
 
@@ -41,7 +43,7 @@ export type LampFeaturedNews = {
   title: string;
   /** 등불용 요약본 (본문 전체가 아님) */
   summary: string;
-  /** RSS http(s) 이미지. 없으면 UI가 CSS 그라데이션 면으로 채움 */
+  /** RSS/og http(s) 이미지 — 등불 픽에서는 필수 */
   imageUrl: string;
   link: string;
   source: string;
@@ -384,172 +386,13 @@ function pickKoreanLines(lines: string[], limit = 2): string[] {
 }
 
 /**
- * 라이브 뉴스가 비었을 때도 양피지 개봉 즉시 큰 히어로+심층 요약이 보이도록.
- * imageUrl 빈 문자열 → UI가 지역/장르 컬러 면(대형)으로 채움.
- */
-export function seedLampFeaturedNews(
-  mode: "conflict" | "economy",
-  lang: LabelLanguage,
-): LampFeaturedNews[] {
-  const ko = lang !== "en";
-  if (mode === "economy") {
-    return [
-      {
-        id: "seed-econ-oil",
-        title: ko
-          ? "원유·호르무즈 초크포인트 — 운임과 위험 프리미엄이 동시에 움직이는 구간"
-          : "Oil & Hormuz chokepoint — freight and risk premium move together",
-        summary: ko
-          ? "보고드립니다. 중동 해상 통로와 유조선 보험·운임은 지정학 긴장과 직결됩니다. 유가가 하루 단위로 흔들릴 때, 시장은 재고·수요보다 해협 통과 리스크와 대체 경로 비용을 먼저 가격에 반영합니다. 아시아 수입국은 재고 버퍼와 장기 계약 비중을 재점검하고, 정유·항공·해운 섹터는 헤지와 스프레드에 민감하게 반응합니다. 금일 데스크는 초크포인트 뉴스를 유가·운임 시계열과 함께 읽어, 단기 급등과 구조적 병목을 구분합니다. 다음 갱신은 6시간 슬롯입니다."
-          : "Briefing. Middle East sea lanes and tanker insurance/freight track geopolitical tension directly. When oil swings intraday, markets price strait-risk and diversion costs before inventory/demand. Asian importers revisit buffers and term contracts; refining, aviation, and shipping react via hedges and spreads. Today's desk reads chokepoint news with oil and freight series to separate spikes from structural bottlenecks. Next refresh in the 6-hour slot.",
-        imageUrl: "",
-        link: "https://www.reuters.com/business/energy/",
-        source: "Desk",
-        trustTier: 1,
-        theater: "middle-east",
-        econGenre: "energy",
-        focusLabel: ko ? "에너지 · 호르무즈" : "Energy · Hormuz",
-      },
-      {
-        id: "seed-econ-chip",
-        title: ko
-          ? "반도체·AI 설비 투자 — 미·중·한·대만 공급망이 주가와 환율을 같이 흔든다"
-          : "Semiconductors & AI capex — US·China·Korea·Taiwan chains move equities and FX together",
-        summary: ko
-          ? "보고드립니다. AI 수요가 설비 투자를 끌어올리면서 메모리·파운드리·장비 축의 실적 가시성이 높아졌습니다. 동시에 수출 통제·보조금·대만해협 리스크가 밸류에이션 할인으로 남습니다. 원화·대만달러는 반도체 사이클과 동행하는 경우가 많아, 단순 지수 상승만으로 안심하기 어렵습니다. 금일 시장 등불은 업종 리더 실적과 정책 헤드라인을 한 화면에 두고, 단기 모멘텀과 중기 공급 과잉 신호를 분리해 읽습니다."
-          : "Briefing. AI demand lifts capex visibility across memory, foundry, and equipment — while export controls, subsidies, and Taiwan-strait risk keep a valuation discount. KRW and TWD often track the chip cycle, so index strength alone is not comfort. Today's market lamp places sector leaders beside policy headlines to separate short momentum from mid-cycle oversupply signals.",
-        imageUrl: "",
-        link: "https://www.reuters.com/technology/",
-        source: "Desk",
-        trustTier: 1,
-        theater: "china-taiwan",
-        econGenre: "tech",
-        focusLabel: ko ? "반도체 · AI" : "Semis · AI",
-      },
-      {
-        id: "seed-econ-rates",
-        title: ko
-          ? "금리·달러·신흥국 자금흐름 — 연준 경로가 원자재와 국채를 동시에 재가격"
-          : "Rates, dollar, EM flows — Fed path reprices commodities and sovereign debt together",
-        summary: ko
-          ? "보고드립니다. 실질금리와 달러 강세는 신흥국 통화·원자재·하이일드 스프레드를 한꺼번에 움직입니다. 인플레 재가속 우려가 남아 있으면 완화 기대만으로 위험자산이 안정되기 어렵습니다. 금일 데스크는 국채 곡선, DXY, 구리·원유를 나란히 두고 ‘성장 둔화 vs 금융 여건 긴축’ 중 어느 쪽이 지배적인지 판별합니다. 투자 조언이 아니라, 교차 자산이 같은 충격을 어떻게 전달하는지에 초점을 둡니다."
-          : "Briefing. Real rates and a firm dollar move EM FX, commodities, and HY spreads as one package. If re-acceleration risk lingers, easing hopes alone rarely stabilize risk assets. Today's desk aligns the curve, DXY, copper, and oil to tell growth-slowdown from financial tightening. Not advice — a map of how the same shock transmits across assets.",
-        imageUrl: "",
-        link: "https://www.reuters.com/markets/",
-        source: "Desk",
-        trustTier: 1,
-        theater: "europe",
-        econGenre: "markets",
-        focusLabel: ko ? "금리 · 달러" : "Rates · USD",
-      },
-      {
-        id: "seed-econ-freight",
-        title: ko
-          ? "컨테이너·벌크 운임 — 홍해·수에즈 우회가 재고와 납기에 남긴 잔상"
-          : "Container & bulk freight — Red Sea / Suez diversions still imprint inventory and lead times",
-        summary: ko
-          ? "보고드립니다. 우회 항로는 운임을 일시적으로 끌어올릴 뿐 아니라 재고 정책과 납기 약속을 바꿉니다. 운임이 내려와도 리드타임·보험·공컨테이너 배치가 늦게 남으면 마진 압박이 이어집니다. 금일 물류 데스크는 스팟 운임과 계약 운임의 괴리, 주요 항만 적체를 함께 보고, ‘일시 급등’과 ‘구조적 우회 비용’을 구분합니다."
-          : "Briefing. Diversions lift spot freight and rewrite inventory and delivery promises. Even after spots ease, lead times, insurance, and box repositioning can lag and squeeze margins. Today's logistics desk pairs spot vs contract rates with port congestion to separate transient spikes from structural diversion costs.",
-        imageUrl: "",
-        link: "https://www.reuters.com/business/",
-        source: "Desk",
-        trustTier: 1,
-        theater: "middle-east",
-        econGenre: "shipping",
-        focusLabel: ko ? "해운 · 물류" : "Shipping · Logistics",
-      },
-    ];
-  }
-
-  return [
-    {
-      id: "seed-geo-ukraine",
-      title: ko
-        ? "우크라이나 전선 — 드론·포병 소모전이 전선 고정과 외교 시간을 동시에 만든다"
-        : "Ukraine front — drone/artillery attrition freezes lines and buys (or burns) diplomatic time",
-      summary: ko
-        ? "보고드립니다. 전선이 크게 움직이지 않아도 소모전은 인력·탄약·방공 재고를 매일 깎아 냅니다. 그 공백이 외교 테이블의 레버리지로 이어지거나, 반대로 추가 지원 지연의 명분이 됩니다. 금일 지정학 데스크는 전선 이벤트와 서방 지원·제재 뉴스를 한 묶음으로 읽고, ‘전술 소강’과 ‘전략 교착’을 구분합니다. 사진은 라이브 피드를 우선하고, 없을 때는 전장 컬러 면으로 맥락을 유지합니다."
-        : "Briefing. Even without big advances, attrition burns manpower, shells, and air-defense stocks daily. That gap becomes leverage at the table — or a pretext for delayed support. Today's geopolitics desk reads frontline events with Western aid and sanctions as one packet, separating tactical lull from strategic stalemate. Live photos when available; theater color fields otherwise.",
-      imageUrl: "",
-      link: "https://www.reuters.com/world/europe/",
-      source: "Desk",
-      trustTier: 1,
-      theater: "russia-ukraine",
-      focusLabel: ko ? "우크라이나 · 전선" : "Ukraine · Front",
-    },
-    {
-      id: "seed-geo-mideast",
-      title: ko
-        ? "중동 다축 긴장 — 공습·억류·해협 리스크가 에너지와 동맹 신호를 같이 흔든다"
-        : "Multi-axis Middle East tension — strikes, seizures, and strait risk move energy and alliance signals together",
-      summary: ko
-        ? "보고드립니다. 단발 교전과 확전 우려는 유조선 보험·항공 회랑·미군 배치 뉴스를 동시에 끌어올립니다. 금일 데스크는 전장 단위 속보를 ‘지역 확전 가능성’과 ‘억지 시그널’로 재분류하고, 한반도·인도태평양 동맹 일정과 겹치는 지점을 표시합니다. 심층 요약은 헤드라인 한 줄이 아니라 누가·어디서·무엇을·왜가 보이게 300자 이상으로 정리합니다."
-        : "Briefing. Single clashes and escalation fears lift tanker insurance, air corridors, and US posture news together. Today's desk reclassifies theater flashes into escalation risk vs deterrence signal, flagging overlaps with ROK and Indo-Pacific alliance calendars. Deep copy keeps who/where/what/why visible beyond a one-line headline.",
-      imageUrl: "",
-      link: "https://www.reuters.com/world/middle-east/",
-      source: "Desk",
-      trustTier: 1,
-      theater: "middle-east",
-      focusLabel: ko ? "중동 · 억지" : "MENA · Deterrence",
-    },
-    {
-      id: "seed-geo-taiwan",
-      title: ko
-        ? "대만해협·동중국해 — 군사 훈련과 외교 수사가 공급망 할인을 유지한다"
-        : "Taiwan Strait & ECS — drills and diplomatic wording keep a supply-chain discount",
-      summary: ko
-        ? "보고드립니다. 훈련 공지·해상민병·외교 성명은 단기 시장 변동보다 중기 공급망 할인으로 남습니다. 금일 데스크는 군사 활동과 반도체·해운 뉴스를 교차해, ‘훈련 루틴’과 ‘위기 신호’를 구분합니다. 일본·한국 관련 키워드는 내정이 아니라 안보·해양·동맹 맥락만 남깁니다."
-        : "Briefing. Drill notices, maritime militia, and diplomatic wording outlast short market swings as a mid-cycle supply-chain discount. Today's desk crosses military activity with semis and shipping to separate routine drills from crisis signals. Japan/Korea keywords stay in security, maritime, and alliance context — not domestic politics.",
-      imageUrl: "",
-      link: "https://www.reuters.com/world/china/",
-      source: "Desk",
-      trustTier: 1,
-      theater: "china-taiwan",
-      focusLabel: ko ? "대만 · 동맹" : "Taiwan · Alliance",
-      isDiplomacy: true,
-      matterHook: ko
-        ? "해협 긴장 → 반도체·해운 할인 — 「왜 중요?」로 지도 맥락"
-        : "Strait tension → semis/shipping discount — Why it matters for the map",
-    },
-    {
-      id: "seed-geo-korea",
-      title: ko
-        ? "한반도·동북아 — 억제 태세와 동맹 일정이 국내 뉴스와 분리돼 읽혀야 한다"
-        : "Korean Peninsula & Northeast Asia — deterrence posture must be read apart from domestic noise",
-      summary: ko
-        ? "보고드립니다. 미사일·연합훈련·확장억제 메시지는 국내 정치 이슈와 섞이면 신호가 흐려집니다. 금일 지정학 데스크는 적대 행위자 발언·군사 활동·동맹 일정을 우선 배치하고, 사회·연예성 헤드라인은 제외합니다. 독자가 지도에서 ‘어디에 힘이 모이는지’를 바로 보게 하는 것이 목적입니다."
-        : "Briefing. Missile, combined-drill, and extended-deterrence messages blur when mixed with domestic politics. Today's geopolitics desk prioritizes adversary statements, military activity, and alliance calendars — excluding celebrity/social headlines. Goal: let the map show where force is concentrating.",
-      imageUrl: "",
-      link: "https://www.reuters.com/world/asia-pacific/",
-      source: "Desk",
-      trustTier: 1,
-      theater: "korea",
-      focusLabel: ko ? "한반도 · 억제" : "Korea · Deterrence",
-    },
-    {
-      id: "seed-geo-sahel",
-      title: ko
-        ? "사헬·아프리카 안보 — ‘잊힌 전선’이 이주·자원·외세 주둔으로 다시 연결된다"
-        : "Sahel & African security — a ‘forgotten front’ reconnects via migration, resources, and foreign basing",
-      summary: ko
-        ? "보고드립니다. 헤드라인 순위에서 밀려도 쿠데타·무장세력·외세 주둔은 유럽 이주 압력과 자원 공급망에 남습니다. 금일 데스크는 사헬·홍해 연선을 중동·유럽 일정과 함께 읽어, 단절된 지역 뉴스가 아니게 만듭니다. 심층 요약으로 행위자·지점·이해관계를 분명히 합니다."
-        : "Briefing. Even when buried in rankings, coups, armed groups, and foreign basing still feed European migration pressure and resource chains. Today's desk reads Sahel–Red Sea arcs with Middle East and Europe calendars so regional flashes stay connected. Deep copy clarifies actors, places, and stakes.",
-      imageUrl: "",
-      link: "https://www.reuters.com/world/africa/",
-      source: "Desk",
-      trustTier: 2,
-      theater: "africa",
-      focusLabel: ko ? "사헬 · 안보" : "Sahel · Security",
-    },
-  ];
-}
-
-/**
- * 라이브 대형 사진 기사만 유지 — 이미지 없는 시드 패딩 금지.
- * (등불은 선명 사진 필수)
+ * 라이브 대형 사진 + 개별 원문 URL만 유지.
+ * 섹션/종합 링크·무사진 시드 패딩 금지.
  */
 export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
-  return picked.filter((n) => hasLampPhoto(n.imageUrl));
+  return picked.filter(
+    (n) => hasLampPhoto(n.imageUrl) && isArticleUrl(n.link),
+  );
 }
 
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
@@ -1333,9 +1176,10 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  // 사진 필수 · 지정학 전용 전장·오피니언 제외
+  // 사진 + 개별 원문 필수 · 지정학 전용 전장·오피니언 제외
   const pool = items.filter((item) => {
     if (!hasLampPhoto(item.imageUrl)) return false;
+    if (!isArticleUrl(item.link)) return false;
     if (isGeopoliticsOnlyTheater(item.theater)) return false;
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (isEconomyOpinionPiece(blob, item.publisher || item.source)) return false;
@@ -1370,6 +1214,7 @@ export function pickEconomyLampNews(
   const tryPush = (row: ScoredLampNews, relax = false): boolean => {
     const item = row.item;
     if (!hasLampPhoto(item.imageUrl)) return false;
+    if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
 
@@ -2064,7 +1909,9 @@ export function pickConflictLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, CONFLICT_LAMP_NEWS_MIN);
-  const pool = items.filter((item) => hasLampPhoto(item.imageUrl));
+  const pool = items.filter(
+    (item) => hasLampPhoto(item.imageUrl) && isArticleUrl(item.link),
+  );
 
   const clusterMap = new Map<string, number>();
   for (const item of pool) {
@@ -2090,6 +1937,7 @@ export function pickConflictLampNews(
   const tryPush = (row: ScoredConflictNews, relax = false): boolean => {
     const item = row.item;
     if (!hasLampPhoto(item.imageUrl)) return false;
+    if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
 

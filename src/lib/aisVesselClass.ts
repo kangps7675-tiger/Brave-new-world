@@ -191,9 +191,9 @@ export function usesSurfaceCombatantDeckIcon(
   return true;
 }
 
-/** 8방위 실루엣 표지 (수상전투함·잠수함) */
+/** 옆모습 실루엣 표지 (수상전투함·잠수함·항모) */
 export function isAisAspectHullMarker(kind: AisMilitaryKind | null | undefined): boolean {
-  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine";
+  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine" || kind === "carrier";
 }
 
 export function militaryKindLabel(
@@ -290,41 +290,23 @@ export function aisCommercialPointColor(shipType: number | null | undefined): st
   }
 }
 
-/** AIS 수상전투함 HTML 실루엣 — 검정 채움 + 약한 빨간 글로우 */
+/** AIS 군함 HTML 실루엣 공용 — 검정 채움 + 약한 빨간 글로우 */
 export const AIS_SURFACE_COMBATANT_FILL = "#0c0c0e";
+/** @deprecated 동일 상수 — 군함 공용 채움 */
+export const AIS_WARSHIP_FILL = AIS_SURFACE_COMBATANT_FILL;
 
 /** 줌아웃 MapLibre 점용 — 검은 실루엣과 짝을 이루는 연한 빨강 틴트 */
 export const AIS_SURFACE_COMBATANT_POINT = "#f87171";
+export const AIS_WARSHIP_POINT = AIS_SURFACE_COMBATANT_POINT;
 
-/** 함종별 포인트/실루엣 틴트 (군함) */
-export function aisMilitaryKindColor(kind: AisMilitaryKind | null | undefined): string {
-  if (isAisSurfaceCombatant(kind)) return AIS_SURFACE_COMBATANT_FILL;
-  switch (kind) {
-    case "submarine":
-      return "#7c3aed";
-    case "amphibious":
-      return "#eab308";
-    case "carrier":
-      return "#fbbf24";
-    case "patrol":
-      return "#f43f5e";
-    case "auxiliary":
-      return "#94a3b8";
-    case "law-enforcement":
-      return "#38bdf8";
-    default:
-      return AIS_SURFACE_COMBATANT_FILL;
-  }
+/** 군함 실루엣/포인트 틴트 — 함종 무관, 검정 통일 */
+export function aisMilitaryKindColor(): string {
+  return AIS_WARSHIP_FILL;
 }
 
-/** MapLibre circle 등 — 수상전투함은 점이 안 묻히게 연한 빨강 */
-export function aisMilitaryMapPointColor(
-  kind: AisMilitaryKind | null | undefined,
-): string {
-  if (isAisSurfaceCombatant(kind) || kind == null || kind === "unknown") {
-    return AIS_SURFACE_COMBATANT_POINT;
-  }
-  return aisMilitaryKindColor(kind);
+/** MapLibre circle — 군함은 점이 안 묻히게 연한 빨강 */
+export function aisMilitaryMapPointColor(): string {
+  return AIS_WARSHIP_POINT;
 }
 
 export function parseAisClassFilter(raw: string | null): AisClassFilter {

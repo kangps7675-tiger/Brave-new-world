@@ -7,6 +7,7 @@ import { LocationPinIcon } from "@/components/LocationPinIcon";
 import type { NavSelection } from "@/data/navRegions";
 import { useLocale } from "@/contexts/LocaleContext";
 import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
+import { formatGdeltNewsHeadline } from "@/lib/gdeltNewsAlert";
 
 type RegionNewsPanelProps = {
   selection: NavSelection;
@@ -83,12 +84,15 @@ export function RegionNewsPanel({
                   <LocationPinIcon tier={event.eventTier} size={16} className="mt-0.5 shrink-0" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2 text-xs">
-                      <span className="font-medium text-slate-100">
+                      <span className="shrink-0 text-slate-500">
                         {TIER_LABELS[event.eventTier]}
                       </span>
                       {event.eventDate && (
                         <span className="text-slate-500">{event.eventDate}</span>
                       )}
+                    </span>
+                    <span className="mt-1 block text-body font-medium leading-snug text-slate-100 line-clamp-2">
+                      {formatGdeltNewsHeadline(event)}
                     </span>
                     <span className="mt-1 block text-xs leading-5 text-slate-400">
                       {localizedDisplayText(localizedMap, `cat:${event.id}`, event.category)}

@@ -53,7 +53,7 @@ import { CHINA_THEATER_DYAD_LABEL, CHINA_THEATER_SEA_LABEL } from "@/data/chinaT
 import { KOREA_MISSILE_ANCHOR_LABEL, KOREA_MISSILE_KIND_LABEL } from "@/data/koreaMissileIncidentsSeed";
 import { RUSSIA_STRIKE_KIND_LABEL } from "@/data/russiaStrikeIncidentsSeed";
 import { ACLED_HOME_URL, HAPI_ATTRIBUTION, HAPI_SOURCE_LINE } from "@/lib/hapiConflictCasualties";
-import { gdeltNewsAlertLabel } from "@/lib/gdeltNewsAlert";
+import { gdeltNewsAlertLabel, formatGdeltNewsHeadline } from "@/lib/gdeltNewsAlert";
 import { gdeltLocationTagLabel } from "@/lib/gdeltLocationTags";
 import { reconCountryLabel, reconSensorLabel } from "@/lib/reconSatellites";
 import { isFreshEvent } from "@/data/eventTiers";
@@ -427,7 +427,7 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
       return {
         kind: "event",
         badge: gdeltNewsAlertLabel(lang),
-        title: hoveredPoint.title || hoveredPoint.category || HOVER.gdeltNews(lang),
+        title: formatGdeltNewsHeadline(hoveredPoint),
         detail: [
           gdeltLocationTagLabel(hoveredPoint.eventTier, lang),
           hoveredPoint.hapiTag ? `HAPI · ${hoveredPoint.hapiTag}` : null,
@@ -458,7 +458,7 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
       return {
         kind: "event",
         badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
-        title: hoveredPoint.title || hoveredPoint.category || HOVER.gdeltNews(lang),
+        title: formatGdeltNewsHeadline(hoveredPoint),
         detail: gdeltLocationTagLabel(hoveredPoint.eventTier, lang),
         meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" · ") || undefined,
         hint: HOVER.hintView(lang),
@@ -468,7 +468,7 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
     return {
       kind: "event",
       badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
-      title: hoveredPoint.title || `Event ${hoveredPoint.globalEventId}`,
+      title: formatGdeltNewsHeadline(hoveredPoint),
       detail: `${eventTierLabel(hoveredPoint.eventTier, lang)}${
         isFreshEvent(hoveredPoint) ? HOVER.freshBreaking(lang) : ""
       }`,

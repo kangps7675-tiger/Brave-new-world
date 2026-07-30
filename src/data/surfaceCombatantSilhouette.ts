@@ -89,6 +89,14 @@ export function surfaceCombatantAspectFromRelativeHeading(
   return SURFACE_COMBATANT_ASPECTS[idx]!;
 }
 
+/** AIS 지도 표지 — 조감(N)·대각 대신 좌/우 옆모습만 */
+export function surfaceCombatantFacingFromRelativeHeading(
+  relativeHeadingDeg: number,
+): "e" | "w" {
+  const h = ((relativeHeadingDeg % 360) + 360) % 360;
+  return h > 180 ? "w" : "e";
+}
+
 /** heading·bearing → 화면 상대 침로 */
 export function surfaceCombatantRelativeHeading(
   headingDeg: number | null | undefined,

@@ -27,6 +27,12 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: MapLibre expression guard
+        run: npm run verify:maplibre
+
+      - name: UI token baseline
+        run: npm run verify:ui-tokens
+
       - name: Product spec SSOT
         run: npm run verify:product-spec
 

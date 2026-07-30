@@ -100,7 +100,7 @@ export function emitParchmentFoldSound() {
   });
 }
 
-/** regional = 멀리(포격) · close = near+village 통일(총성+포격+드론) */
+/** regional = 멀리(포격 위주+총성) · close = near+village (총성+포격 밀집) */
 type FrontlineSoundLod = "regional" | "close";
 
 type WeightedPick = {
@@ -108,27 +108,29 @@ type WeightedPick = {
   weight: number;
 };
 
-/** LOD별 원샷 가중치 풀 */
+/** LOD별 원샷 가중치 풀 — regional부터 포격·총성 모두 가동 */
 const FRONTLINE_POOL_BY_LOD: Record<FrontlineSoundLod, WeightedPick[]> = {
-  /** 멀리 — 포격 위주 + 짧고 음량 들쭉날쭉한 폭격 스팅 · 총성 없음 · FPV 희귀 */
+  /** regional(전선 LOD 진입점) — 포격 중심 + 총성 상시 */
   regional: [
-    { id: "frontline-artillery-shot", weight: 4 },
-    { id: "neptun-impact", weight: 5 },
-    { id: "frontline-bombing", weight: 1 },
-    { id: "frontline-mlrs", weight: 1 },
+    { id: "frontline-artillery-shot", weight: 7 },
+    { id: "neptun-impact", weight: 4 },
+    { id: "frontline-bombing", weight: 3 },
+    { id: "frontline-mlrs", weight: 2 },
+    { id: "frontline-gunfire", weight: 3 },
+    { id: "frontline-gunfire-distant-auto", weight: 3 },
     { id: "frontline-fpv-drone", weight: 1 },
   ],
   /**
-   * 가까이(near·village 동일) — 예전 village 풀:
-   * 총성 2종 + 포격·폭격·MLRS·FPV가 같이 들림. near 이탈(→ regional/상위)까지 연속.
+   * 가까이(near·village) — 총성 더 밀집 + 포격 병행.
    */
   close: [
-    { id: "frontline-gunfire", weight: 4 },
-    { id: "frontline-gunfire-distant-auto", weight: 3 },
-    { id: "frontline-artillery-shot", weight: 2 },
-    { id: "frontline-bombing", weight: 1 },
-    { id: "frontline-mlrs", weight: 1 },
-    { id: "frontline-fpv-drone", weight: 3 },
+    { id: "frontline-gunfire", weight: 6 },
+    { id: "frontline-gunfire-distant-auto", weight: 5 },
+    { id: "frontline-artillery-shot", weight: 5 },
+    { id: "frontline-bombing", weight: 3 },
+    { id: "frontline-mlrs", weight: 2 },
+    { id: "neptun-impact", weight: 2 },
+    { id: "frontline-fpv-drone", weight: 2 },
   ],
 };
 
@@ -179,7 +181,7 @@ function playFrontlineFpvPass(
   cameraAltitude: number | undefined,
 ) {
   const volumeScale =
-    lod === "close" ? randBetween(0.9, 1.1) : randBetween(0.4, 0.55);
+    lod === "close" ? randBetween(1.05, 1.25) : randBetween(0.75, 0.95);
   const boomId: AudioEventId = Math.random() < 0.55 ? "neptun-impact" : "frontline-fpv-detonation";
   void play("frontline-fpv-drone", {
     altitude: cameraAltitude,
@@ -204,42 +206,47 @@ function playFrontlineFpvPass(
   });
 }
 
-/** 원샷별 LOD 볼륨·컷 길이 */
+/** 원샷별 LOD 볼륨·컷 길이 — regional 진입점부터 크게 */
 function frontlineOneshotOpts(
   id: AudioEventId,
   lod: FrontlineSoundLod,
 ): { volumeScale: number; durationMs?: number } {
   if (lod === "regional" && id === "neptun-impact") {
     return {
-      volumeScale: randBetween(0.55, 1.15),
-      durationMs: Math.round(randBetween(2500, 3500)),
+      volumeScale: randBetween(1.15, 1.45),
+      durationMs: Math.round(randBetween(2800, 3800)),
     };
   }
   if (id === "neptun-impact") {
-    return { volumeScale: randBetween(0.85, 1.15), durationMs: 4500 };
+    return { volumeScale: randBetween(1.2, 1.5), durationMs: 4500 };
   }
   if (GUNFIRE_IDS.has(id)) {
     return {
-      volumeScale: randBetween(1.0, 1.15),
-      durationMs: id === "frontline-gunfire" ? 4500 : 3500,
+      volumeScale:
+        lod === "close" ? randBetween(1.35, 1.55) : randBetween(1.2, 1.4),
+      durationMs: id === "frontline-gunfire" ? 4800 : 3800,
     };
   }
   if (id === "frontline-artillery-shot") {
-    return { volumeScale: randBetween(0.95, 1.12), durationMs: lod === "regional" ? 4500 : 5000 };
+    return {
+      volumeScale:
+        lod === "close" ? randBetween(1.35, 1.55) : randBetween(1.3, 1.5),
+      durationMs: lod === "regional" ? 4800 : 5200,
+    };
   }
   if (id === "frontline-bombing") {
-    return { volumeScale: randBetween(0.9, 1.1), durationMs: 4500 };
+    return { volumeScale: randBetween(1.2, 1.4), durationMs: 4500 };
   }
   if (id === "frontline-mlrs") {
-    return { volumeScale: 1.25, durationMs: 5000 };
+    return { volumeScale: 1.45, durationMs: 5200 };
   }
-  return { volumeScale: 1.05 };
+  return { volumeScale: 1.25 };
 }
 
-/** 전선 베드 — 멀리서 키우고, 가까이선 총성·드론에 자리 양보 */
+/** 전선 베드 — regional부터 크게, close에서도 포격 rumble 유지 */
 function frontlineBedVolumeScale(lod: FrontlineSoundLod): number {
-  if (lod === "regional") return 1.28;
-  return 0.68;
+  if (lod === "regional") return 1.65;
+  return 1.15;
 }
 
 export type EconomyAmbientKind =
@@ -561,18 +568,17 @@ export function SoundEffectsBridge({
   ]);
 
   // 실제 교전 전장 — LOD 가중 풀
-  // close(near+village): 쉼 없이 연속 · regional: ~20초 버스트 / 6초 쉼
+  // regional(전선 LOD 진입)부터 연속·고빈도 · close는 더 촘촘
   useEffect(() => {
     if (!canPlay || !primedRef.current) return;
     if (viewerMode !== "conflict" || !frontlineAmbient) return;
 
     let cancelled = false;
     let burstTimer: number | null = null;
-    let windowTimer: number | null = null;
-    const continuous = frontlineLod === "close";
-    const WINDOW_MS = continuous ? Number.POSITIVE_INFINITY : 20_000;
-    const PAUSE_MS = continuous ? 0 : 6_000;
     const pool = FRONTLINE_POOL_BY_LOD[frontlineLod];
+    /** regional도 쉼 없이 — close만 간격 더 짧게 */
+    const delayMin = frontlineLod === "close" ? 220 : 320;
+    const delaySpan = frontlineLod === "close" ? 480 : 620;
 
     const fireOne = () => {
       const pick = pickWeighted(pool);
@@ -590,37 +596,38 @@ export function SoundEffectsBridge({
       });
     };
 
-    const runWindow = () => {
+    const tick = () => {
       if (cancelled) return;
-      const windowEnd = continuous ? Number.POSITIVE_INFINITY : Date.now() + WINDOW_MS;
-
-      const tick = () => {
-        if (cancelled) return;
-        if (!continuous && Date.now() >= windowEnd) {
-          windowTimer = window.setTimeout(runWindow, PAUSE_MS);
-          return;
-        }
-        fireOne();
-        const delay = continuous
-          ? 650 + Math.floor(Math.random() * 950)
-          : 550 + Math.floor(Math.random() * 900);
-        burstTimer = window.setTimeout(tick, delay);
-      };
-
       fireOne();
-      burstTimer = window.setTimeout(() => {
-        if (cancelled) return;
-        fireOne();
-        tick();
-      }, 450);
+      // ~35% 확률로 즉시 한 발 더 겹침 (포격/총성 밀집감)
+      if (Math.random() < 0.35) {
+        burstTimer = window.setTimeout(() => {
+          if (cancelled) return;
+          fireOne();
+          burstTimer = window.setTimeout(
+            tick,
+            delayMin + Math.floor(Math.random() * delaySpan),
+          );
+        }, 90 + Math.floor(Math.random() * 180));
+        return;
+      }
+      burstTimer = window.setTimeout(
+        tick,
+        delayMin + Math.floor(Math.random() * delaySpan),
+      );
     };
 
-    runWindow();
+    // 진입 직후 2연타로 체감
+    fireOne();
+    burstTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      fireOne();
+      tick();
+    }, 280);
 
     return () => {
       cancelled = true;
       if (burstTimer != null) window.clearTimeout(burstTimer);
-      if (windowTimer != null) window.clearTimeout(windowTimer);
     };
   }, [cameraAltitude, canPlay, frontlineAmbient, frontlineLod, play, viewerMode]);
 

@@ -26,10 +26,10 @@ type BriCityLink = {
   dlng: number;
 };
 
-const BRI_BASE_COLOR = "rgba(230, 180, 34";
+const BRI_BASE_COLOR = "rgba(245, 158, 11";
 
 function impactAlpha(pct: number): number {
-  return Math.min(0.95, Math.max(0.55, 0.48 + pct / 40));
+  return Math.min(0.98, Math.max(0.78, 0.72 + pct / 50));
 }
 
 function impactStroke(pct: number): number {

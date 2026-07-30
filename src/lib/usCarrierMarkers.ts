@@ -1,6 +1,7 @@
 import type { UsCarrier } from "@/data/usCarriers";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
+import { AIS_WARSHIP_POINT } from "@/lib/aisVesselClass";
 import { isLightTone } from "@/lib/basemapTone";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 
@@ -20,9 +21,8 @@ export function filterVisibleCarriers(carriers: UsCarrier[], showAll: boolean): 
   return carriers.filter(isOperationalCarrier);
 }
 
-export function carrierPointColor(status: UsCarrier["status"]): string {
-  const hex = US_CARRIER_STATUS_COLORS[status];
-  return `${hex}e8`;
+export function carrierPointColor(): string {
+  return `${AIS_WARSHIP_POINT}e8`;
 }
 
 /** 동일 좌표(항구 등) 겹침 시 마커 묶음 세로错開(px) */
@@ -93,8 +93,9 @@ export function createUsCarrierBadge(
   iconWrap.style.height = `${CARRIER_MARKER_ICON_SIZE.height}px`;
   iconWrap.style.flexShrink = "0";
   iconWrap.style.lineHeight = "0";
+  iconWrap.style.filter =
+    "drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38))";
   iconWrap.innerHTML = carrierDeckIconSvg(
-    carrier.status,
     deployed
       ? { width: CARRIER_MARKER_ICON_SIZE.width + 4, height: CARRIER_MARKER_ICON_SIZE.height + 2 }
       : CARRIER_MARKER_ICON_SIZE,
