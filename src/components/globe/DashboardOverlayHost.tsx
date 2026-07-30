@@ -1566,7 +1566,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {timeScrubber && !intelSheetOpen ? (
         <div
-          className={`pointer-events-none absolute z-[520] ${
+          className={`pointer-events-none absolute ${zc("mapControl")} ${
             isCompactUi
               ? "bottom-[5.5rem] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
               : "bottom-8 left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
