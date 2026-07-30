@@ -24,7 +24,9 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        # npm ci is brittle with optional wasm peer trees across platforms;
+        # lockfile is still committed — install resolves peers consistently on Node 24.
+        run: npm install --no-fund --no-audit
 
       - name: Lint
         run: npm run lint
