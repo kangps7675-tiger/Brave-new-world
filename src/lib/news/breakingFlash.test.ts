@@ -83,7 +83,7 @@ describe("buildBreakingFlashBriefing supply bridge", () => {
         title: "Missile strike near Hormuz disrupts tanker traffic",
         summary: "War-risk premiums jump on crude tankers",
         theater: "middle-east",
-        feedTopic: "conflict",
+        feedTopic: "defense",
       }),
       "ko",
       false,
