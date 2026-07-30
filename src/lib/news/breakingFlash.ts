@@ -17,6 +17,7 @@ import {
   formatActorsLine,
   formatCausalLine,
   formatSceneLine,
+  formatSupplyChainBridge,
   formatWhyImportant,
 } from "@/lib/news/breakingFlashNarrative";
 import type { HeroBreakingItem, NewsTheater } from "@/lib/news/types";
@@ -95,9 +96,10 @@ export function formatFlashSourceAttribution(
 
 /**
  * 신속·위중 속보만 타전.
- * - 지정학: 기본 **S급** + 키네틱/초크. A급은 핵·침공·공습 등 + grade≥8 + 더 짧은 시간창.
+ * - 지정학: 기본 **S급** + 키네틱/초크/공급망 신호. A급은 핵·침공·공습 등 + grade≥8 + 더 짧은 시간창.
  * - 연예·스포츠·사설 제외. **45분** 초과 제외 (신속 속보).
  * - Tier3 단독은 S 미만 불가.
+ * - 공급망 연결은 별도 양피지가 아니라 본문 「공급망 연결」 단락으로만 붙인다.
  */
 export function shouldOpenBreakingFlash(
   hero: HeroBreakingItem | null | undefined,
@@ -169,6 +171,7 @@ export function buildBreakingFlashBriefing(
   const causal = formatCausalLine(titleText, actors, lang);
   const scene = formatSceneLine(hero.theater, lang);
   const why = formatWhyImportant(hero.theater, blob, lang);
+  const supplyBridge = formatSupplyChainBridge(blob, lang);
   const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
 
   const gradeLine =
@@ -189,6 +192,7 @@ export function buildBreakingFlashBriefing(
     causal,
     scene,
     why,
+    supplyBridge,
     body,
     gradeLine,
     closing,

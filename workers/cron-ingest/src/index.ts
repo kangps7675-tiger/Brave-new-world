@@ -35,6 +35,7 @@ import {
   deletePushSubscription,
   upsertPushSubscription,
 } from "./push";
+import { dispatchSitrepDigestPush } from "./sitrepPush";
 
 export type { IngestEnv };
 
@@ -96,6 +97,14 @@ type IngestResult = {
     theaterCount: number;
     chokepointCount: number;
     worldTension: number;
+  } | null;
+  sitrepPush?: {
+    skipped: boolean;
+    reason?: string;
+    rankDate?: string;
+    eventCount?: number;
+    koSent?: number;
+    enSent?: number;
   } | null;
   livingTaiwan?: {
     conflictId: string;
@@ -373,6 +382,28 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       );
     }
 
+    let sitrepPush: IngestResult["sitrepPush"] = null;
+    try {
+      const digest = await dispatchSitrepDigestPush(env);
+      sitrepPush = {
+        skipped: digest.skipped,
+        reason: digest.reason,
+        rankDate: digest.rankDate,
+        eventCount: digest.eventCount,
+        koSent: digest.ko?.sent,
+        enSent: digest.en?.sent,
+      };
+    } catch (error) {
+      console.warn(
+        "[ingest] sitrep push skipped:",
+        error instanceof Error ? error.message : error,
+      );
+      sitrepPush = {
+        skipped: true,
+        reason: error instanceof Error ? error.message : "sitrep push failed",
+      };
+    }
+
     let baselineBackfill: IngestResult["baselineBackfill"] = null;
     try {
       const light = await maybeLightBaselineBackfill(env);
@@ -425,6 +456,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       pruned,
       briefingStats,
       dailyRanks,
+      sitrepPush,
       airRaid,
       baselineBackfill,
       livingTaiwan,
@@ -462,6 +494,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         shipMovementsWarm,
         briefingStats,
         dailyRanks,
+        sitrepPush,
         livingTaiwan,
         ukmto,
         navarea,

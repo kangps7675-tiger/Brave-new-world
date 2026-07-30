@@ -95,6 +95,14 @@ export function axisEdgeToPath(edge: AxisEdge, lang: "ko" | "en" = "ko"): Transp
       maxLng: Math.max(na.lng, nb.lng),
     },
     points,
+    meta: {
+      mode: "network",
+      relationKind: edge.kind,
+      from: edge.a,
+      to: edge.b,
+      fromName: lang === "en" ? na.nameEn : na.nameKo,
+      toName: lang === "en" ? nb.nameEn : nb.nameKo,
+    },
   };
 }
 

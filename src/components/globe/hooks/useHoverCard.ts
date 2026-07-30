@@ -25,6 +25,11 @@ import {
   staticKindLabel,
   tensionLabel,
 } from "@/lib/hoverLabels";
+import {
+  type AxisRelationKind,
+  axisRelationKindBlurb,
+  axisRelationKindLabel,
+} from "@/data/axisNetwork";
 import { classifyMilAircraft, milAircraftRoleLabel } from "@/lib/milAircraftKind";
 import { formatNeptunLocation, getNeptunTypeLabel } from "@/lib/neptun";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";
@@ -676,6 +681,91 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
         hint: HOVER.hintDetail(lang),
       };
     }
+
+    /** 반서방 축 점선 — 마우스 옆에서 관계 종류·상대를 바로 읽게 */
+    if (hoveredPath.kind === "axis-link") {
+      const meta = hoveredPath.meta ?? {};
+      const mode = meta.mode === "arms" ? "arms" : "network";
+      const relationRaw = typeof meta.relationKind === "string" ? meta.relationKind : "";
+      const relationKind = (
+        ["patronage", "arms", "energy", "hybrid", "diplomatic"] as const
+      ).includes(relationRaw as AxisRelationKind)
+        ? (relationRaw as AxisRelationKind)
+        : mode === "arms"
+          ? "arms"
+          : null;
+      const fromName =
+        typeof meta.fromName === "string" && meta.fromName
+          ? meta.fromName
+          : typeof meta.from === "string"
+            ? meta.from
+            : "";
+      const toName =
+        typeof meta.toName === "string" && meta.toName
+          ? meta.toName
+          : typeof meta.to === "string"
+            ? meta.to
+            : "";
+      const pair =
+        fromName && toName ? `${fromName} ↔ ${toName}` : undefined;
+      const kindLabel = relationKind
+        ? axisRelationKindLabel(relationKind, labelLanguage === "en" ? "en" : "ko")
+        : null;
+
+      if (mode === "arms") {
+        const category =
+          typeof meta.category === "string" && meta.category ? meta.category : null;
+        const tiv = typeof meta.tiv === "number" ? meta.tiv : null;
+        const count = typeof meta.count === "number" ? meta.count : null;
+        const years = typeof meta.years === "string" ? meta.years : null;
+        const metaBits = [
+          pair,
+          tiv != null ? `TIV ${tiv}` : null,
+          count != null
+            ? labelLanguage === "en"
+              ? `${count} deals`
+              : `${count}건`
+            : null,
+          years,
+        ].filter(Boolean);
+        return {
+          kind: "path",
+          title:
+            fromName && toName
+              ? `${fromName} → ${toName}`
+              : hoveredPath.name || pathKindLabel("axis-link", lang),
+          detail:
+            labelLanguage === "en"
+              ? `Axis arms transfer${category ? ` · ${category}` : ""}`
+              : `축 무기이전${category ? ` · ${category}` : ""}`,
+          body:
+            labelLanguage === "en"
+              ? "Dashed arc · SIPRI-linked transfer summary between axis partners."
+              : "점선 · 축 파트너 사이 SIPRI 기반 무기이전 요약입니다.",
+          meta: metaBits.length ? metaBits.join(" · ") : undefined,
+        };
+      }
+
+      const distanceMeta =
+        hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
+          ? HOVER.pathLength(hoveredPath.lengthKm.toLocaleString(), lang)
+          : undefined;
+      return {
+        kind: "path",
+        title: hoveredPath.name || pathKindLabel("axis-link", lang),
+        detail:
+          labelLanguage === "en"
+            ? `Axis link${kindLabel ? ` · ${kindLabel}` : ""}`
+            : `축 관계망 점선${kindLabel ? ` · ${kindLabel}` : ""}`,
+        body: relationKind
+          ? axisRelationKindBlurb(relationKind, labelLanguage === "en" ? "en" : "ko")
+          : labelLanguage === "en"
+            ? "Dashed arc linking anti-Western axis hubs and partners."
+            : "반서방 축 허브·파트너를 잇는 점선입니다.",
+        meta: [pair, distanceMeta].filter(Boolean).join(" · ") || undefined,
+      };
+    }
+
     const detail = pathKindLabel(hoveredPath.kind, lang);
     const distanceMeta =
       hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
@@ -704,7 +794,6 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
       meta: distanceMeta,
     };
   }
-
   if (hoverGlobeCoords) {
     const ocean = lookupOceanName(
       hoverGlobeCoords.lat,

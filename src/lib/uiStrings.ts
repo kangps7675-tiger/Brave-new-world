@@ -25,6 +25,12 @@ const UI = {
     en: "Save the layer choices already shown on the map.",
   },
   layerApplyConfirmYes: { ko: "설정", en: "Apply" },
+  /** 상단 레이어 퀵 드롭다운 CTA — 즉시 반영 후 확정·닫기 */
+  layerQuickApply: { ko: "설정하기", en: "Apply settings" },
+  layerQuickApplyHint: {
+    ko: "체크는 지도에 바로 반영됩니다. 확인 후 설정하기로 닫습니다.",
+    en: "Checks apply to the map immediately. Tap Apply settings to close.",
+  },
   layerDraftHint: {
     ko: "체크하면 지도에 바로 반영됩니다. 상단 「설정」으로 저장을 확정할 수 있습니다.",
     en: "Checks apply to the map right away. Use Apply at the top to confirm.",

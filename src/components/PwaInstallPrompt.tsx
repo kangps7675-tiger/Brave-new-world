@@ -1,30 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ensurePushSubscription } from "@/lib/pushClient";
 import { trackEvent } from "@/lib/trackClient";
+import { bumpVisitCountOncePerSession, getVisitCount } from "@/lib/visitPrefs";
+import { zc } from "@/lib/uiStack";
 
 /**
- * PWA 부트스트랩 + 홈 화면 추가 유도 (모바일 전용)
+ * 홈 화면 추가 유도 (모바일 컴팩트 UI 전용).
+ * 푸시 구독은 PushOptInBanner / ServiceWorkerBoot로 분리.
  *
- * 역할 2가지:
- *  1) 서비스워커 등록 — 설치 가능 조건 + 웹 푸시 수신 준비
- *  2) "홈 화면에 추가" 안내 배너
- *
- * ★ 노출 정책 (첫인상을 해치지 않는 게 최우선)
- *  - 첫 방문에는 절대 안 띄운다. 2번째 이상 방문부터.
- *  - 진입 후 최소 dwell 시간이 지난 뒤에만 (온보딩 오버레이들과 겹치지 않도록).
- *  - 이미 홈 화면에서 실행 중(standalone)이면 안 띄운다.
- *  - 닫으면 일정 기간 다시 안 띄운다.
+ * ★ 노출 정책
+ *  - 2번째 이상 방문
+ *  - dwell 후 (온보딩과 겹치지 않게)
+ *  - standalone이면 숨김
  */
 
-const VISIT_KEY = "cv-visit-count";
 const DISMISS_KEY = "cv-pwa-prompt-dismissed-at";
-/** 닫은 뒤 다시 물어보기까지 */
 const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
-/** 진입 직후엔 온보딩(입장 게이트·모드선택·코치마크)이 도는 중 — 충분히 지난 뒤 */
-const SHOW_DELAY_MS = 75_000;
-/** 이 방문 횟수 이상부터 노출 */
+const SHOW_DELAY_MS = 90_000;
 const MIN_VISITS = 2;
 
 type BeforeInstallPromptEvent = Event & {
@@ -55,72 +48,18 @@ function recentlyDismissed(): boolean {
   }
 }
 
-/** 방문 횟수 증가 후 현재 값 반환 */
-function bumpVisitCount(): number {
-  try {
-    const prev = Number(localStorage.getItem(VISIT_KEY) || "0");
-    const next = (Number.isFinite(prev) ? prev : 0) + 1;
-    localStorage.setItem(VISIT_KEY, String(next));
-    return next;
-  } catch {
-    return 1;
-  }
-}
-
-async function syncPushQuiet(requestIfNeeded: boolean) {
-  const result = await ensurePushSubscription({ requestIfNeeded });
-  if (result.ok) trackEvent("push_subscribed");
-  else if (result.reason === "denied" && requestIfNeeded) {
-    trackEvent("push_subscribe_denied");
-  }
-}
-
 export function PwaInstallPrompt() {
   const [visible, setVisible] = useState(false);
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosMode, setIosMode] = useState(false);
-  /** 진입 직후 온보딩과 겹치지 않도록 최소 dwell 경과 여부 */
   const [delayPassed, setDelayPassed] = useState(false);
 
-  // 1) 서비스워커 등록 — 노출 정책과 무관하게 항상
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!("serviceWorker" in navigator)) return;
-    if (process.env.NODE_ENV !== "production") return;
-    const onLoad = () => {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then(() => {
-          // 이미 허용된 경우만 조용히 재구독 (권한 팝업 없음)
-          void syncPushQuiet(false);
-        })
-        .catch(() => {
-          /* 등록 실패는 조용히 무시 — 앱 동작에는 영향 없음 */
-        });
-    };
-    if (document.readyState === "complete") onLoad();
-    else window.addEventListener("load", onLoad, { once: true });
-    return () => window.removeEventListener("load", onLoad);
-  }, []);
-
-  // standalone(홈화면 앱)에서는 한 번 권한 요청 허용 — 유입 초입 웹탭에서는 안 함
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (process.env.NODE_ENV !== "production") return;
-    if (!isStandalone()) return;
-    const t = window.setTimeout(() => {
-      void syncPushQuiet(true);
-    }, 8_000);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  // 2) 설치 배너 노출 판단
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (isStandalone() || recentlyDismissed()) return;
 
-    const visits = bumpVisitCount();
-    if (visits < MIN_VISITS) return;
+    bumpVisitCountOncePerSession();
+    if (getVisitCount() < MIN_VISITS) return;
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault();
@@ -149,7 +88,6 @@ export function PwaInstallPrompt() {
     const onInstalled = () => {
       setVisible(false);
       trackEvent("pwa_installed");
-      void syncPushQuiet(true);
     };
     window.addEventListener("appinstalled", onInstalled);
     return () => window.removeEventListener("appinstalled", onInstalled);
@@ -159,7 +97,7 @@ export function PwaInstallPrompt() {
     try {
       localStorage.setItem(DISMISS_KEY, String(Date.now()));
     } catch {
-      /* 저장 실패 무시 */
+      /* ignore */
     }
     setVisible(false);
     trackEvent("pwa_prompt_dismiss");
@@ -172,7 +110,7 @@ export function PwaInstallPrompt() {
       await installEvent.prompt();
       await installEvent.userChoice;
     } catch {
-      /* 사용자가 취소 */
+      /* cancelled */
     }
     setInstallEvent(null);
     setVisible(false);
@@ -186,7 +124,7 @@ export function PwaInstallPrompt() {
 
   return (
     <div
-      className="cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 z-[600] px-3"
+      className={`cv-compact-only pointer-events-auto fixed inset-x-0 bottom-0 ${zc("panel")} px-3`}
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
       role="dialog"
       aria-modal="false"
@@ -201,13 +139,13 @@ export function PwaInstallPrompt() {
           <p className="mt-1 text-meta leading-4 text-slate-300/80">
             {iosMode
               ? "하단 공유 버튼 → “홈 화면에 추가”를 누르면 앱처럼 바로 열 수 있습니다."
-              : "앱처럼 바로 열고, 상황 변화 알림도 받을 수 있습니다."}
+              : "앱처럼 바로 열려면 홈 화면에 추가하세요. 상황 알림은 따로 켤 수 있습니다."}
           </p>
           <div className="mt-2.5 flex items-center gap-2">
             {!iosMode ? (
               <button
                 type="button"
-                onClick={install}
+                onClick={() => void install()}
                 className="tap-target min-h-[36px] rounded-lg border border-sky-300/35 bg-sky-500/15 px-3 text-caption font-medium text-sky-50 transition hover:border-sky-200/50 hover:bg-sky-500/25"
               >
                 추가하기

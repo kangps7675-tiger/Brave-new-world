@@ -94,6 +94,7 @@ import {
   type PeriodicBriefing,
 } from "@/lib/news/periodicBriefing";
 import { recordInterestNews } from "@/lib/interest/recordInterest";
+import { zc } from "@/lib/uiStack";
 import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { PlayHubButton } from "@/components/PlayHubButton";
 import { WhereIsItGameOverlay } from "@/components/WhereIsItGameOverlay";
@@ -217,7 +218,6 @@ export type DashboardOverlayHostProps = {
   showTrustPanel: boolean;
   showSourcesPanel: boolean;
   showMobileAlertFeed: boolean;
-  showFoldedParchmentChip: boolean;
   playOverlay: "where" | "sense" | null;
   sentinelActive: boolean;
   sentinelTour: SentinelFlyTarget[];
@@ -413,7 +413,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showTrustPanel,
     showSourcesPanel,
     showMobileAlertFeed,
-    showFoldedParchmentChip,
     playOverlay,
     sentinelActive,
     sentinelTour,
@@ -949,11 +948,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       */}
       {gateClosed && (isCompactUi || liveBriefingSession) ? (
         <div
-          className={`pointer-events-none fixed right-4 z-[900] flex flex-col items-end gap-2 sm:right-5 ${
-            showFoldedParchmentChip
-              ? "bottom-[10.25rem] sm:bottom-[11.25rem]"
-              : "bottom-5 sm:bottom-6"
-          }`}
+          className="pointer-events-none fixed right-4 bottom-5 z-[900] flex flex-col items-end gap-2 sm:right-5 sm:bottom-6"
         >
           {isCompactUi && gateClear ? (
             <SentinelModeButton
@@ -1167,7 +1162,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !weeklyExpanded &&
       !periodicBriefing &&
       !sentinelActive ? (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-[100] w-[min(92vw,28rem)] -translate-x-1/2 px-2 sm:top-4">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2 sm:top-4">
           <p className="rounded-sm border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
             {watchFocusLine}
           </p>
@@ -1208,64 +1203,77 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {weeklyRecap &&
-      weeklyRecapCollapsed &&
-      !periodicBriefing &&
-      !foldedPeriodicBriefing ? (
-        <button
-          type="button"
-          onClick={() => {
-            clearWeeklyRecapFolded(weeklyRecap.key);
-            onSetWeeklyRecapCollapsed(false);
-          }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[600] flex max-w-[min(16rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-[#6b4a22]/55 bg-[#e8d4a8]/95 px-3 py-2.5 text-left text-body text-[#3d2a18] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] sm:bottom-28 sm:right-4"
-          aria-label={
-            labelLanguage === "en"
-              ? "Reopen weekly recap"
-              : "지난주 회고 다시 펼치기"
-          }
-        >
-          <span className="text-base leading-none" aria-hidden>
-            {"\u2726"}
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate font-medium tracking-[0.04em]">
-              {labelLanguage === "en" ? "Last week's recap" : "지난주 회고"}
-            </span>
-            <span className="mt-0.5 block truncate text-micro text-[#6b4a22]/75">
-              {labelLanguage === "en" ? "Monday rhythm" : "매주 월요일"}
-            </span>
-          </span>
-        </button>
-      ) : null}
-
-      {foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded ? (
-        <button
-          type="button"
-          onClick={() => {
-            clearLampFolded(foldedPeriodicBriefing.key);
-            onSetPeriodicBriefing(foldedPeriodicBriefing);
-            onSetFoldedPeriodicBriefing(null);
-          }}
-          className="pointer-events-auto absolute bottom-24 right-3 z-[600] flex max-w-[min(17rem,calc(100vw-1.5rem))] items-center gap-2 rounded-sm border border-amber-700/55 bg-[#f0d99f]/95 px-3 py-2.5 text-left text-body text-[#34230f] shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] sm:bottom-28 sm:right-4"
-          aria-label={
-            labelLanguage === "en"
-              ? "Reopen today's lamp news"
-              : "오늘의 등불뉴스 다시 펼치기"
-          }
-        >
-          <span className="text-base leading-none" aria-hidden>
-            {"\uD83C\uDFEE"}
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate font-medium tracking-[0.04em]">
-              {labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
-            </span>
-            <span className="mt-0.5 block truncate text-micro text-[#6b4a22]/75">
-              {labelLanguage === "en" ? "Tap to unfold again" : "눌러서 다시 펼치기"}
-            </span>
-          </span>
-        </button>
+      {/*
+        접힌 등불·주간 회고 — 우하단 GDELT와 겹치지 않도록 우측 세로 탭.
+        짧은 네이밍만 노출하고, 탭을 누르면 양피지를 다시 펼친다.
+      */}
+      {(foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded) ||
+      (weeklyRecap &&
+        weeklyRecapCollapsed &&
+        !periodicBriefing &&
+        !foldedPeriodicBriefing) ? (
+        <div className={`pointer-events-auto fixed right-0 top-[36%] ${zc("panel")} flex flex-col items-end gap-1.5`}>
+          {foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded ? (
+            <button
+              type="button"
+              onClick={() => {
+                clearLampFolded(foldedPeriodicBriefing.key);
+                onSetPeriodicBriefing(foldedPeriodicBriefing);
+                onSetFoldedPeriodicBriefing(null);
+              }}
+              className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-2 pr-1.5 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pr-2.5"
+              aria-label={
+                labelLanguage === "en"
+                  ? "Reopen today's lamp news"
+                  : "오늘의 등불뉴스 다시 펼치기"
+              }
+              title={
+                labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"
+              }
+            >
+              <span className="text-sm leading-none" aria-hidden>
+                {"\uD83C\uDFEE"}
+              </span>
+              <span
+                className="text-micro font-semibold tracking-[0.14em]"
+                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+              >
+                {labelLanguage === "en" ? "Lamp" : "등불"}
+              </span>
+            </button>
+          ) : null}
+          {weeklyRecap &&
+          weeklyRecapCollapsed &&
+          !periodicBriefing &&
+          !foldedPeriodicBriefing ? (
+            <button
+              type="button"
+              onClick={() => {
+                clearWeeklyRecapFolded(weeklyRecap.key);
+                onSetWeeklyRecapCollapsed(false);
+              }}
+              className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-[#6b4a22]/60 bg-[#e8d4a8]/95 py-2.5 pl-2 pr-1.5 text-[#3d2a18] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] hover:pr-2.5"
+              aria-label={
+                labelLanguage === "en"
+                  ? "Reopen weekly recap"
+                  : "지난주 회고 다시 펼치기"
+              }
+              title={
+                labelLanguage === "en" ? "Last week's recap" : "지난주 회고"
+              }
+            >
+              <span className="text-sm leading-none" aria-hidden>
+                {"\u2726"}
+              </span>
+              <span
+                className="text-micro font-semibold tracking-[0.14em]"
+                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+              >
+                {labelLanguage === "en" ? "Recap" : "회고"}
+              </span>
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       <LampPreparingOverlay open={showLampPreparing} lang={labelLanguage} />

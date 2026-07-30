@@ -1,6 +1,6 @@
 /**
  * 브라우저 Web Push 구독 — VAPID public + SW PushManager.
- * 권한 요청은 호출 측에서 보수적으로 (설치 후·standalone·이미 granted).
+ * 권한 요청은 PushOptInBanner 등 명시적 CTA에서만 requestIfNeeded=true.
  */
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {

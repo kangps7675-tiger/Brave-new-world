@@ -79,10 +79,13 @@ export type PushSendResult = {
   error?: string;
 };
 
-/** 저장된 구독 전체에 동일 알림 발송. 410/404는 구독 삭제. */
+/** 저장된 구독에 알림 발송. 410/404는 구독 삭제.
+ *  lang: "ko" | "en" — 해당 언어만 / "unset" — lang 비어 있는 구독만 / 생략 — 전체
+ */
 export async function broadcastPush(
   env: IngestEnv,
   message: { title: string; body?: string; url?: string; tag?: string },
+  opts?: { lang?: "ko" | "en" | "unset" },
 ): Promise<PushSendResult> {
   const vapid = vapidFromEnv(env);
   if (!vapid) {
@@ -96,7 +99,22 @@ export async function broadcastPush(
     };
   }
 
-  const rows = await listPushSubscriptions(env.DB);
+  let rows = await listPushSubscriptions(env.DB);
+  if (opts?.lang === "ko") {
+    // ko + lang 미기입 + en 이외 → 한국어 본문
+    rows = rows.filter((r) => {
+      const l = (r.lang || "").toLowerCase().trim();
+      return !l.startsWith("en");
+    });
+  } else if (opts?.lang === "en") {
+    rows = rows.filter((r) => {
+      const l = (r.lang || "").toLowerCase().trim();
+      return l === "en" || l.startsWith("en");
+    });
+  } else if (opts?.lang === "unset") {
+    rows = rows.filter((r) => !r.lang || !r.lang.trim());
+  }
+
   const payloadJson = JSON.stringify({
     title: message.title,
     body: message.body || "",

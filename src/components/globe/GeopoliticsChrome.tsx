@@ -284,6 +284,7 @@ export type GeopoliticsMapChromeProps = {
   loadError: string | null;
   onLocalAlertSelect: (alert: DisputeAlert) => void;
   onCloseLocalPanel: () => void;
+  labelLanguage: LabelLanguage;
 };
 
 export function GeopoliticsMapChrome({
@@ -324,6 +325,7 @@ export function GeopoliticsMapChrome({
   loadError,
   onLocalAlertSelect,
   onCloseLocalPanel,
+  labelLanguage,
 }: GeopoliticsMapChromeProps) {
   return (
     <>
@@ -411,6 +413,7 @@ export function GeopoliticsMapChrome({
             errorMessage={gdeltError}
             onSelect={onGdeltAlertSelect}
             onClose={onCloseGdeltPanel}
+            lang={labelLanguage}
           />
         )}
       {!isEconomyViewer &&

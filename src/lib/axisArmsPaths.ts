@@ -67,6 +67,21 @@ export function armsPairsToPaths(
         maxLng: Math.max(na.lng, nb.lng),
       },
       points: greatCircleArc(na.lat, na.lng, nb.lat, nb.lng, 28, peakAlt),
+      meta: {
+        mode: "arms",
+        relationKind: "arms",
+        from: p.supplier,
+        to: p.recipient,
+        fromName: from,
+        toName: to,
+        category,
+        tiv: p.tiv,
+        count: p.count,
+        years:
+          p.years.length > 0
+            ? `${Math.min(...p.years)}–${Math.max(...p.years)}`
+            : null,
+      },
     });
   }
   return out;

@@ -155,6 +155,19 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
+   * 지경학 등불 타전 깔개 — 박수·환호 (지정학 dark-bed 대체)
+   * https://freesound.org/s/455659/ · kyles · CC0
+   */
+  "economy-lamp-cheer": {
+    eventId: "economy-lamp-cheer",
+    freesoundQuery: "applause cheer crowd outdoor whistling",
+    freesoundId: 455659,
+    volume: 0.4,
+    category: "economy",
+    note: "FS#455659 kyles applause cheer outdoor · CC0 · 지경학 등불 깔개",
+  },
+
+  /**
    * 전선 총격 — 원거리 교전 (기관총·박격포·소총 혼합).
    * https://freesound.org/s/404334/ Firefight · TheBuilder15 · CC0
    */

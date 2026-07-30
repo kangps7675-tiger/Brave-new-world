@@ -217,6 +217,108 @@ const WHY_BY_THEATER: Record<
   },
 };
 
+/** 사건 본문에 실제로 드러난 공급망 축 — 전장 템플릿과 별개 */
+export type SupplyBridgeKind =
+  | "chokepoint"
+  | "chips"
+  | "energy"
+  | "shipping"
+  | "sanctions"
+  | "minerals";
+
+const SUPPLY_BRIDGE_DETECTORS: Array<{ kind: SupplyBridgeKind; re: RegExp }> = [
+  {
+    kind: "chokepoint",
+    re: /\b(hormuz|suez|malacca|bab[\s-]?el[\s-]?mandeb|taiwan\s?strait|panama\s?canal|bosporus|gibraltar|good\s?hope|red\s?sea|chokepoint)\b|호르무즈|수에즈|말라카|바브엘만데브|대만\s?해협|파나마|보스포루스|지브롤터|희망봉|홍해|초크/i,
+  },
+  {
+    kind: "chips",
+    re: /\b(semiconductor|chip(?:s)?|foundry|tsmc|asml|hynix|smic|euv|fab\b|advanced\s?node|export\s?control.{0,24}chip)\b|반도체|파운드리|칩\b|웨이퍼|첨단\s?공정|장비\s?수출/i,
+  },
+  {
+    kind: "energy",
+    re: /\b(oil|crude|brent|wti|lng|natural\s?gas|pipeline|opec|refinery|tanker)\b|원유|유가|브렌트|LNG|천연가스|송유관|가스관|정유|유조선|OPEC/i,
+  },
+  {
+    kind: "shipping",
+    re: /\b(freight|shipping|container|bunker|war[\s-]?risk|reroute|diversion|port\b|maersk|cosco|bulk\s?carrier)\b|운임|해운|컨테이너|벙커|전쟁위험|우회|통항|항만|물류/i,
+  },
+  {
+    kind: "sanctions",
+    re: /\b(sanction(?:s)?|embargo|export\s?control|entity\s?list|tariff|secondary\s?sanction)\b|제재|금수|수출\s?통제|엔티티\s?리스트|관세|2차\s?제재/i,
+  },
+  {
+    kind: "minerals",
+    re: /\b(rare\s?earth|critical\s?mineral|lithium|cobalt|nickel|graphite|copper\s?mine)\b|희토|핵심\s?광물|리튬|코발트|니켈|흑연/i,
+  },
+];
+
+const SUPPLY_BRIDGE_COPY: Record<
+  SupplyBridgeKind,
+  { ko: string; en: string }
+> = {
+  chokepoint: {
+    ko: "해협·운하 통항, 전쟁위험보험, 운임 경로에 바로 닿습니다.",
+    en: "Hits chokepoint transit, war-risk insurance, and freight paths directly.",
+  },
+  chips: {
+    ko: "반도체·파운드리·장비 수출통제 축과 맞물립니다.",
+    en: "Couples to semiconductor foundry and export-control chains.",
+  },
+  energy: {
+    ko: "원유·LNG·파이프라인 가격·할증과 연결됩니다.",
+    en: "Links to oil/LNG/pipeline prices and risk premia.",
+  },
+  shipping: {
+    ko: "컨테이너·유조선 항로 우회와 물류 지연 리스크입니다.",
+    en: "Raises container/tanker reroute and logistics delay risk.",
+  },
+  sanctions: {
+    ko: "제재·수출통제가 부품·금융 결제 경로를 조일 수 있습니다.",
+    en: "Sanctions/export controls can squeeze parts and payment rails.",
+  },
+  minerals: {
+    ko: "핵심광물·희토 조달 경로가 흔들릴 수 있습니다.",
+    en: "Critical-mineral and rare-earth sourcing paths may wobble.",
+  },
+};
+
+/** 우선순위 — 한 타전에 최대 2축만 */
+const SUPPLY_BRIDGE_PRIORITY: SupplyBridgeKind[] = [
+  "chokepoint",
+  "chips",
+  "energy",
+  "shipping",
+  "sanctions",
+  "minerals",
+];
+
+export function detectSupplyChainLinks(text: string): SupplyBridgeKind[] {
+  const hit = new Set<SupplyBridgeKind>();
+  for (const { kind, re } of SUPPLY_BRIDGE_DETECTORS) {
+    if (re.test(text)) hit.add(kind);
+  }
+  return SUPPLY_BRIDGE_PRIORITY.filter((k) => hit.has(k));
+}
+
+/**
+ * 사건 본문에 공급망 신호가 있을 때만 붙는 다리 문장.
+ * 전장 템플릿(WHY_BY_THEATER)과 중복되지 않게 별도 단락으로 쓴다.
+ */
+export function formatSupplyChainBridge(
+  text: string,
+  lang: LabelLanguage,
+): string | null {
+  const kinds = detectSupplyChainLinks(text).slice(0, 2);
+  if (kinds.length === 0) return null;
+  const ko = lang !== "en";
+  const bits = kinds.map((k) => (ko ? SUPPLY_BRIDGE_COPY[k].ko : SUPPLY_BRIDGE_COPY[k].en));
+  if (ko) {
+    return `공급망 연결: ${bits.join(" ")}`;
+  }
+  return `Supply-chain link: ${bits.join(" ")}`;
+}
+
 export function formatWhyImportant(
   theater: NewsTheater,
   text: string,
@@ -225,11 +327,7 @@ export function formatWhyImportant(
   const ko = lang !== "en";
   const base = WHY_BY_THEATER[theater] ?? WHY_BY_THEATER.global;
   let line = ko ? base.ko : base.en;
-  if (/\bhormuz|suez|malacca|red\s?sea|호르무즈|수에즈|홍해|말라카\b/i.test(text)) {
-    line = ko
-      ? `${line} 초크포인트 통과·보험·운임 경로를 즉시 점검할 급보입니다.`
-      : `${line} Check chokepoint transit, war-risk insurance, and freight paths now.`;
-  }
+  // 초크 점검은 formatSupplyChainBridge로 이전 — 여기서는 핵·미사일만 보강
   if (/\bnuclear|missile|warhead|핵|미사일|핵탄두\b/i.test(text)) {
     line = ko
       ? `${line} 핵·미사일 언급은 억지 계산을 바꾸는 최고 수위 신호입니다.`

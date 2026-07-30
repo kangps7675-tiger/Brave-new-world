@@ -2054,6 +2054,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
             onSelect={onGdeltSelect ?? (() => {})}
             onClose={onCloseGdeltLayer ? handleCloseGdeltLayer : undefined}
             fullPage
+            lang={labelLanguage}
           />
         ) : sheetTab === "viina" ? (
           <ViinaFrontEventsPanel

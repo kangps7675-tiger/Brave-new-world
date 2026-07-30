@@ -121,6 +121,8 @@ import {
   hasFoldedWeeklyRecap,
   hasSeenPeriod,
   lampSeenKey,
+  markLampFolded,
+  markPeriodSeen,
   pickConflictLampNews,
   pickEconomyLampNews,
   ensureLampFeaturedNews,
@@ -133,8 +135,8 @@ import {
   type PeriodicBriefing,
 } from "@/lib/news/periodicBriefing";
 import {
-  formatWatchFocusLine,
-  loadWatchFocus,
+  formatWatchPinsLine,
+  loadWatchPins,
   rememberConflictNav,
   rememberConflictTheater,
   rememberEconomyHub,
@@ -758,11 +760,6 @@ export function GlobeDashboard({
   /** 로컬 자정에 바뀜 — 매일 등불 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
   const weeklyExpanded = Boolean(weeklyRecap) && !weeklyRecapCollapsed;
-  /** 접힌 등불(주간 회고) 칩 — 우하단 FAB(센티널 등)과 겹치지 않게 피함 */
-  const showFoldedParchmentChip = Boolean(
-    (weeklyRecap && weeklyRecapCollapsed && !periodicBriefing) ||
-      (foldedPeriodicBriefing && !weeklyExpanded),
-  );
   /** 등불 양피지가 떠 있거나 아직 오늘 등불이 끝나지 않으면 공습·이슈 UI 정지 */
   const issueUiPausedForLamp =
     weeklyExpanded || Boolean(periodicBriefing) || !weeklyRecapSettled || !dailyLampSettled;
@@ -3302,6 +3299,20 @@ export function GlobeDashboard({
       showGdeltAlertPanel,
     ],
   );
+
+  /** GDELT 우하단 패널이 *새로* 뜨면 펼쳐진 등불을 우측 「등불」탭으로 자동 접기.
+   * 이미 GDELT가 떠 있는 동안 탭으로 다시 펼치는 경우는 유지한다. */
+  const periodicBriefingRef = useRef(periodicBriefing);
+  periodicBriefingRef.current = periodicBriefing;
+  useEffect(() => {
+    if (bottomAlertPanel !== "gdelt") return;
+    const briefing = periodicBriefingRef.current;
+    if (!briefing) return;
+    markPeriodSeen(briefing.key);
+    markLampFolded(briefing.key);
+    setFoldedPeriodicBriefing(briefing);
+    setPeriodicBriefing(null);
+  }, [bottomAlertPanel]);
 
   useEffect(() => {
     if (shouldCloseLocalForGdelt(showGdeltLayers)) {
@@ -6371,16 +6382,17 @@ export function GlobeDashboard({
   ]);
 
   useEffect(() => {
-    const focus = loadWatchFocus();
-    if (!focus) {
+    const pins = loadWatchPins();
+    if (pins.length === 0) {
       setWatchFocusLine(null);
       return;
     }
     const langKey = labelLanguage === "en" ? "en" : "ko";
     let cancelled = false;
     void (async () => {
-      let rank: { rank: number; prevRank: number | null } | null = null;
-      if (focus.rankEntityId) {
+      const ranksByEntity: Record<string, { rank: number; prevRank: number | null }> = {};
+      const needsRanks = pins.some((p) => p.rankEntityId);
+      if (needsRanks) {
         try {
           const res = await fetch("/api/daily-ranks?limit=10", {
             cache: "no-store",
@@ -6388,16 +6400,19 @@ export function GlobeDashboard({
           });
           if (res.ok) {
             const data = (await res.json()) as DailyRanksPayload;
-            const list =
-              focus.rankKind === "chokepoint" ? data.chokepoint ?? [] : data.theater ?? [];
-            const hit = list.find((r) => r.entityId === focus.rankEntityId);
-            if (hit) rank = { rank: hit.rank, prevRank: hit.prevRank };
+            for (const p of pins) {
+              if (!p.rankEntityId) continue;
+              const list =
+                p.rankKind === "chokepoint" ? data.chokepoint ?? [] : data.theater ?? [];
+              const hit = list.find((r) => r.entityId === p.rankEntityId);
+              if (hit) ranksByEntity[p.rankEntityId] = { rank: hit.rank, prevRank: hit.prevRank };
+            }
           }
         } catch {
           /* ignore */
         }
       }
-      if (!cancelled) setWatchFocusLine(formatWatchFocusLine(focus, langKey, rank));
+      if (!cancelled) setWatchFocusLine(formatWatchPinsLine(pins, langKey, ranksByEntity));
     })();
     return () => {
       cancelled = true;
@@ -7466,8 +7481,13 @@ export function GlobeDashboard({
           loadError={loadError}
           onLocalAlertSelect={handleAlertSelect}
           onCloseLocalPanel={() => setShowLocalAlertPanel(false)}
+          labelLanguage={labelLanguage}
         />
-        {!showLeftPanel && !selected && !regionNavSelection && !isCompactUi && hoverPointer && (
+        {!showLeftPanel &&
+          !selected &&
+          !isCompactUi &&
+          hoverPointer &&
+          (!regionNavSelection || hoveredPath?.kind === "axis-link") && (
           hoveredChokepointStress && showLogisticsStress ? (
             <CursorHoverCard visible x={hoverPointer.x} y={hoverPointer.y}>
               <LogisticsStressCard
@@ -7633,7 +7653,6 @@ export function GlobeDashboard({
         showTrustPanel={showTrustPanel}
         showSourcesPanel={showSourcesPanel}
         showMobileAlertFeed={showMobileAlertFeed}
-        showFoldedParchmentChip={showFoldedParchmentChip}
         playOverlay={playOverlay}
         sentinelActive={sentinelActive}
         sentinelTour={sentinelTour}
