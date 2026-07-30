@@ -30,10 +30,15 @@ const MAX_EMPTY_GZ = 100;
 
 /** 의도적으로 비어 있는 파일 — 추가할 때 반드시 사유를 적을 것. */
 const EMPTY_ALLOWED = new Map<string, string>([
-  ["axis-arms.json", "SIPRI 축 무기거래 빌드 미실행 (P1-6). 채워지면 제거"],
+  ["axis-arms.json", "SIPRI 축 무기거래 — 공개 stub (허가 전). vendor에 실데이터 보관"],
   ["gdelt-events.json", "빌드타임 스냅샷 — 런타임은 /api/gdelt"],
   ["app-data.json", "청크 인덱스 — 실데이터는 countries/disputes/places"],
   ["sigint-military-bases.json", "합성 데모였음 — 비움 처리 (P0-3)"],
+  ["gem-steel.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-cement.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-iron-ore.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-chemicals.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["internet-exchanges.json", "합성 데모 이름 — PeeringDB fetch 전 비움"],
 ]);
 
 type Point = { la?: unknown; ln?: unknown; n?: unknown };

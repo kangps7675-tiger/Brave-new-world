@@ -77,4 +77,4 @@ jobs:
         run: |
           curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz" \
             | sudo tar xz -C /usr/local/bin gitleaks
-          gitleaks detect --source . --verbose --redact --no-banner
+          gitleaks detect --source . --verbose --redact --no-banner --config .gitleaks.toml

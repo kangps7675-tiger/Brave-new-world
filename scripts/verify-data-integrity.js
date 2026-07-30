@@ -58,14 +58,18 @@ const CONTENT_CHECK_MAX_GZ = 512 * 1024;
  * 여기에 추가할 때는 **반드시 사유를 적을 것.**
  */
 const ALLOWLIST = new Map([
-  ["axis-arms.json", "SIPRI 축 무기거래 — 빌드 미실행 상태(P1-6). 채워지면 제거"],
+  ["axis-arms.json", "SIPRI 축 무기거래 — 공개 stub (허가 전). vendor에 실데이터 보관"],
   ["gdelt-events.json", "빌드타임 스냅샷 — 런타임은 /api/gdelt 사용"],
   ["app-data.json", "청크 인덱스 파일 — 실제 데이터는 countries/disputes/places"],
   [
     "sigint-military-bases.json",
-    "합성 데모였음(P0-3) — 의도적으로 비움. military-bases.json(OSM 815건)이 정본. " +
-      "코드 어디서도 참조하지 않으므로 파일 자체를 지워도 된다.",
+    "합성 데모였음(P0-3) — 의도적으로 비움. military-bases.json(OSM 815건)이 정본.",
   ],
+  ["gem-steel.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-cement.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-iron-ore.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["gem-chemicals.json", "GEM 좌표 파서 실패로 전량 (0,0) — rebuild 전 비움"],
+  ["internet-exchanges.json", "합성 데모 이름 — PeeringDB fetch 전 비움"],
 ]);
 
 /**
@@ -75,12 +79,7 @@ const ALLOWLIST = new Map([
  *    빌드를 통과시키려고 항목을 늘리는 순간 이 게이트는 무의미해진다.
  */
 const KNOWN_PENDING = new Map([
-  ["gem-steel.json", "npm run gem:trackers:all — GEM xlsx 재파싱 필요 (P0-1 수정 완료, 재빌드 대기)"],
-  ["gem-cement.json", "npm run gem:trackers:all"],
-  ["gem-iron-ore.json", "npm run gem:trackers:all"],
-  ["gem-chemicals.json", "npm run gem:trackers:all"],
-  ["gem-oil-gas-extraction.json", "npm run gem:trackers:all"],
-  ["internet-exchanges.json", "npm run peeringdb:fetch — 합성 5건을 PeeringDB 실데이터로 교체"],
+  ["gem-oil-gas-extraction.json", "npm run gem:trackers:all — 잔여 널섬 필터는 적용됨, 재빌드 권장"],
 ]);
 
 const problems = [];
