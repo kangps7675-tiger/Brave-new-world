@@ -70,6 +70,6 @@ export function submarineProfileIconSvg(
     .replace(/width="64" height="64"/, `width="${size.width}" height="${size.height}"`);
 }
 
-export function submarineGlowShadow(_fillColor: string = DEFAULT_FILL): string {
+export function submarineGlowShadow(): string {
   return `0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(239,68,68,0.38)`;
 }

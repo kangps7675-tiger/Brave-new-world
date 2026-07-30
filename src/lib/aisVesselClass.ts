@@ -300,14 +300,12 @@ export const AIS_SURFACE_COMBATANT_POINT = "#f87171";
 export const AIS_WARSHIP_POINT = AIS_SURFACE_COMBATANT_POINT;
 
 /** 군함 실루엣/포인트 틴트 — 함종 무관, 검정 통일 */
-export function aisMilitaryKindColor(_kind: AisMilitaryKind | null | undefined): string {
+export function aisMilitaryKindColor(): string {
   return AIS_WARSHIP_FILL;
 }
 
 /** MapLibre circle — 군함은 점이 안 묻히게 연한 빨강 */
-export function aisMilitaryMapPointColor(
-  _kind: AisMilitaryKind | null | undefined,
-): string {
+export function aisMilitaryMapPointColor(): string {
   return AIS_WARSHIP_POINT;
 }
 

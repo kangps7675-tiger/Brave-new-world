@@ -21,7 +21,7 @@ export function filterVisibleCarriers(carriers: UsCarrier[], showAll: boolean): 
   return carriers.filter(isOperationalCarrier);
 }
 
-export function carrierPointColor(_status: UsCarrier["status"]): string {
+export function carrierPointColor(): string {
   return `${AIS_WARSHIP_POINT}e8`;
 }
 
@@ -96,7 +96,6 @@ export function createUsCarrierBadge(
   iconWrap.style.filter =
     "drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38))";
   iconWrap.innerHTML = carrierDeckIconSvg(
-    carrier.status,
     deployed
       ? { width: CARRIER_MARKER_ICON_SIZE.width + 4, height: CARRIER_MARKER_ICON_SIZE.height + 2 }
       : CARRIER_MARKER_ICON_SIZE,

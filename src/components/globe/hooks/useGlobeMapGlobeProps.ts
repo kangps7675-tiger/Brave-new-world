@@ -284,7 +284,7 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "mil") return "rgba(248, 113, 113, 0.92)";
       if (point.displayKind === "ais") {
         if (point.category === "military") {
-          const hex = aisMilitaryMapPointColor(point.militaryKind);
+          const hex = aisMilitaryMapPointColor();
           const r = parseInt(hex.slice(1, 3), 16);
           const g = parseInt(hex.slice(3, 5), 16);
           const b = parseInt(hex.slice(5, 7), 16);

@@ -1,4 +1,3 @@
-import type { UsCarrierStatus } from "@/data/usCarriers";
 import {
   CARRIER_MARKER_ICON_SIZE,
   CARRIER_PROFILE_E,
@@ -44,13 +43,12 @@ export function carrierProfileIconSvg(
 
 /** US 항모 마커·범례 — 상태와 무관하게 군함 공용 검정 (+ 약한 빨간 글로우는 CSS) */
 export function carrierDeckIconSvg(
-  _status: UsCarrierStatus,
   size: CarrierDeckIconSize = CARRIER_MARKER_ICON_SIZE,
   facing: "e" | "w" = "e",
 ): string {
   return carrierProfileIconSvg(AIS_WARSHIP_FILL, size, facing);
 }
 
-export function carrierDeckGlowShadow(_status: UsCarrierStatus): string {
+export function carrierDeckGlowShadow(): string {
   return `0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(239,68,68,0.38)`;
 }
