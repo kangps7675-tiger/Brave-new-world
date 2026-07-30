@@ -5,6 +5,7 @@ import { ensurePushSubscription } from "@/lib/pushClient";
 import { LAYER_PREFS_KEY } from "@/lib/layerPrefs";
 import { trackEvent } from "@/lib/trackClient";
 import { bumpVisitCountOncePerSession, getVisitCount } from "@/lib/visitPrefs";
+import { zc } from "@/lib/uiStack";
 
 /**
  * 재방문 푸시 옵트인 — PWA 설치와 분리.
@@ -134,7 +135,7 @@ export function PushOptInBanner() {
 
   return (
     <div
-      className="pointer-events-auto fixed inset-x-0 bottom-0 z-[590] px-3 sm:bottom-4 sm:left-auto sm:right-4 sm:w-auto sm:px-0"
+      className={`pointer-events-auto fixed inset-x-0 bottom-0 ${zc("panel")} px-3 sm:bottom-4 sm:left-auto sm:right-4 sm:w-auto sm:px-0`}
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
       role="dialog"
       aria-modal="false"

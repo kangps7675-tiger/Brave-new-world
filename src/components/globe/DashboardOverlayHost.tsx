@@ -94,6 +94,7 @@ import {
   type PeriodicBriefing,
 } from "@/lib/news/periodicBriefing";
 import { recordInterestNews } from "@/lib/interest/recordInterest";
+import { zc } from "@/lib/uiStack";
 import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { PlayHubButton } from "@/components/PlayHubButton";
 import { WhereIsItGameOverlay } from "@/components/WhereIsItGameOverlay";
@@ -1211,7 +1212,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         weeklyRecapCollapsed &&
         !periodicBriefing &&
         !foldedPeriodicBriefing) ? (
-        <div className="pointer-events-auto fixed right-0 top-[36%] z-[620] flex flex-col items-end gap-1.5">
+        <div className={`pointer-events-auto fixed right-0 top-[36%] ${zc("panel")} flex flex-col items-end gap-1.5`}>
           {foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded ? (
             <button
               type="button"
@@ -1234,7 +1235,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 {"\uD83C\uDFEE"}
               </span>
               <span
-                className="text-[11px] font-semibold tracking-[0.14em]"
+                className="text-micro font-semibold tracking-[0.14em]"
                 style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
               >
                 {labelLanguage === "en" ? "Lamp" : "등불"}
@@ -1265,7 +1266,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 {"\u2726"}
               </span>
               <span
-                className="text-[11px] font-semibold tracking-[0.14em]"
+                className="text-micro font-semibold tracking-[0.14em]"
                 style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
               >
                 {labelLanguage === "en" ? "Recap" : "회고"}
