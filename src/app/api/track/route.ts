@@ -22,8 +22,13 @@ const ALLOWED_EVENTS = new Set([
   "pwa_prompt_accept",
   "pwa_prompt_dismiss",
   "pwa_installed",
+  "push_optin_shown",
+  "push_optin_accept",
+  "push_optin_dismiss",
   "push_subscribed",
   "push_subscribe_denied",
+  "watch_pin_add",
+  "watch_pin_remove",
 ]);
 
 const trackBodySchema = z.object({

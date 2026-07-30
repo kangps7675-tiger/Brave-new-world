@@ -78,6 +78,59 @@ export const AXIS_RELATION_COLORS: Record<AxisRelationKind, string> = {
   diplomatic: "rgba(125, 211, 252, 0.78)",
 };
 
+/** 점선 호버용 — 관계 종류 짧은 이름 */
+export const AXIS_RELATION_LABELS: Record<
+  AxisRelationKind,
+  { ko: string; en: string }
+> = {
+  patronage: { ko: "후원·안보", en: "Patronage & security" },
+  arms: { ko: "군수·무기", en: "Arms & munitions" },
+  energy: { ko: "에너지·원자재", en: "Energy & commodities" },
+  hybrid: { ko: "하이브리드·제재회피", en: "Hybrid & sanctions evasion" },
+  diplomatic: { ko: "외교·다자", en: "Diplomatic ties" },
+};
+
+/** 점선 호버용 — 한 줄 설명 */
+export const AXIS_RELATION_BLURBS: Record<
+  AxisRelationKind,
+  { ko: string; en: string }
+> = {
+  patronage: {
+    ko: "후원·안보 동맹 성격의 축 연결입니다.",
+    en: "Patronage or security-aligned axis link.",
+  },
+  arms: {
+    ko: "군수·미사일·드론 등 무기 협력 축 연결입니다.",
+    en: "Arms, missile, or drone cooperation link.",
+  },
+  energy: {
+    ko: "에너지·원자재·운송 협력 축 연결입니다.",
+    en: "Energy, commodities, or transport link.",
+  },
+  hybrid: {
+    ko: "사보타주·사이버·정보·제재회피 등 하이브리드 축 연결입니다.",
+    en: "Hybrid channel — sabotage, cyber, intel, or sanctions evasion.",
+  },
+  diplomatic: {
+    ko: "정상외교·다자·경제벨트 성격의 축 연결입니다.",
+    en: "Diplomatic, multilateral, or economic-belt link.",
+  },
+};
+
+export function axisRelationKindLabel(
+  kind: AxisRelationKind,
+  lang: "ko" | "en" = "ko",
+): string {
+  return AXIS_RELATION_LABELS[kind][lang];
+}
+
+export function axisRelationKindBlurb(
+  kind: AxisRelationKind,
+  lang: "ko" | "en" = "ko",
+): string {
+  return AXIS_RELATION_BLURBS[kind][lang];
+}
+
 function edge(
   a: string,
   b: string,

@@ -174,8 +174,10 @@ function PhotoNewsLampParchment({
   useEffect(() => {
     emitParchmentUnfoldSound();
     const reduced = prefersReducedMotion();
-    if (!reduced) emitBreakingDispatchSound();
-  }, []);
+    if (!reduced) {
+      emitBreakingDispatchSound({ bed: isEconomy ? "cheer" : "dark" });
+    }
+  }, [isEconomy]);
 
   const handleContinue = useCallback(() => {
     if (phase !== "idle") return;

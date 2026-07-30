@@ -6,6 +6,8 @@ import localFont from "next/font/local";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
 import { DEVICE_BOOT_SCRIPT } from "@/hooks/deviceQueries";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { PushOptInBanner } from "@/components/PushOptInBanner";
+import { ServiceWorkerBoot } from "@/components/ServiceWorkerBoot";
 import { UiFontBoot } from "@/components/UiFontBoot";
 import { GameShellGuard } from "@/components/GameShellGuard";
 import { UI_FONT_BOOT_SCRIPT } from "@/lib/fontPrefs";
@@ -193,6 +195,8 @@ export default function RootLayout({
         <UiFontBoot />
         <GameShellGuard />
         {children}
+        <ServiceWorkerBoot />
+        <PushOptInBanner />
         <PwaInstallPrompt />
         <Analytics />
       </body>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { LocationPinIcon } from "@/components/LocationPinIcon";
@@ -12,6 +13,8 @@ import {
   gdeltImportanceShortLabel,
   isMarkedGdeltImportance,
 } from "@/lib/gdeltImportance";
+import type { LabelLanguage } from "@/lib/layerPrefs";
+import { isMostlyKorean, translateTextToKorean } from "@/lib/koreanTranslate";
 
 type GdeltAlertPanelProps = {
   alerts: MenuCoreAlert[];
@@ -22,6 +25,8 @@ type GdeltAlertPanelProps = {
   onClose?: () => void;
   /** true면 뉴스창 탭 내부에 끼워지는 전체폭 블록으로 렌더 (플로팅 카드 스타일 X) */
   fullPage?: boolean;
+  /** 한글 모드일 때만 헤드라인을 한국어로 표시 */
+  lang?: LabelLanguage;
 };
 
 export function GdeltAlertPanel({
@@ -32,7 +37,38 @@ export function GdeltAlertPanel({
   onSelect,
   onClose,
   fullPage = false,
+  lang = "ko",
 }: GdeltAlertPanelProps) {
+  const [koHeadlineById, setKoHeadlineById] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (lang !== "ko") {
+      setKoHeadlineById({});
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const next: Record<string, string> = {};
+      await Promise.all(
+        alerts.map(async (alert) => {
+          const raw = formatGdeltNewsHeadline(alert);
+          if (isMostlyKorean(raw)) {
+            next[alert.id] = raw;
+            return;
+          }
+          next[alert.id] = await translateTextToKorean(raw);
+        }),
+      );
+      if (!cancelled) setKoHeadlineById(next);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [lang, alerts]);
+
   return (
     <div
       className={
@@ -43,24 +79,38 @@ export function GdeltAlertPanel({
     >
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          <p className="text-micro uppercase tracking-[0.24em] text-orange-200/75">GDELT 뉴스 알림</p>
+          <p className="text-micro uppercase tracking-[0.24em] text-orange-200/75">
+            {lang === "en" ? "GDELT news alerts" : "GDELT 뉴스 알림"}
+          </p>
           <p className="mt-0.5 text-xs text-orange-50/90">
-            {selectionLabel ? `${selectionLabel} · 메뉴 핵심 뉴스` : "메뉴 연관 핵심 뉴스"}
+            {selectionLabel
+              ? lang === "en"
+                ? `${selectionLabel} · Menu core news`
+                : `${selectionLabel} · 메뉴 핵심 뉴스`
+              : lang === "en"
+                ? "Menu-linked core news"
+                : "메뉴 연관 핵심 뉴스"}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-micro text-orange-100/80">
             {liveStatus === "loading"
-              ? "동기화 중"
+              ? lang === "en"
+                ? "Syncing"
+                : "동기화 중"
               : liveStatus === "error"
-                ? "오프라인"
-                : `${alerts.length}건`}
+                ? lang === "en"
+                  ? "Offline"
+                  : "오프라인"
+                : lang === "en"
+                  ? `${alerts.length}`
+                  : `${alerts.length}건`}
           </span>
           {onClose ? (
             <button
               type="button"
               onClick={onClose}
-              aria-label="GDELT 경보 닫기"
+              aria-label={lang === "en" ? "Close GDELT alerts" : "GDELT 경보 닫기"}
               className="rounded-lg border border-orange-300/25 px-2 py-1 text-xs text-orange-100/60 transition hover:border-orange-200/40 hover:text-orange-50"
             >
               ✕
@@ -72,10 +122,17 @@ export function GdeltAlertPanel({
       {alerts.length === 0 ? (
         <p className="px-3 py-4 text-xs leading-5 text-slate-400">
           {liveStatus === "loading"
-            ? "메뉴와 연관된 핵심 속보를 모으는 중…"
+            ? lang === "en"
+              ? "Gathering menu-linked core alerts…"
+              : "메뉴와 연관된 핵심 속보를 모으는 중…"
             : liveStatus === "error"
-              ? errorMessage || "GDELT 연결 실패. 레이어 패널에서 새로고침하거나 잠시 후 다시 시도하세요."
-              : "표시할 지정학 속보가 없습니다. 상단 메뉴에서 지역을 고르거나 새로고침을 눌러 보세요."}
+              ? errorMessage ||
+                (lang === "en"
+                  ? "GDELT connection failed. Refresh from the layer panel or try again shortly."
+                  : "GDELT 연결 실패. 레이어 패널에서 새로고침하거나 잠시 후 다시 시도하세요.")
+              : lang === "en"
+                ? "No geopolitics alerts to show. Pick a region from the top menu or refresh."
+                : "표시할 지정학 속보가 없습니다. 상단 메뉴에서 지역을 고르거나 새로고침을 눌러 보세요."}
         </p>
       ) : (
         <ul
@@ -91,7 +148,9 @@ export function GdeltAlertPanel({
               : alert.menuRegion.label;
             const fresh = isFreshEvent(alert);
             const marked = isMarkedGdeltImportance(alert.importanceGrade);
-            const headline = formatGdeltNewsHeadline(alert);
+            const rawHeadline = formatGdeltNewsHeadline(alert);
+            const headline =
+              lang === "ko" ? (koHeadlineById[alert.id] ?? rawHeadline) : rawHeadline;
             const host = hostFromGdeltUrl(alert.sourceUrl);
 
             return (
@@ -120,14 +179,14 @@ export function GdeltAlertPanel({
                         </span>
                       ) : (
                         <span className="rounded-full border border-orange-300/30 bg-orange-400/10 px-1.5 py-0.5 text-micro text-orange-100/90">
-                          뉴스
+                          {lang === "en" ? "News" : "뉴스"}
                         </span>
                       )}
-                      <EvidenceTierBadge tier="unverified" lang="ko" />
+                      <EvidenceTierBadge tier="unverified" lang={lang} />
                       <span className="text-orange-100/55">{TIER_LABELS[alert.eventTier]}</span>
                       {fresh && (
                         <span className="rounded-full bg-yellow-400/15 px-1.5 py-0.5 text-micro text-yellow-200">
-                          최신
+                          {lang === "en" ? "Fresh" : "최신"}
                         </span>
                       )}
                       {alert.eventDate && (
