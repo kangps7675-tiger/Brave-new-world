@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { queryViewportCountries } from "@/lib/serverViewportLayers";
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "viewport-countries-failed",
+        error: publicErrorMessage(error, "viewport-countries-failed"),
         countries: [],
       },
       { status: 502 },

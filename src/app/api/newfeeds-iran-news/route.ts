@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getCached, setCached } from "@/lib/apiCache";
 import {
@@ -99,7 +100,7 @@ export async function GET(request: Request) {
         live: false,
         attribution: NEWFEEDS_ATTRIBUTION,
         attributionUrl: NEWFEEDS_REPO_URL,
-        error: error instanceof Error ? error.message : "iran feed failed",
+        error: publicErrorMessage(error, "iran feed failed"),
       },
       { status: 502 },
     );

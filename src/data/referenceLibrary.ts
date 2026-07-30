@@ -99,6 +99,40 @@ export const REFERENCE_LIBRARY: ReferenceLibraryEntry[] = [
     caveatKo:
       "좌표는 주둔 도시지 발사 진지가 아니다. 이동식(Yars 등)은 실제 전개 위치가 상시 달라진다.",
   },
+  {
+    id: "nato-north-atlantic-treaty-1949",
+    titleKo: "북대서양조약 (워싱턴조약) 원문",
+    titleEn: "The North Atlantic Treaty (1949)",
+    publisher: "NATO",
+    kind: "report",
+    vendorPath: "scripts/vendor/alliance-doctrine/nato-north-atlantic-treaty-1949.json",
+    normalizedPath: "scripts/vendor/alliance-doctrine/nato-north-atlantic-treaty-1949.json",
+    derived: [],
+    surfaces: ["src/data/allianceDoctrine.ts"],
+    coverage: "Article 1–14 영문 원문 · Art.4 협의 / Art.5·6 집단방위·지리적 범위 주석",
+    citation: "The North Atlantic Treaty, Washington D.C., 4 April 1949",
+    url: "https://www.nato.int/cps/en/natohq/official_texts_17120.htm",
+    caveatKo:
+      "조약 발동·참전·‘공격으로 간주’의 법적 효과를 앱이 선언하거나 예측하지 않는다. UI는 공개 보도 신호와 각주 인용만 한다.",
+  },
+  {
+    id: "alliance-doctrine-corpus-v1",
+    titleKo: "동맹·경계 독트린 코퍼스 (NATO + CSIS 대만·미중)",
+    titleEn: "Alliance & perimeter doctrine corpus (NATO + CSIS Taiwan/US–China)",
+    publisher: "NATO · CSIS (curated vendor set)",
+    kind: "report",
+    vendorPath: "scripts/vendor/alliance-doctrine/reports",
+    normalizedPath: "scripts/vendor/alliance-doctrine/alliance-doctrine.normalized.json",
+    derived: [],
+    surfaces: ["src/data/allianceDoctrine.ts", "perimeter spillover lexicon"],
+    coverage:
+      "NATO 조약 + CSIS PDF 8종(Jensen/Cancian/Combe/Lin/Heginbotham/Macias/Jones) + ChinaPower 해협 무역 공개 페이지 구조화 메모",
+    citation:
+      "CSIS ChinaPower Crossroads of Commerce (2024-08-22); CSIS reports under scripts/vendor/alliance-doctrine/reports/",
+    url: "https://features.csis.org/chinapower/china-taiwan-strait-trade/",
+    caveatKo:
+      "PDF 전문 OCR이 아니라 출처·시나리오 사다리·무역 추산·경계 ISO 화이트리스트다. 워게임은 예측이 아니다. CSIS 자료는 원문 링크·파일과 함께 인용한다.",
+  },
 ];
 
 export function referenceById(id: string): ReferenceLibraryEntry | undefined {

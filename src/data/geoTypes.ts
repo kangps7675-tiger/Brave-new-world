@@ -151,7 +151,12 @@ export type TransportPath = {
     /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
     | "us-dfc-supply"
     /** 주간 함선 이동 — 공개 관측 연결선 (실제 항적 아님) */
-    | "ship-movement-trail";
+    | "ship-movement-trail"
+    /**
+     * Global Trade Alert 무역정책 조치 — implementer → affected 호.
+     * GTA 레코드에는 좌표가 없어 국가 중심점을 잇는 방식으로만 렌더한다.
+     */
+    | "gta-trade-measure";
   name: string | null;
   scalerank: number;
   lengthKm: number | null;

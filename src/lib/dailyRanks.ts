@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { dailyEntityRanks } from "@/db/schema";
 import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
@@ -388,4 +388,43 @@ export function formatWorldTensionDelta(
 
 export function dailyRankLabel(entry: DailyRankEntry, lang: "ko" | "en"): string {
   return lang === "en" ? entry.labelEn : entry.labelKo;
+}
+
+/** 스크러버용 — D1에 실제로 있는 rank_date 목록 (최신→과거) */
+export async function listDailyRankDates(options: {
+  from?: string;
+  to?: string;
+  limit?: number;
+} = {}): Promise<{ dates: string[]; source: "d1" | "empty" }> {
+  const limit = Math.min(Math.max(options.limit ?? 120, 1), 366);
+  const to = options.to || utcRankDate();
+  const from =
+    options.from ||
+    (() => {
+      const d = new Date(`${to}T00:00:00.000Z`);
+      d.setUTCDate(d.getUTCDate() - (limit - 1));
+      return utcRankDate(d);
+    })();
+
+  try {
+    const db = await getDb();
+    const rows = await db
+      .selectDistinct({ rankDate: dailyEntityRanks.rankDate })
+      .from(dailyEntityRanks)
+      .where(
+        // drizzle sqlite: use sql for range
+        sql`${dailyEntityRanks.rankDate} >= ${from} AND ${dailyEntityRanks.rankDate} <= ${to}`,
+      )
+      .orderBy(sql`${dailyEntityRanks.rankDate} DESC`)
+      .limit(limit);
+
+    const dates = rows
+      .map((r) => r.rankDate)
+      .filter((d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d));
+
+    if (dates.length === 0) return { dates: [], source: "empty" };
+    return { dates, source: "d1" };
+  } catch {
+    return { dates: [], source: "empty" };
+  }
 }

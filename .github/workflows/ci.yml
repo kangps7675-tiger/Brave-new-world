@@ -38,3 +38,34 @@ jobs:
 
       - name: Typecheck
         run: npx tsc --noEmit --pretty false
+
+      - name: Security guard (fail-open 인증·시크릿 하드코딩)
+        run: npm run verify:security
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks 가 이력 전체를 훑을 수 있도록
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # 프로덕션 의존성의 high 이상 취약점은 빌드를 막는다.
+      # dev 의존성은 별도로 보고만 하고 통과시킨다(빌드 스크립트 전용이라 노출면이 다름).
+      - name: npm audit (production deps)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: npm audit (all deps, report only)
+        run: npm audit || true
+        continue-on-error: true
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -574,13 +574,61 @@ const ALLOWED_TRACK_EVENTS = new Set([
   "push_subscribe_denied",
 ]);
 
+/** 브라우저 벤더 푸시 서비스 호스트 화이트리스트. */
+const ALLOWED_PUSH_HOSTS = [
+  /\.google\.com$/i,
+  /\.googleapis\.com$/i,
+  /\.mozilla\.com$/i,
+  /\.mozaws\.net$/i,
+  /\.windows\.com$/i,
+  /\.microsoft\.com$/i,
+  /\.apple\.com$/i,
+];
+
+function isAllowedPushEndpoint(raw: string): boolean {
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:") return false;
+    return ALLOWED_PUSH_HOSTS.some((re) => re.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
+/** 타이밍 세이프 문자열 비교 (Workers 런타임에서 node:crypto 없이 동작). */
+function safeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  const len = Math.max(ab.length, bb.length);
+  let diff = ab.length ^ bb.length;
+  for (let i = 0; i < len; i += 1) {
+    diff |= (ab[i] ?? 0) ^ (bb[i] ?? 0);
+  }
+  return diff === 0;
+}
+
+/**
+ * 수동 트리거 인증 게이트 — **fail-closed**.
+ *
+ * 이 Worker는 workers.dev 또는 커스텀 도메인으로 인터넷에 노출되며,
+ * /push/send 는 전체 구독자 브로드캐스트, /run 은 유료 외부 API 쿼터를 소모한다.
+ * 따라서 INGEST_CRON_SECRET 미설정 시 **거부**한다.
+ *
+ * 로컬 개발에서만 .dev.vars 에 ALLOW_UNAUTHENTICATED_INGEST="true" 로 우회할 수 있다.
+ * (프로덕션에는 절대 설정하지 말 것 — wrangler secret/vars 에 넣지 않으면 undefined)
+ *
+ * 시크릿은 Authorization 헤더로만 받는다. `?secret=` 쿼리는 CDN 액세스 로그·
+ * Referer 에 평문으로 남기 때문에 인증 수단에서 제외했다.
+ */
 function authorizeManual(request: Request, env: IngestEnv): boolean {
   const secret = env.INGEST_CRON_SECRET?.trim();
-  if (!secret) return true; // open in local/dev when secret unset
+  if (!secret) {
+    return env.ALLOW_UNAUTHENTICATED_INGEST === "true";
+  }
   const header = request.headers.get("authorization") || "";
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return safeEqual(bearer, secret);
 }
 
 const worker = {
@@ -611,7 +659,7 @@ const worker = {
         cron: "*/10 * * * *",
         endpoints: {
           health: "GET /health",
-          run: "POST /run (optional Bearer INGEST_CRON_SECRET)",
+          run: "POST /run (Bearer INGEST_CRON_SECRET — required)",
           latest: "GET /latest",
           telegram: "GET /telegram?limit=200 (public read of D1 alerts)",
           firms: "GET /firms?west&south&east&north&max (public read of D1 fires)",
@@ -645,7 +693,9 @@ const worker = {
         const endpoint = typeof body.endpoint === "string" ? body.endpoint.trim() : "";
         const p256dh = typeof body.keys?.p256dh === "string" ? body.keys.p256dh.trim() : "";
         const auth = typeof body.keys?.auth === "string" ? body.keys.auth.trim() : "";
-        if (!endpoint.startsWith("https://") || !p256dh || !auth) {
+        // 실제 푸시 서비스 호스트만 허용 — 임의 URL 구독은 D1 증식 +
+        // 브로드캐스트 시 SSRF-유사 증폭기가 된다.
+        if (!isAllowedPushEndpoint(endpoint) || !p256dh || !auth) {
           return Response.json({ ok: false, error: "invalid subscription" }, { status: 400 });
         }
         if (endpoint.length > 2048 || p256dh.length > 200 || auth.length > 100) {

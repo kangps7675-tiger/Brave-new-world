@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import {
@@ -96,7 +97,7 @@ export async function GET() {
       { headers: GPSJAM_CDN },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "GPSJam fetch failed";
+    const message = publicErrorMessage(error, "GPSJam fetch failed");
     return NextResponse.json(
       {
         fetchedAt: new Date().toISOString(),

@@ -5,6 +5,7 @@ import {
   type AxisHubId,
 } from "@/data/axisNetwork";
 import type { NavSelection, NavSubItem, RegionBBox } from "@/data/navRegions";
+import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 
 export type HubFocusMode =
   | "network"
@@ -301,7 +302,11 @@ export function parseHubNavId(id: string): {
     const h =
       hub ??
       HUB_DEFINITIONS.find((x) => id === `hub-${x.hubId.toLowerCase()}-arms`);
-    return { hubId: h?.hubId ?? null, focusMode: "arms" };
+    // SIPRI 렌즈 OFF — 딥링크는 허브 관계망으로 폴백
+    return {
+      hubId: h?.hubId ?? null,
+      focusMode: SIPRI_ARMS_LENS_ENABLED ? "arms" : "network",
+    };
   }
   if (key.endsWith("-regime") || key.includes("-regime") || key.includes("-friction")) {
     const h =
@@ -378,6 +383,9 @@ export function selectionForClaim(hub: HubDefinition, claim: HubClaim): NavSelec
 }
 
 export function selectionForArms(hub: HubDefinition): NavSelection {
+  if (!SIPRI_ARMS_LENS_ENABLED) {
+    return selectionForHubNetwork(hub);
+  }
   return {
     id: `hub-${hub.hubId.toLowerCase()}-arms`,
     label: `${hub.label} · 무기거래`,

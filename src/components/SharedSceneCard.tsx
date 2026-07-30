@@ -95,6 +95,9 @@ export function SharedSceneCard({
       {!card.placeResolved ? (
         <p className="mt-1 text-meta text-slate-500">{t("sceneCardCoordsOnly", lang)}</p>
       ) : null}
+      {card.asOfLabel ? (
+        <p className="mt-2 text-caption text-amber-100/80">{card.asOfLabel}</p>
+      ) : null}
 
       {/* 오늘의 GTI — 장면과 무관하게 "지금 세계"를 알려주는 앵커 */}
       {gtiSnapshot && band ? (

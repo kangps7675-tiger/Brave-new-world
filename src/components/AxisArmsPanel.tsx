@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { AxisHubId } from "@/data/axisNetwork";
 import { hubById } from "@/data/hubNav";
 import type { AxisArmsDeal } from "@/lib/axisArmsPaths";
@@ -19,19 +20,41 @@ type AxisArmsPanelProps = {
   deals: AxisArmsDeal[];
   citation?: string;
   lang?: LabelLanguage;
+  /** supplier/recipient ISO 쌍 — 목록에서 강조 */
+  highlightPair?: { a: string; b: string } | null;
   onClose: () => void;
 };
+
+function pairMatch(
+  d: AxisArmsDeal,
+  pair: { a: string; b: string } | null | undefined,
+): boolean {
+  if (!pair) return false;
+  const { a, b } = pair;
+  return (
+    (d.supplier === a && d.recipient === b) ||
+    (d.supplier === b && d.recipient === a)
+  );
+}
 
 export function AxisArmsPanel({
   hubId,
   deals,
   citation,
   lang = "ko",
+  highlightPair = null,
   onClose,
 }: AxisArmsPanelProps) {
   const hub = hubById(hubId);
   const hubLabel = hub?.label ?? armsCountryName(hubId, lang);
   const citationText = armsCitationLabel(citation, lang);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+  let highlightAssigned = false;
+
+  useEffect(() => {
+    if (!highlightPair) return;
+    highlightRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [highlightPair, hubId]);
 
   return (
     <aside className="pointer-events-auto absolute right-3 top-20 z-[600] flex max-h-[min(70vh,520px)] w-[min(92vw,320px)] flex-col overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/92 shadow-2xl backdrop-blur-xl">
@@ -58,10 +81,18 @@ export function AxisArmsPanel({
         ) : (
           deals.slice(0, 40).map((d, i) => {
             const desc = armsDescriptionLabel(d.description, lang);
+            const highlighted = pairMatch(d, highlightPair);
+            const attachRef = highlighted && !highlightAssigned;
+            if (attachRef) highlightAssigned = true;
             return (
               <div
                 key={`${d.supplier}-${d.recipient}-${d.designation}-${d.year}-${i}`}
-                className="rounded-lg border border-orange-200/10 bg-orange-500/5 px-2.5 py-2"
+                ref={attachRef ? highlightRef : undefined}
+                className={
+                  highlighted
+                    ? "rounded-lg border border-orange-300/45 bg-orange-500/20 px-2.5 py-2 ring-1 ring-orange-300/30"
+                    : "rounded-lg border border-orange-200/10 bg-orange-500/5 px-2.5 py-2"
+                }
               >
                 <p className="text-meta text-orange-50/95">
                   {armsCountryName(d.supplier, lang)} → {armsCountryName(d.recipient, lang)}

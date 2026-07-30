@@ -16,6 +16,7 @@ import {
   VIINA_POLICY,
 } from "@/lib/licensing/viinaPolicy";
 import {
+  SIPRI_ARMS_LENS_ENABLED,
   SIPRI_ATTRIBUTION_EN,
   SIPRI_ATTRIBUTION_KO,
   SIPRI_POLICY,
@@ -43,6 +44,8 @@ import {
   NEWS_LAYER_SOURCE_CATALOG,
   PRIMARY_LIVE_SOURCES,
 } from "@/data/sourceCatalog";
+import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
+import { getLayerReliability } from "@/lib/layerReliability";
 
 type MethodologySourcesPanelProps = {
   open: boolean;
@@ -112,19 +115,33 @@ export function MethodologySourcesPanel({
           </section>
           {onOpenTrust ? (
             <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
-              <h3 className="text-sm font-medium text-sky-50">뉴스 · OSINT 신뢰도 등급</h3>
+              <h3 className="text-sm font-medium text-sky-50">
+                {isEn ? "News · OSINT trust grades" : "뉴스 · OSINT 신뢰도 등급"}
+              </h3>
               <p className="mt-1.5 text-caption leading-5 text-sky-100/75">
-                Tier 1/2/3 편집독립 축과 텔레그램 OSINT 교차검증 축을 한곳에서 봅니다.
+                {isEn
+                  ? "Media Tier 1/2/3 (editorial independence) is separate from layer evidence type (Observed / Reported / Unverified / Estimate)."
+                  : "매체 Tier 1/2/3(편집독립)과 레이어 증거 종류(관측·보도·미확인·추정)는 다른 축입니다."}
               </p>
               <button
                 type="button"
                 onClick={onOpenTrust}
                 className="mt-2 text-caption font-semibold text-sky-200 underline-offset-2 transition hover:underline"
               >
-                뉴스 신뢰도 등급 →
+                {isEn ? "News trust grades →" : "뉴스 신뢰도 등급 →"}
               </button>
             </section>
           ) : null}
+          <section className="rounded-xl border border-emerald-400/25 bg-emerald-950/20 p-3">
+            <h3 className="text-sm font-medium text-emerald-50">
+              {isEn ? "Layer evidence types" : "레이어 증거 종류"}
+            </h3>
+            <p className="mt-1.5 text-caption leading-5 text-sky-100/75">
+              {isEn
+                ? "Each map layer is labeled Observed, Reported, Unverified, or Estimate — plus freshness (live / daily / static). This is not a truth score."
+                : "지도 레이어마다 관측·보도·미확인·추정과 신선도(실시간·일별·정적)를 붙입니다. 진실 점수가 아닙니다."}
+            </p>
+          </section>
           <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
             <h3 className="text-sm font-medium text-sky-50">
               {isEn ? "Freesound audio (attribution required)" : "Freesound 음원 (저작물 명시)"}
@@ -252,7 +269,7 @@ export function MethodologySourcesPanel({
               나타나며, 폐기국(남아공)과 세계 합계는 제외했습니다.
             </p>
             <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              인용: Our World in Data · FAS Nuclear Notebook / SIPRI.
+              인용: Our World in Data · FAS Nuclear Notebook.
             </p>
             <p className="mt-2 text-meta leading-5 text-sky-100/65">
               데이터:{" "}
@@ -446,21 +463,27 @@ export function MethodologySourcesPanel({
             </ul>
           </section>
 
-          <section className="rounded-xl border border-orange-900/35 bg-orange-950/15 p-3">
-            <h3 className="text-sm font-medium text-orange-100">
-              SIPRI — 재래식 무기이전 ({SIPRI_POLICY.product})
-            </h3>
-            <p className="mt-2 text-caption leading-5 text-sky-100/80">{SIPRI_ATTRIBUTION_KO}</p>
-            <p className="mt-2 text-meta italic leading-5 text-sky-100/60">{SIPRI_ATTRIBUTION_EN}</p>
-            <p className="mt-3 text-meta leading-5 text-orange-200/75">
-              {SIPRI_POLICY.fullName} · {SIPRI_POLICY.licenseNote}
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              별도 공식 딥링크를 UI에 고정하지 않습니다. SIPRI 웹사이트에서 Arms Transfers
-              Database / Trade Register 문서를 직접 검색·인용해 주십시오. 화면의 호·목록은
-              축 허브 필터가 적용된 요약이며, 연구·보도 인용 시 원자료를 확인하십시오.
-            </p>
-          </section>
+          {SIPRI_ARMS_LENS_ENABLED ? (
+            <section className="rounded-xl border border-orange-900/35 bg-orange-950/15 p-3">
+              <h3 className="text-sm font-medium text-orange-100">
+                SIPRI — 재래식 무기이전 ({SIPRI_POLICY.product})
+              </h3>
+              <p className="mt-2 text-caption leading-5 text-sky-100/80">
+                {SIPRI_ATTRIBUTION_KO}
+              </p>
+              <p className="mt-2 text-meta italic leading-5 text-sky-100/60">
+                {SIPRI_ATTRIBUTION_EN}
+              </p>
+              <p className="mt-3 text-meta leading-5 text-orange-200/75">
+                {SIPRI_POLICY.fullName} · {SIPRI_POLICY.licenseNote}
+              </p>
+              <p className="mt-2 text-meta leading-5 text-sky-100/65">
+                별도 공식 딥링크를 UI에 고정하지 않습니다. SIPRI 웹사이트에서 Arms Transfers
+                Database / Trade Register 문서를 직접 검색·인용해 주십시오. 화면의 호·목록은
+                축 허브 필터가 적용된 요약이며, 연구·보도 인용 시 원자료를 확인하십시오.
+              </p>
+            </section>
+          ) : null}
 
           <section className="rounded-xl border border-fuchsia-900/35 bg-fuchsia-950/15 p-3">
             <h3 className="text-sm font-medium text-fuchsia-100">
@@ -535,15 +558,30 @@ export function MethodologySourcesPanel({
           <section className="rounded-xl border border-sky-300/12 bg-black/20 p-3">
             <h3 className="text-sm font-medium text-sky-50/95">연동 중인 레이어</h3>
             <ul className="mt-2 space-y-2">
-              {shipped.map((note) => (
+              {shipped.map((note) => {
+                const rel = getLayerReliability(note.layerId);
+                const caveat = rel
+                  ? isEn
+                    ? rel.caveatEn
+                    : rel.caveatKo
+                  : null;
+                return (
                 <li key={note.layerId} className="text-meta leading-5 text-sky-100/75">
-                  <span className="font-medium text-sky-50/90">{note.source}</span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-medium text-sky-50/90">{note.source}</span>
+                    {rel ? (
+                      <EvidenceTierBadge tier={rel.evidenceTier} lang={lang} />
+                    ) : null}
+                  </div>
                   <span className="text-sky-100/50"> · {note.attribution}</span>
-                  {note.notes ? (
+                  {caveat ? (
+                    <p className="mt-0.5 text-sky-100/55">{caveat}</p>
+                  ) : note.notes ? (
                     <p className="mt-0.5 text-sky-100/55">{note.notes}</p>
                   ) : null}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </section>
 

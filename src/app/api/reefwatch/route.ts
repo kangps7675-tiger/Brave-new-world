@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
 import { logApiRoute } from "@/lib/apiRouteLog";
@@ -143,7 +144,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     errors.push(
-      `opensky: ${error instanceof Error ? error.message : "fetch failed"}`,
+      `opensky: ${publicErrorMessage(error, "fetch failed")}`,
     );
     logApiRoute("/api/reefwatch", "error", "opensky_fetch_failed", {
       message: errors[0],

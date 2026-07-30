@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { isApiStubMode } from "@/lib/apiStubMode";
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
         riskScore: null,
         band: "unknown",
         indicators: [],
-        error: error instanceof Error ? error.message : "world-bank failed",
+        error: publicErrorMessage(error, "world-bank failed"),
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

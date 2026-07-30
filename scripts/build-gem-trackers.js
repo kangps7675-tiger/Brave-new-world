@@ -259,20 +259,49 @@ function firstVal(row, keys) {
   return null;
 }
 
+/**
+ * 안전한 수치 변환.
+ *
+ * ⚠️ 이 헬퍼가 있는 이유 (2026-07-31 감사 · P0-1):
+ *   `Number(null) === 0` 이고 `Number.isFinite(0) === true` 다.
+ *   따라서 `Number(firstVal(...))` 를 그대로 isFinite 로 검사하면
+ *   **컬럼이 아예 없는 시트에서도 {lat:0, lng:0} 이 통과**한다.
+ *   GEM 의 철강·시멘트·철광석·화학 트래커는 위경도를 별도 컬럼이 아니라
+ *   `Coordinates` 통합 컬럼으로 주기 때문에, 이 버그로 2,000개 시설이
+ *   전부 널섬(0,0) 에 찍혔다. 절대 Number() 직접 호출로 되돌리지 말 것.
+ */
+function num(value) {
+  if (value == null) return NaN;
+  const text = String(value).trim();
+  if (text === "") return NaN;
+  const n = Number(text);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/** (0,0) 널섬 — GEM 원본에 진짜 이 좌표인 시설은 없다. 결측의 신호다. */
+function isNullIsland(lat, lng) {
+  return lat === 0 && lng === 0;
+}
+
 function parseCoords(row) {
-  const latDirect = Number(firstVal(row, ["Latitude", "Lat", "latitude"]));
-  const lngDirect = Number(firstVal(row, ["Longitude", "Long", "Lng", "longitude"]));
-  if (Number.isFinite(latDirect) && Number.isFinite(lngDirect)) {
+  const latDirect = num(firstVal(row, ["Latitude", "Lat", "latitude"]));
+  const lngDirect = num(firstVal(row, ["Longitude", "Long", "Lng", "longitude"]));
+  if (
+    Number.isFinite(latDirect) &&
+    Number.isFinite(lngDirect) &&
+    !isNullIsland(latDirect, lngDirect)
+  ) {
     return { lat: latDirect, lng: lngDirect };
   }
-  const raw = firstVal(row, ["Coordinates", "Coordinate", "Lat/Long"]);
+  const raw = firstVal(row, ["Coordinates", "Coordinate", "Lat/Long", "Location"]);
   if (raw == null) return null;
   const text = String(raw).trim();
   const m = text.match(/(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)/);
   if (!m) return null;
-  const a = Number(m[1]);
-  const b = Number(m[2]);
+  const a = num(m[1]);
+  const b = num(m[2]);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  if (isNullIsland(a, b)) return null;
   // GEM usually lat,lng — if |a|>90 treat as lng,lat
   if (Math.abs(a) <= 90 && Math.abs(b) <= 180) return { lat: a, lng: b };
   if (Math.abs(b) <= 90 && Math.abs(a) <= 180) return { lat: b, lng: a };
@@ -313,19 +342,30 @@ function convertTracker(def) {
   const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: null });
   const points = [];
   const seen = new Set();
+  let droppedNoCoords = 0;
+  let droppedStatus = 0;
 
   for (const [index, row] of rows.entries()) {
     const status = firstVal(row, def.statusKeys) ?? "operating";
     // industrial sheets sometimes omit status — keep if coords ok
     if (def.statusKeys?.length && !statusAllowed(status) && statusKey(status)) {
       // if status present but not allowed, skip; if empty keep
-      if (String(status).trim()) continue;
+      if (String(status).trim()) {
+        droppedStatus += 1;
+        continue;
+      }
     }
 
     const coords = parseCoords(row);
-    if (!coords) continue;
+    if (!coords) {
+      droppedNoCoords += 1;
+      continue;
+    }
     const { lat, lng } = coords;
-    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+      droppedNoCoords += 1;
+      continue;
+    }
 
     const name =
       String(firstVal(row, def.nameKeys) || `${def.id}-${index}`).trim() ||
@@ -360,12 +400,35 @@ function convertTracker(def) {
     });
   }
 
+  // 좌표 결측률이 비정상적으로 높으면 파서가 깨진 것이다 (P0-1 재발 감지).
+  const eligible = points.length + droppedNoCoords;
+  if (eligible >= 50 && droppedNoCoords / eligible > 0.5) {
+    throw new Error(
+      `${def.id}: 좌표 파싱 실패율 ${((droppedNoCoords / eligible) * 100).toFixed(1)}% ` +
+        `(${droppedNoCoords}/${eligible}). 시트 컬럼명이 바뀌었는지 확인하라 — ` +
+        `parseCoords() 의 키 목록과 def.sheet 를 점검할 것.`,
+    );
+  }
+
   points.sort((a, b) => a._rank - b._rank || b._cap - a._cap || a.name.localeCompare(b.name));
   const cleaned = points.map(({ _rank, _cap, ...rest }) => rest);
-  return capArrayGeographic(cleaned, def.caps.lite, def.caps.full, (p) => ({
+  const capped = capArrayGeographic(cleaned, def.caps.lite, def.caps.full, (p) => ({
     lat: p.lat,
     lng: p.lng,
   }));
+
+  return {
+    points: capped,
+    stats: {
+      sourceRows: rows.length,
+      eligible: cleaned.length,
+      shipped: capped.length,
+      droppedNoCoords,
+      droppedStatus,
+      cap: IS_LITE ? def.caps.lite : def.caps.full,
+      truncated: capped.length < cleaned.length,
+    },
+  };
 }
 
 function main() {
@@ -376,14 +439,54 @@ function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   console.log(`GEM trackers source: ${GEM_ROOT} (${IS_LITE ? "lite" : "full"})`);
 
+  /**
+   * 표본 매니페스트 — 이 레이어들은 **전수가 아니라 캡 샘플**이다.
+   * UI 는 이 파일을 읽어 "표본 900/6,743" 배지를 띄운다.
+   * 데이터 파일 자체는 최상위 배열 계약을 유지해야 하므로 사이드카로 분리한다.
+   */
+  const manifest = {
+    generatedAt: new Date().toISOString(),
+    profile: IS_LITE ? "lite" : "full",
+    note:
+      "GEM 레이어는 성능 상한(cap) 때문에 지리 층화 추출된 표본이다. " +
+      "정렬은 status rank → capacity 순이며, capArrayGeographic 이 지역 버킷 " +
+      "라운드로빈으로 뽑는다. 전수가 아니다.",
+    layers: {},
+  };
+
   for (const def of TRACKERS) {
-    const points = convertTracker(def);
+    const result = convertTracker(def);
+    const points = Array.isArray(result) ? result : result.points;
+    const stats = Array.isArray(result) ? null : result.stats;
+
     writeJsonArrayFile(
       path.join(OUT_DIR, def.file),
       points.map(compactStaticPoint),
     );
-    console.log(`   ${def.id}: ${points.length}`);
+
+    if (stats) {
+      manifest.layers[def.kind] = {
+        file: def.file,
+        total: stats.eligible,
+        shipped: stats.shipped,
+        truncated: stats.truncated,
+        sampling: stats.truncated ? "geo-stratified" : "complete",
+        rank: "status,capacity",
+      };
+      const pct = stats.eligible ? ((stats.shipped / stats.eligible) * 100).toFixed(0) : "0";
+      console.log(
+        `   ${def.id}: ${stats.shipped}/${stats.eligible} (${pct}%)` +
+          (stats.droppedNoCoords ? ` · 좌표없음 ${stats.droppedNoCoords}` : ""),
+      );
+    } else {
+      console.log(`   ${def.id}: ${points.length}`);
+    }
   }
+
+  fs.writeFileSync(
+    path.join(OUT_DIR, "gem-sampling-manifest.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
 }
 
 if (require.main === module) {

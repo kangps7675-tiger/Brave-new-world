@@ -4,6 +4,7 @@ import path from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { apiStubResponse } from "@/lib/apiStub";
+import { authorizeCronRequest } from "@/lib/auth/cronAuth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,6 +86,16 @@ export async function GET() {
 export async function POST(request: Request) {
   const stub = apiStubResponse("data-sync-post", request);
   if (stub) return stub;
+
+  // 이 라우트는 최대 15분짜리 Node 자식 프로세스를 기동하고 유료 외부 API 쿼터를
+  // 소모한다. force=1 은 스테일·최소간격 검사를 모두 우회하므로 무인증 노출 시
+  // 자원 고갈 벡터가 된다 → cron 시크릿 게이트 필수 (fail-closed).
+  if (!authorizeCronRequest(request, ["INGEST_CRON_SECRET", "DATA_SYNC_SECRET"])) {
+    return NextResponse.json(
+      { ok: false, error: "unauthorized" },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
   const url = new URL(request.url);
   let body: Record<string, unknown> = {};

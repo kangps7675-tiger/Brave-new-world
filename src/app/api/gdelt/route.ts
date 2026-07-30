@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { fetchLatestGdeltEvents } from "@/lib/gdeltParse";
 import { fetchGdeltThemeCached, type GdeltTheme } from "@/lib/gdeltTheme";
@@ -193,7 +194,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "GDELT 수신 실패",
+        error: publicErrorMessage(error, "GDELT 수신 실패"),
         events: [],
       },
       { status: 500, headers: NO_STORE_HEADERS },

@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { UsCarrier } from "@/data/usCarriers";
 import { US_CARRIERS_SEED } from "@/data/usCarriers";
@@ -53,7 +54,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "항모 데이터 로드 실패",
+        error: publicErrorMessage(error, "항모 데이터 로드 실패"),
         carriers: US_CARRIERS_SEED,
         count: US_CARRIERS_SEED.length,
       },

@@ -175,8 +175,11 @@ export const CHOKEPOINTS: Chokepoint[] = [
     scenePlaceId: "choke-suez",
     name: { ko: "수에즈 운하", en: "Suez Canal" },
     aliases: ["Suez", "SUMED", "수에즈"],
-    lat: 31.25,
-    lng: 32.34,
+    // 운하 중간부(이스마일리아 인근). 기존 값 31.25/32.34 는 북단 포트사이드였고
+    // criticalNodes(MIT Atlas) 와 73km 어긋나 같은 지명 핀이 두 개 떴다 (P0-5).
+    // 193km 길이의 운하를 한 점으로 나타낼 때는 중간부가 더 대표적이다.
+    lat: 30.593,
+    lng: 32.437,
     littoral: ["EG"],
     flow: {
       oilMbd: 4.9,
@@ -202,7 +205,7 @@ export const CHOKEPOINTS: Chokepoint[] = [
   },
   {
     slug: "taiwan-strait",
-    scenePlaceId: "china-taiwan",
+    scenePlaceId: "choke-taiwan-strait",
     name: { ko: "대만 해협", en: "Taiwan Strait" },
     aliases: ["Formosa Strait", "대만해협", "타이완 해협"],
     lat: 24.48,
@@ -225,6 +228,99 @@ export const CHOKEPOINTS: Chokepoint[] = [
     },
     scene: { mode: "conflict", altitude: 0.55, layers: CONFLICT_LAYERS },
   },
+  {
+    slug: "turkish-straits",
+    scenePlaceId: "choke-bosporus",
+    name: { ko: "터키 해협 (보스포루스·다르다넬스)", en: "Turkish Straits" },
+    aliases: ["Bosporus", "Bosphorus", "Dardanelles", "보스포루스", "다르다넬스", "터키해협"],
+    // 보스포루스 최협부 — 이스탄불 시내를 관통한다
+    lat: 41.12,
+    lng: 29.07,
+    littoral: ["TR"],
+    flow: {
+      oilMbd: 3.7,
+      period: "2025 H1",
+      share: {
+        ko: "흑해 산유국의 유일한 지중해 출구",
+        en: "The only Mediterranean outlet for Black Sea producers",
+      },
+    },
+    summary: {
+      ko: "러시아·카자흐 원유와 우크라이나 곡물이 같은 물길을 쓴다. 도시 한복판을 지나는 유일한 초크포인트.",
+      en: "Russian and Kazakh crude share this water with Ukrainian grain — the only chokepoint that runs through the middle of a city.",
+    },
+    whyItMatters: {
+      ko: "흑해는 닫힌 바다이고, 나가는 문은 여기 하나다. 러시아 노보로시스크와 카자흐 CPC 터미널의 원유, 우크라이나 오데사의 곡물이 전부 이 한 줄을 통과한다. 게다가 몽트뢰 협약이 군함 통항을 규율하기 때문에, 이 해협은 상업 항로인 동시에 **해군 전력 배치의 법적 관문**이다. 지경학과 지정학이 같은 좌표에서 만나는 드문 지점이다.",
+      en: "The Black Sea is a closed sea with one door. Crude from Novorossiysk and the Kazakh CPC terminal, and grain from Odesa, all pass this single line. And because the Montreux Convention governs warship transit, the strait is simultaneously a commercial lane and a **legal gate on naval deployment** — a rare place where geoeconomics and geopolitics share one coordinate.",
+    },
+    ifDisrupted: {
+      ko: "실질적 해상 대체로가 없다. 흑해 물량은 파이프라인(드루즈바·BTC)으로 돌리거나 포기해야 하는데, 두 경로 모두 여유 용량이 제한적이다. 곡물은 다뉴브 강 바지선·루마니아 콘스탄차로 일부 우회했지만 처리량이 크게 떨어진다.",
+      en: "There is no practical maritime alternative. Black Sea volumes must shift to pipelines (Druzhba, BTC) or be foregone, and both have limited spare capacity. Grain has partly rerouted via Danube barges and Romania's Constanța, at a sharp cost in throughput.",
+    },
+    scene: { mode: "conflict", altitude: 0.4, layers: CONFLICT_LAYERS },
+  },
+  {
+    slug: "panama-canal",
+    scenePlaceId: "choke-panama",
+    name: { ko: "파나마 운하", en: "Panama Canal" },
+    aliases: ["Panama", "파나마운하", "Gatun"],
+    // ⚠️ sceneCard.ts 의 SCENE_PLACES["choke-panama"] 와 값이 같아야 한다 (P0-5)
+    lat: 9.08,
+    lng: -79.68,
+    littoral: ["PA"],
+    flow: {
+      oilMbd: 2.3,
+      period: "2025 H1",
+      share: {
+        ko: "미국 걸프–아시아 LPG·석유제품의 주 통로",
+        en: "Main route for US Gulf–Asia LPG and refined products",
+      },
+    },
+    summary: {
+      ko: "기후가 초크포인트를 좁힐 수 있다는 것을 증명한 곳. 봉쇄가 아니라 가뭄으로 막혔다.",
+      en: "The place that proved climate can narrow a chokepoint — closed by drought, not by blockade.",
+    },
+    whyItMatters: {
+      ko: "다른 초크포인트의 위험은 군사·정치적이지만 파나마의 위험은 **수문학적**이다. 갑문식 운하라 통항 1회마다 가툰 호수의 담수를 대량 소모하고, 강우가 부족하면 물리적으로 배를 넘길 수 없다. 2023~24년 가뭄 때 일일 통항 척수가 크게 줄고 슬롯 경매가가 폭등했다. 미국 걸프의 LPG·석유제품이 아시아로 가는 최단 경로이기도 하다.",
+      en: "Risk at other chokepoints is military or political; at Panama it is **hydrological**. It is a lock canal, so every transit consumes fresh water from Gatún Lake — when rainfall falls short, ships physically cannot be lifted. During the 2023–24 drought, daily transits were cut sharply and slot auction prices spiked. It is also the shortest path for US Gulf LPG and refined products bound for Asia.",
+    },
+    ifDisrupted: {
+      ko: "수에즈 경유 또는 케이프 혼·희망봉 우회. 미 걸프–동아시아 기준 수 주가 추가된다. 특이한 점은 이 초크포인트가 **부분적으로만 막힌다**는 것 — 완전 폐쇄가 아니라 통항 슬롯이 줄고 값이 오르는 방식으로 조여든다.",
+      en: "Reroute via Suez, or around Cape Horn / the Cape of Good Hope, adding weeks on the US Gulf–East Asia run. What is unusual here is that the chokepoint constricts **partially** — not a closure so much as fewer transit slots at rising prices.",
+    },
+    scene: { mode: "economy", altitude: 0.42, layers: ECON_LAYERS },
+  },
+  {
+    slug: "danish-straits",
+    scenePlaceId: "choke-danish-straits",
+    name: { ko: "덴마크 해협 (대벨트·외레순)", en: "Danish Straits" },
+    aliases: ["Great Belt", "Oresund", "Øresund", "Kattegat", "덴마크해협", "외레순"],
+    // 대벨트 해협 — 발트 원유 수출의 실질 관문
+    lat: 55.34,
+    lng: 11.0,
+    littoral: ["DK", "SE"],
+    flow: {
+      oilMbd: 4.9,
+      period: "2025 H1",
+      share: {
+        ko: "러시아 발트 수출의 관문 — 그림자 함대의 주 무대",
+        en: "Gateway for Russian Baltic exports — the shadow fleet's main stage",
+      },
+    },
+    summary: {
+      ko: "제재받는 원유가 매일 NATO 회원국 사이를 지나간다. 법과 항행의 자유가 정면으로 부딪히는 곳.",
+      en: "Sanctioned crude passes between NATO members every day — where sanctions law and freedom of navigation collide head-on.",
+    },
+    whyItMatters: {
+      ko: "프리모르스크·우스트루가 등 러시아 발트 항구에서 나온 원유는 전부 여기를 지난다. 그런데 이 해협은 덴마크와 스웨덴 사이, 즉 **NATO 내해에 가깝다.** 유가 상한제 이후 늘어난 노후 유조선·불투명 보험의 '그림자 함대'가 바로 이 구간을 통과하며, 연안국은 국제 해협 통항권 때문에 임검에 제약을 받는다. 제재의 실효성이 시험되는 물리적 좌표다.",
+      en: "Crude leaving Russian Baltic ports such as Primorsk and Ust-Luga all passes here — through what is effectively a **NATO inner sea** between Denmark and Sweden. The ageing, opaquely insured 'shadow fleet' that grew after the price cap transits this stretch, while littoral states are constrained in boarding them by transit rights through international straits. This is the physical coordinate where sanctions enforcement is tested.",
+    },
+    ifDisrupted: {
+      ko: "발트 원유에는 사실상 해상 대체로가 없다. 무르만스크·노보로시스크로 육상 재배치해야 하는데 파이프라인 용량과 거리가 모두 불리하다. 반대로 이 해협의 통항 통제 강화는 '봉쇄'로 해석될 수 있어 정치적 비용이 매우 크다.",
+      en: "There is effectively no maritime alternative for Baltic crude; volumes would have to be rerouted overland toward Murmansk or Novorossiysk, where both pipeline capacity and distance work against it. Conversely, tightening transit control here risks being read as blockade — the political cost is steep.",
+    },
+    scene: { mode: "economy", altitude: 0.42, layers: ECON_LAYERS },
+  },
 ];
 
 export function getChokepoint(slug: string): Chokepoint | undefined {
@@ -237,7 +333,7 @@ export function getChokepoint(slug: string): Chokepoint | undefined {
  * 그쪽 모듈은 `"use client"`라 서버 컴포넌트에서 import할 수 없어서
  * 형식만 맞춰 여기서 다시 만든다. 형식이 바뀌면 두 곳을 함께 고쳐야 한다.
  */
-export function chokepointSceneHref(cp: Chokepoint): string {
+export function chokepointSceneHref(cp: Chokepoint, asOf?: string | null): string {
   const params = new URLSearchParams({
     scene: "1",
     mode: cp.scene.mode,
@@ -246,6 +342,9 @@ export function chokepointSceneHref(cp: Chokepoint): string {
     alt: cp.scene.altitude.toFixed(3),
     layers: cp.scene.layers.join("."),
   });
+  if (asOf && /^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
+    params.set("asOf", asOf);
+  }
   return `/?${params.toString()}`;
 }
 

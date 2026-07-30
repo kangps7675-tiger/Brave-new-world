@@ -1,6 +1,14 @@
 "use client";
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import {
+  evidenceTierHint,
+  evidenceTierLabel,
+  type EvidenceTier,
+} from "@/lib/evidenceTier";
+
+export type { EvidenceTier };
+export { evidenceTierLabel, evidenceTierHint };
 
 /**
  * 데이터 신뢰도 계층 — TrustBadgeChip(매체 신뢰도 T1/T2/T3)과는 다른 축.
@@ -10,7 +18,6 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
  *   unverified — 텔레그램 등 미확인 전언
  *   model      — WTI처럼 우리가 만든 점수
  */
-export type EvidenceTier = "observed" | "reported" | "unverified" | "model";
 
 const TIER_STYLE_DARK: Record<EvidenceTier, { bg: string; border: string; text: string }> = {
   observed: { bg: "bg-emerald-500/15", border: "border-emerald-400/40", text: "text-emerald-200" },
@@ -26,40 +33,6 @@ const TIER_STYLE_LIGHT: Record<EvidenceTier, { bg: string; border: string; text:
   unverified: { bg: "bg-slate-600/10", border: "border-slate-700/35", text: "text-slate-800" },
   model: { bg: "bg-violet-600/10", border: "border-violet-700/35", text: "text-violet-900" },
 };
-
-const TIER_LABEL: Record<EvidenceTier, { ko: string; en: string }> = {
-  observed: { ko: "관측", en: "Observed" },
-  reported: { ko: "보도", en: "Reported" },
-  unverified: { ko: "미확인", en: "Unverified" },
-  model: { ko: "추정", en: "Estimate" },
-};
-
-const TIER_HINT: Record<EvidenceTier, { ko: string; en: string }> = {
-  observed: {
-    ko: "위성·항적처럼 기계가 잡아낸 신호",
-    en: "Machine-sensed signal (satellite, tracks, etc.)",
-  },
-  reported: {
-    ko: "매체가 전하고 교차로 잡힌 내용",
-    en: "Cross-checked media reporting",
-  },
-  unverified: {
-    ko: "한 경로만의 전언 · 아직 확인되지 않음",
-    en: "Single-source claim · not yet confirmed",
-  },
-  model: {
-    ko: "우리가 계산한 점수 · 관측 원본이 아님",
-    en: "Our computed score · not a raw observation",
-  },
-};
-
-export function evidenceTierLabel(tier: EvidenceTier, lang: LabelLanguage): string {
-  return TIER_LABEL[tier][lang];
-}
-
-export function evidenceTierHint(tier: EvidenceTier, lang: LabelLanguage): string {
-  return TIER_HINT[tier][lang];
-}
 
 export function EvidenceTierBadge({
   tier,

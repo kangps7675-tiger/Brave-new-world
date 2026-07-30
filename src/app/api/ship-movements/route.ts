@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
       },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "ship-movements failed";
+    const message = publicErrorMessage(error, "ship-movements failed");
     logApiRoute("/api/ship-movements", "error", "query_failed", { message });
     return NextResponse.json(
       {

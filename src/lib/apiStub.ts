@@ -26,6 +26,7 @@ export type ApiStubRoute =
   | "sanctions-entities"
   | "briefing-stats"
   | "daily-ranks"
+  | "daily-ranks-dates"
   | "daily-prompt"
   | "daily-predict"
   | "daily-predict-stats"
@@ -64,6 +65,21 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
         worldTension: null,
         yesterdayCorrectPct: null,
       };
+    case "daily-ranks-dates": {
+      const today = at.slice(0, 10);
+      const dates: string[] = [];
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(`${today}T00:00:00.000Z`);
+        d.setUTCDate(d.getUTCDate() - i);
+        dates.push(d.toISOString().slice(0, 10));
+      }
+      return {
+        dates,
+        source: "empty",
+        today,
+        fetchedAt: at,
+      };
+    }
     case "daily-prompt":
       return {
         ok: true,

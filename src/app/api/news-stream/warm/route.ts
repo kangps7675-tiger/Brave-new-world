@@ -1,3 +1,5 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
+import { authorizeCronRequest } from "@/lib/auth/cronAuth";
 import { NextResponse } from "next/server";
 import {
   buildAndCacheNewsStream,
@@ -22,13 +24,7 @@ const DEFAULT_PACKAGES: Array<ViewPackageId[] | undefined> = [
 const DEFAULT_LANGS: LabelLanguage[] = ["ko", "en"];
 
 function authorize(request: Request): boolean {
-  const secret =
-    process.env.INGEST_CRON_SECRET?.trim() || process.env.NEWS_WARM_SECRET?.trim();
-  if (!secret) return true;
-  const header = request.headers.get("authorization") || "";
-  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return authorizeCronRequest(request, ["INGEST_CRON_SECRET", "NEWS_WARM_SECRET"]);
 }
 
 /**
@@ -75,7 +71,7 @@ export async function POST(request: Request) {
         results.push({
           cacheKey,
           ok: false,
-          error: error instanceof Error ? error.message : "warm failed",
+          error: publicErrorMessage(error, "warm failed"),
         });
       }
     }

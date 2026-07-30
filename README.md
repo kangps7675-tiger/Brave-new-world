@@ -379,6 +379,45 @@ public/audio/             # 로컬 전투·공습 샘플
 > Public Domain·무료 공개 API·일반 npm 라이브러리는 별도 표기 의무 없이 제외.  
 > 상세: [`docs/copyright-checklist.md`](docs/copyright-checklist.md) · 앱 **「출처」** 패널 (`MethodologySourcesPanel`)
 
+### 신뢰도 축 (과장 금지)
+
+이 제품에는 **두 개의 다른 축**이 있습니다. 둘 다 “진실 점수”가 아닙니다.
+
+| 축 | 모듈 | 의미 |
+|----|------|------|
+| **매체 Tier (T1–3)** | `mediaTiers` · `NewsTrustTierPanel` | 기사·RSS의 편집독립 |
+| **레이어 증거 종류** | `layerReliability` · EvidenceTier | 지도 레이어가 어떤 종류의 앎인가 + 신선도 |
+
+**EvidenceTier 6단계** (`src/lib/evidenceTier.ts`):
+
+| tier | 뜻 | 렌더 |
+|------|-----|------|
+| `observed` | 위성·항적처럼 기계가 잡아낸 신호 | 실선 |
+| `reported` | 매체가 전하고 교차로 잡힌 내용 | 실선 |
+| `claimed` | **교전 당사국 발표 · 독립 검증 없음** | 점선 |
+| `unverified` | 한 경로만의 전언 | 점점선 |
+| `model` | 우리가 계산한 점수 | 파선 |
+| `synthetic` | 데모·플레이스홀더 — **프로덕션 자동 제외** | (미노출) |
+
+`claimed` 는 ArmyInform(우크라 국방부 매체) 같은 당사자 발표용입니다.
+관측과 시각적으로 구분되지 않으면 제품의 인식론이 무너집니다.
+
+### 데이터 무결성 게이트
+
+`npm run verify:data` — 빌드(`ci-build.js`)에서 자동 실행됩니다.
+널섬(0,0) 좌표 · 빈/낡은 `.json.gz` · 합성 플레이스홀더 · 좌표 중복을 막습니다.
+상세: [`docs/data-integrity.md`](docs/data-integrity.md) · 감사 원본: `DATA-AUDIT-2026-07-31.md`
+
+> `status: "blocked"` 인 레이어는 출처 표기가 실제와 달라 **의도적으로 노출을 막은 것**입니다.
+> 데이터 없음을 보여주는 편이, 잘못된 출처로 표기된 합성 데이터를 보여주는 것보다 낫습니다.
+
+### 과거 스냅샷 (`?asOf=YYYY-MM-DD`)
+
+하단 **기준일 스크러버**와 scene 딥링크의 `asOf`는 **일별 랭크·세계 긴장 지수(D1 `daily_entity_ranks`)** 를 그날로 바꿉니다.
+
+- **재생하지 않는 것:** AIS · ADS-B · FIRMS · Telegram 등 라이브 점 (히스토리 모드에서 끄고, “현재 관측만” 고지)
+- **다음 트렌치:** R2 `frames/{date}/{layerId}.json` 계약은 `historicalFrames.ts`에만 고정. 수집 cron은 아직 없음.
+
 ### 비공식(문서화되지 않은) 엔드포인트 사용 원칙
 
 공식 API 문서가 없는 소스라도, 브라우저 네트워크 요청을 분석해 실제 사용 중인 엔드포인트를 확인하고 쓸 수 있다 — 단, 아래 원칙을 지킨다.
@@ -433,6 +472,7 @@ public/audio/             # 로컬 전투·공습 샘플
 | **UKMTO** (Royal Navy) | 홍해·호르무즈 등 상선 피습·나포 경보 (비공식 엔드포인트) |
 | **The Space Devs** | 우주 발사 |
 | **Freesound** | 긴장·경제·UI 앰비언트 |
+| **Global Trade Alert** | 무역정책 조치 — 관세·보조금·수출제한 (CC BY 4.0) |
 | **Yahoo Finance** | 티커 |
 | **Google Translate** (비공식) | 뉴스·NEPTUN·TG 한국어 UI |
 

@@ -65,6 +65,14 @@ export function useDataSync(options?: {
     }
   }, [refreshStatus]);
 
+  /**
+   * 상태만 폴링한다. **브라우저는 더 이상 동기화 파이프라인을 트리거하지 않는다.**
+   *
+   * 이전 구현은 방문자 브라우저가 POST /api/data-sync 로 최대 15분짜리 서버
+   * 자식 프로세스를 띄울 수 있었다(무인증 자원 고갈 벡터). 파이프라인 구동은
+   * Cloudflare Cron(=INGEST_CRON_SECRET 보유)이 전담하고, 클라이언트는 결과를
+   * 관찰만 한다. 새 스냅샷이 도착하면 syncGeneration 이 올라가 화면이 갱신된다.
+   */
   const triggerIfStale = useCallback(async () => {
     if (inFlightRef.current) return;
     if (typeof document !== "undefined" && document.hidden) return;
@@ -72,28 +80,29 @@ export function useDataSync(options?: {
     inFlightRef.current = true;
     try {
       const status = await refreshStatus();
-      if (!status?.stale || status.running) return;
-      await fetch(`/api/data-sync?mode=${encodeURIComponent(mode)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
-      });
-      await pollUntilIdle();
+      // 동기화가 서버에서 돌고 있다면 끝날 때까지 상태를 따라간다.
+      if (status?.running) await pollUntilIdle();
     } finally {
       inFlightRef.current = false;
     }
-  }, [cameraMovingRef, mode, pollUntilIdle, refreshStatus]);
+  }, [cameraMovingRef, pollUntilIdle, refreshStatus]);
 
+  /**
+   * 수동 새로고침 버튼용.
+   *
+   * 프로덕션에서는 서버가 cron 시크릿을 요구하므로 401 이 돌아온다 —
+   * 그 경우 조용히 상태 폴링으로 폴백한다(로컬 개발에서는 그대로 동작).
+   */
   const forceSync = useCallback(async () => {
     if (inFlightRef.current) return;
     inFlightRef.current = true;
     try {
-      await fetch(`/api/data-sync?force=1&mode=${encodeURIComponent(mode)}`, {
+      const res = await fetch(`/api/data-sync?force=1&mode=${encodeURIComponent(mode)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ force: true, mode }),
-      });
-      await pollUntilIdle();
+      }).catch(() => null);
+      if (res?.ok) await pollUntilIdle();
       await refreshStatus();
     } finally {
       inFlightRef.current = false;

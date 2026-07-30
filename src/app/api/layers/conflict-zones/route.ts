@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { detectAiWarZonesDemo } from "@/lib/aiWarZoneDemo";
 import { cachedFetchJson } from "@/lib/apiCache";
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
         zones: [],
         count: 0,
         mode: "ai-demo",
-        error: error instanceof Error ? error.message : "ai-war-zones failed",
+        error: publicErrorMessage(error, "ai-war-zones failed"),
       },
       { status: 500 },
     );

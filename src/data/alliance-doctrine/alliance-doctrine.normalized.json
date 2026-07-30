@@ -1,0 +1,231 @@
+{
+  "id": "alliance-doctrine-corpus-v1",
+  "updated": "2026-07-30",
+  "caveatKo": "원본 PDF는 scripts/vendor/alliance-doctrine/reports 에 보존. 아래 claims는 공개 보고서 제목·요약·ChinaPower 공개 페이지에서 뽑은 구조화 메모이며, PDF 전문 OCR이 아니다. 확전·참전·조약 발동을 예측하지 않는다.",
+  "sources": [
+    {
+      "id": "nato-treaty-1949",
+      "kind": "treaty",
+      "titleEn": "The North Atlantic Treaty",
+      "publisher": "NATO",
+      "vendorPath": "scripts/vendor/alliance-doctrine/nato-north-atlantic-treaty-1949.json",
+      "url": "https://www.nato.int/cps/en/natohq/official_texts_17120.htm",
+      "flank": "atlantic"
+    },
+    {
+      "id": "csis-chinapower-taiwan-strait-trade",
+      "kind": "report-web",
+      "titleEn": "Crossroads of Commerce: How the Taiwan Strait Propels the Global Economy",
+      "publisher": "CSIS ChinaPower",
+      "url": "https://features.csis.org/chinapower/china-taiwan-strait-trade/",
+      "date": "2024-08-22",
+      "flank": "indo-pacific",
+      "authors": ["Matthew P. Funaiole", "Brian Hart", "David Peng", "Bonny Lin", "Jasper Verschuur"]
+    },
+    {
+      "id": "csis-jensen-future-war-ukraine-2022",
+      "kind": "report-pdf",
+      "titleEn": "On Future War — lessons tied to Ukraine",
+      "publisher": "CSIS (vendor filename)",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/220526_Jensen_OnFutureWar_Ukraine.pdf",
+      "date": "2022-05-26",
+      "flank": "atlantic"
+    },
+    {
+      "id": "csis-cancian-first-battle-next-war-2023",
+      "kind": "report-pdf",
+      "titleEn": "The First Battle of the Next War (Taiwan wargame series)",
+      "publisher": "CSIS",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/230109_Cancian_FirstBattle_NextWar.pdf",
+      "date": "2023-01-09",
+      "flank": "indo-pacific"
+    },
+    {
+      "id": "csis-combe-rethinking-risk-2023",
+      "kind": "report-pdf",
+      "titleEn": "Rethinking Risk",
+      "publisher": "CSIS (vendor filename)",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/230217_Combe_Rethinking_Risk.pdf",
+      "date": "2023-02-17",
+      "flank": "both"
+    },
+    {
+      "id": "csis-lin-taiwan-quarantine-2024",
+      "kind": "report-pdf",
+      "titleEn": "Taiwan Quarantine",
+      "publisher": "CSIS",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/240605_Lin_Taiwan_Quarantine_0.pdf",
+      "date": "2024-06-05",
+      "flank": "indo-pacific"
+    },
+    {
+      "id": "csis-cancian-taiwan-blockade-2025",
+      "kind": "report-pdf",
+      "titleEn": "Taiwan Blockade",
+      "publisher": "CSIS",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/250730_Cancian_Taiwan_Blockade.pdf",
+      "date": "2025-07-30",
+      "flank": "indo-pacific"
+    },
+    {
+      "id": "csis-heginbotham-lights-out-2025",
+      "kind": "report-pdf",
+      "titleEn": "Lights Out",
+      "publisher": "CSIS (vendor filename)",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/250731_Heginbotham_Lights_Out.pdf",
+      "date": "2025-07-31",
+      "flank": "indo-pacific"
+    },
+    {
+      "id": "csis-macias-geometry-coercion-2026",
+      "kind": "report-pdf",
+      "titleEn": "Geometry of Coercion",
+      "publisher": "CSIS (vendor filename)",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/260504_Macias_Geometry_Coercion.pdf",
+      "date": "2026-05-04",
+      "flank": "indo-pacific"
+    },
+    {
+      "id": "csis-jones-us-china-2026",
+      "kind": "report-pdf",
+      "titleEn": "US–China",
+      "publisher": "CSIS (vendor filename)",
+      "vendorPath": "scripts/vendor/alliance-doctrine/reports/260512_Jones_US_China.pdf",
+      "date": "2026-05-12",
+      "flank": "indo-pacific"
+    }
+  ],
+  "scenarioLadder": [
+    {
+      "id": "cross-strait-quarantine",
+      "labelKo": "검역·해경 주도 봉쇄성 조치(쿼런틴)",
+      "labelEn": "Coast guard–led quarantine (short of invasion)",
+      "intensity": 1,
+      "primarySources": ["csis-lin-taiwan-quarantine-2024", "csis-chinapower-taiwan-strait-trade"],
+      "claimKo": "CSIS 연구는 단기적으로 상륙 침공보다 해경 주도 쿼런틴 등 저강도 선택지가 더 개연적이라고 정리한다. 그래도 해협 상선 흐름·보험·우회항로 비용에는 파급이 생길 수 있다.",
+      "claimEn": "CSIS work treats coast-guard quarantine options as more plausible near-term than amphibious invasion, while still stressing trade and insurance disruption risk in the strait."
+    },
+    {
+      "id": "cross-strait-blockade",
+      "labelKo": "봉쇄(블록에이드)",
+      "labelEn": "Blockade",
+      "intensity": 2,
+      "primarySources": ["csis-cancian-taiwan-blockade-2025", "csis-chinapower-taiwan-strait-trade"],
+      "claimKo": "봉쇄·해협 통항 중단은 대만뿐 아니라 한·일 에너지·부품 수입과 중국 연안 물동량에도 공개 연구상 큰 충격이 예상되는 시나리오다.",
+      "claimEn": "Blockade / strait closure scenarios are studied as shocks not only to Taiwan but to ROK/Japan energy and manufacturing imports and to PRC coastal trade."
+    },
+    {
+      "id": "cross-strait-invasion-or-major-war",
+      "labelKo": "대규모 무력 충돌·침공 워게임",
+      "labelEn": "Major war / invasion wargame frame",
+      "intensity": 3,
+      "primarySources": ["csis-cancian-first-battle-next-war-2023", "csis-heginbotham-lights-out-2025"],
+      "claimKo": "워게임·시나리오 연구는 ‘대만만’이 아니라 미군·동맹 전력·본토 근접 자산·에너지·보급이 동시에 압박받는 그림을 다룬다. 이는 예측이 아니라 공개 연구 프레임이다.",
+      "claimEn": "Wargame literature frames major cross-strait war as pressure on US/allied forces, nearby basing, energy and logistics—not Taiwan alone. That is a research frame, not a forecast."
+    }
+  ],
+  "tradeFacts": [
+    {
+      "id": "strait-japan-trade-share-2024",
+      "sourceId": "csis-chinapower-taiwan-strait-trade",
+      "factKo": "CSIS 추산(2024): 일본 수입의 약 30%·수출의 약 25%(합 ~$413B)가 대만해협을 경유.",
+      "factEn": "CSIS estimate (2024): ~30% of Japan’s imports and ~25% of exports (~$413B) transited the Taiwan Strait.",
+      "tags": ["japan", "trade", "taiwan-strait"]
+    },
+    {
+      "id": "strait-rok-trade-share-2024",
+      "sourceId": "csis-chinapower-taiwan-strait-trade",
+      "factKo": "CSIS 추산(2024): 한국 수입의 약 24%·수출의 약 20%(합 ~$300B)가 대만해협을 경유.",
+      "factEn": "CSIS estimate (2024): ~24% of ROK imports and ~20% of exports (~$300B) transited the Taiwan Strait.",
+      "tags": ["korea", "trade", "taiwan-strait"]
+    },
+    {
+      "id": "strait-australia-exports-2024",
+      "sourceId": "csis-chinapower-taiwan-strait-trade",
+      "factKo": "CSIS 추산(2024): 호주 수출의 약 28%(~$102B)가 해협 경유 — 철광·석탄·LNG 비중 큼.",
+      "factEn": "CSIS estimate (2024): ~28% of Australia’s exports (~$102B) via the strait — heavy iron ore/coal/LNG share.",
+      "tags": ["australia", "trade", "taiwan-strait"]
+    },
+    {
+      "id": "strait-china-trade-2024",
+      "sourceId": "csis-chinapower-taiwan-strait-trade",
+      "factKo": "CSIS 추산: 중국 본토 관련 해협 통과 무역 ~$1.3T(+홍콩 ~$96B). 원재료 비중이 큼. 중국 동부 항만 간 국내 해운도 상당 부분 해협을 이용.",
+      "factEn": "CSIS: ~$1.3T PRC trade via the strait (+~$96B HK). Heavy raw-material import share; much PRC east-coast domestic shipping also uses the strait.",
+      "tags": ["china", "trade", "taiwan-strait"]
+    },
+    {
+      "id": "strait-reroute-luzon-miyako",
+      "sourceId": "csis-chinapower-taiwan-strait-trade",
+      "factKo": "공개 서술: 해협 회피 시 루손·미야코 등 우회가 가능하나 거리·기항·중국 항만 기항 가능성에 제약이 생긴다(예: 싱가포르→부산).",
+      "factEn": "Open narrative: Luzon/Miyako reroutes are possible but add distance/cost and can force skipped China port calls (e.g. Singapore→Busan example).",
+      "tags": ["shipping", "reroute", "taiwan-strait"]
+    }
+  ],
+  "perimeterSets": {
+    "natoEastFlankIso": [
+      "POL",
+      "ROU",
+      "SVK",
+      "HUN",
+      "LTU",
+      "LVA",
+      "EST",
+      "FIN",
+      "BGR",
+      "CZE",
+      "NOR",
+      "DNK",
+      "DEU",
+      "TUR"
+    ],
+    "indoPacificAllyPartnerIso": [
+      "JPN",
+      "KOR",
+      "AUS",
+      "PHL",
+      "TWN",
+      "NZL",
+      "SGP",
+      "GUM"
+    ],
+    "usForcePresenceHintIso": ["KOR", "JPN", "GUM", "PHL", "AUS"],
+    "noteKo": "경계 감시용 ISO 화이트리스트. ‘동맹이 참전한다’는 뜻이 아니라, 공개 보도에서 영공·경보·침입 키워드가 이 국가들에 붙었을 때 spillover 후보로 올린다."
+  },
+  "spilloverSignalLexicon": {
+    "kineticOrAlert": [
+      "air raid alert",
+      "air-raid siren",
+      "airspace violation",
+      "drone entered",
+      "drone crashed",
+      "intercept",
+      "scrambled fighters",
+      "article 4",
+      "nato consultation",
+      "공습경보",
+      "영공침입",
+      "드론 추락",
+      "요격"
+    ],
+    "excludeSoft": ["celebrity", "sport", "football", "연예", "축구"],
+    "noteKo": "기사 텍스트에 이 어휘+perimeter ISO/지명이 같이 있을 때만 ‘주변국 신호(보도)’로 표시. Article 5 발동·참전 단정 금지."
+  },
+  "usageHooks": [
+    {
+      "id": "perimeter-watch-filter",
+      "howKo": "뉴스/GDELT에 perimeter ISO + kineticOrAlert 교집합이면 spillover 태그. NATO Art.4/5 원문은 UI 각주·방법론에만 인용."
+    },
+    {
+      "id": "cross-strait-scenario-context",
+      "howKo": "대만·해협 긴장 속보의 ‘왜 중요’에 tradeFacts·scenarioLadder intensity를 출처와 함께 한 줄로 붙인다(예측 아님)."
+    },
+    {
+      "id": "hub-brief-citation",
+      "howKo": "중국/대만/한·일 허브 브리프·등불에서 CSIS ChinaPower·워게임 PDF를 referenceLibrary surfaces로 링크."
+    },
+    {
+      "id": "not-a-trigger-engine",
+      "howKo": "조약·워게임을 자동 위기 경보 엔진의 ‘발동 조건’으로 쓰지 않는다. 발동은 당국·공개 보도 사실만."
+    }
+  ]
+}

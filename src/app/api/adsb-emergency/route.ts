@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import {
@@ -95,7 +96,7 @@ export async function GET() {
         bySquawk: { "7700": 0, "7600": 0, "7500": 0 },
         aircraft: [],
         attribution: ADSB_EMERGENCY_ATTRIBUTION,
-        error: error instanceof Error ? error.message : "ADS-B emergency fetch failed",
+        error: publicErrorMessage(error, "ADS-B emergency fetch failed"),
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

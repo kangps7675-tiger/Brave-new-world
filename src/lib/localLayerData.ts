@@ -13,3 +13,12 @@ export async function loadLocalArmsEmbargoZones(): Promise<ArmsEmbargoZone[]> {
   const raw = await loadCloudStaticJson<ArmsEmbargoZone[]>("arms-embargo-zones.json");
   return Array.isArray(raw) ? raw : [];
 }
+
+/**
+ * 최상위가 배열이 아닌 정적 JSON (객체 페이로드) 로더.
+ * GTA 처럼 `{ interventions: [...] , attribution }` 형태인 레이어에 쓴다.
+ */
+export async function loadLocalJson<T>(fileName: string): Promise<T | null> {
+  const raw = await loadCloudStaticJson<T>(fileName);
+  return raw ?? null;
+}

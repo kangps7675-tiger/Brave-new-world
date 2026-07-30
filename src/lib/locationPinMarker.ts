@@ -3,6 +3,7 @@ import { FRESH_RING_COLOR, TIER_COLORS, isFreshEvent, type ScoredEvent } from "@
 import { GDELT_NEWS_ALERT_LABEL, wrapNewsAlertMarker } from "@/lib/gdeltNewsAlert";
 import { CYBER_WAR_ROOM_THEME } from "@/lib/cyberWarRoomTheme";
 import { getZoomOutScale } from "@/lib/zoomScale";
+import { safeColor, safeNumber } from "@/lib/svgSafe";
 
 export const TIER_PIN_HEX: Record<EventTier, string> = {
   war: "#ef4444",
@@ -36,22 +37,26 @@ export function locationPinSvg({
   freshRing = false,
   glowColor,
 }: LocationPinOptions): string {
-  const height = Math.round(size * (32 / 22));
+  // 이 결과는 dangerouslySetInnerHTML 로 주입되므로 속성값을 검증한다.
+  const safeFill = safeColor(fill, "#ef4444");
+  const safeStroke = safeColor(stroke, "rgba(8, 18, 36, 0.55)");
+  const px = safeNumber(size, 22);
+  const height = Math.round(px * (32 / 22));
   const ring = freshRing
     ? `<circle cx="12" cy="11" r="10.5" fill="none" stroke="${FRESH_PIN_HEX}" stroke-width="1.8" opacity="0.9"/>`
     : "";
   const glow = glowColor
-    ? `<ellipse cx="12" cy="30" rx="5" ry="1.6" fill="${glowColor}" opacity="0.55"/>`
+    ? `<ellipse cx="12" cy="30" rx="5" ry="1.6" fill="${safeColor(glowColor, "transparent")}" opacity="0.55"/>`
     : "";
 
   return `
-    <svg width="${size}" height="${height}" viewBox="0 0 24 32" fill="none" aria-hidden="true" style="display:block;overflow:visible">
+    <svg width="${px}" height="${height}" viewBox="0 0 24 32" fill="none" aria-hidden="true" style="display:block;overflow:visible">
       ${glow}
       ${ring}
       <path
         d="M12 1.5C7.86 1.5 4.5 4.86 4.5 9c0 6.2 7.5 19.5 7.5 19.5S19.5 15.2 19.5 9C19.5 4.86 16.14 1.5 12 1.5Z"
-        fill="${fill}"
-        stroke="${stroke}"
+        fill="${safeFill}"
+        stroke="${safeStroke}"
         stroke-width="1.2"
       />
       <circle cx="12" cy="9" r="3.25" fill="rgba(255,255,255,0.88)"/>

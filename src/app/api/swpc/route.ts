@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { CDN_CACHE, NO_STORE_HEADERS, publicCacheHeaders } from "@/lib/httpCacheHeaders";
@@ -52,7 +53,7 @@ export async function GET() {
         summaryKo: "우주기상 데이터를 불러오지 못했습니다",
         summaryEn: "Space weather unavailable",
         attribution: SWPC_ATTRIBUTION,
-        error: error instanceof Error ? error.message : "SWPC fetch failed",
+        error: publicErrorMessage(error, "SWPC fetch failed"),
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

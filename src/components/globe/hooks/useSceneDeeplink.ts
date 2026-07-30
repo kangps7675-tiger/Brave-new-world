@@ -21,6 +21,8 @@ type UseSceneDeeplinkOptions = {
   applyLayerPrefs: (prefs: LayerPrefs) => void;
   /** 도메인 게이트와 동일 경로로 모드 확정 (handleDomainSelect) */
   selectDomain: (mode: ViewerMode, ultraLite: boolean) => void;
+  /** asOf 등 장면 메타 적용 (랭크 스크럽) */
+  onSceneApplied?: (scene: SceneLinkState) => void;
 };
 
 /**
@@ -36,6 +38,7 @@ export function useSceneDeeplink({
   globeRef,
   applyLayerPrefs,
   selectDomain,
+  onSceneApplied,
 }: UseSceneDeeplinkOptions): { hasPendingScene: () => boolean } {
   const pendingSceneRef = useRef<SceneLinkState | null>(
     typeof window !== "undefined" ? parseSceneFromSearch(window.location.search) : null,
@@ -45,6 +48,8 @@ export function useSceneDeeplink({
   selectDomainRef.current = selectDomain;
   const applyLayerPrefsRef = useRef(applyLayerPrefs);
   applyLayerPrefsRef.current = applyLayerPrefs;
+  const onSceneAppliedRef = useRef(onSceneApplied);
+  onSceneAppliedRef.current = onSceneApplied;
 
   useEffect(() => {
     if (isLoading || !globeReady || loadError) return;
@@ -57,6 +62,7 @@ export function useSceneDeeplink({
     trackSceneOpen("globe", scene.mode);
 
     selectDomainRef.current(scene.mode, ultraLiteRef.current);
+    onSceneAppliedRef.current?.(scene);
 
     window.setTimeout(() => {
       if (scene.layers && scene.layers.length > 0) {

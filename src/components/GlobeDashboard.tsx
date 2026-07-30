@@ -6,7 +6,15 @@ import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { CursorHoverCard } from "@/components/CursorHoverCard";
 import { NewsPerspectivesPanel } from "@/components/NewsPerspectivesPanel";
 import { type DailyPrompt } from "@/lib/dailyPrompt";
-import { type DailyRanksPayload, type WorldTensionSnapshot } from "@/lib/dailyRanks";
+import {
+  type DailyRanksPayload,
+  type WorldTensionSnapshot,
+  utcRankDate,
+} from "@/lib/dailyRanks";
+import {
+  HISTORICAL_MODE_LIVE_PREF_KEYS,
+} from "@/lib/historicalFrames";
+import type { SceneLinkState } from "@/lib/sceneLink";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import { NeptunThreatDetailPanel } from "@/components/NeptunThreatDetailPanel";
 import { type LayerCategory } from "@/components/LayerCategoryPanel";
@@ -141,6 +149,7 @@ import {
   rememberConflictTheater,
   rememberEconomyHub,
   rememberEconomyNav,
+  upsertWatchPin,
 } from "@/lib/watchFocus";
 import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
 import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
@@ -332,7 +341,14 @@ import {
   type AxisArmsPayload,
 } from "@/lib/axisArmsPaths";
 import { type AxisHubId } from "@/data/axisNetwork";
-import { hubById, type HubClaim } from "@/data/hubNav";
+import { hubById, selectionForArms, selectionForHubNetwork, type HubClaim } from "@/data/hubNav";
+import {
+  preferredAxisHub,
+  selectedAxisLinkFromPath,
+  type SelectedAxisLink,
+} from "@/lib/axisLinkSelection";
+import { trackEvent } from "@/lib/trackClient";
+import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import {
   altitudeFromEpisodeZoom,
   episodeLat,
@@ -751,6 +767,13 @@ export function GlobeDashboard({
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
   /** WTI 기준 시각 — 상황판 "as of" 표시용 */
   const [wtiFetchedAt, setWtiFetchedAt] = useState<string | null>(null);
+  /** 일별 랭크 스크럽 기준일 (UTC YYYY-MM-DD). null = 오늘 */
+  const [viewAsOf, setViewAsOf] = useState<string | null>(null);
+  const [rankAvailableDates, setRankAvailableDates] = useState<string[]>([]);
+  const livePrefsBeforeHistoryRef = useRef<Partial<Record<string, boolean>> | null>(null);
+  const todayUtc = utcRankDate();
+  const effectiveAsOf = viewAsOf && viewAsOf !== todayUtc ? viewAsOf : todayUtc;
+  const isHistoricalView = effectiveAsOf !== todayUtc;
   const [showTourInvite, setShowTourInvite] = useState(false);
   /** 전역 입장 후 — 핫 지역 이동 선택창 (수락 시에만 fly) */
   const [hotTheaterOffer, setHotTheaterOffer] = useState<HotTheaterFocus | null>(null);
@@ -1016,9 +1039,12 @@ export function GlobeDashboard({
     globeRef,
     applyLayerPrefs,
     selectDomain: (mode, ultraLiteOn) => handleDomainSelect(mode, ultraLiteOn),
+    onSceneApplied: (scene: SceneLinkState) => {
+      if (scene.asOf) setViewAsOf(scene.asOf);
+    },
   });
 
-  /** 장면 링크 버튼 공용 — 현재 카메라·모드·레이어 스냅샷 */
+  /** 장면 링크 버튼 공용 — 현재 카메라·모드·레이어·asOf 스냅샷 */
   const getSceneForShare = useCallback(() => {
     const pov = globeRef.current?.pointOfView();
     if (!pov) return null;
@@ -1028,8 +1054,9 @@ export function GlobeDashboard({
       lng: pov.lng,
       altitude: pov.altitude ?? 1.2,
       prefs: layerPrefsLiveRef.current,
+      asOf: isHistoricalView ? effectiveAsOf : null,
     };
-  }, [viewerMode]);
+  }, [viewerMode, isHistoricalView, effectiveAsOf]);
 
   /** 일일 패널 접기 상태 복원 — 마운트 후 1회 (SSR 하이드레이션 불일치 방지) */
   useEffect(() => {
@@ -1487,6 +1514,7 @@ export function GlobeDashboard({
   const setShowFirmsFires = (v: boolean) => togglePref("showFirmsFires", v);
   const setShowGdeltWar = (v: boolean) => togglePref("showGdeltWar", v);
   const setShowGdeltDiplomatic = (v: boolean) => togglePref("showGdeltDiplomatic", v);
+  const setShowGdeltAlliance = (v: boolean) => togglePref("showGdeltAlliance", v);
   const setShowGdeltProtests = (v: boolean) => togglePref("showGdeltProtests", v);
   const setShowGdeltOceanCompetition = (v: boolean) =>
     togglePref("showGdeltOceanCompetition", v);
@@ -1565,6 +1593,10 @@ export function GlobeDashboard({
 
   const [regionNavSelection, setRegionNavSelection] = useState<NavSelection | null>(null);
   const [hubBriefOpen, setHubBriefOpen] = useState(false);
+  const [selectedAxisLink, setSelectedAxisLink] = useState<SelectedAxisLink | null>(null);
+  const [armsHighlightPair, setArmsHighlightPair] = useState<{ a: string; b: string } | null>(
+    null,
+  );
   const [livingTaiwanOpen, setLivingTaiwanOpen] = useState(false);
   const hubBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ukraineFrontLegendEngaged, setUkraineFrontLegendEngaged] = useState(false);
@@ -1848,6 +1880,85 @@ export function GlobeDashboard({
     [clearHubBriefTimer, labelLanguage],
   );
 
+  const dismissAxisLink = useCallback(() => {
+    trackEvent("axis_link_dismiss");
+    setSelectedAxisLink(null);
+    setArmsHighlightPair(null);
+  }, []);
+
+  const axisLinkOpenHub = useCallback(() => {
+    const link = selectedAxisLink;
+    if (!link) return;
+    const hubId = preferredAxisHub(link.from, link.to, link.hubs, activeHubId);
+    const hub = hubId ? hubById(hubId) : null;
+    if (!hub) return;
+    trackEvent("axis_link_cta_hub", { hub: hub.hubId, pathId: link.pathId });
+    upsertWatchPin({
+      mode: "conflict",
+      navId: hub.id,
+      labelKo: hub.label,
+      labelEn: hub.label,
+    });
+    const sel = selectionForHubNetwork(hub);
+    setSelectedAxisLink(null);
+    setRegionNavSelection(sel);
+    setShowAxisNetwork(true);
+    flyTo(hub.lat, hub.lng, hub.altitude);
+    scheduleHubBrief(sel);
+  }, [activeHubId, flyTo, scheduleHubBrief, selectedAxisLink]);
+
+  const axisLinkOpenArms = useCallback(() => {
+    const link = selectedAxisLink;
+    if (!link) return;
+    if (!SIPRI_ARMS_LENS_ENABLED) {
+      axisLinkOpenHub();
+      return;
+    }
+    const hubId = preferredAxisHub(link.from, link.to, link.hubs, activeHubId);
+    const hub = hubId ? hubById(hubId) : null;
+    if (!hub) return;
+    trackEvent("axis_link_cta_arms", { hub: hub.hubId, pathId: link.pathId });
+    setArmsHighlightPair({ a: link.from, b: link.to });
+    const sel = selectionForArms(hub);
+    setSelectedAxisLink(null);
+    setRegionNavSelection(sel);
+    setShowAxisNetwork(true);
+    flyTo(hub.lat, hub.lng, hub.altitude);
+    scheduleHubBrief(sel);
+  }, [activeHubId, axisLinkOpenHub, flyTo, scheduleHubBrief, selectedAxisLink]);
+
+  const axisLinkOpenNews = useCallback(() => {
+    const link = selectedAxisLink;
+    trackEvent("axis_link_cta_news", {
+      pathId: link?.pathId,
+      from: link?.from,
+      to: link?.to,
+    });
+    setShowGdeltAlliance(true);
+    setShowGdeltDiplomatic(true);
+    setSelectedAxisLink(null);
+  }, [selectedAxisLink]);
+
+  const axisLinkHighlightArms = useCallback(() => {
+    const link = selectedAxisLink;
+    if (!link) return;
+    if (!SIPRI_ARMS_LENS_ENABLED) {
+      axisLinkOpenHub();
+      return;
+    }
+    const hubId = preferredAxisHub(link.from, link.to, link.hubs, activeHubId);
+    const hub = hubId ? hubById(hubId) : null;
+    if (!hub) return;
+    trackEvent("axis_link_cta_deals", { hub: hub.hubId, pathId: link.pathId });
+    clearHubBriefTimer();
+    setHubBriefOpen(false);
+    setArmsHighlightPair({ a: link.from, b: link.to });
+    setSelectedAxisLink(null);
+    setRegionNavSelection(selectionForArms(hub));
+    setShowAxisNetwork(true);
+    flyTo(hub.lat, hub.lng, hub.altitude);
+  }, [activeHubId, axisLinkOpenHub, clearHubBriefTimer, flyTo, selectedAxisLink]);
+
   const clearEconInsightTimer = useCallback(() => {
     if (econInsightTimerRef.current != null) {
       clearTimeout(econInsightTimerRef.current);
@@ -1910,7 +2021,7 @@ export function GlobeDashboard({
   const parseAxisArms = useCallback((raw: unknown) => raw as AxisArmsPayload, []);
   const { data: axisArmsPayload } = useLazyJsonObject<AxisArmsPayload>(
     "axis-arms.json",
-    Boolean(activeHubId && hubFocusMode === "arms"),
+    Boolean(SIPRI_ARMS_LENS_ENABLED && activeHubId && hubFocusMode === "arms"),
     parseAxisArms,
   );
   const parseAxisHubCountries = useCallback(
@@ -2805,9 +2916,18 @@ export function GlobeDashboard({
   const axisNetworkPaths = useMemo<TransportPath[]>(() => {
     if (!showAxisNetwork) return [];
     const hub = (activeHubId ?? "all") as AxisHubId | "all";
-    if (hubFocusMode === "arms" && activeHubId && axisArmsPayload) {
+    if (
+      SIPRI_ARMS_LENS_ENABLED &&
+      hubFocusMode === "arms" &&
+      activeHubId &&
+      axisArmsPayload
+    ) {
       const { pairs } = filterArmsForHub(axisArmsPayload, activeHubId);
       return armsPairsToPaths(pairs, labelLanguage);
+    }
+    if (hubFocusMode === "arms" && !SIPRI_ARMS_LENS_ENABLED) {
+      // SIPRI 렌즈 OFF — 정적 축 관계망만
+      return axisNetworkToPaths(hub, labelLanguage);
     }
     if (hubFocusMode === "regime") return [];
     // 허브 미선택(all)이어도 전체 축 스포크 표시 — ON인데 빈 화면 방지
@@ -4562,8 +4682,8 @@ export function GlobeDashboard({
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
     setTelegramStatus("loading");
     try {
-      const res = await fetch("/api/telegram-alerts/sync", { method: "POST" });
-      if (!res.ok) throw new Error(`sync HTTP ${res.status}`);
+      // 스크레이핑 트리거는 Cron 전용(POST /api/telegram-alerts/sync + 시크릿).
+      // 브라우저는 이미 수집된 알림을 읽기만 한다.
       await refreshTelegramAlerts();
     } catch {
       // 공개 embed는 t.me 응답/타임아웃이 흔함. 캐시/대기 상태를 살리고 다음 폴링에서 재시도한다.
@@ -6205,12 +6325,14 @@ export function GlobeDashboard({
     weeklyRecapSettled,
   ]);
 
-  // 오늘의 WTI — 사운드 강도·등불 기축 (등불보다 먼저 확보)
+  // 오늘의 WTI — 사운드 강도·등불 기축 (등불보다 먼저 확보) · asOf 스크럽 시 해당일
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/daily-ranks?limit=1", {
+        const qs = new URLSearchParams({ limit: "1" });
+        if (isHistoricalView) qs.set("date", effectiveAsOf);
+        const res = await fetch(`/api/daily-ranks?${qs.toString()}`, {
           cache: "no-store",
           headers: { Accept: "application/json" },
         });
@@ -6230,7 +6352,63 @@ export function GlobeDashboard({
     return () => {
       cancelled = true;
     };
+  }, [calendarDayKey, effectiveAsOf, isHistoricalView]);
+
+  // 스크러버용 가용 날짜
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/daily-ranks/dates?limit=120", {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { dates?: string[] };
+        if (!cancelled && Array.isArray(data.dates)) {
+          setRankAvailableDates(data.dates);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [calendarDayKey]);
+
+  // 히스토리 모드 — 라이브 레이어 OFF (가짜 과거 점 금지). 오늘로 복귀 시 복원.
+  useEffect(() => {
+    if (isHistoricalView) {
+      if (!livePrefsBeforeHistoryRef.current) {
+        const snap: Partial<Record<string, boolean>> = {};
+        const patch: Record<string, boolean> = {};
+        const live = layerPrefsLiveRef.current as Record<string, unknown>;
+        for (const key of HISTORICAL_MODE_LIVE_PREF_KEYS) {
+          if (typeof live[key] === "boolean") {
+            snap[key] = live[key] as boolean;
+            if (live[key] === true) patch[key] = false;
+          }
+        }
+        livePrefsBeforeHistoryRef.current = snap;
+        if (Object.keys(patch).length > 0) {
+          patchLayerPrefsSoft(patch as Parameters<typeof patchLayerPrefsSoft>[0]);
+        }
+      }
+      return;
+    }
+    const snap = livePrefsBeforeHistoryRef.current;
+    if (snap) {
+      livePrefsBeforeHistoryRef.current = null;
+      const restore: Record<string, boolean> = {};
+      for (const [key, value] of Object.entries(snap)) {
+        if (typeof value === "boolean") restore[key] = value;
+      }
+      if (Object.keys(restore).length > 0) {
+        patchLayerPrefsSoft(restore as Parameters<typeof patchLayerPrefsSoft>[0]);
+      }
+    }
+  }, [isHistoricalView, patchLayerPrefsSoft, layerPrefsLiveRef]);
 
   // 세션 1회: daily-ranks 핫 전장·초크 → 선택창 (수락 시에만 레이어·카메라)
   useEffect(() => {
@@ -6963,6 +7141,22 @@ export function GlobeDashboard({
       emitLayerClickSounds(pathCues, { altitude: layerAltitude });
     }
 
+    if (path.kind === "axis-link") {
+      const link = selectedAxisLinkFromPath(path);
+      if (!link) return;
+      skipNextGlobeClickRef.current = true;
+      setSelectedAxisLink(link);
+      setArmsHighlightPair({ a: link.from, b: link.to });
+      trackEvent("axis_link_click", {
+        pathId: link.pathId,
+        kind: link.relationKind ?? link.mode,
+        from: link.from,
+        to: link.to,
+      });
+      flyTo(link.midLat, link.midLng, 1.35);
+      return;
+    }
+
     if (path.kind === "dispute-zone" || path.kind === "conflict-hatch") {
       const incident = findUkmtoIncident(ukmtoIncidents, path);
       if (incident) {
@@ -7065,6 +7259,8 @@ export function GlobeDashboard({
     setHoveredMilAircraft(null);
     setHoveredPolygon(null);
     setHoveredPath(null);
+    setSelectedAxisLink(null);
+    setArmsHighlightPair(null);
 
     const now = Date.now();
     if (now - lastGlobeClickAt.current < 320) {
@@ -7143,6 +7339,7 @@ export function GlobeDashboard({
     handlePathClick,
     setHoveredPath,
     handleGlobeClick,
+    selectedAxisPathId: selectedAxisLink?.pathId ?? null,
   });
 
   return (
@@ -7390,6 +7587,13 @@ export function GlobeDashboard({
           setFrictionEpisodeBrief(null);
           setRegionNavSelection(null);
         }}
+        selectedAxisLink={selectedAxisLink}
+        onAxisLinkDismiss={dismissAxisLink}
+        onAxisLinkHubBrief={axisLinkOpenHub}
+        onAxisLinkArms={axisLinkOpenArms}
+        onAxisLinkNews={axisLinkOpenNews}
+        onAxisLinkHighlightArms={axisLinkHighlightArms}
+        armsHighlightPair={armsHighlightPair}
       />
 
       <NewsStreamProvider
@@ -7713,6 +7917,13 @@ export function GlobeDashboard({
         onDismissUltraLiteOffer={ultraLiteAutoOffer.dismiss}
         gtiHeroSnapshot={wtiSnapshot}
         gtiHeroVisible={firstImpression.gtiHeroVisible}
+        timeScrubber={{
+          asOf: effectiveAsOf,
+          today: todayUtc,
+          availableDates: rankAvailableDates,
+          onChange: (date) => setViewAsOf(date === todayUtc ? null : date),
+          onGoToday: () => setViewAsOf(null),
+        }}
         soundUnmuteReady={firstImpression.onboardingReady}
         globeRef={globeRef}
         intelStackRef={intelStackRef}

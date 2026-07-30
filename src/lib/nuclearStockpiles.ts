@@ -1,6 +1,6 @@
 /**
  * 핵탄두 보유량 오버레이 — 각국 좌표 위 ICBM 형상 흰색 SVG + 탄두 수.
- * 출처: Our World in Data (FAS Nuclear Notebook / SIPRI 기반).
+ * 출처: Our World in Data (FAS Nuclear Notebook 기반 시계열).
  * https://ourworldindata.org/grapher/nuclear-warhead-stockpiles-lines.csv
  */
 
@@ -21,7 +21,7 @@ export const NUCLEAR_STOCKPILE_SOURCE = {
   titleKo: "핵탄두 보유량",
   titleEn: "Nuclear warhead stockpiles",
   provider: "Our World in Data",
-  attribution: "Our World in Data · FAS Nuclear Notebook / SIPRI",
+  attribution: "Our World in Data · FAS Nuclear Notebook",
   url: "https://ourworldindata.org/grapher/nuclear-warhead-stockpiles-lines",
   year: 2026,
 } as const;

@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
 import { logApiRoute } from "@/lib/apiRouteLog";
@@ -98,7 +99,7 @@ export async function GET(request: Request) {
       } catch (error) {
         return {
           error:
-            error instanceof Error ? error.message : `Yahoo ${asset.symbol} failed`,
+            publicErrorMessage(error, `Yahoo ${asset.symbol} failed`),
         };
       }
     }),

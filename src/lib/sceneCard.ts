@@ -47,12 +47,18 @@ export const SCENE_PLACES: ScenePlace[] = [
   { id: "arctic", ko: "북극", en: "Arctic", lat: 75, lng: 40 },
   { id: "atlantic", ko: "북대서양", en: "North Atlantic", lat: 55, lng: -30 },
   { id: "choke-hormuz", ko: "호르무즈 해협", en: "Strait of Hormuz", lat: 26.58, lng: 56.25 },
-  { id: "choke-suez", ko: "수에즈 운하", en: "Suez Canal", lat: 31.25, lng: 32.34 },
+  // CHOKEPOINTS 와 동일 좌표 유지 (P0-5). 운하 중간부 기준.
+  { id: "choke-suez", ko: "수에즈 운하", en: "Suez Canal", lat: 30.593, lng: 32.437 },
   { id: "choke-bab-el-mandeb", ko: "바브엘만데브 해협", en: "Bab el-Mandeb", lat: 12.61, lng: 43.35 },
   { id: "choke-malacca", ko: "믈라카 해협", en: "Malacca Strait", lat: 2.5, lng: 101.5 },
   { id: "choke-panama", ko: "파나마 운하", en: "Panama Canal", lat: 9.08, lng: -79.68 },
   { id: "choke-gibraltar", ko: "지브롤터 해협", en: "Strait of Gibraltar", lat: 35.95, lng: -5.6 },
   { id: "choke-good-hope", ko: "희망봉", en: "Cape of Good Hope", lat: -34.35, lng: 18.48 },
+  // 좌표는 CHOKEPOINTS(src/data/chokepoints.ts)와 **정확히 일치**해야 한다.
+  // 두 곳에 다른 값을 두면 같은 지명 핀이 두 개 뜬다 (2026-07-31 감사 P0-5).
+  { id: "choke-taiwan-strait", ko: "대만 해협", en: "Taiwan Strait", lat: 24.48, lng: 119.5 },
+  { id: "choke-bosporus", ko: "터키 해협", en: "Turkish Straits", lat: 41.12, lng: 29.07 },
+  { id: "choke-danish-straits", ko: "덴마크 해협", en: "Danish Straits", lat: 55.34, lng: 11.0 },
 ];
 
 /** 대원거리 근사 (km) — 지명 역참조에는 이 정도면 충분 */
@@ -126,6 +132,8 @@ export type SceneCard = {
   topics: string[];
   lat: number;
   lng: number;
+  /** 과거 스냅샷 기준일 (있으면) */
+  asOfLabel: string | null;
 };
 
 export function buildSceneCard(scene: SceneLinkState, lang: LabelLanguage): SceneCard {
@@ -147,5 +155,10 @@ export function buildSceneCard(scene: SceneLinkState, lang: LabelLanguage): Scen
     topics: sceneTopics(scene.layers, lang),
     lat: scene.lat,
     lng: scene.lng,
+    asOfLabel: scene.asOf
+      ? en
+        ? `As of ${scene.asOf} (UTC)`
+        : `기준 ${scene.asOf} (UTC)`
+      : null,
   };
 }

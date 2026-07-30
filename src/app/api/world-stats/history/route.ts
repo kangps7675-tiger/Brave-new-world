@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import {
   getSotwApiKey,
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         disabled: false,
-        error: error instanceof Error ? error.message : "history failed",
+        error: publicErrorMessage(error, "history failed"),
         attribution: SOTW_ATTRIBUTION,
       },
       { status: 502 },

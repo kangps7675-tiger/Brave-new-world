@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { AisVessel } from "@/data/geoTypes";
 import { apiStubResponse } from "@/lib/apiStub";
@@ -243,7 +244,7 @@ async function collectFromAisstream(options: {
         diagnostics.subscribed = true;
       } catch (error) {
         clearTimeout(timer);
-        finish(error instanceof Error ? error.message : "AIS 구독 메시지 전송 실패");
+        finish(publicErrorMessage(error, "AIS 구독 메시지 전송 실패"));
       }
     });
 

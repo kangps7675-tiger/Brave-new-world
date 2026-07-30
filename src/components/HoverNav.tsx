@@ -12,6 +12,7 @@ import {
   selectionForDisputesOverview,
   type HubDefinition,
 } from "@/data/hubNav";
+import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import {
   toNavSelection,
   type NavMenuGroup,
@@ -607,13 +608,15 @@ function HubDropdown({
           </div>
 
           <div className="mt-1.5 grid grid-cols-1 gap-0.5 border-t border-sky-200/10 pt-1.5">
-            <button
-              type="button"
-              onClick={() => onNavigate(selectionForArms(hub))}
-              className="rounded-md px-2.5 py-2 text-left text-meta text-orange-100/90 transition hover:bg-orange-400/10"
-            >
-              무기거래 (SIPRI)
-            </button>
+            {SIPRI_ARMS_LENS_ENABLED ? (
+              <button
+                type="button"
+                onClick={() => onNavigate(selectionForArms(hub))}
+                className="rounded-md px-2.5 py-2 text-left text-meta text-orange-100/90 transition hover:bg-orange-400/10"
+              >
+                무기거래 (SIPRI)
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => onNavigate(selectionForDisputesOverview())}

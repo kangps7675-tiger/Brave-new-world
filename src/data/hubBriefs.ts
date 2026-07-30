@@ -3,10 +3,11 @@
  * 추정·선전·과장 없이, 인정/주장/조약/관측을 구분하여 서술.
  */
 
-import { edgesForHub, AXIS_NODES, type AxisHubId } from "@/data/axisNetwork";
-import { hubById } from "@/data/hubNav";
 import type { NavSelection } from "@/data/navRegions";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
+import { edgesForHub, AXIS_NODES, type AxisHubId } from "@/data/axisNetwork";
+import { hubById } from "@/data/hubNav";
 import { BRAND_NAME } from "@/lib/brand";
 
 export type HubBriefDoc = {
@@ -595,6 +596,7 @@ export function resolveHubBrief(
       }
       return pickLang(NETWORK[hubId], lang);
     case "arms":
+      if (!SIPRI_ARMS_LENS_ENABLED) return null;
       return pickLang(ARMS[hubId], lang);
     case "regime":
       return pickLang(REGIME[hubId], lang);

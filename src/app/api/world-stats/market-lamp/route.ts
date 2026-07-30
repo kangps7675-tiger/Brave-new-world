@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { allEconInsightBriefs } from "@/data/econInsightBriefs";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -123,7 +124,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         disabled: false,
-        error: error instanceof Error ? error.message : "market-lamp failed",
+        error: publicErrorMessage(error, "market-lamp failed"),
         paragraphs: [],
         attribution: SOTW_ATTRIBUTION,
       },

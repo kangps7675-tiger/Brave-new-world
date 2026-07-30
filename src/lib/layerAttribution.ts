@@ -99,7 +99,9 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   showNuclearSites: { label: "IAEA · NTI" },
   showResources: { label: "USGS" },
   showRefugeeCamps: { label: "UNHCR" },
-  showInternetExchanges: { label: "PeeringDB" },
+  // ⚠️ shipped 데이터가 PeeringDB 로 교체될 때까지 표기하지 않는다 (P0-3).
+  // `npm run peeringdb:fetch` 실행 후 label 을 "PeeringDB (CC BY 4.0)" 로 되돌릴 것.
+  showInternetExchanges: { label: "(출처 미연결)" },
   showShippingLanes: { label: "IMO / public" },
 };
 

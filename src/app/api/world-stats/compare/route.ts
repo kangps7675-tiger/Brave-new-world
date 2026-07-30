@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getSotwApiKey, SOTW_ATTRIBUTION } from "@/lib/sotw";
 import { composeMarketLampParagraphs, fetchSotwMacroDeepMany } from "@/lib/sotwMacro";
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         disabled: false,
-        error: error instanceof Error ? error.message : "compare failed",
+        error: publicErrorMessage(error, "compare failed"),
         attribution: SOTW_ATTRIBUTION,
       },
       { status: 502 },

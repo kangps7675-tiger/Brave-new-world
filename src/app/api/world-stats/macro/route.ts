@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
 import { logApiRoute } from "@/lib/apiRouteLog";
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     const macro = await fetchSotwMacroDeep(country);
     return NextResponse.json(macro, { headers: WORLD_CDN });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "macro failed";
+    const message = publicErrorMessage(error, "macro failed");
     logApiRoute("/api/world-stats/macro", "error", "fetch_failed", {
       country,
       message,

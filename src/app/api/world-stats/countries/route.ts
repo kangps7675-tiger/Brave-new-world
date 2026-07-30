@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { fetchSotwCountryCard, getSotwApiKey, SOTW_ATTRIBUTION } from "@/lib/sotw";
 import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
       {
         disabled: false,
         name: country,
-        error: error instanceof Error ? error.message : "world-stats failed",
+        error: publicErrorMessage(error, "world-stats failed"),
         gdpUsd: null,
         gdpPerCapitaUsd: null,
         tradePctGdp: null,
