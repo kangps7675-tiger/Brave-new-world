@@ -51,8 +51,13 @@ export function historicalFrameObjectKey(date: string, layerId: string): string 
 /**
  * 이 asOf에 해당 레이어를 지도에서 재생할 수 있는가.
  * 1차: 일별 랭크/모델만 true. live-poll 레이어는 전부 false (가짜 과거 점 금지).
+ * asOf는 다음 트렌치(일별 R2 프레임)에서 사용 예정 — 시그니처 예약.
  */
-export function isLayerReplayable(layerId: string, _asOf?: string | null): boolean {
+export function isLayerReplayable(
+  layerId: string,
+  asOf?: string | null,
+): boolean {
+  void asOf;
   return (REPLAYABLE_RANK_LAYER_IDS as readonly string[]).includes(layerId);
 }
 

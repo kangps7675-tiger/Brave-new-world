@@ -72,7 +72,7 @@
 `.github/workflows/ci.yml`
 
 - `quality` 잡에 `npm run verify:security` 추가 (fail-open 인증 · 쿼리 시크릿 · 하드코딩 자격증명 · 부수효과 GET 회귀 검사)
-- `security` 잡 신설 — `npm audit --omit=dev --audit-level=high`(차단) + 전체 audit(보고) + gitleaks 시크릿 스캔
+- `security` 잡 — `node scripts/ci-npm-audit-gate.js`(프로덕션 high/critical 차단). Next 14 / 내장 postcss 는 OpenNext 마이그레이션 전까지 allowlist. `adm-zip`·`fast-uri` 는 overrides/업그레이드로 제거.
 - `.github/dependabot.yml` — 주간 npm 업데이트, Next/React 메이저는 제외(마이그레이션 계획 필요)
 
 ---
