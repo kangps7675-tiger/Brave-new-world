@@ -7,7 +7,7 @@ import {
   type ShadowFleetAspect,
 } from "@/data/shadowFleetSilhouette";
 
-/** 위장선박 AIS — 빨강 실루엣 */
+/** 위장선박 AIS — 빨강 솔리드 실루엣 */
 const DEFAULT_FILL = "#ef4444";
 
 export {
@@ -19,7 +19,8 @@ export {
 };
 
 /**
- * 위장·다크플리트 — Farnborough식 상선 옆모습 실루엣 (빨강 통일).
+ * Farnborough식 위장 상선 — 헐·함교·마스트를 동일 색 솔리드 실루엣으로.
+ * (어두운 디테일 레이어로 헐만 풍선처럼 보이게 두지 않음)
  */
 export function shadowFleetIconSvg(
   fillColor: string = DEFAULT_FILL,
@@ -28,31 +29,30 @@ export function shadowFleetIconSvg(
 ): string {
   const { width, height } = size;
   const drawing = SHADOW_FLEET_ASPECT_DRAWINGS[aspect];
-  const detailFill = "rgba(127,29,29,0.92)";
 
   const details = drawing.details
     .map(
       (d) =>
-        `<path d="${d}" fill="${detailFill}" stroke="rgba(254,226,226,0.35)" stroke-width="0.35" stroke-linejoin="round"/>`,
+        `<path d="${d}" fill="${fillColor}" stroke="rgba(255,255,255,0.55)" stroke-width="0.4" stroke-linejoin="miter" stroke-linecap="square"/>`,
     )
     .join("");
 
   const wires = (drawing.wires ?? [])
     .map(
       (w) =>
-        `<path d="${w}" fill="none" stroke="rgba(254,202,202,0.75)" stroke-width="0.55" stroke-linecap="round"/>`,
+        `<path d="${w}" fill="none" stroke="${fillColor}" stroke-width="0.7" stroke-linecap="square"/>`,
     )
     .join("");
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 8 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg width="${width}" height="${height}" viewBox="0 4 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
-        stroke="rgba(255,255,255,0.88)"
-        stroke-width="1.0"
-        stroke-linejoin="round"
-        stroke-linecap="round"
+        stroke="rgba(255,255,255,0.92)"
+        stroke-width="0.95"
+        stroke-linejoin="miter"
+        stroke-linecap="square"
       />
       ${details}
       ${wires}

@@ -172,3 +172,27 @@ export function applyBasemapTerrain(
     /* terrain unsupported */
   }
 }
+
+/**
+ * 지형(OpenFreeMap Liberty) 기본 도시명 — 스타일 기본값(~10–14px)이 작아
+ * 줌 구간별로 한 단계 키운다. MapLibre setLayoutProperty로 가능.
+ */
+const TERRAIN_PLACE_LABEL_TEXT_SIZE: Record<string, unknown> = {
+  label_village: ["interpolate", ["linear"], ["zoom"], 7, 13, 11, 16],
+  label_town: ["interpolate", ["linear"], ["zoom"], 7, 15, 11, 18],
+  label_city: ["interpolate", ["linear"], ["zoom"], 4, 14, 7, 17, 11, 22],
+  label_city_capital: ["interpolate", ["linear"], ["zoom"], 4, 15, 7, 18, 11, 24],
+};
+
+export function applyBasemapPlaceLabelScale(map: BasemapMapLike, mode: BasemapMode): void {
+  if (mode !== "terrain") return;
+  try {
+    for (const [layerId, textSize] of Object.entries(TERRAIN_PLACE_LABEL_TEXT_SIZE)) {
+      if (!map.getLayer(layerId)) continue;
+      map.setLayoutProperty(layerId, "text-size", textSize);
+      map.setPaintProperty?.(layerId, "text-halo-width", 1.6);
+    }
+  } catch {
+    /* layout/paint unsupported */
+  }
+}

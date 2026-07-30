@@ -1,4 +1,4 @@
-import type { EventTier } from "@/data/geoTypes";
+import type { EventCategory, EventTier } from "@/data/geoTypes";
 import {
   gdeltImportanceShortLabel,
   isMarkedGdeltImportance,
@@ -10,6 +10,142 @@ export const GDELT_NEWS_ALERT_LABEL_EN = "News alert";
 
 export function gdeltNewsAlertLabel(lang: "ko" | "en" = "ko"): string {
   return lang === "en" ? GDELT_NEWS_ALERT_LABEL_EN : GDELT_NEWS_ALERT_LABEL;
+}
+
+/** Geo API query_tag → 한국어 주제 (티어 라벨과 별개) */
+const QUERY_TAG_LABEL_KO: Record<string, string> = {
+  ukraine: "우크라이나",
+  "middle-east": "중동",
+  taiwan: "대만·남중국해",
+  korea: "한반도",
+  "land-war": "지상전",
+  maritime: "해상",
+  pacific: "태평양",
+  atlantic: "대서양",
+  arctic: "북극",
+  "air-adiz": "공역·ADIZ",
+  strategic: "핵·미사일",
+  hybrid: "하이브리드·제재",
+  alliance: "동맹·군사외교",
+  "axis-network": "축 관계망",
+  cyber: "사이버",
+  election: "선거",
+};
+
+const CATEGORY_LABEL_KO: Record<EventCategory, string> = {
+  Battles: "교전",
+  "Violence against civilians": "민간인 폭력",
+  Protests: "시위",
+  Riots: "폭동",
+  "Strategic developments": "전략 동향",
+};
+
+const BARE_TITLE_RE =
+  /^(GDELT|gdelt|diplomatic|war|alliance|protest|strategic developments)$/i;
+
+function isBareOrTagTitle(title: string): boolean {
+  const t = title.trim();
+  if (!t || BARE_TITLE_RE.test(t)) return true;
+  if (QUERY_TAG_LABEL_KO[t.toLowerCase()]) return true;
+  return false;
+}
+
+export function gdeltQueryTagLabel(tag: string | null | undefined): string | null {
+  if (!tag) return null;
+  return QUERY_TAG_LABEL_KO[tag.toLowerCase()] ?? null;
+}
+
+export function hostFromGdeltUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+/** 기사 URL 경로에서 헤드라인 후보 추출 (개별 뉴스 구분용) */
+export function headlineFromGdeltSourceUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const path = new URL(url).pathname;
+    const seg = path.split("/").filter(Boolean).pop() || "";
+    let cleaned = decodeURIComponent(seg)
+      .replace(/\.(html?|php|aspx?|shtml)$/i, "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\d{6,}\b/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (cleaned.length < 14) return null;
+    if (!/[a-zA-Z가-힣]{4,}/.test(cleaned)) return null;
+    if (cleaned.length > 96) cleaned = `${cleaned.slice(0, 93).trim()}…`;
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  } catch {
+    return null;
+  }
+}
+
+type HeadlineInput = {
+  title?: string | null;
+  category?: EventCategory | string | null;
+  country?: string | null;
+  actor1Country?: string | null;
+  actor2Country?: string | null;
+  sourceUrl?: string | null;
+  /** D1/Geo 포인트의 query_tag */
+  queryTag?: string | null;
+};
+
+/**
+ * 알림창·리스트용 개별 뉴스 한 줄.
+ * 티어 라벨("외교적 긴장")만 쓰지 않고, 제목·URL 슬러그·행위자·출처로 구분한다.
+ */
+export function formatGdeltNewsHeadline(event: HeadlineInput): string {
+  const rawTitle = event.title?.trim() || null;
+  const fromUrl = headlineFromGdeltSourceUrl(event.sourceUrl);
+  const host = hostFromGdeltUrl(event.sourceUrl);
+  const tagLabel = gdeltQueryTagLabel(event.queryTag);
+  const placeLike = rawTitle && !isBareOrTagTitle(rawTitle) ? rawTitle : null;
+
+  if (
+    placeLike &&
+    fromUrl &&
+    !fromUrl.toLowerCase().includes(placeLike.toLowerCase().slice(0, Math.min(12, placeLike.length)))
+  ) {
+    return `${placeLike} · ${fromUrl}`;
+  }
+  if (fromUrl) return fromUrl;
+  if (placeLike && host) return `${placeLike} · ${host}`;
+  if (placeLike) return placeLike;
+
+  const bits: string[] = [];
+  if (tagLabel) bits.push(tagLabel);
+  if (event.country) bits.push(event.country);
+  if (event.actor1Country || event.actor2Country) {
+    bits.push(`${event.actor1Country || "?"}↔${event.actor2Country || "?"}`);
+  }
+  const cat = event.category
+    ? CATEGORY_LABEL_KO[event.category as EventCategory] || event.category
+    : null;
+  if (cat) bits.push(cat);
+  if (host) bits.push(host);
+
+  const joined = bits.filter(Boolean).join(" · ");
+  return joined || "GDELT 속보";
+}
+
+/** API mapPoint용 — 저장 title을 개별 뉴스처럼 채운다. */
+export function buildGdeltPointTitle(input: {
+  name: string | null;
+  url: string | null;
+  queryTag: string | null;
+}): string {
+  return formatGdeltNewsHeadline({
+    title: input.name,
+    sourceUrl: input.url,
+    queryTag: input.queryTag,
+    category: "Strategic developments",
+  });
 }
 
 const TIER_BADGE_BORDER: Record<EventTier, string> = {

@@ -87,7 +87,7 @@ export function gpsJamLevelLabel(level: GpsJamLevel, lang: "ko" | "en"): string 
   return lang === "en" ? map[level].en : map[level].ko;
 }
 
-/** YYYY-MM-DD (UTC). GPSJam은 전일 데이터를 ~04:00 UTC 발행 → 안전하게 어제 사용 */
+/** YYYY-MM-DD (UTC). GPSJam은 일별 CSV — 발행 지연·공백일이 있어 API는 최근 N일 폴백 */
 export function gpsJamDateUtc(daysAgo = 1): string {
   const d = new Date(Date.now() - daysAgo * 86_400_000);
   return d.toISOString().slice(0, 10);

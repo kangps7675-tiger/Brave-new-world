@@ -1,10 +1,9 @@
 import type { AisVessel } from "@/data/geoTypes";
-import { SUBMARINE_MARKER_SIZE } from "@/data/submarineSilhouette";
-import { SURFACE_COMBATANT_MARKER_SIZE } from "@/data/surfaceCombatantSilhouette";
+import { SUBMARINE_PROFILE_SIZE } from "@/data/submarineSilhouette";
+import { SURFACE_COMBATANT_PROFILE_SIZE } from "@/data/surfaceCombatantSilhouette";
 import {
   aisCommercialPointColor,
   aisDisplayTypeLabel,
-  aisMilitaryKindColor,
   AIS_SURFACE_COMBATANT_FILL,
   isAisAspectHullMarker,
   usesSurfaceCombatantDeckIcon,
@@ -16,12 +15,19 @@ import {
   shadowFleetRelativeHeading,
 } from "@/lib/shadowFleetDeckIcon";
 import {
-  surfaceCombatantAspectFromRelativeHeading,
-  surfaceCombatantIconSvg,
+  surfaceCombatantFacingFromRelativeHeading,
   surfaceCombatantRelativeHeading,
   warshipProfileIconSvg,
 } from "@/lib/surfaceCombatantDeckIcon";
-import { submarineIconSvg } from "@/lib/submarineDeckIcon";
+import {
+  submarineFacingFromRelativeHeading,
+  submarineProfileIconSvg,
+} from "@/lib/submarineDeckIcon";
+import {
+  carrierFacingFromRelativeHeading,
+  carrierProfileIconSvg,
+} from "@/lib/usCarrierDeckIcon";
+import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
 
 export const AIS_VESSEL_MARKER_ROOT_CLASS = "ais-vessel-marker-root";
 
@@ -41,8 +47,11 @@ function ensureAisMarkerStyles() {
     .${AIS_VESSEL_MARKER_ROOT_CLASS} button:hover .ais-vessel-icon {
       filter: drop-shadow(0 0 8px rgba(125,211,252,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
     }
+    .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-military="1"] .ais-vessel-icon {
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38));
+    }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-military="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 0 5px rgba(239,68,68,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.85));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.48));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-surface="1"] .ais-vessel-icon {
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38));
@@ -51,10 +60,16 @@ function ensureAisMarkerStyles() {
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.48));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-submarine="1"] .ais-vessel-icon {
-      filter: drop-shadow(0 0 8px rgba(167,139,250,0.55)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-submarine="1"] button:hover .ais-vessel-icon {
-      filter: drop-shadow(0 0 12px rgba(167,139,250,0.85)) drop-shadow(0 1px 3px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.48));
+    }
+    .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-carrier="1"] .ais-vessel-icon {
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 2.5px rgba(239,68,68,0.38));
+    }
+    .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-carrier="1"] button:hover .ais-vessel-icon {
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.48));
     }
     .${AIS_VESSEL_MARKER_ROOT_CLASS}[data-ais-shadow="1"] .ais-vessel-icon {
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 3px rgba(239,68,68,0.45));
@@ -89,10 +104,7 @@ export function aisVesselHeadingDeg(
 function shipColor(vessel: AisVessel): string {
   if (vessel.disguised) return "#ef4444";
   if (vessel.category === "military") {
-    if (usesSurfaceCombatantDeckIcon(vessel.militaryKind)) {
-      return AIS_SURFACE_COMBATANT_FILL;
-    }
-    return aisMilitaryKindColor(vessel.militaryKind);
+    return AIS_SURFACE_COMBATANT_FILL;
   }
   const c = aisCommercialPointColor(vessel.shipType);
   return c.replace(/[\d.]+\)$/, "0.98)") || c;
@@ -126,10 +138,11 @@ export function createAisVesselBadge(
   const mapBearing = options?.mapBearingDeg ?? 0;
   const military = vessel.category === "military";
   const disguised = Boolean(vessel.disguised);
-  /** 항모·잠수함 제외 — 구축·호위·초계·순양·상륙·미분류 등 동일 수상함 실루엣 */
+  /** 구축·호위 등 — 이지스 옆모습 */
   const surface = !disguised && military && usesSurfaceCombatantDeckIcon(vessel.militaryKind);
   const submarine = !disguised && military && vessel.militaryKind === "submarine";
-  const aspectHull = disguised || surface || submarine;
+  const carrier = !disguised && military && vessel.militaryKind === "carrier";
+  const aspectHull = disguised || surface || submarine || carrier;
   const heading = aisVesselHeadingDeg(vessel, { allowStationaryHeading: aspectHull });
   const color = shipColor(vessel);
   const size = military || disguised ? 28 : 22;
@@ -139,12 +152,17 @@ export function createAisVesselBadge(
       ? shadowFleetRelativeHeading(heading ?? 0, mapBearing)
       : surfaceCombatantRelativeHeading(heading ?? 0, mapBearing)
     : null;
-  const aspect =
+  const facing: "e" | "w" | null =
     aspectHull && relative != null
       ? disguised
         ? shadowFleetFacingFromRelativeHeading(relative)
-        : surfaceCombatantAspectFromRelativeHeading(relative)
+        : submarine
+          ? submarineFacingFromRelativeHeading(relative)
+          : carrier
+            ? carrierFacingFromRelativeHeading(relative)
+            : surfaceCombatantFacingFromRelativeHeading(relative)
       : null;
+  const aspect = facing;
 
   const titleBits = [
     vessel.shipName || `MMSI ${vessel.mmsi}`,
@@ -168,6 +186,7 @@ export function createAisVesselBadge(
   if (military) outer.dataset.aisMilitary = "1";
   if (surface) outer.dataset.aisSurface = "1";
   if (submarine) outer.dataset.aisSubmarine = "1";
+  if (carrier) outer.dataset.aisCarrier = "1";
   if (disguised) outer.dataset.aisShadow = "1";
   if (aspect) outer.dataset.aisAspect = aspect;
   if (heading != null) outer.dataset.aisHeading = String(Math.round(heading));
@@ -184,17 +203,21 @@ export function createAisVesselBadge(
       ? lang === "en"
         ? "Submarine"
         : "잠수함"
-      : surface
+      : carrier
         ? lang === "en"
-          ? "Warship"
-          : "군함"
-        : military
+          ? "Aircraft carrier"
+          : "항공모함"
+        : surface
           ? lang === "en"
             ? "Warship"
             : "군함"
-          : lang === "en"
-            ? "Vessel"
-            : "선박";
+          : military
+            ? lang === "en"
+              ? "Warship"
+              : "군함"
+            : lang === "en"
+              ? "Vessel"
+              : "선박";
   inner.setAttribute("aria-label", `${roleLabel} ${vessel.shipName || vessel.mmsi}`);
   inner.title = titleBits.join(" · ");
   inner.style.display = "flex";
@@ -210,20 +233,25 @@ export function createAisVesselBadge(
 
   const icon = document.createElement("span");
   icon.className = "ais-vessel-icon";
-  if (disguised && aspect) {
+  if (disguised && facing) {
     icon.style.width = `${SHADOW_FLEET_MARKER_SIZE.width}px`;
     icon.style.height = `${SHADOW_FLEET_MARKER_SIZE.height}px`;
-    icon.innerHTML = shadowFleetIconSvg(color, SHADOW_FLEET_MARKER_SIZE, aspect);
+    icon.innerHTML = shadowFleetIconSvg(color, SHADOW_FLEET_MARKER_SIZE, facing);
     if (heading == null) icon.style.opacity = "0.78";
-  } else if (submarine && aspect) {
-    icon.style.width = `${SUBMARINE_MARKER_SIZE.width}px`;
-    icon.style.height = `${SUBMARINE_MARKER_SIZE.height}px`;
-    icon.innerHTML = submarineIconSvg(color, SUBMARINE_MARKER_SIZE, aspect);
+  } else if (submarine && facing) {
+    icon.style.width = `${SUBMARINE_PROFILE_SIZE.width}px`;
+    icon.style.height = `${SUBMARINE_PROFILE_SIZE.height}px`;
+    icon.innerHTML = submarineProfileIconSvg(color, SUBMARINE_PROFILE_SIZE, facing);
     if (heading == null) icon.style.opacity = "0.72";
-  } else if (surface && aspect) {
-    icon.style.width = `${SURFACE_COMBATANT_MARKER_SIZE.width}px`;
-    icon.style.height = `${SURFACE_COMBATANT_MARKER_SIZE.height}px`;
-    icon.innerHTML = surfaceCombatantIconSvg(color, SURFACE_COMBATANT_MARKER_SIZE, aspect);
+  } else if (carrier && facing) {
+    icon.style.width = `${CARRIER_MARKER_ICON_SIZE.width}px`;
+    icon.style.height = `${CARRIER_MARKER_ICON_SIZE.height}px`;
+    icon.innerHTML = carrierProfileIconSvg(color, CARRIER_MARKER_ICON_SIZE, facing);
+    if (heading == null) icon.style.opacity = "0.72";
+  } else if (surface && facing) {
+    icon.style.width = `${SURFACE_COMBATANT_PROFILE_SIZE.width}px`;
+    icon.style.height = `${SURFACE_COMBATANT_PROFILE_SIZE.height}px`;
+    icon.innerHTML = warshipProfileIconSvg(color, SURFACE_COMBATANT_PROFILE_SIZE, facing);
     if (heading == null) icon.style.opacity = "0.72";
   } else {
     icon.style.width = `${size}px`;

@@ -45,7 +45,7 @@ function linkToPath(link: DfcLink, lang: "ko" | "en"): TransportPath {
     name,
     scalerank: 1,
     lengthKm: null,
-    accentColor: `rgba(59, 130, 246, ${(0.55 + weight * 0.4).toFixed(3)})`,
+    accentColor: `rgba(59, 130, 246, ${(0.78 + weight * 0.2).toFixed(3)})`,
     bbox: {
       minLat: Math.min(link.olat, link.lat),
       minLng: Math.min(link.olng, link.lng),

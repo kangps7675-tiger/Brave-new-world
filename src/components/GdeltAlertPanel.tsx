@@ -5,6 +5,10 @@ import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { LocationPinIcon } from "@/components/LocationPinIcon";
 import { TIER_LABELS, isFreshEvent } from "@/data/eventTiers";
 import {
+  formatGdeltNewsHeadline,
+  hostFromGdeltUrl,
+} from "@/lib/gdeltNewsAlert";
+import {
   gdeltImportanceShortLabel,
   isMarkedGdeltImportance,
 } from "@/lib/gdeltImportance";
@@ -87,6 +91,8 @@ export function GdeltAlertPanel({
               : alert.menuRegion.label;
             const fresh = isFreshEvent(alert);
             const marked = isMarkedGdeltImportance(alert.importanceGrade);
+            const headline = formatGdeltNewsHeadline(alert);
+            const host = hostFromGdeltUrl(alert.sourceUrl);
 
             return (
               <li key={alert.id}>
@@ -117,12 +123,8 @@ export function GdeltAlertPanel({
                           뉴스
                         </span>
                       )}
-                      {(
-                        <EvidenceTierBadge tier="unverified" lang="ko" />
-                      )}
-                      <span className="font-medium text-orange-50">
-                        {TIER_LABELS[alert.eventTier]}
-                      </span>
+                      <EvidenceTierBadge tier="unverified" lang="ko" />
+                      <span className="text-orange-100/55">{TIER_LABELS[alert.eventTier]}</span>
                       {fresh && (
                         <span className="rounded-full bg-yellow-400/15 px-1.5 py-0.5 text-micro text-yellow-200">
                           최신
@@ -132,15 +134,18 @@ export function GdeltAlertPanel({
                         <span className="text-slate-500">{alert.eventDate}</span>
                       )}
                     </span>
-                    <span className="mt-1 block truncate text-meta text-orange-100/70">
-                      {regionTitle}
+                    <span className="mt-1 block text-caption font-medium leading-snug text-orange-50 line-clamp-2">
+                      {headline}
                     </span>
-                    <span className="mt-0.5 block truncate text-meta text-slate-400">
-                      {alert.category}
+                    <span className="mt-0.5 block truncate text-meta text-orange-100/65">
+                      {regionTitle}
                       {alert.actor1Country || alert.actor2Country
                         ? ` · ${alert.actor1Country || "?"} ↔ ${alert.actor2Country || "?"}`
                         : ""}
                     </span>
+                    {host ? (
+                      <span className="mt-0.5 block truncate text-micro text-slate-500">{host}</span>
+                    ) : null}
                   </span>
                 </button>
               </li>

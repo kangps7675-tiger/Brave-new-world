@@ -11,6 +11,6 @@ export function createCityLabelElement(text: string, tier: PlaceLabelTier): HTML
   el.dataset.tier = tier;
   el.textContent = text;
   el.style.color = getPlaceLabelColor(tier, true, tone);
-  el.style.fontSize = tier === "megacity" ? "13px" : "12px";
+  el.style.fontSize = tier === "megacity" ? "15px" : "14px";
   return el;
 }

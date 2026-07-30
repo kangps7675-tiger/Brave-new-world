@@ -3,6 +3,7 @@
  */
 
 import type { ConflictEvent } from "@/data/geoTypes";
+import { buildGdeltPointTitle } from "@/lib/gdeltNewsAlert";
 
 const GEO_API = "https://api.gdeltproject.org/api/v2/geo/geo";
 
@@ -48,12 +49,6 @@ function toEvent(
   name: string | null,
   url: string | null,
 ): ConflictEvent {
-  const label =
-    tag === "pacific"
-      ? "태평양 지정학"
-      : tag === "atlantic"
-        ? "대서양 지정학"
-        : "북극해 지정학";
   return {
     id: stableId(tag, lat, lng, name, url),
     globalEventId: stableId(tag, lat, lng, name, url),
@@ -65,7 +60,7 @@ function toEvent(
     severity: 2,
     goldsteinScale: -2,
     sourceUrl: url,
-    title: name ? `${label} · ${name}` : `${label} · 경쟁·외교`,
+    title: buildGdeltPointTitle({ name, url, queryTag: tag }),
     createdAt: new Date().toISOString(),
     eventTier: "diplomatic",
   };

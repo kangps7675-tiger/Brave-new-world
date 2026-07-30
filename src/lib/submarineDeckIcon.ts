@@ -1,62 +1,75 @@
 import {
   SUBMARINE_ASPECT_DRAWINGS,
   SUBMARINE_MARKER_SIZE,
+  SUBMARINE_PROFILE_SIZE,
   SUBMARINE_VIEWBOX,
   type SubmarineIconSize,
 } from "@/data/submarineSilhouette";
-import type { SurfaceCombatantAspect } from "@/data/surfaceCombatantSilhouette";
+import {
+  surfaceCombatantFacingFromRelativeHeading,
+  type SurfaceCombatantAspect,
+} from "@/data/surfaceCombatantSilhouette";
 
-const DEFAULT_FILL = "#7c3aed";
+const DEFAULT_FILL = "#0c0c0e";
+
+export {
+  surfaceCombatantFacingFromRelativeHeading as submarineFacingFromRelativeHeading,
+  SUBMARINE_PROFILE_SIZE,
+};
 
 /**
- * 잠수함 8방위 실루엣 SVG (시가형 헐·세일·함미타).
+ * 잠수함 실루엣 SVG.
+ * AIS 지도는 옆모습(E/W)만 — submarineProfileIconSvg 사용.
  */
 export function submarineIconSvg(
   fillColor: string = DEFAULT_FILL,
   size: SubmarineIconSize = SUBMARINE_MARKER_SIZE,
-  aspect: SurfaceCombatantAspect = "n",
+  aspect: SurfaceCombatantAspect = "e",
 ): string {
   const { width, height } = size;
   const vb = `${SUBMARINE_VIEWBOX.width} ${SUBMARINE_VIEWBOX.height}`;
-  const glowId = `ssn-glow-${aspect}-${width}`;
   const drawing = SUBMARINE_ASPECT_DRAWINGS[aspect];
+  const sideProfile = aspect === "e" || aspect === "w";
 
   const details = drawing.details
-    .map(
-      (d) =>
-        `<path d="${d}" fill="rgba(15,23,42,0.55)" stroke="rgba(196,181,253,0.55)" stroke-width="0.65" stroke-linejoin="round"/>`,
+    .map((d) =>
+      sideProfile
+        ? `<path d="${d}" fill="${fillColor}" stroke="rgba(255,255,255,0.65)" stroke-width="0.45" stroke-linejoin="miter"/>`
+        : `<path d="${d}" fill="rgba(15,23,42,0.55)" stroke="rgba(255,255,255,0.45)" stroke-width="0.65" stroke-linejoin="round"/>`,
     )
     .join("");
 
-  const axis = drawing.axis
-    ? `<path d="${drawing.axis}" stroke="rgba(167,139,250,0.5)" stroke-width="0.65" stroke-linecap="round"/>`
-    : "";
-
   return `
     <svg width="${width}" height="${height}" viewBox="0 0 ${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <filter id="${glowId}" x="-35%" y="-35%" width="170%" height="170%">
-          <feGaussianBlur stdDeviation="1.25" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
-        stroke="rgba(221,214,254,0.9)"
-        stroke-width="1.1"
-        stroke-linejoin="round"
-        filter="url(#${glowId})"
+        stroke="rgba(255,255,255,0.94)"
+        stroke-width="${sideProfile ? 1.0 : 1.1}"
+        stroke-linejoin="miter"
+        stroke-linecap="square"
       />
-      ${axis}
       ${details}
     </svg>
   `.trim();
 }
 
-export function submarineGlowShadow(fillColor: string = DEFAULT_FILL): string {
-  return `0 0 10px ${fillColor}cc, 0 0 18px ${fillColor}66, 0 2px 6px rgba(0,0,0,0.55)`;
+/** AIS·범례 — 옆모습 고정 (조감 미사용) */
+export function submarineProfileIconSvg(
+  fillColor: string = DEFAULT_FILL,
+  size: SubmarineIconSize = SUBMARINE_PROFILE_SIZE,
+  facing: "e" | "w" = "e",
+): string {
+  const full = submarineIconSvg(
+    fillColor,
+    { width: SUBMARINE_VIEWBOX.width, height: SUBMARINE_VIEWBOX.height },
+    facing,
+  );
+  return full
+    .replace(/viewBox="0 0 64 64"/, 'viewBox="0 8 64 44"')
+    .replace(/width="64" height="64"/, `width="${size.width}" height="${size.height}"`);
+}
+
+export function submarineGlowShadow(_fillColor: string = DEFAULT_FILL): string {
+  return `0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(239,68,68,0.38)`;
 }

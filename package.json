@@ -18,6 +18,7 @@
     "verify:ui-tokens": "node scripts/check-ui-tokens.mjs",
     "verify:i18n": "node scripts/check-i18n.mjs",
     "verify:syntax": "node scripts/check-syntax.mjs",
+    "verify:maplibre": "node scripts/check-maplibre-expr.mjs",
     "verify:dialog-a11y": "node scripts/check-dialog-a11y.mjs",
     "codemod:typography": "node scripts/codemod-typography.mjs",
     "codemod:z-index": "node scripts/codemod-z-index.mjs",

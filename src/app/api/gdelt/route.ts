@@ -11,6 +11,7 @@ import {
 import { fetchOceanGeopoliticsGdelt } from "@/lib/gdeltOceanGeo";
 import type { ConflictEvent, EventTier } from "@/data/geoTypes";
 import { isOceanGeopoliticsTag } from "@/lib/oceanGeopoliticsTheaters";
+import { buildGdeltPointTitle } from "@/lib/gdeltNewsAlert";
 import {
   CDN_CACHE,
   NO_STORE_HEADERS,
@@ -41,7 +42,11 @@ function mapPoint(point: {
   mentionCount: number | null;
   queryTag: string | null;
 }): ConflictEvent {
-  const title = point.name || point.queryTag || "GDELT";
+  const title = buildGdeltPointTitle({
+    name: point.name,
+    url: point.url,
+    queryTag: point.queryTag,
+  });
   return {
     id: point.id,
     globalEventId: point.id,

@@ -10,6 +10,7 @@ import {
   type NewsFeedDef,
 } from "@/lib/news/feedCatalog";
 import { computeBreakingGrade } from "@/lib/news/breakingGrade";
+import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";
 import { classifyMediaTier } from "@/lib/news/mediaTiers";
 import { fetchNewfeedsIranNewsItems } from "@/lib/news/newfeedsIranNews";
 import { fetchRssFeed } from "@/lib/news/rssParser";
@@ -203,13 +204,21 @@ export async function buildNewsStream(
     return true;
   });
 
-  const verified = sortByRecency(deduped.filter((i) => i.trustTier <= 2));
-  const stateMedia = sortByRecency(deduped.filter((i) => i.trustTier === 3));
-  const heroCandidates = deduped.filter((i) => parseAgeMinutes(i.pubDate) <= 1_440);
-  const hero = pickHero(heroCandidates.length > 0 ? heroCandidates : deduped.slice(0, 40));
+  // RSS 이미지 없는 최근 기사에 og:image 보강 (등불 사진 필수 수급)
+  const enriched = await enrichNewsStreamImages(sortByRecency(deduped), {
+    maxEnrich: 24,
+    concurrency: 4,
+    timeoutMs: 2_200,
+    budgetMs: 8_000,
+  });
+
+  const verified = sortByRecency(enriched.filter((i) => i.trustTier <= 2));
+  const stateMedia = sortByRecency(enriched.filter((i) => i.trustTier === 3));
+  const heroCandidates = enriched.filter((i) => parseAgeMinutes(i.pubDate) <= 1_440);
+  const hero = pickHero(heroCandidates.length > 0 ? heroCandidates : enriched.slice(0, 40));
 
   const theaters = {} as Record<NewsTheater, number>;
-  for (const item of deduped) {
+  for (const item of enriched) {
     theaters[item.theater] = (theaters[item.theater] || 0) + 1;
   }
 
@@ -219,13 +228,13 @@ export async function buildNewsStream(
     verified: verified.slice(0, VERIFIED_MAX),
     stateMedia: stateMedia.slice(0, STATE_MEDIA_MAX),
     stats: {
-      total: deduped.length,
-      tier1: deduped.filter((i) => i.trustTier === 1).length,
-      tier2: deduped.filter((i) => i.trustTier === 2).length,
-      tier3: deduped.filter((i) => i.trustTier === 3).length,
-      economy: deduped.filter((i) => i.feedTopic === "economy").length,
+      total: enriched.length,
+      tier1: enriched.filter((i) => i.trustTier === 1).length,
+      tier2: enriched.filter((i) => i.trustTier === 2).length,
+      tier3: enriched.filter((i) => i.trustTier === 3).length,
+      economy: enriched.filter((i) => i.feedTopic === "economy").length,
       theaters,
-      genres: countEconomyGenres(deduped),
+      genres: countEconomyGenres(enriched),
     },
   };
 }

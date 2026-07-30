@@ -27,6 +27,12 @@ export const SUBMARINE_MARKER_SIZE: SubmarineIconSize = {
   height: 48,
 };
 
+/** AIS 지도 — 옆모습 크롭 비율 */
+export const SUBMARINE_PROFILE_SIZE: SubmarineIconSize = {
+  width: 52,
+  height: 28,
+};
+
 export type SubmarineAspectDrawing = {
   hull: string;
   details: readonly string[];
@@ -61,32 +67,33 @@ const TOP_S: SubmarineAspectDrawing = {
   axis: "M 32,56 L 32,10",
 };
 
-/** E: 옆모습 선수→ */
+/** E: 옆모습 선수→ — 시가형 헐 · 세일 · 함미타 */
 const SIDE_E: SubmarineAspectDrawing = {
   hull:
-    "M 8,36 C 12,28 20,26 32,26 C 46,26 54,28 58,34 C 56,42 48,44 32,44 C 18,44 10,42 8,36 Z",
+    "M 4,38 L 7,32 L 14,28.5 L 28,27 L 42,27.5 L 52,29.5 L 58,33 L 60,37 L 58.5,41 L 52,43.5 L 36,44.5 L 18,44 L 8,41.5 L 4,38.5 Z",
   details: [
-    "M 22,20 L 30,20 L 30,28 L 22,28 Z",
-    "M 18,30 L 24,30 L 24,32 L 18,32 Z",
-    "M 52,32 L 58,30 L 60,34 L 58,38 L 52,36 Z",
-    "M 54,28 L 56,28 L 56,40 L 54,40 Z",
-    "M 50,34 L 62,34",
+    // 세일(코닝타워)
+    "M 26,16 L 34,16 L 34.5,28 L 25.5,28 Z",
+    "M 27.5,12 L 32.5,12 L 32.8,16 L 27.2,16 Z",
+    // 페어워터 플레인
+    "M 22,24 L 38,24 L 37.5,26 L 22.5,26 Z",
+    // 함미 십자타 / 프로펠 영역
+    "M 54,30 L 61,28 L 62,37 L 61,42 L 54,40 Z",
+    "M 56,26 L 58,26 L 58,44 L 56,44 Z",
   ],
-  axis: "M 10,36 L 56,36",
 };
 
 /** W: 옆모습 선수← */
 const SIDE_W: SubmarineAspectDrawing = {
   hull:
-    "M 56,36 C 52,28 44,26 32,26 C 18,26 10,28 6,34 C 8,42 16,44 32,44 C 46,44 54,42 56,36 Z",
+    "M 60,38 L 57,32 L 50,28.5 L 36,27 L 22,27.5 L 12,29.5 L 6,33 L 4,37 L 5.5,41 L 12,43.5 L 28,44.5 L 46,44 L 56,41.5 L 60,38.5 Z",
   details: [
-    "M 42,20 L 34,20 L 34,28 L 42,28 Z",
-    "M 46,30 L 40,30 L 40,32 L 46,32 Z",
-    "M 12,32 L 6,30 L 4,34 L 6,38 L 12,36 Z",
-    "M 10,28 L 8,28 L 8,40 L 10,40 Z",
-    "M 14,34 L 2,34",
+    "M 38,16 L 30,16 L 29.5,28 L 38.5,28 Z",
+    "M 36.5,12 L 31.5,12 L 31.2,16 L 36.8,16 Z",
+    "M 42,24 L 26,24 L 26.5,26 L 41.5,26 Z",
+    "M 10,30 L 3,28 L 2,37 L 3,42 L 10,40 Z",
+    "M 8,26 L 6,26 L 6,44 L 8,44 Z",
   ],
-  axis: "M 54,36 L 8,36",
 };
 
 /** NE: 3/4 선수 우상 */

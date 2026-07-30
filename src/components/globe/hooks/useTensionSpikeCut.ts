@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { DailyRanksPayload } from "@/lib/dailyRanks";
 import {
   dismissTensionCutToday,
-  evaluateTaiwanTensionSpike,
+  evaluateHotTensionSpike,
   tensionCutDismissedToday,
   type TensionCutDestination,
   type TensionSpikeSnapshot,
@@ -18,7 +18,7 @@ type Options = {
 };
 
 /**
- * 대만 해협 긴장 스파이크 → 컷 오퍼.
+ * 핫 전장·초크 긴장 스파이크 → 컷 오퍼 (증시/항로/전선 렌즈).
  * GlobeDashboard 폴링에서 분리한 순수 훅.
  */
 export function useTensionSpikeCut({ enabled, blocked, calendarDayKey }: Options) {
@@ -41,7 +41,7 @@ export function useTensionSpikeCut({ enabled, blocked, calendarDayKey }: Options
           });
           if (!res.ok || cancelled) return;
           const data = (await res.json()) as DailyRanksPayload;
-          const next = evaluateTaiwanTensionSpike({
+          const next = evaluateHotTensionSpike({
             theater: data.theater,
             chokepoint: data.chokepoint,
             worldTension: data.worldTension,
