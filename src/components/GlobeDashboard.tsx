@@ -3764,6 +3764,53 @@ export function GlobeDashboard({
       showEconomicCenters,
     });
 
+  const gdeltTensionTags = useMemo(() => {
+    const tags = pickGdeltTensionTags(scoredEvents, {
+      showWar: showGdeltWar,
+      showDiplomatic: showGdeltDiplomatic,
+      showProtest: showGdeltProtests,
+      showOceanCompetition: showGdeltOceanCompetition,
+      view: layerViewState,
+    });
+    if (!ultraLite) return tags;
+    const max = Math.max(6, Math.ceil(tags.length * ultraLiteGdeltPinScale()));
+    return tags.slice(0, Math.min(50, max));
+  }, [
+    layerViewState,
+    scoredEvents,
+    showGdeltDiplomatic,
+    showGdeltOceanCompetition,
+    showGdeltProtests,
+    showGdeltWar,
+    ultraLite,
+  ]);
+
+  const ukraineGdeltNeonMarkers = useMemo<UkraineGdeltNeonMarker[]>(() => {
+    if (!showGdeltWar) return [];
+    return gdeltTensionTags
+      .filter((event) => isUkraineTheaterGdeltWar(event) && isFreshEvent(event))
+      .map((event) => ({
+        ...event,
+        markerId: `ukr-gdelt-${event.id}`,
+        displayKind: "ukraine-gdelt-neon" as const,
+        hapiTag: nearestUkraineHapiTag(event.lat, event.lng, hapiCasualties.fronts ?? []),
+      }));
+  }, [gdeltTensionTags, hapiCasualties.fronts, showGdeltWar]);
+
+  /** 이란 NewFeeds와 동일 강도 원 스택 — MapLibre 시안 원 (HTML 네온 대체) */
+  const ukraineTheaterIntensityPoints = useMemo<UkraineTheaterIntensityGlobePoint[]>(() => {
+    return ukraineGdeltNeonMarkers.map((event) => ({
+      id: event.id,
+      lat: event.lat,
+      lng: event.lng,
+      markerId: `ukr-intensity-${event.id}`,
+      displayKind: "ukraine-theater-intensity" as const,
+      severity: theaterIntensityFromGdeltGrade(event.importanceGrade, isFreshEvent(event)),
+      title: event.title || event.category || "Ukraine theater",
+      hapiTag: event.hapiTag,
+    }));
+  }, [ukraineGdeltNeonMarkers]);
+
   /** 정적 포인트 + AI 전쟁지역 (FIRMS는 전용 불꽃 레이어) + 이란/우크라 전장 강도 원
    * UCDP는 원(네온점) 대신 사상자 HTML 라벨로만 표시 */
   const globeDisplayPoints = useMemo<GlobeDisplayPoint[]>(() => {
@@ -3896,53 +3943,6 @@ export function GlobeDashboard({
       }),
     [layerAltitude, scoredEvents],
   );
-
-  const gdeltTensionTags = useMemo(() => {
-    const tags = pickGdeltTensionTags(scoredEvents, {
-      showWar: showGdeltWar,
-      showDiplomatic: showGdeltDiplomatic,
-      showProtest: showGdeltProtests,
-      showOceanCompetition: showGdeltOceanCompetition,
-      view: layerViewState,
-    });
-    if (!ultraLite) return tags;
-    const max = Math.max(6, Math.ceil(tags.length * ultraLiteGdeltPinScale()));
-    return tags.slice(0, Math.min(50, max));
-  }, [
-    layerViewState,
-    scoredEvents,
-    showGdeltDiplomatic,
-    showGdeltOceanCompetition,
-    showGdeltProtests,
-    showGdeltWar,
-    ultraLite,
-  ]);
-
-  const ukraineGdeltNeonMarkers = useMemo<UkraineGdeltNeonMarker[]>(() => {
-    if (!showGdeltWar) return [];
-    return gdeltTensionTags
-      .filter((event) => isUkraineTheaterGdeltWar(event) && isFreshEvent(event))
-      .map((event) => ({
-        ...event,
-        markerId: `ukr-gdelt-${event.id}`,
-        displayKind: "ukraine-gdelt-neon" as const,
-        hapiTag: nearestUkraineHapiTag(event.lat, event.lng, hapiCasualties.fronts ?? []),
-      }));
-  }, [gdeltTensionTags, hapiCasualties.fronts, showGdeltWar]);
-
-  /** 이란 NewFeeds와 동일 강도 원 스택 — MapLibre 시안 원 (HTML 네온 대체) */
-  const ukraineTheaterIntensityPoints = useMemo<UkraineTheaterIntensityGlobePoint[]>(() => {
-    return ukraineGdeltNeonMarkers.map((event) => ({
-      id: event.id,
-      lat: event.lat,
-      lng: event.lng,
-      markerId: `ukr-intensity-${event.id}`,
-      displayKind: "ukraine-theater-intensity" as const,
-      severity: theaterIntensityFromGdeltGrade(event.importanceGrade, isFreshEvent(event)),
-      title: event.title || event.category || "Ukraine theater",
-      hapiTag: event.hapiTag,
-    }));
-  }, [ukraineGdeltNeonMarkers]);
 
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
     if (isEconomyViewer || isCompactUi) return [];
