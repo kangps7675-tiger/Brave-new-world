@@ -7,6 +7,7 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
 import {
   emitBreakingDispatchSound,
+  type BreakingDispatchBed,
   emitParchmentFoldSound,
   emitParchmentUnfoldSound,
 } from "@/components/SoundEffectsBridge";
@@ -79,6 +80,8 @@ export type ParchmentLetterProps = {
   playUnfoldSound?: boolean;
   /** 펼침과 동시에 SOS 모스(타전) 재생 — 분쟁 외교사 등 */
   playBreakingDispatch?: boolean;
+  /** dark=지정학(기본) · cheer=지경학 등불과 동일 깔개 */
+  breakingDispatchBed?: BreakingDispatchBed;
   /** 본문을 타자기처럼 한 글자씩 출력 (분쟁 외교사 등) */
   typewriter?: boolean;
   /**
@@ -108,6 +111,7 @@ export function ParchmentLetter({
   onContinue,
   playUnfoldSound = true,
   playBreakingDispatch = false,
+  breakingDispatchBed = "dark",
   typewriter = false,
   historyHandFont = false,
   intelFont = false,
@@ -144,8 +148,10 @@ export function ParchmentLetter({
   useEffect(() => {
     if (!playUnfoldSound && !playBreakingDispatch) return;
     if (playUnfoldSound) emitParchmentUnfoldSound();
-    if (playBreakingDispatch) emitBreakingDispatchSound();
-  }, [playUnfoldSound, playBreakingDispatch]);
+    if (playBreakingDispatch) {
+      emitBreakingDispatchSound({ bed: breakingDispatchBed });
+    }
+  }, [playUnfoldSound, playBreakingDispatch, breakingDispatchBed]);
 
   useEffect(() => {
     if (!typewriter) {

@@ -59,6 +59,11 @@ export type HeroBreakingItem = NewsStreamItem & {
 export type NewsStreamPayload = {
   fetchedAt: string;
   hero: HeroBreakingItem | null;
+  /**
+   * 양피지 타전 보조 후보 — 전역 hero가 한 전장에 잡혀도
+   * 다른 전선(중동·대만·한반도 등) 급보를 따로 올릴 수 있게 함.
+   */
+  flashHeroes?: HeroBreakingItem[];
   verified: NewsStreamItem[];
   stateMedia: NewsStreamItem[];
   stats: {

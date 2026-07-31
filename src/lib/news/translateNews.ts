@@ -27,10 +27,14 @@ export async function translateNewsStreamPayload(
   const verified = await mapPool(payload.verified, translateNewsItem, 6);
   const stateMedia = await mapPool(payload.stateMedia, translateNewsItem, 4);
   const hero = payload.hero ? await translateHero(payload.hero) : null;
+  const flashHeroes = payload.flashHeroes?.length
+    ? await mapPool(payload.flashHeroes, translateHero, 4)
+    : payload.flashHeroes;
 
   return {
     ...payload,
     hero,
+    flashHeroes,
     verified,
     stateMedia,
   };
@@ -47,6 +51,7 @@ export async function ensureKoreanNewsPayload(
   const { isMostlyKorean } = await import("@/lib/koreanTranslate");
   const sample = [
     ...(payload.hero ? [payload.hero.title] : []),
+    ...(payload.flashHeroes ?? []).slice(0, 2).map((i) => i.title),
     ...payload.verified.slice(0, 6).map((i) => i.title),
     ...payload.stateMedia.slice(0, 3).map((i) => i.title),
   ].filter(Boolean);

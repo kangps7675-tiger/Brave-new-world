@@ -116,8 +116,7 @@ import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchme
 import {
   buildBreakingFlashBriefingForLang,
   claimBreakingFlash,
-  shouldOpenBreakingFlash,
-  wasBreakingFlashClaimed,
+  pickNextBreakingFlashHero,
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
 import {
@@ -5319,15 +5318,14 @@ export function GlobeDashboard({
     clearAirRaidFocus,
   });
 
-  /** 귀중한 속보 — S/고충격만 양피지 타전 · 한글 강제 · 전장 fly-to */
+  /** 귀중한 속보 — S/고충격만 양피지 타전 · 전선별 후보 병행 · 전장 fly-to */
   useEffect(() => {
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
     if (periodicBriefing || airRaidBriefing || exerciseBriefing || weeklyExpanded) return;
     if (breakingFlash) return;
-    const hero = newsStreamPayload?.hero;
-    if (!shouldOpenBreakingFlash(hero, isEconomyViewer)) return;
-    if (!hero || wasBreakingFlashClaimed(hero.id)) return;
+    const hero = pickNextBreakingFlashHero(newsStreamPayload, isEconomyViewer);
+    if (!hero) return;
 
     let cancelled = false;
     void (async () => {
@@ -5349,6 +5347,7 @@ export function GlobeDashboard({
     };
   }, [
     newsStreamPayload?.hero,
+    newsStreamPayload?.flashHeroes,
     newsStreamPayload?.hero?.id,
     newsStreamPayload?.hero?.breakingRank,
     newsStreamPayload?.hero?.breakingGrade,
