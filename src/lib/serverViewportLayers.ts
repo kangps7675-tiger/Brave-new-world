@@ -130,6 +130,22 @@ function longitudeDistance(a: number, b: number) {
   return diff > 180 ? 360 - diff : diff;
 }
 
+/** compact 경로에 lengthKm 이 비어 있어 bbox 대각으로 간선 우선 */
+function bboxSpanDeg(bbox: TransportPath["bbox"]): number {
+  const dLat = bbox.maxLat - bbox.minLat;
+  const rawLng = Math.abs(bbox.maxLng - bbox.minLng);
+  const dLng = rawLng > 180 ? 360 - rawLng : rawLng;
+  return Math.hypot(dLat, dLng);
+}
+
+function isEnergyPipelineKind(kind: TransportPath["kind"]): boolean {
+  return (
+    kind === "oil-pipeline" ||
+    kind === "gas-pipeline" ||
+    kind === "subsea-pipeline"
+  );
+}
+
 export function filterTransportPathsForViewport(
   paths: TransportPath[],
   options: {
@@ -152,7 +168,13 @@ export function filterTransportPathsForViewport(
   if (maxCount <= 0) return [];
 
   const view = { lat, lng, altitude: 1 };
-  type Ranked = { path: TransportPath; arterial: boolean; dist: number };
+  type Ranked = {
+    path: TransportPath;
+    arterial: boolean;
+    dist: number;
+    span: number;
+    preferSpan: boolean;
+  };
   const ranked: Ranked[] = [];
 
   for (const path of paths) {
@@ -166,12 +188,19 @@ export function filterTransportPathsForViewport(
     const dist = Math.sqrt(
       (midLat - lat) ** 2 + longitudeDistance(midLng, lng) ** 2,
     );
+    const preferSpan = isEnergyPipelineKind(path.kind);
+    const span =
+      preferSpan
+        ? path.lengthKm && Number.isFinite(path.lengthKm) && path.lengthKm > 0
+          ? path.lengthKm
+          : bboxSpanDeg(path.bbox)
+        : 0;
     // 뷰 밖 동맥도 전역에서는 허용하되, 가까운 것부터 채우도록 거리 기록
-    ranked.push({ path, arterial: isArterial, dist });
+    ranked.push({ path, arterial: isArterial, dist, span, preferSpan });
   }
 
   ranked.sort((a, b) => {
-    // 뷰 반경 안을 우선, 그다음 scalerank·거리
+    // 뷰 반경 안을 우선, 그다음 scalerank·(파이프면)긴 구간·거리
     const aIn = radiusDeg <= 0 || a.dist <= radiusDeg || a.arterial ? 0 : 1;
     const bIn = radiusDeg <= 0 || b.dist <= radiusDeg || b.arterial ? 0 : 1;
     if (radiusDeg > 0) {
@@ -183,6 +212,10 @@ export function filterTransportPathsForViewport(
     }
     if (a.path.scalerank !== b.path.scalerank) {
       return a.path.scalerank - b.path.scalerank;
+    }
+    // 송유·가스·해저관: 짧은 잔여 세그먼트보다 긴 간선 우선
+    if (a.preferSpan && b.preferSpan && a.span !== b.span) {
+      return b.span - a.span;
     }
     return a.dist - b.dist;
   });

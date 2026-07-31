@@ -71,9 +71,10 @@ function buildPathLayerColors(tone: BasemapTone) {
   return {
     "shipping-lane": pathKindRgba("shipping-lane", 0.82, tone),
     "submarine-cable": pathKindRgba("submarine-cable", 0.86, tone),
-    "oil-pipeline": pathKindRgba("oil-pipeline", 0.88, tone),
-    "gas-pipeline": pathKindRgba("gas-pipeline", 0.84, tone),
-    "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.86, tone),
+    // 파이프 — 줌아웃·바다 위에서 읽히도록 alpha 상향
+    "oil-pipeline": pathKindRgba("oil-pipeline", 0.96, tone),
+    "gas-pipeline": pathKindRgba("gas-pipeline", 0.94, tone),
+    "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.97, tone),
   } as const;
 }
 

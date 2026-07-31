@@ -22,8 +22,8 @@ export const LAYER_GROUP_HEX: Record<LayerColorGroup, string> = {
   military: "#45f3ff",
   /** 공항·항만·항로·물류 — 회청 */
   infra: "#8ba3b8",
-  /** 에너지·광물·파이프 — 앰버 */
-  energy: "#d4a017",
+  /** 에너지·광물·파이프 — 앰버 (전역 줌에서도 바다·지형 위 대비) */
+  energy: "#f0c040",
   /** 통신·디지털 — 뮤트 바이올렛 */
   digital: "#9b8ec4",
 };

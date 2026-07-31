@@ -640,17 +640,13 @@ export function useGlobeStaticLayers(options: {
       setLngTerminals([]);
       return;
     }
-    if (isEconomy && !economyAllowsDetailInfra(options.globeTier)) {
-      setLngTerminals([]);
-      return;
-    }
+    // 지경학 히어로 — 전역에서도 보이게 (상세 게이트로 비우지 않음)
     const timer = window.setTimeout(() => {
       void fetchViewportPoints("lng-terminals", setLngTerminals);
     }, 320);
     return () => window.clearTimeout(timer);
   }, [
     fetchViewportPoints,
-    isEconomy,
     options.showLngTerminals,
     options.viewState.lat,
     options.viewState.lng,
@@ -1196,7 +1192,8 @@ export function useGlobeStaticLayers(options: {
     if (options.showSanctionsEntities) merged.push(...sanctionsEntities);
     if (options.showSpaceLaunches) merged.push(...spaceLaunches);
     if (options.showIntelHotspots) merged.push(...intelHotspots);
-    if (options.showLngTerminals && allowDetailPoints) merged.push(...lngTerminals);
+    // LNG는 지경학 히어로 — 전역에서도 표시 (AI DC만 near+ 상세)
+    if (options.showLngTerminals) merged.push(...lngTerminals);
     for (const layer of GEM_RESOURCE_LAYERS) {
       if (options.gemShow?.[layer.prefKey]) {
         const pts = gemPointsByLayer[layer.id];

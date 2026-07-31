@@ -9,7 +9,7 @@ import {
   isCombatHazard,
 } from "@/lib/disputeHatch";
 import {
-  resolveActiveWarTheaterAt,
+  allowsFrontlineCombatSound,
   resolveCombatTheaterAt,
 } from "@/lib/theaterCombat";
 
@@ -27,8 +27,7 @@ type AmbientSoundInputs = {
   globeTier: GlobeLodTier;
   layerViewState: ViewCenter;
   filterCenter: ViewCenter;
-  showUkraineControl: boolean;
-  /** 활성 분쟁 외교사 에피소드 좌표 (없으면 null) */
+  /** 활성 분쟁 외교사 에피소드 좌표 (없으면 null) — active war 에피소드만 전선음 */
   episodeCenter: ViewCenter | null;
   disputes: DisputeInput[];
   showAnyDisputeOverlay: boolean;
@@ -62,7 +61,6 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
     globeTier,
     layerViewState,
     filterCenter,
-    showUkraineControl,
     episodeCenter,
     disputes,
     showAnyDisputeOverlay,
@@ -81,16 +79,25 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
   const nearEnough =
     globeTier === "regional" || globeTier === "near" || globeTier === "village";
 
-  /** 실제 교전(우크라·중동/이란) 위 regional 이하 → 전장 사운드. 대만·한반도 제외 */
+  /**
+   * 실제 교전(우크라·중동) 위 regional 이하 → 포격·총성.
+   * 대만·한반도는 긴장음만 — 전선 레이어 ON이어도 교전음 금지.
+   */
   const frontline = useMemo(() => {
     if (isEconomyViewer || !nearEnough) return false;
-    if (showUkraineControl) return true;
-    // 분쟁 외교사 선택 구역 — 체크박스 없이 해당 좌표에서만 교전음
-    if (episodeCenter) {
-      const radiusDeg = VIEWPORT_RADIUS_BY_TIER[globeTier] + 2.5;
-      if (isCenterInView(episodeCenter, layerViewState, radiusDeg)) return true;
-    }
-    return resolveActiveWarTheaterAt(filterCenter.lat, filterCenter.lng) != null;
+    const episodeInView =
+      episodeCenter != null &&
+      isCenterInView(
+        episodeCenter,
+        layerViewState,
+        VIEWPORT_RADIUS_BY_TIER[globeTier] + 2.5,
+      );
+    return allowsFrontlineCombatSound({
+      cameraLat: filterCenter.lat,
+      cameraLng: filterCenter.lng,
+      episodeCenter,
+      episodeInView,
+    });
   }, [
     episodeCenter,
     filterCenter.lat,
@@ -99,7 +106,6 @@ export function useAmbientSoundSelectors(inputs: AmbientSoundInputs): {
     isEconomyViewer,
     layerViewState,
     nearEnough,
-    showUkraineControl,
   ]);
 
   /** 대만해협 — 시계 틱 긴장 앰비언트 */

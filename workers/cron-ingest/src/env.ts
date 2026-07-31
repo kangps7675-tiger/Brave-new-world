@@ -73,6 +73,17 @@ export type IngestEnv = {
   AIS_MAX_VESSELS?: string;
   ADSB_MIL_MAX?: string;
   ADSB_CIV_PER_HUB?: string;
+  /**
+   * 유료 티어 운영 여부.
+   *
+   * "true" 면 **비상업 전용 소스를 폴백에서 제외**한다.
+   *   · adsb.fi        "for personal, non-commercial use only"
+   *   · airplanes.live 독점 라이선스 — 상업 조건 미확인
+   * 남는 것: adsb.lol(ODbL, 상업 가능) · ADSBexchange(상업 티어, 키 필요)
+   *
+   * ⚠️ 요금제를 켜면 이 값도 반드시 켤 것. 안 켜면 조용히 약관 위반이 계속된다.
+   */
+  COMMERCIAL_TIER_ENABLED?: string;
   /** Web Push VAPID — `wrangler secret put VAPID_PRIVATE_KEY` */
   VAPID_PRIVATE_KEY?: string;
   /** Public key (base64url) — wrangler [vars] 또는 secret */

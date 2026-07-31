@@ -40,6 +40,12 @@ export const GEOWATCH_CONFIG = {
     bannerPriority: {
       airRaid: 10,
       adsbEmergency: 20,
+      /**
+       * 확전 신호 — 임계선을 넘은 사건 보도.
+       * 공습·항공 비상보다는 뒤(즉각적 물리 위험이 아님),
+       * 훈련·해상 공지보다는 앞(파급이 크다).
+       */
+      escalation: 25,
       exercise: 30,
       maritime: 40,
       tensionCut: 50,

@@ -97,8 +97,12 @@ function isHeroEligible(item: NewsStreamItem): boolean {
   return URGENCY.test(item.title) || item.trustTier === 3;
 }
 
-function pickHero(items: NewsStreamItem[]): HeroBreakingItem | null {
-  const eligible = items.filter(
+function pickHero(
+  items: NewsStreamItem[],
+  opts?: { filter?: (item: NewsStreamItem) => boolean },
+): HeroBreakingItem | null {
+  const pool = opts?.filter ? items.filter(opts.filter) : items;
+  const eligible = pool.filter(
     (item) =>
       isValidPubDate(item.pubDate) &&
       !SKIP_URL.test(item.link) &&
@@ -171,6 +175,50 @@ function pickHero(items: NewsStreamItem[]): HeroBreakingItem | null {
   return best;
 }
 
+/** 양피지 타전 — 전선(전장)별 최고 후보. global 포함. */
+const FLASH_THEATERS: NewsTheater[] = [
+  "russia-ukraine",
+  "middle-east",
+  "china-taiwan",
+  "korea",
+  "japan",
+  "south-asia",
+  "southeast-asia",
+  "south-america",
+  "africa",
+  "arctic",
+  "atlantic",
+  "global",
+];
+
+/**
+ * 전역 hero와 별도로 전선별 타전 후보를 뽑는다.
+ * (특정 전장 피드리량이 많아 전역 hero가 한쪽에만 잡히는 경우를 보완)
+ */
+function buildFlashHeroes(
+  candidates: NewsStreamItem[],
+  globalHero: HeroBreakingItem | null,
+): HeroBreakingItem[] {
+  const out: HeroBreakingItem[] = [];
+  const seen = new Set<string>();
+  const push = (h: HeroBreakingItem | null) => {
+    if (!h || seen.has(h.id)) return;
+    if (globalHero && h.id === globalHero.id) return;
+    seen.add(h.id);
+    out.push(h);
+  };
+
+  for (const theater of FLASH_THEATERS) {
+    push(
+      pickHero(candidates, {
+        filter: (item) => item.theater === theater,
+      }),
+    );
+  }
+
+  return out;
+}
+
 function sortByRecency(items: NewsStreamItem[]): NewsStreamItem[] {
   const now = Date.now();
   return [...items].sort((a, b) => {
@@ -215,7 +263,9 @@ export async function buildNewsStream(
   const verified = sortByRecency(enriched.filter((i) => i.trustTier <= 2));
   const stateMedia = sortByRecency(enriched.filter((i) => i.trustTier === 3));
   const heroCandidates = enriched.filter((i) => parseAgeMinutes(i.pubDate) <= 1_440);
-  const hero = pickHero(heroCandidates.length > 0 ? heroCandidates : enriched.slice(0, 40));
+  const heroPool = heroCandidates.length > 0 ? heroCandidates : enriched.slice(0, 40);
+  const hero = pickHero(heroPool);
+  const flashHeroes = buildFlashHeroes(heroPool, hero);
 
   const theaters = {} as Record<NewsTheater, number>;
   for (const item of enriched) {
@@ -225,6 +275,7 @@ export async function buildNewsStream(
   return {
     fetchedAt: new Date().toISOString(),
     hero,
+    flashHeroes,
     verified: verified.slice(0, VERIFIED_MAX),
     stateMedia: stateMedia.slice(0, STATE_MEDIA_MAX),
     stats: {

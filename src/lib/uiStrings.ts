@@ -528,8 +528,8 @@ const UI = {
   },
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나나요", en: "When sound plays" },
   entryCautionSoundWhen: {
-    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동): regional LOD부터 포격·총성 연속·크게 · near 이하 더 촘촘\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
-    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline (Ukraine / Middle East): from regional LOD — dense loud artillery/gunfire; denser below near\n• Taiwan Strait tick · Korea / high-tension rumble\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
+    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
+    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
     ko: "본 피드는 공개 소스·와이어·위성/선박 오픈데이터를 가공한 상황판입니다. 공식 경보 대체가 아니며, 무단 반출·왜곡 시 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
@@ -670,7 +670,7 @@ const UI = {
   itemsCount: { ko: "건", en: " items" },
   economyCount: { ko: "경제", en: "economy" },
   intelSheetNews: { ko: "Tier별 뉴스 · 분석", en: "Tier news · analysis" },
-  intelSheetTelegram: { ko: "Telegram OSINT · 전문", en: "Telegram OSINT · full text" },
+  intelSheetTelegram: { ko: "Telegram OSINT · 절반", en: "Telegram OSINT · half" },
   intelSheetTelegramVideo: {
     ko: "텔레그램 영상 · 전선 미디어",
     en: "Telegram video · frontline media",
@@ -689,8 +689,8 @@ const UI = {
   },
   hoverSheetTelegram: { ko: "텔레그램 OSINT", en: "Telegram OSINT" },
   hoverSheetTelegramHint: {
-    ko: "공개 채널 전문. AI 요약·RSS와 분리된 raw OSINT. 사실 단정 금지.",
-    en: "Full public-channel text. Raw OSINT, separate from AI/RSS. Not verified fact.",
+    ko: "절반 미리보기 · 전문은 t.me CTA. AI·RSS와 분리. 사실 단정 금지.",
+    en: "Half preview · full post via t.me CTA. Separate from AI/RSS. No factual claims.",
   },
   hoverSheetTelegramVideo: { ko: "텔레그램 영상", en: "Telegram video" },
   hoverSheetTelegramVideoHint: {

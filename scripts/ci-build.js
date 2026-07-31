@@ -41,6 +41,31 @@ if (!openNextNested && process.env.DATA_GATE_SKIP !== "1") {
   }
 }
 
+/**
+ * 상업 라이선스 게이트.
+ *
+ * 유료 티어를 켠 채로 상업 이용이 금지·미확인인 레이어를 배포하면
+ * 계약 위반이다 (adsb.fi 는 개인·비상업 전용, ACLED 는 기업 라이선스 필수).
+ * 무료 운영 중에는 경고만 내고, 유료화를 켜면 빌드를 막는다.
+ *
+ * ⚠️ DATA_GATE_SKIP 으로는 우회되지 않는다. 이건 법적 리스크라 별도 플래그를 둔다.
+ */
+if (!openNextNested && process.env.LICENSE_GATE_SKIP !== "1") {
+  const licenseGate = spawnSync(
+    process.execPath,
+    [path.join(__dirname, "verify-commercial-licensing.js")],
+    { stdio: "inherit" },
+  );
+  if (licenseGate.status !== 0) {
+    console.error(
+      "\n[ci-build] 상업 라이선스 게이트 실패 — 빌드를 중단한다.\n" +
+        "           유료 티어에 상업 이용이 불가한 레이어가 섞여 있다.\n" +
+        "           제외하거나, 라이선스를 취득하거나, 소스를 교체할 것.\n",
+    );
+    process.exit(licenseGate.status ?? 1);
+  }
+}
+
 const useOpenNext = !isVercel && isWorkersCi && !openNextNested;
 const cmd = useOpenNext
   ? ["opennextjs-cloudflare", "build"]

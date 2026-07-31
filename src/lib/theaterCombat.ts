@@ -78,6 +78,28 @@ export function resolveActiveWarTheaterAt(
   return null;
 }
 
+/**
+ * 포격·총성(frontline) 앰비언트 허용 여부.
+ * 카메라(또는 활성 에피소드 좌표)가 **실제 교전 전장** 안에 있을 때만 true.
+ * 대만·한반도 등 긴장 구역에서는 레이어 ON·에피소드와 무관하게 false.
+ */
+export function allowsFrontlineCombatSound(args: {
+  cameraLat: number;
+  cameraLng: number;
+  /** 분쟁 외교사 에피소드 좌표 — active war 안에 있고 뷰포트에 보일 때만 허용 */
+  episodeCenter?: { lat: number; lng: number } | null;
+  episodeInView?: boolean;
+}): boolean {
+  if (resolveActiveWarTheaterAt(args.cameraLat, args.cameraLng) != null) {
+    return true;
+  }
+  const ep = args.episodeCenter;
+  if (ep && args.episodeInView) {
+    return resolveActiveWarTheaterAt(ep.lat, ep.lng) != null;
+  }
+  return false;
+}
+
 export function combatTheaterLabel(theater: CombatTheaterId, lang: "ko" | "en" = "ko"): string {
   const labels: Record<CombatTheaterId, { ko: string; en: string }> = {
     "russia-ukraine": { ko: "우크라이나 전선", en: "Ukraine front" },

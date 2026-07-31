@@ -1190,15 +1190,36 @@ const worker = {
       let fetchedAt: string | null = null;
       try {
         const rows = await readTelegramAlerts(env.DB, limit);
-        alerts = rows.map((row) => ({
-          id: row.id,
-          channelUsername: row.channel_username,
-          channelTitle: row.channel_title,
-          region: row.region,
-          text: row.text,
-          messageUrl: row.message_url,
-          receivedAt: row.received_at,
-        }));
+        alerts = rows.map((row) => {
+          const full = typeof row.text === "string" ? row.text.trim() : "";
+          // 공개 엔드포인트 — 짧은 글 포함 약 절반만 (전문은 messageUrl CTA)
+          let snippet = full;
+          if (full.length === 1) {
+            snippet = `${full}…`;
+          } else if (full.length > 1) {
+            const half = Math.min(Math.ceil(full.length / 2), 280);
+            let cut = full.slice(0, half);
+            if (half >= 4) {
+              const breakAt = Math.max(cut.lastIndexOf("\n"), cut.lastIndexOf(" "));
+              if (breakAt >= Math.floor(half * 0.55)) cut = cut.slice(0, breakAt);
+            }
+            cut = cut.trimEnd() || full.slice(0, half);
+            if (cut.length >= full.length) {
+              cut = full.slice(0, Math.max(1, Math.ceil(full.length / 2))).trimEnd();
+            }
+            snippet = `${cut}…`;
+          }
+          return {
+            id: row.id,
+            channelUsername: row.channel_username,
+            channelTitle: row.channel_title,
+            region: row.region,
+            text: snippet,
+            textTruncated: full.length > 0,
+            messageUrl: row.message_url,
+            receivedAt: row.received_at,
+          };
+        });
         fetchedAt = rows[0]?.ingested_at ?? null;
       } catch {
         alerts = [];

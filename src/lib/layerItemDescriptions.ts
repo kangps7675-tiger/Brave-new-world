@@ -20,7 +20,7 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "gdelt-protest": "켜면 시위·사회 불안 관련 뉴스 위치를 표시합니다.",
   "axis-network":
     "켜면 이란·중국·러시아·북한 중심 외교·군수·하이브리드 관계망(스포크 포함)을 호로 표시합니다.",
-  "telegram-osint": "켜면 공개 텔레그램 채널의 전장·전선 소식을 표시합니다.",
+  "telegram-osint": "켜면 공개 채널 속보의 약 절반 미리보기와 t.me 링크를 표시합니다. 전문은 텔레그램에서만.",
   "tzeva-adom": "켜면 이스라엘 로켓·공습 경보(체바 아돔) 발생 지역을 표시합니다.",
   "ukmto-incidents":
     "켜면 UKMTO(Royal Navy) 상선 피습·나포·의심활동 경보를 검은 원 빗금으로 표시합니다.",

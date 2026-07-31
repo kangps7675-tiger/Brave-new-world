@@ -45,6 +45,7 @@ export function emptyNewsPayload(message: string): NewsStreamPayload {
   return {
     fetchedAt: new Date().toISOString(),
     hero: null,
+    flashHeroes: [],
     verified: [],
     stateMedia: [],
     stats: {

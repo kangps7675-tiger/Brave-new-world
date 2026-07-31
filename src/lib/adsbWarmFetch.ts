@@ -27,10 +27,17 @@ export const ADSB_CIV_HUBS: Array<{
   { id: "sg-malacca", lat: 1.3, lng: 103.8, distNm: 220 },
 ];
 
-function milUrl(): { url: string; source: "adsbx" | "adsb.fi" } {
+/** adsb.fi 는 개인·비상업 전용 약관 — 유료 티어에서는 쓰면 안 된다. */
+const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
+
+function milUrl(): { url: string; source: "adsbx" | "adsb.lol" | "adsb.fi" } {
   const custom = process.env.ADSBEXCHANGE_MIL_URL?.trim();
   if (custom) return { url: custom, source: "adsbx" };
   if (getAdsbApiKey()) return { url: ADSBX_MIL_URL, source: "adsbx" };
+  // 키가 없을 때의 폴백 — 상업 모드면 ODbL 소스(adsb.lol)로
+  if (process.env.COMMERCIAL_TIER_ENABLED === "true") {
+    return { url: ADSB_LOL_MIL_URL, source: "adsb.lol" };
+  }
   return { url: ADSB_FI_MIL_URL, source: "adsb.fi" };
 }
 

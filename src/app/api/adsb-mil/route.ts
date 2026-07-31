@@ -75,9 +75,11 @@ export async function GET(request: Request) {
     const liveAttr =
       mil.provider === "adsbx"
         ? "ADSBexchange"
-        : mil.provider === "adsb.fi"
-          ? "adsb.fi"
-          : String(mil.provider ?? "ADS-B");
+        : mil.provider === "adsb.lol"
+          ? "adsb.lol (ODbL)"
+          : mil.provider === "adsb.fi"
+            ? "adsb.fi"
+            : String(mil.provider ?? "ADS-B");
 
     return NextResponse.json(
       {

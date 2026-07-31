@@ -1010,10 +1010,11 @@ export function useGlobeMapGlobeProps(
         path.kind === "gas-pipeline" ||
         path.kind === "subsea-pipeline"
       ) {
-        // 전역에서도 노선이 보이도록 굵게 (z-fight 완화는 path alt)
-        if (globeLod.tier === "global") return 2.15;
-        if (globeLod.tier === "continent") return 1.85;
-        return 1.35;
+        // 전역·대륙에서도 노선이 읽히도록 굵게 (z-fight 완화는 path alt)
+        if (globeLod.tier === "global") return 2.85;
+        if (globeLod.tier === "continent") return 2.35;
+        if (globeLod.tier === "regional") return 1.85;
+        return 1.55;
       }
       if (path.kind === "arms-embargo") return ARMS_EMBARGO_STROKE_WIDTH;
       if (path.kind === "msr") return 0.55;

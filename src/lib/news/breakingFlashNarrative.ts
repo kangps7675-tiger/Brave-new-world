@@ -319,6 +319,63 @@ export function formatSupplyChainBridge(
   return `Supply-chain link: ${bits.join(" ")}`;
 }
 
+/**
+ * 지경학 긴급타전 — 「왜 중요」를 경제 축으로.
+ * 본문 신호에 맞춰 한 줄 (발명 금지 · 키워드만).
+ */
+export function formatEconomyWhyImportant(
+  text: string,
+  lang: LabelLanguage,
+): string {
+  const ko = lang !== "en";
+  const links = detectSupplyChainLinks(text);
+  const axes: string[] = [];
+  if (
+    /\b(federal\s?reserve|fomc|fed\b|ecb|boj|pboc|rate\s?(?:hike|cut)|interest\s?rate)\b|연준|FOMC|금리|기준금리|유럽중앙은행|인민은행/i.test(
+      text,
+    )
+  ) {
+    axes.push(ko ? "중앙은행·금리" : "central banks & rates");
+  }
+  if (
+    /\b(oil|crude|brent|wti|lng|opec|gold|copper|wheat|commodity)\b|원유|유가|원자재|금\s?값|구리|밀\b/i.test(
+      text,
+    )
+  ) {
+    axes.push(ko ? "원자재 가격" : "commodity prices");
+  }
+  if (
+    /\b(earnings|guidance|m&a|merger|acquisition|tsmc|nvidia|samsung|bankrupt)\b|실적|인수합병|파산|엔비디아|삼성/i.test(
+      text,
+    )
+  ) {
+    axes.push(ko ? "대형 기업·자본 배치" : "mega-cap / capital allocation");
+  }
+  if (
+    /\b(tariff|sanction|export\s?control|wto|inflation|gdp|recession|fx\b|devaluat)\b|관세|제재|수출\s?통제|물가|GDP|환율/i.test(
+      text,
+    )
+  ) {
+    axes.push(ko ? "무역·거시 충격" : "trade / macro shock");
+  }
+  if (links.includes("chokepoint") || links.includes("shipping")) {
+    axes.push(ko ? "해상 초크·물류" : "sea chokepoints & logistics");
+  }
+  if (links.includes("chips")) {
+    axes.push(ko ? "반도체 공급망" : "chip supply chain");
+  }
+
+  const uniq = [...new Set(axes)].slice(0, 3);
+  if (uniq.length === 0) {
+    return ko
+      ? "왜 중요: 국제 자본·공급망·허브 가격에 동시에 닿을 수 있는 지경학 급보입니다."
+      : "Why it matters: a geoeconomic flash that can hit capital, supply chains, and hub prices together.";
+  }
+  return ko
+    ? `왜 중요: ${uniq.join(" · ")}에 직접 연결되는 국제 지경학 급보입니다.`
+    : `Why it matters: international geoeconomic flash tied to ${uniq.join(", ")}.`;
+}
+
 export function formatWhyImportant(
   theater: NewsTheater,
   text: string,
@@ -327,6 +384,11 @@ export function formatWhyImportant(
   const ko = lang !== "en";
   const base = WHY_BY_THEATER[theater] ?? WHY_BY_THEATER.global;
   let line = ko ? base.ko : base.en;
+  if (isIranRelatedBreakingText(text)) {
+    line = ko
+      ? "왜 중요: 이란 축(핵·미사일·호르무즈·지역 대리전)이 에너지·해로·확전 경로를 동시에 흔듭니다."
+      : "Why it matters: the Iran axis (nuclear/missile/Hormuz/proxies) shakes energy, sea lanes, and escalation paths together.";
+  }
   // 초크 점검은 formatSupplyChainBridge로 이전 — 여기서는 핵·미사일만 보강
   if (/\bnuclear|missile|warhead|핵|미사일|핵탄두\b/i.test(text)) {
     line = ko
@@ -342,6 +404,14 @@ export function formatSceneLine(theater: NewsTheater, lang: LabelLanguage): stri
   return ko
     ? `현장: ${name} — 지도가 해당 전장으로 이동합니다.`
     : `Scene: ${name} — map flies to this theater.`;
+}
+
+/** 이란 관련 긴급속보 — 우크라와 별도 양피지 후보 */
+export const IRAN_RELATED_FLASH_RE =
+  /\biran\b|\biranian\b|\btehran\b|\birgc\b|\bquds\s?force\b|\bpersian\s?gulf\b|\bstrait\s?of\s?hormuz\b|\bhormuz\b|\bnatanz\b|\bfordo\b|\bbushehr\b|이란|테헤란|혁명수비대|쿠드스|호르무즈|나탄즈|포르도|부셰르/i;
+
+export function isIranRelatedBreakingText(text: string): boolean {
+  return IRAN_RELATED_FLASH_RE.test(text);
 }
 
 /** 위중 키워드 — 타전 양피지 허용용 */

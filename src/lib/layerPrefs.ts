@@ -121,6 +121,16 @@ export type LayerPrefs = {
    */
   showUkmtoIncidents: boolean;
   /**
+   * 확전 신호 — 임계선을 넘은 사건 보도를 위로 올린다 (escalationSignals).
+   *
+   * 새 크롤러가 아니라 **이미 들어온 뉴스에 판정만 붙이는 파생 지표**다.
+   * 확전 여부·확률·의도를 판단하지 않으며, 판정 근거를 전부 공개한다.
+   *
+   * 기본 ON — 신호가 없으면 아무것도 안 뜬다(조용한 게 기본값)이므로
+   * 켜져 있어도 평소엔 화면을 방해하지 않는다.
+   */
+  showEscalationSignals: boolean;
+  /**
    * NAVAREA in-force 항행경보 (JHOD XI 등) — 보라색 폴리곤/선.
    * 일본 근해 훈련·미사일 낙하지·케이블 작업 등. UKMTO와 함께 기본 ON.
    */
@@ -279,6 +289,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showTzevaAdom: false,
   showNewfeedsIranAttacks: true,
   showUkmtoIncidents: true,
+  // 신호가 없으면 조용하므로 기본 ON 이어도 화면을 방해하지 않는다
+  showEscalationSignals: true,
   showNavareaWarnings: true,
   showMilitaryExercises: false,
   showChinaTaiwanIncidents: false,

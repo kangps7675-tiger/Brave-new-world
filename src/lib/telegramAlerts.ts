@@ -15,11 +15,21 @@ export type TelegramAlert = {
   channelUsername: string;
   channelTitle: string;
   region: TelegramAlertRegion;
+  /**
+   * 공개 API·UI에서는 약 절반 스니펫만 (전문 아님).
+   * 나머지는 messageUrl CTA — @see telegramPublicAlert.ts
+   */
   text: string;
   receivedAt: string;
   messageUrl?: string | null;
   /** 공개 임베드 HTML에서 감지한 미디어 (영상·사진). 호스팅/재배포 아님 — t.me 원문 embed용 */
   mediaKind?: TelegramMediaKind | null;
+  /** 서버 지명 매칭 결과 (전문 없이 지도용) */
+  placeLabel?: string | null;
+  placeLat?: number | null;
+  placeLng?: number | null;
+  /** 공개 스니펫이 잘린 경우 */
+  textTruncated?: boolean;
 };
 
 export type TelegramAlertsPayload = {

@@ -47,6 +47,8 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   showTzevaAdom: { label: "Israel Home Front Command" },
   showNewfeedsIranAttacks: { label: "NewFeeds" },
   showUkmtoIncidents: { label: "UKMTO (Royal Navy)" },
+  // 파생 지표 — 원본 출처가 아니라 우리 판정임을 명시한다
+  showEscalationSignals: { label: "자체 판정 · RAND 확전 문헌 기반" },
   showNavareaWarnings: { label: "NGA · JHOD NAVAREA" },
   showMilitaryExercises: { label: "NAVAREA · open reporting" },
   showTelegramOsint: { label: "Telegram (IRONSIGHT)" },
