@@ -22,6 +22,9 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: react-dom
         update-types: ["version-update:semver-major"]
+      # eslint-config-next는 next 메이저와 맞춰야 함. @16은 peer eslint>=9 → Vercel npm install ERESOLVE
+      - dependency-name: eslint-config-next
+        update-types: ["version-update:semver-major"]
       # eslint-config-next@14 peers eslint ^7||^8 only — ESLint 9/10 break Vercel/CI install
       - dependency-name: eslint
         update-types: ["version-update:semver-major"]
@@ -31,6 +34,9 @@ updates:
       # @opennextjs/cloudflare >=1.16 peers next>=15.5 — stay on 1.15.x while locked to Next 14
       - dependency-name: "@opennextjs/cloudflare"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # Tailwind 4는 설정/플러그인 마이그레이션 필요 — Vercel preview ERESOLVE·빌드 실패
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions 핀 업데이트
   - package-ecosystem: github-actions
