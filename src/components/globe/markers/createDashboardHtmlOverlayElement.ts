@@ -331,6 +331,8 @@ export function createDashboardHtmlOverlayElement(
           deps.labelLanguage === "en"
             ? `Telegram alert · ${item.label}`
             : `텔레그램 속보 · ${item.label}`,
+        evidenceTier: item.evidenceTier ?? "unverified",
+        lang: deps.labelLanguage === "en" ? "en" : "ko",
       },
       {
         onClick: () => {

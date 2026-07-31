@@ -78,6 +78,11 @@ export type UseLayerPanelCategoriesArgs = {
   ukmtoStatus: string;
   ukmtoIncidents: unknown[];
   setShowUkmtoIncidents: (v: boolean) => void;
+  /** 확전 신호 — 임계선을 넘은 사건 보도 (escalationSignals) */
+  showEscalationSignals: boolean;
+  escalationVisibleCount: number;
+  escalationSuppressedCount: number;
+  setShowEscalationSignals: (v: boolean) => void;
   showNavareaWarnings: boolean;
   navareaStatus: string;
   navareaFeatures: unknown[];
@@ -343,6 +348,10 @@ export function useLayerPanelCategories({
   ukmtoStatus,
   ukmtoIncidents,
   setShowUkmtoIncidents,
+  showEscalationSignals,
+  escalationVisibleCount,
+  escalationSuppressedCount,
+  setShowEscalationSignals,
   showNavareaWarnings,
   navareaStatus,
   navareaFeatures,
@@ -806,6 +815,22 @@ export function useLayerPanelCategories({
             accent: "orange",
           },
           {
+            id: "escalation-signals",
+            label: "확전 신호 (임계선 통과 보도)",
+            // 신호가 없으면 "조용함"이라고 명시한다 — 고장·미로딩과 구분되어야 한다
+            detail: showEscalationSignals
+              ? escalationVisibleCount > 0
+                ? `신호 ${escalationVisibleCount}건` +
+                  (escalationSuppressedCount > 0
+                    ? ` · ${escalationSuppressedCount}건 더 있음`
+                    : "")
+                : "지금은 조용함 · 임계선 통과 보도 없음"
+              : "꺼짐 · 주권침범·교차전장·핵신호 등",
+            checked: layerPrefs.showEscalationSignals,
+            onChange: setShowEscalationSignals,
+            accent: "orange",
+          },
+          {
             id: "navarea-warnings",
             label: "NAVAREA 항행경보",
             detail: showNavareaWarnings
@@ -1020,6 +1045,7 @@ export function useLayerPanelCategories({
             showNewfeedsIranAttacks: enabled,
             showTzevaAdom: enabled,
             showUkmtoIncidents: enabled,
+            showEscalationSignals: enabled,
             showNavareaWarnings: enabled,
             showMilitaryExercises: enabled,
             showAxisNetwork: enabled,
@@ -1286,6 +1312,7 @@ export function useLayerPanelCategories({
             showNuclearSites: enabled,
             showNewfeedsIranAttacks: enabled,
             showUkmtoIncidents: enabled,
+            showEscalationSignals: enabled,
             showNavareaWarnings: enabled,
             showMilitaryExercises: enabled,
           }),
@@ -1913,6 +1940,9 @@ export function useLayerPanelCategories({
     lpg(showUkmtoIncidents, false),
     lpg(ukmtoStatus, "idle"),
     lpg(ukmtoIncidents.length, 0),
+    lpg(showEscalationSignals, false),
+    lpg(escalationVisibleCount, 0),
+    lpg(escalationSuppressedCount, 0),
     lpg(showNavareaWarnings, false),
     lpg(navareaStatus, "idle"),
     lpg(navareaFeatures.length, 0),

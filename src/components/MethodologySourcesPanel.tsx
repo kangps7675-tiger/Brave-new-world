@@ -46,6 +46,7 @@ import {
 } from "@/data/sourceCatalog";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { getLayerReliability } from "@/lib/layerReliability";
+import { EVIDENCE_TIER_LEGEND } from "@/lib/evidenceTierMarker";
 
 type MethodologySourcesPanelProps = {
   open: boolean;
@@ -541,6 +542,34 @@ export function MethodologySourcesPanel({
             <ul className="mt-2.5 list-disc space-y-1 pl-4 text-meta leading-5 text-sky-100/70">
               {IRONSIGHT_USAGE.map((item) => (
                 <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="rounded-xl border border-amber-900/35 bg-amber-950/15 p-3">
+            <h3 className="text-sm font-medium text-amber-100">
+              {isEn ? "Evidence tier — marker look" : "증거 등급 — 마커 모양"}
+            </h3>
+            <p className="mt-2 text-caption leading-5 text-sky-100/75">
+              {isEn
+                ? "Stroke style encodes how we know — not how important it is. Without this legend, dashed rings look like another color."
+                : "선 스타일은 ‘얼마나 중요한가’가 아니라 ‘어떻게 아는가’입니다. 범례 없이는 파선이 그냥 다른 색으로 보입니다."}
+            </p>
+            <ul className="mt-2.5 space-y-2">
+              {EVIDENCE_TIER_LEGEND.map((entry) => (
+                <li
+                  key={entry.tier}
+                  className="flex items-center gap-2.5 text-meta leading-5 text-sky-100/80"
+                >
+                  <span
+                    aria-hidden
+                    className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border-[1.5px] border-amber-100/85 bg-amber-100/15"
+                    style={{ borderStyle: entry.style }}
+                    title={entry.style}
+                  />
+                  <EvidenceTierBadge tier={entry.tier} lang={lang} />
+                  <span>{isEn ? entry.en : entry.ko}</span>
+                </li>
               ))}
             </ul>
           </section>

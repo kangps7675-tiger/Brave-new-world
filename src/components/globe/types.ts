@@ -333,6 +333,8 @@ export type TelegramNeonMarker = {
   title: string;
   accent: "white";
   intensity: number;
+  /** 텔레그램 전언은 기본 unverified — 점선·저불투명 */
+  evidenceTier?: "unverified";
 };
 
 export type GlobeDisplayPoint =

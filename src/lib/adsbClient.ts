@@ -195,10 +195,21 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
   return headers;
 }
 
+/**
+ * 유료 티어 운영 중인가.
+ *
+ * ⚠️ adsb.fi 약관은 "for personal, **non-commercial** use only" 다.
+ *    요금제를 켠 상태에서 adsb.fi 로 폴백하면 그 자체가 약관 위반이다.
+ *    그래서 상업 모드에서는 ODbL 인 adsb.lol 로 떨어진다.
+ */
+function isCommercialTier(): boolean {
+  return process.env.COMMERCIAL_TIER_ENABLED === "true";
+}
+
 /** 뷰포트 중심 기준 민간 항적 URL */
 export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
   url: string;
-  source: "adsbx" | "adsb.fi";
+  source: "adsbx" | "adsb.lol" | "adsb.fi";
 } {
   const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
   const custom = process.env.ADSBEXCHANGE_TRAFFIC_URL?.trim();
@@ -216,6 +227,13 @@ export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
     return {
       url: `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
       source: "adsbx",
+    };
+  }
+  // 키가 없을 때의 폴백 — 상업 모드면 ODbL 소스만
+  if (isCommercialTier()) {
+    return {
+      url: `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
+      source: "adsb.lol",
     };
   }
   return {

@@ -10,12 +10,12 @@ import {
   type TelegramAlertRegion,
   type TelegramMediaKind,
 } from "@/lib/telegramAlerts";
+import { telegramPostUrl } from "@/lib/telegramPublicAlert";
 import {
   resolveTelegramPlace,
   type TelegramPlaceHit,
 } from "@/lib/telegramPlaceMatch";
 import { useLocale } from "@/contexts/LocaleContext";
-import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 
 export type TelegramMediaFilter = "all" | "video" | "photo" | "media";
 
@@ -105,7 +105,6 @@ function mediaBadgeLabel(kind: TelegramMediaKind, lang: "ko" | "en"): string | n
 
 function TelegramAlertCard({
   alert,
-  text,
   place,
   lang,
   onFlyToPlace,
@@ -113,7 +112,6 @@ function TelegramAlertCard({
   preferMediaCta = false,
 }: {
   alert: TelegramAlert;
-  text: string;
   place: TelegramPlaceHit | null;
   lang: "ko" | "en";
   onFlyToPlace?: (place: TelegramFlyPlace) => void;
@@ -123,6 +121,7 @@ function TelegramAlertCard({
   const [showEmbed, setShowEmbed] = useState(false);
   const mediaKind = inferMediaKind(alert);
   const mediaLabel = mediaBadgeLabel(mediaKind, lang);
+  const postUrl = telegramPostUrl(alert);
   const embedSrc = alert.messageUrl
     ? `${alert.messageUrl.replace(/\/$/, "")}?embed=1`
     : null;
@@ -146,10 +145,28 @@ function TelegramAlertCard({
         </span>
         <span className="text-slate-500">{formatTime(alert.receivedAt)}</span>
       </div>
-      <p className="mt-1 text-meta text-sky-100/70">@{alert.channelUsername}</p>
-      <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200">
-        {text}
+      <p className="mt-1 text-meta text-sky-100/70">
+        @{alert.channelUsername}
+        {alert.channelTitle && alert.channelTitle !== alert.channelUsername ? (
+          <span className="text-slate-500"> · {alert.channelTitle}</span>
+        ) : null}
       </p>
+      {alert.text?.trim() ? (
+        <p className="mt-1.5 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200/90">
+          {alert.text}
+        </p>
+      ) : (
+        <p className="mt-1.5 text-caption leading-5 text-slate-400/90">
+          {lang === "en"
+            ? "Preview unavailable. Open the original on Telegram."
+            : "미리보기를 불러오지 못했습니다. 텔레그램에서 원문을 여세요."}
+        </p>
+      )}
+      {alert.textTruncated ? (
+        <p className="mt-1 text-micro text-slate-500">
+          {lang === "en" ? "Half preview · full post on Telegram" : "절반 미리보기 · 전문은 텔레그램"}
+        </p>
+      ) : null}
       {place ? (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="rounded border border-amber-300/30 bg-amber-500/10 px-1.5 py-0.5 text-micro text-amber-100/90">
@@ -168,15 +185,15 @@ function TelegramAlertCard({
           ) : null}
         </div>
       ) : null}
-      {alert.messageUrl ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+      {postUrl ? (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
           <a
-            href={alert.messageUrl}
+            href={postUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-slate-400/35 bg-slate-500/10 px-2 py-1 text-micro font-medium text-slate-100 transition hover:border-slate-300/55 hover:bg-slate-500/20"
+            className="rounded-md border border-cyan-300/50 bg-cyan-500/20 px-2.5 py-1.5 text-micro font-semibold text-cyan-50 transition hover:border-cyan-200/70 hover:bg-cyan-500/30"
           >
-            {lang === "en" ? "Open on Telegram" : "텔레그램 원문"}
+            {lang === "en" ? "Open on Telegram →" : "텔레그램에서 보기 →"}
           </a>
           {embedSrc ? (
             <button
@@ -251,17 +268,27 @@ export function TelegramIntelFeed({
     return byRegion.filter((alert) => alertMatchesMediaFilter(alert, mediaFilter));
   }, [alerts, mediaFilter, regionFilter]);
 
-  const koreanEntries = useMemo(
-    () => filtered.map((alert) => ({ key: alert.id, text: alert.text })),
-    [filtered],
-  );
-  const localizedMap = useLocalizedTextMap(koreanEntries, lang);
-
   const placeById = useMemo(() => {
     const map = new Map<string, TelegramPlaceHit>();
     for (const alert of filtered) {
-      const hit = resolveTelegramPlace(alert.text, alert.region);
-      if (hit) map.set(alert.id, hit);
+      if (
+        alert.placeLabel &&
+        typeof alert.placeLat === "number" &&
+        typeof alert.placeLng === "number"
+      ) {
+        map.set(alert.id, {
+          label: alert.placeLabel,
+          lat: alert.placeLat,
+          lng: alert.placeLng,
+          source: "middle-east",
+          precision: "city",
+        });
+        continue;
+      }
+      if (alert.text?.trim()) {
+        const hit = resolveTelegramPlace(alert.text, alert.region);
+        if (hit) map.set(alert.id, hit);
+      }
     }
     return map;
   }, [filtered]);
@@ -285,8 +312,12 @@ export function TelegramIntelFeed({
                   ? `Frontline media · ${filtered.length} clips`
                   : `전선 미디어 · ${filtered.length}건`
                 : embedMode
-                  ? `공개 채널 임베드 · ${channelCount || "—"}채널`
-                  : "분쟁 지역 실시간 속보"}
+                  ? lang === "en"
+                    ? `Link desk · ${channelCount || "—"} channels`
+                    : `링크 데스크 · ${channelCount || "—"}채널`
+                  : lang === "en"
+                    ? "Conflict region alerts · links only"
+                    : "분쟁 지역 속보 · 링크만"}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -313,8 +344,8 @@ export function TelegramIntelFeed({
                   ? "Telegram video desk · OSINT"
                   : "텔레그램 영상 데스크 · OSINT"
                 : lang === "en"
-                  ? "Telegram OSINT · full text"
-                  : "Telegram OSINT · 전문"}
+                  ? "Telegram OSINT · half preview"
+                  : "Telegram OSINT · 절반 미리보기"}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <LiveBadge live={live} liveStatus={liveStatus} embedMode={embedMode} />
@@ -328,11 +359,11 @@ export function TelegramIntelFeed({
           >
             {isVideoDesk
               ? lang === "en"
-                ? "Video-only queue · tap Load to open official t.me embed · not rehosted"
-                : "영상만 모음 · 「미리보기 로드」로 공식 t.me 임베드 · 재호스팅 없음"
-              : lang === "en"
-                ? `Separate from RSS/GDELT/AI · ${embedMode ? `public embed ${channelCount || "—"} ch` : "collector"} · full text`
-                : `RSS/GDELT·AI와 분리 · ${embedMode ? `공개 임베드 ${channelCount || "—"}채널` : "수집기"} · 전문 표시`}
+                ? "Video-only queue · open on Telegram or load official t.me embed · body not shown"
+                : "영상만 모음 · 텔레그램에서 열기 또는 공식 embed · 전문 비표시"
+                : lang === "en"
+                  ? `Separate from RSS/GDELT/AI · ${embedMode ? `${channelCount || "—"} ch` : "collector"} · ~half preview · CTA for full post`
+                  : `RSS/GDELT·AI와 분리 · ${embedMode ? `${channelCount || "—"}채널` : "수집기"} · 절반 미리보기 · 전문은 CTA`}
           </p>
         </div>
       )}
@@ -373,7 +404,6 @@ export function TelegramIntelFeed({
             <TelegramAlertCard
               key={alert.id}
               alert={alert}
-              text={localizedDisplayText(localizedMap, alert.id, alert.text)}
               place={placeById.get(alert.id) ?? null}
               lang={lang === "en" ? "en" : "ko"}
               onFlyToPlace={onFlyToPlace}
@@ -386,7 +416,7 @@ export function TelegramIntelFeed({
 
       {!fullPage ? (
         <p className="border-t border-sky-300/10 px-3 py-2 text-micro leading-4 text-slate-500">
-          Raw 피드 · 전문 표시 · 영상/사진은 사용자가 로드할 때만 t.me 임베드
+          절반 미리보기 · 전문은 텔레그램 CTA · 영상/사진은 클릭 시에만 t.me 임베드
         </p>
       ) : null}
     </div>

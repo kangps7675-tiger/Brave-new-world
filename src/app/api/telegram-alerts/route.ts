@@ -7,7 +7,7 @@ import {
   replaceTelegramAlerts,
 } from "@/lib/telegramAlertStore";
 import type { TelegramAlert, TelegramAlertsPayload } from "@/lib/telegramAlerts";
-import { translateTelegramAlerts } from "@/lib/telegramTranslate";
+import { toPublicTelegramAlerts } from "@/lib/telegramPublicAlert";
 import { isTelegramOsintEnabled } from "@/lib/serverEnv";
 import { readTelegramAlertsFromD1 } from "@/lib/d1LiveSnapshots";
 import {
@@ -32,6 +32,18 @@ function telegramOsintEnabled(): boolean {
 
 function seedAllowed(): boolean {
   return process.env.TELEGRAM_USE_SEED === "true";
+}
+
+function publicPayload(
+  alerts: TelegramAlert[],
+  extra: Partial<TelegramAlertsPayload> = {},
+): TelegramAlertsPayload {
+  return {
+    fetchedAt: new Date().toISOString(),
+    live: false,
+    ...extra,
+    alerts: toPublicTelegramAlerts(alerts),
+  };
 }
 
 /**
@@ -98,13 +110,11 @@ export async function GET() {
 
   const store = getTelegramAlertStore();
   if (store.alerts.length > 0) {
-    const alerts = await translateTelegramAlerts(store.alerts);
     return NextResponse.json(
-      {
+      publicPayload(store.alerts, {
         fetchedAt: store.lastIngestAt ?? new Date().toISOString(),
         live: true,
-        alerts,
-      } satisfies TelegramAlertsPayload,
+      }),
       { headers: TG_CDN },
     );
   }
@@ -112,15 +122,13 @@ export async function GET() {
   // 공유 소스 (D1 / cron 워커) — 배포 환경에서 방문자 공통 피드
   const shared = await readSharedAlerts();
   if (shared && shared.length > 0) {
+    // 워커가 이미 text="" 일 수 있음 — D1 직접 읽기면 전문 있음 → 공개 시 제거
     replaceTelegramAlerts(shared);
-    const alerts = await translateTelegramAlerts(shared);
     return NextResponse.json(
-      {
-        fetchedAt: new Date().toISOString(),
+      publicPayload(shared, {
         live: true,
-        alerts,
         source: "embed",
-      } satisfies TelegramAlertsPayload,
+      }),
       { headers: TG_CDN },
     );
   }
@@ -138,6 +146,12 @@ export async function GET() {
   }
 
   const seedPayload = readSeedPayload();
-  const alerts = await translateTelegramAlerts(seedPayload.alerts);
-  return NextResponse.json({ ...seedPayload, alerts }, { headers: TG_CDN });
+  return NextResponse.json(
+    publicPayload(seedPayload.alerts, {
+      fetchedAt: seedPayload.fetchedAt,
+      live: seedPayload.live,
+      stub: seedPayload.stub,
+    }),
+    { headers: TG_CDN },
+  );
 }

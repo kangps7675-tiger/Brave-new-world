@@ -1,5 +1,5 @@
 /**
- * Telegram OSINT — LLM / 뉴스 파이프라인 분리 정책
+ * Telegram OSINT — LLM / 뉴스 파이프라인 분리 · 전문 비공개 정책
  *
  * 채널 목록 출처: IRONSIGHT (MIT, Nobler Works) — src/lib/licensing/ironsightPolicy.ts
  * @see docs/copyright-checklist.md
@@ -7,12 +7,18 @@
 
 /** 절대 규칙 (한국어) */
 export const TELEGRAM_OSINT_ABSOLUTE_RULE_KO =
-  "텔레그램 OSINT 콘텐츠는 AI 요약 프롬프트의 컨텍스트로 절대 넣지 않는다. 사람이 읽는 raw 피드(Intel 뉴스창 Telegram 탭 · TelegramOsintPanel)로만 존재하고, LLM 파이프라인과는 완전히 분리된 별도 트랙으로 유지한다.";
+  "텔레그램 OSINT 게시물 전문은 제품에 넣지 않는다. 공개로는 약 절반 스니펫만 보이고, 나머지는 t.me CTA(또는 클릭 후 공식 embed)로만 연다. AI 요약 프롬프트의 컨텍스트로도 절대 넣지 않는다.";
 
 export const TELEGRAM_OSINT_POLICY = {
   /** AI 요약·상관분석 프롬프트에 Telegram 텍스트 주입 금지 */
   forbidInLlmContext: true,
-  /** 사람이 읽는 raw 피드 UI만 허용 */
+  /** 게시물 전문을 제품 화면·공개 JSON에 넣지 않음 — 절반 스니펫만 */
+  forbidDisplayPostBody: true,
+  /** 공개 미리보기는 원문의 약 절반(상한 있음) */
+  publicSnippetHalf: true,
+  /** 원문 열람은 t.me CTA(또는 사용자 클릭 후 공식 embed)만 */
+  accessViaCtaOnly: true,
+  /** 사람이 읽는 링크 데스크 UI만 허용 */
   displaySurface: ["TelegramOsintPanel", "IntelNewsSheet.telegram"] as const,
   /** /api/news-stream · buildNewsStream 과 별도 트랙 */
   separateFromNewsPipeline: true,
@@ -20,9 +26,10 @@ export const TELEGRAM_OSINT_POLICY = {
 
 export const TELEGRAM_OSINT_CHECKLIST = [
   "Telegram 속보는 Intel 뉴스창 Telegram / 텔레그램 영상 탭 또는 지구본 TelegramOsintPanel에서 표시",
+  "게시물 전문은 공개하지 않음 — 공개 API는 약 절반 스니펫(+ textTruncated), 원문은 messageUrl CTA",
   "NewsStreamProvider · buildNewsStream · translateNewsStreamPayload · AI digest에 Telegram 본문 미포함",
   "AI 분석·요약 프롬프트에 Telegram 텍스트 미전달",
-  "telegramTranslate는 패널 표시용 한국어 변환만 — 뉴스 LLM 경로와 무관",
+  "telegramTranslate는 내부 ingest 전용 — 공개 응답에는 전문 번역을 내보내지 않음",
   "영상은 재호스팅하지 않고 t.me 공식 embed를 사용자 클릭 시에만 로드",
 ] as const;
 

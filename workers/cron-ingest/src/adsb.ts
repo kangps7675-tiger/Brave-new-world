@@ -166,7 +166,31 @@ function normalizeAircraft(
   return aircraft;
 }
 
-function milUrlCandidates(apiKey: string | null): string[] {
+/**
+ * 상업 이용 가능한 ADS-B 소스만 남길지 판단.
+ *
+ * ⚠️ adsb.fi 약관: "for personal, **non-commercial** use only. You may not
+ *    license, sell, rent, or lease any part of the data or the service."
+ *    airplanes.live 는 독점 라이선스라 상업 조건이 확인되지 않았다.
+ *
+ * 유료 티어를 켜면 둘 다 폴백에서 빼고,
+ * adsb.lol(ODbL — 상업 이용 가능) 과 ADSBexchange(상업 티어) 만 쓴다.
+ */
+function commercialOnly(env?: { COMMERCIAL_TIER_ENABLED?: string }): boolean {
+  return env?.COMMERCIAL_TIER_ENABLED === "true";
+}
+
+function milUrlCandidates(
+  apiKey: string | null,
+  env?: { COMMERCIAL_TIER_ENABLED?: string },
+): string[] {
+  // 상업 모드에서는 ADSBexchange(유료 라이선스)를 최우선으로 둔다
+  if (commercialOnly(env)) {
+    const urls: string[] = [];
+    if (apiKey) urls.push(ADSBX_MIL_URL);
+    urls.push(ADSB_LOL_MIL_URL); // ODbL — 상업 가능
+    return urls;
+  }
   // Cloudflare Worker IP는 adsb.fi 403 — adsb.lol / airplanes.live 우선
   const urls = [ADSB_LOL_MIL_URL, ADSB_LIVE_MIL_URL, ADSB_FI_MIL_URL];
   if (apiKey) urls.push(ADSBX_MIL_URL);
@@ -178,18 +202,25 @@ function civUrlCandidates(
   lat: number,
   lng: number,
   distNm: number,
+  env?: { COMMERCIAL_TIER_ENABLED?: string },
 ): string[] {
   const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
+  const adsbLol = `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
+  const adsbx = `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
+
+  if (commercialOnly(env)) {
+    const urls: string[] = [];
+    if (apiKey) urls.push(adsbx);
+    urls.push(adsbLol);
+    return urls;
+  }
+
   const urls = [
-    `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
+    adsbLol,
     `https://api.airplanes.live/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
     `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
   ];
-  if (apiKey) {
-    urls.push(
-      `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-    );
-  }
+  if (apiKey) urls.push(adsbx);
   return urls;
 }
 
@@ -218,8 +249,8 @@ export async function fetchAdsbAircraft(
   const errors: string[] = [];
   const byId = new Map<string, AdsbAircraftRow>();
 
-  // Military — Worker IP 호환 소스 우선
-  const milUrls = milUrlCandidates(apiKey);
+  // Military — Worker IP 호환 소스 우선 (유료 티어면 상업 가능 소스만)
+  const milUrls = milUrlCandidates(apiKey, env);
   for (let i = 0; i < milUrls.length; i += 1) {
     const url = milUrls[i]!;
     const isLast = i === milUrls.length - 1;
@@ -250,7 +281,7 @@ export async function fetchAdsbAircraft(
 
   // Civilian hubs (cron 서브요청 절약)
   for (const hub of CIV_HUBS.slice(0, hubLimit)) {
-    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, hub.distNm);
+    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, hub.distNm, env);
     for (let i = 0; i < urls.length; i += 1) {
       const url = urls[i]!;
       const isLast = i === urls.length - 1;

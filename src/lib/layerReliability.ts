@@ -61,6 +61,7 @@ const PREFS_BY_LAYER: Record<string, string> = {
   "firms-fires": "showFirmsFires",
   "tzeva-adom": "showTzevaAdom",
   "ukmto-incidents": "showUkmtoIncidents",
+  "escalation-signals": "showEscalationSignals",
   "navarea-warnings": "showNavareaWarnings",
   "military-exercises": "showMilitaryExercises",
   "newfeeds-iran": "showNewfeedsAttacks",
@@ -152,8 +153,8 @@ const OVERRIDES: Record<string, Override> = {
   "telegram-osint": {
     evidenceTier: "unverified",
     freshnessClass: "live",
-    caveatKo: "단일·미확인 전언. 교차검증 전까지 단정하지 마세요.",
-    caveatEn: "Single-path unverified claims — do not treat as confirmed.",
+    caveatKo: "절반 미리보기 · 전문은 t.me. 단일·미확인 전언 — 교차검증 전 단정 금지.",
+    caveatEn: "Half preview · full post on t.me. Unverified single-path claims.",
   },
   "tzeva-adom": {
     evidenceTier: "reported",
@@ -202,6 +203,16 @@ const OVERRIDES: Record<string, Override> = {
     freshnessClass: "daily",
     caveatKo: "초크·사건 가중 추정 점수. 관측 원본이 아닙니다.",
     caveatEn: "Weighted chokepoint/event score — not a raw observation.",
+  },
+  "escalation-signals": {
+    // 우리가 계산한 분류 점수다. 관측이 아니다.
+    evidenceTier: "model",
+    freshnessClass: "near-real-time",
+    caveatKo:
+      "공개 보도에서 '어떤 임계선이 언급됐는가'를 계산한 파생 지표입니다. " +
+      "확전 여부·확률·의도를 판단하거나 예측하지 않으며, 점수 근거는 전부 공개됩니다.",
+    caveatEn:
+      "A derived classification of which thresholds public reporting mentions. It makes no judgement or forecast of escalation, probability, or intent; every scoring factor is disclosed.",
   },
   "gta-interventions": {
     evidenceTier: "reported",

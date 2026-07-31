@@ -6,6 +6,9 @@ const path = require("path");
 const XLSX = require("xlsx");
 const { OUT_DIR, IS_LITE } = require("./build-profile");
 const { writeJsonArrayFile, compactStaticPoint, roundCoord } = require("./compact-json");
+// ⚠️ 좌표 파서는 별도 모듈이다. 여기로 다시 인라인하지 말 것 —
+//    테스트 가능성이 정확도 보증의 전제다 (2026-07-31 감사 P0-1).
+const { parseCoords, num, firstVal, isNullIsland } = require("./gem-coords");
 const { capArrayGeographic } = require("./static-path-utils");
 
 const GEM_ROOT =
@@ -246,67 +249,9 @@ function pickSheet(wb, want) {
   return wb.SheetNames.find((n) => want.test(n)) || wb.SheetNames[0];
 }
 
-function firstVal(row, keys) {
-  for (const key of keys || []) {
-    if (row[key] != null && String(row[key]).trim() !== "") return row[key];
-  }
-  // fuzzy
-  const rowKeys = Object.keys(row);
-  for (const want of keys || []) {
-    const hit = rowKeys.find((k) => k.toLowerCase() === want.toLowerCase());
-    if (hit && row[hit] != null && String(row[hit]).trim() !== "") return row[hit];
-  }
-  return null;
-}
-
-/**
- * 안전한 수치 변환.
- *
- * ⚠️ 이 헬퍼가 있는 이유 (2026-07-31 감사 · P0-1):
- *   `Number(null) === 0` 이고 `Number.isFinite(0) === true` 다.
- *   따라서 `Number(firstVal(...))` 를 그대로 isFinite 로 검사하면
- *   **컬럼이 아예 없는 시트에서도 {lat:0, lng:0} 이 통과**한다.
- *   GEM 의 철강·시멘트·철광석·화학 트래커는 위경도를 별도 컬럼이 아니라
- *   `Coordinates` 통합 컬럼으로 주기 때문에, 이 버그로 2,000개 시설이
- *   전부 널섬(0,0) 에 찍혔다. 절대 Number() 직접 호출로 되돌리지 말 것.
- */
-function num(value) {
-  if (value == null) return NaN;
-  const text = String(value).trim();
-  if (text === "") return NaN;
-  const n = Number(text);
-  return Number.isFinite(n) ? n : NaN;
-}
-
-/** (0,0) 널섬 — GEM 원본에 진짜 이 좌표인 시설은 없다. 결측의 신호다. */
-function isNullIsland(lat, lng) {
-  return lat === 0 && lng === 0;
-}
-
-function parseCoords(row) {
-  const latDirect = num(firstVal(row, ["Latitude", "Lat", "latitude"]));
-  const lngDirect = num(firstVal(row, ["Longitude", "Long", "Lng", "longitude"]));
-  if (
-    Number.isFinite(latDirect) &&
-    Number.isFinite(lngDirect) &&
-    !isNullIsland(latDirect, lngDirect)
-  ) {
-    return { lat: latDirect, lng: lngDirect };
-  }
-  const raw = firstVal(row, ["Coordinates", "Coordinate", "Lat/Long", "Location"]);
-  if (raw == null) return null;
-  const text = String(raw).trim();
-  const m = text.match(/(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)/);
-  if (!m) return null;
-  const a = num(m[1]);
-  const b = num(m[2]);
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  if (isNullIsland(a, b)) return null;
-  // GEM usually lat,lng — if |a|>90 treat as lng,lat
-  if (Math.abs(a) <= 90 && Math.abs(b) <= 180) return { lat: a, lng: b };
-  if (Math.abs(b) <= 90 && Math.abs(a) <= 180) return { lat: b, lng: a };
-  return null;
-}
+// firstVal · parseCoords · num · isNullIsland 는 `scripts/gem-coords.js` 로 분리했다
+// (의존성 없는 순수 모듈). 이 함수들이 2,000개 시설을 널섬으로 보낸 지점이라
+// 단독 테스트가 가능해야 한다 — 테스트: src/data/gemCoordParser.test.ts
 
 function statusKey(status) {
   return String(status || "")
@@ -492,5 +437,9 @@ function main() {
 if (require.main === module) {
   main();
 } else {
+  // parseCoords·num·firstVal 을 함께 내보내는 이유:
+  // 이 셋이 2026-07-31 감사에서 2,000개 시설을 널섬으로 보낸 지점이다.
+  // 테스트로 못박지 않으면 GEM 이 컬럼명을 바꿀 때 같은 사고가 반복된다.
+  // (src/data/gemCoordParser.test.ts)
   module.exports = { main, TRACKERS };
 }
