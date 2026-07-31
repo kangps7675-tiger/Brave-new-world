@@ -61,6 +61,8 @@ export function useEscalationSignals({
   const [dismissedAt, setDismissedAt] = useState(0);
 
   const feed = useMemo(() => {
+    // dismissedAt tick — 닫은 뒤 seen 반영 재계산을 강제한다
+    void dismissedAt;
     if (!enabled || items.length === 0) return [];
     return buildEscalationFeed(
       items.map((n) => ({
@@ -74,7 +76,6 @@ export function useEscalationSignals({
       })),
       { hotTheaters, maxVisible, seenIds: seenRef.current },
     );
-    // dismissedAt 이 바뀌면 재계산 — 닫은 신호를 seen 에 넣고 다음 것을 올린다
   }, [enabled, items, hotTheaters, maxVisible, dismissedAt]);
 
   const visible = useMemo(() => visibleSignals(feed), [feed]);

@@ -140,13 +140,8 @@ const THEATER_ACTORS: TheaterActor[] = [
     re: /\btaiwan\b|\btaipei\b|대만|타이완|타이베이/i },
 ];
 
-/**
- * 미국·NATO 는 전장 귀속에서 제외.
- * 거의 모든 안보 기사에 등장해서 교차 판정에 넣으면 오탐이 폭발한다.
- * `alliance-alert` 패턴에서 따로 본다.
- */
-const UBIQUITOUS_ACTOR_RE =
-  /\bunited states\b|\bu\.s\.\b|\bwashington\b|\bpentagon\b|\bnato\b|미국|워싱턴|나토/i;
+// 미국·NATO 는 THEATER_ACTORS에 넣지 않는다 — 거의 모든 안보 기사에
+// 등장해 교차 판정 오탐이 폭발한다. alliance-alert 패턴에서 따로 본다.
 
 // ─────────────────────────────────────────────────────────────────────
 //  임계선 탐지 — 전부 **관측 가능한 사실** 표현만
