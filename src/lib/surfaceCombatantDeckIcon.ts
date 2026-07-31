@@ -1,3 +1,4 @@
+import { safeColor } from "@/lib/svgSafe";
 import {
   SURFACE_COMBATANT_ASPECT_DRAWINGS,
   SURFACE_COMBATANT_MARKER_SIZE,
@@ -30,6 +31,9 @@ export function surfaceCombatantIconSvg(
   size: SurfaceCombatantIconSize = SURFACE_COMBATANT_MARKER_SIZE,
   aspect: SurfaceCombatantAspect = "n",
 ): string {
+  // 이 SVG 는 dangerouslySetInnerHTML 로 주입되고 fillColor 는 DB 유래
+  // navyCode 에서 파생된다 → 속성 탈출 방지를 위해 검증한다.
+  const safeFill = safeColor(fillColor, DEFAULT_FILL);
   const { width, height } = size;
   const vb = `${SURFACE_COMBATANT_VIEWBOX.width} ${SURFACE_COMBATANT_VIEWBOX.height}`;
   const drawing = SURFACE_COMBATANT_ASPECT_DRAWINGS[aspect];
@@ -74,7 +78,7 @@ export function surfaceCombatantIconSvg(
       ${waves}
       <path
         d="${drawing.hull}"
-        fill="${fillColor}"
+        fill="${safeFill}"
         stroke="rgba(255,255,255,0.96)"
         stroke-width="${sideProfile ? 1.05 : 1.15}"
         stroke-linejoin="miter"

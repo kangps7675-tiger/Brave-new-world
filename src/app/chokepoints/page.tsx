@@ -1,3 +1,4 @@
+import { safeJsonLd } from "@/lib/svgSafe";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CHOKEPOINTS, FLOW_SOURCE, chokepointSceneHref } from "@/data/chokepoints";
@@ -48,7 +49,7 @@ export default function ChokepointsIndex() {
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 text-white/80">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <header>

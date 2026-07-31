@@ -1,3 +1,4 @@
+import { authorizeCronRequest } from "@/lib/auth/cronAuth";
 import { desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
@@ -11,14 +12,7 @@ export const maxDuration = 120;
 const DEFAULT_MIN_INTERVAL_MIN = 360;
 
 function authorize(request: Request): boolean {
-  const secret =
-    process.env.INGEST_CRON_SECRET?.trim() ||
-    process.env.SHIP_MOVEMENT_WARM_SECRET?.trim();
-  if (!secret) return true;
-  const header = request.headers.get("authorization") || "";
-  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return authorizeCronRequest(request, ["INGEST_CRON_SECRET", "SHIP_MOVEMENT_WARM_SECRET"]);
 }
 
 async function shouldSkipByThrottle(): Promise<boolean> {

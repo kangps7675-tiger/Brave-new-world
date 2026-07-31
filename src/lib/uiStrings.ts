@@ -31,6 +31,17 @@ const UI = {
     ko: "체크는 지도에 바로 반영됩니다. 확인 후 설정하기로 닫습니다.",
     en: "Checks apply to the map immediately. Tap Apply settings to close.",
   },
+  timeScrubberAria: { ko: "기준일 시간 스크럽", en: "As-of date scrubber" },
+  timeScrubberLabel: { ko: "기준일", en: "As of" },
+  timeScrubberHistorical: {
+    ko: "과거 스냅샷 · {date} (UTC) — 일별 랭크·긴장 지수",
+    en: "Historical snapshot · {date} (UTC) — daily ranks & tension",
+  },
+  timeScrubberGoToday: { ko: "오늘로", en: "Back to today" },
+  timeScrubberHint: {
+    ko: "라이브 항적·화재 점은 이 날짜로 재생되지 않습니다. 현재 관측만 가능합니다.",
+    en: "Live tracks and fire dots are not replayed for this date — live observation only.",
+  },
   layerDraftHint: {
     ko: "체크하면 지도에 바로 반영됩니다. 상단 「설정」으로 저장을 확정할 수 있습니다.",
     en: "Checks apply to the map right away. Use Apply at the top to confirm.",

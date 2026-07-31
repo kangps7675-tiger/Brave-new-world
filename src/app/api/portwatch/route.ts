@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import {
@@ -114,7 +115,7 @@ export async function GET() {
         byChokeId: {},
         transits: {},
         attribution: ATTRIBUTION,
-        error: error instanceof Error ? error.message : "PortWatch fetch failed",
+        error: publicErrorMessage(error, "PortWatch fetch failed"),
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

@@ -1,8 +1,10 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 import { getTelegramAlertStore, pushTelegramAlert } from "@/lib/telegramAlertStore";
 import { regionForChannel, type TelegramAlert } from "@/lib/telegramAlerts";
+import { bearerToken, safeEqual } from "@/lib/auth/cronAuth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,12 +28,14 @@ function persistToFile(alerts: TelegramAlert[]) {
   }
 }
 
+/**
+ * 시크릿 미설정 시 거부(원래부터 fail-closed).
+ * `?secret=` 쿼리 폴백은 액세스 로그·Referer 유출 때문에 제거했다 — Bearer 헤더만 허용.
+ */
 function isAuthorized(request: Request): boolean {
   const secret = process.env.TELEGRAM_INGEST_SECRET?.trim();
   if (!secret) return false;
-  const header = request.headers.get("authorization");
-  if (header === `Bearer ${secret}`) return true;
-  return new URL(request.url).searchParams.get("secret") === secret;
+  return safeEqual(bearerToken(request), secret);
 }
 
 export async function POST(request: Request) {
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, id: alert.id });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "ingest failed" },
+      { error: publicErrorMessage(error, "ingest failed") },
       { status: 500 },
     );
   }

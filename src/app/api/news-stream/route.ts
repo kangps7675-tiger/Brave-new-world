@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import {
   emptyNewsPayload,
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(payload, { headers });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "뉴스 스트림 로드 실패";
+    const message = publicErrorMessage(error, "뉴스 스트림 로드 실패");
     return NextResponse.json(emptyNewsPayload(message), {
       status: 200,
       headers: { "Cache-Control": "no-store" },

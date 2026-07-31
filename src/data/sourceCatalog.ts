@@ -5,13 +5,21 @@ export interface NewsLayerSourceNote {
   cadence: string;
   attribution: string;
   notes: string;
-  status: "shipped" | "planned";
+  /**
+   * `blocked` — 데이터 품질/출처 문제로 **의도적으로 노출을 막은 레이어**.
+   * shipped 로 되돌리기 전에 반드시 `blockedReason` 을 해소할 것.
+   */
+  status: "shipped" | "planned" | "blocked";
+  /** status="blocked" 일 때 필수 — 왜 막았는지 한 줄. */
+  blockedReason?: string;
   ingest:
     | "static-build"
     | "cached-api"
     | "live-poll"
     | "mapped-existing"
-    | "live-api";
+    | "live-api"
+    /** 서드파티 데모 저장소에서 온 합성 데이터. 프로덕션 노출 금지. */
+    | "synthetic-demo";
 }
 
 /** 주요 실시간 출처 — 자료출처 패널 상단·도움말에 고정 표기 */
@@ -235,14 +243,21 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "ucdp-events",
-    source: "UCDP GED 26.1",
+    source: "UCDP GED 26.1 (미수집 — 현재 파일은 데모 스냅샷)",
     url: "https://ucdpapi.pcr.uu.se/api/gedevents/26.1 → /data/{profile}/ucdp-events.json",
     cadence: "Build-time fetch (npm run data:ucdp) · annual GED releases",
-    attribution: "Uppsala Conflict Data Program (UCDP) · GED API",
+    attribution: "(출처 미연결 — 노출 차단됨)",
     notes:
-      "Verified fatality-coded organized violence events from the UCDP Georeferenced Event Dataset. Fetched at build time with x-ucdp-access-token; each event requires ≥1 recorded fatality. Source: https://ucdp.uu.se/downloads/index.html · API: https://ucdpapi.pcr.uu.se",
-    status: "shipped",
-    ingest: "static-build",
+      "⚠️ 이 항목은 오랫동안 실제와 달랐다. 카탈로그는 'UCDP GED 26.1 검증 사망 코딩 이벤트' 라고 " +
+      "적어뒀지만, shipped 파일은 15건뿐이고 전부 source='sigint-snapshot' · id='ucdp-snap-N' 인 " +
+      "데모 데이터였다 (실제 GED 는 30만 건 이상). .env 의 UCDP_ACCESS_TOKEN 은 이미 채워져 있으므로 " +
+      "`npm run data:ucdp` 만 실행하면 된다. 실행 후 status 를 shipped 로 되돌릴 것. " +
+      "Source: https://ucdp.uu.se/downloads/index.html · API: https://ucdpapi.pcr.uu.se",
+    status: "blocked",
+    blockedReason:
+      "카탈로그는 UCDP GED 라 적었으나 실제 데이터는 데모 15건 (2026-07-31 감사 P0-3). " +
+      "npm run data:ucdp 미실행.",
+    ingest: "synthetic-demo",
   },
   {
     layerId: "space-launches",
@@ -533,6 +548,22 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
   },
   {
+    layerId: "gta-interventions",
+    source: "Global Trade Alert",
+    url: "https://api.globaltradealert.org/api/v1/data/ → /api/layers/gta-interventions",
+    cadence: "Daily (npm run gta:fetch · cron 1회/일)",
+    attribution: "Global Trade Alert (globaltradealert.org) · CC BY 4.0",
+    notes:
+      "무역정책 조치 — 관세·보조금·수출제한 등. GTA 연구진이 관보·공식문서를 코딩한 2차 자료다. " +
+      "⚠️ 레코드에 좌표가 없다(관할권 UN 코드·HS 품목·CPC 섹터뿐). 지구본에는 " +
+      "implementer 중심 → affected 중심 호(arc)로 렌더한다 (gtaTradePaths.ts). " +
+      "⚠️ Red/Amber/Green 은 GTA 의 평가이지 객관적 사실 판정이 아니므로 UI 에서 반드시 귀속 표기할 것. " +
+      "basic 접근은 셀프서비스 API 키로 가능하고, full 접근(설명·1차출처·관세율 prior/new)은 " +
+      "data@globaltradealert.org 승인 대상이다.",
+    status: "planned",
+    ingest: "static-build",
+  },
+  {
     layerId: "world-stats",
     source: "Statistics of the World API",
     url: "/api/world-stats/countries",
@@ -566,24 +597,39 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "internet-exchanges",
-    source: "Static build",
-    url: "/data/{profile}/internet-exchanges.json",
+    source: "(미연결) PeeringDB 예정",
+    url: "https://www.peeringdb.com/api/ix → /data/{profile}/internet-exchanges.json",
     cadence: "Project versioned",
-    attribution: "PeeringDB / public",
-    notes: "Internet exchange points (IXPs).",
-    status: "shipped",
-    ingest: "static-build",
+    // ⚠️ PeeringDB 로 표기하지 않는다 — 현재 파일은 PeeringDB 에서 온 것이 아니다.
+    attribution: "(출처 미연결 — 노출 차단됨)",
+    notes:
+      "현재 shipped 파일은 서드파티 데모 저장소(Skytuhua/SIGINT)의 합성 플레이스홀더 5건이다. " +
+      "이름이 'internet-exchanges site 0~4' 이고 좌표는 워싱턴DC·파리·도쿄·두바이·상파울루 " +
+      "시청 좌표다. 실재하는 IXP 가 아니다. 실제 PeeringDB 에는 IXP 가 1,000개 이상 있다. " +
+      "→ scripts/fetch-peeringdb-ix.js 로 교체 후 shipped 로 되돌릴 것.",
+    status: "blocked",
+    blockedReason:
+      "합성 데모 데이터를 PeeringDB 로 표기하고 있었다 (2026-07-31 감사 P0-3).",
+    ingest: "synthetic-demo",
   },
   {
     layerId: "sanctions-entities",
-    source: "OFAC SDN + UN + EU + UK",
+    source: "(미연결) OFAC SDN + UN + EU + UK 예정",
     url: "/api/layers/sanctions-entities",
     cadence: "Daily (24h cache)",
-    attribution: "US Treasury OFAC / UN Security Council / EU / UK Gov",
+    attribution: "(출처 미연결 — 노출 차단됨)",
     notes:
-      "Sanctioned individuals, organizations, vessels, aircraft from official bulk downloads with hybrid live-fetch + snapshot fallback.",
-    status: "shipped",
-    ingest: "cached-api",
+      "⚠️ 카탈로그는 '개인·법인·선박·항공기 공식 벌크 다운로드 + 라이브 폴백' 이라 적었지만, " +
+      "route.ts 의 loadSanctions() 는 라이브 fetch 없이 로컬 파일만 읽고 lists 배열을 " +
+      "하드코딩한다. 그리고 그 파일은 국가 단위 15건뿐이다 (실제 OFAC SDN 은 1만 건 규모의 " +
+      "개인·법인·선박 목록). " +
+      "진짜 데이터는 이미 리포에 있다: scripts/vendor/sigint-news-layers/sanctions-entities.json (14MB). " +
+      "→ scripts/build-sanctions-entities.js 로 컨버전 후 shipped 로 되돌릴 것.",
+    status: "blocked",
+    blockedReason:
+      "OFAC SDN 으로 표기했으나 실제로는 국가 단위 더미 15건 · 라이브 fetch 없음 " +
+      "(2026-07-31 감사 P0-3).",
+    ingest: "synthetic-demo",
   },
   {
     layerId: "refugee-camps",
@@ -710,8 +756,8 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     layerId: "nuclear-warheads",
     source: "Our World in Data — Nuclear warhead stockpiles",
     url: "https://ourworldindata.org/grapher/nuclear-warhead-stockpiles-lines",
-    cadence: "Annual (OWID/FAS/SIPRI) · static seed",
-    attribution: "Our World in Data · FAS Nuclear Notebook / SIPRI",
+    cadence: "Annual (OWID/FAS) · static seed",
+    attribution: "Our World in Data · FAS Nuclear Notebook",
     notes:
       "각국 좌표 위 ICBM 아이콘 + 최신(2026) 핵탄두 보유 수. 보유 9개국(러·미·중·프·영·인·파·이스라엘·북한)만 표시, 폐기국(남아공)·세계 합계 제외.",
     status: "shipped",

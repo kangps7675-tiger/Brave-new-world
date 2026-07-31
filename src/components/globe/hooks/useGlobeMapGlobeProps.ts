@@ -75,6 +75,7 @@ import {
 } from "@/lib/disputeHatch";
 import { briTradeStrokeWidth } from "@/lib/briTradePaths";
 import { usDfcSupplyStrokeWidth } from "@/lib/usDfcSupplyPaths";
+import { dimAxisLinkColor } from "@/lib/axisLinkSelection";
 import { airRaidFocusBoxPolygon, isAirRaidFocusPath } from "@/lib/airRaidFocus";
 import { HOVER, hatchStyleLabelLocalized, pathKindLabel, tensionLabel } from "@/lib/hoverLabels";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -168,6 +169,7 @@ export interface UseGlobeMapGlobePropsParams {
   handlePathClick: (path: TransportPath) => void;
   setHoveredPath: (path: TransportPath | null) => void;
   handleGlobeClick: (coords: { lat: number; lng: number }) => void;
+  selectedAxisPathId?: string | null;
 }
 
 /** GlobeDashboard의 PausedMapGlobeView 접근자(pointColor·pathColor·polygon* 등) 전부를 이곳으로 이동.
@@ -227,6 +229,7 @@ export function useGlobeMapGlobeProps(
     handlePathClick,
     setHoveredPath,
     handleGlobeClick,
+    selectedAxisPathId = null,
   } = params;
 
   return {
@@ -879,6 +882,12 @@ export function useGlobeMapGlobeProps(
         : 2,
     pathsTransitionDuration: 0,
     pathColor: (path: TransportPath) => {
+      if (path.kind === "axis-link" && selectedAxisPathId) {
+        return dimAxisLinkColor(
+          path.accentColor,
+          path.id === selectedAxisPathId,
+        );
+      }
       if (path.accentColor) return path.accentColor;
       if (path.kind === "coastline") return globeTextures.coastlineColor;
       if (path.kind === "country-border") {
@@ -971,7 +980,12 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "neptun-trail-archived") return 1.2;
       if (path.kind === "recon-orbit") return 1.35;
       if (path.kind === "neptun-projection") return 1.05;
-      if (path.kind === "axis-link") return 1.35;
+      if (path.kind === "axis-link") {
+        if (selectedAxisPathId) {
+          return path.id === selectedAxisPathId ? 2.35 : 0.85;
+        }
+        return 1.35;
+      }
       if (path.kind === "bri-trade") return Math.max(2.4, briTradeStrokeWidth(path));
       if (path.kind === "us-dfc-supply") return Math.max(2.4, usDfcSupplyStrokeWidth(path));
       if (path.kind === "coastline") return 0.38;

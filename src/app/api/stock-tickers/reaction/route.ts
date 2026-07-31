@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
@@ -225,7 +226,7 @@ export async function GET(request: Request) {
         : null,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "market-reaction failed";
+    const message = publicErrorMessage(error, "market-reaction failed");
     logApiRoute("/api/stock-tickers/reaction", "error", "fetch_failed", { message });
     return NextResponse.json(
       {

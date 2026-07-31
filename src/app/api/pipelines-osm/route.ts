@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextRequest, NextResponse } from "next/server";
 import type { TransportPath } from "@/data/geoTypes";
 import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
@@ -218,7 +219,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Overpass failed",
+        error: publicErrorMessage(error, "Overpass failed"),
         paths: [],
       },
       { status: 502, headers: OSM_CDN },

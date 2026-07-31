@@ -29,6 +29,12 @@ const ALLOWED_EVENTS = new Set([
   "push_subscribe_denied",
   "watch_pin_add",
   "watch_pin_remove",
+  "axis_link_click",
+  "axis_link_cta_hub",
+  "axis_link_cta_arms",
+  "axis_link_cta_news",
+  "axis_link_cta_deals",
+  "axis_link_dismiss",
 ]);
 
 const trackBodySchema = z.object({

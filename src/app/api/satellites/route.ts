@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import {
   classifyReconSatellite,
@@ -204,7 +205,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "위성 TLE 로드 실패",
+        error: publicErrorMessage(error, "위성 TLE 로드 실패"),
         satellites: [],
         count: 0,
       },

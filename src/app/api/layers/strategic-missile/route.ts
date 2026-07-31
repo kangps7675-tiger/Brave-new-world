@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
@@ -110,7 +111,7 @@ export async function GET(request: Request) {
         roads: [],
         launches: [],
         counts: { silos: 0, bases: 0, testSites: 0, fields: 0, launches: 0 },
-        error: error instanceof Error ? error.message : "strategic missile layer failed",
+        error: publicErrorMessage(error, "strategic missile layer failed"),
         fetchedAt: new Date().toISOString(),
       },
       { status: 200, headers: { "Cache-Control": "public, s-maxage=60" } },

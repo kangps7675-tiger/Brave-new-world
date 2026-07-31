@@ -5,8 +5,17 @@ export type IngestEnv = {
   /** NASA FIRMS map key — set via `wrangler secret put NASA_FIRMS_API_KEY` */
   NASA_FIRMS_API_KEY?: string;
   FIRMS_MAP_KEY?: string;
-  /** Optional bearer for manual HTTP trigger */
+  /**
+   * 수동 HTTP 트리거용 bearer 시크릿.
+   * **프로덕션 필수** — 미설정 시 /run·/push/send·/track·/backfill-baseline 이 전부 401.
+   * `npx wrangler secret put INGEST_CRON_SECRET -c wrangler.ingest.toml`
+   */
   INGEST_CRON_SECRET?: string;
+  /**
+   * 로컬 개발 전용 탈출구. `.dev.vars` 에 "true" 로 두면 시크릿 없이도 수동 트리거 허용.
+   * **프로덕션에는 절대 설정하지 말 것.**
+   */
+  ALLOW_UNAUTHENTICATED_INGEST?: string;
   /**
    * Next 앱의 뉴스 워밍 URL.
    * 예: https://your-app.example/api/news-stream/warm

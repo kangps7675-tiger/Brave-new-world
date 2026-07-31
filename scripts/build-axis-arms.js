@@ -1,5 +1,6 @@
 /**
- * SIPRI trade-register.csv → public/data/{lite,full}/axis-arms.json
+ * SIPRI trade-register.csv → scripts/vendor/sipri/axis-arms.json (shelved).
+ * Does NOT write to public/ until: node scripts/publish-axis-arms.js
  * Usage: node scripts/build-axis-arms.js [path-to-csv]
  */
 const fs = require("fs");
@@ -160,13 +161,17 @@ function main() {
     deals: deals.slice(0, 120),
   };
 
-  for (const profile of ["lite", "full"]) {
-    const outDir = path.join(ROOT, "public", "data", profile);
-    fs.mkdirSync(outDir, { recursive: true });
-    const outPath = path.join(outDir, "axis-arms.json");
-    fs.writeFileSync(outPath, JSON.stringify(payload));
-    console.log("wrote", outPath, `${pairs.length} pairs`, `${payload.deals.length} deals`);
-  }
+  const vendorDir = path.join(__dirname, "vendor", "sipri");
+  fs.mkdirSync(vendorDir, { recursive: true });
+  const vendorPath = path.join(vendorDir, "axis-arms.json");
+  fs.writeFileSync(vendorPath, JSON.stringify(payload));
+  console.log(
+    "shelved",
+    vendorPath,
+    `${pairs.length} pairs`,
+    `${payload.deals.length} deals`,
+  );
+  console.log("To expose after clearance: node scripts/publish-axis-arms.js");
 }
 
 main();

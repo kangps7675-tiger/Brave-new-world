@@ -44,6 +44,7 @@ import { AirRaidOnboardingCoach } from "@/components/AirRaidOnboardingCoach";
 import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
 import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
 import { LayerCapToast } from "@/components/LayerCapToast";
+import { TimeScrubberBar } from "@/components/TimeScrubberBar";
 import { GtiHeroMoment } from "@/components/GtiHeroMoment";
 import { SoundUnmuteNudge } from "@/components/SoundUnmuteNudge";
 import type { PerfProbeResult } from "@/lib/perfProbe";
@@ -156,6 +157,7 @@ type SceneShareSnapshot = {
   lng: number;
   altitude: number;
   prefs: LayerPrefs;
+  asOf?: string | null;
 } | null;
 
 type LayerPatch = Parameters<typeof applyLayerPatch>[1];
@@ -271,6 +273,14 @@ export type DashboardOverlayHostProps = {
   /** 첫 90초 GTI 히어로 (gti 단계만) */
   gtiHeroSnapshot: WorldTensionSnapshot | null;
   gtiHeroVisible: boolean;
+  /** 일별 랭크 시간 스크럽 */
+  timeScrubber?: {
+    asOf: string;
+    today: string;
+    availableDates: string[];
+    onChange: (date: string) => void;
+    onGoToday: () => void;
+  } | null;
   /** 첫 90초 종료 후 소리 언뮤트 유도 */
   soundUnmuteReady: boolean;
   ukmtoBriefing: UkmtoBriefingContent | null;
@@ -458,6 +468,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     ultraLiteOfferProbe,
     gtiHeroSnapshot,
     gtiHeroVisible,
+    timeScrubber = null,
     soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
@@ -1551,6 +1562,26 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           lang={labelLanguage}
           visible={gtiHeroVisible}
         />
+      ) : null}
+
+      {timeScrubber && !intelSheetOpen ? (
+        <div
+          className={`pointer-events-none absolute ${zc("mapControl")} ${
+            isCompactUi
+              ? "bottom-[5.5rem] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
+              : "bottom-8 left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
+          }`}
+        >
+          <TimeScrubberBar
+            lang={labelLanguage}
+            asOf={timeScrubber.asOf}
+            today={timeScrubber.today}
+            availableDates={timeScrubber.availableDates}
+            onChange={timeScrubber.onChange}
+            onGoToday={timeScrubber.onGoToday}
+            compact={isCompactUi}
+          />
+        </div>
       ) : null}
 
       <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />

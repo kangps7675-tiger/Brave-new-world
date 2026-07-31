@@ -1,3 +1,4 @@
+import { rateLimitKey } from "@/lib/auth/clientIdentity";
 import { NextRequest, NextResponse } from "next/server";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import {
@@ -26,12 +27,13 @@ const serverDayHits = new Map<string, { count: number; day: string }>();
 const BYOK_MAX_PER_MINUTE = 4;
 const SERVER_MAX_PER_DAY = 8;
 
-function clientIp(request: NextRequest): string {
-  return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
+/**
+ * 레이트리밋 키. x-forwarded-for 는 위조 가능하므로 cf-connecting-ip 를 우선하고,
+ * 프로덕션에서 신뢰할 출처가 없으면 null 을 반환한다 → 호출부는 LLM 경로를 건너뛰고
+ * 규칙/템플릿 폴백으로 응답한다(기능은 살리되 서버 쿼터는 보호).
+ */
+function clientIp(request: NextRequest): string | null {
+  return rateLimitKey(request);
 }
 
 function allowByok(ip: string): boolean {
@@ -76,6 +78,8 @@ function extractUserKey(request: NextRequest, body: Record<string, unknown>): st
  * - 없으면 서버 키로 짧은 인과 해설 (일일 한도) → 없으면 템플릿
  */
 export async function POST(request: NextRequest) {
+  // 신뢰할 IP 출처가 없으면(프로덕션) 레이트리밋이 무의미하므로 LLM 경로를 막고
+  // 템플릿 폴백으로 응답한다 — 기능은 유지, 서버 쿼터는 보호.
   const ip = clientIp(request);
 
   let body: Record<string, unknown> = {};
@@ -115,7 +119,7 @@ export async function POST(request: NextRequest) {
 
   // —— BYOK 심층 ——
   if (userKey) {
-    if (!allowByok(ip)) {
+    if (!ip || !allowByok(ip)) {
       return NextResponse.json(
         {
           error:
@@ -179,7 +183,7 @@ export async function POST(request: NextRequest) {
 
   // —— 키 없음: 서버 짧은 해설 또는 템플릿 ——
   if (isLlmWhyMattersServerEnabled()) {
-    if (!allowServerDay(ip)) {
+    if (!ip || !allowServerDay(ip)) {
       return NextResponse.json({
         ok: true,
         stub: false,

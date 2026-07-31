@@ -1,0 +1,24 @@
+# Gitleaks — allow documented placeholders / geospatial false positives.
+title = "brave-new-world"
+
+[[allowlists]]
+description = "Setup guide uses obviously fake example secrets"
+paths = [
+  '''docs/.*''',
+]
+regexes = [
+  '''INGEST_CRON_SECRET''',
+  '''VIINA_RENDER_GATE_SECRET''',
+  '''EXAMPLE_ONLY_''',
+  '''kJ8mNp2QxV7wZ4aB9cD1eF6gH3iJ5kL0mN8oP2qR4sT''',
+  '''zX9yW8vU7tS6rQ5pO4nM3lK2jI1hG0fE9dC8bA7zY6x''',
+]
+
+[[allowlists]]
+description = "Mapbox-style feature key fields are not API credentials"
+paths = [
+  '''src/data/reefWatchTargetFeatures\.raw\.json''',
+]
+regexes = [
+  '''(?i)"key"\s*:''',
+]

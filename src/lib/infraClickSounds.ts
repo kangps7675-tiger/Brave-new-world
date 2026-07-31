@@ -72,6 +72,7 @@ const PATH_KIND_CUES: Record<string, LayerClickCue[]> = {
   "subsea-pipeline": [{ eventId: "subsea-pipeline", volumeScale: 0.7, durationMs: 5000 }],
   "oil-pipeline": [{ eventId: "pipeline-hum", volumeScale: 0.95, durationMs: 5000 }],
   "gas-pipeline": [{ eventId: "pipeline-hum", volumeScale: 0.95, durationMs: 5000 }],
+  "axis-link": [{ eventId: "pipeline-hum", volumeScale: 0.35, durationMs: 2200 }],
 };
 
 export function cuesForStaticKind(kind: string): LayerClickCue[] | null {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isApiStubMode } from "@/lib/apiStubMode";
+import { rateLimitKey } from "@/lib/auth/clientIdentity";
 import { getAnthropicModel } from "@/lib/llm/anthropicEnv";
 import { callClaudeMessages } from "@/lib/llm/claudeMessages";
 import {
@@ -17,14 +18,6 @@ const USER_KEY_HEADER = "x-anthropic-api-key";
 /** 프로세스 메모리 IP 레이트 리밋 — 워커 재시작 시 초기화 */
 const hits = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_MINUTE = 3;
-
-function clientIp(request: NextRequest): string {
-  return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
-}
 
 function allowRequest(ip: string): boolean {
   const now = Date.now();
@@ -55,7 +48,16 @@ function extractUserKey(request: NextRequest, body: Record<string, unknown>): st
  * header: x-anthropic-api-key: sk-ant-...
  */
 export async function POST(request: NextRequest) {
-  if (!allowRequest(clientIp(request))) {
+  // x-forwarded-for 는 위조 가능하므로 cf-connecting-ip 를 우선한다.
+  // 프로덕션에서 신뢰할 IP 출처가 없으면 레이트리밋이 무력화되므로 거부.
+  const ip = rateLimitKey(request);
+  if (!ip) {
+    return NextResponse.json(
+      { error: "client identity unavailable", rateLimited: true },
+      { status: 429 },
+    );
+  }
+  if (!allowRequest(ip)) {
     return NextResponse.json(
       {
         error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요. (IP당 분당 3회)",

@@ -5,8 +5,37 @@ import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 실제 브라우저 푸시 서비스 호스트만 허용한다.
+ *
+ * 검증이 없으면 아무 URL이나 구독으로 넣을 수 있어 (a) D1 구독 테이블을 무한
+ * 증식시키고 (b) 브로드캐스트 시 서버가 임의 호스트로 요청을 보내는
+ * SSRF-유사 증폭기가 된다.
+ */
+const ALLOWED_PUSH_HOSTS = [
+  /\.google\.com$/i, // fcm.googleapis.com / android.googleapis.com
+  /\.googleapis\.com$/i,
+  /\.mozilla\.com$/i, // updates.push.services.mozilla.com
+  /\.mozaws\.net$/i,
+  /\.windows\.com$/i, // WNS
+  /\.microsoft\.com$/i,
+  /\.apple\.com$/i, // Safari Web Push
+];
+
+function isAllowedPushEndpoint(raw: string): boolean {
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:") return false;
+    return ALLOWED_PUSH_HOSTS.some((re) => re.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
 const bodySchema = z.object({
-  endpoint: z.string().url().max(2048),
+  endpoint: z.string().url().max(2048).refine(isAllowedPushEndpoint, {
+    message: "unsupported push service endpoint",
+  }),
   keys: z.object({
     p256dh: z.string().min(1).max(200),
     auth: z.string().min(1).max(100),

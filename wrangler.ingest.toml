@@ -12,6 +12,20 @@
 name = "conflict-view-ingest"
 main = "workers/cron-ingest/src/index.ts"
 compatibility_date = "2025-10-11"
+
+# ⚠️ 보안 필수 조건 (SECURITY-ASSESSMENT-2026-07-30 CRIT-01)
+#
+# 이 Worker 는 workers.dev 로 인터넷에 공개된다. Next 앱이 DEFAULT_INGEST_URL
+# (src/lib/d1LiveSnapshots.ts) 로 여기에 붙기 때문에 workers_dev 는 켜 둔다.
+#
+# 그 대신 **INGEST_CRON_SECRET 설정이 필수**다. 미설정 시 /run · /push/send ·
+# /track · /backfill-baseline · /daily-predict 는 전부 401 로 막힌다(fail-closed).
+#   npx wrangler secret put INGEST_CRON_SECRET -c wrangler.ingest.toml
+#
+# /push/send 가 열리면 전체 구독자에게 임의 푸시(허위 공습경보)를 보낼 수 있으므로
+# 이 시크릿은 사실상 관리자 자격증명이다. 유출 의심 시 즉시 회전할 것.
+#
+# 권장 추가 조치: 커스텀 도메인 + Cloudflare WAF 로 이전하고 workers_dev = false.
 workers_dev = true
 
 # Optional: allow lightweight URL/Buffer helpers if needed later

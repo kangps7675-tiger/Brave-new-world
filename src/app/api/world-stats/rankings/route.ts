@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getSotwApiKey, sotwFetchJson, SOTW_ATTRIBUTION } from "@/lib/sotw";
 
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         disabled: false,
-        error: error instanceof Error ? error.message : "rankings failed",
+        error: publicErrorMessage(error, "rankings failed"),
         attribution: SOTW_ATTRIBUTION,
       },
       { status: 502 },

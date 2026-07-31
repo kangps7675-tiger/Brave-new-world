@@ -89,6 +89,7 @@ export interface DashboardTopChromeProps {
     lng: number;
     altitude: number;
     prefs: LayerPrefs;
+    asOf?: string | null;
   } | null;
   setChromeCoachStep: Dispatch<SetStateAction<ChromeCoachStep | null>>;
   setShowFeatureGuide: Dispatch<SetStateAction<boolean>>;

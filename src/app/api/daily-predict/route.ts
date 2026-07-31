@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiStubResponse } from "@/lib/apiStub";
+import { rateLimitKey } from "@/lib/auth/clientIdentity";
 import {
   submitDailyPredict,
   THEATER_PREDICT_IDS,
@@ -11,6 +12,32 @@ import { utcRankDate } from "@/lib/dailyRanks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/* ------------------------------------------------------------------ *
+ * 투표 조작(ballot stuffing) 완화
+ *
+ * deviceId 는 클라이언트가 만들어 localStorage 에 넣는 값이라 서버가 신뢰할 수
+ * 없다 — 무한히 새로 만들어 통계를 왜곡할 수 있다. 게스트 UX(로그인 없음)를
+ * 유지해야 하므로 deviceId 자체는 그대로 두고, **IP당 하루 제출 수**로 상한을
+ * 건다. 한 가구/한 사무실에서 여러 명이 참여하는 경우를 고려해 여유를 뒀다.
+ *
+ * 프로세스 메모리 기반이라 인스턴스마다 독립적이다. 통계 무결성이 더 중요해지면
+ * D1 에 (ip_hash, targetDate) 카운터를 두는 편이 정확하다.
+ * ------------------------------------------------------------------ */
+const MAX_SUBMITS_PER_IP_PER_DAY = 12;
+const submitHits = new Map<string, { count: number; day: string }>();
+
+function allowSubmit(ip: string, day: string): boolean {
+  const row = submitHits.get(ip);
+  if (!row || row.day !== day) {
+    if (submitHits.size > 5000) submitHits.clear();
+    submitHits.set(ip, { count: 1, day });
+    return true;
+  }
+  if (row.count >= MAX_SUBMITS_PER_IP_PER_DAY) return false;
+  row.count += 1;
+  return true;
+}
 
 const bodySchema = z.object({
   targetDate: z
@@ -63,6 +90,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { ok: false, error: "targetDate out of window" },
       { status: 400 },
+    );
+  }
+
+  const ip = rateLimitKey(request);
+  if (!ip || !allowSubmit(ip, today)) {
+    return NextResponse.json(
+      { ok: false, error: "too many submissions today", rateLimited: true },
+      { status: 429 },
     );
   }
 

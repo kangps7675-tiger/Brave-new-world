@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import {
   emptyVideoPayload,
@@ -44,7 +45,7 @@ export async function GET(req: Request) {
     const topic = resolveTopicFromPackages(
       parsePackagesParam(new URL(req.url).searchParams.get("packages")),
     );
-    const message = error instanceof Error ? error.message : "동영상 뉴스 로드 실패";
+    const message = publicErrorMessage(error, "동영상 뉴스 로드 실패");
     return NextResponse.json(emptyVideoPayload(topic, message), {
       status: 200,
       headers: { "Cache-Control": "no-store" },

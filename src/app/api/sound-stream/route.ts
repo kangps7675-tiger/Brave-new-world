@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import fs from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
@@ -265,7 +266,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(upstream.body, { status: 200, headers });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "sound-stream failed" },
+      { error: publicErrorMessage(error, "sound-stream failed") },
       { status: 502 },
     );
   }

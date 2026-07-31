@@ -38,12 +38,20 @@ type RateBucket = { count: number; resetAt: number };
 const rateByIp = new Map<string, RateBucket>();
 
 function gateSecret(): string {
-  return (
+  const configured =
     process.env.VIINA_RENDER_GATE_SECRET?.trim() ||
     process.env.INGEST_CRON_SECRET?.trim() ||
-    process.env.NEWS_WARM_SECRET?.trim() ||
-    "dev-only-viina-render-gate"
-  );
+    process.env.NEWS_WARM_SECRET?.trim();
+  if (configured) return configured;
+
+  // 하드코딩 폴백은 공개 저장소에 그대로 노출되므로 프로덕션에서는 쓸 수 없다.
+  // (누구나 유효한 게이트 쿠키를 위조해 VIINA 렌더 캐시를 bulk 로 긁어갈 수 있음)
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "VIINA_RENDER_GATE_SECRET is not configured — refusing to use the public dev fallback",
+    );
+  }
+  return "dev-only-viina-render-gate";
 }
 
 function isGateRelaxed(): boolean {
@@ -94,9 +102,14 @@ function parseCookie(header: string | null, name: string): string | null {
 }
 
 function clientIp(request: Request): string {
+  // Cloudflare 가 직접 채우는 헤더를 우선한다. x-forwarded-for 는 클라이언트가
+  // 위조할 수 있어 단독으로 쓰면 레이트리밋이 무력화된다.
+  const cf = request.headers.get("cf-connecting-ip")?.trim();
+  if (cf) return cf;
+  const real = request.headers.get("x-real-ip")?.trim();
+  if (real) return real;
   const xf = request.headers.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  return xf?.split(",")[0]?.trim() || "unknown";
 }
 
 function checkRateLimit(ip: string): boolean {
@@ -243,13 +256,17 @@ export function assertViinaRenderAccess(request: Request): ViinaGateResult {
   return { ok: true };
 }
 
-/** Cron/워밍 등 서버 간 호출 — Bearer로 게이트 우회 */
+/**
+ * Cron/워밍 등 서버 간 호출 — Bearer로 게이트 우회.
+ *
+ * 시크릿 미설정 시 거부(원래부터 fail-closed). `?secret=` 쿼리 폴백은
+ * 액세스 로그 유출 때문에 제거했다 — Authorization 헤더만 받는다.
+ */
 export function isViinaCronAuthorized(request: Request): boolean {
   const secret =
     process.env.INGEST_CRON_SECRET?.trim() || process.env.NEWS_WARM_SECRET?.trim();
   if (!secret) return false;
   const header = request.headers.get("authorization") || "";
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return safeEqual(bearer, secret);
 }

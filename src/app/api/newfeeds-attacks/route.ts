@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getCached, setCached } from "@/lib/apiCache";
 import {
@@ -110,7 +111,7 @@ export async function GET(request: Request) {
         threatLevel: null,
         attacks: [],
         iranCount: 0,
-        error: error instanceof Error ? error.message : "newfeeds fetch failed",
+        error: publicErrorMessage(error, "newfeeds fetch failed"),
       } satisfies NewfeedsAttacksPayload,
       { status: 502 },
     );

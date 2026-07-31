@@ -1,3 +1,5 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
+import { authorizeCronRequest } from "@/lib/auth/cronAuth";
 import { NextResponse } from "next/server";
 import { writeAisToD1 } from "@/lib/d1MaritimeAir";
 import {
@@ -10,13 +12,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 function authorize(request: Request): boolean {
-  const secret =
-    process.env.INGEST_CRON_SECRET?.trim() || process.env.NEWS_WARM_SECRET?.trim();
-  if (!secret) return true;
-  const header = request.headers.get("authorization") || "";
-  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  const query = new URL(request.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return authorizeCronRequest(request, ["INGEST_CRON_SECRET", "NEWS_WARM_SECRET"]);
 }
 
 /**
@@ -57,7 +53,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         written: 0,
-        error: error instanceof Error ? error.message : "ais warm failed",
+        error: publicErrorMessage(error, "ais warm failed"),
       },
       { status: 502 },
     );

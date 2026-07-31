@@ -40,6 +40,7 @@ import {
   firmsFireSoundLabel,
 } from "@/lib/firmsSoundClassify";
 import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
+import { formatReliabilityForHover } from "@/lib/layerReliability";
 import { UCDP_ATTRIBUTION, UCDP_ATTRIBUTION_SHORT, UCDP_SOURCE_URL } from "@/lib/ucdp";
 import { translateOrefTitle, tzevaUi } from "@/lib/tzevaAdomI18n";
 import {
@@ -89,8 +90,92 @@ export interface HoverCardParams {
   disputeOverviews: Map<string, DisputeOverview>;
 }
 
+/** 호버 대상 → sourceCatalog layerId */
+export function resolveHoverLayerId(params: HoverCardParams): string | null {
+  if (params.hoveredCarrier) return null;
+  if (params.hoveredMilAircraft) return "air-traffic";
+  if (params.hoveredNeptunThreat) return "neptun";
+  const p = params.hoveredPoint;
+  if (p) {
+    if (p.displayKind === "ais") return "ais";
+    if (p.displayKind === "firms-fire") return "firms-fires";
+    if (p.displayKind === "tzeva-adom") return "tzeva-adom";
+    if (p.displayKind === "newfeeds-attack") return "newfeeds-iran";
+    if (p.displayKind === "china-theater-incident") return "china-theater-incidents";
+    if (p.displayKind === "korea-missile-incident") return "korea-missile-incidents";
+    if (p.displayKind === "russia-strike-incident") return "ukraine-strikes-russia";
+    if (p.displayKind === "casualty-skull") return "hapi-conflict-casualties";
+    if (p.displayKind === "recon-sat-html") return "recon-satellites";
+    if (p.displayKind === "gdelt-tag-html" || p.displayKind === "ukraine-gdelt-neon") {
+      return "conflict-zones";
+    }
+    if (p.displayKind === "conflict-cluster") return "conflict-zones";
+    if (p.displayKind === "static") {
+      const kind = "kind" in p ? String((p as { kind?: string }).kind ?? "") : "";
+      if (kind === "ucdp-event") return "ucdp-events";
+      if (kind === "military-base") return "military-bases";
+      if (kind === "submarine-tunnel") return "tunnels";
+      if (kind === "chokepoint" || kind === "logistics-hub") return "critical-nodes";
+    }
+  }
+  if (params.hoveredPolygon) {
+    if (isUkraineViinaPolygonLayer(params.hoveredPolygon.polygonLayer)) {
+      return "viina-ukraine-control";
+    }
+    const pl = String(params.hoveredPolygon.polygonLayer ?? "");
+    if (pl.includes("ukmto")) return "ukmto-incidents";
+    if (pl.includes("navarea")) return "navarea-warnings";
+    if (pl.includes("exercise")) return "military-exercises";
+    if (pl.includes("gps")) return "gps-interference";
+    if (pl === "conflict-zone") return "conflict-zones";
+  }
+  if (params.hoveredPath) {
+    if (
+      params.hoveredPath.kind === "neptun-projection" ||
+      params.hoveredPath.kind === "neptun-trail"
+    ) {
+      return "neptun";
+    }
+    if (params.hoveredPath.kind === "shipping-lane") return "trade-routes";
+  }
+  return null;
+}
+
+/** 레이어 기본 신뢰(공통 스키마)를 호버 카드에 붙인다. 피처 confidence는 기존 meta에 유지. */
+export function withLayerReliability(
+  card: HoverCard,
+  layerId: string | null,
+  lang: LabelLanguage,
+): HoverCard {
+  if (!layerId || card.kind === "ocean") return card;
+  const rel = formatReliabilityForHover(layerId, lang);
+  if (!rel) return card;
+  const layerLine =
+    lang === "en" ? `Layer: ${rel.meta}` : `레이어: ${rel.meta}`;
+  const meta = card.meta ? `${card.meta} · ${layerLine}` : layerLine;
+  const hint = card.hint ? `${card.hint} · ${rel.hint}` : rel.hint;
+  if (card.kind === "event" || card.kind === "static") {
+    return {
+      ...card,
+      badge: card.badge ?? rel.badge,
+      meta,
+      hint,
+    };
+  }
+  return {
+    ...card,
+    meta,
+    hint,
+  };
+}
+
 /** 지구본 호버 카드 콘텐츠 조립 — 순수 함수 (테스트·재사용 용이) */
 export function buildHoverCard(params: HoverCardParams): HoverCard {
+  const raw = buildHoverCardRaw(params);
+  return withLayerReliability(raw, resolveHoverLayerId(params), params.labelLanguage);
+}
+
+function buildHoverCardRaw(params: HoverCardParams): HoverCard {
   const {
     hoveredCarrier,
     hoveredMilAircraft,
@@ -740,8 +825,8 @@ export function buildHoverCard(params: HoverCardParams): HoverCard {
               : `축 무기이전${category ? ` · ${category}` : ""}`,
           body:
             labelLanguage === "en"
-              ? "Dashed arc · SIPRI-linked transfer summary between axis partners."
-              : "점선 · 축 파트너 사이 SIPRI 기반 무기이전 요약입니다.",
+              ? "Dashed arc · registered conventional transfer summary between axis partners."
+              : "점선 · 축 파트너 사이 등록된 재래식 이전 요약입니다.",
           meta: metaBits.length ? metaBits.join(" · ") : undefined,
         };
       }

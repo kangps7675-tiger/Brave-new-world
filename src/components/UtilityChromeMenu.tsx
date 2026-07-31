@@ -25,6 +25,7 @@ type UtilityChromeMenuProps = {
     lng: number;
     altitude: number;
     prefs: LayerPrefs;
+    asOf?: string | null;
   } | null;
   onTour: () => void;
   onHelp: () => void;

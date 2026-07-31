@@ -15,6 +15,7 @@ type SceneLinkButtonProps = {
     lng: number;
     altitude: number;
     prefs: LayerPrefs;
+    asOf?: string | null;
   } | null;
   className?: string;
 };

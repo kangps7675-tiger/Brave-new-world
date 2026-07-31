@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import {
@@ -148,7 +149,7 @@ export async function GET(request: Request) {
         receivedAt: new Date().toISOString(),
         fires: [],
         count: 0,
-        error: error instanceof Error ? error.message : "FIRMS fetch failed",
+        error: publicErrorMessage(error, "FIRMS fetch failed"),
       },
       { status: 502, headers: NO_STORE_HEADERS },
     );

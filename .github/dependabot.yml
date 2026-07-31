@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # npm 의존성 — 보안 패치를 놓치지 않기 위한 주간 점검
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # 패치/마이너는 한 PR 로 묶어 리뷰 부담을 줄인다
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Next 메이저 업그레이드(14 → 15/16)는 마이그레이션 계획이 필요하므로
+      # Dependabot 자동 PR 에서 제외한다. 보안 패치는 14.2.x 로 계속 들어온다.
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions 핀 업데이트
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

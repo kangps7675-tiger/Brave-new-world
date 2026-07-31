@@ -4,10 +4,11 @@ import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 /**
- * 장면 딥링크 — 현재 카메라(lat/lng/altitude)·모드·켜진 레이어를 URL 쿼리로 직렬화.
+ * 장면 딥링크 — 현재 카메라(lat/lng/altitude)·모드·켜진 레이어·기준일(asOf)을 URL 쿼리로 직렬화.
  *
- * 형식: `?scene=1&mode=conflict&lat=12.61&lng=43.35&alt=1.20&layers=showWarZones.showAis`
+ * 형식: `?scene=1&mode=conflict&lat=12.61&lng=43.35&alt=1.20&layers=showWarZones.showAis&asOf=2026-07-20`
  * - `layers`는 boolean 레이어 중 ON인 키만 `.`로 연결
+ * - `asOf`는 UTC `YYYY-MM-DD` (없으면 오늘 = 라이브)
  * - 파싱 시 존재하지 않는 키는 무시 (버전 간 안전)
  */
 export type SceneLinkState = {
@@ -17,13 +18,23 @@ export type SceneLinkState = {
   altitude: number;
   /** ON인 boolean 레이어 키 목록 (없으면 모드 기본 히어로 레이어 유지) */
   layers: string[] | null;
+  /** UTC 기준일 — 일별 랭크/시그널 스크럽. null/undefined = 오늘 */
+  asOf?: string | null;
 };
+
+const ASOF_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const NUM = (v: string | null): number | null => {
   if (v == null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+export function isValidAsOfDate(value: string | null | undefined): value is string {
+  if (!value || !ASOF_RE.test(value)) return false;
+  const t = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(t);
+}
 
 export function buildSceneUrl(
   origin: string,
@@ -33,6 +44,7 @@ export function buildSceneUrl(
     lng: number;
     altitude: number;
     prefs: LayerPrefs;
+    asOf?: string | null;
   },
 ): string {
   const params = new URLSearchParams();
@@ -47,6 +59,10 @@ export function buildSceneUrl(
     if (typeof value === "boolean" && value) onKeys.push(key);
   }
   if (onKeys.length > 0) params.set("layers", onKeys.join("."));
+
+  if (state.asOf && isValidAsOfDate(state.asOf)) {
+    params.set("asOf", state.asOf);
+  }
 
   return `${origin}/?${params.toString()}`;
 }
@@ -69,12 +85,16 @@ export function parseSceneFromSearch(search: string): SceneLinkState | null {
         ? layersRaw.split(".").filter((k) => /^[A-Za-z0-9_]+$/.test(k))
         : null;
 
+    const asOfRaw = params.get("asOf");
+    const asOf = isValidAsOfDate(asOfRaw) ? asOfRaw : null;
+
     return {
       mode,
       lat: Math.max(-85, Math.min(85, lat)),
       lng: ((lng + 540) % 360) - 180,
       altitude: alt != null ? Math.max(0.05, Math.min(4, alt)) : 1.2,
       layers,
+      asOf,
     };
   } catch {
     return null;
@@ -87,7 +107,7 @@ export function clearSceneParamsFromUrl() {
   try {
     const url = new URL(window.location.href);
     if (url.searchParams.get("scene") == null) return;
-    for (const key of ["scene", "mode", "lat", "lng", "alt", "layers"]) {
+    for (const key of ["scene", "mode", "lat", "lng", "alt", "layers", "asOf"]) {
       url.searchParams.delete(key);
     }
     window.history.replaceState(null, "", url.pathname + (url.search ? url.search : ""));

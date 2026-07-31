@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
 import { logApiRoute } from "@/lib/apiRouteLog";
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
       },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "fetch_failed";
+    const message = publicErrorMessage(error, "fetch_failed");
     logApiRoute("/api/radar-outages", "error", "fetch_failed", { message });
     return NextResponse.json(emptyPayload({ error: message }), {
       status: 502,

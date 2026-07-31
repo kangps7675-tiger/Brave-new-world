@@ -31,8 +31,8 @@ function pick(lang: TrustLang, lines: LocalizedLines): string {
 }
 
 export const TRUST_INTRO_LINE: LocalizedLines = {
-  ko: "여기 뜨는 정보는 편집 독립성·교차검증으로 등급화한 소스를 씁니다. 뉴스만으로 거시를 단정하지 않습니다.",
-  en: "What you see here is graded by editorial independence and cross-checks — news alone is not enough for the big picture.",
+  ko: "뉴스 매체 Tier(T1–3)와 지도 레이어 증거 종류(관측·보도·미확인·추정)는 다른 축입니다. 둘 다 절제용 라벨이지 진실 점수가 아닙니다.",
+  en: "News media Tier (T1–3) and map-layer evidence type (Observed / Reported / Unverified / Estimate) are different axes — labels for restraint, not a truth score.",
 };
 
 export const TRUST_CHIP_LABEL: LocalizedLines = {
@@ -46,8 +46,8 @@ export const TRUST_PANEL_TITLE: LocalizedLines = {
 };
 
 export const TRUST_PANEL_SUBTITLE: LocalizedLines = {
-  ko: "뉴스 편집독립 축 + 텔레그램 OSINT 교차검증 축",
-  en: "News editorial-independence axis + Telegram OSINT cross-check axis",
+  ko: "뉴스 편집독립 축 + 텔레그램 OSINT · 레이어 증거 종류는 출처 패널",
+  en: "News editorial axis + Telegram OSINT · layer evidence types in Sources",
 };
 
 export const NEWS_TRUST_TIERS: NewsTrustTierCopy[] = [

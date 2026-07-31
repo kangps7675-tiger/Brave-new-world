@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { loadViinaRenderData } from "@/lib/viinaServerData";
@@ -162,7 +163,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "ukraine-hatch-failed",
+        error: publicErrorMessage(error, "ukraine-hatch-failed"),
       },
       { status: 502 },
     );

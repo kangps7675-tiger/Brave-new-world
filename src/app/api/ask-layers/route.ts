@@ -1,3 +1,4 @@
+import { rateLimitKey } from "@/lib/auth/clientIdentity";
 import { NextRequest, NextResponse } from "next/server";
 import { getCached, setCached } from "@/lib/apiCache";
 import { isApiStubMode } from "@/lib/apiStubMode";
@@ -25,12 +26,13 @@ const HAIKU_MODEL =
 
 const serverDayHits = new Map<string, { count: number; day: string }>();
 
-function clientIp(request: NextRequest): string {
-  return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
+/**
+ * 레이트리밋 키. x-forwarded-for 는 위조 가능하므로 cf-connecting-ip 를 우선하고,
+ * 프로덕션에서 신뢰할 출처가 없으면 null 을 반환한다 → 호출부는 LLM 경로를 건너뛰고
+ * 규칙/템플릿 폴백으로 응답한다(기능은 살리되 서버 쿼터는 보호).
+ */
+function clientIp(request: NextRequest): string | null {
+  return rateLimitKey(request);
 }
 
 function utcDayKey(): string {
@@ -160,7 +162,7 @@ export async function POST(request: NextRequest) {
   // 규칙 미스 → Haiku (한도·키 있을 때만)
   const ip = clientIp(request);
   const apiKey = getServerAnthropicApiKey();
-  if (!isApiStubMode() && apiKey && allowServerDay(ip)) {
+  if (!isApiStubMode() && apiKey && ip && allowServerDay(ip)) {
     const llm = await callClaudeMessages({
       apiKey,
       model: HAIKU_MODEL,

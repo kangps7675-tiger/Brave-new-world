@@ -11,8 +11,10 @@ import { TheaterDetailCta } from "@/components/TheaterDetailCta";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import { AxisArmsPanel } from "@/components/AxisArmsPanel";
 import { AxisRegimePanel } from "@/components/AxisRegimePanel";
+import { AxisLinkChip } from "@/components/AxisLinkChip";
 import { DisputeHotspotPanel } from "@/components/DisputeHotspotPanel";
 import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
+import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
 import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { FrictionHistoryChrome } from "@/components/FrictionHistoryChrome";
@@ -31,6 +33,7 @@ import {
 } from "@/data/frictionEpisodeDeep";
 import { territorialParchmentParagraphs } from "@/data/territorialDisputeDeep";
 import { filterArmsForHub, type AxisArmsPayload } from "@/lib/axisArmsPaths";
+import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import {
@@ -97,6 +100,13 @@ export type GeopoliticsHubChromeProps = {
   onSelectDisputeEpisode?: (episode: TerritorialDisputeEpisode) => void;
   onSelectDisputeFriction?: (episode: FrictionEpisode) => void;
   onDisputesOverviewClose: () => void;
+  selectedAxisLink?: SelectedAxisLink | null;
+  onAxisLinkDismiss?: () => void;
+  onAxisLinkHubBrief?: () => void;
+  onAxisLinkArms?: () => void;
+  onAxisLinkNews?: () => void;
+  onAxisLinkHighlightArms?: () => void;
+  armsHighlightPair?: { a: string; b: string } | null;
 };
 
 export function GeopoliticsHubChrome({
@@ -147,15 +157,43 @@ export function GeopoliticsHubChrome({
   onSelectDisputeEpisode,
   onSelectDisputeFriction,
   onDisputesOverviewClose,
+  selectedAxisLink = null,
+  onAxisLinkDismiss,
+  onAxisLinkHubBrief,
+  onAxisLinkArms,
+  onAxisLinkNews,
+  onAxisLinkHighlightArms,
+  armsHighlightPair = null,
 }: GeopoliticsHubChromeProps) {
   return (
     <>
-      {activeHubId && hubFocusMode === "arms" && axisArmsPayload && !hubBriefOpen ? (
+      {selectedAxisLink &&
+      !hubBriefOpen &&
+      hubFocusMode !== "regime" &&
+      hubFocusMode !== "arms" &&
+      !historyImmersionActive ? (
+        <AxisLinkChip
+          link={selectedAxisLink}
+          lang={labelLanguage}
+          onDismiss={() => onAxisLinkDismiss?.()}
+          onHubBrief={() => onAxisLinkHubBrief?.()}
+          onArms={() => onAxisLinkArms?.()}
+          onNews={() => onAxisLinkNews?.()}
+          onHighlightArmsDeals={() => onAxisLinkHighlightArms?.()}
+        />
+      ) : null}
+
+      {SIPRI_ARMS_LENS_ENABLED &&
+      activeHubId &&
+      hubFocusMode === "arms" &&
+      axisArmsPayload &&
+      !hubBriefOpen ? (
         <AxisArmsPanel
           hubId={activeHubId}
           deals={filterArmsForHub(axisArmsPayload, activeHubId).deals}
           citation={axisArmsPayload.citation}
           lang={labelLanguage}
+          highlightPair={armsHighlightPair}
           onClose={onArmsClose}
         />
       ) : null}

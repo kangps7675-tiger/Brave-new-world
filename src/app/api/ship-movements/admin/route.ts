@@ -1,8 +1,14 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { shipMovementObservations } from "@/db/schema";
 import {
+  adminLoginClientKey,
+  adminLoginLockedFor,
+  clearAdminLoginFailures,
+  matchesAdminSecret,
+  recordAdminLoginFailure,
   shipMovementAdminSecret,
   signAdminToken,
   verifyAdminToken,
@@ -56,9 +62,23 @@ export async function POST(request: Request) {
   } | null;
 
   if (body?.action === "login") {
-    if (!body.secret || body.secret !== secret) {
+    // 브루트포스 완화: 15분 내 5회 실패 시 15분 잠금 (IP 기준)
+    const clientKey = adminLoginClientKey(request);
+    const lockedFor = adminLoginLockedFor(clientKey);
+    if (lockedFor !== null) {
+      return NextResponse.json(
+        { error: "too many attempts", retryAfterSeconds: lockedFor },
+        { status: 429, headers: { "Retry-After": String(lockedFor) } },
+      );
+    }
+
+    // 상수 시간 비교 — 타이밍 사이드채널 차단
+    if (!matchesAdminSecret(body.secret, secret)) {
+      recordAdminLoginFailure(clientKey);
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
+
+    clearAdminLoginFailures(clientKey);
     const token = signAdminToken(secret, TTL_MS);
     const res = NextResponse.json({ ok: true });
     res.cookies.set(COOKIE, token, {
@@ -145,7 +165,7 @@ export async function GET(request: Request) {
         ok: false,
         authed: true,
         items: [],
-        error: error instanceof Error ? error.message : "query failed",
+        error: publicErrorMessage(error, "query failed"),
       },
       { status: 500 },
     );

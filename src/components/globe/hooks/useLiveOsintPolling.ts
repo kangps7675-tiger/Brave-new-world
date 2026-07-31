@@ -134,8 +134,9 @@ export function useLiveOsintPolling({
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
     setTelegramStatus("loading");
     try {
-      const res = await fetch("/api/telegram-alerts/sync", { method: "POST" });
-      if (!res.ok) throw new Error(`sync HTTP ${res.status}`);
+      // 스크레이핑 트리거는 Cron 전용(POST /api/telegram-alerts/sync + 시크릿).
+      // 브라우저는 이미 수집된 알림을 읽기만 한다 — 방문자마다 120초짜리
+      // 외부 스크레이핑을 유발하던 경로를 제거했다.
       await refreshTelegramAlerts();
     } catch {
       // 공개 embed는 t.me 응답/타임아웃이 흔함. 캐시/대기 상태를 살리고 다음 폴링에서 재시도한다.

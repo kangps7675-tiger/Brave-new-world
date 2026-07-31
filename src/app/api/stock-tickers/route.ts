@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       { headers: STOCK_CDN },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "stock-tickers failed";
+    const message = publicErrorMessage(error, "stock-tickers failed");
     logApiRoute("/api/stock-tickers", "error", "fetch_failed", { message });
     return NextResponse.json(
       {

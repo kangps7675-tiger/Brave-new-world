@@ -1,0 +1,87 @@
+{
+  "id": "nato-north-atlantic-treaty-1949",
+  "title": "The North Atlantic Treaty",
+  "signed": "1949-04-04",
+  "place": "Washington D.C.",
+  "sourceUrl": "https://www.nato.int/cps/en/natohq/official_texts_17120.htm",
+  "languages": ["en"],
+  "caveatKo": "조약 원문 인용. Article 5 발동 여부·집단방위 의무의 구체적 조치는 당사국 판단이며, 본 앱이 발동을 선언하거나 예측하지 않는다.",
+  "articles": [
+    {
+      "n": 1,
+      "titleEn": "Peaceful settlement / no unlawful force",
+      "textEn": "The Parties undertake, as set forth in the Charter of the United Nations, to settle any international dispute in which they may be involved by peaceful means in such a manner that international peace and security and justice are not endangered, and to refrain in their international relations from the threat or use of force in any manner inconsistent with the purposes of the United Nations."
+    },
+    {
+      "n": 2,
+      "titleEn": "Peaceful relations and economic collaboration",
+      "textEn": "The Parties will contribute toward the further development of peaceful and friendly international relations by strengthening their free institutions, by bringing about a better understanding of the principles upon which these institutions are founded, and by promoting conditions of stability and well-being. They will seek to eliminate conflict in their international economic policies and will encourage economic collaboration between any or all of them."
+    },
+    {
+      "n": 3,
+      "titleEn": "Self-help and mutual aid capacity",
+      "textEn": "In order more effectively to achieve the objectives of this Treaty, the Parties, separately and jointly, by means of continuous and effective self-help and mutual aid, will maintain and develop their individual and collective capacity to resist armed attack."
+    },
+    {
+      "n": 4,
+      "titleEn": "Consultation when security threatened",
+      "textEn": "The Parties will consult together whenever, in the opinion of any of them, the territorial integrity, political independence or security of any of the Parties is threatened.",
+      "uiTag": "consult",
+      "noteKo": "공개 보도에 ‘Article 4 consultation’·공습경보·영공침입 등이 나와도, 앱은 ‘협의 관련 신호(보도)’로만 표시하고 조약 발동을 단정하지 않는다."
+    },
+    {
+      "n": 5,
+      "titleEn": "Collective defence — armed attack",
+      "textEn": "The Parties agree that an armed attack against one or more of them in Europe or North America shall be considered an attack against them all and consequently they agree that, if such an armed attack occurs, each of them, in exercise of the right of individual or collective self-defence recognised by Article 51 of the Charter of the United Nations, will assist the Party or Parties so attacked by taking forthwith, individually and in concert with the other Parties, such action as it deems necessary, including the use of armed force, to restore and maintain the security of the North Atlantic area.\n\nAny such armed attack and all measures taken as a result thereof shall immediately be reported to the Security Council. Such measures shall be terminated when the Security Council has taken the measures necessary to restore and maintain international peace and security.",
+      "uiTag": "collective-defence",
+      "noteKo": "‘공격으로 간주’와 ‘필요하다고 판단하는 조치(무력 포함 가능)’는 원문상 구분된다. 앱은 Article 5 발동·자동 참전을 절대 예측·선언하지 않는다."
+    },
+    {
+      "n": 6,
+      "titleEn": "Geographic scope of armed attack (Art. 5)",
+      "textEn": "For the purpose of Article 5, an armed attack on one or more of the Parties is deemed to include an armed attack:\n\non the territory of any of the Parties in Europe or North America, on the Algerian Departments of France, on the territory of Turkey or on the Islands under the jurisdiction of any of the Parties in the North Atlantic area north of the Tropic of Cancer;\n\non the forces, vessels, or aircraft of any of the Parties, when in or over these territories or any other area in Europe in which occupation forces of any of the Parties were stationed on the date when the Treaty entered into force or the Mediterranean Sea or the North Atlantic area north of the Tropic of Cancer.",
+      "uiTag": "scope",
+      "noteKo": "적용 범위는 유럽·북미 영토·터키·북회귀선 이북 대서양 도서, 그리고 해당 구역의 당사국 군대·함정·항공기 등이다. 인도태평양 전역을 자동으로 포함하지 않는다."
+    },
+    {
+      "n": 7,
+      "titleEn": "UN Charter / Security Council",
+      "textEn": "This Treaty does not affect, and shall not be interpreted as affecting in any way the rights and obligations under the Charter of the Parties which are members of the United Nations, or the primary responsibility of the Security Council for the maintenance of international peace and security."
+    },
+    {
+      "n": 8,
+      "titleEn": "No conflicting engagements",
+      "textEn": "Each Party declares that none of the international engagements now in force between it and any other of the Parties or any third State is in conflict with the provisions of this Treaty, and undertakes not to enter into any international engagement in conflict with this Treaty."
+    },
+    {
+      "n": 9,
+      "titleEn": "North Atlantic Council",
+      "textEn": "The Parties hereby establish a Council, on which each of them shall be represented, to consider matters concerning the implementation of this Treaty. The Council shall be so organised as to be able to meet promptly at any time. The Council shall set up such subsidiary bodies as may be necessary; in particular it shall establish immediately a defence committee which shall recommend measures for the implementation of Articles 3 and 5."
+    },
+    {
+      "n": 10,
+      "titleEn": "Accession",
+      "textEn": "The Parties may, by unanimous agreement, invite any other European State in a position to further the principles of this Treaty and to contribute to the security of the North Atlantic area to accede to this Treaty. Any State so invited may become a Party to the Treaty by depositing its instrument of accession with the Government of the United States of America. The Government of the United States of America will inform each of the Parties of the deposit of each such instrument of accession."
+    },
+    {
+      "n": 11,
+      "titleEn": "Ratification",
+      "textEn": "This Treaty shall be ratified and its provisions carried out by the Parties in accordance with their respective constitutional processes. The instruments of ratification shall be deposited as soon as possible with the Government of the United States of America, which will notify all the other signatories of each deposit. The Treaty shall enter into force between the States which have ratified it as soon as the ratifications of the majority of the signatories, including the ratifications of Belgium, Canada, France, Luxembourg, the Netherlands, the United Kingdom and the United States, have been deposited and shall come into effect with respect to other States on the date of the deposit of their ratifications."
+    },
+    {
+      "n": 12,
+      "titleEn": "Review after ten years",
+      "textEn": "After the Treaty has been in force for ten years, or at any time thereafter, the Parties shall, if any of them so requests, consult together for the purpose of reviewing the Treaty, having regard for the factors then affecting peace and security in the North Atlantic area, including the development of universal as well as regional arrangements under the Charter of the United Nations for the maintenance of international peace and security."
+    },
+    {
+      "n": 13,
+      "titleEn": "Denunciation after twenty years",
+      "textEn": "After the Treaty has been in force for twenty years, any Party may cease to be a Party one year after its notice of denunciation has been given to the Government of the United States of America, which will inform the Governments of the other Parties of the deposit of each notice of denunciation."
+    },
+    {
+      "n": 14,
+      "titleEn": "Depositary texts",
+      "textEn": "This Treaty, of which the English and French texts are equally authentic, shall be deposited in the archives of the Government of the United States of America. Duly certified copies will be transmitted by that Government to the Governments of other signatories."
+    }
+  ]
+}

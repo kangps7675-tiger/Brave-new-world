@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import {
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "viewport-points-failed",
+        error: publicErrorMessage(error, "viewport-points-failed"),
         points: [],
       },
       { status: 502 },

@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { geeApi, initializeGEE, type GeeFeature } from "@/lib/gee";
 import { apiStubResponse } from "@/lib/apiStub";
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "GEE 라벨 조회 실패",
+        error: publicErrorMessage(error, "GEE 라벨 조회 실패"),
         labels: [],
       },
       { status: 500 },

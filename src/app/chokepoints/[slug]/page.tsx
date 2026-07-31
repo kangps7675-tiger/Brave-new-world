@@ -1,3 +1,4 @@
+import { safeJsonLd } from "@/lib/svgSafe";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -112,7 +113,7 @@ export default function ChokepointPage({ params }: { params: { slug: string } })
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 text-white/80">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <nav className="mb-8 text-xs text-white/40">

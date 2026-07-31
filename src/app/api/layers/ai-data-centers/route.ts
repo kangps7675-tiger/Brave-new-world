@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
       count: fallback.length,
       points: fallback,
       attribution: "local build",
-      warning: error instanceof Error ? error.message : "ai-data-centers failed",
+      warning: publicErrorMessage(error, "ai-data-centers failed"),
     });
   }
 }

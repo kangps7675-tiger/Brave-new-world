@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { StaticPoint } from "@/data/geoTypes";
 import { apiStubResponse } from "@/lib/apiStub";
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
       {
         enabled: true,
         points: [],
-        error: error instanceof Error ? error.message : "intel hotspots fetch failed",
+        error: publicErrorMessage(error, "intel hotspots fetch failed"),
       },
       { status: 502 },
     );

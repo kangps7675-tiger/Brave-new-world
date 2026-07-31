@@ -1,3 +1,4 @@
+import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         points: [],
-        error: error instanceof Error ? error.message : "space launches fetch failed",
+        error: publicErrorMessage(error, "space launches fetch failed"),
       },
       { status: 502 },
     );

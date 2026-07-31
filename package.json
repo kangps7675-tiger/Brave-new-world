@@ -18,12 +18,15 @@
     "verify:ui-tokens": "node scripts/check-ui-tokens.mjs",
     "verify:i18n": "node scripts/check-i18n.mjs",
     "verify:syntax": "node scripts/check-syntax.mjs",
+    "verify:security": "node scripts/check-security.mjs",
     "verify:maplibre": "node scripts/check-maplibre-expr.mjs",
     "verify:dialog-a11y": "node scripts/check-dialog-a11y.mjs",
     "codemod:typography": "node scripts/codemod-typography.mjs",
     "codemod:z-index": "node scripts/codemod-z-index.mjs",
     "verify:product-spec": "node scripts/verify-product-spec.js",
     "verify:stub-off-gate": "node scripts/verify-stub-off-gate.js",
+    "verify:data": "node scripts/verify-data-integrity.js",
+    "verify:data:warn": "node scripts/verify-data-integrity.js --warn",
     "gdelt:fetch": "node scripts/gdelt-fetch.js",
     "data:simplify": "node scripts/simplify-natural-earth.js",
     "data:build": "node scripts/build-local-data.js full",
@@ -53,6 +56,10 @@
     "sigint:fetch": "node scripts/fetch-sigint-layers.js",
     "sigint:convert": "node scripts/convert-sigint-layers.js",
     "data:ucdp": "node scripts/fetch-ucdp-events.js",
+    "gta:fetch": "node scripts/fetch-gta-interventions.js",
+    "gta:fetch:all": "node scripts/fetch-gta-interventions.js --all",
+    "peeringdb:fetch": "node scripts/fetch-peeringdb-ix.js",
+    "sanctions:build": "node scripts/build-sanctions-entities.js",
     "sigint:build": "node scripts/fetch-sigint-layers.js && node scripts/convert-sigint-layers.js && node scripts/build-static-extras.js full",
     "data:sync": "node scripts/sync-live-data.js",
     "data:sync:force": "node scripts/sync-live-data.js --force",
@@ -95,6 +102,8 @@
     "cf:r2:upload:audio": "node scripts/r2-upload-data.js --audio-only",
     "cf:r2:upload:audio:dry": "node scripts/r2-upload-data.js --audio-only --dry-run",
     "axis:arms:build": "node scripts/build-axis-arms.js",
+    "axis:arms:publish": "node scripts/publish-axis-arms.js",
+    "axis:arms:unpublish": "node scripts/publish-axis-arms.js --unpublish",
     "axis:hubs:build": "node scripts/build-axis-hub-countries.js",
     "axis:vdem:build": "node scripts/build-axis-vdem.js",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
@@ -105,7 +114,7 @@
     "@google/earthengine": "^1.7.34",
     "@streamparser/json": "^0.0.22",
     "@vercel/analytics": "^2.0.1",
-    "adm-zip": "^0.5.18",
+    "adm-zip": "^0.6.0",
     "drizzle-orm": "^0.45.2",
     "fflate": "^0.8.3",
     "fuse.js": "^7.4.2",
@@ -141,5 +150,12 @@
     "vitest": "^4.1.10",
     "wrangler": "^4.110.0",
     "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.4",
+    "adm-zip": "^0.6.0",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
+    "@emnapi/wasi-threads": "1.2.3"
   }
 }
