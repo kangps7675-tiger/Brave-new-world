@@ -56,36 +56,43 @@ export function emitOilSpikeSound() {
   });
 }
 
-/** A급 속보·등불/양피지 경보 — 모스 타전 + 깔개 동시 겹침 */
-export type BreakingDispatchBed = "dark" | "cheer";
+/** A급 속보·등불/양피지 경보 — 모스 타전 (+ 선택적 깔개) */
+export type BreakingDispatchBed = "dark" | "cheer" | "morse";
 
 export function emitBreakingDispatchSound(opts?: {
-  /** dark=지정학(기본) · cheer=지경학 등불 */
+  /** dark=지정학 등불 · cheer=지경학 등불 · morse=깔개 없이 모스만 (중립·애매) */
   bed?: BreakingDispatchBed;
 }) {
   const bed = opts?.bed ?? "dark";
-  const bedCue =
-    bed === "cheer"
-      ? {
-          eventId: "economy-lamp-cheer" as const,
-          volumeScale: 0.9,
-          /** 원본 ~32s — 앞부분 환호만 */
-          durationMs: 7200,
-        }
-      : {
-          eventId: "breaking-dark-bed" as const,
-          volumeScale: 1.85,
-          durationMs: 10_000,
-        };
+  const cues: Array<{
+    eventId: "economy-lamp-cheer" | "breaking-dark-bed" | "hero-breaking";
+    volumeScale: number;
+    durationMs: number;
+  }> = [];
 
-  emitLayerClickSounds([
-    bedCue,
-    {
-      eventId: "hero-breaking",
-      volumeScale: 0.95,
-      durationMs: 12_000,
-    },
-  ]);
+  if (bed === "cheer") {
+    cues.push({
+      eventId: "economy-lamp-cheer",
+      volumeScale: 0.9,
+      /** 원본 ~32s — 앞부분 환호만 */
+      durationMs: 7200,
+    });
+  } else if (bed === "dark") {
+    cues.push({
+      eventId: "breaking-dark-bed",
+      volumeScale: 1.85,
+      durationMs: 10_000,
+    });
+  }
+  // morse: 깔개 없음 — 모스만
+
+  cues.push({
+    eventId: "hero-breaking",
+    volumeScale: 0.95,
+    durationMs: 12_000,
+  });
+
+  emitLayerClickSounds(cues);
 }
 
 /** 양피지 펼칠 때 — 종이 바스락 */

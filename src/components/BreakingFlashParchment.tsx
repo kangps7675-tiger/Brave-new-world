@@ -32,6 +32,7 @@ export function BreakingFlashParchment({
       onContinue={onDismiss}
       playUnfoldSound
       playBreakingDispatch
+      breakingDispatchBed={briefing.dispatchBed}
       typewriter={false}
       blackInk
       titleId="breaking-flash-title"

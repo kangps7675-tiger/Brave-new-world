@@ -21,6 +21,8 @@ import {
 } from "@/lib/interest/applyFromInterest";
 import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
 import {
+  resolveConflictFlashBed,
+  resolveEconomyFlashBed,
   shouldOpenBreakingFlash,
   wasBreakingFlashClaimed,
 } from "@/lib/news/breakingFlash";
@@ -271,6 +273,7 @@ function emptyPayload(): NewsStreamPayload {
   return {
     fetchedAt: new Date().toISOString(),
     hero: null,
+    flashHeroes: [],
     verified: [],
     stateMedia: [],
     stats: {
@@ -666,7 +669,10 @@ export function DynamicIntelStack({
       return;
     }
     lastBreakingHeroIdRef.current = hero.id;
-    emitBreakingDispatchSound();
+    const bed = isEconomy
+      ? resolveEconomyFlashBed(`${hero.title} ${hero.summary ?? ""}`)
+      : resolveConflictFlashBed(`${hero.title} ${hero.summary ?? ""}`);
+    emitBreakingDispatchSound({ bed });
   }, [isAlert, hero, hero?.id, hero?.breakingRank, isEconomy]);
 
   useEffect(() => {
