@@ -155,12 +155,12 @@ export function formatCausalLine(
   const clean = title.replace(/\s+/g, " ").trim();
   if (actors.active && actors.passive) {
     return ko
-      ? `인과: ${actors.active}의 군사·강제 행동이 ${actors.passive} 측 인명·시설·영토에 직접 영향을 준다는 보도입니다. 「${clean}」`
-      : `Cause: reporting frames ${actors.active}'s kinetic/coercive action as directly affecting ${actors.passive}. 「${clean}」`;
+      ? `무슨 일인가. ${actors.active}이(가) 군사력이나 강제력을 써서 ${actors.passive}의 사람·시설·영토에 직접 영향을 줬다는 보도입니다. 「${clean}」`
+      : `What happened: reporting frames ${actors.active}'s military or coercive action as directly affecting ${actors.passive}. 「${clean}」`;
   }
   return ko
-    ? `인과: 확인된 와이어가 「${clean}」로 전함. 교차확인이 이어지는 대로 갱신됩니다.`
-    : `Cause: verified wires report 「${clean}」. Updates follow as corroboration arrives.`;
+    ? `무슨 일인가. 확인된 통신사가 「${clean}」라고 전했습니다. 다른 매체가 교차 확인하면 내용을 고칩니다.`
+    : `What happened: verified wires report 「${clean}」. Updates follow as corroboration arrives.`;
 }
 
 const WHY_BY_THEATER: Record<
@@ -168,52 +168,52 @@ const WHY_BY_THEATER: Record<
   { ko: string; en: string }
 > = {
   "middle-east": {
-    ko: "왜 중요: 에너지 해로·호르무즈·홍해 리스크와 지역 확전 경로가 동시에 움직입니다.",
-    en: "Why it matters: energy sea lanes (Hormuz/Red Sea) and escalation paths move together.",
+    ko: "왜 중요한가. 석유와 가스가 오가는 해협과 홍해 항로가 걸려 있고, 이웃 나라로 싸움이 번질 위험도 커질 수 있습니다.",
+    en: "Why it matters: oil/gas sea lanes (Hormuz/Red Sea) and the risk of wider fighting move together.",
   },
   "russia-ukraine": {
-    ko: "왜 중요: 유럽 전선·흑해 곡물·에너지 프리미엄에 직결되는 전장 신호입니다.",
-    en: "Why it matters: Europe front, Black Sea grain, and energy premium share this theater.",
+    ko: "왜 중요한가. 유럽 전선뿐 아니라 흑해 곡물과 에너지 가격에도 바로 영향을 줍니다.",
+    en: "Why it matters: it touches Europe’s front and Black Sea grain/energy prices.",
   },
   "china-taiwan": {
-    ko: "왜 중요: 대만해협 칩 서플라이·동맹 억지 시그널이 동시에 흔들립니다.",
-    en: "Why it matters: Taiwan Strait chip supply and allied deterrence signals move together.",
+    ko: "왜 중요한가. 대만해협을 지나는 반도체 공급이 흔들릴 수 있고, 동맹이 ‘막을 수 있다’고 보내는 메시지도 함께 흔들립니다.",
+    en: "Why it matters: Taiwan Strait chip supply and alliance deterrence signals move together.",
   },
   korea: {
-    ko: "왜 중요: 한반도 억지·미일 동맹·동북아 시장 리스크가 한 묶음으로 반응합니다.",
-    en: "Why it matters: Peninsula deterrence, US–Japan alliance, and NE Asia risk co-move.",
+    ko: "왜 중요한가. 한반도 안보와 미·일 동맹, 동북아 시장이 한꺼번에 반응하는 경우가 많습니다.",
+    en: "Why it matters: peninsula security, the US–Japan alliance, and NE Asia markets co-move.",
   },
   japan: {
-    ko: "왜 중요: 인도태평양 억지·해상로·동맹 훈련 일정과 맞물립니다.",
-    en: "Why it matters: Indo-Pacific deterrence, sea lanes, and alliance drills co-move.",
+    ko: "왜 중요한가. 인도·태평양 안보와 해상 물류, 동맹 훈련 일정과 맞물려 있습니다.",
+    en: "Why it matters: Indo-Pacific security, sea lanes, and alliance drills co-move.",
   },
   "south-asia": {
-    ko: "왜 중요: 핵 보유국 인접 긴장과 인도양 해로 리스크가 겹칩니다.",
-    en: "Why it matters: nuclear-neighbor tension meets Indian Ocean sea-lane risk.",
+    ko: "왜 중요한가. 핵을 가진 이웃 나라들 사이의 긴장과 인도양 항로 위험이 겹칩니다.",
+    en: "Why it matters: tension between nuclear neighbors meets Indian Ocean sea-lane risk.",
   },
   "southeast-asia": {
-    ko: "왜 중요: 남중국해·말라카 물류와 지역 군사 마찰이 겹칩니다.",
-    en: "Why it matters: SCS/Malacca logistics and regional military friction overlap.",
+    ko: "왜 중요한가. 남중국해와 말라카 해협의 물류, 그리고 그 일대 군사 마찰이 겹칩니다.",
+    en: "Why it matters: South China Sea / Malacca logistics and regional military friction overlap.",
   },
   "south-america": {
-    ko: "왜 중요: 에너지·광물 공급과 지역 안보 프리미엄이 동시에 반응합니다.",
-    en: "Why it matters: energy/minerals supply and regional security premium co-move.",
+    ko: "왜 중요한가. 에너지·광물 공급과 그 지역 안보 위험이 함께 움직일 수 있습니다.",
+    en: "Why it matters: energy/minerals supply and regional security risk co-move.",
   },
   africa: {
-    ko: "왜 중요: 사헬·홍해 연결 축과 자원·이주 압력 경로가 흔들립니다.",
+    ko: "왜 중요한가. 사헬에서 홍해로 이어지는 길목과 자원·이주 압력이 함께 흔들릴 수 있습니다.",
     en: "Why it matters: Sahel–Red Sea arcs and resource/migration pressure paths move.",
   },
   arctic: {
-    ko: "왜 중요: 북극 항로·자원·강대국 군사 접근이 겹치는 구간입니다.",
+    ko: "왜 중요한가. 북극 항로와 자원, 강대국의 군사 접근이 한곳에 모이는 구간입니다.",
     en: "Why it matters: Arctic routes, resources, and great-power access overlap.",
   },
   atlantic: {
-    ko: "왜 중요: 대서양·NATO 억지 축의 안보 프리미엄 신호입니다.",
-    en: "Why it matters: Atlantic/NATO deterrence premium signal.",
+    ko: "왜 중요한가. 대서양과 NATO 안보 축에서 긴장이 높아졌다는 신호입니다.",
+    en: "Why it matters: a tension signal on the Atlantic/NATO security axis.",
   },
   global: {
-    ko: "왜 중요: 전역 긴장 기축(GTI)과 시장·동맹 일정이 동시에 반응할 수 있는 급보입니다.",
-    en: "Why it matters: global tension spine (GTI) and markets/alliance calendars may co-move.",
+    ko: "왜 중요한가. 세계 긴장과 시장, 동맹 일정이 한꺼번에 움직일 수 있는 급보입니다.",
+    en: "Why it matters: a flash that can move global tension, markets, and alliance calendars together.",
   },
 };
 
@@ -258,27 +258,27 @@ const SUPPLY_BRIDGE_COPY: Record<
   { ko: string; en: string }
 > = {
   chokepoint: {
-    ko: "해협·운하 통항, 전쟁위험보험, 운임 경로에 바로 닿습니다.",
-    en: "Hits chokepoint transit, war-risk insurance, and freight paths directly.",
+    ko: "좁은 해협과 운하를 지나는 배편, 전쟁위험 보험료, 운임에 바로 영향을 줍니다.",
+    en: "Hits narrow-strait transit, war-risk insurance, and freight costs directly.",
   },
   chips: {
-    ko: "반도체·파운드리·장비 수출통제 축과 맞물립니다.",
-    en: "Couples to semiconductor foundry and export-control chains.",
+    ko: "반도체 공장 가동과 장비 수출 통제에도 영향을 줄 수 있습니다.",
+    en: "Couples to chip factories and export-control chains.",
   },
   energy: {
-    ko: "원유·LNG·파이프라인 가격·할증과 연결됩니다.",
-    en: "Links to oil/LNG/pipeline prices and risk premia.",
+    ko: "원유·LNG·가스관 가격과 위험 할증에 영향을 줍니다.",
+    en: "Links to oil/LNG/pipeline prices and risk markups.",
   },
   shipping: {
-    ko: "컨테이너·유조선 항로 우회와 물류 지연 리스크입니다.",
+    ko: "컨테이너·유조선이 항로를 우회하고 물류가 늦어질 위험이 커집니다.",
     en: "Raises container/tanker reroute and logistics delay risk.",
   },
   sanctions: {
-    ko: "제재·수출통제가 부품·금융 결제 경로를 조일 수 있습니다.",
-    en: "Sanctions/export controls can squeeze parts and payment rails.",
+    ko: "제재와 수출 통제가 부품 조달과 금융 결제를 막을 수 있습니다.",
+    en: "Sanctions/export controls can squeeze parts and payment routes.",
   },
   minerals: {
-    ko: "핵심광물·희토 조달 경로가 흔들릴 수 있습니다.",
+    ko: "핵심 광물과 희토류를 구하는 길이 흔들릴 수 있습니다.",
     en: "Critical-mineral and rare-earth sourcing paths may wobble.",
   },
 };
@@ -314,7 +314,7 @@ export function formatSupplyChainBridge(
   const ko = lang !== "en";
   const bits = kinds.map((k) => (ko ? SUPPLY_BRIDGE_COPY[k].ko : SUPPLY_BRIDGE_COPY[k].en));
   if (ko) {
-    return `공급망 연결: ${bits.join(" ")}`;
+    return `공급망과의 연결입니다. ${bits.join(" ")}`;
   }
   return `Supply-chain link: ${bits.join(" ")}`;
 }
@@ -335,7 +335,7 @@ export function formatEconomyWhyImportant(
       text,
     )
   ) {
-    axes.push(ko ? "중앙은행·금리" : "central banks & rates");
+    axes.push(ko ? "중앙은행과 금리" : "central banks & rates");
   }
   if (
     /\b(oil|crude|brent|wti|lng|opec|gold|copper|wheat|commodity)\b|원유|유가|원자재|금\s?값|구리|밀\b/i.test(
@@ -349,17 +349,17 @@ export function formatEconomyWhyImportant(
       text,
     )
   ) {
-    axes.push(ko ? "대형 기업·자본 배치" : "mega-cap / capital allocation");
+    axes.push(ko ? "대형 기업과 자본 배치" : "mega-cap / capital allocation");
   }
   if (
     /\b(tariff|sanction|export\s?control|wto|inflation|gdp|recession|fx\b|devaluat)\b|관세|제재|수출\s?통제|물가|GDP|환율/i.test(
       text,
     )
   ) {
-    axes.push(ko ? "무역·거시 충격" : "trade / macro shock");
+    axes.push(ko ? "무역과 거시 경제 충격" : "trade / macro shock");
   }
   if (links.includes("chokepoint") || links.includes("shipping")) {
-    axes.push(ko ? "해상 초크·물류" : "sea chokepoints & logistics");
+    axes.push(ko ? "초크포인트와 물류" : "sea chokepoints & logistics");
   }
   if (links.includes("chips")) {
     axes.push(ko ? "반도체 공급망" : "chip supply chain");
@@ -368,11 +368,11 @@ export function formatEconomyWhyImportant(
   const uniq = [...new Set(axes)].slice(0, 3);
   if (uniq.length === 0) {
     return ko
-      ? "왜 중요: 국제 자본·공급망·허브 가격에 동시에 닿을 수 있는 지경학 급보입니다."
+      ? "왜 중요한가. 국제 자본과 공급망, 허브 도시의 가격이 한꺼번에 움직일 수 있는 경제·지정학 급보입니다."
       : "Why it matters: a geoeconomic flash that can hit capital, supply chains, and hub prices together.";
   }
   return ko
-    ? `왜 중요: ${uniq.join(" · ")}에 직접 연결되는 국제 지경학 급보입니다.`
+    ? `왜 중요한가. ${uniq.join(", ")}에 직접 영향을 줄 수 있는 국제 경제·지정학 급보입니다.`
     : `Why it matters: international geoeconomic flash tied to ${uniq.join(", ")}.`;
 }
 
@@ -386,14 +386,13 @@ export function formatWhyImportant(
   let line = ko ? base.ko : base.en;
   if (isIranRelatedBreakingText(text)) {
     line = ko
-      ? "왜 중요: 이란 축(핵·미사일·호르무즈·지역 대리전)이 에너지·해로·확전 경로를 동시에 흔듭니다."
-      : "Why it matters: the Iran axis (nuclear/missile/Hormuz/proxies) shakes energy, sea lanes, and escalation paths together.";
+      ? "왜 중요한가. 이란의 핵·미사일과 호르무즈 해협, 지역 대리전은 에너지·항로와 이웃으로 싸움이 번질 위험을 한꺼번에 흔듭니다."
+      : "Why it matters: Iran’s nuclear/missile posture, Hormuz, and regional proxies shake energy, sea lanes, and wider-war risk together.";
   }
-  // 초크 점검은 formatSupplyChainBridge로 이전 — 여기서는 핵·미사일만 보강
   if (/\bnuclear|missile|warhead|핵|미사일|핵탄두\b/i.test(text)) {
     line = ko
-      ? `${line} 핵·미사일 언급은 억지 계산을 바꾸는 최고 수위 신호입니다.`
-      : `${line} Nuclear/missile language is top-tier deterrence math.`;
+      ? `${line} 핵이나 미사일이 언급되면, 상대를 말릴 힘의 계산이 바뀌는 가장 높은 수위의 신호입니다.`
+      : `${line} Nuclear/missile language is a top-tier signal that changes deterrence math.`;
   }
   return line;
 }
@@ -402,7 +401,7 @@ export function formatSceneLine(theater: NewsTheater, lang: LabelLanguage): stri
   const ko = lang !== "en";
   const name = theaterLabel(theater, lang);
   return ko
-    ? `현장: ${name} — 지도가 해당 전장으로 이동합니다.`
+    ? `현장: ${name} — 지도가 이 전장으로 이동합니다.`
     : `Scene: ${name} — map flies to this theater.`;
 }
 

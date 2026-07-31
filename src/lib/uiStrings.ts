@@ -15,7 +15,7 @@ const UI = {
   cityLabelsEn: { ko: "도시명 영문", en: "English place names" },
   cityLabelsKo: { ko: "도시명 한글", en: "Korean place names" },
   viewSettings: { ko: "보기 설정", en: "View settings" },
-  viewSettingsHint: { ko: "GEOINT · FININT 단말기 모드", en: "GEOINT · FININT terminal mode" },
+  viewSettingsHint: { ko: "전쟁 보기 · 경제 보기 모드", en: "Conflict view · economy view" },
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
   layers: { ko: "레이어", en: "Layers" },
@@ -107,12 +107,12 @@ const UI = {
     en: "Pick a view mode · switch anytime from the top bar",
   },
   modePickerDetailConflictTitle: {
-    ko: "GEOINT — 어디를 먼저 볼까요?",
-    en: "GEOINT — where to focus first?",
+    ko: "전쟁·안보 보기 — 어디를 먼저 볼까요?",
+    en: "Conflict & security — where to focus first?",
   },
   modePickerDetailEconomyTitle: {
-    ko: "FININT — 어느 허브로 갈까요?",
-    en: "FININT — which hub first?",
+    ko: "경제·물류 보기 — 어느 허브로 갈까요?",
+    en: "Economy & logistics — which hub first?",
   },
   modePickerDetailSubtitle: {
     ko: "관심 지역을 고르거나 자동으로 두면 신호가 이끕니다",
@@ -129,7 +129,7 @@ const UI = {
   },
   layerCapWarnTitle: { ko: "레이어를 더 켤 수 없습니다", en: "Can't enable more layers" },
   layerCapWarnBody: {
-    ko: "성능을 위해 동시에 켤 수 있는 레이어는 {cap}개까지입니다. 새 레이어를 켜려면 켜져 있는 레이어 중 하나를 먼저 꺼 주세요.",
+    ko: "성능을 위해 동시에 켤 수 있는 레이어는 {cap}개까지입니다. 새 레이어를 켜려면 켜져 있는 레이어 중 하나를 먼저 꺼 주십시오.",
     en: "For performance, you can enable up to {cap} layers at once. Turn one off before enabling another.",
   },
   layerCapWarnUltra: {
@@ -166,7 +166,7 @@ const UI = {
   /** 하단 인텔 (P1-5) */
   intelStreamSyncing: { ko: "뉴스 스트림 동기화 중…", en: "Syncing news stream…" },
   /** 상단 nav (P1-5) */
-  navPowderKeg: { ko: "화약고", en: "Flashpoints" },
+  navPowderKeg: { ko: "긴장 지점", en: "Flashpoints" },
   navAllyCountries: { ko: "우군 국가", en: "Allied states" },
   /** 공유 장면 카드 — 폰 (P2-3-A) */
   sceneCardKicker: { ko: "공유된 장면", en: "Shared view" },
@@ -417,8 +417,8 @@ const UI = {
   legendEconLaneDetail: { ko: "해운로", en: "Shipping route" },
   legendEconChoke: { ko: "초크", en: "Choke" },
   legendEconChokeDetail: { ko: "물류 병목", en: "Logistics choke" },
-  legendEconCritical: { ko: "크리티컬", en: "Critical" },
-  legendEconCriticalDetail: { ko: "MIT 노드", en: "MIT node" },
+  legendEconCritical: { ko: "핵심", en: "Critical" },
+  legendEconCriticalDetail: { ko: "공급망 거점", en: "Supply hub" },
   legendEconPipe: { ko: "에너지", en: "Energy" },
   legendEconPipeDetail: { ko: "파이프·LNG", en: "Pipe · LNG" },
   legendEconPort: { ko: "항구", en: "Port" },
@@ -436,8 +436,8 @@ const UI = {
   legendUaCombatRing: { ko: "충돌지역 링", en: "Combat ring" },
   legendUaCombatRingDetail: { ko: "반경 5km", en: "5 km radius" },
   legendDisputeBody: {
-    ko: "전쟁구역(빨강)과 외교적 긴장구역(주황)을 각각 켤 수 있습니다. 사각 틀 안에만 빗금이 그려지며, 근접 줌에서는 세부 구역 세그먼트가 우선 표시됩니다.",
-    en: "Toggle war zones (red) and diplomatic tension zones (orange) separately. Hatch draws only inside the box; at close zoom, finer segments take priority.",
+    ko: "전쟁구역(빨강)과 외교 긴장구역(주황)을 따로 켤 수 있습니다. 네모 틀 안에만 빗금이 그려지고, 가까이 확대하면 세부 구역이 먼저 보입니다.",
+    en: "Toggle war zones (red) and diplomatic tension zones (orange) separately. Hatch draws only inside the box; zoom in to see finer segments first.",
   },
   legendDisputeCombat: { ko: "전쟁구역", en: "War zone" },
   legendDisputeDiplomatic: { ko: "외교적 긴장구역", en: "Diplomatic tension zone" },
@@ -455,23 +455,23 @@ const UI = {
     ko: "상단 유틸 버튼 다시 보이기",
     en: "Show top utility buttons",
   },
-  domainConflictTitle: { ko: "GEOINT", en: "GEOINT" },
+  domainConflictTitle: { ko: "전쟁·안보", en: "Conflict" },
   domainConflictHint: {
-    ko: "Geospatial Intelligence — 전선·분쟁·군사·외교",
-    en: "Geospatial Intelligence — fronts, disputes, mil–diplomatic",
+    ko: "전선·분쟁·군사·외교 — 어디서 싸우고 긴장하는지",
+    en: "Fronts, disputes, military & diplomacy — where fighting and tension are",
   },
-  domainEconomyTitle: { ko: "FININT", en: "FININT" },
+  domainEconomyTitle: { ko: "경제·물류", en: "Economy" },
   domainEconomyHint: {
-    ko: "Financial Intelligence — 에너지·물류·항로·시장",
-    en: "Financial Intelligence — energy, logistics, lanes, markets",
+    ko: "에너지·물류·항로·시장 — 돈이 어디서 움직이는지",
+    en: "Energy, logistics, sea lanes, markets — where money moves",
   },
   welcomeLetterCta: { ko: "편지를 접고 신세계로", en: "Fold the letter — enter the New World" },
   welcomeBriefBody: {
-    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대입니다. GEOINT와 FININT 중 어느 창으로 들어설지, 다음에서 고르십시오.",
-    en: "An observatory where war and profit share one screen. Next, choose which window to open — GEOINT or FININT.",
+    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대.\n다음에서—지정학의 창인지, 지경학의 창인지—선택하십시오.",
+    en: "An observatory where war and profit share one screen. Next, choose Conflict & security or Economy & logistics.",
   },
   welcomeBriefQuote: {
-    ko: "\"보이는 모든 것은 현재 벌어지는 실제 상황입니다.\"",
+    ko: "\"보이는 모든 것은 지금 이곳에서 벌어지는 실제 상황이다.\"",
     en: "\"Everything you see is a real situation unfolding now.\"",
   },
   welcomeBriefCta: {
@@ -488,7 +488,7 @@ const UI = {
   },
 
   hubBriefCta: { ko: "편지를 접기", en: "Fold the letter" },
-  entryCautionMustRead: { ko: "반드시 읽어주세요", en: "Please read this carefully" },
+  entryCautionMustRead: { ko: "반드시 읽어 주십시오", en: "Please read this carefully" },
   entryCautionTitle: {
     ko: "RESTRICTED · 오퍼레이터 인가",
     en: "RESTRICTED · OPERATOR CLEARANCE",
@@ -498,7 +498,7 @@ const UI = {
     en: "Your session is logged as a temporary OPERATOR NODE. This terminal is an open-source intelligence (OSINT) board.",
   },
   entryCautionPhase1: {
-    ko: "IP·브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부 무단 반출·스크레이핑은 금지됩니다.",
+    ko: "IP와 브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부로 무단 반출하거나 스크레이핑하는 행위는 금지됩니다.",
     en: "IP and hardware fingerprint are logged as an active observer. Unauthorized export or scraping is prohibited.",
   },
   /**
@@ -513,37 +513,37 @@ const UI = {
    * 정확한 상한은 레이어 패널의 상한 카운터가 상시 보여준다.
    */
   entryCautionPhase2: {
-    ko: "GEOINT(지리·전선) · FININT(공급망·시장) 피드를 동기화합니다. 레이어를 많이 켜면 지도가 느려질 수 있습니다 — 필요한 것만 켜세요.",
-    en: "Syncing GEOINT (theater) and FININT (supply · markets) feeds. Enabling many layers can slow the map — turn on only what you need.",
+    ko: "전쟁·안보(전선)와 경제·물류(공급망·시장) 피드를 맞추는 중입니다. 레이어를 많이 켜면 지도가 느려질 수 있으니, 필요한 것만 켜 주십시오.",
+    en: "Syncing conflict (theater) and economy (supply · markets) feeds. Enabling many layers can slow the map — turn on only what you need.",
   },
   entryCautionLagLabel: { ko: "성능", en: "Performance" },
   entryCautionLagBody: {
-    ko: "레이어를 많이 켜면 지도가 느려질 수 있습니다. 컴퓨터 사양이 낮다면 아래에서 Ultra-Lite를 켜 주세요 — 무거운 레이어를 자동으로 줄입니다. 정확한 상한은 레이어 패널에서 확인할 수 있습니다.",
+    ko: "레이어를 많이 켜면 지도가 느려질 수 있습니다. 컴퓨터 사양이 낮다면 아래에서 Ultra-Lite를 켜 주십시오. 무거운 레이어를 자동으로 줄입니다. 정확한 상한은 레이어 패널에서 확인할 수 있습니다.",
     en: "Enabling many layers can slow the map. On a low-spec machine, turn on Ultra-Lite below — it trims the heaviest layers automatically. The exact limit is shown in the layers panel.",
   },
   entryCautionSoundLabel: { ko: "소리", en: "Sound" },
   entryCautionSoundBody: {
-    ko: "체크박스만 켠다고 바로 소리가 나지는 않습니다. 전장·긴장 앰비언트는 카메라가 해당 지역에 들어올 때, 공항·항모·선박·파이프 등 인프라는 지도에서 누를 때 납니다. 공습 사이렌은 칩/버튼 fly 전용입니다. 이어폰을 쓰시거나, 원치 않으면 아래에서 소리를 꺼 주세요.",
+    ko: "체크박스만 켠다고 바로 소리가 나지는 않습니다. 전장·긴장 앰비언트는 카메라가 해당 지역에 들어올 때, 공항·항모·선박·파이프 등 인프라는 지도에서 누를 때 납니다. 공습 사이렌은 칩·버튼 fly 전용입니다. 이어폰을 쓰시거나, 원치 않으면 아래에서 소리를 꺼 주십시오.",
     en: "A checkbox alone does not play sound. Theater/tension ambients start when the camera enters the area; airports, carriers, ships, pipelines and other infrastructure play when you click them on the map. Air-raid sirens play only on alert-chip fly. Use headphones, or mute below.",
   },
-  entryCautionSoundWhenTitle: { ko: "언제 소리가 나나요", en: "When sound plays" },
+  entryCautionSoundWhenTitle: { ko: "언제 소리가 나는가", en: "When sound plays" },
   entryCautionSoundWhen: {
     ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
     en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
-    ko: "본 피드는 공개 소스·와이어·위성/선박 오픈데이터를 가공한 상황판입니다. 공식 경보 대체가 아니며, 무단 반출·왜곡 시 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
+    ko: "본 피드는 공개 소스·와이어·위성·선박 오픈데이터를 가공한 상황판입니다. 공식 경보를 대체하지 않으며, 무단으로 반출하거나 왜곡하면 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
     en: "This feed is a situation board built from open sources, wires, and open vessel/satellite data — not a substitute for official alerts. Unauthorized export or distortion may terminate node access. Initialize as an autonomous intel observer?",
   },
   entryCautionCta: { ko: "확인했습니다 — 편지로", en: "Got it — continue to letter" },
   entryCautionCtaHint: {
-    ko: "인가 후 환영 편지 → GEOINT / FININT 창 선택",
-    en: "After ACK → welcome letter → GEOINT / FININT window",
+    ko: "확인 후 환영 편지 → 전쟁·안보 / 경제·물류 선택",
+    en: "After ACK → welcome letter → conflict / economy choice",
   },
   entryCautionSkip: { ko: "스킵 · 도메인", en: "SKIP · DOMAIN" },
   entryCautionSkipHint: {
-    ko: "경고·편지를 건너뛰고 GEOINT·FININT 선택으로",
-    en: "Skip caution & letter — GEOINT / FININT choice",
+    ko: "경고와 편지를 건너뛰고 전쟁·안보 / 경제·물류 선택으로 이동합니다",
+    en: "Skip caution & letter — conflict / economy choice",
   },
   /** 하단 메인 CTA 옆 — 처음 방문자가 놓치기 쉬운 코너 스킵 대신 눈에 띄는 위치에 배치 */
   entryCautionSkipCta: { ko: "지금 바로 보기 →", en: "Skip straight to the map →" },
@@ -552,7 +552,7 @@ const UI = {
     en: "See where the world is tense today — on one map.",
   },
   domainGateDetailHint: {
-    ko: "창을 고르면 바로 입장합니다. 빠른 선택을 원하면 아래 초기화 모드를 켜세요.",
+    ko: "창을 고르면 바로 입장합니다. 빠른 선택을 원하면 아래 초기화 모드를 켜 주십시오.",
     en: "Pick a window and enter at once. For a lighter start, turn on Init mode below.",
   },
   domainUltraLiteLabel: { ko: "초기화 모드 (가볍게)", en: "Init mode (lite)" },
@@ -635,18 +635,18 @@ const UI = {
     ko: "자동이면 RSS·분쟁 신호 기준 가장 핫한 지정학·투자 허브로 이동합니다",
     en: "Auto flies to the hottest geopolitical · investment hub",
   },
-  modeStartConflict: { ko: "GEOINT로 시작", en: "Initialize GEOINT" },
-  modeStartEconomy: { ko: "FININT로 시작", en: "Initialize FININT" },
-  viewerModeLabel: { ko: "단말기 모드", en: "Terminal mode" },
-  modeConflict: { ko: "GEOINT", en: "GEOINT" },
+  modeStartConflict: { ko: "전쟁·안보로 시작", en: "Start conflict view" },
+  modeStartEconomy: { ko: "경제·물류로 시작", en: "Start economy view" },
+  viewerModeLabel: { ko: "보기 모드", en: "View mode" },
+  modeConflict: { ko: "전쟁·안보", en: "Conflict" },
   modeConflictHint: {
-    ko: "Geospatial Intelligence · 전선 · OSINT",
-    en: "Geospatial Intelligence · frontline · OSINT",
+    ko: "전선 · 분쟁 · 군사·외교",
+    en: "Fronts · disputes · mil & diplomacy",
   },
-  modeEconomy: { ko: "FININT", en: "FININT" },
+  modeEconomy: { ko: "경제·물류", en: "Economy" },
   modeEconomyHint: {
-    ko: "Financial Intelligence · 공급망 · 증시",
-    en: "Financial Intelligence · supply chain · markets",
+    ko: "공급망 · 에너지 · 시장",
+    en: "Supply chain · energy · markets",
   },
   basemapModeLabel: { ko: "지도 표시 모드", en: "Basemap mode" },
   basemapIntel: { ko: "인텔", en: "Intel" },
@@ -748,7 +748,7 @@ const UI = {
     en: "Territorial disputes",
   },
   disputesOverviewNavHint: {
-    ko: "포괄 아카이브",
+    ko: "전체 목록",
     en: "Full archive",
   },
   regimeConflictsNav: {
@@ -756,7 +756,7 @@ const UI = {
     en: "Territorial disputes",
   },
   regimeConflictsNavHint: {
-    ko: "진영·국경",
+    ko: "진영과 국경",
     en: "Bloc · border",
   },
   westpacShipMovesTitle: {
@@ -764,39 +764,39 @@ const UI = {
     en: "Weekly ship movement record",
   },
   westpacShipMovesDisclaimer: {
-    ko: "공개 관측 기반 주간 기록입니다. 실시간 AIS 위치가 아닙니다.",
+    ko: "공개 관측을 바탕으로 한 주간 기록입니다. 실시간 AIS 위치가 아닙니다.",
     en: "Public observation weekly record — not live AIS positions.",
   },
   westpacLocationUnknown: {
-    ko: "위치 공개 관측 없음",
+    ko: "공개된 위치 관측이 없습니다",
     en: "No public location fix",
   },
   westpacLocationBroad: {
-    ko: "광역 해역 추정",
+    ko: "광역 해역으로 추정",
     en: "Estimated sea area",
   },
   westpacLocationUnresolved: {
-    ko: "지명 미매칭",
+    ko: "지명을 맞추지 못함",
     en: "Place unresolved",
   },
   westpacMapEligibleOnly: {
-    ko: "지도: 정밀·해협 핀 + 광역 해역 추정(≈). 좌표 없는 건은 목록만.",
+    ko: "지도에는 정밀·해협 핀과 광역 해역 추정(≈)만 올립니다. 좌표가 없는 건은 목록에만 남습니다.",
     en: "Map: precise/chokepoint pins + estimated sea areas (≈). Off-map items stay in the list.",
   },
   westpacFilterAll: { ko: "전체", en: "All" },
   westpacFilterOnMap: { ko: "지도", en: "On map" },
   westpacFilterOffMap: { ko: "미확정", en: "Unresolved" },
   westpacEmptyOnMapHint: {
-    ko: "승인 기록은 있지만 지도에 올릴 좌표가 없습니다. 아래 미확정 목록을 확인하세요.",
+    ko: "승인 기록은 있지만 지도에 올릴 좌표가 없습니다. 아래 미확정 목록을 확인하십시오.",
     en: "Approved records exist, but none have map coordinates yet. Check the unresolved list below.",
   },
   westpacConfidenceObserved: { ko: "직접 관측", en: "Observed" },
   westpacConfidenceReported: { ko: "보도 서술", en: "Reported" },
   westpacConfidenceEstimated: { ko: "추정", en: "Estimated" },
-  westpacVesselUncertain: { ko: "식별 불확실", en: "ID uncertain" },
+  westpacVesselUncertain: { ko: "식별이 불확실함", en: "ID uncertain" },
   westpacTrailLegend: {
-    ko: "점 연결은 공개 관측 연결선이며 실제 항적이 아닙니다. 전체/함선별 모드와 양피지 브리프로 경위를 읽으세요.",
-    en: "Lines connect public observations — not AIS tracks. Use All/Per-ship modes and the parchment brief.",
+    ko: "점 연결은 공개된 관측을 이은 선이며 실제 항적이 아닙니다. 전체/함선별 모드와 브리프로 경위를 읽으십시오.",
+    en: "Lines connect public observations — not live tracks. Use All/Per-ship modes and the brief.",
   },
   westpacEmptyTimeline: {
     ko: "승인된 주간 기록이 아직 없습니다.",
@@ -805,7 +805,7 @@ const UI = {
   westpacLoading: { ko: "불러오는 중…", en: "Loading…" },
   westpacExit: { ko: "나가기", en: "Exit" },
   westpacOpenSource: { ko: "출처", en: "Source" },
-  westpacBriefOpen: { ko: "양피지 브리프", en: "Parchment brief" },
+  westpacBriefOpen: { ko: "브리프 읽기", en: "Read brief" },
 } as const;
 
 export type UiStringKey = keyof typeof UI;

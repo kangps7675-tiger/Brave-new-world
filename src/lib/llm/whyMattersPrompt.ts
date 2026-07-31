@@ -1,4 +1,4 @@
-/** 등불 「왜 중요?」 — 이 헤드라인의 인과(원인→결과)만 짧게 설명 */
+/** 등불 「왜 중요?」 — 이 헤드라인의 인과만 짧게. 한글 모드는 자연스러운 한국어(~습니다체)만. */
 
 export type WhyMattersArticleInput = {
   title: string;
@@ -10,17 +10,22 @@ export type WhyMattersArticleInput = {
 };
 
 const CAUSAL_RULES_KO = [
-  "역할: 외교·안보 브리핑. 독자는 지도를 보는 비전공자.",
-  "오직 이 헤드라인의 인과관계를 설명한다: 원인(무엇이 일어났는지/왜 터졌는지) → 결과(그래서 왜 중요한지).",
+  "역할: 외교·안보 브리핑. 독자는 지도를 보는 비전공자입니다. 중학생도 이해할 쉬운 말로 쓰십시오.",
+  "오직 이 헤드라인의 인과관계를 설명합니다. 원인(무엇이 일어났는지)에서 결과(그래서 왜 중요한지)로 이어 쓰십시오.",
+  "한국어 문법: 주어+목적어+서술어 어순을 지키십시오. 조사를 빠뜨리지 마십시오.",
+  "나쁜 예: '해협 통항과 보험·운임에 바로 닿습니다.' 좋은 예: '좁은 해협을 지나는 배편과 보험료·운임에 바로 영향을 줍니다.'",
+  "종결어미: 한 문단 안에서는 '~습니다/~입니다'만 쓰십시오. '~다'체와 '~습니다'체를 섞지 마십시오. '~요'체도 쓰지 마십시오.",
   "금지: 일반론 강의, 교과서식 국제정치 개론, 기사와 무관한 주변 이슈, 장황한 배경사, 매매 권유, 예언, SNS 단정.",
-  "기사·발췌에 없는 사실을 지어내지 말 것. 추론이면 ‘분석적 판단’, 모르면 ‘불확실’이라고 쓸 것.",
-  "문장은 짧고 직접적으로. 군더더기·수사·메타 코멘트(‘키를 넣으면…’ 등) 금지.",
+  "전문 용어는 쉬운 말로 바꿉니다. 억지→상대를 말릴 힘, 시그널→메시지, 프리미엄→위험 할증. 다만 초크포인트·OSINT·AIS처럼 한국어로도 잘 통하는 외래어는 그대로 쓰되, 주어·조사·서술어가 갖춰진 문장에 넣으십시오.",
+  "기사·발췌에 없는 사실을 지어내지 마십시오. 추론이면 '분석적 판단', 모르면 '불확실'이라고 쓰십시오.",
+  "문장은 짧고 직접적으로. 군더더기·수사·메타 코멘트('키를 넣으면…' 등) 금지.",
 ].join(" ");
 
 const CAUSAL_RULES_EN = [
-  "Role: IR brief for non-specialist map users.",
+  "Role: IR brief for non-specialist map users — plain language a teenager can follow.",
   "Explain ONLY the causal chain for THIS headline: cause (what happened / why it fired) → effect (why it matters).",
   "Forbidden: general IR lectures, textbook digressions, unrelated side topics, long history primers, trading advice, prophecy, unverified social claims.",
+  "Prefer plain words over jargon (deterrence → ability to stop/discourage; premium → risk markup; kinetic → military attack).",
   "Do not invent facts absent from the title/excerpt. Label inference as judgment; label unknowns clearly.",
   "Short, direct sentences. No filler or meta commentary.",
 ].join(" ");
@@ -30,13 +35,13 @@ export function buildWhyMattersSystem(lang: "ko" | "en"): string {
     return [
       CAUSAL_RULES_EN,
       "Format: 3 short paragraphs — (1) Cause, (2) Mechanism (how A leads to B), (3) Map-level effect + one caveat.",
-      "Stay glued to this event. English only.",
+      "Stay glued to this event. English only. No jargon walls.",
     ].join(" ");
   }
   return [
     CAUSAL_RULES_KO,
     "형식: 짧은 문단 3개 — (1) 원인 (2) 연결(어떻게 A가 B로 이어지는지) (3) 지도·전장에 끼치는 결과 + 주의 한 줄.",
-    "이 사건만 다룰 것. 한국어만.",
+    "이 사건만 다룰 것. 한국어만. 영어 직역투·명사 나열 금지. 종결어미는 ~습니다/~입니다로 통일.",
   ].join(" ");
 }
 
@@ -46,13 +51,13 @@ export function buildWhyMattersQuickSystem(lang: "ko" | "en"): string {
     return [
       CAUSAL_RULES_EN,
       "Exactly 2 short paragraphs: (1) Cause — what drove this; (2) Effect — why it matters on the map, plus one caveat.",
-      "No bullets. No intro/outro. English only.",
+      "No bullets. No intro/outro. English only. Plain words.",
     ].join(" ");
   }
   return [
     CAUSAL_RULES_KO,
     "문단 정확히 2개: (1) 원인 — 무엇이 이걸 만들었는지 (2) 결과 — 그래서 지도·전장에서 왜 중요한지 + 주의 한 줄.",
-    "불릿·서론·맺음말 금지. 한국어만.",
+    "불릿·서론·맺음말 금지. 한국어만. ~습니다/~입니다체로 통일.",
   ].join(" ");
 }
 
@@ -64,11 +69,11 @@ export function buildWhyMattersUserMessage(
   const lines = [
     lang === "en"
       ? mode === "quick"
-        ? "Causal brief only (cause → effect). Do not digress."
-        : "Causal brief only (cause → mechanism → effect). Do not digress."
+        ? "Causal brief only (cause → effect). Do not digress. Plain language."
+        : "Causal brief only (cause → mechanism → effect). Do not digress. Plain language."
       : mode === "quick"
-        ? "인과만 설명 (원인 → 결과). 딴소리 금지."
-        : "인과만 설명 (원인 → 연결 → 결과). 딴소리 금지.",
+        ? "인과만 설명하십시오(원인 → 결과). 딴소리 금지. 주어·조사·서술어가 갖춰진 ~습니다체 한국어."
+        : "인과만 설명하십시오(원인 → 연결 → 결과). 딴소리 금지. 주어·조사·서술어가 갖춰진 ~습니다체 한국어.",
     `Title: ${input.title}`,
   ];
   if (input.source) lines.push(`Source: ${input.source}`);
@@ -90,7 +95,7 @@ export function buildWhyMattersUserMessage(
             "답 형식:",
             "문단1 — 원인: 무슨 일이고, 무엇이 이걸 만들었는지.",
             "문단2 — 결과: 그래서 지금 지도·전장에서 왜 중요한지 + 주의 한 줄.",
-            "다른 전장·시장·일반 이론 얘기 금지.",
+            "다른 전장·시장·일반 이론 얘기 금지. 종결어미는 ~습니다/~입니다만.",
           ].join("\n"),
     );
   } else {
@@ -105,10 +110,10 @@ export function buildWhyMattersUserMessage(
           ].join("\n")
         : [
             "답 형식:",
-            "문단1 — 원인: 촉발된 움직임·압력.",
+            "문단1 — 원인: 무엇이 촉발됐는지.",
             "문단2 — 연결: 그 원인이 어떤 구체적 결과로 이어지는지.",
             "문단3 — 결과 + 주의: 지도·전장에서의 중요성; 헤드라인만으로 알 수 없는 점.",
-            "일반론·딴소리로 분량을 채우지 말 것.",
+            "일반론·딴소리로 분량을 채우지 말 것. 종결어미는 ~습니다/~입니다만.",
           ].join("\n"),
     );
   }
@@ -118,17 +123,17 @@ export function buildWhyMattersUserMessage(
 /** 서버 키·스텁도 없을 때 — 항상 읽히는 템플릿 (인과 골격) */
 export function templateWhyMattersText(input: WhyMattersArticleInput): string {
   const lang = input.lang === "en" ? "en" : "ko";
-  const focus = input.focusLabel?.trim() || (lang === "en" ? "this theater" : "이 전장");
+  const focus = input.focusLabel?.trim() || (lang === "en" ? "this region" : "이 지역");
   const shortTitle = input.title.slice(0, 80);
   if (lang === "en") {
     return [
-      `Cause: 「${shortTitle}」 points to a concrete move or pressure around ${focus}. What matters is who acted, under what constraint — not ceremony alone.`,
-      `Effect: That shift can change local deterrence, supply lines, or diplomatic room for maneuver. Treat details as provisional until high-trust sources confirm; add your Anthropic key for a fuller causal brief.`,
+      `Cause: 「${shortTitle}」 points to a concrete move or pressure around ${focus}. Focus on who acted and what changed — not ceremony alone.`,
+      `Effect: That shift can change local security, supply routes, or diplomatic room to maneuver. Treat details as provisional until trusted sources confirm.`,
     ].join("\n\n");
   }
   return [
-    `원인: 「${shortTitle}」는 ${focus}에서 누가·어떤 압력으로 움직였는지가 핵심입니다. 의식·수사보다 ‘무엇이 바뀌었는지’를 먼저 보세요.`,
-    `결과: 그 변화가 현지 억지·보급·외교 여지를 흔들면 지도에서 중요해집니다. 세부 사실은 고신뢰 매체가 교차 확인할 때까지 잠정으로 두세요. 본인 Anthropic 키를 넣으면 인과를 더 풀어 드립니다.`,
+    `원인입니다. 「${shortTitle}」는 ${focus}에서 누가, 어떤 압력으로 움직였는지가 핵심입니다. 말뿐인 행사보다 ‘무엇이 바뀌었는지’를 먼저 보십시오.`,
+    `결과입니다. 그 변화가 현지 안보·보급·외교 여지를 흔들면 지도에서 중요해집니다. 세부 사실은 믿을 만한 매체가 교차 확인할 때까지 잠정으로 두십시오.`,
   ].join("\n\n");
 }
 

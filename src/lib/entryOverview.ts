@@ -65,7 +65,7 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 홍해·해상 위협 + 자원(해저관·송유관·원자력) */
+/** 지정학 히어로 — 홍해·해상 위협 + 자원(원자력). 송유관·해저관·반서방 축은 기본 OFF */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...RED_SEA_HOUTHI_STACK,
   showWarZones: true,
@@ -75,7 +75,6 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
-  showAxisNetwork: true,
   showSubmarineCables: true,
   showNewfeedsIranAttacks: true,
   showUsCarriers: true,

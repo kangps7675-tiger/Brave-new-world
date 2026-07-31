@@ -262,6 +262,6 @@ export function archiveYearLabel(ep: ArchiveEpisode): string {
 
 export const ARCHIVE_LENS_LABEL = {
   all: { ko: "전체", en: "All" },
-  bloc: { ko: "진영 내부", en: "Intra-bloc" },
-  border: { ko: "국경·화약고", en: "Borders · kegs" },
+  bloc: { ko: "같은 진영끼리의 충돌", en: "Clashes inside a bloc" },
+  border: { ko: "국경·영토 긴장", en: "Border & territory tension" },
 } as const;

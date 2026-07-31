@@ -187,6 +187,9 @@ import {
   nearestUkraineHapiTag,
   type UkraineGdeltNeonMarker,
 } from "@/lib/ukraineGdeltNeonMarker";
+import {
+  theaterIntensityFromGdeltGrade,
+} from "@/lib/theaterIntensityRadius";
 import { deconflictTheaterHtmlOverlays } from "@/lib/htmlOverlayDeconflict";
 import { buildNewsStreamMapTags } from "@/lib/news/newsStreamMapTags";
 import {
@@ -572,6 +575,7 @@ import type {
   RussiaStrikeIncidentHtmlMarker,
   NewsStreamNeonMarker,
   NewfeedsAttackGlobePoint,
+  UkraineTheaterIntensityGlobePoint,
   PolygonLayerFeature,
   PulseRingPoint,
   StaticGlobePoint,
@@ -3760,7 +3764,7 @@ export function GlobeDashboard({
       showEconomicCenters,
     });
 
-  /** 정적 포인트 + AI 전쟁지역 (FIRMS는 전용 불꽃 레이어) + 이란 NewFeeds 공격 구체
+  /** 정적 포인트 + AI 전쟁지역 (FIRMS는 전용 불꽃 레이어) + 이란/우크라 전장 강도 원
    * UCDP는 원(네온점) 대신 사상자 HTML 라벨로만 표시 */
   const globeDisplayPoints = useMemo<GlobeDisplayPoint[]>(() => {
     const points: GlobeDisplayPoint[] = [
@@ -3770,6 +3774,7 @@ export function GlobeDashboard({
       ...conflictClusterPoints,
       ...tzevaAdomDisplayPoints,
       ...newfeedsAttackDisplayPoints,
+      ...ukraineTheaterIntensityPoints,
     ];
     return points;
   }, [
@@ -3777,6 +3782,7 @@ export function GlobeDashboard({
     newfeedsAttackDisplayPoints,
     staticGlobePoints,
     tzevaAdomDisplayPoints,
+    ukraineTheaterIntensityPoints,
   ]);
 
   const reconHorizonRings = useMemo<PulseRingPoint[]>(() => {
@@ -3924,6 +3930,20 @@ export function GlobeDashboard({
       }));
   }, [gdeltTensionTags, hapiCasualties.fronts, showGdeltWar]);
 
+  /** 이란 NewFeeds와 동일 강도 원 스택 — MapLibre 시안 원 (HTML 네온 대체) */
+  const ukraineTheaterIntensityPoints = useMemo<UkraineTheaterIntensityGlobePoint[]>(() => {
+    return ukraineGdeltNeonMarkers.map((event) => ({
+      id: event.id,
+      lat: event.lat,
+      lng: event.lng,
+      markerId: `ukr-intensity-${event.id}`,
+      displayKind: "ukraine-theater-intensity" as const,
+      severity: theaterIntensityFromGdeltGrade(event.importanceGrade, isFreshEvent(event)),
+      title: event.title || event.category || "Ukraine theater",
+      hapiTag: event.hapiTag,
+    }));
+  }, [ukraineGdeltNeonMarkers]);
+
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
     if (isEconomyViewer || isCompactUi) return [];
     const payload = newsStreamPayload;
@@ -3999,7 +4019,6 @@ export function GlobeDashboard({
       ...civHtmlMarkers,
       ...aisHtmlMarkers,
       ...gdeltTagHtmlMarkers,
-      ...ukraineGdeltNeonMarkers,
       ...newsStreamNeonMarkers,
       ...telegramNeonMarkers,
       ...neptunHtmlMarkers,
@@ -4038,7 +4057,6 @@ export function GlobeDashboard({
       territorialStageMarkers,
       shipMoveHtmlMarkers,
       gdeltTagHtmlMarkers,
-      ukraineGdeltNeonMarkers,
       newsStreamNeonMarkers,
       telegramNeonMarkers,
       globePoints,

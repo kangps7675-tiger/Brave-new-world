@@ -69,12 +69,13 @@ export const INFRA_STROKE = {
 /** 경로 레이어 — 군 단위 통일 (항로=infra, 케이블=digital, 파이프=energy) */
 function buildPathLayerColors(tone: BasemapTone) {
   return {
-    "shipping-lane": pathKindRgba("shipping-lane", 0.82, tone),
+    // 항로 — Shipping-Lanes(CC BY 4.0) 통행 경향: 시안 반투명(실제 색은 shippingLaneColor)
+    "shipping-lane": pathKindRgba("shipping-lane", 0.3, tone),
     "submarine-cable": pathKindRgba("submarine-cable", 0.86, tone),
-    // 파이프 — 줌아웃·바다 위에서 읽히도록 alpha 상향
-    "oil-pipeline": pathKindRgba("oil-pipeline", 0.96, tone),
-    "gas-pipeline": pathKindRgba("gas-pipeline", 0.94, tone),
-    "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.97, tone),
+    // 파이프 — 가늘게 유지 (굵기는 widthMode pipeline)
+    "oil-pipeline": pathKindRgba("oil-pipeline", 0.78, tone),
+    "gas-pipeline": pathKindRgba("gas-pipeline", 0.74, tone),
+    "subsea-pipeline": pathKindRgba("subsea-pipeline", 0.72, tone),
   } as const;
 }
 
@@ -141,7 +142,6 @@ export const WELCOME_GATE_KEY = "geowatch-welcome-gate-v1";
 export const LANG_CHOICE_KEY = "geowatch-lang-choice-v1";
 
 export const FLOW_PATH_KINDS = new Set([
-  "shipping-lane",
   "msr",
   "neptun-projection",
   "axis-link",

@@ -135,7 +135,7 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   airports: { ko: "공항", en: "Airports" },
   ports: { ko: "항구", en: "Ports" },
   ixp: { ko: "인터넷 교환점", en: "Internet exchange points" },
-  "logistics-risk": { ko: "해상 요충·물류 거점", en: "Maritime chokepoints & logistics hubs" },
+  "logistics-risk": { ko: "초크포인트·물류 거점", en: "Maritime chokepoints & logistics hubs" },
   "logistics-stress": { ko: "위험·정체 해협 색 표시", en: "Color risky & congested chokepoints" },
   "gscpi-gauge": { ko: "전 세계 물류 혼잡도", en: "Global shipping congestion" },
   "critical-nodes": { ko: "핵심 인프라 노드", en: "Critical infrastructure nodes" },

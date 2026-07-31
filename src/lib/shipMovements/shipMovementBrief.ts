@@ -38,17 +38,17 @@ function confidenceEn(c: PublicShipObservation["confidence"]): string {
 function methodKo(m: PublicShipObservation["method"]): string {
   switch (m) {
     case "relative-bearing":
-      return "방위·거리 상대 측위";
+      return "방위와 거리로 상대 측위";
     case "gazetteer-point":
-      return "지명 포인트 매칭";
+      return "지명 한 점으로 맞춤";
     case "gazetteer-axis":
-      return "해협·축선 매칭";
+      return "해협·축선으로 맞춤";
     case "gazetteer-sea":
-      return "해역 폴리곤 매칭";
+      return "해역 범위로 맞춤";
     case "manual":
-      return "수동 확정";
+      return "수동으로 확정";
     default:
-      return "좌표 미확정";
+      return "좌표를 확정하지 못함";
   }
 }
 
@@ -74,15 +74,15 @@ function locationStatusKo(s: PublicShipObservation["locationStatus"]): string {
     case "precise":
       return "정밀";
     case "chokepoint":
-      return "초크포인트급";
+      return "초크포인트 수준";
     case "broad":
       return "광역";
     case "missing":
       return "위치 문구 없음";
     case "unresolved":
-      return "미해석";
+      return "위치를 해석하지 못함";
     case "ambiguous":
-      return "모호";
+      return "모호함";
     default:
       return s;
   }
@@ -253,15 +253,15 @@ export function shipMovementParchmentParagraphs(
     );
   } else {
     paragraphs.push(
-      "이 데스크는 실시간 AIS를 그리지 않습니다. 위치와 경로는 USNI Fleet Tracker·Westpac Pulse, 일본 안보 공개 관측 등 기사·보고서에서 추출·지오코딩·검토를 거친 추정입니다. 지구본의 선은 기사에 찍힌 관측점을 시간순으로 이은 연결선이며, 연속 항적 기록기가 아닙니다.",
+      "이 데스크는 실시간 AIS 위치를 그리지 않습니다. 위치와 경로는 USNI Fleet Tracker·Westpac Pulse, 일본 안보 공개 관측 등 기사와 보고서에서 추출하고 지오코딩·검토를 거친 추정입니다. 지구본의 선은 기사에 찍힌 관측점을 시간순으로 이은 연결선이며, 연속 항적 기록기가 아닙니다.",
     );
     if (navy) {
       paragraphs.push(
-        `식별된 함정: ${label} (${navy}). 최신 관측의 함정 식별 신뢰도는 ${focus?.vesselConfidence ?? "미상"}입니다.`,
+        `식별된 함정은 ${label}(${navy})입니다. 최신 관측의 함정 식별 신뢰도는 ${focus?.vesselConfidence ?? "미상"}입니다.`,
       );
     } else {
       paragraphs.push(
-        `식별된 함정: ${label}. 최신 관측의 함정 식별 신뢰도는 ${focus?.vesselConfidence ?? "미상"}입니다.`,
+        `식별된 함정은 ${label}입니다. 최신 관측의 함정 식별 신뢰도는 ${focus?.vesselConfidence ?? "미상"}입니다.`,
       );
     }
 
@@ -282,23 +282,23 @@ export function shipMovementParchmentParagraphs(
             o.precisionKm != null ? ` · 정밀도 약 ${Math.round(o.precisionKm)} km` : "";
           const map = isMapDisplayableShipObservation(o)
             ? o.locationStatus === "broad"
-              ? " · 광역 해역 추정"
-              : " · 지도 표시"
-            : " · 지도 제외";
+              ? " · 광역 해역으로 추정"
+              : " · 지도에 표시"
+            : " · 지도에서 제외";
           return `${when} — ${where} (${conf}, ${st}, ${method}${km}${map})`;
         })
         .join("\n");
-      paragraphs.push(`시간순 관측 연쇄:\n${stops}`);
+      paragraphs.push(`시간순으로 본 관측 연쇄는 다음과 같습니다.\n${stops}`);
     }
 
     if (focus?.summary) {
-      paragraphs.push(`이 이동이 데스크에 올라온 경위:\n${focus.summary}`);
+      paragraphs.push(`이 이동이 데스크에 올라온 경위는 다음과 같습니다.\n${focus.summary}`);
     }
 
     const quotes = sorted.flatMap((o) => o.evidenceQuotes).filter(Boolean);
     if (quotes.length > 0) {
       paragraphs.push(
-        `출처 본문에서 뽑은 근거 구절:\n${quotes
+        `출처 본문에서 뽑은 근거 구절은 다음과 같습니다.\n${quotes
           .slice(0, 5)
           .map((q) => `「${q}」`)
           .join("\n")}`,
@@ -306,24 +306,24 @@ export function shipMovementParchmentParagraphs(
     }
 
     if (focus) {
+      const precisionBit =
+        focus.precisionKm != null
+          ? ` 정밀도는 약 ${Math.round(focus.precisionKm)} km입니다.`
+          : "";
+      const mapBit = isMapDisplayableShipObservation(focus)
+        ? focus.locationStatus === "broad"
+          ? ` 광역 해역으로 추정해 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}°에 표시합니다. 정밀 핀이 아닙니다.`
+          : ` 지도 핀은 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}°입니다.`
+        : focus.missingLocationNote
+          ? ` ${focus.missingLocationNote}`
+          : " 지도에 올릴 좌표가 없어 타임라인 서술용으로만 남깁니다.";
       paragraphs.push(
-        `초점 관측의 추정 위치 메모: 신뢰도 ${confidenceKo(focus.confidence)}, 위치 상태 ${locationStatusKo(focus.locationStatus)}, 지오코딩 ${methodKo(focus.method)}${
-          focus.precisionKm != null
-            ? `, 정밀도 약 ${Math.round(focus.precisionKm)} km`
-            : ""
-        }. ${
-          isMapDisplayableShipObservation(focus)
-            ? focus.locationStatus === "broad"
-              ? `광역 해역 추정 표시 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}° (정밀 핀 아님).`
-              : `지도 핀 대략 ${focus.lat!.toFixed(2)}°, ${focus.lng!.toFixed(2)}°.`
-            : focus.missingLocationNote ||
-              "지도에 올릴 좌표가 없어 타임라인 서술용으로만 남깁니다."
-        }`,
+        `초점 관측의 추정 위치 메모입니다. 신뢰도는 ${confidenceKo(focus.confidence)}이고, 위치 상태는 ${locationStatusKo(focus.locationStatus)}이며, 지오코딩 방식은 ${methodKo(focus.method)}입니다.${precisionBit}${mapBit}`,
       );
     }
 
     paragraphs.push(
-      "모드 읽는 법: 「전체 경로」는 모든 함정의 추정 항적을 한눈에 보여 주고, 「함선별」은 한 척만 남겨 이동 연쇄를 따라가게 합니다. 작전 사실로 쓰기 전에 반드시 출처 링크를 확인하십시오.",
+      "모드를 읽는 방법은 이렇습니다. 「전체 경로」는 모든 함정의 추정 항적을 한눈에 보여 주고, 「함선별」은 한 척만 남겨 이동 연쇄를 따라가게 합니다. 작전 사실로 쓰기 전에 반드시 출처 링크를 확인하십시오.",
     );
   }
 

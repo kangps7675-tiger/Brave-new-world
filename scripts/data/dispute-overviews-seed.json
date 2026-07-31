@@ -502,5 +502,78 @@
       "US"
     ],
     "updatedAt": "2026-07-12"
+  },
+  {
+    "id": "combat-ua-donbas-front",
+    "overviewKo": "돈바스 활성 전선 · 도네츠크–루한스크 교전면",
+    "parties": [
+      "Ukraine",
+      "Russia"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ua-zaporizhzhia-front",
+    "overviewKo": "자포리자 전선 · 남부전선 교전",
+    "parties": [
+      "Ukraine",
+      "Russia"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ua-kherson-dnipro",
+    "overviewKo": "헤르손·드니프로 전선 · 강변 교전·포격",
+    "parties": [
+      "Ukraine",
+      "Russia"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ua-kharkiv-front",
+    "overviewKo": "하르키우 전선 · 북동 접경 교전",
+    "parties": [
+      "Ukraine",
+      "Russia"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ru-kursk",
+    "overviewKo": "쿠르스크주 교전 구역 · 서러시아 전장",
+    "parties": [
+      "Russia",
+      "Ukraine (operations)"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ru-belgorod-belt",
+    "overviewKo": "벨고로드 접경 교전·타격 벨트 · 서러시아",
+    "parties": [
+      "Russia",
+      "Ukraine (cross-border)"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ua-crimea-strike",
+    "overviewKo": "크림 반도 · 타격·방공·폭격 피해 가중",
+    "parties": [
+      "Ukraine",
+      "Russia"
+    ],
+    "updatedAt": "2026-07-31"
+  },
+  {
+    "id": "combat-ua-black-sea-strike",
+    "overviewKo": "흑해 북서 · 해상·연안 타격 구역",
+    "parties": [
+      "Ukraine",
+      "Russia",
+      "Shipping"
+    ],
+    "updatedAt": "2026-07-31"
   }
 ]

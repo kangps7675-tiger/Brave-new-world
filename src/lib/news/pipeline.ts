@@ -13,6 +13,7 @@ import { computeBreakingGrade } from "@/lib/news/breakingGrade";
 import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";
 import { classifyMediaTier } from "@/lib/news/mediaTiers";
 import { fetchNewfeedsIranNewsItems } from "@/lib/news/newfeedsIranNews";
+import { isIranRelatedBreakingText } from "@/lib/news/breakingFlashNarrative";
 import { fetchRssFeed } from "@/lib/news/rssParser";
 import type {
   HeroBreakingItem,
@@ -215,6 +216,17 @@ function buildFlashHeroes(
       }),
     );
   }
+
+  // 중동 슬롯이 레반트에 잡혀도 이란 본토·IRGC 키네틱이 빠지지 않게 전용 후보 1개
+  push(
+    pickHero(candidates, {
+      filter: (item) => {
+        if (item.theater !== "middle-east") return false;
+        const blob = `${item.title} ${item.summary ?? ""}`;
+        return isIranRelatedBreakingText(blob);
+      },
+    }),
+  );
 
   return out;
 }

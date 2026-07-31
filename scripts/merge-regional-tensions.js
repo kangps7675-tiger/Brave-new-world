@@ -9,6 +9,7 @@ const SEED_FILES = [
   path.join(__dirname, "data", "east-asia-tensions-seed.json"),
   path.join(__dirname, "data", "regional-tensions-seed.json"),
   path.join(__dirname, "data", "ironsight-middle-east-zones-seed.json"),
+  path.join(__dirname, "data", "ukraine-combat-zones-seed.json"),
 ];
 
 /** Superseded by ironsight-middle-east-zones-seed.json (IRONSIGHT regionBoxes) */

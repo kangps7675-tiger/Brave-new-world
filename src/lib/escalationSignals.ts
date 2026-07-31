@@ -563,27 +563,41 @@ function buildHeadline(
   const s = perimeter.map((p) => (ko ? p.nameKo : p.nameEn)).join(ko ? "·" : ", ");
   switch (pattern) {
     case "perimeter-spillover":
-      return ko ? `주변국 신호 · ${s} (보도)` : `Perimeter signal · ${s} (reported)`;
+      return ko
+        ? `이웃 나라까지 번진 사건 · ${s} (보도)`
+        : `Spillover into a neighbor · ${s} (reported)`;
     case "cross-theater":
-      return ko ? `교차 전장 언급 · ${a} (보도)` : `Cross-theater mention · ${a} (reported)`;
+      return ko
+        ? `다른 전쟁 세력이 한 보도에 등장 · ${a} (보도)`
+        : `Actors from separate wars in one report · ${a} (reported)`;
     case "capability-threshold":
-      return ko ? `미사용 무기 종류 언급 · ${a} (보도)` : `New capability class · ${a} (reported)`;
+      return ko
+        ? `쓰이지 않던 무기 종류가 등장 · ${a} (보도)`
+        : `Previously unused weapon type · ${a} (reported)`;
     case "protected-target":
-      return ko ? `보호 대상 시설 피격 · ${a} (보도)` : `Protected site struck · ${a} (reported)`;
+      return ko
+        ? `특별히 보호되는 시설이 피격됨 · ${a} (보도)`
+        : `Specially protected site struck · ${a} (reported)`;
     case "c3i-entanglement":
       return ko
-        ? `핵 지휘통제·조기경보 자산 언급 · ${a} (보도)`
-        : `Nuclear C3I / early-warning asset · ${a} (reported)`;
+        ? `핵 경보·지휘 시설이 관련됨 · ${a} (보도)`
+        : `Nuclear warning / command facility · ${a} (reported)`;
     case "diplomatic-breach":
-      return ko ? `외교공관 피격 · ${a} (보도)` : `Diplomatic premises struck · ${a} (reported)`;
+      return ko
+        ? `대사관·영사관이 피격됨 · ${a} (보도)`
+        : `Embassy or consulate struck · ${a} (reported)`;
     case "leadership-strike":
-      return ko ? `지도부 표적 타격 · ${a} (보도)` : `Leadership targeted · ${a} (reported)`;
+      return ko
+        ? `지도부·지휘관이 표적이 됨 · ${a} (보도)`
+        : `Leader or commander targeted · ${a} (reported)`;
     case "sub-kinetic":
       return ko
-        ? `비교전 확전 신호 · ${a || s} (보도)`
-        : `Sub-kinetic escalation signal · ${a || s} (reported)`;
+        ? `총성 없이 긴장을 키운 사건 · ${a || s} (보도)`
+        : `Tension rises without gunfire · ${a || s} (reported)`;
     case "alliance-alert":
-      return ko ? `경계국 경보 · ${s} (보도)` : `Perimeter alert · ${s} (reported)`;
+      return ko
+        ? `이웃·동맹국이 경보를 발령함 · ${s} (보도)`
+        : `Neighbor or ally issued an alert · ${s} (reported)`;
   }
 }
 
@@ -596,89 +610,89 @@ export const ESCALATION_PATTERN_LABEL: Record<
   { ko: string; en: string; hintKo: string; hintEn: string }
 > = {
   "perimeter-spillover": {
-    ko: "주변국 유출 (수평)",
-    en: "Perimeter spillover (horizontal)",
+    ko: "이웃 나라로 번짐",
+    en: "Spillover to a neighbor",
     hintKo:
-      "주전장 밖 인접국 영토에서 관측된 군사 사건 보도입니다. RAND 분류의 수평 확전 형태에 해당하나, 확전 여부·의도는 판단하지 않습니다.",
+      "본래 싸우던 지역이 아닌 이웃 나라의 영토나 영공에서 군사 사건이 보도됐습니다. " +
+      "싸움이 새 장소로 번진 것처럼 보일 수 있지만, 전쟁이 커졌다고 단정하지는 않습니다.",
     hintEn:
-      "Reporting of a military event observed on adjacent territory outside the main theater — horizontal in RAND's typology. No judgement of escalation or intent is made.",
+      "A military event was reported on a neighboring country's territory outside the main fighting zone. That can look like conflict spreading — we do not claim a wider war has begun.",
   },
   "cross-theater": {
-    ko: "교차 전장 (수평)",
-    en: "Cross-theater (horizontal)",
+    ko: "다른 전쟁 세력이 겹침",
+    en: "Actors from separate wars",
     hintKo:
-      "서로 다른 전쟁의 행위자가 같은 사건 보도에 등장합니다. 두 전쟁이 합쳐졌다는 뜻이 아닙니다.",
+      "서로 다른 전쟁의 당사자가 같은 사건 보도에 함께 나옵니다. 두 전쟁이 하나로 합쳐졌다는 뜻은 아닙니다.",
     hintEn:
-      "Actors from separate wars appear in one reported event. This does not mean the wars have merged.",
+      "Parties from separate wars appear in one report. That does not mean the wars have merged.",
   },
   "capability-threshold": {
-    ko: "무기 종류 임계 (수직)",
-    en: "Capability threshold (vertical)",
+    ko: "새 무기 종류 등장",
+    en: "New weapon type",
     hintKo:
-      "이전에 쓰이지 않던 무기 종류가 언급된 보도입니다. RAND 분류의 수직 확전 정의에 해당합니다.",
+      "이전에는 쓰이지 않던 종류의 무기가 언급된 보도입니다. 싸움의 강도가 한 단계 올라갈 수 있는 신호로 봅니다.",
     hintEn:
-      "Reporting mentions a previously unused capability class — vertical escalation in RAND's typology.",
+      "Reporting mentions a type of weapon not previously used here — a possible step-up in intensity.",
   },
   "protected-target": {
-    ko: "보호 대상 시설 (수직)",
-    en: "Protected target (vertical)",
+    ko: "특별 보호 시설",
+    en: "Specially protected site",
     hintKo:
-      "원자력 시설 등 국제인도법상 특별 보호 대상이 피격됐다는 보도입니다. " +
-      "표적 종류의 확대에 해당하며, 사고·고의 여부는 판단하지 않습니다.",
+      "원전처럼 국제법으로 특별히 보호하는 시설이 맞았다는 보도입니다. " +
+      "사고인지 고의인지는 여기서 판단하지 않습니다.",
     hintEn:
-      "Reporting that a specially protected site (e.g. nuclear facility) was struck — an expansion of target types. Intent is not assessed.",
+      "Reporting that a specially protected site (e.g. a nuclear plant) was struck. We do not judge accident vs intent.",
   },
   "c3i-entanglement": {
-    ko: "핵 지휘통제 자산 (수직)",
-    en: "Nuclear C3I asset (vertical)",
+    ko: "핵 경보·지휘 시설",
+    en: "Nuclear warning / command site",
     hintKo:
-      "조기경보 레이더·핵 지휘통제 자산이 언급된 교전 보도입니다. 문헌(Acton 2018)은 이 유형을 " +
-      "비의도적 핵 확전의 주요 경로로 봅니다 — 재래식 표적처럼 보이지만 핵 태세의 감시 수단이기 때문입니다. " +
-      "확전 발생을 주장하는 것이 아닙니다.",
+      "미사일 조기경보 레이더나 핵 지휘 시설이 언급된 교전 보도입니다. " +
+      "겉보기에는 일반 군사 목표처럼 보여도 핵 태세와 연결된 시설이라, 오해가 커질 수 있습니다. " +
+      "핵 확전이 일어났다고 말하는 것은 아닙니다.",
     hintEn:
-      "Reporting of an engagement involving early-warning or nuclear command-and-control assets. The literature (Acton 2018) treats this as a principal pathway to inadvertent nuclear escalation, since such assets look conventional but underpin nuclear posture. This asserts no escalation has occurred.",
+      "Reporting involves early-warning radars or nuclear command sites. They can look like ordinary military targets but underpin nuclear posture — so misreading the strike is dangerous. This does not claim nuclear escalation has occurred.",
   },
   "diplomatic-breach": {
-    ko: "외교공관 피격",
-    en: "Diplomatic premises struck",
+    ko: "대사관·영사관 피격",
+    en: "Embassy or consulate struck",
     hintKo:
-      "외교·영사 공관이 피격됐다는 보도입니다. 빈 협약상 공관은 불가침이며, 규모가 작아도 " +
-      "보복의 법적 명분이 즉시 성립합니다. 2024년 다마스쿠스 영사관 피격이 이 유형입니다.",
+      "대사관이나 영사관이 맞았다는 보도입니다. 국제법상 공관은 손대면 안 되는 곳이라, " +
+      "규모가 작아도 보복의 명분이 바로 생길 수 있습니다. (예: 2024년 다마스쿠스 영사관)",
     hintEn:
-      "Reporting that diplomatic or consular premises were struck. Such premises are inviolable under the Vienna Conventions, so even a small strike creates immediate legal grounds for retaliation.",
+      "Reporting that an embassy or consulate was struck. Such premises are inviolable in international law, so even a small strike can create grounds for retaliation.",
   },
   "leadership-strike": {
-    ko: "지도부 표적 타격 (수직)",
-    en: "Leadership strike (vertical)",
+    ko: "지도부·지휘관 표적",
+    en: "Leader or commander targeted",
     hintKo:
-      "지휘관·고위 인사가 표적이 됐다는 보도입니다. 표적 종류의 확대에 해당하며, " +
-      "문헌은 보복의 순환 위험을 지적합니다. 보복 발생을 예측하지는 않습니다.",
+      "지휘관이나 고위 인사가 표적이 됐다는 보도입니다. 보복이 이어질 여지는 있지만, 여기서 보복을 예측하지는 않습니다.",
     hintEn:
-      "Reporting that a commander or senior figure was targeted — an expansion of target types. The literature notes cycle-of-violence risk; no retaliation is forecast here.",
+      "Reporting that a commander or senior figure was targeted. Retaliation risk exists; we do not forecast it.",
   },
   "sub-kinetic": {
-    ko: "비교전 확전 신호",
-    en: "Sub-kinetic signal",
+    ko: "총성 없는 긴장",
+    en: "Tension without gunfire",
     hintKo:
-      "발사체 없이 확전 사다리를 올리는 사건 보도입니다 — 사이버·해저 인프라·핵 신호·위성 간섭·봉쇄. " +
-      "귀속이 어려운 경우가 많아, 우리는 '그런 보도가 있었다'까지만 기록합니다.",
+      "미사일이나 포격 없이도 긴장을 키울 수 있는 사건 보도입니다. 사이버 공격, 해저 케이블 손상, 핵 관련 신호, 위성 방해, 봉쇄 등이 여기에 해당합니다. " +
+      "누가 했는지는 종종 불확실해서, ‘그런 보도가 있었다’까지만 적습니다.",
     hintEn:
-      "Reporting of events that raise the escalation ladder without kinetic force — cyber, undersea infrastructure, nuclear signalling, counterspace, blockade. Attribution is often contested, so we record only that such reporting exists.",
+      "Reporting of events that raise tension without gunfire — cyber attacks, undersea cable damage, nuclear signalling, satellite interference, blockade. Attribution is often unclear, so we only note that such reporting exists.",
   },
   "alliance-alert": {
-    ko: "경계국 경보",
-    en: "Perimeter alert",
+    ko: "이웃·동맹국 경보",
+    en: "Neighbor or ally alert",
     hintKo:
-      "인접·동맹국 당국이 경보를 발령했다는 보도입니다. 조약 발동 여부와 무관하며, 발동을 예측하지 않습니다.",
+      "이웃이나 동맹국 정부가 경보를 냈다는 보도입니다. 동맹 조약이 발동됐다는 뜻이 아니며, 발동을 예측하지도 않습니다.",
     hintEn:
-      "Reporting that authorities in an adjacent or allied state issued an alert. Unrelated to, and not predictive of, any treaty invocation.",
+      "Reporting that a neighboring or allied government issued an alert. That is not a treaty activation, and we do not predict one.",
   },
 };
 
 export const ESCALATION_DISCLAIMER_KO =
-  "공개 보도에서 뽑아낸 신호입니다. 확전·개전 여부를 판단하거나 예측하지 않습니다.";
+  "공개 뉴스에서 골라 올린 알림입니다. 전쟁이 커졌다고 판단하거나, 곧 터진다고 예측하지 않습니다.";
 export const ESCALATION_DISCLAIMER_EN =
-  "Signals extracted from public reporting. No judgement or forecast of escalation is made.";
+  "A highlight from public news — not a judgement or forecast that war has widened or is imminent.";
 
 export { ESCALATION_METHOD_NOTE_KO, ESCALATION_METHOD_NOTE_EN };
 
@@ -693,8 +707,8 @@ export function formatFactors(signal: EscalationSignal, lang: "ko" | "en" = "ko"
   });
   lines.push(
     lang === "ko"
-      ? `= ${signal.score}점 (노출 임계 ${ESCALATION_SHOW_THRESHOLD})`
-      : `= ${signal.score} (threshold ${ESCALATION_SHOW_THRESHOLD})`,
+      ? `= ${signal.score}점(${ESCALATION_SHOW_THRESHOLD}점 이상이면 화면에 표시)`
+      : `= ${signal.score} pts · shown at ${ESCALATION_SHOW_THRESHOLD}+`,
   );
   return lines;
 }

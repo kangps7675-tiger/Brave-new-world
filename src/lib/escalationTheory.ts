@@ -253,79 +253,79 @@ export const THRESHOLD_LABEL: Record<
   { ko: string; en: string; basisKo: string }
 > = {
   "sovereign-territory": {
-    ko: "비교전국 주권 영역",
-    en: "Sovereign territory of a non-belligerent",
-    basisKo: "UN 헌장 2(4) — 영토 보전에 대한 무력 사용 금지",
+    ko: "전쟁에 참여하지 않은 나라의 영공·영해",
+    en: "Airspace or waters of a non-belligerent",
+    basisKo: "유엔 헌장 — 다른 나라 영토에 무력을 쓰면 안 됩니다",
   },
   "treaty-territory": {
-    ko: "집단방위 조약 영토",
-    en: "Collective-defence treaty territory",
-    basisKo: "NATO 4·5조 · 미일/한미 상호방위조약 — 협의·대응 절차가 성문화됨",
+    ko: "동맹 조약이 적용되는 영토",
+    en: "Territory covered by a defense treaty",
+    basisKo: "NATO·한미·미일 등 — 협의·대응 절차가 문서에 있습니다(발동을 예고하는 것은 아님)",
   },
   "nuclear-infrastructure": {
     ko: "원자력 시설",
-    en: "Nuclear infrastructure",
-    basisKo: "제네바협약 제1추가의정서 56조 · IAEA 결의 — 특별 보호 대상",
+    en: "Nuclear facility",
+    basisKo: "국제인도법상 특별히 보호하는 대상입니다(원전 등)",
   },
   "new-capability-class": {
-    ko: "미사용 무기 종류의 첫 사용",
-    en: "First use of a previously unused capability class",
-    basisKo: "Morgan et al., Dangerous Thresholds — 수직 확전의 정의",
+    ko: "쓰이지 않던 무기 종류의 첫 사용",
+    en: "First use of a previously unused weapon type",
+    basisKo: "싸움의 강도가 한 단계 올라가는 전형적인 신호입니다",
   },
   "third-party-asset": {
-    ko: "제3국 국적 자산",
-    en: "Third-state flagged asset",
-    basisKo: "UNCLOS 기국주의 — 선박·항공기에 기국 관할권",
+    ko: "제3국 국적의 선박·항공기",
+    en: "Ship or aircraft of a third country",
+    basisKo: "그 나라 국적이면 그 나라가 관할권을 가집니다",
   },
   "theater-linkage": {
-    ko: "전장 간 행위자 연결",
-    en: "Cross-theater actor linkage",
-    basisKo: "전이 문헌의 무기·전투원 유출 경로를 관측 대리지표로 조작화 (우리 조작화)",
+    ko: "다른 전쟁 세력이 한 사건에 등장",
+    en: "Actors from separate wars in one event",
+    basisKo: "무기나 전투원이 넘어갈 수 있다는 관측용 표시입니다(확정은 아님)",
   },
   "c3i-early-warning": {
-    ko: "핵 지휘통제·조기경보 자산",
-    en: "Nuclear C3I / early-warning asset",
-    basisKo: "Acton, Escalation through Entanglement (IS 43:1, 2018) — 비의도적 핵 확전 경로",
+    ko: "핵 경보·지휘 시설",
+    en: "Nuclear warning / command facility",
+    basisKo: "일반 목표처럼 보여도 핵 태세와 연결될 수 있어 오해가 커질 수 있습니다",
   },
   "diplomatic-premises": {
-    ko: "외교공관 피격",
-    en: "Diplomatic premises struck",
-    basisKo: "빈 외교관계협약(1961) 22조 · 빈 영사관계협약(1963) 31조 — 공관 불가침",
+    ko: "대사관·영사관 피격",
+    en: "Embassy or consulate struck",
+    basisKo: "국제법상 공관은 손대면 안 됩니다 — 보복의 명분이 바로 생길 수 있습니다",
   },
   "nuclear-signaling": {
-    ko: "핵 신호 (교리·연습·이동·경계태세)",
-    en: "Nuclear signalling",
-    basisKo: "확전 사다리 상의 의도적 신호 — 물리적 교전 없이도 단계 상승",
+    ko: "핵 관련 신호(교리·연습·이동)",
+    en: "Nuclear signalling (doctrine, drill, movement)",
+    basisKo: "총성이 없어도 긴장을 한 단계 올릴 수 있는 의도적 메시지입니다",
   },
   "cyber-critical-infrastructure": {
-    ko: "핵심 인프라 사이버 공격",
+    ko: "핵심 시설에 대한 사이버 공격",
     en: "Cyber attack on critical infrastructure",
-    basisKo: "NATO 2022 전략개념 — 개별·누적 사이버가 5조 임계에 도달 가능 (임계는 의도적 모호)",
+    basisKo: "전력·통신 등 — 동맹 논의로 이어질 수 있으나 발동을 예고하지는 않습니다",
   },
   "undersea-infrastructure": {
-    ko: "해저 케이블·파이프라인 손상",
-    en: "Undersea cable / pipeline damage",
-    basisKo: "노르트스트림·발틱커넥터·발트해 연쇄 · NATO Baltic Sentry — 귀속 곤란",
+    ko: "해저 케이블·가스관 손상",
+    en: "Undersea cable or pipeline damage",
+    basisKo: "누가 했는지 밝히기 어렵습니다 — 손상 보도까지만 기록합니다",
   },
   "counterspace": {
-    ko: "위성 공격·간섭",
-    en: "Counterspace action",
-    basisKo: "파괴형 ASAT 는 비가역 잔해 · 연성 킬(재밍)은 귀속 곤란",
+    ko: "위성 공격·방해",
+    en: "Satellite attack or interference",
+    basisKo: "위성을 파괴하면 잔해가 남고, 전파를 방해하면 범인을 추적하기 어렵습니다",
   },
   "leadership-targeting": {
-    ko: "지도부 표적 타격",
-    en: "Leadership targeting",
-    basisKo: "보복의 순환 · 실패 시 즉각 대규모 보복 위험 (표적살해 문헌)",
+    ko: "지도부·지휘관 표적",
+    en: "Leader or commander targeted",
+    basisKo: "보복이 이어질 여지가 큽니다 — 여기서 보복을 예측하지는 않습니다",
   },
   "blockade-declared": {
     ko: "봉쇄 선언",
     en: "Declared blockade",
-    basisKo: "국제법상 봉쇄는 교전 행위 — 선언·실효성·공평성 요건",
+    basisKo: "국제법상 봉쇄는 전쟁 행위로 다룹니다",
   },
   "maritime-interdiction": {
-    ko: "임검·나포",
-    en: "Maritime interdiction",
-    basisKo: "봉쇄와 법적 제도가 다름 — 준봉쇄로 비칠 때 무력사용 논란",
+    ko: "해상 검문·나포",
+    en: "Ship search or seizure at sea",
+    basisKo: "봉쇄와는 다른 제도입니다 — 자주 일어나 단독으로는 덜 부각합니다",
   },
 };
 
@@ -424,12 +424,13 @@ export const ESCALATION_CITATIONS = [
 
 /** 방법론 고지 — 신호를 띄울 때 항상 함께 나간다. */
 export const ESCALATION_METHOD_NOTE_KO =
-  "확전 정의와 수직/수평 차원은 RAND(Morgan et al., Radin et al.) 문헌을 따릅니다. " +
-  "가중치는 '임계선을 넘었을 때 당사자의 대응 의무가 얼마나 성문화되어 있는가'를 기준으로 하며, " +
-  "사건의 심각도나 확전 확률을 나타내지 않습니다. " +
-  "의도(고의·비의도·사고)는 공개 보도로 알 수 없으므로 분류하지 않습니다.";
+  "싸움이 얼마나 커졌는지보다, 넘으면 반응이 커질 수 있는 선이 보도에 나왔는지를 봅니다. " +
+  "점수는 사건의 크기나 전쟁 확률이 아닙니다. 그 선이 조약이나 국제법에 얼마나 분명히 적혀 있는지로 매깁니다. " +
+  "고의인지 사고인지는 뉴스만으로 알 수 없어 나누지 않습니다. " +
+  "(참고 문헌: RAND 확전 연구 등 — 방법론 패널에서 더 볼 수 있습니다)";
 
 export const ESCALATION_METHOD_NOTE_EN =
-  "Definitions and the vertical/horizontal axis follow RAND escalation literature (Morgan et al.; Radin et al.). " +
-  "Weights reflect how explicitly a crossed threshold triggers codified obligations — not severity, and not any probability of escalation. " +
-  "Intent (deliberate / inadvertent / accidental) is not classified, because it cannot be established from public reporting.";
+  "We look for reports that mention lines where a response often gets bigger — not ‘how large’ the fight is, and not a war probability. " +
+  "Scores reflect how clearly those lines are written into treaties or international law. " +
+  "Intent (deliberate vs accident) is not classified from news alone. " +
+  "(Literature: RAND escalation studies and related work — see methodology sources for detail.)";

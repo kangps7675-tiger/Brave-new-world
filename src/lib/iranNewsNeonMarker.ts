@@ -46,8 +46,8 @@ function ensureStyles() {
     }
     .${IRAN_NEWS_NEON_ROOT} {
       position: relative;
-      width: 30px;
-      height: 30px;
+      width: 12px;
+      height: 12px;
       pointer-events: auto;
       transform: translate(-50%, -50%);
       cursor: pointer;
@@ -56,8 +56,8 @@ function ensureStyles() {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 20px;
-      height: 20px;
+      width: 8px;
+      height: 8px;
       border-radius: 9999px;
       border: 1.5px solid rgba(239, 68, 68, 0.9);
       box-shadow: 0 0 10px 1px rgba(220, 38, 38, 0.45);
@@ -164,7 +164,7 @@ export function createIranNewsNeonBadge(
   for (let i = 0; i < 3; i += 1) {
     const ripple = document.createElement("span");
     ripple.className = "iran-news-ripple";
-    const size = 16 + intensity * 10;
+    const size = 4 + intensity * 2.5;
     ripple.style.width = `${size}px`;
     ripple.style.height = `${size}px`;
     if (rgba) {
@@ -176,7 +176,7 @@ export function createIranNewsNeonBadge(
 
   const core = document.createElement("span");
   core.className = "iran-news-core";
-  const corePx = 6 + intensity * 3;
+  const corePx = 1.5 + intensity * 0.75;
   core.style.width = `${corePx}px`;
   core.style.height = `${corePx}px`;
   core.style.margin = `${-corePx / 2}px 0 0 ${-corePx / 2}px`;

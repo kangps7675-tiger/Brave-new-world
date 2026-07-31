@@ -1197,8 +1197,8 @@ export const FRICTION_SIGNIFICANCE: Record<string, { ko: string; en: string }> =
 };
 
 /**
- * 역사(마찰) 양피지 — 육하원칙·전개·의의를 라벨 없이 줄글로 이어 쓴다.
- * 사실·연도·지명은 유지하되, 정례 보고와 달리 장면과 여운이 있는 문학적 논픽션 톤.
+ * 역사(마찰) 양피지 — 육하원칙·전개·의의를 쉬운 줄글로.
+ * 사실·연도·지명은 유지하되, 비전공자가 바로 읽히게 쓴다.
  */
 export function frictionParchmentParagraphs(
   ep: FrictionEpisode,
@@ -1224,14 +1224,12 @@ export function frictionParchmentParagraphs(
 
     if (lang === "en") {
       paragraphs.push(
-        `The map returns to ${episodeLocationName(ep, "en")}. In ${yearSpan}, ${six.whenEn.replace(/\.$/, "")}. There, ${six.whoEn.replace(/\.$/, "")} stood across a line that was never only ink on a chart.`,
+        `Focus: ${episodeLocationName(ep, "en")}. Around ${yearSpan}: ${six.whenEn.replace(/\.$/, "")}. Who was involved: ${six.whoEn}`,
       );
       paragraphs.push(
-        `What unfolded was ${six.whatEn.replace(/\.$/, "")}. The reason was never thin: ${six.whyEn}`,
+        `What it was: ${six.whatEn.replace(/\.$/, "")}. Why it mattered: ${six.whyEn}`,
       );
-      paragraphs.push(
-        `It moved like this: ${six.howEn}`,
-      );
+      paragraphs.push(`How it unfolded: ${six.howEn}`);
       if (stages.length > 0) {
         const arc = stages
           .map((s) => {
@@ -1240,19 +1238,17 @@ export function frictionParchmentParagraphs(
             return `${s.yearLabel} — ${title}: ${stageBody}`;
           })
           .join(". ");
-        paragraphs.push(`Follow the arc of the years. ${arc}.`);
+        paragraphs.push(`Timeline: ${arc}.`);
       }
       paragraphs.push(...body);
       const noteEn = episodeNote(ep, "en");
       if (noteEn) paragraphs.push(noteEn);
       if (significance) {
-        paragraphs.push(
-          `What remains afterward is not a footnote alone. ${significance.en}`,
-        );
+        paragraphs.push(`What still matters: ${significance.en}`);
       }
       if (deep.openAlex.length > 0) {
         paragraphs.push(
-          `For further reading (OpenAlex metadata only): ${deep.openAlex
+          `Further reading (titles only): ${deep.openAlex
             .slice(0, 2)
             .map((w) => w.title)
             .join(" · ")}.`,
@@ -1261,31 +1257,29 @@ export function frictionParchmentParagraphs(
     } else {
       const whenLine = six.whenKo.replace(/\.$/, "");
       paragraphs.push(
-        `지도는 다시 ${ep.locationName}으로 돌아갑니다. ${yearSpan}, ${whenLine}. 그 자리에서 마주친 세력은 이렇습니다. ${six.whoKo}`,
+        `지금은 ${ep.locationName}을(를) 보고 있습니다. ${yearSpan} — ${whenLine}. 관련 당사자는 다음과 같습니다. ${six.whoKo}`,
       );
       paragraphs.push(
-        `벌어진 일은 이러합니다. ${six.whatKo} 까닭은 얇지 않았습니다. ${six.whyKo}`,
+        `무슨 일이었습니까. ${six.whatKo} 왜 중요했습니까. ${six.whyKo}`,
       );
-      paragraphs.push(`전개는 이렇게 흘렀습니다. ${six.howKo}`);
+      paragraphs.push(`전개는 이렇게 흘러갔습니다. ${six.howKo}`);
       if (stages.length > 0) {
         const arc = stages
           .map((s) => {
             const stageBody = s.bodyKo.replace(/\.$/, "");
-            return `${s.yearLabel}의 「${s.titleKo}」에서 ${stageBody}`;
+            return `${s.yearLabel}년 「${s.titleKo}」에서는 ${stageBody}`;
           })
           .join(". ");
-        paragraphs.push(`세월의 결을 따라가면 이렇습니다. ${arc}.`);
+        paragraphs.push(`시간 순서로 보면 이렇습니다. ${arc}.`);
       }
       paragraphs.push(...body);
       if (ep.note) paragraphs.push(ep.note);
       if (significance) {
-        paragraphs.push(
-          `이후에 남는 것은 각주만은 아닙니다. ${significance.ko}`,
-        );
+        paragraphs.push(`오늘에도 남는 점은 다음과 같습니다. ${significance.ko}`);
       }
       if (deep.openAlex.length > 0) {
         paragraphs.push(
-          `더 읽을 자료(OpenAlex 메타데이터): ${deep.openAlex
+          `더 읽을거리(제목만)는 다음과 같습니다. ${deep.openAlex
             .slice(0, 2)
             .map((w) => w.title)
             .join(" · ")}.`,
@@ -1296,29 +1290,22 @@ export function frictionParchmentParagraphs(
     return paragraphs.filter((p) => p.trim().length > 0);
   }
 
-  // deep 문서 없을 때 — 단문 briefing을 문학적 틀로 감싼다
   if (lang === "en") {
-    const whoBit = whoParties ? ` ${whoParties} stand in the record.` : "";
+    const whoBit = whoParties ? ` Parties: ${whoParties}.` : "";
     const fallbackNote = episodeNote(ep, "en");
     return [
-      `The lamp of history settles on ${episodeLocationName(ep, "en")} (${yearSpan}).${whoBit}`,
+      `Focus: ${episodeLocationName(ep, "en")} (${yearSpan}).${whoBit}`,
       episodeBriefing(ep, "en"),
       ...(fallbackNote ? [fallbackNote] : []),
-      ...(significance
-        ? [`What remains afterward is not a footnote alone. ${significance.en}`]
-        : []),
+      ...(significance ? [`What still matters: ${significance.en}`] : []),
     ];
   }
 
-  const whoBit = whoParties
-    ? ` 기록에 남는 당사자는 ${whoParties}입니다.`
-    : "";
+  const whoBit = whoParties ? ` 당사자는 ${whoParties}입니다.` : "";
   return [
-    `역사의 자리는 ${ep.locationName}으로 고정됩니다 (${yearSpan}).${whoBit}`,
+    `지금은 ${ep.locationName}을(를) 보고 있습니다(${yearSpan}).${whoBit}`,
     ep.briefing,
     ...(ep.note ? [ep.note] : []),
-    ...(significance
-      ? [`이후에 남는 것은 각주만은 아닙니다. ${significance.ko}`]
-      : []),
+    ...(significance ? [`오늘에도 남는 점은 다음과 같습니다. ${significance.ko}`] : []),
   ];
 }

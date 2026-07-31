@@ -67,7 +67,7 @@ describe("breakingFlashNarrative", () => {
   it("why-important uses Iran axis copy for Iran kinetic", () => {
     expect(
       formatWhyImportant("middle-east", "Iran missile strike near Natanz", "ko"),
-    ).toMatch(/이란 축/);
+    ).toMatch(/이란/);
   });
 
   it("detects Iran-related flash text", () => {
@@ -89,7 +89,7 @@ describe("breakingFlashNarrative", () => {
       "Houthi strike raises Red Sea freight and war-risk insurance",
       "ko",
     );
-    expect(line).toMatch(/^공급망 연결:/);
+    expect(line).toMatch(/^공급망과의 연결입니다/);
     expect(line).toMatch(/통항|운임|보험/);
   });
 });
@@ -107,7 +107,7 @@ describe("buildBreakingFlashBriefing supply bridge", () => {
       false,
     );
     expect(briefing.mode).toBe("conflict");
-    expect(briefing.paragraphs.some((p) => p.startsWith("공급망 연결:"))).toBe(true);
+    expect(briefing.paragraphs.some((p) => p.startsWith("공급망과의 연결입니다"))).toBe(true);
   });
 
   it("omits supply-chain paragraph when no logistics signal", () => {
@@ -120,7 +120,7 @@ describe("buildBreakingFlashBriefing supply bridge", () => {
       "ko",
       false,
     );
-    expect(briefing.paragraphs.some((p) => p.startsWith("공급망 연결:"))).toBe(false);
+    expect(briefing.paragraphs.some((p) => p.startsWith("공급망과의 연결입니다"))).toBe(false);
   });
 });
 
@@ -297,7 +297,7 @@ describe("economy geoeconomic flash gate", () => {
     );
     expect(briefing.mode).toBe("economy");
     expect(briefing.title).toMatch(/^지경학 신속 속보/);
-    expect(briefing.paragraphs.some((p) => p.startsWith("왜 중요:"))).toBe(true);
+    expect(briefing.paragraphs.some((p) => p.startsWith("왜 중요한가"))).toBe(true);
   });
 
   it("maps demand-weighted lens: transit / rates / oil / gold / mixed", () => {

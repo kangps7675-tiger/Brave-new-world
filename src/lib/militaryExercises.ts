@@ -59,10 +59,10 @@ export const EXERCISE_CONFIDENCE_LABEL: Record<
   ExerciseConfidence,
   { ko: string; en: string }
 > = {
-  announced: { ko: "확인(공시)", en: "Confirmed (announced)" },
-  announced_rf: { ko: "확인+항적", en: "Confirmed + tracks" },
-  announced_osint: { ko: "공시+OSINT", en: "Announced + OSINT" },
-  unverified: { ko: "미확인 속보", en: "Unverified" },
+  announced: { ko: "공식 발표로 확인", en: "Confirmed (announced)" },
+  announced_rf: { ko: "공식 발표 + 항적", en: "Confirmed + tracks" },
+  announced_osint: { ko: "공식 발표 + 공개 정보", en: "Announced + open sources" },
+  unverified: { ko: "아직 확인 안 된 속보", en: "Unverified" },
 };
 
 export const EXERCISE_ACTOR_LABEL: Record<ExerciseActor, { ko: string; en: string }> = {

@@ -209,10 +209,11 @@ const OVERRIDES: Record<string, Override> = {
     evidenceTier: "model",
     freshnessClass: "near-real-time",
     caveatKo:
-      "공개 보도에서 '어떤 임계선이 언급됐는가'를 계산한 파생 지표입니다. " +
-      "확전 여부·확률·의도를 판단하거나 예측하지 않으며, 점수 근거는 전부 공개됩니다.",
+      "공개 뉴스에서 ‘넘으면 반응이 커질 수 있는 선’이 나왔는지만 골라 올린 알림입니다. " +
+      "확전인지, 얼마나 확률 있는지, 고의인지는 판단하거나 예측하지 않습니다. 점수 근거는 전부 공개합니다.",
     caveatEn:
-      "A derived classification of which thresholds public reporting mentions. It makes no judgement or forecast of escalation, probability, or intent; every scoring factor is disclosed.",
+      "A highlight of which ‘lines that often raise the response’ public reporting mentions. " +
+      "It makes no judgement or forecast of escalation, probability, or intent; every scoring factor is disclosed.",
   },
   "gta-interventions": {
     evidenceTier: "reported",

@@ -1,19 +1,19 @@
 /**
  * US Navy CVN 실루엣.
- * - 갑판 俯視(레거시 경로 상수 유지)
- * - 지도 표지: 옆모습 E/W (군함 마커와 동일 정책)
+ * - 지도 표지: 공중俯視 갑판 (항모답게) + 군함색
+ * - 옆모습 E/W 경로는 레거시로 유지
  */
 
-/** SVG viewBox — 가로=함진행 · 俯視용 (레거시) */
+/** SVG viewBox — 가로=함진행 · 俯視 */
 export const CARRIER_DECK_VIEWBOX = { width: 48, height: 22 } as const;
 
-/** 옆모습 캔버스 — 군함 프로필과 동일 64² */
+/** 옆모습 캔버스 — 군함 프로필과 동일 64² (레거시) */
 export const CARRIER_PROFILE_VIEWBOX = { width: 64, height: 64 } as const;
 
 export const CARRIER_DECK_REFERENCE = {
   imagePath: "/assets/reference/us-carrier-deck-aerial.png",
   description:
-    "US Navy aircraft carrier — side profile for map markers (top-down paths retained for reference)",
+    "US Navy aircraft carrier — top-down deck silhouette for map markers (warship fill)",
   bowDirection: "east" as const,
   sourceNote: "멋진 신세계 design reference (2026)",
 };
@@ -39,13 +39,13 @@ export type CarrierDeckIconSize = {
   height: number;
 };
 
-/** 지도 마커 — 옆모습 비율 */
+/** 지도 마커 — 俯視 갑판 비율 (viewBox 48×22) */
 export const CARRIER_MARKER_ICON_SIZE: CarrierDeckIconSize = {
-  width: 56,
-  height: 32,
+  width: 48,
+  height: 22,
 };
 
-export const CARRIER_MARKER_ANCHOR_X_RATIO = 0.38;
+export const CARRIER_MARKER_ANCHOR_X_RATIO = 0.42;
 
 export function carrierMarkerAnchorOffsetPx(iconWidth = CARRIER_MARKER_ICON_SIZE.width): number {
   return Math.round(iconWidth * CARRIER_MARKER_ANCHOR_X_RATIO);

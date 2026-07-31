@@ -37,9 +37,9 @@ type LensFilter = ArchiveLens | "all";
 type ContinentFilter = ArchiveContinent | "all";
 
 const TENSION_LABEL: Record<DisputeHotspotEntry["tension"], { ko: string; en: string; dot: string }> = {
-  high: { ko: "고위험·실전투 근접", en: "High · combat-adjacent", dot: "bg-rose-400" },
-  medium: { ko: "중긴장", en: "Medium tension", dot: "bg-amber-400" },
-  low: { ko: "저긴장", en: "Low tension", dot: "bg-slate-400" },
+  high: { ko: "긴장 높음 · 전투 가까운 곳", en: "High tension · near combat", dot: "bg-rose-400" },
+  medium: { ko: "긴장 중간", en: "Medium tension", dot: "bg-amber-400" },
+  low: { ko: "긴장 낮음", en: "Low tension", dot: "bg-slate-400" },
 };
 
 /**
@@ -111,16 +111,16 @@ export function DisputeHotspotPanel({
         <div>
           <p className="text-micro uppercase tracking-[0.2em] text-rose-200/60">
             {en
-              ? `${archiveAll.length} episodes · past → powder kegs`
-              : `${archiveAll.length}건 · 과거→화약고`}
+              ? `${archiveAll.length} cases · history → today`
+              : `${archiveAll.length}건 · 과거부터 오늘까지`}
           </p>
           <h2 className="mt-0.5 text-sm font-medium text-rose-50">
-            {en ? "Territorial archive" : "영토분쟁 아카이브"}
+            {en ? "Territorial disputes" : "영토분쟁 모아보기"}
           </h2>
           <p className="mt-1 text-micro leading-4 text-rose-100/45">
             {en
-              ? "One comprehensive archive: intra-bloc clashes and border flashpoints in a single timeline."
-              : "진영 내부 충돌과 국경·화약고를 하나의 타임라인으로 — 포괄 작성·열람."}
+              ? "Past clashes and still-tense borders in one list. Pick one to read the story on the map."
+              : "예전에 싸운 곳과 지금도 긴장인 국경을 한 목록으로. 골라 읽으면 지도에 줄거리가 뜹니다."}
           </p>
         </div>
         <button
@@ -268,11 +268,11 @@ export function DisputeHotspotPanel({
                   <p className="mt-0.5 text-micro uppercase tracking-[0.12em] text-amber-200/55">
                     {en
                       ? isBloc
-                        ? "Intra-bloc"
-                        : "Border · keg"
+                        ? "Inside a bloc"
+                        : "Border · territory"
                       : isBloc
-                        ? "진영 내부"
-                        : "국경·화약고"}
+                        ? "같은 진영끼리"
+                        : "국경·영토"}
                     <span className="mx-1 opacity-40">·</span>
                     {en
                       ? ARCHIVE_CONTINENT_LABEL[ep.continent].en

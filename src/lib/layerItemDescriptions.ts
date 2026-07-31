@@ -48,14 +48,15 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "gem-chemicals": "켜면 화학 공장을 표시합니다.",
   resources: "켜면 주요 천연자원·광물 관련 거점을 표시합니다.",
   nuclear: "켜면 원자력 발전소·관련 시설 위치를 표시합니다.",
-  shipping: "켜면 주요 해상 항로를 표시합니다.",
+  shipping:
+    "켜면 주요 해상 통행 경향을 반투명 시안 실선으로 표시합니다(Shipping Lanes, CC BY 4.0). 초크(병목) 구간만 같은 선이 붉게 물듭니다.",
   cables: "켜면 주요 해저 통신 케이블 경로를 표시합니다.",
   tunnels:
     "켜면 주요 해저터널(유로터널·세이칸 등)을 표시합니다. 켜는 순간에만 조회합니다.",
   airports: "켜면 주요 공항 위치를 표시합니다.",
   ports: "켜면 주요 항구 위치를 표시합니다.",
   ixp: "켜면 인터넷 교환점(IXP) 위치를 표시합니다.",
-  "logistics-risk": "켜면 해협·운하 등 해상 요충과 물류 거점을 표시합니다.",
+  "logistics-risk": "켜면 해협·운하 등 초크포인트와 물류 거점을 표시합니다.",
   "critical-nodes":
     "켜면 해상·케이블·에너지·금융 등 핵심 인프라 병목을 표시합니다.",
   ais: "켜면 AIS 선박을 표시합니다. 지정학=군용 함정, 지경학=민간 화물·탱커·여객선(군용 제외).",
