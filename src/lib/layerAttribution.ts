@@ -102,7 +102,10 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   // ⚠️ shipped 데이터가 PeeringDB 로 교체될 때까지 표기하지 않는다 (P0-3).
   // `npm run peeringdb:fetch` 실행 후 label 을 "PeeringDB (CC BY 4.0)" 로 되돌릴 것.
   showInternetExchanges: { label: "(출처 미연결)" },
-  showShippingLanes: { label: "IMO / public" },
+  showShippingLanes: {
+    label: "Shipping Lanes (Benden 2022, CC BY 4.0)",
+    url: "https://github.com/newzealandpaul/Shipping-Lanes",
+  },
 };
 
 /** 현재 켜진 레이어들의 출처 크레딧 (라벨 기준 중복 제거, 정의 순서 유지) */

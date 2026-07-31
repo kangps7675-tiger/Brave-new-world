@@ -33,21 +33,21 @@ export function buildExerciseBriefingContent(
 
   const paragraphs = [
     en
-      ? `Confidence: ${conf.en}. This is not a live ADS-B/AIS “perfect track” of hostile forces.`
-      : `근거 등급: ${conf.ko}. 적성국을 ADS-B/AIS로 완벽 추적한다는 뜻이 아닙니다.`,
+      ? `How sure: ${conf.en}. This is not a perfect live track of hostile forces.`
+      : `얼마나 확실한가: ${conf.ko}. 적성국을 실시간으로 완벽히 추적한다는 뜻이 아닙니다.`,
     en
-      ? `Actors: ${actors || "unknown"}${ex.coalition ? ` (${ex.coalition})` : ""}.`
-      : `행위자: ${actors || "미상"}${ex.coalition ? ` (${ex.coalition})` : ""}.`,
+      ? `Who: ${actors || "unknown"}${ex.coalition ? ` (${ex.coalition})` : ""}.`
+      : `누가: ${actors || "미상"}${ex.coalition ? ` (${ex.coalition})` : ""}.`,
     ex.summary
       ? ex.summary.slice(0, 900)
       : en
-        ? "Announcement / OSINT summary unavailable."
-        : "공시·OSINT 요약이 없습니다.",
+        ? "Official or open-source summary unavailable."
+        : "공시나 공개 요약이 없습니다.",
     en ? `Sources: ${sources}` : `출처: ${sources}`,
     ex.rfGapNote ||
       (en
-        ? "RF silence is common for DPRK/CN/RU/IR — treat tracks as a bonus if any appear."
-        : "북·중·러·이란은 RF 침묵이 흔합니다. 항적이 있어도 보조 신호로만 보십시오."),
+        ? "North Korea, China, Russia, and Iran often hide radio tracks — treat any track as a bonus signal only."
+        : "북한·중국·러시아·이란은 항적 신호를 자주 숨깁니다. 항적이 있어도 참고만 하십시오."),
   ];
 
   return {

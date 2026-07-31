@@ -329,7 +329,7 @@ export function conceptLayersForConflictNavId(navId: string): LayerPatch {
     return TERRITORIAL_DISPUTES_STACK;
   }
   const hubAxis: LayerPatch = {
-    showAxisNetwork: true,
+    showAxisNetwork: false,
     showDiplomaticTension: true,
     showWarZones: true,
   };

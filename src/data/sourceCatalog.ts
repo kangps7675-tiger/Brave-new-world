@@ -573,15 +573,18 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "trade-routes",
-    source: "Static build",
-    url: "/data/{profile}/shipping-lanes.json",
-    cadence: "Project versioned",
-    attribution: "IMO / public datasets",
-    notes: "Major global maritime trade routes (mapped to shipping-lanes).",
+    source: "Shipping Lanes (Benden / CIA World Oceans map)",
+    url: "https://github.com/newzealandpaul/Shipping-Lanes",
+    cadence: "Project versioned (upstream GeoJSON)",
+    attribution:
+      "Benden, P. (2022). Global Shipping Lanes. Zenodo. CC BY 4.0 — https://doi.org/10.5281/zenodo.6361763",
+    notes:
+      "Schematic major/middle/minor maritime corridors georeferenced from CIA Map of the World's Oceans (2012), with edits. Low-opacity cyan solid strokes (density by overlap); same strokes tint reddish near curated chokepoints. Not live AIS tracks.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
-    commercialNote: "IMO·공개 데이터셋.",
+    commercialNote:
+      "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo). Statista 재사용 제외 조건은 업스트림 LICENSE 참고.",
   },
   {
     layerId: "logistics-risk",

@@ -512,10 +512,12 @@ export function buildBriefingFromStats(
   if (ko) {
     // 언제 · 어디서
     const whenWhere = hot
-      ? `보고드립니다. 기준 시점은 금일 관측 창이며, 주요 관측 지역은 ${hot}${placeNames ? ` 일대입니다. 인접 지점으로 ${placeNames}이(가) 함께 포착되었습니다` : "입니다"}.`
+      ? `보고드립니다. 기준 시점은 금일 관측 창입니다. 주요 관측 지역은 ${hot} 일대입니다.${
+          placeNames ? ` 인접 지점으로 ${placeNames}이(가) 함께 포착되었습니다.` : ""
+        }`
       : placeNames
-        ? `보고드립니다. 기준 시점은 금일 관측 창이며, 주요 관측 지역은 ${placeNames} 일대입니다.`
-        : "보고드립니다. 기준 시점은 금일 관측 창이며, 특정 지역에 국한되지 않고 지도 전역에서 신호가 포착되었습니다.";
+        ? `보고드립니다. 기준 시점은 금일 관측 창입니다. 주요 관측 지역은 ${placeNames} 일대입니다.`
+        : "보고드립니다. 기준 시점은 금일 관측 창입니다. 특정 지역에 국한되지 않고 지도 전역에서 신호가 포착되었습니다.";
     paragraphs.push(whenWhere);
 
     // 누가 · 무엇을
@@ -1877,8 +1879,8 @@ function buildMatterHook(
       : `Diplomatic signal in ${theaterLabel} — Why it matters unlocks the context.`;
   }
   return actors.length > 0
-    ? `${actors.join("·")} · ${theaterLabel} 축 — 「왜 중요?」로 맥락 확인.`
-    : `${theaterLabel} 외교 신호 — 「왜 중요?」로 맥락을 보세요.`;
+    ? `${actors.join("·")}과(와) ${theaterLabel} 일대입니다. 「왜 중요?」에서 맥락을 확인하십시오.`
+    : `${theaterLabel}의 외교 신호입니다. 「왜 중요?」에서 맥락을 확인하십시오.`;
 }
 
 function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFeaturedNews {

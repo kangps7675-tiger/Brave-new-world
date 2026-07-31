@@ -34,17 +34,17 @@ export type BottomStackLayout = "conflict" | "economy";
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 지정학 자원 히어로 — 전역 첫 화면: 해저관 + 송유관 + 원자력.
- * (나머지는 수동 체크 — 잡음 줄이고 차별감)
+ * 지정학 자원 히어로 — 전역 첫 화면: 원자력만.
+ * 송유관·해저관은 잡음이 커서 기본 OFF (레이어 패널에서 수동 ON).
  */
 export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showSubseaPipelines: true,
-  showOilPipelines: true,
   showNuclearSites: true,
 };
 
 /** 지정학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
+  showOilPipelines: false,
+  showSubseaPipelines: false,
   showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
@@ -143,7 +143,6 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showFirmsFires: true,
   showUkmtoIncidents: true,
   showNavareaWarnings: true,
-  showAxisNetwork: true,
   showSubmarineCables: true,
   showNeptun: true,
   showNeptunPreviousTrails: false,
@@ -162,6 +161,8 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAirTraffic: false,
   showSubmarineTunnels: false,
   showGscpiGauge: false,
+  /** 반서방 축·배관은 기본 OFF — 내비 허브/레이어에서만 켠다 */
+  showAxisNetwork: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
@@ -273,7 +274,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
       "GDELT 전투·외교 뉴스 핀",
       "Telegram OSINT · VIINA 전선(전장 선택 시)",
-      "에너지 히어로: 해저관 · 송유관 · 원자력",
+      "에너지 히어로: 원자력 (송유관·해저관·반서방 축은 수동)",
       "하단: 속보 + GDELT 범례",
     ],
     layerPanelTitle: "레이어 · 전선",

@@ -89,6 +89,11 @@ import {
 } from "@/lib/newfeedsI18n";
 import { NEWFEEDS_ATTRIBUTION_SHORT, severityColor, severityHint, severityLabel } from "@/lib/newfeeds";
 import {
+  theaterIntensityAngularRadius,
+  ukraineTheaterIntensityColor,
+} from "@/lib/theaterIntensityRadius";
+import { shippingLaneColor, shippingLaneStroke } from "@/lib/shippingLaneStyle";
+import {
   ARMS_EMBARGO_STROKE_WIDTH,
   CONFLICT_ZONE_ALTITUDE,
   FLOW_PATH_KINDS,
@@ -304,6 +309,9 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "newfeeds-attack") {
         return severityColor(point.severity);
       }
+      if (point.displayKind === "ukraine-theater-intensity") {
+        return ukraineTheaterIntensityColor(point.severity);
+      }
       if (point.displayKind === "conflict-cluster") {
         if (point.tension === "high") return "rgba(239, 68, 68, 0.92)";
         if (point.tension === "medium") return "rgba(249, 115, 22, 0.9)";
@@ -327,16 +335,8 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "tzeva-adom") {
         return (point.active ? 0.42 : 0.28) * getZoomOutScale(alt);
       }
-      if (point.displayKind === "newfeeds-attack") {
-        const base =
-          point.severity === "major"
-            ? 0.32
-            : point.severity === "high"
-              ? 0.28
-              : point.severity === "medium"
-                ? 0.24
-                : 0.16;
-        return base * getZoomOutScale(alt);
+      if (point.displayKind === "newfeeds-attack" || point.displayKind === "ukraine-theater-intensity") {
+        return theaterIntensityAngularRadius(point.severity) * getZoomOutScale(alt);
       }
       if (point.displayKind === "conflict-cluster") {
         const base = point.tension === "high" ? 0.55 : point.tension === "medium" ? 0.42 : 0.32;
@@ -452,6 +452,18 @@ export function useGlobeMapGlobeProps(
                     ${location ? `<br/>${escapeHtml(location)}` : ""}
                     ${category ? `<br/>${escapeHtml(category)}` : ""}
                     <br/><span style="opacity:.75">${escapeHtml(point.sourceName)} · ${escapeHtml(NEWFEEDS_ATTRIBUTION_SHORT)}</span>
+                  </div>
+                `;
+      }
+      if (point.displayKind === "ukraine-theater-intensity") {
+        const sevLabel = severityLabel(point.severity, labelLanguage);
+        const title = point.title || (labelLanguage === "en" ? "Ukraine theater" : "우크라 전장");
+        return `
+                  <div style="max-width: 300px">
+                    <strong>${escapeHtml(labelLanguage === "en" ? "Ukraine front intensity" : "우크라 전장 강도")}</strong><br/>
+                    <span style="opacity:.9">${escapeHtml(sevLabel)}</span><br/>
+                    ${escapeHtml(title)}
+                    ${point.hapiTag ? `<br/>HAPI · ${escapeHtml(point.hapiTag)}` : ""}
                   </div>
                 `;
       }
@@ -896,6 +908,10 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "oil-pipeline") return tonedPathColors["oil-pipeline"];
       if (path.kind === "gas-pipeline") return tonedPathColors["gas-pipeline"];
       if (path.kind === "subsea-pipeline") return tonedPathColors["subsea-pipeline"];
+      // 항로 — 반투명 시안 실선 · 병목(초크)만 같은 선이 붉게 틴트
+      if (path.kind === "shipping-lane") {
+        return shippingLaneColor(path, basemapTone === "light" ? "light" : "dark");
+      }
       if (FLOW_PATH_KINDS.has(path.kind)) return INTEL_MISSILE_ARC;
       if (path.kind === "dispute-boundary") return "rgba(251, 191, 36, 0.92)";
       if (path.kind === "lsib-boundary") {
@@ -922,7 +938,6 @@ export function useGlobeMapGlobeProps(
         if (zone) return getConflictZoneHatchColor(zone);
         return TENSION_GRADE_STYLES.medium.hatch;
       }
-      if (path.kind === "shipping-lane") return tonedPathColors["shipping-lane"];
       if (path.kind === "submarine-cable") return tonedPathColors["submarine-cable"];
       if (path.kind === "ship-movement-trail") {
         return path.accentColor || "rgba(34, 211, 238, 0.7)";
@@ -999,7 +1014,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "dispute-zone") return 1.35;
       if (path.kind === "dispute-hatch") return 0.55;
       if (path.kind === "conflict-hatch") return 0.62;
-      if (path.kind === "shipping-lane") return 0.48;
+      if (path.kind === "shipping-lane") return shippingLaneStroke(path);
       if (path.kind === "ship-movement-trail") return 1.15;
       if (path.kind === "submarine-cable") {
         // 해저 케이블: cable widthMode (줌아웃↑ · 줌인 최소 ~0.55)
@@ -1010,10 +1025,8 @@ export function useGlobeMapGlobeProps(
         path.kind === "gas-pipeline" ||
         path.kind === "subsea-pipeline"
       ) {
-        // 전역에서도 노선이 보이도록 굵게 (z-fight 완화는 path alt)
-        if (globeLod.tier === "global") return 2.15;
-        if (globeLod.tier === "continent") return 1.85;
-        return 1.35;
+        // 실제 px 굵기는 widthMode "pipeline" (0.1~0.6). strokeAngular는 미사용.
+        return 0.2;
       }
       if (path.kind === "arms-embargo") return ARMS_EMBARGO_STROKE_WIDTH;
       if (path.kind === "msr") return 0.55;
@@ -1069,6 +1082,8 @@ export function useGlobeMapGlobeProps(
       }
       // DFC·BRI는 MapLibre에서 점선 data-driven이 얇게/안 보이는 경우가 있어 실선 유지
       if (path.kind === "bri-trade" || path.kind === "us-dfc-supply") return 0;
+      // 항로 — 통행 경향(실선·저채도). 미사일 호 점선과 분리
+      if (path.kind === "shipping-lane") return 0;
       return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
     },
     pathDashGap: (path: TransportPath) => {

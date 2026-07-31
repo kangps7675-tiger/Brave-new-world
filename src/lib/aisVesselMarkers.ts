@@ -1,10 +1,12 @@
 import type { AisVessel } from "@/data/geoTypes";
 import { SUBMARINE_PROFILE_SIZE } from "@/data/submarineSilhouette";
 import { SURFACE_COMBATANT_PROFILE_SIZE } from "@/data/surfaceCombatantSilhouette";
+import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
 import {
   aisCommercialPointColor,
   aisDisplayTypeLabel,
   AIS_SURFACE_COMBATANT_FILL,
+  AIS_WARSHIP_FILL,
   isAisAspectHullMarker,
   usesSurfaceCombatantDeckIcon,
 } from "@/lib/aisVesselClass";
@@ -23,11 +25,7 @@ import {
   submarineFacingFromRelativeHeading,
   submarineProfileIconSvg,
 } from "@/lib/submarineDeckIcon";
-import {
-  carrierFacingFromRelativeHeading,
-  carrierProfileIconSvg,
-} from "@/lib/usCarrierDeckIcon";
-import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
+import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 
 export const AIS_VESSEL_MARKER_ROOT_CLASS = "ais-vessel-marker-root";
 
@@ -142,8 +140,9 @@ export function createAisVesselBadge(
   const surface = !disguised && military && usesSurfaceCombatantDeckIcon(vessel.militaryKind);
   const submarine = !disguised && military && vessel.militaryKind === "submarine";
   const carrier = !disguised && military && vessel.militaryKind === "carrier";
-  const aspectHull = disguised || surface || submarine || carrier;
-  const heading = aisVesselHeadingDeg(vessel, { allowStationaryHeading: aspectHull });
+  /** 옆모습 E/W — 항모는 俯視+침로 회전 */
+  const aspectHull = disguised || surface || submarine;
+  const heading = aisVesselHeadingDeg(vessel, { allowStationaryHeading: aspectHull || carrier });
   const color = shipColor(vessel);
   const size = military || disguised ? 28 : 22;
 
@@ -158,9 +157,7 @@ export function createAisVesselBadge(
         ? shadowFleetFacingFromRelativeHeading(relative)
         : submarine
           ? submarineFacingFromRelativeHeading(relative)
-          : carrier
-            ? carrierFacingFromRelativeHeading(relative)
-            : surfaceCombatantFacingFromRelativeHeading(relative)
+          : surfaceCombatantFacingFromRelativeHeading(relative)
       : null;
   const aspect = facing;
 
@@ -243,10 +240,13 @@ export function createAisVesselBadge(
     icon.style.height = `${SUBMARINE_PROFILE_SIZE.height}px`;
     icon.innerHTML = submarineProfileIconSvg(color, SUBMARINE_PROFILE_SIZE, facing);
     if (heading == null) icon.style.opacity = "0.72";
-  } else if (carrier && facing) {
+  } else if (carrier) {
     icon.style.width = `${CARRIER_MARKER_ICON_SIZE.width}px`;
     icon.style.height = `${CARRIER_MARKER_ICON_SIZE.height}px`;
-    icon.innerHTML = carrierProfileIconSvg(color, CARRIER_MARKER_ICON_SIZE, facing);
+    icon.innerHTML = carrierDeckIconSvg(
+      CARRIER_MARKER_ICON_SIZE,
+      color || AIS_WARSHIP_FILL,
+    );
     if (heading == null) icon.style.opacity = "0.72";
   } else if (surface && facing) {
     icon.style.width = `${SURFACE_COMBATANT_PROFILE_SIZE.width}px`;

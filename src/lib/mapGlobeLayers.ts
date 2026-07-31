@@ -19,8 +19,14 @@ function asFn<T, R>(value: unknown, fallback: Accessor<T, R>): Accessor<T, R> {
 export const MAX_ANGULAR_POINT_RADIUS_PX = 48;
 export const MAX_ANGULAR_LINE_WIDTH_PX = 26;
 
-/** 해저 케이블만 — 줌인 시 가늘어짐. 송유관·가스관은 일반 path (줌인해도 보이도록). */
+/** 해저 케이블만 — 줌인 시 가늘어짐. */
 const CABLE_KINDS = new Set(["submarine-cable"]);
+/** 송유·가스·해저관 — 줌아웃 0.1 · 줌인 ≤0.6 */
+const PIPELINE_KINDS = new Set([
+  "oil-pipeline",
+  "gas-pipeline",
+  "subsea-pipeline",
+]);
 /** DFC·BRI 등 경제 연결 호 — 전 줌에서 최소 굵기 유지 */
 const FLOW_ARC_KINDS = new Set(["bri-trade", "us-dfc-supply", "axis-link"]);
 
@@ -167,6 +173,13 @@ const FLOW_TABLE: Array<[number, number]> = [
   [6, 3.4],
   [10, 2.6],
 ];
+/** 파이프 — 멀리 0.1 · 가까이 ≤0.6 */
+const PIPELINE_TABLE: Array<[number, number]> = [
+  [1.2, 0.1],
+  [4, 0.22],
+  [7, 0.4],
+  [10, 0.6],
+];
 
 /**
  * ⚠️ 중첩 순서가 중요하다.
@@ -175,7 +188,7 @@ const FLOW_TABLE: Array<[number, number]> = [
  *   ["case", …, CABLE_LINE_WIDTH_BY_ZOOM, …]   ← zoom이 최상위가 아님 = 위반
  *
  * 그래서 `interpolate`를 밖으로 빼고 각 줌 스톱 **안에서** `case`로 분기한다.
- * 케이블·flow는 feature 속성과 무관한 순수 줌 함수라 JS에서 미리 평가해
+ * 케이블·flow·pipeline은 feature 속성과 무관한 순수 줌 함수라 JS에서 미리 평가해
  * 스칼라로 박고, 기본 path만 feature 속성(`strokeAngular`)을 쓴다.
  */
 export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = (() => {
@@ -188,6 +201,8 @@ export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = (() => {
       lerpTable(CABLE_TABLE, z),
       ["==", ["get", "widthMode"], "flow"],
       lerpTable(FLOW_TABLE, z),
+      ["==", ["get", "widthMode"], "pipeline"],
+      lerpTable(PIPELINE_TABLE, z),
       [
         "min",
         MAX_ANGULAR_LINE_WIDTH_PX,
@@ -302,9 +317,11 @@ export function buildPathsGeoJson<T>(
       const widthMode =
         kind && CABLE_KINDS.has(kind)
           ? "cable"
-          : kind && FLOW_ARC_KINDS.has(kind)
-            ? "flow"
-            : "angular";
+          : kind && PIPELINE_KINDS.has(kind)
+            ? "pipeline"
+            : kind && FLOW_ARC_KINDS.has(kind)
+              ? "flow"
+              : "angular";
       return [
         {
           type: "Feature" as const,

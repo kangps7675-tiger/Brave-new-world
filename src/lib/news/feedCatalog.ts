@@ -80,6 +80,12 @@ const MIDDLE_EAST: NewsFeedDef[] = [
   { url: G("Iran Israel war military strike"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G("Iran missile drone strike Israel"), name: "Google News", theater: "middle-east", unfiltered: true },
   { url: G('"Strait of Hormuz" OR "Red Sea" military Iran'), name: "Google News", theater: "middle-east", unfiltered: true },
+  // —— 이란 본토·IRGC·핵·방공 속보 보강 (중동 슬롯이 레반트에 밀리지 않게) ——
+  { url: G("Iran OR IRGC OR Tehran (missile OR drone OR airstrike OR strike OR nuclear OR Natanz OR Fordow OR Hormuz)"), name: "Google News · Iran kinetic", theater: "middle-east", unfiltered: true },
+  { url: G("site:reuters.com Iran (strike OR missile OR IRGC OR nuclear)"), name: "Reuters · Iran", theater: "middle-east", unfiltered: true },
+  { url: G("site:bbc.com Iran (missile OR strike OR nuclear OR IRGC)"), name: "BBC · Iran", theater: "middle-east", unfiltered: true },
+  { url: G("site:aljazeera.com Iran (Israel OR missile OR strike OR nuclear)"), name: "Al Jazeera · Iran", theater: "middle-east", unfiltered: true },
+  { url: G("site:understandingwar.org Iran OR \"Islamic Republic\""), name: "ISW · Iran theater", theater: "middle-east", unfiltered: true },
   // —— 중동 부족·종족·미승인·사실상 자치체 (지정학 defense 전용) ——
   {
     url: G(

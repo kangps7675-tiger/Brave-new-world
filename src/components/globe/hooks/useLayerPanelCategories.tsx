@@ -816,16 +816,16 @@ export function useLayerPanelCategories({
           },
           {
             id: "escalation-signals",
-            label: "확전 신호 (임계선 통과 보도)",
+            label: "눈여겨볼 보도",
             // 신호가 없으면 "조용함"이라고 명시한다 — 고장·미로딩과 구분되어야 한다
             detail: showEscalationSignals
               ? escalationVisibleCount > 0
-                ? `신호 ${escalationVisibleCount}건` +
+                ? `알림 ${escalationVisibleCount}건` +
                   (escalationSuppressedCount > 0
                     ? ` · ${escalationSuppressedCount}건 더 있음`
                     : "")
-                : "지금은 조용함 · 임계선 통과 보도 없음"
-              : "꺼짐 · 주권침범·교차전장·핵신호 등",
+                : "지금은 조용합니다 · 넘을 만한 선이 보도에 없습니다"
+              : "꺼짐 · 이웃 침범, 새 무기, 핵 경보 시설 등",
             checked: layerPrefs.showEscalationSignals,
             onChange: setShowEscalationSignals,
             accent: "orange",
@@ -1404,7 +1404,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "logistics-risk",
-            label: "해상 요충·물류 거점",
+            label: "초크포인트·물류 거점",
             detail: showLogisticsRisk
               ? `${visibleStaticPoints.filter((p) => p.kind === "chokepoint" || p.kind === "logistics-hub").length.toLocaleString()}곳 · 해협·운하 등`
               : off(staticCounts.logisticsRisk),

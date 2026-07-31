@@ -283,8 +283,8 @@ export function HoverNav({
               <button
                 type="button"
                 aria-expanded={hubMenuOpen}
-                aria-label="화약고 · 지정학 아카이브 메뉴"
-                title="화약고 · 지정학적 아카이브"
+                aria-label="긴장 지점 · 지정학 아카이브 메뉴"
+                title="긴장 지점 · 지정학 아카이브"
                 onClick={() => {
                   setHubMenuOpen((v) => !v);
                   setOpenHubId(null);

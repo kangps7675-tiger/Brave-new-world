@@ -34,24 +34,24 @@ type FrictionOnboardingCoachProps = {
 
 const COPY = {
   ko: {
-    listTitle: "영토분쟁 · 진영 내부 목록",
+    listTitle: "영토분쟁 · 같은 진영끼리의 충돌",
     listBody:
-      "각 카드가 한 현장입니다. 누르면 좌표로 이동하고 양피지 브리프가 열립니다. 「영토분쟁」에서는 국경·화약고와 한 아카이브로 포괄 열람할 수 있습니다. ✕ 로 역사 모드를 종료합니다.",
+      "각 카드가 한 현장입니다. 누르면 그곳으로 이동하고 이야기가 열립니다. 「영토분쟁」에서는 국경 긴장과 한 목록으로 볼 수 있습니다. ✕ 로 시간순 보기를 끝냅니다.",
     listCta: "다음 — 현장 고르기",
-    historyTitle: "역사 모드 조작",
+    historyTitle: "시간순으로 보기",
     historyBody:
-      "전개 단계를 누르면 지도 콜아웃이 따라갑니다. 「양피지 다시 읽기」·「목록」·「카드 공유」·「역사 나가기」를 쓰세요. 줌아웃해도 이 모드는 유지됩니다.",
+      "전개 단계를 누르면 지도 표시가 따라갑니다. 「이야기 다시 읽기」·「목록」·「카드 공유」·「역사 나가기」를 쓰세요. 지도를 축소해도 이 화면은 유지됩니다.",
     historyCta: "알겠습니다",
     skip: "스킵",
   },
   en: {
-    listTitle: "Territorial archive · intra-bloc",
+    listTitle: "Territorial disputes · clashes inside a bloc",
     listBody:
-      "Each card is one site. Tap to fly there and open the parchment brief. In Territorial disputes you can browse them with border kegs as one archive. Use ✕ to leave history mode.",
+      "Each card is one site. Tap to fly there and open the story. In Territorial disputes you can browse them with border tensions as one list. Use ✕ to leave timeline view.",
     listCta: "Next — pick a site",
-    historyTitle: "History mode controls",
+    historyTitle: "Timeline controls",
     historyBody:
-      "Stage buttons drive map callouts. Use Reopen parchment, List, Share card, and Exit history. Zooming out won’t eject you.",
+      "Stage buttons drive map markers. Use Reread the story, List, Share card, and Exit. Zooming out won’t eject you.",
     historyCta: "Got it",
     skip: "Skip",
   },

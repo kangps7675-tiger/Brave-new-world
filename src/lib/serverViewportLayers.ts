@@ -1,5 +1,6 @@
 import type { CountryFeature, TransportPath } from "@/data/geoTypes";
 import { expandTransportPaths } from "@/lib/compactData";
+import { sanitizeShippingLanePaths } from "@/lib/shippingLaneSanitize";
 import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { getServerDataProfile } from "@/lib/serverEnv";
@@ -103,8 +104,10 @@ export async function loadAllTransportPaths(
   const paths = expandTransportPaths(
     raw as Parameters<typeof expandTransportPaths>[0],
   );
-  pathCache.set(key, paths);
-  return paths;
+  const sanitized =
+    layer === "shipping-lanes" ? sanitizeShippingLanePaths(paths) : paths;
+  pathCache.set(key, sanitized);
+  return sanitized;
 }
 
 export async function loadAllCountries(): Promise<CountryFeature[]> {

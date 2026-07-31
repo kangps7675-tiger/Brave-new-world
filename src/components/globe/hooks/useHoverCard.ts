@@ -101,6 +101,7 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (p.displayKind === "firms-fire") return "firms-fires";
     if (p.displayKind === "tzeva-adom") return "tzeva-adom";
     if (p.displayKind === "newfeeds-attack") return "newfeeds-iran";
+    if (p.displayKind === "ukraine-theater-intensity") return "conflict-zones";
     if (p.displayKind === "china-theater-incident") return "china-theater-incidents";
     if (p.displayKind === "korea-missile-incident") return "korea-missile-incidents";
     if (p.displayKind === "russia-strike-incident") return "ukraine-strikes-russia";
@@ -456,6 +457,21 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         body: localizeNewfeedsSummary(hoveredPoint.summary, labelLanguage) || undefined,
         meta: `${hoveredPoint.sourceName} · ${NEWFEEDS_ATTRIBUTION_SHORT}`,
         hint: newfeedsUi("hoverHint", labelLanguage),
+      };
+    }
+    if (hoveredPoint.displayKind === "ukraine-theater-intensity") {
+      const sev = hoveredPoint.severity;
+      const langKey = labelLanguage === "en" ? "en" : "ko";
+      return {
+        kind: "event",
+        badge: severityLabel(sev, langKey),
+        title: hoveredPoint.title,
+        detail: [
+          lang === "en" ? "Ukraine front intensity" : "우크라 전장 강도",
+          hoveredPoint.hapiTag ? `HAPI · ${hoveredPoint.hapiTag}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
       };
     }
     if (hoveredPoint.displayKind === "china-theater-incident") {

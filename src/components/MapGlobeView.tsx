@@ -1734,12 +1734,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 (enriched as { militaryKind?: string | null }).militaryKind ?? "",
               );
               const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
-              // 수상함·잠수함·항모·위장선 — 모두 옆모습 E/W
+              // 수상함·잠수함·위장선 — 옆모습 E/W (항모는 俯視+침로 회전)
               const sideProfileHull =
                 disguised ||
                 ((enriched as { category?: string }).category === "military" &&
                   milKind !== "" &&
-                  milKind !== "unknown");
+                  milKind !== "unknown" &&
+                  milKind !== "carrier");
               const headingRaw = Number(
                 (enriched as { courseOverGround?: number; trueHeading?: number })
                   .courseOverGround ??

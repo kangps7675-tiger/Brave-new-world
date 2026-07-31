@@ -64,7 +64,7 @@ export function FrictionHistoryChrome({
       <div className="flex items-start justify-between gap-2 border-b border-violet-200/10 px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-micro uppercase tracking-[0.2em] text-violet-200/55">
-            {ko ? "역사 모드 · 잠금" : "History mode · locked"}
+            {ko ? "시간순으로 보기" : "Timeline view"}
           </p>
           <h2 className="mt-0.5 truncate text-sm font-medium text-violet-50">{episode.title}</h2>
           <p className="mt-1 text-micro leading-4 text-violet-100/50">
@@ -97,7 +97,7 @@ export function FrictionHistoryChrome({
           onClick={onOpenBrief}
           className="tap-target min-h-[44px] flex-1 rounded-lg border border-amber-300/25 bg-amber-500/10 px-2 text-meta font-medium text-amber-50 transition hover:border-amber-200/40"
         >
-          {ko ? "양피지 다시 읽기" : "Reopen parchment"}
+          {ko ? "이야기 다시 읽기" : "Reread the story"}
         </button>
         <button
           type="button"

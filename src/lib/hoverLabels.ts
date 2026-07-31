@@ -27,7 +27,7 @@ const STATIC_KIND: Record<string, Bi> = {
   chokepoint: { ko: "해상 초크포인트", en: "Maritime chokepoint" },
   "logistics-hub": { ko: "핵심 물류 거점", en: "Logistics hub" },
   "submarine-tunnel": { ko: "해저터널", en: "Submarine tunnel" },
-  "critical-node": { ko: "크리티컬 노드", en: "Critical node" },
+  "critical-node": { ko: "핵심 거점", en: "Critical hub" },
   "gem-coal-plant": { ko: "석탄 발전소 (GEM)", en: "Coal plant (GEM)" },
   "gem-coal-mine": { ko: "석탄 광산 (GEM)", en: "Coal mine (GEM)" },
   "gem-coal-terminal": { ko: "석탄 터미널 (GEM)", en: "Coal terminal (GEM)" },
@@ -52,14 +52,14 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   "gas-pipeline": { ko: "가스 파이프라인 (GEM)", en: "Gas pipeline (GEM)" },
   "subsea-pipeline": { ko: "해저 파이프라인 (EMODnet)", en: "Subsea pipeline (EMODnet)" },
   "dispute-boundary": { ko: "분쟁 경계선", en: "Dispute boundary" },
-  "lsib-boundary": { ko: "LSIB 국경선 (미 국무부)", en: "LSIB boundary (US Dept. of State)" },
+  "lsib-boundary": { ko: "국경선 (미 국무부 자료)", en: "Border line (US Dept. of State)" },
   "country-border": { ko: "국경선", en: "Country border" },
   coastline: { ko: "해안선", en: "Coastline" },
   rail: { ko: "철도", en: "Railway" },
   "arms-embargo": { ko: "무기금수 구역", en: "Arms embargo zone" },
   "dispute-zone": { ko: "분쟁·긴장 테두리", en: "Dispute / tension outline" },
-  "dispute-hatch": { ko: "분쟁 빗금", en: "Dispute hatch" },
-  "conflict-hatch": { ko: "분쟁 구역 빗금", en: "Conflict zone hatch" },
+  "dispute-hatch": { ko: "분쟁 구역 표시", en: "Dispute zone mark" },
+  "conflict-hatch": { ko: "충돌 구역 표시", en: "Conflict zone mark" },
   "axis-link": { ko: "축 관계망", en: "Axis relationship link" },
   "bri-trade": { ko: "일대일로 무역 연결", en: "BRI trade connectivity" },
   "us-dfc-supply": { ko: "미국 DFC 개발금융망", en: "U.S. DFC network" },
@@ -70,12 +70,12 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   msr: { ko: "보급로", en: "MSR" },
   "ukraine-ru-occupied": { ko: "RU 점령 테두리", en: "RU occupied outline" },
   "ukraine-ua-occupied": { ko: "UA 점령 테두리", en: "UA controlled outline" },
-  "ukraine-ru-occupied-hatch": { ko: "RU 점령 빗금", en: "RU occupied hatch" },
-  "ukraine-ua-occupied-hatch": { ko: "UA 점령 빗금", en: "UA controlled hatch" },
+  "ukraine-ru-occupied-hatch": { ko: "RU 점령 구역", en: "RU occupied zone" },
+  "ukraine-ua-occupied-hatch": { ko: "UA 통제 구역", en: "UA controlled zone" },
   "ukraine-ru-claim": { ko: "RU 진격·주장 테두리", en: "RU claim outline" },
   "ukraine-ua-claim": { ko: "UA 주장 테두리", en: "UA claim outline" },
-  "ukraine-ru-claim-hatch": { ko: "RU 진격·주장 빗금", en: "RU claim hatch" },
-  "ukraine-ua-claim-hatch": { ko: "UA 주장 빗금", en: "UA claim hatch" },
+  "ukraine-ru-claim-hatch": { ko: "RU 진격·주장 구역", en: "RU claim / advance zone" },
+  "ukraine-ua-claim-hatch": { ko: "UA 주장 구역", en: "UA claim zone" },
   "ukraine-ru-front": { ko: "RU 점령 경계", en: "RU front line" },
   "ukraine-ua-front": { ko: "UA 경계", en: "UA front line" },
   "ukraine-contested-front": { ko: "경합 경계", en: "Contested front" },
@@ -147,18 +147,18 @@ export function hatchStyleLabelLocalized(
   combatHazard?: boolean,
 ): string {
   if (combatHazard) {
-    return pick({ ko: "빨강 빗금 / (실전투·폭격)", en: "Red hatch / (active combat)" }, lang);
+    return pick({ ko: "빨강 표시 / (실제 전투·폭격)", en: "Red mark / (active combat)" }, lang);
   }
   if (style === "slash") {
-    return pick({ ko: "주황 빗금 / (외교적 긴장)", en: "Orange hatch / (diplomatic)" }, lang);
+    return pick({ ko: "주황 표시 / (외교 긴장)", en: "Orange mark / (diplomatic tension)" }, lang);
   }
   if (style === "backslash") {
-    return pick({ ko: "노랑 빗금 \\ (중긴장·영토)", en: "Yellow hatch \\ (medium / territory)" }, lang);
+    return pick({ ko: "노랑 표시 / (중간 긴장·영토)", en: "Yellow mark / (medium · territory)" }, lang);
   }
   if (style === "cross") {
-    return pick({ ko: "황금 교차 X (회색지대·위기)", en: "Gold cross X (gray zone)" }, lang);
+    return pick({ ko: "황금 X 표시 (애매한 회색지대·위기)", en: "Gold X (gray-zone crisis)" }, lang);
   }
-  return pick({ ko: "청록 가로선 — (저긴장)", en: "Teal lines — (low tension)" }, lang);
+  return pick({ ko: "청록 가로선 (긴장 낮음)", en: "Teal lines (low tension)" }, lang);
 }
 
 /** 공통 호버 카드 문구 */
@@ -176,9 +176,9 @@ export const HOVER = {
     pick({ ko: "클릭하면 해당 구역으로 이동", en: "Click to fly to this area" }, lang),
   militaryBase: (lang: LabelLanguage) => pick({ ko: "미군기지", en: "US military base" }, lang),
   milAircraft: (lang: LabelLanguage) =>
-    pick({ ko: "군사 항공기 (ADS-B)", en: "Military aircraft (ADS-B)" }, lang),
+    pick({ ko: "군사 항공기 (공개 항적)", en: "Military aircraft (public track)" }, lang),
   civAircraft: (lang: LabelLanguage) =>
-    pick({ ko: "민간 항공기 (ADS-B)", en: "Civilian aircraft (ADS-B)" }, lang),
+    pick({ ko: "민간 항공기 (공개 항적)", en: "Civilian aircraft (public track)" }, lang),
   firmsCombat: (lang: LabelLanguage) =>
     pick({ ko: "분쟁 관련 화재 가능성", en: "Likely conflict-related fire" }, lang),
   firmsFire: (lang: LabelLanguage) =>

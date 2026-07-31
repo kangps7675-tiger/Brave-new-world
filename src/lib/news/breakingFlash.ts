@@ -401,7 +401,7 @@ export function formatFlashSourceAttribution(
  * - 지경학: 같은 S/A·시간창이지만 **국제 지경학 영향** 주제만 (연준·원자재·초크·대형기업·거시·공급망).
  * - 연예·스포츠·사설 제외. **45분** 초과 제외 (신속 속보).
  * - Tier3 단독은 S 미만 불가.
- * - 공급망 연결은 별도 양피지가 아니라 본문 「공급망 연결」 단락으로만 붙인다.
+ * - 공급망과의 연결은 별도 양피지가 아니라 본문 「공급망과의 연결」 단락으로만 붙인다.
  */
 export function shouldOpenBreakingFlash(
   hero: HeroBreakingItem | null | undefined,
@@ -412,10 +412,26 @@ export function shouldOpenBreakingFlash(
   const rank = hero.breakingRank;
   const age = typeof hero.ageMinutes === "number" ? hero.ageMinutes : 999;
   if (age > FLASH_MAX_AGE_MINUTES) return false;
-  if (hero.trustTier === 3 && grade < S_GRADE_MIN) return false;
 
   const blob = `${hero.title} ${hero.summary ?? ""}`;
   if (FLASH_SOFT_EXCLUDE_RE.test(blob)) return false;
+
+  const iranKinetic =
+    isIranRelatedBreakingText(blob) && FLASH_KINETIC_RE.test(blob);
+
+  // Tier3 단독은 원래 S 미만 불가(상한 7). 이란 키네틱만 A급(≥7) 예외.
+  if (hero.trustTier === 3 && grade < S_GRADE_MIN) {
+    if (
+      !(
+        iranKinetic &&
+        rank === "A" &&
+        grade >= 7 &&
+        age <= FLASH_A_MAX_AGE_MINUTES
+      )
+    ) {
+      return false;
+    }
+  }
 
   if (preferEconomy || hero.feedTopic === "economy") {
     // 지정학과 동일 등급 창 — 주제만 지경학 영향력으로 좁힘
@@ -441,10 +457,11 @@ export function shouldOpenBreakingFlash(
       grade >= S_GRADE_MIN
     );
   }
-  // A급: 키네틱 + 더 짧은 창만
+  // A급: 키네틱 + 더 짧은 창 (이란 Tier3는 grade≥7 허용)
+  const aGradeMin = iranKinetic && hero.trustTier === 3 ? 7 : 8;
   if (
     rank === "A" &&
-    grade >= 8 &&
+    grade >= aGradeMin &&
     age <= FLASH_A_MAX_AGE_MINUTES &&
     FLASH_KINETIC_RE.test(blob)
   ) {

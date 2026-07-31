@@ -179,6 +179,18 @@ export type NewfeedsAttackGlobePoint = NewfeedsAttackPoint & {
   hapiTag?: string | null;
 };
 
+/** 우크라 전장 — 이란 NewFeeds와 동일 강도 원 스택 (시안) */
+export type UkraineTheaterIntensityGlobePoint = {
+  id: string;
+  lat: number;
+  lng: number;
+  markerId: string;
+  displayKind: "ukraine-theater-intensity";
+  severity: import("@/lib/newfeeds").NewfeedsSeverity;
+  title: string;
+  hapiTag?: string | null;
+};
+
 export type ChinaTheaterIncidentHtmlMarker = ChinaTheaterIncident & {
   markerId: string;
   displayKind: "china-theater-incident";
@@ -348,6 +360,7 @@ export type GlobeDisplayPoint =
   | ConflictClusterPoint
   | TzevaAdomGlobePoint
   | NewfeedsAttackGlobePoint
+  | UkraineTheaterIntensityGlobePoint
   | CasualtySkullHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
@@ -382,6 +395,7 @@ export type HtmlOverlayMarker =
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
   | NewfeedsAttackGlobePoint
+  | UkraineTheaterIntensityGlobePoint
   | NewsStreamNeonMarker
   | TelegramNeonMarker
   | ReconSatelliteMarker;

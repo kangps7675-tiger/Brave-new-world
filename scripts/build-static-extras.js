@@ -16,6 +16,9 @@ const { lineGeometryToPoints, pointsBbox, capArray } = require("./static-path-ut
 const DATA_DIR = path.join(__dirname, "data");
 const SHIPPING_URL =
   "https://raw.githubusercontent.com/newzealandpaul/Shipping-Lanes/main/data/Shipping_Lanes_v1.geojson";
+// CC BY 4.0 — Benden, P. (2022). Global Shipping Lanes. Zenodo.
+// https://doi.org/10.5281/zenodo.6361763 · https://github.com/newzealandpaul/Shipping-Lanes
+// 표기: 앱 크레딧·sourceCatalog trade-routes. Statista 재사용 제외는 업스트림 LICENSE.
 
 // TeleGeography 해저케이블 미러 — https://github.com/lintaojlu/submarine_cable_information
 // 로컬 우선: scripts/data/Submarine_Cables.geojson.json (카카오 ArcGIS 폴리곤 코리도)
@@ -266,22 +269,28 @@ async function buildShippingLanes() {
     const geojson = await fetchJson(SHIPPING_URL);
     for (const [index, feature] of (geojson.features || []).entries()) {
       const name = feature.properties?.name || feature.properties?.ROUTE || null;
-      const maxPts = IS_LITE ? 40 : 120;
+      const typeRaw = feature.properties?.Type ?? feature.properties?.type;
+      const type = String(typeRaw || "").toLowerCase();
+      const scalerank = type === "major" ? 1 : type === "minor" ? 3 : 2;
+      // 항로는 통행 경향 — 과도한 단순화로 육지 현이 생기지 않게 점 수를 넉넉히
+      const maxPts = IS_LITE ? 72 : 220;
       for (const [pathIndex, points] of lineGeometryToPoints(
         feature.geometry,
         maxPts,
         roundCoord,
         IS_LITE ? 2 : 3,
+        1.6,
       ).entries()) {
         if (points.length < 2) continue;
         paths.push({
           id: `shipping-lane-${index}-${pathIndex}`,
           kind: "shipping-lane",
           name,
-          scalerank: 0,
+          scalerank,
           lengthKm: null,
           bbox: pointsBbox(points, roundCoord),
           points,
+          meta: typeRaw != null ? { laneType: String(typeRaw) } : undefined,
         });
       }
     }
@@ -311,7 +320,7 @@ async function buildShippingLanes() {
     });
   }
 
-  return capArray(paths, 30, 400);
+  return capArray(paths, 40, 480);
 }
 
 function seedSubmarineCables() {

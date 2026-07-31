@@ -655,7 +655,7 @@ export function GeopoliticsParchmentChrome({
                   territorialEpisodeBrief.yearEnd
                     ? `–${territorialEpisodeBrief.yearEnd}`
                     : ""
-                }\n지구본 관측대 · 영토분쟁사`
+                }\n지구본 관측대 · 영토분쟁 브리프`
           }
           ctaLabel={t("hubBriefCta", labelLanguage)}
           onContinue={() => onCloseTerritorialBrief?.()}

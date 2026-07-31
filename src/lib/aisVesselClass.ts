@@ -192,8 +192,9 @@ export function usesSurfaceCombatantDeckIcon(
 }
 
 /** 옆모습 실루엣 표지 (수상전투함·잠수함·항모) */
+/** 옆모습 E/W 표지 — 항모는 俯視+침로 회전이라 제외 */
 export function isAisAspectHullMarker(kind: AisMilitaryKind | null | undefined): boolean {
-  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine" || kind === "carrier";
+  return usesSurfaceCombatantDeckIcon(kind) || kind === "submarine";
 }
 
 export function militaryKindLabel(
