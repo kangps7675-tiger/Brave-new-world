@@ -71,6 +71,8 @@ import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { EscalationSignalPanel } from "@/components/EscalationSignalPanel";
+import type { EscalationOffer } from "@/components/globe/hooks/useEscalationSignals";
 import { ExerciseOfferBanner, type ExerciseOffer } from "@/components/ExerciseOfferBanner";
 import {
   ExerciseBriefingParchment,
@@ -257,6 +259,9 @@ export type DashboardOverlayHostProps = {
   breakingFlash: BreakingFlashBriefing | null;
   onDismissBreakingFlash: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
+  /** 확전 신호 — 임계선을 넘은 사건 보도 (useEscalationSignals) */
+  escalationOffer: EscalationOffer | null;
+  onDismissEscalationOffer: () => void;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
   maritimeOffer: MaritimeAlertOffer | null;
@@ -459,6 +464,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     breakingFlash,
     onDismissBreakingFlash,
     adsbEmergencyOffer,
+    escalationOffer,
+    onDismissEscalationOffer,
     exerciseOffer,
     exerciseBriefing,
     maritimeOffer,
@@ -1400,6 +1407,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           briefingBusy,
           airRaidOffer: Boolean(airRaidOffer),
           adsbEmergencyOffer: Boolean(adsbEmergencyOffer),
+          escalationOffer: Boolean(escalationOffer),
           exerciseOffer: Boolean(exerciseOffer),
           maritimeOffer: Boolean(maritimeOffer),
           tensionSpike: Boolean(tensionSpike),
@@ -1435,6 +1443,27 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 lang={labelLanguage}
                 onDismiss={onDismissAdsbEmergencyOffer}
               />
+            ) : null}
+
+            {/*
+              확전 신호 — 자동 fly-to 를 하지 않는다.
+              공습경보와 달리 "지금 대피하라"가 아니라 "이걸 읽어보라"이므로
+              사용자가 보던 화면을 뺏지 않는다.
+            */}
+            {show("escalation") && escalationOffer ? (
+              <div
+                className={`pointer-events-none fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] ${zc("gate")} -translate-x-1/2`}
+              >
+                <EscalationSignalPanel
+                  signal={escalationOffer.top.signal}
+                  lang={labelLanguage}
+                  title={escalationOffer.top.title}
+                  link={escalationOffer.top.link}
+                  sourceLabel={escalationOffer.top.publisher}
+                  suppressedCount={escalationOffer.suppressed}
+                  onDismiss={onDismissEscalationOffer}
+                />
+              </div>
             ) : null}
 
             {show("exercise") && exerciseOffer ? (

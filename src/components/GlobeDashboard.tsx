@@ -42,6 +42,7 @@ import { useMaritimeAlertBriefs } from "@/components/globe/hooks/useMaritimeAler
 import { useLayerPanelCategories } from "@/components/globe/hooks/useLayerPanelCategories";
 import { useAirRaidAutoLayer } from "@/components/globe/hooks/useAirRaidAutoLayer";
 import { useExerciseAlertAuto } from "@/components/globe/hooks/useExerciseAlertAuto";
+import { useEscalationSignals } from "@/components/globe/hooks/useEscalationSignals";
 import {
   buildExerciseBriefingContent,
   type ExerciseBriefingContent,
@@ -150,7 +151,7 @@ import {
   rememberEconomyNav,
   upsertWatchPin,
 } from "@/lib/watchFocus";
-import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
+import type { NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
 import {
   recordInterestFromSelection,
@@ -1346,6 +1347,7 @@ export function GlobeDashboard({
     showTzevaAdom,
     showNewfeedsIranAttacks,
     showUkmtoIncidents,
+    showEscalationSignals,
     showNavareaWarnings,
     showMilitaryExercises,
     showChinaTaiwanIncidents,
@@ -1524,6 +1526,7 @@ export function GlobeDashboard({
   const setShowTzevaAdom = (v: boolean) => togglePref("showTzevaAdom", v);
   const setShowNewfeedsIranAttacks = (v: boolean) => togglePref("showNewfeedsIranAttacks", v);
   const setShowUkmtoIncidents = (v: boolean) => togglePref("showUkmtoIncidents", v);
+  const setShowEscalationSignals = (v: boolean) => togglePref("showEscalationSignals", v);
   const setShowNavareaWarnings = (v: boolean) => togglePref("showNavareaWarnings", v);
   const setShowMilitaryExercises = (v: boolean) => togglePref("showMilitaryExercises", v);
   const setShowChinaTaiwanIncidents = (v: boolean) => togglePref("showChinaTaiwanIncidents", v);
@@ -3742,7 +3745,6 @@ export function GlobeDashboard({
       globeTier: globeLod.tier,
       layerViewState,
       filterCenter,
-      showUkraineControl,
       episodeCenter: episodeAmbientCenter,
       disputes: data.disputes ?? [],
       showAnyDisputeOverlay,
@@ -4860,6 +4862,35 @@ export function GlobeDashboard({
     [gdeltTensionTags, gdeltTierPins],
   );
 
+  const escalationNewsItems = useMemo(
+    () => [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ],
+    [newsStreamPayload?.hero, newsStreamPayload?.verified, newsStreamPayload?.stateMedia],
+  );
+
+  const escalationHotTheaters = useMemo(() => {
+    const theaters = newsStreamPayload?.stats?.theaters;
+    if (!theaters) return undefined;
+    return Object.entries(theaters)
+      .filter(([, n]) => (n ?? 0) > 0)
+      .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+      .slice(0, 4)
+      .map(([id]) => id as NewsTheater);
+  }, [newsStreamPayload?.stats?.theaters]);
+
+  const {
+    offer: escalationOffer,
+    visible: escalationVisible,
+    dismiss: dismissEscalationOffer,
+  } = useEscalationSignals({
+    items: escalationNewsItems,
+    enabled: showEscalationSignals,
+    hotTheaters: escalationHotTheaters,
+  });
+
   const layerCategories = useLayerPanelCategories({
     showLeftPanel: showLeftPanel || layerDropdownOpen,
     layerPanelReady,
@@ -4921,6 +4952,10 @@ export function GlobeDashboard({
     ukmtoStatus,
     ukmtoIncidents,
     setShowUkmtoIncidents,
+    showEscalationSignals,
+    escalationVisibleCount: escalationVisible.length,
+    escalationSuppressedCount: escalationOffer?.suppressed ?? 0,
+    setShowEscalationSignals,
     showNavareaWarnings,
     navareaStatus,
     navareaFeatures,
@@ -7891,6 +7926,8 @@ export function GlobeDashboard({
         airRaidBriefing={airRaidBriefing}
         breakingFlash={breakingFlash}
         onDismissBreakingFlash={() => setBreakingFlash(null)}
+        escalationOffer={escalationOffer}
+        onDismissEscalationOffer={dismissEscalationOffer}
         adsbEmergencyOffer={adsbEmergencyOffer}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}

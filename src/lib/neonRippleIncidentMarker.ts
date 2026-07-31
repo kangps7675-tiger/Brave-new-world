@@ -1,6 +1,15 @@
 /**
  * 네온 점 + 물방울 리플 — 중국 대치(빨강) / 북한 미사일(주황) / 우크라 GDELT(시안) 공용.
+ * EvidenceTier 가 있으면 테두리(실선·파선·점선)와 불투명도로 인식론을 구분한다.
  */
+
+import type { EvidenceTier } from "@/lib/evidenceTier";
+import { evidenceTierOpacity } from "@/lib/evidenceTier";
+import {
+  applyTierOpacity,
+  tierAriaSuffix,
+  tierBorderCss,
+} from "@/lib/evidenceTierMarker";
 
 export type NeonRippleAccent = "red" | "orange" | "cyan" | "blue" | "white";
 
@@ -95,7 +104,7 @@ const ACCENT_CSS: Record<
   },
 };
 
-const STYLE_VERSION = "blue-white-v1";
+const STYLE_VERSION = "evidence-tier-v1";
 
 function ensureStyles() {
   if (typeof document === "undefined") return;
@@ -132,7 +141,6 @@ function ensureStyles() {
       cursor: pointer;
       transition: transform 0.12s ease-out, filter 0.12s ease-out;
     }
-    /* 호버 어포던스 — "누를 수 있다"를 밝기·크기로 알림 */
     .${NEON_RIPPLE_MARKER_ROOT}:hover {
       transform: translate(-50%, -50%) scale(1.35);
       filter: brightness(1.6) drop-shadow(0 0 6px rgba(255,255,255,0.55));
@@ -143,7 +151,6 @@ function ensureStyles() {
       outline-offset: 2px;
       border-radius: 9999px;
     }
-    /* 관점 여러 개 — 사건 보도 매체 수 배지 */
     .${NEON_RIPPLE_MARKER_ROOT} .neon-ripple-count {
       position: absolute;
       left: 62%;
@@ -239,6 +246,13 @@ export function createNeonRippleIncidentBadge(
     ariaLabel: string;
     /** 이 사건을 보도한 매체 수. 2 이상이면 개수 배지 표시 */
     perspectiveCount?: number;
+    /**
+     * 증거 등급 — 있으면 테두리 스타일(실선/파선/점선) + 불투명도 적용.
+     * 텔레그램 등 unverified 전언을 관측과 같은 실선으로 그리지 않기 위함.
+     */
+    evidenceTier?: EvidenceTier;
+    /** aria/title 언어 (기본 ko) */
+    lang?: "ko" | "en";
   },
   handlers?: {
     onHover?: (active: boolean) => void;
@@ -248,16 +262,25 @@ export function createNeonRippleIncidentBadge(
   ensureStyles();
   const intensity = Math.min(1, Math.max(0.35, opts.intensity));
   const count = opts.perspectiveCount ?? 1;
+  const tier = opts.evidenceTier;
+  const lang = opts.lang ?? "ko";
+  const accent = ACCENT_CSS[opts.accent];
   const root = document.createElement("div");
   root.className = NEON_RIPPLE_MARKER_ROOT;
   root.dataset.markerId = opts.markerId;
   root.dataset.accent = opts.accent;
-  root.title = opts.title;
-  // 클릭 가능한 버튼임을 접근성에도 노출 (스크린리더·키보드)
+  if (tier) root.dataset.evidenceTier = tier;
+  root.title = tier ? `${opts.title}\n${tierAriaSuffix(tier, lang)}` : opts.title;
   root.setAttribute("role", "button");
   root.setAttribute("tabindex", "0");
-  root.setAttribute("aria-label", opts.ariaLabel);
-  root.style.opacity = String(0.72 + intensity * 0.28);
+  root.setAttribute(
+    "aria-label",
+    tier ? `${opts.ariaLabel} ${tierAriaSuffix(tier, lang)}` : opts.ariaLabel,
+  );
+  const baseOpacity = 0.72 + intensity * 0.28;
+  root.style.opacity = String(
+    tier ? Math.max(0.28, baseOpacity * evidenceTierOpacity(tier)) : baseOpacity,
+  );
 
   for (let i = 0; i < 3; i += 1) {
     const wave = document.createElement("span");
@@ -265,6 +288,12 @@ export function createNeonRippleIncidentBadge(
     const size = 18 + intensity * 8;
     wave.style.width = `${size}px`;
     wave.style.height = `${size}px`;
+    if (tier) {
+      const borderColor = applyTierOpacity(accent.border, tier);
+      const glowColor = applyTierOpacity(accent.glow, tier);
+      wave.style.border = tierBorderCss(tier, 1.5, borderColor);
+      wave.style.boxShadow = `0 0 8px 1px ${glowColor}`;
+    }
     root.appendChild(wave);
   }
 
@@ -272,7 +301,6 @@ export function createNeonRippleIncidentBadge(
   core.className = "neon-ripple-core";
   root.appendChild(core);
 
-  // 관점(매체) 2개 이상이면 개수 배지 — "여긴 눌러서 여러 시각을 볼 수 있다"
   if (count >= 2) {
     const badge = document.createElement("span");
     badge.className = "neon-ripple-count";
@@ -286,7 +314,6 @@ export function createNeonRippleIncidentBadge(
     ev.stopPropagation();
     handlers?.onClick?.();
   });
-  // 키보드 접근 — Enter/Space로도 열림
   root.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter" || ev.key === " ") {
       ev.preventDefault();

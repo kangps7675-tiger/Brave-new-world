@@ -10,6 +10,8 @@ import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 export type OverlayBannerKind =
   | "airRaid"
   | "adsbEmergency"
+  /** 확전 신호 — 임계선을 넘은 사건 보도 (escalationSignals) */
+  | "escalation"
   | "exercise"
   | "maritime"
   | "tensionCut"
@@ -28,6 +30,8 @@ export type BuildOverlayBannerCandidatesInput = {
   briefingBusy: boolean;
   airRaidOffer: boolean;
   adsbEmergencyOffer: boolean;
+  /** 확전 신호가 노출 임계를 넘었는가 (escalationFeed) */
+  escalationOffer: boolean;
   exerciseOffer: boolean;
   maritimeOffer: boolean;
   tensionSpike: boolean;
@@ -51,6 +55,7 @@ export function buildOverlayBannerCandidates(
     briefingBusy,
     airRaidOffer,
     adsbEmergencyOffer,
+    escalationOffer,
     exerciseOffer,
     maritimeOffer,
     tensionSpike,
@@ -67,6 +72,8 @@ export function buildOverlayBannerCandidates(
   return {
     airRaid: airRaidOffer && !briefingBusy,
     adsbEmergency: adsbEmergencyOffer && !briefingBusy,
+    // 확전 신호는 게이트·피커가 열려 있으면 억제한다 (첫 화면 방해 금지)
+    escalation: escalationOffer && !briefingBusy && gateClear,
     exercise: exerciseOffer && !briefingBusy,
     maritime: maritimeOffer && !briefingBusy,
     tensionCut: tensionSpike && !briefingBusy && !isEconomyViewer && gateClear,
