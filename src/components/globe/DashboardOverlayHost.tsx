@@ -1451,7 +1451,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               사용자가 보던 화면을 뺏지 않는다.
             */}
             {show("escalation") && escalationOffer ? (
-              <div className="pointer-events-none fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[790] -translate-x-1/2">
+              <div
+                className={`pointer-events-none fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] ${zc("gate")} -translate-x-1/2`}
+              >
                 <EscalationSignalPanel
                   signal={escalationOffer.top.signal}
                   lang={labelLanguage}
