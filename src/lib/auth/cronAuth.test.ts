@@ -7,6 +7,15 @@ function req(headers: Record<string, string> = {}, url = "https://example.test/a
   return new Request(url, { headers });
 }
 
+function setNodeEnv(value: "production" | "development" | "test") {
+  Object.defineProperty(process.env, "NODE_ENV", {
+    value,
+    configurable: true,
+    writable: true,
+    enumerable: true,
+  });
+}
+
 beforeEach(() => {
   process.env = { ...ORIGINAL_ENV };
   delete process.env.INGEST_CRON_SECRET;
@@ -64,13 +73,13 @@ describe("authorizeCronRequest", () => {
   });
 
   it("시크릿 미설정 + 프로덕션 → 거부 (fail-closed, CRIT-01)", () => {
-    process.env.NODE_ENV = "production";
+    setNodeEnv("production");
     expect(authorizeCronRequest(req())).toBe(false);
     expect(authorizeCronRequest(req({ authorization: "Bearer anything" }))).toBe(false);
   });
 
   it("시크릿 미설정 + 개발 → 통과 (로컬 편의)", () => {
-    process.env.NODE_ENV = "development";
+    setNodeEnv("development");
     expect(authorizeCronRequest(req())).toBe(true);
   });
 

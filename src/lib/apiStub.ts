@@ -37,7 +37,8 @@ export type ApiStubRoute =
   | "navarea"
   | "reference-monitor"
   | "military-exercises"
-  | "ship-movements";
+  | "ship-movements"
+  | "gta-interventions";
 
 function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknown> {
   const at = STUB_AT();
@@ -353,6 +354,16 @@ function stubBody(route: ApiStubRoute, request?: Request): Record<string, unknow
         lang: "ko",
         fetchedAt: at,
         disclaimer: "공개 관측 기록입니다. 실시간 AIS 위치가 아닙니다.",
+        stub: true,
+      };
+    case "gta-interventions":
+      return {
+        interventions: [],
+        count: 0,
+        accessLevel: "basic",
+        fetchedAt: at,
+        attribution:
+          "Global Trade Alert (GTA) · CC BY 4.0 · stub payload",
         stub: true,
       };
     default:
