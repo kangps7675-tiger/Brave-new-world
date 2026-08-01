@@ -40,6 +40,7 @@ import {
   FREESOUND_ATTRIBUTIONS,
   formatFreesoundCredit,
 } from "@/lib/audioAttribution";
+import { FONT_ATTRIBUTIONS } from "@/lib/fontAttribution";
 import {
   NEWS_LAYER_SOURCE_CATALOG,
   PRIMARY_LIVE_SOURCES,
@@ -168,6 +169,60 @@ export function MethodologySourcesPanel({
             </ul>
             <p className="mt-2 text-micro leading-4 text-sky-100/55">
               Source: freesound.org · Creative Commons
+            </p>
+          </section>
+
+          {/*
+            폰트 고지 — SIL OFL 제2조는 폰트 파일 재배포 시 저작권 고지와 라이선스
+            전문 동봉을 요구한다. 웹폰트 서빙도 배포에 해당하므로 이 섹션이 필요하다.
+            전문: public/licenses/OFL-1.1.txt · 목록: public/licenses/fonts.md
+            @see docs/copyright-audit-2026-08-01.md — R-1
+          */}
+          <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
+            <h3 className="text-sm font-medium text-sky-50">
+              {isEn ? "Typefaces (attribution required)" : "서체 (저작권 고지)"}
+            </h3>
+            <p className="mt-2 text-caption leading-5 text-sky-100/80">
+              {isEn
+                ? "Fonts served as webfonts by this service. SIL OFL requires the copyright notice and license text to accompany redistributed font files."
+                : "이 서비스가 웹폰트로 제공하는 서체입니다. SIL OFL은 폰트 파일 재배포 시 저작권 고지와 라이선스 전문을 함께 두도록 요구합니다."}
+            </p>
+            <ul className="mt-3 space-y-2 text-meta leading-5 text-sky-100/75">
+              {FONT_ATTRIBUTIONS.map((credit) => (
+                <li key={credit.family}>
+                  <a
+                    href={credit.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-sky-400/40 underline-offset-2 hover:text-sky-50"
+                  >
+                    {credit.family}
+                  </a>
+                  <span className="text-sky-100/55">
+                    {" — "}
+                    {credit.holder} · {credit.license}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-micro leading-4 text-sky-100/55">
+              <a
+                href="/licenses/fonts.md"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-sky-400/40 underline-offset-2 hover:text-sky-50"
+              >
+                {isEn ? "Full font license notices" : "폰트 라이선스 전문 보기"}
+              </a>
+              {" · "}
+              <a
+                href="/licenses/OFL-1.1.txt"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-sky-400/40 underline-offset-2 hover:text-sky-50"
+              >
+                SIL OFL 1.1
+              </a>
             </p>
           </section>
 

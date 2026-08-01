@@ -30,9 +30,18 @@ import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
 export type BriefingTier = "monthly" | "weekly" | "daily";
 
-/** 등불 카드 요약 — 최소 300자, RSS 본문 스니펫(1000) 범위 안에서 자름 */
-export const LAMP_DISPLAY_SUMMARY_MIN = 300;
-export const LAMP_DISPLAY_SUMMARY_MAX = 520;
+/**
+ * 등불 카드 요약 표시 길이 — `RSS_BODY_SNIPPET_MAX`(220) 범위 안에 있어야 한다.
+ *
+ * ⚠️ 이 값은 **화면에 실제로 재현되는 타 매체 본문의 양**이다.
+ *    파싱 상한만 줄이고 여기를 안 줄이면 정책이 반쪽이 된다.
+ *    올릴 때는 반드시 rssParser.ts 의 상한과 함께 검토할 것.
+ *
+ * @see src/lib/news/rssParser.ts — RSS_BODY_SNIPPET_MAX
+ * @see docs/copyright-audit-2026-08-01.md — R-3
+ */
+export const LAMP_DISPLAY_SUMMARY_MIN = 110;
+export const LAMP_DISPLAY_SUMMARY_MAX = 200;
 
 /** 등불 뉴스 콘텐츠 갱신 주기 (6시간) */
 export const LAMP_CONTENT_SLOT_HOURS = 6;

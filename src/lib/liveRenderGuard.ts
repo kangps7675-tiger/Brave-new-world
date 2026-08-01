@@ -31,6 +31,26 @@ const AIR_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
 };
 
 /**
+ * Ultra-Lite 배수 — 내장 그래픽·8GB RAM 대상.
+ *
+ * 이전에는 ultraLite가 **레이어를 강제 OFF만** 하고 마커 상한에는 전혀
+ * 관여하지 않았다. 그래서 저사양 모드를 켜도 켜둔 레이어의 DOM 마커는
+ * 그대로 최대치(민항 280개 등)가 떴다. HTML 마커 하나당 프레임마다
+ * project + transform 쓰기 + 오클루전 판정이 도는 구조라, 이게 사실상
+ * Ultra-Lite의 효과를 반감시키고 있었다.
+ *
+ * 0.4배는 "레이어를 끄지 않고도 체감이 바뀌는" 선에서 잡은 값이다.
+ * 최소 8개는 남겨 레이어를 켰는데 아무것도 안 보이는 상황을 막는다.
+ */
+const ULTRA_LITE_MARKER_RATIO = 0.4;
+const ULTRA_LITE_MARKER_FLOOR = 8;
+
+function applyUltraLite(max: number, ultraLite?: boolean): number {
+  if (!ultraLite) return max;
+  return Math.max(ULTRA_LITE_MARKER_FLOOR, Math.round(max * ULTRA_LITE_MARKER_RATIO));
+}
+
+/**
  * Live(API_STUB_MODE=false) 렌더·폴링 안전장치. **삭제·완화 금지** (렉 기둥).
  * stub ON: 기존(또는 약간 빠른) 간격 · stub OFF: 보수적 간격·상한.
  *
@@ -95,8 +115,8 @@ export function liveAisFetchMax(): number {
 }
 
 /** 화면 HTML 마커 상한 (fetch 상한과 별도 — 줌아웃 렉 완화) */
-export function liveAisDisplayMax(tier: GlobeLodTier): number {
-  return Math.min(liveAisFetchMax(), AIS_HTML_DISPLAY_BY_TIER[tier]);
+export function liveAisDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
+  return applyUltraLite(Math.min(liveAisFetchMax(), AIS_HTML_DISPLAY_BY_TIER[tier]), ultraLite);
 }
 
 /** ADS-B 군용기 */
@@ -108,8 +128,8 @@ export function liveMilFetchMax(): number {
   return isClientApiStubMode() ? 400 : 150;
 }
 
-export function liveMilDisplayMax(tier: GlobeLodTier): number {
-  return Math.min(liveMilFetchMax(), MIL_HTML_DISPLAY_BY_TIER[tier]);
+export function liveMilDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
+  return applyUltraLite(Math.min(liveMilFetchMax(), MIL_HTML_DISPLAY_BY_TIER[tier]), ultraLite);
 }
 
 /** 민간 항적 (지경학) */
@@ -121,8 +141,11 @@ export function liveAirTrafficFetchMax(): number {
   return isClientApiStubMode() ? 350 : 280;
 }
 
-export function liveAirTrafficDisplayMax(tier: GlobeLodTier): number {
-  return Math.min(liveAirTrafficFetchMax(), AIR_HTML_DISPLAY_BY_TIER[tier]);
+export function liveAirTrafficDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
+  return applyUltraLite(
+    Math.min(liveAirTrafficFetchMax(), AIR_HTML_DISPLAY_BY_TIER[tier]),
+    ultraLite,
+  );
 }
 
 /** 고도 → ADS-B 조회 반경(NM) */

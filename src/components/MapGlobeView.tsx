@@ -555,6 +555,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     setMapZoom(zoom);
   }, []);
 
+  /**
+   * 지도 이동 중 <html>에 `map-moving`을 걸어 backdrop-filter·무한 pulse
+   * 애니메이션을 잠시 끈다 (globals.css 하단 P-perf 블록).
+   *
+   * WebGL 캔버스 위의 backdrop-filter는 지도가 움직이는 동안 매 프레임
+   * 백드롭 읽기 + 블러 패스를 재실행한다 — 패널 수만큼 곱해진다.
+   * 토글은 드래그당 2회(시작/종료)뿐이라 스타일 재계산 비용은 무시할 만하다.
+   */
+  const movingClassRef = useRef(false);
+  const setMovingClass = useCallback((moving: boolean) => {
+    if (typeof document === "undefined") return;
+    if (movingClassRef.current === moving) return;
+    movingClassRef.current = moving;
+    document.documentElement.classList.toggle("map-moving", moving);
+  }, []);
+
   const handleMove = useCallback(
     (event: { viewState: { zoom: number; bearing?: number } }) => {
       // 은은한 자전 jumpTo — 매 프레임 notify하면 isCameraMoving이 풀리지 않음
@@ -563,6 +579,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         return;
       }
 
+      setMovingClass(true);
       mapZoomRef.current = event.viewState.zoom;
       const rawBearing = event.viewState.bearing ?? mapRef.current?.getMap()?.getBearing() ?? 0;
       const quantized =
@@ -579,11 +596,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       // publishZoom on idle keeps mapZoomRef / listeners in sync; notify runs every frame (no setState).
       moveIdleTimerRef.current = window.setTimeout(() => {
         movingRef.current = false;
+        setMovingClass(false);
         publishZoom(mapZoomRef.current, true);
       }, 420);
       notifyChange();
     },
-    [methods, notifyChange, publishZoom],
+    [methods, notifyChange, publishZoom, setMovingClass],
   );
 
   useEffect(() => {
@@ -593,6 +611,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       if (moveIdleTimerRef.current != null) {
         window.clearTimeout(moveIdleTimerRef.current);
+      }
+      // 언마운트 시 클래스가 <html>에 남으면 다른 화면의 블러까지 죽는다
+      if (typeof document !== "undefined") {
+        document.documentElement.classList.remove("map-moving");
       }
     };
   }, []);
@@ -1107,10 +1129,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         style={{ width: "100%", height: "100%" }}
         attributionControl={false}
         renderWorldCopies={false}
-        /** 캔버스 공유/캡처(ShareViewButton)에서 toBlob·toDataURL로 실제 렌더링 결과를
-         *  읽어야 하므로 필요 — 없으면 브라우저가 프레임마다 버퍼를 비워 캡처가 빈 화면이 됨.
-         *  react-map-gl 타입에 없음 → MapLibre MapOptions로 전달 */
-        {...({ preserveDrawingBuffer: true } as Record<string, unknown>)}
+        /**
+         * ⚠️ `preserveDrawingBuffer`를 여기에 다시 넣지 말 것.
+         * 매 프레임 백버퍼 보존을 강제해 브라우저의 스왑 최적화를 통째로 끈다
+         * (내장 GPU 기준 프레임 예산 20~40% 손실). 공유 캡처 한 번을 위해
+         * 100% 시간 동안 비용을 내는 구조였다.
+         * 캡처는 methods.captureFrame() — 필요한 순간에만 triggerRepaint 후
+         * render 콜백 안에서 읽는다. (mapGlobeRef.ts)
+         */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
         onMove={handleMove}
@@ -1755,7 +1781,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 : alignment === "map"
                   ? String(rotKey)
                   : "0";
-              const bearingKey = sideProfileHull ? String(mapBearingDeg) : "0";
               // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
               const pitchAlignment = "viewport" as const;
               // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
@@ -1772,7 +1797,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                       : undefined;
               return (
               <Marker
-                key={`html-marker-${markerId}-r${rotKey}-b${bearingKey}-h${headingKey}`}
+                /**
+                 * key는 **markerId만**. 이전에는 `-r${rotKey}-b${bearingKey}-h${headingKey}`가
+                 * 붙어 있어서, 지도를 5° 회전할 때마다 해당 마커가 통째로
+                 * 언마운트→재마운트됐다 (DOM 파괴 + htmlElement() 재호출 +
+                 * innerHTML 재파싱). 회전 드래그가 끊기던 주원인.
+                 *
+                 * 회전/침로 변화는 아래 ref 콜백의 data-markerSig가 이미
+                 * 정확히 감지해 필요한 경우에만 DOM을 다시 만든다 —
+                 * key가 그 방어를 무력화하고 있었다.
+                 */
+                key={`html-marker-${markerId}`}
                 longitude={htmlLng(item)}
                 latitude={htmlLat(item)}
                 anchor="center"
@@ -1780,7 +1815,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 rotation={rotation}
                 rotationAlignment={alignment}
                 pitchAlignment={pitchAlignment}
-                /* 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임 */
+                /**
+                 * 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임.
+                 *
+                 * ⚠️ 비용 주의: 이 값이 있으면 MapLibre가 마커마다 오클루전
+                 * 판정을 돌리고, terrain이 켜져 있으면 표고 조회까지 탄다.
+                 * 화면 마커가 수백 개이므로 프레임당 비용이 곱해진다.
+                 * → Ultra-Lite에서 terrain을 끄는 이유 (basemapMode.ts).
+                 * 근본 해결은 아이콘성 마커를 symbol 레이어로 옮기는 것.
+                 */
                 opacityWhenCovered={0}
               >
                 <div
@@ -1799,9 +1842,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                       body?: string;
                       accent?: string;
                       link?: string;
-                      mapBearingDeg?: number;
-                      courseOverGround?: number | null;
-                      trueHeading?: number | null;
                       militaryKind?: string | null;
                       headingDeg?: number;
                       lat?: number;
@@ -1823,9 +1863,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                       typed.body ?? "",
                       typed.accent ?? "",
                       typed.link ?? "",
-                      typed.mapBearingDeg ?? "",
-                      typed.courseOverGround ?? "",
-                      typed.trueHeading ?? "",
+                      /**
+                       * 이전에는 mapBearingDeg·courseOverGround·trueHeading 원값을 넣었다.
+                       * 이 값들은 카메라를 5° 돌릴 때마다 바뀌므로, 실제 그림이 그대로인데도
+                       * 회전 내내 DOM을 다시 만들었다.
+                       *
+                       * headingKey는 **실제로 렌더되는 방향**만 담는다 —
+                       * 옆모습 실루엣은 "e"/"w" 둘 뿐이고, map-aligned는 5° 양자화,
+                       * 나머지는 "0". 즉 그림이 실제로 뒤집힐 때만 재생성된다.
+                       */
+                      headingKey,
                       typed.militaryKind ?? "",
                       reconHalo ? "halo" : "ground",
                       typed.headingDeg != null

@@ -8,7 +8,12 @@ import { captureMapAsImage, shareOrDownloadImageBlob } from "@/lib/captureShareI
 import { trackEvent } from "@/lib/trackClient";
 
 type ShareViewButtonProps = {
-  getCanvas: () => HTMLCanvasElement | null;
+  /**
+   * 현재 프레임 스냅샷을 비동기로 돌려준다 (MapGlobeMethods.captureFrame).
+   * preserveDrawingBuffer를 상시 켜지 않으므로 캔버스를 그냥 넘겨받으면
+   * 빈 화면이 캡처된다 — 반드시 캡처 시점에 리페인트를 거쳐야 한다.
+   */
+  captureFrame: () => Promise<HTMLCanvasElement | null>;
   siteName?: string;
   className?: string;
 };
@@ -18,7 +23,7 @@ type ShareViewButtonProps = {
  * 모바일 등 Web Share API 지원 환경에선 공유 시트로, 아니면 다운로드로 폴백.
  */
 export function ShareViewButton({
-  getCanvas,
+  captureFrame,
   siteName,
   className = "",
 }: ShareViewButtonProps) {
@@ -28,12 +33,12 @@ export function ShareViewButton({
 
   const handleShare = useCallback(async () => {
     if (busy) return;
-    const canvas = getCanvas();
-    if (!canvas) return;
 
     trackEvent("share_view_click", undefined, { lang });
     setBusy(true);
     try {
+      const canvas = await captureFrame();
+      if (!canvas) return;
       const url = typeof window !== "undefined" ? window.location.host : "";
       const blob = await captureMapAsImage(canvas, { siteName: resolvedSiteName, url });
       if (!blob) return;
@@ -49,7 +54,7 @@ export function ShareViewButton({
     } finally {
       setBusy(false);
     }
-  }, [busy, getCanvas, lang, resolvedSiteName]);
+  }, [busy, captureFrame, lang, resolvedSiteName]);
 
   return (
     <HoverHint placement="bottom" title={t("hoverShareView")} detail={t("hoverShareViewHint")}>

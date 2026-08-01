@@ -31,12 +31,33 @@ export function isMostlyEnglish(text: string): boolean {
   return latin / compact.length >= 0.45;
 }
 
+/**
+ * 봇 신원 — **브라우저로 위장하지 말 것.**
+ *
+ * 이전 값은 `Mozilla/5.0 (compatible; BraveNewWorld/1.0)` 이었다. 브라우저 UA 위장은
+ * 단순 약관 위반과 달리 "우회 의도"로 읽혀 분쟁 시 불리하게 평가된다.
+ * 자동화 트래픽임을 정직하게 밝히고, 차단당하면 정식 API로 옮기는 게 맞는 순서다.
+ *
+ * @see docs/copyright-audit-2026-08-01.md — R-2
+ */
+const TRANSLATE_USER_AGENT = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
+
+/**
+ * ⚠️ `translate_a/single?client=gtx` 는 **공개 API가 아니라 웹 UI 내부 엔드포인트**다.
+ *    Google 서비스 약관은 자동화 수단을 통한 접근을 금지한다.
+ *    유료화·트래픽 확대 전에 Cloud Translation API 또는 DeepL API로 전환할 것.
+ *
+ *    또한 이 경로로 **뉴스 제목·본문 스니펫이 제3자에게 전송**된다.
+ *    rssParser 의 스니펫 상한(220자)이 이 노출량의 상한이기도 하다.
+ *
+ * @see docs/commercial-licensing.md — "Google Translate 비공식"
+ */
 async function fetchTranslation(text: string, targetLang: LabelLanguage): Promise<string> {
   const tl = targetLang === "ko" ? "ko" : "en";
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
   const res = await fetch(url, {
     signal: AbortSignal.timeout(8000),
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" },
+    headers: { "User-Agent": TRANSLATE_USER_AGENT },
     cache: "no-store",
   });
   if (!res.ok) return text;

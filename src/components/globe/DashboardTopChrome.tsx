@@ -291,7 +291,9 @@ export function DashboardTopChrome({
                 <UtilityChromeMenu
                   lang={labelLanguage}
                   showProTip={chromeVisible}
-                  getCanvas={() => globeRef.current?.renderer().domElement ?? null}
+                  captureFrame={async () =>
+                    (await globeRef.current?.captureFrame()) ?? null
+                  }
                   getScene={getSceneForShare}
                   onTour={() => setChromeCoachStep("nav")}
                   onHelp={() => setShowFeatureGuide(true)}
