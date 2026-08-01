@@ -29,7 +29,7 @@ export const TELEGRAM_OSINT_CHECKLIST = [
   "게시물 전문은 공개하지 않음 — 공개 API는 약 절반 스니펫(+ textTruncated), 원문은 messageUrl CTA",
   "NewsStreamProvider · buildNewsStream · translateNewsStreamPayload · AI digest에 Telegram 본문 미포함",
   "AI 분석·요약 프롬프트에 Telegram 텍스트 미전달",
-  "telegramTranslate는 내부 ingest 전용 — 공개 응답에는 전문 번역을 내보내지 않음",
+  "telegramTranslate는 내부 ingest 전용 — 공개 응답에는 전문 번역을 내보내지 않음 (UI 번역하기 CTA는 절반 스니펫만 온디맨드)",
   "영상은 재호스팅하지 않고 t.me 공식 embed를 사용자 클릭 시에만 로드",
 ] as const;
 
