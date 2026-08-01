@@ -45,6 +45,10 @@ import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
 import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
 import { LayerCapToast } from "@/components/LayerCapToast";
 import { TimeScrubberBar } from "@/components/TimeScrubberBar";
+import {
+  BottomDockModeToggle,
+  type BottomDockMode,
+} from "@/components/BottomDockModeToggle";
 import { GtiHeroMoment } from "@/components/GtiHeroMoment";
 import { SoundUnmuteNudge } from "@/components/SoundUnmuteNudge";
 import type { PerfProbeResult } from "@/lib/perfProbe";
@@ -286,6 +290,9 @@ export type DashboardOverlayHostProps = {
     onChange: (date: string) => void;
     onGoToday: () => void;
   } | null;
+  /** 하단 독 · 히스토리(스크럽) / 뉴스(인텔 스택) */
+  bottomDockMode?: BottomDockMode;
+  onBottomDockModeChange?: (mode: BottomDockMode) => void;
   /** 첫 90초 종료 후 소리 언뮤트 유도 */
   soundUnmuteReady: boolean;
   ukmtoBriefing: UkmtoBriefingContent | null;
@@ -476,6 +483,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     gtiHeroSnapshot,
     gtiHeroVisible,
     timeScrubber = null,
+    bottomDockMode = "history",
+    onBottomDockModeChange,
     soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
@@ -1595,23 +1604,37 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {timeScrubber && !intelSheetOpen ? (
+      {!intelSheetOpen && (timeScrubber || onBottomDockModeChange) ? (
         <div
-          className={`pointer-events-none absolute ${zc("mapControl")} ${
+          className={`pointer-events-none absolute ${zc("mapControl")} flex flex-col items-center gap-2 ${
             isCompactUi
-              ? "bottom-[5.5rem] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
-              : "bottom-8 left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
+              ? bottomDockMode === "news"
+                ? "bottom-[calc(var(--bottom-intel-stack-clearance,3.25rem)+0.35rem+env(safe-area-inset-bottom,0px))] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
+                : "bottom-[5.5rem] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
+              : bottomDockMode === "news"
+                ? "bottom-[calc(var(--bottom-intel-stack-clearance,8.5rem)+0.35rem+env(safe-area-inset-bottom,0px))] left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
+                : "bottom-8 left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
           }`}
         >
-          <TimeScrubberBar
-            lang={labelLanguage}
-            asOf={timeScrubber.asOf}
-            today={timeScrubber.today}
-            availableDates={timeScrubber.availableDates}
-            onChange={timeScrubber.onChange}
-            onGoToday={timeScrubber.onGoToday}
-            compact={isCompactUi}
-          />
+          {onBottomDockModeChange ? (
+            <BottomDockModeToggle
+              lang={labelLanguage}
+              mode={bottomDockMode}
+              onChange={onBottomDockModeChange}
+              compact={isCompactUi}
+            />
+          ) : null}
+          {bottomDockMode === "history" && timeScrubber ? (
+            <TimeScrubberBar
+              lang={labelLanguage}
+              asOf={timeScrubber.asOf}
+              today={timeScrubber.today}
+              availableDates={timeScrubber.availableDates}
+              onChange={timeScrubber.onChange}
+              onGoToday={timeScrubber.onGoToday}
+              compact={isCompactUi}
+            />
+          ) : null}
         </div>
       ) : null}
 

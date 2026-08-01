@@ -512,6 +512,11 @@ import {
   type BottomIntelStackHandle,
 } from "@/components/BottomIntelStack";
 import {
+  readBottomDockMode,
+  writeBottomDockMode,
+  type BottomDockMode,
+} from "@/components/BottomDockModeToggle";
+import {
   navSelectionFromId,
   theaterFocusFromNav,
   type TheaterSidebarTab,
@@ -650,8 +655,21 @@ export function GlobeDashboard({
   /** 패널 열 때 커밋 스냅샷 — 취소 시 복원 */
   const panelOpenSnapshotRef = useRef<LayerPrefs | null>(null);
   const [intelSheetOpen, setIntelSheetOpen] = useState(false);
+  const [bottomDockMode, setBottomDockMode] = useState<BottomDockMode>("history");
   const [layerPanelReady, setLayerPanelReady] = useState(false);
   const [frozenPanelCategories, setFrozenPanelCategories] = useState<LayerCategory[] | null>(null);
+
+  useEffect(() => {
+    setBottomDockMode(readBottomDockMode());
+  }, []);
+
+  const handleBottomDockModeChange = useCallback((mode: BottomDockMode) => {
+    setBottomDockMode(mode);
+    writeBottomDockMode(mode);
+    if (mode === "history") {
+      setIntelSheetOpen(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (showLeftPanel && !prevShowLeftPanelRef.current) {
@@ -711,6 +729,15 @@ export function GlobeDashboard({
   const deviceProfile = useDeviceProfile();
   const isTabletUi = deviceProfile === "tablet";
   const isDesktopWideUi = deviceProfile === "desktop-wide";
+
+  /** 히스토리 독일 때 인텔 스택이 언마운트되므로 clearance를 스크럽+토글 높이로 직접 맞춤 */
+  useEffect(() => {
+    if (bottomDockMode !== "history" || intelSheetOpen) return;
+    document.documentElement.style.setProperty(
+      "--bottom-intel-stack-clearance",
+      isCompactUi ? "8.5rem" : "10rem",
+    );
+  }, [bottomDockMode, intelSheetOpen, isCompactUi]);
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
   const desktopSnapshotRef = useRef<{ layers: LayerPrefs; ultraLite: boolean } | null>(null);
   const compactWasActiveRef = useRef(false);
@@ -5583,6 +5610,8 @@ export function GlobeDashboard({
   }) {
     setSelected(null);
     if (!historyImmersionRef.current) setRegionNavSelection(null);
+    setBottomDockMode("news");
+    writeBottomDockMode("news");
     setIntelTheaterFilter(options?.theater ?? "all");
     setIntelSheetOpen(true);
     intelStackRef.current?.openNewsPanel(options?.theater ?? "all", options?.tab ?? "news");
@@ -5604,6 +5633,8 @@ export function GlobeDashboard({
     clearRegionNavSelection();
     // 지경학 RSS는 대부분 theater=global — 좌표 전장 필터를 걸면 목록이 비게 됨
     const theater = isEconomyViewer ? "all" : newsTheaterFromCoords(lat, lng);
+    setBottomDockMode("news");
+    writeBottomDockMode("news");
     setIntelTheaterFilter(theater);
     setIntelSheetOpen(true);
     intelStackRef.current?.openNewsPanel(theater, "news");
@@ -7774,6 +7805,7 @@ export function GlobeDashboard({
           const fabOnly = Boolean(isCompactUi && isUkraineTheaterFocus);
           const stackVisible =
             !intelSheetOpen && !showLeftPanel && !selected && !ukraineHidesFullStack;
+          if (bottomDockMode !== "news") return null;
           return (
             <div
               className={stackVisible ? "contents" : "pointer-events-none invisible"}
@@ -7980,6 +8012,8 @@ export function GlobeDashboard({
           onChange: (date) => setViewAsOf(date === todayUtc ? null : date),
           onGoToday: () => setViewAsOf(null),
         }}
+        bottomDockMode={bottomDockMode}
+        onBottomDockModeChange={handleBottomDockModeChange}
         soundUnmuteReady={firstImpression.onboardingReady}
         globeRef={globeRef}
         intelStackRef={intelStackRef}
