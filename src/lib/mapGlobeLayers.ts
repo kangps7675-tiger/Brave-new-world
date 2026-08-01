@@ -27,8 +27,10 @@ const PIPELINE_KINDS = new Set([
   "gas-pipeline",
   "subsea-pipeline",
 ]);
-/** DFC·BRI 등 경제 연결 호 — 전 줌에서 최소 굵기 유지 */
-const FLOW_ARC_KINDS = new Set(["bri-trade", "us-dfc-supply", "axis-link"]);
+/** 축 연결 호 — 전 줌에서 최소 굵기 유지 */
+const FLOW_ARC_KINDS = new Set(["axis-link"]);
+/** DFC·BRI — 반투명 굵은 코리도어(폴리곤에 가까운 띠) */
+const CORRIDOR_KINDS = new Set(["bri-trade", "us-dfc-supply"]);
 
 /**
  * 해저 케이블 — 일반 path와 반대:
@@ -132,7 +134,22 @@ export const CABLE_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   0.55,
 ];
 
-/** DFC·BRI·축 연결 — 멀리서도 안 사라지게 바닥 굵기 */
+/** DFC·BRI 코리도어 — 반투명 폴리곤 띠처럼 보이도록 굵게 */
+export const CORRIDOR_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  1,
+  7.5,
+  3,
+  9.5,
+  6,
+  12,
+  10,
+  10,
+];
+
+/** 축 연결 — 멀리서도 안 사라지게 바닥 굵기 */
 export const FLOW_ARC_LINE_WIDTH_BY_ZOOM: ZoomExpr = [
   "interpolate",
   ["linear"],
@@ -173,6 +190,13 @@ const FLOW_TABLE: Array<[number, number]> = [
   [6, 3.4],
   [10, 2.6],
 ];
+/** DFC·BRI 코리도어 — 약간 굵은 반투명 띠 */
+const CORRIDOR_TABLE: Array<[number, number]> = [
+  [1, 7.5],
+  [3, 9.5],
+  [6, 12],
+  [10, 10],
+];
 /** 파이프 — 멀리 0.1 · 가까이 ≤0.6 */
 const PIPELINE_TABLE: Array<[number, number]> = [
   [1.2, 0.1],
@@ -188,7 +212,7 @@ const PIPELINE_TABLE: Array<[number, number]> = [
  *   ["case", …, CABLE_LINE_WIDTH_BY_ZOOM, …]   ← zoom이 최상위가 아님 = 위반
  *
  * 그래서 `interpolate`를 밖으로 빼고 각 줌 스톱 **안에서** `case`로 분기한다.
- * 케이블·flow·pipeline은 feature 속성과 무관한 순수 줌 함수라 JS에서 미리 평가해
+ * 케이블·flow·corridor·pipeline은 feature 속성과 무관한 순수 줌 함수라 JS에서 미리 평가해
  * 스칼라로 박고, 기본 path만 feature 속성(`strokeAngular`)을 쓴다.
  */
 export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = (() => {
@@ -201,6 +225,8 @@ export const PATH_LINE_WIDTH_BY_ZOOM: ZoomExpr = (() => {
       lerpTable(CABLE_TABLE, z),
       ["==", ["get", "widthMode"], "flow"],
       lerpTable(FLOW_TABLE, z),
+      ["==", ["get", "widthMode"], "corridor"],
+      lerpTable(CORRIDOR_TABLE, z),
       ["==", ["get", "widthMode"], "pipeline"],
       lerpTable(PIPELINE_TABLE, z),
       [
@@ -319,9 +345,11 @@ export function buildPathsGeoJson<T>(
           ? "cable"
           : kind && PIPELINE_KINDS.has(kind)
             ? "pipeline"
-            : kind && FLOW_ARC_KINDS.has(kind)
-              ? "flow"
-              : "angular";
+            : kind && CORRIDOR_KINDS.has(kind)
+              ? "corridor"
+              : kind && FLOW_ARC_KINDS.has(kind)
+                ? "flow"
+                : "angular";
       return [
         {
           type: "Feature" as const,
