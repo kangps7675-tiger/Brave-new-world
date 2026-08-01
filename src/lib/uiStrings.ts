@@ -42,6 +42,20 @@ const UI = {
     ko: "라이브 항적·화재 점은 이 날짜로 재생되지 않습니다. 현재 관측만 가능합니다.",
     en: "Live tracks and fire dots are not replayed for this date — live observation only.",
   },
+  bottomDockToggleAria: {
+    ko: "하단 창 전환 · 히스토리 또는 뉴스",
+    en: "Bottom panel · history or news",
+  },
+  bottomDockHistory: { ko: "히스토리", en: "History" },
+  bottomDockNews: { ko: "뉴스", en: "News" },
+  bottomDockHistoryHint: {
+    ko: "일별 랭크·긴장 지수 기준일",
+    en: "Daily ranks & tension as-of date",
+  },
+  bottomDockNewsHint: {
+    ko: "속보·티어별 뉴스 독",
+    en: "Breaking & tiered news dock",
+  },
   layerDraftHint: {
     ko: "체크하면 지도에 바로 반영됩니다. 상단 「설정」으로 저장을 확정할 수 있습니다.",
     en: "Checks apply to the map right away. Use Apply at the top to confirm.",
