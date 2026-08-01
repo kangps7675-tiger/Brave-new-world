@@ -313,14 +313,20 @@ export function conflictTheaterFromNavId(navId: string): ViewTheaterChoice {
   return "auto";
 }
 
+/** 지정학 기본(자동 전장) — 우크라 전선·대러 타격 ON. 다른 전장으로 바꾸면 NO_UKRAINE. */
+const UKRAINE_DEFAULT_ON: LayerPatch = {
+  showUkraineControl: true,
+  showUkraineStrikesOnRussia: true,
+};
+
 export function conceptLayersForConflict(theater: ViewTheaterChoice): LayerPatch {
-  // auto/미지정: 우크라 묶음 OFF — 전장「우크라」·내비 우크라·지정학 FORCE_ON 시에만
-  if (theater === "auto") return { ...CONFLICT_BASE, ...NO_UKRAINE };
-  if (theater === "all") return { ...CONFLICT_BASE, ...NO_UKRAINE };
+  // auto/미지정: 우크라 전선·타격 기본 ON (체크박스와 동일)
+  if (theater === "auto") return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
+  if (theater === "all") return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
   if (theater in CONFLICT_THEATER_LAYERS) {
     return CONFLICT_THEATER_LAYERS[theater as ConflictConceptTheater];
   }
-  return { ...CONFLICT_BASE, ...NO_UKRAINE };
+  return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
 }
 
 export function conceptLayersForConflictNavId(navId: string): LayerPatch {

@@ -48,8 +48,11 @@ export function PeriodicBriefingParchment({
   onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
   const isConflictLamp = /-conflict(?:$|-)/.test(briefing.key);
+  const isEconomyLamp = /-economy(?:$|-)/.test(briefing.key);
+  /** 모드 등불은 항상 사진 데스크 — 라이브 카드가 아직 없어도 셸로 연다 */
   const isPhotoLamp =
     isConflictLamp ||
+    isEconomyLamp ||
     (briefing.featuredNews && briefing.featuredNews.length > 0) ||
     (briefing.macroTable && briefing.macroTable.length > 0);
 

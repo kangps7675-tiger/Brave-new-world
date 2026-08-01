@@ -2,16 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
+import type { FreightIndex } from "@/lib/freightIndicesFetch";
 
-export interface FreightIndex {
-  symbol: string;
-  name: string;
-  value: number;
-  change: number;
-  changePercent: number;
-  unit: string;
-  updatedAt: string;
-}
+export type { FreightIndex };
 
 type FreightIndicesResponse = {
   indices?: FreightIndex[];
@@ -36,7 +29,7 @@ export function FinintTicker() {
 
     const load = async () => {
       try {
-        const response = await fetch("/api/freight-indices");
+        const response = await fetch("/api/freight-indices", { cache: "no-store" });
         const payload = (await response.json()) as FreightIndicesResponse;
         if (!response.ok || payload.error) {
           throw new Error(payload.error || `HTTP ${response.status}`);
@@ -47,7 +40,14 @@ export function FinintTicker() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "데이터 로드 실패");
+          const raw = loadError instanceof Error ? loadError.message : "";
+          // 브라우저 TypeError "Failed to fetch" / Yahoo 차단 원문을 그대로 보여주지 않음
+          const friendly =
+            !raw ||
+            /failed to fetch|networkerror|load failed|freight-indices failed/i.test(raw)
+              ? "해운 시장 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+              : raw;
+          setError(friendly);
         }
       } finally {
         if (!cancelled) setLoading(false);
