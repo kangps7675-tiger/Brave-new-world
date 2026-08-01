@@ -11,6 +11,12 @@ import type { LayerPrefs } from "@/lib/layerPrefs";
 
 export const LAYER_AFFINITY_KEY = "geowatch-layer-affinity-v1";
 
+/**
+ * 친화도 unlock으로 자동 ON 하지 않는 레이어.
+ * 기본 OFF를 유지해야 하는 무거운/선택형 오버레이 — 수동 체크만 허용.
+ */
+export const AFFINITY_AUTO_ON_DENYLIST = new Set<string>(["showAxisNetwork"]);
+
 /** 출석 마일스톤 — 첫 unlock=1일, 이후 홀수일 계단, 상한 21 */
 export const AFFINITY_MILESTONES = [
   1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21,
@@ -135,6 +141,7 @@ export function noteLayerAffinityAttendance(
   let changed = false;
 
   for (const key of layerToggleKeys(prefs)) {
+    if (AFFINITY_AUTO_ON_DENYLIST.has(key)) continue;
     if (!prefs[key as keyof LayerPrefs]) continue;
     const prev = state.layers[key] ?? emptyEntry();
     if (prev.lastDay === today) continue;
@@ -161,6 +168,7 @@ export function applyUnlockedLayerDefaults(prefs: LayerPrefs): LayerPrefs {
   let next: LayerPrefs | null = null;
 
   for (const key of layerToggleKeys(prefs)) {
+    if (AFFINITY_AUTO_ON_DENYLIST.has(key)) continue;
     const entry = state.layers[key];
     if (!entry?.unlocked) continue;
     if (prefs[key as keyof LayerPrefs]) continue;
@@ -169,6 +177,15 @@ export function applyUnlockedLayerDefaults(prefs: LayerPrefs): LayerPrefs {
   }
 
   return next ?? prefs;
+}
+
+/** 특정 레이어 친화도 기록 삭제 (기본 OFF 정책 전환 시) */
+export function clearLayerAffinityEntry(key: string): void {
+  if (!canUseStorage()) return;
+  const state = readLayerAffinityState();
+  if (!state.layers[key]) return;
+  delete state.layers[key];
+  writeLayerAffinityState(state);
 }
 
 /**

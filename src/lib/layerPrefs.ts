@@ -1,9 +1,13 @@
 import {
+  clearLayerAffinityEntry,
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
 
 export type LabelLanguage = "en" | "ko";
+
+/** 축 관계망 — 구 기본 ON·친화도 unlock 잔존을 한 번 OFF로 내린다 */
+const AXIS_NETWORK_DEFAULT_OFF_KEY = "geowatch-axis-network-default-off-v1";
 
 export type LayerPrefs = {
   /** 전쟁구역 — 빨간 사각+빗금 (combat) */
@@ -462,6 +466,22 @@ export function detectDefaultLabelLanguage(): LabelLanguage {
   }
 }
 
+/** 축 관계망 기본 OFF 정착 — 친화도 unlock 제거 + 저장본 ON 한 번 내림 */
+function settleAxisNetworkDefaultOff(prefs: LayerPrefs): LayerPrefs {
+  if (!shouldPersistLayerPrefs()) return prefs;
+  try {
+    if (localStorage.getItem(AXIS_NETWORK_DEFAULT_OFF_KEY)) return prefs;
+    localStorage.setItem(AXIS_NETWORK_DEFAULT_OFF_KEY, "1");
+    clearLayerAffinityEntry("showAxisNetwork");
+    if (!prefs.showAxisNetwork) return prefs;
+    const next = { ...prefs, showAxisNetwork: false };
+    saveLayerPrefs(next);
+    return next;
+  } catch {
+    return prefs;
+  }
+}
+
 export function loadLayerPrefs(): LayerPrefs {
   if (typeof window === "undefined") return DEFAULT_LAYER_PREFS;
   /**
@@ -475,8 +495,10 @@ export function loadLayerPrefs(): LayerPrefs {
   try {
     const v21Raw = localStorage.getItem(LAYER_PREFS_KEY);
     if (v21Raw) {
-      return finalizeLayerPrefsWithAffinity(
-        mergeSavedPrefs(JSON.parse(v21Raw) as SavedLayerPrefs),
+      return settleAxisNetworkDefaultOff(
+        finalizeLayerPrefsWithAffinity(
+          mergeSavedPrefs(JSON.parse(v21Raw) as SavedLayerPrefs),
+        ),
       );
     }
 
@@ -484,7 +506,7 @@ export function loadLayerPrefs(): LayerPrefs {
     if (v19Raw) {
       const migrated = migrateV19ToV20(JSON.parse(v19Raw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return finalizeLayerPrefsWithAffinity(migrated);
+      return settleAxisNetworkDefaultOff(finalizeLayerPrefsWithAffinity(migrated));
     }
 
     for (const legacyKey of LEGACY_LAYER_KEYS) {
@@ -492,14 +514,16 @@ export function loadLayerPrefs(): LayerPrefs {
       if (!legacyRaw) continue;
       const migrated = mergeSavedPrefs(JSON.parse(legacyRaw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return finalizeLayerPrefsWithAffinity(migrated);
+      return settleAxisNetworkDefaultOff(finalizeLayerPrefsWithAffinity(migrated));
     }
 
     // 첫 방문(저장된 prefs 없음) — 리퍼러/브라우저 언어로 기본 표시 언어만 추정
-    return finalizeLayerPrefsWithAffinity({
-      ...DEFAULT_LAYER_PREFS,
-      labelLanguage: detectDefaultLabelLanguage(),
-    });
+    return settleAxisNetworkDefaultOff(
+      finalizeLayerPrefsWithAffinity({
+        ...DEFAULT_LAYER_PREFS,
+        labelLanguage: detectDefaultLabelLanguage(),
+      }),
+    );
   } catch {
     return DEFAULT_LAYER_PREFS;
   }
