@@ -1274,7 +1274,27 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               paint={{
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
-                "line-opacity": 0.95,
+                // DFC·BRI 코리도어: 반투명 + 살짝 blur → 폴리곤 띠 느낌
+                "line-opacity": [
+                  "case",
+                  [
+                    "any",
+                    ["==", ["get", "kind"], "bri-trade"],
+                    ["==", ["get", "kind"], "us-dfc-supply"],
+                  ],
+                  0.72,
+                  0.95,
+                ],
+                "line-blur": [
+                  "case",
+                  [
+                    "any",
+                    ["==", ["get", "kind"], "bri-trade"],
+                    ["==", ["get", "kind"], "us-dfc-supply"],
+                  ],
+                  1.15,
+                  0,
+                ],
               }}
             />
             {/* 점선 — 고정 dasharray + 필터 (data-driven dash 회피) */}

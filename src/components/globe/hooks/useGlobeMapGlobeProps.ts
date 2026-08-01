@@ -1001,8 +1001,8 @@ export function useGlobeMapGlobeProps(
         }
         return 1.35;
       }
-      if (path.kind === "bri-trade") return Math.max(2.4, briTradeStrokeWidth(path));
-      if (path.kind === "us-dfc-supply") return Math.max(2.4, usDfcSupplyStrokeWidth(path));
+      if (path.kind === "bri-trade") return Math.max(3.2, briTradeStrokeWidth(path));
+      if (path.kind === "us-dfc-supply") return Math.max(3.2, usDfcSupplyStrokeWidth(path));
       if (path.kind === "coastline") return 0.38;
       if (path.kind === "country-border") {
         return globeTextures.vectorBase

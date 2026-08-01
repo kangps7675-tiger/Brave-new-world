@@ -39,13 +39,14 @@ function linkToPath(link: DfcLink, lang: "ko" | "en"): TransportPath {
     lang === "en"
       ? `U.S. DFC network · ${link.country} · ${link.projectCount} active projects · ${amount}`
       : `미국 DFC 개발금융망 · ${link.country} · 활성 프로젝트 ${link.projectCount}개 · ${amount}`;
+  const alpha = 0.22 + weight * 0.18;
   return {
     id: link.id,
     kind: "us-dfc-supply",
     name,
     scalerank: 1,
     lengthKm: null,
-    accentColor: `rgba(59, 130, 246, ${(0.78 + weight * 0.2).toFixed(3)})`,
+    accentColor: `rgba(59, 130, 246, ${alpha.toFixed(3)})`,
     bbox: {
       minLat: Math.min(link.olat, link.lat),
       minLng: Math.min(link.olng, link.lng),
@@ -58,7 +59,7 @@ function linkToPath(link: DfcLink, lang: "ko" | "en"): TransportPath {
       link.lat,
       link.lng,
       28,
-      0.075 + weight * 0.13,
+      0.018 + weight * 0.035,
     ),
   };
 }
@@ -69,7 +70,7 @@ export function usDfcSupplyPathsToTransport(lang: "ko" | "en" = "ko"): Transport
 
 export function usDfcSupplyStrokeWidth(path: TransportPath): number {
   const amount = amountById.get(path.id) ?? 0;
-  return 1.35 + normalizedAmount(amount) * 2.2;
+  return 2.8 + normalizedAmount(amount) * 1.6;
 }
 
 export const US_DFC_SUPPLY_SUMMARY = dfcData.summary;
