@@ -1,4 +1,3 @@
-import { allEconInsightBriefs } from "@/data/econInsightBriefs";
 import type { BriefingPeriodStats } from "@/lib/briefingPeriodStats";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
@@ -345,15 +344,6 @@ export function weeklyRecapTitle(
   return `${kicker}\n${focus}`;
 }
 
-function hashKeyToIndex(key: string, mod: number): number {
-  if (mod <= 0) return 0;
-  let h = 0;
-  for (let i = 0; i < key.length; i += 1) {
-    h = (h * 31 + key.charCodeAt(i)) >>> 0;
-  }
-  return h % mod;
-}
-
 const LAMP_TITLE = {
   ko: {
     daily: "오늘의 지정학 등불",
@@ -390,10 +380,6 @@ function looksMostlyKorean(text: string): boolean {
   return ko >= 6 && ko >= latin * 0.5;
 }
 
-function pickKoreanLines(lines: string[], limit = 2): string[] {
-  return lines.filter(looksMostlyKorean).slice(0, limit);
-}
-
 /**
  * 라이브 대형 사진 + 개별 원문 URL만 유지.
  * 섹션/종합 링크·무사진 시드 패딩 금지.
@@ -417,44 +403,14 @@ function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguag
 }
 
 function buildEconFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
-  const briefs = allEconInsightBriefs();
-  if (briefs.length === 0) return null;
   const ko = lang !== "en";
-  const brief = briefs[hashKeyToIndex(dayKey, briefs.length)];
   const kicker = ko ? LAMP_TITLE_ECON.ko[tier] : LAMP_TITLE_ECON.en[tier];
-
-  if (ko) {
-    const koLines = pickKoreanLines(brief.paragraphs, 2);
-    const whatWhy =
-      koLines.length > 0
-        ? koLines
-        : [
-            `${brief.titleKo}은(는) 물자와 가격이 지나가는 병목 지점입니다.`,
-            "긴장이 번지면 에너지·물류·물가 경로로 파급됩니다. 금일 보고가 이 지점을 다루는 배경입니다.",
-          ];
-    return {
-      tier,
-      key: dayKey,
-      title: `${kicker}\n${brief.titleKo}`,
-      paragraphs: [
-        `보고드립니다. 금일 시장 정례 보고 대상은 ${brief.titleKo}입니다. 라이브 집계가 비어 있어 축적된 분석 자료를 기준으로 정리합니다.`,
-        ...whatWhy.slice(0, 2),
-        "이상은 확인된 자료에 근거한 정리이며, 수치는 시리즈별 기준 시점이 다를 수 있습니다. 다음 보고는 6시간마다 갱신됩니다.",
-      ],
-      featuredNews: [],
-    };
-  }
-
+  // 사진 데스크 셸 — 허브 서술 양피지로 떨어지지 않게 featuredNews 빈 배열 유지
   return {
     tier,
     key: dayKey,
-    title: `${kicker}\n${brief.titleEn}`,
-    paragraphs: [
-      `Briefing. Today's market report covers ${brief.titleEn}. With live aggregates empty, this draws on standing analysis.`,
-      brief.impactLine,
-      ...brief.paragraphs.slice(0, 2),
-      "This organizes verified material only; series may differ in reference date. The next report updates every 6 hours.",
-    ],
+    title: `${kicker}\n${ko ? "시장이 주목하는 뉴스" : "Markets in focus"}`,
+    paragraphs: [],
     featuredNews: [],
   };
 }
@@ -1242,7 +1198,8 @@ export function pickEconomyLampNews(
     if (primaryEntity && seenEntity.has(primaryEntity) && !relax) return false;
 
     const summary = deepenSummary(item.summary, item.title);
-    if (summary.length < 60 && row.entities.length === 0 && item.trustTier > 1 && !relax) {
+    // RSS 스니펫 상한(220) 이후 — 과도한 본문 길이 가드는 카드 전량 탈락시킴
+    if (summary.length < 40 && row.entities.length === 0 && item.trustTier > 1 && !relax) {
       return false;
     }
 
@@ -1956,10 +1913,9 @@ export function pickConflictLampNews(
     if (seenClusters.has(cKey) && !relax) return false;
 
     const bodyLen = (item.summary ?? "").trim().length;
-    // 심층 요약(300자+) 우선 — 짧은 속보 헤드라인만 있는 건 relax 때만
-    if (!relax && bodyLen < LAMP_DISPLAY_SUMMARY_MIN && item.trustTier > 1) return false;
-    if (!relax && bodyLen < 80 && item.trustTier > 1) return false;
-    if (!relax && item.trustTier === 3 && row.clusterSize < 2 && bodyLen < 250) return false;
+    // RSS 스니펫 상한(~220)에 맞춤 — 예전 250·300자 가드는 거의 전량 탈락시킴
+    if (!relax && bodyLen < 40 && item.trustTier > 1) return false;
+    if (!relax && item.trustTier === 3 && row.clusterSize < 2 && bodyLen < 40) return false;
 
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (!relax && CONFLICT_SOFT_NEWS_RE.test(blob)) return false;
