@@ -34,7 +34,20 @@ const COMMERCIAL_ON =
   process.env.NEXT_PUBLIC_COMMERCIAL_TIER_ENABLED === "true";
 
 function parseCatalog() {
-  const src = fs.readFileSync(CATALOG, "utf8");
+  /*
+   * ⚠️ 줄바꿈을 LF 로 정규화한 뒤에 자른다 — **이 줄을 빼지 말 것.**
+   *
+   * 이전 구현은 `src.split(/\n  \{\n/)` 로 원본을 그대로 잘랐다.
+   * 저장소에 `.gitattributes` 가 없어 Windows 체크아웃에서는 파일이 CRLF 로
+   * 변환되는데, 그러면 `\r\n  {\r\n` 이 되어 이 패턴이 **한 번도 매치되지 않는다.**
+   * 결과적으로 layers=[] → "카탈로그를 파싱하지 못했다" 로 즉시 exit(1),
+   * 즉 게이트가 검사를 수행한 적이 없는 상태로 빌드만 막고 있었다.
+   *
+   * 게이트가 "통과"를 찍으려면 실제로 파싱에 성공해야 한다.
+   *
+   * @see docs/copyright-audit-2026-08-01.md — O-1
+   */
+  const src = fs.readFileSync(CATALOG, "utf8").replace(/\r\n/g, "\n");
   // 최상위 배열 요소 단위로 자른다
   const chunks = src.split(/\n  \{\n/).slice(1);
   const out = [];

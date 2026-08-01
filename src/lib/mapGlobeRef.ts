@@ -39,6 +39,16 @@ export type MapGlobeMethods = {
   toGlobeCoords: (x: number, y: number) => { lat: number; lng: number } | null;
   controls: () => MapGlobeControls;
   renderer: () => { domElement: HTMLCanvasElement | null };
+  /**
+   * 지도 캔버스의 **현재 프레임 스냅샷**을 별도 canvas로 복사해 돌려준다.
+   *
+   * `preserveDrawingBuffer`는 매 프레임 백버퍼 복사를 강제해 WebGL 스왑
+   * 최적화를 통째로 끄므로(내장 GPU에서 프레임 예산 20~40%), 상시 켜두지
+   * 않는다. 대신 캡처가 필요한 순간에만 강제 리페인트를 걸고, **같은
+   * 프레임의 render 콜백 안에서** drawImage로 읽어낸다.
+   * (render 콜백을 벗어나면 브라우저가 백버퍼를 비워 빈 화면이 된다.)
+   */
+  captureFrame: () => Promise<HTMLCanvasElement | null>;
   /** 언마운트 시 RAF·pointer 리스너 해제 */
   dispose: () => void;
 };
@@ -376,6 +386,50 @@ export function createMapGlobeMethods(
     renderer() {
       const canvas = mapRef.current?.getCanvas() ?? null;
       return { domElement: canvas };
+    },
+
+    captureFrame() {
+      const map = mapRef.current?.getMap();
+      const source = mapRef.current?.getCanvas() ?? null;
+      if (!map || !source || !source.width || !source.height) {
+        return Promise.resolve(null);
+      }
+
+      return new Promise<HTMLCanvasElement | null>((resolve) => {
+        let settled = false;
+
+        const finish = (result: HTMLCanvasElement | null) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeout);
+          map.off("render", onRender);
+          resolve(result);
+        };
+
+        const onRender = () => {
+          // 이 콜백은 draw 직후·버퍼 클리어 이전에 불린다 — 여기서만 읽을 수 있다.
+          try {
+            const out = document.createElement("canvas");
+            out.width = source.width;
+            out.height = source.height;
+            const ctx = out.getContext("2d");
+            if (!ctx) {
+              finish(null);
+              return;
+            }
+            ctx.drawImage(source, 0, 0);
+            finish(out);
+          } catch {
+            finish(null);
+          }
+        };
+
+        // render가 영영 안 오는 경우(탭 백그라운드 등) 무한 대기 방지
+        const timeout = window.setTimeout(() => finish(null), 2_000);
+
+        map.on("render", onRender);
+        map.triggerRepaint();
+      });
     },
 
     dispose() {

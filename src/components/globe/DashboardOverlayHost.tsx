@@ -800,7 +800,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 <UtilityChromeMenu
                   lang={labelLanguage}
                   showProTip={false}
-                  getCanvas={() => globeRef.current?.renderer().domElement ?? null}
+                  captureFrame={async () =>
+                    (await globeRef.current?.captureFrame()) ?? null
+                  }
                   getScene={getSceneForShare}
                   onTour={() => {
                     if (!isEconomyViewer && tourScenes.length > 0) {

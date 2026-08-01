@@ -50,6 +50,8 @@ export type UseLiveOverlayMarkersOptions = {
   civAircraft: MilitaryAircraft[];
   globeLodTier: GlobeLodTier;
   layerViewState: ViewState;
+  /** Ultra-Lite — HTML 마커 상한을 추가로 낮춘다 (liveRenderGuard.applyUltraLite) */
+  ultraLite?: boolean;
 };
 
 export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
@@ -71,6 +73,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     globeLodTier,
     layerViewState,
     chokeGlowColorById,
+    ultraLite = false,
   } = opts;
 
   /** 인프라 HTML 실루엣 마커 (공항·항구·DC·핵·초크 등) — DOM 비용 때문에 강하게 캡 */
@@ -154,14 +157,14 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
             milAircraft,
             layerViewState,
             VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
-            liveMilDisplayMax(globeLodTier),
+            liveMilDisplayMax(globeLodTier, ultraLite),
           ).map((aircraft) => ({
             ...aircraft,
             markerId: `mil-${aircraft.hex || aircraft.id}`,
             displayKind: "mil" as const,
           }))
         : [],
-    [globeLodTier, isEconomyViewer, layerViewState, milAircraft, showMilitaryActivity],
+    [globeLodTier, isEconomyViewer, layerViewState, milAircraft, showMilitaryActivity, ultraLite],
   );
 
   const milHtmlMarkers = useMemo<MilHtmlMarker[]>(
@@ -181,10 +184,10 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
             civAircraft,
             layerViewState,
             VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
-            liveAirTrafficDisplayMax(globeLodTier),
+            liveAirTrafficDisplayMax(globeLodTier, ultraLite),
           )
         : [],
-    [civAircraft, globeLodTier, layerViewState, showAirTraffic],
+    [civAircraft, globeLodTier, layerViewState, showAirTraffic, ultraLite],
   );
 
   const civHtmlMarkers = useMemo<MilHtmlMarker[]>(
@@ -208,7 +211,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
             .filter(civilianOnly),
           layerViewState,
           VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
-          liveAisDisplayMax(globeLodTier),
+          liveAisDisplayMax(globeLodTier, ultraLite),
         )
       : [];
     // 지경학: 위장·무기고 선박 제외 (경제=민간·물류만)
@@ -218,7 +221,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
             disguisedVessels,
             layerViewState,
             VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 12,
-            liveAisDisplayMax(globeLodTier),
+            liveAisDisplayMax(globeLodTier, ultraLite),
           )
         : [];
     const seen = new Set(live.map((v) => v.mmsi));
@@ -236,6 +239,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     layerViewState,
     showAis,
     showDisguisedVessels,
+    ultraLite,
   ]);
 
   const aisHtmlMarkers = useMemo<AisHtmlMarker[]>(

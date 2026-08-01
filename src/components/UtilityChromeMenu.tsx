@@ -17,7 +17,8 @@ const DISCORD_INVITE =
 type UtilityChromeMenuProps = {
   lang: LabelLanguage;
   showProTip?: boolean;
-  getCanvas: () => HTMLCanvasElement | null;
+  /** 현재 프레임 스냅샷 (MapGlobeMethods.captureFrame) — preserveDrawingBuffer 미사용 */
+  captureFrame: () => Promise<HTMLCanvasElement | null>;
   /** 카메라·모드·레이어 스냅샷 — 진짜 장면 딥링크(?scene=…)용 */
   getScene?: () => {
     mode: ViewerMode;
@@ -66,7 +67,7 @@ const MENU_COPY = {
 export function UtilityChromeMenu({
   lang,
   showProTip = true,
-  getCanvas,
+  captureFrame,
   getScene,
   onTour,
   onHelp,
@@ -113,11 +114,11 @@ export function UtilityChromeMenu({
 
   const handleShare = useCallback(async () => {
     if (shareBusy) return;
-    const canvas = getCanvas();
-    if (!canvas) return;
     trackEvent("share_view_click", undefined, { lang });
     setShareBusy(true);
     try {
+      const canvas = await captureFrame();
+      if (!canvas) return;
       const url = typeof window !== "undefined" ? window.location.host : "";
       const blob = await captureMapAsImage(canvas, { siteName, url });
       if (!blob) return;
@@ -133,7 +134,7 @@ export function UtilityChromeMenu({
     } finally {
       setShareBusy(false);
     }
-  }, [dismiss, getCanvas, lang, shareBusy, siteName]);
+  }, [dismiss, captureFrame, lang, shareBusy, siteName]);
 
   const handleSceneLink = useCallback(async () => {
     if (typeof window === "undefined") return;

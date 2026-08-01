@@ -44,8 +44,9 @@ export async function shareOrDownloadImageBlob(
 /**
  * 지도 캔버스를 워터마크(사이트명 + URL) 박힌 PNG로 합성.
  *
- * MapGlobeView.tsx의 <Map preserveDrawingBuffer />가 켜져 있어야
- * sourceCanvas가 빈 화면이 아닌 실제 렌더링 결과를 담고 있다.
+ * `sourceCanvas`는 **MapGlobeMethods.captureFrame()이 돌려준 스냅샷 canvas**여야 한다.
+ * 지도의 live WebGL 캔버스를 그대로 넘기면 빈 화면이 나온다 —
+ * `preserveDrawingBuffer`를 상시 켜지 않기 때문(프레임 예산 20~40% 절감).
  */
 export async function captureMapAsImage(
   sourceCanvas: HTMLCanvasElement,

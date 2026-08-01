@@ -1,0 +1,50 @@
+# 줄바꿈·바이너리 정책
+#
+# 왜 필요한가 — 2026-08-01 감사에서 실제로 터진 버그:
+#   scripts/verify-commercial-licensing.js 가 sourceCatalog.ts 를
+#   `split(/\n  \{\n/)` 로 잘랐는데, Windows 체크아웃에서 파일이 CRLF 로
+#   변환되면 이 패턴이 한 번도 매치되지 않는다. 결과적으로 상업 라이선스
+#   게이트가 "파싱 실패"로만 종료되어 **검사를 수행한 적이 없었다.**
+#
+# 파서를 CRLF 내성으로 고쳤지만(근본 대책은 아니다), 소스 파일의 줄바꿈을
+# LF 로 고정해두면 이 부류의 버그가 애초에 생기지 않는다.
+#
+# ⚠️ 기존 체크아웃에 적용하려면 한 번 정규화가 필요하다:
+#      git add --renormalize .
+#    커밋 diff 가 커지므로 작업 중인 브랜치가 없을 때 단독 커밋으로 할 것.
+#
+# @see docs/copyright-audit-2026-08-01.md — O-1
+
+# 기본: 텍스트 자동 판별, 저장소에는 LF 로 보관
+* text=auto eol=lf
+
+# 검증 스크립트가 파싱하는 파일 — LF 고정이 특히 중요
+src/data/sourceCatalog.ts   text eol=lf
+scripts/*.js                text eol=lf
+scripts/*.mjs               text eol=lf
+
+# 셸 스크립트는 LF 가 아니면 실행되지 않는다
+*.sh                        text eol=lf
+
+# Windows 배치 파일은 CRLF 여야 한다
+*.bat                       text eol=crlf
+*.cmd                       text eol=crlf
+
+# ── 바이너리 (EOL 변환 금지 · diff 무의미) ────────────────────────
+*.otf   binary
+*.ttf   binary
+*.woff  binary
+*.woff2 binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.mp3   binary
+*.wav   binary
+*.pdf   binary
+*.gz    binary
+*.zip   binary
+*.shp   binary
+*.dbf   binary

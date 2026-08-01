@@ -1787,3 +1787,49 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
   .ops-terminal-log { display: none; }
   .classification-watermark { font-size: 7px; letter-spacing: 0.14em; }
 }
+
+/* ══ 지도 이동 중 합성 비용 차단 (P-perf) ══════════════════════════════
+ *
+ * 문제: WebGL 지도 캔버스 **위에** 얹힌 `backdrop-filter: blur()`는 최악의
+ * 조합이다. 지도가 움직이는 동안 백드롭이 매 프레임 dirty가 되므로, 화면에
+ * 떠 있는 패널 수만큼 "백드롭 읽기 + 블러 패스"가 프레임마다 재실행된다.
+ * 이 프로젝트는 100개 이상의 컴포넌트가 backdrop-blur를 쓴다.
+ *
+ * 해법: 카메라가 움직이는 동안만 블러를 끄고 불투명 배경으로 대체한다.
+ * 드래그를 멈추면(420ms idle) 원래 유리 질감이 돌아온다. 정지 화면에서는
+ * 디자인이 100% 동일하고, 움직이는 중에는 어차피 블러를 인지하기 어렵다.
+ *
+ * 클래스 토글은 MapGlobeView의 handleMove/idle 타이머가 <html>에 건다.
+ * 토글 1회당 스타일 재계산 1회이므로 드래그당 2회로 끝난다.
+ */
+html.map-moving *,
+html.map-moving *::before,
+html.map-moving *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 블러가 빠지면 반투명 배경이 옅어 보이므로, 이동 중에는 패널 배경을 올린다 */
+html.map-moving .intel-panel,
+html.map-moving .tone-panel {
+  background: var(--tone-panel-strong, rgba(6, 10, 18, 0.97)) !important;
+}
+
+/*
+ * 이동 중에는 무한 pulse/glow 애니메이션도 멈춘다.
+ * 대부분 box-shadow를 애니메이션하는데, box-shadow는 GPU 합성이 안 되는
+ * 속성이라 매 프레임 페인트를 유발한다 — 지도 드래그와 정면 충돌한다.
+ * (여기 나열된 것은 전부 장식용 강조 효과라 잠시 멈춰도 정보 손실이 없다.
+ *  reduced-motion 블록의 `animation:none 금지 목록`과 달리, 이들은
+ *  시작 상태가 "보임"이 아니므로 멈춰도 사라지거나 남지 않는다.)
+ */
+html.map-moving .cyber-pulse,
+html.map-moving .carrier-deployed-pulse,
+html.map-moving .carrier-badge-pulse,
+html.map-moving .intel-fab-glow,
+html.map-moving .hero-breaking-pulse,
+html.map-moving .hero-confirmed-pulse,
+html.map-moving .hero-unverified-pulse,
+html.map-moving .neptun-threat-pulse {
+  animation-play-state: paused !important;
+}

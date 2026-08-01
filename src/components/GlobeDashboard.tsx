@@ -3588,6 +3588,8 @@ export function GlobeDashboard({
     civAircraft,
     globeLodTier: globeLod.tier,
     layerViewState,
+    // Ultra-Lite는 레이어 강제 OFF만 하고 마커 상한엔 관여하지 않았다 → 연동
+    ultraLite,
   });
 
   const visibleFirmsFires = useMemo(() => {

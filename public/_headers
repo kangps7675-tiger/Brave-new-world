@@ -1,2 +1,37 @@
 /_next/static/*
   Cache-Control: public,max-age=31536000,immutable
+
+# ── 정적 데이터 (P-perf) ──────────────────────────────────────────────
+# 첫 페인트가 countries.json(lite 2.0MB · full 2.7MB) + disputes에 걸려 있는데
+# 캐시 규칙이 없어 재방문마다 재검증 대상이었다.
+#
+# 파일명에 해시가 없으므로 immutable은 쓸 수 없다. 대신
+#   max-age=3600            1시간은 그냥 캐시
+#   stale-while-revalidate  그 뒤 하루 동안은 캐시본을 즉시 쓰고 뒤에서 갱신
+# 으로 "진입은 즉시, 데이터는 결국 최신"을 만든다.
+#
+# 데이터 갱신은 빌드(npm run data:build:*)에 묶여 있어 시간 단위다.
+# 분 단위 신선도가 필요한 라이브 레이어는 /api/* 를 타므로 여기 해당 없음.
+#
+# 주의: _headers는 위에서부터 매칭되므로 더 구체적인 규칙이 아래 와야 한다.
+/data/*
+  Cache-Control: public,max-age=3600,stale-while-revalidate=86400
+
+# 프로필 매니페스트는 청크 파일명을 담고 있어 더 짧게 —
+# 청크가 교체됐는데 매니페스트가 오래 캐시되면 없는 파일을 가리킬 수 있다.
+/data/lite/app-data.json
+  Cache-Control: public,max-age=300,stale-while-revalidate=3600
+
+/data/full/app-data.json
+  Cache-Control: public,max-age=300,stale-while-revalidate=3600
+
+# 런타임 생성물(텔레그램 임베드 상태 등) — 캐시 대상 아님
+/data/live/*
+  Cache-Control: no-cache
+
+# 텍스처·오디오는 사실상 불변
+/textures/*
+  Cache-Control: public,max-age=604800
+
+/audio/*
+  Cache-Control: public,max-age=604800

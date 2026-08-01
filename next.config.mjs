@@ -5,14 +5,19 @@
  * R2 CDN을 쓰기 때문에 곧바로 강제하면 화면이 깨질 수 있다. 위반 로그를 한동안
  * 관찰한 뒤 `CSP_ENFORCE=true` 로 전환한다.
  *
- * script-src 에 'unsafe-inline' 이 있는 이유: Next.js 하이드레이션 인라인 스크립트와
- * UI_FONT_BOOT_SCRIPT(FOUC 방지용 동기 부트 스크립트). nonce 미들웨어를 붙이면
- * 제거할 수 있다 — 후속 과제.
+ * script-src:
+ *  - 'unsafe-inline': Next.js 하이드레이션 + UI_FONT_BOOT_SCRIPT(FOUC 방지).
+ *    nonce 미들웨어를 붙이면 제거 가능 — 후속 과제.
+ *  - 'unsafe-eval': **development only** (webpack/HMR). 프로덕션·enforce 경로에는
+ *    넣지 않는다. 앱 코드에 eval/new Function 의존이 없다.
  */
+const isDev = process.env.NODE_ENV === "development";
+
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  // Next 인라인 부트스트랩 + 폰트 부트 스크립트
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
+    : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
   // Tailwind/MapLibre 런타임 스타일 주입 + Google Fonts
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
@@ -65,6 +70,35 @@ const SECURITY_HEADERS = [
     : []),
 ];
 
+/**
+ * next build 내장 ESLint/tsc.
+ *
+ * - 배포(Vercel/CI/CF): 켠다 — `next build`만 도는 경로에서 타입·린트 구멍이 생기지 않게.
+ * - 로컬: 기본 완화 — OneDrive·저메모리에서 내장 tsc OOM / 레거시 unused-vars 회피.
+ *   강제하려면 `NEXT_RELAX_BUILD_GATES=0`, 로컬에서도 끄려면 `=1`.
+ * - CI quality 잡은 별도로 `npm run lint` + `npx tsc --noEmit` 을 이미 돌린다.
+ */
+const relaxNextBuildGates = (() => {
+  if (process.env.NEXT_RELAX_BUILD_GATES === "1") return true;
+  if (process.env.NEXT_RELAX_BUILD_GATES === "0") return false;
+  const isRemoteBuild = Boolean(
+    process.env.CI || process.env.VERCEL || process.env.CF_PAGES,
+  );
+  return !isRemoteBuild;
+})();
+
+/** OneDrive·동기화 폴더에서만 webpack filesystem 캐시가 깨지므로 memory로 우회 */
+function shouldUseMemoryWebpackCache(dev) {
+  if (process.env.NEXT_WEBPACK_MEMORY_CACHE === "1") return true;
+  if (process.env.NEXT_WEBPACK_MEMORY_CACHE === "0") return false;
+  if (dev) return true;
+  try {
+    return /onedrive/i.test(process.cwd());
+  } catch {
+    return false;
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -77,10 +111,8 @@ const nextConfig = {
       },
     ];
   },
-  // 기존 unused-vars가 build를 막지 않도록 (webpack 번들 오류와 별개)
-  eslint: { ignoreDuringBuilds: true },
-  // 로컬/저메모리에서 next 내장 tsc가 OOM 나므로 게이트는 `npx tsc --noEmit`
-  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: relaxNextBuildGates },
+  typescript: { ignoreBuildErrors: relaxNextBuildGates },
   experimental: {
     optimizePackageImports: ["maplibre-gl"],
     // wrangler/miniflare를 서버 번들에 넣으면 blake3-wasm·esbuild가 깨짐
@@ -118,9 +150,6 @@ const nextConfig = {
         chunkLoadTimeout: 600000,
       };
 
-      // Downloads·OneDrive 등 동기화 폴더에서 filesystem 캐시 손상 → HMR 중 청크 404 방지
-      config.cache = { type: "memory" };
-
       // 상위 폴더(System Volume Information 등) 감시로 인한 Watchpack EINVAL 방지
       // ignored는 단일 RegExp 또는 문자열 glob 배열만 허용 — RegExp가 섞인 배열은 스키마 오류
       config.watchOptions = {
@@ -132,10 +161,14 @@ const nextConfig = {
           "**/System Volume Information/**",
         ],
       };
-    } else {
-      // production build도 OneDrive 경로에서 filesystem 캐시가 멈춘 것처럼 보일 수 있음
+    }
+
+    // dev 기본 · OneDrive cwd 프로덕션 로컬 빌드만 memory.
+    // CI/Vercel 등 일반 경로는 webpack filesystem 캐시(증분 빌드)를 유지한다.
+    if (shouldUseMemoryWebpackCache(dev)) {
       config.cache = { type: "memory" };
     }
+
     return config;
   },
 };

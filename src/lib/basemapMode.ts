@@ -160,6 +160,28 @@ export function applyBasemapTerrain(
   opts?: { ultraLite?: boolean },
 ): void {
   if (!map.getSource(BASEMAP_SOURCE_IDS.terrain)) return;
+
+  /**
+   * Ultra-Lite에서는 terrain을 **완전히 끈다** (이전: exaggeration만 0.4로 하향).
+   *
+   * terrain이 켜져 있으면 exaggeration이 아무리 낮아도 비용의 대부분은 그대로다:
+   *  - DEM 타일 fetch·디코드
+   *  - globe 투영에서의 지형 메시 재구성
+   *  - **HTML 마커의 오클루전 판정이 표고 조회를 타게 된다**
+   *    (opacityWhenCovered가 걸린 마커가 화면에 수백 개다 → 마커당 프레임당 비용)
+   *
+   * Ultra-Lite 대상은 내장 그래픽·8GB RAM 환경이므로, 입체감보다
+   * 프레임이 우선이다. 지형 모드를 명시적으로 고른 경우에만 유지한다.
+   */
+  if (opts?.ultraLite && mode !== "terrain") {
+    try {
+      map.setTerrain(null);
+    } catch {
+      /* terrain unsupported */
+    }
+    return;
+  }
+
   const exaggeration = opts?.ultraLite
     ? Math.min(0.4, TERRAIN_EXAGGERATION.intel)
     : TERRAIN_EXAGGERATION[mode];
