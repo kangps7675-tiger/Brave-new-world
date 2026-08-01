@@ -160,10 +160,9 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
     id: "frontline-live",
     label: "전선 실시간",
     tagline: "우크라·중동",
-    description: "NEPTUN 공습/드론 · 타격 화염 · GDELT (우크라 전선은 전장 선택 시)",
+    description: "우크라 전선 · NEPTUN 공습/드론 · 타격 화염 · GDELT",
     layers: {
-      // 전선 폴리곤은 ModePicker/내비「우크라」선택 시에만
-      showUkraineControl: false,
+      showUkraineControl: true,
       showUkraineStrikesOnRussia: true,
       showWarZones: true,
       showGdeltWar: true,
@@ -367,7 +366,7 @@ export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): Laye
 }
 
 function mergeLayersRaw(ids: ViewPackageId[]): LayerPrefs {
-  // DEFAULT_LAYER_PREFS already includes showUkraineControl: false
+  // DEFAULT_LAYER_PREFS — 우크라 전선·대러 타격 기본 ON
   const layers: LayerPrefs = { ...DEFAULT_LAYER_PREFS };
 
   for (const id of ids) {
