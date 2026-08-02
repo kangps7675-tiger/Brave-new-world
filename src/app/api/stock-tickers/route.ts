@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data, cached } = await cachedFetchJson("stock-tickers-v9-40", TTL_MS, fetchStockTickers);
+    const { data, cached } = await cachedFetchJson("stock-tickers-v10-fx-rates", TTL_MS, fetchStockTickers);
     return NextResponse.json(
       {
         receivedAt: new Date().toISOString(),
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         tickers: data,
         changeBasis: "prev-day",
         attribution: hasFredApiKey()
-          ? `전일 대비 등락 · Yahoo Finance · ${FRED_ATTRIBUTION} (원자재·달러)`
+          ? `전일 대비 등락 · Yahoo Finance · ${FRED_ATTRIBUTION} (원자재·달러·환율·금리)`
           : "전일 대비 등락 · Yahoo Finance (via yahoo-finance2)",
       },
       { headers: STOCK_CDN },

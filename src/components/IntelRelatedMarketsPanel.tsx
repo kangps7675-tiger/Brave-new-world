@@ -27,6 +27,7 @@ import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
 import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { loadWatchSymbols, toggleWatchSymbol } from "@/lib/watchlistPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
+import { SovereignRatesPanel } from "@/components/SovereignRatesPanel";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -401,6 +402,8 @@ export function IntelRelatedMarketsPanel({
       </div>
 
       <div className={`space-y-5 ${embedInNews ? "px-3 py-3" : "px-4 py-4"}`}>
+        {!hasSearch ? <SovereignRatesPanel compact /> : null}
+
         {!hasSearch ? (
           <section>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-300/90">

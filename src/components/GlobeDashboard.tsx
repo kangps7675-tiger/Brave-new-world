@@ -6910,26 +6910,35 @@ export function GlobeDashboard({
     // 레이어 패널·퀵 드롭다운을 여는 동안에도 soft-apply 금지
     if (showLeftPanel || layerDropdownOpen || layerPanelDirty) return;
     if (Date.now() < battlefieldManualUntilRef.current) return;
-    const zone = detectBattlefieldZone(
-      layerViewState.lat,
-      layerViewState.lng,
-      layerViewState.altitude,
-    );
-    // 전역으로 다시 빠지면 ADS-B·AIS 등 상세 레이어를 끄고 히어로 3종만 유지
-    if (!zone) {
-      if (battlefieldSoftZoneRef.current == null) return;
-      battlefieldSoftZoneRef.current = null;
-      applyLayerPrefs(
-        buildDomainOverviewPrefs("conflict", {
-          labelLanguage: layerPrefsLiveRef.current.labelLanguage,
-          ultraLite: ultraLiteRef.current,
-        }),
+
+    // 드래그 idle 직후 전장 bbox 경계에서 zone이 흔들리면 프리셋이 연속 적용되며
+    // 화면이 튕기듯 재구성된다 — 짧게 디바운스해 확정 zone만 반영
+    const timer = window.setTimeout(() => {
+      if (userLayerPinRef.current) return;
+      if (Date.now() < battlefieldManualUntilRef.current) return;
+      const zone = detectBattlefieldZone(
+        layerViewState.lat,
+        layerViewState.lng,
+        layerViewState.altitude,
       );
-      return;
-    }
-    if (battlefieldSoftZoneRef.current === zone) return;
-    battlefieldSoftZoneRef.current = zone;
-    applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
+      // 전역으로 다시 빠지면 ADS-B·AIS 등 상세 레이어를 끄고 히어로 3종만 유지
+      if (!zone) {
+        if (battlefieldSoftZoneRef.current == null) return;
+        battlefieldSoftZoneRef.current = null;
+        applyLayerPrefs(
+          buildDomainOverviewPrefs("conflict", {
+            labelLanguage: layerPrefsLiveRef.current.labelLanguage,
+            ultraLite: ultraLiteRef.current,
+          }),
+        );
+        return;
+      }
+      if (battlefieldSoftZoneRef.current === zone) return;
+      battlefieldSoftZoneRef.current = zone;
+      applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
+    }, 360);
+
+    return () => window.clearTimeout(timer);
   }, [
     applyLayerPrefs,
     entryGate,

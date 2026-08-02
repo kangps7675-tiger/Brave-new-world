@@ -18,9 +18,9 @@ export type TheaterAssetEntry = {
 /** 정본 매핑 — LLM이 심볼을 발명하지 않도록 코드 테이블이 우선 */
 export const THEATER_ASSETS: Record<TheaterMarketFilter, TheaterAssetEntry> = {
   all: {
-    symbols: ["^VIX", "CL=F", "BZ=F", "GC=F", "DX-Y.NYB", "^GSPC", "^IXIC"],
-    noteKo: "글로벌 리스크·에너지·주요 지수 (해석용 · 투자 권유 아님)",
-    noteEn: "Global risk · energy · major indices (interpretive · not advice)",
+    symbols: ["^VIX", "KRW=X", "^TNX", "CL=F", "BZ=F", "GC=F", "DX-Y.NYB", "^GSPC"],
+    noteKo: "글로벌 리스크·환율·금리·에너지·주요 지수 (해석용 · 투자 권유 아님)",
+    noteEn: "Global risk · FX · rates · energy · major indices (interpretive · not advice)",
   },
   "middle-east": {
     symbols: ["CL=F", "BZ=F", "NG=F", "GC=F", "DX-Y.NYB", "^VIX", "^GSPC"],
@@ -38,9 +38,9 @@ export const THEATER_ASSETS: Record<TheaterMarketFilter, TheaterAssetEntry> = {
     noteEn: "Semi ETF · TSMC — Taiwan Strait chip supply (interpretive)",
   },
   korea: {
-    symbols: ["^KS11", "SMH", "005930.KS", "^IXIC", "^VIX", "BZ=F", "^GSPC"],
-    noteKo: "코스피·반도체·삼성 — 한반도·칩 서플라이 리스크 (해석용)",
-    noteEn: "KOSPI · semis · Samsung — Peninsula / chip supply risk (interpretive)",
+    symbols: ["KRW=X", "^KS11", "^TNX", "SMH", "005930.KS", "^IXIC", "^VIX"],
+    noteKo: "원/달러·코스피·금리·반도체 — 한반도·칩 서플라이 리스크 (해석용)",
+    noteEn: "USD/KRW · KOSPI · yields · semis — Peninsula / chip supply risk (interpretive)",
   },
   japan: {
     symbols: ["^N225", "SMH", "^IXIC", "BZ=F", "^HSI", "^GSPC", "^VIX"],

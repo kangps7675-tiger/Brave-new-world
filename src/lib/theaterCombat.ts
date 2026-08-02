@@ -24,7 +24,7 @@ type TheaterBox = {
 
 const THEATER_BOXES: TheaterBox[] = [
   { id: "russia-ukraine", south: 43.5, north: 53.5, west: 21.5, east: 41.5 },
-  { id: "middle-east", south: 12, north: 42, west: 32, east: 63 },
+  { id: "middle-east", south: 12, north: 42, west: 24.5, east: 63 },
   { id: "china-taiwan", south: 20, north: 27, west: 116, east: 124 },
   { id: "korea", south: 33, north: 43, west: 124, east: 132 },
 ];

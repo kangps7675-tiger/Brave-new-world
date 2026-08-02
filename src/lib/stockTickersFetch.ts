@@ -1,5 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 import {
+  FRED_ONLY_TICKER_SYMBOLS,
   STOCK_TICKER_SYMBOLS,
   type StockTickerItem,
   type StockTickerSymbol,
@@ -20,7 +21,7 @@ let inflightLiveFetch: Promise<StockTickerItem[]> | null = null;
 
 /** stub 모드용 — Yahoo 호출 없이 UI 레이아웃만 유지 */
 export function stubStockTickers(): StockTickerItem[] {
-  return STOCK_TICKER_SYMBOLS.map((config) => ({
+  return [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS].map((config) => ({
     symbol: config.symbol,
     label: config.label,
     price: null,
@@ -249,19 +250,21 @@ export async function fetchStockTickers(): Promise<StockTickerItem[]> {
  * FININT 티커 — 등락은 전부 전일(직전 관측) 대비.
  *
  * - Yahoo: 현재가 + previousClose로 전일대비 %, 일봉 스파크라인.
- * - FRED 키가 있으면: 유가·가스·금·달러만 FRED 일간 관측으로 덮어씀.
- * - FRED 키가 없으면: 전부 Yahoo.
+ * - FRED 키가 있으면: 유가·가스·금·달러·환율·국채·연준금리를 FRED 일간 관측으로 덮어씀.
+ * - FRED 키가 없으면: Yahoo만 (FEDFUNDS 등 FRED 전용은 빈 칸).
  */
 async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
   const yahooItems = await fetchYahooTickers(STOCK_TICKER_SYMBOLS);
   const bySymbol = new Map(yahooItems.map((item) => [item.symbol, item]));
 
   if (hasFredApiKey()) {
-    const fredSymbols = STOCK_TICKER_SYMBOLS.filter((c) => symbolHasFredSeries(c.symbol)).map(
-      (c) => c.symbol,
-    );
-    const fredReadings = await fetchFredReadingsBySymbol(fredSymbols);
-    for (const config of STOCK_TICKER_SYMBOLS) {
+    const overlaySymbols = [
+      ...STOCK_TICKER_SYMBOLS.filter((c) => symbolHasFredSeries(c.symbol)).map((c) => c.symbol),
+      ...FRED_ONLY_TICKER_SYMBOLS.map((c) => c.symbol),
+    ];
+    const fredReadings = await fetchFredReadingsBySymbol(overlaySymbols);
+    const allConfigs = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS];
+    for (const config of allConfigs) {
       const fred = fredReadings.get(config.symbol);
       if (!fred || fred.price == null) continue;
       bySymbol.set(config.symbol, {
@@ -279,7 +282,8 @@ async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
     }
   }
 
-  return STOCK_TICKER_SYMBOLS.map(
+  const ordered = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS];
+  return ordered.map(
     (config) =>
       bySymbol.get(config.symbol) ?? {
         symbol: config.symbol,

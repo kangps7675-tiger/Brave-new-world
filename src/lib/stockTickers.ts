@@ -107,8 +107,15 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
   "ETH-USD": { ko: "이더리움", en: "Ethereum" },
   "DX-Y.NYB": { ko: "달러 인덱스", en: "US Dollar Index" },
-  "^TNX": { ko: "미 10년물 금리", en: "US 10Y Yield" },
+  "KRW=X": { ko: "원/달러 환율", en: "USD/KRW" },
+  "JPY=X": { ko: "엔/달러 환율", en: "USD/JPY" },
+  "CNY=X": { ko: "위안/달러 환율", en: "USD/CNY" },
   "EURUSD=X": { ko: "유로/달러", en: "EUR/USD" },
+  "^IRX": { ko: "미 단기금리 (13주)", en: "US 13W T-bill" },
+  "^FVX": { ko: "미 5년물 금리", en: "US 5Y Yield" },
+  "^TNX": { ko: "미 10년물 금리", en: "US 10Y Yield" },
+  "^TYX": { ko: "미 30년물 금리", en: "US 30Y Yield" },
+  FEDFUNDS: { ko: "미 연준 기준금리(실효)", en: "Fed funds (effective)" },
   "^GSPC": { ko: "S&P 500", en: "S&P 500" },
   "^IXIC": { ko: "나스닥", en: "Nasdaq Composite" },
   "^DJI": { ko: "다우존스", en: "Dow Jones" },
@@ -156,8 +163,14 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "BTC-USD", label: "Bitcoin" },
   { symbol: "ETH-USD", label: "Ethereum" },
   { symbol: "DX-Y.NYB", label: "US Dollar Index" },
-  { symbol: "^TNX", label: "US 10Y Yield" },
+  { symbol: "KRW=X", label: "USD/KRW" },
+  { symbol: "JPY=X", label: "USD/JPY" },
+  { symbol: "CNY=X", label: "USD/CNY" },
   { symbol: "EURUSD=X", label: "EUR/USD" },
+  { symbol: "^IRX", label: "US 13W T-bill" },
+  { symbol: "^FVX", label: "US 5Y Yield" },
+  { symbol: "^TNX", label: "US 10Y Yield" },
+  { symbol: "^TYX", label: "US 30Y Yield" },
   { symbol: "^GSPC", label: "S&P 500" },
   { symbol: "^IXIC", label: "Nasdaq" },
   { symbol: "^DJI", label: "Dow Jones" },
@@ -190,9 +203,13 @@ export function tickerDisplayName(
   return symbol.replace(/^\^/, "").replace(/=F$/, "");
 }
 
-/** 하단 스크롤 스트립 — 매크로·에너지·미국 지수 (전장 primary는 mergeTickerStripSymbols로 앞에 붙임) */
+/** 하단 스크롤 스트립 — 매크로·환율·금리·에너지 (전장 primary는 mergeTickerStripSymbols로 앞에 붙임) */
 export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
+  "KRW=X",
+  "EURUSD=X",
+  "^TNX",
+  "^IRX",
   "CL=F",
   "BZ=F",
   "NG=F",
@@ -224,6 +241,7 @@ export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string
 }
 
 export type MarketGroupId =
+  | "fx-rates"
   | "risk"
   | "commodities"
   | "crypto"
@@ -238,10 +256,26 @@ export const MARKET_GROUPS: Array<{
   symbols: string[];
 }> = [
   {
+    id: "fx-rates",
+    label: "환율 · 금리",
+    labelEn: "FX · Rates",
+    symbols: [
+      "KRW=X",
+      "EURUSD=X",
+      "JPY=X",
+      "CNY=X",
+      "^IRX",
+      "^FVX",
+      "^TNX",
+      "^TYX",
+      "FEDFUNDS",
+    ],
+  },
+  {
     id: "risk",
-    label: "리스크 · 환율 · 금리",
-    labelEn: "Risk · FX · Rates",
-    symbols: ["^VIX", "DX-Y.NYB", "^TNX", "EURUSD=X"],
+    label: "리스크 · 달러",
+    labelEn: "Risk · Dollar",
+    symbols: ["^VIX", "DX-Y.NYB"],
   },
   {
     id: "commodities",
@@ -285,6 +319,15 @@ export const MARKET_GROUPS: Array<{
     labelEn: "Europe · Shipping",
     symbols: ["^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "ASML", "BDRY"],
   },
+];
+
+/**
+ * Yahoo에 없는 FRED 전용 심볼 — 연준 실효금리 등.
+ * Yahoo 배치에 넣으면 전체 quote가 깨질 수 있어 따로 합친다.
+ * (한은 기준금리·국고채 3년은 ECOS 키 연동 전까지 보류)
+ */
+export const FRED_ONLY_TICKER_SYMBOLS: StockTickerSymbol[] = [
+  { symbol: "FEDFUNDS", label: "Fed funds (effective)" },
 ];
 
 export function formatTickerPrice(price: number | null): string {

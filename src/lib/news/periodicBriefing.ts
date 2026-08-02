@@ -614,8 +614,14 @@ const LAMP_NEWS_GENRE_PRIORITY: Record<string, number> = {
 /** 등불 — 초크포인트(해협·운하) 최소 확보 슬롯 */
 export const ECONOMY_LAMP_CHOKE_MIN = 1;
 export const CONFLICT_LAMP_CHOKE_MIN = 2;
-/** 지정학 등불에 일본·인도태평양 하드뉴스 최소 확보 */
-export const CONFLICT_LAMP_JAPAN_MIN = 1;
+/**
+ * 활성 전선(중동·러·우) 각각 최소 슬롯 — 동일 비중.
+ * 동아시아 긴장권(중·대·한반도·일본)도 같은 수치.
+ */
+export const CONFLICT_LAMP_ACTIVE_FRONT_MIN = 2;
+export const CONFLICT_LAMP_EAST_ASIA_MIN = 2;
+/** @deprecated 동아시아 통합 슬롯으로 대체 — 호환용 alias */
+export const CONFLICT_LAMP_JAPAN_MIN = CONFLICT_LAMP_EAST_ASIA_MIN;
 /** 지경학 등불 — shipping+energy 합산 상한 (초크 독점 방지) */
 export const ECONOMY_LAMP_CHOKE_GENRE_MAX = 2;
 /** 지경학 등불 — 중국 산업·미중 경제전쟁 soft 목표 (관심도 풀 안에서만) */
@@ -1643,6 +1649,17 @@ function inferGeoTheater(text: string): ConflictTheater | null {
   if (isJapanGeopoliticsNews(text)) {
     return "japan";
   }
+  // 중동 — 이집트·시나이·수에즈 포함 (레반트·이란·걸프·홍해)
+  if (
+    /iran|israel|gaza|palestine|west\s?bank|lebanon|hezbollah|syria|iraq|yemen|houthi|hamas|tehran|idf\b|irgc|egypt|cairo|suez|sinai|qatar|saudi|u\.?a\.?e\.?|dubai|hormuz|red\s?sea|bab[\s-]?el|persian\s?gulf|strait of hormuz|이란|이스라엘|가자|팔레스타인|레바논|헤즈볼라|시리아|이라크|예멘|후티|하마스|테헤란|이집트|카이로|수에즈|시나이|카타르|사우디|두바이|호르무즈|홍해|페르시아만/i.test(
+      text,
+    ) &&
+    /military|missile|drone|strike|war|ceasefire|sanction|navy|blockade|militia|nuclear|airstrike|offensive|diplomacy|security|conflict|군대|군사|미사일|드론|타격|전쟁|휴전|제재|해군|봉쇄|핵|공습|안보|분쟁/i.test(
+      text,
+    )
+  ) {
+    return "middle-east";
+  }
   return null;
 }
 
@@ -1937,15 +1954,19 @@ export function pickConflictLampNews(
     predicate: (row: ScoredConflictNews) => boolean,
     already: (n: LampFeaturedNews) => boolean,
     min: number,
+    pool: ScoredConflictNews[] = interestPool,
   ) => {
     let filled = out.filter(already).length;
     if (filled >= min) return;
-    for (const row of interestPool) {
+    for (const row of pool) {
       if (out.length >= target || filled >= min) break;
       if (!predicate(row)) continue;
       if (tryPush(row)) filled += 1;
     }
   };
+
+  const isEastAsiaTheater = (t: ConflictTheater) =>
+    t === "china-taiwan" || t === "korea" || t === "japan";
 
   const singledOut = scored.filter((row) =>
     isAdversaryKoreaSingledOut(`${row.item.title} ${row.item.summary ?? ""}`),
@@ -1958,36 +1979,46 @@ export function pickConflictLampNews(
     tryPush(row);
   }
 
-  // 2) 전역 하드뉴스 본체 (점수순 = 관심도)
+  // 2) 활성 전선·동아시아 긴장권 선확보 (중동 = 러·우 = 동아시아 동등 비중)
+  //    점수순 본체를 먼저 채우면 soft가 끼어들 자리가 없어 전선이 통째로 빠지던 문제 수정
+  softFill(
+    (row) => row.theater === "middle-east",
+    (n) => n.theater === "middle-east",
+    CONFLICT_LAMP_ACTIVE_FRONT_MIN,
+    scored,
+  );
+  softFill(
+    (row) => row.theater === "russia-ukraine",
+    (n) => n.theater === "russia-ukraine",
+    CONFLICT_LAMP_ACTIVE_FRONT_MIN,
+    scored,
+  );
+  softFill(
+    (row) =>
+      isEastAsiaTheater(row.theater) &&
+      (row.theater !== "japan" ||
+        isJapanGeopoliticsNews(`${row.item.title} ${row.item.summary ?? ""}`)),
+    (n) =>
+      n.theater === "china-taiwan" ||
+      n.theater === "korea" ||
+      n.theater === "japan",
+    CONFLICT_LAMP_EAST_ASIA_MIN,
+    scored,
+  );
+  softFill(
+    (row) => isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isChokepointSecurityNews(`${n.title} ${n.summary}`),
+    CONFLICT_LAMP_CHOKE_MIN,
+    scored,
+  );
+
+  // 3) 나머지 점수순 (관심도)
   if (out.length < target) {
     for (const row of scored) {
       if (out.length >= target) break;
       tryPush(row);
     }
   }
-
-  // 3) soft 다양성 — 관심도 풀 안
-  const japanIds = new Set(
-    scored
-      .filter(
-        (row) =>
-          row.theater === "japan" &&
-          isJapanGeopoliticsNews(`${row.item.title} ${row.item.summary ?? ""}`),
-      )
-      .map((row) => row.item.id),
-  );
-  softFill(
-    (row) =>
-      row.theater === "japan" &&
-      isJapanGeopoliticsNews(`${row.item.title} ${row.item.summary ?? ""}`),
-    (n) => japanIds.has(n.id),
-    CONFLICT_LAMP_JAPAN_MIN,
-  );
-  softFill(
-    (row) => isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
-    (n) => isChokepointSecurityNews(`${n.title} ${n.summary}`),
-    CONFLICT_LAMP_CHOKE_MIN,
-  );
 
   // 4) 부족 시 relax
   if (out.length < target) {
