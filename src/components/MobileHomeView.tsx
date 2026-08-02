@@ -6,6 +6,7 @@ import { SharedSceneCard } from "@/components/SharedSceneCard";
 import { usePhoneSceneLanding } from "@/hooks/usePhoneSceneLanding";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { FinintTicker } from "@/components/FinintTicker";
+import { SovereignRatesPanel } from "@/components/SovereignRatesPanel";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { useLocale } from "@/contexts/LocaleContext";
 import { brandName } from "@/lib/brand";
@@ -777,6 +778,9 @@ export function MobileHomeView({
         {/* —— 증시 —— */}
         {tab === "markets" ? (
           <div className="mt-3 space-y-2.5">
+            <div className="overflow-hidden rounded-xl border border-amber-300/20 bg-[#071225]/85 px-3 py-2.5">
+              <SovereignRatesPanel compact />
+            </div>
             <div className="px-0.5">
               <p className="text-xs font-semibold text-emerald-50">
                 {en ? "Markets desk" : "증시 데스크"}

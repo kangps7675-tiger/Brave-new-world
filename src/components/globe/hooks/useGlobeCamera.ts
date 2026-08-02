@@ -168,6 +168,8 @@ export function useGlobeCamera({
     controls.maxDistance = 720;
     controls.autoRotateSpeed = 0.18;
     controls.autoRotate = globeSpinEnabledRef.current;
+    // controls()는 더 이상 apply하지 않음 — 로드 직후 한계를 한 번 더 심는다
+    globe.applyControls();
 
     const syncViewState = () => {
       if (moveIdleTimerRef.current != null) {
@@ -188,11 +190,13 @@ export function useGlobeCamera({
 
       const pov = globe.pointOfView();
 
-      if (pov.altitude < MIN_GLOBE_ALTITUDE) {
+      // zoom↔altitude 양자화 오차(~0.02)보다 클 때만 클램프 — 매 프레임 jumpTo 핑퐁 방지
+      const ALT_CLAMP_SLACK = 0.025;
+      if (pov.altitude < MIN_GLOBE_ALTITUDE - ALT_CLAMP_SLACK) {
         globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: MIN_GLOBE_ALTITUDE }, 0);
       } else if (
         historyImmersionRef.current &&
-        pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE
+        pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE + ALT_CLAMP_SLACK
       ) {
         globe.pointOfView(
           { lat: pov.lat, lng: pov.lng, altitude: HISTORY_IMMERSION_MAX_ALTITUDE },
@@ -220,15 +224,30 @@ export function useGlobeCamera({
           setLayerAltitude(idlePov.altitude);
         }
 
-        const nextCenter = { lat: idlePov.lat, lng: idlePov.lng };
-        lastFilterCenterUpdateAt.current = Date.now();
-        layerCenterRef.current = nextCenter;
-        setFilterCenter(nextCenter);
+        const prevCenter = layerCenterRef.current;
+        const centerMoved =
+          Math.abs(idlePov.lat - prevCenter.lat) >= 0.01 ||
+          Math.abs(idlePov.lng - prevCenter.lng) >= 0.01;
+        if (centerMoved) {
+          const nextCenter = { lat: idlePov.lat, lng: idlePov.lng };
+          lastFilterCenterUpdateAt.current = Date.now();
+          layerCenterRef.current = nextCenter;
+          setFilterCenter(nextCenter);
+        }
 
-        setViewState({
-          lat: idlePov.lat,
-          lng: idlePov.lng,
-          altitude: idlePov.altitude,
+        setViewState((prev) => {
+          if (
+            Math.abs(prev.lat - idlePov.lat) < 0.01 &&
+            Math.abs(prev.lng - idlePov.lng) < 0.01 &&
+            Math.abs(prev.altitude - idlePov.altitude) < LAYER_ALTITUDE_SYNC_MIN_DELTA
+          ) {
+            return prev;
+          }
+          return {
+            lat: idlePov.lat,
+            lng: idlePov.lng,
+            altitude: idlePov.altitude,
+          };
         });
       }, MOVING_IDLE_DELAY_MS);
     };
@@ -387,7 +406,7 @@ export function useGlobeCamera({
       controls.enableRotate = !historyEpisodeActive;
       controls.autoRotate = false;
       const pov = globe.pointOfView();
-      if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE) {
+      if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE + 0.025) {
         globe.pointOfView(
           { lat: pov.lat, lng: pov.lng, altitude: HISTORY_IMMERSION_MAX_ALTITUDE },
           400,
@@ -412,6 +431,10 @@ export function useGlobeCamera({
     const id = window.setInterval(() => {
       const pov = globeRef.current?.pointOfView();
       if (!pov) return;
+      const prev = layerCenterRef.current;
+      if (Math.abs(pov.lat - prev.lat) < 0.05 && Math.abs(pov.lng - prev.lng) < 0.05) {
+        return;
+      }
       layerCenterRef.current = { lat: pov.lat, lng: pov.lng };
       setFilterCenter({ lat: pov.lat, lng: pov.lng });
     }, 2800);

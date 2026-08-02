@@ -116,7 +116,7 @@ export const BATTLEFIELD_BBOXES: Record<BattlefieldZone, RegionBBox> = {
   ukraine: { minLat: 44.0, maxLat: 53.5, minLng: 22.0, maxLng: 41.0 },
   taiwan: { minLat: 18.0, maxLat: 28.0, minLng: 116.0, maxLng: 130.0 },
   korea: { minLat: 30.0, maxLat: 43.5, minLng: 122.0, maxLng: 136.0 },
-  "middle-east": { minLat: 12.0, maxLat: 42.0, minLng: 30.0, maxLng: 65.0 },
+  "middle-east": { minLat: 12.0, maxLat: 42.0, minLng: 24.5, maxLng: 65.0 },
 };
 
 export function detectBattlefieldZone(

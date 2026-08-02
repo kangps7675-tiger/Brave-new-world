@@ -63,7 +63,8 @@ export const THEATER_FLY_TO: Record<NewsTheater, { lat: number; lng: number; alt
 export function newsTheaterFromCoords(lat: number, lng: number): NewsTheater {
   if (lat >= 66) return "arctic";
   if (lat >= 40 && lat <= 70 && lng >= -60 && lng <= -5) return "atlantic";
-  if (lat >= 12 && lat <= 42 && lng >= 34 && lng <= 63) return "middle-east";
+  // 이집트(나일·시나이·수에즈)~레반트·아라비아·이란·걸프 — west≈24.5°E
+  if (lat >= 12 && lat <= 42 && lng >= 24.5 && lng <= 63) return "middle-east";
   if (lat >= 44 && lat <= 62 && lng >= 22 && lng <= 45) return "russia-ukraine";
   if (lat >= 33 && lat <= 43 && lng >= 124 && lng <= 132) return "korea";
   if (lat >= 22 && lat <= 26 && lng >= 118 && lng <= 123) return "china-taiwan";
@@ -73,7 +74,7 @@ export function newsTheaterFromCoords(lat: number, lng: number): NewsTheater {
   if (lat >= -11 && lat <= 23 && lng >= 95 && lng <= 141) return "southeast-asia";
   if (lat >= 18 && lat <= 45 && lng >= 100 && lng <= 130) return "china-taiwan";
   if (lat >= -56 && lat <= 13 && lng >= -82 && lng <= -34) return "south-america";
-  // 중동 박스 밖의 아프리카
+  // 중동 박스 밖의 아프리카 (이집트는 위에서 middle-east)
   if (lat >= -35 && lat <= 20 && lng >= -18 && lng <= 52) return "africa";
   return "global";
 }
@@ -102,6 +103,9 @@ export function newsTheaterFromNavId(id: string): IntelTheaterFilter {
     key.includes("iran") ||
     key.includes("yemen") ||
     key.includes("red-sea") ||
+    key.includes("egypt") ||
+    key.includes("suez") ||
+    key.includes("sinai") ||
     key === "hub-irn" ||
     key.startsWith("claim-irn") ||
     key.startsWith("ally-irn")

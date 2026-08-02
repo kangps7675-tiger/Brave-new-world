@@ -529,8 +529,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const heatmapCollections = useMemo(() => buildHeatmapGeoJson(heatmapsData), [heatmapsData]);
 
+  /**
+   * pointOfView(jumpTo) → onMove → notifyChange 동기 재진입을 막는다.
+   * 재진입 시 고도 클램프가 change 리스너를 중첩 호출해 React #185를 냈다.
+   */
+  const notifyDepthRef = useRef(0);
   const notifyChange = useCallback(() => {
-    changeListenersRef.current.forEach((listener) => listener());
+    if (notifyDepthRef.current > 0) return;
+    notifyDepthRef.current = 1;
+    try {
+      changeListenersRef.current.forEach((listener) => listener());
+    } finally {
+      notifyDepthRef.current = 0;
+    }
   }, []);
 
   const publishZoom = useCallback((zoom: number, force = false) => {
@@ -631,6 +642,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!map) return;
     const m = map as unknown as BasemapMapLike;
     applyBasemapGlobeProjection(m);
+    methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
 
@@ -664,7 +676,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyVisuals();
       emitGlobeReady();
     });
-  }, [emitGlobeReady, publishZoom]);
+  }, [emitGlobeReady, methods, publishZoom]);
 
   /**
    * 베이스맵 모드 전환 후 globe 투영·fog·terrain exaggeration.
@@ -945,6 +957,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         ultraLite: ultraLiteRef.current,
       });
       applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
     };
@@ -952,7 +965,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     return () => {
       map.off("style.load", onStyle);
     };
-  }, [mapLoaded, mapStyleUrl]);
+  }, [mapLoaded, mapStyleUrl, methods]);
 
   useEffect(() => {
     if (!mapLoaded) return;

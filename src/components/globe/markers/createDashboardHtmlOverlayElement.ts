@@ -335,6 +335,9 @@ export function createDashboardHtmlOverlayElement(
         lang: deps.labelLanguage === "en" ? "en" : "ko",
       },
       {
+        onHover: (active) => {
+          deps.handleHtmlMarkerHover(active ? (item as unknown as GlobeDisplayPoint) : null);
+        },
         onClick: () => {
           deps.skipNextGlobeClickRef.current = true;
           deps.flyTo(item.lat, item.lng, 0.72);

@@ -14,7 +14,7 @@ export type FirmsTheaterBbox = {
 /** 전장·분쟁 해역만 — 아마존·호주 산불 등은 여기에 안 들어옴 */
 export const FIRMS_THEATER_BBOXES: readonly FirmsTheaterBbox[] = [
   { id: "ukraine", west: 22, south: 44, east: 41, north: 53 },
-  { id: "middle-east", west: 32, south: 28, east: 50, north: 38 },
+  { id: "middle-east", west: 24.5, south: 22, east: 50, north: 38 },
   { id: "taiwan", west: 116, south: 20, east: 125, north: 27 },
   { id: "korea", west: 123, south: 33, east: 132, north: 43 },
   { id: "red-sea", west: 32, south: 10, east: 48, north: 28 },
