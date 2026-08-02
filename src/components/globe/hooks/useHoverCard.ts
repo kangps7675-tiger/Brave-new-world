@@ -41,6 +41,11 @@ import {
 } from "@/lib/firmsSoundClassify";
 import { evidenceTierLabel } from "@/components/EvidenceTierBadge";
 import { formatReliabilityForHover } from "@/lib/layerReliability";
+import {
+  layerIdFromPathKind,
+  layerIdFromStaticKind,
+  withLayerExplain,
+} from "@/lib/layerHoverExplain";
 import { UCDP_ATTRIBUTION, UCDP_ATTRIBUTION_SHORT, UCDP_SOURCE_URL } from "@/lib/ucdp";
 import { translateOrefTitle, tzevaUi } from "@/lib/tzevaAdomI18n";
 import {
@@ -90,14 +95,23 @@ export interface HoverCardParams {
   disputeOverviews: Map<string, DisputeOverview>;
 }
 
-/** 호버 대상 → sourceCatalog layerId */
+/** 호버 대상 → sourceCatalog / 설명 키 */
 export function resolveHoverLayerId(params: HoverCardParams): string | null {
-  if (params.hoveredCarrier) return null;
-  if (params.hoveredMilAircraft) return "air-traffic";
+  if (params.hoveredCarrier) return "us-carriers";
+  if (params.hoveredMilAircraft) {
+    const isCiv = params.civAircraft.some(
+      (a) =>
+        a.id === params.hoveredMilAircraft!.id || a.hex === params.hoveredMilAircraft!.hex,
+    );
+    return isCiv ? "air-traffic" : "military-activity";
+  }
   if (params.hoveredNeptunThreat) return "neptun";
   const p = params.hoveredPoint;
   if (p) {
-    if (p.displayKind === "ais") return "ais";
+    if (p.displayKind === "ais") {
+      return "disguised" in p && p.disguised ? "disguised-vessels" : "ais";
+    }
+    if (p.displayKind === "mil") return "military-activity";
     if (p.displayKind === "firms-fire") return "firms-fires";
     if (p.displayKind === "tzeva-adom") return "tzeva-adom";
     if (p.displayKind === "newfeeds-attack") return "newfeeds-iran";
@@ -107,16 +121,14 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (p.displayKind === "russia-strike-incident") return "ukraine-strikes-russia";
     if (p.displayKind === "casualty-skull") return "hapi-conflict-casualties";
     if (p.displayKind === "recon-sat-html") return "recon-satellites";
+    if (p.displayKind === "telegram-neon") return "telegram-osint";
     if (p.displayKind === "gdelt-tag-html" || p.displayKind === "ukraine-gdelt-neon") {
       return "conflict-zones";
     }
     if (p.displayKind === "conflict-cluster") return "conflict-zones";
     if (p.displayKind === "static") {
       const kind = "kind" in p ? String((p as { kind?: string }).kind ?? "") : "";
-      if (kind === "ucdp-event") return "ucdp-events";
-      if (kind === "military-base") return "military-bases";
-      if (kind === "submarine-tunnel") return "tunnels";
-      if (kind === "chokepoint" || kind === "logistics-hub") return "critical-nodes";
+      return layerIdFromStaticKind(kind);
     }
   }
   if (params.hoveredPolygon) {
@@ -129,15 +141,12 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (pl.includes("exercise")) return "military-exercises";
     if (pl.includes("gps")) return "gps-interference";
     if (pl === "conflict-zone") return "conflict-zones";
+    if (pl === "military-base") return "military-bases";
+    if (pl === "resource-deposit") return "resource-deposits";
+    if (pl === "missile-silo-field" || pl === "missile-belt") return "missile-silos";
   }
   if (params.hoveredPath) {
-    if (
-      params.hoveredPath.kind === "neptun-projection" ||
-      params.hoveredPath.kind === "neptun-trail"
-    ) {
-      return "neptun";
-    }
-    if (params.hoveredPath.kind === "shipping-lane") return "trade-routes";
+    return layerIdFromPathKind(params.hoveredPath.kind);
   }
   return null;
 }
@@ -172,8 +181,11 @@ export function withLayerReliability(
 
 /** 지구본 호버 카드 콘텐츠 조립 — 순수 함수 (테스트·재사용 용이) */
 export function buildHoverCard(params: HoverCardParams): HoverCard {
-  const raw = buildHoverCardRaw(params);
-  return withLayerReliability(raw, resolveHoverLayerId(params), params.labelLanguage);
+  const layerId = resolveHoverLayerId(params);
+  const lang = params.labelLanguage;
+  const withRel = withLayerReliability(buildHoverCardRaw(params), layerId, lang);
+  /** 마우스 옆 카드에 “이게 뭔지” 평문 — body가 비었을 때만 채움 */
+  return withLayerExplain(withRel, layerId, lang);
 }
 
 function buildHoverCardRaw(params: HoverCardParams): HoverCard {
@@ -558,6 +570,18 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           langKey === "en"
             ? "Theoretical horizon only — not imaging activity"
             : "이론상 가시권만 — 촬영 활동 아님",
+      };
+    }
+    if (hoveredPoint.displayKind === "telegram-neon") {
+      return {
+        kind: "event",
+        title: hoveredPoint.title || hoveredPoint.label,
+        detail:
+          lang === "en"
+            ? `Telegram OSINT · ${hoveredPoint.label}`
+            : `텔레그램 OSINT · ${hoveredPoint.label}`,
+        meta: `@${hoveredPoint.id}`,
+        hint: lang === "en" ? "Click to fly · half preview in Intel" : "클릭하면 이동 · 전문은 인텔 탭",
       };
     }
     if (hoveredPoint.displayKind === "gdelt-tag-html") {

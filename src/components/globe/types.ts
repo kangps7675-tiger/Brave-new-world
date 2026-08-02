@@ -365,7 +365,8 @@ export type GlobeDisplayPoint =
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
-  | ReconSatelliteMarker;
+  | ReconSatelliteMarker
+  | TelegramNeonMarker;
 
 export type GlobeLabel = SearchPlace & { labelKind: "place" };
 

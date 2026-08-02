@@ -57,12 +57,14 @@ export function CursorHoverCard({
       top = y - cardH - CURSOR_OFFSET;
     }
 
-    setPosition(
-      clampBoxToViewport(left, top, cardW, cardH, VIEWPORT_EDGE_PAD, {
+    setPosition((prev) => {
+      const next = clampBoxToViewport(left, top, cardW, cardH, VIEWPORT_EDGE_PAD, {
         width: boundsW,
         height: boundsH,
-      }),
-    );
+      });
+      if (prev.left === next.left && prev.top === next.top) return prev;
+      return next;
+    });
   }, [visible, x, y, title, detail, badge, meta, body, hint, children]);
 
   if (!visible) return null;

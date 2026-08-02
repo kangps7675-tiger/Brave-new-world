@@ -23,9 +23,9 @@ describe("theaterAssets primary ordering", () => {
     expect(symbols).toContain("^IXIC");
   });
 
-  it("korea leads with KOSPI and semis", () => {
+  it("korea leads with FX, KOSPI, and yields", () => {
     const symbols = theaterAssetSymbols("korea");
-    expect(symbols.slice(0, 3)).toEqual(["^KS11", "SMH", "005930.KS"]);
+    expect(symbols.slice(0, 3)).toEqual(["KRW=X", "^KS11", "^TNX"]);
   });
 
   it("southeast-asia leads with oil and semis", () => {

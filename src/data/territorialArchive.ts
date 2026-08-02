@@ -115,19 +115,17 @@ export function continentFromCoordinates(
   if (lng <= -25 && lng >= -170) return "americas";
   if (lng > 160 && lat < 0) return "americas"; // 드물게 태평양 횡단 좌표
 
-  // 아프리카 (마그레브·사헬·동아프리카; 중동 레반트 제외)
+  // 아프리카 (마그레브·사헬·동아프리카; 이집트·레반트·아라비아는 중동)
   if (lat <= 37.5 && lat >= -35 && lng >= -20 && lng <= 52) {
-    // 시나이·레반트·아라비아·이란은 중동
-    if (lat >= 12 && lng >= 32 && lng <= 63) {
-      if (lat >= 27 || lng >= 34) return "middle-east";
+    // 이집트(나일·시나이·수에즈)~레반트·아라비아·이란
+    if (lat >= 12 && lng >= 24.5 && lng <= 63) {
+      return "middle-east";
     }
-    // 아라비아 반도·페르시아만
-    if (lng >= 34 && lng <= 63 && lat >= 12 && lat <= 40) return "middle-east";
     return "africa";
   }
 
-  // 중동 (레반트·아라비아·이란·걸프)
-  if (lng >= 26 && lng <= 63 && lat >= 12 && lat <= 42) {
+  // 중동 (이집트·레반트·아라비아·이란·걸프)
+  if (lng >= 24.5 && lng <= 63 && lat >= 12 && lat <= 42) {
     // 코카서스 북부(조지아 등)는 유럽 쪽으로
     if (lat >= 41 && lng >= 40 && lng <= 50) return "europe";
     return "middle-east";

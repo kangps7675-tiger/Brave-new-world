@@ -20,6 +20,7 @@ export const RATE_PRESETS = {
   radar: { key: "radar", limit: 20, windowMs: 60_000 },
   stock: { key: "stock", limit: 40, windowMs: 60_000 },
   stockReaction: { key: "stock-reaction", limit: 30, windowMs: 60_000 },
+  sovereignRates: { key: "sovereign-rates", limit: 30, windowMs: 60_000 },
   reefwatch: { key: "reefwatch", limit: 20, windowMs: 60_000 },
   crossStrait: { key: "cross-strait", limit: 20, windowMs: 60_000 },
   shipMovements: { key: "ship-movements", limit: 60, windowMs: 60_000 },

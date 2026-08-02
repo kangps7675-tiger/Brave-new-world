@@ -15,6 +15,11 @@ import {
   resolveTelegramPlace,
   type TelegramPlaceHit,
 } from "@/lib/telegramPlaceMatch";
+import {
+  isMostlyEnglish,
+  isMostlyKorean,
+  translateText,
+} from "@/lib/koreanTranslate";
 import { useLocale } from "@/contexts/LocaleContext";
 
 export type TelegramMediaFilter = "all" | "video" | "photo" | "media";
@@ -119,12 +124,39 @@ function TelegramAlertCard({
   preferMediaCta?: boolean;
 }) {
   const [showEmbed, setShowEmbed] = useState(false);
+  const [translated, setTranslated] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translateStatus, setTranslateStatus] = useState<"idle" | "loading" | "error">(
+    "idle",
+  );
   const mediaKind = inferMediaKind(alert);
   const mediaLabel = mediaBadgeLabel(mediaKind, lang);
   const postUrl = telegramPostUrl(alert);
   const embedSrc = alert.messageUrl
     ? `${alert.messageUrl.replace(/\/$/, "")}?embed=1`
     : null;
+  const sourceText = alert.text?.trim() ?? "";
+  const needsTranslate =
+    Boolean(sourceText) &&
+    !(lang === "ko" && isMostlyKorean(sourceText)) &&
+    !(lang === "en" && isMostlyEnglish(sourceText));
+
+  const onTranslateClick = async () => {
+    if (translated) {
+      setShowTranslation((v) => !v);
+      return;
+    }
+    if (!sourceText || translateStatus === "loading") return;
+    setTranslateStatus("loading");
+    try {
+      const out = await translateText(sourceText, lang);
+      setTranslated(out);
+      setShowTranslation(true);
+      setTranslateStatus("idle");
+    } catch {
+      setTranslateStatus("error");
+    }
+  };
 
   return (
     <li
@@ -151,9 +183,9 @@ function TelegramAlertCard({
           <span className="text-slate-500"> · {alert.channelTitle}</span>
         ) : null}
       </p>
-      {alert.text?.trim() ? (
+      {sourceText ? (
         <p className="mt-1.5 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200/90">
-          {alert.text}
+          {sourceText}
         </p>
       ) : (
         <p className="mt-1.5 text-caption leading-5 text-slate-400/90">
@@ -165,6 +197,21 @@ function TelegramAlertCard({
       {alert.textTruncated ? (
         <p className="mt-1 text-micro text-slate-500">
           {lang === "en" ? "Half preview · full post on Telegram" : "절반 미리보기 · 전문은 텔레그램"}
+        </p>
+      ) : null}
+      {showTranslation && translated ? (
+        <div className="mt-2 rounded-md border border-amber-300/25 bg-amber-500/10 px-2.5 py-2">
+          <p className="text-micro font-medium text-amber-100/85">
+            {lang === "en" ? "Translation" : "번역"}
+          </p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-amber-50/95">
+            {translated}
+          </p>
+        </div>
+      ) : null}
+      {translateStatus === "error" ? (
+        <p className="mt-1.5 text-micro text-rose-200/80">
+          {lang === "en" ? "Translation failed. Try again." : "번역에 실패했습니다. 다시 시도하세요."}
         </p>
       ) : null}
       {place ? (
@@ -185,16 +232,43 @@ function TelegramAlertCard({
           ) : null}
         </div>
       ) : null}
-      {postUrl ? (
+      {postUrl || needsTranslate ? (
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          <a
-            href={postUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md border border-cyan-300/50 bg-cyan-500/20 px-2.5 py-1.5 text-micro font-semibold text-cyan-50 transition hover:border-cyan-200/70 hover:bg-cyan-500/30"
-          >
-            {lang === "en" ? "Open on Telegram →" : "텔레그램에서 보기 →"}
-          </a>
+          {needsTranslate ? (
+            <button
+              type="button"
+              onClick={() => void onTranslateClick()}
+              disabled={translateStatus === "loading"}
+              aria-busy={translateStatus === "loading"}
+              className="rounded-md border border-amber-300/50 bg-amber-500/20 px-2.5 py-1.5 text-micro font-semibold text-amber-50 transition hover:border-amber-200/70 hover:bg-amber-500/30 disabled:cursor-wait disabled:opacity-70"
+            >
+              {translateStatus === "loading"
+                ? lang === "en"
+                  ? "Translating…"
+                  : "번역 중…"
+                : translated
+                  ? showTranslation
+                    ? lang === "en"
+                      ? "Hide translation"
+                      : "번역 숨기기"
+                    : lang === "en"
+                      ? "Show translation"
+                      : "번역 다시 보기"
+                  : lang === "en"
+                    ? "Translate"
+                    : "번역하기"}
+            </button>
+          ) : null}
+          {postUrl ? (
+            <a
+              href={postUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-cyan-300/50 bg-cyan-500/20 px-2.5 py-1.5 text-micro font-semibold text-cyan-50 transition hover:border-cyan-200/70 hover:bg-cyan-500/30"
+            >
+              {lang === "en" ? "Open on Telegram →" : "텔레그램에서 보기 →"}
+            </a>
+          ) : null}
           {embedSrc ? (
             <button
               type="button"
@@ -416,7 +490,7 @@ export function TelegramIntelFeed({
 
       {!fullPage ? (
         <p className="border-t border-sky-300/10 px-3 py-2 text-micro leading-4 text-slate-500">
-          절반 미리보기 · 전문은 텔레그램 CTA · 영상/사진은 클릭 시에만 t.me 임베드
+          절반 미리보기 · 번역하기 CTA · 전문은 텔레그램 · 영상/사진은 클릭 시에만 t.me 임베드
         </p>
       ) : null}
     </div>

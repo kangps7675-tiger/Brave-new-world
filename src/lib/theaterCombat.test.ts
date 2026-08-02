@@ -9,6 +9,8 @@ describe("theaterCombat — war vs tension", () => {
   it("classifies Ukraine and Middle East as active war", () => {
     expect(resolveActiveWarTheaterAt(48.5, 37.8)).toBe("russia-ukraine");
     expect(resolveActiveWarTheaterAt(32.0, 48.0)).toBe("middle-east");
+    // Cairo — Egypt included in middle-east box
+    expect(resolveActiveWarTheaterAt(30.04, 31.24)).toBe("middle-east");
   });
 
   it("classifies Taiwan and Korea as tension only (no active war)", () => {

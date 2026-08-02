@@ -38,6 +38,8 @@ export type MapGlobeMethods = {
   pointOfView: (pov?: GlobePointOfView, durationMs?: number) => GlobePointOfView;
   toGlobeCoords: (x: number, y: number) => { lat: number; lng: number } | null;
   controls: () => MapGlobeControls;
+  /** 맵 로드·스타일 교체 후 줌 한계·드래그 플래그 재적용 */
+  applyControls: () => void;
   renderer: () => { domElement: HTMLCanvasElement | null };
   /**
    * 지도 캔버스의 **현재 프레임 스냅샷**을 별도 canvas로 복사해 돌려준다.
@@ -103,6 +105,10 @@ export function createMapGlobeMethods(
   let onPointerDown: (() => void) | null = null;
   let onPointerUp: (() => void) | null = null;
 
+  /** setMin/MaxZoom 동일값 재적용은 MapLibre move를 유발해 드래그 중 change 루프를 만들 수 있음 */
+  let lastAppliedMinZoom: number | null = null;
+  let lastAppliedMaxZoom: number | null = null;
+
   const applyInteractionFlags = () => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -147,8 +153,22 @@ export function createMapGlobeMethods(
       controlState.minDistance > 0
         ? distanceToAltitude(controlState.minDistance)
         : MIN_GLOBE_ALTITUDE;
-    map.setMinZoom(altitudeToMapLibreZoom(maxAlt));
-    map.setMaxZoom(altitudeToMapLibreZoom(minAlt));
+    const nextMinZoom = altitudeToMapLibreZoom(maxAlt);
+    const nextMaxZoom = altitudeToMapLibreZoom(minAlt);
+    if (lastAppliedMinZoom !== nextMinZoom) {
+      lastAppliedMinZoom = nextMinZoom;
+      map.setMinZoom(nextMinZoom);
+    }
+    if (lastAppliedMaxZoom !== nextMaxZoom) {
+      lastAppliedMaxZoom = nextMaxZoom;
+      map.setMaxZoom(nextMaxZoom);
+    }
+  };
+
+  /** 스타일 리로드 후 줌 한계를 다시 심도록 캐시 무효화 */
+  const invalidateZoomLimitCache = () => {
+    lastAppliedMinZoom = null;
+    lastAppliedMaxZoom = null;
   };
 
   const unbindInteractionPause = () => {
@@ -379,8 +399,15 @@ export function createMapGlobeMethods(
     },
 
     controls() {
-      applyInteractionFlags();
+      // 매 프레임 apply 금지 — handleMove가 isAutoRotateFrame 조회만 해도
+      // setMin/MaxZoom → move → change 재진입이 났다 (React #185).
       return controlsProxy;
+    },
+
+    /** 맵 로드·스타일 교체 후 줌/드래그 플래그 재적용 */
+    applyControls() {
+      invalidateZoomLimitCache();
+      applyInteractionFlags();
     },
 
     renderer() {

@@ -819,6 +819,18 @@ export function GlobeDashboard({
     weeklyExpanded || Boolean(periodicBriefing) || !weeklyRecapSettled || !dailyLampSettled;
   const battlefieldSoftZoneRef = useRef<BattlefieldZone | null>(null);
   const battlefieldManualUntilRef = useRef(0);
+  /**
+   * 유저가 레이어 체크를 직접 바꾸면 true.
+   * 전장 soft-apply(진입/이탈 시 allShowOff 프리셋)가 수동 선택을 덮어쓰지 못하게 한다.
+   * 탐색 탭·도메인 전환처럼 프리셋을 의도한 진입에서는 풀린다.
+   */
+  const userLayerPinRef = useRef(false);
+  const pinUserLayers = useCallback(() => {
+    userLayerPinRef.current = true;
+  }, []);
+  const unpinUserLayers = useCallback(() => {
+    userLayerPinRef.current = false;
+  }, []);
   const [showViewerIntro, setShowViewerIntro] = useState(false);
   const [showFeatureGuide, setShowFeatureGuide] = useState(false);
   const [askLayersOpen, setAskLayersOpen] = useState(false);
@@ -1019,8 +1031,8 @@ export function GlobeDashboard({
   const {
     layerPrefs,
     draftPrefs,
-    togglePref,
-    toggleCategoryPrefs,
+    togglePref: togglePrefRaw,
+    toggleCategoryPrefs: toggleCategoryPrefsRaw,
     applyLayerPrefs,
     patchLayerPrefsSoft,
     patchDraftOnly,
@@ -1029,6 +1041,22 @@ export function GlobeDashboard({
     applyGeneration,
     immediateUntilRef,
   } = useLayerPrefsController(deferLayerMapApplyRef, { ultraLiteRef });
+
+  /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
+  const togglePref = useCallback(
+    ((key, value) => {
+      pinUserLayers();
+      return togglePrefRaw(key, value);
+    }) as typeof togglePrefRaw,
+    [pinUserLayers, togglePrefRaw],
+  );
+  const toggleCategoryPrefs = useCallback(
+    ((updates) => {
+      pinUserLayers();
+      return toggleCategoryPrefsRaw(updates);
+    }) as typeof toggleCategoryPrefsRaw,
+    [pinUserLayers, toggleCategoryPrefsRaw],
+  );
 
   useEffect(() => {
     const perf = loadPerfPrefs();
@@ -1260,6 +1288,7 @@ export function GlobeDashboard({
 
   const handlePanelDraftPatch = useCallback(
     (patch: Partial<LayerPrefs>) => {
+      pinUserLayers();
       panelDraftPatchRef.current = { ...panelDraftPatchRef.current, ...patch };
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === "boolean") trackLayerToggle(key, value);
@@ -1268,7 +1297,7 @@ export function GlobeDashboard({
       patchLayerPrefsSoft(patch);
       setLayerPanelDirty(true);
     },
-    [patchLayerPrefsSoft],
+    [patchLayerPrefsSoft, pinUserLayers],
   );
 
   const handlePanelLangDraft = useCallback(
@@ -5918,6 +5947,7 @@ export function GlobeDashboard({
     ultraLiteRef.current = ultraLiteOn;
     setUltraLite(ultraLiteOn);
     savePerfPrefs({ ultraLite: ultraLiteOn });
+    unpinUserLayers();
 
     suppressAutoRegionZoomRef.current = true;
     ukraineZoomPendingRef.current = false;
@@ -6140,8 +6170,8 @@ export function GlobeDashboard({
 
   /**
    * 매일 등불 — 지정학·지경학 각각 하루 1회.
-   * SLA: 게이트 해제 후 미시청이면 **5초 안에 반드시** 양피지 점화.
-   * 네트워크는 그 안에 되면 쓰고, 안 되면 buildPeriodicBriefing 폴백.
+   * SLA: 게이트 해제 후 미시청이면 하드 데드라인 안에 양피지 점화.
+   * news-stream(og 보강 ~8s)을 기다린 뒤 사진 데스크를 채우고, 안 되면 셸 폴백.
    * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
   useEffect(() => {
@@ -6181,8 +6211,10 @@ export function GlobeDashboard({
       return;
     }
 
-    const LAMP_HARD_DEADLINE_MS = 5_000;
-    const NEWS_BUDGET_MS = 4_500;
+    /** 빈 셸보다 사진 채움을 우선 — news-stream 보강 예산에 맞춤 */
+    const LAMP_HARD_DEADLINE_MS = 12_000;
+    /** news-stream og:image 보강(최대 ~8s)보다 길어야 사진 데스크가 채워짐 */
+    const NEWS_BUDGET_MS = 14_000;
     const MACRO_ENRICH_MS = 2_500;
 
     const fetchWithTimeout = async (url: string, ms: number): Promise<Response | null> => {
@@ -6248,7 +6280,7 @@ export function GlobeDashboard({
       }
     };
 
-    // 5초 하드 데드라인 — 지정학은 과거사건 양피지 금지, 사진 데스크 셸만
+    // 하드 데드라인 — 지정학·지경학 모두 사진 데스크 셸(과거사건 양피지 금지)
     deadlineTimer = setTimeout(() => {
       ignite(curatedFallback());
     }, LAMP_HARD_DEADLINE_MS);
@@ -6813,6 +6845,7 @@ export function GlobeDashboard({
   const handleAskLayersApply = useCallback(
     (payload: AskLayersApplyPayload) => {
       if (payload.patch && Object.keys(payload.patch).length > 0) {
+        pinUserLayers();
         const patch = isEconomyViewer
           ? stripEconomyMilitaryPatch(payload.patch)
           : payload.patch;
@@ -6836,7 +6869,7 @@ export function GlobeDashboard({
         flyTo(payload.fly.lat, payload.fly.lng, payload.fly.altitude);
       }
     },
-    [flyTo, isEconomyViewer, patchLayerPrefsSoft],
+    [flyTo, isEconomyViewer, patchLayerPrefsSoft, pinUserLayers],
   );
 
   function handleNavNavigate(selection: NavSelection) {
@@ -6851,6 +6884,7 @@ export function GlobeDashboard({
     if (historyStoryLockedRef.current) return;
     const zone = battlefieldZoneFromExplorationId(preset.id);
     if (zone) {
+      unpinUserLayers();
       battlefieldManualUntilRef.current = Date.now() + 12_000;
       battlefieldSoftZoneRef.current = zone;
       applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
@@ -6871,34 +6905,50 @@ export function GlobeDashboard({
   useEffect(() => {
     if (isEconomyViewer || entryGate !== null || showModePicker) return;
     if (historyStoryLockedRef.current) return;
+    // 유저가 직접 켠/끈 레이어는 전장 프리셋이 allShowOff로 지우지 않는다
+    if (userLayerPinRef.current) return;
+    // 레이어 패널·퀵 드롭다운을 여는 동안에도 soft-apply 금지
+    if (showLeftPanel || layerDropdownOpen || layerPanelDirty) return;
     if (Date.now() < battlefieldManualUntilRef.current) return;
-    const zone = detectBattlefieldZone(
-      layerViewState.lat,
-      layerViewState.lng,
-      layerViewState.altitude,
-    );
-    // 전역으로 다시 빠지면 ADS-B·AIS 등 상세 레이어를 끄고 히어로 3종만 유지
-    if (!zone) {
-      if (battlefieldSoftZoneRef.current == null) return;
-      battlefieldSoftZoneRef.current = null;
-      applyLayerPrefs(
-        buildDomainOverviewPrefs("conflict", {
-          labelLanguage: layerPrefsLiveRef.current.labelLanguage,
-          ultraLite: ultraLiteRef.current,
-        }),
+
+    // 드래그 idle 직후 전장 bbox 경계에서 zone이 흔들리면 프리셋이 연속 적용되며
+    // 화면이 튕기듯 재구성된다 — 짧게 디바운스해 확정 zone만 반영
+    const timer = window.setTimeout(() => {
+      if (userLayerPinRef.current) return;
+      if (Date.now() < battlefieldManualUntilRef.current) return;
+      const zone = detectBattlefieldZone(
+        layerViewState.lat,
+        layerViewState.lng,
+        layerViewState.altitude,
       );
-      return;
-    }
-    if (battlefieldSoftZoneRef.current === zone) return;
-    battlefieldSoftZoneRef.current = zone;
-    applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
+      // 전역으로 다시 빠지면 ADS-B·AIS 등 상세 레이어를 끄고 히어로 3종만 유지
+      if (!zone) {
+        if (battlefieldSoftZoneRef.current == null) return;
+        battlefieldSoftZoneRef.current = null;
+        applyLayerPrefs(
+          buildDomainOverviewPrefs("conflict", {
+            labelLanguage: layerPrefsLiveRef.current.labelLanguage,
+            ultraLite: ultraLiteRef.current,
+          }),
+        );
+        return;
+      }
+      if (battlefieldSoftZoneRef.current === zone) return;
+      battlefieldSoftZoneRef.current = zone;
+      applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
+    }, 360);
+
+    return () => window.clearTimeout(timer);
   }, [
     applyLayerPrefs,
     entryGate,
     isEconomyViewer,
+    layerDropdownOpen,
+    layerPanelDirty,
     layerViewState.altitude,
     layerViewState.lat,
     layerViewState.lng,
+    showLeftPanel,
     showModePicker,
   ]);
 

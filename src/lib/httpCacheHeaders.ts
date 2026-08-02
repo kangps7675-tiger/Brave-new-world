@@ -43,6 +43,8 @@ export const CDN_CACHE = {
   newfeeds: { sMaxAge: 120, swr: 300 } satisfies PublicCacheOpts,
   /** Yahoo 증시 티커 ~15min poll */
   stock: { sMaxAge: 300, swr: 600 } satisfies PublicCacheOpts,
+  /** 주요국 금리 · FRED 일간/월간 */
+  sovereignRates: { sMaxAge: 900, swr: 1800 } satisfies PublicCacheOpts,
   /** SOTW / world-stats */
   worldStats: { sMaxAge: 600, swr: 1800 } satisfies PublicCacheOpts,
   /** 정적 레이어 JSON 파생 */

@@ -58,7 +58,11 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
 import { ECONOMY_TIER_LABELS } from "@/lib/news/mediaTiers";
-import { STOCK_TICKER_SYMBOLS, tickerDisplayName } from "@/lib/stockTickers";
+import {
+  FRED_ONLY_TICKER_SYMBOLS,
+  STOCK_TICKER_SYMBOLS,
+  tickerDisplayName,
+} from "@/lib/stockTickers";
 import {
   heroHighlightSymbols,
   INTEL_STACK_CLEARANCE_COLLAPSED,
@@ -1700,14 +1704,16 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     const marketsSearchResults = useMemo(() => {
       const q = marketsSearchQuery.trim().toLowerCase();
       if (!q) return [];
-      return STOCK_TICKER_SYMBOLS.filter((t) => {
-        const name = tickerDisplayName(t.symbol, lang).toLowerCase();
-        return (
-          name.includes(q) ||
-          t.label.toLowerCase().includes(q) ||
-          t.symbol.toLowerCase().includes(q)
-        );
-      })
+      const catalog = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS];
+      return catalog
+        .filter((t) => {
+          const name = tickerDisplayName(t.symbol, lang).toLowerCase();
+          return (
+            name.includes(q) ||
+            t.label.toLowerCase().includes(q) ||
+            t.symbol.toLowerCase().includes(q)
+          );
+        })
         .slice(0, 8)
         .map((t) => ({
           id: t.symbol,

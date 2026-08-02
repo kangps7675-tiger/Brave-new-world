@@ -11,6 +11,7 @@ import {
 } from "@/lib/news/feedCatalog";
 import { computeBreakingGrade } from "@/lib/news/breakingGrade";
 import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";
+import { hasLampPhoto } from "@/lib/news/lampThumbnail";
 import { classifyMediaTier } from "@/lib/news/mediaTiers";
 import { fetchNewfeedsIranNewsItems } from "@/lib/news/newfeedsIranNews";
 import { isIranRelatedBreakingText } from "@/lib/news/breakingFlashNarrative";
@@ -264,8 +265,13 @@ export async function buildNewsStream(
     return true;
   });
 
-  // RSS 이미지 없는 최근 기사에 og:image 보강 (등불 사진 필수 수급)
-  const enriched = await enrichNewsStreamImages(sortByRecency(deduped), {
+  // RSS 이미지 있는 기사를 앞에 — og 보강이 느려도 등불이 사진을 바로 쓸 수 있음
+  const byRecency = sortByRecency(deduped);
+  const photoFirst = [
+    ...byRecency.filter((i) => hasLampPhoto(i.imageUrl)),
+    ...byRecency.filter((i) => !hasLampPhoto(i.imageUrl)),
+  ];
+  const enriched = await enrichNewsStreamImages(photoFirst, {
     maxEnrich: 24,
     concurrency: 4,
     timeoutMs: 2_200,

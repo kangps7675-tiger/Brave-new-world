@@ -289,8 +289,8 @@ const UI = {
   },
   marketsStripTitle: { ko: "시장", en: "Markets" },
   marketsStripCalmHint: {
-    ko: "등락은 전일 대비 · Yahoo·FRED · 투자 권유 아님",
-    en: "Change vs prior day · Yahoo/FRED · not advice",
+    ko: "등락은 전일 대비 · Yahoo·FRED · 환율·금리 포함 · 투자 권유 아님",
+    en: "Change vs prior day · Yahoo/FRED · FX & rates · not advice",
   },
   marketsStripTheaterHint: {
     ko: "이 전장 민감 자산 · 등락은 전일 대비 · 투자 권유 아님",
