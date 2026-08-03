@@ -113,7 +113,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.112.1",
+    "@anthropic-ai/sdk": "^0.115.0",
     "@block65/webcrypto-web-push": "^1.0.2",
     "@google/earthengine": "^1.7.34",
     "@streamparser/json": "^0.0.22",
@@ -136,7 +136,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260718.1",
+    "@cloudflare/workers-types": "^5.20260731.1",
     "@opennextjs/cloudflare": "1.15.1",
     "@types/adm-zip": "^0.5.8",
     "@types/node": "^20",
@@ -152,7 +152,7 @@
     "tsx": "^4.23.0",
     "typescript": "^5",
     "vitest": "^4.1.10",
-    "wrangler": "^4.110.0",
+    "wrangler": "^4.118.0",
     "xlsx": "^0.18.5"
   },
   "overrides": {
