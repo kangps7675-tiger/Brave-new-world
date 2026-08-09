@@ -88,6 +88,7 @@ npm run cf:r2:create          # 버킷 conflict-view-data
 npm run cf:r2:upload:dry      # 목록만
 npm run cf:r2:upload          # lite+full JSON(+gz) put
 npm run cf:r2:upload:audio    # public/audio → R2 key audio/*
+npm run cf:r2:upload:cesium   # CesiumJS Build/Cesium → static/cesium/<ver>/** + zip
 # npm run cf:r2:upload -- --with-textures --with-audio
 ```
 
@@ -99,7 +100,8 @@ NEXT_PUBLIC_DATA_CDN=https://<your-r2-public-host>
 ```
 
 `dataPath()` · `loadCloudStaticJson()` · `joinAudioCdnUrl()` / `/api/sound-stream` 이 CDN을 우선합니다.  
-오디오 키: `audio/<filename>` (예: `…/audio/combat-firefight-distant.mp3`).
+오디오 키: `audio/<filename>` (예: `…/audio/combat-firefight-distant.mp3`).  
+Cesium 키: `static/cesium/<version>/` (예: `…/static/cesium/1.144.0/Cesium.js`), 아카이브 `static/cesium/cesium-<version>.zip`.
 
 | 경로 | 동작 |
 |------|------|

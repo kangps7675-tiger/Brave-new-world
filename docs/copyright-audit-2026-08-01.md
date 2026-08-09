@@ -26,15 +26,16 @@
 | ID | 항목 | 상태 |
 |----|------|------|
 | R-1 | 폰트 라이선스 전문 동봉 · 크레딧 UI · 미사용 폰트 제거 | ✅ 완료 |
-| R-2 | Google Translate UA 위장 제거 | ✅ 완료 (엔드포인트 전환은 미완) |
+| R-2 | 브라우저 UA 위장 제거 (3곳) | ✅ 완료 (번역 엔드포인트 전환은 미완) |
 | R-3 | RSS 스니펫 1000→220자 · `content:encoded` 최후순위 강등 | ✅ 완료 |
-| O-1 | **상업 게이트 파서 CRLF 버그** — 아래 O-1 참조 | ✅ 완료 (런타임 배선은 미완) |
+| O-1 | 상업 게이트 — CRLF 파싱 버그 + **런타임 배선** | ✅ 완료 (두 겹 모두) |
+| Y-2b | ADS-B 레이어 등급 재판정 (prohibited → allowed) | ✅ 완료 |
 | I-1 | webpack memory cache — prod 상시 memory 제거 (dev·OneDrive만) | ✅ 완료 (`next.config.mjs`) |
 | I-2 | 배포 빌드(Vercel/CI)에서 next 내장 ESLint/tsc 게이트 복구 | ✅ 완료 (`NEXT_RELAX_BUILD_GATES`) |
 | I-3 | 프로덕션 CSP에서 `unsafe-eval` 제거 (dev만 유지) | ✅ 완료 |
-| O-2 | 지정학 뉴스 스트림 `sourceCatalog` 등재 | ⬜ 미착수 |
-| O-3 | og:image robots.txt 준수 · 봇 UA 도메인 | ⬜ 미착수 |
-| Y-2 | adsb.fi → adsb.lol 교체 | ⬜ 미착수 |
+| O-2 | 지정학 뉴스 스트림 `sourceCatalog` 등재 | ✅ 완료 |
+| O-3 | og:image robots.txt 준수 · 봇 UA 도메인 | ✅ 완료 |
+| Y-2 | adsb.fi → adsb.lol 교체 | ✅ 완료 |
 
 ### R-1 완료 내역
 
@@ -51,6 +52,50 @@
 - `rssParser.ts` — 필드 우선순위를 `description → summary → content → content:encoded` 로 재배열
 - `periodicBriefing.ts` — `LAMP_DISPLAY_SUMMARY_MIN/MAX` 300/520 → **110/200**
   (파싱 상한만 줄이고 표시 상한을 안 줄이면 정책이 반쪽이 되므로 함께 조정)
+
+### O-2 완료 내역
+
+`sourceCatalog.ts` 에 두 항목 신설 — 레이어 68 → **70개**.
+
+| 신규 layerId | commercialUse | 사유 |
+|---|---|---|
+| `news-geopolitics-rss` | `license-required` | 매체별 RSS 약관. NYT·WSJ·Reuters 는 개인·비상업 한정. 본문 스니펫 + 한국어 번역은 제목·링크 인용과 별개 권리 |
+| `news-video-youtube` | `unknown` | YouTube ToS 는 API Services / 공식 embed 외 프로그램적 접근을 제한. 공개 Atom 피드는 회색지대 — 구현(embed + 썸네일 핫링크)은 준수 패턴 |
+
+`unknown` 을 그대로 둔 건 의도적이다 — 카탈로그 주석의 원칙("모르면 unknown, 확인 전까지 유료 노출 차단")을 그대로 적용했다.
+
+### O-3 완료 내역
+
+- **`src/lib/news/robotsTxt.ts` 신설** — RFC 9309 준수 파서
+  - `User-agent` 그룹 매칭 (우리 토큰 우선 → `*` 폴백), 연속 UA 줄 그룹 공유
+  - **가장 긴 패턴 우선**, 동률 시 `Allow` 우선 (§2.2.2)
+  - `*` · `$` 와일드카드, 주석·대소문자 혼용 처리
+  - 4xx → 전체 허용 / **5xx·타임아웃 → 전체 차단** (§2.3.1.4)
+  - `Crawl-delay` 준수 — 오리진별 마지막 요청 시각 추적, 최대 10초 캡
+  - origin 단위 12시간 캐시
+- `enrichArticleImage.ts` — fetch 직전 `canFetchArticle()` 관문 추가. 차단이면 이미지 없이 진행(스트림 안 죽임)
+- 봇 UA `+https://localhost` → **`SITE_URL` 기반 실제 도메인**
+- `robotsTxt.test.ts` — 18개 케이스
+
+### Y-2 완료 내역
+
+**adsb.fi 와 airplanes.live 를 런타임에서 완전 제거.** 남은 소스는 adsb.lol(ODbL) + ADSBexchange(상업 키).
+
+바꾼 이유가 핵심이다 — 기존 구현은 `COMMERCIAL_TIER_ENABLED` 로 갈라서
+**무료 모드에서만** adsb.fi 를 폴백에 넣었다. 그건 약관의 두 요건 중
+"non-commercial" 한쪽만 본 것이다.
+
+> `"for **personal**, non-commercial use only"`
+
+**공개 웹서비스는 무료여도 "personal" 이 아니다.** 두 요건을 모두 충족해야 하므로
+무료 단계에서도 쓸 수 없다. airplanes.live 는 독점 라이선스로 조건 미확인 상태라
+카탈로그 원칙("확인 전까지 차단")을 동일하게 적용해 함께 뺐다.
+
+수정: `src/lib/adsbClient.ts` · `src/lib/adsbWarmFetch.ts` · `workers/cron-ingest/src/adsb.ts`
+
+> 남은 과제: `sourceCatalog` 의 `military-activity` · `air-traffic` 은 아직
+> `prohibited` 다. 실제 폴백에서 adsb.fi 가 빠졌으므로 `allowed` 로 상향할 수
+> 있는지 재판정이 필요하다 (attribution 문구도 함께 갱신).
 
 ---
 
@@ -206,7 +251,7 @@ $ node scripts/verify-commercial-licensing.js
 
 > 이 실행 결과가 **Y-1 의 "문서는 unknown 6, 실제 10" 불일치를 확정**한다.
 
-#### (b) 런타임 배선이 없다 — 미착수
+#### (b) 런타임 배선이 없다 — 패치 완료
 
 **사실관계**
 
@@ -229,7 +274,47 @@ src/lib/licensing/commercialGate.ts        (자기 자신)
 
 즉 **"게이트"라고 부르지만 방어선이 빌드 시점 한 겹뿐**이다.
 
-**조치** — 레이어 렌더링 진입점에서 `isCommercialSafe()` 를 실제로 호출하도록 배선. 최소한 `layerPrefs` 필터링 단계.
+**조치 (완료) — `src/lib/licensing/layerPrefGate.ts` 신설**
+
+배선 지점을 **`LayerPrefs` 층**으로 잡았다. 레이어 표시 여부는 결국 이 불리언
+하나로 수렴하므로, 여기서 한 번 거르면 아래 렌더 경로 전체가 안전해진다.
+렌더 컴포넌트마다 심으면 새 컴포넌트가 생길 때 반드시 빠뜨린다.
+
+```
+loadLayerPrefsRaw()          저장된 prefs (게이트 적용 전, private)
+        ↓
+enforceCommercialTier()      유료 티어면 상업 불가 레이어 강제 OFF
+        ↓
+loadLayerPrefs()             공개 API — 호출부 전부가 게이트를 통과
+```
+
+- `PREF_TO_LAYER_ID` — LayerPrefs 키 ↔ `sourceCatalog` layerId 매핑 **15개**
+  (이 매핑이 없어서 지금까지 배선이 불가능했다)
+- `enforceCommercialTier(prefs, tier)` — 유료 티어에서 비안전 레이어 강제 OFF.
+  **사용자가 켜둔 설정보다 우선한다** — UX 문제가 아니라 계약 문제이기 때문
+- 무료 티어면 원본 참조를 그대로 반환 (React 리렌더 유발 안 함)
+- `currentProductTier()` — `COMMERCIAL_TIER_ENABLED` 는 서버 전용이라
+  `NEXT_PUBLIC_` 쌍을 함께 본다. **유료화 시 둘 다 설정할 것**
+
+검증 결과 — 유료 티어에서 **13개 레이어가 실제로 차단**된다:
+
+```
+차단  ais · reef-watch · tzeva-adom · neptun · ukmto-incidents ·
+      military-exercises · gps-interference · telegram-osint  [license-required]
+      intel-hotspots · nuclear-sites · missile-silos ·
+      strategic-missile-bases · missile-launch-tests           [unknown]
+
+유지  military-activity · air-traffic                          [allowed]
+```
+
+**사각지대 감시** — `layerPrefGate.test.ts` 가 "비-allowed 레이어는 매핑되거나
+예외 목록(`NOT_PREF_CONTROLLED`)에 있어야 한다"를 검사한다. 새 레이어를 추가하며
+매핑을 빠뜨리면 게이트가 **조용히 통과시키는데**, 조용한 실패가 가장 위험하다.
+
+> ⚠️ **남은 사각지대** — pref 불리언으로 제어되지 않고 API 라우트에서 직접 오는
+> 13개 레이어(`news-geopolitics-rss` · `world-stats` · `hapi-conflict-casualties`
+> · `gta-interventions` 등)는 이 게이트가 못 잡는다. 유료화 시 각 라우트에서
+> 별도로 막아야 한다. 테스트의 `NOT_PREF_CONTROLLED` 가 그 목록이다.
 
 ---
 
@@ -336,18 +421,85 @@ VIINA는 `public/` 에 원본이 없음을 확인했다(검색 결과 0건). 잘
 
 ## 우선순위 요약
 
-| 순위 | 항목 | 노력 | 비고 |
+| 순위 | 항목 | 상태 | 노력 |
 |------|------|------|------|
-| 1 | 폰트 라이선스 전문 동봉 + `Griun_PolSensibility` 출처 확인 | 1시간 | 지금 위반 상태 |
-| 2 | `RSS_BODY_SNIPPET_MAX` 축소 + `content:encoded` 강등 | 30분 | 상수 두 줄 |
-| 3 | Google Translate UA 위장 제거 | 10분 | |
-| 4 | 뉴스 스트림 `sourceCatalog` 등재 | 1시간 | 게이트 사각지대 해소 |
-| 5 | og:image robots.txt 준수 + UA 도메인 수정 | 2시간 | |
-| 6 | `commercialGate` 런타임 배선 | 반나절 | 유료화 필수 |
-| 7 | adsb.fi → adsb.lol 교체 | 1시간 | 코드 이미 있음 |
-| 8 | `unknown` 카운트 자동 생성 | 1시간 | 문서 신뢰성 |
+| 1 | 폰트 라이선스 전문 동봉 + 미사용 폰트 제거 | ✅ 완료 | — |
+| 2 | `RSS_BODY_SNIPPET_MAX` 축소 + `content:encoded` 강등 | ✅ 완료 | — |
+| 3 | Google Translate UA 위장 제거 | ✅ 완료 | — |
+| 4 | 상업 게이트 CRLF 파싱 버그 + `.gitattributes` | ✅ 완료 | — |
+| 5 | 뉴스 스트림 `sourceCatalog` 등재 | ✅ 완료 | — |
+| 6 | og:image robots.txt 준수 + 봇 UA 도메인 수정 | ✅ 완료 | — |
+| 7 | adsb.fi → adsb.lol 교체 | ✅ 완료 | — |
+| 8 | `commercialGate` 런타임 배선 (prefs 층) | ✅ 완료 | — |
+| 9 | ADS-B 레이어 등급 재판정 (prohibited → allowed) | ✅ 완료 | — |
+| 10 | **API 라우트 직결 레이어 13개 게이트** | ⬜ | 반나절 (유료화 필수) |
+| 11 | Google Translate → Cloud Translation / DeepL 전환 | ⬜ | 반나절 (유료화 필수) |
+| 12 | ACLED 제거 또는 기업 라이선스 (Y-3) | ⬜ | 법인화 전 |
+| 13 | ODbL 파생물(`public/data`) Share-Alike 재검토 (Y-4) | ⬜ | 반나절 |
+| 14 | `unknown` 11개 원저작자 확인 (Y-1) | ⬜ | 메일 한 통씩 |
+| 15 | 루트 `LICENSE` 파일 · `unknown` 카운트 문서 자동화 | ⬜ | 1시간 |
 
-> 1~3번은 **오늘 안에 끝나고, 리스크의 대부분을 제거한다.**
+**🔴·🟠 등급은 전부 해소됐다.** 상업 게이트는 이제 **두 겹**(빌드 + 런타임)으로 작동한다.
+
+남은 것 중 **10·11·12 는 유료화 스위치를 켜기 전에 반드시** 끝나야 한다.
+특히 10번이 현재 게이트의 유일한 사각지대이고, 뉴스 스트림처럼 저작권이
+가장 민감한 자산이 거기 몰려 있다.
+
+---
+
+## 이번 감사에서 바뀐 파일
+
+```
+신규
+  docs/copyright-audit-2026-08-01.md      이 문서
+  public/licenses/OFL-1.1.txt             SIL OFL 전문 + 저작권 고지
+  public/licenses/fonts.md                서체별 권리자·출처 목록
+  public/licenses/GmarketSans.txt
+  public/licenses/SBAggro.txt
+  src/lib/fontAttribution.ts              UI 고지 정본
+  src/lib/news/robotsTxt.ts               RFC 9309 파서 + Crawl-delay
+  src/lib/news/robotsTxt.test.ts          18 케이스
+  src/lib/licensing/layerPrefGate.ts      상업 게이트 런타임 배선
+  src/lib/licensing/layerPrefGate.test.ts 매핑 무결성 + 사각지대 감시
+  .gitattributes                          줄바꿈·바이너리 정책
+
+수정
+  src/lib/news/rssParser.ts               스니펫 220자 · 필드 우선순위 역전
+  src/lib/news/periodicBriefing.ts        표시 길이 110/200
+  src/lib/news/enrichArticleImage.ts      robots.txt 관문 + 봇 UA 정정
+  src/lib/koreanTranslate.ts              UA 위장 제거 + 경고 주석
+  src/lib/telegramEmbedScrape.ts          UA 위장 제거
+  workers/cron-ingest/src/telegram.ts     UA 위장 제거
+  src/lib/adsbClient.ts                   adsb.fi 제거 → adsb.lol 고정
+  src/lib/adsbWarmFetch.ts                동일
+  workers/cron-ingest/src/adsb.ts         adsb.fi · airplanes.live 제거
+  src/data/sourceCatalog.ts               뉴스 RSS · YouTube 신설 (68→70)
+                                          ADS-B 2개 prohibited→allowed
+  src/lib/layerPrefs.ts                   loadLayerPrefs 에 게이트 배선
+  src/lib/licensing/commercialGate.test.ts  ADS-B 불변조건 재작성
+  src/components/MethodologySourcesPanel.tsx   서체 고지 섹션
+  scripts/verify-commercial-licensing.js  CRLF 내성
+
+삭제
+  src/app/fonts/Griun_PolSensibility-Rg.ttf    미사용 · 출처 불명
+```
+
+### 검증 결과
+
+```
+verify:commercial (무료)   ✅ 통과 — 레이어 70개 / 44·14·1·11
+verify:commercial (유료)   exit 1 — 21개 차단 (빌드 게이트 정상)
+layerPrefGate 매핑          15개 · 무결성 통과 (카탈로그·pref 키 양방향 확인)
+layerPrefGate 런타임        유료 티어에서 13개 차단 / 2개 유지 확인
+robotsTxt 파서             18/18 통과
+타입 검사 (변경 파일)       오류 없음
+```
+
+`금지` 가 3 → **1** 로 줄었다 (ADS-B 2건 해소, ACLED 만 남음).
+
+> ⚠️ `vitest` 전체 스위트는 이번 감사 환경에서 실행하지 못했다
+> (`node_modules` 가 Windows 네이티브 바이너리라 리눅스에서 로드 불가).
+> **개발 머신에서 `npm test` 를 한 번 돌려 확인할 것.**
 
 ---
 
