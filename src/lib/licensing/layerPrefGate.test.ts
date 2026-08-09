@@ -49,13 +49,18 @@ describe("layerPrefGate — 티어별 동작", () => {
     expect(gated.showAis).toBe(false);
   });
 
-  it("유료 티어에서도 상업 가능 레이어는 유지된다", () => {
-    // military-activity 는 2026-08-01 재판정으로 allowed
-    const prefs = { ...DEFAULT_LAYER_PREFS, showMilitaryActivity: true } as LayerPrefs;
-    expect(canShowInPaidTier("military-activity")).toBe(true);
+  it("유료 티어에서도 게이트 밖 레이어는 유지된다", () => {
+    // military-activity 는 catalog prohibited. 매핑되지 않은 shipping lanes 는 유지.
+    const prefs = {
+      ...DEFAULT_LAYER_PREFS,
+      showMilitaryActivity: true,
+      showShippingLanes: true,
+    } as LayerPrefs;
+    expect(canShowInPaidTier("military-activity")).toBe(false);
 
     const gated = enforceCommercialTier(prefs, "paid");
-    expect(gated.showMilitaryActivity).toBe(true);
+    expect(gated.showMilitaryActivity).toBe(false);
+    expect(gated.showShippingLanes).toBe(true);
   });
 
   it("끌 게 없으면 새 객체를 만들지 않는다", () => {
