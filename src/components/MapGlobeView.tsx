@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
+import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection } from "geojson";
 import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasemap";
@@ -37,6 +38,11 @@ import {
   isGemFacilityKind,
   ensureGemFacilityImages,
 } from "@/lib/gemFacilityIcons";
+import {
+  AIRCRAFT_SYMBOL_LAYER_ID,
+  AIRCRAFT_SYMBOL_SOURCE_ID,
+  ensureAircraftSymbolImages,
+} from "@/lib/milAircraftSymbols";
 import {
   islandChainsBasesGeoJson,
   islandChainsChinaGeoJson,
@@ -74,6 +80,10 @@ export interface MapGlobeViewProps {
   onGlobeReady?: () => void;
   /** 빈 바다·지도 위 커서 좌표 (해역명 툴팁 등) */
   onGlobeMouseMove?: (coords: { lat: number; lng: number } | null) => void;
+  /** MapLibre 로드 직후 — Cesium hybrid underlay 카메라 sync용 */
+  onMapReadyForHybrid?: (map: import("maplibre-gl").Map) => void;
+  /** WebGL context lost — hybrid Cesium tear-down 등 */
+  onWebglContextLost?: () => void;
   /** MapLibre feature picking 대상 — VIINA 근접 줌에서 폴리곤 제외 등 */
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
@@ -88,6 +98,7 @@ export interface MapGlobeViewProps {
 const INTERACTIVE_LAYERS = [
   "map-points",
   "map-gem-facilities",
+  AIRCRAFT_SYMBOL_LAYER_ID,
   "map-paths-solid",
   "map-paths-dashed",
   "map-polygons-fill",
@@ -138,14 +149,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
     | undefined;
+  const onMapReadyForHybrid = props.onMapReadyForHybrid as
+    | ((map: import("maplibre-gl").Map) => void)
+    | undefined;
+  const onWebglContextLost = props.onWebglContextLost as (() => void) | undefined;
 
   const mapRef = useRef<MapRef>(null);
+  /** WebGL 컨텍스트 유실 상태 (P0-2) */
+  const [contextLost, setContextLost] = useState(false);
   const changeListenersRef = useRef(new Set<() => void>());
   const readyRef = useRef(false);
   const onGlobeReadyRef = useRef<(() => void) | undefined>(onGlobeReady);
   const onGlobeMouseMoveRef = useRef<
     ((coords: { lat: number; lng: number } | null) => void) | undefined
   >(onGlobeMouseMove);
+  const onMapReadyForHybridRef = useRef(onMapReadyForHybrid);
+  const onWebglContextLostRef = useRef(onWebglContextLost);
   const basemapModeRef = useRef<BasemapMode>(basemapMode);
   const ultraLiteRef = useRef(ultraLite);
   const [, setMapZoom] = useState(2);
@@ -169,6 +188,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     onGlobeMouseMoveRef.current = onGlobeMouseMove;
   }, [onGlobeMouseMove]);
+
+  useEffect(() => {
+    onMapReadyForHybridRef.current = onMapReadyForHybrid;
+  }, [onMapReadyForHybrid]);
+
+  useEffect(() => {
+    onWebglContextLostRef.current = onWebglContextLost;
+  }, [onWebglContextLost]);
 
   useEffect(() => {
     basemapModeRef.current = basemapMode;
@@ -351,6 +378,24 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     () => "viewport",
   );
 
+  /**
+   * 위치·회전 접근자는 매 렌더 새 참조(인라인 화살표)라 deps에 넣으면
+   * htmlMarkerNodes 메모가 절대 적중하지 않는다. 전부 item만 보는 순수
+   * 함수이므로 ref로 최신값을 읽어도 결과가 같다 — accessorsRef와 같은 패턴.
+   */
+  const htmlAccessorsRef = useRef({
+    htmlLat,
+    htmlLng,
+    htmlRotation,
+    htmlRotationAlignment,
+  });
+  htmlAccessorsRef.current = {
+    htmlLat,
+    htmlLng,
+    htmlRotation,
+    htmlRotationAlignment,
+  };
+
   const onPointClick = props.onPointClick as ((item: unknown) => void) | undefined;
   const onPointHover = props.onPointHover as ((item: unknown | null) => void) | undefined;
   const onPathClick = props.onPathClick as ((item: unknown) => void) | undefined;
@@ -530,6 +575,31 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const heatmapCollections = useMemo(() => buildHeatmapGeoJson(heatmapsData), [heatmapsData]);
 
   /**
+   * 항공기 symbol 레이어 데이터. 상위(useGlobeMapGlobeProps)에서 이미
+   * FeatureCollection으로 만들어 넘겨준다 — 여기서 다시 빌드하지 않는다.
+   */
+  const aircraftSymbolsGeoJson = useMemo(() => {
+    const raw = props.aircraftSymbolsData as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.aircraftSymbolsData]);
+
+  /** properties.index → 원본 항공기 (클릭/호버 복원용) */
+  const aircraftSymbolsItems = useMemo(
+    () => (props.aircraftSymbolsItems as unknown[]) ?? [],
+    [props.aircraftSymbolsItems],
+  );
+  const aircraftSymbolsIsCivil = useMemo(
+    () => (props.aircraftSymbolsIsCivil as boolean[]) ?? [],
+    [props.aircraftSymbolsIsCivil],
+  );
+  const onAircraftClick = props.onAircraftClick as
+    | ((item: unknown, isCivil: boolean) => void)
+    | undefined;
+  const onAircraftHover = props.onAircraftHover as
+    | ((item: unknown | null) => void)
+    | undefined;
+
+  /**
    * pointOfView(jumpTo) → onMove → notifyChange 동기 재진입을 막는다.
    * 재진입 시 고도 클램프가 change 리스너를 중첩 호출해 React #185를 냈다.
    */
@@ -637,6 +707,51 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     notifyChange();
   }, [notifyChange]);
 
+  /**
+   * P0-2: WebGL 컨텍스트 유실 복구.
+   *
+   * 모바일에서 탭 전환·메모리 압박이 오면 브라우저가 GPU 컨텍스트를 회수한다.
+   * 지금까지는 아무 처리가 없어 지도가 **검은 화면으로 영구 고착**됐다 —
+   * 사용자에게 남은 선택지는 새로고침뿐이었고, 그마저도 안내가 없었다.
+   *
+   * `preventDefault()`가 핵심이다. 이걸 호출하지 않으면 브라우저는
+   * `webglcontextrestored`를 아예 발화시키지 않아 자동 복구 자체가 불가능해진다.
+   */
+  const handleContextRetry = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const canvas = mapRef.current?.getMap()?.getCanvas();
+    if (!canvas) return;
+
+    const onLost = (e: Event) => {
+      e.preventDefault(); // 이게 없으면 restored가 오지 않는다
+      setContextLost(true);
+      onWebglContextLostRef.current?.();
+    };
+    const onRestored = () => {
+      setContextLost(false);
+      // 스타일·소스는 maplibre가 자체 복구하지만 globe 투영·fog는 다시 씌워야 한다
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapSpaceBackground(m);
+      applyBasemapTerrain(m, basemapModeRef.current, { ultraLite: ultraLiteRef.current });
+      map.triggerRepaint();
+    };
+
+    canvas.addEventListener("webglcontextlost", onLost, false);
+    canvas.addEventListener("webglcontextrestored", onRestored, false);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+    };
+  }, [mapLoaded]);
+
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -645,9 +760,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
+    onMapReadyForHybridRef.current?.(map);
 
     void ensureGemFacilityImages(map).catch(() => {
       /* 아이콘 로드 실패 시 circle 폴백 없음 — 재시도는 스타일 리로드 시 */
+    });
+    void ensureAircraftSymbolImages(map).catch(() => {
+      /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
     });
 
     const applyVisuals = () => {
@@ -765,9 +884,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
       if (layerId === "map-rings") return ringsData[index] ?? null;
+      if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+        return aircraftSymbolsItems[index] ?? null;
+      }
       return null;
     },
-    [deferredPathsData, firmsFiresData, pointsData, polygonsData, ringsData],
+    [
+      aircraftSymbolsItems,
+      deferredPathsData,
+      firmsFiresData,
+      pointsData,
+      polygonsData,
+      ringsData,
+    ],
   );
 
   const handleMapClick = useCallback(
@@ -799,6 +928,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         if (!item) continue;
         if (layerId === "map-points" || layerId === "firms-flame") {
           onPointClick?.(item);
+          return;
+        }
+        if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+          onAircraftClick?.(item, aircraftSymbolsIsCivil[Number(index)] ?? false);
           return;
         }
         if (isMapPathsLayer(layerId)) {
@@ -858,6 +991,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onPointHover?.(item);
           return;
         }
+        if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+          onAircraftHover?.(item);
+          return;
+        }
         if (isMapPathsLayer(layerId)) {
           onPathHover?.(item);
           return;
@@ -870,8 +1007,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onPointHover?.(null);
       onPathHover?.(null);
       onPolygonHover?.(null);
+      onAircraftHover?.(null);
     },
-    [onPathHover, onPointHover, onPolygonHover, resolveFeature],
+    [onAircraftHover, onPathHover, onPointHover, onPolygonHover, resolveFeature],
   );
 
   const handleMapMouseLeave = useCallback(() => {
@@ -880,7 +1018,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     onPointHover?.(null);
     onPathHover?.(null);
     onPolygonHover?.(null);
-  }, [onPathHover, onPointHover, onPolygonHover]);
+    onAircraftHover?.(null);
+  }, [onAircraftHover, onPathHover, onPointHover, onPolygonHover]);
 
   useEffect(() => {
     if (!mapLoaded || firmsFiresData.length === 0) return;
@@ -941,6 +1080,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!map) return;
     void ensureGemFacilityImages(map).catch(() => undefined);
     void ensureFirmsFireImages(map).catch(() => undefined);
+    void ensureAircraftSymbolImages(map).catch(() => undefined);
   }, [mapLoaded, mapStyleUrl]);
 
   useEffect(() => {
@@ -960,6 +1100,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
+      void ensureAircraftSymbolImages(map).catch(() => undefined);
     };
     map.on("style.load", onStyle);
     return () => {
@@ -1125,10 +1266,191 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded]);
 
+  /**
+   * HTML 마커 목록 — **메모이제이션 필수**.
+   *
+   * 이 map은 화면 마커 수만큼 <Marker> JSX를 만든다. GlobeDashboard는
+   * 상태가 64개라 티커·폴링 등 지도와 무관한 이유로도 자주 리렌더되는데,
+   * 그때마다 이 목록 전체가 재생성되고 React가 전부 diff했다.
+   *
+   * deps 설계:
+   *  - htmlElementsData : deconflict가 참조를 유지하므로(htmlOverlayDeconflict.ts)
+   *                       내용이 안 바뀌면 같은 배열 = 스킵된다. 두 최적화가 맞물린다.
+   *  - htmlElement      : GlobeDashboard의 useCallback. 언어·고도가 바뀌면 새로 생성되므로
+   *                       마커 DOM을 다시 만들어야 하는 시점과 정확히 일치한다.
+   *  - mapBearingDeg    : 옆모습 실루엣(e/w)이 실제로 뒤집히는 기준
+   *  - basemapMode      : 톤에 따라 팔레트가 달라짐
+   *
+   * 위치 접근자(htmlLat/Lng/Rotation/RotationAlignment)는 item만 보는 순수 함수라
+   * ref로 최신값을 읽어도 안전하다 — deps에 넣으면 매 렌더 새 참조라 메모가 죽는다.
+   */
+  const htmlMarkerNodes = useMemo(() => {
+    if (!htmlElement) return null;
+    const { htmlLat, htmlLng, htmlRotation, htmlRotationAlignment } =
+      htmlAccessorsRef.current;
+    return (
+            htmlElementsData.map((item, index) => {
+                const displayKind = String(
+                  (item as { displayKind?: string }).displayKind ?? "",
+                );
+                // markerId만 키로 씀 — bare `id` 폴백은 종류 간 키 충돌로
+                // 사망자·콜아웃·뉴스 네온이 한 Marker에 묶이는 원인이 됨
+                const markerId = String(
+                  (item as { markerId?: string }).markerId ??
+                    `${displayKind || "html"}-${index}`,
+                );
+                const enriched =
+                  displayKind === "ais-html"
+                    ? { ...(item as object), mapBearingDeg }
+                    : item;
+                const rotation = htmlRotation(enriched);
+                const alignment = htmlRotationAlignment(enriched);
+                const rotKey =
+                  alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
+                const milKind = String(
+                  (enriched as { militaryKind?: string | null }).militaryKind ?? "",
+                );
+                const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
+                // 수상함·잠수함·위장선 — 옆모습 E/W (항모는 俯視+침로 회전)
+                const sideProfileHull =
+                  disguised ||
+                  ((enriched as { category?: string }).category === "military" &&
+                    milKind !== "" &&
+                    milKind !== "unknown" &&
+                    milKind !== "carrier");
+                const headingRaw = Number(
+                  (enriched as { courseOverGround?: number; trueHeading?: number })
+                    .courseOverGround ??
+                    (enriched as { trueHeading?: number }).trueHeading ??
+                    0,
+                );
+                const relHeading = (((headingRaw - mapBearingDeg) % 360) + 360) % 360;
+                const headingKey = sideProfileHull
+                  ? relHeading > 180
+                    ? "w"
+                    : "e"
+                  : alignment === "map"
+                    ? String(rotKey)
+                    : "0";
+                // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
+                const pitchAlignment = "viewport" as const;
+                // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
+                // (음수=왼쪽/위). 전장에서 사망자·콜아웃·네온이 겹쳐 묶이지 않게 함.
+                const markerOffset =
+                  displayKind === "casualty-skull"
+                    ? ([0, 30] as [number, number])
+                    : displayKind === "situation-callout"
+                      ? ([-12, -42] as [number, number])
+                      : displayKind === "news-stream-neon" ||
+                          displayKind === "ukraine-gdelt-neon" ||
+                          displayKind === "telegram-neon"
+                        ? ([18, 8] as [number, number])
+                        : undefined;
+                return (
+                <Marker
+                  /**
+                   * key는 **markerId만**. 이전에는 `-r${rotKey}-b${bearingKey}-h${headingKey}`가
+                   * 붙어 있어서, 지도를 5° 회전할 때마다 해당 마커가 통째로
+                   * 언마운트→재마운트됐다 (DOM 파괴 + htmlElement() 재호출 +
+                   * innerHTML 재파싱). 회전 드래그가 끊기던 주원인.
+                   *
+                   * 회전/침로 변화는 아래 ref 콜백의 data-markerSig가 이미
+                   * 정확히 감지해 필요한 경우에만 DOM을 다시 만든다 —
+                   * key가 그 방어를 무력화하고 있었다.
+                   */
+                  key={`html-marker-${markerId}`}
+                  longitude={htmlLng(item)}
+                  latitude={htmlLat(item)}
+                  anchor="center"
+                  offset={markerOffset}
+                  rotation={rotation}
+                  rotationAlignment={alignment}
+                  pitchAlignment={pitchAlignment}
+                  /**
+                   * 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임.
+                   *
+                   * ⚠️ 비용 주의: 이 값이 있으면 MapLibre가 마커마다 오클루전
+                   * 판정을 돌리고, terrain이 켜져 있으면 표고 조회까지 탄다.
+                   * 화면 마커가 수백 개이므로 프레임당 비용이 곱해진다.
+                   * → Ultra-Lite에서 terrain을 끄는 이유 (basemapMode.ts).
+                   * 근본 해결은 아이콘성 마커를 symbol 레이어로 옮기는 것.
+                   */
+                  opacityWhenCovered={0}
+                >
+                  <div
+                    ref={(node) => {
+                      if (!node) return;
+                      // markerId·본문까지 시그에 포함 — 종류별 공통 sig로 DOM이 재사용되며
+                      // 사망자/콜아웃/네온이 한 노드에 섞이던 문제 방지
+                      const typed = enriched as {
+                        markerId?: string;
+                        displayKind?: string;
+                        killed?: number;
+                        wounded?: number;
+                        warheads?: number;
+                        killedLabel?: string;
+                        title?: string;
+                        body?: string;
+                        accent?: string;
+                        link?: string;
+                        militaryKind?: string | null;
+                        headingDeg?: number;
+                        lat?: number;
+                        orbitLat?: number;
+                      };
+                      const reconHalo =
+                        (typed.displayKind ?? displayKind) === "recon-sat-html" &&
+                        typed.orbitLat != null &&
+                        typed.lat != null &&
+                        Math.abs(typed.orbitLat - typed.lat) > 0.12;
+                      const sig = [
+                        typed.markerId ?? markerId,
+                        typed.displayKind ?? displayKind,
+                        typed.killed ?? "",
+                        typed.wounded ?? "",
+                        typed.warheads ?? "",
+                        typed.killedLabel ?? "",
+                        typed.title ?? "",
+                        typed.body ?? "",
+                        typed.accent ?? "",
+                        typed.link ?? "",
+                        /**
+                         * 이전에는 mapBearingDeg·courseOverGround·trueHeading 원값을 넣었다.
+                         * 이 값들은 카메라를 5° 돌릴 때마다 바뀌므로, 실제 그림이 그대로인데도
+                         * 회전 내내 DOM을 다시 만들었다.
+                         *
+                         * headingKey는 **실제로 렌더되는 방향**만 담는다 —
+                         * 옆모습 실루엣은 "e"/"w" 둘 뿐이고, map-aligned는 5° 양자화,
+                         * 나머지는 "0". 즉 그림이 실제로 뒤집힐 때만 재생성된다.
+                         */
+                        headingKey,
+                        typed.militaryKind ?? "",
+                        reconHalo ? "halo" : "ground",
+                        typed.headingDeg != null
+                          ? String(Math.round((((typed.headingDeg % 360) + 360) % 360) / 15) * 15)
+                          : "",
+                        // 톤이 바뀌면 팔레트가 달라지므로 DOM을 다시 만들어야 함
+                        basemapMode,
+                      ].join("|");
+                      if (node.dataset.markerSig === sig && node.childElementCount > 0) return;
+                      node.replaceChildren();
+                      const el = htmlElement(enriched);
+                      node.appendChild(el);
+                      node.dataset.markerSig = sig;
+                    }}
+                  />
+                </Marker>
+                );
+              })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
+
   const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 2.25 });
 
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
+      {contextLost ? <WebglContextLostOverlay onRetry={handleContextRetry} /> : null}
       <Map
         ref={mapRef}
         mapStyle={mapStyleUrl as string}
@@ -1395,6 +1717,51 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
               paint={{
                 "icon-opacity": 0.95,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {/*
+         * 항공기 — DOM Marker가 아니라 symbol 레이어.
+         * 군용기 150 + 민항기 280 = 최대 430개가 프레임마다 project+transform을
+         * 돌던 것을 GPU 배치 렌더 하나로 대체한다. (milAircraftSymbols.ts)
+         */}
+        {aircraftSymbolsGeoJson.features.length > 0 ? (
+          <Source
+            id={AIRCRAFT_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aircraftSymbolsGeoJson}
+          >
+            <Layer
+              id={AIRCRAFT_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                // 이미지를 표시 크기 그대로 구웠으므로 스케일 보간 없음(=선명).
+                // 줌아웃에서만 살짝 줄여 전역 뷰의 밀도를 낮춘다.
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                // 침로 회전 — 실루엣의 코가 북쪽(+Y)이라 heading을 그대로 쓴다
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "map",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                // 침로 미상은 0.8 (기존 DOM 마커 규칙 유지)
+                "icon-opacity": ["get", "opacity"],
               }}
             />
           </Source>
@@ -1770,161 +2137,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           ) : null,
         )}
 
-        {htmlElement
-          ? htmlElementsData.map((item, index) => {
-              const displayKind = String(
-                (item as { displayKind?: string }).displayKind ?? "",
-              );
-              // markerId만 키로 씀 — bare `id` 폴백은 종류 간 키 충돌로
-              // 사망자·콜아웃·뉴스 네온이 한 Marker에 묶이는 원인이 됨
-              const markerId = String(
-                (item as { markerId?: string }).markerId ??
-                  `${displayKind || "html"}-${index}`,
-              );
-              const enriched =
-                displayKind === "ais-html"
-                  ? { ...(item as object), mapBearingDeg }
-                  : item;
-              const rotation = htmlRotation(enriched);
-              const alignment = htmlRotationAlignment(enriched);
-              const rotKey =
-                alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
-              const milKind = String(
-                (enriched as { militaryKind?: string | null }).militaryKind ?? "",
-              );
-              const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
-              // 수상함·잠수함·위장선 — 옆모습 E/W (항모는 俯視+침로 회전)
-              const sideProfileHull =
-                disguised ||
-                ((enriched as { category?: string }).category === "military" &&
-                  milKind !== "" &&
-                  milKind !== "unknown" &&
-                  milKind !== "carrier");
-              const headingRaw = Number(
-                (enriched as { courseOverGround?: number; trueHeading?: number })
-                  .courseOverGround ??
-                  (enriched as { trueHeading?: number }).trueHeading ??
-                  0,
-              );
-              const relHeading = (((headingRaw - mapBearingDeg) % 360) + 360) % 360;
-              const headingKey = sideProfileHull
-                ? relHeading > 180
-                  ? "w"
-                  : "e"
-                : alignment === "map"
-                  ? String(rotKey)
-                  : "0";
-              // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
-              const pitchAlignment = "viewport" as const;
-              // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
-              // (음수=왼쪽/위). 전장에서 사망자·콜아웃·네온이 겹쳐 묶이지 않게 함.
-              const markerOffset =
-                displayKind === "casualty-skull"
-                  ? ([0, 30] as [number, number])
-                  : displayKind === "situation-callout"
-                    ? ([-12, -42] as [number, number])
-                    : displayKind === "news-stream-neon" ||
-                        displayKind === "ukraine-gdelt-neon" ||
-                        displayKind === "telegram-neon"
-                      ? ([18, 8] as [number, number])
-                      : undefined;
-              return (
-              <Marker
-                /**
-                 * key는 **markerId만**. 이전에는 `-r${rotKey}-b${bearingKey}-h${headingKey}`가
-                 * 붙어 있어서, 지도를 5° 회전할 때마다 해당 마커가 통째로
-                 * 언마운트→재마운트됐다 (DOM 파괴 + htmlElement() 재호출 +
-                 * innerHTML 재파싱). 회전 드래그가 끊기던 주원인.
-                 *
-                 * 회전/침로 변화는 아래 ref 콜백의 data-markerSig가 이미
-                 * 정확히 감지해 필요한 경우에만 DOM을 다시 만든다 —
-                 * key가 그 방어를 무력화하고 있었다.
-                 */
-                key={`html-marker-${markerId}`}
-                longitude={htmlLng(item)}
-                latitude={htmlLat(item)}
-                anchor="center"
-                offset={markerOffset}
-                rotation={rotation}
-                rotationAlignment={alignment}
-                pitchAlignment={pitchAlignment}
-                /**
-                 * 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임.
-                 *
-                 * ⚠️ 비용 주의: 이 값이 있으면 MapLibre가 마커마다 오클루전
-                 * 판정을 돌리고, terrain이 켜져 있으면 표고 조회까지 탄다.
-                 * 화면 마커가 수백 개이므로 프레임당 비용이 곱해진다.
-                 * → Ultra-Lite에서 terrain을 끄는 이유 (basemapMode.ts).
-                 * 근본 해결은 아이콘성 마커를 symbol 레이어로 옮기는 것.
-                 */
-                opacityWhenCovered={0}
-              >
-                <div
-                  ref={(node) => {
-                    if (!node) return;
-                    // markerId·본문까지 시그에 포함 — 종류별 공통 sig로 DOM이 재사용되며
-                    // 사망자/콜아웃/네온이 한 노드에 섞이던 문제 방지
-                    const typed = enriched as {
-                      markerId?: string;
-                      displayKind?: string;
-                      killed?: number;
-                      wounded?: number;
-                      warheads?: number;
-                      killedLabel?: string;
-                      title?: string;
-                      body?: string;
-                      accent?: string;
-                      link?: string;
-                      militaryKind?: string | null;
-                      headingDeg?: number;
-                      lat?: number;
-                      orbitLat?: number;
-                    };
-                    const reconHalo =
-                      (typed.displayKind ?? displayKind) === "recon-sat-html" &&
-                      typed.orbitLat != null &&
-                      typed.lat != null &&
-                      Math.abs(typed.orbitLat - typed.lat) > 0.12;
-                    const sig = [
-                      typed.markerId ?? markerId,
-                      typed.displayKind ?? displayKind,
-                      typed.killed ?? "",
-                      typed.wounded ?? "",
-                      typed.warheads ?? "",
-                      typed.killedLabel ?? "",
-                      typed.title ?? "",
-                      typed.body ?? "",
-                      typed.accent ?? "",
-                      typed.link ?? "",
-                      /**
-                       * 이전에는 mapBearingDeg·courseOverGround·trueHeading 원값을 넣었다.
-                       * 이 값들은 카메라를 5° 돌릴 때마다 바뀌므로, 실제 그림이 그대로인데도
-                       * 회전 내내 DOM을 다시 만들었다.
-                       *
-                       * headingKey는 **실제로 렌더되는 방향**만 담는다 —
-                       * 옆모습 실루엣은 "e"/"w" 둘 뿐이고, map-aligned는 5° 양자화,
-                       * 나머지는 "0". 즉 그림이 실제로 뒤집힐 때만 재생성된다.
-                       */
-                      headingKey,
-                      typed.militaryKind ?? "",
-                      reconHalo ? "halo" : "ground",
-                      typed.headingDeg != null
-                        ? String(Math.round((((typed.headingDeg % 360) + 360) % 360) / 15) * 15)
-                        : "",
-                      // 톤이 바뀌면 팔레트가 달라지므로 DOM을 다시 만들어야 함
-                      basemapMode,
-                    ].join("|");
-                    if (node.dataset.markerSig === sig && node.childElementCount > 0) return;
-                    node.replaceChildren();
-                    const el = htmlElement(enriched);
-                    node.appendChild(el);
-                    node.dataset.markerSig = sig;
-                  }}
-                />
-              </Marker>
-              );
-            })
-          : null}
+        {htmlMarkerNodes}
       </Map>
     </div>
   );

@@ -111,6 +111,8 @@ const nextConfig = {
       },
     ];
   },
+  // Cesium ESM + workers — Next 기본 transpile 대상에 포함
+  transpilePackages: ["cesium"],
   eslint: { ignoreDuringBuilds: relaxNextBuildGates },
   typescript: { ignoreBuildErrors: relaxNextBuildGates },
   experimental: {
@@ -125,6 +127,19 @@ const nextConfig = {
     ],
   },
   webpack: (config, { isServer, dev }) => {
+    // Cesium이 Node fs 등을 요구할 때 클라이언트 번들 깨짐 방지
+    if (!isServer) {
+      config.resolve = config.resolve ?? {};
+      config.resolve.fallback = {
+        ...(config.resolve.fallback ?? {}),
+        fs: false,
+        http: false,
+        https: false,
+        zlib: false,
+        url: false,
+      };
+    }
+
     if (isServer) {
       const prev = config.externals;
       const extras = ["wrangler", "miniflare", "blake3-wasm", "workerd"];
