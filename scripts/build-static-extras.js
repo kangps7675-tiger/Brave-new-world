@@ -12,8 +12,11 @@ const {
   roundCoord,
 } = require("./compact-json");
 const { lineGeometryToPoints, pointsBbox, capArray } = require("./static-path-utils");
+const { loadMaskFromPacked } = require("./lib/landMaskGrid");
+const { oceanRoutePath } = require("./lib/shippingOceanRoute");
 
 const DATA_DIR = path.join(__dirname, "data");
+const LAND_MASK_PATH = path.join(DATA_DIR, "land-mask-1deg.json");
 const SHIPPING_URL =
   "https://raw.githubusercontent.com/newzealandpaul/Shipping-Lanes/main/data/Shipping_Lanes_v1.geojson";
 // CC BY 4.0 — Benden, P. (2022). Global Shipping Lanes. Zenodo.
@@ -265,6 +268,14 @@ async function buildSubmarineCables() {
 
 async function buildShippingLanes() {
   const paths = [];
+  let mask = null;
+  if (fs.existsSync(LAND_MASK_PATH)) {
+    mask = loadMaskFromPacked(JSON.parse(fs.readFileSync(LAND_MASK_PATH, "utf8")));
+    console.log("   shipping ocean-route: land-mask-1deg loaded");
+  } else {
+    console.warn("   shipping ocean-route: land-mask missing — run node scripts/build-land-mask.js");
+  }
+
   try {
     const geojson = await fetchJson(SHIPPING_URL);
     for (const [index, feature] of (geojson.features || []).entries()) {
@@ -272,26 +283,37 @@ async function buildShippingLanes() {
       const typeRaw = feature.properties?.Type ?? feature.properties?.type;
       const type = String(typeRaw || "").toLowerCase();
       const scalerank = type === "major" ? 1 : type === "minor" ? 3 : 2;
-      // 항로는 통행 경향 — 과도한 단순화로 육지 현이 생기지 않게 점 수를 넉넉히
-      const maxPts = IS_LITE ? 72 : 220;
+      // 촘촘한 통행 경향 — 원본 점을 넉넉히 남긴 뒤 바다 우회로 densify
+      const maxPts = IS_LITE ? 120 : 420;
       for (const [pathIndex, points] of lineGeometryToPoints(
         feature.geometry,
         maxPts,
         roundCoord,
         IS_LITE ? 2 : 3,
-        1.6,
+        IS_LITE ? 0.9 : 0.55,
       ).entries()) {
         if (points.length < 2) continue;
-        paths.push({
-          id: `shipping-lane-${index}-${pathIndex}`,
-          kind: "shipping-lane",
-          name,
-          scalerank,
-          lengthKm: null,
-          bbox: pointsBbox(points, roundCoord),
-          points,
-          meta: typeRaw != null ? { laneType: String(typeRaw) } : undefined,
-        });
+        const pieces = mask ? oceanRoutePath(points, mask) : [points];
+        for (const [pieceIndex, piece] of pieces.entries()) {
+          if (piece.length < 2) continue;
+          const id =
+            pieceIndex === 0
+              ? `shipping-lane-${index}-${pathIndex}`
+              : `shipping-lane-${index}-${pathIndex}~${pieceIndex}`;
+          paths.push({
+            id,
+            kind: "shipping-lane",
+            name,
+            scalerank,
+            lengthKm: null,
+            bbox: pointsBbox(piece, roundCoord),
+            points: piece.map((p) => ({
+              lat: roundCoord(p.lat, IS_LITE ? 2 : 3),
+              lng: roundCoord(p.lng, IS_LITE ? 2 : 3),
+            })),
+            meta: typeRaw != null ? { laneType: String(typeRaw) } : undefined,
+          });
+        }
       }
     }
   } catch (error) {
@@ -320,7 +342,8 @@ async function buildShippingLanes() {
     });
   }
 
-  return capArray(paths, 40, 480);
+  // densify로 조각이 늘어나므로 full 상한을 넉넉히
+  return capArray(paths, 80, 900);
 }
 
 function seedSubmarineCables() {
@@ -677,17 +700,10 @@ async function main() {
   // SIGINT military-bases.geojson은 플레이스홀더(fake names)라 병합하지 않음.
   // 해외 미군기지는 convert-military-bases-csv.js → military-bases-seed.json 이 담당.
 
-  // Merge SIGINT trade routes into shipping-lanes
-  const sigintTradePath = path.join(SIGINT_CONVERTED, "sigint-trade-routes.json");
-  if (fs.existsSync(sigintTradePath)) {
-    const shippingPath = path.join(OUT_DIR, "shipping-lanes.json");
-    let shipping = fs.existsSync(shippingPath)
-      ? JSON.parse(fs.readFileSync(shippingPath, "utf8"))
-      : [];
-    const extra = JSON.parse(fs.readFileSync(sigintTradePath, "utf8"));
-    shipping = [...shipping, ...extra];
-    writeJsonArrayFile(path.join(OUT_DIR, "shipping-lanes.json"), shipping);
-    console.log(`   shipping-lanes +sigint trade: +${extra.length} (total ${shipping.length})`);
+  // SIGINT trade routes는 schematic GC라 대륙을 가로지르는 현이 많음.
+  // 해운로는 ocean-route 빌드 결과만 쓰고, SIGINT 무역로는 별도 레이어로 유지.
+  if (fs.existsSync(path.join(SIGINT_CONVERTED, "sigint-trade-routes.json"))) {
+    console.log("   shipping-lanes: skip sigint-trade merge (land chords)");
   }
 
   const overviews = loadSeed("dispute-overviews-seed.json");
