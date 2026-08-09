@@ -429,9 +429,27 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0005
   }
 
+  // ────────────────────────────────────────────────────────────────
+  // 아래 집계·이벤트 테이블은 **상품 자산**이다 (원자료 아님).
+  //
+  // 원자료(FIRMS/GDELT/AIS/ADS-B/뉴스)는 무겁고 재취득 가능하므로 계속 prune 한다.
+  // 반면 일별 집계와 이벤트 로그는:
+  //   - 행이 극히 작다 (전장 20개 × 365일 = 연 7,300행)
+  //   - 한 번 지우면 **영원히 복구 불가**하다 (원천 API가 과거를 안 준다)
+  //   - 컨버전스 적중률·베이스라인·백테스트의 유일한 근거다
+  //
+  // 2026-08-07: 시계열이 제품이 되면서 "저장 = 비용"에서 "저장 = 자산"으로
+  // 전제가 바뀌었다. 90/120일 롤링 삭제를 중단한다.
+  // 되돌리려면 반드시 별도 아카이브(R2 등)를 먼저 붙일 것.
+  // ────────────────────────────────────────────────────────────────
+
+  // 공습 경보 — 이벤트 로그. 컨버전스 채널 중 하나이므로 장기 보존.
+  const AIR_RAID_RETENTION_DAYS = 1200;
   let airRaidDeleted = 0;
   try {
-    const airCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const airCutoff = new Date(
+      Date.now() - AIR_RAID_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const air = await db
       .prepare(`DELETE FROM air_raid_alerts WHERE ingested_at < ?`)
       .bind(airCutoff)
@@ -441,19 +459,9 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0014
   }
 
-  let signalDailyDeleted = 0;
-  try {
-    const signalCutoff = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
-    const sig = await db
-      .prepare(`DELETE FROM theater_signal_daily WHERE signal_date < ?`)
-      .bind(signalCutoff)
-      .run();
-    signalDailyDeleted = sig.meta.changes ?? 0;
-  } catch {
-    // until migration 0014
-  }
+  // 전장별 일별 신호 집계 — **삭제하지 않는다.**
+  // (이전: 120일 롤링 삭제. 베이스라인 계산만 목적이던 시절의 설계.)
+  const signalDailyDeleted = 0;
 
   return {
     firmsDeleted: firms.meta.changes ?? 0,

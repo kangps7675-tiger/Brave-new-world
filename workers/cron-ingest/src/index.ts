@@ -23,6 +23,9 @@ import { fetchGdeltTensionPoints } from "./gdeltExport";
 import { fetchTelegramAlerts } from "./telegram";
 import { readBriefingStats, upsertBriefingPeriodStats } from "./briefingStats";
 import { readDailyRanks, readWorldTension, upsertDailyRanks } from "./dailyRanks";
+import { detectAndRecordConvergence } from "./convergence";
+import { backfillOutcomes, ingestMarketDaily } from "./marketResponse";
+import { recordHeartbeat } from "./pipelineHealth";
 import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
@@ -378,6 +381,52 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     } catch (error) {
       console.warn(
         "[ingest] daily ranks upsert skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    // ── 컨버전스 파이프라인 ────────────────────────────────────
+    // 순서가 중요하다: 시장 시계열 적재 → 발화 감지 → 결과 백필 → 하트비트.
+    // 어느 하나가 실패해도 인제스트 전체를 죽이지 않는다(전부 try/catch).
+    // 단 하트비트는 실패 사실 자체를 기록하므로 마지막에 둔다.
+    try {
+      if (env.FRED_API_KEY) {
+        const mkt = await ingestMarketDaily(env.DB, env.FRED_API_KEY);
+        if (mkt.errors.length) console.warn("[market] partial:", mkt.errors.join("; "));
+      }
+    } catch (error) {
+      console.warn(
+        "[market] daily ingest skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    try {
+      const conv = await detectAndRecordConvergence(env.DB);
+      if (conv.fired > 0) {
+        console.log(`[convergence] fired=${conv.fired} ids=${conv.ids.join(",")}`);
+      }
+    } catch (error) {
+      console.warn(
+        "[convergence] detection skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    try {
+      await backfillOutcomes(env.DB);
+    } catch (error) {
+      console.warn(
+        "[convergence] outcome backfill skipped:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    try {
+      await recordHeartbeat(env.DB);
+    } catch (error) {
+      console.warn(
+        "[heartbeat] skipped:",
         error instanceof Error ? error.message : error,
       );
     }
