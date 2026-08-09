@@ -40,7 +40,7 @@
     "borders:build": "node scripts/build-country-borders.js full",
     "bri:build": "node scripts/build-bri-trade.js",
     "dfc:build": "node scripts/build-us-dfc-supply-chain.js",
-    "static:build": "node scripts/build-static-extras.js full",
+    "static:build": "node scripts/build-land-mask.js && node scripts/build-static-extras.js full",
     "gem:build": "node scripts/build-gem-layers.js",
     "emodnet:pipelines": "node scripts/build-emodnet-pipelines.js",
     "missile:extract": "python scripts/extract-strategic-missile-sources.py",
@@ -110,7 +110,9 @@
     "axis:arms:unpublish": "node scripts/publish-axis-arms.js --unpublish",
     "axis:hubs:build": "node scripts/build-axis-hub-countries.js",
     "axis:vdem:build": "node scripts/build-axis-vdem.js",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "land-mask:build": "node scripts/build-land-mask.js",
+    "static:build:lite": "node scripts/build-land-mask.js && node scripts/build-static-extras.js lite"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",
