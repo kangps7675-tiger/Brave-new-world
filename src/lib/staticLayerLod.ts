@@ -6,11 +6,11 @@ import type { ViewerMode } from "@/lib/viewPackages";
  * (예전 global/continent=0 → ON인데 빈 화면)
  */
 export const SHIPPING_LANE_MAX_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 28,
-  continent: 56,
-  regional: 120,
-  near: 200,
-  village: 400,
+  global: 48,
+  continent: 96,
+  regional: 180,
+  near: 320,
+  village: 600,
 };
 
 /**

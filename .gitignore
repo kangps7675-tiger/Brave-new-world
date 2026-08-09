@@ -52,15 +52,16 @@ scripts/telegram-osint/.session/
 /scripts/processed/
 /output/
 /vendor/VIINA/
-# GPL-3.0 upstream — keep local; do not amalgamate into src/ (see docs/third-party/cross-strait-signal.md)
+# GPL-3.0 upstream ??keep local; do not amalgamate into src/ (see docs/third-party/cross-strait-signal.md)
 /vendor/cross-strait-signal/
 /private/viina-render/
 /public/data/live/
 
 # large local GIS sources (rebuild via scripts/build-static-extras.js)
 /scripts/data/Submarine_Cables.geojson.json
+/scripts/data/ne_110m_land.geojson
 
-# legacy removed — ignore empty shell if node_modules lock prevents deletion
+# legacy removed ??ignore empty shell if node_modules lock prevents deletion
 /geowatch/
 
 # vercel

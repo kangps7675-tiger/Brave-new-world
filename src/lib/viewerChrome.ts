@@ -127,7 +127,8 @@ export type ViewerChromePreset = {
 };
 
 const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
-  // NEPTUN 공습/드론 · 타격 화염 (전선 폴리곤은 전장/체크박스에서 별도)
+  // 우크라 전선 폴리곤 + NEPTUN 공습/드론 · 타격 화염
+  showUkraineControl: true,
   showUkraineStrikesOnRussia: true,
   showWarZones: true,
   showGdeltWar: true,
@@ -273,7 +274,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerBullets: [
       "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
       "GDELT 전투·외교 뉴스 핀",
-      "Telegram OSINT · VIINA 전선(전장 선택 시)",
+      "Telegram OSINT · VIINA 전선 · 우크라→러 타격",
       "에너지 히어로: 원자력 (송유관·해저관·반서방 축은 수동)",
       "하단: 속보 + GDELT 범례",
     ],
