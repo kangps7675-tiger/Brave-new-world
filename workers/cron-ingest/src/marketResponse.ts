@@ -1,36 +1,34 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
- * 시장 반응 기록 — 컨버전스 발화 이후 유가·달러·변동성이 실제로 어떻게 움직였는가.
+ * ?�장 반응 기록 ??컨버?�스 발화 ?�후 ?��?·?�러·변?�성???�제�??�떻�??�직�??��?.
  *
- * 이 모듈이 없으면 컨버전스는 영원히 "그럴듯한 신호"로 남는다.
- * 적중률을 말하려면 발화와 결과가 같은 DB에 나란히 있어야 한다.
+ * ??모듈???�으�?컨버?�스???�원??"그럴??�� ?�호"�??�는??
+ * ?�중률을 말하?�면 발화?� 결과가 같�? DB???��????�어???�다.
  *
- * 출처: FRED (미국 세인트루이스 연은). 미 정부 저작물로 퍼블릭 도메인이라
- * 상업적 재배포 제약이 없다. Yahoo Finance 는 ToS 문제가 있어 쓰지 않는다
- * (docs/commercial-licensing.md 참조).
+ * 출처: FRED (미국 ?�인?�루?�스 ?��?). �??��? ?�?�물�??�블�??�메?�이?? * ?�업???�배???�약???�다. Yahoo Finance ??ToS 문제가 ?�어 ?��? ?�는?? * (docs/commercial-licensing.md 참조).
  *
- * 한계 — 정직하게 적어둔다
- *   FRED 는 **일별 종가**만 준다. 인트라데이가 없으므로 "발화 후 4시간" 같은
- *   지표는 만들 수 없다. 지금은 D+1/2/5 로 시작한다. 초크포인트 교란이
- *   유가·운임에 반영되는 시간대를 생각하면 일별로도 트랙레코드는 성립한다.
- *   인트라데이는 매출이 생긴 뒤 유료 피드로 붙일 것.
+ * ?�계 ???�직?�게 ?�어?�다
+ *   FRED ??**?�별 종�?**�?준?? ?�트?�데?��? ?�으므�?"발화 ??4?�간" 같�?
+ *   지?�는 만들 ???�다. 지금�? D+1/2/5 �??�작?�다. 초크?�인??교�??? *   ?��?·?�임??반영?�는 ?�간?��??�각?�면 ?�별로도 ?�랙?�코?�는 ?�립?�다.
+ *   ?�트?�데?�는 매출???�긴 ???�료 ?�드�?붙일 �?
  */
 
 const FRED_BASE = "https://api.stlouisfed.org/fred/series/observations";
 
-/** 추적 대상 — 지정학 충격이 실제로 지나가는 경로만 */
+/** 추적 ?�????지?�학 충격???�제�?지?��???경로�?*/
 export const TRACKED_SERIES = [
-  "DCOILWTICO", // WTI 원유
-  "DCOILBRENTEU", // 브렌트 원유
-  "VIXCLS", // 변동성
-  "DTWEXBGS", // 달러 지수 (광의)
+  "DCOILWTICO", // WTI ?�유
+  "DCOILBRENTEU", // 브렌???�유
+  "VIXCLS", // 변?�성
+  "DTWEXBGS", // ?�러 지??(광의)
 ] as const;
 
 export type SeriesId = (typeof TRACKED_SERIES)[number];
 
-/** 측정 지평 (거래일 아님, 달력일 기준으로 가장 가까운 관측치를 취함) */
+/** 측정 지??(거래???�님, ?�력??기�??�로 가??가까운 관측치�?취함) */
 const HORIZONS = [1, 2, 5] as const;
 
-/** z_change 산출용 과거 표본 */
+/** z_change ?�출??과거 ?�본 */
 const VOL_WINDOW = 90;
 
 type FredObs = { date: string; value: string };
@@ -52,12 +50,11 @@ async function fetchFredSeries(
   const json = (await res.json()) as { observations?: FredObs[] };
   return (json.observations ?? [])
     .map((o) => ({ date: o.date, value: Number(o.value) }))
-    .filter((o) => Number.isFinite(o.value)); // FRED 는 휴장일에 "." 를 준다
-}
+    .filter((o) => Number.isFinite(o.value)); // FRED ???�장?�에 "." �?준??}
 
 /**
- * 최근 관측치를 market_daily 에 적재한다. 매일 1회.
- * 이미 있는 (series, date) 는 갱신한다 — FRED 는 초기 발표를 나중에 개정한다.
+ * 최근 관측치�?market_daily ???�재?�다. 매일 1??
+ * ?��? ?�는 (series, date) ??갱신?�다 ??FRED ??초기 발표�??�중??개정?�다.
  */
 export async function ingestMarketDaily(
   db: D1Database,
@@ -93,7 +90,7 @@ export async function ingestMarketDaily(
   return { series: TRACKED_SERIES.length, rows, errors };
 }
 
-/** 해당 날짜 이하에서 가장 가까운 관측치 (휴장일 대응) */
+/** ?�당 ?�짜 ?�하?�서 가??가까운 관측치 (?�장???�?? */
 async function valueOnOrBefore(
   db: D1Database,
   seriesId: string,
@@ -110,7 +107,7 @@ async function valueOnOrBefore(
   return row ? { date: row.obs_date, value: row.value } : null;
 }
 
-/** 직전 VOL_WINDOW 관측의 일간 로그수익률 표준편차 */
+/** 직전 VOL_WINDOW 관측의 ?�간 로그?�익�??��??�차 */
 async function trailingVol(
   db: D1Database,
   seriesId: string,
@@ -146,8 +143,8 @@ function addDays(dateStr: string, days: number): string {
 }
 
 /**
- * 결과가 아직 안 채워진 발화들에 대해 시장 반응을 계산한다.
- * 지평이 도래하지 않은 건 건너뛰고 다음 실행에서 다시 시도한다.
+ * 결과가 ?�직 ??채워�?발화?�에 ?�???�장 반응??계산?�다.
+ * 지?�이 ?�래?��? ?��? �?건너?�고 ?�음 ?�행?�서 ?�시 ?�도?�다.
  */
 export async function backfillOutcomes(
   db: D1Database,
@@ -156,7 +153,7 @@ export async function backfillOutcomes(
   const maxEvents = opts?.maxEvents ?? 200;
   const today = new Date().toISOString().slice(0, 10);
 
-  // 최대 지평(5일)이 아직 안 지난 것까지 포함해 부분 측정한다
+  // 최�? 지??5?????�직 ??지??것까지 ?�함??부�?측정?�다
   const events = await db
     .prepare(
       `SELECT id, signal_date FROM convergence_events
@@ -200,8 +197,7 @@ export async function backfillOutcomes(
         }
 
         const pct = ((end.value - base.value) / base.value) * 100;
-        // 지평 h 일 누적이므로 변동성도 √h 로 스케일
-        const zChange =
+        // 지??h ???�적?��?�?변?�성???�h �??��???        const zChange =
           vol && vol > 0 ? Math.log(end.value / base.value) / (vol * Math.sqrt(h)) : null;
 
         await db

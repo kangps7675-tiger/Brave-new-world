@@ -1,22 +1,20 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
- * 컨버전스 감지 — 독립 채널이 같은 전장에서 동시에 이상값을 보일 때만 발화.
+ * 컨버?�스 감�? ???�립 채널??같�? ?�장?�서 ?�시???�상값을 보일 ?�만 발화.
  *
- * 왜 단일 채널 임계값이 아니라 컨버전스인가
- *   단일 소스는 오탐이 너무 많다. 특히 FIRMS 열이상은 오탐의 43%가 산업·광산,
- *   14%가 가스 플레어다. 페르시아만은 세계 최대 플레어 지대라서, 호르무즈에서
- *   FIRMS 단독 급증은 분쟁이 아니라 석유산업 가동률일 가능성이 높다.
- *   → FIRMS 는 단독으로 발화할 수 없다 (requiresCorroboration).
+ * ???�일 채널 ?�계값이 ?�니??컨버?�스?��?
+ *   ?�일 ?�스???�탐???�무 많다. ?�히 FIRMS ?�이?��? ?�탐??43%가 ?�업·광산,
+ *   14%가 가???�레?�다. ?�르?�아만�? ?�계 최�? ?�레??지?�?�서, ?�르무즈?�서
+ *   FIRMS ?�독 급증?� 분쟁???�니???�유?�업 가?�률??가?�성???�다.
+ *   ??FIRMS ???�독?�로 발화?????�다 (requiresCorroboration).
  *
- * 통계 방법
- *   평균·표준편차 대신 median·MAD 를 쓴다. 분쟁 신호는 두꺼운 꼬리를 가져서
- *   과거 폭발적 사건 하나가 평균을 끌어올리면 다음 사건을 못 잡는다.
- *   베이스라인에서 최근 BASELINE_GAP_DAYS 는 제외한다 — 사건이 서서히 고조되면
- *   자기 자신이 베이스라인에 섞여 z 가 죽는다.
+ * ?�계 방법
+ *   ?�균·?��??�차 ?�??median·MAD �??�다. 분쟁 ?�호???�꺼??꼬리�?가?�서
+ *   과거 ??��???�건 ?�나가 ?�균???�어?�리�??�음 ?�건??�??�는??
+ *   베이?�라?�에??최근 BASELINE_GAP_DAYS ???�외?�다 ???�건???�서??고조?�면
+ *   ?�기 ?�신??베이?�라?�에 ?�여 z 가 죽는??
  *
- * 버전 관리
- *   ALGO_VERSION 을 바꾸면 과거 발화와 섞이지 않는다. 적중률을 말할 때
- *   반드시 같은 버전끼리만 비교해야 한다. channels_json 에 입력을 남기므로
- *   새 버전으로 과거를 재채점(backfill)할 수 있다.
+ * 버전 관�? *   ALGO_VERSION ??바꾸�?과거 발화?� ?�이지 ?�는?? ?�중률을 말할 ?? *   반드??같�? 버전?�리�?비교?�야 ?�다. channels_json ???�력???�기므�? *   ??버전?�로 과거�??�채??backfill)?????�다.
  */
 
 export const ALGO_VERSION = "conv-v1";
@@ -25,36 +23,36 @@ const BASELINE_DAYS = 60;
 const BASELINE_GAP_DAYS = 3;
 const MIN_BASELINE_SAMPLES = 21;
 
-/** MAD → 정규분포 σ 환산 상수 */
+/** MAD ???�규분포 ? ?�산 ?�수 */
 const MAD_TO_SIGMA = 1.4826;
 
-/** MAD 가 0일 때(대부분 0인 희소 채널) 사용할 하한 */
+/** MAD 가 0?????�부�?0???�소 채널) ?�용???�한 */
 const MIN_MAD = 0.5;
 
 export type ChannelId = "gdelt" | "firms" | "telegram" | "airraid";
 
 type ChannelSpec = {
   id: ChannelId;
-  /** theater_signal_daily 컬럼들 — 여럿이면 z 최대값을 채택 */
+  /** theater_signal_daily 컬럼?????�럿?�면 z 최�?값을 채택 */
   columns: string[];
-  /** 발화 z 임계 */
+  /** 발화 z ?�계 */
   zThreshold: number;
-  /** 이 값 미만이면 z 와 무관하게 발화 금지 (희소 채널의 1→3 같은 잡음 차단) */
+  /** ??�?미만?�면 z ?� 무�??�게 발화 금�? (?�소 채널??1?? 같�? ?�음 차단) */
   absFloor: number;
-  /** true 면 다른 채널이 함께 발화할 때만 카운트 */
+  /** true �??�른 채널???�께 발화???�만 카운??*/
   requiresCorroboration: boolean;
 };
 
 const CHANNELS: ChannelSpec[] = [
-  // GDELT 언급량·이벤트포인트는 같은 소스라 하나로 묶는다 (독립 채널이 아님)
+  // GDELT ?�급?�·이벤트?�인?�는 같�? ?�스???�나�?묶는??(?�립 채널???�님)
   { id: "gdelt", columns: ["mentions", "points"], zThreshold: 3.0, absFloor: 8, requiresCorroboration: false },
   { id: "telegram", columns: ["telegram_count"], zThreshold: 3.0, absFloor: 4, requiresCorroboration: false },
   { id: "airraid", columns: ["air_raid_score"], zThreshold: 2.5, absFloor: 1, requiresCorroboration: false },
-  // 플레어·산업열 오탐 때문에 임계를 높이고 단독 발화를 금지한다
+  // ?�레?�·산?�열 ?�탐 ?�문???�계�??�이�??�독 발화�?금�??�다
   { id: "firms", columns: ["fire_count"], zThreshold: 4.0, absFloor: 25, requiresCorroboration: true },
 ];
 
-/** 발화에 필요한 최소 독립 채널 수 */
+/** 발화???�요??최소 ?�립 채널 ??*/
 const MIN_CHANNELS = 3;
 
 export type ChannelEval = {
@@ -113,8 +111,8 @@ function addDays(dateStr: string, days: number): string {
 }
 
 /**
- * 한 전장·한 날짜에 대해 컨버전스 여부를 평가한다.
- * baseline 은 [targetDate - GAP - BASELINE_DAYS, targetDate - GAP) 구간.
+ * ???�장·???�짜???�??컨버?�스 ?��?�??��??�다.
+ * baseline ?� [targetDate - GAP - BASELINE_DAYS, targetDate - GAP) 구간.
  */
 export function evaluateTheater(
   targetDate: string,
@@ -125,7 +123,7 @@ export function evaluateTheater(
   const evals: ChannelEval[] = [];
 
   for (const spec of CHANNELS) {
-    // 여러 컬럼이면 각각 z 를 구해 최대값 채택
+    // ?�러 컬럼?�면 각각 z �?구해 최�?�?채택
     let best: ChannelEval | null = null;
 
     for (const col of spec.columns) {
@@ -162,7 +160,7 @@ export function evaluateTheater(
     if (best) evals.push(best);
   }
 
-  // 보강 필요 채널(FIRMS) 처리 — 다른 채널이 하나도 안 켜졌으면 무효
+  // 보강 ?�요 채널(FIRMS) 처리 ???�른 채널???�나????켜졌?�면 무효
   const independentFired = evals.filter(
     (e) => e.fired && !CHANNELS.find((c) => c.id === e.channel)?.requiresCorroboration,
   );
@@ -194,8 +192,8 @@ export function evaluateTheater(
 }
 
 /**
- * 대상 날짜(기본: 어제 UTC)에 대해 전 전장을 평가하고 발화를 기록한다.
- * 이미 같은 (date, theater, algo) 가 있으면 건드리지 않는다 — append-only.
+ * ?�???�짜(기본: ?�제 UTC)???�?????�장???��??�고 발화�?기록?�다.
+ * ?��? 같�? (date, theater, algo) 가 ?�으�?건드리�? ?�는????append-only.
  */
 export async function detectAndRecordConvergence(
   db: D1Database,

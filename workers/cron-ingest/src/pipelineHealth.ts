@@ -1,11 +1,11 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
- * 파이프라인 하트비트 — 조용히 끊기는 것을 막는다.
+ * ?�이?�라???�트비트 ??조용???�기??것을 막는??
  *
- * 시계열이 상품이면, 최악의 사고는 "지도가 안 뜬다"가 아니라
- * "6개월 동안 스냅샷이 안 쌓였는데 아무도 몰랐다"이다.
- * 후자는 복구가 불가능하다. 원천 API 가 과거를 돌려주지 않기 때문이다.
+ * ?�계?�이 ?�품?�면, 최악???�고??"지?��? ???�다"가 ?�니?? * "6개월 ?�안 ?�냅?�이 ???��??�데 ?�무??몰랐???�다.
+ * ?�자??복구가 불�??�하?? ?�천 API 가 과거�??�려주�? ?�기 ?�문?�다.
  *
- * 그래서 매일 한 행을 남기고, 직전 스냅샷과의 간격이 벌어지면 healthy=0 을 세운다.
+ * 그래??매일 ???�을 ?�기�? 직전 ?�냅?�과??간격??벌어지�?healthy=0 ???�운??
  */
 
 export type Heartbeat = {
@@ -18,7 +18,7 @@ export type Heartbeat = {
   note?: string;
 };
 
-/** gap 이 이 값을 넘으면 비정상으로 본다 (하루 1회 cron 기준) */
+/** gap ????값을 ?�으�?비정?�으�?본다 (?�루 1??cron 기�?) */
 const MAX_HEALTHY_GAP_DAYS = 2;
 
 function daysBetween(a: string, b: string): number {
@@ -48,8 +48,7 @@ export async function recordHeartbeat(db: D1Database): Promise<Heartbeat> {
     .bind(yesterday)
     .first<{ n: number }>();
 
-  // 직전에 실제로 신호가 쌓인 날
-  const prev = await db
+  // 직전???�제�??�호가 ?�인 ??  const prev = await db
     .prepare(
       `SELECT MAX(signal_date) AS d FROM theater_signal_daily WHERE signal_date < ?`,
     )
@@ -60,9 +59,9 @@ export async function recordHeartbeat(db: D1Database): Promise<Heartbeat> {
   const gapDays = prev?.d ? daysBetween(prev.d, yesterday) : 0;
 
   const problems: string[] = [];
-  if (theaterSignalRows === 0) problems.push("어제 전장 신호 스냅샷 0건");
-  if ((mkt?.n ?? 0) === 0) problems.push("최근 7일 시장 시계열 0건");
-  if (gapDays > MAX_HEALTHY_GAP_DAYS) problems.push(`스냅샷 공백 ${gapDays}일`);
+  if (theaterSignalRows === 0) problems.push("?�제 ?�장 ?�호 ?�냅??0�?);
+  if ((mkt?.n ?? 0) === 0) problems.push("최근 7???�장 ?�계??0�?);
+  if (gapDays > MAX_HEALTHY_GAP_DAYS) problems.push(`?�냅??공백 ${gapDays}??);
 
   const beat: Heartbeat = {
     checkDate: today,
