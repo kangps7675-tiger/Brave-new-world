@@ -415,7 +415,8 @@ export function isIranRelatedBreakingText(text: string): boolean {
 
 /** 위중 키워드 — 타전 양피지 허용용 */
 export const FLASH_KINETIC_RE =
-  /\b(nuclear|warhead|hypersonic|invasion|massacre|genocide|airstrike|missile|carrier\s?strike|assassinate|blockade|artillery|bombard|offensive|drone\s?strike|escalat)\b|핵|미사일|공습|침공|학살|봉쇄|암살|포격|확전|항모|전술핵|폭격/i;
+  /\b(nuclear|warheads?|hypersonic|invasions?|massacre|genocide|airstrikes?|missiles?|carrier\s?strikes?|assassinate[ds]?|blockades?|artillery|bombard(?:ment|s|ed|ing)?|offensives?|drone\s?strikes?|escalat(?:e|es|ed|ing|ion)?)\b|핵|미사일|공습|침공|학살|봉쇄|암살|포격|확전|항모|전술핵|폭격/i;
 
+/** 연예·스포츠·사설 + 휴먼스토리/미시 (구출·어린이 등) — 정세 타전 제외 */
 export const FLASH_SOFT_EXCLUDE_RE =
-  /\b(celebrity|sport|football|soccer|nba|oscar|grammy|fashion|recipe|op[\s-]?ed|opinion|editorial)\b|연예|스포츠|축구|야구|영화제|칼럼|사설|오피니언/i;
+  /\b(celebrity|sport|football|soccer|nba|oscar|grammy|fashion|recipe|op[\s-]?ed|opinion|editorial|rescue(?:d|s|rs)?|child(?:ren)?|toddler|kids?|heartwarming|reunited|puppy|adorable)\b|연예|스포츠|축구|야구|영화제|칼럼|사설|오피니언|구출|인명\s?구조|구조(?!조정)|구조대|꼬마|어린이|감동/i;

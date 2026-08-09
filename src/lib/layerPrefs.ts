@@ -3,6 +3,14 @@ import {
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
+/*
+ * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
+ * (import type) 런타임 순환 참조가 생기지 않는다.
+ */
+import {
+  currentProductTier,
+  enforceCommercialTier,
+} from "@/lib/licensing/layerPrefGate";
 
 export type LabelLanguage = "en" | "ko";
 
@@ -482,7 +490,13 @@ function settleAxisNetworkDefaultOff(prefs: LayerPrefs): LayerPrefs {
   }
 }
 
-export function loadLayerPrefs(): LayerPrefs {
+/**
+ * 저장된 prefs 를 읽어 온다 (상업 게이트 **적용 전**).
+ *
+ * ⚠️ 이 함수를 직접 쓰지 말 것 — `loadLayerPrefs()` 를 쓸 것.
+ *    게이트를 우회하게 된다.
+ */
+function loadLayerPrefsRaw(): LayerPrefs {
   if (typeof window === "undefined") return DEFAULT_LAYER_PREFS;
   /**
    * dev는 레이어 prefs를 저장하지 않지만, **언어 감지는 dev에서도 돌아야 한다.**
@@ -527,6 +541,24 @@ export function loadLayerPrefs(): LayerPrefs {
   } catch {
     return DEFAULT_LAYER_PREFS;
   }
+}
+
+/**
+ * 표시용 LayerPrefs — **상업 게이트가 적용된 최종본.**
+ *
+ * 유료 티어에서는 상업 이용이 불가·미확인인 레이어가 강제로 꺼진다.
+ * 사용자가 켜뒀더라도 마찬가지다 — UX 문제가 아니라 계약 문제라
+ * 사용자 선택보다 우선한다. 무료 티어에서는 아무것도 바뀌지 않는다.
+ *
+ * 게이트를 prefs 길목에 두는 이유: 레이어 표시 여부는 결국 이 불리언
+ * 하나로 수렴하므로, 여기서 한 번 거르면 아래 렌더 경로 전체가 안전해진다.
+ * 렌더 컴포넌트마다 심으면 새 컴포넌트가 생길 때 반드시 빠뜨린다.
+ *
+ * @see src/lib/licensing/layerPrefGate.ts
+ * @see docs/copyright-audit-2026-08-01.md — O-1(b)
+ */
+export function loadLayerPrefs(): LayerPrefs {
+  return enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier());
 }
 
 export function saveLayerPrefs(prefs: LayerPrefs) {

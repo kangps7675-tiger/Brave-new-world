@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { AirRaidSirenKind } from "@/lib/airRaidFocus";
 import type { AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
 /** fly-to + 양피지 브리핑 — 계정/브라우저당 최초 1회만 */
 export const AIR_RAID_FLY_BRIEF_KEY = "geowatch-air-raid-fly-brief-v1";
@@ -75,8 +77,8 @@ function kindBadge(kind: AirRaidSirenKind, lang: LabelLanguage): string {
 }
 
 /**
- * 이스라엘·이란 공습경보 — 웹 상단 고정 배너.
- * 신규 발령 시 자동 fly/레이어 ON 이후 표시, 해제 시 함께 사라짐.
+ * 이스라엘·이란 공습경보 — 웹 상단 고정 배너 (P2-4 Von Restorff).
+ * 제안형 배너와 구분: 각진 모서리 · 채운 적색 · 좌측 경고 바 · 1회 미세 진동.
  */
 export function AirRaidOfferBanner({
   offer,
@@ -86,6 +88,17 @@ export function AirRaidOfferBanner({
   const copy = lang === "en" ? COPY.en : COPY.ko;
   const region = offer.target.label || (lang === "en" ? "Alert zone" : "경보 구역");
 
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        navigator.vibrate(40);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [offer.key]);
+
   return (
     <div
       className="pointer-events-auto fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[800] w-[min(94vw,32rem)] -translate-x-1/2"
@@ -94,39 +107,36 @@ export function AirRaidOfferBanner({
       aria-labelledby="air-raid-active-title"
       aria-describedby="air-raid-active-body"
     >
-      <div className="relative overflow-hidden rounded-md border border-red-400/55 bg-[#1a0508]/95 shadow-[0_18px_56px_rgba(80,0,0,0.55)] backdrop-blur-md">
-        <div
-          className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-r from-red-700/25 via-transparent to-red-600/20"
-          aria-hidden
-        />
-        <div className="relative border-b border-red-400/30 bg-red-950/55 px-4 py-3">
+      <div className="relative overflow-hidden rounded-none border border-red-300 bg-red-800 shadow-[0_18px_56px_rgba(80,0,0,0.65)]">
+        <div className="absolute inset-y-0 left-0 w-1 bg-yellow-300" aria-hidden />
+        <div className="relative border-b border-red-600/80 bg-red-900 px-4 py-3 pl-5">
           <p
             id="air-raid-active-title"
             className="text-[14px] font-semibold tracking-wide text-red-50"
           >
             {copy.headline}
-            <span className="ml-2 text-meta font-medium text-red-200/80">
+            <span className="ml-2 text-meta font-medium text-red-100/85">
               {kindBadge(offer.kind, lang)}
             </span>
           </p>
           <p className="mt-1 truncate text-[16px] font-semibold text-white">{region}</p>
           {offer.activeCount > 1 ? (
-            <p className="mt-0.5 text-meta text-red-200/70">
+            <p className="mt-0.5 text-meta text-red-100/75">
               {lang === "en"
                 ? `${offer.activeCount} zones active`
                 : `활성 구역 ${offer.activeCount}곳`}
             </p>
           ) : null}
         </div>
-        <div className="relative flex items-start gap-3 px-4 py-3">
-          <p id="air-raid-active-body" className="min-w-0 flex-1 text-caption leading-relaxed text-red-50/85">
+        <div className="relative flex items-start gap-3 bg-red-800 px-4 py-3 pl-5">
+          <p id="air-raid-active-body" className="min-w-0 flex-1 text-caption leading-relaxed text-red-50">
             {copy.body}
           </p>
           {onDismiss ? (
             <button
               type="button"
               onClick={onDismiss}
-              className="shrink-0 rounded-md border border-white/15 bg-transparent px-2.5 py-1 text-meta text-red-100/75 transition hover:bg-white/5 hover:text-red-50"
+              className="shrink-0 rounded-none border border-white/25 bg-red-950/40 px-2.5 py-1 text-meta text-red-50 transition hover:bg-red-950/70"
             >
               {copy.dismiss}
             </button>

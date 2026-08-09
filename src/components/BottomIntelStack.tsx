@@ -27,10 +27,12 @@ import {
   wasBreakingFlashClaimed,
 } from "@/lib/news/breakingFlash";
 import { HoverHint } from "@/components/HoverHint";
+import { PanelSkeletonLines, IntelChipSkeletonRow } from "@/components/PanelSkeletons";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard";
 import { StockTickerStrip } from "@/components/StockTickerStrip";
 import { IntelRelatedMarketsPanel } from "@/components/IntelRelatedMarketsPanel";
+import { ThemeCompanyBoard } from "@/components/ThemeCompanyBoard";
 import { IntelSheetSearchBar, type IntelSearchResult } from "@/components/IntelSheetSearchBar";
 import { TelegramIntelFeed, alertMatchesMediaFilter } from "@/components/TelegramIntelFeed";
 import { UserAnalyzeButton } from "@/components/UserAnalyzeButton";
@@ -81,6 +83,10 @@ import {
 } from "@/lib/news/todayBriefing";
 import type { NewsDigestItem } from "@/lib/news/digestTypes";
 import { theaterAssetNote, theaterAssetSymbols } from "@/lib/theaterAssets";
+import {
+  companyThemeSymbols,
+  type CompanyThemeId,
+} from "@/lib/themeCompanyAssets";
 import { liveNewsPollMs } from "@/lib/liveRenderGuard";
 import {
   flyTargetForTheater,
@@ -91,6 +97,7 @@ import {
 } from "@/lib/news/theaterMap";
 import { resolveEconomyArticleFlyTarget } from "@/lib/news/economyMapFly";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 const INTEL_DRAG_HINT_KEY = "geowatch-intel-drag-hint-v1";
 
@@ -193,10 +200,17 @@ export type IntelSheetTab =
   | "telegram"
   | "telegram-video"
   | "viina"
-  | "gdelt";
+  | "gdelt"
+  | "defense";
 
-/** 경제 Intel 전체화면 — RSS vs 동영상 vs 증시 */
-export type EconomyIntelTab = "news" | "video" | "markets";
+/** 경제 Intel 전체화면 — RSS · 증시 · 주요기업 · 테마 · 동영상 */
+export type EconomyIntelTab =
+  | "news"
+  | "video"
+  | "markets"
+  | "majors"
+  | "shipping-choke"
+  | "aviation";
 
 const POLL_MS_FALLBACK = 90_000;
 
@@ -426,8 +440,7 @@ export function NewsStreamProvider({
   useEffect(() => {
     if (!visible) return;
     void refresh();
-    const timer = window.setInterval(() => void refresh(), liveNewsPollMs() || POLL_MS_FALLBACK);
-    return () => window.clearInterval(timer);
+    return visibleInterval(() => void refresh(), liveNewsPollMs() || POLL_MS_FALLBACK);
   }, [refresh, visible, packagesKey, langKey]);
 
   return (
@@ -1246,47 +1259,34 @@ function IntelSheetTabBar({
 }) {
   const { t } = useLocale();
   if (economyMode) {
+    const economyBtn = (tab: EconomyIntelTab, label: string) => (
+      <button
+        key={tab}
+        type="button"
+        onClick={() => onEconomyTabChange?.(tab)}
+        className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+          economyTab === tab
+            ? "bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-300/40"
+            : "text-emerald-100/65 hover:bg-white/5 hover:text-emerald-100"
+        }`}
+      >
+        {label}
+        {tab === "news" && newsCount > 0 ? (
+          <span className="ml-1.5 text-micro font-medium opacity-70">{newsCount}</span>
+        ) : null}
+      </button>
+    );
     return (
       <div
         id="intel-sheet-tabs"
-        className="flex shrink-0 gap-1 border-b border-emerald-400/15 px-4 py-2"
+        className="flex shrink-0 gap-1 overflow-x-auto border-b border-emerald-400/15 px-4 py-2"
       >
-        <button
-          type="button"
-          onClick={() => onEconomyTabChange?.("markets")}
-          className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
-            economyTab === "markets"
-              ? "bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-300/40"
-              : "text-emerald-100/65 hover:bg-white/5 hover:text-emerald-100"
-          }`}
-        >
-          증시
-        </button>
-        <button
-          type="button"
-          onClick={() => onEconomyTabChange?.("news")}
-          className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
-            economyTab === "news"
-              ? "bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-300/40"
-              : "text-emerald-100/65 hover:bg-white/5 hover:text-emerald-100"
-          }`}
-        >
-          RSS · 속보
-          {newsCount > 0 ? (
-            <span className="ml-1.5 text-micro font-medium opacity-70">{newsCount}</span>
-          ) : null}
-        </button>
-        <button
-          type="button"
-          onClick={() => onEconomyTabChange?.("video")}
-          className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
-            economyTab === "video"
-              ? "bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-300/40"
-              : "text-emerald-100/65 hover:bg-white/5 hover:text-emerald-100"
-          }`}
-        >
-          {t("intelSheetVideoTab")}
-        </button>
+        {economyBtn("markets", t("intelSheetMarketsTab"))}
+        {economyBtn("majors", t("intelSheetMajorsTab"))}
+        {economyBtn("shipping-choke", t("intelSheetShippingChokeTab"))}
+        {economyBtn("aviation", t("intelSheetAviationTab"))}
+        {economyBtn("news", "RSS · 속보")}
+        {economyBtn("video", t("intelSheetVideoTab"))}
       </div>
     );
   }
@@ -1407,6 +1407,23 @@ function IntelSheetTabBar({
           </button>
         </HoverHint>
       ) : null}
+      <HoverHint
+        placement="bottom"
+        title={t("intelSheetDefenseTab")}
+        detail={t("hoverSheetDefenseHint")}
+      >
+        <button
+          type="button"
+          onClick={() => onChange("defense")}
+          className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+            active === "defense"
+              ? "bg-amber-400/20 text-amber-50 ring-1 ring-amber-300/40"
+              : "text-sky-100/65 hover:bg-white/5 hover:text-amber-100"
+          }`}
+        >
+          {t("intelSheetDefenseTab")}
+        </button>
+      </HoverHint>
     </div>
   );
 }
@@ -1701,10 +1718,25 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       [allEconomyNews, newsSearchQuery, lang],
     );
     const newsById = useMemo(() => new Map(allEconomyNews.map((i) => [i.id, i])), [allEconomyNews]);
+    const economyThemeTab: CompanyThemeId | null =
+      economyTab === "majors" ||
+      economyTab === "shipping-choke" ||
+      economyTab === "aviation"
+        ? economyTab
+        : null;
+
     const marketsSearchResults = useMemo(() => {
       const q = marketsSearchQuery.trim().toLowerCase();
       if (!q) return [];
-      const catalog = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS];
+      const themeSymbols =
+        economyThemeTab != null
+          ? new Set(companyThemeSymbols(economyThemeTab))
+          : sheetTab === "defense" && !preferEconomyNews
+            ? new Set(companyThemeSymbols("defense"))
+            : null;
+      const catalog = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS].filter((t) =>
+        themeSymbols ? themeSymbols.has(t.symbol) : true,
+      );
       return catalog
         .filter((t) => {
           const name = tickerDisplayName(t.symbol, lang).toLowerCase();
@@ -1720,7 +1752,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
           title: tickerDisplayName(t.symbol, lang),
           subtitle: t.symbol,
         }));
-    }, [lang, marketsSearchQuery]);
+    }, [lang, marketsSearchQuery, economyThemeTab, sheetTab, preferEconomyNews]);
     const showHero =
       hero != null &&
       (preferEconomyNews
@@ -1777,9 +1809,15 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               {preferEconomyNews
                 ? economyTab === "markets"
                   ? t("intelSheetMarkets")
-                  : economyTab === "video"
-                    ? t("intelSheetVideo")
-                    : t("intelSheetEconomyNews")
+                  : economyTab === "majors"
+                    ? t("intelSheetMajors")
+                    : economyTab === "shipping-choke"
+                      ? t("intelSheetShippingChoke")
+                      : economyTab === "aviation"
+                        ? t("intelSheetAviation")
+                        : economyTab === "video"
+                          ? t("intelSheetVideo")
+                          : t("intelSheetEconomyNews")
                 : sheetTab === "news"
                   ? t("intelSheetNews")
                   : sheetTab === "video"
@@ -1790,7 +1828,9 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                         ? t("intelSheetTelegramVideo")
                         : sheetTab === "gdelt"
                           ? "GDELT"
-                          : t("intelSheetViina")}
+                          : sheetTab === "defense"
+                            ? t("intelSheetDefense")
+                            : t("intelSheetViina")}
               {sheetTab === "news" || (preferEconomyNews && economyTab === "news") ? (
                 <>
                   <span className="ml-2 text-xs text-sky-200/50">
@@ -1867,7 +1907,10 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
           onEconomyTabChange={setEconomyTab}
         />
 
-        {preferEconomyNews && (economyTab === "news" || economyTab === "markets") ? (
+        {preferEconomyNews &&
+        (economyTab === "news" ||
+          economyTab === "markets" ||
+          economyThemeTab != null) ? (
           <div className="shrink-0 border-b border-emerald-400/15 px-4 py-2.5">
             {economyTab === "news" ? (
               <IntelSheetSearchBar
@@ -1883,7 +1926,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               />
             ) : (
               <IntelSheetSearchBar
-                placeholder="종목·지수·티커 검색…"
+                placeholder="종목·티커 검색…"
                 query={marketsSearchQuery}
                 onQueryChange={setMarketsSearchQuery}
                 results={marketsSearchResults}
@@ -1891,6 +1934,17 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                 tone="emerald"
               />
             )}
+          </div>
+        ) : !preferEconomyNews && sheetTab === "defense" ? (
+          <div className="shrink-0 border-b border-sky-300/10 px-4 py-2.5">
+            <IntelSheetSearchBar
+              placeholder="방산 종목·티커 검색…"
+              query={marketsSearchQuery}
+              onQueryChange={setMarketsSearchQuery}
+              results={marketsSearchResults}
+              onSelect={(result) => setMarketsSearchQuery(result.subtitle ?? result.title)}
+              tone="sky"
+            />
           </div>
         ) : null}
 
@@ -1917,6 +1971,12 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                 ? [...payload.verified, ...payload.stateMedia]
                 : []
             }
+          />
+        ) : preferEconomyNews && economyThemeTab != null ? (
+          <ThemeCompanyBoard
+            themeId={economyThemeTab}
+            fullPage
+            searchQuery={marketsSearchQuery}
           />
         ) : (preferEconomyNews && economyTab === "video") ||
           (!preferEconomyNews && sheetTab === "video") ? (
@@ -1977,9 +2037,11 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
 
             <div className="intel-scroll-y min-h-0 flex-1 px-1 py-2">
               {!payload ? (
-                <p className="py-12 text-center text-sm text-slate-500">
-                  {t("intelStreamSyncing")}
-                </p>
+                <div className="mx-3 space-y-3 py-2" aria-busy>
+                  <IntelChipSkeletonRow count={4} />
+                  <PanelSkeletonLines rows={6} />
+                  <p className="text-center text-sm text-slate-500">{t("intelStreamSyncing")}</p>
+                </div>
               ) : (
                 <div className="mx-3 flex flex-col gap-3">
                   <TierSection
@@ -2075,6 +2137,12 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
             ruCellCount={viinaRuCellCount}
             loading={viinaLoading}
             onFlyTo={onViinaFlyTo}
+          />
+        ) : sheetTab === "defense" ? (
+          <ThemeCompanyBoard
+            themeId="defense"
+            fullPage
+            searchQuery={marketsSearchQuery}
           />
         ) : null}
 
