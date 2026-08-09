@@ -47,6 +47,45 @@ jobs:
       - name: Security guard (fail-open 인증·시크릿 하드코딩)
         run: npm run verify:security
 
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-fund --no-audit
+
+      - name: Install browsers (PR — chromium only)
+        if: github.event_name == 'pull_request'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install browsers (push — all)
+        if: github.event_name != 'pull_request'
+        run: npx playwright install --with-deps chromium webkit firefox
+
+      - name: Smoke (PR — chromium)
+        if: github.event_name == 'pull_request'
+        run: npm run test:e2e:chromium
+
+      - name: Smoke (push — chromium · webkit · firefox)
+        if: github.event_name != 'pull_request'
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
