@@ -1,4 +1,17 @@
-/// <reference types="@cloudflare/workers-types" />
+/**
+ * Minimal D1 surface for this module.
+ * Do NOT triple-slash @cloudflare/workers-types here: vitest imports this file
+ * from src/, and that pollutes the Next.js typecheck DOM graph.
+ */
+type D1PreparedStatement = {
+  bind(...values: unknown[]): D1PreparedStatement;
+  all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
+  run(): Promise<{ meta?: { changes?: number } }>;
+};
+type D1Database = {
+  prepare(query: string): D1PreparedStatement;
+};
+
 /**
  * 컨버?�스 감�? ???�립 채널??같�? ?�장?�서 ?�시???�상값을 보일 ?�만 발화.
  *
