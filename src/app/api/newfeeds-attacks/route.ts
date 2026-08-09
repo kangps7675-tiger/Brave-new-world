@@ -10,6 +10,7 @@ import {
   type NewfeedsAttackRaw,
   type NewfeedsAttacksPayload,
 } from "@/lib/newfeeds";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
       ...cached,
       attacks,
       iranCount: cached.attacks.filter((a) => a.iranRelated).length,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.newfeeds) });
   }
 
   try {

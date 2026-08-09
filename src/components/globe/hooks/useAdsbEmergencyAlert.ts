@@ -9,6 +9,7 @@ import {
 } from "@/lib/airRaidFocus";
 import { emergencySquawkLabel, normalizeSquawk } from "@/lib/adsbEmergency";
 import { readSoundEnabled } from "@/lib/soundPrefs";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 export type AdsbEmergencyOffer = {
   key: string;
@@ -118,10 +119,10 @@ export function useAdsbEmergencyAlert({ paused, flyTo, onSelectAircraft }: Optio
     };
 
     void tick();
-    const id = window.setInterval(() => void tick(), POLL_MS);
+    const stop = visibleInterval(() => void tick(), POLL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(id);
+      stop();
     };
   }, [paused]);
 

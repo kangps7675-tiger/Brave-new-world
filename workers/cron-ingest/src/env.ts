@@ -70,6 +70,13 @@ export type IngestEnv = {
   ADSBX_API_KEY?: string;
   /** AISstream WebSocket (MarineTraffic 실패 시 폴백) */
   AISSTREAM_API_KEY?: string;
+
+  /**
+   * FRED API key — 컨버전스 발화 이후 시장 반응 측정용.
+   * 미 세인트루이스 연은. 데이터는 퍼블릭 도메인이라 상업적 재배포 제약 없음.
+   * `wrangler secret put FRED_API_KEY`
+   */
+  FRED_API_KEY?: string;
   AIS_MAX_VESSELS?: string;
   ADSB_MIL_MAX?: string;
   ADSB_CIV_PER_HUB?: string;

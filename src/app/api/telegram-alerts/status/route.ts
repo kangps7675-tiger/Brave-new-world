@@ -5,6 +5,7 @@ import { getTelegramAlertStore } from "@/lib/telegramAlertStore";
 import { TELEGRAM_CHANNEL_COUNT, TELEGRAM_CATALOG_NOTE } from "@/lib/telegramAlerts";
 import { isTelegramEmbedEnabled } from "@/lib/telegramEmbedScrape";
 import { readTelegramAlertsFromD1 } from "@/lib/d1LiveSnapshots";
+import { NO_STORE_HEADERS } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,5 +51,5 @@ export async function GET() {
       : sessionExists
         ? "python scripts/telegram-osint/collector.py"
         : "python scripts/telegram-osint/auth.py",
-  });
+  }, { headers: NO_STORE_HEADERS });
 }

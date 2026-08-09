@@ -1788,6 +1788,17 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
   .classification-watermark { font-size: 7px; letter-spacing: 0.14em; }
 }
 
+/* ══ WebKit 블러 하향 (P2-6) ══════════════════════════════════════════
+ * Safari는 WebGL 캔버스 위 backdrop-filter 합성 비용이 특히 크다.
+ * DEVICE_BOOT_SCRIPT가 html[data-engine="webkit"]를 심는다.
+ */
+html[data-engine="webkit"] .glass,
+html[data-engine="webkit"] .intel-panel,
+html[data-engine="webkit"] .tone-panel {
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+}
+
 /* ══ 지도 이동 중 합성 비용 차단 (P-perf) ══════════════════════════════
  *
  * 문제: WebGL 지도 캔버스 **위에** 얹힌 `backdrop-filter: blur()`는 최악의
@@ -1801,6 +1812,9 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
  *
  * 클래스 토글은 MapGlobeView의 handleMove/idle 타이머가 <html>에 건다.
  * 토글 1회당 스타일 재계산 1회이므로 드래그당 2회로 끝난다.
+ *
+ * 참고(P2-6): 아래 none !important는 WebKit 하향(blur 6px)보다 우선한다.
+ * 지도 드래그 중에는 엔진과 무관하게 블러를  altogether 끄는 것이 의도다.
  */
 html.map-moving *,
 html.map-moving *::before,
@@ -1823,13 +1837,43 @@ html.map-moving .tone-panel {
  *  reduced-motion 블록의 `animation:none 금지 목록`과 달리, 이들은
  *  시작 상태가 "보임"이 아니므로 멈춰도 사라지거나 남지 않는다.)
  */
-html.map-moving .cyber-pulse,
-html.map-moving .carrier-deployed-pulse,
-html.map-moving .carrier-badge-pulse,
-html.map-moving .intel-fab-glow,
-html.map-moving .hero-breaking-pulse,
-html.map-moving .hero-confirmed-pulse,
-html.map-moving .hero-unverified-pulse,
-html.map-moving .neptun-threat-pulse {
+html.map-moving .gdelt-location-tag-pin,
+html.map-moving .location-pin-marker.gdelt-news-pin,
+html.map-moving .carrier-marker-root.carrier-marker-deployed .carrier-marker--deployed svg,
+html.map-moving .carrier-marker-root.carrier-marker-deployed .carrier-status-badge,
+html.map-moving .carrier-legend-deck-swatch,
+html.map-moving .intel-open-fab,
+html.map-moving .hero-breaking-breaking,
+html.map-moving .hero-breaking-confirmed,
+html.map-moving .hero-breaking-unverified,
+html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   animation-play-state: paused !important;
+}
+
+/*
+ * P0-4: 레이어 토글 거부 피드백.
+ *
+ * 상한 초과로 켜기가 거부되면 체크박스가 그대로 있다 — 사용자에게는
+ * "클릭이 안 먹는다 = 고장"으로 읽힌다. 짧은 흔들림으로 **입력은 받았고
+ * 결과가 거부다**를 구분해 준다. 목록 맨 위 배너는 스크롤 밖이라 못 본다.
+ *
+ * 220ms 1회. 무한 반복이 아니므로 map-moving 일시정지 대상이 아니다.
+ */
+@keyframes layer-reject-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+.layer-reject-shake {
+  animation: layer-reject-shake 220ms ease-in-out 1;
+}
+
+/* 흔들림 없이도 거부 사실은 배경색·인라인 문구로 전달된다 */
+@media (prefers-reduced-motion: reduce) {
+  .layer-reject-shake {
+    animation: none;
+  }
 }

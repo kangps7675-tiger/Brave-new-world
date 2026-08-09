@@ -15,7 +15,7 @@ import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { isArticleUrl } from "@/lib/news/articleLink";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
-import { formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
+import { displayGtiDelta, displayGtiScore, formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
 import { useDialog } from "@/hooks/useDialog";
 import {
   LAMP_THUMB_GRADIENT,
@@ -299,14 +299,15 @@ function PhotoNewsLampParchment({
               </div>
               <div className="mt-1 flex items-end justify-between gap-2">
                 <p className="text-[2rem] font-semibold tabular-nums leading-none tracking-tight text-[#3d2a18]">
-                  {Math.round(briefing.wti.score)}
+                  {displayGtiScore(briefing.wti.score)}
                 </p>
                 <p className="pb-0.5 text-meta text-[#6b4a22]/8">
                   {gtiBandLabel(gtiBand(briefing.wti.score), lang !== "en")}
-                  {briefing.wti.deltaScore != null &&
-                  Math.abs(briefing.wti.deltaScore) >= 0.05
-                    ? ` · ${briefing.wti.deltaScore > 0 ? "+" : ""}${Math.round(briefing.wti.deltaScore * 10) / 10}`
-                    : ""}
+                  {(() => {
+                    const d = displayGtiDelta(briefing.wti.deltaScore);
+                    if (d == null) return "";
+                    return ` · ${d > 0 ? "+" : ""}${d}`;
+                  })()}
                 </p>
               </div>
               <p className="mt-2 text-meta leading-relaxed text-[#5a4428]/85">

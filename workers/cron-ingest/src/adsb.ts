@@ -6,9 +6,9 @@ const BELLINGCAT_MIL_HEX = new Set(
   (milHexPayload.hexes as string[]).map((h) => h.toLowerCase()),
 );
 
-const ADSB_FI_MIL_URL = "https://opendata.adsb.fi/api/v2/mil";
+// adsb.fi("personal" 전용) · airplanes.live(독점 라이선스 미확인) 는 제거됨.
+// 사유는 milUrlCandidates 주석 참조 — 되돌리지 말 것.
 const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
-const ADSB_LIVE_MIL_URL = "https://api.airplanes.live/v2/mil";
 const ADSBX_MIL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
 
 const CIV_HUBS = [
@@ -167,33 +167,30 @@ function normalizeAircraft(
 }
 
 /**
- * 상업 이용 가능한 ADS-B 소스만 남길지 판단.
+ * ADS-B 폴백 소스 정책 — **무료·유료 구분 없이 동일하다.**
  *
- * ⚠️ adsb.fi 약관: "for personal, **non-commercial** use only. You may not
- *    license, sell, rent, or lease any part of the data or the service."
- *    airplanes.live 는 독점 라이선스라 상업 조건이 확인되지 않았다.
+ * ⚠️ 예전에는 `COMMERCIAL_TIER_ENABLED` 로 갈라서, 무료 모드에서만
+ *    adsb.fi 와 airplanes.live 를 폴백에 넣었다. 그 설계는 틀렸다:
  *
- * 유료 티어를 켜면 둘 다 폴백에서 빼고,
- * adsb.lol(ODbL — 상업 이용 가능) 과 ADSBexchange(상업 티어) 만 쓴다.
+ *    · adsb.fi — "for **personal**, non-commercial use only."
+ *      두 요건을 **모두** 충족해야 한다. 공개 웹서비스는 무료여도
+ *      "personal" 이 아니므로, 무료 모드에서도 쓸 수 없다.
+ *
+ *    · airplanes.live — 독점 라이선스. 상업 조건이 확인되지 않았다.
+ *      `sourceCatalog` 의 원칙("모르면 unknown, 확인 전까지 차단")을
+ *      그대로 적용하면 무료 모드에서도 배제하는 게 맞다.
+ *
+ *    실무적으로도 Cloudflare Worker IP 는 adsb.fi 가 403 을 준다.
+ *
+ * 남는 것: adsb.lol(ODbL — 출처 표기만) · ADSBexchange(상업 티어 키).
+ *
+ * @see docs/copyright-audit-2026-08-01.md — Y-2
  */
-function commercialOnly(env?: { COMMERCIAL_TIER_ENABLED?: string }): boolean {
-  return env?.COMMERCIAL_TIER_ENABLED === "true";
-}
-
-function milUrlCandidates(
-  apiKey: string | null,
-  env?: { COMMERCIAL_TIER_ENABLED?: string },
-): string[] {
-  // 상업 모드에서는 ADSBexchange(유료 라이선스)를 최우선으로 둔다
-  if (commercialOnly(env)) {
-    const urls: string[] = [];
-    if (apiKey) urls.push(ADSBX_MIL_URL);
-    urls.push(ADSB_LOL_MIL_URL); // ODbL — 상업 가능
-    return urls;
-  }
-  // Cloudflare Worker IP는 adsb.fi 403 — adsb.lol / airplanes.live 우선
-  const urls = [ADSB_LOL_MIL_URL, ADSB_LIVE_MIL_URL, ADSB_FI_MIL_URL];
+function milUrlCandidates(apiKey: string | null): string[] {
+  // 키가 있으면 상업 라이선스가 확실한 ADSBexchange 를 최우선
+  const urls: string[] = [];
   if (apiKey) urls.push(ADSBX_MIL_URL);
+  urls.push(ADSB_LOL_MIL_URL); // ODbL
   return urls;
 }
 
@@ -202,25 +199,14 @@ function civUrlCandidates(
   lat: number,
   lng: number,
   distNm: number,
-  env?: { COMMERCIAL_TIER_ENABLED?: string },
 ): string[] {
   const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
   const adsbLol = `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
   const adsbx = `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
 
-  if (commercialOnly(env)) {
-    const urls: string[] = [];
-    if (apiKey) urls.push(adsbx);
-    urls.push(adsbLol);
-    return urls;
-  }
-
-  const urls = [
-    adsbLol,
-    `https://api.airplanes.live/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-    `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-  ];
+  const urls: string[] = [];
   if (apiKey) urls.push(adsbx);
+  urls.push(adsbLol); // ODbL
   return urls;
 }
 
@@ -249,8 +235,8 @@ export async function fetchAdsbAircraft(
   const errors: string[] = [];
   const byId = new Map<string, AdsbAircraftRow>();
 
-  // Military — Worker IP 호환 소스 우선 (유료 티어면 상업 가능 소스만)
-  const milUrls = milUrlCandidates(apiKey, env);
+  // Military — 라이선스가 확인된 소스만 (ADSBexchange 키 → adsb.lol ODbL)
+  const milUrls = milUrlCandidates(apiKey);
   for (let i = 0; i < milUrls.length; i += 1) {
     const url = milUrls[i]!;
     const isLast = i === milUrls.length - 1;
@@ -281,7 +267,7 @@ export async function fetchAdsbAircraft(
 
   // Civilian hubs (cron 서브요청 절약)
   for (const hub of CIV_HUBS.slice(0, hubLimit)) {
-    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, hub.distNm, env);
+    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, hub.distNm);
     for (let i = 0; i < urls.length; i += 1) {
       const url = urls[i]!;
       const isLast = i === urls.length - 1;

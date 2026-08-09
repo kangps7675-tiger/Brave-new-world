@@ -13,13 +13,10 @@ type Props = {
 };
 
 /**
- * Ultra-Lite 자동 제안 — FPS 프로브가 느리다고 판정했을 때만 1회.
+ * Ultra-Lite 자동 적용 결과 통보 (P2-2).
  *
- * 진입 전 "당신 PC 사양은?"을 묻는 대신, 실제로 느릴 때만 뜬다.
- * 강제 적용하지 않는다 — 유저가 수락해야 켜진다.
- *
- * 위치: 우하단. 지구본 중앙과 상단 nav를 가리지 않는다.
- * (첫 90초의 주인공은 지도이지 이 배너가 아니다.)
+ * FPS 프로브가 느리면 이미 lite 모드가 적용된 뒤 이 배너가 뜬다.
+ * [확인]=닫기 · [되돌리기]=Ultra-Lite OFF.
  */
 export function UltraLiteOfferBanner({ probe, lang, onAccept, onDismiss }: Props) {
   const critical = probe?.tier === "critical";

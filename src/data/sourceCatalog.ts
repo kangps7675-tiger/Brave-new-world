@@ -143,14 +143,14 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     url: "/api/adsb-mil",
     cadence: "Cron warm ~10m · toggle on-demand D1",
     attribution:
-      "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi · Military hex: https://github.com/bellingcat/adsb-history.git",
+      "ADS-B · adsb.lol (ODbL) / ADSBexchange · Military hex: https://github.com/bellingcat/adsb-history.git (MIT)",
     notes:
       "Military aircraft via ADS-B. Cron → D1 `adsb_aircraft` (mode=mil). ICAO hex military flags enriched from Bellingcat/Turnstone modes.csv (adsb-history, MIT). User toggle reads D1 first; ?live=1 forces upstream.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "prohibited",
+    commercialUse: "allowed",
     commercialNote:
-      "⚠️ adsb.fi 약관: 'for personal, non-commercial use only. You may not license, sell, rent, or lease any part of the data or the service.' → 유료화 전 adsb.lol(ODbL) 또는 ADSBexchange 상업 티어로 전환 필수. .env 에 ADSBEXCHANGE_API_KEY 이미 있음.",
+      "2026-08-01 재판정 (prohibited → allowed). adsb.fi('for personal, non-commercial use only')와 airplanes.live(독점 라이선스 미확인)를 런타임 폴백에서 완전히 제거했다. 남은 소스는 adsb.lol(ODbL — 출처 표기만) + ADSBexchange(상업 키) + Bellingcat adsb-history(MIT) 뿐이다. ⚠️ 폴백에 adsb.fi·airplanes.live 를 되돌리면 이 등급도 함께 내려야 한다. @see src/lib/adsbClient.ts · workers/cron-ingest/src/adsb.ts",
   },
   {
     layerId: "reef-watch",
@@ -172,14 +172,14 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     source: "ADS-B (민간 항적)",
     url: "/api/adsb-traffic",
     cadence: "Cron hub warm ~10m · toggle on-demand D1",
-    attribution: "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi",
+    attribution: "ADS-B · adsb.lol (ODbL) / ADSBexchange",
     notes:
       "Civilian ADS-B traffic (exclude dbFlags&1 and Bellingcat military hex). Cron warms hub grids into D1; viewport query prefers D1 bbox then live.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "prohibited",
+    commercialUse: "allowed",
     commercialNote:
-      "⚠️ adsb.fi 약관이 개인·비상업 전용. adsb.lol(ODbL) 우선으로 전환 필요. airplanes.live 는 독점 라이선스라 확인 전까지 사용 금지.",
+      "2026-08-01 재판정 (prohibited → allowed). adsb.fi·airplanes.live 를 런타임 폴백에서 제거하고 adsb.lol(ODbL) + ADSBexchange 만 남겼다. ⚠️ 되돌리면 등급도 함께 내릴 것.",
   },
   {
     layerId: "ais",
@@ -906,6 +906,49 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
     commercialUse: "allowed",
     commercialNote: "UN·EU·UK·US 공공 목록 + Wikidata(CC0).",
+  },
+  {
+    /*
+     * 2026-08-01 감사에서 신설.
+     *
+     * `feedCatalog.ts` 의 지정학 RSS 피드(12개 전역 × 매체, 항목 220여 개)가
+     * **카탈로그에 등재조차 안 돼 있었다.** 가장 저작권 민감한 자산이
+     * `verify:commercial` 게이트의 관할 밖이라, 게이트가 "통과"를 찍어도
+     * 실제로는 점검되지 않은 상태였다.
+     *
+     * @see docs/copyright-audit-2026-08-01.md — O-2
+     */
+    layerId: "news-geopolitics-rss",
+    source: "BBC / Reuters / NYT / WSJ / Al Jazeera / TASS / RT 외 60여 매체",
+    url: "/api/news-stream",
+    cadence: "90s cache",
+    attribution: "Each outlet RSS terms",
+    notes:
+      "지정학 뉴스 스트림 — feedCatalog.ts 의 12개 전역(global·middle-east·russia-ukraine·china-taiwan·korea·japan·south-asia·southeast-asia·africa·arctic·atlantic·south-america) RSS 피드. 제목 + 최대 220자 스니펫 + 원문 링크만 보관하며 한국어 번역본을 함께 제공한다.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "license-required",
+    commercialNote:
+      "매체별 RSS 약관이 제각각이다. NYT·WSJ·Reuters 등 주요 매체는 RSS 를 개인·비상업 이용으로 한정한다. 제목+링크 인용은 통상 허용되나 (a) 본문 스니펫 재배포와 (b) 한국어 번역(2차적저작물 작성, 저작권법 제22조)은 별개 권리다. 스니펫 상한 220자(RSS_BODY_SNIPPET_MAX)·표시 200자(LAMP_DISPLAY_SUMMARY_MAX)로 묶어뒀으나, 유료 노출 전 매체별 개별 확인 또는 자체 LLM 요약(docs/llm-news-digest.md)으로 대체 필요.",
+  },
+  {
+    /*
+     * YouTube Atom 피드(feeds/videos.xml) 기반. 2026-08-01 감사에서 신설.
+     * 구현은 ToS 준수 패턴 — 공식 embed 플레이어 + i.ytimg.com 썸네일 핫링크.
+     * 영상 파일 다운로드·재호스팅 없음.
+     */
+    layerId: "news-video-youtube",
+    source: "YouTube (BBC / Reuters / AP / Al Jazeera / DW / Bloomberg / CNBC / FT)",
+    url: "/api/video-news",
+    cadence: "폴링 (Atom)",
+    attribution: "YouTube · 각 채널 저작권자",
+    notes:
+      "방송·와이어 공식 채널의 Atom 피드. 재생은 공식 embed 플레이어(youtube.com/embed), 썸네일은 i.ytimg.com 핫링크 — 영상 파일을 내려받거나 재호스팅하지 않는다.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "unknown",
+    commercialNote:
+      "YouTube ToS 는 API Services 또는 공식 embed 플레이어 외의 프로그램적 접근을 제한한다. 공개 Atom 피드(feeds/videos.xml) 사용은 회색지대 — 유료 노출 전 YouTube Data API v3 로 전환하거나 약관 확인 필요. 재생·썸네일 구현 자체는 ToS 가 요구하는 패턴을 따르고 있다.",
   },
   {
     layerId: "news-economy-rss",

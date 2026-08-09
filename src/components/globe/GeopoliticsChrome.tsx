@@ -1,26 +1,20 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { DisputeZoneLegend } from "@/components/DisputeZoneLegend";
-import { UkraineFrontLegend } from "@/components/UkraineFrontLegend";
+import { MapLegend } from "@/components/MapLegend";
 import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
+import { UkraineFrontLegend } from "@/components/UkraineFrontLegend";
 import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
-import { TelegramOsintPanel } from "@/components/TelegramOsintPanel";
 import { LocalAlertPanel } from "@/components/LocalAlertPanel";
 import { TheaterIntelSidebar } from "@/components/TheaterIntelSidebar";
 import { TheaterDetailCta } from "@/components/TheaterDetailCta";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
-import { AxisArmsPanel } from "@/components/AxisArmsPanel";
-import { AxisRegimePanel } from "@/components/AxisRegimePanel";
 import { AxisLinkChip } from "@/components/AxisLinkChip";
-import { DisputeHotspotPanel } from "@/components/DisputeHotspotPanel";
 import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
 import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
 import type { NewsStreamItem } from "@/lib/news/types";
-import { FrictionHistoryChrome } from "@/components/FrictionHistoryChrome";
-import { TerritorialHistoryChrome } from "@/components/TerritorialHistoryChrome";
-import { LivingConflictPanel } from "@/components/LivingConflictPanel";
-import { WeeklyShipMovesPanel } from "@/components/WeeklyShipMovesPanel";
 import type { HubBriefDoc } from "@/data/hubBriefs";
 import type { AxisHubId } from "@/data/axisNetwork";
 import type { NavSelection } from "@/data/navRegions";
@@ -44,6 +38,46 @@ import type { TheaterFocusConfig, TheaterSidebarTab } from "@/lib/theaterFocus";
 import type { BottomAlertPanel } from "@/lib/localOverlayPolicy";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
 import type { DisputeAlert } from "@/lib/disputeAlerts";
+
+/** P3-1: on-demand 패널 — 열릴 때만 청크 로드 */
+const AxisArmsPanel = dynamic(
+  () => import("@/components/AxisArmsPanel").then((m) => m.AxisArmsPanel),
+  { ssr: false },
+);
+const AxisRegimePanel = dynamic(
+  () => import("@/components/AxisRegimePanel").then((m) => m.AxisRegimePanel),
+  { ssr: false },
+);
+const DisputeHotspotPanel = dynamic(
+  () => import("@/components/DisputeHotspotPanel").then((m) => m.DisputeHotspotPanel),
+  { ssr: false },
+);
+const FrictionHistoryChrome = dynamic(
+  () =>
+    import("@/components/FrictionHistoryChrome").then((m) => m.FrictionHistoryChrome),
+  { ssr: false },
+);
+const TerritorialHistoryChrome = dynamic(
+  () =>
+    import("@/components/TerritorialHistoryChrome").then(
+      (m) => m.TerritorialHistoryChrome,
+    ),
+  { ssr: false },
+);
+const LivingConflictPanel = dynamic(
+  () =>
+    import("@/components/LivingConflictPanel").then((m) => m.LivingConflictPanel),
+  { ssr: false },
+);
+const WeeklyShipMovesPanel = dynamic(
+  () =>
+    import("@/components/WeeklyShipMovesPanel").then((m) => m.WeeklyShipMovesPanel),
+  { ssr: false },
+);
+const TelegramOsintPanel = dynamic(
+  () => import("@/components/TelegramOsintPanel").then((m) => m.TelegramOsintPanel),
+  { ssr: false },
+);
 import {
   TELEGRAM_CHANNEL_COUNT,
   type TelegramAlert,
@@ -253,7 +287,7 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {!isEconomyViewer ? (
+      {!isEconomyViewer && livingTaiwanOpen ? (
         <LivingConflictPanel
           lang={labelLanguage}
           open={livingTaiwanOpen}
@@ -262,7 +296,7 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {!isEconomyViewer ? (
+      {!isEconomyViewer && westpacPulseOpen ? (
         <WeeklyShipMovesPanel
           open={westpacPulseOpen}
           lang={labelLanguage}
@@ -323,6 +357,12 @@ export type GeopoliticsMapChromeProps = {
   onLocalAlertSelect: (alert: DisputeAlert) => void;
   onCloseLocalPanel: () => void;
   labelLanguage: LabelLanguage;
+  /** P3-6: 활성 레이어 범례 */
+  showGdeltWar?: boolean;
+  showGdeltDiplomatic?: boolean;
+  showGdeltProtests?: boolean;
+  showUsCarriers?: boolean;
+  deployedCarrierCount?: number;
 };
 
 export function GeopoliticsMapChrome({
@@ -364,6 +404,11 @@ export function GeopoliticsMapChrome({
   onLocalAlertSelect,
   onCloseLocalPanel,
   labelLanguage,
+  showGdeltWar = false,
+  showGdeltDiplomatic = false,
+  showGdeltProtests = false,
+  showUsCarriers = false,
+  deployedCarrierCount = 0,
 }: GeopoliticsMapChromeProps) {
   return (
     <>
@@ -378,50 +423,70 @@ export function GeopoliticsMapChrome({
         />
       ) : null}
 
-      <UkraineFrontLegend
-        visible={
-          !isEconomyViewer &&
-          ukraineFrontLegendEngaged &&
-          showUkraineControl &&
-          !intelSheetOpen &&
-          !showLeftPanel &&
-          (!selected || selected.kind === "neptun-threat")
-        }
-        dockLow={ukraineFrontLegendEngaged && showUkraineControl}
-        controlDate={ukraineControlDate}
-        lodLabel={
-          viinaLodMode === "hidden"
-            ? "줌인 필요"
-            : viinaLodMode === "overview"
-              ? "점령 개요"
-              : "상세"
-        }
-      />
-      <DisputeZoneLegend
-        open={
-          !isEconomyViewer &&
-          showAnyDisputeOverlay &&
-          showDisputeLegendPanel &&
-          !isUkraineTheaterFocus &&
-          !showLeftPanel &&
-          !selected &&
-          !regionNavSelection
-        }
-        onClose={onCloseDisputeLegend}
-      />
-      {!isEconomyViewer &&
-        !intelSheetOpen &&
+      {!isEconomyViewer ? (
+        <UkraineFrontLegend
+          visible={
+            ukraineFrontLegendEngaged &&
+            showUkraineControl &&
+            !intelSheetOpen &&
+            !showLeftPanel &&
+            (!selected || selected.kind === "neptun-threat")
+          }
+          dockLow={ukraineFrontLegendEngaged && showUkraineControl}
+          controlDate={ukraineControlDate}
+          lodLabel={
+            viinaLodMode === "hidden"
+              ? "줌인 필요"
+              : viinaLodMode === "overview"
+                ? "점령 개요"
+                : "상세"
+          }
+        />
+      ) : null}
+      {!isEconomyViewer ? (
+        <DisputeZoneLegend
+          open={
+            showAnyDisputeOverlay &&
+            showDisputeLegendPanel &&
+            !isUkraineTheaterFocus &&
+            !showLeftPanel &&
+            !selected &&
+            !regionNavSelection
+          }
+          onClose={onCloseDisputeLegend}
+        />
+      ) : null}
+      {!intelSheetOpen &&
         !showLeftPanel &&
         !selected &&
         !regionNavSelection &&
         !isUkraineTheaterFocus && (
           <div className="pointer-events-none absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-20 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2">
-            {showAnyDisputeOverlay && !showDisputeLegendPanel && (
-              <LegendReopenButton
-                label="전쟁·외교 긴장 범례"
-                accent="orange"
-                onClick={onReopenDisputeLegend}
-              />
+            {isEconomyViewer ? (
+              <MapLegend variant="economy" defaultOpen={false} />
+            ) : (
+              <>
+                <MapLegend
+                  variant="conflict"
+                  defaultOpen={false}
+                  deployedCarrierCount={showUsCarriers ? deployedCarrierCount : 0}
+                  visible={{
+                    carriers: showUsCarriers && deployedCarrierCount > 0,
+                    gdelt: showGdeltWar || showGdeltDiplomatic || showGdeltProtests,
+                    war: showGdeltWar,
+                    diplomatic: showGdeltDiplomatic,
+                    protest: showGdeltProtests,
+                    fresh: showGdeltWar || showGdeltDiplomatic || showGdeltProtests,
+                  }}
+                />
+                {showAnyDisputeOverlay && !showDisputeLegendPanel && (
+                  <LegendReopenButton
+                    label="전쟁·외교 긴장 범례"
+                    accent="orange"
+                    onClick={onReopenDisputeLegend}
+                  />
+                )}
+              </>
             )}
           </div>
         )}

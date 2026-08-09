@@ -331,15 +331,10 @@ export async function upsertBriefingPeriodStats(db: D1Database): Promise<{
     updated_at: updatedAt,
   });
 
-  try {
-    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-    await db
-      .prepare(`DELETE FROM briefing_period_stats WHERE tier = 'daily' AND updated_at < ?`)
-      .bind(cutoff)
-      .run();
-  } catch {
-    // ignore
-  }
+  // 2026-08-07: daily tier 90일 롤링 삭제를 중단한다.
+  // 일별 행은 연 365개로 무시할 수준이고, 이 시계열이 컨버전스 베이스라인과
+  // 과거 적중률의 유일한 근거다. 한 번 지우면 원천 API가 과거를 돌려주지 않는다.
+  // 되돌리려면 R2 아카이브를 먼저 붙일 것. (참고: workers/cron-ingest/src/db.ts pruneOldRows)
 
   return { dailyKey: dKey, weeklyKey: wKey, monthlyKey: mKey };
 }

@@ -13,6 +13,8 @@ import { FinintTicker } from "@/components/FinintTicker";
 import { GpsJamFixedToggle } from "@/components/GpsJamFixedToggle";
 import { UsCarrierFixedToggle } from "@/components/UsCarrierFixedToggle";
 import { CompactPresetChips } from "@/components/CompactPresetChips";
+import { ScenarioPresetChips } from "@/components/ScenarioPresetChips";
+import type { ScenarioPresetId } from "@/lib/scenarioPresets";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { EXPLORATION_PRESETS, type ExplorationPreset, type NavSelection } from "@/data/navRegions";
 import { ECON_EXPLORATION_PRESETS } from "@/data/econNavRegions";
@@ -82,6 +84,9 @@ export interface DashboardTopChromeProps {
   deployedCarrierCount: number;
   compactChipId: CompactChipId;
   handleCompactChipSelect: (chipId: CompactChipId) => void;
+  /** 일반 모드 시나리오 프리셋 (P2-1) */
+  scenarioPresetId: ScenarioPresetId | null;
+  handleScenarioPresetSelect: (id: ScenarioPresetId) => void;
   globeRef: RefObject<MapGlobeMethods>;
   getSceneForShare: () => {
     mode: ViewerMode;
@@ -147,6 +152,8 @@ export function DashboardTopChrome({
   deployedCarrierCount,
   compactChipId,
   handleCompactChipSelect,
+  scenarioPresetId,
+  handleScenarioPresetSelect,
   globeRef,
   getSceneForShare,
   setChromeCoachStep,
@@ -212,15 +219,30 @@ export function DashboardTopChrome({
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
         belowNav={
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
-            <BasemapModeToggle mode={basemapMode} onChange={handleBasemapModeChange} />
-            {!isCompactUi ? (
-              <LayerQuickDropdown
-                categories={layerCategories}
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+              <BasemapModeToggle mode={basemapMode} onChange={handleBasemapModeChange} />
+              {!isCompactUi ? (
+                <LayerQuickDropdown
+                  categories={layerCategories}
+                  lang={labelLanguage}
+                  open={layerDropdownOpen}
+                  onOpenChange={setLayerDropdownOpen}
+                />
+              ) : null}
+            </div>
+            {/**
+             * P2-1: 일반 모드 시나리오 프리셋.
+             * Compact/Ultra-Lite에는 이미 CompactPresetChips가 있으므로 중복 노출하지 않는다.
+             * 레이어 패널이 열려 있으면 사용자가 직접 구성 중이라 숨긴다.
+             */}
+            {!isCompactUi && !showLeftPanel ? (
+              <ScenarioPresetChips
+                mode={viewerMode}
+                activeId={scenarioPresetId}
                 lang={labelLanguage}
-                open={layerDropdownOpen}
-                onOpenChange={setLayerDropdownOpen}
+                onSelect={handleScenarioPresetSelect}
               />
             ) : null}
           </div>

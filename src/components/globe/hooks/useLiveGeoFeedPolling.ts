@@ -31,6 +31,7 @@ import { filterFirmsToTheaters } from "@/lib/firmsTheaters";
 import { VIEWPORT_RADIUS_BY_TIER, viewToBbox } from "@/lib/viewportCull";
 import type { ViewerChromePreset } from "@/lib/viewerChrome";
 import type { ViewState } from "@/components/globe/types";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 type BasicStatus = "idle" | "loading" | "ok" | "error";
 
@@ -359,10 +360,10 @@ export function useLiveGeoFeedPolling({
       }
     };
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 5 * 60_000);
+    const stop = visibleInterval(() => void refresh(), 5 * 60_000);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stop();
     };
   }, [
     isEconomyViewer,
@@ -392,10 +393,10 @@ export function useLiveGeoFeedPolling({
     };
     void refresh();
     // OpenSky: one combined-bbox request; server caches 90s — client every 3 min
-    const timer = window.setInterval(() => void refresh(), 3 * 60_000);
+    const stop = visibleInterval(() => void refresh(), 3 * 60_000);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stop();
     };
   }, [isEconomyViewer, setReefWatch, setReefWatchStatus, showReefWatch]);
 
@@ -422,10 +423,9 @@ export function useLiveGeoFeedPolling({
 
   useEffect(() => {
     if (!shouldFetchGdeltFeed || !globeReady) return;
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshGdeltEvents();
     }, liveGdeltPollMs());
-    return () => window.clearInterval(timer);
   }, [globeReady, refreshGdeltEvents, shouldFetchGdeltFeed]);
 
   const refreshUkmto = useCallback(async (opts?: { force?: boolean }) => {
@@ -463,12 +463,12 @@ export function useLiveGeoFeedPolling({
     const retryTimer = window.setTimeout(() => {
       void refreshUkmto({ force: true });
     }, retryMs);
-    const timer = window.setInterval(() => {
+    const stopInterval = visibleInterval(() => {
       void refreshUkmto();
     }, 10 * 60 * 1000);
     return () => {
       window.clearTimeout(retryTimer);
-      window.clearInterval(timer);
+      stopInterval();
     };
   }, [refreshUkmto, setUkmtoIncidents, setUkmtoStatus, showUkmtoIncidents]);
 
@@ -506,12 +506,12 @@ export function useLiveGeoFeedPolling({
     const retryTimer = window.setTimeout(() => {
       void refreshNavarea({ force: true });
     }, retryMs);
-    const timer = window.setInterval(() => {
+    const stop = visibleInterval(() => {
       void refreshNavarea();
     }, liveNavareaPollMs());
     return () => {
       window.clearTimeout(retryTimer);
-      window.clearInterval(timer);
+      stop();
     };
   }, [refreshNavarea, setNavareaFeatures, setNavareaStatus, showNavareaWarnings]);
 
@@ -538,10 +538,14 @@ export function useLiveGeoFeedPolling({
   useEffect(() => {
     if (isEconomyViewer) return;
     void refreshMilitaryExercises({ force: true });
-    const timer = window.setInterval(() => {
+    /**
+     * ⚠️ 여기에는 원래 cleanup이 아예 없었다 — isEconomyViewer/refresh가 바뀔 때마다
+     * 인터벌이 하나씩 쌓이는 누수였다. visibleInterval의 반환값을 그대로 돌려주면
+     * 정리와 탭 게이트가 동시에 해결된다. (P1-4)
+     */
+    return visibleInterval(() => {
       void refreshMilitaryExercises();
     }, 3 * 60 * 1000);
-    return () => window.clearInterval(timer);
   }, [isEconomyViewer, refreshMilitaryExercises]);
 
   /**
@@ -578,10 +582,9 @@ export function useLiveGeoFeedPolling({
 
   useEffect(() => {
     if (!showFirmsFires) return;
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshFirmsFires();
     }, liveFirmsPollMs());
-    return () => window.clearInterval(timer);
   }, [refreshFirmsFires, showFirmsFires]);
 
   return {

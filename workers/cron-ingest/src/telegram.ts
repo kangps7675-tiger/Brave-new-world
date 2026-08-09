@@ -14,6 +14,16 @@ const PREVIEW_BASE = "https://t.me/s/";
 const POSTS_PER_CHANNEL = 3;
 const FETCH_BATCH = 10;
 const FETCH_TIMEOUT_MS = 6000;
+
+/**
+ * 봇 신원 — **브라우저로 위장하지 말 것.**
+ * 이전 값: `Mozilla/5.0 (compatible; BraveNewWorld/1.0; +https://t.me)`
+ * (연락처가 t.me 로 돼 있어 사실상 신원 미표시이기도 했다.)
+ *
+ * @see docs/copyright-audit-2026-08-01.md — R-2
+ */
+const TELEGRAM_SCRAPE_USER_AGENT =
+  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
 const MAX_TEXT = 4096;
 
 type ParsedPost = {
@@ -122,7 +132,8 @@ async function fetchChannel(
     const res = await fetch(`${PREVIEW_BASE}${channel.username}`, {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0; +https://t.me)",
+        // 브라우저 UA 위장 금지 — @see docs/copyright-audit-2026-08-01.md R-2
+        "User-Agent": TELEGRAM_SCRAPE_USER_AGENT,
         "Accept-Language": "en,ru,uk,fa",
       },
     });

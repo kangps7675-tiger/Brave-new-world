@@ -22,7 +22,6 @@ import type {
   AisGlobePoint,
   AisHtmlMarker,
   MilGlobePoint,
-  MilHtmlMarker,
   PulseRingPoint,
   StaticGlobePoint,
   UsCarrierHtmlMarker,
@@ -167,15 +166,12 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     [globeLodTier, isEconomyViewer, layerViewState, milAircraft, showMilitaryActivity, ultraLite],
   );
 
-  const milHtmlMarkers = useMemo<MilHtmlMarker[]>(
-    () =>
-      milDisplayPoints.map((aircraft) => ({
-        ...aircraft,
-        markerId: `mil-html-${aircraft.hex || aircraft.id}`,
-        displayKind: "mil-html" as const,
-      })),
-    [milDisplayPoints],
-  );
+  /*
+   * milHtmlMarkers / civHtmlMarkers 는 제거됨.
+   * 항공기는 DOM Marker가 아니라 symbol 레이어로 그린다 (milAircraftSymbols.ts) —
+   * GlobeDashboard가 milDisplayPoints/civDisplayPoints 를 직접 받아
+   * buildAircraftSymbolModel 에 넘긴다. 사본을 만들 이유가 없어졌다.
+   */
 
   const civDisplayPoints = useMemo(
     () =>
@@ -188,16 +184,6 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
           )
         : [],
     [civAircraft, globeLodTier, layerViewState, showAirTraffic, ultraLite],
-  );
-
-  const civHtmlMarkers = useMemo<MilHtmlMarker[]>(
-    () =>
-      civDisplayPoints.map((aircraft) => ({
-        ...aircraft,
-        markerId: `civ-html-${aircraft.hex || aircraft.id}`,
-        displayKind: "civ-html" as const,
-      })),
-    [civDisplayPoints],
   );
 
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
@@ -261,9 +247,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     usCarrierLabelOffsets,
     usCarrierHtmlMarkers,
     milDisplayPoints,
-    milHtmlMarkers,
     civDisplayPoints,
-    civHtmlMarkers,
     aisDisplayPoints,
     aisHtmlMarkers,
   };

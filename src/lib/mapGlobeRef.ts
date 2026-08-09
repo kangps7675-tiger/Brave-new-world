@@ -40,6 +40,8 @@ export type MapGlobeMethods = {
   controls: () => MapGlobeControls;
   /** 맵 로드·스타일 교체 후 줌 한계·드래그 플래그 재적용 */
   applyControls: () => void;
+  /** 원본 MapLibre 맵 (Cesium hybrid sync 등) */
+  getMapLibreMap: () => MapLibreMap | null;
   renderer: () => { domElement: HTMLCanvasElement | null };
   /**
    * 지도 캔버스의 **현재 프레임 스냅샷**을 별도 canvas로 복사해 돌려준다.
@@ -408,6 +410,10 @@ export function createMapGlobeMethods(
     applyControls() {
       invalidateZoomLimitCache();
       applyInteractionFlags();
+    },
+
+    getMapLibreMap() {
+      return mapRef.current?.getMap() ?? null;
     },
 
     renderer() {

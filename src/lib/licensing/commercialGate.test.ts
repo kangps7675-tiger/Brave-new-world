@@ -87,14 +87,45 @@ describe("commercialGate — 유료 티어 차단", () => {
 });
 
 describe("commercialGate — 알려진 위험 소스", () => {
-  it("adsb.fi 를 쓰는 레이어는 상업 이용 불가로 표시돼 있다", () => {
-    // "for personal, non-commercial use only. You may not license, sell,
-    //  rent, or lease any part of the data or the service."
+  /*
+   * 2026-08-01 — adsb.fi 와 airplanes.live 를 런타임 폴백에서 제거하면서
+   * `military-activity` · `air-traffic` 을 prohibited → allowed 로 재판정했다.
+   *
+   * 그래서 이 테스트가 지키는 불변조건이 바뀌었다:
+   *   (전) "이 레이어들은 prohibited 여야 한다"
+   *   (후) "이 레이어들이 allowed 라면, 코드에 adsb.fi 가 남아 있으면 안 된다"
+   *
+   * 등급과 실제 폴백이 어긋나는 게 진짜 위험이므로, 둘을 함께 검사한다.
+   *
+   * @see docs/copyright-audit-2026-08-01.md — Y-2
+   */
+  it("adsb.fi · airplanes.live 가 코드에서 제거된 상태와 등급이 일치한다", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+
+    const sources = [
+      "src/lib/adsbClient.ts",
+      "src/lib/adsbWarmFetch.ts",
+      "workers/cron-ingest/src/adsb.ts",
+    ];
+
+    for (const rel of sources) {
+      const body = readFileSync(join(process.cwd(), rel), "utf8");
+      // 주석 안의 언급은 허용 — 실제 엔드포인트 URL 만 금지한다
+      expect(body, `${rel} 에 adsb.fi 엔드포인트가 남아 있다`).not.toMatch(
+        /opendata\.adsb\.fi/,
+      );
+      expect(body, `${rel} 에 airplanes.live 엔드포인트가 남아 있다`).not.toMatch(
+        /api\.airplanes\.live/,
+      );
+    }
+
+    // 폴백이 깨끗하므로 두 레이어는 유료 노출이 가능해야 한다
     for (const id of ["military-activity", "air-traffic"]) {
       const note = NEWS_LAYER_SOURCE_CATALOG.find((n) => n.layerId === id);
       expect(note, id).toBeTruthy();
-      expect(note!.commercialUse, `${id} 는 adsb.fi 폴백을 포함한다`).toBe("prohibited");
-      expect(note!.commercialNote).toMatch(/adsb\.fi/);
+      expect(note!.commercialUse, `${id}`).toBe("allowed");
+      expect(canShowInTier(id, "paid"), `${id} 는 유료 노출 가능해야 한다`).toBe(true);
     }
   });
 

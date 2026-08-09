@@ -11,7 +11,6 @@
 	{"i":"airport-OEAB","k":"airport","n":"Abha International Airport","la":18.2404,"ln":42.6566,"s":1,"m":{"iso":"SA","iata":"AHB","icao":"OEAB","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-MMCS","k":"airport","n":"Abraham González International Airport","la":31.6367,"ln":-106.4285,"s":1,"m":{"iso":"MX","iata":"CJS","icao":"MMCS","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-LIBP","k":"airport","n":"Abruzzo Airport","la":42.4311,"ln":14.183,"s":1,"m":{"iso":"IT","iata":"PSR","icao":"LIBP","type":"large_airport","source":"ourairports-data"}},
-	{"i":"airport-LTAF","k":"airport","n":"Adana Şakirpaşa Airport","la":36.9822,"ln":35.2804,"s":1,"m":{"iso":"TR","iata":"ADA","icao":"LTAF","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-HAAB","k":"airport","n":"Addis Ababa Bole International Airport","la":8.9779,"ln":38.7993,"s":1,"m":{"iso":"ET","iata":"ADD","icao":"HAAB","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-YPAD","k":"airport","n":"Adelaide International Airport","la":-34.9475,"ln":138.5334,"s":1,"m":{"iso":"AU","iata":"ADL","icao":"YPAD","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-HCMM","k":"airport","n":"Aden Adde International Airport","la":2.0144,"ln":45.3047,"s":1,"m":{"iso":"SO","iata":"MGQ","icao":"HCMM","type":"large_airport","source":"ourairports-data"}},
@@ -630,7 +629,6 @@
 	{"i":"airport-MYNN","k":"airport","n":"Lynden Pindling International Airport","la":25.039,"ln":-77.4662,"s":1,"m":{"iso":"BS","iata":"NAS","icao":"MYNN","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-LFLL","k":"airport","n":"Lyon Saint-Exupéry Airport","la":45.726,"ln":5.0901,"s":1,"m":{"iso":"FR","iata":"LYS","icao":"LFLL","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-LZIB","k":"airport","n":"M. R. Štefánik Airport","la":48.1702,"ln":17.2127,"s":1,"m":{"iso":"SK","iata":"BTS","icao":"LZIB","type":"large_airport","source":"ourairports-data"}},
-	{"i":"airport-VRDA","k":"airport","n":"Maafaru International Airport","la":5.8174,"ln":73.4684,"s":1,"m":{"iso":"MV","iata":"NMF","icao":"VRDA","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-EHBK","k":"airport","n":"Maastricht Aachen Airport","la":50.9111,"ln":5.7694,"s":1,"m":{"iso":"NL","iata":"MST","icao":"EHBK","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-VMMC","k":"airport","n":"Macau International Airport","la":22.1496,"ln":113.592,"s":1,"m":{"iso":"MO","iata":"MFM","icao":"VMMC","type":"large_airport","source":"ourairports-data"}},
 	{"i":"airport-RPVM","k":"airport","n":"Mactan Cebu International Airport","la":10.3093,"ln":123.9797,"s":1,"m":{"iso":"PH","iata":"CEB","icao":"RPVM","type":"large_airport","source":"ourairports-data"}},
@@ -1177,7 +1175,6 @@
 	{"i":"airport-BGAA","k":"airport","n":"Aasiaat Airport","la":68.7218,"ln":-52.7847,"s":2,"m":{"iso":"GL","iata":"JEG","icao":"BGAA","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-CYXX","k":"airport","n":"Abbotsford International Airport","la":49.0253,"ln":-122.361,"s":2,"m":{"iso":"CA","iata":"YXX","icao":"CYXX","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-WARA","k":"airport","n":"Abdul Rachman Saleh Airport","la":-7.9291,"ln":112.7142,"s":2,"m":{"iso":"ID","iata":"MLG","icao":"WARA","type":"medium_airport","source":"ourairports-data"}},
-	{"i":"airport-FTTC","k":"airport","n":"Abeche Airport","la":13.847,"ln":20.8443,"s":2,"m":{"iso":"TD","iata":"AEH","icao":"FTTC","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-KABR","k":"airport","n":"Aberdeen Regional Airport","la":45.4491,"ln":-98.4218,"s":2,"m":{"iso":"US","iata":"ABR","icao":"KABR","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-KABI","k":"airport","n":"Abilene Regional Airport","la":32.4113,"ln":-99.6819,"s":2,"m":{"iso":"US","iata":"ABI","icao":"KABI","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-KSPI","k":"airport","n":"Abraham Lincoln Capital Airport","la":39.8441,"ln":-89.6779,"s":2,"m":{"iso":"US","iata":"SPI","icao":"KSPI","type":"medium_airport","source":"ourairports-data"}},
@@ -1198,5 +1195,8 @@
 	{"i":"airport-DAAS","k":"airport","n":"Ain Arnat Airport","la":36.1785,"ln":5.3299,"s":2,"m":{"iso":"DZ","iata":"QSF","icao":"DAAS","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-DAUU","k":"airport","n":"Ain Beida Airport","la":31.9172,"ln":5.4128,"s":2,"m":{"iso":"DZ","iata":"OGX","icao":"DAUU","type":"medium_airport","source":"ourairports-data"}},
 	{"i":"airport-SPHO","k":"airport","n":"Air Force Colonel Alfredo Mendivil Duarte Airport","la":-13.1548,"ln":-74.2044,"s":2,"m":{"iso":"PE","iata":"AYP","icao":"SPHO","type":"medium_airport","source":"ourairports-data"}},
-	{"i":"airport-LFKJ","k":"airport","n":"Ajaccio Napoléon Bonaparte airport","la":41.9236,"ln":8.8029,"s":2,"m":{"iso":"FR","iata":"AJA","icao":"LFKJ","type":"medium_airport","source":"ourairports-data"}}
+	{"i":"airport-LFKJ","k":"airport","n":"Ajaccio Napoléon Bonaparte airport","la":41.9236,"ln":8.8029,"s":2,"m":{"iso":"FR","iata":"AJA","icao":"LFKJ","type":"medium_airport","source":"ourairports-data"}},
+	{"i":"airport-WALS","k":"airport","n":"Aji Pangeran Tumenggung Pranoto International Airport","la":-0.3745,"ln":117.2501,"s":2,"m":{"iso":"ID","iata":"AAP","icao":"WALS","type":"medium_airport","source":"ourairports-data"}},
+	{"i":"airport-RJSK","k":"airport","n":"Akita Airport","la":39.6156,"ln":140.219,"s":2,"m":{"iso":"JP","iata":"AXT","icao":"RJSK","type":"medium_airport","source":"ourairports-data"}},
+	{"i":"airport-KCAK","k":"airport","n":"Akron Canton Regional Airport","la":40.9161,"ln":-81.4422,"s":2,"m":{"iso":"US","iata":"CAK","icao":"KCAK","type":"medium_airport","source":"ourairports-data"}}
 ]

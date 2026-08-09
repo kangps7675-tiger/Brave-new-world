@@ -6,7 +6,8 @@
  * 전부 이 숫자(및 전일 대비 Δ)의 파생상품으로 취급한다.
  *
  * 공식 산출은 cron `upsertWorldTension` (전장 z-score 평균·최고 혼합 0–100).
- * 이 모듈은 브랜드·밴드·매핑·애널리스트 등급만 담당한다.
+ * 이 모듈은 브랜드·밴드·**표시 반올림**·매핑·애널리스트 등급을 담당한다.
+ * UI 컴포넌트는 score/delta를 직접 Math.round 하지 말고 아래 display* 헬퍼만 쓴다.
  *
  * 원유 티커(WTI crude / CL=F)와는 무관 — 과거 브랜드명 WTI(World Tension)와 혼동하지 말 것.
  */
@@ -14,6 +15,24 @@
 import type { WorldTensionSnapshot } from "@/lib/dailyRanks";
 
 export type GtiSnapshot = WorldTensionSnapshot;
+
+/**
+ * cron `upsertWorldTension` / `computeWorldTension` 과 동일 축.
+ * 클라이언트 fallback(`deriveWorldTensionFromTheaters`)도 이 가중치를 써야 한다.
+ */
+export const GTI_BLEND = {
+  avgWeight: 0.55,
+  maxWeight: 0.45,
+  /** |Δ| 미만이면 UI에서 “평탄” */
+  flatDeltaEps: 0.05,
+  /** 전장 베이스라인 창 (일) — cron BASELINE_DAYS */
+  baselineDays: 90,
+  /** 전일 EMA 혼합 — cron EMA_TODAY / EMA_PREV */
+  emaToday: 0.55,
+  emaPrev: 0.45,
+  /** 하루 최대 상대 변동 — cron MAX_DAY_DELTA_RATIO */
+  maxDayDeltaRatio: 0.4,
+} as const;
 
 /** 브랜드 표기 — UI·공유·카피의 단일 소스 */
 export const GTI = {
@@ -40,11 +59,60 @@ export const GTI = {
 /** @deprecated use GTI */
 export const WTI = GTI;
 
+/**
+ * UI 간판 점수 — 0–100 정수.
+ * 칩·히어로·브리핑·공유 카드가 반드시 이 함수만 사용한다.
+ */
+export function displayGtiScore(score: number | null | undefined): number | null {
+  if (score == null || !Number.isFinite(score)) return null;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/**
+ * UI 전일대비 Δ — 소수 1자리. 평탄(|Δ|<eps)이면 null.
+ * 칩이 정수로 반올림하면 브리핑(1.9)과 어긋난다(계획의 “2 vs 1.9”).
+ */
+export function displayGtiDelta(delta: number | null | undefined): number | null {
+  if (delta == null || !Number.isFinite(delta)) return null;
+  if (Math.abs(delta) < GTI_BLEND.flatDeltaEps) return null;
+  return Math.round(delta * 10) / 10;
+}
+
+/** 저장·API 정규화 (소수 1자리) — dailyRanks 페이로드와 맞춤 */
+export function normalizeGtiScore(score: number): number {
+  if (!Number.isFinite(score)) return 0;
+  return Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
+}
+
+/** 전장 점수 배열 → 혼합 GTI (stabilize/EMA 전 raw). cron computeWorldTension 과 동일. */
+export function blendTheaterScoresToGti(theaterScores: number[]): number {
+  const scores = theaterScores.filter((n) => Number.isFinite(n) && n > 0);
+  if (scores.length === 0) return 0;
+  const avg = scores.reduce((sum, n) => sum + n, 0) / scores.length;
+  const max = Math.max(...scores);
+  const blended = GTI_BLEND.avgWeight * avg + GTI_BLEND.maxWeight * max;
+  return Math.round(Math.max(0, Math.min(100, blended)) * 100) / 100;
+}
+
+export function formatGtiDeltaLabel(
+  delta: number | null | undefined,
+  lang: "ko" | "en" = "ko",
+): string {
+  const rounded = displayGtiDelta(delta);
+  if (rounded == null) {
+    return lang === "en" ? "vs yesterday —" : "어제 대비 —";
+  }
+  const sign = rounded > 0 ? "+" : "";
+  return lang === "en"
+    ? `vs yesterday ${sign}${rounded}`
+    : `어제보다 ${sign}${rounded}`;
+}
+
 export type GtiBand = "calm" | "elevated" | "high" | "critical";
 /** @deprecated use GtiBand */
 export type WtiBand = GtiBand;
 
-/** 점수 → 긴장 밴드 (사운드·UI 공통) */
+/** 점수 → 긴장 밴드 (사운드·UI 공통) — raw score 기준 (표시 반올림 전) */
 export function gtiBand(score: number): GtiBand {
   if (score >= 75) return "critical";
   if (score >= 55) return "high";
@@ -120,27 +188,58 @@ export function formatGtiBriefingLead(
   snap: GtiSnapshot,
   lang: "ko" | "en",
 ): string {
-  const score = Math.round(snap.score);
+  const score = displayGtiScore(snap.score) ?? 0;
   const band = gtiBandLabel(gtiBand(snap.score), lang === "ko");
-  const delta = snap.deltaScore;
+  const delta = displayGtiDelta(snap.deltaScore);
   if (lang === "ko") {
-    if (delta == null || Math.abs(delta) < 0.05) {
+    if (delta == null) {
       return `오늘의 ${GTI.ticker}는 ${score}(${band}). 전일과 거의 같은 수준입니다.`;
     }
     const dir = delta > 0 ? "올랐" : "내렸";
-    const mag = Math.abs(Math.round(delta * 10) / 10);
+    const mag = Math.abs(delta);
     return `오늘의 ${GTI.ticker}는 ${score}(${band}). 어제보다 ${mag}포인트 ${dir}습니다.`;
   }
-  if (delta == null || Math.abs(delta) < 0.05) {
+  if (delta == null) {
     return `Today’s ${GTI.ticker} is ${score} (${band}) — roughly flat vs yesterday.`;
   }
   const dir = delta > 0 ? "up" : "down";
-  const mag = Math.abs(Math.round(delta * 10) / 10);
+  const mag = Math.abs(delta);
   return `Today’s ${GTI.ticker} is ${score} (${band}) — ${mag} pts ${dir} from yesterday.`;
 }
 
 /** @deprecated use formatGtiBriefingLead */
 export const formatWtiBriefingLead = formatGtiBriefingLead;
+
+/** Methodology 패널용 — 산출식 한 장 (한·영) */
+export function gtiMethodologyCopy(lang: "ko" | "en"): {
+  title: string;
+  paragraphs: string[];
+} {
+  if (lang === "en") {
+    return {
+      title: `${GTI.ticker} — how the index is built`,
+      paragraphs: [
+        `${GTI.fullEn} (${GTI.ticker}) is a 0–100 headline from theater tension ranks (not oil ticker WTI).`,
+        `Each theater gets a baseline z-score over ~${GTI_BLEND.baselineDays} UTC days from open signals (GDELT mentions, map points, FIRMS fires, telegram volume, air-raid scores), then blended soft/hard weights.`,
+        `World score before smoothing: ${GTI_BLEND.avgWeight}×theater average + ${GTI_BLEND.maxWeight}×theater max (clamped 0–100).`,
+        `Day-over-day: EMA ${GTI_BLEND.emaToday} today / ${GTI_BLEND.emaPrev} previous, with a daily move cap (~${Math.round(GTI_BLEND.maxDayDeltaRatio * 100)}% of prior level, min floor).`,
+        `UI shows the score as a whole number; day change (Δ) to one decimal. Same snapshot feeds the top chip, daily rank hero, parchment briefs, and share cards.`,
+        `Not a raid/casualty forecast — interpretive tension only.`,
+      ],
+    };
+  }
+  return {
+    title: `${GTI.ticker} — 산출식`,
+    paragraphs: [
+      `${GTI.fullKo}(${GTI.ticker})는 전장 긴장 랭킹을 하나의 0–100 간판 숫자로 묶은 지표입니다 (원유 티커 WTI와 무관).`,
+      `전장별 점수는 공개 신호(GDELT 멘션·지도 포인트·FIRMS 화재·텔레그램 분량·공습 점수 등)를 약 ${GTI_BLEND.baselineDays}일(UTC) 베이스라인 대비 z-score로 만든 뒤 soft/hard 가중합니다.`,
+      `세계 점수(스무딩 전): 전장 평균×${GTI_BLEND.avgWeight} + 전장 최고×${GTI_BLEND.maxWeight} (0–100 클램프).`,
+      `일간: 오늘 EMA ${GTI_BLEND.emaToday} / 전일 ${GTI_BLEND.emaPrev}, 하루 변동 상한(전일 대비 약 ${Math.round(GTI_BLEND.maxDayDeltaRatio * 100)}%·하한 있음).`,
+      `화면 표시: 점수는 정수, 전일대비(Δ)는 소수 1자리. 우상단 칩·일일 랭킹 히어로·등불 브리핑·공유 카드가 같은 스냅샷을 씁니다.`,
+      `공습·인명 예측이 아닙니다. 해석용 긴장 지표입니다.`,
+    ],
+  };
+}
 
 /** 메인 예측 문제 카피 (전장별은 보너스) */
 export function gtiPredictQuestion(): { ko: string; en: string } {

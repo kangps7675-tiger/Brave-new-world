@@ -1,6 +1,7 @@
 import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { getSotwApiKey, sotwFetchJson, SOTW_ATTRIBUTION } from "@/lib/sotw";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
       disabled: true,
       reason: "STATSOFTHEWORLD_API_KEY not set",
       attribution: SOTW_ATTRIBUTION,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   }
 
   const { searchParams } = new URL(request.url);
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
       count: payload.count ?? payload.data?.length ?? 0,
       data: (payload.data ?? []).slice(0, limit),
       attribution: SOTW_ATTRIBUTION,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   } catch (error) {
     return NextResponse.json(
       {

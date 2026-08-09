@@ -116,6 +116,7 @@ export function HoverNav({
 
   function handleSearchPick(place: SearchPlace) {
     onSearchSelect(place);
+    onQueryChange("");
     setNavOpen(false);
     setHubMenuOpen(false);
     setOpenKey(null);
@@ -207,10 +208,11 @@ export function HoverNav({
           compact
             ? "max-w-full"
             : isEconomy
-              ? `max-w-md sm:max-w-lg ${menuExpanded ? "max-w-3xl sm:max-w-4xl" : ""}`
-              : showDesktopToolsSlot
-                ? "max-w-5xl sm:max-w-6xl"
-                : "max-w-md sm:max-w-lg"
+              ? // 우상단 시계·GTI 클러스터와 겹치지 않게 검색바는 좁게. 메뉴 펼침만 넓힘.
+                `max-w-[min(20rem,calc(100vw-20rem))] sm:max-w-[min(24rem,calc(100vw-22rem))] ${
+                  menuExpanded ? "max-w-[min(42rem,calc(100vw-3rem))] sm:max-w-[min(48rem,calc(100vw-4rem))]" : ""
+                }`
+              : "max-w-[min(20rem,calc(100vw-20rem))] sm:max-w-[min(24rem,calc(100vw-22rem))]"
         } ${isEconomy ? "hover-nav--economy font-nav-economy" : "hover-nav--conflict"}`}
       >
         <div
@@ -230,8 +232,19 @@ export function HoverNav({
             />
             <input
               value={query}
-              onChange={(event) => onQueryChange(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                onQueryChange(next);
+                if (next.trim()) {
+                  setNavOpen(false);
+                  setHubMenuOpen(false);
+                  setOpenKey(null);
+                  setOpenHubId(null);
+                }
+              }}
               placeholder={chrome.searchPlaceholder}
+              autoComplete="off"
+              spellCheck={false}
               className={`min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:opacity-35 sm:text-sm ${
                 light
                   ? "text-slate-800 placeholder:text-slate-500"
@@ -317,38 +330,85 @@ export function HoverNav({
             )}
           </div>
 
-          {searchResults.length > 0 && (
+          {query.trim() ? (
             <div
               className={`absolute left-0 right-0 top-full z-[400] max-h-72 overflow-y-auto rounded-b-2xl border border-t-0 ${borderTone} ${menuBg} shadow-2xl backdrop-blur-xl`}
+              role="listbox"
+              aria-label={labelLanguage === "en" ? "Search results" : "검색 결과"}
             >
-              {searchResults.map((place) => (
-                <button
-                  key={place.id}
-                  type="button"
-                  onClick={() => handleSearchPick(place)}
-                  className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
+              {searchResults.length > 0 ? (
+                searchResults.map((place) => {
+                  const primary =
+                    labelLanguage === "ko" && place.nameKo?.trim()
+                      ? place.nameKo
+                      : place.name;
+                  const secondary =
+                    labelLanguage === "ko" && place.nameKo?.trim() && place.nameKo !== place.name
+                      ? `${place.name} · ${place.country}`
+                      : place.country;
+                  return (
+                    <button
+                      key={place.id}
+                      type="button"
+                      role="option"
+                      onClick={() => handleSearchPick(place)}
+                      className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
+                    >
+                      <span className="min-w-0">
+                        <span
+                          className={`block truncate ${
+                            light
+                              ? "text-slate-900"
+                              : isEconomy
+                                ? "text-emerald-50/95"
+                                : "text-sky-50/95"
+                          }`}
+                        >
+                          {primary}
+                        </span>
+                        <span
+                          className={`block truncate text-xs ${
+                            light
+                              ? "text-slate-500"
+                              : isEconomy
+                                ? "text-emerald-100/40"
+                                : "text-sky-100/40"
+                          }`}
+                        >
+                          {secondary}
+                        </span>
+                      </span>
+                      <span
+                        className={`ml-2 shrink-0 rounded-full border px-2 py-0.5 text-micro uppercase ${
+                          light
+                            ? "border-slate-300/60 text-slate-500"
+                            : isEconomy
+                              ? "border-emerald-200/15 text-emerald-100/45"
+                              : "border-sky-200/15 text-sky-100/45"
+                        }`}
+                      >
+                        {place.type}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <p
+                  className={`px-4 py-3 text-xs ${
+                    light
+                      ? "text-slate-500"
+                      : isEconomy
+                        ? "text-emerald-100/45"
+                        : "text-sky-100/45"
+                  }`}
                 >
-                  <span>
-                    <span className={`block ${isEconomy ? "text-emerald-50/95" : "text-sky-50/95"}`}>
-                      {place.name}
-                    </span>
-                    <span className={`text-xs ${isEconomy ? "text-emerald-100/40" : "text-sky-100/40"}`}>
-                      {place.country}
-                    </span>
-                  </span>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-micro uppercase ${
-                      isEconomy
-                        ? "border-emerald-200/15 text-emerald-100/45"
-                        : "border-sky-200/15 text-sky-100/45"
-                    }`}
-                  >
-                    {place.type}
-                  </span>
-                </button>
-              ))}
+                  {labelLanguage === "en"
+                    ? `No places match “${query.trim()}”.`
+                    : `“${query.trim()}”에 맞는 장소가 없습니다.`}
+                </p>
+              )}
             </div>
-          )}
+          ) : null}
         </div>
 
         {!isEconomy ? (

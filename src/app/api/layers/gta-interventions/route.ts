@@ -15,6 +15,7 @@ import { cachedFetchJson } from "@/lib/apiCache";
 import { apiStubResponse } from "@/lib/apiStub";
 import { loadLocalJson } from "@/lib/localLayerData";
 import { GTA_ATTRIBUTION, type GtaIntervention } from "@/lib/gta";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,7 +75,7 @@ export async function GET(request: Request) {
       // Red/Amber/Green 은 GTA 의 판단이지 객관 사실이 아니다.
       evaluationNotice:
         "Red/Amber/Green 은 Global Trade Alert 연구진의 평가입니다. 객관적 사실 판정이 아닙니다.",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   } catch (error) {
     return NextResponse.json({
       receivedAt: new Date().toISOString(),
@@ -83,6 +84,6 @@ export async function GET(request: Request) {
       interventions: [],
       attribution: GTA_ATTRIBUTION,
       warning: publicErrorMessage(error, "gta-interventions failed"),
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   }
 }

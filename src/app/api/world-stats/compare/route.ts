@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getSotwApiKey, SOTW_ATTRIBUTION } from "@/lib/sotw";
 import { composeMarketLampParagraphs, fetchSotwMacroDeepMany } from "@/lib/sotwMacro";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
       disabled: true,
       reason: "STATSOFTHEWORLD_API_KEY not set",
       attribution: SOTW_ATTRIBUTION,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   }
 
   const { searchParams } = new URL(request.url);
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
       })),
       paragraphs: composeMarketLampParagraphs(macros, lang),
       attribution: SOTW_ATTRIBUTION,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   } catch (error) {
     return NextResponse.json(
       {

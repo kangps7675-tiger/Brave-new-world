@@ -9,6 +9,7 @@ import {
   fetchSotwMacroDeep,
   fetchSotwMacroDeepMany,
 } from "@/lib/sotwMacro";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
       reason: "STATSOFTHEWORLD_API_KEY not set",
       attribution: SOTW_ATTRIBUTION,
       paragraphs: [] as string[],
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   }
 
   const { searchParams } = new URL(request.url);
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
         }),
         macros,
         attribution: SOTW_ATTRIBUTION,
-      });
+      }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
     }
 
     const briefs = allEconInsightBriefs().filter((b) => Boolean(b.countryHint));
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
         dayKey,
         paragraphs: [],
         attribution: SOTW_ATTRIBUTION,
-      });
+      }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
     }
 
     const primary = briefs[hashKeyToIndex(dayKey, briefs.length)]!;
@@ -119,7 +120,7 @@ export async function GET(request: Request) {
       model: narrative.model,
       macros,
       attribution: SOTW_ATTRIBUTION,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.worldStats) });
   } catch (error) {
     return NextResponse.json(
       {

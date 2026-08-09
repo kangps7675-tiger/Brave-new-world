@@ -15,6 +15,7 @@ import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
 import type { MilitaryExercise } from "@/lib/militaryExercises";
 import { truncateOverview } from "@/components/globe/formatters";
+import { emitHoverLayerId } from "@/lib/hoverLayerBridge";
 import {
   HOVER,
   carrierStatusLabel,
@@ -182,6 +183,7 @@ export function withLayerReliability(
 /** 지구본 호버 카드 콘텐츠 조립 — 순수 함수 (테스트·재사용 용이) */
 export function buildHoverCard(params: HoverCardParams): HoverCard {
   const layerId = resolveHoverLayerId(params);
+  emitHoverLayerId(layerId);
   const lang = params.labelLanguage;
   const withRel = withLayerReliability(buildHoverCardRaw(params), layerId, lang);
   /** 마우스 옆 카드에 “이게 뭔지” 평문 — body가 비었을 때만 채움 */

@@ -3,7 +3,14 @@
 import type { MutableRefObject } from "react";
 import type { FeatureCollection } from "geojson";
 import type { PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
-import type { ConflictZoneFeature, DisputeArea, DisputeOverview, TransportPath } from "@/data/geoTypes";
+import type {
+  ConflictZoneFeature,
+  DisputeArea,
+  DisputeOverview,
+  MilitaryAircraft,
+  TransportPath,
+} from "@/data/geoTypes";
+import type { AircraftSymbolModel } from "@/lib/milAircraftSymbols";
 import type {
   FirmsFireGlobePoint,
   GlobeDisplayPoint,
@@ -144,6 +151,14 @@ export interface UseGlobeMapGlobePropsParams {
   conflictClusterRings: PulseRingPoint[];
   htmlOverlayMarkers: HtmlOverlayMarker[];
   createHtmlOverlayElement: (point: object) => HTMLElement;
+  /**
+   * 항공기는 DOM Marker가 아니라 symbol 레이어로 그린다 (milAircraftSymbols.ts).
+   * htmlOverlayMarkers에 넣지 말 것 — 최대 430개 DOM이 되살아난다.
+   */
+  aircraftSymbols: AircraftSymbolModel;
+  handleMilAircraftSelect: (aircraft: MilitaryAircraft) => void;
+  handleCivAircraftSelect: (aircraft: MilitaryAircraft) => void;
+  setHoveredMilAircraft: (aircraft: MilitaryAircraft | null) => void;
   isViinaCloseZoom: boolean;
   showUkraineControl: boolean;
   layerAltitudeRef: MutableRefObject<number>;
@@ -204,6 +219,10 @@ export function useGlobeMapGlobeProps(
     conflictClusterRings,
     htmlOverlayMarkers,
     createHtmlOverlayElement,
+    aircraftSymbols,
+    handleMilAircraftSelect,
+    handleCivAircraftSelect,
+    setHoveredMilAircraft,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -550,6 +569,19 @@ export function useGlobeMapGlobeProps(
       if (point.pulseKind === "ship-movement") return 0.55;
       return 2.2;
     },
+    /* ── 항공기: symbol 레이어 (DOM Marker 아님) ────────────────────── */
+    aircraftSymbolsData: aircraftSymbols.geojson,
+    aircraftSymbolsItems: aircraftSymbols.items,
+    aircraftSymbolsIsCivil: aircraftSymbols.isCivil,
+    onAircraftClick: (item: unknown, isCivil: boolean) => {
+      const aircraft = item as MilitaryAircraft;
+      if (isCivil) handleCivAircraftSelect(aircraft);
+      else handleMilAircraftSelect(aircraft);
+    },
+    onAircraftHover: (item: unknown | null) => {
+      setHoveredMilAircraft((item as MilitaryAircraft | null) ?? null);
+    },
+
     htmlElementsData: htmlOverlayMarkers,
     htmlLat: (point: HtmlOverlayMarker) =>
       point.displayKind === "recon-sat-html"

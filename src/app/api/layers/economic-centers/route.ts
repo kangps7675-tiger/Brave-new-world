@@ -3,6 +3,7 @@ import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { loadLocalStaticPoints } from "@/lib/localLayerData";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,5 +27,5 @@ export async function GET(request: Request) {
     count: data.length,
     points: data,
     attribution: "World Bank Open Data context · local build",
-  });
+  }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
 }

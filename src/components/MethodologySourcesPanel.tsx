@@ -48,6 +48,7 @@ import {
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { getLayerReliability } from "@/lib/layerReliability";
 import { EVIDENCE_TIER_LEGEND } from "@/lib/evidenceTierMarker";
+import { gtiMethodologyCopy } from "@/lib/gti";
 
 type MethodologySourcesPanelProps = {
   open: boolean;
@@ -76,6 +77,7 @@ export function MethodologySourcesPanel({
   const shipped = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "shipped");
   const planned = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "planned");
   const isEn = lang === "en";
+  const gtiMethod = gtiMethodologyCopy(isEn ? "en" : "ko");
 
   return (
     <>
@@ -115,6 +117,16 @@ export function MethodologySourcesPanel({
               {isEn ? DISCLAIMER_EN : DISCLAIMER_KO}
             </p>
           </section>
+
+          <section className="rounded-xl border border-rose-400/30 bg-rose-950/25 p-3">
+            <h3 className="text-sm font-medium text-rose-100">{gtiMethod.title}</h3>
+            <div className="mt-2 space-y-2 text-caption leading-5 text-sky-100/85">
+              {gtiMethod.paragraphs.map((p) => (
+                <p key={p.slice(0, 48)}>{p}</p>
+              ))}
+            </div>
+          </section>
+
           {onOpenTrust ? (
             <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
               <h3 className="text-sm font-medium text-sky-50">

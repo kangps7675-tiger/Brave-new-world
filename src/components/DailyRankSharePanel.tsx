@@ -7,7 +7,6 @@ import {
   dailyRankLabel,
   displayTensionScore,
   formatRankDelta,
-  formatWorldTensionDelta,
   type DailyRankEntry,
   type DailyRankKind,
   type DailyRanksPayload,
@@ -17,6 +16,8 @@ import { shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
+  displayGtiScore,
+  formatGtiDeltaLabel,
   formatGtiTitle,
   gtiBand,
   gtiBandLabel,
@@ -40,14 +41,14 @@ function WorldTensionHero({
   topTheater?: DailyRankEntry | null;
 }) {
   const ko = lang !== "en";
-  const delta = formatWorldTensionDelta(tension.deltaScore, ko ? "ko" : "en");
+  const delta = formatGtiDeltaLabel(tension.deltaScore, ko ? "ko" : "en");
   const deltaClass =
     tension.deltaScore == null || Math.abs(tension.deltaScore) < 0.05
       ? "text-slate-500"
       : tension.deltaScore > 0
         ? "text-rose-400"
         : "text-emerald-400";
-  const score = Math.round(tension.score);
+  const score = displayGtiScore(tension.score) ?? 0;
   const fill = Math.max(0, Math.min(100, tension.score));
   const band = gtiBandLabel(gtiBand(tension.score), ko);
   const rising =

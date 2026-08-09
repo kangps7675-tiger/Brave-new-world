@@ -13,5 +13,8 @@ export const TABLET_QUERY =
 
 export const DESKTOP_WIDE_QUERY = "(min-width: 1440px)";
 
-/** hydration 전 html[data-device] — useDeviceProfile과 동일 판별 */
-export const DEVICE_BOOT_SCRIPT = `(function(){try{var d=document.documentElement;var ua=navigator.userAgent||"";var phoneUa=/iPhone|iPod|Android.*Mobile|Windows Phone|BlackBerry|BB10|Opera Mini|IEMobile/i.test(ua);var phoneMq=window.matchMedia(${JSON.stringify(PHONE_QUERY)}).matches;var phone=phoneUa||phoneMq;var tablet=window.matchMedia(${JSON.stringify(TABLET_QUERY)}).matches;var wide=window.matchMedia(${JSON.stringify(DESKTOP_WIDE_QUERY)}).matches;var profile=phone?"phone":tablet?"tablet":wide?"desktop-wide":"desktop";d.setAttribute("data-device",profile);}catch(e){document.documentElement.setAttribute("data-device","desktop");}})();`;
+/**
+ * hydration 전 html[data-device] · html[data-engine] —
+ * useDeviceProfile과 동일 판별 + Safari/WebKit 블러 강등(P2-6).
+ */
+export const DEVICE_BOOT_SCRIPT = `(function(){try{var d=document.documentElement;var ua=navigator.userAgent||"";var phoneUa=/iPhone|iPod|Android.*Mobile|Windows Phone|BlackBerry|BB10|Opera Mini|IEMobile/i.test(ua);var phoneMq=window.matchMedia(${JSON.stringify(PHONE_QUERY)}).matches;var phone=phoneUa||phoneMq;var tablet=window.matchMedia(${JSON.stringify(TABLET_QUERY)}).matches;var wide=window.matchMedia(${JSON.stringify(DESKTOP_WIDE_QUERY)}).matches;var profile=phone?"phone":tablet?"tablet":wide?"desktop-wide":"desktop";d.setAttribute("data-device",profile);var webkit=!!window.webkit||/AppleWebKit/i.test(ua)&&!/Chrome|Chromium|Edg|OPR|Android/i.test(ua)||(/iP(hone|ad|od)/.test(ua));d.setAttribute("data-engine",webkit?"webkit":"other");}catch(e){document.documentElement.setAttribute("data-device","desktop");document.documentElement.setAttribute("data-engine","other");}})();`;

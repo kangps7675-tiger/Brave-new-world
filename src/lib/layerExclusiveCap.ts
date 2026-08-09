@@ -107,7 +107,7 @@ export function canEnableLayer(
 
 /**
  * 캡이 남아 있으면 ON. 초과면 prefs 그대로(호출측에서 거부·경고).
- * Ultra에서만 자리 비우기가 필요하면 enableLayerEvictingCap 사용.
+ * 자리 비우기가 필요하면 enableLayerEvictingCap 사용 (일반·Ultra 공통, P2-2).
  */
 export function enableLayerWithCap(
   prefs: LayerPrefs,
@@ -123,7 +123,7 @@ export function enableLayerWithCap(
 }
 
 /**
- * Ultra-Lite 전용 — 캡 초과 시 우선순위 낮은 레이어를 끄고 새 레이어 ON.
+ * 캡 초과 시 우선순위 낮은 레이어를 끄고 새 레이어 ON (일반·Ultra 공통).
  */
 export function enableLayerEvictingCap(
   prefs: LayerPrefs,

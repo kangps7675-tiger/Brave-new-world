@@ -9,7 +9,6 @@ import {
   type TrackedAircraft,
 } from "@/lib/adsbClient";
 
-const ADSB_FI_MIL_URL = "https://opendata.adsb.fi/api/v2/mil";
 const ADSBX_MIL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
 
 /** 민간 항적 워밍용 허브 (전역 civ는 비현실적 → 격자 샘플) */
@@ -27,18 +26,23 @@ export const ADSB_CIV_HUBS: Array<{
   { id: "sg-malacca", lat: 1.3, lng: 103.8, distNm: 220 },
 ];
 
-/** adsb.fi 는 개인·비상업 전용 약관 — 유료 티어에서는 쓰면 안 된다. */
+/** ODbL — 출처 표기만 하면 무료·유료 모두 사용 가능 */
 const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
 
+/**
+ * ⚠️ **adsb.fi 를 폴백으로 되돌리지 말 것.**
+ *
+ * 약관이 "for **personal**, non-commercial use only" 다. 이전 구현은 유료
+ * 티어에서만 adsb.lol 로 떨어졌으나, 그건 "non-commercial" 한쪽만 본 것이다.
+ * **공개 웹서비스는 무료여도 "personal" 요건을 충족하지 못한다.**
+ *
+ * @see docs/copyright-audit-2026-08-01.md — Y-2
+ */
 function milUrl(): { url: string; source: "adsbx" | "adsb.lol" | "adsb.fi" } {
   const custom = process.env.ADSBEXCHANGE_MIL_URL?.trim();
   if (custom) return { url: custom, source: "adsbx" };
   if (getAdsbApiKey()) return { url: ADSBX_MIL_URL, source: "adsbx" };
-  // 키가 없을 때의 폴백 — 상업 모드면 ODbL 소스(adsb.lol)로
-  if (process.env.COMMERCIAL_TIER_ENABLED === "true") {
-    return { url: ADSB_LOL_MIL_URL, source: "adsb.lol" };
-  }
-  return { url: ADSB_FI_MIL_URL, source: "adsb.fi" };
+  return { url: ADSB_LOL_MIL_URL, source: "adsb.lol" };
 }
 
 export async function fetchAdsbMilitary(max = 400): Promise<{
