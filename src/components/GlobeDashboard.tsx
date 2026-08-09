@@ -31,6 +31,11 @@ import {
   type CompactChipId,
 } from "@/lib/compactViewPreset";
 import {
+  buildScenarioPrefs,
+  findScenarioPreset,
+  type ScenarioPresetId,
+} from "@/lib/scenarioPresets";
+import {
   trackDomainSelect,
   trackModeSwitch,
   trackLayerToggle,
@@ -191,6 +196,7 @@ import {
   theaterIntensityFromGdeltGrade,
 } from "@/lib/theaterIntensityRadius";
 import { deconflictTheaterHtmlOverlays } from "@/lib/htmlOverlayDeconflict";
+import { buildAircraftSymbolModel } from "@/lib/milAircraftSymbols";
 import { buildNewsStreamMapTags } from "@/lib/news/newsStreamMapTags";
 import {
   filterEventsByNavSelection,
@@ -739,6 +745,8 @@ export function GlobeDashboard({
     );
   }, [bottomDockMode, intelSheetOpen, isCompactUi]);
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
+  /** 일반 모드 시나리오 프리셋 선택 (P2-1) — null이면 직접 구성 상태 */
+  const [scenarioPresetId, setScenarioPresetId] = useState<ScenarioPresetId | null>(null);
   const desktopSnapshotRef = useRef<{ layers: LayerPrefs; ultraLite: boolean } | null>(null);
   const compactWasActiveRef = useRef(false);
   const layerPrefsLiveRef = useRef<LayerPrefs>(DEFAULT_LAYER_PREFS);
@@ -1286,9 +1294,19 @@ export function GlobeDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyLayerPrefs, isCompactUi, viewerMode]);
 
+  /** 뷰어 모드가 바뀌면 다른 도메인의 프리셋 선택은 무효 (P2-1) */
+  useEffect(() => {
+    setScenarioPresetId((prev) => {
+      if (!prev) return prev;
+      return findScenarioPreset(prev)?.mode === viewerMode ? prev : null;
+    });
+  }, [viewerMode]);
+
   const handlePanelDraftPatch = useCallback(
     (patch: Partial<LayerPrefs>) => {
       pinUserLayers();
+      // 손으로 하나라도 건드린 순간 그 화면은 더 이상 프리셋이 아니다 (P2-1)
+      setScenarioPresetId(null);
       panelDraftPatchRef.current = { ...panelDraftPatchRef.current, ...patch };
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === "boolean") trackLayerToggle(key, value);
@@ -1742,6 +1760,26 @@ export function GlobeDashboard({
     historyImmersionActive,
     historyEpisodeActive,
   });
+
+  /**
+   * 시나리오 프리셋 (P2-1) — 레이어 세트 + 카메라를 한 번에 적용.
+   * prefs 객체를 `applyLayerPrefs` 한 번으로 넘겨야 도허티 임계 안에 들어온다.
+   */
+  const handleScenarioPresetSelect = useCallback(
+    (id: ScenarioPresetId) => {
+      const preset = findScenarioPreset(id);
+      if (!preset) return;
+
+      setScenarioPresetId(id);
+      pinUserLayers();
+
+      const built = buildScenarioPrefs(preset, layerPrefsLiveRef.current, ultraLiteRef.current);
+      applyLayerPrefs(built);
+
+      flyTo(preset.camera.lat, preset.camera.lng, preset.camera.altitude);
+    },
+    [applyLayerPrefs, flyTo, pinUserLayers],
+  );
 
   const { syncInfo, syncGeneration, forceSync } = useDataSync({
     mode: "default",
@@ -3623,8 +3661,9 @@ export function GlobeDashboard({
     deployedCarrierCount,
     usCarrierLabelOffsets,
     usCarrierHtmlMarkers,
-    milHtmlMarkers,
-    civHtmlMarkers,
+    // 항공기는 symbol 레이어로 그리므로 *HtmlMarkers(사본) 대신 원본 포인트를 쓴다
+    milDisplayPoints,
+    civDisplayPoints,
     aisHtmlMarkers,
   } = useLiveOverlayMarkers({
     staticGlobePoints,
@@ -3647,6 +3686,12 @@ export function GlobeDashboard({
     // Ultra-Lite는 레이어 강제 OFF만 하고 마커 상한엔 관여하지 않았다 → 연동
     ultraLite,
   });
+
+  /** 항공기 — DOM Marker에서 MapLibre symbol 레이어로 이전 (milAircraftSymbols.ts). */
+  const aircraftSymbols = useMemo(
+    () => buildAircraftSymbolModel(milDisplayPoints, civDisplayPoints),
+    [milDisplayPoints, civDisplayPoints],
+  );
 
   const visibleFirmsFires = useMemo(() => {
     if (!showFirmsFires) return [];
@@ -4073,8 +4118,7 @@ export function GlobeDashboard({
       ...safecastGaugeMarkers,
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
-      ...milHtmlMarkers,
-      ...civHtmlMarkers,
+      // 군용기·민항기는 여기 없다 — symbol 레이어(aircraftSymbols)로 이전됨.
       ...aisHtmlMarkers,
       ...gdeltTagHtmlMarkers,
       ...newsStreamNeonMarkers,
@@ -4118,8 +4162,6 @@ export function GlobeDashboard({
       newsStreamNeonMarkers,
       telegramNeonMarkers,
       globePoints,
-      milHtmlMarkers,
-      civHtmlMarkers,
       neptunHtmlMarkers,
       neptunImpactHtmlMarkers,
       nuclearStockpileMarkers,
@@ -7444,6 +7486,10 @@ export function GlobeDashboard({
     conflictClusterRings,
     htmlOverlayMarkers,
     createHtmlOverlayElement,
+    aircraftSymbols,
+    handleMilAircraftSelect,
+    handleCivAircraftSelect,
+    setHoveredMilAircraft,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -7553,6 +7599,8 @@ export function GlobeDashboard({
         getSceneForShare={getSceneForShare}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
+        scenarioPresetId={scenarioPresetId}
+        handleScenarioPresetSelect={handleScenarioPresetSelect}
       />
 
       <GeopoliticsHubChrome
