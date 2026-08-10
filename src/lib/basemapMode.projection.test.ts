@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   applyBasemapGlobeProjection,
+  injectGlobeProjection,
   isMercatorProjection,
   type BasemapMapLike,
 } from "@/lib/basemapMode";
@@ -35,7 +36,6 @@ describe("applyBasemapGlobeProjection", () => {
   it("falls back to globe when vertical-perspective does not stick", () => {
     const map = mockMap("mercator");
     map.setProjection = (p: { type: string }) => {
-      // pretend only "globe" is accepted
       if (p.type === "globe") map._type = "globe";
     };
     applyBasemapGlobeProjection(map);
@@ -45,5 +45,17 @@ describe("applyBasemapGlobeProjection", () => {
   it("detects unset projection as mercator-like", () => {
     const map = mockMap(undefined);
     expect(isMercatorProjection(map)).toBe(true);
+  });
+});
+
+describe("injectGlobeProjection", () => {
+  it("stamps vertical-perspective onto a style object", () => {
+    const next = injectGlobeProjection({
+      version: 8,
+      sources: {},
+      layers: [],
+    });
+    expect(next.projection).toEqual({ type: "vertical-perspective" });
+    expect(next.version).toBe(8);
   });
 });
