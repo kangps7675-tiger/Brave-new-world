@@ -2,6 +2,9 @@
  * Copy CesiumJS Build/Cesium static assets → public/cesium/
  * for window.CESIUM_BASE_URL = "/cesium/" (or NEXT_PUBLIC_CESIUM_BASE_URL CDN).
  *
+ * Runs from `postinstall` and `npm run cesium:copy`.
+ * Missing cesium package → warn + exit 0 (CI without optional install stays green).
+ *
  * Usage: node scripts/copy-cesium-assets.mjs
  */
 import fs from "node:fs";
@@ -52,8 +55,19 @@ for (const folder of FOLDERS) {
   console.log(`[copy-cesium-assets] ${folder} → public/cesium/${folder}`);
 }
 
-// widgets.css is imported from the package in JS; keep a copy for fallback CDN setups
-const widgetsCss = path.join(build, "Widgets", "widgets.css");
-if (fs.existsSync(widgetsCss)) {
-  console.log("[copy-cesium-assets] done");
+const marker = path.join(DEST, ".copied-from-cesium");
+try {
+  const pkgPath = path.join(ROOT, "node_modules", "cesium", "package.json");
+  const ver = fs.existsSync(pkgPath)
+    ? JSON.parse(fs.readFileSync(pkgPath, "utf8")).version
+    : "unknown";
+  fs.writeFileSync(
+    marker,
+    `cesium@${ver}\nsource=${path.relative(ROOT, build).replace(/\\/g, "/")}\n`,
+    "utf8",
+  );
+} catch {
+  /* ignore marker write */
 }
+
+console.log("[copy-cesium-assets] done");
