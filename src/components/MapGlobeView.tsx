@@ -171,6 +171,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const ultraLiteRef = useRef(ultraLite);
   const [, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
+  /**
+   * URL이 아니라 projection이 박힌 style 객체를 넘긴다.
+   * (react-map-gl이 URL setStyle 할 때 projection이 빠지는 경우가 있어
+   * 첫 페인트부터 vertical-perspective가 필요함)
+   */
+  const [resolvedMapStyle, setResolvedMapStyle] = useState<
+    string | Record<string, unknown>
+  >(mapStyleUrl);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
@@ -206,6 +214,34 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
+
+  /** 베이스맵 style.json을 fetch → projection 주입 후 객체로 전달 */
+  useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+    setResolvedMapStyle(mapStyleUrl);
+
+    void (async () => {
+      try {
+        const res = await fetch(mapStyleUrl, {
+          signal: ctrl.signal,
+          mode: "cors",
+          credentials: "omit",
+        });
+        if (!res.ok) throw new Error(`basemap style HTTP ${res.status}`);
+        const json = (await res.json()) as Record<string, unknown>;
+        if (cancelled) return;
+        setResolvedMapStyle(injectGlobeProjection(json));
+      } catch {
+        /* CORS/네트워크 실패 시 URL 폴백 — setProjection 훅이 보조 */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
+  }, [mapStyleUrl]);
 
   const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
 
@@ -788,6 +824,26 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
     const m = map as unknown as BasemapMapLike;
     applyBasemapGlobeProjection(m);
+
+    // 진단용 — F12에서 __GEOWATCH_MAP_PROJECTION() 호출
+    try {
+      const w = window as Window & {
+        __GEOWATCH_MAP_PROJECTION?: () => unknown;
+        __GEOWATCH_FORCE_GLOBE?: () => void;
+      };
+      w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+      w.__GEOWATCH_FORCE_GLOBE = () => {
+        applyBasemapGlobeProjection(m);
+        try {
+          map.setProjection?.({ type: "vertical-perspective" });
+        } catch {
+          /* ignore */
+        }
+      };
+    } catch {
+      /* SSR / opaque */
+    }
+
     methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
@@ -929,6 +985,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       window.clearTimeout(stopPoll);
     };
   }, [mapLoaded, mapStyleUrl]);
+
+  /** fetch로 projection이 박힌 style 객체가 도착하면 투영을 한 번 더 고정 */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    if (typeof resolvedMapStyle === "string") return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    applyBasemapGlobeProjection(map as unknown as BasemapMapLike);
+  }, [mapLoaded, resolvedMapStyle]);
 
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
@@ -1519,7 +1584,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       {contextLost ? <WebglContextLostOverlay onRetry={handleContextRetry} /> : null}
       <Map
         ref={mapRef}
-        mapStyle={mapStyleUrl as string}
+        mapStyle={resolvedMapStyle as string}
         initialViewState={{
           longitude: initialCamera.longitude,
           latitude: initialCamera.latitude,
