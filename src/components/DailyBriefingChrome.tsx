@@ -19,8 +19,19 @@ const DailyRankSharePanel = dynamic(
 );
 
 const PEAK_SHOWN_KEY = "geowatch-peak-end-shown-v1";
+/** 이 세션에서 「오늘의 브리핑」게이지를 닫았는지 */
+const GAUGE_DISMISSED_KEY = "geowatch-briefing-gauge-dismissed-v1";
 const SESSION_START = Date.now();
 const PEAK_AFTER_MS = 90_000;
+
+function readGaugeDismissed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return sessionStorage.getItem(GAUGE_DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 type Props = {
   lang: LabelLanguage;
@@ -45,6 +56,7 @@ export function DailyBriefingChrome({
   const [progress, setProgress] = useState(() => getBriefingProgress());
   const [peakOpen, setPeakOpen] = useState(false);
   const [leavingOffer, setLeavingOffer] = useState(false);
+  const [gaugeDismissed, setGaugeDismissed] = useState(readGaugeDismissed);
 
   const refresh = useCallback(() => {
     setProgress(getBriefingProgress());
@@ -127,14 +139,34 @@ export function DailyBriefingChrome({
     }
   }, []);
 
-  if (suppressed) return null;
+  const dismissGauge = useCallback(() => {
+    setGaugeDismissed(true);
+    setLeavingOffer(false);
+    setPeakOpen(false);
+    try {
+      sessionStorage.setItem(GAUGE_DISMISSED_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  if (suppressed || gaugeDismissed) return null;
 
   const { done, total, steps } = progress;
   const pct = Math.round((done / total) * 100);
   const stacked = layout === "stack";
 
   const gauge = (
-    <div className="rounded-xl border border-sky-400/25 bg-[#071018]/92 px-3 py-2 shadow-lg backdrop-blur-md">
+    <div className="relative rounded-xl border border-sky-400/25 bg-[#071018]/92 px-3 py-2 pr-9 shadow-lg backdrop-blur-md">
+      <button
+        type="button"
+        onClick={dismissGauge}
+        aria-label={ko ? "오늘의 브리핑 닫기" : "Close today's briefing"}
+        title={ko ? "닫기" : "Close"}
+        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/40 text-[11px] leading-none text-white/70 transition hover:border-white/30 hover:text-white"
+      >
+        ✕
+      </button>
       <div className="flex items-center justify-between gap-2">
         <p className="text-meta font-semibold text-sky-50/95">
           {ko ? `오늘의 브리핑 ${done}/${total}` : `Briefing ${done}/${total}`}
