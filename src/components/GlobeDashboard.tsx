@@ -120,7 +120,7 @@ import {
   focusCriticalNodeIds,
 } from "@/data/criticalNodes";
 import type { EconInsightBrief } from "@/data/econInsightBriefs";
-import { type ChromeCoachStep, shouldOfferChromeCoach } from "@/components/ChromeOnboardingCoach";
+import type { ChromeCoachStep } from "@/components/ChromeOnboardingCoach";
 import {
   shouldOfferFrictionCoach,
   type FrictionCoachStep,
