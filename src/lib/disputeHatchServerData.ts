@@ -28,14 +28,25 @@ export function loadDisputeHatchCache(
   }
 }
 
+/**
+ * 디스크 스냅샷 저장. Vercel 등 읽기전용 FS에서는 null을 반환하고 throw하지 않는다.
+ */
 export function saveDisputeHatchCache(
   payload: DisputeHatchCachePayload,
   profile?: DataProfile,
-) {
+): string | null {
   const resolved = profile ?? getServerDataProfile();
   const dir = cacheDir(resolved);
-  fs.mkdirSync(dir, { recursive: true });
   const filePath = cacheFile(resolved, payload.lodTier);
-  fs.writeFileSync(filePath, JSON.stringify(payload));
-  return filePath;
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(payload));
+    return filePath;
+  } catch (error) {
+    console.warn(
+      "[dispute-hatch] file cache write skipped:",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
 }

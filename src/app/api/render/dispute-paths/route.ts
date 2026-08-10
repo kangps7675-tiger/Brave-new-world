@@ -29,23 +29,34 @@ function authorizeWarm(request: Request): boolean {
   return authorizeCronRequest(request, ["INGEST_CRON_SECRET", "NEWS_WARM_SECRET"]);
 }
 
+/** Vercel 등 서버리스에서 콜드스타트 간 재계산 완화 */
+const memoryPayload = new Map<DisputeHatchLod, Awaited<ReturnType<typeof precomputeDisputeHatchPaths>>>();
+
 /**
- * 클라우드 스냅샷 우선: D1 → 로컬 파일 → (빌드 가능 시) precompute.
+ * 클라우드 스냅샷 우선: 메모리 → D1 → 로컬 파일 → (빌드 가능 시) precompute.
  * 이란/중동 IRONSIGHT 시드는 disputes.json 머지에 포함됨.
+ * 파일/D1 쓰기는 best-effort — 읽기전용 FS·미바인딩이어도 메모리로 응답한다.
  */
 async function ensurePayload(lod: DisputeHatchLod) {
+  const fromMemory = memoryPayload.get(lod);
+  if (fromMemory?.paths?.length) {
+    return { payload: fromMemory, source: "memory" as const };
+  }
+
   try {
     const db = await getDb();
     const fromD1 = await readDisputeHatchFromD1(db, lod);
     if (fromD1?.paths?.length) {
+      memoryPayload.set(lod, fromD1);
       return { payload: fromD1, source: "d1" as const };
     }
   } catch {
-    // D1 미가용
+    // D1 미가용 (Vercel Node 런타임 등)
   }
 
   const cached = loadDisputeHatchCache(lod);
   if (cached?.paths?.length) {
+    memoryPayload.set(lod, cached);
     try {
       const db = await getDb();
       await writeDisputeHatchToD1(db, cached);
@@ -59,6 +70,8 @@ async function ensurePayload(lod: DisputeHatchLod) {
   if (!disputes.length) return null;
 
   const payload = precomputeDisputeHatchPaths(disputes, lod);
+  memoryPayload.set(lod, payload);
+  // Vercel 등 read-only FS에서는 null — 응답은 계속
   saveDisputeHatchCache(payload);
   try {
     const db = await getDb();
@@ -79,7 +92,12 @@ export async function GET(request: Request) {
   const lat = Number(searchParams.get("lat"));
   const lng = Number(searchParams.get("lng"));
   const radius = Math.min(40, Math.max(2, Number(searchParams.get("radius") || 12)));
-  const max = Math.min(6000, Math.max(100, Number(searchParams.get("max") || 2500)));
+  // bulk 덤프 완화 — 뷰포트 없으면 Vercel 응답 한도(≈4.5MB) 초과 방지
+  const hasView = Number.isFinite(lat) && Number.isFinite(lng);
+  const max = Math.min(
+    hasView ? 6000 : 1500,
+    Math.max(100, Number(searchParams.get("max") || (hasView ? 2500 : 1500))),
+  );
 
   try {
     const ensured = await ensurePayload(lod);
@@ -96,7 +114,7 @@ export async function GET(request: Request) {
     }
 
     let paths = ensured.payload.paths;
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (hasView) {
       paths = filterHatchPathsByView(paths, { lat, lng }, radius, max);
     } else if (paths.length > max) {
       paths = paths.slice(0, max);
