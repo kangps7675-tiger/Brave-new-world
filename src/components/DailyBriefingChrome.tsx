@@ -163,7 +163,7 @@ export function DailyBriefingChrome({
         onClick={dismissGauge}
         aria-label={ko ? "오늘의 브리핑 닫기" : "Close today's briefing"}
         title={ko ? "닫기" : "Close"}
-        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/40 text-[11px] leading-none text-white/70 transition hover:border-white/30 hover:text-white"
+        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/40 text-micro leading-none text-white/70 transition hover:border-white/30 hover:text-white"
       >
         ✕
       </button>
