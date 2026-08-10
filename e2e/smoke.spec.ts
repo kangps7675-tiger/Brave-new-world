@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * 크로스브라우저 스모크 3종 (P0-3).
@@ -11,8 +11,31 @@ import { test, expect, type Page } from "@playwright/test";
  * 테스트는 `environment: "node"`뿐이라 이 영역이 통째로 사각지대였다.
  */
 
+/** 외부 HAPI rate-limit(429)이 CI를 흔들지 않도록 스모크용 stub */
+async function stubNoisyApis(page: Page) {
+  await page.route("**/api/hapi-conflict-casualties**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, data: [], stubbed: true }),
+    });
+  });
+}
+
+/**
+ * Playwright CDP click/setChecked는 CI에서 "performing click action"에
+ * 멈출 수 있다. DOM HTMLElement.click()은 마우스 프로토콜을 우회한다.
+ */
+async function tapCheckbox(box: Locator) {
+  await box.evaluate((el: HTMLInputElement) => {
+    el.click();
+  });
+}
+
 /** 입장 게이트 통과 — 주의창 스킵 → 도메인 선택 */
 async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict") {
+  await stubNoisyApis(page);
+
   // 첫 방문 투어·초대 배너가 레이어 토글을 가리지 않도록 선행 시드
   await page.addInitScript(() => {
     try {
@@ -98,12 +121,7 @@ test.describe("스모크", () => {
     await expect(box).toBeVisible({ timeout: 20_000 });
 
     const before = await box.isChecked();
-    /**
-     * CI에서 native click 이 "performing click action"에 멈춘 적이 있다
-     * (지도 interaction pause·대량 리렌더와 겹침). setChecked(force)는
-     * 액션 가능성을 우회하고 input 상태를 직접 바꾼다.
-     */
-    await box.setChecked(!before, { force: true });
+    await tapCheckbox(box);
 
     /**
      * P1-1: leading-edge debounce(120ms)로 첫 토글은 즉시 반영된다.
@@ -112,7 +130,7 @@ test.describe("스모크", () => {
      */
     await expect(box).toBeChecked({ checked: !before, timeout: 1_000 });
 
-    await box.setChecked(before, { force: true });
+    await tapCheckbox(box);
     await expect(box).toBeChecked({ checked: before, timeout: 1_000 });
 
     // 토글 후에도 지도가 살아 있어야 한다 (레이어 추가로 컨텍스트가 죽는 회귀 방지)
