@@ -108,6 +108,21 @@ test.describe("스모크", () => {
       /webgl|context lost|failed to create/i.test(e),
     );
     expect(webglErrors, `WebGL 관련 콘솔 에러: ${webglErrors.join(" | ")}`).toHaveLength(0);
+
+    // 투영 진단 훅(있으면) — 부팅 직후 missing 은 허용하되, mercator 고착은 실패
+    const proj = await page
+      .evaluate(() => {
+        const fn = (
+          window as unknown as { __GEOWATCH_MAP_PROJECTION?: () => { type?: string } }
+        ).__GEOWATCH_MAP_PROJECTION;
+        if (typeof fn !== "function") return null;
+        const type = fn()?.type;
+        return typeof type === "string" ? type : null;
+      })
+      .catch(() => null);
+    if (proj != null) {
+      expect(proj).toMatch(/vertical-perspective|globe/);
+    }
   });
 
   test("② 레이어 토글 — 체크가 즉시 반영된다", async ({ page }) => {

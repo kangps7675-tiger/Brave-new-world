@@ -63,6 +63,7 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  INTEL_VECTOR_STYLE_URL,
   injectGlobeProjection,
   isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
@@ -140,11 +141,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   ref,
 ) {
   const {
-    mapStyleUrl,
+    mapStyleUrl: mapStyleUrlProp,
     backgroundColor = "#02040a",
     showIslandChains = false,
   } = props;
   /** index signature로 unknown이 되므로 명시 파싱 */
+  const mapStyleUrl =
+    typeof mapStyleUrlProp === "string" && mapStyleUrlProp.length > 0
+      ? mapStyleUrlProp
+      : INTEL_VECTOR_STYLE_URL;
   const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
   const ultraLite = Boolean(props.ultraLite);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
@@ -171,6 +176,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const ultraLiteRef = useRef(ultraLite);
   const [, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
+  /**
+   * projection이 박힌 style 객체를 받을 때까지 Map을 마운트하지 않는다.
+   * (URL로 먼저 올리면 mercator 첫 페인트 + onLoad 레이스가 난다)
+   */
+  const [resolvedMapStyle, setResolvedMapStyle] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  /** fetch 실패 시 URL 폴백 */
+  const [styleFallbackUrl, setStyleFallbackUrl] = useState<string | null>(null);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
@@ -206,6 +220,78 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
+
+  /** 베이스맵 style.json을 fetch → projection 주입 후 객체로 전달 */
+  useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+    setResolvedMapStyle(null);
+    setStyleFallbackUrl(null);
+    setMapLoaded(false);
+
+    void (async () => {
+      try {
+        const res = await fetch(mapStyleUrl, {
+          signal: ctrl.signal,
+          mode: "cors",
+          credentials: "omit",
+        });
+        if (!res.ok) throw new Error(`basemap style HTTP ${res.status}`);
+        const json = (await res.json()) as Record<string, unknown>;
+        if (cancelled) return;
+        setResolvedMapStyle(injectGlobeProjection(json));
+      } catch {
+        if (!cancelled) setStyleFallbackUrl(mapStyleUrl);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
+  }, [mapStyleUrl]);
+
+  const activeMapStyle: string | Record<string, unknown> | null =
+    resolvedMapStyle ?? styleFallbackUrl;
+
+  /** onLoad에만 의존하지 않음 — style 객체 로드 레이스에서도 투영·진단 훅 보장 */
+  useEffect(() => {
+    if (!activeMapStyle) return;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      tries += 1;
+      const map = mapRef.current?.getMap();
+      if (!map) {
+        if (tries > 100) window.clearInterval(id);
+        return;
+      }
+      const m = map as unknown as BasemapMapLike;
+      try {
+        const w = window as Window & {
+          __GEOWATCH_MAP_PROJECTION?: () => unknown;
+          __GEOWATCH_FORCE_GLOBE?: () => void;
+        };
+        w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+        w.__GEOWATCH_FORCE_GLOBE = () => {
+          applyBasemapGlobeProjection(m);
+          try {
+            map.setProjection?.({ type: "vertical-perspective" });
+          } catch {
+            /* ignore */
+          }
+        };
+      } catch {
+        /* ignore */
+      }
+      applyBasemapGlobeProjection(m);
+      if (map.isStyleLoaded() || tries > 80) {
+        applyBasemapFog(m, basemapModeRef.current);
+        applyBasemapSpaceBackground(m);
+        window.clearInterval(id);
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [activeMapStyle]);
 
   const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
 
@@ -758,36 +844,56 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    const m = map as unknown as BasemapMapLike;
+
+    // 진단 훅을 최우선 등록 (아래 setStyle 래핑이 실패해도 e2e/콘솔이 살도록)
+    try {
+      const w = window as Window & {
+        __GEOWATCH_MAP_PROJECTION?: () => unknown;
+        __GEOWATCH_FORCE_GLOBE?: () => void;
+      };
+      w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+      w.__GEOWATCH_FORCE_GLOBE = () => {
+        applyBasemapGlobeProjection(m);
+        try {
+          map.setProjection?.({ type: "vertical-perspective" });
+        } catch {
+          /* ignore */
+        }
+      };
+    } catch {
+      /* SSR / opaque */
+    }
+
+    applyBasemapGlobeProjection(m);
+
     /**
      * react-map-gl Map 타입에 transformStyle가 없어 JSX로 못 넘긴다.
-     * setStyle를 한 번 감싸 URL/객체 스타일 커밋마다 vertical-perspective를 주입한다.
+     * 이후 setStyle 호출마다 vertical-perspective를 주입한다.
+     * (이미 로드된 style을 다시 setStyle 하지 않음 — onLoad 레이스 방지)
      */
     const hooked = map as typeof map & { __globeStyleHook?: boolean };
     if (!hooked.__globeStyleHook) {
       hooked.__globeStyleHook = true;
-      const originalSetStyle = map.setStyle.bind(map);
-      map.setStyle = ((style, options) => {
-        const userTransform = options?.transformStyle;
-        return originalSetStyle(style, {
-          ...options,
-          transformStyle: (prev, next) => {
-            const mid = userTransform ? userTransform(prev, next) : next;
-            return injectGlobeProjection(
-              mid as unknown as Record<string, unknown>,
-            ) as typeof next;
-          },
-        });
-      }) as typeof map.setStyle;
       try {
-        const cur = map.getStyle();
-        if (cur) map.setStyle(cur);
+        const originalSetStyle = map.setStyle.bind(map);
+        map.setStyle = ((style, options) => {
+          const userTransform = options?.transformStyle;
+          return originalSetStyle(style, {
+            ...options,
+            transformStyle: (prev, next) => {
+              const mid = userTransform ? userTransform(prev, next) : next;
+              return injectGlobeProjection(
+                mid as unknown as Record<string, unknown>,
+              ) as typeof next;
+            },
+          });
+        }) as typeof map.setStyle;
       } catch {
-        /* style not ready */
+        /* setStyle wrap unsupported */
       }
     }
 
-    const m = map as unknown as BasemapMapLike;
-    applyBasemapGlobeProjection(m);
     methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
@@ -929,6 +1035,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       window.clearTimeout(stopPoll);
     };
   }, [mapLoaded, mapStyleUrl]);
+
+  /** fetch로 projection이 박힌 style 객체가 도착하면 투영을 한 번 더 고정 */
+  useEffect(() => {
+    if (!mapLoaded || !resolvedMapStyle) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    applyBasemapGlobeProjection(map as unknown as BasemapMapLike);
+  }, [mapLoaded, resolvedMapStyle]);
 
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
@@ -1517,9 +1631,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
       {contextLost ? <WebglContextLostOverlay onRetry={handleContextRetry} /> : null}
+      {activeMapStyle ? (
       <Map
         ref={mapRef}
-        mapStyle={mapStyleUrl as string}
+        mapStyle={activeMapStyle as string}
         initialViewState={{
           longitude: initialCamera.longitude,
           latitude: initialCamera.latitude,
@@ -1538,8 +1653,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
          * 캡처는 methods.captureFrame() — 필요한 순간에만 triggerRepaint 후
          * render 콜백 안에서 읽는다. (mapGlobeRef.ts)
          *
-         * globe projection은 react-map-gl 타입이 transformStyle를 안 받아
-         * handleLoad에서 map.setStyle 훅으로 주입한다.
+         * globe projection은 style 객체에 미리 주입하고, handleLoad에서 setProjection으로 고정한다.
          */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
@@ -2208,6 +2322,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {htmlMarkerNodes}
       </Map>
+      ) : null}
     </div>
   );
 });
