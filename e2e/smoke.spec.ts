@@ -130,11 +130,11 @@ test.describe("스모크", () => {
     await expect(visibleLayerCheckbox(page)).toBeVisible({ timeout: 20_000 });
 
     /**
-     * 패널이 열리면 inset 백드롭(z-500)이 토글(z-200)을 가린다.
-     * force: 지도/마커 오버레이가 백드롭 클릭을 가로채도 닫힘을 검증한다.
-     * 닫힘 판정은 GPS 등 장외 체크박스가 아니라 패널 자체다.
+     * 백드롭(inset-0) click은 CI에서 CDP "performing click action"에
+     * 멈춘다(지도 메인스레드/거대한 hit target). 패널 헤더 ✕는 작고
+     * dispatchEvent는 마우스 프로토콜을 거치지 않는다.
      */
-    await page.getByRole("button", { name: /패널 닫기|Close panel/i }).click({ force: true });
+    await panel.getByRole("button", { name: "✕" }).dispatchEvent("click");
     await expect(panel).toBeHidden({ timeout: 10_000 });
   });
 });
