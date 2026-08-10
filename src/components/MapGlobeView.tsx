@@ -63,6 +63,7 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  injectGlobeProjection,
   isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
   OPENFREEMAP_PLANET_URL,
@@ -756,6 +757,35 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
+
+    /**
+     * react-map-gl Map 타입에 transformStyle가 없어 JSX로 못 넘긴다.
+     * setStyle를 한 번 감싸 URL/객체 스타일 커밋마다 vertical-perspective를 주입한다.
+     */
+    const hooked = map as typeof map & { __globeStyleHook?: boolean };
+    if (!hooked.__globeStyleHook) {
+      hooked.__globeStyleHook = true;
+      const originalSetStyle = map.setStyle.bind(map);
+      map.setStyle = ((style, options) => {
+        const userTransform = options?.transformStyle;
+        return originalSetStyle(style, {
+          ...options,
+          transformStyle: (prev, next) => {
+            const mid = userTransform ? userTransform(prev, next) : next;
+            return injectGlobeProjection(
+              mid as unknown as Record<string, unknown>,
+            ) as typeof next;
+          },
+        });
+      }) as typeof map.setStyle;
+      try {
+        const cur = map.getStyle();
+        if (cur) map.setStyle(cur);
+      } catch {
+        /* style not ready */
+      }
+    }
+
     const m = map as unknown as BasemapMapLike;
     applyBasemapGlobeProjection(m);
     methods.applyControls();
@@ -1473,8 +1503,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
 
-  /** 더 멀리 시작해 구 실루엣이 분명하게 (구 altitude 2.25 → zoom≈6.4는 평면에 가깝게 읽히기 쉬움) */
-  const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 3.85 });
+  /**
+   * 전역 실루엣이 한눈에 들어오게 멀리 + 살짝 틸트.
+   * (너무 가까우면 투영이 살아 있어도 ‘납작한 지도’로 읽힌다.)
+   */
+  const initialCamera = globeViewToMapLibre({
+    lat: 18,
+    lng: 40,
+    altitude: 7.2,
+    pitch: 22,
+  });
 
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
@@ -1499,6 +1537,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
          * 100% 시간 동안 비용을 내는 구조였다.
          * 캡처는 methods.captureFrame() — 필요한 순간에만 triggerRepaint 후
          * render 콜백 안에서 읽는다. (mapGlobeRef.ts)
+         *
+         * globe projection은 react-map-gl 타입이 transformStyle를 안 받아
+         * handleLoad에서 map.setStyle 훅으로 주입한다.
          */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
