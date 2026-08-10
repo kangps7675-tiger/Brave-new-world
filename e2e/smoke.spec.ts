@@ -119,7 +119,11 @@ test.describe("스모크", () => {
     const anyCheckbox = visibleLayerCheckbox(page);
     await expect(anyCheckbox).toBeVisible({ timeout: 20_000 });
 
-    await toggle.click();
+    /**
+     * 패널이 열리면 inset 백드롭(z-500)이 토글(z-200)을 가린다.
+     * UX상 닫기는 백드롭(aria: 패널 닫기) 클릭이다.
+     */
+    await page.getByRole("button", { name: /패널 닫기|Close panel/i }).click();
     await expect(anyCheckbox).toBeHidden({ timeout: 10_000 });
   });
 });
