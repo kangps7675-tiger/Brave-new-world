@@ -63,6 +63,7 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  injectGlobeProjection,
   isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
   OPENFREEMAP_PLANET_URL,
@@ -1473,8 +1474,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
 
-  /** 더 멀리 시작해 구 실루엣이 분명하게 (구 altitude 2.25 → zoom≈6.4는 평면에 가깝게 읽히기 쉬움) */
-  const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 3.85 });
+  /**
+   * 전역 실루엣이 한눈에 들어오게 멀리 + 살짝 틸트.
+   * (너무 가까우면 투영이 살아 있어도 ‘납작한 지도’로 읽힌다.)
+   */
+  const initialCamera = globeViewToMapLibre({
+    lat: 18,
+    lng: 40,
+    altitude: 7.2,
+    pitch: 22,
+  });
 
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
@@ -1492,6 +1501,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         style={{ width: "100%", height: "100%" }}
         attributionControl={false}
         renderWorldCopies={false}
+        /**
+         * 스타일 URL fetch 직후·커밋 전에 projection을 넣는다.
+         * onLoad setProjection만으로는 style 재적용 레이스에 Mercator가 남는 경우가 있었다.
+         */
+        transformStyle={(_prev, next) =>
+          injectGlobeProjection(next as unknown as Record<string, unknown>) as typeof next
+        }
         /**
          * ⚠️ `preserveDrawingBuffer`를 여기에 다시 넣지 말 것.
          * 매 프레임 백버퍼 보존을 강제해 브라우저의 스왑 최적화를 통째로 끈다

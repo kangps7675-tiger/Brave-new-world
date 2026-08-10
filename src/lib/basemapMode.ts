@@ -118,6 +118,24 @@ export type BasemapMapLike = {
   getProjection?: () => { type?: string } | undefined;
 };
 
+/** Style / setProjection에 넣는 3D 지구본 투영 (줌과 무관). */
+export const BASEMAP_GLOBE_PROJECTION = {
+  type: "vertical-perspective",
+} as const;
+
+/**
+ * Carto·OpenFreeMap style.json에는 projection이 없다.
+ * setStyle 커밋 직전에 주입해 Mercator 기본값을 덮는다.
+ */
+export function injectGlobeProjection<T extends Record<string, unknown>>(
+  style: T,
+): T & { projection: typeof BASEMAP_GLOBE_PROJECTION } {
+  return {
+    ...style,
+    projection: BASEMAP_GLOBE_PROJECTION,
+  };
+}
+
 /**
  * 스타일 교체 후 Mercator 리셋 방지 — 항상 3D 지구본 투영.
  *
@@ -135,7 +153,7 @@ export function applyBasemapGlobeProjection(map: BasemapMapLike): void {
 
   try {
     apply("vertical-perspective");
-    const type = map.getProjection?.()?.type;
+    const type = readProjectionType(map);
     if (type === "vertical-perspective" || type === "globe") return;
     apply("globe");
   } catch {
@@ -147,9 +165,24 @@ export function applyBasemapGlobeProjection(map: BasemapMapLike): void {
   }
 }
 
+function readProjectionType(map: BasemapMapLike): string | undefined {
+  try {
+    const raw = map.getProjection?.()?.type as unknown;
+    if (typeof raw === "string") return raw;
+    // 일부 빌드는 expression / ProjectionDefinition 객체를 돌려준다
+    if (raw && typeof raw === "object" && "name" in raw) {
+      const name = (raw as { name?: unknown }).name;
+      if (typeof name === "string") return name;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** 현재 투영이 납작한 mercator인지 (워치독용) */
 export function isMercatorProjection(map: BasemapMapLike): boolean {
-  const type = map.getProjection?.()?.type;
+  const type = readProjectionType(map);
   return !type || type === "mercator";
 }
 
