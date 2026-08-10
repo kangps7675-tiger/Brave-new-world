@@ -757,6 +757,35 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
+
+    /**
+     * react-map-gl Map 타입에 transformStyle가 없어 JSX로 못 넘긴다.
+     * setStyle를 한 번 감싸 URL/객체 스타일 커밋마다 vertical-perspective를 주입한다.
+     */
+    const hooked = map as typeof map & { __globeStyleHook?: boolean };
+    if (!hooked.__globeStyleHook) {
+      hooked.__globeStyleHook = true;
+      const originalSetStyle = map.setStyle.bind(map);
+      map.setStyle = ((style, options) => {
+        const userTransform = options?.transformStyle;
+        return originalSetStyle(style, {
+          ...options,
+          transformStyle: (prev, next) => {
+            const mid = userTransform ? userTransform(prev, next) : next;
+            return injectGlobeProjection(
+              mid as unknown as Record<string, unknown>,
+            ) as typeof next;
+          },
+        });
+      }) as typeof map.setStyle;
+      try {
+        const cur = map.getStyle();
+        if (cur) map.setStyle(cur);
+      } catch {
+        /* style not ready */
+      }
+    }
+
     const m = map as unknown as BasemapMapLike;
     applyBasemapGlobeProjection(m);
     methods.applyControls();
@@ -1502,19 +1531,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         attributionControl={false}
         renderWorldCopies={false}
         /**
-         * 스타일 URL fetch 직후·커밋 전에 projection을 넣는다.
-         * onLoad setProjection만으로는 style 재적용 레이스에 Mercator가 남는 경우가 있었다.
-         */
-        transformStyle={(_prev, next) =>
-          injectGlobeProjection(next as unknown as Record<string, unknown>) as typeof next
-        }
-        /**
          * ⚠️ `preserveDrawingBuffer`를 여기에 다시 넣지 말 것.
          * 매 프레임 백버퍼 보존을 강제해 브라우저의 스왑 최적화를 통째로 끈다
          * (내장 GPU 기준 프레임 예산 20~40% 손실). 공유 캡처 한 번을 위해
          * 100% 시간 동안 비용을 내는 구조였다.
          * 캡처는 methods.captureFrame() — 필요한 순간에만 triggerRepaint 후
          * render 콜백 안에서 읽는다. (mapGlobeRef.ts)
+         *
+         * globe projection은 react-map-gl 타입이 transformStyle를 안 받아
+         * handleLoad에서 map.setStyle 훅으로 주입한다.
          */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
