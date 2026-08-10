@@ -993,7 +993,7 @@ export function useLayerPanelCategories({
         ],
         footer: (
           <>
-            {showUkraineControl ? (
+            {showUkraineControl && !isEconomyViewer ? (
               <div className="mb-2 rounded-lg border border-red-300/15 bg-red-950/20 px-2.5 py-2.5">
                 <UkraineFrontLegendContent
                   compact

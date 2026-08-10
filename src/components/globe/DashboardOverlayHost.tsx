@@ -3,27 +3,91 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import dynamic from "next/dynamic";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
-import { FeatureGuidePanel } from "@/components/FeatureGuidePanel";
-import { MethodologySourcesPanel } from "@/components/MethodologySourcesPanel";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
+
+/* ══ 지연 로드 오버레이 (P-perf) ═══════════════════════════════════════
+ *
+ * 아래는 전부 **닫힌 상태가 기본**인 모달·패널이다. 그런데 정적 import라
+ * 대시보드 청크(1.9MB)에 통째로 들어가 있었다 — 사용자가 한 번도 열지
+ * 않아도 지도 진입 시 파싱 비용을 낸다.
+ *
+ * `next/dynamic`으로 빼면 실제로 열 때만 청크를 받는다.
+ * 합계 약 2,600줄 + 각자의 의존성이 초기 경로에서 빠진다.
+ *
+ * ssr:false — 전부 클라이언트 전용 오버레이이고 SEO 대상이 아니다.
+ * loading 없음 — 모달이라 잠깐의 빈 화면이 자연스럽고, 스피너를 넣으면
+ * 오히려 깜빡임이 생긴다.
+ *
+ * ⚠️ 주의: dynamic 컴포넌트는 **렌더되는 순간 청크를 받는다.**
+ * 내부에서 `if (!open) return null` 하는 컴포넌트를 그냥 dynamic으로
+ * 바꾸면 항상 렌더되므로 효과가 0이다. 그래서 아래 JSX에서는 open 조건을
+ * **부모로 끌어올려** 삼항으로 감쌌다. 이 구조를 되돌리지 말 것.
+ */
+const FeatureGuidePanel = dynamic(
+  () => import("@/components/FeatureGuidePanel").then((m) => m.FeatureGuidePanel),
+  { ssr: false },
+);
+const MethodologySourcesPanel = dynamic(
+  () =>
+    import("@/components/MethodologySourcesPanel").then(
+      (m) => m.MethodologySourcesPanel,
+    ),
+  { ssr: false },
+);
+const AskLayersOverlay = dynamic(
+  () => import("@/components/AskLayersOverlay").then((m) => m.AskLayersOverlay),
+  { ssr: false },
+);
+const ViewerIntroOverlay = dynamic(
+  () => import("@/components/ViewerIntroOverlay").then((m) => m.ViewerIntroOverlay),
+  { ssr: false },
+);
+const TomorrowTensionModal = dynamic(
+  () => import("@/components/TomorrowTensionModal").then((m) => m.TomorrowTensionModal),
+  { ssr: false },
+);
+const ModePickerOverlay = dynamic(
+  () => import("@/components/ModePickerOverlay").then((m) => m.ModePickerOverlay),
+  { ssr: false },
+);
+const WhereIsItGameOverlay = dynamic(
+  () => import("@/components/WhereIsItGameOverlay").then((m) => m.WhereIsItGameOverlay),
+  { ssr: false },
+);
+const GeopoliticsSenseQuizModal = dynamic(
+  () =>
+    import("@/components/GeopoliticsSenseQuizModal").then(
+      (m) => m.GeopoliticsSenseQuizModal,
+    ),
+  { ssr: false },
+);
+const DailyRankSharePanel = dynamic(
+  () =>
+    import("@/components/DailyRankSharePanel").then((m) => m.DailyRankSharePanel),
+  { ssr: false },
+);
+const TopWatchPanel = dynamic(
+  () => import("@/components/TopWatchPanel").then((m) => m.TopWatchPanel),
+  { ssr: false },
+);
+const DailyBriefingChrome = dynamic(
+  () =>
+    import("@/components/DailyBriefingChrome").then((m) => m.DailyBriefingChrome),
+  { ssr: false },
+);
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
-import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
-import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
-import { TopWatchPanel } from "@/components/TopWatchPanel";
 import { SitrepLog } from "@/components/SitrepLog";
 import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { UnifiedAirRaidDropdown } from "@/components/UnifiedAirRaidDropdown";
-import {
-  AskLayersOverlay,
-  type AskLayersApplyPayload,
-} from "@/components/AskLayersOverlay";
+import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { HoverHint } from "@/components/HoverHint";
 import { ExplorationTabs } from "@/components/ExplorationTabs";
-import { ModePickerOverlay } from "@/components/ModePickerOverlay";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
+import { markBriefingStep } from "@/lib/dailyBriefingProgress";
 import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import {
@@ -44,6 +108,7 @@ import { AirRaidOnboardingCoach } from "@/components/AirRaidOnboardingCoach";
 import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
 import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
 import { LayerCapToast } from "@/components/LayerCapToast";
+import { LayerCacheStaleBadge } from "@/components/LayerCacheStaleBadge";
 import { TimeScrubberBar } from "@/components/TimeScrubberBar";
 import {
   BottomDockModeToggle,
@@ -89,6 +154,11 @@ import {
 import { TensionSpikeCutOverlay } from "@/components/TensionSpikeCutOverlay";
 import type { TensionSpikeSnapshot } from "@/lib/tensionSpikeCut";
 import { canShowOverlayBanner, buildOverlayBannerCandidates } from "@/lib/overlayQueue";
+import {
+  applyOverlayBudget,
+  markOverlayDismissed,
+  markOverlayShown,
+} from "@/lib/overlayBudget";
 import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
 import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
@@ -104,13 +174,10 @@ import { recordInterestNews } from "@/lib/interest/recordInterest";
 import { zc } from "@/lib/uiStack";
 import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { PlayHubButton } from "@/components/PlayHubButton";
-import { WhereIsItGameOverlay } from "@/components/WhereIsItGameOverlay";
-import { GeopoliticsSenseQuizModal } from "@/components/GeopoliticsSenseQuizModal";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { SentinelHud, SentinelModeButton } from "@/components/SentinelModeControl";
 import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
-import { ViewerIntroOverlay } from "@/components/ViewerIntroOverlay";
 import { QuickStartCoach } from "@/components/QuickStartCoach";
 import { EXPLORATION_PRESETS } from "@/data/navRegions";
 import { ECON_EXPLORATION_PRESETS } from "@/data/econNavRegions";
@@ -585,6 +652,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   const gateClosed = entryGate === null;
   const gateClear = gateClosed && !showModePicker;
 
+  useEffect(() => {
+    if (showDailyRankPanel) markBriefingStep("gti");
+  }, [showDailyRankPanel]);
+
+  useEffect(() => {
+    if (intelSheetOpen) markBriefingStep("intel");
+  }, [intelSheetOpen]);
+
   return (
     <>
       {showIntroHint && !intelSheetOpen && (
@@ -612,13 +687,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         onDismiss={() => onSetShowQuickStart(false)}
       />
 
-      <ViewerIntroOverlay
-        visible={showViewerIntro && gateClear && globeReady && !isLoading}
-        viewerMode={viewerMode}
-        onDismiss={() => onSetShowViewerIntro(false)}
-        onOpenTrust={() => onSetShowTrustPanel(true)}
-        trustLang={labelLanguage === "en" ? "en" : "ko"}
-      />
+      {showViewerIntro && gateClear && globeReady && !isLoading ? (
+        <ViewerIntroOverlay
+          visible
+          viewerMode={viewerMode}
+          onDismiss={() => onSetShowViewerIntro(false)}
+          onOpenTrust={() => onSetShowTrustPanel(true)}
+          trustLang={labelLanguage === "en" ? "en" : "ko"}
+        />
+      ) : null}
 
       {showLeftPanel ? (
         <button
@@ -940,35 +1017,42 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           </div>
         </div>
       ) : null}
-      <FeatureGuidePanel
-        open={showFeatureGuide}
-        viewerMode={viewerMode}
-        onClose={() => onSetShowFeatureGuide(false)}
-        onRestartTour={() => {
-          clearFirstVisitTourDone();
-          onSetShowFirstVisitTour(true);
-        }}
-      />
-      <AskLayersOverlay
-        open={askLayersOpen}
-        lang={labelLanguage}
-        viewerMode={viewerMode}
-        onClose={() => onSetAskLayersOpen(false)}
-        onApply={onAskLayersApply}
-      />
+      {/* open 조건을 부모로 끌어올림 — dynamic 청크가 열릴 때만 로드되게 */}
+      {showFeatureGuide ? (
+        <FeatureGuidePanel
+          open
+          viewerMode={viewerMode}
+          onClose={() => onSetShowFeatureGuide(false)}
+          onRestartTour={() => {
+            clearFirstVisitTourDone();
+            onSetShowFirstVisitTour(true);
+          }}
+        />
+      ) : null}
+      {askLayersOpen ? (
+        <AskLayersOverlay
+          open
+          lang={labelLanguage}
+          viewerMode={viewerMode}
+          onClose={() => onSetAskLayersOpen(false)}
+          onApply={onAskLayersApply}
+        />
+      ) : null}
       <NewsTrustTierPanel
         open={showTrustPanel}
         lang={labelLanguage}
         onClose={() => onSetShowTrustPanel(false)}
       />
-      <MethodologySourcesPanel
-        open={showSourcesPanel}
-        onClose={() => onSetShowSourcesPanel(false)}
-        onOpenTrust={() => {
-          onSetShowSourcesPanel(false);
-          onSetShowTrustPanel(true);
-        }}
-      />
+      {showSourcesPanel ? (
+        <MethodologySourcesPanel
+          open
+          onClose={() => onSetShowSourcesPanel(false)}
+          onOpenTrust={() => {
+            onSetShowSourcesPanel(false);
+            onSetShowTrustPanel(true);
+          }}
+        />
+      ) : null}
 
 
       {/*
@@ -1388,10 +1472,30 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           ) : (
             <LegendReopenButton
               label={labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
-              onClick={() => onToggleDailyRankPanel(true)}
+              onClick={() => {
+                markBriefingStep("gti");
+                onToggleDailyRankPanel(true);
+              }}
             />
           )}
         </div>
+      ) : null}
+
+      {gateClosed && !showModePicker && !isCompactUi ? (
+        <DailyBriefingChrome
+          lang={labelLanguage}
+          suppressed={Boolean(
+            showLeftPanel ||
+              showDailyRankPanel ||
+              weeklyExpanded ||
+              tomorrowTensionPrompt ||
+              sentinelActive,
+          )}
+          onOpenDailyPanel={() => {
+            markBriefingStep("share");
+            onToggleDailyRankPanel(true);
+          }}
+        />
       ) : null}
 
       <TourInviteBanner
@@ -1435,8 +1539,20 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,
         });
-        const show = (kind: Parameters<typeof canShowOverlayBanner>[0]) =>
-          canShowOverlayBanner(kind, bannerCandidates);
+        /**
+         * P2-3: 세션 예산을 **우선순위 계산 이전에** 적용한다.
+         * 뒤에 적용하면 예산 초과 배너가 1위를 차지한 채 사라져
+         * 그 아래 후보까지 같이 묻힌다.
+         */
+        const budgeted = applyOverlayBudget(bannerCandidates);
+        const show = (kind: Parameters<typeof canShowOverlayBanner>[0]) => {
+          const visible = canShowOverlayBanner(kind, budgeted);
+          // 실제로 화면에 나가는 시점에만 예산을 쓴다.
+          // markOverlayShown은 종류별로 멱등하므로 리렌더·StrictMode 이중 렌더에
+          // 예산이 갉아먹히지 않는다.
+          if (visible) markOverlayShown(kind);
+          return visible;
+        };
 
         return (
           <>
@@ -1481,7 +1597,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               <ExerciseOfferBanner
                 offer={exerciseOffer}
                 lang={labelLanguage}
-                onDismiss={onDismissExerciseOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("exercise");
+                  onDismissExerciseOffer();
+                }}
               />
             ) : null}
 
@@ -1490,7 +1609,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 offer={maritimeOffer}
                 lang={labelLanguage}
                 onAccept={onAcceptMaritimeOffer}
-                onDismiss={onDismissMaritimeOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("maritime");
+                  onDismissMaritimeOffer();
+                }}
               />
             ) : null}
 
@@ -1499,7 +1621,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 spike={tensionSpike}
                 lang={labelLanguage === "en" ? "en" : "ko"}
                 onJump={onTensionSpikeJump}
-                onDismiss={onDismissTensionSpike}
+                onDismiss={() => {
+                  markOverlayDismissed("tensionCut");
+                  onDismissTensionSpike();
+                }}
               />
             ) : null}
 
@@ -1508,7 +1633,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 focus={hotTheaterOffer}
                 lang={labelLanguage}
                 onAccept={onAcceptHotTheaterOffer}
-                onDismiss={onDismissHotTheaterOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("hotTheater");
+                  onDismissHotTheaterOffer();
+                }}
               />
             ) : null}
 
@@ -1517,7 +1645,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 probe={ultraLiteOfferProbe}
                 lang={labelLanguage}
                 onAccept={onAcceptUltraLiteOffer}
-                onDismiss={onDismissUltraLiteOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("ultraLite");
+                  onDismissUltraLiteOffer();
+                }}
               />
             ) : null}
           </>
@@ -1641,6 +1772,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />
 
       <LayerCapToast lang={labelLanguage} suppressed={showLeftPanel} />
+      <LayerCacheStaleBadge lang={labelLanguage} />
     </>
   );
 }

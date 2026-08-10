@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Fuse from "fuse.js";
+import dynamic from "next/dynamic";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { CursorHoverCard } from "@/components/CursorHoverCard";
@@ -18,7 +19,26 @@ import type { SceneLinkState } from "@/lib/sceneLink";
 import { type AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import { NeptunThreatDetailPanel } from "@/components/NeptunThreatDetailPanel";
 import { type LayerCategory } from "@/components/LayerCategoryPanel";
-import { MobileHomeView } from "@/components/MobileHomeView";
+/**
+ * 폰 UI 전용 화면(948줄) — 데스크톱 사용자는 절대 렌더하지 않는데도
+ * 정적 import라 대시보드 청크에 항상 실려 있었다. 렌더 지점이 이미
+ * `isPhoneUi ? … : null` 이라 지연 로드가 그대로 맞물린다.
+ */
+const MobileHomeView = dynamic(
+  () => import("@/components/MobileHomeView").then((m) => m.MobileHomeView),
+  { ssr: false },
+);
+/** P3-1: 분석 패널 on-demand — 초기 청크에서 제외 */
+const AnalysisPanel = dynamic(
+  () => import("@/components/globe/AnalysisPanel").then((m) => m.AnalysisPanel),
+  { ssr: false },
+);
+/** P3-1 Intel 청크 — 시트 열릴 때 / idle 전에 로드 */
+const IntelNewsSheet = dynamic(
+  () =>
+    import("@/components/BottomIntelStack").then((m) => m.IntelNewsSheet),
+  { ssr: false },
+);
 import { MapAttributionBar } from "@/components/MapAttributionBar";
 import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { useCompactUi } from "@/hooks/useCompactUi";
@@ -514,7 +534,6 @@ import {
 import {
   NewsStreamProvider,
   IntelCompactBar,
-  IntelNewsSheet,
   type BottomIntelStackHandle,
 } from "@/components/BottomIntelStack";
 import {
@@ -557,7 +576,6 @@ import {
   reefWatchTrafficHtmlMarkers,
 } from "@/lib/reefWatchMarkers";
 
-import { AnalysisPanel } from "@/components/globe/AnalysisPanel";
 import { LogisticsStressCard } from "@/components/LogisticsStressCard";
 import { stressForChokepoint } from "@/lib/chokepointStressForUi";
 import { chokeStressHex } from "@/lib/chokeStressColor";
@@ -642,6 +660,8 @@ export function GlobeDashboard({
   const globeRef = useRef<MapGlobeMethods>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const intelStackRef = useRef<BottomIntelStackHandle>(null);
+  /** P3-1: BottomIntel 청크 — idle 또는 시트 오픈 시에만 마운트 */
+  const [intelChunkReady, setIntelChunkReady] = useState(false);
   const lastGlobeClickAt = useRef(0);
   const skipNextGlobeClickRef = useRef(false);
   const introPlayedRef = useRef(false);
@@ -661,6 +681,36 @@ export function GlobeDashboard({
   /** 패널 열 때 커밋 스냅샷 — 취소 시 복원 */
   const panelOpenSnapshotRef = useRef<LayerPrefs | null>(null);
   const [intelSheetOpen, setIntelSheetOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const arm = () => {
+      if (!cancelled) setIntelChunkReady(true);
+    };
+    const w = typeof globalThis !== "undefined" ? globalThis : null;
+    if (w && "requestIdleCallback" in w) {
+      const id = (
+        w as typeof globalThis & {
+          requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+          cancelIdleCallback: (id: number) => void;
+        }
+      ).requestIdleCallback(arm, { timeout: 5_000 });
+      return () => {
+        cancelled = true;
+        (
+          w as typeof globalThis & { cancelIdleCallback: (id: number) => void }
+        ).cancelIdleCallback(id);
+      };
+    }
+    const t = setTimeout(arm, 2_800);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, []);
+  useEffect(() => {
+    if (intelSheetOpen) setIntelChunkReady(true);
+  }, [intelSheetOpen]);
   const [bottomDockMode, setBottomDockMode] = useState<BottomDockMode>("history");
   const [layerPanelReady, setLayerPanelReady] = useState(false);
   const [frozenPanelCategories, setFrozenPanelCategories] = useState<LayerCategory[] | null>(null);
@@ -1237,6 +1287,14 @@ export function GlobeDashboard({
     [applyLayerPrefs, viewerMode],
   );
 
+  /** 뷰어 모드가 바뀌면 다른 도메인의 프리셋 선택은 무효 (P2-1) */
+  useEffect(() => {
+    setScenarioPresetId((prev) => {
+      if (!prev) return prev;
+      return findScenarioPreset(prev)?.mode === viewerMode ? prev : null;
+    });
+  }, [viewerMode]);
+
   /** Compact 진입/해제 — 데스크톱 prefs 스냅샷 분리 */
   useEffect(() => {
     if (isCompactUi) {
@@ -1680,6 +1738,12 @@ export function GlobeDashboard({
   const [livingTaiwanOpen, setLivingTaiwanOpen] = useState(false);
   const hubBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ukraineFrontLegendEngaged, setUkraineFrontLegendEngaged] = useState(false);
+  /** 경제 모드에선 지정학 범례(우크라 전선·분쟁 빗금) 상태를 항상 끈다 — 스위치 잔상 방지 */
+  useEffect(() => {
+    if (!isEconomyViewer) return;
+    setUkraineFrontLegendEngaged(false);
+    setShowDisputeLegendPanel(false);
+  }, [isEconomyViewer]);
   const [econNavSelection, setEconNavSelection] = useState<NavSelection | null>(null);
   const [econInsightOpen, setEconInsightOpen] = useState(false);
   const [econInsightBrief, setEconInsightBrief] = useState<EconInsightBrief | null>(null);
@@ -1762,8 +1826,16 @@ export function GlobeDashboard({
   });
 
   /**
-   * 시나리오 프리셋 (P2-1) — 레이어 세트 + 카메라를 한 번에 적용.
+   * 시나리오 프리셋 선택 (P2-1).
+   *
+   * 핵심은 **단일 커밋**이다. 레이어를 하나씩 `patchLayerPrefsSoft`로 넣으면
+   * 8~10번의 debounce·재계산이 누적돼 프리셋 자체가 느려진다. 이미 완성된
    * prefs 객체를 `applyLayerPrefs` 한 번으로 넘겨야 도허티 임계 안에 들어온다.
+   *
+   * 카메라 이동은 레이어 적용 **뒤**에 건다 — 순서가 반대면 비어 있는 화면으로
+   * 날아간 다음 레이어가 뒤늦게 나타난다.
+   *
+   * (`flyTo`가 useGlobeCamera에서 나오므로 이 훅은 반드시 그 아래에 있어야 한다.)
    */
   const handleScenarioPresetSelect = useCallback(
     (id: ScenarioPresetId) => {
@@ -3687,7 +3759,18 @@ export function GlobeDashboard({
     ultraLite,
   });
 
-  /** 항공기 — DOM Marker에서 MapLibre symbol 레이어로 이전 (milAircraftSymbols.ts). */
+  /**
+   * 항공기 — DOM Marker에서 MapLibre symbol 레이어로 이전 (milAircraftSymbols.ts).
+   *
+   * 이전에는 milHtmlMarkers·civHtmlMarkers가 htmlOverlayMarkers에 합쳐져
+   * 마커 하나당 div>button>span>span + SVG innerHTML + drop-shadow 필터가
+   * 만들어졌고, 프레임마다 project+transform+오클루전 판정이 돌았다.
+   * village 티어에서 최대 430개 — 화면 마커 중 압도적 1위였다.
+   *
+   * 여기서는 GeoJSON 하나로 합쳐 GPU가 배치로 그린다.
+   * milDisplayPoints/civDisplayPoints(원본)를 쓰는 이유는 *HtmlMarkers가
+   * markerId만 덧붙인 사본이라 symbol 경로에선 불필요하기 때문.
+   */
   const aircraftSymbols = useMemo(
     () => buildAircraftSymbolModel(milDisplayPoints, civDisplayPoints),
     [milDisplayPoints, civDisplayPoints],
@@ -4119,6 +4202,7 @@ export function GlobeDashboard({
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
       // 군용기·민항기는 여기 없다 — symbol 레이어(aircraftSymbols)로 이전됨.
+      // 되돌리면 최대 430개 DOM 마커가 프레임마다 되살아난다.
       ...aisHtmlMarkers,
       ...gdeltTagHtmlMarkers,
       ...newsStreamNeonMarkers,
@@ -4462,16 +4546,23 @@ export function GlobeDashboard({
   const fuse = useMemo(
     () =>
       new Fuse(data.places, {
-        keys: ["name", "country", "type"],
-        threshold: 0.32,
+        keys: [
+          { name: "name", weight: 0.45 },
+          { name: "nameKo", weight: 0.4 },
+          { name: "country", weight: 0.1 },
+          { name: "type", weight: 0.05 },
+        ],
+        threshold: 0.38,
         ignoreLocation: true,
+        includeScore: true,
       }),
     [data.places],
   );
 
   const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
-    return fuse.search(query).slice(0, 8).map((result) => result.item);
+    const q = query.trim();
+    if (!q) return [];
+    return fuse.search(q).slice(0, 10).map((result) => result.item);
   }, [fuse, query]);
 
   const hoverCard = useHoverCard({
@@ -7004,9 +7095,11 @@ export function GlobeDashboard({
       dismissLayerPanel(true);
       clearRegionNavSelection();
       setIntelSheetOpen(false);
-      setUkraineFrontLegendEngaged(true);
-      if (!showUkraineControl) togglePref("showUkraineControl", true);
-      if (!showNeptun) togglePref("showNeptun", true);
+      if (!isEconomyViewer) {
+        setUkraineFrontLegendEngaged(true);
+        if (!showUkraineControl) togglePref("showUkraineControl", true);
+        if (!showNeptun) togglePref("showNeptun", true);
+      }
       if (threat.type === "ballistic" || threat.type === "mig31k") {
         emitLayerClickSounds(
           [{ eventId: "ballistic-travel", volumeScale: 0.9, durationMs: 5200 }],
@@ -7023,13 +7116,13 @@ export function GlobeDashboard({
         setSelected({ kind: "neptun-threat", item: threat });
       });
     },
-    [clearRegionNavSelection, dismissLayerPanel, flyTo, layerAltitude, showNeptun, showUkraineControl, togglePref],
+    [clearRegionNavSelection, dismissLayerPanel, flyTo, isEconomyViewer, layerAltitude, showNeptun, showUkraineControl, togglePref],
   );
 
   function handleAlertSelect(alert: DisputeAlert) {
     clearRegionNavSelection();
     setIntelSheetOpen(false);
-    setShowDisputeLegendPanel(true);
+    if (!isEconomyViewer) setShowDisputeLegendPanel(true);
     flyTo(alert.center.lat, alert.center.lng, 0.88);
     openSelection({ kind: "dispute", item: alert });
   }
@@ -7595,12 +7688,12 @@ export function GlobeDashboard({
         deployedCarrierCount={deployedCarrierCount}
         compactChipId={compactChipId}
         handleCompactChipSelect={handleCompactChipSelect}
+        scenarioPresetId={scenarioPresetId}
+        handleScenarioPresetSelect={handleScenarioPresetSelect}
         globeRef={globeRef}
         getSceneForShare={getSceneForShare}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
-        scenarioPresetId={scenarioPresetId}
-        handleScenarioPresetSelect={handleScenarioPresetSelect}
       />
 
       <GeopoliticsHubChrome
@@ -7869,6 +7962,11 @@ export function GlobeDashboard({
           onLocalAlertSelect={handleAlertSelect}
           onCloseLocalPanel={() => setShowLocalAlertPanel(false)}
           labelLanguage={labelLanguage}
+          showGdeltWar={showGdeltWar}
+          showGdeltDiplomatic={showGdeltDiplomatic}
+          showGdeltProtests={showGdeltProtests}
+          showUsCarriers={showUsCarriers}
+          deployedCarrierCount={usCarriers.filter((c) => c.status === "deployed").length}
         />
         {!showLeftPanel &&
           !selected &&
@@ -7950,6 +8048,7 @@ export function GlobeDashboard({
       </section>
         </div>
 
+        {intelChunkReady || intelSheetOpen ? (
         <IntelNewsSheet
           ref={intelStackRef}
           open={intelSheetOpen && !showLeftPanel && !selected}
@@ -7981,6 +8080,7 @@ export function GlobeDashboard({
           autoOpenOnMount={false}
           onOpenTrust={() => setShowTrustPanel(true)}
         />
+        ) : null}
 
       <DashboardOverlayHost
         labelLanguage={labelLanguage}
