@@ -16,6 +16,7 @@ import {
   emitParchmentFoldSound,
   emitParchmentUnfoldSound,
 } from "@/components/SoundEffectsBridge";
+import { PanelSkeletonGrid } from "@/components/PanelSkeletons";
 
 type MacroShockSummary = {
   latest?: number | null;
@@ -112,6 +113,7 @@ export function EconInsightParchment({
   const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onMapOnly });
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
   const [worldStats, setWorldStats] = useState<WorldStatsMacro | null>(null);
+  const [macroLoading, setMacroLoading] = useState(false);
   const [typedChars, setTypedChars] = useState(0);
   const bodyScrollRef = useRef<HTMLDivElement>(null);
   const typingSkipRef = useRef(false);
@@ -193,9 +195,11 @@ export function EconInsightParchment({
   useEffect(() => {
     if (!displayBrief.countryHint) {
       setWorldStats(null);
+      setMacroLoading(false);
       return;
     }
     let cancelled = false;
+    setMacroLoading(true);
     const q = encodeURIComponent(displayBrief.countryHint);
     void fetch(`/api/world-stats/macro?country=${q}`)
       .then((r) => r.json())
@@ -209,6 +213,9 @@ export function EconInsightParchment({
       })
       .catch(() => {
         if (!cancelled) setWorldStats(null);
+      })
+      .finally(() => {
+        if (!cancelled) setMacroLoading(false);
       });
     return () => {
       cancelled = true;
@@ -306,6 +313,12 @@ export function EconInsightParchment({
                       {link.symbol} {arrowFor(link.direction)}
                     </span>
                   ))}
+                </div>
+              ) : null}
+
+              {macroLoading && !worldStats ? (
+                <div className="mt-4">
+                  <PanelSkeletonGrid count={4} minHeight={64} />
                 </div>
               ) : null}
 

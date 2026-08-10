@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { formatGtiBriefingLead, gtiBand, gtiBandLabel, GTI } from "@/lib/gti";
+import { displayGtiScore, formatGtiBriefingLead, gtiBand, gtiBandLabel, GTI } from "@/lib/gti";
 import type { WorldTensionSnapshot } from "@/lib/dailyRanks";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
@@ -53,7 +53,7 @@ export function GtiHeroMoment({ snapshot, lang, visible }: Props) {
   if (!visible) return null;
 
   const band = gtiBand(snapshot.score);
-  const score = Math.round(snapshot.score);
+  const score = displayGtiScore(snapshot.score) ?? 0;
   const lead = formatGtiBriefingLead(snapshot, lang === "en" ? "en" : "ko");
 
   return (

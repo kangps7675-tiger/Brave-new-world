@@ -29,6 +29,18 @@ export function trackModeSwitch(mode: string) {
 /** 레이어 패널 토글 (켠/끈 레이어 키) */
 export function trackLayerToggle(key: string, on: boolean) {
   safeTrack("layer_toggle", { key, on });
+  try {
+    void import("@/lib/layerTogglePopularity").then((m) => {
+      m.recordLayerTogglePopular(key, on);
+    });
+    if (on) {
+      void import("@/lib/dailyBriefingProgress").then((m) => {
+        m.markBriefingStep("layer");
+      });
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 /** 장면 공유 버튼 클릭 */

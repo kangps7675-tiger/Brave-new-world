@@ -215,7 +215,7 @@ const EMA_PREV = 0.45;
 const MAX_DAY_DELTA_RATIO = 0.4;
 /** 전장별 베이스라인 창 — 최근 N일 대비 이탈(z-score). 가용 일수만큼 사용. */
 const BASELINE_DAYS = 90;
-/** GTI (글로벌 긴장지수) = 평균·최고치 혼합 (GPR / HOI-style 간판 숫자) */
+/** GTI (글로벌 긴장지수) = 평균·최고치 혼합 — src/lib/gti.ts GTI_BLEND 과 동기 */
 const WORLD_AVG_WEIGHT = 0.55;
 const WORLD_MAX_WEIGHT = 0.45;
 const WORLD_ENTITY_ID = "global";

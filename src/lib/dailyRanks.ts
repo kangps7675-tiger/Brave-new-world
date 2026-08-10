@@ -2,6 +2,11 @@ import { asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { dailyEntityRanks } from "@/db/schema";
 import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
+import {
+  blendTheaterScoresToGti,
+  formatGtiDeltaLabel,
+  normalizeGtiScore,
+} from "@/lib/gti";
 
 export type DailyRankKind = "theater" | "chokepoint";
 
@@ -41,8 +46,8 @@ export type DailyRanksPayload = {
 
 /**
  * 공식 GTI 행(kind=world)이 없을 때의 대체 산출.
- * cron `upsertWorldTension`과 같은 축(전장 평균·최고 혼합)을 쓰되, 이미 0–100으로
- * 정규화된 전장 점수에서 바로 계산한다. 값이 없으면 null.
+ * cron `upsertWorldTension`과 **같은 가중치** (`GTI_BLEND` / blendTheaterScoresToGti).
+ * 이미 0–100으로 정규화된 전장 점수에서 바로 계산. EMA 스무딩은 cron만 적용.
  */
 export function deriveWorldTensionFromTheaters(
   theaters: DailyRankEntry[],
@@ -51,9 +56,6 @@ export function deriveWorldTensionFromTheaters(
     .map((entry) => displayTensionScore(entry))
     .filter((n) => Number.isFinite(n) && n > 0);
   if (scores.length === 0) return null;
-  const avg = scores.reduce((sum, n) => sum + n, 0) / scores.length;
-  const max = Math.max(...scores);
-  const blended = Math.max(0, Math.min(100, avg * 0.6 + max * 0.4));
 
   const deltas = theaters
     .map((entry) => entry.deltaScore)
@@ -63,11 +65,11 @@ export function deriveWorldTensionFromTheaters(
       ? Math.round((deltas.reduce((sum, n) => sum + n, 0) / deltas.length) * 10) / 10
       : null;
 
-  const score = Math.round(blended * 10) / 10;
+  const score = normalizeGtiScore(blendTheaterScoresToGti(scores));
   return {
     score,
     deltaScore,
-    prevScore: deltaScore == null ? null : Math.round((score - deltaScore) * 10) / 10,
+    prevScore: deltaScore == null ? null : normalizeGtiScore(score - deltaScore),
     method: "theater-blend-fallback",
   };
 }
@@ -372,18 +374,12 @@ export function formatRankDelta(
   return `▼${Math.abs(deltaRank)}`;
 }
 
+/** @deprecated Prefer formatGtiDeltaLabel from `@/lib/gti` — keeps chip/hero/briefing Δ identical */
 export function formatWorldTensionDelta(
   deltaScore: number | null | undefined,
   lang: "ko" | "en" = "ko",
 ): string {
-  if (deltaScore == null || !Number.isFinite(deltaScore) || Math.abs(deltaScore) < 0.05) {
-    return lang === "en" ? "vs yesterday —" : "어제 대비 —";
-  }
-  const rounded = Math.round(deltaScore * 10) / 10;
-  const sign = rounded > 0 ? "+" : "";
-  return lang === "en"
-    ? `vs yesterday ${sign}${rounded}`
-    : `어제보다 ${sign}${rounded}`;
+  return formatGtiDeltaLabel(deltaScore, lang);
 }
 
 export function dailyRankLabel(entry: DailyRankEntry, lang: "ko" | "en"): string {

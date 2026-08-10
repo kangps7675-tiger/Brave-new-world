@@ -2,7 +2,13 @@
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { gtiBand, gtiBandLabel, type GtiBand } from "@/lib/gti";
+import {
+  displayGtiDelta,
+  displayGtiScore,
+  gtiBand,
+  gtiBandLabel,
+  type GtiBand,
+} from "@/lib/gti";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type WorldTensionChipProps = {
@@ -90,15 +96,16 @@ export function WorldTensionChip({
     );
   }
 
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const band = gtiBand(clamped);
+  const clamped = displayGtiScore(score);
+  if (clamped == null) return null;
+  const band = gtiBand(score);
   const color = bandColor(band, light);
   const urgent = band === "critical";
   const asOfLabel = formatAsOfTime(asOf);
 
-  const delta = deltaScore != null && Number.isFinite(deltaScore) ? Math.round(deltaScore) : null;
+  const delta = displayGtiDelta(deltaScore);
   const deltaLabel =
-    delta != null && delta !== 0
+    delta != null
       ? delta > 0
         ? t("worldTensionDeltaUp", lang).replace("{n}", String(delta))
         : t("worldTensionDeltaDown", lang).replace("{n}", String(Math.abs(delta)))

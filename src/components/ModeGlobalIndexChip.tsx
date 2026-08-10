@@ -6,6 +6,7 @@ import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import { FreightStressChip } from "@/components/FreightStressChip";
 import { PortWatchStressChip } from "@/components/PortWatchStressChip";
 import { MarketSessionChip } from "@/components/MarketSessionChip";
+import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -29,6 +30,7 @@ type ModeGlobalIndexChipProps = {
  * 지경학: GSCPI + 해운 프록시 + PortWatch 3칩 + 세션 개장 (합산 점수 없음).
  *
  * 위치는 하드코딩. HoverNav·우측 사이드 레일과 CSS 변수로 맞추지 않는다.
+ * 전자시계는 칩 왼쪽 — 상단 검색바(중앙·축소)와 겹치지 않게 우측 클러스터로 묶는다.
  */
 export function ModeGlobalIndexChip({
   viewerMode,
@@ -44,33 +46,36 @@ export function ModeGlobalIndexChip({
 
   return (
     <div
-      className={`pointer-events-auto fixed z-[300] flex flex-col items-end gap-1.5 ${className}`}
+      className={`pointer-events-auto fixed z-[300] flex items-start gap-2 ${className}`}
       style={{
         top: "max(0.75rem, env(safe-area-inset-top, 0px))",
         right: "max(0.75rem, env(safe-area-inset-right, 0px))",
       }}
     >
-      {isEconomy ? (
-        <>
-          {showGscpi ? (
-            <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
-          ) : null}
-          <div className="flex flex-wrap justify-end gap-1.5">
-            <FreightStressChip lang={lang} />
-            <PortWatchStressChip lang={lang} />
-          </div>
-          <MarketSessionChip lang={lang} />
-        </>
-      ) : (
-        <WorldTensionChip
-          score={wtiScore}
-          deltaScore={wtiDelta}
-          asOf={wtiAsOf}
-          lang={lang}
-          className="shadow-lg backdrop-blur-md"
-        />
-      )}
-      {showSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
+      <ImmersionDigitalClock lang={lang} />
+      <div className="flex flex-col items-end gap-1.5">
+        {isEconomy ? (
+          <>
+            {showGscpi ? (
+              <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
+            ) : null}
+            <div className="flex flex-wrap justify-end gap-1.5">
+              <FreightStressChip lang={lang} />
+              <PortWatchStressChip lang={lang} />
+            </div>
+            <MarketSessionChip lang={lang} />
+          </>
+        ) : (
+          <WorldTensionChip
+            score={wtiScore}
+            deltaScore={wtiDelta}
+            asOf={wtiAsOf}
+            lang={lang}
+            className="shadow-lg backdrop-blur-md"
+          />
+        )}
+        {showSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
+      </div>
     </div>
   );
 }

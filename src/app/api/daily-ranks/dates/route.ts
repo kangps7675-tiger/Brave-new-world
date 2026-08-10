@@ -3,6 +3,7 @@ import { z } from "zod";
 import { apiStubResponse } from "@/lib/apiStub";
 import { parseSearchParams } from "@/lib/apiQuerySchemas";
 import { listDailyRankDates, utcRankDate } from "@/lib/dailyRanks";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,5 +47,5 @@ export async function GET(request: Request) {
     ...payload,
     today: utcRankDate(),
     fetchedAt: new Date().toISOString(),
-  });
+  }, { headers: publicCacheHeaders(CDN_CACHE.briefing) });
 }

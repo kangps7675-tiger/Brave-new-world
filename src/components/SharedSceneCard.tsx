@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { trackSceneCardCopy, trackSceneOpen } from "@/lib/analyticsEvents";
-import { GTI, formatGtiBriefingLead, gtiBand, gtiBandLabel } from "@/lib/gti";
+import { GTI, displayGtiScore, formatGtiBriefingLead, gtiBand, gtiBandLabel } from "@/lib/gti";
 import { buildSceneCard } from "@/lib/sceneCard";
 import type { SceneLinkState } from "@/lib/sceneLink";
 import type { WorldTensionSnapshot } from "@/lib/dailyRanks";
@@ -107,7 +107,7 @@ export function SharedSceneCard({
               {GTI.ticker}
             </span>
             <span className="font-data-mono text-3xl font-bold leading-none">
-              {Math.round(gtiSnapshot.score)}
+              {displayGtiScore(gtiSnapshot.score)}
             </span>
             <span className="text-sm font-semibold">
               {gtiBandLabel(band, lang !== "en")}

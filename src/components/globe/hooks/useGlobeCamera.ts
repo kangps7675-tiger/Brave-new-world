@@ -82,6 +82,8 @@ export interface UseGlobeCameraResult {
     durationMs?: number,
     camera?: { pitch?: number; bearing?: number },
   ) => void;
+  /** P3-4: 진행 중 fly를 목적지 스냅 */
+  interruptFlySnap: () => void;
   computeRegionFitAltitude: (bbox: RegionBBox, fallbackAltitude: number) => number;
   flyToBounds: (
     selection: NavSelection,
@@ -118,6 +120,14 @@ export function useGlobeCamera({
   /** flyTo tween 강제 busy 창 — idle debounce가 중간에 moving을 끄지 못하게 */
   const cameraTweenUntilRef = useRef(0);
   const flyBusyTimerRef = useRef<number | null>(null);
+  /** P3-4: mid-flight 개입 시 스냅할 목적지 */
+  const pendingFlyTargetRef = useRef<{
+    lat: number;
+    lng: number;
+    altitude: number;
+    pitch?: number;
+    bearing?: number;
+  } | null>(null);
 
   const [viewState, setViewState] = useState<ViewState>({
     lat: ENTRY_GATE.bootLookAt.lat,
@@ -268,6 +278,14 @@ export function useGlobeCamera({
       const controls = globeRef.current?.controls();
       if (controls) controls.autoRotate = false;
 
+      pendingFlyTargetRef.current = {
+        lat,
+        lng,
+        altitude: clampedAlt,
+        pitch: camera?.pitch,
+        bearing: camera?.bearing,
+      };
+
       const busyMs = cameraFlyBusyMs(durationMs);
       cameraTweenUntilRef.current = cameraBusyUntilAfterFly(durationMs);
       isCameraMovingRef.current = true;
@@ -295,6 +313,7 @@ export function useGlobeCamera({
       flyBusyTimerRef.current = window.setTimeout(() => {
         flyBusyTimerRef.current = null;
         cameraTweenUntilRef.current = 0;
+        pendingFlyTargetRef.current = null;
         const pov = globeRef.current?.pointOfView();
         if (!pov) {
           isCameraMovingRef.current = false;
@@ -330,6 +349,48 @@ export function useGlobeCamera({
     },
     [],
   );
+
+  /**
+   * P3-4: 사용자 드래그·클릭 시 진행 중 fly를 목적지 스냅으로 끊는다.
+   */
+  const interruptFlySnap = useCallback(() => {
+    const pending = pendingFlyTargetRef.current;
+    if (!pending || !isCameraMovingRef.current) return;
+    if (flyBusyTimerRef.current != null) {
+      window.clearTimeout(flyBusyTimerRef.current);
+      flyBusyTimerRef.current = null;
+    }
+    flyTo(pending.lat, pending.lng, pending.altitude, 0, {
+      pitch: pending.pitch,
+      bearing: pending.bearing,
+    });
+  }, [flyTo]);
+
+  /** 지도 조작이 오면 intro/auto fly를 목적지 스냅 (P3-4) */
+  useEffect(() => {
+    if (!isCameraMoving) return;
+    const onIntervene = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        !target.closest(
+          "canvas.maplibregl-canvas, .maplibregl-map, .maplibregl-canvas-container, [data-globe-shell]",
+        )
+      ) {
+        return;
+      }
+      interruptFlySnap();
+    };
+    const opts: AddEventListenerOptions = { passive: true, capture: true };
+    document.addEventListener("pointerdown", onIntervene, opts);
+    document.addEventListener("wheel", onIntervene, opts);
+    document.addEventListener("touchstart", onIntervene, opts);
+    return () => {
+      document.removeEventListener("pointerdown", onIntervene, opts);
+      document.removeEventListener("wheel", onIntervene, opts);
+      document.removeEventListener("touchstart", onIntervene, opts);
+    };
+  }, [interruptFlySnap, isCameraMoving]);
 
   const computeRegionFitAltitude = useCallback(
     (bbox: RegionBBox, fallbackAltitude: number) => {
@@ -463,6 +524,7 @@ export function useGlobeCamera({
     setIsCameraMoving,
     configureGlobe,
     flyTo,
+    interruptFlySnap,
     computeRegionFitAltitude,
     flyToBounds,
   };

@@ -4,6 +4,7 @@ import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { loadLocalStaticPoints } from "@/lib/localLayerData";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -86,7 +87,7 @@ export async function GET(request: Request) {
       count: data.length,
       points: data,
       attribution: "Wikidata (CC0) / local build",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   } catch (error) {
     const fallback = await loadLocalStaticPoints("ai-data-centers.json");
     return NextResponse.json({
@@ -96,6 +97,6 @@ export async function GET(request: Request) {
       points: fallback,
       attribution: "local build",
       warning: publicErrorMessage(error, "ai-data-centers failed"),
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   }
 }

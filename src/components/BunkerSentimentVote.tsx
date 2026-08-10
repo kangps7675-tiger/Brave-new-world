@@ -5,6 +5,7 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { getOrCreatePredictionDeviceId } from "@/lib/predictionDeviceId";
 import type { BunkerPick, BunkerSentimentSnapshot } from "@/lib/bunkerSentiment";
 import { trackEvent } from "@/lib/trackClient";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 type Props = {
   lang: LabelLanguage;
@@ -36,8 +37,7 @@ export function BunkerSentimentVote({ lang }: Props) {
 
   useEffect(() => {
     void load();
-    const t = window.setInterval(() => void load(), 60_000);
-    return () => window.clearInterval(t);
+    return visibleInterval(() => void load(), 60_000);
   }, [load]);
 
   async function vote(pick: BunkerPick) {

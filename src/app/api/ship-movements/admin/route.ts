@@ -15,6 +15,7 @@ import {
 } from "@/lib/shipMovements/adminAuth";
 import { listReviewQueue } from "@/lib/shipMovements/queries";
 import type { ReviewStatus } from "@/lib/shipMovements/types";
+import { NO_STORE_HEADERS } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
 
     clearAdminLoginFailures(clientKey);
     const token = signAdminToken(secret, TTL_MS);
-    const res = NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS });
     res.cookies.set(COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
@@ -158,7 +159,7 @@ export async function GET(request: Request) {
       authed: true,
       items,
       fetchedAt: new Date().toISOString(),
-    });
+    }, { headers: NO_STORE_HEADERS });
   } catch (error) {
     return NextResponse.json(
       {

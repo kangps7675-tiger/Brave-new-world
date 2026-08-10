@@ -13,6 +13,7 @@ import type { TelegramAlert, TelegramAlertsPayload } from "@/lib/telegramAlerts"
 import type { TzevaAdomAlert, TzevaAdomPayload } from "@/lib/tzevaAdom";
 import type { NewfeedsAttackPoint, NewfeedsAttacksPayload } from "@/lib/newfeeds";
 import type { ViewerChromePreset } from "@/lib/viewerChrome";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 type TelegramStatus = "idle" | "loading" | "ok" | "error" | "stub" | "waiting";
 type TzevaAdomStatus = "idle" | "loading" | "ok" | "error" | "stub" | "geo-blocked";
@@ -178,18 +179,16 @@ export function useLiveOsintPolling({
 
   useEffect(() => {
     if ((!showTelegramOsint && !intelSheetOpen) || !globeReady) return;
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void syncTelegramEmbed();
     }, liveTelegramSyncPollMs());
-    return () => window.clearInterval(timer);
   }, [globeReady, intelSheetOpen, showTelegramOsint, syncTelegramEmbed]);
 
   useEffect(() => {
     if ((!showTelegramOsint && !intelSheetOpen) || !globeReady) return;
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshTelegramAlerts();
     }, liveTelegramPollMs());
-    return () => window.clearInterval(timer);
   }, [globeReady, intelSheetOpen, refreshTelegramAlerts, showTelegramOsint]);
 
   const refreshTzevaAdom = useCallback(async () => {
@@ -225,10 +224,9 @@ export function useLiveOsintPolling({
     if (isEconomyViewer || !globeReady) return;
     void refreshTzevaAdom();
     const pollMs = liveTzevaPollMs();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshTzevaAdom();
     }, pollMs);
-    return () => window.clearInterval(timer);
   }, [globeReady, isEconomyViewer, refreshTzevaAdom]);
 
   const refreshNewfeedsIran = useCallback(async () => {
@@ -261,10 +259,9 @@ export function useLiveOsintPolling({
   useEffect(() => {
     if (isEconomyViewer || !globeReady) return;
     void refreshNewfeedsIran();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshNewfeedsIran();
     }, liveNewfeedsPollMs());
-    return () => window.clearInterval(timer);
   }, [globeReady, isEconomyViewer, refreshNewfeedsIran]);
 
   return {

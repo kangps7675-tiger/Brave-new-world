@@ -5,6 +5,7 @@ import { cachedFetchJson } from "@/lib/apiCache";
 import { apiStubResponse } from "@/lib/apiStub";
 import { conflictZoneToOutlineAndHatchPaths } from "@/lib/disputeHatch";
 import type { ConflictZoneFeature } from "@/data/geoTypes";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
       zones: data,
       hatchPrecomputed: true,
       attribution: "AI war-zone demo (Natural Earth + GDELT war clustering, no external AI API)",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   } catch (error) {
     return NextResponse.json(
       {

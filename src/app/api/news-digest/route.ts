@@ -7,6 +7,7 @@ import {
   isNewsDigestItem,
   type NewsDigestCache,
 } from "@/lib/news/digestTypes";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       articleId,
       item,
       cached: true,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.briefing) });
   }
 
   return NextResponse.json({
@@ -63,5 +64,5 @@ export async function GET(request: NextRequest) {
     items: cache.items,
     note: cache.note,
     cached: true,
-  });
+  }, { headers: publicCacheHeaders(CDN_CACHE.briefing) });
 }

@@ -164,9 +164,40 @@ function filterResourceDeposits(
 }
 
 async function fetchApiJson(apiPath: string): Promise<ApiPointsPayload> {
-  const response = await fetch(apiPath, { cache: "no-store" });
-  if (!response.ok) throw new Error(`${apiPath}: ${response.status}`);
-  return response.json();
+  const { fetchWithClientCache } = await import("@/lib/clientCache");
+  const { emitLayerCacheMeta } = await import("@/lib/layerCacheMeta");
+  const result = await fetchWithClientCache(
+    `layer:${apiPath}`,
+    async (signal) => {
+      const response = await fetch(apiPath, { cache: "no-store", signal });
+      if (!response.ok) throw new Error(`${apiPath}: ${response.status}`);
+      return (await response.json()) as ApiPointsPayload;
+    },
+    {
+      onSoftTimeout: () => {
+        emitLayerCacheMeta({
+          fromCache: true,
+          fetchedAt: Date.now() - 180_000,
+          softTimeout: true,
+        });
+      },
+    },
+  );
+  if (result.fromCache) {
+    emitLayerCacheMeta({
+      fromCache: true,
+      fetchedAt: result.fetchedAt,
+    });
+  }
+  if (result.refresh) {
+    void result.refresh.then(() => {
+      emitLayerCacheMeta({
+        fromCache: false,
+        fetchedAt: Date.now(),
+      });
+    }).catch(() => undefined);
+  }
+  return result.data;
 }
 
 function expandPointsFromJson(raw: unknown[]) {

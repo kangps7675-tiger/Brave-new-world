@@ -3,6 +3,7 @@ import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { loadLocalStaticPoints } from "@/lib/localLayerData";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,5 +30,5 @@ export async function GET(request: Request) {
     points: data.points,
     lists: data.lists,
     attribution: "US Treasury OFAC / UN / EU / UK · local build",
-  });
+  }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
 }

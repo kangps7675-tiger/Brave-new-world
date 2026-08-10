@@ -15,6 +15,7 @@ import { getOrCreatePredictionDeviceId } from "@/lib/predictionDeviceId";
 import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { GTI } from "@/lib/gti";
+import { markBriefingStep } from "@/lib/dailyBriefingProgress";
 
 type DailyPredictPanelProps = {
   lang: LabelLanguage;
@@ -124,6 +125,7 @@ export function DailyPredictPanel({
         cacheLocalPick(targetDate, dir);
         setPrefs(readDailyPredictPrefs());
         setStatus("ok");
+        markBriefingStep("predict");
         trackEvent(
           prev ? "daily_predict_change" : "daily_predict_submit",
           { targetDate, kind: "tension-dir", pick: dir },

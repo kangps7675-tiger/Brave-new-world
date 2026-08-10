@@ -1,34 +1,43 @@
 /**
- * 레이어 캡 거부 알림 — 조용한 실패 제거 (P0-7).
+ * 레이어 캡 알림 — 거부/자동 강등 (P0-7 / P2-2).
  *
- * ── 문제 ──────────────────────────────────────────────────────────
- * `useLayerPrefsController.togglePref`는 캡 초과 시 그냥 `return`한다.
- * 주석에는 "패널이 경고"라고 적혀 있고 실제로 레이어 패널
- * (`LayerCategoryDraftHost`)은 경고를 띄운다. 하지만 레이어를 켜는 경로는
- * 패널만이 아니다:
- *
- *   · `LayerQuickDropdown`      상단 빠른 레이어 드롭다운
- *   · `GpsJamFixedToggle` 등    고정 토글 칩
- *   · `AskLayersOverlay`        「묻기」 자동 레이어 ON
- *   · `CompactPresetChips`      모바일 프리셋
- *
- * 이 경로들은 캡에 걸리면 **아무 일도 일어나지 않는다.** 사용자는 토글을
- * 눌렀는데 지도가 그대로인 걸 보고 "고장났나?"라고 생각한다.
- *
- * ── 해법 ──────────────────────────────────────────────────────────
- * 거부가 발생한 지점(컨트롤러)에서 이벤트를 쏘고, 전역 토스트 하나가 듣는다.
- * 호출측 N곳을 전부 고치지 않아도 되고, 새 토글이 추가돼도 자동으로 커버된다.
+ * 거부는 Ultra 이외의 레거시 경로용으로 남겨 두고,
+ * 일반 모드도 자리 비우기(evict) + undo 이벤트를 쓴다.
  */
 
+import type { LayerPrefs } from "@/lib/layerPrefs";
+import { isLayerCapCountedKey } from "@/lib/layerExclusiveCap";
+
 export const LAYER_CAP_REJECTED_EVENT = "geowatch-layer-cap-rejected";
+export const LAYER_CAP_EVICTED_EVENT = "geowatch-layer-cap-evicted";
+export const LAYER_CAP_UNDO_EVENT = "geowatch-layer-cap-undo";
 
 export type LayerCapRejectedDetail = {
   /** 켜려다 거부된 레이어 prefs 키 */
   key: string;
-  /** 현재 상한 */
+  /** 현재 상한 (내부·디버그용 — UI에는 숫자를 내지 않는다) */
   cap: number;
   ultraLite: boolean;
 };
+
+export type LayerCapEvictedDetail = {
+  /** 자리를 비우기 위해 끈 레이어 prefs 키 */
+  evicted: Array<keyof LayerPrefs>;
+  /** [되돌리기]용 스냅샷 */
+  undo: LayerPrefs;
+};
+
+export function diffTurnedOffLayers(
+  before: LayerPrefs,
+  after: LayerPrefs,
+): Array<keyof LayerPrefs> {
+  const out: Array<keyof LayerPrefs> = [];
+  for (const key of Object.keys(before) as Array<keyof LayerPrefs>) {
+    if (!isLayerCapCountedKey(key)) continue;
+    if (before[key] === true && after[key] !== true) out.push(key);
+  }
+  return out;
+}
 
 export function emitLayerCapRejected(detail: LayerCapRejectedDetail): void {
   if (typeof window === "undefined") return;
@@ -37,7 +46,7 @@ export function emitLayerCapRejected(detail: LayerCapRejectedDetail): void {
       new CustomEvent<LayerCapRejectedDetail>(LAYER_CAP_REJECTED_EVENT, { detail }),
     );
   } catch {
-    /* CustomEvent 미지원 — 알림만 생략, 동작에는 영향 없음 */
+    /* CustomEvent 미지원 — 알림만 생략 */
   }
 }
 
@@ -51,4 +60,49 @@ export function onLayerCapRejected(
   };
   window.addEventListener(LAYER_CAP_REJECTED_EVENT, listener);
   return () => window.removeEventListener(LAYER_CAP_REJECTED_EVENT, listener);
+}
+
+export function emitLayerCapEvicted(detail: LayerCapEvictedDetail): void {
+  if (typeof window === "undefined") return;
+  if (detail.evicted.length === 0) return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent<LayerCapEvictedDetail>(LAYER_CAP_EVICTED_EVENT, { detail }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+export function onLayerCapEvicted(
+  handler: (detail: LayerCapEvictedDetail) => void,
+): () => void {
+  if (typeof window === "undefined") return () => {};
+  const listener = (event: Event) => {
+    const detail = (event as CustomEvent<LayerCapEvictedDetail>).detail;
+    if (detail) handler(detail);
+  };
+  window.addEventListener(LAYER_CAP_EVICTED_EVENT, listener);
+  return () => window.removeEventListener(LAYER_CAP_EVICTED_EVENT, listener);
+}
+
+export function emitLayerCapUndo(undo: LayerPrefs): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent<LayerPrefs>(LAYER_CAP_UNDO_EVENT, { detail: undo }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+export function onLayerCapUndo(handler: (undo: LayerPrefs) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const listener = (event: Event) => {
+    const detail = (event as CustomEvent<LayerPrefs>).detail;
+    if (detail) handler(detail);
+  };
+  window.addEventListener(LAYER_CAP_UNDO_EVENT, listener);
+  return () => window.removeEventListener(LAYER_CAP_UNDO_EVENT, listener);
 }

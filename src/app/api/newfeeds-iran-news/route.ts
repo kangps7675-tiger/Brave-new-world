@@ -6,6 +6,7 @@ import {
   NEWFEEDS_IRAN_FEED_URL,
   NEWFEEDS_REPO_URL,
 } from "@/lib/newfeeds";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
       attribution: NEWFEEDS_ATTRIBUTION,
       attributionUrl: NEWFEEDS_REPO_URL,
       live: true,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.newfeeds) });
   }
 
   try {
@@ -91,7 +92,7 @@ export async function GET(request: Request) {
       live: true,
       attribution: NEWFEEDS_ATTRIBUTION,
       attributionUrl: NEWFEEDS_REPO_URL,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.newfeeds) });
   } catch (error) {
     return NextResponse.json(
       {

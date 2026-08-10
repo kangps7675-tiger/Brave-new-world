@@ -196,17 +196,25 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
 }
 
 /**
- * 유료 티어 운영 중인가.
- *
- * ⚠️ adsb.fi 약관은 "for personal, **non-commercial** use only" 다.
- *    요금제를 켠 상태에서 adsb.fi 로 폴백하면 그 자체가 약관 위반이다.
- *    그래서 상업 모드에서는 ODbL 인 adsb.lol 로 떨어진다.
+ * 유료 티어 운영 중인가 — ADS-B 소스 선택에는 쓰지 않는다
+ * (폴백이 adsb.lol(ODbL) 로 고정). `civilianTrafficUrl` 주석 참조.
  */
-function isCommercialTier(): boolean {
-  return process.env.COMMERCIAL_TIER_ENABLED === "true";
-}
 
-/** 뷰포트 중심 기준 민간 항적 URL */
+/**
+ * 뷰포트 중심 기준 민간 항적 URL.
+ *
+ * ⚠️ **adsb.fi 로 되돌리지 말 것.**
+ *
+ * adsb.fi 약관은 "for **personal**, non-commercial use only" 다.
+ * 이전 구현은 유료 티어일 때만 adsb.lol 로 떨어졌는데, 그건 두 요건 중
+ * "non-commercial" 만 본 것이다. **공개 웹서비스는 무료여도 "personal" 이 아니다.**
+ * 두 요건을 모두 충족해야 하므로 무료 단계에서도 adsb.fi 는 쓸 수 없다.
+ *
+ * adsb.lol 은 ODbL 이라 출처 표기만 하면 무료·유료 모두 문제없다.
+ * (Cloudflare Worker IP 는 adsb.fi 가 403 을 주므로 실무상으로도 adsb.lol 이 낫다.)
+ *
+ * @see docs/copyright-audit-2026-08-01.md — Y-2
+ */
 export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
   url: string;
   source: "adsbx" | "adsb.lol" | "adsb.fi";
@@ -229,15 +237,9 @@ export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
       source: "adsbx",
     };
   }
-  // 키가 없을 때의 폴백 — 상업 모드면 ODbL 소스만
-  if (isCommercialTier()) {
-    return {
-      url: `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-      source: "adsb.lol",
-    };
-  }
+  // 키가 없을 때의 폴백 — ODbL 소스로 고정 (무료·유료 구분 없음)
   return {
-    url: `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-    source: "adsb.fi",
+    url: `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
+    source: "adsb.lol",
   };
 }
