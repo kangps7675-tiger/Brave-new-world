@@ -163,7 +163,6 @@ import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
 import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
 import {
-  clearLampFolded,
   clearWeeklyRecapFolded,
   markLampFolded,
   markPeriodSeen,
@@ -238,6 +237,8 @@ type LayerPatch = Parameters<typeof applyLayerPatch>[1];
 export type DashboardOverlayHostProps = {
   labelLanguage: LabelLanguage;
   isCompactUi: boolean;
+  /** 태블릿 프로파일 — soft-compact 밀도 (1025–1366 등) */
+  isTabletUi?: boolean;
   isEconomyViewer: boolean;
   viewerMode: ViewerMode;
   intelSheetOpen: boolean;
@@ -448,6 +449,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   const {
     labelLanguage,
     isCompactUi,
+    isTabletUi = false,
     isEconomyViewer,
     viewerMode,
     intelSheetOpen,
@@ -745,18 +747,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       </div>
       ) : null}
 
-      {/* 데스크톱 우측 레일 — 항모/공급망 토글 + 후원 + GSCPI·Watch (좌측 겹침 해소) */}
+      {/* 데스크톱·태블릿 우측 레일 — 칩 하단(--mode-index-chip-bottom)과 nav 높이 중 큰 쪽 기준 */}
       {!intelSheetOpen &&
       !isCompactUi &&
       !showLeftPanel &&
       !rightDockOpen &&
       !selected ? (
         <div
-          className="cv-desktop-only pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
+          className="cv-desktop-only cv-chrome-rail-top pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain sm:right-4"
           style={{
-            // GTI(우상단 하드코딩)와 연동하지 않음 — 우측 사이드 독립 배치
-            top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
-            maxHeight: "calc(100dvh - var(--hover-nav-base-height, 0px) - 6rem)",
+            // top/maxHeight는 .cv-chrome-rail-top CSS 변수 기반
+            maxWidth: isTabletUi
+              ? "min(16rem, calc(100vw - 1.5rem))"
+              : "min(20rem, calc(100vw - 1.5rem))",
           }}
         >
           {!isEconomyViewer ? (
@@ -791,7 +794,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
                 vertical
               />
-              {gateClosed ? (
+              {gateClosed && !isTabletUi ? (
                 <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
                   <FinintTicker />
                 </div>
@@ -804,7 +807,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           {!isEconomyViewer && gateClosed ? (
             <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-2">
               <TopWatchPanel lang={labelLanguage} />
-              <SitrepLog lang={labelLanguage} />
+              <div className="cv-tablet-hide-sitrep w-full">
+                <SitrepLog lang={labelLanguage} />
+              </div>
             </div>
           ) : null}
         </div>
@@ -938,8 +943,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <div
           className="pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2"
           style={{
-            // GTI와 연동하지 않음 — 모바일 우측 유틸 독립 배치
-            top: "max(3.25rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))",
+            top: "calc(max(3.25rem, var(--mode-index-chip-bottom, 3.25rem)) + 0.35rem)",
           }}
         >
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">
@@ -1061,7 +1065,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       */}
       {gateClosed && (isCompactUi || liveBriefingSession) ? (
         <div
-          className="pointer-events-none fixed right-4 bottom-5 z-[900] flex flex-col items-end gap-2 sm:right-5 sm:bottom-6"
+          className={`pointer-events-none fixed right-4 z-[900] flex flex-col items-end gap-2 sm:right-5 ${
+            isCompactUi ? "cv-chrome-fab-bottom" : "bottom-5 sm:bottom-6"
+          }`}
         >
           {isCompactUi && gateClear ? (
             <SentinelModeButton
@@ -1330,7 +1336,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <button
               type="button"
               onClick={() => {
-                clearLampFolded(foldedPeriodicBriefing.key);
+                // folded 플래그는 dismiss 때까지 유지 — 열 때 clear하면
+                // 새로고침·모드 전환 시 seen만 남아 등불이 하루 종일 사라졌다.
                 onSetPeriodicBriefing(foldedPeriodicBriefing);
                 onSetFoldedPeriodicBriefing(null);
               }}
@@ -1439,16 +1446,36 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] ${
-            // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
-            telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-start gap-2 sm:left-4 ${
+            telegramMiniPanelVisible
+              ? "cv-chrome-daily-bottom--telegram"
+              : "cv-chrome-daily-bottom"
           } ${
             // 접었을 때 420px 폭을 유지하면 보이지 않는 영역이 지도 클릭을 막는다
-            showDailyRankPanel ? "w-[min(420px,calc(100vw-1.5rem))]" : "w-fit"
+            showDailyRankPanel
+              ? isTabletUi
+                ? "w-[min(360px,calc(100vw-1.5rem))]"
+                : "w-[min(420px,calc(100vw-1.5rem))]"
+              : "w-fit"
           }`}
         >
+          {gateClosed &&
+          !showModePicker &&
+          !showLeftPanel &&
+          !showDailyRankPanel &&
+          !telegramMiniPanelVisible ? (
+            <DailyBriefingChrome
+              lang={labelLanguage}
+              layout="stack"
+              suppressed={Boolean(weeklyExpanded || tomorrowTensionPrompt || sentinelActive)}
+              onOpenDailyPanel={() => {
+                markBriefingStep("share");
+                onToggleDailyRankPanel(true);
+              }}
+            />
+          ) : null}
           {showDailyRankPanel ? (
-            <div className="relative">
+            <div className="relative w-full">
               <button
                 type="button"
                 onClick={() => onToggleDailyRankPanel(false)}
@@ -1462,8 +1489,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               <div
                 className={`intel-scroll-y ${
                   telegramMiniPanelVisible
-                    ? "max-h-[calc(100vh-29rem)]"
-                    : "max-h-[calc(100vh-9rem)]"
+                    ? "max-h-[calc(100dvh-29rem)]"
+                    : isTabletUi
+                      ? "max-h-[calc(100dvh-12rem)]"
+                      : "max-h-[calc(100dvh-9rem)]"
                 }`}
               >
                 <DailyRankSharePanel lang={labelLanguage} />
@@ -1479,23 +1508,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             />
           )}
         </div>
-      ) : null}
-
-      {gateClosed && !showModePicker && !isCompactUi ? (
-        <DailyBriefingChrome
-          lang={labelLanguage}
-          suppressed={Boolean(
-            showLeftPanel ||
-              showDailyRankPanel ||
-              weeklyExpanded ||
-              tomorrowTensionPrompt ||
-              sentinelActive,
-          )}
-          onOpenDailyPanel={() => {
-            markBriefingStep("share");
-            onToggleDailyRankPanel(true);
-          }}
-        />
       ) : null}
 
       <TourInviteBanner

@@ -26,6 +26,8 @@ type Props = {
   lang: LabelLanguage;
   /** 게이트·모달 중에는 숨김 */
   suppressed?: boolean;
+  /** GTI 칼럼 안에 쌓을 때 fixed 해제 */
+  layout?: "fixed" | "stack";
   onOpenDailyPanel?: () => void;
 };
 
@@ -36,6 +38,7 @@ type Props = {
 export function DailyBriefingChrome({
   lang,
   suppressed = false,
+  layout = "fixed",
   onOpenDailyPanel,
 }: Props) {
   const ko = lang !== "en";
@@ -128,44 +131,53 @@ export function DailyBriefingChrome({
 
   const { done, total, steps } = progress;
   const pct = Math.round((done / total) * 100);
+  const stacked = layout === "stack";
+
+  const gauge = (
+    <div className="rounded-xl border border-sky-400/25 bg-[#071018]/92 px-3 py-2 shadow-lg backdrop-blur-md">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-meta font-semibold text-sky-50/95">
+          {ko ? `오늘의 브리핑 ${done}/${total}` : `Briefing ${done}/${total}`}
+        </p>
+        <span className="text-micro tabular-nums text-sky-200/55">{pct}%</span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-sky-400/80 transition-[width] duration-500 ease-out"
+          style={{
+            width: `${pct}%`,
+            transition: prefersReducedMotion() ? "none" : undefined,
+          }}
+        />
+      </div>
+      <ul className="mt-1.5 flex flex-wrap gap-1">
+        {(Object.keys(steps) as BriefingStepId[]).map((id) => (
+          <li
+            key={id}
+            className={`rounded px-1.5 py-0.5 text-micro ${
+              steps[id]
+                ? "bg-sky-500/25 text-sky-100"
+                : "bg-white/5 text-white/35"
+            }`}
+          >
+            {BRIEFING_STEP_LABELS[id][ko ? "ko" : "en"]}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
   return (
     <>
-      <div
-        className={`pointer-events-auto fixed bottom-[calc(var(--bottom-intel-stack-clearance,3.25rem)+0.5rem+env(safe-area-inset-bottom,0px))] left-3 ${Z_ABOVE_NAV} w-[min(92vw,16.5rem)]`}
-      >
-        <div className="rounded-xl border border-sky-400/25 bg-[#071018]/92 px-3 py-2 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-meta font-semibold text-sky-50/95">
-              {ko ? `오늘의 브리핑 ${done}/${total}` : `Briefing ${done}/${total}`}
-            </p>
-            <span className="text-micro tabular-nums text-sky-200/55">{pct}%</span>
-          </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-sky-400/80 transition-[width] duration-500 ease-out"
-              style={{
-                width: `${pct}%`,
-                transition: prefersReducedMotion() ? "none" : undefined,
-              }}
-            />
-          </div>
-          <ul className="mt-1.5 flex flex-wrap gap-1">
-            {(Object.keys(steps) as BriefingStepId[]).map((id) => (
-              <li
-                key={id}
-                className={`rounded px-1.5 py-0.5 text-micro ${
-                  steps[id]
-                    ? "bg-sky-500/25 text-sky-100"
-                    : "bg-white/5 text-white/35"
-                }`}
-              >
-                {BRIEFING_STEP_LABELS[id][ko ? "ko" : "en"]}
-              </li>
-            ))}
-          </ul>
+      {stacked ? (
+        <div className="pointer-events-auto w-[min(92vw,16.5rem)]">{gauge}</div>
+      ) : (
+        <div
+          className={`pointer-events-auto fixed bottom-[calc(var(--bottom-intel-stack-clearance,3.25rem)+0.5rem+env(safe-area-inset-bottom,0px))] left-3 ${Z_ABOVE_NAV} w-[min(92vw,16.5rem)]`}
+        >
+          {gauge}
         </div>
-      </div>
+      )}
 
       {leavingOffer && !peakOpen ? (
         <div

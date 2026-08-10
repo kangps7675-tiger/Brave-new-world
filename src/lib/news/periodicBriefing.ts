@@ -14,12 +14,12 @@ import { isJapanGeopoliticsNews } from "@/lib/news/japanGeopolitics";
 import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
 /**
- * 매일 등불 브리핑 — 지정학·지경학 각각 하루 종일 이용.
+ * 매일 등불 브리핑 — 지정학·지경학 각각 6시간 슬롯으로 갱신.
  *
- * - 첫 방문: 입장 인트로(경고→편지→도메인)가 끝난 뒤에 점화
- * - 접기: 양피지를 접어 두고, 같은 날 칩으로 다시 펼칠 수 있음
- * - 뉴스 본문: 로컬 시각 기준 6시간 슬롯(0·6·12·18시)마다 갱신
- * - 모드 키 = `daily-YYYY-MM-DD-{conflict|economy}`
+ * - 첫 방문 / 새 슬롯: 입장 온보딩 이후 양피지 자동 점화 (사진 데스크)
+ * - 접기: 우측 「등불」탭으로 접어 두고 같은 슬롯 안에서 다시 펼침
+ * - 뉴스 본문: 로컬 0·6·12·18시마다 새 슬롯 → 대표 뉴스·큰 사진 다시 점화
+ * - storage 키 = `daily-YYYY-MM-DD-sN-{conflict|economy}` (슬롯마다 seen/folded 분리)
  * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
  * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
  * - 등불 카드 = 선명 사진 + 개별 원문 URL (섹션/종합 링크·시드 패딩 금지)
@@ -233,9 +233,13 @@ export function resolveLampPeriod(now: Date = new Date()): {
   };
 }
 
-/** 모드별 일일 등불 키 — 지정학·지경학 각각 하루 단위 */
-export function lampSeenKey(dayKey: string, mode: ViewerMode): string {
-  return `${dayKey}-${mode}`;
+/**
+ * 모드·6시간 슬롯별 등불 storage 키.
+ * @param contentSlot `lampContentSlotKey` / `resolveLampPeriod().contentSlot`
+ *   (`daily-YYYY-MM-DD-s0` … `s3`)
+ */
+export function lampSeenKey(contentSlot: string, mode: ViewerMode): string {
+  return `${contentSlot}-${mode}`;
 }
 
 /** @deprecated 하루 종일 이용으로 전환 — 접힘 상태는 hasFoldedLamp 사용 */
