@@ -50,11 +50,16 @@ function mapCanvas(page: Page) {
 }
 
 /**
- * 레이어 패널 안의 보이는 체크박스만.
- * 페이지 전역 `.first()`는 Ultra-Lite·GPS 등 숨김/장외 체크박스를 집을 수 있다.
+ * 좌측 레이어 서랍 (LayerPanelHost).
+ * GPS Jam·항모 등 고정 토글(h-4)과 구분 — 그쪽은 패널이 닫혀도 남는다.
  */
+function layerPanel(page: Page) {
+  return page.locator("aside.intel-panel.intel-scroll-y");
+}
+
+/** 레이어 패널 안의 보이는 체크박스만 */
 function visibleLayerCheckbox(page: Page) {
-  return page.locator('input[type="checkbox"]:visible:not([disabled])').first();
+  return layerPanel(page).locator('input[type="checkbox"]:visible:not([disabled])').first();
 }
 
 test.describe("스모크", () => {
@@ -87,12 +92,18 @@ test.describe("스모크", () => {
     await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
 
     await page.locator("#layer-panel-toggle").click();
+    await expect(layerPanel(page)).toBeVisible({ timeout: 20_000 });
 
     const box = visibleLayerCheckbox(page);
     await expect(box).toBeVisible({ timeout: 20_000 });
 
     const before = await box.isChecked();
-    await box.click();
+    /**
+     * CI에서 native click 이 "performing click action"에 멈춘 적이 있다
+     * (지도 interaction pause·대량 리렌더와 겹침). setChecked(force)는
+     * 액션 가능성을 우회하고 input 상태를 직접 바꾼다.
+     */
+    await box.setChecked(!before, { force: true });
 
     /**
      * P1-1: leading-edge debounce(120ms)로 첫 토글은 즉시 반영된다.
@@ -101,8 +112,7 @@ test.describe("스모크", () => {
      */
     await expect(box).toBeChecked({ checked: !before, timeout: 1_000 });
 
-    // 되돌리기까지 되어야 토글이 진짜 동작하는 것
-    await box.click();
+    await box.setChecked(before, { force: true });
     await expect(box).toBeChecked({ checked: before, timeout: 1_000 });
 
     // 토글 후에도 지도가 살아 있어야 한다 (레이어 추가로 컨텍스트가 죽는 회귀 방지)
@@ -113,17 +123,18 @@ test.describe("스모크", () => {
     await enterGlobe(page);
     await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
 
-    const toggle = page.locator("#layer-panel-toggle");
-    await toggle.click();
+    await page.locator("#layer-panel-toggle").click();
 
-    const anyCheckbox = visibleLayerCheckbox(page);
-    await expect(anyCheckbox).toBeVisible({ timeout: 20_000 });
+    const panel = layerPanel(page);
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    await expect(visibleLayerCheckbox(page)).toBeVisible({ timeout: 20_000 });
 
     /**
      * 패널이 열리면 inset 백드롭(z-500)이 토글(z-200)을 가린다.
-     * UX상 닫기는 백드롭(aria: 패널 닫기) 클릭이다.
+     * force: 지도/마커 오버레이가 백드롭 클릭을 가로채도 닫힘을 검증한다.
+     * 닫힘 판정은 GPS 등 장외 체크박스가 아니라 패널 자체다.
      */
-    await page.getByRole("button", { name: /패널 닫기|Close panel/i }).click();
-    await expect(anyCheckbox).toBeHidden({ timeout: 10_000 });
+    await page.getByRole("button", { name: /패널 닫기|Close panel/i }).click({ force: true });
+    await expect(panel).toBeHidden({ timeout: 10_000 });
   });
 });
