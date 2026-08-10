@@ -115,15 +115,42 @@ export type BasemapMapLike = {
   setTerrain: (terrain: { source: string; exaggeration?: number } | null) => void;
   getSource: (id: string) => unknown;
   setProjection?: (projection: { type: string }) => void;
+  getProjection?: () => { type?: string } | undefined;
 };
 
-/** 스타일 교체 후 Mercator 리셋 방지 — 항상 3D 지구본 투영 */
+/**
+ * 스타일 교체 후 Mercator 리셋 방지 — 항상 3D 지구본 투영.
+ *
+ * MapLibre v6에서 `globe`는 z≈11–12에 mercator로 넘어가는 **적응형 프리셋**이다.
+ * 전역 뷰에서 납작한 세계지도로 보이는 회귀를 막기 위해
+ * `vertical-perspective`(줌과 무관하게 구)를 우선 적용한다.
+ * 미지원 빌드만 `globe`로 폴백.
+ */
 export function applyBasemapGlobeProjection(map: BasemapMapLike): void {
+  if (!map.setProjection) return;
+
+  const apply = (type: "vertical-perspective" | "globe") => {
+    map.setProjection?.({ type });
+  };
+
   try {
-    map.setProjection?.({ type: "globe" });
+    apply("vertical-perspective");
+    const type = map.getProjection?.()?.type;
+    if (type === "vertical-perspective" || type === "globe") return;
+    apply("globe");
   } catch {
-    /* projection unsupported */
+    try {
+      apply("globe");
+    } catch {
+      /* projection unsupported */
+    }
   }
+}
+
+/** 현재 투영이 납작한 mercator인지 (워치독용) */
+export function isMercatorProjection(map: BasemapMapLike): boolean {
+  const type = map.getProjection?.()?.type;
+  return !type || type === "mercator";
 }
 
 export function applyBasemapFog(map: BasemapMapLike, mode: BasemapMode): void {
