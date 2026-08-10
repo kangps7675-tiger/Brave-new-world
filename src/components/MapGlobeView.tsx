@@ -63,6 +63,7 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
   OPENFREEMAP_PLANET_URL,
   parseBasemapMode,
@@ -873,6 +874,32 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded, mapStyleUrl, basemapMode]);
 
+  /**
+   * Carto/OpenFreeMap style.json에는 projection이 없어 로드·교체 순간 Mercator로 떨어진다.
+   * styledata 때마다 mercator면 지구본을 다시 씌운다 (납작한 세계지도 회귀 방지).
+   */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const m = map as unknown as BasemapMapLike;
+    const ensureGlobe = () => {
+      if (movingRef.current) return;
+      if (!isMercatorProjection(m)) return;
+      applyBasemapGlobeProjection(m);
+      applyBasemapFog(m, basemapModeRef.current);
+    };
+    ensureGlobe();
+    map.on("styledata", ensureGlobe);
+    const poll = window.setInterval(ensureGlobe, 1500);
+    const stopPoll = window.setTimeout(() => window.clearInterval(poll), 20_000);
+    return () => {
+      map.off("styledata", ensureGlobe);
+      window.clearInterval(poll);
+      window.clearTimeout(stopPoll);
+    };
+  }, [mapLoaded, mapStyleUrl]);
+
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
       if (layerId === "map-points" || layerId === "map-gem-facilities") {
@@ -1446,7 +1473,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
 
-  const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 2.25 });
+  /** 더 멀리 시작해 구 실루엣이 분명하게 (구 altitude 2.25 → zoom≈6.4는 평면에 가깝게 읽히기 쉬움) */
+  const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 3.85 });
 
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
