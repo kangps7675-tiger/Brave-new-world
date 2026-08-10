@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
 import { SwpcStatusChip } from "@/components/SwpcStatusChip";
@@ -21,6 +22,11 @@ type ModeGlobalIndexChipProps = {
   showGscpi?: boolean;
   /** NOAA SWPC 우주기상 칩 */
   showSwpc?: boolean;
+  /**
+   * 태블릿·중간 폭 — 스택을 한 줄로 압축, SWPC 숨김.
+   * 우레일·유틸이 `--mode-index-chip-height`로 비켜설 수 있게 높이만 줄인다.
+   */
+  dense?: boolean;
   className?: string;
 };
 
@@ -29,8 +35,8 @@ type ModeGlobalIndexChipProps = {
  * 지정학: 글로벌 긴장지수(GTI).
  * 지경학: GSCPI + 해운 프록시 + PortWatch 3칩 + 세션 개장 (합산 점수 없음).
  *
- * 위치는 하드코딩. HoverNav·우측 사이드 레일과 CSS 변수로 맞추지 않는다.
- * 전자시계는 칩 왼쪽 — 상단 검색바(중앙·축소)와 겹치지 않게 우측 클러스터로 묶는다.
+ * 실제 높이·하단을 `--mode-index-chip-height` / `--mode-index-chip-bottom`으로 게시해
+ * 우레일·compact 유틸 top이 겹치지 않게 한다.
  */
 export function ModeGlobalIndexChip({
   viewerMode,
@@ -40,20 +46,60 @@ export function ModeGlobalIndexChip({
   wtiAsOf,
   showGscpi = true,
   showSwpc = true,
+  dense = false,
   className = "",
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = ref.current;
+    if (!el) {
+      root.style.setProperty("--mode-index-chip-height", "0px");
+      root.style.setProperty("--mode-index-chip-bottom", "0px");
+      return;
+    }
+    const publish = () => {
+      const rect = el.getBoundingClientRect();
+      const h = Math.max(0, Math.ceil(rect.height));
+      const bottom = Math.max(0, Math.ceil(rect.bottom));
+      const w = Math.max(0, Math.ceil(rect.width));
+      root.style.setProperty("--mode-index-chip-height", `${h}px`);
+      root.style.setProperty("--mode-index-chip-bottom", `${bottom}px`);
+      root.style.setProperty("--mode-index-chip-width", `${w}px`);
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    window.addEventListener("resize", publish);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+      root.style.setProperty("--mode-index-chip-height", "0px");
+      root.style.setProperty("--mode-index-chip-bottom", "0px");
+      root.style.setProperty("--mode-index-chip-width", "0px");
+    };
+  }, [dense, isEconomy, showGscpi, showSwpc]);
+
+  const showAuxSwpc = showSwpc && !dense;
 
   return (
     <div
+      ref={ref}
       className={`pointer-events-auto fixed z-[300] flex items-start gap-2 ${className}`}
       style={{
         top: "max(0.75rem, env(safe-area-inset-top, 0px))",
         right: "max(0.75rem, env(safe-area-inset-right, 0px))",
       }}
+      data-chrome-density={dense ? "dense" : "full"}
     >
-      <ImmersionDigitalClock lang={lang} />
-      <div className="flex flex-col items-end gap-1.5">
+      {!dense ? <ImmersionDigitalClock lang={lang} /> : null}
+      <div
+        className={`flex items-end gap-1.5 ${
+          dense ? "flex-row flex-wrap justify-end" : "flex-col"
+        }`}
+      >
         {isEconomy ? (
           <>
             {showGscpi ? (
@@ -62,8 +108,9 @@ export function ModeGlobalIndexChip({
             <div className="flex flex-wrap justify-end gap-1.5">
               <FreightStressChip lang={lang} />
               <PortWatchStressChip lang={lang} />
+              {dense ? <MarketSessionChip lang={lang} /> : null}
             </div>
-            <MarketSessionChip lang={lang} />
+            {!dense ? <MarketSessionChip lang={lang} /> : null}
           </>
         ) : (
           <WorldTensionChip
@@ -74,7 +121,7 @@ export function ModeGlobalIndexChip({
             className="shadow-lg backdrop-blur-md"
           />
         )}
-        {showSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
+        {showAuxSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
       </div>
     </div>
   );

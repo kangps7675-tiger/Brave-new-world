@@ -208,11 +208,11 @@ export function HoverNav({
           compact
             ? "max-w-full"
             : isEconomy
-              ? // 우상단 시계·GTI 클러스터와 겹치지 않게 검색바는 좁게. 메뉴 펼침만 넓힘.
-                `max-w-[min(20rem,calc(100vw-20rem))] sm:max-w-[min(24rem,calc(100vw-22rem))] ${
+              ? // 우상단 칩 폭(--mode-index-chip-width)만큼 비움. 메뉴 펼침만 넓힘.
+                `max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))] ${
                   menuExpanded ? "max-w-[min(42rem,calc(100vw-3rem))] sm:max-w-[min(48rem,calc(100vw-4rem))]" : ""
                 }`
-              : "max-w-[min(20rem,calc(100vw-20rem))] sm:max-w-[min(24rem,calc(100vw-22rem))]"
+              : "max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))]"
         } ${isEconomy ? "hover-nav--economy font-nav-economy" : "hover-nav--conflict"}`}
       >
         <div

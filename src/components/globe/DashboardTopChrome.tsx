@@ -55,6 +55,8 @@ export interface DashboardTopChromeProps {
   searchResults: SearchPlace[];
   handleSearchSelect: (place: SearchPlace) => void;
   isCompactUi: boolean;
+  /** 태블릿 — 우상단 칩 dense + 레일 밀도 */
+  isTabletUi?: boolean;
   setAskLayersOpen: Dispatch<SetStateAction<boolean>>;
   handleViewerModeChange: (mode: ViewerMode) => void;
   basemapMode: BasemapMode;
@@ -123,6 +125,7 @@ export function DashboardTopChrome({
   searchResults,
   handleSearchSelect,
   isCompactUi,
+  isTabletUi = false,
   setAskLayersOpen,
   handleViewerModeChange,
   basemapMode,
@@ -183,6 +186,7 @@ export function DashboardTopChrome({
           wtiDelta={wtiSnapshot?.deltaScore ?? null}
           wtiAsOf={wtiFetchedAt}
           showGscpi={showGscpiGauge}
+          dense={isCompactUi || isTabletUi}
         />
       ) : null}
       {chromeVisible && !intelSheetOpen ? (
@@ -233,8 +237,8 @@ export function DashboardTopChrome({
               ) : null}
             </div>
             {/**
-             * P2-1: 일반 모드 시나리오 프리셋.
-             * Compact/Ultra-Lite에는 이미 CompactPresetChips가 있으므로 중복 노출하지 않는다.
+             * P2-1: 일반 모드 시나리오 프리셋 — 가로 칩 대신 「주요전장/허브」 드롭다운.
+             * Compact/Ultra-Lite에는 CompactPresetChips가 있으므로 중복 노출하지 않는다.
              * 레이어 패널이 열려 있으면 사용자가 직접 구성 중이라 숨긴다.
              */}
             {!isCompactUi && !showLeftPanel ? (

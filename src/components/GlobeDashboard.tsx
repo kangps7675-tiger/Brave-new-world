@@ -184,6 +184,7 @@ import {
   recordInterestTheme,
 } from "@/lib/interest/recordInterest";
 import { useLocalCalendarDayKey } from "@/hooks/useLocalCalendarDayKey";
+import { useLampContentSlotKey } from "@/hooks/useLampContentSlotKey";
 import {
   SENTINEL_CYCLE_MS,
   fetchSentinelTour,
@@ -869,8 +870,10 @@ export function GlobeDashboard({
   const [airRaidBriefing, setAirRaidBriefing] = useState<AirRaidBriefingContent | null>(null);
   /** 귀중한 속보 타전 양피지 — S급·고충격만 */
   const [breakingFlash, setBreakingFlash] = useState<BreakingFlashBriefing | null>(null);
-  /** 로컬 자정에 바뀜 — 매일 등불 재점화 트리거 */
+  /** 로컬 자정에 바뀜 — 매일 등불·인가 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
+  /** 6시간 슬롯 — 등불 사진·뉴스 재점화 */
+  const lampContentSlot = useLampContentSlotKey();
   const weeklyExpanded = Boolean(weeklyRecap) && !weeklyRecapCollapsed;
   /** 등불 양피지가 떠 있거나 아직 오늘 등불이 끝나지 않으면 공습·이슈 UI 정지 */
   const issueUiPausedForLamp =
@@ -1213,8 +1216,7 @@ export function GlobeDashboard({
     })();
   }, [toggleDailyRankPanel]);
 
-  // 모드·일자 전환 시 등불 게이트 재시작 — 인가 effect보다 먼저 두어
-  // 같은 커밋에서 리셋 후 clearance가 즉시 재settle 되게 함.
+  // 모드·일자 전환 시 등불·주간·인가 게이트 재시작
   useEffect(() => {
     setPeriodicBriefing(null);
     setFoldedPeriodicBriefing(null);
@@ -1229,6 +1231,13 @@ export function GlobeDashboard({
     setClearanceChipSettled(false);
     setClearanceStatus(null);
   }, [viewerMode, calendarDayKey]);
+
+  // 6시간 슬롯만 바뀌면 등불만 재점화 (주간·인가는 유지)
+  useEffect(() => {
+    setPeriodicBriefing(null);
+    setFoldedPeriodicBriefing(null);
+    setDailyLampSettled(false);
+  }, [lampContentSlot]);
 
   /** 인가 강등 상태 — 등불보다 먼저 평가 (모드 전환 리셋 직후 재실행) */
   useEffect(() => {
@@ -6302,7 +6311,8 @@ export function GlobeDashboard({
   ]);
 
   /**
-   * 매일 등불 — 지정학·지경학 각각 하루 1회.
+   * 등불 — 지정학·지경학 각각 6시간 슬롯당 1회 자동 점화(대표 뉴스·큰 사진).
+   * 닫으면 우측 「등불」탭으로 접힘. 다음 슬롯이 되면 다시 자동 펼침.
    * SLA: 게이트 해제 후 미시청이면 하드 데드라인 안에 양피지 점화.
    * news-stream(og 보강 ~8s)을 기다린 뒤 사진 데스크를 채우고, 안 되면 셸 폴백.
    * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
@@ -6321,27 +6331,22 @@ export function GlobeDashboard({
       return;
     }
 
-    const { dayKey, tier } = resolveLampPeriod();
-    const dayPart = calendarDayKey.startsWith("daily-") ? calendarDayKey : dayKey;
-    const lampKey = lampSeenKey(dayPart, viewerMode);
+    const { tier, contentSlot } = resolveLampPeriod();
+    const slot = lampContentSlot.startsWith("daily-") ? lampContentSlot : contentSlot;
+    const lampKey = lampSeenKey(slot, viewerMode);
 
     if (periodicBriefing?.key === lampKey) return;
     if (foldedPeriodicBriefing?.key === lampKey) {
       setDailyLampSettled(true);
       return;
     }
-    const lampWasFolded = hasFoldedLamp(lampKey);
-    if (hasSeenPeriod(lampKey) && !lampWasFolded) {
-      setDailyLampSettled(true);
-      if (
-        firstImpression.onboardingReady &&
-        shouldOfferChromeCoach() &&
-        !chromeCoachStep
-      ) {
-        const coachTimer = window.setTimeout(() => setChromeCoachStep("nav"), 900);
-        return () => window.clearTimeout(coachTimer);
-      }
-      return;
+    /**
+     * 같은 슬롯에서 접었으면 자동 펼침 없이 우측 탭만.
+     * seen만 있고 folded가 빠진 손상 상태도 접힌 것으로 복구.
+     */
+    const lampWasFolded = hasFoldedLamp(lampKey) || hasSeenPeriod(lampKey);
+    if (lampWasFolded && !hasFoldedLamp(lampKey) && hasSeenPeriod(lampKey)) {
+      markLampFolded(lampKey);
     }
 
     /** 빈 셸보다 사진 채움을 우선 — news-stream 보강 예산에 맞춤 */
@@ -6364,7 +6369,7 @@ export function GlobeDashboard({
 
     const curatedFallback = (): PeriodicBriefing | null => {
       const base = buildPeriodicBriefing(viewerMode, labelLanguage);
-      return base ? { ...base, key: lampKey, tier } : null;
+      return base ? { ...base, key: lampKey, tier, contentSlot: slot } : null;
     };
 
     let cancelled = false;
@@ -6487,6 +6492,7 @@ export function GlobeDashboard({
           {
             tier,
             key: lampKey,
+            contentSlot: slot,
             title: `${kicker}\n${focusTitle}`,
             paragraphs: [],
             macroTable,
@@ -6503,8 +6509,11 @@ export function GlobeDashboard({
 
       // 점화 후 보강만 — 실패해도 등불은 이미 떠 있음
       try {
+        const dayKeyForApi = calendarDayKey.startsWith("daily-")
+          ? calendarDayKey
+          : slot.replace(/-s[0-3]$/, "");
         const lampRes = await fetchWithTimeout(
-          `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayPart)}&lang=${langQs}`,
+          `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayKeyForApi)}&lang=${langQs}`,
           MACRO_ENRICH_MS,
         );
         if (!lampRes?.ok || cancelled) return;
@@ -6557,13 +6566,13 @@ export function GlobeDashboard({
     clearanceChipSettled,
     econInsightOpen,
     entryGate,
-    firstImpression.onboardingReady,
     frictionEpisodeBrief,
     foldedPeriodicBriefing,
     globeReady,
     hubBriefOpen,
     isLoading,
     labelLanguage,
+    lampContentSlot,
     langChoiceChecked,
     langChoiceDone,
     loadError,
@@ -7659,6 +7668,7 @@ export function GlobeDashboard({
         searchResults={searchResults}
         handleSearchSelect={handleSearchSelect}
         isCompactUi={isCompactUi}
+        isTabletUi={isTabletUi}
         setAskLayersOpen={setAskLayersOpen}
         handleViewerModeChange={handleViewerModeChange}
         basemapMode={basemapMode}
@@ -8085,6 +8095,7 @@ export function GlobeDashboard({
       <DashboardOverlayHost
         labelLanguage={labelLanguage}
         isCompactUi={isCompactUi}
+        isTabletUi={isTabletUi}
         isEconomyViewer={isEconomyViewer}
         viewerMode={viewerMode}
         intelSheetOpen={intelSheetOpen}

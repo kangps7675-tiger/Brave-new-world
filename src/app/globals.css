@@ -12,6 +12,12 @@
   /* MapLegend + intel stack clearance (collapsed default; expanded via JS) */
   --bottom-intel-stack-clearance: 8.5rem;
   --intel-sidebar-width: 480px;
+  /* ModeGlobalIndexChip ResizeObserver가 덮어씀 — 우레일·유틸 top 동기화 */
+  --mode-index-chip-height: 0px;
+  --mode-index-chip-bottom: 0px;
+  --mode-index-chip-width: 0px;
+  --hover-nav-base-height: 0px;
+  --chrome-rail-top-gap: 0.55rem;
   /* iOS home indicator / notch */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -176,19 +182,60 @@ html[data-device="tablet"] {
   --intel-sidebar-width: 400px;
   --tap-target-min: 44px;
   --device-panel-gap: 0.85rem;
+  --chrome-rail-top-gap: 0.4rem;
 }
 html[data-device="desktop"] {
   --intel-sidebar-width: 480px;
   --tap-target-min: 40px;
   --device-panel-gap: 1rem;
+  --chrome-rail-top-gap: 0.55rem;
 }
 html[data-device="desktop-wide"] {
   --intel-sidebar-width: 560px;
   --tap-target-min: 40px;
   --device-panel-gap: 1.15rem;
+  --chrome-rail-top-gap: 0.65rem;
 }
 html[data-device="phone"] {
   --tap-target-min: 44px;
+}
+
+/**
+ * 우레일·유틸 공통 top — nav 높이와 우상단 칩 하단 중 더 큰 쪽 + 갭.
+ * JS에서 --mode-index-chip-bottom / --hover-nav-base-height를 갱신한다.
+ */
+.cv-chrome-rail-top {
+  top: calc(
+    max(
+        var(--hover-nav-base-height, 0px),
+        var(--mode-index-chip-bottom, 0px)
+      ) + var(--chrome-rail-top-gap, 0.55rem)
+  );
+  max-height: calc(
+    100dvh - max(var(--hover-nav-base-height, 0px), var(--mode-index-chip-bottom, 0px)) -
+      var(--bottom-intel-stack-clearance, 8.5rem) - 1.25rem
+  );
+}
+
+.cv-chrome-fab-bottom {
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 3.25rem) + 0.75rem + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.cv-chrome-daily-bottom {
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.cv-chrome-daily-bottom--telegram {
+  bottom: calc(min(52vh, 480px) + 8.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 태블릿: 우측 레일 밀도 — Sitrep은 데스크톱만 (Watch는 유지) */
+html[data-device="tablet"] .cv-tablet-hide-sitrep {
+  display: none !important;
 }
 
 /**
