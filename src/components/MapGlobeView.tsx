@@ -63,6 +63,7 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  INTEL_VECTOR_STYLE_URL,
   injectGlobeProjection,
   isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
@@ -140,11 +141,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   ref,
 ) {
   const {
-    mapStyleUrl,
+    mapStyleUrl: mapStyleUrlProp,
     backgroundColor = "#02040a",
     showIslandChains = false,
   } = props;
   /** index signature로 unknown이 되므로 명시 파싱 */
+  const mapStyleUrl =
+    typeof mapStyleUrlProp === "string" && mapStyleUrlProp.length > 0
+      ? mapStyleUrlProp
+      : INTEL_VECTOR_STYLE_URL;
   const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
   const ultraLite = Boolean(props.ultraLite);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
