@@ -49,17 +49,18 @@ describe("layerPrefGate — 티어별 동작", () => {
     expect(gated.showAis).toBe(false);
   });
 
-  it("유료 티어에서도 게이트 밖 레이어는 유지된다", () => {
-    // military-activity 는 catalog prohibited. 매핑되지 않은 shipping lanes 는 유지.
+  it("유료 티어에서도 게이트 밖·허용 레이어는 유지된다", () => {
+    // military-activity 는 2026-08-01 재판정으로 allowed. shipping lanes 도 매핑 밖.
+    // 강제 OFF 는 ais(license-required) 케이스가 이미 위에서 검증한다.
     const prefs = {
       ...DEFAULT_LAYER_PREFS,
       showMilitaryActivity: true,
       showShippingLanes: true,
     } as LayerPrefs;
-    expect(canShowInPaidTier("military-activity")).toBe(false);
+    expect(canShowInPaidTier("military-activity")).toBe(true);
 
     const gated = enforceCommercialTier(prefs, "paid");
-    expect(gated.showMilitaryActivity).toBe(false);
+    expect(gated.showMilitaryActivity).toBe(true);
     expect(gated.showShippingLanes).toBe(true);
   });
 

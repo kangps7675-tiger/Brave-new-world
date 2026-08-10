@@ -7694,8 +7694,6 @@ export function GlobeDashboard({
         getSceneForShare={getSceneForShare}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
-        scenarioPresetId={scenarioPresetId}
-        handleScenarioPresetSelect={handleScenarioPresetSelect}
       />
 
       <GeopoliticsHubChrome
