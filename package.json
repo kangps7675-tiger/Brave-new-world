@@ -135,7 +135,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-map-gl": "^8.1.1",
-    "satellite.js": "6.0.2",
+    "satellite.js": "7.1.0",
     "shapefile": "^0.6.6",
     "yahoo-finance2": "^3.15.4",
     "zod": "^4.4.3"
