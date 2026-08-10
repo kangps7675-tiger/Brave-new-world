@@ -124,6 +124,7 @@
     "adm-zip": "^0.6.0",
     "cesium": "^1.144.0",
     "drizzle-orm": "^0.45.2",
+    "fast-uri": "^3.1.5",
     "fflate": "^0.8.3",
     "fuse.js": "^7.4.2",
     "h3-js": "^4.5.0",
@@ -137,8 +138,7 @@
     "satellite.js": "6.0.2",
     "shapefile": "^0.6.6",
     "yahoo-finance2": "^3.15.4",
-    "zod": "^4.4.3",
-    "fast-uri": "^3.1.5"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260718.1",
@@ -148,6 +148,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^6.0.3",
+    "autoprefixer": "^10.5.4",
     "drizzle-kit": "^0.31.10",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
