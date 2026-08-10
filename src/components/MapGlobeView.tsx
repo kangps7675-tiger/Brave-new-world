@@ -254,6 +254,45 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const activeMapStyle: string | Record<string, unknown> | null =
     resolvedMapStyle ?? styleFallbackUrl;
 
+  /** onLoad에만 의존하지 않음 — style 객체 로드 레이스에서도 투영·진단 훅 보장 */
+  useEffect(() => {
+    if (!activeMapStyle) return;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      tries += 1;
+      const map = mapRef.current?.getMap();
+      if (!map) {
+        if (tries > 100) window.clearInterval(id);
+        return;
+      }
+      const m = map as unknown as BasemapMapLike;
+      try {
+        const w = window as Window & {
+          __GEOWATCH_MAP_PROJECTION?: () => unknown;
+          __GEOWATCH_FORCE_GLOBE?: () => void;
+        };
+        w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+        w.__GEOWATCH_FORCE_GLOBE = () => {
+          applyBasemapGlobeProjection(m);
+          try {
+            map.setProjection?.({ type: "vertical-perspective" });
+          } catch {
+            /* ignore */
+          }
+        };
+      } catch {
+        /* ignore */
+      }
+      applyBasemapGlobeProjection(m);
+      if (map.isStyleLoaded() || tries > 80) {
+        applyBasemapFog(m, basemapModeRef.current);
+        applyBasemapSpaceBackground(m);
+        window.clearInterval(id);
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [activeMapStyle]);
+
   const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
 
   /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
