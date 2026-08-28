@@ -19,7 +19,11 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "gdelt-alliance": "켜면 서방 동맹 마찰·IRN·중·러·북 축 관계 뉴스 위치를 표시합니다.",
   "gdelt-protest": "켜면 시위·사회 불안 관련 뉴스 위치를 표시합니다.",
   "axis-network":
-    "켜면 이란·중국·러시아·북한 중심 외교·군수·하이브리드 관계망(스포크 포함)을 호로 표시합니다.",
+    "켜면 CRINK 축(중국·러시아·이란·북한) 허브와 파트너를 잇는 외교·군수·하이브리드 관계선을 표시합니다.",
+  "strategic-corridors":
+    "켜면 INSTC·미들 코리도·TSR 등 전략 물류·군수 회랑을 표시합니다. 전역에서는 정량 점수(BRI·초크·길이) 상위만, 줌인 시 더 많은 회랑이 나타납니다.",
+  "bri-trade":
+    "켜면 World Bank BRI 무역 연결(운송시간 절감) 호를 표시합니다.",
   "telegram-osint": "켜면 공개 채널 속보의 약 절반 미리보기와 t.me 링크를 표시합니다. 전문은 텔레그램에서만.",
   "tzeva-adom": "켜면 이스라엘 로켓·공습 경보(체바 아돔) 발생 지역을 표시합니다.",
   "ukmto-incidents":
@@ -49,7 +53,7 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   resources: "켜면 주요 천연자원·광물 관련 거점을 표시합니다.",
   nuclear: "켜면 원자력 발전소·관련 시설 위치를 표시합니다.",
   shipping:
-    "켜면 주요 해상 통행 경향을 반투명 시안 실선으로 표시합니다(Shipping Lanes, CC BY 4.0). 초크(병목) 구간만 같은 선이 붉게 물듭니다.",
+    "켜면 Benden Global Shipping Lanes(CC BY 4.0) 원본 좌표 항로를 반투명 시안 실선으로 표시합니다. Major/Middle/Minor 굵기 차이와 초크 구간 붉은 틴트만 적용합니다.",
   cables: "켜면 주요 해저 통신 케이블 경로를 표시합니다.",
   tunnels:
     "켜면 주요 해저터널(유로터널·세이칸 등)을 표시합니다. 켜는 순간에만 조회합니다.",
@@ -60,7 +64,18 @@ export const LAYER_ITEM_DESCRIPTIONS: Partial<Record<string, string>> = {
   "critical-nodes":
     "켜면 해상·케이블·에너지·금융 등 핵심 인프라 병목을 표시합니다.",
   ais: "켜면 AIS 선박을 표시합니다. 지정학=군용 함정, 지경학=민간 화물·탱커·여객선(군용 제외).",
-  "military-bases": "켜면 주요 군사기지 위치를 표시합니다. 지정학 전용.",
+  "military-bases":
+    "켜면 군사기지를 표시합니다. 기본은 미군만이며, 한국·일본·필리핀·동유럽 NATO는 각각 따로 켤 수 있습니다. 지정학 전용.",
+  "military-bases-us":
+    "켜면 미군 기지(본토·해외 주둔, 주일·주한 포함)를 표시합니다. 지정학 전용.",
+  "military-bases-rok":
+    "켜면 한국군 전선 부근 공군·해군 거점(OSM)을 표시합니다. 주한미군은 미군 레이어입니다.",
+  "military-bases-japan":
+    "켜면 자위대 전선 부근 공군·해군 거점(OSM)을 표시합니다. 주일미군은 미군 레이어입니다.",
+  "military-bases-philippines":
+    "켜면 필리핀군 1선 기지를 표시합니다. 미군 EDCA 거점은 미군 레이어입니다.",
+  "military-bases-eastern-nato":
+    "켜면 동유럽 NATO 전선 1선(폴란드·발트·핀란드·루마니아·슬로바키아) 기지를 표시합니다.",
   "strategic-missile":
     "켜면 중국 PLARF 사일로·러시아 RVSN 주둔지·인도·파키스탄 시험장 등 전략 미사일 시설을 표시합니다.",
   "missile-silos":

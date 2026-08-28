@@ -40,7 +40,7 @@ export type MapGlobeMethods = {
   controls: () => MapGlobeControls;
   /** 맵 로드·스타일 교체 후 줌 한계·드래그 플래그 재적용 */
   applyControls: () => void;
-  /** 원본 MapLibre 맵 (Cesium hybrid sync 등) */
+  /** 원본 MapLibre 맵 인스턴스 */
   getMapLibreMap: () => MapLibreMap | null;
   renderer: () => { domElement: HTMLCanvasElement | null };
   /**

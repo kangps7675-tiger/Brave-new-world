@@ -183,18 +183,27 @@ html[data-device="tablet"] {
   --tap-target-min: 44px;
   --device-panel-gap: 0.85rem;
   --chrome-rail-top-gap: 0.4rem;
+  --daily-panel-width: 20rem;
+  --chrome-left-fab-clearance: 4rem;
+  --chrome-spin-clearance: 3.75rem;
 }
 html[data-device="desktop"] {
   --intel-sidebar-width: 480px;
   --tap-target-min: 40px;
   --device-panel-gap: 1rem;
   --chrome-rail-top-gap: 0.55rem;
+  --daily-panel-width: 22rem;
+  --chrome-left-fab-clearance: 3.75rem;
+  --chrome-spin-clearance: 3.5rem;
 }
 html[data-device="desktop-wide"] {
   --intel-sidebar-width: 560px;
   --tap-target-min: 40px;
   --device-panel-gap: 1.15rem;
   --chrome-rail-top-gap: 0.65rem;
+  --daily-panel-width: 22rem;
+  --chrome-left-fab-clearance: 3.75rem;
+  --chrome-spin-clearance: 3.5rem;
 }
 html[data-device="phone"] {
   --tap-target-min: 44px;
@@ -224,9 +233,29 @@ html[data-device="phone"] {
 }
 
 .cv-chrome-daily-bottom {
+  /* 좌하단 자전 토글 위 — 접힌 칩·펼친 패널 모두 토글과 겹치지 않음 */
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem +
+      var(--chrome-spin-clearance, 3.5rem) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+/*
+ * 패널 펼침 — 좌상단 햄버거와 Y축이 겹치지 않게 가두고 가로 넘침 차단.
+ * 자전 토글은 패널 오픈 시 숨기므로 bottom에서 spin clearance는 빼 공간을 회수한다.
+ */
+.cv-chrome-daily-bottom.cv-chrome-daily-open {
+  top: calc(
+    max(0.75rem, env(safe-area-inset-top, 0px)) + var(--chrome-left-fab-clearance, 3.75rem)
+  );
   bottom: calc(
     var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem + env(safe-area-inset-bottom, 0px)
   );
+  max-height: none;
+  width: min(var(--daily-panel-width, 22rem), calc(100vw - 1.5rem));
+  max-width: calc(100vw - 1.5rem);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cv-chrome-daily-bottom--telegram {
@@ -857,21 +886,20 @@ main[data-ui-lang="en"]
 }
 
 /*
- * 지형(밝은 벡터) 베이스맵 — UI 크롬은 인텔 모드와 같이 진한 패널 + 흰 글자.
- * (예전 페이퍼/슬레이트 잉크는 밝은 지도 위에 떠서 연해 보였음)
- * 지도 위 라벨·핀만 밝은 지형 대비용 후광/잉크를 따로 둔다.
+ * 지형(밝은 벡터) 베이스맵 — UI 크롬은 인텔과 같은 불투명 짓푸른 패널 + 밝은 글자.
+ * 줌인·위성 합성으로 지도가 밝아져도 패널이 비치지 않게 alpha를 높게 유지한다.
  */
 [data-basemap-tone="light"] {
   --foreground: #e8eef7;
-  --panel: rgba(8, 12, 20, 0.94);
-  --panel-border: rgba(125, 211, 252, 0.16);
+  --panel: rgba(15, 29, 53, 0.96);
+  --panel-border: rgba(69, 243, 255, 0.22);
   --accent: rgba(0, 255, 204, 0.85);
   --tone-ink: #f1f5f9;
   --tone-ink-muted: #94a3b8;
   --tone-ink-faint: #64748b;
-  --tone-panel: rgba(8, 12, 20, 0.94);
-  --tone-panel-strong: rgba(6, 10, 18, 0.97);
-  --tone-panel-shadow: 0 16px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(125, 211, 252, 0.12);
+  --tone-panel: rgba(15, 29, 53, 0.96);
+  --tone-panel-strong: rgba(11, 22, 40, 0.98);
+  --tone-panel-shadow: 0 16px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(69, 243, 255, 0.14);
   --tone-geo: #22d3ee;
   --tone-econ: #34d399;
   --tone-alert: #fb7185;
@@ -1025,7 +1053,7 @@ main[data-ui-lang="en"]
     drop-shadow(0 1px 2px rgba(15, 23, 42, 0.35));
 }
 
-/* 지도 위 HTML 콜아웃·핀 — 밝은 지형 대비용 어두운 잉크(UI 패널과 분리) */
+/* 지도 위 HTML 콜아웃·핀 — 인텔 짓푸른 패널 유지 (밝은 지도에서도 흰 글자) */
 [data-basemap-tone="light"] .situation-callout,
 [data-basemap-tone="light"] .ua-callout,
 [data-basemap-tone="light"] .friction-episode-pin,
@@ -1033,10 +1061,11 @@ main[data-ui-lang="en"]
 [data-basemap-tone="light"] .gdelt-news-alert-marker,
 [data-basemap-tone="light"] .ship-movement-pin,
 [data-basemap-tone="light"] .carrier-status-badge {
-  color: #1e293b !important;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 1),
-    0 1px 3px rgba(255, 255, 255, 0.95);
+  color: #e8eef7 !important;
+  background: rgba(15, 29, 53, 0.94) !important;
+  border-color: rgba(69, 243, 255, 0.2) !important;
+  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 /* 셸 우주 배경은 인텔과 동일 유지 — 지형 모드에서도 space-ambient 덮어쓰지 않음 */
@@ -1045,9 +1074,23 @@ main[data-ui-lang="en"]
 [data-basemap-tone="light"] .intel-stack-shell,
 [data-basemap-tone="light"] .tone-surface {
   background: var(--tone-panel-strong) !important;
-  border-color: rgba(125, 211, 252, 0.16) !important;
+  border-color: rgba(69, 243, 255, 0.2) !important;
   color: var(--tone-ink) !important;
   box-shadow: var(--tone-panel-shadow) !important;
+}
+
+/* 반투명 sky/slate 유틸 패널 — 지형에서도 짓푸른 불투명으로 (Sitrep 앰버 등은 제외) */
+[data-basemap-tone="light"] .bg-\[\#071018\]\/92,
+[data-basemap-tone="light"] .bg-\[\#071018\]\/94,
+[data-basemap-tone="light"] .bg-\[\#0f1d35\]\/88,
+[data-basemap-tone="light"] .bg-black\/40,
+[data-basemap-tone="light"] .bg-black\/50,
+[data-basemap-tone="light"] .bg-slate-950\/40,
+[data-basemap-tone="light"] .bg-slate-950\/50,
+[data-basemap-tone="light"] .bg-slate-900\/50,
+[data-basemap-tone="light"] .bg-sky-950\/40,
+[data-basemap-tone="light"] .bg-sky-950\/50 {
+  background-color: rgba(15, 29, 53, 0.96) !important;
 }
 
 [data-basemap-tone="light"] .tone-surface--alert {
@@ -1872,8 +1915,10 @@ html.map-moving *::after {
 
 /* 블러가 빠지면 반투명 배경이 옅어 보이므로, 이동 중에는 패널 배경을 올린다 */
 html.map-moving .intel-panel,
-html.map-moving .tone-panel {
-  background: var(--tone-panel-strong, rgba(6, 10, 18, 0.97)) !important;
+html.map-moving .tone-panel,
+html.map-moving .tone-surface,
+html.map-moving .intel-stack-shell {
+  background: var(--tone-panel-strong, rgba(11, 22, 40, 0.98)) !important;
 }
 
 /*

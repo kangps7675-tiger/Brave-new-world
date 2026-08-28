@@ -46,6 +46,8 @@ export interface DashboardTopChromeProps {
   setGlobeSpinEnabled: Dispatch<SetStateAction<boolean>>;
   /** 좌하단 텔레그램 OSINT 미니 패널 — 켜지면 자전 토글을 그 위로 밀어 올린다 */
   telegramMiniPanelVisible?: boolean;
+  /** GTI 일일 패널이 열려 있으면 좌하단 자전 토글은 숨김(겹침 방지) */
+  showDailyRankPanel?: boolean;
   handleNavNavigate: (selection: NavSelection) => void;
   liveUpdatedAt: string | null;
   dataGeneratedAt: string | null;
@@ -116,6 +118,7 @@ export function DashboardTopChrome({
   globeSpinEnabled,
   setGlobeSpinEnabled,
   telegramMiniPanelVisible = false,
+  showDailyRankPanel = false,
   handleNavNavigate,
   liveUpdatedAt,
   dataGeneratedAt,
@@ -189,7 +192,7 @@ export function DashboardTopChrome({
           dense={isCompactUi || isTabletUi}
         />
       ) : null}
-      {chromeVisible && !intelSheetOpen ? (
+      {chromeVisible && !intelSheetOpen && !showDailyRankPanel ? (
         <div
           className={`pointer-events-none fixed left-3 sm:left-4 ${
             telegramMiniPanelVisible ? "z-[600]" : "z-[200]"

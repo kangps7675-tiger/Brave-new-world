@@ -1,0 +1,19 @@
+{
+  "bucket": "conflict-view-data",
+  "prefix": "sources/osm-pbf",
+  "updatedAt": "2026-08-27T10:25:25.802Z",
+  "objects": {
+    "cuba-260825.osm.pbf": {
+      "key": "sources/osm-pbf/cuba-260825.osm.pbf",
+      "bytes": 61660323,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-27T10:24:26.084Z"
+    },
+    "venezuela-260825.osm.pbf": {
+      "key": "sources/osm-pbf/venezuela-260825.osm.pbf",
+      "bytes": 126446965,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-27T10:25:25.802Z"
+    }
+  }
+}

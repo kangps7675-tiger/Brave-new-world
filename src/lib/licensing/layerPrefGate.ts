@@ -76,6 +76,7 @@ export const PREF_TO_LAYER_ID: Partial<Record<LayerPrefKey, string>> = {
    *
    *   gta-interventions · world-stats · mediazona-casualties ·
    *   living-conflict-taiwan · hapi-conflict-casualties · reference-monitor ·
+   *   crink-hub-monitor · basemap-esri-world-imagery ·
    *   news-geopolitics-rss · news-economy-rss · news-video-youtube ·
    *   mof-port-flows · korea-macro-ecos · korea-macro-kosis · kcs-trade
    *

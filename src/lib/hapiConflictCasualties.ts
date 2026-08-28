@@ -72,10 +72,19 @@ export type HapiConflictCasualtiesPayload = {
   fetchedAt: string;
   windowStart: string;
   windowEnd: string;
+  /** 국가별 조회 창 — 전면전은 개전일, 회색지대는 최근 수개월 */
+  windowsByLocation?: Record<string, { start: string; end: string }>;
   source: string;
   cite: string[];
   caveat: string;
 };
+
+/** 우크라 전면전 개전 */
+export const UKRAINE_FULLSCALE_START = "2022-02-24";
+/** 미국·이스라엘 vs 이란 (Epic Fury) */
+export const IRAN_WAR_START = "2026-02-28";
+/** 가자 전쟁 개전 */
+export const GAZA_WAR_START = "2023-10-07";
 
 /** 우크라 — 현재 열린 전선 주(州). 후방·비전선은 제외 */
 export const UKRAINE_ACTIVE_FRONT_ADMIN1 = new Set([
@@ -257,6 +266,32 @@ export function hapiLookbackWindow(now = new Date()): { start: string; end: stri
   return { start, end };
 }
 
+function clampWindowStart(start: string, end: string): string {
+  return start > end ? end : start;
+}
+
+/**
+ * 국가별 누적 창.
+ * 전면전(UKR·IRN·가자/레바논)은 개전일부터, 중국·대만은 최근 4개월.
+ */
+export function hapiLookbackWindowForLocation(
+  locationCode: string,
+  now = new Date(),
+): { start: string; end: string } {
+  const { start: recentStart, end } = hapiLookbackWindow(now);
+  const code = locationCode.toUpperCase();
+  if (code === "UKR") {
+    return { start: clampWindowStart(UKRAINE_FULLSCALE_START, end), end };
+  }
+  if (code === "IRN") {
+    return { start: clampWindowStart(IRAN_WAR_START, end), end };
+  }
+  if (code === "PSE" || code === "ISR" || code === "LBN") {
+    return { start: clampWindowStart(GAZA_WAR_START, end), end };
+  }
+  return { start: recentStart, end };
+}
+
 function normalizeAdmin1(name: string | null | undefined, locationName: string): string {
   const raw = (name || "").trim();
   if (raw) return raw;
@@ -400,7 +435,7 @@ export function aggregateActiveFronts(
 }
 
 export const HAPI_CASUALTY_CAVEAT =
-  "HDX HAPI · ACLED political_violence (monthly aggregates). Ukraine/ME/Iran: fatalities (+Iran events). China/Taiwan: events often 0 fatalities (gray-zone). Not Mediazona named RU KIA. Cite ACLED: www.acleddata.com";
+  "HDX HAPI · ACLED political_violence. Front fatalities are cumulative from theater start (UKR 2022-02-24, IRN 2026-02-28, Gaza/Lebanon 2023-10-07). China/Taiwan: ~4-month events. No wounded field. Not Mediazona named RU KIA. Cite ACLED: www.acleddata.com";
 
 /** 라이브 HAPI 실패·지연 시에도 전선 숫자가 보이게 하는 폴백 (최근 창 근사값) */
 export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
@@ -415,7 +450,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 37.8,
       killed: 1_180,
       events: 0,
-      periodStart: "",
+      periodStart: UKRAINE_FULLSCALE_START,
       periodEnd: "",
       territorySpanDeg: 4.5,
     },
@@ -429,7 +464,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 35.14,
       killed: 270,
       events: 0,
-      periodStart: "",
+      periodStart: UKRAINE_FULLSCALE_START,
       periodEnd: "",
       territorySpanDeg: 4.5,
     },
@@ -443,7 +478,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 34.35,
       killed: 480,
       events: 0,
-      periodStart: "",
+      periodStart: GAZA_WAR_START,
       periodEnd: "",
       territorySpanDeg: 1.2,
     },
@@ -457,7 +492,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 35.48,
       killed: 320,
       events: 0,
-      periodStart: "",
+      periodStart: GAZA_WAR_START,
       periodEnd: "",
       territorySpanDeg: 1.4,
     },
@@ -499,7 +534,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 51.39,
       killed: 0,
       events: 18,
-      periodStart: "",
+      periodStart: IRAN_WAR_START,
       periodEnd: "",
       territorySpanDeg: 2.2,
     },
@@ -513,7 +548,7 @@ export const HAPI_CASUALTY_SEED: HapiConflictCasualtiesPayload = {
       lng: 48.67,
       killed: 12,
       events: 9,
-      periodStart: "",
+      periodStart: IRAN_WAR_START,
       periodEnd: "",
       territorySpanDeg: 3.2,
     },

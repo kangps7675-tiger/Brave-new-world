@@ -15,6 +15,22 @@ const ALLOWED_HIGH = {
     "Next 14.2.x is EOL for recent CVEs; OpenNext Cloudflare still on 14. Track Next 15+ migration.",
   postcss:
     "Bundled via next@14; fixed only by upgrading Next. Production CSS stringify XSS not in our build path.",
+  "image-size":
+    "Transitive via deck.gl GLTF/texture pipeline; no patched npm release yet (<=2.0.2). Not user-upload parsing in prod.",
+  "texture-compressor":
+    "Transitive via @loaders.gl/textures; blocked only by image-size advisory above.",
+  "@deck.gl/geo-layers":
+    "Transitive image-size advisory in 3D tile mesh path; track deck.gl/loaders.gl upgrades.",
+  "@deck.gl/mesh-layers":
+    "Transitive image-size advisory in GLTF mesh path; track deck.gl/loaders.gl upgrades.",
+  "@loaders.gl/3d-tiles":
+    "Transitive image-size advisory; 3D tiles not fed untrusted uploads in prod.",
+  "@loaders.gl/gltf":
+    "Transitive image-size advisory in GLTF loader chain.",
+  "@loaders.gl/textures":
+    "Transitive image-size advisory via texture-compressor.",
+  "@luma.gl/gltf":
+    "Transitive image-size advisory in GLTF render path.",
 };
 
 const result = spawnSync(

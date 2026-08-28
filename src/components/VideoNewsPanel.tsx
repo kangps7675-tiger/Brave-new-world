@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { VideoNewsItem, VideoNewsPayload } from "@/lib/news/videoTypes";
 import { liveVideoNewsFetchMax, liveVideoNewsPollMs } from "@/lib/liveRenderGuard";
 import type { ViewPackageId } from "@/lib/viewPackages";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import {
+  localizedDisplayText,
+  useLocalizedTextMap,
+} from "@/hooks/useLocalizedTextMap";
 
 function formatAge(publishedAt: string): string {
   const ts = Date.parse(publishedAt);
@@ -38,7 +42,8 @@ export function VideoNewsPanel({
     try {
       const params = new URLSearchParams();
       if (viewPackages.length > 0) params.set("packages", viewPackages.join(","));
-      if (labelLanguage === "en") params.set("lang", "en");
+      // 지정학·지경학 공통 — 한글 UI면 lang=ko 로 번역 캐시 사용
+      params.set("lang", labelLanguage === "en" ? "en" : "ko");
       params.set("max", String(liveVideoNewsFetchMax()));
       const qs = params.toString() ? `?${params.toString()}` : "";
       const res = await fetch(`/api/video-news${qs}`, { cache: "no-store" });
@@ -69,6 +74,18 @@ export function VideoNewsPanel({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [playing]);
+
+  const localizeEntries = useMemo(() => {
+    if (labelLanguage === "en" || !payload?.items.length) return [];
+    return payload.items.map((item) => ({ key: `t:${item.id}`, text: item.title }));
+  }, [payload, labelLanguage]);
+
+  const localizedMap = useLocalizedTextMap(localizeEntries, "ko");
+
+  const titleOf = (item: VideoNewsItem) =>
+    labelLanguage === "en"
+      ? item.title
+      : localizedDisplayText(localizedMap, `t:${item.id}`, item.title);
 
   const accent = economyMode
     ? "border-emerald-400/20 bg-emerald-950/40"
@@ -127,7 +144,7 @@ export function VideoNewsPanel({
                     <span className="text-micro text-slate-500">{formatAge(item.publishedAt)}</span>
                   </div>
                   <p className="line-clamp-2 text-sm font-medium leading-snug text-slate-50">
-                    {item.title}
+                    {titleOf(item)}
                   </p>
                 </div>
               </button>
@@ -148,7 +165,7 @@ export function VideoNewsPanel({
           className="fixed inset-0 z-[600] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal
-          aria-label={playing.title}
+          aria-label={titleOf(playing)}
           onClick={() => setPlaying(null)}
         >
           <div
@@ -158,7 +175,7 @@ export function VideoNewsPanel({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-meta text-slate-400">{playing.source}</p>
-                <p className="text-sm font-semibold text-slate-50">{playing.title}</p>
+                <p className="text-sm font-semibold text-slate-50">{titleOf(playing)}</p>
               </div>
               <button
                 type="button"
@@ -170,7 +187,7 @@ export function VideoNewsPanel({
             </div>
             <div className="aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-white/15">
               <iframe
-                title={playing.title}
+                title={titleOf(playing)}
                 src={`https://www.youtube.com/embed/${encodeURIComponent(playing.videoId)}?autoplay=1&rel=0`}
                 className="h-full w-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

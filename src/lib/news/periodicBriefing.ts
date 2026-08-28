@@ -111,8 +111,8 @@ export type PeriodicBriefing = {
 };
 
 const STORAGE_PREFIX = "cv-periodic-brief-seen-";
-/** 그날 접어 둔 등불 — 다시 펼치기용 (하루 종일 유지) */
-const FOLDED_PREFIX = "cv-periodic-brief-folded-";
+/** 그날 접어 둔 등불 — 다시 펼치기용 (하루 종일 유지). v2: GDELT 자동접기로 오염된 v1 키 무효화 */
+const FOLDED_PREFIX = "cv-periodic-brief-folded-v2-";
 /** 월요일 주간 회고 접힘 */
 const WEEKLY_RECAP_FOLDED_PREFIX = "cv-weekly-recap-folded-";
 
@@ -385,13 +385,11 @@ function looksMostlyKorean(text: string): boolean {
 }
 
 /**
- * 라이브 대형 사진 + 개별 원문 URL만 유지.
- * 섹션/종합 링크·무사진 시드 패딩 금지.
+ * 개별 원문 URL만 유지.
+ * 사진은 있으면 우선(점수)하고, 없어도 텍스트+플레이스홀더로 등불을 채운다.
  */
 export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
-  return picked.filter(
-    (n) => hasLampPhoto(n.imageUrl) && isArticleUrl(n.link),
-  );
+  return picked.filter((n) => isArticleUrl(n.link));
 }
 
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
@@ -1075,7 +1073,7 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 등불은 대형 선명 사진 필수 — 점수 가산은 보조(풀에서 이미 필터)
+  // 등불은 대형 사진을 선호 — 없어도 텍스트 카드로 채움 (가산점으로만 우선)
   const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
   // 물류·에너지 스트레스 사건 강력 우선
   const logisticsStressBonus =
@@ -1145,7 +1143,7 @@ function toFeatured(
 }
 
 /**
- * 지경학 등불 — 물류·시장 충격 심층 + 대형 선명 사진 필수.
+ * 지경학 등불 — 물류·시장 충격 심층. 사진은 가산점, 없어도 원문 카드로 채움.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1153,9 +1151,8 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  // 사진 + 개별 원문 필수 · 지정학 전용 전장·오피니언 제외
+  // 개별 원문 필수 · 지정학 전용 전장·오피니언 제외 (사진 없어도 허용)
   const pool = items.filter((item) => {
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     if (isGeopoliticsOnlyTheater(item.theater)) return false;
     const blob = `${item.title} ${item.summary ?? ""}`;
@@ -1190,7 +1187,6 @@ export function pickEconomyLampNews(
 
   const tryPush = (row: ScoredLampNews, relax = false): boolean => {
     const item = row.item;
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
@@ -1813,7 +1809,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 대형 선명 사진 필수 — 없으면 가혹 페널티(풀에서도 필터)
+  // 대형 사진 선호 — 없으면 페널티만 (풀에서 탈락시키지 않음)
   const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
   // 긴장 강도를 끌어올리는 무서운 군사·확전 속보 우선
   const tensionSpikeBonus = CONFLICT_TENSION_SPIKE_RE.test(blob)
@@ -1890,7 +1886,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 긴장 강도·무서운 속보 심층 + 대형 선명 사진 필수.
+ * 지정학 등불 — 긴장 강도·무서운 속보 심층. 사진은 가산점, 없어도 원문 카드로 채움.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -1898,9 +1894,7 @@ export function pickConflictLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, CONFLICT_LAMP_NEWS_MIN);
-  const pool = items.filter(
-    (item) => hasLampPhoto(item.imageUrl) && isArticleUrl(item.link),
-  );
+  const pool = items.filter((item) => isArticleUrl(item.link));
 
   const clusterMap = new Map<string, number>();
   for (const item of pool) {
@@ -1925,7 +1919,6 @@ export function pickConflictLampNews(
 
   const tryPush = (row: ScoredConflictNews, relax = false): boolean => {
     const item = row.item;
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;

@@ -50,7 +50,7 @@ export function TheaterIntelSidebar({
   onFlyToCoords,
   onSelectGdeltEvent,
 }: TheaterIntelSidebarProps) {
-  const { payload, showTier3, setShowTier3 } = useNewsStreamContext();
+  const { payload, showTier3, setShowTier3, localizedTitle } = useNewsStreamContext();
   const { lang, t } = useLocale();
   const [tab, setTab] = useState<TheaterSidebarTab>(initialTab);
 
@@ -69,17 +69,15 @@ export function TheaterIntelSidebar({
   }, [newsTheater, payload?.stateMedia, payload?.verified, showTier3]);
 
   const koreanEntries = useMemo(() => {
+    if (lang === "en") return [];
     const entries: Array<{ key: string; text: string }> = [];
-    for (const item of rssItems) {
-      entries.push({ key: `rss:${item.id}`, text: item.title });
-    }
     for (const event of gdeltEvents) {
       entries.push({ key: `gdelt-cat:${event.id}`, text: event.category });
       if (event.country) entries.push({ key: `gdelt-co:${event.id}`, text: event.country });
     }
     return entries;
-  }, [gdeltEvents, rssItems]);
-  const localizedMap = useLocalizedTextMap(koreanEntries, lang);
+  }, [gdeltEvents, lang]);
+  const localizedMap = useLocalizedTextMap(koreanEntries, "ko");
 
   const showTelegramTab = telegramRegion !== "all";
 
@@ -178,7 +176,7 @@ export function TheaterIntelSidebar({
                   <TheaterNewsRow
                     key={item.id}
                     item={item}
-                    title={localizedDisplayText(localizedMap, `rss:${item.id}`, item.title)}
+                    title={localizedTitle(item)}
                     gdeltEvents={gdeltEvents}
                     onFlyToCoords={onFlyToCoords}
                   />

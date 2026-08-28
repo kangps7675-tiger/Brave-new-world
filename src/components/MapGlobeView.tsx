@@ -10,14 +10,41 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
+import { setWorkerUrl } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+/**
+ * MapLibre v6 — 번들러(webpack 등)에서는 워커 URL이 `import.meta.url` 기준으로
+ * 자동 감지되지 않는다(모듈 그래프 안에서 신뢰 불가). 이걸 안 해주면 워커
+ * 객체 자체는 생성되지만(워커 생성 자체는 에러 없이 성공) 그 안의 스크립트가
+ * 비어있어 dispatcher가 보내는 모든 메시지(loadTile 포함)에 응답이 없다 —
+ * console 에러도, 'error' 이벤트도 없이 조용히 멈춘다. 그 결과 style.json·
+ * TileJSON·sprite는 정상 로드되는데 벡터 타일 .pbf 요청은 단 한 건도 나가지
+ * 않고 베이스맵이 완전히 빈 채(alpha=0)로 남는다.
+ *
+ * 공식 가이드가 제안하는 `new URL("maplibre-gl/dist/maplibre-gl-worker.mjs",
+ * import.meta.url)` 패턴은 실사용 환경에서도 안 통했다 — Next.js의 webpack
+ * 클라이언트 번들은 네이티브 ESM이 아니라 webpack 런타임 위에서 도는 번들이라
+ * `import.meta.url`이 실제 파일 위치를 가리키지 않기 때문. 대신 워커 파일을
+ * `scripts/copy-maplibre-worker.mjs`(predev/prebuild에서 자동 실행)로
+ * public/에 worker+shared를 그대로 복사해두고, 아래처럼 평범한 정적 URL로
+ * 가리킨다. v6 worker는 `./maplibre-gl-shared.mjs`를 상대 import하므로
+ * shared가 빠지면 워커가 404로 죽고 .pbf가 0건이 된다.
+ * @see https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
+ */
+if (typeof window !== "undefined") {
+  setWorkerUrl("/maplibre-gl-worker.mjs");
+}
 import type { FeatureCollection } from "geojson";
 import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasemap";
 import { createMapGlobeMethods, type MapGlobeMethods } from "@/lib/mapGlobeRef";
 import {
   asFn,
+  buildCorridorGlintGradient,
+  buildCorridorGlintOffGradient,
   buildFirmsFiresGeoJson,
   buildHeatmapGeoJson,
   buildLabelsGeoJson,
@@ -26,6 +53,9 @@ import {
   buildPolygonsGeoJson,
   buildRingsGeoJson,
   CIRCLE_RADIUS_BY_ZOOM,
+  CORRIDOR_GLINT_MAX_LEGS,
+  CORRIDOR_GLINT_PERIOD_MS,
+  CORRIDOR_GLINT_TICK_MS,
   FIRMS_ICON_SIZE_BY_ZOOM,
   LABEL_DOT_RADIUS_BY_ZOOM,
   LABEL_TEXT_SIZE_BY_ZOOM,
@@ -54,7 +84,9 @@ import {
 import {
   applyBasemapFog,
   applyBasemapGlobeProjection,
+  applyBasemapOceanColors,
   applyBasemapPlaceLabelScale,
+  applyBasemapSatelliteImagery,
   applyBasemapSpaceBackground,
   applyBasemapTerrain,
   AWS_TERRARIUM_ATTRIBUTION,
@@ -72,6 +104,24 @@ import {
   type BasemapMapLike,
   type BasemapMode,
 } from "@/lib/basemapMode";
+import { osmBuildingsArmedNext, osmBuildingsEligible } from "@/lib/osmBuildings3d";
+import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
+
+const OsmBuildingsOverlay = dynamic(
+  () =>
+    import("@/components/globe/OsmBuildingsOverlay").then(
+      (mod) => mod.OsmBuildingsOverlay,
+    ),
+  { ssr: false },
+);
+
+/** fog + 우주 배경 + (지형만) 해양톤 — 인텔은 OpenFreeMap Dark+fog+우주색(예전 워룸) */
+function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
+  applyBasemapFog(map, mode);
+  applyBasemapSpaceBackground(map);
+  // Liberty 수면·NE 래스터 보정은 지형 전용 — 인텔 Dark 페인트는 건드리지 않음
+  applyBasemapOceanColors(map, mode);
+}
 
 /**
  * GlobeLayerProps(Record)와 intersection하면 index signature가 콜백을 unknown으로 넓힙니다.
@@ -83,9 +133,9 @@ export interface MapGlobeViewProps {
   onGlobeReady?: () => void;
   /** 빈 바다·지도 위 커서 좌표 (해역명 툴팁 등) */
   onGlobeMouseMove?: (coords: { lat: number; lng: number } | null) => void;
-  /** MapLibre 로드 직후 — Cesium hybrid underlay 카메라 sync용 */
+  /** MapLibre 로드 직후 — 상위(GlobeMapCanvas)에서 map 인스턴스가 필요할 때용 (현재 미사용) */
   onMapReadyForHybrid?: (map: import("maplibre-gl").Map) => void;
-  /** WebGL context lost — hybrid Cesium tear-down 등 */
+  /** WebGL context lost — 상위에서 별도 처리하고 싶을 때용 (현재 미사용) */
   onWebglContextLost?: () => void;
   /** MapLibre feature picking 대상 — VIINA 근접 줌에서 폴리곤 제외 등 */
   interactiveLayerIds?: readonly string[];
@@ -116,6 +166,37 @@ const INTERACTIVE_LAYERS = [
 
 function isMapPathsLayer(layerId: string): boolean {
   return layerId === "map-paths-solid" || layerId === "map-paths-dashed";
+}
+
+/**
+ * 호버된 path item이 "실측 회랑"(글린트 대상)이면 그 groupId를, 아니면 null을 반환한다.
+ * 일반 철도/도로/파이프라인 등은 글린트 대상이 아니므로 호버해도 반짝이지 않는다.
+ * 아직 "건설중"인 회랑은 완공된 인프라처럼 보이면 안 되므로 글린트 대상에서 제외한다.
+ */
+function realCorridorGroupIdOf(item: unknown): string | null {
+  if (!item || typeof item !== "object" || !("meta" in item)) return null;
+  const meta = (item as { meta?: Record<string, unknown> }).meta;
+  if (!meta || meta.geometrySource !== "real-corridor") return null;
+  if (meta.status === "under-construction") return null;
+  const groupId = meta.groupId ?? meta.corridorGroupId;
+  return typeof groupId === "string" && groupId ? groupId : null;
+}
+
+/**
+ * 호버된 path item이 axis-link(축 관계망/군수 이송) 관계면 그 groupId를 반환한다 —
+ * 글린트와 달리 실측 회랑 여부·건설 상태와 무관하게, axis-link이기만 하면 대상이 된다.
+ * 이 값이 map-paths-hover-recolor-* 레이어의 필터로 쓰여, 호버 중인 국가색 링크의
+ * 색이 관계 성격 색(군수=빨강 등)으로 잠깐 바뀌게 한다.
+ */
+function axisLinkHoverGroupId(item: unknown): string | null {
+  if (!item || typeof item !== "object") return null;
+  const kind = "kind" in item ? (item as { kind?: string }).kind : undefined;
+  if (kind !== "axis-link") return null;
+  const meta = "meta" in item ? (item as { meta?: Record<string, unknown> }).meta : undefined;
+  const groupId = meta?.groupId ?? meta?.corridorGroupId;
+  if (typeof groupId === "string" && groupId) return groupId;
+  const id = "id" in item ? (item as { id?: string }).id : undefined;
+  return typeof id === "string" && id ? id : null;
 }
 
 /** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
@@ -174,7 +255,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const onWebglContextLostRef = useRef(onWebglContextLost);
   const basemapModeRef = useRef<BasemapMode>(basemapMode);
   const ultraLiteRef = useRef(ultraLite);
-  const [, setMapZoom] = useState(2);
+  const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
   /**
    * projection이 박힌 style 객체를 받을 때까지 Map을 마운트하지 않는다.
@@ -189,6 +270,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
   const [hoveredIslandBaseId, setHoveredIslandBaseId] = useState<string | null>(null);
+  /**
+   * 실측 회랑 "글린트" — 상시 재생이 아니라 개별 회랑/축 관계를 호버할 때만
+   * 켜진다. groupId(edge.id/arms 쌍/corridor.id)가 같은 leg 전체가 같이 반짝인다.
+   */
+  const [hoveredPathGroupId, setHoveredPathGroupId] = useState<string | null>(null);
+  /**
+   * axis-link 국가색→관계색 호버 리컬러 대상 groupId. 글린트(hoveredPathGroupId)와
+   * 달리 실측 회랑 여부와 무관하게 axis-link이기만 하면 켜진다 — 대권 호로 폴백된
+   * 스포크 관계(예: 러–카자흐)도 호버하면 색이 바뀌어야 하기 때문.
+   */
+  const [hoveredAxisLinkGroupId, setHoveredAxisLinkGroupId] = useState<string | null>(null);
   /** onMove는 프레임마다 오므로 zoom→GeoJSON 재빌드는 idle 시에만 */
   const mapZoomRef = useRef(2);
   const mapBearingRef = useRef(0);
@@ -285,15 +377,31 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       applyBasemapGlobeProjection(m);
       if (map.isStyleLoaded() || tries > 80) {
-        applyBasemapFog(m, basemapModeRef.current);
-        applyBasemapSpaceBackground(m);
+        applyBasemapAtmosphere(m, basemapModeRef.current);
         window.clearInterval(id);
       }
     }, 250);
     return () => window.clearInterval(id);
   }, [activeMapStyle]);
 
-  const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
+  const ionToken = getRuntimeConfig().cesiumIonToken;
+  const osmEligible = osmBuildingsEligible({
+    basemapMode,
+    ultraLite,
+    ionToken,
+  });
+  const [osmBuildingsArmed, setOsmBuildingsArmed] = useState(false);
+  useEffect(() => {
+    setOsmBuildingsArmed((prev) => osmBuildingsArmedNext(prev, mapZoom, osmEligible));
+  }, [mapZoom, osmEligible]);
+  useEffect(() => {
+    if (!osmEligible) return;
+    void import("@/components/globe/OsmBuildingsOverlay");
+  }, [osmEligible]);
+  const showOsmBuildings = osmBuildingsArmed;
+  /** Ion 3D Tiles가 켜지면 상자 extrusion은 겹치지 않게 끈다. 토큰 없으면 폴백. */
+  const showVectorBuildings =
+    basemapMode === "terrain" && !ultraLite && !showOsmBuildings;
 
   /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
   const isLightBasemap = basemapMode === "terrain";
@@ -586,12 +694,57 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       points: a.pathPoints,
       color: a.pathColor,
       stroke: a.pathStroke,
-      dashLength: a.pathDashLength,
+      // 실측 회랑이 육로↔해상 다구간(legs)으로 쪼개진 경우, 해상 구간(카스피해
+      // 도하 등)만 점선(map-paths-dashed)으로 그려서 "장애물을 만나 항로로
+      // 갈아탄다"는 걸 시각적으로 드러낸다. 그 외에는 기존 접근자 그대로 위임.
+      dashLength: (item) => {
+        const legMode =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { legMode?: string } }).meta?.legMode
+            : undefined;
+        return legMode === "sea" ? 3 : a.pathDashLength(item);
+      },
       dashGap: a.pathDashGap,
       kind: (item) =>
         item && typeof item === "object" && "kind" in item
           ? String((item as { kind?: string }).kind ?? "")
           : undefined,
+      // 실측 회랑(카스피해 드론 이송로·라진-하산철도 등, axis-link 오버라이드) —
+      // map-paths-glint 레이어가 태양광 글린트 밴드를 흘려보낼 대상만 표시.
+      // 육로 구간이든 해상(점선) 구간이든 같은 회랑에 속하면 동일하게 반짝여서
+      // 구간이 바뀌어도 "하나로 이어진 인프라"처럼 보이게 한다.
+      glint: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { geometrySource?: string; status?: string } }).meta
+            : undefined;
+        // 건설중인 회랑은 아직 없는 인프라를 완공된 것처럼 반짝이게 하지 않는다.
+        return meta?.geometrySource === "real-corridor" && meta?.status !== "under-construction";
+      },
+      // 같은 회랑/축 관계의 leg들을 하나로 묶는 키 — 호버 중인 groupId와 같은
+      // feature만 map-paths-glint-* 레이어 필터를 통과해 반짝인다.
+      groupId: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { groupId?: string; corridorGroupId?: string } }).meta
+            : undefined;
+        return meta?.groupId ?? meta?.corridorGroupId ?? undefined;
+      },
+      legIndex: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { legIndex?: number } }).meta
+            : undefined;
+        return meta?.legIndex;
+      },
+      // axis-link 전용 — 호버 시 국가 기본색 대신 드러날 관계 성격 색(군수=빨강 등).
+      hoverColor: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { hoverColor?: string } }).meta
+            : undefined;
+        return typeof meta?.hoverColor === "string" ? meta.hoverColor : undefined;
+      },
     });
   }, [deferredPathsData, basemapMode]);
 
@@ -826,9 +979,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (!map) return;
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
       applyBasemapTerrain(m, basemapModeRef.current, { ultraLite: ultraLiteRef.current });
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
       map.triggerRepaint();
     };
 
@@ -908,11 +1062,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
     const applyVisuals = () => {
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current);
     };
 
@@ -948,19 +1102,35 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (movingRef.current) return;
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapMode);
-      applyBasemapSpaceBackground(m);
+      applyBasemapAtmosphere(m, basemapMode);
       applyBasemapTerrain(m, basemapMode, { ultraLite });
+      applyBasemapSatelliteImagery(m, basemapMode);
       applyBasemapPlaceLabelScale(m, basemapMode);
     };
 
     if (movingRef.current) {
+      // 실시간 레이어(ACLED·GDELT·선박 추적 등)가 끊임없이 갱신되는 화면에서는
+      // MapLibre의 네이티브 "idle" 이벤트가 사실상 영영 안 올 수 있다 — idle만
+      // 믿고 기다리면 베이스맵 전환 시 위성 사진·terrain 과장이 영구히 안 씌워짐.
+      // handleLoad와 동일하게 idle과 타임아웃 중 먼저 오는 쪽으로 반드시 적용한다.
+      let settled = false;
       const onIdle = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallback);
         map.off("idle", onIdle);
         apply();
       };
+      const fallback = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        map.off("idle", onIdle);
+        apply();
+      }, 1500);
       map.on("idle", onIdle);
       return () => {
+        settled = true;
+        window.clearTimeout(fallback);
         map.off("idle", onIdle);
       };
     }
@@ -974,18 +1144,39 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!mapLoaded) return;
     const map = mapRef.current?.getMap();
     if (!map) return;
+    let settled = false;
     const tryTerrain = () => {
       if (movingRef.current) return;
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(t);
+      map.off("idle", tryTerrain);
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
     };
+    // 80ms 지연 후 1차 시도, 그래도 movingRef가 걸려 있으면 idle을 기다리되
+    // — 실시간 레이어 때문에 idle이 영영 안 올 수 있어 1.5s 타임아웃으로도 강제 재시도.
     const t = window.setTimeout(tryTerrain, 80);
+    const forceRetry = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      map.off("idle", tryTerrain);
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapTerrain(m, basemapModeRef.current, {
+        ultraLite: ultraLiteRef.current,
+      });
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+    }, 1500);
     map.once("idle", tryTerrain);
     return () => {
+      settled = true;
       window.clearTimeout(t);
+      window.clearTimeout(forceRetry);
       map.off("idle", tryTerrain);
     };
   }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl]);
@@ -999,8 +1190,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (movingRef.current) return;
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      // 대기권(해양색)이 water fill을 다시 건드린 뒤에도 위성 페이드가 유지되게
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current);
     };
     sync();
@@ -1011,7 +1203,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [mapLoaded, mapStyleUrl, basemapMode]);
 
   /**
-   * Carto/OpenFreeMap style.json에는 projection이 없어 로드·교체 순간 Mercator로 떨어진다.
+   * OpenFreeMap style.json에는 projection이 없어 로드·교체 순간 Mercator로 떨어진다.
    * styledata 때마다 mercator면 지구본을 다시 씌운다 (납작한 세계지도 회귀 방지).
    */
   useEffect(() => {
@@ -1023,7 +1215,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (movingRef.current) return;
       if (!isMercatorProjection(m)) return;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
     };
     ensureGlobe();
     map.on("styledata", ensureGlobe);
@@ -1168,6 +1361,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         }
         if (isMapPathsLayer(layerId)) {
           onPathHover?.(item);
+          setHoveredPathGroupId(realCorridorGroupIdOf(item));
+          setHoveredAxisLinkGroupId(axisLinkHoverGroupId(item));
           return;
         }
         if (layerId === "map-polygons-fill") {
@@ -1179,6 +1374,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onPathHover?.(null);
       onPolygonHover?.(null);
       onAircraftHover?.(null);
+      setHoveredPathGroupId(null);
+      setHoveredAxisLinkGroupId(null);
     },
     [onAircraftHover, onPathHover, onPointHover, onPolygonHover, resolveFeature],
   );
@@ -1190,6 +1387,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     onPathHover?.(null);
     onPolygonHover?.(null);
     onAircraftHover?.(null);
+    setHoveredPathGroupId(null);
+    setHoveredAxisLinkGroupId(null);
   }, [onAircraftHover, onPathHover, onPointHover, onPolygonHover]);
 
   useEffect(() => {
@@ -1262,11 +1461,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       // OpenFreeMap Liberty 등 projection 미포함 스타일은 Mercator로 리셋됨 → 지구본 재적용
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
       applyBasemapTerrain(m, basemapModeRef.current, {
         ultraLite: ultraLiteRef.current,
       });
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current);
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
@@ -1359,6 +1558,102 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     if (!showIslandChains) setHoveredIslandBaseId(null);
   }, [showIslandChains]);
+
+  /**
+   * 실측 회랑 "글린트" — 상시 재생이 아니라 개별 회랑/축 관계를 호버할 때만 켜진다.
+   * 태양광이 칼날을 스치듯 밴드가 line-progress를 따라 이동하되, 다구간(육로↔해상)
+   * 회랑이면 leg의 실제 거리(lengthKm) 비례로 파동이 순서대로 넘어간다 — 짧은
+   * 해상 구간은 빨리 지나가고 긴 철도 구간은 천천히, 실제 이동 시간처럼 보이게.
+   * island-chains 애니메이션과 동일하게 100ms 인터벌(내장 GPU 친화) +
+   * getLayer 가드 + try/catch(스타일 리로드 레이스 대비).
+   */
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!mapLoaded || !map) return;
+    const layerIds = Array.from(
+      { length: CORRIDOR_GLINT_MAX_LEGS },
+      (_, i) => `map-paths-glint-${i}`,
+    );
+    const clearAll = () => {
+      for (const layerId of layerIds) {
+        if (!map.getLayer(layerId)) continue;
+        try {
+          map.setPaintProperty(layerId, "line-gradient", buildCorridorGlintOffGradient());
+        } catch {
+          /* style reload race */
+        }
+      }
+    };
+
+    if (!hoveredPathGroupId || prefersReducedMotion()) {
+      clearAll();
+      return;
+    }
+
+    // 호버 중인 회랑의 leg들을 실제 거리(lengthKm) 비례로 [startFrac, endFrac] 구간화.
+    const matches: { legIndex: number; lengthKm: number }[] = [];
+    for (const raw of deferredPathsData) {
+      if (!raw || typeof raw !== "object" || !("meta" in raw)) continue;
+      const meta = (raw as { meta?: Record<string, unknown> }).meta;
+      if (!meta || meta.geometrySource !== "real-corridor") continue;
+      const groupId = (meta.groupId ?? meta.corridorGroupId) as string | undefined;
+      if (groupId !== hoveredPathGroupId) continue;
+      const legIndex = typeof meta.legIndex === "number" ? meta.legIndex : 0;
+      const lengthKmRaw = (raw as { lengthKm?: number | null }).lengthKm;
+      const lengthKm = typeof lengthKmRaw === "number" && lengthKmRaw > 0 ? lengthKmRaw : 1;
+      matches.push({ legIndex, lengthKm });
+    }
+    if (matches.length === 0) {
+      // deferredPathsData가 아직 안 갱신됐거나 매칭 실패 — 다음 훅 재실행을 기다린다.
+      clearAll();
+      return;
+    }
+    matches.sort((a, b) => a.legIndex - b.legIndex);
+    const totalKm = matches.reduce((sum, m) => sum + m.lengthKm, 0) || 1;
+    let cursor = 0;
+    const legs = matches.map((m) => {
+      const startFrac = cursor / totalKm;
+      cursor += m.lengthKm;
+      return { legIndex: m.legIndex, startFrac, endFrac: cursor / totalKm };
+    });
+
+    const totalSteps = Math.max(
+      1,
+      Math.round(CORRIDOR_GLINT_PERIOD_MS / CORRIDOR_GLINT_TICK_MS),
+    );
+    let step = 0;
+    const tick = () => {
+      const g = step / totalSteps; // 전체 회랑 길이 기준 0→1 진행(위상)
+      for (let slot = 0; slot < CORRIDOR_GLINT_MAX_LEGS; slot += 1) {
+        const layerId = layerIds[slot];
+        if (!map.getLayer(layerId)) continue;
+        const leg = legs.find((l) => l.legIndex === slot);
+        try {
+          if (!leg) {
+            map.setPaintProperty(layerId, "line-gradient", buildCorridorGlintOffGradient());
+            continue;
+          }
+          const span = leg.endFrac - leg.startFrac;
+          const localFrac = span > 0 ? (g - leg.startFrac) / span : 0;
+          map.setPaintProperty(
+            layerId,
+            "line-gradient",
+            localFrac < -0.08 || localFrac > 1.08
+              ? buildCorridorGlintOffGradient()
+              : buildCorridorGlintGradient(Math.max(0, Math.min(1, localFrac))),
+          );
+        } catch {
+          /* style reload race */
+        }
+      }
+    };
+    tick();
+    const id = window.setInterval(() => {
+      step = (step + 1) % totalSteps;
+      tick();
+    }, CORRIDOR_GLINT_TICK_MS);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, hoveredPathGroupId, deferredPathsData]);
 
   /**
    * Alt + 좌클릭 드래그 → pitch / bearing 조절.
@@ -1674,7 +1969,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           {...({ encoding: "terrarium" } as Record<string, unknown>)}
         />
 
-        {/* 지형 모드 · 고줌 3D 건물 — OpenFreeMap planet */}
+        {showOsmBuildings && ionToken ? (
+          <OsmBuildingsOverlay accessToken={ionToken} />
+        ) : null}
+
+        {/* 지형 모드 · 고줌 3D 건물 — Ion 없으면 OpenFreeMap extrusion 폴백 */}
         {showVectorBuildings ? (
           <Source
             id={BASEMAP_SOURCE_IDS.buildings}
@@ -1779,7 +2078,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         ) : null}
 
         {pathsGeoJson.features.length > 0 ? (
-          <Source id="map-paths-source" type="geojson" data={pathsGeoJson}>
+          <Source
+            id="map-paths-source"
+            type="geojson"
+            data={pathsGeoJson}
+            lineMetrics
+          >
             {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등) */}
             <Layer
               id="map-paths-solid"
@@ -1831,6 +2135,83 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-dasharray": [2, 1.2],
               }}
             />
+            {/*
+              axis-link 국가색→관계색 호버 리컬러. base(solid/dashed) 레이어는 국가(허브)
+              고유색을 그대로 두고, 그 위에 순수 추가로 덧그리는 레이어라 기존 스타일에는
+              영향이 없다. 호버 중인 groupId와 같은 axis-link feature만 필터를 통과해
+              관계 성격 색(군수=빨강, 하이브리드=주황 등)으로 잠깐 바뀐다. solid/dashed를
+              나눠 그리는 이유는 해상 leg(점선)까지 실선으로 덮어써버리지 않기 위함.
+            */}
+            <Layer
+              id="map-paths-hover-recolor-solid"
+              type="line"
+              filter={[
+                "all",
+                ["<=", ["get", "dashLength"], 0],
+                ["!=", ["get", "hoverColor"], ""],
+                ["==", ["get", "groupId"], hoveredAxisLinkGroupId ?? "__none__"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "hoverColor"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.95,
+              }}
+            />
+            <Layer
+              id="map-paths-hover-recolor-dashed"
+              type="line"
+              filter={[
+                "all",
+                [">", ["get", "dashLength"], 0],
+                ["!=", ["get", "hoverColor"], ""],
+                ["==", ["get", "groupId"], hoveredAxisLinkGroupId ?? "__none__"],
+              ]}
+              layout={{
+                "line-cap": "butt",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "hoverColor"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.9,
+                "line-dasharray": [2, 1.2],
+              }}
+            />
+            {/*
+              실측 회랑(카스피해 드론 이송로·라진-하산철도 등, axis-link 오버라이드) 전용 —
+              "칼날에 태양광이 스치는" 하이라이트 밴드가 line-progress를 따라 흐른다.
+              base 레이어(위 solid/dashed)는 그대로 두고, 그 위에 겹쳐 그리는 순수 추가
+              레이어라 기존 경로 스타일에는 영향이 없다. 상시 재생이 아니라 개별 회랑을
+              호버할 때만 켜짐(hoveredPathGroupId) — leg마다 별도 레이어(map-paths-glint-N)를
+              둬서, 다구간(육로↔해상) 회랑이면 파동이 leg 하나씩 순서대로 넘어가게 한다.
+            */}
+            {Array.from({ length: CORRIDOR_GLINT_MAX_LEGS }, (_, slot) => (
+              <Layer
+                key={`map-paths-glint-${slot}`}
+                id={`map-paths-glint-${slot}`}
+                type="line"
+                filter={[
+                  "all",
+                  ["==", ["get", "glint"], true],
+                  ["==", ["get", "groupId"], hoveredPathGroupId ?? "__none__"],
+                  ["==", ["get", "legIndex"], slot],
+                ]}
+                layout={{
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+                paint={{
+                  "line-gradient": buildCorridorGlintOffGradient(),
+                  "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                  "line-blur": 0.6,
+                  "line-opacity": 0.95,
+                }}
+              />
+            ))}
           </Source>
         ) : null}
 

@@ -5,6 +5,7 @@ import {
   axisRelationKindLabel,
   type AxisRelationKind,
 } from "@/data/axisNetwork";
+import { corridorStatusLabel } from "@/data/strategicCorridors";
 import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
 import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -21,6 +22,11 @@ type AxisLinkChipProps = {
 };
 
 function bodyFor(link: SelectedAxisLink, lang: "ko" | "en"): string {
+  if (link.corridorStatus === "under-construction") {
+    return lang === "en"
+      ? "Mapped corridor still under construction — shown without completion glint."
+      : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다.";
+  }
   if (link.mode === "arms" && SIPRI_ARMS_LENS_ENABLED) {
     return lang === "en"
       ? "Dashed arc · registered conventional transfer summary between axis partners."
@@ -30,8 +36,8 @@ function bodyFor(link: SelectedAxisLink, lang: "ko" | "en"): string {
     return axisRelationKindBlurb(link.relationKind, lang);
   }
   return lang === "en"
-    ? "Dashed arc linking anti-Western axis hubs and partners."
-    : "반서방 축 허브·파트너를 잇는 점선입니다.";
+    ? "Dashed arc linking CRINK hubs and partners."
+    : "CRINK 허브·파트너를 잇는 점선입니다.";
 }
 
 function primaryCta(
@@ -60,6 +66,7 @@ export function AxisLinkChip({
   const kindLabel = link.relationKind
     ? axisRelationKindLabel(link.relationKind, langKey)
     : null;
+  const statusLabel = corridorStatusLabel(link.corridorStatus, langKey);
   const pair = `${link.fromName} ↔ ${link.toName}`;
   const primary = primaryCta(link.relationKind, link.mode);
 
@@ -88,7 +95,7 @@ export function AxisLinkChip({
               : link.label}
           </h2>
           <p className="mt-0.5 text-micro text-violet-100/55">
-            {[kindLabel, pair].filter(Boolean).join(" · ")}
+            {[kindLabel, statusLabel, pair].filter(Boolean).join(" · ")}
           </p>
           {armsMeta ? (
             <p className="mt-0.5 text-micro text-orange-200/55">{armsMeta}</p>

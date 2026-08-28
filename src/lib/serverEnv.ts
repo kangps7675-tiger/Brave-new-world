@@ -39,6 +39,15 @@ export function getDataCdnBase(): string | null {
   return raw.replace(/\/$/, "");
 }
 
+/** Cesium ion — OSM Buildings 3D Tiles. 비면 지형 모드는 fill-extrusion 폴백. */
+export function getCesiumIonToken(): string | null {
+  const raw =
+    process.env.CESIUM_ION_TOKEN?.trim() ||
+    process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN?.trim() ||
+    "";
+  return raw || null;
+}
+
 export function getRuntimeConfig(): RuntimeConfig {
   return {
     dataProfile: getServerDataProfile(),
@@ -48,5 +57,6 @@ export function getRuntimeConfig(): RuntimeConfig {
     telegramOsintEnabled: isTelegramOsintEnabled(),
     syncPollMs: getSyncPollMs(),
     dataCdnBase: getDataCdnBase(),
+    cesiumIonToken: getCesiumIonToken(),
   };
 }

@@ -1,5 +1,5 @@
 /**
- * 반서방 축 점선 클릭 → 칩 상태.
+ * CRINK 축 점선 클릭 → 칩 상태.
  */
 
 import {
@@ -26,6 +26,8 @@ export type SelectedAxisLink = {
   tiv?: number | null;
   count?: number | null;
   years?: string | null;
+  /** 실측 회랑 건설·제안 상태 — under-construction 등 */
+  corridorStatus?: string | null;
 };
 
 const RELATION_KINDS = new Set<AxisRelationKind>([
@@ -68,7 +70,11 @@ export function selectedAxisLinkFromPath(
   const to = typeof meta.to === "string" ? meta.to : "";
   if (!from || !to) return null;
 
-  const edge = axisEdgeById(path.id);
+  // 다구간(육로↔해상) 회랑은 leg마다 path.id가 `edgeId--legN`으로 갈라진다 —
+  // meta.groupId(항상 원래 edge.id)로 조회해야 어느 leg를 클릭했든 같은
+  // edge/같은 회랑으로 인식되고, 아래 pathId도 그룹 전체를 가리키게 된다.
+  const groupId = typeof meta.groupId === "string" && meta.groupId ? meta.groupId : path.id;
+  const edge = axisEdgeById(groupId);
   const hubs = edge?.hubs?.length
     ? [...edge.hubs]
     : ([from, to].filter((c) => AXIS_HUB_CODES.has(c as AxisHubId)) as AxisHubId[]);
@@ -83,7 +89,9 @@ export function selectedAxisLinkFromPath(
       : ((path.points[0]?.lng ?? 0) + (path.points[path.points.length - 1]?.lng ?? 0)) / 2;
 
   return {
-    pathId: path.id,
+    // 그룹(회랑) 전체를 가리키는 id — 이걸 selectedAxisPathId로 저장해야
+    // useGlobeMapGlobeProps.ts의 하이라이트/디밍이 leg 전부에 동일하게 적용된다.
+    pathId: groupId,
     mode,
     relationKind,
     from,
@@ -99,6 +107,7 @@ export function selectedAxisLinkFromPath(
     tiv: typeof meta.tiv === "number" ? meta.tiv : null,
     count: typeof meta.count === "number" ? meta.count : null,
     years: typeof meta.years === "string" ? meta.years : null,
+    corridorStatus: typeof meta.status === "string" ? meta.status : null,
   };
 }
 

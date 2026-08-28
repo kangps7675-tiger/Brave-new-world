@@ -8,6 +8,8 @@ import { hasLampPhoto, normalizeLampImageUrl } from "@/lib/news/lampThumbnail";
 import { canFetchArticle } from "@/lib/news/robotsTxt";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { SITE_URL } from "@/lib/siteUrl";
+import { isCrinkAnalysisUrl, isCrinkBlockedImageHost } from "@/data/crinkSourceRegistry";
+import { extractHostname } from "@/lib/news/mediaTiers";
 
 /**
  * 봇 신원 — **연락 가능한 실제 주소를 쓸 것.**
@@ -77,6 +79,8 @@ export async function fetchArticleOgImage(
   opts?: { timeoutMs?: number },
 ): Promise<string> {
   if (!isArticleUrl(articleUrl)) return "";
+  // CRINK 연구소·OSINT — og:image 를 카드 메인으로 쓰지 않음
+  if (isCrinkAnalysisUrl(articleUrl)) return "";
 
   const cached = ogImageCache.get(articleUrl);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
@@ -143,6 +147,7 @@ export type EnrichNewsStreamImagesOptions = {
 /**
  * imageUrl 없는 최근 기사에 og:image를 채운다.
  * 이미 사진이 있거나 섹션 URL이면 스킵.
+ * CRINK 차단 호스트의 enclosure/og 는 제거한다.
  */
 export async function enrichNewsStreamImages(
   items: NewsStreamItem[],
@@ -154,18 +159,35 @@ export async function enrichNewsStreamImages(
   const budgetMs = opts.budgetMs ?? 8_000;
   const started = Date.now();
 
+  const stripped = items.map((item) => {
+    if (!item.imageUrl) return item;
+    try {
+      const host = extractHostname(item.imageUrl) || extractHostname(item.link);
+      if (host && isCrinkBlockedImageHost(host)) {
+        return { ...item, imageUrl: undefined };
+      }
+      if (isCrinkAnalysisUrl(item.link)) {
+        return { ...item, imageUrl: undefined };
+      }
+    } catch {
+      /* keep */
+    }
+    return item;
+  });
+
   const needIdx: number[] = [];
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!;
+  for (let i = 0; i < stripped.length; i++) {
+    const item = stripped[i]!;
     if (hasLampPhoto(item.imageUrl)) continue;
     if (!isArticleUrl(item.link)) continue;
+    if (isCrinkAnalysisUrl(item.link)) continue;
     needIdx.push(i);
     if (needIdx.length >= maxEnrich) break;
   }
 
-  if (needIdx.length === 0) return items;
+  if (needIdx.length === 0) return stripped;
 
-  const out = items.slice();
+  const out = stripped.slice();
   let cursor = 0;
 
   async function worker() {

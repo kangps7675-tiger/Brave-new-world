@@ -10,7 +10,9 @@ import {
   localizeLayerCategories,
   type LayerPanelLang,
 } from "@/lib/layerPanel/layerPanelLabels";
+import { CRINK_INFRA_LAYERS, isAnyCrinkInfraEnabled } from "@/lib/crinkInfraCatalog";
 import { type LabelLanguage, type LayerPrefs } from "@/lib/layerPrefs";
+import { militaryBaseForceId, type MilitaryBaseForceId } from "@/lib/militaryBaseForces";
 import { localizeNewfeedsThreatLabel } from "@/lib/newfeedsI18n";
 import { isClientNeptunEnabled } from "@/lib/runtimeConfig.client";
 import { TELEGRAM_CHANNEL_COUNT } from "@/lib/telegramAlerts";
@@ -51,15 +53,18 @@ export type UseLayerPanelCategoriesArgs = {
   showUsChinaIncidents: boolean;
   showNorthKoreaMissileTests: boolean;
   showUkraineStrikesOnRussia: boolean;
+  showEuropeDroneIncidents: boolean;
   setShowChinaTaiwanIncidents: (v: boolean) => void;
   setShowChinaJapanIncidents: (v: boolean) => void;
   setShowChinaPhilippinesIncidents: (v: boolean) => void;
   setShowUsChinaIncidents: (v: boolean) => void;
   setShowNorthKoreaMissileTests: (v: boolean) => void;
   setShowUkraineStrikesOnRussia: (v: boolean) => void;
+  setShowEuropeDroneIncidents: (v: boolean) => void;
   chinaTheaterIncidentMarkers: Array<{ dyad: string }>;
   koreaMissileIncidentMarkers: unknown[];
   russiaStrikeIncidentMarkers: unknown[];
+  europeDroneIncidentMarkers: unknown[];
   showWarZones: boolean;
   disputeZoneOutlineCount: number;
   setShowWarZones: (v: boolean) => void;
@@ -100,6 +105,11 @@ export type UseLayerPanelCategoriesArgs = {
   showAxisNetwork: boolean;
   axisNetworkPaths: unknown[];
   setShowAxisNetwork: (v: boolean) => void;
+  crinkInfraPathCountByCategory: Partial<
+    Record<"power" | "border" | "dam" | "aeroway" | "harbour" | "checkpoint", number>
+  >;
+  crinkInfraStatus: "idle" | "loading" | "ready" | "missing";
+  crinkInfraVisibilityHint: string | null;
   showConflictZones: boolean;
   visibleConflictZones: unknown[];
   setShowConflictZones: (v: boolean) => void;
@@ -139,7 +149,10 @@ export type UseLayerPanelCategoriesArgs = {
   visibleOilPipelines: unknown[];
   visibleGasPipelines: unknown[];
   visibleSubseaPipelines: unknown[];
-  visibleStaticPoints: Array<{ kind: string }>;
+  visibleStaticPoints: Array<{
+    kind: string;
+    meta?: Record<string, string | number | null> | null;
+  }>;
   staticCounts: {
     oilPipelines?: number;
     gasPipelines?: number;
@@ -176,6 +189,9 @@ export type UseLayerPanelCategoriesArgs = {
   showBriTradeConnectivity: boolean;
   briTradePaths: unknown[];
   setShowBriTradeConnectivity: (v: boolean) => void;
+  showStrategicCorridors: boolean;
+  strategicCorridorPaths: unknown[];
+  setShowStrategicCorridors: (v: boolean) => void;
   showShippingLanes: boolean;
   visibleShipping: unknown[];
   setShowShippingLanes: (v: boolean) => void;
@@ -218,8 +234,16 @@ export type UseLayerPanelCategoriesArgs = {
   disguisedError: string | null;
   setShowDisguisedVessels: (v: boolean) => void;
   showMilitaryBases: boolean;
+  showRokMilitaryBases: boolean;
+  showJapanMilitaryBases: boolean;
+  showPhilippinesMilitaryBases: boolean;
+  showEasternNatoMilitaryBases: boolean;
   visibleMilitaryBaseAreas: unknown[];
   setShowMilitaryBases: (v: boolean) => void;
+  setShowRokMilitaryBases: (v: boolean) => void;
+  setShowJapanMilitaryBases: (v: boolean) => void;
+  setShowPhilippinesMilitaryBases: (v: boolean) => void;
+  setShowEasternNatoMilitaryBases: (v: boolean) => void;
   showMissileSilos: boolean;
   setShowMissileSilos: (v: boolean) => void;
   showStrategicMissileBases: boolean;
@@ -321,15 +345,18 @@ export function useLayerPanelCategories({
   showUsChinaIncidents,
   showNorthKoreaMissileTests,
   showUkraineStrikesOnRussia,
+  showEuropeDroneIncidents,
   setShowChinaTaiwanIncidents,
   setShowChinaJapanIncidents,
   setShowChinaPhilippinesIncidents,
   setShowUsChinaIncidents,
   setShowNorthKoreaMissileTests,
   setShowUkraineStrikesOnRussia,
+  setShowEuropeDroneIncidents,
   chinaTheaterIncidentMarkers,
   koreaMissileIncidentMarkers,
   russiaStrikeIncidentMarkers,
+  europeDroneIncidentMarkers,
   showWarZones,
   disputeZoneOutlineCount,
   setShowWarZones,
@@ -369,6 +396,9 @@ export function useLayerPanelCategories({
   showAxisNetwork,
   axisNetworkPaths,
   setShowAxisNetwork,
+  crinkInfraPathCountByCategory,
+  crinkInfraStatus,
+  crinkInfraVisibilityHint,
   showConflictZones,
   visibleConflictZones,
   setShowConflictZones,
@@ -426,6 +456,9 @@ export function useLayerPanelCategories({
   showBriTradeConnectivity,
   briTradePaths,
   setShowBriTradeConnectivity,
+  showStrategicCorridors,
+  strategicCorridorPaths,
+  setShowStrategicCorridors,
   showShippingLanes,
   visibleShipping,
   setShowShippingLanes,
@@ -468,8 +501,16 @@ export function useLayerPanelCategories({
   disguisedError,
   setShowDisguisedVessels,
   showMilitaryBases,
+  showRokMilitaryBases,
+  showJapanMilitaryBases,
+  showPhilippinesMilitaryBases,
+  showEasternNatoMilitaryBases,
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
+  setShowRokMilitaryBases,
+  setShowJapanMilitaryBases,
+  setShowPhilippinesMilitaryBases,
+  setShowEasternNatoMilitaryBases,
   showMissileSilos,
   setShowMissileSilos,
   showStrategicMissileBases,
@@ -551,6 +592,15 @@ export function useLayerPanelCategories({
     const off = (count?: number) =>
       count && count > 0 ? `${count.toLocaleString()}곳 · 꺼짐` : "꺼짐";
     const zoom = globeLod.label;
+    const milPts = visibleStaticPoints.filter((p) => p.kind === "military-base");
+    const milForceCount = (force: MilitaryBaseForceId) =>
+      milPts.filter((p) => militaryBaseForceId(p) === force).length;
+    const anyMilitaryBaseLayer =
+      showMilitaryBases ||
+      showRokMilitaryBases ||
+      showJapanMilitaryBases ||
+      showPhilippinesMilitaryBases ||
+      showEasternNatoMilitaryBases;
 
     const allCategories: LayerCategory[] = [
       {
@@ -726,6 +776,16 @@ export function useLayerPanelCategories({
                 onChange: setShowUkraineStrikesOnRussia,
                 accent: "red",
               },
+              {
+                id: "europe-drone-incidents",
+                label: "유럽 드론·영공 침범",
+                detail: showEuropeDroneIncidents
+                  ? `사건 지점 ${europeDroneIncidentMarkers.length}곳 · 확인·미확인 혼재`
+                  : "꺼짐 · 나토 공항·기지·국경 상공",
+                checked: layerPrefs.showEuropeDroneIncidents,
+                onChange: setShowEuropeDroneIncidents,
+                accent: "orange",
+              },
             ],
           },
           {
@@ -878,13 +938,60 @@ export function useLayerPanelCategories({
           },
           {
             id: "axis-network",
-            label: "이란·중국·러시아·북한 관계망",
+            label: "CRINK 축",
             detail: showAxisNetwork
-              ? `연결 ${axisNetworkPaths.length.toLocaleString()} · 외교·군수·하이브리드`
-              : "꺼짐 · 외교·군수 연계",
+              ? `연결 ${axisNetworkPaths.length.toLocaleString()} · 중·러·이·북 허브 · 외교·군수·하이브리드`
+              : "꺼짐 · 중·러·이·북 허브·관계선",
             checked: layerPrefs.showAxisNetwork,
             onChange: setShowAxisNetwork,
             accent: "emerald",
+          },
+          {
+            id: "crink-osm-infra",
+            label: "CRINK OSM 인프라",
+            detail: (() => {
+              if (!isAnyCrinkInfraEnabled(layerPrefs)) {
+                return "꺼짐 · 인텔 지도 · 근접 확대 시 활주로·항만";
+              }
+              if (crinkInfraVisibilityHint) return crinkInfraVisibilityHint;
+              if (crinkInfraStatus === "loading") return "불러오는 중…";
+              if (crinkInfraStatus === "missing") {
+                return "데이터 없음 · npm run crink:infra:extract";
+              }
+              const on = CRINK_INFRA_LAYERS.filter((l) => Boolean(layerPrefs[l.prefKey])).length;
+              const total = CRINK_INFRA_LAYERS.reduce(
+                (sum, l) => sum + (crinkInfraPathCountByCategory[l.id] ?? 0),
+                0,
+              );
+              return `${on}종 켜짐 · OSM ${total.toLocaleString()}개 · 근접`;
+            })(),
+            checked: isAnyCrinkInfraEnabled(layerPrefs),
+            onChange: (enabled) => {
+              toggleCategoryPrefs(
+                Object.fromEntries(
+                  CRINK_INFRA_LAYERS.map((l) => [l.prefKey, enabled]),
+                ) as Partial<LayerPrefs>,
+              );
+            },
+            accent: "amber",
+            presentation: "dropdown",
+            options: CRINK_INFRA_LAYERS.map((layer) => ({
+              id: `crink-${layer.id}`,
+              label: layer.labelKo,
+              detail:
+                layerPrefs[layer.prefKey] && crinkInfraStatus === "ready"
+                  ? `${(crinkInfraPathCountByCategory[layer.id] ?? 0).toLocaleString()}개 · OSM`
+                  : layerPrefs[layer.prefKey] && crinkInfraStatus === "loading"
+                    ? "불러오는 중…"
+                    : layerPrefs[layer.prefKey]
+                      ? "데이터 없음"
+                      : "꺼짐",
+              checked: Boolean(layerPrefs[layer.prefKey]),
+              onChange: (enabled: boolean) => {
+                toggleCategoryPrefs({ [layer.prefKey]: enabled } as Partial<LayerPrefs>);
+              },
+              accent: layer.accent,
+            })),
           },
           {
             id: "conflict-zones",
@@ -1354,8 +1461,29 @@ export function useLayerPanelCategories({
                   onChange: setShowBriTradeConnectivity,
                   accent: "amber",
                 },
+                {
+                  id: "strategic-corridors",
+                  label: "전략 물류 회랑",
+                  detail: showStrategicCorridors
+                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
+                    : "꺼짐 · INSTC·미들 코리도·TSR 등",
+                  checked: layerPrefs.showStrategicCorridors,
+                  onChange: setShowStrategicCorridors,
+                  accent: "amber",
+                },
               ] satisfies LayerToggleItem[])
-            : []),
+            : ([
+                {
+                  id: "strategic-corridors",
+                  label: "전략 물류 회랑",
+                  detail: showStrategicCorridors
+                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
+                    : "꺼짐 · INSTC·미들 코리도·TSR 등",
+                  checked: layerPrefs.showStrategicCorridors,
+                  onChange: setShowStrategicCorridors,
+                  accent: "amber",
+                },
+              ] satisfies LayerToggleItem[])),
           {
             id: "cables",
             label: "해저 케이블",
@@ -1567,15 +1695,84 @@ export function useLayerPanelCategories({
         items: [
           {
             id: "military-bases",
-            label: "미군 기지",
-            detail: showMilitaryBases
-              ? `구역 ${visibleMilitaryBaseAreas.length.toLocaleString()} · 시설 ${
-                  visibleStaticPoints.filter((p) => p.kind === "military-base").length
-                }`
+            label: "군사기지",
+            detail: anyMilitaryBaseLayer
+              ? [
+                  showMilitaryBases && `미군 ${milForceCount("us")}`,
+                  showRokMilitaryBases && `한국 ${milForceCount("rok")}`,
+                  showJapanMilitaryBases && `일본 ${milForceCount("japan")}`,
+                  showPhilippinesMilitaryBases && `필리핀 ${milForceCount("philippines")}`,
+                  showEasternNatoMilitaryBases && `동유럽 ${milForceCount("eastern-nato")}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
               : off(staticCounts.militaryBases),
-            checked: layerPrefs.showMilitaryBases,
-            onChange: setShowMilitaryBases,
+            checked: anyMilitaryBaseLayer,
+            onChange: (enabled) => {
+              if (enabled) {
+                setShowMilitaryBases(true);
+                return;
+              }
+              setShowMilitaryBases(false);
+              setShowRokMilitaryBases(false);
+              setShowJapanMilitaryBases(false);
+              setShowPhilippinesMilitaryBases(false);
+              setShowEasternNatoMilitaryBases(false);
+            },
             accent: "blue",
+            presentation: "dropdown",
+            options: [
+              {
+                id: "military-bases-us",
+                label: "미군",
+                detail: showMilitaryBases
+                  ? `구역 ${visibleMilitaryBaseAreas.length.toLocaleString()} · 시설 ${milForceCount("us")}`
+                  : off(staticCounts.militaryBases),
+                checked: layerPrefs.showMilitaryBases,
+                onChange: setShowMilitaryBases,
+                accent: "blue",
+              },
+              {
+                id: "military-bases-rok",
+                label: "한국",
+                detail: showRokMilitaryBases
+                  ? `시설 ${milForceCount("rok")}`
+                  : "꺼짐 · 전선 OSM",
+                checked: layerPrefs.showRokMilitaryBases,
+                onChange: setShowRokMilitaryBases,
+                accent: "blue",
+              },
+              {
+                id: "military-bases-japan",
+                label: "일본",
+                detail: showJapanMilitaryBases
+                  ? `시설 ${milForceCount("japan")}`
+                  : "꺼짐 · 전선 OSM",
+                checked: layerPrefs.showJapanMilitaryBases,
+                onChange: setShowJapanMilitaryBases,
+                accent: "blue",
+              },
+              {
+                id: "military-bases-philippines",
+                label: "필리핀",
+                detail: showPhilippinesMilitaryBases
+                  ? `시설 ${milForceCount("philippines")}`
+                  : "꺼짐 · 1선 기지",
+                checked: layerPrefs.showPhilippinesMilitaryBases,
+                onChange: setShowPhilippinesMilitaryBases,
+                accent: "blue",
+              },
+              {
+                id: "military-bases-eastern-nato",
+                label: "동유럽 NATO",
+                detail: showEasternNatoMilitaryBases
+                  ? `시설 ${milForceCount("eastern-nato")}`
+                  : "꺼짐 · 폴란드·발트·핀란드",
+                checked: layerPrefs.showEasternNatoMilitaryBases,
+                onChange: setShowEasternNatoMilitaryBases,
+                accent: "blue",
+              },
+            ],
           },
           {
             id: "strategic-missile",
@@ -1723,6 +1920,10 @@ export function useLayerPanelCategories({
         onToggleAll: (enabled) =>
           toggleCategoryPrefs({
             showMilitaryBases: enabled,
+            showRokMilitaryBases: enabled ? showRokMilitaryBases : false,
+            showJapanMilitaryBases: enabled ? showJapanMilitaryBases : false,
+            showPhilippinesMilitaryBases: enabled ? showPhilippinesMilitaryBases : false,
+            showEasternNatoMilitaryBases: enabled ? showEasternNatoMilitaryBases : false,
             showMissileSilos: enabled,
             showStrategicMissileBases: enabled,
             showMissileTestSites: enabled,
@@ -1862,6 +2063,11 @@ export function useLayerPanelCategories({
     const mode = isEconomyViewer ? "economy" : "conflict";
     const MODE_ONLY: Record<string, Array<"conflict" | "economy">> = {
       "military-bases": ["conflict"],
+      "military-bases-us": ["conflict"],
+      "military-bases-rok": ["conflict"],
+      "military-bases-japan": ["conflict"],
+      "military-bases-philippines": ["conflict"],
+      "military-bases-eastern-nato": ["conflict"],
       "military-air": ["conflict"],
       intel: ["conflict"],
       "recon-satellites": ["conflict"],
@@ -1884,6 +2090,7 @@ export function useLayerPanelCategories({
       "air-traffic": ["economy"],
       "us-dfc-supply": ["economy"],
       "bri-trade": ["economy"],
+      "strategic-corridors": ["economy", "conflict"],
       "gscpi-gauge": ["economy"],
     };
     const filterItems = (items: LayerToggleItem[]): LayerToggleItem[] =>
@@ -1980,11 +2187,17 @@ export function useLayerPanelCategories({
     lpg(showUsChinaIncidents, false),
     lpg(showNorthKoreaMissileTests, false),
     lpg(showUkraineStrikesOnRussia, false),
+    lpg(showEuropeDroneIncidents, false),
     lpg(chinaTheaterIncidentMarkers.length, 0),
     lpg(koreaMissileIncidentMarkers.length, 0),
     lpg(russiaStrikeIncidentMarkers.length, 0),
+    lpg(europeDroneIncidentMarkers.length, 0),
     lpg(showAxisNetwork, false),
+    lpg(isAnyCrinkInfraEnabled(layerPrefs), false),
+    lpg(crinkInfraStatus, "idle"),
+    lpg(crinkInfraVisibilityHint, null),
     lpg(showBriTradeConnectivity, false),
+    lpg(showStrategicCorridors, false),
     lpg(showUsDfcSupplyChain, false),
     lpg(showWarZones, false),
     lpg(showEconomicCenters, false),
@@ -1997,6 +2210,10 @@ export function useLayerPanelCategories({
     lpg(showLngTerminals, false),
     lpg(showMilitaryActivity, false),
     lpg(showMilitaryBases, false),
+    lpg(showRokMilitaryBases, false),
+    lpg(showJapanMilitaryBases, false),
+    lpg(showPhilippinesMilitaryBases, false),
+    lpg(showEasternNatoMilitaryBases, false),
     lpg(showMissileSilos, false),
     lpg(showStrategicMissileBases, false),
     lpg(showMissileTestSites, false),

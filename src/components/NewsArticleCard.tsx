@@ -56,6 +56,9 @@ type NewsArticleCardProps = {
   item: NewsStreamItem;
   tier3?: boolean;
   economyMode?: boolean;
+  /** CRINK 허브 카드 — 큰 썸네일 + 크레딧 */
+  hubMode?: boolean;
+  thumbCredit?: string;
   titleOverride?: string;
   summaryOverride?: string;
   onFlyToMap?: (target: MapFlyTarget) => void;
@@ -65,6 +68,8 @@ export function NewsArticleCard({
   item,
   tier3,
   economyMode,
+  hubMode,
+  thumbCredit,
   titleOverride,
   summaryOverride,
   onFlyToMap,
@@ -83,12 +88,16 @@ export function NewsArticleCard({
 
   return (
     <article
-      className={`news-article-card group flex w-[min(72vw,220px)] shrink-0 flex-col overflow-hidden rounded-xl border bg-[#0a1428]/90 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-xl ${
+      className={`news-article-card group flex shrink-0 flex-col overflow-hidden rounded-xl border bg-[#0a1428]/90 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-xl ${
+        hubMode ? "w-[min(92vw,280px)]" : "w-[min(72vw,220px)]"
+      } ${
         tier3
           ? "border-amber-400/25 hover:border-amber-300/45"
-          : isEconomy
-            ? "border-emerald-400/20 hover:border-emerald-300/40"
-            : "border-sky-300/15 hover:border-sky-200/35"
+          : hubMode
+            ? "border-rose-400/25 hover:border-rose-300/45"
+            : isEconomy
+              ? "border-emerald-400/20 hover:border-emerald-300/40"
+              : "border-sky-300/15 hover:border-sky-200/35"
       }`}
     >
       <a
@@ -97,7 +106,11 @@ export function NewsArticleCard({
         rel="noopener noreferrer"
         className="flex min-h-0 flex-1 flex-col"
       >
-        <div className="relative h-[104px] w-full overflow-hidden bg-slate-900/80">
+        <div
+          className={`relative w-full overflow-hidden bg-slate-900/80 ${
+            hubMode ? "h-[132px]" : "h-[104px]"
+          }`}
+        >
           {showImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -132,6 +145,11 @@ export function NewsArticleCard({
               </span>
             ) : null}
           </div>
+          {hubMode && thumbCredit ? (
+            <span className="absolute bottom-1.5 right-2 max-w-[70%] truncate rounded bg-black/50 px-1.5 py-0.5 text-micro text-slate-300">
+              {thumbCredit}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-3">

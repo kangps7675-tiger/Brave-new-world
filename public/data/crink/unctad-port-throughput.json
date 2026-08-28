@@ -1,0 +1,165 @@
+{
+  "generatedAt": "2026-08-27T18:52:41.397Z",
+  "source": "UNCTADstat US.ContPortThroughput (bulk CSV)",
+  "dataset": "US.ContPortThroughput",
+  "sourceFile": "scripts/unctad/fixtures/US.ContPortThroughput.sample.csv",
+  "usingFixture": true,
+  "method": "Country-level container port throughput (TEU). Latest year ±2y average per ISO3. Corridor match = max(endpointCountries). Optional corridor hard-bind CSV for INSTC/TITR etc.",
+  "downloadHint": "https://unctadstat.unctad.org/datacentre/dataviewer/US.ContPortThroughput → Export/Bulk CSV → scripts/data/unctad/incoming/",
+  "countryCount": 14,
+  "hardBindCount": 2,
+  "countries": {
+    "CHN": {
+      "iso3": "CHN",
+      "teu": 300000000,
+      "latestYear": 2023,
+      "latestTeu": 310000000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "RUS": {
+      "iso3": "RUS",
+      "teu": 5650000,
+      "latestYear": 2023,
+      "latestTeu": 5800000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "IRN": {
+      "iso3": "IRN",
+      "teu": 3300000,
+      "latestYear": 2023,
+      "latestTeu": 3400000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "IND": {
+      "iso3": "IND",
+      "teu": 21000000,
+      "latestYear": 2023,
+      "latestTeu": 22000000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "KAZ": {
+      "iso3": "KAZ",
+      "teu": 465000,
+      "latestYear": 2023,
+      "latestTeu": 480000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "TUR": {
+      "iso3": "TUR",
+      "teu": 12850000,
+      "latestYear": 2023,
+      "latestTeu": 13200000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "AZE": {
+      "iso3": "AZE",
+      "teu": 125000,
+      "latestYear": 2023,
+      "latestTeu": 130000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "ARE": {
+      "iso3": "ARE",
+      "teu": 19750000,
+      "latestYear": 2023,
+      "latestTeu": 20500000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "SAU": {
+      "iso3": "SAU",
+      "teu": 10500000,
+      "latestYear": 2023,
+      "latestTeu": 11000000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "PAK": {
+      "iso3": "PAK",
+      "teu": 3600000,
+      "latestYear": 2023,
+      "latestTeu": 3700000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "NLD": {
+      "iso3": "NLD",
+      "teu": 14900000,
+      "latestYear": 2023,
+      "latestTeu": 14800000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "EGY": {
+      "iso3": "EGY",
+      "teu": 7650000,
+      "latestYear": 2023,
+      "latestTeu": 7800000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "KOR": {
+      "iso3": "KOR",
+      "teu": 29500000,
+      "latestYear": 2023,
+      "latestTeu": 30000000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    },
+    "SGP": {
+      "iso3": "SGP",
+      "teu": 38000000,
+      "latestYear": 2023,
+      "latestTeu": 39000000,
+      "yearsUsed": [
+        2022,
+        2023
+      ]
+    }
+  },
+  "corridorHardBind": {
+    "middle-corridor": {
+      "teu": 85000,
+      "year": 2023,
+      "note": "TITR / Middle Corridor reported TEU (placeholder — replace with RMT or TITR figure)"
+    },
+    "instc-trans-caspian": {
+      "teu": 42000,
+      "year": 2023,
+      "note": "INSTC reported TEU placeholder — replace with official INSTC/UNCTAD RMT figure"
+    }
+  }
+}

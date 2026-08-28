@@ -13,6 +13,11 @@ export type RuntimeConfig = {
    * 설정 시 dataPath()가 /data/... 대신 CDN을 씀. 비우면 로컬 public.
    */
   dataCdnBase: string | null;
+  /**
+   * Cesium ion 토큰 — 지형 모드 고줌 OSM 3D Buildings 타일 fetch용.
+   * 브라우저로 넘어가지만 NEXT_PUBLIC_ 접두사는 쓰지 않고 서버에서 주입.
+   */
+  cesiumIonToken: string | null;
 };
 
 export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
@@ -23,4 +28,5 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
   telegramOsintEnabled: false,
   syncPollMs: 5 * 60 * 1000,
   dataCdnBase: null,
+  cesiumIonToken: null,
 };

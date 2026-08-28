@@ -1,0 +1,106 @@
+{
+  "version": 8,
+  "name": "GeoWatch OSM Dark (OpenMapTiles)",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "pmtiles://PLACEHOLDER.pmtiles",
+      "attribution": "© OpenStreetMap contributors · Planetiler · OpenMapTiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": { "background-color": "#0b0c10" }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "paint": { "fill-color": "#1a3a5c" }
+    },
+    {
+      "id": "landcover",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landcover",
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "class"],
+          "wood", "#14261c",
+          "grass", "#1a2a1e",
+          "ice", "#2a3540",
+          "#1a1f28"
+        ],
+        "fill-opacity": 0.85
+      }
+    },
+    {
+      "id": "landuse",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landuse",
+      "paint": { "fill-color": "#1e2430", "fill-opacity": 0.55 }
+    },
+    {
+      "id": "park",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "park",
+      "paint": { "fill-color": "#163022", "fill-opacity": 0.5 }
+    },
+    {
+      "id": "boundary",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "boundary",
+      "paint": {
+        "line-color": "#3d5a73",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 2, 0.4, 8, 1.2]
+      }
+    },
+    {
+      "id": "transportation",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "minzoom": 6,
+      "paint": {
+        "line-color": "#5a7188",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.4, 14, 2.2]
+      }
+    },
+    {
+      "id": "building",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "building",
+      "minzoom": 13,
+      "paint": {
+        "fill-color": "#2c3544",
+        "fill-opacity": 0.75,
+        "fill-outline-color": "#1a2028"
+      }
+    },
+    {
+      "id": "place-label",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "layout": {
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 3, 11, 10, 16],
+        "text-font": ["Open Sans Regular"]
+      },
+      "paint": {
+        "text-color": "#d8e2ec",
+        "text-halo-color": "#0b0c10",
+        "text-halo-width": 1.2
+      }
+    }
+  ]
+}

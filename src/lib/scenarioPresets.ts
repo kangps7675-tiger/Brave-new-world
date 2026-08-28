@@ -142,7 +142,7 @@ export const CONFLICT_SCENARIO_PRESETS: ScenarioPreset[] = [
     id: "nuclear",
     labelKo: "핵·확산",
     labelEn: "Nuclear",
-    hintKo: "원자력 시설 · 무기금수 · 확전 신호 · 축 관계망",
+    hintKo: "원자력 시설 · 무기금수 · 확전 신호 · CRINK 축",
     hintEn: "Nuclear sites, arms embargo, escalation signals",
     mode: "conflict",
     layers: [
@@ -211,6 +211,7 @@ export const ECONOMY_SCENARIO_PRESETS: ScenarioPreset[] = [
       "showLogisticsStress",
       "showLogisticsRisk",
       "showCriticalNodes",
+      "showStrategicCorridors",
       "showBriTradeConnectivity",
       "showAirports",
     ],

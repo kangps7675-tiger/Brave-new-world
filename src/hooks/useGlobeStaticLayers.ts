@@ -38,6 +38,11 @@ import {
 import type { ViewportPointLayer } from "@/lib/serverViewportPoints";
 import type { MissileSiloField } from "@/lib/strategicMissile";
 import type { ViewerMode } from "@/lib/viewPackages";
+import {
+  anyMilitaryBaseForceOn,
+  enabledMilitaryBaseForces,
+  filterPointsByMilitaryBaseForces,
+} from "@/lib/militaryBaseForces";
 
 const CRITICAL_NODE_STATIC_POINTS = criticalNodesAsStaticPoints();
 
@@ -236,6 +241,10 @@ export function useGlobeStaticLayers(options: {
   showLogisticsRisk?: boolean;
   showCriticalNodes?: boolean;
   showMilitaryBases: boolean;
+  showRokMilitaryBases?: boolean;
+  showJapanMilitaryBases?: boolean;
+  showPhilippinesMilitaryBases?: boolean;
+  showEasternNatoMilitaryBases?: boolean;
   showMissileSilos?: boolean;
   showStrategicMissileBases?: boolean;
   showMissileTestSites?: boolean;
@@ -338,7 +347,11 @@ export function useGlobeStaticLayers(options: {
   );
 
   const fetchViewportPoints = useCallback(
-    async (layer: string, setter: (value: StaticPoint[]) => void) => {
+    async (
+      layer: string,
+      setter: (value: StaticPoint[]) => void,
+      extra?: Record<string, string>,
+    ) => {
       try {
         const params = new URLSearchParams({
           layer,
@@ -347,6 +360,9 @@ export function useGlobeStaticLayers(options: {
           radius: String(options.radiusDeg),
           tier: options.globeTier,
         });
+        if (extra) {
+          for (const [key, value] of Object.entries(extra)) params.set(key, value);
+        }
         const response = await fetch(`/api/layers/viewport-points?${params}`, {
           cache: "no-store",
         });
@@ -765,20 +781,31 @@ export function useGlobeStaticLayers(options: {
   ]);
 
   useEffect(() => {
-    if (!options.showMilitaryBases) {
+    const forces = enabledMilitaryBaseForces(options);
+    if (forces.length === 0) {
       setMilitaryBases([]);
       setMilitaryBaseAreas([]);
       return;
     }
     const timer = window.setTimeout(() => {
-      void fetchViewportPoints("military-bases", setMilitaryBases);
-      void fetchViewportBaseAreas();
+      void fetchViewportPoints("military-bases", setMilitaryBases, {
+        forces: forces.join(","),
+      });
+      if (options.showMilitaryBases) {
+        void fetchViewportBaseAreas();
+      } else {
+        setMilitaryBaseAreas([]);
+      }
     }, 320);
     return () => window.clearTimeout(timer);
   }, [
     fetchViewportBaseAreas,
     fetchViewportPoints,
     options.showMilitaryBases,
+    options.showRokMilitaryBases,
+    options.showJapanMilitaryBases,
+    options.showPhilippinesMilitaryBases,
+    options.showEasternNatoMilitaryBases,
     options.viewState.lat,
     options.viewState.lng,
     options.globeTier,
@@ -1206,7 +1233,14 @@ export function useGlobeStaticLayers(options: {
     const merged: StaticPoint[] = [];
     if (options.showAirports) merged.push(...airports);
     if (options.showPorts) merged.push(...ports);
-    if (options.showMilitaryBases) merged.push(...militaryBases);
+    if (anyMilitaryBaseForceOn(options)) {
+      merged.push(
+        ...filterPointsByMilitaryBaseForces(
+          militaryBases,
+          enabledMilitaryBaseForces(options),
+        ),
+      );
+    }
     if (options.showResources) {
       const covered = new Set(
         resourceDeposits.map((d) => d.linkedPointId).filter((id): id is string => Boolean(id)),
@@ -1269,6 +1303,10 @@ export function useGlobeStaticLayers(options: {
     options.showLogisticsRisk,
     options.showCriticalNodes,
     options.showMilitaryBases,
+    options.showRokMilitaryBases,
+    options.showJapanMilitaryBases,
+    options.showPhilippinesMilitaryBases,
+    options.showEasternNatoMilitaryBases,
     options.showMissileSilos,
     options.showMissileTestSites,
     options.showNuclearSites,

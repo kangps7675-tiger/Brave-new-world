@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const { layer, lat, lng, tier, radius: radiusDeg, max } = parsed.data;
+  const { layer, lat, lng, tier, radius: radiusDeg, max, forces } = parsed.data;
 
   try {
     if (layer === "military-base-areas") {
@@ -61,6 +61,7 @@ export async function GET(request: Request) {
       radiusDeg,
       tier: tier as GlobeLodTier,
       max,
+      forces,
     });
 
     return NextResponse.json(

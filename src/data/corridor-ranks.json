@@ -1,0 +1,1772 @@
+{
+  "generatedAt": "2026-08-27T18:56:56.918Z",
+  "version": 1,
+  "method": "bilateralTradeNorm(Comtrade)·portThroughputNorm(UNCTAD ContPortThroughput→country max|hard-bind, else PortWatch)·BRI·length/status → percentile → scalerank",
+  "attribution": [
+    "UN Comtrade (2026-08-27T16:56:13Z) — 33 corridor hits",
+    "UNCTADstat ContPortThroughput (2026-08-27T18:52:41.397Z, fixture) — 37 corridor hits (hard-bind=2); country TEU ≠ corridor TEU",
+    "World Bank BRI Trade Costs (WPS8614) where matched",
+    "Static choke capacity proxies aligned with IMF PortWatch choke set"
+  ],
+  "comtrade": {
+    "generatedAt": "2026-08-27T16:56:13Z",
+    "mode": "preview (public, no key)",
+    "withData": 27,
+    "corridorHits": 33
+  },
+  "unctad": {
+    "generatedAt": "2026-08-27T18:52:41.397Z",
+    "usingFixture": true,
+    "countryCount": 14,
+    "hardBindCount": 2,
+    "corridorHits": 37,
+    "hardBindHits": 2,
+    "caveat": "Country-level ContPortThroughput TEU matched via max(endpointCountries); optional corridor hard-bind CSV for INSTC/TITR."
+  },
+  "portwatch": null,
+  "railFreight": null,
+  "counts": {
+    "total": 41,
+    "rank1": 7,
+    "rank2": 8,
+    "rank3": 12,
+    "rank4plus": 14,
+    "comtradeHits": 33,
+    "unctadHits": 37,
+    "unctadHardBindHits": 2,
+    "portwatchHits": 0,
+    "railFreightHits": 0
+  },
+  "corridors": [
+    {
+      "corridorId": "rus-kgz-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS",
+        "KGZ"
+      ],
+      "comtradePair": [
+        "RUS",
+        "KGZ"
+      ],
+      "railFreightPair": null,
+      "score": 0.861774600439348,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 3285275085.5,
+        "bilateralTradeNorm": 0.8278765742476694,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": 39.653,
+        "briImpactNorm": 1,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 3200,
+        "lengthNorm": 0.814983383278196,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.968
+    },
+    {
+      "corridorId": "cku-railway",
+      "category": "trade",
+      "status": "under-construction",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "KGZ",
+        "UZB"
+      ],
+      "comtradePair": [
+        "CHN",
+        "UZB"
+      ],
+      "railFreightPair": null,
+      "score": 0.8476059270685252,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 11311044006.415,
+        "bilateralTradeNorm": 0.8745858902832022,
+        "portThroughput": 300000000,
+        "portThroughputNorm": 1,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": 39.653,
+        "briImpactNorm": 1,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 500,
+        "lengthNorm": 0.6277157095524434,
+        "statusWeight": 0.35,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.935
+    },
+    {
+      "corridorId": "tsr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "railFreightPair": null,
+      "score": 0.8277191864477366,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 215206303583,
+        "bilateralTradeNorm": 0.9858807793409998,
+        "portThroughput": 41170377.70047787,
+        "portThroughputNorm": 0.8982512614501614,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.4,
+        "briImpactNorm": 0.11096260055985677,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 9200,
+        "lengthNorm": 0.9215966926481771,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: RUS·CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.903
+    },
+    {
+      "corridorId": "chn-are-sea-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "ARE"
+      ],
+      "comtradePair": [
+        "CHN",
+        "ARE"
+      ],
+      "railFreightPair": null,
+      "score": 0.8271612276495691,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 89573843375.9065,
+        "bilateralTradeNorm": 0.9527647673281244,
+        "portThroughput": 76974021.59170325,
+        "portThroughputNorm": 0.9303092340746756,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 5.04,
+        "briImpactNorm": 0.127102615186745,
+        "chokeCapacity": 0.925,
+        "chokeNorm": 0.925,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 11500,
+        "lengthNorm": 0.9441261992163875,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·ARE)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.871
+    },
+    {
+      "corridorId": "chn-sau-sea-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "SAU"
+      ],
+      "comtradePair": [
+        "CHN",
+        "SAU"
+      ],
+      "railFreightPair": null,
+      "score": 0.8204080811124248,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 80993440491.689,
+        "bilateralTradeNorm": 0.9489604383446868,
+        "portThroughput": 56124860.801609024,
+        "portThroughputNorm": 0.914125804086512,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.613,
+        "briImpactNorm": 0.11633419917786803,
+        "chokeCapacity": 0.925,
+        "chokeNorm": 0.925,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 12000,
+        "lengthNorm": 0.948423248762419,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·SAU)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.839
+    },
+    {
+      "corridorId": "bam",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "railFreightPair": null,
+      "score": 0.8200404694634216,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 215206303583,
+        "bilateralTradeNorm": 0.9858807793409998,
+        "portThroughput": 41170377.70047787,
+        "portThroughputNorm": 0.8982512614501614,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.4,
+        "briImpactNorm": 0.11096260055985677,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 4300,
+        "lengthNorm": 0.8448095228050271,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: RUS·CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.806
+    },
+    {
+      "corridorId": "power-of-siberia",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "railFreightPair": null,
+      "score": 0.8164063944121626,
+      "scalerank": 1,
+      "components": {
+        "bilateralTradeUsd": 215206303583,
+        "bilateralTradeNorm": 0.9858807793409998,
+        "portThroughput": 41170377.70047787,
+        "portThroughputNorm": 0.8982512614501614,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.4,
+        "briImpactNorm": 0.11096260055985677,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 3000,
+        "lengthNorm": 0.808468772292436,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: RUS·CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.774
+    },
+    {
+      "corridorId": "suez-baseline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "EGY",
+        "NLD"
+      ],
+      "comtradePair": [
+        "CHN",
+        "NLD"
+      ],
+      "railFreightPair": null,
+      "score": 0.8136666079454926,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 100823933916.462,
+        "bilateralTradeNorm": 0.9572346868454803,
+        "portThroughput": 66858058.601787254,
+        "portThroughputNorm": 0.923090932829202,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.8,
+        "chokeNorm": 0.8,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 20000,
+        "lengthNorm": 1,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·NLD)",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.742
+    },
+    {
+      "corridorId": "chn-irn-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "IRN"
+      ],
+      "comtradePair": [
+        "CHN",
+        "IRN"
+      ],
+      "railFreightPair": null,
+      "score": 0.8114197229794081,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 20756115926.4,
+        "bilateralTradeNorm": 0.8975210603328941,
+        "portThroughput": 31464265.44510456,
+        "portThroughputNorm": 0.8844768624309481,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 10.556,
+        "briImpactNorm": 0.2662093662522382,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 8500,
+        "lengthNorm": 0.9136067830067757,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·IRN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.71
+    },
+    {
+      "corridorId": "tmr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "railFreightPair": null,
+      "score": 0.8112506256010663,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 215206303583,
+        "bilateralTradeNorm": 0.9858807793409998,
+        "portThroughput": 41170377.70047787,
+        "portThroughputNorm": 0.8982512614501614,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.4,
+        "briImpactNorm": 0.11096260055985677,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1800,
+        "lengthNorm": 0.7569110841814741,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: RUS·CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.677
+    },
+    {
+      "corridorId": "tmgr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "MNG",
+        "CHN"
+      ],
+      "comtradePair": [
+        "CHN",
+        "MNG"
+      ],
+      "railFreightPair": null,
+      "score": 0.8080257295858323,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 15009434707.042751,
+        "bilateralTradeNorm": 0.8852740119742104,
+        "portThroughput": 300000000,
+        "portThroughputNorm": 1,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": 6.926,
+        "briImpactNorm": 0.17466522079035635,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2200,
+        "lengthNorm": 0.7771634167759477,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint CHN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.645
+    },
+    {
+      "corridorId": "chn-kaz-oil-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "KAZ"
+      ],
+      "comtradePair": [
+        "CHN",
+        "KAZ"
+      ],
+      "railFreightPair": null,
+      "score": 0.7905126874267893,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 29449245622.392498,
+        "bilateralTradeNorm": 0.9107377635050633,
+        "portThroughput": 11811011.811017688,
+        "portThroughputNorm": 0.8342793416373334,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 10.556,
+        "briImpactNorm": 0.2662093662522382,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2200,
+        "lengthNorm": 0.7771634167759477,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·KAZ)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.613
+    },
+    {
+      "corridorId": "chn-tkm-gas-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "TKM"
+      ],
+      "comtradePair": [
+        "CHN",
+        "TKM"
+      ],
+      "railFreightPair": null,
+      "score": 0.7749462661141391,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 10885734787,
+        "bilateralTradeNorm": 0.8731378942399793,
+        "portThroughput": 300000000,
+        "portThroughputNorm": 1,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1800,
+        "lengthNorm": 0.7569110841814741,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint CHN)"
+      ],
+      "scorePercentile": 0.581
+    },
+    {
+      "corridorId": "kyaukpyu-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "MMR"
+      ],
+      "comtradePair": [
+        "CHN",
+        "MMR"
+      ],
+      "railFreightPair": null,
+      "score": 0.7721658943179035,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 15964135192.30825,
+        "bilateralTradeNorm": 0.8876037808925885,
+        "portThroughput": 300000000,
+        "portThroughputNorm": 1,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.95,
+        "chokeNorm": 0.95,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 770,
+        "lengthNorm": 0.6712438196086807,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint CHN)",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.548
+    },
+    {
+      "corridorId": "cpc-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "KAZ",
+        "RUS"
+      ],
+      "comtradePair": [
+        "KAZ",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.7593579960985769,
+      "scalerank": 2,
+      "components": {
+        "bilateralTradeUsd": 26051894948.590004,
+        "bilateralTradeNorm": 0.9061066955696406,
+        "portThroughput": 1620879.3909480122,
+        "portThroughputNorm": 0.7325306292834302,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 10.556,
+        "briImpactNorm": 0.2662093662522382,
+        "chokeCapacity": 0.5,
+        "chokeNorm": 0.5,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1500,
+        "lengthNorm": 0.7385125561202733,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: KAZ·RUS)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.516
+    },
+    {
+      "corridorId": "tongjiang-nizhneleninskoye-bridge",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "RUS"
+      ],
+      "comtradePair": [
+        "CHN",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.7466526471173375,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 215206303583,
+        "bilateralTradeNorm": 0.9858807793409998,
+        "portThroughput": 41170377.70047787,
+        "portThroughputNorm": 0.8982512614501614,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.4,
+        "briImpactNorm": 0.11096260055985677,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2,
+        "lengthNorm": 0.11093129934418568,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·RUS)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.484
+    },
+    {
+      "corridorId": "cpec",
+      "category": "trade",
+      "status": "partial",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "PAK"
+      ],
+      "comtradePair": [
+        "CHN",
+        "PAK"
+      ],
+      "railFreightPair": null,
+      "score": 0.7448692367256338,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 20088283487.83675,
+        "bilateralTradeNorm": 0.8962854740531983,
+        "portThroughput": 32863353.450309973,
+        "portThroughputNorm": 0.886705718110384,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 6.3,
+        "briImpactNorm": 0.15887826898343127,
+        "chokeCapacity": 0.9,
+        "chokeNorm": 0.9,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 3000,
+        "lengthNorm": 0.808468772292436,
+        "statusWeight": 0.6,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: CHN·PAK)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.452
+    },
+    {
+      "corridorId": "middle-corridor",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "KAZ",
+        "AZE",
+        "GEO",
+        "TUR"
+      ],
+      "comtradePair": [
+        "CHN",
+        "TUR"
+      ],
+      "railFreightPair": null,
+      "score": 0.7442297171963254,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 43734937643.5,
+        "bilateralTradeNorm": 0.925679214723161,
+        "portThroughput": 85000,
+        "portThroughputNorm": 0.5814974076777313,
+        "portThroughputSource": "unctad-hard-bind",
+        "briImpactPct": 10.556,
+        "briImpactNorm": 0.2662093662522382,
+        "chokeCapacity": 0.5,
+        "chokeNorm": 0.5,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 6500,
+        "lengthNorm": 0.8865227444979243,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTAD corridor hard-bind TEU (unctad-corridor-teu.csv)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.419
+    },
+    {
+      "corridorId": "rus-uzb-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "UZB"
+      ],
+      "comtradePair": [
+        "RUS",
+        "UZB"
+      ],
+      "railFreightPair": null,
+      "score": 0.725837723201198,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 9108591076.546,
+        "bilateralTradeNorm": 0.866404054968809,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2800,
+        "lengthNorm": 0.8015046880121374,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)"
+      ],
+      "scorePercentile": 0.387
+    },
+    {
+      "corridorId": "trans-korean-west",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "KOR",
+        "PRK",
+        "CHN"
+      ],
+      "comtradePair": [
+        "KOR",
+        "CHN"
+      ],
+      "railFreightPair": null,
+      "score": 0.7238445245405413,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 312721438745.75,
+        "bilateralTradeNorm": 1,
+        "portThroughput": 94074438.61113372,
+        "portThroughputNorm": 0.9405871874446196,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 900,
+        "lengthNorm": 0.6869772767938632,
+        "statusWeight": 0.2,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: KOR·CHN)"
+      ],
+      "scorePercentile": 0.355
+    },
+    {
+      "corridorId": "instc-baku-branch",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "AZE",
+        "IRN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "IRN"
+      ],
+      "railFreightPair": null,
+      "score": 0.7126418693866783,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 2217757313,
+        "bilateralTradeNorm": 0.8130305212229507,
+        "portThroughput": 4317985.641476818,
+        "portThroughputNorm": 0.7827281330439095,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.915,
+        "briImpactNorm": 0.12395026857993091,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1400,
+        "lengthNorm": 0.7315508734953106,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: RUS·IRN)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.323
+    },
+    {
+      "corridorId": "rus-tjk-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS",
+        "TJK"
+      ],
+      "comtradePair": [
+        "RUS",
+        "TJK"
+      ],
+      "railFreightPair": null,
+      "score": 0.6989915077375501,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 1354022782.945,
+        "bilateralTradeNorm": 0.7943889284416686,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 3400,
+        "lengthNorm": 0.8211030394842213,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)"
+      ],
+      "scorePercentile": 0.29
+    },
+    {
+      "corridorId": "irn-irq-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "IRQ"
+      ],
+      "comtradePair": [
+        "IRN",
+        "IRQ"
+      ],
+      "railFreightPair": null,
+      "score": 0.6965598284146189,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 4778099558.5,
+        "bilateralTradeNorm": 0.8420289207700333,
+        "portThroughput": 3300000,
+        "portThroughputNorm": 0.7689537373008414,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 800,
+        "lengthNorm": 0.6750982578139534,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint IRN)"
+      ],
+      "scorePercentile": 0.258
+    },
+    {
+      "corridorId": "irn-rus-caspian-arms",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "mixed",
+      "endpointCountries": [
+        "IRN",
+        "RUS"
+      ],
+      "comtradePair": [
+        "IRN",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.6436105834277525,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 2217757313,
+        "bilateralTradeNorm": 0.8130305212229507,
+        "portThroughput": 4317985.641476818,
+        "portThroughputNorm": 0.7827281330439095,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2200,
+        "lengthNorm": 0.7771634167759477,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: IRN·RUS)"
+      ],
+      "scorePercentile": 0.366
+    },
+    {
+      "corridorId": "irn-rus-caspian-arms-seshcha-branch",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS"
+      ],
+      "comtradePair": [
+        "IRN",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.6403967483018543,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 2217757313,
+        "bilateralTradeNorm": 0.8130305212229507,
+        "portThroughput": 4317985.641476818,
+        "portThroughputNorm": 0.7827281330439095,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1600,
+        "lengthNorm": 0.7450250655169663,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: IRN·RUS)"
+      ],
+      "scorePercentile": 0.341
+    },
+    {
+      "corridorId": "prk-syr-arms-sea-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "PRK",
+        "SYR"
+      ],
+      "comtradePair": [
+        "PRK",
+        "SYR"
+      ],
+      "railFreightPair": null,
+      "score": 0.6072615709189588,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": null,
+        "portThroughputNorm": null,
+        "portThroughputSource": null,
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.8833333333333333,
+        "chokeNorm": 0.8833333333333333,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 14000,
+        "lengthNorm": 0.9639872606307304,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "IMF PortWatch choke capacity proxy (static)",
+        "Comtrade pending/missing for this pair",
+        "UNCTAD/PortWatch pending/missing for endpoint countries"
+      ],
+      "scorePercentile": 0.317
+    },
+    {
+      "corridorId": "irn-syr-landbridge",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "IRQ",
+        "SYR"
+      ],
+      "comtradePair": [
+        "IRN",
+        "SYR"
+      ],
+      "railFreightPair": null,
+      "score": 0.6034195488286844,
+      "scalerank": 3,
+      "components": {
+        "bilateralTradeUsd": 263603363,
+        "bilateralTradeNorm": 0.7325650678848574,
+        "portThroughput": 3300000,
+        "portThroughputNorm": 0.7689537373008414,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1400,
+        "lengthNorm": 0.7315508734953106,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint IRN)"
+      ],
+      "scorePercentile": 0.293
+    },
+    {
+      "corridorId": "dandong-sinuiju-bridge",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "PRK"
+      ],
+      "comtradePair": [
+        "CHN",
+        "PRK"
+      ],
+      "railFreightPair": null,
+      "score": 0.6778457836073202,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 1661350673,
+        "bilateralTradeNorm": 0.8021169946786534,
+        "portThroughput": 300000000,
+        "portThroughputNorm": 1,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1,
+        "lengthNorm": 0.06998985735858865,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint CHN)"
+      ],
+      "scorePercentile": 0.226
+    },
+    {
+      "corridorId": "trans-korean-east",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "KOR",
+        "PRK",
+        "RUS"
+      ],
+      "comtradePair": [
+        "KOR",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.6573528444986884,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 18078659421,
+        "bilateralTradeNorm": 0.8923032228617479,
+        "portThroughput": 12910267.23193599,
+        "portThroughputNorm": 0.8388384512448596,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1100,
+        "lengthNorm": 0.7072194254277429,
+        "statusWeight": 0.2,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: KOR·RUS)"
+      ],
+      "scorePercentile": 0.194
+    },
+    {
+      "corridorId": "zangezur-corridor",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "AZE",
+        "ARM",
+        "TUR"
+      ],
+      "comtradePair": [
+        "AZE",
+        "TUR"
+      ],
+      "railFreightPair": null,
+      "score": 0.5957359607812512,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 5266723541.6075,
+        "bilateralTradeNorm": 0.8457074547040717,
+        "portThroughput": 1267379.185563658,
+        "portThroughputNorm": 0.7199268157888912,
+        "portThroughputSource": "unctad-cont-port-geomean",
+        "briImpactPct": 4.973,
+        "briImpactNorm": 0.12541295740549266,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 45,
+        "lengthNorm": 0.3865933134157572,
+        "statusWeight": 0.2,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (geoMean geoMean-pair: AZE·TUR)",
+        "World Bank BRI WPS8614 impactPct"
+      ],
+      "scorePercentile": 0.161
+    },
+    {
+      "corridorId": "irn-lbn-hezbollah-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "SYR",
+        "LBN"
+      ],
+      "comtradePair": [
+        "IRN",
+        "LBN"
+      ],
+      "railFreightPair": null,
+      "score": 0.5857215491734077,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 74752498.25,
+        "bilateralTradeNorm": 0.6849515207412515,
+        "portThroughput": 3300000,
+        "portThroughputNorm": 0.7689537373008414,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 1600,
+        "lengthNorm": 0.7450250655169663,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint IRN)"
+      ],
+      "scorePercentile": 0.244
+    },
+    {
+      "corridorId": "irn-yem-houthi-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "IRN",
+        "YEM"
+      ],
+      "comtradePair": [
+        "IRN",
+        "YEM"
+      ],
+      "railFreightPair": null,
+      "score": 0.5481703304413253,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 4287184.028,
+        "bilateralTradeNorm": 0.5769535682872532,
+        "portThroughput": 3300000,
+        "portThroughputNorm": 0.7689537373008414,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.8,
+        "chokeNorm": 0.8,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2800,
+        "lengthNorm": 0.8015046880121374,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "UNCTADstat ContPortThroughput TEU (single endpoint IRN)",
+        "IMF PortWatch choke capacity proxy (static)"
+      ],
+      "scorePercentile": 0.22
+    },
+    {
+      "corridorId": "rus-blr-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "BLR"
+      ],
+      "comtradePair": [
+        "RUS",
+        "BLR"
+      ],
+      "railFreightPair": null,
+      "score": 0.3788200713122033,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": 3.577,
+        "briImpactNorm": 0.09020755050059265,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 700,
+        "lengthNorm": 0.6616330632465384,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)",
+        "World Bank BRI WPS8614 impactPct",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.129
+    },
+    {
+      "corridorId": "central-asia-center-gas-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "TKM",
+        "RUS"
+      ],
+      "comtradePair": [
+        "TKM",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.3758800476425673,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2000,
+        "lengthNorm": 0.7675441523010675,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.097
+    },
+    {
+      "corridorId": "chong-chon-gang-route",
+      "category": "sanctions-evasion",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "CUB",
+        "PRK"
+      ],
+      "comtradePair": [
+        "CUB",
+        "PRK"
+      ],
+      "railFreightPair": null,
+      "score": 0.3625745607382198,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 1919579.78,
+        "bilateralTradeNorm": 0.546595930318327,
+        "portThroughput": null,
+        "portThroughputNorm": null,
+        "portThroughputSource": null,
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.6,
+        "chokeNorm": 0.6,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 18000,
+        "lengthNorm": 0.9893618861088901,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "IMF PortWatch choke capacity proxy (static)",
+        "UNCTAD/PortWatch pending/missing for endpoint countries"
+      ],
+      "scorePercentile": 0.146
+    },
+    {
+      "corridorId": "instc-trans-caspian",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "IRN",
+        "IND"
+      ],
+      "comtradePair": [
+        "RUS",
+        "IND"
+      ],
+      "railFreightPair": null,
+      "score": 0.35231687549805824,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 42000,
+        "portThroughputNorm": 0.5453808540553878,
+        "portThroughputSource": "unctad-hard-bind",
+        "briImpactPct": 6.949,
+        "briImpactNorm": 0.17524525256601015,
+        "chokeCapacity": 0.9,
+        "chokeNorm": 0.9,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 7200,
+        "lengthNorm": 0.8968487409930977,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTAD corridor hard-bind TEU (unctad-corridor-teu.csv)",
+        "World Bank BRI WPS8614 impactPct",
+        "IMF PortWatch choke capacity proxy (static)",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.065
+    },
+    {
+      "corridorId": "irn-prk-missile-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "IRN",
+        "PRK"
+      ],
+      "comtradePair": [
+        "IRN",
+        "PRK"
+      ],
+      "railFreightPair": null,
+      "score": 0.33120224683714355,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 3300000,
+        "portThroughputNorm": 0.7689537373008414,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.925,
+        "chokeNorm": 0.925,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 11000,
+        "lengthNorm": 0.939638125119332,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTADstat ContPortThroughput TEU (single endpoint IRN)",
+        "IMF PortWatch choke capacity proxy (static)",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.098
+    },
+    {
+      "corridorId": "syrian-express",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "RUS",
+        "SYR"
+      ],
+      "comtradePair": [
+        "RUS",
+        "SYR"
+      ],
+      "railFreightPair": null,
+      "score": 0.3218419740900554,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.5,
+        "chokeNorm": 0.5,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 2200,
+        "lengthNorm": 0.7771634167759477,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)",
+        "IMF PortWatch choke capacity proxy (static)",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.073
+    },
+    {
+      "corridorId": "prk-yem-arms-sea-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "PRK",
+        "YEM"
+      ],
+      "comtradePair": [
+        "PRK",
+        "YEM"
+      ],
+      "railFreightPair": null,
+      "score": 0.3162637050207976,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": 117483.06,
+        "bilateralTradeNorm": 0.4410534503613892,
+        "portThroughput": null,
+        "portThroughputNorm": null,
+        "portThroughputSource": null,
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": 0.825,
+        "chokeNorm": 0.825,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 12000,
+        "lengthNorm": 0.948423248762419,
+        "statusWeight": 0.45,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UN Comtrade bilateral TOTAL (USD)",
+        "IMF PortWatch choke capacity proxy (static)",
+        "UNCTAD/PortWatch pending/missing for endpoint countries"
+      ],
+      "scorePercentile": 0.049
+    },
+    {
+      "corridorId": "rajin-khasan",
+      "category": "trade",
+      "status": "partial",
+      "mode": "rail",
+      "endpointCountries": [
+        "PRK",
+        "RUS"
+      ],
+      "comtradePair": [
+        "PRK",
+        "RUS"
+      ],
+      "railFreightPair": null,
+      "score": 0.29977122667501155,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": 5650000,
+        "portThroughputNorm": 0.7965025296498424,
+        "portThroughputSource": "unctad-cont-port-single",
+        "briImpactPct": null,
+        "briImpactNorm": null,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 55,
+        "lengthNorm": 0.40645594262550944,
+        "statusWeight": 0.6,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "UNCTADstat ContPortThroughput TEU (single endpoint RUS)",
+        "Comtrade pending/missing for this pair"
+      ],
+      "scorePercentile": 0.032
+    },
+    {
+      "corridorId": "brest-malaszewicze-gauge-terminal",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "BLR",
+        "POL"
+      ],
+      "comtradePair": [
+        "BLR",
+        "POL"
+      ],
+      "railFreightPair": {
+        "geo": "PL",
+        "partner": "BY"
+      },
+      "score": 0.25002933310774944,
+      "scalerank": 4,
+      "components": {
+        "bilateralTradeUsd": null,
+        "bilateralTradeNorm": null,
+        "portThroughput": null,
+        "portThroughputNorm": null,
+        "portThroughputSource": null,
+        "briImpactPct": 3.577,
+        "briImpactNorm": 0.09020755050059265,
+        "chokeCapacity": null,
+        "chokeNorm": null,
+        "osmMainlineKm": null,
+        "osmMainlineNorm": null,
+        "lengthKm": 20,
+        "lengthNorm": 0.30741766989392916,
+        "statusWeight": 1,
+        "corridorTeu": null,
+        "corridorTeuNorm": null
+      },
+      "sources": [
+        "status · lengthKmApprox",
+        "World Bank BRI WPS8614 impactPct",
+        "Comtrade pending/missing for this pair",
+        "UNCTAD/PortWatch pending/missing for endpoint countries",
+        "Rail freight pending/missing for this geo→partner pair"
+      ],
+      "scorePercentile": 0
+    }
+  ]
+}

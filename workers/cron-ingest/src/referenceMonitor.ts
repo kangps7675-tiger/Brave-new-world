@@ -1,12 +1,7 @@
 /**
- * 레퍼런스 감시 인제스트 — CSIS Beyond Parallel · NTI 갱신 폴링 → D1.
+ * 레퍼런스 감시 인제스트 — CSIS Beyond Parallel · NTI · CRINK 허브 전문 → D1.
  *
- * 파싱·태깅은 전부 src/lib/referenceMonitor.ts (테스트 가능). 여기는 fetch·스로틀·upsert만.
- *
- * 예의:
- *  - User-Agent 에 연락처 명시
- *  - D1 MAX(ingested_at) 기준 자체 스로틀 (기본 6시간 — 분석물은 시간 단위로 안 바뀐다)
- *  - 실패해도 메인 인제스트 파이프라인은 안 깨지게 상위에서 try/catch
+ * 파싱·태깅은 src/lib (테스트 가능). 여기는 fetch·스로틀·upsert만.
  */
 
 import {
@@ -22,6 +17,13 @@ import {
   type ReferenceMonitorRow,
   type WpRestPost,
 } from "../../../src/lib/referenceMonitor";
+import {
+  attachHubGeoToRow,
+  hubMonitorFeedTargets,
+  parseHubMonitorFeedXml,
+  type HubMonitorRow,
+} from "../../../src/lib/crinkHubIngest";
+import { resolveHubThumbSync } from "../../../src/lib/news/hubThumbResolver";
 import type { IngestEnv } from "./env";
 import { readIntVar } from "./db";
 
@@ -31,7 +33,10 @@ const UA =
 async function fetchText(url: string): Promise<{ text: string; error?: string }> {
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": UA },
+      headers: {
+        Accept: "application/rss+xml, application/xml, text/xml, application/atom+xml",
+        "User-Agent": UA,
+      },
     });
     if (!res.ok) return { text: "", error: `${url} HTTP ${res.status}` };
     return { text: await res.text() };
@@ -44,7 +49,6 @@ async function fetchJson<T>(url: string): Promise<{ data: T | null; error?: stri
   try {
     const res = await fetch(url, { headers: { Accept: "application/json", "User-Agent": UA } });
     if (!res.ok) return { data: null, error: `${url} HTTP ${res.status}` };
-    // Cloudflare 봇 챌린지는 200/403 어느 쪽이든 HTML 을 준다 — JSON.parse 전에 걸러낸다
     const body = await res.text();
     if (!body.trimStart().startsWith("[") && !body.trimStart().startsWith("{")) {
       return { data: null, error: `${url} non-JSON response (bot challenge?)` };
@@ -55,10 +59,6 @@ async function fetchJson<T>(url: string): Promise<{ data: T | null; error?: stri
   }
 }
 
-/**
- * NTI 1차 경로 — WordPress REST. 제목·요약·modified 를 다 준다.
- * 환경에 따라 Cloudflare 챌린지를 맞으므로 빈 결과면 sitemap 으로 내려간다.
- */
 async function fetchNtiViaRest(
   base: string,
   perChannel: number,
@@ -76,7 +76,6 @@ async function fetchNtiViaRest(
   return rows;
 }
 
-/** NTI 폴백 경로 — sitemap lastmod. 제목은 슬러그 복원이라 품질이 낮다. */
 async function fetchNtiViaSitemap(
   indexUrl: string,
   perChannel: number,
@@ -99,7 +98,6 @@ async function fetchNtiViaSitemap(
   return rows;
 }
 
-/** 마지막 ingested_at으로부터 최소 간격이 지났는지 — 없으면(첫 실행/미마이그레이션) 통과 */
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
   try {
     const row = await db
@@ -115,20 +113,43 @@ async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<b
   }
 }
 
+function withThumb(row: HubMonitorRow): HubMonitorRow {
+  const thumb = resolveHubThumbSync({
+    title: row.title,
+    summary: row.summary,
+    placeId: row.place_id,
+    lat: row.lat,
+    lng: row.lng,
+  });
+  return {
+    ...row,
+    image_url: thumb.imageUrl,
+    thumb_credit: thumb.thumbCredit,
+  };
+}
+
 export async function upsertReferenceMonitorItems(
   db: D1Database,
-  rows: ReferenceMonitorRow[],
+  rows: Array<ReferenceMonitorRow | HubMonitorRow>,
 ): Promise<number> {
   if (rows.length === 0) return 0;
   const ingestedAt = new Date().toISOString();
-  const stmts = rows.map((row) =>
-    db
+  const stmts = rows.map((row) => {
+    const hub = "hub" in row ? (row.hub ?? null) : null;
+    const placeId = "place_id" in row ? (row.place_id ?? null) : null;
+    const lat = "lat" in row ? (row.lat ?? null) : null;
+    const lng = "lng" in row ? (row.lng ?? null) : null;
+    const imageUrl = "image_url" in row ? (row.image_url ?? null) : null;
+    const thumbCredit = "thumb_credit" in row ? (row.thumb_credit ?? null) : null;
+    return db
       .prepare(
         `INSERT INTO reference_monitor_items (
            id, source, source_label, channel, url, title, summary, author,
            categories_json, topics_json, relevance, published_at, updated_at,
-           first_seen_at, ingested_at
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
+           first_seen_at, ingested_at,
+           hub, place_id, lat, lng, image_url, thumb_credit
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15,
+                   ?16, ?17, ?18, ?19, ?20, ?21)
          ON CONFLICT(id) DO UPDATE SET
            source_label = excluded.source_label,
            channel = excluded.channel,
@@ -141,7 +162,13 @@ export async function upsertReferenceMonitorItems(
            relevance = excluded.relevance,
            published_at = excluded.published_at,
            updated_at = excluded.updated_at,
-           ingested_at = excluded.ingested_at`,
+           ingested_at = excluded.ingested_at,
+           hub = COALESCE(excluded.hub, reference_monitor_items.hub),
+           place_id = COALESCE(excluded.place_id, reference_monitor_items.place_id),
+           lat = COALESCE(excluded.lat, reference_monitor_items.lat),
+           lng = COALESCE(excluded.lng, reference_monitor_items.lng),
+           image_url = COALESCE(excluded.image_url, reference_monitor_items.image_url),
+           thumb_credit = COALESCE(excluded.thumb_credit, reference_monitor_items.thumb_credit)`,
       )
       .bind(
         row.id,
@@ -159,9 +186,14 @@ export async function upsertReferenceMonitorItems(
         row.updated_at,
         ingestedAt,
         ingestedAt,
-      ),
-  );
-  // D1 batch limit ~100
+        hub,
+        placeId,
+        lat,
+        lng,
+        imageUrl,
+        thumbCredit,
+      );
+  });
   for (let i = 0; i < stmts.length; i += 50) {
     await db.batch(stmts.slice(i, i + 50));
   }
@@ -173,7 +205,7 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
   fetched: number;
   csis: number;
   nti: number;
-  /** off | rest | sitemap — NTI가 어느 경로로 들어왔는지 (ingest_runs 진단용) */
+  crink: number;
   ntiPath: string;
   errors: string[];
   skipped: boolean;
@@ -182,7 +214,16 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
     (env.REFERENCE_MONITOR_ENABLED ?? "true").toLowerCase() !== "false" &&
     env.REFERENCE_MONITOR_ENABLED !== "0";
   if (!enabled) {
-    return { count: 0, fetched: 0, csis: 0, nti: 0, ntiPath: "off", errors: [], skipped: true };
+    return {
+      count: 0,
+      fetched: 0,
+      csis: 0,
+      nti: 0,
+      crink: 0,
+      ntiPath: "off",
+      errors: [],
+      skipped: true,
+    };
   }
 
   const minInterval = Math.max(
@@ -190,7 +231,16 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
     readIntVar(env, "REFERENCE_MONITOR_POLL_MIN_INTERVAL_MINUTES", 360),
   );
   if (!(await shouldPoll(env.DB, minInterval))) {
-    return { count: 0, fetched: 0, csis: 0, nti: 0, ntiPath: "off", errors: [], skipped: true };
+    return {
+      count: 0,
+      fetched: 0,
+      csis: 0,
+      nti: 0,
+      crink: 0,
+      ntiPath: "off",
+      errors: [],
+      skipped: true,
+    };
   }
 
   const errors: string[] = [];
@@ -198,14 +248,19 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
     50,
     Math.max(5, readIntVar(env, "REFERENCE_MONITOR_MAX_PER_CHANNEL", 20)),
   );
-  let csisRows: ReferenceMonitorRow[] = [];
+  let csisRows: HubMonitorRow[] = [];
   let ntiRows: ReferenceMonitorRow[] = [];
+  let crinkRows: HubMonitorRow[] = [];
 
   const csisUrl = (env.CSIS_BEYOND_PARALLEL_FEED_URL || "").trim() || CSIS_BEYOND_PARALLEL_FEED;
   if (csisUrl.toLowerCase() !== "off") {
     const { text, error } = await fetchText(csisUrl);
     if (error) errors.push(error);
-    else csisRows = parseCsisBeyondParallelFeed(text).slice(0, perChannel);
+    else {
+      csisRows = parseCsisBeyondParallelFeed(text)
+        .slice(0, perChannel)
+        .map((row) => withThumb(attachHubGeoToRow(row, "PRK")));
+    }
   }
 
   const ntiBase = (env.NTI_REST_BASE_URL || "").trim() || NTI_REST_BASE;
@@ -222,9 +277,26 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
     }
   }
 
+  // CRINK hub-monitor feeds (skip Beyond Parallel — already fetched as csis)
+  for (const source of hubMonitorFeedTargets()) {
+    if (source.id === "csis-beyond-parallel") continue;
+    const url = source.feedUrl;
+    if (!url) continue;
+    const { text, error } = await fetchText(url);
+    if (error) {
+      errors.push(error);
+      continue;
+    }
+    crinkRows = crinkRows.concat(
+      parseHubMonitorFeedXml(source, text, perChannel).map(withThumb),
+    );
+  }
+
   const minRelevance = Math.max(0, readIntVar(env, "REFERENCE_MONITOR_MIN_RELEVANCE", 2));
-  const fetched = csisRows.length + ntiRows.length;
-  const rows = [...csisRows, ...ntiRows].filter((row) => row.relevance >= minRelevance);
+  const fetched = csisRows.length + ntiRows.length + crinkRows.length;
+  const rows = [...csisRows, ...ntiRows, ...crinkRows].filter(
+    (row) => row.relevance >= minRelevance,
+  );
 
   let count = 0;
   try {
@@ -242,6 +314,7 @@ export async function fetchAndUpsertReferenceMonitor(env: IngestEnv): Promise<{
     fetched,
     csis: csisRows.length,
     nti: ntiRows.length,
+    crink: crinkRows.length,
     ntiPath,
     errors,
     skipped: false,

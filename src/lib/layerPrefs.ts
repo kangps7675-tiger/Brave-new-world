@@ -69,6 +69,14 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
+  /** 한국군 전선 기지 (OSM) — 기본 OFF, 미군과 별도 체크 */
+  showRokMilitaryBases: boolean;
+  /** 자위대 전선 기지 (OSM) — 주일미군은 showMilitaryBases */
+  showJapanMilitaryBases: boolean;
+  /** 필리핀군 1선 기지 — 미군 EDCA 거점은 showMilitaryBases */
+  showPhilippinesMilitaryBases: boolean;
+  /** 동유럽 NATO 전선 1선 (폴란드·발트·핀란드·루마니아·슬로바키아) */
+  showEasternNatoMilitaryBases: boolean;
   /** PLARF 확인 사일로 점 (중국 미사일 사일로군) */
   showMissileSilos: boolean;
   /** 러시아 RVSN 전략미사일 사단 주둔지 */
@@ -171,6 +179,8 @@ export type LayerPrefs = {
   showNorthKoreaMissileTests: boolean;
   /** 우크라이나 → 러시아 타격 (보도·미확인 · 자주 피격지 네온) */
   showUkraineStrikesOnRussia: boolean;
+  /** 유럽 드론·영공 침범 (주황 네온 · 나토 회원국 공항·기지·국경 상공) */
+  showEuropeDroneIncidents: boolean;
   /** NEPTUN — 우크라이나 드론·미사일·탄도미사일 실시간 궤적 (neptun.in.ua) */
   showNeptun: boolean;
   /** 사라진 드론·미사일의 지나간 이동 경로 */
@@ -186,8 +196,20 @@ export type LayerPrefs = {
   showAxisNetwork: boolean;
   /** World Bank BRI 무역·운송 연결성 (중국→참여국) */
   showBriTradeConnectivity: boolean;
+  /**
+   * 전략 물류·군수 회랑 (INSTC·미들 코리도·TSR 등).
+   * LOD scalerank = corridor-ranks.json 정량 합성 점수.
+   */
+  showStrategicCorridors: boolean;
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
+  /** CRINK OSM 인프라 — 카테고리별 (public/data/crink/) */
+  showCrinkInfraPower: boolean;
+  showCrinkInfraBorder: boolean;
+  showCrinkInfraDams: boolean;
+  showCrinkInfraAeroway: boolean;
+  showCrinkInfraHarbour: boolean;
+  showCrinkInfraCheckpoint: boolean;
   labelLanguage: LabelLanguage;
 };
 
@@ -267,6 +289,10 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGscpiGauge: true,
   showCriticalNodes: false,
   showMilitaryBases: false,
+  showRokMilitaryBases: false,
+  showJapanMilitaryBases: false,
+  showPhilippinesMilitaryBases: false,
+  showEasternNatoMilitaryBases: false,
   showMissileSilos: false,
   showStrategicMissileBases: false,
   showMissileTestSites: false,
@@ -313,13 +339,21 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showReefWatch: false,
   showNorthKoreaMissileTests: false,
   showUkraineStrikesOnRussia: true,
+  showEuropeDroneIncidents: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showEastAsiaAdiz: false,
   showIslandChains: false,
   showAxisNetwork: false,
   showBriTradeConnectivity: false,
+  showStrategicCorridors: false,
   showUsDfcSupplyChain: false,
+  showCrinkInfraPower: false,
+  showCrinkInfraBorder: false,
+  showCrinkInfraDams: false,
+  showCrinkInfraAeroway: false,
+  showCrinkInfraHarbour: false,
+  showCrinkInfraCheckpoint: false,
   labelLanguage: "ko",
 };
 

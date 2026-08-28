@@ -114,14 +114,15 @@ export function EconomyRegionPanel({
   const tier3 = articles.filter((a) => a.trustTier === 3);
 
   const koreanEntries = useMemo(() => {
+    if (lang === "en") return [];
     const entries: Array<{ key: string; text: string }> = [];
     for (const item of articles) {
       entries.push({ key: `title:${item.id}`, text: item.title });
       if (item.summary) entries.push({ key: `summary:${item.id}`, text: item.summary });
     }
     return entries;
-  }, [articles]);
-  const localizedMap = useLocalizedTextMap(koreanEntries, lang);
+  }, [articles, lang]);
+  const localizedMap = useLocalizedTextMap(koreanEntries, "ko");
   const macroLead = lang === "en" ? macro?.narrativeEn?.[0] : macro?.narrativeKo?.[0];
 
   const renderCard = (item: (typeof articles)[number], tier3Card?: boolean) => (

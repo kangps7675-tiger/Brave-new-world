@@ -62,7 +62,9 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   "conflict-hatch": { ko: "충돌 구역 표시", en: "Conflict zone mark" },
   "axis-link": { ko: "축 관계망", en: "Axis relationship link" },
   "bri-trade": { ko: "일대일로 무역 연결", en: "BRI trade connectivity" },
+  "strategic-corridor": { ko: "전략 물류 회랑", en: "Strategic logistics corridor" },
   "us-dfc-supply": { ko: "미국 DFC 개발금융망", en: "U.S. DFC network" },
+  "crink-infra": { ko: "CRINK OSM 인프라", en: "CRINK OSM infrastructure" },
   "ua-axis": { ko: "UA 작전 축", en: "UA axis of advance" },
   "ru-axis": { ko: "RU 방어선", en: "RU defensive line" },
   "ua-advance": { ko: "UA 진격 방향", en: "UA advance" },
@@ -174,7 +176,10 @@ export const HOVER = {
     pick({ ko: `연관 지표 · ${tickers}`, en: `Related tickers · ${tickers}` }, lang),
   hintFlyZone: (lang: LabelLanguage) =>
     pick({ ko: "클릭하면 해당 구역으로 이동", en: "Click to fly to this area" }, lang),
-  militaryBase: (lang: LabelLanguage) => pick({ ko: "미군기지", en: "US military base" }, lang),
+  militaryBase: (lang: LabelLanguage, country?: unknown) =>
+    /^(USA|United States|US)$/i.test(String(country ?? "").trim())
+      ? pick({ ko: "미군기지", en: "US military base" }, lang)
+      : pick({ ko: "군사기지", en: "Military base" }, lang),
   milAircraft: (lang: LabelLanguage) =>
     pick({ ko: "군사 항공기 (공개 항적)", en: "Military aircraft (public track)" }, lang),
   civAircraft: (lang: LabelLanguage) =>

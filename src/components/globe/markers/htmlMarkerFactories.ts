@@ -1,4 +1,5 @@
 import { HOVER, staticKindLabel } from "@/lib/hoverLabels";
+import { isUsMilitaryOperator } from "@/lib/osmFrontlineBases";
 import { getZoomOutScale } from "@/lib/zoomScale";
 import { staticMarkerPalette } from "@/lib/staticGlobe";
 import { airportSvg, portSvg } from "@/lib/infraStaticMarkers";
@@ -30,6 +31,16 @@ function usFlagIconSvg() {
   `;
 }
 
+function genericBaseIconSvg() {
+  return `
+    <svg width="14" height="12" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="5" y="8" width="22" height="14" rx="1" fill="#2563eb" stroke="#bfdbfe" stroke-width="0.8"/>
+      <path d="M5 12 H27 M11 8 V22" stroke="#93c5fd" stroke-width="0.7" opacity="0.55"/>
+      <circle cx="20" cy="15" r="3" fill="#1d4ed8" stroke="#dbeafe" stroke-width="0.6"/>
+    </svg>
+  `;
+}
+
 export function createAirportPortBadge(
   point: StaticGlobePoint,
   onHover: (point: StaticGlobePoint | null) => void,
@@ -56,15 +67,17 @@ export function createAirportPortBadge(
   el.className = "hub-marker";
   el.dataset.kind = kind;
   el.setAttribute("role", "img");
+  const milCountry = String(point.meta?.country ?? "");
+  const milLabel = HOVER.militaryBase(docLang(), milCountry);
   el.setAttribute(
     "aria-label",
     kind === "military-base"
-      ? `${HOVER.militaryBase(docLang())} ${point.name}`
+      ? `${milLabel} ${point.name}`
       : `${staticKindLabel(point.kind, docLang())} ${point.name}`,
   );
   el.title =
     kind === "military-base"
-      ? `${HOVER.militaryBase(docLang())} · ${point.name}`
+      ? `${milLabel} · ${point.name}`
       : `${staticKindLabel(point.kind, docLang())} · ${point.name}`;
 
   el.style.width = `${size}px`;
@@ -107,7 +120,7 @@ export function createAirportPortBadge(
   } else if (kind === "port") {
     el.innerHTML = portSvg(size);
   } else {
-    el.innerHTML = usFlagIconSvg();
+    el.innerHTML = isUsMilitaryOperator(milCountry) ? usFlagIconSvg() : genericBaseIconSvg();
   }
 
   el.addEventListener("mouseenter", () => {

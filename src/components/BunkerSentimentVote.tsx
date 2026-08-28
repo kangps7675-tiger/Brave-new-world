@@ -64,8 +64,8 @@ export function BunkerSentimentVote({ lang }: Props) {
   const my = snap?.myPick ?? null;
 
   return (
-    <div className="mt-3 border-t border-white/10 pt-3">
-      <div className="mb-2 flex items-baseline justify-between gap-2">
+    <div className="mt-3 min-w-0 border-t border-white/10 pt-3">
+      <div className="mb-2 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
         <p className="text-micro font-semibold uppercase tracking-[0.14em] text-slate-400">
           {ko ? "벙커 감성지수" : "Bunker sentiment"}
         </p>
@@ -81,15 +81,15 @@ export function BunkerSentimentVote({ lang }: Props) {
           </p>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid min-w-0 grid-cols-2 gap-1.5">
         <button
           type="button"
           disabled={busy}
           onClick={() => void vote("stable")}
           className={
             my === "stable"
-              ? "rounded-lg border border-emerald-400/60 bg-emerald-950/50 py-2 text-meta font-bold tracking-wide text-emerald-200"
-              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-meta font-semibold tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50"
+              ? "min-w-0 rounded-lg border border-emerald-400/60 bg-emerald-950/50 px-1 py-2 text-micro font-bold leading-tight tracking-wide text-emerald-200 sm:text-meta"
+              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-micro font-semibold leading-tight tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50 sm:text-meta"
           }
         >
           STABLE
@@ -100,11 +100,11 @@ export function BunkerSentimentVote({ lang }: Props) {
           onClick={() => void vote("bunker")}
           className={
             my === "bunker"
-              ? "rounded-lg border border-rose-400/60 bg-rose-950/50 py-2 text-meta font-bold tracking-wide text-rose-200"
-              : "rounded-lg border border-slate-700/80 bg-slate-950/60 py-2 text-meta font-semibold tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50"
+              ? "min-w-0 rounded-lg border border-rose-400/60 bg-rose-950/50 px-1 py-2 text-micro font-bold leading-tight tracking-wide text-rose-200 sm:text-meta"
+              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-micro font-semibold leading-tight tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50 sm:text-meta"
           }
         >
-          HEAD TO BUNKER
+          <span className="block truncate">HEAD TO BUNKER</span>
         </button>
       </div>
     </div>

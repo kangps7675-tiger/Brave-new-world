@@ -53,10 +53,10 @@ export function ImmersionDigitalClock({ lang, className = "" }: Props) {
       aria-live="off"
       title={ko ? "로컬 시각" : "Local time"}
     >
-      <p className="font-data-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-200/70">
+      <p className="font-data-mono text-micro font-semibold uppercase tracking-[0.16em] text-cyan-200/70">
         {ko ? "LOCAL TIME" : "LOCAL TIME"}
       </p>
-      <p className="mt-0.5 font-data-mono text-[11px] tabular-nums tracking-wide text-cyan-100/85">
+      <p className="mt-0.5 font-data-mono text-meta tabular-nums tracking-wide text-cyan-100/85">
         {ko ? `${y}.${mo}.${d}` : `${y}-${mo}-${d}`}
       </p>
       <p className="font-data-mono text-sm font-semibold tabular-nums leading-tight text-cyan-50">

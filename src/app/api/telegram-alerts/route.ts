@@ -97,6 +97,16 @@ function readSeedPayload(): TelegramAlertsPayload {
   return JSON.parse(raw) as TelegramAlertsPayload;
 }
 
+/** 로컬 live JSON이 오래되면 cron/D1 공유 피드를 막지 않도록 */
+const LOCAL_LIVE_STALE_MS = 2 * 60 * 60 * 1000;
+
+function isFetchedAtStale(fetchedAt: string | null | undefined): boolean {
+  if (!fetchedAt) return true;
+  const t = Date.parse(fetchedAt);
+  if (!Number.isFinite(t)) return true;
+  return Date.now() - t > LOCAL_LIVE_STALE_MS;
+}
+
 export async function GET() {
   const livePayload = readLivePayload();
   if (livePayload) {
@@ -109,7 +119,10 @@ export async function GET() {
   }
 
   const store = getTelegramAlertStore();
-  if (store.alerts.length > 0) {
+  const localFresh = store.alerts.length > 0 && !isFetchedAtStale(store.lastIngestAt);
+
+  // 신선한 로컬 캐시만 즉시 반환. 오래된 public/data/live 스냅샷은 cron 피드를 가리지 않는다.
+  if (localFresh) {
     return NextResponse.json(
       publicPayload(store.alerts, {
         fetchedAt: store.lastIngestAt ?? new Date().toISOString(),
@@ -119,7 +132,7 @@ export async function GET() {
     );
   }
 
-  // 공유 소스 (D1 / cron 워커) — 배포 환경에서 방문자 공통 피드
+  // 공유 소스 (D1 / cron 워커) — 배포·로컬 모두 최신 공통 피드
   const shared = await readSharedAlerts();
   if (shared && shared.length > 0) {
     // 워커가 이미 text="" 일 수 있음 — D1 직접 읽기면 전문 있음 → 공개 시 제거
@@ -128,6 +141,18 @@ export async function GET() {
       publicPayload(shared, {
         live: true,
         source: "embed",
+      }),
+      { headers: TG_CDN },
+    );
+  }
+
+  // 공유 실패 시에만 stale 로컬로 폴백 (빈 화면·영구 대기 방지)
+  if (store.alerts.length > 0) {
+    return NextResponse.json(
+      publicPayload(store.alerts, {
+        fetchedAt: store.lastIngestAt ?? new Date().toISOString(),
+        live: true,
+        source: "stale-local",
       }),
       { headers: TG_CDN },
     );

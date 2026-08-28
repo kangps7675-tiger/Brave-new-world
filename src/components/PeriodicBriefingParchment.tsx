@@ -1,5 +1,6 @@
 "use client";
 
+import { zc } from "@/lib/uiStack";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LampWhyMattersButton } from "@/components/LampWhyMattersButton";
@@ -325,7 +326,7 @@ function PhotoNewsLampParchment({
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className={`welcome-letter-scrim fixed inset-0 z-[800] flex items-center justify-center p-2 sm:p-4 ${
+      className={`welcome-letter-scrim fixed inset-0 ${zc("alert")} flex items-center justify-center p-2 sm:p-4 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}
       role="dialog"
@@ -538,8 +539,8 @@ function PhotoNewsLampParchment({
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
                       {lang === "en"
-                        ? "This 6-hour slot lacks photo-backed article cards. Fold and reopen after the next refresh (0 / 6 / 12 / 18)."
-                        : "이번 6시간 슬롯에 사진 있는 원문 카드가 부족합니다. 접었다가 다음 갱신(0·6·12·18시) 후 다시 펼쳐 보세요."}
+                        ? "No article cards for this 6-hour slot yet. Fold and reopen after the next refresh (0 / 6 / 12 / 18)."
+                        : "이번 6시간 슬롯에 원문 카드가 아직 없습니다. 접었다가 다음 갱신(0·6·12·18시) 후 다시 펼쳐 보세요."}
                     </p>
                   )}
 

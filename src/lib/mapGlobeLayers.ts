@@ -332,6 +332,14 @@ export function buildPathsGeoJson<T>(
     dashLength: Accessor<T, number>;
     dashGap: Accessor<T, number>;
     kind?: Accessor<T, string | undefined>;
+    /** true면 이 feature가 호버 시 map-paths-glint-* 레이어의 글린트 대상이 된다 */
+    glint?: Accessor<T, boolean | undefined>;
+    /** 같은 회랑/축 관계에 속한 leg들을 하나로 묶는 키 — 호버·선택 시 이 값이 같으면 같이 반응한다 */
+    groupId?: Accessor<T, string | undefined>;
+    /** 다구간(육로↔해상 등) 회랑에서 이 feature가 몇 번째 leg인지 (없으면 0 = 단일 구간) */
+    legIndex?: Accessor<T, number | undefined>;
+    /** axis-link 전용 — 호버 시 기본색(국가색) 대신 드러날 관계 성격 색(군수=빨강 등) */
+    hoverColor?: Accessor<T, string | undefined>;
   },
 ): FeatureCollection<LineString> {
   return {
@@ -365,12 +373,79 @@ export function buildPathsGeoJson<T>(
             dashLength: accessors.dashLength(item),
             dashGap: accessors.dashGap(item),
             kind: kind ?? "",
+            glint: Boolean(accessors.glint?.(item)),
+            groupId: accessors.groupId?.(item) ?? "",
+            legIndex: accessors.legIndex?.(item) ?? 0,
+            hoverColor: accessors.hoverColor?.(item) ?? "",
           },
         },
       ];
     }),
   };
 }
+
+/**
+ * 실측 회랑(axis-link 오버라이드) 전용 "글린트" 애니메이션 그라디언트.
+ *
+ * `line-gradient`는 GeoJSON 소스에 `lineMetrics: true`가 있어야 하고,
+ * `["line-progress"]`는 위 zoom 규칙과 동일하게 최상위 interpolate의
+ * 직접 입력으로만 써야 한다.
+ *
+ * phase(0~1)에 따라 밝은 하이라이트 밴드가 선을 따라 흐르듯 이동한다.
+ * 밴드 중심을 [0.12, 0.88] 안쪽으로만 움직여, 밴드가 선의 양 끝(0 또는 1)에
+ * 닿아 interpolate 스톱이 겹치거나 역전되는 것(→ "input values must be
+ * strictly ascending" 런타임 에러로 레이어 전체가 죽음)을 원천 차단한다.
+ */
+const GLINT_TRANSPARENT = "rgba(255, 255, 255, 0)";
+const GLINT_GLOW = "rgba(255, 226, 170, 0.55)";
+const GLINT_CORE = "rgba(255, 255, 255, 0.98)";
+const GLINT_HALF_WIDTH = 0.035;
+const GLINT_CENTER_MIN = 0.12;
+const GLINT_CENTER_MAX = 0.88;
+
+export function buildCorridorGlintGradient(phase: number): ZoomExpr {
+  const p = Number.isFinite(phase) ? Math.max(0, Math.min(1, phase)) : 0;
+  const center = GLINT_CENTER_MIN + p * (GLINT_CENTER_MAX - GLINT_CENTER_MIN);
+  const s0 = center - GLINT_HALF_WIDTH * 2;
+  const s1 = center - GLINT_HALF_WIDTH;
+  const s3 = center + GLINT_HALF_WIDTH;
+  const s4 = center + GLINT_HALF_WIDTH * 2;
+  return [
+    "interpolate",
+    ["linear"],
+    ["line-progress"],
+    0, GLINT_TRANSPARENT,
+    s0, GLINT_TRANSPARENT,
+    s1, GLINT_GLOW,
+    center, GLINT_CORE,
+    s3, GLINT_GLOW,
+    s4, GLINT_TRANSPARENT,
+    1, GLINT_TRANSPARENT,
+  ];
+}
+
+/** 파도가 아직 도달하지 않았거나 이미 지나간 leg — 완전 투명(구간 자체는 solid/dashed 베이스 레이어로 이미 보임) */
+export function buildCorridorGlintOffGradient(): ZoomExpr {
+  return [
+    "interpolate",
+    ["linear"],
+    ["line-progress"],
+    0, GLINT_TRANSPARENT,
+    1, GLINT_TRANSPARENT,
+  ];
+}
+
+/**
+ * 호버 중인 회랑이 가질 수 있는 최대 leg 수 — 이 개수만큼 map-paths-glint-N
+ * 레이어를 미리 만들어두고, 실제 leg가 몇 개든(1개짜리 단일 경로 포함) 그 안에서
+ * legIndex로 필터링해 쓴다. 현재 데이터의 최대 leg 수(4, INSTC)보다 여유를 둠.
+ */
+export const CORRIDOR_GLINT_MAX_LEGS = 6;
+
+/** 한 바퀴(선 시작→끝) 도는 데 걸리는 시간 */
+export const CORRIDOR_GLINT_PERIOD_MS = 3200;
+/** setInterval 틱 — island-chains 애니메이션과 동일 주기(내장 GPU 친화) */
+export const CORRIDOR_GLINT_TICK_MS = 100;
 
 export function buildPolygonsGeoJson<T extends { geometry: unknown }>(
   items: T[],

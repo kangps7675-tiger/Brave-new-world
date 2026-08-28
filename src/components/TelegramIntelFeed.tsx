@@ -452,10 +452,25 @@ export function TelegramIntelFeed({
                 ? "No video posts in the current window. Check back after the next sync."
                 : "지금 구간에 영상 포스트가 없습니다. 다음 동기화 후 다시 확인하세요."}
             </p>
+          ) : liveStatus === "waiting" ? (
+            <>
+              <p className="font-medium text-sky-200/90">
+                {lang === "en"
+                  ? "Waiting for cron ingest — browser does not scrape Telegram"
+                  : "수집 대기 — 브라우저는 텔레그램을 긁지 않습니다"}
+              </p>
+              <p className="mt-2 text-slate-500">
+                {lang === "en"
+                  ? "Cron worker fills D1; this panel only reads cached alerts."
+                  : "Cron 워커가 D1에 쌓으면 표시됩니다. 이 패널은 읽기만 합니다."}
+              </p>
+            </>
           ) : embedMode ? (
             <>
               <p className="font-medium text-sky-200/90">공개 임베드 수집 (로그인 불필요)</p>
-              <p className="mt-2 text-slate-500">60초마다 자동 갱신 · 우크라이나·중동 채널</p>
+              <p className="mt-2 text-slate-500">
+                Cron·공유 피드 폴링 · 우크라이나·중동 채널
+              </p>
             </>
           ) : needsAuth ? (
             <p className="font-medium text-amber-200/90">터미널에서 텔레그램 로그인이 필요합니다.</p>
@@ -520,11 +535,13 @@ function LiveBadge({
           ? embedMode
             ? "재시도"
             : "오프라인"
-          : live
-            ? "LIVE"
-            : liveStatus === "waiting"
-              ? "대기"
-              : "대기"}
+          : liveStatus === "waiting"
+            ? "대기"
+            : liveStatus === "stub"
+              ? "샘플"
+              : live || liveStatus === "ok"
+                ? "LIVE"
+                : "—"}
     </span>
   );
 }
