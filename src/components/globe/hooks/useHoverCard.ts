@@ -4,12 +4,16 @@ import { useMemo } from "react";
 import type {
   DisputeArea,
   DisputeOverview,
-  GlobePoint,
   MilitaryAircraft,
   TransportPath,
   UsCarrier,
 } from "@/data/geoTypes";
-import type { GlobeDisplayPoint, HoverCard, PolygonLayerFeature } from "@/components/globe/types";
+import type {
+  GlobeDisplayPoint,
+  GlobePoint,
+  HoverCard,
+  PolygonLayerFeature,
+} from "@/components/globe/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NeptunLiveThreat } from "@/lib/neptun";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";

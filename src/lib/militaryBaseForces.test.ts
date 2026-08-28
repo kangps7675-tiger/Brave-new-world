@@ -68,7 +68,8 @@ describe("enabled / parse / filter", () => {
   });
 
   it("filters before a mixed cap would hide US points", () => {
-    const mixed = [
+    type TestPoint = { id: string; meta: Record<string, string | number | null> };
+    const mixed: TestPoint[] = [
       { id: "kr-1", meta: { iso: "KR", country: "South Korea" } },
       { id: "kr-2", meta: { iso: "KR", country: "South Korea" } },
       { id: "us-humphreys", meta: { country: "USA", source: "seed-overseas" } },

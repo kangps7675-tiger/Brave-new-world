@@ -12,6 +12,7 @@ export type LayerToggleAccent =
   | "red"
   | "orange"
   | "amber"
+  | "yellow"
   | "fuchsia"
   | "violet"
   | "blue"
@@ -72,6 +73,8 @@ function accentClass(accent: LayerToggleAccent) {
       return "accent-orange-400";
     case "amber":
       return "accent-amber-400";
+    case "yellow":
+      return "accent-yellow-400";
     case "fuchsia":
       return "accent-fuchsia-400";
     case "violet":
@@ -100,6 +103,8 @@ function tagAccentClasses(accent: LayerToggleAccent, checked: boolean) {
       return "border-orange-400/45 bg-orange-500/15 text-orange-100 shadow-[0_0_12px_rgba(251,146,60,0.12)]";
     case "amber":
       return "border-amber-400/45 bg-amber-500/15 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.12)]";
+    case "yellow":
+      return "border-yellow-400/45 bg-yellow-500/15 text-yellow-100 shadow-[0_0_12px_rgba(250,204,21,0.12)]";
     case "fuchsia":
       return "border-fuchsia-400/45 bg-fuchsia-500/15 text-fuchsia-100";
     case "violet":
