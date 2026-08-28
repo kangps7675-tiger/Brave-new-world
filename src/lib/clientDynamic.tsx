@@ -29,7 +29,8 @@ function resolveComponent<P>(loaded: LoaderResult<P>): ComponentType<P> {
 /** Client-only code splitting (`next/dynamic` with `{ ssr: false }` equivalent). */
 export default function clientDynamic<P = Record<string, never>>(
   loader: () => Promise<LoaderResult<P>>,
-  _options?: DynamicOptions,
+  options?: DynamicOptions,
 ): ComponentType<P> {
+  void options;
   return lazy(() => loader().then((mod) => ({ default: resolveComponent(mod) })));
 }
