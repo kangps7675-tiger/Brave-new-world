@@ -3,7 +3,10 @@
 Extract CRINK-relevant OSM infra from .osm.pbf → GeoJSONL (one feature per line).
 Uses pyosmium (no osmium-tool CLI required).
 
-Categories: aeroway, harbour, border, dam, power, checkpoint
+Categories: aeroway, harbour, border, dam, power, checkpoint, rail, road
+
+Partial extract:
+  py extract.py --pbf=... --region=belarus --categories=rail,road
 
 Memory strategy for large PBFs (russia ~4GB, asia ~15GB):
   Default `locations=True` builds a location index for *every* node → MemoryError
@@ -24,7 +27,15 @@ import osmium
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = json.loads((Path(__file__).parent / "config.json").read_text(encoding="utf-8"))
 
-CATEGORIES = ("aeroway", "harbour", "border", "dam", "power", "checkpoint")
+from categories import (  # noqa: E402
+    ALL_CATEGORIES,
+    RAIL_SKIP_SERVICE,
+    RAIL_TYPES,
+    ROAD_TYPES,
+    TRANSPORT_CATEGORIES,
+    TRANSPORT_SKIP_REGIONS,
+    parse_categories,
+)
 
 # Regions where flex_mem / locations=True historically OOM'd
 LARGE_REGIONS = frozenset({"russia", "asia"})
@@ -36,19 +47,39 @@ def power_allowed(tags: osmium.TagList) -> bool:
     return kind in ("substation", "plant")
 
 
-def categorize(tags: osmium.TagList) -> str | None:
+def rail_allowed(tags: osmium.TagList) -> bool:
+    kind = tags.get("railway")
+    if kind not in RAIL_TYPES:
+        return False
+    svc = tags.get("service")
+    return svc not in RAIL_SKIP_SERVICE
+
+
+def road_allowed(tags: osmium.TagList) -> bool:
+    return tags.get("highway") in ROAD_TYPES
+
+
+def categorize(tags: osmium.TagList, active: frozenset[str]) -> str | None:
+    if "rail" in active and rail_allowed(tags):
+        return "rail"
+    if "road" in active and road_allowed(tags):
+        return "road"
     aeroway = tags.get("aeroway")
-    if aeroway in ("aerodrome", "runway", "helipad"):
+    if "aeroway" in active and aeroway in ("aerodrome", "runway", "helipad"):
         return "aeroway"
-    if tags.get("harbour") == "yes" or tags.get("seamark:type") == "harbour":
+    if "harbour" in active and (
+        tags.get("harbour") == "yes" or tags.get("seamark:type") == "harbour"
+    ):
         return "harbour"
-    if tags.get("barrier") == "border_control" or tags.get("amenity") == "customs":
+    if "border" in active and (
+        tags.get("barrier") == "border_control" or tags.get("amenity") == "customs"
+    ):
         return "border"
-    if tags.get("waterway") == "dam":
+    if "dam" in active and tags.get("waterway") == "dam":
         return "dam"
-    if tags.get("power") in ("substation", "plant"):
+    if "power" in active and tags.get("power") in ("substation", "plant"):
         return "power" if power_allowed(tags) else None
-    if tags.get("military") == "checkpoint":
+    if "checkpoint" in active and tags.get("military") == "checkpoint":
         return "checkpoint"
     return None
 
@@ -91,8 +122,9 @@ def write_feature(
 
 
 class CollectHandler(osmium.SimpleHandler):
-    def __init__(self):
+    def __init__(self, active: frozenset[str]):
         super().__init__()
+        self.active = active
         # node features: id → (cat, tags)
         self.nodes: dict[int, tuple[str, dict[str, str]]] = {}
         # way features: (cat, way_id, node_ids, tags)
@@ -111,15 +143,15 @@ class CollectHandler(osmium.SimpleHandler):
 
     def node(self, n: osmium.Node):
         self._tick()
-        cat = categorize(n.tags)
-        if not cat:
+        cat = categorize(n.tags, self.active)
+        if not cat or cat in ("rail", "road"):
             return
         self.nodes[n.id] = (cat, tags_dict(n.tags))
         self.needed_node_ids.add(n.id)
 
     def way(self, w: osmium.Way):
         self._tick()
-        cat = categorize(w.tags)
+        cat = categorize(w.tags, self.active)
         if not cat:
             return
         try:
@@ -181,6 +213,20 @@ def emit_from_passes(
 
     for cat, wid, nids, tags in collectors.ways:
         coords = [locs[i] for i in nids if i in locs]
+        if cat in ("rail", "road"):
+            if len(coords) < 2:
+                continue
+            write_feature(
+                writers,
+                counts,
+                cat,
+                region_id,
+                "way",
+                wid,
+                {"type": "LineString", "coordinates": [[c[0], c[1]] for c in coords]},
+                tags,
+            )
+            continue
         if len(coords) < 1:
             continue
         # 변전소·발전소·활주로 등은 면/선 → 지도에는 Point(centroid) 또는 LineString
@@ -237,17 +283,26 @@ def emit_from_passes(
         )
 
 
-def extract_region_twopass(pbf_path: Path, region_id: str, out_dir: Path) -> dict[str, int]:
+def extract_region_twopass(
+    pbf_path: Path,
+    region_id: str,
+    out_dir: Path,
+    categories: tuple[str, ...],
+) -> dict[str, int]:
     """Memory-safe path for russia/asia — never builds a full location index."""
+    active = frozenset(categories)
     writers: dict[str, object] = {}
-    counts = {c: 0 for c in CATEGORIES}
-    for cat in CATEGORIES:
+    counts = {c: 0 for c in categories}
+    for cat in categories:
         writers[cat] = (out_dir / f"{region_id}-{cat}.geojsonl").open("w", encoding="utf-8")
 
     try:
-        print(f"[extract] {region_id} <- {pbf_path} (2-pass, no full location index)", flush=True)
+        print(
+            f"[extract] {region_id} <- {pbf_path} (2-pass, categories={','.join(categories)})",
+            flush=True,
+        )
         print(f"[extract] pass1: collect tagged nodes/ways...", flush=True)
-        collect = CollectHandler()
+        collect = CollectHandler(active)
         collect.apply_file(str(pbf_path), locations=False)
         print(
             f"[extract] pass1 done: nodes={len(collect.nodes)} ways={len(collect.ways)} "
@@ -273,16 +328,17 @@ def extract_region_twopass(pbf_path: Path, region_id: str, out_dir: Path) -> dic
 
 
 class InfraExtractor(osmium.SimpleHandler):
-    def __init__(self, region_id: str, writers: dict[str, object]):
+    def __init__(self, region_id: str, writers: dict[str, object], active: frozenset[str]):
         super().__init__()
         self.region_id = region_id
         self.writers = writers
+        self.active = active
         self.factory = osmium.geom.GeoJSONFactory()
-        self.counts = {c: 0 for c in CATEGORIES}
+        self.counts = {c: 0 for c in writers}
 
     def node(self, n: osmium.Node):
-        cat = categorize(n.tags)
-        if not cat:
+        cat = categorize(n.tags, self.active)
+        if not cat or cat in ("rail", "road"):
             return
         write_feature(
             self.writers,
@@ -296,8 +352,35 @@ class InfraExtractor(osmium.SimpleHandler):
         )
 
     def way(self, w: osmium.Way):
-        cat = categorize(w.tags)
+        cat = categorize(w.tags, self.active)
         if not cat:
+            return
+        if cat in ("rail", "road"):
+            try:
+                geom = self.factory.create_linestring(w)
+            except osmium.InvalidLocationError:
+                return
+            except RuntimeError:
+                return
+            try:
+                geometry = json.loads(geom)
+            except json.JSONDecodeError:
+                return
+            if geometry.get("type") != "LineString":
+                return
+            coords = geometry.get("coordinates") or []
+            if len(coords) < 2:
+                return
+            write_feature(
+                self.writers,
+                self.counts,
+                cat,
+                self.region_id,
+                "way",
+                w.id,
+                geometry,
+                tags_dict(w.tags),
+            )
             return
         if cat == "power" and w.tags.get("power") in ("substation", "plant"):
             try:
@@ -341,13 +424,26 @@ class InfraExtractor(osmium.SimpleHandler):
         )
 
 
-def extract_region_small(pbf_path: Path, region_id: str, out_dir: Path) -> dict[str, int]:
+def _categories_need_twopass(categories: tuple[str, ...]) -> bool:
+    """Rail/road single-pass (locations=True) OOMs on dense networks."""
+    return any(str(c).lower() in ("rail", "road") for c in categories)
+
+def extract_region_small(
+    pbf_path: Path,
+    region_id: str,
+    out_dir: Path,
+    categories: tuple[str, ...],
+) -> dict[str, int]:
     writers: dict[str, object] = {}
-    for cat in CATEGORIES:
+    for cat in categories:
         writers[cat] = (out_dir / f"{region_id}-{cat}.geojsonl").open("w", encoding="utf-8")
 
-    handler = InfraExtractor(region_id, writers)
-    print(f"[extract] {region_id} <- {pbf_path} (single-pass locations=True)", flush=True)
+    active = frozenset(categories)
+    handler = InfraExtractor(region_id, writers, active)
+    print(
+        f"[extract] {region_id} <- {pbf_path} (single-pass, categories={','.join(categories)})",
+        flush=True,
+    )
     try:
         handler.apply_file(str(pbf_path), locations=True, idx="flex_mem")
     finally:
@@ -362,13 +458,26 @@ def extract_region(
     pbf_path: Path,
     region_id: str,
     out_dir: Path,
+    categories: tuple[str, ...],
     *,
     twopass: bool = False,
 ) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    if twopass or region_id in LARGE_REGIONS:
-        return extract_region_twopass(pbf_path, region_id, out_dir)
-    return extract_region_small(pbf_path, region_id, out_dir)
+    # rail/road only: skip CUB/VEN — not CRINK Eurasian corridor mesh
+    if region_id in TRANSPORT_SKIP_REGIONS and frozenset(categories) <= frozenset(
+        TRANSPORT_CATEGORIES
+    ):
+        print(
+            f"[extract] skip {region_id}: outside CRINK Eurasian transport mesh "
+            f"(categories={','.join(categories)})",
+            flush=True,
+        )
+        for cat in categories:
+            (out_dir / f"{region_id}-{cat}.geojsonl").write_text("", encoding="utf-8")
+        return {c: 0 for c in categories}
+    if twopass or region_id in LARGE_REGIONS or _categories_need_twopass(categories):
+        return extract_region_twopass(pbf_path, region_id, out_dir, categories)
+    return extract_region_small(pbf_path, region_id, out_dir, categories)
 
 
 def main():
@@ -381,14 +490,25 @@ def main():
         action="store_true",
         help="Force 2-pass extract (needed for russia/asia on low-RAM hosts)",
     )
+    parser.add_argument(
+        "--categories",
+        default=None,
+        help="Comma list: rail,road or all (default: aeroway,harbour,border,dam,power,checkpoint)",
+    )
     args = parser.parse_args()
+
+    try:
+        categories = parse_categories(args.categories)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(2)
 
     pbf = Path(args.pbf)
     if not pbf.is_file():
         print(f"Missing PBF: {pbf}", file=sys.stderr)
         sys.exit(1)
 
-    extract_region(pbf, args.region, Path(args.out), twopass=args.twopass)
+    extract_region(pbf, args.region, Path(args.out), categories, twopass=args.twopass)
 
 
 if __name__ == "__main__":

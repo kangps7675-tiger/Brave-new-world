@@ -151,18 +151,15 @@ import {
   buildLampMacroTable,
   buildPeriodicBriefing,
   hasFoldedLamp,
+  clearLampFolded,
   localizePeriodicBriefing,
   hasFoldedWeeklyRecap,
   lampSeenKey,
-  pickConflictLampNews,
-  pickEconomyLampNews,
   ensureLampFeaturedNews,
   resolveLampPeriod,
   resolveMondayWeeklyRecap,
   weeklyRecapStorageKey,
   weeklyRecapTitle,
-  CONFLICT_LAMP_NEWS_MIN,
-  ECONOMY_LAMP_NEWS_MIN,
   type PeriodicBriefing,
 } from "@/lib/news/periodicBriefing";
 import {
@@ -677,6 +674,9 @@ export function GlobeDashboard({
   const lastGlobeClickAt = useRef(0);
   const skipNextGlobeClickRef = useRef(false);
   const introPlayedRef = useRef(false);
+  /** 지정학↔지경학 전환 — 접힘·주간 대기 없이 등불 즉시 재점화 */
+  const lampModeSwitchPendingRef = useRef(false);
+  const prevViewerModeRef = useRef<ViewerMode | null>(null);
   const packageTheaterFocusPlayedRef = useRef(false);
   const packageEconFocusPlayedRef = useRef(false);
   const [size, setSize] = useState<GlobeSize>({ width: 960, height: 720 });
@@ -1231,7 +1231,21 @@ export function GlobeDashboard({
     })();
   }, [toggleDailyRankPanel]);
 
-  // 모드·일자 전환 시 등불·주간·인가 게이트 재시작
+  /** 모드 전환 — 이전 등불 내리고 대상 모드 등불을 바로 띄울 준비 */
+  const prepareLampForModeSwitch = useCallback(
+    (targetMode: ViewerMode) => {
+      setPeriodicBriefing(null);
+      setFoldedPeriodicBriefing(null);
+      setDailyLampSettled(false);
+      lampModeSwitchPendingRef.current = true;
+      const { contentSlot } = resolveLampPeriod();
+      const slot = lampContentSlot.startsWith("daily-") ? lampContentSlot : contentSlot;
+      clearLampFolded(lampSeenKey(slot, targetMode));
+    },
+    [lampContentSlot],
+  );
+
+  // 일자 전환 — 등불·주간·인가 게이트 전체 재시작
   useEffect(() => {
     setPeriodicBriefing(null);
     setFoldedPeriodicBriefing(null);
@@ -1245,7 +1259,18 @@ export function GlobeDashboard({
     setShowAirRaidCoach(false);
     setClearanceChipSettled(false);
     setClearanceStatus(null);
-  }, [viewerMode, calendarDayKey]);
+  }, [calendarDayKey]);
+
+  // 모드 전환 — 등불만 즉시 재점화 (주간·인가는 유지)
+  useEffect(() => {
+    if (prevViewerModeRef.current === null) {
+      prevViewerModeRef.current = viewerMode;
+      return;
+    }
+    if (prevViewerModeRef.current === viewerMode) return;
+    prevViewerModeRef.current = viewerMode;
+    prepareLampForModeSwitch(viewerMode);
+  }, [viewerMode, prepareLampForModeSwitch]);
 
   // 6시간 슬롯만 바뀌면 등불만 재점화 (주간·인가는 유지)
   useEffect(() => {
@@ -6137,6 +6162,7 @@ export function GlobeDashboard({
     if (viewerMode === mode) return;
     trackModeSwitch(mode);
     recordInterestMode(mode);
+    prepareLampForModeSwitch(mode);
     handleModeApply(
       mode,
       mode === "conflict" ? viewTheater : "auto",
@@ -6170,6 +6196,7 @@ export function GlobeDashboard({
         ENTRY_GATE.bootLookAt.lng,
         ENTRY_GATE.bootAltitude,
         INTRO_CAMERA_DURATION_MS,
+        { pitch: ENTRY_GATE.bootPitch },
       );
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
     }, INTRO_CAMERA_DELAY_MS);
@@ -6274,6 +6301,7 @@ export function GlobeDashboard({
       entryLook.lng,
       entryLook.altitude,
       ENTRY_GATE.zoomOutFlyMs,
+      { pitch: ENTRY_GATE.bootPitch },
     );
 
     // 도메인 직후는 광역 히어로만 — 전장/허브 자동 fly·양피지 금지
@@ -6456,7 +6484,7 @@ export function GlobeDashboard({
    * 등불 — 지정학·지경학 각각 6시간 슬롯당 1회 자동 점화(대표 뉴스·큰 사진).
    * 닫으면 우측 「등불」탭으로 접힘. 다음 슬롯이 되면 다시 자동 펼침.
    * SLA: 게이트 해제 후 미시청이면 하드 데드라인 안에 양피지 점화.
-   * news-stream(og 보강 ~8s)을 기다린 뒤 사진 데스크를 채우고, 안 되면 셸 폴백.
+   * /api/lamp-news — 양 패키지 + og:image 추가 보강 후 실사진 있는 핫뉴스만.
    * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
   useEffect(() => {
@@ -6464,12 +6492,17 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
-    if (!weeklyRecapSettled || weeklyExpanded) return;
+    const forceModeSwitchLamp = lampModeSwitchPendingRef.current;
+    // 모드 전환 직후 — 주간 회고 대기 없이 바로 등불 (지정학↔지경학 뙇!)
+    if (!forceModeSwitchLamp && (!weeklyRecapSettled || weeklyExpanded)) return;
     // 인가 칩이 안 닫혀도 등불·지도는 막지 않음 — 칩은 병렬 표시
     // (예전엔 clearanceChipSettled 대기로 dailyLampSettled가 영구 false → 오버레이 고착)
 
-    // 다른 양피지 점유 중 — 지도 잠금만 풀고, 닫히면 deps로 재점화
-    if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) {
+    // 다른 양피지 점유 중 — 모드 전환 등불만 예외, 나머지는 지도 잠금만 풀고 닫히면 재점화
+    if (
+      !forceModeSwitchLamp &&
+      (hubBriefOpen || frictionEpisodeBrief || econInsightOpen)
+    ) {
       setDailyLampSettled(true);
       return;
     }
@@ -6479,17 +6512,16 @@ export function GlobeDashboard({
     const lampKey = lampSeenKey(slot, viewerMode);
 
     if (periodicBriefing?.key === lampKey) return;
-    if (foldedPeriodicBriefing?.key === lampKey) {
+    if (!forceModeSwitchLamp && foldedPeriodicBriefing?.key === lampKey) {
       setDailyLampSettled(true);
       return;
     }
-    /** 유저가 「접기」한 슬롯만 자동 펼침 생략 (GDELT·seen 오염으로 하루 종일 안 뜨던 것 수정) */
-    const lampWasFolded = hasFoldedLamp(lampKey);
+    /** 유저가 「접기」한 슬롯 — 모드 전환 시에는 무시하고 자동 펼침 */
+    const lampWasFolded = forceModeSwitchLamp ? false : hasFoldedLamp(lampKey);
 
-    /** 빈 셸보다 사진 채움을 우선 — news-stream 보강 예산에 맞춤 */
-    const LAMP_HARD_DEADLINE_MS = 16_000;
-    /** news-stream og:image 보강(최대 ~8s)보다 길어야 사진 데스크가 채워짐 */
-    const NEWS_BUDGET_MS = 18_000;
+    /** 등불 og 보강 + 선정 — 서버에서 최대 ~24s */
+    const LAMP_HARD_DEADLINE_MS = 20_000;
+    const LAMP_NEWS_BUDGET_MS = 24_000;
     const MACRO_ENRICH_MS = 2_500;
 
     const fetchWithTimeout = async (url: string, ms: number): Promise<Response | null> => {
@@ -6518,6 +6550,9 @@ export function GlobeDashboard({
       if (shown && !opts?.upgrade) return;
       if (!shown) {
         shown = true;
+        if (forceModeSwitchLamp) {
+          lampModeSwitchPendingRef.current = false;
+        }
         if (deadlineTimer != null) {
           clearTimeout(deadlineTimer);
           deadlineTimer = null;
@@ -6597,47 +6632,20 @@ export function GlobeDashboard({
           : "전 세계 지역별 심층 데스크";
 
       let macroTable = buildLampMacroTable([], labelLanguage);
-      let featuredNews: ReturnType<typeof pickConflictLampNews> = [];
+      let featuredNews: PeriodicBriefing["featuredNews"] = [];
 
-      // 뉴스 — 선명 사진+고임팩트 심층만. 사진 없는 시드 점화 금지.
-      // 주 패키지 실패·무사진 시 상대 모드 패키지도 보조 풀로 합친다.
+      // 등불 — og:image 추가 보강 후 실사진 있는 핫뉴스만 (전쟁·자연재해·시장 충격)
       try {
-        const primaryUrl = isEconomy
-          ? `/api/news-stream?packages=geo-trader&lang=${langQs}`
-          : `/api/news-stream?packages=conflict-watch&lang=${langQs}`;
-        const secondaryUrl = isEconomy
-          ? `/api/news-stream?packages=conflict-watch&lang=${langQs}`
-          : `/api/news-stream?packages=geo-trader&lang=${langQs}`;
-        const newsRes = await fetchWithTimeout(primaryUrl, NEWS_BUDGET_MS);
-        const pool: NewsStreamItem[] = [];
-        if (newsRes?.ok) {
-          const newsPayload = (await newsRes.json()) as NewsStreamPayload;
-          pool.push(
-            ...(newsPayload.hero ? [newsPayload.hero] : []),
-            ...(newsPayload.verified ?? []),
-            ...(newsPayload.stateMedia ?? []),
-          );
-        }
-        featuredNews = ensureLampFeaturedNews(
-          isEconomy
-            ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
-            : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
+        const lampMode = isEconomy ? "economy" : "conflict";
+        const lampRes = await fetchWithTimeout(
+          `/api/lamp-news?mode=${lampMode}&lang=${langQs}`,
+          LAMP_NEWS_BUDGET_MS,
         );
-        if (featuredNews.length < (isEconomy ? 4 : 5)) {
-          const altRes = await fetchWithTimeout(secondaryUrl, Math.min(8_000, NEWS_BUDGET_MS));
-          if (altRes?.ok) {
-            const altPayload = (await altRes.json()) as NewsStreamPayload;
-            pool.push(
-              ...(altPayload.hero ? [altPayload.hero] : []),
-              ...(altPayload.verified ?? []),
-              ...(altPayload.stateMedia ?? []),
-            );
-            featuredNews = ensureLampFeaturedNews(
-              isEconomy
-                ? pickEconomyLampNews(pool, ECONOMY_LAMP_NEWS_MIN, langQs)
-                : pickConflictLampNews(pool, CONFLICT_LAMP_NEWS_MIN, langQs),
-            );
-          }
+        if (lampRes?.ok) {
+          const lampPayload = (await lampRes.json()) as {
+            featuredNews?: PeriodicBriefing["featuredNews"];
+          };
+          featuredNews = ensureLampFeaturedNews(lampPayload.featuredNews ?? []);
         }
       } catch {
         /* ignore */
@@ -6659,7 +6667,7 @@ export function GlobeDashboard({
           { upgrade: true },
         );
       } else {
-        // 원문 기사 풀이 비었을 때만 셸 — 사진은 없어도 텍스트 카드로 점화됨
+        // 실사진 뉴스 풀이 비었을 때만 빈 데스크 셸
         ignite(curatedFallback(), { upgrade: true });
       }
 

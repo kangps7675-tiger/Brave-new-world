@@ -446,6 +446,19 @@ export function TelegramIntelFeed({
         <div className={`text-xs leading-5 text-slate-400 ${fullPage ? "mx-4 mt-4" : "px-3 py-4"}`}>
           {liveStatus === "loading" ? (
             <p>텔레그램 공개 채널을 동기화하는 중…</p>
+          ) : alerts.length > 0 && regionFilter !== "all" ? (
+            <>
+              <p className="font-medium text-sky-200/90">
+                {lang === "en"
+                  ? `No Telegram posts for this theater filter (${regionFilter}).`
+                  : `선택한 전장 필터(${TELEGRAM_REGION_LABELS[regionFilter as TelegramAlertRegion] ?? regionFilter})에 해당하는 텔레그램 속보가 없습니다.`}
+              </p>
+              <p className="mt-2 text-slate-500">
+                {lang === "en"
+                  ? "Open the News tab and set theater to All, or switch region."
+                  : "뉴스 탭에서 전장을 「전체」로 바꾸거나 다른 전장을 선택해 보세요."}
+              </p>
+            </>
           ) : isVideoDesk ? (
             <p className="font-medium text-violet-200/90">
               {lang === "en"
@@ -461,8 +474,8 @@ export function TelegramIntelFeed({
               </p>
               <p className="mt-2 text-slate-500">
                 {lang === "en"
-                  ? "Cron worker fills D1; this panel only reads cached alerts."
-                  : "Cron 워커가 D1에 쌓으면 표시됩니다. 이 패널은 읽기만 합니다."}
+                  ? "Cron worker fills D1; this panel only reads cached alerts. First load can take ~30s."
+                  : "Cron 워커가 D1에 쌓으면 표시됩니다. 첫 로드는 최대 30초 걸릴 수 있습니다."}
               </p>
             </>
           ) : embedMode ? (

@@ -89,7 +89,7 @@ export function createMapGlobeMethods(
     enableDamping: true,
     dampingFactor: 0.08,
     minDistance: 0,
-    maxDistance: 720,
+    maxDistance: 850,
     autoRotate: false,
     autoRotateSpeed: 0.18,
     enableZoom: true,

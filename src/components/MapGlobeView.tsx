@@ -40,6 +40,7 @@ if (typeof window !== "undefined") {
 }
 import type { FeatureCollection } from "geojson";
 import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasemap";
+import { ENTRY_GATE } from "@/lib/entryOverview";
 import { createMapGlobeMethods, type MapGlobeMethods } from "@/lib/mapGlobeRef";
 import {
   asFn,
@@ -115,10 +116,10 @@ const OsmBuildingsOverlay = dynamic(
   { ssr: false },
 );
 
-/** fog + 우주 배경 + (지형만) 해양톤 — 인텔은 OpenFreeMap Dark+fog+우주색(예전 워룸) */
+/** fog + (인텔만) 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
 function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
   applyBasemapFog(map, mode);
-  applyBasemapSpaceBackground(map);
+  applyBasemapSpaceBackground(map, mode);
   // Liberty 수면·NE 래스터 보정은 지형 전용 — 인텔 Dark 페인트는 건드리지 않음
   applyBasemapOceanColors(map, mode);
 }
@@ -273,15 +274,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const ultraLiteRef = useRef(ultraLite);
   const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
-  /**
-   * projection이 박힌 style 객체를 받을 때까지 Map을 마운트하지 않는다.
-   * (URL로 먼저 올리면 mercator 첫 페인트 + onLoad 레이스가 난다)
-   */
-  const [resolvedMapStyle, setResolvedMapStyle] = useState<Record<string, unknown> | null>(
-    null,
-  );
-  /** fetch 실패 시 URL 폴백 */
-  const [styleFallbackUrl, setStyleFallbackUrl] = useState<string | null>(null);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
@@ -329,42 +321,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
 
-  /** 베이스맵 style.json을 fetch → projection 주입 후 객체로 전달 */
+  /**
+   * style.json을 미리 fetch해 Map 마운트를 막으면 OpenFreeMap 응답·OneDrive I/O
+   * 동안 검은 화면만 보인다. URL로 즉시 올리고 handleLoad/setStyle 훅·styledata
+   * 가드에서 globe projection을 씌운다 (mercator 첫 프레임은 수 ms 수준).
+   */
+  /** onLoad에만 의존하지 않음 — style URL 로드 레이스에서도 투영·진단 훅 보장 */
   useEffect(() => {
-    let cancelled = false;
-    const ctrl = new AbortController();
-    setResolvedMapStyle(null);
-    setStyleFallbackUrl(null);
-    setMapLoaded(false);
-
-    void (async () => {
-      try {
-        const res = await fetch(mapStyleUrl, {
-          signal: ctrl.signal,
-          mode: "cors",
-          credentials: "omit",
-        });
-        if (!res.ok) throw new Error(`basemap style HTTP ${res.status}`);
-        const json = (await res.json()) as Record<string, unknown>;
-        if (cancelled) return;
-        setResolvedMapStyle(injectGlobeProjection(json));
-      } catch {
-        if (!cancelled) setStyleFallbackUrl(mapStyleUrl);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      ctrl.abort();
-    };
-  }, [mapStyleUrl]);
-
-  const activeMapStyle: string | Record<string, unknown> | null =
-    resolvedMapStyle ?? styleFallbackUrl;
-
-  /** onLoad에만 의존하지 않음 — style 객체 로드 레이스에서도 투영·진단 훅 보장 */
-  useEffect(() => {
-    if (!activeMapStyle) return;
+    if (!mapStyleUrl) return;
     let tries = 0;
     const id = window.setInterval(() => {
       tries += 1;
@@ -398,7 +362,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
     }, 250);
     return () => window.clearInterval(id);
-  }, [activeMapStyle]);
+  }, [mapStyleUrl]);
 
   const ionToken = getRuntimeConfig().cesiumIonToken;
   const osmEligible = osmBuildingsEligible({
@@ -1255,14 +1219,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded, mapStyleUrl]);
 
-  /** fetch로 projection이 박힌 style 객체가 도착하면 투영을 한 번 더 고정 */
-  useEffect(() => {
-    if (!mapLoaded || !resolvedMapStyle) return;
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-    applyBasemapGlobeProjection(map as unknown as BasemapMapLike);
-  }, [mapLoaded, resolvedMapStyle]);
-
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
       if (layerId === "map-points" || layerId === "map-gem-facilities") {
@@ -1958,24 +1914,20 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
 
-  /**
-   * 전역 실루엣이 한눈에 들어오게 멀리 + 살짝 틸트.
-   * (너무 가까우면 투영이 살아 있어도 ‘납작한 지도’로 읽힌다.)
-   */
+  /** ENTRY_GATE 와 동일 — 맵 마운트·configureGlobe 사이 카메라 점프 방지 */
   const initialCamera = globeViewToMapLibre({
-    lat: 18,
-    lng: 40,
-    altitude: 7.2,
-    pitch: 22,
+    lat: ENTRY_GATE.bootLookAt.lat,
+    lng: ENTRY_GATE.bootLookAt.lng,
+    altitude: ENTRY_GATE.bootAltitude,
+    pitch: ENTRY_GATE.bootPitch,
   });
 
   return (
     <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
       {contextLost ? <WebglContextLostOverlay onRetry={handleContextRetry} /> : null}
-      {activeMapStyle ? (
       <Map
         ref={mapRef}
-        mapStyle={activeMapStyle as string}
+        mapStyle={mapStyleUrl}
         initialViewState={{
           longitude: initialCamera.longitude,
           latitude: initialCamera.latitude,
@@ -2810,7 +2762,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {htmlMarkerNodes}
       </Map>
-      ) : null}
     </div>
   );
 });

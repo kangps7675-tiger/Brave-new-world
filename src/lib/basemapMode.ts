@@ -98,10 +98,17 @@ export const TERRAIN_EXAGGERATION: TerrainExaggeration = {
 
 export const BUILDINGS_MIN_ZOOM = 14;
 
-/** MapLibre fog — 인텔(다크 사이버 워룸). 지형도 동일 우주 후광을 쓴다. */
+/** MapLibre fog — 인텔은 워룸 우주 후광, 지형은 밝은 대기(지구 밖 우주는 유지). */
 export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
-  // 인텔 정본 fog — 지형도 동일 톤 유지 (밝은 Liberty 하늘색 fog 쓰지 않음)
-  void mode;
+  if (mode === "terrain") {
+    return {
+      color: "rgb(198, 218, 238)",
+      "high-color": "rgb(148, 188, 228)",
+      "horizon-blend": 0.045,
+      "space-color": "rgb(6, 10, 22)",
+      "star-intensity": 0.18,
+    };
+  }
   return {
     color: "rgb(8, 12, 24)",
     "high-color": "rgb(12, 28, 48)",
@@ -115,10 +122,24 @@ export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
 export const BASEMAP_SPACE_BACKGROUND = "#0b0c10";
 
 /**
- * 지형(OpenFreeMap Liberty) 기본 water는 `rgb(158,189,255)`로 너무 밝다.
- * 인텔 워룸에 맞는 짓푸른 해양톤 (저줌·위성 페이드 전).
+ * 지형 해양 — OpenFreeMap Liberty 기본 water (`rgb(158,189,255)`).
  */
-export const TERRAIN_OCEAN_FILL = "#1a3a5c";
+export const TERRAIN_OCEAN_FILL = "rgb(158, 189, 255)";
+
+/** 저줌 Natural Earth 래스터 — 육지 음영을 살리고 바다는 벡터 fill이 받친다. */
+const TERRAIN_NE_RASTER_OPACITY = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  0,
+  0.52,
+  3,
+  0.34,
+  6,
+  0.12,
+  10,
+  0,
+] as const;
 
 /** MapLibre Map — 구조적 타이핑으로 버전 차이 흡수 */
 export type BasemapMapLike = {
@@ -249,8 +270,15 @@ export function applyBasemapFog(map: BasemapMapLike, mode: BasemapMode): void {
 /**
  * Liberty 등 밝은 스타일의 background 레이어를 우주색으로 덮어
  * 지구본 바깥이 크림/하늘색으로 보이지 않게 한다.
+ *
+ * 지형에서는 쓰지 않는다. OpenMapTiles에서 육지가 background 색이라
+ * 덮으면 지구 표면 전체가 우주색으로 가라앉는다. 바깥 우주는 fog space-color.
  */
-export function applyBasemapSpaceBackground(map: BasemapMapLike): void {
+export function applyBasemapSpaceBackground(
+  map: BasemapMapLike,
+  mode: BasemapMode = "intel",
+): void {
+  if (mode === "terrain") return;
   try {
     const layers = map.getStyle()?.layers ?? [];
     for (const layer of layers) {
@@ -267,8 +295,7 @@ export function applyBasemapSpaceBackground(map: BasemapMapLike): void {
 }
 
 /**
- * 지형: Liberty water fill → 짓푸른 해양. NE shaded 래스터는 저줌에서
- * 바다를 밝게 덮으므로 크게 낮춘다.
+ * 지형: Liberty water fill → 밝은 해양. 저줌 NE 음영은 육지 가독용으로 살린다.
  */
 export function applyBasemapOceanColors(
   map: BasemapMapLike,
@@ -301,19 +328,12 @@ export function applyBasemapOceanColors(
       }
     }
 
-    // Natural Earth 저줌 래스터 — 밝은 바다/육지 워시 억제
     if (map.getLayer("natural_earth")) {
-      map.setPaintProperty?.("natural_earth", "raster-opacity", [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        0,
-        0.12,
-        3,
-        0.08,
-        6,
-        0,
-      ]);
+      map.setPaintProperty?.(
+        "natural_earth",
+        "raster-opacity",
+        TERRAIN_NE_RASTER_OPACITY,
+      );
     }
   } catch {
     /* paint unsupported */
@@ -540,18 +560,7 @@ export function applyBasemapSatelliteImagery(map: BasemapMapLike, mode: BasemapM
     for (const layer of layers) {
       if (isOwnMapLayerId(layer.id) || layer.id === SATELLITE_IMAGERY_LAYER_ID) continue;
       if (layer.type === "raster" && /natural_earth/i.test(layer.id)) {
-        // 저줌 NE 워시가 위성을 흐리게 덮지 않도록 고줌에서 완전 제거
-        map.setPaintProperty?.(layer.id, "raster-opacity", [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          0,
-          0.12,
-          6,
-          0.04,
-          10,
-          0,
-        ]);
+        map.setPaintProperty?.(layer.id, "raster-opacity", TERRAIN_NE_RASTER_OPACITY);
         continue;
       }
       if (layer.type !== "fill") continue;

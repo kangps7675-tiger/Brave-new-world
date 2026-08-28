@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   TERRAIN_OCEAN_FILL,
   applyBasemapOceanColors,
+  applyBasemapSpaceBackground,
+  fogForBasemapMode,
   type BasemapMapLike,
 } from "@/lib/basemapMode";
 
@@ -41,5 +43,23 @@ describe("applyBasemapOceanColors", () => {
     const { map, paints } = makeMap([{ id: "water", type: "fill", "source-layer": "water" }]);
     applyBasemapOceanColors(map, "intel");
     expect(paints.size).toBe(0);
+  });
+});
+
+describe("fog and space background", () => {
+  it("uses a bright atmosphere on terrain and the war-room fog on intel", () => {
+    const terrain = fogForBasemapMode("terrain");
+    const intel = fogForBasemapMode("intel");
+    expect(terrain.color).toMatch(/198,\s*218,\s*238/);
+    expect(intel.color).toMatch(/8,\s*12,\s*24/);
+    expect(terrain["space-color"]).toBeDefined();
+  });
+
+  it("does not paint Liberty land background as space in terrain mode", () => {
+    const { map, paints } = makeMap([{ id: "background", type: "background" }]);
+    applyBasemapSpaceBackground(map, "terrain");
+    expect(paints.size).toBe(0);
+    applyBasemapSpaceBackground(map, "intel");
+    expect(paints.get("background")?.["background-color"]).toBe("#0b0c10");
   });
 });

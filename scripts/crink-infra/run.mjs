@@ -24,9 +24,10 @@ function log(...args) {
 }
 
 function parseArgs(argv) {
-  const out = { only: null, skipExtract: false, mergeOnly: false };
+  const out = { only: null, skipExtract: false, mergeOnly: false, categories: null };
   for (const a of argv) {
     if (a.startsWith("--only=")) out.only = a.slice("--only=".length);
+    else if (a.startsWith("--categories=")) out.categories = a.slice("--categories=".length);
     else if (a === "--skip-extract") out.skipExtract = true;
     else if (a === "--merge-only") out.mergeOnly = true;
   }
@@ -41,6 +42,13 @@ function py(script, extraArgs = []) {
 }
 
 /** Prevent two russia/asia extracts from racing on an 8GB machine. */
+function categoriesNeedTwopass(categoriesStr) {
+  if (!categoriesStr) return false;
+  return categoriesStr
+    .split(",")
+    .some((s) => ["rail", "road"].includes(s.trim().toLowerCase()));
+}
+
 function assertNoConcurrentExtract() {
   if (process.platform !== "win32") return;
   try {
@@ -71,6 +79,17 @@ function main() {
     regions = regions.filter((r) => ids.has(r.id));
   }
 
+  // Rail/road = CRINK Eurasian corridors — skip Western Hemisphere spokes
+  if (categoriesNeedTwopass(args.categories)) {
+    const before = regions.length;
+    regions = regions.filter((r) => !["cuba", "venezuela"].includes(r.id));
+    if (regions.length < before) {
+      log("skip cuba,venezuela for rail/road (not CRINK Eurasian transport mesh)");
+    }
+  }
+
+  const categoryArg = args.categories ? [`--categories=${args.categories}`] : [];
+
   if (!args.mergeOnly && !args.skipExtract) {
     assertNoConcurrentExtract();
     for (const region of regions) {
@@ -81,14 +100,23 @@ function main() {
         );
         process.exit(1);
       }
-      py("extract.py", [`--pbf=${pbf}`, `--region=${region.id}`]);
+      const twopassArg = categoriesNeedTwopass(args.categories) ? ["--twopass"] : [];
+      py("extract.py", [`--pbf=${pbf}`, `--region=${region.id}`, ...categoryArg, ...twopassArg]);
     }
     if (regions.some((r) => r.id === "asia" && r.clip)) {
-      py("clip_asia.py");
+      py("clip_asia.py", categoryArg);
     }
   }
 
-  py("merge_geojson.py");
+  py("merge_geojson.py", categoryArg);
+  const cats = (args.categories || "").split(",").map((s) => s.trim());
+  if (!args.categories || cats.includes("rail") || cats.includes("road") || cats.includes("all")) {
+    try {
+      py("snap_corridors_osm.py");
+    } catch {
+      log("corridor OSM snap skipped");
+    }
+  }
   try {
     py("match_corridors.py");
   } catch {

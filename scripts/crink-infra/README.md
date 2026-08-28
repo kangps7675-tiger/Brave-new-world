@@ -35,6 +35,25 @@ npm run osm:pbf:sync          # upload Geofabrik dumps to R2
 | dam | `waterway=dam` |
 | power | `power=substation`, `power=plant` only (nodes + area→centroid points) |
 | checkpoint | `military=checkpoint` |
+| rail | `railway=rail,light_rail,subway,narrow_gauge` (excludes `service=yard,siding,spur`) |
+| road | `highway=motorway,trunk,primary` (+ `*_link` variants) |
+
+**철도·도로만 추출 (R2 PBF) → 주요 교역로(~40) 버퍼로 필터:**
+
+```bash
+npm run osm:pbf:pull
+npm run crink:infra:extract:transport
+# smoke — Belarus + Ukraine only (Eurasian mesh; CUB/VEN skipped)
+npm run crink:infra:extract:transport:small
+# Eurasia only (excl. Western Hemisphere spokes)
+npm run crink:infra:extract:transport:eurasia
+```
+
+**CUB/VEN skip (rail/road):** 쿠바·베네수엘라는 CRINK 유라시아 교역로 mesh와 무관
+(`TRANSPORT_SKIP_REGIONS`). 기본 6카테고리 인프라는 그대로 두고, 철도·도로만 제외합니다.
+머지 후 `snap_corridors_osm.py`가 `strategicCorridors.ts` 육로 회랑(~18km 버퍼)에
+가까운 OSM 구간만 남깁니다. 전체 mesh는 `work/*-rail.geojsonl`에만 남고,
+앱용 `crink-rail.geojson` / `crink-road.geojson`은 **주요 노선만** 담습니다.
 
 **송전선·철탑 제외:** `power=line` / `power=tower` 는 추출하지 않습니다.
 중국·러시아 송전망이 GeoJSON을 수십 MB로 불립니다. 공개 `crink-power.geojson`도

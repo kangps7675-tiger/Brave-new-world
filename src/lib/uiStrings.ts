@@ -262,7 +262,7 @@ const UI = {
     ko: "작전 배치 항모만 표시합니다.",
     en: "Show deployed carriers only.",
   },
-  hoverGpsJam: { ko: "GPS 재밍 (GPSJam)", en: "GPS interference (GPSJam)" },
+  hoverGpsJam: { ko: "GPS 재밍", en: "GPS jamming" },
   hoverGpsJamOff: {
     ko: "켜면 다른 레이어를 숨기고 GNSS 재밍 추정 히트맵만 표시합니다.",
     en: "Turns off other layers and shows the GNSS interference heatmap alone.",

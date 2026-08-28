@@ -6,6 +6,7 @@ import {
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
 import {
   CONFLICT_RESOURCE_HERO_ON,
   ECONOMY_RESOURCE_HERO_ON,
@@ -20,7 +21,7 @@ import {
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
  *
  * 순서(하드코딩):
- * 1. 로딩 — 전역 궤도 (altitude 2.85)
+ * 1. 로딩 — 전역 궤도 (altitude GLOBAL_BOOT_ALTITUDE)
  * 2. 환영 편지지 / 도메인 선택
  * 3. 전역 지구본 히어로 유지 → "핫 지역으로 갈까요?" 선택창 후에만 줌인
  */
@@ -28,25 +29,28 @@ import {
 export const ENTRY_GATE: {
   bootAltitude: number;
   bootLookAt: { readonly lat: number; readonly lng: number };
+  /** 전역 실루엣용 MapLibre pitch (degrees) */
+  bootPitch: number;
   zoomOutAltitude: number;
   zoomOutFlyMs: number;
   afterZoomOutHoldMs: number;
 } = {
   /**
-   * 로딩 셰이더 카메라 거리 z=3.85 ≈ globe altitude 2.85 (1+altitude).
+   * 로딩 셰이더·MapLibre initialViewState 와 동일 — 지구본 전체 실루엣.
    * LOD tier: global (> 1.65).
    */
-  bootAltitude: 2.85,
+  bootAltitude: GLOBAL_BOOT_ALTITUDE,
   /**
-   * 전역 시야 중심 — 특정 초크/전장에 붙이지 않음.
-   * (아프리카·유럽·중동·남아가 한 화면에 들어오는 중립 앵커)
+   * 전역 시야 중심 — 특정 초크/전장에 붙이지 않음 (적도 부근 중립 앵커).
    */
   bootLookAt: {
     lat: 18,
-    lng: 25,
+    lng: 20,
   },
+  /** 살짝 틸트 — 멀리서도 구면 실루엣이 읽히게 */
+  bootPitch: 22,
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
-  zoomOutAltitude: 2.85,
+  zoomOutAltitude: GLOBAL_BOOT_ALTITUDE,
   zoomOutFlyMs: 1200,
   afterZoomOutHoldMs: 0,
 };

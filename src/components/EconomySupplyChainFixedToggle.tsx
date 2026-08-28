@@ -2,6 +2,7 @@
 
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type EconomySupplyChainFixedToggleProps = {
   showUsDfc: boolean;
@@ -24,6 +25,7 @@ export function EconomySupplyChainFixedToggle({
   vertical = false,
 }: EconomySupplyChainFixedToggleProps) {
   const { lang } = useLocale();
+  const light = useBasemapTone() === "light";
 
   if (vertical) {
     return (
@@ -38,10 +40,14 @@ export function EconomySupplyChainFixedToggle({
           }
         >
           <label
-            className={`flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-lg backdrop-blur-md transition ${
-              showUsDfc
-                ? "border-blue-300/55 bg-[#0a1830]/95 text-blue-50 hover:border-blue-200/70"
-                : "border-blue-300/35 bg-[#0a1830]/92 text-blue-100/90 hover:border-blue-200/50"
+            className={`map-chrome-control flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-md transition ${
+              light
+                ? showUsDfc
+                  ? "border-blue-400 bg-white text-slate-900"
+                  : "border-slate-300 bg-white text-slate-800"
+                : showUsDfc
+                  ? "border-blue-300/55 bg-[#0a1830]/95 text-blue-50 backdrop-blur-md hover:border-blue-200/70"
+                  : "border-blue-300/35 bg-[#0a1830]/92 text-blue-100/90 backdrop-blur-md hover:border-blue-200/50"
             }`}
           >
             <input
@@ -70,10 +76,14 @@ export function EconomySupplyChainFixedToggle({
           }
         >
           <label
-            className={`flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-lg backdrop-blur-md transition ${
-              showChinaBri
-                ? "border-amber-300/55 bg-[#0a1830]/95 text-amber-50 hover:border-amber-200/70"
-                : "border-amber-300/35 bg-[#0a1830]/92 text-amber-100/90 hover:border-amber-200/50"
+            className={`map-chrome-control flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-md transition ${
+              light
+                ? showChinaBri
+                  ? "border-amber-400 bg-white text-slate-900"
+                  : "border-slate-300 bg-white text-slate-800"
+                : showChinaBri
+                  ? "border-amber-300/55 bg-[#0a1830]/95 text-amber-50 backdrop-blur-md hover:border-amber-200/70"
+                  : "border-amber-300/35 bg-[#0a1830]/92 text-amber-100/90 backdrop-blur-md hover:border-amber-200/50"
             }`}
           >
             <input
@@ -97,7 +107,13 @@ export function EconomySupplyChainFixedToggle({
   }
 
   return (
-    <div className="pointer-events-auto flex max-w-[calc(100vw-5.5rem)] flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-sky-300/35 bg-[#0a1830]/92 px-3.5 py-2 text-xs text-sky-50 shadow-lg backdrop-blur-md">
+    <div
+      className={`map-chrome-control pointer-events-auto flex max-w-[calc(100vw-5.5rem)] flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border px-3.5 py-2 text-xs shadow-md ${
+        light
+          ? "border-slate-300 bg-white text-slate-900"
+          : "border-sky-300/35 bg-[#0a1830]/92 text-sky-50 backdrop-blur-md"
+      }`}
+    >
       <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap">
         <input
           type="checkbox"
@@ -105,7 +121,7 @@ export function EconomySupplyChainFixedToggle({
           onChange={(event) => onUsDfcChange(event.target.checked)}
           className="h-4 w-4 shrink-0 accent-blue-500"
         />
-        <span className="font-medium text-blue-100">
+        <span className={`font-medium ${light ? "text-slate-900" : "text-blue-100"}`}>
           {lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
         </span>
         {showUsDfc && usLinkCount > 0 ? (
@@ -122,7 +138,7 @@ export function EconomySupplyChainFixedToggle({
           onChange={(event) => onChinaBriChange(event.target.checked)}
           className="h-4 w-4 shrink-0 accent-amber-400"
         />
-        <span className="font-medium text-amber-100">
+        <span className={`font-medium ${light ? "text-slate-900" : "text-amber-100"}`}>
           {lang === "en" ? "China Belt and Road" : "중국 일대일로"}
         </span>
         {showChinaBri && chinaLinkCount > 0 ? (

@@ -660,7 +660,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "neptun",
-            label: "우크라이나 공중위협 (실시간)",
+            label: "우크라이나 공중 위협 (실시간)",
             detail: showNeptun
               ? !isClientNeptunEnabled()
                 ? "서버 설정 꺼짐 (NEPTUN_ENABLED)"
@@ -688,7 +688,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "east-asia-neon",
-            label: "동아시아 대치·발사 지점",
+            label: "동아시아 대치·발사",
             detail:
               [
                 showChinaTaiwanIncidents && "대만",
@@ -767,7 +767,7 @@ export function useLayerPanelCategories({
               },
               {
                 id: "ukraine-strikes-russia",
-                label: "우크라이나 → 러시아 타격 (보도·미확인)",
+                label: "우크라→러시아 타격 보도",
                 detail: showUkraineStrikesOnRussia
                   ? `피격 지점 ${russiaStrikeIncidentMarkers.length}곳 · 보도·미확인`
                   : "꺼짐 · 자주 피격지·시설 (GDELT)",
@@ -799,7 +799,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "lsib-boundary",
-            label: "LSIB 국경선 (미 국무부)",
+            label: "국제 국경선",
             detail: showLsibBoundary
               ? `${visibleLsibBoundary.length.toLocaleString()}개 · 실선(공식)·점선(분쟁)`
               : "꺼짐 · 공식 국경 + 분쟁·특수선",
@@ -819,7 +819,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "east-asia-adiz",
-            label: "방공식별구역 (ADIZ)",
+            label: "방공식별구역",
             detail: showEastAsiaAdiz
               ? "한·일·대만·북한·중국 ADIZ"
               : "꺼짐 · 동아시아 방공 식별망",
@@ -829,7 +829,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "island-chains",
-            label: "도련선 · 미군 방어선",
+            label: "도련선·미군 방어선",
             detail: showIslandChains
               ? "중국 도련(적) · 미 전방/심도(청) · 대만 펄스"
               : "꺼짐 · 인도·태평양 전략선",
@@ -861,7 +861,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "ukmto-incidents",
-            label: "UKMTO 상선 피습·나포 경보",
+            label: "상선 피습·나포 경보",
             detail: showUkmtoIncidents
               ? ukmtoStatus === "loading"
                 ? "불러오는 중…"
@@ -875,7 +875,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "escalation-signals",
-            label: "눈여겨볼 보도",
+            label: "주목할 보도",
             // 신호가 없으면 "조용함"이라고 명시한다 — 고장·미로딩과 구분되어야 한다
             detail: showEscalationSignals
               ? escalationVisibleCount > 0
@@ -891,7 +891,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "navarea-warnings",
-            label: "NAVAREA 항행경보",
+            label: "해상 항행경보",
             detail: showNavareaWarnings
               ? navareaStatus === "loading"
                 ? "불러오는 중…"
@@ -947,7 +947,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "crink-osm-infra",
-            label: "CRINK OSM 인프라",
+            label: "CRINK 인프라",
             detail: (() => {
               if (!isAnyCrinkInfraEnabled(layerPrefs)) {
                 return "꺼짐 · 인텔 지도 · 근접 확대 시 활주로·항만";
@@ -976,7 +976,7 @@ export function useLayerPanelCategories({
             presentation: "dropdown",
             options: CRINK_INFRA_LAYERS.map((layer) => ({
               id: `crink-${layer.id}`,
-              label: layer.labelKo,
+              label: labelLanguage === "en" ? layer.labelEn : layer.labelKo,
               detail:
                 layerPrefs[layer.prefKey] && crinkInfraStatus === "ready"
                   ? `${(crinkInfraPathCountByCategory[layer.id] ?? 0).toLocaleString()}개 · OSM`
@@ -994,7 +994,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "conflict-zones",
-            label: "추정 전쟁지역 (데모)",
+            label: "추정 분쟁 지역 (데모)",
             detail: showConflictZones
               ? `${visibleConflictZones.length.toLocaleString()}곳 · ${zoom}`
               : "꺼짐 · 참고용 휴리스틱",
@@ -1014,7 +1014,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "ucdp",
-            label: "분쟁 사건 기록",
+            label: "분쟁·전쟁 기록",
             detail: showUcdpEvents
               ? `세계 분쟁·전쟁 기록 · ${UCDP_ATTRIBUTION_SHORT}`
               : "꺼짐 · UCDP 세계 분쟁 DB",
@@ -1218,7 +1218,7 @@ export function useLayerPanelCategories({
               },
               {
                 id: "lng-terminals",
-                label: "LNG(액화가스) 터미널",
+                label: "액화가스(LNG) 터미널",
                 detail: showLngTerminals
                   ? `${visibleStaticPoints.filter((p) => p.kind === "lng-terminal").length.toLocaleString()}곳`
                   : off(staticCounts.lngTerminals),
@@ -1352,7 +1352,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "ukmto-incidents",
-            label: "UKMTO 상선 피습·나포 경보",
+            label: "상선 피습·나포 경보",
             detail: showUkmtoIncidents
               ? ukmtoStatus === "loading"
                 ? "불러오는 중…"
@@ -1366,7 +1366,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "navarea-warnings",
-            label: "NAVAREA 항행경보",
+            label: "해상 항행경보",
             detail: showNavareaWarnings
               ? navareaStatus === "loading"
                 ? "불러오는 중…"
@@ -1442,7 +1442,7 @@ export function useLayerPanelCategories({
             ? ([
                 {
                   id: "us-dfc-supply",
-                  label: "미국 DFC 개발금융망",
+                  label: "미국 개발금융 투자국",
                   detail: showUsDfcSupplyChain
                     ? `호 ${usDfcSupplyPaths.length.toLocaleString()} · DFC Active Projects`
                     : "꺼짐 · 미국 개발금융 투자 대상국",
@@ -1462,7 +1462,7 @@ export function useLayerPanelCategories({
                 },
                 {
                   id: "strategic-corridors",
-                  label: "전략 물류 회랑",
+                  label: "전략 물류 통로",
                   detail: showStrategicCorridors
                     ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
                     : "꺼짐 · INSTC·미들 코리도·TSR 등",
@@ -1474,7 +1474,7 @@ export function useLayerPanelCategories({
             : ([
                 {
                   id: "strategic-corridors",
-                  label: "전략 물류 회랑",
+                  label: "전략 물류 통로",
                   detail: showStrategicCorridors
                     ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
                     : "꺼짐 · INSTC·미들 코리도·TSR 등",
@@ -1531,7 +1531,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "logistics-risk",
-            label: "초크포인트·물류 거점",
+            label: "해상 요충지·협로",
             detail: showLogisticsRisk
               ? `${visibleStaticPoints.filter((p) => p.kind === "chokepoint" || p.kind === "logistics-hub").length.toLocaleString()}곳 · 해협·운하 등`
               : off(staticCounts.logisticsRisk),
@@ -1541,7 +1541,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "logistics-stress",
-            label: "위험·정체 해협 색 표시",
+            label: "혼잡·위험 해협 표시",
             detail: showLogisticsStress
               ? "위험하거나 막힌 곳을 붉게 (UKMTO·PortWatch 기준)"
               : "꺼짐 · 모두 주황색",
@@ -1600,8 +1600,8 @@ export function useLayerPanelCategories({
                   id: "weekly-ship-moves" as const,
                   label:
                     labelLanguage === "en"
-                      ? "Weekly ship moves (public obs.)"
-                      : "주간 함선 이동기 (공개 관측)",
+                      ? "Weekly ship movements"
+                      : "주간 함선 동향",
                   detail: showWeeklyShipMoves
                     ? labelLanguage === "en"
                       ? `Map fixes ${weeklyShipMoveCount.toLocaleString()}`
@@ -1617,8 +1617,8 @@ export function useLayerPanelCategories({
                   id: "reef-watch" as const,
                   label:
                     labelLanguage === "en"
-                      ? "ReefWatch SCS features"
-                      : "ReefWatch 남중국해 암초",
+                      ? "South China Sea reefs & islands"
+                      : "남중국해 인공섬·암초",
                   detail: showReefWatch
                     ? reefWatchStatus === "error"
                       ? labelLanguage === "en"
@@ -1643,7 +1643,7 @@ export function useLayerPanelCategories({
                   label:
                     labelLanguage === "en"
                       ? "Spoofed & shadow fleet"
-                      : "위장·그림자함대",
+                      : "위장·그림자 함대",
                   detail: showDisguisedVessels
                     ? disguisedLoading
                       ? labelLanguage === "en"
@@ -1763,7 +1763,7 @@ export function useLayerPanelCategories({
               },
               {
                 id: "military-bases-eastern-nato",
-                label: "동유럽 NATO",
+                label: "동유럽 NATO 기지",
                 detail: showEasternNatoMilitaryBases
                   ? `시설 ${milForceCount("eastern-nato")}`
                   : "꺼짐 · 폴란드·발트·핀란드",
@@ -1775,7 +1775,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "strategic-missile",
-            label: "전략 미사일 시설",
+            label: "미사일 기지·시험장",
             detail:
               [
                 showMissileSilos && "사일로",
@@ -1784,7 +1784,7 @@ export function useLayerPanelCategories({
                 showMissileSiloFields && "조사격자",
               ]
                 .filter(Boolean)
-                .join(" · ") || "꺼짐 · PLARF·RVSN·남아시아",
+                .join(" · ") || "꺼짐 · 중국·러시아·남아시아",
             checked:
               showMissileSilos ||
               showStrategicMissileBases ||
@@ -1801,7 +1801,7 @@ export function useLayerPanelCategories({
             options: [
               {
                 id: "missile-silos",
-                label: "PLARF 미사일 사일로",
+                label: "중국 미사일 사일로",
                 detail: showMissileSilos
                   ? `사일로 ${visibleStaticPoints.filter((p) => p.kind === "missile-silo").length.toLocaleString()} · 위먼·하미·항긴기`
                   : off(staticCounts.missileSilos),
@@ -1831,7 +1831,7 @@ export function useLayerPanelCategories({
               },
               {
                 id: "missile-silo-fields",
-                label: "PLARF 후보 조사 격자",
+                label: "중국 사일로 후보 조사지",
                 detail: showMissileSiloFields
                   ? `격자 ${visibleMissileSiloFields.length.toLocaleString()} · 확인 사일로 아님`
                   : off(staticCounts.missileSiloFields),
@@ -1853,7 +1853,7 @@ export function useLayerPanelCategories({
           },
           {
             id: "intel",
-            label: "정보 수집 거점",
+            label: "정보·감시 거점",
             detail: showIntelHotspots ? "정찰·감시 거점" : "꺼짐",
             checked: layerPrefs.showIntelHotspots,
             onChange: setShowIntelHotspots,
@@ -1880,7 +1880,7 @@ export function useLayerPanelCategories({
                 },
                 {
                   id: "gps-interference",
-                  label: "GPS 재밍 (GPSJam)",
+                  label: "GPS 재밍",
                   detail: showGpsInterference
                     ? gpsJamStatus === "loading"
                       ? "불러오는 중…"
@@ -1945,7 +1945,7 @@ export function useLayerPanelCategories({
         items: [
           {
             id: "firms",
-            label: "위성 화재 (NASA FIRMS)",
+            label: "위성 화재 감지",
             detail: showFirmsFires
               ? `전장 열감지 ${visibleFirmsFires.length.toLocaleString()} · 폭격추정 ${firmsCombatFireIds.length.toLocaleString()}`
               : firmsError || "꺼짐 · 전장 권역만",
