@@ -87,6 +87,7 @@ scripts/telegram-osint/.session/
 /data/sources/*.sqlite
 /data/sources/*.sqlite.zip
 /scripts/osm-pbf/upload-r2.log
+/scripts/osm-pbf/ukraine-queue.log
 /scripts/crink-infra/overnight.log
 /scripts/crink-infra/work/
 /public/data/crink/*.geojson
