@@ -3,6 +3,7 @@ import {
   applyBasemapGlobeProjection,
   injectGlobeProjection,
   isMercatorProjection,
+  setCityBuildingsMercator,
   type BasemapMapLike,
 } from "@/lib/basemapMode";
 
@@ -40,6 +41,16 @@ describe("applyBasemapGlobeProjection", () => {
     };
     applyBasemapGlobeProjection(map);
     expect(map.getProjection?.()?.type).toBe("globe");
+  });
+
+  it("keeps mercator while city 3D buildings are armed", () => {
+    const map = mockMap("vertical-perspective");
+    setCityBuildingsMercator(map, true);
+    expect(map.getProjection?.()?.type).toBe("mercator");
+    applyBasemapGlobeProjection(map);
+    expect(map.getProjection?.()?.type).toBe("mercator");
+    setCityBuildingsMercator(map, false);
+    expect(map.getProjection?.()?.type).toBe("vertical-perspective");
   });
 
   it("detects unset projection as mercator-like", () => {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="ship">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f2740"/>
+      <stop offset="100%" stop-color="#0a1628"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)"/>
+  <path d="M80 220 Q320 180 560 220 L520 280 Q320 310 120 280 Z" fill="#1e3a5f"/>
+  <path d="M160 220 L200 140 H360 L400 220 Z" fill="#94a3b8" opacity="0.9"/>
+  <rect x="240" y="100" width="24" height="50" fill="#cbd5e1"/>
+  <text x="40" y="330" fill="#64748b" font-family="system-ui,sans-serif" font-size="18" letter-spacing="0.2em">NAVAL</text>
+</svg>

@@ -468,7 +468,7 @@ export function selectionForWestpacPulseOverview(): NavSelection {
 /** HoverNav용 가상 그룹 — 실제 UI는 커스텀 드롭다운 */
 export const HUB_NAV_GROUP = {
   id: "axis-hubs",
-  label: "반서방 축",
+  label: "CRINK",
   items: HUB_DEFINITIONS.map((hub) => ({
     id: hub.id,
     label: hub.label,

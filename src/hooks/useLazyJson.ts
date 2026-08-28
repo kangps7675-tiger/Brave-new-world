@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { dataPath } from "@/lib/dataProfile";
+import { fetchDataWithFallback } from "@/lib/dataProfile";
 
 export function useLazyJsonArray<T>(
   relativePath: string,
@@ -18,7 +18,7 @@ export function useLazyJsonArray<T>(
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(dataPath(relativePath), { cache: "no-store" });
+      const response = await fetchDataWithFallback(relativePath, { cache: "no-store" });
       if (!response.ok) throw new Error(`${relativePath}: ${response.status}`);
       const raw = (await response.json()) as unknown[];
       setData(expand(raw));
@@ -52,7 +52,7 @@ export function useLazyJsonObject<T>(
     let mounted = true;
     setLoading(true);
 
-    fetch(dataPath(relativePath), { cache: "no-store" })
+    fetchDataWithFallback(relativePath, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) return null;
         return parse(await response.json());

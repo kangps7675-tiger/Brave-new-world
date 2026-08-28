@@ -4,6 +4,10 @@ import {
   readVideoNewsFromD1,
   writeVideoNewsToD1,
 } from "@/lib/news/d1VideoNewsSnapshots";
+import {
+  ensureKoreanVideoPayload,
+  translateVideoNewsPayload,
+} from "@/lib/news/translateVideoNews";
 import { videoTopicForPackages } from "@/lib/news/videoFeedCatalog";
 import type { VideoNewsPayload, VideoNewsTopic } from "@/lib/news/videoTypes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -63,7 +67,10 @@ export async function buildAndCacheVideoNews(options: {
 }): Promise<VideoNewsPayload> {
   const key = videoNewsCacheKey(options.topic, options.lang);
   const max = options.max ?? videoNewsServerFetchMax();
-  const payload = await buildVideoNewsStream({ topic: options.topic, max });
+  const payload = await translateVideoNewsPayload(
+    await buildVideoNewsStream({ topic: options.topic, max }),
+    options.lang,
+  );
   writeVideoMemoryCache(key, payload);
   void writeVideoNewsToD1({
     cacheKey: key,
@@ -92,12 +99,21 @@ export async function resolveVideoNews(options: {
 
   if (!options.preferLive) {
     const mem = readVideoMemoryCache(key);
-    if (mem) return { payload: { ...mem, source: "memory" }, source: "memory" };
+    if (mem) {
+      const payload =
+        options.lang === "ko" ? await ensureKoreanVideoPayload(mem) : mem;
+      if (payload !== mem) writeVideoMemoryCache(key, payload);
+      return { payload: { ...payload, source: "memory" }, source: "memory" };
+    }
 
     const fromD1 = await readVideoNewsFromD1(key, VIDEO_NEWS_D1_TTL_MS);
     if (fromD1?.payload) {
-      writeVideoMemoryCache(key, fromD1.payload);
-      return { payload: fromD1.payload, source: "d1", ageMs: fromD1.ageMs };
+      const payload =
+        options.lang === "ko"
+          ? await ensureKoreanVideoPayload(fromD1.payload)
+          : fromD1.payload;
+      writeVideoMemoryCache(key, payload);
+      return { payload: { ...payload, source: "d1" }, source: "d1", ageMs: fromD1.ageMs };
     }
   }
 

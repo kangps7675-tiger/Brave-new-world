@@ -83,7 +83,6 @@ import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { UnifiedAirRaidDropdown } from "@/components/UnifiedAirRaidDropdown";
 import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { HoverHint } from "@/components/HoverHint";
-import { ExplorationTabs } from "@/components/ExplorationTabs";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
@@ -178,8 +177,6 @@ import { SentinelHud, SentinelModeButton } from "@/components/SentinelModeContro
 import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
 import { QuickStartCoach } from "@/components/QuickStartCoach";
-import { EXPLORATION_PRESETS } from "@/data/navRegions";
-import { ECON_EXPLORATION_PRESETS } from "@/data/econNavRegions";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { trackEvent } from "@/lib/trackClient";
 import { NewFeedsIranPanel } from "@/components/NewFeedsIranPanel";
@@ -196,7 +193,7 @@ import { US_DFC_LINK_COUNT } from "@/lib/usDfcSupplyPaths";
 import { HamburgerIcon } from "@/components/globe/HamburgerIcon";
 import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
 import type { EntryGate, Selection } from "@/components/globe/types";
-import type { NavSelection, ExplorationPreset } from "@/data/navRegions";
+import type { NavSelection } from "@/data/navRegions";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import type { ViewerMode, ViewTheaterChoice } from "@/lib/viewPackages";
 import type { TransportPath, UsCarrier } from "@/data/geoTypes";
@@ -386,7 +383,6 @@ export type DashboardOverlayHostProps = {
     kind: AirRaidSirenKind,
     options?: { deferSirenUntilArrive?: boolean; skipSiren?: boolean },
   ) => void;
-  onExplorationSelect: (preset: ExplorationPreset) => void;
   onAskLayersApply: (payload: AskLayersApplyPayload) => void;
   onSetShowFirstVisitTour: (v: boolean) => void;
   onSetTourActive: (v: boolean) => void;
@@ -574,7 +570,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetShowMobileAlertFeed,
     onMaybeOfferAirRaidCoach,
     onAirRaidFocus,
-    onExplorationSelect,
     onAskLayersApply,
     onSetShowFirstVisitTour,
     onSetTourActive,
@@ -710,7 +705,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {!intelSheetOpen ? (
       <div
-        className="pointer-events-none absolute left-3 z-[200] flex flex-col items-start gap-2"
+        className={`pointer-events-none absolute left-3 flex flex-col items-start gap-2 ${
+          showDailyRankPanel ? "z-[650]" : "z-[200]"
+        }`}
         style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
       >
         <div className="pointer-events-auto flex shrink-0 items-center gap-2">
@@ -862,26 +859,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   ) : null}
                 </div>
               ) : null}
-              {!showLeftPanel &&
-              !rightDockOpen &&
-              !econNavSelection &&
-              !regionNavSelection &&
-              !selected ? (
-                <ExplorationTabs
-                  presets={isEconomyViewer ? ECON_EXPLORATION_PRESETS : EXPLORATION_PRESETS}
-                  activeId={null}
-                  onSelect={onExplorationSelect}
-                  variant={isEconomyViewer ? "hubs" : "fronts"}
-                  label={t(
-                    isEconomyViewer ? "hoverExplorationHubs" : "hoverExplorationFronts",
-                    labelLanguage,
-                  )}
-                  hint={t(
-                    isEconomyViewer ? "hoverExplorationHubsHint" : "hoverExplorationFrontsHint",
-                    labelLanguage,
-                  )}
-                />
-              ) : null}
+              {/* 데스크톱 주요전장/허브는 TopChrome ScenarioPresetChips만 (여기 ExplorationTabs 중복 제거) */}
               <div className="pointer-events-auto flex shrink-0 items-center gap-3">
                 {gateClear ? (
                   <div className="mx-1 shrink-0">
@@ -1281,8 +1259,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !weeklyExpanded &&
       !periodicBriefing &&
       !sentinelActive ? (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2 sm:top-4">
-          <p className="rounded-sm border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
+        // 검색창(z≈200)과 같은 top에 두면 금색 테두리만 뒤로 비쳐 "빈 입력칸"처럼 보임.
+        // compact에선 --hover-nav-base-height=0 이라 min으로 검색줄 높이만큼 확보.
+        <div
+          className="pointer-events-none absolute left-1/2 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2"
+          style={{
+            top: "calc(max(3.5rem, var(--hover-nav-base-height, 0px)) + 0.45rem + env(safe-area-inset-top, 0px))",
+          }}
+        >
+          <p className="rounded-full border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
             {watchFocusLine}
           </p>
         </div>
@@ -1446,18 +1431,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-start gap-2 sm:left-4 ${
-            telegramMiniPanelVisible
-              ? "cv-chrome-daily-bottom--telegram"
-              : "cv-chrome-daily-bottom"
-          } ${
-            // 접었을 때 420px 폭을 유지하면 보이지 않는 영역이 지도 클릭을 막는다
-            showDailyRankPanel
-              ? isTabletUi
-                ? "w-[min(360px,calc(100vw-1.5rem))]"
-                : "w-[min(420px,calc(100vw-1.5rem))]"
-              : "w-fit"
-          }`}
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-stretch gap-2 sm:left-4 cv-chrome-daily-bottom ${
+            telegramMiniPanelVisible ? "cv-chrome-daily-bottom--telegram" : ""
+          } ${showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"}`}
         >
           {gateClosed &&
           !showModePicker &&
@@ -1475,26 +1451,22 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             />
           ) : null}
           {showDailyRankPanel ? (
-            <div className="relative w-full">
-              <button
-                type="button"
-                onClick={() => onToggleDailyRankPanel(false)}
-                aria-label={labelLanguage === "en" ? "Collapse daily panel" : "일일 패널 접기"}
-                title={labelLanguage === "en" ? "Collapse" : "접기"}
-                className="absolute -top-2.5 right-0 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-600/60 bg-slate-950/90 text-meta text-slate-300 shadow-lg backdrop-blur-md transition hover:border-slate-400 hover:text-slate-100"
-              >
-                ✕
-              </button>
-              {/* 위로 올라간 만큼 화면 위로 넘치지 않게 — 넘치면 내부 스크롤 */}
-              <div
-                className={`intel-scroll-y ${
-                  telegramMiniPanelVisible
-                    ? "max-h-[calc(100dvh-29rem)]"
-                    : isTabletUi
-                      ? "max-h-[calc(100dvh-12rem)]"
-                      : "max-h-[calc(100dvh-9rem)]"
-                }`}
-              >
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-sky-400/25 bg-[#071018]/94 shadow-2xl backdrop-blur-md">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
+                <p className="min-w-0 truncate text-meta font-semibold text-sky-100">
+                  {labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onToggleDailyRankPanel(false)}
+                  aria-label={labelLanguage === "en" ? "Close daily panel" : "일일 패널 닫기"}
+                  title={labelLanguage === "en" ? "Close" : "닫기"}
+                  className="tap-target flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-500/60 bg-slate-950/90 text-sm text-slate-200 transition hover:border-slate-300 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="intel-scroll-y min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2.5 py-2">
                 <DailyRankSharePanel lang={labelLanguage} />
               </div>
             </div>
@@ -1685,7 +1657,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {breakingFlash && !airRaidBriefing ? (
+      {breakingFlash && !airRaidBriefing && !periodicBriefing && !weeklyExpanded ? (
         <BreakingFlashParchment
           briefing={breakingFlash}
           lang={labelLanguage}

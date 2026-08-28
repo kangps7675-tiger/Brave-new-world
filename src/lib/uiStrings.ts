@@ -678,8 +678,8 @@ const UI = {
   },
   basemapTerrain: { ko: "지형", en: "Terrain" },
   basemapTerrainHint: {
-    ko: "밝은 벡터 · DEM 기복 · 고줌 3D 건물",
-    en: "Light vector · DEM relief · 3D buildings at high zoom",
+    ko: "밝은 벡터 · DEM 기복 · 고줌 OSM 3D 건물",
+    en: "Light vector · DEM relief · OSM 3D buildings at high zoom",
   },
 
   intelNews: { ko: "Intel 뉴스", en: "Intel news" },

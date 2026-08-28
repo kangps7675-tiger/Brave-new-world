@@ -133,6 +133,7 @@ type IngestResult = {
     fetched: number;
     csis: number;
     nti: number;
+    crink: number;
     ntiPath: string;
     errors: string[];
     skipped: boolean;
@@ -311,6 +312,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         fetched: rm.fetched,
         csis: rm.csis,
         nti: rm.nti,
+        crink: rm.crink,
         ntiPath: rm.ntiPath,
         errors: rm.errors.slice(0, 6),
         skipped: rm.skipped,
@@ -321,6 +323,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         fetched: 0,
         csis: 0,
         nti: 0,
+        crink: 0,
         ntiPath: "error",
         errors: [error instanceof Error ? error.message : "reference monitor ingest failed"],
         skipped: false,

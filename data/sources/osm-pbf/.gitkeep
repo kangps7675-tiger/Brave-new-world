@@ -1,0 +1,2 @@
+# Local cache for Geofabrik dumps (gitignored). Canonical copy: R2 sources/osm-pbf/
+# npm run osm:pbf:sync   npm run osm:pbf:pull

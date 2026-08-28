@@ -1,4 +1,4 @@
-import { and, desc, gte, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { referenceMonitorItems } from "@/db/schema";
@@ -32,15 +32,14 @@ function safeJsonArray(raw: string | null | undefined): string[] {
 }
 
 /**
- * CSIS Beyond Parallel · NTI 레퍼런스 감시 — cron 적재분을 D1에서 읽기만 한다.
+ * CSIS Beyond Parallel · NTI · CRINK 허브 모니터 — cron 적재분을 D1에서 읽기만 한다.
  *
  * 쿼리:
- *   ?source=csis-beyond-parallel,nti
- *   ?topic=missile-silo,dprk       (하나라도 걸리면 통과)
+ *   ?source=csis-beyond-parallel,nti,38-north
+ *   ?hub=PRK|CHN|RUS|IRN
+ *   ?topic=missile-silo,dprk,hub:PRK
  *   ?minRelevance=3
  *   ?limit=40
- *
- * 테이블 미마이그레이션 시 빈 배열로 안전 폴백 (다른 D1 라우트와 동일).
  */
 export async function GET(request: Request) {
   const stub = apiStubResponse("reference-monitor", request);
@@ -49,6 +48,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const sources = parseList(url.searchParams.get("source"));
   const topics = parseList(url.searchParams.get("topic"));
+  const hub = (url.searchParams.get("hub") || "").trim().toUpperCase();
   const minRelevance = Number(url.searchParams.get("minRelevance") ?? "0");
   const limit = Math.min(
     MAX_LIMIT,
@@ -59,10 +59,12 @@ export async function GET(request: Request) {
     const db = await getDb();
     const filters = [];
     if (sources.length > 0) filters.push(inArray(referenceMonitorItems.source, sources));
+    if (hub === "PRK" || hub === "CHN" || hub === "RUS" || hub === "IRN") {
+      filters.push(eq(referenceMonitorItems.hub, hub));
+    }
     if (Number.isFinite(minRelevance) && minRelevance > 0) {
       filters.push(gte(referenceMonitorItems.relevance, minRelevance));
     }
-    // topics 는 JSON 문자열 컬럼이라 SQL LIKE 로 1차 필터 후 아래에서 정확히 거른다
     for (const topic of topics) {
       filters.push(sql`${referenceMonitorItems.topicsJson} LIKE ${`%"${topic}"%`}`);
     }
@@ -89,6 +91,12 @@ export async function GET(request: Request) {
       publishedAt: row.publishedAt,
       updatedAt: row.updatedAt,
       firstSeenAt: row.firstSeenAt,
+      hub: row.hub,
+      placeId: row.placeId,
+      lat: row.lat,
+      lng: row.lng,
+      imageUrl: row.imageUrl,
+      thumbCredit: row.thumbCredit,
     }));
 
     const sourceCounts = new Map<string, { source: string; label: string; count: number }>();
@@ -107,13 +115,14 @@ export async function GET(request: Request) {
         items,
         sources: [...sourceCounts.values()],
         count: items.length,
+        hub: hub || null,
         fetchedAt: new Date().toISOString(),
       },
       { headers: publicCacheHeaders(CDN_CACHE.referenceMonitor) },
     );
   } catch {
     return NextResponse.json(
-      { items: [], sources: [], count: 0, fetchedAt: new Date().toISOString() },
+      { items: [], sources: [], count: 0, hub: hub || null, fetchedAt: new Date().toISOString() },
       { status: 200, headers: { "Cache-Control": "public, s-maxage=60" } },
     );
   }

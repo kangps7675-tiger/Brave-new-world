@@ -83,6 +83,16 @@ import {
 import { briTradeStrokeWidth } from "@/lib/briTradePaths";
 import { usDfcSupplyStrokeWidth } from "@/lib/usDfcSupplyPaths";
 import { dimAxisLinkColor } from "@/lib/axisLinkSelection";
+
+/**
+ * 다구간(육로↔해상) 실측 회랑은 leg마다 path.id가 `edgeId--legN`/`arms-...--legN`으로
+ * 갈라진다. meta.groupId(항상 원래 edge/쌍 id)가 있으면 그걸, 없으면 path.id를 그대로
+ * 쓴다 — 선택된 회랑의 leg 전체가 같이 하이라이트/디밍되게 하려면 반드시 이 함수로 비교해야 한다.
+ */
+function axisLinkGroupId(path: TransportPath): string {
+  const groupId = path.meta?.groupId;
+  return typeof groupId === "string" && groupId ? groupId : path.id;
+}
 import { airRaidFocusBoxPolygon, isAirRaidFocusPath } from "@/lib/airRaidFocus";
 import { HOVER, hatchStyleLabelLocalized, pathKindLabel, tensionLabel } from "@/lib/hoverLabels";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -927,9 +937,11 @@ export function useGlobeMapGlobeProps(
     pathsTransitionDuration: 0,
     pathColor: (path: TransportPath) => {
       if (path.kind === "axis-link" && selectedAxisPathId) {
+        // 다구간(육로↔해상) 회랑은 leg마다 path.id가 갈라지므로 meta.groupId로 비교해야
+        // 회랑 하나를 고르면 그 leg 전체가 같이 하이라이트/디밍된다.
         return dimAxisLinkColor(
           path.accentColor,
-          path.id === selectedAxisPathId,
+          axisLinkGroupId(path) === selectedAxisPathId,
         );
       }
       if (path.accentColor) return path.accentColor;
@@ -1029,12 +1041,19 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "neptun-projection") return 1.05;
       if (path.kind === "axis-link") {
         if (selectedAxisPathId) {
-          return path.id === selectedAxisPathId ? 2.35 : 0.85;
+          return axisLinkGroupId(path) === selectedAxisPathId ? 2.35 : 0.85;
         }
         return 1.35;
       }
       if (path.kind === "bri-trade") return Math.max(3.2, briTradeStrokeWidth(path));
       if (path.kind === "us-dfc-supply") return Math.max(3.2, usDfcSupplyStrokeWidth(path));
+      if (path.kind === "strategic-corridor") {
+        const rank = path.scalerank ?? 2;
+        if (rank <= 1) return 2.8;
+        if (rank <= 2) return 2.1;
+        if (rank <= 3) return 1.55;
+        return 1.15;
+      }
       if (path.kind === "coastline") return 0.38;
       if (path.kind === "country-border") {
         return globeTextures.vectorBase
@@ -1055,7 +1074,8 @@ export function useGlobeMapGlobeProps(
       if (
         path.kind === "oil-pipeline" ||
         path.kind === "gas-pipeline" ||
-        path.kind === "subsea-pipeline"
+        path.kind === "subsea-pipeline" ||
+        path.kind === "crink-infra"
       ) {
         // 실제 px 굵기는 widthMode "pipeline" (0.1~0.6). strokeAngular는 미사용.
         return 0.2;

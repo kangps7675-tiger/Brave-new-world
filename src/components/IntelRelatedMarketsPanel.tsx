@@ -23,10 +23,10 @@ import {
   type TickerRelatedNewsPick,
 } from "@/lib/news/tickerRelatedNews";
 import type { NewsStreamItem } from "@/lib/news/types";
-import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
 import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { loadWatchSymbols, toggleWatchSymbol } from "@/lib/watchlistPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { SovereignRatesPanel } from "@/components/SovereignRatesPanel";
 
 type StockTickersResponse = {
@@ -107,6 +107,7 @@ function MarketCardNewsDropdown({
   picks: TickerRelatedNewsPick[];
   lang: "ko" | "en";
 }) {
+  const { localizedTitle } = useNewsStreamContext();
   const [open, setOpen] = useState(false);
   const count = picks.length;
   const label =
@@ -151,7 +152,7 @@ function MarketCardNewsDropdown({
                   <span className="truncate text-micro text-slate-500">{item.source}</span>
                 </div>
                 <p className="mt-0.5 line-clamp-2 text-meta leading-snug text-slate-100/90">
-                  {displayNewsItemTitle(item, lang)}
+                  {localizedTitle(item)}
                 </p>
               </a>
             </li>

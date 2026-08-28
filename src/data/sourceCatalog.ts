@@ -409,7 +409,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     url: "/data/{profile}/military-bases.json",
     cadence: "Project versioned",
     attribution: "OpenStreetMap / public datasets",
-    notes: "Major military installations worldwide (static profile JSON).",
+    notes: "U.S. bases plus Korea/Japan/Philippines OSM airfields and eastern NATO front-line air/naval sites.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
@@ -522,17 +522,70 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "CSIS Beyond Parallel·NTI — RSS 인용 범위 확인 필요.",
   },
   {
+    layerId: "crink-hub-monitor",
+    source: "38 North · AMTI · Critical Threats · ISW · Jamestown · ASPI 외 CRINK 전문",
+    url: "/api/reference-monitor?hub=",
+    cadence: "~6h poll (cron ingest) · client poll while hub open",
+    attribution: "Each outlet RSS terms · title/summary/link only",
+    notes:
+      "CRINK 허브 우레일 — crinkSourceRegistry hub-monitor 피드. 속보 news-stream hero와 분리. 기관 위성·맵 원본 미포함.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "unknown",
+    commercialNote:
+      "연구소별 RSS 약관 상이. 제목·짧은 요약·원문 링크만. 그래픽·전선 타일 재전시 금지.",
+  },
+  {
+    layerId: "crink-thumb-sentinel-nasa",
+    source: "Sentinel Hub (optional) · NASA GIBS Worldview Snapshots",
+    url: "https://wvs.earthdata.nasa.gov/",
+    cadence: "On ingest geocode · R2 cache thumbs/sat/*",
+    attribution: "Copernicus Sentinel / NASA GIBS (public domain)",
+    notes:
+      "좌표 있는 허브 카드 썸네일. Sentinel 키 없으면 NASA GIBS. CSIS/ISW og:image 미사용.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "allowed",
+    commercialNote: "Sentinel CC BY 4.0 표기 · NASA 퍼블릭 도메인.",
+  },
+  {
+    layerId: "crink-thumb-globe-bake",
+    source: "ConflictView MapLibre capture (Playwright bake)",
+    url: "/internal/globe-thumb",
+    cadence: "CI/local bake → R2 thumbs/globe/{placeId}.jpg",
+    attribution: "ConflictView globe render",
+    notes:
+      "가제트 placeId 프리베이크. Workers 요청 경로에서 헤드리스 렌더하지 않음.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "자체 렌더링 — 저작권 이슈 없음.",
+  },
+  {
     layerId: "basemap-openfreemap-liberty",
     source: "OpenFreeMap Liberty (MapLibre)",
     url: "https://tiles.openfreemap.org/styles/liberty",
     cadence: "Vector style CDN",
     attribution: "© OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors",
     notes:
-      "Nav 「지형」 basemap — MapLibre-compatible OSM vector style with DEM (not satellite raster).",
+      "Nav 「지형」 — OpenFreeMap Liberty 벡터 + DEM. 고줌에서 Esri World Imagery가 바탕에 드러남(도로·라벨은 벡터 유지).",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
     commercialNote: "OpenFreeMap·OpenMapTiles·OSM(ODbL) — 표기 필수.",
+  },
+  {
+    layerId: "basemap-esri-world-imagery",
+    source: "Esri World Imagery",
+    url: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9",
+    cadence: "Raster tiles CDN",
+    attribution: "Esri, Maxar, Earthstar Geographics, GIS User Community",
+    notes:
+      "Terrain basemap underlay — MapLibre raster below Liberty vector fills (fade-in on zoom).",
+    status: "shipped",
+    ingest: "mapped-existing",
+    commercialUse: "unknown",
+    commercialNote: "Esri World Imagery — 출처 표기 필수. 상용 재배포 시 Esri 약관 확인.",
   },
   {
     layerId: "basemap-aws-terrarium",
@@ -548,15 +601,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "basemap-openfreemap-buildings",
-    source: "OpenFreeMap",
-    url: "https://openfreemap.org/",
-    cadence: "Vector tiles",
-    attribution: "© OpenFreeMap · © OpenStreetMap contributors",
-    notes: "3D building fill-extrusion in 「지형」 mode at zoom ≥ 14.",
+    source: "Cesium OSM Buildings (Ion) · OpenFreeMap fallback",
+    url: "https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/",
+    cadence: "3D Tiles (zoom ≥ 14)",
+    attribution: "© Cesium OSM Buildings · © OpenStreetMap contributors",
+    notes:
+      "Terrain mode zoom ≥ 14: Cesium OSM Buildings (3D Tiles via deck.gl, shared MapLibre WebGL). Fill-extrusion fallback if no Ion token.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
-    commercialNote: "OpenFreeMap·OSM(ODbL) — 표기 필수.",
+    commercialNote:
+      "Cesium OSM Buildings — OSM(ODbL) 표기 + Cesium ion 약관. 세슘 뷰어가 아니라 타일셋만 사용.",
   },
   {
     layerId: "ai-data-centers",
@@ -579,12 +634,12 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     attribution:
       "Benden, P. (2022). Global Shipping Lanes. Zenodo. CC BY 4.0 — https://doi.org/10.5281/zenodo.6361763",
     notes:
-      "Schematic major/middle/minor maritime corridors georeferenced from CIA Map of the World's Oceans (2012), with edits. Low-opacity cyan solid strokes (density by overlap); same strokes tint reddish near curated chokepoints. Not live AIS tracks.",
+      "Upstream GeoJSON vertices from Benden Global Shipping Lanes (Major/Middle/Minor). Coordinates preserved at build (no ocean A* reshape). Low-opacity cyan strokes; rose tint near curated chokepoints. Not live AIS tracks.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
     commercialNote:
-      "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo). Statista 재사용 제외 조건은 업스트림 LICENSE 참고.",
+      "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo DOI 10.5281/zenodo.6361763). Statista 재사용 제외는 업스트림 LICENSE·docs/third-party/shipping-lanes.md 참고.",
   },
   {
     layerId: "logistics-risk",
@@ -1060,11 +1115,11 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     layerId: "hapi-conflict-casualties",
     source: "ACLED via HDX HAPI · conflict-events (political_violence fatalities)",
     url: "https://hapi.humdata.org/api/v2/coordination-context/conflict-events → /api/hapi-conflict-casualties",
-    cadence: "Live HAPI fetch · ~30m cache · 4-month lookback",
+    cadence: "Live HAPI fetch · ~30m cache · theater-start cumulative (UKR/IRN/Gaza) · 4-month CHN/TWN",
     attribution:
       "Armed Conflict Location & Event Data Project (ACLED) · HDX HAPI · OCHA HDX · www.acleddata.com",
     notes:
-      "원천: ACLED. 배포/질의: OCHA HDX HAPI conflict-events. Geopolitics: Ukraine frontline oblasts + Gaza/south Lebanon fatalities; Iran (IRN) admin1 events/fatalities; China/Taiwan political_violence event dens (often 0 fatalities). No wounded field. Docs: https://hapi.humdata.org/docs · Dataset: https://data.humdata.org/dataset/hdx-hapi-conflict-event · ACLED attribution: https://acleddata.com/attributionpolicy",
+      "원천: ACLED. 배포/질의: OCHA HDX HAPI conflict-events. 전선 사망은 개전일부터 누적(UKR 2022-02-24, IRN 2026-02-28, Gaza/Lebanon 2023-10-07). 중국·대만은 약 4개월 사건 창. 부상 필드 없음. 우크라 명의 KIA+CSIS WIA는 mediazona-casualties. Docs: https://hapi.humdata.org/docs · Dataset: https://data.humdata.org/dataset/hdx-hapi-conflict-event · ACLED attribution: https://acleddata.com/attributionpolicy",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "prohibited",
@@ -1091,7 +1146,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Homepage scrape · 1h cache · Kaggle panel seed fallback",
     attribution: "Mediazona · BBC Russian Service · CSIS (WIA est.) · Meduza",
     notes:
-      "Reference API retained. Globe overlay now prefers HAPI active-front fatalities; Mediazona remains named RU KIA lower bound for methodology.",
+      "Globe overlay: named RU KIA (lower bound) + CSIS WIA estimate on the Ukraine theater. Per-oblast ACLED fatalities remain on hapi-conflict-casualties (different definition).",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "license-required",

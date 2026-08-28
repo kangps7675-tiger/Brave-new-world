@@ -510,29 +510,37 @@ export const referenceMonitorItems = sqliteTable(
   "reference_monitor_items",
   {
     id: text("id").primaryKey(),
-    /** csis-beyond-parallel | nti */
+    /** csis-beyond-parallel | nti | 38-north | amti | … */
     source: text("source").notNull(),
     sourceLabel: text("source_label").notNull(),
-    /** rss | article | atomic-pulse | news — 소스 내 구획 */
+    /** rss | article | atomic-pulse | news | google-rss — 소스 내 구획 */
     channel: text("channel").notNull(),
     url: text("url").notNull(),
     title: text("title").notNull(),
     summary: text("summary"),
     author: text("author"),
     categoriesJson: text("categories_json").notNull().default("[]"),
-    /** 우리 도메인 매칭 태그 — dprk | plarf-silo | missile-test | nuclear … */
+    /** 우리 도메인 매칭 태그 — dprk | plarf-silo | missile-test | nuclear | hub:PRK … */
     topicsJson: text("topics_json").notNull().default("[]"),
     relevance: integer("relevance").notNull().default(0),
     publishedAt: text("published_at"),
     updatedAt: text("updated_at"),
     firstSeenAt: text("first_seen_at").notNull(),
     ingestedAt: text("ingested_at").notNull(),
+    /** CRINK hub — CHN | RUS | PRK | IRN */
+    hub: text("hub"),
+    placeId: text("place_id"),
+    lat: real("lat"),
+    lng: real("lng"),
+    imageUrl: text("image_url"),
+    thumbCredit: text("thumb_credit"),
   },
   (t) => ({
     sourceIdx: index("idx_reference_monitor_source").on(t.source, t.publishedAt),
     updatedIdx: index("idx_reference_monitor_updated").on(t.updatedAt),
     relevanceIdx: index("idx_reference_monitor_relevance").on(t.relevance, t.publishedAt),
     firstSeenIdx: index("idx_reference_monitor_first_seen").on(t.firstSeenAt),
+    hubIdx: index("idx_reference_monitor_hub").on(t.hub, t.publishedAt),
   }),
 );
 

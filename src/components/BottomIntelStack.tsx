@@ -45,6 +45,10 @@ import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
+import {
+  localizedDisplayText,
+  useLocalizedTextMap,
+} from "@/hooks/useLocalizedTextMap";
 import { chokepointFocusTag } from "@/lib/news/chokepointNews";
 import {
   ECONOMY_GENRE_ORDER,
@@ -277,6 +281,9 @@ type NewsStreamContextValue = {
   preferEconomyNews: boolean;
   viewPackages: ViewPackageId[];
   labelLanguage: LabelLanguage;
+  /** 한글 모드: 서버 번역 누락 시 클라이언트에서 제목 보정 */
+  localizedTitle: (item: { id: string; title: string; category?: string | null; source?: string | null }) => string;
+  localizedSummary: (item: { id: string; summary?: string | null }) => string | undefined;
 };
 
 const NewsStreamContext = createContext<NewsStreamContextValue | null>(null);
@@ -328,10 +335,11 @@ function filterNewsByQuery(items: NewsStreamItem[], query: string): NewsStreamIt
 function newsItemsToSearchResults(
   items: NewsStreamItem[],
   lang: LabelLanguage,
+  titleOf?: (item: NewsStreamItem) => string,
 ): IntelSearchResult[] {
   return items.map((item) => ({
     id: item.id,
-    title: displayNewsItemTitle(item, lang),
+    title: titleOf ? titleOf(item) : displayNewsItemTitle(item, lang),
     subtitle: item.source,
     badge:
       item.trustTier === 1
@@ -419,9 +427,8 @@ export function NewsStreamProvider({
       if (viewPackages.length > 0) {
         params.set("packages", viewPackages.join(","));
       }
-      if (labelLanguage === "en") {
-        params.set("lang", "en");
-      }
+      // 지정학·지경학 모두 — 한글 모드면 서버가 제목/요약을 KO로 번역
+      params.set("lang", labelLanguage === "en" ? "en" : "ko");
       const qs = params.toString() ? `?${params.toString()}` : "";
       const newsRes = await fetch(`/api/news-stream${qs}`, { cache: "no-store" });
       const data = (await newsRes.json()) as NewsStreamPayload;
@@ -443,6 +450,57 @@ export function NewsStreamProvider({
     return visibleInterval(() => void refresh(), liveNewsPollMs() || POLL_MS_FALLBACK);
   }, [refresh, visible, packagesKey, langKey]);
 
+  /** 영문 모드: 원문 유지. 한글 모드: 서버 누락분 클라이언트 재번역 */
+  const localizeEntries = useMemo(() => {
+    if (!payload || labelLanguage === "en") return [];
+    const entries: Array<{ key: string; text: string }> = [];
+    const pushItem = (item: {
+      id: string;
+      title: string;
+      summary?: string | null;
+      category?: string | null;
+      source?: string | null;
+    }) => {
+      entries.push({
+        key: `t:${item.id}`,
+        text: displayNewsItemTitle(item, "ko"),
+      });
+      if (item.summary?.trim()) {
+        entries.push({ key: `s:${item.id}`, text: item.summary });
+      }
+    };
+    if (payload.hero) pushItem(payload.hero);
+    for (const h of payload.flashHeroes ?? []) pushItem(h);
+    for (const item of payload.verified) pushItem(item);
+    for (const item of payload.stateMedia) pushItem(item);
+    return entries;
+  }, [payload, labelLanguage]);
+
+  const localizedMap = useLocalizedTextMap(localizeEntries, "ko");
+
+  const localizedTitle = useCallback(
+    (item: {
+      id: string;
+      title: string;
+      category?: string | null;
+      source?: string | null;
+    }) => {
+      const base = displayNewsItemTitle(item, labelLanguage);
+      if (labelLanguage === "en") return base;
+      return localizedDisplayText(localizedMap, `t:${item.id}`, base);
+    },
+    [labelLanguage, localizedMap],
+  );
+
+  const localizedSummary = useCallback(
+    (item: { id: string; summary?: string | null }) => {
+      if (!item.summary) return undefined;
+      if (labelLanguage === "en") return item.summary;
+      return localizedDisplayText(localizedMap, `s:${item.id}`, item.summary);
+    },
+    [labelLanguage, localizedMap],
+  );
+
   return (
     <NewsStreamContext.Provider
       value={{
@@ -455,6 +513,8 @@ export function NewsStreamProvider({
         preferEconomyNews,
         viewPackages,
         labelLanguage,
+        localizedTitle,
+        localizedSummary,
       }}
     >
       {children}
@@ -554,13 +614,15 @@ function HeroHeadlineBanner({
   viewerMode?: ViewerMode;
 }) {
   const { lang, t } = useLocale();
+  const { localizedTitle } = useNewsStreamContext();
   const statusText = heroStatusLabel(hero.heroStatus, lang, economy);
+  const title = localizedTitle(hero);
   return (
     <div
       className={`intel-hero-enter pointer-events-auto overflow-hidden rounded-t-2xl border border-b-0 shadow-2xl backdrop-blur-md ${heroShellClass(hero.heroStatus, economy)}`}
       role="status"
       aria-live="polite"
-      aria-label={`${lang === "en" ? "Breaking" : "속보"}: ${displayNewsItemTitle(hero, lang)}`}
+      aria-label={`${lang === "en" ? "Breaking" : "속보"}: ${title}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-white/12 bg-black/20 px-3 py-1.5">
         <span className="text-micro font-bold uppercase tracking-[0.22em] text-red-200/90">
@@ -594,7 +656,7 @@ function HeroHeadlineBanner({
                 ? `${hero.source}에 따르면 `
                 : `${hero.source}${t("heroAccordingTo")}`
               : ""}
-            {displayNewsItemTitle(hero, lang)}
+            {title}
           </span>
           <span className="shrink-0 text-micro text-slate-500">
             {formatAge(hero.ageMinutes, lang)}
@@ -1508,6 +1570,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       preferEconomyNews,
       viewPackages,
       labelLanguage,
+      localizedTitle,
     } = useNewsStreamContext();
     const { lang, t } = useLocale();
     const { profile: interestProfile } = useInterestProfile(
@@ -1714,8 +1777,8 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       [showTier3, tier1Items, tier2Items, tier3Items],
     );
     const newsSearchResults = useMemo(
-      () => newsItemsToSearchResults(filterNewsByQuery(allEconomyNews, newsSearchQuery), lang),
-      [allEconomyNews, newsSearchQuery, lang],
+      () => newsItemsToSearchResults(filterNewsByQuery(allEconomyNews, newsSearchQuery), lang, localizedTitle),
+      [allEconomyNews, newsSearchQuery, lang, localizedTitle],
     );
     const newsById = useMemo(() => new Map(allEconomyNews.map((i) => [i.id, i])), [allEconomyNews]);
     const economyThemeTab: CompanyThemeId | null =
@@ -2006,7 +2069,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                       <span className="text-meta text-slate-500">{formatAge(hero!.ageMinutes, lang)}</span>
                     </div>
                     <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-50">
-                      {displayNewsItemTitle(hero!, lang)}
+                      {localizedTitle(hero!)}
                     </p>
                   </div>
                   {(() => {
@@ -2461,6 +2524,7 @@ function NewsRow({
   onFlyToMap?: (target: MapFlyTarget) => void;
 }) {
   const { lang } = useLocale();
+  const { localizedTitle, localizedSummary } = useNewsStreamContext();
   const tierLabel =
     item.trustTier === 1
       ? lang === "en"
@@ -2473,7 +2537,8 @@ function NewsRow({
         : lang === "en"
           ? "Breaking"
           : "속보";
-  const displayTitle = displayNewsItemTitle(item, lang);
+  const displayTitle = localizedTitle(item);
+  const displaySummary = localizedSummary(item);
   const genre =
     economyMode && item.econGenre
       ? economyGenreLabel(item.econGenre, lang)
@@ -2558,9 +2623,9 @@ function NewsRow({
           <span className="line-clamp-2 text-sm font-medium leading-5 text-slate-100">
             {displayTitle}
           </span>
-          {item.summary ? (
+          {displaySummary ? (
             <span className="mt-1 line-clamp-2 block text-xs leading-5 text-slate-400">
-              {item.summary}
+              {displaySummary}
             </span>
           ) : null}
           <span className="mt-1 block text-meta text-slate-500">

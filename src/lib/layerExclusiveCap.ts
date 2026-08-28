@@ -62,6 +62,7 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showLogisticsRisk",
   "showCriticalNodes",
   "showBriTradeConnectivity",
+  "showStrategicCorridors",
   "showUsDfcSupplyChain",
   "showSubmarineCables",
   "showOilPipelines",

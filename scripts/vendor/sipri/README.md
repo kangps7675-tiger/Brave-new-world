@@ -1,14 +1,15 @@
-# Shelved: SIPRI Arms Transfers summary
+# SIPRI Arms Transfers summary
 
-Real payload: `axis-arms.json` (this folder only — not served).
+Canonical payload: `axis-arms.json` (this folder).
 
-Frontend (`public/data/*/axis-arms.json`) is a **blank stub** until clearance:
-`{"pairs":[],"deals":[]}`
+Frontend copies live under `public/data/{lite,full}/axis-arms.json` when published.
 
-Restore:
+Publish:
 1. `src/lib/licensing/sipriPolicy.ts` → `SIPRI_ARMS_LENS_ENABLED = true`
 2. `npm run axis:arms:publish`
-3. Redeploy (R2 올리면 CDN 공란도 덮어씀)
+3. Recompress sidecars if needed: `node scripts/compress-data-gzip.js all` (or at least refresh `axis-arms.json.gz`)
+4. Redeploy (R2/CDN if used)
 
-Re-blank: `npm run axis:arms:unpublish`
+Blank again: `npm run axis:arms:unpublish` (+ set flag `false` if shelving the lens)
+
 Rebuild from CSV: `node scripts/build-axis-arms.js [trade-register.csv]`

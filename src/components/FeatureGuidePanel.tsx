@@ -86,9 +86,9 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "축 관계망 · 영토분쟁 모아보기",
+    title: "CRINK 축 · 영토분쟁 모아보기",
     steps: [
-      "「축 관계망」을 켜면 이란·중국·러시아·북한 같은 중심 나라(허브)와 그 상대들(스포크)이 곡선으로 이어져 표시됩니다.",
+      "「CRINK 축」을 켜면 중국·러시아·이란·북한 허브와 그 파트너(스포크)가 곡선으로 이어져 표시됩니다.",
       "위쪽 메뉴 → 「영토분쟁」을 열면 같은 진영끼리의 충돌과 국경 긴장을 한 목록으로 볼 수 있습니다. 필터로 걸러 보고, 카드를 누르면 지도 연출과 이야기가 펼쳐집니다.",
       "오른쪽 위 「주요전장」 목록에서 대만·한반도·우크라이나·중동 같은 충돌지로 한 번에 이동할 수 있습니다.",
       "이어 주는 곡선의 색은 관계의 종류입니다 — 자금 후원 · 무기 지원 · 에너지 · 복합 · 외교.",
@@ -182,9 +182,9 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     ],
   },
   {
-    title: "Axis network · anti-West conflict history",
+    title: "CRINK axis · anti-West conflict history",
     steps: [
-      "「Axis network」 links hub states (Iran, China, Russia, DPRK) to partners with curved spokes.",
+      "「CRINK axis」 links hub states (China, Russia, Iran, DPRK) to partners with curved spokes.",
       "Hub menu → 「Anti-West conflict history」 covers 11 historic flashpoints (Zhenbao, Lang Son, Galwan, Tsorak, and more). Tap a card to fly there and open a parchment brief.",
       "Use Key theaters (top-right) to jump to Taiwan, Korea, Ukraine, or the Middle East.",
       "Spoke colors mean relationship type — funding, arms, energy, hybrid, diplomacy.",

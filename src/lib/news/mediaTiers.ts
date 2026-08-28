@@ -55,6 +55,7 @@ const TIER1_SOURCE = [
   "ukrinform",
   "the moscow times",
   "meduza",
+  "mediazona",
 ];
 
 /**
@@ -102,6 +103,27 @@ const TIER2_SOURCE = [
   "carnegie",
   "janes",
   "iiss",
+  // CRINK 허브 전문 (연구소·OSINT — Tier2)
+  "38 north",
+  "38north",
+  "beyond parallel",
+  "csis",
+  "amti",
+  "chinapower",
+  "china power",
+  "jamestown",
+  "aspi",
+  "critical threats",
+  "criticalthreats",
+  "isis-online",
+  "wisconsin project",
+  "washington institute",
+  "nk news",
+  "nknews",
+  "iran international",
+  "iranintl",
+  "russia matters",
+  "russiamatters",
 ];
 
 /**

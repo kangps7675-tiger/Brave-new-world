@@ -28,16 +28,16 @@ import type { ViinaPolygonLayers } from "@/lib/viinaLod";
 import { isUkraineTheaterGdeltWar } from "@/lib/ukraineGdeltNeonMarker";
 import { buildTelegramMapDots } from "@/lib/telegramMapMarkers";
 import { buildUcdpCasualtyMarkers } from "@/lib/ucdpCasualtyMarkers";
+import {
+  MEDIAZONA_CASUALTY_MARKER_ID,
+  buildHapiCasualtySkullMarker,
+  buildMediazonaCasualtyMarker,
+} from "@/lib/casualtySkullMarkers";
 import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import { isUkraineViinaPolygonLayer } from "@/components/globe/overlayPolygons";
 import { useSafecastNearNuclear } from "@/hooks/useSafecastNearNuclear";
-import {
-  ACLED_HOME_URL,
-  HAPI_ATTRIBUTION_SHORT,
-  HAPI_SOURCE_LINE,
-} from "@/lib/hapiConflictCasualties";
-import { CASUALTY_ELEGY_LINES } from "@/lib/warCasualtyOverlay";
+import type { MediazonaCasualtySnapshot } from "@/lib/mediazonaCasualties";
 import { NUCLEAR_STOCKPILE_SEEDS } from "@/lib/nuclearStockpiles";
 import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
 import { filterUkraineSettlementsForView } from "@/lib/ukraineSettlements";
@@ -69,6 +69,7 @@ export interface SituationHtmlMarkersParams {
   showNewfeedsIranAttacks: boolean;
 
   hapiCasualties: HapiConflictCasualtiesPayload;
+  mediazonaCasualties: MediazonaCasualtySnapshot | null;
   showUcdpEvents: boolean;
   staticGlobePoints: StaticGlobePoint[];
 
@@ -113,6 +114,7 @@ export function useSituationHtmlMarkers(
     showTzevaAdom,
     showNewfeedsIranAttacks,
     hapiCasualties,
+    mediazonaCasualties,
     showUcdpEvents,
     staticGlobePoints,
     hoveredPolygon,
@@ -216,67 +218,35 @@ export function useSituationHtmlMarkers(
     showWarZones,
   ]);
 
-  /** HDX HAPI · ACLED — 열린 전선(admin1) + 중국·대만·이란 긴장 집계 */
+  /** HDX HAPI · ACLED 전선 누적 사망 + 우크라 Mediazona 사상자 */
   const casualtySkullMarkers = useMemo<CasualtySkullHtmlMarker[]>(() => {
     if (isEconomyViewer || isCompactUi) return [];
-    const en = labelLanguage === "en";
+    const lang = labelLanguage === "en" ? "en" : "ko";
     const fronts = hapiCasualties.fronts ?? [];
-    const hapiMarkers: CasualtySkullHtmlMarker[] =
-      fronts.length === 0
-        ? []
-        : fronts.map((front: HapiActiveFront) => {
-            const isChinaTaiwan = front.theaterId === "china-taiwan";
-            const isIran = front.locationCode === "IRN";
-            const useEvents =
-              (isChinaTaiwan || isIran) && front.killed <= 0 && front.events > 0;
-            return {
-              markerId: `casualty-skull-${front.id}`,
-              displayKind: "casualty-skull" as const,
-              id: front.id,
-              theaterId: front.theaterId,
-              locationCode: front.locationCode,
-              lat: front.lat,
-              lng: front.lng,
-              killed: useEvents ? front.events : front.killed,
-              wounded: 0,
-              killedLabel: useEvents
-                ? en
-                  ? isIran
-                    ? "Iran political violence events"
-                    : "Political violence events"
-                  : isIran
-                    ? "이란 정치폭력 사건"
-                    : "정치폭력 사건"
-                : en
-                  ? "Today's fatalities"
-                  : "오늘의 사망자",
-              woundedLabel: en ? "WIA" : "부상",
-              asOf: front.periodEnd || hapiCasualties.windowEnd || "",
-              sourceHint: en
-                ? `${HAPI_ATTRIBUTION_SHORT} · ${front.admin1Name} · ${front.periodStart}–${front.periodEnd} · ${ACLED_HOME_URL}`
-                : `${HAPI_ATTRIBUTION_SHORT} · ${front.admin1Name} · ${front.periodStart}–${front.periodEnd} · ${ACLED_HOME_URL}`,
-              elegyLines: en ? CASUALTY_ELEGY_LINES.en : CASUALTY_ELEGY_LINES.ko,
-              hideWounded: true,
-              territorySpanDeg: front.territorySpanDeg,
-              sourceAttribution: HAPI_SOURCE_LINE,
-              admin1Name: front.admin1Name,
-            };
-          });
+    const hapiMarkers: CasualtySkullHtmlMarker[] = fronts.map((front: HapiActiveFront) =>
+      buildHapiCasualtySkullMarker(front, lang),
+    );
+
+    const mediazonaMarker =
+      mediazonaCasualties && mediazonaCasualties.confirmedNamedDeaths > 0
+        ? [buildMediazonaCasualtyMarker(mediazonaCasualties, lang)]
+        : [];
 
     const ucdpMarkers =
       showUcdpEvents && !isEconomyViewer
         ? buildUcdpCasualtyMarkers(
             staticGlobePoints.filter((p) => p.kind === "ucdp-event"),
-            labelLanguage === "en" ? "en" : "ko",
+            lang,
           )
         : [];
 
-    return [...hapiMarkers, ...ucdpMarkers];
+    return [...mediazonaMarker, ...hapiMarkers, ...ucdpMarkers];
   }, [
     hapiCasualties,
     isCompactUi,
     isEconomyViewer,
     labelLanguage,
+    mediazonaCasualties,
     showUcdpEvents,
     staticGlobePoints,
   ]);
@@ -350,6 +320,14 @@ export function useSituationHtmlMarkers(
     for (const m of casualtySkullMarkers) {
       if (m.id.startsWith("ucdp-")) ids.add(m.id);
       if (m.theaterId === "china-taiwan") ids.add(m.id);
+      if (m.id === MEDIAZONA_CASUALTY_MARKER_ID) {
+        if (
+          hover?.kind === "ukraine-adm1" ||
+          resolveCombatTheaterAt(filterCenter.lat, filterCenter.lng) === "russia-ukraine"
+        ) {
+          ids.add(m.id);
+        }
+      }
       if (
         m.locationCode === "IRN" &&
         (showNewfeedsIranAttacks ||

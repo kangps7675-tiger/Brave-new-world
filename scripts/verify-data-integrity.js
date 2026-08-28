@@ -58,7 +58,6 @@ const CONTENT_CHECK_MAX_GZ = 512 * 1024;
  * 여기에 추가할 때는 **반드시 사유를 적을 것.**
  */
 const ALLOWLIST = new Map([
-  ["axis-arms.json", "SIPRI 축 무기거래 — 공개 stub (허가 전). vendor에 실데이터 보관"],
   ["gdelt-events.json", "빌드타임 스냅샷 — 런타임은 /api/gdelt 사용"],
   ["app-data.json", "청크 인덱스 파일 — 실제 데이터는 countries/disputes/places"],
   [

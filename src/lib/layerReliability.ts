@@ -234,14 +234,14 @@ const OVERRIDES: Record<string, Override> = {
   "hapi-conflict-casualties": {
     evidenceTier: "reported",
     freshnessClass: "daily",
-    caveatKo: "HDX HAPI·ACLED 집계. 정의·창 길이를 출처에서 확인.",
-    caveatEn: "HDX HAPI·ACLED aggregates — check definitions and windows.",
+    caveatKo: "HDX HAPI·ACLED. 전면전은 개전 이후 누적 사망, 부상 없음.",
+    caveatEn: "HDX HAPI·ACLED — cumulative fatalities from theater start; no wounded.",
   },
   "mediazona-casualties": {
     evidenceTier: "reported",
     freshnessClass: "daily",
-    caveatKo: "Mediazona 명의 집계 — HAPI와 정의가 다릅니다.",
-    caveatEn: "Mediazona-named tallies — definitions differ from HAPI.",
+    caveatKo: "Mediazona 명의 전사(하한)+CSIS 부상 추정. HAPI 전선 사망과 정의가 다릅니다.",
+    caveatEn: "Mediazona named KIA (lower bound) + CSIS WIA est. — not HAPI front fatalities.",
   },
   "ucdp-events": {
     evidenceTier: "reported",
@@ -288,14 +288,32 @@ const OVERRIDES: Record<string, Override> = {
   "basemap-openfreemap-buildings": {
     evidenceTier: "model",
     freshnessClass: "static",
-    caveatKo: "건물 레이어. 사건 증거가 아닙니다.",
-    caveatEn: "Buildings layer — not event evidence.",
+    caveatKo: "OSM 3D 건물(Ion) 또는 extrusion 폴백. 사건 증거가 아닙니다.",
+    caveatEn: "OSM 3D buildings (Ion) or extrusion fallback — not event evidence.",
   },
   "reference-monitor": {
     evidenceTier: "model",
     freshnessClass: "near-real-time",
     caveatKo: "내부 레퍼런스 모니터 집계. 공개 원본과 다를 수 있습니다.",
     caveatEn: "Internal reference-monitor aggregate — may differ from raw feeds.",
+  },
+  "crink-hub-monitor": {
+    evidenceTier: "reported",
+    freshnessClass: "near-real-time",
+    caveatKo: "CRINK 전문 소스 제목·요약·링크만. 기관 위성·맵 원본 미포함.",
+    caveatEn: "CRINK specialist title/summary/link only — no source imagery republished.",
+  },
+  "crink-thumb-sentinel-nasa": {
+    evidenceTier: "observed",
+    freshnessClass: "curated",
+    caveatKo: "좌표 기반 위성 썸네일(Sentinel/NASA). 기사 기관 사진이 아닙니다.",
+    caveatEn: "Coordinate-based satellite thumbs (Sentinel/NASA) — not outlet imagery.",
+  },
+  "crink-thumb-globe-bake": {
+    evidenceTier: "model",
+    freshnessClass: "static",
+    caveatKo: "자체 지구본 프리베이크. 실시간 캡처가 아닙니다.",
+    caveatEn: "Pre-baked globe thumbs — not live capture.",
   },
   "app-data": {
     evidenceTier: "model",

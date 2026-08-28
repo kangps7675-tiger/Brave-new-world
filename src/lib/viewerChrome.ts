@@ -162,7 +162,7 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAirTraffic: false,
   showSubmarineTunnels: false,
   showGscpiGauge: false,
-  /** 반서방 축·배관은 기본 OFF — 내비 허브/레이어에서만 켠다 */
+  /** CRINK·배관은 기본 OFF — 내비 허브/레이어에서만 켠다 */
   showAxisNetwork: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
@@ -182,6 +182,7 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   /** 유가 민감 — 이란·지역 공격 NewFeeds 지도 */
   showNewfeedsIranAttacks: true,
   showBriTradeConnectivity: true,
+  showStrategicCorridors: true,
   showUsDfcSupplyChain: true,
 };
 
@@ -191,6 +192,10 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
  */
 export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryBases: false,
+  showRokMilitaryBases: false,
+  showJapanMilitaryBases: false,
+  showPhilippinesMilitaryBases: false,
+  showEasternNatoMilitaryBases: false,
   showMissileSilos: false,
   showStrategicMissileBases: false,
   showMissileTestSites: false,
@@ -268,14 +273,14 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     },
     navProfile: NAV_MENU_GROUPS,
     searchPlaceholder: "지명 · 국가 · 분쟁 검색",
-    navHeaderLabel: "반서방 축",
+    navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
     modePickerTagline: "전선 · GDELT · Telegram OSINT",
     modePickerBullets: [
       "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
       "GDELT 전투·외교 뉴스 핀",
       "Telegram OSINT · VIINA 전선 · 우크라→러 타격",
-      "에너지 히어로: 원자력 (송유관·해저관·반서방 축은 수동)",
+      "에너지 히어로: 원자력 (송유관·해저관·CRINK는 수동)",
       "하단: 속보 + GDELT 범례",
     ],
     layerPanelTitle: "레이어 · 전선",

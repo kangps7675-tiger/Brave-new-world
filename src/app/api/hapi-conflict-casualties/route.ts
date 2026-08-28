@@ -9,6 +9,7 @@ import {
   HAPI_CONFLICT_EVENTS_URL,
   HAPI_HDX_DATASET_URL,
   hapiLookbackWindow,
+  hapiLookbackWindowForLocation,
   resolveHapiAppIdentifier,
   type HapiConflictCasualtiesPayload,
   type HapiConflictEventRow,
@@ -60,24 +61,31 @@ async function fetchLocationRows(
 
 /**
  * HDX HAPI conflict-events → 열린 전선별 ACLED 집계.
- * UKR·PSE·ISR·LBN(사망) + CHN·TWN(사건·회색지대).
+ * 전면전은 개전일부터 누적, 중국·대만은 최근 창.
  */
 export async function GET() {
   const appId = resolveHapiAppIdentifier();
-  const { start, end } = hapiLookbackWindow();
+  const windowsByLocation: Record<string, { start: string; end: string }> = {};
+  for (const code of HAPI_ACTIVE_WAR_LOCATION_CODES) {
+    windowsByLocation[code] = hapiLookbackWindowForLocation(code);
+  }
+  const windowStarts = Object.values(windowsByLocation).map((w) => w.start);
+  const windowEnds = Object.values(windowsByLocation).map((w) => w.end);
+  const start = windowStarts.sort()[0] ?? hapiLookbackWindow().start;
+  const end = windowEnds.sort().at(-1) ?? hapiLookbackWindow().end;
 
   try {
     const batches = await Promise.all(
-      HAPI_ACTIVE_WAR_LOCATION_CODES.map((code) =>
-        fetchLocationRows(code, start, end, appId).catch((err) => {
+      HAPI_ACTIVE_WAR_LOCATION_CODES.map((code) => {
+        const window = windowsByLocation[code];
+        return fetchLocationRows(code, window.start, window.end, appId).catch((err) => {
           console.warn("[hapi-conflict-casualties]", code, err);
           return [] as HapiConflictEventRow[];
-        }),
-      ),
+        });
+      }),
     );
     const rows = batches.flat();
     const fronts = aggregateActiveFronts(rows);
-    // 전 지역 수집 실패·필터로 비면 시드로 응답해 클라이언트가 숫자를 유지
     const resolvedFronts = fronts.length > 0 ? fronts : HAPI_CASUALTY_SEED.fronts;
 
     const payload: HapiConflictCasualtiesPayload = {
@@ -85,6 +93,7 @@ export async function GET() {
       fetchedAt: new Date().toISOString(),
       windowStart: start,
       windowEnd: end,
+      windowsByLocation,
       source: HAPI_ATTRIBUTION,
       cite: [
         "Armed Conflict Location & Event Data Project (ACLED)",
@@ -112,6 +121,7 @@ export async function GET() {
         fetchedAt: new Date().toISOString(),
         windowStart: start,
         windowEnd: end,
+        windowsByLocation,
         caveat: `${HAPI_CASUALTY_CAVEAT} · live fetch failed`,
       } satisfies HapiConflictCasualtiesPayload,
       { status: 200, headers: { "Cache-Control": "public, s-maxage=300" } },

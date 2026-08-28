@@ -10,6 +10,7 @@ import { LocalAlertPanel } from "@/components/LocalAlertPanel";
 import { TheaterIntelSidebar } from "@/components/TheaterIntelSidebar";
 import { TheaterDetailCta } from "@/components/TheaterDetailCta";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
+import { HubMonitorRail } from "@/components/HubMonitorRail";
 import { AxisLinkChip } from "@/components/AxisLinkChip";
 import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
@@ -633,6 +634,8 @@ export type GeopoliticsParchmentChromeProps = {
   shipMovementBriefTrack?: PublicShipObservation[] | null;
   shipMovementBriefFocusId?: string | null;
   onCloseShipMovementBrief?: () => void;
+  /** CRINK hub — 우레일 전문 소스 */
+  activeHubId?: AxisHubId | null;
 };
 
 export function GeopoliticsParchmentChrome({
@@ -646,6 +649,7 @@ export function GeopoliticsParchmentChrome({
   shipMovementBriefTrack = null,
   shipMovementBriefFocusId = null,
   onCloseShipMovementBrief,
+  activeHubId = null,
 }: GeopoliticsParchmentChromeProps) {
   const shipBrief =
     shipMovementBriefTrack && shipMovementBriefTrack.length > 0
@@ -658,6 +662,14 @@ export function GeopoliticsParchmentChrome({
 
   return (
     <>
+      {activeHubId ? (
+        <HubMonitorRail
+          hubId={activeHubId}
+          labelLanguage={labelLanguage}
+          open
+        />
+      ) : null}
+
       {hubBriefDoc ? (
         <ParchmentLetter
           lang={labelLanguage}

@@ -27,7 +27,7 @@ const QUERY_TAG_LABEL_KO: Record<string, string> = {
   strategic: "핵·미사일",
   hybrid: "하이브리드·제재",
   alliance: "동맹·군사외교",
-  "axis-network": "축 관계망",
+  "axis-network": "CRINK 축",
   cyber: "사이버",
   election: "선거",
 };

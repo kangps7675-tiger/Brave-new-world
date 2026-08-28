@@ -6,6 +6,7 @@ const path = require("path");
 const { OUT_DIR, IS_LITE } = require("./build-profile");
 const { writeJsonArrayFile, roundCoord, compactStaticPoint } = require("./compact-json");
 
+const LOCAL_CSV = path.join(__dirname, "data", "military-bases.csv");
 const DEFAULT_CSV = path.join(
   "c:",
   "Users",
@@ -14,7 +15,9 @@ const DEFAULT_CSV = path.join(
   "archive",
   "military-bases.csv",
 );
-const CSV_PATH = process.env.MILITARY_BASES_CSV || DEFAULT_CSV;
+const CSV_PATH =
+  process.env.MILITARY_BASES_CSV ||
+  (fs.existsSync(DEFAULT_CSV) ? DEFAULT_CSV : LOCAL_CSV);
 
 function parseLine(line, delim) {
   const cols = [];
@@ -334,12 +337,12 @@ function main() {
       a.name.localeCompare(b.name),
   );
 
-  // CSV는 NTAD 본토·괌·PR 위주 → 시드의 미국 해외 거점을 마커로 보강
+  // CSV는 NTAD 본토·괌·PR 위주 → 시드의 미국 해외 거점 + 전선 OSM
+  const existing = new Set(points.map((p) => `${p.lat.toFixed(2)},${p.lng.toFixed(2)}`));
   try {
     const seed = JSON.parse(
       fs.readFileSync(path.join(__dirname, "data", "military-bases-seed.json"), "utf8"),
     );
-    const existing = new Set(points.map((p) => `${p.lat.toFixed(2)},${p.lng.toFixed(2)}`));
     let seedAdded = 0;
     for (const item of seed) {
       if (item.kind !== "military-base") continue;
@@ -370,6 +373,53 @@ function main() {
     // seed optional
   }
 
+  // 전선 부근 OSM + 동유럽 NATO 1선 시드 — 미군 시드와 좌표가 겹치면 건너뜀
+  const frontlineFiles = [
+    "osm-frontline-bases.json",
+    "eastern-nato-frontline-seed.json",
+    "philippines-frontline-seed.json",
+  ];
+  for (const fileName of frontlineFiles) {
+    try {
+      const frontPath = path.join(__dirname, "data", fileName);
+      if (!fs.existsSync(frontPath)) continue;
+      const extra = JSON.parse(fs.readFileSync(frontPath, "utf8"));
+      let extraAdded = 0;
+      for (const item of extra) {
+        if (item.kind !== "military-base") continue;
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+        if (item.meta?.iso === "KR" && lng > 129.55) continue;
+        if (item.meta?.iso === "PH" && lat < 7.5 && lng < 119.0) continue;
+        if (/비상활주로/i.test(String(item.name || ""))) continue;
+        const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
+        if (existing.has(key)) continue;
+        points.push({
+          id: item.id,
+          kind: "military-base",
+          name: item.name,
+          lat: roundCoord(lat, 5),
+          lng: roundCoord(lng, 5),
+          tier: item.tier || 2,
+          meta: {
+            country: item.meta?.country || null,
+            iso: item.meta?.iso || null,
+            theater: item.meta?.theater || null,
+            branch: item.meta?.branch || null,
+            operator: item.meta?.operator || null,
+            source: item.meta?.source || "osm-frontline",
+          },
+        });
+        existing.add(key);
+        extraAdded += 1;
+      }
+      if (extraAdded) console.log(`   +${fileName}: ${extraAdded}`);
+    } catch (_) {
+      /* optional */
+    }
+  }
+
   points.sort(
     (a, b) =>
       a.tier - b.tier ||
@@ -377,13 +427,21 @@ function main() {
       a.name.localeCompare(b.name),
   );
 
-  // lite: 해외 시드는 우선 보존하고, 나머지는 tier/면적으로 채움
+  // lite: 해외 미군·전선 OSM을 우선 보존하고, 본토는 tier/면적으로 채움
   let cappedPoints = points;
   if (IS_LITE) {
-    const CAP = 420;
+    const CAP = 560;
     const overseas = points.filter((p) => p.meta?.source === "seed-overseas");
-    const rest = points.filter((p) => p.meta?.source !== "seed-overseas");
-    cappedPoints = [...overseas, ...rest].slice(0, CAP);
+    const osmFront = points.filter(
+      (p) => p.meta?.source === "osm-frontline" || p.meta?.source === "seed-frontline",
+    );
+    const rest = points.filter(
+      (p) =>
+        p.meta?.source !== "seed-overseas" &&
+        p.meta?.source !== "osm-frontline" &&
+        p.meta?.source !== "seed-frontline",
+    );
+    cappedPoints = [...overseas, ...osmFront, ...rest].slice(0, CAP);
   }
   const pointIds = new Set(cappedPoints.map((p) => p.id));
   const orderedAreas = areas

@@ -27,6 +27,7 @@ import type {
 } from "@/lib/news/types";
 import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
 import type { ViewPackageId } from "@/lib/viewPackages";
+import { isCrinkAnalysisUrl } from "@/data/crinkSourceRegistry";
 
 const URGENCY =
   /\b(breaking|urgent|just\s?in|live|attack|strike|missile|drone|explosion|war|invasion|ceasefire|nuclear|killed|dead|shelling|airstrike|bomb|blockade|escalat|retaliat|offensive|clash|troops|carrier|hormuz|suez|malacca|bab[\s-]?el[\s-]?mandeb|taiwan\s?strait|panama\s?canal|red\s?sea)\b/i;
@@ -93,6 +94,8 @@ function resolveHeroStatus(
 }
 
 function isHeroEligible(item: NewsStreamItem): boolean {
+  // 주간 분석·연구소 글은 속보 hero에 올리지 않음 (허브 모니터 전용)
+  if (isCrinkAnalysisUrl(item.link)) return false;
   if (item.feedTopic === "economy") {
     return ECON_URGENCY.test(item.title) || item.trustTier <= 2;
   }

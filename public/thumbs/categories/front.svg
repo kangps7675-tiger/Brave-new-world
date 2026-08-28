@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="front">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2030"/>
+      <stop offset="100%" stop-color="#10141c"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)"/>
+  <path d="M80 240 L200 160 L280 200 L400 120 L560 200" fill="none" stroke="#f87171" stroke-width="5" stroke-linecap="round"/>
+  <path d="M80 260 L220 190 L300 230 L420 150 L560 230" fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="10 8" opacity="0.8"/>
+  <text x="40" y="330" fill="#64748b" font-family="system-ui,sans-serif" font-size="18" letter-spacing="0.2em">FRONT</text>
+</svg>

@@ -38,7 +38,7 @@ export type TelegramAlertsPayload = {
   alerts: TelegramAlert[];
   stub?: boolean;
   waiting?: boolean;
-  source?: "embed" | "telethon";
+  source?: "embed" | "telethon" | "stale-local";
 };
 
 export {

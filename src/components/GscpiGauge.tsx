@@ -79,16 +79,16 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
 
   return (
     <div
-      className={`gscpi-gauge tone-chip rounded-2xl border border-slate-600/30 bg-[#0b1020]/90 px-4 py-3 shadow-lg backdrop-blur-md ${className}`}
+      className={`gscpi-gauge tone-chip min-w-0 overflow-hidden rounded-2xl border border-slate-600/30 bg-[#0b1020]/90 px-3 py-3 shadow-lg backdrop-blur-md sm:px-4 ${className}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-meta font-semibold tracking-wide text-slate-300">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-meta font-semibold tracking-wide text-slate-300">
           {en ? "Global shipping congestion" : "전 세계 물류 혼잡도"}
         </p>
-        <span className="text-micro text-slate-500">{reading.date}</span>
+        <span className="shrink-0 text-micro text-slate-500">{reading.date}</span>
       </div>
 
-      <div className="mt-2 flex items-baseline gap-2">
+      <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <span className="text-2xl font-bold" style={{ color }}>
           {score}
           <span className="text-body font-medium opacity-60">/100</span>
@@ -112,7 +112,7 @@ export function GscpiGauge({ reading, lang, compact = false, className = "" }: G
         <span>{en ? "100 · severe" : "100 · 매우 혼잡"}</span>
       </div>
 
-      <p className="mt-2.5 border-t border-slate-600/20 pt-2 text-micro leading-4 text-slate-500">
+      <p className="mt-2.5 break-words border-t border-slate-600/20 pt-2 text-micro leading-4 text-slate-500">
         {gscpiDisclaimer(lang)} (GSCPI {formatSigma(reading.value)})
       </p>
     </div>

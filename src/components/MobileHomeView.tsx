@@ -227,7 +227,7 @@ export function MobileHomeView({
   labelLanguage,
   onLabelLanguageChange,
 }: MobileHomeViewProps) {
-  const { payload } = useNewsStreamContext();
+  const { payload, localizedTitle } = useNewsStreamContext();
   const { lang: locale } = useLocale();
   const lang = labelLanguage;
   const en = lang === "en";
@@ -640,28 +640,28 @@ export function MobileHomeView({
             </p>
           </div>
         ) : (
-          <div
-            className={`mt-3 flex items-center gap-2 rounded-xl border px-3 py-2.5 ${
-              isLive
-                ? "border-rose-400/40 bg-rose-500/10"
-                : "border-white/10 bg-white/[0.04]"
+        <div
+          className={`mt-3 flex items-center gap-2 rounded-xl border px-3 py-2.5 ${
+            isLive
+              ? "border-rose-400/40 bg-rose-500/10"
+              : "border-white/10 bg-white/[0.04]"
+          }`}
+        >
+          <span
+            className={`inline-block h-2 w-2 shrink-0 rounded-full ${
+              isLive ? "animate-pulse bg-rose-400" : "bg-slate-500"
             }`}
-          >
-            <span
-              className={`inline-block h-2 w-2 shrink-0 rounded-full ${
-                isLive ? "animate-pulse bg-rose-400" : "bg-slate-500"
-              }`}
-              aria-hidden
-            />
-            <p className="text-[12.5px] leading-snug text-slate-200">
+            aria-hidden
+          />
+          <p className="text-[12.5px] leading-snug text-slate-200">
               <span className="font-semibold text-sky-100/90">{tabLabel}</span>
               {" · "}
-              {groups.length === 0
+            {groups.length === 0
+              ? en
+                ? "No recent alerts."
+                : "최근 속보 없음."
+              : isLive
                 ? en
-                  ? "No recent alerts."
-                  : "최근 속보 없음."
-                : isLive
-                  ? en
                     ? `LIVE — ${liveCount} in ${LIVE_AGE_MIN} min`
                     : `실시간 — ${LIVE_AGE_MIN}분 내 ${liveCount}건`
                   : en
@@ -804,8 +804,8 @@ export function MobileHomeView({
                   <div className="border-b border-white/[0.07] px-3 py-1.5">
                     <p className="text-micro font-semibold uppercase tracking-wider text-emerald-200/70">
                       {en ? group.labelEn : group.label}
-                    </p>
-                  </div>
+          </p>
+        </div>
                   <ul className="divide-y divide-white/[0.05]">
                     {group.items.map((item) => (
                       <MobileMarketRow key={item.symbol} item={item} lang={lang} />
@@ -865,7 +865,7 @@ export function MobileHomeView({
 
         {/* 뉴스 피드 — 증시 탭 제외 */}
         {tab !== "markets" ? (
-          <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3">
             {groups.map((group, index) => {
               const groupTitle =
                 group.kind === "genre"
@@ -876,64 +876,64 @@ export function MobileHomeView({
                   ? (group.key as NewsTheater)
                   : null;
               return (
-              <section
+            <section
                 key={`${group.kind}-${group.key}`}
-                className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]"
-              >
-                <div className="flex items-center justify-between border-b border-white/5 px-3 py-2">
+              className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 px-3 py-2">
                   <span className="text-caption font-semibold text-sky-100/90">
                     {groupTitle}
-                  </span>
-                  <span
-                    className={`text-[10.5px] tabular-nums ${
-                      group.ageMinutes <= LIVE_AGE_MIN ? "text-rose-300" : "text-slate-500"
-                    }`}
-                  >
-                    {agoLabel(group.ageMinutes, lang)}
-                  </span>
-                </div>
+                </span>
+                <span
+                  className={`text-[10.5px] tabular-nums ${
+                    group.ageMinutes <= LIVE_AGE_MIN ? "text-rose-300" : "text-slate-500"
+                  }`}
+                >
+                  {agoLabel(group.ageMinutes, lang)}
+                </span>
+              </div>
 
                 {reactionTheater ? (
-                  <EventMarketReactionCard
+                <EventMarketReactionCard
                     theater={reactionTheater}
-                    ageMinutes={group.ageMinutes}
-                    prominent={index === 0}
+                  ageMinutes={group.ageMinutes}
+                  prominent={index === 0}
                     viewerMode="conflict"
-                  />
+                />
                 ) : null}
 
-                <ul className="divide-y divide-white/5">
-                  {group.items.slice(0, MAX_PER_THEATER).map((item) => {
-                    const age = ageMinutesOf(item);
-                    return (
-                      <li key={item.id}>
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block px-3 py-2.5 transition active:bg-white/5"
-                        >
-                          <p className="text-body leading-snug text-slate-100">{item.title}</p>
-                          <p className="mt-1 flex items-center gap-1.5 text-[10.5px] text-slate-500">
-                            <span className="truncate">{item.publisher ?? item.source}</span>
-                            <span aria-hidden>·</span>
-                            <span className="shrink-0 tabular-nums">{agoLabel(age, lang)}</span>
-                          </p>
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
+              <ul className="divide-y divide-white/5">
+                {group.items.slice(0, MAX_PER_THEATER).map((item) => {
+                  const age = ageMinutesOf(item);
+                  return (
+                    <li key={item.id}>
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-3 py-2.5 transition active:bg-white/5"
+                      >
+                          <p className="text-body leading-snug text-slate-100">{localizedTitle(item)}</p>
+                        <p className="mt-1 flex items-center gap-1.5 text-[10.5px] text-slate-500">
+                          <span className="truncate">{item.publisher ?? item.source}</span>
+                          <span aria-hidden>·</span>
+                          <span className="shrink-0 tabular-nums">{agoLabel(age, lang)}</span>
+                        </p>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
               );
             })}
 
-            {groups.length === 0 ? (
-              <p className="py-10 text-center text-[12.5px] text-slate-500">
-                {en ? "Loading latest reports…" : "최신 속보 불러오는 중…"}
-              </p>
-            ) : null}
-          </div>
+          {groups.length === 0 ? (
+            <p className="py-10 text-center text-[12.5px] text-slate-500">
+              {en ? "Loading latest reports…" : "최신 속보 불러오는 중…"}
+            </p>
+          ) : null}
+        </div>
         ) : null}
 
         <p className="mt-5 text-center text-micro leading-4 text-slate-600">

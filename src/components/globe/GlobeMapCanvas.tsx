@@ -1,18 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState, type RefObject } from "react";
-import type { Map as MapLibreMap } from "maplibre-gl";
+import type { RefObject } from "react";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
-import { shouldMountCesiumHybrid } from "@/lib/cesium/hybridFlags";
 import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
-
-const CesiumUnderlay = dynamic(
-  () =>
-    import("@/components/globe/CesiumUnderlay").then((m) => m.CesiumUnderlay),
-  { ssr: false },
-);
 
 export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   containerRef: RefObject<HTMLDivElement>;
@@ -25,9 +16,12 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   containerBackgroundColor: string;
 };
 
-/** GlobeDashboard의 지도 캔버스 영역(컨테이너 · PausedMapGlobeView · 로드 에러 배너)을 그대로 감싼 뷰.
- *  MapLibre 앞에 Cesium underlay(방법 B)를 깔아 줌·피치 시 페이드 전환.
- *  저사양 GPU에서는 Cesium을 올리지 않아 MapLibre 바탕이 보이도록 한다. */
+/**
+ * GlobeDashboard의 지도 캔버스 영역(컨테이너 · PausedMapGlobeView · 로드 에러 배너).
+ * 인텔·지형 모두 MapLibre 단일 WebGL — 벡터 베이스(+ 지형 고줌 시 Esri 위성 래스터 underlay).
+ * 지형 모드 3D 건물은 Cesium OSM Buildings(3D Tiles, deck.gl) — 세슘 뷰어 없음.
+ * Ion 토큰이 없으면 OpenFreeMap fill-extrusion 폴백.
+ */
 export function GlobeMapCanvas({
   containerRef,
   globeRef,
@@ -35,50 +29,10 @@ export function GlobeMapCanvas({
   isCompactUi,
   loadError,
   containerBackgroundColor,
-  onMapReadyForHybrid,
   ultraLite,
+  basemapMode,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
-  /** SSR/첫 페인트는 MapLibre만 — 클라에서 하드웨어 OK일 때만 Cesium 장착 */
-  const [hybridOn, setHybridOn] = useState(false);
-  const [mapLibreMap, setMapLibreMap] = useState<MapLibreMap | null>(null);
-  const [mapLibreOpacity, setMapLibreOpacity] = useState(1);
-  const [hybridForceOff, setHybridForceOff] = useState(false);
-
-  useEffect(() => {
-    setHybridOn(
-      shouldMountCesiumHybrid({
-        isPhoneUi,
-        ultraLite: Boolean(ultraLite),
-      }),
-    );
-  }, [isPhoneUi, ultraLite]);
-
-  useEffect(() => {
-    if (!hybridOn) setMapLibreOpacity(1);
-  }, [hybridOn]);
-
-  const onMapReadyFromParent =
-    typeof onMapReadyForHybrid === "function"
-      ? (onMapReadyForHybrid as (map: MapLibreMap) => void)
-      : undefined;
-
-  const handleMapReady = useCallback(
-    (map: MapLibreMap) => {
-      setMapLibreMap(map);
-      onMapReadyFromParent?.(map);
-    },
-    [onMapReadyFromParent],
-  );
-
-  const handleContextLost = useCallback(() => {
-    setHybridForceOff(true);
-    setHybridOn(false);
-    setMapLibreOpacity(1);
-  }, []);
-
-  const hybridActive = hybridOn && !hybridForceOff;
-
   return (
     <div
       ref={containerRef}
@@ -91,33 +45,13 @@ export function GlobeMapCanvas({
         transition: isCompactUi ? undefined : "transform 180ms ease",
       }}
     >
-      {hybridActive ? (
-        <CesiumUnderlay
-          map={mapLibreMap}
-          enabled={hybridActive}
-          forceOff={hybridForceOff}
-          onMapLibreOpacity={setMapLibreOpacity}
-        />
-      ) : null}
-
-      <div
-        className="absolute inset-0 z-10"
-        style={{
-          opacity: hybridActive ? mapLibreOpacity : 1,
-          transition: "opacity 180ms ease-out",
-          backgroundColor: hybridActive ? "transparent" : undefined,
-        }}
-      >
+      <div className="absolute inset-0 z-10">
         {!isPhoneUi ? (
           <PausedMapGlobeView
             ref={globeRef}
             {...mapGlobeProps}
+            basemapMode={basemapMode}
             ultraLite={ultraLite}
-            backgroundColor={
-              hybridActive ? "transparent" : mapGlobeProps.backgroundColor
-            }
-            onMapReadyForHybrid={hybridActive ? handleMapReady : onMapReadyFromParent}
-            onWebglContextLost={hybridActive ? handleContextLost : undefined}
           />
         ) : null}
         {loadError && (

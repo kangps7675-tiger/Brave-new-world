@@ -39,7 +39,6 @@
     "IRONSIGHT",
     "geowatch",
     "scripts",
-    "workers/cron-ingest",
-    "src/**/*.test.ts"
+    "workers/cron-ingest"
   ]
 }

@@ -31,6 +31,7 @@ import { createFrictionPinElement, createFrictionStageCalloutElement, createEven
 import { createFinancialHubMarkerElement } from "@/lib/financialMarketHubMarkers";
 import { createKoreaMissileIncidentBadge } from "@/lib/koreaMissileIncidentMarker";
 import { createRussiaStrikeIncidentBadge } from "@/lib/russiaStrikeIncidentMarker";
+import { createEuropeDroneIncidentBadge } from "@/lib/europeDroneIncidentMarker";
 import { createMilAircraftBadge } from "@/lib/milAircraftMarkers";
 import { createMilitaryExerciseMarkerElement } from "@/lib/militaryExerciseMarkers";
 import type { MilitaryExercise } from "@/lib/militaryExercises";
@@ -419,6 +420,30 @@ export function createDashboardHtmlOverlayElement(
           );
           deps.flyTo(inc.lat, inc.lng, 0.72);
           deps.openIntelFromCoords(inc.lat, inc.lng, 0.92);
+        },
+      },
+    );
+  }
+  if (item.displayKind === "europe-drone-incident") {
+    return createEuropeDroneIncidentBadge(
+      item,
+      deps.labelLanguage === "en" ? "en" : "ko",
+      {
+        onHover: (inc) => {
+          if (!inc) {
+            deps.handleHtmlMarkerHover(null);
+            return;
+          }
+          deps.handleHtmlMarkerHover(inc as unknown as GlobeDisplayPoint);
+        },
+        onClick: (inc) => {
+          deps.skipNextGlobeClickRef.current = true;
+          deps.flyTo(inc.lat, inc.lng, 0.72);
+          if (inc.sourceUrl) {
+            window.open(inc.sourceUrl, "_blank", "noopener,noreferrer");
+          } else {
+            deps.openIntelFromCoords(inc.lat, inc.lng, 0.92);
+          }
         },
       },
     );

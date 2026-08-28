@@ -31,6 +31,7 @@ import {
   axisRelationKindBlurb,
   axisRelationKindLabel,
 } from "@/data/axisNetwork";
+import { corridorStatusLabel } from "@/data/strategicCorridors";
 import { classifyMilAircraft, milAircraftRoleLabel } from "@/lib/milAircraftKind";
 import { formatNeptunLocation, getNeptunTypeLabel } from "@/lib/neptun";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";
@@ -65,6 +66,7 @@ import { CHINA_THEATER_DYAD_LABEL, CHINA_THEATER_SEA_LABEL } from "@/data/chinaT
 import { KOREA_MISSILE_ANCHOR_LABEL, KOREA_MISSILE_KIND_LABEL } from "@/data/koreaMissileIncidentsSeed";
 import { RUSSIA_STRIKE_KIND_LABEL } from "@/data/russiaStrikeIncidentsSeed";
 import { ACLED_HOME_URL, HAPI_ATTRIBUTION, HAPI_SOURCE_LINE } from "@/lib/hapiConflictCasualties";
+import { isMediazonaCasualtyId } from "@/lib/casualtySkullMarkers";
 import { gdeltNewsAlertLabel, formatGdeltNewsHeadline } from "@/lib/gdeltNewsAlert";
 import { gdeltLocationTagLabel } from "@/lib/gdeltLocationTags";
 import { reconCountryLabel, reconSensorLabel } from "@/lib/reconSatellites";
@@ -120,7 +122,12 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (p.displayKind === "china-theater-incident") return "china-theater-incidents";
     if (p.displayKind === "korea-missile-incident") return "korea-missile-incidents";
     if (p.displayKind === "russia-strike-incident") return "ukraine-strikes-russia";
-    if (p.displayKind === "casualty-skull") return "hapi-conflict-casualties";
+    if (p.displayKind === "casualty-skull") {
+      const id = "id" in p ? String(p.id) : "";
+      if (isMediazonaCasualtyId(id)) return "mediazona-casualties";
+      if (id.startsWith("ucdp")) return "ucdp-events";
+      return "hapi-conflict-casualties";
+    }
     if (p.displayKind === "recon-sat-html") return "recon-satellites";
     if (p.displayKind === "telegram-neon") return "telegram-osint";
     if (p.displayKind === "gdelt-tag-html" || p.displayKind === "ukraine-gdelt-neon") {
@@ -337,14 +344,15 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         title: hoveredPoint.name,
         detail:
           hoveredPoint.kind === "military-base"
-            ? HOVER.militaryBase(lang)
+            ? HOVER.militaryBase(lang, hoveredPoint.meta?.country)
             : staticKindLabel(hoveredPoint.kind, lang),
         meta:
           hoveredPoint.kind === "military-base"
             ? [
                 hoveredPoint.meta?.branch,
+                hoveredPoint.meta?.operator,
                 hoveredPoint.meta?.hostCountry || hoveredPoint.meta?.state,
-                hoveredPoint.meta?.hostCountry ? "USA" : hoveredPoint.meta?.country,
+                hoveredPoint.meta?.country,
               ]
                 .filter(Boolean)
                 .join(" · ") || undefined
@@ -534,6 +542,19 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
     }
     if (hoveredPoint.displayKind === "casualty-skull") {
       const place = hoveredPoint.admin1Name || hoveredPoint.id;
+      if (isMediazonaCasualtyId(hoveredPoint.id)) {
+        return {
+          kind: "static",
+          title: lang === "en" ? "Ukraine · named casualties" : "우크라 · 명의 사상자",
+          detail: hoveredPoint.sourceAttribution || "Mediazona × BBC · CSIS",
+          body: hoveredPoint.sourceHint,
+          meta: hoveredPoint.killedLabel,
+          hint:
+            lang === "en"
+              ? "Named RU KIA lower bound · CSIS WIA estimate"
+              : "명의 확인 전사(하한) · CSIS 부상 추정",
+        };
+      }
       return {
         kind: "static",
         title: lang === "en" ? `Active front · ${place}` : `열린 전선 · ${place}`,
@@ -621,7 +642,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       return {
         kind: "polygon",
         title: hoveredPolygon.name,
-        detail: HOVER.militaryBase(lang),
+        detail: HOVER.militaryBase(lang, hoveredPolygon.country),
         meta: [hoveredPolygon.component, hoveredPolygon.state, hoveredPolygon.country]
           .filter(Boolean)
           .join(" · ") || undefined,
@@ -809,7 +830,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       };
     }
 
-    /** 반서방 축 점선 — 마우스 옆에서 관계 종류·상대를 바로 읽게 */
+    /** CRINK 축 점선 — 마우스 옆에서 관계 종류·상대를 바로 읽게 */
     if (hoveredPath.kind === "axis-link") {
       const meta = hoveredPath.meta ?? {};
       const mode = meta.mode === "arms" ? "arms" : "network";
@@ -838,6 +859,10 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       const kindLabel = relationKind
         ? axisRelationKindLabel(relationKind, labelLanguage === "en" ? "en" : "ko")
         : null;
+      const statusLabel = corridorStatusLabel(
+        typeof meta.status === "string" ? meta.status : null,
+        labelLanguage === "en" ? "en" : "ko",
+      );
 
       if (mode === "arms") {
         const category =
@@ -847,6 +872,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         const years = typeof meta.years === "string" ? meta.years : null;
         const metaBits = [
           pair,
+          statusLabel,
           tiv != null ? `TIV ${tiv}` : null,
           count != null
             ? labelLanguage === "en"
@@ -863,12 +889,16 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               : hoveredPath.name || pathKindLabel("axis-link", lang),
           detail:
             labelLanguage === "en"
-              ? `Axis arms transfer${category ? ` · ${category}` : ""}`
-              : `축 무기이전${category ? ` · ${category}` : ""}`,
+              ? `Axis arms transfer${category ? ` · ${category}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`
+              : `축 무기이전${category ? ` · ${category}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`,
           body:
-            labelLanguage === "en"
-              ? "Dashed arc · registered conventional transfer summary between axis partners."
-              : "점선 · 축 파트너 사이 등록된 재래식 이전 요약입니다.",
+            statusLabel && meta.status === "under-construction"
+              ? labelLanguage === "en"
+                ? "Route geometry is mapped, but this corridor is still under construction — no completion glint."
+                : "실측 경로로 표시하지만 아직 건설중이라 완공 글린트는 없습니다."
+              : labelLanguage === "en"
+                ? "Dashed arc · registered conventional transfer summary between axis partners."
+                : "점선 · 축 파트너 사이 등록된 재래식 이전 요약입니다.",
           meta: metaBits.length ? metaBits.join(" · ") : undefined,
         };
       }
@@ -882,14 +912,75 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         title: hoveredPath.name || pathKindLabel("axis-link", lang),
         detail:
           labelLanguage === "en"
-            ? `Axis link${kindLabel ? ` · ${kindLabel}` : ""}`
-            : `축 관계망 점선${kindLabel ? ` · ${kindLabel}` : ""}`,
-        body: relationKind
-          ? axisRelationKindBlurb(relationKind, labelLanguage === "en" ? "en" : "ko")
-          : labelLanguage === "en"
-            ? "Dashed arc linking anti-Western axis hubs and partners."
-            : "반서방 축 허브·파트너를 잇는 점선입니다.",
-        meta: [pair, distanceMeta].filter(Boolean).join(" · ") || undefined,
+            ? `Axis link${kindLabel ? ` · ${kindLabel}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`
+            : `축 관계망 점선${kindLabel ? ` · ${kindLabel}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`,
+        body:
+          statusLabel && meta.status === "under-construction"
+            ? labelLanguage === "en"
+              ? "Mapped corridor still under construction — shown without completion glint."
+              : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
+            : relationKind
+              ? axisRelationKindBlurb(relationKind, labelLanguage === "en" ? "en" : "ko")
+              : labelLanguage === "en"
+                ? "Dashed arc linking CRINK hubs and partners."
+                : "CRINK 허브·파트너를 잇는 점선입니다.",
+        meta: [pair, statusLabel, distanceMeta].filter(Boolean).join(" · ") || undefined,
+      };
+    }
+
+    if (hoveredPath.kind === "strategic-corridor") {
+      const meta = hoveredPath.meta ?? {};
+      const statusLabel = corridorStatusLabel(
+        typeof meta.status === "string" ? meta.status : null,
+        labelLanguage === "en" ? "en" : "ko",
+      );
+      const category =
+        typeof meta.category === "string" ? meta.category : null;
+      const rank =
+        typeof meta.scalerank === "number"
+          ? meta.scalerank
+          : typeof hoveredPath.scalerank === "number"
+            ? hoveredPath.scalerank
+            : null;
+      const legMode =
+        typeof meta.legMode === "string" ? meta.legMode : null;
+      const distanceMeta =
+        hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
+          ? HOVER.pathLength(hoveredPath.lengthKm.toLocaleString(), lang)
+          : undefined;
+      const categoryLabel =
+        category === "military-logistics"
+          ? labelLanguage === "en"
+            ? "Military logistics"
+            : "군수 이송"
+          : category === "sanctions-evasion"
+            ? labelLanguage === "en"
+              ? "Sanctions evasion"
+              : "제재 우회"
+            : labelLanguage === "en"
+              ? "Trade corridor"
+              : "무역 회랑";
+      return {
+        kind: "path",
+        title: hoveredPath.name || pathKindLabel("strategic-corridor", lang),
+        detail: [
+          categoryLabel,
+          statusLabel,
+          rank != null ? `rank ${rank}` : null,
+          legMode,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        body:
+          statusLabel && meta.status === "under-construction"
+            ? labelLanguage === "en"
+              ? "Mapped corridor still under construction — shown without completion glint."
+              : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
+            : labelLanguage === "en"
+              ? "Hover for blade glint · LOD from quantitative corridor ranks (BRI · choke · length)."
+              : "호버 시 칼날 글린트 · LOD는 정량 회랑 랭크(BRI·초크·길이) 기준.",
+        meta: distanceMeta,
+        hint: HOVER.hintDetail(lang),
       };
     }
 

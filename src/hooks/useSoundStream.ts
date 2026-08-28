@@ -61,7 +61,7 @@ function fadeAmbientVolume(
     if (ambientFadeTokens.get(audio) !== token) return;
     const elapsed = now - startedAt;
     const progress = durationMs <= 0 ? 1 : Math.min(1, elapsed / durationMs);
-    audio.volume = start + (clampedTarget - start) * progress;
+    audio.volume = Math.min(1, Math.max(0, start + (clampedTarget - start) * progress));
     if (progress >= 1) {
       onDone?.();
       return;

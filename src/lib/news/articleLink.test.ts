@@ -93,7 +93,7 @@ describe("ensureLampFeaturedNews", () => {
     ...partial,
   });
 
-  it("사진+기사 URL만 남긴다", () => {
+  it("기사 URL만 남긴다 (사진 없어도 유지)", () => {
     const kept = ensureLampFeaturedNews([
       base({ id: "ok" }),
       base({
@@ -102,6 +102,6 @@ describe("ensureLampFeaturedNews", () => {
       }),
       base({ id: "nophoto", imageUrl: "" }),
     ]);
-    expect(kept.map((n) => n.id)).toEqual(["ok"]);
+    expect(kept.map((n) => n.id)).toEqual(["ok", "nophoto"]);
   });
 });

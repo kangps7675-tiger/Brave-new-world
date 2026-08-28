@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="missile">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a2438"/>
+      <stop offset="100%" stop-color="#0d121c"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)"/>
+  <path d="M180 260 L320 90 L340 110 L220 280 Z" fill="#94a3b8" opacity="0.85"/>
+  <path d="M320 90 L360 70 L380 95 L340 110 Z" fill="#cbd5e1"/>
+  <path d="M200 250 L160 290 L190 300 L230 270 Z" fill="#64748b"/>
+  <text x="40" y="330" fill="#64748b" font-family="system-ui,sans-serif" font-size="18" letter-spacing="0.2em">MISSILE</text>
+</svg>

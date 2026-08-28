@@ -1,0 +1,29 @@
+{
+  "defaultInputDir": "data/sources/osm-pbf",
+  "outputDir": "public/tiles/osm",
+  "workDir": "scripts/osm-tiles/work",
+  "vendorDir": "vendor",
+  "planetilerVersion": "v0.10.1",
+  "planetilerJarUrl": "https://github.com/onthegomap/planetiler/releases/download/v0.10.1/planetiler.jar",
+  "jdkMajor": 21,
+  "regions": [
+    {
+      "id": "antarctica",
+      "label": "Antarctica",
+      "pbf": "antarctica-260825.osm.pbf",
+      "heapGb": 2,
+      "center": [0, -80],
+      "zoom": 2.2,
+      "bounds": [-180, -90, 180, -60]
+    },
+    {
+      "id": "australia-oceania",
+      "label": "Australia & Oceania",
+      "pbf": "australia-oceania-260825.osm.pbf",
+      "heapGb": 6,
+      "center": [145, -25],
+      "zoom": 3.2,
+      "bounds": [110, -50, 180, 0]
+    }
+  ]
+}

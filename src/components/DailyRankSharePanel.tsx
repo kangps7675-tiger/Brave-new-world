@@ -66,9 +66,9 @@ function WorldTensionHero({
     : null;
 
   return (
-    <div className="rounded-lg border border-rose-500/25 bg-gradient-to-br from-rose-950/40 via-slate-950/60 to-slate-950/80 p-3 sm:col-span-2">
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
+    <div className="rounded-lg border border-rose-500/25 bg-gradient-to-br from-rose-950/40 via-slate-950/60 to-slate-950/80 p-3 min-w-0 overflow-hidden">
+      <div className="flex min-w-0 items-end justify-between gap-2">
+        <div className="min-w-0 flex-1">
           <p className="text-micro font-semibold uppercase tracking-[0.18em] text-rose-300/80">
             {formatGtiTitle(ko)}
           </p>
@@ -78,7 +78,7 @@ function WorldTensionHero({
               : `Tension index (GTI) · ${band}`}
           </p>
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <p className="text-3xl font-black tabular-nums tracking-tight text-rose-100">
             {score}
           </p>
@@ -132,16 +132,16 @@ function RankList({
 }) {
   const ko = lang !== "en";
   return (
-    <div className="rounded-lg border border-slate-800/80 bg-slate-950/50 p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className={`text-meta font-semibold uppercase tracking-[0.14em] ${accentClass}`}>
+    <div className="rounded-lg border border-slate-800/80 bg-slate-950/50 p-3 min-w-0 overflow-hidden">
+      <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+        <h3 className={`min-w-0 truncate text-meta font-semibold uppercase tracking-[0.14em] ${accentClass}`}>
           {title}
         </h3>
         <button
           type="button"
           disabled={busy || entries.length === 0}
           onClick={onShare}
-          className="rounded border border-slate-700/80 px-2 py-0.5 text-micro text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40"
+          className="shrink-0 rounded border border-slate-700/80 px-2 py-0.5 text-micro text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40"
         >
           {busy ? (ko ? "만드는 중…" : "Rendering…") : ko ? "카드 공유" : "Share card"}
         </button>
@@ -275,8 +275,8 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
     <section
       className={
         compact
-          ? "space-y-2"
-          : "grid gap-2 sm:grid-cols-2"
+          ? "min-w-0 space-y-2"
+          : "grid min-w-0 grid-cols-1 gap-2"
       }
       aria-label={ko ? "일일 랭킹" : "Daily rankings"}
     >
@@ -296,7 +296,7 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
         onShare={() => void share("theater")}
       />
       {/* PortWatch 초크 TOP과 짝 — 전 세계 종합 공급망 압력 */}
-      <div className="sm:col-span-2">
+      <div className="min-w-0">
         <GscpiGaugeFromData lang={lang} />
       </div>
       <RankList

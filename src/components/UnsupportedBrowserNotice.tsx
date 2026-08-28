@@ -83,7 +83,8 @@ export function UnsupportedBrowserNotice({ support }: Props) {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/news-stream", { cache: "no-store" });
+        const briefLang = detectLang();
+        const res = await fetch(`/api/news-stream?lang=${briefLang}`, { cache: "no-store" });
         if (!res.ok) throw new Error(String(res.status));
         // NewsStreamPayload — hero + verified. 구조 변경에 대비해 전부 optional 취급.
         const json = (await res.json()) as {

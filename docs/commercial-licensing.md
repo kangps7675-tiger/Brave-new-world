@@ -91,6 +91,10 @@ AI/ML 학습 사용도 제한한다.
 
 ---
 
+## 검토 중 (아직 `sourceCatalog.ts` 미등록)
+
+- **DeepStateMap.live** (전선 지오메트리, VIINA 대체/보강 후보) — API는 상업적 목적 단체 사전 승인제. 승인 요청 전까지 통합 금지. 상세·액션 아이템: `docs/third-party/deepstatemap.md`
+
 ## 확인만 하면 되는 것 (6) — 가장 싸게 늘릴 수 있다
 
 `intel-hotspots` · `nuclear-sites` · `missile-silos` ·
