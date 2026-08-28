@@ -11,8 +11,38 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
  * 테스트는 `environment: "node"`뿐이라 이 영역이 통째로 사각지대였다.
  */
 
-/** 외부 HAPI rate-limit(429)이 CI를 흔들지 않도록 스모크용 stub */
+/** 외부 API·속보 타전이 CI 스모크를 가리지 않도록 stub */
 async function stubNoisyApis(page: Page) {
+  const emptyNewsStream = {
+    fetchedAt: new Date().toISOString(),
+    hero: null,
+    flashHeroes: [],
+    verified: [],
+    stateMedia: [],
+    stats: { total: 0, tier1: 0, tier2: 0, tier3: 0, theaters: {} },
+  };
+
+  await page.route("**/api/news-stream**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(emptyNewsStream),
+    });
+  });
+
+  await page.route("**/api/briefing-stats**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        stubbed: true,
+        featuredNews: [],
+        macroTable: [],
+      }),
+    });
+  });
+
   await page.route("**/api/hapi-conflict-casualties**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -103,26 +133,36 @@ function mapCanvas(page: Page) {
   return page.locator("canvas.maplibregl-canvas");
 }
 
-/** 부트 스플래시·게이트·등불 양피지가 pointer-events를 막지 않을 때까지 */
+/** 부트 스플래시·게이트·양피지(z-900)가 pointer-events를 막지 않을 때까지 */
 async function waitForInteractiveChrome(page: Page) {
   await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('[aria-label*="로딩 중"]')).toHaveCount(0, { timeout: 60_000 });
-  await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 15_000 });
-  await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 10_000 });
-  await dismissPeriodicBriefingIfOpen(page);
-  await expect(page.locator('[aria-labelledby="periodic-briefing-title"]')).toHaveCount(0, {
-    timeout: 15_000,
-  });
+  await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 5_000 });
+
+  // news-stream 로드 후 속보·등불이 늦게 뜰 수 있음 — 스크rim이 없어질 때까지 폴링
+  await expect
+    .poll(async () => {
+      await dismissBlockingParchmentOverlays(page);
+      return page.locator(".welcome-letter-scrim[role='dialog']").count();
+    }, { timeout: 45_000 })
+    .toBe(0);
 }
 
-/** 등불 양피지(z-900) — localStorage 시드 실패 시 「접기」로 닫는다 */
-async function dismissPeriodicBriefingIfOpen(page: Page) {
-  const scrim = page.locator('[aria-labelledby="periodic-briefing-title"]');
-  if (!(await scrim.isVisible({ timeout: 8_000 }).catch(() => false))) return;
-  const foldBtn = scrim.getByRole("button", { name: /^(접기|Fold)$/ });
-  await expect(foldBtn).toBeVisible({ timeout: 10_000 });
-  await foldBtn.dispatchEvent("click");
-  await expect(scrim).toHaveCount(0, { timeout: 20_000 });
+/** 등불·속보·기타 양피지 — CTA(접기/확인 등)로 닫는다 */
+async function dismissBlockingParchmentOverlays(page: Page) {
+  const scrims = page.locator(".welcome-letter-scrim[role='dialog']");
+  const count = await scrims.count();
+  for (let i = 0; i < count; i++) {
+    const scrim = scrims.nth(i);
+    if (!(await scrim.isVisible().catch(() => false))) continue;
+    const cta = scrim
+      .getByRole("button", { name: /^(접기|Fold|확인|Understood|Continue|계속)$/i })
+      .first();
+    if (await cta.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await cta.dispatchEvent("click");
+    }
+  }
 }
 
 /**
@@ -140,7 +180,7 @@ function visibleLayerCheckbox(page: Page) {
 
 test.describe("스모크", () => {
   // 부트 스플래시(최대 ~60s) + 게이트 + 레이어 조작 — CI 90s 기본 타임아웃은 부족
-  test.describe.configure({ timeout: 120_000 });
+  test.describe.configure({ timeout: 150_000 });
 
   test("① 부팅 — 지도 캔버스가 렌더된다", async ({ page }) => {
     const consoleErrors: string[] = [];
