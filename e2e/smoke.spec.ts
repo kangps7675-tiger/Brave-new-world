@@ -32,18 +32,34 @@ async function tapCheckbox(box: Locator) {
   });
 }
 
-/** 입장 게이트 통과 — 주의창 스킵 → 도메인 선택 */
+/** 입장 게이트·부트 스플래시 통과 — 레이어 패널 등 클릭 가능 상태까지 */
 async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict") {
   await stubNoisyApis(page);
 
-  // 첫 방문 투어·초대 배너가 레이어 토글을 가리지 않도록 선행 시드
-  await page.addInitScript(() => {
-    try {
-      localStorage.setItem("geowatch-first-visit-tour-v1", "1");
-    } catch {
-      /* ignore */
-    }
-  });
+  // 재방문·언어·도메인 확정 — lang/domain 게이트와 첫 방문 투어를 건너뜀
+  await page.addInitScript(
+    ([mode]) => {
+      try {
+        localStorage.setItem("geowatch-first-visit-tour-v1", "1");
+        localStorage.setItem("geowatch-lang-choice-v1", "1");
+        localStorage.setItem("geowatch-welcome-gate-v1", "1");
+        localStorage.setItem(
+          "geowatch-view-config-v1",
+          JSON.stringify({
+            version: 1,
+            packages: mode === "economy" ? ["geo-trader"] : ["frontline-live"],
+            theater: "auto",
+            economyHub: "auto",
+            appliedAt: new Date().toISOString(),
+            viewerMode: mode,
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
+    },
+    [domain],
+  );
 
   await page.goto("/");
 
@@ -54,22 +70,37 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
     "WebGL2 미지원 — 이 브라우저에서는 지도가 렌더되지 않는다 (P0-1 안내 화면 노출)",
   ).toHaveCount(0, { timeout: 15_000 });
 
-  // 주의창: 있으면 스킵. 재방문 상태(localStorage)면 아예 안 뜬다.
+  // 게이트가 뜨면 순서대로 닫는다 (localStorage 시드 실패·?entry=1 재생 시 대비)
+  const langGate = page.locator("#lang-gate-title");
+  if (await langGate.isVisible({ timeout: 8_000 }).catch(() => false)) {
+    await page.getByRole("button", { name: "한국어" }).click();
+    await expect(langGate).toHaveCount(0, { timeout: 10_000 });
+  }
+
   const skip = page.getByRole("button", { name: /스킵 · 도메인|SKIP · DOMAIN/i });
-  if (await skip.isVisible({ timeout: 20_000 }).catch(() => false)) {
+  if (await skip.isVisible({ timeout: 5_000 }).catch(() => false)) {
     await skip.click();
   }
 
-  const label = domain === "conflict" ? /전쟁·안보|Conflict/ : /경제·물류|Economy/;
-  const domainButton = page.getByRole("button", { name: label });
-  if (await domainButton.isVisible({ timeout: 20_000 }).catch(() => false)) {
-    await domainButton.click();
+  const domainGate = page.locator("#domain-gate-title");
+  if (await domainGate.isVisible({ timeout: 8_000 }).catch(() => false)) {
+    const label = domain === "conflict" ? /전쟁·안보|Conflict/ : /경제·물류|Economy/;
+    await page.getByRole("button", { name: label }).click();
+    await expect(domainGate).toHaveCount(0, { timeout: 15_000 });
   }
 }
 
 /** maplibre가 실제로 캔버스를 붙였는지 */
 function mapCanvas(page: Page) {
   return page.locator("canvas.maplibregl-canvas");
+}
+
+/** 부트 스플래시(z-700)가 pointer-events를 막지 않을 때까지 */
+async function waitForInteractiveChrome(page: Page) {
+  await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('[aria-label*="로딩 중"]')).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 15_000 });
+  await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 10_000 });
 }
 
 /**
@@ -86,6 +117,9 @@ function visibleLayerCheckbox(page: Page) {
 }
 
 test.describe("스모크", () => {
+  // 부트 스플래시(최대 ~60s) + 게이트 + 레이어 조작 — CI 90s 기본 타임아웃은 부족
+  test.describe.configure({ timeout: 120_000 });
+
   test("① 부팅 — 지도 캔버스가 렌더된다", async ({ page }) => {
     const consoleErrors: string[] = [];
     page.on("console", (msg) => {
@@ -127,7 +161,7 @@ test.describe("스모크", () => {
 
   test("② 레이어 토글 — 체크가 즉시 반영된다", async ({ page }) => {
     await enterGlobe(page);
-    await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
+    await waitForInteractiveChrome(page);
 
     await page.locator("#layer-panel-toggle").click();
     await expect(layerPanel(page)).toBeVisible({ timeout: 20_000 });
@@ -154,7 +188,7 @@ test.describe("스모크", () => {
 
   test("③ 레이어 패널 — 열고 닫힌다", async ({ page }) => {
     await enterGlobe(page);
-    await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
+    await waitForInteractiveChrome(page);
 
     await page.locator("#layer-panel-toggle").click();
 
