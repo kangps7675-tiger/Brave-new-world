@@ -1,8 +1,26 @@
 {
   "bucket": "conflict-view-data",
   "prefix": "sources/osm-pbf",
-  "updatedAt": "2026-08-27T10:25:25.802Z",
+  "updatedAt": "2026-08-28T06:27:38.000Z",
   "objects": {
+    "asia-260825.osm.pbf": {
+      "key": "sources/osm-pbf/asia-260825.osm.pbf",
+      "bytes": 16208931364,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-28T04:41:00.000Z"
+    },
+    "belarus-260824.osm.pbf": {
+      "key": "sources/osm-pbf/belarus-260824.osm.pbf",
+      "bytes": 348272962,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-28T04:41:00.000Z"
+    },
+    "ukraine-260824.osm.pbf": {
+      "key": "sources/osm-pbf/ukraine-260824.osm.pbf",
+      "bytes": 874291400,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-28T04:41:00.000Z"
+    },
     "cuba-260825.osm.pbf": {
       "key": "sources/osm-pbf/cuba-260825.osm.pbf",
       "bytes": 61660323,
@@ -14,6 +32,12 @@
       "bytes": 126446965,
       "localDir": "C:\\Users\\kangp\\Downloads",
       "uploadedAt": "2026-08-27T10:25:25.802Z"
+    },
+    "russia-260825.osm.pbf": {
+      "key": "sources/osm-pbf/russia-260825.osm.pbf",
+      "bytes": 4148075434,
+      "localDir": "C:\\Users\\kangp\\Downloads",
+      "uploadedAt": "2026-08-28T04:54:22.000Z"
     }
   }
 }
