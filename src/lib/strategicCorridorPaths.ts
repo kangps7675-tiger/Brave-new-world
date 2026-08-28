@@ -112,7 +112,7 @@ function waypointsBbox(waypoints: CorridorWaypoint[]) {
   return { minLat, minLng, maxLat, maxLng };
 }
 
-function kindForCorridor(_corridor: StrategicCorridor): TransportPath["kind"] {
+function kindForCorridor(): TransportPath["kind"] {
   return "strategic-corridor";
 }
 
@@ -189,7 +189,7 @@ export function corridorToTransportPath(corridor: StrategicCorridor): TransportP
   const scalerank = scalerankFor(corridor);
   return {
     id: `corridor-${corridor.id}`,
-    kind: kindForCorridor(corridor),
+    kind: kindForCorridor(),
     name: corridor.nameKo,
     scalerank,
     lengthKm: waypointsLengthKm(corridor.waypoints),
@@ -219,7 +219,7 @@ export function corridorToTransportPaths(corridor: StrategicCorridor): Transport
     return single ? [single] : [];
   }
   const alt = ALT_BY_CATEGORY[corridor.category];
-  const kind = kindForCorridor(corridor);
+  const kind = kindForCorridor();
   // groupId(corridor.id) 기준 색 — 모든 leg가 같은 색을 써야 하나로 이어진 회랑처럼 보인다.
   const accentColor = colorForGroupId(corridor.id);
   const scalerank = scalerankFor(corridor);

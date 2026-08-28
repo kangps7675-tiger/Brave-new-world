@@ -1,5 +1,5 @@
+import { addProtocol } from "maplibre-gl";
 import { Protocol } from "pmtiles";
-import maplibregl from "maplibre-gl";
 
 let registered = false;
 
@@ -7,7 +7,7 @@ let registered = false;
 export function ensurePmtilesProtocol(): void {
   if (typeof window === "undefined" || registered) return;
   const protocol = new Protocol();
-  maplibregl.addProtocol("pmtiles", protocol.tile);
+  addProtocol("pmtiles", protocol.tile);
   registered = true;
 }
 

@@ -154,8 +154,6 @@ import {
   localizePeriodicBriefing,
   hasFoldedWeeklyRecap,
   lampSeenKey,
-  markLampFolded,
-  markPeriodSeen,
   pickConflictLampNews,
   pickEconomyLampNews,
   ensureLampFeaturedNews,
@@ -862,7 +860,7 @@ export function GlobeDashboard({
   /** 인가 강등 위기/강등 칩 */
   const [clearanceStatus, setClearanceStatus] = useState<ClearanceStatus | null>(null);
   /** 강등 칩을 닫았거나 불필요 — 등불보다 우선 */
-  const [clearanceChipSettled, setClearanceChipSettled] = useState(false);
+  const [, setClearanceChipSettled] = useState(false);
   /** 오늘의 WTI — 사운드·등불·예측 기축 */
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
   /** WTI 기준 시각 — 상황판 "as of" 표시용 */
