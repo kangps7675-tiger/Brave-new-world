@@ -199,6 +199,22 @@ function axisLinkHoverGroupId(item: unknown): string | null {
   return typeof id === "string" && id ? id : null;
 }
 
+/** PortWatch maritime routes — flowing dash (trade particle motion). */
+const MARITIME_DASH_SEQUENCE: [number, number, number][] = [
+  [0, 5, 2.5],
+  [0.6, 5, 1.9],
+  [1.2, 5, 1.3],
+  [1.8, 5, 0.7],
+  [2.4, 5, 0.1],
+  [0, 0.6, 4.4],
+  [0, 1.2, 3.8],
+  [0, 1.8, 3.2],
+  [0, 2.4, 2.6],
+  [0, 3.0, 2.0],
+  [0, 3.6, 1.4],
+  [0, 4.2, 0.8],
+];
+
 /** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
 const CHINA_DASH_SEQUENCE: [number, number, number][] = [
   [0, 4, 3],
@@ -702,6 +718,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           item && typeof item === "object" && "meta" in item
             ? (item as { meta?: { legMode?: string } }).meta?.legMode
             : undefined;
+        const kind =
+          item && typeof item === "object" && "kind" in item
+            ? String((item as { kind?: string }).kind ?? "")
+            : undefined;
+        if (kind === "maritime-route") return 4;
         return legMode === "sea" ? 3 : a.pathDashLength(item);
       },
       dashGap: a.pathDashGap,
@@ -747,6 +768,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       },
     });
   }, [deferredPathsData, basemapMode]);
+
+  const hasMaritimeRoutes = useMemo(
+    () => pathsGeoJson.features.some((f) => f.properties?.kind === "maritime-route"),
+    [pathsGeoJson],
+  );
 
   const priorityPathsGeoJson = useMemo(() => {
     void basemapMode;
@@ -1555,6 +1581,26 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     return () => window.clearInterval(id);
   }, [mapLoaded, showIslandChains]);
 
+  /** PortWatch graph routes — dashOffset flow + capacity-scaled glow */
+  useEffect(() => {
+    if (!mapLoaded || !hasMaritimeRoutes) return;
+    if (prefersReducedMotion()) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let step = 0;
+    const id = window.setInterval(() => {
+      if (!map.getLayer("map-paths-maritime")) return;
+      step = (step + 1) % MARITIME_DASH_SEQUENCE.length;
+      const dash = MARITIME_DASH_SEQUENCE[step]!;
+      try {
+        map.setPaintProperty("map-paths-maritime", "line-dasharray", dash);
+      } catch {
+        /* style reload race */
+      }
+    }, 80);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, hasMaritimeRoutes]);
+
   useEffect(() => {
     if (!showIslandChains) setHoveredIslandBaseId(null);
   }, [showIslandChains]);
@@ -2123,7 +2169,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             <Layer
               id="map-paths-dashed"
               type="line"
-              filter={[">", ["get", "dashLength"], 0]}
+              filter={[
+                "all",
+                [">", ["get", "dashLength"], 0],
+                ["!=", ["get", "kind"], "maritime-route"],
+              ]}
               layout={{
                 "line-cap": "butt",
                 "line-join": "round",
@@ -2133,6 +2183,63 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
                 "line-opacity": 0.9,
                 "line-dasharray": [2, 1.2],
+              }}
+            />
+            {/* PortWatch maritime — capacity glow underlay + animated dash flow */}
+            <Layer
+              id="map-paths-maritime-glow"
+              type="line"
+              filter={["==", ["get", "kind"], "maritime-route"]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  ["*", ["get", "strokeAngular"], 2.8],
+                  6,
+                  ["*", ["get", "strokeAngular"], 4.2],
+                  10,
+                  ["*", ["get", "strokeAngular"], 5.6],
+                ],
+                "line-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.22,
+                  8,
+                  0.38,
+                ],
+                "line-blur": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.6,
+                  8,
+                  1.4,
+                ],
+              }}
+            />
+            <Layer
+              id="map-paths-maritime"
+              type="line"
+              filter={["==", ["get", "kind"], "maritime-route"]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.96,
+                "line-dasharray": [0, 5, 2.5],
               }}
             />
             {/*

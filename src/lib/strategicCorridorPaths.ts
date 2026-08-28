@@ -7,7 +7,7 @@ import {
   type StrategicCorridor,
 } from "@/data/strategicCorridors";
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
-import { getCorridorScalerank } from "@/lib/corridorRanks";
+import { getCorridorRank, getCorridorScalerank } from "@/lib/corridorRanks";
 import { filterTransportPathsForViewport } from "@/lib/viewportPathFilter";
 import type { CorridorLod } from "@/lib/corridorLod";
 
@@ -187,6 +187,7 @@ export function corridorToTransportPath(corridor: StrategicCorridor): TransportP
   if (corridor.waypoints.length < 2) return null;
   const alt = ALT_BY_CATEGORY[corridor.category];
   const scalerank = scalerankFor(corridor);
+  const rank = getCorridorRank(corridor.id);
   return {
     id: `corridor-${corridor.id}`,
     kind: kindForCorridor(),
@@ -204,6 +205,8 @@ export function corridorToTransportPath(corridor: StrategicCorridor): TransportP
       category: corridor.category,
       note: corridor.note ?? null,
       scalerank,
+      gaugeBreak: rank?.gaugeBreak ? 1 : 0,
+      euRailGateway: rank?.euRailGateway ? 1 : 0,
     },
   };
 }

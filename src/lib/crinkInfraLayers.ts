@@ -12,7 +12,9 @@ export type CrinkInfraCategory =
   | "border"
   | "dam"
   | "power"
-  | "checkpoint";
+  | "checkpoint"
+  | "rail"
+  | "road";
 
 export const CRINK_INFRA_CATEGORY_LABEL: Record<
   CrinkInfraCategory,
@@ -24,6 +26,8 @@ export const CRINK_INFRA_CATEGORY_LABEL: Record<
   dam: { ko: "댐·저수지 (OSM)", en: "Dams (OSM)" },
   power: { ko: "변전소·발전소 (OSM)", en: "Substations & plants (OSM)" },
   checkpoint: { ko: "군사 검문소 (OSM)", en: "Military checkpoints (OSM)" },
+  rail: { ko: "주요 교역로 철도 (OSM)", en: "Major corridor rail (OSM)" },
+  road: { ko: "주요 교역로 도로 (OSM)", en: "Major corridor roads (OSM)" },
 };
 
 export const CRINK_INFRA_STROKE: Record<CrinkInfraCategory, string> = {
@@ -33,6 +37,8 @@ export const CRINK_INFRA_STROKE: Record<CrinkInfraCategory, string> = {
   dam: "rgba(100, 160, 255, 0.85)",
   power: "rgba(255, 180, 60, 0.75)",
   checkpoint: "rgba(255, 100, 120, 0.9)",
+  rail: "rgba(230, 190, 90, 0.88)",
+  road: "rgba(210, 210, 210, 0.78)",
 };
 
 export const CRINK_INFRA_FILL: Record<CrinkInfraCategory, string> = {
@@ -42,6 +48,8 @@ export const CRINK_INFRA_FILL: Record<CrinkInfraCategory, string> = {
   dam: "rgba(80, 130, 220, 0.28)",
   power: "rgba(255, 180, 60, 0.08)",
   checkpoint: "rgba(255, 80, 100, 0.35)",
+  rail: "rgba(230, 190, 90, 0.12)",
+  road: "rgba(210, 210, 210, 0.08)",
 };
 
 export type CrinkInfraFeatureProps = {
@@ -141,7 +149,16 @@ export function crinkInfraToPaths(
 ): TransportPath[] {
   if (!fc?.features?.length) return [];
   const accentColor = CRINK_INFRA_STROKE[category];
-  const alt = category === "power" ? 0.003 : category === "border" ? 0.006 : 0.004;
+  const alt =
+    category === "power"
+      ? 0.003
+      : category === "border"
+        ? 0.006
+        : category === "road"
+          ? 0.005
+          : category === "rail"
+            ? 0.0035
+            : 0.004;
   const paths: TransportPath[] = [];
   const view = opts?.view;
   const radiusDeg = opts?.radiusDeg ?? 0;
@@ -172,7 +189,7 @@ export function crinkInfraToPaths(
       id,
       kind: "crink-infra",
       name,
-      scalerank: category === "power" ? 3 : 2,
+      scalerank: category === "power" ? 3 : category === "rail" || category === "road" ? 1 : 2,
       lengthKm: pathLengthKm(points),
       accentColor,
       bbox: bboxFromPoints(points),

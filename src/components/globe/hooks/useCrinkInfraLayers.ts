@@ -48,6 +48,7 @@ export function useCrinkInfraLayers(opts: {
   const [counts, setCounts] = useState<Partial<Record<CrinkInfraCategory, number>>>({});
   const [detailArmed, setDetailArmed] = useState(false);
   const [powerArmed, setPowerArmed] = useState(false);
+  const [transportArmed, setTransportArmed] = useState(false);
 
   const enabled = useMemo(() => enabledCategories(layerPrefs), [layerPrefs]);
   const anyEnabled = isAnyCrinkInfraEnabled(layerPrefs);
@@ -72,12 +73,25 @@ export function useCrinkInfraLayers(opts: {
         crinkInfraDropZoom("power"),
       ),
     );
+    setTransportArmed((prev) =>
+      crinkInfraArmedNext(
+        prev,
+        mapZoom,
+        eligible,
+        crinkInfraMinZoom("rail"),
+        crinkInfraDropZoom("rail"),
+      ),
+    );
   }, [eligible, mapZoom]);
 
-  const categoryArmed = (cat: CrinkInfraCategory) =>
-    cat === "power" ? powerArmed : detailArmed;
+  const categoryArmed = (cat: CrinkInfraCategory) => {
+    if (cat === "power") return powerArmed;
+    if (cat === "rail" || cat === "road") return transportArmed;
+    return detailArmed;
+  };
 
-  const shouldFetch = anyEnabled && eligible && (detailArmed || powerArmed);
+  const shouldFetch =
+    anyEnabled && eligible && (detailArmed || powerArmed || transportArmed);
 
   useEffect(() => {
     if (!shouldFetch) {
@@ -124,7 +138,7 @@ export function useCrinkInfraLayers(opts: {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch missing cats when zoom-armed
-  }, [shouldFetch, enabled.join(","), detailArmed, powerArmed]);
+  }, [shouldFetch, enabled.join(","), detailArmed, powerArmed, transportArmed]);
 
   const paths = useMemo(() => {
     if (!anyEnabled || !eligible) return [] as TransportPath[];
@@ -150,6 +164,7 @@ export function useCrinkInfraLayers(opts: {
     layerPrefs,
     detailArmed,
     powerArmed,
+    transportArmed,
     view.lat,
     view.lng,
     radiusDeg,
@@ -164,7 +179,7 @@ export function useCrinkInfraLayers(opts: {
     return out;
   }, [collections, counts, layerPrefs]);
 
-  const anyArmed = detailArmed || powerArmed;
+  const anyArmed = detailArmed || powerArmed || transportArmed;
   const visibilityHint = crinkInfraVisibilityHint({
     enabled: anyEnabled,
     eligible,
@@ -181,6 +196,7 @@ export function useCrinkInfraLayers(opts: {
     eligible,
     detailArmed,
     powerArmed,
+    transportArmed,
     visibilityHint,
   };
 }

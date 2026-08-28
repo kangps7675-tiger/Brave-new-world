@@ -9,6 +9,9 @@ export const CRINK_DETAIL_MIN_ZOOM = 9.5;
 export const CRINK_DETAIL_DROP_ZOOM = 9.0;
 export const CRINK_POWER_MIN_ZOOM = 11;
 export const CRINK_POWER_DROP_ZOOM = 10.5;
+/** 주요 교역로 철도·도로 — 대륙 스케일에서 보이도록 더 일찍 */
+export const CRINK_TRANSPORT_MIN_ZOOM = 4.5;
+export const CRINK_TRANSPORT_DROP_ZOOM = 4.0;
 
 export const CRINK_INFRA_MAX_PATHS_PER_CATEGORY = 2000;
 
@@ -33,11 +36,15 @@ export function crinkInfraArmedNext(
 }
 
 export function crinkInfraMinZoom(category: CrinkInfraCategory): number {
-  return category === "power" ? CRINK_POWER_MIN_ZOOM : CRINK_DETAIL_MIN_ZOOM;
+  if (category === "power") return CRINK_POWER_MIN_ZOOM;
+  if (category === "rail" || category === "road") return CRINK_TRANSPORT_MIN_ZOOM;
+  return CRINK_DETAIL_MIN_ZOOM;
 }
 
 export function crinkInfraDropZoom(category: CrinkInfraCategory): number {
-  return category === "power" ? CRINK_POWER_DROP_ZOOM : CRINK_DETAIL_DROP_ZOOM;
+  if (category === "power") return CRINK_POWER_DROP_ZOOM;
+  if (category === "rail" || category === "road") return CRINK_TRANSPORT_DROP_ZOOM;
+  return CRINK_DETAIL_DROP_ZOOM;
 }
 
 export function crinkInfraVisibilityHint(opts: {

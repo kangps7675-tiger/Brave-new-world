@@ -52,6 +52,20 @@ export const CRINK_INFRA_LAYERS: CrinkInfraLayerDef[] = [
     labelEn: "Military checkpoints",
     accent: "red",
   },
+  {
+    id: "rail",
+    prefKey: "showCrinkInfraRail",
+    labelKo: "주요 교역로 철도",
+    labelEn: "Major corridor rail",
+    accent: "amber",
+  },
+  {
+    id: "road",
+    prefKey: "showCrinkInfraRoad",
+    labelKo: "주요 교역로 도로",
+    labelEn: "Major corridor roads",
+    accent: "yellow",
+  },
 ];
 
 export const CRINK_INFRA_PREF_PATCH = Object.fromEntries(

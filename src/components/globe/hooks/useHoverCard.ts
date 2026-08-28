@@ -990,6 +990,15 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           statusLabel,
           rank != null ? `rank ${rank}` : null,
           legMode,
+          meta.gaugeBreak === 1
+            ? labelLanguage === "en"
+              ? "gauge-break"
+              : "궤간변경"
+            : meta.euRailGateway === 1
+              ? labelLanguage === "en"
+                ? "EU gateway"
+                : "EU 게이트웨이"
+              : null,
         ]
           .filter(Boolean)
           .join(" · "),
@@ -999,8 +1008,8 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               ? "Mapped corridor still under construction — shown without completion glint."
               : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
             : labelLanguage === "en"
-              ? "Hover for blade glint · LOD from quantitative corridor ranks (BRI · choke · length)."
-              : "호버 시 칼날 글린트 · LOD는 정량 회랑 랭크(BRI·초크·길이) 기준.",
+              ? "Click for Eurostat ton-km sparkline · Comtrade USD dual signal · LOD from corridor ranks."
+              : "클릭 시 Eurostat ton-km 시계열 · Comtrade USD 이중 신호 · LOD는 정량 회랑 랭크.",
         meta: distanceMeta,
         hint: HOVER.hintDetail(lang),
       };

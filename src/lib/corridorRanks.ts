@@ -20,6 +20,18 @@ export type CorridorRankComponents = {
   lengthNorm: number;
   statusWeight: number;
   corridorTeu: number | null;
+  corridorTeuNorm?: number | null;
+  railFreightShockPct?: number | null;
+  railFreightShareOfWorld?: number | null;
+  dualSignal?: "aligned" | "price_over_volume" | "volume_over_price" | null;
+  oceanTradeUsd?: number | null;
+  oceanTradeNorm?: number | null;
+  lsbci?: number | null;
+  lsbciNorm?: number | null;
+  oceanServicesUsd?: number | null;
+  oceanServicesNorm?: number | null;
+  euRailGateway?: boolean;
+  gaugeBreak?: boolean;
 };
 
 export type CorridorRankRow = {
@@ -29,6 +41,24 @@ export type CorridorRankRow = {
   mode: string;
   endpointCountries: string[];
   comtradePair: string[];
+  railFreightPair?: { geo: string; partner: string } | null;
+  euRailGateway?: boolean;
+  gaugeBreak?: boolean;
+  modalFamily?: string | null;
+  relatedCorridorIds?: string[];
+  modalStress?: {
+    family: string;
+    relatedCorridorIds: string[];
+    railShockPct: number | null;
+    familyMinRailShockPct: number | null;
+    familyMaxRailShockPct: number | null;
+    seaChokeStress: number | null;
+    lsciDrops: { iso: string; month: string; pctChange: number }[];
+    connectivityDual: "aligned" | "sea_over_rail" | "rail_over_sea" | null;
+    hypothesis: string | null;
+    narrativeKo: string | null;
+    narrativeEn: string | null;
+  } | null;
   score: number;
   scorePercentile?: number;
   scalerank: number;

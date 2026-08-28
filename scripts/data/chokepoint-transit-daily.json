@@ -1,0 +1,6507 @@
+{
+  "generatedAt": "2026-08-28T18:08:19.546Z",
+  "source": "IMF PortWatch Daily Chokepoint Transit Calls (local bulk cache for /api/portwatch — last 120 days per chokepoint)",
+  "historyDays": 120,
+  "latestDate": "2026-08-23",
+  "byChokeId": {
+    "choke-suez": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 37,
+        "capacity": 1057863,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 39,
+        "capacity": 1362057,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 55,
+        "capacity": 1747986,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 33,
+        "capacity": 1163366,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 45,
+        "capacity": 1474879,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 39,
+        "capacity": 1400889,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 46,
+        "capacity": 1644490,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 41,
+        "capacity": 1156924,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 39,
+        "capacity": 1205996,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 39,
+        "capacity": 1545753,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 40,
+        "capacity": 1099325,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 27,
+        "capacity": 828942,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 57,
+        "capacity": 2025377,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 43,
+        "capacity": 1526277,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 48,
+        "capacity": 1948912,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 35,
+        "capacity": 1291308,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 43,
+        "capacity": 1092368,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 39,
+        "capacity": 1223896,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 43,
+        "capacity": 1122360,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 35,
+        "capacity": 1725936,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 44,
+        "capacity": 1629747,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 31,
+        "capacity": 1245322,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 42,
+        "capacity": 1054183,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 38,
+        "capacity": 1702919,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 47,
+        "capacity": 1490722,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 39,
+        "capacity": 1394958,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 43,
+        "capacity": 1711440,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 46,
+        "capacity": 2017081,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 42,
+        "capacity": 1468369,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 37,
+        "capacity": 859389,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 46,
+        "capacity": 1570826,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 46,
+        "capacity": 1595346,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 44,
+        "capacity": 1810632,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 40,
+        "capacity": 1064198,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 36,
+        "capacity": 1025936,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 43,
+        "capacity": 1973255,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 46,
+        "capacity": 1545567,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 44,
+        "capacity": 1437081,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 39,
+        "capacity": 1503404,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 42,
+        "capacity": 1599188,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 34,
+        "capacity": 2108558,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 43,
+        "capacity": 2133513,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 39,
+        "capacity": 1325078,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 48,
+        "capacity": 1972985,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 44,
+        "capacity": 1390434,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 37,
+        "capacity": 1621135,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 44,
+        "capacity": 1830675,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 41,
+        "capacity": 1697641,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 36,
+        "capacity": 1564237,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 46,
+        "capacity": 1821853,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 41,
+        "capacity": 1386444,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 49,
+        "capacity": 1722857,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 44,
+        "capacity": 1406560,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 34,
+        "capacity": 1835515,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 47,
+        "capacity": 2144643,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 34,
+        "capacity": 1068637,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 44,
+        "capacity": 2044452,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 39,
+        "capacity": 1289214,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 39,
+        "capacity": 1453749,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 51,
+        "capacity": 1696912,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 37,
+        "capacity": 1670772,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 48,
+        "capacity": 2225752,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 40,
+        "capacity": 1533657,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 48,
+        "capacity": 1860495,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 41,
+        "capacity": 1595691,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 47,
+        "capacity": 1562833,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 38,
+        "capacity": 1947902,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 30,
+        "capacity": 962419,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 22,
+        "capacity": 831168,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 39,
+        "capacity": 1622560,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 40,
+        "capacity": 1510506,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 40,
+        "capacity": 954094,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 29,
+        "capacity": 1221191,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 36,
+        "capacity": 1216874,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 39,
+        "capacity": 1783471,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 46,
+        "capacity": 2376407,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 49,
+        "capacity": 1641225,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 43,
+        "capacity": 1871496,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 43,
+        "capacity": 1608143,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 44,
+        "capacity": 1580124,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 46,
+        "capacity": 1524312,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 25,
+        "capacity": 1026854,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 45,
+        "capacity": 2126783,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 43,
+        "capacity": 1651633,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 31,
+        "capacity": 1062271,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 44,
+        "capacity": 1227217,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 43,
+        "capacity": 1589003,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 45,
+        "capacity": 1725677,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 29,
+        "capacity": 1037984,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 37,
+        "capacity": 2082389,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 49,
+        "capacity": 2014346,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 37,
+        "capacity": 1012343,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 49,
+        "capacity": 1635908,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 42,
+        "capacity": 1816877,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 37,
+        "capacity": 1677833,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 41,
+        "capacity": 1755569,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 43,
+        "capacity": 1639171,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 38,
+        "capacity": 1351453,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 33,
+        "capacity": 1170995,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 42,
+        "capacity": 1941026,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 42,
+        "capacity": 1507991,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 37,
+        "capacity": 1169642,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 32,
+        "capacity": 1202860,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 41,
+        "capacity": 1918561,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 47,
+        "capacity": 1496621,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 31,
+        "capacity": 1066730,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 44,
+        "capacity": 1538229,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 46,
+        "capacity": 2228528,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 46,
+        "capacity": 1712468,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 40,
+        "capacity": 1444944,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 36,
+        "capacity": 1413784,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 35,
+        "capacity": 1449696,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 33,
+        "capacity": 1328041,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 23,
+        "capacity": 555387,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 39,
+        "capacity": 1713451,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 49,
+        "capacity": 1775930,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 45,
+        "capacity": 1843236,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 38,
+        "capacity": 1362886,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 34,
+        "capacity": 1289268,
+        "portid": "chokepoint1"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 43,
+        "capacity": 1329198,
+        "portid": "chokepoint1"
+      }
+    ],
+    "choke-malacca": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 192,
+        "capacity": 6695991,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 213,
+        "capacity": 7202190,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 232,
+        "capacity": 9960498,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 203,
+        "capacity": 6791150,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 203,
+        "capacity": 6492574,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 196,
+        "capacity": 6371258,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 187,
+        "capacity": 6032068,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 178,
+        "capacity": 4665163,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 195,
+        "capacity": 7606687,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 212,
+        "capacity": 7227883,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 222,
+        "capacity": 8696168,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 241,
+        "capacity": 8724765,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 229,
+        "capacity": 6582791,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 223,
+        "capacity": 7955798,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 206,
+        "capacity": 7625084,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 240,
+        "capacity": 8891102,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 220,
+        "capacity": 8741104,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 240,
+        "capacity": 7269147,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 212,
+        "capacity": 6432963,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 215,
+        "capacity": 7322339,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 189,
+        "capacity": 6093714,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 247,
+        "capacity": 9569953,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 216,
+        "capacity": 8531097,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 202,
+        "capacity": 5057803,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 216,
+        "capacity": 8902043,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 217,
+        "capacity": 6408516,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 223,
+        "capacity": 7758138,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 254,
+        "capacity": 8142509,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 236,
+        "capacity": 8591962,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 207,
+        "capacity": 6920359,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 251,
+        "capacity": 9224187,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 241,
+        "capacity": 11207162,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 238,
+        "capacity": 9289736,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 202,
+        "capacity": 8181017,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 215,
+        "capacity": 7631118,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 170,
+        "capacity": 7672211,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 192,
+        "capacity": 7801228,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 242,
+        "capacity": 8099419,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 237,
+        "capacity": 8432596,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 222,
+        "capacity": 8172668,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 225,
+        "capacity": 9447382,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 223,
+        "capacity": 10466452,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 234,
+        "capacity": 10418223,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 221,
+        "capacity": 7102253,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 185,
+        "capacity": 6897850,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 233,
+        "capacity": 7823263,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 249,
+        "capacity": 11961062,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 235,
+        "capacity": 10533734,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 238,
+        "capacity": 10067676,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 236,
+        "capacity": 7736934,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 241,
+        "capacity": 8040203,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 241,
+        "capacity": 10010438,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 210,
+        "capacity": 8594514,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 237,
+        "capacity": 8764916,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 248,
+        "capacity": 10050460,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 191,
+        "capacity": 7671804,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 217,
+        "capacity": 7055944,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 234,
+        "capacity": 9049946,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 234,
+        "capacity": 10968617,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 242,
+        "capacity": 9482571,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 218,
+        "capacity": 8454827,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 235,
+        "capacity": 7420925,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 264,
+        "capacity": 10375395,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 236,
+        "capacity": 8152672,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 226,
+        "capacity": 7209890,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 196,
+        "capacity": 8192833,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 212,
+        "capacity": 7210663,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 207,
+        "capacity": 8663927,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 233,
+        "capacity": 7257911,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 227,
+        "capacity": 8805250,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 225,
+        "capacity": 8540074,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 230,
+        "capacity": 7817982,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 213,
+        "capacity": 6747070,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 220,
+        "capacity": 8316759,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 224,
+        "capacity": 8619542,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 241,
+        "capacity": 7849746,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 223,
+        "capacity": 8500946,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 196,
+        "capacity": 7330181,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 222,
+        "capacity": 7502054,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 192,
+        "capacity": 6548699,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 213,
+        "capacity": 7819758,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 217,
+        "capacity": 8468528,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 198,
+        "capacity": 7793067,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 207,
+        "capacity": 7528198,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 207,
+        "capacity": 6672825,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 198,
+        "capacity": 6437794,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 204,
+        "capacity": 7950531,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 208,
+        "capacity": 7770440,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 216,
+        "capacity": 7984504,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 247,
+        "capacity": 8409448,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 217,
+        "capacity": 8844482,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 231,
+        "capacity": 7812325,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 197,
+        "capacity": 7368077,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 228,
+        "capacity": 7095449,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 219,
+        "capacity": 6817858,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 208,
+        "capacity": 7242240,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 206,
+        "capacity": 7682563,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 200,
+        "capacity": 7218753,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 221,
+        "capacity": 6863572,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 204,
+        "capacity": 7385316,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 217,
+        "capacity": 7815018,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 234,
+        "capacity": 9096645,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 220,
+        "capacity": 7703399,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 233,
+        "capacity": 8122629,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 198,
+        "capacity": 6988626,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 230,
+        "capacity": 10108654,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 222,
+        "capacity": 8632504,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 225,
+        "capacity": 8313810,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 223,
+        "capacity": 7245259,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 225,
+        "capacity": 7640903,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 220,
+        "capacity": 10178990,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 247,
+        "capacity": 9520423,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 216,
+        "capacity": 7693051,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 214,
+        "capacity": 7847027,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 216,
+        "capacity": 7259033,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 218,
+        "capacity": 8416403,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 232,
+        "capacity": 8417079,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 202,
+        "capacity": 8070987,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 231,
+        "capacity": 7073545,
+        "portid": "chokepoint5"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 229,
+        "capacity": 8284796,
+        "portid": "chokepoint5"
+      }
+    ],
+    "choke-hormuz": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 3,
+        "capacity": 32472,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 7,
+        "capacity": 184497,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 4,
+        "capacity": 72476,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 5,
+        "capacity": 136645,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 6,
+        "capacity": 78931,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 6,
+        "capacity": 312897,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 4,
+        "capacity": 24505,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 1,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 1,
+        "capacity": 1067,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 7,
+        "capacity": 195694,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 6,
+        "capacity": 150650,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 3,
+        "capacity": 14580,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 9,
+        "capacity": 99876,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 4,
+        "capacity": 64034,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 3,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 10,
+        "capacity": 389245,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 6,
+        "capacity": 95136,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 2,
+        "capacity": 25140,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 5,
+        "capacity": 4805,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 7,
+        "capacity": 214958,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 6,
+        "capacity": 131517,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 3,
+        "capacity": 107354,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 5,
+        "capacity": 3003,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 8,
+        "capacity": 470124,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 4,
+        "capacity": 5325,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 7,
+        "capacity": 179594,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 5,
+        "capacity": 63967,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 5,
+        "capacity": 170314,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 3,
+        "capacity": 122054,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 2,
+        "capacity": 324,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 3,
+        "capacity": 591,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 6,
+        "capacity": 35435,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 6,
+        "capacity": 71614,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 5,
+        "capacity": 1207,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 4,
+        "capacity": 54047,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 6,
+        "capacity": 132322,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 1,
+        "capacity": 1231,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 6,
+        "capacity": 28460,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 9,
+        "capacity": 214434,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 8,
+        "capacity": 87376,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 10,
+        "capacity": 65012,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 4,
+        "capacity": 63878,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 6,
+        "capacity": 228875,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 7,
+        "capacity": 172119,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 10,
+        "capacity": 166887,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 20,
+        "capacity": 535304,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 26,
+        "capacity": 1407775,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 25,
+        "capacity": 2314086,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 22,
+        "capacity": 892809,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 17,
+        "capacity": 545114,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 24,
+        "capacity": 1382128,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 28,
+        "capacity": 582502,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 29,
+        "capacity": 1582436,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 16,
+        "capacity": 565738,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 26,
+        "capacity": 1287883,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 16,
+        "capacity": 289138,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 25,
+        "capacity": 955285,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 30,
+        "capacity": 1000055,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 46,
+        "capacity": 1866357,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 51,
+        "capacity": 1964318,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 29,
+        "capacity": 1372629,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 16,
+        "capacity": 505171,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 6,
+        "capacity": 161589,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 25,
+        "capacity": 856885,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 9,
+        "capacity": 729047,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 20,
+        "capacity": 824115,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 8,
+        "capacity": 135479,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 10,
+        "capacity": 38841,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 7,
+        "capacity": 86520,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 1,
+        "capacity": 11375,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 2,
+        "capacity": 11142,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 3,
+        "capacity": 13825,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 4,
+        "capacity": 110820,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 7,
+        "capacity": 61448,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 2,
+        "capacity": 366,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 2,
+        "capacity": 93370,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 2,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 3,
+        "capacity": 1047,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 9,
+        "capacity": 115719,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 11,
+        "capacity": 96510,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 2,
+        "capacity": 90292,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 5,
+        "capacity": 48820,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 4,
+        "capacity": 52574,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 1,
+        "capacity": 6056,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 2,
+        "capacity": 65232,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 1,
+        "capacity": 106096,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 4,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 4,
+        "capacity": 86752,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 5,
+        "capacity": 87734,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 6,
+        "capacity": 312575,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 2,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 5,
+        "capacity": 74078,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 8,
+        "capacity": 418971,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 4,
+        "capacity": 609497,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 4,
+        "capacity": 16651,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 3,
+        "capacity": 10961,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 7,
+        "capacity": 178812,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 4,
+        "capacity": 6679,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 10,
+        "capacity": 65186,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 4,
+        "capacity": 350554,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 3,
+        "capacity": 344,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 7,
+        "capacity": 114837,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 7,
+        "capacity": 457574,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 1,
+        "capacity": 98525,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 0,
+        "capacity": 0,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 2,
+        "capacity": 12784,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 6,
+        "capacity": 127798,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 6,
+        "capacity": 93041,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 7,
+        "capacity": 70976,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 11,
+        "capacity": 175020,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 39,
+        "capacity": 804846,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 10,
+        "capacity": 452697,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 7,
+        "capacity": 82042,
+        "portid": "chokepoint6"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 3,
+        "capacity": 37503,
+        "portid": "chokepoint6"
+      }
+    ],
+    "choke-taiwan": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 225,
+        "capacity": 5114840,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 238,
+        "capacity": 6311478,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 265,
+        "capacity": 6611616,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 255,
+        "capacity": 6762661,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 248,
+        "capacity": 6727473,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 218,
+        "capacity": 5034262,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 207,
+        "capacity": 5361787,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 253,
+        "capacity": 5851893,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 234,
+        "capacity": 6735960,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 263,
+        "capacity": 6349868,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 287,
+        "capacity": 7280259,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 292,
+        "capacity": 8110987,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 199,
+        "capacity": 4442418,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 366,
+        "capacity": 7819773,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 233,
+        "capacity": 6825777,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 35,
+        "capacity": 1090120,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 205,
+        "capacity": 5354550,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 283,
+        "capacity": 6302834,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 231,
+        "capacity": 6538916,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 253,
+        "capacity": 6457382,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 221,
+        "capacity": 4766463,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 238,
+        "capacity": 5628977,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 259,
+        "capacity": 6858510,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 230,
+        "capacity": 5127556,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 229,
+        "capacity": 6079177,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 232,
+        "capacity": 6181355,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 239,
+        "capacity": 5368672,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 290,
+        "capacity": 6669236,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 226,
+        "capacity": 6611110,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 121,
+        "capacity": 3783405,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 203,
+        "capacity": 5597853,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 261,
+        "capacity": 6137591,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 271,
+        "capacity": 6692160,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 249,
+        "capacity": 6313904,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 251,
+        "capacity": 6667972,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 234,
+        "capacity": 6040833,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 238,
+        "capacity": 6467759,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 221,
+        "capacity": 6347738,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 253,
+        "capacity": 6627111,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 286,
+        "capacity": 7518805,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 283,
+        "capacity": 6780539,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 222,
+        "capacity": 4427140,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 401,
+        "capacity": 10264140,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 59,
+        "capacity": 2668078,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 28,
+        "capacity": 779052,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 176,
+        "capacity": 5138175,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 278,
+        "capacity": 8335890,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 272,
+        "capacity": 7084684,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 242,
+        "capacity": 5419014,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 251,
+        "capacity": 6085980,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 232,
+        "capacity": 6472373,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 258,
+        "capacity": 7030395,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 234,
+        "capacity": 6493558,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 240,
+        "capacity": 7702869,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 260,
+        "capacity": 7178265,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 265,
+        "capacity": 6563925,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 249,
+        "capacity": 6164514,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 259,
+        "capacity": 6836056,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 274,
+        "capacity": 7518762,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 244,
+        "capacity": 7899762,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 313,
+        "capacity": 10025104,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 326,
+        "capacity": 9878316,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 259,
+        "capacity": 7189027,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 249,
+        "capacity": 5472285,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 237,
+        "capacity": 5505064,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 232,
+        "capacity": 5785498,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 272,
+        "capacity": 6235388,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 249,
+        "capacity": 7045190,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 246,
+        "capacity": 6812399,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 232,
+        "capacity": 6269076,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 234,
+        "capacity": 5826408,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 246,
+        "capacity": 6288334,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 241,
+        "capacity": 6255932,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 245,
+        "capacity": 5479953,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 256,
+        "capacity": 7903721,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 267,
+        "capacity": 6665359,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 222,
+        "capacity": 5696722,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 238,
+        "capacity": 5839077,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 267,
+        "capacity": 6217549,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 263,
+        "capacity": 6689978,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 273,
+        "capacity": 6836494,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 257,
+        "capacity": 6943237,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 274,
+        "capacity": 7939502,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 320,
+        "capacity": 7757134,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 307,
+        "capacity": 9948340,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 260,
+        "capacity": 6196535,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 250,
+        "capacity": 6264458,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 245,
+        "capacity": 6121926,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 229,
+        "capacity": 6078625,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 255,
+        "capacity": 5847671,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 219,
+        "capacity": 4454902,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 235,
+        "capacity": 5837536,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 217,
+        "capacity": 5687126,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 234,
+        "capacity": 5922266,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 225,
+        "capacity": 5798029,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 253,
+        "capacity": 6594243,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 238,
+        "capacity": 6373164,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 284,
+        "capacity": 7674250,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 285,
+        "capacity": 6803022,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 238,
+        "capacity": 6376186,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 247,
+        "capacity": 6519088,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 242,
+        "capacity": 6206595,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 217,
+        "capacity": 5776261,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 279,
+        "capacity": 5943912,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 226,
+        "capacity": 5462911,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 254,
+        "capacity": 6544623,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 224,
+        "capacity": 5873891,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 217,
+        "capacity": 6381481,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 228,
+        "capacity": 6032524,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 259,
+        "capacity": 6684463,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 238,
+        "capacity": 6957726,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 260,
+        "capacity": 6592614,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 250,
+        "capacity": 6649813,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 287,
+        "capacity": 6386441,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 267,
+        "capacity": 7319370,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 208,
+        "capacity": 5414255,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 250,
+        "capacity": 6622993,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 236,
+        "capacity": 5759467,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 239,
+        "capacity": 6339480,
+        "portid": "chokepoint11"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 268,
+        "capacity": 6505704,
+        "portid": "chokepoint11"
+      }
+    ],
+    "choke-bab-el-mandeb": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 29,
+        "capacity": 1117466,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 33,
+        "capacity": 983351,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 21,
+        "capacity": 635516,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 29,
+        "capacity": 947827,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 33,
+        "capacity": 905976,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 32,
+        "capacity": 672649,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 29,
+        "capacity": 754030,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 36,
+        "capacity": 1378089,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 40,
+        "capacity": 1066055,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 31,
+        "capacity": 1140524,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 20,
+        "capacity": 553186,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 25,
+        "capacity": 972120,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 25,
+        "capacity": 676619,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 29,
+        "capacity": 782465,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 34,
+        "capacity": 1026734,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 25,
+        "capacity": 647340,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 30,
+        "capacity": 891777,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 31,
+        "capacity": 1080015,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 14,
+        "capacity": 479625,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 27,
+        "capacity": 1119992,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 17,
+        "capacity": 588450,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 30,
+        "capacity": 1067102,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 20,
+        "capacity": 626072,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 28,
+        "capacity": 614761,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 38,
+        "capacity": 734770,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 34,
+        "capacity": 765593,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 33,
+        "capacity": 1179765,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 30,
+        "capacity": 1376073,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 22,
+        "capacity": 884038,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 22,
+        "capacity": 700899,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 30,
+        "capacity": 1016622,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 34,
+        "capacity": 1568922,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 31,
+        "capacity": 1155436,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 26,
+        "capacity": 994834,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 35,
+        "capacity": 1469920,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 33,
+        "capacity": 1341101,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 40,
+        "capacity": 1845862,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 46,
+        "capacity": 1594172,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 33,
+        "capacity": 1189533,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 40,
+        "capacity": 1317165,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 46,
+        "capacity": 1564038,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 46,
+        "capacity": 1954128,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 41,
+        "capacity": 1366176,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 44,
+        "capacity": 1650599,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 27,
+        "capacity": 1541982,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 29,
+        "capacity": 1159255,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 32,
+        "capacity": 1525961,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 27,
+        "capacity": 882519,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 29,
+        "capacity": 1426053,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 34,
+        "capacity": 1805301,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 31,
+        "capacity": 1026788,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 31,
+        "capacity": 1297127,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 39,
+        "capacity": 1783132,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 32,
+        "capacity": 1496359,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 38,
+        "capacity": 1485765,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 36,
+        "capacity": 1586516,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 37,
+        "capacity": 2360155,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 32,
+        "capacity": 1172634,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 36,
+        "capacity": 1394475,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 46,
+        "capacity": 1788945,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 37,
+        "capacity": 1725489,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 30,
+        "capacity": 1282822,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 30,
+        "capacity": 1514967,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 37,
+        "capacity": 793006,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 39,
+        "capacity": 2010302,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 41,
+        "capacity": 1540083,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 41,
+        "capacity": 1676000,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 42,
+        "capacity": 1522771,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 25,
+        "capacity": 622071,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 35,
+        "capacity": 1161325,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 33,
+        "capacity": 1243123,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 38,
+        "capacity": 1357264,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 41,
+        "capacity": 1798151,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 41,
+        "capacity": 1163705,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 32,
+        "capacity": 1412017,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 38,
+        "capacity": 1323650,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 31,
+        "capacity": 771645,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 37,
+        "capacity": 1508288,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 41,
+        "capacity": 1584761,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 28,
+        "capacity": 819039,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 47,
+        "capacity": 1514986,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 31,
+        "capacity": 1284866,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 38,
+        "capacity": 1314814,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 41,
+        "capacity": 1707824,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 33,
+        "capacity": 945247,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 32,
+        "capacity": 1784666,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 30,
+        "capacity": 1560840,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 42,
+        "capacity": 1220296,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 40,
+        "capacity": 1268470,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 26,
+        "capacity": 1003510,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 37,
+        "capacity": 1803214,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 46,
+        "capacity": 1527777,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 42,
+        "capacity": 1330174,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 38,
+        "capacity": 1363478,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 35,
+        "capacity": 1306208,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 37,
+        "capacity": 1119644,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 45,
+        "capacity": 1169144,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 45,
+        "capacity": 1448844,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 34,
+        "capacity": 987441,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 38,
+        "capacity": 1357349,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 24,
+        "capacity": 657910,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 38,
+        "capacity": 1810717,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 38,
+        "capacity": 1782637,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 45,
+        "capacity": 1951047,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 30,
+        "capacity": 1473697,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 32,
+        "capacity": 773907,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 29,
+        "capacity": 1337263,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 44,
+        "capacity": 1648529,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 25,
+        "capacity": 807391,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 31,
+        "capacity": 1423721,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 32,
+        "capacity": 1645059,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 45,
+        "capacity": 1741857,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 36,
+        "capacity": 1571144,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 28,
+        "capacity": 618205,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 42,
+        "capacity": 1526963,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 41,
+        "capacity": 1585430,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 27,
+        "capacity": 1513842,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 36,
+        "capacity": 1882571,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 33,
+        "capacity": 1630936,
+        "portid": "chokepoint4"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 38,
+        "capacity": 1460658,
+        "portid": "chokepoint4"
+      }
+    ],
+    "choke-panama": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 28,
+        "capacity": 846263,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 25,
+        "capacity": 761078,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 26,
+        "capacity": 715077,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 27,
+        "capacity": 626581,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 31,
+        "capacity": 699007,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 27,
+        "capacity": 665640,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 23,
+        "capacity": 648974,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 33,
+        "capacity": 930755,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 31,
+        "capacity": 684121,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 31,
+        "capacity": 748406,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 28,
+        "capacity": 869398,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 29,
+        "capacity": 769452,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 30,
+        "capacity": 754240,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 26,
+        "capacity": 869113,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 29,
+        "capacity": 791356,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 28,
+        "capacity": 900350,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 33,
+        "capacity": 1038892,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 29,
+        "capacity": 672865,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 31,
+        "capacity": 845817,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 31,
+        "capacity": 921146,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 29,
+        "capacity": 811664,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 27,
+        "capacity": 681656,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 33,
+        "capacity": 799627,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 29,
+        "capacity": 853452,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 33,
+        "capacity": 1047303,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 30,
+        "capacity": 756071,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 31,
+        "capacity": 976971,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 30,
+        "capacity": 966483,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 25,
+        "capacity": 679947,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 30,
+        "capacity": 982194,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 31,
+        "capacity": 700084,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 30,
+        "capacity": 996207,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 23,
+        "capacity": 784912,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 30,
+        "capacity": 823468,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 28,
+        "capacity": 685245,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 34,
+        "capacity": 873923,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 31,
+        "capacity": 1000585,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 32,
+        "capacity": 795772,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 29,
+        "capacity": 873801,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 28,
+        "capacity": 1044397,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 29,
+        "capacity": 885574,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 83,
+        "capacity": 2550501,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 34,
+        "capacity": 845047,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 29,
+        "capacity": 824688,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 31,
+        "capacity": 891780,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 32,
+        "capacity": 840236,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 32,
+        "capacity": 1006837,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 27,
+        "capacity": 728746,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 29,
+        "capacity": 1041785,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 37,
+        "capacity": 1339786,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 30,
+        "capacity": 1066944,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 34,
+        "capacity": 881775,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 31,
+        "capacity": 830550,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 36,
+        "capacity": 1176371,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 32,
+        "capacity": 896068,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 30,
+        "capacity": 838028,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 33,
+        "capacity": 850694,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 33,
+        "capacity": 896676,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 36,
+        "capacity": 904453,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 33,
+        "capacity": 980630,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 27,
+        "capacity": 747251,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 34,
+        "capacity": 867688,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 32,
+        "capacity": 829582,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 36,
+        "capacity": 821224,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 33,
+        "capacity": 717352,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 32,
+        "capacity": 970291,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 35,
+        "capacity": 725394,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 23,
+        "capacity": 759516,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 24,
+        "capacity": 754998,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 24,
+        "capacity": 872246,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 26,
+        "capacity": 835602,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 23,
+        "capacity": 855051,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 24,
+        "capacity": 787966,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 25,
+        "capacity": 601144,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 25,
+        "capacity": 867637,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 25,
+        "capacity": 850530,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 30,
+        "capacity": 937028,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 32,
+        "capacity": 720339,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 31,
+        "capacity": 905713,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 33,
+        "capacity": 1000901,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 26,
+        "capacity": 785653,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 32,
+        "capacity": 785439,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 29,
+        "capacity": 795563,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 32,
+        "capacity": 982091,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 29,
+        "capacity": 946555,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 34,
+        "capacity": 842174,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 33,
+        "capacity": 1085184,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 32,
+        "capacity": 978389,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 35,
+        "capacity": 818582,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 34,
+        "capacity": 850022,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 31,
+        "capacity": 914149,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 34,
+        "capacity": 973718,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 36,
+        "capacity": 1030561,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 32,
+        "capacity": 934035,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 37,
+        "capacity": 973324,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 40,
+        "capacity": 1013820,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 34,
+        "capacity": 801125,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 33,
+        "capacity": 1206167,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 35,
+        "capacity": 792128,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 35,
+        "capacity": 1078507,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 34,
+        "capacity": 732456,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 33,
+        "capacity": 1118642,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 34,
+        "capacity": 997170,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 32,
+        "capacity": 922843,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 34,
+        "capacity": 1174175,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 36,
+        "capacity": 1026504,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 33,
+        "capacity": 808924,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 33,
+        "capacity": 1073975,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 36,
+        "capacity": 930278,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 36,
+        "capacity": 1140632,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 30,
+        "capacity": 894541,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 40,
+        "capacity": 1064818,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 33,
+        "capacity": 909713,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 39,
+        "capacity": 998038,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 37,
+        "capacity": 1093125,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 35,
+        "capacity": 1008854,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 38,
+        "capacity": 1140259,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 36,
+        "capacity": 1064489,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 33,
+        "capacity": 1015259,
+        "portid": "chokepoint2"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 36,
+        "capacity": 1022366,
+        "portid": "chokepoint2"
+      }
+    ],
+    "choke-gibraltar": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 119,
+        "capacity": 2976117,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 124,
+        "capacity": 2783601,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 118,
+        "capacity": 3012165,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 128,
+        "capacity": 3438157,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 123,
+        "capacity": 3350193,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 121,
+        "capacity": 3660610,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 130,
+        "capacity": 3982645,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 150,
+        "capacity": 3633076,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 120,
+        "capacity": 2385509,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 125,
+        "capacity": 3707023,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 138,
+        "capacity": 3572033,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 136,
+        "capacity": 2465656,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 129,
+        "capacity": 3092854,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 118,
+        "capacity": 4146043,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 112,
+        "capacity": 2663556,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 144,
+        "capacity": 3603740,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 149,
+        "capacity": 3977742,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 128,
+        "capacity": 3562419,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 146,
+        "capacity": 3997583,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 133,
+        "capacity": 3597758,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 114,
+        "capacity": 3343261,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 125,
+        "capacity": 3176221,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 136,
+        "capacity": 3399714,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 126,
+        "capacity": 3389503,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 122,
+        "capacity": 3465864,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 118,
+        "capacity": 3062311,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 134,
+        "capacity": 3704638,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 136,
+        "capacity": 3143499,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 131,
+        "capacity": 3809437,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 136,
+        "capacity": 2942116,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 116,
+        "capacity": 3039017,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 129,
+        "capacity": 3561756,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 136,
+        "capacity": 3069328,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 135,
+        "capacity": 4043367,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 129,
+        "capacity": 3836085,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 119,
+        "capacity": 2899381,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 120,
+        "capacity": 3179490,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 128,
+        "capacity": 2565382,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 125,
+        "capacity": 3629196,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 121,
+        "capacity": 2990904,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 126,
+        "capacity": 2839993,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 133,
+        "capacity": 3301329,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 145,
+        "capacity": 3666115,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 112,
+        "capacity": 2743430,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 135,
+        "capacity": 4180021,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 120,
+        "capacity": 3410162,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 129,
+        "capacity": 4085739,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 132,
+        "capacity": 3961108,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 126,
+        "capacity": 3353831,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 131,
+        "capacity": 3667888,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 132,
+        "capacity": 3657635,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 128,
+        "capacity": 2864563,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 127,
+        "capacity": 3060953,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 134,
+        "capacity": 3586972,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 133,
+        "capacity": 3176010,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 142,
+        "capacity": 3605027,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 129,
+        "capacity": 3545013,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 140,
+        "capacity": 3827893,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 137,
+        "capacity": 3727462,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 116,
+        "capacity": 3010787,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 125,
+        "capacity": 3958252,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 133,
+        "capacity": 3427033,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 149,
+        "capacity": 3951852,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 125,
+        "capacity": 3706491,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 163,
+        "capacity": 4632518,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 132,
+        "capacity": 3718254,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 140,
+        "capacity": 3655496,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 123,
+        "capacity": 3135746,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 137,
+        "capacity": 3718626,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 141,
+        "capacity": 4005278,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 114,
+        "capacity": 3084224,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 163,
+        "capacity": 4071541,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 123,
+        "capacity": 3399145,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 142,
+        "capacity": 4509601,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 131,
+        "capacity": 3487420,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 124,
+        "capacity": 3305567,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 141,
+        "capacity": 3341579,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 120,
+        "capacity": 4134741,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 142,
+        "capacity": 3596415,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 112,
+        "capacity": 3119200,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 134,
+        "capacity": 3315614,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 112,
+        "capacity": 2959206,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 136,
+        "capacity": 4069997,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 122,
+        "capacity": 3161866,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 151,
+        "capacity": 4093416,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 138,
+        "capacity": 4028782,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 133,
+        "capacity": 3283835,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 146,
+        "capacity": 3639709,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 125,
+        "capacity": 3725938,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 145,
+        "capacity": 4103597,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 143,
+        "capacity": 3870517,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 135,
+        "capacity": 3770301,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 134,
+        "capacity": 2524954,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 143,
+        "capacity": 3786823,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 120,
+        "capacity": 3718122,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 147,
+        "capacity": 5056692,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 160,
+        "capacity": 4669471,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 135,
+        "capacity": 3339649,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 126,
+        "capacity": 2987954,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 157,
+        "capacity": 4068685,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 117,
+        "capacity": 3940694,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 133,
+        "capacity": 4024870,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 112,
+        "capacity": 2821443,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 135,
+        "capacity": 3533128,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 123,
+        "capacity": 2933167,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 120,
+        "capacity": 3520947,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 121,
+        "capacity": 3455128,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 153,
+        "capacity": 4437825,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 141,
+        "capacity": 3410506,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 156,
+        "capacity": 4543658,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 120,
+        "capacity": 3020152,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 133,
+        "capacity": 3271948,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 123,
+        "capacity": 3775194,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 123,
+        "capacity": 3607837,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 145,
+        "capacity": 3611731,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 129,
+        "capacity": 3550305,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 151,
+        "capacity": 4281474,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 138,
+        "capacity": 3332963,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 123,
+        "capacity": 2947914,
+        "portid": "chokepoint8"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 142,
+        "capacity": 3457900,
+        "portid": "chokepoint8"
+      }
+    ],
+    "choke-bosporus": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 67,
+        "capacity": 773099,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 72,
+        "capacity": 788655,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 73,
+        "capacity": 1211289,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 55,
+        "capacity": 423864,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 67,
+        "capacity": 539910,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 68,
+        "capacity": 455162,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 81,
+        "capacity": 425563,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 38,
+        "capacity": 556834,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 43,
+        "capacity": 537929,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 51,
+        "capacity": 781788,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 48,
+        "capacity": 632560,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 76,
+        "capacity": 1100597,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 66,
+        "capacity": 897594,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 63,
+        "capacity": 646495,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 65,
+        "capacity": 544903,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 57,
+        "capacity": 719535,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 80,
+        "capacity": 663840,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 58,
+        "capacity": 402675,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 67,
+        "capacity": 877028,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 56,
+        "capacity": 1043111,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 58,
+        "capacity": 377552,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 65,
+        "capacity": 907360,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 82,
+        "capacity": 818899,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 61,
+        "capacity": 872354,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 61,
+        "capacity": 753577,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 58,
+        "capacity": 779658,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 51,
+        "capacity": 503334,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 75,
+        "capacity": 752232,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 64,
+        "capacity": 448595,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 58,
+        "capacity": 350754,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 70,
+        "capacity": 693209,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 60,
+        "capacity": 1330250,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 74,
+        "capacity": 589807,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 65,
+        "capacity": 581246,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 66,
+        "capacity": 487567,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 63,
+        "capacity": 1244935,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 84,
+        "capacity": 1211751,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 93,
+        "capacity": 893361,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 73,
+        "capacity": 1353885,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 56,
+        "capacity": 685443,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 45,
+        "capacity": 527706,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 94,
+        "capacity": 1584095,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 96,
+        "capacity": 1210183,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 81,
+        "capacity": 958224,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 66,
+        "capacity": 1580643,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 88,
+        "capacity": 1036645,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 92,
+        "capacity": 1171556,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 84,
+        "capacity": 1189322,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 68,
+        "capacity": 855014,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 88,
+        "capacity": 1329721,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 85,
+        "capacity": 1392150,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 88,
+        "capacity": 1361952,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 65,
+        "capacity": 916508,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 64,
+        "capacity": 514258,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 98,
+        "capacity": 1543733,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 86,
+        "capacity": 1748260,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 63,
+        "capacity": 832949,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 81,
+        "capacity": 495232,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 99,
+        "capacity": 1236153,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 87,
+        "capacity": 1167375,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 66,
+        "capacity": 961171,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 80,
+        "capacity": 1237025,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 77,
+        "capacity": 1152235,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 77,
+        "capacity": 1308508,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 89,
+        "capacity": 1523492,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 99,
+        "capacity": 1357697,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 92,
+        "capacity": 1187282,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 55,
+        "capacity": 496020,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 78,
+        "capacity": 1052758,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 77,
+        "capacity": 1535844,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 89,
+        "capacity": 834718,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 89,
+        "capacity": 921227,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 75,
+        "capacity": 971125,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 72,
+        "capacity": 1036073,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 86,
+        "capacity": 611715,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 100,
+        "capacity": 1305400,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 81,
+        "capacity": 798575,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 71,
+        "capacity": 941935,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 82,
+        "capacity": 1365599,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 83,
+        "capacity": 1231014,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 94,
+        "capacity": 1464305,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 72,
+        "capacity": 595192,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 63,
+        "capacity": 898106,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 90,
+        "capacity": 1178646,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 66,
+        "capacity": 857431,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 92,
+        "capacity": 1260827,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 67,
+        "capacity": 872439,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 85,
+        "capacity": 1593786,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 88,
+        "capacity": 1010890,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 100,
+        "capacity": 1047982,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 95,
+        "capacity": 1012438,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 86,
+        "capacity": 1187580,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 90,
+        "capacity": 1037019,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 84,
+        "capacity": 1068293,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 85,
+        "capacity": 1412950,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 102,
+        "capacity": 1113667,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 63,
+        "capacity": 1034722,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 103,
+        "capacity": 1206224,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 89,
+        "capacity": 1438111,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 91,
+        "capacity": 1776091,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 82,
+        "capacity": 525141,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 103,
+        "capacity": 1609645,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 98,
+        "capacity": 1136171,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 96,
+        "capacity": 1687198,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 90,
+        "capacity": 1212619,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 112,
+        "capacity": 1628590,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 92,
+        "capacity": 1557960,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 109,
+        "capacity": 1075664,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 79,
+        "capacity": 639912,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 86,
+        "capacity": 710076,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 104,
+        "capacity": 1277424,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 79,
+        "capacity": 518787,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 55,
+        "capacity": 1468248,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 60,
+        "capacity": 1062492,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 90,
+        "capacity": 1062864,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 105,
+        "capacity": 1584278,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 100,
+        "capacity": 1495558,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 76,
+        "capacity": 1199348,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 84,
+        "capacity": 1308584,
+        "portid": "chokepoint3"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 100,
+        "capacity": 1170601,
+        "portid": "chokepoint3"
+      }
+    ],
+    "choke-good-hope": [
+      {
+        "date": "2026-08-23",
+        "nTotal": 84,
+        "capacity": 5182488,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-22",
+        "nTotal": 96,
+        "capacity": 5548064,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-21",
+        "nTotal": 95,
+        "capacity": 6626580,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-20",
+        "nTotal": 99,
+        "capacity": 5748636,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-19",
+        "nTotal": 105,
+        "capacity": 6609009,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-18",
+        "nTotal": 79,
+        "capacity": 4831325,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-17",
+        "nTotal": 83,
+        "capacity": 5339520,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-16",
+        "nTotal": 99,
+        "capacity": 6088608,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-15",
+        "nTotal": 123,
+        "capacity": 8784867,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-14",
+        "nTotal": 81,
+        "capacity": 4353831,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-13",
+        "nTotal": 86,
+        "capacity": 5799043,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-12",
+        "nTotal": 69,
+        "capacity": 4215222,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-11",
+        "nTotal": 102,
+        "capacity": 5723400,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-10",
+        "nTotal": 83,
+        "capacity": 4171222,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-09",
+        "nTotal": 83,
+        "capacity": 4603047,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-08",
+        "nTotal": 85,
+        "capacity": 5147141,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-07",
+        "nTotal": 83,
+        "capacity": 5554056,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-06",
+        "nTotal": 85,
+        "capacity": 4683694,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-05",
+        "nTotal": 103,
+        "capacity": 5027186,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-04",
+        "nTotal": 89,
+        "capacity": 4950558,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-03",
+        "nTotal": 83,
+        "capacity": 5544899,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-02",
+        "nTotal": 97,
+        "capacity": 5511497,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-08-01",
+        "nTotal": 83,
+        "capacity": 5251929,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-31",
+        "nTotal": 123,
+        "capacity": 5737947,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-30",
+        "nTotal": 99,
+        "capacity": 7027450,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-29",
+        "nTotal": 72,
+        "capacity": 3612340,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-28",
+        "nTotal": 69,
+        "capacity": 3292695,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-27",
+        "nTotal": 68,
+        "capacity": 4449119,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-26",
+        "nTotal": 101,
+        "capacity": 5940459,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-25",
+        "nTotal": 91,
+        "capacity": 5359157,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-24",
+        "nTotal": 81,
+        "capacity": 4631275,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-23",
+        "nTotal": 93,
+        "capacity": 5959398,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-22",
+        "nTotal": 101,
+        "capacity": 6261654,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-21",
+        "nTotal": 93,
+        "capacity": 6149501,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-20",
+        "nTotal": 81,
+        "capacity": 5107910,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-19",
+        "nTotal": 90,
+        "capacity": 5973257,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-18",
+        "nTotal": 84,
+        "capacity": 6796305,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-17",
+        "nTotal": 89,
+        "capacity": 6577689,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-16",
+        "nTotal": 95,
+        "capacity": 4834740,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-15",
+        "nTotal": 87,
+        "capacity": 5911132,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-14",
+        "nTotal": 103,
+        "capacity": 6239430,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-13",
+        "nTotal": 103,
+        "capacity": 7348204,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-12",
+        "nTotal": 97,
+        "capacity": 6810030,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-11",
+        "nTotal": 91,
+        "capacity": 5902263,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-10",
+        "nTotal": 88,
+        "capacity": 5617366,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-09",
+        "nTotal": 85,
+        "capacity": 5804873,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-08",
+        "nTotal": 76,
+        "capacity": 5582733,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-07",
+        "nTotal": 97,
+        "capacity": 4830439,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-06",
+        "nTotal": 99,
+        "capacity": 5943041,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-05",
+        "nTotal": 115,
+        "capacity": 6604091,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-04",
+        "nTotal": 69,
+        "capacity": 4833529,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-03",
+        "nTotal": 101,
+        "capacity": 7587621,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-02",
+        "nTotal": 97,
+        "capacity": 5983927,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-07-01",
+        "nTotal": 100,
+        "capacity": 5813379,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-30",
+        "nTotal": 103,
+        "capacity": 7668507,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-29",
+        "nTotal": 88,
+        "capacity": 5038762,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-28",
+        "nTotal": 80,
+        "capacity": 5712528,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-27",
+        "nTotal": 105,
+        "capacity": 6367869,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-26",
+        "nTotal": 91,
+        "capacity": 6126858,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-25",
+        "nTotal": 91,
+        "capacity": 5767505,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-24",
+        "nTotal": 78,
+        "capacity": 4885751,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-23",
+        "nTotal": 90,
+        "capacity": 5069481,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-22",
+        "nTotal": 110,
+        "capacity": 6885309,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-21",
+        "nTotal": 106,
+        "capacity": 6701078,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-20",
+        "nTotal": 98,
+        "capacity": 6763800,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-19",
+        "nTotal": 95,
+        "capacity": 4966763,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-18",
+        "nTotal": 94,
+        "capacity": 5776839,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-17",
+        "nTotal": 83,
+        "capacity": 5442189,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-16",
+        "nTotal": 97,
+        "capacity": 5692792,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-15",
+        "nTotal": 96,
+        "capacity": 5082763,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-14",
+        "nTotal": 107,
+        "capacity": 7503652,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-13",
+        "nTotal": 79,
+        "capacity": 5192459,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-12",
+        "nTotal": 76,
+        "capacity": 5491036,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-11",
+        "nTotal": 81,
+        "capacity": 5502935,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-10",
+        "nTotal": 105,
+        "capacity": 6097980,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-09",
+        "nTotal": 88,
+        "capacity": 5866213,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-08",
+        "nTotal": 102,
+        "capacity": 7226243,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-07",
+        "nTotal": 100,
+        "capacity": 6244187,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-06",
+        "nTotal": 96,
+        "capacity": 7335882,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-05",
+        "nTotal": 103,
+        "capacity": 7785783,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-04",
+        "nTotal": 69,
+        "capacity": 4523157,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-03",
+        "nTotal": 78,
+        "capacity": 4905316,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-02",
+        "nTotal": 86,
+        "capacity": 4630632,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-06-01",
+        "nTotal": 109,
+        "capacity": 6003745,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-31",
+        "nTotal": 100,
+        "capacity": 6754076,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-30",
+        "nTotal": 121,
+        "capacity": 8791834,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-29",
+        "nTotal": 88,
+        "capacity": 5922830,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-28",
+        "nTotal": 98,
+        "capacity": 6811230,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-27",
+        "nTotal": 78,
+        "capacity": 4983339,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-26",
+        "nTotal": 82,
+        "capacity": 5741698,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-25",
+        "nTotal": 97,
+        "capacity": 6224551,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-24",
+        "nTotal": 109,
+        "capacity": 6926654,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-23",
+        "nTotal": 80,
+        "capacity": 5093290,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-22",
+        "nTotal": 105,
+        "capacity": 7009632,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-21",
+        "nTotal": 110,
+        "capacity": 6241844,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-20",
+        "nTotal": 112,
+        "capacity": 5464156,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-19",
+        "nTotal": 73,
+        "capacity": 6015778,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-18",
+        "nTotal": 95,
+        "capacity": 6636383,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-17",
+        "nTotal": 101,
+        "capacity": 5206248,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-16",
+        "nTotal": 150,
+        "capacity": 7618848,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-15",
+        "nTotal": 161,
+        "capacity": 9814719,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-14",
+        "nTotal": 119,
+        "capacity": 7965342,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-13",
+        "nTotal": 100,
+        "capacity": 8650380,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-12",
+        "nTotal": 55,
+        "capacity": 2528195,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-11",
+        "nTotal": 35,
+        "capacity": 2691166,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-10",
+        "nTotal": 65,
+        "capacity": 4367401,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-09",
+        "nTotal": 126,
+        "capacity": 7818928,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-08",
+        "nTotal": 95,
+        "capacity": 7038709,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-07",
+        "nTotal": 95,
+        "capacity": 7125811,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-06",
+        "nTotal": 67,
+        "capacity": 4643368,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-05",
+        "nTotal": 84,
+        "capacity": 4752320,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-04",
+        "nTotal": 88,
+        "capacity": 5792816,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-03",
+        "nTotal": 107,
+        "capacity": 5754268,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-02",
+        "nTotal": 123,
+        "capacity": 7304563,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-05-01",
+        "nTotal": 86,
+        "capacity": 4700501,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-04-30",
+        "nTotal": 108,
+        "capacity": 6471856,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-04-29",
+        "nTotal": 75,
+        "capacity": 3900415,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-04-28",
+        "nTotal": 70,
+        "capacity": 4550282,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-04-27",
+        "nTotal": 67,
+        "capacity": 4504249,
+        "portid": "chokepoint7"
+      },
+      {
+        "date": "2026-04-26",
+        "nTotal": 82,
+        "capacity": 5724410,
+        "portid": "chokepoint7"
+      }
+    ]
+  },
+  "sourceFile": "Daily_Chokepoints_Data.geojson"
+}
