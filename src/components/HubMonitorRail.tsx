@@ -6,6 +6,7 @@ import { crinkOutboundChips } from "@/data/crinkSourceRegistry";
 import type { ReferenceMonitorItem, ReferenceMonitorPayload } from "@/lib/referenceMonitor";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { hubThumbFallbacks } from "@/lib/news/hubThumbResolver";
+import { zc } from "@/lib/uiStack";
 import {
   localizedDisplayText,
   useLocalizedTextMap,
@@ -153,7 +154,7 @@ export function HubMonitorRail({ hubId, labelLanguage, open }: HubMonitorRailPro
 
   return (
     <aside
-      className="pointer-events-auto absolute right-3 top-[5.5rem] z-[680] flex max-h-[min(72vh,640px)] w-[min(92vw,300px)] flex-col gap-2 sm:right-4"
+      className={`pointer-events-auto absolute right-3 top-[5.5rem] ${zc("panel")} flex max-h-[min(72vh,640px)] w-[min(92vw,300px)] flex-col gap-2 sm:right-4`}
       aria-label={title}
     >
       <div className="rounded-xl border border-rose-400/25 bg-[#0b1020]/92 px-3 py-2 shadow-xl backdrop-blur-md">

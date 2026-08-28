@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type {
   DisputeArea,
   DisputeOverview,
+  GlobePoint,
   MilitaryAircraft,
   TransportPath,
   UsCarrier,
@@ -65,6 +66,7 @@ import {
 import { CHINA_THEATER_DYAD_LABEL, CHINA_THEATER_SEA_LABEL } from "@/data/chinaTheaterIncidentsSeed";
 import { KOREA_MISSILE_ANCHOR_LABEL, KOREA_MISSILE_KIND_LABEL } from "@/data/koreaMissileIncidentsSeed";
 import { RUSSIA_STRIKE_KIND_LABEL } from "@/data/russiaStrikeIncidentsSeed";
+import { DRONE_INCIDENT_KIND_LABEL } from "@/data/europeDroneIncursionSeed";
 import { ACLED_HOME_URL, HAPI_ATTRIBUTION, HAPI_SOURCE_LINE } from "@/lib/hapiConflictCasualties";
 import { isMediazonaCasualtyId } from "@/lib/casualtySkullMarkers";
 import { gdeltNewsAlertLabel, formatGdeltNewsHeadline } from "@/lib/gdeltNewsAlert";
@@ -540,6 +542,21 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         hint: lang === "en" ? "Click to fly to location" : "클릭하면 해당 위치로 이동",
       };
     }
+    if (hoveredPoint.displayKind === "europe-drone-incident") {
+      const kind = DRONE_INCIDENT_KIND_LABEL[hoveredPoint.kind][lang];
+      return {
+        kind: "event",
+        badge: kind,
+        title: lang === "en" ? hoveredPoint.titleEn : hoveredPoint.titleKo,
+        detail: lang === "en" ? "reported · unverified" : "보도 · 미확인",
+        body: lang === "en" ? hoveredPoint.bodyEn : hoveredPoint.bodyKo,
+        meta:
+          lang === "en"
+            ? "NATO airspace / airport drone incidents (attribution often unclear)"
+            : "나토 영공·공항 드론 사건 (출처 불명·미확인 다수)",
+        hint: lang === "en" ? "Click to fly to location" : "클릭하면 해당 위치로 이동",
+      };
+    }
     if (hoveredPoint.displayKind === "casualty-skull") {
       const place = hoveredPoint.admin1Name || hoveredPoint.id;
       if (isMediazonaCasualtyId(hoveredPoint.id)) {
@@ -618,14 +635,15 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       };
     }
 
+    const gdeltPoint = hoveredPoint as GlobePoint;
     return {
       kind: "event",
       badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
-      title: formatGdeltNewsHeadline(hoveredPoint),
-      detail: `${eventTierLabel(hoveredPoint.eventTier, lang)}${
-        isFreshEvent(hoveredPoint) ? HOVER.freshBreaking(lang) : ""
+      title: formatGdeltNewsHeadline(gdeltPoint),
+      detail: `${eventTierLabel(gdeltPoint.eventTier ?? "war", lang)}${
+        isFreshEvent(gdeltPoint) ? HOVER.freshBreaking(lang) : ""
       }`,
-      meta: hoveredPoint.country || hoveredPoint.category,
+      meta: gdeltPoint.country || gdeltPoint.category,
     };
   }
 

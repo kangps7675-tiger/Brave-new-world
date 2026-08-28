@@ -88,8 +88,8 @@ export function BunkerSentimentVote({ lang }: Props) {
           onClick={() => void vote("stable")}
           className={
             my === "stable"
-              ? "min-w-0 rounded-lg border border-emerald-400/60 bg-emerald-950/50 px-1 py-2 text-[10px] font-bold leading-tight tracking-wide text-emerald-200 sm:text-meta"
-              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-[10px] font-semibold leading-tight tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50 sm:text-meta"
+              ? "min-w-0 rounded-lg border border-emerald-400/60 bg-emerald-950/50 px-1 py-2 text-micro font-bold leading-tight tracking-wide text-emerald-200 sm:text-meta"
+              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-micro font-semibold leading-tight tracking-wide text-slate-300 hover:border-emerald-500/40 disabled:opacity-50 sm:text-meta"
           }
         >
           STABLE
@@ -100,8 +100,8 @@ export function BunkerSentimentVote({ lang }: Props) {
           onClick={() => void vote("bunker")}
           className={
             my === "bunker"
-              ? "min-w-0 rounded-lg border border-rose-400/60 bg-rose-950/50 px-1 py-2 text-[10px] font-bold leading-tight tracking-wide text-rose-200 sm:text-meta"
-              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-[10px] font-semibold leading-tight tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50 sm:text-meta"
+              ? "min-w-0 rounded-lg border border-rose-400/60 bg-rose-950/50 px-1 py-2 text-micro font-bold leading-tight tracking-wide text-rose-200 sm:text-meta"
+              : "min-w-0 rounded-lg border border-slate-700/80 bg-slate-950/60 px-1 py-2 text-micro font-semibold leading-tight tracking-wide text-slate-300 hover:border-rose-500/40 disabled:opacity-50 sm:text-meta"
           }
         >
           <span className="block truncate">HEAD TO BUNKER</span>

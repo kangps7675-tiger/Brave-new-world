@@ -1,5 +1,6 @@
 "use client";
 
+import { zc } from "@/lib/uiStack";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LampWhyMattersButton } from "@/components/LampWhyMattersButton";
@@ -325,7 +326,7 @@ function PhotoNewsLampParchment({
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className={`welcome-letter-scrim fixed inset-0 z-[910] flex items-center justify-center p-2 sm:p-4 ${
+      className={`welcome-letter-scrim fixed inset-0 ${zc("alert")} flex items-center justify-center p-2 sm:p-4 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}
       role="dialog"

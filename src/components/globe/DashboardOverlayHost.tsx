@@ -706,7 +706,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {!intelSheetOpen ? (
       <div
         className={`pointer-events-none absolute left-3 flex flex-col items-start gap-2 ${
-          showDailyRankPanel ? "z-[650]" : "z-[200]"
+          showDailyRankPanel ? zc("panel") : zc("mapControl")
         }`}
         style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
       >

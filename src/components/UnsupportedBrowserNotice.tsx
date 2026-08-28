@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { WebglSupport } from "@/lib/webglSupport";
+import { zc } from "@/lib/uiStack";
 
 /**
  * WebGL2 미지원 안내 (P0-1).
@@ -116,7 +117,7 @@ export function UnsupportedBrowserNotice({ support }: Props) {
   const why = support === "webgl1" ? c.whyLegacy : c.whyNone;
 
   return (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-[#04070f] text-slate-100">
+    <div className={`fixed inset-0 ${zc("toast")} overflow-y-auto bg-[#04070f] text-slate-100`}>
       {/* 별 배경 — WebGL 없이 CSS만으로 */}
       <div
         aria-hidden
@@ -134,7 +135,7 @@ export function UnsupportedBrowserNotice({ support }: Props) {
 
       <div className="relative mx-auto flex min-h-full w-[min(92vw,44rem)] flex-col justify-center gap-6 py-12">
         <div className="rounded-2xl border border-amber-400/35 bg-[#0b1020]/90 p-6 shadow-[0_24px_64px_rgba(0,0,0,.6)] backdrop-blur-md">
-          <span className="inline-block rounded-full border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-semibold tracking-widest text-amber-200">
+          <span className="inline-block rounded-full border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-meta font-semibold tracking-widest text-amber-200">
             {c.badge}
           </span>
 
@@ -178,7 +179,7 @@ export function UnsupportedBrowserNotice({ support }: Props) {
               {briefs.map((b, i) => (
                 <li key={`${b.title}-${i}`} className="border-l-2 border-sky-500/40 pl-3">
                   <p className="text-sm leading-snug text-slate-100">{b.title}</p>
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-meta text-slate-500">
                     {[b.source, b.at].filter(Boolean).join(" · ")}
                   </p>
                 </li>
