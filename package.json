@@ -139,6 +139,8 @@
     "cf:r2:create": "wrangler r2 bucket create conflict-view-data",
     "cf:r2:upload": "node scripts/r2-upload-data.js",
     "cf:r2:upload:dry": "node scripts/r2-upload-data.js --dry-run",
+    "cf:r2:upload:crink": "node scripts/r2-upload-data.js --crink-only",
+    "cf:r2:upload:crink:dry": "node scripts/r2-upload-data.js --crink-only --dry-run",
     "cf:r2:upload:audio": "node scripts/r2-upload-data.js --audio-only",
     "cf:r2:upload:audio:dry": "node scripts/r2-upload-data.js --audio-only --dry-run",
     "axis:arms:build": "node scripts/build-axis-arms.js",
