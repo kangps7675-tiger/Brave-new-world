@@ -210,6 +210,8 @@ export type LayerPrefs = {
   showCrinkInfraAeroway: boolean;
   showCrinkInfraHarbour: boolean;
   showCrinkInfraCheckpoint: boolean;
+  showCrinkInfraRail: boolean;
+  showCrinkInfraRoad: boolean;
   labelLanguage: LabelLanguage;
 };
 
@@ -354,6 +356,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showCrinkInfraAeroway: false,
   showCrinkInfraHarbour: false,
   showCrinkInfraCheckpoint: false,
+  showCrinkInfraRail: false,
+  showCrinkInfraRoad: false,
   labelLanguage: "ko",
 };
 

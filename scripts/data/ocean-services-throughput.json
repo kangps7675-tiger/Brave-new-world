@@ -1,0 +1,253 @@
+{
+  "generatedAt": "2026-08-28T16:07:19.740Z",
+  "source": "UNCTADstat US.OceanServices (International trade in ocean-based services, bulk CSV)",
+  "sourceFile": "US_OceanServices.csv",
+  "category": "SC12 (Maritime transport and related services: freight)",
+  "method": "Exports+Imports summed per year, average of most recent 3 valid years. Country-level totals (no Partner dimension) — matched into corridors via geoMean(endpointCountries), same approach as ContPortThroughput.",
+  "unit": "USD (current prices)",
+  "caveat": "Country totals of maritime freight SERVICES trade, not corridor-specific shipping volume or goods trade. Distinct dataset from ocean-trade-bilateral.json (US.OceanTrade goods, which is bilateral).",
+  "rowsScanned": 36561,
+  "rowsKept": 702,
+  "countryCount": 24,
+  "withData": 24,
+  "countries": {
+    "ARM": {
+      "valueUsd": 198519666.66666666,
+      "latestYear": 2025,
+      "latestValueUsd": 173545000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "BLR": {
+      "valueUsd": 995045999.9999999,
+      "latestYear": 2023,
+      "latestValueUsd": 837692000,
+      "yearsUsed": [
+        2021,
+        2022,
+        2023
+      ]
+    },
+    "CHN": {
+      "valueUsd": 189016259000,
+      "latestYear": 2025,
+      "latestValueUsd": 200473814999.99994,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "EGY": {
+      "valueUsd": 12203252999.999998,
+      "latestYear": 2025,
+      "latestValueUsd": 13706356000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "GEO": {
+      "valueUsd": 749699000.0000001,
+      "latestYear": 2025,
+      "latestValueUsd": 785007000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "IND": {
+      "valueUsd": 73529159333.33333,
+      "latestYear": 2025,
+      "latestValueUsd": 74106599999.99998,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "IRQ": {
+      "valueUsd": 116573000,
+      "latestYear": 2025,
+      "latestValueUsd": 124547000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "KAZ": {
+      "valueUsd": 149865666.66666666,
+      "latestYear": 2025,
+      "latestValueUsd": 157904999.99999997,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "LBN": {
+      "valueUsd": 948664000.0000001,
+      "latestYear": 2024,
+      "latestValueUsd": 861086000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "NLD": {
+      "valueUsd": 19805939000.000004,
+      "latestYear": 2025,
+      "latestValueUsd": 20466801000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "PAK": {
+      "valueUsd": 2575093333.3333335,
+      "latestYear": 2025,
+      "latestValueUsd": 2500990000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "POL": {
+      "valueUsd": 3964128333.3333325,
+      "latestYear": 2025,
+      "latestValueUsd": 4415513000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "RUS": {
+      "valueUsd": 4552017666.666667,
+      "latestYear": 2025,
+      "latestValueUsd": 4247091000.0000005,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "SYR": {
+      "valueUsd": 639180666.6666666,
+      "latestYear": 2024,
+      "latestValueUsd": 660292000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "TUR": {
+      "valueUsd": 2573709333.333333,
+      "latestYear": 2025,
+      "latestValueUsd": 2660482000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "YEM": {
+      "valueUsd": 656683333.3333334,
+      "latestYear": 2024,
+      "latestValueUsd": 645670000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "AZE": {
+      "valueUsd": 188134000,
+      "latestYear": 2025,
+      "latestValueUsd": 212704000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "KOR": {
+      "valueUsd": 42507614000,
+      "latestYear": 2025,
+      "latestValueUsd": 44319208000,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "MMR": {
+      "valueUsd": 1435921666.6666665,
+      "latestYear": 2020,
+      "latestValueUsd": 1360999000,
+      "yearsUsed": [
+        2018,
+        2019,
+        2020
+      ]
+    },
+    "CUB": {
+      "valueUsd": 968916666.6666666,
+      "latestYear": 2024,
+      "latestValueUsd": 1145670999.9999998,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IRN": {
+      "valueUsd": 2643060666.666667,
+      "latestYear": 2024,
+      "latestValueUsd": 3159377999.9999995,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SAU": {
+      "valueUsd": 16759062999.999998,
+      "latestYear": 2025,
+      "latestValueUsd": 18830939000.000004,
+      "yearsUsed": [
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "TJK": {
+      "valueUsd": 9000,
+      "latestYear": 2022,
+      "latestValueUsd": 9000,
+      "yearsUsed": [
+        2022
+      ]
+    },
+    "TKM": {
+      "valueUsd": 1623617000,
+      "latestYear": 2024,
+      "latestValueUsd": 1816365000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    }
+  }
+}

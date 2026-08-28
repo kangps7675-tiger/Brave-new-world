@@ -1,0 +1,4011 @@
+{
+  "generatedAt": "2026-08-28T16:21:21.729Z",
+  "source": "UNCTADstat US.PLSCI (Port-Level Liner Shipping Connectivity Index, bulk CSV)",
+  "sourceFile": "US_PLSCI.csv",
+  "method": "Average of most recent 8 quarters per port. Scoped to CRINK corridor-relevant countries only.",
+  "unit": "index (Average Q1 2023 = 100 base)",
+  "rowsScanned": 75063,
+  "rowsKept": 13270,
+  "portCount": 239,
+  "countryCount": 18,
+  "ports": {
+    "CNCWN": {
+      "iso": "CHN",
+      "label": "China, Chiwan",
+      "index": 360.80125625000005,
+      "latestQuarter": "2018Q02",
+      "latestIndex": 73.92375,
+      "quartersUsed": [
+        "2016Q01",
+        "2016Q02",
+        "2016Q03",
+        "2016Q04",
+        "2017Q01",
+        "2017Q02",
+        "2018Q01",
+        "2018Q02"
+      ]
+    },
+    "CNDLC": {
+      "iso": "CHN",
+      "label": "China, Dalian",
+      "index": 580.64443375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 583.51739,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNFAN": {
+      "iso": "CHN",
+      "label": "China, Fangcheng",
+      "index": 13.150139999999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 13.15014,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNFQG": {
+      "iso": "CHN",
+      "label": "China, Fuqing",
+      "index": 38.0593225,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 36.3668,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNFOC": {
+      "iso": "CHN",
+      "label": "China, Fuzhou",
+      "index": 130.79105125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 137.64185,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNCAN": {
+      "iso": "CHN",
+      "label": "China, Guangzhou (Canton)",
+      "index": 22.081522500000002,
+      "latestQuarter": "2019Q04",
+      "latestIndex": 9.89061,
+      "quartersUsed": [
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04"
+      ]
+    },
+    "CNHAK": {
+      "iso": "CHN",
+      "label": "China, Haikou",
+      "index": 18.4586,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 18.4586,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "HKHKG": {
+      "iso": "CHN",
+      "label": "China, Hong Kong SAR, Hong Kong",
+      "index": 1012.52917,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 976.84107,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNHUA": {
+      "iso": "CHN",
+      "label": "China, Huangpu",
+      "index": 32.710605,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 27.9553,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJNZ": {
+      "iso": "CHN",
+      "label": "China, Jinzhou",
+      "index": 40.80175125000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 40.83001,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNLYG": {
+      "iso": "CHN",
+      "label": "China, Lianyungang",
+      "index": 202.95924250000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 206.67605,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNLKU": {
+      "iso": "CHN",
+      "label": "China, Longkou",
+      "index": 29.805541250000005,
+      "latestQuarter": "2016Q01",
+      "latestIndex": 14.61249,
+      "quartersUsed": [
+        "2014Q02",
+        "2014Q03",
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01"
+      ]
+    },
+    "CNMWN": {
+      "iso": "CHN",
+      "label": "China, Mawan",
+      "index": 16.546508749999997,
+      "latestQuarter": "2022Q02",
+      "latestIndex": 11.32444,
+      "quartersUsed": [
+        "2007Q01",
+        "2007Q02",
+        "2007Q03",
+        "2007Q04",
+        "2008Q01",
+        "2021Q04",
+        "2022Q01",
+        "2022Q02"
+      ]
+    },
+    "CNNJG": {
+      "iso": "CHN",
+      "label": "China, Nanjing",
+      "index": 77.7397325,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 79.48996,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNNSA": {
+      "iso": "CHN",
+      "label": "China, Nansha",
+      "index": 1033.68605625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 1071.13018,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNNTG": {
+      "iso": "CHN",
+      "label": "China, Nantong",
+      "index": 39.6986925,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 34.6207,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNNGB": {
+      "iso": "CHN",
+      "label": "China, Ningbo",
+      "index": 2033.3820449999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 2040.68724,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNTAO": {
+      "iso": "CHN",
+      "label": "China, Qingdao",
+      "index": 1375.929345,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 1389.04637,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNQZJ": {
+      "iso": "CHN",
+      "label": "China, Quanzhou",
+      "index": 110.77551875000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 109.79228,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNRZH": {
+      "iso": "CHN",
+      "label": "China, Rizhao",
+      "index": 125.73906625000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 114.83722,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNSHA": {
+      "iso": "CHN",
+      "label": "China, Shanghai",
+      "index": 2381.079945,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 2372.46836,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNSWA": {
+      "iso": "CHN",
+      "label": "China, Shantou",
+      "index": 180.80501125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 173.6134,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNSHK": {
+      "iso": "CHN",
+      "label": "China, Shekou",
+      "index": 1167.7437962499998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 1157.85119,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNSZX": {
+      "iso": "CHN",
+      "label": "China, Shenzhen",
+      "index": 8.901713749999999,
+      "latestQuarter": "2022Q02",
+      "latestIndex": 13.66384,
+      "quartersUsed": [
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01",
+        "2022Q02"
+      ]
+    },
+    "CNSHD": {
+      "iso": "CHN",
+      "label": "China, Shidao",
+      "index": 19.258143750000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 19.42413,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TWKHH": {
+      "iso": "CHN",
+      "label": "China, Taiwan Province of, Kaohsiung",
+      "index": 862.5092812500001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 821.61241,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TWKEL": {
+      "iso": "CHN",
+      "label": "China, Taiwan Province of, Keelung",
+      "index": 324.74131,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 308.73334,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TWTXG": {
+      "iso": "CHN",
+      "label": "China, Taiwan Province of, Taichung",
+      "index": 271.5081775,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 257.39624,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNTJP": {
+      "iso": "CHN",
+      "label": "China, Tianjin",
+      "index": 10.224469999999998,
+      "latestQuarter": "2019Q02",
+      "latestIndex": 10.22447,
+      "quartersUsed": [
+        "2017Q03",
+        "2017Q04",
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02"
+      ]
+    },
+    "CNWIH": {
+      "iso": "CHN",
+      "label": "China, Wiehai",
+      "index": 11.78055,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 11.70462,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNXMN": {
+      "iso": "CHN",
+      "label": "China, Xiamen",
+      "index": 915.8811424999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 900.04566,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNXGG": {
+      "iso": "CHN",
+      "label": "China, Xingang",
+      "index": 767.4493725000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 767.1642,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNYNT": {
+      "iso": "CHN",
+      "label": "China, Yantai",
+      "index": 171.8422,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 173.95935,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNYTN": {
+      "iso": "CHN",
+      "label": "China, Yantian",
+      "index": 818.0645687499999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 795.37594,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNYIK": {
+      "iso": "CHN",
+      "label": "China, Yingkou",
+      "index": 97.729275,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 98.44947,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZJG": {
+      "iso": "CHN",
+      "label": "China, Zhangjiagang",
+      "index": 49.289665,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 49.2962,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZHA": {
+      "iso": "CHN",
+      "label": "China, Zhanjiang",
+      "index": 68.47310125000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 64.53261,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CUHAV": {
+      "iso": "CUB",
+      "label": "Cuba, Havana",
+      "index": 27.579347499999994,
+      "latestQuarter": "2016Q01",
+      "latestIndex": 9.96891,
+      "quartersUsed": [
+        "2014Q02",
+        "2014Q03",
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01"
+      ]
+    },
+    "CUMOA": {
+      "iso": "CUB",
+      "label": "Cuba, Moa",
+      "index": 13.318420000000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 13.31842,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CUSCU": {
+      "iso": "CUB",
+      "label": "Cuba, Santiago",
+      "index": 12.115261250000003,
+      "latestQuarter": "2025Q04",
+      "latestIndex": 12.84534,
+      "quartersUsed": [
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04"
+      ]
+    },
+    "EGADA": {
+      "iso": "EGY",
+      "label": "Egypt, Adabiya",
+      "index": 15.5193425,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.04214,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGALY": {
+      "iso": "EGY",
+      "label": "Egypt, Alexandria",
+      "index": 355.5348825,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 362.86418,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGDAM": {
+      "iso": "EGY",
+      "label": "Egypt, Damietta",
+      "index": 230.23597375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 288.08089,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGEDK": {
+      "iso": "EGY",
+      "label": "Egypt, El Dekheila",
+      "index": 97.91666374999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 111.26258,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGSOK": {
+      "iso": "EGY",
+      "label": "Egypt, El Sokhna",
+      "index": 157.1150375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 169.60607,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGPSD": {
+      "iso": "EGY",
+      "label": "Egypt, Port Said",
+      "index": 315.30321375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 345.7174,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGSUZ": {
+      "iso": "EGY",
+      "label": "Egypt, Suez",
+      "index": 12.321619999999998,
+      "latestQuarter": "2016Q02",
+      "latestIndex": 12.32162,
+      "quartersUsed": [
+        "2014Q03",
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01",
+        "2016Q02"
+      ]
+    },
+    "GEPTI": {
+      "iso": "GEO",
+      "label": "Georgia, Poti",
+      "index": 50.30109,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 56.86117,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INMAA": {
+      "iso": "IND",
+      "label": "India, Chennai",
+      "index": 173.21009500000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 169.14768,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INCOK": {
+      "iso": "IND",
+      "label": "India, Cochin",
+      "index": 111.5967,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 96.28111,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INHAL": {
+      "iso": "IND",
+      "label": "India, Haldia",
+      "index": 50.92208125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 58.68835,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INIXY": {
+      "iso": "IND",
+      "label": "India, Kandla",
+      "index": 89.09761499999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 65.1651,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INCCU": {
+      "iso": "IND",
+      "label": "India, Kolkata (Calcutta)",
+      "index": 102.142125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 99.96952,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INMRM": {
+      "iso": "IND",
+      "label": "India, Mormugao",
+      "index": 14.63829125,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 24.00752,
+      "quartersUsed": [
+        "2021Q04",
+        "2022Q01",
+        "2022Q02",
+        "2022Q03",
+        "2022Q04",
+        "2023Q01",
+        "2023Q02",
+        "2026Q01"
+      ]
+    },
+    "INBOM": {
+      "iso": "IND",
+      "label": "India, Mumbai",
+      "index": 12.67272,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 12.67272,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INMUN": {
+      "iso": "IND",
+      "label": "India, Mundra",
+      "index": 654.7081575000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 636.8844,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INNML": {
+      "iso": "IND",
+      "label": "India, New Mangalore",
+      "index": 12.269086249999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 14.09414,
+      "quartersUsed": [
+        "2022Q04",
+        "2023Q01",
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INNSA": {
+      "iso": "IND",
+      "label": "India, Nhava Sheva",
+      "index": 646.691955,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 630.27685,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INPAV": {
+      "iso": "IND",
+      "label": "India, Pipavav",
+      "index": 148.10830625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 144.58987,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INTUT": {
+      "iso": "IND",
+      "label": "India, Tuticorin",
+      "index": 89.42284375000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 87.68875,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INVTZ": {
+      "iso": "IND",
+      "label": "India, Visakhapatnam",
+      "index": 139.613435,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 137.34926,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRBND": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Bandar Abbas",
+      "index": 121.5662275,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 110.69784,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRBKM": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Bandar Imam Khomeini",
+      "index": 14.29066,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 14.29066,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRBUZ": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Bushehr",
+      "index": 15.552949999999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.55295,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRKHO": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Khorramshahr",
+      "index": 7.538359999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 7.53836,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IQUQR": {
+      "iso": "IRQ",
+      "label": "Iraq, Umm Qasr",
+      "index": 180.95710250000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 97.03435,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "LBBEY": {
+      "iso": "LBN",
+      "label": "Lebanon, Beirut",
+      "index": 189.29833625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 210.81905,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "MMRGN": {
+      "iso": "MMR",
+      "label": "Myanmar, Rangoon",
+      "index": 91.94807375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 95.72971,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PKKHI": {
+      "iso": "PAK",
+      "label": "Pakistan, Karachi",
+      "index": 319.96666625000006,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 343.0212,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PKQCT": {
+      "iso": "PAK",
+      "label": "Pakistan, Port Qasim",
+      "index": 152.02848,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 136.12858,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PLGDN": {
+      "iso": "POL",
+      "label": "Poland, Gdansk",
+      "index": 230.51170875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 239.82988,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PLGDY": {
+      "iso": "POL",
+      "label": "Poland, Gdynia",
+      "index": 185.65934124999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 188.7031,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PLSZZ": {
+      "iso": "POL",
+      "label": "Poland, Szczecin",
+      "index": 33.359787499999996,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 42.35715,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRINC": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Incheon",
+      "index": 424.39688875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 451.13189,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRKUV": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Kunsan (Gunsan)",
+      "index": 45.40912374999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 58.12003,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRKAN": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Kwangyang (Gwangyang)",
+      "index": 528.49228625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 528.19278,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRMAS": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Masan",
+      "index": 33.32743125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 23.73645,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRPUS": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Pusan",
+      "index": 1668.6321287500002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 1655.17194,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRPYK": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Pyongtaek",
+      "index": 96.40127125000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 93.94888,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRUSN": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Ulsan",
+      "index": 198.84509125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 186.16772,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUARH": {
+      "iso": "RUS",
+      "label": "Russian Federation, Archangel",
+      "index": 21.75464625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 22.70703,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUKGD": {
+      "iso": "RUS",
+      "label": "Russian Federation, Kaliningrad",
+      "index": 51.6693525,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 62.73669,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUKHO": {
+      "iso": "RUS",
+      "label": "Russian Federation, Kholmsk",
+      "index": 7.209600000000001,
+      "latestQuarter": "2019Q03",
+      "latestIndex": 7.2096,
+      "quartersUsed": [
+        "2017Q04",
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03"
+      ]
+    },
+    "RUKOR": {
+      "iso": "RUS",
+      "label": "Russian Federation, Korsakov",
+      "index": 14.820362500000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.15638,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUGDX": {
+      "iso": "RUS",
+      "label": "Russian Federation, Magadan",
+      "index": 16.90552,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 16.90552,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUNJK": {
+      "iso": "RUS",
+      "label": "Russian Federation, Nakhodka",
+      "index": 17.846835,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.86953,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUNVS": {
+      "iso": "RUS",
+      "label": "Russian Federation, Novorossijsk",
+      "index": 125.12306625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 122.07309,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUPKC": {
+      "iso": "RUS",
+      "label": "Russian Federation, Petropavlovsk",
+      "index": 9.609799999999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.67128,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RULED": {
+      "iso": "RUS",
+      "label": "Russian Federation, St Petersburg",
+      "index": 166.7555625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 183.19264,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUTAG": {
+      "iso": "RUS",
+      "label": "Russian Federation, Taganrog",
+      "index": 7.980476249999999,
+      "latestQuarter": "2016Q02",
+      "latestIndex": 8.06001,
+      "quartersUsed": [
+        "2014Q03",
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01",
+        "2016Q02"
+      ]
+    },
+    "RUVNN": {
+      "iso": "RUS",
+      "label": "Russian Federation, Vanino",
+      "index": 7.577889999999998,
+      "latestQuarter": "2018Q01",
+      "latestIndex": 7.57789,
+      "quartersUsed": [
+        "2016Q02",
+        "2016Q03",
+        "2016Q04",
+        "2017Q01",
+        "2017Q02",
+        "2017Q03",
+        "2017Q04",
+        "2018Q01"
+      ]
+    },
+    "RUVVO": {
+      "iso": "RUS",
+      "label": "Russian Federation, Vladivostok",
+      "index": 177.20598375000003,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 172.96169,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUVYP": {
+      "iso": "RUS",
+      "label": "Russian Federation, Vostochniy",
+      "index": 80.86426374999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 89.86734,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUVYG": {
+      "iso": "RUS",
+      "label": "Russian Federation, Vyborg",
+      "index": 7.74991125,
+      "latestQuarter": "2009Q02",
+      "latestIndex": 8.37113,
+      "quartersUsed": [
+        "2007Q03",
+        "2007Q04",
+        "2008Q01",
+        "2008Q02",
+        "2008Q03",
+        "2008Q04",
+        "2009Q01",
+        "2009Q02"
+      ]
+    },
+    "SADMM": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Dammam",
+      "index": 289.10184875000004,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 109.23435,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "SAGIZ": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Gizan",
+      "index": 20.613802500000002,
+      "latestQuarter": "2009Q02",
+      "latestIndex": 19.55554,
+      "quartersUsed": [
+        "2007Q03",
+        "2007Q04",
+        "2008Q01",
+        "2008Q02",
+        "2008Q03",
+        "2008Q04",
+        "2009Q01",
+        "2009Q02"
+      ]
+    },
+    "SAJED": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Jeddah",
+      "index": 409.85570624999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 463.0197,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "SAYNB": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Yanbu",
+      "index": 18.053218750000003,
+      "latestQuarter": "2025Q03",
+      "latestIndex": 18.98511,
+      "quartersUsed": [
+        "2021Q01",
+        "2021Q02",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03"
+      ]
+    },
+    "SYLTK": {
+      "iso": "SYR",
+      "label": "Syrian Arab Republic, Latakia",
+      "index": 74.6045225,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 105.01604,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "SYTTS": {
+      "iso": "SYR",
+      "label": "Syrian Arab Republic, Tartous",
+      "index": 36.21330875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 39.0159,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRPAM": {
+      "iso": "TUR",
+      "label": "Turkiye, Ambarli",
+      "index": 492.26495,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 501.66086,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRAYT": {
+      "iso": "TUR",
+      "label": "Turkiye, Antalya",
+      "index": 23.60908,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 27.16901,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRDRC": {
+      "iso": "TUR",
+      "label": "Turkiye, Derince",
+      "index": 96.84543000000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 84.10889,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRDIL": {
+      "iso": "TUR",
+      "label": "Turkiye, Diliskelesi",
+      "index": 35.478281249999995,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 20.76316,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRGEB": {
+      "iso": "TUR",
+      "label": "Turkiye, Gebze",
+      "index": 149.90816999999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 140.74491,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRGEM": {
+      "iso": "TUR",
+      "label": "Turkiye, Gemlik",
+      "index": 249.48814500000003,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 238.22305,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRHAY": {
+      "iso": "TUR",
+      "label": "Turkiye, Haydarpasa",
+      "index": 22.823016250000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 18.08332,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRISK": {
+      "iso": "TUR",
+      "label": "Turkiye, Iskenderun",
+      "index": 251.10364875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 219.30189,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRIST": {
+      "iso": "TUR",
+      "label": "Turkiye, Istanbul",
+      "index": 18.792667500000007,
+      "latestQuarter": "2016Q03",
+      "latestIndex": 10.53621,
+      "quartersUsed": [
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01",
+        "2016Q02",
+        "2016Q03"
+      ]
+    },
+    "TRIZM": {
+      "iso": "TUR",
+      "label": "Turkiye, Izmir",
+      "index": 121.90457375000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 128.32633,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRMER": {
+      "iso": "TUR",
+      "label": "Turkiye, Mersin",
+      "index": 325.63121624999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 367.99907,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRTZX": {
+      "iso": "TUR",
+      "label": "Turkiye, Trabzon",
+      "index": 12.778721249999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 16.55194,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEAUH": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Abu Dhabi",
+      "index": 11.057230000000002,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 11.05723,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01"
+      ]
+    },
+    "AEAJM": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Ajman",
+      "index": 37.39812249999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 36.30386,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEDXB": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Dubai",
+      "index": 21.907209999999996,
+      "latestQuarter": "2016Q03",
+      "latestIndex": 21.86951,
+      "quartersUsed": [
+        "2014Q04",
+        "2015Q01",
+        "2015Q02",
+        "2015Q03",
+        "2015Q04",
+        "2016Q01",
+        "2016Q02",
+        "2016Q03"
+      ]
+    },
+    "AEFJR": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Fujairah",
+      "index": 25.70836375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 111.01154,
+      "quartersUsed": [
+        "2023Q01",
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2026Q02"
+      ]
+    },
+    "AEJEA": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Jebel Ali",
+      "index": 718.8123725,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 225.66497,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEKLF": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Khor Fakkan",
+      "index": 92.88822375000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 167.50561,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEMKH": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Sharjah",
+      "index": 99.26521875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 112.69583,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEQIW": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Umm al Qaiwain",
+      "index": 11.14667,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 11.14667,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "YEADE": {
+      "iso": "YEM",
+      "label": "Yemen, Aden",
+      "index": 60.53308375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 70.86919,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "YEHOD": {
+      "iso": "YEM",
+      "label": "Yemen, Hodeidah",
+      "index": 34.6722925,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 25.24107,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "YEMOK": {
+      "iso": "YEM",
+      "label": "Yemen, Mokha",
+      "index": 17.898346250000003,
+      "latestQuarter": "2008Q02",
+      "latestIndex": 17.91119,
+      "quartersUsed": [
+        "2006Q03",
+        "2006Q04",
+        "2007Q01",
+        "2007Q02",
+        "2007Q03",
+        "2007Q04",
+        "2008Q01",
+        "2008Q02"
+      ]
+    },
+    "YEMKX": {
+      "iso": "YEM",
+      "label": "Yemen, Mukalla",
+      "index": 11.16016,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 9.89591,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01"
+      ]
+    },
+    "KRMOK": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Mokpo",
+      "index": 15.861279999999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.86128,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRKPO": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Pohang",
+      "index": 40.157455,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 38.58678,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNTAG": {
+      "iso": "CHN",
+      "label": "China, Taicang",
+      "index": 164.7174375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 153.422,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "PLSWI": {
+      "iso": "POL",
+      "label": "Poland, Swinoujscie",
+      "index": 12.113110000000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 12.11311,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNDDG": {
+      "iso": "CHN",
+      "label": "China, Dongguan",
+      "index": 10.570137499999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.64808,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "SAJUB": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Jubail",
+      "index": 145.78634375000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 40.57474,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRIZT": {
+      "iso": "TUR",
+      "label": "Turkiye, Izmit Korfezi",
+      "index": 272.9691775,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 295.80962,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNWNZ": {
+      "iso": "CHN",
+      "label": "China, Wenzhou",
+      "index": 54.245275,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 44.66128,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRYPO": {
+      "iso": "TUR",
+      "label": "Turkiye, Yilport",
+      "index": 43.025088749999995,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 46.93294,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZZU": {
+      "iso": "CHN",
+      "label": "China, Zhangzhou",
+      "index": 21.991170000000004,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 21.99117,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INPRT": {
+      "iso": "IND",
+      "label": "India, Paradip",
+      "index": 20.199487500000004,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 19.05556,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IQALF": {
+      "iso": "IRQ",
+      "label": "Iraq, Abu al Fulus",
+      "index": 9.47583,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 9.47583,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01"
+      ]
+    },
+    "RUDYR": {
+      "iso": "RUS",
+      "label": "Russian Federation, Anadyr",
+      "index": 7.821745,
+      "latestQuarter": "2025Q04",
+      "latestIndex": 8.3739,
+      "quartersUsed": [
+        "2019Q02",
+        "2019Q04",
+        "2020Q01",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04"
+      ]
+    },
+    "RUEGV": {
+      "iso": "RUS",
+      "label": "Russian Federation, Egvekinot",
+      "index": 7.821745,
+      "latestQuarter": "2025Q04",
+      "latestIndex": 8.3739,
+      "quartersUsed": [
+        "2019Q02",
+        "2019Q04",
+        "2020Q01",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04"
+      ]
+    },
+    "RUKDT": {
+      "iso": "RUS",
+      "label": "Russian Federation, Kronshtadt",
+      "index": 19.86895625,
+      "latestQuarter": "2019Q01",
+      "latestIndex": 14.85307,
+      "quartersUsed": [
+        "2017Q02",
+        "2017Q03",
+        "2017Q04",
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01"
+      ]
+    },
+    "RUPVS": {
+      "iso": "RUS",
+      "label": "Russian Federation, Provideniya, Bukhta",
+      "index": 8.36898,
+      "latestQuarter": "2008Q03",
+      "latestIndex": 8.04159,
+      "quartersUsed": [
+        "2007Q04",
+        "2008Q01",
+        "2008Q02",
+        "2008Q03"
+      ]
+    },
+    "AERKT": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Ras al Khaimah",
+      "index": 23.371197499999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 11.74157,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNDCB": {
+      "iso": "CHN",
+      "label": "China, Da chan Bay",
+      "index": 162.82787875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 141.65841,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TWMLI": {
+      "iso": "CHN",
+      "label": "China, Taiwan Province of, Mai-Liao",
+      "index": 26.16776,
+      "latestQuarter": "2014Q02",
+      "latestIndex": 17.49541,
+      "quartersUsed": [
+        "2012Q03",
+        "2012Q04",
+        "2013Q01",
+        "2013Q02",
+        "2013Q03",
+        "2013Q04",
+        "2014Q01",
+        "2014Q02"
+      ]
+    },
+    "TREYP": {
+      "iso": "TUR",
+      "label": "Turkiye, Evyap Pt",
+      "index": 66.9959625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 56.98276,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJIX": {
+      "iso": "CHN",
+      "label": "China, Jiaxing",
+      "index": 21.78818625,
+      "latestQuarter": "2025Q03",
+      "latestIndex": 20.21916,
+      "quartersUsed": [
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03"
+      ]
+    },
+    "CNSHP": {
+      "iso": "CHN",
+      "label": "China, Qinhuangdao",
+      "index": 14.417123749999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 14.3374,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "GEBUS": {
+      "iso": "GEO",
+      "label": "Georgia, Batumi",
+      "index": 28.007785000000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 27.19134,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNDFE": {
+      "iso": "CHN",
+      "label": "China, Dafeng",
+      "index": 11.005129999999998,
+      "latestQuarter": "2023Q04",
+      "latestIndex": 11.00513,
+      "quartersUsed": [
+        "2022Q01",
+        "2022Q02",
+        "2022Q03",
+        "2022Q04",
+        "2023Q01",
+        "2023Q02",
+        "2023Q03",
+        "2023Q04"
+      ]
+    },
+    "INIXE": {
+      "iso": "IND",
+      "label": "India, Mangalore",
+      "index": 54.051927500000005,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 49.65084,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRTEK": {
+      "iso": "TUR",
+      "label": "Turkiye, Tekirdag",
+      "index": 221.35613125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 227.17009,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRYOS": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Yeochon",
+      "index": 10.802495000000002,
+      "latestQuarter": "2012Q04",
+      "latestIndex": 11.0297,
+      "quartersUsed": [
+        "2011Q01",
+        "2011Q02",
+        "2011Q03",
+        "2011Q04",
+        "2012Q01",
+        "2012Q02",
+        "2012Q03",
+        "2012Q04"
+      ]
+    },
+    "TWTPE": {
+      "iso": "CHN",
+      "label": "China, Taiwan Province of, Taipei",
+      "index": 279.55068,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 284.69862,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INIXZ": {
+      "iso": "IND",
+      "label": "India, Port Blair",
+      "index": 10.71658,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 10.71658,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRASA": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Asaluyeh",
+      "index": 7.18477,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 7.18477,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01"
+      ]
+    },
+    "IRZBR": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Chah bahar",
+      "index": 26.815455,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 42.74086,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJGY": {
+      "iso": "CHN",
+      "label": "China, Jiangyin",
+      "index": 24.581284999999998,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 24.6752,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "LBKYE": {
+      "iso": "LBN",
+      "label": "Lebanon, Tripoli (LB)",
+      "index": 83.89663875000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 91.66951,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNQZH": {
+      "iso": "CHN",
+      "label": "China, Qinzhou",
+      "index": 182.2783925,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 192.12819,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNTAS": {
+      "iso": "CHN",
+      "label": "China, Tangshan",
+      "index": 25.39648499999999,
+      "latestQuarter": "2024Q04",
+      "latestIndex": 17.43226,
+      "quartersUsed": [
+        "2023Q01",
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04"
+      ]
+    },
+    "KRTSN": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Daesan/Seosan",
+      "index": 58.129425,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 64.54645,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUDUD": {
+      "iso": "RUS",
+      "label": "Russian Federation, Dudinka",
+      "index": 9.966099999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.9661,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNDGG": {
+      "iso": "CHN",
+      "label": "China, Dandon",
+      "index": 17.0383925,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 10.18639,
+      "quartersUsed": [
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01",
+        "2021Q02",
+        "2022Q03",
+        "2022Q04",
+        "2026Q02"
+      ]
+    },
+    "TRALI": {
+      "iso": "TUR",
+      "label": "Turkiye, Aliaga (Nemrut)",
+      "index": 310.83985125000004,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 303.52651,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNHUI": {
+      "iso": "CHN",
+      "label": "China, Huizhou",
+      "index": 11.448925000000003,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 11.94669,
+      "quartersUsed": [
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZAP": {
+      "iso": "CHN",
+      "label": "China, Zha Pu",
+      "index": 11.55173,
+      "latestQuarter": "2012Q01",
+      "latestIndex": 11.55173,
+      "quartersUsed": [
+        "2011Q02",
+        "2011Q03",
+        "2011Q04",
+        "2012Q01"
+      ]
+    },
+    "CNXNA": {
+      "iso": "CHN",
+      "label": "China, Xinsha",
+      "index": 15.02323,
+      "latestQuarter": "2013Q04",
+      "latestIndex": 15.02323,
+      "quartersUsed": [
+        "2012Q01",
+        "2012Q02",
+        "2012Q03",
+        "2012Q04",
+        "2013Q01",
+        "2013Q02",
+        "2013Q03",
+        "2013Q04"
+      ]
+    },
+    "CNYPG": {
+      "iso": "CHN",
+      "label": "China, Yangpu",
+      "index": 127.144635,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 185.24485,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRSSX": {
+      "iso": "TUR",
+      "label": "Turkiye, Samsun",
+      "index": 26.82501125,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 22.09445,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRTJI": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Dangjin-gun",
+      "index": 19.61367,
+      "latestQuarter": "2020Q04",
+      "latestIndex": 19.61367,
+      "quartersUsed": [
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03",
+        "2020Q04"
+      ]
+    },
+    "TRKMX": {
+      "iso": "TUR",
+      "label": "Turkiye, Kumport",
+      "index": 39.51621,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.92723,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRMAD": {
+      "iso": "TUR",
+      "label": "Turkiye, Mardas",
+      "index": 25.716271250000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 27.20982,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRMPT": {
+      "iso": "TUR",
+      "label": "Turkiye, Marport",
+      "index": 35.9543575,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 35.45533,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRABD": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Abadan",
+      "index": 8.34986,
+      "latestQuarter": "2021Q01",
+      "latestIndex": 8.34986,
+      "quartersUsed": [
+        "2019Q02",
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01"
+      ]
+    },
+    "IQBSR": {
+      "iso": "IRQ",
+      "label": "Iraq, Basrah",
+      "index": 10.66139875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.47583,
+      "quartersUsed": [
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01",
+        "2026Q02"
+      ]
+    },
+    "CNCGU": {
+      "iso": "CHN",
+      "label": "China, Changshu",
+      "index": 20.614759999999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 20.6059,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJZU": {
+      "iso": "CHN",
+      "label": "China, Jiuzhou",
+      "index": 20.59441,
+      "latestQuarter": "2013Q04",
+      "latestIndex": 20.59441,
+      "quartersUsed": [
+        "2012Q04",
+        "2013Q01",
+        "2013Q02",
+        "2013Q03",
+        "2013Q04"
+      ]
+    },
+    "INHZR": {
+      "iso": "IND",
+      "label": "India, Hazira",
+      "index": 164.44105000000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 155.81453,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INKRI": {
+      "iso": "IND",
+      "label": "India, Krishnapatnam",
+      "index": 55.000871249999996,
+      "latestQuarter": "2025Q01",
+      "latestIndex": 15.74408,
+      "quartersUsed": [
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01"
+      ]
+    },
+    "RUPWE": {
+      "iso": "RUS",
+      "label": "Russian Federation, Pevek",
+      "index": 7.84533,
+      "latestQuarter": "2014Q01",
+      "latestIndex": 7.84751,
+      "quartersUsed": [
+        "2012Q04",
+        "2013Q01",
+        "2013Q02",
+        "2013Q03",
+        "2013Q04",
+        "2014Q01"
+      ]
+    },
+    "RUSOC": {
+      "iso": "RUS",
+      "label": "Russian Federation, Sochi",
+      "index": 7.817428,
+      "latestQuarter": "2013Q04",
+      "latestIndex": 7.56292,
+      "quartersUsed": [
+        "2012Q04",
+        "2013Q01",
+        "2013Q02",
+        "2013Q03",
+        "2013Q04"
+      ]
+    },
+    "RUULU": {
+      "iso": "RUS",
+      "label": "Russian Federation, Ust Luga",
+      "index": 25.17083,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 25.18338,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRELI": {
+      "iso": "TUR",
+      "label": "Turkiye, Eregli",
+      "index": 14.193240000000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 14.19324,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNWEI": {
+      "iso": "CHN",
+      "label": "China, Weihai",
+      "index": 37.43818999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 37.44701,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZUH": {
+      "iso": "CHN",
+      "label": "China, Zhuhai",
+      "index": 66.65330999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 67.16731,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "IRBAH": {
+      "iso": "IRN",
+      "label": "Iran (Islamic Republic of), Bandar Assaluyeh",
+      "index": 12.411209999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 12.41121,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEKHL": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Khalifa",
+      "index": 331.35289375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 107.44388,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRSEL": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Seoul",
+      "index": 16.366739999999997,
+      "latestQuarter": "2019Q04",
+      "latestIndex": 16.36674,
+      "quartersUsed": [
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04"
+      ]
+    },
+    "SAKAC": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, King Abdullah",
+      "index": 87.3835525,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 96.00253,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRLMA": {
+      "iso": "TUR",
+      "label": "Turkiye, Limas",
+      "index": 11.929590000000001,
+      "latestQuarter": "2022Q01",
+      "latestIndex": 11.67885,
+      "quartersUsed": [
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01",
+        "2021Q02",
+        "2021Q03",
+        "2021Q04",
+        "2022Q01"
+      ]
+    },
+    "CUMAR": {
+      "iso": "CUB",
+      "label": "Cuba, Mariel",
+      "index": 56.46563875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 59.31513,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INKAK": {
+      "iso": "IND",
+      "label": "India, Kakinada",
+      "index": 16.180743749999998,
+      "latestQuarter": "2017Q02",
+      "latestIndex": 19.03064,
+      "quartersUsed": [
+        "2014Q04",
+        "2015Q04",
+        "2016Q01",
+        "2016Q02",
+        "2016Q03",
+        "2016Q04",
+        "2017Q01",
+        "2017Q02"
+      ]
+    },
+    "CNHMN": {
+      "iso": "CHN",
+      "label": "China, Humen",
+      "index": 34.536702500000004,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 26.83021,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZHE": {
+      "iso": "CHN",
+      "label": "China, Zhenjiang",
+      "index": 11.637910000000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 11.63791,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNCFD": {
+      "iso": "CHN",
+      "label": "China, Caodeidian",
+      "index": 17.217274999999997,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 17.24475,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INKTP": {
+      "iso": "IND",
+      "label": "India, Kattupalli",
+      "index": 144.48241875,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 146.45983,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRBDM": {
+      "iso": "TUR",
+      "label": "Turkiye, Bandirma",
+      "index": 9.92723,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.92723,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRTGH": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Donghae",
+      "index": 9.63199,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.63199,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUAZO": {
+      "iso": "RUS",
+      "label": "Russian Federation, Azov",
+      "index": 6.79541,
+      "latestQuarter": "2016Q03",
+      "latestIndex": 6.79541,
+      "quartersUsed": [
+        "2015Q04",
+        "2016Q01",
+        "2016Q02",
+        "2016Q03"
+      ]
+    },
+    "INJGD": {
+      "iso": "IND",
+      "label": "India, Jaigad",
+      "index": 12.54951,
+      "latestQuarter": "2016Q03",
+      "latestIndex": 12.54951,
+      "quartersUsed": [
+        "2016Q01",
+        "2016Q02",
+        "2016Q03"
+      ]
+    },
+    "KRPTK": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Pyeongaek",
+      "index": 15.59917,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.59917,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNGZG": {
+      "iso": "CHN",
+      "label": "China, Guangzhou",
+      "index": 23.13557,
+      "latestQuarter": "2018Q02",
+      "latestIndex": 23.13557,
+      "quartersUsed": [
+        "2016Q03",
+        "2016Q04",
+        "2017Q01",
+        "2017Q02",
+        "2017Q03",
+        "2017Q04",
+        "2018Q01",
+        "2018Q02"
+      ]
+    },
+    "CNWIT": {
+      "iso": "CHN",
+      "label": "China, Weitou",
+      "index": 16.971735,
+      "latestQuarter": "2025Q02",
+      "latestIndex": 13.15608,
+      "quartersUsed": [
+        "2017Q03",
+        "2017Q04",
+        "2018Q01",
+        "2018Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02"
+      ]
+    },
+    "CNZPU": {
+      "iso": "CHN",
+      "label": "China, Zhapu",
+      "index": 28.769247500000002,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 56.15832,
+      "quartersUsed": [
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRNEM": {
+      "iso": "TUR",
+      "label": "Turkiye, Nemruth Bay",
+      "index": 29.1589775,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 40.43087,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AERUW": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Ruwais",
+      "index": 22.883929999999996,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 22.88393,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRYAR": {
+      "iso": "TUR",
+      "label": "Turkiye, Yarimca",
+      "index": 60.73578749999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 10.77482,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRGOK": {
+      "iso": "TUR",
+      "label": "Turkiye, Yenikoy",
+      "index": 11.860985000000001,
+      "latestQuarter": "2020Q01",
+      "latestIndex": 12.40515,
+      "quartersUsed": [
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04",
+        "2020Q01"
+      ]
+    },
+    "RUZAR": {
+      "iso": "RUS",
+      "label": "Russian Federation, Zarubino",
+      "index": 9.00391,
+      "latestQuarter": "2021Q01",
+      "latestIndex": 9.00391,
+      "quartersUsed": [
+        "2019Q02",
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03",
+        "2020Q04",
+        "2021Q01"
+      ]
+    },
+    "IQKAZ": {
+      "iso": "IRQ",
+      "label": "Iraq, Khor al Zubair",
+      "index": 15.995289999999999,
+      "latestQuarter": "2017Q03",
+      "latestIndex": 13.01021,
+      "quartersUsed": [
+        "2017Q01",
+        "2017Q02",
+        "2017Q03"
+      ]
+    },
+    "INDMT": {
+      "iso": "IND",
+      "label": "India, Dharamtar",
+      "index": 6.519440000000001,
+      "latestQuarter": "2019Q04",
+      "latestIndex": 6.51944,
+      "quartersUsed": [
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04"
+      ]
+    },
+    "INCCJ": {
+      "iso": "IND",
+      "label": "India, Kozhikode",
+      "index": 6.519440000000001,
+      "latestQuarter": "2019Q04",
+      "latestIndex": 6.51944,
+      "quartersUsed": [
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04"
+      ]
+    },
+    "RUBRK": {
+      "iso": "RUS",
+      "label": "Russian Federation, Bronka",
+      "index": 19.08910375,
+      "latestQuarter": "2024Q04",
+      "latestIndex": 17.22564,
+      "quartersUsed": [
+        "2022Q02",
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04"
+      ]
+    },
+    "RUSKA": {
+      "iso": "RUS",
+      "label": "Russian Federation, Slavyanka",
+      "index": 52.510462000000004,
+      "latestQuarter": "2018Q03",
+      "latestIndex": 52.08046,
+      "quartersUsed": [
+        "2017Q03",
+        "2017Q04",
+        "2018Q01",
+        "2018Q02",
+        "2018Q03"
+      ]
+    },
+    "CNHNH": {
+      "iso": "CHN",
+      "label": "China, Huanghua",
+      "index": 26.374536250000006,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 26.37414,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INENR": {
+      "iso": "IND",
+      "label": "India, Ennore",
+      "index": 95.86380375,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 103.52957,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRSRL": {
+      "iso": "TUR",
+      "label": "Turkiye, Saraylar",
+      "index": 8.06585,
+      "latestQuarter": "2019Q03",
+      "latestIndex": 8.06585,
+      "quartersUsed": [
+        "2018Q01",
+        "2018Q02",
+        "2018Q03",
+        "2018Q04",
+        "2019Q01",
+        "2019Q02",
+        "2019Q03"
+      ]
+    },
+    "CNPAJ": {
+      "iso": "CHN",
+      "label": "China, Panjin",
+      "index": 25.249164999999998,
+      "latestQuarter": "2019Q02",
+      "latestIndex": 21.93535,
+      "quartersUsed": [
+        "2018Q02",
+        "2018Q03",
+        "2019Q01",
+        "2019Q02"
+      ]
+    },
+    "PKGWD": {
+      "iso": "PAK",
+      "label": "Pakistan, Gwadar",
+      "index": 18.327215000000002,
+      "latestQuarter": "2025Q03",
+      "latestIndex": 16.65474,
+      "quartersUsed": [
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03"
+      ]
+    },
+    "MMTLA": {
+      "iso": "MMR",
+      "label": "Myanmar, Thilawa",
+      "index": 25.6855025,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 20.04206,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "RUMMK": {
+      "iso": "RUS",
+      "label": "Russian Federation, Murmansk",
+      "index": 9.966099999999999,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.9661,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNDJK": {
+      "iso": "CHN",
+      "label": "China, Dongjiangkou",
+      "index": 33.98878142857143,
+      "latestQuarter": "2020Q03",
+      "latestIndex": 28.82326,
+      "quartersUsed": [
+        "2019Q01",
+        "2019Q02",
+        "2019Q03",
+        "2019Q04",
+        "2020Q01",
+        "2020Q02",
+        "2020Q03"
+      ]
+    },
+    "CNWEF": {
+      "iso": "CHN",
+      "label": "China, Weifang",
+      "index": 33.86483,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 36.10531,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJTG": {
+      "iso": "CHN",
+      "label": "China, Jingtang",
+      "index": 37.950089999999996,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 42.60729,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEMSA": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Mina Saqr",
+      "index": 23.5001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 23.5001,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNWUH": {
+      "iso": "CHN",
+      "label": "China, Wuhan",
+      "index": 19.0784,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 19.0784,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNJIU": {
+      "iso": "CHN",
+      "label": "China, Jiujiang",
+      "index": 10.56367,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 10.56367,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "AEARP": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Ahmed Bin Rashid",
+      "index": 10.96188,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 10.96188,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNCZX": {
+      "iso": "CHN",
+      "label": "China, Changzhou",
+      "index": 15.2119575,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 15.08301,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNZOS": {
+      "iso": "CHN",
+      "label": "China, Zhousan",
+      "index": 24.560895,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 28.16052,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "CNTIZ": {
+      "iso": "CHN",
+      "label": "China, Taizhou",
+      "index": 12.127494999999998,
+      "latestQuarter": "2024Q03",
+      "latestIndex": 11.30031,
+      "quartersUsed": [
+        "2023Q02",
+        "2023Q03",
+        "2023Q04",
+        "2024Q01",
+        "2024Q02",
+        "2024Q03"
+      ]
+    },
+    "SADHU": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Dhuba",
+      "index": 22.55001375,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 9.49751,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01"
+      ]
+    },
+    "SAJEC": {
+      "iso": "SAU",
+      "label": "Saudi Arabia, Jazan",
+      "index": 17.37128625,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.88235,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "EGAKI": {
+      "iso": "EGY",
+      "label": "Egypt, Abu Qir",
+      "index": 90.49250500000001,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 108.14134,
+      "quartersUsed": [
+        "2024Q02",
+        "2024Q03",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KROKK": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Okgye",
+      "index": 15.5664425,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.86953,
+      "quartersUsed": [
+        "2024Q03",
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INVZJ": {
+      "iso": "IND",
+      "label": "India, Vizhinjam",
+      "index": 155.4248342857143,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 174.85004,
+      "quartersUsed": [
+        "2024Q04",
+        "2025Q01",
+        "2025Q02",
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "INGGV": {
+      "iso": "IND",
+      "label": "India, Gangavaram",
+      "index": 24.1554725,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 23.8403,
+      "quartersUsed": [
+        "2025Q03",
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "KRCHA": {
+      "iso": "KOR",
+      "label": "Republic of Korea, Cheju (Jeju)",
+      "index": 9.08579,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.08579,
+      "quartersUsed": [
+        "2025Q04",
+        "2026Q01",
+        "2026Q02"
+      ]
+    },
+    "TRADA": {
+      "iso": "TUR",
+      "label": "Turkiye, Adana",
+      "index": 9.30528,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.30528,
+      "quartersUsed": [
+        "2026Q02"
+      ]
+    },
+    "AEHZP": {
+      "iso": "ARE",
+      "label": "United Arab Emirates, Hamriya",
+      "index": 9.47583,
+      "latestQuarter": "2026Q02",
+      "latestIndex": 9.47583,
+      "quartersUsed": [
+        "2026Q02"
+      ]
+    }
+  }
+}

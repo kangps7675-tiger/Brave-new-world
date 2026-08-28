@@ -12,8 +12,10 @@ import { TheaterDetailCta } from "@/components/TheaterDetailCta";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import { HubMonitorRail } from "@/components/HubMonitorRail";
 import { AxisLinkChip } from "@/components/AxisLinkChip";
+import { CorridorRailChip } from "@/components/CorridorRailChip";
 import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
+import type { SelectedCorridor } from "@/lib/corridorSelection";
 import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
 import type { NewsStreamItem } from "@/lib/news/types";
 import type { HubBriefDoc } from "@/data/hubBriefs";
@@ -142,6 +144,8 @@ export type GeopoliticsHubChromeProps = {
   onAxisLinkNews?: () => void;
   onAxisLinkHighlightArms?: () => void;
   armsHighlightPair?: { a: string; b: string } | null;
+  selectedCorridor?: SelectedCorridor | null;
+  onCorridorDismiss?: () => void;
 };
 
 export function GeopoliticsHubChrome({
@@ -199,9 +203,24 @@ export function GeopoliticsHubChrome({
   onAxisLinkNews,
   onAxisLinkHighlightArms,
   armsHighlightPair = null,
+  selectedCorridor = null,
+  onCorridorDismiss,
 }: GeopoliticsHubChromeProps) {
   return (
     <>
+      {selectedCorridor &&
+      !selectedAxisLink &&
+      !hubBriefOpen &&
+      hubFocusMode !== "regime" &&
+      hubFocusMode !== "arms" &&
+      !historyImmersionActive ? (
+        <CorridorRailChip
+          corridor={selectedCorridor}
+          lang={labelLanguage}
+          onDismiss={() => onCorridorDismiss?.()}
+        />
+      ) : null}
+
       {selectedAxisLink &&
       !hubBriefOpen &&
       hubFocusMode !== "regime" &&

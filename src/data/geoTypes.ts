@@ -113,6 +113,8 @@ export type TransportPath = {
     /** 미 국무부 LSIB(Large Scale International Boundaries) — RANK 1=공식 국경, 2/3=분쟁·특수선 */
     | "lsib-boundary"
     | "shipping-lane"
+    /** IMF PortWatch graph A* route (port ↔ choke ↔ waypoint) */
+    | "maritime-route"
     | "submarine-cable"
     | "oil-pipeline"
     | "gas-pipeline"

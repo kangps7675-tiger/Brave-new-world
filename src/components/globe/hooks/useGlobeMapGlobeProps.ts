@@ -111,6 +111,11 @@ import {
 } from "@/lib/theaterIntensityRadius";
 import { shippingLaneColor, shippingLaneStroke } from "@/lib/shippingLaneStyle";
 import {
+  maritimeRouteColor,
+  maritimeRouteStroke,
+  maritimeRouteDashLength,
+} from "@/lib/maritimeRouteStyle";
+import {
   ARMS_EMBARGO_STROKE_WIDTH,
   CONFLICT_ZONE_ALTITUDE,
   FLOW_PATH_KINDS,
@@ -956,6 +961,9 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "shipping-lane") {
         return shippingLaneColor(path, basemapTone === "light" ? "light" : "dark");
       }
+      if (path.kind === "maritime-route") {
+        return maritimeRouteColor(path, basemapTone === "light" ? "light" : "dark");
+      }
       if (FLOW_PATH_KINDS.has(path.kind)) return INTEL_MISSILE_ARC;
       if (path.kind === "dispute-boundary") return "rgba(251, 191, 36, 0.92)";
       if (path.kind === "lsib-boundary") {
@@ -1066,6 +1074,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "dispute-hatch") return 0.55;
       if (path.kind === "conflict-hatch") return 0.62;
       if (path.kind === "shipping-lane") return shippingLaneStroke(path);
+      if (path.kind === "maritime-route") return maritimeRouteStroke(path);
       if (path.kind === "ship-movement-trail") return 1.15;
       if (path.kind === "submarine-cable") {
         // 해저 케이블: cable widthMode (줌아웃↑ · 줌인 최소 ~0.55)
@@ -1136,6 +1145,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "bri-trade" || path.kind === "us-dfc-supply") return 0;
       // 항로 — 통행 경향(실선·저채도). 미사일 호 점선과 분리
       if (path.kind === "shipping-lane") return 0;
+      if (path.kind === "maritime-route") return maritimeRouteDashLength();
       return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
     },
     pathDashGap: (path: TransportPath) => {

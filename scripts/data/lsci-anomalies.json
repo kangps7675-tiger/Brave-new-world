@@ -1,0 +1,378 @@
+{
+  "generatedAt": "2026-08-28T16:19:43.669Z",
+  "source": "UNCTADstat US.LSCI_M (Liner Shipping Connectivity Index, monthly)",
+  "sourceFile": "US_LSCI_M.csv",
+  "method": "Month-over-month % change, flagged when drop <= -12%. Candidates for human review before promoting to frictionEpisodes.ts/majorEventTimeline.ts — not auto-published.",
+  "dropThresholdPct": -12,
+  "count": 46,
+  "anomalies": [
+    {
+      "iso": "IRQ",
+      "month": "2026M04",
+      "prevMonth": "2026M03",
+      "prevIndex": 83.90163,
+      "index": 42.20762,
+      "pctChange": -49.7
+    },
+    {
+      "iso": "IRQ",
+      "month": "2007M02",
+      "prevMonth": "2006M11",
+      "prevIndex": 6.0264,
+      "index": 3.30223,
+      "pctChange": -45.2
+    },
+    {
+      "iso": "ARE",
+      "month": "2026M04",
+      "prevMonth": "2026M03",
+      "prevIndex": 319.63903,
+      "index": 182.21203,
+      "pctChange": -43
+    },
+    {
+      "iso": "YEM",
+      "month": "2016M11",
+      "prevMonth": "2016M08",
+      "prevIndex": 36.23697,
+      "index": 21.13781,
+      "pctChange": -41.7
+    },
+    {
+      "iso": "IRN",
+      "month": "2018M11",
+      "prevMonth": "2018M08",
+      "prevIndex": 85.89835,
+      "index": 52.0487,
+      "pctChange": -39.4
+    },
+    {
+      "iso": "SYR",
+      "month": "2017M05",
+      "prevMonth": "2017M02",
+      "prevIndex": 37.1689,
+      "index": 24.10502,
+      "pctChange": -35.1
+    },
+    {
+      "iso": "RUS",
+      "month": "2022M05",
+      "prevMonth": "2022M02",
+      "prevIndex": 179.95695,
+      "index": 121.32026,
+      "pctChange": -32.6
+    },
+    {
+      "iso": "IRQ",
+      "month": "2012M02",
+      "prevMonth": "2011M11",
+      "prevIndex": 26.06606,
+      "index": 18.17541,
+      "pctChange": -30.3
+    },
+    {
+      "iso": "LBN",
+      "month": "2024M03",
+      "prevMonth": "2024M02",
+      "prevIndex": 112.00391,
+      "index": 78.43002,
+      "pctChange": -30
+    },
+    {
+      "iso": "MMR",
+      "month": "2021M05",
+      "prevMonth": "2021M02",
+      "prevIndex": 39.95,
+      "index": 30.33662,
+      "pctChange": -24.1
+    },
+    {
+      "iso": "SYR",
+      "month": "2025M08",
+      "prevMonth": "2025M07",
+      "prevIndex": 26.37328,
+      "index": 20.30594,
+      "pctChange": -23
+    },
+    {
+      "iso": "MMR",
+      "month": "2011M02",
+      "prevMonth": "2010M11",
+      "prevIndex": 23.81479,
+      "index": 18.43254,
+      "pctChange": -22.6
+    },
+    {
+      "iso": "YEM",
+      "month": "2015M05",
+      "prevMonth": "2015M02",
+      "prevIndex": 45.27859,
+      "index": 35.06295,
+      "pctChange": -22.6
+    },
+    {
+      "iso": "IRN",
+      "month": "2013M08",
+      "prevMonth": "2013M05",
+      "prevIndex": 80.50527,
+      "index": 63.47031,
+      "pctChange": -21.2
+    },
+    {
+      "iso": "GEO",
+      "month": "2012M11",
+      "prevMonth": "2012M08",
+      "prevIndex": 24.9803,
+      "index": 19.7555,
+      "pctChange": -20.9
+    },
+    {
+      "iso": "CUB",
+      "month": "2019M11",
+      "prevMonth": "2019M08",
+      "prevIndex": 30.08379,
+      "index": 23.92513,
+      "pctChange": -20.5
+    },
+    {
+      "iso": "IRQ",
+      "month": "2026M06",
+      "prevMonth": "2026M05",
+      "prevIndex": 42.20762,
+      "index": 33.706,
+      "pctChange": -20.1
+    },
+    {
+      "iso": "YEM",
+      "month": "2022M11",
+      "prevMonth": "2022M08",
+      "prevIndex": 25.95253,
+      "index": 20.74499,
+      "pctChange": -20.1
+    },
+    {
+      "iso": "IRN",
+      "month": "2018M08",
+      "prevMonth": "2018M05",
+      "prevIndex": 106.78133,
+      "index": 85.89835,
+      "pctChange": -19.6
+    },
+    {
+      "iso": "IRN",
+      "month": "2012M02",
+      "prevMonth": "2011M11",
+      "prevIndex": 110.09277,
+      "index": 89.56786,
+      "pctChange": -18.6
+    },
+    {
+      "iso": "POL",
+      "month": "2007M11",
+      "prevMonth": "2007M08",
+      "prevIndex": 58.52206,
+      "index": 47.63202,
+      "pctChange": -18.6
+    },
+    {
+      "iso": "MMR",
+      "month": "2016M11",
+      "prevMonth": "2016M08",
+      "prevIndex": 58.86528,
+      "index": 47.9587,
+      "pctChange": -18.5
+    },
+    {
+      "iso": "YEM",
+      "month": "2018M02",
+      "prevMonth": "2017M11",
+      "prevIndex": 19.86863,
+      "index": 16.29793,
+      "pctChange": -18
+    },
+    {
+      "iso": "SYR",
+      "month": "2026M06",
+      "prevMonth": "2026M05",
+      "prevIndex": 46.88062,
+      "index": 38.55362,
+      "pctChange": -17.8
+    },
+    {
+      "iso": "IRQ",
+      "month": "2006M11",
+      "prevMonth": "2006M08",
+      "prevIndex": 7.2763,
+      "index": 6.0264,
+      "pctChange": -17.2
+    },
+    {
+      "iso": "CUB",
+      "month": "2008M05",
+      "prevMonth": "2008M02",
+      "prevIndex": 34.63346,
+      "index": 28.80929,
+      "pctChange": -16.8
+    },
+    {
+      "iso": "CUB",
+      "month": "2018M05",
+      "prevMonth": "2018M02",
+      "prevIndex": 36.07804,
+      "index": 30.18959,
+      "pctChange": -16.3
+    },
+    {
+      "iso": "YEM",
+      "month": "2011M11",
+      "prevMonth": "2011M08",
+      "prevIndex": 42.23347,
+      "index": 35.33339,
+      "pctChange": -16.3
+    },
+    {
+      "iso": "MMR",
+      "month": "2019M02",
+      "prevMonth": "2018M11",
+      "prevIndex": 40.60485,
+      "index": 34.04448,
+      "pctChange": -16.2
+    },
+    {
+      "iso": "SAU",
+      "month": "2024M02",
+      "prevMonth": "2024M01",
+      "prevIndex": 295.15604,
+      "index": 247.99703,
+      "pctChange": -16
+    },
+    {
+      "iso": "GEO",
+      "month": "2007M02",
+      "prevMonth": "2006M11",
+      "prevIndex": 19.64694,
+      "index": 16.55852,
+      "pctChange": -15.7
+    },
+    {
+      "iso": "SAU",
+      "month": "2026M04",
+      "prevMonth": "2026M03",
+      "prevIndex": 235.88241,
+      "index": 199.31838,
+      "pctChange": -15.5
+    },
+    {
+      "iso": "SYR",
+      "month": "2015M08",
+      "prevMonth": "2015M05",
+      "prevIndex": 41.66903,
+      "index": 35.48281,
+      "pctChange": -14.8
+    },
+    {
+      "iso": "LBN",
+      "month": "2020M05",
+      "prevMonth": "2020M02",
+      "prevIndex": 99.64404,
+      "index": 85.20508,
+      "pctChange": -14.5
+    },
+    {
+      "iso": "YEM",
+      "month": "2009M08",
+      "prevMonth": "2009M05",
+      "prevIndex": 59.14175,
+      "index": 50.57777,
+      "pctChange": -14.5
+    },
+    {
+      "iso": "LBN",
+      "month": "2008M05",
+      "prevMonth": "2008M02",
+      "prevIndex": 80.09938,
+      "index": 68.85028,
+      "pctChange": -14
+    },
+    {
+      "iso": "IRQ",
+      "month": "2006M08",
+      "prevMonth": "2006M05",
+      "prevIndex": 8.42721,
+      "index": 7.2763,
+      "pctChange": -13.7
+    },
+    {
+      "iso": "SYR",
+      "month": "2018M05",
+      "prevMonth": "2018M02",
+      "prevIndex": 34.75193,
+      "index": 30.02619,
+      "pctChange": -13.6
+    },
+    {
+      "iso": "MMR",
+      "month": "2021M08",
+      "prevMonth": "2021M05",
+      "prevIndex": 30.33662,
+      "index": 26.23439,
+      "pctChange": -13.5
+    },
+    {
+      "iso": "SYR",
+      "month": "2012M11",
+      "prevMonth": "2012M08",
+      "prevIndex": 53.68431,
+      "index": 46.56977,
+      "pctChange": -13.3
+    },
+    {
+      "iso": "GEO",
+      "month": "2020M05",
+      "prevMonth": "2020M02",
+      "prevIndex": 22.30576,
+      "index": 19.36747,
+      "pctChange": -13.2
+    },
+    {
+      "iso": "IRN",
+      "month": "2020M11",
+      "prevMonth": "2020M08",
+      "prevIndex": 65.81768,
+      "index": 57.13515,
+      "pctChange": -13.2
+    },
+    {
+      "iso": "GEO",
+      "month": "2009M05",
+      "prevMonth": "2009M02",
+      "prevIndex": 20.72651,
+      "index": 18.06338,
+      "pctChange": -12.8
+    },
+    {
+      "iso": "IRN",
+      "month": "2026M04",
+      "prevMonth": "2026M03",
+      "prevIndex": 58.85669,
+      "index": 51.49048,
+      "pctChange": -12.5
+    },
+    {
+      "iso": "YEM",
+      "month": "2024M05",
+      "prevMonth": "2024M04",
+      "prevIndex": 36.09912,
+      "index": 31.59025,
+      "pctChange": -12.5
+    },
+    {
+      "iso": "CUB",
+      "month": "2011M05",
+      "prevMonth": "2011M02",
+      "prevIndex": 31.06019,
+      "index": 27.24908,
+      "pctChange": -12.3
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-08-28T16:32:31.092Z",
+  "source": "UNCTADstat US.Seafarers (Officers + Ratings, by nationality)",
+  "dataYear": 2021,
+  "method": "Officers+Ratings summed, most recent year, allowlisted major supplier countries only.",
+  "caveat": "No corridor/route link — global labor-supply context only, not wired into corridor-ranks scoring.",
+  "topSuppliers": [
+    {
+      "country": "Philippines",
+      "seafarers": 252393
+    },
+    {
+      "country": "Russian Federation",
+      "seafarers": 198123
+    },
+    {
+      "country": "Indonesia",
+      "seafarers": 143702
+    },
+    {
+      "country": "China",
+      "seafarers": 134294
+    },
+    {
+      "country": "India",
+      "seafarers": 113474
+    },
+    {
+      "country": "Ukraine",
+      "seafarers": 76442
+    },
+    {
+      "country": "United States of America",
+      "seafarers": 59586
+    },
+    {
+      "country": "Viet Nam",
+      "seafarers": 34590
+    },
+    {
+      "country": "United Kingdom",
+      "seafarers": 33743
+    },
+    {
+      "country": "Myanmar",
+      "seafarers": 33290
+    },
+    {
+      "country": "Poland",
+      "seafarers": 31222
+    },
+    {
+      "country": "Greece",
+      "seafarers": 30507
+    },
+    {
+      "country": "Türkiye",
+      "seafarers": 28587
+    },
+    {
+      "country": "Denmark",
+      "seafarers": 26159
+    },
+    {
+      "country": "Japan",
+      "seafarers": 25458
+    }
+  ],
+  "russiaUkraineCombined": {
+    "russiaSeafarers": 198123,
+    "ukraineSeafarers": 76442,
+    "combined": 274565,
+    "note": "Russia and Ukraine were historically both top-10 global seafarer suppliers pre-2022 — the war is a labor-supply risk to global shipping crewing, independent of any single corridor."
+  }
+}

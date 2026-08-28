@@ -1,0 +1,146 @@
+{
+  "generatedAt": "2026-08-28T16:33:01.590Z",
+  "method": "min(a,b)/max(a,b) agreement ratio between two independent UNCTAD series measuring the same thing. Low ratio = sources disagree, worth investigating before trusting either alone.",
+  "teuCrossCheck": {
+    "description": "US.ContPortThroughput vs US.SDG_PORFVOL — both country-level container port TEU",
+    "pairsCompared": 18,
+    "avgAgreementPct": 99.4,
+    "countries": {
+      "CHN": {
+        "contPortThroughputTeu": 14073237,
+        "sdgPorfvolTeu": 14073237,
+        "agreementPct": 100
+      },
+      "CUB": {
+        "contPortThroughputTeu": 262857.3333333333,
+        "sdgPorfvolTeu": 262857.3333333333,
+        "agreementPct": 100
+      },
+      "EGY": {
+        "contPortThroughputTeu": 8196285.666666667,
+        "sdgPorfvolTeu": 8196285.666666667,
+        "agreementPct": 100
+      },
+      "GEO": {
+        "contPortThroughputTeu": 605134.6666666666,
+        "sdgPorfvolTeu": 605134.6666666666,
+        "agreementPct": 100
+      },
+      "DEU": {
+        "contPortThroughputTeu": 13212268,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "IND": {
+        "contPortThroughputTeu": 21941056,
+        "sdgPorfvolTeu": 21941056,
+        "agreementPct": 100
+      },
+      "IDN": {
+        "contPortThroughputTeu": 13908402,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "IRN": {
+        "contPortThroughputTeu": 2921359,
+        "sdgPorfvolTeu": 2793779.6666666665,
+        "agreementPct": 95.6
+      },
+      "JPN": {
+        "contPortThroughputTeu": 21949429.666666668,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "LBN": {
+        "contPortThroughputTeu": 598140,
+        "sdgPorfvolTeu": 612181,
+        "agreementPct": 97.7
+      },
+      "MYS": {
+        "contPortThroughputTeu": 28733544.666666668,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "MMR": {
+        "contPortThroughputTeu": 796978,
+        "sdgPorfvolTeu": 796978,
+        "agreementPct": 100
+      },
+      "NLD": {
+        "contPortThroughputTeu": 14519270,
+        "sdgPorfvolTeu": 14519270,
+        "agreementPct": 100
+      },
+      "PAK": {
+        "contPortThroughputTeu": 3210193.3333333335,
+        "sdgPorfvolTeu": 3210193.3333333335,
+        "agreementPct": 100
+      },
+      "POL": {
+        "contPortThroughputTeu": 3109268.6666666665,
+        "sdgPorfvolTeu": 3109268.6666666665,
+        "agreementPct": 100
+      },
+      "KOR": {
+        "contPortThroughputTeu": 30118703,
+        "sdgPorfvolTeu": 30118703,
+        "agreementPct": 100
+      },
+      "RUS": {
+        "contPortThroughputTeu": 4562523.666666667,
+        "sdgPorfvolTeu": 4562523.666666667,
+        "agreementPct": 100
+      },
+      "SAU": {
+        "contPortThroughputTeu": 9959578.333333334,
+        "sdgPorfvolTeu": 9959578.333333334,
+        "agreementPct": 100
+      },
+      "SGP": {
+        "contPortThroughputTeu": 39141233.333333336,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "SYR": {
+        "contPortThroughputTeu": 300325.6666666667,
+        "sdgPorfvolTeu": 300325.6666666667,
+        "agreementPct": 100
+      },
+      "TUR": {
+        "contPortThroughputTeu": 12809274.333333334,
+        "sdgPorfvolTeu": 12809274.333333334,
+        "agreementPct": 100
+      },
+      "ARE": {
+        "contPortThroughputTeu": 21796584.333333332,
+        "sdgPorfvolTeu": 21796584.333333332,
+        "agreementPct": 100
+      },
+      "GBR": {
+        "contPortThroughputTeu": 9487095,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "USA": {
+        "contPortThroughputTeu": 58505935.333333336,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "VNM": {
+        "contPortThroughputTeu": 22004071,
+        "sdgPorfvolTeu": null,
+        "agreementPct": null
+      },
+      "YEM": {
+        "contPortThroughputTeu": 374249,
+        "sdgPorfvolTeu": 389069.6666666667,
+        "agreementPct": 96.2
+      }
+    }
+  },
+  "tonnageCrossCheck": {
+    "description": "US.SeaborneTrade (CargoType=30) vs US.SDG_LULFRG — both country-level total loaded+discharged tonnage",
+    "pairsCompared": 28,
+    "avgAgreementPct": 100
+  }
+}

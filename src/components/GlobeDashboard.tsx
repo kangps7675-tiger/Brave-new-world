@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Fuse from "fuse.js";
-import dynamic from "next/dynamic";
+import dynamic from "@/lib/clientDynamic";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { CursorHoverCard } from "@/components/CursorHoverCard";
@@ -294,6 +294,7 @@ import {
 import { filterFirmsToTheaters } from "@/lib/firmsTheaters";
 import { useDataSync } from "@/hooks/useDataSync";
 import { useGlobeStaticLayers } from "@/hooks/useGlobeStaticLayers";
+import { useMaritimeRoutePaths } from "@/hooks/useMaritimeRoutePaths";
 import { useLayerPrefsController } from "@/hooks/useLayerPrefsController";
 import {
   applyViewPackages,
@@ -377,6 +378,10 @@ import {
   selectedAxisLinkFromPath,
   type SelectedAxisLink,
 } from "@/lib/axisLinkSelection";
+import {
+  selectedCorridorFromPath,
+  type SelectedCorridor,
+} from "@/lib/corridorSelection";
 import { trackEvent } from "@/lib/trackClient";
 import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import {
@@ -1766,6 +1771,7 @@ export function GlobeDashboard({
   const [regionNavSelection, setRegionNavSelection] = useState<NavSelection | null>(null);
   const [hubBriefOpen, setHubBriefOpen] = useState(false);
   const [selectedAxisLink, setSelectedAxisLink] = useState<SelectedAxisLink | null>(null);
+  const [selectedCorridor, setSelectedCorridor] = useState<SelectedCorridor | null>(null);
   const [armsHighlightPair, setArmsHighlightPair] = useState<{ a: string; b: string } | null>(
     null,
   );
@@ -2090,6 +2096,11 @@ export function GlobeDashboard({
     trackEvent("axis_link_dismiss");
     setSelectedAxisLink(null);
     setArmsHighlightPair(null);
+  }, []);
+
+  const dismissCorridor = useCallback(() => {
+    trackEvent("strategic_corridor_dismiss");
+    setSelectedCorridor(null);
   }, []);
 
   const axisLinkOpenHub = useCallback(() => {
@@ -2762,6 +2773,9 @@ export function GlobeDashboard({
     disputeOverviews,
     counts: staticCounts,
   } = staticLayers;
+
+  /** IMF PortWatch graph sample routes (A* through chokepoints) — overlays Benden lanes */
+  const maritimeRoutePaths = useMaritimeRoutePaths(showShippingLanes);
 
   /** 국경·영토 분쟁 핫스팟 — disputes.json(실제 폴리곤) × dispute-overviews.json(한국어 개요) 매칭 실데이터 */
   const disputeHotspots = useMemo<DisputeHotspotEntry[]>(
@@ -3575,6 +3589,7 @@ export function GlobeDashboard({
       ...usDfcSupplyPaths,
       ...crinkInfraPaths,
       ...visibleShipping,
+      ...maritimeRoutePaths,
       ...visibleCables,
       ...visibleOilPipelines,
       ...visibleGasPipelines,
@@ -3610,6 +3625,7 @@ export function GlobeDashboard({
       visibleOilPipelines,
       visibleSubseaPipelines,
       visibleShipping,
+      maritimeRoutePaths,
     ],
   );
 
@@ -7565,6 +7581,7 @@ export function GlobeDashboard({
       const link = selectedAxisLinkFromPath(path);
       if (!link) return;
       skipNextGlobeClickRef.current = true;
+      setSelectedCorridor(null);
       setSelectedAxisLink(link);
       setArmsHighlightPair({ a: link.from, b: link.to });
       trackEvent("axis_link_click", {
@@ -7574,6 +7591,21 @@ export function GlobeDashboard({
         to: link.to,
       });
       flyTo(link.midLat, link.midLng, 1.35);
+      return;
+    }
+
+    if (path.kind === "strategic-corridor") {
+      const corridor = selectedCorridorFromPath(path);
+      if (!corridor) return;
+      skipNextGlobeClickRef.current = true;
+      setSelectedAxisLink(null);
+      setSelectedCorridor(corridor);
+      trackEvent("strategic_corridor_click", {
+        corridorId: corridor.corridorId,
+        gaugeBreak: corridor.gaugeBreak,
+        euRailGateway: corridor.euRailGateway,
+      });
+      flyTo(corridor.midLat, corridor.midLng, corridor.gaugeBreak ? 0.55 : 1.1);
       return;
     }
 
@@ -7680,6 +7712,7 @@ export function GlobeDashboard({
     setHoveredPolygon(null);
     setHoveredPath(null);
     setSelectedAxisLink(null);
+    setSelectedCorridor(null);
     setArmsHighlightPair(null);
 
     const now = Date.now();
@@ -8021,6 +8054,8 @@ export function GlobeDashboard({
         onAxisLinkArms={axisLinkOpenArms}
         onAxisLinkNews={axisLinkOpenNews}
         onAxisLinkHighlightArms={axisLinkHighlightArms}
+        selectedCorridor={selectedCorridor}
+        onCorridorDismiss={dismissCorridor}
         armsHighlightPair={armsHighlightPair}
       />
 

@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-08-28T16:21:21.731Z",
+  "source": "UNCTADstat US.PLSCI, aggregated to each country's single best-connected port",
+  "method": "max(port avgIndex) per country — a bottom-up connectivity signal distinct from the top-down country-level LSCI series.",
+  "unit": "index (Average Q1 2023 = 100 base)",
+  "countryCount": 18,
+  "withData": 18,
+  "countries": {
+    "CHN": {
+      "value": 2381.079945,
+      "bestPort": "China, Shanghai",
+      "bestPortCode": "CNSHA"
+    },
+    "CUB": {
+      "value": 56.46563875,
+      "bestPort": "Cuba, Mariel",
+      "bestPortCode": "CUMAR"
+    },
+    "EGY": {
+      "value": 355.5348825,
+      "bestPort": "Egypt, Alexandria",
+      "bestPortCode": "EGALY"
+    },
+    "GEO": {
+      "value": 50.30109,
+      "bestPort": "Georgia, Poti",
+      "bestPortCode": "GEPTI"
+    },
+    "IND": {
+      "value": 654.7081575000001,
+      "bestPort": "India, Mundra",
+      "bestPortCode": "INMUN"
+    },
+    "IRN": {
+      "value": 121.5662275,
+      "bestPort": "Iran (Islamic Republic of), Bandar Abbas",
+      "bestPortCode": "IRBND"
+    },
+    "IRQ": {
+      "value": 180.95710250000002,
+      "bestPort": "Iraq, Umm Qasr",
+      "bestPortCode": "IQUQR"
+    },
+    "LBN": {
+      "value": 189.29833625,
+      "bestPort": "Lebanon, Beirut",
+      "bestPortCode": "LBBEY"
+    },
+    "MMR": {
+      "value": 91.94807375,
+      "bestPort": "Myanmar, Rangoon",
+      "bestPortCode": "MMRGN"
+    },
+    "PAK": {
+      "value": 319.96666625000006,
+      "bestPort": "Pakistan, Karachi",
+      "bestPortCode": "PKKHI"
+    },
+    "POL": {
+      "value": 230.51170875,
+      "bestPort": "Poland, Gdansk",
+      "bestPortCode": "PLGDN"
+    },
+    "KOR": {
+      "value": 1668.6321287500002,
+      "bestPort": "Republic of Korea, Pusan",
+      "bestPortCode": "KRPUS"
+    },
+    "RUS": {
+      "value": 177.20598375000003,
+      "bestPort": "Russian Federation, Vladivostok",
+      "bestPortCode": "RUVVO"
+    },
+    "SAU": {
+      "value": 409.85570624999997,
+      "bestPort": "Saudi Arabia, Jeddah",
+      "bestPortCode": "SAJED"
+    },
+    "SYR": {
+      "value": 74.6045225,
+      "bestPort": "Syrian Arab Republic, Latakia",
+      "bestPortCode": "SYLTK"
+    },
+    "TUR": {
+      "value": 492.26495,
+      "bestPort": "Turkiye, Ambarli",
+      "bestPortCode": "TRPAM"
+    },
+    "ARE": {
+      "value": 718.8123725,
+      "bestPort": "United Arab Emirates, Jebel Ali",
+      "bestPortCode": "AEJEA"
+    },
+    "YEM": {
+      "value": 60.53308375,
+      "bestPort": "Yemen, Aden",
+      "bestPortCode": "YEADE"
+    }
+  }
+}
