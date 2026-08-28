@@ -275,10 +275,10 @@ export async function buildNewsStream(
     ...byRecency.filter((i) => !hasLampPhoto(i.imageUrl)),
   ];
   const enriched = await enrichNewsStreamImages(photoFirst, {
-    maxEnrich: 24,
-    concurrency: 4,
-    timeoutMs: 2_200,
-    budgetMs: 8_000,
+    maxEnrich: 40,
+    concurrency: 5,
+    timeoutMs: 2_400,
+    budgetMs: 12_000,
   });
 
   const verified = sortByRecency(enriched.filter((i) => i.trustTier <= 2));

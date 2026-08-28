@@ -2,6 +2,7 @@
 
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type UsCarrierFixedToggleProps = {
   checked: boolean;
@@ -24,6 +25,7 @@ export function UsCarrierFixedToggle({
   hintPlacement = "bottom",
 }: UsCarrierFixedToggleProps) {
   const { t, lang } = useLocale();
+  const light = useBasemapTone() === "light";
   return (
     <HoverHint
       placement={hintPlacement}
@@ -31,10 +33,14 @@ export function UsCarrierFixedToggle({
       detail={checked ? t("hoverUsCarrierAll") : t("hoverUsCarrierDeployed")}
     >
       <label
-        className={`pointer-events-auto flex cursor-pointer items-center shadow-lg backdrop-blur-md transition hover:border-sky-200/35 ${
-          compact
-            ? "h-10 gap-1.5 rounded-xl border border-sky-300/25 bg-[#0a1830]/88 px-2.5 text-meta text-sky-50"
-            : "gap-2.5 rounded-full border border-sky-300/25 bg-[#0a1830]/82 px-3.5 py-2 text-xs text-sky-50"
+        className={`map-chrome-control pointer-events-auto flex cursor-pointer items-center shadow-md transition ${
+          light
+            ? compact
+              ? "h-10 gap-1.5 rounded-xl border border-slate-300 bg-white px-2.5 text-meta text-slate-900 hover:bg-slate-50"
+              : "gap-2.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 hover:bg-slate-50"
+            : compact
+              ? "h-10 gap-1.5 rounded-xl border border-sky-300/25 bg-[#0a1830]/88 px-2.5 text-meta text-sky-50 backdrop-blur-md hover:border-sky-200/35"
+              : "gap-2.5 rounded-full border border-sky-300/25 bg-[#0a1830]/82 px-3.5 py-2 text-xs text-sky-50 backdrop-blur-md hover:border-sky-200/35"
         }`}
       >
         <input

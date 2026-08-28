@@ -8,6 +8,7 @@ import { trackEvent } from "@/lib/trackClient";
 import { buildSceneUrl } from "@/lib/sceneLink";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 const DISCORD_INVITE =
   typeof process !== "undefined"
@@ -76,6 +77,7 @@ export function UtilityChromeMenu({
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
   const tipCopy = PARCHMENT_PRO_TIP_COPY[lang] ?? PARCHMENT_PRO_TIP_COPY.ko;
   const menuId = useId();
+  const light = useBasemapTone() === "light";
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
@@ -160,8 +162,9 @@ export function UtilityChromeMenu({
     dismiss();
   }, [dismiss, lang]);
 
-  const itemClass =
-    "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-sky-50/95 transition hover:bg-sky-400/12 disabled:opacity-55";
+  const itemClass = light
+    ? "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-slate-800 transition hover:bg-slate-100 disabled:opacity-55"
+    : "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-sky-50/95 transition hover:bg-sky-400/12 disabled:opacity-55";
 
   return (
     <div ref={rootRef} className="relative">
@@ -172,7 +175,11 @@ export function UtilityChromeMenu({
         aria-controls={menuId}
         aria-label={copy.triggerAria}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-3 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+        className={`map-chrome-control flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-3 text-meta font-medium shadow-lg transition ${
+          light
+            ? "border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+            : "border-sky-200/15 bg-[#1e3a5f]/55 text-sky-50/90 backdrop-blur-md hover:border-sky-200/30 hover:bg-[#254875]/65"
+        }`}
       >
         <span aria-hidden>☰</span>
         <span>{copy.trigger}</span>
@@ -186,7 +193,11 @@ export function UtilityChromeMenu({
           id={menuId}
           role="menu"
           aria-label={copy.trigger}
-          className="absolute right-0 top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border border-sky-300/20 bg-[#0c1a2e]/94 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-md"
+          className={`absolute right-0 top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
+            light
+              ? "border-slate-200 bg-white"
+              : "border-sky-300/20 bg-[#0c1a2e]/94 backdrop-blur-md"
+          }`}
         >
           <div className="max-h-[min(70vh,28rem)] space-y-0.5 overflow-y-auto p-1.5">
             {showProTip ? (
@@ -195,7 +206,7 @@ export function UtilityChromeMenu({
                   type="button"
                   role="menuitem"
                   aria-expanded={tipsOpen}
-                  className={`${itemClass} text-[#f0d9a8]`}
+                  className={`${itemClass} ${light ? "text-amber-800" : "text-[#f0d9a8]"}`}
                   onClick={() => setTipsOpen((prev) => !prev)}
                 >
                   <span aria-hidden>✦</span>
@@ -205,7 +216,7 @@ export function UtilityChromeMenu({
                   </span>
                 </button>
                 {tipsOpen ? (
-                  <ol className="m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-meta leading-snug text-sky-100/75">
+                  <ol className={`m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-meta leading-snug ${light ? "text-slate-600" : "text-sky-100/75"}`}>
                     {tipCopy.tips.map((tip, index) => (
                       <li key={tip} className="flex gap-1.5">
                         <span className="shrink-0 tabular-nums opacity-60">{index + 1}.</span>

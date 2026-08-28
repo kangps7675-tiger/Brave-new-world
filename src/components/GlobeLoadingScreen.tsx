@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BUNDLE_PROGRESS_CAP } from "@/lib/bootLoadingProgress";
+import { GLOBAL_BOOT_SHADER_CAMERA_Z } from "@/lib/globeCamera";
 import { getLoadingShaderPlan } from "@/lib/renderTier";
 
 function loadingStageLabel(progress: number): string {
@@ -162,7 +163,7 @@ void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / min(uResolution.x, uResolution.y);
   vec3 col = spaceBackground(uv);
 
-  vec3 ro = vec3(uv * 1.12, 3.85);
+  vec3 ro = vec3(uv * 1.12, ${GLOBAL_BOOT_SHADER_CAMERA_Z});
   vec3 rd = normalize(vec3(uv, -1.32));
   float spin = uTime * 0.11;
 

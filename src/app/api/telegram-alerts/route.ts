@@ -26,6 +26,9 @@ const SEED_FILE = path.join(process.cwd(), "public", "data", "telegram-alerts-se
 
 const DEFAULT_INGEST_URL = "https://conflict-view-ingest.kangps7675.workers.dev";
 
+/** 워커 /telegram 은 cold start·D1 read 로 8s 를 넘기는 경우가 많다 */
+const TELEGRAM_INGEST_FETCH_MS = 45_000;
+
 function telegramOsintEnabled(): boolean {
   return isTelegramOsintEnabled();
 }
@@ -62,7 +65,7 @@ async function readSharedAlerts(): Promise<TelegramAlert[] | null> {
     const res = await fetch(`${base}/telegram?limit=200`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(TELEGRAM_INGEST_FETCH_MS),
     });
     if (!res.ok) return null;
     const payload = (await res.json()) as { alerts?: TelegramAlert[] };

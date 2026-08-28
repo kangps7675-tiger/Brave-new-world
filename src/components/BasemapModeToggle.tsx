@@ -32,7 +32,7 @@ export function BasemapModeToggle({ mode, onChange }: BasemapModeToggleProps) {
       id="basemap-mode-toggle"
       className={`flex rounded-full border p-0.5 shadow-lg backdrop-blur-xl ${
         light
-          ? "border-slate-400/30 bg-white/95"
+          ? "border-slate-400/30 bg-white"
           : "border-sky-200/15 bg-[#0f1d35]/88"
       }`}
       role="tablist"

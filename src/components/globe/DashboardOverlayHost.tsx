@@ -729,7 +729,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   : t("hoverLayerPanelOpenAria", labelLanguage)
               }
               onClick={onToggleLeftPanel}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+              className="map-chrome-control flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
             >
               <HamburgerIcon open={showLeftPanel} />
             </button>
@@ -930,7 +930,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               onClick={() => onSetShowMobileAlertFeed((prev) => !prev)}
               aria-label={labelLanguage === "en" ? "Alerts" : "알림"}
               aria-pressed={showMobileAlertFeed}
-              className="tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-300/25 bg-slate-950/70 text-[15px] text-sky-100 shadow-sm transition hover:border-sky-200/45"
+              className="map-chrome-control tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-300/25 bg-slate-950/70 text-[15px] text-sky-100 shadow-sm transition hover:border-sky-200/45"
             >
               🔔
             </button>

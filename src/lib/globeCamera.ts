@@ -8,6 +8,15 @@ export const MIN_GLOBE_ALTITUDE = 0.14;
 export const EXTREME_ZOOM_ALTITUDE = 0.18;
 
 /**
+ * 첫 창·로딩·게이트 직후 전역 실루엣 — 지구본 전체가 한눈에 들어오는 고도.
+ * MapLibre globe projection + pitch ~22° 조합 기준.
+ */
+export const GLOBAL_BOOT_ALTITUDE = 7.2;
+
+/** GLOBAL_BOOT_ALTITUDE 에 대응하는 로딩 셰이더 ray origin z (1 + altitude). */
+export const GLOBAL_BOOT_SHADER_CAMERA_Z = 1 + GLOBAL_BOOT_ALTITUDE;
+
+/**
  * 궤도(ISS급) 개요 — 환영·도메인·세부 선택 후 첫 진입 카메라.
  * 중동 전역(걸프·레반트·이란)이 한 화면에 들어오는 원거리.
  */

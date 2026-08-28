@@ -131,12 +131,12 @@ export function HoverNav({
       ? "border-emerald-200/10"
       : "border-sky-200/10";
   const bgTone = light
-    ? "bg-white/95"
+    ? "bg-white"
     : isEconomy
       ? "bg-[#0a1f18]/45"
       : "bg-[#162a48]/45";
   const menuBg = light
-    ? "bg-white/98"
+    ? "bg-white"
     : isEconomy
       ? "bg-[#0a1f18]/75"
       : "bg-[#162a48]/75";

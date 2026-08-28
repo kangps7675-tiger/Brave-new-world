@@ -41,7 +41,7 @@ export const CRINK_INFRA_LAYERS: CrinkInfraLayerDef[] = [
   {
     id: "harbour",
     prefKey: "showCrinkInfraHarbour",
-    labelKo: "항만 경계",
+    labelKo: "항만",
     labelEn: "Harbours",
     accent: "cyan",
   },
@@ -55,15 +55,15 @@ export const CRINK_INFRA_LAYERS: CrinkInfraLayerDef[] = [
   {
     id: "rail",
     prefKey: "showCrinkInfraRail",
-    labelKo: "주요 교역로 철도",
-    labelEn: "Major corridor rail",
+    labelKo: "주요 철도",
+    labelEn: "Major rail lines",
     accent: "amber",
   },
   {
     id: "road",
     prefKey: "showCrinkInfraRoad",
-    labelKo: "주요 교역로 도로",
-    labelEn: "Major corridor roads",
+    labelKo: "주요 도로",
+    labelEn: "Major roads",
     accent: "yellow",
   },
 ];

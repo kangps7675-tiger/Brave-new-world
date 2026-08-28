@@ -2,6 +2,7 @@
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type GlobeSpinToggleProps = {
   spinning: boolean;
@@ -21,6 +22,7 @@ export function GlobeSpinToggle({
   lang,
   className = "",
 }: GlobeSpinToggleProps) {
+  const light = useBasemapTone() === "light";
   const label = spinning
     ? t("globeSpinPause", lang)
     : t("globeSpinResume", lang);
@@ -32,10 +34,14 @@ export function GlobeSpinToggle({
       aria-pressed={!spinning}
       aria-label={label}
       title={label}
-      className={`pointer-events-auto flex h-11 items-center gap-2 rounded-full border px-3.5 text-caption font-medium shadow-lg backdrop-blur-md transition ${
-        spinning
-          ? "border-sky-300/25 bg-[#0a1830]/80 text-sky-100 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
-          : "border-amber-300/35 bg-[#1a1408]/85 text-amber-100 hover:border-amber-200/50 hover:bg-[#241a0c]/92"
+      className={`map-chrome-control pointer-events-auto flex h-11 items-center gap-2 rounded-full border px-3.5 text-caption font-medium shadow-lg transition ${
+        light
+          ? spinning
+            ? "border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+            : "border-amber-400/70 bg-white text-amber-950 hover:bg-amber-50"
+          : spinning
+            ? "border-sky-300/25 bg-[#0a1830]/80 text-sky-100 backdrop-blur-md hover:border-sky-200/40 hover:bg-[#0c2040]/90"
+            : "border-amber-300/35 bg-[#1a1408]/85 text-amber-100 backdrop-blur-md hover:border-amber-200/50 hover:bg-[#241a0c]/92"
       } ${className}`}
     >
       <span className="text-[14px] leading-none" aria-hidden>

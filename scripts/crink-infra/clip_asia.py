@@ -42,9 +42,25 @@ def clip_file(src: Path, dst: Path, mask) -> int:
 
 
 def main():
+    import argparse
+
+    from categories import parse_categories
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--categories",
+        default=None,
+        help="Clip only these categories (default: aeroway,harbour,...)",
+    )
+    args = parser.parse_args()
+    try:
+        categories = parse_categories(args.categories)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(2)
+
     work = Path(CONFIG["workDir"])
     region = "asia"
-    categories = ("aeroway", "harbour", "border", "dam", "power", "checkpoint")
     print("[clip_asia] loading country mask…", flush=True)
     mask = load_mask()
     total = 0

@@ -21,6 +21,7 @@ import { useDialog } from "@/hooks/useDialog";
 import {
   LAMP_THUMB_GRADIENT,
   LAMP_THUMB_LABEL,
+  normalizeLampImageUrl,
   resolveLampThumbTheme,
 } from "@/lib/news/lampThumbnail";
 
@@ -630,8 +631,9 @@ function LampCardHero({
   lang: LabelLanguage;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
-  /** 지정학·지경학 모두 대형 컬러 사진 우선. 없거나 실패하면 지역 컬러 면 */
-  const hasPhoto = Boolean(imageUrl) && !imgFailed;
+  const src = normalizeLampImageUrl(imageUrl);
+  /** 언론사 RSS·og 실사진만 — 로드 실패 시에만 지역 컬러 면 */
+  const hasPhoto = Boolean(src) && !imgFailed;
   const theme = resolveLampThumbTheme({
     mode: isEconomy ? "economy" : "conflict",
     theater,
@@ -647,7 +649,7 @@ function LampCardHero({
       {hasPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          src={src}
           alt=""
           className="h-full w-full object-cover"
           loading="lazy"

@@ -22,8 +22,9 @@ import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
  * - storage 키 = `daily-YYYY-MM-DD-sN-{conflict|economy}` (슬롯마다 seen/folded 분리)
  * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
  * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
- * - 등불 카드 = 선명 사진 + 개별 원문 URL (섹션/종합 링크·시드 패딩 금지)
- * - RSS 이미지 없으면 서버가 기사 og:image로 보강; 그래도 없으면 빈 데스크
+ * - 등불 카드 = 언론사 RSS·og:image 실사진 필수 + 개별 원문 URL (섹션/시드 금지)
+ * - RSS enclosure 없으면 서버가 기사 og:image·twitter:image로 보강 후 선정
+ * - 지정학 = 전쟁·자연재해·전선·외교를 포괄 — 핫·다매체 중복 우선
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
  */
 
@@ -385,11 +386,10 @@ function looksMostlyKorean(text: string): boolean {
 }
 
 /**
- * 개별 원문 URL만 유지.
- * 사진은 있으면 우선(점수)하고, 없어도 텍스트+플레이스홀더로 등불을 채운다.
+ * 개별 원문 URL + 실사진(RSS/og)만 유지 — 그라데이션·위성 폴백으로 채우지 않음.
  */
 export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
-  return picked.filter((n) => isArticleUrl(n.link));
+  return picked.filter((n) => isArticleUrl(n.link) && hasLampPhoto(n.imageUrl));
 }
 
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
@@ -616,6 +616,8 @@ const LAMP_NEWS_GENRE_PRIORITY: Record<string, number> = {
 /** 등불 — 초크포인트(해협·운하) 최소 확보 슬롯 */
 export const ECONOMY_LAMP_CHOKE_MIN = 1;
 export const CONFLICT_LAMP_CHOKE_MIN = 2;
+/** 지정학 등불 — 자연재해·기후 재난 최소 슬롯 (전쟁과 동등 창) */
+export const CONFLICT_LAMP_DISASTER_MIN = 2;
 /**
  * 활성 전선(중동·러·우) 각각 최소 슬롯 — 동일 비중.
  * 동아시아 긴장권(중·대·한반도·일본)도 같은 수치.
@@ -1073,8 +1075,8 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 등불은 대형 사진을 선호 — 없어도 텍스트 카드로 채움 (가산점으로만 우선)
-  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 등불은 언론사 실사진 필수 — og/RSS 없으면 선정 제외
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
   // 물류·에너지 스트레스 사건 강력 우선
   const logisticsStressBonus =
     item.econGenre === "shipping" || item.econGenre === "energy" || isChokepointEconomyNews(blob)
@@ -1143,7 +1145,7 @@ function toFeatured(
 }
 
 /**
- * 지경학 등불 — 물류·시장 충격 심층. 사진은 가산점, 없어도 원문 카드로 채움.
+ * 지경학 등불 — 물류·시장 충격 심층. RSS/og 실사진 있는 기사만.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1219,6 +1221,7 @@ export function pickEconomyLampNews(
     ) {
       return false;
     }
+    if (!hasLampPhoto(item.imageUrl)) return false;
 
     seenLinks.add(key);
     seenClusters.add(cKey);
@@ -1402,6 +1405,14 @@ const CONFLICT_ACTOR_RE: Array<{ id: string; labelKo: string; labelEn: string; r
 
 const CONFLICT_HARD_NEWS_RE =
   /strike|missile|drone|airstrike|air.?raid|offensive|invasion|artillery|front.?line|ceasefire|sanction|deployment|exercise|nuclear|bombard|shelling|intercept|blockade|chokepoint|hormuz|suez|malacca|공습|미사일|드론|타격|공세|전선|휴전|제재|배치|핵|포격|봉쇄|호르무즈|수에즈|말라카/i;
+
+/** 지정학 등불 — 자연재해·기후 재난 (전쟁과 동등 창) */
+export const CONFLICT_NATURAL_DISASTER_RE =
+  /earthquake|tsunami|wildfire|hurricane|typhoon|cyclone|tornado|flood(?:ing)?|landslide|mudslide|volcan(?:o|ic)|drought|heat\s?wave|avalanche|storm\s?surge|natural\s?disaster|mass\s?evacuat|magnitude\s?[4-9]|지진|쓰나미|산불|태풍|홍수|침수|산사태|토사|화산|가뭄|폭염|한파|자연재해|대피|규모\s?[4-9]/i;
+
+export function isNaturalDisasterNews(text: string): boolean {
+  return CONFLICT_NATURAL_DISASTER_RE.test(text);
+}
 
 /** 긴장도를 급격히 끌어올릴 수 있는 고충격 속보 */
 const CONFLICT_TENSION_SPIKE_RE =
@@ -1809,8 +1820,9 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 대형 사진 선호 — 없으면 페널티만 (풀에서 탈락시키지 않음)
-  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 언론사 실사진 필수 — og/RSS 없으면 선정 제외
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
+  const disasterBonus = isNaturalDisasterNews(blob) ? -36 : 0;
   // 긴장 강도를 끌어올리는 무서운 군사·확전 속보 우선
   const tensionSpikeBonus = CONFLICT_TENSION_SPIKE_RE.test(blob)
     ? -45
@@ -1841,6 +1853,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       clusterBonus +
       breakingBonus +
       imageBonus +
+      disasterBonus +
       tensionSpikeBonus +
       tier3Thin +
       chokeBonus,
@@ -1886,7 +1899,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 긴장 강도·무서운 속보 심층. 사진은 가산점, 없어도 원문 카드로 채움.
+ * 지정학 등불 — 전쟁·자연재해·전선·외교 심층. RSS/og 실사진 있는 기사만.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -1933,11 +1946,19 @@ export function pickConflictLampNews(
 
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (!relax && CONFLICT_SOFT_NEWS_RE.test(blob)) return false;
-    // 일본 전장 태그는 지정학 키워드만 (내정·사회 배제)
-    if (!relax && row.theater === "japan" && !isJapanGeopoliticsNews(blob)) return false;
+    // 일본 전장 태그는 지정학 키워드만 (내정·사회 배제) — 자연재해는 허용
+    if (
+      !relax &&
+      row.theater === "japan" &&
+      !isJapanGeopoliticsNews(blob) &&
+      !isNaturalDisasterNews(blob)
+    ) {
+      return false;
+    }
 
     const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
     if (isDiplomacy && diplomacyCount >= CONFLICT_LAMP_DIPLOMACY_MAX && !relax) return false;
+    if (!hasLampPhoto(item.imageUrl)) return false;
 
     seenLinks.add(key);
     seenClusters.add(cKey);
@@ -2006,6 +2027,12 @@ export function pickConflictLampNews(
     (row) => isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
     (n) => isChokepointSecurityNews(`${n.title} ${n.summary}`),
     CONFLICT_LAMP_CHOKE_MIN,
+    scored,
+  );
+  softFill(
+    (row) => isNaturalDisasterNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isNaturalDisasterNews(`${n.title} ${n.summary ?? ""}`),
+    CONFLICT_LAMP_DISASTER_MIN,
     scored,
   );
 
