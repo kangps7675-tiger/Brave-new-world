@@ -11,6 +11,7 @@ import {
   type LayerPanelLang,
 } from "@/lib/layerPanel/layerPanelLabels";
 import { CRINK_INFRA_LAYERS, isAnyCrinkInfraEnabled } from "@/lib/crinkInfraCatalog";
+import type { CrinkInfraCategory } from "@/lib/crinkInfraLayers";
 import { type LabelLanguage, type LayerPrefs } from "@/lib/layerPrefs";
 import { militaryBaseForceId, type MilitaryBaseForceId } from "@/lib/militaryBaseForces";
 import { localizeNewfeedsThreatLabel } from "@/lib/newfeedsI18n";
@@ -105,9 +106,7 @@ export type UseLayerPanelCategoriesArgs = {
   showAxisNetwork: boolean;
   axisNetworkPaths: unknown[];
   setShowAxisNetwork: (v: boolean) => void;
-  crinkInfraPathCountByCategory: Partial<
-    Record<"power" | "border" | "dam" | "aeroway" | "harbour" | "checkpoint", number>
-  >;
+  crinkInfraPathCountByCategory: Partial<Record<CrinkInfraCategory, number>>;
   crinkInfraStatus: "idle" | "loading" | "ready" | "missing";
   crinkInfraVisibilityHint: string | null;
   showConflictZones: boolean;

@@ -32,5 +32,7 @@ export default function clientDynamic<P = Record<string, never>>(
   options?: DynamicOptions,
 ): ComponentType<P> {
   void options;
-  return lazy(() => loader().then((mod) => ({ default: resolveComponent(mod) })));
+  return lazy(() =>
+    loader().then((mod) => ({ default: resolveComponent(mod) })),
+  ) as ComponentType<P>;
 }
