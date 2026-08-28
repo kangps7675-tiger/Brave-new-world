@@ -117,7 +117,7 @@ export function OsmPmtilesMap({ initialRegionId }: Props) {
         }}
         mapStyle={mapStyle as never}
         style={{ width: "100%", height: "100%" }}
-        attributionControl
+        attributionControl={{}}
       />
     </div>
   );

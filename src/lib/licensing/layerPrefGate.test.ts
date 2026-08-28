@@ -106,6 +106,8 @@ describe("layerPrefGate — 사각지대 감시", () => {
     "living-conflict-taiwan",
     "hapi-conflict-casualties",
     "reference-monitor",
+    "crink-hub-monitor",
+    "basemap-esri-world-imagery",
     "news-geopolitics-rss",
     "news-economy-rss",
     "news-video-youtube",
