@@ -22,8 +22,7 @@ async function stubNoisyApis(page: Page) {
   });
 }
 
-/**
- * Playwright CDP click/setChecked는 CI에서 "performing click action"에
+/** Playwright CDP click/setChecked는 CI에서 "performing click action"에
  * 멈출 수 있다. DOM HTMLElement.click()은 마우스 프로토콜을 우회한다.
  */
 async function tapCheckbox(box: Locator) {
@@ -54,6 +53,15 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
             viewerMode: mode,
           }),
         );
+        const pad2 = (n: number) => String(n).padStart(2, "0");
+        const now = new Date();
+        const day = `daily-${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+        const foldedPrefix = "cv-periodic-brief-folded-v2-";
+        for (let s = 0; s < 4; s++) {
+          for (const viewerMode of ["conflict", "economy"]) {
+            localStorage.setItem(foldedPrefix + `${day}-s${s}-${viewerMode}`, "1");
+          }
+        }
       } catch {
         /* ignore */
       }
@@ -95,12 +103,26 @@ function mapCanvas(page: Page) {
   return page.locator("canvas.maplibregl-canvas");
 }
 
-/** 부트 스플래시(z-700)가 pointer-events를 막지 않을 때까지 */
+/** 부트 스플래시·게이트·등불 양피지가 pointer-events를 막지 않을 때까지 */
 async function waitForInteractiveChrome(page: Page) {
   await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('[aria-label*="로딩 중"]')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 15_000 });
   await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 10_000 });
+  await dismissPeriodicBriefingIfOpen(page);
+  await expect(page.locator('[aria-labelledby="periodic-briefing-title"]')).toHaveCount(0, {
+    timeout: 15_000,
+  });
+}
+
+/** 등불 양피지(z-900) — localStorage 시드 실패 시 「접기」로 닫는다 */
+async function dismissPeriodicBriefingIfOpen(page: Page) {
+  const scrim = page.locator('[aria-labelledby="periodic-briefing-title"]');
+  if (!(await scrim.isVisible({ timeout: 8_000 }).catch(() => false))) return;
+  const foldBtn = scrim.getByRole("button", { name: /^(접기|Fold)$/ });
+  await expect(foldBtn).toBeVisible({ timeout: 10_000 });
+  await foldBtn.dispatchEvent("click");
+  await expect(scrim).toHaveCount(0, { timeout: 20_000 });
 }
 
 /**
