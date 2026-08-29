@@ -16,6 +16,7 @@ import {
 } from "@/lib/viewPackages";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { mergeConceptLayerPrefs } from "@/lib/conceptLayers";
+import { CRINK_INFRA_PREF_PATCH } from "@/lib/crinkInfraCatalog";
 
 export type { ViewerMode };
 
@@ -34,39 +35,38 @@ export type BottomStackLayout = "conflict" | "economy";
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 지정학 자원 히어로 — 전역 첫 화면: 원자력만.
- * 송유관·해저관은 잡음이 커서 기본 OFF (레이어 패널에서 수동 ON).
+ * 지정학 자원 히어로 — 기본 비움.
+ * 원자력·매장지·배관은 물류/전선과 무관해 기본 OFF (레이어 패널·시나리오에서 ON).
  */
-export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showNuclearSites: true,
-};
+export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
-/** 지정학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
   showOilPipelines: false,
   showSubseaPipelines: false,
   showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
+  showNuclearSites: false,
   showGemOilGasExtraction: false,
   showGemCoalMines: false,
   showGemIronOre: false,
 };
 
 /**
- * 지경학 자원 히어로 — 전역 첫 화면: 매장지 면 + 가스관 + LNG.
+ * 지경학 자원 히어로 — 에너지 물류만 (가스관·LNG). 매장지 면은 기본 OFF.
  */
 export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showResources: true,
   showGasPipelines: true,
   showLngTerminals: true,
 };
 
-/** 지경학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+/** 지경학에서 비물류 자원·인프라 — 모드 진입 시 기본 OFF */
 export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
   showOilPipelines: false,
   showSubseaPipelines: false,
   showNuclearSites: false,
+  showResources: false,
   showGemOilGasExtraction: false,
   showGemCoalMines: false,
   showGemIronOre: false,
@@ -74,8 +74,10 @@ export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
 
 /** @deprecated 모드별 히어로 사용 — 레거시 합집합(전부 ON) */
 export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
-  ...CONFLICT_RESOURCE_HERO_ON,
-  ...ECONOMY_RESOURCE_HERO_ON,
+  showNuclearSites: true,
+  showResources: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
   showGemOilGasExtraction: true,
   showGemCoalMines: true,
   showGemIronOre: true,
@@ -93,10 +95,25 @@ export function ensureResourceLayersOn(
   return { ...prefs, ...resourceHeroLayersForMode(mode) };
 }
 
-/** 지정학 대치 구도 — 미군기지·항모 (미사일 벨트와 함께 보는 핵심) */
+/** 지정학 대치 구도 — A2AD·한일대만필·호주·동유럽 · 주한미군 · 항모 */
 export const CONFLICT_CONFRONTATION_LAYER_ON: Partial<LayerPrefs> = {
+  showIslandChains: true,
+  showEastAsiaAdiz: true,
   showMilitaryBases: true,
+  showRokMilitaryBases: true,
+  showJapanMilitaryBases: true,
+  showTaiwanMilitaryBases: true,
+  showPhilippinesMilitaryBases: true,
+  showAustraliaMilitaryBases: true,
+  showEasternNatoMilitaryBases: true,
   showUsCarriers: true,
+};
+
+/** CRINK 전략군사 — 축 네트워크 + 중·러 전략미사일 시설 */
+export const CONFLICT_CRINK_STRATEGIC_ON: Partial<LayerPrefs> = {
+  showAxisNetwork: true,
+  showMissileSilos: true,
+  showStrategicMissileBases: true,
 };
 
 export function ensureConfrontationLayersOn(
@@ -127,14 +144,12 @@ export type ViewerChromePreset = {
 };
 
 const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
-  // 우크라 전선 폴리곤 + NEPTUN 공습/드론 · 타격 화염
+  // 전선·분쟁 + 해상 항로 + CRINK OSM 인프라
   showUkraineControl: true,
   showUkraineStrikesOnRussia: true,
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
-  showGdeltProtests: true,
-  showGdeltOceanCompetition: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
@@ -144,43 +159,42 @@ const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
   showFirmsFires: true,
   showUkmtoIncidents: true,
   showNavareaWarnings: true,
-  showSubmarineCables: true,
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showTelegramOsint: true,
-  /** 지정학 진입 즉시 NewFeeds 이란·공격 지도 레이어 */
   showNewfeedsIranAttacks: true,
-  /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
-  showUsCarriers: true,
-  /** 지정학 진입 즉시 미군기지 — 미사일 벨트·대치 구도와 함께 표시 */
-  showMilitaryBases: true,
+  ...CONFLICT_CONFRONTATION_LAYER_ON,
+  ...CONFLICT_CRINK_STRATEGIC_ON,
+  ...CRINK_INFRA_PREF_PATCH,
   ...CONFLICT_RESOURCE_HERO_ON,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAiDataCenters: false,
   showAirTraffic: false,
+  showAirports: false,
+  showSubmarineCables: false,
   showSubmarineTunnels: false,
   showGscpiGauge: false,
-  /** CRINK·배관은 기본 OFF — 내비 허브/레이어에서만 켠다 */
-  showAxisNetwork: false,
+  showGdeltProtests: false,
+  showGdeltOceanCompetition: false,
+  /** CRINK 축·전략미사일은 CONFLICT_CRINK_STRATEGIC_ON */
+  showMissileTestSites: false,
+  showMissileSiloFields: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
+  // 물류망·항로·CRINK OSM — 공항/ADS-B/케이블/AI DC/매장지 OFF
   showAis: true,
-  showAirTraffic: true,
   showLogisticsRisk: true,
   showLogisticsStress: true,
   showGscpiGauge: true,
   showCriticalNodes: true,
-  showSubmarineCables: true,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showAiDataCenters: true,
   showPorts: true,
-  showAirports: true,
-  /** 유가 민감 — 이란·지역 공격 NewFeeds 지도 */
-  showNewfeedsIranAttacks: true,
+  showShippingLanes: true,
+  ...CRINK_INFRA_PREF_PATCH,
+  ...ECONOMY_RESOURCE_HERO_ON,
   showBriTradeConnectivity: true,
   showStrategicCorridors: true,
   showUsDfcSupplyChain: true,
@@ -188,13 +202,15 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
 
 /**
  * 지경학에서 절대 ON 금지 — 군용 항공기·함정·기지·위장(무기고) 선박.
- * 경제 모드는 민간 AIS·민간 ADS-B·파이프·항로 등 경제 연관만.
+ * 경제 모드는 민간 AIS·항로·파이프 등 물류·에너지만.
  */
 export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryBases: false,
   showRokMilitaryBases: false,
   showJapanMilitaryBases: false,
+  showTaiwanMilitaryBases: false,
   showPhilippinesMilitaryBases: false,
+  showAustraliaMilitaryBases: false,
   showEasternNatoMilitaryBases: false,
   showMissileSilos: false,
   showStrategicMissileBases: false,
@@ -207,6 +223,7 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showReefWatch: false,
   showReconSatellites: false,
   showGpsInterference: false,
+  showAxisNetwork: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -228,7 +245,12 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showUcdpEvents: false,
   showFirmsFires: false,
   showSanctionsEntities: false,
+  showNewfeedsIranAttacks: false,
   showSubmarineTunnels: false,
+  showSubmarineCables: false,
+  showAiDataCenters: false,
+  showAirTraffic: false,
+  showAirports: false,
   showAxisNetwork: false,
   ...ECONOMY_MILITARY_BLOCK,
   ...ECONOMY_RESOURCE_HERO_OFF,
@@ -280,7 +302,8 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
       "GDELT 전투·외교 뉴스 핀",
       "Telegram OSINT · VIINA 전선 · 우크라→러 타격",
-      "에너지 히어로: 원자력 (송유관·해저관·CRINK는 수동)",
+      "A2AD 도련선 · ADIZ · 한·일·대만·필·호주·동유럽 기지 · 항모",
+      "CRINK 축 · 중·러 전략미사일 · 항로 · CRINK OSM",
       "하단: 속보 + GDELT 범례",
     ],
     layerPanelTitle: "레이어 · 전선",
@@ -307,7 +330,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerBullets: [
       "주요 증시·VIX·유가 티커",
       "경제 RSS · 에너지·해운·제재 속보",
-      "자원 히어로: 매장지 · 가스관 · LNG · 항로 · 민간 AIS/ADS-B",
+      "물류 히어로: 항로 · CRINK OSM · 항구 · AIS · 가스관 · LNG · BRI/DFC",
       "하단: 티커 + 시장 속보",
     ],
     layerPanelTitle: "인프라 · 시장",

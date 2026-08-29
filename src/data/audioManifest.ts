@@ -129,6 +129,20 @@ export const AUDIO_MANIFEST = {
   },
 
   /**
+   * NATO 동부 접경 UAV 월경 1차 경보 — Red Alert Klaxon #3
+   * https://freesound.org/s/420650/ · Kinoton · CC0
+   */
+  "nato-perimeter-klaxon": {
+    eventId: "nato-perimeter-klaxon",
+    freesoundQuery: "red alert klaxon siren",
+    freesoundId: 420650,
+    localSrc: "/audio/nato-perimeter-klaxon.mp3",
+    volume: 0.78,
+    category: "conflict",
+    note: "FS#420650 Kinoton Red Alert Klaxon #3 · CC0 · HQ preview · 접경 월경 강제 경보",
+  },
+
+  /**
    * A급 속보(alert 히어로) 타전 — 모스 전보
    * https://freesound.org/s/553739/ · christislord · CC0
    */

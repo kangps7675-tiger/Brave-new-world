@@ -235,13 +235,17 @@ export type UseLayerPanelCategoriesArgs = {
   showMilitaryBases: boolean;
   showRokMilitaryBases: boolean;
   showJapanMilitaryBases: boolean;
+  showTaiwanMilitaryBases: boolean;
   showPhilippinesMilitaryBases: boolean;
+  showAustraliaMilitaryBases: boolean;
   showEasternNatoMilitaryBases: boolean;
   visibleMilitaryBaseAreas: unknown[];
   setShowMilitaryBases: (v: boolean) => void;
   setShowRokMilitaryBases: (v: boolean) => void;
   setShowJapanMilitaryBases: (v: boolean) => void;
+  setShowTaiwanMilitaryBases: (v: boolean) => void;
   setShowPhilippinesMilitaryBases: (v: boolean) => void;
+  setShowAustraliaMilitaryBases: (v: boolean) => void;
   setShowEasternNatoMilitaryBases: (v: boolean) => void;
   showMissileSilos: boolean;
   setShowMissileSilos: (v: boolean) => void;
@@ -502,13 +506,17 @@ export function useLayerPanelCategories({
   showMilitaryBases,
   showRokMilitaryBases,
   showJapanMilitaryBases,
+  showTaiwanMilitaryBases,
   showPhilippinesMilitaryBases,
+  showAustraliaMilitaryBases,
   showEasternNatoMilitaryBases,
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
   setShowRokMilitaryBases,
   setShowJapanMilitaryBases,
+  setShowTaiwanMilitaryBases,
   setShowPhilippinesMilitaryBases,
+  setShowAustraliaMilitaryBases,
   setShowEasternNatoMilitaryBases,
   showMissileSilos,
   setShowMissileSilos,
@@ -598,7 +606,9 @@ export function useLayerPanelCategories({
       showMilitaryBases ||
       showRokMilitaryBases ||
       showJapanMilitaryBases ||
+      showTaiwanMilitaryBases ||
       showPhilippinesMilitaryBases ||
+      showAustraliaMilitaryBases ||
       showEasternNatoMilitaryBases;
 
     const allCategories: LayerCategory[] = [
@@ -1700,7 +1710,9 @@ export function useLayerPanelCategories({
                   showMilitaryBases && `미군 ${milForceCount("us")}`,
                   showRokMilitaryBases && `한국 ${milForceCount("rok")}`,
                   showJapanMilitaryBases && `일본 ${milForceCount("japan")}`,
+                  showTaiwanMilitaryBases && `대만 ${milForceCount("taiwan")}`,
                   showPhilippinesMilitaryBases && `필리핀 ${milForceCount("philippines")}`,
+                  showAustraliaMilitaryBases && `호주 ${milForceCount("australia")}`,
                   showEasternNatoMilitaryBases && `동유럽 ${milForceCount("eastern-nato")}`,
                 ]
                   .filter(Boolean)
@@ -1715,7 +1727,9 @@ export function useLayerPanelCategories({
               setShowMilitaryBases(false);
               setShowRokMilitaryBases(false);
               setShowJapanMilitaryBases(false);
+              setShowTaiwanMilitaryBases(false);
               setShowPhilippinesMilitaryBases(false);
+              setShowAustraliaMilitaryBases(false);
               setShowEasternNatoMilitaryBases(false);
             },
             accent: "blue",
@@ -1752,6 +1766,16 @@ export function useLayerPanelCategories({
                 accent: "blue",
               },
               {
+                id: "military-bases-taiwan",
+                label: "대만",
+                detail: showTaiwanMilitaryBases
+                  ? `시설 ${milForceCount("taiwan")}`
+                  : "꺼짐 · OSM·시드",
+                checked: layerPrefs.showTaiwanMilitaryBases,
+                onChange: setShowTaiwanMilitaryBases,
+                accent: "blue",
+              },
+              {
                 id: "military-bases-philippines",
                 label: "필리핀",
                 detail: showPhilippinesMilitaryBases
@@ -1759,6 +1783,16 @@ export function useLayerPanelCategories({
                   : "꺼짐 · 1선 기지",
                 checked: layerPrefs.showPhilippinesMilitaryBases,
                 onChange: setShowPhilippinesMilitaryBases,
+                accent: "blue",
+              },
+              {
+                id: "military-bases-australia",
+                label: "호주",
+                detail: showAustraliaMilitaryBases
+                  ? `시설 ${milForceCount("australia")}`
+                  : "꺼짐 · ADF OSM·시드",
+                checked: layerPrefs.showAustraliaMilitaryBases,
+                onChange: setShowAustraliaMilitaryBases,
                 accent: "blue",
               },
               {
@@ -1921,7 +1955,9 @@ export function useLayerPanelCategories({
             showMilitaryBases: enabled,
             showRokMilitaryBases: enabled ? showRokMilitaryBases : false,
             showJapanMilitaryBases: enabled ? showJapanMilitaryBases : false,
+            showTaiwanMilitaryBases: enabled ? showTaiwanMilitaryBases : false,
             showPhilippinesMilitaryBases: enabled ? showPhilippinesMilitaryBases : false,
+            showAustraliaMilitaryBases: enabled ? showAustraliaMilitaryBases : false,
             showEasternNatoMilitaryBases: enabled ? showEasternNatoMilitaryBases : false,
             showMissileSilos: enabled,
             showStrategicMissileBases: enabled,
@@ -2211,7 +2247,9 @@ export function useLayerPanelCategories({
     lpg(showMilitaryBases, false),
     lpg(showRokMilitaryBases, false),
     lpg(showJapanMilitaryBases, false),
+    lpg(showTaiwanMilitaryBases, false),
     lpg(showPhilippinesMilitaryBases, false),
+    lpg(showAustraliaMilitaryBases, false),
     lpg(showEasternNatoMilitaryBases, false),
     lpg(showMissileSilos, false),
     lpg(showStrategicMissileBases, false),

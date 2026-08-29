@@ -16,7 +16,9 @@ const outPath = path.join(root, "scripts", "data", "osm-frontline-bases.json");
 const COUNTRIES = [
   { iso: "KR", name: "South Korea", theater: "korea-japan", bbox: [33.0, 124.4, 38.75, 129.55], cap: 70 },
   { iso: "JP", name: "Japan", theater: "korea-japan", bbox: [24.0, 122.9, 45.8, 146.2], cap: 90 },
+  { iso: "TW", name: "Taiwan", theater: "taiwan-strait", bbox: [21.85, 119.25, 25.35, 122.05], cap: 55 },
   { iso: "PH", name: "Philippines", theater: "south-china-sea", bbox: [4.6, 114.0, 21.3, 126.8], cap: 50 },
+  { iso: "AU", name: "Australia", theater: "indo-pacific", bbox: [-39.5, 113.0, -10.5, 153.8], cap: 55 },
   { iso: "PL", name: "Poland", theater: "eastern-nato", bbox: [49.0, 14.1, 54.9, 24.2], cap: 50 },
   { iso: "EE", name: "Estonia", theater: "eastern-nato", bbox: [57.5, 21.7, 59.8, 28.3], cap: 25 },
   { iso: "LV", name: "Latvia", theater: "eastern-nato", bbox: [55.6, 20.9, 58.1, 28.3], cap: 25 },

@@ -36,9 +36,19 @@ describe("militaryBaseForceId", () => {
     ).toBe("rok");
     expect(
       militaryBaseForceId({
+        meta: { country: "Taiwan", iso: "TW", source: "osm-frontline" },
+      }),
+    ).toBe("taiwan");
+    expect(
+      militaryBaseForceId({
         meta: { country: "Philippines", iso: "PH", source: "seed-frontline" },
       }),
     ).toBe("philippines");
+    expect(
+      militaryBaseForceId({
+        meta: { country: "Australia", iso: "AU", source: "seed-frontline" },
+      }),
+    ).toBe("australia");
     expect(
       militaryBaseForceId({
         meta: { country: "Poland", iso: "PL", source: "seed-frontline" },

@@ -22,6 +22,7 @@ const DASHBOARD_BUS_EVENT_IDS = new Set<AudioEventId>([
   "tzeva-red-alert",
   "tzeva-all-clear",
   "neptun-air-alert",
+  "nato-perimeter-klaxon",
   "hero-breaking",
   "breaking-dark-bed",
   "parchment-unfold",

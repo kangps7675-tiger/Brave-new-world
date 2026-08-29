@@ -4,7 +4,9 @@ export const MILITARY_BASE_FORCES = [
   "us",
   "rok",
   "japan",
+  "taiwan",
   "philippines",
+  "australia",
   "eastern-nato",
 ] as const;
 
@@ -23,7 +25,9 @@ export type MilitaryBaseForceFlags = {
   showMilitaryBases?: boolean;
   showRokMilitaryBases?: boolean;
   showJapanMilitaryBases?: boolean;
+  showTaiwanMilitaryBases?: boolean;
   showPhilippinesMilitaryBases?: boolean;
+  showAustraliaMilitaryBases?: boolean;
   showEasternNatoMilitaryBases?: boolean;
 };
 
@@ -34,7 +38,9 @@ export function enabledMilitaryBaseForces(
   if (flags.showMilitaryBases) out.push("us");
   if (flags.showRokMilitaryBases) out.push("rok");
   if (flags.showJapanMilitaryBases) out.push("japan");
+  if (flags.showTaiwanMilitaryBases) out.push("taiwan");
   if (flags.showPhilippinesMilitaryBases) out.push("philippines");
+  if (flags.showAustraliaMilitaryBases) out.push("australia");
   if (flags.showEasternNatoMilitaryBases) out.push("eastern-nato");
   return out;
 }
@@ -83,7 +89,9 @@ export function militaryBaseForceId(point: ForcePoint): MilitaryBaseForceId | nu
     return "rok";
   }
   if (iso === "JP" || /^Japan$/i.test(country)) return "japan";
+  if (iso === "TW" || /^(Taiwan|Republic of China|ROC)$/i.test(country)) return "taiwan";
   if (iso === "PH" || /^Philippines$/i.test(country)) return "philippines";
+  if (iso === "AU" || /^Australia$/i.test(country)) return "australia";
   if (EASTERN_NATO_ISO.has(iso) || EASTERN_NATO_NAME.test(country)) {
     return "eastern-nato";
   }

@@ -1,9 +1,14 @@
 /**
- * 전선 부근 OSM 군시설 — 한국·일본·필리핀·동유럽 NATO.
+ * 전선 부근 OSM 군시설 — 한·일·대만·필리핀·호주·동유럽 NATO.
  * 사격장·창고·무명 폴리곤은 제외. 공군·해군 거점 + 이름 있는 base만.
  */
 
-export type OsmFrontlineTheater = "korea-japan" | "south-china-sea" | "eastern-nato";
+export type OsmFrontlineTheater =
+  | "korea-japan"
+  | "taiwan-strait"
+  | "south-china-sea"
+  | "indo-pacific"
+  | "eastern-nato";
 
 export type OsmFrontlineCountry = {
   iso: string;
@@ -17,7 +22,9 @@ export type OsmFrontlineCountry = {
 export const OSM_FRONTLINE_COUNTRIES: readonly OsmFrontlineCountry[] = [
   { iso: "KR", name: "South Korea", theater: "korea-japan", bbox: [33.0, 124.4, 38.75, 129.55], cap: 70 },
   { iso: "JP", name: "Japan", theater: "korea-japan", bbox: [24.0, 122.9, 45.8, 146.2], cap: 90 },
+  { iso: "TW", name: "Taiwan", theater: "taiwan-strait", bbox: [21.85, 119.25, 25.35, 122.05], cap: 55 },
   { iso: "PH", name: "Philippines", theater: "south-china-sea", bbox: [4.6, 114.0, 21.3, 126.8], cap: 50 },
+  { iso: "AU", name: "Australia", theater: "indo-pacific", bbox: [-39.5, 113.0, -10.5, 153.8], cap: 55 },
   { iso: "PL", name: "Poland", theater: "eastern-nato", bbox: [49.0, 14.1, 54.9, 24.2], cap: 50 },
   { iso: "EE", name: "Estonia", theater: "eastern-nato", bbox: [57.5, 21.7, 59.8, 28.3], cap: 25 },
   { iso: "LV", name: "Latvia", theater: "eastern-nato", bbox: [55.6, 20.9, 58.1, 28.3], cap: 25 },

@@ -13,6 +13,7 @@
 | 파일 | 이벤트 | 용도 |
 |------|--------|------|
 | `air-attack-siren.mp3` | `tzeva-red-alert` · `tzeva-all-clear` · `neptun-air-alert` | 이스라엘 / 우크라 공습 사이렌 (칩·버튼 fly 전용) |
+| `nato-perimeter-klaxon.mp3` | `nato-perimeter-klaxon` | [FS#420650](https://freesound.org/s/420650/) Kinoton Red Alert Klaxon #3 · CC0 · HQ preview · NATO 동부 접경 UAV 월경 |
 
 ### 전장
 | 파일 | 이벤트 | 용도 |
