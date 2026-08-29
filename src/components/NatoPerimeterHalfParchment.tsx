@@ -15,6 +15,7 @@ import {
 } from "@/lib/news/lampThumbnail";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { isArticleUrl } from "@/lib/news/articleLink";
+import { zc } from "@/lib/uiStack";
 
 export type NatoPerimeterTier2Briefing = {
   cross: NatoPerimeterCrossEvent;
@@ -63,7 +64,7 @@ export function NatoPerimeterHalfParchment({ briefing, lang, onDismiss }: Props)
 
   return (
     <div
-      className={`pointer-events-none fixed inset-y-0 right-0 z-[910] flex w-[min(100vw,28rem)] items-stretch sm:w-[min(52vw,32rem)] ${
+      className={`pointer-events-none fixed inset-y-0 right-0 ${zc("alert")} flex w-[min(100vw,28rem)] items-stretch sm:w-[min(52vw,32rem)] ${
         exiting ? "animate-[natoHalfFold_0.45s_ease_forwards]" : "animate-[natoHalfIn_0.55s_ease]"
       }`}
       role="dialog"
@@ -98,21 +99,21 @@ export function NatoPerimeterHalfParchment({ briefing, lang, onDismiss }: Props)
               loading="eager"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1008]/85 to-transparent px-3 pb-2 pt-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#f5e6c8]/90">
+              <p className="text-micro font-semibold uppercase tracking-[0.14em] text-[#f5e6c8]/90">
                 {kicker}
               </p>
             </div>
           </div>
         ) : (
           <div className="border-b border-[#8b6914]/25 px-3 py-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5c3d12]">
+            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-[#5c3d12]">
               {kicker}
             </p>
           </div>
         )}
 
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-3 text-[#2a1a0a]">
-          <p className="text-[11px] text-[#6b4a22]/85">
+          <p className="text-meta text-[#6b4a22]/85">
             {ko
               ? `${country} · 관측 교차 확인 보도`
               : `${country} · reporting confirms observed cross`}
@@ -124,9 +125,9 @@ export function NatoPerimeterHalfParchment({ briefing, lang, onDismiss }: Props)
             {story.title}
           </h2>
           {story.summary ? (
-            <p className="text-[13px] leading-relaxed text-[#3a2814]/92">{story.summary}</p>
+            <p className="text-caption leading-relaxed text-[#3a2814]/92">{story.summary}</p>
           ) : null}
-          <p className="mt-auto pt-2 text-[11px] text-[#6b4a22]/80">
+          <p className="mt-auto pt-2 text-meta text-[#6b4a22]/80">
             {[story.publisher || story.source, story.pubDate]
               .filter(Boolean)
               .join(" · ")}
@@ -139,7 +140,7 @@ export function NatoPerimeterHalfParchment({ briefing, lang, onDismiss }: Props)
               href={story.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[12px] font-medium text-[#5c3d12] underline-offset-2 hover:underline"
+              className="text-meta font-medium text-[#5c3d12] underline-offset-2 hover:underline"
             >
               {ko ? "원문" : "Source"}
             </a>
@@ -147,7 +148,7 @@ export function NatoPerimeterHalfParchment({ briefing, lang, onDismiss }: Props)
           <button
             type="button"
             onClick={handleDismiss}
-            className="ml-auto rounded border border-[#8b6914]/35 bg-[#efe0b8] px-3 py-1 text-[12px] font-medium text-[#3a2814] hover:bg-[#e8d4a0]"
+            className="ml-auto rounded border border-[#8b6914]/35 bg-[#efe0b8] px-3 py-1 text-meta font-medium text-[#3a2814] hover:bg-[#e8d4a0]"
           >
             {cta}
           </button>
