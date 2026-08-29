@@ -591,6 +591,7 @@ import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
 import { usePortWatchObservations } from "@/hooks/usePortWatchObservations";
 import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsStressSiren";
 import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { useNatoPerimeterDroneAlert } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { useUltraLiteAutoOffer } from "@/hooks/useUltraLiteAutoOffer";
 import { useScreenState } from "@/components/globe/hooks/useScreenState";
 import { useFirstImpressionController } from "@/hooks/useFirstImpressionController";
@@ -1500,7 +1501,9 @@ export function GlobeDashboard({
     showMilitaryBases,
     showRokMilitaryBases,
     showJapanMilitaryBases,
+    showTaiwanMilitaryBases,
     showPhilippinesMilitaryBases,
+    showAustraliaMilitaryBases,
     showEasternNatoMilitaryBases,
     showMissileSilos,
     showStrategicMissileBases,
@@ -1660,8 +1663,11 @@ export function GlobeDashboard({
   const setShowMilitaryBases = (v: boolean) => togglePref("showMilitaryBases", v);
   const setShowRokMilitaryBases = (v: boolean) => togglePref("showRokMilitaryBases", v);
   const setShowJapanMilitaryBases = (v: boolean) => togglePref("showJapanMilitaryBases", v);
+  const setShowTaiwanMilitaryBases = (v: boolean) => togglePref("showTaiwanMilitaryBases", v);
   const setShowPhilippinesMilitaryBases = (v: boolean) =>
     togglePref("showPhilippinesMilitaryBases", v);
+  const setShowAustraliaMilitaryBases = (v: boolean) =>
+    togglePref("showAustraliaMilitaryBases", v);
   const setShowEasternNatoMilitaryBases = (v: boolean) =>
     togglePref("showEasternNatoMilitaryBases", v);
   const setShowMissileSilos = (v: boolean) => togglePref("showMissileSilos", v);
@@ -2759,7 +2765,9 @@ export function GlobeDashboard({
     showMilitaryBases,
     showRokMilitaryBases,
     showJapanMilitaryBases,
+    showTaiwanMilitaryBases,
     showPhilippinesMilitaryBases,
+    showAustraliaMilitaryBases,
     showEasternNatoMilitaryBases,
     showMissileSilos,
     showStrategicMissileBases,
@@ -4928,7 +4936,9 @@ export function GlobeDashboard({
       showMilitaryBases ||
       showRokMilitaryBases ||
       showJapanMilitaryBases ||
+      showTaiwanMilitaryBases ||
       showPhilippinesMilitaryBases ||
+      showAustraliaMilitaryBases ||
       showEasternNatoMilitaryBases ||
       showUsCarriers ||
       showDisguisedVessels ||
@@ -4941,7 +4951,9 @@ export function GlobeDashboard({
           showMilitaryBases: false,
           showRokMilitaryBases: false,
           showJapanMilitaryBases: false,
+          showTaiwanMilitaryBases: false,
           showPhilippinesMilitaryBases: false,
+          showAustraliaMilitaryBases: false,
           showEasternNatoMilitaryBases: false,
           showUsCarriers: false,
           showDisguisedVessels: false,
@@ -4960,7 +4972,9 @@ export function GlobeDashboard({
     showMilitaryBases,
     showRokMilitaryBases,
     showJapanMilitaryBases,
+    showTaiwanMilitaryBases,
     showPhilippinesMilitaryBases,
+    showAustraliaMilitaryBases,
     showEasternNatoMilitaryBases,
     showReconSatellites,
     showUsCarriers,
@@ -5442,13 +5456,17 @@ export function GlobeDashboard({
     showMilitaryBases,
     showRokMilitaryBases,
     showJapanMilitaryBases,
+    showTaiwanMilitaryBases,
     showPhilippinesMilitaryBases,
+    showAustraliaMilitaryBases,
     showEasternNatoMilitaryBases,
     visibleMilitaryBaseAreas,
     setShowMilitaryBases,
     setShowRokMilitaryBases,
     setShowJapanMilitaryBases,
+    setShowTaiwanMilitaryBases,
     setShowPhilippinesMilitaryBases,
+    setShowAustraliaMilitaryBases,
     setShowEasternNatoMilitaryBases,
     showMissileSilos,
     setShowMissileSilos,
@@ -5830,6 +5848,14 @@ export function GlobeDashboard({
       Boolean(airRaidOffer) ||
       Boolean(periodicBriefing),
     flyTo,
+  });
+
+  /** NATO 동부 접경 UAV — 등불 pause 우회 · 지정학+Neptun만 */
+  const { natoPerimeterAlert, dismissNatoPerimeterAlert } = useNatoPerimeterDroneAlert({
+    enabled: !isEconomyViewer && showNeptun,
+    threats: neptunThreats,
+    flyTo,
+    hardPaused: entryGate !== null || showModePicker,
   });
 
   /**
@@ -8221,7 +8247,9 @@ export function GlobeDashboard({
                       layerKey === "showMilitaryBases" ||
                       layerKey === "showRokMilitaryBases" ||
                       layerKey === "showJapanMilitaryBases" ||
+                      layerKey === "showTaiwanMilitaryBases" ||
                       layerKey === "showPhilippinesMilitaryBases" ||
+                      layerKey === "showAustraliaMilitaryBases" ||
                       layerKey === "showEasternNatoMilitaryBases" ||
                       layerKey === "showDisguisedVessels")
                   ) {
@@ -8380,6 +8408,8 @@ export function GlobeDashboard({
         escalationOffer={escalationOffer}
         onDismissEscalationOffer={dismissEscalationOffer}
         adsbEmergencyOffer={adsbEmergencyOffer}
+        natoPerimeterAlert={natoPerimeterAlert}
+        onDismissNatoPerimeterAlert={dismissNatoPerimeterAlert}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
         maritimeOffer={maritimeOffer}

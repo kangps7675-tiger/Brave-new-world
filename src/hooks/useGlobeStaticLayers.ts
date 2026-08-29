@@ -243,7 +243,9 @@ export function useGlobeStaticLayers(options: {
   showMilitaryBases: boolean;
   showRokMilitaryBases?: boolean;
   showJapanMilitaryBases?: boolean;
+  showTaiwanMilitaryBases?: boolean;
   showPhilippinesMilitaryBases?: boolean;
+  showAustraliaMilitaryBases?: boolean;
   showEasternNatoMilitaryBases?: boolean;
   showMissileSilos?: boolean;
   showStrategicMissileBases?: boolean;
@@ -804,7 +806,9 @@ export function useGlobeStaticLayers(options: {
     options.showMilitaryBases,
     options.showRokMilitaryBases,
     options.showJapanMilitaryBases,
+    options.showTaiwanMilitaryBases,
     options.showPhilippinesMilitaryBases,
+    options.showAustraliaMilitaryBases,
     options.showEasternNatoMilitaryBases,
     options.viewState.lat,
     options.viewState.lng,
@@ -1305,7 +1309,9 @@ export function useGlobeStaticLayers(options: {
     options.showMilitaryBases,
     options.showRokMilitaryBases,
     options.showJapanMilitaryBases,
+    options.showTaiwanMilitaryBases,
     options.showPhilippinesMilitaryBases,
+    options.showAustraliaMilitaryBases,
     options.showEasternNatoMilitaryBases,
     options.showMissileSilos,
     options.showMissileTestSites,

@@ -378,6 +378,8 @@ function main() {
     "osm-frontline-bases.json",
     "eastern-nato-frontline-seed.json",
     "philippines-frontline-seed.json",
+    "taiwan-frontline-seed.json",
+    "australia-frontline-seed.json",
   ];
   for (const fileName of frontlineFiles) {
     try {

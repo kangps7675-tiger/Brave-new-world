@@ -8,11 +8,14 @@ import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
 import {
+  CONFLICT_CONFRONTATION_LAYER_ON,
+  CONFLICT_CRINK_STRATEGIC_ON,
   CONFLICT_RESOURCE_HERO_ON,
   ECONOMY_RESOURCE_HERO_ON,
   ensureConfrontationLayersOn,
   ensureResourceLayersOn,
 } from "@/lib/viewerChrome";
+import { CRINK_INFRA_PREF_PATCH } from "@/lib/crinkInfraCatalog";
 import {
   RED_SEA_HOUTHI_STACK,
 } from "@/lib/hotTheaterLayers";
@@ -69,7 +72,7 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 홍해·해상 위협 + 자원(원자력). 송유관·해저관·CRINK는 기본 OFF */
+/** 지정학 히어로 — 전선·해상 항로·CRINK OSM. 케이블·원자력·시위는 기본 OFF */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...RED_SEA_HOUTHI_STACK,
   showUkraineControl: true,
@@ -79,28 +82,26 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   showWarZones: true,
   showGdeltWar: true,
   showGdeltDiplomatic: true,
-  showGdeltProtests: true,
   showMilitaryActivity: true,
   showAis: true,
   showLogisticsRisk: true,
-  showSubmarineCables: true,
+  showShippingLanes: true,
   showNewfeedsIranAttacks: true,
-  showUsCarriers: true,
+  ...CONFLICT_CONFRONTATION_LAYER_ON,
+  ...CONFLICT_CRINK_STRATEGIC_ON,
+  ...CRINK_INFRA_PREF_PATCH,
   ...CONFLICT_RESOURCE_HERO_ON,
 };
 
-/** 지경학 히어로 — 시장 기본 + 자원(매장지·가스관·LNG) */
+/** 지경학 히어로 — 항로·항구·CRINK OSM·공급망·에너지 물류 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   showAis: true,
-  showAirTraffic: true,
   showLogisticsRisk: true,
   showCriticalNodes: true,
-  showSubmarineCables: true,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showAiDataCenters: true,
   showPorts: true,
-  showAirports: true,
-  /** 미·중 공급망 대치 — 게이트 직후 overview가 패키지 ON을 덮지 않도록 히어로에 포함 */
+  showShippingLanes: true,
+  ...CRINK_INFRA_PREF_PATCH,
+  ...ECONOMY_RESOURCE_HERO_ON,
   showBriTradeConnectivity: true,
   showStrategicCorridors: true,
   showUsDfcSupplyChain: true,

@@ -1,5 +1,4 @@
 import {
-  clearLayerAffinityEntry,
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
@@ -73,8 +72,12 @@ export type LayerPrefs = {
   showRokMilitaryBases: boolean;
   /** 자위대 전선 기지 (OSM) — 주일미군은 showMilitaryBases */
   showJapanMilitaryBases: boolean;
+  /** 대만군 전선 기지 (OSM·시드) */
+  showTaiwanMilitaryBases: boolean;
   /** 필리핀군 1선 기지 — 미군 EDCA 거점은 showMilitaryBases */
   showPhilippinesMilitaryBases: boolean;
+  /** 호주군(ADF) 전선 기지 (OSM·시드) — 미군 Darwin 등은 showMilitaryBases */
+  showAustraliaMilitaryBases: boolean;
   /** 동유럽 NATO 전선 1선 (폴란드·발트·핀란드·루마니아·슬로바키아) */
   showEasternNatoMilitaryBases: boolean;
   /** PLARF 확인 사일로 점 (중국 미사일 사일로군) */
@@ -293,7 +296,9 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showMilitaryBases: false,
   showRokMilitaryBases: false,
   showJapanMilitaryBases: false,
+  showTaiwanMilitaryBases: false,
   showPhilippinesMilitaryBases: false,
+  showAustraliaMilitaryBases: false,
   showEasternNatoMilitaryBases: false,
   showMissileSilos: false,
   showStrategicMissileBases: false,
@@ -512,20 +517,17 @@ export function detectDefaultLabelLanguage(): LabelLanguage {
   }
 }
 
-/** 축 관계망 기본 OFF 정착 — 친화도 unlock 제거 + 저장본 ON 한 번 내림 */
+/** 축 관계망 — 예전 1회 OFF 정착 키만 소모. 지정학 FORCE_ON이 CRINK 축을 켠다. */
 function settleAxisNetworkDefaultOff(prefs: LayerPrefs): LayerPrefs {
   if (!shouldPersistLayerPrefs()) return prefs;
   try {
-    if (localStorage.getItem(AXIS_NETWORK_DEFAULT_OFF_KEY)) return prefs;
-    localStorage.setItem(AXIS_NETWORK_DEFAULT_OFF_KEY, "1");
-    clearLayerAffinityEntry("showAxisNetwork");
-    if (!prefs.showAxisNetwork) return prefs;
-    const next = { ...prefs, showAxisNetwork: false };
-    saveLayerPrefs(next);
-    return next;
+    if (!localStorage.getItem(AXIS_NETWORK_DEFAULT_OFF_KEY)) {
+      localStorage.setItem(AXIS_NETWORK_DEFAULT_OFF_KEY, "1");
+    }
   } catch {
-    return prefs;
+    /* ignore */
   }
+  return prefs;
 }
 
 /**

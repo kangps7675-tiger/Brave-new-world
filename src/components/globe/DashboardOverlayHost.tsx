@@ -139,6 +139,9 @@ import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { NatoPerimeterAlertChip } from "@/components/NatoPerimeterAlertChip";
+import { NatoPerimeterHalfParchment } from "@/components/NatoPerimeterHalfParchment";
+import type { NatoPerimeterAlertState } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { EscalationSignalPanel } from "@/components/EscalationSignalPanel";
 import type { EscalationOffer } from "@/components/globe/hooks/useEscalationSignals";
 import { ExerciseOfferBanner, type ExerciseOffer } from "@/components/ExerciseOfferBanner";
@@ -328,6 +331,8 @@ export type DashboardOverlayHostProps = {
   breakingFlash: BreakingFlashBriefing | null;
   onDismissBreakingFlash: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
+  /** NATO 동부 접경 UAV 1차 칩 / 2차 반쪽 양피지 */
+  natoPerimeterAlert: NatoPerimeterAlertState;
   /** 확전 신호 — 임계선을 넘은 사건 보도 (useEscalationSignals) */
   escalationOffer: EscalationOffer | null;
   onDismissEscalationOffer: () => void;
@@ -420,6 +425,7 @@ export type DashboardOverlayHostProps = {
   onToggleDailyRankPanel: (next: boolean) => void;
   onDismissAirRaidOffer: () => void;
   onDismissAdsbEmergencyOffer: () => void;
+  onDismissNatoPerimeterAlert: () => void;
   onDismissExerciseOffer: () => void;
   onSetExerciseBriefing: (v: ExerciseBriefingContent | null) => void;
   onAcceptMaritimeOffer: () => void;
@@ -536,6 +542,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     breakingFlash,
     onDismissBreakingFlash,
     adsbEmergencyOffer,
+    natoPerimeterAlert,
+    onDismissNatoPerimeterAlert,
     escalationOffer,
     onDismissEscalationOffer,
     exerciseOffer,
@@ -1556,6 +1564,16 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               />
             ) : null}
 
+            {natoPerimeterAlert.phase === "tier1" &&
+            natoPerimeterAlert.cross &&
+            !natoPerimeterAlert.story ? (
+              <NatoPerimeterAlertChip
+                cross={natoPerimeterAlert.cross}
+                lang={labelLanguage}
+                onDismiss={onDismissNatoPerimeterAlert}
+              />
+            ) : null}
+
             {/*
               확전 신호 — 자동 fly-to 를 하지 않는다.
               공습경보와 달리 "지금 대피하라"가 아니라 "이걸 읽어보라"이므로
@@ -1662,6 +1680,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           briefing={breakingFlash}
           lang={labelLanguage}
           onDismiss={onDismissBreakingFlash}
+        />
+      ) : null}
+
+      {natoPerimeterAlert.phase === "tier2" &&
+      natoPerimeterAlert.cross &&
+      natoPerimeterAlert.story ? (
+        <NatoPerimeterHalfParchment
+          briefing={{
+            cross: natoPerimeterAlert.cross,
+            story: natoPerimeterAlert.story,
+          }}
+          lang={labelLanguage}
+          onDismiss={onDismissNatoPerimeterAlert}
         />
       ) : null}
 

@@ -152,6 +152,14 @@ export function isInNeptunOpsBox(lat: number, lon: number): boolean {
   return lat >= 42 && lat <= 54.5 && lon >= 20 && lon <= 43.5;
 }
 
+/**
+ * NATO 동부 접경 감시 박스 — 핀란드 등 ops box 밖 UAV/recon 월경 판정용.
+ * (표시 필터와 별개; `isNeptunThreatVisible`에서 uav/recon만 예외 허용)
+ */
+export function isInNatoPerimeterWatchBox(lat: number, lon: number): boolean {
+  return lat >= 41.5 && lat <= 70.2 && lon >= 12 && lon <= 45;
+}
+
 /** 위도·경도·방위·거리(km)로 목적지 좌표 계산 */
 export function neptunDest(lat: number, lon: number, bearingDeg: number, km: number) {
   const br = (bearingDeg * Math.PI) / 180;
@@ -182,7 +190,11 @@ export function neptunPredict(threat: NeptunThreat, nowMs = Date.now()): NeptunP
   if (!Number.isFinite(threat.lat) || !Number.isFinite(threat.lon)) {
     return anchor;
   }
-  if (!isInNeptunOpsBox(threat.lat, threat.lon)) {
+  const inOps = isInNeptunOpsBox(threat.lat, threat.lon);
+  const perimeterUav =
+    (threat.type === "uav" || threat.type === "recon") &&
+    isInNatoPerimeterWatchBox(threat.lat, threat.lon);
+  if (!inOps && !perimeterUav) {
     return anchor;
   }
 
@@ -204,7 +216,7 @@ export function neptunPredict(threat: NeptunThreat, nowMs = Date.now()): NeptunP
   const bearing = threat.velocity?.bearingDeg ?? threat.heading ?? 0;
   const pos = neptunDest(threat.lat, threat.lon, bearing, km);
 
-  if (!isInNeptunOpsBox(pos.lat, pos.lon)) {
+  if (!isInNeptunOpsBox(pos.lat, pos.lon) && !isInNatoPerimeterWatchBox(pos.lat, pos.lon)) {
     return anchor;
   }
 
@@ -217,12 +229,17 @@ export function neptunPredict(threat: NeptunThreat, nowMs = Date.now()): NeptunP
 }
 
 export function isNeptunThreatVisible(threat: NeptunThreat): boolean {
-  return (
-    threat.status === "active" &&
-    Number.isFinite(threat.lat) &&
-    Number.isFinite(threat.lon) &&
-    isInNeptunOpsBox(threat.lat, threat.lon)
-  );
+  if (threat.status !== "active") return false;
+  if (!Number.isFinite(threat.lat) || !Number.isFinite(threat.lon)) return false;
+  if (isInNeptunOpsBox(threat.lat, threat.lon)) return true;
+  /** 핀란드 등 — UAV/정찰만 접경 감시 박스에서 스트림 유지 */
+  if (
+    (threat.type === "uav" || threat.type === "recon") &&
+    isInNatoPerimeterWatchBox(threat.lat, threat.lon)
+  ) {
+    return true;
+  }
+  return false;
 }
 
 export function formatNeptunLocation(threat: NeptunThreat): string {

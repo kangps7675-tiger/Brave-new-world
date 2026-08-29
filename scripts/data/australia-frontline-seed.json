@@ -1,0 +1,197 @@
+[
+  {
+    "id": "seed-au-darwin",
+    "kind": "military-base",
+    "name": "RAAF Base Darwin",
+    "lat": -12.414,
+    "lng": 130.877,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-tindal",
+    "kind": "military-base",
+    "name": "RAAF Base Tindal",
+    "lat": -14.521,
+    "lng": 132.378,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-townsville",
+    "kind": "military-base",
+    "name": "RAAF Base Townsville",
+    "lat": -19.253,
+    "lng": 146.765,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-amberley",
+    "kind": "military-base",
+    "name": "RAAF Base Amberley",
+    "lat": -27.64,
+    "lng": 152.712,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-williamtown",
+    "kind": "military-base",
+    "name": "RAAF Base Williamtown",
+    "lat": -32.795,
+    "lng": 151.834,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-richmond",
+    "kind": "military-base",
+    "name": "RAAF Base Richmond",
+    "lat": -33.6006,
+    "lng": 150.781,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-edinburgh",
+    "kind": "military-base",
+    "name": "RAAF Base Edinburgh",
+    "lat": -34.7025,
+    "lng": 138.621,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-pearce",
+    "kind": "military-base",
+    "name": "RAAF Base Pearce",
+    "lat": -31.6678,
+    "lng": 116.015,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-stirling",
+    "kind": "military-base",
+    "name": "HMAS Stirling",
+    "lat": -32.24,
+    "lng": 115.683,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "naval_base",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-fleet-east",
+    "kind": "military-base",
+    "name": "Fleet Base East",
+    "lat": -33.862,
+    "lng": 151.23,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "naval_base",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-lavarack",
+    "kind": "military-base",
+    "name": "Lavarack Barracks",
+    "lat": -19.316,
+    "lng": 146.788,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-robertson",
+    "kind": "military-base",
+    "name": "Robertson Barracks",
+    "lat": -12.425,
+    "lng": 130.978,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-au-holsworthy",
+    "kind": "military-base",
+    "name": "Holsworthy Barracks",
+    "lat": -33.98,
+    "lng": 150.95,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "source": "seed-frontline"
+    }
+  }
+]
