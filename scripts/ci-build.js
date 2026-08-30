@@ -66,6 +66,24 @@ if (!openNextNested && process.env.LICENSE_GATE_SKIP !== "1") {
   }
 }
 
+/**
+ * Cloudflare Workers 정적 자산 25 MiB 한도.
+ * 초과 파일을 public/에 두면 wrangler deploy가 실패하고 프로덕션이 옛 버전에 남는다.
+ */
+if (!openNextNested && process.env.ASSET_SIZE_GATE_SKIP !== "1") {
+  const assetGate = spawnSync(
+    process.execPath,
+    [path.join(__dirname, "verify-workers-asset-size.js")],
+    { stdio: "inherit" },
+  );
+  if (assetGate.status !== 0) {
+    console.error(
+      "\n[ci-build] Workers 자산 크기 게이트 실패 — 빌드를 중단한다.\n",
+    );
+    process.exit(assetGate.status ?? 1);
+  }
+}
+
 const useOpenNext = !isVercel && isWorkersCi && !openNextNested;
 const cmd = useOpenNext
   ? ["opennextjs-cloudflare", "build"]

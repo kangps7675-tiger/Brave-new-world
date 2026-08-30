@@ -14,9 +14,12 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * 실행:
  *   npx playwright install --with-deps chromium webkit firefox   (최초 1회)
- *   npm run test:e2e                 # 3 브라우저
+ *   npm run test:e2e                 # 로컬 3 브라우저 (Firefox는 WebGL2 없으면 skip)
+ *   npm run test:e2e:ci              # CI — chromium · webkit (GHA Firefox는 WebGL2 없음)
  *   npm run test:e2e:chromium        # 빠른 확인
  */
+
+const isCi = !!process.env.CI;
 
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${PORT}`;
@@ -43,7 +46,9 @@ export default defineConfig({
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+    // GitHub Actions ubuntu Firefox는 GPU/SwiftShader WebGL2가 없어
+    // MapLibre v5 스모크가 성립하지 않는다. 로컬(GPU)에서만 돌린다.
+    ...(isCi ? [] : [{ name: "firefox", use: { ...devices["Desktop Firefox"] } }]),
   ],
 
   webServer: process.env.E2E_BASE_URL

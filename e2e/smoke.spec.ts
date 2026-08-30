@@ -101,12 +101,21 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
 
   await page.goto("/");
 
-  // WebGL 미지원이면 P0-1 안내 화면이 뜬다 — 스모크 자체가 성립하지 않으므로 즉시 실패시킨다
+  // WebGL 미지원이면 P0-1 안내 화면이 뜬다.
+  // Chromium/WebKit 스모크는 실패. Firefox는 CI·헤드리스에서 WebGL2가 없는
+  // 경우가 많아 스모크가 성립하지 않으므로 skip (GPU 있는 로컬 Firefox는 통과).
   const unsupported = page.getByText(/지구본을 표시할 수 없습니다|can't display the globe/i);
-  await expect(
-    unsupported,
-    "WebGL2 미지원 — 이 브라우저에서는 지도가 렌더되지 않는다 (P0-1 안내 화면 노출)",
-  ).toHaveCount(0, { timeout: 15_000 });
+  try {
+    await expect(
+      unsupported,
+      "WebGL2 미지원 — 이 브라우저에서는 지도가 렌더되지 않는다 (P0-1 안내 화면 노출)",
+    ).toHaveCount(0, { timeout: 15_000 });
+  } catch (err) {
+    if (test.info().project.name === "firefox") {
+      test.skip(true, "Firefox has no WebGL2 in this environment (typical on GitHub Actions)");
+    }
+    throw err;
+  }
 
   // 게이트가 뜨면 순서대로 닫는다 (localStorage 시드 실패·?entry=1 재생 시 대비)
   const langGate = page.locator("#lang-gate-title");
