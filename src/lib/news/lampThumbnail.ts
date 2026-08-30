@@ -127,13 +127,24 @@ export function resolveLampThumbTheme(input: {
   return "economy";
 }
 
-/** http(s) RSS 이미지만 통과 — 트래커·파비콘·1px 등 소형/비사진 제외 */
+/**
+ * 기사에 붙은 미디어 URL (RSS enclosure · og:image · twitter:image).
+ * 위성·그라데이션 폴백은 쓰지 않는다.
+ * 파비콘·트래킹 픽셀만 제외 — SVG 인포그래픽·CMS 경로(placeholder, /icons/)는 기사 첨부로 본다.
+ */
 export function normalizeLampImageUrl(imageUrl: string | undefined | null): string {
-  const raw = typeof imageUrl === "string" ? imageUrl.trim() : "";
-  if (raw.length <= 8 || !/^https?:\/\//i.test(raw)) return "";
-  // 선명 대형 사진 데스크 — 트래킹 픽셀·아이콘·플레이스홀더 배제
+  let raw = typeof imageUrl === "string" ? imageUrl.trim() : "";
+  if (!raw || /^data:/i.test(raw)) return "";
+  if (raw.startsWith("//")) raw = `https:${raw}`;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    raw = parsed.href;
+  } catch {
+    return "";
+  }
   if (
-    /(?:favicon|sprite|pixel|1x1|tracking|badge\.svg|\.svg(?:\?|$)|\/icon[-_/]|\/icons\/|placeholder|data:image)/i.test(
+    /(?:favicon|\b1x1\b|pixel\.gif|pixel\.png|spacer\.gif|transparent\.gif|tracking[-_/])/i.test(
       raw,
     )
   ) {
@@ -142,7 +153,7 @@ export function normalizeLampImageUrl(imageUrl: string | undefined | null): stri
   return raw;
 }
 
-/** 등불 카드용 — 유효한 RSS/og 사진 URL이 있는지 (폴백 위성 제외) */
+/** 등불 카드용 — 기사에 붙은 이미지 URL이 있는지 (위성·그라데이션 폴백 제외) */
 export function hasLampPhoto(imageUrl: string | undefined | null): boolean {
   return normalizeLampImageUrl(imageUrl).length > 0;
 }

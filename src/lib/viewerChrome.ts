@@ -16,7 +16,10 @@ import {
 } from "@/lib/viewPackages";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { mergeConceptLayerPrefs } from "@/lib/conceptLayers";
-import { CRINK_INFRA_PREF_PATCH } from "@/lib/crinkInfraCatalog";
+import {
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 
 export type { ViewerMode };
 
@@ -144,29 +147,8 @@ export type ViewerChromePreset = {
 };
 
 const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
-  // 전선·분쟁 + 해상 항로 + CRINK OSM 인프라
-  showUkraineControl: true,
-  showUkraineStrikesOnRussia: true,
-  showWarZones: true,
-  showGdeltWar: true,
-  showGdeltDiplomatic: true,
-  showMilitaryActivity: true,
-  showAis: true,
-  showLogisticsRisk: true,
+  ...FIRST_SCREEN_CONFLICT_ON,
   showLogisticsStress: true,
-  showShippingLanes: true,
-  showPorts: true,
-  showFirmsFires: true,
-  showUkmtoIncidents: true,
-  showNavareaWarnings: true,
-  showNeptun: true,
-  showNeptunPreviousTrails: false,
-  showTelegramOsint: true,
-  showNewfeedsIranAttacks: true,
-  ...CONFLICT_CONFRONTATION_LAYER_ON,
-  ...CONFLICT_CRINK_STRATEGIC_ON,
-  ...CRINK_INFRA_PREF_PATCH,
-  ...CONFLICT_RESOURCE_HERO_ON,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
@@ -178,6 +160,8 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showGscpiGauge: false,
   showGdeltProtests: false,
   showGdeltOceanCompetition: false,
+  /** 도시명 — 레이어 체크박스 ON 전까지 숨김 */
+  showCityLabels: false,
   /** CRINK 축·전략미사일은 CONFLICT_CRINK_STRATEGIC_ON */
   showMissileTestSites: false,
   showMissileSiloFields: false,
@@ -185,19 +169,9 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
-  // 물류망·항로·CRINK OSM — 공항/ADS-B/케이블/AI DC/매장지 OFF
-  showAis: true,
-  showLogisticsRisk: true,
+  ...FIRST_SCREEN_ECONOMY_ON,
   showLogisticsStress: true,
   showGscpiGauge: true,
-  showCriticalNodes: true,
-  showPorts: true,
-  showShippingLanes: true,
-  ...CRINK_INFRA_PREF_PATCH,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showBriTradeConnectivity: true,
-  showStrategicCorridors: true,
-  showUsDfcSupplyChain: true,
 };
 
 /**
@@ -297,14 +271,11 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "지명 · 국가 · 분쟁 검색",
     navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
-    modePickerTagline: "전선 · GDELT · Telegram OSINT",
+    modePickerTagline: "전선 · NEPTUN · 항모",
     modePickerBullets: [
-      "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
-      "GDELT 전투·외교 뉴스 핀",
-      "Telegram OSINT · VIINA 전선 · 우크라→러 타격",
-      "A2AD 도련선 · ADIZ · 한·일·대만·필·호주·동유럽 기지 · 항모",
-      "CRINK 축 · 중·러 전략미사일 · 항로 · CRINK OSM",
-      "하단: 속보 + GDELT 범례",
+      "우크라 전선 · NEPTUN 공습/드론",
+      "항모 위치 · 이란 타격 속보",
+      "전장에 들어가면 기지·GDELT·텔레그램이 따라 켜집니다",
     ],
     layerPanelTitle: "레이어 · 전선",
   },
@@ -329,9 +300,8 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerTagline: "유가 · VIX · 제재 · 물류",
     modePickerBullets: [
       "주요 증시·VIX·유가 티커",
-      "경제 RSS · 에너지·해운·제재 속보",
-      "물류 히어로: 항로 · CRINK OSM · 항구 · AIS · 가스관 · LNG · BRI/DFC",
-      "하단: 티커 + 시장 속보",
+      "항로 · 항구 · 물류 리스크 · BRI/DFC",
+      "허브에 들어가면 에너지·CRINK 인프라가 따라 켜집니다",
     ],
     layerPanelTitle: "인프라 · 시장",
   },
@@ -356,11 +326,8 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
     }
   }
 
-  // 캡으로 잘려도 모드별 자원 히어로 + 대치(미군기지·항모) 다시 ON
-  return ensureConfrontationLayersOn(
-    ensureResourceLayersOn(capLayerCountForMode(next, mode), mode),
-    mode,
-  );
+  // 캡만 적용. 대치·자원 히어로는 전장/허브 진입(conceptLayers)에서 켠다.
+  return capLayerCountForMode(next, mode);
 }
 
 export type ApplyViewerModeResult = {
@@ -382,14 +349,8 @@ export function applyViewerMode(
   const effectiveHub = mode === "economy" ? economyHub : "auto";
   const mergedBase = applyViewPackages(packages, effectiveTheater, effectiveHub);
   const chromeLayers = mergeChromeLayers(mergedBase.layers, mode);
-  const conceptLayers = ensureConfrontationLayersOn(
-    ensureResourceLayersOn(
-      capLayerCountForMode(
-        mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
-        mode,
-      ),
-      mode,
-    ),
+  const conceptLayers = capLayerCountForMode(
+    mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
     mode,
   );
   saveLayerPrefs(conceptLayers);

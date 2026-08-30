@@ -1072,6 +1072,99 @@ export const STRATEGIC_CORRIDORS: StrategicCorridor[] = [
       { lat: 38.74, lng: 125.41, name: "Nampo, DPRK (intended destination)" },
     ],
   },
+  {
+    id: "allied-indopacom-reinforcement",
+    nameKo: "미 인도태평양사령부 증원선 (진주만–괌–요코스카/사세보)",
+    nameEn: "US INDOPACOM reinforcement line (Pearl Harbor–Guam–Yokosuka/Sasebo)",
+    mode: "sea",
+    category: "military-logistics",
+    status: "operational",
+    sources: [
+      "https://www.pacom.mil/",
+      "https://en.wikipedia.org/wiki/United_States_Indo-Pacific_Command",
+      "USNI News Fleet and Marine Tracker",
+    ],
+    note:
+      "미 태평양함대 모항(진주만)에서 서태평양 전진기지(괌·요코스카·사세보)로 이어지는 " +
+      "공개적으로 확인된 병참·증원 축. CRINK 축 지도(axisNetwork)의 대칭항으로 표시.",
+    waypoints: [
+      { lat: 21.35, lng: -157.95, name: "Pearl Harbor, HI" },
+      { lat: 28.2, lng: -177.35, name: "Midway Atoll" },
+      { lat: 13.45, lng: 144.65, name: "Apra Harbor, Guam" },
+      { lat: 33.17, lng: 129.71, name: "Sasebo, Japan" },
+      { lat: 35.29, lng: 139.67, name: "Yokosuka, Japan" },
+    ],
+  },
+  {
+    id: "allied-indian-ocean-reinforcement",
+    nameKo: "미 인도양 증원선 (진주만–괌–싱가포르–디에고가르시아)",
+    nameEn: "US Indian Ocean reinforcement line (Pearl Harbor–Guam–Singapore–Diego Garcia)",
+    mode: "sea",
+    category: "military-logistics",
+    status: "operational",
+    sources: [
+      "https://en.wikipedia.org/wiki/Diego_Garcia",
+      "https://en.wikipedia.org/wiki/Naval_Support_Facility_Diego_Garcia",
+    ],
+    note:
+      "말라카 해협을 지나 디에고가르시아(B-52·잠수함 지원기지)로 이어지는 서태평양–인도양 증원 축. " +
+      "choke-malacca 통과.",
+    waypoints: [
+      { lat: 21.35, lng: -157.95, name: "Pearl Harbor, HI" },
+      { lat: 13.45, lng: 144.65, name: "Apra Harbor, Guam" },
+      { lat: 1.32, lng: 104.02, name: "Singapore Strait" },
+      { lat: 1.46, lng: 103.83, name: "Sembawang, Singapore" },
+      { lat: -7.31, lng: 72.41, name: "Diego Garcia" },
+    ],
+  },
+  {
+    id: "allied-uk-gulf-corridor",
+    nameKo: "영국 본토–걸프 병참 회랑 (포츠머스–지브롤터–수에즈–바브엘만데브–바레인)",
+    nameEn: "UK home fleet–Gulf logistics corridor (Portsmouth–Gibraltar–Suez–Bab el-Mandeb–Bahrain)",
+    mode: "sea",
+    category: "military-logistics",
+    status: "operational",
+    sources: [
+      "https://en.wikipedia.org/wiki/Naval_Support_Facility_Bahrain",
+      "https://www.royalnavy.mod.uk/",
+      "https://en.wikipedia.org/wiki/Camp_Lemonnier",
+    ],
+    note:
+      "영 해군 본토 기지(포츠머스·데번포트·클라이드)에서 지중해·수에즈·홍해를 거쳐 " +
+      "바레인·듀쿰 상시 주둔 거점으로 이어지는 공개적으로 확인된 병참선. " +
+      "지브롤터·수에즈·바브엘만데브 3개 초크포인트를 순서대로 통과 — choke-gibraltar/choke-suez/choke-bab-el-mandeb.",
+    waypoints: [
+      { lat: 50.8, lng: -1.11, name: "Portsmouth, UK" },
+      { lat: 36.14, lng: -5.35, name: "Gibraltar" },
+      { lat: 31.26, lng: 32.3, name: "Port Said (Suez Canal, north)" },
+      { lat: 29.93, lng: 32.55, name: "Suez (Suez Canal, south)" },
+      { lat: 12.6, lng: 43.4, name: "Bab el-Mandeb Strait" },
+      { lat: 11.55, lng: 43.16, name: "Djibouti (Camp Lemonnier)" },
+      { lat: 26.21, lng: 50.61, name: "NSA Bahrain" },
+      { lat: 19.65, lng: 57.7, name: "Duqm, Oman" },
+    ],
+  },
+  {
+    id: "allied-fpda-patrol-line",
+    nameKo: "5개국방위협정 잠수함 초계선 (셈바왕–호주 서부함대사령부)",
+    nameEn: "FPDA submarine patrol line (Sembawang–Fleet Base West, Australia)",
+    mode: "sea",
+    category: "military-logistics",
+    status: "reported",
+    sources: [
+      "https://en.wikipedia.org/wiki/Five_Power_Defence_Arrangements",
+      "https://en.wikipedia.org/wiki/HMAS_Stirling",
+    ],
+    note:
+      "1971년 체결된 FPDA(영·호주·뉴질랜드·말레이시아·싱가포르) 틀 안에서 보도되는 " +
+      "말라카 해협 인근 서방 잠수함 초계 활동 경로 — 상시 고정 노선이 아닌 보고 기반 근사.",
+    waypoints: [
+      { lat: 1.46, lng: 103.83, name: "Sembawang, Singapore" },
+      { lat: 1.32, lng: 104.02, name: "Singapore Strait" },
+      { lat: -12.0, lng: 110.0, name: "Eastern Indian Ocean" },
+      { lat: -32.23, lng: 115.68, name: "Fleet Base West (HMAS Stirling), Australia" },
+    ],
+  },
 ];
 
 export function findCorridor(id: string): StrategicCorridor | undefined {

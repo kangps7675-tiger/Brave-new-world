@@ -2,12 +2,17 @@ import type { IntelTheaterFilter } from "@/lib/news/theaterMap";
 import { flyTargetForTheater, type MapFlyTarget } from "@/lib/news/theaterMap";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { economyHubLabel } from "@/lib/autoFlyTarget";
+import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
 import {
   DEFAULT_LAYER_PREFS,
   loadLayerPrefs,
   saveLayerPrefs,
   type LayerPrefs,
 } from "@/lib/layerPrefs";
+import {
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 export const VIEW_CONFIG_KEY = "geowatch-view-config-v1";
 
 export type ViewIntelTab = "news" | "video" | "telegram" | "viina";
@@ -86,27 +91,7 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
     tagline: "영토·뉴스·OSINT",
     description: "전쟁·외교 긴장 · GDELT 뉴스 · 텔레그램 OSINT",
     layers: {
-      showWarZones: true,
-      showDiplomaticTension: true,
-      showConflictZones: true,
-      showGdeltWar: true,
-      showGdeltDiplomatic: true,
-      showGdeltOceanCompetition: false,
-      showTelegramOsint: true,
-      showUkraineControl: false,
-      showMilitaryBases: true,
-      showRokMilitaryBases: true,
-      showJapanMilitaryBases: true,
-      showTaiwanMilitaryBases: true,
-      showPhilippinesMilitaryBases: true,
-      showAustraliaMilitaryBases: true,
-      showEasternNatoMilitaryBases: true,
-      showEastAsiaAdiz: true,
-      showIslandChains: true,
-      showUsCarriers: true,
-      showAxisNetwork: true,
-      showMissileSilos: true,
-      showStrategicMissileBases: true,
+      ...FIRST_SCREEN_CONFLICT_ON,
     },
     ui: {
       showTicker: false,
@@ -120,55 +105,7 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
     tagline: "유가·VIX·제재",
     description: "VIX · 유가 · 금 · 제재 · 에너지",
     layers: {
-      showWarZones: false,
-      showDiplomaticTension: false,
-      showAis: true,
-      showAirTraffic: false,
-      showLogisticsRisk: true,
-      showCriticalNodes: true,
-      showSubmarineCables: false,
-      showOilPipelines: false,
-      showGasPipelines: true,
-      showLngTerminals: true,
-      showSubseaPipelines: false,
-      showResources: false,
-      showGemOilGasExtraction: false,
-      showGemCoalMines: false,
-      showGemIronOre: false,
-      showNuclearSites: false,
-      showAiDataCenters: false,
-      showPorts: true,
-      showAirports: false,
-      showShippingLanes: true,
-      showBriTradeConnectivity: true,
-      showStrategicCorridors: true,
-      showUsDfcSupplyChain: true,
-      showCrinkInfraRail: true,
-      showCrinkInfraRoad: true,
-      showCrinkInfraHarbour: true,
-      showCrinkInfraPower: true,
-      showCrinkInfraBorder: true,
-      showCrinkInfraDams: true,
-      showCrinkInfraAeroway: true,
-      showCrinkInfraCheckpoint: true,
-      showInternetExchanges: false,
-      showEconomicCenters: false,
-      showSubmarineTunnels: false,
-      showSanctionsEntities: false,
-      showGdeltWar: false,
-      showGdeltDiplomatic: false,
-      showGdeltAlliance: false,
-      showGdeltProtests: false,
-      showTelegramOsint: false,
-      showConflictZones: false,
-      showUkraineControl: false,
-      showNeptun: false,
-      showTzevaAdom: false,
-      showNewfeedsIranAttacks: false,
-      showUsCarriers: false,
-      showMilitaryActivity: false,
-      showMilitaryBases: false,
-      showDisguisedVessels: false,
+      ...FIRST_SCREEN_ECONOMY_ON,
     },
     ui: {
       showTicker: true,
@@ -180,58 +117,9 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
     id: "frontline-live",
     label: "전선 실시간",
     tagline: "우크라·중동",
-    description: "우크라 전선 · NEPTUN 공습/드론 · 타격 화염 · GDELT",
+    description: "우크라 전선 · NEPTUN · 항모",
     layers: {
-      showUkraineControl: true,
-      showUkraineStrikesOnRussia: true,
-      showWarZones: true,
-      showGdeltWar: true,
-      showGdeltDiplomatic: true,
-      showGdeltProtests: false,
-      showGdeltOceanCompetition: false,
-      showMilitaryActivity: true,
-      showAis: true,
-      showLogisticsRisk: true,
-      showAxisNetwork: true,
-      showSubmarineCables: false,
-      showNeptun: true,
-      showNeptunPreviousTrails: false,
-      showTzevaAdom: true,
-      showNewfeedsIranAttacks: true,
-      showTelegramOsint: true,
-      showUsCarriers: true,
-      showMilitaryBases: true,
-      showRokMilitaryBases: true,
-      showJapanMilitaryBases: true,
-      showTaiwanMilitaryBases: true,
-      showPhilippinesMilitaryBases: true,
-      showAustraliaMilitaryBases: true,
-      showEasternNatoMilitaryBases: true,
-      showEastAsiaAdiz: true,
-      showIslandChains: true,
-      showMissileSilos: true,
-      showStrategicMissileBases: true,
-      showDiplomaticTension: true,
-      showConflictZones: false,
-      showShippingLanes: true,
-      showPorts: true,
-      showCrinkInfraRail: true,
-      showCrinkInfraRoad: true,
-      showCrinkInfraHarbour: true,
-      showCrinkInfraPower: true,
-      showCrinkInfraBorder: true,
-      showCrinkInfraDams: true,
-      showCrinkInfraAeroway: true,
-      showCrinkInfraCheckpoint: true,
-      showOilPipelines: false,
-      showGasPipelines: false,
-      showLngTerminals: false,
-      showSubseaPipelines: false,
-      showResources: false,
-      showGemOilGasExtraction: false,
-      showGemCoalMines: false,
-      showGemIronOre: false,
-      showNuclearSites: false,
+      ...FIRST_SCREEN_CONFLICT_ON,
     },
     ui: {
       showTicker: false,
@@ -407,7 +295,7 @@ export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): Laye
 }
 
 function mergeLayersRaw(ids: ViewPackageId[]): LayerPrefs {
-  // DEFAULT_LAYER_PREFS — 우크라 전선·대러 타격 기본 ON
+  // DEFAULT_LAYER_PREFS — Compact 전선(우크라·NEPTUN·항모)
   const layers: LayerPrefs = { ...DEFAULT_LAYER_PREFS };
 
   for (const id of ids) {
@@ -589,13 +477,6 @@ export function resolveMergedViewConfig(): MergedViewConfig {
   };
 }
 
-const THEATER_TO_EXPLORATION_ID: Partial<Record<IntelTheaterFilter, string>> = {
-  korea: "korea",
-  "china-taiwan": "taiwan",
-  "russia-ukraine": "ukraine",
-  "middle-east": "middle-east",
-};
-
 export function resolveIntroFlyTarget(input: {
   viewerMode?: ViewerMode;
   theater: ViewTheaterChoice;
@@ -612,26 +493,17 @@ export function resolveIntroFlyTarget(input: {
     return { kind: "exploration", presetId: hubId };
   }
 
-  if (input.theater !== "auto" && input.theater !== "all") {
-    return flyTargetForTheater(input.theater);
+  // 지정학(인텔) — 초반·자동 전장은 무조건 전역 궤도 (핫 지역 자동 fly 금지)
+  if (input.theater === "auto" || input.theater === "all") {
+    return {
+      kind: "coords",
+      lat: 18,
+      lng: 20,
+      altitude: GLOBAL_BOOT_ALTITUDE,
+    };
   }
 
-  if (input.topAlert) {
-    return { kind: "coords", lat: input.topAlert.lat, lng: input.topAlert.lng, altitude: 1.78 };
-  }
-
-  const presetId =
-    input.conflictNavId ??
-    (input.theater !== "auto" && input.theater !== "all"
-      ? THEATER_TO_EXPLORATION_ID[input.theater]
-      : undefined) ??
-    "ukraine";
-
-  if (presetId) {
-    return { kind: "exploration", presetId };
-  }
-
-  return null;
+  return flyTargetForTheater(input.theater);
 }
 
 export function summarizeViewSelection(
@@ -670,7 +542,7 @@ export function previewModeSelection(
       VIEW_THEATER_OPTIONS.find((opt) => opt.id === theater)?.label ?? "자동";
     bullets.push(`시작 시 ${theaterLabel} 전장으로 카메라 이동`);
   } else if (mode === "conflict") {
-    bullets.push("시작 시 가장 뜨거운 충돌지로 자동 이동");
+    bullets.push("시작 시 지구본 전역 궤도 유지 (핫 지역 자동 이동 없음)");
   } else if (economyHub !== "auto") {
     bullets.push(`시작 시 ${economyHubLabel(economyHub)} 허브로 카메라 이동`);
   } else {

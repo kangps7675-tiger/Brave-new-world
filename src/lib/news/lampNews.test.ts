@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { hasLampPhoto, normalizeLampImageUrl } from "./lampThumbnail";
 import {
   ensureLampFeaturedNews,
   isNaturalDisasterNews,
@@ -28,7 +29,7 @@ describe("pickConflictLampNews", () => {
     ...partial,
   });
 
-  it("실사진 없는 기사는 선정하지 않는다", () => {
+  it("첨부 사진 없는 기사는 선정하지 않는다", () => {
     const picked = pickConflictLampNews(
       [
         base({ id: "photo", imageUrl: "https://cdn.example.com/a.jpg" }),
@@ -63,5 +64,45 @@ describe("pickConflictLampNews", () => {
     );
     expect(picked.map((n) => n.id)).toContain("quake");
     expect(ensureLampFeaturedNews(picked).length).toBe(picked.length);
+  });
+
+  it("기사에 붙은 SVG·CMS 경로 이미지도 선정한다", () => {
+    const picked = pickConflictLampNews(
+      [
+        base({
+          id: "infographic",
+          imageUrl: "https://cdn.example.com/graphics/frontline-map.svg",
+        }),
+        base({
+          id: "cms",
+          title: "Artillery barrage hits supply depot",
+          link: "https://www.reuters.com/world/europe/artillery-barrage-supply-depot-2026-03-02/",
+          imageUrl: "https://media.example.com/placeholder/2026/hero.jpg",
+        }),
+      ],
+      2,
+      "ko",
+    );
+    expect(picked.map((n) => n.id)).toEqual(expect.arrayContaining(["infographic", "cms"]));
+  });
+});
+
+describe("normalizeLampImageUrl", () => {
+  it("기사에 붙은 사진 URL은 통과한다", () => {
+    expect(hasLampPhoto("https://cdn.example.com/story.jpg")).toBe(true);
+    expect(hasLampPhoto("https://cdn.example.com/graphics/map.svg")).toBe(true);
+    expect(hasLampPhoto("https://media.example.com/placeholder/hero.jpg")).toBe(true);
+    expect(hasLampPhoto("https://cdn.example.com/icons/story-thumb.webp")).toBe(true);
+    expect(normalizeLampImageUrl("//cdn.example.com/og.jpg")).toBe(
+      "https://cdn.example.com/og.jpg",
+    );
+  });
+
+  it("파비콘·트래킹 픽셀만 탈락한다", () => {
+    expect(hasLampPhoto("https://www.example.com/favicon.ico")).toBe(false);
+    expect(hasLampPhoto("https://pixel.example.com/1x1.gif")).toBe(false);
+    expect(hasLampPhoto("https://cdn.example.com/tracking-pixel.gif")).toBe(false);
+    expect(hasLampPhoto("")).toBe(false);
+    expect(hasLampPhoto("data:image/png;base64,abc")).toBe(false);
   });
 });

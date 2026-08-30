@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * 6시간 등불 — 양 패키지 합산 + og:image 추가 보강 + 사진 있는 핫뉴스만 반환.
+ * 6시간 등불 — 양 패키지 합산 + og:image 추가 보강 + 기사에 붙은 사진이 있는 핫뉴스만 반환.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);

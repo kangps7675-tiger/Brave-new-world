@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
 import type { MutableRefObject, RefObject } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
-import { clampGlobeAltitude, MIN_GLOBE_ALTITUDE } from "@/lib/globeCamera";
+import { clampGlobeAltitude, MIN_GLOBE_ALTITUDE, GLOBAL_ORBIT_MAX_ALTITUDE, globeDistanceForAltitude } from "@/lib/globeCamera";
 import {
   altitudeToMapLibreZoom,
   globeViewToMapLibre,
@@ -89,7 +89,7 @@ export function createMapGlobeMethods(
     enableDamping: true,
     dampingFactor: 0.08,
     minDistance: 0,
-    maxDistance: 850,
+    maxDistance: globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE),
     autoRotate: false,
     autoRotateSpeed: 0.18,
     enableZoom: true,

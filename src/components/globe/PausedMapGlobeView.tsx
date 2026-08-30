@@ -22,6 +22,7 @@ export const PausedMapGlobeView = memo(
     if (
       prev.basemapMode !== next.basemapMode ||
       prev.ultraLite !== next.ultraLite ||
+      prev.showCityLabels !== next.showCityLabels ||
       prev.mapStyleUrl !== next.mapStyleUrl
     ) {
       return false;

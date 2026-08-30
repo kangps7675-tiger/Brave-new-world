@@ -1,0 +1,87 @@
+[
+  {
+    "id": "front-uk-faslane",
+    "kind": "military-base",
+    "name": "HMNB Clyde (Faslane)",
+    "lat": 56.0672,
+    "lng": -4.8163,
+    "tier": 1,
+    "meta": {
+      "country": "United Kingdom",
+      "iso": "GB",
+      "theater": "uk-home-fleet",
+      "branch": "naval",
+      "operator": "Royal Navy",
+      "note": "영 SSBN(트라이던트) 모항 — Vanguard/Dreadnought급 전략핵잠수함 기지",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-uk-devonport",
+    "kind": "military-base",
+    "name": "HMNB Devonport (Plymouth)",
+    "lat": 50.3844,
+    "lng": -4.1811,
+    "tier": 1,
+    "meta": {
+      "country": "United Kingdom",
+      "iso": "GB",
+      "theater": "uk-home-fleet",
+      "branch": "naval",
+      "operator": "Royal Navy",
+      "note": "서유럽 최대 해군기지 — 수상함·원자력잠수함 정비창",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-uk-portsmouth",
+    "kind": "military-base",
+    "name": "HMNB Portsmouth",
+    "lat": 50.8038,
+    "lng": -1.1097,
+    "tier": 1,
+    "meta": {
+      "country": "United Kingdom",
+      "iso": "GB",
+      "theater": "uk-home-fleet",
+      "branch": "naval",
+      "operator": "Royal Navy",
+      "note": "퀸엘리자베스급 항모 모항",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-gi-gibraltar",
+    "kind": "military-base",
+    "name": "Gibraltar Naval Base (HMS Rooke)",
+    "lat": 36.1358,
+    "lng": -5.354,
+    "tier": 2,
+    "meta": {
+      "country": "Gibraltar (UK)",
+      "iso": "GI",
+      "theater": "uk-home-fleet",
+      "branch": "naval",
+      "operator": "Royal Navy",
+      "note": "지브롤터 해협 초크포인트 관제 거점",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-sg-sembawang",
+    "kind": "military-base",
+    "name": "Sembawang Wharves (FPDA)",
+    "lat": 1.4636,
+    "lng": 103.8305,
+    "tier": 2,
+    "meta": {
+      "country": "Singapore",
+      "iso": "SG",
+      "theater": "fpda",
+      "branch": "naval",
+      "operator": "Five Power Defence Arrangements (UK/AU/NZ 로지스틱스 접근)",
+      "note": "1971 FPDA 체제 — 말라카 해협 인접 서방 해군 접근 거점",
+      "source": "seed-frontline"
+    }
+  }
+]

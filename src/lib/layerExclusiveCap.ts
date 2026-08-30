@@ -159,14 +159,12 @@ export function enableLayerEvictingCap(
 }
 
 /**
- * prefs가 캡을 넘으면 우선순위 밖·뒤쪽 ON을 끈다.
+ * prefs를 **임의 상한**으로 자른다 — 우선순위(LAYER_CAP_KEEP_PRIORITY) 앞쪽을 남긴다.
+ *
+ * 첫 화면 예산처럼 일반 캡보다 훨씬 작은 값이 필요할 때 쓴다.
  */
-export function clampPrefsToActiveCap(
-  prefs: LayerPrefs,
-  ultraLite: boolean,
-): LayerPrefs {
-  const cap = activeLayerCap(ultraLite);
-  if (!Number.isFinite(cap) || countActiveLayers(prefs) <= cap) return prefs;
+export function clampPrefsToLimit(prefs: LayerPrefs, limit: number): LayerPrefs {
+  if (!Number.isFinite(limit) || countActiveLayers(prefs) <= limit) return prefs;
 
   const next = { ...prefs };
   const onKeys = (Object.keys(next) as Array<keyof LayerPrefs>).filter(
@@ -183,9 +181,24 @@ export function clampPrefsToActiveCap(
     return String(a).localeCompare(String(b));
   });
 
-  for (let i = cap; i < onKeys.length; i += 1) {
+  for (let i = limit; i < onKeys.length; i += 1) {
     const key = onKeys[i];
     (next as Record<string, boolean | string>)[key as string] = false;
   }
   return next;
+}
+
+/**
+ * prefs가 캡을 넘으면 우선순위 밖·뒤쪽 ON을 끈다.
+ *
+ * ⚠️ **클램프는 항상 마지막이어야 한다.**
+ * 클램프 뒤에 `ensure*Layers` 같은 강제 ON을 실행하면 방금 자른 것이 되살아나
+ * 상한이 무의미해진다. 실제로 `buildDomainOverviewPrefs`가 그 구조라
+ * 부팅 시 30개(=상한 전부)가 한꺼번에 켜져 저사양 기기에서 프론트가 죽었다.
+ */
+export function clampPrefsToActiveCap(
+  prefs: LayerPrefs,
+  ultraLite: boolean,
+): LayerPrefs {
+  return clampPrefsToLimit(prefs, activeLayerCap(ultraLite));
 }

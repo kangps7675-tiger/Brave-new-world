@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchDataWithFallback } from "@/lib/dataProfile";
+import { runWhenIdle } from "@/lib/deferIdle";
 
 export function useLazyJsonArray<T>(
   relativePath: string,
@@ -42,34 +43,48 @@ export function useLazyJsonObject<T>(
   relativePath: string,
   enabled: boolean,
   parse: (raw: unknown) => T,
+  opts?: { deferUntilIdle?: boolean },
 ) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const loadedRef = useRef(false);
+  const deferUntilIdle = Boolean(opts?.deferUntilIdle);
 
   useEffect(() => {
     if (!enabled || loadedRef.current) return;
     let mounted = true;
     setLoading(true);
 
-    fetchDataWithFallback(relativePath, { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return parse(await response.json());
-      })
-      .then((parsed) => {
-        if (!mounted || !parsed) return;
-        setData(parsed);
-        loadedRef.current = true;
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+    const start = () => {
+      if (!mounted || loadedRef.current) return;
+      fetchDataWithFallback(relativePath, { cache: "no-store" })
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return parse(await response.json());
+        })
+        .then((parsed) => {
+          if (!mounted || !parsed) return;
+          setData(parsed);
+          loadedRef.current = true;
+        })
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
+    };
 
+    if (!deferUntilIdle) {
+      start();
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const cancelIdle = runWhenIdle(start, 4_000);
     return () => {
       mounted = false;
+      cancelIdle();
     };
-  }, [enabled, relativePath, parse]);
+  }, [deferUntilIdle, enabled, relativePath, parse]);
 
   return { data, loading };
 }

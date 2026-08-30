@@ -1,5 +1,5 @@
 /**
- * 6시간 등불 — 뉴스 풀 og:image 보강 후 사진 있는 기사만 선정.
+ * 6시간 등불 — 뉴스 풀 og:image 보강 후 기사에 붙은 사진이 있는 것만 선정.
  */
 
 import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";

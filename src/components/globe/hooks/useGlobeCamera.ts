@@ -18,6 +18,7 @@ import {
   clampGlobeAltitude,
   globeDistanceForAltitude,
   MIN_GLOBE_ALTITUDE,
+  GLOBAL_ORBIT_MAX_ALTITUDE,
   COMPACT_THEATER_MAX_SPAN_DEG,
   ORBITAL_OVERVIEW_ALTITUDE,
   THEATER_ENTRY_MIN_ALTITUDE,
@@ -176,7 +177,7 @@ export function useGlobeCamera({
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = globeDistanceForAltitude(MIN_GLOBE_ALTITUDE);
-    controls.maxDistance = 850;
+    controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
     controls.autoRotateSpeed = 0.18;
     controls.autoRotate = globeSpinEnabledRef.current;
     // controls()는 더 이상 apply하지 않음 — 로드 직후 한계를 한 번 더 심는다
@@ -475,7 +476,7 @@ export function useGlobeCamera({
         );
       }
     } else {
-      controls.maxDistance = 720;
+      controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
       controls.enableZoom = true;
       controls.enablePan = true;
       controls.enableRotate = true;

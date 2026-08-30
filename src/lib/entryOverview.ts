@@ -3,22 +3,15 @@ import {
   type LayerPrefs,
   type LabelLanguage,
 } from "@/lib/layerPrefs";
-import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
+import { activeLayerCap, clampPrefsToLimit } from "@/lib/layerExclusiveCap";
+import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
 import {
-  CONFLICT_CONFRONTATION_LAYER_ON,
-  CONFLICT_CRINK_STRATEGIC_ON,
-  CONFLICT_RESOURCE_HERO_ON,
-  ECONOMY_RESOURCE_HERO_ON,
-  ensureConfrontationLayersOn,
-  ensureResourceLayersOn,
-} from "@/lib/viewerChrome";
-import { CRINK_INFRA_PREF_PATCH } from "@/lib/crinkInfraCatalog";
-import {
-  RED_SEA_HOUTHI_STACK,
-} from "@/lib/hotTheaterLayers";
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 
 /**
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
@@ -62,6 +55,9 @@ export const ENTRY_GATE: {
    ENTRY_GATE로 대체된 뒤 자기 파일 외 참조가 0건인 채 남아 있던 별칭이다.
    필요하면 ENTRY_GATE.zoomOutAltitude / bootLookAt / zoomOutFlyMs를 직접 쓸 것. */
 
+/** 첫 화면 예산 — SSOT는 `geowatch.config.caps.firstScreenMaxLayers` */
+export const FIRST_SCREEN_MAX_LAYERS = GEOWATCH_CONFIG.caps.firstScreenMaxLayers;
+
 function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   const next = { ...base };
   for (const key of Object.keys(next) as (keyof LayerPrefs)[]) {
@@ -72,43 +68,21 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 전선·해상 항로·CRINK OSM. 케이블·원자력·시위는 기본 OFF */
+/** 지정학 첫 화면 — Compact `전선` 칩. 기지·CRINK·GDELT는 전장 진입 시 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
-  ...RED_SEA_HOUTHI_STACK,
-  showUkraineControl: true,
-  showUkraineStrikesOnRussia: true,
-  showNeptun: true,
-  showNeptunPreviousTrails: false,
-  showWarZones: true,
-  showGdeltWar: true,
-  showGdeltDiplomatic: true,
-  showMilitaryActivity: true,
-  showAis: true,
-  showLogisticsRisk: true,
-  showShippingLanes: true,
-  showNewfeedsIranAttacks: true,
-  ...CONFLICT_CONFRONTATION_LAYER_ON,
-  ...CONFLICT_CRINK_STRATEGIC_ON,
-  ...CRINK_INFRA_PREF_PATCH,
-  ...CONFLICT_RESOURCE_HERO_ON,
+  ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 지경학 히어로 — 항로·항구·CRINK OSM·공급망·에너지 물류 */
+/** 지경학 첫 화면 — Compact `항로` 칩. 에너지·매장지는 칩/허브에서 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
-  showAis: true,
-  showLogisticsRisk: true,
-  showCriticalNodes: true,
-  showPorts: true,
-  showShippingLanes: true,
-  ...CRINK_INFRA_PREF_PATCH,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showBriTradeConnectivity: true,
-  showStrategicCorridors: true,
-  showUsDfcSupplyChain: true,
+  ...FIRST_SCREEN_ECONOMY_ON,
 };
 
 /**
  * 도메인 게이트 직후 첫 화면용 레이어.
+ *
+ * 장면 칩 하나만 켠다. 기지·ADIZ·CRINK·텔레그램은 전장/허브 진입 때
+ * conceptLayers가 붙인다. 클램프는 항상 마지막.
  */
 export function buildDomainOverviewPrefs(
   mode: ViewerMode,
@@ -117,42 +91,23 @@ export function buildDomainOverviewPrefs(
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
   let next = allBooleanLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
 
-  if (mode === "conflict") {
-    next = { ...next, ...CONFLICT_HERO_ON };
-  } else {
-    next = { ...next, ...ECONOMY_HERO_ON };
-  }
+  next =
+    mode === "conflict"
+      ? { ...next, ...CONFLICT_HERO_ON }
+      : { ...next, ...ECONOMY_HERO_ON };
 
   if (options?.ultraLite) {
     next = applyUltraLiteToLayerPrefs(next);
-    if (mode === "conflict") {
-      next = { ...next, ...CONFLICT_HERO_ON };
-    } else {
-      next = { ...next, ...ECONOMY_HERO_ON };
-    }
-    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode);
-    if (mode === "conflict") {
-      next = {
-        ...next,
-        showWarZones: true,
-        showDiplomaticTension: true,
-        showGdeltWar: true,
-      };
-      next = ensureConfrontationLayersOn(
-        ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode),
-        mode,
-      );
-    }
-  } else if (mode === "conflict") {
-    next = clampPrefsToActiveCap(next, false);
-    next = { ...next, ...CONFLICT_HERO_ON };
-    next = ensureConfrontationLayersOn(
-      ensureResourceLayersOn(clampPrefsToActiveCap(next, false), mode),
-      mode,
-    );
-  } else {
-    next = ensureResourceLayersOn(next, mode);
+    next =
+      mode === "conflict"
+        ? { ...next, ...CONFLICT_HERO_ON }
+        : { ...next, ...ECONOMY_HERO_ON };
+    next = applyUltraLiteToLayerPrefs(next);
   }
 
-  return next;
+  const budget = options?.ultraLite
+    ? Math.min(FIRST_SCREEN_MAX_LAYERS, activeLayerCap(true))
+    : FIRST_SCREEN_MAX_LAYERS;
+
+  return clampPrefsToLimit(next, budget);
 }

@@ -266,12 +266,18 @@ type GlobeLoadingScreenProps = {
   fading?: boolean;
   /** 부팅이 느림 — 상태 고지 문구 노출 (P1-2) */
   slow?: boolean;
+  /**
+   * 대시보드(MapLibre)가 이미 마운트됨 — 로딩 셰이더 rAF를 멈춰
+   * GPU·메인 스레드를 첫 지구본 프레임에 양보한다.
+   */
+  yieldGpu?: boolean;
 };
 
 export function GlobeLoadingScreen({
   progress,
   fading = false,
   slow = false,
+  yieldGpu = false,
 }: GlobeLoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef(progress);
@@ -283,17 +289,24 @@ export function GlobeLoadingScreen({
 
   useEffect(() => {
     let raf = 0;
-    const smooth = () => {
+    const tick = () => {
       const target = progressRef.current;
       const current = displayRef.current;
+      if (Math.abs(target - current) < 0.2) {
+        if (current !== target) {
+          displayRef.current = target;
+          setDisplayProgress(target);
+        }
+        return;
+      }
       const next = current + (target - current) * 0.12;
-      displayRef.current = Math.abs(target - next) < 0.2 ? target : next;
-      setDisplayProgress(displayRef.current);
-      raf = requestAnimationFrame(smooth);
+      displayRef.current = next;
+      setDisplayProgress(next);
+      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(smooth);
+    raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [progress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -301,15 +314,15 @@ export function GlobeLoadingScreen({
 
     /** P1-3: reduced-motion · 저코어 → 정적 / phone → fbm 2옥타브 */
     const plan = getLoadingShaderPlan();
-    if (!plan.useShader) {
-      setShaderFailed(true);
+    if (!plan.useShader || yieldGpu || fading) {
+      if (!plan.useShader) setShaderFailed(true);
       return;
     }
 
     const gl = canvas.getContext("webgl", {
       alpha: false,
       antialias: false,
-      powerPreference: "high-performance",
+      powerPreference: "low-power",
     });
     /**
      * P0-1: 예전에는 여기서 그냥 return했다 — 캔버스가 완전히 비어
@@ -344,7 +357,7 @@ export function GlobeLoadingScreen({
     const start = performance.now();
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       canvas.width = Math.max(1, Math.floor(w * dpr));
@@ -376,7 +389,7 @@ export function GlobeLoadingScreen({
       gl.deleteProgram(program);
       gl.deleteBuffer(buf);
     };
-  }, []);
+  }, [fading, yieldGpu]);
 
   const clamped = Math.min(100, Math.max(0, Math.round(displayProgress)));
   const stage = loadingStageLabel(clamped);

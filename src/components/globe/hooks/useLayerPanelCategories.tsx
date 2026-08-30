@@ -241,6 +241,7 @@ export type UseLayerPanelCategoriesArgs = {
   showEasternNatoMilitaryBases: boolean;
   visibleMilitaryBaseAreas: unknown[];
   setShowMilitaryBases: (v: boolean) => void;
+  setShowAlliedBlocs: (v: boolean) => void;
   setShowRokMilitaryBases: (v: boolean) => void;
   setShowJapanMilitaryBases: (v: boolean) => void;
   setShowTaiwanMilitaryBases: (v: boolean) => void;
@@ -512,6 +513,7 @@ export function useLayerPanelCategories({
   showEasternNatoMilitaryBases,
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
+  setShowAlliedBlocs,
   setShowRokMilitaryBases,
   setShowJapanMilitaryBases,
   setShowTaiwanMilitaryBases,
@@ -1929,6 +1931,16 @@ export function useLayerPanelCategories({
                 },
               ]),
           {
+            id: "allied-blocs",
+            label: "진영 블록 (NATO·AUKUS·CRINK·CSTO)",
+            detail: layerPrefs.showAlliedBlocs
+              ? "국가별 진영 소속 음영 (조약·통칭 기반)"
+              : "꺼짐",
+            checked: layerPrefs.showAlliedBlocs,
+            onChange: setShowAlliedBlocs,
+            accent: "blue",
+          },
+          {
             id: "refugee",
             label: "난민 캠프",
             detail: showRefugeeCamps ? "난민 수용 시설" : "꺼짐",
@@ -1953,6 +1965,7 @@ export function useLayerPanelCategories({
         onToggleAll: (enabled) =>
           toggleCategoryPrefs({
             showMilitaryBases: enabled,
+            showAlliedBlocs: enabled,
             showRokMilitaryBases: enabled ? showRokMilitaryBases : false,
             showJapanMilitaryBases: enabled ? showJapanMilitaryBases : false,
             showTaiwanMilitaryBases: enabled ? showTaiwanMilitaryBases : false,
