@@ -419,8 +419,8 @@ function PhotoNewsLampParchment({
                         ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
                         : "미·중·유럽 · 초크포인트(유가·물류) · 당일 핫"
                       : lang === "en"
-                        ? "Worldwide regional deep desk — clear photos · 6h refresh"
-                        : "전 세계 지역별 심층 — 선명 사진 · 6시간 갱신"}
+                        ? "Worldwide regional deep desk — article photos · 6h refresh"
+                        : "전 세계 지역별 심층 — 기사 사진 · 6시간 갱신"}
                   </p>
                 </div>
 
@@ -632,7 +632,7 @@ function LampCardHero({
 }) {
   const [imgFailed, setImgFailed] = useState(false);
   const src = normalizeLampImageUrl(imageUrl);
-  /** 언론사 RSS·og 실사진만 — 로드 실패 시에만 지역 컬러 면 */
+  /** 기사에 붙은 RSS·og 사진 — 로드 실패 시에만 지역 컬러 면 */
   const hasPhoto = Boolean(src) && !imgFailed;
   const theme = resolveLampThumbTheme({
     mode: isEconomy ? "economy" : "conflict",

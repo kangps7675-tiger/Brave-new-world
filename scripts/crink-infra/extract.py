@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -283,6 +284,153 @@ def emit_from_passes(
         )
 
 
+class CorridorFilteredTransportExtractor(osmium.SimpleHandler):
+    """Stream corridor-buffered transport ways using preloaded node coords (no PBF index)."""
+
+    def __init__(
+        self,
+        region_id: str,
+        writers: dict[str, object],
+        counts: dict[str, int],
+        active: frozenset[str],
+        grids: dict[str, tuple],
+        node_locs: dict[int, tuple[float, float]],
+        seen: set[tuple[str, int]],
+    ):
+        super().__init__()
+        self.region_id = region_id
+        self.writers = writers
+        self.counts = counts
+        self.active = active
+        self.grids = grids
+        self.node_locs = node_locs
+        self.seen = seen
+        self._ways = 0
+
+    def way(self, w: osmium.Way):
+        self._ways += 1
+        cat = categorize(w.tags, self.active)
+        if cat not in ("rail", "road"):
+            return
+        key = (cat, w.id)
+        if key in self.seen:
+            return
+        try:
+            nids = [n.ref for n in w.nodes]
+        except Exception:
+            return
+        coords = [self.node_locs[i] for i in nids if i in self.node_locs]
+        if len(coords) < 2:
+            return
+        geom_coords = [[c[0], c[1]] for c in coords]
+        from corridor_geo import coords_near_corridor  # noqa: WPS433
+
+        grid, by_id = self.grids[cat]
+        if not coords_near_corridor(geom_coords, cat, grid, by_id):
+            return
+        self.seen.add(key)
+        write_feature(
+            self.writers,
+            self.counts,
+            cat,
+            self.region_id,
+            "way",
+            w.id,
+            {"type": "LineString", "coordinates": geom_coords},
+            tags_dict(w.tags),
+        )
+
+
+class BboxNodeCollector(osmium.SimpleHandler):
+    def __init__(self, bbox: tuple[float, float, float, float]):
+        super().__init__()
+        self.bbox = bbox
+        self.locs: dict[int, tuple[float, float]] = {}
+        self._seen = 0
+
+    def node(self, n: osmium.Node):
+        self._seen += 1
+        if self._seen % 20_000_000 == 0:
+            print(f"[extract] tile nodes ... ~{self._seen // 1_000_000}M", flush=True)
+        if not n.location.valid():
+            return
+        lat, lon = n.location.lat, n.location.lon
+        min_lat, min_lon, max_lat, max_lon = self.bbox
+        if min_lat <= lat <= max_lat and min_lon <= lon <= max_lon:
+            self.locs[n.id] = (lon, lat)
+
+
+def extract_region_corridor_tiled(
+    pbf_path: Path,
+    region_id: str,
+    out_dir: Path,
+    categories: tuple[str, ...],
+) -> dict[str, int]:
+    """Tile by corridor bbox; 2-pass/tile without building a full-PBF location index."""
+    from corridor_geo import build_corridor_index, corridor_bboxes, load_land_corridors  # noqa: WPS433
+
+    active = frozenset(categories)
+    land = load_land_corridors()
+    grids: dict[str, tuple] = {}
+    for cat in categories:
+        want_key = "want_rail" if cat == "rail" else "want_road"
+        _rel, by_id, grid = build_corridor_index(land, want_key)
+        grids[cat] = (grid, by_id)
+
+    boxes = corridor_bboxes()
+    print(f"[extract] {region_id} corridor tiles: {len(boxes)}", flush=True)
+
+    writers: dict[str, object] = {}
+    counts = {c: 0 for c in categories}
+    for cat in categories:
+        writers[cat] = (out_dir / f"{region_id}-{cat}.geojsonl").open("w", encoding="utf-8")
+
+    seen: set[tuple[str, int]] = set()
+    try:
+        for ti, bbox in enumerate(boxes, 1):
+            print(
+                f"[extract] tile {ti}/{len(boxes)} bbox="
+                f"[{bbox[0]:.2f},{bbox[1]:.2f}]-[{bbox[2]:.2f},{bbox[3]:.2f}]",
+                flush=True,
+            )
+            nodes = BboxNodeCollector(bbox)
+            nodes.apply_file(str(pbf_path), locations=False)
+            print(f"[extract] tile {ti} nodes in bbox: {len(nodes.locs)}", flush=True)
+            if not nodes.locs:
+                continue
+            ways = CorridorFilteredTransportExtractor(
+                region_id, writers, counts, active, grids, nodes.locs, seen
+            )
+            ways.apply_file(str(pbf_path), locations=False)
+            print(
+                f"[extract] tile {ti} totals: rail={counts.get('rail', 0)} road={counts.get('road', 0)}",
+                flush=True,
+            )
+            del nodes
+    finally:
+        for w in writers.values():
+            w.close()
+
+    for cat in categories:
+        src = out_dir / f"{region_id}-{cat}.geojsonl"
+        dst = out_dir / f"{region_id}-clipped-{cat}.geojsonl"
+        if src.is_file():
+            shutil.copy2(src, dst)
+
+    print(f"[extract] {region_id} counts:", counts, flush=True)
+    return counts
+
+
+def extract_region_corridor_filtered(
+    pbf_path: Path,
+    region_id: str,
+    out_dir: Path,
+    categories: tuple[str, ...],
+) -> dict[str, int]:
+    """Delegate to tiled extract — sparse_file_array index OOMs on 15GB asia PBF."""
+    return extract_region_corridor_tiled(pbf_path, region_id, out_dir, categories)
+
+
 def extract_region_twopass(
     pbf_path: Path,
     region_id: str,
@@ -475,6 +623,12 @@ def extract_region(
         for cat in categories:
             (out_dir / f"{region_id}-{cat}.geojsonl").write_text("", encoding="utf-8")
         return {c: 0 for c in categories}
+    # Asia transport: full 2-pass OOMs on ~8GB RAM — extract corridor buffer only.
+    if (
+        region_id == "asia"
+        and frozenset(categories) <= frozenset(TRANSPORT_CATEGORIES)
+    ):
+        return extract_region_corridor_filtered(pbf_path, region_id, out_dir, categories)
     if twopass or region_id in LARGE_REGIONS or _categories_need_twopass(categories):
         return extract_region_twopass(pbf_path, region_id, out_dir, categories)
     return extract_region_small(pbf_path, region_id, out_dir, categories)

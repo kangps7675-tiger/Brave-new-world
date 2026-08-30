@@ -192,6 +192,7 @@ export interface UseGlobeMapGlobePropsParams {
   ukraineMacroGeoJson: FeatureCollection;
   ukraineMicroGeoJson: FeatureCollection;
   axisHubCountriesGeoJson: FeatureCollection;
+  alliedBlocCountriesGeoJson: FeatureCollection;
   neptunPathElevation: NeptunPathElevationMode;
   tonedPathColors: ReturnType<typeof pathLayerColors>;
   tonedInfraColors: ReturnType<typeof infraColors>;
@@ -256,6 +257,7 @@ export function useGlobeMapGlobeProps(
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson,
     neptunPathElevation,
     tonedPathColors,
     tonedInfraColors,
@@ -277,6 +279,7 @@ export function useGlobeMapGlobeProps(
     backgroundColor: globeTextures.backgroundColor,
     basemapMode,
     ultraLite,
+    showCityLabels,
     interactiveLayerIds: mapInteractiveLayerIds,
     showIslandChains,
     onGlobeReady: configureGlobe,
@@ -924,6 +927,7 @@ export function useGlobeMapGlobeProps(
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson,
     pathPoints: (path: TransportPath) => path.points,
     pathPointLat: (point: { lat: number; lng: number }) => point.lat,
     pathPointLng: (point: { lat: number; lng: number }) => point.lng,

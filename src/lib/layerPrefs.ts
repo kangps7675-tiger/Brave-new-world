@@ -68,6 +68,8 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
+  /** 진영 블록(NATO·AUKUS·CRINK·CSTO) 국가 음영 오버레이 — Natural Earth 110m */
+  showAlliedBlocs: boolean;
   /** 한국군 전선 기지 (OSM) — 기본 OFF, 미군과 별도 체크 */
   showRokMilitaryBases: boolean;
   /** 자위대 전선 기지 (OSM) — 주일미군은 showMilitaryBases */
@@ -256,7 +258,7 @@ export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLaye
   // 예시) "geowatch-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
 };
 
-/** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
+/** 토글 가능 레이어는 기본 OFF. 첫 화면은 Compact 전선(우크라·NEPTUN·항모)만 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWarZones: true,
   showDiplomaticTension: false,
@@ -294,6 +296,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGscpiGauge: true,
   showCriticalNodes: false,
   showMilitaryBases: false,
+  showAlliedBlocs: false,
   showRokMilitaryBases: false,
   showJapanMilitaryBases: false,
   showTaiwanMilitaryBases: false,
@@ -311,7 +314,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showUcdpEvents: false,
   showMilitaryActivity: false,
   showAirTraffic: false,
-  showUsCarriers: false,
+  showUsCarriers: true,
   showSpaceLaunches: false,
   showReconSatellites: false,
   showGpsInterference: false,
@@ -329,14 +332,14 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGdeltDiplomatic: false,
   showGdeltAlliance: false,
   showGdeltProtests: false,
-  showGdeltOceanCompetition: true,
-  showTelegramOsint: true,
-  showTzevaAdom: false,
+  showGdeltOceanCompetition: false,
+  showTelegramOsint: false,
+  showTzevaAdom: true,
   showNewfeedsIranAttacks: true,
-  showUkmtoIncidents: true,
+  showUkmtoIncidents: false,
   // 신호가 없으면 조용하므로 기본 ON 이어도 화면을 방해하지 않는다
   showEscalationSignals: true,
-  showNavareaWarnings: true,
+  showNavareaWarnings: false,
   showMilitaryExercises: false,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
@@ -345,7 +348,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWeeklyShipMoves: false,
   showReefWatch: false,
   showNorthKoreaMissileTests: false,
-  showUkraineStrikesOnRussia: true,
+  showUkraineStrikesOnRussia: false,
   showEuropeDroneIncidents: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,

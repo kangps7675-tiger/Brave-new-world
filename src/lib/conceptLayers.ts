@@ -1,6 +1,7 @@
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { ViewerMode, ViewTheaterChoice } from "@/lib/viewPackages";
+import { FIRST_SCREEN_CONFLICT_ON } from "@/lib/firstScreenLayers";
 
 type BooleanLayerKey = {
   [K in keyof LayerPrefs]: LayerPrefs[K] extends boolean ? K : never;
@@ -313,20 +314,13 @@ export function conflictTheaterFromNavId(navId: string): ViewTheaterChoice {
   return "auto";
 }
 
-/** 지정학 기본(자동 전장) — 우크라 전선·대러 타격 ON. 다른 전장으로 바꾸면 NO_UKRAINE. */
-const UKRAINE_DEFAULT_ON: LayerPatch = {
-  showUkraineControl: true,
-  showUkraineStrikesOnRussia: true,
-};
-
+/** 지정학 기본(자동 전장) — Compact 전선. 다른 전장으로 바꾸면 해당 스택. */
 export function conceptLayersForConflict(theater: ViewTheaterChoice): LayerPatch {
-  // auto/미지정: 우크라 전선·타격 기본 ON (체크박스와 동일)
-  if (theater === "auto") return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
-  if (theater === "all") return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
+  if (theater === "auto" || theater === "all") return { ...FIRST_SCREEN_CONFLICT_ON };
   if (theater in CONFLICT_THEATER_LAYERS) {
     return CONFLICT_THEATER_LAYERS[theater as ConflictConceptTheater];
   }
-  return { ...CONFLICT_BASE, ...UKRAINE_DEFAULT_ON };
+  return { ...FIRST_SCREEN_CONFLICT_ON };
 }
 
 export function conceptLayersForConflictNavId(navId: string): LayerPatch {

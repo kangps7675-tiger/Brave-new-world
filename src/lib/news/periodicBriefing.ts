@@ -22,7 +22,7 @@ import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
  * - storage 키 = `daily-YYYY-MM-DD-sN-{conflict|economy}` (슬롯마다 seen/folded 분리)
  * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
  * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
- * - 등불 카드 = 언론사 RSS·og:image 실사진 필수 + 개별 원문 URL (섹션/시드 금지)
+ * - 등불 카드 = 기사에 붙은 사진(RSS enclosure · og:image) + 개별 원문 URL (섹션/시드 금지)
  * - RSS enclosure 없으면 서버가 기사 og:image·twitter:image로 보강 후 선정
  * - 지정학 = 전쟁·자연재해·전선·외교를 포괄 — 핫·다매체 중복 우선
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
@@ -386,7 +386,7 @@ function looksMostlyKorean(text: string): boolean {
 }
 
 /**
- * 개별 원문 URL + 실사진(RSS/og)만 유지 — 그라데이션·위성 폴백으로 채우지 않음.
+ * 개별 원문 URL + 기사에 붙은 사진(RSS/og)만 유지 — 그라데이션·위성 폴백으로 채우지 않음.
  */
 export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
   return picked.filter((n) => isArticleUrl(n.link) && hasLampPhoto(n.imageUrl));
@@ -1075,7 +1075,7 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 등불은 언론사 실사진 필수 — og/RSS 없으면 선정 제외
+  // 등불은 기사에 붙은 사진 필수 — og/RSS 없으면 선정 제외
   const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
   // 물류·에너지 스트레스 사건 강력 우선
   const logisticsStressBonus =
@@ -1145,7 +1145,7 @@ function toFeatured(
 }
 
 /**
- * 지경학 등불 — 물류·시장 충격 심층. RSS/og 실사진 있는 기사만.
+ * 지경학 등불 — 물류·시장 충격 심층. 기사에 붙은 RSS/og 사진이 있는 것만.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1820,7 +1820,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 언론사 실사진 필수 — og/RSS 없으면 선정 제외
+  // 기사에 붙은 사진 필수 — og/RSS 없으면 선정 제외
   const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
   const disasterBonus = isNaturalDisasterNews(blob) ? -36 : 0;
   // 긴장 강도를 끌어올리는 무서운 군사·확전 속보 우선
@@ -1899,7 +1899,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 전쟁·자연재해·전선·외교 심층. RSS/og 실사진 있는 기사만.
+ * 지정학 등불 — 전쟁·자연재해·전선·외교 심층. 기사에 붙은 RSS/og 사진이 있는 것만.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],

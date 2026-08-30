@@ -329,6 +329,10 @@ import {
   ENTRY_GATE,
 } from "@/lib/entryOverview";
 import {
+  GLOBAL_ORBIT_MAX_ALTITUDE,
+  globeDistanceForAltitude,
+} from "@/lib/globeCamera";
+import {
   applyBattlefieldPreset,
   battlefieldZoneFromExplorationId,
   detectBattlefieldZone,
@@ -363,6 +367,7 @@ import {
   usDfcSupplyPathsToTransport,
 } from "@/lib/usDfcSupplyPaths";
 import { paintAxisHubCountriesGeoJson } from "@/lib/axisHubCountryPolygons";
+import { paintAlliedBlocCountriesGeoJson } from "@/lib/alliedBlocCountryPolygons";
 import {
   armsPairsToPaths,
   filterArmsForHub,
@@ -465,6 +470,10 @@ import {
   RUSSIA_MISSILE_BELTS,
   isNearRussiaMissileBelt,
 } from "@/data/russiaMissileBeltSeed";
+import {
+  RUSSIA_NAVAL_BASTION_BELTS,
+  isNearRussiaNavalBastion,
+} from "@/data/russiaNavalBastionSeed";
 import {
   IRAN_MISSILE_BELTS,
   isNearIranMissileBelt,
@@ -1023,8 +1032,9 @@ export function GlobeDashboard({
   );
   const { data: eastAsiaAdizFc } = useLazyJsonObject<FeatureCollection>(
     "east-asia-adiz.geojson",
-    !isEconomyViewer,
+    !isEconomyViewer && globeReady,
     parseEastAsiaAdiz,
+    { deferUntilIdle: true },
   );
 
   useEffect(() => {
@@ -1060,6 +1070,9 @@ export function GlobeDashboard({
   const ukraineSettlementsSourceRef = useRef<UkraineSettlement[]>([]);
   const ukraineFetchStartedRef = useRef(false);
   const ukraineZoomPendingRef = useRef(false);
+  const autoRegionZoomSeededRef = useRef(false);
+  const prevUkraineLayerOnRef = useRef(false);
+  const prevNeptunLayerOnRef = useRef(false);
   const neptunZoomPendingRef = useRef(false);
   /** 도메인 선택~세부 확정 전: 우크라/NEPTUN/인트로 자동 줌 억제 */
   const suppressAutoRegionZoomRef = useRef(false);
@@ -1499,6 +1512,7 @@ export function GlobeDashboard({
     showGscpiGauge,
     showCriticalNodes,
     showMilitaryBases,
+    showAlliedBlocs,
     showRokMilitaryBases,
     showJapanMilitaryBases,
     showTaiwanMilitaryBases,
@@ -1661,6 +1675,7 @@ export function GlobeDashboard({
   const setShowGscpiGauge = (v: boolean) => togglePref("showGscpiGauge", v);
   const setShowCriticalNodes = (v: boolean) => togglePref("showCriticalNodes", v);
   const setShowMilitaryBases = (v: boolean) => togglePref("showMilitaryBases", v);
+  const setShowAlliedBlocs = (v: boolean) => togglePref("showAlliedBlocs", v);
   const setShowRokMilitaryBases = (v: boolean) => togglePref("showRokMilitaryBases", v);
   const setShowJapanMilitaryBases = (v: boolean) => togglePref("showJapanMilitaryBases", v);
   const setShowTaiwanMilitaryBases = (v: boolean) => togglePref("showTaiwanMilitaryBases", v);
@@ -2001,7 +2016,7 @@ export function GlobeDashboard({
     frictionCoachListAckRef.current = false;
     const controls = globeRef.current?.controls();
     if (controls) {
-      controls.maxDistance = 720;
+      controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
       controls.enableZoom = true;
       controls.enablePan = true;
       controls.enableRotate = true;
@@ -2276,11 +2291,23 @@ export function GlobeDashboard({
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** NE 10m 고정밀 — 지정학 창에서만 로드 (countries.json 저정밀 폴백 없음) */
+  /** NE 10m 고정밀 — 지구본 첫 프레임 이후 idle에 로드 (부트 JSON.parse 정체 방지) */
   const { data: axisHubCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "axis-hub-countries.json",
-    !isEconomyViewer,
+    !isEconomyViewer && globeReady,
     parseAxisHubCountries,
+    { deferUntilIdle: true },
+  );
+  const parseAlliedBlocCountries = useCallback(
+    (raw: unknown) => raw as FeatureCollection,
+    [],
+  );
+  /** 진영 블록 배경색 — 토글 켰을 때만 로드 (기본 OFF) */
+  const { data: alliedBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
+    "allied-bloc-countries.json",
+    !isEconomyViewer && showAlliedBlocs && globeReady,
+    parseAlliedBlocCountries,
+    { deferUntilIdle: true },
   );
   const { layerViewState, mapZoom } = useCameraViewport(filterCenter, layerAltitude);
 
@@ -2448,7 +2475,7 @@ export function GlobeDashboard({
   ]);
 
   useEffect(() => {
-    if (isEconomyViewer) return;
+    if (isEconomyViewer || !globeReady) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -2466,10 +2493,10 @@ export function GlobeDashboard({
     return () => {
       cancelled = true;
     };
-  }, [isEconomyViewer]);
+  }, [globeReady, isEconomyViewer]);
 
   useEffect(() => {
-    if (isEconomyViewer) return;
+    if (isEconomyViewer || !globeReady) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -2485,7 +2512,7 @@ export function GlobeDashboard({
     return () => {
       cancelled = true;
     };
-  }, [isEconomyViewer]);
+  }, [globeReady, isEconomyViewer]);
 
   useEffect(() => {
     const syncStamp =
@@ -2500,10 +2527,11 @@ export function GlobeDashboard({
   }, [data.generatedAt, isLoading, loadError, syncInfo]);
 
   useEffect(() => {
-    if (!showUkraineControl || !viinaMeta?.available) return;
+    if (!showUkraineControl || !viinaMeta?.available || !globeReady) return;
     if (ukraineControl.length > 0 || ukraineControlStatus === "loading") return;
       void refreshUkraineControl();
   }, [
+    globeReady,
     refreshUkraineControl,
     showUkraineControl,
     ukraineControl.length,
@@ -2512,15 +2540,31 @@ export function GlobeDashboard({
   ]);
 
   useEffect(() => {
-    if (!showNeptun && !showNeptunPreviousTrails) return;
+    if (!globeReady || (!showNeptun && !showNeptunPreviousTrails)) return;
     void prefetchNeptun();
-  }, [showNeptun, showNeptunPreviousTrails]);
+  }, [globeReady, showNeptun, showNeptunPreviousTrails]);
 
   useEffect(() => {
     if (suppressAutoRegionZoomRef.current) return;
-    if (!showUkraineControl || !viinaMeta?.available) return;
-    ukraineZoomPendingRef.current = true;
-    if (showNeptun) neptunZoomPendingRef.current = true;
+    // 지정학 히어로는 전선/NEPTUN 레이어가 기본 ON — 가용성만으로 우크라 줌하면
+    // 전역 궤도 초입을 깨뜨린다. 유저가 OFF→ON으로 켠 경우에만 자동 줌.
+    const ukraineTurnedOn = showUkraineControl && !prevUkraineLayerOnRef.current;
+    const neptunTurnedOn = showNeptun && !prevNeptunLayerOnRef.current;
+    if (!autoRegionZoomSeededRef.current) {
+      autoRegionZoomSeededRef.current = true;
+      prevUkraineLayerOnRef.current = showUkraineControl;
+      prevNeptunLayerOnRef.current = showNeptun;
+      return;
+    }
+    prevUkraineLayerOnRef.current = showUkraineControl;
+    prevNeptunLayerOnRef.current = showNeptun;
+    if (!ukraineTurnedOn && !neptunTurnedOn) return;
+    if (ukraineTurnedOn && viinaMeta?.available) {
+      ukraineZoomPendingRef.current = true;
+    }
+    if (neptunTurnedOn) {
+      neptunZoomPendingRef.current = true;
+    }
     immediateUntilRef.current = Date.now() + 1800;
   }, [showNeptun, showUkraineControl, viinaMeta?.available, immediateUntilRef]);
 
@@ -2853,7 +2897,7 @@ export function GlobeDashboard({
   );
 
   useEffect(() => {
-    if (!showAnyDisputeOverlay) return;
+    if (!showAnyDisputeOverlay || !globeReady) return;
     let cancelled = false;
     const cached = readDisputeHatchPathsCache(disputeHatchLod);
     if (cached?.paths?.length) setDisputeHatchCachePaths(cached.paths);
@@ -2864,7 +2908,7 @@ export function GlobeDashboard({
     return () => {
       cancelled = true;
     };
-  }, [disputeHatchLod, showAnyDisputeOverlay]);
+  }, [disputeHatchLod, globeReady, showAnyDisputeOverlay]);
 
   const overlayPolygonData = useMemo<PolygonLayerFeature[]>(() => {
     const layers: PolygonLayerFeature[] = [];
@@ -2930,6 +2974,11 @@ export function GlobeDashboard({
       }
       if (isNearRussiaMissileBelt(filterCenter.lat, filterCenter.lng)) {
         for (const belt of RUSSIA_MISSILE_BELTS) {
+          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
+        }
+      }
+      if (isNearRussiaNavalBastion(filterCenter.lat, filterCenter.lng)) {
+        for (const belt of RUSSIA_NAVAL_BASTION_BELTS) {
           layers.push({ ...belt, polygonLayer: "missile-belt" as const });
         }
       }
@@ -3182,6 +3231,13 @@ export function GlobeDashboard({
       activeIso: activeHubId ?? null,
     });
   }, [activeHubId, axisHubCountriesSource, isEconomyViewer]);
+
+  const alliedBlocCountriesGeoJson = useMemo(() => {
+    if (isEconomyViewer || !showAlliedBlocs) {
+      return paintAlliedBlocCountriesGeoJson(null);
+    }
+    return paintAlliedBlocCountriesGeoJson(alliedBlocCountriesSource);
+  }, [alliedBlocCountriesSource, isEconomyViewer, showAlliedBlocs]);
 
   const eastAsiaAdizPaths = useMemo<TransportPath[]>(() => {
     if (!showEastAsiaAdiz) return [];
@@ -5462,6 +5518,7 @@ export function GlobeDashboard({
     showEasternNatoMilitaryBases,
     visibleMilitaryBaseAreas,
     setShowMilitaryBases,
+    setShowAlliedBlocs,
     setShowRokMilitaryBases,
     setShowJapanMilitaryBases,
     setShowTaiwanMilitaryBases,
@@ -6171,6 +6228,33 @@ export function GlobeDashboard({
       setTelegramLive(false);
       setTelegramStatus("idle");
     }
+    // 지정학 + 자동 전장: 전역 궤도 하드코딩 (우크라·핫알림 자동 fly 금지)
+    if (mode === "conflict" && effectiveTheater === "auto") {
+      packageTheaterFocusPlayedRef.current = true;
+      setViewUi((prev) => ({
+        ...prev,
+        autoEnterTheaterNavId: null,
+        autoOpenIntelSheet: false,
+      }));
+      layerCenterRef.current = {
+        lat: ENTRY_GATE.bootLookAt.lat,
+        lng: ENTRY_GATE.bootLookAt.lng,
+      };
+      layerAltitudeRef.current = ENTRY_GATE.bootAltitude;
+      layerLodTierRef.current = getGlobeLod(ENTRY_GATE.bootAltitude).tier;
+      setFilterCenter({
+        lat: ENTRY_GATE.bootLookAt.lat,
+        lng: ENTRY_GATE.bootLookAt.lng,
+      });
+      setLayerAltitude(ENTRY_GATE.bootAltitude);
+      flyTo(
+        ENTRY_GATE.bootLookAt.lat,
+        ENTRY_GATE.bootLookAt.lng,
+        ENTRY_GATE.bootAltitude,
+        ENTRY_GATE.zoomOutFlyMs,
+        { pitch: ENTRY_GATE.bootPitch },
+      );
+    }
     window.setTimeout(() => {
       ukraineZoomPendingRef.current = false;
       neptunZoomPendingRef.current = false;
@@ -6510,7 +6594,7 @@ export function GlobeDashboard({
    * 등불 — 지정학·지경학 각각 6시간 슬롯당 1회 자동 점화(대표 뉴스·큰 사진).
    * 닫으면 우측 「등불」탭으로 접힘. 다음 슬롯이 되면 다시 자동 펼침.
    * SLA: 게이트 해제 후 미시청이면 하드 데드라인 안에 양피지 점화.
-   * /api/lamp-news — 양 패키지 + og:image 추가 보강 후 실사진 있는 핫뉴스만.
+   * /api/lamp-news — 양 패키지 + og:image 추가 보강 후 기사에 붙은 사진이 있는 핫뉴스만.
    * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
   useEffect(() => {
@@ -6660,7 +6744,7 @@ export function GlobeDashboard({
       let macroTable = buildLampMacroTable([], labelLanguage);
       let featuredNews: PeriodicBriefing["featuredNews"] = [];
 
-      // 등불 — og:image 추가 보강 후 실사진 있는 핫뉴스만 (전쟁·자연재해·시장 충격)
+      // 등불 — og:image 추가 보강 후 기사에 붙은 사진이 있는 핫뉴스만 (전쟁·자연재해·시장 충격)
       try {
         const lampMode = isEconomy ? "economy" : "conflict";
         const lampRes = await fetchWithTimeout(
@@ -6693,7 +6777,7 @@ export function GlobeDashboard({
           { upgrade: true },
         );
       } else {
-        // 실사진 뉴스 풀이 비었을 때만 빈 데스크 셸
+        // 기사 첨부 사진 풀이 비었을 때만 빈 데스크 셸
         ignite(curatedFallback(), { upgrade: true });
       }
 
@@ -7818,6 +7902,7 @@ export function GlobeDashboard({
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson,
     neptunPathElevation,
     tonedPathColors,
     tonedInfraColors,

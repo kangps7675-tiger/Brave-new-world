@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-08-28T18:48:50.608986Z",
+  "schema": "crink-osm-infra",
+  "categories": [
+    "aeroway",
+    "harbour",
+    "border",
+    "dam",
+    "power",
+    "checkpoint",
+    "rail",
+    "road"
+  ],
+  "files": {
+    "aeroway": "/data/crink/crink-aeroway.geojson",
+    "harbour": "/data/crink/crink-harbour.geojson",
+    "border": "/data/crink/crink-border.geojson",
+    "dam": "/data/crink/crink-dam.geojson",
+    "power": "/data/crink/crink-power.geojson",
+    "checkpoint": "/data/crink/crink-checkpoint.geojson",
+    "rail": "/data/crink/crink-rail.geojson",
+    "road": "/data/crink/crink-road.geojson"
+  },
+  "all": "/data/crink/crink-all.geojson",
+  "lastMergedCategories": [
+    "rail",
+    "road"
+  ]
+}

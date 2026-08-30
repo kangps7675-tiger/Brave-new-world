@@ -700,8 +700,12 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       };
     }
     if (hoveredPolygon.polygonLayer === "missile-belt") {
-      const theaterLabel =
-        hoveredPolygon.theater === "china"
+      const isNavalDomain = hoveredPolygon.domain === "naval";
+      const theaterLabel = isNavalDomain
+        ? lang === "en"
+          ? "Russia Northern Fleet (naval)"
+          : "러시아 북방함대 (해군)"
+        : hoveredPolygon.theater === "china"
           ? lang === "en"
             ? "China PLARF belt"
             : "중국 PLARF 벨트"
@@ -716,8 +720,11 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               : lang === "en"
                 ? "North Korea missile belt"
                 : "북한 미사일 벨트";
-      const metaLabel =
-        hoveredPolygon.theater === "china"
+      const metaLabel = isNavalDomain
+        ? lang === "en"
+          ? "naval bastion / strike-range sector (not RVSN)"
+          : "해군 벤트·사거리권 (RVSN 아님)"
+        : hoveredPolygon.theater === "china"
           ? lang === "en"
             ? "confirmed silo-field complex"
             : "확인 사일로군 단지"

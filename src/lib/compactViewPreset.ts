@@ -5,6 +5,10 @@ import {
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
+import {
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 
 export type CompactConflictChipId = "frontline" | "news" | "alert";
 export type CompactEconomyChipId = "lanes" | "energy" | "market";
@@ -23,14 +27,7 @@ export const COMPACT_CONFLICT_PRESETS: CompactChipDef[] = [
     id: "frontline",
     labelKo: "전선",
     labelEn: "Front",
-    layers: {
-      showUkraineControl: true,
-      showWarZones: true,
-      showNeptun: true,
-      showTzevaAdom: true,
-      showUsCarriers: true,
-      showNewfeedsIranAttacks: true,
-    },
+    layers: { ...FIRST_SCREEN_CONFLICT_ON },
   },
   {
     id: "news",
@@ -63,16 +60,7 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
     id: "lanes",
     labelKo: "항로",
     labelEn: "Lanes",
-    layers: {
-      showShippingLanes: true,
-      showBriTradeConnectivity: true,
-      showStrategicCorridors: true,
-      showUsDfcSupplyChain: true,
-      showPorts: true,
-      showLogisticsRisk: true,
-      showCriticalNodes: true,
-      showNewfeedsIranAttacks: true,
-    },
+    layers: { ...FIRST_SCREEN_ECONOMY_ON },
   },
   {
     id: "energy",

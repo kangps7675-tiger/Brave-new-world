@@ -29,19 +29,25 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-/** 모든 양피지 필체 — RIDI Batang */
+/**
+ * 장식·선택 폰트는 preload 하지 않는다.
+ * Pretendard TTF만 6.5MB, Gmarket+RIDI+SB Agro가 추가로 ~5MB —
+ * next/font 기본 preload면 첫 페인트에서 지도 JS·WebGL과 대역을 싸운다.
+ */
 const letterHand = localFont({
   src: "./fonts/RIDIBatang.otf",
   variable: "--font-letter-hand",
   display: "swap",
+  preload: false,
 });
 
-/** 지경학 nav — Pretendard Variable */
+/** 지경학 nav / UI 폰트 프리셋 — Pretendard Variable */
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.ttf",
   variable: "--font-pretendard",
   weight: "45 920",
   display: "swap",
+  preload: false,
 });
 
 /** 뉴스·속보 헤드라인 — Gmarket Sans */
@@ -65,6 +71,7 @@ const gmarket = localFont({
   ],
   variable: "--font-gmarket",
   display: "swap",
+  preload: false,
 });
 
 /**
@@ -85,6 +92,7 @@ const merriweather = Merriweather({
   subsets: ["latin"],
   variable: "--font-merriweather",
   display: "swap",
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -92,6 +100,7 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
+  preload: false,
 });
 
 /** 전쟁구역 사상자 숫자 — SB 어그로 Bold */
@@ -101,6 +110,7 @@ const sbAgro = localFont({
   style: "normal",
   variable: "--font-sb-agro",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

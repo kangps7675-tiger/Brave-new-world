@@ -380,6 +380,7 @@ function main() {
     "philippines-frontline-seed.json",
     "taiwan-frontline-seed.json",
     "australia-frontline-seed.json",
+    "uk-fpda-bases-seed.json",
   ];
   for (const fileName of frontlineFiles) {
     try {

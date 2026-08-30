@@ -15,17 +15,12 @@ import { detectWebglSupport, type WebglSupport } from "@/lib/webglSupport";
 import { prefetchUkraineControl } from "@/lib/viinaPrefetch";
 import { prefetchDisputeHatchPaths } from "@/lib/disputeHatchPrefetch";
 import { prefetchNeptun } from "@/lib/neptunPrefetch";
-import { ModePickerOverlay } from "@/components/ModePickerOverlay";
+import { runWhenIdle } from "@/lib/deferIdle";
 import type { GlobeDashboardProps } from "@/components/GlobeDashboard";
-import { applyViewerMode } from "@/lib/viewerChrome";
-import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import {
-  applyViewPackages,
   resolveMergedViewConfig,
   shouldShowModePicker,
   type MergedViewConfig,
-  type ViewerMode,
-  type ViewTheaterChoice,
 } from "@/lib/viewPackages";
 
 type DashboardComponent = ComponentType<GlobeDashboardProps>;
@@ -58,17 +53,6 @@ export function GlobeBootLoader({
 }) {
   initRuntimeConfig(runtimeConfig);
 
-  useEffect(() => {
-    // 지도 렌더가 불가능하면 프리페치도 낭비다 — 판정 후에만 시작.
-    if (typeof document !== "undefined" && detectWebglSupport() !== "webgl2") return;
-    if (viinaMeta.available) {
-      void prefetchUkraineControl();
-    }
-    void prefetchDisputeHatchPaths("overview");
-    void prefetchDisputeHatchPaths("detail");
-    void prefetchNeptun();
-  }, [viinaMeta.available]);
-
   /**
    * WebGL2 감지 (P0-1) — 지도 엔진(maplibre-gl v5)의 하드 요구사항.
    * SSR/hydration 불일치를 피하려고 초기값은 null, 마운트 후 1회 판정한다.
@@ -87,14 +71,14 @@ export function GlobeBootLoader({
   const [dashboardProgress, setDashboardProgress] = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [fading, setFading] = useState(false);
-  const [pickerDone, setPickerDone] = useState(() => !needsPickerRef.current);
+  const [pickerDone] = useState(() => !needsPickerRef.current);
   /** 패키지 선택 화면 표시 가능 (초기 로딩 페이드 완료 후) */
   const [loadingDismissed, setLoadingDismissed] = useState(() => !needsPickerRef.current);
   const [pickerLoadingProgress, setPickerLoadingProgress] = useState(0);
   const [pickerLoadingAnimating, setPickerLoadingAnimating] = useState(false);
   /** 부팅이 8초를 넘겼는가 — 침묵 대신 상태 고지 (P1-2) */
   const [slowBoot, setSlowBoot] = useState(false);
-  const [viewConfig, setViewConfig] = useState<MergedViewConfig>(() => resolveMergedViewConfig());
+  const [viewConfig] = useState<MergedViewConfig>(() => resolveMergedViewConfig());
 
   const prePickerOverlayDoneRef = useRef(!needsPickerRef.current);
   const dashboardOverlayDoneRef = useRef(false);
@@ -115,16 +99,30 @@ export function GlobeBootLoader({
   }, [mapUnsupported, webglSupport]);
 
   useEffect(() => {
+    // 지도 렌더가 불가능하면 프리페치도 낭비다. 대시보드 청크가 온 뒤에만
+    // 돌려서 첫 JS 파싱·MapLibre와 대역/메인스레드를 안 싸운다.
+    if (webglSupport == null || mapUnsupported || !Dashboard) return;
+    const cancel = runWhenIdle(() => {
+      if (viinaMeta.available) {
+        void prefetchUkraineControl();
+      }
+      void prefetchDisputeHatchPaths("overview");
+      void prefetchNeptun();
+    }, 4_000);
+    return cancel;
+  }, [Dashboard, mapUnsupported, viinaMeta.available, webglSupport]);
+
+  useEffect(() => {
     if (Dashboard) return;
     const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / 9000);
-      setBundleProgress(Math.min(BUNDLE_PROGRESS_CAP, t * BUNDLE_PROGRESS_CAP + 2));
-      raf = requestAnimationFrame(tick);
+    const tick = () => {
+      const t = Math.min(1, (performance.now() - start) / 9000);
+      const next = Math.min(BUNDLE_PROGRESS_CAP, t * BUNDLE_PROGRESS_CAP + 2);
+      setBundleProgress((prev) => (Math.abs(prev - next) < 0.4 ? prev : next));
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    tick();
+    const id = window.setInterval(tick, 200);
+    return () => window.clearInterval(id);
   }, [Dashboard]);
 
   const dismissLoadingOverlay = useCallback((onHidden?: () => void) => {
@@ -158,21 +156,6 @@ export function GlobeBootLoader({
   const handleBootReady = useCallback(() => {
     bootReadyRef.current = true;
     finishDashboardLoading();
-  }, [finishDashboardLoading]);
-
-  const beginDashboardLoading = useCallback(() => {
-    dashboardOverlayDoneRef.current = false;
-    bootReadyRef.current = false;
-    setDashboardProgress(0);
-    setOverlayVisible(true);
-    setFading(false);
-
-    if (dashboardBootTimerRef.current != null) {
-      clearTimeout(dashboardBootTimerRef.current);
-    }
-    dashboardBootTimerRef.current = setTimeout(() => {
-      finishDashboardLoading();
-    }, DASHBOARD_BOOT_TIMEOUT_MS);
   }, [finishDashboardLoading]);
 
   useEffect(() => {
@@ -229,23 +212,6 @@ export function GlobeBootLoader({
     return () => cancelAnimationFrame(raf);
   }, [Dashboard, finishPrePickerLoading, loadingDismissed, pickerDone]);
 
-  const handlePickerConfirm = useCallback(
-    (mode: ViewerMode, theater: ViewTheaterChoice, economyHub: EconomyHubChoice) => {
-      const { merged } = applyViewerMode(mode, theater, economyHub);
-      setViewConfig(merged);
-      setPickerDone(true);
-      beginDashboardLoading();
-    },
-    [beginDashboardLoading],
-  );
-
-  const handlePickerCustom = useCallback(() => {
-    const merged = applyViewPackages(["custom"], "auto");
-    setViewConfig(merged);
-    setPickerDone(true);
-    beginDashboardLoading();
-  }, [beginDashboardLoading]);
-
   const returningUserProgress = combineBootProgress(
     bundleProgress,
     dashboardProgress,
@@ -259,15 +225,14 @@ export function GlobeBootLoader({
         : returningUserProgress
       : returningUserProgress;
 
-  const showPicker = !pickerDone && loadingDismissed;
   const showLoadingOverlay = overlayVisible;
   /** 패키지 완료(또는 기존 유저) 후 대시보드 마운트 — 로딩 뒤 상호작용 */
   const mountDashboard = pickerDone && Dashboard !== null;
 
   /**
-   * 모드 피커가 꺼진 기본 경로에서는 beginDashboardLoading()이 호출되지 않아
-   * 45초 failsafe가 안 걸렸고, globeReady/isLoading이 안 풀리면 스플래시가 영구 고착됐다.
-   * 대시보드 마운트 시 타이머가 없으면 여기서 보강한다.
+   * shouldShowModePicker()가 꺼진 기본 경로에서는 예전 beginDashboardLoading()이
+   * 호출되지 않아 45초 failsafe가 안 걸렸고, globeReady/isLoading이 안 풀리면
+   * 스플래시가 영구 고착됐다. 대시보드 마운트 시 타이머가 없으면 여기서 보강한다.
    */
   useEffect(() => {
     if (!mountDashboard) return;
@@ -300,11 +265,13 @@ export function GlobeBootLoader({
           onBootReady={handleBootReady}
         />
       ) : null}
-      {showPicker ? (
-        <ModePickerOverlay onConfirm={handlePickerConfirm} onCustom={handlePickerCustom} />
-      ) : null}
       {showLoadingOverlay ? (
-        <GlobeLoadingScreen progress={displayProgress} fading={fading} slow={slowBoot} />
+        <GlobeLoadingScreen
+          progress={displayProgress}
+          fading={fading}
+          slow={slowBoot}
+          yieldGpu={mountDashboard}
+        />
       ) : null}
     </ErrorBoundary>
   );

@@ -93,7 +93,7 @@ describe("ensureLampFeaturedNews", () => {
     ...partial,
   });
 
-  it("기사 URL + 실사진만 남긴다", () => {
+  it("기사 URL + 첨부 사진만 남긴다", () => {
     const kept = ensureLampFeaturedNews([
       base({ id: "ok" }),
       base({
@@ -101,7 +101,11 @@ describe("ensureLampFeaturedNews", () => {
         link: "https://www.reuters.com/business/energy/",
       }),
       base({ id: "nophoto", imageUrl: "" }),
+      base({
+        id: "svg",
+        imageUrl: "https://cdn.example.com/graphics/brief.svg",
+      }),
     ]);
-    expect(kept.map((n) => n.id)).toEqual(["ok"]);
+    expect(kept.map((n) => n.id)).toEqual(["ok", "svg"]);
   });
 });

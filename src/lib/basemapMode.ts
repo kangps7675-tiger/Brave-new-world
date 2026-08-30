@@ -415,10 +415,16 @@ export const PLACE_LABEL_KEEP_LAYER_IDS = [
 ] as const;
 
 /**
- * 벡터 베이스맵 도시명을 1선·2선만 남긴다.
- * OpenMapTiles class=city(수도 포함)까지, town/village/suburb는 숨김.
+ * 벡터 베이스맵 도시명.
+ * - showCityLabels=false: town/village + city/capital 전부 숨김 (체크박스 OFF)
+ * - showCityLabels=true: 1선·2선(city/capital)만 표시, town/village 숨김
+ * 국가·주 라벨은 건드리지 않는다.
  */
-export function applyBasemapCityLabelRank(map: BasemapMapLike): void {
+export function applyBasemapCityLabelRank(
+  map: BasemapMapLike,
+  options?: { showCityLabels?: boolean },
+): void {
+  const showCityLabels = options?.showCityLabels === true;
   try {
     for (const layerId of PLACE_LABEL_HIDE_LAYER_IDS) {
       if (!map.getLayer(layerId)) continue;
@@ -426,16 +432,20 @@ export function applyBasemapCityLabelRank(map: BasemapMapLike): void {
     }
     for (const layerId of PLACE_LABEL_KEEP_LAYER_IDS) {
       if (!map.getLayer(layerId)) continue;
-      map.setLayoutProperty(layerId, "visibility", "visible");
+      map.setLayoutProperty(layerId, "visibility", showCityLabels ? "visible" : "none");
     }
   } catch {
     /* layout unsupported */
   }
 }
 
-export function applyBasemapPlaceLabelScale(map: BasemapMapLike, mode: BasemapMode): void {
-  applyBasemapCityLabelRank(map);
-  if (mode !== "terrain") return;
+export function applyBasemapPlaceLabelScale(
+  map: BasemapMapLike,
+  mode: BasemapMode,
+  options?: { showCityLabels?: boolean },
+): void {
+  applyBasemapCityLabelRank(map, options);
+  if (mode !== "terrain" || options?.showCityLabels !== true) return;
   try {
     for (const [layerId, textSize] of Object.entries(TERRAIN_PLACE_LABEL_TEXT_SIZE)) {
       if (!map.getLayer(layerId)) continue;

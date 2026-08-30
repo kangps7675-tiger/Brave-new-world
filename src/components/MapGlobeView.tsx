@@ -144,6 +144,8 @@ export interface MapGlobeViewProps {
   showIslandChains?: boolean;
   /** 인텔(다크 벡터) / 지형(MapLibre OSM 벡터+DEM) — mapStyleUrl 교체로 전환 */
   basemapMode?: BasemapMode;
+  /** 도시명 레이어 체크박스 — OFF면 베이스맵 city/capital 라벨도 숨김 */
+  showCityLabels?: boolean;
   /** Ultra-Lite: 3D 건물·야간불빛 OFF, 지형 exaggeration 하향 */
   ultraLite?: boolean;
   [key: string]: unknown;
@@ -250,6 +252,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       : INTEL_VECTOR_STYLE_URL;
   const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
   const ultraLite = Boolean(props.ultraLite);
+  const showCityLabels = Boolean(props.showCityLabels);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
@@ -272,6 +275,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const onWebglContextLostRef = useRef(onWebglContextLost);
   const basemapModeRef = useRef<BasemapMode>(basemapMode);
   const ultraLiteRef = useRef(ultraLite);
+  const showCityLabelsRef = useRef(showCityLabels);
   const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
@@ -320,6 +324,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
+
+  useEffect(() => {
+    showCityLabelsRef.current = showCityLabels;
+  }, [showCityLabels]);
 
   /**
    * style.json을 미리 fetch해 Map 마운트를 막으면 OpenFreeMap 응답·OneDrive I/O
@@ -489,6 +497,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.axisHubCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.axisHubCountriesGeoJson]);
+  const alliedBlocCountriesGeoJson = useMemo(() => {
+    const raw = props.alliedBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.alliedBlocCountriesGeoJson]);
 
   const interactiveLayerIds = useMemo(() => {
     const fromProps = props.interactiveLayerIds;
@@ -972,7 +984,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapAtmosphere(m, basemapModeRef.current);
       applyBasemapTerrain(m, basemapModeRef.current, { ultraLite: ultraLiteRef.current });
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
       map.triggerRepaint();
     };
 
@@ -1057,7 +1071,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         ultraLite: ultraLiteRef.current,
       });
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
     };
 
     if (map.isStyleLoaded()) {
@@ -1095,7 +1111,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapAtmosphere(m, basemapMode);
       applyBasemapTerrain(m, basemapMode, { ultraLite });
       applyBasemapSatelliteImagery(m, basemapMode);
-      applyBasemapPlaceLabelScale(m, basemapMode);
+      applyBasemapPlaceLabelScale(m, basemapMode, { showCityLabels });
     };
 
     if (movingRef.current) {
@@ -1127,7 +1143,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
     apply();
     return undefined;
-  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl]);
+  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl, showCityLabels]);
 
   /** terrain DEM 소스가 React로 붙은 뒤 setTerrain 재적용 */
   useEffect(() => {
@@ -1183,7 +1199,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapAtmosphere(m, basemapModeRef.current);
       // 대기권(해양색)이 water fill을 다시 건드린 뒤에도 위성 페이드가 유지되게
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
     };
     sync();
     map.once("idle", sync);
@@ -1448,7 +1466,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         ultraLite: ultraLiteRef.current,
       });
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
@@ -2070,6 +2090,49 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   1.6,
                 ],
                 "line-opacity": 0.92,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {alliedBlocCountriesGeoJson.features.length > 0 ? (
+          <Source
+            id="allied-bloc-countries-source"
+            type="geojson"
+            data={alliedBlocCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
+            <Layer
+              id="allied-bloc-countries-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#3b82f6"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.16],
+                "fill-antialias": true,
+              }}
+            />
+            <Layer
+              id="allied-bloc-countries-outline"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(96,165,250,0.9)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.5,
+                  6,
+                  0.9,
+                  10,
+                  1.3,
+                ],
+                "line-opacity": 0.85,
               }}
             />
           </Source>
