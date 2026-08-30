@@ -1,6 +1,6 @@
 /**
  * CRINK OSM infra GeoJSON → map paths / polygon fills.
- * Data: public/data/crink/crink-{category}.geojson (npm run crink:infra:extract)
+ * Data: public/data/crink/crink-{category}.geojson(.gz) (npm run crink:infra:extract)
  */
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
@@ -60,15 +60,23 @@ export type CrinkInfraFeatureProps = {
   region?: string;
 };
 
+async function fetchJsonMaybeGzip(url: string): Promise<unknown | null> {
+  const cache = { cache: "force-cache" as const };
+  const plain = await fetch(url, cache);
+  if (plain.ok) return plain.json();
+  const gz = await fetch(`${url}.gz`, cache);
+  if (!gz.ok || !gz.body) return null;
+  const stream = gz.body.pipeThrough(new DecompressionStream("gzip"));
+  return JSON.parse(await new Response(stream).text());
+}
+
 export async function fetchCrinkInfraCollection(
   category: CrinkInfraCategory,
 ): Promise<FeatureCollection | null> {
   try {
-    const res = await fetch(`/data/crink/crink-${category}.geojson`, {
-      cache: "force-cache",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as FeatureCollection;
+    const data = await fetchJsonMaybeGzip(`/data/crink/crink-${category}.geojson`);
+    if (!data || typeof data !== "object") return null;
+    return data as FeatureCollection;
   } catch {
     return null;
   }
