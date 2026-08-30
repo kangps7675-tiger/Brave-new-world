@@ -152,7 +152,9 @@
     "land-mask:build": "node scripts/build-land-mask.js",
     "static:build:lite": "node scripts/build-land-mask.js && node scripts/build-static-extras.js lite",
     "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test --project=chromium --project=webkit",
     "test:e2e:chromium": "playwright test --project=chromium",
+    "verify:workers-assets": "node scripts/verify-workers-asset-size.js",
     "thumbs:bake-globe": "node scripts/bake-globe-thumbs.mjs"
   },
   "dependencies": {
