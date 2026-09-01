@@ -290,21 +290,21 @@ const UI = {
   },
   hoverStockTicker: { ko: "증시 티커", en: "Market ticker" },
   hoverStockTickerTheater: {
-    ko: "전장 민감 원자재·선물 티커",
-    en: "Theater-sensitive commodities & futures",
+    ko: "모드별 시세 티커 (지정학 equity · 지경학 선물)",
+    en: "Mode markets (conflict equities · economy futures)",
   },
   marketsStripTitle: { ko: "시장", en: "Markets" },
   marketsStripCalmHint: {
-    ko: "등락은 전일 대비 · Yahoo·FRED · 환율·금리 포함 · 투자 권유 아님",
-    en: "Change vs prior day · Yahoo/FRED · FX & rates · not advice",
+    ko: "등락은 전일 대비 · Yahoo·Databento·FRED · 투자 권유 아님",
+    en: "Change vs prior day · Yahoo/Databento/FRED · not advice",
   },
   marketsStripTheaterHint: {
-    ko: "이 전장 민감 자산 · 등락은 전일 대비 · 투자 권유 아님",
-    en: "Theater-sensitive assets · vs prior day · not advice",
+    ko: "이 전장/권역 연관 시세 · 등락은 전일 대비 · 투자 권유 아님",
+    en: "Theater/region-linked quotes · vs prior day · not advice",
   },
   marketsStripAlertHint: {
-    ko: "전장 연관 · 전일대비 변동 강조 · 투자 권유 아님",
-    en: "Theater-linked · prior-day moves · not advice",
+    ko: "연관 시세 · 전일대비 변동 강조 · 투자 권유 아님",
+    en: "Linked quotes · prior-day moves · not advice",
   },
   hoverViewOnMap: { ko: "지도에서 보기", en: "View on map" },
   hoverViewOnMapHint: {
@@ -510,16 +510,16 @@ const UI = {
   hubBriefCta: { ko: "편지를 접기", en: "Fold the letter" },
   entryCautionMustRead: { ko: "반드시 읽어 주십시오", en: "Please read this carefully" },
   entryCautionTitle: {
-    ko: "RESTRICTED · 오퍼레이터 인가",
-    en: "RESTRICTED · OPERATOR CLEARANCE",
+    ko: "이용 안내",
+    en: "Before you continue",
   },
   entryCautionSubtitle: {
-    ko: "귀하의 접속은 임시 작전 요원(OPERATOR NODE)으로 식별됩니다. 본 단말기는 오픈소스 인텔리전스(OSINT) 상황판입니다.",
-    en: "Your session is logged as a temporary OPERATOR NODE. This terminal is an open-source intelligence (OSINT) board.",
+    ko: "공개 출처를 모아 보여주는 지정학·지경학 지도입니다. 접속 기록이 남습니다.",
+    en: "This is a public-source geopolitics and geo-economics map. Sessions are logged.",
   },
   entryCautionPhase1: {
-    ko: "IP와 브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부로 무단 반출하거나 스크레이핑하는 행위는 금지됩니다.",
-    en: "IP and hardware fingerprint are logged as an active observer. Unauthorized export or scraping is prohibited.",
+    ko: "IP와 브라우저 정보가 접속 기록에 남습니다. 무단 반출이나 스크레이핑은 금지됩니다.",
+    en: "IP and browser details are logged. Unauthorized export or scraping is prohibited.",
   },
   /**
    * P1-10 — 캡 숫자 4개({uiCap}/{ultraCap}/{conflictCap}/{economyCap})를 걷어냈다.
@@ -548,8 +548,8 @@ const UI = {
   },
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나는가", en: "When sound plays" },
   entryCautionSoundWhen: {
-    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
-    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
+    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 선물 SPIKE(Databento 심볼): 상승/하락 모스 전보 · 일반 UI 클릭은 무음",
+    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Futures SPIKE (Databento symbols): up/down Morse telegraph · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
     ko: "본 피드는 공개 소스·와이어·위성·선박 오픈데이터를 가공한 상황판입니다. 공식 경보를 대체하지 않으며, 무단으로 반출하거나 왜곡하면 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
@@ -757,6 +757,19 @@ const UI = {
     ko: "투자 권유 아님 · 해석용 시세 · 외부에서 보기",
     en: "Not investment advice · interpretive quotes · view externally",
   },
+  marketsDatabentoFooter: {
+    ko: "Databento(가능 시) · Yahoo fallback · 10분 캐시 · 투자 권유 아님",
+    en: "Databento when available · Yahoo fallback · 10m cache · not advice",
+  },
+  marketsSpikeNow: { ko: "지금 SPIKE", en: "SPIKE now" },
+  spikeTelegraphStamp: { ko: "전보 · DISPATCH", en: "DISPATCH" },
+  spikeTelegraphHint: {
+    ko: "선물 SPIKE · 투자 권유 아님 · 탭하면 증시",
+    en: "Futures SPIKE · not advice · tap for markets",
+  },
+  spikeTelegraphDismiss: { ko: "닫기", en: "Dismiss" },
+  spikeTelegraphTrendUp: { ko: "오름세", en: "Up" },
+  spikeTelegraphTrendDown: { ko: "내림세", en: "Down" },
   openYahoo: { ko: "Yahoo에서 보기", en: "View on Yahoo" },
   addWatch: { ko: "관심 추가", en: "Add to watchlist" },
   removeWatch: { ko: "관심 해제", en: "Remove from watchlist" },

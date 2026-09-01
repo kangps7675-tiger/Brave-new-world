@@ -35,8 +35,8 @@ export function EconomySupplyChainFixedToggle({
           title={lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
           detail={
             lang === "en"
-              ? "Toggle U.S. Development Finance Corporation project arcs"
-              : "미국 국제개발금융공사(DFC) 프로젝트 연결선 표시"
+              ? "Show project connection arcs"
+              : "프로젝트 연결선 표시"
           }
         >
           <label
@@ -60,8 +60,11 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "U.S. DFC" : "미국 DFC"}
             </span>
             {usLinkCount > 0 ? (
-              <span className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
-                {usLinkCount}
+              <span
+                className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-micro font-semibold text-blue-100"
+                aria-label={lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
+              >
+                {lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
               </span>
             ) : null}
           </label>
@@ -71,8 +74,8 @@ export function EconomySupplyChainFixedToggle({
           title={lang === "en" ? "China Belt and Road" : "중국 일대일로"}
           detail={
             lang === "en"
-              ? "Toggle Belt and Road trade connectivity arcs"
-              : "일대일로 무역·운송 연결선 표시"
+              ? "Show project connection arcs"
+              : "프로젝트 연결선 표시"
           }
         >
           <label
@@ -96,8 +99,11 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "Belt & Road" : "일대일로"}
             </span>
             {chinaLinkCount > 0 ? (
-              <span className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
-                {chinaLinkCount}
+              <span
+                className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+                aria-label={lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
+              >
+                {lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
               </span>
             ) : null}
           </label>
@@ -125,8 +131,11 @@ export function EconomySupplyChainFixedToggle({
           {lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
         </span>
         {showUsDfc && usLinkCount > 0 ? (
-          <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
-            {usLinkCount}
+          <span
+            className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-micro font-semibold text-blue-100"
+            aria-label={lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
+          >
+            {lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
           </span>
         ) : null}
       </label>
@@ -142,8 +151,11 @@ export function EconomySupplyChainFixedToggle({
           {lang === "en" ? "China Belt and Road" : "중국 일대일로"}
         </span>
         {showChinaBri && chinaLinkCount > 0 ? (
-          <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
-            {chinaLinkCount}
+          <span
+            className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+            aria-label={lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
+          >
+            {lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
           </span>
         ) : null}
       </label>

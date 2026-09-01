@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { BUNDLE_PROGRESS_CAP } from "@/lib/bootLoadingProgress";
 import { GLOBAL_BOOT_SHADER_CAMERA_Z } from "@/lib/globeCamera";
 import { getLoadingShaderPlan } from "@/lib/renderTier";
+import { releaseWebglContext } from "@/lib/webglSupport";
 
 function loadingStageLabel(progress: number): string {
-  if (progress < BUNDLE_PROGRESS_CAP) return "DECRYPTING ENCRYPTED STREAM…";
-  if (progress < 45) return "INITIALIZING GLOBE RENDER CORE…";
-  if (progress < 78) return "SYNCING GEOINT / FININT BUFFERS…";
-  if (progress < 95) return "LINKING LAYER PIPELINES…";
-  return "OPERATOR NODE READY…";
+  if (progress < BUNDLE_PROGRESS_CAP) return "지도를 불러오는 중…";
+  if (progress < 45) return "지구본을 준비하는 중…";
+  if (progress < 78) return "피드를 맞추는 중…";
+  if (progress < 95) return "레이어를 연결하는 중…";
+  return "준비 완료";
 }
 
 const VERT = `
@@ -338,6 +339,7 @@ export function GlobeLoadingScreen({
       program = createProgram(gl, plan.fbmOctaves);
     } catch {
       setShaderFailed(true);
+      releaseWebglContext(gl);
       return;
     }
 
@@ -388,6 +390,7 @@ export function GlobeLoadingScreen({
       ro.disconnect();
       gl.deleteProgram(program);
       gl.deleteBuffer(buf);
+      releaseWebglContext(gl);
     };
   }, [fading, yieldGpu]);
 

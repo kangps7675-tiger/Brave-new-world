@@ -186,6 +186,41 @@ export function previousWeeklyPeriodKey(now: Date = new Date()): string {
   return `weekly-${year}-W${pad2(week)}`;
 }
 
+/** ISO 주(`YYYY`, `Www`)의 로컬 월요일 00:00 */
+export function isoWeekMondayLocal(year: number, week: number): Date {
+  const jan4 = new Date(year, 0, 4);
+  const day = (jan4.getDay() + 6) % 7; // Mon=0
+  const mondayWeek1 = new Date(jan4);
+  mondayWeek1.setDate(jan4.getDate() - day);
+  mondayWeek1.setHours(0, 0, 0, 0);
+  const monday = new Date(mondayWeek1);
+  monday.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+  return monday;
+}
+
+/**
+ * 지난 ISO 주(월 00:00 ~ 다음 월 00:00) 구간 — 사진 회고 필터용.
+ */
+export function previousIsoWeekRange(now: Date = new Date()): {
+  weekKey: string;
+  startMs: number;
+  endMs: number;
+} {
+  const weekKey = previousWeeklyPeriodKey(now);
+  const m = /^weekly-(\d{4})-W(\d{2})$/.exec(weekKey);
+  const year = m ? Number(m[1]) : now.getFullYear();
+  const week = m ? Number(m[2]) : 1;
+  const start = isoWeekMondayLocal(year, week);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return { weekKey, startMs: start.getTime(), endMs: end.getTime() };
+}
+
+/** `weekly-YYYY-Www-{conflict|economy}` 월요일 회고 키 */
+export function isWeeklyRecapBriefingKey(key: string): boolean {
+  return /^weekly-\d{4}-W\d{2}-(conflict|economy)$/.test(key);
+}
+
 /**
  * 월요일 지난주 회고 오퍼.
  * 평일·주말엔 null — 등불 일간 파이프와 분리.
@@ -322,7 +357,7 @@ export function clearWeeklyRecapFolded(key: string): void {
   }
 }
 
-/** 주간 회고 양피지 제목 — 「지난주 리캡」리듬 */
+/** 주간 회고 양피지 제목 — 사진 등불 데스크 · 전주 핫뉴스 종합 */
 export function weeklyRecapTitle(
   viewerMode: ViewerMode,
   lang: LabelLanguage,
@@ -341,11 +376,11 @@ export function weeklyRecapTitle(
     focusLine?.trim() ||
     (ko
       ? econ
-        ? "한 주간의 가격·물류·제재 신호"
-        : "한 주간의 전선·외교·열원 신호"
+        ? "전주 뜨거웠던 시장·물류 사진 뉴스"
+        : "전주 뜨거웠던 전장·외교 사진 뉴스"
       : econ
-        ? "A week of prices, logistics, and sanctions"
-        : "A week of fronts, diplomacy, and heat");
+        ? "Last week's hottest market photo stories"
+        : "Last week's hottest theater photo stories");
   return `${kicker}\n${focus}`;
 }
 

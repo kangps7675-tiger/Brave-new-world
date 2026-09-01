@@ -393,7 +393,7 @@ export function HoverNav({
                   );
                 })
               ) : (
-                <p
+                <div
                   className={`px-4 py-3 text-xs ${
                     light
                       ? "text-slate-500"
@@ -402,10 +402,36 @@ export function HoverNav({
                         : "text-sky-100/45"
                   }`}
                 >
-                  {labelLanguage === "en"
-                    ? `No places match “${query.trim()}”.`
-                    : `“${query.trim()}”에 맞는 장소가 없습니다.`}
-                </p>
+                  <p>
+                    {labelLanguage === "en"
+                      ? `No places match “${query.trim()}”. Search looks up place, country, and conflict names only.`
+                      : `“${query.trim()}”에 맞는 장소가 없습니다. 검색은 지명·국가·분쟁 이름만 찾습니다.`}
+                  </p>
+                  {onAskLayersOpen ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onAskLayersOpen();
+                        onQueryChange("");
+                        setNavOpen(false);
+                      }}
+                      className={`mt-2 rounded-lg border px-2.5 py-1.5 text-meta font-medium transition ${
+                        light
+                          ? isEconomy
+                            ? "border-emerald-700/40 bg-emerald-700/10 text-emerald-950 hover:bg-emerald-700/15"
+                            : "border-cyan-700/40 bg-cyan-700/10 text-slate-900 hover:bg-cyan-700/15"
+                          : isEconomy
+                            ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-50 hover:bg-emerald-400/25"
+                            : "border-sky-300/40 bg-sky-400/15 text-sky-50 hover:bg-sky-400/25"
+                      }`}
+                    >
+                      {askLayersLabel ||
+                        (labelLanguage === "en"
+                          ? "Try Ask to turn on layers"
+                          : "묻기로 레이어 켜기")}
+                    </button>
+                  ) : null}
+                </div>
               )}
             </div>
           ) : null}

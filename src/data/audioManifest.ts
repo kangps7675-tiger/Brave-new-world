@@ -475,7 +475,33 @@ export const AUDIO_MANIFEST = {
     freesoundId: 234782,
     volume: 0.3,
     category: "economy",
-    note: "FS#234782 wubitog Steam/hiss · CL=F/BZ=F SPIKE + LNG 클릭 · CC0",
+    note: "FS#234782 wubitog Steam/hiss · LNG 클릭 등 · 티커 SPIKE는 ticker-telegraph-* 사용",
+  },
+
+  /**
+   * Databento 선물 SPIKE 상승 전보 — hero-breaking과 동일 모스 클립·짧은 컷
+   * https://freesound.org/s/553739/ · christislord · CC0
+   */
+  "ticker-telegraph-up": {
+    eventId: "ticker-telegraph-up",
+    freesoundQuery: "morse code telegraph radio cw",
+    freesoundId: 553739,
+    volume: 0.36,
+    category: "economy",
+    note: "FS#553739 · Databento SPIKE up · short cut via durationMs",
+  },
+
+  /**
+   * Databento 선물 SPIKE 하락 전보 — 동일 모스·긴 컷
+   * https://freesound.org/s/553739/ · christislord · CC0
+   */
+  "ticker-telegraph-down": {
+    eventId: "ticker-telegraph-down",
+    freesoundQuery: "morse code telegraph radio cw",
+    freesoundId: 553739,
+    volume: 0.4,
+    category: "economy",
+    note: "FS#553739 · Databento SPIKE down · longer cut via durationMs",
   },
 
   // ── Infra / mobility click oneshots ─────────────────────────────

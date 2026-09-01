@@ -29,7 +29,7 @@ const PIPELINE_KINDS = new Set([
 ]);
 /** 축 연결 호 — 전 줌에서 최소 굵기 유지 */
 const FLOW_ARC_KINDS = new Set(["axis-link"]);
-/** DFC·BRI — 반투명 굵은 코리도어(폴리곤에 가까운 띠) */
+/** DFC·BRI — 일반 path와 비슷한 얇은 실선 */
 const CORRIDOR_KINDS = new Set(["bri-trade", "us-dfc-supply"]);
 
 /**
@@ -190,12 +190,12 @@ const FLOW_TABLE: Array<[number, number]> = [
   [6, 3.4],
   [10, 2.6],
 ];
-/** DFC·BRI 코리도어 — 약간 굵은 반투명 띠 */
+/** DFC·BRI — 선처럼 얇게 (예전 7.5–12px 띠 → ~1/5–1/6) */
 const CORRIDOR_TABLE: Array<[number, number]> = [
-  [1, 7.5],
-  [3, 9.5],
-  [6, 12],
-  [10, 10],
+  [1, 1.4],
+  [3, 1.8],
+  [6, 2.1],
+  [10, 1.8],
 ];
 /** 파이프 — 멀리 0.1 · 가까이 ≤0.6 */
 const PIPELINE_TABLE: Array<[number, number]> = [

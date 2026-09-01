@@ -11,6 +11,8 @@ import type {
   TransportPath,
 } from "@/data/geoTypes";
 import type { AircraftSymbolModel } from "@/lib/milAircraftSymbols";
+import type { AisSymbolInput } from "@/lib/aisVesselSymbols";
+import type { AisVessel } from "@/data/geoTypes";
 import type {
   FirmsFireGlobePoint,
   GlobeDisplayPoint,
@@ -107,7 +109,6 @@ import {
 import { NEWFEEDS_ATTRIBUTION_SHORT, severityColor, severityHint, severityLabel } from "@/lib/newfeeds";
 import {
   theaterIntensityAngularRadius,
-  ukraineTheaterIntensityColor,
 } from "@/lib/theaterIntensityRadius";
 import { shippingLaneColor, shippingLaneStroke } from "@/lib/shippingLaneStyle";
 import {
@@ -174,6 +175,14 @@ export interface UseGlobeMapGlobePropsParams {
   handleMilAircraftSelect: (aircraft: MilitaryAircraft) => void;
   handleCivAircraftSelect: (aircraft: MilitaryAircraft) => void;
   setHoveredMilAircraft: (aircraft: MilitaryAircraft | null) => void;
+  /**
+   * 선박(AIS)도 항공기와 같은 이유로 symbol 레이어 — htmlOverlayMarkers에 넣지 말 것.
+   * mapBearingDeg(옆모습 E/W 판정)는 MapGlobeView가 직접 갖고 있으므로,
+   * 여기서는 geojson을 미리 굽지 않고 원본 포인트만 그대로 내려보낸다.
+   */
+  aisDisplayPoints: AisSymbolInput[];
+  handleAisSymbolSelect: (vessel: AisVessel) => void;
+  handleAisSymbolHover: (vessel: AisVessel | null) => void;
   isViinaCloseZoom: boolean;
   showUkraineControl: boolean;
   layerAltitudeRef: MutableRefObject<number>;
@@ -193,6 +202,7 @@ export interface UseGlobeMapGlobePropsParams {
   ukraineMicroGeoJson: FeatureCollection;
   axisHubCountriesGeoJson: FeatureCollection;
   alliedBlocCountriesGeoJson: FeatureCollection;
+  geoEconBlocCountriesGeoJson: FeatureCollection;
   neptunPathElevation: NeptunPathElevationMode;
   tonedPathColors: ReturnType<typeof pathLayerColors>;
   tonedInfraColors: ReturnType<typeof infraColors>;
@@ -239,6 +249,9 @@ export function useGlobeMapGlobeProps(
     handleMilAircraftSelect,
     handleCivAircraftSelect,
     setHoveredMilAircraft,
+    aisDisplayPoints,
+    handleAisSymbolSelect,
+    handleAisSymbolHover,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -258,6 +271,7 @@ export function useGlobeMapGlobeProps(
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
+    geoEconBlocCountriesGeoJson,
     neptunPathElevation,
     tonedPathColors,
     tonedInfraColors,
@@ -343,11 +357,8 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "tzeva-adom") {
         return TZEVA_ADOM_MARKER;
       }
-      if (point.displayKind === "newfeeds-attack") {
+      if (point.displayKind === "newfeeds-attack" || point.displayKind === "ukraine-theater-intensity") {
         return severityColor(point.severity);
-      }
-      if (point.displayKind === "ukraine-theater-intensity") {
-        return ukraineTheaterIntensityColor(point.severity);
       }
       if (point.displayKind === "conflict-cluster") {
         if (point.tension === "high") return "rgba(239, 68, 68, 0.92)";
@@ -598,6 +609,17 @@ export function useGlobeMapGlobeProps(
     },
     onAircraftHover: (item: unknown | null) => {
       setHoveredMilAircraft((item as MilitaryAircraft | null) ?? null);
+    },
+    /* ── 선박(AIS): symbol 레이어 (DOM Marker 아님) ─────────────────────
+     * geojson은 MapGlobeView가 mapBearingDeg와 함께 buildAisSymbolModel로 굽는다 —
+     * 여기서는 원본 포인트 배열만 전달한다.
+     */
+    aisSymbolVessels: aisDisplayPoints,
+    onAisSymbolClick: (item: unknown) => {
+      handleAisSymbolSelect(item as AisVessel);
+    },
+    onAisSymbolHover: (item: unknown | null) => {
+      handleAisSymbolHover((item as AisVessel | null) ?? null);
     },
 
     htmlElementsData: htmlOverlayMarkers,
@@ -928,6 +950,7 @@ export function useGlobeMapGlobeProps(
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
+    geoEconBlocCountriesGeoJson,
     pathPoints: (path: TransportPath) => path.points,
     pathPointLat: (point: { lat: number; lng: number }) => point.lat,
     pathPointLng: (point: { lat: number; lng: number }) => point.lng,
@@ -1057,8 +1080,8 @@ export function useGlobeMapGlobeProps(
         }
         return 1.35;
       }
-      if (path.kind === "bri-trade") return Math.max(3.2, briTradeStrokeWidth(path));
-      if (path.kind === "us-dfc-supply") return Math.max(3.2, usDfcSupplyStrokeWidth(path));
+      if (path.kind === "bri-trade") return briTradeStrokeWidth(path);
+      if (path.kind === "us-dfc-supply") return usDfcSupplyStrokeWidth(path);
       if (path.kind === "strategic-corridor") {
         const rank = path.scalerank ?? 2;
         if (rank <= 1) return 2.8;

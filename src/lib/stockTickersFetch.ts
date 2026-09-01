@@ -10,6 +10,9 @@ import {
   hasFredApiKey,
   symbolHasFredSeries,
 } from "@/lib/fred";
+import { hasDatabentoApiKey } from "@/lib/databento/env";
+import { fetchDatabentoFuturesTickers } from "@/lib/databento/fetchFutures";
+import { isDatabentoFuturesSymbol } from "@/lib/databento/symbolMap";
 
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
@@ -250,21 +253,36 @@ export async function fetchStockTickers(): Promise<StockTickerItem[]> {
  * FININT 티커 — 등락은 전부 전일(직전 관측) 대비.
  *
  * - Yahoo: 현재가 + previousClose로 전일대비 %, 일봉 스파크라인.
- * - FRED 키가 있으면: 유가·가스·금·달러·환율·국채·연준금리를 FRED 일간 관측으로 덮어씀.
- * - FRED 키가 없으면: Yahoo만 (FEDFUNDS 등 FRED 전용은 빈 칸).
+ * - Databento 키가 있으면: CME 선물(CL/BZ/NG/…)은 Databento ohlcv-1d 우선.
+ * - FRED 키가 있으면: 유가·가스·금·달러·환율·국채·연준금리를 FRED 일간 관측으로 덮어씀
+ *   (Databento가 이미 채운 선물은 FRED가 덮지 않음).
+ * - 키 없으면: Yahoo만 (FEDFUNDS 등 FRED 전용은 빈 칸).
  */
 async function fetchStockTickersLive(): Promise<StockTickerItem[]> {
   const yahooItems = await fetchYahooTickers(STOCK_TICKER_SYMBOLS);
   const bySymbol = new Map(yahooItems.map((item) => [item.symbol, item]));
 
+  if (hasDatabentoApiKey()) {
+    const labelBySymbol = new Map(
+      STOCK_TICKER_SYMBOLS.map((c) => [c.symbol, c.label] as const),
+    );
+    const dbTickers = await fetchDatabentoFuturesTickers(labelBySymbol);
+    for (const [symbol, item] of dbTickers) {
+      bySymbol.set(symbol, item);
+    }
+  }
+
   if (hasFredApiKey()) {
     const overlaySymbols = [
       ...STOCK_TICKER_SYMBOLS.filter((c) => symbolHasFredSeries(c.symbol)).map((c) => c.symbol),
       ...FRED_ONLY_TICKER_SYMBOLS.map((c) => c.symbol),
-    ];
+    ].filter((symbol) => !isDatabentoFuturesSymbol(symbol) || !bySymbol.get(symbol)?.asOf);
     const fredReadings = await fetchFredReadingsBySymbol(overlaySymbols);
     const allConfigs = [...STOCK_TICKER_SYMBOLS, ...FRED_ONLY_TICKER_SYMBOLS];
     for (const config of allConfigs) {
+      if (isDatabentoFuturesSymbol(config.symbol) && bySymbol.get(config.symbol)?.asOf) {
+        continue;
+      }
       const fred = fredReadings.get(config.symbol);
       if (!fred || fred.price == null) continue;
       bySymbol.set(config.symbol, {

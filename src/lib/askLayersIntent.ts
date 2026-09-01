@@ -13,7 +13,7 @@ import {
 import type { DailyRanksPayload } from "@/lib/dailyRanks";
 import { THEATER_FLY_TO } from "@/lib/news/theaterMap";
 import { LAYER_PREF_LABELS, type ViewerMode } from "@/lib/viewPackages";
-import { stripEconomyMilitaryPatch } from "@/lib/viewerChrome";
+import { stripEconomyGeopoliticsPatch } from "@/lib/viewerChrome";
 
 export type AskLayersIntentId =
   | "middle-east"
@@ -304,7 +304,7 @@ function buildEconomyAskIntent(
     "today-hot": { ko: "오늘 핫 초크", en: "Today’s hot chokepoint" },
   };
 
-  const patch = stripEconomyMilitaryPatch({
+  const patch = stripEconomyGeopoliticsPatch({
     ...SHIPPING_CHOKE_STACK,
     showNewfeedsIranAttacks:
       intent === "middle-east" || intent === "red-sea-houthi" || intent === "today-hot",

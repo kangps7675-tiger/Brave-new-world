@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { hasLampPhoto, normalizeLampImageUrl } from "./lampThumbnail";
+import { filterNewsToPreviousWeek } from "./lampNewsPool";
 import {
   ensureLampFeaturedNews,
   isNaturalDisasterNews,
+  isWeeklyRecapBriefingKey,
   pickConflictLampNews,
+  previousIsoWeekRange,
+  resolveMondayWeeklyRecap,
 } from "./periodicBriefing";
 
 describe("isNaturalDisasterNews", () => {
@@ -104,5 +108,50 @@ describe("normalizeLampImageUrl", () => {
     expect(hasLampPhoto("https://cdn.example.com/tracking-pixel.gif")).toBe(false);
     expect(hasLampPhoto("")).toBe(false);
     expect(hasLampPhoto("data:image/png;base64,abc")).toBe(false);
+  });
+});
+
+describe("monday weekly photo recap window", () => {
+  it("월요일에만 지난주 회고 오퍼를 연다", () => {
+    const monday = new Date(2026, 7, 31, 10, 0, 0); // Aug 31 2026 = Monday
+    const tuesday = new Date(2026, 8, 1, 10, 0, 0);
+    expect(resolveMondayWeeklyRecap(monday)?.weekKey).toMatch(/^weekly-\d{4}-W\d{2}$/);
+    expect(resolveMondayWeeklyRecap(tuesday)).toBeNull();
+  });
+
+  it("전주 ISO 주 구간만 남기고, 부족하면 직전 7일로 완화한다", () => {
+    const monday = new Date(2026, 7, 31, 9, 0, 0);
+    const { weekKey } = previousIsoWeekRange(monday);
+    expect(weekKey).toBe("weekly-2026-W35");
+    expect(isWeeklyRecapBriefingKey(`${weekKey}-conflict`)).toBe(true);
+
+    const inWeek = {
+      id: "in",
+      title: "Frontline strike",
+      summary: "A".repeat(80),
+      link: "https://www.reuters.com/world/europe/frontline-2026-08-26/",
+      source: "Reuters",
+      publisher: "Reuters",
+      pubDate: new Date(2026, 7, 26, 12, 0, 0).toISOString(),
+      theater: "russia-ukraine" as const,
+      trustTier: 1 as const,
+      imageUrl: "https://cdn.example.com/a.jpg",
+    };
+    const tooOld = {
+      ...inWeek,
+      id: "old",
+      pubDate: new Date(2026, 7, 10, 12, 0, 0).toISOString(),
+    };
+    const today = {
+      ...inWeek,
+      id: "today",
+      pubDate: monday.toISOString(),
+    };
+
+    const filtered = filterNewsToPreviousWeek(
+      [inWeek, tooOld, today] as never[],
+      monday,
+    );
+    expect(filtered.map((n) => n.id)).toEqual(["in"]);
   });
 });

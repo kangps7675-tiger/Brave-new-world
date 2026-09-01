@@ -3,6 +3,8 @@
  * σ / z-score 등 통계 기호는 UI에 쓰지 않는다.
  */
 
+import { GTI_BLEND } from "@/lib/gti";
+
 export type TensionSignalKey =
   | "mentions"
   | "points"
@@ -24,23 +26,24 @@ const SIGNALS: SignalMeta[] = [
   { key: "airRaidScore", labelKo: "공습 경보", labelEn: "air-raid alerts" },
 ];
 
-/** 평소 대비 얼마나 튀었는지 — 숫자·σ 없이 */
+/** 기준 기간 대비 얼마나 튀었는지 — 숫자·σ 없이 */
 function intensityPhrase(
   z: number,
   lang: "ko" | "en",
 ): string {
   const abs = Math.abs(z);
   const up = z > 0;
+  const days = GTI_BLEND.baselineDays;
   if (lang === "en") {
-    if (abs >= 2) return up ? "far above usual" : "far below usual";
-    if (abs >= 1.2) return up ? "well above usual" : "well below usual";
-    if (abs >= 0.7) return up ? "above usual" : "below usual";
-    return up ? "a bit above usual" : "a bit below usual";
+    if (abs >= 2) return up ? `far above the ${days}-day average` : `far below the ${days}-day average`;
+    if (abs >= 1.2) return up ? `well above the ${days}-day average` : `well below the ${days}-day average`;
+    if (abs >= 0.7) return up ? `above the ${days}-day average` : `below the ${days}-day average`;
+    return up ? `a bit above the ${days}-day average` : `a bit below the ${days}-day average`;
   }
-  if (abs >= 2) return up ? "평소보다 훨씬 많음" : "평소보다 훨씬 적음";
-  if (abs >= 1.2) return up ? "평소보다 많음" : "평소보다 적음";
-  if (abs >= 0.7) return up ? "평소보다 다소 많음" : "평소보다 다소 적음";
-  return up ? "평소보다 살짝 많음" : "평소보다 살짝 적음";
+  if (abs >= 2) return up ? `최근 ${days}일 평균보다 훨씬 많음` : `최근 ${days}일 평균보다 훨씬 적음`;
+  if (abs >= 1.2) return up ? `최근 ${days}일 평균보다 많음` : `최근 ${days}일 평균보다 적음`;
+  if (abs >= 0.7) return up ? `최근 ${days}일 평균보다 다소 많음` : `최근 ${days}일 평균보다 다소 적음`;
+  return up ? `최근 ${days}일 평균보다 살짝 많음` : `최근 ${days}일 평균보다 살짝 적음`;
 }
 
 export function extractTensionZScores(

@@ -1,4 +1,4 @@
-import type { NewfeedsSeverity } from "@/lib/newfeeds";
+import { severityColor, type NewfeedsSeverity } from "@/lib/newfeeds";
 
 /**
  * 전장 강도 원(이란 NewFeeds · 우크라 GDELT) — 공통 angular radius.
@@ -22,10 +22,7 @@ export function theaterIntensityFromGdeltGrade(
   return "low";
 }
 
-/** 우크라 전장 강도 원 — 시안 계열 (이란 빨강과 구분) */
+/** 우크라 전장 강도 원 — 이란 NewFeeds와 동일 빨간 팔레트 (전쟁소식 한 채널) */
 export function ukraineTheaterIntensityColor(severity: NewfeedsSeverity | string): string {
-  if (severity === "major") return "rgba(14, 165, 233, 0.95)";
-  if (severity === "high") return "rgba(56, 189, 248, 0.92)";
-  if (severity === "medium") return "rgba(125, 211, 252, 0.88)";
-  return "rgba(148, 163, 184, 0.72)";
+  return severityColor(severity as NewfeedsSeverity);
 }

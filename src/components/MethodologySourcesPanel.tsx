@@ -1,6 +1,5 @@
 "use client";
 
-import { AcledEventTable } from "@/components/AcledEventTable";
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -282,48 +281,6 @@ export function MethodologySourcesPanel({
                 docs.openalex.org
               </a>
             </p>
-          </section>
-
-          <section className="rounded-xl border border-rose-800/40 bg-rose-950/20 p-3">
-            <h3 className="text-sm font-medium text-rose-100">
-              HDX HAPI · ACLED — 전선 누적 사망 · 이란 개전 이후 · 중국·대만 사건
-            </h3>
-            <p className="mt-2 text-caption leading-5 text-sky-100/80">
-              HDX HAPI conflict-events(ACLED)의 political_violence를 전장별 개전일부터
-              합산합니다. 우크라 2022-02-24, 이란 2026-02-28, 가자·레바논 2023-10-07.
-              중국·대만만 최근 약 4개월입니다. 열린 전선 행정구역의 사망을 표시하고,
-              이란은 사망이 0이면 사건 수로 「정치폭력 사건」을 표시합니다. ACLED는
-              부상 필드를 제공하지 않습니다. 가자·레바논 지역 시드(UN OCHA)와 이란전은
-              섞지 않습니다.
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              우크라 전선 주: Donetsk · Luhansk · Kharkiv · Zaporizhzhia · Kherson ·
-              Sumy · Dnipropetrovsk. 중동: Gaza · 남부 레바논 등. 이란: Tehran ·
-              Khuzestan · Hormozgan 등. 중국·대만: 국가 단위 앵커(대만해협 연안).
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              우크라 누적 사상자(명의 확인 전사 + CSIS 부상 추정)는 Mediazona × BBC
-              레이어입니다. HAPI 전선 사망과 정의가 다릅니다.
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              API:{" "}
-              <a
-                href="/api/hapi-conflict-casualties"
-                className="underline decoration-rose-400/40 underline-offset-2 hover:text-sky-50"
-              >
-                /api/hapi-conflict-casualties
-              </a>
-              {" · "}
-              <a
-                href="https://hapi.humdata.org/"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-rose-400/40 underline-offset-2 hover:text-sky-50"
-              >
-                hapi.humdata.org
-              </a>
-            </p>
-            <AcledEventTable lang={lang} />
           </section>
 
           <section className="rounded-xl border border-yellow-800/40 bg-yellow-950/20 p-3">

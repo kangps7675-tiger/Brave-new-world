@@ -269,8 +269,12 @@ export function allStrategicCorridorPaths(): TransportPath[] {
 export function strategicCorridorPathsForLod(
   lod: CorridorLod,
   view: { lat: number; lng: number },
+  options?: { categories?: StrategicCorridor["category"][] },
 ): TransportPath[] {
-  const all = allStrategicCorridorPaths();
+  const rawAll = allStrategicCorridorPaths();
+  const all = options?.categories
+    ? rawAll.filter((p) => options.categories!.includes(p.meta?.category as StrategicCorridor["category"]))
+    : rawAll;
   if (all.length === 0) return [];
   // leg 단위로 필터하면 긴 회랑이 잘리므로, corridorId당 대표 path로 먼저 cull
   const byCorridor = new Map<string, TransportPath[]>();

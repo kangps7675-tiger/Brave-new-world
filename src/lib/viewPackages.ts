@@ -168,7 +168,6 @@ type BooleanLayerKey = {
 }[keyof LayerPrefs];
 
 const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
-  "showUcdpEvents",
   "showArmsEmbargo",
   "showGdeltAlliance",
   "showGdeltProtests",
@@ -232,7 +231,6 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showCriticalNodes: "핵심 인프라 노드",
   showPorts: "항구",
   showFirmsFires: "위성 화재 감지",
-  showUcdpEvents: "분쟁·전쟁 기록",
   showArmsEmbargo: "무기 금수 국가",
 };
 

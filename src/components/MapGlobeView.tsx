@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
+import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 /**
@@ -74,6 +75,16 @@ import {
   AIRCRAFT_SYMBOL_SOURCE_ID,
   ensureAircraftSymbolImages,
 } from "@/lib/milAircraftSymbols";
+import {
+  AIS_ASPECT_SYMBOL_LAYER_ID,
+  AIS_ASPECT_SYMBOL_SOURCE_ID,
+  AIS_HEADING_SYMBOL_LAYER_ID,
+  AIS_HEADING_SYMBOL_SOURCE_ID,
+  aisSymbolBearingBucket,
+  buildAisSymbolModel,
+  ensureAisSymbolImages,
+  type AisSymbolInput,
+} from "@/lib/aisVesselSymbols";
 import {
   islandChainsBasesGeoJson,
   islandChainsChinaGeoJson,
@@ -155,6 +166,8 @@ const INTERACTIVE_LAYERS = [
   "map-points",
   "map-gem-facilities",
   AIRCRAFT_SYMBOL_LAYER_ID,
+  AIS_HEADING_SYMBOL_LAYER_ID,
+  AIS_ASPECT_SYMBOL_LAYER_ID,
   "map-paths-solid",
   "map-paths-dashed",
   "map-polygons-fill",
@@ -263,8 +276,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const onWebglContextLost = props.onWebglContextLost as (() => void) | undefined;
 
   const mapRef = useRef<MapRef>(null);
+  /** <Map>을 감싸는 컨테이너 — webglcontextcreationerror를 캡처 단계에서 잡기 위한 앵커 */
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   /** WebGL 컨텍스트 유실 상태 (P0-2) */
   const [contextLost, setContextLost] = useState(false);
+  /**
+   * 지도가 "한 번도" 뜨지 못한 경우 (2026-08-31, 리포트 2번).
+   * `contextLost`(뜬 적은 있는데 GPU 리셋)와 달리 자동 복구를 기대할 수
+   * 없다 — webglcontextcreationerror / 로드 전 onError / 타임아웃 셋 중
+   * 하나라도 걸리면 true.
+   */
+  const [mapInitFailed, setMapInitFailed] = useState(false);
   const changeListenersRef = useRef(new Set<() => void>());
   const readyRef = useRef(false);
   const onGlobeReadyRef = useRef<(() => void) | undefined>(onGlobeReady);
@@ -278,6 +300,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const showCityLabelsRef = useRef(showCityLabels);
   const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapLoadedRef = useRef(false);
+  mapLoadedRef.current = mapLoaded;
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
@@ -501,6 +525,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.alliedBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.alliedBlocCountriesGeoJson]);
+  const geoEconBlocCountriesGeoJson = useMemo(() => {
+    const raw = props.geoEconBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.geoEconBlocCountriesGeoJson]);
 
   const interactiveLayerIds = useMemo(() => {
     const fromProps = props.interactiveLayerIds;
@@ -843,6 +871,21 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     | undefined;
 
   /**
+   * 선박(AIS) symbol 레이어 — 항공기와 달리 옆모습(E/W) 판정이 카메라 방위
+   * (mapBearingDeg, 바로 아래서 정의)에 좌우되므로 geojson을 여기서 굽는다.
+   * 5° 단위로 양자화해 회전 중 재빌드 빈도를 억제한다 (aisSymbolBearingBucket).
+   */
+  const aisSymbolVessels = (props.aisSymbolVessels as AisSymbolInput[] | undefined) ?? [];
+  const aisSymbolModel = useMemo(
+    () => buildAisSymbolModel(aisSymbolVessels, aisSymbolBearingBucket(mapBearingDeg)),
+    [aisSymbolVessels, mapBearingDeg],
+  );
+  const onAisSymbolClick = props.onAisSymbolClick as ((item: unknown) => void) | undefined;
+  const onAisSymbolHover = props.onAisSymbolHover as
+    | ((item: unknown | null) => void)
+    | undefined;
+
+  /**
    * pointOfView(jumpTo) → onMove → notifyChange 동기 재진입을 막는다.
    * 재진입 시 고도 클램프가 change 리스너를 중첩 호출해 React #185를 냈다.
    */
@@ -998,6 +1041,44 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded]);
 
+  /**
+   * 지도 초기화 실패 감지 (2026-08-31, 리포트 2번 — P0-1의 남은 구멍).
+   *
+   * `webglSupport.ts`의 부트 probe는 "생성 가능한지"만 확인하고 즉시
+   * 컨텍스트를 반납한다. 실제 <Map>이 나중에 진짜 컨텍스트를 만들 때
+   * 실패해도(예: 로딩 셰이더가 반납 안 한 컨텍스트와 충돌, GPU 드라이버
+   * 컨텍스트 상한 등) 지금까지는 아무도 못 잡았다 — <Map>에 onError가
+   * 연결돼 있지 않고, webglcontextcreationerror 리스너도 없었다.
+   *
+   * 이 이벤트는 캔버스가 아직 만들어지기 *전부터* 컨테이너에 캡처 단계로
+   * 걸어둬야 확실히 잡힌다 — 캔버스가 생기고 나서 리스너를 달면 이미
+   * 늦는다. 타임아웃은 이벤트 자체가 안 뜨는 조용한 실패까지 잡는 안전망.
+   */
+  useEffect(() => {
+    if (mapLoaded) return;
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    const onCreationError = () => {
+      setMapInitFailed(true);
+    };
+    container.addEventListener("webglcontextcreationerror", onCreationError, true);
+
+    const timeoutId = window.setTimeout(() => {
+      if (!mapLoadedRef.current) setMapInitFailed(true);
+    }, 15_000);
+
+    return () => {
+      container.removeEventListener("webglcontextcreationerror", onCreationError, true);
+      window.clearTimeout(timeoutId);
+    };
+  }, [mapLoaded]);
+
+  /** 로드 전 발생한 치명적 오류 — 로드 후 오류(타일 404 등)는 maplibre가 알아서 처리하므로 무시 */
+  const handleMapError = useCallback(() => {
+    if (!mapLoaded) setMapInitFailed(true);
+  }, [mapLoaded]);
+
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -1055,12 +1136,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
+    setMapInitFailed(false);
     onMapReadyForHybridRef.current?.(map);
 
     void ensureGemFacilityImages(map).catch(() => {
       /* 아이콘 로드 실패 시 circle 폴백 없음 — 재시도는 스타일 리로드 시 */
     });
     void ensureAircraftSymbolImages(map).catch(() => {
+      /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
+    });
+    void ensureAisSymbolImages(map).catch(() => {
       /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
     });
 
@@ -1251,10 +1336,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
         return aircraftSymbolsItems[index] ?? null;
       }
+      if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+        return aisSymbolModel.items[index] ?? null;
+      }
       return null;
     },
     [
       aircraftSymbolsItems,
+      aisSymbolModel,
       deferredPathsData,
       firmsFiresData,
       pointsData,
@@ -1298,6 +1387,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onAircraftClick?.(item, aircraftSymbolsIsCivil[Number(index)] ?? false);
           return;
         }
+        if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+          onAisSymbolClick?.(item);
+          return;
+        }
         if (isMapPathsLayer(layerId)) {
           onPathClick?.(item);
           return;
@@ -1311,6 +1404,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     },
     [
       hoveredIslandBaseId,
+      onAisSymbolClick,
       onGlobeClick,
       onPathClick,
       onPointClick,
@@ -1359,6 +1453,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onAircraftHover?.(item);
           return;
         }
+        if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+          onAisSymbolHover?.(item);
+          return;
+        }
         if (isMapPathsLayer(layerId)) {
           onPathHover?.(item);
           setHoveredPathGroupId(realCorridorGroupIdOf(item));
@@ -1374,10 +1472,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onPathHover?.(null);
       onPolygonHover?.(null);
       onAircraftHover?.(null);
+      onAisSymbolHover?.(null);
       setHoveredPathGroupId(null);
       setHoveredAxisLinkGroupId(null);
     },
-    [onAircraftHover, onPathHover, onPointHover, onPolygonHover, resolveFeature],
+    [onAircraftHover, onAisSymbolHover, onPathHover, onPointHover, onPolygonHover, resolveFeature],
   );
 
   const handleMapMouseLeave = useCallback(() => {
@@ -1387,9 +1486,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     onPathHover?.(null);
     onPolygonHover?.(null);
     onAircraftHover?.(null);
+    onAisSymbolHover?.(null);
     setHoveredPathGroupId(null);
     setHoveredAxisLinkGroupId(null);
-  }, [onAircraftHover, onPathHover, onPointHover, onPolygonHover]);
+  }, [onAircraftHover, onAisSymbolHover, onPathHover, onPointHover, onPolygonHover]);
 
   useEffect(() => {
     if (!mapLoaded || firmsFiresData.length === 0) return;
@@ -1451,6 +1551,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     void ensureGemFacilityImages(map).catch(() => undefined);
     void ensureFirmsFireImages(map).catch(() => undefined);
     void ensureAircraftSymbolImages(map).catch(() => undefined);
+    void ensureAisSymbolImages(map).catch(() => undefined);
   }, [mapLoaded, mapStyleUrl]);
 
   useEffect(() => {
@@ -1473,6 +1574,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
       void ensureAircraftSymbolImages(map).catch(() => undefined);
+      void ensureAisSymbolImages(map).catch(() => undefined);
     };
     map.on("style.load", onStyle);
     return () => {
@@ -1943,8 +2045,16 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   });
 
   return (
-    <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
-      {contextLost ? <WebglContextLostOverlay onRetry={handleContextRetry} /> : null}
+    <div
+      ref={mapContainerRef}
+      className="relative h-full w-full"
+      style={{ backgroundColor: backgroundColor as string }}
+    >
+      {mapInitFailed ? (
+        <MapInitFailedOverlay onRetry={handleContextRetry} />
+      ) : contextLost ? (
+        <WebglContextLostOverlay onRetry={handleContextRetry} />
+      ) : null}
       <Map
         ref={mapRef}
         mapStyle={mapStyleUrl}
@@ -1970,6 +2080,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
          */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
+        onError={handleMapError}
         onMove={handleMove}
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
@@ -2138,6 +2249,49 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Source>
         ) : null}
 
+        {geoEconBlocCountriesGeoJson.features.length > 0 ? (
+          <Source
+            id="geoecon-bloc-countries-source"
+            type="geojson"
+            data={geoEconBlocCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
+            <Layer
+              id="geoecon-bloc-countries-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#2563eb"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.14],
+                "fill-antialias": true,
+              }}
+            />
+            <Layer
+              id="geoecon-bloc-countries-outline"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(96,165,250,0.85)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.5,
+                  6,
+                  0.9,
+                  10,
+                  1.3,
+                ],
+                "line-opacity": 0.8,
+              }}
+            />
+          </Source>
+        ) : null}
+
         {pathsGeoJson.features.length > 0 ? (
           <Source
             id="map-paths-source"
@@ -2157,27 +2311,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               paint={{
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
-                // DFC·BRI 코리도어: 반투명 + 살짝 blur → 폴리곤 띠 느낌
-                "line-opacity": [
-                  "case",
-                  [
-                    "any",
-                    ["==", ["get", "kind"], "bri-trade"],
-                    ["==", ["get", "kind"], "us-dfc-supply"],
-                  ],
-                  0.72,
-                  0.95,
-                ],
-                "line-blur": [
-                  "case",
-                  [
-                    "any",
-                    ["==", ["get", "kind"], "bri-trade"],
-                    ["==", ["get", "kind"], "us-dfc-supply"],
-                  ],
-                  1.15,
-                  0,
-                ],
+                // DFC·BRI도 일반 실선과 동일 투명도 — blur 띠 제거
+                "line-opacity": 0.92,
+                "line-blur": 0,
               }}
             />
             {/* 점선 — 고정 dasharray + 필터 (data-driven dash 회피) */}
@@ -2447,6 +2583,86 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
               paint={{
                 // 침로 미상은 0.8 (기존 DOM 마커 규칙 유지)
+                "icon-opacity": ["get", "opacity"],
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {/*
+         * 선박(AIS) — DOM Marker가 아니라 symbol 레이어. (aisVesselSymbols.ts)
+         * 두 레이어로 나눈다:
+         *   - heading: 일반 상선·항모 — icon-rotate로 실제 회전(항공기와 동일 방식)
+         *   - aspect : 군함·잠수함·위장상선 — 옆모습(E/W) 실루엣 교체, 회전은 0 고정
+         *     (viewport 정렬 — 카메라가 돌아도 화면상 좌우가 뒤집히지 않고
+         *      buildAisSymbolModel이 미리 카메라 방위 기준으로 E/W를 골라둔다)
+         */}
+        {aisSymbolModel.headingGeojson.features.length > 0 ? (
+          <Source
+            id={AIS_HEADING_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aisSymbolModel.headingGeojson}
+          >
+            <Layer
+              id={AIS_HEADING_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "map",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                "icon-opacity": ["get", "opacity"],
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {aisSymbolModel.aspectGeojson.features.length > 0 ? (
+          <Source
+            id={AIS_ASPECT_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aisSymbolModel.aspectGeojson}
+          >
+            <Layer
+              id={AIS_ASPECT_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "viewport",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
                 "icon-opacity": ["get", "opacity"],
               }}
             />

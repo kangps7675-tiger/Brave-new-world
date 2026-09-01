@@ -26,19 +26,19 @@ type BriCityLink = {
   dlng: number;
 };
 
-/** 호박색 코리도어 — 반투명 (겹치면 밀도처럼 읽힘) */
+/** 호박색 연결선 — 일반 path 투명도에 가깝게 */
 const BRI_BASE_COLOR = "rgba(245, 158, 11";
 
 function impactAlpha(pct: number): number {
-  return Math.min(0.42, Math.max(0.22, 0.2 + pct / 90));
+  return Math.min(0.9, Math.max(0.55, 0.5 + pct / 120));
 }
 
 function impactStroke(pct: number): number {
   // widthMode "corridor"가 px를 담당 — strokeAngular는 보조 가중치만
-  return Math.min(4.2, Math.max(2.8, 2.6 + pct / 28));
+  return Math.min(1.1, Math.max(0.7, 0.65 + pct / 80));
 }
 
-/** 지면 가까운 낮은 호 — 폴리곤 띠처럼 보이도록 */
+/** 지면 가까운 낮은 호 */
 function impactPeakAlt(pct: number): number {
   return Math.min(0.055, Math.max(0.018, 0.015 + pct / 900));
 }

@@ -9,6 +9,7 @@ import { createNuclearStockpileElement } from "@/lib/nuclearStockpiles";
 import { docLang, escapeHtml } from "@/components/globe/formatters";
 import type {
   CasualtySkullHtmlMarker,
+  NewsInsightCalloutMarker,
   NuclearStockpileHtmlMarker,
   SituationCalloutMarker,
   StaticGlobePoint,
@@ -176,6 +177,47 @@ export function createSituationCalloutBadge(callout: SituationCalloutMarker): HT
     callout.title,
   )}</div><div style="opacity:0.92">${escapeHtml(callout.body)}</div>`;
   return el;
+}
+
+/** 뉴스 인사이트 맵 콜아웃 — 전쟁 네온과 구분되는 앰버 핀+라벨 */
+export function createNewsInsightCalloutBadge(
+  marker: NewsInsightCalloutMarker,
+): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "news-insight-callout";
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.alignItems = "center";
+  wrap.style.transform = "translate(-50%, -100%)";
+  wrap.style.pointerEvents = "none";
+  wrap.style.zIndex = "5";
+  wrap.style.filter = "drop-shadow(0 2px 8px rgba(0,0,0,0.45))";
+
+  const pin = document.createElement("div");
+  pin.style.width = "12px";
+  pin.style.height = "12px";
+  pin.style.borderRadius = "999px";
+  pin.style.background = "rgba(251, 191, 36, 0.95)";
+  pin.style.border = "2px solid rgba(254, 243, 199, 0.95)";
+  pin.style.boxShadow = "0 0 0 3px rgba(251, 191, 36, 0.25)";
+
+  const label = document.createElement("div");
+  label.style.marginTop = "6px";
+  label.style.maxWidth = "180px";
+  label.style.padding = "5px 8px";
+  label.style.borderRadius = "6px";
+  label.style.border = "1px solid rgba(251, 191, 36, 0.55)";
+  label.style.background = "rgba(15, 23, 42, 0.92)";
+  label.style.color = "#fde68a";
+  label.style.fontSize = "11px";
+  label.style.fontWeight = "600";
+  label.style.lineHeight = "1.35";
+  label.style.textAlign = "center";
+  label.textContent = marker.title;
+
+  wrap.appendChild(pin);
+  wrap.appendChild(label);
+  return wrap;
 }
 
 /** 지정학 — 전장 공통 사상자 오버레이 (호버 타입라이터 포함) */

@@ -21,7 +21,9 @@ export type WebglSupport =
 let cached: WebglSupport | null = null;
 
 /** 만든 컨텍스트를 즉시 반납 — GPU 메모리 점유 방지 */
-function release(gl: WebGLRenderingContext | WebGL2RenderingContext | null) {
+export function releaseWebglContext(
+  gl: WebGLRenderingContext | WebGL2RenderingContext | null,
+) {
   if (!gl) return;
   try {
     const ext = gl.getExtension("WEBGL_lose_context");
@@ -53,7 +55,7 @@ function probe(): WebglSupport {
   try {
     const gl2 = canvas.getContext("webgl2", attrs) as WebGL2RenderingContext | null;
     if (gl2) {
-      release(gl2);
+      releaseWebglContext(gl2);
       return "webgl2";
     }
   } catch {
@@ -64,7 +66,7 @@ function probe(): WebglSupport {
     const gl1 = (canvas.getContext("webgl", attrs) ||
       canvas.getContext("experimental-webgl", attrs)) as WebGLRenderingContext | null;
     if (gl1) {
-      release(gl1);
+      releaseWebglContext(gl1);
       return "webgl1";
     }
   } catch {

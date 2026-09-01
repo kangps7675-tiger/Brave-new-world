@@ -17,7 +17,6 @@ import { militaryBaseForceId, type MilitaryBaseForceId } from "@/lib/militaryBas
 import { localizeNewfeedsThreatLabel } from "@/lib/newfeedsI18n";
 import { isClientNeptunEnabled } from "@/lib/runtimeConfig.client";
 import { TELEGRAM_CHANNEL_COUNT } from "@/lib/telegramAlerts";
-import { UCDP_ATTRIBUTION_SHORT } from "@/lib/ucdp";
 import type GeoJSON from "geojson";
 
 export type UseLayerPanelCategoriesArgs = {
@@ -190,6 +189,9 @@ export type UseLayerPanelCategoriesArgs = {
   setShowBriTradeConnectivity: (v: boolean) => void;
   showStrategicCorridors: boolean;
   strategicCorridorPaths: unknown[];
+  showAlliedLogisticsCorridors: boolean;
+  alliedLogisticsCorridorPaths: unknown[];
+  setShowAlliedLogisticsCorridors: (v: boolean) => void;
   setShowStrategicCorridors: (v: boolean) => void;
   showShippingLanes: boolean;
   visibleShipping: unknown[];
@@ -242,6 +244,10 @@ export type UseLayerPanelCategoriesArgs = {
   visibleMilitaryBaseAreas: unknown[];
   setShowMilitaryBases: (v: boolean) => void;
   setShowAlliedBlocs: (v: boolean) => void;
+  showCstoBloc: boolean;
+  setShowCstoBloc: (v: boolean) => void;
+  showGeoEconBlocs: boolean;
+  setShowGeoEconBlocs: (v: boolean) => void;
   setShowRokMilitaryBases: (v: boolean) => void;
   setShowJapanMilitaryBases: (v: boolean) => void;
   setShowTaiwanMilitaryBases: (v: boolean) => void;
@@ -409,8 +415,8 @@ export function useLayerPanelCategories({
   showArmsEmbargo,
   armsEmbargoFramePaths,
   setShowArmsEmbargo,
-  showUcdpEvents,
-  setShowUcdpEvents,
+  showUcdpEvents: _showUcdpEvents,
+  setShowUcdpEvents: _setShowUcdpEvents,
   showGdeltWar,
   gdeltLoading,
   ukraineGdeltNeonMarkers,
@@ -462,6 +468,9 @@ export function useLayerPanelCategories({
   setShowBriTradeConnectivity,
   showStrategicCorridors,
   strategicCorridorPaths,
+  showAlliedLogisticsCorridors,
+  alliedLogisticsCorridorPaths,
+  setShowAlliedLogisticsCorridors,
   setShowStrategicCorridors,
   showShippingLanes,
   visibleShipping,
@@ -514,6 +523,9 @@ export function useLayerPanelCategories({
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
   setShowAlliedBlocs,
+  setShowCstoBloc,
+  showGeoEconBlocs,
+  setShowGeoEconBlocs,
   setShowRokMilitaryBases,
   setShowJapanMilitaryBases,
   setShowTaiwanMilitaryBases,
@@ -589,6 +601,8 @@ export function useLayerPanelCategories({
   const layerPanelActive = showLeftPanel;
   /** 패널 닫힘 시 deps 고정 — GDELT·카메라 등과 layerCategories 재계산 분리 */
   const lpg = <T,>(active: T, idle: T): T => (layerPanelActive ? active : idle);
+  void _showUcdpEvents;
+  void _setShowUcdpEvents;
 
   return useMemo(() => {
     if (!showLeftPanel || !layerPanelReady) {
@@ -1025,16 +1039,6 @@ export function useLayerPanelCategories({
             accent: "fuchsia",
           },
           {
-            id: "ucdp",
-            label: "분쟁·전쟁 기록",
-            detail: showUcdpEvents
-              ? `세계 분쟁·전쟁 기록 · ${UCDP_ATTRIBUTION_SHORT}`
-              : "꺼짐 · UCDP 세계 분쟁 DB",
-            checked: layerPrefs.showUcdpEvents,
-            onChange: setShowUcdpEvents,
-            accent: "red",
-          },
-          {
             id: "gdelt-war",
             label: "뉴스 · 전투·충돌",
             detail: showGdeltWar
@@ -1169,7 +1173,6 @@ export function useLayerPanelCategories({
             showAxisNetwork: enabled,
             showConflictZones: enabled,
             showArmsEmbargo: enabled,
-            showUcdpEvents: enabled,
             showGdeltWar: enabled,
             showGdeltDiplomatic: enabled,
             showGdeltProtests: enabled,
@@ -1493,6 +1496,16 @@ export function useLayerPanelCategories({
                   checked: layerPrefs.showStrategicCorridors,
                   onChange: setShowStrategicCorridors,
                   accent: "amber",
+                },
+                {
+                  id: "allied-logistics-corridors",
+                  label: "동맹 물류 회랑",
+                  detail: showAlliedLogisticsCorridors
+                    ? `경로 ${alliedLogisticsCorridorPaths.length.toLocaleString()} · 인도태평양·걸프·FPDA`
+                    : "꺼짐",
+                  checked: layerPrefs.showAlliedLogisticsCorridors,
+                  onChange: setShowAlliedLogisticsCorridors,
+                  accent: "blue",
                 },
               ] satisfies LayerToggleItem[])),
           {
@@ -1932,13 +1945,23 @@ export function useLayerPanelCategories({
               ]),
           {
             id: "allied-blocs",
-            label: "진영 블록 (NATO·AUKUS·CRINK·CSTO)",
+            label: "진영 블록 (NATO·AUKUS·CRINK)",
             detail: layerPrefs.showAlliedBlocs
-              ? "국가별 진영 소속 음영 (조약·통칭 기반)"
+              ? "국가별 진영 소속 음영 (조약·통칭 기반) — 기본 켜짐"
               : "꺼짐",
             checked: layerPrefs.showAlliedBlocs,
             onChange: setShowAlliedBlocs,
             accent: "blue",
+          },
+          {
+            id: "csto-bloc",
+            label: "CSTO (러시아 주도 · CRINK 연계)",
+            detail: layerPrefs.showCstoBloc
+              ? "아르메니아는 소속 논쟁 중이라 옅게 표시"
+              : "꺼짐 — 소속 범위 논쟁 있어 기본 꺼짐",
+            checked: layerPrefs.showCstoBloc,
+            onChange: setShowCstoBloc,
+            accent: "orange",
           },
           {
             id: "refugee",
@@ -2063,6 +2086,16 @@ export function useLayerPanelCategories({
             accent: "emerald",
           },
           {
+            id: "geoecon-blocs",
+            label: "지경학 진영 (서방·반서방·비동맹)",
+            detail: showGeoEconBlocs
+              ? "G7·EU·CPTPP·IPEF / EAEU·SCO / ASEAN·Mercosur·AfCFTA — 기본 켜짐"
+              : "꺼짐",
+            checked: layerPrefs.showGeoEconBlocs,
+            onChange: setShowGeoEconBlocs,
+            accent: "emerald",
+          },
+          {
             id: "ai-dc",
             label: "AI 데이터센터",
             detail: showAiDataCenters ? "데이터센터 시설" : "꺼짐",
@@ -2121,7 +2154,6 @@ export function useLayerPanelCategories({
       "recon-satellites": ["conflict"],
       "gps-interference": ["conflict"],
       "disguised-vessels": ["conflict"],
-      ucdp: ["conflict"],
       "gdelt-war": ["conflict"],
       "gdelt-protest": ["conflict"],
       "telegram-osint": ["conflict"],
@@ -2299,7 +2331,6 @@ export function useLayerPanelCategories({
     lpg(showNewfeedsIranAttacks, false),
     lpg(showNeptun, false),
     lpg(showNeptunPreviousTrails, false),
-    lpg(showUcdpEvents, false),
     lpg(showUkraineControl, false),
     lpg(ukraineControlDate, null),
     lpg(ukraineControlStatus, "idle"),

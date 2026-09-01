@@ -11,7 +11,6 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "diplomatic-tension": "showDiplomaticTension",
   "conflict-zones": "showConflictZones",
   "arms-embargo": "showArmsEmbargo",
-  ucdp: "showUcdpEvents",
   "gdelt-war": "showGdeltWar",
   "gdelt-diplomatic": "showGdeltDiplomatic",
   "gdelt-alliance": "showGdeltAlliance",

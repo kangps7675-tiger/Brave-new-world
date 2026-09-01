@@ -28,6 +28,8 @@ import { loadWatchSymbols, toggleWatchSymbol } from "@/lib/watchlistPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { SovereignRatesPanel } from "@/components/SovereignRatesPanel";
+import { listDatabentoSpikes } from "@/lib/tickerSpikeTelegraph";
+import { TICKER_SPIKE_THRESHOLD_PERCENT } from "@/lib/news/intelStackMode";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -353,7 +355,7 @@ export function IntelRelatedMarketsPanel({
   );
 
   const bySymbol = useMemo(() => new Map(allTickers.map((t) => [t.symbol, t])), [allTickers]);
-  const related = pickRelatedTickers(allTickers, marketFilter);
+  const related = pickRelatedTickers(allTickers, marketFilter, "economy");
   const relatedSet = useMemo(() => new Set(related.map((t) => t.symbol)), [related]);
   const filteredRelated = useMemo(
     () => related.filter((item) => matchesTickerSearch(item, searchQuery, lang)),
@@ -367,6 +369,13 @@ export function IntelRelatedMarketsPanel({
     [watchSymbols, bySymbol],
   );
   const hasSearch = searchQuery.trim().length > 0;
+
+  const spikeItems = useMemo(() => {
+    const spikes = listDatabentoSpikes(allTickers, TICKER_SPIKE_THRESHOLD_PERCENT);
+    return spikes
+      .map((s) => bySymbol.get(s.symbol))
+      .filter((t): t is StockTickerItem => t != null);
+  }, [allTickers, bySymbol]);
 
   const titleSuffix =
     theaterFilter === "all" ? "" : ` · ${THEATER_CHIP_LABELS[theaterFilter]}`;
@@ -391,18 +400,37 @@ export function IntelRelatedMarketsPanel({
         }`}
       >
         <p className={`font-semibold text-emerald-50 ${embedInNews ? "text-sm" : "text-sm"}`}>
-          {embedInNews ? "증시 · 매크로" : `지정학 연관 증시${titleSuffix}`}
+          {embedInNews ? "증시 · 매크로" : `지경학 연관 시세${titleSuffix}`}
         </p>
         <p className="mt-1 text-xs leading-5 text-emerald-200/60">
-          {theaterAssetNote(marketFilter, lang)}
+          {theaterAssetNote(marketFilter, lang, "economy")}
           {embedInNews
             ? " · 카드 ▾에서 상승·하락·매크로 시각 뉴스 3건"
-            : " · 분쟁·긴장 이벤트와 연동되는 매크로·지수·원자재"}
+            : " · 공급망·회랑과 나란히 보는 선물·매크로"}
         </p>
         <p className="mt-1 text-micro text-slate-500">{t("marketsNotAdvice")}</p>
       </div>
 
       <div className={`space-y-5 ${embedInNews ? "px-3 py-3" : "px-4 py-4"}`}>
+        {!hasSearch && spikeItems.length > 0 ? (
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-300/90">
+              {t("marketsSpikeNow")}
+            </h3>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {spikeItems.map((item) => (
+                <MarketCard
+                  key={`spike-${item.symbol}`}
+                  item={item}
+                  highlight
+                  watched={watchSymbols.includes(item.symbol)}
+                  {...cardPropsFor(item.symbol)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {!hasSearch ? <SovereignRatesPanel compact /> : null}
 
         {!hasSearch ? (
@@ -515,7 +543,7 @@ export function IntelRelatedMarketsPanel({
       </div>
 
       <p className={`text-micro text-slate-500 ${embedInNews ? "px-3 pb-3" : "px-4 pb-4"}`}>
-        Yahoo Finance · 10분 캐시 · {t("marketsNotAdvice")}
+        {t("marketsDatabentoFooter")}
       </p>
     </>
   );
@@ -537,8 +565,8 @@ export function IntelRelatedMarketsPanel({
   return (
     <section className="shrink-0 border-t-2 border-emerald-400/25 bg-emerald-950/20">
       <div className="border-b border-emerald-400/15 px-4 py-2.5">
-        <p className="text-xs font-semibold text-emerald-100">주요 연관 증시{titleSuffix}</p>
-        <p className="mt-0.5 text-meta text-emerald-200/55">{theaterMarketBlurb(marketFilter)}</p>
+        <p className="text-xs font-semibold text-emerald-100">주요 연관 시세{titleSuffix}</p>
+        <p className="mt-0.5 text-meta text-emerald-200/55">{theaterMarketBlurb(marketFilter, "economy")}</p>
       </div>
       <div className="px-4 py-3">
         {loading && !tickers ? (
@@ -555,7 +583,7 @@ export function IntelRelatedMarketsPanel({
             ))}
           </div>
         )}
-        <p className="mt-2 text-micro text-slate-500">Yahoo Finance · 10분 캐시</p>
+        <p className="mt-2 text-micro text-slate-500">Yahoo · Databento · 10분 캐시</p>
       </div>
     </section>
   );

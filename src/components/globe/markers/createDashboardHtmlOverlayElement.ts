@@ -3,6 +3,7 @@ import type { AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import {
   createAirportPortBadge,
   createCasualtySkullBadge,
+  createNewsInsightCalloutBadge,
   createNuclearStockpileBadge,
   createSituationCalloutBadge,
 } from "@/components/globe/markers/htmlMarkerFactories";
@@ -348,6 +349,9 @@ export function createDashboardHtmlOverlayElement(
   }
   if (item.displayKind === "situation-callout") {
     return createSituationCalloutBadge(item);
+  }
+  if (item.displayKind === "news-insight-callout") {
+    return createNewsInsightCalloutBadge(item);
   }
   if (item.displayKind === "casualty-skull") {
     return createCasualtySkullBadge(item, alt);

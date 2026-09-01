@@ -18,6 +18,8 @@ type ModeGlobalIndexChipProps = {
   wtiScore: number | null;
   wtiDelta?: number | null;
   wtiAsOf?: string | null;
+  /** 공식 스냅샷 대신 전장 점수로 즉석 산출한 잠정치인지 */
+  wtiIsEstimate?: boolean | null;
   /** 지경학 GSCPI 게이지 표시 여부 */
   showGscpi?: boolean;
   /** NOAA SWPC 우주기상 칩 */
@@ -44,6 +46,7 @@ export function ModeGlobalIndexChip({
   wtiScore,
   wtiDelta,
   wtiAsOf,
+  wtiIsEstimate,
   showGscpi = true,
   showSwpc = true,
   dense = false,
@@ -92,6 +95,7 @@ export function ModeGlobalIndexChip({
         top: "max(0.75rem, env(safe-area-inset-top, 0px))",
         right: "max(0.75rem, env(safe-area-inset-right, 0px))",
       }}
+      data-chrome-obstacle="mode-index-chip"
       data-chrome-density={dense ? "dense" : "full"}
     >
       {!dense ? <ImmersionDigitalClock lang={lang} /> : null}
@@ -117,6 +121,7 @@ export function ModeGlobalIndexChip({
             score={wtiScore}
             deltaScore={wtiDelta}
             asOf={wtiAsOf}
+            isEstimate={Boolean(wtiIsEstimate)}
             lang={lang}
             className="shadow-lg backdrop-blur-md"
           />

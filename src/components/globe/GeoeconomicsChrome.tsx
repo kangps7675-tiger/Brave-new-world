@@ -10,6 +10,7 @@ import type { NavSelection } from "@/data/navRegions";
 import { resolveCriticalNodeBrief } from "@/data/resolveCriticalNodeBrief";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { IntelTheaterFilter, MapFlyTarget } from "@/lib/news/theaterMap";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { t } from "@/lib/uiStrings";
 
 export type GeoeconomicsChromeProps = {
@@ -24,6 +25,7 @@ export type GeoeconomicsChromeProps = {
   onCloseEconNavSelection: () => void;
   onEconRegionOpenIntel: () => void;
   onEconRegionFlyToMap: (target: MapFlyTarget) => void;
+  onOpenNewsInsight?: (item: NewsStreamItem) => void;
   onCloseEconInsight: () => void;
   onSetEconNewsPanelReveal: (reveal: boolean) => void;
   onOpenIntelSheet: (options?: {
@@ -47,6 +49,7 @@ export function GeoeconomicsChrome({
   onCloseEconNavSelection,
   onEconRegionOpenIntel,
   onEconRegionFlyToMap,
+  onOpenNewsInsight,
   onCloseEconInsight,
   onSetEconNewsPanelReveal,
   onOpenIntelSheet,
@@ -71,6 +74,7 @@ export function GeoeconomicsChrome({
               onClose={onCloseEconNavSelection}
               onOpenIntel={onEconRegionOpenIntel}
               onFlyToMap={onEconRegionFlyToMap}
+              onOpenNewsInsight={onOpenNewsInsight}
             />
           </>
         )}

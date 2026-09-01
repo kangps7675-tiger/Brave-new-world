@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { buildLampFeaturedFromPayloads } from "@/lib/news/lampNewsPool";
+import {
+  buildLampFeaturedFromPayloads,
+  buildWeeklyRecapFeaturedFromPayloads,
+} from "@/lib/news/lampNewsPool";
 import {
   parseLangParam,
   resolveNewsStream,
@@ -11,12 +14,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * 6시간 등불 — 양 패키지 합산 + og:image 추가 보강 + 기사에 붙은 사진이 있는 핫뉴스만 반환.
+ * 등불 사진 뉴스 — 양 패키지 합산 + og:image 보강 + 기사 사진 있는 핫뉴스.
+ * `window=prev-week` → 월요일 주간 회고(전주 ISO 주).
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const lang = parseLangParam(url.searchParams.get("lang"));
   const mode = url.searchParams.get("mode") === "economy" ? "economy" : "conflict";
+  const window =
+    url.searchParams.get("window") === "prev-week" ? "prev-week" : "slot";
   const primary: ViewPackageId = mode === "economy" ? "geo-trader" : "conflict-watch";
   const secondary: ViewPackageId = mode === "economy" ? "conflict-watch" : "geo-trader";
 
@@ -25,12 +31,13 @@ export async function GET(req: Request) {
       resolveNewsStream({ packages: [primary], lang, preferLive: true }),
       resolveNewsStream({ packages: [secondary], lang }),
     ]);
-    const featuredNews = await buildLampFeaturedFromPayloads(mode, lang, [
-      main.payload,
-      alt.payload,
-    ]);
+    const payloads = [main.payload, alt.payload];
+    const featuredNews =
+      window === "prev-week"
+        ? await buildWeeklyRecapFeaturedFromPayloads(mode, lang, payloads)
+        : await buildLampFeaturedFromPayloads(mode, lang, payloads);
     return NextResponse.json(
-      { featuredNews, source: main.source },
+      { featuredNews, source: main.source, window },
       { headers: NO_STORE_HEADERS },
     );
   } catch (err) {

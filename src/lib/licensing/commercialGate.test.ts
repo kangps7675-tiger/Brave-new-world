@@ -77,8 +77,11 @@ describe("commercialGate — 유료 티어 차단", () => {
 
   it("무료 티어는 라이선스 조건만 지키면 통과한다", () => {
     // 상업 제한이 있어도 무료 열람은 가능하다 — 그게 NC 라이선스의 취지다
+    // (ACLED prohibited 레이어는 blocked 로 내려가 제품에서 제거됨)
     const restricted = NEWS_LAYER_SOURCE_CATALOG.find(
-      (n) => n.commercialUse === "prohibited" && n.status === "shipped",
+      (n) =>
+        (n.commercialUse === "prohibited" || n.commercialUse === "license-required") &&
+        n.status === "shipped",
     );
     expect(restricted).toBeTruthy();
     expect(canShowInTier(restricted!.layerId, "free")).toBe(true);
@@ -129,13 +132,15 @@ describe("commercialGate — 알려진 위험 소스", () => {
     }
   });
 
-  it("ACLED 기반 레이어는 상업 이용 불가로 표시돼 있다", () => {
+  it("ACLED 기반 레이어는 blocked + 상업 이용 불가", () => {
     const note = NEWS_LAYER_SOURCE_CATALOG.find(
       (n) => n.layerId === "hapi-conflict-casualties",
     );
     expect(note).toBeTruthy();
+    expect(note!.status).toBe("blocked");
     expect(note!.commercialUse).toBe("prohibited");
-    expect(note!.commercialNote).toMatch(/ACLED/);
+    expect(canShowInTier("hapi-conflict-casualties", "free")).toBe(false);
+    expect(canShowInTier("hapi-conflict-casualties", "paid")).toBe(false);
   });
 });
 

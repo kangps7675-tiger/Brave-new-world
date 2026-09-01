@@ -79,6 +79,11 @@ export function GlobeBootLoader({
   /** 부팅이 8초를 넘겼는가 — 침묵 대신 상태 고지 (P1-2) */
   const [slowBoot, setSlowBoot] = useState(false);
   const [viewConfig] = useState<MergedViewConfig>(() => resolveMergedViewConfig());
+  /**
+   * 로딩 셰이더가 WebGL 컨텍스트를 반납한 다음 프레임에 지도를 마운트한다.
+   * 같은 커밋에서 yieldGpu와 <Map>이 같이 뜨면 저사양 GPU에서 생성 실패가 난다.
+   */
+  const [mapMountAllowed, setMapMountAllowed] = useState(false);
 
   const prePickerOverlayDoneRef = useRef(!needsPickerRef.current);
   const dashboardOverlayDoneRef = useRef(false);
@@ -226,8 +231,21 @@ export function GlobeBootLoader({
       : returningUserProgress;
 
   const showLoadingOverlay = overlayVisible;
-  /** 패키지 완료(또는 기존 유저) 후 대시보드 마운트 — 로딩 뒤 상호작용 */
-  const mountDashboard = pickerDone && Dashboard !== null;
+  /** 패키지 완료(또는 기존 유저) — 로딩 셰이더 GPU 반납 신호 */
+  const dashboardReady = pickerDone && Dashboard !== null;
+  /** 셰이더 cleanup 다음 프레임에만 실제 지도 마운트 */
+  const mountDashboard = dashboardReady && mapMountAllowed;
+
+  useEffect(() => {
+    if (!dashboardReady) {
+      setMapMountAllowed(false);
+      return;
+    }
+    const id = window.requestAnimationFrame(() => {
+      setMapMountAllowed(true);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [dashboardReady]);
 
   /**
    * shouldShowModePicker()가 꺼진 기본 경로에서는 예전 beginDashboardLoading()이
@@ -270,7 +288,7 @@ export function GlobeBootLoader({
           progress={displayProgress}
           fading={fading}
           slow={slowBoot}
-          yieldGpu={mountDashboard}
+          yieldGpu={dashboardReady}
         />
       ) : null}
     </ErrorBoundary>

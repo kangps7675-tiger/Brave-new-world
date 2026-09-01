@@ -29,7 +29,7 @@ describe("tensionDrivers", () => {
     const line = formatTensionDriverLine(detailWithZ, "ko", { rising: true });
     expect(line).toContain("주요인");
     expect(line).toContain("위성 화재");
-    expect(line).toContain("평소보다");
+    expect(line).toContain("최근 90일 평균보다");
     expect(line).not.toMatch(/σ|z-score|zScore/i);
   });
 

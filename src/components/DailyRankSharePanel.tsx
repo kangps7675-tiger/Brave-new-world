@@ -25,6 +25,7 @@ import {
 import { formatTensionDriverLine } from "@/lib/tensionDrivers";
 import { BunkerSentimentVote } from "@/components/BunkerSentimentVote";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
+import { useWorldTensionSnapshot } from "@/hooks/useWorldTensionSnapshot";
 
 type DailyRankSharePanelProps = {
   lang: LabelLanguage;
@@ -35,10 +36,13 @@ function WorldTensionHero({
   tension,
   lang,
   topTheater,
+  isEstimate,
 }: {
   tension: WorldTensionSnapshot;
   lang: LabelLanguage;
   topTheater?: DailyRankEntry | null;
+  /** 공식 스냅샷이 아직 없어 전장 점수로 즉석 산출한 잠정치 — 정식 수치와 다를 수 있음 */
+  isEstimate?: boolean;
 }) {
   const ko = lang !== "en";
   const delta = formatGtiDeltaLabel(tension.deltaScore, ko ? "ko" : "en");
@@ -49,8 +53,8 @@ function WorldTensionHero({
         ? "text-rose-400"
         : "text-emerald-400";
   const score = displayGtiScore(tension.score) ?? 0;
-  const fill = Math.max(0, Math.min(100, tension.score));
-  const band = gtiBandLabel(gtiBand(tension.score), ko);
+  const fill = score;
+  const band = gtiBandLabel(gtiBand(score), ko);
   const rising =
     tension.deltaScore == null ? score >= 55 : tension.deltaScore >= 0;
   const driver = topTheater
@@ -76,6 +80,18 @@ function WorldTensionHero({
             {ko
               ? `긴장지수(GTI) · ${band}`
               : `Tension index (GTI) · ${band}`}
+            {isEstimate ? (
+              <span
+                className="ml-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium text-amber-300/90"
+                title={
+                  ko
+                    ? "공식 집계 전 전장 점수로 즉석 산출한 잠정치입니다. 정식 수치와 다를 수 있습니다."
+                    : "Provisional estimate from live theater scores — the official smoothed figure may differ."
+                }
+              >
+                {ko ? "추정" : "est."}
+              </span>
+            ) : null}
           </p>
         </div>
         <div className="shrink-0 text-right">
@@ -198,6 +214,10 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
   const ko = lang !== "en";
   const [payload, setPayload] = useState<DailyRanksPayload | null>(null);
   const [busyKind, setBusyKind] = useState<DailyRankKind | null>(null);
+  // 단일 소스 캐시 — 상단 칩과 항상 같은 GTI 스냅샷을 보여준다
+  // (2026-08-30 리포트 1번: 이 패널이 자체 fetch한 payload.worldTension을
+  // 그대로 쓰면 상단 칩과 다른 순간의 값을 보여줄 수 있었다).
+  const sharedTension = useWorldTensionSnapshot();
 
   useEffect(() => {
     let cancelled = false;
@@ -262,11 +282,13 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
   );
 
   if (!payload) return null;
+  // 칩과 다른 순간의 payload.worldTension을 쓰지 않는다 — 스토어만.
+  const tension = sharedTension.snapshot;
   if (
     payload.source === "empty" &&
     payload.theater.length === 0 &&
     payload.chokepoint.length === 0 &&
-    !payload.worldTension
+    !tension
   ) {
     return null;
   }
@@ -280,11 +302,12 @@ export function DailyRankSharePanel({ lang, compact = false }: DailyRankSharePan
       }
       aria-label={ko ? "일일 랭킹" : "Daily rankings"}
     >
-      {payload.worldTension ? (
+      {tension ? (
         <WorldTensionHero
-          tension={payload.worldTension}
+          tension={tension}
           lang={lang}
           topTheater={payload.theater[0] ?? null}
+          isEstimate={sharedTension.isEstimate}
         />
       ) : null}
       <RankList

@@ -165,6 +165,9 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   /** CRINK 축·전략미사일은 CONFLICT_CRINK_STRATEGIC_ON */
   showMissileTestSites: false,
   showMissileSiloFields: false,
+  /** BRI·DFC는 지경학 전용 — 지정학 prefs에 남아 있어도 강제 OFF */
+  showBriTradeConnectivity: false,
+  showUsDfcSupplyChain: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
@@ -250,6 +253,48 @@ export function enforceEconomyMilitaryOff(prefs: LayerPrefs): LayerPrefs {
 
 export function isEconomyMilitaryLayerKey(key: string): boolean {
   return key in ECONOMY_MILITARY_BLOCK;
+}
+
+/**
+ * 지경학에서 전선·점령·GDELT 전쟁 레이어 ON 금지.
+ * 이란 NewFeeds(유류·호르무즈)는 경제 첫 화면에 남겨 둔다.
+ */
+export const ECONOMY_FRONTLINE_BLOCK: Partial<LayerPrefs> = {
+  showWarZones: false,
+  showDiplomaticTension: false,
+  showGdeltWar: false,
+  showGdeltDiplomatic: false,
+  showGdeltAlliance: false,
+  showTelegramOsint: false,
+  showUkraineControl: false,
+  showUkraineStrikesOnRussia: false,
+  showNeptun: false,
+  showNeptunPreviousTrails: false,
+  showTzevaAdom: false,
+  showConflictZones: false,
+};
+
+function stripLayerBlock(
+  patch: Partial<LayerPrefs>,
+  block: Partial<LayerPrefs>,
+): Partial<LayerPrefs> {
+  const next: Partial<LayerPrefs> = { ...patch };
+  for (const key of Object.keys(block) as Array<keyof LayerPrefs>) {
+    if (next[key] === true) {
+      delete next[key];
+    }
+  }
+  return { ...next, ...block };
+}
+
+/** 묻기·뉴스 인사이트가 지경학에서 전선/점령/군용을 다시 켜지 못하게 */
+export function stripEconomyGeopoliticsPatch(
+  patch: Partial<LayerPrefs>,
+): Partial<LayerPrefs> {
+  return stripLayerBlock(
+    stripEconomyMilitaryPatch(patch),
+    ECONOMY_FRONTLINE_BLOCK,
+  );
 }
 
 export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {

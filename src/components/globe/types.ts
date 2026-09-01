@@ -33,6 +33,8 @@ import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
 import type { MergedViewConfig } from "@/lib/viewPackages";
 import type { PlaceLabelTier } from "@/lib/placeLabelColors";
 import type { NewsTheater } from "@/lib/news/types";
+import type { NewsStreamItem } from "@/lib/news/types";
+import type { NewsInsightSelectionItem } from "@/lib/news/newsInsightTypes";
 import type { GpsJamPolygonFeature } from "@/hooks/useGpsJamLayer";
 import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
@@ -61,9 +63,26 @@ export type Selection =
   | { kind: "ship-movement"; item: PublicShipObservation }
   | { kind: "recon-sat"; item: ReconSatelliteMarker }
   | { kind: "neptun-threat"; item: NeptunLiveThreat }
-  | { kind: "chokepoint"; item: StaticPoint };
+  | { kind: "chokepoint"; item: StaticPoint }
+  | { kind: "news-insight"; item: NewsInsightSelectionItem };
 
-export type AnalysisSelection = Exclude<Selection, { kind: "neptun-threat" }>;
+export type AnalysisSelection = Exclude<
+  Selection,
+  { kind: "neptun-threat" } | { kind: "news-insight" }
+>;
+
+/** 뉴스 인사이트 「지도에서 보기」 콜아웃 — 전쟁 빨간 점과 다른 앰버 스타일 */
+export type NewsInsightCalloutMarker = {
+  markerId: string;
+  displayKind: "news-insight-callout";
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  /** 원문 링크(선택) */
+  link?: string;
+  article?: NewsStreamItem;
+};
 
 export type PolygonLayerFeature =
   | (CountryFeature & { polygonLayer: "country" })
@@ -407,6 +426,7 @@ export type HtmlOverlayMarker =
   | UkraineTheaterIntensityGlobePoint
   | NewsStreamNeonMarker
   | TelegramNeonMarker
+  | NewsInsightCalloutMarker
   | ReconSatelliteMarker;
 
 export type HoverCard =

@@ -62,6 +62,8 @@ type NewsArticleCardProps = {
   titleOverride?: string;
   summaryOverride?: string;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  /** 우측 뉴스 인사이트 패널 열기 (클릭/탭만) */
+  onOpenInsight?: (item: NewsStreamItem) => void;
 };
 
 export function NewsArticleCard({
@@ -73,6 +75,7 @@ export function NewsArticleCard({
   titleOverride,
   summaryOverride,
   onFlyToMap,
+  onOpenInsight,
 }: NewsArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const isEconomy = economyMode || item.feedTopic === "economy";
@@ -170,20 +173,35 @@ export function NewsArticleCard({
           </div>
         </div>
       </a>
-      {flyTarget && onFlyToMap ? (
-        <div className="border-t border-emerald-400/15 px-3 py-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onFlyToMap(flyTarget);
-            }}
-            className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
-          >
-            지도보러가기
-            <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>
-          </button>
+      {onOpenInsight || (flyTarget && onFlyToMap) ? (
+        <div className="flex flex-col gap-1.5 border-t border-slate-500/20 px-3 py-2">
+          {onOpenInsight ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenInsight(item);
+              }}
+              className="w-full rounded-lg border border-amber-400/35 bg-amber-500/10 px-2 py-1.5 text-meta font-semibold text-amber-100 transition hover:border-amber-300/50 hover:bg-amber-500/20"
+            >
+              인사이트
+            </button>
+          ) : null}
+          {flyTarget && onFlyToMap ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFlyToMap(flyTarget);
+              }}
+              className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+            >
+              지도보러가기
+              <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>
+            </button>
+          ) : null}
         </div>
       ) : null}
     </article>

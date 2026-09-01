@@ -32,19 +32,19 @@ export const ENTRY_GATE: {
   afterZoomOutHoldMs: number;
 } = {
   /**
-   * 로딩 셰이더·MapLibre initialViewState 와 동일 — 지구본 전체 실루엣.
-   * LOD tier: global (> 1.65).
+   * 로딩 셰이더·MapLibre initialViewState 와 동일 — 화면 가득 지구본.
+   * 중심은 적도, pitch로 북반구 비중 ↑ (남반구는 하단만). LOD: global.
    */
   bootAltitude: GLOBAL_BOOT_ALTITUDE,
   /**
-   * 전역 시야 중심 — 특정 초크/전장에 붙이지 않음 (적도 부근 중립 앵커).
+   * 적도 중심 — pitch로 북반구가 앞·위, 남반구는 하단만.
    */
   bootLookAt: {
-    lat: 18,
-    lng: 20,
+    lat: 0,
+    lng: 25,
   },
-  /** 살짝 틸트 — 멀리서도 구면 실루엣이 읽히게 */
-  bootPitch: 22,
+  /** 틸트로 북반구를 앞으로, 구 가장자리는 유지 */
+  bootPitch: 30,
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
   zoomOutAltitude: GLOBAL_BOOT_ALTITUDE,
   zoomOutFlyMs: 1200,

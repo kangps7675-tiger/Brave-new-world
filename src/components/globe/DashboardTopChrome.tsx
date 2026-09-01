@@ -188,6 +188,7 @@ export function DashboardTopChrome({
           wtiScore={wtiSnapshot?.score ?? null}
           wtiDelta={wtiSnapshot?.deltaScore ?? null}
           wtiAsOf={wtiFetchedAt}
+          wtiIsEstimate={wtiSnapshot?.method === "theater-blend-fallback"}
           showGscpi={showGscpiGauge}
           dense={isCompactUi || isTabletUi}
         />
