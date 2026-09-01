@@ -1120,6 +1120,8 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes:
       "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨. API는 410으로 빈 응답만 반환.",
     status: "blocked",
+    blockedReason:
+      "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨 (ACLED EULA 상업 이용 금지). API는 410.",
     ingest: "cached-api",
     commercialUse: "prohibited",
     commercialNote:
