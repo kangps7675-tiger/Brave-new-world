@@ -107,7 +107,7 @@ export async function GET(request: Request) {
           };
 
     const preferred = backtrace.anchor?.preferredSymbols ?? [];
-    const theaterSymbols = theaterAssetSymbols(theater);
+    const theaterSymbols = theaterAssetSymbols(theater, viewerMode);
     // 선호 심볼(금·유가·물류)은 전장 테이블에 없어도 우선 포함
     const symbols = [
       ...preferred,

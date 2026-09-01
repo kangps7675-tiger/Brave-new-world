@@ -53,17 +53,32 @@ function isAlliedBloc(value: unknown): value is AlliedBloc {
 
 const EMPTY_FC: FeatureCollection = { type: "FeatureCollection", features: [] };
 
+/**
+ * CSTO 회원국 중 소속이 논쟁적인 나라 — 조약상 정회원이나 사실상 활동 정지.
+ * 아르메니아: 2024~ 회의 불참·분담금 3년 미납·자국 총리가 "제명돼도 좋다"고 공언,
+ * CSTO 사무총장도 2026-08 "사실상 불참 중"이라 확인(공식 제명 결정은 아직 없음).
+ * 출처: armradio.am(2026-08-27), aa.com.tr CSTO 설명 기사.
+ * → 같은 진한 채움 대신 옅은 채움 + 낮은 불투명도로 "소속 논쟁 중"임을 시각적으로 구분.
+ */
+const DISPUTED_MEMBERSHIP_ISO = new Set<string>(["ARM"]);
+
 /** allied-bloc-countries.json → MapLibre fill/stroke 프로퍼티 페인트 */
 export function paintAlliedBlocCountriesGeoJson(
   source: FeatureCollection | null | undefined,
+  options?: { includeCsto?: boolean },
 ): FeatureCollection {
   if (!source?.features?.length) return EMPTY_FC;
+  const includeCsto = options?.includeCsto ?? false;
 
   const features = source.features.flatMap((feature) => {
     const props = feature.properties ?? {};
     const bloc = props.bloc;
     if (!isAlliedBloc(bloc)) return [];
+    if (bloc === "crink-aligned" && !includeCsto) return [];
     if (!feature.geometry) return [];
+
+    const isDisputed =
+      bloc === "crink-aligned" && DISPUTED_MEMBERSHIP_ISO.has(String(props.iso));
 
     return [
       {
@@ -74,8 +89,9 @@ export function paintAlliedBlocCountriesGeoJson(
           iso: props.iso,
           name: typeof props.name === "string" ? props.name : props.iso,
           bloc,
+          disputed: isDisputed,
           fill: BLOC_FILL[bloc],
-          fillOpacity: BLOC_FILL_OPACITY[bloc],
+          fillOpacity: isDisputed ? BLOC_FILL_OPACITY[bloc] * 0.3 : BLOC_FILL_OPACITY[bloc],
           stroke: BLOC_STROKE[bloc],
         },
       },

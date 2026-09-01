@@ -20,7 +20,6 @@ import {
 import { VIEWPORT_RADIUS_BY_TIER, pickInViewOrNearest } from "@/lib/viewportCull";
 import type {
   AisGlobePoint,
-  AisHtmlMarker,
   MilGlobePoint,
   PulseRingPoint,
   StaticGlobePoint,
@@ -228,15 +227,11 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     ultraLite,
   ]);
 
-  const aisHtmlMarkers = useMemo<AisHtmlMarker[]>(
-    () =>
-      aisDisplayPoints.map((vessel) => ({
-        ...vessel,
-        markerId: `ais-html-${vessel.mmsi}`,
-        displayKind: "ais-html" as const,
-      })),
-    [aisDisplayPoints],
-  );
+  /*
+   * aisHtmlMarkers 는 제거됨 (항공기와 동일 이유).
+   * 선박도 이제 DOM Marker가 아니라 symbol 레이어로 그린다 (aisVesselSymbols.ts) —
+   * MapGlobeView가 aisDisplayPoints를 직접 받아 buildAisSymbolModel에 넘긴다.
+   */
 
   return {
     airportPortHtmlMarkers,
@@ -249,6 +244,5 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     milDisplayPoints,
     civDisplayPoints,
     aisDisplayPoints,
-    aisHtmlMarkers,
   };
 }

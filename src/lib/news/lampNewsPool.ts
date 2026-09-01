@@ -1,5 +1,6 @@
 /**
  * 6시간 등불 — 뉴스 풀 og:image 보강 후 기사에 붙은 사진이 있는 것만 선정.
+ * 월요일 주간 회고도 동일 사진 데스크 파이프(전주 윈도우).
  */
 
 import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";
@@ -10,6 +11,7 @@ import {
   ensureLampFeaturedNews,
   pickConflictLampNews,
   pickEconomyLampNews,
+  previousIsoWeekRange,
   type LampFeaturedNews,
 } from "@/lib/news/periodicBriefing";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -95,4 +97,39 @@ export async function buildLampFeaturedFromPayloads(
   payloads: NewsStreamPayload[],
 ): Promise<LampFeaturedNews[]> {
   return buildLampFeaturedFromPool(mode, lang, collectLampNewsPool(...payloads));
+}
+
+/**
+ * 전주(지난 ISO 주) pubDate만 — 풀이 너무 작으면 로컬 자정 기준 직전 7일로 완화.
+ */
+export function filterNewsToPreviousWeek(
+  items: NewsStreamItem[],
+  now: Date = new Date(),
+): NewsStreamItem[] {
+  const { startMs, endMs } = previousIsoWeekRange(now);
+  const inWeek = items.filter((item) => {
+    const t = Date.parse(item.pubDate || "");
+    return Number.isFinite(t) && t >= startMs && t < endMs;
+  });
+  if (inWeek.length >= 6) return inWeek;
+
+  const end = new Date(now);
+  end.setHours(0, 0, 0, 0);
+  const softStart = end.getTime() - 7 * 86_400_000;
+  const softEnd = end.getTime();
+  return items.filter((item) => {
+    const t = Date.parse(item.pubDate || "");
+    return Number.isFinite(t) && t >= softStart && t < softEnd;
+  });
+}
+
+/** 월요일 회고 — 전주 핫뉴스 + 기사 사진 (등불과 동일 선정기) */
+export async function buildWeeklyRecapFeaturedFromPayloads(
+  mode: "conflict" | "economy",
+  lang: LabelLanguage,
+  payloads: NewsStreamPayload[],
+  now: Date = new Date(),
+): Promise<LampFeaturedNews[]> {
+  const pool = filterNewsToPreviousWeek(collectLampNewsPool(...payloads), now);
+  return buildLampFeaturedFromPool(mode, lang, pool);
 }

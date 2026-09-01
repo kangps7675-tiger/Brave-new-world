@@ -275,15 +275,46 @@ export function newfeedsUi(
   return lang === "en" ? entry.en : entry.ko;
 }
 
-/** 뉴스 스트림 카드 — NewFeeds Iran 항목만 KO 치환 */
-export function displayNewsItemTitle(
-  item: { title: string; category?: string | null; source?: string | null },
+const UNVERIFIED_TAG_RE = /\(\s*미확인\s*\)|\(\s*unverified\s*\)/i;
+
+/** 저신뢰(Tier3)·미확인 속보 제목에 (미확인) 표기 */
+export function withUnverifiedTitleMark(
+  title: string,
   lang: LabelLanguage,
+  opts?: { trustTier?: number | null; heroStatus?: string | null },
 ): string {
+  const needsMark =
+    opts?.heroStatus === "unverified" || opts?.trustTier === 3;
+  if (!needsMark || !title.trim()) return title;
+  if (UNVERIFIED_TAG_RE.test(title)) return title;
+  const tag = lang === "en" ? "(Unverified)" : "(미확인)";
+  return `${title.trim()} ${tag}`;
+}
+
+type NewsTitleItem = {
+  title: string;
+  category?: string | null;
+  source?: string | null;
+  trustTier?: number | null;
+  heroStatus?: string | null;
+};
+
+/** NewFeeds KO 치환만 (미확인 표기 전) — 번역 입력용 */
+export function newsTitleBase(item: NewsTitleItem, lang: LabelLanguage): string {
   const fromNewfeeds =
     item.category === "NewFeeds Iran" ||
     (typeof item.source === "string" && /NewFeeds/i.test(item.source));
-  if (fromNewfeeds) return localizeNewfeedsTitle(item.title, lang);
-  return item.title;
+  return fromNewfeeds ? localizeNewfeedsTitle(item.title, lang) : item.title;
+}
+
+/** 뉴스 스트림 카드 — NewFeeds Iran KO 치환 + 미확인 표기 */
+export function displayNewsItemTitle(
+  item: NewsTitleItem,
+  lang: LabelLanguage,
+): string {
+  return withUnverifiedTitleMark(newsTitleBase(item, lang), lang, {
+    trustTier: item.trustTier,
+    heroStatus: item.heroStatus,
+  });
 }
 

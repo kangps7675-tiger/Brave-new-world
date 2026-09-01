@@ -7,6 +7,7 @@ import {
   formatGtiBriefingLead,
   formatGtiDeltaLabel,
   normalizeGtiScore,
+  analystTierLabel,
 } from "@/lib/gti";
 import {
   deriveWorldTensionFromTheaters,
@@ -81,5 +82,12 @@ describe("GTI display single source", () => {
     // Old bug: 0.6*avg+0.4*max = 0.6*75+0.4*100 = 85 — must use 0.55/0.45
     expect(derived!.score).not.toBe(85);
     expect(derived!.score).not.toBe(70);
+  });
+
+  it("analystTierLabel stays observational, not game-rank copy", () => {
+    expect(analystTierLabel("rookie", true)).toBe("관측 입문");
+    expect(analystTierLabel("chief", true)).toBe("수석 관측자");
+    expect(analystTierLabel("rookie", false)).toBe("Observer");
+    expect(analystTierLabel("chief", false)).toBe("Lead observer");
   });
 });

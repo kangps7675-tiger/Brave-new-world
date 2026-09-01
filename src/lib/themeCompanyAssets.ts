@@ -41,9 +41,9 @@ export const THEME_COMPANY_ASSETS: Record<CompanyThemeId, CompanyThemeEntry> = {
     tabEn: "Aviation",
   },
   defense: {
-    symbols: ["ITA", "LMT", "RTX", "NOC", "GD"],
-    noteKo: "방산 ETF·미 방산업체 — 동맹·재무장 (해석용 · 투자 권유 아님)",
-    noteEn: "Defense ETF · US primes — alliance / rearmament (interpretive · not advice)",
+    symbols: ["ITA", "LMT", "RTX", "NOC", "GD", "012450.KS", "047810.KS"],
+    noteKo: "방산 ETF·미·한국 방산 — 지정학 equity (해석용 · 투자 권유 아님)",
+    noteEn: "Defense ETF · US / ROK primes — conflict equities (interpretive · not advice)",
     tabKo: "방산",
     tabEn: "Defense",
   },

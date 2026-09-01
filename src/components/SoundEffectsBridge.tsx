@@ -13,6 +13,11 @@ import {
   emitLayerClickSounds,
   type LayerSoundDetail,
 } from "@/lib/infraClickSounds";
+import {
+  isBreakingMorseSuppressing,
+  markBreakingMorsePlayed,
+  type TickerTelegraphDirection,
+} from "@/lib/tickerSpikeTelegraph";
 
 /** 공습경보·A급 속보 타전·양피지 UI 버스 — 티커/일반 UI 클릭음은 차단 */
 export const CV_SOUND_EVENT = "cv-sound";
@@ -29,6 +34,8 @@ const DASHBOARD_BUS_EVENT_IDS = new Set<AudioEventId>([
   "parchment-fold",
   "parchment-flyaway",
   "oil-spike",
+  "ticker-telegraph-up",
+  "ticker-telegraph-down",
 ]);
 
 export type DashboardSoundDetail = {
@@ -48,13 +55,32 @@ export function emitDashboardSound(
   );
 }
 
-/** 유가 SPIKE (CL=F / BZ=F) — StockTickerStrip */
+/** 유가 SPIKE (CL=F / BZ=F) — 레거시; 티커 SPIKE는 emitTickerTelegraphSound */
 export function emitOilSpikeSound() {
   emitDashboardSound("oil-spike", {
     force: true,
     volumeScale: 0.95,
     durationMs: 4200,
   });
+}
+
+/** Databento 선물 SPIKE 전보 — 속보 모스 직후면 스킵 */
+export function emitTickerTelegraphSound(direction: TickerTelegraphDirection): boolean {
+  if (isBreakingMorseSuppressing()) return false;
+  if (direction === "up") {
+    emitDashboardSound("ticker-telegraph-up", {
+      force: true,
+      volumeScale: 0.7,
+      durationMs: 1800,
+    });
+  } else {
+    emitDashboardSound("ticker-telegraph-down", {
+      force: true,
+      volumeScale: 0.85,
+      durationMs: 3200,
+    });
+  }
+  return true;
 }
 
 /** A급 속보·등불/양피지 경보 — 모스 타전 (+ 선택적 깔개) */
@@ -93,6 +119,7 @@ export function emitBreakingDispatchSound(opts?: {
     durationMs: 12_000,
   });
 
+  markBreakingMorsePlayed();
   emitLayerClickSounds(cues);
 }
 
@@ -358,7 +385,7 @@ export function SoundEffectsBridge({
     firmsInViewRef.current = firmsCombatInView;
   }, [canPlay, firmsCombatInView, neptunImpactInView]);
 
-  // 공습경보 · A급 속보 타전 · oil-spike
+  // 공습경보 · A급 속보 타전 · ticker-telegraph / oil-spike
   useEffect(() => {
     const onBus = (event: Event) => {
       const detail = (event as CustomEvent<DashboardSoundDetail>).detail;

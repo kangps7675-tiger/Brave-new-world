@@ -13,6 +13,7 @@ const SEPARATE_KINDS = new Set([
   "casualty-skull",
   "situation-callout",
   "news-stream-neon",
+  "news-insight-callout",
 ]);
 
 /** admin1 스케일에서 한 덩어리로 보이는 거리(°) */
@@ -25,6 +26,8 @@ const NUDGE: Record<string, { dLat: number; dLng: number }> = {
   "situation-callout": { dLat: 0.22, dLng: -0.18 },
   // 뉴스 네온: 남동쪽
   "news-stream-neon": { dLat: -0.16, dLng: 0.2 },
+  // 인사이트 콜아웃: 북동쪽 (전쟁 네온과 구분)
+  "news-insight-callout": { dLat: 0.18, dLng: 0.16 },
 };
 
 /**

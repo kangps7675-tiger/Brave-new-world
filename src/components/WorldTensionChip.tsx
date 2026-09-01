@@ -18,6 +18,8 @@ type WorldTensionChipProps = {
   deltaScore?: number | null;
   /** 이 점수를 가져온 시각 (ISO) — 상황판 "기준 시각" 표시용 */
   asOf?: string | null;
+  /** 공식 스냅샷이 아직 없어 전장 점수로 즉석 산출한 잠정치인지 — true면 배지 표시 */
+  isEstimate?: boolean;
   lang: LabelLanguage;
   className?: string;
 };
@@ -67,6 +69,7 @@ export function WorldTensionChip({
   score,
   deltaScore,
   asOf,
+  isEstimate,
   lang,
   className,
 }: WorldTensionChipProps) {
@@ -170,6 +173,18 @@ export function WorldTensionChip({
         {deltaLabel ? (
           <span className={`text-micro ${light ? "text-slate-600" : "text-slate-400/70"}`}>
             {deltaLabel}
+          </span>
+        ) : null}
+        {isEstimate ? (
+          <span
+            className={`text-micro font-medium ${light ? "text-amber-700" : "text-amber-300/80"}`}
+            title={
+              lang === "en"
+                ? "Provisional — official smoothed figure not in yet, may differ."
+                : "잠정치 — 공식 집계 전 수치라 정식 값과 다를 수 있습니다."
+            }
+          >
+            {lang === "en" ? "provisional" : "잠정치"}
           </span>
         ) : null}
         {asOfLabel ? (

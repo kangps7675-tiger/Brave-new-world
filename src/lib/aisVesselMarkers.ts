@@ -108,7 +108,7 @@ function shipColor(vessel: AisVessel): string {
   return c.replace(/[\d.]+\)$/, "0.98)") || c;
 }
 
-function aisShipIconSvg(color: string, size: number, military: boolean): string {
+export function aisShipIconSvg(color: string, size: number, military: boolean): string {
   if (military) {
     return warshipProfileIconSvg(color, { width: size + 8, height: Math.round((size + 8) * 0.7) }, "e");
   }

@@ -68,8 +68,12 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
-  /** 진영 블록(NATO·AUKUS·CRINK·CSTO) 국가 음영 오버레이 — Natural Earth 110m */
+  /** 진영 블록(NATO·AUKUS·CRINK) 국가 음영 오버레이 — Natural Earth 110m. 기본 켜짐(대전략 요약 뷰). */
   showAlliedBlocs: boolean;
+  /** showAlliedBlocs 안의 CSTO(반서방 연계) 표시 여부 — 아르메니아 등 소속 논쟁 있어 기본 꺼짐, 별도 토글. */
+  showCstoBloc: boolean;
+  /** 지경학 진영(서방·반서방·비동맹) 국가 음영 — 지경학 모드 전용, 기본 켜짐. */
+  showGeoEconBlocs: boolean;
   /** 한국군 전선 기지 (OSM) — 기본 OFF, 미군과 별도 체크 */
   showRokMilitaryBases: boolean;
   /** 자위대 전선 기지 (OSM) — 주일미군은 showMilitaryBases */
@@ -206,6 +210,8 @@ export type LayerPrefs = {
    * LOD scalerank = corridor-ranks.json 정량 합성 점수.
    */
   showStrategicCorridors: boolean;
+  /** 동맹 물류 회랑(military-logistics만) — showStrategicCorridors와 별개, 기본 켜짐. */
+  showAlliedLogisticsCorridors: boolean;
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
   /** CRINK OSM 인프라 — 카테고리별 (public/data/crink/) */
@@ -296,7 +302,9 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGscpiGauge: true,
   showCriticalNodes: false,
   showMilitaryBases: false,
-  showAlliedBlocs: false,
+  showAlliedBlocs: true,
+  showCstoBloc: false,
+  showGeoEconBlocs: true,
   showRokMilitaryBases: false,
   showJapanMilitaryBases: false,
   showTaiwanMilitaryBases: false,
@@ -357,6 +365,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showAxisNetwork: false,
   showBriTradeConnectivity: false,
   showStrategicCorridors: false,
+  showAlliedLogisticsCorridors: true,
   showUsDfcSupplyChain: false,
   showCrinkInfraPower: false,
   showCrinkInfraBorder: false,

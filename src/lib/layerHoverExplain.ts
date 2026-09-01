@@ -358,8 +358,8 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Reported Ukraine→Russia strike hotspots — trajectory often unverified.",
   },
   "hapi-conflict-casualties": {
-    ko: "ACLED(분쟁사건데이터) 기반 사상·폭력 집계 힌트입니다. 전선 ‘확정’이 아닙니다.",
-    en: "Fatality / violence hints via ACLED (through HAPI) — not a confirmed front line.",
+    ko: "ACLED/HAPI 전선 사망 레이어는 제품에서 제거되었습니다.",
+    en: "The ACLED/HAPI frontline fatalities layer has been removed from the product.",
   },
   "reef-watch": {
     ko: "남중국해 암초·시설 관심 지점입니다. ReefWatch 공개 피처 기반입니다.",

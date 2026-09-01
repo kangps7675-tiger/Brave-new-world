@@ -1113,18 +1113,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "hapi-conflict-casualties",
-    source: "ACLED via HDX HAPI · conflict-events (political_violence fatalities)",
-    url: "https://hapi.humdata.org/api/v2/coordination-context/conflict-events → /api/hapi-conflict-casualties",
-    cadence: "Live HAPI fetch · ~30m cache · theater-start cumulative (UKR/IRN/Gaza) · 4-month CHN/TWN",
-    attribution:
-      "Armed Conflict Location & Event Data Project (ACLED) · HDX HAPI · OCHA HDX · www.acleddata.com",
+    source: "ACLED via HDX HAPI · conflict-events (removed)",
+    url: "/api/hapi-conflict-casualties (410 Gone)",
+    cadence: "Removed from product",
+    attribution: "—",
     notes:
-      "원천: ACLED. 배포/질의: OCHA HDX HAPI conflict-events. 전선 사망은 개전일부터 누적(UKR 2022-02-24, IRN 2026-02-28, Gaza/Lebanon 2023-10-07). 중국·대만은 약 4개월 사건 창. 부상 필드 없음. 우크라 명의 KIA+CSIS WIA는 mediazona-casualties. Docs: https://hapi.humdata.org/docs · Dataset: https://data.humdata.org/dataset/hdx-hapi-conflict-event · ACLED attribution: https://acleddata.com/attributionpolicy",
-    status: "shipped",
+      "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨. API는 410으로 빈 응답만 반환.",
+    status: "blocked",
     ingest: "cached-api",
     commercialUse: "prohibited",
     commercialNote:
-      "⚠️ ACLED EULA: 'Commercial entities may not access or use the Content and/or Platforms without first obtaining a corporate license from ACLED.' 수익화 제품에 노출 금지. 상업 라이선스 문의: acleddata.com/eula",
+      "ACLED EULA — 상업 이용 금지. 제품 노출 중단.",
   },
   {
     layerId: "nuclear-warheads",
@@ -1146,7 +1145,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Homepage scrape · 1h cache · Kaggle panel seed fallback",
     attribution: "Mediazona · BBC Russian Service · CSIS (WIA est.) · Meduza",
     notes:
-      "Globe overlay: named RU KIA (lower bound) + CSIS WIA estimate on the Ukraine theater. Per-oblast ACLED fatalities remain on hapi-conflict-casualties (different definition).",
+      "Globe overlay: named RU KIA (lower bound) + CSIS WIA estimate on the Ukraine theater. (Removed from map UI with frontline casualty layer.)",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "license-required",

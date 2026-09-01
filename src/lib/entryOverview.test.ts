@@ -58,15 +58,19 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showUkraineControl).toBe(true);
     expect(prefs.showWarZones).toBe(true);
     expect(prefs.showNeptun).toBe(true);
+    expect(prefs.showGdeltWar).toBe(true);
+    expect(prefs.showNewfeedsIranAttacks).toBe(true);
     expect(prefs.showMilitaryBases).toBe(false);
     expect(prefs.showRokMilitaryBases).toBe(false);
     expect(prefs.showEastAsiaAdiz).toBe(false);
     expect(prefs.showTelegramOsint).toBe(false);
     expect(prefs.showCrinkInfraRail).toBe(false);
     expect(prefs.showAxisNetwork).toBe(false);
+    expect(prefs.showBriTradeConnectivity).toBe(false);
+    expect(prefs.showUsDfcSupplyChain).toBe(false);
   });
 
-  it("지경학 첫 화면은 Compact 항로만 — AIS·CRINK 인프라는 꺼둔다", () => {
+  it("지경학 첫 화면은 Compact 항로만 — AIS·CRINK·BRI/DFC 자동 ON 없음", () => {
     const prefs = buildDomainOverviewPrefs("economy");
     expect(prefs.showShippingLanes).toBe(true);
     expect(prefs.showPorts).toBe(true);
@@ -74,5 +78,7 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAis).toBe(false);
     expect(prefs.showCrinkInfraRail).toBe(false);
     expect(prefs.showGasPipelines).toBe(false);
+    expect(prefs.showBriTradeConnectivity).toBe(false);
+    expect(prefs.showUsDfcSupplyChain).toBe(false);
   });
 });

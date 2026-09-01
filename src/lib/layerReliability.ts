@@ -234,8 +234,8 @@ const OVERRIDES: Record<string, Override> = {
   "hapi-conflict-casualties": {
     evidenceTier: "reported",
     freshnessClass: "daily",
-    caveatKo: "HDX HAPI·ACLED. 전면전은 개전 이후 누적 사망, 부상 없음.",
-    caveatEn: "HDX HAPI·ACLED — cumulative fatalities from theater start; no wounded.",
+    caveatKo: "제품에서 제거됨 (ACLED/HAPI).",
+    caveatEn: "Removed from product (ACLED/HAPI).",
   },
   "mediazona-casualties": {
     evidenceTier: "reported",

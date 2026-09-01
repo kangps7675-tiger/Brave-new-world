@@ -1,6 +1,6 @@
 /**
- * 벙커 감성지수 — STABLE vs HEAD TO BUNKER 이진 투표.
- * 날짜(UTC)·deviceId당 1표 upsert. 공포탐욕지수의 지정학 버전.
+ * 내일 전망 — 안정 vs 긴장 고조 이진 투표.
+ * 날짜(UTC)·deviceId당 1표 upsert. 지정학 방향성 집계(공습·인명 예측 아님).
  */
 
 import { and, eq, sql } from "drizzle-orm";

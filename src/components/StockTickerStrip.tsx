@@ -16,9 +16,13 @@ import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { emitOilSpikeSound } from "@/components/SoundEffectsBridge";
-
-const OIL_SPIKE_SYMBOLS = new Set(["CL=F", "BZ=F"]);
+import { emitTickerTelegraphSound } from "@/components/SoundEffectsBridge";
+import {
+  evaluateSpikeTelegraphFire,
+  pickDatabentoSpikeLeader,
+  type SpikeArmState,
+  type TickerSpikeCandidate,
+} from "@/lib/tickerSpikeTelegraph";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -39,16 +43,25 @@ const SPARKLINE_STROKE = {
 
 export type StockTickerStripProps = {
   mode?: IntelStackMode;
+  /** 지정학 equity vs 지경학 선물 스트립 코어 */
+  viewerMode?: "conflict" | "economy";
   highlightSymbols?: string[];
   alertTone?: HeroStatus;
   /** L2 패널 헤더 라벨 표시 */
   showHeader?: boolean;
   /** 카메라 이동 중 폴링·CSS 스크롤 정지 */
   paused?: boolean;
+  /** 지경학 Databento SPIKE 재진입 시 (소리·토스트와 동일 게이트) */
+  onSpikeDispatch?: (candidate: TickerSpikeCandidate) => void;
+  /** 뉴스 인사이트 등 — 전보음만 끄고 콜백은 유지 */
+  muteTelegraphSound?: boolean;
 };
 
-function orderStripSymbols(highlightSymbols: string[]): string[] {
-  return mergeTickerStripSymbols(highlightSymbols);
+function orderStripSymbols(
+  highlightSymbols: string[],
+  viewerMode: "conflict" | "economy",
+): string[] {
+  return mergeTickerStripSymbols(highlightSymbols, viewerMode);
 }
 
 function TickerSparkline({
@@ -180,25 +193,31 @@ function alertStripClass(mode: IntelStackMode, alertTone?: HeroStatus): string {
 
 export function StockTickerStrip({
   mode = "calm",
+  viewerMode = "conflict",
   highlightSymbols = [],
   alertTone,
   showHeader = false,
   paused = false,
+  onSpikeDispatch,
+  muteTelegraphSound = false,
 }: StockTickerStripProps) {
   const { lang } = useLocale();
   const [tickers, setTickers] = useState<StockTickerItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
+  const onSpikeDispatchRef = useRef(onSpikeDispatch);
+  onSpikeDispatchRef.current = onSpikeDispatch;
+  const muteTelegraphSoundRef = useRef(muteTelegraphSound);
+  muteTelegraphSoundRef.current = muteTelegraphSound;
 
   const orderedSymbols = useMemo(
-    () => orderStripSymbols(highlightSymbols),
-    [highlightSymbols],
+    () => orderStripSymbols(highlightSymbols, viewerMode),
+    [highlightSymbols, viewerMode],
   );
 
   const highlightSet = useMemo(() => new Set(highlightSymbols), [highlightSymbols]);
-  const oilSpikeArmedRef = useRef(false);
-  const lastOilSpikeAtRef = useRef(0);
+  const spikeArmRef = useRef<SpikeArmState>({ armed: false, lastFiredAt: 0 });
 
   const refresh = useCallback(async () => {
     if (pausedRef.current) return;
@@ -221,25 +240,28 @@ export function StockTickerStrip({
     return () => window.clearInterval(timer);
   }, [refresh]);
 
-  // CL=F / BZ=F SPIKE → oil-spike (쿨다운 · 재진입 시에만)
+  // Databento 선물 SPIKE → 전보음 + 토스트 (지경학 · 쿨다운 · 재진입)
   useEffect(() => {
+    if (viewerMode !== "economy") return;
     if (!tickers?.length) return;
-    const oilSpiking = tickers.some((item) => {
-      if (!OIL_SPIKE_SYMBOLS.has(item.symbol)) return false;
-      const pct = item.changePercent;
-      return pct != null && Math.abs(pct) >= TICKER_SPIKE_THRESHOLD_PERCENT;
-    });
-    if (!oilSpiking) {
-      oilSpikeArmedRef.current = false;
-      return;
+    const leader = pickDatabentoSpikeLeader(tickers);
+    const result = evaluateSpikeTelegraphFire(leader != null, spikeArmRef.current, Date.now());
+    spikeArmRef.current = result.next;
+    if (!result.fire || !leader) return;
+    if (!muteTelegraphSoundRef.current) {
+      emitTickerTelegraphSound(leader.direction);
     }
-    if (oilSpikeArmedRef.current) return;
-    oilSpikeArmedRef.current = true;
-    const now = Date.now();
-    if (now - lastOilSpikeAtRef.current < 45_000) return;
-    lastOilSpikeAtRef.current = now;
-    emitOilSpikeSound();
-  }, [tickers]);
+    onSpikeDispatchRef.current?.(leader);
+  }, [tickers, viewerMode]);
+
+  const stripTitle =
+    viewerMode === "economy"
+      ? lang === "en"
+        ? "Futures · macro"
+        : "선물 · 매크로"
+      : lang === "en"
+        ? "Defense · equities"
+        : "방산 · equity";
 
   return (
     <div
@@ -252,7 +274,7 @@ export function StockTickerStrip({
       {showHeader ? (
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-1.5">
           <span className="text-micro font-bold uppercase tracking-[0.22em] text-emerald-200/85">
-            {t("marketsStripTitle", lang)}
+            {stripTitle}
           </span>
           <span className="text-micro text-slate-500">
             {mode === "alert"

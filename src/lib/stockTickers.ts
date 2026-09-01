@@ -121,6 +121,8 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   RTX: { ko: "RTX", en: "RTX" },
   NOC: { ko: "노스롭그루먼", en: "Northrop Grumman" },
   GD: { ko: "제너럴 다이내믹스", en: "General Dynamics" },
+  "012450.KS": { ko: "한화에어로스페이스", en: "Hanwha Aerospace" },
+  "047810.KS": { ko: "한국항공우주", en: "Korea Aerospace (KAI)" },
   "005930.KS": { ko: "삼성전자", en: "Samsung Electronics" },
   "000660.KS": { ko: "SK하이닉스", en: "SK hynix" },
   "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
@@ -196,6 +198,8 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "RTX", label: "RTX" },
   { symbol: "NOC", label: "Northrop Grumman" },
   { symbol: "GD", label: "General Dynamics" },
+  { symbol: "012450.KS", label: "Hanwha Aerospace" },
+  { symbol: "047810.KS", label: "Korea Aerospace Industries" },
   { symbol: "005930.KS", label: "Samsung Electronics" },
   { symbol: "000660.KS", label: "SK hynix" },
   { symbol: "BTC-USD", label: "Bitcoin" },
@@ -241,7 +245,7 @@ export function tickerDisplayName(
   return symbol.replace(/^\^/, "").replace(/=F$/, "");
 }
 
-/** 하단 스크롤 스트립 — 매크로·환율·금리·에너지 (전장 primary는 mergeTickerStripSymbols로 앞에 붙임) */
+/** @deprecated Prefer ECONOMY_TICKER_STRIP_CORE — 하위 호환 alias */
 export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
   "KRW=X",
@@ -258,11 +262,30 @@ export const TICKER_STRIP_SYMBOLS: string[] = [
   "^IXIC",
 ];
 
+/** 지정학 스트립 코어 — 방산·칩 equity */
+export const CONFLICT_TICKER_STRIP_CORE: string[] = [
+  "ITA",
+  "LMT",
+  "RTX",
+  "SMH",
+  "TSM",
+  "005930.KS",
+  "012450.KS",
+];
+
+/** 지경학 스트립 코어 — 선물·매크로 */
+export const ECONOMY_TICKER_STRIP_CORE: string[] = [...TICKER_STRIP_SYMBOLS];
+
 /**
  * 전역 코어 스트립 + 전장 primary를 merge.
- * highlight에만 있는 심볼(곡물·반도체 등)도 앞에 넣어 화면에 보이게 한다.
+ * highlight에만 있는 심볼도 앞에 넣어 화면에 보이게 한다.
  */
-export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string[] {
+export function mergeTickerStripSymbols(
+  highlightSymbols: string[] = [],
+  mode: "conflict" | "economy" = "conflict",
+): string[] {
+  const core =
+    mode === "economy" ? ECONOMY_TICKER_STRIP_CORE : CONFLICT_TICKER_STRIP_CORE;
   const seen = new Set<string>();
   const out: string[] = [];
   for (const symbol of highlightSymbols) {
@@ -270,7 +293,7 @@ export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string
     seen.add(symbol);
     out.push(symbol);
   }
-  for (const symbol of TICKER_STRIP_SYMBOLS) {
+  for (const symbol of core) {
     if (seen.has(symbol)) continue;
     seen.add(symbol);
     out.push(symbol);
@@ -294,6 +317,12 @@ export const MARKET_GROUPS: Array<{
   symbols: string[];
 }> = [
   {
+    id: "commodities",
+    label: "에너지 · 곡물 · 금속",
+    labelEn: "Energy · Grains · Metals",
+    symbols: ["CL=F", "BZ=F", "NG=F", "ZW=F", "ZC=F", "GC=F", "SI=F", "HG=F"],
+  },
+  {
     id: "fx-rates",
     label: "환율 · 금리",
     labelEn: "FX · Rates",
@@ -316,12 +345,6 @@ export const MARKET_GROUPS: Array<{
     symbols: ["^VIX", "DX-Y.NYB"],
   },
   {
-    id: "commodities",
-    label: "에너지 · 곡물 · 금속",
-    labelEn: "Energy · Grains · Metals",
-    symbols: ["CL=F", "BZ=F", "NG=F", "ZW=F", "ZC=F", "GC=F", "SI=F", "HG=F"],
-  },
-  {
     id: "crypto",
     label: "암호화폐",
     labelEn: "Crypto",
@@ -331,7 +354,7 @@ export const MARKET_GROUPS: Array<{
     id: "us-equities",
     label: "미국 · 미주",
     labelEn: "US · Americas",
-    symbols: ["^GSPC", "^IXIC", "^DJI", "^RUT", "^BVSP", "SMH", "NVDA", "XLE", "ITA"],
+    symbols: ["^GSPC", "^IXIC", "^DJI", "^RUT", "^BVSP", "XLE"],
   },
   {
     id: "asia",
@@ -346,16 +369,13 @@ export const MARKET_GROUPS: Array<{
       "^TWII",
       "^NSEI",
       "^AXJO",
-      "TSM",
-      "005930.KS",
-      "000660.KS",
     ],
   },
   {
     id: "europe",
     label: "유럽 · 해운",
     labelEn: "Europe · Shipping",
-    symbols: ["^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "ASML", "BDRY"],
+    symbols: ["^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "BDRY"],
   },
 ];
 
@@ -393,32 +413,36 @@ export function tickerChangeTone(changePercent: number | null): "up" | "down" | 
   return changePercent > 0 ? "up" : "down";
 }
 
-/** @deprecated Prefer theaterAssetSymbols — kept for existing imports */
+/** @deprecated Prefer theaterAssetSymbols(filter, mode) */
 export const THEATER_RELATED_SYMBOLS: Record<TheaterMarketFilter, string[]> = {
-  all: theaterAssetSymbols("all"),
-  "middle-east": theaterAssetSymbols("middle-east"),
-  "russia-ukraine": theaterAssetSymbols("russia-ukraine"),
-  "china-taiwan": theaterAssetSymbols("china-taiwan"),
-  korea: theaterAssetSymbols("korea"),
-  japan: theaterAssetSymbols("japan"),
-  "south-asia": theaterAssetSymbols("south-asia"),
-  "southeast-asia": theaterAssetSymbols("southeast-asia"),
-  "south-america": theaterAssetSymbols("south-america"),
-  africa: theaterAssetSymbols("africa"),
-  arctic: theaterAssetSymbols("arctic"),
-  atlantic: theaterAssetSymbols("atlantic"),
-  global: theaterAssetSymbols("global"),
+  all: theaterAssetSymbols("all", "conflict"),
+  "middle-east": theaterAssetSymbols("middle-east", "conflict"),
+  "russia-ukraine": theaterAssetSymbols("russia-ukraine", "conflict"),
+  "china-taiwan": theaterAssetSymbols("china-taiwan", "conflict"),
+  korea: theaterAssetSymbols("korea", "conflict"),
+  japan: theaterAssetSymbols("japan", "conflict"),
+  "south-asia": theaterAssetSymbols("south-asia", "conflict"),
+  "southeast-asia": theaterAssetSymbols("southeast-asia", "conflict"),
+  "south-america": theaterAssetSymbols("south-america", "conflict"),
+  africa: theaterAssetSymbols("africa", "conflict"),
+  arctic: theaterAssetSymbols("arctic", "conflict"),
+  atlantic: theaterAssetSymbols("atlantic", "conflict"),
+  global: theaterAssetSymbols("global", "conflict"),
 };
 
 export function pickRelatedTickers(
   all: StockTickerItem[],
   filter: TheaterMarketFilter,
+  mode: "conflict" | "economy" = "conflict",
 ): StockTickerItem[] {
-  const order = theaterAssetSymbols(filter);
+  const order = theaterAssetSymbols(filter, mode);
   const bySymbol = new Map(all.map((t) => [t.symbol, t]));
   return order.map((symbol) => bySymbol.get(symbol)).filter((t): t is StockTickerItem => t != null);
 }
 
-export function theaterMarketBlurb(filter: TheaterMarketFilter): string {
-  return theaterAssetNote(filter, "ko");
+export function theaterMarketBlurb(
+  filter: TheaterMarketFilter,
+  mode: "conflict" | "economy" = "conflict",
+): string {
+  return theaterAssetNote(filter, "ko", mode);
 }

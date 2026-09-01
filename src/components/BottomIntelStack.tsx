@@ -31,12 +31,15 @@ import { PanelSkeletonLines, IntelChipSkeletonRow } from "@/components/PanelSkel
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard";
 import { StockTickerStrip } from "@/components/StockTickerStrip";
+import {
+  SpikeTelegraphToast,
+  type SpikeTelegraphToastPayload,
+} from "@/components/SpikeTelegraphToast";
 import { IntelRelatedMarketsPanel } from "@/components/IntelRelatedMarketsPanel";
+import type { TickerSpikeCandidate } from "@/lib/tickerSpikeTelegraph";
 import { ThemeCompanyBoard } from "@/components/ThemeCompanyBoard";
 import { IntelSheetSearchBar, type IntelSearchResult } from "@/components/IntelSheetSearchBar";
 import { TelegramIntelFeed, alertMatchesMediaFilter } from "@/components/TelegramIntelFeed";
-import { UserAnalyzeButton } from "@/components/UserAnalyzeButton";
-import { UserAnthropicKeyPanel } from "@/components/UserAnthropicKeyPanel";
 import { ViinaFrontEventsPanel } from "@/components/ViinaFrontEventsPanel";
 import { VideoNewsPanel } from "@/components/VideoNewsPanel";
 import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
@@ -44,7 +47,7 @@ import type { MenuCoreAlert } from "@/lib/regionFilter";
 import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
-import { displayNewsItemTitle } from "@/lib/newfeedsI18n";
+import { displayNewsItemTitle, newsTitleBase, withUnverifiedTitleMark } from "@/lib/newfeedsI18n";
 import {
   localizedDisplayText,
   useLocalizedTextMap,
@@ -85,8 +88,7 @@ import {
   isTodayBriefingDismissed,
   type TodayBriefing,
 } from "@/lib/news/todayBriefing";
-import type { NewsDigestItem } from "@/lib/news/digestTypes";
-import { theaterAssetNote, theaterAssetSymbols } from "@/lib/theaterAssets";
+import { theaterAssetSymbols } from "@/lib/theaterAssets";
 import {
   companyThemeSymbols,
   type CompanyThemeId,
@@ -193,11 +195,6 @@ function IntelDragDismissHint({ economy = false }: { economy?: boolean }) {
   );
 }
 
-export type BottomIntelStackHandle = {
-  openNewsPanel: (theater?: IntelTheaterFilter, tab?: IntelSheetTab) => void;
-  closeNewsPanel: () => void;
-};
-
 export type IntelSheetTab =
   | "news"
   | "video"
@@ -216,6 +213,14 @@ export type EconomyIntelTab =
   | "shipping-choke"
   | "aviation";
 
+export type BottomIntelStackHandle = {
+  openNewsPanel: (
+    theater?: IntelTheaterFilter,
+    tab?: IntelSheetTab,
+    economyTab?: EconomyIntelTab,
+  ) => void;
+  closeNewsPanel: () => void;
+};
 const POLL_MS_FALLBACK = 90_000;
 
 const THEATER_LABELS: Record<
@@ -282,7 +287,14 @@ type NewsStreamContextValue = {
   viewPackages: ViewPackageId[];
   labelLanguage: LabelLanguage;
   /** 한글 모드: 서버 번역 누락 시 클라이언트에서 제목 보정 */
-  localizedTitle: (item: { id: string; title: string; category?: string | null; source?: string | null }) => string;
+  localizedTitle: (item: {
+    id: string;
+    title: string;
+    category?: string | null;
+    source?: string | null;
+    trustTier?: number | null;
+    heroStatus?: string | null;
+  }) => string;
   localizedSummary: (item: { id: string; summary?: string | null }) => string | undefined;
 };
 
@@ -461,9 +473,10 @@ export function NewsStreamProvider({
       category?: string | null;
       source?: string | null;
     }) => {
+      // (미확인) 표기는 번역 후에 붙임 — 번역기에 태그를 넣지 않음
       entries.push({
         key: `t:${item.id}`,
-        text: displayNewsItemTitle(item, "ko"),
+        text: newsTitleBase(item, "ko"),
       });
       if (item.summary?.trim()) {
         entries.push({ key: `s:${item.id}`, text: item.summary });
@@ -484,10 +497,22 @@ export function NewsStreamProvider({
       title: string;
       category?: string | null;
       source?: string | null;
+      trustTier?: number | null;
+      heroStatus?: string | null;
     }) => {
-      const base = displayNewsItemTitle(item, labelLanguage);
-      if (labelLanguage === "en") return base;
-      return localizedDisplayText(localizedMap, `t:${item.id}`, base);
+      const markOpts = {
+        trustTier: item.trustTier,
+        heroStatus: item.heroStatus,
+      };
+      if (labelLanguage === "en") {
+        return displayNewsItemTitle(item, "en");
+      }
+      const translated = localizedDisplayText(
+        localizedMap,
+        `t:${item.id}`,
+        newsTitleBase(item, "ko"),
+      );
+      return withUnverifiedTitleMark(translated, "ko", markOpts);
     },
     [labelLanguage, localizedMap],
   );
@@ -533,6 +558,10 @@ type IntelCompactBarProps = {
    */
   fabOnly?: boolean;
   onOpenSheet: (theater?: IntelTheaterFilter) => void;
+  /** 전보 토스트 CTA — 지경학 증시 탭 */
+  onOpenMarketsSheet?: () => void;
+  /** 뉴스 인사이트 우측 패널 열림 — 전보 무음 · 좌측 하단 미니 칩 */
+  newsInsightOpen?: boolean;
   /** 오늘 핫한 곳 → 맵 fly-to */
   onFlyToTheater?: (theater: NewsTheater) => void;
   /** 맞춤 칩 → 레이어 ON */
@@ -703,6 +732,8 @@ export function DynamicIntelStack({
   pauseUpdates = false,
   fabOnly = false,
   onOpenSheet,
+  onOpenMarketsSheet,
+  newsInsightOpen = false,
   onFlyToTheater,
   onEnableLayer,
 }: IntelCompactBarProps) {
@@ -714,15 +745,17 @@ export function DynamicIntelStack({
   const mode = resolveIntelStackMode(hero);
   const isAlert = mode === "alert";
   const highlightSymbols = useMemo(() => {
-    if (isAlert && hero) return heroHighlightSymbols(hero);
-    if (hero) return theaterAssetSymbols(hero.theater);
+    const mode = isEconomy ? "economy" : "conflict";
+    if (isAlert && hero) return heroHighlightSymbols(hero, undefined, mode);
+    if (hero) return theaterAssetSymbols(hero.theater, mode);
     if (theaterFilter && theaterFilter !== "all") {
-      return theaterAssetSymbols(theaterFilter);
+      return theaterAssetSymbols(theaterFilter, mode);
     }
     return [];
-  }, [hero, isAlert, theaterFilter]);
+  }, [hero, isAlert, isEconomy, theaterFilter]);
   const [todayHidden, setTodayHidden] = useState(false);
   const [dockCollapsed, setDockCollapsed] = useState(false);
+  const [spikeToast, setSpikeToast] = useState<SpikeTelegraphToastPayload | null>(null);
   const lastBreakingHeroIdRef = useRef<string | null>(null);
   /** pending: 방향 판별 전 · active: 하향 dismiss 드래그 확정(위로 스크롤은 가로채지 않음) */
   const dockDragRef = useRef<{
@@ -827,6 +860,25 @@ export function DynamicIntelStack({
     setTodayHidden(true);
   }, []);
 
+  const handleSpikeDispatch = useCallback((candidate: TickerSpikeCandidate) => {
+    setSpikeToast({
+      symbol: candidate.symbol,
+      changePercent: candidate.changePercent,
+      direction: candidate.direction,
+      atMs: Date.now(),
+    });
+  }, []);
+
+  const dismissSpikeToast = useCallback(() => {
+    setSpikeToast(null);
+  }, []);
+
+  const handleOpenMarketsFromToast = useCallback(() => {
+    setSpikeToast(null);
+    if (onOpenMarketsSheet) onOpenMarketsSheet();
+    else onOpenSheet("all");
+  }, [onOpenMarketsSheet, onOpenSheet]);
+
   const onDockHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     dockDragRef.current = {
@@ -912,10 +964,19 @@ export function DynamicIntelStack({
 
   if (dockCollapsed) {
     return (
-      <div
-        id="bottom-intel-compact"
-        className="intel-stack intel-stack--collapsed pointer-events-none absolute left-1/2 z-20 flex w-[min(94vw,420px)] -translate-x-1/2 flex-col items-stretch"
-      >
+      <>
+        {isEconomy && spikeToast && newsInsightOpen ? (
+          <SpikeTelegraphToast
+            payload={spikeToast}
+            placement="corner"
+            onDismiss={dismissSpikeToast}
+            onOpenMarkets={handleOpenMarketsFromToast}
+          />
+        ) : null}
+        <div
+          id="bottom-intel-compact"
+          className="intel-stack intel-stack--collapsed pointer-events-none absolute left-1/2 z-20 flex w-[min(94vw,420px)] -translate-x-1/2 flex-col items-stretch"
+        >
         <div
           className={`intel-stack-panel pointer-events-auto flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-2xl backdrop-blur-md ${
             isEconomy
@@ -962,10 +1023,20 @@ export function DynamicIntelStack({
           </HoverHint>
         </div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+      {isEconomy && spikeToast && newsInsightOpen ? (
+        <SpikeTelegraphToast
+          payload={spikeToast}
+          placement="corner"
+          onDismiss={dismissSpikeToast}
+          onOpenMarkets={handleOpenMarketsFromToast}
+        />
+      ) : null}
     <div
       id="bottom-intel-compact"
       className={`intel-stack pointer-events-none absolute left-1/2 z-20 flex w-[min(96vw,720px)] -translate-x-1/2 flex-col items-stretch gap-2 ${
@@ -979,6 +1050,15 @@ export function DynamicIntelStack({
           economy={isEconomy}
           onOpen={handleTodayOpen}
           onDismiss={handleTodayDismiss}
+        />
+      ) : null}
+
+      {isEconomy && spikeToast && !newsInsightOpen ? (
+        <SpikeTelegraphToast
+          payload={spikeToast}
+          placement="dock"
+          onDismiss={dismissSpikeToast}
+          onOpenMarkets={handleOpenMarketsFromToast}
         />
       ) : null}
 
@@ -1054,21 +1134,32 @@ export function DynamicIntelStack({
             title={t("hoverStockTickerTheater")}
             detail={
               isAlert
-                ? lang === "en"
-                  ? `Theater assets · SPIKE at ${TICKER_SPIKE_THRESHOLD_PERCENT}%+ (10m refresh) · not advice`
-                  : `전장 민감 자산 · ${TICKER_SPIKE_THRESHOLD_PERCENT}%↑ 변동 시 SPIKE (10분 갱신) · 투자 권유 아님`
-                : lang === "en"
-                  ? "Theater-sensitive commodities & futures (10m refresh) · not advice"
-                  : "전장 민감 원자재·선물 (10분 갱신) · 투자 권유 아님"
+                ? isEconomy
+                  ? lang === "en"
+                    ? `Futures · macro · SPIKE at ${TICKER_SPIKE_THRESHOLD_PERCENT}%+ (10m refresh) · not advice`
+                    : `선물·매크로 · ${TICKER_SPIKE_THRESHOLD_PERCENT}%↑ 변동 시 SPIKE (10분 갱신) · 투자 권유 아님`
+                  : lang === "en"
+                    ? `Theater equities · SPIKE at ${TICKER_SPIKE_THRESHOLD_PERCENT}%+ (10m refresh) · not advice`
+                    : `전장 민감 equity · ${TICKER_SPIKE_THRESHOLD_PERCENT}%↑ 변동 시 SPIKE (10분 갱신) · 투자 권유 아님`
+                : isEconomy
+                  ? lang === "en"
+                    ? "Futures & macro beside supply routes (10m refresh) · not advice"
+                    : "공급망과 나란히 보는 선물·매크로 (10분 갱신) · 투자 권유 아님"
+                  : lang === "en"
+                    ? "Defense & theater equities incl. semis (10m refresh) · not advice"
+                    : "방산·전장 equity(반도체 포함) (10분 갱신) · 투자 권유 아님"
             }
             className="w-full"
           >
             <StockTickerStrip
               mode={mode}
+              viewerMode={isEconomy ? "economy" : "conflict"}
               highlightSymbols={highlightSymbols}
               alertTone={isAlert && hero ? hero.heroStatus : undefined}
               showHeader
               paused={pauseUpdates}
+              onSpikeDispatch={isEconomy ? handleSpikeDispatch : undefined}
+              muteTelegraphSound={newsInsightOpen}
             />
           </HoverHint>
         ) : null}
@@ -1097,6 +1188,7 @@ export function DynamicIntelStack({
         </div>
       ) : null}
     </div>
+    </>
   );
 }
 
@@ -1495,6 +1587,8 @@ type IntelNewsSheetProps = {
   onClose: () => void;
   onOpen?: () => void;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  /** 뉴스 인사이트 우측 패널 */
+  onOpenNewsInsight?: (item: NewsStreamItem) => void;
   showTelegram?: boolean;
   telegramAlerts?: TelegramAlert[];
   telegramLive?: boolean;
@@ -1531,6 +1625,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       onClose,
       onOpen,
       onFlyToMap,
+      onOpenNewsInsight,
       showTelegram = false,
       telegramAlerts = [],
       telegramLive = false,
@@ -1630,9 +1725,14 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     }, [sheetTab, showGdelt]);
 
     const openNewsPanel = useCallback(
-      (theater: IntelTheaterFilter = "all", tab: IntelSheetTab = "news") => {
+      (
+        theater: IntelTheaterFilter = "all",
+        tab: IntelSheetTab = "news",
+        economyTabNext?: EconomyIntelTab,
+      ) => {
         setTheaterFilter(theater);
         setSheetTab(tab);
+        if (economyTabNext) setEconomyTab(economyTabNext);
         void refresh();
         onOpen?.();
       },
@@ -2117,6 +2217,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     economyMode={preferEconomyNews}
                     onFlyToTheater={preferEconomyNews ? undefined : onFlyToMap ? flyToTheater : undefined}
                     onFlyToMap={preferEconomyNews ? onFlyToMap : undefined}
+                    onOpenNewsInsight={onOpenNewsInsight}
                   />
                   <TierSection
                     label={preferEconomyNews ? ECONOMY_TIER_LABELS[2].label : "보완 보도"}
@@ -2128,6 +2229,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     economyMode={preferEconomyNews}
                     onFlyToTheater={preferEconomyNews ? undefined : onFlyToMap ? flyToTheater : undefined}
                     onFlyToMap={preferEconomyNews ? onFlyToMap : undefined}
+                    onOpenNewsInsight={onOpenNewsInsight}
                   />
                   {showTier3 && (preferEconomyNews ? displayTier3 : tier3Items).length > 0 ? (
                     <TierSection
@@ -2141,6 +2243,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                       economyMode={preferEconomyNews}
                       onFlyToTheater={preferEconomyNews ? undefined : onFlyToMap ? flyToTheater : undefined}
                       onFlyToMap={preferEconomyNews ? onFlyToMap : undefined}
+                      onOpenNewsInsight={onOpenNewsInsight}
                     />
                   ) : null}
                   {(preferEconomyNews ? displayTier1 : tier1Items).length === 0 &&
@@ -2164,7 +2267,6 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   ) : null}
                 </div>
               )}
-              <AnalysisPanel hero={hero} payload={payload} open={open} />
             </div>
           </>
         ) : sheetTab === "telegram" || sheetTab === "telegram-video" ? (
@@ -2234,6 +2336,7 @@ function TierSection({
   economyMode,
   onFlyToTheater,
   onFlyToMap,
+  onOpenNewsInsight,
 }: {
   tier: 1 | 2 | 3;
   label: string;
@@ -2245,6 +2348,7 @@ function TierSection({
   economyMode?: boolean;
   onFlyToTheater?: (theater: NewsTheater) => void;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  onOpenNewsInsight?: (item: NewsStreamItem) => void;
 }) {
   if (items.length === 0) return null;
 
@@ -2283,227 +2387,10 @@ function TierSection({
             economyMode={economyMode}
             onFlyToTheater={onFlyToTheater}
             onFlyToMap={onFlyToMap}
+            onOpenNewsInsight={onOpenNewsInsight}
           />
         ))}
       </ul>
-    </section>
-  );
-}
-
-const CLAUDE_API_HELP_URL =
-  "https://support.claude.com/ko/collections/5370014-claude-api-%EB%B0%8F-%EC%BD%98%EC%86%94";
-
-function AnalysisPanel({
-  hero,
-  payload,
-  open,
-}: {
-  hero: HeroBreakingItem | null;
-  payload: NewsStreamPayload | null;
-  open: boolean;
-}) {
-  const { lang, t } = useLocale();
-  const theaterLabelText = hero?.theater ? theaterLabel(hero.theater, lang) : null;
-  const [digest, setDigest] = useState<NewsDigestItem | null>(null);
-  const [digestChecked, setDigestChecked] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    if (!open) {
-      setDismissed(false);
-      setDigest(null);
-      setDigestChecked(false);
-      return;
-    }
-    if (!hero?.id) {
-      setDigest(null);
-      setDigestChecked(false);
-      return;
-    }
-    let cancelled = false;
-    setDigestChecked(false);
-    void (async () => {
-      try {
-        const res = await fetch(
-          `/api/news-digest?articleId=${encodeURIComponent(hero.id)}`,
-          { cache: "no-store" },
-        );
-        const data = (await res.json()) as { item?: NewsDigestItem | null };
-        if (!cancelled) {
-          setDigest(data.item && data.item.summaryLines ? data.item : null);
-        }
-      } catch {
-        if (!cancelled) setDigest(null);
-      } finally {
-        if (!cancelled) setDigestChecked(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, hero?.id]);
-
-  const relatedSymbols = hero
-    ? theaterAssetSymbols(hero.theater).join(" · ")
-    : "";
-
-  if (!open || dismissed) return null;
-
-  return (
-    <section
-      className="intel-tier-section intel-analysis-panel intel-tier-section--visible shrink-0 border-t-2 border-violet-400/25 bg-violet-950/20"
-      style={{ animationDelay: "280ms" }}
-    >
-      <div className="flex items-start justify-between gap-2 border-b border-violet-400/15 px-4 py-2.5">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-violet-100">{t("aiDigestLabel")}</p>
-          <p className="mt-0.5 text-meta text-violet-200/55">{t("aiDigestPolicy")}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setDismissed(true)}
-          aria-label={t("aiDigestClose")}
-          title={t("aiDigestClose")}
-          className="shrink-0 rounded border border-violet-400/30 bg-violet-950/50 px-2 py-1 text-meta font-medium text-violet-100/90 transition hover:border-violet-300/50 hover:bg-violet-900/60 hover:text-violet-50"
-        >
-          {t("close")}
-        </button>
-      </div>
-      <div className="space-y-2 px-4 py-3 text-sm leading-6 text-slate-300">
-        <UserAnthropicKeyPanel compact />
-        {hero ? (
-          <UserAnalyzeButton
-            title={hero.title}
-            source={hero.source}
-            link={hero.link}
-            theater={hero.theater}
-            excerpt={hero.summary ?? hero.title}
-          />
-        ) : null}
-        {digest?.summaryLines ? (
-          <>
-            <ol className="list-decimal space-y-1 pl-4 text-sm text-violet-50/90">
-              {digest.summaryLines.map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ol>
-            <p className="text-micro uppercase tracking-wider text-violet-300/60">
-              {digest.confidence} · {digest.model}
-            </p>
-            {digest.link ? (
-              <a
-                href={digest.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs font-medium text-violet-200 underline-offset-2 hover:underline"
-              >
-                {t("openOriginal")}
-              </a>
-            ) : null}
-          </>
-        ) : (
-          <>
-            {digestChecked ? (
-              <p className="text-meta text-violet-200/50">{t("aiDigestFail")}</p>
-            ) : null}
-            {hero && theaterLabelText ? (
-              <p>
-                <span className="font-medium text-violet-200">
-                  [{heroStatusLabel(hero.heroStatus, lang)}]
-                </span>{" "}
-                {theaterLabelText}
-                {lang === "en" ? " theater signal. " : " 전장 속보 신호. "}
-                Tier 1 {payload?.stats.tier1 ?? 0}
-                {lang === "en" ? " · Tier 2 " : "건 · Tier 2 "}
-                {payload?.stats.tier2 ?? 0}
-                {lang === "en" ? " items." : "건 병치."}
-                {hero.heroStatus === "unverified"
-                  ? lang === "en"
-                    ? " Cross-check map pins before treating as fact."
-                    : " 사실 단정 전 — 지도 핀·항로·분쟁 레이어 교차 확인 필요."
-                  : lang === "en"
-                    ? " Contrast with GDELT and conflict layers."
-                    : " GDELT·분쟁 구역 레이어와 대조 권장."}
-              </p>
-            ) : (
-              <p className="text-slate-500">
-                {lang === "en"
-                  ? "When a headline is selected, theater · map · market notes appear here."
-                  : "속보 선정 시 전장·지도 인프라·증시 반응을 한 흐름으로 정리합니다."}
-              </p>
-            )}
-            {hero?.link ? (
-              <a
-                href={hero.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs font-medium text-violet-200 underline-offset-2 hover:underline"
-              >
-                {t("openOriginal")} · {hero.source}
-              </a>
-            ) : null}
-            {relatedSymbols ? (
-              <p className="text-xs text-slate-500">
-                {lang === "en" ? "Related symbols: " : "관련 심볼: "}
-                {relatedSymbols}
-                {" · "}
-                {hero ? theaterAssetNote(hero.theater, lang) : ""}
-              </p>
-            ) : null}
-          </>
-        )}
-        <p className="text-xs text-slate-500">
-          {lang === "en" ? (
-            <>
-              Open the <span className="text-violet-300/90">Markets</span> tab for theater-linked
-              macros. Not investment advice.
-            </>
-          ) : (
-            <>
-              상단 <span className="text-violet-300/90">증시</span> 탭에서 전장별 매크로·지수를
-              봅니다. 투자 권유 아님.
-            </>
-          )}
-        </p>
-
-        <div className="mt-3 space-y-2 border-t border-violet-400/15 pt-3">
-          <a
-            href={CLAUDE_API_HELP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-medium text-violet-200 underline-offset-2 hover:text-violet-50 hover:underline"
-          >
-            {lang === "en" ? "How to get a Claude API key" : "클로드에서 API를 가져오는 방법"}
-            <span aria-hidden className="text-violet-300/50">
-              ↗
-            </span>
-          </a>
-          <div className="rounded-lg border border-violet-400/15 bg-violet-950/25 px-3 py-2.5 text-meta leading-5 text-violet-100/75">
-            <p className="font-medium text-violet-100/90">
-              {lang === "en" ? "Why this button exists" : "이 버튼이 필요한 이유"}
-            </p>
-            <p className="mt-1.5">
-              {lang === "en" ? (
-                <>
-                  <span className="font-medium text-violet-100/85">Analyze with my key</span> is
-                  optional. We cannot run personalized AI analysis for every visitor on the site&apos;s
-                  bill, so this button uses your own Anthropic API key only. Your key stays on this
-                  device; usage appears on your Claude Console invoice. Any server key we operate is
-                  reserved for editorial news digests—not for this button.
-                </>
-              ) : (
-                <>
-                  <span className="font-medium text-violet-100/85">「내 키로 분석」</span>은 선택
-                  기능입니다. 모든 방문자의 AI 분석 비용을 사이트가 대신 부담하기 어렵기 때문에,
-                  개인 맞춤 해석은 본인 Anthropic API 키로만 실행됩니다. 키는 이 기기에만 저장되며,
-                  사용량은 Claude Console 청구서에 반영됩니다. 사이트 운영용 키(있는 경우)는 긴급 뉴스
-                  편집 요약에만 쓰이고 이 버튼에는 사용되지 않습니다.
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
@@ -2515,6 +2402,7 @@ function NewsRow({
   economyMode,
   onFlyToTheater,
   onFlyToMap,
+  onOpenNewsInsight,
 }: {
   item: NewsStreamItem;
   marker?: string;
@@ -2522,6 +2410,7 @@ function NewsRow({
   economyMode?: boolean;
   onFlyToTheater?: (theater: NewsTheater) => void;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  onOpenNewsInsight?: (item: NewsStreamItem) => void;
 }) {
   const { lang } = useLocale();
   const { localizedTitle, localizedSummary } = useNewsStreamContext();
@@ -2553,29 +2442,43 @@ function NewsRow({
     : null;
   const showEconomyFly = Boolean(economyFly && onFlyToMap);
   const showConflictFly = Boolean(!economyMode && onFlyToTheater);
+  const showInsight = Boolean(onOpenNewsInsight);
 
   return (
     <li className="relative">
-      {showEconomyFly && economyFly ? (
-        <div className="absolute right-3 top-3 z-10">
-          <FlyToMapButton
-            label="지도보러가기"
-            onClick={() => onFlyToMap?.(economyFly)}
-          />
-        </div>
-      ) : showConflictFly ? (
-        <div className="absolute right-3 top-3 z-10">
-          <FlyToMapButton
-            label="지도보러가기"
-            onClick={() => onFlyToTheater?.(item.theater)}
-          />
+      {(showInsight || showEconomyFly || showConflictFly) ? (
+        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
+          {showInsight ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenNewsInsight?.(item);
+              }}
+              className="rounded-md border border-amber-400/40 bg-amber-500/15 px-2 py-1 text-micro font-semibold text-amber-100 transition hover:bg-amber-500/25"
+            >
+              {lang === "en" ? "Insight" : "인사이트"}
+            </button>
+          ) : null}
+          {showEconomyFly && economyFly ? (
+            <FlyToMapButton
+              label="지도보러가기"
+              onClick={() => onFlyToMap?.(economyFly)}
+            />
+          ) : showConflictFly ? (
+            <FlyToMapButton
+              label="지도보러가기"
+              onClick={() => onFlyToTheater?.(item.theater)}
+            />
+          ) : null}
         </div>
       ) : null}
       <a
         href={item.link}
         target="_blank"
         rel="noopener noreferrer"
-        className={`flex gap-3 px-4 py-3 pr-20 transition hover:bg-white/5 ${tier3 ? "hover:bg-amber-400/5" : ""}`}
+        className={`flex gap-3 px-4 py-3 pr-24 transition hover:bg-white/5 ${tier3 ? "hover:bg-amber-400/5" : ""}`}
       >
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

@@ -276,24 +276,24 @@ export function analystTierLabel(tier: AnalystTierId, ko: boolean): string {
   if (ko) {
     switch (tier) {
       case "rookie":
-        return "루키 애널리스트";
+        return "관측 입문";
       case "analyst":
-        return "애널리스트";
+        return "관측자";
       case "senior":
-        return "시니어 애널리스트";
+        return "선임 관측자";
       case "chief":
-        return "상황실장";
+        return "수석 관측자";
     }
   }
   switch (tier) {
     case "rookie":
-      return "Rookie analyst";
+      return "Observer";
     case "analyst":
-      return "Analyst";
+      return "Watch analyst";
     case "senior":
-      return "Senior analyst";
+      return "Senior observer";
     case "chief":
-      return "Situation-room chief";
+      return "Lead observer";
   }
 }
 
