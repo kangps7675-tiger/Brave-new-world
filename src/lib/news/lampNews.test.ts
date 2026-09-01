@@ -121,7 +121,7 @@ describe("monday weekly photo recap window", () => {
 
   it("전주 ISO 주 구간만 남기고, 부족하면 직전 7일로 완화한다", () => {
     const monday = new Date(2026, 7, 31, 9, 0, 0);
-    const { startMs, endMs, weekKey } = previousIsoWeekRange(monday);
+    const { weekKey } = previousIsoWeekRange(monday);
     expect(weekKey).toBe("weekly-2026-W35");
     expect(isWeeklyRecapBriefingKey(`${weekKey}-conflict`)).toBe(true);
 

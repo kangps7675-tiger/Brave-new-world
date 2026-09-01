@@ -1728,7 +1728,8 @@ export function GlobeDashboard({
   /** UCDP 레이어 제거 — 토글·로드 모두 무시 */
   const showUcdpEvents = false;
   void _showUcdpEventsPref;
-  const setShowUcdpEvents = (_v: boolean) => togglePref("showUcdpEvents", false);
+  const setShowUcdpEvents: (value: boolean) => void = () =>
+    togglePref("showUcdpEvents", false);
   const setShowMilitaryActivity = (v: boolean) => togglePref("showMilitaryActivity", v);
   const setShowAirTraffic = (v: boolean) => togglePref("showAirTraffic", v);
   const setShowUsCarriers = (v: boolean) => togglePref("showUsCarriers", v);

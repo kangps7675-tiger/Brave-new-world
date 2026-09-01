@@ -15,7 +15,6 @@ import type {
 import type { GdeltTagHtmlMarker } from "@/lib/gdeltLocationTagMarker";
 import type {
   TransportPath,
-  UkraineControlZone,
   UkraineSettlement,
 } from "@/data/geoTypes";
 import type { HapiConflictCasualtiesPayload } from "@/lib/hapiConflictCasualties";
@@ -29,7 +28,6 @@ import type { ViinaPolygonLayers } from "@/lib/viinaLod";
 import { isUkraineTheaterGdeltWar } from "@/lib/ukraineGdeltNeonMarker";
 import { buildTelegramMapDots } from "@/lib/telegramMapMarkers";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
-import { isUkraineViinaPolygonLayer } from "@/components/globe/overlayPolygons";
 import { useSafecastNearNuclear } from "@/hooks/useSafecastNearNuclear";
 import { NUCLEAR_STOCKPILE_SEEDS } from "@/lib/nuclearStockpiles";
 import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
@@ -95,7 +93,6 @@ export function useSituationHtmlMarkers(
   const {
     isEconomyViewer,
     isCompactUi,
-    labelLanguage,
     gdeltTensionTags,
     showTelegramOsint,
     telegramAlerts,
@@ -125,6 +122,7 @@ export function useSituationHtmlMarkers(
   void staticGlobePoints;
   void hoveredPolygon;
   void hoveredPath;
+  void params.labelLanguage;
 
   const gdeltTagHtmlMarkers = useMemo<GdeltTagHtmlMarker[]>(
     () =>

@@ -1059,7 +1059,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const container = mapContainerRef.current;
     if (!container) return;
 
-    const onCreationError = (e: Event) => {
+    const onCreationError = () => {
       setMapInitFailed(true);
     };
     container.addEventListener("webglcontextcreationerror", onCreationError, true);
@@ -1075,12 +1075,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [mapLoaded]);
 
   /** 로드 전 발생한 치명적 오류 — 로드 후 오류(타일 404 등)는 maplibre가 알아서 처리하므로 무시 */
-  const handleMapError = useCallback(
-    (_event: { error?: unknown }) => {
-      if (!mapLoaded) setMapInitFailed(true);
-    },
-    [mapLoaded],
-  );
+  const handleMapError = useCallback(() => {
+    if (!mapLoaded) setMapInitFailed(true);
+  }, [mapLoaded]);
 
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();

@@ -523,7 +523,6 @@ export function useLayerPanelCategories({
   visibleMilitaryBaseAreas,
   setShowMilitaryBases,
   setShowAlliedBlocs,
-  showCstoBloc,
   setShowCstoBloc,
   showGeoEconBlocs,
   setShowGeoEconBlocs,
