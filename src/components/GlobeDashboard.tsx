@@ -496,6 +496,7 @@ import {
   activateRussiaStrikeIncidents,
   activateEuropeDroneIncidents,
 } from "@/lib/neonIncidentActivation";
+import { provenanceFromActivation } from "@/lib/eventProvenance";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import {
   HAPI_CASUALTY_SEED,
@@ -4148,7 +4149,16 @@ export function GlobeDashboard({
     if (enabled.size === 0) return [];
     const staticItems = activateChinaTheaterIncidents(enabled, scoredEvents);
     const crossStraitItems = showChinaTaiwanIncidents
-      ? crossStraitSignal?.escalationIncidents ?? []
+      ? (crossStraitSignal?.escalationIncidents ?? []).map((item) => ({
+          ...item,
+          provenance: provenanceFromActivation({
+            id: item.id,
+            hadSeedMatch: Boolean(item.sourceUrl),
+            seedSourceUrl: item.sourceUrl ?? null,
+            gdeltSourceUrl: null,
+          }),
+          gdeltSourceUrl: null,
+        }))
       : [];
     return [...staticItems, ...crossStraitItems].map((item) => ({
         ...item,
@@ -6197,7 +6207,6 @@ export function GlobeDashboard({
     enterTheaterFocus,
     enterEconomyRegionFocus,
     flyToTheaterDetail,
-    enterTheaterFocusRef,
   } = useTheaterNavigation({
     flyTo,
     flyToBounds,
