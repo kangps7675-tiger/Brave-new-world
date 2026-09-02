@@ -92,7 +92,7 @@ export function SpikeTelegraphBanner({
         >
           <p
             id="spike-telegraph-title"
-            className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90"
+            className="text-micro font-bold uppercase tracking-[0.2em] text-amber-200/90"
           >
             {copy.stamp}
             <span className="ml-2 font-semibold tracking-wide text-amber-50/90">

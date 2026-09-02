@@ -13,6 +13,7 @@ import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
 import { useSanctionsEvasionSnapshot } from "@/hooks/useSanctionsEvasionSnapshot";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { zc } from "@/lib/uiStack";
 
 type ModeGlobalIndexChipProps = {
   viewerMode: ViewerMode;
@@ -181,7 +182,7 @@ export function ModeGlobalIndexChip({
       {showSesPanel ? (
         <div
           ref={panelRef}
-          className="pointer-events-auto fixed z-[305] w-[min(20rem,calc(100vw-1.5rem))]"
+          className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(20rem,calc(100vw-1.5rem))]`}
           style={{
             top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
             right: "max(0.75rem, env(safe-area-inset-right, 0px))",

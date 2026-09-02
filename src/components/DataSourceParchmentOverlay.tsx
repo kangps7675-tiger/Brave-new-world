@@ -163,7 +163,7 @@ export function DataSourceParchmentOverlay(props: Props) {
                         >
                           <span className="block">{section.title}</span>
                           {seen && !isActive ? (
-                            <span className="mt-0.5 block text-[10px] opacity-55">
+                            <span className="mt-0.5 block text-micro opacity-55">
                               {ko ? "열람함" : "opened"}
                             </span>
                           ) : null}

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useLocale } from "@/contexts/LocaleContext";
 import { tickerDisplayName } from "@/lib/stockTickers";
 import type { TickerTelegraphDirection } from "@/lib/tickerSpikeTelegraph";
+import { zc } from "@/lib/uiStack";
 
 export type SpikeTelegraphToastPayload = {
   symbol: string;
@@ -61,7 +62,7 @@ export function SpikeTelegraphToast({
   if (placement === "corner") {
     const chip = (
       <div
-        className="pointer-events-auto fixed bottom-[max(5.5rem,calc(var(--bottom-intel-stack-clearance,8.5rem)+0.5rem))] left-3 z-[520] w-[min(11.5rem,42vw)] overflow-hidden rounded-lg border border-white/12 bg-[#0a0e14]/88 shadow-lg backdrop-blur-md"
+        className={`pointer-events-auto fixed bottom-[max(5.5rem,calc(var(--bottom-intel-stack-clearance,8.5rem)+0.5rem))] left-3 ${zc("panelScrim")} w-[min(11.5rem,42vw)] overflow-hidden rounded-lg border border-white/12 bg-[#0a0e14]/88 shadow-lg backdrop-blur-md`}
         role="status"
         aria-live="polite"
       >
@@ -72,16 +73,16 @@ export function SpikeTelegraphToast({
         >
           <div className="flex items-center justify-between gap-1">
             <span
-              className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${
+              className={`text-micro font-semibold uppercase tracking-[0.14em] ${
                 isUp ? "text-emerald-400/80" : "text-rose-400/80"
               }`}
             >
               {trendLabel}
             </span>
-            <span className="text-[10px] text-slate-600">{formatLocalHm(payload.atMs)}</span>
+            <span className="text-micro text-slate-600">{formatLocalHm(payload.atMs)}</span>
           </div>
           <div className="flex min-w-0 items-baseline gap-1.5">
-            <span className="truncate font-mono text-[11px] font-medium text-slate-200">
+            <span className="truncate font-mono text-micro font-medium text-slate-200">
               {payload.symbol}
             </span>
             <span className={`shrink-0 font-mono text-xs font-bold tabular-nums ${toneClass}`}>
@@ -89,7 +90,7 @@ export function SpikeTelegraphToast({
               {pctAbs}%
             </span>
           </div>
-          <span className="truncate text-[10px] text-slate-500">{name}</span>
+          <span className="truncate text-micro text-slate-500">{name}</span>
         </button>
       </div>
     );
