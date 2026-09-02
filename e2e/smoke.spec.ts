@@ -61,6 +61,30 @@ async function tapCheckbox(box: Locator) {
   });
 }
 
+/** 데이터 출처 양피지(입장 게이트) — 8개 책갈피 열람·확인 후 통과 */
+async function completeSourcesGateIfVisible(page: Page) {
+  const title = page.locator("#data-source-parchment-title");
+  if (!(await title.isVisible({ timeout: 2_000 }).catch(() => false))) return;
+
+  const nav = page.getByRole("navigation", { name: /출처 책갈피|Source bookmarks/i });
+  const bookmarks = nav.getByRole("button");
+  const count = await bookmarks.count();
+  for (let i = 0; i < count; i++) {
+    await bookmarks.nth(i).click();
+  }
+
+  const dialog = page.locator('[aria-labelledby="data-source-parchment-title"]');
+  const checkbox = dialog.locator('input[type="checkbox"]').first();
+  await checkbox.check();
+
+  const ack = page.getByRole("button", {
+    name: /확인 · 지정학|Acknowledge · choose/i,
+  });
+  await expect(ack).toBeEnabled({ timeout: 5_000 });
+  await ack.click();
+  await expect(title).toHaveCount(0, { timeout: 15_000 });
+}
+
 /** 입장 게이트·부트 스플래시 통과 — 레이어 패널 등 클릭 가능 상태까지 */
 async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict") {
   await stubNoisyApis(page);
@@ -72,6 +96,7 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
         localStorage.setItem("geowatch-first-visit-tour-v1", "1");
         localStorage.setItem("geowatch-lang-choice-v1", "1");
         localStorage.setItem("geowatch-welcome-gate-v1", "1");
+        localStorage.setItem("geowatch-sources-gate-v1", "1");
         localStorage.setItem(
           "geowatch-view-config-v1",
           JSON.stringify({
@@ -129,6 +154,15 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
     await skip.click();
   }
 
+  if (
+    await page
+      .locator("#data-source-parchment-title")
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false)
+  ) {
+    await completeSourcesGateIfVisible(page);
+  }
+
   const domainGate = page.locator("#domain-gate-title");
   if (await domainGate.isVisible({ timeout: 8_000 }).catch(() => false)) {
     const label = domain === "conflict" ? /전쟁·안보|Conflict/ : /경제·물류|Economy/;
@@ -148,12 +182,18 @@ async function waitForInteractiveChrome(page: Page) {
   await expect(page.locator('[aria-label*="로딩 중"]')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("#entry-caution-title")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("#data-source-parchment-title")).toHaveCount(0, { timeout: 5_000 });
 
   // news-stream 로드 후 속보·등불이 늦게 뜰 수 있음 — 스크rim이 없어질 때까지 폴링
   await expect
     .poll(async () => {
+      await completeSourcesGateIfVisible(page);
       await dismissBlockingParchmentOverlays(page);
-      return page.locator(".welcome-letter-scrim[role='dialog']").count();
+      const blocking =
+        (await page.locator(".welcome-letter-scrim[role='dialog']").count()) +
+        (await page.locator("#data-source-parchment-title").count());
+      return blocking;
     }, { timeout: 45_000 })
     .toBe(0);
 }

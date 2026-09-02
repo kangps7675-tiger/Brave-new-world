@@ -32,6 +32,10 @@ export type CorridorRankComponents = {
   oceanServicesNorm?: number | null;
   euRailGateway?: boolean;
   gaugeBreak?: boolean;
+  crudeOilLoadedTonnage?: number | null;
+  crudeOilNorm?: number | null;
+  shadowFleetAvgAgeYears?: number | null;
+  shadowFleetAgeNorm?: number | null;
 };
 
 export type CorridorRankRow = {
@@ -113,4 +117,85 @@ export function getCorridorRankMeta(corridorId: string): CorridorRankMetaRow | u
 
 export function listCorridorRankMeta(): CorridorRankMetaRow[] {
   return (rankMeta as { corridors: CorridorRankMetaRow[] }).corridors;
+}
+
+export type CorridorIndicatorCoverage = {
+  available: number;
+  total: number;
+  missing: string[];
+};
+
+const CORE_INDICATOR_CHECKS: {
+  key: string;
+  labelKo: string;
+  labelEn: string;
+  test: (row: CorridorRankRow) => boolean;
+  optional?: (row: CorridorRankRow) => boolean;
+}[] = [
+  {
+    key: "comtrade",
+    labelKo: "Comtrade 무역",
+    labelEn: "Comtrade trade",
+    test: (row) => row.components.bilateralTradeNorm != null,
+  },
+  {
+    key: "port",
+    labelKo: "항만 처리량",
+    labelEn: "Port throughput",
+    test: (row) => row.components.portThroughputNorm != null,
+  },
+  {
+    key: "rail",
+    labelKo: "Eurostat 철도",
+    labelEn: "Eurostat rail",
+    test: (row) => row.components.corridorTeuNorm != null,
+    optional: (row) => !row.railFreightPair,
+  },
+  {
+    key: "bri",
+    labelKo: "BRI 영향",
+    labelEn: "BRI impact",
+    test: (row) => row.components.briImpactNorm != null,
+  },
+  {
+    key: "choke",
+    labelKo: "초크 스트레스",
+    labelEn: "Choke stress",
+    test: (row) =>
+      row.components.chokeNorm != null ||
+      (row.components as { chokeStressNorm?: number | null }).chokeStressNorm != null,
+  },
+];
+
+/** 회랑 rank 점수에 실제 반영된 핵심 지표 수 (UI 정직성) */
+export function corridorIndicatorCoverage(row: CorridorRankRow): CorridorIndicatorCoverage {
+  const applicable = CORE_INDICATOR_CHECKS.filter((c) => !c.optional?.(row));
+  const available = applicable.filter((c) => c.test(row)).length;
+  const missingFromSources = row.sources.filter((s) => /pending|missing/i.test(s));
+  const missingLabels = applicable
+    .filter((c) => !c.test(row))
+    .map((c) => c.labelKo);
+  return {
+    available,
+    total: applicable.length,
+    missing: missingFromSources.length > 0 ? missingFromSources : missingLabels,
+  };
+}
+
+export function getCorridorRankPipelineStatus(): {
+  generatedAt: string;
+  portwatchHits: number;
+  railFreightHits: number;
+  comtradeHits: number;
+  unctadHits: number;
+  lsbciHits: number;
+} {
+  return {
+    generatedAt: ranks.generatedAt,
+    portwatchHits: ranks.counts.portwatchHits ?? 0,
+    railFreightHits: ranks.counts.railFreightHits ?? 0,
+    comtradeHits: ranks.counts.comtradeHits ?? 0,
+    unctadHits: ranks.counts.unctadHits ?? 0,
+    lsbciHits: ranks.counts.lsbciHits ?? 0,
+  };
 }

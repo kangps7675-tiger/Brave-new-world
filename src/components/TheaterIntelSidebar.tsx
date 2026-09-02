@@ -7,11 +7,18 @@ import { LocationPinIcon } from "@/components/LocationPinIcon";
 import { TelegramIntelFeed } from "@/components/TelegramIntelFeed";
 import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useDailyRanksBrief } from "@/hooks/useDailyRanksBrief";
 import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import type { NavSelection } from "@/data/navRegions";
 import { matchesTheaterFilter } from "@/lib/news/theaterMap";
 import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import type { TheaterSidebarTab } from "@/lib/theaterFocus";
+import {
+  buildTheaterRegionalInsight,
+  type TheaterRegionalInsight,
+} from "@/lib/theaterRegionalInsight";
+import { formatRankDelta } from "@/lib/dailyRanks";
+import { formatGtiDeltaLabel, gtiBand, gtiBandLabel } from "@/lib/gti";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { TelegramAlertRegion } from "@/lib/telegramAlerts";
 
@@ -45,18 +52,22 @@ export function TheaterIntelSidebar({
   telegramSessionExists,
   telegramEmbedMode = true,
   telegramChannelCount = 0,
-  initialTab = "news",
+  initialTab = "insight",
   onClose,
   onFlyToCoords,
   onSelectGdeltEvent,
 }: TheaterIntelSidebarProps) {
   const { payload, showTier3, setShowTier3, localizedTitle } = useNewsStreamContext();
   const { lang, t } = useLocale();
+  const { payload: ranksPayload, loading: ranksLoading } = useDailyRanksBrief(12);
   const [tab, setTab] = useState<TheaterSidebarTab>(initialTab);
 
   const title = selection.parentLabel
     ? `${selection.parentLabel} · ${selection.label}`
     : selection.label;
+
+  const regionLabelKo = title;
+  const regionLabelEn = title;
 
   const rssItems = useMemo(() => {
     const verified =
@@ -79,7 +90,45 @@ export function TheaterIntelSidebar({
   }, [gdeltEvents, lang]);
   const localizedMap = useLocalizedTextMap(koreanEntries, "ko");
 
+  const telegramFiltered = useMemo(
+    () =>
+      telegramRegion === "all"
+        ? telegramAlerts
+        : telegramAlerts.filter((a) => a.region === telegramRegion),
+    [telegramAlerts, telegramRegion],
+  );
+
+  const regionalInsight = useMemo((): TheaterRegionalInsight => {
+    return buildTheaterRegionalInsight({
+      regionLabelKo,
+      regionLabelEn,
+      selectionId: selection.id,
+      newsTheater,
+      rssTitles: rssItems.map((i) => localizedTitle(i)),
+      gdeltCount: gdeltEvents.length,
+      telegramAlerts,
+      telegramRegion,
+      theaterRanks: ranksPayload?.theater ?? [],
+      chokeRanks: ranksPayload?.chokepoint ?? [],
+    });
+  }, [
+    regionLabelKo,
+    regionLabelEn,
+    selection.id,
+    newsTheater,
+    rssItems,
+    localizedTitle,
+    gdeltEvents.length,
+    telegramAlerts,
+    telegramRegion,
+    ranksPayload?.theater,
+    ranksPayload?.chokepoint,
+  ]);
+
   const showTelegramTab = telegramRegion !== "all";
+  const ko = lang !== "en";
+  const insightHeadline = ko ? regionalInsight.headlineKo : regionalInsight.headlineEn;
+  const insightParagraphs = ko ? regionalInsight.paragraphsKo : regionalInsight.paragraphsEn;
 
   return (
     <div className="theater-sidebar-enter flex h-full flex-col gap-3">
@@ -101,6 +150,9 @@ export function TheaterIntelSidebar({
       </div>
 
       <div className="flex shrink-0 gap-1 border-b border-slate-800/80 pb-2">
+        <TabButton active={tab === "insight"} onClick={() => setTab("insight")}>
+          {t("theaterInsight")}
+        </TabButton>
         <TabButton active={tab === "news"} onClick={() => setTab("news")}>
           {t("liveNews")}
           {rssItems.length + gdeltEvents.length > 0 ? (
@@ -110,16 +162,24 @@ export function TheaterIntelSidebar({
         {showTelegramTab ? (
           <TabButton active={tab === "telegram"} onClick={() => setTab("telegram")}>
             {t("telegramOsint")}
-            {telegramAlerts.filter((a) => a.region === telegramRegion).length > 0 ? (
-              <span className="ml-1.5 opacity-70">
-                {telegramAlerts.filter((a) => a.region === telegramRegion).length}
-              </span>
+            {telegramFiltered.length > 0 ? (
+              <span className="ml-1.5 opacity-70">{telegramFiltered.length}</span>
             ) : null}
           </TabButton>
         ) : null}
       </div>
 
-      {tab === "news" ? (
+      {tab === "insight" ? (
+        <TheaterInsightPanel
+          ko={ko}
+          loading={ranksLoading && !ranksPayload}
+          headline={insightHeadline}
+          paragraphs={insightParagraphs}
+          insight={regionalInsight}
+          onOpenNews={() => setTab("news")}
+          onOpenTelegram={showTelegramTab ? () => setTab("telegram") : undefined}
+        />
+      ) : tab === "news" ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
           <div className="flex shrink-0 items-center justify-between gap-2 rounded-xl border border-slate-800 bg-black/25 px-3 py-2 text-xs text-slate-400">
             <span>
@@ -201,6 +261,132 @@ export function TheaterIntelSidebar({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function TheaterInsightPanel({
+  ko,
+  loading,
+  headline,
+  paragraphs,
+  insight,
+  onOpenNews,
+  onOpenTelegram,
+}: {
+  ko: boolean;
+  loading: boolean;
+  headline: string;
+  paragraphs: string[];
+  insight: TheaterRegionalInsight;
+  onOpenNews: () => void;
+  onOpenTelegram?: () => void;
+}) {
+  const entry = insight.rankEntry;
+  const score =
+    insight.rankScore != null ? Math.round(insight.rankScore) : null;
+  const band =
+    score != null ? gtiBandLabel(gtiBand(score), ko) : null;
+  const deltaLabel =
+    entry?.deltaScore != null
+      ? formatGtiDeltaLabel(entry.deltaScore, ko ? "ko" : "en")
+      : null;
+  const rankDelta = entry
+    ? formatRankDelta(entry.deltaRank, ko ? "ko" : "en")
+    : null;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {entry && score != null ? (
+        <div className="shrink-0 rounded-xl border border-rose-500/25 bg-gradient-to-br from-rose-950/35 via-slate-950/50 to-slate-950/80 px-3 py-3">
+          <p className="text-micro font-semibold uppercase tracking-[0.18em] text-rose-300/75">
+            GTI · {ko ? "전장 긴장" : "Theater tension"}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-end gap-x-3 gap-y-1">
+            <span className="text-2xl font-semibold tabular-nums text-rose-50">
+              {score}
+            </span>
+            {band ? (
+              <span className="text-sm text-rose-200/80">{band}</span>
+            ) : null}
+            {deltaLabel ? (
+              <span className="text-meta text-slate-400">{deltaLabel}</span>
+            ) : null}
+            {rankDelta && rankDelta !== "—" && rankDelta !== "변동없음" ? (
+              <span className="text-meta text-sky-300/80">
+                {ko ? "순위" : "Rank"} {rankDelta}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="intel-scroll-y min-h-0 flex-1 rounded-xl border border-slate-800 bg-black/20 px-3 py-3">
+        {loading ? (
+          <div className="space-y-2" aria-busy>
+            <div className="h-4 w-3/4 animate-pulse rounded bg-slate-700/50" />
+            <div className="h-3 w-full animate-pulse rounded bg-slate-700/40" />
+            <div className="h-3 w-[92%] animate-pulse rounded bg-slate-700/35" />
+          </div>
+        ) : (
+          <>
+            <h3 className="text-sm font-semibold leading-snug text-amber-100/95">
+              {headline}
+            </h3>
+            <div className="mt-3 space-y-3">
+              {paragraphs.map((p, i) => (
+                <p
+                  key={`p-${i}`}
+                  className="text-sm leading-6 text-slate-200/90 whitespace-pre-wrap"
+                >
+                  {p}
+                </p>
+              ))}
+            </div>
+            {paragraphs.length === 0 ? (
+              <p className="text-sm leading-6 text-slate-500">
+                {ko
+                  ? "아직 합성할 피드가 충분하지 않습니다. 잠시 후 다시 확인하거나 뉴스 탭을 열어 보세요."
+                  : "Not enough feed data to synthesize yet — try the news tab or check back shortly."}
+              </p>
+            ) : null}
+          </>
+        )}
+      </div>
+
+      <div className="shrink-0 space-y-2">
+        <p className="text-micro uppercase tracking-wider text-slate-500">
+          {ko ? "근거 신호" : "Source signals"}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {insight.signals.map((s) => (
+            <span
+              key={s.id}
+              className="rounded-full border border-slate-600/40 bg-slate-900/60 px-2 py-0.5 text-micro text-slate-300"
+            >
+              {ko ? s.labelKo : s.labelEn} · {ko ? s.detailKo : s.detailEn}
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onOpenNews}
+            className="rounded-lg border border-sky-400/30 bg-sky-500/10 px-2.5 py-1 text-micro text-sky-100 transition hover:bg-sky-500/20"
+          >
+            {ko ? "뉴스 피드 보기 →" : "Open news feed →"}
+          </button>
+          {onOpenTelegram ? (
+            <button
+              type="button"
+              onClick={onOpenTelegram}
+              className="rounded-lg border border-violet-400/25 bg-violet-500/10 px-2.5 py-1 text-micro text-violet-100 transition hover:bg-violet-500/20"
+            >
+              {ko ? "텔레그램 보기 →" : "Open Telegram →"}
+            </button>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

@@ -194,9 +194,10 @@ export function axisEdgeToPath(edge: AxisEdge, lang: "ko" | "en" = "ko"): Transp
 export function axisNetworkToPaths(
   hub: AxisHubId | "all" = "all",
   lang: "ko" | "en" = "ko",
+  viewerMode: "conflict" | "economy" = "conflict",
 ): TransportPath[] {
   const out: TransportPath[] = [];
-  for (const edge of edgesForHub(hub)) {
+  for (const edge of edgesForHub(hub, viewerMode)) {
     out.push(...axisEdgeToPaths(edge, lang));
   }
   return out;

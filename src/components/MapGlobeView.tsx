@@ -41,8 +41,9 @@ if (typeof window !== "undefined") {
 }
 import type { FeatureCollection } from "geojson";
 import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasemap";
-import { ENTRY_GATE } from "@/lib/entryOverview";
+import { entryOrbitCamera } from "@/lib/entryOverview";
 import { createMapGlobeMethods, type MapGlobeMethods } from "@/lib/mapGlobeRef";
+import { bindableImperativeRef } from "@/lib/imperativeRef";
 import {
   asFn,
   buildCorridorGlintGradient,
@@ -113,6 +114,8 @@ import {
   OPENFREEMAP_ATTRIBUTION,
   OPENFREEMAP_PLANET_URL,
   parseBasemapMode,
+  readMapZoom,
+  shouldEnableBasemapTerrain,
   type BasemapMapLike,
   type BasemapMode,
 } from "@/lib/basemapMode";
@@ -127,12 +130,22 @@ const OsmBuildingsOverlay = dynamic(
   { ssr: false },
 );
 
-/** fog + (인텔만) 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
+/** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
 function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
   applyBasemapFog(map, mode);
   applyBasemapSpaceBackground(map, mode);
-  // Liberty 수면·NE 래스터 보정은 지형 전용 — 인텔 Dark 페인트는 건드리지 않음
   applyBasemapOceanColors(map, mode);
+}
+
+function applyTerrainForMap(
+  map: BasemapMapLike,
+  mode: BasemapMode,
+  ultraLite: boolean,
+): void {
+  applyBasemapTerrain(map, mode, {
+    ultraLite,
+    zoom: readMapZoom(map),
+  });
 }
 
 /**
@@ -414,6 +427,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   /** Ion 3D Tiles가 켜지면 상자 extrusion은 겹치지 않게 끈다. 토큰 없으면 폴백. */
   const showVectorBuildings =
     basemapMode === "terrain" && !ultraLite && !showOsmBuildings;
+  const terrainWanted = shouldEnableBasemapTerrain({
+    mode: basemapMode,
+    zoom: mapZoom,
+    ultraLite,
+  });
 
   /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
   const isLightBasemap = basemapMode === "terrain";
@@ -429,7 +447,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [],
   );
 
-  useImperativeHandle(ref, () => methods, [methods]);
+  useImperativeHandle(bindableImperativeRef(ref), () => methods, [methods]);
 
   useEffect(() => {
     return () => {
@@ -940,12 +958,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const handleMove = useCallback(
     (event: { viewState: { zoom: number; bearing?: number } }) => {
-      // 은은한 자전 jumpTo — 매 프레임 notify하면 isCameraMoving이 풀리지 않음
-      if (methods.controls().isAutoRotateFrame) {
-        mapZoomRef.current = event.viewState.zoom;
-        return;
-      }
-
       setMovingClass(true);
       mapZoomRef.current = event.viewState.zoom;
       const rawBearing = event.viewState.bearing ?? mapRef.current?.getMap()?.getBearing() ?? 0;
@@ -968,7 +980,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }, 420);
       notifyChange();
     },
-    [methods, notifyChange, publishZoom, setMovingClass],
+    [notifyChange, publishZoom, setMovingClass],
   );
 
   useEffect(() => {
@@ -1025,7 +1037,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapAtmosphere(m, basemapModeRef.current);
-      applyBasemapTerrain(m, basemapModeRef.current, { ultraLite: ultraLiteRef.current });
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
@@ -1152,9 +1164,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const applyVisuals = () => {
       applyBasemapGlobeProjection(m);
       applyBasemapAtmosphere(m, basemapModeRef.current);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
-      });
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
@@ -1194,7 +1204,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapAtmosphere(m, basemapMode);
-      applyBasemapTerrain(m, basemapMode, { ultraLite });
+      applyTerrainForMap(m, basemapMode, ultraLite);
       applyBasemapSatelliteImagery(m, basemapMode);
       applyBasemapPlaceLabelScale(m, basemapMode, { showCityLabels });
     };
@@ -1244,9 +1254,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       map.off("idle", tryTerrain);
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
-      });
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
     };
     // 80ms 지연 후 1차 시도, 그래도 movingRef가 걸려 있으면 idle을 기다리되
@@ -1258,9 +1266,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       map.off("idle", tryTerrain);
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
-      });
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
     }, 1500);
     map.once("idle", tryTerrain);
@@ -1270,7 +1276,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       window.clearTimeout(forceRetry);
       map.off("idle", tryTerrain);
     };
-  }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl]);
+  }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl, terrainWanted]);
 
   /** 스타일 로드 후 fog·globe 재적용 (URL 교체 시) */
   useEffect(() => {
@@ -1563,9 +1569,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
       applyBasemapAtmosphere(m, basemapModeRef.current);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
-      });
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
@@ -2036,13 +2040,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
 
-  /** ENTRY_GATE 와 동일 — 맵 마운트·configureGlobe 사이 카메라 점프 방지 */
-  const initialCamera = globeViewToMapLibre({
-    lat: ENTRY_GATE.bootLookAt.lat,
-    lng: ENTRY_GATE.bootLookAt.lng,
-    altitude: ENTRY_GATE.bootAltitude,
-    pitch: ENTRY_GATE.bootPitch,
-  });
+  /** entryOrbitCamera 와 동일 — 맵 마운트·configureGlobe 사이 카메라 점프 방지 */
+  const initialCamera = globeViewToMapLibre(entryOrbitCamera());
 
   return (
     <div

@@ -8,6 +8,7 @@ import {
   utcRankDate,
 } from "@/lib/dailyRanks";
 import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
+import { GTS, gtiPredictQuestion } from "@/lib/gti";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,19 +17,19 @@ const PROMPT_CDN = publicCacheHeaders(CDN_CACHE.dailyPrompt);
 
 async function syntheticPrompt(targetDate: string): Promise<DailyPrompt | null> {
   const payload = await loadDailyRanks({ date: utcRankDate(), limit: 5 });
-  // 메인 = GTI. 랭킹 행이 없으면 전장/초크 폴백.
+  // 메인 = GTS. 랭킹 행이 없으면 전장/초크 폴백.
   if (payload.worldTension) {
     const score = Math.round(payload.worldTension.score * 10) / 10;
+    const q = gtiPredictQuestion();
     return {
       targetDate,
       subjectKind: "world",
       subjectId: "global",
-      labelKo: "글로벌 긴장지수 (GTI)",
-      labelEn: "Global Tension Index (GTI)",
+      labelKo: `${GTS.fullKo} (${GTS.ticker})`,
+      labelEn: `${GTS.fullEn} (${GTS.ticker})`,
       baselineScore: score,
-      questionKo: "내일 이 시간, 글로벌 긴장지수(GTI)는 오를까 내릴까?",
-      questionEn:
-        "By this time tomorrow, will the Global Tension Index (GTI) go UP or DOWN?",
+      questionKo: q.ko,
+      questionEn: q.en,
       createdAt: new Date().toISOString(),
     };
   }
@@ -42,8 +43,8 @@ async function syntheticPrompt(targetDate: string): Promise<DailyPrompt | null> 
     labelKo: entry.labelKo,
     labelEn: entry.labelEn,
     baselineScore: score,
-    questionKo: `내일 이 시간, 「${entry.labelKo}」 긴장도 지수는 오를까 내릴까? (보너스)`,
-    questionEn: `By this time tomorrow, will the 「${entry.labelEn}」 tension index go UP or DOWN? (bonus)`,
+    questionKo: `내일 이 시간, 「${entry.labelKo}」 긴장도는 어제보다 올라갈까요, 내려갈까요? (보너스)`,
+    questionEn: `By this time tomorrow, will 「${entry.labelEn}」 tension be UP or DOWN vs today? (bonus)`,
     createdAt: new Date().toISOString(),
   };
 }

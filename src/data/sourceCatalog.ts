@@ -918,24 +918,23 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "sanctions-entities",
-    source: "(미연결) OFAC SDN + UN + EU + UK 예정",
+    source: "OFAC SDN + UN 안보리 제재대상 (vendor 번들 → 로컬 빌드)",
     url: "/api/layers/sanctions-entities",
-    cadence: "Daily (24h cache)",
-    attribution: "(출처 미연결 — 노출 차단됨)",
+    cadence: "Daily (24h cache) · vendor 파일 갱신 시 npm run sanctions:build 재실행",
+    attribution: "US Treasury OFAC / UN Security Council",
     notes:
-      "⚠️ 카탈로그는 '개인·법인·선박·항공기 공식 벌크 다운로드 + 라이브 폴백' 이라 적었지만, " +
-      "route.ts 의 loadSanctions() 는 라이브 fetch 없이 로컬 파일만 읽고 lists 배열을 " +
-      "하드코딩한다. 그리고 그 파일은 국가 단위 15건뿐이다 (실제 OFAC SDN 은 1만 건 규모의 " +
-      "개인·법인·선박 목록). " +
-      "진짜 데이터는 이미 리포에 있다: scripts/vendor/sigint-news-layers/sanctions-entities.json (14MB). " +
-      "→ scripts/build-sanctions-entities.js 로 컨버전 후 shipped 로 되돌릴 것.",
-    status: "blocked",
-    blockedReason:
-      "OFAC SDN 으로 표기했으나 실제로는 국가 단위 더미 15건 · 라이브 fetch 없음 " +
-      "(2026-07-31 감사 P0-3).",
-    ingest: "synthetic-demo",
+      "2026-09 재구축 완료. scripts/build-sanctions-entities.js 가 " +
+      "scripts/vendor/sigint-news-layers/sanctions-entities.json (14MB, 리포에 이미 있음) 을 " +
+      "파싱해 개인·법인·선박 19,709건 (OFAC 18,707 · UN 1,002) 을 산출한다. " +
+      "⚠️ vendor 파일이 약 11.18MB 지점에서 손상돼 있어 그 앞부분만 파싱한다 — " +
+      "원본을 다시 받으면 이 손상 처리는 제거 가능. " +
+      "⚠️ 좌표가 실제로 있는 건 268건(1.4%)뿐이다. 나머지를 국가 중심점에 찍어 지어내지 않고, " +
+      "두 갈래로 낸다: points(좌표 있는 것만) + rollup(관할권별 집계, 국가 음영용이지 핀이 아님). " +
+      "⚠️ EU·UK 명단은 이 vendor 파일에 없다 — lists 표기에서 뺐다. 필요하면 별도 수집 필요.",
+    status: "shipped",
+    ingest: "static-build",
     commercialUse: "allowed",
-    commercialNote: "OFAC·UN 공공 목록 (실데이터 연결 후 유효).",
+    commercialNote: "OFAC(미 정부 저작물)·UN 안보리 제재목록 — 공공 목록, 상업 이용 가능.",
   },
   {
     layerId: "refugee-camps",
@@ -1169,6 +1168,37 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "GDELT 는 공개이나 Telegram 채널 글은 운영자 소유.",
   },
 ];
+
+/** OFAC·UN 제재 명단 빌드 요약 — UI·양피지·레이어 패널 공통 */
+export const SANCTIONS_ENTITY_SUMMARY = {
+  total: 19_709,
+  ofac: 18_707,
+  un: 1_002,
+  withCoords: 268,
+} as const;
+
+export type SourceCatalogStats = {
+  total: number;
+  shipped: number;
+  planned: number;
+  blocked: number;
+};
+
+export function getSourceCatalogStats(): SourceCatalogStats {
+  let shipped = 0;
+  let planned = 0;
+  let blocked = 0;
+  for (const note of NEWS_LAYER_SOURCE_CATALOG) {
+    if (note.status === "shipped") shipped += 1;
+    else if (note.status === "planned") planned += 1;
+    else if (note.status === "blocked") blocked += 1;
+  }
+  return { total: NEWS_LAYER_SOURCE_CATALOG.length, shipped, planned, blocked };
+}
+
+export function blockedSourceNotes(): NewsLayerSourceNote[] {
+  return NEWS_LAYER_SOURCE_CATALOG.filter((note) => note.status === "blocked");
+}
 
 export function getSourceNote(layerId: string): NewsLayerSourceNote | undefined {
   return NEWS_LAYER_SOURCE_CATALOG.find((note) => note.layerId === layerId);

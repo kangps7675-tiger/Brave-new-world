@@ -34,7 +34,7 @@ describe("overlayBudget", () => {
   });
 
   it("긴급 배너는 예산·무시와 무관하게 항상 통과한다", () => {
-    for (const kind of ["airRaid", "adsbEmergency", "escalation"] as const) {
+    for (const kind of ["airRaid", "adsbEmergency", "escalation", "tickerSpike"] as const) {
       expect(isUrgentBanner(kind)).toBe(true);
     }
     // 제안형으로 예산을 모두 소진
@@ -43,9 +43,10 @@ describe("overlayBudget", () => {
     markOverlayShown("hotTheater");
     expect(canSpendOverlayBudget("ultraLite")).toBe(false);
 
-    // 그래도 공습은 뜬다
+    // 그래도 공습·선물 SPIKE는 뜬다
     expect(canSpendOverlayBudget("airRaid")).toBe(true);
     expect(canSpendOverlayBudget("adsbEmergency")).toBe(true);
+    expect(canSpendOverlayBudget("tickerSpike")).toBe(true);
   });
 
   it("긴급 배너는 닫아도 다시 뜬다 (다음 사건이 있으므로)", () => {

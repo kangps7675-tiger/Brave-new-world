@@ -48,10 +48,10 @@ export function GlobeMapCanvas({
       <div className="absolute inset-0 z-10">
         {!isPhoneUi ? (
           <PausedMapGlobeView
-            ref={globeRef}
             {...mapGlobeProps}
             basemapMode={basemapMode}
             ultraLite={ultraLite}
+            ref={globeRef}
           />
         ) : null}
         {loadError && (

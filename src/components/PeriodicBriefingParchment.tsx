@@ -55,7 +55,7 @@ export function PeriodicBriefingParchment({
   const isConflictLamp = /-conflict(?:$|-)/.test(briefing.key);
   const isEconomyLamp = /-economy(?:$|-)/.test(briefing.key);
   const isWeeklyRecap = isWeeklyRecapBriefingKey(briefing.key);
-  /** 모드 등불·월요일 회고는 항상 사진 데스크 — 라이브 카드가 아직 없어도 셸로 연다 */
+  /** 모드 등불·월요일 회고는 항상 사진 데스크 — 라이브 카드가 없어도 셸로 연다 */
   const isPhotoLamp =
     isWeeklyRecap ||
     isConflictLamp ||

@@ -53,18 +53,26 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAis || prefs.showShippingLanes).toBeTruthy();
   });
 
-  it("지정학 첫 화면은 Compact 전선만 — 기지·CRINK·텔레그램은 꺼둔다", () => {
+  it("지정학 첫 화면은 전선 + CRINK OSM·한일대만필호·동유럽·미군 기지·항로", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl).toBe(true);
     expect(prefs.showWarZones).toBe(true);
     expect(prefs.showNeptun).toBe(true);
     expect(prefs.showGdeltWar).toBe(true);
     expect(prefs.showNewfeedsIranAttacks).toBe(true);
-    expect(prefs.showMilitaryBases).toBe(false);
-    expect(prefs.showRokMilitaryBases).toBe(false);
-    expect(prefs.showEastAsiaAdiz).toBe(false);
+    expect(prefs.showMilitaryBases).toBe(true);
+    expect(prefs.showRokMilitaryBases).toBe(true);
+    expect(prefs.showJapanMilitaryBases).toBe(true);
+    expect(prefs.showTaiwanMilitaryBases).toBe(true);
+    expect(prefs.showPhilippinesMilitaryBases).toBe(true);
+    expect(prefs.showAustraliaMilitaryBases).toBe(true);
+    expect(prefs.showEasternNatoMilitaryBases).toBe(true);
+    expect(prefs.showShippingLanes).toBe(true);
+    expect(prefs.showCrinkInfraRail).toBe(true);
+    expect(prefs.showCrinkInfraRoad).toBe(true);
+    expect(prefs.showCrinkInfraAeroway).toBe(true);
     expect(prefs.showTelegramOsint).toBe(false);
-    expect(prefs.showCrinkInfraRail).toBe(false);
+    expect(prefs.showEastAsiaAdiz).toBe(false);
     expect(prefs.showAxisNetwork).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);
     expect(prefs.showUsDfcSupplyChain).toBe(false);

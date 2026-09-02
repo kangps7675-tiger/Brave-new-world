@@ -10,7 +10,7 @@ import type { NewsTheater } from "@/lib/news/types";
 import { newsTheaterFromNavId } from "@/lib/news/theaterMap";
 import type { TelegramAlertRegion } from "@/lib/telegramAlerts";
 
-export type TheaterSidebarTab = "news" | "telegram";
+export type TheaterSidebarTab = "insight" | "news" | "telegram";
 
 export type TheaterFocusConfig = {
   newsTheater: NewsTheater;

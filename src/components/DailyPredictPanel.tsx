@@ -177,7 +177,7 @@ export function DailyPredictPanel({
     <div className="min-w-0 overflow-hidden rounded-lg border border-amber-500/25 bg-slate-950/50 p-3">
       <div className="mb-2 flex min-w-0 flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-meta font-semibold uppercase tracking-[0.14em] text-amber-300/90">
-          {ko ? `${GTI.ticker} · 내일의 긴장도` : `${GTI.ticker} · Tomorrow’s tension`}
+          {ko ? `${GTI.ticker} · 감각 연습` : `${GTI.ticker} · Intuition read`}
         </h3>
         <p className="text-meta tabular-nums text-slate-400">{pctLabel}</p>
       </div>

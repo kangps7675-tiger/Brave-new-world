@@ -14,6 +14,8 @@ type MapAttributionBarProps = {
   basemapMode?: BasemapMode;
   /** 클릭 시 전체 자료출처·방법론 패널 열기 */
   onOpenSources: () => void;
+  /** 8개 책갈피 양피지 안내서 */
+  onOpenParchment?: () => void;
   /** 클릭 시 뉴스·OSINT 신뢰도 등급 패널 열기 — 메뉴 밖(지구본)에 상시 노출 */
   onOpenTrust?: () => void;
   className?: string;
@@ -38,6 +40,7 @@ export function MapAttributionBar({
   layerPrefs,
   basemapMode,
   onOpenSources,
+  onOpenParchment,
   onOpenTrust,
   className = "",
 }: MapAttributionBarProps) {
@@ -160,6 +163,20 @@ export function MapAttributionBar({
       >
         {en ? "Data sources ▸" : "데이터 출처 ▸"}
       </button>
+      {onOpenParchment ? (
+        <>
+          <span aria-hidden className="text-slate-600">
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={onOpenParchment}
+            className="shrink-0 font-medium text-amber-200/85 transition hover:text-amber-100"
+          >
+            {en ? "Source guide ▸" : "출처 안내서 ▸"}
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

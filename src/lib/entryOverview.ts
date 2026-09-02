@@ -8,6 +8,7 @@ import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
+import { entryBootAltitude } from "@/lib/globeFillScreen";
 import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
@@ -17,7 +18,7 @@ import {
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
  *
  * 순서(하드코딩):
- * 1. 로딩 — 전역 궤도 (altitude GLOBAL_BOOT_ALTITUDE)
+ * 1. 로딩 — 전역 궤도 (`entryOrbitCamera`: 구 전체가 화면 짧은 변을 채움)
  * 2. 환영 편지지 / 도메인 선택
  * 3. 전역 지구본 히어로 유지 → "핫 지역으로 갈까요?" 선택창 후에만 줌인
  */
@@ -32,24 +33,38 @@ export const ENTRY_GATE: {
   afterZoomOutHoldMs: number;
 } = {
   /**
-   * 로딩 셰이더·MapLibre initialViewState 와 동일 — 화면 가득 지구본.
-   * 중심은 적도, pitch로 북반구 비중 ↑ (남반구는 하단만). LOD: global.
+   * 폴백 고도. 실제 카메라는 `entryBootAltitude(size)` — 구 전체가 짧은 변을 채움.
    */
   bootAltitude: GLOBAL_BOOT_ALTITUDE,
   /**
-   * 적도 중심 — pitch로 북반구가 앞·위, 남반구는 하단만.
+   * 적도 중심 — pitch 0 이면 구 실루엣(남극 포함)이 한 화면에 들어온다.
    */
   bootLookAt: {
     lat: 0,
     lng: 25,
   },
-  /** 틸트로 북반구를 앞으로, 구 가장자리는 유지 */
-  bootPitch: 30,
+  /** 정면. 틸트하면 남반구가 잘려 "지구 전체"가 안 보인다. */
+  bootPitch: 0,
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
   zoomOutAltitude: GLOBAL_BOOT_ALTITUDE,
   zoomOutFlyMs: 1200,
   afterZoomOutHoldMs: 0,
 };
+
+/** 전역 궤도 — 구 전체가 뷰포트 짧은 변을 채움 (pitch 0). */
+export function entryOrbitCamera(size?: { width: number; height: number }): {
+  lat: number;
+  lng: number;
+  altitude: number;
+  pitch: number;
+} {
+  return {
+    lat: ENTRY_GATE.bootLookAt.lat,
+    lng: ENTRY_GATE.bootLookAt.lng,
+    altitude: entryBootAltitude(size),
+    pitch: ENTRY_GATE.bootPitch,
+  };
+}
 
 /* 삭제됨 (P2-5): DOMAIN_OVERVIEW_ALTITUDE / _LOOK_AT / _FLY_MS / _THEN_DETAIL_MS.
    ENTRY_GATE로 대체된 뒤 자기 파일 외 참조가 0건인 채 남아 있던 별칭이다.
@@ -68,7 +83,7 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 첫 화면 — Compact `전선` 칩. 기지·CRINK·GDELT는 전장 진입 시 */
+/** 지정학 첫 화면 — Compact `전선` + CRINK OSM·기지·해상 항로 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_CONFLICT_ON,
 };
@@ -81,8 +96,8 @@ const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
 /**
  * 도메인 게이트 직후 첫 화면용 레이어.
  *
- * 장면 칩 하나만 켠다. 기지·ADIZ·CRINK·텔레그램은 전장/허브 진입 때
- * conceptLayers가 붙인다. 클램프는 항상 마지막.
+ * 장면 칩 + CRINK OSM·한/일/대만/필/호/동유럽·미군 기지·해상 항로.
+ * 텔레그램·ADIZ는 전장 진입 때 conceptLayers가 붙인다. 클램프는 항상 마지막.
  */
 export function buildDomainOverviewPrefs(
   mode: ViewerMode,

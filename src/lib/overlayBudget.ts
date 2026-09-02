@@ -14,7 +14,7 @@ import type { OverlayBannerKind } from "@/lib/overlayQueue";
  *
  * 규칙:
  *
- * 1. **긴급형은 예산 없음.** 공습·ADS-B 비상·확전 신호는 언제나 통과한다.
+ * 1. **긴급형은 예산 없음.** 공습·ADS-B 비상·확전 신호·선물 SPIKE는 언제나 통과한다.
  *    이것들을 아끼려고 제안 배너를 도입한 게 아니다.
  * 2. **제안형은 세션당 3개.** 투어·푸시·Ultra-Lite 권유·훈련·해상·핫지역은
  *    합쳐서 3번까지만 노출된다. 초과분은 조용히 버린다.
@@ -30,6 +30,7 @@ const URGENT: ReadonlySet<OverlayBannerKind> = new Set<OverlayBannerKind>([
   "airRaid",
   "adsbEmergency",
   "escalation",
+  "tickerSpike",
 ]);
 
 /** 세션당 허용되는 제안형 배너 총량 */

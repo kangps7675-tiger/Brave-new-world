@@ -223,8 +223,8 @@ export function DailyBriefingChrome({
             </p>
             <p className="mt-1 text-caption text-amber-100/75">
               {ko
-                ? "GTI·위험 순위 카드로 한눈에 정리됩니다."
-                : "A quick GTI / risk ranking card."}
+                ? "GTS·위험 순위 카드로 한눈에 정리됩니다."
+                : "A quick GTS / risk ranking card."}
             </p>
             <div className="mt-2.5 flex gap-2">
               <button

@@ -1,10 +1,11 @@
 import type { LayerPrefs } from "@/lib/layerPrefs";
+import { CRINK_INFRA_PREF_PATCH } from "@/lib/crinkInfraCatalog";
 
 type BooleanLayerKey = {
   [K in keyof LayerPrefs]: LayerPrefs[K] extends boolean ? K : never;
 }[keyof LayerPrefs];
 
-/** Compact `전선` 칩과 동일 — 첫 지정학 화면.
+/** Compact `전선` + CRINK OSM·한/일/대만/필/호/동유럽·미군 기지·해상 항로 — 첫 지정학 화면.
  *  전쟁소식 빨간 점: 이란 NewFeeds + GDELT war(우크라 등). */
 export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showUkraineControl: true,
@@ -14,6 +15,15 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
   showUsCarriers: true,
   showNewfeedsIranAttacks: true,
   showGdeltWar: true,
+  showMilitaryBases: true,
+  showRokMilitaryBases: true,
+  showJapanMilitaryBases: true,
+  showTaiwanMilitaryBases: true,
+  showPhilippinesMilitaryBases: true,
+  showAustraliaMilitaryBases: true,
+  showEasternNatoMilitaryBases: true,
+  showShippingLanes: true,
+  ...CRINK_INFRA_PREF_PATCH,
 };
 
 /** Compact `항로` 칩과 동일 — 첫 지경학 화면.

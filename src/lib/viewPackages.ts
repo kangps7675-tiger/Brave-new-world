@@ -2,7 +2,7 @@ import type { IntelTheaterFilter } from "@/lib/news/theaterMap";
 import { flyTargetForTheater, type MapFlyTarget } from "@/lib/news/theaterMap";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { economyHubLabel } from "@/lib/autoFlyTarget";
-import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
+import { entryBootAltitude } from "@/lib/globeFillScreen";
 import {
   DEFAULT_LAYER_PREFS,
   loadLayerPrefs,
@@ -495,9 +495,9 @@ export function resolveIntroFlyTarget(input: {
   if (input.theater === "auto" || input.theater === "all") {
     return {
       kind: "coords",
-      lat: 18,
-      lng: 20,
-      altitude: GLOBAL_BOOT_ALTITUDE,
+      lat: 0,
+      lng: 25,
+      altitude: entryBootAltitude(),
     };
   }
 

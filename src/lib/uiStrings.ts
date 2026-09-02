@@ -68,8 +68,6 @@ const UI = {
   backToMap: { ko: "접기", en: "Collapse" },
   closeNewsDock: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
   closeNewsGlobeOnlyAria: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
-  globeSpinPause: { ko: "자전 정지", en: "Pause spin" },
-  globeSpinResume: { ko: "자전 재생", en: "Resume spin" },
   closeTelegramOsint: { ko: "텔레그램 OSINT 닫기", en: "Close Telegram OSINT" },
   closeTelegramOsintHint: {
     ko: "창을 닫으면 레이어 체크박스에서도 꺼집니다.",
@@ -107,6 +105,7 @@ const UI = {
   translationEn: { ko: "영문 표시", en: "English display" },
   tier3Toggle: { ko: "속보·관영", en: "Breaking · state media" },
   liveNews: { ko: "실시간 뉴스", en: "Live news" },
+  theaterInsight: { ko: "오늘의 인사이트", en: "Today's insight" },
   telegramOsint: { ko: "텔레그램 OSINT", en: "Telegram OSINT" },
   conflictZone: { ko: "충돌지역", en: "Conflict zone" },
   intercontinental: { ko: "대륙간 갈등과 협력", en: "Intercontinental conflict & cooperation" },
@@ -485,10 +484,10 @@ const UI = {
     ko: "에너지·물류·항로·시장 — 돈이 어디서 움직이는지",
     en: "Energy, logistics, sea lanes, markets — where money moves",
   },
-  welcomeLetterCta: { ko: "편지를 접고 신세계로", en: "Fold the letter — enter the New World" },
+  welcomeLetterCta: { ko: "편지를 접고 출처 고지로", en: "Fold — sources disclosure next" },
   welcomeBriefBody: {
-    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대.\n다음에서—지정학의 창인지, 지경학의 창인지—선택하십시오.",
-    en: "An observatory where war and profit share one screen. Next, choose Conflict & security or Economy & logistics.",
+    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대.\n다음 양피지에서 데이터 출처·한계를 반드시 읽은 뒤—지정학·지경학 창을 고르십시오.",
+    en: "An observatory where war and profit share one screen. Next you must read data sources and limits — then choose geopolitics or geoeconomics.",
   },
   welcomeBriefQuote: {
     ko: "\"보이는 모든 것은 지금 이곳에서 벌어지는 실제 상황이다.\"",
@@ -779,13 +778,19 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
-  worldTensionTitle: { ko: "긴장지수 · GTI", en: "Tension · GTI" },
+  worldTensionTitle: { ko: "긴장지수 · GTS", en: "Tension · GTS" },
   worldTensionDeltaUp: { ko: "어제보다 {n}점 올라감", en: "up {n} from yesterday" },
   worldTensionDeltaDown: { ko: "어제보다 {n}점 내려감", en: "down {n} from yesterday" },
   worldTensionHint: {
-    ko: "글로벌 긴장지수(GTI) — 전 세계 분쟁·군사 활동을 0~100으로 요약한 점수(GTS). 원유 티커(WTI)와 무관합니다.",
-    en: "Global Tension Index (GTI) — global conflict as a 0–100 score (GTS). Unrelated to WTI crude oil.",
+    ko: "GTS(글로벌 긴장 점수) — 전 세계 분쟁 지역이 지금 얼마나 시끄러운지 0~100으로 요약. IEP 테러 지수(GTI)와 다릅니다. 원유 WTI와 무관.",
+    en: "GTS (Global Tension Score) — how loud conflict zones are, 0–100. Not the IEP Global Terrorism Index (GTI). Unrelated to oil WTI.",
   },
+  sesHint: {
+    ko: "제재 회피 강도 — 섀도 플릿·원유·회랑 프록시로 제재 우회 압력을 0~100으로. OFAC 명단 전체·단속 예측이 아닙니다.",
+    en: "Sanctions evasion intensity — shadow fleet, crude, corridor proxies → 0–100. Not a full OFAC list or enforcement forecast.",
+  },
+  sesDeltaUp: { ko: "직전보다 {n}점 올라감", en: "up {n} from prior" },
+  sesDeltaDown: { ko: "직전보다 {n}점 내려감", en: "down {n} from prior" },
   westpacShipMovesNav: {
     ko: "서태평양 주간 함선 이동기",
     en: "Westpac Weekly Ship Moves",

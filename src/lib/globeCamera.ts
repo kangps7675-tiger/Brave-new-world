@@ -8,18 +8,20 @@ export const MIN_GLOBE_ALTITUDE = 0.14;
 export const EXTREME_ZOOM_ALTITUDE = 0.18;
 
 /**
- * 첫 창·로딩·게이트 직후 — 지구본이 화면을 거의 가득 채움.
- * 북반구 중심 + 남반구는 하단만 살짝 (MapLibre globe + pitch).
- * 11.5는 구가 너무 작아 보였고, 2.85는 대륙 클로즈업에 가깝다.
+ * 전역 궤도 폴백 (1920×1080 화면맞춤에 가깝다).
+ * 실제 부트 고도는 `entryBootAltitude(size)` — 뷰포트 짧은 변에 구 전체를 맞춘다.
  */
-export const GLOBAL_BOOT_ALTITUDE = 5.4;
+export const GLOBAL_BOOT_ALTITUDE = 6.05;
 
-/** GLOBAL_BOOT_ALTITUDE 에 대응하는 로딩 셰이더 ray origin z (1 + altitude). */
+/**
+ * 로딩 셰이더 ray origin z. UV를 min(w,h)로 정규화하므로 화면맞춤과 별개.
+ * 고도 폴백과 맞춰 로딩↔맵 전환 때 구 크기가 점프하지 않게 둔다.
+ */
 export const GLOBAL_BOOT_SHADER_CAMERA_Z = 1 + GLOBAL_BOOT_ALTITUDE;
 
 /**
- * 일반 모드 줌아웃 상한 — 부트보다 조금 더 멀리 (구 전체 실루엣).
- * (maxDistance = (altitude+1)*100 으로 변환)
+ * 줌아웃 상한. 12는 MapLibre minZoom≈0.85 가 되어 지구본 타일이 안 그려졌다.
+ * 7.2 ≈ zoom 2.53 — 구 실루엣은 유지되고 벡터 베이스맵이 산다.
  */
 export const GLOBAL_ORBIT_MAX_ALTITUDE = 7.2;
 

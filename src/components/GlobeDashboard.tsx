@@ -157,7 +157,6 @@ import {
 } from "@/lib/news/breakingFlash";
 import {
   buildLampMacroTable,
-  buildPeriodicBriefing,
   hasFoldedLamp,
   clearLampFolded,
   localizePeriodicBriefing,
@@ -339,11 +338,10 @@ import {
 import {
   buildDomainOverviewPrefs,
   ENTRY_GATE,
+  entryOrbitCamera,
 } from "@/lib/entryOverview";
-import {
-  GLOBAL_ORBIT_MAX_ALTITUDE,
-  globeDistanceForAltitude,
-} from "@/lib/globeCamera";
+import { globeDistanceForAltitude } from "@/lib/globeCamera";
+import { globeOrbitMaxAltitude } from "@/lib/globeFillScreen";
 import {
   applyBattlefieldPreset,
   battlefieldZoneFromExplorationId,
@@ -374,7 +372,7 @@ import {
 import { axisNetworkToPaths } from "@/lib/axisNetworkPaths";
 import { briTradePathsToTransport } from "@/lib/briTradePaths";
 import { getCorridorLod } from "@/lib/corridorLod";
-import { strategicCorridorPathsForLod } from "@/lib/strategicCorridorPaths";
+import { strategicCorridorPathsForLod, sanctionsEvasionCorridorPathsForLod } from "@/lib/strategicCorridorPaths";
 import {
   usDfcSupplyPathsToTransport,
 } from "@/lib/usDfcSupplyPaths";
@@ -498,6 +496,7 @@ import {
   activateRussiaStrikeIncidents,
   activateEuropeDroneIncidents,
 } from "@/lib/neonIncidentActivation";
+import { provenanceFromActivation } from "@/lib/eventProvenance";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import {
   HAPI_CASUALTY_SEED,
@@ -569,6 +568,7 @@ import {
   type BottomDockMode,
 } from "@/components/BottomDockModeToggle";
 import {
+  isUkraineNavId,
   navSelectionFromId,
   theaterFocusFromNav,
   type TheaterSidebarTab,
@@ -663,6 +663,7 @@ import {
   markWelcomeGateDone,
   markLangChoiceDone,
   readWelcomeGateDone,
+  readSourcesGateDone,
   readLangChoiceDone,
 } from "@/components/globe/formatters";
 import {
@@ -700,7 +701,13 @@ export function GlobeDashboard({
   const prevViewerModeRef = useRef<ViewerMode | null>(null);
   const packageTheaterFocusPlayedRef = useRef(false);
   const packageEconFocusPlayedRef = useRef(false);
-  const [size, setSize] = useState<GlobeSize>({ width: 960, height: 720 });
+  const [size, setSize] = useState<GlobeSize>(() => {
+    if (typeof window === "undefined") return { width: 1280, height: 720 };
+    return {
+      width: Math.max(320, window.innerWidth),
+      height: Math.max(420, window.innerHeight),
+    };
+  });
   const [query, setQuery] = useState("");
   const [data, setData] = useState<AppData>(emptyData);
   const [showLeftPanel, setShowLeftPanel] = useState(false);
@@ -846,15 +853,14 @@ export function GlobeDashboard({
   const [tourActive, setTourActive] = useState(false);
   const domainThenDetailTimerRef = useRef<number | null>(null);
 
-  /** 모바일에서는 "사전 유저 설명" 양피지를 건너뛴다 — 언어 확정 후에만 도메인으로 */
+  /** 모바일에서는 환영 양피지를 건너뛰고 출처 고지로 — 언어 확정 후에만 */
   useEffect(() => {
     if (entryGate === "welcome" && isCompactUi) {
       if (!readLangChoiceDone()) {
         setEntryGate(null);
         return;
       }
-      markWelcomeGateDone();
-      setEntryGate("domain");
+      setEntryGate("sources");
     }
   }, [entryGate, isCompactUi]);
 
@@ -938,6 +944,7 @@ export function GlobeDashboard({
   const [askLayersOpen, setAskLayersOpen] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [showSourcesPanel, setShowSourcesPanel] = useState(false);
+  const [showDataSourceParchment, setShowDataSourceParchment] = useState(false);
   const [showTrustPanel, setShowTrustPanel] = useState(false);
   /** 모바일 전용 — 지구본을 가리지 않는 속보+반응 바텀시트 (지구본과 동시에 볼 수 있음) */
   const [showMobileAlertFeed, setShowMobileAlertFeed] = useState(false);
@@ -965,9 +972,6 @@ export function GlobeDashboard({
     null,
   );
   const [globeReady, setGlobeReady] = useState(false);
-  /** 은은한 지구 자전 — 기본 ON, 정지 버튼으로 끔 */
-  const [globeSpinEnabled, setGlobeSpinEnabled] = useState(true);
-  const globeSpinEnabledRef = useRef(true);
   const [showIntroHint, setShowIntroHint] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   /** 양피지 나오기 전 — 반투명 로딩으로 “곧 뜬다” 암시 */
@@ -1601,6 +1605,8 @@ export function GlobeDashboard({
     showBriTradeConnectivity,
     showStrategicCorridors,
     showAlliedLogisticsCorridors,
+    showSanctionsEvasionCorridors,
+    showSesChip,
     showUsDfcSupplyChain,
     labelLanguage,
   } = layerPrefs;
@@ -1659,12 +1665,10 @@ export function GlobeDashboard({
       return;
     }
     if (historyStoryLockedRef.current) return;
-    const ukraineSel = navSelectionFromId("ukraine");
-    if (ukraineSel) {
-      enterTheaterFocusRef.current?.(ukraineSel);
-      return;
-    }
-    // 전선만 — NEPTUN/타격 묶음과 분리
+    // 전선 폴리곤만 — 전장 내비·VIINA Intel 탭과 분리 (NEPTUN 토글과 동일 패턴)
+    setUkraineFrontLegendEngaged(true);
+    ukraineZoomPendingRef.current = true;
+    immediateUntilRef.current = Date.now() + 1800;
     togglePref("showUkraineControl", true);
   };
   const showAnyDisputeOverlay = anyDisputeOverlay({ showWarZones, showDiplomaticTension });
@@ -1823,6 +1827,9 @@ export function GlobeDashboard({
   const setShowStrategicCorridors = (v: boolean) => togglePref("showStrategicCorridors", v);
   const setShowAlliedLogisticsCorridors = (v: boolean) =>
     togglePref("showAlliedLogisticsCorridors", v);
+  const setShowSanctionsEvasionCorridors = (v: boolean) =>
+    togglePref("showSanctionsEvasionCorridors", v);
+  const setShowSesChip = (v: boolean) => togglePref("showSesChip", v);
   const setShowUsDfcSupplyChain = (v: boolean) => togglePref("showUsDfcSupplyChain", v);
 
   const showGdeltLayers =
@@ -1847,10 +1854,13 @@ export function GlobeDashboard({
       togglePref("labelLanguage", lang);
       markLangChoiceDone();
       setLangChoiceDone(true);
-      // 언어 확정 후에만 지정학·지경학 도메인 게이트
+      // 언어 확정 후 입장 게이트 — caution → welcome → sources → domain
       if (!readWelcomeGateDone()) {
-        markWelcomeGateDone();
-        setEntryGate("domain");
+        if (!readSourcesGateDone()) {
+          setEntryGate("caution");
+        } else {
+          setEntryGate("domain");
+        }
       }
     },
     [togglePref],
@@ -1878,7 +1888,7 @@ export function GlobeDashboard({
   const [econInsightCompact, setEconInsightCompact] = useState(false);
   const [econNewsPanelReveal, setEconNewsPanelReveal] = useState(false);
   const econInsightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [theaterSidebarTab, setTheaterSidebarTab] = useState<TheaterSidebarTab>("news");
+  const [theaterSidebarTab, setTheaterSidebarTab] = useState<TheaterSidebarTab>("insight");
   const [regimeSelectedEpisodeId, setRegimeSelectedEpisodeId] = useState<string | null>(null);
   const [disputeHotspotSelectedId, setDisputeHotspotSelectedId] = useState<string | null>(null);
   const [disputeEpisodeSelectedId, setDisputeEpisodeSelectedId] = useState<string | null>(null);
@@ -1947,8 +1957,6 @@ export function GlobeDashboard({
     size,
     globeReady,
     setGlobeReady,
-    globeSpinEnabled,
-    globeSpinEnabledRef,
     historyImmersionRef,
     historyImmersionActive,
     historyEpisodeActive,
@@ -2059,12 +2067,14 @@ export function GlobeDashboard({
     frictionCoachListAckRef.current = false;
     const controls = globeRef.current?.controls();
     if (controls) {
-      controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
+      controls.maxDistance = globeDistanceForAltitude(
+        globeOrbitMaxAltitude(size.width, size.height),
+      );
       controls.enableZoom = true;
       controls.enablePan = true;
       controls.enableRotate = true;
     }
-  }, [clearFrictionEpisodeTimer, clearHubBriefTimer, clearTerritorialSequence]);
+  }, [clearFrictionEpisodeTimer, clearHubBriefTimer, clearTerritorialSequence, size.height, size.width]);
 
   const handleFrictionCoachStepChange = useCallback((next: FrictionCoachStep | null) => {
     setFrictionCoachStep((prev) => {
@@ -2641,13 +2651,30 @@ export function GlobeDashboard({
     [ukraineControl, ukraineControlOverview, layerViewState, layerAltitude, globeLod.tier],
   );
 
+  /** Intel VIINA 탭 — 전선 레이어 ON과 분리. 우크라 전장 내비 또는 frontline-live 패키지에서만 */
+  const showViinaIntel = useMemo(() => {
+    if (isEconomyViewer || !viinaMeta?.available) return false;
+    if (viewUi.defaultIntelTab === "viina") return true;
+    return isUkraineNavId(regionNavSelection?.id ?? "");
+  }, [
+    isEconomyViewer,
+    regionNavSelection?.id,
+    viinaMeta?.available,
+    viewUi.defaultIntelTab,
+  ]);
+
   const viinaFrontEvents = useMemo(() => {
-    if (!showUkraineControl) return [];
+    if (!showViinaIntel || !showUkraineControl) return [];
     return buildViinaFrontEvents([...viinaDisplay.contestedZones, ...viinaDisplay.ruZones]).slice(
       0,
       200,
     );
-  }, [showUkraineControl, viinaDisplay.contestedZones, viinaDisplay.ruZones]);
+  }, [
+    showViinaIntel,
+    showUkraineControl,
+    viinaDisplay.contestedZones,
+    viinaDisplay.ruZones,
+  ]);
 
   /** NEPTUN — useNeptunGlobeLayer (스트림·뷰포트·궤적·마커) */
   const {
@@ -3275,6 +3302,7 @@ export function GlobeDashboard({
   const axisNetworkPaths = useMemo<TransportPath[]>(() => {
     if (!showAxisNetwork) return [];
     const hub = (activeHubId ?? "all") as AxisHubId | "all";
+    const axisViewerMode = isEconomyViewer ? "economy" : "conflict";
     if (
       SIPRI_ARMS_LENS_ENABLED &&
       hubFocusMode === "arms" &&
@@ -3286,16 +3314,17 @@ export function GlobeDashboard({
     }
     if (hubFocusMode === "arms" && !SIPRI_ARMS_LENS_ENABLED) {
       // SIPRI 렌즈 OFF — 정적 축 관계망만
-      return axisNetworkToPaths(hub, labelLanguage);
+      return axisNetworkToPaths(hub, labelLanguage, axisViewerMode);
     }
     if (hubFocusMode === "regime") return [];
     // 허브 미선택(all)이어도 전체 축 스포크 표시 — ON인데 빈 화면 방지
-    return axisNetworkToPaths(hub, labelLanguage);
+    return axisNetworkToPaths(hub, labelLanguage, axisViewerMode);
   }, [
     showAxisNetwork,
     activeHubId,
     hubFocusMode,
     axisArmsPayload,
+    isEconomyViewer,
     labelLanguage,
   ]);
 
@@ -3336,6 +3365,21 @@ export function GlobeDashboard({
     );
   }, [
     showAlliedLogisticsCorridors,
+    corridorLod,
+    layerViewState.lat,
+    layerViewState.lng,
+  ]);
+
+  /** 제재 회피 회랑 — SES 지도 근거 (지정학 전용) */
+  const sanctionsEvasionCorridorPaths = useMemo<TransportPath[]>(() => {
+    if (isEconomyViewer || !showSanctionsEvasionCorridors) return [];
+    return sanctionsEvasionCorridorPathsForLod(corridorLod, {
+      lat: layerViewState.lat,
+      lng: layerViewState.lng,
+    });
+  }, [
+    isEconomyViewer,
+    showSanctionsEvasionCorridors,
     corridorLod,
     layerViewState.lat,
     layerViewState.lng,
@@ -3722,6 +3766,7 @@ export function GlobeDashboard({
       ...briTradePaths,
       ...strategicCorridorPaths,
       ...alliedLogisticsCorridorPaths,
+      ...sanctionsEvasionCorridorPaths,
       ...usDfcSupplyPaths,
       ...crinkInfraPaths,
       ...visibleShipping,
@@ -3743,6 +3788,7 @@ export function GlobeDashboard({
       briTradePaths,
       strategicCorridorPaths,
       alliedLogisticsCorridorPaths,
+      sanctionsEvasionCorridorPaths,
       usDfcSupplyPaths,
       crinkInfraPaths,
       disputeZonePaths,
@@ -4103,7 +4149,16 @@ export function GlobeDashboard({
     if (enabled.size === 0) return [];
     const staticItems = activateChinaTheaterIncidents(enabled, scoredEvents);
     const crossStraitItems = showChinaTaiwanIncidents
-      ? crossStraitSignal?.escalationIncidents ?? []
+      ? (crossStraitSignal?.escalationIncidents ?? []).map((item) => ({
+          ...item,
+          provenance: provenanceFromActivation({
+            id: item.id,
+            hadSeedMatch: Boolean(item.sourceUrl),
+            seedSourceUrl: item.sourceUrl ?? null,
+            gdeltSourceUrl: null,
+          }),
+          gdeltSourceUrl: null,
+        }))
       : [];
     return [...staticItems, ...crossStraitItems].map((item) => ({
         ...item,
@@ -4529,7 +4584,8 @@ export function GlobeDashboard({
       !showBriTradeConnectivity &&
       !showUsDfcSupplyChain &&
       !showStrategicCorridors &&
-      !showAlliedLogisticsCorridors
+      !showAlliedLogisticsCorridors &&
+      !showSanctionsEvasionCorridors
     )
       return;
     setGlobePaths([...rawGlobePaths]);
@@ -4538,6 +4594,7 @@ export function GlobeDashboard({
     showUsDfcSupplyChain,
     showStrategicCorridors,
     showAlliedLogisticsCorridors,
+    showSanctionsEvasionCorridors,
     rawGlobePaths,
   ]);
 
@@ -5520,6 +5577,11 @@ export function GlobeDashboard({
     showAlliedLogisticsCorridors,
     alliedLogisticsCorridorPaths,
     setShowAlliedLogisticsCorridors,
+    showSanctionsEvasionCorridors,
+    sanctionsEvasionCorridorPaths,
+    setShowSanctionsEvasionCorridors,
+    showSesChip,
+    setShowSesChip,
     showShippingLanes,
     visibleShipping,
     setShowShippingLanes,
@@ -6145,7 +6207,6 @@ export function GlobeDashboard({
     enterTheaterFocus,
     enterEconomyRegionFocus,
     flyToTheaterDetail,
-    enterTheaterFocusRef,
   } = useTheaterNavigation({
     flyTo,
     flyToBounds,
@@ -6297,23 +6358,24 @@ export function GlobeDashboard({
         autoEnterTheaterNavId: null,
         autoOpenIntelSheet: false,
       }));
+      const orbit = entryOrbitCamera(size);
       layerCenterRef.current = {
-        lat: ENTRY_GATE.bootLookAt.lat,
-        lng: ENTRY_GATE.bootLookAt.lng,
+        lat: orbit.lat,
+        lng: orbit.lng,
       };
-      layerAltitudeRef.current = ENTRY_GATE.bootAltitude;
-      layerLodTierRef.current = getGlobeLod(ENTRY_GATE.bootAltitude).tier;
+      layerAltitudeRef.current = orbit.altitude;
+      layerLodTierRef.current = getGlobeLod(orbit.altitude).tier;
       setFilterCenter({
-        lat: ENTRY_GATE.bootLookAt.lat,
-        lng: ENTRY_GATE.bootLookAt.lng,
+        lat: orbit.lat,
+        lng: orbit.lng,
       });
-      setLayerAltitude(ENTRY_GATE.bootAltitude);
+      setLayerAltitude(orbit.altitude);
       flyTo(
-        ENTRY_GATE.bootLookAt.lat,
-        ENTRY_GATE.bootLookAt.lng,
-        ENTRY_GATE.bootAltitude,
+        orbit.lat,
+        orbit.lng,
+        orbit.altitude,
         ENTRY_GATE.zoomOutFlyMs,
-        { pitch: ENTRY_GATE.bootPitch },
+        { pitch: orbit.pitch },
       );
     }
     window.setTimeout(() => {
@@ -6362,12 +6424,13 @@ export function GlobeDashboard({
 
     const startTimer = window.setTimeout(() => {
       setShowIntroHint(true);
+      const orbit = entryOrbitCamera(size);
       flyTo(
-        ENTRY_GATE.bootLookAt.lat,
-        ENTRY_GATE.bootLookAt.lng,
-        ENTRY_GATE.bootAltitude,
+        orbit.lat,
+        orbit.lng,
+        orbit.altitude,
         INTRO_CAMERA_DURATION_MS,
-        { pitch: ENTRY_GATE.bootPitch },
+        { pitch: orbit.pitch },
       );
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
     }, INTRO_CAMERA_DELAY_MS);
@@ -6400,9 +6463,11 @@ export function GlobeDashboard({
     if (hasPendingScene()) return; // 딥링크 진입은 게이트 생략
     // 한글/영문 미확정이면 LanguageGate만 — 지정학·지경학 창보다 먼저
     if (!readLangChoiceDone()) return;
+    if (!readSourcesGateDone()) {
+      setEntryGate(readWelcomeGateDone() ? "sources" : "caution");
+      return;
+    }
     if (readWelcomeGateDone()) return;
-    // P0-2: 주의/환영 풀스크린 강등 — 도메인 선택만. 편지는 DomainGate 링크로.
-    markWelcomeGateDone();
     setEntryGate("domain");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryGate, globeReady, isLoading, loadError, showModePicker, langChoiceDone]);
@@ -6449,11 +6514,7 @@ export function GlobeDashboard({
     applyLayerPrefs(overviewPrefs);
 
     // 첫 화면은 전역 궤도 유지 — 핫 지역 줌인은 선택창 수락 후에만
-    const entryLook = {
-      lat: ENTRY_GATE.bootLookAt.lat,
-      lng: ENTRY_GATE.bootLookAt.lng,
-      altitude: ENTRY_GATE.bootAltitude,
-    };
+    const entryLook = entryOrbitCamera(size);
 
     layerCenterRef.current = {
       lat: entryLook.lat,
@@ -6471,7 +6532,7 @@ export function GlobeDashboard({
       entryLook.lng,
       entryLook.altitude,
       ENTRY_GATE.zoomOutFlyMs,
-      { pitch: ENTRY_GATE.bootPitch },
+      { pitch: entryLook.pitch },
     );
 
     // 도메인 직후는 광역 히어로만 — 전장/허브 자동 fly·양피지 금지
@@ -6498,6 +6559,7 @@ export function GlobeDashboard({
     setModePickerLockMode(false);
     setModePickerInitialMode(null);
     setEntryGate(null);
+    markWelcomeGateDone();
     // 첫 진입 연쇄 축소: 모드 인트로·퀵스타트는 자동으로 띄우지 않음
     markViewerIntroDone(mode);
     markQuickStartDone(mode);
@@ -6605,7 +6667,11 @@ export function GlobeDashboard({
         if (!cancelled) {
           const startCollapsed = hasFoldedWeeklyRecap(storageKey);
           setWeeklyRecapCollapsed(startCollapsed);
-          setWeeklyRecap(content);
+          if (featuredNews.length > 0) {
+            setWeeklyRecap(content);
+          } else {
+            setWeeklyRecap(null);
+          }
           setWeeklyRecapSettled(true);
         }
       })();
@@ -6639,7 +6705,7 @@ export function GlobeDashboard({
   /**
    * 등불 — 지정학·지경학 각각 6시간 슬롯당 1회 자동 점화(대표 뉴스·큰 사진).
    * 닫으면 우측 「등불」탭으로 접힘. 다음 슬롯이 되면 다시 자동 펼침.
-   * SLA: 게이트 해제 후 미시청이면 하드 데드라인 안에 양피지 점화.
+   * SLA: 게이트 해제 후 /api/lamp-news 응답까지 대기 — 카드 없으면 등불 생략.
    * /api/lamp-news — 양 패키지 + og:image 추가 보강 후 기사에 붙은 사진이 있는 핫뉴스만.
    * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
@@ -6676,7 +6742,6 @@ export function GlobeDashboard({
     const lampWasFolded = forceModeSwitchLamp ? false : hasFoldedLamp(lampKey);
 
     /** 등불 og 보강 + 선정 — 서버에서 최대 ~24s */
-    const LAMP_HARD_DEADLINE_MS = 20_000;
     const LAMP_NEWS_BUDGET_MS = 24_000;
     const MACRO_ENRICH_MS = 2_500;
 
@@ -6692,64 +6757,28 @@ export function GlobeDashboard({
       }
     };
 
-    const curatedFallback = (): PeriodicBriefing | null => {
-      const base = buildPeriodicBriefing(viewerMode, labelLanguage);
-      return base ? { ...base, key: lampKey, tier, contentSlot: slot } : null;
-    };
-
     let cancelled = false;
-    let shown = false;
-    let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const ignite = (content: PeriodicBriefing | null, opts?: { upgrade?: boolean }) => {
-      if (cancelled || !content) return;
-      if (shown && !opts?.upgrade) return;
-      if (!shown) {
-        shown = true;
-        if (forceModeSwitchLamp) {
-          lampModeSwitchPendingRef.current = false;
-        }
-        if (deadlineTimer != null) {
-          clearTimeout(deadlineTimer);
-          deadlineTimer = null;
-        }
-        if (lampWasFolded) {
-          setFoldedPeriodicBriefing(content);
-        } else {
-          setPeriodicBriefing(content);
-        }
-        setDailyLampSettled(true);
-        return;
+    const settleWithoutLamp = () => {
+      if (cancelled) return;
+      if (forceModeSwitchLamp) {
+        lampModeSwitchPendingRef.current = false;
       }
-      // 데드라인 셸/시드 데스크를 라이브 사진 뉴스로 교체
-      const upgradeBriefing = (prev: PeriodicBriefing | null) => {
-        if (!prev || prev.key !== lampKey) return prev;
-        const prevNews = prev.featuredNews ?? [];
-        const nextNews = content.featuredNews ?? [];
-        const prevN = prevNews.length;
-        const nextN = nextNews.length;
-        if (nextN === 0) return prev;
-        const prevLive = prevNews.filter((n) => !n.id.startsWith("seed-")).length;
-        const nextLive = nextNews.filter((n) => !n.id.startsWith("seed-")).length;
-        if (nextLive > prevLive) return content;
-        if (nextN > prevN) return content;
-        if (prevN === 0 && nextN > 0) return content;
-        const prevPhotos = prevNews.filter((n) => n.imageUrl).length;
-        const nextPhotos = nextNews.filter((n) => n.imageUrl).length;
-        if (nextPhotos > prevPhotos) return content;
-        return prev;
-      };
-      if (lampWasFolded) {
-        setFoldedPeriodicBriefing(upgradeBriefing);
-      } else {
-        setPeriodicBriefing(upgradeBriefing);
-      }
+      setDailyLampSettled(true);
     };
 
-    // 하드 데드라인 — 지정학·지경학 모두 사진 데스크 셸(과거사건 양피지 금지)
-    deadlineTimer = setTimeout(() => {
-      ignite(curatedFallback());
-    }, LAMP_HARD_DEADLINE_MS);
+    const ignite = (content: PeriodicBriefing) => {
+      if (cancelled) return;
+      if (forceModeSwitchLamp) {
+        lampModeSwitchPendingRef.current = false;
+      }
+      if (lampWasFolded) {
+        setFoldedPeriodicBriefing(content);
+      } else {
+        setPeriodicBriefing(content);
+      }
+      setDailyLampSettled(true);
+    };
 
       void (async () => {
             const langQs = labelLanguage === "en" ? "en" : "ko";
@@ -6809,78 +6838,61 @@ export function GlobeDashboard({
 
       if (cancelled) return;
 
-      if (featuredNews.length > 0) {
-        ignite(
-          {
-            tier,
-            key: lampKey,
-            contentSlot: slot,
-            title: `${kicker}\n${focusTitle}`,
-            paragraphs: [],
-            macroTable,
-            featuredNews,
-          },
-          { upgrade: true },
-        );
-      } else {
-        // 기사 첨부 사진 풀이 비었을 때만 빈 데스크 셸
-        ignite(curatedFallback(), { upgrade: true });
+      if (isEconomy) {
+        try {
+          const dayKeyForApi = calendarDayKey.startsWith("daily-")
+            ? calendarDayKey
+            : slot.replace(/-s[0-3]$/, "");
+          const lampRes = await fetchWithTimeout(
+            `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayKeyForApi)}&lang=${langQs}`,
+            MACRO_ENRICH_MS,
+          );
+          if (lampRes?.ok && !cancelled) {
+            const lamp = (await lampRes.json()) as {
+              disabled?: boolean;
+              focusTitle?: string;
+              macros?: Array<{
+                name?: string | null;
+                id?: string | null;
+                inflationPct?: number | null;
+                gdpGrowthPct?: number | null;
+                unemploymentPct?: number | null;
+                gdpPerCapitaUsd?: number | null;
+                gdpUsd?: number | null;
+              }>;
+            };
+            if (!lamp.disabled) {
+              if (lamp.focusTitle) focusTitle = lamp.focusTitle;
+              if (lamp.macros && lamp.macros.length > 0) {
+                macroTable = buildLampMacroTable(lamp.macros, labelLanguage);
+              }
+            }
+          }
+        } catch {
+          /* ignore macro fetch */
+        }
       }
 
-      if (cancelled || !isEconomy) return;
+      if (cancelled) return;
 
-      // 점화 후 보강만 — 실패해도 등불은 이미 떠 있음
-      try {
-        const dayKeyForApi = calendarDayKey.startsWith("daily-")
-          ? calendarDayKey
-          : slot.replace(/-s[0-3]$/, "");
-        const lampRes = await fetchWithTimeout(
-          `/api/world-stats/market-lamp?dayKey=${encodeURIComponent(dayKeyForApi)}&lang=${langQs}`,
-          MACRO_ENRICH_MS,
-        );
-        if (!lampRes?.ok || cancelled) return;
-        const lamp = (await lampRes.json()) as {
-          disabled?: boolean;
-          focusTitle?: string;
-          macros?: Array<{
-            name?: string | null;
-            id?: string | null;
-            inflationPct?: number | null;
-            gdpGrowthPct?: number | null;
-            unemploymentPct?: number | null;
-            gdpPerCapitaUsd?: number | null;
-            gdpUsd?: number | null;
-          }>;
-        };
-        if (lamp.disabled) return;
-        if (lamp.focusTitle) focusTitle = lamp.focusTitle;
-        if (lamp.macros && lamp.macros.length > 0) {
-          macroTable = buildLampMacroTable(lamp.macros, labelLanguage);
-        }
-        if (macroTable.length === 0) return;
-        const enrichBriefing = (prev: PeriodicBriefing | null) => {
-          if (!prev || prev.key !== lampKey) return prev;
-          return {
-            ...prev,
-            title: `${kicker}\n${focusTitle}`,
-            macroTable,
-            paragraphs: [],
-            featuredNews: ensureLampFeaturedNews(prev.featuredNews ?? []),
-          };
-        };
-        if (lampWasFolded) {
-          setFoldedPeriodicBriefing(enrichBriefing);
-        } else {
-          setPeriodicBriefing(enrichBriefing);
-        }
-            } catch {
-        /* ignore enrich */
-        }
+      const hasLampContent = featuredNews.length > 0 || macroTable.length > 0;
+      if (hasLampContent) {
+        ignite({
+          tier,
+          key: lampKey,
+          contentSlot: slot,
+          title: `${kicker}\n${focusTitle}`,
+          paragraphs: [],
+          macroTable,
+          featuredNews,
+        });
+      } else {
+        settleWithoutLamp();
+      }
       })();
 
     return () => {
       cancelled = true;
-      if (deadlineTimer != null) clearTimeout(deadlineTimer);
     };
   }, [
     calendarDayKey,
@@ -8092,10 +8104,7 @@ export function GlobeDashboard({
         wtiSnapshot={wtiSnapshot}
         wtiFetchedAt={wtiFetchedAt}
         showGscpiGauge={showGscpiGauge}
-        globeSpinEnabled={globeSpinEnabled}
-        setGlobeSpinEnabled={setGlobeSpinEnabled}
-        telegramMiniPanelVisible={telegramMiniPanelVisible}
-        showDailyRankPanel={showDailyRankPanel}
+        showSesChip={showSesChip && !isEconomyViewer}
         handleNavNavigate={handleNavNavigate}
         liveUpdatedAt={liveUpdatedAt}
         dataGeneratedAt={data.generatedAt}
@@ -8369,6 +8378,7 @@ export function GlobeDashboard({
             layerPrefs={layerPrefs}
             basemapMode={basemapMode}
             onOpenSources={() => setShowSourcesPanel(true)}
+            onOpenParchment={() => setShowDataSourceParchment(true)}
             onOpenTrust={() => setShowTrustPanel(true)}
           />
         ) : null}
@@ -8462,11 +8472,7 @@ export function GlobeDashboard({
                 viewerMode={viewerMode}
                 pauseUpdates={isCameraMoving}
                 fabOnly={fabOnly}
-                newsInsightOpen={selected?.kind === "news-insight"}
                 onOpenSheet={(theater) => openIntelSheet({ theater: theater ?? "all" })}
-                onOpenMarketsSheet={() =>
-                  openIntelSheet({ theater: "all", economyTab: "markets" })
-                }
                 onFlyToTheater={(theater) => {
                   const target = flyTargetForTheater(theater);
                   if (target) handleIntelFlyTo(target);
@@ -8526,7 +8532,7 @@ export function GlobeDashboard({
           telegramChannelCount={TELEGRAM_CHANNEL_COUNT}
           onCloseTelegramLayer={closeTelegramOsintLayer}
           onTelegramFlyToPlace={isEconomyViewer ? undefined : handleTelegramFlyToPlace}
-          showViina={!isEconomyViewer && showUkraineControl}
+          showViina={showViinaIntel}
           viinaEvents={viinaFrontEvents}
           viinaControlDate={ukraineControlDate}
           viinaRuCellCount={ukraineRuCellCount}
@@ -8602,6 +8608,8 @@ export function GlobeDashboard({
         askLayersOpen={askLayersOpen}
         showTrustPanel={showTrustPanel}
         showSourcesPanel={showSourcesPanel}
+        showDataSourceParchment={showDataSourceParchment}
+        onSetShowDataSourceParchment={setShowDataSourceParchment}
         showMobileAlertFeed={showMobileAlertFeed}
         playOverlay={playOverlay}
         sentinelActive={sentinelActive}

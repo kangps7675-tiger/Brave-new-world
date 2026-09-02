@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
+import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
 
 /* ══ 지연 로드 오버레이 (P-perf) ═══════════════════════════════════════
@@ -26,58 +27,85 @@ import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
  * **부모로 끌어올려** 삼항으로 감쌌다. 이 구조를 되돌리지 말 것.
  */
 const FeatureGuidePanel = dynamic(
-  () => import("@/components/FeatureGuidePanel").then((m) => m.FeatureGuidePanel),
+  importWithChunkRetry(() =>
+    import("@/components/FeatureGuidePanel").then((m) => m.FeatureGuidePanel),
+  ),
   { ssr: false },
 );
 const MethodologySourcesPanel = dynamic(
-  () =>
+  importWithChunkRetry(() =>
     import("@/components/MethodologySourcesPanel").then(
       (m) => m.MethodologySourcesPanel,
     ),
+  ),
+  { ssr: false },
+);
+const DataSourceParchmentOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/DataSourceParchmentOverlay").then(
+      (m) => m.DataSourceParchmentOverlay,
+    ),
+  ),
   { ssr: false },
 );
 const AskLayersOverlay = dynamic(
-  () => import("@/components/AskLayersOverlay").then((m) => m.AskLayersOverlay),
+  importWithChunkRetry(() =>
+    import("@/components/AskLayersOverlay").then((m) => m.AskLayersOverlay),
+  ),
   { ssr: false },
 );
 const ViewerIntroOverlay = dynamic(
-  () => import("@/components/ViewerIntroOverlay").then((m) => m.ViewerIntroOverlay),
+  importWithChunkRetry(() =>
+    import("@/components/ViewerIntroOverlay").then((m) => m.ViewerIntroOverlay),
+  ),
   { ssr: false },
 );
 const TomorrowTensionModal = dynamic(
-  () => import("@/components/TomorrowTensionModal").then((m) => m.TomorrowTensionModal),
+  importWithChunkRetry(() =>
+    import("@/components/TomorrowTensionModal").then((m) => m.TomorrowTensionModal),
+  ),
   { ssr: false },
 );
 const ModePickerOverlay = dynamic(
-  () => import("@/components/ModePickerOverlay").then((m) => m.ModePickerOverlay),
+  importWithChunkRetry(() =>
+    import("@/components/ModePickerOverlay").then((m) => m.ModePickerOverlay),
+  ),
   { ssr: false },
 );
 const WhereIsItGameOverlay = dynamic(
-  () => import("@/components/WhereIsItGameOverlay").then((m) => m.WhereIsItGameOverlay),
+  importWithChunkRetry(() =>
+    import("@/components/WhereIsItGameOverlay").then((m) => m.WhereIsItGameOverlay),
+  ),
   { ssr: false },
 );
 const GeopoliticsSenseQuizModal = dynamic(
-  () =>
+  importWithChunkRetry(() =>
     import("@/components/GeopoliticsSenseQuizModal").then(
       (m) => m.GeopoliticsSenseQuizModal,
     ),
+  ),
   { ssr: false },
 );
 const DailyRankSharePanel = dynamic(
-  () =>
+  importWithChunkRetry(() =>
     import("@/components/DailyRankSharePanel").then((m) => m.DailyRankSharePanel),
+  ),
   { ssr: false },
 );
 const TopWatchPanel = dynamic(
-  () => import("@/components/TopWatchPanel").then((m) => m.TopWatchPanel),
+  importWithChunkRetry(() =>
+    import("@/components/TopWatchPanel").then((m) => m.TopWatchPanel),
+  ),
   { ssr: false },
 );
 const DailyBriefingChrome = dynamic(
-  () =>
+  importWithChunkRetry(() =>
     import("@/components/DailyBriefingChrome").then((m) => m.DailyBriefingChrome),
+  ),
   { ssr: false },
 );
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
+import { SourcesLinkButton, ParchmentLinkButton } from "@/components/MethodologySourcesPanel";
 import { SitrepLog } from "@/components/SitrepLog";
 import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { UnifiedAirRaidDropdown } from "@/components/UnifiedAirRaidDropdown";
@@ -137,6 +165,8 @@ import {
 import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
+import { SpikeTelegraphBanner } from "@/components/SpikeTelegraphBanner";
+import { useDatabentoSpikeOffer } from "@/hooks/useDatabentoSpikeOffer";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
 import { NatoPerimeterAlertChip } from "@/components/NatoPerimeterAlertChip";
@@ -293,6 +323,7 @@ export type DashboardOverlayHostProps = {
   askLayersOpen: boolean;
   showTrustPanel: boolean;
   showSourcesPanel: boolean;
+  showDataSourceParchment: boolean;
   showMobileAlertFeed: boolean;
   playOverlay: "where" | "sense" | null;
   sentinelActive: boolean;
@@ -379,6 +410,7 @@ export type DashboardOverlayHostProps = {
   onSetShowViewerIntro: (v: boolean) => void;
   onSetShowTrustPanel: (v: boolean) => void;
   onSetShowSourcesPanel: (v: boolean) => void;
+  onSetShowDataSourceParchment: (v: boolean) => void;
   onSetShowFeatureGuide: (v: boolean) => void;
   onSetAskLayersOpen: (v: boolean) => void;
   onSetShowMobileAlertFeed: Dispatch<SetStateAction<boolean>>;
@@ -505,6 +537,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     askLayersOpen,
     showTrustPanel,
     showSourcesPanel,
+    showDataSourceParchment,
     showMobileAlertFeed,
     playOverlay,
     sentinelActive,
@@ -573,6 +606,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetShowViewerIntro,
     onSetShowTrustPanel,
     onSetShowSourcesPanel,
+    onSetShowDataSourceParchment,
     onSetShowFeatureGuide,
     onSetAskLayersOpen,
     onSetShowMobileAlertFeed,
@@ -656,6 +690,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
    */
   const gateClosed = entryGate === null;
   const gateClear = gateClosed && !showModePicker;
+  const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
+    gateClear && !showLanguageGate,
+  );
 
   useEffect(() => {
     if (showDailyRankPanel) markBriefingStep("gti");
@@ -888,6 +925,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                     }
                   }}
                   onHelp={() => onSetShowFeatureGuide(true)}
+                  onOpenSources={() => onSetShowSourcesPanel(true)}
+                  onOpenParchment={() => onSetShowDataSourceParchment(true)}
                 />
                 {gateClear ? (
                   <>
@@ -947,6 +986,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               compact
               onClick={() => onSetShowTrustPanel(true)}
             />
+            <SourcesLinkButton onClick={() => onSetShowSourcesPanel(true)} />
+            <ParchmentLinkButton onClick={() => onSetShowDataSourceParchment(true)} />
           </div>
         </div>
       ) : null}
@@ -1013,6 +1054,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           open
           viewerMode={viewerMode}
           onClose={() => onSetShowFeatureGuide(false)}
+          onOpenSources={() => {
+            onSetShowFeatureGuide(false);
+            onSetShowSourcesPanel(true);
+          }}
+          onOpenParchment={() => {
+            onSetShowFeatureGuide(false);
+            onSetShowDataSourceParchment(true);
+          }}
           onRestartTour={() => {
             clearFirstVisitTourDone();
             onSetShowFirstVisitTour(true);
@@ -1041,6 +1090,17 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetShowSourcesPanel(false);
             onSetShowTrustPanel(true);
           }}
+          onOpenParchment={() => {
+            onSetShowSourcesPanel(false);
+            onSetShowDataSourceParchment(true);
+          }}
+        />
+      ) : null}
+      {showDataSourceParchment ? (
+        <DataSourceParchmentOverlay
+          lang={labelLanguage}
+          variant="browse"
+          onClose={() => onSetShowDataSourceParchment(false)}
         />
       ) : null}
 
@@ -1462,7 +1522,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-sky-400/25 bg-[#071018]/94 shadow-2xl backdrop-blur-md">
               <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
                 <p className="min-w-0 truncate text-meta font-semibold text-sky-100">
-                  {labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
+                  {labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
                 </p>
                 <button
                   type="button"
@@ -1480,7 +1540,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             </div>
           ) : (
             <LegendReopenButton
-              label={labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
+              label={labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
               onClick={() => {
                 markBriefingStep("gti");
                 onToggleDailyRankPanel(true);
@@ -1502,7 +1562,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       />
 
       {(() => {
-        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
+        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 선물SPIKE > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
         const briefingBusy = Boolean(
           airRaidBriefing ||
             exerciseBriefing ||
@@ -1517,6 +1577,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           escalationOffer: Boolean(escalationOffer),
           exerciseOffer: Boolean(exerciseOffer),
           maritimeOffer: Boolean(maritimeOffer),
+          tickerSpikeOffer: Boolean(tickerSpikeOffer),
           tensionSpike: Boolean(tensionSpike),
           hotTheaterOffer: Boolean(hotTheaterOffer),
           coachActive: Boolean(
@@ -1614,6 +1675,23 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 onDismiss={() => {
                   markOverlayDismissed("maritime");
                   onDismissMaritimeOffer();
+                }}
+              />
+            ) : null}
+
+            {show("tickerSpike") && tickerSpikeOffer ? (
+              <SpikeTelegraphBanner
+                offer={tickerSpikeOffer}
+                lang={labelLanguage}
+                onDismiss={dismissTickerSpike}
+                onOpenMarkets={() => {
+                  dismissTickerSpike();
+                  if (isEconomyViewer) {
+                    intelStackRef.current?.openNewsPanel("all", "news", "markets");
+                  } else {
+                    intelStackRef.current?.openNewsPanel("all");
+                  }
+                  onSetIntelSheetOpen(true);
                 }}
               />
             ) : null}

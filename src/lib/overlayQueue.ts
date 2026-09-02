@@ -14,6 +14,7 @@ export type OverlayBannerKind =
   | "escalation"
   | "exercise"
   | "maritime"
+  | "tickerSpike"
   | "tensionCut"
   | "hotTheater"
   | "coach"
@@ -34,6 +35,8 @@ export type BuildOverlayBannerCandidatesInput = {
   escalationOffer: boolean;
   exerciseOffer: boolean;
   maritimeOffer: boolean;
+  /** Databento 선물 SPIKE 오퍼 */
+  tickerSpikeOffer: boolean;
   tensionSpike: boolean;
   hotTheaterOffer: boolean;
   coachActive: boolean;
@@ -58,6 +61,7 @@ export function buildOverlayBannerCandidates(
     escalationOffer,
     exerciseOffer,
     maritimeOffer,
+    tickerSpikeOffer,
     tensionSpike,
     hotTheaterOffer,
     coachActive,
@@ -76,6 +80,7 @@ export function buildOverlayBannerCandidates(
     escalation: escalationOffer && !briefingBusy && gateClear,
     exercise: exerciseOffer && !briefingBusy,
     maritime: maritimeOffer && !briefingBusy,
+    tickerSpike: tickerSpikeOffer && !briefingBusy && gateClear,
     tensionCut: tensionSpike && !briefingBusy && !isEconomyViewer && gateClear,
     hotTheater: hotTheaterOffer && !briefingBusy && gateClear,
     coach: coachActive && gateClear,

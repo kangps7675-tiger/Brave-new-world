@@ -212,6 +212,10 @@ export type LayerPrefs = {
   showStrategicCorridors: boolean;
   /** 동맹 물류 회랑(military-logistics만) — showStrategicCorridors와 별개, 기본 켜짐. */
   showAlliedLogisticsCorridors: boolean;
+  /** 제재 회피 회랑(sanctions-evasion만) — SES 지도 근거 레이어 */
+  showSanctionsEvasionCorridors: boolean;
+  /** 우상단 SES(제재 회피 강도) 칩 — GTS와 짝 */
+  showSesChip: boolean;
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
   /** CRINK OSM 인프라 — 카테고리별 (public/data/crink/) */
@@ -264,7 +268,7 @@ export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLaye
   // 예시) "geowatch-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
 };
 
-/** 토글 가능 레이어는 기본 OFF. 첫 화면은 Compact 전선(우크라·NEPTUN·항모)만 ON */
+/** 토글 가능 레이어는 기본 OFF. 첫 화면은 전선 + CRINK OSM·기지·항로 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWarZones: true,
   showDiplomaticTension: false,
@@ -272,7 +276,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showRailGlow: false,
   showAis: false,
   showDisguisedVessels: false,
-  showShippingLanes: false,
+  showShippingLanes: true,
   showLsibBoundary: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
@@ -301,16 +305,16 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showLogisticsStress: true,
   showGscpiGauge: true,
   showCriticalNodes: false,
-  showMilitaryBases: false,
+  showMilitaryBases: true,
   showAlliedBlocs: true,
   showCstoBloc: false,
   showGeoEconBlocs: true,
-  showRokMilitaryBases: false,
-  showJapanMilitaryBases: false,
-  showTaiwanMilitaryBases: false,
-  showPhilippinesMilitaryBases: false,
-  showAustraliaMilitaryBases: false,
-  showEasternNatoMilitaryBases: false,
+  showRokMilitaryBases: true,
+  showJapanMilitaryBases: true,
+  showTaiwanMilitaryBases: true,
+  showPhilippinesMilitaryBases: true,
+  showAustraliaMilitaryBases: true,
+  showEasternNatoMilitaryBases: true,
   showMissileSilos: false,
   showStrategicMissileBases: false,
   showMissileTestSites: false,
@@ -366,15 +370,17 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showBriTradeConnectivity: false,
   showStrategicCorridors: false,
   showAlliedLogisticsCorridors: true,
+  showSanctionsEvasionCorridors: true,
+  showSesChip: true,
   showUsDfcSupplyChain: false,
-  showCrinkInfraPower: false,
-  showCrinkInfraBorder: false,
-  showCrinkInfraDams: false,
-  showCrinkInfraAeroway: false,
-  showCrinkInfraHarbour: false,
-  showCrinkInfraCheckpoint: false,
-  showCrinkInfraRail: false,
-  showCrinkInfraRoad: false,
+  showCrinkInfraPower: true,
+  showCrinkInfraBorder: true,
+  showCrinkInfraDams: true,
+  showCrinkInfraAeroway: true,
+  showCrinkInfraHarbour: true,
+  showCrinkInfraCheckpoint: true,
+  showCrinkInfraRail: true,
+  showCrinkInfraRoad: true,
   labelLanguage: "ko",
 };
 

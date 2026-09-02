@@ -31,6 +31,8 @@ type UtilityChromeMenuProps = {
   } | null;
   onTour: () => void;
   onHelp: () => void;
+  onOpenSources?: () => void;
+  onOpenParchment?: () => void;
   siteName?: string;
 };
 
@@ -46,6 +48,8 @@ const MENU_COPY = {
     share: "공유",
     shareBusy: "공유 중…",
     help: "도움말",
+    sources: "데이터 출처",
+    parchment: "출처 양피지 (8)",
   },
   en: {
     trigger: "Menu",
@@ -58,12 +62,13 @@ const MENU_COPY = {
     share: "Share",
     shareBusy: "Sharing…",
     help: "Help",
+    sources: "Data sources",
+    parchment: "Source guide (8)",
   },
 } as const;
 
 /**
- * 우상단 유틸(투어·공유·도움말)을 하나로 묶은 드롭다운.
- * 신뢰도·자료출처는 MapAttributionBar(지구본)에서 연다.
+ * 우상단 유틸(투어·공유·도움말·출처)을 하나로 묶은 드롭다운.
  */
 export function UtilityChromeMenu({
   lang,
@@ -72,6 +77,8 @@ export function UtilityChromeMenu({
   getScene,
   onTour,
   onHelp,
+  onOpenSources,
+  onOpenParchment,
   siteName = "멋진 신세계",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
@@ -286,6 +293,30 @@ export function UtilityChromeMenu({
               <span aria-hidden>?</span>
               <span>{copy.help}</span>
             </button>
+
+            {onOpenSources ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-sky-200`}
+                onClick={() => runAndClose(onOpenSources)}
+              >
+                <span aria-hidden>📚</span>
+                <span>{copy.sources}</span>
+              </button>
+            ) : null}
+
+            {onOpenParchment ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-amber-100`}
+                onClick={() => runAndClose(onOpenParchment)}
+              >
+                <span aria-hidden>📜</span>
+                <span>{copy.parchment}</span>
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}
