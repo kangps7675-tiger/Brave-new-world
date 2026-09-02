@@ -22,7 +22,7 @@ export const GEOWATCH_CONFIG = {
      * 상한은 "여기까지 허용"이고 첫 화면은 "여기서 시작"이다. 같을 이유가 없다.
      * 나머지 레이어는 사용자가 패널에서 켜면 된다.
      */
-    firstScreenMaxLayers: 10,
+    firstScreenMaxLayers: 24,
   },
 
   /**
@@ -61,6 +61,8 @@ export const GEOWATCH_CONFIG = {
       escalation: 25,
       exercise: 30,
       maritime: 40,
+      /** Databento 선물 SPIKE — 물리 위험보다 뒤, 긴장컷보다 앞 */
+      tickerSpike: 42,
       tensionCut: 50,
       hotTheater: 55,
       coach: 60,

@@ -31,12 +31,7 @@ import { PanelSkeletonLines, IntelChipSkeletonRow } from "@/components/PanelSkel
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { CounterfactualInvestCard } from "@/components/CounterfactualInvestCard";
 import { StockTickerStrip } from "@/components/StockTickerStrip";
-import {
-  SpikeTelegraphToast,
-  type SpikeTelegraphToastPayload,
-} from "@/components/SpikeTelegraphToast";
 import { IntelRelatedMarketsPanel } from "@/components/IntelRelatedMarketsPanel";
-import type { TickerSpikeCandidate } from "@/lib/tickerSpikeTelegraph";
 import { ThemeCompanyBoard } from "@/components/ThemeCompanyBoard";
 import { IntelSheetSearchBar, type IntelSearchResult } from "@/components/IntelSheetSearchBar";
 import { TelegramIntelFeed, alertMatchesMediaFilter } from "@/components/TelegramIntelFeed";
@@ -66,6 +61,7 @@ import type { ViewPackageId, ViewerMode } from "@/lib/viewPackages";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
+import { bindableImperativeRef } from "@/lib/imperativeRef";
 import { ECONOMY_TIER_LABELS } from "@/lib/news/mediaTiers";
 import {
   FRED_ONLY_TICKER_SYMBOLS,
@@ -558,10 +554,6 @@ type IntelCompactBarProps = {
    */
   fabOnly?: boolean;
   onOpenSheet: (theater?: IntelTheaterFilter) => void;
-  /** 전보 토스트 CTA — 지경학 증시 탭 */
-  onOpenMarketsSheet?: () => void;
-  /** 뉴스 인사이트 우측 패널 열림 — 전보 무음 · 좌측 하단 미니 칩 */
-  newsInsightOpen?: boolean;
   /** 오늘 핫한 곳 → 맵 fly-to */
   onFlyToTheater?: (theater: NewsTheater) => void;
   /** 맞춤 칩 → 레이어 ON */
@@ -732,8 +724,6 @@ export function DynamicIntelStack({
   pauseUpdates = false,
   fabOnly = false,
   onOpenSheet,
-  onOpenMarketsSheet,
-  newsInsightOpen = false,
   onFlyToTheater,
   onEnableLayer,
 }: IntelCompactBarProps) {
@@ -755,7 +745,6 @@ export function DynamicIntelStack({
   }, [hero, isAlert, isEconomy, theaterFilter]);
   const [todayHidden, setTodayHidden] = useState(false);
   const [dockCollapsed, setDockCollapsed] = useState(false);
-  const [spikeToast, setSpikeToast] = useState<SpikeTelegraphToastPayload | null>(null);
   const lastBreakingHeroIdRef = useRef<string | null>(null);
   /** pending: 방향 판별 전 · active: 하향 dismiss 드래그 확정(위로 스크롤은 가로채지 않음) */
   const dockDragRef = useRef<{
@@ -860,25 +849,6 @@ export function DynamicIntelStack({
     setTodayHidden(true);
   }, []);
 
-  const handleSpikeDispatch = useCallback((candidate: TickerSpikeCandidate) => {
-    setSpikeToast({
-      symbol: candidate.symbol,
-      changePercent: candidate.changePercent,
-      direction: candidate.direction,
-      atMs: Date.now(),
-    });
-  }, []);
-
-  const dismissSpikeToast = useCallback(() => {
-    setSpikeToast(null);
-  }, []);
-
-  const handleOpenMarketsFromToast = useCallback(() => {
-    setSpikeToast(null);
-    if (onOpenMarketsSheet) onOpenMarketsSheet();
-    else onOpenSheet("all");
-  }, [onOpenMarketsSheet, onOpenSheet]);
-
   const onDockHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     dockDragRef.current = {
@@ -964,15 +934,6 @@ export function DynamicIntelStack({
 
   if (dockCollapsed) {
     return (
-      <>
-        {isEconomy && spikeToast && newsInsightOpen ? (
-          <SpikeTelegraphToast
-            payload={spikeToast}
-            placement="corner"
-            onDismiss={dismissSpikeToast}
-            onOpenMarkets={handleOpenMarketsFromToast}
-          />
-        ) : null}
         <div
           id="bottom-intel-compact"
           className="intel-stack intel-stack--collapsed pointer-events-none absolute left-1/2 z-20 flex w-[min(94vw,420px)] -translate-x-1/2 flex-col items-stretch"
@@ -1023,20 +984,10 @@ export function DynamicIntelStack({
           </HoverHint>
         </div>
       </div>
-      </>
     );
   }
 
   return (
-    <>
-      {isEconomy && spikeToast && newsInsightOpen ? (
-        <SpikeTelegraphToast
-          payload={spikeToast}
-          placement="corner"
-          onDismiss={dismissSpikeToast}
-          onOpenMarkets={handleOpenMarketsFromToast}
-        />
-      ) : null}
     <div
       id="bottom-intel-compact"
       className={`intel-stack pointer-events-none absolute left-1/2 z-20 flex w-[min(96vw,720px)] -translate-x-1/2 flex-col items-stretch gap-2 ${
@@ -1050,15 +1001,6 @@ export function DynamicIntelStack({
           economy={isEconomy}
           onOpen={handleTodayOpen}
           onDismiss={handleTodayDismiss}
-        />
-      ) : null}
-
-      {isEconomy && spikeToast && !newsInsightOpen ? (
-        <SpikeTelegraphToast
-          payload={spikeToast}
-          placement="dock"
-          onDismiss={dismissSpikeToast}
-          onOpenMarkets={handleOpenMarketsFromToast}
         />
       ) : null}
 
@@ -1158,8 +1100,6 @@ export function DynamicIntelStack({
               alertTone={isAlert && hero ? hero.heroStatus : undefined}
               showHeader
               paused={pauseUpdates}
-              onSpikeDispatch={isEconomy ? handleSpikeDispatch : undefined}
-              muteTelegraphSound={newsInsightOpen}
             />
           </HoverHint>
         ) : null}
@@ -1188,7 +1128,6 @@ export function DynamicIntelStack({
         </div>
       ) : null}
     </div>
-    </>
   );
 }
 
@@ -1724,6 +1663,10 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       if (sheetTab === "gdelt" && !showGdelt) setSheetTab("news");
     }, [sheetTab, showGdelt]);
 
+    useEffect(() => {
+      if (sheetTab === "viina" && !showViina) setSheetTab("news");
+    }, [sheetTab, showViina]);
+
     const openNewsPanel = useCallback(
       (
         theater: IntelTheaterFilter = "all",
@@ -1822,7 +1765,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
     );
 
     useImperativeHandle(
-      ref,
+      bindableImperativeRef(ref),
       () => ({
         openNewsPanel,
         closeNewsPanel,

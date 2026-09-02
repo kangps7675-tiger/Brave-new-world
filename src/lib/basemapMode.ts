@@ -118,13 +118,19 @@ export function fogForBasemapMode(mode: BasemapMode): BasemapFogSpec {
   };
 }
 
-/** 캔버스·스타일 background 레이어 — 인텔과 동일 우주색 */
+/** 인텔 우주 모드 — OpenMapTiles 육지(background)와 캔버스 클리어가 같은 색 */
 export const BASEMAP_SPACE_BACKGROUND = "#0b0c10";
 
 /**
  * 지형 해양 — OpenFreeMap Liberty 기본 water (`rgb(158,189,255)`).
  */
 export const TERRAIN_OCEAN_FILL = "rgb(158, 189, 255)";
+
+/**
+ * 이 줌 미만에서 globe+DEM 은 수역 fill을 삼키고(지명만 남음)
+ * 메인 스레드를 수 초씩 멈춘다. 고줌에서만 기복이 보이므로 끈다.
+ */
+export const TERRAIN_MIN_ZOOM = 6.5;
 
 /** 저줌 Natural Earth 래스터 — 육지 음영을 살리고 바다는 벡터 fill이 받친다. */
 const TERRAIN_NE_RASTER_OPACITY = [
@@ -152,6 +158,7 @@ export type BasemapMapLike = {
   setFog: (fog: BasemapFogSpec | null) => void;
   setTerrain: (terrain: { source: string; exaggeration?: number } | null) => void;
   getSource: (id: string) => unknown;
+  getZoom?: () => number;
   setProjection?: (projection: { type: string }) => void;
   getProjection?: () => { type?: string } | undefined;
   addSource?: (id: string, source: Record<string, unknown>) => void;
@@ -268,11 +275,8 @@ export function applyBasemapFog(map: BasemapMapLike, mode: BasemapMode): void {
 }
 
 /**
- * Liberty 등 밝은 스타일의 background 레이어를 우주색으로 덮어
- * 지구본 바깥이 크림/하늘색으로 보이지 않게 한다.
- *
- * 지형에서는 쓰지 않는다. OpenMapTiles에서 육지가 background 색이라
- * 덮으면 지구 표면 전체가 우주색으로 가라앉는다. 바깥 우주는 fog space-color.
+ * 인텔 우주 모드: OpenMapTiles 육지(background)를 fog 우주색과 같게 둔다.
+ * 지형은 Liberty 크림 육지를 유지.
  */
 export function applyBasemapSpaceBackground(
   map: BasemapMapLike,
@@ -285,13 +289,36 @@ export function applyBasemapSpaceBackground(
       if (layer.type !== "background") continue;
       map.setPaintProperty?.(layer.id, "background-color", BASEMAP_SPACE_BACKGROUND);
     }
-    // 관례적 id도 한 번 더 시도
     if (map.getLayer("background")) {
-      map.setPaintProperty?.("background", "background-color", BASEMAP_SPACE_BACKGROUND);
+      map.setPaintProperty?.(
+        "background",
+        "background-color",
+        BASEMAP_SPACE_BACKGROUND,
+      );
     }
   } catch {
     /* paint unsupported */
   }
+}
+
+export function readMapZoom(map: BasemapMapLike): number | undefined {
+  try {
+    const z = map.getZoom?.();
+    return typeof z === "number" && Number.isFinite(z) ? z : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function shouldEnableBasemapTerrain(opts: {
+  mode: BasemapMode;
+  zoom?: number;
+  ultraLite?: boolean;
+}): boolean {
+  if (opts.ultraLite && opts.mode !== "terrain") return false;
+  const zoom = opts.zoom;
+  if (zoom == null || !Number.isFinite(zoom) || zoom < TERRAIN_MIN_ZOOM) return false;
+  return true;
 }
 
 /**
@@ -343,23 +370,16 @@ export function applyBasemapOceanColors(
 export function applyBasemapTerrain(
   map: BasemapMapLike,
   mode: BasemapMode,
-  opts?: { ultraLite?: boolean },
+  opts?: { ultraLite?: boolean; zoom?: number },
 ): void {
-  if (!map.getSource(BASEMAP_SOURCE_IDS.terrain)) return;
-
-  /**
-   * Ultra-Lite에서는 terrain을 **완전히 끈다** (이전: exaggeration만 0.4로 하향).
-   *
-   * terrain이 켜져 있으면 exaggeration이 아무리 낮아도 비용의 대부분은 그대로다:
-   *  - DEM 타일 fetch·디코드
-   *  - globe 투영에서의 지형 메시 재구성
-   *  - **HTML 마커의 오클루전 판정이 표고 조회를 타게 된다**
-   *    (opacityWhenCovered가 걸린 마커가 화면에 수백 개다 → 마커당 프레임당 비용)
-   *
-   * Ultra-Lite 대상은 내장 그래픽·8GB RAM 환경이므로, 입체감보다
-   * 프레임이 우선이다. 지형 모드를 명시적으로 고른 경우에만 유지한다.
-   */
-  if (opts?.ultraLite && mode !== "terrain") {
+  const zoom = opts?.zoom ?? readMapZoom(map);
+  if (
+    !shouldEnableBasemapTerrain({
+      mode,
+      zoom,
+      ultraLite: opts?.ultraLite,
+    })
+  ) {
     try {
       map.setTerrain(null);
     } catch {
@@ -367,6 +387,8 @@ export function applyBasemapTerrain(
     }
     return;
   }
+
+  if (!map.getSource(BASEMAP_SOURCE_IDS.terrain)) return;
 
   // 인텔: 예전 설정 exaggeration 0.6 / 지형: 1.4
   const exaggeration = opts?.ultraLite

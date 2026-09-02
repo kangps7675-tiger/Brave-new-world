@@ -32,6 +32,22 @@ describe("overlayQueue", () => {
     ).toBe("maritime");
   });
 
+  it("picks tickerSpike over tensionCut and after maritime", () => {
+    expect(
+      resolveTopOverlayBanner({
+        tickerSpike: true,
+        tensionCut: true,
+        coach: true,
+      }),
+    ).toBe("tickerSpike");
+    expect(
+      resolveTopOverlayBanner({
+        maritime: true,
+        tickerSpike: true,
+      }),
+    ).toBe("maritime");
+  });
+
   it("picks tensionCut over hotTheater and coach", () => {
     expect(
       resolveTopOverlayBanner({
@@ -70,6 +86,7 @@ describe("overlayQueue", () => {
       escalationOffer: true,
       exerciseOffer: true,
       maritimeOffer: true,
+      tickerSpikeOffer: true,
       tensionSpike: true,
       hotTheaterOffer: true,
       coachActive: true,
@@ -80,6 +97,7 @@ describe("overlayQueue", () => {
     });
     expect(c.airRaid).toBe(false);
     expect(c.maritime).toBe(false);
+    expect(c.tickerSpike).toBe(false);
     expect(c.tensionCut).toBe(false);
     expect(c.hotTheater).toBe(false);
     expect(c.ultraLite).toBe(false);
@@ -94,6 +112,7 @@ describe("overlayQueue", () => {
       escalationOffer: false,
       exerciseOffer: false,
       maritimeOffer: false,
+      tickerSpikeOffer: true,
       tensionSpike: true,
       hotTheaterOffer: true,
       coachActive: false,
@@ -103,6 +122,7 @@ describe("overlayQueue", () => {
       modePickerOpen: false,
     });
     expect(c.tensionCut).toBe(false);
+    expect(c.tickerSpike).toBe(true);
     expect(c.hotTheater).toBe(true);
     expect(c.ultraLite).toBe(true);
   });
@@ -125,6 +145,7 @@ describe("geowatch.config SSOT", () => {
 
   it("overlay priorities match config", () => {
     expect(GEOWATCH_CONFIG.overlay.bannerPriority.airRaid).toBe(10);
+    expect(GEOWATCH_CONFIG.overlay.bannerPriority.tickerSpike).toBe(42);
     expect(GEOWATCH_CONFIG.overlay.bannerPriority.hotTheater).toBe(55);
     expect(GEOWATCH_CONFIG.overlay.bannerPriority.ultraLite).toBe(65);
   });

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getCorridorLod } from "@/lib/corridorLod";
-import { getCorridorScalerank, getCorridorRank } from "@/lib/corridorRanks";
+import {
+  corridorIndicatorCoverage,
+  getCorridorScalerank,
+  getCorridorRank,
+} from "@/lib/corridorRanks";
 import { strategicCorridorPathsForLod, allStrategicCorridorPaths } from "@/lib/strategicCorridorPaths";
 
 describe("corridor ranks MVP", () => {
@@ -38,5 +42,14 @@ describe("corridor ranks MVP", () => {
     expect(all.length).toBeGreaterThan(30);
     expect(all.every((p) => p.kind === "strategic-corridor")).toBe(true);
     expect(all.every((p) => p.meta?.geometrySource === "real-corridor")).toBe(true);
+  });
+
+  it("corridorIndicatorCoverage counts partial inputs honestly", () => {
+    const row = getCorridorRank("brest-malaszewicze-gauge-terminal");
+    expect(row).toBeDefined();
+    if (!row) return;
+    const cov = corridorIndicatorCoverage(row);
+    expect(cov.total).toBeGreaterThanOrEqual(4);
+    expect(cov.available).toBeLessThanOrEqual(cov.total);
   });
 });

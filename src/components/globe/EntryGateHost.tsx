@@ -3,8 +3,13 @@
 import { EntryCautionOverlay } from "@/components/EntryCautionOverlay";
 import { WelcomeBriefOverlay } from "@/components/WelcomeBriefOverlay";
 import { WelcomeParchmentLetter } from "@/components/WelcomeParchmentLetter";
+import { DataSourceParchmentOverlay } from "@/components/DataSourceParchmentOverlay";
 import { DomainGateOverlay } from "@/components/DomainGateOverlay";
-import { markLangChoiceDone, markWelcomeGateDone } from "@/components/globe/formatters";
+import {
+  markLangChoiceDone,
+  markSourcesGateDone,
+  readWelcomeGateDone,
+} from "@/components/globe/formatters";
 import type { EntryGate } from "@/components/globe/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
@@ -21,9 +26,8 @@ type EntryGateHostProps = {
 };
 
 /**
- * 입장 게이트 오버레이 묶음 — 첫 방문 플로우: caution → welcome → domain.
- * 데스크톱: 양피지 편지 / 모바일(compact): 짧은 브랜드 welcome.
- * 도메인 게이트 하단 링크로 편지·주의를 다시 열 수 있음.
+ * 입장 게이트 — caution → welcome → sources → domain.
+ * 등불·긴장지수 등 실시간 콘텐츠는 sources 확인 전엔 뜨지 않음 (entryGate !== null).
  */
 export function EntryGateHost({
   entryGate,
@@ -40,17 +44,20 @@ export function EntryGateHost({
     onLangChoiceConfirmed?.();
   };
 
-  /** 경고 화면을 지나갈 때 — 현재 선택(기본값 포함)을 확정으로 간주 */
-  const leaveCaution = (next: EntryGate) => {
+  /** 경고 화면 통과 — welcome 또는 sources(스킵) */
+  const leaveCaution = (next: "welcome" | "sources") => {
     markLangChoiceDone();
     onLangChoiceConfirmed?.();
-    if (next === "domain") markWelcomeGateDone();
     onSetGate(next);
   };
 
   const leaveWelcome = () => {
-    markWelcomeGateDone();
-    onSetGate("domain");
+    onSetGate("sources");
+  };
+
+  const leaveSources = () => {
+    markSourcesGateDone();
+    onSetGate(readWelcomeGateDone() ? null : "domain");
   };
 
   if (entryGate === "caution") {
@@ -59,7 +66,7 @@ export function EntryGateHost({
         lang={labelLanguage}
         onLangChange={confirmLang}
         onContinue={() => leaveCaution("welcome")}
-        onSkipToDomain={() => leaveCaution("domain")}
+        onSkipToDomain={() => leaveCaution("sources")}
       />
     );
   }
@@ -78,11 +85,18 @@ export function EntryGateHost({
     );
   }
 
+  if (entryGate === "sources") {
+    return (
+      <DataSourceParchmentOverlay lang={labelLanguage} onContinue={leaveSources} />
+    );
+  }
+
   if (entryGate === "domain") {
     return (
       <DomainGateOverlay
         onSelect={onDomainSelect}
         onOpenLetter={() => onSetGate("welcome")}
+        onOpenSources={() => onSetGate("sources")}
         onOpenCaution={() => onSetGate("caution")}
         letterLinkCompact={isCompactUi}
       />

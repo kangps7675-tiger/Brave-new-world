@@ -1,6 +1,6 @@
 import { findCorridor } from "@/data/strategicCorridors";
 import type { TransportPath } from "@/data/geoTypes";
-import { getCorridorRank } from "@/lib/corridorRanks";
+import { getCorridorRank, corridorIndicatorCoverage } from "@/lib/corridorRanks";
 import railFreightPayload from "@/data/rail-freight-bilateral.json";
 
 export type DualSignalKind =
@@ -49,6 +49,8 @@ export type SelectedCorridor = {
   dualSignal: DualSignalKind;
   scalerank: number | null;
   modalStress: ModalStressView | null;
+  indicatorCoverage?: { available: number; total: number; missing: string[] };
+  rankSources?: string[];
 };
 
 type RailFreightFile = {
@@ -161,5 +163,7 @@ export function selectedCorridorFromPath(path: TransportPath): SelectedCorridor 
     dualSignal: (rank?.components.dualSignal as DualSignalKind) ?? null,
     scalerank: rank?.scalerank ?? null,
     modalStress,
+    indicatorCoverage: rank ? corridorIndicatorCoverage(rank) : undefined,
+    rankSources: rank?.sources,
   };
 }

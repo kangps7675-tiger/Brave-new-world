@@ -14,6 +14,9 @@
   --intel-sidebar-width: 480px;
   /* ModeGlobalIndexChip ResizeObserver가 덮어씀 — 우레일·유틸 top 동기화 */
   --mode-index-chip-height: 0px;
+  /** 칩 스택 하단 — SES 패널 top 앵커 */
+  --mode-index-chip-stack-bottom: 0px;
+  /** max(칩 스택, 열린 SES 패널) — 우측 레일·compact 유틸 top */
   --mode-index-chip-bottom: 0px;
   --mode-index-chip-width: 0px;
   --hover-nav-base-height: 0px;
@@ -77,10 +80,8 @@ body {
   min-height: 100dvh;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
-  /* 게임 셸 — 드래그 텍스트 선택·이미지 드래그 복사 차단 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 input,
@@ -92,14 +93,7 @@ select,
 }
 
 /**
- * 공개 문서 표면 — 게임 셸 규칙에서 빠져나온다.
- *
- * body의 `user-select: none`은 지구본을 게임처럼 다루려는 의도였고 거기서는 옳다.
- * 하지만 `/chokepoints/*`는 기자와 검색·LLM에게 **인용되라고** 만든 페이지다.
- * 인용할 수 없는 페이지는 백링크를 못 만들고, 텍스트가 안 잡히는 페이지는
- * 사람이 즉시 불신한다. 문서 표면에서는 선택·복사를 되돌린다.
- *
- * (JS 쪽 짝: components/GameShellGuard.tsx의 GUARD_EXEMPT_PREFIXES)
+ * 공개 문서 표면 — `/chokepoints/*` 등 (body 전역 선택 허용과 동일하게 명시).
  */
 .doc-surface,
 .doc-surface * {
@@ -207,11 +201,13 @@ html[data-device="desktop-wide"] {
 }
 html[data-device="phone"] {
   --tap-target-min: 44px;
+  --intel-sidebar-width: 340px;
 }
 
 /**
  * 우레일·유틸 공통 top — nav 높이와 우상단 칩 하단 중 더 큰 쪽 + 갭.
- * JS에서 --mode-index-chip-bottom / --hover-nav-base-height를 갱신한다.
+ * JS에서 --mode-index-chip-stack-bottom(칩만) / --mode-index-chip-bottom(패널 포함) /
+ * --hover-nav-base-height를 갱신한다.
  */
 .cv-chrome-rail-top {
   top: calc(
@@ -1135,6 +1131,12 @@ main[data-ui-lang="en"]
   overflow: hidden;
 }
 
+/* 좌측 플로팅 패널 — 우측과 동일 --intel-sidebar-width */
+.intel-sidebar-left {
+  width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
+  max-width: var(--intel-sidebar-width);
+}
+
 /* 유일한 세로 스크롤 포트: 위·아래 터치 스크롤 (중첩 overflow-y-auto 금지) */
 .intel-scroll-y {
   -webkit-overflow-scrolling: touch;
@@ -1204,13 +1206,18 @@ html[data-device="tablet"] .intel-sidebar-right {
   z-index: 120;
 }
 
+html[data-device="tablet"] .intel-sidebar-left {
+  width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
+  max-width: min(42vw, var(--intel-sidebar-width));
+}
+
 /* 와이드 데스크톱: 우측 패널 여유 */
 html[data-device="desktop-wide"] .intel-sidebar-right {
   max-height: calc(100% - 5.5rem);
 }
 
-html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
-  max-width: min(calc(100vw - 2rem), 420px);
+html[data-device="desktop-wide"] .intel-sidebar-left {
+  width: min(calc(100vw - 2rem), var(--intel-sidebar-width));
 }
 
 .stock-ticker-scroll {

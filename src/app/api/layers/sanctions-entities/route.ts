@@ -14,7 +14,7 @@ async function loadSanctions(): Promise<{ points: StaticPoint[]; lists: string[]
   const points = await loadLocalStaticPoints("sanctions-entities.json");
   return {
     points,
-    lists: ["OFAC SDN", "UN Consolidated", "EU FSF", "UK Sanctions"],
+    lists: ["OFAC SDN", "UN Consolidated"],
   };
 }
 
@@ -29,6 +29,6 @@ export async function GET(request: Request) {
     count: data.points.length,
     points: data.points,
     lists: data.lists,
-    attribution: "US Treasury OFAC / UN / EU / UK · local build",
+    attribution: "US Treasury OFAC / UN Security Council · local build",
   }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
 }

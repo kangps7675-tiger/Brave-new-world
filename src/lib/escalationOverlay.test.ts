@@ -21,6 +21,7 @@ const BASE: BuildOverlayBannerCandidatesInput = {
   escalationOffer: false,
   exerciseOffer: false,
   maritimeOffer: false,
+  tickerSpikeOffer: false,
   tensionSpike: false,
   hotTheaterOffer: false,
   coachActive: false,

@@ -131,7 +131,7 @@ export function EconomyRegionPanel({
   );
 
   return (
-    <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full w-[min(100%,380px)] flex-col overflow-hidden border-l border-emerald-800/40 bg-[#071018]/94 p-4 shadow-2xl backdrop-blur-md">
+    <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full flex-col overflow-hidden border-l border-emerald-800/40 bg-[#071018]/94 p-4 shadow-2xl backdrop-blur-md">
       <div className="flex items-start justify-between gap-3 border-b border-emerald-400/15 pb-3">
         <div className="min-w-0">
           <p className="text-micro uppercase tracking-[0.28em] text-emerald-200/70">Geo Markets</p>

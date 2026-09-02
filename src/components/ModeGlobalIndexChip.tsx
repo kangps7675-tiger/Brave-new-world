@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
+import { SanctionsEvasionChip } from "@/components/SanctionsEvasionChip";
+import { SanctionsEvasionPanel } from "@/components/SanctionsEvasionPanel";
 import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import { FreightStressChip } from "@/components/FreightStressChip";
 import { PortWatchStressChip } from "@/components/PortWatchStressChip";
 import { MarketSessionChip } from "@/components/MarketSessionChip";
 import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
+import { useSanctionsEvasionSnapshot } from "@/hooks/useSanctionsEvasionSnapshot";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -20,25 +23,21 @@ type ModeGlobalIndexChipProps = {
   wtiAsOf?: string | null;
   /** 공식 스냅샷 대신 전장 점수로 즉석 산출한 잠정치인지 */
   wtiIsEstimate?: boolean | null;
+  /** 지정학 제재 회피 강도 칩 */
+  showSesChip?: boolean;
   /** 지경학 GSCPI 게이지 표시 여부 */
   showGscpi?: boolean;
   /** NOAA SWPC 우주기상 칩 */
   showSwpc?: boolean;
-  /**
-   * 태블릿·중간 폭 — 스택을 한 줄로 압축, SWPC 숨김.
-   * 우레일·유틸이 `--mode-index-chip-height`로 비켜설 수 있게 높이만 줄인다.
-   */
   dense?: boolean;
   className?: string;
 };
 
 /**
  * 우상단 고정 — 모드별 전 세계 단일 지표.
- * 지정학: 글로벌 긴장지수(GTI).
- * 지경학: GSCPI + 해운 프록시 + PortWatch 3칩 + 세션 개장 (합산 점수 없음).
- *
- * 실제 높이·하단을 `--mode-index-chip-height` / `--mode-index-chip-bottom`으로 게시해
- * 우레일·compact 유틸 top이 겹치지 않게 한다.
+ * 지정학: GTS + 제재 회피 강도 + SWPC — 세로 스택.
+ * `--mode-index-chip-stack-bottom` = 칩만, `--mode-index-chip-bottom` = 열린 패널까지
+ * (우측 레ail이 패널 아래로 밀리도록).
  */
 export function ModeGlobalIndexChip({
   viewerMode,
@@ -47,87 +46,153 @@ export function ModeGlobalIndexChip({
   wtiDelta,
   wtiAsOf,
   wtiIsEstimate,
+  showSesChip = true,
   showGscpi = true,
   showSwpc = true,
   dense = false,
   className = "",
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
-  const ref = useRef<HTMLDivElement>(null);
+  const stackRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [sesPanelOpen, setSesPanelOpen] = useState(false);
+  const sesEntry = useSanctionsEvasionSnapshot();
 
-  useEffect(() => {
+  const publishChromeObstacles = useCallback(() => {
     const root = document.documentElement;
-    const el = ref.current;
-    if (!el) {
+    const stackEl = stackRef.current;
+    if (!stackEl) {
       root.style.setProperty("--mode-index-chip-height", "0px");
+      root.style.setProperty("--mode-index-chip-stack-bottom", "0px");
       root.style.setProperty("--mode-index-chip-bottom", "0px");
+      root.style.setProperty("--mode-index-chip-width", "0px");
       return;
     }
-    const publish = () => {
-      const rect = el.getBoundingClientRect();
-      const h = Math.max(0, Math.ceil(rect.height));
-      const bottom = Math.max(0, Math.ceil(rect.bottom));
-      const w = Math.max(0, Math.ceil(rect.width));
-      root.style.setProperty("--mode-index-chip-height", `${h}px`);
-      root.style.setProperty("--mode-index-chip-bottom", `${bottom}px`);
-      root.style.setProperty("--mode-index-chip-width", `${w}px`);
-    };
-    publish();
-    const ro = new ResizeObserver(publish);
-    ro.observe(el);
-    window.addEventListener("resize", publish);
+    const stackRect = stackEl.getBoundingClientRect();
+    const stackBottom = Math.max(0, Math.ceil(stackRect.bottom));
+    const stackHeight = Math.max(0, Math.ceil(stackRect.height));
+    const stackWidth = Math.max(0, Math.ceil(stackRect.width));
+
+    let chromeBottom = stackBottom;
+    const panelEl = panelRef.current;
+    if (sesPanelOpen && panelEl) {
+      const panelBottom = Math.ceil(panelEl.getBoundingClientRect().bottom);
+      chromeBottom = Math.max(stackBottom, panelBottom);
+    }
+
+    root.style.setProperty("--mode-index-chip-height", `${stackHeight}px`);
+    root.style.setProperty("--mode-index-chip-stack-bottom", `${stackBottom}px`);
+    root.style.setProperty("--mode-index-chip-bottom", `${chromeBottom}px`);
+    root.style.setProperty("--mode-index-chip-width", `${stackWidth}px`);
+  }, [sesPanelOpen]);
+
+  useEffect(() => {
+    publishChromeObstacles();
+    const stackEl = stackRef.current;
+    if (!stackEl) return;
+
+    const ro = new ResizeObserver(publishChromeObstacles);
+    ro.observe(stackEl);
+    const panelEl = panelRef.current;
+    if (panelEl) ro.observe(panelEl);
+
+    window.addEventListener("resize", publishChromeObstacles);
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", publish);
+      window.removeEventListener("resize", publishChromeObstacles);
+      const root = document.documentElement;
       root.style.setProperty("--mode-index-chip-height", "0px");
+      root.style.setProperty("--mode-index-chip-stack-bottom", "0px");
       root.style.setProperty("--mode-index-chip-bottom", "0px");
       root.style.setProperty("--mode-index-chip-width", "0px");
     };
-  }, [dense, isEconomy, showGscpi, showSwpc]);
+  }, [publishChromeObstacles, sesPanelOpen]);
+
+  /** 패널 DOM 마운트 직후 한 프레임 뒤 재측정 */
+  useEffect(() => {
+    if (!sesPanelOpen) return;
+    const id = window.requestAnimationFrame(publishChromeObstacles);
+    return () => window.cancelAnimationFrame(id);
+  }, [sesPanelOpen, publishChromeObstacles]);
 
   const showAuxSwpc = showSwpc && !dense;
+  const showSesPanel = !isEconomy && showSesChip && sesPanelOpen;
 
   return (
-    <div
-      ref={ref}
-      className={`pointer-events-auto fixed z-[300] flex items-start gap-2 ${className}`}
-      style={{
-        top: "max(0.75rem, env(safe-area-inset-top, 0px))",
-        right: "max(0.75rem, env(safe-area-inset-right, 0px))",
-      }}
-      data-chrome-obstacle="mode-index-chip"
-      data-chrome-density={dense ? "dense" : "full"}
-    >
-      {!dense ? <ImmersionDigitalClock lang={lang} /> : null}
+    <>
       <div
-        className={`flex items-end gap-1.5 ${
-          dense ? "flex-row flex-wrap justify-end" : "flex-col"
-        }`}
+        ref={stackRef}
+        className={`pointer-events-auto fixed z-[300] flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${className}`}
+        style={{
+          top: "max(0.75rem, env(safe-area-inset-top, 0px))",
+          right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+        }}
+        data-chrome-obstacle="mode-index-chip"
+        data-chrome-density={dense ? "dense" : "full"}
       >
-        {isEconomy ? (
-          <>
-            {showGscpi ? (
-              <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
-            ) : null}
-            <div className="flex flex-wrap justify-end gap-1.5">
-              <FreightStressChip lang={lang} />
-              <PortWatchStressChip lang={lang} />
-              {dense ? <MarketSessionChip lang={lang} /> : null}
-            </div>
-            {!dense ? <MarketSessionChip lang={lang} /> : null}
-          </>
-        ) : (
-          <WorldTensionChip
-            score={wtiScore}
-            deltaScore={wtiDelta}
-            asOf={wtiAsOf}
-            isEstimate={Boolean(wtiIsEstimate)}
-            lang={lang}
-            className="shadow-lg backdrop-blur-md"
-          />
-        )}
-        {showAuxSwpc ? <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" /> : null}
+        {!dense ? <ImmersionDigitalClock lang={lang} /> : null}
+        <div
+          className={`flex w-full flex-col items-end gap-1.5 ${
+            dense && isEconomy ? "flex-row flex-wrap justify-end" : ""
+          }`}
+        >
+          {isEconomy ? (
+            <>
+              {showGscpi ? (
+                <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
+              ) : null}
+              <div className="flex flex-wrap justify-end gap-1.5">
+                <FreightStressChip lang={lang} />
+                <PortWatchStressChip lang={lang} />
+                {dense ? <MarketSessionChip lang={lang} /> : null}
+              </div>
+              {!dense ? <MarketSessionChip lang={lang} /> : null}
+            </>
+          ) : (
+            <>
+              <WorldTensionChip
+                score={wtiScore}
+                deltaScore={wtiDelta}
+                asOf={wtiAsOf}
+                isEstimate={Boolean(wtiIsEstimate)}
+                lang={lang}
+                className="w-full max-w-full shadow-lg backdrop-blur-md"
+              />
+              {showSesChip ? (
+                <SanctionsEvasionChip
+                  score={sesEntry.snapshot?.score ?? null}
+                  deltaScore={sesEntry.snapshot?.deltaScore}
+                  asOf={sesEntry.snapshot?.generatedAt ?? sesEntry.loadedAt}
+                  lang={lang}
+                  dense={dense}
+                  active={sesPanelOpen}
+                  onClick={() => setSesPanelOpen((v) => !v)}
+                  className="w-full max-w-full shadow-lg backdrop-blur-md"
+                />
+              ) : null}
+            </>
+          )}
+          {showAuxSwpc ? (
+            <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" />
+          ) : null}
+        </div>
       </div>
-    </div>
+
+      {showSesPanel ? (
+        <div
+          ref={panelRef}
+          className="pointer-events-auto fixed z-[305] w-[min(20rem,calc(100vw-1.5rem))]"
+          style={{
+            top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
+            right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+            maxHeight:
+              "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
+          }}
+          data-chrome-obstacle="ses-panel"
+        >
+          <SanctionsEvasionPanel lang={lang} onClose={() => setSesPanelOpen(false)} />
+        </div>
+      ) : null}
+    </>
   );
 }

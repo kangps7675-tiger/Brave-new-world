@@ -642,7 +642,7 @@ export function MobileHomeView({
                 <div className="flex items-end justify-between gap-2">
                   <div>
                     <p className="text-meta font-semibold uppercase tracking-wide text-orange-200/80">
-                      {en ? "GTI · Global tension" : "GTI · 글로벌 긴장지수"}
+                      {en ? "GTS · Global tension" : "GTS · 글로벌 긴장 점수"}
                     </p>
                     <p className="mt-0.5 text-micro text-slate-500">
                       {band ? gtiBandLabel(band, !en) : null}

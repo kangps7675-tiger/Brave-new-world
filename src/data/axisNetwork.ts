@@ -5,6 +5,9 @@
 
 export type AxisHubId = "IRN" | "CHN" | "RUS" | "PRK";
 
+/** 지정학 vs 지경학 뷰어 — hybrid 등 양쪽 성격 관계의 표시 렌즈 */
+export type AxisEdgeLens = "conflict" | "economy";
+
 /** 관계 성격 — 지도 호 스타일·필터용 */
 export type AxisRelationKind =
   | "patronage" // 후원·안보 동맹
@@ -27,6 +30,8 @@ export type AxisEdge = {
   a: string;
   b: string;
   kind: AxisRelationKind;
+  /** hybrid 등 — 지정학/지경학 중 어느 창에 둘지 (없으면 kind 기본값) */
+  lens?: AxisEdgeLens;
   /** 어느 허브 렌즈에 속하는지 (양방향이면 양쪽) */
   hubs: AxisHubId[];
   labelKo: string;
@@ -138,6 +143,7 @@ function edge(
   hubs: AxisHubId[],
   labelKo: string,
   labelEn: string,
+  lens?: AxisEdgeLens,
 ): AxisEdge {
   const [x, y] = a < b ? [a, b] : [b, a];
   return {
@@ -145,10 +151,32 @@ function edge(
     a: x,
     b: y,
     kind,
+    ...(lens ? { lens } : {}),
     hubs,
     labelKo,
     labelEn,
   };
+}
+
+const KIND_DEFAULT_LENS: Record<AxisRelationKind, AxisEdgeLens> = {
+  patronage: "conflict",
+  arms: "conflict",
+  diplomatic: "conflict",
+  energy: "economy",
+  hybrid: "conflict",
+};
+
+/** 관계 종류 + edge.lens → 지정학(conflict) 또는 지경학(economy) 창 */
+export function axisEdgeLens(edge: AxisEdge): AxisEdgeLens {
+  return edge.lens ?? KIND_DEFAULT_LENS[edge.kind];
+}
+
+export function axisEdgeVisibleInViewer(
+  edge: AxisEdge,
+  viewerMode: "conflict" | "economy",
+): boolean {
+  const lens = axisEdgeLens(edge);
+  return viewerMode === "economy" ? lens === "economy" : lens === "conflict";
 }
 
 /**
@@ -180,13 +208,14 @@ export const AXIS_EDGES: readonly AxisEdge[] = [
   edge("CHN", "PAK", "patronage", ["CHN"], "중–파키스탄 CPEC", "China–Pakistan CPEC"),
   edge("CHN", "SAU", "energy", ["CHN"], "중–사우디 에너지·위안", "China–Saudi energy"),
   edge("CHN", "ARE", "diplomatic", ["CHN"], "중–UAE 금융·물류", "China–UAE finance/logistics"),
-  edge("CHN", "MMR", "hybrid", ["CHN"], "중–미얀마 국경·자원", "China–Myanmar border/resources"),
+  edge("CHN", "MMR", "energy", ["CHN"], "중–미얀마 희토류·CMEC 자원회랑", "China–Myanmar rare-earth/CMEC corridor", "economy"),
+  edge("CHN", "MMR", "hybrid", ["CHN"], "중–미얀마 국경 민병대·스캠단속 공조", "China–Myanmar border militia leverage & scam crackdown", "conflict"),
   edge("CHN", "IRN", "energy", ["CHN", "IRN"], "중–이란 원유·제재회피", "China–Iran oil/sanctions"),
 
   // —— 이란 스포크 (중동) ——
   edge("IRN", "SYR", "patronage", ["IRN"], "이란–시리아 축", "Iran–Syria axis"),
   edge("IRN", "IRQ", "patronage", ["IRN"], "이란–이라크 영향권", "Iran–Iraq influence"),
-  edge("IRN", "LBN", "hybrid", ["IRN"], "이란–레바논(헤즈볼라)", "Iran–Lebanon (Hezbollah)"),
+  edge("IRN", "LBN", "hybrid", ["IRN"], "이란–레바논(헤즈볼라)", "Iran–Lebanon (Hezbollah)", "conflict"),
   edge("IRN", "YEM", "arms", ["IRN"], "이란–예멘(후티) 군수", "Iran–Yemen (Houthi) arms"),
 
   // —— 북한 스포크 ——
@@ -195,12 +224,12 @@ export const AXIS_EDGES: readonly AxisEdge[] = [
   edge("PRK", "YEM", "arms", ["PRK"], "북–예멘 무기 흐름", "DPRK–Yemen arms flows"),
   edge("PRK", "CUB", "diplomatic", ["PRK"], "북–쿠바 체제 연대", "DPRK–Cuba solidarity"),
   edge("PRK", "VEN", "diplomatic", ["PRK"], "북–베네수엘라 연대", "DPRK–Venezuela ties"),
-  edge("PRK", "IRN", "hybrid", ["PRK", "IRN"], "북–이란 하이브리드·군수", "DPRK–Iran hybrid/arms"),
+  edge("PRK", "IRN", "hybrid", ["PRK", "IRN"], "북–이란 하이브리드·군수", "DPRK–Iran hybrid/arms", "conflict"),
 
   // —— 하이브리드·우회 (허브 간 강조) ——
-  edge("RUS", "IRN", "hybrid", ["RUS", "IRN"], "러–이란 제재회피·암시장", "Russia–Iran sanctions evasion"),
-  edge("RUS", "PRK", "hybrid", ["RUS", "PRK"], "러–북 군수·노동·사이버", "Russia–DPRK hybrid logistics"),
-  edge("CHN", "RUS", "hybrid", ["CHN", "RUS"], "중–러 이중용도·결제우회", "China–Russia dual-use/finance"),
+  edge("RUS", "IRN", "hybrid", ["RUS", "IRN"], "러–이란 제재회피·암시장", "Russia–Iran sanctions evasion", "economy"),
+  edge("RUS", "PRK", "hybrid", ["RUS", "PRK"], "러–북 군수·노동·사이버", "Russia–DPRK hybrid logistics", "conflict"),
+  edge("CHN", "RUS", "hybrid", ["CHN", "RUS"], "중–러 이중용도·결제우회", "China–Russia dual-use/finance", "economy"),
 ];
 
 /** 축 정렬 블록 — 이벤트 분류용 (허브+주요 스포크) */
@@ -257,23 +286,24 @@ export function isAxisHub(code: string | null | undefined): code is AxisHubId {
   return Boolean(code && AXIS_HUB_CODES.has(code as AxisHubId));
 }
 
-export function edgesForHub(hub: AxisHubId | "all"): AxisEdge[] {
+export function edgesForHub(
+  hub: AxisHubId | "all",
+  viewerMode: "conflict" | "economy" = "conflict",
+): AxisEdge[] {
+  const visible = AXIS_EDGES.filter((e) => axisEdgeVisibleInViewer(e, viewerMode));
   if (hub === "all") {
-    // 동일 a-b 중복 kind는 지도에서 하나로 — patronage/arms 우선
+    // 동일 a-b 중복 kind는 지도에서 하나로 — patronage/arms 우선 (렌즈별)
     const seen = new Map<string, AxisEdge>();
-    const rank: Record<AxisRelationKind, number> = {
-      patronage: 0,
-      arms: 1,
-      hybrid: 2,
-      energy: 3,
-      diplomatic: 4,
-    };
-    for (const e of AXIS_EDGES) {
+    const rank: Record<AxisRelationKind, number> =
+      viewerMode === "economy"
+        ? { energy: 0, hybrid: 1, diplomatic: 2, patronage: 3, arms: 4 }
+        : { patronage: 0, arms: 1, hybrid: 2, energy: 3, diplomatic: 4 };
+    for (const e of visible) {
       const key = `${e.a}|${e.b}`;
       const prev = seen.get(key);
       if (!prev || rank[e.kind] < rank[prev.kind]) seen.set(key, e);
     }
     return [...seen.values()];
   }
-  return edgesForHub("all").filter((e) => e.hubs.includes(hub));
+  return edgesForHub("all", viewerMode).filter((e) => e.hubs.includes(hub));
 }

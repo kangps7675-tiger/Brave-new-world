@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T16:12:19.577Z",
+  "generatedAt": "2026-09-01T17:26:20.656Z",
   "source": "Eurostat rail_go_intgong (official API, ec.europa.eu)",
   "worldSource": "scripts/data/eurostat/rail_go_intgong_world.csv (Data Browser, c_unload=WORLD)",
   "caveat": "EU/EFTA 보고국 → 파트너국(양하국) 방향만 존재 — CRINK 내부 축(EU 미포함) 흐름은 이 데이터셋에 없음. shareOfWorld = 양자/WORLD 총량.",

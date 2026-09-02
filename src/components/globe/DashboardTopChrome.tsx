@@ -2,7 +2,6 @@
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
-import { GlobeSpinToggle } from "@/components/GlobeSpinToggle";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { BasemapModeToggle } from "@/components/BasemapModeToggle";
@@ -42,12 +41,7 @@ export interface DashboardTopChromeProps {
   wtiSnapshot: WorldTensionSnapshot | null;
   wtiFetchedAt: string | null;
   showGscpiGauge: boolean;
-  globeSpinEnabled: boolean;
-  setGlobeSpinEnabled: Dispatch<SetStateAction<boolean>>;
-  /** 좌하단 텔레그램 OSINT 미니 패널 — 켜지면 자전 토글을 그 위로 밀어 올린다 */
-  telegramMiniPanelVisible?: boolean;
-  /** GTI 일일 패널이 열려 있으면 좌하단 자전 토글은 숨김(겹침 방지) */
-  showDailyRankPanel?: boolean;
+  showSesChip?: boolean;
   handleNavNavigate: (selection: NavSelection) => void;
   liveUpdatedAt: string | null;
   dataGeneratedAt: string | null;
@@ -104,7 +98,7 @@ export interface DashboardTopChromeProps {
   setShowFeatureGuide: Dispatch<SetStateAction<boolean>>;
 }
 
-/** GlobeDashboard 상단 크롬 — ModeGlobalIndexChip · GlobeSpinToggle · HoverNav(compactMenuExtra 포함).
+/** GlobeDashboard 상단 크롬 — ModeGlobalIndexChip · HoverNav(compactMenuExtra 포함).
  *  동작 변경 없이 JSX만 이동 — intelSheetOpen/entryGate/showModePicker 조건부 래핑은 그대로 유지됨. */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -115,10 +109,7 @@ export function DashboardTopChrome({
   wtiSnapshot,
   wtiFetchedAt,
   showGscpiGauge,
-  globeSpinEnabled,
-  setGlobeSpinEnabled,
-  telegramMiniPanelVisible = false,
-  showDailyRankPanel = false,
+  showSesChip = true,
   handleNavNavigate,
   liveUpdatedAt,
   dataGeneratedAt,
@@ -190,27 +181,9 @@ export function DashboardTopChrome({
           wtiAsOf={wtiFetchedAt}
           wtiIsEstimate={wtiSnapshot?.method === "theater-blend-fallback"}
           showGscpi={showGscpiGauge}
+          showSesChip={showSesChip}
           dense={isCompactUi || isTabletUi}
         />
-      ) : null}
-      {chromeVisible && !intelSheetOpen && !showDailyRankPanel ? (
-        <div
-          className={`pointer-events-none fixed left-3 sm:left-4 ${
-            telegramMiniPanelVisible ? "z-[600]" : "z-[200]"
-          }`}
-          style={{
-            // 텔레그램 미니 패널(bottom 1.25rem · 리스트 max min(52vh,480px) · 헤더/푸터) 위로
-            bottom: telegramMiniPanelVisible
-              ? "calc(min(52vh, 480px) + 8.5rem + env(safe-area-inset-bottom, 0px))"
-              : "calc(var(--bottom-intel-stack-clearance, 3.25rem) + 0.85rem + env(safe-area-inset-bottom, 0px))",
-          }}
-        >
-          <GlobeSpinToggle
-            spinning={globeSpinEnabled}
-            onToggle={() => setGlobeSpinEnabled((v) => !v)}
-            lang={labelLanguage}
-          />
-        </div>
       ) : null}
       <HoverNav
         viewerMode={viewerMode}

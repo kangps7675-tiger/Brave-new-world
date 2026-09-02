@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  GTS,
   GTI_BLEND,
   blendTheaterScoresToGti,
   displayGtiDelta,
   displayGtiScore,
   formatGtiBriefingLead,
   formatGtiDeltaLabel,
+  formatGtiTitle,
+  gtiMethodologyProseShort,
+  gtiPredictQuestion,
   normalizeGtiScore,
   analystTierLabel,
 } from "@/lib/gti";
@@ -32,7 +36,7 @@ function theater(score: number, delta: number | null = null): DailyRankEntry {
   };
 }
 
-describe("GTI display single source", () => {
+describe("GTS display single source", () => {
   it("displayGtiScore is integer 0–100 everywhere", () => {
     expect(displayGtiScore(56.4)).toBe(56);
     expect(displayGtiScore(56.5)).toBe(57);
@@ -89,5 +93,13 @@ describe("GTI display single source", () => {
     expect(analystTierLabel("chief", true)).toBe("수석 관측자");
     expect(analystTierLabel("rookie", false)).toBe("Observer");
     expect(analystTierLabel("chief", false)).toBe("Lead observer");
+  });
+
+  it("GTS brand ticker and predict copy", () => {
+    expect(GTS.ticker).toBe("GTS");
+    expect(formatGtiTitle(true)).toContain("GTS");
+    const q = gtiPredictQuestion();
+    expect(q.ko).toContain("GTS");
+    expect(gtiMethodologyProseShort("ko")).toContain("IEP");
   });
 });

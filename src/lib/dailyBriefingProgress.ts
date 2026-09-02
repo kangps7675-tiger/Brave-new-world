@@ -89,8 +89,8 @@ export const BRIEFING_STEP_LABELS: Record<
   BriefingStepId,
   { ko: string; en: string }
 > = {
-  gti: { ko: "GTI 확인", en: "Check GTI" },
-  predict: { ko: "긴장 예측", en: "Tension pick" },
+  gti: { ko: "GTS 확인", en: "Check GTS" },
+  predict: { ko: "GTS 감각 연습", en: "GTS intuition" },
   layer: { ko: "레이어 조정", en: "Tweak layers" },
   intel: { ko: "인텔 열기", en: "Open intel" },
   share: { ko: "카드 공유", en: "Share card" },

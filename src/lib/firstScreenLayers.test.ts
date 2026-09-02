@@ -5,20 +5,34 @@ import { DEFAULT_LAYER_PREFS } from "@/lib/layerPrefs";
 import { mergeChromeLayers, stripEconomyGeopoliticsPatch } from "@/lib/viewerChrome";
 
 describe("첫 화면 Compact 장면", () => {
-  it("자동 전장은 기지·텔레그램을 켜지 않는다", () => {
+  it("자동 전장은 미군·한일대만필호·동유럽 기지와 CRINK OSM·항로를 켠다", () => {
     const patch = conceptLayersForConflict("auto");
     expect(patch.showUkraineControl).toBe(true);
     expect(patch.showNeptun).toBe(true);
-    expect(patch.showMilitaryBases).toBeUndefined();
+    expect(patch.showMilitaryBases).toBe(true);
+    expect(patch.showRokMilitaryBases).toBe(true);
+    expect(patch.showJapanMilitaryBases).toBe(true);
+    expect(patch.showTaiwanMilitaryBases).toBe(true);
+    expect(patch.showPhilippinesMilitaryBases).toBe(true);
+    expect(patch.showAustraliaMilitaryBases).toBe(true);
+    expect(patch.showEasternNatoMilitaryBases).toBe(true);
+    expect(patch.showShippingLanes).toBe(true);
+    expect(patch.showCrinkInfraRail).toBe(true);
     expect(patch.showTelegramOsint).toBeUndefined();
   });
 
-  it("지정학 크롬이 한·일·NATO 기지를 강제 ON 하지 않는다", () => {
+  it("지정학 크롬이 한·일·대만·필·호·NATO·미군 기지를 켠다", () => {
     const next = mergeChromeLayers(DEFAULT_LAYER_PREFS, "conflict");
     expect(next.showUkraineControl).toBe(true);
-    expect(next.showRokMilitaryBases).toBe(false);
-    expect(next.showJapanMilitaryBases).toBe(false);
-    expect(next.showEasternNatoMilitaryBases).toBe(false);
+    expect(next.showRokMilitaryBases).toBe(true);
+    expect(next.showJapanMilitaryBases).toBe(true);
+    expect(next.showTaiwanMilitaryBases).toBe(true);
+    expect(next.showPhilippinesMilitaryBases).toBe(true);
+    expect(next.showAustraliaMilitaryBases).toBe(true);
+    expect(next.showEasternNatoMilitaryBases).toBe(true);
+    expect(next.showMilitaryBases).toBe(true);
+    expect(next.showShippingLanes).toBe(true);
+    expect(next.showCrinkInfraRail).toBe(true);
     expect(next.showTelegramOsint).toBe(false);
   });
 

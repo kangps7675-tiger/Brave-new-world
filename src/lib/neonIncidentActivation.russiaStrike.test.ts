@@ -93,4 +93,21 @@ describe("activateRussiaStrikeIncidents", () => {
     );
     expect(out.every((o) => o.id.startsWith("seed-ru-"))).toBe(true);
   });
+
+  it("표적 지명은 맞지만 앵커 밖이면 live-only", () => {
+    const out = activateRussiaStrikeIncidents(
+      [
+        ev({
+          id: "far-moscow",
+          lat: 62,
+          lng: 50,
+          title: "Ukrainian drones strike Moscow region oil depot",
+          sourceUrl: "https://example.com/gdelt-moscow",
+        }),
+      ],
+      NOW,
+    );
+    const liveOnly = out.find((o) => o.id === "live-ru-far-moscow");
+    expect(liveOnly?.provenance).toBe("live-only");
+  });
 });

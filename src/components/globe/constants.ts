@@ -138,6 +138,8 @@ export const INTRO_CAMERA_DURATION_MS = 2200;
 export const INTRO_CAMERA_DELAY_MS = 900;
 export const INTRO_SESSION_KEY = "cv-intro-seen";
 export const WELCOME_GATE_KEY = "geowatch-welcome-gate-v1";
+/** 데이터 출처 양피지 확인 — 도메인·등불 직전 */
+export const SOURCES_GATE_KEY = "geowatch-sources-gate-v1";
 /** 유저가 EN/KO를 한 번이라도 확정했는지 — 등불 직전 게이트 */
 export const LANG_CHOICE_KEY = "geowatch-lang-choice-v1";
 

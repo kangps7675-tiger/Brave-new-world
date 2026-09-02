@@ -52,14 +52,8 @@ export function PeriodicBriefingParchment({
   onDismiss,
   onFlyToForgottenWarning,
 }: PeriodicBriefingParchmentProps) {
-  const isConflictLamp = /-conflict(?:$|-)/.test(briefing.key);
-  const isEconomyLamp = /-economy(?:$|-)/.test(briefing.key);
-  const isWeeklyRecap = isWeeklyRecapBriefingKey(briefing.key);
-  /** 모드 등불·월요일 회고는 항상 사진 데스크 — 라이브 카드가 아직 없어도 셸로 연다 */
+  /** 사진·거시 카드가 있을 때만 사진 데스크 — 빈 셸은 띄우지 않음 */
   const isPhotoLamp =
-    isWeeklyRecap ||
-    isConflictLamp ||
-    isEconomyLamp ||
     (briefing.featuredNews && briefing.featuredNews.length > 0) ||
     (briefing.macroTable && briefing.macroTable.length > 0);
 

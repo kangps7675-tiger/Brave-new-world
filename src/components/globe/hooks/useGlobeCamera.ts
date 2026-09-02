@@ -13,12 +13,11 @@ import {
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import type { NavSelection, RegionBBox } from "@/data/navRegions";
 import type { GlobeSize, ViewState } from "@/components/globe/types";
-import { ENTRY_GATE } from "@/lib/entryOverview";
+import { entryOrbitCamera } from "@/lib/entryOverview";
 import {
   clampGlobeAltitude,
   globeDistanceForAltitude,
   MIN_GLOBE_ALTITUDE,
-  GLOBAL_ORBIT_MAX_ALTITUDE,
   COMPACT_THEATER_MAX_SPAN_DEG,
   ORBITAL_OVERVIEW_ALTITUDE,
   THEATER_ENTRY_MIN_ALTITUDE,
@@ -42,14 +41,13 @@ import { getGlobeLod, type GlobeLodTier } from "@/lib/globeLod";
 import { getStableLodTier } from "@/components/globe/htmlOverlayPointerEvents";
 import { clamp, longitudeDistance } from "@/components/globe/formatters";
 import { isInUkraineTheater } from "@/lib/ukraineSettlementLabels";
+import { globeOrbitMaxAltitude } from "@/lib/globeFillScreen";
 
 export interface UseGlobeCameraOptions {
   globeRef: RefObject<MapGlobeMethods | null>;
   size: GlobeSize;
   globeReady: boolean;
   setGlobeReady: (v: boolean) => void;
-  globeSpinEnabled: boolean;
-  globeSpinEnabledRef: MutableRefObject<boolean>;
   historyImmersionRef: MutableRefObject<boolean>;
   historyImmersionActive: boolean;
   historyEpisodeActive: boolean;
@@ -100,20 +98,19 @@ export function useGlobeCamera({
   size,
   globeReady,
   setGlobeReady,
-  globeSpinEnabled,
-  globeSpinEnabledRef,
   historyImmersionRef,
   historyImmersionActive,
   historyEpisodeActive,
 }: UseGlobeCameraOptions): UseGlobeCameraResult {
+  const bootOrbit = entryOrbitCamera(size);
   const configuredGlobe = useRef(false);
   const lastViewUpdateAt = useRef(0);
   const lastFilterCenterUpdateAt = useRef(0);
   const layerCenterRef = useRef<{ lat: number; lng: number }>({
-    lat: ENTRY_GATE.bootLookAt.lat,
-    lng: ENTRY_GATE.bootLookAt.lng,
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
   });
-  const layerAltitudeRef: { current: number } = useRef(ENTRY_GATE.bootAltitude);
+  const layerAltitudeRef: { current: number } = useRef(bootOrbit.altitude);
   const layerLodTierRef = useRef<GlobeLodTier>("global");
   const moveIdleTimerRef = useRef<number | null>(null);
   const renderStabilizeIdleRef = useRef<number | null>(null);
@@ -131,15 +128,15 @@ export function useGlobeCamera({
   } | null>(null);
 
   const [viewState, setViewState] = useState<ViewState>({
-    lat: ENTRY_GATE.bootLookAt.lat,
-    lng: ENTRY_GATE.bootLookAt.lng,
-    altitude: ENTRY_GATE.bootAltitude,
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
+    altitude: bootOrbit.altitude,
   });
   const [filterCenter, setFilterCenter] = useState<{ lat: number; lng: number }>({
-    lat: ENTRY_GATE.bootLookAt.lat,
-    lng: ENTRY_GATE.bootLookAt.lng,
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
   });
-  const [layerAltitude, setLayerAltitude] = useState<number>(ENTRY_GATE.bootAltitude);
+  const [layerAltitude, setLayerAltitude] = useState<number>(bootOrbit.altitude);
   const [isCameraMoving, setIsCameraMoving] = useState(false);
 
   useEffect(() => {
@@ -161,13 +158,13 @@ export function useGlobeCamera({
     if (!globe) return;
 
     configuredGlobe.current = true;
-    // 로딩 시점부터 줌아웃된 궤도 (ENTRY_GATE 하드코딩)
+    const orbit = entryOrbitCamera(size);
     globe.pointOfView(
       {
-        lat: ENTRY_GATE.bootLookAt.lat,
-        lng: ENTRY_GATE.bootLookAt.lng,
-        altitude: ENTRY_GATE.bootAltitude,
-        pitch: ENTRY_GATE.bootPitch,
+        lat: orbit.lat,
+        lng: orbit.lng,
+        altitude: orbit.altitude,
+        pitch: orbit.pitch,
       },
       0,
     );
@@ -177,9 +174,9 @@ export function useGlobeCamera({
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = globeDistanceForAltitude(MIN_GLOBE_ALTITUDE);
-    controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
-    controls.autoRotateSpeed = 0.18;
-    controls.autoRotate = globeSpinEnabledRef.current;
+    controls.maxDistance = globeDistanceForAltitude(
+      globeOrbitMaxAltitude(size.width, size.height),
+    );
     // controls()는 더 이상 apply하지 않음 — 로드 직후 한계를 한 번 더 심는다
     globe.applyControls();
 
@@ -277,9 +274,6 @@ export function useGlobeCamera({
       camera?: { pitch?: number; bearing?: number },
     ) => {
       const clampedAlt = clampGlobeAltitude(altitude);
-      const controls = globeRef.current?.controls();
-      if (controls) controls.autoRotate = false;
-
       pendingFlyTargetRef.current = {
         lat,
         lng,
@@ -320,10 +314,6 @@ export function useGlobeCamera({
         if (!pov) {
           isCameraMovingRef.current = false;
           setIsCameraMoving(false);
-          if (globeSpinEnabledRef.current) {
-            const c = globeRef.current?.controls();
-            if (c) c.autoRotate = true;
-          }
           return;
         }
         const nextAlt = clampGlobeAltitude(pov.altitude);
@@ -342,10 +332,6 @@ export function useGlobeCamera({
           if (cameraIdleClearBlocked(Date.now(), cameraTweenUntilRef.current)) return;
           isCameraMovingRef.current = false;
           setIsCameraMoving(false);
-          if (globeSpinEnabledRef.current) {
-            const c = globeRef.current?.controls();
-            if (c) c.autoRotate = true;
-          }
         }, CAMERA_IDLE_DEBOUNCE_MS);
       }, busyMs);
     },
@@ -467,7 +453,6 @@ export function useGlobeCamera({
       controls.enableZoom = true;
       controls.enablePan = !historyEpisodeActive;
       controls.enableRotate = !historyEpisodeActive;
-      controls.autoRotate = false;
       const pov = globe.pointOfView();
       if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE + 0.025) {
         globe.pointOfView(
@@ -476,33 +461,20 @@ export function useGlobeCamera({
         );
       }
     } else {
-      controls.maxDistance = globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE);
+      controls.maxDistance = globeDistanceForAltitude(
+        globeOrbitMaxAltitude(size.width, size.height),
+      );
       controls.enableZoom = true;
       controls.enablePan = true;
       controls.enableRotate = true;
-      controls.autoRotate = globeSpinEnabled;
     }
-  }, [globeReady, globeSpinEnabled, historyEpisodeActive, historyImmersionActive]);
-
-  useEffect(() => {
-    globeSpinEnabledRef.current = globeSpinEnabled;
-  }, [globeSpinEnabled]);
-
-  /** 자전 중에도 뷰포트 필터가 너무 오래 굳지 않게 가끔 중심만 동기화 */
-  useEffect(() => {
-    if (!globeReady || !globeSpinEnabled) return;
-    const id = window.setInterval(() => {
-      const pov = globeRef.current?.pointOfView();
-      if (!pov) return;
-      const prev = layerCenterRef.current;
-      if (Math.abs(pov.lat - prev.lat) < 0.05 && Math.abs(pov.lng - prev.lng) < 0.05) {
-        return;
-      }
-      layerCenterRef.current = { lat: pov.lat, lng: pov.lng };
-      setFilterCenter({ lat: pov.lat, lng: pov.lng });
-    }, 2800);
-    return () => window.clearInterval(id);
-  }, [globeReady, globeSpinEnabled]);
+  }, [
+    globeReady,
+    historyEpisodeActive,
+    historyImmersionActive,
+    size.height,
+    size.width,
+  ]);
 
   return {
     configuredGlobe,

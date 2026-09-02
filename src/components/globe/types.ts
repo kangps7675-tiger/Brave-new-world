@@ -21,6 +21,7 @@ import type { ChinaTheaterIncident } from "@/data/chinaTheaterIncidentsSeed";
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import type { RussiaStrikeIncident } from "@/data/russiaStrikeIncidentsSeed";
 import type { EuropeDroneIncident } from "@/data/europeDroneIncursionSeed";
+import type { ProvenanceFields } from "@/lib/neonIncidentActivation";
 import type { SituationCallout } from "@/data/situationCalloutTypes";
 import type { MissileBeltArea } from "@/data/koreaMissileBeltSeed";
 import type { FirmsSoundKind } from "@/lib/firmsSoundClassify";
@@ -211,22 +212,26 @@ export type UkraineTheaterIntensityGlobePoint = {
   hapiTag?: string | null;
 };
 
-export type ChinaTheaterIncidentHtmlMarker = ChinaTheaterIncident & {
+export type ChinaTheaterIncidentHtmlMarker = ChinaTheaterIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "china-theater-incident";
 };
 
-export type KoreaMissileIncidentHtmlMarker = KoreaMissileIncident & {
+export type KoreaMissileIncidentHtmlMarker = KoreaMissileIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "korea-missile-incident";
 };
 
-export type RussiaStrikeIncidentHtmlMarker = RussiaStrikeIncident & {
+export type RussiaStrikeIncidentHtmlMarker = RussiaStrikeIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "russia-strike-incident";
 };
 
-export type EuropeDroneIncidentHtmlMarker = EuropeDroneIncident & {
+export type EuropeDroneIncidentHtmlMarker = EuropeDroneIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "europe-drone-incident";
 };
@@ -464,7 +469,14 @@ export type ViewState = {
 };
 
 /** 로딩→환영→도메인→확 줌아웃→세부. 입·출구(1회), 로테이션 아님. */
-export type EntryGate = "caution" | "welcome" | "domain" | "overview" | "mode" | null;
+export type EntryGate =
+  | "caution"
+  | "welcome"
+  | "sources"
+  | "domain"
+  | "overview"
+  | "mode"
+  | null;
 
 export type GlobeDashboardProps = {
   viinaMeta?: ViinaRenderMeta | null;

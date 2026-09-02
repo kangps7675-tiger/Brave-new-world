@@ -84,7 +84,6 @@ export type LayerPanelHostProps = {
 export function LayerPanelHost({
   isCompactUi,
   isTabletUi = false,
-  isDesktopWideUi = false,
   labelLanguage,
   layerPanelDirty,
   onConfirmDraft,
@@ -140,17 +139,13 @@ export function LayerPanelHost({
 }: LayerPanelHostProps) {
   /** 기본은 「레이어」 — 이 패널을 여는 이유의 대부분이다 (P1-3) */
   const [tab, setTab] = useState<LayerPanelTab>("layers");
-  const panelSizeClass = isTabletUi
-    ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)] w-[min(42vw,400px)]"
-    : isDesktopWideUi
-      ? "top-14 max-h-[calc(100vh-5rem)] w-[min(calc(100vw-2rem),420px)]"
-      : isCompactUi
-        ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)] w-[min(calc(100vw-1.5rem),340px)]"
-        : "top-14 max-h-[calc(100vh-5rem)] w-[min(calc(100vw-1.5rem),360px)]";
+  const panelLayoutClass = isTabletUi || isCompactUi
+    ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)]"
+    : "top-14 max-h-[calc(100vh-5rem)]";
 
   return (
     <aside
-      className={`intel-panel intel-scroll-y pointer-events-auto absolute left-3 z-[600] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelSizeClass}`}
+      className={`intel-panel intel-sidebar-left intel-scroll-y pointer-events-auto absolute left-3 z-[600] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelLayoutClass}`}
     >
       {layerPanelDirty ? (
         <div

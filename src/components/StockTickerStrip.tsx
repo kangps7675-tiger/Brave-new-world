@@ -16,13 +16,6 @@ import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { emitTickerTelegraphSound } from "@/components/SoundEffectsBridge";
-import {
-  evaluateSpikeTelegraphFire,
-  pickDatabentoSpikeLeader,
-  type SpikeArmState,
-  type TickerSpikeCandidate,
-} from "@/lib/tickerSpikeTelegraph";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -51,10 +44,6 @@ export type StockTickerStripProps = {
   showHeader?: boolean;
   /** 카메라 이동 중 폴링·CSS 스크롤 정지 */
   paused?: boolean;
-  /** 지경학 Databento SPIKE 재진입 시 (소리·토스트와 동일 게이트) */
-  onSpikeDispatch?: (candidate: TickerSpikeCandidate) => void;
-  /** 뉴스 인사이트 등 — 전보음만 끄고 콜백은 유지 */
-  muteTelegraphSound?: boolean;
 };
 
 function orderStripSymbols(
@@ -198,18 +187,12 @@ export function StockTickerStrip({
   alertTone,
   showHeader = false,
   paused = false,
-  onSpikeDispatch,
-  muteTelegraphSound = false,
 }: StockTickerStripProps) {
   const { lang } = useLocale();
   const [tickers, setTickers] = useState<StockTickerItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
-  const onSpikeDispatchRef = useRef(onSpikeDispatch);
-  onSpikeDispatchRef.current = onSpikeDispatch;
-  const muteTelegraphSoundRef = useRef(muteTelegraphSound);
-  muteTelegraphSoundRef.current = muteTelegraphSound;
 
   const orderedSymbols = useMemo(
     () => orderStripSymbols(highlightSymbols, viewerMode),
@@ -217,7 +200,6 @@ export function StockTickerStrip({
   );
 
   const highlightSet = useMemo(() => new Set(highlightSymbols), [highlightSymbols]);
-  const spikeArmRef = useRef<SpikeArmState>({ armed: false, lastFiredAt: 0 });
 
   const refresh = useCallback(async () => {
     if (pausedRef.current) return;
@@ -239,20 +221,6 @@ export function StockTickerStrip({
     const timer = window.setInterval(() => void refresh(), liveTickerPollMs());
     return () => window.clearInterval(timer);
   }, [refresh]);
-
-  // Databento 선물 SPIKE → 전보음 + 토스트 (지경학 · 쿨다운 · 재진입)
-  useEffect(() => {
-    if (viewerMode !== "economy") return;
-    if (!tickers?.length) return;
-    const leader = pickDatabentoSpikeLeader(tickers);
-    const result = evaluateSpikeTelegraphFire(leader != null, spikeArmRef.current, Date.now());
-    spikeArmRef.current = result.next;
-    if (!result.fire || !leader) return;
-    if (!muteTelegraphSoundRef.current) {
-      emitTickerTelegraphSound(leader.direction);
-    }
-    onSpikeDispatchRef.current?.(leader);
-  }, [tickers, viewerMode]);
 
   const stripTitle =
     viewerMode === "economy"

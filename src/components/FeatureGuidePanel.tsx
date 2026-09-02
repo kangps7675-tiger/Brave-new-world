@@ -13,6 +13,8 @@ type FeatureGuidePanelProps = {
   onClose: () => void;
   /** 첫 방문 1~10 투어 다시 보기 */
   onRestartTour?: () => void;
+  onOpenSources?: () => void;
+  onOpenParchment?: () => void;
 };
 
 type GuideSection = {
@@ -30,6 +32,15 @@ function accountGuideSections(lang: LabelLanguage): GuideSection[] {
 }
 
 const GUIDE_SECTIONS_KO: GuideSection[] = [
+  {
+    title: "개인용 인텔리전스 터미널",
+    steps: [
+      "한 화면에 지정학·지경학 신호를 겹쳐 보는 개인용 관측 도구입니다. 기관 전용 블룸버그·팔란티어와 같은 ‘밀도’를, 공개 OSINT만으로 만듭니다.",
+      "우상단 GTS(글로벌 긴장 점수)는 오늘 세계가 평소보다 얼마나 시끄러운지 한 숫자로 요약합니다. IEP 테러 지수(GTI)와 다릅니다.",
+      "≡ → 데이터 출처·출처 양피지(8개 책갈피)에서 레이어별 재료·한계·데모 데이터를 먼저 읽을 수 있습니다. 지도 하단 「데이터 출처」「출처 안내서」에서도 열립니다.",
+      "GTS 감각 연습(UP/DOWN)은 페이퍼 트레이딩처럼 ‘내 판단 vs 지표’를 연습하는 장치입니다. 공습·인명 예측이 아닙니다.",
+    ],
+  },
   {
     title: "빠른 시작",
     steps: [
@@ -127,6 +138,15 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
 
 const GUIDE_SECTIONS_EN: GuideSection[] = [
   {
+    title: "Personal intelligence terminal",
+    steps: [
+      "One screen to stack geopolitics and geoeconomics signals — institutional-grade density for individuals, built from public OSINT only.",
+      "Top-right GTS (Global Tension Score) summarizes how loud conflict zones are today vs baseline. Not the IEP Global Terrorism Index (GTI).",
+      "≡ → Sources lists layer provenance, limits, and how GTS is built. Transparency is part of the product promise.",
+      "GTS intuition (UP/DOWN) is paper-trading for your read vs the index — not a raid or casualty forecast.",
+    ],
+  },
+  {
     title: "Quick start",
     steps: [
       "Drag to rotate the globe, scroll to zoom. Double-click empty ocean to zoom into that point.",
@@ -223,6 +243,13 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
 
 const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
+    title: "지경학 데스크",
+    steps: [
+      "같은 터미널의 다른 창입니다. 지정학 창(GTS·전선)과 짝을 이루며, 에너지·물류·제재·초크포인트를 봅니다.",
+      "공급망 TOP 5·GSCPI·PortWatch 등은 ‘돈과 물류가 어디서 막히는가’를 읽는 축입니다.",
+    ],
+  },
+  {
     title: "빠른 시작",
     steps: [
       "드래그·줌으로 지구본을 탐색합니다.",
@@ -275,6 +302,13 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
 ];
 
 const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Geoeconomics desk",
+    steps: [
+      "The other desk in the same terminal — pairs with the geopolitics window (GTS, fronts) for energy, logistics, sanctions, and chokepoints.",
+      "Supply-chain TOP 5, GSCPI, PortWatch: where money and cargo get stuck.",
+    ],
+  },
   {
     title: "Quick start",
     steps: [
@@ -332,6 +366,8 @@ export function FeatureGuidePanel({
   viewerMode = "conflict",
   onClose,
   onRestartTour,
+  onOpenSources,
+  onOpenParchment,
 }: FeatureGuidePanelProps) {
   const { lang } = useLocale();
   const en = lang === "en";
@@ -376,6 +412,38 @@ export function FeatureGuidePanel({
           </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {onOpenSources || onOpenParchment ? (
+            <div className="space-y-2">
+              {onOpenParchment ? (
+                <button
+                  type="button"
+                  onClick={onOpenParchment}
+                  className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+                >
+                  {en ? "Source parchment (8 bookmarks) →" : "데이터 출처 양피지 (8개 책갈피) →"}
+                  <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
+                    {en
+                      ? "Honest inventory — what is real, demo, or missing"
+                      : "진짜·데모·공백을 솔직히 정리한 안내서"}
+                  </span>
+                </button>
+              ) : null}
+              {onOpenSources ? (
+                <button
+                  type="button"
+                  onClick={onOpenSources}
+                  className="w-full rounded-xl border border-sky-300/25 bg-sky-500/10 px-3 py-2.5 text-left text-caption font-medium text-sky-50 transition hover:border-sky-200/40 hover:bg-sky-500/15"
+                >
+                  {en ? "Full sources catalog →" : "소스 카탈로그 · 라이선스 →"}
+                  <span className="mt-0.5 block text-micro font-normal text-sky-100/60">
+                    {en
+                      ? "Shipped layers, corridor pipeline, blocked demo data"
+                      : "운영 레이어 · 코리도 파이프라인 · 차단된 데모"}
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           {onRestartTour ? (
             <button
               type="button"

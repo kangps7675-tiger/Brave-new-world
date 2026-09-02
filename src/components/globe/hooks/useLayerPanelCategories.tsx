@@ -17,6 +17,8 @@ import { militaryBaseForceId, type MilitaryBaseForceId } from "@/lib/militaryBas
 import { localizeNewfeedsThreatLabel } from "@/lib/newfeedsI18n";
 import { isClientNeptunEnabled } from "@/lib/runtimeConfig.client";
 import { TELEGRAM_CHANNEL_COUNT } from "@/lib/telegramAlerts";
+import { SANCTIONS_ENTITY_SUMMARY } from "@/data/sourceCatalog";
+import { getCorridorRankPipelineStatus } from "@/lib/corridorRanks";
 import type GeoJSON from "geojson";
 
 export type UseLayerPanelCategoriesArgs = {
@@ -192,6 +194,11 @@ export type UseLayerPanelCategoriesArgs = {
   showAlliedLogisticsCorridors: boolean;
   alliedLogisticsCorridorPaths: unknown[];
   setShowAlliedLogisticsCorridors: (v: boolean) => void;
+  showSanctionsEvasionCorridors: boolean;
+  sanctionsEvasionCorridorPaths: unknown[];
+  setShowSanctionsEvasionCorridors: (v: boolean) => void;
+  showSesChip: boolean;
+  setShowSesChip: (v: boolean) => void;
   setShowStrategicCorridors: (v: boolean) => void;
   showShippingLanes: boolean;
   visibleShipping: unknown[];
@@ -471,6 +478,11 @@ export function useLayerPanelCategories({
   showAlliedLogisticsCorridors,
   alliedLogisticsCorridorPaths,
   setShowAlliedLogisticsCorridors,
+  showSanctionsEvasionCorridors,
+  sanctionsEvasionCorridorPaths,
+  setShowSanctionsEvasionCorridors,
+  showSesChip,
+  setShowSesChip,
   setShowStrategicCorridors,
   showShippingLanes,
   visibleShipping,
@@ -615,6 +627,11 @@ export function useLayerPanelCategories({
     const off = (count?: number) =>
       count && count > 0 ? `${count.toLocaleString()}곳 · 꺼짐` : "꺼짐";
     const zoom = globeLod.label;
+    const corridorPipe = getCorridorRankPipelineStatus();
+    const corridorRankHint =
+      labelLanguage === "en"
+        ? `PW${corridorPipe.portwatchHits}·rail${corridorPipe.railFreightHits}·CT${corridorPipe.comtradeHits}`
+        : `PW${corridorPipe.portwatchHits}·철도${corridorPipe.railFreightHits}·Comtrade${corridorPipe.comtradeHits}`;
     const milPts = visibleStaticPoints.filter((p) => p.kind === "military-base");
     const milForceCount = (force: MilitaryBaseForceId) =>
       milPts.filter((p) => militaryBaseForceId(p) === force).length;
@@ -965,8 +982,12 @@ export function useLayerPanelCategories({
             id: "axis-network",
             label: "CRINK 축",
             detail: showAxisNetwork
-              ? `연결 ${axisNetworkPaths.length.toLocaleString()} · 중·러·이·북 허브 · 외교·군수·하이브리드`
-              : "꺼짐 · 중·러·이·북 허브·관계선",
+              ? isEconomyViewer
+                ? `연결 ${axisNetworkPaths.length.toLocaleString()} · 에너지·제재회피 hybrid`
+                : `연결 ${axisNetworkPaths.length.toLocaleString()} · 외교·군수·하이브리드(군·대리)`
+              : isEconomyViewer
+                ? "꺼짐 · 에너지·제재회피 축"
+                : "꺼짐 · 중·러·이·북 허브·관계선",
             checked: layerPrefs.showAxisNetwork,
             onChange: setShowAxisNetwork,
             accent: "emerald",
@@ -1479,7 +1500,7 @@ export function useLayerPanelCategories({
                   id: "strategic-corridors",
                   label: "전략 물류 통로",
                   detail: showStrategicCorridors
-                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
+                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · ${corridorRankHint}`
                     : "꺼짐 · INSTC·미들 코리도·TSR 등",
                   checked: layerPrefs.showStrategicCorridors,
                   onChange: setShowStrategicCorridors,
@@ -1491,7 +1512,7 @@ export function useLayerPanelCategories({
                   id: "strategic-corridors",
                   label: "전략 물류 통로",
                   detail: showStrategicCorridors
-                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · LOD 정량랭크`
+                    ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · ${corridorRankHint}`
                     : "꺼짐 · INSTC·미들 코리도·TSR 등",
                   checked: layerPrefs.showStrategicCorridors,
                   onChange: setShowStrategicCorridors,
@@ -1506,6 +1527,25 @@ export function useLayerPanelCategories({
                   checked: layerPrefs.showAlliedLogisticsCorridors,
                   onChange: setShowAlliedLogisticsCorridors,
                   accent: "blue",
+                },
+                {
+                  id: "sanctions-evasion-corridors",
+                  label: "제재 회피 회랑",
+                  detail: showSanctionsEvasionCorridors
+                    ? `경로 ${sanctionsEvasionCorridorPaths.length.toLocaleString()} · 제재 회피 강도 지도 근거`
+                    : "꺼짐 · 섀도플릿·원유 프록시",
+                  checked: layerPrefs.showSanctionsEvasionCorridors,
+                  onChange: setShowSanctionsEvasionCorridors,
+                  accent: "amber",
+                },
+                {
+                  id: "ses-gauge",
+                  label: "제재 회피 강도",
+                  detail: showSesChip ? "우상단 제재 회피 강도 0~100" : "꺼짐",
+                  checked: layerPrefs.showSesChip,
+                  onChange: setShowSesChip,
+                  accent: "amber" as const,
+                  modes: ["conflict"] as Array<"conflict" | "economy">,
                 },
               ] satisfies LayerToggleItem[])),
           {
@@ -2106,7 +2146,13 @@ export function useLayerPanelCategories({
           {
             id: "sanctions",
             label: "제재 대상",
-            detail: showSanctionsEntities ? "제재 국가·기업" : "꺼짐",
+            detail: showSanctionsEntities
+              ? labelLanguage === "en"
+                ? `OFAC·UN ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()} · ${SANCTIONS_ENTITY_SUMMARY.withCoords} with coords`
+                : `OFAC·UN ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()}건 · 좌표 ${SANCTIONS_ENTITY_SUMMARY.withCoords}`
+              : labelLanguage === "en"
+                ? "Off"
+                : "꺼짐",
             checked: layerPrefs.showSanctionsEntities,
             onChange: setShowSanctionsEntities,
             accent: "fuchsia",
@@ -2171,6 +2217,8 @@ export function useLayerPanelCategories({
       "us-dfc-supply": ["economy"],
       "bri-trade": ["economy"],
       "strategic-corridors": ["economy", "conflict"],
+      "sanctions-evasion-corridors": ["conflict"],
+      "ses-gauge": ["conflict"],
       "gscpi-gauge": ["economy"],
     };
     const filterItems = (items: LayerToggleItem[]): LayerToggleItem[] =>
@@ -2278,6 +2326,9 @@ export function useLayerPanelCategories({
     lpg(crinkInfraVisibilityHint, null),
     lpg(showBriTradeConnectivity, false),
     lpg(showStrategicCorridors, false),
+    lpg(showAlliedLogisticsCorridors, false),
+    lpg(showSanctionsEvasionCorridors, false),
+    lpg(showSesChip, false),
     lpg(showUsDfcSupplyChain, false),
     lpg(showWarZones, false),
     lpg(showEconomicCenters, false),

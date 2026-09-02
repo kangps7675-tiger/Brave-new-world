@@ -21,6 +21,7 @@ import {
   formatGtiTitle,
   gtiBand,
   gtiBandLabel,
+  gtiMethodologyProseShort,
 } from "@/lib/gti";
 import { formatTensionDriverLine } from "@/lib/tensionDrivers";
 import { BunkerSentimentVote } from "@/components/BunkerSentimentVote";
@@ -78,8 +79,8 @@ function WorldTensionHero({
           </p>
           <p className="mt-1 text-meta leading-snug text-slate-400">
             {ko
-              ? `긴장지수(GTI) · ${band}`
-              : `Tension index (GTI) · ${band}`}
+              ? `${formatGtiTitle(true)} · ${band}`
+              : `${formatGtiTitle(false)} · ${band}`}
             {isEstimate ? (
               <span
                 className="ml-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium text-amber-300/90"
@@ -121,9 +122,7 @@ function WorldTensionHero({
         </p>
       ) : (
         <p className="mt-2 text-micro leading-relaxed text-slate-500">
-          {ko
-            ? "서비스의 단일 기축(GTI). 전장별 뉴스·위성 화재·현장 경보가 평소보다 얼마나 튀었는지를 모아 0–100 점수(GTS)로 만듭니다. 원유 WTI와 무관합니다."
-            : "Product spine (GTI): theater news, satellite hotspots, and field alerts blended into a 0–100 score (GTS). Unrelated to WTI crude."}
+          {gtiMethodologyProseShort(ko ? "ko" : "en")}
         </p>
       )}
       <BunkerSentimentVote lang={lang} />

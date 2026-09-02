@@ -120,6 +120,8 @@ export function CorridorRailChip({ corridor, lang = "ko", onDismiss }: Props) {
   const narrative = ms ? (en ? ms.narrativeEn : ms.narrativeKo) : null;
   const conn = ms ? connectivityLabel(ms.connectivityDual, en) : null;
   const hypo = ms ? hypothesisLabel(ms.hypothesis, en) : null;
+  const cov = corridor.indicatorCoverage;
+  const partialIndicators = cov != null && cov.available < cov.total;
 
   return (
     <aside
@@ -149,6 +151,11 @@ export function CorridorRailChip({ corridor, lang = "ko", onDismiss }: Props) {
               pair,
               corridor.scalerank != null ? `rank ${corridor.scalerank}` : null,
               shock,
+              partialIndicators
+                ? en
+                  ? `${cov!.available} of ${cov!.total} indicators`
+                  : `지표 ${cov!.available}/${cov!.total}`
+                : null,
             ]
               .filter(Boolean)
               .join(" · ")}
@@ -163,6 +170,23 @@ export function CorridorRailChip({ corridor, lang = "ko", onDismiss }: Props) {
           ✕
         </button>
       </div>
+
+      {partialIndicators ? (
+        <div className="border-b border-amber-200/10 bg-amber-950/25 px-3 py-2">
+          <p className="text-micro font-medium text-amber-200/80">
+            {en
+              ? `Score uses ${cov!.available} of ${cov!.total} core indicators — not complete`
+              : `점수는 핵심 지표 ${cov!.available}/${cov!.total}만 반영 — 미완성`}
+          </p>
+          {cov!.missing.length > 0 ? (
+            <ul className="mt-1 space-y-0.5 text-micro leading-snug text-amber-100/60">
+              {cov!.missing.slice(0, 4).map((line) => (
+                <li key={line}>· {line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
 
       {narrative ? (
         <p className="border-b border-amber-200/10 px-3 py-2 text-xs leading-snug text-amber-100/80">

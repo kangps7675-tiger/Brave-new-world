@@ -8,6 +8,7 @@ import {
 } from "@/data/strategicCorridors";
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
 import { getCorridorRank, getCorridorScalerank } from "@/lib/corridorRanks";
+import { corridorEvasionIntensity } from "@/lib/sanctionsEvasionScore";
 import { filterTransportPathsForViewport } from "@/lib/viewportPathFilter";
 import type { CorridorLod } from "@/lib/corridorLod";
 
@@ -406,4 +407,44 @@ export function corridorLegPointsForPair(
     lengthKm: waypointsLengthKm(leg.waypoints),
     status,
   }));
+}
+
+/** 제재 회피 회랑 — 강도(0–1)에 따라 amber–orange 색상 */
+export function evasionAccentColor(intensity: number, alpha = 0.88): string {
+  const t = Math.max(0, Math.min(1, intensity));
+  const hue = 18 + t * 24;
+  const sat = 68 + t * 22;
+  const light = 48 + t * 14;
+  const [r, g, b] = hslToRgb(hue, sat, light);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function evasionScalerank(intensity: number): number {
+  return Math.max(1, Math.min(5, 6 - Math.round(intensity * 4)));
+}
+
+/** 제재 회피 회랑만 LOD 적용 + 강도 기반 색·두께 */
+export function sanctionsEvasionCorridorPathsForLod(
+  lod: CorridorLod,
+  view: { lat: number; lng: number },
+): TransportPath[] {
+  const paths = strategicCorridorPathsForLod(lod, view, {
+    categories: ["sanctions-evasion"],
+  });
+  return paths.map((path) => {
+    const corridorId = String(path.meta?.corridorId ?? "");
+    const row = getCorridorRank(corridorId);
+    const intensity = row ? corridorEvasionIntensity(row) : 0.45;
+    const scalerank = evasionScalerank(intensity);
+    return {
+      ...path,
+      scalerank,
+      accentColor: evasionAccentColor(intensity),
+      meta: {
+        ...path.meta,
+        scalerank,
+        evasionIntensity: intensity,
+      },
+    };
+  });
 }
