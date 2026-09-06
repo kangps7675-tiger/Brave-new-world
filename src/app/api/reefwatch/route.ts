@@ -46,7 +46,7 @@ async function fetchOpenSkyStates(): Promise<{
     const response = await fetch(`${OPENSKY_URL}?${params.toString()}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "GeoWatch/1.0 ReefWatch feature-centric SCS monitor",
+        "User-Agent": "BraveTheWorld/1.0 ReefWatch feature-centric SCS monitor",
       },
       signal: controller.signal,
       cache: "no-store",

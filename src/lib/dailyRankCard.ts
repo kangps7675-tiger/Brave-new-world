@@ -30,7 +30,7 @@ const COPY = {
       kicker: "Supply-chain stress",
       title: "Chokepoint TOP 5",
     },
-    brand: "Brave New World",
+    brand: "Brave the World",
     score: "Score",
   },
 } as const;

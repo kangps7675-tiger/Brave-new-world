@@ -1,6 +1,6 @@
 <div align="center">
 
-> **이 폴더는 별도 서브프로젝트(IRONSIGHT)입니다.** 멋진 신세계(geowatch) 앱의 핵심 런타임 경로와 분리되어 있으며, 본 앱은 Telegram 채널 카탈로그 등 MIT 인용만 사용합니다. 작업 목록: [`TODO.md`](./TODO.md). 모노레포 정본 요약: [`../docs/deferred-status.md`](../docs/deferred-status.md).
+> **이 폴더는 별도 서브프로젝트(IRONSIGHT)입니다.** 멋진 신세계 앱의 핵심 런타임 경로와 분리되어 있으며, 본 앱은 Telegram 채널 카탈로그 등 MIT 인용만 사용합니다. 작업 목록: [`TODO.md`](./TODO.md). 모노레포 정본 요약: [`../docs/deferred-status.md`](../docs/deferred-status.md).
 
 <a href="https://noblerworks.com/"><img src="https://raw.githubusercontent.com/NoblerWorks-HQ/IRONSIGHT/main/nobler-works-banner.JPG" alt="Nobler Works" width="400"></a>
 

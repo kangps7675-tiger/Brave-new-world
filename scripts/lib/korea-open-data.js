@@ -28,7 +28,7 @@
  */
 
 const DEFAULT_UA =
-  "geowatch/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+  "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 
 /** data.go.kr 이 쓰는 JSON 파라미터명 변종 — 순서대로 시도한다 */
 const JSON_PARAM_VARIANTS = ["type", "_type", "resultType", "dataType"];

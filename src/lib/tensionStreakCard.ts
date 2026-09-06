@@ -98,7 +98,7 @@ export async function renderTensionStreakCard(options: {
 
   ctx.fillStyle = "#64748b";
   ctx.font = "400 14px Inter, sans-serif";
-  ctx.fillText(ko ? `멋진 신세계 · ${options.date}` : `Brave New World · ${options.date}`, 48, 400);
+  ctx.fillText(ko ? `멋진 신세계 · ${options.date}` : `Brave the World · ${options.date}`, 48, 400);
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), "image/png");

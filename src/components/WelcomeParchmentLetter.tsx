@@ -31,18 +31,18 @@ const LETTER_KO = {
 };
 
 const LETTER_EN = {
-  title: "Welcome to\nBrave New World",
+  title: "Welcome to\nBrave the World",
   paragraphs: [
     "Dear explorer,",
     "Open the door—\nand sound arrives first.\n\nFar away, shells rupture the night;\nair-raid sirens claw at the lungs.\nOne square of the map\nburns red.\n\nAnd yet—\nin the same heartbeat,\non the far side of the same globe—\nsomeone quietly reads the numbers up.\n\nOil.\nExchange.\nSanctions.\nSea lanes.\nCables.\n\nSomeone\nis making money.",
-    "Aldous Huxley’s Brave New World\ntaught us how unsettling\nthe word “brave” can be.\n\nWe borrowed that irony\nfor this observatory.\n\nBrave New World.\n\nNot a finished paradise—\nbut a world too real,\nwhere war and profit\nshare one screen.",
+    "Aldous Huxley’s Brave New World\ntaught us how unsettling\nthe word “brave” can be.\n\nWe borrowed that irony\nfor this observatory.\n\nBrave the World.\n\nNot a finished paradise—\nbut a world too real,\nwhere war and profit\nshare one screen.",
     "The world longs to be told\nas a single story.\n\nGeopolitics is a river\nof many currents at once:\ngunfire here, talks there;\nships altering course at sea;\nunseen cables binding continents below.\n\nThis globe unfolds that epic grain\nin the language of maps.",
     "Here you stand\nbefore two doors.",
     "The window of geopolitics—\nfront lines and disputes,\nthe tension of arms and diplomacy.\n\nThe outline of a contact line,\ntrails in the sky,\nsparks of breaking news,\nthe after-echo of sirens.",
     "The window of geoeconomics—\nenergy and logistics,\nmarkets and sanctions,\nHormuz and Suez,\npipelines and submarine cables.\n\nThe crossings\nwhere capital catches its breath.",
     "Whichever door you open,\ndo not close your eyes too soon.\n\nGoosebumps and thrill\nare born in the same place.\nBeyond tension, feeling;\nbeyond feeling, a question.\n\nA map does not so much give answers\nas invite the right ones.",
     "On the next parchment you must read\ndata sources, limits, and layers\nstill shown with placeholder data.\n\nWe are not a perfect intelligence agency.\nBreaking news, tension scores, and live layers\nunfold only after you acknowledge that.",
-    "Now fold the letter.\n\nThen read the sources disclosure\nin full — and choose for yourself\nwhich window leads you\ninto this Brave New World.",
+    "Now fold the letter.\n\nThen read the sources disclosure\nin full — and choose for yourself\nwhich window leads you\ninto this Brave the World.",
     "\"Everything you see is a real situation unfolding now.\"",
   ],
   signOff: `${BRAND_NAME.en}\nFrom the Globe Observatory`,

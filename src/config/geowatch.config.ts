@@ -1,5 +1,5 @@
 /**
- * Geowatch / 멋진 신세계 — 제품 상수 단일 출처(SSOT).
+ * 제품 상수 단일 출처(SSOT) — 멋진 신세계 / Brave the World.
  * 캡·폴링(stub OFF)·오버레이 우선순위는 여기만 수정한다.
  * liveRenderGuard는 stub ON/OFF 분기를 유지한 채 이 값을 참조한다.
  */
