@@ -191,6 +191,61 @@ describe("shouldOpenBreakingFlash", () => {
       ),
     ).toBe(false);
   });
+
+  it("rejects human-interest micro stories even at S grade", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "전선에서 꼬마를 구출한 병사",
+          summary: "감동적인 구조 장면이 공개됐다",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 10,
+        }),
+        false,
+      ),
+    ).toBe(false);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Soldiers rescue child from rubble on the front line",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 8,
+        }),
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects high-grade S without kinetic or chokepoint", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Diplomats schedule follow-up talks in Geneva",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 5,
+        }),
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it("allows chokepoint security S flash", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Strait of Hormuz shipping disrupted after naval clash",
+          theater: "middle-east",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 12,
+        }),
+        false,
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("pickNextBreakingFlashHero", () => {

@@ -12,6 +12,8 @@
  *   node scripts/r2-upload-data.js --with-textures
  *   node scripts/r2-upload-data.js --with-audio
  *   node scripts/r2-upload-data.js --audio-only
+ *   node scripts/r2-upload-data.js --crink-only
+ *   node scripts/r2-upload-data.js --with-crink
  */
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -25,6 +27,8 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const withTextures = args.includes("--with-textures");
 const audioOnly = args.includes("--audio-only");
+const crinkOnly = args.includes("--crink-only");
+const withCrink = args.includes("--with-crink") || crinkOnly;
 const withAudio = args.includes("--with-audio") || audioOnly;
 const profilesArg = args.find((a) => a.startsWith("--profiles="));
 const profiles = profilesArg
@@ -126,6 +130,56 @@ function collectDataJobs() {
   return jobs;
 }
 
+/** Git-tracked public/data/crink/*.json → R2 keys data/crink/*.json */
+function collectCrinkJobs() {
+  const dataRoot = path.join(ROOT, "public", "data");
+  const listed = spawnSync(
+    "git",
+    ["ls-files", "public/data/crink"],
+    { cwd: ROOT, encoding: "utf8", shell: process.platform === "win32" },
+  );
+  if (listed.status !== 0) {
+    console.error(listed.stderr || "git ls-files failed");
+    return [];
+  }
+  const jobs = [];
+  for (const relPosix of listed.stdout.trim().split("\n").filter(Boolean)) {
+    if (!(relPosix.endsWith(".json") || relPosix.endsWith(".json.gz"))) continue;
+    const file = path.join(ROOT, relPosix.replace(/\//g, path.sep));
+    if (!fs.existsSync(file)) continue;
+    jobs.push({
+      key: toKey(file, dataRoot, PREFIX),
+      file,
+    });
+  }
+  return jobs;
+}
+
+function writeCrinkManifest(jobs) {
+  const manifestPath = path.join(ROOT, "scripts", "data", "r2-crink-manifest.json");
+  const objects = {};
+  for (const job of jobs) {
+    const name = path.basename(job.file);
+    const stat = fs.statSync(job.file);
+    objects[name] = {
+      key: job.key,
+      bytes: stat.size,
+      uploadedAt: new Date().toISOString(),
+    };
+  }
+  const payload = {
+    bucket: BUCKET,
+    prefix: `${PREFIX}/crink`,
+    updatedAt: new Date().toISOString(),
+    objects,
+  };
+  if (!dryRun) {
+    fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+    fs.writeFileSync(manifestPath, `${JSON.stringify(payload, null, 2)}\n`);
+    console.log(`manifest → ${path.relative(ROOT, manifestPath)} (${Object.keys(objects).length} objects)`);
+  }
+}
+
 function collectAudioJobs() {
   const audioRoot = path.join(ROOT, "public", "audio");
   const jobs = [];
@@ -141,17 +195,25 @@ function collectAudioJobs() {
 
 function main() {
   const jobs = [];
-  if (!audioOnly) jobs.push(...collectDataJobs());
+  if (crinkOnly) {
+    jobs.push(...collectCrinkJobs());
+  } else {
+    if (!audioOnly) jobs.push(...collectDataJobs());
+    if (withCrink) jobs.push(...collectCrinkJobs());
+  }
   if (withAudio) jobs.push(...collectAudioJobs());
 
   console.log(
-    `R2 upload → bucket=${BUCKET} objects=${jobs.length} dryRun=${dryRun} audio=${withAudio}`,
+    `R2 upload → bucket=${BUCKET} objects=${jobs.length} dryRun=${dryRun} crink=${withCrink} audio=${withAudio}`,
   );
   let ok = 0;
   let fail = 0;
   for (const job of jobs) {
     if (putObject(job.key, job.file)) ok += 1;
     else fail += 1;
+  }
+  if (withCrink && jobs.length > 0) {
+    writeCrinkManifest(jobs.filter((j) => j.key.includes("/crink/")));
   }
   console.log(`Done. ok=${ok} fail=${fail}`);
   if (fail > 0) process.exit(1);

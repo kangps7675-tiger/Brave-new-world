@@ -87,6 +87,8 @@ export const viewportPointsQuerySchema = z.object({
   tier: globeLodTierSchema.optional().default("regional"),
   radius: z.coerce.number().min(0).max(90).optional().default(16),
   max: z.coerce.number().int().min(1).max(5000).optional(),
+  /** military-bases: comma-separated force ids (us,rok,japan,philippines,eastern-nato) */
+  forces: z.string().max(80).optional(),
 });
 
 export const shipMovementsQuerySchema = z.object({

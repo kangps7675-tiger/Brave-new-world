@@ -14,16 +14,17 @@ import { isJapanGeopoliticsNews } from "@/lib/news/japanGeopolitics";
 import { isGeopoliticsOnlyTheater } from "@/lib/news/regionalConflictNews";
 
 /**
- * 매일 등불 브리핑 — 지정학·지경학 각각 하루 종일 이용.
+ * 매일 등불 브리핑 — 지정학·지경학 각각 6시간 슬롯으로 갱신.
  *
- * - 첫 방문: 입장 인트로(경고→편지→도메인)가 끝난 뒤에 점화
- * - 접기: 양피지를 접어 두고, 같은 날 칩으로 다시 펼칠 수 있음
- * - 뉴스 본문: 로컬 시각 기준 6시간 슬롯(0·6·12·18시)마다 갱신
- * - 모드 키 = `daily-YYYY-MM-DD-{conflict|economy}`
+ * - 첫 방문 / 새 슬롯: 입장 온보딩 이후 양피지 자동 점화 (사진 데스크)
+ * - 접기: 우측 「등불」탭으로 접어 두고 같은 슬롯 안에서 다시 펼침
+ * - 뉴스 본문: 로컬 0·6·12·18시마다 새 슬롯 → 대표 뉴스·큰 사진 다시 점화
+ * - storage 키 = `daily-YYYY-MM-DD-sN-{conflict|economy}` (슬롯마다 seen/folded 분리)
  * - 본문 = (지경학) 관심도 우선 하드뉴스 + soft 지역 다양성 + SOTW 매크로
  * - 지정학 = 관심도 우선 전장·외교 + 적대→한국 콕집힘 soft
- * - 등불 카드 = 선명 사진 + 개별 원문 URL (섹션/종합 링크·시드 패딩 금지)
- * - RSS 이미지 없으면 서버가 기사 og:image로 보강; 그래도 없으면 빈 데스크
+ * - 등불 카드 = 기사에 붙은 사진(RSS enclosure · og:image) + 개별 원문 URL (섹션/시드 금지)
+ * - RSS enclosure 없으면 서버가 기사 og:image·twitter:image로 보강 후 선정
+ * - 지정학 = 전쟁·자연재해·전선·외교를 포괄 — 핫·다매체 중복 우선
  * - 서술 뼈대 = 육하원칙(누가·언제·어디서·무엇을·왜·어떻게)을 논리 순서로 따르는 정부 정례 브리핑 어조
  */
 
@@ -111,8 +112,8 @@ export type PeriodicBriefing = {
 };
 
 const STORAGE_PREFIX = "cv-periodic-brief-seen-";
-/** 그날 접어 둔 등불 — 다시 펼치기용 (하루 종일 유지) */
-const FOLDED_PREFIX = "cv-periodic-brief-folded-";
+/** 그날 접어 둔 등불 — 다시 펼치기용 (하루 종일 유지). v2: GDELT 자동접기로 오염된 v1 키 무효화 */
+const FOLDED_PREFIX = "cv-periodic-brief-folded-v2-";
 /** 월요일 주간 회고 접힘 */
 const WEEKLY_RECAP_FOLDED_PREFIX = "cv-weekly-recap-folded-";
 
@@ -185,6 +186,41 @@ export function previousWeeklyPeriodKey(now: Date = new Date()): string {
   return `weekly-${year}-W${pad2(week)}`;
 }
 
+/** ISO 주(`YYYY`, `Www`)의 로컬 월요일 00:00 */
+export function isoWeekMondayLocal(year: number, week: number): Date {
+  const jan4 = new Date(year, 0, 4);
+  const day = (jan4.getDay() + 6) % 7; // Mon=0
+  const mondayWeek1 = new Date(jan4);
+  mondayWeek1.setDate(jan4.getDate() - day);
+  mondayWeek1.setHours(0, 0, 0, 0);
+  const monday = new Date(mondayWeek1);
+  monday.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+  return monday;
+}
+
+/**
+ * 지난 ISO 주(월 00:00 ~ 다음 월 00:00) 구간 — 사진 회고 필터용.
+ */
+export function previousIsoWeekRange(now: Date = new Date()): {
+  weekKey: string;
+  startMs: number;
+  endMs: number;
+} {
+  const weekKey = previousWeeklyPeriodKey(now);
+  const m = /^weekly-(\d{4})-W(\d{2})$/.exec(weekKey);
+  const year = m ? Number(m[1]) : now.getFullYear();
+  const week = m ? Number(m[2]) : 1;
+  const start = isoWeekMondayLocal(year, week);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return { weekKey, startMs: start.getTime(), endMs: end.getTime() };
+}
+
+/** `weekly-YYYY-Www-{conflict|economy}` 월요일 회고 키 */
+export function isWeeklyRecapBriefingKey(key: string): boolean {
+  return /^weekly-\d{4}-W\d{2}-(conflict|economy)$/.test(key);
+}
+
 /**
  * 월요일 지난주 회고 오퍼.
  * 평일·주말엔 null — 등불 일간 파이프와 분리.
@@ -233,9 +269,13 @@ export function resolveLampPeriod(now: Date = new Date()): {
   };
 }
 
-/** 모드별 일일 등불 키 — 지정학·지경학 각각 하루 단위 */
-export function lampSeenKey(dayKey: string, mode: ViewerMode): string {
-  return `${dayKey}-${mode}`;
+/**
+ * 모드·6시간 슬롯별 등불 storage 키.
+ * @param contentSlot `lampContentSlotKey` / `resolveLampPeriod().contentSlot`
+ *   (`daily-YYYY-MM-DD-s0` … `s3`)
+ */
+export function lampSeenKey(contentSlot: string, mode: ViewerMode): string {
+  return `${contentSlot}-${mode}`;
 }
 
 /** @deprecated 하루 종일 이용으로 전환 — 접힘 상태는 hasFoldedLamp 사용 */
@@ -317,7 +357,7 @@ export function clearWeeklyRecapFolded(key: string): void {
   }
 }
 
-/** 주간 회고 양피지 제목 — 「지난주 리캡」리듬 */
+/** 주간 회고 양피지 제목 — 사진 등불 데스크 · 전주 핫뉴스 종합 */
 export function weeklyRecapTitle(
   viewerMode: ViewerMode,
   lang: LabelLanguage,
@@ -336,11 +376,11 @@ export function weeklyRecapTitle(
     focusLine?.trim() ||
     (ko
       ? econ
-        ? "한 주간의 가격·물류·제재 신호"
-        : "한 주간의 전선·외교·열원 신호"
+        ? "전주 뜨거웠던 시장·물류 사진 뉴스"
+        : "전주 뜨거웠던 전장·외교 사진 뉴스"
       : econ
-        ? "A week of prices, logistics, and sanctions"
-        : "A week of fronts, diplomacy, and heat");
+        ? "Last week's hottest market photo stories"
+        : "Last week's hottest theater photo stories");
   return `${kicker}\n${focus}`;
 }
 
@@ -381,13 +421,10 @@ function looksMostlyKorean(text: string): boolean {
 }
 
 /**
- * 라이브 대형 사진 + 개별 원문 URL만 유지.
- * 섹션/종합 링크·무사진 시드 패딩 금지.
+ * 개별 원문 URL + 기사에 붙은 사진(RSS/og)만 유지 — 그라데이션·위성 폴백으로 채우지 않음.
  */
 export function ensureLampFeaturedNews(picked: LampFeaturedNews[]): LampFeaturedNews[] {
-  return picked.filter(
-    (n) => hasLampPhoto(n.imageUrl) && isArticleUrl(n.link),
-  );
+  return picked.filter((n) => isArticleUrl(n.link) && hasLampPhoto(n.imageUrl));
 }
 
 function buildGeoFallback(tier: BriefingTier, dayKey: string, lang: LabelLanguage): PeriodicBriefing | null {
@@ -614,6 +651,8 @@ const LAMP_NEWS_GENRE_PRIORITY: Record<string, number> = {
 /** 등불 — 초크포인트(해협·운하) 최소 확보 슬롯 */
 export const ECONOMY_LAMP_CHOKE_MIN = 1;
 export const CONFLICT_LAMP_CHOKE_MIN = 2;
+/** 지정학 등불 — 자연재해·기후 재난 최소 슬롯 (전쟁과 동등 창) */
+export const CONFLICT_LAMP_DISASTER_MIN = 2;
 /**
  * 활성 전선(중동·러·우) 각각 최소 슬롯 — 동일 비중.
  * 동아시아 긴장권(중·대·한반도·일본)도 같은 수치.
@@ -1071,8 +1110,8 @@ function scoreLampCandidate(
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 등불은 대형 선명 사진 필수 — 점수 가산은 보조(풀에서 이미 필터)
-  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 등불은 기사에 붙은 사진 필수 — og/RSS 없으면 선정 제외
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
   // 물류·에너지 스트레스 사건 강력 우선
   const logisticsStressBonus =
     item.econGenre === "shipping" || item.econGenre === "energy" || isChokepointEconomyNews(blob)
@@ -1141,7 +1180,7 @@ function toFeatured(
 }
 
 /**
- * 지경학 등불 — 물류·시장 충격 심층 + 대형 선명 사진 필수.
+ * 지경학 등불 — 물류·시장 충격 심층. 기사에 붙은 RSS/og 사진이 있는 것만.
  */
 export function pickEconomyLampNews(
   items: NewsPickInput[],
@@ -1149,9 +1188,8 @@ export function pickEconomyLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, ECONOMY_LAMP_NEWS_MIN);
-  // 사진 + 개별 원문 필수 · 지정학 전용 전장·오피니언 제외
+  // 개별 원문 필수 · 지정학 전용 전장·오피니언 제외 (사진 없어도 허용)
   const pool = items.filter((item) => {
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     if (isGeopoliticsOnlyTheater(item.theater)) return false;
     const blob = `${item.title} ${item.summary ?? ""}`;
@@ -1186,7 +1224,6 @@ export function pickEconomyLampNews(
 
   const tryPush = (row: ScoredLampNews, relax = false): boolean => {
     const item = row.item;
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
@@ -1219,6 +1256,7 @@ export function pickEconomyLampNews(
     ) {
       return false;
     }
+    if (!hasLampPhoto(item.imageUrl)) return false;
 
     seenLinks.add(key);
     seenClusters.add(cKey);
@@ -1402,6 +1440,14 @@ const CONFLICT_ACTOR_RE: Array<{ id: string; labelKo: string; labelEn: string; r
 
 const CONFLICT_HARD_NEWS_RE =
   /strike|missile|drone|airstrike|air.?raid|offensive|invasion|artillery|front.?line|ceasefire|sanction|deployment|exercise|nuclear|bombard|shelling|intercept|blockade|chokepoint|hormuz|suez|malacca|공습|미사일|드론|타격|공세|전선|휴전|제재|배치|핵|포격|봉쇄|호르무즈|수에즈|말라카/i;
+
+/** 지정학 등불 — 자연재해·기후 재난 (전쟁과 동등 창) */
+export const CONFLICT_NATURAL_DISASTER_RE =
+  /earthquake|tsunami|wildfire|hurricane|typhoon|cyclone|tornado|flood(?:ing)?|landslide|mudslide|volcan(?:o|ic)|drought|heat\s?wave|avalanche|storm\s?surge|natural\s?disaster|mass\s?evacuat|magnitude\s?[4-9]|지진|쓰나미|산불|태풍|홍수|침수|산사태|토사|화산|가뭄|폭염|한파|자연재해|대피|규모\s?[4-9]/i;
+
+export function isNaturalDisasterNews(text: string): boolean {
+  return CONFLICT_NATURAL_DISASTER_RE.test(text);
+}
 
 /** 긴장도를 급격히 끌어올릴 수 있는 고충격 속보 */
 const CONFLICT_TENSION_SPIKE_RE =
@@ -1809,8 +1855,9 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       : typeof item.urgencyScore === "number"
         ? Math.max(-32, -Math.round(item.urgencyScore / 4))
         : 0;
-  // 대형 선명 사진 필수 — 없으면 가혹 페널티(풀에서도 필터)
-  const imageBonus = hasLampPhoto(item.imageUrl) ? -50 : 80;
+  // 기사에 붙은 사진 필수 — og/RSS 없으면 선정 제외
+  const imageBonus = hasLampPhoto(item.imageUrl) ? -55 : 400;
+  const disasterBonus = isNaturalDisasterNews(blob) ? -36 : 0;
   // 긴장 강도를 끌어올리는 무서운 군사·확전 속보 우선
   const tensionSpikeBonus = CONFLICT_TENSION_SPIKE_RE.test(blob)
     ? -45
@@ -1841,6 +1888,7 @@ function scoreConflictCandidate(item: NewsPickInput, clusterSize: number): Score
       clusterBonus +
       breakingBonus +
       imageBonus +
+      disasterBonus +
       tensionSpikeBonus +
       tier3Thin +
       chokeBonus,
@@ -1886,7 +1934,7 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
 }
 
 /**
- * 지정학 등불 — 긴장 강도·무서운 속보 심층 + 대형 선명 사진 필수.
+ * 지정학 등불 — 전쟁·자연재해·전선·외교 심층. 기사에 붙은 RSS/og 사진이 있는 것만.
  */
 export function pickConflictLampNews(
   items: NewsPickInput[],
@@ -1894,9 +1942,7 @@ export function pickConflictLampNews(
   lang: "ko" | "en" = "ko",
 ): LampFeaturedNews[] {
   const target = Math.max(limit, CONFLICT_LAMP_NEWS_MIN);
-  const pool = items.filter(
-    (item) => hasLampPhoto(item.imageUrl) && isArticleUrl(item.link),
-  );
+  const pool = items.filter((item) => isArticleUrl(item.link));
 
   const clusterMap = new Map<string, number>();
   for (const item of pool) {
@@ -1921,7 +1967,6 @@ export function pickConflictLampNews(
 
   const tryPush = (row: ScoredConflictNews, relax = false): boolean => {
     const item = row.item;
-    if (!hasLampPhoto(item.imageUrl)) return false;
     if (!isArticleUrl(item.link)) return false;
     const key = item.link || item.id;
     if (seenLinks.has(key)) return false;
@@ -1936,11 +1981,19 @@ export function pickConflictLampNews(
 
     const blob = `${item.title} ${item.summary ?? ""}`;
     if (!relax && CONFLICT_SOFT_NEWS_RE.test(blob)) return false;
-    // 일본 전장 태그는 지정학 키워드만 (내정·사회 배제)
-    if (!relax && row.theater === "japan" && !isJapanGeopoliticsNews(blob)) return false;
+    // 일본 전장 태그는 지정학 키워드만 (내정·사회 배제) — 자연재해는 허용
+    if (
+      !relax &&
+      row.theater === "japan" &&
+      !isJapanGeopoliticsNews(blob) &&
+      !isNaturalDisasterNews(blob)
+    ) {
+      return false;
+    }
 
     const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
     if (isDiplomacy && diplomacyCount >= CONFLICT_LAMP_DIPLOMACY_MAX && !relax) return false;
+    if (!hasLampPhoto(item.imageUrl)) return false;
 
     seenLinks.add(key);
     seenClusters.add(cKey);
@@ -2009,6 +2062,12 @@ export function pickConflictLampNews(
     (row) => isChokepointSecurityNews(`${row.item.title} ${row.item.summary ?? ""}`),
     (n) => isChokepointSecurityNews(`${n.title} ${n.summary}`),
     CONFLICT_LAMP_CHOKE_MIN,
+    scored,
+  );
+  softFill(
+    (row) => isNaturalDisasterNews(`${row.item.title} ${row.item.summary ?? ""}`),
+    (n) => isNaturalDisasterNews(`${n.title} ${n.summary ?? ""}`),
+    CONFLICT_LAMP_DISASTER_MIN,
     scored,
   );
 

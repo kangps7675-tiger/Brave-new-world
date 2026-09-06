@@ -35,7 +35,7 @@ function ageMinutesOf(item: NewsStreamItem): number {
  * 그대로 읽으므로 추가 폴링·호출이 없다.
  */
 export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileAlertFeedProps) {
-  const { payload, viewPackages, preferEconomyNews } = useNewsStreamContext();
+  const { payload, viewPackages, preferEconomyNews, localizedTitle } = useNewsStreamContext();
   const { lang } = useLocale();
   const viewerMode: ViewerMode =
     viewerModeProp ??
@@ -181,7 +181,7 @@ export function MobileAlertFeed({ onClose, viewerMode: viewerModeProp }: MobileA
                       rel="noopener noreferrer"
                       className="block rounded-lg px-1.5 py-1.5 text-caption leading-snug text-slate-200 transition hover:bg-white/5"
                     >
-                      {item.title}
+                      {localizedTitle(item)}
                     </a>
                   </li>
                 ))}

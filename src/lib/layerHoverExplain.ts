@@ -6,6 +6,7 @@
  */
 
 import type { TransportPath } from "@/data/geoTypes";
+import { getSourceNote } from "@/data/sourceCatalog";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { HoverCard } from "@/components/globe/types";
 
@@ -30,6 +31,8 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
       return "submarine-cables";
     case "bri-trade":
       return "bri-trade";
+    case "strategic-corridor":
+      return "strategic-corridors";
     case "us-dfc-supply":
       return "us-dfc-supply";
     case "axis-link":
@@ -180,8 +183,8 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Subsea tunnel / passage points from our curated seed list.",
   },
   "military-bases": {
-    ko: "공개 지도에 올라 있는 군사기지 위치입니다. 주로 OSM(OpenStreetMap) 등 공개 지오데이터 기반입니다.",
-    en: "Military installations from public geodata (often OSM / OpenStreetMap).",
+    ko: "공개 지도의 군사기지입니다. 기본은 미군이며, 한국·일본·필리핀·동유럽 NATO는 레이어에서 따로 켭니다.",
+    en: "Military installations from public geodata. US bases are on by default; ROK, Japan, Philippines, and eastern NATO are separate checkboxes.",
   },
   "us-carriers": {
     ko: "미 항모의 대략 위치입니다. USNI(미국해군협회) News·CENTCOM(미 중부사령부)·공개 보도를 종합한 스냅샷이며, 군 실시간 추적이 아닙니다.",
@@ -324,12 +327,16 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Missile test / launch related public sites.",
   },
   "axis-network": {
-    ko: "이란·중국·러시아·북한 등 축 파트너를 잇는 관계선입니다. 공개 지정학을 스케치한 것이며 비밀 동맹도가 아닙니다.",
-    en: "Links among Iran–China–Russia–DPRK axis partners — a public geopolitics sketch, not a secret alliance meter.",
+    ko: "CRINK 축(중·러·이·북) 허브와 파트너를 잇는 관계선입니다. 공개 지정학 스케치이며 비밀 동맹도가 아닙니다.",
+    en: "CRINK axis (China, Russia, Iran, DPRK) hub links to partners — a public geopolitics sketch, not a secret alliance meter.",
   },
   "bri-trade": {
     ko: "BRI(Belt and Road Initiative, 일대일로) 무역·운송 연결을 그린 선입니다.",
     en: "BRI (Belt and Road Initiative) trade/transport connectivity arcs.",
+  },
+  "strategic-corridors": {
+    ko: "전략 물류·군수 회랑입니다. LOD는 BRI·초크·길이 등 정량 합성 점수(corridor-ranks)로 나뉩니다.",
+    en: "Strategic logistics / military corridors. LOD uses composite quantitative ranks (BRI, choke, length).",
   },
   "us-dfc-supply": {
     ko: "DFC(미국 국제개발금융공사) 개발금융 공급망을 그린 선입니다.",
@@ -352,8 +359,8 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Reported Ukraine→Russia strike hotspots — trajectory often unverified.",
   },
   "hapi-conflict-casualties": {
-    ko: "ACLED(분쟁사건데이터) 기반 사상·폭력 집계 힌트입니다. 전선 ‘확정’이 아닙니다.",
-    en: "Fatality / violence hints via ACLED (through HAPI) — not a confirmed front line.",
+    ko: "ACLED/HAPI 전선 사망 레이어는 제품에서 제거되었습니다.",
+    en: "The ACLED/HAPI frontline fatalities layer has been removed from the product.",
   },
   "reef-watch": {
     ko: "남중국해 암초·시설 관심 지점입니다. ReefWatch 공개 피처 기반입니다.",
@@ -371,7 +378,7 @@ export function explainLayer(layerId: string | null | undefined, lang: LabelLang
   return bi ? pick(bi, lang) : null;
 }
 
-/** body가 비었을 때 평문 설명을 채운다. 있으면 유지. */
+/** body가 비었을 때 평문 설명을 채운다. 있으면 유지. 출처 캡션도 meta에 보강. */
 export function withLayerExplain(
   card: HoverCard,
   layerId: string | null,
@@ -379,7 +386,19 @@ export function withLayerExplain(
 ): HoverCard {
   if (!layerId || card.kind === "ocean") return card;
   const explain = explainLayer(layerId, lang);
-  if (!explain) return card;
-  if (card.body && card.body.trim()) return card;
-  return { ...card, body: explain };
+  const note = getSourceNote(layerId);
+  let next = card;
+  if (explain && !(card.body && card.body.trim())) {
+    next = { ...next, body: explain };
+  }
+  if (note) {
+    const caption = `${note.attribution} · ${note.cadence}`;
+    if (!next.meta || !next.meta.includes(note.attribution)) {
+      next = {
+        ...next,
+        meta: next.meta ? `${next.meta} · ${caption}` : caption,
+      };
+    }
+  }
+  return next;
 }

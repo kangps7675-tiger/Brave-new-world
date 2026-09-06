@@ -151,16 +151,14 @@ export function UkraineFrontLegend({
   lodLabel,
   dockLow = false,
 }: UkraineFrontLegendProps) {
+  // opacity:0 만으로 숨기면 backdrop-blur 잔상이 남을 수 있음 — 비표시 시 언마운트
+  if (!visible) return null;
+
   return (
     <div
-      className={`pointer-events-none absolute left-1/2 z-20 w-[min(92vw,440px)] -translate-x-1/2 transition-all duration-300 ease-out ${
+      className={`pointer-events-none absolute left-1/2 z-20 w-[min(92vw,440px)] -translate-x-1/2 transition-all duration-300 ease-out translate-y-0 opacity-100 ${
         dockLow ? "bottom-4" : "bottom-[var(--bottom-intel-stack-clearance)]"
-      } ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-3 opacity-0"
       }`}
-      aria-hidden={!visible}
     >
       <div className="rounded-xl border border-sky-300/20 bg-[#07111f]/88 px-3.5 py-3 text-xs shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md">
         <UkraineFrontLegendContent controlDate={controlDate} lodLabel={lodLabel} />

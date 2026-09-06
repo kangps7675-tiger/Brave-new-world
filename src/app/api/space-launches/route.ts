@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { StaticPoint } from "@/data/geoTypes";
 import { cachedFetchJson } from "@/lib/apiCache";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
       count: data.length,
       points: data,
       attribution: "The Space Devs",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.satellites) });
   } catch (error) {
     return NextResponse.json(
       {

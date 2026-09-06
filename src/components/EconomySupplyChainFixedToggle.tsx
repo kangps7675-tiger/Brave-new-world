@@ -2,6 +2,7 @@
 
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type EconomySupplyChainFixedToggleProps = {
   showUsDfc: boolean;
@@ -24,6 +25,7 @@ export function EconomySupplyChainFixedToggle({
   vertical = false,
 }: EconomySupplyChainFixedToggleProps) {
   const { lang } = useLocale();
+  const light = useBasemapTone() === "light";
 
   if (vertical) {
     return (
@@ -33,15 +35,19 @@ export function EconomySupplyChainFixedToggle({
           title={lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
           detail={
             lang === "en"
-              ? "Toggle U.S. Development Finance Corporation project arcs"
-              : "미국 국제개발금융공사(DFC) 프로젝트 연결선 표시"
+              ? "Show project connection arcs"
+              : "프로젝트 연결선 표시"
           }
         >
           <label
-            className={`flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-lg backdrop-blur-md transition ${
-              showUsDfc
-                ? "border-blue-300/55 bg-[#0a1830]/95 text-blue-50 hover:border-blue-200/70"
-                : "border-blue-300/35 bg-[#0a1830]/92 text-blue-100/90 hover:border-blue-200/50"
+            className={`map-chrome-control flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-md transition ${
+              light
+                ? showUsDfc
+                  ? "border-blue-400 bg-white text-slate-900"
+                  : "border-slate-300 bg-white text-slate-800"
+                : showUsDfc
+                  ? "border-blue-300/55 bg-[#0a1830]/95 text-blue-50 backdrop-blur-md hover:border-blue-200/70"
+                  : "border-blue-300/35 bg-[#0a1830]/92 text-blue-100/90 backdrop-blur-md hover:border-blue-200/50"
             }`}
           >
             <input
@@ -54,8 +60,11 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "U.S. DFC" : "미국 DFC"}
             </span>
             {usLinkCount > 0 ? (
-              <span className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
-                {usLinkCount}
+              <span
+                className="rounded-full bg-blue-500/25 px-1.5 py-0.5 text-micro font-semibold text-blue-100"
+                aria-label={lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
+              >
+                {lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
               </span>
             ) : null}
           </label>
@@ -65,15 +74,19 @@ export function EconomySupplyChainFixedToggle({
           title={lang === "en" ? "China Belt and Road" : "중국 일대일로"}
           detail={
             lang === "en"
-              ? "Toggle Belt and Road trade connectivity arcs"
-              : "일대일로 무역·운송 연결선 표시"
+              ? "Show project connection arcs"
+              : "프로젝트 연결선 표시"
           }
         >
           <label
-            className={`flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-lg backdrop-blur-md transition ${
-              showChinaBri
-                ? "border-amber-300/55 bg-[#0a1830]/95 text-amber-50 hover:border-amber-200/70"
-                : "border-amber-300/35 bg-[#0a1830]/92 text-amber-100/90 hover:border-amber-200/50"
+            className={`map-chrome-control flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs shadow-md transition ${
+              light
+                ? showChinaBri
+                  ? "border-amber-400 bg-white text-slate-900"
+                  : "border-slate-300 bg-white text-slate-800"
+                : showChinaBri
+                  ? "border-amber-300/55 bg-[#0a1830]/95 text-amber-50 backdrop-blur-md hover:border-amber-200/70"
+                  : "border-amber-300/35 bg-[#0a1830]/92 text-amber-100/90 backdrop-blur-md hover:border-amber-200/50"
             }`}
           >
             <input
@@ -86,8 +99,11 @@ export function EconomySupplyChainFixedToggle({
               {lang === "en" ? "Belt & Road" : "일대일로"}
             </span>
             {chinaLinkCount > 0 ? (
-              <span className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
-                {chinaLinkCount}
+              <span
+                className="rounded-full bg-amber-400/25 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+                aria-label={lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
+              >
+                {lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
               </span>
             ) : null}
           </label>
@@ -97,7 +113,13 @@ export function EconomySupplyChainFixedToggle({
   }
 
   return (
-    <div className="pointer-events-auto flex max-w-[calc(100vw-5.5rem)] flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-sky-300/35 bg-[#0a1830]/92 px-3.5 py-2 text-xs text-sky-50 shadow-lg backdrop-blur-md">
+    <div
+      className={`map-chrome-control pointer-events-auto flex max-w-[calc(100vw-5.5rem)] flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border px-3.5 py-2 text-xs shadow-md ${
+        light
+          ? "border-slate-300 bg-white text-slate-900"
+          : "border-sky-300/35 bg-[#0a1830]/92 text-sky-50 backdrop-blur-md"
+      }`}
+    >
       <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap">
         <input
           type="checkbox"
@@ -105,12 +127,15 @@ export function EconomySupplyChainFixedToggle({
           onChange={(event) => onUsDfcChange(event.target.checked)}
           className="h-4 w-4 shrink-0 accent-blue-500"
         />
-        <span className="font-medium text-blue-100">
+        <span className={`font-medium ${light ? "text-slate-900" : "text-blue-100"}`}>
           {lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
         </span>
         {showUsDfc && usLinkCount > 0 ? (
-          <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-micro font-semibold text-blue-100">
-            {usLinkCount}
+          <span
+            className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-micro font-semibold text-blue-100"
+            aria-label={lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
+          >
+            {lang === "en" ? `${usLinkCount} links` : `연결선 ${usLinkCount}개`}
           </span>
         ) : null}
       </label>
@@ -122,12 +147,15 @@ export function EconomySupplyChainFixedToggle({
           onChange={(event) => onChinaBriChange(event.target.checked)}
           className="h-4 w-4 shrink-0 accent-amber-400"
         />
-        <span className="font-medium text-amber-100">
+        <span className={`font-medium ${light ? "text-slate-900" : "text-amber-100"}`}>
           {lang === "en" ? "China Belt and Road" : "중국 일대일로"}
         </span>
         {showChinaBri && chinaLinkCount > 0 ? (
-          <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-micro font-semibold text-amber-100">
-            {chinaLinkCount}
+          <span
+            className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+            aria-label={lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
+          >
+            {lang === "en" ? `${chinaLinkCount} links` : `연결선 ${chinaLinkCount}개`}
           </span>
         ) : null}
       </label>

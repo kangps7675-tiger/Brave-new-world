@@ -1,4 +1,5 @@
 import { HOVER, staticKindLabel } from "@/lib/hoverLabels";
+import { isUsMilitaryOperator } from "@/lib/osmFrontlineBases";
 import { getZoomOutScale } from "@/lib/zoomScale";
 import { staticMarkerPalette } from "@/lib/staticGlobe";
 import { airportSvg, portSvg } from "@/lib/infraStaticMarkers";
@@ -8,6 +9,7 @@ import { createNuclearStockpileElement } from "@/lib/nuclearStockpiles";
 import { docLang, escapeHtml } from "@/components/globe/formatters";
 import type {
   CasualtySkullHtmlMarker,
+  NewsInsightCalloutMarker,
   NuclearStockpileHtmlMarker,
   SituationCalloutMarker,
   StaticGlobePoint,
@@ -26,6 +28,16 @@ function usFlagIconSvg() {
         <circle cx="1.8" cy="3.6" r="0.28"/><circle cx="3.2" cy="3.6" r="0.28"/><circle cx="4.6" cy="3.6" r="0.28"/><circle cx="6.0" cy="3.6" r="0.28"/>
         <circle cx="1.1" cy="4.5" r="0.28"/><circle cx="2.5" cy="4.5" r="0.28"/><circle cx="3.9" cy="4.5" r="0.28"/><circle cx="5.3" cy="4.5" r="0.28"/><circle cx="6.7" cy="4.5" r="0.28"/>
       </g>
+    </svg>
+  `;
+}
+
+function genericBaseIconSvg() {
+  return `
+    <svg width="14" height="12" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="5" y="8" width="22" height="14" rx="1" fill="#2563eb" stroke="#bfdbfe" stroke-width="0.8"/>
+      <path d="M5 12 H27 M11 8 V22" stroke="#93c5fd" stroke-width="0.7" opacity="0.55"/>
+      <circle cx="20" cy="15" r="3" fill="#1d4ed8" stroke="#dbeafe" stroke-width="0.6"/>
     </svg>
   `;
 }
@@ -56,15 +68,17 @@ export function createAirportPortBadge(
   el.className = "hub-marker";
   el.dataset.kind = kind;
   el.setAttribute("role", "img");
+  const milCountry = String(point.meta?.country ?? "");
+  const milLabel = HOVER.militaryBase(docLang(), milCountry);
   el.setAttribute(
     "aria-label",
     kind === "military-base"
-      ? `${HOVER.militaryBase(docLang())} ${point.name}`
+      ? `${milLabel} ${point.name}`
       : `${staticKindLabel(point.kind, docLang())} ${point.name}`,
   );
   el.title =
     kind === "military-base"
-      ? `${HOVER.militaryBase(docLang())} · ${point.name}`
+      ? `${milLabel} · ${point.name}`
       : `${staticKindLabel(point.kind, docLang())} · ${point.name}`;
 
   el.style.width = `${size}px`;
@@ -107,7 +121,7 @@ export function createAirportPortBadge(
   } else if (kind === "port") {
     el.innerHTML = portSvg(size);
   } else {
-    el.innerHTML = usFlagIconSvg();
+    el.innerHTML = isUsMilitaryOperator(milCountry) ? usFlagIconSvg() : genericBaseIconSvg();
   }
 
   el.addEventListener("mouseenter", () => {
@@ -163,6 +177,47 @@ export function createSituationCalloutBadge(callout: SituationCalloutMarker): HT
     callout.title,
   )}</div><div style="opacity:0.92">${escapeHtml(callout.body)}</div>`;
   return el;
+}
+
+/** 뉴스 인사이트 맵 콜아웃 — 전쟁 네온과 구분되는 앰버 핀+라벨 */
+export function createNewsInsightCalloutBadge(
+  marker: NewsInsightCalloutMarker,
+): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "news-insight-callout";
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.alignItems = "center";
+  wrap.style.transform = "translate(-50%, -100%)";
+  wrap.style.pointerEvents = "none";
+  wrap.style.zIndex = "5";
+  wrap.style.filter = "drop-shadow(0 2px 8px rgba(0,0,0,0.45))";
+
+  const pin = document.createElement("div");
+  pin.style.width = "12px";
+  pin.style.height = "12px";
+  pin.style.borderRadius = "999px";
+  pin.style.background = "rgba(251, 191, 36, 0.95)";
+  pin.style.border = "2px solid rgba(254, 243, 199, 0.95)";
+  pin.style.boxShadow = "0 0 0 3px rgba(251, 191, 36, 0.25)";
+
+  const label = document.createElement("div");
+  label.style.marginTop = "6px";
+  label.style.maxWidth = "180px";
+  label.style.padding = "5px 8px";
+  label.style.borderRadius = "6px";
+  label.style.border = "1px solid rgba(251, 191, 36, 0.55)";
+  label.style.background = "rgba(15, 23, 42, 0.92)";
+  label.style.color = "#fde68a";
+  label.style.fontSize = "11px";
+  label.style.fontWeight = "600";
+  label.style.lineHeight = "1.35";
+  label.style.textAlign = "center";
+  label.textContent = marker.title;
+
+  wrap.appendChild(pin);
+  wrap.appendChild(label);
+  return wrap;
 }
 
 /** 지정학 — 전장 공통 사상자 오버레이 (호버 타입라이터 포함) */

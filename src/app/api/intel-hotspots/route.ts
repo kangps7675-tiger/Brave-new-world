@@ -2,6 +2,7 @@ import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import type { StaticPoint } from "@/data/geoTypes";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
       enabled: false,
       points: [],
       message: "INTEL_HOTSPOTS_URL is not configured",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   }
 
   try {
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
       count: points.length,
       points,
       attribution: "External provider",
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.staticLayer) });
   } catch (error) {
     return NextResponse.json(
       {

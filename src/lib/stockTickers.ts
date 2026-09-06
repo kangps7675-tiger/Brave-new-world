@@ -102,6 +102,27 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   ASML: { ko: "ASML", en: "ASML" },
   XLE: { ko: "에너지 섹터 ETF", en: "Energy Select ETF" },
   ITA: { ko: "방산 ETF (ITA)", en: "Aerospace & Defense ETF" },
+  AAPL: { ko: "애플", en: "Apple" },
+  MSFT: { ko: "마이크로소프트", en: "Microsoft" },
+  GOOGL: { ko: "알파벳", en: "Alphabet" },
+  AMZN: { ko: "아마존", en: "Amazon" },
+  META: { ko: "메타", en: "Meta" },
+  JPM: { ko: "JP모건", en: "JPMorgan" },
+  XOM: { ko: "엑슨모빌", en: "ExxonMobil" },
+  CVX: { ko: "셰브론", en: "Chevron" },
+  FRO: { ko: "프론트라인 (탱커)", en: "Frontline (tankers)" },
+  ZIM: { ko: "짐 통합해운", en: "ZIM Integrated" },
+  STNG: { ko: "스콜피오 탱커스", en: "Scorpio Tankers" },
+  DAL: { ko: "델타항공", en: "Delta Air Lines" },
+  UAL: { ko: "유나이티드항공", en: "United Airlines" },
+  LUV: { ko: "사우스웨스트항공", en: "Southwest Airlines" },
+  JETS: { ko: "항공 ETF (JETS)", en: "Airlines ETF (JETS)" },
+  LMT: { ko: "록히드마틴", en: "Lockheed Martin" },
+  RTX: { ko: "RTX", en: "RTX" },
+  NOC: { ko: "노스롭그루먼", en: "Northrop Grumman" },
+  GD: { ko: "제너럴 다이내믹스", en: "General Dynamics" },
+  "012450.KS": { ko: "한화에어로스페이스", en: "Hanwha Aerospace" },
+  "047810.KS": { ko: "한국항공우주", en: "Korea Aerospace (KAI)" },
   "005930.KS": { ko: "삼성전자", en: "Samsung Electronics" },
   "000660.KS": { ko: "SK하이닉스", en: "SK hynix" },
   "BTC-USD": { ko: "비트코인", en: "Bitcoin" },
@@ -158,6 +179,27 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "ASML", label: "ASML" },
   { symbol: "XLE", label: "Energy Select Sector ETF" },
   { symbol: "ITA", label: "iShares U.S. Aerospace & Defense ETF" },
+  { symbol: "AAPL", label: "Apple" },
+  { symbol: "MSFT", label: "Microsoft" },
+  { symbol: "GOOGL", label: "Alphabet" },
+  { symbol: "AMZN", label: "Amazon" },
+  { symbol: "META", label: "Meta" },
+  { symbol: "JPM", label: "JPMorgan" },
+  { symbol: "XOM", label: "ExxonMobil" },
+  { symbol: "CVX", label: "Chevron" },
+  { symbol: "FRO", label: "Frontline" },
+  { symbol: "ZIM", label: "ZIM Integrated Shipping" },
+  { symbol: "STNG", label: "Scorpio Tankers" },
+  { symbol: "DAL", label: "Delta Air Lines" },
+  { symbol: "UAL", label: "United Airlines" },
+  { symbol: "LUV", label: "Southwest Airlines" },
+  { symbol: "JETS", label: "U.S. Global Jets ETF" },
+  { symbol: "LMT", label: "Lockheed Martin" },
+  { symbol: "RTX", label: "RTX" },
+  { symbol: "NOC", label: "Northrop Grumman" },
+  { symbol: "GD", label: "General Dynamics" },
+  { symbol: "012450.KS", label: "Hanwha Aerospace" },
+  { symbol: "047810.KS", label: "Korea Aerospace Industries" },
   { symbol: "005930.KS", label: "Samsung Electronics" },
   { symbol: "000660.KS", label: "SK hynix" },
   { symbol: "BTC-USD", label: "Bitcoin" },
@@ -203,7 +245,7 @@ export function tickerDisplayName(
   return symbol.replace(/^\^/, "").replace(/=F$/, "");
 }
 
-/** 하단 스크롤 스트립 — 매크로·환율·금리·에너지 (전장 primary는 mergeTickerStripSymbols로 앞에 붙임) */
+/** @deprecated Prefer ECONOMY_TICKER_STRIP_CORE — 하위 호환 alias */
 export const TICKER_STRIP_SYMBOLS: string[] = [
   "^VIX",
   "KRW=X",
@@ -221,10 +263,52 @@ export const TICKER_STRIP_SYMBOLS: string[] = [
 ];
 
 /**
- * 전역 코어 스트립 + 전장 primary를 merge.
- * highlight에만 있는 심볼(곡물·반도체 등)도 앞에 넣어 화면에 보이게 한다.
+ * 두 렌즈에 동시에 걸치는 심볼 — 반도체(SMH·TSM·삼성전자).
+ * 대만해협 침공 리스크로는 지정학, 수출규제·공급망 재편으로는 지경학 —
+ * 어느 한쪽에만 넣으면 왜 거기 있는지 설명이 안 돼서 양쪽 스트립에 모두 노출한다.
  */
-export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string[] {
+export const DUAL_LENS_TICKER_SYMBOLS: string[] = ["SMH", "TSM", "005930.KS"];
+
+const DUAL_LENS_TICKER_NOTE: { ko: string; en: string } = {
+  ko: "반도체는 지정학(대만해협 리스크)과 지경학(수출규제·공급망) 양쪽에 걸쳐 있어 두 스트립에 모두 표시됩니다.",
+  en: "Semiconductor names sit in both lenses — Taiwan Strait risk (geopolitics) and export controls/supply chain (geoeconomics) — so they appear in both strips.",
+};
+
+/** 이 심볼이 지정학/지경학 두 렌즈에 걸쳐 있는지 */
+export function isDualLensTickerSymbol(symbol: string): boolean {
+  return DUAL_LENS_TICKER_SYMBOLS.includes(symbol);
+}
+
+/** 두 렌즈 겹침 이유 — UI 툴팁/뱃지용 */
+export function dualLensTickerNote(lang: LabelLanguage = "ko"): string {
+  return lang === "en" ? DUAL_LENS_TICKER_NOTE.en : DUAL_LENS_TICKER_NOTE.ko;
+}
+
+/** 지정학 스트립 코어 — 방산 equity + 반도체(양쪽 겹침) */
+export const CONFLICT_TICKER_STRIP_CORE: string[] = [
+  "ITA",
+  "LMT",
+  "RTX",
+  ...DUAL_LENS_TICKER_SYMBOLS,
+  "012450.KS",
+];
+
+/** 지경학 스트립 코어 — 선물·매크로 + 반도체(양쪽 겹침) */
+export const ECONOMY_TICKER_STRIP_CORE: string[] = [
+  ...TICKER_STRIP_SYMBOLS,
+  ...DUAL_LENS_TICKER_SYMBOLS,
+];
+
+/**
+ * 전역 코어 스트립 + 전장 primary를 merge.
+ * highlight에만 있는 심볼도 앞에 넣어 화면에 보이게 한다.
+ */
+export function mergeTickerStripSymbols(
+  highlightSymbols: string[] = [],
+  mode: "conflict" | "economy" = "conflict",
+): string[] {
+  const core =
+    mode === "economy" ? ECONOMY_TICKER_STRIP_CORE : CONFLICT_TICKER_STRIP_CORE;
   const seen = new Set<string>();
   const out: string[] = [];
   for (const symbol of highlightSymbols) {
@@ -232,7 +316,7 @@ export function mergeTickerStripSymbols(highlightSymbols: string[] = []): string
     seen.add(symbol);
     out.push(symbol);
   }
-  for (const symbol of TICKER_STRIP_SYMBOLS) {
+  for (const symbol of core) {
     if (seen.has(symbol)) continue;
     seen.add(symbol);
     out.push(symbol);
@@ -256,6 +340,12 @@ export const MARKET_GROUPS: Array<{
   symbols: string[];
 }> = [
   {
+    id: "commodities",
+    label: "에너지 · 곡물 · 금속",
+    labelEn: "Energy · Grains · Metals",
+    symbols: ["CL=F", "BZ=F", "NG=F", "ZW=F", "ZC=F", "GC=F", "SI=F", "HG=F"],
+  },
+  {
     id: "fx-rates",
     label: "환율 · 금리",
     labelEn: "FX · Rates",
@@ -278,12 +368,6 @@ export const MARKET_GROUPS: Array<{
     symbols: ["^VIX", "DX-Y.NYB"],
   },
   {
-    id: "commodities",
-    label: "에너지 · 곡물 · 금속",
-    labelEn: "Energy · Grains · Metals",
-    symbols: ["CL=F", "BZ=F", "NG=F", "ZW=F", "ZC=F", "GC=F", "SI=F", "HG=F"],
-  },
-  {
     id: "crypto",
     label: "암호화폐",
     labelEn: "Crypto",
@@ -293,7 +377,7 @@ export const MARKET_GROUPS: Array<{
     id: "us-equities",
     label: "미국 · 미주",
     labelEn: "US · Americas",
-    symbols: ["^GSPC", "^IXIC", "^DJI", "^RUT", "^BVSP", "SMH", "NVDA", "XLE", "ITA"],
+    symbols: ["^GSPC", "^IXIC", "^DJI", "^RUT", "^BVSP", "XLE"],
   },
   {
     id: "asia",
@@ -308,16 +392,13 @@ export const MARKET_GROUPS: Array<{
       "^TWII",
       "^NSEI",
       "^AXJO",
-      "TSM",
-      "005930.KS",
-      "000660.KS",
     ],
   },
   {
     id: "europe",
     label: "유럽 · 해운",
     labelEn: "Europe · Shipping",
-    symbols: ["^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "ASML", "BDRY"],
+    symbols: ["^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "BDRY"],
   },
 ];
 
@@ -355,32 +436,36 @@ export function tickerChangeTone(changePercent: number | null): "up" | "down" | 
   return changePercent > 0 ? "up" : "down";
 }
 
-/** @deprecated Prefer theaterAssetSymbols — kept for existing imports */
+/** @deprecated Prefer theaterAssetSymbols(filter, mode) */
 export const THEATER_RELATED_SYMBOLS: Record<TheaterMarketFilter, string[]> = {
-  all: theaterAssetSymbols("all"),
-  "middle-east": theaterAssetSymbols("middle-east"),
-  "russia-ukraine": theaterAssetSymbols("russia-ukraine"),
-  "china-taiwan": theaterAssetSymbols("china-taiwan"),
-  korea: theaterAssetSymbols("korea"),
-  japan: theaterAssetSymbols("japan"),
-  "south-asia": theaterAssetSymbols("south-asia"),
-  "southeast-asia": theaterAssetSymbols("southeast-asia"),
-  "south-america": theaterAssetSymbols("south-america"),
-  africa: theaterAssetSymbols("africa"),
-  arctic: theaterAssetSymbols("arctic"),
-  atlantic: theaterAssetSymbols("atlantic"),
-  global: theaterAssetSymbols("global"),
+  all: theaterAssetSymbols("all", "conflict"),
+  "middle-east": theaterAssetSymbols("middle-east", "conflict"),
+  "russia-ukraine": theaterAssetSymbols("russia-ukraine", "conflict"),
+  "china-taiwan": theaterAssetSymbols("china-taiwan", "conflict"),
+  korea: theaterAssetSymbols("korea", "conflict"),
+  japan: theaterAssetSymbols("japan", "conflict"),
+  "south-asia": theaterAssetSymbols("south-asia", "conflict"),
+  "southeast-asia": theaterAssetSymbols("southeast-asia", "conflict"),
+  "south-america": theaterAssetSymbols("south-america", "conflict"),
+  africa: theaterAssetSymbols("africa", "conflict"),
+  arctic: theaterAssetSymbols("arctic", "conflict"),
+  atlantic: theaterAssetSymbols("atlantic", "conflict"),
+  global: theaterAssetSymbols("global", "conflict"),
 };
 
 export function pickRelatedTickers(
   all: StockTickerItem[],
   filter: TheaterMarketFilter,
+  mode: "conflict" | "economy" = "conflict",
 ): StockTickerItem[] {
-  const order = theaterAssetSymbols(filter);
+  const order = theaterAssetSymbols(filter, mode);
   const bySymbol = new Map(all.map((t) => [t.symbol, t]));
   return order.map((symbol) => bySymbol.get(symbol)).filter((t): t is StockTickerItem => t != null);
 }
 
-export function theaterMarketBlurb(filter: TheaterMarketFilter): string {
-  return theaterAssetNote(filter, "ko");
+export function theaterMarketBlurb(
+  filter: TheaterMarketFilter,
+  mode: "conflict" | "economy" = "conflict",
+): string {
+  return theaterAssetNote(filter, "ko", mode);
 }

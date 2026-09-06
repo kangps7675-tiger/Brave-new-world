@@ -1,0 +1,5426 @@
+[
+  {
+    "id": "osm-au-w1087182128-airfield-tta",
+    "kind": "military-base",
+    "name": "Airfield TTA",
+    "lat": -17.8889,
+    "lng": 145.8223,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n1042093189-billabalong-airport",
+    "kind": "military-base",
+    "name": "Billabalong Airport",
+    "lat": -27.4181,
+    "lng": 115.8353,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1214544730-cooralya-airfield",
+    "kind": "military-base",
+    "name": "Cooralya airfield",
+    "lat": -24.4505,
+    "lng": 114.0666,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n415432133-dochra-airfield",
+    "kind": "military-base",
+    "name": "Dochra Airfield",
+    "lat": -32.6493,
+    "lng": 151.2084,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w461001835-former-willowra-airstrip",
+    "kind": "military-base",
+    "name": "Former Willowra airstrip",
+    "lat": -21.2528,
+    "lng": 132.6233,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-r12285037-hmas-albatross",
+    "kind": "military-base",
+    "name": "HMAS Albatross",
+    "lat": -34.9444,
+    "lng": 150.5422,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Navy",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w617556060-hmas-stirling",
+    "kind": "military-base",
+    "name": "HMAS Stirling",
+    "lat": -32.2404,
+    "lng": 115.6851,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Navy",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w818834036-kapyong-drop-zone",
+    "kind": "military-base",
+    "name": "Kapyong Drop Zone",
+    "lat": -22.4714,
+    "lng": 150.1507,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w917245036-luscombe-army-airfield-holsworthy",
+    "kind": "military-base",
+    "name": "Luscombe Army Airfield Holsworthy",
+    "lat": -33.9938,
+    "lng": 150.9518,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w454273539-mcdonalds-yard-airport",
+    "kind": "military-base",
+    "name": "Mcdonalds Yard Airport",
+    "lat": -17.7807,
+    "lng": 130.6054,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3240505272-mcleod-airstrip",
+    "kind": "military-base",
+    "name": "McLeod Airstrip",
+    "lat": -38.3558,
+    "lng": 145.4451,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3904067184-meebeerie",
+    "kind": "military-base",
+    "name": "Meebeerie",
+    "lat": -26.9635,
+    "lng": 115.9791,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4238454909-minie-creek",
+    "kind": "military-base",
+    "name": "Minie Creek",
+    "lat": -24.032,
+    "lng": 115.6959,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3937064610-moora-airstrip",
+    "kind": "military-base",
+    "name": "Moora Airstrip",
+    "lat": -30.6814,
+    "lng": 115.9758,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3904067203-mount-narryer",
+    "kind": "military-base",
+    "name": "Mount Narryer",
+    "lat": -26.5886,
+    "lng": 115.933,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3904111464-muggon-airstrip",
+    "kind": "military-base",
+    "name": "Muggon airstrip",
+    "lat": -26.6193,
+    "lng": 115.5498,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n5763334717-nackeroo-military-airfield",
+    "kind": "military-base",
+    "name": "Nackeroo Military Airfield",
+    "lat": -15.5756,
+    "lng": 130.4748,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4329435906-nooreena-downs-airfield",
+    "kind": "military-base",
+    "name": "Nooreena Downs Airfield",
+    "lat": -22.2976,
+    "lng": 120.1793,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4330958914-paddys",
+    "kind": "military-base",
+    "name": "Paddys",
+    "lat": -18.6317,
+    "lng": 143.0188,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3525621940-pentland-airstrip",
+    "kind": "military-base",
+    "name": "Pentland Airstrip",
+    "lat": -20.528,
+    "lng": 145.39,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n1042097580-puckapunyal-military-airport",
+    "kind": "military-base",
+    "name": "Puckapunyal (Military) Airport",
+    "lat": -37,
+    "lng": 145.063,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w902155670-raaf-base-amberley",
+    "kind": "military-base",
+    "name": "RAAF Base Amberley",
+    "lat": -27.6306,
+    "lng": 152.7046,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w833764002-raaf-base-darwin",
+    "kind": "military-base",
+    "name": "RAAF Base Darwin",
+    "lat": -12.4143,
+    "lng": 130.8831,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w820362953-raaf-base-east-sale",
+    "kind": "military-base",
+    "name": "RAAF Base East Sale",
+    "lat": -38.1039,
+    "lng": 147.1443,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w187114230-raaf-base-learmonth",
+    "kind": "military-base",
+    "name": "RAAF Base Learmonth",
+    "lat": -22.2326,
+    "lng": 114.0831,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w559055073-raaf-base-pearce",
+    "kind": "military-base",
+    "name": "RAAF Base Pearce",
+    "lat": -31.6733,
+    "lng": 116.0186,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "RAAF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-r19653451-raaf-base-richmond",
+    "kind": "military-base",
+    "name": "RAAF Base Richmond",
+    "lat": -33.6013,
+    "lng": 150.7827,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "RAAF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w953259684-raaf-base-tindal",
+    "kind": "military-base",
+    "name": "RAAF Base Tindal",
+    "lat": -14.5189,
+    "lng": 132.3792,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "RAAF / Katherine Town Council",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w51252328-raaf-base-williams",
+    "kind": "military-base",
+    "name": "RAAF Base Williams",
+    "lat": -37.9321,
+    "lng": 144.754,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-r4145466-raaf-base-williamtown",
+    "kind": "military-base",
+    "name": "RAAF Base Williamtown",
+    "lat": -32.7942,
+    "lng": 151.837,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Royal Australian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w949229523-raaf-curtin",
+    "kind": "military-base",
+    "name": "RAAF Curtin",
+    "lat": -17.5813,
+    "lng": 123.8216,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "RAAF / Shire of Derby",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w493146070-royal-flying-doctor-service-emergency-airstrip-s",
+    "kind": "military-base",
+    "name": "Royal Flying Doctor Service Emergency Airstrip Stuart Highway",
+    "lat": -30.2093,
+    "lng": 135.2311,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w818837900-samuel-hill-airfield",
+    "kind": "military-base",
+    "name": "Samuel Hill Airfield",
+    "lat": -22.74,
+    "lng": 150.6529,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n3927862830-springlea-airstrip",
+    "kind": "military-base",
+    "name": "Springlea Airstrip",
+    "lat": -31.3606,
+    "lng": 116.8905,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4210093923-stewarts",
+    "kind": "military-base",
+    "name": "Stewarts",
+    "lat": -30.1533,
+    "lng": 153.1623,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4210094976-talgai",
+    "kind": "military-base",
+    "name": "Talgai",
+    "lat": -28.0549,
+    "lng": 151.9301,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w818837902-the-glen-airfield",
+    "kind": "military-base",
+    "name": "The Glen Airfield",
+    "lat": -22.822,
+    "lng": 150.3333,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w818651969-the-plains-airfield",
+    "kind": "military-base",
+    "name": "The Plains Airfield",
+    "lat": -22.7616,
+    "lng": 150.3464,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w319355460-thistle-island-airport",
+    "kind": "military-base",
+    "name": "Thistle Island Airport",
+    "lat": -35.0252,
+    "lng": 136.1794,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n4214975072-wakefield",
+    "kind": "military-base",
+    "name": "Wakefield",
+    "lat": -30.9284,
+    "lng": 150.8032,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w818834035-williamson-airfield",
+    "kind": "military-base",
+    "name": "Williamson Airfield",
+    "lat": -22.4736,
+    "lng": 150.1804,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-n415079481-woomera-airfield",
+    "kind": "military-base",
+    "name": "Woomera Airfield",
+    "lat": -31.142,
+    "lng": 136.8162,
+    "tier": 1,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "airfield",
+      "operator": "RAAF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w203260935-mari-air-base",
+    "kind": "military-base",
+    "name": "Ämari Air Base",
+    "lat": 59.2588,
+    "lng": 24.2079,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Estonian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w45456738-haapsalu-lennuv-li",
+    "kind": "military-base",
+    "name": "Haapsalu lennuväli",
+    "lat": 58.9108,
+    "lng": 23.4874,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-r11321534-naval-base",
+    "kind": "military-base",
+    "name": "Naval Base",
+    "lat": 59.4564,
+    "lng": 24.7257,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w45456754-rutja-air-base",
+    "kind": "military-base",
+    "name": "Rutja Air Base",
+    "lat": 59.5365,
+    "lng": 26.3117,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w252257597-smuravyovo",
+    "kind": "military-base",
+    "name": "Smuravyovo",
+    "lat": 58.8116,
+    "lng": 28.0145,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Russian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w317087360-tallinna-kordon",
+    "kind": "military-base",
+    "name": "Tallinna kordon",
+    "lat": 59.457,
+    "lng": 24.6629,
+    "tier": 1,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n13951557309-322",
+    "kind": "military-base",
+    "name": "322 авиационный ремонтный завод",
+    "lat": 43.9179,
+    "lng": 131.913,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w816860128-93246-75",
+    "kind": "military-base",
+    "name": "93246部队75分队",
+    "lat": 43.3683,
+    "lng": 128.1902,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w43104790-",
+    "kind": "military-base",
+    "name": "陸上自衛隊 立川駐屯地",
+    "lat": 35.7126,
+    "lng": 139.4029,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "陸上自衛隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w55683493-",
+    "kind": "military-base",
+    "name": "陸上自衛隊木更津駐屯地",
+    "lat": 35.3982,
+    "lng": 139.9108,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n8064207820-",
+    "kind": "military-base",
+    "name": "防衛大学校 早水会場訓練場",
+    "lat": 35.2619,
+    "lng": 139.7349,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w422436373-",
+    "kind": "military-base",
+    "name": "北陵机场",
+    "lat": 41.8719,
+    "lng": 123.4316,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w195956333-",
+    "kind": "military-base",
+    "name": "선천헬리콥터비행장",
+    "lat": 39.9193,
+    "lng": 124.8374,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w674226602-",
+    "kind": "military-base",
+    "name": "王岗空军基地",
+    "lat": 45.6734,
+    "lng": 126.521,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w202959080-",
+    "kind": "military-base",
+    "name": "潜水艦桟橋",
+    "lat": 34.2276,
+    "lng": 132.548,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": "海上自衛隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w58066508-",
+    "kind": "military-base",
+    "name": "航空自衛隊 小牧基地",
+    "lat": 35.256,
+    "lng": 136.9257,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1371155555-",
+    "kind": "military-base",
+    "name": "航空自衛隊経ヶ岬分屯基地庁舎地区",
+    "lat": 35.7658,
+    "lng": 135.1936,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1434746500-",
+    "kind": "military-base",
+    "name": "海上自衛隊 北吸桟橋",
+    "lat": 35.4771,
+    "lng": 135.3772,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w558960595-",
+    "kind": "military-base",
+    "name": "海上自衛隊　新潟基地分遣隊",
+    "lat": 37.943,
+    "lng": 139.07,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w918579543-",
+    "kind": "military-base",
+    "name": "海上自衛隊呉基地 からす小島地区",
+    "lat": 34.2232,
+    "lng": 132.5485,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w119052284-",
+    "kind": "military-base",
+    "name": "东塔机场",
+    "lat": 41.7845,
+    "lng": 123.4965,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w674183276-",
+    "kind": "military-base",
+    "name": "双城空军基地",
+    "lat": 45.4073,
+    "lng": 126.3199,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w674204092-",
+    "kind": "military-base",
+    "name": "双榆树机场",
+    "lat": 45.6646,
+    "lng": 126.7003,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n343536824-",
+    "kind": "military-base",
+    "name": "辽阳铁西机场",
+    "lat": 41.2787,
+    "lng": 123.0812,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w690093308-acv-assault-hovercraft-kongbang-class",
+    "kind": "military-base",
+    "name": "ACV assault hovercraft\tKongbang class",
+    "lat": 39.374,
+    "lng": 127.439,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w690093306-acv-assault-hovercraft-kongbang-class",
+    "kind": "military-base",
+    "name": "ACV assault hovercraft\tKongbang class?",
+    "lat": 39.3146,
+    "lng": 127.4333,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w690093307-acv-assault-hovercraft-kongbang-class",
+    "kind": "military-base",
+    "name": "ACV assault hovercraft\tKongbang class?",
+    "lat": 39.3724,
+    "lng": 127.4495,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n2420687694-ch-aho-nodongjagu-navy-base",
+    "kind": "military-base",
+    "name": "Ch'aho-nodongjagu Navy Base",
+    "lat": 40.2059,
+    "lng": 128.6502,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w98076674-chernigovka-air-base",
+    "kind": "military-base",
+    "name": "Chernigovka Air Base",
+    "lat": 44.325,
+    "lng": 132.5483,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w325639264-chitose-air-base",
+    "kind": "military-base",
+    "name": "Chitose Air Base",
+    "lat": 42.7939,
+    "lng": 141.6653,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w111570148-chongjin-airport",
+    "kind": "military-base",
+    "name": "Chongjin Airport",
+    "lat": 41.4294,
+    "lng": 129.6461,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "조선인민군",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w97050029-chuguyevka-air-base",
+    "kind": "military-base",
+    "name": "Chuguyevka Air Base",
+    "lat": 44.0832,
+    "lng": 133.87,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Russian Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056580-futenma-marine-corps-air-station",
+    "kind": "military-base",
+    "name": "Futenma Marine Corps Air Station",
+    "lat": 26.2731,
+    "lng": 127.7557,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w543823649-gaecheon-airport",
+    "kind": "military-base",
+    "name": "Gaecheon Airport",
+    "lat": 39.7538,
+    "lng": 125.9029,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w106070334-galyonki-air-base",
+    "kind": "military-base",
+    "name": "Galyonki Air Base",
+    "lat": 44.0975,
+    "lng": 131.8031,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042055948-gifu-airbase",
+    "kind": "military-base",
+    "name": "Gifu Airbase",
+    "lat": 35.3941,
+    "lng": 136.87,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Japan Air Self-Defense Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w236430774-gwaksan-airport",
+    "kind": "military-base",
+    "name": "Gwaksan Airport",
+    "lat": 39.7278,
+    "lng": 125.1161,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056016-hachinohe-airport",
+    "kind": "military-base",
+    "name": "Hachinohe Airport",
+    "lat": 40.5542,
+    "lng": 141.4689,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w42722174-hamamatsu-air-base",
+    "kind": "military-base",
+    "name": "Hamamatsu Air Base",
+    "lat": 34.7491,
+    "lng": 137.7032,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "航空自衛隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n255037180-hyakuri-airbase",
+    "kind": "military-base",
+    "name": "Hyakuri Airbase",
+    "lat": 36.1821,
+    "lng": 140.4172,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Japan Air Self-Defense Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1013080759-hyesan-airfield",
+    "kind": "military-base",
+    "name": "Hyesan Airfield",
+    "lat": 41.3789,
+    "lng": 128.2044,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056568-ie-shima-auxiliary-air-base",
+    "kind": "military-base",
+    "name": "Ie Shima Auxiliary Air Base",
+    "lat": 26.7258,
+    "lng": 127.7649,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w463103578-iwo-jima-airport",
+    "kind": "military-base",
+    "name": "Iwo Jima Airport",
+    "lat": 24.7852,
+    "lng": 141.3228,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Japan Maritime Self-Defense Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1861489123-japan-maritime-self-defence-force-yokosuka-regio",
+    "kind": "military-base",
+    "name": "Japan Maritime Self-Defence Force Yokosuka Regional District Headquarters",
+    "lat": 35.2867,
+    "lng": 139.6532,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056033-jasdf-matsushima-airbase",
+    "kind": "military-base",
+    "name": "JASDF Matsushima Airbase",
+    "lat": 38.4049,
+    "lng": 141.22,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w142146685-jasdf-naha-air-base",
+    "kind": "military-base",
+    "name": "JASDF Naha Air Base",
+    "lat": 26.1909,
+    "lng": 127.6541,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1826678044-jasdf-shizuhama-airbase",
+    "kind": "military-base",
+    "name": "JASDF Shizuhama Airbase",
+    "lat": 34.8129,
+    "lng": 138.2959,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "航空自衛隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w224448269-jilin-airport",
+    "kind": "military-base",
+    "name": "Jilin Airport",
+    "lat": 44.0039,
+    "lng": 126.3952,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w362024338-jmsdf-kure-naval-base",
+    "kind": "military-base",
+    "name": "JMSDF Kure Naval Base",
+    "lat": 34.2376,
+    "lng": 132.5586,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w194056004-jmsdf-shimofusa-air-base",
+    "kind": "military-base",
+    "name": "JMSDF Shimofusa Air Base",
+    "lat": 35.7991,
+    "lng": 140.0185,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n407674577-kadena-air-base",
+    "kind": "military-base",
+    "name": "Kadena Air Base",
+    "lat": 26.3556,
+    "lng": 127.7675,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "United States Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-r2563052-kadena-air-base",
+    "kind": "military-base",
+    "name": "Kadena Air Base",
+    "lat": 26.348,
+    "lng": 127.7741,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "United States Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w463435392-kangda-ri-airport",
+    "kind": "military-base",
+    "name": "Kangda-ri Airport",
+    "lat": 39.0929,
+    "lng": 127.4115,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w463435393-kangda-ri-highway-strip",
+    "kind": "military-base",
+    "name": "Kangda-ri Highway Strip",
+    "lat": 39.0968,
+    "lng": 127.3996,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042055932-kanoya-airport",
+    "kind": "military-base",
+    "name": "Kanoya Airport",
+    "lat": 31.3704,
+    "lng": 130.8357,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056085-kastner-army-air-field",
+    "kind": "military-base",
+    "name": "Kastner Army Air Field",
+    "lat": 35.5138,
+    "lng": 139.394,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042055838-kasumigaura-airport",
+    "kind": "military-base",
+    "name": "Kasumigaura Airport",
+    "lat": 36.0349,
+    "lng": 140.1928,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Japan Ground Self-Defense Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w79514556-kasuminome-airfield",
+    "kind": "military-base",
+    "name": "Kasuminome Airfield",
+    "lat": 38.2347,
+    "lng": 140.9206,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w425864495-kenebetsu-air-base",
+    "kind": "military-base",
+    "name": "Kenebetsu Air Base",
+    "lat": 43.4257,
+    "lng": 144.7413,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "航空自衛隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w84117474-khorol-air-base",
+    "kind": "military-base",
+    "name": "Khorol Air Base",
+    "lat": 44.4476,
+    "lng": 132.1264,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w99463482-khvalynka-air-base",
+    "kind": "military-base",
+    "name": "Khvalynka Air Base",
+    "lat": 44.6125,
+    "lng": 132.8852,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w543804228-ku-m-ni-airport",
+    "kind": "military-base",
+    "name": "Kuŭm-ni Airport",
+    "lat": 38.8662,
+    "lng": 127.906,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w152637484-lalin-air-base",
+    "kind": "military-base",
+    "name": "Lalin Air Base",
+    "lat": 45.2592,
+    "lng": 126.8936,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-r6723874-misawa-air-base",
+    "kind": "military-base",
+    "name": "Misawa Air Base",
+    "lat": 40.708,
+    "lng": 141.3545,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Japan Air Self-Defense Force;US Air Force;US Navy;US Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n2420740023-namae-ri-navy-base",
+    "kind": "military-base",
+    "name": "Namae-ri navy base",
+    "lat": 38.8012,
+    "lng": 128.1391,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n2758280631-nyutabaru-airbase",
+    "kind": "military-base",
+    "name": "Nyutabaru Airbase",
+    "lat": 32.0841,
+    "lng": 131.4544,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "JASDF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w543843033-oncheon-airport",
+    "kind": "military-base",
+    "name": "Oncheon Airport",
+    "lat": 38.9105,
+    "lng": 125.2357,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1746021823-puam-dong-navy-base",
+    "kind": "military-base",
+    "name": "Puam-Dong navy base",
+    "lat": 41.3221,
+    "lng": 129.7737,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-r7662573-riwon-airport",
+    "kind": "military-base",
+    "name": "Riwon Airport",
+    "lat": 40.3652,
+    "lng": 128.72,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w559957049-secure-boat-basin",
+    "kind": "military-base",
+    "name": "Secure Boat Basin",
+    "lat": 40.0255,
+    "lng": 128.1669,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w270183947-seondeok-airport",
+    "kind": "military-base",
+    "name": "Seondeok Airport",
+    "lat": 39.7474,
+    "lng": 127.4722,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w144765081-shenyang-yu-hung-tun-airbase",
+    "kind": "military-base",
+    "name": "Shenyang Yu Hung Tun Airbase",
+    "lat": 41.8236,
+    "lng": 123.2998,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042056080-shimofusa-airbase",
+    "kind": "military-base",
+    "name": "Shimofusa Airbase",
+    "lat": 35.7974,
+    "lng": 140.0113,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "JMSDF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w559957047-shinpo-nuclear-submarine-development-facility",
+    "kind": "military-base",
+    "name": "Shinpo Nuclear Submarine Development Facility",
+    "lat": 40.0188,
+    "lng": 128.1578,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w551927577-siping-air-base",
+    "kind": "military-base",
+    "name": "Siping Air Base",
+    "lat": 43.1613,
+    "lng": 124.2966,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w245443241-soumagahara-heliport",
+    "kind": "military-base",
+    "name": "Soumagahara Heliport",
+    "lat": 36.4351,
+    "lng": 138.9533,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "JSDF-G",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w543815664-suncheon-airport",
+    "kind": "military-base",
+    "name": "Suncheon Airport",
+    "lat": 39.4113,
+    "lng": 125.8955,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "금성근위 제55비행연대 (제1017군부대)",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n1042055881-tokachi-airfield-jgsdf-camp",
+    "kind": "military-base",
+    "name": "Tokachi Airfield, JGSDF Camp",
+    "lat": 42.8908,
+    "lng": 143.1566,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w345213666-tsentralnaya-uglovaya-aerodrome",
+    "kind": "military-base",
+    "name": "Tsentralnaya Uglovaya Aerodrome",
+    "lat": 43.3484,
+    "lng": 132.0577,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w59243453-u-s-marine-corps-air-station-iwakuni",
+    "kind": "military-base",
+    "name": "U. S. Marine Corps Air Station Iwakuni",
+    "lat": 34.1441,
+    "lng": 132.2371,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w236595917-uiju-airfield",
+    "kind": "military-base",
+    "name": "Uiju Airfield",
+    "lat": 40.1511,
+    "lng": 124.499,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-r8376587-united-states-naval-air-facility-atsugi",
+    "kind": "military-base",
+    "name": "United States Naval Air Facility Atsugi",
+    "lat": 35.4545,
+    "lng": 139.4456,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w100584058-utsunomiya-airfield",
+    "kind": "military-base",
+    "name": "Utsunomiya Airfield",
+    "lat": 36.5146,
+    "lng": 139.8722,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "JGSDF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w252087373-varfolomeyevka-air-base",
+    "kind": "military-base",
+    "name": "Varfolomeyevka Air Base",
+    "lat": 44.2628,
+    "lng": 133.418,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n2420699981-yoho-ri-navy-base",
+    "kind": "military-base",
+    "name": "Yoho’ri navy base",
+    "lat": 39.8777,
+    "lng": 127.783,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n415168260-yokota-air-base",
+    "kind": "military-base",
+    "name": "Yokota Air Base",
+    "lat": 35.7491,
+    "lng": 139.3491,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w375603671-",
+    "kind": "military-base",
+    "name": "Авиабаза Воздвиженка",
+    "lat": 43.9095,
+    "lng": 131.9216,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w258588505-",
+    "kind": "military-base",
+    "name": "Резервный аэродром",
+    "lat": 43.4163,
+    "lng": 133.8829,
+    "tier": 1,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-lv-r9188012-karini-oro-paj-g-aviacijos-baz-s-pirmasis-paie-k",
+    "kind": "military-base",
+    "name": "Karinių oro pajėgų Aviacijos bazės Pirmasis paieškos ir gelbėjimo postas",
+    "lat": 55.8621,
+    "lng": 21.0788,
+    "tier": 1,
+    "meta": {
+      "country": "Latvia",
+      "iso": "LV",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-lv-w35093017-lielv-rde-air-base",
+    "kind": "military-base",
+    "name": "Lielvārde Air Base",
+    "lat": 56.7778,
+    "lng": 24.8466,
+    "tier": 1,
+    "meta": {
+      "country": "Latvia",
+      "iso": "LV",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "latvian air force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-lv-w1459800783-panev-ys-air-base",
+    "kind": "military-base",
+    "name": "Panevėžys Air Base",
+    "lat": 55.7259,
+    "lng": 24.4535,
+    "tier": 1,
+    "meta": {
+      "country": "Latvia",
+      "iso": "LV",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-lv-w586365905-r-zeknes-lidlauks",
+    "kind": "military-base",
+    "name": "Rēzeknes lidlauks",
+    "lat": 56.5566,
+    "lng": 27.2131,
+    "tier": 1,
+    "meta": {
+      "country": "Latvia",
+      "iso": "LV",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Latvijas Gaisa Spēki",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-lv-w296559890-iauliai-air-base",
+    "kind": "military-base",
+    "name": "Šiauliai Air Base",
+    "lat": 55.8926,
+    "lng": 23.3904,
+    "tier": 1,
+    "meta": {
+      "country": "Latvia",
+      "iso": "LV",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w306989574-antonio-bautista-air-base",
+    "kind": "military-base",
+    "name": "Antonio Bautista Air Base",
+    "lat": 9.7464,
+    "lng": 118.7564,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w38680368-basilio-fernando-air-base",
+    "kind": "military-base",
+    "name": "Basilio Fernando Air Base",
+    "lat": 13.952,
+    "lng": 121.1251,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-n3674478218-casay-airstrip",
+    "kind": "military-base",
+    "name": "Casay Airstrip",
+    "lat": 9.8214,
+    "lng": 123.548,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r20610509-danilo-atienza-air-base",
+    "kind": "military-base",
+    "name": "Danilo Atienza Air Base",
+    "lat": 14.4958,
+    "lng": 120.9087,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w240219351-edwin-andrews-air-base",
+    "kind": "military-base",
+    "name": "Edwin Andrews Air Base",
+    "lat": 6.926,
+    "lng": 122.0662,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r20610508-heracleo-alano-naval-base",
+    "kind": "military-base",
+    "name": "Heracleo Alano Naval Base",
+    "lat": 14.4943,
+    "lng": 120.9075,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1416182626-lumbia-airfield",
+    "kind": "military-base",
+    "name": "Lumbia Airfield",
+    "lat": 8.4139,
+    "lng": 124.6113,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w257574091-malangas-airport",
+    "kind": "military-base",
+    "name": "Malangas Airport",
+    "lat": 7.6509,
+    "lng": 123.018,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w316656032-menzi-airfield",
+    "kind": "military-base",
+    "name": "Menzi Airfield",
+    "lat": 6.654,
+    "lng": 121.9798,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r13687609-naval-base-rafael-ramos",
+    "kind": "military-base",
+    "name": "Naval Base Rafael Ramos",
+    "lat": 10.3009,
+    "lng": 123.9382,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Philippine Navy",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1553077346-naval-detachment-oyster-bay",
+    "kind": "military-base",
+    "name": "Naval Detachment Oyster Bay",
+    "lat": 10.0665,
+    "lng": 118.7564,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Western Naval Command, Philippine Navy",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r13812632-naval-station-felix-apolinario",
+    "kind": "military-base",
+    "name": "Naval Station Felix Apolinario",
+    "lat": 7.1537,
+    "lng": 125.6607,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Philippine Navy",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w497138485-naval-station-juan-magluyan",
+    "kind": "military-base",
+    "name": "Naval Station Juan Magluyan",
+    "lat": 5.0699,
+    "lng": 119.8854,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r20619264-pascual-ledesma-naval-station",
+    "kind": "military-base",
+    "name": "Pascual Ledesma Naval Station",
+    "lat": 14.4818,
+    "lng": 120.9152,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r12651735-rancudo-airfield",
+    "kind": "military-base",
+    "name": "Rancudo Airfield",
+    "lat": 11.0515,
+    "lng": 114.2836,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w287748709-sibutu-air-base",
+    "kind": "military-base",
+    "name": "Sibutu Air Base",
+    "lat": 4.8427,
+    "lng": 119.4609,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w421404266-taiping-island-airport",
+    "kind": "military-base",
+    "name": "Taiping Island Airport",
+    "lat": 10.3775,
+    "lng": 114.3658,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "國防部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w558033884-zhubi-airport",
+    "kind": "military-base",
+    "name": "Zhubi Airport",
+    "lat": 10.9237,
+    "lng": 114.0714,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w475623612-",
+    "kind": "military-base",
+    "name": "사창리비행장",
+    "lat": 38.0759,
+    "lng": 127.5207,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w438847292-",
+    "kind": "military-base",
+    "name": "성무비행장",
+    "lat": 36.5683,
+    "lng": 127.4972,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n14057812353-",
+    "kind": "military-base",
+    "name": "수색비행장",
+    "lat": 37.597,
+    "lng": 126.8723,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w663622743-1",
+    "kind": "military-base",
+    "name": "제1전투항공여단",
+    "lat": 37.5348,
+    "lng": 127.1797,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w414000772-",
+    "kind": "military-base",
+    "name": "파주비행장",
+    "lat": 37.7638,
+    "lng": 126.7921,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w469341735-camp-mobile",
+    "kind": "military-base",
+    "name": "Camp Mobile",
+    "lat": 37.9208,
+    "lng": 127.054,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w454735445-chiktong-airport",
+    "kind": "military-base",
+    "name": "Chiktong Airport",
+    "lat": 38.7164,
+    "lng": 126.6797,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w178630680-chodo-airport",
+    "kind": "military-base",
+    "name": "Chodo Airport",
+    "lat": 38.552,
+    "lng": 124.8326,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-r11750367-daegu-international-airport",
+    "kind": "military-base",
+    "name": "Daegu International Airport",
+    "lat": 35.8968,
+    "lng": 128.6576,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "Military of South Korea",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w940753107-desiderio-army-airfield",
+    "kind": "military-base",
+    "name": "Desiderio Army Airfield",
+    "lat": 36.9627,
+    "lng": 127.0314,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406173166-g-219-airport",
+    "kind": "military-base",
+    "name": "G 219 Airport",
+    "lat": 37.9093,
+    "lng": 127.0087,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406171121-g-231-airport",
+    "kind": "military-base",
+    "name": "G 231 Airport",
+    "lat": 38.0261,
+    "lng": 127.3669,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056140-g-233-airport",
+    "kind": "military-base",
+    "name": "G 233 Airport",
+    "lat": 38.0822,
+    "lng": 127.2694,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406171189-g-237-airport",
+    "kind": "military-base",
+    "name": "G 237 Airport",
+    "lat": 38.1549,
+    "lng": 127.314,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406170717-g-240-airport",
+    "kind": "military-base",
+    "name": "G 240 Airport",
+    "lat": 38.2489,
+    "lng": 127.3784,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406172433-g-307-airport",
+    "kind": "military-base",
+    "name": "G 307 Airport",
+    "lat": 37.9298,
+    "lng": 127.7574,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406170455-g-313-airport",
+    "kind": "military-base",
+    "name": "G 313 Airport",
+    "lat": 38.1201,
+    "lng": 127.6857,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056546-g-505-airport",
+    "kind": "military-base",
+    "name": "G 505 Airport",
+    "lat": 36.5692,
+    "lng": 127.2952,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w289666044-g-510-airport",
+    "kind": "military-base",
+    "name": "G 510 Airport",
+    "lat": 37.2045,
+    "lng": 127.4717,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056555-g-536-airport",
+    "kind": "military-base",
+    "name": "G 536 Airport",
+    "lat": 36.2694,
+    "lng": 127.114,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w485271605-g-107",
+    "kind": "military-base",
+    "name": "G-107",
+    "lat": 37.7156,
+    "lng": 126.5602,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w406173056-g-218",
+    "kind": "military-base",
+    "name": "G-218",
+    "lat": 37.8956,
+    "lng": 126.9705,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1297369648-g-224",
+    "kind": "military-base",
+    "name": "G-224",
+    "lat": 37.9454,
+    "lng": 127.1903,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n14081327767-g-505-airport",
+    "kind": "military-base",
+    "name": "G-505 Airport",
+    "lat": 37.2877,
+    "lng": 127.2253,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n8178492551-g-526",
+    "kind": "military-base",
+    "name": "G-526",
+    "lat": 36.5875,
+    "lng": 126.6581,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w867170510-g-530",
+    "kind": "military-base",
+    "name": "G-530",
+    "lat": 36.7566,
+    "lng": 126.329,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-r19785914-ganapri-airport",
+    "kind": "military-base",
+    "name": "Ganapri Airport",
+    "lat": 37.83,
+    "lng": 126.9898,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w205434818-gangneung-airbase",
+    "kind": "military-base",
+    "name": "Gangneung Airbase",
+    "lat": 37.754,
+    "lng": 128.9476,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w942419717-goksan-airport",
+    "kind": "military-base",
+    "name": "Goksan Airport",
+    "lat": 38.6857,
+    "lng": 126.6056,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w95038648-gunsan-airport",
+    "kind": "military-base",
+    "name": "Gunsan Airport",
+    "lat": 35.9071,
+    "lng": 126.6271,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "USAF;ROKAF",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w357695604-hwangju-airport",
+    "kind": "military-base",
+    "name": "Hwangju Airport",
+    "lat": 38.6492,
+    "lng": 125.788,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w983240759-jeonju-airport",
+    "kind": "military-base",
+    "name": "Jeonju Airport",
+    "lat": 35.8808,
+    "lng": 127.0155,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056416-jinhae-naval-airfield",
+    "kind": "military-base",
+    "name": "Jinhae Naval Airfield",
+    "lat": 35.1412,
+    "lng": 128.696,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056519-jungwon-air-base",
+    "kind": "military-base",
+    "name": "Jungwon Air Base",
+    "lat": 37.0301,
+    "lng": 127.8855,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n2420737685-kosong-naval-base",
+    "kind": "military-base",
+    "name": "Kosong naval base",
+    "lat": 38.734,
+    "lng": 128.2104,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w162204603-linshan-airport",
+    "kind": "military-base",
+    "name": "Linshan Airport",
+    "lat": 38.24,
+    "lng": 126.1174,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056349-mokpo-airport",
+    "kind": "military-base",
+    "name": "Mokpo Airport",
+    "lat": 34.7589,
+    "lng": 126.38,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w71710741-osan-air-base",
+    "kind": "military-base",
+    "name": "Osan Air Base",
+    "lat": 37.0842,
+    "lng": 127.0314,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "US Air Force; Republic of Korea Air Force",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1350601589-r-217-aero-airport",
+    "kind": "military-base",
+    "name": "R-217 Aero Airport",
+    "lat": 37.8647,
+    "lng": 127.1769,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-r16758161-republic-of-korea-fleet-command",
+    "kind": "military-base",
+    "name": "Republic of Korea Fleet Command",
+    "lat": 35.0974,
+    "lng": 129.1064,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w298308783-rktn",
+    "kind": "military-base",
+    "name": "RKTN",
+    "lat": 35.8941,
+    "lng": 128.6587,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w444717696-rokaf-1st-fighter-wing",
+    "kind": "military-base",
+    "name": "ROKAF 1st Fighter Wing",
+    "lat": 35.124,
+    "lng": 126.8047,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w978384171-seosan-airbase",
+    "kind": "military-base",
+    "name": "Seosan Airbase",
+    "lat": 36.7041,
+    "lng": 126.4855,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w561983195-seoul-air-base",
+    "kind": "military-base",
+    "name": "Seoul Air Base",
+    "lat": 37.4449,
+    "lng": 127.1103,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n1042056375-sokcho-airport",
+    "kind": "military-base",
+    "name": "Sokcho Airport",
+    "lat": 38.1426,
+    "lng": 128.599,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w41943278-suwon-airbase",
+    "kind": "military-base",
+    "name": "Suwon Airbase",
+    "lat": 37.2351,
+    "lng": 127.006,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": "대한민국 공군",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w543807229-taetan-airport",
+    "kind": "military-base",
+    "name": "Taetan Airport",
+    "lat": 38.1223,
+    "lng": 125.2377,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w370196544-yecheon-airport",
+    "kind": "military-base",
+    "name": "Yecheon Airport",
+    "lat": 36.6289,
+    "lng": 128.3539,
+    "tier": 1,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w205632291-",
+    "kind": "military-base",
+    "name": "居仁營區",
+    "lat": 25.1433,
+    "lng": 121.7398,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "operator": "海軍基隆後勤支援指揮部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-n5641930543-",
+    "kind": "military-base",
+    "name": "高雄港港務處航管中心第一信號",
+    "lat": 22.6172,
+    "lng": 120.2664,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w294020527-",
+    "kind": "military-base",
+    "name": "空軍馬公基地",
+    "lat": 23.5648,
+    "lng": 119.6326,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "空軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r4869945-",
+    "kind": "military-base",
+    "name": "空軍屏東基地",
+    "lat": 22.6865,
+    "lng": 120.4722,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w204661911-",
+    "kind": "military-base",
+    "name": "旗津營區",
+    "lat": 22.6051,
+    "lng": 120.2776,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "operator": "海軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6129977-",
+    "kind": "military-base",
+    "name": "南保機場",
+    "lat": 22.9824,
+    "lng": 120.2854,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r18568610-",
+    "kind": "military-base",
+    "name": "清水營區",
+    "lat": 24.2783,
+    "lng": 120.538,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w228931633-chiayi-airport",
+    "kind": "military-base",
+    "name": "Chiayi Airport",
+    "lat": 23.4592,
+    "lng": 120.3925,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w281004842-east-wharf-5",
+    "kind": "military-base",
+    "name": "East​ Wharf 5",
+    "lat": 25.1366,
+    "lng": 121.747,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6334430-gangshan-air-base",
+    "kind": "military-base",
+    "name": "Gangshan Air Base",
+    "lat": 22.7823,
+    "lng": 120.2617,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w92375467-hsinchu-air-base",
+    "kind": "military-base",
+    "name": "Hsinchu Air Base",
+    "lat": 24.8193,
+    "lng": 120.9401,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "國防部空軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5540689-hualien-airport",
+    "kind": "military-base",
+    "name": "Hualien Airport",
+    "lat": 24.0237,
+    "lng": 121.6182,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "Civil Aeronautics Administration (Taiwan)",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5540684-jiashan-military-base",
+    "kind": "military-base",
+    "name": "Jiashan Military Base",
+    "lat": 24.0266,
+    "lng": 121.5878,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5421751-sungshan-air-force-base",
+    "kind": "military-base",
+    "name": "Sungshan Air Force Base",
+    "lat": 25.065,
+    "lng": 121.5614,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w307469261-taichung-airport",
+    "kind": "military-base",
+    "name": "Taichung Airport",
+    "lat": 24.2668,
+    "lng": 120.6258,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "交通部民用航空局;中華民國空軍",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5478819-tainan-airport",
+    "kind": "military-base",
+    "name": "Tainan Airport",
+    "lat": 22.9506,
+    "lng": 120.2077,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "交通部民用航空局;中華民國空軍",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w205640221-wu-liting-hengchun-airport",
+    "kind": "military-base",
+    "name": "Wu Liting Hengchun Airport",
+    "lat": 22.039,
+    "lng": 120.7305,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6129951-zhi-hang-air-base",
+    "kind": "military-base",
+    "name": "Zhi-Hang Air Base",
+    "lat": 22.7929,
+    "lng": 121.181,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "空軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w314279529-zuoying-naval-airfield",
+    "kind": "military-base",
+    "name": "Zuoying Naval Airfield",
+    "lat": 22.7043,
+    "lng": 120.2801,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "operator": "中華民國海軍",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1478683759-12th-16th-hunter-river-lancers",
+    "kind": "military-base",
+    "name": "12th/16th Hunter River Lancers",
+    "lat": -31.097,
+    "lng": 150.9394,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1324246304-427-squadron",
+    "kind": "military-base",
+    "name": "427 Squadron",
+    "lat": -38.1407,
+    "lng": 144.3246,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w907618024-army-reserve-base",
+    "kind": "military-base",
+    "name": "Army Reserve Base",
+    "lat": -27.0815,
+    "lng": 152.9782,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army Reserve",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w425834844-army-reserve-depot",
+    "kind": "military-base",
+    "name": "Army Reserve depot",
+    "lat": -27.9771,
+    "lng": 153.39,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w426950362-army-reserve-depot",
+    "kind": "military-base",
+    "name": "Army Reserve depot",
+    "lat": -28.1923,
+    "lng": 153.5275,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1248794848-australian-border-force",
+    "kind": "military-base",
+    "name": "Australian Border Force",
+    "lat": -33.8414,
+    "lng": 151.2175,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1102471057-australian-women-s-army-service-awas-camp-ru",
+    "kind": "military-base",
+    "name": "Australian Women's Army Service (AWAS) Camp (Ru)",
+    "lat": -32.0074,
+    "lng": 115.5506,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-r15259902-borneo-barracks",
+    "kind": "military-base",
+    "name": "Borneo Barracks",
+    "lat": -27.4437,
+    "lng": 151.9821,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1493405717-camp-sapper",
+    "kind": "military-base",
+    "name": "Camp Sapper",
+    "lat": -33.9731,
+    "lng": 150.9883,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "School of Military Engineering",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1436392763-camp-tilpal",
+    "kind": "military-base",
+    "name": "Camp Tilpal",
+    "lat": -22.8125,
+    "lng": 150.1326,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w1371049654-cultana-training-area-camp",
+    "kind": "military-base",
+    "name": "Cultana Training Area Camp",
+    "lat": -32.8674,
+    "lng": 137.5652,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w38269243-damascus-barracks",
+    "kind": "military-base",
+    "name": "Damascus Barracks",
+    "lat": -27.4247,
+    "lng": 153.0997,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-au-w496581804-erina-army-reserve-depot",
+    "kind": "military-base",
+    "name": "Erina Army Reserve Depot",
+    "lat": -33.4379,
+    "lng": 151.3775,
+    "tier": 2,
+    "meta": {
+      "country": "Australia",
+      "iso": "AU",
+      "theater": "indo-pacific",
+      "branch": "base",
+      "operator": "Australian Army",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w305113248-2-jalav-ebrigaad",
+    "kind": "military-base",
+    "name": "2. jalaväebrigaad",
+    "lat": 58.3779,
+    "lng": 26.8967,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w203857398-2-jalav-ebrigaadi-staap",
+    "kind": "military-base",
+    "name": "2. jalaväebrigaadi staap",
+    "lat": 58.388,
+    "lng": 26.7459,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w101352635-mari-lennubaas",
+    "kind": "military-base",
+    "name": "Ämari lennubaas",
+    "lat": 59.254,
+    "lng": 24.2038,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w30815499-filtri-s-jav-elinnak",
+    "kind": "military-base",
+    "name": "Filtri sõjaväelinnak",
+    "lat": 59.4228,
+    "lng": 24.7682,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w1412730426-j-gala-military-campus",
+    "kind": "military-base",
+    "name": "Jägala Military Campus",
+    "lat": 59.4171,
+    "lng": 25.2371,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w291227227-kaitseliidu-harju-malev",
+    "kind": "military-base",
+    "name": "Kaitseliidu Harju Malev",
+    "lat": 59.3708,
+    "lng": 24.7192,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w291219147-kaitseliit-k-berkaitse-ksus",
+    "kind": "military-base",
+    "name": "Kaitseliit Küberkaitse üksus",
+    "lat": 58.3754,
+    "lng": 26.6995,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w74134931-kaitseliit-p-rnumaa-malev",
+    "kind": "military-base",
+    "name": "Kaitseliit Pärnumaa Malev",
+    "lat": 58.4049,
+    "lng": 24.4708,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w290948117-kaitseliit-sakala-malev",
+    "kind": "military-base",
+    "name": "Kaitseliit Sakala malev",
+    "lat": 58.3836,
+    "lng": 25.5974,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w144018120-keskpol-gooni-teeninduskeskus",
+    "kind": "military-base",
+    "name": "Keskpolügooni teeninduskeskus",
+    "lat": 59.4404,
+    "lng": 25.8615,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w44866676-kirna-ppekeskus",
+    "kind": "military-base",
+    "name": "Kirna Õppekeskus",
+    "lat": 58.5409,
+    "lng": 26.2376,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-n13096496539-ninase-rannakaitsepatarei",
+    "kind": "military-base",
+    "name": "ninase rannakaitsepatarei",
+    "lat": 58.5321,
+    "lng": 22.2185,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w83710103-paldiski-s-jav-elinnak",
+    "kind": "military-base",
+    "name": "Paldiski sõjaväelinnak",
+    "lat": 59.3431,
+    "lng": 24.0853,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w83710110-paldiski-s-jav-elinnak",
+    "kind": "military-base",
+    "name": "Paldiski sõjaväelinnak",
+    "lat": 59.3404,
+    "lng": 24.0821,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w276559309-taara-s-jav-elinnak",
+    "kind": "military-base",
+    "name": "Taara sõjaväelinnak",
+    "lat": 57.824,
+    "lng": 27.0242,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w150567961-tapa-army-base",
+    "kind": "military-base",
+    "name": "Tapa Army Base",
+    "lat": 59.2403,
+    "lng": 25.9503,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w80951046-vahipataljon",
+    "kind": "military-base",
+    "name": "Vahipataljon",
+    "lat": 59.3994,
+    "lng": 24.7089,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ee-w264278189-viru-jalav-epataljon",
+    "kind": "military-base",
+    "name": "Viru jalaväepataljon",
+    "lat": 59.3506,
+    "lng": 27.4446,
+    "tier": 2,
+    "meta": {
+      "country": "Estonia",
+      "iso": "EE",
+      "theater": "eastern-nato",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1463763954-347",
+    "kind": "military-base",
+    "name": "347군부대",
+    "lat": 41.7961,
+    "lng": 129.8106,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1197848667-61",
+    "kind": "military-base",
+    "name": "空61旅",
+    "lat": 42.8782,
+    "lng": 129.4772,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1172399877-",
+    "kind": "military-base",
+    "name": "空军哈尔滨飞行学院",
+    "lat": 45.7444,
+    "lng": 126.6502,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w458537042-",
+    "kind": "military-base",
+    "name": "根室海上保安部 羅臼海上保安署",
+    "lat": 44.0212,
+    "lng": 145.1964,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1093958828-",
+    "kind": "military-base",
+    "name": "南大营",
+    "lat": 41.2428,
+    "lng": 123.1446,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1093958829-",
+    "kind": "military-base",
+    "name": "南大营",
+    "lat": 41.2491,
+    "lng": 123.1405,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-w1303500789-",
+    "kind": "military-base",
+    "name": "陸上自衛隊 山口駐屯地",
+    "lat": 34.1884,
+    "lng": 131.4854,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-jp-n4656743537-",
+    "kind": "military-base",
+    "name": "부산기지전대",
+    "lat": 35.0973,
+    "lng": 129.104,
+    "tier": 2,
+    "meta": {
+      "country": "Japan",
+      "iso": "JP",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1210251577-113rd-special-action-company",
+    "kind": "military-base",
+    "name": "113rd Special Action Company",
+    "lat": 7.194,
+    "lng": 125.9067,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": "Armed Forces of the Philippines;Department of National Defense",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w972173597-28th-infantry-batallion-headquarters",
+    "kind": "military-base",
+    "name": "28th Infantry Batallion Headquarters",
+    "lat": 6.8964,
+    "lng": 126.1515,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1444211186-29th-ib-headquarters",
+    "kind": "military-base",
+    "name": "29th IB Headquarters",
+    "lat": 9.1565,
+    "lng": 125.5859,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1292894541-39th-infantry-batallion",
+    "kind": "military-base",
+    "name": "39th Infantry Batallion",
+    "lat": 6.832,
+    "lng": 125.3909,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1363953433-39th-infantry-batallion-headquarters",
+    "kind": "military-base",
+    "name": "39th Infantry Batallion Headquarters",
+    "lat": 6.9495,
+    "lng": 125.1011,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1443824693-48th-infantry-guards-batallion",
+    "kind": "military-base",
+    "name": "48th Infantry (Guards) Batallion",
+    "lat": 7.7492,
+    "lng": 125.0115,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w624157202-534th-army-brigade-headquarters",
+    "kind": "military-base",
+    "name": "534th Army Brigade Headquarters",
+    "lat": 7.5102,
+    "lng": 125.5989,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": "Armed Forces of the Philippines;Department of National Defense",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-n12954381224-546th-engineer-construction-battalion",
+    "kind": "military-base",
+    "name": "546th Engineer Construction Battalion",
+    "lat": 11.2271,
+    "lng": 125.0225,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-n11096228798-6th-civil-military-operations-batallion-6id-pa",
+    "kind": "military-base",
+    "name": "6th Civil-Military Operations Batallion, 6ID, PA",
+    "lat": 6.1453,
+    "lng": 124.2928,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w624150375-701st-brigade-headquarters",
+    "kind": "military-base",
+    "name": "701st Brigade Headquarters",
+    "lat": 6.9676,
+    "lng": 126.2615,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-r8706031-afp-tagaytay-radar-station",
+    "kind": "military-base",
+    "name": "AFP Tagaytay Radar Station",
+    "lat": 14.0894,
+    "lng": 120.9106,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w581490266-alpha-company-headquarters-60th-infantry-battali",
+    "kind": "military-base",
+    "name": "Alpha Company Headquarters - 60th Infantry Battalion",
+    "lat": 7.6357,
+    "lng": 125.6531,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-n5821907253-alpha-company-headquarters-66th-army-infantry-ba",
+    "kind": "military-base",
+    "name": "Alpha Company Headquarters, 66th Army Infantry Battalion",
+    "lat": 7.2389,
+    "lng": 126.1606,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": "Armed Forces of the Philippines;Department of National Defense",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1096142748-armed-forces-of-the-philippines",
+    "kind": "military-base",
+    "name": "Armed Forces of the Philippines",
+    "lat": 6.8698,
+    "lng": 124.4365,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1260502185-bacsarpa-patrol-base",
+    "kind": "military-base",
+    "name": "Bacsarpa Patrol Base",
+    "lat": 7.2888,
+    "lng": 125.4845,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1182353170-balacayo-patrol-base",
+    "kind": "military-base",
+    "name": "Balacayo Patrol Base",
+    "lat": 7.6919,
+    "lng": 125.4057,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1485912035-baluan-patrol-base",
+    "kind": "military-base",
+    "name": "Baluan Patrol Base",
+    "lat": 6.3315,
+    "lng": 124.3829,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1185669853-bantac-patrol-base",
+    "kind": "military-base",
+    "name": "Bantac Patrol Base",
+    "lat": 7.1071,
+    "lng": 125.1365,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1197488226-bantol-patrol-base",
+    "kind": "military-base",
+    "name": "Bantol Patrol Base",
+    "lat": 7.3022,
+    "lng": 125.3355,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1206792300-baracatan-patrol-base",
+    "kind": "military-base",
+    "name": "Baracatan Patrol Base",
+    "lat": 6.9993,
+    "lng": 125.3867,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w868395016-baracayo-patrol-base",
+    "kind": "military-base",
+    "name": "Baracayo Patrol Base",
+    "lat": 7.0619,
+    "lng": 125.3712,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-n4358700192-barangay-baliwasan-patrol-base",
+    "kind": "military-base",
+    "name": "Barangay Baliwasan Patrol Base",
+    "lat": 6.9151,
+    "lng": 122.053,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1161862086-basak-patrol-base",
+    "kind": "military-base",
+    "name": "Basak Patrol Base",
+    "lat": 7.6237,
+    "lng": 125.4592,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1434013574-bataan-patrol-base",
+    "kind": "military-base",
+    "name": "Bataan Patrol Base",
+    "lat": 14.1354,
+    "lng": 121.6265,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1498358968-bombaran-patrol-base",
+    "kind": "military-base",
+    "name": "Bombaran Patrol Base",
+    "lat": 7.0256,
+    "lng": 125.3847,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1182353461-bonacao-patrol-base",
+    "kind": "military-base",
+    "name": "Bonacao Patrol Base",
+    "lat": 7.8004,
+    "lng": 125.3987,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1195520120-bravo-company-37-infantry-battalion-philippine-a",
+    "kind": "military-base",
+    "name": "Bravo Company, 37 Infantry Battalion Philippine Army",
+    "lat": 6.204,
+    "lng": 124.2006,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1002433862-brp-sierra-madre",
+    "kind": "military-base",
+    "name": "BRP Sierra Madre",
+    "lat": 9.791,
+    "lng": 115.8567,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1294870664-cafgu-detachment",
+    "kind": "military-base",
+    "name": "CAFGU Detachment",
+    "lat": 10.3047,
+    "lng": 123.2656,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1115095705-calanan-military-reservation",
+    "kind": "military-base",
+    "name": "Calanan Military Reservation",
+    "lat": 17.4068,
+    "lng": 121.4079,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w333407610-camp-1st-lieutenant-vicente-g-alagar",
+    "kind": "military-base",
+    "name": "Camp 1st Lieutenant Vicente G. Alagar",
+    "lat": 8.4815,
+    "lng": 124.661,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": "Philippine National Police",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-ph-w1363952936-camp-armando-m-quibod",
+    "kind": "military-base",
+    "name": "Camp Armando M. Quibod",
+    "lat": 6.9338,
+    "lng": 125.1531,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n5537158222-11",
+    "kind": "military-base",
+    "name": "11부두",
+    "lat": 35.1355,
+    "lng": 128.655,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1337980586-189th-military-unit-of-the-korean-people-s-army",
+    "kind": "military-base",
+    "name": "189th Military Unit of the Korean People's Army",
+    "lat": 38.5938,
+    "lng": 124.9791,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w802192216-1st-battalion-108th-infantry-regiment-manjong-mo",
+    "kind": "military-base",
+    "name": "1st Battalion, 108th Infantry Regiment, Manjong Mobilization Training Center",
+    "lat": 37.3719,
+    "lng": 127.9097,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1342778325-318",
+    "kind": "military-base",
+    "name": "318 조기경보대대",
+    "lat": 35.344,
+    "lng": 126.0295,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-n11280607213-32",
+    "kind": "military-base",
+    "name": "32사단 신병교육대",
+    "lat": 36.4235,
+    "lng": 127.2565,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w474800855-36th-infantry-division",
+    "kind": "military-base",
+    "name": "36th Infantry Division",
+    "lat": 37.3875,
+    "lng": 127.9722,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1230344085-55th-supply-depot",
+    "kind": "military-base",
+    "name": "55th Supply Depot",
+    "lat": 35.1325,
+    "lng": 129.0628,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1463767126-620-620",
+    "kind": "military-base",
+    "name": "620훈련소 (제620포병군단)",
+    "lat": 38.5217,
+    "lng": 126.5409,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1342797964-8539-3",
+    "kind": "military-base",
+    "name": "8539부대 제3대대",
+    "lat": 34.669,
+    "lng": 126.9303,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-r18157155-3-537",
+    "kind": "military-base",
+    "name": "공군 제3미사일방어여단 537포대",
+    "lat": 37.9049,
+    "lng": 126.8857,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w1219287416-8218",
+    "kind": "military-base",
+    "name": "공군 제8218부대",
+    "lat": 37.9074,
+    "lng": 126.8754,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-kr-w366243033-",
+    "kind": "military-base",
+    "name": "동해안군수지원단",
+    "lat": 37.7155,
+    "lng": 128.899,
+    "tier": 2,
+    "meta": {
+      "country": "South Korea",
+      "iso": "KR",
+      "theater": "korea-japan",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r7103869-332-battalion-mp",
+    "kind": "military-base",
+    "name": "332 Battalion, MP",
+    "lat": 25.0336,
+    "lng": 121.512,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "憲兵指揮部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w528148357-",
+    "kind": "military-base",
+    "name": "加路蘭山雷達站",
+    "lat": 23.6827,
+    "lng": 121.5265,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5189028-",
+    "kind": "military-base",
+    "name": "加祿堂營區",
+    "lat": 22.3353,
+    "lng": 120.6263,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "空軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w564780221-",
+    "kind": "military-base",
+    "name": "嘉義憲兵隊",
+    "lat": 23.4736,
+    "lng": 120.442,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "憲兵指揮部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5138727-",
+    "kind": "military-base",
+    "name": "茄湖營區",
+    "lat": 22.0486,
+    "lng": 120.7159,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6581471-",
+    "kind": "military-base",
+    "name": "介園營區",
+    "lat": 23.1394,
+    "lng": 120.1862,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5725151-",
+    "kind": "military-base",
+    "name": "堅實營區",
+    "lat": 25.0669,
+    "lng": 121.4292,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "憲兵指揮部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r10907438-",
+    "kind": "military-base",
+    "name": "繼光營區",
+    "lat": 22.5133,
+    "lng": 120.3756,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "海軍陸戰隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r21283471-",
+    "kind": "military-base",
+    "name": "考潭營區",
+    "lat": 22.682,
+    "lng": 120.373,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5463147-",
+    "kind": "military-base",
+    "name": "高山頂營區",
+    "lat": 24.9195,
+    "lng": 121.1582,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r10306784-",
+    "kind": "military-base",
+    "name": "固海營區",
+    "lat": 23.8972,
+    "lng": 121.5921,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "國防部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5553915-",
+    "kind": "military-base",
+    "name": "公館山營區",
+    "lat": 25.0729,
+    "lng": 121.5836,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6332554-",
+    "kind": "military-base",
+    "name": "官田營區",
+    "lat": 23.181,
+    "lng": 120.3323,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r13484028-",
+    "kind": "military-base",
+    "name": "光隆營區",
+    "lat": 24.1174,
+    "lng": 120.7303,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w1152602078-",
+    "kind": "military-base",
+    "name": "光復營區",
+    "lat": 25.1412,
+    "lng": 121.7634,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6125142-",
+    "kind": "military-base",
+    "name": "光華南營區",
+    "lat": 23.5529,
+    "lng": 119.6044,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6125143-",
+    "kind": "military-base",
+    "name": "光華營區",
+    "lat": 23.5561,
+    "lng": 119.6033,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5139927-",
+    "kind": "military-base",
+    "name": "九鵬基地",
+    "lat": 22.1621,
+    "lng": 120.879,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5011938-",
+    "kind": "military-base",
+    "name": "龜山營區",
+    "lat": 24.9927,
+    "lng": 121.3442,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6102609-",
+    "kind": "military-base",
+    "name": "勾踐營區",
+    "lat": 22.5298,
+    "lng": 120.3962,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "海軍陸戰隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w203569786-",
+    "kind": "military-base",
+    "name": "國防部南部地區後備指揮部",
+    "lat": 22.629,
+    "lng": 120.2752,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5481625-",
+    "kind": "military-base",
+    "name": "國防醫學大學衛勤訓練中心",
+    "lat": 25.0727,
+    "lng": 121.6024,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5479200-",
+    "kind": "military-base",
+    "name": "基隆市後備指揮部",
+    "lat": 25.133,
+    "lng": 121.7598,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w367812155-",
+    "kind": "military-base",
+    "name": "基隆憲兵隊",
+    "lat": 25.1321,
+    "lng": 121.7448,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "憲兵指揮部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r8521646-",
+    "kind": "military-base",
+    "name": "金龍營區",
+    "lat": 25.0602,
+    "lng": 121.3563,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r13536560-",
+    "kind": "military-base",
+    "name": "金山加投營區",
+    "lat": 25.2155,
+    "lng": 121.6466,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6102610-",
+    "kind": "military-base",
+    "name": "南先鋒營區",
+    "lat": 22.5225,
+    "lng": 120.3893,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "海軍陸戰隊",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r13053147-",
+    "kind": "military-base",
+    "name": "南勝湖營區",
+    "lat": 22.7995,
+    "lng": 120.4603,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r13332127-",
+    "kind": "military-base",
+    "name": "南靖營區",
+    "lat": 23.4112,
+    "lng": 120.3857,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r8398243-",
+    "kind": "military-base",
+    "name": "南投憲兵隊",
+    "lat": 23.9062,
+    "lng": 120.6806,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5598045-",
+    "kind": "military-base",
+    "name": "南港營區",
+    "lat": 25.046,
+    "lng": 121.6304,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r5976436-",
+    "kind": "military-base",
+    "name": "湳湖營區",
+    "lat": 24.7817,
+    "lng": 121.2079,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r13550365-",
+    "kind": "military-base",
+    "name": "那菝林營區",
+    "lat": 23.069,
+    "lng": 120.3563,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": "陸軍司令部",
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6308320-",
+    "kind": "military-base",
+    "name": "內角西營區",
+    "lat": 23.3958,
+    "lng": 120.4421,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-r6327020-",
+    "kind": "military-base",
+    "name": "淡海營區",
+    "lat": 25.1763,
+    "lng": 121.4243,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  },
+  {
+    "id": "osm-tw-w1118937071-",
+    "kind": "military-base",
+    "name": "大崗山雷達站",
+    "lat": 22.8438,
+    "lng": 120.345,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "base",
+      "operator": null,
+      "source": "osm-frontline"
+    }
+  }
+]

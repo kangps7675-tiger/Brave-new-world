@@ -5,7 +5,6 @@ import type {
   CasualtySkullHtmlMarker,
   NuclearStockpileHtmlMarker,
   PolygonLayerFeature,
-  SafecastGaugeHtmlMarker,
   SituationCalloutMarker,
   StaticGlobePoint,
   TelegramNeonMarker,
@@ -15,10 +14,10 @@ import type {
 import type { GdeltTagHtmlMarker } from "@/lib/gdeltLocationTagMarker";
 import type {
   TransportPath,
-  UkraineControlZone,
   UkraineSettlement,
 } from "@/data/geoTypes";
-import type { HapiConflictCasualtiesPayload, HapiActiveFront } from "@/lib/hapiConflictCasualties";
+import type { HapiConflictCasualtiesPayload } from "@/lib/hapiConflictCasualties";
+import type { MediazonaCasualtySnapshot } from "@/lib/mediazonaCasualties";
 import type { ScoredEvent } from "@/data/eventTiers";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -27,17 +26,13 @@ import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { ViinaPolygonLayers } from "@/lib/viinaLod";
 import { isUkraineTheaterGdeltWar } from "@/lib/ukraineGdeltNeonMarker";
 import { buildTelegramMapDots } from "@/lib/telegramMapMarkers";
-import { buildUcdpCasualtyMarkers } from "@/lib/ucdpCasualtyMarkers";
-import { matchCasualtyFrontIdsFromHover } from "@/lib/casualtyFrontHover";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
-import { isUkraineViinaPolygonLayer } from "@/components/globe/overlayPolygons";
 import { useSafecastNearNuclear } from "@/hooks/useSafecastNearNuclear";
 import {
-  ACLED_HOME_URL,
-  HAPI_ATTRIBUTION_SHORT,
-  HAPI_SOURCE_LINE,
-} from "@/lib/hapiConflictCasualties";
-import { CASUALTY_ELEGY_LINES } from "@/lib/warCasualtyOverlay";
+  buildSafecastGaugesGeoJson,
+  type SafecastGaugeFeatureProps,
+} from "@/lib/safecastRadiationMarker";
+import type { FeatureCollection, Point } from "geojson";
 import { NUCLEAR_STOCKPILE_SEEDS } from "@/lib/nuclearStockpiles";
 import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
 import { filterUkraineSettlementsForView } from "@/lib/ukraineSettlements";
@@ -69,6 +64,7 @@ export interface SituationHtmlMarkersParams {
   showNewfeedsIranAttacks: boolean;
 
   hapiCasualties: HapiConflictCasualtiesPayload;
+  mediazonaCasualties: MediazonaCasualtySnapshot | null;
   showUcdpEvents: boolean;
   staticGlobePoints: StaticGlobePoint[];
 
@@ -90,7 +86,8 @@ export interface SituationHtmlMarkers {
   casualtySkullMarkers: CasualtySkullHtmlMarker[];
   visibleCasualtySkullMarkers: CasualtySkullHtmlMarker[];
   nuclearStockpileMarkers: NuclearStockpileHtmlMarker[];
-  safecastGaugeMarkers: SafecastGaugeHtmlMarker[];
+  /** WebGL GeoJSON — HTML Marker 아님 (카메라 회전 버벅임 방지) */
+  safecastGaugesGeoJson: FeatureCollection<Point, SafecastGaugeFeatureProps>;
   ukraineSettlementHtmlMarkers: UkraineSettlementHtmlMarker[];
 }
 
@@ -113,6 +110,7 @@ export function useSituationHtmlMarkers(
     showTzevaAdom,
     showNewfeedsIranAttacks,
     hapiCasualties,
+    mediazonaCasualties,
     showUcdpEvents,
     staticGlobePoints,
     hoveredPolygon,
@@ -123,6 +121,13 @@ export function useSituationHtmlMarkers(
     viinaDisplay,
     layerViewState,
   } = params;
+  // 전선 사상자·UCDP 레이어 제거 — 호출부 시그니처 호환용
+  void hapiCasualties;
+  void mediazonaCasualties;
+  void showUcdpEvents;
+  void staticGlobePoints;
+  void hoveredPolygon;
+  void hoveredPath;
 
   const gdeltTagHtmlMarkers = useMemo<GdeltTagHtmlMarker[]>(
     () =>
@@ -216,163 +221,12 @@ export function useSituationHtmlMarkers(
     showWarZones,
   ]);
 
-  /** HDX HAPI · ACLED — 열린 전선(admin1) + 중국·대만·이란 긴장 집계 */
-  const casualtySkullMarkers = useMemo<CasualtySkullHtmlMarker[]>(() => {
-    if (isEconomyViewer || isCompactUi) return [];
-    const en = labelLanguage === "en";
-    const fronts = hapiCasualties.fronts ?? [];
-    const hapiMarkers: CasualtySkullHtmlMarker[] =
-      fronts.length === 0
-        ? []
-        : fronts.map((front: HapiActiveFront) => {
-            const isChinaTaiwan = front.theaterId === "china-taiwan";
-            const isIran = front.locationCode === "IRN";
-            const useEvents =
-              (isChinaTaiwan || isIran) && front.killed <= 0 && front.events > 0;
-            return {
-              markerId: `casualty-skull-${front.id}`,
-              displayKind: "casualty-skull" as const,
-              id: front.id,
-              theaterId: front.theaterId,
-              locationCode: front.locationCode,
-              lat: front.lat,
-              lng: front.lng,
-              killed: useEvents ? front.events : front.killed,
-              wounded: 0,
-              killedLabel: useEvents
-                ? en
-                  ? isIran
-                    ? "Iran political violence events"
-                    : "Political violence events"
-                  : isIran
-                    ? "이란 정치폭력 사건"
-                    : "정치폭력 사건"
-                : en
-                  ? "Today's fatalities"
-                  : "오늘의 사망자",
-              woundedLabel: en ? "WIA" : "부상",
-              asOf: front.periodEnd || hapiCasualties.windowEnd || "",
-              sourceHint: en
-                ? `${HAPI_ATTRIBUTION_SHORT} · ${front.admin1Name} · ${front.periodStart}–${front.periodEnd} · ${ACLED_HOME_URL}`
-                : `${HAPI_ATTRIBUTION_SHORT} · ${front.admin1Name} · ${front.periodStart}–${front.periodEnd} · ${ACLED_HOME_URL}`,
-              elegyLines: en ? CASUALTY_ELEGY_LINES.en : CASUALTY_ELEGY_LINES.ko,
-              hideWounded: true,
-              territorySpanDeg: front.territorySpanDeg,
-              sourceAttribution: HAPI_SOURCE_LINE,
-              admin1Name: front.admin1Name,
-            };
-          });
-
-    const ucdpMarkers =
-      showUcdpEvents && !isEconomyViewer
-        ? buildUcdpCasualtyMarkers(
-            staticGlobePoints.filter((p) => p.kind === "ucdp-event"),
-            labelLanguage === "en" ? "en" : "ko",
-          )
-        : [];
-
-    return [...hapiMarkers, ...ucdpMarkers];
-  }, [
-    hapiCasualties,
-    isCompactUi,
-    isEconomyViewer,
-    labelLanguage,
-    showUcdpEvents,
-    staticGlobePoints,
-  ]);
-
-  /** 평소 숨김 — 전선(VIINA adm1 / conflict-zone) 호버 시에만 표시 */
-  const visibleCasualtySkullMarkers = useMemo(() => {
-    if (casualtySkullMarkers.length === 0) return [];
-
-    let hover:
-      | {
-          kind: "ukraine-adm1" | "conflict-zone" | "near-point";
-          adm1?: string | null;
-          name?: string | null;
-          lat?: number;
-          lng?: number;
-        }
-      | null = null;
-
-    if (hoveredPolygon) {
-      if (isUkraineViinaPolygonLayer(hoveredPolygon.polygonLayer)) {
-        const zone = hoveredPolygon as UkraineControlZone & {
-          polygonLayer: "ukraine-ru" | "ukraine-ua" | "ukraine-contested";
-        };
-        hover = {
-          kind: "ukraine-adm1",
-          adm1: zone.adm1 || zone.name || zone.nameLong,
-        };
-      } else if (hoveredPolygon.polygonLayer === "conflict-zone") {
-        hover = {
-          kind: "conflict-zone",
-          name: hoveredPolygon.name,
-          lat: hoveredPolygon.center.lat,
-          lng: hoveredPolygon.center.lng,
-        };
-      }
-    } else if (
-      hoveredPath &&
-      (hoveredPath.kind === "ukraine-ru-front" ||
-        hoveredPath.kind === "ukraine-ua-front" ||
-        hoveredPath.kind === "ukraine-contested-front" ||
-        hoveredPath.kind === "ukraine-combat-zone" ||
-        hoveredPath.kind === "dispute-zone" ||
-        hoveredPath.kind === "dispute-hatch")
-    ) {
-      const pts = hoveredPath.points;
-      if (pts.length > 0) {
-        const mid = pts[Math.floor(pts.length / 2)];
-        hover = {
-          kind: "near-point",
-          name: hoveredPath.name,
-          lat: mid.lat,
-          lng: mid.lng,
-        };
-      }
-    }
-
-    const ids = new Set(
-      matchCasualtyFrontIdsFromHover(
-        casualtySkullMarkers.map((m) => ({
-          id: m.id,
-          admin1Name: m.admin1Name,
-          lat: m.lat,
-          lng: m.lng,
-        })),
-        hover,
-      ),
-    );
-    // 중국·대만: VIINA 전선 폴리곤이 없어 상시 노출
-    // 이란: NewFeeds 레이어 ON이거나 중동 박스일 때 HAPI IRN 상시 노출
-    // UCDP: 레이어 ON이면 사상자 라벨 상시 노출 (호버 게이트 없음)
-    for (const m of casualtySkullMarkers) {
-      if (m.id.startsWith("ucdp-")) ids.add(m.id);
-      if (m.theaterId === "china-taiwan") ids.add(m.id);
-      if (
-        m.locationCode === "IRN" &&
-        (showNewfeedsIranAttacks ||
-          resolveCombatTheaterAt(filterCenter.lat, filterCenter.lng) === "middle-east")
-      ) {
-        ids.add(m.id);
-      }
-    }
-    if (ids.size === 0) return [];
-    return casualtySkullMarkers.filter((m) => ids.has(m.id));
-  }, [
-    casualtySkullMarkers,
-    filterCenter.lat,
-    filterCenter.lng,
-    hoveredPath,
-    hoveredPolygon,
-    showNewfeedsIranAttacks,
-  ]);
+  /** 전선 사상자·UCDP 사망 라벨 — 제품에서 제거 */
+  const casualtySkullMarkers = useMemo<CasualtySkullHtmlMarker[]>(() => [], []);
+  const visibleCasualtySkullMarkers = useMemo<CasualtySkullHtmlMarker[]>(() => [], []);
 
   /**
    * OWID 핵탄두 보유량 — 각국 좌표 위 ICBM 아이콘 + 탄두 수 (지정학 뷰 자동 표시).
-   * 전장 사상자 마커와 좌표가 겹치면(예: 이스라엘 ↔ 가자·남레바논) 사상자 군집에서
-   * 밀어내 표기 위치가 겹치지 않게 함.
    */
   const safecastReadings = useSafecastNearNuclear(showNuclearSites && !isEconomyViewer);
 
@@ -437,20 +291,18 @@ export function useSituationHtmlMarkers(
     });
   }, [casualtySkullMarkers, isEconomyViewer]);
 
-  const safecastGaugeMarkers = useMemo<SafecastGaugeHtmlMarker[]>(() => {
-    if (!showNuclearSites || isEconomyViewer) return [];
-    return safecastReadings.map((r) => ({
-      markerId: `safecast-${r.siteId}`,
-      displayKind: "safecast-gauge" as const,
-      siteId: r.siteId,
-      siteName: r.siteName,
-      lat: r.lat,
-      lng: r.lng,
-      usvPerH: r.usvPerH,
-      level: r.level,
-      capturedAt: r.capturedAt,
-    }));
-  }, [isEconomyViewer, safecastReadings, showNuclearSites]);
+  const safecastGaugesGeoJson = useMemo(() => {
+    if (!showNuclearSites || isEconomyViewer) {
+      return {
+        type: "FeatureCollection" as const,
+        features: [],
+      };
+    }
+    return buildSafecastGaugesGeoJson(
+      safecastReadings,
+      labelLanguage === "en" ? "en" : "ko",
+    );
+  }, [isEconomyViewer, labelLanguage, safecastReadings, showNuclearSites]);
 
   const ukraineSettlementHtmlMarkers = useMemo<UkraineSettlementHtmlMarker[]>(() => {
     if (!showUkraineControl) return [];
@@ -476,7 +328,7 @@ export function useSituationHtmlMarkers(
     casualtySkullMarkers,
     visibleCasualtySkullMarkers,
     nuclearStockpileMarkers,
-    safecastGaugeMarkers,
+    safecastGaugesGeoJson,
     ukraineSettlementHtmlMarkers,
   };
 }

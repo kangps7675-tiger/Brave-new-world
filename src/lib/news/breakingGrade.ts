@@ -69,9 +69,10 @@ function scoreImpact(title: string, theater: NewsTheater, topic?: NewsFeedTopic)
 }
 
 function scoreFresh(ageMinutes: number): number {
-  if (ageMinutes <= 15) return 3;
-  if (ageMinutes <= 60) return 2;
-  if (ageMinutes <= 180) return 1;
+  // "지금 당장" 가중 — 30분 이내를 최상으로
+  if (ageMinutes <= 30) return 3;
+  if (ageMinutes <= 90) return 2;
+  if (ageMinutes <= 240) return 1;
   return 0;
 }
 

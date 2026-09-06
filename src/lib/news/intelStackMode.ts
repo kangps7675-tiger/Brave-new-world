@@ -69,10 +69,14 @@ export function resolveIntelStackClearance(
   return mode === "alert" ? INTEL_STACK_CLEARANCE_ALERT : INTEL_STACK_CLEARANCE_CALM;
 }
 
-/** alert/calm 티커 하이라이트 — 전장 연관 심볼 전부 */
-export function heroHighlightSymbols(hero: HeroBreakingItem | null, limit?: number): string[] {
+/** alert/calm 티커 하이라이트 — 전장 연관 심볼 (모드별) */
+export function heroHighlightSymbols(
+  hero: HeroBreakingItem | null,
+  limit?: number,
+  viewerMode: "conflict" | "economy" = "conflict",
+): string[] {
   if (!hero) return [];
-  const symbols = theaterAssetSymbols(hero.theater);
+  const symbols = theaterAssetSymbols(hero.theater, viewerMode);
   if (limit == null || !Number.isFinite(limit) || limit < 0) return symbols;
   return symbols.slice(0, limit);
 }

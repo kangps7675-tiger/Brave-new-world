@@ -11,14 +11,15 @@ import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { NewsArticleCard } from "@/components/NewsArticleCard";
 import { ECONOMY_TIER_LABELS } from "@/lib/news/mediaTiers";
 import type { MapFlyTarget } from "@/lib/news/theaterMap";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { useLocale } from "@/contexts/LocaleContext";
-import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 
 type EconomyRegionPanelProps = {
   selection: NavSelection;
   onClose: () => void;
   onOpenIntel: () => void;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  onOpenNewsInsight?: (item: NewsStreamItem) => void;
 };
 
 type RegionMacro = {
@@ -62,9 +63,10 @@ export function EconomyRegionPanel({
   onClose,
   onOpenIntel,
   onFlyToMap,
+  onOpenNewsInsight,
 }: EconomyRegionPanelProps) {
   const { lang } = useLocale();
-  const { payload } = useNewsStreamContext();
+  const { payload, localizedTitle, localizedSummary } = useNewsStreamContext();
   const tickers = ECON_REGION_TICKERS[selection.id];
   const countryHint = countryHintForEconNav(selection.id);
   const [macro, setMacro] = useState<RegionMacro | null>(null);
@@ -113,15 +115,6 @@ export function EconomyRegionPanel({
   const tier2 = articles.filter((a) => a.trustTier === 2);
   const tier3 = articles.filter((a) => a.trustTier === 3);
 
-  const koreanEntries = useMemo(() => {
-    const entries: Array<{ key: string; text: string }> = [];
-    for (const item of articles) {
-      entries.push({ key: `title:${item.id}`, text: item.title });
-      if (item.summary) entries.push({ key: `summary:${item.id}`, text: item.summary });
-    }
-    return entries;
-  }, [articles]);
-  const localizedMap = useLocalizedTextMap(koreanEntries, lang);
   const macroLead = lang === "en" ? macro?.narrativeEn?.[0] : macro?.narrativeKo?.[0];
 
   const renderCard = (item: (typeof articles)[number], tier3Card?: boolean) => (
@@ -130,18 +123,15 @@ export function EconomyRegionPanel({
       item={item}
       economyMode
       tier3={tier3Card}
-      titleOverride={localizedDisplayText(localizedMap, `title:${item.id}`, item.title)}
-      summaryOverride={
-        item.summary
-          ? localizedDisplayText(localizedMap, `summary:${item.id}`, item.summary)
-          : undefined
-      }
+      titleOverride={localizedTitle(item)}
+      summaryOverride={localizedSummary(item)}
       onFlyToMap={onFlyToMap}
+      onOpenInsight={onOpenNewsInsight}
     />
   );
 
   return (
-    <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full w-[min(100%,380px)] flex-col overflow-hidden border-l border-emerald-800/40 bg-[#071018]/94 p-4 shadow-2xl backdrop-blur-md">
+    <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full flex-col overflow-hidden border-l border-emerald-800/40 bg-[#071018]/94 p-4 shadow-2xl backdrop-blur-md">
       <div className="flex items-start justify-between gap-3 border-b border-emerald-400/15 pb-3">
         <div className="min-w-0">
           <p className="text-micro uppercase tracking-[0.28em] text-emerald-200/70">Geo Markets</p>

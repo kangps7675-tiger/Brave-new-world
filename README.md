@@ -72,13 +72,13 @@ Aldous Huxley 《Brave New World》를 모티브로 한 3D 지구본 관측대�
 
 ## 레이어 패널 (≡)
 
-- **체크 즉시 지도 반영** — 패널을 닫을 때까지 기다리지 않음 (`handlePanelDraftPatch` → `applyLayerPrefs`)
+- **체크 → 지도 반영** — 패널을 닫을 때까지 기다리지 않음. 첫 체크는 즉시 flush, 연속 토글만 ~120ms로 배칭 (`useLayerPrefsController` leading-edge debounce)
 - **KO / EN** 라벨 언어도 즉시 적용
-- **동시 ON 상한 (코드 정본):** 일반 **30** · Ultra-Lite **16** — [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap.ts`
+- **동시 ON 상한 (코드 정본):** 일반 **30** · Ultra-Lite **16** — [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap.ts` (UI에는 "상한" 숫자 대신 자동 강등 + 되돌리기)
 - **오버레이 top-1:** [`src/lib/overlayQueue.ts`](src/lib/overlayQueue.ts) (우선순위도 geowatch.config) — 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치
 - **폴링(stub OFF):** geowatch.config `polling.*` → `liveRenderGuard.ts`
 - 패키지 hard cap: 지정학·지경학 각 **64** (`viewPackages` `MAX_ON_LAYERS*`) — UI 캡보다 느슨한 안전망
-- 카테고리 「전체」/「끔」 · 캡 초과 시 경고 UI (`LayerCategoryDraftHost`)
+- 카테고리 「전체」/「끔」 · 밀도 초과 시 자동 강등 (`LayerCategoryDraftHost` / `enableLayerEvictingCap`)
 - **제거됨:** 「지나간 미사일·드론 궤적」체크박스 — 저장 시 강제 OFF (`layerPrefs` v21)
 
 ### 카테고리별 레이어

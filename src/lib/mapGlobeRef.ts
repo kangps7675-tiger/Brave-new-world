@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
 import type { MutableRefObject, RefObject } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
-import { clampGlobeAltitude, MIN_GLOBE_ALTITUDE } from "@/lib/globeCamera";
+import { clampGlobeAltitude, MIN_GLOBE_ALTITUDE, GLOBAL_ORBIT_MAX_ALTITUDE, globeDistanceForAltitude } from "@/lib/globeCamera";
 import {
   altitudeToMapLibreZoom,
   globeViewToMapLibre,
@@ -23,13 +23,9 @@ export type MapGlobeControls = {
   dampingFactor: number;
   minDistance: number;
   maxDistance: number;
-  autoRotate: boolean;
-  autoRotateSpeed: number;
   enableZoom: boolean;
   enablePan: boolean;
   enableRotate: boolean;
-  /** 자동 자전 jumpTo가 유발한 move 이벤트인지 (리스너가 무시할 때 사용) */
-  readonly isAutoRotateFrame: boolean;
   addEventListener: (type: "change", listener: () => void) => void;
   removeEventListener: (type: "change", listener: () => void) => void;
 };
@@ -40,6 +36,8 @@ export type MapGlobeMethods = {
   controls: () => MapGlobeControls;
   /** 맵 로드·스타일 교체 후 줌 한계·드래그 플래그 재적용 */
   applyControls: () => void;
+  /** 원본 MapLibre 맵 인스턴스 */
+  getMapLibreMap: () => MapLibreMap | null;
   renderer: () => { domElement: HTMLCanvasElement | null };
   /**
    * 지도 캔버스의 **현재 프레임 스냅샷**을 별도 canvas로 복사해 돌려준다.
@@ -51,7 +49,7 @@ export type MapGlobeMethods = {
    * (render 콜백을 벗어나면 브라우저가 백버퍼를 비워 빈 화면이 된다.)
    */
   captureFrame: () => Promise<HTMLCanvasElement | null>;
-  /** 언마운트 시 RAF·pointer 리스너 해제 */
+  /** 언마운트 시 리스너 해제 */
   dispose: () => void;
 };
 
@@ -62,8 +60,6 @@ type ControlState = {
   dampingFactor: number;
   minDistance: number;
   maxDistance: number;
-  autoRotate: boolean;
-  autoRotateSpeed: number;
   enableZoom: boolean;
   enablePan: boolean;
   enableRotate: boolean;
@@ -74,11 +70,6 @@ function distanceToAltitude(distance: number): number {
   return clampGlobeAltitude(distance / 100 - 1);
 }
 
-/** OrbitControls 0.18 ≈ 은은한 속도 → 경도 °/초 */
-function degPerSecFromSpeed(speed: number): number {
-  return Math.max(0.15, speed * 4.5);
-}
-
 export function createMapGlobeMethods(
   mapRef: RefObject<MapRef | null>,
   changeListenersRef: MutableRefObject<Set<ChangeListener>>,
@@ -87,23 +78,11 @@ export function createMapGlobeMethods(
     enableDamping: true,
     dampingFactor: 0.08,
     minDistance: 0,
-    maxDistance: 720,
-    autoRotate: false,
-    autoRotateSpeed: 0.18,
+    maxDistance: globeDistanceForAltitude(GLOBAL_ORBIT_MAX_ALTITUDE),
     enableZoom: true,
     enablePan: true,
     enableRotate: true,
   };
-
-  let autoRotateRaf: number | null = null;
-  let lastAutoRotateTs = 0;
-  let inAutoRotateFrame = false;
-  let userPointerDown = false;
-  let interactionBound = false;
-  let interactionCanvas: HTMLCanvasElement | null = null;
-  let interactionMap: MapLibreMap | null = null;
-  let onPointerDown: (() => void) | null = null;
-  let onPointerUp: (() => void) | null = null;
 
   /** setMin/MaxZoom 동일값 재적용은 MapLibre move를 유발해 드래그 중 change 루프를 만들 수 있음 */
   let lastAppliedMinZoom: number | null = null;
@@ -155,13 +134,27 @@ export function createMapGlobeMethods(
         : MIN_GLOBE_ALTITUDE;
     const nextMinZoom = altitudeToMapLibreZoom(maxAlt);
     const nextMaxZoom = altitudeToMapLibreZoom(minAlt);
-    if (lastAppliedMinZoom !== nextMinZoom) {
-      lastAppliedMinZoom = nextMinZoom;
-      map.setMinZoom(nextMinZoom);
-    }
-    if (lastAppliedMaxZoom !== nextMaxZoom) {
-      lastAppliedMaxZoom = nextMaxZoom;
-      map.setMaxZoom(nextMaxZoom);
+    if (
+      Number.isFinite(nextMinZoom) &&
+      Number.isFinite(nextMaxZoom) &&
+      nextMinZoom < nextMaxZoom
+    ) {
+      if (lastAppliedMinZoom !== nextMinZoom) {
+        lastAppliedMinZoom = nextMinZoom;
+        try {
+          map.setMinZoom(nextMinZoom);
+        } catch {
+          /* globe 투영에서 일부 줌 한계는 throw */
+        }
+      }
+      if (lastAppliedMaxZoom !== nextMaxZoom) {
+        lastAppliedMaxZoom = nextMaxZoom;
+        try {
+          map.setMaxZoom(nextMaxZoom);
+        } catch {
+          /* ignore */
+        }
+      }
     }
   };
 
@@ -169,97 +162,6 @@ export function createMapGlobeMethods(
   const invalidateZoomLimitCache = () => {
     lastAppliedMinZoom = null;
     lastAppliedMaxZoom = null;
-  };
-
-  const unbindInteractionPause = () => {
-    if (!interactionBound) return;
-    if (interactionCanvas && onPointerDown) {
-      interactionCanvas.removeEventListener("pointerdown", onPointerDown);
-    }
-    if (onPointerUp) {
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointercancel", onPointerUp);
-    }
-    if (interactionMap && onPointerDown && onPointerUp) {
-      interactionMap.off("dragstart", onPointerDown);
-      interactionMap.off("dragend", onPointerUp);
-    }
-    interactionBound = false;
-    interactionCanvas = null;
-    interactionMap = null;
-    onPointerDown = null;
-    onPointerUp = null;
-    userPointerDown = false;
-  };
-
-  const bindInteractionPause = () => {
-    if (interactionBound) return;
-    const map = mapRef.current?.getMap();
-    const canvas = map?.getCanvas();
-    if (!map || !canvas) return;
-    interactionBound = true;
-    interactionCanvas = canvas;
-    interactionMap = map;
-
-    onPointerDown = () => {
-      userPointerDown = true;
-    };
-    onPointerUp = () => {
-      userPointerDown = false;
-    };
-
-    canvas.addEventListener("pointerdown", onPointerDown, { passive: true });
-    window.addEventListener("pointerup", onPointerUp, { passive: true });
-    window.addEventListener("pointercancel", onPointerUp, { passive: true });
-    map.on("dragstart", onPointerDown);
-    map.on("dragend", onPointerUp);
-  };
-
-  const stopAutoRotateLoop = () => {
-    if (autoRotateRaf != null) {
-      window.cancelAnimationFrame(autoRotateRaf);
-      autoRotateRaf = null;
-    }
-    lastAutoRotateTs = 0;
-  };
-
-  const ensureAutoRotateLoop = () => {
-    bindInteractionPause();
-    if (autoRotateRaf != null) return;
-
-    const step = (now: number) => {
-      autoRotateRaf = window.requestAnimationFrame(step);
-      if (!controlState.autoRotate) {
-        lastAutoRotateTs = 0;
-        return;
-      }
-      const map = mapRef.current?.getMap();
-      if (!map || userPointerDown) {
-        lastAutoRotateTs = 0;
-        return;
-      }
-
-      const dt = lastAutoRotateTs ? Math.min(0.05, (now - lastAutoRotateTs) / 1000) : 0;
-      lastAutoRotateTs = now;
-      if (dt <= 0) return;
-
-      const c = map.getCenter();
-      let nextLng = c.lng + degPerSecFromSpeed(controlState.autoRotateSpeed) * dt;
-      if (nextLng > 180) nextLng -= 360;
-      if (nextLng < -180) nextLng += 360;
-
-      inAutoRotateFrame = true;
-      try {
-        map.jumpTo({ center: [nextLng, c.lat] });
-      } finally {
-        // react-map-gl onMove가 동기/다음 틱에 올 수 있어 한 프레임 유지
-        window.requestAnimationFrame(() => {
-          inAutoRotateFrame = false;
-        });
-      }
-    };
-
-    autoRotateRaf = window.requestAnimationFrame(step);
   };
 
   const controlsProxy: MapGlobeControls = {
@@ -288,23 +190,6 @@ export function createMapGlobeMethods(
     set maxDistance(v: number) {
       controlState.maxDistance = v;
       applyInteractionFlags();
-    },
-    get autoRotate() {
-      return controlState.autoRotate;
-    },
-    set autoRotate(v: boolean) {
-      controlState.autoRotate = v;
-      if (v) ensureAutoRotateLoop();
-      else stopAutoRotateLoop();
-    },
-    get autoRotateSpeed() {
-      return controlState.autoRotateSpeed;
-    },
-    set autoRotateSpeed(v: number) {
-      controlState.autoRotateSpeed = v;
-    },
-    get isAutoRotateFrame() {
-      return inAutoRotateFrame;
     },
     get enableZoom() {
       return controlState.enableZoom;
@@ -399,8 +284,7 @@ export function createMapGlobeMethods(
     },
 
     controls() {
-      // 매 프레임 apply 금지 — handleMove가 isAutoRotateFrame 조회만 해도
-      // setMin/MaxZoom → move → change 재진입이 났다 (React #185).
+      // 매 호출마다 apply 금지 — setMin/MaxZoom → move → change 재진입이 났다 (React #185).
       return controlsProxy;
     },
 
@@ -408,6 +292,10 @@ export function createMapGlobeMethods(
     applyControls() {
       invalidateZoomLimitCache();
       applyInteractionFlags();
+    },
+
+    getMapLibreMap() {
+      return mapRef.current?.getMap() ?? null;
     },
 
     renderer() {
@@ -460,9 +348,6 @@ export function createMapGlobeMethods(
     },
 
     dispose() {
-      controlState.autoRotate = false;
-      stopAutoRotateLoop();
-      unbindInteractionPause();
       changeListenersRef.current.clear();
     },
   };

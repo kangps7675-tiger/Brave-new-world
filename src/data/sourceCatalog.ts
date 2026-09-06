@@ -143,14 +143,14 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     url: "/api/adsb-mil",
     cadence: "Cron warm ~10m · toggle on-demand D1",
     attribution:
-      "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi · Military hex: https://github.com/bellingcat/adsb-history.git",
+      "ADS-B · adsb.lol (ODbL) / ADSBexchange · Military hex: https://github.com/bellingcat/adsb-history.git (MIT)",
     notes:
       "Military aircraft via ADS-B. Cron → D1 `adsb_aircraft` (mode=mil). ICAO hex military flags enriched from Bellingcat/Turnstone modes.csv (adsb-history, MIT). User toggle reads D1 first; ?live=1 forces upstream.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "prohibited",
+    commercialUse: "allowed",
     commercialNote:
-      "⚠️ adsb.fi 약관: 'for personal, non-commercial use only. You may not license, sell, rent, or lease any part of the data or the service.' → 유료화 전 adsb.lol(ODbL) 또는 ADSBexchange 상업 티어로 전환 필수. .env 에 ADSBEXCHANGE_API_KEY 이미 있음.",
+      "2026-08-01 재판정 (prohibited → allowed). adsb.fi('for personal, non-commercial use only')와 airplanes.live(독점 라이선스 미확인)를 런타임 폴백에서 완전히 제거했다. 남은 소스는 adsb.lol(ODbL — 출처 표기만) + ADSBexchange(상업 키) + Bellingcat adsb-history(MIT) 뿐이다. ⚠️ 폴백에 adsb.fi·airplanes.live 를 되돌리면 이 등급도 함께 내려야 한다. @see src/lib/adsbClient.ts · workers/cron-ingest/src/adsb.ts",
   },
   {
     layerId: "reef-watch",
@@ -172,14 +172,14 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     source: "ADS-B (민간 항적)",
     url: "/api/adsb-traffic",
     cadence: "Cron hub warm ~10m · toggle on-demand D1",
-    attribution: "ADS-B · adsb.lol / airplanes.live / ADSBexchange / adsb.fi",
+    attribution: "ADS-B · adsb.lol (ODbL) / ADSBexchange",
     notes:
       "Civilian ADS-B traffic (exclude dbFlags&1 and Bellingcat military hex). Cron warms hub grids into D1; viewport query prefers D1 bbox then live.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "prohibited",
+    commercialUse: "allowed",
     commercialNote:
-      "⚠️ adsb.fi 약관이 개인·비상업 전용. adsb.lol(ODbL) 우선으로 전환 필요. airplanes.live 는 독점 라이선스라 확인 전까지 사용 금지.",
+      "2026-08-01 재판정 (prohibited → allowed). adsb.fi·airplanes.live 를 런타임 폴백에서 제거하고 adsb.lol(ODbL) + ADSBexchange 만 남겼다. ⚠️ 되돌리면 등급도 함께 내릴 것.",
   },
   {
     layerId: "ais",
@@ -409,7 +409,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     url: "/data/{profile}/military-bases.json",
     cadence: "Project versioned",
     attribution: "OpenStreetMap / public datasets",
-    notes: "Major military installations worldwide (static profile JSON).",
+    notes: "U.S. bases plus Korea/Japan/Philippines OSM airfields and eastern NATO front-line air/naval sites.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
@@ -522,17 +522,70 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "CSIS Beyond Parallel·NTI — RSS 인용 범위 확인 필요.",
   },
   {
+    layerId: "crink-hub-monitor",
+    source: "38 North · AMTI · Critical Threats · ISW · Jamestown · ASPI 외 CRINK 전문",
+    url: "/api/reference-monitor?hub=",
+    cadence: "~6h poll (cron ingest) · client poll while hub open",
+    attribution: "Each outlet RSS terms · title/summary/link only",
+    notes:
+      "CRINK 허브 우레일 — crinkSourceRegistry hub-monitor 피드. 속보 news-stream hero와 분리. 기관 위성·맵 원본 미포함.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "unknown",
+    commercialNote:
+      "연구소별 RSS 약관 상이. 제목·짧은 요약·원문 링크만. 그래픽·전선 타일 재전시 금지.",
+  },
+  {
+    layerId: "crink-thumb-sentinel-nasa",
+    source: "Sentinel Hub (optional) · NASA GIBS Worldview Snapshots",
+    url: "https://wvs.earthdata.nasa.gov/",
+    cadence: "On ingest geocode · R2 cache thumbs/sat/*",
+    attribution: "Copernicus Sentinel / NASA GIBS (public domain)",
+    notes:
+      "좌표 있는 허브 카드 썸네일. Sentinel 키 없으면 NASA GIBS. CSIS/ISW og:image 미사용.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "allowed",
+    commercialNote: "Sentinel CC BY 4.0 표기 · NASA 퍼블릭 도메인.",
+  },
+  {
+    layerId: "crink-thumb-globe-bake",
+    source: "ConflictView MapLibre capture (Playwright bake)",
+    url: "/internal/globe-thumb",
+    cadence: "CI/local bake → R2 thumbs/globe/{placeId}.jpg",
+    attribution: "ConflictView globe render",
+    notes:
+      "가제트 placeId 프리베이크. Workers 요청 경로에서 헤드리스 렌더하지 않음.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "자체 렌더링 — 저작권 이슈 없음.",
+  },
+  {
     layerId: "basemap-openfreemap-liberty",
     source: "OpenFreeMap Liberty (MapLibre)",
     url: "https://tiles.openfreemap.org/styles/liberty",
     cadence: "Vector style CDN",
     attribution: "© OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors",
     notes:
-      "Nav 「지형」 basemap — MapLibre-compatible OSM vector style with DEM (not satellite raster).",
+      "Nav 「지형」 — OpenFreeMap Liberty 벡터 + DEM. 고줌에서 Esri World Imagery가 바탕에 드러남(도로·라벨은 벡터 유지).",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
     commercialNote: "OpenFreeMap·OpenMapTiles·OSM(ODbL) — 표기 필수.",
+  },
+  {
+    layerId: "basemap-esri-world-imagery",
+    source: "Esri World Imagery",
+    url: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9",
+    cadence: "Raster tiles CDN",
+    attribution: "Esri, Maxar, Earthstar Geographics, GIS User Community",
+    notes:
+      "Terrain basemap underlay — MapLibre raster below Liberty vector fills (fade-in on zoom).",
+    status: "shipped",
+    ingest: "mapped-existing",
+    commercialUse: "unknown",
+    commercialNote: "Esri World Imagery — 출처 표기 필수. 상용 재배포 시 Esri 약관 확인.",
   },
   {
     layerId: "basemap-aws-terrarium",
@@ -548,15 +601,17 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "basemap-openfreemap-buildings",
-    source: "OpenFreeMap",
-    url: "https://openfreemap.org/",
-    cadence: "Vector tiles",
-    attribution: "© OpenFreeMap · © OpenStreetMap contributors",
-    notes: "3D building fill-extrusion in 「지형」 mode at zoom ≥ 14.",
+    source: "Cesium OSM Buildings (Ion) · OpenFreeMap fallback",
+    url: "https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/",
+    cadence: "3D Tiles (zoom ≥ 14)",
+    attribution: "© Cesium OSM Buildings · © OpenStreetMap contributors",
+    notes:
+      "Terrain mode zoom ≥ 14: Cesium OSM Buildings (3D Tiles via deck.gl, shared MapLibre WebGL). Fill-extrusion fallback if no Ion token.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
-    commercialNote: "OpenFreeMap·OSM(ODbL) — 표기 필수.",
+    commercialNote:
+      "Cesium OSM Buildings — OSM(ODbL) 표기 + Cesium ion 약관. 세슘 뷰어가 아니라 타일셋만 사용.",
   },
   {
     layerId: "ai-data-centers",
@@ -579,12 +634,12 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     attribution:
       "Benden, P. (2022). Global Shipping Lanes. Zenodo. CC BY 4.0 — https://doi.org/10.5281/zenodo.6361763",
     notes:
-      "Schematic major/middle/minor maritime corridors georeferenced from CIA Map of the World's Oceans (2012), with edits. Low-opacity cyan solid strokes (density by overlap); same strokes tint reddish near curated chokepoints. Not live AIS tracks.",
+      "Upstream GeoJSON vertices from Benden Global Shipping Lanes (Major/Middle/Minor). Coordinates preserved at build (no ocean A* reshape). Low-opacity cyan strokes; rose tint near curated chokepoints. Not live AIS tracks.",
     status: "shipped",
     ingest: "mapped-existing",
     commercialUse: "allowed",
     commercialNote:
-      "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo). Statista 재사용 제외 조건은 업스트림 LICENSE 참고.",
+      "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo DOI 10.5281/zenodo.6361763). Statista 재사용 제외는 업스트림 LICENSE·docs/third-party/shipping-lanes.md 참고.",
   },
   {
     layerId: "logistics-risk",
@@ -863,24 +918,23 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "sanctions-entities",
-    source: "(미연결) OFAC SDN + UN + EU + UK 예정",
+    source: "OFAC SDN + UN 안보리 제재대상 (vendor 번들 → 로컬 빌드)",
     url: "/api/layers/sanctions-entities",
-    cadence: "Daily (24h cache)",
-    attribution: "(출처 미연결 — 노출 차단됨)",
+    cadence: "Daily (24h cache) · vendor 파일 갱신 시 npm run sanctions:build 재실행",
+    attribution: "US Treasury OFAC / UN Security Council",
     notes:
-      "⚠️ 카탈로그는 '개인·법인·선박·항공기 공식 벌크 다운로드 + 라이브 폴백' 이라 적었지만, " +
-      "route.ts 의 loadSanctions() 는 라이브 fetch 없이 로컬 파일만 읽고 lists 배열을 " +
-      "하드코딩한다. 그리고 그 파일은 국가 단위 15건뿐이다 (실제 OFAC SDN 은 1만 건 규모의 " +
-      "개인·법인·선박 목록). " +
-      "진짜 데이터는 이미 리포에 있다: scripts/vendor/sigint-news-layers/sanctions-entities.json (14MB). " +
-      "→ scripts/build-sanctions-entities.js 로 컨버전 후 shipped 로 되돌릴 것.",
-    status: "blocked",
-    blockedReason:
-      "OFAC SDN 으로 표기했으나 실제로는 국가 단위 더미 15건 · 라이브 fetch 없음 " +
-      "(2026-07-31 감사 P0-3).",
-    ingest: "synthetic-demo",
+      "2026-09 재구축 완료. scripts/build-sanctions-entities.js 가 " +
+      "scripts/vendor/sigint-news-layers/sanctions-entities.json (14MB, 리포에 이미 있음) 을 " +
+      "파싱해 개인·법인·선박 19,709건 (OFAC 18,707 · UN 1,002) 을 산출한다. " +
+      "⚠️ vendor 파일이 약 11.18MB 지점에서 손상돼 있어 그 앞부분만 파싱한다 — " +
+      "원본을 다시 받으면 이 손상 처리는 제거 가능. " +
+      "⚠️ 좌표가 실제로 있는 건 268건(1.4%)뿐이다. 나머지를 국가 중심점에 찍어 지어내지 않고, " +
+      "두 갈래로 낸다: points(좌표 있는 것만) + rollup(관할권별 집계, 국가 음영용이지 핀이 아님). " +
+      "⚠️ EU·UK 명단은 이 vendor 파일에 없다 — lists 표기에서 뺐다. 필요하면 별도 수집 필요.",
+    status: "shipped",
+    ingest: "static-build",
     commercialUse: "allowed",
-    commercialNote: "OFAC·UN 공공 목록 (실데이터 연결 후 유효).",
+    commercialNote: "OFAC(미 정부 저작물)·UN 안보리 제재목록 — 공공 목록, 상업 이용 가능.",
   },
   {
     layerId: "refugee-camps",
@@ -906,6 +960,49 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "cached-api",
     commercialUse: "allowed",
     commercialNote: "UN·EU·UK·US 공공 목록 + Wikidata(CC0).",
+  },
+  {
+    /*
+     * 2026-08-01 감사에서 신설.
+     *
+     * `feedCatalog.ts` 의 지정학 RSS 피드(12개 전역 × 매체, 항목 220여 개)가
+     * **카탈로그에 등재조차 안 돼 있었다.** 가장 저작권 민감한 자산이
+     * `verify:commercial` 게이트의 관할 밖이라, 게이트가 "통과"를 찍어도
+     * 실제로는 점검되지 않은 상태였다.
+     *
+     * @see docs/copyright-audit-2026-08-01.md — O-2
+     */
+    layerId: "news-geopolitics-rss",
+    source: "BBC / Reuters / NYT / WSJ / Al Jazeera / TASS / RT 외 60여 매체",
+    url: "/api/news-stream",
+    cadence: "90s cache",
+    attribution: "Each outlet RSS terms",
+    notes:
+      "지정학 뉴스 스트림 — feedCatalog.ts 의 12개 전역(global·middle-east·russia-ukraine·china-taiwan·korea·japan·south-asia·southeast-asia·africa·arctic·atlantic·south-america) RSS 피드. 제목 + 최대 220자 스니펫 + 원문 링크만 보관하며 한국어 번역본을 함께 제공한다.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "license-required",
+    commercialNote:
+      "매체별 RSS 약관이 제각각이다. NYT·WSJ·Reuters 등 주요 매체는 RSS 를 개인·비상업 이용으로 한정한다. 제목+링크 인용은 통상 허용되나 (a) 본문 스니펫 재배포와 (b) 한국어 번역(2차적저작물 작성, 저작권법 제22조)은 별개 권리다. 스니펫 상한 220자(RSS_BODY_SNIPPET_MAX)·표시 200자(LAMP_DISPLAY_SUMMARY_MAX)로 묶어뒀으나, 유료 노출 전 매체별 개별 확인 또는 자체 LLM 요약(docs/llm-news-digest.md)으로 대체 필요.",
+  },
+  {
+    /*
+     * YouTube Atom 피드(feeds/videos.xml) 기반. 2026-08-01 감사에서 신설.
+     * 구현은 ToS 준수 패턴 — 공식 embed 플레이어 + i.ytimg.com 썸네일 핫링크.
+     * 영상 파일 다운로드·재호스팅 없음.
+     */
+    layerId: "news-video-youtube",
+    source: "YouTube (BBC / Reuters / AP / Al Jazeera / DW / Bloomberg / CNBC / FT)",
+    url: "/api/video-news",
+    cadence: "폴링 (Atom)",
+    attribution: "YouTube · 각 채널 저작권자",
+    notes:
+      "방송·와이어 공식 채널의 Atom 피드. 재생은 공식 embed 플레이어(youtube.com/embed), 썸네일은 i.ytimg.com 핫링크 — 영상 파일을 내려받거나 재호스팅하지 않는다.",
+    status: "shipped",
+    ingest: "live-poll",
+    commercialUse: "unknown",
+    commercialNote:
+      "YouTube ToS 는 API Services 또는 공식 embed 플레이어 외의 프로그램적 접근을 제한한다. 공개 Atom 피드(feeds/videos.xml) 사용은 회색지대 — 유료 노출 전 YouTube Data API v3 로 전환하거나 약관 확인 필요. 재생·썸네일 구현 자체는 ToS 가 요구하는 패턴을 따르고 있다.",
   },
   {
     layerId: "news-economy-rss",
@@ -1015,18 +1112,19 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "hapi-conflict-casualties",
-    source: "ACLED via HDX HAPI · conflict-events (political_violence fatalities)",
-    url: "https://hapi.humdata.org/api/v2/coordination-context/conflict-events → /api/hapi-conflict-casualties",
-    cadence: "Live HAPI fetch · ~30m cache · 4-month lookback",
-    attribution:
-      "Armed Conflict Location & Event Data Project (ACLED) · HDX HAPI · OCHA HDX · www.acleddata.com",
+    source: "ACLED via HDX HAPI · conflict-events (removed)",
+    url: "/api/hapi-conflict-casualties (410 Gone)",
+    cadence: "Removed from product",
+    attribution: "—",
     notes:
-      "원천: ACLED. 배포/질의: OCHA HDX HAPI conflict-events. Geopolitics: Ukraine frontline oblasts + Gaza/south Lebanon fatalities; Iran (IRN) admin1 events/fatalities; China/Taiwan political_violence event dens (often 0 fatalities). No wounded field. Docs: https://hapi.humdata.org/docs · Dataset: https://data.humdata.org/dataset/hdx-hapi-conflict-event · ACLED attribution: https://acleddata.com/attributionpolicy",
-    status: "shipped",
+      "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨. API는 410으로 빈 응답만 반환.",
+    status: "blocked",
+    blockedReason:
+      "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨 (ACLED EULA 상업 이용 금지). API는 410.",
     ingest: "cached-api",
     commercialUse: "prohibited",
     commercialNote:
-      "⚠️ ACLED EULA: 'Commercial entities may not access or use the Content and/or Platforms without first obtaining a corporate license from ACLED.' 수익화 제품에 노출 금지. 상업 라이선스 문의: acleddata.com/eula",
+      "ACLED EULA — 상업 이용 금지. 제품 노출 중단.",
   },
   {
     layerId: "nuclear-warheads",
@@ -1048,7 +1146,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Homepage scrape · 1h cache · Kaggle panel seed fallback",
     attribution: "Mediazona · BBC Russian Service · CSIS (WIA est.) · Meduza",
     notes:
-      "Reference API retained. Globe overlay now prefers HAPI active-front fatalities; Mediazona remains named RU KIA lower bound for methodology.",
+      "Globe overlay: named RU KIA (lower bound) + CSIS WIA estimate on the Ukraine theater. (Removed from map UI with frontline casualty layer.)",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "license-required",
@@ -1070,6 +1168,37 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "GDELT 는 공개이나 Telegram 채널 글은 운영자 소유.",
   },
 ];
+
+/** OFAC·UN 제재 명단 빌드 요약 — UI·양피지·레이어 패널 공통 */
+export const SANCTIONS_ENTITY_SUMMARY = {
+  total: 19_709,
+  ofac: 18_707,
+  un: 1_002,
+  withCoords: 268,
+} as const;
+
+export type SourceCatalogStats = {
+  total: number;
+  shipped: number;
+  planned: number;
+  blocked: number;
+};
+
+export function getSourceCatalogStats(): SourceCatalogStats {
+  let shipped = 0;
+  let planned = 0;
+  let blocked = 0;
+  for (const note of NEWS_LAYER_SOURCE_CATALOG) {
+    if (note.status === "shipped") shipped += 1;
+    else if (note.status === "planned") planned += 1;
+    else if (note.status === "blocked") blocked += 1;
+  }
+  return { total: NEWS_LAYER_SOURCE_CATALOG.length, shipped, planned, blocked };
+}
+
+export function blockedSourceNotes(): NewsLayerSourceNote[] {
+  return NEWS_LAYER_SOURCE_CATALOG.filter((note) => note.status === "blocked");
+}
 
 export function getSourceNote(layerId: string): NewsLayerSourceNote | undefined {
   return NEWS_LAYER_SOURCE_CATALOG.find((note) => note.layerId === layerId);

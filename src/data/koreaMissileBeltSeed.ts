@@ -12,6 +12,8 @@ export type MissileBeltArea = {
   id: string;
   kind: "missile-belt";
   theater: "korea" | "china" | "russia" | "iran";
+  /** 육상(RVSN/PLARF 등) vs 해상(함대 벤트·사거리권). 생략 시 기존 육상 벨트로 취급. */
+  domain?: "land" | "naval";
   tier: MissileBeltTier;
   name: string;
   nameEn: string;

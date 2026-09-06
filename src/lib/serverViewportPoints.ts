@@ -4,6 +4,11 @@ import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { getServerDataProfile } from "@/lib/serverEnv";
 import {
+  filterPointsByMilitaryBaseForces,
+  parseMilitaryBaseForces,
+  type MilitaryBaseForceId,
+} from "@/lib/militaryBaseForces";
+import {
   MILITARY_BASE_AREA_MAX_BY_TIER,
   RESOURCE_POINT_MAX_BY_TIER,
   STATIC_POINT_MAX_BY_TIER,
@@ -104,18 +109,28 @@ export async function queryViewportPoints(
     radiusDeg: number;
     tier: GlobeLodTier;
     max?: number;
+    /** military-bases only — filter by force before the LOD cap */
+    forces?: MilitaryBaseForceId[] | string;
   },
 ) {
   const all = await loadAllStaticPoints(layer);
   const view = { lat: options.lat, lng: options.lng, altitude: 1 };
-  let filtered = filterStaticPointsForView(all, view, options.tier, options.radiusDeg);
+  let source = all;
+  if (layer === "military-bases") {
+    const forces =
+      typeof options.forces === "string"
+        ? parseMilitaryBaseForces(options.forces)
+        : options.forces;
+    if (forces) source = filterPointsByMilitaryBaseForces(all, forces);
+  }
+  let filtered = filterStaticPointsForView(source, view, options.tier, options.radiusDeg);
   const defaultCap =
     layer === "resources"
       ? RESOURCE_POINT_MAX_BY_TIER[options.tier]
       : STATIC_POINT_MAX_BY_TIER[options.tier];
   const cap = options.max ?? defaultCap;
   if (cap > 0 && filtered.length > cap) filtered = filtered.slice(0, cap);
-  return { points: filtered, total: all.length, returned: filtered.length };
+  return { points: filtered, total: source.length, returned: filtered.length };
 }
 
 export async function loadAllMilitaryBaseAreas(): Promise<MilitaryBaseArea[]> {

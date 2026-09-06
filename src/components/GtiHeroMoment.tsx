@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { formatGtiBriefingLead, gtiBand, gtiBandLabel, GTI } from "@/lib/gti";
+import { displayGtiScore, formatGtiBriefingLead, gtiBand, gtiBandLabel, GTS } from "@/lib/gti";
 import type { WorldTensionSnapshot } from "@/lib/dailyRanks";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
@@ -21,13 +21,10 @@ const BAND_TONE: Record<ReturnType<typeof gtiBand>, string> = {
 };
 
 /**
- * GTI 히어로 — 첫 90초의 2단계.
+ * GTS 히어로 — 첫 90초의 2단계.
  *
- * `gti.ts` 주석이 이미 정답을 적어 놨다:
- *   "이 서비스의 **단일 기축 통화**. 랭킹·게이지·예측·사운드·브리핑은
- *    전부 이 숫자(및 전일 대비 Δ)의 파생상품으로 취급한다."
- *
- * 그런데 지금까지 첫 방문자는 이 기축 통화를 4번째 화면에서야 만났다.
+ * 개인용 터미널의 **단일 기축**. 랭킹·게이지·감각 연습·사운드·브리핑은
+ * 전부 이 숫자(및 전일 대비 Δ)의 파생.
  * 지구본이 열리자마자 화면 중앙에 크게 한 번 보여주고, 곧 우상단 칩 자리로
  * 축소시킨다. **그 축소 전환이 "저 칩이 무슨 숫자인지"를 가르친다** —
  * 이후 모든 방문에서 칩만 봐도 읽힌다.
@@ -53,7 +50,7 @@ export function GtiHeroMoment({ snapshot, lang, visible }: Props) {
   if (!visible) return null;
 
   const band = gtiBand(snapshot.score);
-  const score = Math.round(snapshot.score);
+  const score = displayGtiScore(snapshot.score) ?? 0;
   const lead = formatGtiBriefingLead(snapshot, lang === "en" ? "en" : "ko");
 
   return (
@@ -69,7 +66,7 @@ export function GtiHeroMoment({ snapshot, lang, visible }: Props) {
         style={{ transitionDuration: reducedMotion ? "0ms" : undefined }}
       >
         <p className="text-meta font-medium uppercase tracking-[0.28em] opacity-70">
-          {lang === "en" ? GTI.nameEn : GTI.nameKo} · {GTI.ticker}
+          {lang === "en" ? GTS.nameEn : GTS.nameKo} · {GTS.ticker}
         </p>
         <p className="flex items-baseline gap-3">
           <span className="font-data-mono text-[56px] font-bold leading-none tracking-tight">

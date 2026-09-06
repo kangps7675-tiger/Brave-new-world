@@ -11,7 +11,7 @@ import {
   type ReactElement,
 } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
+import { collectChromeObstacles, placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
 
 type HoverHintProps = {
   title: string;
@@ -67,6 +67,7 @@ export function HoverHint({
       height,
       preferred,
       gap: 8,
+      obstacles: collectChromeObstacles(root),
     });
     setCoords({ left: placed.left, top: placed.top });
   }, [placement]);

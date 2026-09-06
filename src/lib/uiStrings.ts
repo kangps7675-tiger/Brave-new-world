@@ -18,6 +18,14 @@ const UI = {
   viewSettingsHint: { ko: "전쟁 보기 · 경제 보기 모드", en: "Conflict view · economy view" },
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
+  layerHoverInfoToggle: {
+    ko: "레이어 호버 데이터 패널",
+    en: "Layer hover data panel",
+  },
+  layerHoverInfoHint: {
+    ko: "레이어 목록·지도 위 피처에 마우스를 올리면 출처·설명이 뜹니다.",
+    en: "Hover a layer row or map feature to see source & explanation.",
+  },
   layers: { ko: "레이어", en: "Layers" },
   layerApplyConfirm: { ko: "설정하시겠습니까?", en: "Apply these layer settings?" },
   layerApplyConfirmHint: {
@@ -68,8 +76,6 @@ const UI = {
   backToMap: { ko: "접기", en: "Collapse" },
   closeNewsDock: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
   closeNewsGlobeOnlyAria: { ko: "뉴스 닫기 · 지구본만 보기", en: "Close news · map only" },
-  globeSpinPause: { ko: "자전 정지", en: "Pause spin" },
-  globeSpinResume: { ko: "자전 재생", en: "Resume spin" },
   closeTelegramOsint: { ko: "텔레그램 OSINT 닫기", en: "Close Telegram OSINT" },
   closeTelegramOsintHint: {
     ko: "창을 닫으면 레이어 체크박스에서도 꺼집니다.",
@@ -107,6 +113,7 @@ const UI = {
   translationEn: { ko: "영문 표시", en: "English display" },
   tier3Toggle: { ko: "속보·관영", en: "Breaking · state media" },
   liveNews: { ko: "실시간 뉴스", en: "Live news" },
+  theaterInsight: { ko: "오늘의 인사이트", en: "Today's insight" },
   telegramOsint: { ko: "텔레그램 OSINT", en: "Telegram OSINT" },
   conflictZone: { ko: "충돌지역", en: "Conflict zone" },
   intercontinental: { ko: "대륙간 갈등과 협력", en: "Intercontinental conflict & cooperation" },
@@ -134,30 +141,36 @@ const UI = {
   },
   domainGateTitle: { ko: "어느 창으로 들어설까요?", en: "Which window will you enter?" },
   domainUltraLiteOnHint: {
-    ko: "켜짐 · 동시 레이어 최대 16개 · 설정창 없이 가벼운 입장",
-    en: "On · max 16 layers · light entry, no extra setup screens",
+    ko: "켜짐 · 가벼운 입장 · 설정창 없이 시작",
+    en: "On · light entry · no extra setup screens",
   },
   domainUltraLiteOffHint: {
-    ko: "꺼짐 · 동시 레이어 최대 30개",
-    en: "Off · max 30 layers at once",
+    ko: "꺼짐 · 많은 레이어를 동시에 켤 수 있음",
+    en: "Off · more layers can stay on together",
   },
-  layerCapWarnTitle: { ko: "레이어를 더 켤 수 없습니다", en: "Can't enable more layers" },
+  layerCapWarnTitle: { ko: "성능을 위해 일부 레이어를 껐습니다", en: "Some layers were turned off for performance" },
   layerCapWarnBody: {
-    ko: "성능을 위해 동시에 켤 수 있는 레이어는 {cap}개까지입니다. 새 레이어를 켜려면 켜져 있는 레이어 중 하나를 먼저 꺼 주십시오.",
-    en: "For performance, you can enable up to {cap} layers at once. Turn one off before enabling another.",
+    ko: "지도를 부드럽게 유지하려고 덜 쓰인 레이어를 잠시 껐습니다. 아래에서 [되돌리기]로 복구할 수 있습니다.",
+    en: "Less-used layers were briefly turned off to keep the map smooth. Use Undo below to restore.",
   },
   layerCapWarnUltra: {
-    ko: "Ultra-Lite 모드에서는 상한이 16개입니다.",
-    en: "In Ultra-Lite mode the limit is 16.",
+    ko: "가벼운 모드에서는 동시에 켤 수 있는 레이어가 더 적습니다.",
+    en: "Lite mode keeps fewer layers on at once.",
   },
+  layerEvictTitle: { ko: "일부 레이어를 잠시 껐습니다", en: "Some layers paused" },
+  layerEvictBody: {
+    ko: "{names}을(를) 잠시 껐습니다.",
+    en: "Temporarily turned off: {names}.",
+  },
+  layerEvictUndo: { ko: "되돌리기", en: "Undo" },
   layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
-  /** 상한 도달 — 항목 뱃지·상세·상태바 (P0-7) */
-  layerCapTag: { ko: "상한", en: "At cap" },
-  layerCapDetailSuffix: { ko: "상한 {active}/{cap}", en: "cap {active}/{cap}" },
+  /** 활성 밀도 표시 — "상한" 단어 비노출 (P2-2) */
+  layerCapTag: { ko: "가득", en: "Full" },
+  layerCapDetailSuffix: { ko: "활성 {active}/{cap}", en: "on {active}/{cap}" },
   layerCapStatusOk: { ko: "활성 레이어 {active}/{cap}", en: "Active layers {active}/{cap}" },
   layerCapStatusFull: {
-    ko: "활성 레이어 {active}/{cap} — 새 항목을 켜려면 하나를 끄세요",
-    en: "Active layers {active}/{cap} — turn one off to enable another",
+    ko: "활성 레이어 {active}/{cap} — 새 항목을 켜면 덜 쓴 레이어가 잠시 꺼집니다",
+    en: "Active layers {active}/{cap} — enabling more pauses less-used layers",
   },
   layerClickCautionHint: {
     ko: "컴퓨터 사양이 안 좋으신가요? 빠끄!! Ultra-Lite인데 이거 켜면 렉 각입니다.",
@@ -256,7 +269,7 @@ const UI = {
     ko: "작전 배치 항모만 표시합니다.",
     en: "Show deployed carriers only.",
   },
-  hoverGpsJam: { ko: "GPS 재밍 (GPSJam)", en: "GPS interference (GPSJam)" },
+  hoverGpsJam: { ko: "GPS 재밍", en: "GPS jamming" },
   hoverGpsJamOff: {
     ko: "켜면 다른 레이어를 숨기고 GNSS 재밍 추정 히트맵만 표시합니다.",
     en: "Turns off other layers and shows the GNSS interference heatmap alone.",
@@ -284,21 +297,21 @@ const UI = {
   },
   hoverStockTicker: { ko: "증시 티커", en: "Market ticker" },
   hoverStockTickerTheater: {
-    ko: "전장 민감 원자재·선물 티커",
-    en: "Theater-sensitive commodities & futures",
+    ko: "모드별 시세 티커 (지정학 equity · 지경학 선물)",
+    en: "Mode markets (conflict equities · economy futures)",
   },
   marketsStripTitle: { ko: "시장", en: "Markets" },
   marketsStripCalmHint: {
-    ko: "등락은 전일 대비 · Yahoo·FRED · 환율·금리 포함 · 투자 권유 아님",
-    en: "Change vs prior day · Yahoo/FRED · FX & rates · not advice",
+    ko: "등락은 전일 대비 · Yahoo·Databento·FRED · 투자 권유 아님",
+    en: "Change vs prior day · Yahoo/Databento/FRED · not advice",
   },
   marketsStripTheaterHint: {
-    ko: "이 전장 민감 자산 · 등락은 전일 대비 · 투자 권유 아님",
-    en: "Theater-sensitive assets · vs prior day · not advice",
+    ko: "이 전장/권역 연관 시세 · 등락은 전일 대비 · 투자 권유 아님",
+    en: "Theater/region-linked quotes · vs prior day · not advice",
   },
   marketsStripAlertHint: {
-    ko: "전장 연관 · 전일대비 변동 강조 · 투자 권유 아님",
-    en: "Theater-linked · prior-day moves · not advice",
+    ko: "연관 시세 · 전일대비 변동 강조 · 투자 권유 아님",
+    en: "Linked quotes · prior-day moves · not advice",
   },
   hoverViewOnMap: { ko: "지도에서 보기", en: "View on map" },
   hoverViewOnMapHint: {
@@ -347,7 +360,7 @@ const UI = {
   },
   hoverIntelFab: { ko: "Intel 뉴스", en: "Intel news" },
   hoverIntelFabHint: {
-    ko: "전체 화면 Tier별 검증 보도·속보를 봅니다. Telegram OSINT는 별도 패널입니다.",
+    ko: "전체 화면 Tier별 검증 보도·속보를 봅니다. 텔레그램 OSINT는 별도 패널입니다.",
     en: "Full-screen tiered verified briefs. Telegram OSINT is a separate panel.",
   },
   hoverIntelFabOpenAria: { ko: "Intel 뉴스 열기", en: "Open Intel news" },
@@ -476,13 +489,13 @@ const UI = {
   },
   domainEconomyTitle: { ko: "경제·물류", en: "Economy" },
   domainEconomyHint: {
-    ko: "에너지·물류·항로·시장 — 돈이 어디서 움직이는지",
-    en: "Energy, logistics, sea lanes, markets — where money moves",
+    ko: "초크·에너지·항로 — 막힘이 시세에 닿는 곳",
+    en: "Chokes · energy · lanes — where congestion hits markets",
   },
-  welcomeLetterCta: { ko: "편지를 접고 신세계로", en: "Fold the letter — enter the New World" },
+  welcomeLetterCta: { ko: "편지를 접고 출처 고지로", en: "Fold — sources disclosure next" },
   welcomeBriefBody: {
-    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대.\n다음에서—지정학의 창인지, 지경학의 창인지—선택하십시오.",
-    en: "An observatory where war and profit share one screen. Next, choose Conflict & security or Economy & logistics.",
+    ko: "전쟁과 이익이 한 화면을 나눠 쓰는 관측대.\n다음 양피지에서 데이터 출처·한계를 반드시 읽은 뒤—지정학·지경학 창을 고르십시오.",
+    en: "An observatory where war and profit share one screen. Next you must read data sources and limits — then choose geopolitics or geoeconomics.",
   },
   welcomeBriefQuote: {
     ko: "\"보이는 모든 것은 지금 이곳에서 벌어지는 실제 상황이다.\"",
@@ -504,16 +517,16 @@ const UI = {
   hubBriefCta: { ko: "편지를 접기", en: "Fold the letter" },
   entryCautionMustRead: { ko: "반드시 읽어 주십시오", en: "Please read this carefully" },
   entryCautionTitle: {
-    ko: "RESTRICTED · 오퍼레이터 인가",
-    en: "RESTRICTED · OPERATOR CLEARANCE",
+    ko: "이용 안내",
+    en: "Before you continue",
   },
   entryCautionSubtitle: {
-    ko: "귀하의 접속은 임시 작전 요원(OPERATOR NODE)으로 식별됩니다. 본 단말기는 오픈소스 인텔리전스(OSINT) 상황판입니다.",
-    en: "Your session is logged as a temporary OPERATOR NODE. This terminal is an open-source intelligence (OSINT) board.",
+    ko: "공개 출처를 모아 보여주는 지정학·지경학 지도입니다. 접속 기록이 남습니다.",
+    en: "This is a public-source geopolitics and geo-economics map. Sessions are logged.",
   },
   entryCautionPhase1: {
-    ko: "IP와 브라우저 지문이 임시 오퍼레이터 노드로 기록됩니다. 외부로 무단 반출하거나 스크레이핑하는 행위는 금지됩니다.",
-    en: "IP and hardware fingerprint are logged as an active observer. Unauthorized export or scraping is prohibited.",
+    ko: "IP와 브라우저 정보가 접속 기록에 남습니다. 무단 반출이나 스크레이핑은 금지됩니다.",
+    en: "IP and browser details are logged. Unauthorized export or scraping is prohibited.",
   },
   /**
    * P1-10 — 캡 숫자 4개({uiCap}/{ultraCap}/{conflictCap}/{economyCap})를 걷어냈다.
@@ -542,8 +555,8 @@ const UI = {
   },
   entryCautionSoundWhenTitle: { ko: "언제 소리가 나는가", en: "When sound plays" },
   entryCautionSoundWhen: {
-    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 유가 SPIKE(CL=F/BZ=F): oil-spike · 일반 UI 클릭은 무음",
-    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Oil SPIKE (CL=F/BZ=F): oil-spike · normal UI clicks stay silent",
+    ko: "• 공습 사이렌: 경보 칩·버튼으로 fly 할 때만\n• S급 속보만 SOS 모스 (A급은 배너만 · Tier3 단독은 S 불가)\n• NEPTUN·FIRMS 폭격음: 해당 레이어 ON + 화면 안으로 들어올 때\n• 전선 교전음(우크라·중동만): 카메라가 실제 전쟁 전장에 들어와야 포격·총성 · 대만·한반도에서는 자동 무음\n• 대만해협: 시계 틱 · 한반도/고긴장: rumble (긴장지역 — 교전음 없음)\n• 전역·대륙 줌: 도시 먼 뇌우 앰비언트(상시)\n• 항모·공항·선박·파이프 등 인프라: 지도에서 클릭할 때\n• ReefWatch 근접 항적: 화면에 보이면 아주 미세하게 자동\n• 경제 앰비언트: 파이프라인 > 데이터센터 > 항구 > LNG(미세) > 경제중심\n• 선물 SPIKE(Databento 심볼): 상승/하락 모스 전보 · 일반 UI 클릭은 무음",
+    en: "• Air-raid siren: alert chip/button fly only\n• SOS Morse for S-grade breaking only\n• NEPTUN / FIRMS combat: layer ON + enters viewport\n• Frontline gunfire/artillery (Ukraine / Middle East only): camera must be over an active war theater — silent over Taiwan / Korea\n• Taiwan Strait tick · Korea / high-tension rumble (tension — no combat audio)\n• Global / continent zoom: distant city thunder ambient (loop)\n• Carriers, airports, ships, pipelines: on map click\n• ReefWatch near traffic: subtle auto when visible\n• Economy ambient: pipeline > datacenter > port > LNG(soft) > hubs\n• Futures SPIKE (Databento symbols): up/down Morse telegraph · normal UI clicks stay silent",
   },
   entryCautionPhase4: {
     ko: "본 피드는 공개 소스·와이어·위성·선박 오픈데이터를 가공한 상황판입니다. 공식 경보를 대체하지 않으며, 무단으로 반출하거나 왜곡하면 노드 접근이 차단될 수 있습니다. 벙커의 불빛이 꺼지지 않도록 감시 임무에 동참하시겠습니까?",
@@ -587,31 +600,33 @@ const UI = {
   },
   soundNudgeAccept: { ko: "소리 켜기", en: "Turn on sound" },
   soundNudgeDismiss: { ko: "계속 끄기", en: "Stay muted" },
-  /** FPS 프로브 → Ultra-Lite 자동 제안 */
-  ultraLiteOfferTitle: { ko: "가볍게 볼까요?", en: "Switch to a lighter view?" },
+  /** FPS 프로브 → Ultra-Lite 자동 적용 + 결과 통보 (P2-2) */
+  ultraLiteOfferTitle: { ko: "가벼운 모드로 전환했습니다", en: "Switched to a lighter view" },
   ultraLiteOfferBody: {
-    ko: "이 기기에서 지도가 버거워 보입니다. 무거운 레이어를 줄이면 훨씬 부드러워집니다.",
-    en: "The map looks heavy on this device. Trimming the heaviest layers makes it much smoother.",
+    ko: "지도가 느려서 성능을 위해 가벼운 설정을 적용했습니다. 원치 않으면 되돌릴 수 있습니다.",
+    en: "The map was slow, so a lighter setup was applied. You can undo if you prefer.",
   },
   ultraLiteOfferBodyCritical: {
-    ko: "이 기기에서 지도가 많이 끊깁니다. 가벼운 모드를 권합니다.",
-    en: "The map is stuttering badly on this device. A lighter mode is recommended.",
+    ko: "프레임이 크게 떨어져 가벼운 모드를 적용했습니다. 지도를 계속 쓸 수 있게 우선 조치했습니다.",
+    en: "Frame rate dropped hard, so lite mode was applied so you can keep using the map.",
   },
-  ultraLiteOfferAccept: { ko: "가볍게 보기", en: "Go lighter" },
-  ultraLiteOfferDismiss: { ko: "그대로 보기", en: "Keep as is" },
+  ultraLiteOfferAccept: { ko: "확인", en: "OK" },
+  ultraLiteOfferDismiss: { ko: "되돌리기", en: "Undo" },
   ultraLiteOfferMeasured: { ko: "측정: 약 {fps}fps", en: "Measured: ~{fps}fps" },
   /** 레이어 패널 — 기존 하드코딩 한국어 대체 (EN 모드 누수 해소) */
   layerPerformance: { ko: "성능", en: "Performance" },
   layerUltraLiteHint: {
-    ko: "저사양(내장 GPU·8GB)용 Ultra-Lite — 동시 레이어 {cap}개·핀 축소·무거운 레이어 강제 OFF",
-    en: "Ultra-Lite for low-end GPUs — {cap} layers max, fewer pins, heavy layers forced off",
+    ko: "저사양(내장 GPU·8GB)용 Ultra-Lite — 핀 축소·무거운 레이어 자동 OFF",
+    en: "Ultra-Lite for low-end GPUs — fewer pins, heavy layers auto-off",
   },
   layerUltraLiteToggle: { ko: "Ultra-Lite 모드", en: "Ultra-Lite mode" },
   layerCapStatus: {
-    ko: "일반 캡 {full}개 · 현재 활성 {active}/{cap}",
-    en: "Standard cap {full} · active {active}/{cap}",
+    ko: "일반 모드 · 현재 활성 {active}/{cap}",
+    en: "Standard · active {active}/{cap}",
   },
   layerListLoading: { ko: "레이어 목록 준비 중…", en: "Loading layers…" },
+  layerShowMore: { ko: "추천 외 {n}개 더 보기", en: "Show {n} more" },
+  layerShowLess: { ko: "접기", en: "Show less" },
   layerBatchApplying: {
     ko: "레이어 일괄 적용 중… 잠시 후 지구본에 반영됩니다.",
     en: "Applying layers… the globe updates shortly.",
@@ -670,8 +685,8 @@ const UI = {
   },
   basemapTerrain: { ko: "지형", en: "Terrain" },
   basemapTerrainHint: {
-    ko: "밝은 벡터 · DEM 기복 · 고줌 3D 건물",
-    en: "Light vector · DEM relief · 3D buildings at high zoom",
+    ko: "밝은 벡터 · DEM 기복 · 고줌 OSM 3D 건물",
+    en: "Light vector · DEM relief · OSM 3D buildings at high zoom",
   },
 
   intelNews: { ko: "Intel 뉴스", en: "Intel news" },
@@ -684,7 +699,7 @@ const UI = {
   itemsCount: { ko: "건", en: " items" },
   economyCount: { ko: "경제", en: "economy" },
   intelSheetNews: { ko: "Tier별 뉴스 · 분석", en: "Tier news · analysis" },
-  intelSheetTelegram: { ko: "Telegram OSINT · 절반", en: "Telegram OSINT · half" },
+  intelSheetTelegram: { ko: "텔레그램 OSINT · 절반", en: "Telegram OSINT · half" },
   intelSheetTelegramVideo: {
     ko: "텔레그램 영상 · 전선 미디어",
     en: "Telegram video · frontline media",
@@ -696,6 +711,22 @@ const UI = {
   intelSheetVideoTab: { ko: "동영상 뉴스", en: "Video" },
   intelSheetEconomyNews: { ko: "경제 · RSS · 속보", en: "Economy · RSS · breaking" },
   intelSheetMarkets: { ko: "증시 · 매크로 · 지수", en: "Markets · macro · indices" },
+  intelSheetMarketsTab: { ko: "증시", en: "Markets" },
+  intelSheetMajors: { ko: "주요기업 · 대형 시총", en: "Majors · mega-caps" },
+  intelSheetMajorsTab: { ko: "주요기업", en: "Majors" },
+  intelSheetShippingChoke: {
+    ko: "초크 · 항로 · 에너지·물류",
+    en: "Chokes · lanes · energy logistics",
+  },
+  intelSheetShippingChokeTab: { ko: "해운·초크", en: "Shipping · choke" },
+  intelSheetAviation: { ko: "항공 · 여객·유가", en: "Aviation · passenger · oil" },
+  intelSheetAviationTab: { ko: "항공", en: "Aviation" },
+  intelSheetDefense: { ko: "방산 · ETF·프라임", en: "Defense · ETF · primes" },
+  intelSheetDefenseTab: { ko: "방산", en: "Defense" },
+  hoverSheetDefenseHint: {
+    ko: "방산 ETF·미 방산업체 소수 종목. 해석용 · 투자 권유 아님.",
+    en: "Defense ETF and US primes — interpretive quotes, not advice.",
+  },
   hoverSheetVideo: { ko: "동영상 뉴스", en: "Video news" },
   hoverSheetVideoHint: {
     ko: "BBC·Reuters·AP·Bloomberg 등 공신력 채널 최신 영상만. 메타만 폴링하고 재생은 클릭 시.",
@@ -718,7 +749,7 @@ const UI = {
     en: "No cached digest — showing source title and rule-based notes only.",
   },
   aiDigestPolicy: {
-    ko: "검증 매체만 · Telegram 제외 · 사실 단정 금지",
+    ko: "검증 매체만 · 텔레그램 제외 · 사실 단정 금지",
     en: "Whitelist media only · Telegram excluded · no factual claims",
   },
   todayHotLabel: { ko: "오늘 핫한 곳", en: "Today's hotspot" },
@@ -733,6 +764,19 @@ const UI = {
     ko: "투자 권유 아님 · 해석용 시세 · 외부에서 보기",
     en: "Not investment advice · interpretive quotes · view externally",
   },
+  marketsDatabentoFooter: {
+    ko: "Databento(가능 시) · Yahoo fallback · 10분 캐시 · 투자 권유 아님",
+    en: "Databento when available · Yahoo fallback · 10m cache · not advice",
+  },
+  marketsSpikeNow: { ko: "지금 SPIKE", en: "SPIKE now" },
+  spikeTelegraphStamp: { ko: "전보 · DISPATCH", en: "DISPATCH" },
+  spikeTelegraphHint: {
+    ko: "선물 SPIKE · 투자 권유 아님 · 탭하면 증시",
+    en: "Futures SPIKE · not advice · tap for markets",
+  },
+  spikeTelegraphDismiss: { ko: "닫기", en: "Dismiss" },
+  spikeTelegraphTrendUp: { ko: "오름세", en: "Up" },
+  spikeTelegraphTrendDown: { ko: "내림세", en: "Down" },
   openYahoo: { ko: "Yahoo에서 보기", en: "View on Yahoo" },
   addWatch: { ko: "관심 추가", en: "Add to watchlist" },
   removeWatch: { ko: "관심 해제", en: "Remove from watchlist" },
@@ -742,13 +786,19 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
-  worldTensionTitle: { ko: "긴장지수 · GTI", en: "Tension · GTI" },
+  worldTensionTitle: { ko: "긴장지수 · GTS", en: "Tension · GTS" },
   worldTensionDeltaUp: { ko: "어제보다 {n}점 올라감", en: "up {n} from yesterday" },
   worldTensionDeltaDown: { ko: "어제보다 {n}점 내려감", en: "down {n} from yesterday" },
   worldTensionHint: {
-    ko: "글로벌 긴장지수(GTI) — 전 세계 분쟁·군사 활동을 0~100으로 요약한 점수(GTS). 원유 티커(WTI)와 무관합니다.",
-    en: "Global Tension Index (GTI) — global conflict as a 0–100 score (GTS). Unrelated to WTI crude oil.",
+    ko: "GTS(글로벌 긴장 점수) — 전 세계 분쟁 지역이 지금 얼마나 시끄러운지 0~100으로 요약. IEP 테러 지수(GTI)와 다릅니다. 원유 WTI와 무관.",
+    en: "GTS (Global Tension Score) — how loud conflict zones are, 0–100. Not the IEP Global Terrorism Index (GTI). Unrelated to oil WTI.",
   },
+  sesHint: {
+    ko: "제재 회피 강도 — 섀도 플릿·원유·회랑 프록시로 제재 우회 압력을 0~100으로. OFAC 명단 전체·단속 예측이 아닙니다.",
+    en: "Sanctions evasion intensity — shadow fleet, crude, corridor proxies → 0–100. Not a full OFAC list or enforcement forecast.",
+  },
+  sesDeltaUp: { ko: "직전보다 {n}점 올라감", en: "up {n} from prior" },
+  sesDeltaDown: { ko: "직전보다 {n}점 내려감", en: "down {n} from prior" },
   westpacShipMovesNav: {
     ko: "서태평양 주간 함선 이동기",
     en: "Westpac Weekly Ship Moves",
@@ -912,11 +962,11 @@ export const MODE_PICKER_CHROME: Record<
   conflict: {
     ko: {
       title: "지정학",
-      tagline: "전선 · GDELT · Telegram OSINT",
+      tagline: "전선 · GDELT · 텔레그램 OSINT",
       bullets: [
         "우크라이나 전선·NEPTUN 드론·미사일 궤적",
         "GDELT 전투·외교 뉴스 핀",
-        "Telegram OSINT · VIINA 점령지",
+        "텔레그램 OSINT · VIINA 점령지",
         "하단: 속보 + GDELT 범례",
       ],
     },

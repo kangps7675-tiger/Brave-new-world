@@ -1,0 +1,728 @@
+{
+  "generatedAt": "2026-08-28T18:54:06.744Z",
+  "sourceFile": "Daily_Ports_Data.geojson",
+  "minYear": 2024,
+  "topCount": 80,
+  "ports": [
+    {
+      "portid": "port1201",
+      "portname": "Singapore",
+      "iso3": "SGP",
+      "country": "Singapore",
+      "tradeVolume": 2275319412,
+      "portcalls": 116324,
+      "days": 936
+    },
+    {
+      "portid": "port824",
+      "portname": "Ningbo",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1828908905,
+      "portcalls": 52541,
+      "days": 936
+    },
+    {
+      "portid": "port1188",
+      "portname": "Shanghai",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1710970911,
+      "portcalls": 111404,
+      "days": 936
+    },
+    {
+      "portid": "port1297",
+      "portname": "Tianjin Xin Gang",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1417838122,
+      "portcalls": 30370,
+      "days": 936
+    },
+    {
+      "portid": "port955",
+      "portname": "Port Hedland",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 1386459034,
+      "portcalls": 8630,
+      "days": 936
+    },
+    {
+      "portid": "port1069",
+      "portname": "Qingdao Port",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1307817353,
+      "portcalls": 30291,
+      "days": 936
+    },
+    {
+      "portid": "port1114",
+      "portname": "Rotterdam",
+      "iso3": "NLD",
+      "country": "The Netherlands",
+      "tradeVolume": 990460215,
+      "portcalls": 77545,
+      "days": 936
+    },
+    {
+      "portid": "port2027",
+      "portname": "Shanghai (Yangshan)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 904275987,
+      "portcalls": 14714,
+      "days": 936
+    },
+    {
+      "portid": "port1195",
+      "portname": "Shougang Jingtang",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 756876981,
+      "portcalls": 13097,
+      "days": 936
+    },
+    {
+      "portid": "port57",
+      "portname": "Antwerp",
+      "iso3": "BEL",
+      "country": "Belgium",
+      "tradeVolume": 701806305,
+      "portcalls": 54953,
+      "days": 936
+    },
+    {
+      "portid": "port481",
+      "portname": "Houston (US-TX)",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 611256188,
+      "portcalls": 19275,
+      "days": 936
+    },
+    {
+      "portid": "port1189",
+      "portname": "Shekou (Shenzhen)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 569051563,
+      "portcalls": 8616,
+      "days": 936
+    },
+    {
+      "portid": "port154",
+      "portname": "Huanghua",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 558541230,
+      "portcalls": 11080,
+      "days": 936
+    },
+    {
+      "portid": "port664",
+      "portname": "Los Angeles-Long Beach",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 541865765,
+      "portcalls": 9699,
+      "days": 936
+    },
+    {
+      "portid": "port744",
+      "portname": "Jebel Ali",
+      "iso3": "ARE",
+      "country": "United Arab Emirates",
+      "tradeVolume": 537464879,
+      "portcalls": 19637,
+      "days": 936
+    },
+    {
+      "portid": "port474",
+      "portname": "Hong Kong",
+      "iso3": "HKG",
+      "country": "Hong Kong SAR",
+      "tradeVolume": 525064416,
+      "portcalls": 38878,
+      "days": 936
+    },
+    {
+      "portid": "port432",
+      "portname": "Gwangyang (Kwangyang)",
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 498491846,
+      "portcalls": 35943,
+      "days": 936
+    },
+    {
+      "portid": "port1404",
+      "portname": "Xiamen",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 498398035,
+      "portcalls": 20069,
+      "days": 936
+    },
+    {
+      "portid": "port1266",
+      "portname": "Tangshan (Jingtang)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 473446134,
+      "portcalls": 8611,
+      "days": 936
+    },
+    {
+      "portid": "port506",
+      "portname": "Itaqui",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 467994312,
+      "portcalls": 4841,
+      "days": 936
+    },
+    {
+      "portid": "port632",
+      "portname": "Lanqiao Port",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 460604735,
+      "portcalls": 8608,
+      "days": 936
+    },
+    {
+      "portid": "port541",
+      "portname": "Kaohsiung",
+      "iso3": "TWN",
+      "country": "Taiwan Province of China",
+      "tradeVolume": 451484150,
+      "portcalls": 29420,
+      "days": 936
+    },
+    {
+      "portid": "port1065",
+      "portname": "Busan",
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 435751109,
+      "portcalls": 50581,
+      "days": 936
+    },
+    {
+      "portid": "port981",
+      "portname": "Port Walcott",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 425579470,
+      "portcalls": 2508,
+      "days": 936
+    },
+    {
+      "portid": "port276",
+      "portname": "Dampier",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 418654358,
+      "portcalls": 3996,
+      "days": 936
+    },
+    {
+      "portid": "port1160",
+      "portname": "Santos",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 408189757,
+      "portcalls": 14433,
+      "days": 936
+    },
+    {
+      "portid": "port776",
+      "portname": "Mumbai",
+      "iso3": "IND",
+      "country": "India",
+      "tradeVolume": 400830188,
+      "portcalls": 18182,
+      "days": 936
+    },
+    {
+      "portid": "port816",
+      "portname": "Newcastle",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 370699816,
+      "portcalls": 5693,
+      "days": 936
+    },
+    {
+      "portid": "port1265",
+      "portname": "Tangier-Mediterranean",
+      "iso3": "MAR",
+      "country": "Morocco",
+      "tradeVolume": 354113996,
+      "portcalls": 11803,
+      "days": 936
+    },
+    {
+      "portid": "port1338",
+      "portname": "Ulsan",
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 347210115,
+      "portcalls": 25252,
+      "days": 936
+    },
+    {
+      "portid": "port1253",
+      "portname": "Suzhou (Taicang)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 336980999,
+      "portcalls": 23470,
+      "days": 936
+    },
+    {
+      "portid": "port446",
+      "portname": "Hamburg",
+      "iso3": "DEU",
+      "country": "Germany",
+      "tradeVolume": 336743370,
+      "portcalls": 15867,
+      "days": 936
+    },
+    {
+      "portid": "port1429",
+      "portname": "Zhoushan",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 328524129,
+      "portcalls": 17543,
+      "days": 936
+    },
+    {
+      "portid": "port526",
+      "portname": "Juaymah",
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 326721043,
+      "portcalls": 1986,
+      "days": 936
+    },
+    {
+      "portid": "port960",
+      "portname": "Port Klang",
+      "iso3": "MYS",
+      "country": "Malaysia",
+      "tradeVolume": 320002213,
+      "portcalls": 32687,
+      "days": 936
+    },
+    {
+      "portid": "port1105",
+      "portname": "Rizhao",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 310752398,
+      "portcalls": 7772,
+      "days": 936
+    },
+    {
+      "portid": "port1070",
+      "portname": "Dongjiakou",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 291613897,
+      "portcalls": 5980,
+      "days": 936
+    },
+    {
+      "portid": "port812",
+      "portname": "New Orleans",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 288768050,
+      "portcalls": 13451,
+      "days": 936
+    },
+    {
+      "portid": "port2479",
+      "portname": "Basrah Oil Terminal",
+      "iso3": "IRQ",
+      "country": "Iraq",
+      "tradeVolume": 279303908,
+      "portcalls": 1624,
+      "days": 936
+    },
+    {
+      "portid": "port1350",
+      "portname": "Vancouver",
+      "iso3": "CAN",
+      "country": "Canada",
+      "tradeVolume": 277884825,
+      "portcalls": 5821,
+      "days": 936
+    },
+    {
+      "portid": "port815",
+      "portname": "New York-New Jersey",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 276518886,
+      "portcalls": 9681,
+      "days": 936
+    },
+    {
+      "portid": "port1197",
+      "portname": "Laem Chabang",
+      "iso3": "THA",
+      "country": "Thailand",
+      "tradeVolume": 267774867,
+      "portcalls": 18070,
+      "days": 936
+    },
+    {
+      "portid": "port273",
+      "portname": "Dalian",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 266644450,
+      "portcalls": 19059,
+      "days": 936
+    },
+    {
+      "portid": "port1426",
+      "portname": "Zhanjiang",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 261503318,
+      "portcalls": 6563,
+      "days": 936
+    },
+    {
+      "portid": "port398",
+      "portname": "Gladstone",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 259264580,
+      "portcalls": 4714,
+      "days": 936
+    },
+    {
+      "portid": "port517",
+      "portname": "Jiangyin",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 255742374,
+      "portcalls": 12039,
+      "days": 936
+    },
+    {
+      "portid": "port1073",
+      "portname": "Qiwei",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 251613247,
+      "portcalls": 14618,
+      "days": 936
+    },
+    {
+      "portid": "port644",
+      "portname": "Lianyungang",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 251352071,
+      "portcalls": 10307,
+      "days": 936
+    },
+    {
+      "portid": "port112",
+      "portname": "Banjarmasin",
+      "iso3": "IDN",
+      "country": "Indonesia",
+      "tradeVolume": 246358750,
+      "portcalls": 11103,
+      "days": 936
+    },
+    {
+      "portid": "port1428",
+      "portname": "Zhouliwang",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 242409520,
+      "portcalls": 6151,
+      "days": 936
+    },
+    {
+      "portid": "port133",
+      "portname": "Bayuquan",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 240592406,
+      "portcalls": 8546,
+      "days": 936
+    },
+    {
+      "portid": "port570",
+      "portname": "Yanbu (King Fahd Port)",
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 237659176,
+      "portcalls": 3896,
+      "days": 936
+    },
+    {
+      "portid": "port1095",
+      "portname": "Ust-Luga",
+      "iso3": "RUS",
+      "country": "Russian Federation",
+      "tradeVolume": 237166791,
+      "portcalls": 6680,
+      "days": 936
+    },
+    {
+      "portid": "port458",
+      "portname": "Hay Point",
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 231065460,
+      "portcalls": 2669,
+      "days": 936
+    },
+    {
+      "portid": "port833",
+      "portname": "Novorossiysk",
+      "iso3": "RUS",
+      "country": "Russian Federation",
+      "tradeVolume": 230662366,
+      "portcalls": 10507,
+      "days": 936
+    },
+    {
+      "portid": "port339",
+      "portname": "Fangcheng",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 228426666,
+      "portcalls": 5619,
+      "days": 936
+    },
+    {
+      "portid": "port425",
+      "portname": "Guangzhou (Nansha)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 225551894,
+      "portcalls": 27177,
+      "days": 936
+    },
+    {
+      "portid": "port1328",
+      "portname": "Tubarao",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 223536214,
+      "portcalls": 2307,
+      "days": 936
+    },
+    {
+      "portid": "port31",
+      "portname": "Algeciras",
+      "iso3": "ESP",
+      "country": "Spain",
+      "tradeVolume": 219722429,
+      "portcalls": 15666,
+      "days": 936
+    },
+    {
+      "portid": "port380",
+      "portname": "Gdansk",
+      "iso3": "POL",
+      "country": "Poland",
+      "tradeVolume": 217301557,
+      "portcalls": 8675,
+      "days": 936
+    },
+    {
+      "portid": "port1072",
+      "portname": "Qinhuangdao",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 216497023,
+      "portcalls": 6885,
+      "days": 936
+    },
+    {
+      "portid": "port1214",
+      "portname": "South Louisiana",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 214056970,
+      "portcalls": 6372,
+      "days": 936
+    },
+    {
+      "portid": "port2045",
+      "portname": "Porto de Itaguai",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 212895741,
+      "portcalls": 2441,
+      "days": 936
+    },
+    {
+      "portid": "port786",
+      "portname": "Nagoya",
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 211414707,
+      "portcalls": 40155,
+      "days": 936
+    },
+    {
+      "portid": "port362",
+      "portname": "Fujairah",
+      "iso3": "ARE",
+      "country": "United Arab Emirates",
+      "tradeVolume": 209759110,
+      "portcalls": 8392,
+      "days": 936
+    },
+    {
+      "portid": "port792",
+      "portname": "Nantong",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 209385832,
+      "portcalls": 15597,
+      "days": 936
+    },
+    {
+      "portid": "port166",
+      "portname": "Porto do Acu",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 205280789,
+      "portcalls": 4225,
+      "days": 936
+    },
+    {
+      "portid": "port518",
+      "portname": "Jeddah",
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 195753915,
+      "portcalls": 8215,
+      "days": 936
+    },
+    {
+      "portid": "port1405",
+      "portname": "Xiuyu",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 191232344,
+      "portcalls": 5748,
+      "days": 936
+    },
+    {
+      "portid": "port2401",
+      "portname": "Guangzhou (Huangpu)",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 190699530,
+      "portcalls": 7504,
+      "days": 936
+    },
+    {
+      "portid": "port1099",
+      "portname": "Richards Bay",
+      "iso3": "ZAF",
+      "country": "South Africa",
+      "tradeVolume": 186629153,
+      "portcalls": 3537,
+      "days": 936
+    },
+    {
+      "portid": "port1403",
+      "portname": "Xiagong",
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 186182976,
+      "portcalls": 6523,
+      "days": 936
+    },
+    {
+      "portid": "port752",
+      "portname": "Mizushima",
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 181122949,
+      "portcalls": 35307,
+      "days": 936
+    },
+    {
+      "portid": "port1417",
+      "portname": "Yokohama",
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 180866847,
+      "portcalls": 36393,
+      "days": 936
+    },
+    {
+      "portid": "port700",
+      "portname": "Manzanillo",
+      "iso3": "PAN",
+      "country": "Panama",
+      "tradeVolume": 180452578,
+      "portcalls": 5670,
+      "days": 936
+    },
+    {
+      "portid": "port985",
+      "portname": "Le Havre",
+      "iso3": "FRA",
+      "country": "France",
+      "tradeVolume": 178380934,
+      "portcalls": 9267,
+      "days": 936
+    },
+    {
+      "portid": "port264",
+      "portname": "Corpus Christi",
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 175885522,
+      "portcalls": 4523,
+      "days": 936
+    },
+    {
+      "portid": "port885",
+      "portname": "Paranaguá",
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 175861974,
+      "portcalls": 5511,
+      "days": 936
+    },
+    {
+      "portid": "port105",
+      "portname": "Bandar-E Pars Terminal",
+      "iso3": "IRN",
+      "country": "Iran",
+      "tradeVolume": 174860947,
+      "portcalls": 3989,
+      "days": 936
+    },
+    {
+      "portid": "port494",
+      "portname": "Incheon",
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 168820855,
+      "portcalls": 18772,
+      "days": 936
+    }
+  ]
+}

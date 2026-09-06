@@ -13,6 +13,7 @@ import {
   toggleFollowLivingConflict,
 } from "@/lib/livingConflictPrefs";
 import { trackEvent } from "@/lib/trackClient";
+import { PanelSkeletonLines } from "@/components/PanelSkeletons";
 
 type LivingConflictPayload = {
   conflict: {
@@ -184,6 +185,12 @@ export function LivingConflictPanel({
           <p className="px-3 py-4 text-caption text-rose-200/80">
             {ko ? "불러오지 못했습니다. 시드로 재시도하세요." : "Failed to load. Try again."}
           </p>
+        ) : null}
+
+        {!data && !loadError ? (
+          <div className="px-1 py-2">
+            <PanelSkeletonLines rows={5} />
+          </div>
         ) : null}
 
         {data ? (

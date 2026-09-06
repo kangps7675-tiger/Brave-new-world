@@ -51,7 +51,7 @@ export function EntryCautionOverlay({
             type="button"
             onClick={onSkipToDomain}
             title={t("entryCautionSkipHint", lang)}
-            className="shrink-0 rounded border border-slate-600/40 bg-black/40 px-2 py-1 text-micro font-medium tracking-wide text-slate-500 transition hover:border-amber-400/30 hover:text-amber-100/80"
+            className="entry-terminal-boot__cta w-auto shrink-0 px-4 py-2 text-caption font-medium tracking-wide"
           >
             {t("entryCautionSkip", lang)}
           </button>
@@ -162,7 +162,7 @@ NODE: ${brandName(lang).toUpperCase()} · OSINT TERMINAL
         <button
           type="button"
           onClick={onSkipToDomain}
-          className="mt-2.5 w-full rounded border border-slate-600/50 bg-black/30 px-4 py-2 text-caption font-medium tracking-wide text-slate-300 transition hover:border-amber-400/40 hover:bg-amber-500/[0.06] hover:text-amber-100"
+          className="entry-terminal-boot__cta mt-2.5 w-full opacity-90"
         >
           {t("entryCautionSkipCta", lang)}
         </button>

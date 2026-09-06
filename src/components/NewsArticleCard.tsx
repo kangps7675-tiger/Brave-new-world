@@ -56,18 +56,26 @@ type NewsArticleCardProps = {
   item: NewsStreamItem;
   tier3?: boolean;
   economyMode?: boolean;
+  /** CRINK 허브 카드 — 큰 썸네일 + 크레딧 */
+  hubMode?: boolean;
+  thumbCredit?: string;
   titleOverride?: string;
   summaryOverride?: string;
   onFlyToMap?: (target: MapFlyTarget) => void;
+  /** 우측 뉴스 인사이트 패널 열기 (클릭/탭만) */
+  onOpenInsight?: (item: NewsStreamItem) => void;
 };
 
 export function NewsArticleCard({
   item,
   tier3,
   economyMode,
+  hubMode,
+  thumbCredit,
   titleOverride,
   summaryOverride,
   onFlyToMap,
+  onOpenInsight,
 }: NewsArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const isEconomy = economyMode || item.feedTopic === "economy";
@@ -83,12 +91,16 @@ export function NewsArticleCard({
 
   return (
     <article
-      className={`news-article-card group flex w-[min(72vw,220px)] shrink-0 flex-col overflow-hidden rounded-xl border bg-[#0a1428]/90 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-xl ${
+      className={`news-article-card group flex shrink-0 flex-col overflow-hidden rounded-xl border bg-[#0a1428]/90 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-xl ${
+        hubMode ? "w-[min(92vw,280px)]" : "w-[min(72vw,220px)]"
+      } ${
         tier3
           ? "border-amber-400/25 hover:border-amber-300/45"
-          : isEconomy
-            ? "border-emerald-400/20 hover:border-emerald-300/40"
-            : "border-sky-300/15 hover:border-sky-200/35"
+          : hubMode
+            ? "border-rose-400/25 hover:border-rose-300/45"
+            : isEconomy
+              ? "border-emerald-400/20 hover:border-emerald-300/40"
+              : "border-sky-300/15 hover:border-sky-200/35"
       }`}
     >
       <a
@@ -97,7 +109,11 @@ export function NewsArticleCard({
         rel="noopener noreferrer"
         className="flex min-h-0 flex-1 flex-col"
       >
-        <div className="relative h-[104px] w-full overflow-hidden bg-slate-900/80">
+        <div
+          className={`relative w-full overflow-hidden bg-slate-900/80 ${
+            hubMode ? "h-[132px]" : "h-[104px]"
+          }`}
+        >
           {showImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -132,6 +148,11 @@ export function NewsArticleCard({
               </span>
             ) : null}
           </div>
+          {hubMode && thumbCredit ? (
+            <span className="absolute bottom-1.5 right-2 max-w-[70%] truncate rounded bg-black/50 px-1.5 py-0.5 text-micro text-slate-300">
+              {thumbCredit}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-3">
@@ -152,20 +173,35 @@ export function NewsArticleCard({
           </div>
         </div>
       </a>
-      {flyTarget && onFlyToMap ? (
-        <div className="border-t border-emerald-400/15 px-3 py-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onFlyToMap(flyTarget);
-            }}
-            className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
-          >
-            지도보러가기
-            <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>
-          </button>
+      {onOpenInsight || (flyTarget && onFlyToMap) ? (
+        <div className="flex flex-col gap-1.5 border-t border-slate-500/20 px-3 py-2">
+          {onOpenInsight ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenInsight(item);
+              }}
+              className="w-full rounded-lg border border-amber-400/35 bg-amber-500/10 px-2 py-1.5 text-meta font-semibold text-amber-100 transition hover:border-amber-300/50 hover:bg-amber-500/20"
+            >
+              인사이트
+            </button>
+          ) : null}
+          {flyTarget && onFlyToMap ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFlyToMap(flyTarget);
+              }}
+              className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+            >
+              지도보러가기
+              <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>
+            </button>
+          ) : null}
         </div>
       ) : null}
     </article>

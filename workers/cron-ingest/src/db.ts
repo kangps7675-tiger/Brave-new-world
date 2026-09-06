@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import type {
   AdsbAircraftRow,
   AisVesselRow,
@@ -414,7 +415,7 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0002
   }
 
-  // í…”ë ˆê·¸ë¨ì€ ì €ë¹ˆë„ ì±„ë„ì´ ìˆì–´ ë³´ì¡´ì°½ì„ 2ë°°ë¡œ (ìµœì†Œ 24h)
+  // ?”ë ˆê·¸ë¨?€ ?€ë¹ˆë„ ì±„ë„???ˆì–´ ë³´ì¡´ì°½ì„ 2ë°°ë¡œ (ìµœì†Œ 24h)
   let telegramDeleted = 0;
   try {
     const tgCutoff = new Date(
@@ -429,9 +430,26 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0005
   }
 
+  // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+  // ?„ë˜ ì§‘ê³„Â·?´ë²¤???Œì´ë¸”ì? **?í’ˆ ?ì‚°**?´ë‹¤ (?ìë£??„ë‹˜).
+  //
+  // ?ìë£?FIRMS/GDELT/AIS/ADS-B/?´ìŠ¤)??ë¬´ê²ê³??¬ì·¨??ê°€?¥í•˜ë¯€ë¡?ê³„ì† prune ?œë‹¤.
+  // ë°˜ë©´ ?¼ë³„ ì§‘ê³„?€ ?´ë²¤??ë¡œê·¸??
+  //   - ?‰ì´ ê·¹íˆ ?‘ë‹¤ (?„ì¥ 20ê°?Ã— 365??= ??7,300??
+  //   - ??ë²?ì§€?°ë©´ **?ì›??ë³µêµ¬ ë¶ˆê?**?˜ë‹¤ (?ì²œ APIê°€ ê³¼ê±°ë¥???ì¤€??
+  //   - ì»¨ë²„?„ìŠ¤ ?ì¤‘ë¥ Â·ë² ?´ìŠ¤?¼ì¸Â·ë°±í…Œ?¤íŠ¸??? ì¼??ê·¼ê±°??  //
+  // 2026-08-07: ?œê³„?´ì´ ?œí’ˆ???˜ë©´??"?€??= ë¹„ìš©"?ì„œ "?€??= ?ì‚°"?¼ë¡œ
+  // ?„ì œê°€ ë°”ë€Œì—ˆ?? 90/120??ë¡¤ë§ ?? œë¥?ì¤‘ë‹¨?œë‹¤.
+  // ?˜ëŒë¦¬ë ¤ë©?ë°˜ë“œ??ë³„ë„ ?„ì¹´?´ë¸Œ(R2 ??ë¥?ë¨¼ì? ë¶™ì¼ ê²?
+  // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+
+  // ê³µìŠµ ê²½ë³´ ???´ë²¤??ë¡œê·¸. ì»¨ë²„?„ìŠ¤ ì±„ë„ ì¤??˜ë‚˜?´ë?ë¡??¥ê¸° ë³´ì¡´.
+  const AIR_RAID_RETENTION_DAYS = 1200;
   let airRaidDeleted = 0;
   try {
-    const airCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const airCutoff = new Date(
+      Date.now() - AIR_RAID_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const air = await db
       .prepare(`DELETE FROM air_raid_alerts WHERE ingested_at < ?`)
       .bind(airCutoff)
@@ -441,19 +459,9 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0014
   }
 
-  let signalDailyDeleted = 0;
-  try {
-    const signalCutoff = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
-    const sig = await db
-      .prepare(`DELETE FROM theater_signal_daily WHERE signal_date < ?`)
-      .bind(signalCutoff)
-      .run();
-    signalDailyDeleted = sig.meta.changes ?? 0;
-  } catch {
-    // until migration 0014
-  }
+  // ?„ì¥ë³??¼ë³„ ? í˜¸ ì§‘ê³„ ??**?? œ?˜ì? ?ŠëŠ”??**
+  // (?´ì „: 120??ë¡¤ë§ ?? œ. ë² ì´?¤ë¼??ê³„ì‚°ë§?ëª©ì ?´ë˜ ?œì ˆ???¤ê³„.)
+  const signalDailyDeleted = 0;
 
   return {
     firmsDeleted: firms.meta.changes ?? 0,
@@ -500,8 +508,8 @@ export async function recordIngestRun(
 }
 
 /**
- * ê²½ëŸ‰ UI ì´ë²¤íŠ¸ ë¡œê·¸ ì ì¬ â€” Vercel(D1 ë°”ì¸ë”© ì—†ìŒ)ì—ì„œ /track ê²½ìœ ë¡œ ì „ë‹¬ë°›ì•„ ì—¬ê¸°ì„œ ì”€.
- * ê°œì¸ì‹ë³„ ì •ë³´ ì—†ìŒ. ì‹¤íŒ¨í•´ë„ í˜¸ì¶œ ì¸¡ì—ì„œ ì¡°ìš©íˆ ë¬´ì‹œí•œë‹¤.
+ * ê²½ëŸ‰ UI ?´ë²¤??ë¡œê·¸ ?ì¬ ??Vercel(D1 ë°”ì¸???†ìŒ)?ì„œ /track ê²½ìœ ë¡??„ë‹¬ë°›ì•„ ?¬ê¸°???€.
+ * ê°œì¸?ë³„ ?•ë³´ ?†ìŒ. ?¤íŒ¨?´ë„ ?¸ì¶œ ì¸¡ì—??ì¡°ìš©??ë¬´ì‹œ?œë‹¤.
  */
 export async function insertUiEvent(
   db: D1Database,

@@ -1,8 +1,15 @@
 import {
-  clearLayerAffinityEntry,
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
+/*
+ * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
+ * (import type) 런타임 순환 참조가 생기지 않는다.
+ */
+import {
+  currentProductTier,
+  enforceCommercialTier,
+} from "@/lib/licensing/layerPrefGate";
 
 export type LabelLanguage = "en" | "ko";
 
@@ -61,6 +68,24 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
+  /** 진영 블록(NATO·AUKUS·CRINK) 국가 음영 오버레이 — Natural Earth 110m. 기본 켜짐(대전략 요약 뷰). */
+  showAlliedBlocs: boolean;
+  /** showAlliedBlocs 안의 CSTO(반서방 연계) 표시 여부 — 아르메니아 등 소속 논쟁 있어 기본 꺼짐, 별도 토글. */
+  showCstoBloc: boolean;
+  /** 지경학 진영(서방·반서방·비동맹) 국가 음영 — 지경학 모드 전용, 기본 켜짐. */
+  showGeoEconBlocs: boolean;
+  /** 한국군 전선 기지 (OSM) — 기본 OFF, 미군과 별도 체크 */
+  showRokMilitaryBases: boolean;
+  /** 자위대 전선 기지 (OSM) — 주일미군은 showMilitaryBases */
+  showJapanMilitaryBases: boolean;
+  /** 대만군 전선 기지 (OSM·시드) */
+  showTaiwanMilitaryBases: boolean;
+  /** 필리핀군 1선 기지 — 미군 EDCA 거점은 showMilitaryBases */
+  showPhilippinesMilitaryBases: boolean;
+  /** 호주군(ADF) 전선 기지 (OSM·시드) — 미군 Darwin 등은 showMilitaryBases */
+  showAustraliaMilitaryBases: boolean;
+  /** 동유럽 NATO 전선 1선 (폴란드·발트·핀란드·루마니아·슬로바키아) */
+  showEasternNatoMilitaryBases: boolean;
   /** PLARF 확인 사일로 점 (중국 미사일 사일로군) */
   showMissileSilos: boolean;
   /** 러시아 RVSN 전략미사일 사단 주둔지 */
@@ -163,6 +188,8 @@ export type LayerPrefs = {
   showNorthKoreaMissileTests: boolean;
   /** 우크라이나 → 러시아 타격 (보도·미확인 · 자주 피격지 네온) */
   showUkraineStrikesOnRussia: boolean;
+  /** 유럽 드론·영공 침범 (주황 네온 · 나토 회원국 공항·기지·국경 상공) */
+  showEuropeDroneIncidents: boolean;
   /** NEPTUN — 우크라이나 드론·미사일·탄도미사일 실시간 궤적 (neptun.in.ua) */
   showNeptun: boolean;
   /** 사라진 드론·미사일의 지나간 이동 경로 */
@@ -178,8 +205,28 @@ export type LayerPrefs = {
   showAxisNetwork: boolean;
   /** World Bank BRI 무역·운송 연결성 (중국→참여국) */
   showBriTradeConnectivity: boolean;
+  /**
+   * 전략 물류·군수 회랑 (INSTC·미들 코리도·TSR 등).
+   * LOD scalerank = corridor-ranks.json 정량 합성 점수.
+   */
+  showStrategicCorridors: boolean;
+  /** 동맹 물류 회랑(military-logistics만) — showStrategicCorridors와 별개, 기본 켜짐. */
+  showAlliedLogisticsCorridors: boolean;
+  /** 제재 회피 회랑(sanctions-evasion만) — SES 지도 근거 레이어 */
+  showSanctionsEvasionCorridors: boolean;
+  /** 우상단 SES(제재 회피 강도) 칩 — GTS와 짝 */
+  showSesChip: boolean;
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
+  /** CRINK OSM 인프라 — 카테고리별 (public/data/crink/) */
+  showCrinkInfraPower: boolean;
+  showCrinkInfraBorder: boolean;
+  showCrinkInfraDams: boolean;
+  showCrinkInfraAeroway: boolean;
+  showCrinkInfraHarbour: boolean;
+  showCrinkInfraCheckpoint: boolean;
+  showCrinkInfraRail: boolean;
+  showCrinkInfraRoad: boolean;
   labelLanguage: LabelLanguage;
 };
 
@@ -221,7 +268,7 @@ export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLaye
   // 예시) "geowatch-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
 };
 
-/** 토글 가능 레이어는 기본 OFF. 활성 전장(이란·우크라) 전쟁구역만 기본 ON */
+/** 토글 가능 레이어는 기본 OFF. 첫 화면은 전선 + CRINK OSM·기지·항로 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWarZones: true,
   showDiplomaticTension: false,
@@ -229,7 +276,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showRailGlow: false,
   showAis: false,
   showDisguisedVessels: false,
-  showShippingLanes: false,
+  showShippingLanes: true,
   showLsibBoundary: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
@@ -258,7 +305,16 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showLogisticsStress: true,
   showGscpiGauge: true,
   showCriticalNodes: false,
-  showMilitaryBases: false,
+  showMilitaryBases: true,
+  showAlliedBlocs: true,
+  showCstoBloc: false,
+  showGeoEconBlocs: true,
+  showRokMilitaryBases: true,
+  showJapanMilitaryBases: true,
+  showTaiwanMilitaryBases: true,
+  showPhilippinesMilitaryBases: true,
+  showAustraliaMilitaryBases: true,
+  showEasternNatoMilitaryBases: true,
   showMissileSilos: false,
   showStrategicMissileBases: false,
   showMissileTestSites: false,
@@ -270,7 +326,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showUcdpEvents: false,
   showMilitaryActivity: false,
   showAirTraffic: false,
-  showUsCarriers: false,
+  showUsCarriers: true,
   showSpaceLaunches: false,
   showReconSatellites: false,
   showGpsInterference: false,
@@ -288,14 +344,14 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGdeltDiplomatic: false,
   showGdeltAlliance: false,
   showGdeltProtests: false,
-  showGdeltOceanCompetition: true,
-  showTelegramOsint: true,
-  showTzevaAdom: false,
+  showGdeltOceanCompetition: false,
+  showTelegramOsint: false,
+  showTzevaAdom: true,
   showNewfeedsIranAttacks: true,
-  showUkmtoIncidents: true,
+  showUkmtoIncidents: false,
   // 신호가 없으면 조용하므로 기본 ON 이어도 화면을 방해하지 않는다
   showEscalationSignals: true,
-  showNavareaWarnings: true,
+  showNavareaWarnings: false,
   showMilitaryExercises: false,
   showChinaTaiwanIncidents: false,
   showChinaJapanIncidents: false,
@@ -304,14 +360,27 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWeeklyShipMoves: false,
   showReefWatch: false,
   showNorthKoreaMissileTests: false,
-  showUkraineStrikesOnRussia: true,
+  showUkraineStrikesOnRussia: false,
+  showEuropeDroneIncidents: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,
   showEastAsiaAdiz: false,
   showIslandChains: false,
   showAxisNetwork: false,
   showBriTradeConnectivity: false,
+  showStrategicCorridors: false,
+  showAlliedLogisticsCorridors: true,
+  showSanctionsEvasionCorridors: true,
+  showSesChip: true,
   showUsDfcSupplyChain: false,
+  showCrinkInfraPower: true,
+  showCrinkInfraBorder: true,
+  showCrinkInfraDams: true,
+  showCrinkInfraAeroway: true,
+  showCrinkInfraHarbour: true,
+  showCrinkInfraCheckpoint: true,
+  showCrinkInfraRail: true,
+  showCrinkInfraRoad: true,
   labelLanguage: "ko",
 };
 
@@ -466,23 +535,26 @@ export function detectDefaultLabelLanguage(): LabelLanguage {
   }
 }
 
-/** 축 관계망 기본 OFF 정착 — 친화도 unlock 제거 + 저장본 ON 한 번 내림 */
+/** 축 관계망 — 예전 1회 OFF 정착 키만 소모. 지정학 FORCE_ON이 CRINK 축을 켠다. */
 function settleAxisNetworkDefaultOff(prefs: LayerPrefs): LayerPrefs {
   if (!shouldPersistLayerPrefs()) return prefs;
   try {
-    if (localStorage.getItem(AXIS_NETWORK_DEFAULT_OFF_KEY)) return prefs;
-    localStorage.setItem(AXIS_NETWORK_DEFAULT_OFF_KEY, "1");
-    clearLayerAffinityEntry("showAxisNetwork");
-    if (!prefs.showAxisNetwork) return prefs;
-    const next = { ...prefs, showAxisNetwork: false };
-    saveLayerPrefs(next);
-    return next;
+    if (!localStorage.getItem(AXIS_NETWORK_DEFAULT_OFF_KEY)) {
+      localStorage.setItem(AXIS_NETWORK_DEFAULT_OFF_KEY, "1");
+    }
   } catch {
-    return prefs;
+    /* ignore */
   }
+  return prefs;
 }
 
-export function loadLayerPrefs(): LayerPrefs {
+/**
+ * 저장된 prefs 를 읽어 온다 (상업 게이트 **적용 전**).
+ *
+ * ⚠️ 이 함수를 직접 쓰지 말 것 — `loadLayerPrefs()` 를 쓸 것.
+ *    게이트를 우회하게 된다.
+ */
+function loadLayerPrefsRaw(): LayerPrefs {
   if (typeof window === "undefined") return DEFAULT_LAYER_PREFS;
   /**
    * dev는 레이어 prefs를 저장하지 않지만, **언어 감지는 dev에서도 돌아야 한다.**
@@ -527,6 +599,24 @@ export function loadLayerPrefs(): LayerPrefs {
   } catch {
     return DEFAULT_LAYER_PREFS;
   }
+}
+
+/**
+ * 표시용 LayerPrefs — **상업 게이트가 적용된 최종본.**
+ *
+ * 유료 티어에서는 상업 이용이 불가·미확인인 레이어가 강제로 꺼진다.
+ * 사용자가 켜뒀더라도 마찬가지다 — UX 문제가 아니라 계약 문제라
+ * 사용자 선택보다 우선한다. 무료 티어에서는 아무것도 바뀌지 않는다.
+ *
+ * 게이트를 prefs 길목에 두는 이유: 레이어 표시 여부는 결국 이 불리언
+ * 하나로 수렴하므로, 여기서 한 번 거르면 아래 렌더 경로 전체가 안전해진다.
+ * 렌더 컴포넌트마다 심으면 새 컴포넌트가 생길 때 반드시 빠뜨린다.
+ *
+ * @see src/lib/licensing/layerPrefGate.ts
+ * @see docs/copyright-audit-2026-08-01.md — O-1(b)
+ */
+export function loadLayerPrefs(): LayerPrefs {
+  return enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier());
 }
 
 export function saveLayerPrefs(prefs: LayerPrefs) {

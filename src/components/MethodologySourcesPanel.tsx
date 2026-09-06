@@ -1,6 +1,5 @@
 "use client";
 
-import { AcledEventTable } from "@/components/AcledEventTable";
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -44,16 +43,23 @@ import { FONT_ATTRIBUTIONS } from "@/lib/fontAttribution";
 import {
   NEWS_LAYER_SOURCE_CATALOG,
   PRIMARY_LIVE_SOURCES,
+  SANCTIONS_ENTITY_SUMMARY,
+  blockedSourceNotes,
+  getSourceCatalogStats,
 } from "@/data/sourceCatalog";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { getLayerReliability } from "@/lib/layerReliability";
 import { EVIDENCE_TIER_LEGEND } from "@/lib/evidenceTierMarker";
+import { gtiMethodologyCopy, gtiMethodologyProse } from "@/lib/gti";
+import { getCorridorRankPipelineStatus } from "@/lib/corridorRanks";
 
 type MethodologySourcesPanelProps = {
   open: boolean;
   onClose: () => void;
   /** 뉴스·OSINT 신뢰도 등급 패널로 이동 */
   onOpenTrust?: () => void;
+  /** 8개 책갈피 양피지 안내서 */
+  onOpenParchment?: () => void;
 };
 
 const VIINA_CHECKLIST = [
@@ -69,13 +75,20 @@ export function MethodologySourcesPanel({
   open,
   onClose,
   onOpenTrust,
+  onOpenParchment,
 }: MethodologySourcesPanelProps) {
   const { lang } = useLocale();
   if (!open) return null;
 
+  const catalogStats = getSourceCatalogStats();
   const shipped = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "shipped");
   const planned = NEWS_LAYER_SOURCE_CATALOG.filter((n) => n.status === "planned");
+  const blocked = blockedSourceNotes();
   const isEn = lang === "en";
+  const gtiProse = gtiMethodologyProse(isEn ? "en" : "ko");
+  const gtiMethod = gtiMethodologyCopy(isEn ? "en" : "ko");
+  const corridorPipeline = getCorridorRankPipelineStatus();
+  const sanctions = SANCTIONS_ENTITY_SUMMARY;
 
   return (
     <>
@@ -96,6 +109,11 @@ export function MethodologySourcesPanel({
             <h2 className="mt-1 text-lg font-semibold text-sky-50">
               {isEn ? "Sources · Licenses" : "데이터 출처 · 라이선스"}
             </h2>
+            <p className="mt-1 text-caption text-sky-100/60">
+              {isEn
+                ? `${catalogStats.shipped} shipped · ${catalogStats.planned} planned · ${catalogStats.blocked} blocked · ${PRIMARY_LIVE_SOURCES.length} live feeds`
+                : `운영 ${catalogStats.shipped} · 계획 ${catalogStats.planned} · 차단 ${catalogStats.blocked} · 실시간 ${PRIMARY_LIVE_SOURCES.length}`}
+            </p>
           </div>
           <button
             type="button"
@@ -107,6 +125,72 @@ export function MethodologySourcesPanel({
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          <section className="rounded-xl border border-sky-400/30 bg-sky-950/35 p-3">
+            <h3 className="text-sm font-medium text-sky-50">
+              {isEn ? "Catalog honesty (live)" : "소스 카탈로그 · 정직한 현황"}
+            </h3>
+            <p className="mt-1.5 text-caption leading-5 text-sky-100/80">
+              {isEn
+                ? "What ships vs what is demo or blocked — same truth as sourceCatalog.ts and the parchment guide."
+                : "운영·데모·차단을 카탈로그와 양피지가 같은 기준으로 밝힙니다."}
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg border border-emerald-400/25 bg-emerald-950/30 px-2 py-2">
+                <p className="text-lg font-semibold tabular-nums text-emerald-100">{catalogStats.shipped}</p>
+                <p className="text-micro text-emerald-200/70">{isEn ? "shipped" : "운영"}</p>
+              </div>
+              <div className="rounded-lg border border-slate-500/30 bg-black/25 px-2 py-2">
+                <p className="text-lg font-semibold tabular-nums text-slate-200">{catalogStats.planned}</p>
+                <p className="text-micro text-slate-400">{isEn ? "planned" : "계획"}</p>
+              </div>
+              <div className="rounded-lg border border-rose-400/30 bg-rose-950/25 px-2 py-2">
+                <p className="text-lg font-semibold tabular-nums text-rose-100">{catalogStats.blocked}</p>
+                <p className="text-micro text-rose-200/70">{isEn ? "blocked" : "차단"}</p>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1.5 text-meta leading-5 text-sky-100/75">
+              <li>
+                {isEn ? "Sanctions" : "제재"} — OFAC·UN{" "}
+                <strong className="text-fuchsia-100">{sanctions.total.toLocaleString()}</strong>
+                {isEn ? " entities" : "건"}
+                {isEn ? " (" : " ("}
+                {sanctions.withCoords.toLocaleString()}
+                {isEn ? " with map coords; jurisdiction rollup for the rest" : "건 좌표 핀 · 나머지 관할권 집계"}
+                ).
+              </li>
+              <li>
+                {isEn ? "Corridor ranks" : "코리도 점수"} — PortWatch {corridorPipeline.portwatchHits} · Eurostat{" "}
+                {corridorPipeline.railFreightHits} · Comtrade {corridorPipeline.comtradeHits} · LSBCI{" "}
+                {corridorPipeline.lsbciHits}
+              </li>
+              <li className="text-amber-100/90">
+                {isEn
+                  ? "Still demo (2): UCDP GED, IXP — run npm run data:ucdp / fetch-peeringdb-ix on a PC."
+                  : "아직 데모(2): UCDP GED, IXP — PC에서 npm run data:ucdp / fetch-peeringdb-ix 실행 필요."}
+              </li>
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {onOpenParchment ? (
+                <button
+                  type="button"
+                  onClick={onOpenParchment}
+                  className="rounded-lg border border-amber-300/35 bg-amber-500/10 px-3 py-2 text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+                >
+                  {isEn ? "8 bookmark parchment guide →" : "8개 책갈피 양피지 →"}
+                </button>
+              ) : null}
+              {onOpenTrust ? (
+                <button
+                  type="button"
+                  onClick={onOpenTrust}
+                  className="rounded-lg border border-sky-300/25 bg-sky-500/10 px-3 py-2 text-caption font-medium text-sky-50 transition hover:border-sky-200/40 hover:bg-sky-500/15"
+                >
+                  {isEn ? "News trust grades →" : "뉴스 신뢰도 등급 →"}
+                </button>
+              ) : null}
+            </div>
+          </section>
+
           <section className="rounded-xl border border-amber-500/30 bg-amber-950/25 p-3">
             <h3 className="text-sm font-medium text-amber-100">
               {isEn ? "Disclaimer" : "면책"}
@@ -115,6 +199,37 @@ export function MethodologySourcesPanel({
               {isEn ? DISCLAIMER_EN : DISCLAIMER_KO}
             </p>
           </section>
+
+          <section className="rounded-xl border border-rose-400/30 bg-rose-950/25 p-3">
+            <h3 className="text-sm font-medium text-rose-100">{gtiProse.title}</h3>
+            <div className="mt-2 space-y-2 text-caption leading-5 text-sky-100/85">
+              {gtiProse.paragraphs.map((p) => (
+                <p key={p.slice(0, 48)}>{p}</p>
+              ))}
+            </div>
+            <details className="mt-3 group">
+              <summary className="cursor-pointer text-caption font-semibold text-rose-200/90 marker:text-rose-300/70">
+                {isEn ? "Formula (technical)" : "산출식 (자세히)"}
+              </summary>
+              <div className="mt-2 space-y-2 border-t border-rose-400/20 pt-2 text-caption leading-5 text-sky-100/75">
+                {gtiMethod.paragraphs.map((p) => (
+                  <p key={p.slice(0, 48)}>{p}</p>
+                ))}
+              </div>
+            </details>
+          </section>
+
+          <section className="rounded-xl border border-violet-400/30 bg-violet-950/25 p-3">
+            <h3 className="text-sm font-medium text-violet-100">
+              {isEn ? "Corridor rank pipeline" : "회랑 점수 파이프라인"}
+            </h3>
+            <p className="mt-1.5 text-caption leading-5 text-sky-100/80">
+              {isEn
+                ? `Built ${corridorPipeline.generatedAt.slice(0, 10)} — PortWatch ${corridorPipeline.portwatchHits}, Eurostat rail ${corridorPipeline.railFreightHits}, Comtrade ${corridorPipeline.comtradeHits}, UNCTAD ${corridorPipeline.unctadHits}, LSBCI ${corridorPipeline.lsbciHits}. Click a corridor for indicator n/m coverage.`
+                : `빌드 ${corridorPipeline.generatedAt.slice(0, 10)} — PortWatch ${corridorPipeline.portwatchHits}건, Eurostat 철도 ${corridorPipeline.railFreightHits}건, Comtrade ${corridorPipeline.comtradeHits}건, UNCTAD ${corridorPipeline.unctadHits}건, LSBCI ${corridorPipeline.lsbciHits}건. 회랑 클릭 시 지표 n/m을 표시합니다.`}
+            </p>
+          </section>
+
           {onOpenTrust ? (
             <section className="rounded-xl border border-sky-400/25 bg-sky-950/30 p-3">
               <h3 className="text-sm font-medium text-sky-50">
@@ -125,13 +240,6 @@ export function MethodologySourcesPanel({
                   ? "Media Tier 1/2/3 (editorial independence) is separate from layer evidence type (Observed / Reported / Unverified / Estimate)."
                   : "매체 Tier 1/2/3(편집독립)과 레이어 증거 종류(관측·보도·미확인·추정)는 다른 축입니다."}
               </p>
-              <button
-                type="button"
-                onClick={onOpenTrust}
-                className="mt-2 text-caption font-semibold text-sky-200 underline-offset-2 transition hover:underline"
-              >
-                {isEn ? "News trust grades →" : "뉴스 신뢰도 등급 →"}
-              </button>
             </section>
           ) : null}
           <section className="rounded-xl border border-emerald-400/25 bg-emerald-950/20 p-3">
@@ -270,49 +378,6 @@ export function MethodologySourcesPanel({
                 docs.openalex.org
               </a>
             </p>
-          </section>
-
-          <section className="rounded-xl border border-rose-800/40 bg-rose-950/20 p-3">
-            <h3 className="text-sm font-medium text-rose-100">
-              HDX HAPI · ACLED — 전선 사망 · 중국·대만 · 이란 사건 (지정학)
-            </h3>
-            <p className="mt-2 text-caption leading-5 text-sky-100/80">
-              HDX HAPI conflict-events(ACLED)의 political_violence를 최근 창(약
-              4개월)으로 합산합니다. 우크라·중동은 열린 전선 행정구역의 사망을,
-              중국·대만·이란은 같은 API에{" "}
-              <code className="text-meta">location_code=CHN|TWN|IRN</code> 을
-              붙여 사건·사망 집계를 표시합니다(사망 0이어도 events&gt;0). 이란
-              NewFeeds 공격 위치는 하얀 네온 점·물결 파형으로 적시하고, 가까운
-              HAPI admin1을 태그합니다. ACLED는 부상 필드를 제공하지 않습니다.
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              우크라 전선 주: Donetsk · Luhansk · Kharkiv · Zaporizhzhia · Kherson ·
-              Sumy · Dnipropetrovsk. 중동: Gaza · 남부 레바논 등. 이란: Tehran ·
-              Khuzestan · Hormozgan 등. 중국·대만: 국가 단위 앵커(대만해협 연안).
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              인용: HDX HAPI · ACLED · OCHA HDX. (Mediazona 명의 RU KIA와는 정의가
-              다름 — 전 당사자 사망 집계)
-            </p>
-            <p className="mt-2 text-meta leading-5 text-sky-100/65">
-              API:{" "}
-              <a
-                href="/api/hapi-conflict-casualties"
-                className="underline decoration-rose-400/40 underline-offset-2 hover:text-sky-50"
-              >
-                /api/hapi-conflict-casualties
-              </a>
-              {" · "}
-              <a
-                href="https://hapi.humdata.org/"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-rose-400/40 underline-offset-2 hover:text-sky-50"
-              >
-                hapi.humdata.org
-              </a>
-            </p>
-            <AcledEventTable lang={lang} />
           </section>
 
           <section className="rounded-xl border border-yellow-800/40 bg-yellow-950/20 p-3">
@@ -630,7 +695,9 @@ export function MethodologySourcesPanel({
           </section>
 
           <section className="rounded-xl border border-cyan-900/35 bg-cyan-950/15 p-3">
-            <h3 className="text-sm font-medium text-cyan-100">Telegram OSINT — LLM 분리</h3>
+            <h3 className="text-sm font-medium text-cyan-100">
+              {isEn ? "Telegram OSINT — LLM separation" : "텔레그램 OSINT — LLM 분리"}
+            </h3>
             <p className="mt-2 text-caption leading-5 text-sky-100/80">{TELEGRAM_OSINT_ABSOLUTE_RULE_KO}</p>
             <ul className="mt-2.5 list-disc space-y-1 pl-4 text-meta leading-5 text-sky-100/70">
               {TELEGRAM_OSINT_CHECKLIST.map((item) => (
@@ -669,6 +736,31 @@ export function MethodologySourcesPanel({
             </ul>
           </section>
 
+          {blocked.length > 0 ? (
+            <section className="rounded-xl border border-rose-500/35 bg-rose-950/20 p-3">
+              <h3 className="text-sm font-medium text-rose-100">
+                {isEn ? "Blocked · not shown on map" : "차단 · 지도에 안 나옴"}
+              </h3>
+              <p className="mt-1.5 text-caption leading-5 text-sky-100/75">
+                {isEn
+                  ? "Wrong source labels or demo data — hidden rather than mislabeled."
+                  : "출처 오표기·데모 데이터 — 잘못 보여주지 않고 숨깁니다."}
+              </p>
+              <ul className="mt-2 space-y-2">
+                {blocked.map((note) => (
+                  <li key={note.layerId} className="text-meta leading-5 text-rose-100/80">
+                    <span className="font-medium text-rose-50/95">{note.source}</span>
+                    {note.blockedReason ? (
+                      <p className="mt-0.5 text-sky-100/60">{note.blockedReason}</p>
+                    ) : note.notes ? (
+                      <p className="mt-0.5 text-sky-100/60">{note.notes}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {planned.length > 0 ? (
             <section className="rounded-xl border border-slate-700/80 bg-black/15 p-3">
               <h3 className="text-sm font-medium text-slate-300">계획 · 정책만 확정</h3>
@@ -691,6 +783,31 @@ export function MethodologySourcesPanel({
         </div>
       </aside>
     </>
+  );
+}
+
+export function ParchmentLinkButton({ onClick }: { onClick: () => void }) {
+  const { lang } = useLocale();
+  const en = lang === "en";
+  return (
+    <HoverHint
+      placement="bottom"
+      title={en ? "Source parchment" : "출처 양피지"}
+      detail={
+        en
+          ? "Eight bookmarks — honest limits and demo data disclosure"
+          : "8개 책갈피 — 재료·한계·데모 데이터 고지"
+      }
+    >
+      <button
+        type="button"
+        aria-label={en ? "Open source parchment guide" : "데이터 출처 양피지 열기"}
+        onClick={onClick}
+        className="flex h-10 shrink-0 items-center justify-center rounded-xl border border-amber-200/20 bg-[#3d2a10]/55 px-2.5 text-meta font-medium text-amber-50/90 shadow-lg backdrop-blur-md transition hover:border-amber-200/35 hover:bg-[#4a3518]/65"
+      >
+        {en ? "Guide" : "양피지"}
+      </button>
+    </HoverHint>
   );
 }
 

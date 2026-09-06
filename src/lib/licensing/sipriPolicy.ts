@@ -1,15 +1,10 @@
 /**
- * SIPRI Arms Transfers — shelved until product-use clearance.
+ * SIPRI Arms Transfers — product lens (hub arcs + AxisArmsPanel).
  *
- * Restore (instant):
- *  1. Set SIPRI_ARMS_LENS_ENABLED = true
- *  2. Run: node scripts/publish-axis-arms.js
- *     (copies scripts/vendor/sipri/axis-arms.json → public/data/{lite,full}/)
- *  3. Rebuild / redeploy
- *
- * While false: public axis-arms.json is a blank stub ({ pairs:[], deals:[] }).
- * Re-blank: node scripts/publish-axis-arms.js --unpublish
- * Code paths stay wired behind this flag — do not delete AxisArms* / hubBriefs arms docs.
+ * Publish / blank public JSON:
+ *  - npm run axis:arms:publish   → scripts/vendor/sipri/axis-arms.json → public/data/{lite,full}/
+ *  - npm run axis:arms:unpublish → blank stubs ({ pairs:[], deals:[] })
+ * Rebuild from CSV: node scripts/build-axis-arms.js [trade-register.csv]
  */
 
 export const SIPRI_POLICY = {
@@ -21,10 +16,10 @@ export const SIPRI_POLICY = {
 } as const;
 
 /**
- * 제품 이용 허락 전까지 OFF.
+ * ON — 허브「무기거래」렌즈·호·패널.
  * (정적 축 관계망 axis-network · arms-embargo 구역과는 별개)
  */
-export const SIPRI_ARMS_LENS_ENABLED = false;
+export const SIPRI_ARMS_LENS_ENABLED = true;
 
 export const SIPRI_ARMS_LENS_DISABLED_KO =
   "SIPRI 무기거래 렌즈는 이용 허락 확인 전까지 일시 비활성화되어 있습니다.";
@@ -37,4 +32,4 @@ export const SIPRI_ATTRIBUTION_KO =
 
 export const SIPRI_ATTRIBUTION_EN =
   "The Arms Transfers lens (arcs, years, and equipment summaries) is a hub-filtered summary derived from SIPRI’s Arms Transfers Database / Trade Register. TIV is a volume index, not a market price. We do not redistribute the raw SIPRI database via API or download; cross-check SIPRI originals for research use.";
-
+

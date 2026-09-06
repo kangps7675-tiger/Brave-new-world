@@ -13,6 +13,8 @@ type DomainGateOverlayProps = {
   onSelect: (mode: ViewerMode, ultraLite: boolean) => void;
   /** 선택 진입 — 환영 편지/메시지 다시 읽기 */
   onOpenLetter?: () => void;
+  /** 데이터 출처·한계 양피지 다시 읽기 */
+  onOpenSources?: () => void;
   /** 선택 진입 — 주의 화면 다시 보기 */
   onOpenCaution?: () => void;
   /** compact면 짧은 welcome 재열기 라벨 사용 */
@@ -22,6 +24,7 @@ type DomainGateOverlayProps = {
 export function DomainGateOverlay({
   onSelect,
   onOpenLetter,
+  onOpenSources,
   onOpenCaution,
   letterLinkCompact = false,
 }: DomainGateOverlayProps) {
@@ -125,8 +128,8 @@ export function DomainGateOverlay({
           </button>
         </div>
 
-        {(onOpenLetter || onOpenCaution) ? (
-          <div className="mt-5 flex items-center justify-center gap-5 text-caption text-slate-500">
+        {(onOpenLetter || onOpenSources || onOpenCaution) ? (
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-caption text-slate-500">
             {onOpenLetter ? (
               <button
                 type="button"
@@ -134,6 +137,15 @@ export function DomainGateOverlay({
                 className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-300"
               >
                 {t(letterLinkCompact ? "welcomeBriefReopen" : "welcomeLetterReopen", lang)}
+              </button>
+            ) : null}
+            {onOpenSources ? (
+              <button
+                type="button"
+                onClick={onOpenSources}
+                className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-300"
+              >
+                {lang === "en" ? "Data sources & limits" : "데이터 출처·한계"}
               </button>
             ) : null}
             {onOpenCaution ? (

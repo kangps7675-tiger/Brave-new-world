@@ -12,6 +12,15 @@
   /* MapLegend + intel stack clearance (collapsed default; expanded via JS) */
   --bottom-intel-stack-clearance: 8.5rem;
   --intel-sidebar-width: 480px;
+  /* ModeGlobalIndexChip ResizeObserver가 덮어씀 — 우레일·유틸 top 동기화 */
+  --mode-index-chip-height: 0px;
+  /** 칩 스택 하단 — SES 패널 top 앵커 */
+  --mode-index-chip-stack-bottom: 0px;
+  /** max(칩 스택, 열린 SES 패널) — 우측 레일·compact 유틸 top */
+  --mode-index-chip-bottom: 0px;
+  --mode-index-chip-width: 0px;
+  --hover-nav-base-height: 0px;
+  --chrome-rail-top-gap: 0.55rem;
   /* iOS home indicator / notch */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -71,10 +80,8 @@ body {
   min-height: 100dvh;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
-  /* 게임 셸 — 드래그 텍스트 선택·이미지 드래그 복사 차단 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 input,
@@ -86,14 +93,7 @@ select,
 }
 
 /**
- * 공개 문서 표면 — 게임 셸 규칙에서 빠져나온다.
- *
- * body의 `user-select: none`은 지구본을 게임처럼 다루려는 의도였고 거기서는 옳다.
- * 하지만 `/chokepoints/*`는 기자와 검색·LLM에게 **인용되라고** 만든 페이지다.
- * 인용할 수 없는 페이지는 백링크를 못 만들고, 텍스트가 안 잡히는 페이지는
- * 사람이 즉시 불신한다. 문서 표면에서는 선택·복사를 되돌린다.
- *
- * (JS 쪽 짝: components/GameShellGuard.tsx의 GUARD_EXEMPT_PREFIXES)
+ * 공개 문서 표면 — `/chokepoints/*` 등 (body 전역 선택 허용과 동일하게 명시).
  */
 .doc-surface,
 .doc-surface * {
@@ -176,19 +176,83 @@ html[data-device="tablet"] {
   --intel-sidebar-width: 400px;
   --tap-target-min: 44px;
   --device-panel-gap: 0.85rem;
+  --chrome-rail-top-gap: 0.4rem;
+  --daily-panel-width: 20rem;
+  --chrome-left-fab-clearance: 4rem;
 }
 html[data-device="desktop"] {
   --intel-sidebar-width: 480px;
   --tap-target-min: 40px;
   --device-panel-gap: 1rem;
+  --chrome-rail-top-gap: 0.55rem;
+  --daily-panel-width: 22rem;
+  --chrome-left-fab-clearance: 3.75rem;
 }
 html[data-device="desktop-wide"] {
   --intel-sidebar-width: 560px;
   --tap-target-min: 40px;
   --device-panel-gap: 1.15rem;
+  --chrome-rail-top-gap: 0.65rem;
+  --daily-panel-width: 22rem;
+  --chrome-left-fab-clearance: 3.75rem;
 }
 html[data-device="phone"] {
   --tap-target-min: 44px;
+  --intel-sidebar-width: 340px;
+}
+
+/**
+ * 우레일·유틸 공통 top — nav 높이와 우상단 칩 하단 중 더 큰 쪽 + 갭.
+ * JS에서 --mode-index-chip-stack-bottom(칩만) / --mode-index-chip-bottom(패널 포함) /
+ * --hover-nav-base-height를 갱신한다.
+ */
+.cv-chrome-rail-top {
+  top: calc(
+    max(
+        var(--hover-nav-base-height, 0px),
+        var(--mode-index-chip-bottom, 0px)
+      ) + var(--chrome-rail-top-gap, 0.55rem)
+  );
+  max-height: calc(
+    100dvh - max(var(--hover-nav-base-height, 0px), var(--mode-index-chip-bottom, 0px)) -
+      var(--bottom-intel-stack-clearance, 8.5rem) - 1.25rem
+  );
+}
+
+.cv-chrome-fab-bottom {
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 3.25rem) + 0.75rem + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.cv-chrome-daily-bottom {
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+/* 패널 펼침 — 좌상단 햄버거와 Y축이 겹치지 않게 가두고 가로 넘침 차단. */
+.cv-chrome-daily-bottom.cv-chrome-daily-open {
+  top: calc(
+    max(0.75rem, env(safe-area-inset-top, 0px)) + var(--chrome-left-fab-clearance, 3.75rem)
+  );
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem + env(safe-area-inset-bottom, 0px)
+  );
+  max-height: none;
+  width: min(var(--daily-panel-width, 22rem), calc(100vw - 1.5rem));
+  max-width: calc(100vw - 1.5rem);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cv-chrome-daily-bottom--telegram {
+  bottom: calc(min(52vh, 480px) + 8.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 태블릿: 우측 레일 밀도 — Sitrep은 데스크톱만 (Watch는 유지) */
+html[data-device="tablet"] .cv-tablet-hide-sitrep {
+  display: none !important;
 }
 
 /**
@@ -810,27 +874,26 @@ main[data-ui-lang="en"]
 }
 
 /*
- * 지형(밝은 벡터) 베이스맵 — UI 크롬은 인텔 모드와 같이 진한 패널 + 흰 글자.
- * (예전 페이퍼/슬레이트 잉크는 밝은 지도 위에 떠서 연해 보였음)
- * 지도 위 라벨·핀만 밝은 지형 대비용 후광/잉크를 따로 둔다.
+ * 지형(밝은 벡터) — 조작 크롬은 불투명 밝은 패널 + 진한 글자.
+ * 하늘색 바다 위에서 반투명·흰 글자가 묻히지 않게 한다.
  */
 [data-basemap-tone="light"] {
-  --foreground: #e8eef7;
-  --panel: rgba(8, 12, 20, 0.94);
-  --panel-border: rgba(125, 211, 252, 0.16);
-  --accent: rgba(0, 255, 204, 0.85);
-  --tone-ink: #f1f5f9;
-  --tone-ink-muted: #94a3b8;
+  --foreground: #0f172a;
+  --panel: #ffffff;
+  --panel-border: rgba(15, 23, 42, 0.16);
+  --accent: #0e7490;
+  --tone-ink: #0f172a;
+  --tone-ink-muted: #334155;
   --tone-ink-faint: #64748b;
-  --tone-panel: rgba(8, 12, 20, 0.94);
-  --tone-panel-strong: rgba(6, 10, 18, 0.97);
-  --tone-panel-shadow: 0 16px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(125, 211, 252, 0.12);
-  --tone-geo: #22d3ee;
-  --tone-econ: #34d399;
-  --tone-alert: #fb7185;
-  --tone-warn: #fbbf24;
-  --tone-info: #60a5fa;
-  --tone-mil: #2dd4bf;
+  --tone-panel: #ffffff;
+  --tone-panel-strong: #f8fafc;
+  --tone-panel-shadow: 0 10px 28px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(15, 23, 42, 0.08);
+  --tone-geo: #0e7490;
+  --tone-econ: #047857;
+  --tone-alert: #be123c;
+  --tone-warn: #b45309;
+  --tone-info: #1d4ed8;
+  --tone-mil: #0f766e;
 }
 
 [data-basemap-tone="light"] .intel-panel {
@@ -841,7 +904,7 @@ main[data-ui-lang="en"]
   backdrop-filter: blur(16px) saturate(1.1);
 }
 
-/* 패널 안 텍스트 — 밝은 지도에서도 흰/밝은 슬레이트 유지 (페이퍼로 뒤집지 않음) */
+/* 패널 안 텍스트 — 밝은 지도에서 진한 글자 */
 [data-basemap-tone="light"] .intel-panel .text-sky-50,
 [data-basemap-tone="light"] .intel-panel .text-sky-100,
 [data-basemap-tone="light"] .intel-panel .text-sky-100\/50,
@@ -868,15 +931,15 @@ main[data-ui-lang="en"]
 [data-basemap-tone="light"] .intel-panel .bg-black\/20,
 [data-basemap-tone="light"] .intel-panel .bg-slate-950\/30,
 [data-basemap-tone="light"] .intel-panel .bg-slate-900\/40 {
-  border-color: rgba(125, 211, 252, 0.14) !important;
-  background-color: rgba(15, 23, 42, 0.72) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background-color: #f1f5f9 !important;
 }
 
 /* 상단 HoverNav — 진한 크롬 + 흰 글자 */
 [data-basemap-tone="light"] #app-hover-nav .rounded-2xl,
 [data-basemap-tone="light"] #app-hover-nav .rounded-b-2xl {
-  background: var(--tone-panel-strong) !important;
-  border-color: rgba(125, 211, 252, 0.16) !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
   box-shadow: var(--tone-panel-shadow) !important;
   color: var(--tone-ink);
 }
@@ -902,18 +965,37 @@ main[data-ui-lang="en"]
   color: var(--tone-ink-muted) !important;
 }
 
-[data-basemap-tone="light"] #basemap-mode-toggle {
-  background: var(--tone-panel-strong) !important;
-  border-color: rgba(125, 211, 252, 0.16) !important;
+[data-basemap-tone="light"] #basemap-mode-toggle,
+[data-basemap-tone="light"] #view-mode-switcher {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
   box-shadow: var(--tone-panel-shadow) !important;
 }
 
-[data-basemap-tone="light"] #basemap-mode-toggle button {
-  color: var(--tone-ink-muted);
+[data-basemap-tone="light"] #basemap-mode-toggle button,
+[data-basemap-tone="light"] #view-mode-switcher button {
+  color: var(--tone-ink-muted) !important;
 }
 
-[data-basemap-tone="light"] #basemap-mode-toggle button[aria-selected="true"] {
+[data-basemap-tone="light"] #basemap-mode-toggle button[aria-selected="true"],
+[data-basemap-tone="light"] #view-mode-switcher button[aria-selected="true"] {
   color: var(--tone-ink) !important;
+  background: #e2e8f0 !important;
+}
+
+/* 좌·우 조작 버튼 — 불투명 흰 칩 + 진한 글자 */
+[data-basemap-tone="light"] #layer-panel-toggle,
+[data-basemap-tone="light"] .map-chrome-control {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14) !important;
+  backdrop-filter: none !important;
+}
+
+[data-basemap-tone="light"] .map-chrome-control span,
+[data-basemap-tone="light"] #layer-panel-toggle {
+  color: #0f172a !important;
 }
 
 /* 성격별 칩·스트립 — 진한 바탕 + 밝은 글자 */
@@ -943,10 +1025,10 @@ main[data-ui-lang="en"]
 }
 
 [data-basemap-tone="light"] .map-attribution-bar {
-  background: rgba(6, 10, 18, 0.92) !important;
-  border-color: rgba(125, 211, 252, 0.14) !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
   color: var(--tone-ink-muted) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
 }
 
 [data-basemap-tone="light"] .map-attribution-bar a {
@@ -978,7 +1060,7 @@ main[data-ui-lang="en"]
     drop-shadow(0 1px 2px rgba(15, 23, 42, 0.35));
 }
 
-/* 지도 위 HTML 콜아웃·핀 — 밝은 지형 대비용 어두운 잉크(UI 패널과 분리) */
+/* 지도 위 HTML 콜아웃·핀 — 인텔 짓푸른 패널 유지 (밝은 지도에서도 흰 글자) */
 [data-basemap-tone="light"] .situation-callout,
 [data-basemap-tone="light"] .ua-callout,
 [data-basemap-tone="light"] .friction-episode-pin,
@@ -986,10 +1068,11 @@ main[data-ui-lang="en"]
 [data-basemap-tone="light"] .gdelt-news-alert-marker,
 [data-basemap-tone="light"] .ship-movement-pin,
 [data-basemap-tone="light"] .carrier-status-badge {
-  color: #1e293b !important;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 1),
-    0 1px 3px rgba(255, 255, 255, 0.95);
+  color: #0f172a !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  text-shadow: none;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
 }
 
 /* 셸 우주 배경은 인텔과 동일 유지 — 지형 모드에서도 space-ambient 덮어쓰지 않음 */
@@ -998,9 +1081,24 @@ main[data-ui-lang="en"]
 [data-basemap-tone="light"] .intel-stack-shell,
 [data-basemap-tone="light"] .tone-surface {
   background: var(--tone-panel-strong) !important;
-  border-color: rgba(125, 211, 252, 0.16) !important;
+  border-color: rgba(69, 243, 255, 0.2) !important;
   color: var(--tone-ink) !important;
   box-shadow: var(--tone-panel-shadow) !important;
+}
+
+/* 반투명 sky/slate 유틸 패널 — 지형에서도 짓푸른 불투명으로 (Sitrep 앰버 등은 제외) */
+[data-basemap-tone="light"] .bg-\[\#071018\]\/92,
+[data-basemap-tone="light"] .bg-\[\#071018\]\/94,
+[data-basemap-tone="light"] .bg-\[\#0f1d35\]\/88,
+[data-basemap-tone="light"] .bg-black\/40,
+[data-basemap-tone="light"] .bg-black\/50,
+[data-basemap-tone="light"] .bg-slate-950\/40,
+[data-basemap-tone="light"] .bg-slate-950\/50,
+[data-basemap-tone="light"] .bg-slate-900\/50,
+[data-basemap-tone="light"] .bg-sky-950\/40,
+[data-basemap-tone="light"] .bg-sky-950\/50 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 [data-basemap-tone="light"] .tone-surface--alert {
@@ -1023,6 +1121,12 @@ main[data-ui-lang="en"]
   width: min(100vw, var(--intel-sidebar-width));
   /* 셸은 스크롤하지 않음 — 제스처 뺏김 방지. 스크롤은 .intel-scroll-y 한 곳에서만 */
   overflow: hidden;
+}
+
+/* 좌측 플로팅 패널 — 우측과 동일 --intel-sidebar-width */
+.intel-sidebar-left {
+  width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
+  max-width: var(--intel-sidebar-width);
 }
 
 /* 유일한 세로 스크롤 포트: 위·아래 터치 스크롤 (중첩 overflow-y-auto 금지) */
@@ -1094,13 +1198,18 @@ html[data-device="tablet"] .intel-sidebar-right {
   z-index: 120;
 }
 
+html[data-device="tablet"] .intel-sidebar-left {
+  width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
+  max-width: min(42vw, var(--intel-sidebar-width));
+}
+
 /* 와이드 데스크톱: 우측 패널 여유 */
 html[data-device="desktop-wide"] .intel-sidebar-right {
   max-height: calc(100% - 5.5rem);
 }
 
-html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
-  max-width: min(calc(100vw - 2rem), 420px);
+html[data-device="desktop-wide"] .intel-sidebar-left {
+  width: min(calc(100vw - 2rem), var(--intel-sidebar-width));
 }
 
 .stock-ticker-scroll {
@@ -1788,6 +1897,17 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
   .classification-watermark { font-size: 7px; letter-spacing: 0.14em; }
 }
 
+/* ══ WebKit 블러 하향 (P2-6) ══════════════════════════════════════════
+ * Safari는 WebGL 캔버스 위 backdrop-filter 합성 비용이 특히 크다.
+ * DEVICE_BOOT_SCRIPT가 html[data-engine="webkit"]를 심는다.
+ */
+html[data-engine="webkit"] .glass,
+html[data-engine="webkit"] .intel-panel,
+html[data-engine="webkit"] .tone-panel {
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+}
+
 /* ══ 지도 이동 중 합성 비용 차단 (P-perf) ══════════════════════════════
  *
  * 문제: WebGL 지도 캔버스 **위에** 얹힌 `backdrop-filter: blur()`는 최악의
@@ -1801,6 +1921,9 @@ html[data-device="desktop-wide"] .intel-panel.intel-scroll-y {
  *
  * 클래스 토글은 MapGlobeView의 handleMove/idle 타이머가 <html>에 건다.
  * 토글 1회당 스타일 재계산 1회이므로 드래그당 2회로 끝난다.
+ *
+ * 참고(P2-6): 아래 none !important는 WebKit 하향(blur 6px)보다 우선한다.
+ * 지도 드래그 중에는 엔진과 무관하게 블러를  altogether 끄는 것이 의도다.
  */
 html.map-moving *,
 html.map-moving *::before,
@@ -1811,8 +1934,10 @@ html.map-moving *::after {
 
 /* 블러가 빠지면 반투명 배경이 옅어 보이므로, 이동 중에는 패널 배경을 올린다 */
 html.map-moving .intel-panel,
-html.map-moving .tone-panel {
-  background: var(--tone-panel-strong, rgba(6, 10, 18, 0.97)) !important;
+html.map-moving .tone-panel,
+html.map-moving .tone-surface,
+html.map-moving .intel-stack-shell {
+  background: var(--tone-panel-strong, rgba(11, 22, 40, 0.98)) !important;
 }
 
 /*
@@ -1823,13 +1948,43 @@ html.map-moving .tone-panel {
  *  reduced-motion 블록의 `animation:none 금지 목록`과 달리, 이들은
  *  시작 상태가 "보임"이 아니므로 멈춰도 사라지거나 남지 않는다.)
  */
-html.map-moving .cyber-pulse,
-html.map-moving .carrier-deployed-pulse,
-html.map-moving .carrier-badge-pulse,
-html.map-moving .intel-fab-glow,
-html.map-moving .hero-breaking-pulse,
-html.map-moving .hero-confirmed-pulse,
-html.map-moving .hero-unverified-pulse,
-html.map-moving .neptun-threat-pulse {
+html.map-moving .gdelt-location-tag-pin,
+html.map-moving .location-pin-marker.gdelt-news-pin,
+html.map-moving .carrier-marker-root.carrier-marker-deployed .carrier-marker--deployed svg,
+html.map-moving .carrier-marker-root.carrier-marker-deployed .carrier-status-badge,
+html.map-moving .carrier-legend-deck-swatch,
+html.map-moving .intel-open-fab,
+html.map-moving .hero-breaking-breaking,
+html.map-moving .hero-breaking-confirmed,
+html.map-moving .hero-breaking-unverified,
+html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   animation-play-state: paused !important;
+}
+
+/*
+ * P0-4: 레이어 토글 거부 피드백.
+ *
+ * 상한 초과로 켜기가 거부되면 체크박스가 그대로 있다 — 사용자에게는
+ * "클릭이 안 먹는다 = 고장"으로 읽힌다. 짧은 흔들림으로 **입력은 받았고
+ * 결과가 거부다**를 구분해 준다. 목록 맨 위 배너는 스크롤 밖이라 못 본다.
+ *
+ * 220ms 1회. 무한 반복이 아니므로 map-moving 일시정지 대상이 아니다.
+ */
+@keyframes layer-reject-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+.layer-reject-shake {
+  animation: layer-reject-shake 220ms ease-in-out 1;
+}
+
+/* 흔들림 없이도 거부 사실은 배경색·인라인 문구로 전달된다 */
+@media (prefers-reduced-motion: reduce) {
+  .layer-reject-shake {
+    animation: none;
+  }
 }

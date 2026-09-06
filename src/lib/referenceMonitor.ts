@@ -51,6 +51,12 @@ export type ReferenceMonitorRow = {
   relevance: number;
   published_at: string | null;
   updated_at: string | null;
+  hub?: string | null;
+  place_id?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  image_url?: string | null;
+  thumb_credit?: string | null;
 };
 
 /* ------------------------------------------------------------------ 관련도 */
@@ -68,7 +74,11 @@ export type ReferenceTopic =
   | "iran"
   | "india-pakistan"
   | "arms-control"
-  | "naval";
+  | "naval"
+  | "hub:PRK"
+  | "hub:CHN"
+  | "hub:RUS"
+  | "hub:IRN";
 
 export const REFERENCE_TOPIC_LABEL: Record<ReferenceTopic, { ko: string; en: string }> = {
   dprk: { ko: "북한", en: "North Korea" },
@@ -84,6 +94,10 @@ export const REFERENCE_TOPIC_LABEL: Record<ReferenceTopic, { ko: string; en: str
   "india-pakistan": { ko: "인도·파키스탄", en: "India–Pakistan" },
   "arms-control": { ko: "군비통제", en: "Arms control" },
   naval: { ko: "해군·조선", en: "Naval" },
+  "hub:PRK": { ko: "북한 허브", en: "PRK hub" },
+  "hub:CHN": { ko: "중국 허브", en: "CHN hub" },
+  "hub:RUS": { ko: "러시아 허브", en: "RUS hub" },
+  "hub:IRN": { ko: "이란 허브", en: "IRN hub" },
 };
 
 /**
@@ -430,6 +444,12 @@ export type ReferenceMonitorItem = {
   publishedAt: string | null;
   updatedAt: string | null;
   firstSeenAt: string;
+  hub?: string | null;
+  placeId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  imageUrl?: string | null;
+  thumbCredit?: string | null;
 };
 
 export type ReferenceMonitorPayload = {

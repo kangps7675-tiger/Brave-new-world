@@ -1,0 +1,112 @@
+{
+  "bucket": "conflict-view-data",
+  "prefix": "data/crink",
+  "updatedAt": "2026-08-28T19:31:11.784Z",
+  "objects": {
+    "bulk-tonnage.json": {
+      "key": "data/crink/bulk-tonnage.json",
+      "bytes": 8342,
+      "uploadedAt": "2026-08-28T19:31:11.778Z"
+    },
+    "choke-stress.json": {
+      "key": "data/crink/choke-stress.json",
+      "bytes": 6503,
+      "uploadedAt": "2026-08-28T19:31:11.782Z"
+    },
+    "chokepoint-transit-daily.json": {
+      "key": "data/crink/chokepoint-transit-daily.json",
+      "bytes": 140986,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "comtrade-bilateral.json": {
+      "key": "data/crink/comtrade-bilateral.json",
+      "bytes": 8440,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "confidence-layer.json": {
+      "key": "data/crink/confidence-layer.json",
+      "bytes": 4251,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "corridor-ranks.json": {
+      "key": "data/crink/corridor-ranks.json",
+      "bytes": 165818,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "fleet-lifecycle.json": {
+      "key": "data/crink/fleet-lifecycle.json",
+      "bytes": 4789,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "lsbci-bilateral.json": {
+      "key": "data/crink/lsbci-bilateral.json",
+      "bytes": 6509,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "lsci-anomalies.json": {
+      "key": "data/crink/lsci-anomalies.json",
+      "bytes": 8115,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "lsci-country.json": {
+      "key": "data/crink/lsci-country.json",
+      "bytes": 6159,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "maritime-graph.json": {
+      "key": "data/crink/maritime-graph.json",
+      "bytes": 77842,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "maritime-routes-sample.json": {
+      "key": "data/crink/maritime-routes-sample.json",
+      "bytes": 15402,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "ocean-services-throughput.json": {
+      "key": "data/crink/ocean-services-throughput.json",
+      "bytes": 5349,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "ocean-trade-bilateral.json": {
+      "key": "data/crink/ocean-trade-bilateral.json",
+      "bytes": 4460,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "plsci-country-max.json": {
+      "key": "data/crink/plsci-country-max.json",
+      "bytes": 2570,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "plsci-ports.json": {
+      "key": "data/crink/plsci-ports.json",
+      "bytes": 85135,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "rail-freight-bilateral.json": {
+      "key": "data/crink/rail-freight-bilateral.json",
+      "bytes": 26099,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "sdg-porfvol.json": {
+      "key": "data/crink/sdg-porfvol.json",
+      "bytes": 3018,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "seafarers.json": {
+      "key": "data/crink/seafarers.json",
+      "bytes": 1731,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "shadow-fleet-index.json": {
+      "key": "data/crink/shadow-fleet-index.json",
+      "bytes": 11291,
+      "uploadedAt": "2026-08-28T19:31:11.783Z"
+    },
+    "unctad-port-throughput.json": {
+      "key": "data/crink/unctad-port-throughput.json",
+      "bytes": 5988,
+      "uploadedAt": "2026-08-28T19:31:11.784Z"
+    }
+  }
+}

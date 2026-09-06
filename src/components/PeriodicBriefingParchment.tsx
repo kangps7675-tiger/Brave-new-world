@@ -1,5 +1,6 @@
 "use client";
 
+import { zc } from "@/lib/uiStack";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LampWhyMattersButton } from "@/components/LampWhyMattersButton";
@@ -14,12 +15,16 @@ import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { upcomingAnnouncements } from "@/lib/announcementCalendar";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { isArticleUrl } from "@/lib/news/articleLink";
-import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
-import { formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
+import {
+  isWeeklyRecapBriefingKey,
+  type PeriodicBriefing,
+} from "@/lib/news/periodicBriefing";
+import { displayGtiDelta, displayGtiScore, formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
 import { useDialog } from "@/hooks/useDialog";
 import {
   LAMP_THUMB_GRADIENT,
   LAMP_THUMB_LABEL,
+  normalizeLampImageUrl,
   resolveLampThumbTheme,
 } from "@/lib/news/lampThumbnail";
 
@@ -49,8 +54,10 @@ export function PeriodicBriefingParchment({
 }: PeriodicBriefingParchmentProps) {
   const isConflictLamp = /-conflict(?:$|-)/.test(briefing.key);
   const isEconomyLamp = /-economy(?:$|-)/.test(briefing.key);
-  /** 모드 등불은 항상 사진 데스크 — 라이브 카드가 아직 없어도 셸로 연다 */
+  const isWeeklyRecap = isWeeklyRecapBriefingKey(briefing.key);
+  /** 모드 등불·월요일 회고는 항상 사진 데스크 — 라이브 카드가 없어도 셸로 연다 */
   const isPhotoLamp =
+    isWeeklyRecap ||
     isConflictLamp ||
     isEconomyLamp ||
     (briefing.featuredNews && briefing.featuredNews.length > 0) ||
@@ -105,6 +112,7 @@ function PhotoNewsLampParchment({
   const exiting = phase === "folding" || phase === "done";
   const news = useMemo(() => briefing.featuredNews ?? [], [briefing.featuredNews]);
   const macroRows = briefing.macroTable ?? [];
+  const isWeeklyRecap = isWeeklyRecapBriefingKey(briefing.key);
   /** 거시 표 실패해도 키로 지경학 판별 — 지역 요약·컬러 면이 빠지지 않게 */
   const isEconomy =
     /-economy(?:$|-)/.test(briefing.key) || macroRows.length > 0;
@@ -299,14 +307,15 @@ function PhotoNewsLampParchment({
               </div>
               <div className="mt-1 flex items-end justify-between gap-2">
                 <p className="text-[2rem] font-semibold tabular-nums leading-none tracking-tight text-[#3d2a18]">
-                  {Math.round(briefing.wti.score)}
+                  {displayGtiScore(briefing.wti.score)}
                 </p>
                 <p className="pb-0.5 text-meta text-[#6b4a22]/8">
                   {gtiBandLabel(gtiBand(briefing.wti.score), lang !== "en")}
-                  {briefing.wti.deltaScore != null &&
-                  Math.abs(briefing.wti.deltaScore) >= 0.05
-                    ? ` · ${briefing.wti.deltaScore > 0 ? "+" : ""}${Math.round(briefing.wti.deltaScore * 10) / 10}`
-                    : ""}
+                  {(() => {
+                    const d = displayGtiDelta(briefing.wti.deltaScore);
+                    if (d == null) return "";
+                    return ` · ${d > 0 ? "+" : ""}${d}`;
+                  })()}
                 </p>
               </div>
               <p className="mt-2 text-meta leading-relaxed text-[#5a4428]/85">
@@ -324,7 +333,7 @@ function PhotoNewsLampParchment({
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className={`welcome-letter-scrim fixed inset-0 z-[800] flex items-center justify-center p-2 sm:p-4 ${
+      className={`welcome-letter-scrim fixed inset-0 ${zc("alert")} flex items-center justify-center p-2 sm:p-4 ${
         exiting ? "welcome-letter-scrim--exit" : ""
       }`}
       role="dialog"
@@ -411,13 +420,21 @@ function PhotoNewsLampParchment({
               <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                 <div className="shrink-0 border-b border-[#8b6914]/20 px-5 py-3 sm:px-7">
                   <p className="text-micro uppercase tracking-[0.22em] text-[#6b4a22]/7">
-                    {isEconomy
-                      ? lang === "en"
-                        ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
-                        : "미·중·유럽 · 초크포인트(유가·물류) · 당일 핫"
-                      : lang === "en"
-                        ? "Worldwide regional deep desk — clear photos · 6h refresh"
-                        : "전 세계 지역별 심층 — 선명 사진 · 6시간 갱신"}
+                    {isWeeklyRecap
+                      ? isEconomy
+                        ? lang === "en"
+                          ? "Last week's hottest market photo stories — Monday only"
+                          : "전주 뜨거웠던 시장 사진 뉴스 · 월요일 회고"
+                        : lang === "en"
+                          ? "Last week's hottest theater photo stories — Monday only"
+                          : "전주 뜨거웠던 전장 사진 뉴스 · 월요일 회고"
+                      : isEconomy
+                        ? lang === "en"
+                          ? "US · China · Europe · chokepoints (oil · freight) — today's hottest"
+                          : "미·중·유럽 · 초크포인트(유가·물류) · 당일 핫"
+                        : lang === "en"
+                          ? "Worldwide regional deep desk — article photos · 6h refresh"
+                          : "전 세계 지역별 심층 — 기사 사진 · 6시간 갱신"}
                   </p>
                 </div>
 
@@ -536,9 +553,13 @@ function PhotoNewsLampParchment({
                     </>
                       ) : (
                     <p className="py-10 text-center text-sm text-[#5a4428]/7">
-                      {lang === "en"
-                        ? "This 6-hour slot lacks photo-backed article cards. Fold and reopen after the next refresh (0 / 6 / 12 / 18)."
-                        : "이번 6시간 슬롯에 사진 있는 원문 카드가 부족합니다. 접었다가 다음 갱신(0·6·12·18시) 후 다시 펼쳐 보세요."}
+                      {isWeeklyRecap
+                        ? lang === "en"
+                          ? "No photo cards for last week's digest yet. Fold and check back later today."
+                          : "전주 회고용 사진 카드가 아직 없습니다. 접었다가 오늘 안에 다시 펼쳐 보세요."
+                        : lang === "en"
+                          ? "No article cards for this 6-hour slot yet. Fold and reopen after the next refresh (0 / 6 / 12 / 18)."
+                          : "이번 6시간 슬롯에 원문 카드가 아직 없습니다. 접었다가 다음 갱신(0·6·12·18시) 후 다시 펼쳐 보세요."}
                     </p>
                   )}
 
@@ -579,9 +600,13 @@ function PhotoNewsLampParchment({
                 {lang === "en" ? "Fold" : "접기"}
               </button>
               <p className="mt-2 text-meta tracking-[0.04em] text-[#6b4a22]/65" style={{ fontFamily: parchmentStack }}>
-                {lang === "en"
-                  ? "Fold to keep exploring — reopen anytime today. News refreshes every 6 hours."
-                  : "접어두면 지도를 보고, 오늘 하루 언제든 다시 펼칠 수 있습니다. 뉴스는 6시간마다 갱신됩니다."}
+                {isWeeklyRecap
+                  ? lang === "en"
+                    ? "Fold to keep exploring — reopen anytime today. This Monday digest covers last week's hottest stories."
+                    : "접어두면 지도를 보고, 오늘 하루 언제든 다시 펼칠 수 있습니다. 월요일에만 전주 핫뉴스를 종합합니다."
+                  : lang === "en"
+                    ? "Fold to keep exploring — reopen anytime today. News refreshes every 6 hours."
+                    : "접어두면 지도를 보고, 오늘 하루 언제든 다시 펼칠 수 있습니다. 뉴스는 6시간마다 갱신됩니다."}
               </p>
             </div>
           </div>
@@ -628,8 +653,9 @@ function LampCardHero({
   lang: LabelLanguage;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
-  /** 지정학·지경학 모두 대형 컬러 사진 우선. 없거나 실패하면 지역 컬러 면 */
-  const hasPhoto = Boolean(imageUrl) && !imgFailed;
+  const src = normalizeLampImageUrl(imageUrl);
+  /** 기사에 붙은 RSS·og 사진 — 로드 실패 시에만 지역 컬러 면 */
+  const hasPhoto = Boolean(src) && !imgFailed;
   const theme = resolveLampThumbTheme({
     mode: isEconomy ? "economy" : "conflict",
     theater,
@@ -645,7 +671,7 @@ function LampCardHero({
       {hasPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          src={src}
           alt=""
           className="h-full w-full object-cover"
           loading="lazy"

@@ -27,6 +27,7 @@ import type {
 } from "@/lib/news/types";
 import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
 import type { ViewPackageId } from "@/lib/viewPackages";
+import { isCrinkAnalysisUrl } from "@/data/crinkSourceRegistry";
 
 const URGENCY =
   /\b(breaking|urgent|just\s?in|live|attack|strike|missile|drone|explosion|war|invasion|ceasefire|nuclear|killed|dead|shelling|airstrike|bomb|blockade|escalat|retaliat|offensive|clash|troops|carrier|hormuz|suez|malacca|bab[\s-]?el[\s-]?mandeb|taiwan\s?strait|panama\s?canal|red\s?sea)\b/i;
@@ -82,6 +83,7 @@ function resolveHeroStatus(
   const hasTier1 = cluster.some((c) => c.trustTier === 1);
   const hasTier2 = cluster.some((c) => c.trustTier === 2);
 
+  // Tier3(국영·당사자 발표)는 교차확인 없으면 미확인 — UI에 (미확인) 표기
   if (candidate.trustTier === 3) {
     if (hasTier1) return "breaking";
     return "unverified";
@@ -92,11 +94,51 @@ function resolveHeroStatus(
   return "breaking";
 }
 
+/** 속보 hero 후보 — 방금 터진 고신뢰 오피셜 우선. Tier3는 급보·초신선만. */
+const HERO_FRESH_MAX_MIN = 360; // 6시간
+const HERO_VERY_FRESH_MIN = 90; // Tier3 단독 허용 창
+const HERO_FALLBACK_MAX_MIN = 1_440;
+
 function isHeroEligible(item: NewsStreamItem): boolean {
+  // 주간 분석·연구소 글은 속보 hero에 올리지 않음 (허브 모니터 전용)
+  if (isCrinkAnalysisUrl(item.link)) return false;
+  const age = parseAgeMinutes(item.pubDate);
+  const fresh = age <= HERO_FRESH_MAX_MIN;
+  const veryFresh = age <= HERO_VERY_FRESH_MIN;
+  const urgent =
+    item.feedTopic === "economy"
+      ? ECON_URGENCY.test(item.title)
+      : URGENCY.test(item.title);
+
   if (item.feedTopic === "economy") {
-    return ECON_URGENCY.test(item.title) || item.trustTier <= 2;
+    // 시장: Tier1·2 신선 기사 + 급보 키워드. Tier3는 급보·초신선만.
+    if (item.trustTier <= 2) return fresh || urgent;
+    return urgent || veryFresh;
   }
-  return URGENCY.test(item.title) || item.trustTier === 3;
+
+  // 지정학: Tier1·2 공식·와이어가 신선하면 키워드 없어도 후보
+  if (item.trustTier === 1 || item.trustTier === 2) return fresh || urgent;
+  // Tier3: 급보 키워드 또는 초신선만 — 선정돼도 unverified
+  return urgent || veryFresh;
+}
+
+function heroStatusRank(status: HeroStatus): number {
+  if (status === "confirmed") return 2;
+  if (status === "breaking") return 1;
+  return 0;
+}
+
+function isBetterHero(a: HeroBreakingItem, b: HeroBreakingItem): boolean {
+  if (a.breakingGrade !== b.breakingGrade) return a.breakingGrade > b.breakingGrade;
+  // 같은 등급이면 확인·교차확인 > 미확인
+  const sa = heroStatusRank(a.heroStatus);
+  const sb = heroStatusRank(b.heroStatus);
+  if (sa !== sb) return sa > sb;
+  // 더 방금 터진 것
+  if (a.ageMinutes !== b.ageMinutes) return a.ageMinutes < b.ageMinutes;
+  // 신뢰 높은 출처 (Tier 숫자 작을수록 높음)
+  if (a.trustTier !== b.trustTier) return a.trustTier < b.trustTier;
+  return a.urgencyScore > b.urgencyScore;
 }
 
 function pickHero(
@@ -140,11 +182,7 @@ function pickHero(
       clusterId: key,
     };
 
-    if (
-      !best ||
-      entry.breakingGrade > best.breakingGrade ||
-      (entry.breakingGrade === best.breakingGrade && entry.urgencyScore > best.urgencyScore)
-    ) {
+    if (!best || isBetterHero(entry, best)) {
       best = entry;
     }
   }
@@ -272,15 +310,23 @@ export async function buildNewsStream(
     ...byRecency.filter((i) => !hasLampPhoto(i.imageUrl)),
   ];
   const enriched = await enrichNewsStreamImages(photoFirst, {
-    maxEnrich: 24,
-    concurrency: 4,
-    timeoutMs: 2_200,
-    budgetMs: 8_000,
+    maxEnrich: 40,
+    concurrency: 5,
+    timeoutMs: 2_400,
+    budgetMs: 12_000,
   });
 
   const verified = sortByRecency(enriched.filter((i) => i.trustTier <= 2));
   const stateMedia = sortByRecency(enriched.filter((i) => i.trustTier === 3));
-  const heroCandidates = enriched.filter((i) => parseAgeMinutes(i.pubDate) <= 1_440);
+  // 속보: 최근 6시간 우선. 너무 적으면 24시간으로 폴백.
+  let heroCandidates = enriched.filter(
+    (i) => parseAgeMinutes(i.pubDate) <= HERO_FRESH_MAX_MIN,
+  );
+  if (heroCandidates.length < 8) {
+    heroCandidates = enriched.filter(
+      (i) => parseAgeMinutes(i.pubDate) <= HERO_FALLBACK_MAX_MIN,
+    );
+  }
   const heroPool = heroCandidates.length > 0 ? heroCandidates : enriched.slice(0, 40);
   const hero = pickHero(heroPool);
   const flashHeroes = buildFlashHeroes(heroPool, hero);

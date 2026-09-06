@@ -13,6 +13,18 @@ const STATE_FILE = path.join(LIVE_DIR, "telegram-embed-state.json");
 const POSTS_PER_CHANNEL = 2;
 const AHEAD_CHECK = 12;
 
+/**
+ * 봇 신원 — **브라우저로 위장하지 말 것.**
+ *
+ * 이전 값은 `Mozilla/5.0 (compatible; BraveNewWorld/1.0)` 이었다.
+ * 자동화 트래픽을 브라우저인 척 보내는 건 단순 약관 위반과 달리 "우회 의도"로
+ * 읽혀 분쟁 시 불리하게 평가된다. 차단당하면 정식 경로를 찾는 게 맞는 순서다.
+ *
+ * @see docs/copyright-audit-2026-08-01.md — R-2
+ */
+const TELEGRAM_SCRAPE_USER_AGENT =
+  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
+
 type CachedPost = {
   text: string;
   date: string;
@@ -121,7 +133,8 @@ async function fetchPost(
   try {
     const res = await fetch(`https://t.me/${channel}/${postId}?embed=1&mode=tme`, {
       signal: AbortSignal.timeout(4000),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" },
+      // 브라우저 UA 로 위장하지 않는다 — @see docs/copyright-audit-2026-08-01.md R-2
+      headers: { "User-Agent": TELEGRAM_SCRAPE_USER_AGENT },
       cache: "no-store",
     });
     if (!res.ok) return null;

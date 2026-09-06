@@ -3,6 +3,7 @@ import type { AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import {
   createAirportPortBadge,
   createCasualtySkullBadge,
+  createNewsInsightCalloutBadge,
   createNuclearStockpileBadge,
   createSituationCalloutBadge,
 } from "@/components/globe/markers/htmlMarkerFactories";
@@ -31,6 +32,7 @@ import { createFrictionPinElement, createFrictionStageCalloutElement, createEven
 import { createFinancialHubMarkerElement } from "@/lib/financialMarketHubMarkers";
 import { createKoreaMissileIncidentBadge } from "@/lib/koreaMissileIncidentMarker";
 import { createRussiaStrikeIncidentBadge } from "@/lib/russiaStrikeIncidentMarker";
+import { createEuropeDroneIncidentBadge } from "@/lib/europeDroneIncidentMarker";
 import { createMilAircraftBadge } from "@/lib/milAircraftMarkers";
 import { createMilitaryExerciseMarkerElement } from "@/lib/militaryExerciseMarkers";
 import type { MilitaryExercise } from "@/lib/militaryExercises";
@@ -44,7 +46,6 @@ import {
 } from "@/lib/newfeedsI18n";
 import { createReconSatelliteBadge } from "@/lib/reconSatelliteMarkers";
 import { createReefWatchFeatureMarkerElement, createReefWatchTrafficMarkerElement } from "@/lib/reefWatchMarkers";
-import { createSafecastGaugeBadge } from "@/lib/safecastRadiationMarker";
 import { createShipMovementPinElement, trailGroupKey } from "@/lib/shipMovements/globeOverlay";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import { createUkraineGdeltNeonBadge } from "@/lib/ukraineGdeltNeonMarker";
@@ -348,6 +349,9 @@ export function createDashboardHtmlOverlayElement(
   if (item.displayKind === "situation-callout") {
     return createSituationCalloutBadge(item);
   }
+  if (item.displayKind === "news-insight-callout") {
+    return createNewsInsightCalloutBadge(item);
+  }
   if (item.displayKind === "casualty-skull") {
     return createCasualtySkullBadge(item, alt);
   }
@@ -423,6 +427,30 @@ export function createDashboardHtmlOverlayElement(
       },
     );
   }
+  if (item.displayKind === "europe-drone-incident") {
+    return createEuropeDroneIncidentBadge(
+      item,
+      deps.labelLanguage === "en" ? "en" : "ko",
+      {
+        onHover: (inc) => {
+          if (!inc) {
+            deps.handleHtmlMarkerHover(null);
+            return;
+          }
+          deps.handleHtmlMarkerHover(inc as unknown as GlobeDisplayPoint);
+        },
+        onClick: (inc) => {
+          deps.skipNextGlobeClickRef.current = true;
+          deps.flyTo(inc.lat, inc.lng, 0.72);
+          if (inc.sourceUrl) {
+            window.open(inc.sourceUrl, "_blank", "noopener,noreferrer");
+          } else {
+            deps.openIntelFromCoords(inc.lat, inc.lng, 0.92);
+          }
+        },
+      },
+    );
+  }
   if (item.displayKind === "newfeeds-attack") {
     return createIranNewsNeonBadge(
       item as IranNewsNeonAttack,
@@ -468,9 +496,6 @@ export function createDashboardHtmlOverlayElement(
       deps.labelLanguage === "en" ? "en" : "ko",
       alt,
     );
-  }
-  if (item.displayKind === "safecast-gauge") {
-    return createSafecastGaugeBadge(item, deps.labelLanguage === "en" ? "en" : "ko");
   }
   if (item.displayKind === "ua-settlement-html") {
     return createUkraineSettlementLabelElement(

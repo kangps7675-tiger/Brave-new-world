@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   LayerCategoryPanel,
   type LayerCategory,
+  type LayerInfoHoverTarget,
   type LayerToggleItem,
 } from "@/components/LayerCategoryPanel";
 import type { LayerPrefs } from "@/lib/layerPrefs";
@@ -21,10 +22,10 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { t } from "@/lib/uiStrings";
 
 /**
- * detail 뒤에 붙였던 상한 표시를 걷어내는 패턴.
- * ko "· 상한 3/30" / en "· cap 3/30" 양쪽을 다 지워야 언어 전환 시 찌꺼기가 남지 않는다.
+ * detail 뒤에 붙였던 밀도 표시를 걷어내는 패턴.
+ * ko "· 활성 3/30" / en "· on 3/30" · 구형 "상한/cap" 찌꺼기까지.
  */
-const CAP_SUFFIX_PATTERN = / · (상한|cap) .*/i;
+const CAP_SUFFIX_PATTERN = / · (활성|상한|on|cap) .*/i;
 
 function walkChecked(item: LayerToggleItem, map: Record<string, boolean>) {
   map[item.id] = item.checked;
@@ -59,6 +60,7 @@ type LayerCategoryDraftHostProps = {
   expandActiveCategories?: boolean;
   ultraLite?: boolean;
   onPatch: (patch: Partial<LayerPrefs>) => void;
+  onLayerInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 };
 
 export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
@@ -69,6 +71,7 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
   expandActiveCategories,
   ultraLite = false,
   onPatch,
+  onLayerInfoHover,
 }: LayerCategoryDraftHostProps) {
   const { lang } = useLocale();
   const [checked, setChecked] = useState(() => extractChecked(categories));
@@ -77,34 +80,33 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
   const activeCount = countCheckedLayers(checked);
   const atCap = activeCount >= cap;
 
+  /** prefs 반영된 categories가 오면 로컬 checked를 동기화 (자동 강등 포함) */
+  useEffect(() => {
+    setChecked(extractChecked(categories));
+  }, [categories]);
+
   useEffect(() => {
     if (!capWarn) return;
     const timer = window.setTimeout(() => setCapWarn(false), 4200);
     return () => window.clearTimeout(timer);
   }, [capWarn]);
 
-  const showCapWarn = useCallback(() => {
-    setCapWarn(true);
-  }, []);
-
   const applyItem = useCallback(
     (itemId: string, value: boolean) => {
       const key = LAYER_ITEM_PREF_KEYS[itemId];
-      if (
-        value &&
-        key &&
-        isLayerCapCountedKey(key) &&
-        countCheckedLayers(checked) >= activeLayerCap(ultraLite)
-      ) {
-        showCapWarn();
-        return;
+      /**
+       * P2-2: 더 이상 상한에서 거부하지 않는다.
+       * onPatch → patchLayerPrefsSoft가 clamp/evict 후 토스트로 통보한다.
+       */
+      if (value && key && isLayerCapCountedKey(key) && atCap) {
+        setCapWarn(true);
       }
       setChecked((prev) => ({ ...prev, [itemId]: value }));
       if (key) {
         onPatch({ [key]: value } as Partial<LayerPrefs>);
       }
     },
-    [checked, onPatch, showCapWarn, ultraLite],
+    [atCap, onPatch],
   );
 
   const wrapItem = useCallback(
@@ -125,7 +127,7 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
       const isOn = checked[item.id] ?? item.checked;
       const key = LAYER_ITEM_PREF_KEYS[item.id];
       const counted = key ? isLayerCapCountedKey(key) : false;
-      const blocked = !isOn && atCap && counted;
+      const dense = !isOn && atCap && counted;
       const heavy = ultraLite && isUltraLiteHeavyRenderKey(key);
       const capSuffix = t("layerCapDetailSuffix", lang)
         .replace("{active}", String(activeCount))
@@ -134,25 +136,20 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
       return {
         ...item,
         checked: isOn,
-        /**
-         * 상한에 걸린 항목을 `disabled`로 두지 않는다.
-         * disabled면 클릭이 아예 먹지 않아 **왜 안 되는지 알 방법이 없다** —
-         * 상한 표시는 10px로 잘려 있어 사실상 안 보인다.
-         * 대신 클릭을 받아 `applyItem`이 상한 경고를 띄우게 한다.
-         * (끄는 동작은 언제나 허용되므로 blocked는 OFF 항목에만 걸린다.)
-         */
         disabled: item.disabled,
-        detail: blocked ? `${baseDetail} · ${capSuffix}` : baseDetail,
-        cautionTag: blocked
+        detail: dense ? `${baseDetail} · ${capSuffix}` : baseDetail,
+        cautionTag: dense
           ? t("layerCapTag", lang)
           : heavy
             ? t("layerClickCautionTag", lang)
             : item.cautionTag,
-        cautionHint: blocked
-          ? t("layerCapWarnBody", lang).replace("{cap}", String(cap))
+        cautionHint: dense
+          ? t("layerCapWarnBody", lang)
           : heavy
             ? t("layerClickCautionHint", lang)
             : item.cautionHint,
+        rejected: false,
+        rejectedNote: null,
         onChange: (value: boolean) => applyItem(item.id, value),
       };
     },
@@ -176,76 +173,47 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
               onPatch(patch);
               return;
             }
+            /** 전부 ON — prefs 쪽에서 clamp/evict (P2-2) */
+            if (atCap) setCapWarn(true);
+            const patch = patchFromCategoryItems(category.items, true);
+            const ids = flattenLayerItemIds(category.items);
             setChecked((prev) => {
               const next = { ...prev };
-              const patch: Partial<LayerPrefs> = {};
-              let slots = activeLayerCap(ultraLite) - countCheckedLayers(prev);
-              if (slots <= 0) {
-                showCapWarn();
-                return prev;
-              }
-              let enabledAny = false;
-              const leafIds = flattenLayerItemIds(category.items);
-              for (const id of leafIds) {
-                if (next[id]) continue;
-                const key = LAYER_ITEM_PREF_KEYS[id];
-                if (!key) continue;
-                if (!isLayerCapCountedKey(key)) {
-                  next[id] = true;
-                  (patch as Record<string, boolean>)[key as string] = true;
-                  enabledAny = true;
-                  continue;
-                }
-                if (slots <= 0) break;
-                next[id] = true;
-                (patch as Record<string, boolean>)[key as string] = true;
-                slots -= 1;
-                enabledAny = true;
-              }
-              if (!enabledAny) showCapWarn();
-              if (Object.keys(patch).length > 0) onPatch(patch);
+              for (const id of ids) next[id] = true;
               return next;
             });
+            onPatch(patch);
           }
         : undefined,
       items: category.items.map((item) => wrapItem(item)),
     }));
-  }, [
-    categories,
-    onPatch,
-    showCapWarn,
-    ultraLite,
-    wrapItem,
-  ]);
+  }, [atCap, categories, onPatch, wrapItem]);
 
-  const warnBody = t("layerCapWarnBody", lang).replace("{cap}", String(cap));
+  const warnBody = t("layerCapWarnBody", lang);
 
   return (
     <div className="space-y-2">
       {capWarn ? (
         <div
           role="alert"
-          className="rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-2.5 text-caption leading-relaxed text-amber-50"
+          className="rounded-lg border border-sky-400/35 bg-sky-950/40 px-3 py-2 text-caption text-sky-50/90"
         >
-          <p className="font-semibold">{t("layerCapWarnTitle", lang)}</p>
-          <p className="mt-1 text-amber-100/90">{warnBody}</p>
-          {ultraLite ? (
-            <p className="mt-1 text-meta text-amber-200/70">{t("layerCapWarnUltra", lang)}</p>
-          ) : null}
+          {warnBody}
         </div>
       ) : null}
       <LayerCategoryPanel
-        categories={wrappedCategories}
-        batchStatus={
-          batchStatus ??
-          `${t(atCap ? "layerCapStatusFull" : "layerCapStatusOk", lang)
-            .replace("{active}", String(activeCount))
-            .replace("{cap}", String(cap))}${ultraLite ? " · Ultra-Lite" : ""}`
-        }
+        batchStatus={batchStatus}
         autoExpandCategoryId={autoExpandCategoryId}
         autoExpandWhen={autoExpandWhen}
         expandActiveCategories={expandActiveCategories}
+        categories={wrappedCategories}
+        onLayerInfoHover={onLayerInfoHover}
       />
+      <p className="px-1 text-meta text-white/45" aria-live="polite">
+        {t(atCap ? "layerCapStatusFull" : "layerCapStatusOk", lang)
+          .replace("{active}", String(activeCount))
+          .replace("{cap}", String(cap))}
+      </p>
     </div>
   );
 });

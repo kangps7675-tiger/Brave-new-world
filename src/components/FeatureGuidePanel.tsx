@@ -13,6 +13,8 @@ type FeatureGuidePanelProps = {
   onClose: () => void;
   /** 첫 방문 1~10 투어 다시 보기 */
   onRestartTour?: () => void;
+  onOpenSources?: () => void;
+  onOpenParchment?: () => void;
 };
 
 type GuideSection = {
@@ -30,6 +32,15 @@ function accountGuideSections(lang: LabelLanguage): GuideSection[] {
 }
 
 const GUIDE_SECTIONS_KO: GuideSection[] = [
+  {
+    title: "개인용 인텔리전스 터미널",
+    steps: [
+      "한 화면에 지정학·지경학 신호를 겹쳐 보는 개인용 관측 도구입니다. 기관 전용 블룸버그·팔란티어와 같은 ‘밀도’를, 공개 OSINT만으로 만듭니다.",
+      "우상단 GTS(글로벌 긴장 점수)는 오늘 세계가 평소보다 얼마나 시끄러운지 한 숫자로 요약합니다. IEP 테러 지수(GTI)와 다릅니다.",
+      "≡ → 데이터 출처·출처 양피지(8개 책갈피)에서 레이어별 재료·한계·데모 데이터를 먼저 읽을 수 있습니다. 지도 하단 「데이터 출처」「출처 안내서」에서도 열립니다.",
+      "GTS 감각 연습(UP/DOWN)은 페이퍼 트레이딩처럼 ‘내 판단 vs 지표’를 연습하는 장치입니다. 공습·인명 예측이 아닙니다.",
+    ],
+  },
   {
     title: "빠른 시작",
     steps: [
@@ -86,9 +97,9 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "축 관계망 · 영토분쟁 모아보기",
+    title: "CRINK 축 · 영토분쟁 모아보기",
     steps: [
-      "「축 관계망」을 켜면 이란·중국·러시아·북한 같은 중심 나라(허브)와 그 상대들(스포크)이 곡선으로 이어져 표시됩니다.",
+      "「CRINK 축」을 켜면 중국·러시아·이란·북한 허브와 그 파트너(스포크)가 곡선으로 이어져 표시됩니다.",
       "위쪽 메뉴 → 「영토분쟁」을 열면 같은 진영끼리의 충돌과 국경 긴장을 한 목록으로 볼 수 있습니다. 필터로 걸러 보고, 카드를 누르면 지도 연출과 이야기가 펼쳐집니다.",
       "오른쪽 위 「주요전장」 목록에서 대만·한반도·우크라이나·중동 같은 충돌지로 한 번에 이동할 수 있습니다.",
       "이어 주는 곡선의 색은 관계의 종류입니다 — 자금 후원 · 무기 지원 · 에너지 · 복합 · 외교.",
@@ -126,6 +137,15 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
 ];
 
 const GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Personal intelligence terminal",
+    steps: [
+      "One screen to stack geopolitics and geoeconomics signals — institutional-grade density for individuals, built from public OSINT only.",
+      "Top-right GTS (Global Tension Score) summarizes how loud conflict zones are today vs baseline. Not the IEP Global Terrorism Index (GTI).",
+      "≡ → Sources lists layer provenance, limits, and how GTS is built. Transparency is part of the product promise.",
+      "GTS intuition (UP/DOWN) is paper-trading for your read vs the index — not a raid or casualty forecast.",
+    ],
+  },
   {
     title: "Quick start",
     steps: [
@@ -182,9 +202,9 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     ],
   },
   {
-    title: "Axis network · anti-West conflict history",
+    title: "CRINK axis · anti-West conflict history",
     steps: [
-      "「Axis network」 links hub states (Iran, China, Russia, DPRK) to partners with curved spokes.",
+      "「CRINK axis」 links hub states (China, Russia, Iran, DPRK) to partners with curved spokes.",
       "Hub menu → 「Anti-West conflict history」 covers 11 historic flashpoints (Zhenbao, Lang Son, Galwan, Tsorak, and more). Tap a card to fly there and open a parchment brief.",
       "Use Key theaters (top-right) to jump to Taiwan, Korea, Ukraine, or the Middle East.",
       "Spoke colors mean relationship type — funding, arms, energy, hybrid, diplomacy.",
@@ -223,13 +243,19 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
 
 const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
+    title: "지경학 데스크",
+    steps: [
+      "같은 터미널의 시장 창입니다. 지정학(GTS·전선·제재 회피)과 짝을 이루며, 초크·에너지·항로로 ‘돈이 어디서 막히는가’를 봅니다.",
+      "GSCPI·PortWatch·해운 프록시는 막힘 강도. 지도는 그 원인이 어디인지 보여 줍니다.",
+    ],
+  },
+  {
     title: "빠른 시작",
     steps: [
-      "드래그·줌으로 지구본을 탐색합니다.",
-      "화면이 사선으로 기울면 Alt + 드래그로 기울기·회전을 맞춥니다.",
-      "≡ 에서 유가·가스·해운·제재·AI DC 레이어를 켭니다.",
-      "검색 옆 「묻기」로 호르무즈·수에즈·항로처럼 물으면 물류·초크 레이어를 맞출 수 있습니다.",
-      "하단 📈 와 티커로 지수·VIX·경제 속보를 보고, 상단 nav에서 수에즈·호르무즈 등을 고르면 관련 시장이 열립니다.",
+      "첫 화면: 초크포인트 · 항로 · 항구 · 가스/LNG · 무역 코리도 · 에너지·결제 축.",
+      "≡ 에서 BRI/DFC·송유관·민간 AIS·제재 명단은 필요할 때만 켭니다.",
+      "검색 옆 「묻기」로 호르무즈·수에즈를 물으면 물류·초크 레이어를 맞출 수 있습니다.",
+      "하단 📈·티커로 유가·VIX·지수를 보고, 허브를 고르면 관련 시장이 열립니다. (투자 권유 아님)",
     ],
   },
   {
@@ -240,11 +266,11 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "제재 · 에너지 · 물류 레이어",
+    title: "초크 · 에너지 · 물류",
     steps: [
-      "≡(메뉴) 버튼 → 「인프라 · 시장」에서 제재, 송유관(파이프라인), LNG(액화천연가스), 해운 항로, 초크포인트를 켭니다. (초크포인트 = 세계 무역이 반드시 지나가는 좁은 길목, 예: 호르무즈 해협)",
-      "물류 위험 핀에 마우스를 올리면 Brent(브렌트유 = 국제 유가 기준)·VIX(공포지수 = 시장이 얼마나 불안한지) 같은 관련 시장 수치가 함께 뜹니다.",
-      "경제 모드에서는 실시간 속보·텔레그램 수집이 없습니다. 대신 경제 뉴스(RSS = 여러 매체 기사를 한곳에 모아 받는 방식)와 시세 표시줄(티커)을 사용하세요.",
+      "초크포인트(호르무즈·수에즈 등)와 항로가 기본입니다. 물류 스트레스를 켜면 막힌 곳이 붉게 보입니다.",
+      "가스관·LNG는 기본 ON. 송유관·해저 파이프·매장지는 토글.",
+      "에너지·결제 축(중–이란 원유 등)은 지경학 축 네트워크로 보입니다. 제재 회피 강도 칩·회랑은 지정학 창에 있습니다.",
     ],
   },
   {
@@ -258,16 +284,16 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "경제 지도 이동 (Geo Markets)",
     steps: [
-      "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC(세계 최대 대만 반도체 기업) 등으로 이동합니다.",
+      "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC 등으로 이동합니다.",
       "항목을 클릭하면 오른쪽 경제 지역 패널에서 관련 뉴스(RSS)와 시세(티커)를 봅니다.",
-      "「주요 허브」 탭으로 초크포인트(무역 길목)나 금융 도시로 빠르게 이동할 수 있습니다.",
+      "「주요 허브」 탭으로 초크포인트나 금융 도시로 빠르게 이동할 수 있습니다.",
     ],
   },
   {
     title: "지도 조작법",
     steps: [
       "드래그하면 회전, 스크롤하면 확대·축소, 두 번 클릭하면 그 지점으로 확대됩니다.",
-      "카메라가 사선으로 눕혀졌을 때 Alt + 드래그로 기울기·회전을 조절합니다. (좌우=돌리기, 위아래=눕히기/세우기)",
+      "카메라가 사선으로 눕혀졌을 때 Alt + 드래그로 기울기·회전을 조절합니다.",
       "위쪽 「지정학 | 경제·시장」 스위치로 보기 모드를 바꿉니다.",
       "모드를 바꾸면 레이어, 위쪽 메뉴, 아래쪽 정보 창이 함께 바뀝니다.",
     ],
@@ -276,28 +302,34 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
 
 const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
   {
+    title: "Geoeconomics desk",
+    steps: [
+      "The markets desk — pairs with geopolitics (GTS, fronts, sanctions-evasion intensity) for chokepoints, energy, and shipping stress.",
+      "GSCPI, PortWatch, and shipping proxies measure congestion; the map shows where it comes from.",
+    ],
+  },
+  {
     title: "Quick start",
     steps: [
-      "Drag and zoom to explore the globe.",
-      "When the view is tilted, Alt + drag adjusts pitch and bearing.",
-      "Use ≡ to toggle oil, gas, shipping, sanctions, and AI DC layers.",
-      "Use 「Ask」 beside search to align shipping/chokepoint layers (Hormuz, Suez, lanes).",
-      "Use 📈 and the ticker for indices, VIX, and economy briefs; pick Suez, Hormuz, and more from the top nav to open related markets.",
+      "First screen: chokepoints, lanes, ports, gas/LNG, trade corridors, energy/payment axes.",
+      "Use ≡ for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
+      "「Ask」 beside search aligns logistics layers for Hormuz, Suez, and lanes.",
+      "Use 📈 and the ticker for oil, VIX, and indices; hubs open related markets (not investment advice).",
     ],
   },
   {
     title: "Daily supply-chain ranking",
     steps: [
-      "Bottom-left 「Supply-chain TOP 5」 aggregates AIS and nearby tension signals per chokepoint daily.",
-      "Pair it with the Conflict 「Risk regions」 card the same day for a content engine.",
+      "Bottom-left Supply TOP 5 rolls chokepoint AIS and nearby tension signals each day.",
+      "Pair it with geopolitics risk cards as a same-day content engine.",
     ],
   },
   {
-    title: "Sanctions · energy · logistics layers",
+    title: "Chokes · energy · logistics",
     steps: [
-      "≡ → Infrastructure · markets: sanctions, pipelines, LNG, shipping lanes, chokepoints (narrow trade bottlenecks such as the Strait of Hormuz).",
-      "Hover logistics-risk pins for related market reads like Brent and VIX.",
-      "Economy mode has no live breaking / Telegram ingest — use economy RSS and the ticker strip instead.",
+      "Chokepoints (Hormuz, Suez, …) and shipping lanes are on by default; logistics stress paints blocked spots red.",
+      "Gas pipelines and LNG start ON; oil/subsea pipes and deposits stay toggles.",
+      "Energy/payment axes show on the economy axis network. Sanctions-evasion intensity chip and corridors live on the geopolitics desk.",
     ],
   },
   {
@@ -320,9 +352,8 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
     title: "Map controls",
     steps: [
       "Drag to rotate, scroll to zoom, double-click to zoom into a point.",
-      "When the camera is tilted, Alt + drag adjusts pitch and bearing (left/right = spin, up/down = tilt).",
-      "Use the Conflict | Economy switch at the top to change view mode.",
-      "Switching modes also swaps layers, top menus, and the bottom intel chrome.",
+      "When the camera is tilted, Alt + drag adjusts pitch and bearing.",
+      "Use the Conflict | Economy switch at the top — layers, menus, and bottom chrome follow.",
     ],
   },
 ];
@@ -332,6 +363,8 @@ export function FeatureGuidePanel({
   viewerMode = "conflict",
   onClose,
   onRestartTour,
+  onOpenSources,
+  onOpenParchment,
 }: FeatureGuidePanelProps) {
   const { lang } = useLocale();
   const en = lang === "en";
@@ -376,6 +409,38 @@ export function FeatureGuidePanel({
           </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {onOpenSources || onOpenParchment ? (
+            <div className="space-y-2">
+              {onOpenParchment ? (
+                <button
+                  type="button"
+                  onClick={onOpenParchment}
+                  className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+                >
+                  {en ? "Source parchment (8 bookmarks) →" : "데이터 출처 양피지 (8개 책갈피) →"}
+                  <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
+                    {en
+                      ? "Honest inventory — what is real, demo, or missing"
+                      : "진짜·데모·공백을 솔직히 정리한 안내서"}
+                  </span>
+                </button>
+              ) : null}
+              {onOpenSources ? (
+                <button
+                  type="button"
+                  onClick={onOpenSources}
+                  className="w-full rounded-xl border border-sky-300/25 bg-sky-500/10 px-3 py-2.5 text-left text-caption font-medium text-sky-50 transition hover:border-sky-200/40 hover:bg-sky-500/15"
+                >
+                  {en ? "Full sources catalog →" : "소스 카탈로그 · 라이선스 →"}
+                  <span className="mt-0.5 block text-micro font-normal text-sky-100/60">
+                    {en
+                      ? "Shipped layers, corridor pipeline, blocked demo data"
+                      : "운영 레이어 · 코리도 파이프라인 · 차단된 데모"}
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           {onRestartTour ? (
             <button
               type="button"

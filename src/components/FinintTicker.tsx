@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
 import type { FreightIndex } from "@/lib/freightIndicesFetch";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 export type { FreightIndex };
 
@@ -55,10 +56,10 @@ export function FinintTicker() {
     };
 
     void load();
-    const timer = window.setInterval(() => void load(), REFRESH_MS);
+    const stop = visibleInterval(() => void load(), REFRESH_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stop();
     };
   }, []);
 

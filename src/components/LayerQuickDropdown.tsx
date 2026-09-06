@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { LayerCategory } from "@/components/LayerCategoryPanel";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
+import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type LayerQuickDropdownProps = {
   categories: LayerCategory[];
@@ -35,6 +36,7 @@ export function LayerQuickDropdown({
   onOpenChange,
 }: LayerQuickDropdownProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const light = useBasemapTone() === "light";
   const [query, setQuery] = useState("");
   const [touched, setTouched] = useState(false);
   const checkedCount = useMemo(() => countChecked(categories), [categories]);
@@ -92,7 +94,11 @@ export function LayerQuickDropdown({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => onOpenChange(!open)}
-        className="flex h-9 items-center gap-1.5 rounded-xl border border-sky-200/20 bg-[#162a48]/70 px-3 text-meta font-medium text-sky-50/95 shadow-md backdrop-blur-md transition hover:border-sky-300/40 hover:bg-[#1e3a5f]/75"
+        className={`map-chrome-control flex h-9 items-center gap-1.5 rounded-xl border px-3 text-meta font-medium shadow-md transition ${
+          light
+            ? "border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+            : "border-sky-200/20 bg-[#162a48]/70 text-sky-50/95 backdrop-blur-md hover:border-sky-300/40 hover:bg-[#1e3a5f]/75"
+        }`}
       >
         <span>{t("layers", lang)}</span>
         <span className="rounded-full bg-sky-400/20 px-1.5 py-0.5 text-micro tabular-nums text-sky-100">
@@ -107,19 +113,27 @@ export function LayerQuickDropdown({
         <div
           role="dialog"
           aria-label={lang === "en" ? "Layer quick toggles" : "레이어 빠른 토글"}
-          className="absolute left-1/2 top-[calc(100%+0.45rem)] z-[300] flex w-[min(92vw,44rem)] max-h-[min(78vh,36rem)] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-sky-200/20 bg-[#0c1528]/95 shadow-2xl backdrop-blur-xl"
+          className={`absolute left-1/2 top-[calc(100%+0.45rem)] z-[300] flex w-[min(92vw,44rem)] max-h-[min(78vh,36rem)] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border shadow-2xl ${
+            light
+              ? "border-slate-200 bg-white text-slate-900"
+              : "border-sky-200/20 bg-[#0c1528]/95 text-sky-50 backdrop-blur-xl"
+          }`}
         >
           <div className="shrink-0 border-b border-sky-200/10 px-3 py-2">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={lang === "en" ? "Search layers…" : "레이어 검색…"}
-              className="w-full rounded-lg border border-sky-200/15 bg-slate-950/40 px-3 py-1.5 text-xs text-sky-50 outline-none placeholder:text-sky-100/35 focus:border-sky-300/40"
+              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none ${
+                light
+                  ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-slate-400"
+                  : "border-sky-200/15 bg-slate-950/40 text-sky-50 placeholder:text-sky-100/35 focus:border-sky-300/40"
+              }`}
             />
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-3">
             {filtered.length === 0 ? (
-              <p className="py-6 text-center text-xs text-sky-100/45">
+              <p className={`py-6 text-center text-xs ${light ? "text-slate-500" : "text-sky-100/45"}`}>
                 {lang === "en" ? "No matching layers" : "일치하는 레이어 없음"}
               </p>
             ) : (
@@ -127,9 +141,13 @@ export function LayerQuickDropdown({
                 {filtered.map((cat) => (
                   <section
                     key={cat.id}
-                    className="rounded-xl border border-sky-200/10 bg-slate-950/35 p-2.5"
+                    className={`rounded-xl border p-2.5 ${
+                      light ? "border-slate-200 bg-slate-50" : "border-sky-200/10 bg-slate-950/35"
+                    }`}
                   >
-                    <h3 className="mb-2 text-micro font-semibold uppercase tracking-[0.14em] text-sky-200/55">
+                    <h3 className={`mb-2 text-micro font-semibold uppercase tracking-[0.14em] ${
+                      light ? "text-slate-500" : "text-sky-200/55"
+                    }`}>
                       {cat.title}
                     </h3>
                     <ul className="space-y-1">
@@ -146,10 +164,10 @@ export function LayerQuickDropdown({
                               }
                             />
                             <span className="min-w-0">
-                              <span className="block text-meta font-medium text-sky-50/95">
+                              <span className={`block text-meta font-medium ${light ? "text-slate-900" : "text-sky-50/95"}`}>
                                 {item.label}
                               </span>
-                              <span className="block text-micro leading-4 text-sky-100/40">
+                              <span className={`block text-micro leading-4 ${light ? "text-slate-500" : "text-sky-100/40"}`}>
                                 {item.detail}
                               </span>
                             </span>
@@ -168,7 +186,7 @@ export function LayerQuickDropdown({
                                         markTouchedAnd(opt.onChange)(e.target.checked)
                                       }
                                     />
-                                    <span className="text-micro text-sky-100/85">{opt.label}</span>
+                                    <span className={`text-micro ${light ? "text-slate-700" : "text-sky-100/85"}`}>{opt.label}</span>
                                   </label>
                                 </li>
                               ))}
@@ -182,17 +200,21 @@ export function LayerQuickDropdown({
               </div>
             )}
           </div>
-          <div className="shrink-0 border-t border-sky-200/15 bg-[#0a1424]/98 px-3 py-2.5">
-            <p className="mb-2 text-micro leading-4 text-sky-100/50">
+          <div className={`shrink-0 border-t px-3 py-2.5 ${light ? "border-slate-200 bg-slate-50" : "border-sky-200/15 bg-[#0a1424]/98"}`}>
+            <p className={`mb-2 text-micro leading-4 ${light ? "text-slate-500" : "text-sky-100/50"}`}>
               {t("layerQuickApplyHint", lang)}
             </p>
             <button
               type="button"
               onClick={handleApply}
               className={`w-full rounded-xl px-3 py-2.5 text-caption font-semibold transition ${
-                touched
-                  ? "border border-sky-300/55 bg-sky-500/35 text-sky-50 hover:bg-sky-500/50"
-                  : "border border-sky-200/25 bg-sky-500/15 text-sky-100/90 hover:bg-sky-500/30"
+                light
+                  ? touched
+                    ? "border border-slate-400 bg-slate-900 text-white hover:bg-slate-800"
+                    : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                  : touched
+                    ? "border border-sky-300/55 bg-sky-500/35 text-sky-50 hover:bg-sky-500/50"
+                    : "border border-sky-200/25 bg-sky-500/15 text-sky-100/90 hover:bg-sky-500/30"
               }`}
             >
               {t("layerQuickApply", lang)}

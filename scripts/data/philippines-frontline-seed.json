@@ -1,0 +1,130 @@
+[
+  {
+    "id": "front-ph-antonio-bautista",
+    "kind": "military-base",
+    "name": "Antonio Bautista Air Base (Puerto Princesa)",
+    "lat": 9.742,
+    "lng": 118.759,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-eben",
+    "kind": "military-base",
+    "name": "Benito Ebuen Air Base (Mactan)",
+    "lat": 10.3074,
+    "lng": 123.9794,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-fernando",
+    "kind": "military-base",
+    "name": "Fernando Air Base (Lipa)",
+    "lat": 13.955,
+    "lng": 121.125,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-sangley",
+    "kind": "military-base",
+    "name": "Sangley Point (Cavite)",
+    "lat": 14.495,
+    "lng": 120.904,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Philippine Navy",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-subic",
+    "kind": "military-base",
+    "name": "Naval Base Subic",
+    "lat": 14.791,
+    "lng": 120.271,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Philippine Navy",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-edwin-andrews",
+    "kind": "military-base",
+    "name": "Edwin Andrews Air Base (Zamboanga)",
+    "lat": 6.9224,
+    "lng": 122.0596,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "airfield",
+      "operator": "Philippine Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-lal-lo",
+    "kind": "military-base",
+    "name": "Camilo Osias Naval Base (Lal-lo)",
+    "lat": 18.182,
+    "lng": 121.745,
+    "tier": 1,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "naval_base",
+      "operator": "Philippine Navy",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ph-magsaysay",
+    "kind": "military-base",
+    "name": "Fort Magsaysay",
+    "lat": 15.435,
+    "lng": 121.09,
+    "tier": 2,
+    "meta": {
+      "country": "Philippines",
+      "iso": "PH",
+      "theater": "south-china-sea",
+      "branch": "base",
+      "operator": "Philippine Army",
+      "source": "seed-frontline"
+    }
+  }
+]

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { shipMovementReports } from "@/db/schema";
 import { upsertShipMovementsFromSources } from "@/lib/shipMovements/persist";
+import { NO_STORE_HEADERS } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
       observations: 0,
       startedAt,
       finishedAt: new Date().toISOString(),
-    });
+    }, { headers: NO_STORE_HEADERS });
   }
 
   const result = await upsertShipMovementsFromSources();

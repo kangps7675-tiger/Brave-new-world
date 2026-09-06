@@ -2,7 +2,6 @@
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
-import { GlobeSpinToggle } from "@/components/GlobeSpinToggle";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { BasemapModeToggle } from "@/components/BasemapModeToggle";
@@ -13,6 +12,8 @@ import { FinintTicker } from "@/components/FinintTicker";
 import { GpsJamFixedToggle } from "@/components/GpsJamFixedToggle";
 import { UsCarrierFixedToggle } from "@/components/UsCarrierFixedToggle";
 import { CompactPresetChips } from "@/components/CompactPresetChips";
+import { ScenarioPresetChips } from "@/components/ScenarioPresetChips";
+import type { ScenarioPresetId } from "@/lib/scenarioPresets";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { EXPLORATION_PRESETS, type ExplorationPreset, type NavSelection } from "@/data/navRegions";
 import { ECON_EXPLORATION_PRESETS } from "@/data/econNavRegions";
@@ -40,10 +41,7 @@ export interface DashboardTopChromeProps {
   wtiSnapshot: WorldTensionSnapshot | null;
   wtiFetchedAt: string | null;
   showGscpiGauge: boolean;
-  globeSpinEnabled: boolean;
-  setGlobeSpinEnabled: Dispatch<SetStateAction<boolean>>;
-  /** 좌하단 텔레그램 OSINT 미니 패널 — 켜지면 자전 토글을 그 위로 밀어 올린다 */
-  telegramMiniPanelVisible?: boolean;
+  showSesChip?: boolean;
   handleNavNavigate: (selection: NavSelection) => void;
   liveUpdatedAt: string | null;
   dataGeneratedAt: string | null;
@@ -53,6 +51,8 @@ export interface DashboardTopChromeProps {
   searchResults: SearchPlace[];
   handleSearchSelect: (place: SearchPlace) => void;
   isCompactUi: boolean;
+  /** 태블릿 — 우상단 칩 dense + 레일 밀도 */
+  isTabletUi?: boolean;
   setAskLayersOpen: Dispatch<SetStateAction<boolean>>;
   handleViewerModeChange: (mode: ViewerMode) => void;
   basemapMode: BasemapMode;
@@ -82,6 +82,9 @@ export interface DashboardTopChromeProps {
   deployedCarrierCount: number;
   compactChipId: CompactChipId;
   handleCompactChipSelect: (chipId: CompactChipId) => void;
+  /** 일반 모드 시나리오 프리셋 (P2-1) */
+  scenarioPresetId: ScenarioPresetId | null;
+  handleScenarioPresetSelect: (id: ScenarioPresetId) => void;
   globeRef: RefObject<MapGlobeMethods>;
   getSceneForShare: () => {
     mode: ViewerMode;
@@ -95,7 +98,7 @@ export interface DashboardTopChromeProps {
   setShowFeatureGuide: Dispatch<SetStateAction<boolean>>;
 }
 
-/** GlobeDashboard 상단 크롬 — ModeGlobalIndexChip · GlobeSpinToggle · HoverNav(compactMenuExtra 포함).
+/** GlobeDashboard 상단 크롬 — ModeGlobalIndexChip · HoverNav(compactMenuExtra 포함).
  *  동작 변경 없이 JSX만 이동 — intelSheetOpen/entryGate/showModePicker 조건부 래핑은 그대로 유지됨. */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -106,9 +109,7 @@ export function DashboardTopChrome({
   wtiSnapshot,
   wtiFetchedAt,
   showGscpiGauge,
-  globeSpinEnabled,
-  setGlobeSpinEnabled,
-  telegramMiniPanelVisible = false,
+  showSesChip = true,
   handleNavNavigate,
   liveUpdatedAt,
   dataGeneratedAt,
@@ -118,6 +119,7 @@ export function DashboardTopChrome({
   searchResults,
   handleSearchSelect,
   isCompactUi,
+  isTabletUi = false,
   setAskLayersOpen,
   handleViewerModeChange,
   basemapMode,
@@ -147,6 +149,8 @@ export function DashboardTopChrome({
   deployedCarrierCount,
   compactChipId,
   handleCompactChipSelect,
+  scenarioPresetId,
+  handleScenarioPresetSelect,
   globeRef,
   getSceneForShare,
   setChromeCoachStep,
@@ -175,27 +179,11 @@ export function DashboardTopChrome({
           wtiScore={wtiSnapshot?.score ?? null}
           wtiDelta={wtiSnapshot?.deltaScore ?? null}
           wtiAsOf={wtiFetchedAt}
+          wtiIsEstimate={wtiSnapshot?.method === "theater-blend-fallback"}
           showGscpi={showGscpiGauge}
+          showSesChip={showSesChip}
+          dense={isCompactUi || isTabletUi}
         />
-      ) : null}
-      {chromeVisible && !intelSheetOpen ? (
-        <div
-          className={`pointer-events-none fixed left-3 sm:left-4 ${
-            telegramMiniPanelVisible ? "z-[600]" : "z-[200]"
-          }`}
-          style={{
-            // 텔레그램 미니 패널(bottom 1.25rem · 리스트 max min(52vh,480px) · 헤더/푸터) 위로
-            bottom: telegramMiniPanelVisible
-              ? "calc(min(52vh, 480px) + 8.5rem + env(safe-area-inset-bottom, 0px))"
-              : "calc(var(--bottom-intel-stack-clearance, 3.25rem) + 0.85rem + env(safe-area-inset-bottom, 0px))",
-          }}
-        >
-          <GlobeSpinToggle
-            spinning={globeSpinEnabled}
-            onToggle={() => setGlobeSpinEnabled((v) => !v)}
-            lang={labelLanguage}
-          />
-        </div>
       ) : null}
       <HoverNav
         viewerMode={viewerMode}
@@ -212,15 +200,30 @@ export function DashboardTopChrome({
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
         belowNav={
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
-            <BasemapModeToggle mode={basemapMode} onChange={handleBasemapModeChange} />
-            {!isCompactUi ? (
-              <LayerQuickDropdown
-                categories={layerCategories}
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+              <BasemapModeToggle mode={basemapMode} onChange={handleBasemapModeChange} />
+              {!isCompactUi ? (
+                <LayerQuickDropdown
+                  categories={layerCategories}
+                  lang={labelLanguage}
+                  open={layerDropdownOpen}
+                  onOpenChange={setLayerDropdownOpen}
+                />
+              ) : null}
+            </div>
+            {/**
+             * P2-1: 일반 모드 시나리오 프리셋 — 가로 칩 대신 「주요전장/허브」 드롭다운.
+             * Compact/Ultra-Lite에는 CompactPresetChips가 있으므로 중복 노출하지 않는다.
+             * 레이어 패널이 열려 있으면 사용자가 직접 구성 중이라 숨긴다.
+             */}
+            {!isCompactUi && !showLeftPanel ? (
+              <ScenarioPresetChips
+                mode={viewerMode}
+                activeId={scenarioPresetId}
                 lang={labelLanguage}
-                open={layerDropdownOpen}
-                onOpenChange={setLayerDropdownOpen}
+                onSelect={handleScenarioPresetSelect}
               />
             ) : null}
           </div>

@@ -10,13 +10,44 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
+import { setWorkerUrl } from "maplibre-gl";
+import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
+import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+/**
+ * MapLibre v6 — 번들러(webpack 등)에서는 워커 URL이 `import.meta.url` 기준으로
+ * 자동 감지되지 않는다(모듈 그래프 안에서 신뢰 불가). 이걸 안 해주면 워커
+ * 객체 자체는 생성되지만(워커 생성 자체는 에러 없이 성공) 그 안의 스크립트가
+ * 비어있어 dispatcher가 보내는 모든 메시지(loadTile 포함)에 응답이 없다 —
+ * console 에러도, 'error' 이벤트도 없이 조용히 멈춘다. 그 결과 style.json·
+ * TileJSON·sprite는 정상 로드되는데 벡터 타일 .pbf 요청은 단 한 건도 나가지
+ * 않고 베이스맵이 완전히 빈 채(alpha=0)로 남는다.
+ *
+ * 공식 가이드가 제안하는 `new URL("maplibre-gl/dist/maplibre-gl-worker.mjs",
+ * import.meta.url)` 패턴은 실사용 환경에서도 안 통했다 — Next.js의 webpack
+ * 클라이언트 번들은 네이티브 ESM이 아니라 webpack 런타임 위에서 도는 번들이라
+ * `import.meta.url`이 실제 파일 위치를 가리키지 않기 때문. 대신 워커 파일을
+ * `scripts/copy-maplibre-worker.mjs`(predev/prebuild에서 자동 실행)로
+ * public/에 worker+shared를 그대로 복사해두고, 아래처럼 평범한 정적 URL로
+ * 가리킨다. v6 worker는 `./maplibre-gl-shared.mjs`를 상대 import하므로
+ * shared가 빠지면 워커가 404로 죽고 .pbf가 0건이 된다.
+ * @see https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
+ */
+if (typeof window !== "undefined") {
+  setWorkerUrl("/maplibre-gl-worker.mjs");
+}
 import type { FeatureCollection } from "geojson";
 import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasemap";
+import { entryOrbitCamera } from "@/lib/entryOverview";
 import { createMapGlobeMethods, type MapGlobeMethods } from "@/lib/mapGlobeRef";
+import { bindableImperativeRef } from "@/lib/imperativeRef";
 import {
   asFn,
+  buildCorridorGlintGradient,
+  buildCorridorGlintOffGradient,
   buildFirmsFiresGeoJson,
   buildHeatmapGeoJson,
   buildLabelsGeoJson,
@@ -25,6 +56,9 @@ import {
   buildPolygonsGeoJson,
   buildRingsGeoJson,
   CIRCLE_RADIUS_BY_ZOOM,
+  CORRIDOR_GLINT_MAX_LEGS,
+  CORRIDOR_GLINT_PERIOD_MS,
+  CORRIDOR_GLINT_TICK_MS,
   FIRMS_ICON_SIZE_BY_ZOOM,
   LABEL_DOT_RADIUS_BY_ZOOM,
   LABEL_TEXT_SIZE_BY_ZOOM,
@@ -38,6 +72,26 @@ import {
   ensureGemFacilityImages,
 } from "@/lib/gemFacilityIcons";
 import {
+  SAFECAST_CIRCLE_LAYER_ID,
+  SAFECAST_LABEL_LAYER_ID,
+  SAFECAST_SOURCE_ID,
+} from "@/lib/safecastRadiationMarker";
+import {
+  AIRCRAFT_SYMBOL_LAYER_ID,
+  AIRCRAFT_SYMBOL_SOURCE_ID,
+  ensureAircraftSymbolImages,
+} from "@/lib/milAircraftSymbols";
+import {
+  AIS_ASPECT_SYMBOL_LAYER_ID,
+  AIS_ASPECT_SYMBOL_SOURCE_ID,
+  AIS_HEADING_SYMBOL_LAYER_ID,
+  AIS_HEADING_SYMBOL_SOURCE_ID,
+  aisSymbolBearingBucket,
+  buildAisSymbolModel,
+  ensureAisSymbolImages,
+  type AisSymbolInput,
+} from "@/lib/aisVesselSymbols";
+import {
   islandChainsBasesGeoJson,
   islandChainsChinaGeoJson,
   islandChainsChinaHighlightGeoJson,
@@ -48,7 +102,9 @@ import {
 import {
   applyBasemapFog,
   applyBasemapGlobeProjection,
+  applyBasemapOceanColors,
   applyBasemapPlaceLabelScale,
+  applyBasemapSatelliteImagery,
   applyBasemapSpaceBackground,
   applyBasemapTerrain,
   AWS_TERRARIUM_ATTRIBUTION,
@@ -57,12 +113,45 @@ import {
   BASEMAP_SOURCE_IDS,
   BUILDINGS_MIN_ZOOM,
   DEFAULT_BASEMAP_MODE,
+  INTEL_VECTOR_STYLE_URL,
+  injectGlobeProjection,
+  isMercatorProjection,
   OPENFREEMAP_ATTRIBUTION,
   OPENFREEMAP_PLANET_URL,
   parseBasemapMode,
+  readMapZoom,
+  shouldEnableBasemapTerrain,
   type BasemapMapLike,
   type BasemapMode,
 } from "@/lib/basemapMode";
+import { osmBuildingsArmedNext, osmBuildingsEligible } from "@/lib/osmBuildings3d";
+import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
+
+const OsmBuildingsOverlay = dynamic(
+  () =>
+    import("@/components/globe/OsmBuildingsOverlay").then(
+      (mod) => mod.OsmBuildingsOverlay,
+    ),
+  { ssr: false },
+);
+
+/** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
+function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
+  applyBasemapFog(map, mode);
+  applyBasemapSpaceBackground(map, mode);
+  applyBasemapOceanColors(map, mode);
+}
+
+function applyTerrainForMap(
+  map: BasemapMapLike,
+  mode: BasemapMode,
+  ultraLite: boolean,
+): void {
+  applyBasemapTerrain(map, mode, {
+    ultraLite,
+    zoom: readMapZoom(map),
+  });
+}
 
 /**
  * GlobeLayerProps(Record)와 intersection하면 index signature가 콜백을 unknown으로 넓힙니다.
@@ -74,12 +163,18 @@ export interface MapGlobeViewProps {
   onGlobeReady?: () => void;
   /** 빈 바다·지도 위 커서 좌표 (해역명 툴팁 등) */
   onGlobeMouseMove?: (coords: { lat: number; lng: number } | null) => void;
+  /** MapLibre 로드 직후 — 상위(GlobeMapCanvas)에서 map 인스턴스가 필요할 때용 (현재 미사용) */
+  onMapReadyForHybrid?: (map: import("maplibre-gl").Map) => void;
+  /** WebGL context lost — 상위에서 별도 처리하고 싶을 때용 (현재 미사용) */
+  onWebglContextLost?: () => void;
   /** MapLibre feature picking 대상 — VIINA 근접 줌에서 폴리곤 제외 등 */
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
   showIslandChains?: boolean;
   /** 인텔(다크 벡터) / 지형(MapLibre OSM 벡터+DEM) — mapStyleUrl 교체로 전환 */
   basemapMode?: BasemapMode;
+  /** 도시명 레이어 체크박스 — OFF면 베이스맵 city/capital 라벨도 숨김 */
+  showCityLabels?: boolean;
   /** Ultra-Lite: 3D 건물·야간불빛 OFF, 지형 exaggeration 하향 */
   ultraLite?: boolean;
   [key: string]: unknown;
@@ -88,6 +183,9 @@ export interface MapGlobeViewProps {
 const INTERACTIVE_LAYERS = [
   "map-points",
   "map-gem-facilities",
+  AIRCRAFT_SYMBOL_LAYER_ID,
+  AIS_HEADING_SYMBOL_LAYER_ID,
+  AIS_ASPECT_SYMBOL_LAYER_ID,
   "map-paths-solid",
   "map-paths-dashed",
   "map-polygons-fill",
@@ -98,11 +196,60 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-defense",
   "ukraine-micro-combat-circle",
   "island-chains-bases",
+  SAFECAST_CIRCLE_LAYER_ID,
+  SAFECAST_LABEL_LAYER_ID,
 ] as const;
 
 function isMapPathsLayer(layerId: string): boolean {
   return layerId === "map-paths-solid" || layerId === "map-paths-dashed";
 }
+
+/**
+ * 호버된 path item이 "실측 회랑"(글린트 대상)이면 그 groupId를, 아니면 null을 반환한다.
+ * 일반 철도/도로/파이프라인 등은 글린트 대상이 아니므로 호버해도 반짝이지 않는다.
+ * 아직 "건설중"인 회랑은 완공된 인프라처럼 보이면 안 되므로 글린트 대상에서 제외한다.
+ */
+function realCorridorGroupIdOf(item: unknown): string | null {
+  if (!item || typeof item !== "object" || !("meta" in item)) return null;
+  const meta = (item as { meta?: Record<string, unknown> }).meta;
+  if (!meta || meta.geometrySource !== "real-corridor") return null;
+  if (meta.status === "under-construction") return null;
+  const groupId = meta.groupId ?? meta.corridorGroupId;
+  return typeof groupId === "string" && groupId ? groupId : null;
+}
+
+/**
+ * 호버된 path item이 axis-link(축 관계망/군수 이송) 관계면 그 groupId를 반환한다 —
+ * 글린트와 달리 실측 회랑 여부·건설 상태와 무관하게, axis-link이기만 하면 대상이 된다.
+ * 이 값이 map-paths-hover-recolor-* 레이어의 필터로 쓰여, 호버 중인 국가색 링크의
+ * 색이 관계 성격 색(군수=빨강 등)으로 잠깐 바뀌게 한다.
+ */
+function axisLinkHoverGroupId(item: unknown): string | null {
+  if (!item || typeof item !== "object") return null;
+  const kind = "kind" in item ? (item as { kind?: string }).kind : undefined;
+  if (kind !== "axis-link") return null;
+  const meta = "meta" in item ? (item as { meta?: Record<string, unknown> }).meta : undefined;
+  const groupId = meta?.groupId ?? meta?.corridorGroupId;
+  if (typeof groupId === "string" && groupId) return groupId;
+  const id = "id" in item ? (item as { id?: string }).id : undefined;
+  return typeof id === "string" && id ? id : null;
+}
+
+/** PortWatch maritime routes — flowing dash (trade particle motion). */
+const MARITIME_DASH_SEQUENCE: [number, number, number][] = [
+  [0, 5, 2.5],
+  [0.6, 5, 1.9],
+  [1.2, 5, 1.3],
+  [1.8, 5, 0.7],
+  [2.4, 5, 0.1],
+  [0, 0.6, 4.4],
+  [0, 1.2, 3.8],
+  [0, 1.8, 3.2],
+  [0, 2.4, 2.6],
+  [0, 3.0, 2.0],
+  [0, 3.6, 1.4],
+  [0, 4.2, 0.8],
+];
 
 /** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
 const CHINA_DASH_SEQUENCE: [number, number, number][] = [
@@ -127,33 +274,69 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   ref,
 ) {
   const {
-    mapStyleUrl,
+    mapStyleUrl: mapStyleUrlProp,
     backgroundColor = "#02040a",
     showIslandChains = false,
   } = props;
   /** index signature로 unknown이 되므로 명시 파싱 */
+  const mapStyleUrl =
+    typeof mapStyleUrlProp === "string" && mapStyleUrlProp.length > 0
+      ? mapStyleUrlProp
+      : INTEL_VECTOR_STYLE_URL;
   const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
   const ultraLite = Boolean(props.ultraLite);
+  const showCityLabels = Boolean(props.showCityLabels);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
     | undefined;
+  const onMapReadyForHybrid = props.onMapReadyForHybrid as
+    | ((map: import("maplibre-gl").Map) => void)
+    | undefined;
+  const onWebglContextLost = props.onWebglContextLost as (() => void) | undefined;
 
   const mapRef = useRef<MapRef>(null);
+  /** <Map>을 감싸는 컨테이너 — webglcontextcreationerror를 캡처 단계에서 잡기 위한 앵커 */
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  /** WebGL 컨텍스트 유실 상태 (P0-2) */
+  const [contextLost, setContextLost] = useState(false);
+  /**
+   * 지도가 "한 번도" 뜨지 못한 경우 (2026-08-31, 리포트 2번).
+   * `contextLost`(뜬 적은 있는데 GPU 리셋)와 달리 자동 복구를 기대할 수
+   * 없다 — webglcontextcreationerror / 로드 전 onError / 타임아웃 셋 중
+   * 하나라도 걸리면 true.
+   */
+  const [mapInitFailed, setMapInitFailed] = useState(false);
   const changeListenersRef = useRef(new Set<() => void>());
   const readyRef = useRef(false);
   const onGlobeReadyRef = useRef<(() => void) | undefined>(onGlobeReady);
   const onGlobeMouseMoveRef = useRef<
     ((coords: { lat: number; lng: number } | null) => void) | undefined
   >(onGlobeMouseMove);
+  const onMapReadyForHybridRef = useRef(onMapReadyForHybrid);
+  const onWebglContextLostRef = useRef(onWebglContextLost);
   const basemapModeRef = useRef<BasemapMode>(basemapMode);
   const ultraLiteRef = useRef(ultraLite);
-  const [, setMapZoom] = useState(2);
+  const showCityLabelsRef = useRef(showCityLabels);
+  const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapLoadedRef = useRef(false);
+  mapLoadedRef.current = mapLoaded;
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
   const [hoveredIslandBaseId, setHoveredIslandBaseId] = useState<string | null>(null);
+  /**
+   * 실측 회랑 "글린트" — 상시 재생이 아니라 개별 회랑/축 관계를 호버할 때만
+   * 켜진다. groupId(edge.id/arms 쌍/corridor.id)가 같은 leg 전체가 같이 반짝인다.
+   */
+  const [hoveredPathGroupId, setHoveredPathGroupId] = useState<string | null>(null);
+  /**
+   * axis-link 국가색→관계색 호버 리컬러 대상 groupId. 글린트(hoveredPathGroupId)와
+   * 달리 실측 회랑 여부와 무관하게 axis-link이기만 하면 켜진다 — 대권 호로 폴백된
+   * 스포크 관계(예: 러–카자흐)도 호버하면 색이 바뀌어야 하기 때문.
+   */
+  const [hoveredAxisLinkGroupId, setHoveredAxisLinkGroupId] = useState<string | null>(null);
   /** onMove는 프레임마다 오므로 zoom→GeoJSON 재빌드는 idle 시에만 */
   const mapZoomRef = useRef(2);
   const mapBearingRef = useRef(0);
@@ -171,6 +354,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   }, [onGlobeMouseMove]);
 
   useEffect(() => {
+    onMapReadyForHybridRef.current = onMapReadyForHybrid;
+  }, [onMapReadyForHybrid]);
+
+  useEffect(() => {
+    onWebglContextLostRef.current = onWebglContextLost;
+  }, [onWebglContextLost]);
+
+  useEffect(() => {
     basemapModeRef.current = basemapMode;
   }, [basemapMode]);
 
@@ -178,7 +369,76 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     ultraLiteRef.current = ultraLite;
   }, [ultraLite]);
 
-  const showVectorBuildings = basemapMode === "terrain" && !ultraLite;
+  useEffect(() => {
+    showCityLabelsRef.current = showCityLabels;
+  }, [showCityLabels]);
+
+  /**
+   * style.json을 미리 fetch해 Map 마운트를 막으면 OpenFreeMap 응답·OneDrive I/O
+   * 동안 검은 화면만 보인다. URL로 즉시 올리고 handleLoad/setStyle 훅·styledata
+   * 가드에서 globe projection을 씌운다 (mercator 첫 프레임은 수 ms 수준).
+   */
+  /** onLoad에만 의존하지 않음 — style URL 로드 레이스에서도 투영·진단 훅 보장 */
+  useEffect(() => {
+    if (!mapStyleUrl) return;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      tries += 1;
+      const map = mapRef.current?.getMap();
+      if (!map) {
+        if (tries > 100) window.clearInterval(id);
+        return;
+      }
+      const m = map as unknown as BasemapMapLike;
+      try {
+        const w = window as Window & {
+          __GEOWATCH_MAP_PROJECTION?: () => unknown;
+          __GEOWATCH_FORCE_GLOBE?: () => void;
+        };
+        w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+        w.__GEOWATCH_FORCE_GLOBE = () => {
+          applyBasemapGlobeProjection(m);
+          try {
+            map.setProjection?.({ type: "vertical-perspective" });
+          } catch {
+            /* ignore */
+          }
+        };
+      } catch {
+        /* ignore */
+      }
+      applyBasemapGlobeProjection(m);
+      if (map.isStyleLoaded() || tries > 80) {
+        applyBasemapAtmosphere(m, basemapModeRef.current);
+        window.clearInterval(id);
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [mapStyleUrl]);
+
+  const ionToken = getRuntimeConfig().cesiumIonToken;
+  const osmEligible = osmBuildingsEligible({
+    basemapMode,
+    ultraLite,
+    ionToken,
+  });
+  const [osmBuildingsArmed, setOsmBuildingsArmed] = useState(false);
+  useEffect(() => {
+    setOsmBuildingsArmed((prev) => osmBuildingsArmedNext(prev, mapZoom, osmEligible));
+  }, [mapZoom, osmEligible]);
+  useEffect(() => {
+    if (!osmEligible) return;
+    void import("@/components/globe/OsmBuildingsOverlay");
+  }, [osmEligible]);
+  const showOsmBuildings = osmBuildingsArmed;
+  /** Ion 3D Tiles가 켜지면 상자 extrusion은 겹치지 않게 끈다. 토큰 없으면 폴백. */
+  const showVectorBuildings =
+    basemapMode === "terrain" && !ultraLite && !showOsmBuildings;
+  const terrainWanted = shouldEnableBasemapTerrain({
+    mode: basemapMode,
+    zoom: mapZoom,
+    ultraLite,
+  });
 
   /** 밝은 베이스맵에서는 후광·테두리를 흰색으로 뒤집어 대비를 유지 */
   const isLightBasemap = basemapMode === "terrain";
@@ -194,7 +454,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [],
   );
 
-  useImperativeHandle(ref, () => methods, [methods]);
+  useImperativeHandle(bindableImperativeRef(ref), () => methods, [methods]);
 
   useEffect(() => {
     return () => {
@@ -210,6 +470,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [props.priorityPathsData],
   );
   const focusFillGeoJson = props.focusFillGeoJson as FeatureCollection | null | undefined;
+  const emptySafecastGeoJson = useMemo<FeatureCollection>(
+    () => ({ type: "FeatureCollection", features: [] }),
+    [],
+  );
+  const safecastGaugesGeoJson = useMemo(() => {
+    const raw = props.safecastGaugesGeoJson as FeatureCollection | null | undefined;
+    return raw && Array.isArray(raw.features) ? raw : emptySafecastGeoJson;
+  }, [emptySafecastGeoJson, props.safecastGaugesGeoJson]);
   const [deferredPathsData, setDeferredPathsData] = useState(pathsData);
   const pathsContentKey = useMemo(() => {
     if (pathsData.length === 0) return "0";
@@ -286,6 +554,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.axisHubCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.axisHubCountriesGeoJson]);
+  const alliedBlocCountriesGeoJson = useMemo(() => {
+    const raw = props.alliedBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.alliedBlocCountriesGeoJson]);
+  const geoEconBlocCountriesGeoJson = useMemo(() => {
+    const raw = props.geoEconBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.geoEconBlocCountriesGeoJson]);
 
   const interactiveLayerIds = useMemo(() => {
     const fromProps = props.interactiveLayerIds;
@@ -350,6 +626,24 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     props.htmlRotationAlignment,
     () => "viewport",
   );
+
+  /**
+   * 위치·회전 접근자는 매 렌더 새 참조(인라인 화살표)라 deps에 넣으면
+   * htmlMarkerNodes 메모가 절대 적중하지 않는다. 전부 item만 보는 순수
+   * 함수이므로 ref로 최신값을 읽어도 결과가 같다 — accessorsRef와 같은 패턴.
+   */
+  const htmlAccessorsRef = useRef({
+    htmlLat,
+    htmlLng,
+    htmlRotation,
+    htmlRotationAlignment,
+  });
+  htmlAccessorsRef.current = {
+    htmlLat,
+    htmlLng,
+    htmlRotation,
+    htmlRotationAlignment,
+  };
 
   const onPointClick = props.onPointClick as ((item: unknown) => void) | undefined;
   const onPointHover = props.onPointHover as ((item: unknown | null) => void) | undefined;
@@ -453,14 +747,69 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       points: a.pathPoints,
       color: a.pathColor,
       stroke: a.pathStroke,
-      dashLength: a.pathDashLength,
+      // 실측 회랑이 육로↔해상 다구간(legs)으로 쪼개진 경우, 해상 구간(카스피해
+      // 도하 등)만 점선(map-paths-dashed)으로 그려서 "장애물을 만나 항로로
+      // 갈아탄다"는 걸 시각적으로 드러낸다. 그 외에는 기존 접근자 그대로 위임.
+      dashLength: (item) => {
+        const legMode =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { legMode?: string } }).meta?.legMode
+            : undefined;
+        const kind =
+          item && typeof item === "object" && "kind" in item
+            ? String((item as { kind?: string }).kind ?? "")
+            : undefined;
+        if (kind === "maritime-route") return 4;
+        return legMode === "sea" ? 3 : a.pathDashLength(item);
+      },
       dashGap: a.pathDashGap,
       kind: (item) =>
         item && typeof item === "object" && "kind" in item
           ? String((item as { kind?: string }).kind ?? "")
           : undefined,
+      // 실측 회랑(카스피해 드론 이송로·라진-하산철도 등, axis-link 오버라이드) —
+      // map-paths-glint 레이어가 태양광 글린트 밴드를 흘려보낼 대상만 표시.
+      // 육로 구간이든 해상(점선) 구간이든 같은 회랑에 속하면 동일하게 반짝여서
+      // 구간이 바뀌어도 "하나로 이어진 인프라"처럼 보이게 한다.
+      glint: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { geometrySource?: string; status?: string } }).meta
+            : undefined;
+        // 건설중인 회랑은 아직 없는 인프라를 완공된 것처럼 반짝이게 하지 않는다.
+        return meta?.geometrySource === "real-corridor" && meta?.status !== "under-construction";
+      },
+      // 같은 회랑/축 관계의 leg들을 하나로 묶는 키 — 호버 중인 groupId와 같은
+      // feature만 map-paths-glint-* 레이어 필터를 통과해 반짝인다.
+      groupId: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { groupId?: string; corridorGroupId?: string } }).meta
+            : undefined;
+        return meta?.groupId ?? meta?.corridorGroupId ?? undefined;
+      },
+      legIndex: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { legIndex?: number } }).meta
+            : undefined;
+        return meta?.legIndex;
+      },
+      // axis-link 전용 — 호버 시 국가 기본색 대신 드러날 관계 성격 색(군수=빨강 등).
+      hoverColor: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { hoverColor?: string } }).meta
+            : undefined;
+        return typeof meta?.hoverColor === "string" ? meta.hoverColor : undefined;
+      },
     });
   }, [deferredPathsData, basemapMode]);
+
+  const hasMaritimeRoutes = useMemo(
+    () => pathsGeoJson.features.some((f) => f.properties?.kind === "maritime-route"),
+    [pathsGeoJson],
+  );
 
   const priorityPathsGeoJson = useMemo(() => {
     void basemapMode;
@@ -530,6 +879,46 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const heatmapCollections = useMemo(() => buildHeatmapGeoJson(heatmapsData), [heatmapsData]);
 
   /**
+   * 항공기 symbol 레이어 데이터. 상위(useGlobeMapGlobeProps)에서 이미
+   * FeatureCollection으로 만들어 넘겨준다 — 여기서 다시 빌드하지 않는다.
+   */
+  const aircraftSymbolsGeoJson = useMemo(() => {
+    const raw = props.aircraftSymbolsData as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.aircraftSymbolsData]);
+
+  /** properties.index → 원본 항공기 (클릭/호버 복원용) */
+  const aircraftSymbolsItems = useMemo(
+    () => (props.aircraftSymbolsItems as unknown[]) ?? [],
+    [props.aircraftSymbolsItems],
+  );
+  const aircraftSymbolsIsCivil = useMemo(
+    () => (props.aircraftSymbolsIsCivil as boolean[]) ?? [],
+    [props.aircraftSymbolsIsCivil],
+  );
+  const onAircraftClick = props.onAircraftClick as
+    | ((item: unknown, isCivil: boolean) => void)
+    | undefined;
+  const onAircraftHover = props.onAircraftHover as
+    | ((item: unknown | null) => void)
+    | undefined;
+
+  /**
+   * 선박(AIS) symbol 레이어 — 항공기와 달리 옆모습(E/W) 판정이 카메라 방위
+   * (mapBearingDeg, 바로 아래서 정의)에 좌우되므로 geojson을 여기서 굽는다.
+   * 5° 단위로 양자화해 회전 중 재빌드 빈도를 억제한다 (aisSymbolBearingBucket).
+   */
+  const aisSymbolVessels = (props.aisSymbolVessels as AisSymbolInput[] | undefined) ?? [];
+  const aisSymbolModel = useMemo(
+    () => buildAisSymbolModel(aisSymbolVessels, aisSymbolBearingBucket(mapBearingDeg)),
+    [aisSymbolVessels, mapBearingDeg],
+  );
+  const onAisSymbolClick = props.onAisSymbolClick as ((item: unknown) => void) | undefined;
+  const onAisSymbolHover = props.onAisSymbolHover as
+    | ((item: unknown | null) => void)
+    | undefined;
+
+  /**
    * pointOfView(jumpTo) → onMove → notifyChange 동기 재진입을 막는다.
    * 재진입 시 고도 클램프가 change 리스너를 중첩 호출해 React #185를 냈다.
    */
@@ -584,12 +973,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const handleMove = useCallback(
     (event: { viewState: { zoom: number; bearing?: number } }) => {
-      // 은은한 자전 jumpTo — 매 프레임 notify하면 isCameraMoving이 풀리지 않음
-      if (methods.controls().isAutoRotateFrame) {
-        mapZoomRef.current = event.viewState.zoom;
-        return;
-      }
-
       setMovingClass(true);
       mapZoomRef.current = event.viewState.zoom;
       const rawBearing = event.viewState.bearing ?? mapRef.current?.getMap()?.getBearing() ?? 0;
@@ -612,7 +995,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }, 420);
       notifyChange();
     },
-    [methods, notifyChange, publishZoom, setMovingClass],
+    [notifyChange, publishZoom, setMovingClass],
   );
 
   useEffect(() => {
@@ -637,27 +1020,170 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     notifyChange();
   }, [notifyChange]);
 
+  /**
+   * P0-2: WebGL 컨텍스트 유실 복구.
+   *
+   * 모바일에서 탭 전환·메모리 압박이 오면 브라우저가 GPU 컨텍스트를 회수한다.
+   * 지금까지는 아무 처리가 없어 지도가 **검은 화면으로 영구 고착**됐다 —
+   * 사용자에게 남은 선택지는 새로고침뿐이었고, 그마저도 안내가 없었다.
+   *
+   * `preventDefault()`가 핵심이다. 이걸 호출하지 않으면 브라우저는
+   * `webglcontextrestored`를 아예 발화시키지 않아 자동 복구 자체가 불가능해진다.
+   */
+  const handleContextRetry = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const canvas = mapRef.current?.getMap()?.getCanvas();
+    if (!canvas) return;
+
+    const onLost = (e: Event) => {
+      e.preventDefault(); // 이게 없으면 restored가 오지 않는다
+      setContextLost(true);
+      onWebglContextLostRef.current?.();
+    };
+    const onRestored = () => {
+      setContextLost(false);
+      // 스타일·소스는 maplibre가 자체 복구하지만 globe 투영·fog는 다시 씌워야 한다
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
+      map.triggerRepaint();
+    };
+
+    canvas.addEventListener("webglcontextlost", onLost, false);
+    canvas.addEventListener("webglcontextrestored", onRestored, false);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+    };
+  }, [mapLoaded]);
+
+  /**
+   * 지도 초기화 실패 감지 (2026-08-31, 리포트 2번 — P0-1의 남은 구멍).
+   *
+   * `webglSupport.ts`의 부트 probe는 "생성 가능한지"만 확인하고 즉시
+   * 컨텍스트를 반납한다. 실제 <Map>이 나중에 진짜 컨텍스트를 만들 때
+   * 실패해도(예: 로딩 셰이더가 반납 안 한 컨텍스트와 충돌, GPU 드라이버
+   * 컨텍스트 상한 등) 지금까지는 아무도 못 잡았다 — <Map>에 onError가
+   * 연결돼 있지 않고, webglcontextcreationerror 리스너도 없었다.
+   *
+   * 이 이벤트는 캔버스가 아직 만들어지기 *전부터* 컨테이너에 캡처 단계로
+   * 걸어둬야 확실히 잡힌다 — 캔버스가 생기고 나서 리스너를 달면 이미
+   * 늦는다. 타임아웃은 이벤트 자체가 안 뜨는 조용한 실패까지 잡는 안전망.
+   */
+  useEffect(() => {
+    if (mapLoaded) return;
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    const onCreationError = () => {
+      setMapInitFailed(true);
+    };
+    container.addEventListener("webglcontextcreationerror", onCreationError, true);
+
+    const timeoutId = window.setTimeout(() => {
+      if (!mapLoadedRef.current) setMapInitFailed(true);
+    }, 15_000);
+
+    return () => {
+      container.removeEventListener("webglcontextcreationerror", onCreationError, true);
+      window.clearTimeout(timeoutId);
+    };
+  }, [mapLoaded]);
+
+  /** 로드 전 발생한 치명적 오류 — 로드 후 오류(타일 404 등)는 maplibre가 알아서 처리하므로 무시 */
+  const handleMapError = useCallback(() => {
+    if (!mapLoaded) setMapInitFailed(true);
+  }, [mapLoaded]);
+
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
+
     const m = map as unknown as BasemapMapLike;
+
+    // 진단 훅을 최우선 등록 (아래 setStyle 래핑이 실패해도 e2e/콘솔이 살도록)
+    try {
+      const w = window as Window & {
+        __GEOWATCH_MAP_PROJECTION?: () => unknown;
+        __GEOWATCH_FORCE_GLOBE?: () => void;
+      };
+      w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
+      w.__GEOWATCH_FORCE_GLOBE = () => {
+        applyBasemapGlobeProjection(m);
+        try {
+          map.setProjection?.({ type: "vertical-perspective" });
+        } catch {
+          /* ignore */
+        }
+      };
+    } catch {
+      /* SSR / opaque */
+    }
+
     applyBasemapGlobeProjection(m);
+
+    /**
+     * react-map-gl Map 타입에 transformStyle가 없어 JSX로 못 넘긴다.
+     * 이후 setStyle 호출마다 vertical-perspective를 주입한다.
+     * (이미 로드된 style을 다시 setStyle 하지 않음 — onLoad 레이스 방지)
+     */
+    const hooked = map as typeof map & { __globeStyleHook?: boolean };
+    if (!hooked.__globeStyleHook) {
+      hooked.__globeStyleHook = true;
+      try {
+        const originalSetStyle = map.setStyle.bind(map);
+        map.setStyle = ((style, options) => {
+          const userTransform = options?.transformStyle;
+          return originalSetStyle(style, {
+            ...options,
+            transformStyle: (prev, next) => {
+              const mid = userTransform ? userTransform(prev, next) : next;
+              return injectGlobeProjection(
+                mid as unknown as Record<string, unknown>,
+              ) as typeof next;
+            },
+          });
+        }) as typeof map.setStyle;
+      } catch {
+        /* setStyle wrap unsupported */
+      }
+    }
+
     methods.applyControls();
     publishZoom(map.getZoom(), true);
     setMapLoaded(true);
+    setMapInitFailed(false);
+    onMapReadyForHybridRef.current?.(map);
 
     void ensureGemFacilityImages(map).catch(() => {
       /* 아이콘 로드 실패 시 circle 폴백 없음 — 재시도는 스타일 리로드 시 */
     });
+    void ensureAircraftSymbolImages(map).catch(() => {
+      /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
+    });
+    void ensureAisSymbolImages(map).catch(() => {
+      /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
+    });
 
     const applyVisuals = () => {
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
     };
 
     if (map.isStyleLoaded()) {
@@ -692,47 +1218,80 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (movingRef.current) return;
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapMode);
-      applyBasemapSpaceBackground(m);
-      applyBasemapTerrain(m, basemapMode, { ultraLite });
-      applyBasemapPlaceLabelScale(m, basemapMode);
+      applyBasemapAtmosphere(m, basemapMode);
+      applyTerrainForMap(m, basemapMode, ultraLite);
+      applyBasemapSatelliteImagery(m, basemapMode);
+      applyBasemapPlaceLabelScale(m, basemapMode, { showCityLabels });
     };
 
     if (movingRef.current) {
+      // 실시간 레이어(ACLED·GDELT·선박 추적 등)가 끊임없이 갱신되는 화면에서는
+      // MapLibre의 네이티브 "idle" 이벤트가 사실상 영영 안 올 수 있다 — idle만
+      // 믿고 기다리면 베이스맵 전환 시 위성 사진·terrain 과장이 영구히 안 씌워짐.
+      // handleLoad와 동일하게 idle과 타임아웃 중 먼저 오는 쪽으로 반드시 적용한다.
+      let settled = false;
       const onIdle = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallback);
         map.off("idle", onIdle);
         apply();
       };
+      const fallback = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        map.off("idle", onIdle);
+        apply();
+      }, 1500);
       map.on("idle", onIdle);
       return () => {
+        settled = true;
+        window.clearTimeout(fallback);
         map.off("idle", onIdle);
       };
     }
 
     apply();
     return undefined;
-  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl]);
+  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl, showCityLabels]);
 
   /** terrain DEM 소스가 React로 붙은 뒤 setTerrain 재적용 */
   useEffect(() => {
     if (!mapLoaded) return;
     const map = mapRef.current?.getMap();
     if (!map) return;
+    let settled = false;
     const tryTerrain = () => {
       if (movingRef.current) return;
-      const m = map as unknown as BasemapMapLike;
-      applyBasemapGlobeProjection(m);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
-      });
-    };
-    const t = window.setTimeout(tryTerrain, 80);
-    map.once("idle", tryTerrain);
-    return () => {
+      if (settled) return;
+      settled = true;
       window.clearTimeout(t);
       map.off("idle", tryTerrain);
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
     };
-  }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl]);
+    // 80ms 지연 후 1차 시도, 그래도 movingRef가 걸려 있으면 idle을 기다리되
+    // — 실시간 레이어 때문에 idle이 영영 안 올 수 있어 1.5s 타임아웃으로도 강제 재시도.
+    const t = window.setTimeout(tryTerrain, 80);
+    const forceRetry = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      map.off("idle", tryTerrain);
+      const m = map as unknown as BasemapMapLike;
+      applyBasemapGlobeProjection(m);
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+    }, 1500);
+    map.once("idle", tryTerrain);
+    return () => {
+      settled = true;
+      window.clearTimeout(t);
+      window.clearTimeout(forceRetry);
+      map.off("idle", tryTerrain);
+    };
+  }, [mapLoaded, basemapMode, ultraLite, mapStyleUrl, terrainWanted]);
 
   /** 스타일 로드 후 fog·globe 재적용 (URL 교체 시) */
   useEffect(() => {
@@ -743,9 +1302,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (movingRef.current) return;
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      // 대기권(해양색)이 water fill을 다시 건드린 뒤에도 위성 페이드가 유지되게
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
+      });
     };
     sync();
     map.once("idle", sync);
@@ -753,6 +1315,33 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       map.off("idle", sync);
     };
   }, [mapLoaded, mapStyleUrl, basemapMode]);
+
+  /**
+   * OpenFreeMap style.json에는 projection이 없어 로드·교체 순간 Mercator로 떨어진다.
+   * styledata 때마다 mercator면 지구본을 다시 씌운다 (납작한 세계지도 회귀 방지).
+   */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const m = map as unknown as BasemapMapLike;
+    const ensureGlobe = () => {
+      if (movingRef.current) return;
+      if (!isMercatorProjection(m)) return;
+      applyBasemapGlobeProjection(m);
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+    };
+    ensureGlobe();
+    map.on("styledata", ensureGlobe);
+    const poll = window.setInterval(ensureGlobe, 1500);
+    const stopPoll = window.setTimeout(() => window.clearInterval(poll), 20_000);
+    return () => {
+      map.off("styledata", ensureGlobe);
+      window.clearInterval(poll);
+      window.clearTimeout(stopPoll);
+    };
+  }, [mapLoaded, mapStyleUrl]);
 
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
@@ -765,9 +1354,23 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
       if (layerId === "map-rings") return ringsData[index] ?? null;
+      if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+        return aircraftSymbolsItems[index] ?? null;
+      }
+      if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+        return aisSymbolModel.items[index] ?? null;
+      }
       return null;
     },
-    [deferredPathsData, firmsFiresData, pointsData, polygonsData, ringsData],
+    [
+      aircraftSymbolsItems,
+      aisSymbolModel,
+      deferredPathsData,
+      firmsFiresData,
+      pointsData,
+      polygonsData,
+      ringsData,
+    ],
   );
 
   const handleMapClick = useCallback(
@@ -801,6 +1404,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onPointClick?.(item);
           return;
         }
+        if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+          onAircraftClick?.(item, aircraftSymbolsIsCivil[Number(index)] ?? false);
+          return;
+        }
+        if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+          onAisSymbolClick?.(item);
+          return;
+        }
         if (isMapPathsLayer(layerId)) {
           onPathClick?.(item);
           return;
@@ -814,6 +1425,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     },
     [
       hoveredIslandBaseId,
+      onAisSymbolClick,
       onGlobeClick,
       onPathClick,
       onPointClick,
@@ -858,8 +1470,18 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onPointHover?.(item);
           return;
         }
+        if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
+          onAircraftHover?.(item);
+          return;
+        }
+        if (layerId === AIS_HEADING_SYMBOL_LAYER_ID || layerId === AIS_ASPECT_SYMBOL_LAYER_ID) {
+          onAisSymbolHover?.(item);
+          return;
+        }
         if (isMapPathsLayer(layerId)) {
           onPathHover?.(item);
+          setHoveredPathGroupId(realCorridorGroupIdOf(item));
+          setHoveredAxisLinkGroupId(axisLinkHoverGroupId(item));
           return;
         }
         if (layerId === "map-polygons-fill") {
@@ -870,8 +1492,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onPointHover?.(null);
       onPathHover?.(null);
       onPolygonHover?.(null);
+      onAircraftHover?.(null);
+      onAisSymbolHover?.(null);
+      setHoveredPathGroupId(null);
+      setHoveredAxisLinkGroupId(null);
     },
-    [onPathHover, onPointHover, onPolygonHover, resolveFeature],
+    [onAircraftHover, onAisSymbolHover, onPathHover, onPointHover, onPolygonHover, resolveFeature],
   );
 
   const handleMapMouseLeave = useCallback(() => {
@@ -880,7 +1506,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     onPointHover?.(null);
     onPathHover?.(null);
     onPolygonHover?.(null);
-  }, [onPathHover, onPointHover, onPolygonHover]);
+    onAircraftHover?.(null);
+    onAisSymbolHover?.(null);
+    setHoveredPathGroupId(null);
+    setHoveredAxisLinkGroupId(null);
+  }, [onAircraftHover, onAisSymbolHover, onPathHover, onPointHover, onPolygonHover]);
 
   useEffect(() => {
     if (!mapLoaded || firmsFiresData.length === 0) return;
@@ -941,6 +1571,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!map) return;
     void ensureGemFacilityImages(map).catch(() => undefined);
     void ensureFirmsFireImages(map).catch(() => undefined);
+    void ensureAircraftSymbolImages(map).catch(() => undefined);
+    void ensureAisSymbolImages(map).catch(() => undefined);
   }, [mapLoaded, mapStyleUrl]);
 
   useEffect(() => {
@@ -951,15 +1583,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       // OpenFreeMap Liberty 등 projection 미포함 스타일은 Mercator로 리셋됨 → 지구본 재적용
       const m = map as unknown as BasemapMapLike;
       applyBasemapGlobeProjection(m);
-      applyBasemapFog(m, basemapModeRef.current);
-      applyBasemapSpaceBackground(m);
-      applyBasemapTerrain(m, basemapModeRef.current, {
-        ultraLite: ultraLiteRef.current,
+      applyBasemapAtmosphere(m, basemapModeRef.current);
+      applyTerrainForMap(m, basemapModeRef.current, ultraLiteRef.current);
+      applyBasemapSatelliteImagery(m, basemapModeRef.current);
+      applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
+        showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapPlaceLabelScale(m, basemapModeRef.current);
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
+      void ensureAircraftSymbolImages(map).catch(() => undefined);
+      void ensureAisSymbolImages(map).catch(() => undefined);
     };
     map.on("style.load", onStyle);
     return () => {
@@ -1044,9 +1678,125 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     return () => window.clearInterval(id);
   }, [mapLoaded, showIslandChains]);
 
+  /** PortWatch graph routes — dashOffset flow + capacity-scaled glow */
+  useEffect(() => {
+    if (!mapLoaded || !hasMaritimeRoutes) return;
+    if (prefersReducedMotion()) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let step = 0;
+    const id = window.setInterval(() => {
+      if (!map.getLayer("map-paths-maritime")) return;
+      step = (step + 1) % MARITIME_DASH_SEQUENCE.length;
+      const dash = MARITIME_DASH_SEQUENCE[step]!;
+      try {
+        map.setPaintProperty("map-paths-maritime", "line-dasharray", dash);
+      } catch {
+        /* style reload race */
+      }
+    }, 80);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, hasMaritimeRoutes]);
+
   useEffect(() => {
     if (!showIslandChains) setHoveredIslandBaseId(null);
   }, [showIslandChains]);
+
+  /**
+   * 실측 회랑 "글린트" — 상시 재생이 아니라 개별 회랑/축 관계를 호버할 때만 켜진다.
+   * 태양광이 칼날을 스치듯 밴드가 line-progress를 따라 이동하되, 다구간(육로↔해상)
+   * 회랑이면 leg의 실제 거리(lengthKm) 비례로 파동이 순서대로 넘어간다 — 짧은
+   * 해상 구간은 빨리 지나가고 긴 철도 구간은 천천히, 실제 이동 시간처럼 보이게.
+   * island-chains 애니메이션과 동일하게 100ms 인터벌(내장 GPU 친화) +
+   * getLayer 가드 + try/catch(스타일 리로드 레이스 대비).
+   */
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!mapLoaded || !map) return;
+    const layerIds = Array.from(
+      { length: CORRIDOR_GLINT_MAX_LEGS },
+      (_, i) => `map-paths-glint-${i}`,
+    );
+    const clearAll = () => {
+      for (const layerId of layerIds) {
+        if (!map.getLayer(layerId)) continue;
+        try {
+          map.setPaintProperty(layerId, "line-gradient", buildCorridorGlintOffGradient());
+        } catch {
+          /* style reload race */
+        }
+      }
+    };
+
+    if (!hoveredPathGroupId || prefersReducedMotion()) {
+      clearAll();
+      return;
+    }
+
+    // 호버 중인 회랑의 leg들을 실제 거리(lengthKm) 비례로 [startFrac, endFrac] 구간화.
+    const matches: { legIndex: number; lengthKm: number }[] = [];
+    for (const raw of deferredPathsData) {
+      if (!raw || typeof raw !== "object" || !("meta" in raw)) continue;
+      const meta = (raw as { meta?: Record<string, unknown> }).meta;
+      if (!meta || meta.geometrySource !== "real-corridor") continue;
+      const groupId = (meta.groupId ?? meta.corridorGroupId) as string | undefined;
+      if (groupId !== hoveredPathGroupId) continue;
+      const legIndex = typeof meta.legIndex === "number" ? meta.legIndex : 0;
+      const lengthKmRaw = (raw as { lengthKm?: number | null }).lengthKm;
+      const lengthKm = typeof lengthKmRaw === "number" && lengthKmRaw > 0 ? lengthKmRaw : 1;
+      matches.push({ legIndex, lengthKm });
+    }
+    if (matches.length === 0) {
+      // deferredPathsData가 아직 안 갱신됐거나 매칭 실패 — 다음 훅 재실행을 기다린다.
+      clearAll();
+      return;
+    }
+    matches.sort((a, b) => a.legIndex - b.legIndex);
+    const totalKm = matches.reduce((sum, m) => sum + m.lengthKm, 0) || 1;
+    let cursor = 0;
+    const legs = matches.map((m) => {
+      const startFrac = cursor / totalKm;
+      cursor += m.lengthKm;
+      return { legIndex: m.legIndex, startFrac, endFrac: cursor / totalKm };
+    });
+
+    const totalSteps = Math.max(
+      1,
+      Math.round(CORRIDOR_GLINT_PERIOD_MS / CORRIDOR_GLINT_TICK_MS),
+    );
+    let step = 0;
+    const tick = () => {
+      const g = step / totalSteps; // 전체 회랑 길이 기준 0→1 진행(위상)
+      for (let slot = 0; slot < CORRIDOR_GLINT_MAX_LEGS; slot += 1) {
+        const layerId = layerIds[slot];
+        if (!map.getLayer(layerId)) continue;
+        const leg = legs.find((l) => l.legIndex === slot);
+        try {
+          if (!leg) {
+            map.setPaintProperty(layerId, "line-gradient", buildCorridorGlintOffGradient());
+            continue;
+          }
+          const span = leg.endFrac - leg.startFrac;
+          const localFrac = span > 0 ? (g - leg.startFrac) / span : 0;
+          map.setPaintProperty(
+            layerId,
+            "line-gradient",
+            localFrac < -0.08 || localFrac > 1.08
+              ? buildCorridorGlintOffGradient()
+              : buildCorridorGlintGradient(Math.max(0, Math.min(1, localFrac))),
+          );
+        } catch {
+          /* style reload race */
+        }
+      }
+    };
+    tick();
+    const id = window.setInterval(() => {
+      step = (step + 1) % totalSteps;
+      tick();
+    }, CORRIDOR_GLINT_TICK_MS);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, hoveredPathGroupId, deferredPathsData]);
 
   /**
    * Alt + 좌클릭 드래그 → pitch / bearing 조절.
@@ -1125,13 +1875,203 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded]);
 
-  const initialCamera = globeViewToMapLibre({ lat: 25, lng: 105, altitude: 2.25 });
+  /**
+   * HTML 마커 목록 — **메모이제이션 필수**.
+   *
+   * 이 map은 화면 마커 수만큼 <Marker> JSX를 만든다. GlobeDashboard는
+   * 상태가 64개라 티커·폴링 등 지도와 무관한 이유로도 자주 리렌더되는데,
+   * 그때마다 이 목록 전체가 재생성되고 React가 전부 diff했다.
+   *
+   * deps 설계:
+   *  - htmlElementsData : deconflict가 참조를 유지하므로(htmlOverlayDeconflict.ts)
+   *                       내용이 안 바뀌면 같은 배열 = 스킵된다. 두 최적화가 맞물린다.
+   *  - htmlElement      : GlobeDashboard의 useCallback. 언어·고도가 바뀌면 새로 생성되므로
+   *                       마커 DOM을 다시 만들어야 하는 시점과 정확히 일치한다.
+   *  - mapBearingDeg    : 옆모습 실루엣(e/w)이 실제로 뒤집히는 기준
+   *  - basemapMode      : 톤에 따라 팔레트가 달라짐
+   *
+   * 위치 접근자(htmlLat/Lng/Rotation/RotationAlignment)는 item만 보는 순수 함수라
+   * ref로 최신값을 읽어도 안전하다 — deps에 넣으면 매 렌더 새 참조라 메모가 죽는다.
+   */
+  const htmlMarkerNodes = useMemo(() => {
+    if (!htmlElement) return null;
+    const { htmlLat, htmlLng, htmlRotation, htmlRotationAlignment } =
+      htmlAccessorsRef.current;
+    return (
+            htmlElementsData.map((item, index) => {
+                const displayKind = String(
+                  (item as { displayKind?: string }).displayKind ?? "",
+                );
+                // markerId만 키로 씀 — bare `id` 폴백은 종류 간 키 충돌로
+                // 사망자·콜아웃·뉴스 네온이 한 Marker에 묶이는 원인이 됨
+                const markerId = String(
+                  (item as { markerId?: string }).markerId ??
+                    `${displayKind || "html"}-${index}`,
+                );
+                const enriched =
+                  displayKind === "ais-html"
+                    ? { ...(item as object), mapBearingDeg }
+                    : item;
+                const rotation = htmlRotation(enriched);
+                const alignment = htmlRotationAlignment(enriched);
+                const rotKey =
+                  alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
+                const milKind = String(
+                  (enriched as { militaryKind?: string | null }).militaryKind ?? "",
+                );
+                const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
+                // 수상함·잠수함·위장선 — 옆모습 E/W (항모는 俯視+침로 회전)
+                const sideProfileHull =
+                  disguised ||
+                  ((enriched as { category?: string }).category === "military" &&
+                    milKind !== "" &&
+                    milKind !== "unknown" &&
+                    milKind !== "carrier");
+                const headingRaw = Number(
+                  (enriched as { courseOverGround?: number; trueHeading?: number })
+                    .courseOverGround ??
+                    (enriched as { trueHeading?: number }).trueHeading ??
+                    0,
+                );
+                const relHeading = (((headingRaw - mapBearingDeg) % 360) + 360) % 360;
+                const headingKey = sideProfileHull
+                  ? relHeading > 180
+                    ? "w"
+                    : "e"
+                  : alignment === "map"
+                    ? String(rotKey)
+                    : "0";
+                // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
+                const pitchAlignment = "viewport" as const;
+                // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
+                // (음수=왼쪽/위). 전장에서 사망자·콜아웃·네온이 겹쳐 묶이지 않게 함.
+                const markerOffset =
+                  displayKind === "casualty-skull"
+                    ? ([0, 30] as [number, number])
+                    : displayKind === "situation-callout"
+                      ? ([-12, -42] as [number, number])
+                      : displayKind === "news-stream-neon" ||
+                          displayKind === "ukraine-gdelt-neon" ||
+                          displayKind === "telegram-neon"
+                        ? ([18, 8] as [number, number])
+                        : undefined;
+                return (
+                <Marker
+                  /**
+                   * key는 **markerId만**. 이전에는 `-r${rotKey}-b${bearingKey}-h${headingKey}`가
+                   * 붙어 있어서, 지도를 5° 회전할 때마다 해당 마커가 통째로
+                   * 언마운트→재마운트됐다 (DOM 파괴 + htmlElement() 재호출 +
+                   * innerHTML 재파싱). 회전 드래그가 끊기던 주원인.
+                   *
+                   * 회전/침로 변화는 아래 ref 콜백의 data-markerSig가 이미
+                   * 정확히 감지해 필요한 경우에만 DOM을 다시 만든다 —
+                   * key가 그 방어를 무력화하고 있었다.
+                   */
+                  key={`html-marker-${markerId}`}
+                  longitude={htmlLng(item)}
+                  latitude={htmlLat(item)}
+                  anchor="center"
+                  offset={markerOffset}
+                  rotation={rotation}
+                  rotationAlignment={alignment}
+                  pitchAlignment={pitchAlignment}
+                  /**
+                   * 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임.
+                   *
+                   * ⚠️ 비용 주의: 이 값이 있으면 MapLibre가 마커마다 오클루전
+                   * 판정을 돌리고, terrain이 켜져 있으면 표고 조회까지 탄다.
+                   * 화면 마커가 수백 개이므로 프레임당 비용이 곱해진다.
+                   * → Ultra-Lite에서 terrain을 끄는 이유 (basemapMode.ts).
+                   * 근본 해결은 아이콘성 마커를 symbol 레이어로 옮기는 것.
+                   */
+                  opacityWhenCovered={0}
+                >
+                  <div
+                    ref={(node) => {
+                      if (!node) return;
+                      // markerId·본문까지 시그에 포함 — 종류별 공통 sig로 DOM이 재사용되며
+                      // 사망자/콜아웃/네온이 한 노드에 섞이던 문제 방지
+                      const typed = enriched as {
+                        markerId?: string;
+                        displayKind?: string;
+                        killed?: number;
+                        wounded?: number;
+                        warheads?: number;
+                        killedLabel?: string;
+                        title?: string;
+                        body?: string;
+                        accent?: string;
+                        link?: string;
+                        militaryKind?: string | null;
+                        headingDeg?: number;
+                        lat?: number;
+                        orbitLat?: number;
+                      };
+                      const reconHalo =
+                        (typed.displayKind ?? displayKind) === "recon-sat-html" &&
+                        typed.orbitLat != null &&
+                        typed.lat != null &&
+                        Math.abs(typed.orbitLat - typed.lat) > 0.12;
+                      const sig = [
+                        typed.markerId ?? markerId,
+                        typed.displayKind ?? displayKind,
+                        typed.killed ?? "",
+                        typed.wounded ?? "",
+                        typed.warheads ?? "",
+                        typed.killedLabel ?? "",
+                        typed.title ?? "",
+                        typed.body ?? "",
+                        typed.accent ?? "",
+                        typed.link ?? "",
+                        /**
+                         * 이전에는 mapBearingDeg·courseOverGround·trueHeading 원값을 넣었다.
+                         * 이 값들은 카메라를 5° 돌릴 때마다 바뀌므로, 실제 그림이 그대로인데도
+                         * 회전 내내 DOM을 다시 만들었다.
+                         *
+                         * headingKey는 **실제로 렌더되는 방향**만 담는다 —
+                         * 옆모습 실루엣은 "e"/"w" 둘 뿐이고, map-aligned는 5° 양자화,
+                         * 나머지는 "0". 즉 그림이 실제로 뒤집힐 때만 재생성된다.
+                         */
+                        headingKey,
+                        typed.militaryKind ?? "",
+                        reconHalo ? "halo" : "ground",
+                        typed.headingDeg != null
+                          ? String(Math.round((((typed.headingDeg % 360) + 360) % 360) / 15) * 15)
+                          : "",
+                        // 톤이 바뀌면 팔레트가 달라지므로 DOM을 다시 만들어야 함
+                        basemapMode,
+                      ].join("|");
+                      if (node.dataset.markerSig === sig && node.childElementCount > 0) return;
+                      node.replaceChildren();
+                      const el = htmlElement(enriched);
+                      node.appendChild(el);
+                      node.dataset.markerSig = sig;
+                    }}
+                  />
+                </Marker>
+                );
+              })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [htmlElementsData, htmlElement, mapBearingDeg, basemapMode]);
+
+  /** entryOrbitCamera 와 동일 — 맵 마운트·configureGlobe 사이 카메라 점프 방지 */
+  const initialCamera = globeViewToMapLibre(entryOrbitCamera());
 
   return (
-    <div className="relative h-full w-full" style={{ backgroundColor: backgroundColor as string }}>
+    <div
+      ref={mapContainerRef}
+      className="relative h-full w-full"
+      style={{ backgroundColor: backgroundColor as string }}
+    >
+      {mapInitFailed ? (
+        <MapInitFailedOverlay onRetry={handleContextRetry} />
+      ) : contextLost ? (
+        <WebglContextLostOverlay onRetry={handleContextRetry} />
+      ) : null}
       <Map
         ref={mapRef}
-        mapStyle={mapStyleUrl as string}
+        mapStyle={mapStyleUrl}
         initialViewState={{
           longitude: initialCamera.longitude,
           latitude: initialCamera.latitude,
@@ -1149,9 +2089,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
          * 100% 시간 동안 비용을 내는 구조였다.
          * 캡처는 methods.captureFrame() — 필요한 순간에만 triggerRepaint 후
          * render 콜백 안에서 읽는다. (mapGlobeRef.ts)
+         *
+         * globe projection은 style 객체에 미리 주입하고, handleLoad에서 setProjection으로 고정한다.
          */
         interactiveLayerIds={interactiveLayerIds}
         onLoad={handleLoad}
+        onError={handleMapError}
         onMove={handleMove}
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
@@ -1169,7 +2112,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           {...({ encoding: "terrarium" } as Record<string, unknown>)}
         />
 
-        {/* 지형 모드 · 고줌 3D 건물 — OpenFreeMap planet */}
+        {showOsmBuildings && ionToken ? (
+          <OsmBuildingsOverlay accessToken={ionToken} />
+        ) : null}
+
+        {/* 지형 모드 · 고줌 3D 건물 — Ion 없으면 OpenFreeMap extrusion 폴백 */}
         {showVectorBuildings ? (
           <Source
             id={BASEMAP_SOURCE_IDS.buildings}
@@ -1273,8 +2220,99 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Source>
         ) : null}
 
+        {alliedBlocCountriesGeoJson.features.length > 0 ? (
+          <Source
+            id="allied-bloc-countries-source"
+            type="geojson"
+            data={alliedBlocCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
+            <Layer
+              id="allied-bloc-countries-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#3b82f6"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.16],
+                "fill-antialias": true,
+              }}
+            />
+            <Layer
+              id="allied-bloc-countries-outline"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(96,165,250,0.9)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.5,
+                  6,
+                  0.9,
+                  10,
+                  1.3,
+                ],
+                "line-opacity": 0.85,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {geoEconBlocCountriesGeoJson.features.length > 0 ? (
+          <Source
+            id="geoecon-bloc-countries-source"
+            type="geojson"
+            data={geoEconBlocCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
+            <Layer
+              id="geoecon-bloc-countries-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#2563eb"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.14],
+                "fill-antialias": true,
+              }}
+            />
+            <Layer
+              id="geoecon-bloc-countries-outline"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(96,165,250,0.85)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.5,
+                  6,
+                  0.9,
+                  10,
+                  1.3,
+                ],
+                "line-opacity": 0.8,
+              }}
+            />
+          </Source>
+        ) : null}
+
         {pathsGeoJson.features.length > 0 ? (
-          <Source id="map-paths-source" type="geojson" data={pathsGeoJson}>
+          <Source
+            id="map-paths-source"
+            type="geojson"
+            data={pathsGeoJson}
+            lineMetrics
+          >
             {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등) */}
             <Layer
               id="map-paths-solid"
@@ -1287,34 +2325,20 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               paint={{
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
-                // DFC·BRI 코리도어: 반투명 + 살짝 blur → 폴리곤 띠 느낌
-                "line-opacity": [
-                  "case",
-                  [
-                    "any",
-                    ["==", ["get", "kind"], "bri-trade"],
-                    ["==", ["get", "kind"], "us-dfc-supply"],
-                  ],
-                  0.72,
-                  0.95,
-                ],
-                "line-blur": [
-                  "case",
-                  [
-                    "any",
-                    ["==", ["get", "kind"], "bri-trade"],
-                    ["==", ["get", "kind"], "us-dfc-supply"],
-                  ],
-                  1.15,
-                  0,
-                ],
+                // DFC·BRI도 일반 실선과 동일 투명도 — blur 띠 제거
+                "line-opacity": 0.92,
+                "line-blur": 0,
               }}
             />
             {/* 점선 — 고정 dasharray + 필터 (data-driven dash 회피) */}
             <Layer
               id="map-paths-dashed"
               type="line"
-              filter={[">", ["get", "dashLength"], 0]}
+              filter={[
+                "all",
+                [">", ["get", "dashLength"], 0],
+                ["!=", ["get", "kind"], "maritime-route"],
+              ]}
               layout={{
                 "line-cap": "butt",
                 "line-join": "round",
@@ -1326,6 +2350,140 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-dasharray": [2, 1.2],
               }}
             />
+            {/* PortWatch maritime — capacity glow underlay + animated dash flow */}
+            <Layer
+              id="map-paths-maritime-glow"
+              type="line"
+              filter={["==", ["get", "kind"], "maritime-route"]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  ["*", ["get", "strokeAngular"], 2.8],
+                  6,
+                  ["*", ["get", "strokeAngular"], 4.2],
+                  10,
+                  ["*", ["get", "strokeAngular"], 5.6],
+                ],
+                "line-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.22,
+                  8,
+                  0.38,
+                ],
+                "line-blur": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.6,
+                  8,
+                  1.4,
+                ],
+              }}
+            />
+            <Layer
+              id="map-paths-maritime"
+              type="line"
+              filter={["==", ["get", "kind"], "maritime-route"]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.96,
+                "line-dasharray": [0, 5, 2.5],
+              }}
+            />
+            {/*
+              axis-link 국가색→관계색 호버 리컬러. base(solid/dashed) 레이어는 국가(허브)
+              고유색을 그대로 두고, 그 위에 순수 추가로 덧그리는 레이어라 기존 스타일에는
+              영향이 없다. 호버 중인 groupId와 같은 axis-link feature만 필터를 통과해
+              관계 성격 색(군수=빨강, 하이브리드=주황 등)으로 잠깐 바뀐다. solid/dashed를
+              나눠 그리는 이유는 해상 leg(점선)까지 실선으로 덮어써버리지 않기 위함.
+            */}
+            <Layer
+              id="map-paths-hover-recolor-solid"
+              type="line"
+              filter={[
+                "all",
+                ["<=", ["get", "dashLength"], 0],
+                ["!=", ["get", "hoverColor"], ""],
+                ["==", ["get", "groupId"], hoveredAxisLinkGroupId ?? "__none__"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "hoverColor"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.95,
+              }}
+            />
+            <Layer
+              id="map-paths-hover-recolor-dashed"
+              type="line"
+              filter={[
+                "all",
+                [">", ["get", "dashLength"], 0],
+                ["!=", ["get", "hoverColor"], ""],
+                ["==", ["get", "groupId"], hoveredAxisLinkGroupId ?? "__none__"],
+              ]}
+              layout={{
+                "line-cap": "butt",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "hoverColor"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.9,
+                "line-dasharray": [2, 1.2],
+              }}
+            />
+            {/*
+              실측 회랑(카스피해 드론 이송로·라진-하산철도 등, axis-link 오버라이드) 전용 —
+              "칼날에 태양광이 스치는" 하이라이트 밴드가 line-progress를 따라 흐른다.
+              base 레이어(위 solid/dashed)는 그대로 두고, 그 위에 겹쳐 그리는 순수 추가
+              레이어라 기존 경로 스타일에는 영향이 없다. 상시 재생이 아니라 개별 회랑을
+              호버할 때만 켜짐(hoveredPathGroupId) — leg마다 별도 레이어(map-paths-glint-N)를
+              둬서, 다구간(육로↔해상) 회랑이면 파동이 leg 하나씩 순서대로 넘어가게 한다.
+            */}
+            {Array.from({ length: CORRIDOR_GLINT_MAX_LEGS }, (_, slot) => (
+              <Layer
+                key={`map-paths-glint-${slot}`}
+                id={`map-paths-glint-${slot}`}
+                type="line"
+                filter={[
+                  "all",
+                  ["==", ["get", "glint"], true],
+                  ["==", ["get", "groupId"], hoveredPathGroupId ?? "__none__"],
+                  ["==", ["get", "legIndex"], slot],
+                ]}
+                layout={{
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+                paint={{
+                  "line-gradient": buildCorridorGlintOffGradient(),
+                  "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                  "line-blur": 0.6,
+                  "line-opacity": 0.95,
+                }}
+              />
+            ))}
           </Source>
         ) : null}
 
@@ -1395,6 +2553,131 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
               paint={{
                 "icon-opacity": 0.95,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {/*
+         * 항공기 — DOM Marker가 아니라 symbol 레이어.
+         * 군용기 150 + 민항기 280 = 최대 430개가 프레임마다 project+transform을
+         * 돌던 것을 GPU 배치 렌더 하나로 대체한다. (milAircraftSymbols.ts)
+         */}
+        {aircraftSymbolsGeoJson.features.length > 0 ? (
+          <Source
+            id={AIRCRAFT_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aircraftSymbolsGeoJson}
+          >
+            <Layer
+              id={AIRCRAFT_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                // 이미지를 표시 크기 그대로 구웠으므로 스케일 보간 없음(=선명).
+                // 줌아웃에서만 살짝 줄여 전역 뷰의 밀도를 낮춘다.
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                // 침로 회전 — 실루엣의 코가 북쪽(+Y)이라 heading을 그대로 쓴다
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "map",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                // 침로 미상은 0.8 (기존 DOM 마커 규칙 유지)
+                "icon-opacity": ["get", "opacity"],
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {/*
+         * 선박(AIS) — DOM Marker가 아니라 symbol 레이어. (aisVesselSymbols.ts)
+         * 두 레이어로 나눈다:
+         *   - heading: 일반 상선·항모 — icon-rotate로 실제 회전(항공기와 동일 방식)
+         *   - aspect : 군함·잠수함·위장상선 — 옆모습(E/W) 실루엣 교체, 회전은 0 고정
+         *     (viewport 정렬 — 카메라가 돌아도 화면상 좌우가 뒤집히지 않고
+         *      buildAisSymbolModel이 미리 카메라 방위 기준으로 E/W를 골라둔다)
+         */}
+        {aisSymbolModel.headingGeojson.features.length > 0 ? (
+          <Source
+            id={AIS_HEADING_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aisSymbolModel.headingGeojson}
+          >
+            <Layer
+              id={AIS_HEADING_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "map",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                "icon-opacity": ["get", "opacity"],
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {aisSymbolModel.aspectGeojson.features.length > 0 ? (
+          <Source
+            id={AIS_ASPECT_SYMBOL_SOURCE_ID}
+            type="geojson"
+            data={aisSymbolModel.aspectGeojson}
+          >
+            <Layer
+              id={AIS_ASPECT_SYMBOL_LAYER_ID}
+              type="symbol"
+              layout={{
+                "icon-image": ["get", "icon"],
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  0.62,
+                  4,
+                  0.82,
+                  7,
+                  1,
+                ],
+                "icon-rotate": ["get", "rotate"],
+                "icon-rotation-alignment": "viewport",
+                "icon-pitch-alignment": "viewport",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                "icon-opacity": ["get", "opacity"],
               }}
             />
           </Source>
@@ -1748,6 +3031,64 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Source>
         ) : null}
 
+        {/* Safecast µSv/h — WebGL circle+symbol (HTML Marker 제거: 회전 시 버벅임 방지) */}
+        {safecastGaugesGeoJson.features.length > 0 ? (
+          <Source id={SAFECAST_SOURCE_ID} type="geojson" data={safecastGaugesGeoJson}>
+            <Layer
+              id={SAFECAST_CIRCLE_LAYER_ID}
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  3,
+                  4,
+                  5,
+                  7,
+                  7,
+                  10,
+                  9,
+                ],
+                "circle-opacity": 0.9,
+                "circle-stroke-width": 1.25,
+                "circle-stroke-color": "rgba(8,12,18,0.85)",
+              }}
+            />
+            <Layer
+              id={SAFECAST_LABEL_LAYER_ID}
+              type="symbol"
+              minzoom={2.8}
+              layout={{
+                "text-field": ["get", "usvLabel"],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  3,
+                  10,
+                  6,
+                  12,
+                  10,
+                  13,
+                ],
+                "text-offset": [0, 1.05],
+                "text-anchor": "top",
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-allow-overlap": true,
+                "text-ignore-placement": true,
+              }}
+              paint={{
+                "text-color": ["get", "color"],
+                "text-halo-color": "rgba(4,8,14,0.92)",
+                "text-halo-width": 1.4,
+              }}
+            />
+          </Source>
+        ) : null}
+
         {heatmapCollections.map((collection, index) =>
           collection.features.length > 0 ? (
             <Source
@@ -1770,161 +3111,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           ) : null,
         )}
 
-        {htmlElement
-          ? htmlElementsData.map((item, index) => {
-              const displayKind = String(
-                (item as { displayKind?: string }).displayKind ?? "",
-              );
-              // markerId만 키로 씀 — bare `id` 폴백은 종류 간 키 충돌로
-              // 사망자·콜아웃·뉴스 네온이 한 Marker에 묶이는 원인이 됨
-              const markerId = String(
-                (item as { markerId?: string }).markerId ??
-                  `${displayKind || "html"}-${index}`,
-              );
-              const enriched =
-                displayKind === "ais-html"
-                  ? { ...(item as object), mapBearingDeg }
-                  : item;
-              const rotation = htmlRotation(enriched);
-              const alignment = htmlRotationAlignment(enriched);
-              const rotKey =
-                alignment === "map" ? Math.round((((rotation % 360) + 360) % 360) / 5) * 5 : 0;
-              const milKind = String(
-                (enriched as { militaryKind?: string | null }).militaryKind ?? "",
-              );
-              const disguised = Boolean((enriched as { disguised?: boolean }).disguised);
-              // 수상함·잠수함·위장선 — 옆모습 E/W (항모는 俯視+침로 회전)
-              const sideProfileHull =
-                disguised ||
-                ((enriched as { category?: string }).category === "military" &&
-                  milKind !== "" &&
-                  milKind !== "unknown" &&
-                  milKind !== "carrier");
-              const headingRaw = Number(
-                (enriched as { courseOverGround?: number; trueHeading?: number })
-                  .courseOverGround ??
-                  (enriched as { trueHeading?: number }).trueHeading ??
-                  0,
-              );
-              const relHeading = (((headingRaw - mapBearingDeg) % 360) + 360) % 360;
-              const headingKey = sideProfileHull
-                ? relHeading > 180
-                  ? "w"
-                  : "e"
-                : alignment === "map"
-                  ? String(rotKey)
-                  : "0";
-              // 전부 viewport — map pitch면 사망자만 기울며 같은 좌표의 콜아웃·네온과 한 덩어리처럼 보임
-              const pitchAlignment = "viewport" as const;
-              // MapLibre는 react-globe htmlAltitude를 무시 → 픽셀 오프셋으로 종류 분리
-              // (음수=왼쪽/위). 전장에서 사망자·콜아웃·네온이 겹쳐 묶이지 않게 함.
-              const markerOffset =
-                displayKind === "casualty-skull"
-                  ? ([0, 30] as [number, number])
-                  : displayKind === "situation-callout"
-                    ? ([-12, -42] as [number, number])
-                    : displayKind === "news-stream-neon" ||
-                        displayKind === "ukraine-gdelt-neon" ||
-                        displayKind === "telegram-neon"
-                      ? ([18, 8] as [number, number])
-                      : undefined;
-              return (
-              <Marker
-                /**
-                 * key는 **markerId만**. 이전에는 `-r${rotKey}-b${bearingKey}-h${headingKey}`가
-                 * 붙어 있어서, 지도를 5° 회전할 때마다 해당 마커가 통째로
-                 * 언마운트→재마운트됐다 (DOM 파괴 + htmlElement() 재호출 +
-                 * innerHTML 재파싱). 회전 드래그가 끊기던 주원인.
-                 *
-                 * 회전/침로 변화는 아래 ref 콜백의 data-markerSig가 이미
-                 * 정확히 감지해 필요한 경우에만 DOM을 다시 만든다 —
-                 * key가 그 방어를 무력화하고 있었다.
-                 */
-                key={`html-marker-${markerId}`}
-                longitude={htmlLng(item)}
-                latitude={htmlLat(item)}
-                anchor="center"
-                offset={markerOffset}
-                rotation={rotation}
-                rotationAlignment={alignment}
-                pitchAlignment={pitchAlignment}
-                /**
-                 * 기본 0.2면 구체 뒤편(유럽 기지 등)이 한반도 쪽에서 비쳐 보임.
-                 *
-                 * ⚠️ 비용 주의: 이 값이 있으면 MapLibre가 마커마다 오클루전
-                 * 판정을 돌리고, terrain이 켜져 있으면 표고 조회까지 탄다.
-                 * 화면 마커가 수백 개이므로 프레임당 비용이 곱해진다.
-                 * → Ultra-Lite에서 terrain을 끄는 이유 (basemapMode.ts).
-                 * 근본 해결은 아이콘성 마커를 symbol 레이어로 옮기는 것.
-                 */
-                opacityWhenCovered={0}
-              >
-                <div
-                  ref={(node) => {
-                    if (!node) return;
-                    // markerId·본문까지 시그에 포함 — 종류별 공통 sig로 DOM이 재사용되며
-                    // 사망자/콜아웃/네온이 한 노드에 섞이던 문제 방지
-                    const typed = enriched as {
-                      markerId?: string;
-                      displayKind?: string;
-                      killed?: number;
-                      wounded?: number;
-                      warheads?: number;
-                      killedLabel?: string;
-                      title?: string;
-                      body?: string;
-                      accent?: string;
-                      link?: string;
-                      militaryKind?: string | null;
-                      headingDeg?: number;
-                      lat?: number;
-                      orbitLat?: number;
-                    };
-                    const reconHalo =
-                      (typed.displayKind ?? displayKind) === "recon-sat-html" &&
-                      typed.orbitLat != null &&
-                      typed.lat != null &&
-                      Math.abs(typed.orbitLat - typed.lat) > 0.12;
-                    const sig = [
-                      typed.markerId ?? markerId,
-                      typed.displayKind ?? displayKind,
-                      typed.killed ?? "",
-                      typed.wounded ?? "",
-                      typed.warheads ?? "",
-                      typed.killedLabel ?? "",
-                      typed.title ?? "",
-                      typed.body ?? "",
-                      typed.accent ?? "",
-                      typed.link ?? "",
-                      /**
-                       * 이전에는 mapBearingDeg·courseOverGround·trueHeading 원값을 넣었다.
-                       * 이 값들은 카메라를 5° 돌릴 때마다 바뀌므로, 실제 그림이 그대로인데도
-                       * 회전 내내 DOM을 다시 만들었다.
-                       *
-                       * headingKey는 **실제로 렌더되는 방향**만 담는다 —
-                       * 옆모습 실루엣은 "e"/"w" 둘 뿐이고, map-aligned는 5° 양자화,
-                       * 나머지는 "0". 즉 그림이 실제로 뒤집힐 때만 재생성된다.
-                       */
-                      headingKey,
-                      typed.militaryKind ?? "",
-                      reconHalo ? "halo" : "ground",
-                      typed.headingDeg != null
-                        ? String(Math.round((((typed.headingDeg % 360) + 360) % 360) / 15) * 15)
-                        : "",
-                      // 톤이 바뀌면 팔레트가 달라지므로 DOM을 다시 만들어야 함
-                      basemapMode,
-                    ].join("|");
-                    if (node.dataset.markerSig === sig && node.childElementCount > 0) return;
-                    node.replaceChildren();
-                    const el = htmlElement(enriched);
-                    node.appendChild(el);
-                    node.dataset.markerSig = sig;
-                  }}
-                />
-              </Marker>
-              );
-            })
-          : null}
+        {htmlMarkerNodes}
       </Map>
     </div>
   );

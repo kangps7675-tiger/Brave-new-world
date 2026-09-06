@@ -1,0 +1,307 @@
+{
+  "generatedAt": "2026-08-28T15:37:16.444Z",
+  "source": "UNCTADstat US.ContPortThroughput (bulk CSV)",
+  "dataset": "US.ContPortThroughput",
+  "sourceFile": "scripts/data/unctad/incoming/US_ContPortThroughput.csv",
+  "usingFixture": false,
+  "method": "Country-level container port throughput (TEU). Latest year ±2y average per ISO3. Corridor match = max(endpointCountries). Optional corridor hard-bind CSV for INSTC/TITR etc.",
+  "downloadHint": "https://unctadstat.unctad.org/datacentre/dataviewer/US.ContPortThroughput → Export/Bulk CSV → scripts/data/unctad/incoming/",
+  "countryCount": 26,
+  "hardBindCount": 2,
+  "countries": {
+    "CHN": {
+      "iso3": "CHN",
+      "teu": 14073237,
+      "latestYear": 2024,
+      "latestTeu": 13933246,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "CUB": {
+      "iso3": "CUB",
+      "teu": 262857.3333333333,
+      "latestYear": 2023,
+      "latestTeu": 281140,
+      "yearsUsed": [
+        2021,
+        2022,
+        2023
+      ]
+    },
+    "EGY": {
+      "iso3": "EGY",
+      "teu": 8196285.666666667,
+      "latestYear": 2024,
+      "latestTeu": 8581339,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "GEO": {
+      "iso3": "GEO",
+      "teu": 605134.6666666666,
+      "latestYear": 2024,
+      "latestTeu": 636497,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "DEU": {
+      "iso3": "DEU",
+      "teu": 13212268,
+      "latestYear": 2024,
+      "latestTeu": 13294081,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IND": {
+      "iso3": "IND",
+      "teu": 21941056,
+      "latestYear": 2024,
+      "latestTeu": 23898000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IDN": {
+      "iso3": "IDN",
+      "teu": 13908402,
+      "latestYear": 2024,
+      "latestTeu": 14709550,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IRN": {
+      "iso3": "IRN",
+      "teu": 2921359,
+      "latestYear": 2024,
+      "latestTeu": 2921359,
+      "yearsUsed": [
+        2024
+      ]
+    },
+    "JPN": {
+      "iso3": "JPN",
+      "teu": 21949429.666666668,
+      "latestYear": 2024,
+      "latestTeu": 21886683,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "LBN": {
+      "iso3": "LBN",
+      "teu": 598140,
+      "latestYear": 2024,
+      "latestTeu": 762062,
+      "yearsUsed": [
+        2022,
+        2024
+      ]
+    },
+    "MYS": {
+      "iso3": "MYS",
+      "teu": 28733544.666666668,
+      "latestYear": 2024,
+      "latestTeu": 30659850,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "MMR": {
+      "iso3": "MMR",
+      "teu": 796978,
+      "latestYear": 2024,
+      "latestTeu": 782951,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "NLD": {
+      "iso3": "NLD",
+      "teu": 14519270,
+      "latestYear": 2024,
+      "latestTeu": 14517179,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "PAK": {
+      "iso3": "PAK",
+      "teu": 3210193.3333333335,
+      "latestYear": 2024,
+      "latestTeu": 3338000,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "POL": {
+      "iso3": "POL",
+      "teu": 3109268.6666666665,
+      "latestYear": 2024,
+      "latestTeu": 3270784,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "KOR": {
+      "iso3": "KOR",
+      "teu": 30118703,
+      "latestYear": 2024,
+      "latestTeu": 31850924,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "RUS": {
+      "iso3": "RUS",
+      "teu": 4562523.666666667,
+      "latestYear": 2024,
+      "latestTeu": 5187096,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SAU": {
+      "iso3": "SAU",
+      "teu": 9959578.333333334,
+      "latestYear": 2024,
+      "latestTeu": 8029571,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SGP": {
+      "iso3": "SGP",
+      "teu": 39141233.333333336,
+      "latestYear": 2024,
+      "latestTeu": 41124100,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SYR": {
+      "iso3": "SYR",
+      "teu": 300325.6666666667,
+      "latestYear": 2020,
+      "latestTeu": 243348,
+      "yearsUsed": [
+        2018,
+        2019,
+        2020
+      ]
+    },
+    "TUR": {
+      "iso3": "TUR",
+      "teu": 12809274.333333334,
+      "latestYear": 2024,
+      "latestTeu": 13507070,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "ARE": {
+      "iso3": "ARE",
+      "teu": 21796584.333333332,
+      "latestYear": 2024,
+      "latestTeu": 23466906,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "GBR": {
+      "iso3": "GBR",
+      "teu": 9487095,
+      "latestYear": 2024,
+      "latestTeu": 9621469,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "USA": {
+      "iso3": "USA",
+      "teu": 58505935.333333336,
+      "latestYear": 2024,
+      "latestTeu": 59707490,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "VNM": {
+      "iso3": "VNM",
+      "teu": 22004071,
+      "latestYear": 2024,
+      "latestTeu": 24423183,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "YEM": {
+      "iso3": "YEM",
+      "teu": 374249,
+      "latestYear": 2024,
+      "latestTeu": 380000,
+      "yearsUsed": [
+        2022,
+        2024
+      ]
+    }
+  },
+  "corridorHardBind": {
+    "middle-corridor": {
+      "teu": 85000,
+      "year": 2023,
+      "note": "TITR / Middle Corridor reported TEU (placeholder — replace with RMT or TITR figure)"
+    },
+    "instc-trans-caspian": {
+      "teu": 42000,
+      "year": 2023,
+      "note": "INSTC reported TEU placeholder — replace with official INSTC/UNCTAD RMT figure"
+    }
+  }
+}

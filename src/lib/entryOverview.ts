@@ -3,24 +3,22 @@ import {
   type LayerPrefs,
   type LabelLanguage,
 } from "@/lib/layerPrefs";
-import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
+import { activeLayerCap, clampPrefsToLimit } from "@/lib/layerExclusiveCap";
+import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
+import { entryBootAltitude } from "@/lib/globeFillScreen";
 import {
-  CONFLICT_RESOURCE_HERO_ON,
-  ECONOMY_RESOURCE_HERO_ON,
-  ensureConfrontationLayersOn,
-  ensureResourceLayersOn,
-} from "@/lib/viewerChrome";
-import {
-  RED_SEA_HOUTHI_STACK,
-} from "@/lib/hotTheaterLayers";
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 
 /**
  * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
  *
  * 순서(하드코딩):
- * 1. 로딩 — 전역 궤도 (altitude 2.85)
+ * 1. 로딩 — 전역 궤도 (`entryOrbitCamera`: 구 전체가 화면 짧은 변을 채움)
  * 2. 환영 편지지 / 도메인 선택
  * 3. 전역 지구본 히어로 유지 → "핫 지역으로 갈까요?" 선택창 후에만 줌인
  */
@@ -28,32 +26,52 @@ import {
 export const ENTRY_GATE: {
   bootAltitude: number;
   bootLookAt: { readonly lat: number; readonly lng: number };
+  /** 전역 실루엣용 MapLibre pitch (degrees) */
+  bootPitch: number;
   zoomOutAltitude: number;
   zoomOutFlyMs: number;
   afterZoomOutHoldMs: number;
 } = {
   /**
-   * 로딩 셰이더 카메라 거리 z=3.85 ≈ globe altitude 2.85 (1+altitude).
-   * LOD tier: global (> 1.65).
+   * 폴백 고도. 실제 카메라는 `entryBootAltitude(size)` — 구 전체가 짧은 변을 채움.
    */
-  bootAltitude: 2.85,
+  bootAltitude: GLOBAL_BOOT_ALTITUDE,
   /**
-   * 전역 시야 중심 — 특정 초크/전장에 붙이지 않음.
-   * (아프리카·유럽·중동·남아가 한 화면에 들어오는 중립 앵커)
+   * 적도 중심 — pitch 0 이면 구 실루엣(남극 포함)이 한 화면에 들어온다.
    */
   bootLookAt: {
-    lat: 18,
+    lat: 0,
     lng: 25,
   },
+  /** 정면. 틸트하면 남반구가 잘려 "지구 전체"가 안 보인다. */
+  bootPitch: 0,
   /** 입구 종료 후 첫 화면도 로딩과 동일 크기 — 추가 줌아웃 없음 */
-  zoomOutAltitude: 2.85,
+  zoomOutAltitude: GLOBAL_BOOT_ALTITUDE,
   zoomOutFlyMs: 1200,
   afterZoomOutHoldMs: 0,
 };
 
+/** 전역 궤도 — 구 전체가 뷰포트 짧은 변을 채움 (pitch 0). */
+export function entryOrbitCamera(size?: { width: number; height: number }): {
+  lat: number;
+  lng: number;
+  altitude: number;
+  pitch: number;
+} {
+  return {
+    lat: ENTRY_GATE.bootLookAt.lat,
+    lng: ENTRY_GATE.bootLookAt.lng,
+    altitude: entryBootAltitude(size),
+    pitch: ENTRY_GATE.bootPitch,
+  };
+}
+
 /* 삭제됨 (P2-5): DOMAIN_OVERVIEW_ALTITUDE / _LOOK_AT / _FLY_MS / _THEN_DETAIL_MS.
    ENTRY_GATE로 대체된 뒤 자기 파일 외 참조가 0건인 채 남아 있던 별칭이다.
    필요하면 ENTRY_GATE.zoomOutAltitude / bootLookAt / zoomOutFlyMs를 직접 쓸 것. */
+
+/** 첫 화면 예산 — SSOT는 `geowatch.config.caps.firstScreenMaxLayers` */
+export const FIRST_SCREEN_MAX_LAYERS = GEOWATCH_CONFIG.caps.firstScreenMaxLayers;
 
 function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   const next = { ...base };
@@ -65,44 +83,21 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 히어로 — 홍해·해상 위협 + 자원(원자력). 송유관·해저관·반서방 축은 기본 OFF */
+/** 지정학 첫 화면 — Compact `전선` + CRINK OSM·기지·해상 항로 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
-  ...RED_SEA_HOUTHI_STACK,
-  showUkraineControl: true,
-  showUkraineStrikesOnRussia: true,
-  showNeptun: true,
-  showNeptunPreviousTrails: false,
-  showWarZones: true,
-  showGdeltWar: true,
-  showGdeltDiplomatic: true,
-  showGdeltProtests: true,
-  showMilitaryActivity: true,
-  showAis: true,
-  showLogisticsRisk: true,
-  showSubmarineCables: true,
-  showNewfeedsIranAttacks: true,
-  showUsCarriers: true,
-  ...CONFLICT_RESOURCE_HERO_ON,
+  ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 지경학 히어로 — 시장 기본 + 자원(매장지·가스관·LNG) */
+/** 지경학 첫 화면 — 초크·항로·에너지·코리도·축 (시장 리스크 지도) */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
-  showAis: true,
-  showAirTraffic: true,
-  showLogisticsRisk: true,
-  showCriticalNodes: true,
-  showSubmarineCables: true,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showAiDataCenters: true,
-  showPorts: true,
-  showAirports: true,
-  /** 미·중 공급망 대치 — 게이트 직후 overview가 패키지 ON을 덮지 않도록 히어로에 포함 */
-  showBriTradeConnectivity: true,
-  showUsDfcSupplyChain: true,
+  ...FIRST_SCREEN_ECONOMY_ON,
 };
 
 /**
  * 도메인 게이트 직후 첫 화면용 레이어.
+ *
+ * 장면 칩 + CRINK OSM·한/일/대만/필/호/동유럽·미군 기지·해상 항로.
+ * 텔레그램·ADIZ는 전장 진입 때 conceptLayers가 붙인다. 클램프는 항상 마지막.
  */
 export function buildDomainOverviewPrefs(
   mode: ViewerMode,
@@ -111,42 +106,23 @@ export function buildDomainOverviewPrefs(
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
   let next = allBooleanLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
 
-  if (mode === "conflict") {
-    next = { ...next, ...CONFLICT_HERO_ON };
-  } else {
-    next = { ...next, ...ECONOMY_HERO_ON };
-  }
+  next =
+    mode === "conflict"
+      ? { ...next, ...CONFLICT_HERO_ON }
+      : { ...next, ...ECONOMY_HERO_ON };
 
   if (options?.ultraLite) {
     next = applyUltraLiteToLayerPrefs(next);
-    if (mode === "conflict") {
-      next = { ...next, ...CONFLICT_HERO_ON };
-    } else {
-      next = { ...next, ...ECONOMY_HERO_ON };
-    }
-    next = ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode);
-    if (mode === "conflict") {
-      next = {
-        ...next,
-        showWarZones: true,
-        showDiplomaticTension: true,
-        showGdeltWar: true,
-      };
-      next = ensureConfrontationLayersOn(
-        ensureResourceLayersOn(clampPrefsToActiveCap(next, true), mode),
-        mode,
-      );
-    }
-  } else if (mode === "conflict") {
-    next = clampPrefsToActiveCap(next, false);
-    next = { ...next, ...CONFLICT_HERO_ON };
-    next = ensureConfrontationLayersOn(
-      ensureResourceLayersOn(clampPrefsToActiveCap(next, false), mode),
-      mode,
-    );
-  } else {
-    next = ensureResourceLayersOn(next, mode);
+    next =
+      mode === "conflict"
+        ? { ...next, ...CONFLICT_HERO_ON }
+        : { ...next, ...ECONOMY_HERO_ON };
+    next = applyUltraLiteToLayerPrefs(next);
   }
 
-  return next;
+  const budget = options?.ultraLite
+    ? Math.min(FIRST_SCREEN_MAX_LAYERS, activeLayerCap(true))
+    : FIRST_SCREEN_MAX_LAYERS;
+
+  return clampPrefsToLimit(next, budget);
 }

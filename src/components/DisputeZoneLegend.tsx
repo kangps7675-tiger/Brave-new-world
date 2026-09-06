@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MapOverlayLegendPanel } from "@/components/MapOverlayLegendPanel";
 import { useLocale } from "@/contexts/LocaleContext";
 import { TENSION_GRADE_STYLES, type TensionGrade } from "@/lib/disputeHatch";
+import { onHoverLayerId } from "@/lib/hoverLayerBridge";
 
 type DisputeZoneLegendProps = {
   open: boolean;
@@ -28,14 +30,23 @@ function HatchSwatch({
   detail,
   color,
   style,
+  layerId,
+  highlight,
 }: {
   label: string;
   detail: string;
   color: string;
   style: "slash" | "backslash" | "horizontal" | "cross";
+  layerId: string;
+  highlight: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div
+      data-layer-id={layerId}
+      className={`flex items-center gap-2.5 rounded-md px-1.5 py-1 transition ${
+        highlight ? "ring-2 ring-amber-300/70 bg-amber-400/10" : ""
+      }`}
+    >
       <span
         className="relative h-5 w-7 shrink-0 overflow-hidden rounded border"
         style={{
@@ -55,7 +66,11 @@ function HatchSwatch({
 /** 레이어 분리 후 표시 등급 — 전쟁(combat) · 외교(high) */
 const LEGEND_GRADES: TensionGrade[] = ["combat", "high"];
 
-export function DisputeZoneLegendContent() {
+export function DisputeZoneLegendContent({
+  highlightId = null,
+}: {
+  highlightId?: string | null;
+} = {}) {
   const { t } = useLocale();
   return (
     <div className="space-y-2.5">
@@ -63,9 +78,16 @@ export function DisputeZoneLegendContent() {
       <div className="grid gap-2 sm:grid-cols-2">
         {LEGEND_GRADES.map((grade) => {
           const spec = TENSION_GRADE_STYLES[grade];
+          const layerId = grade === "combat" ? "war-zones" : "diplomatic-tension";
+          const hi =
+            highlightId === layerId ||
+            highlightId === "conflict-zones" ||
+            (grade === "combat" && highlightId === "disputes");
           return (
             <HatchSwatch
               key={grade}
+              layerId={layerId}
+              highlight={hi}
               label={grade === "combat" ? t("legendDisputeCombat") : t("legendDisputeDiplomatic")}
               detail={spec.pattern === "slash" ? "/" : "\\"}
               color={spec.hatch}
@@ -80,6 +102,8 @@ export function DisputeZoneLegendContent() {
 
 export function DisputeZoneLegend({ open, onClose }: DisputeZoneLegendProps) {
   const { t } = useLocale();
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  useEffect(() => onHoverLayerId(setHighlightId), []);
   return (
     <MapOverlayLegendPanel
       open={open}
@@ -88,7 +112,7 @@ export function DisputeZoneLegend({ open, onClose }: DisputeZoneLegendProps) {
       subtitle={t("hoverDisputeLegendSubtitle")}
       accent="orange"
     >
-      <DisputeZoneLegendContent />
+      <DisputeZoneLegendContent highlightId={highlightId} />
     </MapOverlayLegendPanel>
   );
 }

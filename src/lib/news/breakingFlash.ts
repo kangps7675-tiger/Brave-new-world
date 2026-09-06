@@ -397,7 +397,7 @@ export function formatFlashSourceAttribution(
 
 /**
  * 신속·위중 속보만 타전.
- * - 지정학: 기본 **S급** + 키네틱/초크/공급망 신호. A급은 핵·침공·공습 등 + grade≥8 + 더 짧은 시간창.
+ * - 지정학: **S급**이어도 키네틱 또는 초크만 (grade만으로 열지 않음). A급은 핵·침공·공습 등 + grade≥8 + 더 짧은 시간창.
  * - 지경학: 같은 S/A·시간창이지만 **국제 지경학 영향** 주제만 (연준·원자재·초크·대형기업·거시·공급망).
  * - 연예·스포츠·사설 제외. **45분** 초과 제외 (신속 속보).
  * - Tier3 단독은 S 미만 불가.
@@ -449,13 +449,9 @@ export function shouldOpenBreakingFlash(
     return false;
   }
 
-  // 정세 — 신속·위중만
+  // 정세 — 신속·위중만 (S급도 키네틱·초크 필수; grade만으로 미시 기사 타전 금지)
   if (rank === "S") {
-    return (
-      FLASH_KINETIC_RE.test(blob) ||
-      isChokepointSecurityNews(blob) ||
-      grade >= S_GRADE_MIN
-    );
+    return FLASH_KINETIC_RE.test(blob) || isChokepointSecurityNews(blob);
   }
   // A급: 키네틱 + 더 짧은 창 (이란 Tier3는 grade≥7 허용)
   const aGradeMin = iranKinetic && hero.trustTier === 3 ? 7 : 8;

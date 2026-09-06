@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { HoverHint } from "@/components/HoverHint";
 import {
@@ -141,6 +141,26 @@ function TelegramAlertCard({
     !(lang === "ko" && isMostlyKorean(sourceText)) &&
     !(lang === "en" && isMostlyEnglish(sourceText));
 
+  useEffect(() => {
+    if (lang !== "ko" || !needsTranslate || translated) return;
+    let cancelled = false;
+    setTranslateStatus("loading");
+    void translateText(sourceText, "ko")
+      .then((out) => {
+        if (cancelled) return;
+        setTranslated(out);
+        setShowTranslation(true);
+        setTranslateStatus("idle");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTranslateStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lang, needsTranslate, sourceText, translated]);
+
   const onTranslateClick = async () => {
     if (translated) {
       setShowTranslation((v) => !v);
@@ -158,13 +178,18 @@ function TelegramAlertCard({
     }
   };
 
+  const primaryText =
+    showTranslation && translated && lang === "ko" ? translated : sourceText;
+  const showOriginalUnder =
+    lang === "ko" && showTranslation && Boolean(translated) && translated !== sourceText;
+
   return (
     <li
       className={`${fullPage ? "mx-3 rounded-lg px-4 py-3 hover:bg-white/5" : "px-3 py-2.5"}`}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-meta">
         <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-micro text-cyan-100">
-          Telegram
+          {lang === "en" ? "Telegram" : "텔레그램"}
         </span>
         <EvidenceTierBadge tier="unverified" lang={lang} />
         {mediaLabel ? (
@@ -183,9 +208,9 @@ function TelegramAlertCard({
           <span className="text-slate-500"> · {alert.channelTitle}</span>
         ) : null}
       </p>
-      {sourceText ? (
+      {primaryText ? (
         <p className="mt-1.5 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200/90">
-          {sourceText}
+          {primaryText}
         </p>
       ) : (
         <p className="mt-1.5 text-caption leading-5 text-slate-400/90">
@@ -199,11 +224,17 @@ function TelegramAlertCard({
           {lang === "en" ? "Half preview · full post on Telegram" : "절반 미리보기 · 전문은 텔레그램"}
         </p>
       ) : null}
-      {showTranslation && translated ? (
-        <div className="mt-2 rounded-md border border-amber-300/25 bg-amber-500/10 px-2.5 py-2">
-          <p className="text-micro font-medium text-amber-100/85">
-            {lang === "en" ? "Translation" : "번역"}
+      {showOriginalUnder ? (
+        <div className="mt-2 rounded-md border border-white/10 bg-black/25 px-2.5 py-2">
+          <p className="text-micro font-medium text-slate-400">원문</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-slate-400/90">
+            {sourceText}
           </p>
+        </div>
+      ) : null}
+      {showTranslation && translated && lang === "en" ? (
+        <div className="mt-2 rounded-md border border-amber-300/25 bg-amber-500/10 px-2.5 py-2">
+          <p className="text-micro font-medium text-amber-100/85">Translation</p>
           <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-amber-50/95">
             {translated}
           </p>
@@ -250,13 +281,13 @@ function TelegramAlertCard({
                   ? showTranslation
                     ? lang === "en"
                       ? "Hide translation"
-                      : "번역 숨기기"
+                      : "원문만 보기"
                     : lang === "en"
                       ? "Show translation"
-                      : "번역 다시 보기"
+                      : "한글 번역 보기"
                   : lang === "en"
                     ? "Translate"
-                    : "번역하기"}
+                    : "한글로 번역"}
             </button>
           ) : null}
           {postUrl ? (
@@ -378,7 +409,13 @@ export function TelegramIntelFeed({
         <div className="flex items-center justify-between gap-3 border-b border-sky-300/15 px-3 py-2.5">
           <div className="min-w-0 flex-1">
             <p className="text-micro uppercase tracking-[0.24em] text-sky-200/75">
-              {isVideoDesk ? "Telegram Video" : "Telegram OSINT"}
+              {isVideoDesk
+                ? lang === "en"
+                  ? "Telegram Video"
+                  : "텔레그램 영상"
+                : lang === "en"
+                  ? "Telegram OSINT"
+                  : "텔레그램 OSINT"}
             </p>
             <p className="mt-0.5 text-xs text-sky-50/90">
               {isVideoDesk
@@ -419,7 +456,7 @@ export function TelegramIntelFeed({
                   : "텔레그램 영상 데스크 · OSINT"
                 : lang === "en"
                   ? "Telegram OSINT · half preview"
-                  : "Telegram OSINT · 절반 미리보기"}
+                  : "텔레그램 OSINT · 절반 미리보기"}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <LiveBadge live={live} liveStatus={liveStatus} embedMode={embedMode} />
@@ -446,16 +483,44 @@ export function TelegramIntelFeed({
         <div className={`text-xs leading-5 text-slate-400 ${fullPage ? "mx-4 mt-4" : "px-3 py-4"}`}>
           {liveStatus === "loading" ? (
             <p>텔레그램 공개 채널을 동기화하는 중…</p>
+          ) : alerts.length > 0 && regionFilter !== "all" ? (
+            <>
+              <p className="font-medium text-sky-200/90">
+                {lang === "en"
+                  ? `No Telegram posts for this theater filter (${regionFilter}).`
+                  : `선택한 전장 필터(${TELEGRAM_REGION_LABELS[regionFilter as TelegramAlertRegion] ?? regionFilter})에 해당하는 텔레그램 속보가 없습니다.`}
+              </p>
+              <p className="mt-2 text-slate-500">
+                {lang === "en"
+                  ? "Open the News tab and set theater to All, or switch region."
+                  : "뉴스 탭에서 전장을 「전체」로 바꾸거나 다른 전장을 선택해 보세요."}
+              </p>
+            </>
           ) : isVideoDesk ? (
             <p className="font-medium text-violet-200/90">
               {lang === "en"
                 ? "No video posts in the current window. Check back after the next sync."
                 : "지금 구간에 영상 포스트가 없습니다. 다음 동기화 후 다시 확인하세요."}
             </p>
+          ) : liveStatus === "waiting" ? (
+            <>
+              <p className="font-medium text-sky-200/90">
+                {lang === "en"
+                  ? "Waiting for cron ingest — browser does not scrape Telegram"
+                  : "수집 대기 — 브라우저는 텔레그램을 긁지 않습니다"}
+              </p>
+              <p className="mt-2 text-slate-500">
+                {lang === "en"
+                  ? "Cron worker fills D1; this panel only reads cached alerts. First load can take ~30s."
+                  : "Cron 워커가 D1에 쌓으면 표시됩니다. 첫 로드는 최대 30초 걸릴 수 있습니다."}
+              </p>
+            </>
           ) : embedMode ? (
             <>
               <p className="font-medium text-sky-200/90">공개 임베드 수집 (로그인 불필요)</p>
-              <p className="mt-2 text-slate-500">60초마다 자동 갱신 · 우크라이나·중동 채널</p>
+              <p className="mt-2 text-slate-500">
+                Cron·공유 피드 폴링 · 우크라이나·중동 채널
+              </p>
             </>
           ) : needsAuth ? (
             <p className="font-medium text-amber-200/90">터미널에서 텔레그램 로그인이 필요합니다.</p>
@@ -490,7 +555,7 @@ export function TelegramIntelFeed({
 
       {!fullPage ? (
         <p className="border-t border-sky-300/10 px-3 py-2 text-micro leading-4 text-slate-500">
-          절반 미리보기 · 번역하기 CTA · 전문은 텔레그램 · 영상/사진은 클릭 시에만 t.me 임베드
+          절반 미리보기 · 한국어 자동 번역 · 전문은 텔레그램 · 영상/사진은 클릭 시에만 t.me 임베드
         </p>
       ) : null}
     </div>
@@ -520,11 +585,13 @@ function LiveBadge({
           ? embedMode
             ? "재시도"
             : "오프라인"
-          : live
-            ? "LIVE"
-            : liveStatus === "waiting"
-              ? "대기"
-              : "대기"}
+          : liveStatus === "waiting"
+            ? "대기"
+            : liveStatus === "stub"
+              ? "샘플"
+              : live || liveStatus === "ok"
+                ? "LIVE"
+                : "—"}
     </span>
   );
 }

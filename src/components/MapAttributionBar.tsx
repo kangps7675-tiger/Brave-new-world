@@ -4,13 +4,18 @@ import { useMemo } from "react";
 import { trustChipLabel, type TrustLang } from "@/data/newsTrustTiers";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import { activeSourceCredits } from "@/lib/layerAttribution";
+import type { BasemapMode } from "@/lib/basemapMode";
 
 type MapAttributionBarProps = {
   lang: LabelLanguage;
   /** 현재 레이어 on/off 상태 — 켜진 레이어의 출처만 노출 */
   layerPrefs: LayerPrefs | null;
+  /** 지형 모드일 때만 위성 사진(Esri) 출처를 추가로 노출 */
+  basemapMode?: BasemapMode;
   /** 클릭 시 전체 자료출처·방법론 패널 열기 */
   onOpenSources: () => void;
+  /** 8개 책갈피 양피지 안내서 */
+  onOpenParchment?: () => void;
   /** 클릭 시 뉴스·OSINT 신뢰도 등급 패널 열기 — 메뉴 밖(지구본)에 상시 노출 */
   onOpenTrust?: () => void;
   className?: string;
@@ -33,7 +38,9 @@ function toTrustLang(lang: LabelLanguage): TrustLang {
 export function MapAttributionBar({
   lang,
   layerPrefs,
+  basemapMode,
   onOpenSources,
+  onOpenParchment,
   onOpenTrust,
   className = "",
 }: MapAttributionBarProps) {
@@ -70,6 +77,32 @@ export function MapAttributionBar({
       >
         OSM
       </a>
+      {basemapMode === "terrain" ? (
+        <>
+          <span aria-hidden className="text-slate-600">
+            ·
+          </span>
+          <a
+            href="https://www.esri.com/en-us/legal/terms/data-attributions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 transition hover:text-slate-200"
+          >
+            Esri
+          </a>
+          <span aria-hidden className="text-slate-600">
+            ·
+          </span>
+          <a
+            href="https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 transition hover:text-slate-200"
+          >
+            Cesium OSM Buildings
+          </a>
+        </>
+      ) : null}
 
       {/* 켜진 레이어 출처 */}
       {shown.length > 0 ? (
@@ -130,6 +163,20 @@ export function MapAttributionBar({
       >
         {en ? "Data sources ▸" : "데이터 출처 ▸"}
       </button>
+      {onOpenParchment ? (
+        <>
+          <span aria-hidden className="text-slate-600">
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={onOpenParchment}
+            className="shrink-0 font-medium text-amber-200/85 transition hover:text-amber-100"
+          >
+            {en ? "Source guide ▸" : "출처 안내서 ▸"}
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

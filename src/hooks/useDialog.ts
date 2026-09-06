@@ -61,53 +61,58 @@ export function useDialog<T extends HTMLElement = HTMLDivElement>({
 }: UseDialogOptions) {
   const ref = useRef<T | null>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const closeOnEscapeRef = useRef(closeOnEscape);
+  const trapFocusRef = useRef(trapFocus);
+  onCloseRef.current = onClose;
+  closeOnEscapeRef.current = closeOnEscape;
+  trapFocusRef.current = trapFocus;
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      const node = ref.current;
-      if (!node) return;
+  /**
+   * onClose 등 콜백 identity가 매 렌더 바뀌어도 키다운 핸들러는 유지한다.
+   * 예전엔 의존성 때문에 effect가 재실행되며 첫 버튼으로 포커스를 되돌려
+   * 등불 사진 뉴스 스크롤이 맨 위로 튕겼다.
+   */
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    const node = ref.current;
+    if (!node) return;
 
-      if (event.key === "Escape" && closeOnEscape && onClose) {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
+    if (event.key === "Escape" && closeOnEscapeRef.current && onCloseRef.current) {
+      event.stopPropagation();
+      onCloseRef.current();
+      return;
+    }
 
-      if (event.key !== "Tab" || !trapFocus) return;
+    if (event.key !== "Tab" || !trapFocusRef.current) return;
 
-      const items = focusableWithin(node);
-      if (items.length === 0) {
-        // 포커스할 게 없으면 컨테이너 밖으로 새지 않게 막는다
-        event.preventDefault();
-        node.focus();
-        return;
-      }
+    const items = focusableWithin(node);
+    if (items.length === 0) {
+      event.preventDefault();
+      node.focus();
+      return;
+    }
 
-      const first = items[0]!;
-      const last = items[items.length - 1]!;
-      const active = document.activeElement as HTMLElement | null;
+    const first = items[0]!;
+    const last = items[items.length - 1]!;
+    const active = document.activeElement as HTMLElement | null;
 
-      if (event.shiftKey && (active === first || !node.contains(active))) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    },
-    [closeOnEscape, onClose, trapFocus],
-  );
+    if (event.shiftKey && (active === first || !node.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const node = ref.current;
     if (!node) return;
 
-    // 닫을 때 돌아갈 곳을 기억
     restoreRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
-    // 열릴 때 포커스 이동 — 렌더 직후로 미뤄 애니메이션 중 실패를 피한다
     const focusTimer = window.setTimeout(() => {
       const target = initialFocus
         ? node.querySelector<HTMLElement>(initialFocus)
@@ -120,7 +125,6 @@ export function useDialog<T extends HTMLElement = HTMLDivElement>({
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", handleKeyDown, true);
-      // 이전 포커스 복원 — 키보드 사용자가 맥락을 잃지 않게
       const restore = restoreRef.current;
       if (restore && document.contains(restore)) restore.focus();
       restoreRef.current = null;

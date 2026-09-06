@@ -2,7 +2,13 @@
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { gtiBand, gtiBandLabel, type GtiBand } from "@/lib/gti";
+import {
+  displayGtiDelta,
+  displayGtiScore,
+  gtiBand,
+  gtiBandLabel,
+  type GtiBand,
+} from "@/lib/gti";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type WorldTensionChipProps = {
@@ -12,6 +18,8 @@ type WorldTensionChipProps = {
   deltaScore?: number | null;
   /** 이 점수를 가져온 시각 (ISO) — 상황판 "기준 시각" 표시용 */
   asOf?: string | null;
+  /** 공식 스냅샷이 아직 없어 전장 점수로 즉석 산출한 잠정치인지 — true면 배지 표시 */
+  isEstimate?: boolean;
   lang: LabelLanguage;
   className?: string;
 };
@@ -61,6 +69,7 @@ export function WorldTensionChip({
   score,
   deltaScore,
   asOf,
+  isEstimate,
   lang,
   className,
 }: WorldTensionChipProps) {
@@ -90,15 +99,16 @@ export function WorldTensionChip({
     );
   }
 
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const band = gtiBand(clamped);
+  const clamped = displayGtiScore(score);
+  if (clamped == null) return null;
+  const band = gtiBand(score);
   const color = bandColor(band, light);
   const urgent = band === "critical";
   const asOfLabel = formatAsOfTime(asOf);
 
-  const delta = deltaScore != null && Number.isFinite(deltaScore) ? Math.round(deltaScore) : null;
+  const delta = displayGtiDelta(deltaScore);
   const deltaLabel =
-    delta != null && delta !== 0
+    delta != null
       ? delta > 0
         ? t("worldTensionDeltaUp", lang).replace("{n}", String(delta))
         : t("worldTensionDeltaDown", lang).replace("{n}", String(Math.abs(delta)))
@@ -163,6 +173,18 @@ export function WorldTensionChip({
         {deltaLabel ? (
           <span className={`text-micro ${light ? "text-slate-600" : "text-slate-400/70"}`}>
             {deltaLabel}
+          </span>
+        ) : null}
+        {isEstimate ? (
+          <span
+            className={`text-micro font-medium ${light ? "text-amber-700" : "text-amber-300/80"}`}
+            title={
+              lang === "en"
+                ? "Provisional — official smoothed figure not in yet, may differ."
+                : "잠정치 — 공식 집계 전 수치라 정식 값과 다를 수 있습니다."
+            }
+          >
+            {lang === "en" ? "provisional" : "잠정치"}
           </span>
         ) : null}
         {asOfLabel ? (

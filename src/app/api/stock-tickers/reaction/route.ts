@@ -30,6 +30,7 @@ import {
   type MarketReactionItem,
   type MarketReactionVerdict,
 } from "@/lib/stockTickers";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,7 +86,7 @@ export async function GET(request: Request) {
       anchor: null as EventMarketAnchor | null,
       at: null as string | null,
       source: "age" as const,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.stock) });
   }
 
   try {
@@ -106,7 +107,7 @@ export async function GET(request: Request) {
           };
 
     const preferred = backtrace.anchor?.preferredSymbols ?? [];
-    const theaterSymbols = theaterAssetSymbols(theater);
+    const theaterSymbols = theaterAssetSymbols(theater, viewerMode);
     // 선호 심볼(금·유가·물류)은 전장 테이블에 없어도 우선 포함
     const symbols = [
       ...preferred,
@@ -224,7 +225,7 @@ export async function GET(request: Request) {
             chokepointId: backtrace.anchor.chokepointId ?? null,
           }
         : null,
-    });
+    }, { headers: publicCacheHeaders(CDN_CACHE.stock) });
   } catch (error) {
     const message = publicErrorMessage(error, "market-reaction failed");
     logApiRoute("/api/stock-tickers/reaction", "error", "fetch_failed", { message });

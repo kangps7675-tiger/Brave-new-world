@@ -1,5 +1,5 @@
 {
-	"generatedAt":"2026-07-26T10:04:35.947Z",
+	"generatedAt":"2026-08-09T16:29:29.569Z",
 	"attribution":"NTI / CNS India and Pakistan Missile Launch Tracker",
 	"launches":[
 		{"id":"nti-test-70","date":"1979-08-10","country":"India","missile":"SLV-3","family":"SLV","agency":"ISRO","facility":"Satish Dhawan Space Centre","lat":13.72695,"lng":80.224731,"outcome":"Failure","apogeeKm":23,"rangeKm":"n/a","nuclearFamily":false,"note":""},

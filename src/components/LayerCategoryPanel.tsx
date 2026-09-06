@@ -2,12 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import {
+  CATEGORY_SEED_RECOMMENDED,
+  topLayerItemIds,
+} from "@/lib/layerTogglePopularity";
+
+export type LayerInfoHoverTarget = {
+  id: string;
+  label: string;
+  detail: string;
+};
 
 export type LayerToggleAccent =
   | "emerald"
   | "red"
   | "orange"
   | "amber"
+  | "yellow"
   | "fuchsia"
   | "violet"
   | "blue"
@@ -36,6 +47,14 @@ export type LayerToggleItem = {
    * 카테고리 필터 후 항목 단위로 한 번 더 거른다.
    */
   modes?: Array<"conflict" | "economy">;
+  /**
+   * P0-4: 방금 이 항목의 켜기가 거부됨 (상한 초과 등).
+   * 체크박스가 움직이지 않는 것은 사용자에게 "고장"으로 읽힌다 —
+   * 흔들림 + 해당 행 바로 아래 문구로 **거부됐다는 사실 자체**를 보여준다.
+   */
+  rejected?: boolean;
+  /** 거부 사유 한 줄 (rejected일 때만) */
+  rejectedNote?: string | null;
 };
 
 export type LayerCategory = {
@@ -60,6 +79,8 @@ function accentClass(accent: LayerToggleAccent) {
       return "accent-orange-400";
     case "amber":
       return "accent-amber-400";
+    case "yellow":
+      return "accent-yellow-400";
     case "fuchsia":
       return "accent-fuchsia-400";
     case "violet":
@@ -88,6 +109,8 @@ function tagAccentClasses(accent: LayerToggleAccent, checked: boolean) {
       return "border-orange-400/45 bg-orange-500/15 text-orange-100 shadow-[0_0_12px_rgba(251,146,60,0.12)]";
     case "amber":
       return "border-amber-400/45 bg-amber-500/15 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.12)]";
+    case "yellow":
+      return "border-yellow-400/45 bg-yellow-500/15 text-yellow-100 shadow-[0_0_12px_rgba(250,204,21,0.12)]";
     case "fuchsia":
       return "border-fuchsia-400/45 bg-fuchsia-500/15 text-fuchsia-100";
     case "violet":
@@ -169,6 +192,7 @@ function LayerCautionTag({ tag, hint }: { tag: string; hint: string }) {
 }
 
 export function LayerTagToggle({
+  id,
   label,
   detail,
   checked,
@@ -176,7 +200,9 @@ export function LayerTagToggle({
   accent = "emerald",
   cautionTag,
   cautionHint,
+  onInfoHover,
 }: {
+  id?: string;
   label: string;
   detail: string;
   checked: boolean;
@@ -184,12 +210,21 @@ export function LayerTagToggle({
   accent?: LayerToggleAccent;
   cautionTag?: string | null;
   cautionHint?: string | null;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   return (
     <button
       type="button"
       aria-pressed={checked}
       onClick={() => onChange(!checked)}
+      onMouseEnter={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onMouseLeave={() => onInfoHover?.(null)}
+      onFocus={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onBlur={() => onInfoHover?.(null)}
       /* 터치 타깃 (P1-6) — 칩도 44px 확보 */
       className={`min-h-[var(--tap-target-min)] min-w-0 rounded-full border px-3 py-2 text-left text-xs transition ${tagAccentClasses(accent, checked)}`}
     >
@@ -203,6 +238,7 @@ export function LayerTagToggle({
 }
 
 export function LayerToggle({
+  id,
   label,
   detail,
   checked,
@@ -211,7 +247,11 @@ export function LayerToggle({
   disabled = false,
   cautionTag,
   cautionHint,
+  rejected = false,
+  rejectedNote,
+  onInfoHover,
 }: {
+  id?: string;
   label: string;
   detail: string;
   checked: boolean;
@@ -220,33 +260,51 @@ export function LayerToggle({
   disabled?: boolean;
   cautionTag?: string | null;
   cautionHint?: string | null;
+  rejected?: boolean;
+  rejectedNote?: string | null;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   return (
-    /**
-     * 터치 타깃 (P1-6): 행 전체가 라벨이므로 행 높이가 곧 타깃 크기다.
-     * 기존 py-1.5(≈36px)를 min-h 44px로 올려 WCAG 권장치를 맞춘다.
-     * 체크박스 자체(16px)는 시각 요소일 뿐 — 실제로 눌리는 건 행 전체다.
-     */
-    <label
-      className={`flex min-h-[var(--tap-target-min)] items-center justify-between gap-3 rounded-lg px-2 py-2 transition ${
-        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-900/40"
-      }`}
+    <div
+      onMouseEnter={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onMouseLeave={() => onInfoHover?.(null)}
     >
-      <span className="min-w-0">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <span className="block truncate text-slate-200">{label}</span>
-          {cautionTag && cautionHint ? <LayerCautionTag tag={cautionTag} hint={cautionHint} /> : null}
+      {/**
+       * 터치 타깃 (P1-6): 행 전체가 라벨이므로 행 높이가 곧 타깃 크기다.
+       * 기존 py-1.5(≈36px)를 min-h 44px로 올려 WCAG 권장치를 맞춘다.
+       * 체크박스 자체(16px)는 시각 요소일 뿐 — 실제로 눌리는 건 행 전체다.
+       */}
+      <label
+        className={`flex min-h-[var(--tap-target-min)] items-center justify-between gap-3 rounded-lg px-2 py-2 transition ${
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-900/40"
+        } ${rejected ? "layer-reject-shake bg-amber-500/10" : ""}`}
+      >
+        <span className="min-w-0">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="block truncate text-slate-200">{label}</span>
+            {cautionTag && cautionHint ? (
+              <LayerCautionTag tag={cautionTag} hint={cautionHint} />
+            ) : null}
+          </span>
+          <span className="block truncate text-xs text-slate-500">{detail}</span>
         </span>
-        <span className="block truncate text-xs text-slate-500">{detail}</span>
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        className={`h-5 w-5 shrink-0 ${accentClass(accent)}`}
-      />
-    </label>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          className={`h-5 w-5 shrink-0 ${accentClass(accent)}`}
+        />
+      </label>
+      {/* 거부 사유는 목록 맨 위 배너가 아니라 **누른 행 바로 아래**에 둔다 */}
+      {rejected && rejectedNote ? (
+        <p role="alert" className="px-2 pb-1.5 text-xs leading-snug text-amber-300/90">
+          {rejectedNote}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -295,11 +353,13 @@ export function LayerDropdownToggle({
   detail,
   options,
   accent = "emerald",
+  onInfoHover,
 }: {
   label: string;
   detail: string;
   options: LayerToggleItem[];
   accent?: LayerToggleAccent;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const leaf = options.reduce(
@@ -359,10 +419,12 @@ export function LayerDropdownToggle({
                 detail={opt.detail}
                 options={opt.options}
                 accent={opt.accent ?? accent}
+                onInfoHover={onInfoHover}
               />
             ) : (
               <LayerToggle
                 key={opt.id}
+                id={opt.id}
                 label={opt.label}
                 detail={opt.detail}
                 checked={opt.checked}
@@ -371,6 +433,7 @@ export function LayerDropdownToggle({
                 disabled={opt.disabled}
                 cautionTag={opt.cautionTag}
                 cautionHint={opt.cautionHint}
+                onInfoHover={onInfoHover}
               />
             ),
           )}
@@ -386,6 +449,7 @@ export function LayerCategoryPanel({
   autoExpandCategoryId,
   autoExpandWhen,
   expandActiveCategories = false,
+  onLayerInfoHover,
 }: {
   categories: LayerCategory[];
   batchStatus?: string | null;
@@ -394,6 +458,8 @@ export function LayerCategoryPanel({
   autoExpandWhen?: boolean;
   /** 켜진 레이어가 있는 카테고리를 자동 펼침 (저장된 접기 상태는 존중) */
   expandActiveCategories?: boolean;
+  /** 레이어 행 호버 — 데이터/출처 패널 */
+  onLayerInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   const { t } = useLocale();
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
@@ -406,6 +472,9 @@ export function LayerCategoryPanel({
   const [query, setQuery] = useState("");
   const searchTerm = query.trim().toLowerCase();
   const searching = searchTerm.length > 0;
+  /** P3-5: 카테고리별 "더보기" 펼침 */
+  const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
+  const RECOMMENDED_N = 3;
 
   useEffect(() => {
     try {
@@ -595,6 +664,7 @@ export function LayerCategoryPanel({
                       .map((item) => (
                         <LayerTagToggle
                           key={item.id}
+                          id={item.id}
                           label={item.label}
                           detail={item.detail}
                           checked={item.checked}
@@ -602,35 +672,86 @@ export function LayerCategoryPanel({
                           accent={item.accent}
                           cautionTag={item.cautionTag}
                           cautionHint={item.cautionHint}
+                          onInfoHover={onLayerInfoHover}
                         />
                       ))}
                   </div>
                 ) : null}
-                {category.items
-                  .filter((item) => item.presentation !== "tag")
-                  .map((item) =>
-                    item.presentation === "dropdown" && item.options?.length ? (
-                      <LayerDropdownToggle
-                        key={item.id}
-                        label={item.label}
-                        detail={item.detail}
-                        options={item.options}
-                        accent={item.accent}
-                      />
-                    ) : (
-                      <LayerToggle
-                        key={item.id}
-                        label={item.label}
-                        detail={item.detail}
-                        checked={item.checked}
-                        onChange={item.onChange}
-                        accent={item.accent}
-                        disabled={item.disabled}
-                        cautionTag={item.cautionTag}
-                        cautionHint={item.cautionHint}
-                      />
-                    ),
-                  )}
+                {(() => {
+                  const leafItems = category.items.filter(
+                    (item) => item.presentation !== "tag",
+                  );
+                  const ids = leafItems.map((i) => i.id);
+                  const seeds = CATEGORY_SEED_RECOMMENDED[category.id] ?? [];
+                  const recommended = new Set(
+                    topLayerItemIds(ids, RECOMMENDED_N, seeds),
+                  );
+                  const expanded =
+                    searching ||
+                    showAllMap[category.id] ||
+                    leafItems.length <= RECOMMENDED_N;
+                  const visible = expanded
+                    ? leafItems
+                    : leafItems.filter((i) => recommended.has(i.id) || i.checked);
+                  const hiddenCount = leafItems.length - visible.length;
+                  return (
+                    <>
+                      {visible.map((item) =>
+                        item.presentation === "dropdown" && item.options?.length ? (
+                          <LayerDropdownToggle
+                            key={item.id}
+                            label={item.label}
+                            detail={item.detail}
+                            options={item.options}
+                            accent={item.accent}
+                            onInfoHover={onLayerInfoHover}
+                          />
+                        ) : (
+                          <LayerToggle
+                            key={item.id}
+                            id={item.id}
+                            label={item.label}
+                            detail={item.detail}
+                            checked={item.checked}
+                            onChange={item.onChange}
+                            accent={item.accent}
+                            disabled={item.disabled}
+                            cautionTag={item.cautionTag}
+                            cautionHint={item.cautionHint}
+                            rejected={item.rejected}
+                            rejectedNote={item.rejectedNote}
+                            onInfoHover={onLayerInfoHover}
+                          />
+                        ),
+                      )}
+                      {!expanded && hiddenCount > 0 ? (
+                        <button
+                          type="button"
+                          className="mt-1 w-full rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-meta text-slate-300 transition hover:bg-white/[0.06]"
+                          onClick={() =>
+                            setShowAllMap((prev) => ({ ...prev, [category.id]: true }))
+                          }
+                        >
+                          {t("layerShowMore").replace("{n}", String(hiddenCount))}
+                        </button>
+                      ) : null}
+                      {expanded &&
+                      !searching &&
+                      leafItems.length > RECOMMENDED_N &&
+                      showAllMap[category.id] ? (
+                        <button
+                          type="button"
+                          className="mt-1 w-full rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-meta text-slate-400 transition hover:bg-white/[0.06]"
+                          onClick={() =>
+                            setShowAllMap((prev) => ({ ...prev, [category.id]: false }))
+                          }
+                        >
+                          {t("layerShowLess")}
+                        </button>
+                      ) : null}
+                    </>
+                  );
+                })()}
                 {category.footer ? (
                   <div className="mt-2 border-t border-slate-800/60 pt-2">{category.footer}</div>
                 ) : null}

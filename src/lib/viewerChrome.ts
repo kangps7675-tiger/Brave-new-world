@@ -16,6 +16,10 @@ import {
 } from "@/lib/viewPackages";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { mergeConceptLayerPrefs } from "@/lib/conceptLayers";
+import {
+  FIRST_SCREEN_CONFLICT_ON,
+  FIRST_SCREEN_ECONOMY_ON,
+} from "@/lib/firstScreenLayers";
 
 export type { ViewerMode };
 
@@ -34,39 +38,38 @@ export type BottomStackLayout = "conflict" | "economy";
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 지정학 자원 히어로 — 전역 첫 화면: 원자력만.
- * 송유관·해저관은 잡음이 커서 기본 OFF (레이어 패널에서 수동 ON).
+ * 지정학 자원 히어로 — 기본 비움.
+ * 원자력·매장지·배관은 물류/전선과 무관해 기본 OFF (레이어 패널·시나리오에서 ON).
  */
-export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showNuclearSites: true,
-};
+export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
-/** 지정학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
   showOilPipelines: false,
   showSubseaPipelines: false,
   showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
+  showNuclearSites: false,
   showGemOilGasExtraction: false,
   showGemCoalMines: false,
   showGemIronOre: false,
 };
 
 /**
- * 지경학 자원 히어로 — 전역 첫 화면: 매장지 면 + 가스관 + LNG.
+ * 지경학 자원 히어로 — 에너지 물류만 (가스관·LNG). 매장지 면은 기본 OFF.
  */
 export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showResources: true,
   showGasPipelines: true,
   showLngTerminals: true,
 };
 
-/** 지경학에서 자원 히어로가 아닌 레이어 — 모드 진입 시 기본 OFF */
+/** 지경학에서 비물류 자원·인프라 — 모드 진입 시 기본 OFF */
 export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
   showOilPipelines: false,
   showSubseaPipelines: false,
   showNuclearSites: false,
+  showResources: false,
   showGemOilGasExtraction: false,
   showGemCoalMines: false,
   showGemIronOre: false,
@@ -74,8 +77,10 @@ export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
 
 /** @deprecated 모드별 히어로 사용 — 레거시 합집합(전부 ON) */
 export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
-  ...CONFLICT_RESOURCE_HERO_ON,
-  ...ECONOMY_RESOURCE_HERO_ON,
+  showNuclearSites: true,
+  showResources: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
   showGemOilGasExtraction: true,
   showGemCoalMines: true,
   showGemIronOre: true,
@@ -93,10 +98,25 @@ export function ensureResourceLayersOn(
   return { ...prefs, ...resourceHeroLayersForMode(mode) };
 }
 
-/** 지정학 대치 구도 — 미군기지·항모 (미사일 벨트와 함께 보는 핵심) */
+/** 지정학 대치 구도 — A2AD·한일대만필·호주·동유럽 · 주한미군 · 항모 */
 export const CONFLICT_CONFRONTATION_LAYER_ON: Partial<LayerPrefs> = {
+  showIslandChains: true,
+  showEastAsiaAdiz: true,
   showMilitaryBases: true,
+  showRokMilitaryBases: true,
+  showJapanMilitaryBases: true,
+  showTaiwanMilitaryBases: true,
+  showPhilippinesMilitaryBases: true,
+  showAustraliaMilitaryBases: true,
+  showEasternNatoMilitaryBases: true,
   showUsCarriers: true,
+};
+
+/** CRINK 전략군사 — 축 네트워크 + 중·러 전략미사일 시설 */
+export const CONFLICT_CRINK_STRATEGIC_ON: Partial<LayerPrefs> = {
+  showAxisNetwork: true,
+  showMissileSilos: true,
+  showStrategicMissileBases: true,
 };
 
 export function ensureConfrontationLayersOn(
@@ -127,70 +147,49 @@ export type ViewerChromePreset = {
 };
 
 const CONFLICT_FORCE_ON: Partial<LayerPrefs> = {
-  // 우크라 전선 폴리곤 + NEPTUN 공습/드론 · 타격 화염
-  showUkraineControl: true,
-  showUkraineStrikesOnRussia: true,
-  showWarZones: true,
-  showGdeltWar: true,
-  showGdeltDiplomatic: true,
-  showGdeltProtests: true,
-  showGdeltOceanCompetition: true,
-  showMilitaryActivity: true,
-  showAis: true,
-  showLogisticsRisk: true,
+  ...FIRST_SCREEN_CONFLICT_ON,
   showLogisticsStress: true,
-  showShippingLanes: true,
-  showPorts: true,
-  showFirmsFires: true,
-  showUkmtoIncidents: true,
-  showNavareaWarnings: true,
-  showSubmarineCables: true,
-  showNeptun: true,
-  showNeptunPreviousTrails: false,
-  showTelegramOsint: true,
-  /** 지정학 진입 즉시 NewFeeds 이란·공격 지도 레이어 */
-  showNewfeedsIranAttacks: true,
-  /** 지정학 진입 즉시 전 세계 미 항모 배치·항구 위치 표시 */
-  showUsCarriers: true,
-  /** 지정학 진입 즉시 미군기지 — 미사일 벨트·대치 구도와 함께 표시 */
-  showMilitaryBases: true,
-  ...CONFLICT_RESOURCE_HERO_ON,
 };
 
 const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showAiDataCenters: false,
   showAirTraffic: false,
+  showAirports: false,
+  showSubmarineCables: false,
   showSubmarineTunnels: false,
   showGscpiGauge: false,
-  /** 반서방 축·배관은 기본 OFF — 내비 허브/레이어에서만 켠다 */
-  showAxisNetwork: false,
+  showGdeltProtests: false,
+  showGdeltOceanCompetition: false,
+  /** 도시명 — 레이어 체크박스 ON 전까지 숨김 */
+  showCityLabels: false,
+  /** CRINK 축·전략미사일은 CONFLICT_CRINK_STRATEGIC_ON */
+  showMissileTestSites: false,
+  showMissileSiloFields: false,
+  /** BRI·DFC는 지경학 전용 — 지정학 prefs에 남아 있어도 강제 OFF */
+  showBriTradeConnectivity: false,
+  showUsDfcSupplyChain: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
-  showAis: true,
-  showAirTraffic: true,
-  showLogisticsRisk: true,
+  ...FIRST_SCREEN_ECONOMY_ON,
   showLogisticsStress: true,
   showGscpiGauge: true,
-  showCriticalNodes: true,
-  showSubmarineCables: true,
-  ...ECONOMY_RESOURCE_HERO_ON,
-  showAiDataCenters: true,
-  showPorts: true,
-  showAirports: true,
-  /** 유가 민감 — 이란·지역 공격 NewFeeds 지도 */
-  showNewfeedsIranAttacks: true,
-  showBriTradeConnectivity: true,
-  showUsDfcSupplyChain: true,
 };
 
 /**
  * 지경학에서 절대 ON 금지 — 군용 항공기·함정·기지·위장(무기고) 선박.
- * 경제 모드는 민간 AIS·민간 ADS-B·파이프·항로 등 경제 연관만.
+ * 경제 모드는 민간 AIS·항로·파이프·에너지/결제 축 등 물류·시장만.
+ * (축 네트워크 energy·economy hybrid는 허용 — 자본·결제 흐름)
  */
 export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryBases: false,
+  showRokMilitaryBases: false,
+  showJapanMilitaryBases: false,
+  showTaiwanMilitaryBases: false,
+  showPhilippinesMilitaryBases: false,
+  showAustraliaMilitaryBases: false,
+  showEasternNatoMilitaryBases: false,
   showMissileSilos: false,
   showStrategicMissileBases: false,
   showMissileTestSites: false,
@@ -223,8 +222,24 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showUcdpEvents: false,
   showFirmsFires: false,
   showSanctionsEntities: false,
+  /** 이란 NewFeeds는 FIRST_SCREEN_ECONOMY_ON(호르무즈·유류) — 여기서 OFF 하지 않음 */
   showSubmarineTunnels: false,
-  showAxisNetwork: false,
+  showSubmarineCables: false,
+  /** 제재 회피 강도·회랑은 지정학 전용(재미·관측) — 지경학에서는 OFF */
+  showSesChip: false,
+  showSanctionsEvasionCorridors: false,
+  showAiDataCenters: false,
+  showAirTraffic: false,
+  showAirports: false,
+  showCriticalNodes: false,
+  showCrinkInfraPower: false,
+  showCrinkInfraBorder: false,
+  showCrinkInfraDams: false,
+  showCrinkInfraAeroway: false,
+  showCrinkInfraHarbour: false,
+  showCrinkInfraCheckpoint: false,
+  showCrinkInfraRail: false,
+  showCrinkInfraRoad: false,
   ...ECONOMY_MILITARY_BLOCK,
   ...ECONOMY_RESOURCE_HERO_OFF,
   showGpsInterference: false,
@@ -251,6 +266,48 @@ export function isEconomyMilitaryLayerKey(key: string): boolean {
   return key in ECONOMY_MILITARY_BLOCK;
 }
 
+/**
+ * 지경학에서 전선·점령·GDELT 전쟁 레이어 ON 금지.
+ * 이란 NewFeeds(유류·호르무즈)는 시장 첫 화면에 유지.
+ */
+export const ECONOMY_FRONTLINE_BLOCK: Partial<LayerPrefs> = {
+  showWarZones: false,
+  showDiplomaticTension: false,
+  showGdeltWar: false,
+  showGdeltDiplomatic: false,
+  showGdeltAlliance: false,
+  showTelegramOsint: false,
+  showUkraineControl: false,
+  showUkraineStrikesOnRussia: false,
+  showNeptun: false,
+  showNeptunPreviousTrails: false,
+  showTzevaAdom: false,
+  showConflictZones: false,
+};
+
+function stripLayerBlock(
+  patch: Partial<LayerPrefs>,
+  block: Partial<LayerPrefs>,
+): Partial<LayerPrefs> {
+  const next: Partial<LayerPrefs> = { ...patch };
+  for (const key of Object.keys(block) as Array<keyof LayerPrefs>) {
+    if (next[key] === true) {
+      delete next[key];
+    }
+  }
+  return { ...next, ...block };
+}
+
+/** 묻기·뉴스 인사이트가 지경학에서 전선/점령/군용을 다시 켜지 못하게 */
+export function stripEconomyGeopoliticsPatch(
+  patch: Partial<LayerPrefs>,
+): Partial<LayerPrefs> {
+  return stripLayerBlock(
+    stripEconomyMilitaryPatch(patch),
+    ECONOMY_FRONTLINE_BLOCK,
+  );
+}
+
 export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
   conflict: {
     mode: "conflict",
@@ -268,15 +325,13 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     },
     navProfile: NAV_MENU_GROUPS,
     searchPlaceholder: "지명 · 국가 · 분쟁 검색",
-    navHeaderLabel: "반서방 축",
+    navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
-    modePickerTagline: "전선 · GDELT · Telegram OSINT",
+    modePickerTagline: "전선 · NEPTUN · 항모",
     modePickerBullets: [
-      "NEPTUN 공습/드론 궤적 · 우크라→러 타격 화염",
-      "GDELT 전투·외교 뉴스 핀",
-      "Telegram OSINT · VIINA 전선 · 우크라→러 타격",
-      "에너지 히어로: 원자력 (송유관·해저관·반서방 축은 수동)",
-      "하단: 속보 + GDELT 범례",
+      "우크라 전선 · NEPTUN 공습/드론",
+      "항모 위치 · 이란 타격 속보",
+      "전장에 들어가면 기지·GDELT·텔레그램이 따라 켜집니다",
     ],
     layerPanelTitle: "레이어 · 전선",
   },
@@ -295,17 +350,16 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       3: { label: "미확인 속보", detail: "참고용" },
     },
     navProfile: ECON_NAV_MENU_GROUPS,
-    searchPlaceholder: "유가 · 제재 · 항로 · 허브 검색",
+    searchPlaceholder: "유가 · 초크 · 항로 · 허브 검색",
     navHeaderLabel: "멋진 신세계 · 시장",
     modePickerTitle: "경제 · 시장",
-    modePickerTagline: "유가 · VIX · 제재 · 물류",
+    modePickerTagline: "초크 · 에너지 · 유가 · 물류",
     modePickerBullets: [
-      "주요 증시·VIX·유가 티커",
-      "경제 RSS · 에너지·해운·제재 속보",
-      "자원 히어로: 매장지 · 가스관 · LNG · 항로 · 민간 AIS/ADS-B",
-      "하단: 티커 + 시장 속보",
+      "초크포인트 · 항로 · PortWatch/GSCPI로 막힘 읽기",
+      "가스·LNG · 무역 코리도 · 에너지·결제 축",
+      "허브·티커로 관련 선물·지수로 이어짐 (투자 권유 아님)",
     ],
-    layerPanelTitle: "인프라 · 시장",
+    layerPanelTitle: "물류 · 시장",
   },
 };
 
@@ -328,11 +382,8 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
     }
   }
 
-  // 캡으로 잘려도 모드별 자원 히어로 + 대치(미군기지·항모) 다시 ON
-  return ensureConfrontationLayersOn(
-    ensureResourceLayersOn(capLayerCountForMode(next, mode), mode),
-    mode,
-  );
+  // 캡만 적용. 대치·자원 히어로는 전장/허브 진입(conceptLayers)에서 켠다.
+  return capLayerCountForMode(next, mode);
 }
 
 export type ApplyViewerModeResult = {
@@ -354,14 +405,8 @@ export function applyViewerMode(
   const effectiveHub = mode === "economy" ? economyHub : "auto";
   const mergedBase = applyViewPackages(packages, effectiveTheater, effectiveHub);
   const chromeLayers = mergeChromeLayers(mergedBase.layers, mode);
-  const conceptLayers = ensureConfrontationLayersOn(
-    ensureResourceLayersOn(
-      capLayerCountForMode(
-        mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
-        mode,
-      ),
-      mode,
-    ),
+  const conceptLayers = capLayerCountForMode(
+    mergeConceptLayerPrefs(chromeLayers, mode, effectiveTheater, effectiveHub),
     mode,
   );
   saveLayerPrefs(conceptLayers);

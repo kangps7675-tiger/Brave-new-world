@@ -1,0 +1,302 @@
+{
+  "generatedAt": "2026-08-28T15:59:21.363Z",
+  "source": "UNCTADstat US.LSBCI (Liner Shipping Bilateral Connectivity Index, bulk CSV)",
+  "sourceFile": "US_LSBCI.csv",
+  "method": "Average of the most recent 8 quarters (both A→B and B→A directions averaged per quarter). Genuinely bilateral — unlike ContPortThroughput's country-total geoMean proxy.",
+  "unit": "index (0-1 scale, share of maximum bilateral liner connectivity, UNCTAD methodology)",
+  "rowsScanned": 686925,
+  "rowsKept": 1500,
+  "pairCount": 35,
+  "withData": 17,
+  "pairs": {
+    "CHN|RUS": {
+      "isoA": "CHN",
+      "isoB": "RUS",
+      "index": 0.4240708333333333,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.4291333333333333,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|KOR": {
+      "isoA": "CHN",
+      "isoB": "KOR",
+      "index": 0.7470166666666667,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.7405666666666666,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "KOR|RUS": {
+      "isoA": "KOR",
+      "isoB": "RUS",
+      "index": 0.4444625,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.4704,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|TUR": {
+      "isoA": "CHN",
+      "isoB": "TUR",
+      "index": 0.5451916666666666,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.5808666666666666,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|IRN": {
+      "isoA": "CHN",
+      "isoB": "IRN",
+      "index": 0.33988749999999995,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.33960000000000007,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IND|RUS": {
+      "isoA": "IND",
+      "isoB": "RUS",
+      "index": 0.40275,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.4542,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IRN|RUS": {
+      "isoA": "IRN",
+      "isoB": "RUS",
+      "index": 0.2425625,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.2559,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IRN|SYR": {
+      "isoA": "IRN",
+      "isoB": "SYR",
+      "index": 0.22262499999999996,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.2304,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|NLD": {
+      "isoA": "CHN",
+      "isoB": "NLD",
+      "index": 0.6477999999999999,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.6449999999999999,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "RUS|SYR": {
+      "isoA": "RUS",
+      "isoB": "SYR",
+      "index": 0.22791250000000002,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.2732,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|PAK": {
+      "isoA": "CHN",
+      "isoB": "PAK",
+      "index": 0.48805833333333326,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.4972999999999999,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|SAU": {
+      "isoA": "CHN",
+      "isoB": "SAU",
+      "index": 0.6009333333333333,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.5948333333333333,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "ARE|CHN": {
+      "isoA": "ARE",
+      "isoB": "CHN",
+      "index": 0.6253916666666666,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.6148333333333333,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "CHN|MMR": {
+      "isoA": "CHN",
+      "isoB": "MMR",
+      "index": 0.2833416666666667,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.2644,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IRN|IRQ": {
+      "isoA": "IRN",
+      "isoB": "IRQ",
+      "index": 0.345075,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.3558,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IRN|LBN": {
+      "isoA": "IRN",
+      "isoB": "LBN",
+      "index": 0.28895,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.3061,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    },
+    "IRN|YEM": {
+      "isoA": "IRN",
+      "isoB": "YEM",
+      "index": 0.18206250000000002,
+      "latestQuarter": "2026Q01",
+      "latestIndex": 0.1917,
+      "quartersUsed": [
+        "2019Q01",
+        "2020Q01",
+        "2021Q01",
+        "2022Q01",
+        "2023Q01",
+        "2024Q01",
+        "2025Q01",
+        "2026Q01"
+      ]
+    }
+  }
+}

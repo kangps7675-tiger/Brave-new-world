@@ -5,7 +5,22 @@
 
 import { isArticleUrl } from "@/lib/news/articleLink";
 import { hasLampPhoto, normalizeLampImageUrl } from "@/lib/news/lampThumbnail";
+import { canFetchArticle } from "@/lib/news/robotsTxt";
 import type { NewsStreamItem } from "@/lib/news/types";
+import { SITE_URL } from "@/lib/siteUrl";
+import { isCrinkAnalysisUrl, isCrinkBlockedImageHost } from "@/data/crinkSourceRegistry";
+import { extractHostname } from "@/lib/news/mediaTiers";
+
+/**
+ * 봇 신원 — **연락 가능한 실제 주소를 쓸 것.**
+ *
+ * 이전 값은 `+https://localhost` 였다. 봇 신원은 상대 매체가 우리 트래픽을
+ * 식별하고 차단 여부를 판단할 유일한 수단인데, `localhost` 는 신원을 밝히지
+ * 않은 것과 같다. robots.txt 준수와 함께 "정직한 크롤러"의 최소 조건이다.
+ *
+ * @see docs/copyright-audit-2026-08-01.md — O-3
+ */
+const ENRICH_USER_AGENT = `ConflictViewBot/1.0 (+${SITE_URL}; article thumbnail enrichment)`;
 
 const DEFAULT_TIMEOUT_MS = 2_500;
 const DEFAULT_MAX_ENRICH = 24;
@@ -64,10 +79,22 @@ export async function fetchArticleOgImage(
   opts?: { timeoutMs?: number },
 ): Promise<string> {
   if (!isArticleUrl(articleUrl)) return "";
+  // CRINK 연구소·OSINT — og:image 를 카드 메인으로 쓰지 않음
+  if (isCrinkAnalysisUrl(articleUrl)) return "";
 
   const cached = ogImageCache.get(articleUrl);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return cached.imageUrl;
+  }
+
+  /*
+   * robots.txt 확인 — 기사 페이지를 능동적으로 가져오기 전 필수 관문.
+   * RSS 수신과 달리 이건 상대 서버에 우리가 요청을 넣는 크롤링이다.
+   * 차단이면 이미지 없이 진행한다 (스트림을 죽이지 않는다).
+   */
+  if (!(await canFetchArticle(articleUrl, ENRICH_USER_AGENT))) {
+    ogImageCache.set(articleUrl, { imageUrl: "", at: Date.now() });
+    return "";
   }
 
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
@@ -80,7 +107,7 @@ export async function fetchArticleOgImage(
       redirect: "follow",
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": "ConflictViewLampBot/1.0 (+https://localhost; briefing image enrich)",
+        "User-Agent": ENRICH_USER_AGENT,
       },
       cache: "no-store",
     });
@@ -120,6 +147,7 @@ export type EnrichNewsStreamImagesOptions = {
 /**
  * imageUrl 없는 최근 기사에 og:image를 채운다.
  * 이미 사진이 있거나 섹션 URL이면 스킵.
+ * CRINK 차단 호스트의 enclosure/og 는 제거한다.
  */
 export async function enrichNewsStreamImages(
   items: NewsStreamItem[],
@@ -131,18 +159,35 @@ export async function enrichNewsStreamImages(
   const budgetMs = opts.budgetMs ?? 8_000;
   const started = Date.now();
 
+  const stripped = items.map((item) => {
+    if (!item.imageUrl) return item;
+    try {
+      const host = extractHostname(item.imageUrl) || extractHostname(item.link);
+      if (host && isCrinkBlockedImageHost(host)) {
+        return { ...item, imageUrl: undefined };
+      }
+      if (isCrinkAnalysisUrl(item.link)) {
+        return { ...item, imageUrl: undefined };
+      }
+    } catch {
+      /* keep */
+    }
+    return item;
+  });
+
   const needIdx: number[] = [];
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!;
+  for (let i = 0; i < stripped.length; i++) {
+    const item = stripped[i]!;
     if (hasLampPhoto(item.imageUrl)) continue;
     if (!isArticleUrl(item.link)) continue;
+    if (isCrinkAnalysisUrl(item.link)) continue;
     needIdx.push(i);
     if (needIdx.length >= maxEnrich) break;
   }
 
-  if (needIdx.length === 0) return items;
+  if (needIdx.length === 0) return stripped;
 
-  const out = items.slice();
+  const out = stripped.slice();
   let cursor = 0;
 
   async function worker() {

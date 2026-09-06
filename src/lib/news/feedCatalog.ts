@@ -13,6 +13,10 @@ import {
   isSouthAmericaConflictNews,
   isSoutheastAsiaConflictNews,
 } from "@/lib/news/regionalConflictNews";
+import {
+  crinkTheaterNewsSources,
+  HUB_TO_THEATER,
+} from "@/data/crinkSourceRegistry";
 
 export type NewsFeedDef = {
   url: string;
@@ -395,6 +399,16 @@ const KOREA: NewsFeedDef[] = [
     unfiltered: true,
   },
 ];
+
+/** CRINK theater-news 보조 (허브 모니터와 분리 — 속보 스트림용) */
+const CRINK_THEATER_NEWS: NewsFeedDef[] = crinkTheaterNewsSources()
+  .filter((s) => Boolean(s.feedUrl))
+  .map((s) => ({
+    url: s.feedUrl!,
+    name: s.label,
+    theater: HUB_TO_THEATER[s.hub],
+    unfiltered: true,
+  }));
 
 const JAPAN: NewsFeedDef[] = [
   // 와이어는 지정학 키워드 필터 통과분만 (unfiltered 금지)
@@ -1648,6 +1662,7 @@ export const ALL_NEWS_FEEDS: NewsFeedDef[] = dedupeFeedsByUrl([
   ...RUSSIA_UKRAINE,
   ...CHINA_TAIWAN,
   ...KOREA,
+  ...CRINK_THEATER_NEWS,
   ...JAPAN,
   ...SOUTH_ASIA,
   ...SOUTHEAST_ASIA,

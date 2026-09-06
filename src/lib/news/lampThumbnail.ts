@@ -1,7 +1,9 @@
 /**
- * 등불 카드 썸네일 테마 — RSS 이미지 없을 때 CSS 그라데이션용.
- * (SVG data-URI 폴백은 사용하지 않음)
+ * 등불 카드 썸네일 테마 — RSS 이미지 없을 때 CSS 그라데이션·위성 폴백.
  */
+
+import { resolveCrinkPlace } from "@/data/crinkPlaceGazetteer";
+import { hubThumbFallbacks } from "@/lib/news/hubThumbResolver";
 
 export type LampThumbTheme =
   | "economy"
@@ -125,13 +127,24 @@ export function resolveLampThumbTheme(input: {
   return "economy";
 }
 
-/** http(s) RSS 이미지만 통과 — 트래커·파비콘·1px 등 소형/비사진 제외 */
+/**
+ * 기사에 붙은 미디어 URL (RSS enclosure · og:image · twitter:image).
+ * 위성·그라데이션 폴백은 쓰지 않는다.
+ * 파비콘·트래킹 픽셀만 제외 — SVG 인포그래픽·CMS 경로(placeholder, /icons/)는 기사 첨부로 본다.
+ */
 export function normalizeLampImageUrl(imageUrl: string | undefined | null): string {
-  const raw = typeof imageUrl === "string" ? imageUrl.trim() : "";
-  if (raw.length <= 8 || !/^https?:\/\//i.test(raw)) return "";
-  // 선명 대형 사진 데스크 — 트래킹 픽셀·아이콘·플레이스홀더 배제
+  let raw = typeof imageUrl === "string" ? imageUrl.trim() : "";
+  if (!raw || /^data:/i.test(raw)) return "";
+  if (raw.startsWith("//")) raw = `https:${raw}`;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    raw = parsed.href;
+  } catch {
+    return "";
+  }
   if (
-    /(?:favicon|sprite|pixel|1x1|tracking|badge\.svg|\.svg(?:\?|$)|\/icon[-_/]|\/icons\/|placeholder|data:image)/i.test(
+    /(?:favicon|\b1x1\b|pixel\.gif|pixel\.png|spacer\.gif|transparent\.gif|tracking[-_/])/i.test(
       raw,
     )
   ) {
@@ -140,7 +153,68 @@ export function normalizeLampImageUrl(imageUrl: string | undefined | null): stri
   return raw;
 }
 
-/** 등불 카드용 — 유효한 대형 사진 URL이 있는지 */
+/** 등불 카드용 — 기사에 붙은 이미지 URL이 있는지 (위성·그라데이션 폴백 제외) */
 export function hasLampPhoto(imageUrl: string | undefined | null): boolean {
   return normalizeLampImageUrl(imageUrl).length > 0;
+}
+
+/** theater 버킷 → 대표 좌표 (군사·외교 RSS 무사진 시 NASA GIBS 폴백) */
+const THEATER_CENTROID: Record<string, { lat: number; lng: number }> = {
+  korea: { lat: 37.56, lng: 126.98 },
+  japan: { lat: 35.68, lng: 139.69 },
+  "china-taiwan": { lat: 24.0, lng: 121.0 },
+  "middle-east": { lat: 31.5, lng: 34.8 },
+  "russia-ukraine": { lat: 48.5, lng: 37.5 },
+  "south-asia": { lat: 28.6, lng: 77.2 },
+  "southeast-asia": { lat: 1.35, lng: 103.8 },
+  "south-america": { lat: -23.55, lng: -46.63 },
+  atlantic: { lat: 50.0, lng: -20.0 },
+  africa: { lat: 9.0, lng: 18.0 },
+  arctic: { lat: 78.0, lng: 15.0 },
+  global: { lat: 20.0, lng: 0.0 },
+};
+
+/**
+ * 등불 히어로 이미지 후보 — RSS/og → CRINK 장소 위성 → theater 중심 → 카테고리 아이콘.
+ * think tank·군사 보도 등 og 차단/무사진 기사용.
+ */
+export function resolveLampImageCandidates(input: {
+  imageUrl?: string | null;
+  title?: string;
+  summary?: string;
+  theater?: string;
+  dataCdn?: string | null;
+}): string[] {
+  const urls: string[] = [];
+  const normalized = normalizeLampImageUrl(input.imageUrl);
+  if (normalized) urls.push(normalized);
+
+  const title = input.title ?? "";
+  const summary = input.summary ?? "";
+  const place = resolveCrinkPlace(`${title} ${summary}`);
+  if (place) {
+    urls.push(
+      ...hubThumbFallbacks({
+        placeId: place.placeId,
+        lat: place.lat,
+        lng: place.lng,
+        title,
+        summary,
+        dataCdn: input.dataCdn,
+      }),
+    );
+  } else {
+    const centroid = input.theater ? THEATER_CENTROID[input.theater] : undefined;
+    urls.push(
+      ...hubThumbFallbacks({
+        lat: centroid?.lat,
+        lng: centroid?.lng,
+        title,
+        summary,
+        dataCdn: input.dataCdn,
+      }),
+    );
+  }
+
+  return [...new Set(urls.filter(Boolean))];
 }

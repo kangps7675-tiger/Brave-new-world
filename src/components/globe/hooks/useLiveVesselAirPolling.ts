@@ -16,6 +16,7 @@ import {
   shouldDeferLiveNetworkRefresh,
 } from "@/lib/liveRenderGuard";
 import type { ViewState } from "@/components/globe/types";
+import { visibleInterval } from "@/lib/visibleInterval";
 
 type UseLiveVesselAirPollingOptions = {
   isCameraMovingRef: MutableRefObject<boolean>;
@@ -242,10 +243,9 @@ export function useLiveVesselAirPolling({
   useEffect(() => {
     if (!showAis) return;
     void refreshAis();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshAis();
     }, liveAisPollMs());
-    return () => window.clearInterval(timer);
   }, [refreshAis, showAis]);
 
   useEffect(() => {
@@ -262,10 +262,9 @@ export function useLiveVesselAirPolling({
       return;
     }
     void refreshMilAircraft();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshMilAircraft();
     }, liveMilPollMs());
-    return () => window.clearInterval(timer);
   }, [isEconomyViewer, refreshMilAircraft, setMilAircraft, showMilitaryActivity]);
 
   useEffect(() => {
@@ -274,20 +273,18 @@ export function useLiveVesselAirPolling({
       return;
     }
     void refreshCivAircraft();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshCivAircraft();
     }, liveAirTrafficPollMs());
-    return () => window.clearInterval(timer);
   }, [refreshCivAircraft, setCivAircraft, showAirTraffic]);
 
   useEffect(() => {
     // 지경학에서는 항모·항구 위치 레이어/폴링 비활성
     if (isEconomyViewer || !showUsCarriers) return;
     void refreshUsCarriers();
-    const timer = window.setInterval(() => {
+    return visibleInterval(() => {
       void refreshUsCarriers();
     }, liveUsCarriersPollMs());
-    return () => window.clearInterval(timer);
   }, [isEconomyViewer, refreshUsCarriers, showUsCarriers]);
 
   return {

@@ -1,7 +1,7 @@
 "use client";
 
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { BRAND_NAME } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
@@ -266,6 +266,15 @@ export function ParchmentLetter({
 
   const exiting = phase === "folding" || phase === "done";
 
+  const onScrimPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.target !== e.currentTarget) return;
+      if (phase !== "idle") return;
+      handleContinue();
+    },
+    [handleContinue, phase],
+  );
+
   return (
     <div
       ref={dialogRef}
@@ -277,8 +286,9 @@ export function ParchmentLetter({
       aria-modal="true"
       aria-labelledby={titleId}
       aria-busy={phase === "folding"}
+      onPointerDown={onScrimPointerDown}
     >
-      <div className="welcome-letter-stage">
+      <div className="welcome-letter-stage" onPointerDown={(e) => e.stopPropagation()}>
         <div
           className={`welcome-letter-card parchment-letter ${
             historyHandFont ? "parchment-letter--history" : ""
@@ -296,6 +306,18 @@ export function ParchmentLetter({
             <LetterCorner corner="tr" />
             <LetterCorner corner="bl" />
             <LetterCorner corner="br" />
+
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={phase !== "idle"}
+              className={`absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/90 text-lg leading-none transition hover:bg-[#f7ecd0] disabled:opacity-50 ${
+                blackInk ? "text-black" : "text-[#3d2a18]"
+              }`}
+              aria-label={lang === "en" ? "Close" : "닫기"}
+            >
+              ×
+            </button>
 
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-8 py-9 sm:px-14 sm:py-11">
               <h1

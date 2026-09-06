@@ -3,27 +3,118 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import dynamic from "next/dynamic";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
-import { FeatureGuidePanel } from "@/components/FeatureGuidePanel";
-import { MethodologySourcesPanel } from "@/components/MethodologySourcesPanel";
+import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 import { NewsTrustTierPanel } from "@/components/NewsTrustTierPanel";
+
+/* ══ 지연 로드 오버레이 (P-perf) ═══════════════════════════════════════
+ *
+ * 아래는 전부 **닫힌 상태가 기본**인 모달·패널이다. 그런데 정적 import라
+ * 대시보드 청크(1.9MB)에 통째로 들어가 있었다 — 사용자가 한 번도 열지
+ * 않아도 지도 진입 시 파싱 비용을 낸다.
+ *
+ * `next/dynamic`으로 빼면 실제로 열 때만 청크를 받는다.
+ * 합계 약 2,600줄 + 각자의 의존성이 초기 경로에서 빠진다.
+ *
+ * ssr:false — 전부 클라이언트 전용 오버레이이고 SEO 대상이 아니다.
+ * loading 없음 — 모달이라 잠깐의 빈 화면이 자연스럽고, 스피너를 넣으면
+ * 오히려 깜빡임이 생긴다.
+ *
+ * ⚠️ 주의: dynamic 컴포넌트는 **렌더되는 순간 청크를 받는다.**
+ * 내부에서 `if (!open) return null` 하는 컴포넌트를 그냥 dynamic으로
+ * 바꾸면 항상 렌더되므로 효과가 0이다. 그래서 아래 JSX에서는 open 조건을
+ * **부모로 끌어올려** 삼항으로 감쌌다. 이 구조를 되돌리지 말 것.
+ */
+const FeatureGuidePanel = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/FeatureGuidePanel").then((m) => m.FeatureGuidePanel),
+  ),
+  { ssr: false },
+);
+const MethodologySourcesPanel = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/MethodologySourcesPanel").then(
+      (m) => m.MethodologySourcesPanel,
+    ),
+  ),
+  { ssr: false },
+);
+const DataSourceParchmentOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/DataSourceParchmentOverlay").then(
+      (m) => m.DataSourceParchmentOverlay,
+    ),
+  ),
+  { ssr: false },
+);
+const AskLayersOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/AskLayersOverlay").then((m) => m.AskLayersOverlay),
+  ),
+  { ssr: false },
+);
+const ViewerIntroOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/ViewerIntroOverlay").then((m) => m.ViewerIntroOverlay),
+  ),
+  { ssr: false },
+);
+const TomorrowTensionModal = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/TomorrowTensionModal").then((m) => m.TomorrowTensionModal),
+  ),
+  { ssr: false },
+);
+const ModePickerOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/ModePickerOverlay").then((m) => m.ModePickerOverlay),
+  ),
+  { ssr: false },
+);
+const WhereIsItGameOverlay = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/WhereIsItGameOverlay").then((m) => m.WhereIsItGameOverlay),
+  ),
+  { ssr: false },
+);
+const GeopoliticsSenseQuizModal = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/GeopoliticsSenseQuizModal").then(
+      (m) => m.GeopoliticsSenseQuizModal,
+    ),
+  ),
+  { ssr: false },
+);
+const DailyRankSharePanel = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/DailyRankSharePanel").then((m) => m.DailyRankSharePanel),
+  ),
+  { ssr: false },
+);
+const TopWatchPanel = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/TopWatchPanel").then((m) => m.TopWatchPanel),
+  ),
+  { ssr: false },
+);
+const DailyBriefingChrome = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/DailyBriefingChrome").then((m) => m.DailyBriefingChrome),
+  ),
+  { ssr: false },
+);
 import { TrustBadgeChip } from "@/components/TrustBadgeChip";
-import { DailyRankSharePanel } from "@/components/DailyRankSharePanel";
-import { TomorrowTensionModal } from "@/components/TomorrowTensionModal";
-import { TopWatchPanel } from "@/components/TopWatchPanel";
+import { SourcesLinkButton, ParchmentLinkButton } from "@/components/MethodologySourcesPanel";
 import { SitrepLog } from "@/components/SitrepLog";
 import { MobileAlertFeed } from "@/components/MobileAlertFeed";
 import { UnifiedAirRaidDropdown } from "@/components/UnifiedAirRaidDropdown";
-import {
-  AskLayersOverlay,
-  type AskLayersApplyPayload,
-} from "@/components/AskLayersOverlay";
+import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { HoverHint } from "@/components/HoverHint";
-import { ExplorationTabs } from "@/components/ExplorationTabs";
-import { ModePickerOverlay } from "@/components/ModePickerOverlay";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
+import { markBriefingStep } from "@/lib/dailyBriefingProgress";
 import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import {
@@ -44,6 +135,7 @@ import { AirRaidOnboardingCoach } from "@/components/AirRaidOnboardingCoach";
 import { HotTheaterOfferBanner } from "@/components/HotTheaterOfferBanner";
 import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
 import { LayerCapToast } from "@/components/LayerCapToast";
+import { LayerCacheStaleBadge } from "@/components/LayerCacheStaleBadge";
 import { TimeScrubberBar } from "@/components/TimeScrubberBar";
 import {
   BottomDockModeToggle,
@@ -73,8 +165,13 @@ import {
 import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
+import { SpikeTelegraphBanner } from "@/components/SpikeTelegraphBanner";
+import { useDatabentoSpikeOffer } from "@/hooks/useDatabentoSpikeOffer";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import { NatoPerimeterAlertChip } from "@/components/NatoPerimeterAlertChip";
+import { NatoPerimeterHalfParchment } from "@/components/NatoPerimeterHalfParchment";
+import type { NatoPerimeterAlertState } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { EscalationSignalPanel } from "@/components/EscalationSignalPanel";
 import type { EscalationOffer } from "@/components/globe/hooks/useEscalationSignals";
 import { ExerciseOfferBanner, type ExerciseOffer } from "@/components/ExerciseOfferBanner";
@@ -89,11 +186,15 @@ import {
 import { TensionSpikeCutOverlay } from "@/components/TensionSpikeCutOverlay";
 import type { TensionSpikeSnapshot } from "@/lib/tensionSpikeCut";
 import { canShowOverlayBanner, buildOverlayBannerCandidates } from "@/lib/overlayQueue";
+import {
+  applyOverlayBudget,
+  markOverlayDismissed,
+  markOverlayShown,
+} from "@/lib/overlayBudget";
 import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
 import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
 import {
-  clearLampFolded,
   clearWeeklyRecapFolded,
   markLampFolded,
   markPeriodSeen,
@@ -104,16 +205,11 @@ import { recordInterestNews } from "@/lib/interest/recordInterest";
 import { zc } from "@/lib/uiStack";
 import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { PlayHubButton } from "@/components/PlayHubButton";
-import { WhereIsItGameOverlay } from "@/components/WhereIsItGameOverlay";
-import { GeopoliticsSenseQuizModal } from "@/components/GeopoliticsSenseQuizModal";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { SentinelHud, SentinelModeButton } from "@/components/SentinelModeControl";
 import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
-import { ViewerIntroOverlay } from "@/components/ViewerIntroOverlay";
 import { QuickStartCoach } from "@/components/QuickStartCoach";
-import { EXPLORATION_PRESETS } from "@/data/navRegions";
-import { ECON_EXPLORATION_PRESETS } from "@/data/econNavRegions";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
 import { trackEvent } from "@/lib/trackClient";
 import { NewFeedsIranPanel } from "@/components/NewFeedsIranPanel";
@@ -130,7 +226,7 @@ import { US_DFC_LINK_COUNT } from "@/lib/usDfcSupplyPaths";
 import { HamburgerIcon } from "@/components/globe/HamburgerIcon";
 import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
 import type { EntryGate, Selection } from "@/components/globe/types";
-import type { NavSelection, ExplorationPreset } from "@/data/navRegions";
+import type { NavSelection } from "@/data/navRegions";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import type { ViewerMode, ViewTheaterChoice } from "@/lib/viewPackages";
 import type { TransportPath, UsCarrier } from "@/data/geoTypes";
@@ -171,6 +267,8 @@ type LayerPatch = Parameters<typeof applyLayerPatch>[1];
 export type DashboardOverlayHostProps = {
   labelLanguage: LabelLanguage;
   isCompactUi: boolean;
+  /** 태블릿 프로파일 — soft-compact 밀도 (1025–1366 등) */
+  isTabletUi?: boolean;
   isEconomyViewer: boolean;
   viewerMode: ViewerMode;
   intelSheetOpen: boolean;
@@ -225,6 +323,7 @@ export type DashboardOverlayHostProps = {
   askLayersOpen: boolean;
   showTrustPanel: boolean;
   showSourcesPanel: boolean;
+  showDataSourceParchment: boolean;
   showMobileAlertFeed: boolean;
   playOverlay: "where" | "sense" | null;
   sentinelActive: boolean;
@@ -263,6 +362,8 @@ export type DashboardOverlayHostProps = {
   breakingFlash: BreakingFlashBriefing | null;
   onDismissBreakingFlash: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
+  /** NATO 동부 접경 UAV 1차 칩 / 2차 반쪽 양피지 */
+  natoPerimeterAlert: NatoPerimeterAlertState;
   /** 확전 신호 — 임계선을 넘은 사건 보도 (useEscalationSignals) */
   escalationOffer: EscalationOffer | null;
   onDismissEscalationOffer: () => void;
@@ -309,6 +410,7 @@ export type DashboardOverlayHostProps = {
   onSetShowViewerIntro: (v: boolean) => void;
   onSetShowTrustPanel: (v: boolean) => void;
   onSetShowSourcesPanel: (v: boolean) => void;
+  onSetShowDataSourceParchment: (v: boolean) => void;
   onSetShowFeatureGuide: (v: boolean) => void;
   onSetAskLayersOpen: (v: boolean) => void;
   onSetShowMobileAlertFeed: Dispatch<SetStateAction<boolean>>;
@@ -318,7 +420,6 @@ export type DashboardOverlayHostProps = {
     kind: AirRaidSirenKind,
     options?: { deferSirenUntilArrive?: boolean; skipSiren?: boolean },
   ) => void;
-  onExplorationSelect: (preset: ExplorationPreset) => void;
   onAskLayersApply: (payload: AskLayersApplyPayload) => void;
   onSetShowFirstVisitTour: (v: boolean) => void;
   onSetTourActive: (v: boolean) => void;
@@ -356,6 +457,7 @@ export type DashboardOverlayHostProps = {
   onToggleDailyRankPanel: (next: boolean) => void;
   onDismissAirRaidOffer: () => void;
   onDismissAdsbEmergencyOffer: () => void;
+  onDismissNatoPerimeterAlert: () => void;
   onDismissExerciseOffer: () => void;
   onSetExerciseBriefing: (v: ExerciseBriefingContent | null) => void;
   onAcceptMaritimeOffer: () => void;
@@ -381,6 +483,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   const {
     labelLanguage,
     isCompactUi,
+    isTabletUi = false,
     isEconomyViewer,
     viewerMode,
     intelSheetOpen,
@@ -434,6 +537,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     askLayersOpen,
     showTrustPanel,
     showSourcesPanel,
+    showDataSourceParchment,
     showMobileAlertFeed,
     playOverlay,
     sentinelActive,
@@ -471,6 +575,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     breakingFlash,
     onDismissBreakingFlash,
     adsbEmergencyOffer,
+    natoPerimeterAlert,
+    onDismissNatoPerimeterAlert,
     escalationOffer,
     onDismissEscalationOffer,
     exerciseOffer,
@@ -500,12 +606,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetShowViewerIntro,
     onSetShowTrustPanel,
     onSetShowSourcesPanel,
+    onSetShowDataSourceParchment,
     onSetShowFeatureGuide,
     onSetAskLayersOpen,
     onSetShowMobileAlertFeed,
     onMaybeOfferAirRaidCoach,
     onAirRaidFocus,
-    onExplorationSelect,
     onAskLayersApply,
     onSetShowFirstVisitTour,
     onSetTourActive,
@@ -584,6 +690,17 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
    */
   const gateClosed = entryGate === null;
   const gateClear = gateClosed && !showModePicker;
+  const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
+    gateClear && !showLanguageGate,
+  );
+
+  useEffect(() => {
+    if (showDailyRankPanel) markBriefingStep("gti");
+  }, [showDailyRankPanel]);
+
+  useEffect(() => {
+    if (intelSheetOpen) markBriefingStep("intel");
+  }, [intelSheetOpen]);
 
   return (
     <>
@@ -612,13 +729,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         onDismiss={() => onSetShowQuickStart(false)}
       />
 
-      <ViewerIntroOverlay
-        visible={showViewerIntro && gateClear && globeReady && !isLoading}
-        viewerMode={viewerMode}
-        onDismiss={() => onSetShowViewerIntro(false)}
-        onOpenTrust={() => onSetShowTrustPanel(true)}
-        trustLang={labelLanguage === "en" ? "en" : "ko"}
-      />
+      {showViewerIntro && gateClear && globeReady && !isLoading ? (
+        <ViewerIntroOverlay
+          visible
+          viewerMode={viewerMode}
+          onDismiss={() => onSetShowViewerIntro(false)}
+          onOpenTrust={() => onSetShowTrustPanel(true)}
+          trustLang={labelLanguage === "en" ? "en" : "ko"}
+        />
+      ) : null}
 
       {showLeftPanel ? (
         <button
@@ -631,7 +750,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {!intelSheetOpen ? (
       <div
-        className="pointer-events-none absolute left-3 z-[200] flex flex-col items-start gap-2"
+        className={`pointer-events-none absolute left-3 flex flex-col items-start gap-2 ${
+          showDailyRankPanel ? zc("panel") : zc("mapControl")
+        }`}
         style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
       >
         <div className="pointer-events-auto flex shrink-0 items-center gap-2">
@@ -653,7 +774,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   : t("hoverLayerPanelOpenAria", labelLanguage)
               }
               onClick={onToggleLeftPanel}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+              className="map-chrome-control flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
             >
               <HamburgerIcon open={showLeftPanel} />
             </button>
@@ -668,18 +789,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       </div>
       ) : null}
 
-      {/* 데스크톱 우측 레일 — 항모/공급망 토글 + 후원 + GSCPI·Watch (좌측 겹침 해소) */}
+      {/* 데스크톱·태블릿 우측 레일 — 칩 하단(--mode-index-chip-bottom)과 nav 높이 중 큰 쪽 기준 */}
       {!intelSheetOpen &&
       !isCompactUi &&
       !showLeftPanel &&
       !rightDockOpen &&
       !selected ? (
         <div
-          className="cv-desktop-only pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain"
+          className="cv-desktop-only cv-chrome-rail-top pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain sm:right-4"
           style={{
-            // GTI(우상단 하드코딩)와 연동하지 않음 — 우측 사이드 독립 배치
-            top: "calc(var(--hover-nav-base-height, 0px) + max(0.45rem, env(safe-area-inset-top, 0px)) + 0.6rem)",
-            maxHeight: "calc(100dvh - var(--hover-nav-base-height, 0px) - 6rem)",
+            // top/maxHeight는 .cv-chrome-rail-top CSS 변수 기반
+            maxWidth: isTabletUi
+              ? "min(16rem, calc(100vw - 1.5rem))"
+              : "min(20rem, calc(100vw - 1.5rem))",
           }}
         >
           {!isEconomyViewer ? (
@@ -714,7 +836,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
                 vertical
               />
-              {gateClosed ? (
+              {gateClosed && !isTabletUi ? (
                 <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
                   <FinintTicker />
                 </div>
@@ -727,7 +849,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           {!isEconomyViewer && gateClosed ? (
             <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-2">
               <TopWatchPanel lang={labelLanguage} />
-              <SitrepLog lang={labelLanguage} />
+              <div className="cv-tablet-hide-sitrep w-full">
+                <SitrepLog lang={labelLanguage} />
+              </div>
             </div>
           ) : null}
         </div>
@@ -780,26 +904,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   ) : null}
                 </div>
               ) : null}
-              {!showLeftPanel &&
-              !rightDockOpen &&
-              !econNavSelection &&
-              !regionNavSelection &&
-              !selected ? (
-                <ExplorationTabs
-                  presets={isEconomyViewer ? ECON_EXPLORATION_PRESETS : EXPLORATION_PRESETS}
-                  activeId={null}
-                  onSelect={onExplorationSelect}
-                  variant={isEconomyViewer ? "hubs" : "fronts"}
-                  label={t(
-                    isEconomyViewer ? "hoverExplorationHubs" : "hoverExplorationFronts",
-                    labelLanguage,
-                  )}
-                  hint={t(
-                    isEconomyViewer ? "hoverExplorationHubsHint" : "hoverExplorationFrontsHint",
-                    labelLanguage,
-                  )}
-                />
-              ) : null}
+              {/* 데스크톱 주요전장/허브는 TopChrome ScenarioPresetChips만 (여기 ExplorationTabs 중복 제거) */}
               <div className="pointer-events-auto flex shrink-0 items-center gap-3">
                 {gateClear ? (
                   <div className="mx-1 shrink-0">
@@ -820,6 +925,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                     }
                   }}
                   onHelp={() => onSetShowFeatureGuide(true)}
+                  onOpenSources={() => onSetShowSourcesPanel(true)}
+                  onOpenParchment={() => onSetShowDataSourceParchment(true)}
                 />
                 {gateClear ? (
                   <>
@@ -861,8 +968,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         <div
           className="pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2"
           style={{
-            // GTI와 연동하지 않음 — 모바일 우측 유틸 독립 배치
-            top: "max(3.25rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))",
+            top: "calc(max(3.25rem, var(--mode-index-chip-bottom, 3.25rem)) + 0.35rem)",
           }}
         >
           <div className="cv-compact-only pointer-events-auto flex flex-col items-end gap-2">
@@ -871,7 +977,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               onClick={() => onSetShowMobileAlertFeed((prev) => !prev)}
               aria-label={labelLanguage === "en" ? "Alerts" : "알림"}
               aria-pressed={showMobileAlertFeed}
-              className="tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-300/25 bg-slate-950/70 text-[15px] text-sky-100 shadow-sm transition hover:border-sky-200/45"
+              className="map-chrome-control tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-300/25 bg-slate-950/70 text-[15px] text-sky-100 shadow-sm transition hover:border-sky-200/45"
             >
               🔔
             </button>
@@ -880,6 +986,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               compact
               onClick={() => onSetShowTrustPanel(true)}
             />
+            <SourcesLinkButton onClick={() => onSetShowSourcesPanel(true)} />
+            <ParchmentLinkButton onClick={() => onSetShowDataSourceParchment(true)} />
           </div>
         </div>
       ) : null}
@@ -940,35 +1048,61 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           </div>
         </div>
       ) : null}
-      <FeatureGuidePanel
-        open={showFeatureGuide}
-        viewerMode={viewerMode}
-        onClose={() => onSetShowFeatureGuide(false)}
-        onRestartTour={() => {
-          clearFirstVisitTourDone();
-          onSetShowFirstVisitTour(true);
-        }}
-      />
-      <AskLayersOverlay
-        open={askLayersOpen}
-        lang={labelLanguage}
-        viewerMode={viewerMode}
-        onClose={() => onSetAskLayersOpen(false)}
-        onApply={onAskLayersApply}
-      />
+      {/* open 조건을 부모로 끌어올림 — dynamic 청크가 열릴 때만 로드되게 */}
+      {showFeatureGuide ? (
+        <FeatureGuidePanel
+          open
+          viewerMode={viewerMode}
+          onClose={() => onSetShowFeatureGuide(false)}
+          onOpenSources={() => {
+            onSetShowFeatureGuide(false);
+            onSetShowSourcesPanel(true);
+          }}
+          onOpenParchment={() => {
+            onSetShowFeatureGuide(false);
+            onSetShowDataSourceParchment(true);
+          }}
+          onRestartTour={() => {
+            clearFirstVisitTourDone();
+            onSetShowFirstVisitTour(true);
+          }}
+        />
+      ) : null}
+      {askLayersOpen ? (
+        <AskLayersOverlay
+          open
+          lang={labelLanguage}
+          viewerMode={viewerMode}
+          onClose={() => onSetAskLayersOpen(false)}
+          onApply={onAskLayersApply}
+        />
+      ) : null}
       <NewsTrustTierPanel
         open={showTrustPanel}
         lang={labelLanguage}
         onClose={() => onSetShowTrustPanel(false)}
       />
-      <MethodologySourcesPanel
-        open={showSourcesPanel}
-        onClose={() => onSetShowSourcesPanel(false)}
-        onOpenTrust={() => {
-          onSetShowSourcesPanel(false);
-          onSetShowTrustPanel(true);
-        }}
-      />
+      {showSourcesPanel ? (
+        <MethodologySourcesPanel
+          open
+          onClose={() => onSetShowSourcesPanel(false)}
+          onOpenTrust={() => {
+            onSetShowSourcesPanel(false);
+            onSetShowTrustPanel(true);
+          }}
+          onOpenParchment={() => {
+            onSetShowSourcesPanel(false);
+            onSetShowDataSourceParchment(true);
+          }}
+        />
+      ) : null}
+      {showDataSourceParchment ? (
+        <DataSourceParchmentOverlay
+          lang={labelLanguage}
+          variant="browse"
+          onClose={() => onSetShowDataSourceParchment(false)}
+        />
+      ) : null}
 
 
       {/*
@@ -977,7 +1111,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       */}
       {gateClosed && (isCompactUi || liveBriefingSession) ? (
         <div
-          className="pointer-events-none fixed right-4 bottom-5 z-[900] flex flex-col items-end gap-2 sm:right-5 sm:bottom-6"
+          className={`pointer-events-none fixed right-4 z-[900] flex flex-col items-end gap-2 sm:right-5 ${
+            isCompactUi ? "cv-chrome-fab-bottom" : "bottom-5 sm:bottom-6"
+          }`}
         >
           {isCompactUi && gateClear ? (
             <SentinelModeButton
@@ -1191,8 +1327,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !weeklyExpanded &&
       !periodicBriefing &&
       !sentinelActive ? (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2 sm:top-4">
-          <p className="rounded-sm border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
+        // 검색창(z≈200)과 같은 top에 두면 금색 테두리만 뒤로 비쳐 "빈 입력칸"처럼 보임.
+        // compact에선 --hover-nav-base-height=0 이라 min으로 검색줄 높이만큼 확보.
+        <div
+          className="pointer-events-none absolute left-1/2 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2"
+          style={{
+            top: "calc(max(3.5rem, var(--hover-nav-base-height, 0px)) + 0.45rem + env(safe-area-inset-top, 0px))",
+          }}
+        >
+          <p className="rounded-full border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
             {watchFocusLine}
           </p>
         </div>
@@ -1246,7 +1389,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <button
               type="button"
               onClick={() => {
-                clearLampFolded(foldedPeriodicBriefing.key);
+                // folded 플래그는 dismiss 때까지 유지 — 열 때 clear하면
+                // 새로고침·모드 전환 시 seen만 남아 등불이 하루 종일 사라졌다.
                 onSetPeriodicBriefing(foldedPeriodicBriefing);
                 onSetFoldedPeriodicBriefing(null);
               }}
@@ -1355,40 +1499,52 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] ${
-            // 텔레그램 OSINT 미니 패널(좌하단, 본문 최대 42vh/320px)이 떠 있으면 그 위로 비켜준다
-            telegramMiniPanelVisible ? "bottom-[27rem]" : "bottom-24"
-          } ${
-            // 접었을 때 420px 폭을 유지하면 보이지 않는 영역이 지도 클릭을 막는다
-            showDailyRankPanel ? "w-[min(420px,calc(100vw-1.5rem))]" : "w-fit"
-          }`}
+          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-stretch gap-2 sm:left-4 cv-chrome-daily-bottom ${
+            telegramMiniPanelVisible ? "cv-chrome-daily-bottom--telegram" : ""
+          } ${showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"}`}
         >
+          {gateClosed &&
+          !showModePicker &&
+          !showLeftPanel &&
+          !showDailyRankPanel &&
+          !telegramMiniPanelVisible ? (
+            <DailyBriefingChrome
+              lang={labelLanguage}
+              layout="stack"
+              suppressed={Boolean(weeklyExpanded || tomorrowTensionPrompt || sentinelActive)}
+              onOpenDailyPanel={() => {
+                markBriefingStep("share");
+                onToggleDailyRankPanel(true);
+              }}
+            />
+          ) : null}
           {showDailyRankPanel ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => onToggleDailyRankPanel(false)}
-                aria-label={labelLanguage === "en" ? "Collapse daily panel" : "일일 패널 접기"}
-                title={labelLanguage === "en" ? "Collapse" : "접기"}
-                className="absolute -top-2.5 right-0 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-600/60 bg-slate-950/90 text-meta text-slate-300 shadow-lg backdrop-blur-md transition hover:border-slate-400 hover:text-slate-100"
-              >
-                ✕
-              </button>
-              {/* 위로 올라간 만큼 화면 위로 넘치지 않게 — 넘치면 내부 스크롤 */}
-              <div
-                className={`intel-scroll-y ${
-                  telegramMiniPanelVisible
-                    ? "max-h-[calc(100vh-29rem)]"
-                    : "max-h-[calc(100vh-9rem)]"
-                }`}
-              >
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-sky-400/25 bg-[#071018]/94 shadow-2xl backdrop-blur-md">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
+                <p className="min-w-0 truncate text-meta font-semibold text-sky-100">
+                  {labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onToggleDailyRankPanel(false)}
+                  aria-label={labelLanguage === "en" ? "Close daily panel" : "일일 패널 닫기"}
+                  title={labelLanguage === "en" ? "Close" : "닫기"}
+                  className="tap-target flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-500/60 bg-slate-950/90 text-sm text-slate-200 transition hover:border-slate-300 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="intel-scroll-y min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2.5 py-2">
                 <DailyRankSharePanel lang={labelLanguage} />
               </div>
             </div>
           ) : (
             <LegendReopenButton
-              label={labelLanguage === "en" ? "Daily · GTI" : "오늘의 GTI"}
-              onClick={() => onToggleDailyRankPanel(true)}
+              label={labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
+              onClick={() => {
+                markBriefingStep("gti");
+                onToggleDailyRankPanel(true);
+              }}
             />
           )}
         </div>
@@ -1406,7 +1562,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       />
 
       {(() => {
-        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
+        /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 선물SPIKE > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
         const briefingBusy = Boolean(
           airRaidBriefing ||
             exerciseBriefing ||
@@ -1421,6 +1577,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           escalationOffer: Boolean(escalationOffer),
           exerciseOffer: Boolean(exerciseOffer),
           maritimeOffer: Boolean(maritimeOffer),
+          tickerSpikeOffer: Boolean(tickerSpikeOffer),
           tensionSpike: Boolean(tensionSpike),
           hotTheaterOffer: Boolean(hotTheaterOffer),
           coachActive: Boolean(
@@ -1435,8 +1592,20 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,
         });
-        const show = (kind: Parameters<typeof canShowOverlayBanner>[0]) =>
-          canShowOverlayBanner(kind, bannerCandidates);
+        /**
+         * P2-3: 세션 예산을 **우선순위 계산 이전에** 적용한다.
+         * 뒤에 적용하면 예산 초과 배너가 1위를 차지한 채 사라져
+         * 그 아래 후보까지 같이 묻힌다.
+         */
+        const budgeted = applyOverlayBudget(bannerCandidates);
+        const show = (kind: Parameters<typeof canShowOverlayBanner>[0]) => {
+          const visible = canShowOverlayBanner(kind, budgeted);
+          // 실제로 화면에 나가는 시점에만 예산을 쓴다.
+          // markOverlayShown은 종류별로 멱등하므로 리렌더·StrictMode 이중 렌더에
+          // 예산이 갉아먹히지 않는다.
+          if (visible) markOverlayShown(kind);
+          return visible;
+        };
 
         return (
           <>
@@ -1453,6 +1622,16 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 offer={adsbEmergencyOffer}
                 lang={labelLanguage}
                 onDismiss={onDismissAdsbEmergencyOffer}
+              />
+            ) : null}
+
+            {natoPerimeterAlert.phase === "tier1" &&
+            natoPerimeterAlert.cross &&
+            !natoPerimeterAlert.story ? (
+              <NatoPerimeterAlertChip
+                cross={natoPerimeterAlert.cross}
+                lang={labelLanguage}
+                onDismiss={onDismissNatoPerimeterAlert}
               />
             ) : null}
 
@@ -1481,7 +1660,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               <ExerciseOfferBanner
                 offer={exerciseOffer}
                 lang={labelLanguage}
-                onDismiss={onDismissExerciseOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("exercise");
+                  onDismissExerciseOffer();
+                }}
               />
             ) : null}
 
@@ -1490,7 +1672,27 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 offer={maritimeOffer}
                 lang={labelLanguage}
                 onAccept={onAcceptMaritimeOffer}
-                onDismiss={onDismissMaritimeOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("maritime");
+                  onDismissMaritimeOffer();
+                }}
+              />
+            ) : null}
+
+            {show("tickerSpike") && tickerSpikeOffer ? (
+              <SpikeTelegraphBanner
+                offer={tickerSpikeOffer}
+                lang={labelLanguage}
+                onDismiss={dismissTickerSpike}
+                onOpenMarkets={() => {
+                  dismissTickerSpike();
+                  if (isEconomyViewer) {
+                    intelStackRef.current?.openNewsPanel("all", "news", "markets");
+                  } else {
+                    intelStackRef.current?.openNewsPanel("all");
+                  }
+                  onSetIntelSheetOpen(true);
+                }}
               />
             ) : null}
 
@@ -1499,7 +1701,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 spike={tensionSpike}
                 lang={labelLanguage === "en" ? "en" : "ko"}
                 onJump={onTensionSpikeJump}
-                onDismiss={onDismissTensionSpike}
+                onDismiss={() => {
+                  markOverlayDismissed("tensionCut");
+                  onDismissTensionSpike();
+                }}
               />
             ) : null}
 
@@ -1508,7 +1713,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 focus={hotTheaterOffer}
                 lang={labelLanguage}
                 onAccept={onAcceptHotTheaterOffer}
-                onDismiss={onDismissHotTheaterOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("hotTheater");
+                  onDismissHotTheaterOffer();
+                }}
               />
             ) : null}
 
@@ -1517,7 +1725,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 probe={ultraLiteOfferProbe}
                 lang={labelLanguage}
                 onAccept={onAcceptUltraLiteOffer}
-                onDismiss={onDismissUltraLiteOffer}
+                onDismiss={() => {
+                  markOverlayDismissed("ultraLite");
+                  onDismissUltraLiteOffer();
+                }}
               />
             ) : null}
           </>
@@ -1542,11 +1753,24 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {breakingFlash && !airRaidBriefing ? (
+      {breakingFlash && !airRaidBriefing && !periodicBriefing && !weeklyExpanded ? (
         <BreakingFlashParchment
           briefing={breakingFlash}
           lang={labelLanguage}
           onDismiss={onDismissBreakingFlash}
+        />
+      ) : null}
+
+      {natoPerimeterAlert.phase === "tier2" &&
+      natoPerimeterAlert.cross &&
+      natoPerimeterAlert.story ? (
+        <NatoPerimeterHalfParchment
+          briefing={{
+            cross: natoPerimeterAlert.cross,
+            story: natoPerimeterAlert.story,
+          }}
+          lang={labelLanguage}
+          onDismiss={onDismissNatoPerimeterAlert}
         />
       ) : null}
 
@@ -1641,6 +1865,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />
 
       <LayerCapToast lang={labelLanguage} suppressed={showLeftPanel} />
+      <LayerCacheStaleBadge lang={labelLanguage} />
     </>
   );
 }

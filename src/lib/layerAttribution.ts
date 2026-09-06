@@ -63,6 +63,10 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
     url: "https://www.newyorkfed.org/research/policy/gscpi",
   },
   showCriticalNodes: { label: "Critical Node Atlas" },
+  showStrategicCorridors: {
+    label: "Strategic corridors · BRI WPS8614",
+    url: "https://www.worldbank.org/",
+  },
   showEconomicCenters: { label: "Wikidata · World Bank" },
   showAiDataCenters: { label: "Wikidata · OSM" },
   showSanctionsEntities: { label: "OFAC · UN · EU · UK" },
@@ -93,6 +97,12 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   showMissileTestSites: { label: "NTI / CNS" },
   // 정적·공개
   showMilitaryBases: OSM,
+  showRokMilitaryBases: OSM,
+  showJapanMilitaryBases: OSM,
+  showTaiwanMilitaryBases: OSM,
+  showPhilippinesMilitaryBases: OSM,
+  showAustraliaMilitaryBases: OSM,
+  showEasternNatoMilitaryBases: OSM,
   showAirports: OSM,
   showPorts: OSM,
   showSubmarineCables: { label: "public datasets" },
@@ -103,8 +113,8 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   // `npm run peeringdb:fetch` 실행 후 label 을 "PeeringDB (CC BY 4.0)" 로 되돌릴 것.
   showInternetExchanges: { label: "(출처 미연결)" },
   showShippingLanes: {
-    label: "Shipping Lanes (Benden 2022, CC BY 4.0)",
-    url: "https://github.com/newzealandpaul/Shipping-Lanes",
+    label: "Shipping Lanes · Benden 2022 (CC BY 4.0)",
+    url: "https://doi.org/10.5281/zenodo.6361763",
   },
 };
 

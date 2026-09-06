@@ -16,8 +16,12 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   containerBackgroundColor: string;
 };
 
-/** GlobeDashboard의 지도 캔버스 영역(컨테이너 · PausedMapGlobeView · 로드 에러 배너)을 그대로 감싼 뷰.
- *  동작 변경 없이 JSX만 이동 — props는 기존 PausedMapGlobeView 호출부와 동일하게 전달됨. */
+/**
+ * GlobeDashboard의 지도 캔버스 영역(컨테이너 · PausedMapGlobeView · 로드 에러 배너).
+ * 인텔·지형 모두 MapLibre 단일 WebGL — 벡터 베이스(+ 지형 고줌 시 Esri 위성 래스터 underlay).
+ * 지형 모드 3D 건물은 Cesium OSM Buildings(3D Tiles, deck.gl) — 세슘 뷰어 없음.
+ * Ion 토큰이 없으면 OpenFreeMap fill-extrusion 폴백.
+ */
 export function GlobeMapCanvas({
   containerRef,
   globeRef,
@@ -25,6 +29,8 @@ export function GlobeMapCanvas({
   isCompactUi,
   loadError,
   containerBackgroundColor,
+  ultraLite,
+  basemapMode,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -40,7 +46,14 @@ export function GlobeMapCanvas({
       }}
     >
       <div className="absolute inset-0 z-10">
-        {!isPhoneUi ? <PausedMapGlobeView ref={globeRef} {...mapGlobeProps} /> : null}
+        {!isPhoneUi ? (
+          <PausedMapGlobeView
+            {...mapGlobeProps}
+            basemapMode={basemapMode}
+            ultraLite={ultraLite}
+            ref={globeRef}
+          />
+        ) : null}
         {loadError && (
           <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-auto sm:bottom-6 sm:max-w-md">
             <LoadErrorBanner message={loadError} compact />

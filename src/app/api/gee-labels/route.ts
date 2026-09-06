@@ -2,6 +2,7 @@ import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { NextResponse } from "next/server";
 import { geeApi, initializeGEE, type GeeFeature } from "@/lib/gee";
 import { apiStubResponse } from "@/lib/apiStub";
+import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,7 +69,10 @@ export async function GET(request: Request) {
       })
       .filter((label): label is NonNullable<typeof label> => Boolean(label));
 
-    return NextResponse.json({ labels: formattedLabels });
+    return NextResponse.json(
+      { labels: formattedLabels },
+      { headers: publicCacheHeaders(CDN_CACHE.staticLayer) },
+    );
   } catch (error) {
     return NextResponse.json(
       {

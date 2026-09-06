@@ -2,13 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BUNDLE_PROGRESS_CAP } from "@/lib/bootLoadingProgress";
+import { GLOBAL_BOOT_SHADER_CAMERA_Z } from "@/lib/globeCamera";
+import { getLoadingShaderPlan } from "@/lib/renderTier";
+import { releaseWebglContext } from "@/lib/webglSupport";
 
 function loadingStageLabel(progress: number): string {
-  if (progress < BUNDLE_PROGRESS_CAP) return "DECRYPTING ENCRYPTED STREAM…";
-  if (progress < 45) return "INITIALIZING GLOBE RENDER CORE…";
-  if (progress < 78) return "SYNCING GEOINT / FININT BUFFERS…";
-  if (progress < 95) return "LINKING LAYER PIPELINES…";
-  return "OPERATOR NODE READY…";
+  if (progress < BUNDLE_PROGRESS_CAP) return "지도를 불러오는 중…";
+  if (progress < 45) return "지구본을 준비하는 중…";
+  if (progress < 78) return "피드를 맞추는 중…";
+  if (progress < 95) return "레이어를 연결하는 중…";
+  return "준비 완료";
 }
 
 const VERT = `
@@ -76,7 +79,8 @@ float snoise(vec3 v) {
 float fbm(vec3 p) {
   float v = 0.0;
   float a = 0.5;
-  for (int i = 0; i < 4; i++) {
+  // /*FBM_OCTAVES*/ 토큰 — createProgram에서 2|4로 치환 (P1-3)
+  for (int i = 0; i < /*FBM_OCTAVES*/4; i++) {
     v += a * snoise(p);
     p = p * 2.02 + vec3(1.7, 9.2, 3.4);
     a *= 0.5;
@@ -160,7 +164,7 @@ void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / min(uResolution.x, uResolution.y);
   vec3 col = spaceBackground(uv);
 
-  vec3 ro = vec3(uv * 1.12, 3.85);
+  vec3 ro = vec3(uv * 1.12, ${GLOBAL_BOOT_SHADER_CAMERA_Z});
   vec3 rd = normalize(vec3(uv, -1.32));
   float spin = uTime * 0.11;
 
@@ -240,9 +244,10 @@ function compileShader(gl: WebGLRenderingContext, type: number, source: string) 
   return shader;
 }
 
-function createProgram(gl: WebGLRenderingContext) {
+function createProgram(gl: WebGLRenderingContext, fbmOctaves: 2 | 4 = 4) {
   const vs = compileShader(gl, gl.VERTEX_SHADER, VERT);
-  const fs = compileShader(gl, gl.FRAGMENT_SHADER, FRAG);
+  const fragSource = FRAG.replace("/*FBM_OCTAVES*/4", String(fbmOctaves));
+  const fs = compileShader(gl, gl.FRAGMENT_SHADER, fragSource);
   const program = gl.createProgram();
   if (!program) throw new Error("program create failed");
   gl.attachShader(program, vs);
@@ -260,44 +265,81 @@ function createProgram(gl: WebGLRenderingContext) {
 type GlobeLoadingScreenProps = {
   progress: number;
   fading?: boolean;
+  /** 부팅이 느림 — 상태 고지 문구 노출 (P1-2) */
+  slow?: boolean;
+  /**
+   * 대시보드(MapLibre)가 이미 마운트됨 — 로딩 셰이더 rAF를 멈춰
+   * GPU·메인 스레드를 첫 지구본 프레임에 양보한다.
+   */
+  yieldGpu?: boolean;
 };
 
-export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScreenProps) {
+export function GlobeLoadingScreen({
+  progress,
+  fading = false,
+  slow = false,
+  yieldGpu = false,
+}: GlobeLoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef(progress);
   const displayRef = useRef(progress);
   const [displayProgress, setDisplayProgress] = useState(progress);
+  /** WebGL 컨텍스트·셰이더 실패 — CSS 정적 배경으로 강등 (P0-1) */
+  const [shaderFailed, setShaderFailed] = useState(false);
   progressRef.current = progress;
 
   useEffect(() => {
     let raf = 0;
-    const smooth = () => {
+    const tick = () => {
       const target = progressRef.current;
       const current = displayRef.current;
+      if (Math.abs(target - current) < 0.2) {
+        if (current !== target) {
+          displayRef.current = target;
+          setDisplayProgress(target);
+        }
+        return;
+      }
       const next = current + (target - current) * 0.12;
-      displayRef.current = Math.abs(target - next) < 0.2 ? target : next;
-      setDisplayProgress(displayRef.current);
-      raf = requestAnimationFrame(smooth);
+      displayRef.current = next;
+      setDisplayProgress(next);
+      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(smooth);
+    raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [progress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    /** P1-3: reduced-motion · 저코어 → 정적 / phone → fbm 2옥타브 */
+    const plan = getLoadingShaderPlan();
+    if (!plan.useShader || yieldGpu || fading) {
+      if (!plan.useShader) setShaderFailed(true);
+      return;
+    }
+
     const gl = canvas.getContext("webgl", {
       alpha: false,
       antialias: false,
-      powerPreference: "high-performance",
+      powerPreference: "low-power",
     });
-    if (!gl) return;
+    /**
+     * P0-1: 예전에는 여기서 그냥 return했다 — 캔버스가 완전히 비어
+     * 검은 화면 위에 퍼센트 숫자만 떠 있었다. CSS 정적 배경으로 대체한다.
+     */
+    if (!gl) {
+      setShaderFailed(true);
+      return;
+    }
 
     let program: WebGLProgram;
     try {
-      program = createProgram(gl);
+      program = createProgram(gl, plan.fbmOctaves);
     } catch {
+      setShaderFailed(true);
+      releaseWebglContext(gl);
       return;
     }
 
@@ -317,7 +359,7 @@ export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScr
     const start = performance.now();
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       canvas.width = Math.max(1, Math.floor(w * dpr));
@@ -348,15 +390,18 @@ export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScr
       ro.disconnect();
       gl.deleteProgram(program);
       gl.deleteBuffer(buf);
+      releaseWebglContext(gl);
     };
-  }, []);
+  }, [fading, yieldGpu]);
 
   const clamped = Math.min(100, Math.max(0, Math.round(displayProgress)));
   const stage = loadingStageLabel(clamped);
 
   return (
     <div
-      className="fixed inset-0 z-[700] flex flex-col items-center justify-center overflow-hidden bg-black transition-opacity duration-700 ease-out"
+      // duration-200은 GlobeBootLoader의 LOADING_FADE_MS(250)와 맞춘 값이다.
+      // CSS가 더 길면 페이드 도중 언마운트돼 화면이 뚝 끊긴다 (P1-2)
+      className="fixed inset-0 z-[700] flex flex-col items-center justify-center overflow-hidden bg-black transition-opacity duration-200 ease-out"
       style={{
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? "none" : "auto",
@@ -365,7 +410,22 @@ export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScr
       aria-busy={!fading}
       aria-label={`로딩 중, ${clamped}퍼센트`}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      {shaderFailed ? (
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(1px 1px at 18% 26%, rgba(255,255,255,.5) 50%, transparent 50%)," +
+              "radial-gradient(1px 1px at 72% 18%, rgba(255,255,255,.38) 50%, transparent 50%)," +
+              "radial-gradient(1px 1px at 41% 74%, rgba(255,255,255,.45) 50%, transparent 50%)," +
+              "radial-gradient(circle at 50% 50%, rgba(28,62,112,.45), rgba(0,0,0,1) 62%)",
+            backgroundSize: "240px 240px, 320px 320px, 400px 400px, 100% 100%",
+          }}
+        />
+      ) : (
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      )}
 
       <div className="pointer-events-none relative z-10 flex flex-col items-center px-4">
         <div
@@ -407,6 +467,17 @@ export function GlobeLoadingScreen({ progress, fading = false }: GlobeLoadingScr
         >
           잠시만 기다려 주세요
         </p>
+        {/* P1-2: 45초 failsafe까지 침묵하지 않는다 — 8초를 넘기면 상태를 알린다 */}
+        {slow ? (
+          <p
+            className="mt-4 max-w-sm text-center text-xs leading-relaxed text-amber-200/85"
+            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+          >
+            네트워크나 기기 성능 때문에 평소보다 오래 걸리고 있습니다.
+            <br />
+            입장 후 「간이 보기(Ultra-Lite)」로 전환하면 가벼워집니다.
+          </p>
+        ) : null}
       </div>
     </div>
   );

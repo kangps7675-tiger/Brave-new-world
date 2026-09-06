@@ -20,6 +20,8 @@ import type { ScoredEvent } from "@/data/eventTiers";
 import type { ChinaTheaterIncident } from "@/data/chinaTheaterIncidentsSeed";
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import type { RussiaStrikeIncident } from "@/data/russiaStrikeIncidentsSeed";
+import type { EuropeDroneIncident } from "@/data/europeDroneIncursionSeed";
+import type { ProvenanceFields } from "@/lib/eventProvenance";
 import type { SituationCallout } from "@/data/situationCalloutTypes";
 import type { MissileBeltArea } from "@/data/koreaMissileBeltSeed";
 import type { FirmsSoundKind } from "@/lib/firmsSoundClassify";
@@ -32,6 +34,8 @@ import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
 import type { MergedViewConfig } from "@/lib/viewPackages";
 import type { PlaceLabelTier } from "@/lib/placeLabelColors";
 import type { NewsTheater } from "@/lib/news/types";
+import type { NewsStreamItem } from "@/lib/news/types";
+import type { NewsInsightSelectionItem } from "@/lib/news/newsInsightTypes";
 import type { GpsJamPolygonFeature } from "@/hooks/useGpsJamLayer";
 import type { ReconSatelliteMarker } from "@/lib/reconSatellitePropagate";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
@@ -60,9 +64,26 @@ export type Selection =
   | { kind: "ship-movement"; item: PublicShipObservation }
   | { kind: "recon-sat"; item: ReconSatelliteMarker }
   | { kind: "neptun-threat"; item: NeptunLiveThreat }
-  | { kind: "chokepoint"; item: StaticPoint };
+  | { kind: "chokepoint"; item: StaticPoint }
+  | { kind: "news-insight"; item: NewsInsightSelectionItem };
 
-export type AnalysisSelection = Exclude<Selection, { kind: "neptun-threat" }>;
+export type AnalysisSelection = Exclude<
+  Selection,
+  { kind: "neptun-threat" } | { kind: "news-insight" }
+>;
+
+/** 뉴스 인사이트 「지도에서 보기」 콜아웃 — 전쟁 빨간 점과 다른 앰버 스타일 */
+export type NewsInsightCalloutMarker = {
+  markerId: string;
+  displayKind: "news-insight-callout";
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  /** 원문 링크(선택) */
+  link?: string;
+  article?: NewsStreamItem;
+};
 
 export type PolygonLayerFeature =
   | (CountryFeature & { polygonLayer: "country" })
@@ -191,19 +212,28 @@ export type UkraineTheaterIntensityGlobePoint = {
   hapiTag?: string | null;
 };
 
-export type ChinaTheaterIncidentHtmlMarker = ChinaTheaterIncident & {
+export type ChinaTheaterIncidentHtmlMarker = ChinaTheaterIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "china-theater-incident";
 };
 
-export type KoreaMissileIncidentHtmlMarker = KoreaMissileIncident & {
+export type KoreaMissileIncidentHtmlMarker = KoreaMissileIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "korea-missile-incident";
 };
 
-export type RussiaStrikeIncidentHtmlMarker = RussiaStrikeIncident & {
+export type RussiaStrikeIncidentHtmlMarker = RussiaStrikeIncident &
+  ProvenanceFields & {
   markerId: string;
   displayKind: "russia-strike-incident";
+};
+
+export type EuropeDroneIncidentHtmlMarker = EuropeDroneIncident &
+  ProvenanceFields & {
+  markerId: string;
+  displayKind: "europe-drone-incident";
 };
 
 export type NeptunImpactHtmlMarker = NeptunImpactFlash & {
@@ -264,6 +294,7 @@ export type NuclearStockpileHtmlMarker = {
   year: number;
 };
 
+/** @deprecated HTML Marker 제거 — MapLibre symbol/circle(safecastRadiationMarker)로 이전 */
 export type SafecastGaugeHtmlMarker = {
   markerId: string;
   displayKind: "safecast-gauge";
@@ -306,7 +337,7 @@ export type FrictionStageHtmlMarker = {
   label: string;
   order: number;
   active: boolean;
-  /** violet=반서방 · rose=영토분쟁 */
+  /** violet=CRINK · rose=영토분쟁 */
   tone?: "violet" | "rose";
 };
 
@@ -365,6 +396,7 @@ export type GlobeDisplayPoint =
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
+  | EuropeDroneIncidentHtmlMarker
   | ReconSatelliteMarker
   | TelegramNeonMarker;
 
@@ -391,14 +423,15 @@ export type HtmlOverlayMarker =
   | ReefWatchTrafficHtmlMarker
   | CasualtySkullHtmlMarker
   | NuclearStockpileHtmlMarker
-  | SafecastGaugeHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
+  | EuropeDroneIncidentHtmlMarker
   | NewfeedsAttackGlobePoint
   | UkraineTheaterIntensityGlobePoint
   | NewsStreamNeonMarker
   | TelegramNeonMarker
+  | NewsInsightCalloutMarker
   | ReconSatelliteMarker;
 
 export type HoverCard =
@@ -436,7 +469,14 @@ export type ViewState = {
 };
 
 /** 로딩→환영→도메인→확 줌아웃→세부. 입·출구(1회), 로테이션 아님. */
-export type EntryGate = "caution" | "welcome" | "domain" | "overview" | "mode" | null;
+export type EntryGate =
+  | "caution"
+  | "welcome"
+  | "sources"
+  | "domain"
+  | "overview"
+  | "mode"
+  | null;
 
 export type GlobeDashboardProps = {
   viinaMeta?: ViinaRenderMeta | null;

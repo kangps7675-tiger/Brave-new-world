@@ -3,7 +3,16 @@
 import type { MutableRefObject } from "react";
 import type { FeatureCollection } from "geojson";
 import type { PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
-import type { ConflictZoneFeature, DisputeArea, DisputeOverview, TransportPath } from "@/data/geoTypes";
+import type {
+  ConflictZoneFeature,
+  DisputeArea,
+  DisputeOverview,
+  MilitaryAircraft,
+  TransportPath,
+} from "@/data/geoTypes";
+import type { AircraftSymbolModel } from "@/lib/milAircraftSymbols";
+import type { AisSymbolInput } from "@/lib/aisVesselSymbols";
+import type { AisVessel } from "@/data/geoTypes";
 import type {
   FirmsFireGlobePoint,
   GlobeDisplayPoint,
@@ -76,6 +85,16 @@ import {
 import { briTradeStrokeWidth } from "@/lib/briTradePaths";
 import { usDfcSupplyStrokeWidth } from "@/lib/usDfcSupplyPaths";
 import { dimAxisLinkColor } from "@/lib/axisLinkSelection";
+
+/**
+ * 다구간(육로↔해상) 실측 회랑은 leg마다 path.id가 `edgeId--legN`/`arms-...--legN`으로
+ * 갈라진다. meta.groupId(항상 원래 edge/쌍 id)가 있으면 그걸, 없으면 path.id를 그대로
+ * 쓴다 — 선택된 회랑의 leg 전체가 같이 하이라이트/디밍되게 하려면 반드시 이 함수로 비교해야 한다.
+ */
+function axisLinkGroupId(path: TransportPath): string {
+  const groupId = path.meta?.groupId;
+  return typeof groupId === "string" && groupId ? groupId : path.id;
+}
 import { airRaidFocusBoxPolygon, isAirRaidFocusPath } from "@/lib/airRaidFocus";
 import { HOVER, hatchStyleLabelLocalized, pathKindLabel, tensionLabel } from "@/lib/hoverLabels";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -90,9 +109,13 @@ import {
 import { NEWFEEDS_ATTRIBUTION_SHORT, severityColor, severityHint, severityLabel } from "@/lib/newfeeds";
 import {
   theaterIntensityAngularRadius,
-  ukraineTheaterIntensityColor,
 } from "@/lib/theaterIntensityRadius";
 import { shippingLaneColor, shippingLaneStroke } from "@/lib/shippingLaneStyle";
+import {
+  maritimeRouteColor,
+  maritimeRouteStroke,
+  maritimeRouteDashLength,
+} from "@/lib/maritimeRouteStyle";
 import {
   ARMS_EMBARGO_STROKE_WIDTH,
   CONFLICT_ZONE_ALTITUDE,
@@ -144,6 +167,27 @@ export interface UseGlobeMapGlobePropsParams {
   conflictClusterRings: PulseRingPoint[];
   htmlOverlayMarkers: HtmlOverlayMarker[];
   createHtmlOverlayElement: (point: object) => HTMLElement;
+  /**
+   * 항공기는 DOM Marker가 아니라 symbol 레이어로 그린다 (milAircraftSymbols.ts).
+   * htmlOverlayMarkers에 넣지 말 것 — 최대 430개 DOM이 되살아난다.
+   */
+  aircraftSymbols: AircraftSymbolModel;
+  handleMilAircraftSelect: (aircraft: MilitaryAircraft) => void;
+  handleCivAircraftSelect: (aircraft: MilitaryAircraft) => void;
+  setHoveredMilAircraft: (aircraft: MilitaryAircraft | null) => void;
+  /**
+   * 선박(AIS)도 항공기와 같은 이유로 symbol 레이어 — htmlOverlayMarkers에 넣지 말 것.
+   * mapBearingDeg(옆모습 E/W 판정)는 MapGlobeView가 직접 갖고 있으므로,
+   * 여기서는 geojson을 미리 굽지 않고 원본 포인트만 그대로 내려보낸다.
+   */
+  aisDisplayPoints: AisSymbolInput[];
+  handleAisSymbolSelect: (vessel: AisVessel) => void;
+  handleAisSymbolHover: (vessel: AisVessel | null) => void;
+  /**
+   * Safecast µSv/h — symbol/circle 레이어 (DOM Marker 아님).
+   * HTML로 두면 카메라 회전마다 occlusion·transform으로 버벅인다.
+   */
+  safecastGaugesGeoJson: FeatureCollection;
   isViinaCloseZoom: boolean;
   showUkraineControl: boolean;
   layerAltitudeRef: MutableRefObject<number>;
@@ -162,6 +206,8 @@ export interface UseGlobeMapGlobePropsParams {
   ukraineMacroGeoJson: FeatureCollection;
   ukraineMicroGeoJson: FeatureCollection;
   axisHubCountriesGeoJson: FeatureCollection;
+  alliedBlocCountriesGeoJson: FeatureCollection;
+  geoEconBlocCountriesGeoJson: FeatureCollection;
   neptunPathElevation: NeptunPathElevationMode;
   tonedPathColors: ReturnType<typeof pathLayerColors>;
   tonedInfraColors: ReturnType<typeof infraColors>;
@@ -204,6 +250,14 @@ export function useGlobeMapGlobeProps(
     conflictClusterRings,
     htmlOverlayMarkers,
     createHtmlOverlayElement,
+    aircraftSymbols,
+    handleMilAircraftSelect,
+    handleCivAircraftSelect,
+    setHoveredMilAircraft,
+    aisDisplayPoints,
+    handleAisSymbolSelect,
+    handleAisSymbolHover,
+    safecastGaugesGeoJson,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -222,6 +276,8 @@ export function useGlobeMapGlobeProps(
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson,
+    geoEconBlocCountriesGeoJson,
     neptunPathElevation,
     tonedPathColors,
     tonedInfraColors,
@@ -243,6 +299,7 @@ export function useGlobeMapGlobeProps(
     backgroundColor: globeTextures.backgroundColor,
     basemapMode,
     ultraLite,
+    showCityLabels,
     interactiveLayerIds: mapInteractiveLayerIds,
     showIslandChains,
     onGlobeReady: configureGlobe,
@@ -306,11 +363,8 @@ export function useGlobeMapGlobeProps(
       if (point.displayKind === "tzeva-adom") {
         return TZEVA_ADOM_MARKER;
       }
-      if (point.displayKind === "newfeeds-attack") {
+      if (point.displayKind === "newfeeds-attack" || point.displayKind === "ukraine-theater-intensity") {
         return severityColor(point.severity);
-      }
-      if (point.displayKind === "ukraine-theater-intensity") {
-        return ukraineTheaterIntensityColor(point.severity);
       }
       if (point.displayKind === "conflict-cluster") {
         if (point.tension === "high") return "rgba(239, 68, 68, 0.92)";
@@ -550,6 +604,33 @@ export function useGlobeMapGlobeProps(
       if (point.pulseKind === "ship-movement") return 0.55;
       return 2.2;
     },
+    /* ── 항공기: symbol 레이어 (DOM Marker 아님) ────────────────────── */
+    aircraftSymbolsData: aircraftSymbols.geojson,
+    aircraftSymbolsItems: aircraftSymbols.items,
+    aircraftSymbolsIsCivil: aircraftSymbols.isCivil,
+    onAircraftClick: (item: unknown, isCivil: boolean) => {
+      const aircraft = item as MilitaryAircraft;
+      if (isCivil) handleCivAircraftSelect(aircraft);
+      else handleMilAircraftSelect(aircraft);
+    },
+    onAircraftHover: (item: unknown | null) => {
+      setHoveredMilAircraft((item as MilitaryAircraft | null) ?? null);
+    },
+    /* ── 선박(AIS): symbol 레이어 (DOM Marker 아님) ─────────────────────
+     * geojson은 MapGlobeView가 mapBearingDeg와 함께 buildAisSymbolModel로 굽는다 —
+     * 여기서는 원본 포인트 배열만 전달한다.
+     */
+    aisSymbolVessels: aisDisplayPoints,
+    onAisSymbolClick: (item: unknown) => {
+      handleAisSymbolSelect(item as AisVessel);
+    },
+    onAisSymbolHover: (item: unknown | null) => {
+      handleAisSymbolHover((item as AisVessel | null) ?? null);
+    },
+
+    /* ── Safecast µSv/h: circle+symbol (DOM Marker 아님) ─────────────── */
+    safecastGaugesGeoJson,
+
     htmlElementsData: htmlOverlayMarkers,
     htmlLat: (point: HtmlOverlayMarker) =>
       point.displayKind === "recon-sat-html"
@@ -877,6 +958,8 @@ export function useGlobeMapGlobeProps(
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
     axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson,
+    geoEconBlocCountriesGeoJson,
     pathPoints: (path: TransportPath) => path.points,
     pathPointLat: (point: { lat: number; lng: number }) => point.lat,
     pathPointLng: (point: { lat: number; lng: number }) => point.lng,
@@ -895,9 +978,11 @@ export function useGlobeMapGlobeProps(
     pathsTransitionDuration: 0,
     pathColor: (path: TransportPath) => {
       if (path.kind === "axis-link" && selectedAxisPathId) {
+        // 다구간(육로↔해상) 회랑은 leg마다 path.id가 갈라지므로 meta.groupId로 비교해야
+        // 회랑 하나를 고르면 그 leg 전체가 같이 하이라이트/디밍된다.
         return dimAxisLinkColor(
           path.accentColor,
-          path.id === selectedAxisPathId,
+          axisLinkGroupId(path) === selectedAxisPathId,
         );
       }
       if (path.accentColor) return path.accentColor;
@@ -911,6 +996,9 @@ export function useGlobeMapGlobeProps(
       // 항로 — 반투명 시안 실선 · 병목(초크)만 같은 선이 붉게 틴트
       if (path.kind === "shipping-lane") {
         return shippingLaneColor(path, basemapTone === "light" ? "light" : "dark");
+      }
+      if (path.kind === "maritime-route") {
+        return maritimeRouteColor(path, basemapTone === "light" ? "light" : "dark");
       }
       if (FLOW_PATH_KINDS.has(path.kind)) return INTEL_MISSILE_ARC;
       if (path.kind === "dispute-boundary") return "rgba(251, 191, 36, 0.92)";
@@ -997,12 +1085,19 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "neptun-projection") return 1.05;
       if (path.kind === "axis-link") {
         if (selectedAxisPathId) {
-          return path.id === selectedAxisPathId ? 2.35 : 0.85;
+          return axisLinkGroupId(path) === selectedAxisPathId ? 2.35 : 0.85;
         }
         return 1.35;
       }
-      if (path.kind === "bri-trade") return Math.max(3.2, briTradeStrokeWidth(path));
-      if (path.kind === "us-dfc-supply") return Math.max(3.2, usDfcSupplyStrokeWidth(path));
+      if (path.kind === "bri-trade") return briTradeStrokeWidth(path);
+      if (path.kind === "us-dfc-supply") return usDfcSupplyStrokeWidth(path);
+      if (path.kind === "strategic-corridor") {
+        const rank = path.scalerank ?? 2;
+        if (rank <= 1) return 2.8;
+        if (rank <= 2) return 2.1;
+        if (rank <= 3) return 1.55;
+        return 1.15;
+      }
       if (path.kind === "coastline") return 0.38;
       if (path.kind === "country-border") {
         return globeTextures.vectorBase
@@ -1015,6 +1110,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "dispute-hatch") return 0.55;
       if (path.kind === "conflict-hatch") return 0.62;
       if (path.kind === "shipping-lane") return shippingLaneStroke(path);
+      if (path.kind === "maritime-route") return maritimeRouteStroke(path);
       if (path.kind === "ship-movement-trail") return 1.15;
       if (path.kind === "submarine-cable") {
         // 해저 케이블: cable widthMode (줌아웃↑ · 줌인 최소 ~0.55)
@@ -1023,7 +1119,8 @@ export function useGlobeMapGlobeProps(
       if (
         path.kind === "oil-pipeline" ||
         path.kind === "gas-pipeline" ||
-        path.kind === "subsea-pipeline"
+        path.kind === "subsea-pipeline" ||
+        path.kind === "crink-infra"
       ) {
         // 실제 px 굵기는 widthMode "pipeline" (0.1~0.6). strokeAngular는 미사용.
         return 0.2;
@@ -1084,6 +1181,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "bri-trade" || path.kind === "us-dfc-supply") return 0;
       // 항로 — 통행 경향(실선·저채도). 미사일 호 점선과 분리
       if (path.kind === "shipping-lane") return 0;
+      if (path.kind === "maritime-route") return maritimeRouteDashLength();
       return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
     },
     pathDashGap: (path: TransportPath) => {

@@ -44,12 +44,23 @@ function splitZones(features: NonNullable<ReturnType<typeof loadViinaRenderData>
   return { ru, ua, contested };
 }
 
+const memoryHatchPayload = new Map<
+  UkraineHatchLod,
+  NonNullable<ReturnType<typeof loadUkraineHatchCache>>
+>();
+
 async function ensureHatchPayload(lod: UkraineHatchLod) {
+  const fromMemory = memoryHatchPayload.get(lod);
+  if (fromMemory?.paths?.length) {
+    return { payload: fromMemory, source: "memory" as const };
+  }
+
   // 클라우드 스냅샷 우선 (D1) — Workers/프로덕션에서 파일 캐시가 없을 때
   try {
     const db = await getDb();
     const fromD1 = await readUkraineHatchFromD1(db, lod);
     if (fromD1?.paths?.length) {
+      memoryHatchPayload.set(lod, fromD1);
       return { payload: fromD1, source: "d1" as const };
     }
   } catch {
@@ -58,6 +69,7 @@ async function ensureHatchPayload(lod: UkraineHatchLod) {
 
   const fileCache = loadUkraineHatchCache(lod);
   if (fileCache?.paths?.length) {
+    memoryHatchPayload.set(lod, fileCache);
     try {
       const db = await getDb();
       await writeUkraineHatchToD1(db, fileCache);
@@ -84,13 +96,15 @@ async function ensureHatchPayload(lod: UkraineHatchLod) {
     lod,
     viina.controlDate || "",
   );
+  memoryHatchPayload.set(lod, payload);
+  // Vercel 등 read-only FS에서는 null — 메모리 응답은 계속
   saveUkraineHatchCache(payload);
 
   try {
     const db = await getDb();
     await writeUkraineHatchToD1(db, payload);
   } catch {
-    // D1 동기화 실패해도 파일 캐시로 응답 가능
+    // D1 동기화 실패해도 메모리/파일로 응답 가능
   }
 
   return { payload, source: "precompute" as const };

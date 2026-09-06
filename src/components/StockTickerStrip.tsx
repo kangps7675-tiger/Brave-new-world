@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  dualLensTickerNote,
   formatTickerChangePercent,
   formatTickerPrice,
+  isDualLensTickerSymbol,
   mergeTickerStripSymbols,
   STOCK_TICKER_SYMBOLS,
   tickerChangeTone,
@@ -16,9 +18,6 @@ import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
-import { emitOilSpikeSound } from "@/components/SoundEffectsBridge";
-
-const OIL_SPIKE_SYMBOLS = new Set(["CL=F", "BZ=F"]);
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -39,6 +38,8 @@ const SPARKLINE_STROKE = {
 
 export type StockTickerStripProps = {
   mode?: IntelStackMode;
+  /** 지정학 equity vs 지경학 선물 스트립 코어 */
+  viewerMode?: "conflict" | "economy";
   highlightSymbols?: string[];
   alertTone?: HeroStatus;
   /** L2 패널 헤더 라벨 표시 */
@@ -47,8 +48,11 @@ export type StockTickerStripProps = {
   paused?: boolean;
 };
 
-function orderStripSymbols(highlightSymbols: string[]): string[] {
-  return mergeTickerStripSymbols(highlightSymbols);
+function orderStripSymbols(
+  highlightSymbols: string[],
+  viewerMode: "conflict" | "economy",
+): string[] {
+  return mergeTickerStripSymbols(highlightSymbols, viewerMode);
 }
 
 function TickerSparkline({
@@ -141,7 +145,9 @@ function TickerRow({
   });
   const spikeBadge = showSpike && highlighted ? formatSpikeBadge(item.changePercent) : null;
   const name = tickerDisplayName(item.symbol, lang);
+  const dualLens = isDualLensTickerSymbol(item.symbol);
   const titleBits = [item.symbol];
+  if (dualLens) titleBits.push(dualLensTickerNote(lang));
   if (item.asOf) titleBits.push(lang === "en" ? `as of ${item.asOf}` : `${item.asOf} 관측`);
   titleBits.push(lang === "en" ? "change vs prior day" : "등락은 전일 대비");
 
@@ -152,6 +158,11 @@ function TickerRow({
       }`}
     >
       <span className={highlighted ? "font-semibold text-rose-100" : "text-slate-300"} title={titleBits.join(" · ")}>
+        {dualLens ? (
+          <span className="mr-0.5 text-cyan-300/80" aria-hidden="true" title={dualLensTickerNote(lang)}>
+            ⇄
+          </span>
+        ) : null}
         {name}
       </span>
       <TickerSparkline data={item.sparkline} tone={tone} />
@@ -180,6 +191,7 @@ function alertStripClass(mode: IntelStackMode, alertTone?: HeroStatus): string {
 
 export function StockTickerStrip({
   mode = "calm",
+  viewerMode = "conflict",
   highlightSymbols = [],
   alertTone,
   showHeader = false,
@@ -192,13 +204,11 @@ export function StockTickerStrip({
   pausedRef.current = paused;
 
   const orderedSymbols = useMemo(
-    () => orderStripSymbols(highlightSymbols),
-    [highlightSymbols],
+    () => orderStripSymbols(highlightSymbols, viewerMode),
+    [highlightSymbols, viewerMode],
   );
 
   const highlightSet = useMemo(() => new Set(highlightSymbols), [highlightSymbols]);
-  const oilSpikeArmedRef = useRef(false);
-  const lastOilSpikeAtRef = useRef(0);
 
   const refresh = useCallback(async () => {
     if (pausedRef.current) return;
@@ -221,25 +231,14 @@ export function StockTickerStrip({
     return () => window.clearInterval(timer);
   }, [refresh]);
 
-  // CL=F / BZ=F SPIKE → oil-spike (쿨다운 · 재진입 시에만)
-  useEffect(() => {
-    if (!tickers?.length) return;
-    const oilSpiking = tickers.some((item) => {
-      if (!OIL_SPIKE_SYMBOLS.has(item.symbol)) return false;
-      const pct = item.changePercent;
-      return pct != null && Math.abs(pct) >= TICKER_SPIKE_THRESHOLD_PERCENT;
-    });
-    if (!oilSpiking) {
-      oilSpikeArmedRef.current = false;
-      return;
-    }
-    if (oilSpikeArmedRef.current) return;
-    oilSpikeArmedRef.current = true;
-    const now = Date.now();
-    if (now - lastOilSpikeAtRef.current < 45_000) return;
-    lastOilSpikeAtRef.current = now;
-    emitOilSpikeSound();
-  }, [tickers]);
+  const stripTitle =
+    viewerMode === "economy"
+      ? lang === "en"
+        ? "Futures · macro"
+        : "선물 · 매크로"
+      : lang === "en"
+        ? "Defense · equities"
+        : "방산 · equity";
 
   return (
     <div
@@ -252,7 +251,7 @@ export function StockTickerStrip({
       {showHeader ? (
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-1.5">
           <span className="text-micro font-bold uppercase tracking-[0.22em] text-emerald-200/85">
-            {t("marketsStripTitle", lang)}
+            {stripTitle}
           </span>
           <span className="text-micro text-slate-500">
             {mode === "alert"

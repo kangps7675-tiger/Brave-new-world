@@ -11,7 +11,7 @@
 > README ↔ 코드 불일치가 **2건** 확인됐고, 둘 다 *"이렇게 하기로 했다"*가
 > *"이렇게 되어 있다"*로 적혀 있었다:
 >
-> 1. **레이어 적용 모델** — README "체크 즉시 반영" ↔ 코드 draft/confirm 다이얼로그
+> 1. **레이어 적용 모델** — README "체크 → 지도 반영"(leading-edge 120ms) ↔ soft patch / clamp
 > 2. **ExplorationTabs** — README "지정학에서 숨김" ↔ 코드 양 모드 모두 마운트
 >
 > 이건 문서 관리 문제로 보이지만 실제로는 **UX 결정이 코드에 도달하지 못하고
@@ -40,7 +40,7 @@
 
 ### 레이어 적용 모델 단일화 (P1-4)
 - **현재 코드:** draft → "적용하시겠습니까?" 확인 (`layerPanelDirty` + `LayerCategoryDraftHost`)
-- **README 서술:** "체크 즉시 반영"
+- **README 서술:** "체크 → 지도 반영" (첫 토글 즉시 · 연속만 120ms 배칭)
 - **결정:** 즉시 반영 + 실행취소(Undo) 토스트로 통일하고 확인 다이얼로그 폐기
 - **상태:** 미착수. **통일 전까지 README를 draft 모델 기준으로 유지할 것**
 
@@ -99,6 +99,25 @@
 - **reduced-motion은 안전 항목.** 접근성 체크리스트가 아니라 건강 리스크로 다룬다.
 - **온보딩은 예산제.** 세션당 2개. 새 넛지를 만들면 `onboardingBudget` 레지스트리에 등록할 것.
 - **저장 키 버전을 올리지 않는다.** 레이어 추가는 `DEFAULT_LAYER_PREFS`에 기본값만 추가.
+- **레이어 클램프는 항상 마지막 단계.** 클램프 뒤에 `ensure*Layers`/히어로 강제 ON을 두지 않는다. 첫 화면은 상한(`fullModeMaxLayers`)이 아니라 별도 예산(`firstScreenMaxLayers`)으로 자른다 — 상한은 "여기까지 허용", 첫 화면은 "여기서 시작"이라 같을 이유가 없다.
+
+---
+
+## 해결된 사고 기록
+
+### 부팅 시 레이어 30개 동시 ON (2026-08)
+
+**증상:** 첫 진입 시 레이어가 한꺼번에 켜지며 저사양 기기(내장 GPU·8GB)에서 프론트엔드가 죽음. 한 번 고쳤다가 재발.
+
+**원인:** `entryOverview.ts`의 `buildDomainOverviewPrefs`가 `clampPrefsToActiveCap`으로 자른 **직후** 히어로 레이어를 통째로 되살리고, 그 뒤에 `ensureConfrontationLayersOn`/`ensureResourceLayersOn`이 또 강제 ON — 클램프가 매번 무효화되어 결과가 항상 정확히 `fullModeMaxLayers`(30, = 상한 전부)였다. 레이어가 사라질 때마다 "마지막에 강제로 켜기"를 덧댄 흔적으로 보이고, 여섯 번 덧대다 보니 "전부 켜기"가 됐다.
+
+**수정:**
+1. `geowatch.config.ts`에 `firstScreenMaxLayers: 10` 신설 — 상한(30)과 별개의 첫 화면 예산.
+2. `layerExclusiveCap.ts`에 임의 상한용 `clampPrefsToLimit(prefs, limit)` 신설. 기존 `clampPrefsToActiveCap`은 이를 감싸는 wrapper로 리팩터.
+3. `buildDomainOverviewPrefs`를 4단계로 재구성 — ① 히어로 후보 전부 ON → ② Ultra-Lite 강제 OFF → ③ 필수 보강(ensure*, 자르기 **전에**) → ④ `clampPrefsToLimit`로 **한 번만** 자르기.
+4. 회귀 방지 테스트: `src/lib/entryOverview.test.ts` — conflict/economy × 일반/Ultra-Lite 4종 모두 예산 이내인지, `fullModeMaxLayers`만큼 켜지지 않는지 검증.
+
+**검증:** `npm run verify:syntax` 통과, `vitest run src/lib/entryOverview.test.ts` 7/7 통과 (실제 켜지는 레이어 수 30 → 10 이하로 축소 확인).
 
 ---
 

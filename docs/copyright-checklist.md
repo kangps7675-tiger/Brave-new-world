@@ -104,6 +104,7 @@
 | GDELT 상업 이용 | 이용약관에 상업적 이용 관련 조건이 있을 수 있음 | 🟡 미확인 | 유료화 전 GDELT ToS 재확인 |
 | UCDP GED 상업 이용 | 연구용 라이선스 — 상업 서비스 포함 여부 불명확 | 🟡 미확인 | 유료화 전 UCDP 라이선스 확인, 필요 시 대체 데이터 검토 |
 | adsb.fi | 카탈로그(`sourceCatalog.ts`)에 "비상업"으로 명시된 소스를 그대로 사용 중 | 🔴 위반 소지 (무료 단계는 관행상 허용 범위) | 유료화 전 상업 라이선스가 있는 대체 피드(ADS-B Exchange 상업 티어 등)로 교체 |
+| DeepStateMap.live API (전선 지오메트리 검토 중) | 상업적 목적 단체는 API 사전 승인 필수 (약관 2항) — 미승인 상태로 원본 좌표 호출 시 위반 | 🟡 미승인 (아직 미통합) | `https://api.deepstatemap.live/request` 승인 요청 제출, 승인 전까지 로고+링크 임베드 트랙만 사용. 상세: `docs/third-party/deepstatemap.md` |
 | Telegram 미디어 재호스팅 | 위 섹션대로 embed-only 구현은 됐으나 변호사 검토는 안 됨 | 🟢 완화됨 (미검토) | 유료화 전 변호사 1회 검토 |
 
 체크 주기: **월 1회** 또는 결제 기능 출시 직전 필수. 담당자가 이 표의 상태 컬럼을 갱신할 것.
@@ -119,6 +120,7 @@
 | UCDP GED | 연구용; 상업 시 별도 확인 |
 | NASA FIRMS | 공개; attribution 필요 |
 | adsb.fi | 비상업·출처 표기 (서비스 약관 확인) |
+| DeepStateMap.live | 검토 중 — API는 상업 사전승인제, 로고+링크 임베드는 자유. `docs/third-party/deepstatemap.md` |
 | OpenStreetMap / GEM 등 | 각 라이선스(CC BY, ODbL 등)별 attribution |
 
 전체 레이어 목록: `src/data/sourceCatalog.ts` · UI: 앱 내 「데이터 출처 · 라이선스」 패널

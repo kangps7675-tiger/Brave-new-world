@@ -42,21 +42,21 @@ export async function translateNewsStreamPayload(
 
 /**
  * ko 캐시가 영문 원문으로 남아 있으면 재번역.
- * 샘플 제목 과반이 이미 한글이면 스킵.
+ * 제목 하나라도 비한글이면 전체 페이로드를 다시 돌린다
+ * (앞쪽 샘플만 한글 RSS인 경우 나머지가 영문으로 남는 구멍 방지).
  */
 export async function ensureKoreanNewsPayload(
   payload: NewsStreamPayload,
 ): Promise<NewsStreamPayload> {
   if (!isKoreanTranslationEnabled()) return payload;
   const { isMostlyKorean } = await import("@/lib/koreanTranslate");
-  const sample = [
+  const titles = [
     ...(payload.hero ? [payload.hero.title] : []),
-    ...(payload.flashHeroes ?? []).slice(0, 2).map((i) => i.title),
-    ...payload.verified.slice(0, 6).map((i) => i.title),
-    ...payload.stateMedia.slice(0, 3).map((i) => i.title),
+    ...(payload.flashHeroes ?? []).map((i) => i.title),
+    ...payload.verified.map((i) => i.title),
+    ...payload.stateMedia.map((i) => i.title),
   ].filter(Boolean);
-  if (sample.length === 0) return payload;
-  const englishHeavy = sample.filter((t) => !isMostlyKorean(t)).length;
-  if (englishHeavy === 0) return payload;
+  if (titles.length === 0) return payload;
+  if (titles.every((t) => isMostlyKorean(t))) return payload;
   return translateNewsStreamPayload(payload, "ko");
 }

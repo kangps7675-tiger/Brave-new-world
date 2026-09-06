@@ -41,11 +41,53 @@ jobs:
       - name: Product spec SSOT
         run: npm run verify:product-spec
 
+      - name: Workers static asset size (25 MiB)
+        run: npm run verify:workers-assets
+
       - name: Typecheck
         run: npx tsc --noEmit --pretty false
 
       - name: Security guard (fail-open 인증·시크릿 하드코딩)
         run: npm run verify:security
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-fund --no-audit
+
+      - name: Install browsers (PR — chromium only)
+        if: github.event_name == 'pull_request'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install browsers (push — chromium · webkit)
+        if: github.event_name != 'pull_request'
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Smoke (PR — chromium)
+        if: github.event_name == 'pull_request'
+        run: npm run test:e2e:chromium
+
+      - name: Smoke (push — chromium · webkit)
+        if: github.event_name != 'pull_request'
+        run: npm run test:e2e:ci
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   security:
     runs-on: ubuntu-latest

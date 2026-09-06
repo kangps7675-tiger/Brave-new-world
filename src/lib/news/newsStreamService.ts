@@ -110,7 +110,15 @@ export async function resolveNewsStream(options: {
     if (mem) {
       const payload =
         options.lang === "ko" ? await ensureKoreanNewsPayload(mem) : mem;
-      if (payload !== mem) writeNewsMemoryCache(key, payload);
+      if (payload !== mem) {
+        writeNewsMemoryCache(key, payload);
+        void writeNewsStreamToD1({
+          cacheKey: key,
+          packages: options.packages?.join(",") ?? null,
+          lang: options.lang,
+          payload,
+        });
+      }
       return { payload, source: "memory" };
     }
 
@@ -121,6 +129,14 @@ export async function resolveNewsStream(options: {
           ? await ensureKoreanNewsPayload(fromD1.payload)
           : fromD1.payload;
       writeNewsMemoryCache(key, payload);
+      if (payload !== fromD1.payload) {
+        void writeNewsStreamToD1({
+          cacheKey: key,
+          packages: options.packages?.join(",") ?? null,
+          lang: options.lang,
+          payload,
+        });
+      }
       return { payload, source: "d1", ageMs: fromD1.ageMs };
     }
   }
