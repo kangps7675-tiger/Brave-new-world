@@ -15,12 +15,7 @@ import {
   extractFlashActors,
   FLASH_KINETIC_RE,
   FLASH_SOFT_EXCLUDE_RE,
-  formatActorsLine,
-  formatCausalLine,
-  formatEconomyWhyImportant,
-  formatSceneLine,
-  formatSupplyChainBridge,
-  formatWhyImportant,
+  buildFlashCausalEssay,
   isIranRelatedBreakingText,
 } from "@/lib/news/breakingFlashNarrative";
 import type { HeroBreakingItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
@@ -520,42 +515,27 @@ export function buildBreakingFlashBriefing(
       : "Situation flash";
 
   const actors = extractFlashActors(blob, lang);
-  const actorsLine = formatActorsLine(actors, lang);
-  const causal = formatCausalLine(titleText, actors, lang);
-  const scene = economy
-    ? ko
-      ? "현장: 지경학 데스크 — 시장·공급망·허브 관측."
-      : "Scene: geoeconomic desk — markets, supply chain, hubs."
-    : formatSceneLine(hero.theater, lang);
-  const why = economy
-    ? formatEconomyWhyImportant(blob, lang)
-    : formatWhyImportant(hero.theater, blob, lang);
-  const supplyBridge = formatSupplyChainBridge(blob, lang);
   const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
 
   const gradeLine =
     hero.breakingRank != null
       ? ko
-        ? `등급 ${hero.breakingRank} · 내부 ${hero.breakingGrade ?? "—"}`
-        : `Rank ${hero.breakingRank} · grade ${hero.breakingGrade ?? "—"}`
+        ? `관측 메모: 등급 ${hero.breakingRank} · 내부 ${hero.breakingGrade ?? "—"} (자동 순위, 최종 진실이 아님)`
+        : `Desk note: rank ${hero.breakingRank} · grade ${hero.breakingGrade ?? "—"} (automated—not final truth)`
       : null;
 
-  const closing = ko
-    ? "이상은 확인된 보도를 바탕으로 한 즉시 타전입니다. 상세는 원문에서 확인하십시오."
-    : "Immediate flash based on verified wires. See the source article for full detail.";
+  const essay = buildFlashCausalEssay({
+    title: titleText,
+    summary: body,
+    theater: hero.theater,
+    lang,
+    economy,
+    actors,
+  });
 
-  const sourceAttribution = formatFlashSourceAttribution(hero, lang);
-
-  const paragraphs = [
-    actorsLine,
-    causal,
-    scene,
-    why,
-    supplyBridge,
-    body,
-    gradeLine,
-    closing,
-  ].filter((p): p is string => Boolean(p && p.trim().length > 0));
+  const paragraphs = [...essay, gradeLine].filter(
+    (p): p is string => Boolean(p && p.trim().length > 0),
+  );
 
   return {
     id: hero.id,
@@ -564,7 +544,7 @@ export function buildBreakingFlashBriefing(
     link: hero.link,
     mode: economy ? "economy" : "conflict",
     theater: hero.theater,
-    sourceAttribution,
+    sourceAttribution: formatFlashSourceAttribution(hero, lang),
     dispatchBed: economy
       ? resolveEconomyFlashBed(blob)
       : resolveConflictFlashBed(blob),

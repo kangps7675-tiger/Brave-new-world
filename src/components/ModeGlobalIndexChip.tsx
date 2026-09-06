@@ -5,6 +5,7 @@ import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { WorldTensionChip } from "@/components/WorldTensionChip";
 import { SanctionsEvasionChip } from "@/components/SanctionsEvasionChip";
 import { SanctionsEvasionPanel } from "@/components/SanctionsEvasionPanel";
+import { MetricExplainPanel } from "@/components/MetricExplainPanel";
 import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import { FreightStressChip } from "@/components/FreightStressChip";
 import { PortWatchStressChip } from "@/components/PortWatchStressChip";
@@ -12,23 +13,19 @@ import { MarketSessionChip } from "@/components/MarketSessionChip";
 import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
 import { useSanctionsEvasionSnapshot } from "@/hooks/useSanctionsEvasionSnapshot";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { MetricExplainId } from "@/lib/metricExplainCopy";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { zc } from "@/lib/uiStack";
 
 type ModeGlobalIndexChipProps = {
   viewerMode: ViewerMode;
   lang: LabelLanguage;
-  /** GTI 점수 (지정학) */
   wtiScore: number | null;
   wtiDelta?: number | null;
   wtiAsOf?: string | null;
-  /** 공식 스냅샷 대신 전장 점수로 즉석 산출한 잠정치인지 */
   wtiIsEstimate?: boolean | null;
-  /** 지정학 제재 회피 강도 칩 */
   showSesChip?: boolean;
-  /** 지경학 GSCPI 게이지 표시 여부 */
   showGscpi?: boolean;
-  /** NOAA SWPC 우주기상 칩 */
   showSwpc?: boolean;
   dense?: boolean;
   className?: string;
@@ -36,9 +33,7 @@ type ModeGlobalIndexChipProps = {
 
 /**
  * 우상단 고정 — 모드별 전 세계 단일 지표.
- * 지정학: GTS + 제재 회피 강도 + SWPC — 세로 스택.
- * `--mode-index-chip-stack-bottom` = 칩만, `--mode-index-chip-bottom` = 열린 패널까지
- * (우측 레ail이 패널 아래로 밀리도록).
+ * 칩 클릭 시 계산·설계 설명 패널 (알아먹기 쉬운 줄글).
  */
 export function ModeGlobalIndexChip({
   viewerMode,
@@ -57,7 +52,13 @@ export function ModeGlobalIndexChip({
   const stackRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [sesPanelOpen, setSesPanelOpen] = useState(false);
+  const [explainId, setExplainId] = useState<MetricExplainId | null>(null);
   const sesEntry = useSanctionsEvasionSnapshot();
+
+  const openExplain = useCallback((id: MetricExplainId) => {
+    setSesPanelOpen(false);
+    setExplainId((prev) => (prev === id ? null : id));
+  }, []);
 
   const publishChromeObstacles = useCallback(() => {
     const root = document.documentElement;
@@ -76,7 +77,7 @@ export function ModeGlobalIndexChip({
 
     let chromeBottom = stackBottom;
     const panelEl = panelRef.current;
-    if (sesPanelOpen && panelEl) {
+    if ((sesPanelOpen || explainId) && panelEl) {
       const panelBottom = Math.ceil(panelEl.getBoundingClientRect().bottom);
       chromeBottom = Math.max(stackBottom, panelBottom);
     }
@@ -85,7 +86,7 @@ export function ModeGlobalIndexChip({
     root.style.setProperty("--mode-index-chip-stack-bottom", `${stackBottom}px`);
     root.style.setProperty("--mode-index-chip-bottom", `${chromeBottom}px`);
     root.style.setProperty("--mode-index-chip-width", `${stackWidth}px`);
-  }, [sesPanelOpen]);
+  }, [sesPanelOpen, explainId]);
 
   useEffect(() => {
     publishChromeObstacles();
@@ -107,17 +108,20 @@ export function ModeGlobalIndexChip({
       root.style.setProperty("--mode-index-chip-bottom", "0px");
       root.style.setProperty("--mode-index-chip-width", "0px");
     };
-  }, [publishChromeObstacles, sesPanelOpen]);
+  }, [publishChromeObstacles, sesPanelOpen, explainId]);
 
-  /** 패널 DOM 마운트 직후 한 프레임 뒤 재측정 */
   useEffect(() => {
-    if (!sesPanelOpen) return;
+    if (!sesPanelOpen && !explainId) return;
     const id = window.requestAnimationFrame(publishChromeObstacles);
     return () => window.cancelAnimationFrame(id);
-  }, [sesPanelOpen, publishChromeObstacles]);
+  }, [sesPanelOpen, explainId, publishChromeObstacles]);
 
   const showAuxSwpc = showSwpc && !dense;
   const showSesPanel = !isEconomy && showSesChip && sesPanelOpen;
+  const showExplain = Boolean(explainId);
+
+  const chipBtn =
+    "cursor-pointer text-left transition ring-offset-1 hover:ring-1 hover:ring-sky-300/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400/70";
 
   return (
     <>
@@ -140,41 +144,108 @@ export function ModeGlobalIndexChip({
           {isEconomy ? (
             <>
               {showGscpi ? (
-                <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
+                <button
+                  type="button"
+                  className={`${chipBtn} w-full max-w-full`}
+                  onClick={() => openExplain("gscpi")}
+                  aria-expanded={explainId === "gscpi"}
+                  aria-label={lang === "en" ? "Explain shipping congestion" : "물류 혼잡도 설명"}
+                >
+                  <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
+                </button>
               ) : null}
               <div className="flex flex-wrap justify-end gap-1.5">
-                <FreightStressChip lang={lang} />
-                <PortWatchStressChip lang={lang} />
-                {dense ? <MarketSessionChip lang={lang} /> : null}
+                <button
+                  type="button"
+                  className={chipBtn}
+                  onClick={() => openExplain("freight")}
+                  aria-expanded={explainId === "freight"}
+                >
+                  <FreightStressChip lang={lang} />
+                </button>
+                <button
+                  type="button"
+                  className={chipBtn}
+                  onClick={() => openExplain("portwatch")}
+                  aria-expanded={explainId === "portwatch"}
+                >
+                  <PortWatchStressChip lang={lang} />
+                </button>
+                {dense ? (
+                  <button
+                    type="button"
+                    className={chipBtn}
+                    onClick={() => openExplain("market-session")}
+                    aria-expanded={explainId === "market-session"}
+                  >
+                    <MarketSessionChip lang={lang} />
+                  </button>
+                ) : null}
               </div>
-              {!dense ? <MarketSessionChip lang={lang} /> : null}
+              {!dense ? (
+                <button
+                  type="button"
+                  className={chipBtn}
+                  onClick={() => openExplain("market-session")}
+                  aria-expanded={explainId === "market-session"}
+                >
+                  <MarketSessionChip lang={lang} />
+                </button>
+              ) : null}
             </>
           ) : (
             <>
-              <WorldTensionChip
-                score={wtiScore}
-                deltaScore={wtiDelta}
-                asOf={wtiAsOf}
-                isEstimate={Boolean(wtiIsEstimate)}
-                lang={lang}
-                className="w-full max-w-full shadow-lg backdrop-blur-md"
-              />
-              {showSesChip ? (
-                <SanctionsEvasionChip
-                  score={sesEntry.snapshot?.score ?? null}
-                  deltaScore={sesEntry.snapshot?.deltaScore}
-                  asOf={sesEntry.snapshot?.generatedAt ?? sesEntry.loadedAt}
+              <button
+                type="button"
+                className={`${chipBtn} w-full max-w-full`}
+                onClick={() => openExplain("gts")}
+                aria-expanded={explainId === "gts"}
+                aria-label={lang === "en" ? "Explain tension score" : "긴장지수 설명"}
+              >
+                <WorldTensionChip
+                  score={wtiScore}
+                  deltaScore={wtiDelta}
+                  asOf={wtiAsOf}
+                  isEstimate={Boolean(wtiIsEstimate)}
                   lang={lang}
-                  dense={dense}
-                  active={sesPanelOpen}
-                  onClick={() => setSesPanelOpen((v) => !v)}
                   className="w-full max-w-full shadow-lg backdrop-blur-md"
                 />
+              </button>
+              {showSesChip ? (
+                <div className="flex w-full max-w-full flex-col items-stretch gap-1">
+                  <SanctionsEvasionChip
+                    score={sesEntry.snapshot?.score ?? null}
+                    deltaScore={sesEntry.snapshot?.deltaScore}
+                    asOf={sesEntry.snapshot?.generatedAt ?? sesEntry.loadedAt}
+                    lang={lang}
+                    dense={dense}
+                    active={sesPanelOpen}
+                    onClick={() => {
+                      setExplainId(null);
+                      setSesPanelOpen((v) => !v);
+                    }}
+                    className="w-full max-w-full shadow-lg backdrop-blur-md"
+                  />
+                  <button
+                    type="button"
+                    className="self-end rounded px-1.5 py-0.5 text-micro text-amber-200/70 underline-offset-2 hover:text-amber-100 hover:underline"
+                    onClick={() => openExplain("ses")}
+                  >
+                    {lang === "en" ? "How this score works" : "이 점수 어떻게 나오나요?"}
+                  </button>
+                </div>
               ) : null}
             </>
           )}
           {showAuxSwpc ? (
-            <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" />
+            <button
+              type="button"
+              className={chipBtn}
+              onClick={() => openExplain("swpc")}
+              aria-expanded={explainId === "swpc"}
+            >
+              <SwpcStatusChip lang={lang} className="shadow-lg backdrop-blur-md" />
+            </button>
           ) : null}
         </div>
       </div>
@@ -192,6 +263,26 @@ export function ModeGlobalIndexChip({
           data-chrome-obstacle="ses-panel"
         >
           <SanctionsEvasionPanel lang={lang} onClose={() => setSesPanelOpen(false)} />
+        </div>
+      ) : null}
+
+      {showExplain && explainId ? (
+        <div
+          ref={panelRef}
+          className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(22rem,calc(100vw-1.5rem))]`}
+          style={{
+            top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
+            right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+            maxHeight:
+              "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
+          }}
+          data-chrome-obstacle="metric-explain"
+        >
+          <MetricExplainPanel
+            metricId={explainId}
+            lang={lang}
+            onClose={() => setExplainId(null)}
+          />
         </div>
       ) : null}
     </>

@@ -44,6 +44,7 @@ import { globeViewToMapLibre, mapLibreZoomToAltitude } from "@/lib/mapLibreBasem
 import { entryOrbitCamera } from "@/lib/entryOverview";
 import { createMapGlobeMethods, type MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { bindableImperativeRef } from "@/lib/imperativeRef";
+import { useGlobeKeyboardNav } from "@/components/globe/hooks/useGlobeKeyboardNav";
 import {
   asFn,
   buildCorridorGlintGradient,
@@ -322,6 +323,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
   mapLoadedRef.current = mapLoaded;
+  /** WASD / 화살표 이동, +/- 확대·축소 — 캔버스 포커스 없이도 동작 */
+  useGlobeKeyboardNav(mapRef, mapLoaded);
   /** 수상전투함 8방위 실루엣용 — 5° 양자화 */
   const [mapBearingDeg, setMapBearingDeg] = useState(0);
   /** 도련선/방어선 — 호버 기지 레이더 */
