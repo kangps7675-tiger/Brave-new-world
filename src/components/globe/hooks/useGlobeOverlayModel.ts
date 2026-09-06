@@ -41,7 +41,6 @@ export type UseGlobeOverlayModelOptions = {
   situationCalloutMarkers: HtmlOverlayMarker[];
   visibleCasualtySkullMarkers: HtmlOverlayMarker[];
   nuclearStockpileMarkers: HtmlOverlayMarker[];
-  safecastGaugeMarkers: HtmlOverlayMarker[];
   ukraineSettlementHtmlMarkers: HtmlOverlayMarker[];
   usCarrierHtmlMarkers: HtmlOverlayMarker[];
   milHtmlMarkers: HtmlOverlayMarker[];
@@ -121,7 +120,6 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     situationCalloutMarkers,
     visibleCasualtySkullMarkers,
     nuclearStockpileMarkers,
-    safecastGaugeMarkers,
     ukraineSettlementHtmlMarkers,
     usCarrierHtmlMarkers,
     milHtmlMarkers,
@@ -236,7 +234,6 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...situationCalloutMarkers,
       ...visibleCasualtySkullMarkers,
       ...nuclearStockpileMarkers,
-      ...safecastGaugeMarkers,
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
       ...milHtmlMarkers,
@@ -287,7 +284,6 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     neptunHtmlMarkers,
     neptunImpactHtmlMarkers,
     nuclearStockpileMarkers,
-    safecastGaugeMarkers,
     situationCalloutMarkers,
     ukraineSettlementHtmlMarkers,
     usCarrierHtmlMarkers,

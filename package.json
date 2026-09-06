@@ -171,7 +171,7 @@
     "@vercel/analytics": "^2.0.1",
     "adm-zip": "^0.6.0",
     "drizzle-orm": "^0.45.2",
-    "fast-uri": "^3.1.5",
+    "fast-uri": "3.1.6",
     "fflate": "^0.8.3",
     "fuse.js": "^7.4.2",
     "h3-js": "^4.5.0",
@@ -211,7 +211,7 @@
     "xlsx": "^0.18.5"
   },
   "overrides": {
-    "fast-uri": "^3.1.5",
+    "fast-uri": "3.1.6",
     "adm-zip": "^0.6.0",
     "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.3",

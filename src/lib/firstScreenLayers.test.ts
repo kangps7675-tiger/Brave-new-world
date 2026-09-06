@@ -63,7 +63,7 @@ describe("첫 화면 Compact 장면", () => {
     expect(chrome.showGdeltWar).toBe(true);
   });
 
-  it("지경학 크롬이 우크라 점령·전선·NEPTUN을 강제 OFF 한다", () => {
+  it("지경학 크롬이 우크라 점령·전선·NEPTUN을 강제 OFF 하고 시장 히어로를 켠다", () => {
     const saved = {
       ...DEFAULT_LAYER_PREFS,
       showUkraineControl: true,
@@ -77,6 +77,11 @@ describe("첫 화면 Compact 장면", () => {
     expect(next.showNeptun).toBe(false);
     expect(next.showTzevaAdom).toBe(false);
     expect(next.showMilitaryBases).toBe(false);
+    expect(next.showLogisticsRisk).toBe(true);
+    expect(next.showGasPipelines).toBe(true);
+    expect(next.showAxisNetwork).toBe(true);
+    expect(next.showSesChip).toBe(false);
+    expect(next.showSanctionsEvasionCorridors).toBe(false);
   });
 
   it("묻기 패치가 지경학에서 전선·점령을 다시 켜지 못한다", () => {

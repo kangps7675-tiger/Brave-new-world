@@ -28,8 +28,10 @@ import {
 } from "@/data/russiaStrikeIncidentsSeed";
 import {
   provenanceFromActivation,
-  type IncidentProvenance,
+  type ProvenanceFields,
 } from "@/lib/eventProvenance";
+
+export type { ProvenanceFields } from "@/lib/eventProvenance";
 import { isInCombatTheater } from "@/lib/theaterCombat";
 
 const CHINA_SEED_MATCH_DEG = 3.2;
@@ -58,11 +60,6 @@ const EUROPE_NATO_TARGET_RE =
 
 const CHINA_THEATER_EVENT_RE =
   /adiz|air\s*defense|intercept|laser|water\s*cannon|ram|collision|incursion|coast\s*guard|pla\s*navy|carrier|blockade|strait|patrol|missile|drill|exercise|gray\s*zone|영공|요격|충돌|해경|해군|훈련|미사일|대치|레이저|ADIZ/i;
-
-export type ProvenanceFields = {
-  provenance: IncidentProvenance;
-  gdeltSourceUrl?: string | null;
-};
 
 export function eventText(event: ScoredEvent): string {
   return `${event.title ?? ""} ${event.category ?? ""} ${event.country ?? ""}`;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Metric } from "@/components/globe/Metric";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
 import { NeptunLayerPanel } from "@/components/NeptunLayerPanel";
@@ -8,9 +8,14 @@ import { LayerCategoryDraftHost } from "@/components/LayerCategoryDraftHost";
 import { LayerPanelLanguagePicker } from "@/components/LayerPanelLanguagePicker";
 import { UiFontPicker } from "@/components/UiFontPicker";
 import { SoundMuteControl } from "@/components/SoundMuteControl";
-import { type LayerCategory } from "@/components/LayerCategoryPanel";
+import { LayerInfoHoverPanel } from "@/components/LayerInfoHoverPanel";
+import {
+  type LayerCategory,
+  type LayerInfoHoverTarget,
+} from "@/components/LayerCategoryPanel";
 import { activeLayerCap, countActiveLayers } from "@/lib/layerExclusiveCap";
 import { formatDateTime } from "@/components/globe/formatters";
+import { buildLayerInfoHoverContent } from "@/lib/layerInfoHover";
 import { t } from "@/lib/uiStrings";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import type { NeptunAlerts, NeptunLiveThreat } from "@/lib/neptun";
@@ -20,6 +25,8 @@ import type { ViinaLod } from "@/lib/viinaLod";
 
 /** 레이어 패널 탭 (P1-3) — 성격이 다른 것을 한 서랍에 담지 않는다 */
 export type LayerPanelTab = "layers" | "settings" | "data";
+
+const LAYER_INFO_HOVER_CLEAR_MS = 120;
 
 export type LayerPanelHostProps = {
   isCompactUi: boolean;
@@ -36,6 +43,9 @@ export type LayerPanelHostProps = {
   onLangDraftChange: (lang: LabelLanguage) => void;
   ultraLite: boolean;
   onUltraLiteToggle: (on: boolean) => void;
+  /** 레이어·지도 호버 데이터 패널 */
+  showLayerHoverInfo: boolean;
+  onShowLayerHoverInfoToggle: (on: boolean) => void;
   draftPrefs: LayerPrefs;
   onOpenModePicker: () => void;
   onResetCheckboxSettings: () => void;
@@ -94,6 +104,8 @@ export function LayerPanelHost({
   onLangDraftChange,
   ultraLite,
   onUltraLiteToggle,
+  showLayerHoverInfo,
+  onShowLayerHoverInfoToggle,
   draftPrefs,
   onOpenModePicker,
   onResetCheckboxSettings,
@@ -139,6 +151,46 @@ export function LayerPanelHost({
 }: LayerPanelHostProps) {
   /** 기본은 「레이어」 — 이 패널을 여는 이유의 대부분이다 (P1-3) */
   const [tab, setTab] = useState<LayerPanelTab>("layers");
+  const [layerInfoHover, setLayerInfoHover] = useState<LayerInfoHoverTarget | null>(null);
+  const clearHoverTimerRef = useRef<number | null>(null);
+
+  const clearHoverTimer = useCallback(() => {
+    if (clearHoverTimerRef.current != null) {
+      window.clearTimeout(clearHoverTimerRef.current);
+      clearHoverTimerRef.current = null;
+    }
+  }, []);
+
+  const handleLayerInfoHover = useCallback(
+    (target: LayerInfoHoverTarget | null) => {
+      if (!showLayerHoverInfo) return;
+      clearHoverTimer();
+      if (target) {
+        setLayerInfoHover(target);
+        return;
+      }
+      clearHoverTimerRef.current = window.setTimeout(() => {
+        setLayerInfoHover(null);
+        clearHoverTimerRef.current = null;
+      }, LAYER_INFO_HOVER_CLEAR_MS);
+    },
+    [clearHoverTimer, showLayerHoverInfo],
+  );
+
+  useEffect(() => {
+    if (!showLayerHoverInfo) setLayerInfoHover(null);
+  }, [showLayerHoverInfo]);
+
+  useEffect(() => () => clearHoverTimer(), [clearHoverTimer]);
+
+  const layerInfoContent = useMemo(() => {
+    if (!layerInfoHover) return null;
+    return buildLayerInfoHoverContent(layerInfoHover.id, labelLanguage, {
+      title: layerInfoHover.label,
+      detail: layerInfoHover.detail,
+    });
+  }, [labelLanguage, layerInfoHover]);
+
   const panelLayoutClass = isTabletUi || isCompactUi
     ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)]"
     : "top-14 max-h-[calc(100vh-5rem)]";
@@ -280,6 +332,22 @@ export function LayerPanelHost({
           {t("resetCheckboxSettings", labelLanguage)}
         </button>
         <SoundMuteControl lang={labelLanguage} variant="panel" />
+        <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-700/80 bg-black/20 px-3 py-2.5">
+          <span className="min-w-0">
+            <span className="block text-xs text-slate-200">
+              {t("layerHoverInfoToggle", labelLanguage)}
+            </span>
+            <span className="mt-0.5 block text-meta text-slate-500">
+              {t("layerHoverInfoHint", labelLanguage)}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            className="h-4 w-4 shrink-0 accent-sky-300"
+            checked={showLayerHoverInfo}
+            onChange={(event) => onShowLayerHoverInfoToggle(event.target.checked)}
+          />
+        </label>
       </div>
       </>
       ) : null}
@@ -307,6 +375,7 @@ export function LayerPanelHost({
               autoExpandWhen={showUkraineControl}
               expandActiveCategories
               onPatch={onPanelDraftPatch}
+              onLayerInfoHover={showLayerHoverInfo ? handleLayerInfoHover : undefined}
             />
           ) : (
             <p className="rounded-lg border border-slate-800/90 bg-slate-950/30 px-3 py-4 text-xs text-slate-500">
@@ -413,6 +482,23 @@ export function LayerPanelHost({
 
       {/* 로드 실패는 어느 탭에서든 보여야 한다 */}
       {loadError ? <LoadErrorBanner message={loadError} className="mt-3" /> : null}
+
+      {showLayerHoverInfo && layerInfoContent ? (
+        <>
+          {/* 좁은 화면 — 패널 안 sticky */}
+          <div className="sticky bottom-0 z-10 -mx-1 mt-1 lg:hidden">
+            <LayerInfoHoverPanel content={layerInfoContent} lang={labelLanguage} />
+          </div>
+          {/* 넓은 화면 — 서랍 오른쪽 바깥 */}
+          <div className="pointer-events-none absolute left-[calc(100%+0.5rem)] top-14 z-10 hidden w-[min(18rem,28vw)] lg:block">
+            <LayerInfoHoverPanel
+              content={layerInfoContent}
+              lang={labelLanguage}
+              className="pointer-events-auto rounded-xl border border-sky-300/25 bg-[#0a1830]/94 px-3 py-2.5 text-xs shadow-xl backdrop-blur-md"
+            />
+          </div>
+        </>
+      ) : null}
     </aside>
   );
 }

@@ -50,13 +50,14 @@ describe("mergeTickerStripSymbols", () => {
     expect(merged[0]).toBe("ITA");
   });
 
-  it("economy strip keeps futures and omits TSM from core", () => {
+  it("economy strip keeps futures and dual-lens semiconductors in core", () => {
     expect(ECONOMY_TICKER_STRIP_CORE).toContain("CL=F");
-    expect(ECONOMY_TICKER_STRIP_CORE).not.toContain("TSM");
+    expect(ECONOMY_TICKER_STRIP_CORE).toContain("TSM");
+    expect(ECONOMY_TICKER_STRIP_CORE).toContain("SMH");
     const merged = mergeTickerStripSymbols(["ZW=F"], "economy");
     expect(merged[0]).toBe("ZW=F");
     expect(merged).toContain("CL=F");
-    expect(merged).not.toContain("TSM");
+    expect(merged).toContain("TSM");
   });
 });
 

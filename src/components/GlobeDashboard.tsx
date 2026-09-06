@@ -673,6 +673,7 @@ import { createDashboardHtmlOverlayElement } from "@/components/globe/markers/cr
 import { GlobeMapCanvas } from "@/components/globe/GlobeMapCanvas";
 import { useGlobeMapGlobeProps } from "@/components/globe/hooks/useGlobeMapGlobeProps";
 import { DashboardTopChrome } from "@/components/globe/DashboardTopChrome";
+import { MapZoomControl } from "@/components/MapZoomControl";
 import { useGlobeCamera } from "@/components/globe/hooks/useGlobeCamera";
 import { useTheaterNavigation } from "@/components/globe/hooks/useTheaterNavigation";
 import { LayerPanelHost } from "@/components/globe/LayerPanelHost";
@@ -1141,6 +1142,8 @@ export function GlobeDashboard({
   const ultraLiteRef = useRef(false);
   const [ultraLite, setUltraLite] = useState(false);
   const [basemapMode, setBasemapMode] = useState<BasemapMode>(DEFAULT_BASEMAP_MODE);
+  /** 레이어·지도 호버 데이터 패널 — PerfPrefs, 기본 ON */
+  const [showLayerHoverInfo, setShowLayerHoverInfo] = useState(true);
   const {
     layerPrefs,
     draftPrefs,
@@ -1183,6 +1186,7 @@ export function GlobeDashboard({
     ultraLiteRef.current = initialUltraLite;
     setUltraLite(initialUltraLite);
     setBasemapMode(perf.basemapMode);
+    setShowLayerHoverInfo(perf.showLayerHoverInfo);
     if (initialUltraLite) {
       applyLayerPrefs(applyUltraLiteToLayerPrefs(loadLayerPrefs()));
     }
@@ -1367,6 +1371,11 @@ export function GlobeDashboard({
     },
     [applyLayerPrefs, draftPrefs, isCompactUi, layerPrefs, showLeftPanel],
   );
+
+  const handleShowLayerHoverInfoToggle = useCallback((on: boolean) => {
+    setShowLayerHoverInfo(on);
+    savePerfPrefs({ showLayerHoverInfo: on });
+  }, []);
 
   layerPrefsLiveRef.current = layerPrefs;
 
@@ -4430,7 +4439,7 @@ export function GlobeDashboard({
     casualtySkullMarkers,
     visibleCasualtySkullMarkers,
     nuclearStockpileMarkers,
-    safecastGaugeMarkers,
+    safecastGaugesGeoJson,
     ukraineSettlementHtmlMarkers,
   } = useSituationHtmlMarkers({
     isEconomyViewer,
@@ -4484,7 +4493,6 @@ export function GlobeDashboard({
       ...situationCalloutMarkers,
       ...visibleCasualtySkullMarkers,
       ...nuclearStockpileMarkers,
-      ...safecastGaugeMarkers,
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
       // 군용기·민항기·선박(AIS)은 여기 없다 — symbol 레이어(aircraftSymbols/aisSymbols)로 이전됨.
@@ -4537,7 +4545,6 @@ export function GlobeDashboard({
       neptunHtmlMarkers,
       neptunImpactHtmlMarkers,
       nuclearStockpileMarkers,
-      safecastGaugeMarkers,
       situationCalloutMarkers,
       ukraineSettlementHtmlMarkers,
       usCarrierHtmlMarkers,
@@ -8038,6 +8045,7 @@ export function GlobeDashboard({
     aisDisplayPoints,
     handleAisSymbolSelect,
     handleAisSymbolHover,
+    safecastGaugesGeoJson,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -8371,6 +8379,9 @@ export function GlobeDashboard({
           {...mapGlobeProps}
         />
 
+        {/* 마우스·트랙패드 없이도 조절 가능한 확대/축소 버튼 — 숨김 상태는 자체 저장 */}
+        <MapZoomControl globeRef={globeRef} isCompactUi={isCompactUi} />
+
         {/* 지구본 뷰(데스크톱·태블릿)에 상시 노출되는 출처 크레딧 — 폰은 MobileHomeView가 담당 */}
         {!isPhoneUi ? (
           <MapAttributionBar
@@ -8431,6 +8442,7 @@ export function GlobeDashboard({
         {!showLeftPanel &&
           !selected &&
           !isCompactUi &&
+          showLayerHoverInfo &&
           hoverPointer &&
           (!regionNavSelection || hoveredPath?.kind === "axis-link") && (
           hoveredChokepointStress && showLogisticsStress ? (
@@ -8761,6 +8773,8 @@ export function GlobeDashboard({
           onLangDraftChange={handlePanelLangDraft}
           ultraLite={ultraLite}
           onUltraLiteToggle={handleUltraLiteToggle}
+          showLayerHoverInfo={showLayerHoverInfo}
+          onShowLayerHoverInfoToggle={handleShowLayerHoverInfoToggle}
           draftPrefs={draftPrefs}
           onOpenModePicker={() => {
             closeLeftPanel();

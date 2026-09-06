@@ -245,18 +245,17 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "지경학 데스크",
     steps: [
-      "같은 터미널의 다른 창입니다. 지정학 창(GTS·전선)과 짝을 이루며, 에너지·물류·제재·초크포인트를 봅니다.",
-      "공급망 TOP 5·GSCPI·PortWatch 등은 ‘돈과 물류가 어디서 막히는가’를 읽는 축입니다.",
+      "같은 터미널의 시장 창입니다. 지정학(GTS·전선·제재 회피)과 짝을 이루며, 초크·에너지·항로로 ‘돈이 어디서 막히는가’를 봅니다.",
+      "GSCPI·PortWatch·해운 프록시는 막힘 강도. 지도는 그 원인이 어디인지 보여 줍니다.",
     ],
   },
   {
     title: "빠른 시작",
     steps: [
-      "드래그·줌으로 지구본을 탐색합니다.",
-      "화면이 사선으로 기울면 Alt + 드래그로 기울기·회전을 맞춥니다.",
-      "≡ 에서 유가·가스·해운·제재·AI DC 레이어를 켭니다.",
-      "검색 옆 「묻기」로 호르무즈·수에즈·항로처럼 물으면 물류·초크 레이어를 맞출 수 있습니다.",
-      "하단 📈 와 티커로 지수·VIX·경제 속보를 보고, 상단 nav에서 수에즈·호르무즈 등을 고르면 관련 시장이 열립니다.",
+      "첫 화면: 초크포인트 · 항로 · 항구 · 가스/LNG · 무역 코리도 · 에너지·결제 축.",
+      "≡ 에서 BRI/DFC·송유관·민간 AIS·제재 명단은 필요할 때만 켭니다.",
+      "검색 옆 「묻기」로 호르무즈·수에즈를 물으면 물류·초크 레이어를 맞출 수 있습니다.",
+      "하단 📈·티커로 유가·VIX·지수를 보고, 허브를 고르면 관련 시장이 열립니다. (투자 권유 아님)",
     ],
   },
   {
@@ -267,11 +266,11 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "제재 · 에너지 · 물류 레이어",
+    title: "초크 · 에너지 · 물류",
     steps: [
-      "≡(메뉴) 버튼 → 「인프라 · 시장」에서 제재, 송유관(파이프라인), LNG(액화천연가스), 해운 항로, 초크포인트를 켭니다. (초크포인트 = 세계 무역이 반드시 지나가는 좁은 길목, 예: 호르무즈 해협)",
-      "물류 위험 핀에 마우스를 올리면 Brent(브렌트유 = 국제 유가 기준)·VIX(공포지수 = 시장이 얼마나 불안한지) 같은 관련 시장 수치가 함께 뜹니다.",
-      "경제 모드에서는 실시간 속보·텔레그램 수집이 없습니다. 대신 경제 뉴스(RSS = 여러 매체 기사를 한곳에 모아 받는 방식)와 시세 표시줄(티커)을 사용하세요.",
+      "초크포인트(호르무즈·수에즈 등)와 항로가 기본입니다. 물류 스트레스를 켜면 막힌 곳이 붉게 보입니다.",
+      "가스관·LNG는 기본 ON. 송유관·해저 파이프·매장지는 토글.",
+      "에너지·결제 축(중–이란 원유 등)은 지경학 축 네트워크로 보입니다. 제재 회피 강도 칩·회랑은 지정학 창에 있습니다.",
     ],
   },
   {
@@ -285,16 +284,16 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "경제 지도 이동 (Geo Markets)",
     steps: [
-      "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC(세계 최대 대만 반도체 기업) 등으로 이동합니다.",
+      "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC 등으로 이동합니다.",
       "항목을 클릭하면 오른쪽 경제 지역 패널에서 관련 뉴스(RSS)와 시세(티커)를 봅니다.",
-      "「주요 허브」 탭으로 초크포인트(무역 길목)나 금융 도시로 빠르게 이동할 수 있습니다.",
+      "「주요 허브」 탭으로 초크포인트나 금융 도시로 빠르게 이동할 수 있습니다.",
     ],
   },
   {
     title: "지도 조작법",
     steps: [
       "드래그하면 회전, 스크롤하면 확대·축소, 두 번 클릭하면 그 지점으로 확대됩니다.",
-      "카메라가 사선으로 눕혀졌을 때 Alt + 드래그로 기울기·회전을 조절합니다. (좌우=돌리기, 위아래=눕히기/세우기)",
+      "카메라가 사선으로 눕혀졌을 때 Alt + 드래그로 기울기·회전을 조절합니다.",
       "위쪽 「지정학 | 경제·시장」 스위치로 보기 모드를 바꿉니다.",
       "모드를 바꾸면 레이어, 위쪽 메뉴, 아래쪽 정보 창이 함께 바뀝니다.",
     ],
@@ -305,33 +304,32 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "Geoeconomics desk",
     steps: [
-      "The other desk in the same terminal — pairs with the geopolitics window (GTS, fronts) for energy, logistics, sanctions, and chokepoints.",
-      "Supply-chain TOP 5, GSCPI, PortWatch: where money and cargo get stuck.",
+      "The markets desk — pairs with geopolitics (GTS, fronts, sanctions-evasion intensity) for chokepoints, energy, and shipping stress.",
+      "GSCPI, PortWatch, and shipping proxies measure congestion; the map shows where it comes from.",
     ],
   },
   {
     title: "Quick start",
     steps: [
-      "Drag and zoom to explore the globe.",
-      "When the view is tilted, Alt + drag adjusts pitch and bearing.",
-      "Use ≡ to toggle oil, gas, shipping, sanctions, and AI DC layers.",
-      "Use 「Ask」 beside search to align shipping/chokepoint layers (Hormuz, Suez, lanes).",
-      "Use 📈 and the ticker for indices, VIX, and economy briefs; pick Suez, Hormuz, and more from the top nav to open related markets.",
+      "First screen: chokepoints, lanes, ports, gas/LNG, trade corridors, energy/payment axes.",
+      "Use ≡ for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
+      "「Ask」 beside search aligns logistics layers for Hormuz, Suez, and lanes.",
+      "Use 📈 and the ticker for oil, VIX, and indices; hubs open related markets (not investment advice).",
     ],
   },
   {
     title: "Daily supply-chain ranking",
     steps: [
-      "Bottom-left 「Supply-chain TOP 5」 aggregates AIS and nearby tension signals per chokepoint daily.",
-      "Pair it with the Conflict 「Risk regions」 card the same day for a content engine.",
+      "Bottom-left Supply TOP 5 rolls chokepoint AIS and nearby tension signals each day.",
+      "Pair it with geopolitics risk cards as a same-day content engine.",
     ],
   },
   {
-    title: "Sanctions · energy · logistics layers",
+    title: "Chokes · energy · logistics",
     steps: [
-      "≡ → Infrastructure · markets: sanctions, pipelines, LNG, shipping lanes, chokepoints (narrow trade bottlenecks such as the Strait of Hormuz).",
-      "Hover logistics-risk pins for related market reads like Brent and VIX.",
-      "Economy mode has no live breaking / Telegram ingest — use economy RSS and the ticker strip instead.",
+      "Chokepoints (Hormuz, Suez, …) and shipping lanes are on by default; logistics stress paints blocked spots red.",
+      "Gas pipelines and LNG start ON; oil/subsea pipes and deposits stay toggles.",
+      "Energy/payment axes show on the economy axis network. Sanctions-evasion intensity chip and corridors live on the geopolitics desk.",
     ],
   },
   {
@@ -354,9 +352,8 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
     title: "Map controls",
     steps: [
       "Drag to rotate, scroll to zoom, double-click to zoom into a point.",
-      "When the camera is tilted, Alt + drag adjusts pitch and bearing (left/right = spin, up/down = tilt).",
-      "Use the Conflict | Economy switch at the top to change view mode.",
-      "Switching modes also swaps layers, top menus, and the bottom intel chrome.",
+      "When the camera is tilted, Alt + drag adjusts pitch and bearing.",
+      "Use the Conflict | Economy switch at the top — layers, menus, and bottom chrome follow.",
     ],
   },
 ];

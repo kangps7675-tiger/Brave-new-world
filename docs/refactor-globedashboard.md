@@ -51,10 +51,10 @@
   `useGlobeMapGlobeProps({...})` 호출 결과를 `<GlobeMapCanvas containerRef=... {...mapGlobeProps} />`로
   스프레드만 한다. `globe-shell` div + `PausedMapGlobeView` JSX(~900줄) + `LoadErrorBanner` 임포트 제거.
 - **`DashboardTopChrome`** (`src/components/globe/DashboardTopChrome.tsx`) — `HoverNav` 블록(상단 검색·
-  뷰 전환·레이어 드롭다운·`ModeGlobalIndexChip`/`GlobeSpinToggle`/`compactMenuExtra`)과 그 조건부 래퍼
+  뷰 전환·레이어 드롭다운·`ModeGlobalIndexChip`/`compactMenuExtra`)과 그 조건부 래퍼
   (`intelSheetOpen`/`entryGate`/`showModePicker`)를 `GeopoliticsChrome.tsx` 스타일로 추출. GlobeDashboard는
-  `<DashboardTopChrome ... />` 한 번 호출로 대체.
-- 두 추출로 더 이상 쓰이지 않게 된 컴포넌트/상수 임포트(`ModeGlobalIndexChip`, `GlobeSpinToggle`,
+  `<DashboardTopChrome ... />` 한 번 호출로 대체. (`GlobeSpinToggle`·지구본 자동 자전은 이후 UX 감사에서 삭제)
+- 두 추출로 더 이상 쓰이지 않게 된 컴포넌트/상수 임포트(`ModeGlobalIndexChip`,
   `HoverNav`, `ViewModeSwitcher`, `BasemapModeToggle`, `LayerQuickDropdown`, `ExplorationTabs`,
   `EconomySupplyChainFixedToggle`, `FinintTicker`, `GpsJamFixedToggle`, `UsCarrierFixedToggle`,
   `CompactPresetChips`, `UtilityChromeMenu`, `ECON_EXPLORATION_PRESETS`, `US_DFC_LINK_COUNT`,
@@ -70,7 +70,7 @@
   (`viewState`/`filterCenter`/`layerAltitude`/`isCameraMoving`) · refs(`configuredGlobe`,
   `layerCenterRef`, `layerAltitudeRef`, `layerLodTierRef`, idle 타이머류, `isCameraMovingRef`,
   `cameraTweenUntilRef`, `flyBusyTimerRef`) · `configureGlobe`/`flyTo`/`computeRegionFitAltitude`/
-  `flyToBounds` · 몰입/자전/필터 동기화 이펙트를 그대로 추출. GlobeDashboard는 `historyEpisodeActive`가
+  `flyToBounds` · 몰입/필터 동기화 이펙트를 그대로 추출. GlobeDashboard는 `historyEpisodeActive`가
   계산된 직후 이 훅을 호출하고, 반환된 `isCameraMovingRef`를 `useDataSync`에 넘기기 위해
   `useDataSync` 호출도 이 훅 바로 뒤로 이동(훅 순서 불변 유지).
 - **`useTheaterNavigation`** (`src/components/globe/hooks/useTheaterNavigation.ts`) —

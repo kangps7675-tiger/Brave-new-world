@@ -179,7 +179,8 @@ const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
 
 /**
  * 지경학에서 절대 ON 금지 — 군용 항공기·함정·기지·위장(무기고) 선박.
- * 경제 모드는 민간 AIS·항로·파이프 등 물류·에너지만.
+ * 경제 모드는 민간 AIS·항로·파이프·에너지/결제 축 등 물류·시장만.
+ * (축 네트워크 energy·economy hybrid는 허용 — 자본·결제 흐름)
  */
 export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showMilitaryBases: false,
@@ -200,7 +201,6 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showReefWatch: false,
   showReconSatellites: false,
   showGpsInterference: false,
-  showAxisNetwork: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -222,15 +222,16 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showUcdpEvents: false,
   showFirmsFires: false,
   showSanctionsEntities: false,
-  showNewfeedsIranAttacks: false,
+  /** 이란 NewFeeds는 FIRST_SCREEN_ECONOMY_ON(호르무즈·유류) — 여기서 OFF 하지 않음 */
   showSubmarineTunnels: false,
   showSubmarineCables: false,
+  /** 제재 회피 강도·회랑은 지정학 전용(재미·관측) — 지경학에서는 OFF */
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
   showAiDataCenters: false,
   showAirTraffic: false,
   showAirports: false,
-  showAxisNetwork: false,
+  showCriticalNodes: false,
   showCrinkInfraPower: false,
   showCrinkInfraBorder: false,
   showCrinkInfraDams: false,
@@ -267,7 +268,7 @@ export function isEconomyMilitaryLayerKey(key: string): boolean {
 
 /**
  * 지경학에서 전선·점령·GDELT 전쟁 레이어 ON 금지.
- * 이란 NewFeeds(유류·호르무즈)는 경제 첫 화면에 남겨 둔다.
+ * 이란 NewFeeds(유류·호르무즈)는 시장 첫 화면에 유지.
  */
 export const ECONOMY_FRONTLINE_BLOCK: Partial<LayerPrefs> = {
   showWarZones: false,
@@ -349,16 +350,16 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       3: { label: "미확인 속보", detail: "참고용" },
     },
     navProfile: ECON_NAV_MENU_GROUPS,
-    searchPlaceholder: "유가 · 제재 · 항로 · 허브 검색",
+    searchPlaceholder: "유가 · 초크 · 항로 · 허브 검색",
     navHeaderLabel: "멋진 신세계 · 시장",
     modePickerTitle: "경제 · 시장",
-    modePickerTagline: "유가 · VIX · 제재 · 물류",
+    modePickerTagline: "초크 · 에너지 · 유가 · 물류",
     modePickerBullets: [
-      "주요 증시·VIX·유가 티커",
-      "항로 · 항구 · 물류 리스크 · BRI/DFC",
-      "허브에 들어가면 에너지·CRINK 인프라가 따라 켜집니다",
+      "초크포인트 · 항로 · PortWatch/GSCPI로 막힘 읽기",
+      "가스·LNG · 무역 코리도 · 에너지·결제 축",
+      "허브·티커로 관련 선물·지수로 이어짐 (투자 권유 아님)",
     ],
-    layerPanelTitle: "인프라 · 시장",
+    layerPanelTitle: "물류 · 시장",
   },
 };
 

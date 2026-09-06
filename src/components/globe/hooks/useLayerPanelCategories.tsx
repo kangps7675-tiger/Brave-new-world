@@ -1462,7 +1462,9 @@ export function useLayerPanelCategories({
       {
         id: "transport",
         title: "운송 · 통신",
-        hint: "항로 · 해저 케이블 · 공항·항구 · 요충지",
+        hint: isEconomyViewer
+          ? "초크 · 항로 · 항구 · 코리도 (시장 리스크)"
+          : "항로 · 해저 케이블 · 공항·항구 · 요충지",
         items: [
           {
             id: "shipping",
@@ -2105,7 +2107,9 @@ export function useLayerPanelCategories({
       {
         id: "economy",
         title: "경제 · 제재",
-        hint: "허브, 데이터센터, 제재",
+        hint: isEconomyViewer
+          ? "허브 · 제재 · AI DC (수동) · 티커 연결"
+          : "허브, 데이터센터, 제재",
         items: [
           {
             id: "air-traffic",

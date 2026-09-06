@@ -695,7 +695,9 @@ export function MethodologySourcesPanel({
           </section>
 
           <section className="rounded-xl border border-cyan-900/35 bg-cyan-950/15 p-3">
-            <h3 className="text-sm font-medium text-cyan-100">Telegram OSINT — LLM 분리</h3>
+            <h3 className="text-sm font-medium text-cyan-100">
+              {isEn ? "Telegram OSINT — LLM separation" : "텔레그램 OSINT — LLM 분리"}
+            </h3>
             <p className="mt-2 text-caption leading-5 text-sky-100/80">{TELEGRAM_OSINT_ABSOLUTE_RULE_KO}</p>
             <ul className="mt-2.5 list-disc space-y-1 pl-4 text-meta leading-5 text-sky-100/70">
               {TELEGRAM_OSINT_CHECKLIST.map((item) => (

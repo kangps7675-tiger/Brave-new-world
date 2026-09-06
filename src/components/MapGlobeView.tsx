@@ -72,6 +72,11 @@ import {
   ensureGemFacilityImages,
 } from "@/lib/gemFacilityIcons";
 import {
+  SAFECAST_CIRCLE_LAYER_ID,
+  SAFECAST_LABEL_LAYER_ID,
+  SAFECAST_SOURCE_ID,
+} from "@/lib/safecastRadiationMarker";
+import {
   AIRCRAFT_SYMBOL_LAYER_ID,
   AIRCRAFT_SYMBOL_SOURCE_ID,
   ensureAircraftSymbolImages,
@@ -191,6 +196,8 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-defense",
   "ukraine-micro-combat-circle",
   "island-chains-bases",
+  SAFECAST_CIRCLE_LAYER_ID,
+  SAFECAST_LABEL_LAYER_ID,
 ] as const;
 
 function isMapPathsLayer(layerId: string): boolean {
@@ -463,6 +470,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [props.priorityPathsData],
   );
   const focusFillGeoJson = props.focusFillGeoJson as FeatureCollection | null | undefined;
+  const emptySafecastGeoJson = useMemo<FeatureCollection>(
+    () => ({ type: "FeatureCollection", features: [] }),
+    [],
+  );
+  const safecastGaugesGeoJson = useMemo(() => {
+    const raw = props.safecastGaugesGeoJson as FeatureCollection | null | undefined;
+    return raw && Array.isArray(raw.features) ? raw : emptySafecastGeoJson;
+  }, [emptySafecastGeoJson, props.safecastGaugesGeoJson]);
   const [deferredPathsData, setDeferredPathsData] = useState(pathsData);
   const pathsContentKey = useMemo(() => {
     if (pathsData.length === 0) return "0";
@@ -3011,6 +3026,64 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "text-color": ["get", "color"],
                 "text-halo-color": labelHaloColor,
                 "text-halo-width": labelHaloWidth,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {/* Safecast µSv/h — WebGL circle+symbol (HTML Marker 제거: 회전 시 버벅임 방지) */}
+        {safecastGaugesGeoJson.features.length > 0 ? (
+          <Source id={SAFECAST_SOURCE_ID} type="geojson" data={safecastGaugesGeoJson}>
+            <Layer
+              id={SAFECAST_CIRCLE_LAYER_ID}
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  3,
+                  4,
+                  5,
+                  7,
+                  7,
+                  10,
+                  9,
+                ],
+                "circle-opacity": 0.9,
+                "circle-stroke-width": 1.25,
+                "circle-stroke-color": "rgba(8,12,18,0.85)",
+              }}
+            />
+            <Layer
+              id={SAFECAST_LABEL_LAYER_ID}
+              type="symbol"
+              minzoom={2.8}
+              layout={{
+                "text-field": ["get", "usvLabel"],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  3,
+                  10,
+                  6,
+                  12,
+                  10,
+                  13,
+                ],
+                "text-offset": [0, 1.05],
+                "text-anchor": "top",
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-allow-overlap": true,
+                "text-ignore-placement": true,
+              }}
+              paint={{
+                "text-color": ["get", "color"],
+                "text-halo-color": "rgba(4,8,14,0.92)",
+                "text-halo-width": 1.4,
               }}
             />
           </Source>

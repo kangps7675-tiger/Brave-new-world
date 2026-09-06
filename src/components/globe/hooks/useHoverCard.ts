@@ -669,10 +669,10 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         title: hoveredPoint.title || hoveredPoint.label,
         detail:
           lang === "en"
-            ? `Telegram OSINT Â· ${hoveredPoint.label}`
-            : `íë ê·¸ë¨ OSINT Â· ${hoveredPoint.label}`,
+            ? `Telegram OSINT · ${hoveredPoint.label}`
+            : `텔레그램 OSINT · ${hoveredPoint.label}`,
         meta: `@${hoveredPoint.id}`,
-        hint: lang === "en" ? "Click to fly Â· half preview in Intel" : "í´ë¦­íë©´ ì´ë Â· ì ë¬¸ì ì¸í í­",
+        hint: lang === "en" ? "Click to fly · half preview in Intel" : "클릭하면 이동 · 전문은 인텔 탭",
       };
     }
     if (hoveredPoint.displayKind === "gdelt-tag-html") {

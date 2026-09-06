@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   LayerCategoryPanel,
   type LayerCategory,
+  type LayerInfoHoverTarget,
   type LayerToggleItem,
 } from "@/components/LayerCategoryPanel";
 import type { LayerPrefs } from "@/lib/layerPrefs";
@@ -59,6 +60,7 @@ type LayerCategoryDraftHostProps = {
   expandActiveCategories?: boolean;
   ultraLite?: boolean;
   onPatch: (patch: Partial<LayerPrefs>) => void;
+  onLayerInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 };
 
 export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
@@ -69,6 +71,7 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
   expandActiveCategories,
   ultraLite = false,
   onPatch,
+  onLayerInfoHover,
 }: LayerCategoryDraftHostProps) {
   const { lang } = useLocale();
   const [checked, setChecked] = useState(() => extractChecked(categories));
@@ -204,6 +207,7 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
         autoExpandWhen={autoExpandWhen}
         expandActiveCategories={expandActiveCategories}
         categories={wrappedCategories}
+        onLayerInfoHover={onLayerInfoHover}
       />
       <p className="px-1 text-meta text-white/45" aria-live="polite">
         {t(atCap ? "layerCapStatusFull" : "layerCapStatusOk", lang)
