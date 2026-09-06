@@ -22,7 +22,7 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT_DIR = path.join(__dirname, "..", "public", "data");
-const UA = "geowatch/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+const UA = "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 const BASE = "https://www.peeringdb.com/api";
 
 /** 성능 캡 — 레이어 캡 정책과 같은 정신. */

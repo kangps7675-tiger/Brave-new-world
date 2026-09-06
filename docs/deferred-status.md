@@ -94,4 +94,4 @@
 ## IRONSIGHT/
 
 저장소 내 `IRONSIGHT/`는 **별도 서브프로젝트** (`IRONSIGHT/TODO.md`).  
-본 앱(멋진 신세계 / geowatch) 핵심 경로와 분리. Telegram 채널 카탈로그만 MIT로 인용한다 (`licensing/ironsight`).
+본 앱(멋진 신세계 / Brave the World) 핵심 경로와 분리. Telegram 채널 카탈로그만 MIT로 인용한다 (`licensing/ironsight`).

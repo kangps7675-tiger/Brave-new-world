@@ -37,7 +37,6 @@
   "exclude": [
     "node_modules",
     "IRONSIGHT",
-    "geowatch",
     "scripts",
     "workers/cron-ingest"
   ]
