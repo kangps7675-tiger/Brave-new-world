@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EvidenceTierBadge } from "@/components/EvidenceTierBadge";
 import { HoverHint } from "@/components/HoverHint";
 import {
@@ -141,6 +141,26 @@ function TelegramAlertCard({
     !(lang === "ko" && isMostlyKorean(sourceText)) &&
     !(lang === "en" && isMostlyEnglish(sourceText));
 
+  useEffect(() => {
+    if (lang !== "ko" || !needsTranslate || translated) return;
+    let cancelled = false;
+    setTranslateStatus("loading");
+    void translateText(sourceText, "ko")
+      .then((out) => {
+        if (cancelled) return;
+        setTranslated(out);
+        setShowTranslation(true);
+        setTranslateStatus("idle");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTranslateStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lang, needsTranslate, sourceText, translated]);
+
   const onTranslateClick = async () => {
     if (translated) {
       setShowTranslation((v) => !v);
@@ -158,13 +178,18 @@ function TelegramAlertCard({
     }
   };
 
+  const primaryText =
+    showTranslation && translated && lang === "ko" ? translated : sourceText;
+  const showOriginalUnder =
+    lang === "ko" && showTranslation && Boolean(translated) && translated !== sourceText;
+
   return (
     <li
       className={`${fullPage ? "mx-3 rounded-lg px-4 py-3 hover:bg-white/5" : "px-3 py-2.5"}`}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-meta">
         <span className="rounded-full border border-cyan-300/35 bg-cyan-400/10 px-1.5 py-0.5 text-micro text-cyan-100">
-          Telegram
+          {lang === "en" ? "Telegram" : "텔레그램"}
         </span>
         <EvidenceTierBadge tier="unverified" lang={lang} />
         {mediaLabel ? (
@@ -183,9 +208,9 @@ function TelegramAlertCard({
           <span className="text-slate-500"> · {alert.channelTitle}</span>
         ) : null}
       </p>
-      {sourceText ? (
+      {primaryText ? (
         <p className="mt-1.5 whitespace-pre-wrap break-words text-caption leading-5 text-slate-200/90">
-          {sourceText}
+          {primaryText}
         </p>
       ) : (
         <p className="mt-1.5 text-caption leading-5 text-slate-400/90">
@@ -199,11 +224,17 @@ function TelegramAlertCard({
           {lang === "en" ? "Half preview · full post on Telegram" : "절반 미리보기 · 전문은 텔레그램"}
         </p>
       ) : null}
-      {showTranslation && translated ? (
-        <div className="mt-2 rounded-md border border-amber-300/25 bg-amber-500/10 px-2.5 py-2">
-          <p className="text-micro font-medium text-amber-100/85">
-            {lang === "en" ? "Translation" : "번역"}
+      {showOriginalUnder ? (
+        <div className="mt-2 rounded-md border border-white/10 bg-black/25 px-2.5 py-2">
+          <p className="text-micro font-medium text-slate-400">원문</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-slate-400/90">
+            {sourceText}
           </p>
+        </div>
+      ) : null}
+      {showTranslation && translated && lang === "en" ? (
+        <div className="mt-2 rounded-md border border-amber-300/25 bg-amber-500/10 px-2.5 py-2">
+          <p className="text-micro font-medium text-amber-100/85">Translation</p>
           <p className="mt-1 whitespace-pre-wrap break-words text-caption leading-5 text-amber-50/95">
             {translated}
           </p>
@@ -250,13 +281,13 @@ function TelegramAlertCard({
                   ? showTranslation
                     ? lang === "en"
                       ? "Hide translation"
-                      : "번역 숨기기"
+                      : "원문만 보기"
                     : lang === "en"
                       ? "Show translation"
-                      : "번역 다시 보기"
+                      : "한글 번역 보기"
                   : lang === "en"
                     ? "Translate"
-                    : "번역하기"}
+                    : "한글로 번역"}
             </button>
           ) : null}
           {postUrl ? (
@@ -378,7 +409,13 @@ export function TelegramIntelFeed({
         <div className="flex items-center justify-between gap-3 border-b border-sky-300/15 px-3 py-2.5">
           <div className="min-w-0 flex-1">
             <p className="text-micro uppercase tracking-[0.24em] text-sky-200/75">
-              {isVideoDesk ? "Telegram Video" : "Telegram OSINT"}
+              {isVideoDesk
+                ? lang === "en"
+                  ? "Telegram Video"
+                  : "텔레그램 영상"
+                : lang === "en"
+                  ? "Telegram OSINT"
+                  : "텔레그램 OSINT"}
             </p>
             <p className="mt-0.5 text-xs text-sky-50/90">
               {isVideoDesk
@@ -419,7 +456,7 @@ export function TelegramIntelFeed({
                   : "텔레그램 영상 데스크 · OSINT"
                 : lang === "en"
                   ? "Telegram OSINT · half preview"
-                  : "Telegram OSINT · 절반 미리보기"}
+                  : "텔레그램 OSINT · 절반 미리보기"}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <LiveBadge live={live} liveStatus={liveStatus} embedMode={embedMode} />
@@ -518,7 +555,7 @@ export function TelegramIntelFeed({
 
       {!fullPage ? (
         <p className="border-t border-sky-300/10 px-3 py-2 text-micro leading-4 text-slate-500">
-          절반 미리보기 · 번역하기 CTA · 전문은 텔레그램 · 영상/사진은 클릭 시에만 t.me 임베드
+          절반 미리보기 · 한국어 자동 번역 · 전문은 텔레그램 · 영상/사진은 클릭 시에만 t.me 임베드
         </p>
       ) : null}
     </div>

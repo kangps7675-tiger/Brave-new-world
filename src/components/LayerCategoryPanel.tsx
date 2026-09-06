@@ -7,6 +7,12 @@ import {
   topLayerItemIds,
 } from "@/lib/layerTogglePopularity";
 
+export type LayerInfoHoverTarget = {
+  id: string;
+  label: string;
+  detail: string;
+};
+
 export type LayerToggleAccent =
   | "emerald"
   | "red"
@@ -186,6 +192,7 @@ function LayerCautionTag({ tag, hint }: { tag: string; hint: string }) {
 }
 
 export function LayerTagToggle({
+  id,
   label,
   detail,
   checked,
@@ -193,7 +200,9 @@ export function LayerTagToggle({
   accent = "emerald",
   cautionTag,
   cautionHint,
+  onInfoHover,
 }: {
+  id?: string;
   label: string;
   detail: string;
   checked: boolean;
@@ -201,12 +210,21 @@ export function LayerTagToggle({
   accent?: LayerToggleAccent;
   cautionTag?: string | null;
   cautionHint?: string | null;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   return (
     <button
       type="button"
       aria-pressed={checked}
       onClick={() => onChange(!checked)}
+      onMouseEnter={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onMouseLeave={() => onInfoHover?.(null)}
+      onFocus={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onBlur={() => onInfoHover?.(null)}
       /* 터치 타깃 (P1-6) — 칩도 44px 확보 */
       className={`min-h-[var(--tap-target-min)] min-w-0 rounded-full border px-3 py-2 text-left text-xs transition ${tagAccentClasses(accent, checked)}`}
     >
@@ -220,6 +238,7 @@ export function LayerTagToggle({
 }
 
 export function LayerToggle({
+  id,
   label,
   detail,
   checked,
@@ -230,7 +249,9 @@ export function LayerToggle({
   cautionHint,
   rejected = false,
   rejectedNote,
+  onInfoHover,
 }: {
+  id?: string;
   label: string;
   detail: string;
   checked: boolean;
@@ -241,9 +262,15 @@ export function LayerToggle({
   cautionHint?: string | null;
   rejected?: boolean;
   rejectedNote?: string | null;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   return (
-    <div>
+    <div
+      onMouseEnter={() => {
+        if (id && onInfoHover) onInfoHover({ id, label, detail });
+      }}
+      onMouseLeave={() => onInfoHover?.(null)}
+    >
       {/**
        * 터치 타깃 (P1-6): 행 전체가 라벨이므로 행 높이가 곧 타깃 크기다.
        * 기존 py-1.5(≈36px)를 min-h 44px로 올려 WCAG 권장치를 맞춘다.
@@ -326,11 +353,13 @@ export function LayerDropdownToggle({
   detail,
   options,
   accent = "emerald",
+  onInfoHover,
 }: {
   label: string;
   detail: string;
   options: LayerToggleItem[];
   accent?: LayerToggleAccent;
+  onInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const leaf = options.reduce(
@@ -390,10 +419,12 @@ export function LayerDropdownToggle({
                 detail={opt.detail}
                 options={opt.options}
                 accent={opt.accent ?? accent}
+                onInfoHover={onInfoHover}
               />
             ) : (
               <LayerToggle
                 key={opt.id}
+                id={opt.id}
                 label={opt.label}
                 detail={opt.detail}
                 checked={opt.checked}
@@ -402,6 +433,7 @@ export function LayerDropdownToggle({
                 disabled={opt.disabled}
                 cautionTag={opt.cautionTag}
                 cautionHint={opt.cautionHint}
+                onInfoHover={onInfoHover}
               />
             ),
           )}
@@ -417,6 +449,7 @@ export function LayerCategoryPanel({
   autoExpandCategoryId,
   autoExpandWhen,
   expandActiveCategories = false,
+  onLayerInfoHover,
 }: {
   categories: LayerCategory[];
   batchStatus?: string | null;
@@ -425,6 +458,8 @@ export function LayerCategoryPanel({
   autoExpandWhen?: boolean;
   /** 켜진 레이어가 있는 카테고리를 자동 펼침 (저장된 접기 상태는 존중) */
   expandActiveCategories?: boolean;
+  /** 레이어 행 호버 — 데이터/출처 패널 */
+  onLayerInfoHover?: (target: LayerInfoHoverTarget | null) => void;
 }) {
   const { t } = useLocale();
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
@@ -629,6 +664,7 @@ export function LayerCategoryPanel({
                       .map((item) => (
                         <LayerTagToggle
                           key={item.id}
+                          id={item.id}
                           label={item.label}
                           detail={item.detail}
                           checked={item.checked}
@@ -636,6 +672,7 @@ export function LayerCategoryPanel({
                           accent={item.accent}
                           cautionTag={item.cautionTag}
                           cautionHint={item.cautionHint}
+                          onInfoHover={onLayerInfoHover}
                         />
                       ))}
                   </div>
@@ -667,10 +704,12 @@ export function LayerCategoryPanel({
                             detail={item.detail}
                             options={item.options}
                             accent={item.accent}
+                            onInfoHover={onLayerInfoHover}
                           />
                         ) : (
                           <LayerToggle
                             key={item.id}
+                            id={item.id}
                             label={item.label}
                             detail={item.detail}
                             checked={item.checked}
@@ -681,6 +720,7 @@ export function LayerCategoryPanel({
                             cautionHint={item.cautionHint}
                             rejected={item.rejected}
                             rejectedNote={item.rejectedNote}
+                            onInfoHover={onLayerInfoHover}
                           />
                         ),
                       )}

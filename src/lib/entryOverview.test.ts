@@ -78,15 +78,24 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showUsDfcSupplyChain).toBe(false);
   });
 
-  it("지경학 첫 화면은 Compact 항로만 — AIS·CRINK·BRI/DFC 자동 ON 없음", () => {
+  it("지경학 첫 화면은 초크·항로·에너지·코리도·축 — BRI/DFC·AIS·CRINK 자동 ON 없음", () => {
     const prefs = buildDomainOverviewPrefs("economy");
+    expect(prefs.showLogisticsRisk).toBe(true);
+    expect(prefs.showLogisticsStress).toBe(true);
     expect(prefs.showShippingLanes).toBe(true);
     expect(prefs.showPorts).toBe(true);
-    expect(prefs.showLogisticsRisk).toBe(true);
+    expect(prefs.showGasPipelines).toBe(true);
+    expect(prefs.showLngTerminals).toBe(true);
+    expect(prefs.showStrategicCorridors).toBe(true);
+    expect(prefs.showAxisNetwork).toBe(true);
+    expect(prefs.showGscpiGauge).toBe(true);
+    expect(prefs.showNewfeedsIranAttacks).toBe(true);
     expect(prefs.showAis).toBe(false);
+    expect(prefs.showCriticalNodes).toBe(false);
     expect(prefs.showCrinkInfraRail).toBe(false);
-    expect(prefs.showGasPipelines).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);
     expect(prefs.showUsDfcSupplyChain).toBe(false);
+    expect(prefs.showSesChip).toBe(false);
+    expect(prefs.showSanctionsEvasionCorridors).toBe(false);
   });
 });

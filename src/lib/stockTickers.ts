@@ -262,19 +262,42 @@ export const TICKER_STRIP_SYMBOLS: string[] = [
   "^IXIC",
 ];
 
-/** 지정학 스트립 코어 — 방산·칩 equity */
+/**
+ * 두 렌즈에 동시에 걸치는 심볼 — 반도체(SMH·TSM·삼성전자).
+ * 대만해협 침공 리스크로는 지정학, 수출규제·공급망 재편으로는 지경학 —
+ * 어느 한쪽에만 넣으면 왜 거기 있는지 설명이 안 돼서 양쪽 스트립에 모두 노출한다.
+ */
+export const DUAL_LENS_TICKER_SYMBOLS: string[] = ["SMH", "TSM", "005930.KS"];
+
+const DUAL_LENS_TICKER_NOTE: { ko: string; en: string } = {
+  ko: "반도체는 지정학(대만해협 리스크)과 지경학(수출규제·공급망) 양쪽에 걸쳐 있어 두 스트립에 모두 표시됩니다.",
+  en: "Semiconductor names sit in both lenses — Taiwan Strait risk (geopolitics) and export controls/supply chain (geoeconomics) — so they appear in both strips.",
+};
+
+/** 이 심볼이 지정학/지경학 두 렌즈에 걸쳐 있는지 */
+export function isDualLensTickerSymbol(symbol: string): boolean {
+  return DUAL_LENS_TICKER_SYMBOLS.includes(symbol);
+}
+
+/** 두 렌즈 겹침 이유 — UI 툴팁/뱃지용 */
+export function dualLensTickerNote(lang: LabelLanguage = "ko"): string {
+  return lang === "en" ? DUAL_LENS_TICKER_NOTE.en : DUAL_LENS_TICKER_NOTE.ko;
+}
+
+/** 지정학 스트립 코어 — 방산 equity + 반도체(양쪽 겹침) */
 export const CONFLICT_TICKER_STRIP_CORE: string[] = [
   "ITA",
   "LMT",
   "RTX",
-  "SMH",
-  "TSM",
-  "005930.KS",
+  ...DUAL_LENS_TICKER_SYMBOLS,
   "012450.KS",
 ];
 
-/** 지경학 스트립 코어 — 선물·매크로 */
-export const ECONOMY_TICKER_STRIP_CORE: string[] = [...TICKER_STRIP_SYMBOLS];
+/** 지경학 스트립 코어 — 선물·매크로 + 반도체(양쪽 겹침) */
+export const ECONOMY_TICKER_STRIP_CORE: string[] = [
+  ...TICKER_STRIP_SYMBOLS,
+  ...DUAL_LENS_TICKER_SYMBOLS,
+];
 
 /**
  * 전역 코어 스트립 + 전장 primary를 merge.

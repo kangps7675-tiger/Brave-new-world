@@ -26,13 +26,22 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
   ...CRINK_INFRA_PREF_PATCH,
 };
 
-/** Compact `항로` 칩과 동일 — 첫 지경학 화면.
- *  BRI·DFC는 수동 토글만 (자동 ON 금지 · 지정학 비노출). */
+/**
+ * 지경학 첫 화면 — 개인 선물·시장 리스크 지도.
+ * 우선순위: 초크 → 항로/항구 → 에너지(가스·LNG) → 무역 코리도 → 에너지·결제 축.
+ * BRI/DFC·AI DC·매장지·핵심노드·민간 AIS는 수동 토글(자동 ON 금지).
+ * 제재 회피 강도·회랑은 지정학 전용.
+ */
 export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> = {
-  showShippingLanes: true,
-  showStrategicCorridors: true,
-  showPorts: true,
   showLogisticsRisk: true,
-  showCriticalNodes: true,
+  showLogisticsStress: true,
+  showShippingLanes: true,
+  showPorts: true,
+  showGasPipelines: true,
+  showLngTerminals: true,
+  showStrategicCorridors: true,
+  showAxisNetwork: true,
+  showGscpiGauge: true,
+  /** 호르무즈·유류 충격 — 원유 선물 드라이버 */
   showNewfeedsIranAttacks: true,
 };

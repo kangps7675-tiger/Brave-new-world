@@ -3,6 +3,11 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 /** 네온·GDELT 하이브리드 사건 — 출처 추적성 */
 export type IncidentProvenance = "seed-source" | "live-only" | "seed-fallback";
 
+export type ProvenanceFields = {
+  provenance: IncidentProvenance;
+  gdeltSourceUrl?: string | null;
+};
+
 export function provenanceFromActivation(params: {
   id: string;
   seedSourceUrl?: string | null;

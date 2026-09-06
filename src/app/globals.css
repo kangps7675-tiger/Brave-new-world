@@ -179,7 +179,6 @@ html[data-device="tablet"] {
   --chrome-rail-top-gap: 0.4rem;
   --daily-panel-width: 20rem;
   --chrome-left-fab-clearance: 4rem;
-  --chrome-spin-clearance: 3.75rem;
 }
 html[data-device="desktop"] {
   --intel-sidebar-width: 480px;
@@ -188,7 +187,6 @@ html[data-device="desktop"] {
   --chrome-rail-top-gap: 0.55rem;
   --daily-panel-width: 22rem;
   --chrome-left-fab-clearance: 3.75rem;
-  --chrome-spin-clearance: 3.5rem;
 }
 html[data-device="desktop-wide"] {
   --intel-sidebar-width: 560px;
@@ -197,7 +195,6 @@ html[data-device="desktop-wide"] {
   --chrome-rail-top-gap: 0.65rem;
   --daily-panel-width: 22rem;
   --chrome-left-fab-clearance: 3.75rem;
-  --chrome-spin-clearance: 3.5rem;
 }
 html[data-device="phone"] {
   --tap-target-min: 44px;
@@ -229,17 +226,12 @@ html[data-device="phone"] {
 }
 
 .cv-chrome-daily-bottom {
-  /* 좌하단 자전 토글 위 — 접힌 칩·펼친 패널 모두 토글과 겹치지 않음 */
   bottom: calc(
-    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem +
-      var(--chrome-spin-clearance, 3.5rem) + env(safe-area-inset-bottom, 0px)
+    var(--bottom-intel-stack-clearance, 8.5rem) + 0.85rem + env(safe-area-inset-bottom, 0px)
   );
 }
 
-/*
- * 패널 펼침 — 좌상단 햄버거와 Y축이 겹치지 않게 가두고 가로 넘침 차단.
- * 자전 토글은 패널 오픈 시 숨기므로 bottom에서 spin clearance는 빼 공간을 회수한다.
- */
+/* 패널 펼침 — 좌상단 햄버거와 Y축이 겹치지 않게 가두고 가로 넘침 차단. */
 .cv-chrome-daily-bottom.cv-chrome-daily-open {
   top: calc(
     max(0.75rem, env(safe-area-inset-top, 0px)) + var(--chrome-left-fab-clearance, 3.75rem)

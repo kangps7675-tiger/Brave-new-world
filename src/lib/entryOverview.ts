@@ -88,7 +88,7 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 지경학 첫 화면 — Compact `항로` 칩. 에너지·매장지는 칩/허브에서 */
+/** 지경학 첫 화면 — 초크·항로·에너지·코리도·축 (시장 리스크 지도) */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };

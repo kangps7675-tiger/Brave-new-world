@@ -1,12 +1,70 @@
+import type { FeatureCollection, Point } from "geojson";
 import {
+  SAFECAST_ATTRIBUTION,
   safecastLevelColor,
   safecastLevelLabel,
   type SafecastSiteReading,
 } from "@/lib/safecast";
 
+export const SAFECAST_SOURCE_ID = "safecast-gauges-source";
+export const SAFECAST_CIRCLE_LAYER_ID = "safecast-gauges-circle";
+export const SAFECAST_LABEL_LAYER_ID = "safecast-gauges-label";
+
+export type SafecastGaugeFeatureProps = {
+  index: number;
+  siteId: string;
+  siteName: string;
+  usvPerH: number | null;
+  usvLabel: string;
+  level: string;
+  levelLabel: string;
+  color: string;
+  capturedAt: string | null;
+  attribution: string;
+};
+
+export function formatSafecastUsvLabel(usvPerH: number | null): string {
+  if (usvPerH == null) return "— µSv/h";
+  const n = usvPerH < 0.01 ? usvPerH.toFixed(3) : usvPerH.toFixed(2);
+  return `${n} µSv/h`;
+}
+
 /**
- * Compact radiation gauge HTML badge near a nuclear site.
+ * Safecast near-nuclear gauges as MapLibre GeoJSON (circle + symbol).
+ * HTML Marker 대신 WebGL로 그려 카메라 회전 시 DOM transform/occlusion 비용을 제거한다.
  */
+export function buildSafecastGaugesGeoJson(
+  readings: SafecastSiteReading[],
+  lang: "ko" | "en" = "ko",
+): FeatureCollection<Point, SafecastGaugeFeatureProps> {
+  const ko = lang !== "en";
+  return {
+    type: "FeatureCollection",
+    features: readings
+      .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng) && r.usvPerH != null)
+      .map((r, index) => ({
+        type: "Feature" as const,
+        properties: {
+          index,
+          siteId: r.siteId,
+          siteName: r.siteName,
+          usvPerH: r.usvPerH,
+          usvLabel: formatSafecastUsvLabel(r.usvPerH),
+          level: r.level,
+          levelLabel: safecastLevelLabel(r.level, ko),
+          color: safecastLevelColor(r.level),
+          capturedAt: r.capturedAt,
+          attribution: SAFECAST_ATTRIBUTION,
+        },
+        geometry: {
+          type: "Point" as const,
+          coordinates: [r.lng, r.lat],
+        },
+      })),
+  };
+}
+
+/** @deprecated HTML badge — symbol 레이어로 이전됨. 테스트·폴백용으로만 유지. */
 export function createSafecastGaugeBadge(
   reading: Pick<SafecastSiteReading, "siteName" | "usvPerH" | "level">,
   lang: "ko" | "en" = "ko",
@@ -18,8 +76,7 @@ export function createSafecastGaugeBadge(
 
   const ko = lang !== "en";
   const color = safecastLevelColor(reading.level);
-  const usv =
-    reading.usvPerH == null ? "—" : reading.usvPerH < 0.01 ? reading.usvPerH.toFixed(3) : reading.usvPerH.toFixed(2);
+  const usv = formatSafecastUsvLabel(reading.usvPerH).replace(" µSv/h", "");
   const level = safecastLevelLabel(reading.level, ko);
 
   const chip = document.createElement("div");
@@ -29,7 +86,6 @@ export function createSafecastGaugeBadge(
     "border-radius: 999px",
     `border: 1px solid ${color}99`,
     "background: rgba(8,12,18,0.88)",
-    "box-shadow: 0 6px 18px rgba(0,0,0,0.4)",
     "font: 600 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace",
     `color: ${color}`,
     "text-align: center",

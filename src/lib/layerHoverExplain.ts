@@ -6,6 +6,7 @@
  */
 
 import type { TransportPath } from "@/data/geoTypes";
+import { getSourceNote } from "@/data/sourceCatalog";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { HoverCard } from "@/components/globe/types";
 
@@ -377,7 +378,7 @@ export function explainLayer(layerId: string | null | undefined, lang: LabelLang
   return bi ? pick(bi, lang) : null;
 }
 
-/** body가 비었을 때 평문 설명을 채운다. 있으면 유지. */
+/** body가 비었을 때 평문 설명을 채운다. 있으면 유지. 출처 캡션도 meta에 보강. */
 export function withLayerExplain(
   card: HoverCard,
   layerId: string | null,
@@ -385,7 +386,19 @@ export function withLayerExplain(
 ): HoverCard {
   if (!layerId || card.kind === "ocean") return card;
   const explain = explainLayer(layerId, lang);
-  if (!explain) return card;
-  if (card.body && card.body.trim()) return card;
-  return { ...card, body: explain };
+  const note = getSourceNote(layerId);
+  let next = card;
+  if (explain && !(card.body && card.body.trim())) {
+    next = { ...next, body: explain };
+  }
+  if (note) {
+    const caption = `${note.attribution} · ${note.cadence}`;
+    if (!next.meta || !next.meta.includes(note.attribution)) {
+      next = {
+        ...next,
+        meta: next.meta ? `${next.meta} · ${caption}` : caption,
+      };
+    }
+  }
+  return next;
 }

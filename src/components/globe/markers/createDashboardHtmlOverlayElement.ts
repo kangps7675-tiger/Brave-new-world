@@ -46,7 +46,6 @@ import {
 } from "@/lib/newfeedsI18n";
 import { createReconSatelliteBadge } from "@/lib/reconSatelliteMarkers";
 import { createReefWatchFeatureMarkerElement, createReefWatchTrafficMarkerElement } from "@/lib/reefWatchMarkers";
-import { createSafecastGaugeBadge } from "@/lib/safecastRadiationMarker";
 import { createShipMovementPinElement, trailGroupKey } from "@/lib/shipMovements/globeOverlay";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import { createUkraineGdeltNeonBadge } from "@/lib/ukraineGdeltNeonMarker";
@@ -497,9 +496,6 @@ export function createDashboardHtmlOverlayElement(
       deps.labelLanguage === "en" ? "en" : "ko",
       alt,
     );
-  }
-  if (item.displayKind === "safecast-gauge") {
-    return createSafecastGaugeBadge(item, deps.labelLanguage === "en" ? "en" : "ko");
   }
   if (item.displayKind === "ua-settlement-html") {
     return createUkraineSettlementLabelElement(

@@ -21,7 +21,7 @@ import type { ChinaTheaterIncident } from "@/data/chinaTheaterIncidentsSeed";
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import type { RussiaStrikeIncident } from "@/data/russiaStrikeIncidentsSeed";
 import type { EuropeDroneIncident } from "@/data/europeDroneIncursionSeed";
-import type { ProvenanceFields } from "@/lib/neonIncidentActivation";
+import type { ProvenanceFields } from "@/lib/eventProvenance";
 import type { SituationCallout } from "@/data/situationCalloutTypes";
 import type { MissileBeltArea } from "@/data/koreaMissileBeltSeed";
 import type { FirmsSoundKind } from "@/lib/firmsSoundClassify";
@@ -294,6 +294,7 @@ export type NuclearStockpileHtmlMarker = {
   year: number;
 };
 
+/** @deprecated HTML Marker 제거 — MapLibre symbol/circle(safecastRadiationMarker)로 이전 */
 export type SafecastGaugeHtmlMarker = {
   markerId: string;
   displayKind: "safecast-gauge";
@@ -422,7 +423,6 @@ export type HtmlOverlayMarker =
   | ReefWatchTrafficHtmlMarker
   | CasualtySkullHtmlMarker
   | NuclearStockpileHtmlMarker
-  | SafecastGaugeHtmlMarker
   | ChinaTheaterIncidentHtmlMarker
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker

@@ -183,6 +183,11 @@ export interface UseGlobeMapGlobePropsParams {
   aisDisplayPoints: AisSymbolInput[];
   handleAisSymbolSelect: (vessel: AisVessel) => void;
   handleAisSymbolHover: (vessel: AisVessel | null) => void;
+  /**
+   * Safecast µSv/h — symbol/circle 레이어 (DOM Marker 아님).
+   * HTML로 두면 카메라 회전마다 occlusion·transform으로 버벅인다.
+   */
+  safecastGaugesGeoJson: FeatureCollection;
   isViinaCloseZoom: boolean;
   showUkraineControl: boolean;
   layerAltitudeRef: MutableRefObject<number>;
@@ -252,6 +257,7 @@ export function useGlobeMapGlobeProps(
     aisDisplayPoints,
     handleAisSymbolSelect,
     handleAisSymbolHover,
+    safecastGaugesGeoJson,
     isViinaCloseZoom,
     showUkraineControl,
     layerAltitudeRef,
@@ -621,6 +627,9 @@ export function useGlobeMapGlobeProps(
     onAisSymbolHover: (item: unknown | null) => {
       handleAisSymbolHover((item as AisVessel | null) ?? null);
     },
+
+    /* ── Safecast µSv/h: circle+symbol (DOM Marker 아님) ─────────────── */
+    safecastGaugesGeoJson,
 
     htmlElementsData: htmlOverlayMarkers,
     htmlLat: (point: HtmlOverlayMarker) =>

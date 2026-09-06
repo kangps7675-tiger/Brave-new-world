@@ -18,6 +18,14 @@ const UI = {
   viewSettingsHint: { ko: "전쟁 보기 · 경제 보기 모드", en: "Conflict view · economy view" },
   changeViewMode: { ko: "보기 모드 변경", en: "Change view mode" },
   resetCheckboxSettings: { ko: "체크박스 설정 초기화", en: "Reset checkbox settings" },
+  layerHoverInfoToggle: {
+    ko: "레이어 호버 데이터 패널",
+    en: "Layer hover data panel",
+  },
+  layerHoverInfoHint: {
+    ko: "레이어 목록·지도 위 피처에 마우스를 올리면 출처·설명이 뜹니다.",
+    en: "Hover a layer row or map feature to see source & explanation.",
+  },
   layers: { ko: "레이어", en: "Layers" },
   layerApplyConfirm: { ko: "설정하시겠습니까?", en: "Apply these layer settings?" },
   layerApplyConfirmHint: {
@@ -352,7 +360,7 @@ const UI = {
   },
   hoverIntelFab: { ko: "Intel 뉴스", en: "Intel news" },
   hoverIntelFabHint: {
-    ko: "전체 화면 Tier별 검증 보도·속보를 봅니다. Telegram OSINT는 별도 패널입니다.",
+    ko: "전체 화면 Tier별 검증 보도·속보를 봅니다. 텔레그램 OSINT는 별도 패널입니다.",
     en: "Full-screen tiered verified briefs. Telegram OSINT is a separate panel.",
   },
   hoverIntelFabOpenAria: { ko: "Intel 뉴스 열기", en: "Open Intel news" },
@@ -481,8 +489,8 @@ const UI = {
   },
   domainEconomyTitle: { ko: "경제·물류", en: "Economy" },
   domainEconomyHint: {
-    ko: "에너지·물류·항로·시장 — 돈이 어디서 움직이는지",
-    en: "Energy, logistics, sea lanes, markets — where money moves",
+    ko: "초크·에너지·항로 — 막힘이 시세에 닿는 곳",
+    en: "Chokes · energy · lanes — where congestion hits markets",
   },
   welcomeLetterCta: { ko: "편지를 접고 출처 고지로", en: "Fold — sources disclosure next" },
   welcomeBriefBody: {
@@ -691,7 +699,7 @@ const UI = {
   itemsCount: { ko: "건", en: " items" },
   economyCount: { ko: "경제", en: "economy" },
   intelSheetNews: { ko: "Tier별 뉴스 · 분석", en: "Tier news · analysis" },
-  intelSheetTelegram: { ko: "Telegram OSINT · 절반", en: "Telegram OSINT · half" },
+  intelSheetTelegram: { ko: "텔레그램 OSINT · 절반", en: "Telegram OSINT · half" },
   intelSheetTelegramVideo: {
     ko: "텔레그램 영상 · 전선 미디어",
     en: "Telegram video · frontline media",
@@ -707,8 +715,8 @@ const UI = {
   intelSheetMajors: { ko: "주요기업 · 대형 시총", en: "Majors · mega-caps" },
   intelSheetMajorsTab: { ko: "주요기업", en: "Majors" },
   intelSheetShippingChoke: {
-    ko: "해운·초크 · 에너지·물류",
-    en: "Shipping · choke · energy",
+    ko: "초크 · 항로 · 에너지·물류",
+    en: "Chokes · lanes · energy logistics",
   },
   intelSheetShippingChokeTab: { ko: "해운·초크", en: "Shipping · choke" },
   intelSheetAviation: { ko: "항공 · 여객·유가", en: "Aviation · passenger · oil" },
@@ -741,7 +749,7 @@ const UI = {
     en: "No cached digest — showing source title and rule-based notes only.",
   },
   aiDigestPolicy: {
-    ko: "검증 매체만 · Telegram 제외 · 사실 단정 금지",
+    ko: "검증 매체만 · 텔레그램 제외 · 사실 단정 금지",
     en: "Whitelist media only · Telegram excluded · no factual claims",
   },
   todayHotLabel: { ko: "오늘 핫한 곳", en: "Today's hotspot" },
@@ -954,11 +962,11 @@ export const MODE_PICKER_CHROME: Record<
   conflict: {
     ko: {
       title: "지정학",
-      tagline: "전선 · GDELT · Telegram OSINT",
+      tagline: "전선 · GDELT · 텔레그램 OSINT",
       bullets: [
         "우크라이나 전선·NEPTUN 드론·미사일 궤적",
         "GDELT 전투·외교 뉴스 핀",
-        "Telegram OSINT · VIINA 점령지",
+        "텔레그램 OSINT · VIINA 점령지",
         "하단: 속보 + GDELT 범례",
       ],
     },

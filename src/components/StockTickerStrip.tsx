@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  dualLensTickerNote,
   formatTickerChangePercent,
   formatTickerPrice,
+  isDualLensTickerSymbol,
   mergeTickerStripSymbols,
   STOCK_TICKER_SYMBOLS,
   tickerChangeTone,
@@ -143,7 +145,9 @@ function TickerRow({
   });
   const spikeBadge = showSpike && highlighted ? formatSpikeBadge(item.changePercent) : null;
   const name = tickerDisplayName(item.symbol, lang);
+  const dualLens = isDualLensTickerSymbol(item.symbol);
   const titleBits = [item.symbol];
+  if (dualLens) titleBits.push(dualLensTickerNote(lang));
   if (item.asOf) titleBits.push(lang === "en" ? `as of ${item.asOf}` : `${item.asOf} 관측`);
   titleBits.push(lang === "en" ? "change vs prior day" : "등락은 전일 대비");
 
@@ -154,6 +158,11 @@ function TickerRow({
       }`}
     >
       <span className={highlighted ? "font-semibold text-rose-100" : "text-slate-300"} title={titleBits.join(" · ")}>
+        {dualLens ? (
+          <span className="mr-0.5 text-cyan-300/80" aria-hidden="true" title={dualLensTickerNote(lang)}>
+            ⇄
+          </span>
+        ) : null}
         {name}
       </span>
       <TickerSparkline data={item.sparkline} tone={tone} />

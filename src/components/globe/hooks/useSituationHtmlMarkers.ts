@@ -5,7 +5,6 @@ import type {
   CasualtySkullHtmlMarker,
   NuclearStockpileHtmlMarker,
   PolygonLayerFeature,
-  SafecastGaugeHtmlMarker,
   SituationCalloutMarker,
   StaticGlobePoint,
   TelegramNeonMarker,
@@ -29,6 +28,11 @@ import { isUkraineTheaterGdeltWar } from "@/lib/ukraineGdeltNeonMarker";
 import { buildTelegramMapDots } from "@/lib/telegramMapMarkers";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import { useSafecastNearNuclear } from "@/hooks/useSafecastNearNuclear";
+import {
+  buildSafecastGaugesGeoJson,
+  type SafecastGaugeFeatureProps,
+} from "@/lib/safecastRadiationMarker";
+import type { FeatureCollection, Point } from "geojson";
 import { NUCLEAR_STOCKPILE_SEEDS } from "@/lib/nuclearStockpiles";
 import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
 import { filterUkraineSettlementsForView } from "@/lib/ukraineSettlements";
@@ -82,7 +86,8 @@ export interface SituationHtmlMarkers {
   casualtySkullMarkers: CasualtySkullHtmlMarker[];
   visibleCasualtySkullMarkers: CasualtySkullHtmlMarker[];
   nuclearStockpileMarkers: NuclearStockpileHtmlMarker[];
-  safecastGaugeMarkers: SafecastGaugeHtmlMarker[];
+  /** WebGL GeoJSON — HTML Marker 아님 (카메라 회전 버벅임 방지) */
+  safecastGaugesGeoJson: FeatureCollection<Point, SafecastGaugeFeatureProps>;
   ukraineSettlementHtmlMarkers: UkraineSettlementHtmlMarker[];
 }
 
@@ -93,6 +98,7 @@ export function useSituationHtmlMarkers(
   const {
     isEconomyViewer,
     isCompactUi,
+    labelLanguage,
     gdeltTensionTags,
     showTelegramOsint,
     telegramAlerts,
@@ -122,7 +128,6 @@ export function useSituationHtmlMarkers(
   void staticGlobePoints;
   void hoveredPolygon;
   void hoveredPath;
-  void params.labelLanguage;
 
   const gdeltTagHtmlMarkers = useMemo<GdeltTagHtmlMarker[]>(
     () =>
@@ -286,20 +291,18 @@ export function useSituationHtmlMarkers(
     });
   }, [casualtySkullMarkers, isEconomyViewer]);
 
-  const safecastGaugeMarkers = useMemo<SafecastGaugeHtmlMarker[]>(() => {
-    if (!showNuclearSites || isEconomyViewer) return [];
-    return safecastReadings.map((r) => ({
-      markerId: `safecast-${r.siteId}`,
-      displayKind: "safecast-gauge" as const,
-      siteId: r.siteId,
-      siteName: r.siteName,
-      lat: r.lat,
-      lng: r.lng,
-      usvPerH: r.usvPerH,
-      level: r.level,
-      capturedAt: r.capturedAt,
-    }));
-  }, [isEconomyViewer, safecastReadings, showNuclearSites]);
+  const safecastGaugesGeoJson = useMemo(() => {
+    if (!showNuclearSites || isEconomyViewer) {
+      return {
+        type: "FeatureCollection" as const,
+        features: [],
+      };
+    }
+    return buildSafecastGaugesGeoJson(
+      safecastReadings,
+      labelLanguage === "en" ? "en" : "ko",
+    );
+  }, [isEconomyViewer, labelLanguage, safecastReadings, showNuclearSites]);
 
   const ukraineSettlementHtmlMarkers = useMemo<UkraineSettlementHtmlMarker[]>(() => {
     if (!showUkraineControl) return [];
@@ -325,7 +328,7 @@ export function useSituationHtmlMarkers(
     casualtySkullMarkers,
     visibleCasualtySkullMarkers,
     nuclearStockpileMarkers,
-    safecastGaugeMarkers,
+    safecastGaugesGeoJson,
     ukraineSettlementHtmlMarkers,
   };
 }

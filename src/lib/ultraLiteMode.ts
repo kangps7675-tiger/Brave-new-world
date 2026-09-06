@@ -17,11 +17,17 @@ export type PerfPrefs = {
   ultraLite: boolean;
   /** 인텔(다크 벡터) / 지형(밝은 벡터+DEM) 베이스맵 */
   basemapMode: BasemapMode;
+  /**
+   * 레이어 목록·지도 피처 호버 시 데이터/출처 패널.
+   * 끌 수 있음 — 밀집 UI에서 호버 카드가 거슬릴 때.
+   */
+  showLayerHoverInfo: boolean;
 };
 
 export const DEFAULT_PERF_PREFS: PerfPrefs = {
   ultraLite: false,
   basemapMode: DEFAULT_BASEMAP_MODE,
+  showLayerHoverInfo: true,
 };
 
 /** ultra-lite ON 시 강제 OFF (슬롯·GPU 부담) */
@@ -140,6 +146,8 @@ export function loadPerfPrefs(): PerfPrefs {
     return {
       ultraLite: Boolean(parsed.ultraLite),
       basemapMode: parseBasemapMode(parsed.basemapMode),
+      // 저장값 없으면 기본 ON — 예전 perf JSON과의 호환
+      showLayerHoverInfo: parsed.showLayerHoverInfo !== false,
     };
   } catch {
     return DEFAULT_PERF_PREFS;
