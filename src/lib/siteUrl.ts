@@ -8,7 +8,7 @@
  * 도메인 확보 후 `NEXT_PUBLIC_SITE_URL`만 바꾸면 전부 따라온다.
  */
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://confilct-view.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://conflict-view.vercel.app"
 ).replace(/\/+$/, "");
 
 /** 절대 URL 조립 — 앞 슬래시 유무에 관계없이 동작 */
