@@ -531,6 +531,12 @@ export function buildBreakingFlashBriefing(
     lang,
     economy,
     actors,
+    ageMinutes: hero.ageMinutes,
+    source: hero.source,
+    trustTier:
+      hero.trustTier === 1 || hero.trustTier === 2 || hero.trustTier === 3
+        ? hero.trustTier
+        : undefined,
   });
 
   const paragraphs = [...essay, gradeLine].filter(
