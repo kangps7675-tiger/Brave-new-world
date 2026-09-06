@@ -61,6 +61,7 @@ type IngestResult = {
   disputeHatchWarm?: WarmResult;
   ukraineHatchWarm?: WarmResult;
   shipMovementsWarm?: WarmResult;
+  usCarriersWarm?: WarmResult;
   firmsErrors: string[];
   gdeltErrors: string[];
   telegramErrors: string[];
@@ -196,6 +197,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
   let disputeHatchWarm: IngestResult["disputeHatchWarm"];
   let ukraineHatchWarm: IngestResult["ukraineHatchWarm"];
   let shipMovementsWarm: IngestResult["shipMovementsWarm"];
+  let usCarriersWarm: IngestResult["usCarriersWarm"];
 
   try {
     const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 1)));
@@ -363,6 +365,11 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       env,
       "ship-movements",
     );
+    usCarriersWarm = await warmEndpoint(
+      env.US_CARRIERS_WARM_URL,
+      env,
+      "us-carriers",
+    );
 
     const finishedAt = new Date().toISOString();
     const hardFail =
@@ -500,6 +507,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       disputeHatchWarm,
       ukraineHatchWarm,
       shipMovementsWarm,
+      usCarriersWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,
@@ -566,7 +574,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         gdeltCount,
         ok: false,
         error: message,
-        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm },
+        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm },
       });
     } catch {
       // ignore secondary logging failure
@@ -587,6 +595,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       disputeHatchWarm,
       ukraineHatchWarm,
       shipMovementsWarm,
+      usCarriersWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,

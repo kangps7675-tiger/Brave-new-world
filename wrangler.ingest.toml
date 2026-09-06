@@ -53,6 +53,8 @@ REFERENCE_MONITOR_MAX_PER_CHANNEL = "20"
 # 지도 주제와 안 걸리는 모금·행사 글 컷
 REFERENCE_MONITOR_MIN_RELEVANCE = "2"
 # Optional: SHIP_MOVEMENTS_WARM_URL=https://your-app/api/ship-movements/warm
+# Optional: US_CARRIERS_WARM_URL=https://your-app/api/us-carriers/warm
+# Optional throttle (minutes) on Next side: US_CARRIERS_POLL_MIN_INTERVAL_MINUTES=360
 
 [[d1_databases]]
 binding = "DB"
