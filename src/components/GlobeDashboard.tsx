@@ -6884,7 +6884,7 @@ export function GlobeDashboard({
 
       const hasLampContent = featuredNews.length > 0 || macroTable.length > 0;
       if (hasLampContent) {
-        ignite({
+        let content: PeriodicBriefing = {
           tier,
           key: lampKey,
           contentSlot: slot,
@@ -6892,7 +6892,11 @@ export function GlobeDashboard({
           paragraphs: [],
           macroTable,
           featuredNews,
-        });
+        };
+        // 한글 UI — 서버 누락·영문 캐시 잔여분을 점화 직전 재번역
+        content = await localizePeriodicBriefing(content, labelLanguage);
+        if (cancelled) return;
+        ignite(content);
       } else {
         settleWithoutLamp();
       }

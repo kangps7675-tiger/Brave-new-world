@@ -247,8 +247,40 @@ const SECTIONS_KO: DataSourceSection[] = [
     ],
   },
   {
+    id: "news-tiers",
+    title: "⑧ 뉴스 검증 티어",
+    intro:
+      "뉴스를 「얼마나 믿을지」를 점수화하지 않습니다. 대신 편집독립·당사자성으로 Tier 1·2·3을 나누고, 교차 확인·속보 등급에 씁니다. 지도 레이어의 관측·보도·미확인 꼬리표와는 다른 축입니다.",
+    entries: [
+      {
+        name: "설계 원칙",
+        body: "국적과 무관하게 같은 잣대를 씁니다. 「우리 편 공보실」도 Tier 3이고, 「상대 국영통신」도 Tier 3입니다. 자국 정부를 비판할 수 있는 독립 와이어·대형 매체는 Tier 1입니다.",
+      },
+      {
+        name: "Tier 1 · 기본 근거",
+        body: "게이트키핑을 거친 국제 통신사·대형 독립매체(예: Reuters·AP·AFP·BBC·NYT·연합 등). AI 요약·등불·신속속보의 기본 뼈대로 우선합니다. 정부·군 공보실 발표는 국적과 무관하게 Tier 1이 아닙니다.",
+      },
+      {
+        name: "Tier 2 · 보완 취재",
+        body: "실제 취재하되 특정 주제에서 편집 방향 논란이 반복 관찰되는 매체·민간 OSINT·안보연구소. Tier 1이 얇을 때 보완하고, Tier 1 교차가 쌓이면 무게가 올라갑니다.",
+      },
+      {
+        name: "Tier 3 · 당사자·국영·공보",
+        body: "국영 방송·국영 통신·당·군 공보(예: TASS·신화·조선중앙통신·각국 국방부·사령부 보도자료). 「그 쪽의 말」로 읽고, 독립 매체 교차 전에는 단정하지 않습니다. 속보 히어로에서 Tier 3만이면 등급을 낮추거나 보류합니다.",
+      },
+      {
+        name: "화면에 쓰는 방식",
+        body: "카드에 T1/T2/T3 뱃지, 클러스터에 Tier 1이 있으면 confirmed에 가깝게, Tier 3만이면 unverified에 가깝게 둡니다. 신속속보 등급·등불 선정·지도 뉴스 태그 가중치에 같은 축이 들어갑니다. 진실 점수가 아닙니다.",
+      },
+      {
+        name: "애매한 경계",
+        body: "국영이지만 편집 독립 논쟁이 있는 매체(예: 일부 국가기간통신)는 언론자유 참고표로 수동 판단합니다. 라이브 점수 API가 아니며, 목록은 코드(mediaTiers)에서 갱신합니다.",
+      },
+    ],
+  },
+  {
     id: "render",
-    title: "⑧ 지도 렌더링",
+    title: "⑨ 지도 렌더링",
     intro: "정보가 아니라, 지구본을 그리는 바탕 그림입니다.",
     entries: [
       {
@@ -392,8 +424,40 @@ const SECTIONS_EN: DataSourceSection[] = [
     ],
   },
   {
+    id: "news-tiers",
+    title: "⑧ News trust tiers",
+    intro:
+      "We do not score “how true” a story is. We label editorial independence vs party interest as Tier 1 / 2 / 3, then use that for corroboration and flash grading. This is a different axis from map-layer Observed / Reported / Unverified tags.",
+    entries: [
+      {
+        name: "Design rule",
+        body: "Same yardstick regardless of nationality. “Our” defense PA is Tier 3; so is “their” state wire. Independent wires that can criticize their own governments sit in Tier 1.",
+      },
+      {
+        name: "Tier 1 · primary spine",
+        body: "Gatekept international wires and major independents (e.g. Reuters, AP, AFP, BBC, NYT, Yonhap). Preferred spine for AI summaries, lamp, and flash. Government/military PA is never Tier 1, any country.",
+      },
+      {
+        name: "Tier 2 · fill gaps",
+        body: "Real reporting with recurring bias disputes on some topics, plus civilian OSINT / security institutes. Fills gaps when Tier 1 is thin; weight rises with Tier 1 corroboration.",
+      },
+      {
+        name: "Tier 3 · party / state / PA",
+        body: "State TV/wires and party/military PA (e.g. TASS, Xinhua, KCNA, any MoD/command release). Read as interested-party copy; hold hard claims until independent corroboration. Flash heroes with Tier 3 only are downgraded or held.",
+      },
+      {
+        name: "How the UI uses it",
+        body: "T1/T2/T3 badges on cards; clusters with Tier 1 lean confirmed, Tier 3-only lean unverified. Same axis feeds flash grade, lamp picks, and map news-tag weights. Not a truth score.",
+      },
+      {
+        name: "Fuzzy edges",
+        body: "State-affiliated outlets with independence debates are judged via a static press-freedom reference table—not a live API. Lists live in mediaTiers code.",
+      },
+    ],
+  },
+  {
     id: "render",
-    title: "⑧ Map rendering",
+    title: "⑨ Map rendering",
     intro: "Basemap paint—not intelligence content.",
     entries: [
       {

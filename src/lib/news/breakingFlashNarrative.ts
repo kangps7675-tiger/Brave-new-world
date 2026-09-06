@@ -421,9 +421,73 @@ export const FLASH_KINETIC_RE =
 export const FLASH_SOFT_EXCLUDE_RE =
   /\b(celebrity|sport|football|soccer|nba|oscar|grammy|fashion|recipe|op[\s-]?ed|opinion|editorial|rescue(?:d|s|rs)?|child(?:ren)?|toddler|kids?|heartwarming|reunited|puppy|adorable)\b|연예|스포츠|축구|야구|영화제|칼럼|사설|오피니언|구출|인명\s?구조|구조(?!조정)|구조대|꼬마|어린이|감동/i;
 
+function formatFlashWhenLine(
+  ageMinutes: number | undefined,
+  source: string | undefined,
+  ko: boolean,
+): string {
+  const src = source?.trim();
+  if (ageMinutes != null && Number.isFinite(ageMinutes)) {
+    const m = Math.max(0, Math.round(ageMinutes));
+    const age =
+      m < 60
+        ? ko
+          ? `약 ${m}분 전`
+          : `about ${m} minutes ago`
+        : ko
+          ? `약 ${Math.round(m / 60)}시간 전`
+          : `about ${Math.round(m / 60)} hours ago`;
+    return ko
+      ? `【언제】 보도·수집 시각 기준 ${age}에 잡힌 타전입니다.${src ? ` 1차 출처 표기는 「${src}」입니다.` : ""} 정확한 현지 시각·성명 시각은 원문 타임스탬프를 따르십시오.`
+      : `【When】 Desk clock marks this flash ${age}.${src ? ` Primary source tag: 「${src}」.` : ""} Exact local/announcement time follows the article timestamp.`;
+  }
+  return ko
+    ? `【언제】 정확한 분·초는 원문 타임스탬프에 맡깁니다.${src ? ` 출처 「${src}」 기준으로 즉시 타전합니다.` : " 수집 직후 즉시 타전합니다."}`
+    : `【When】 Exact minute/second stays with the article timestamp.${src ? ` Flashed against source 「${src}」.` : " Flashed on intake."}`;
+}
+
+function formatFlashWhoLines(actors: FlashActors, ko: boolean): string[] {
+  if (actors.active && actors.passive) {
+    return ko
+      ? [
+          `【누가】 능동 주체로 읽히는 쪽은 ${actors.active}, 충격·피동의 자리에 놓인 쪽은 ${actors.passive}입니다.`,
+          `역할은 후속 보도에서 뒤바뀔 수 있습니다. 「누가 먼저 손을 썼는가」를 단정하지 않고, 현재 문장이 가리키는 방향만 적습니다.`,
+          `양측의 공식·공보·제3자 교차 보도가 쌓이면 주체·피동 라벨을 다시 붙이십시오.`,
+        ]
+      : [
+          `【Who】 Active frame: ${actors.active}. Passive/impact frame: ${actors.passive}.`,
+          `Roles can reverse in follow-ups. We do not lock “who struck first”—only the direction of the current wording.`,
+          `Re-label once official, PA, and third-party wires corroborate.`,
+        ];
+  }
+  if (actors.mentioned.length > 0) {
+    const names = actors.mentioned.slice(0, 4).join(ko ? "·" : " · ");
+    return ko
+      ? [
+          `【누가】 제목·요약에 등장하는 관련 주체는 ${names}입니다.`,
+          `누가 능동이고 누가 피동인지는 아직 확정하지 않습니다. 이름이 보인다는 것과 역할이 확정된 것은 다릅니다.`,
+          `교차 확인 전엔 「관련 행위자」로만 두고, 빈칸을 추측으로 메우지 않습니다.`,
+        ]
+      : [
+          `【Who】 Names in frame: ${names}.`,
+          `Active vs passive roles are not locked yet—appearing in copy ≠ confirmed role.`,
+          `Until corroboration, treat them as related actors only; do not invent blanks.`,
+        ];
+  }
+  return ko
+    ? [
+        `【누가】 주체가 제목·요약에 분명하지 않습니다.`,
+        `확인된 문장만 붙잡고, 국가·조직·인물을 임의로 끼워 넣지 않습니다.`,
+      ]
+    : [
+        `【Who】 Actors are unclear in the headline/summary.`,
+        `Keep confirmed wording only—do not invent states, groups, or persons.`,
+      ];
+}
+
 /**
- * 신속속보 본문 — 인과를 따라가는 긴 줄글(약 20단락).
- * 사실 창작은 하지 않고, 제목·요약·전장·공급망 신호만으로 뼈대를 깐다.
+ * 신속속보 본문 — 6하원칙(누가·무엇을·언제·어디서·왜·어떻게) 상세 브리핑.
+ * 사실 창작은 하지 않고, 제목·요약·전장·출처·공급망 신호만으로 뼈대를 깐다. (20단락+)
  */
 export function buildFlashCausalEssay(input: {
   title: string;
@@ -432,6 +496,9 @@ export function buildFlashCausalEssay(input: {
   lang: LabelLanguage;
   economy: boolean;
   actors: FlashActors;
+  ageMinutes?: number;
+  source?: string;
+  trustTier?: 1 | 2 | 3;
 }): string[] {
   const ko = input.lang !== "en";
   const title = input.title.replace(/\s+/g, " ").trim();
@@ -442,147 +509,169 @@ export function buildFlashCausalEssay(input: {
   const why = input.economy
     ? formatEconomyWhyImportant(`${title} ${summary}`, input.lang)
     : formatWhyImportant(input.theater, `${title} ${summary}`, input.lang);
-  const causal = formatCausalLine(title, actors, input.lang);
   const scene = input.economy
     ? ko
-      ? "지도는 시장·항로·허브가 겹치는 구간으로 시선을 옮깁니다."
-      : "The map shifts toward where markets, sea lanes, and hubs overlap."
-    : formatSceneLine(input.theater, input.lang);
+      ? "【어디서】 지도는 시장·항로·허브가 겹치는 구간으로 시선을 옮깁니다. 좌표는 보도 근사치일 수 있습니다."
+      : "【Where】 The map shifts toward where markets, sea lanes, and hubs overlap. Pins may be approximate."
+    : ko
+      ? `【어디서】 현장 축은 ${theaterName}입니다. ${formatSceneLine(input.theater, input.lang)} 지도 핀은 탄착점이 아니라 보도가 가리킨 대략의 위치일 수 있습니다.`
+      : `【Where】 Theater axis: ${theaterName}. ${formatSceneLine(input.theater, input.lang)} Pins may be report locations, not proven impact points.`;
+
+  const tierNote =
+    input.trustTier === 1
+      ? ko
+        ? "본 타전 히어로는 Tier 1(독립 와이어·대형 독립매체) 축에서 올라온 후보입니다."
+        : "This flash hero sits on the Tier 1 (independent wire / major independent press) axis."
+      : input.trustTier === 2
+        ? ko
+          ? "본 타전 히어로는 Tier 2(취재하되 편향 논란이 있을 수 있는 매체) 축입니다. Tier 1 교차가 쌓이면 신뢰가 올라갑니다."
+          : "This flash hero is Tier 2 (reporting with possible bias disputes). Tier 1 corroboration raises confidence."
+        : input.trustTier === 3
+          ? ko
+            ? "본 타전 히어로에 Tier 3(당사자·국영·공보) 신호가 있습니다. 당사자 발표로 읽고, 독립 매체 교차 전에는 단정하지 마십시오."
+            : "Tier 3 (party / state / PA) signal is present—read as interested-party copy until independent corroboration."
+          : null;
 
   const lines: string[] = [];
 
   if (ko) {
-    lines.push("먼저, 이 타전은 「무슨 일이 있었는가」보다 「무엇이 무엇을 흔들 수 있는가」를 읽기 위한 것입니다.");
-    lines.push(causal);
-    if (actors.active && actors.passive) {
-      lines.push(
-        `${actors.active} 쪽에서 힘이 움직였고, ${actors.passive} 쪽이 그 충격의 자리에 놓였다는 구도로 보도됩니다. 역할이 뒤바뀔 수 있으니 후속 보도를 열어 두십시오.`,
-      );
-    } else if (actors.mentioned.length > 0) {
-      lines.push(
-        `관련 이름으로 ${actors.mentioned.slice(0, 3).join("·")}이(가) 등장합니다. 누가 먼저 손을 썼는지는 아직 확정하지 않습니다.`,
-      );
-    } else {
-      lines.push("주체가 제목에 분명하지 않습니다. 확인된 문장만 붙잡고, 추측으로 빈칸을 메우지 않습니다.");
-    }
+    lines.push(
+      "이 신속속보는 겉핥기 한 줄이 아니라, 6하원칙(누가·무엇을·언제·어디서·왜·어떻게)으로 벌어진 일을 브리핑합니다. 발명한 사실은 없고, 제목·요약·전장·출처 신호만 펼칩니다.",
+    );
+    lines.push(...formatFlashWhoLines(actors, true));
+    lines.push(
+      `【무엇을】 ${formatCausalLine(title, actors, input.lang).replace(/^무슨 일인가\.\s*/, "")}`,
+    );
+    lines.push(
+      summary
+        ? `【무엇을 · 보도 요지】 ${summary}`
+        : `【무엇을 · 보도 요지】 요지가 제목에 압축되어 있습니다. 「${title}」`,
+    );
+    lines.push(
+      `제목을 다시 읽으면 이렇습니다. 「${title}」 — 이 문장이 이번 타전의 사실 뼈대입니다. 뼈대 밖의 숫자·사상자·의도 단정은 붙이지 않습니다.`,
+    );
+    lines.push(formatFlashWhenLine(input.ageMinutes, input.source, true));
+    lines.push(
+      "같은 「언제」라도 현지 시각·통신사 타전 시각·우리 수집 시각이 어긋날 수 있습니다. 분쟁 지역에서는 수 분~수 시간의 시차가 흔합니다.",
+    );
     lines.push(scene);
     lines.push(
       input.economy
-        ? `현장 축은 지경학입니다. 숫자(가격·운임·금리)와 물리 항로가 같은 뉴스에 묶이는 순간을 봅니다.`
-        : `현장 축은 ${theaterName}입니다. 전선의 소리와 이웃 바다·동맹 일정이 한 줄에 걸릴 수 있습니다.`,
+        ? "【어디서 · 축】 지경학 축입니다. 가격·운임·금리 같은 숫자와 물리 항로가 한 뉴스에 묶이는 순간을 봅니다."
+        : `【어디서 · 축】 ${theaterName} 전장·해역·외교 일정이 이웃할 수 있습니다. 전선의 소리와 초크포인트가 한 줄에 걸릴 수 있습니다.`,
     );
-    lines.push(why);
+    lines.push(`【왜】 ${why.replace(/^왜 중요한가\.\s*/, "")}`);
     lines.push(
-      "인과를 짧게 쓰면 이렇습니다. 사건이 먼저 일어나고, 위험 인식이 바뀌며, 그다음 보험·운임·외교 일정·시장 가격이 따라 움직입니다.",
-    );
-    lines.push(
-      "첫 고리 — 물리·군사·정책 충격. 포탄·미사일·봉쇄·제재·금리 결정처럼 「힘이 실제로 바뀐」 지점입니다.",
+      "【왜 · 연쇄】 사건이 먼저 일어나고 → 위험 인식이 바뀌며 → 보험·운임·외교 일정·시장 가격이 따라 움직일 수 있습니다. 한 편의 속보가 전쟁을 「끝냈다」거나 「시작한다」고 단정하지 않습니다.",
     );
     lines.push(
-      "둘째 고리 — 사람이 위험을 다시 계산합니다. 선주·항공사·중앙은행·동맹이 「오늘은 어제와 다르다」고 느끼는 순간입니다.",
+      "【어떻게 · 1】 물리·군사·정책 충격 — 포탄·미사일·봉쇄·제재·금리 결정처럼 「힘이 실제로 바뀐」 지점으로 보도가 읽힙니다.",
     );
     lines.push(
-      "셋째 고리 — 돈이 이동합니다. 전쟁위험 할증, 우회 항로, 안전자산, 환율·원자재가 같은 방향으로 기울 수 있습니다.",
+      "【어떻게 · 2】 행위자·시장·동맹이 위험을 다시 계산합니다. 선주·항공사·중앙은행·사령부가 「오늘은 어제와 다르다」고 느끼는 순간입니다.",
+    );
+    lines.push(
+      "【어떻게 · 3】 돈이 움직입니다. 전쟁위험 할증, 우회 항로, 안전자산, 환율·원자재가 같은 방향으로 기울 수 있습니다.",
     );
     if (supply.length > 0) {
       const bits = supply
         .slice(0, 2)
         .map((k) => SUPPLY_BRIDGE_COPY[k].ko)
         .join(" ");
-      lines.push(`공급망 고리도 보입니다. ${bits}`);
+      lines.push(`【어떻게 · 공급망】 ${bits}`);
     } else {
       lines.push(
-        "이번 제목만으로는 특정 해협·반도체·원유 축이 문장에 드러나지 않습니다. 다만 전장 자체가 물류·에너지와 겹치면 간접 충격은 남을 수 있습니다.",
+        "【어떻게 · 공급망】 이번 제목만으로는 특정 해협·반도체·원유 축이 문장에 드러나지 않습니다. 다만 전장 자체가 물류·에너지와 겹치면 간접 충격은 남을 수 있습니다.",
       );
     }
+    if (tierNote) lines.push(`【검증】 ${tierNote}`);
+    lines.push(
+      "【검증 · 읽는 법】 Tier는 「진실 점수」가 아니라 편집독립·당사자성 라벨입니다. Tier 1 교차가 늘수록 타전 골격의 무게가 커지고, Tier 3만으로는 단정을 보류합니다.",
+    );
+    lines.push(
+      "【한계】 좌표는 보도 근사치일 수 있고, 번역·요약에서 뉘앙스가 줄어들 수 있습니다. 원문 링크가 최종 근거입니다.",
+    );
+    lines.push(
+      "【오보·번복】 초기 타전은 속도가 우선입니다. 정정 기사가 나오면 이 6하원칙 골격도 함께 고쳐 읽어야 합니다.",
+    );
+    lines.push(
+      "【행동】 투자·대피·군사 판단을 대신하지 않습니다. 관측자가 「왜 이 소음이 큰지」를 6하원칙으로 따라가기 위한 브리핑입니다.",
+    );
+    lines.push(
+      "【다음】 출처를 열고 → 같은 전장의 다른 매체 한 줄을 대조하고 → 지구본에서 해당 해역·도시를 확인하십시오. 긴장지수·초크포인트·해운 프록시가 같은 이야기를 다른 단위로 말하는지 비교하십시오.",
+    );
+    lines.push(
+      "이상은 확인된 보도를 뼈대로 한 6하원칙 즉시 타전입니다. 상세·정정·추가 사상자·의도 해석은 원문과 후속 와이어에서 확인하십시오.",
+    );
+  } else {
+    lines.push(
+      "This flash is a 5W1H briefing (who / what / when / where / why / how)—not a one-line skim. No invented facts: only title, summary, theater, and source signals.",
+    );
+    lines.push(...formatFlashWhoLines(actors, false));
+    lines.push(
+      `【What】 ${formatCausalLine(title, actors, input.lang).replace(/^What happened:\s*/i, "")}`,
+    );
     lines.push(
       summary
-        ? `보도 요지를 풀면 이렇습니다. ${summary}`
-        : `보도 요지는 제목에 압축되어 있습니다. 「${title}」`,
+        ? `【What · gist】 ${summary}`
+        : `【What · gist】 Compressed in the title: 「${title}」`,
     );
     lines.push(
-      "여기서 멈추는 이유입니다. 한 편의 속보가 전쟁을 「끝냈다」거나 「시작한다」고 단정하지 않습니다. 연쇄의 첫 도미노만 보여 줍니다.",
+      `Re-read the headline spine: 「${title}」. That sentence is the factual skeleton—we do not pad casualties, intent, or numbers beyond it.`,
     );
+    lines.push(formatFlashWhenLine(input.ageMinutes, input.source, false));
     lines.push(
-      "읽는 순서 제안: ① 누가 누구에게 ② 어느 축(에너지·항로·동맹·시장) ③ 후속 확인(공식·교차 보도) ④ 지도에서 같은 구역의 신호.",
+      "Even the same “when” can diverge across local time, wire time, and our intake clock. Multi-hour skew is common in contested zones.",
     );
-    lines.push(
-      "지도와 함께 보면, 같은 시각의 긴장지수·초크포인트·해운 프록시가 「같은 이야기」를 다른 단위로 말하는지 비교할 수 있습니다.",
-    );
-    lines.push(
-      "한계를 분명히 합니다. 좌표는 보도 근사치일 수 있고, 번역·요약 과정에서 뉘앙스가 줄어들 수 있습니다. 원문이 최종 근거입니다.",
-    );
-    lines.push(
-      "오보·번복 가능성: 초기 타전은 속도가 우선입니다. 정정 기사가 나오면 이 양피지의 인과 골격도 함께 고쳐 읽어야 합니다.",
-    );
-    lines.push(
-      "행동 지시가 아닙니다. 투자·대피·군사 판단을 대신하지 않으며, 관측자가 「왜 이 소음이 큰지」를 따라가기 위한 설명입니다.",
-    );
-    lines.push(
-      "다음 할 일: 출처 링크를 열고, 같은 전장의 다른 매체 한 줄을 더 대조한 뒤, 지구본에서 해당 해역·도시를 직접 확인하십시오.",
-    );
-    lines.push("이상은 확인된 보도를 뼈대로 한 즉시 타전입니다. 상세·정정은 원문과 후속 와이어에서 확인하십시오.");
-  } else {
-    lines.push("This flash is less “what happened” than “what can this move next.”");
-    lines.push(causal);
-    if (actors.active && actors.passive) {
-      lines.push(
-        `Reporting frames force moving from ${actors.active} toward impact on ${actors.passive}. Roles can reverse—leave room for follow-ups.`,
-      );
-    } else if (actors.mentioned.length > 0) {
-      lines.push(
-        `Names in frame: ${actors.mentioned.slice(0, 3).join(" · ")}. Who struck first is not locked yet.`,
-      );
-    } else {
-      lines.push("Actors are unclear in the headline. We keep only confirmed wording—no invented blanks.");
-    }
     lines.push(scene);
     lines.push(
       input.economy
-        ? "The axis is geoeconomic: prices, freight, and rates sharing one wire."
-        : `The axis is ${theaterName}: front-line noise can share a line with neighboring seas and alliance calendars.`,
+        ? "【Where · axis】 Geoeconomic: prices, freight, and rates sharing one wire with physical lanes."
+        : `【Where · axis】 ${theaterName} may neighbor seas and alliance calendars; front-line noise can share a line with chokepoints.`,
     );
-    lines.push(why);
+    lines.push(`【Why】 ${why.replace(/^Why it matters:\s*/i, "")}`);
     lines.push(
-      "Causal spine in short: event → risk repricing → insurance, routes, diplomacy, and markets may co-move.",
+      "【Why · chain】 Event → risk repricing → insurance, routes, diplomacy, and markets may co-move. One flash does not end or start a war.",
     );
-    lines.push("Link one — physical, military, or policy shock: the place where power actually changed.");
-    lines.push("Link two — humans recompute risk: shippers, airlines, central banks, alliances sense a new day.");
-    lines.push("Link three — money moves: war-risk premia, diversions, safe havens, FX and commodities can tilt together.");
+    lines.push(
+      "【How · 1】 Physical, military, or policy shock—the place where power actually changed, as framed by the wire.",
+    );
+    lines.push(
+      "【How · 2】 Actors, markets, and alliances recompute risk: shippers, airlines, central banks, commands sense a new day.",
+    );
+    lines.push(
+      "【How · 3】 Money moves: war-risk premia, diversions, safe havens, FX and commodities can tilt together.",
+    );
     if (supply.length > 0) {
       const bits = supply
         .slice(0, 2)
         .map((k) => SUPPLY_BRIDGE_COPY[k].en)
         .join(" ");
-      lines.push(`Supply-chain link visible: ${bits}`);
+      lines.push(`【How · supply】 ${bits}`);
     } else {
       lines.push(
-        "This headline does not name a strait, chip, or oil axis explicitly—but the theater may still couple indirectly to logistics and energy.",
+        "【How · supply】 This headline does not name a strait, chip, or oil axis explicitly—but the theater may still couple indirectly to logistics and energy.",
       );
     }
-    lines.push(summary ? `Wire gist: ${summary}` : `Gist compressed in the title: 「${title}」`);
+    if (tierNote) lines.push(`【Verification】 ${tierNote}`);
     lines.push(
-      "We stop here: one flash does not end or start a war. It shows the first domino in a chain.",
+      "【Verification · read】 Tiers are editorial-independence / party-interest labels—not a truth score. More Tier 1 corroboration weights the spine; Tier 3 alone stays provisional.",
     );
     lines.push(
-      "Suggested read order: (1) who→whom (2) which axis—energy, lanes, alliances, markets (3) corroboration (4) same zone on the globe.",
+      "【Limits】 Coordinates may be approximate; translation can thin nuance. The source article remains ground truth.",
     );
     lines.push(
-      "Beside the map, compare tension, chokepoints, and shipping proxies—same story, different units.",
+      "【Corrections】 Early flashes prioritize speed. When wires revise, reread this 5W1H spine with them.",
     );
     lines.push(
-      "Limits: coordinates may be approximate; translation can thin nuance. The source article remains the ground truth.",
+      "【Action】 Not investment, evacuation, or military guidance—only a path to follow why the noise is loud.",
     );
     lines.push(
-      "Corrections happen: early flashes prioritize speed. When wires revise, reread this causal spine with them.",
+      "【Next】 Open the source → cross one other outlet on the same theater → check the sea/city on the globe. Compare tension, chokepoints, and shipping proxies—same story, different units.",
     );
     lines.push(
-      "Not advice: not investment, evacuation, or military guidance—only a path to follow why the noise is loud.",
+      "Immediate 5W1H flash on verified wires. Full detail and corrections live in the source article and follow-up wires.",
     );
-    lines.push(
-      "Next: open the source, cross one other outlet on the same theater, then check the sea/city on the globe yourself.",
-    );
-    lines.push("Immediate flash on verified wires. Full detail and corrections live in the source article.");
   }
 
   return lines.filter((p) => p.trim().length > 0);
