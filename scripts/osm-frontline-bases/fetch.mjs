@@ -37,7 +37,7 @@ const OVERPASS_URLS = [
   "https://overpass.osm.ch/api/interpreter",
 ];
 
-const UA = "BraveTheWorld/0.2 (frontline military OSM extract; local dashboard build)";
+const UA = "BraveNewWorld/0.2 (frontline military OSM extract; local dashboard build)";
 
 function displayName(tags) {
   const name =

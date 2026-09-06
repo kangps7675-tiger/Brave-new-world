@@ -28,7 +28,7 @@ const OUT_PUBLIC = path.join(ROOT, "public", "data", "crink", "portwatch-through
 
 const BASE =
   "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/ArcGIS/rest/services/Daily_Ports_Data/FeatureServer/0/query";
-const UA = "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+const UA = "BraveNewWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 
 const WINDOW_DAYS = Number(process.env.PORTWATCH_WINDOW_DAYS) || 90;
 const SLEEP_SEC = 0.5;

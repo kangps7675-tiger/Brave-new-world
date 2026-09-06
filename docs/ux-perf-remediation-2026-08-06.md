@@ -1,7 +1,7 @@
 # UX · 성능 · 크로스브라우저 개선 실행 계획
 
 **작성일:** 2026-08-06
-**대상:** 멋진 신세계 (Brave the World) — Next.js 14 / MapLibre GL v5 / Cloudflare Workers
+**대상:** 멋진 신세계 (Brave New World) — Next.js 14 / MapLibre GL v5 / Cloudflare Workers
 **근거 진단:** 도허티 임계(<400ms) · Laws of UX 총괄 · 브라우저별 최적화
 
 **우선순위 축:** 사고 방지 → 체감 속도 → UX 구조

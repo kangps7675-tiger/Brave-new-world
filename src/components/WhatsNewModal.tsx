@@ -42,7 +42,7 @@ export function WhatsNewModal({ lang, update, onDismiss, onCta }: Props) {
           : "You can open play anytime from the ▶ button bottom-right."
       }
       backMark={ko ? "새 소식" : "What's new"}
-      backSub={ko ? "멋진 신세계" : "Brave the World"}
+      backSub={ko ? "멋진 신세계" : "Brave New World"}
       ctaLabel={
         wantsPlay
           ? ko

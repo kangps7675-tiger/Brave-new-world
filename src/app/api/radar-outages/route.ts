@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
-          "User-Agent": "BraveTheWorld/1.0 Cloudflare Radar outages bridge",
+          "User-Agent": "BraveNewWorld/1.0 Cloudflare Radar outages bridge",
         },
         signal: controller.signal,
         cache: "no-store",

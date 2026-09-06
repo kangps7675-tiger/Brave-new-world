@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "Brave the World OSM Dark (OpenMapTiles)",
+  "name": "Brave New World OSM Dark (OpenMapTiles)",
   "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
     "openmaptiles": {
