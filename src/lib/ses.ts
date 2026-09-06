@@ -102,7 +102,15 @@ export function formatSesBriefingLead(
 
 export function sesMethodologyProseShort(ko: boolean): string {
   if (ko) {
-    return `${SES.fullKo} — sanctions-evasion 회랑의 섀도 플릿·원유 적재·모달 스트레스·합성 score를 0–100으로. ${SES.notOfacKo}`;
+    return (
+      "이 점수는 제재를 피해 가려는 움직임이 공개 자료에서 얼마나 자주·강하게 보이는지를 0~100으로 요약한 것입니다. " +
+      "섀도 플릿(위치 신호를 끄거나 속이는 선박), 원유·회랑 스트레스 같은 프록시를 섞습니다. " +
+      "특정 국가를 「범인」으로 찍거나 OFAC 등재 여부를 대신하지 않습니다."
+    );
   }
-  return `${SES.fullEn} — shadow fleet, crude load, modal stress, and composite corridor scores → 0–100. ${SES.notOfacEn}`;
+  return (
+    "This score summarizes how often and how strongly sanctions-evasion patterns show up in open data (0–100). " +
+    "It blends proxies such as shadow-fleet behavior and crude/corridor stress. " +
+    "It does not name a guilty state or replace OFAC listings."
+  );
 }

@@ -19,153 +19,241 @@ const SECTIONS_KO: DataSourceSection[] = [
     id: "surveillance",
     title: "① 실시간 감시·추적",
     intro:
-      "지도가 「지금 이 순간」을 주장하는 근거입니다. 전부 센서·트랜스폰더·위성이 자동으로 쏘는 신호입니다.",
+      "지도가 「지금」을 말할 때 쓰는 눈입니다. 사람이 손으로 그린 그림이 아니라, 위성·항공기·선박이 자동으로 보내는 신호입니다.",
     entries: [
       {
         name: "NASA FIRMS",
-        body: "VIIRS 위성 열원(10분). 포격·산불 등 이상 고온 — 「무엇이 불탔는지」는 구분 못 함. 미 정부 퍼블릭 도메인.",
+        body: "인공위성이 약 10분마다 찍은 「뜨거운 점」입니다. 포격·산불·공장 화재가 같은 점으로 보일 수 있어, 무엇이 탔는지는 말하지 않습니다. 미국 정부가 공개한 자료입니다.",
       },
       {
-        name: "ADS-B",
-        body: "adsb.lol(ODbL) 1순위. 군용기는 Turnstone ICAO 목록 보강. adsb.fi·airplanes.live는 2026-08-01 상업 조항 문제로 제거.",
+        name: "ADS-B (항공기 위치)",
+        body: "여객기·화물기가 스스로 알리는 위치 신호입니다. 민간 공개망(adsb.lol)을 우선 쓰고, 군용 기체는 공개 목록으로 보강합니다. 상업 조건이 애매한 다른 공개망은 빼 두었습니다.",
       },
       {
-        name: "MarineTraffic (AIS)",
-        body: "상선 AIS 상업 API. 장애 시 aisstream.io. 유료 화면 노출 시 별도 계약 필요.",
+        name: "선박 AIS (MarineTraffic 등)",
+        body: "상선이 보내는 위치·침로 신호입니다. 유료 API를 쓰고, 장애 시 공개 스트림으로 넘깁니다. 화면을 유료로 팔 때는 별도 계약이 필요합니다.",
       },
       {
-        name: "AIS_Tracker",
-        body: "AIS 끄거나 위장한 선박 OSINT(MIT). 실시간 위치가 아니라 알려진 시드와 대조.",
+        name: "AIS 끄거나 위장한 배",
+        body: "신호를 끄거나 이름을 바꿔 다니는 배로 알려진 사례를 공개 OSINT와 맞춰 봅니다. 「지금 GPS」가 아니라 「알려진 패턴」에 가깝습니다.",
       },
       {
         name: "비상 스쿼크 7700/7600/7500",
-        body: "adsb.lol 45초 폴링. 발신 시 지도 자동 fly·경보음.",
+        body: "항공기가 「긴급·통신장애·납치」를 알리는 특수 코드입니다. 감지되면 지도가 그쪽으로 움직이고 경보음이 납니다.",
       },
       {
-        name: "ReefWatch + OpenSky",
-        body: "남중국해 77개 지형지물 근처 항적. OpenSky는 비상업·연구용 — 상업 노출 전 계약 필요.",
+        name: "남중국해 ReefWatch + OpenSky",
+        body: "인공섬·암초 근처를 지나는 항적을 봅니다. 연구·비상업용 공개망이라, 상업 서비스로 키우기 전엔 계약이 더 필요합니다.",
       },
       {
-        name: "CelesTrak · The Space Devs · GPSJam.org",
-        body: "정찰위성 TLE(SGP4), 로켓 발사 일정, ADS-B GNSS 오차로 GPS 재밍 「증상」 추정.",
+        name: "정찰위성 · 발사 · GPS 이상",
+        body: "공개 궤도 요소로 정찰위성 위치를 추정하고, 발사 일정을 표시하며, ADS-B의 GPS 오차로 「재밍 증상」을 가늠합니다. 확정이 아니라 추정입니다.",
       },
     ],
   },
   {
     id: "conflict",
     title: "② 분쟁·타격·공중경보",
-    intro: "대부분 「보도·미확인」 꼬리표. 확인 좌표가 아니라 보도 근사치인 경우가 많습니다.",
+    intro:
+      "대부분 「보도·미확인」 꼬리표가 붙습니다. 점이 찍힌 곳이 탄착점이 아니라, 보도가 가리킨 대략의 위치인 경우가 많습니다.",
     entries: [
-      { name: "VIINA", body: "우크라 전선 통제구역(ODbL). 서버 해치 후 결과만 전달." },
-      { name: "Tzeva Adom", body: "이스라엘 Pikud HaOref 비공식 JSON. 상업 이용 시 정식 문의 필요." },
-      { name: "NEPTUN", body: "우크라 공중위협 WebSocket. 공식 경보 대체 아님." },
-      { name: "UKMTO", body: "홍해·호르무즈 상선 피격 경보. 비공식 엔드포인트 — 수익화 전 정식 피드 요청 원칙." },
-      { name: "NAVAREA · 군사훈련", body: "일본·미 NGA 경보 30분 갱신. 훈련은 announced / announced_osint / unverified 등급." },
       {
-        name: "한반도·우크라→러·중국권역 사건",
-        body: "GDELT + 시드 앵커 매칭. 탄착점이 아닌 발생·보도 좌표. 전부 보도·미확인.",
+        name: "우크라이나 전선 (VIINA)",
+        body: "누가 어느 마을·도로를 잡고 있다는 공개 통제 지도를 해치로 그립니다. 실시간 CCTV가 아닙니다.",
       },
-      { name: "대만해협 타임라인", body: "GDELT Doc 2.0 + 자동 요약. 「자동 요약·오보 가능」 고지." },
       {
-        name: "UCDP GED",
-        body: "카탈로그엔 검증 사망 이벤트로 적혀 있으나, 배포 중인 건 데모 15건(sigint-snapshot)뿐. 진짜 UCDP는 30만 건+.",
+        name: "이스라엘 공습경보 (Tzeva Adom)",
+        body: "비공식으로 공개되는 경보 JSON을 이어 받습니다. 상업 이용 전에는 정식 채널 확인이 필요합니다.",
+      },
+      {
+        name: "우크라이나 공중위협 (NEPTUN)",
+        body: "공중 위협 알림을 실시간으로 받습니다. 국가 공식 경보 앱을 대신하지 않습니다.",
+      },
+      {
+        name: "홍해·호르무즈 상선 경보 (UKMTO)",
+        body: "상선이 피격·위협받았다는 해상 경보입니다. 비공식 주소로 읽고 있어, 수익화 전에는 정식 피드를 요청하는 것이 원칙입니다.",
+      },
+      {
+        name: "항행경보 · 군사훈련",
+        body: "바닷길 위험과 「훈련합니다」 공지를 약 30분마다 갱신합니다. 훈련은 공식 발표 / OSINT / 미확인으로 등급을 나눕니다.",
+      },
+      {
+        name: "한반도·러 타격·중국권 사건",
+        body: "뉴스 데이터베이스와 미리 잡아 둔 장소를 맞춰 점을 찍습니다. 탄이 떨어진 좌표가 아니라, 보도가 말한 발생·보도 위치입니다.",
+      },
+      {
+        name: "대만해협 타임라인",
+        body: "공개 뉴스 문서를 모아 짧게 요약합니다. 자동 요약이라 오보·과장 가능성이 있어 화면에 고지합니다.",
+      },
+      {
+        name: "UCDP 사망 사건",
+        body: "카탈로그에는 「검증된 사망 사건」으로 적혀 있으나, 지금 배포 파일은 데모 몇 건뿐입니다. 진짜 전체 자료는 아직 연결하지 않았습니다.",
         warn: true,
       },
-      { name: "Mediazona×BBC · CSIS", body: "러 전사자 실명(하한) · 부상 추정. 언론 저작물 — 재배포 조건 별도." },
-      { name: "핵탄두 보유량", body: "Our World in Data(FAS Nuclear Notebook 인용) 연간 집계." },
+      {
+        name: "러 전사자·부상 추정",
+        body: "언론이 공개한 실명·추정입니다. 재배포·화면 이용에는 언론 저작권 조건이 따릅니다.",
+      },
+      {
+        name: "핵탄두 보유량",
+        body: "공개 연구(연간)를 인용한 보유량 그래프입니다. 오늘의 「발사 준비」가 아닙니다.",
+      },
     ],
   },
   {
     id: "infra",
     title: "③ 인프라·에너지·자원",
-    intro: "전쟁이 물리적으로 부딪히는 땅 위의 물건들입니다.",
+    intro: "전쟁이 실제로 부딪히는 땅 위의 물건들 — 기지, 관, 광물, 데이터센터입니다.",
     entries: [
-      { name: "군사기지 / 핵시설", body: "OSM + IAEA·NTI. 핵시설 재배포 조건 미확인 — 상업 노출 보류." },
-      { name: "Safecast", body: "원전 인근 µSv/h. CC BY." },
-      { name: "미사일 사일로·기지", body: "중·러·인·파 공개 연구·NTI 트래커. 재배포 조건 미확인." },
-      { name: "파이프라인 · LNG · 해저", body: "Global Energy Monitor(CC BY 4.0) + EMODnet. 확대 시 OSM Overpass 겹침." },
-      { name: "핵심광물", body: "USGS + 자체 큐레이션 외곽. 지질도가 아니라 「대략 이 구역」 주제도." },
-      { name: "AI 데이터센터", body: "위키데이터(CC0) + OSM, 50km 클러스터." },
+      {
+        name: "군사기지 / 핵시설",
+        body: "지도·공개 기관 목록을 바탕으로 위치를 표시합니다. 핵시설은 재배포 조건이 애매해 상업 노출을 보류한 항목이 있습니다.",
+      },
+      {
+        name: "Safecast 방사선",
+        body: "원전 주변에서 측정된 방사선량(µSv/h)입니다. 시민 과학 공개 자료입니다.",
+      },
+      {
+        name: "미사일 사일로·기지",
+        body: "공개 연구와 트래커를 모은 추정 위치입니다. 「오늘 발사대」가 아닙니다.",
+      },
+      {
+        name: "파이프라인 · LNG · 해저",
+        body: "가스·석유가 지상·바다 아래로 지나가는 길을 그립니다. 가까이 확대하면 더 촘촘한 공개 지도가 겹칩니다.",
+      },
+      {
+        name: "핵심광물",
+        body: "어디에 중요한 광물이 많은지 「대략 이 띠」로 보여 줍니다. 정밀 지질도가 아닙니다.",
+      },
+      {
+        name: "AI 데이터센터",
+        body: "공개 위키·지도에서 모은 대형 컴퓨팅 시설을 묶어 표시합니다.",
+      },
       {
         name: "인터넷 교환점(IXP)",
-        body: "PeeringDB라고 적혀 있으나 배포 파일은 합성 5건(시청 좌표). 진짜 IXP 1,000+ 미연결.",
+        body: "문서에는 대규모 공개 DB를 쓴다고 되어 있으나, 지금 배포 파일은 도시 시청 좌표 데모 몇 건입니다. 진짜 교환점 전체는 아직 연결하지 않았습니다.",
         warn: true,
       },
-      { name: "해저터널", body: "유로터널·세이칸 등 자체 시드 — 저작권 문제 없음." },
+      {
+        name: "해저터널",
+        body: "유로터널·세이칸 등 잘 알려진 터널을 자체 목록으로 올렸습니다.",
+      },
     ],
   },
   {
     id: "trade",
     title: "④ 무역·경제(지경학)",
-    intro: "무엇이 어떻게 흐르는가를 보여주는 축입니다.",
+    intro: "물건과 돈이 어디를 지나가는지 — 좁은 길목과 무역 규칙을 보여 줍니다.",
     entries: [
-      { name: "IMF PortWatch", body: "병목 구간 7일 vs 30일 통행량 스트레스. 공개 데이터." },
-      { name: "Critical Node Atlas", body: "31개 전략 병목(MIT 오픈)." },
-      { name: "Global Shipping Lanes", body: "Benden/Zenodo(CC BY 4.0) 정적 항로 — 실시간 AIS 아님." },
-      { name: "경제 허브 지수", body: "위키·OSM·세계은행 CC BY 4.0 조합." },
-      { name: "Statistics of the World API", body: "국가 거시지표 유료 API — 상업 조건 별도 확인." },
-      { name: "한국 관세청(KCS)", body: "HS 수출입. 공공누리 확인 전 — 유료 노출 보류." },
-      { name: "Global Trade Alert", body: "무역정책 2차 자료(CC BY 4.0). API는 비상업 무료 — 상업 승인 필요. R/A/G는 GTA 판단." },
-      { name: "한국은행 ECOS · KOSIS · PORT-MIS", body: "환율·금리·항만 실적. 라이선스 최종 확인 전." },
+      {
+        name: "IMF PortWatch",
+        body: "호르무즈·수에즈 같은 좁은 바다 길목에서, 배가 평소보다 많이/적게 지나는지를 봅니다. 공개 관측입니다.",
+      },
+      {
+        name: "전략 병목 지도",
+        body: "세계 물류에서 「여기가 막히면 아프다」는 길목 목록입니다.",
+      },
+      {
+        name: "세계 항로선",
+        body: "배가 자주 다니는 길을 정적으로 그려 둔 것입니다. 지금 이 순간 AIS 배 위치가 아닙니다.",
+      },
+      {
+        name: "경제 허브 지수",
+        body: "항만·도시·무역 거점을 공개 통계와 지도로 묶은 요약입니다.",
+      },
+      {
+        name: "국가 거시지표 API",
+        body: "나라별 경제 숫자를 가져오는 유료 창구입니다. 상업 이용 조건은 따로 확인합니다.",
+      },
+      {
+        name: "한국 관세청·한은·항만 통계",
+        body: "수출입·환율·항만 실적 같은 공공 숫자입니다. 라이선스 최종 확인 전이라 일부는 아직 화면 연결을 보류합니다.",
+      },
+      {
+        name: "Global Trade Alert",
+        body: "누가 관세·보조금·수출통제를 바꿨는지 정리한 2차 자료입니다. 「좋음/나쁨」 색은 그 기관의 판단입니다.",
+      },
     ],
   },
   {
     id: "axis",
-    title: "⑤ 축·코리도 백엔드",
-    intro: "sourceCatalog.ts에는 아직 없지만 CRINK·코리도에 쓰는 자료입니다.",
+    title: "⑤ 축·회랑 백엔드",
+    intro: "CRINK 축과 육상·해상 회랑을 그릴 때 뒤에서 쓰는 재료입니다.",
     entries: [
-      { name: "SIPRI 무기이전", body: "축 arms 관계선 근거. 상업 이용 SIPRI 승인 필요(진행 중)." },
-      { name: "OSM(Geofabrik)", body: "코리도 실측 스냅(ODbL). BY·UA 완료, RU·아시아 등 진행 중." },
-      { name: "UN Comtrade · UNCTAD · Ocean Trade", body: "corridor-ranks.json 신뢰도. PortWatch 4코리도 · Eurostat 철도 10페어 · Comtrade 33 · LSBCI 23 등 반영." },
-      { name: "DeepStateMap.live", body: "라이선스 검토 완료, 코드 통합 전. VIINA 병행/대체 후보." },
-      { name: "ACLED", body: "상업 이용 금지 약관으로 제품에서 완전 제거. API 410." },
+      {
+        name: "무기 이전 (SIPRI)",
+        body: "누가 누구에게 무기를 넘겼는지 공개 통계입니다. 상업 화면에는 승인 절차가 필요합니다.",
+      },
+      {
+        name: "OpenStreetMap 도로·철도",
+        body: "회랑이 실제로 지나는 길을 맞출 때 씁니다. 일부 나라는 작업이 끝났고, 일부는 진행 중입니다.",
+      },
+      {
+        name: "무역·해운·철도 통계",
+        body: "회랑 「얼마나 중요한가」 점수를 만들 때 UN·유럽·해운 공개표를 섞습니다.",
+      },
+      {
+        name: "DeepStateMap / ACLED",
+        body: "DeepState는 검토만 끝났고 코드에 넣기 전입니다. ACLED는 상업 약관 때문에 제품에서 뺐습니다.",
+      },
     ],
   },
   {
     id: "sanctions",
     title: "⑥ 제재·분쟁지대",
-    intro: "",
+    intro: "누가 제재 명단에 있는지, 어디가 분쟁·금수 구역인지 보여 줍니다.",
     entries: [
       {
         name: "제재 대상",
         body:
-          `OFAC·UN 실명단 ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()}건 ` +
-          `(OFAC ${SANCTIONS_ENTITY_SUMMARY.ofac.toLocaleString()} · UN ${SANCTIONS_ENTITY_SUMMARY.un.toLocaleString()}). ` +
-          `좌표 있는 건 ${SANCTIONS_ENTITY_SUMMARY.withCoords}건만 지도 핀 — 나머지는 관할권 집계(국가 음영). EU·UK 명단 없음.`,
+          `미국(OFAC)·유엔 실명단을 합쳐 ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()}건을 반영했습니다. ` +
+          `지도 핀이 찍히는 건 좌표가 있는 ${SANCTIONS_ENTITY_SUMMARY.withCoords}건뿐이고, 나머지는 나라 단위로만 모아 봅니다. 유럽·영국 명단은 아직 없습니다.`,
       },
-      { name: "무기금수구역 · 난민캠프", body: "UN·EU·UK·미 공식 + 위키·UNHCR." },
-      { name: "분쟁지대 히트맵", body: "Natural Earth + GDELT 밀도 자체 휴리스틱. 외부 AI 없음." },
-      { name: "분쟁 핫스팟 · 중동", body: "외부 GeoJSON + IRONSIGHT(MIT) 참조." },
+      {
+        name: "무기금수 · 난민캠프",
+        body: "공식 금수 구역과 공개된 캠프 위치를 올립니다.",
+      },
+      {
+        name: "분쟁 히트맵 · 핫스팟",
+        body: "공개 지도와 뉴스 밀도로 「어디가 뜨거운지」를 색으로 보여 줍니다. 외부 AI가 그린 그림이 아닙니다.",
+      },
       {
         name: "확전 신호(자체)",
-        body: "RAND 문헌 기준 파생 지표. 확전 판정 아님 — 근거 문장 공개. 100% 자체 저작.",
+        body: "공개 문헌을 참고해 만든 「분위기가 고조되는지」 보조 지표입니다. 확전 판결이 아닙니다.",
       },
       {
-        name: "GTS(글로벌 긴장 점수)",
-        body: "IEP 테러 지수(GTI)가 아닌 자체 Global Tension Score. FIRMS·텔레그램·GDELT 등 공개 신호를 최근 90일 평소와 비교해 0–100으로 묶음. 출처 패널에 설명 공개.",
+        name: "긴장지수(GTS)",
+        body: "유명 테러 지수와 다른, 이 서비스만의 0~100 점수입니다. 전장 신호와 최근 90일 평소를 비교해 만듭니다. 칩을 누르면 더 쉽게 풀어 설명합니다.",
       },
     ],
   },
   {
     id: "news",
     title: "⑦ 뉴스·OSINT",
-    intro: "",
+    intro: "헤드라인과 현장 채널 — 지도 위의 「글」을 채웁니다.",
     entries: [
-      { name: "지정학 RSS(~60)", body: "90초 캐시, 220자 스니펫+원문. 대부분 비상업 RSS — 상업 재배포·번역 확인 필요." },
-      { name: "유튜브 영상뉴스", body: "BBC·로이터 등 Atom. 임베드만, 다운로드 없음." },
-      { name: "경제 RSS", body: "반도체·빅테크·해운 등 키워드 큐레이션." },
-      { name: "텔레그램 OSINT", body: "IRONSIGHT(MIT) 채널 목록. 본문은 절반만 스니펫." },
-      { name: "CRINK 허브 모니터", body: "CSIS·NTI·38N·AMTI·ISW 등 6시간 RSS. 제목·요약·링크만." },
+      {
+        name: "지정학·경제 RSS",
+        body: "신뢰할 만한 매체 RSS를 모아 짧은 요약과 원문 링크를 보여 줍니다. 유료 재배포·번역은 매체마다 조건이 다릅니다.",
+      },
+      {
+        name: "유튜브·텔레그램",
+        body: "공식 영상 피드와 OSINT 채널 목록입니다. 영상은 임베드만, 텔레그램은 일부 문장만 보여 저작권을 지킵니다.",
+      },
+      {
+        name: "CRINK 허브 모니터",
+        body: "싱크탱크·전문 매체의 제목·요약·링크를 몇 시간마다 갱신합니다.",
+      },
     ],
   },
   {
     id: "render",
     title: "⑧ 지도 렌더링",
-    intro: "정보가 아니라 지도를 그리는 재료입니다.",
+    intro: "정보가 아니라, 지구본을 그리는 바탕 그림입니다.",
     entries: [
       {
-        name: "OpenFreeMap · Esri · AWS Terrain · Cesium OSM · Natural Earth",
-        body: "벡터·위성·DEM·3D·국경. Esri 상업 재배포 시 약관 확인.",
+        name: "OpenFreeMap · Esri · 지형 · 국경",
+        body: "도로·위성사진·높이·3D 건물·국경선입니다. 위성 상용 재배포는 약관을 따로 확인합니다.",
       },
     ],
   },
@@ -176,126 +264,141 @@ const SECTIONS_EN: DataSourceSection[] = [
     id: "surveillance",
     title: "① Live tracking",
     intro:
-      "What backs “right now” on the map — sensor, transponder, and satellite feeds, not human curation.",
+      "The map’s “right now” eyes — satellite heat, aircraft, and ships talking automatically, not hand-drawn art.",
     entries: [
-      { name: "NASA FIRMS", body: "VIIRS heat (10 min). Shells and wildfires look alike — heat only. US public domain." },
-      { name: "ADS-B", body: "adsb.lol (ODbL) first. Military ICAO via Turnstone. adsb.fi / airplanes.live removed Aug 2026 (commercial terms)." },
-      { name: "MarineTraffic (AIS)", body: "Commercial AIS API; aisstream.io fallback. Separate contract for paid product." },
-      { name: "AIS_Tracker", body: "Dark-fleet OSINT (MIT). Known seeds vs live AIS — not guaranteed current position." },
-      { name: "Emergency squawks", body: "7700/7600/7500 poll every 45s — auto fly + alert sound." },
-      { name: "ReefWatch + OpenSky", body: "SCS features vs nearby traffic. OpenSky non-commercial — contract before commercial use." },
-      { name: "CelesTrak · Space Devs · GPSJam", body: "Recon TLE (SGP4), launch schedule, GPS jam inferred from GNSS error in ADS-B." },
+      {
+        name: "NASA FIRMS",
+        body: "Hot spots from satellites about every 10 minutes. Shells, wildfires, and industrial fires can look the same—heat only, not “what burned.” US public domain.",
+      },
+      {
+        name: "ADS-B (aircraft)",
+        body: "Planes broadcasting their own positions. We prefer the open adsb.lol net and enrich military ICAO from public lists. Other open nets with fuzzy commercial terms were removed.",
+      },
+      {
+        name: "Ship AIS (MarineTraffic, etc.)",
+        body: "Commercial vessel position/course. Paid API with a public-stream fallback. Selling the screen needs a separate contract.",
+      },
+      {
+        name: "Dark / spoofed AIS",
+        body: "Open OSINT on ships that go dark or spoof identity—pattern matching, not guaranteed live GPS.",
+      },
+      {
+        name: "Emergency squawks",
+        body: "7700/7600/7500 codes. When seen, the map flies there and plays an alert.",
+      },
+      {
+        name: "ReefWatch + OpenSky (SCS)",
+        body: "Traffic near South China Sea features. Research/non-commercial open nets—more paperwork before heavy commercial use.",
+      },
+      {
+        name: "Recon sats · launches · GPS oddities",
+        body: "Public orbits, launch calendars, and GNSS error hints from ADS-B. Estimates, not courtroom proof.",
+      },
     ],
   },
   {
     id: "conflict",
     title: "② Conflict · strikes · air alerts",
-    intro: "Most layers tagged “reported · unverified”. Coordinates are often approximate.",
+    intro:
+      "Most layers say “reported · unverified.” Pins are often where reporting pointed—not proven impact points.",
     entries: [
-      { name: "VIINA", body: "Ukraine control polygons (ODbL). Server-side hatch only." },
-      { name: "Tzeva Adom", body: "Unofficial Pikud HaOref JSON — commercial use needs official channel." },
-      { name: "NEPTUN", body: "Ukraine air-threat WebSocket — not a replacement for official alerts." },
-      { name: "UKMTO", body: "Red Sea / Hormuz maritime attacks. Unofficial endpoint — formal feed before monetization." },
-      { name: "NAVAREA · exercises", body: "JP / US NGA every 30 min. Training: announced / osint / unverified tiers." },
-      { name: "Korea · RU strikes · China theater", body: "GDELT + anchor seeds. Report coordinates, not impact points." },
-      { name: "Taiwan Strait timeline", body: "GDELT Doc 2.0 auto summaries — misreport risk disclosed." },
+      { name: "Ukraine front (VIINA)", body: "Who holds which ground as open control maps—hatched, not CCTV." },
+      { name: "Israel alerts (Tzeva Adom)", body: "Unofficial alert JSON. Formal channel needed before commercial use." },
+      { name: "Ukraine air threat (NEPTUN)", body: "Live air-threat feed—not a replacement for official apps." },
+      { name: "UKMTO maritime alerts", body: "Ship attacks/threats in Red Sea / Hormuz. Unofficial endpoint for now." },
+      { name: "NAVAREA · exercises", body: "Sea hazards and drill notices ~30 min. Training tiers: announced / OSINT / unverified." },
+      { name: "Korea · RU strikes · China theater", body: "News DBs matched to seed places—report coords, not shell impacts." },
+      { name: "Taiwan Strait timeline", body: "Auto-summarized open docs—misreport risk disclosed on screen." },
       {
-        name: "UCDP GED",
-        body: "Catalog says verified deaths; shipped file is 15 demo rows (sigint-snapshot). Real UCDP has 300k+ events.",
+        name: "UCDP deaths",
+        body: "Catalog claims verified deaths; the shipped file is a tiny demo. Full UCDP is not wired yet.",
         warn: true,
       },
-      { name: "Mediazona×BBC · CSIS", body: "Russian KIA names (lower bound) · casualty estimates. Media rights apply." },
-      { name: "Nuclear warhead counts", body: "Our World in Data (FAS Nuclear Notebook)." },
+      { name: "RU KIA / casualty estimates", body: "Named lists and press estimates—media rights apply." },
+      { name: "Nuclear warhead counts", body: "Annual public research charts—not today’s launch readiness." },
     ],
   },
   {
     id: "infra",
     title: "③ Infrastructure · energy · resources",
-    intro: "Physical objects war touches on the ground.",
+    intro: "Physical things war bumps into—bases, pipes, minerals, compute.",
     entries: [
-      { name: "Military bases / nuclear", body: "OSM + IAEA/NTI. Nuclear redistribution terms unclear — commercial hold." },
-      { name: "Safecast", body: "µSv/h near major plants. CC BY." },
-      { name: "Missile silos / bases", body: "Open research + NTI tracker. Redistribution TBD." },
-      { name: "Pipelines · LNG · subsea", body: "Global Energy Monitor (CC BY 4.0) + EMODnet; OSM Overpass when zoomed." },
-      { name: "Critical minerals", body: "USGS + curated belts — thematic, not geological survey." },
-      { name: "AI data centers", body: "Wikidata (CC0) + OSM clusters." },
+      { name: "Bases / nuclear sites", body: "Maps + public lists. Some nuclear items held for redistribution clarity." },
+      { name: "Safecast", body: "Citizen science µSv/h near plants." },
+      { name: "Missile silos / bases", body: "Open research estimates—not today’s TELs." },
+      { name: "Pipelines · LNG · subsea", body: "Where energy moves on land and under sea; denser OSM when zoomed." },
+      { name: "Critical minerals", body: "Thematic belts—“about this region,” not a full geology survey." },
+      { name: "AI data centers", body: "Public wiki/map clusters of large compute sites." },
       {
         name: "Internet exchanges (IXP)",
-        body: "Docs say PeeringDB; live file is 5 synthetic city-hall points. 1,000+ real IXPs not wired.",
+        body: "Docs mention a large DB; the live file is a handful of city-hall demo points. Real IXPs not wired yet.",
         warn: true,
       },
-      { name: "Subsea tunnels", body: "In-house seed (Channel, Seikan, etc.)." },
+      { name: "Subsea tunnels", body: "Well-known tunnels from an in-house list." },
     ],
   },
   {
     id: "trade",
     title: "④ Trade · geoeconomics",
-    intro: "What moves, how, and through which chokepoints.",
+    intro: "What moves where—narrow gates and trade rules.",
     entries: [
-      { name: "IMF PortWatch", body: "7d vs 30d transit stress at chokepoints. Open data." },
-      { name: "Critical Node Atlas", body: "31 strategic nodes (MIT open)." },
-      { name: "Global Shipping Lanes", body: "Benden/Zenodo (CC BY 4.0) static lanes — not live AIS." },
-      { name: "Economic hub index", body: "Wiki + OSM + World Bank (CC BY 4.0)." },
-      { name: "Statistics of the World", body: "Paid macro API — confirm commercial terms." },
-      { name: "Korea Customs (KCS)", body: "HS trade stats — public license check pending." },
-      { name: "Global Trade Alert", body: "Policy coding (CC BY 4.0). API free for non-commercial; R/A/G is GTA judgment." },
-      { name: "BOK ECOS · KOSIS · PORT-MIS", body: "FX, rates, port throughput — license pending." },
+      { name: "IMF PortWatch", body: "Whether ships pass Hormuz/Suez-style gates more or less than usual—open observation." },
+      { name: "Critical nodes", body: "A list of “if this clogs, it hurts” global nodes." },
+      { name: "Global shipping lanes", body: "Static busy-lane drawings—not live AIS dots." },
+      { name: "Economic hubs", body: "Ports/cities summarized from open stats and maps." },
+      { name: "Macro APIs · Korea stats", body: "Paid/public macro and trade numbers—some still waiting on license clearance." },
+      { name: "Global Trade Alert", body: "Who changed tariffs/subsidies/controls. R/A/G colors are that project’s judgment." },
     ],
   },
   {
     id: "axis",
     title: "⑤ Axis · corridor backend",
-    intro: "Not yet in sourceCatalog.ts but powers CRINK / corridor layers.",
+    intro: "Behind CRINK axes and land/sea corridors.",
     entries: [
-      { name: "SIPRI arms transfers", body: "Axis “arms” edges. Commercial use needs SIPRI approval (in progress)." },
-      { name: "OSM (Geofabrik)", body: "Corridor geometry snap (ODbL). BY/UA done; RU/Asia in progress." },
-      { name: "UN Comtrade · UNCTAD", body: "corridor-ranks.json. PortWatch 4 corridors · Eurostat rail 10 pairs · Comtrade 33 · LSBCI 23 hits." },
-      { name: "DeepStateMap.live", body: "License reviewed; code not integrated. VIINA alternative candidate." },
-      { name: "ACLED", body: "Removed from product — commercial terms. API returns 410." },
+      { name: "SIPRI arms transfers", body: "Who transferred arms to whom—approval needed for commercial screens." },
+      { name: "OpenStreetMap", body: "Snaps corridors to real roads/rails. Some countries done, others in progress." },
+      { name: "Trade · shipping · rail stats", body: "Public tables that feed “how important is this corridor?” scores." },
+      { name: "DeepStateMap / ACLED", body: "DeepState reviewed not coded; ACLED removed on commercial terms." },
     ],
   },
   {
     id: "sanctions",
     title: "⑥ Sanctions · dispute zones",
-    intro: "",
+    intro: "Who is listed, and where disputes or embargoes sit.",
     entries: [
       {
         name: "Sanctions targets",
         body:
-          `OFAC + UN lists: ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()} entities ` +
-          `(OFAC ${SANCTIONS_ENTITY_SUMMARY.ofac.toLocaleString()} · UN ${SANCTIONS_ENTITY_SUMMARY.un.toLocaleString()}). ` +
-          `Only ${SANCTIONS_ENTITY_SUMMARY.withCoords} have map pins — rest roll up by jurisdiction (country shading). No EU/UK lists yet.`,
+          `OFAC + UN lists: ${SANCTIONS_ENTITY_SUMMARY.total.toLocaleString()} entities. ` +
+          `Only ${SANCTIONS_ENTITY_SUMMARY.withCoords} have map pins; the rest roll up by country. No EU/UK lists yet.`,
       },
-      { name: "Arms embargoes · refugee camps", body: "Official lists + Wiki/UNHCR." },
-      { name: "Dispute heatmap", body: "Natural Earth + GDELT density heuristic — no external AI." },
-      { name: "Hotspots · Middle East", body: "External GeoJSON + IRONSIGHT (MIT) reference." },
-      { name: "Escalation signals (in-house)", body: "RAND-informed derivative — not a verdict; evidence strings shown." },
+      { name: "Arms embargoes · camps", body: "Official zones and public camp locations." },
+      { name: "Dispute heat · hotspots", body: "Open maps + news density—no external AI painting." },
+      { name: "Escalation signals (ours)", body: "A helper “is the mood rising?” read—not a verdict." },
       {
-        name: "GTS (Global Tension Score)",
-        body: "Not IEP’s terrorism index (GTI) — our own 0–100 score from public FIRMS, Telegram, GDELT vs a ~90-day baseline. Explained in the Sources panel.",
+        name: "Tension score (GTS)",
+        body: "Not the famous terrorism index—our 0–100 score from theater signals vs a ~90-day baseline. Tap the chip for a plain-language explainer.",
       },
     ],
   },
   {
     id: "news",
     title: "⑦ News · OSINT",
-    intro: "",
+    intro: "Headlines and field channels that fill the “words” on the map.",
     entries: [
-      { name: "Geopolitics RSS (~60)", body: "90s cache, 220-char snippet + link. Most feeds non-commercial — check before paid redistribution." },
-      { name: "YouTube video news", body: "Official Atom feeds — embed only." },
-      { name: "Economy RSS", body: "Chips, big tech, shipping keywords." },
-      { name: "Telegram OSINT", body: "IRONSIGHT (MIT) channel list — partial snippets only." },
-      { name: "CRINK hub monitor", body: "CSIS, NTI, 38N, AMTI, ISW, etc. — 6h RSS title/summary/link." },
+      { name: "Geopolitics · economy RSS", body: "Curated feeds with short blurbs and source links. Paid redistribution rules vary by outlet." },
+      { name: "YouTube · Telegram", body: "Official video atoms (embed only) and OSINT channel lists (partial snippets)." },
+      { name: "CRINK hub monitor", body: "Think-tank titles/summaries/links on a multi-hour cadence." },
     ],
   },
   {
     id: "render",
     title: "⑧ Map rendering",
-    intro: "Basemap and terrain — not intelligence content.",
+    intro: "Basemap paint—not intelligence content.",
     entries: [
       {
-        name: "OpenFreeMap · Esri · AWS Terrain · Cesium · Natural Earth",
-        body: "Vector, imagery, DEM, 3D buildings, borders. Esri commercial redistribution needs terms check.",
+        name: "OpenFreeMap · Esri · terrain · borders",
+        body: "Roads, imagery, elevation, 3D buildings, borders. Commercial imagery redistribution needs its own terms check.",
       },
     ],
   },
@@ -322,30 +425,29 @@ export const DATA_SOURCE_FOOTNOTE = {
   ],
 } as const;
 
-/** shipped/planned/blocked 건수를 카탈로그에서 읽어 각주를 갱신한다. */
 export function dataSourceFootnoteLines(lang: LabelLanguage): string[] {
   const stats = getSourceCatalogStats();
   const ko = lang !== "en";
   const s = SANCTIONS_ENTITY_SUMMARY;
   if (ko) {
     return [
-      `정상 작동: sourceCatalog ${stats.total}개 중 ${stats.shipped}개 shipped.`,
-      "⚠ 가짜·데모로 표시 중 2개: UCDP GED, IXP.",
-      `제재 명단: OFAC·UN ${s.total.toLocaleString()}건 반영(좌표 ${s.withCoords}). EU·UK 없음.`,
-      "제거 1개: ACLED(상업 약관).",
-      `연동 전 ${stats.planned}개: KCS, ECOS, KOSIS, PORT-MIS, GTA API 등.`,
-      "MarineTraffic·OpenSky·언론 RSS 등 — 상업 이용 별도 계약·확인 필요.",
-      "우리는 완벽한 정보기관이 아닙니다. 이만큼의 재료로 이만큼을 보여주는 서비스입니다.",
+      `정상 작동 중: 공개 카탈로그 ${stats.total}개 중 ${stats.shipped}개를 실제로 씁니다.`,
+      "⚠ 지금은 데모·가짜로만 보이는 항목 2개: 사망 사건(UCDP), 인터넷 교환점.",
+      `제재 명단: 미국·유엔 ${s.total.toLocaleString()}건(지도 핀 ${s.withCoords}건). 유럽·영국 명단은 아직 없습니다.`,
+      "상업 약관 때문에 뺀 항목: ACLED.",
+      `아직 연결 전 ${stats.planned}개(관세청·한은·항만·무역정책 API 등).`,
+      "선박·항공기·언론 RSS는 상업 이용 시 따로 계약·확인이 필요할 수 있습니다.",
+      "우리는 완벽한 정보기관이 아닙니다. 이 재료로 보여줄 수 있는 만큼만 보여 줍니다.",
     ];
   }
   return [
-    `Shipped: ${stats.shipped} of ${stats.total} sourceCatalog entries.`,
-    "⚠ Demo/placeholder (2): UCDP GED, IXP.",
-    `Sanctions: OFAC+UN ${s.total.toLocaleString()} entities (${s.withCoords} with coords). No EU/UK lists.`,
-    "Removed (1): ACLED (commercial terms).",
-    `Planned (${stats.planned}): KCS, ECOS, KOSIS, PORT-MIS, GTA API, etc.`,
-    "MarineTraffic, OpenSky, news RSS, etc. — separate commercial clearance.",
-    "We are not a perfect intelligence agency — only what these sources allow us to show.",
+    `Live: ${stats.shipped} of ${stats.total} catalog sources actually wired.`,
+    "⚠ Demo/placeholder (2): UCDP deaths, IXP.",
+    `Sanctions: OFAC+UN ${s.total.toLocaleString()} (${s.withCoords} pinned). No EU/UK lists yet.`,
+    "Removed for commercial terms: ACLED.",
+    `Still planned (${stats.planned}): customs, central bank, ports, trade-policy APIs, etc.`,
+    "Ship/aircraft/news feeds may need separate commercial clearance.",
+    "We are not a perfect intelligence agency—only what these sources let us show.",
   ];
 }
 
