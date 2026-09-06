@@ -7,49 +7,49 @@ export type IngestEnv = {
   NASA_FIRMS_API_KEY?: string;
   FIRMS_MAP_KEY?: string;
   /**
-   * ?�동 HTTP ?�리거용 bearer ?�크�?
-   * **?�로?�션 ?�수** ??미설????/run·/push/send·/track·/backfill-baseline ???��? 401.
+   * ?ë HTTP ?¸ë¦¬ê±°ì© bearer ?í¬ë¦?
+   * **?ë¡?ì ?ì** ??ë¯¸ì¤????/runÂ·/push/sendÂ·/trackÂ·/backfill-baseline ???ë? 401.
    * `npx wrangler secret put INGEST_CRON_SECRET -c wrangler.ingest.toml`
    */
   INGEST_CRON_SECRET?: string;
   /**
-   * 로컬 개발 ?�용 ?�출�? `.dev.vars` ??"true" �??�면 ?�크�??�이???�동 ?�리�??�용.
-   * **?�로?�션?�는 ?��? ?�정?��? �?�?**
+   * ë¡ì»¬ ê°ë° ?ì© ?ì¶êµ? `.dev.vars` ??"true" ë¡??ë©´ ?í¬ë¦??ì´???ë ?¸ë¦¬ê±??ì©.
+   * **?ë¡?ì?ë ?ë? ?¤ì ?ì? ë§?ê²?**
    */
   ALLOW_UNAUTHENTICATED_INGEST?: string;
   /**
-   * Next ?�의 ?�스 ?�밍 URL.
+   * Next ?±ì ?´ì¤ ?ë° URL.
    * ?? https://your-app.example/api/news-stream/warm
-   * ?�정 ??Cron??FIRMS/GDELT 직후 POST�?D1 ?�스 ?�냅?�을 채운??
+   * ?¤ì  ??Cron??FIRMS/GDELT ì§í POSTë¡?D1 ?´ì¤ ?¤ë?·ì ì±ì´??
    */
   NEWS_WARM_URL?: string;
   /**
-   * Next ?�영???�스 ?�밍 URL (YouTube Atom 메�? ??D1)
+   * Next ?ì???´ì¤ ?ë° URL (YouTube Atom ë©í? ??D1)
    * ?? https://your-app.example/api/video-news/warm
    */
   VIDEO_NEWS_WARM_URL?: string;
   /**
-   * Next AIS ?�밍 URL (MarineTraffic ??D1)
+   * Next AIS ?ë° URL (MarineTraffic ??D1)
    * ?? https://your-app.example/api/ais/warm
    */
   AIS_WARM_URL?: string;
   /**
-   * Next ADS-B ?�밍 URL (mil + civ hubs ??D1)
+   * Next ADS-B ?ë° URL (mil + civ hubs ??D1)
    * ?? https://your-app.example/api/adsb/warm
    */
   ADSB_WARM_URL?: string;
   /**
-   * Next ?��??�널 ?�드 ?�밍
+   * Next ?´ì??°ë ?ë ?ë°
    * ?? https://your-app.example/api/submarine-tunnels/warm
    */
   TUNNELS_WARM_URL?: string;
   /**
-   * 분쟁·중동(?��?) ?�선 hatch ?�빌??   * ?? https://your-app.example/api/render/dispute-paths?lod=overview
-   * (POST ??overview/detail 각각 ?�는 Cron????�??�출)
+   * ë¶ìÂ·ì¤ë(?´ë?) ?ì  hatch ?¬ë¹??   * ?? https://your-app.example/api/render/dispute-paths?lod=overview
+   * (POST ??overview/detail ê°ê° ?ë Cron????ë²??¸ì¶)
    */
   DISPUTE_HATCH_WARM_URL?: string;
   /**
-   * ?�크???�선 hatch ?�빌??(VIINA 캐시가 ???�버???�을 ?�만)
+   * ?°í¬???ì  hatch ?¬ë¹??(VIINA ìºìê° ???ë²???ì ?ë§)
    * ?? https://your-app.example/api/render/ukraine-control-paths?lod=overview
    */
   UKRAINE_HATCH_WARM_URL?: string;
@@ -57,23 +57,23 @@ export type IngestEnv = {
   FIRMS_MAX_PER_THEATER?: string;
   GDELT_MAX_POINTS?: string;
   RETENTION_HOURS?: string;
-  /** ?�레그램 ?�크?�이??최�? ?�보 ??(기본 200) */
+  /** ?ë ê·¸ë¨ ?¤í¬?ì´??ìµë? ?ë³´ ??(ê¸°ë³¸ 200) */
   TELEGRAM_MAX_ALERTS?: string;
-  /** "false"/"0" ?�면 ?�레그램 ?�크?�이??비활??*/
+  /** "false"/"0" ?´ë©´ ?ë ê·¸ë¨ ?¤í¬?ì´??ë¹í??*/
   TELEGRAM_INGEST_ENABLED?: string;
   /** MarineTraffic exportvessels API key */
   MARINETRAFFIC_API_KEY?: string;
   MarineTraffic_API_KEY?: string;
-  /** ADS-B Exchange gateway key (?�으�?adsb.fi ?�픈?�이?? */
+  /** ADS-B Exchange gateway key (?ì¼ë©?adsb.fi ?¤í?°ì´?? */
   ADSBEXCHANGE_API_KEY?: string;
   ADSB_API_KEY?: string;
   ADSBX_API_KEY?: string;
-  /** AISstream WebSocket (MarineTraffic ?�패 ???�백) */
+  /** AISstream WebSocket (MarineTraffic ?¤í¨ ???´ë°±) */
   AISSTREAM_API_KEY?: string;
 
   /**
-   * FRED API key — 컨버전스 발화 이후 시장 반응 측정용.
-   * 미 세인트루이스 연은. 데이터는 퍼블릭 도메인이라 상업적 재배포 제약 없음.
+   * FRED API key â ì»¨ë²ì ì¤ ë°í ì´í ìì¥ ë°ì ì¸¡ì ì©.
+   * ë¯¸ ì¸ì¸í¸ë£¨ì´ì¤ ì°ì. ë°ì´í°ë í¼ë¸ë¦­ ëë©ì¸ì´ë¼ ììì  ì¬ë°°í¬ ì ì½ ìì.
    * `wrangler secret put FRED_API_KEY`
    */
   FRED_API_KEY?: string;
@@ -81,83 +81,88 @@ export type IngestEnv = {
   ADSB_MIL_MAX?: string;
   ADSB_CIV_PER_HUB?: string;
   /**
-   * ?�료 ?�어 ?�영 ?��?.
+   * ? ë£ ?°ì´ ?´ì ?¬ë?.
    *
-   * "true" �?**비상???�용 ?�스�??�백?�서 ?�외**?�다.
-   *   · adsb.fi        "for personal, non-commercial use only"
-   *   · airplanes.live ?�점 ?�이?�스 ???�업 조건 미확??   * ?�는 �? adsb.lol(ODbL, ?�업 가?? · ADSBexchange(?�업 ?�어, ???�요)
+   * "true" ë©?**ë¹ì???ì© ?ì¤ë¥??´ë°±?ì ?ì¸**?ë¤.
+   *   Â· adsb.fi        "for personal, non-commercial use only"
+   *   Â· airplanes.live ?ì  ?¼ì´? ì¤ ???ì ì¡°ê±´ ë¯¸í??   * ?¨ë ê²? adsb.lol(ODbL, ?ì ê°?? Â· ADSBexchange(?ì ?°ì´, ???ì)
    *
-   * ?�️ ?�금?��? 켜면 ??값도 반드??�?�? ??켜면 조용???��? ?�반??계속?�다.
+   * ? ï¸ ?ê¸?ë? ì¼ë©´ ??ê°ë ë°ë??ì¼?ê²? ??ì¼ë©´ ì¡°ì©???½ê? ?ë°??ê³ì?ë¤.
    */
   COMMERCIAL_TIER_ENABLED?: string;
   /** Web Push VAPID ??`wrangler secret put VAPID_PRIVATE_KEY` */
   VAPID_PRIVATE_KEY?: string;
-  /** Public key (base64url) ??wrangler [vars] ?�는 secret */
+  /** Public key (base64url) ??wrangler [vars] ?ë secret */
   VAPID_PUBLIC_KEY?: string;
   /** mailto: or https: contact for VAPID JWT */
   VAPID_SUBJECT?: string;
   /**
-   * OREF(?�스?�엘 공습경보) ?�록????CF Worker가 403?�면 ?�스?�엘 IP 경유 URL.
+   * OREF(?´ì¤?¼ì ê³µìµê²½ë³´) ?ë¡????CF Workerê° 403?´ë©´ ?´ì¤?¼ì IP ê²½ì  URL.
    * ?? https://your-proxy.example/oref/history.json
    */
   OREF_HISTORY_URL?: string;
   OREF_ACTIVE_URL?: string;
-  /** "false"/"0" ?�면 공습경보 ?�제?�트 비활??*/
+  /** "false"/"0" ?´ë©´ ê³µìµê²½ë³´ ?¸ì ?¤í¸ ë¹í??*/
   AIR_RAID_INGEST_ENABLED?: string;
-  /** NEPTUN 베이??(기본 https://neptun.in.ua) */
+  /** NEPTUN ë² ì´??(ê¸°ë³¸ https://neptun.in.ua) */
   NEPTUN_API_BASE?: string;
   /**
-   * UKMTO ?�선 경보 ??비공??리버???��??�어�? ?�드?�인??
-   * 기본 https://sccd.royalnavy.mod.uk/api/ukmto/all
+   * UKMTO ?ì  ê²½ë³´ ??ë¹ê³µ??ë¦¬ë²???ì??ì´ë§? ?ë?¬ì¸??
+   * ê¸°ë³¸ https://sccd.royalnavy.mod.uk/api/ukmto/all
    */
   UKMTO_API_URL?: string;
-  /** "false"/"0" ?�면 UKMTO ?�제?�트 비활??*/
+  /** "false"/"0" ?´ë©´ UKMTO ?¸ì ?¤í¸ ë¹í??*/
   UKMTO_INGEST_ENABLED?: string;
-  /** 최소 ?�폴�?간격(�? ???�의???�유 ?�게, 기본 30 */
+  /** ìµì ?¬í´ë§?ê°ê²©(ë¶? ???ì???¬ì  ?ê², ê¸°ë³¸ 30 */
   UKMTO_POLL_MIN_INTERVAL_MINUTES?: string;
   /**
-   * JHOD NAVAREA XI 공개 TXT.
-   * 기본 https://www1.kaiho.mlit.go.jp/TUHO/freetext/NavareaXI.txt
-   * "off" ?�면 JHOD ?�드 ?�킵
+   * JHOD NAVAREA XI ê³µê° TXT.
+   * ê¸°ë³¸ https://www1.kaiho.mlit.go.jp/TUHO/freetext/NavareaXI.txt
+   * "off" ?´ë©´ JHOD ?¼ë ?¤íµ
    */
   NAVAREA_JHOD_XI_URL?: string;
   /**
-   * NGA NAVAREA TXT URL 목록 (콤마 구분).
+   * NGA NAVAREA TXT URL ëª©ë¡ (ì½¤ë§ êµ¬ë¶).
    * ?? https://.../navarea_iv.txt,https://.../navarea_xii.txt
    */
   NAVAREA_NGA_TXT_URLS?: string;
-  /** "false"/"0" ?�면 NAVAREA ?�제?�트 비활??*/
+  /** "false"/"0" ?´ë©´ NAVAREA ?¸ì ?¤í¸ ë¹í??*/
   NAVAREA_INGEST_ENABLED?: string;
-  /** 최소 ?�폴�?간격(�? ???��? TXT ?�의??15~30, 기본 30 */
+  /** ìµì ?¬í´ë§?ê°ê²©(ë¶? ???ë? TXT ?ì??15~30, ê¸°ë³¸ 30 */
   NAVAREA_POLL_MIN_INTERVAL_MINUTES?: string;
-  /** "false"/"0" ?�면 ?�퍼?�스 감시(CSIS Beyond Parallel · NTI) 비활??*/
+  /** "false"/"0" ?´ë©´ ?í¼?°ì¤ ê°ì(CSIS Beyond Parallel Â· NTI) ë¹í??*/
   REFERENCE_MONITOR_ENABLED?: string;
-  /** 최소 ?�폴�?간격(�? ??분석물이???�유 ?�게, 기본 360(6?�간) */
+  /** ìµì ?¬í´ë§?ê°ê²©(ë¶? ??ë¶ìë¬¼ì´???¬ì  ?ê², ê¸°ë³¸ 360(6?ê°) */
   REFERENCE_MONITOR_POLL_MIN_INTERVAL_MINUTES?: string;
-  /** 채널??가?�올 최�? ??�� ??(기본 20) */
+  /** ì±ë??ê°?¸ì¬ ìµë? ??ª© ??(ê¸°ë³¸ 20) */
   REFERENCE_MONITOR_MAX_PER_CHANNEL?: string;
-  /** ???�수 미만?� ?�????????모금·?�사 글 �?(기본 2) */
+  /** ???ì ë¯¸ë§? ?????????ëª¨ê¸Â·?ì¬ ê¸ ì»?(ê¸°ë³¸ 2) */
   REFERENCE_MONITOR_MIN_RELEVANCE?: string;
   /**
    * CSIS Beyond Parallel RSS.
-   * 기본 https://beyondparallel.csis.org/feed/ ??"off" ?�면 ?�킵
+   * ê¸°ë³¸ https://beyondparallel.csis.org/feed/ ??"off" ?´ë©´ ?¤íµ
    */
   CSIS_BEYOND_PARALLEL_FEED_URL?: string;
   /**
-   * NTI WordPress REST 베이??(/feed/ ??�?채널?�라 REST ?�용).
-   * 기본 https://www.nti.org/wp-json/wp/v2 ??"off" ?�면 ?�킵
+   * NTI WordPress REST ë² ì´??(/feed/ ??ë¹?ì±ë?´ë¼ REST ?¬ì©).
+   * ê¸°ë³¸ https://www.nti.org/wp-json/wp/v2 ??"off" ?´ë©´ ?¤íµ
    */
   NTI_REST_BASE_URL?: string;
   /**
-   * NTI REST 가 Cloudflare 챌린지�?막혔?????�백??sitemap ?�덱??
-   * 기본 https://www.nti.org/sitemap_index.xml ??"off" ?�면 ?�백 ?�음
+   * NTI REST ê° Cloudflare ì±ë¦°ì§ë¡?ë§í?????´ë°±??sitemap ?¸ë±??
+   * ê¸°ë³¸ https://www.nti.org/sitemap_index.xml ??"off" ?´ë©´ ?´ë°± ?ì
    */
   NTI_SITEMAP_INDEX_URL?: string;
   /**
-   * Next 주간 ?�선 ?�동�??�밍 URL
+   * Next ì£¼ê° ?¨ì  ?´ëê¸??ë° URL
    * ?? https://your-app.example/api/ship-movements/warm
    */
   SHIP_MOVEMENTS_WARM_URL?: string;
+  /**
+   * Next US carrier warm URL (USNI Fleet Tracker → D1 snapshot)
+   * e.g. https://your-app.example/api/us-carriers/warm
+   */
+  US_CARRIERS_WARM_URL?: string;
 };
 
 export type FirmsFireRow = {

@@ -4,6 +4,7 @@ import type { UsCarrier } from "@/data/usCarriers";
 import { US_CARRIERS_SEED } from "@/data/usCarriers";
 import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import { CDN_CACHE, publicCacheHeaders } from "@/lib/httpCacheHeaders";
+import { loadUsCarrierSnapshot } from "@/lib/usCarriers/snapshotStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,15 @@ async function loadCarrierFile(): Promise<{
   updatedAt: string;
   source: string;
 }> {
+  const snapshot = await loadUsCarrierSnapshot();
+  if (snapshot) {
+    return {
+      carriers: snapshot.carriers,
+      updatedAt: snapshot.updatedAt,
+      source: snapshot.source,
+    };
+  }
+
   const payload = await loadCloudStaticJson<CarrierPayload>("us-carriers.json");
   if (payload) {
     return {
@@ -32,12 +42,12 @@ async function loadCarrierFile(): Promise<{
   }
   return {
     carriers: US_CARRIERS_SEED,
-    updatedAt: "2026-01-21",
+    updatedAt: "2026-07-10",
     source: "built-in seed",
   };
 }
 
-/** stub과 무관하게 정적 항모 데이터 제공 (외부 API 없음) */
+/** D1 뉴스 스냅샷 → 클라우드 JSON → seed 순으로 항모 좌표 제공 */
 export async function GET() {
   try {
     const { carriers, updatedAt, source } = await loadCarrierFile();

@@ -78,16 +78,15 @@ import {
 | `public/data/lite/us-carriers.json` | 정적 시드 (stub) |
 | `public/data/full/us-carriers.json` | full 프로필 |
 | `src/data/usCarriers.ts` | `US_CARRIERS_SEED` fallback |
-| `src/app/api/us-carriers/route.ts` | API (`/api/us-carriers`) |
+| `src/app/api/us-carriers/route.ts` | API (`/api/us-carriers`) — **D1 스냅샷 우선** |
+| `src/app/api/us-carriers/warm/route.ts` | Cron — USNI Fleet Tracker → D1 |
 
-갱신: JSON의 `lat`/`lng`/`status` 수정 후 새로고침.
+갱신: cron이 `US_CARRIERS_WARM_URL`로 warm을 치면 USNI Fleet Tracker RSS/아카이브에서 CVN 위치 키워드를 읽어 `us_carrier_snapshots`에 저장한다. 지도는 8분마다 `/api/us-carriers`를 폴링한다.
 
-## 아이콘 크기 변경
-
-`CARRIER_MARKER_ICON_SIZE` (`usCarrierDeckSilhouette.ts`)와  
-`carrierMarkerAnchorOffsetPx()` (앵커 X 오프셋)를 함께 조정하세요.
+수동 강제: `POST /api/us-carriers/warm?force=1` (Bearer `INGEST_CRON_SECRET`).
 
 ## 변경 이력
 
 - **2026-01-21** — 공중샷 참조 실루엣 v1 (angled deck + island + runway)
 - **2026-07-10** — 문서·geometry 코드베이스 고정 (`usCarrierDeckSilhouette.ts`)
+- **2026-09-06** — USNI 뉴스 기반 항모 좌표 자동 스냅샷 (`/api/us-carriers/warm`)
