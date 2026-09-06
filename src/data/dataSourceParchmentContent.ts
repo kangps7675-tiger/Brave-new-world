@@ -247,8 +247,28 @@ const SECTIONS_KO: DataSourceSection[] = [
     ],
   },
   {
+    id: "news-ko-flash",
+    title: "⑧ 한글·신속속보 설계",
+    intro:
+      "한글 모드에서 뉴스를 어떻게 보여 주는지, 신속속보 양피지가 무엇을 쓰는지 — 코드에 박아 둔 동작입니다. 설정으로 끄지 않습니다.",
+    entries: [
+      {
+        name: "① 한글 모드 번역 (등불 · RSS)",
+        body: "등불은 점화 직전에 제목·카드 제목·요약을 한글로 맞춥니다. 하단 RSS 스택은 브라우저가 Google을 직접 부르지 않고, 서버 `/api/translate-text` 프록시로 배치 번역합니다. 영문 모드에서는 원문을 유지합니다.",
+      },
+      {
+        name: "② 신속속보 — 6하원칙 상세 브리핑",
+        body: "속보 양피지 본문은 누가·무엇을·언제·어디서·왜·어떻게 구조로 20단락 이상 씁니다. 출처·경과 시간·Tier 검증 메모를 넣고, 제목·요약·전장 신호만 사용합니다. 없는 사실을 지어내지 않습니다.",
+      },
+      {
+        name: "③ 뉴스 검증 티어 (다음 책갈피)",
+        body: "Tier 1·2·3 편집독립·당사자성 설계는 바로 다음 「⑨ 뉴스 검증 티어」 책갈피에 자세히 적혀 있습니다. 등불·속보·RSS 카드의 T1/T2/T3 뱃지와 같은 축입니다.",
+      },
+    ],
+  },
+  {
     id: "news-tiers",
-    title: "⑧ 뉴스 검증 티어",
+    title: "⑨ 뉴스 검증 티어",
     intro:
       "뉴스를 「얼마나 믿을지」를 점수화하지 않습니다. 대신 편집독립·당사자성으로 Tier 1·2·3을 나누고, 교차 확인·속보 등급에 씁니다. 지도 레이어의 관측·보도·미확인 꼬리표와는 다른 축입니다.",
     entries: [
@@ -280,7 +300,7 @@ const SECTIONS_KO: DataSourceSection[] = [
   },
   {
     id: "render",
-    title: "⑨ 지도 렌더링",
+    title: "⑩ 지도 렌더링",
     intro: "정보가 아니라, 지구본을 그리는 바탕 그림입니다.",
     entries: [
       {
@@ -424,8 +444,28 @@ const SECTIONS_EN: DataSourceSection[] = [
     ],
   },
   {
+    id: "news-ko-flash",
+    title: "⑧ KO · flash design",
+    intro:
+      "How Korean-mode news is shown, and what the breaking-flash parchment writes — baked into code, not a toggle.",
+    entries: [
+      {
+        name: "① Korean-mode translation (lamp · RSS)",
+        body: "The lamp localizes title and card title/summary right before ignition. The bottom RSS stack does not call Google from the browser; it batches through the server `/api/translate-text` proxy. English mode keeps the original wording.",
+      },
+      {
+        name: "② Breaking flash — 5W1H briefing",
+        body: "Flash parchment body follows who / what / when / where / why / how for 20+ paragraphs. Includes source, age, and Tier notes. Uses only title, summary, and theater signals — no invented facts.",
+      },
+      {
+        name: "③ News trust tiers (next bookmark)",
+        body: "Tier 1/2/3 editorial-independence design is detailed in the next 「⑨ News trust tiers」 bookmark. Same axis as T1/T2/T3 badges on lamp, flash, and RSS cards.",
+      },
+    ],
+  },
+  {
     id: "news-tiers",
-    title: "⑧ News trust tiers",
+    title: "⑨ News trust tiers",
     intro:
       "We do not score “how true” a story is. We label editorial independence vs party interest as Tier 1 / 2 / 3, then use that for corroboration and flash grading. This is a different axis from map-layer Observed / Reported / Unverified tags.",
     entries: [
@@ -457,7 +497,7 @@ const SECTIONS_EN: DataSourceSection[] = [
   },
   {
     id: "render",
-    title: "⑨ Map rendering",
+    title: "⑩ Map rendering",
     intro: "Basemap paint—not intelligence content.",
     entries: [
       {
