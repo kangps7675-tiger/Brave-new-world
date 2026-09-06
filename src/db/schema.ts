@@ -624,6 +624,25 @@ export const shipMovementObservations = sqliteTable(
 );
 
 /**
+ * 미 항모 위치 스냅샷 — USNI Fleet Tracker 등 공개 보도로 자동 갱신.
+ * `/api/us-carriers`가 정적 seed보다 D1을 우선 읽는다.
+ */
+export const usCarrierSnapshots = sqliteTable("us_carrier_snapshots", {
+  /** 단일 행 키: latest */
+  cacheKey: text("cache_key").primaryKey(),
+  /** JSON: UsCarrierSnapshotPayload */
+  payloadJson: text("payload_json").notNull(),
+  carrierCount: integer("carrier_count").notNull().default(0),
+  updatedCount: integer("updated_count").notNull().default(0),
+  fetchedAt: text("fetched_at").notNull(),
+  source: text("source"),
+  reportUrl: text("report_url"),
+  ingestedAt: text("ingested_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+/**
  * NAVAREA in-force 경고 (JHOD / NGA TXT → cron 스냅샷 교체).
  * id = `{region}-{yy}-{num}` (예: XI-26-0330, IV-26-0695).
  */
@@ -929,5 +948,6 @@ export type ShipMovementReportRow = typeof shipMovementReports.$inferSelect;
 export type NewShipMovementReportRow = typeof shipMovementReports.$inferInsert;
 export type ShipMovementObservationRow = typeof shipMovementObservations.$inferSelect;
 export type NewShipMovementObservationRow = typeof shipMovementObservations.$inferInsert;
+export type UsCarrierSnapshotRow = typeof usCarrierSnapshots.$inferSelect;
 export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
 export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;

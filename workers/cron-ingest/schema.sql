@@ -249,3 +249,15 @@ CREATE INDEX IF NOT EXISTS idx_military_exercises_theater
 CREATE INDEX IF NOT EXISTS idx_military_exercises_geo
   ON military_exercises (lat, lng);
 
+-- US carrier positions auto-refreshed from USNI Fleet Tracker news
+CREATE TABLE IF NOT EXISTS us_carrier_snapshots (
+  cache_key TEXT PRIMARY KEY,
+  payload_json TEXT NOT NULL,
+  carrier_count INTEGER NOT NULL DEFAULT 0,
+  updated_count INTEGER NOT NULL DEFAULT 0,
+  fetched_at TEXT NOT NULL,
+  source TEXT,
+  report_url TEXT,
+  ingested_at TEXT NOT NULL
+);
+

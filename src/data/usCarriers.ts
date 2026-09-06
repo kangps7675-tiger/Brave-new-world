@@ -30,7 +30,11 @@ export const US_CARRIER_STATUS_LABELS_EN: Record<UsCarrierStatus, string> = {
   maintenance: "Maintenance",
 };
 
-/** Jul 10, 2026 기준 — USNI News · CENTCOM · 공개 보도 종합 */
+/**
+ * Sep 6, 2026 공개 보도 스냅샷 (USNI Fleet Tracker Aug 31 · TWZ/관련 보도).
+ * 런타임은 `/api/us-carriers/warm`이 USNI Fleet Tracker로 D1 스냅샷을 덮어쓴다.
+ * 좌표는 대략 위치(항구·해역 대표점) — GPS가 아님.
+ */
 export const US_CARRIERS_SEED: UsCarrier[] = [
   {
     id: "cvn-68",
@@ -41,29 +45,29 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     status: "maintenance",
     location: "Kitsap-Bremerton, WA (Home Port)",
     airwing: "CVW-17 (None)",
-    notes: "Decommissioning process - arriving Norfolk May 2026",
+    notes: "Decommissioning / inactivation process (Bremerton)",
   },
   {
     id: "cvn-69",
     name: "USS Dwight D. Eisenhower",
     hull: "CVN 69",
-    lat: 36.9,
-    lng: -76.3,
-    status: "maintenance",
-    location: "Norfolk Naval Shipyard, VA",
+    lat: 28.5,
+    lng: -79.5,
+    status: "deployed",
+    location: "Western Atlantic · off Florida (CQ/training)",
     airwing: "CVW-3",
-    notes: "Planned Incremental Availability (PIA) - Retiring 2028",
+    notes: "Underway for East Coast CQ/TRACOM after Aug 21 Norfolk departure (USNI Aug 31)",
   },
   {
     id: "cvn-70",
     name: "USS Carl Vinson",
     hull: "CVN 70",
-    lat: 32.7,
-    lng: -117.2,
-    status: "home",
-    location: "San Diego, CA (Home Port)",
+    lat: 32.5,
+    lng: -119.5,
+    status: "deployed",
+    location: "Eastern Pacific · near California (TSTA/FEP)",
     airwing: "CVW-2",
-    notes: "In port since Oct 8, 2025",
+    notes: "Underway routine ops / training near California (USNI Aug 31)",
   },
   {
     id: "cvn-71",
@@ -72,31 +76,31 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     lat: 32.71,
     lng: -117.18,
     status: "home",
-    location: "San Diego, CA (Home Port)",
+    location: "San Diego, CA (Home Port) — pre-deployment",
     airwing: "CVW-11",
-    notes: "Returned from training Jan 13, 2026",
+    notes: "Preparing September deployment; reported relief for GW / Middle East (open press)",
   },
   {
     id: "cvn-72",
     name: "USS Abraham Lincoln",
     hull: "CVN 72",
-    lat: 17.2,
-    lng: 63.8,
+    lat: 13.08,
+    lng: 100.88,
     status: "deployed",
-    location: "Arabian Sea · CENTCOM (이란·호르무즈 대응)",
+    location: "Laem Chabang, Thailand · homeward transit",
     airwing: "CVW-9",
-    notes: "Operation Epic Fury — 200일+ 연속 해상 작전 (USNI News, Jul 2026)",
+    notes: "Singapore Strait transit then Thailand liberty; returning West Coast (USNI/TWZ ~Sep 1)",
   },
   {
     id: "cvn-73",
     name: "USS George Washington",
     hull: "CVN 73",
-    lat: 35.3,
-    lng: 139.7,
-    status: "home",
-    location: "Yokosuka, Japan (Forward Deployed)",
+    lat: 17.2,
+    lng: 63.8,
+    status: "deployed",
+    location: "Arabian Sea · CENTCOM",
     airwing: "CVW-5",
-    notes: "Forward-deployed carrier - returned Dec 17, 2025",
+    notes: "Middle East deployment — reported relief for Abraham Lincoln (open press Aug–Sep 2026)",
   },
   {
     id: "cvn-74",
@@ -107,7 +111,7 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     status: "maintenance",
     location: "Newport News Shipyard, VA",
     airwing: "None",
-    notes: "RCOH - Return to service Oct 2026 (5-year downtime)",
+    notes: "RCOH — multi-year yard period",
   },
   {
     id: "cvn-75",
@@ -118,7 +122,7 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     status: "home",
     location: "Norfolk, VA (Home Port)",
     airwing: "CVW-1",
-    notes: "Returned from UNITAS 2025 exercise Oct 1, 2025",
+    notes: "East Coast homeport (no open transit reported in late-Aug tracker)",
   },
   {
     id: "cvn-76",
@@ -129,7 +133,7 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     status: "maintenance",
     location: "PSNS & IMF, Bremerton, WA",
     airwing: "None",
-    notes: "DPIA expected completion Aug 2026",
+    notes: "DPIA nearing completion — ops expected later (open press Aug 2026)",
   },
   {
     id: "cvn-77",
@@ -138,9 +142,9 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     lat: 19.0,
     lng: 61.0,
     status: "deployed",
-    location: "Arabian Sea · CENTCOM (이란 긴장 대응)",
+    location: "Arabian Sea · CENTCOM",
     airwing: "CVW-7",
-    notes: "CVN-72와 이란·중동 이중 항모 전개 (USNI News, Jul 2026)",
+    notes: "Middle East deployed CSG (USNI/open press Aug–Sep 2026)",
   },
   {
     id: "cvn-78",
@@ -151,7 +155,7 @@ export const US_CARRIERS_SEED: UsCarrier[] = [
     status: "home",
     location: "Norfolk, VA (Home Port)",
     airwing: "CVW-8",
-    notes: "중동 전개는 CVN-72·77 — 항구 대기 (Jul 2026)",
+    notes: "Post long deployment — East Coast homeport (Sep 2026 open reporting)",
   },
 ];
 
