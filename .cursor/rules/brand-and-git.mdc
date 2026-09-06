@@ -1,0 +1,17 @@
+---
+description: Product brand and dual-branch push principles
+alwaysApply: true
+---
+
+# Brand and git principles
+
+## Brand
+
+- Public product name is **Brave New World** (English) / **멋진 신세계** (Korean).
+- Never use **GeoWatch** / **geowatch** as user-facing branding, titles, package display name, or outbound User-Agent.
+- Prefer `@/lib/brand` (`BRAND_NAME`, `brandName()`, `BRAND_USER_AGENT`) for user-visible strings.
+- Huxley’s novel may be cited as the literary motif; the product name and the novel title are the same phrase on purpose.
+
+## Git push
+
+- When the user asks to push completed work, update **both** `main` and `dev` (merge or push as appropriate)—not only one branch.
