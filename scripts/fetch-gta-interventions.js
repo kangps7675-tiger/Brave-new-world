@@ -29,7 +29,7 @@ const PAGE_SIZE = 1000;
 /** 하루 요청 상한 — 예의이자 사고 방지 */
 const MAX_PAGES = 20;
 const USER_AGENT =
-  "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+  "BraveNewWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(name);

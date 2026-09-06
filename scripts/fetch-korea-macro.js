@@ -42,7 +42,7 @@ const {
 } = require("./lib/ecos-kosis-parse");
 
 const OUT_DIR = path.join(__dirname, "..", "public", "data");
-const UA = "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+const UA = "BraveNewWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 
 /** ECOS 관심 지표 — 시장 등불에 붙는 것들 */
 const ECOS_SERIES = [

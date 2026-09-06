@@ -28,7 +28,7 @@ const OUT_PUBLIC = path.join(ROOT, "public", "data", "crink", "rail-freight-bila
 const OUT_SRC = path.join(ROOT, "src", "data", "rail-freight-bilateral.json");
 
 const BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/rail_go_intgong";
-const UA = "BraveTheWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
+const UA = "BraveNewWorld/0.2 (Brave New World geopolitics map; kangps7675@gmail.com)";
 const UNIT = "MIO_TKM";
 const YEARS_TO_AVERAGE = 3;
 const SHOCK_BASE_YEAR = "2021";

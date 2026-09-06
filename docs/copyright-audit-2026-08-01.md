@@ -1,6 +1,6 @@
 # 저작권 · 라이선스 감사 보고서 (2026-08-01)
 
-> 대상: `Brave-new-world`  / Brave the World
+> 대상: `Brave-new-world`  / Brave New World
 > 방법: 코드 정적 분석 + 기존 문서(`copyright-checklist.md`, `commercial-licensing.md`) 대조 + 라이선스 원문 확인
 > **법률 자문이 아닙니다.** 유료화 전 변호사 검토 필요.
 

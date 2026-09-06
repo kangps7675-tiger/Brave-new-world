@@ -1,16 +1,16 @@
 /**
  * 사용자-facing 브랜드 — 검색·입소문·재방문용 표기 통일.
- * 한국어 「멋진 신세계」·영어 「Brave the World」.
- * 인프라 식별자(localStorage 키, 패키지 내부 심볼 등)는 마이그레이션 없이 유지.
+ * 한국어 「멋진 신세계」·영어 「Brave New World」.
+ * 인프라 식별자(localStorage 키, 패키지 내부 심볼 등)는 마이그레이션 없이 유지해도 됨.
  */
 export const BRAND_NAME = {
   ko: "멋진 신세계",
-  en: "Brave the World",
+  en: "Brave New World",
 } as const;
 
 export const BRAND_MOTIF = {
-  ko: "Aldous Huxley · Brave New World",
-  en: "After Aldous Huxley · Brave New World",
+  ko: "Aldous Huxley 모티브",
+  en: "After Aldous Huxley",
 } as const;
 
 export const BRAND_TAGLINE = {
@@ -19,7 +19,7 @@ export const BRAND_TAGLINE = {
 } as const;
 
 /** HTTP User-Agent / 외부 fetch 식별용 (공백 없음) */
-export const BRAND_USER_AGENT = "BraveTheWorld/0.2";
+export const BRAND_USER_AGENT = "BraveNewWorld/0.2";
 
 export function brandName(lang: "ko" | "en" = "ko"): string {
   return BRAND_NAME[lang];

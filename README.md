@@ -1,10 +1,10 @@
-# 멋진 신세계 (Brave the World)
+# 멋진 신세계 (Brave New World)
 
 Aldous Huxley 《Brave New World》를 모티브로 한 3D 지구본 관측대입니다. 한쪽에서는 포화가 울리고 공습 사이렌이 울려 대는데, 다른 한쪽에서는 누군가가 돈을 법니다—그 서사시를 한 지도 위에 겹쳐 둡니다.
 
 > **한 줄:** 지정학으로 축과 전선을 보고, 지경학으로 돈과 물류를 본다.
 
-- **npm 패키지명:** `brave-the-world` · **사용자 브랜드:** 멋진 신세계 / Brave the World
+- **npm 패키지명:** `brave-new-world` · **사용자 브랜드:** 멋진 신세계 / Brave New World
 - **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · react-map-gl · Tailwind CSS
 - **언어:** UI 기본 한국어 · 입장 주의창·레이어 패널에서 **English** 전환 (`labelLanguage`)
 - **UX 시나리오 상세:** [`docs/ux-scenarios.md`](docs/ux-scenarios.md)

@@ -66,7 +66,7 @@ async function fetchPublicJson(path: string): Promise<unknown> {
     const response = await fetch(`${apiBase()}${path}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "BraveTheWorld/1.0 cross-strait public-data integration",
+        "User-Agent": "BraveNewWorld/1.0 cross-strait public-data integration",
       },
       signal: controller.signal,
       cache: "no-store",
