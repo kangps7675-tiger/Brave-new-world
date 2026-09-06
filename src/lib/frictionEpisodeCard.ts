@@ -18,7 +18,7 @@ const COPY = {
   en: {
     kicker: "Territorial archive · intra-bloc",
     parties: "Parties",
-    brand: "Brave New World",
+    brand: "Brave the World",
   },
 } as const;
 
