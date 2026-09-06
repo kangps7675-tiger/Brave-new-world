@@ -52,7 +52,28 @@ const TRANSLATE_USER_AGENT = "ConflictViewBot/1.0 (+https://github.com/kangps767
  *
  * @see docs/commercial-licensing.md — "Google Translate 비공식"
  */
-async function fetchTranslation(text: string, targetLang: LabelLanguage): Promise<string> {
+/** 브라우저에서는 CORS·약관 이슈로 서버 프록시만 사용 */
+async function fetchTranslationViaApi(
+  text: string,
+  targetLang: LabelLanguage,
+): Promise<string> {
+  const res = await fetch("/api/translate-text", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ texts: [text], lang: targetLang }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(12_000),
+  });
+  if (!res.ok) return text;
+  const data = (await res.json()) as { translations?: unknown };
+  const first = Array.isArray(data.translations) ? data.translations[0] : null;
+  return typeof first === "string" && first.trim() ? first.trim() : text;
+}
+
+async function fetchTranslationDirect(
+  text: string,
+  targetLang: LabelLanguage,
+): Promise<string> {
   const tl = targetLang === "ko" ? "ko" : "en";
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
   const res = await fetch(url, {
@@ -69,6 +90,44 @@ async function fetchTranslation(text: string, targetLang: LabelLanguage): Promis
     .map((part) => (Array.isArray(part) ? part[0] : String(part)))
     .join("");
   return translated.trim() || text;
+}
+
+async function fetchTranslation(text: string, targetLang: LabelLanguage): Promise<string> {
+  if (typeof window !== "undefined") {
+    return fetchTranslationViaApi(text, targetLang);
+  }
+  return fetchTranslationDirect(text, targetLang);
+}
+
+/** 클라이언트 배치 번역 — useLocalizedTextMap 등 */
+export async function translateTextsBatch(
+  texts: string[],
+  targetLang: LabelLanguage,
+): Promise<string[]> {
+  if (texts.length === 0) return [];
+  if (!isTranslationEnabled()) return texts;
+  if (typeof window === "undefined") {
+    return mapPool(texts, (t) => translateText(t, targetLang), 6);
+  }
+  try {
+    const res = await fetch("/api/translate-text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts, lang: targetLang }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) return texts;
+    const data = (await res.json()) as { translations?: unknown };
+    if (!Array.isArray(data.translations) || data.translations.length !== texts.length) {
+      return texts;
+    }
+    return data.translations.map((t, i) =>
+      typeof t === "string" && t.trim() ? t.trim() : texts[i]!,
+    );
+  } catch {
+    return texts;
+  }
 }
 
 function cacheKey(text: string, targetLang: LabelLanguage): string {

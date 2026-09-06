@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { translateText } from "@/lib/koreanTranslate";
+import { isMostlyEnglish, isMostlyKorean, translateTextsBatch } from "@/lib/koreanTranslate";
 
 type TextEntry = { key: string; text: string };
 
@@ -27,14 +27,34 @@ export function useLocalizedTextMap(
 
     void (async () => {
       const next = new Map<string, string>();
-      const batchSize = 6;
-      for (let i = 0; i < entries.length; i += batchSize) {
-        const slice = entries.slice(i, i + batchSize);
-        await Promise.all(
-          slice.map(async ({ key, text }) => {
-            next.set(key, await translateText(text, lang));
-          }),
+      const needsWork: TextEntry[] = [];
+      for (const entry of entries) {
+        const trimmed = entry.text.trim();
+        if (!trimmed) {
+          next.set(entry.key, entry.text);
+          continue;
+        }
+        if (lang === "ko" && isMostlyKorean(trimmed)) {
+          next.set(entry.key, entry.text);
+          continue;
+        }
+        if (lang === "en" && isMostlyEnglish(trimmed)) {
+          next.set(entry.key, entry.text);
+          continue;
+        }
+        needsWork.push(entry);
+      }
+
+      const batchSize = 20;
+      for (let i = 0; i < needsWork.length; i += batchSize) {
+        const slice = needsWork.slice(i, i + batchSize);
+        const translated = await translateTextsBatch(
+          slice.map((e) => e.text),
+          lang,
         );
+        slice.forEach((entry, idx) => {
+          next.set(entry.key, translated[idx] ?? entry.text);
+        });
       }
       if (!cancelled) setMap(next);
     })();

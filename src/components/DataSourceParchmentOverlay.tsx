@@ -131,8 +131,8 @@ export function DataSourceParchmentOverlay(props: Props) {
               >
                 {browse
                   ? ko
-                    ? "8개 책갈피로 레이어별 재료·한계·데모 데이터를 솔직히 정리했습니다. ≡ 메뉴·지도 하단 「데이터 출처」에서도 다시 열 수 있습니다."
-                    : "Eight bookmarks — an honest inventory of sources, limits, and demo data. Reopen anytime from ≡ menu or the map attribution bar."
+                    ? "9개 책갈피로 레이어별 재료·한계·데모 데이터·뉴스 검증 티어를 솔직히 정리했습니다. ≡ 메뉴·지도 하단 「데이터 출처」에서도 다시 열 수 있습니다."
+                    : "Nine bookmarks — an honest inventory of sources, limits, demo data, and news trust tiers. Reopen anytime from ≡ menu or the map attribution bar."
                   : ko
                     ? "등불·긴장지수·실시간 레이어를 보기 전에 반드시 읽어 주십시오. 완벽한 정보기관이 아니며, 아래는 있는 그대로의 재료와 공백입니다."
                     : "Read before breaking news, tension scores, or live layers. We are not a perfect agency — this is an honest inventory of what we use and what is missing."}
@@ -218,11 +218,11 @@ export function DataSourceParchmentOverlay(props: Props) {
                 >
                   {ko
                     ? allTabsSeen
-                      ? "8개 책갈피를 모두 열람했고, 한계·가짜 데이터 고지를 이해했습니다."
-                      : "8개 책갈피를 모두 열람한 뒤 체크할 수 있습니다. (아직 안 연 탭이 있습니다)"
+                      ? "9개 책갈피를 모두 열람했고, 한계·가짜 데이터·뉴스 검증 티어 고지를 이해했습니다."
+                      : "9개 책갈피를 모두 열람한 뒤 체크할 수 있습니다. (아직 안 연 탭이 있습니다)"
                     : allTabsSeen
-                      ? "I opened all eight bookmarks and understand the limits and placeholder data."
-                      : "Open all eight bookmarks before checking this box."}
+                      ? "I opened all nine bookmarks and understand the limits, placeholder data, and news trust tiers."
+                      : "Open all nine bookmarks before checking this box."}
                 </span>
               </label>
 
