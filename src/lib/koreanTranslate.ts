@@ -4,10 +4,7 @@ const translationCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 1200;
 
 export function isKoreanTranslationEnabled(): boolean {
-  const news = process.env.NEWS_TRANSLATE_KO?.trim().toLowerCase();
-  const telegram = process.env.TELEGRAM_TRANSLATE_KO?.trim().toLowerCase();
-  const flag = news ?? telegram ?? "true";
-  if (flag === "false" || flag === "0" || flag === "off") return false;
+  // 한글 UI 뉴스·등불·RSS 번역은 항상 켠다 (env로 끄지 않음).
   return true;
 }
 
