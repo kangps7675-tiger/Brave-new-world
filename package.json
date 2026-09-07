@@ -159,7 +159,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
-    "@block65/webcrypto-web-push": "^1.0.2",
+    "@block65/webcrypto-web-push": "^2.0.0",
     "@deck.gl/core": "^9.3.10",
     "@deck.gl/geo-layers": "^9.3.10",
     "@deck.gl/mapbox": "^9.3.10",
