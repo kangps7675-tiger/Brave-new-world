@@ -69,6 +69,7 @@ import {
   tickerDisplayName,
 } from "@/lib/stockTickers";
 import {
+  clampIntelStackClearancePx,
   heroHighlightSymbols,
   INTEL_STACK_CLEARANCE_COLLAPSED,
   readIntelDockCollapsed,
@@ -754,6 +755,7 @@ export function DynamicIntelStack({
     active: boolean;
   } | null>(null);
   const [dockDragY, setDockDragY] = useState(0);
+  const stackRootRef = useRef<HTMLDivElement>(null);
 
   /** S급만 SOS 모스 (A는 배너만 · 사이렌 없음). 귀중 속보 양피지가 타전하면 그쪽으로 음향 위임 */
   useEffect(() => {
@@ -799,41 +801,56 @@ export function DynamicIntelStack({
     return buildTodayBriefing(payload, lang);
   }, [fabOnly, isAlert, todayHidden, dockCollapsed, payload, lang]);
 
+  /** 스택 실측 높이 → clearance. 하드코딩 rem(+today 7.5rem)이 중하단으로 뜨던 원인 제거 */
   useEffect(() => {
-    if (fabOnly) {
-      document.documentElement.style.setProperty("--bottom-intel-stack-clearance", "4.5rem");
-      return () => {
-        document.documentElement.style.setProperty(
+    const root = document.documentElement;
+    const el = stackRootRef.current;
+    const fallback = () => {
+      if (fabOnly) {
+        root.style.setProperty("--bottom-intel-stack-clearance", "4.5rem");
+        return;
+      }
+      if (dockCollapsed) {
+        root.style.setProperty(
           "--bottom-intel-stack-clearance",
-          resolveIntelStackClearance("calm", viewerMode),
+          INTEL_STACK_CLEARANCE_COLLAPSED,
         );
-      };
-    }
-    if (dockCollapsed) {
-      document.documentElement.style.setProperty(
+        return;
+      }
+      root.style.setProperty(
         "--bottom-intel-stack-clearance",
-        INTEL_STACK_CLEARANCE_COLLAPSED,
+        resolveIntelStackClearance(mode, viewerMode),
       );
-      return () => {
-        document.documentElement.style.setProperty(
-          "--bottom-intel-stack-clearance",
-          resolveIntelStackClearance("calm", viewerMode),
-        );
-      };
+    };
+
+    if (!el) {
+      fallback();
+      return;
     }
-    const base = resolveIntelStackClearance(mode, viewerMode);
-    const withToday =
-      todayBriefing && !isAlert
-        ? `calc(${base} + 7.5rem)`
-        : base;
-    document.documentElement.style.setProperty("--bottom-intel-stack-clearance", withToday);
+
+    const publish = () => {
+      const h = el.getBoundingClientRect().height;
+      if (!Number.isFinite(h) || h < 8) {
+        fallback();
+        return;
+      }
+      const px = clampIntelStackClearancePx(h);
+      root.style.setProperty("--bottom-intel-stack-clearance", `${px}px`);
+    };
+
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    window.addEventListener("resize", publish);
     return () => {
-      document.documentElement.style.setProperty(
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+      root.style.setProperty(
         "--bottom-intel-stack-clearance",
         resolveIntelStackClearance("calm", viewerMode),
       );
     };
-  }, [fabOnly, mode, viewerMode, todayBriefing, isAlert, dockCollapsed]);
+  }, [fabOnly, dockCollapsed, mode, viewerMode, todayBriefing, isAlert]);
 
   const showCompactTicker = !fabOnly && !dockCollapsed && (viewerMode === "economy" || showTicker);
   const showFab = fabOnly || !isAlert || dockCollapsed;
@@ -907,8 +924,9 @@ export function DynamicIntelStack({
   if (fabOnly) {
     return (
       <div
+        ref={stackRootRef}
         id="bottom-intel-compact"
-        className="intel-stack intel-stack--fab-only pointer-events-none absolute left-1/2 z-20 flex -translate-x-1/2 flex-col items-center"
+        className="intel-stack intel-stack--fab-only pointer-events-none flex flex-col items-center"
       >
         <HoverHint
           placement="top"
@@ -935,8 +953,9 @@ export function DynamicIntelStack({
   if (dockCollapsed) {
     return (
         <div
+          ref={stackRootRef}
           id="bottom-intel-compact"
-          className="intel-stack intel-stack--collapsed pointer-events-none absolute left-1/2 z-20 flex w-[min(94vw,420px)] -translate-x-1/2 flex-col items-stretch"
+          className="intel-stack intel-stack--collapsed pointer-events-none flex w-[min(94vw,420px)] flex-col items-stretch"
         >
         <div
           className={`intel-stack-panel pointer-events-auto flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-2xl backdrop-blur-md ${
@@ -989,11 +1008,16 @@ export function DynamicIntelStack({
 
   return (
     <div
+      ref={stackRootRef}
       id="bottom-intel-compact"
-      className={`intel-stack pointer-events-none absolute left-1/2 z-20 flex w-[min(96vw,720px)] -translate-x-1/2 flex-col items-stretch gap-2 ${
+      className={`intel-stack pointer-events-none flex w-[min(96vw,720px)] flex-col items-stretch gap-2 ${
         isAlert ? "intel-stack--alert w-[min(96vw,860px)]" : "intel-stack--calm"
       }`}
-      style={dockDragY > 0 ? { transform: `translateY(${dockDragY}px)` } : undefined}
+      style={
+        dockDragY > 0
+          ? { transform: `translate(-50%, ${dockDragY}px)` }
+          : undefined
+      }
     >
       {todayBriefing ? (
         <TodayHotspotChip
