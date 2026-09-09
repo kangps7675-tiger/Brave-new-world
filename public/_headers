@@ -29,6 +29,11 @@
 /data/live/*
   Cache-Control: no-cache
 
+# 서비스워커 — 옛 바이트가 남으면 설치 앱이 과거 배포에 고정됨
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
 # 텍스처·오디오는 사실상 불변
 /textures/*
   Cache-Control: public,max-age=604800
