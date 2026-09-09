@@ -9,8 +9,9 @@
   --panel: rgba(15, 20, 28, 0.82);
   --panel-border: rgba(69, 243, 255, 0.14);
   --accent: rgba(0, 255, 204, 0.85);
-  /* MapLegend + intel stack clearance (collapsed default; expanded via JS) */
-  --bottom-intel-stack-clearance: 8.5rem;
+  /* MapLegend + intel stack clearance (collapsed default; expanded via JS measure) */
+  --bottom-intel-stack-clearance: 3.5rem;
+  --bottom-chrome-floor: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   --intel-sidebar-width: 480px;
   /* ModeGlobalIndexChip ResizeObserver가 덮어씀 — 우레일·유틸 top 동기화 */
   --mode-index-chip-height: 0px;
@@ -1369,17 +1370,48 @@ html[data-device="desktop-wide"] .intel-sidebar-left {
   background: rgba(148, 163, 184, 0.45);
 }
 
-/** ?? ?? intel ?? ? home indicator ?? */
+/** 하단 intel 독 — 뷰포트 바닥에 강제 고정 */
 .intel-stack {
-  bottom: calc(0.75rem + var(--safe-bottom)) !important;
+  position: fixed !important;
+  left: 50% !important;
+  bottom: var(--bottom-chrome-floor, calc(0.75rem + env(safe-area-inset-bottom, 0px))) !important;
+  transform: translateX(-50%);
+  z-index: 20;
 }
 
 .intel-stack--fab-only {
-  bottom: calc(1rem + var(--safe-bottom)) !important;
+  bottom: var(--bottom-chrome-floor, calc(0.75rem + env(safe-area-inset-bottom, 0px))) !important;
 }
 
 .intel-stack--collapsed {
-  bottom: calc(0.75rem + var(--safe-bottom)) !important;
+  bottom: var(--bottom-chrome-floor, calc(0.75rem + env(safe-area-inset-bottom, 0px))) !important;
+}
+
+/** 범례·독 토글 등 — clearance 위로, 항상 뷰포트 기준 */
+.cv-bottom-chrome-above-stack {
+  position: fixed !important;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 3.5rem) + env(safe-area-inset-bottom, 0px)
+  );
+  z-index: 20;
+}
+
+/** 히스토리/뉴스 토글 — 범례 칩 바로 위 */
+.cv-bottom-chrome-above-stack--dock {
+  bottom: calc(
+    var(--bottom-intel-stack-clearance, 3.5rem) + 2.6rem + env(safe-area-inset-bottom, 0px)
+  );
+  z-index: 25;
+}
+
+.cv-bottom-dock-floor {
+  position: fixed !important;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: var(--bottom-chrome-floor, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
+  z-index: 25;
 }
 
 /** 독/시트 드래그 핸들 — pan-y로 세로 제스처 허용, dismiss는 JS에서 하향만 확정 */
