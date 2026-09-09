@@ -20,7 +20,7 @@ function formatSigned(value: number, suffix = ""): string {
   return `${sign}${value.toFixed(2)}${suffix}`;
 }
 
-export function FinintTicker() {
+export function FinintTicker({ compact = false }: { compact?: boolean } = {}) {
   const [indices, setIndices] = useState<FreightIndex[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +102,13 @@ export function FinintTicker() {
           {error}
         </div>
       ) : (
-        <div className="grid divide-y divide-white/[0.07] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div
+          className={
+            compact
+              ? "grid max-h-[11rem] divide-y divide-white/[0.07] overflow-y-auto"
+              : "grid divide-y divide-white/[0.07] sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+          }
+        >
           {indices.map((item) => {
             const up = item.change > 0;
             const down = item.change < 0;
