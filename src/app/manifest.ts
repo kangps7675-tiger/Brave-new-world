@@ -6,11 +6,13 @@ export default function manifest(): MetadataRoute.Manifest {
     name: BRAND_NAME.ko,
     short_name: BRAND_NAME.ko,
     description: BRAND_TAGLINE.ko,
-    start_url: "/",
+    start_url: "/?source=pwa",
+    id: "/",
     display: "standalone",
     background_color: "#02040a",
     theme_color: "#02040a",
     lang: "ko",
+    // 설치 앱이 옛 아이콘/이름에 묶이지 않게 최신 브랜드 자산만 노출
     icons: [
       {
         src: "/brand/icon-512.png",
