@@ -678,6 +678,89 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     return () => obs.disconnect();
   }, [isCompactUi]);
 
+  /** 우측 독 열리면 우상단 칩을 사이드바 폭만큼 밀어 겹침 방지 */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(
+      "--chrome-right-dock-inset",
+      rightDockOpen ? "var(--intel-sidebar-width)" : "0px",
+    );
+    return () => {
+      root.style.setProperty("--chrome-right-dock-inset", "0px");
+    };
+  }, [rightDockOpen]);
+
+  const showFoldedLampTab =
+    Boolean(foldedPeriodicBriefing) && !periodicBriefing && !weeklyExpanded;
+  const showFoldedWeeklyTab = Boolean(
+    weeklyRecap &&
+      weeklyRecapCollapsed &&
+      !periodicBriefing &&
+      !foldedPeriodicBriefing,
+  );
+  const showFoldedBriefingTabs = showFoldedLampTab || showFoldedWeeklyTab;
+  const railVisible =
+    !intelSheetOpen &&
+    !isCompactUi &&
+    !showLeftPanel &&
+    !rightDockOpen &&
+    !selected;
+
+  const foldedBriefingTabs = showFoldedBriefingTabs ? (
+    <div className="pointer-events-auto flex flex-col items-end gap-1.5">
+      {showFoldedLampTab && foldedPeriodicBriefing ? (
+        <button
+          type="button"
+          onClick={() => {
+            onSetPeriodicBriefing(foldedPeriodicBriefing);
+            onSetFoldedPeriodicBriefing(null);
+          }}
+          className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-2 pr-1.5 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pr-2.5"
+          aria-label={
+            labelLanguage === "en"
+              ? "Reopen today's lamp news"
+              : "오늘의 등불뉴스 다시 펼치기"
+          }
+          title={labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
+        >
+          <span className="text-sm leading-none" aria-hidden>
+            {"\uD83C\uDFEE"}
+          </span>
+          <span
+            className="text-micro font-semibold tracking-[0.14em]"
+            style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+          >
+            {labelLanguage === "en" ? "Lamp" : "등불"}
+          </span>
+        </button>
+      ) : null}
+      {showFoldedWeeklyTab && weeklyRecap ? (
+        <button
+          type="button"
+          onClick={() => {
+            clearWeeklyRecapFolded(weeklyRecap.key);
+            onSetWeeklyRecapCollapsed(false);
+          }}
+          className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-[#6b4a22]/60 bg-[#e8d4a8]/95 py-2.5 pl-2 pr-1.5 text-[#3d2a18] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] hover:pr-2.5"
+          aria-label={
+            labelLanguage === "en" ? "Reopen weekly recap" : "지난주 회고 다시 펼치기"
+          }
+          title={labelLanguage === "en" ? "Last week's recap" : "지난주 회고"}
+        >
+          <span className="text-sm leading-none" aria-hidden>
+            {"\u2726"}
+          </span>
+          <span
+            className="text-micro font-semibold tracking-[0.14em]"
+            style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+          >
+            {labelLanguage === "en" ? "Recap" : "회고"}
+          </span>
+        </button>
+      ) : null}
+    </div>
+  ) : null;
+
   /**
    * 게이트 파생 (P2-1 8단계).
    *
@@ -790,11 +873,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {/* 데스크톱·태블릿 우측 레일 — 칩 하단(--mode-index-chip-bottom)과 nav 높이 중 큰 쪽 기준 */}
-      {!intelSheetOpen &&
-      !isCompactUi &&
-      !showLeftPanel &&
-      !rightDockOpen &&
-      !selected ? (
+      {railVisible ? (
         <div
           className="cv-desktop-only cv-chrome-rail-top pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain sm:right-4"
           style={{
@@ -838,7 +917,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               />
               {gateClosed && !isTabletUi ? (
                 <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
-                  <FinintTicker />
+                  <FinintTicker compact />
                 </div>
               ) : null}
             </>
@@ -854,6 +933,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               </div>
             </div>
           ) : null}
+          {/* 등불·회고 탭 — 레일 안에 넣어 Finint/DFC와 top:36% 교차 겹침 방지 */}
+          {foldedBriefingTabs}
         </div>
       ) : null}
 
@@ -1376,76 +1457,18 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {/*
-        접힌 등불·주간 회고 — 우하단 GDELT와 겹치지 않도록 우측 세로 탭.
-        짧은 네이밍만 노출하고, 탭을 누르면 양피지를 다시 펼친다.
+        접힌 등불·주간 회고 — 우레일이 보일 때는 레일 flex 안에 넣음.
+        레일이 숨겨진 경우(우측 독 오픈 등)에만 칩 아래·독 왼쪽에 단독 앵커.
       */}
-      {(foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded) ||
-      (weeklyRecap &&
-        weeklyRecapCollapsed &&
-        !periodicBriefing &&
-        !foldedPeriodicBriefing) ? (
-        <div className={`pointer-events-auto fixed right-0 top-[36%] ${zc("panel")} flex flex-col items-end gap-1.5`}>
-          {foldedPeriodicBriefing && !periodicBriefing && !weeklyExpanded ? (
-            <button
-              type="button"
-              onClick={() => {
-                // folded 플래그는 dismiss 때까지 유지 — 열 때 clear하면
-                // 새로고침·모드 전환 시 seen만 남아 등불이 하루 종일 사라졌다.
-                onSetPeriodicBriefing(foldedPeriodicBriefing);
-                onSetFoldedPeriodicBriefing(null);
-              }}
-              className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-2 pr-1.5 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pr-2.5"
-              aria-label={
-                labelLanguage === "en"
-                  ? "Reopen today's lamp news"
-                  : "오늘의 등불뉴스 다시 펼치기"
-              }
-              title={
-                labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"
-              }
-            >
-              <span className="text-sm leading-none" aria-hidden>
-                {"\uD83C\uDFEE"}
-              </span>
-              <span
-                className="text-micro font-semibold tracking-[0.14em]"
-                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-              >
-                {labelLanguage === "en" ? "Lamp" : "등불"}
-              </span>
-            </button>
-          ) : null}
-          {weeklyRecap &&
-          weeklyRecapCollapsed &&
-          !periodicBriefing &&
-          !foldedPeriodicBriefing ? (
-            <button
-              type="button"
-              onClick={() => {
-                clearWeeklyRecapFolded(weeklyRecap.key);
-                onSetWeeklyRecapCollapsed(false);
-              }}
-              className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-[#6b4a22]/60 bg-[#e8d4a8]/95 py-2.5 pl-2 pr-1.5 text-[#3d2a18] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] hover:pr-2.5"
-              aria-label={
-                labelLanguage === "en"
-                  ? "Reopen weekly recap"
-                  : "지난주 회고 다시 펼치기"
-              }
-              title={
-                labelLanguage === "en" ? "Last week's recap" : "지난주 회고"
-              }
-            >
-              <span className="text-sm leading-none" aria-hidden>
-                {"\u2726"}
-              </span>
-              <span
-                className="text-micro font-semibold tracking-[0.14em]"
-                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-              >
-                {labelLanguage === "en" ? "Recap" : "회고"}
-              </span>
-            </button>
-          ) : null}
+      {!railVisible && showFoldedBriefingTabs ? (
+        <div
+          className={`pointer-events-auto fixed right-0 ${zc("panel")}`}
+          style={{
+            top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
+            right: "var(--chrome-right-dock-inset, 0px)",
+          }}
+        >
+          {foldedBriefingTabs}
         </div>
       ) : null}
 

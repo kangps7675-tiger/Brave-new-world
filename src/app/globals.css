@@ -199,6 +199,7 @@ html[data-device="desktop-wide"] {
 html[data-device="phone"] {
   --tap-target-min: 44px;
   --intel-sidebar-width: 340px;
+  --chrome-right-dock-inset: 0px;
 }
 
 /**
@@ -1145,14 +1146,14 @@ main[data-ui-lang="en"]
   backdrop-filter: blur(16px);
 }
 
-/* 데스크톱: 닫기 있는 사이드바는 HoverNav(max 100) 위 — uiStack Z_ABOVE_NAV */
+/* 데스크톱: 닫기 있는 사이드바는 칩(nav z=300)보다 위 — uiStack panel */
 @media (min-width: 1024px) {
   .intel-sidebar-right {
     top: 5.5rem !important;
     bottom: 0 !important;
     height: auto !important;
     max-height: calc(100% - 5.5rem);
-    z-index: 120;
+    z-index: 600;
   }
 }
 
