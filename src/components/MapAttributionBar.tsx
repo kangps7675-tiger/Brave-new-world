@@ -52,7 +52,7 @@ export function MapAttributionBar({
 
   return (
     <div
-      className={`map-attribution-bar pointer-events-auto absolute bottom-2 left-2 z-30 flex max-w-[94vw] flex-wrap items-center gap-1.5 overflow-hidden rounded-md border border-white/10 bg-[#04070f]/75 px-2 py-1 text-micro leading-none text-slate-400 backdrop-blur-sm ${className}`}
+      className={`map-attribution-bar pointer-events-auto fixed bottom-2 left-2 z-30 flex max-w-[min(94vw,42rem)] flex-wrap items-center gap-1.5 overflow-hidden rounded-md border border-white/10 bg-[#04070f]/75 px-2 py-1 text-micro leading-none text-slate-400 backdrop-blur-sm ${className}`}
     >
       {/* 베이스맵 — 라이선스상 상시 노출 */}
       <span aria-hidden className="text-slate-500">

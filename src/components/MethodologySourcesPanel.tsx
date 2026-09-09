@@ -99,7 +99,7 @@ export function MethodologySourcesPanel({
         onClick={onClose}
       />
       <aside
-        className="intel-panel absolute right-3 top-14 z-[600] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),400px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className="intel-panel fixed bottom-3 right-3 z-[600] flex max-h-[min(70dvh,calc(100dvh-5.5rem))] w-[min(calc(100vw-1.5rem),400px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
         role="dialog"
         aria-label={isEn ? "Sources and licenses" : "데이터 출처 및 라이선스"}
       >

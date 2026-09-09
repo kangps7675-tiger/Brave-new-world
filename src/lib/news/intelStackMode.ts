@@ -5,12 +5,18 @@ import type { BreakingUiRank, HeroBreakingItem } from "@/lib/news/types";
 /** @deprecated grade 체계로 대체 — A급(≥6) 이상이면 alert */
 export const ALERT_URGENCY_THRESHOLD = A_GRADE_MIN * 10;
 
-export const INTEL_STACK_CLEARANCE_CALM = "8.5rem";
-export const INTEL_STACK_CLEARANCE_ALERT = "13.5rem";
-export const INTEL_STACK_CLEARANCE_ECONOMY_CALM = "10rem";
-export const INTEL_STACK_CLEARANCE_ECONOMY_ALERT = "14.5rem";
+/** 폴백·히스토리 독 — 화면 중하단으로 뜨지 않게 낮게 유지 */
+export const INTEL_STACK_CLEARANCE_CALM = "5.5rem";
+export const INTEL_STACK_CLEARANCE_ALERT = "7.5rem";
+export const INTEL_STACK_CLEARANCE_ECONOMY_CALM = "6rem";
+export const INTEL_STACK_CLEARANCE_ECONOMY_ALERT = "8rem";
 /** 속보·티커를 내린 뒤 — 지구본 전체화면에 가까운 여백 */
 export const INTEL_STACK_CLEARANCE_COLLAPSED = "3.25rem";
+/** 히스토리 스크럽+토글 높이 (인텔 스택 언마운트 시) */
+export const INTEL_STACK_CLEARANCE_HISTORY = "5.5rem";
+export const INTEL_STACK_CLEARANCE_HISTORY_COMPACT = "5.25rem";
+/** 뷰포트 대비 clearance 상한 — 중하단 부상 방지 */
+export const INTEL_STACK_CLEARANCE_MAX_VH = 0.36;
 
 const DOCK_COLLAPSED_KEY = "cv-intel-dock-collapsed";
 
@@ -67,6 +73,17 @@ export function resolveIntelStackClearance(
       : INTEL_STACK_CLEARANCE_ECONOMY_CALM;
   }
   return mode === "alert" ? INTEL_STACK_CLEARANCE_ALERT : INTEL_STACK_CLEARANCE_CALM;
+}
+
+/** 스택 실측 높이 → CSS px (뷰포트 비율 상한 적용) */
+export function clampIntelStackClearancePx(
+  heightPx: number,
+  viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800,
+): number {
+  const pad = 10;
+  const min = 52;
+  const max = Math.max(min, Math.floor(viewportHeight * INTEL_STACK_CLEARANCE_MAX_VH));
+  return Math.max(min, Math.min(Math.ceil(heightPx + pad), max));
 }
 
 /** alert/calm 티커 하이라이트 — 전장 연관 심볼 (모드별) */

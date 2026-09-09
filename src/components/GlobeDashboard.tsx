@@ -156,6 +156,10 @@ import {
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
 import {
+  INTEL_STACK_CLEARANCE_HISTORY,
+  INTEL_STACK_CLEARANCE_HISTORY_COMPACT,
+} from "@/lib/news/intelStackMode";
+import {
   buildLampMacroTable,
   hasFoldedLamp,
   clearLampFolded,
@@ -834,7 +838,9 @@ export function GlobeDashboard({
     if (bottomDockMode !== "history" || intelSheetOpen) return;
     document.documentElement.style.setProperty(
       "--bottom-intel-stack-clearance",
-      isCompactUi ? "8.5rem" : "10rem",
+      isCompactUi
+        ? INTEL_STACK_CLEARANCE_HISTORY_COMPACT
+        : INTEL_STACK_CLEARANCE_HISTORY,
     );
   }, [bottomDockMode, intelSheetOpen, isCompactUi]);
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
