@@ -1853,14 +1853,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {!intelSheetOpen && (timeScrubber || onBottomDockModeChange) ? (
         <div
-          className={`pointer-events-none absolute ${zc("mapControl")} flex flex-col items-center gap-2 ${
+          className={`pointer-events-none flex flex-col items-center gap-2 ${
+            bottomDockMode === "news"
+              ? "cv-bottom-chrome-above-stack cv-bottom-chrome-above-stack--dock"
+              : "cv-bottom-dock-floor"
+          } ${
             isCompactUi
-              ? bottomDockMode === "news"
-                ? "bottom-[calc(var(--bottom-intel-stack-clearance,3.25rem)+0.35rem+env(safe-area-inset-bottom,0px))] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
-                : "bottom-[5.5rem] left-1/2 w-[min(96vw,28rem)] -translate-x-1/2"
-              : bottomDockMode === "news"
-                ? "bottom-[calc(var(--bottom-intel-stack-clearance,8.5rem)+0.35rem+env(safe-area-inset-bottom,0px))] left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
-                : "bottom-8 left-1/2 w-[min(92vw,36rem)] -translate-x-1/2"
+              ? "w-[min(96vw,28rem)]"
+              : "w-[min(92vw,36rem)]"
           }`}
         >
           {onBottomDockModeChange ? (

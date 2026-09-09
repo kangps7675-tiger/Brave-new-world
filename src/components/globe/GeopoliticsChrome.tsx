@@ -481,7 +481,7 @@ export function GeopoliticsMapChrome({
         !selected &&
         !regionNavSelection &&
         !isUkraineTheaterFocus && (
-          <div className="pointer-events-none absolute bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 z-20 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2">
+          <div className="cv-bottom-chrome-above-stack pointer-events-none z-20 flex flex-wrap items-center justify-center gap-2">
             {isEconomyViewer ? (
               <MapLegend variant="economy" defaultOpen={false} />
             ) : (

@@ -156,8 +156,10 @@ export function UkraineFrontLegend({
 
   return (
     <div
-      className={`pointer-events-none absolute left-1/2 z-20 w-[min(92vw,440px)] -translate-x-1/2 transition-all duration-300 ease-out translate-y-0 opacity-100 ${
-        dockLow ? "bottom-4" : "bottom-[var(--bottom-intel-stack-clearance)]"
+      className={`pointer-events-none fixed left-1/2 z-20 w-[min(92vw,440px)] -translate-x-1/2 transition-all duration-300 ease-out translate-y-0 opacity-100 ${
+        dockLow
+          ? "bottom-4"
+          : "bottom-[calc(var(--bottom-intel-stack-clearance)+env(safe-area-inset-bottom,0px))]"
       }`}
     >
       <div className="rounded-xl border border-sky-300/20 bg-[#07111f]/88 px-3.5 py-3 text-xs shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md">
