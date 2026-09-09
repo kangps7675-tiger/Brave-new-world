@@ -130,7 +130,8 @@ export function ModeGlobalIndexChip({
         className={`pointer-events-auto fixed z-[300] flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${className}`}
         style={{
           top: "max(0.75rem, env(safe-area-inset-top, 0px))",
-          right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+          right:
+            "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
         }}
         data-chrome-obstacle="mode-index-chip"
         data-chrome-density={dense ? "dense" : "full"}
@@ -256,7 +257,8 @@ export function ModeGlobalIndexChip({
           className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(20rem,calc(100vw-1.5rem))]`}
           style={{
             top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+            right:
+              "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
             maxHeight:
               "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
           }}
@@ -272,7 +274,8 @@ export function ModeGlobalIndexChip({
           className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(22rem,calc(100vw-1.5rem))]`}
           style={{
             top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right: "max(0.75rem, env(safe-area-inset-right, 0px))",
+            right:
+              "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
             maxHeight:
               "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
           }}
