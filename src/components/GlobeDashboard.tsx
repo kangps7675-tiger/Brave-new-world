@@ -8587,9 +8587,6 @@ export function GlobeDashboard({
         selected={selected}
         regionNavSelection={regionNavSelection}
         econNavSelection={econNavSelection}
-        rightDockOpen={Boolean(
-          selected || regionNavSelection || econNavSelection || newsPerspectives,
-        )}
         showModePicker={showModePicker}
         entryGate={entryGate}
         globeReady={globeReady}
