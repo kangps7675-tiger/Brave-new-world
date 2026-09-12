@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import type { NewsInsightSelectionItem } from "@/lib/news/newsInsightTypes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { getUserAnthropicApiKey } from "@/lib/llm/userAnthropicKey";
@@ -122,8 +123,14 @@ export function NewsInsightPanel({
 }: NewsInsightPanelProps) {
   const en = lang === "en";
   const article = item.article;
-  const title = item.displayTitle ?? article.title;
-  const summary = item.displaySummary ?? article.summary;
+  const { localizedTitle, localizedSummary } = useNewsStreamContext();
+  // 한글 모드: 스트림 로컬라이즈(서버+클라이언트)를 우선 — raw EN displayTitle 고착 방지
+  const title = en
+    ? (item.displayTitle ?? article.title)
+    : localizedTitle(article);
+  const summary = en
+    ? (item.displaySummary ?? article.summary)
+    : (localizedSummary(article) ?? item.displaySummary ?? article.summary);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +164,7 @@ export function NewsInsightPanel({
           signal: ac.signal,
           body: JSON.stringify({
             url: article.link,
-            title: article.title,
+            title,
             source: article.source,
             publishedAt: article.pubDate,
             bodyOrSnippet: summary ?? article.summary ?? null,
@@ -172,10 +179,10 @@ export function NewsInsightPanel({
           insight: typeof data.insight === "string" ? data.insight : "",
           mapActions: Array.isArray(data.mapActions) ? data.mapActions : [],
         };
-        if (!next.excerpts.length && (summary || article.title)) {
+        if (!next.excerpts.length && (summary || title)) {
           next.excerpts = [
             {
-              text: (summary || article.title).slice(0, 220),
+              text: (summary || title).slice(0, 220),
               highlights: [],
             },
           ];
@@ -193,7 +200,7 @@ export function NewsInsightPanel({
         setPayload({
           excerpts: [
             {
-              text: (summary || article.title).slice(0, 220),
+              text: (summary || title).slice(0, 220),
               highlights: [],
             },
           ],
@@ -211,7 +218,7 @@ export function NewsInsightPanel({
       cancelled = true;
       ac.abort();
     };
-  }, [article.link, article.title, article.source, article.pubDate, article.summary, summary, mode, en]);
+  }, [article.link, article.source, article.pubDate, article.summary, title, summary, mode, en]);
 
   const previewChips = useMemo(() => {
     if (!selectedAction) return [] as string[];
