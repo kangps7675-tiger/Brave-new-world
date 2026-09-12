@@ -11,8 +11,10 @@ type EconomySupplyChainFixedToggleProps = {
   onChinaBriChange: (checked: boolean) => void;
   usLinkCount: number;
   chinaLinkCount: number;
-  /** 우측 세로 레일용 — 체크박스를 세로로 쌓는다 */
+  /** 세로 레일용 — 체크박스를 세로로 쌓는다 */
   vertical?: boolean;
+  /** 좌측 레일이면 start, 우측이면 end (기본 end) */
+  align?: "start" | "end";
 };
 
 export function EconomySupplyChainFixedToggle({
@@ -23,15 +25,21 @@ export function EconomySupplyChainFixedToggle({
   usLinkCount,
   chinaLinkCount,
   vertical = false,
+  align = "end",
 }: EconomySupplyChainFixedToggleProps) {
   const { lang } = useLocale();
   const light = useBasemapTone() === "light";
+  const hintSide = align === "start" ? "right" : "left";
 
   if (vertical) {
     return (
-      <div className="pointer-events-auto flex flex-col items-end gap-2">
+      <div
+        className={`pointer-events-auto flex flex-col gap-2 ${
+          align === "start" ? "items-start" : "items-end"
+        }`}
+      >
         <HoverHint
-          placement="left"
+          placement={hintSide}
           title={lang === "en" ? "U.S. DFC Network" : "미국 DFC 개발금융망"}
           detail={
             lang === "en"
@@ -70,7 +78,7 @@ export function EconomySupplyChainFixedToggle({
           </label>
         </HoverHint>
         <HoverHint
-          placement="left"
+          placement={hintSide}
           title={lang === "en" ? "China Belt and Road" : "중국 일대일로"}
           detail={
             lang === "en"
