@@ -65,6 +65,7 @@ export type Selection =
   | { kind: "recon-sat"; item: ReconSatelliteMarker }
   | { kind: "neptun-threat"; item: NeptunLiveThreat }
   | { kind: "chokepoint"; item: StaticPoint }
+  | { kind: "static-infra"; item: StaticPoint }
   | { kind: "news-insight"; item: NewsInsightSelectionItem };
 
 export type AnalysisSelection = Exclude<

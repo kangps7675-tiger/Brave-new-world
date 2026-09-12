@@ -689,8 +689,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !foldedPeriodicBriefing,
   );
   const showFoldedBriefingTabs = showFoldedLampTab || showFoldedWeeklyTab;
-  /** 우측 사이드바 없음 — 좌측 레일은 레이어 패널·시트만 피하면 됨 */
-  const railVisible = !intelSheetOpen && !isCompactUi && !showLeftPanel;
+  /** 등불·주간 회고 중엔 좌레일 언마운트 — 스크림/접기 애니에 가려지거나 위로 밀리지 않게 */
+  const railVisible =
+    !intelSheetOpen &&
+    !isCompactUi &&
+    !showLeftPanel &&
+    !periodicBriefing &&
+    !weeklyExpanded;
 
   const foldedBriefingTabs = showFoldedBriefingTabs ? (
     <div className="pointer-events-auto flex flex-col items-start gap-1.5">
@@ -1506,14 +1511,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !sentinelActive ? (
         <div
           className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-stretch gap-2 sm:left-4 cv-chrome-daily-bottom ${
-            telegramMiniPanelVisible ? "cv-chrome-daily-bottom--telegram" : ""
-          } ${showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"}`}
+            showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"
+          }`}
         >
           {gateClosed &&
           !showModePicker &&
           !showLeftPanel &&
-          !showDailyRankPanel &&
-          !telegramMiniPanelVisible ? (
+          !showDailyRankPanel ? (
             <DailyBriefingChrome
               lang={labelLanguage}
               layout="stack"

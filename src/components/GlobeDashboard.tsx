@@ -573,6 +573,7 @@ import {
 } from "@/components/BottomDockModeToggle";
 import {
   isUkraineNavId,
+  navIdForNewsTheater,
   navSelectionFromId,
   theaterFocusFromNav,
   type TheaterSidebarTab,
@@ -2723,16 +2724,11 @@ export function GlobeDashboard({
 
   /** 전선 레이어 ON 또는 우크라이나 극동부를 확대해 볼 때 하단 UI 전환 */
   /**
-   * 좌하단 텔레그램 OSINT 미니 패널 노출 조건.
-   * 일일 지수·예측 패널이 같은 좌하단을 쓰므로, 이 값으로 그 패널을 위로 띄워 겹침을 피한다.
+   * 좌하단 텔레그램 OSINT 미니 패널 — 우측 속보/선택과 독립.
+   * (다른 크롬을 위로 밀지 않음 · ✕로만 닫기)
    */
   const telegramMiniPanelVisible =
-    showTelegramOsint &&
-    !isEconomyViewer &&
-    !intelSheetOpen &&
-    !selected &&
-    !regionNavSelection &&
-    !isCompactUi; // 모바일에서는 뉴스창의 텔레그램 탭으로만 노출 — 별도 미니 패널 없음
+    showTelegramOsint && !isEconomyViewer && !intelSheetOpen && !isCompactUi;
 
   const isUkraineTheaterFocus = useMemo(() => {
     if (showUkraineControl) return true;
@@ -6199,6 +6195,20 @@ export function GlobeDashboard({
     flyTo(lat, lng, altitude);
   }, [clearRegionNavSelection, flyTo, isEconomyViewer]);
 
+  /** 카메라가 멈춘 뒤 하단 주요 뉴스 필터를 현위치 전장으로 맞춤 */
+  useEffect(() => {
+    if (isEconomyViewer || isCameraMoving || intelSheetOpen || regionNavSelection) return;
+    const theater = newsTheaterFromCoords(filterCenter.lat, filterCenter.lng);
+    setIntelTheaterFilter((prev) => (prev === theater ? prev : theater));
+  }, [
+    filterCenter.lat,
+    filterCenter.lng,
+    intelSheetOpen,
+    isCameraMoving,
+    isEconomyViewer,
+    regionNavSelection,
+  ]);
+
   function handleIntelFlyTo(target: MapFlyTarget) {
     if (target.kind === "coords") {
       flyTo(target.lat, target.lng, target.altitude ?? 0.92);
@@ -6281,6 +6291,23 @@ export function GlobeDashboard({
     immediateUntilRef,
     suppressAutoRegionZoomRef,
   });
+
+  /** 현위치 태그 → 우측 TheaterIntel (속보) 패널 */
+  const openCurrentLocationNews = useCallback(() => {
+    if (isEconomyViewer) {
+      openIntelSheet({ theater: "all" });
+      return;
+    }
+    const theater = newsTheaterFromCoords(filterCenter.lat, filterCenter.lng);
+    setIntelTheaterFilter(theater);
+    const navId = navIdForNewsTheater(theater);
+    const sel = navId ? navSelectionFromId(navId) : null;
+    if (sel) {
+      enterTheaterFocus(sel, "news");
+      return;
+    }
+    openIntelSheet({ theater });
+  }, [enterTheaterFocus, filterCenter.lat, filterCenter.lng, isEconomyViewer]);
 
   useEffect(() => {
     if (!initialViewConfig?.ui.openLayerPanel || isCompactUi) return;
@@ -7685,6 +7712,8 @@ export function GlobeDashboard({
       emitLayerClickSounds(cuesForStaticKind(point.kind), { altitude: layerAltitude });
       if (point.kind === "chokepoint") {
         openSelection({ kind: "chokepoint", item: point as StaticPoint });
+      } else if (point.kind === "airport" || point.kind === "port") {
+        openSelection({ kind: "static-infra", item: point as StaticPoint });
       }
       flyTo(point.lat, point.lng, point.kind === "airport" ? 0.55 : 0.72);
     },
@@ -7877,6 +7906,34 @@ export function GlobeDashboard({
         to: link.to,
       });
       flyTo(link.midLat, link.midLng, 1.35);
+      return;
+    }
+
+    if (path.kind === "crink-infra") {
+      const category = String(path.meta?.crinkCategory ?? "");
+      // 철도·도로 망 제외 — 공항·항만 등 고정 인프라만 선택 패널
+      if (category !== "aeroway" && category !== "harbour") return;
+      const mid = path.points[Math.floor(path.points.length / 2)] ?? path.points[0];
+      if (!mid) return;
+      skipNextGlobeClickRef.current = true;
+      const kind = category === "aeroway" ? "airport" : "port";
+      openSelection({
+        kind: "static-infra",
+        item: {
+          id: path.id,
+          kind,
+          name: path.name || (kind === "airport" ? "Airport" : "Port"),
+          lat: mid.lat,
+          lng: mid.lng,
+          tier: 1,
+          meta: {
+            crinkCategory: category,
+            region: path.meta?.region ?? null,
+            osmId: path.meta?.osmId ?? null,
+          },
+        },
+      });
+      flyTo(mid.lat, mid.lng, kind === "airport" ? 0.55 : 0.72);
       return;
     }
 
@@ -8494,6 +8551,12 @@ export function GlobeDashboard({
                 viewerMode={viewerMode}
                 pauseUpdates={isCameraMoving}
                 fabOnly={fabOnly}
+                currentLocationTheater={
+                  isEconomyViewer
+                    ? null
+                    : newsTheaterFromCoords(filterCenter.lat, filterCenter.lng)
+                }
+                onOpenCurrentLocationNews={openCurrentLocationNews}
                 onOpenSheet={(theater) => openIntelSheet({ theater: theater ?? "all" })}
                 onFlyToTheater={(theater) => {
                   const target = flyTargetForTheater(theater);
