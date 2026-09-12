@@ -134,7 +134,9 @@ export function EconomyRegionPanel({
     <aside className="intel-panel intel-sidebar-right z-[600] flex flex-col overflow-hidden bg-[#071018]/94 p-4 backdrop-blur-md">
       <div className="flex items-start justify-between gap-3 border-b border-emerald-400/15 pb-3">
         <div className="min-w-0">
-          <p className="text-micro uppercase tracking-[0.28em] text-emerald-200/70">Geo Markets</p>
+          <p className="text-micro uppercase tracking-[0.28em] text-emerald-200/70">
+            {lang === "en" ? "Geo Markets" : "지경학 시장"}
+          </p>
           <h2 className="mt-1 text-lg font-semibold text-emerald-50">{selection.label}</h2>
           {selection.parentLabel ? (
             <p className="text-meta text-emerald-100/45">{selection.parentLabel}</p>
@@ -228,14 +230,16 @@ export function EconomyRegionPanel({
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
         {articles.length === 0 ? (
           <p className="py-8 text-center text-sm text-emerald-100/45">
-            이 구역 관련 경제 RSS가 아직 없습니다.
+            {lang === "en"
+              ? "No regional market RSS for this area yet."
+              : "이 구역 관련 경제 RSS가 아직 없습니다."}
             <br />
             <button
               type="button"
               onClick={onOpenIntel}
               className="mt-2 text-emerald-300 underline-offset-2 hover:underline"
             >
-              전체 경제 Intel 열기
+              {lang === "en" ? "Open full markets Intel" : "전체 경제 Intel 열기"}
             </button>
           </p>
         ) : (
@@ -243,9 +247,11 @@ export function EconomyRegionPanel({
             {tier1.length > 0 ? (
               <section>
                 <p className="text-xs font-semibold text-emerald-50">
-                  {ECONOMY_TIER_LABELS[1].label}
+                  {lang === "en" ? ECONOMY_TIER_LABELS[1].labelEn : ECONOMY_TIER_LABELS[1].label}
                 </p>
-                <p className="text-micro text-emerald-100/45">{ECONOMY_TIER_LABELS[1].detail}</p>
+                <p className="text-micro text-emerald-100/45">
+                  {lang === "en" ? ECONOMY_TIER_LABELS[1].detailEn : ECONOMY_TIER_LABELS[1].detail}
+                </p>
                 <div className="mt-2 flex flex-col gap-2">
                   {tier1.map((item) => renderCard(item))}
                 </div>
@@ -254,9 +260,11 @@ export function EconomyRegionPanel({
             {tier2.length > 0 ? (
               <section>
                 <p className="text-xs font-semibold text-emerald-50">
-                  {ECONOMY_TIER_LABELS[2].label}
+                  {lang === "en" ? ECONOMY_TIER_LABELS[2].labelEn : ECONOMY_TIER_LABELS[2].label}
                 </p>
-                <p className="text-micro text-emerald-100/45">{ECONOMY_TIER_LABELS[2].detail}</p>
+                <p className="text-micro text-emerald-100/45">
+                  {lang === "en" ? ECONOMY_TIER_LABELS[2].detailEn : ECONOMY_TIER_LABELS[2].detail}
+                </p>
                 <div className="mt-2 flex flex-col gap-2">
                   {tier2.map((item) => renderCard(item))}
                 </div>
@@ -265,9 +273,11 @@ export function EconomyRegionPanel({
             {tier3.length > 0 ? (
               <section>
                 <p className="text-xs font-semibold text-emerald-50">
-                  {ECONOMY_TIER_LABELS[3].label}
+                  {lang === "en" ? ECONOMY_TIER_LABELS[3].labelEn : ECONOMY_TIER_LABELS[3].label}
                 </p>
-                <p className="text-micro text-emerald-100/45">{ECONOMY_TIER_LABELS[3].detail}</p>
+                <p className="text-micro text-emerald-100/45">
+                  {lang === "en" ? ECONOMY_TIER_LABELS[3].detailEn : ECONOMY_TIER_LABELS[3].detail}
+                </p>
                 <div className="mt-2 flex flex-col gap-2">
                   {tier3.map((item) => renderCard(item, true))}
                 </div>

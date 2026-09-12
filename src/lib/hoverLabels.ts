@@ -86,6 +86,8 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   "neptun-trail": { ko: "드론·미사일 공중 궤적", en: "Drone / missile air track" },
   "neptun-projection": { ko: "예측 항로", en: "Predicted track" },
   "neptun-trail-archived": { ko: "지나간 공중 궤적", en: "Past air track" },
+  "ship-movement-trail": { ko: "함정 관측 연결선", en: "Ship observation trail" },
+  "gev-track-trail": { ko: "추적 웨이크", en: "Tracked wake trail" },
 };
 
 const TIER: Record<EventTier, Bi> = {

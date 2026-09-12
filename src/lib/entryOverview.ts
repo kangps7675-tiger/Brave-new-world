@@ -15,12 +15,8 @@ import {
 } from "@/lib/firstScreenLayers";
 
 /**
- * 첫 진입 게이트 — 로테이션이 아니라 입·출구(한 번 통과하면 끝).
- *
- * 순서(하드코딩):
- * 1. 로딩 — 전역 궤도 (`entryOrbitCamera`: 구 전체가 화면 짧은 변을 채움)
- * 2. 환영 편지지 / 도메인 선택
- * 3. 전역 지구본 히어로 유지 → "핫 지역으로 갈까요?" 선택창 후에만 줌인
+ * 첫 진입 — 언어 게이트 후 전역 궤도.
+ * 장면 모드(SceneMissionPicker)에서만 특정 전장·초크로 줌인.
  */
 /** 고도는 런타임에 LOD 앵커로 바뀌므로 literal이 되면 안 됨 (`as const` 금지). */
 export const ENTRY_GATE: {

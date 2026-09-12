@@ -26,8 +26,8 @@ type EntryGateHostProps = {
 };
 
 /**
- * 입장 게이트 — caution → welcome → sources → domain.
- * 등불·긴장지수 등 실시간 콘텐츠는 sources 확인 전엔 뜨지 않음 (entryGate !== null).
+ * 입장 게이트 — 수동 재열기용 (부트 자동 체인 없음).
+ * 기본 부트는 LanguageGate → 전역뷰. caution/welcome/sources/domain은 햄버거·설정에서만.
  */
 export function EntryGateHost({
   entryGate,

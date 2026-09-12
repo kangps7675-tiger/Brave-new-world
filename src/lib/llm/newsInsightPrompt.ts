@@ -7,6 +7,7 @@ import {
   catalogSummaryForPrompt,
   type NewsInsightMode,
 } from "@/data/newsInsightCatalog";
+import { KOREAN_PROSE_RULES_PROMPT } from "@/lib/koreanProseRules";
 
 export type NewsInsightRequestInput = {
   url: string;
@@ -68,6 +69,7 @@ export function buildNewsInsightSystem(lang: "ko" | "en", mode: NewsInsightMode)
     "highlights는 해당 excerpts.text 안의 문자 오프셋입니다. 카탈로그 id로 맵에 올릴 수 있는 표현만 하이라이트. 없으면 highlights는 [].",
     "layerIds·bundleId는 아래 카탈로그 id만. 전략 문장은 bundleId를 우선.",
     "insight는 6하원칙·인과를 가설 톤의 줄글로. 사실 날조 금지. 불확실하면 명시. 장문 번역 금지.",
+    KOREAN_PROSE_RULES_PROMPT,
     "mapActions는 맵에 올릴 레이어/번들용(선택). 없으면 [].",
     `뷰어 모드: ${mode}. 이 모드에 허용된 카탈로그만 사용.`,
     "CATALOG:",

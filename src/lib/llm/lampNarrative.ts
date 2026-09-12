@@ -7,6 +7,7 @@ import {
   isLlmDailyLampEnabled,
 } from "@/lib/llm/anthropicEnv";
 import { callClaudeMessages } from "@/lib/llm/claudeMessages";
+import { KOREAN_PROSE_RULES_PROMPT } from "@/lib/koreanProseRules";
 
 export type LampNarrativeInput = {
   mode: "conflict" | "economy";
@@ -76,8 +77,7 @@ export async function rewriteLampNarrative(
         "입력 원고의 사실, 수치, 고유명사만 사용하고 새 사실·원인·전망을 만들지 마십시오.",
         "자료에 없는 인과관계는 단정하지 말고, 확인되지 않은 현장 전언은 '미확인' 또는 '전언'으로 명시하십시오.",
         "보고는 육하원칙(누가·언제·어디서·무엇을·왜·어떻게) 순서를 논리적으로 따라 정부 정례 브리핑처럼 서술하십시오.",
-        "한국어 문법: 주어+목적어+서술어 어순을 지키십시오. 조사를 빠뜨리지 마십시오. 명사를 영어로 쌓아 올린 뒤 '닿다/맞물리다'로 끝내지 마십시오.",
-        "종결어미: 한 문단 안에서는 '~습니다/~입니다'만 쓰십시오. '~다'체와 '~습니다'체를 한 문단에 섞지 마십시오. '~요'체도 쓰지 마십시오.",
+        KOREAN_PROSE_RULES_PROMPT,
         "각 문단은 하나의 축을 다루되, 라벨을 기계적으로 나열하지 말고 간결하고 단정한 공식 문장으로 이어 쓰십시오.",
         "등불·렌즈 같은 감상적 비유나 수사를 쓰지 말고, 사실 중심의 건조하고 명료한 브리핑 어조를 유지하십시오.",
         "출력은 반드시 한국어 문장으로 합니다. 영어 문장·영문 제목을 그대로 남기지 마십시오. 고유명사는 한국어 통용 표기를 쓰고, 불가피한 약어만 괄호 병기합니다.",

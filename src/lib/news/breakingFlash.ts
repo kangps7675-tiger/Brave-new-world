@@ -539,9 +539,10 @@ export function buildBreakingFlashBriefing(
         : undefined,
   });
 
-  const paragraphs = [...essay, gradeLine].filter(
-    (p): p is string => Boolean(p && p.trim().length > 0),
-  );
+  const paragraphs =
+    gradeLine && essay.length > 0
+      ? [...essay.slice(0, -1), `${essay[essay.length - 1]} ${gradeLine}`]
+      : essay.filter((p) => p.trim().length > 0);
 
   return {
     id: hero.id,

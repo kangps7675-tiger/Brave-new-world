@@ -69,7 +69,8 @@ export function aircraftSymbolIconId(
   role: MilAircraftRole,
   palette: AircraftPalette,
 ): string {
-  return `aircraft-${palette}-${role}`;
+  // ink2 — 팔레트·스트로크 변경 시 캐시 버스팅
+  return `aircraft-${palette}-${role}-ink2`;
 }
 
 /** 침로 없음 — 실루엣을 살짝 눕혀 "방향 미상"을 표현 (기존 DOM 마커와 동일 규칙) */
@@ -151,6 +152,18 @@ export type AircraftSymbolModel = {
   isCivil: boolean[];
 };
 
+export type AircraftSymbolBuildOptions = {
+  /** 추적 중 hex — 선택 강조 + 태그 우선 */
+  selectedHex?: string | null;
+};
+
+function aircraftTag(item: AircraftSymbolInput): string {
+  const cs = item.callsign?.trim();
+  if (cs) return cs.length > 8 ? `${cs.slice(0, 7)}…` : cs;
+  const hex = (item.hex || "").toUpperCase();
+  return hex ? hex.slice(-4) : "";
+}
+
 const EMPTY_MODEL: AircraftSymbolModel = {
   geojson: { type: "FeatureCollection", features: [] },
   items: [],
@@ -164,9 +177,11 @@ const EMPTY_MODEL: AircraftSymbolModel = {
 export function buildAircraftSymbolModel(
   military: readonly AircraftSymbolInput[],
   civil: readonly AircraftSymbolInput[],
+  options?: AircraftSymbolBuildOptions,
 ): AircraftSymbolModel {
   if (military.length === 0 && civil.length === 0) return EMPTY_MODEL;
 
+  const selectedHex = (options?.selectedHex || "").toLowerCase();
   const features: GeoJSON.Feature[] = [];
   const items: AircraftSymbolInput[] = [];
   const isCivil: boolean[] = [];
@@ -181,6 +196,8 @@ export function buildAircraftSymbolModel(
       palette === "civil" ? ("transport" as const) : classifyMilAircraft(item).role;
     const heading = headingDeg(item);
     const index = items.length;
+    const selected = selectedHex !== "" && item.hex.toLowerCase() === selectedHex ? 1 : 0;
+    const tag = aircraftTag(item);
 
     items.push(item);
     isCivil.push(palette === "civil");
@@ -192,7 +209,11 @@ export function buildAircraftSymbolModel(
         icon: aircraftSymbolIconId(role, palette),
         // 침로 없으면 -18° 기울여 "미상" 표시 + 살짝 투명 (기존 DOM 규칙 유지)
         rotate: heading ?? -18,
-        opacity: heading == null ? 0.8 : 1,
+        opacity: selected ? 1 : heading == null ? 0.8 : 1,
+        selected,
+        tag,
+        /** 선택 시 살짝 키움 — MapLibre icon-size에 곱함 */
+        scale: selected ? 1.22 : 1,
       },
     });
   };

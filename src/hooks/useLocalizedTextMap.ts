@@ -45,6 +45,9 @@ export function useLocalizedTextMap(
         needsWork.push(entry);
       }
 
+      // 이미 목표 언어인 항목은 즉시 반영 (영문 깜빡임 완화)
+      if (!cancelled && next.size > 0) setMap(new Map(next));
+
       const batchSize = 20;
       for (let i = 0; i < needsWork.length; i += batchSize) {
         const slice = needsWork.slice(i, i + batchSize);
@@ -55,8 +58,9 @@ export function useLocalizedTextMap(
         slice.forEach((entry, idx) => {
           next.set(entry.key, translated[idx] ?? entry.text);
         });
+        // 배치마다 점진 반영 — 전체 완료까지 영문 고정 방지
+        if (!cancelled) setMap(new Map(next));
       }
-      if (!cancelled) setMap(next);
     })();
 
     return () => {

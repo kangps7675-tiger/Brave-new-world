@@ -870,6 +870,14 @@ const UI = {
   westpacExit: { ko: "나가기", en: "Exit" },
   westpacOpenSource: { ko: "출처", en: "Source" },
   westpacBriefOpen: { ko: "브리프 읽기", en: "Read brief" },
+  sceneMissionEyebrow: { ko: "장면 모드", en: "Scene mode" },
+  sceneMissionTitle: { ko: "어디로 들어갈까요?", en: "Where do you want to go?" },
+  sceneMissionSubtitle: {
+    ko: "한 장면을 고르면 카메라와 레이어가 맞춰집니다",
+    en: "Pick a scene to frame the camera and layers",
+  },
+  sceneMissionStart: { ko: "장면 시작", en: "Start scene" },
+  returnToGlobe: { ko: "지구로 돌아가기", en: "Return to globe" },
 } as const;
 
 export type UiStringKey = keyof typeof UI;

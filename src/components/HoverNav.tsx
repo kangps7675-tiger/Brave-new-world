@@ -49,9 +49,11 @@ type HoverNavProps = {
   askLayersLabel?: string;
   /** UI 문구 언어 (이벤트 메뉴 등) */
   labelLanguage?: LabelLanguage;
-  /* forceVisible 삭제 (P2-5) — 컴포넌트가 읽지도 않던 prop.
-     상단 nav의 hover-reveal 모델은 폐기됐고 데스크톱은 상시 고정이다.
-     (컴포넌트 이름 `HoverNav`도 그 시절 잔재 — 리네임은 별건) */
+  /**
+   * Nullschool식 — 상단 hit-area 호버/포커스 시에만 nav 바 표시.
+   * false(기본)면 상시 고정(레거시).
+   */
+  hoverReveal?: boolean;
 };
 
 export function HoverNav({
@@ -70,17 +72,20 @@ export function HoverNav({
   onAskLayersOpen,
   askLayersLabel,
   labelLanguage = "ko",
+  hoverReveal = false,
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [openHubId, setOpenHubId] = useState<string | null>(null);
+  const [revealOpen, setRevealOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
   const isEconomy = viewerMode === "economy";
   const light = useBasemapTone() === "light";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
+  const navChromeVisible = !hoverReveal || revealOpen || navOpen || hubMenuOpen || Boolean(query.trim());
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -158,13 +163,11 @@ export function HoverNav({
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
 
   /**
-   * 데스크톱: 상시 고정 바.
-   * `--hover-nav-height` / `--hover-nav-base-height` 모두 실제 크롬 높이
-   * (지도 오프셋·우상단 칩이 같은 기준을 쓰도록 동기화).
+   * 데스크톱: 상시 고정 바 (hoverReveal이면 펼침 시에만 높이 반영).
    */
   useEffect(() => {
     const root = document.documentElement;
-    if (compact) {
+    if (compact || (hoverReveal && !navChromeVisible)) {
       root.style.setProperty("--hover-nav-height", "0px");
       root.style.setProperty("--hover-nav-base-height", "0px");
       return;
@@ -180,7 +183,7 @@ export function HoverNav({
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, belowNav, showDesktopToolsSlot, menuExpanded]);
+  }, [compact, belowNav, showDesktopToolsSlot, menuExpanded, hoverReveal, navChromeVisible]);
 
   return (
     <div
@@ -190,11 +193,30 @@ export function HoverNav({
       style={{
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
       }}
+      onMouseEnter={hoverReveal ? () => setRevealOpen(true) : undefined}
+      onMouseLeave={
+        hoverReveal
+          ? () => {
+              if (!navOpen && !hubMenuOpen) setRevealOpen(false);
+            }
+          : undefined
+      }
+      onFocusCapture={hoverReveal ? () => setRevealOpen(true) : undefined}
     >
+      {hoverReveal ? (
+        <div
+          className="pointer-events-auto absolute inset-x-0 top-0 h-3"
+          aria-hidden
+        />
+      ) : null}
       <div
         ref={chromeRef}
-        className={`pointer-events-auto flex w-full flex-col items-center ${
+        className={`pointer-events-auto flex w-full flex-col items-center transition-all duration-300 ${
           compact ? "px-[3.4rem] sm:px-14" : "mt-1.5 px-2 sm:px-3"
+        } ${
+          hoverReveal && !navChromeVisible
+            ? "pointer-events-none -translate-y-2 opacity-0"
+            : "translate-y-0 opacity-100"
         }`}
       >
       <div className="flex w-full flex-col items-center">

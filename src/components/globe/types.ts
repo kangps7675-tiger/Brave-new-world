@@ -350,7 +350,7 @@ export type NewsStreamNeonMarker = {
   lng: number;
   title: string;
   link: string;
-  kind: "war" | "tension" | "diplomatic";
+  kind: "war" | "tension" | "diplomatic" | "market";
   accent: "red" | "orange" | "blue" | "cyan" | "white";
   intensity: number;
   /** 전장 — 관점 패널 시장 반응 카드용 */

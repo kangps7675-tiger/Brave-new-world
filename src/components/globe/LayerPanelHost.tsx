@@ -34,6 +34,13 @@ export type LayerPanelHostProps = {
   isTabletUi?: boolean;
   isDesktopWideUi?: boolean;
   labelLanguage: LabelLanguage;
+  /**
+   * 부모가 탭을 고른다 (메뉴 → 레이어 / 설정 / 데이터).
+   * 미지정 시 내부 state — 기본 「레이어」만.
+   */
+  activeTab?: LayerPanelTab;
+  /** false면 탭바 숨김 — 사이드는 한 역할만 (기본) */
+  showTabBar?: boolean;
   layerPanelDirty: boolean;
   onConfirmDraft: () => void;
   onCancelDraft: () => void;
@@ -95,6 +102,8 @@ export function LayerPanelHost({
   isCompactUi,
   isTabletUi = false,
   labelLanguage,
+  activeTab,
+  showTabBar = false,
   layerPanelDirty,
   onConfirmDraft,
   onCancelDraft,
@@ -149,8 +158,10 @@ export function LayerPanelHost({
   generatedAt,
   loadError,
 }: LayerPanelHostProps) {
-  /** 기본은 「레이어」 — 이 패널을 여는 이유의 대부분이다 (P1-3) */
-  const [tab, setTab] = useState<LayerPanelTab>("layers");
+  /** 기본은 「레이어」 — 설정·데이터는 햄버거 메뉴에서 연다 */
+  const [internalTab, setInternalTab] = useState<LayerPanelTab>("layers");
+  const tab = activeTab ?? internalTab;
+  const setTab = setInternalTab;
   const [layerInfoHover, setLayerInfoHover] = useState<LayerInfoHoverTarget | null>(null);
   const clearHoverTimerRef = useRef<number | null>(null);
 
@@ -247,13 +258,8 @@ export function LayerPanelHost({
         </button>
       </div>
 
-      {/*
-        3탭 분해 (P1-3).
-        이 패널은 언어 · 폰트 · 성능 · 뷰 설정 · 레이어 100+ · 데이터 상태 ·
-        동기화 버튼을 **한 서랍**에 담고 있었다. 레이어를 하나 켜려고 열었는데
-        스크롤을 한참 내려야 했고, 정작 레이어 검색은 없었다.
-        성격이 다른 것을 나눈다 — 「레이어」는 자주, 「설정」·「데이터」는 가끔 쓴다.
-      */}
+      {/* 탭바는 기본 숨김 — 햄버거에서 역할별로 연다. showTabBar로만 복구. */}
+      {showTabBar ? (
       <div role="tablist" aria-label={t("layers", labelLanguage)} className="flex gap-1">
         {(["layers", "settings", "data"] as const).map((tabId) => {
           const active = tab === tabId;
@@ -281,6 +287,7 @@ export function LayerPanelHost({
           );
         })}
       </div>
+      ) : null}
 
       {tab === "settings" ? (
       <>

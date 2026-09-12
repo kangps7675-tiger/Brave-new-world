@@ -181,6 +181,8 @@ export interface UseGlobeMapGlobePropsParams {
    * 여기서는 geojson을 미리 굽지 않고 원본 포인트만 그대로 내려보낸다.
    */
   aisDisplayPoints: AisSymbolInput[];
+  /** 추적 중인 AIS MMSI — 심볼 선택 강조 */
+  aisSymbolSelectedMmsi?: string | null;
   handleAisSymbolSelect: (vessel: AisVessel) => void;
   handleAisSymbolHover: (vessel: AisVessel | null) => void;
   /**
@@ -255,6 +257,7 @@ export function useGlobeMapGlobeProps(
     handleCivAircraftSelect,
     setHoveredMilAircraft,
     aisDisplayPoints,
+    aisSymbolSelectedMmsi = null,
     handleAisSymbolSelect,
     handleAisSymbolHover,
     safecastGaugesGeoJson,
@@ -621,6 +624,7 @@ export function useGlobeMapGlobeProps(
      * 여기서는 원본 포인트 배열만 전달한다.
      */
     aisSymbolVessels: aisDisplayPoints,
+    aisSymbolSelectedMmsi,
     onAisSymbolClick: (item: unknown) => {
       handleAisSymbolSelect(item as AisVessel);
     },
@@ -1030,6 +1034,9 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "ship-movement-trail") {
         return path.accentColor || "rgba(34, 211, 238, 0.7)";
       }
+      if (path.kind === "gev-track-trail") {
+        return path.accentColor || "rgba(0, 212, 255, 0.85)";
+      }
       if (path.kind === "arms-embargo") return tonedArmsEmbargoStroke;
       if (path.kind === "msr") return "rgba(250, 204, 21, 0.9)";
       if (
@@ -1112,6 +1119,7 @@ export function useGlobeMapGlobeProps(
       if (path.kind === "shipping-lane") return shippingLaneStroke(path);
       if (path.kind === "maritime-route") return maritimeRouteStroke(path);
       if (path.kind === "ship-movement-trail") return 1.15;
+      if (path.kind === "gev-track-trail") return 2.1;
       if (path.kind === "submarine-cable") {
         // 해저 케이블: cable widthMode (줌아웃↑ · 줌인 최소 ~0.55)
         return 0.55;
