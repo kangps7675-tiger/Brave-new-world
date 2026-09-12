@@ -19,6 +19,8 @@ export const RATE_PRESETS = {
   freight: { key: "freight", limit: 30, windowMs: 60_000 },
   radar: { key: "radar", limit: 20, windowMs: 60_000 },
   stock: { key: "stock", limit: 40, windowMs: 60_000 },
+  /** 초단위 선물 SPIKE 폴링 (~1req/s) */
+  stockFuturesLive: { key: "stock-futures-live", limit: 120, windowMs: 60_000 },
   stockReaction: { key: "stock-reaction", limit: 30, windowMs: 60_000 },
   sovereignRates: { key: "sovereign-rates", limit: 30, windowMs: 60_000 },
   reefwatch: { key: "reefwatch", limit: 20, windowMs: 60_000 },

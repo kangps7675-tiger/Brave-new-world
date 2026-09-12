@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
@@ -166,7 +166,11 @@ import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
 import { SpikeTelegraphBanner } from "@/components/SpikeTelegraphBanner";
+import type { SpikeTelegraphBannerOffer } from "@/components/SpikeTelegraphBanner";
+import { FuturesSpikeInsightParchment } from "@/components/FuturesSpikeInsightParchment";
 import { useDatabentoSpikeOffer } from "@/hooks/useDatabentoSpikeOffer";
+import { theaterForFuturesSymbol } from "@/lib/futuresSpikeInsight";
+import { THEATER_FLY_TO } from "@/lib/news/theaterMap";
 import { AdsbEmergencyBanner } from "@/components/AdsbEmergencyBanner";
 import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
 import { NatoPerimeterAlertChip } from "@/components/NatoPerimeterAlertChip";
@@ -764,9 +768,22 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
    */
   const gateClosed = entryGate === null;
   const gateClear = gateClosed && !showModePicker;
+  const [futuresSpikeInsightOffer, setFuturesSpikeInsightOffer] =
+    useState<SpikeTelegraphBannerOffer | null>(null);
   const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
-    gateClear && !showLanguageGate,
+    gateClear && !showLanguageGate && !futuresSpikeInsightOffer,
   );
+
+  const dismissFuturesSpikeInsight = useCallback(() => {
+    const offer = futuresSpikeInsightOffer;
+    setFuturesSpikeInsightOffer(null);
+    if (!offer) return;
+    const theater = theaterForFuturesSymbol(offer.symbol);
+    const center = THEATER_FLY_TO[theater];
+    if (center) {
+      flyTo(center.lat, center.lng, center.altitude, 1100);
+    }
+  }, [flyTo, futuresSpikeInsightOffer]);
 
   useEffect(() => {
     if (showDailyRankPanel) markBriefingStep("gti");
@@ -1689,19 +1706,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               />
             ) : null}
 
-            {show("tickerSpike") && tickerSpikeOffer ? (
+            {show("tickerSpike") && tickerSpikeOffer && !futuresSpikeInsightOffer ? (
               <SpikeTelegraphBanner
                 offer={tickerSpikeOffer}
                 lang={labelLanguage}
                 onDismiss={dismissTickerSpike}
                 onOpenMarkets={() => {
+                  setFuturesSpikeInsightOffer(tickerSpikeOffer);
                   dismissTickerSpike();
-                  if (isEconomyViewer) {
-                    intelStackRef.current?.openNewsPanel("all", "news", "markets");
-                  } else {
-                    intelStackRef.current?.openNewsPanel("all");
-                  }
-                  onSetIntelSheetOpen(true);
                 }}
               />
             ) : null}
@@ -1768,6 +1780,18 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           briefing={breakingFlash}
           lang={labelLanguage}
           onDismiss={onDismissBreakingFlash}
+        />
+      ) : null}
+
+      {futuresSpikeInsightOffer &&
+      !airRaidBriefing &&
+      !periodicBriefing &&
+      !weeklyExpanded &&
+      !breakingFlash ? (
+        <FuturesSpikeInsightParchment
+          offer={futuresSpikeInsightOffer}
+          lang={labelLanguage}
+          onDismiss={dismissFuturesSpikeInsight}
         />
       ) : null}
 

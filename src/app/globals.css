@@ -369,6 +369,38 @@ main[data-ui-lang="en"]
   }
 }
 
+/** 선물 인사이트 양피지 — 드롭캡 */
+.parchment-drop-cap::first-letter {
+  float: left;
+  font-size: 3.1em;
+  line-height: 0.85;
+  padding-right: 0.12em;
+  padding-top: 0.08em;
+  font-weight: 600;
+  color: #5a3a18;
+}
+
+/** 선물 인사이트 양피지 — 본문 float 사진 */
+.parchment-insight-photo {
+  float: right;
+  width: min(42%, 11.5rem);
+  max-width: 11.5rem;
+  margin: 0.15rem 0 0.75rem 0.9rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(139, 105, 20, 0.35);
+  box-shadow: 0 8px 22px rgba(40, 24, 8, 0.18);
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  background: #e8d4a8;
+}
+
+@media (max-width: 480px) {
+  .parchment-insight-photo {
+    width: min(48%, 9.5rem);
+    margin-left: 0.65rem;
+  }
+}
+
 .city-label-marker {
   pointer-events: none;
   user-select: none;
