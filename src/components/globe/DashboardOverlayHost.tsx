@@ -393,7 +393,6 @@ export type DashboardOverlayHostProps = {
   } | null;
   /** 하단 독 · 히스토리(스크럽) / 뉴스(인텔 스택) */
   bottomDockMode?: BottomDockMode;
-  onBottomDockModeChange?: (mode: BottomDockMode) => void;
   /** 첫 90초 종료 후 소리 언뮤트 유도 */
   soundUnmuteReady: boolean;
   ukmtoBriefing: UkmtoBriefingContent | null;
@@ -590,7 +589,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     gtiHeroVisible,
     timeScrubber = null,
     bottomDockMode = "history",
-    onBottomDockModeChange,
     soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
