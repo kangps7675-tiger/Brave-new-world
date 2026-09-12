@@ -96,6 +96,10 @@ export type ParchmentLetterProps = {
   /** dialog 접근성 라벨 id */
   titleId?: string;
   zIndexClass?: string;
+  /** 본문 float 사진 (드롭캡 인사이트용) */
+  leadImageUrl?: string | null;
+  /** 첫 단락 드롭캡 */
+  dropCap?: boolean;
 };
 
 const TYPE_MS_PER_CHAR = 28;
@@ -118,6 +122,8 @@ export function ParchmentLetter({
   blackInk = false,
   titleId = "parchment-letter-title",
   zIndexClass = "z-[800]",
+  leadImageUrl = null,
+  dropCap = false,
 }: ParchmentLetterProps) {
   /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
   const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
@@ -338,8 +344,21 @@ export function ParchmentLetter({
                 style={{ fontFamily: bodyFont, fontWeight: 400 }}
                 aria-live="polite"
               >
+                {leadImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={leadImageUrl}
+                    alt=""
+                    className="parchment-insight-photo"
+                  />
+                ) : null}
                 {visibleParagraphs.map((p, i) => (
-                  <p key={i} className="welcome-letter-verse whitespace-pre-line text-pretty">
+                  <p
+                    key={i}
+                    className={`welcome-letter-verse whitespace-pre-line text-pretty ${
+                      dropCap && i === 0 ? "parchment-drop-cap" : ""
+                    }`}
+                  >
                     {p}
                     {typewriter && !typingDone && i === visibleParagraphs.length - 1 ? (
                       <span className="parchment-type-caret" aria-hidden>
