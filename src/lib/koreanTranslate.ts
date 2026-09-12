@@ -17,7 +17,12 @@ export function isMostlyKorean(text: string): boolean {
   const compact = text.replace(/\s+/g, "");
   if (!compact) return true;
   const hangul = (compact.match(/[\uAC00-\uD7AF\u1100-\u11FF]/g) || []).length;
-  return hangul / compact.length >= 0.28;
+  const latin = (compact.match(/[a-zA-Z]/g) || []).length;
+  const hangulRatio = hangul / compact.length;
+  const latinRatio = latin / compact.length;
+  // 영문이 절반 가까이이면 한글로 보지 않음 (혼용 제목도 번역 대상)
+  if (latinRatio >= 0.45) return false;
+  return hangulRatio >= 0.28;
 }
 
 /** 이미 영문(Latin)이 주를 이루면 재번역하지 않음 */

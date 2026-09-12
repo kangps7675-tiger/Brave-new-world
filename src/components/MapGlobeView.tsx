@@ -912,9 +912,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
    * 5° 단위로 양자화해 회전 중 재빌드 빈도를 억제한다 (aisSymbolBearingBucket).
    */
   const aisSymbolVessels = (props.aisSymbolVessels as AisSymbolInput[] | undefined) ?? [];
+  const aisSymbolSelectedMmsi =
+    typeof props.aisSymbolSelectedMmsi === "string" ? props.aisSymbolSelectedMmsi : null;
   const aisSymbolModel = useMemo(
-    () => buildAisSymbolModel(aisSymbolVessels, aisSymbolBearingBucket(mapBearingDeg)),
-    [aisSymbolVessels, mapBearingDeg],
+    () =>
+      buildAisSymbolModel(aisSymbolVessels, aisSymbolBearingBucket(mapBearingDeg), {
+        selectedMmsi: aisSymbolSelectedMmsi,
+      }),
+    [aisSymbolVessels, mapBearingDeg, aisSymbolSelectedMmsi],
   );
   const onAisSymbolClick = props.onAisSymbolClick as ((item: unknown) => void) | undefined;
   const onAisSymbolHover = props.onAisSymbolHover as
@@ -2577,30 +2582,69 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="symbol"
               layout={{
                 "icon-image": ["get", "icon"],
-                // 이미지를 표시 크기 그대로 구웠으므로 스케일 보간 없음(=선명).
-                // 줌아웃에서만 살짝 줄여 전역 뷰의 밀도를 낮춘다.
+                // 줌아웃에서 밀도 완화 + 선택 시 scale 배수
                 "icon-size": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  1.5,
-                  0.62,
-                  4,
-                  0.82,
-                  7,
-                  1,
+                  "*",
+                  ["coalesce", ["get", "scale"], 1],
+                  [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    1.5,
+                    0.62,
+                    4,
+                    0.82,
+                    7,
+                    1,
+                  ],
                 ],
-                // 침로 회전 — 실루엣의 코가 북쪽(+Y)이라 heading을 그대로 쓴다
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
                 "icon-pitch-alignment": "viewport",
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
+                // 근접 줌에서만 짧은 태그 — 전역 뷰는 실루엣만
+                "text-field": [
+                  "step",
+                  ["zoom"],
+                  "",
+                  5.2,
+                  ["coalesce", ["get", "tag"], ""],
+                ],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  5.2,
+                  9,
+                  8,
+                  11,
+                ],
+                "text-offset": [0, 1.25],
+                "text-anchor": "top",
+                "text-optional": true,
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-max-width": 8,
               }}
               paint={{
-                // 침로 미상은 0.8 (기존 DOM 마커 규칙 유지)
                 "icon-opacity": ["get", "opacity"],
+                "text-color": [
+                  "case",
+                  ["==", ["get", "selected"], 1],
+                  "rgba(250, 232, 200, 0.95)",
+                  "rgba(226, 232, 240, 0.82)",
+                ],
+                "text-halo-color": "rgba(2, 6, 14, 0.78)",
+                "text-halo-width": 1.15,
+                "text-opacity": [
+                  "case",
+                  ["==", ["get", "tag"], ""],
+                  0,
+                  0.92,
+                ],
               }}
             />
           </Source>
@@ -2626,15 +2670,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  1.5,
-                  0.62,
-                  4,
-                  0.82,
-                  7,
-                  1,
+                  "*",
+                  ["coalesce", ["get", "scale"], 1],
+                  [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    1.5,
+                    0.62,
+                    4,
+                    0.82,
+                    7,
+                    1,
+                  ],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
@@ -2642,9 +2690,46 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
+                "text-field": [
+                  "step",
+                  ["zoom"],
+                  "",
+                  5.2,
+                  ["coalesce", ["get", "tag"], ""],
+                ],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  5.2,
+                  9,
+                  8,
+                  11,
+                ],
+                "text-offset": [0, 1.2],
+                "text-anchor": "top",
+                "text-optional": true,
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-max-width": 9,
               }}
               paint={{
                 "icon-opacity": ["get", "opacity"],
+                "text-color": [
+                  "case",
+                  ["==", ["get", "selected"], 1],
+                  "rgba(200, 245, 230, 0.95)",
+                  "rgba(203, 213, 225, 0.85)",
+                ],
+                "text-halo-color": "rgba(2, 6, 14, 0.78)",
+                "text-halo-width": 1.1,
+                "text-opacity": [
+                  "case",
+                  ["==", ["get", "tag"], ""],
+                  0,
+                  0.9,
+                ],
               }}
             />
           </Source>
@@ -2662,15 +2747,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  1.5,
-                  0.62,
-                  4,
-                  0.82,
-                  7,
-                  1,
+                  "*",
+                  ["coalesce", ["get", "scale"], 1],
+                  [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    1.5,
+                    0.62,
+                    4,
+                    0.82,
+                    7,
+                    1,
+                  ],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "viewport",
@@ -2678,9 +2767,38 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
+                "text-field": [
+                  "step",
+                  ["zoom"],
+                  "",
+                  5.2,
+                  ["coalesce", ["get", "tag"], ""],
+                ],
+                "text-size": 10,
+                "text-offset": [0, 1.15],
+                "text-anchor": "top",
+                "text-optional": true,
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-max-width": 9,
               }}
               paint={{
                 "icon-opacity": ["get", "opacity"],
+                "text-color": [
+                  "case",
+                  ["==", ["get", "selected"], 1],
+                  "rgba(250, 232, 200, 0.95)",
+                  "rgba(203, 213, 225, 0.85)",
+                ],
+                "text-halo-color": "rgba(2, 6, 14, 0.78)",
+                "text-halo-width": 1.1,
+                "text-opacity": [
+                  "case",
+                  ["==", ["get", "tag"], ""],
+                  0,
+                  0.9,
+                ],
               }}
             />
           </Source>

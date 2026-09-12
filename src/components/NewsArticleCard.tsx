@@ -6,7 +6,7 @@ import type { NewsStreamItem } from "@/lib/news/types";
 import { resolveEconomyArticleFlyTarget } from "@/lib/news/economyMapFly";
 import type { MapFlyTarget } from "@/lib/news/theaterMap";
 
-const THEATER_LABELS: Record<NewsStreamItem["theater"], string> = {
+const THEATER_LABELS_KO: Record<NewsStreamItem["theater"], string> = {
   "middle-east": "중동",
   "russia-ukraine": "러·우",
   "china-taiwan": "중·대",
@@ -20,6 +20,25 @@ const THEATER_LABELS: Record<NewsStreamItem["theater"], string> = {
   atlantic: "대서양",
   global: "글로벌",
 };
+
+const THEATER_LABELS_EN: Record<NewsStreamItem["theater"], string> = {
+  "middle-east": "Middle East",
+  "russia-ukraine": "RU–UA",
+  "china-taiwan": "CN–TW",
+  korea: "Korea",
+  japan: "Japan",
+  "south-asia": "South Asia",
+  "southeast-asia": "SE Asia",
+  "south-america": "South America",
+  africa: "Africa",
+  arctic: "Arctic",
+  atlantic: "Atlantic",
+  global: "Global",
+};
+
+function theaterLabel(theater: NewsStreamItem["theater"], lang: "ko" | "en"): string {
+  return lang === "en" ? THEATER_LABELS_EN[theater] : THEATER_LABELS_KO[theater];
+}
 
 const THEATER_GRADIENT: Record<NewsStreamItem["theater"], string> = {
   "middle-east": "from-rose-950/80 via-orange-950/60 to-amber-950/40",
@@ -36,10 +55,17 @@ const THEATER_GRADIENT: Record<NewsStreamItem["theater"], string> = {
   global: "from-slate-900/80 via-sky-950/60 to-slate-800/40",
 };
 
-function formatAge(pubDate: string): string {
+function formatAge(pubDate: string, lang: "ko" | "en"): string {
   const ts = Date.parse(pubDate);
   if (!Number.isFinite(ts)) return "";
   const minutes = Math.max(0, Math.round((Date.now() - ts) / 60_000));
+  if (lang === "en") {
+    if (minutes < 1) return "now";
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    return `${Math.floor(hours / 24)}d`;
+  }
   if (minutes < 1) return "방금";
   if (minutes < 60) return `${minutes}분 전`;
   const hours = Math.floor(minutes / 60);
@@ -80,15 +106,17 @@ export function NewsArticleCard({
 }: NewsArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const { localizedTitle, localizedSummary, labelLanguage } = useNewsStreamContext();
+  const lang = labelLanguage === "en" ? "en" : "ko";
   const isEconomy = economyMode || item.feedTopic === "economy";
   const showImage = item.imageUrl && !imageFailed;
   const tierLabel = item.trustTier === 1 ? "T1" : item.trustTier === 2 ? "T2" : "T3";
   const displayTitle =
     titleOverride ??
-    (labelLanguage === "en" ? item.title : localizedTitle(item));
+    (lang === "en" ? item.title : localizedTitle(item));
   const displaySummary =
     summaryOverride ??
-    (labelLanguage === "en" ? item.summary : localizedSummary(item));
+    (lang === "en" ? item.summary : localizedSummary(item));
+  const theaterText = theaterLabel(item.theater, lang);
 
   const flyTarget = useMemo(() => {
     if (!isEconomy || !onFlyToMap) return null;
@@ -135,7 +163,7 @@ export function NewsArticleCard({
               className={`flex h-full w-full flex-col justify-end bg-gradient-to-br p-3 ${THEATER_GRADIENT[item.theater]}`}
             >
               <span className="text-micro font-semibold uppercase tracking-[0.2em] text-white/55">
-                {THEATER_LABELS[item.theater]}
+                {theaterText}
               </span>
               <span className="mt-1 line-clamp-2 text-xs font-medium leading-4 text-white/85">
                 {item.source}
@@ -150,7 +178,7 @@ export function NewsArticleCard({
             </span>
             {tier3 ? (
               <span className="rounded-full border border-amber-400/35 bg-black/45 px-1.5 py-0.5 text-micro text-amber-100 backdrop-blur-sm">
-                미확인
+                {lang === "en" ? "Unverified" : "미확인"}
               </span>
             ) : null}
           </div>
@@ -169,13 +197,20 @@ export function NewsArticleCard({
             <p className="line-clamp-2 text-micro leading-4 text-slate-400">{displaySummary}</p>
           ) : (
             <p className="line-clamp-2 text-micro leading-4 text-slate-500">
-              {item.source} · {isEconomy ? "경제·시장" : `${THEATER_LABELS[item.theater]} 분쟁·안보`}{" "}
-              관련 보도
+              {item.source} ·{" "}
+              {isEconomy
+                ? lang === "en"
+                  ? "Markets & trade"
+                  : "경제·시장"
+                : lang === "en"
+                  ? `${theaterText} security`
+                  : `${theaterText} 분쟁·안보`}{" "}
+              {lang === "en" ? "coverage" : "관련 보도"}
             </p>
           )}
           <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-micro text-slate-500">
             <span className="truncate">{item.source}</span>
-            <span className="shrink-0">{formatAge(item.pubDate)}</span>
+            <span className="shrink-0">{formatAge(item.pubDate, lang)}</span>
           </div>
         </div>
       </a>
@@ -191,7 +226,7 @@ export function NewsArticleCard({
               }}
               className="w-full rounded-lg border border-amber-400/35 bg-amber-500/10 px-2 py-1.5 text-meta font-semibold text-amber-100 transition hover:border-amber-300/50 hover:bg-amber-500/20"
             >
-              인사이트
+              {lang === "en" ? "Insight" : "인사이트"}
             </button>
           ) : null}
           {flyTarget && onFlyToMap ? (
@@ -204,7 +239,7 @@ export function NewsArticleCard({
               }}
               className="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-meta font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
             >
-              지도보러가기
+              {lang === "en" ? "View on map" : "지도보러가기"}
               <span className="ml-1 font-normal text-emerald-200/55">· {flyTarget.label}</span>
             </button>
           ) : null}

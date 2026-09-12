@@ -1,13 +1,14 @@
 /**
- * 구글 뉴스 스트림 → 지도 네온 태그 (전쟁=빨강 / 긴장=주황 / 외교=파랑).
- * 좌표는 제목·요약 지명 매칭, 없으면 전장 중심 + 안정 지터.
+ * 구글 뉴스 스트림 → 지도 네온 태그
+ * (전쟁=빨강 / 긴장=주황 / 시장=시안 / 외교=파랑).
+ * 좌표는 제목·요약 지명 매칭 — 위치 불명은 찍지 않음.
  */
 
 import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import type { NeonRippleAccent } from "@/lib/neonRippleIncidentMarker";
 import { resolveImpactPlace } from "@/lib/telegramPlaceMatch";
 
-export type NewsMapTagKind = "war" | "tension" | "diplomatic";
+export type NewsMapTagKind = "war" | "tension" | "diplomatic" | "market";
 
 /** 한 사건을 보도한 개별 매체 관점 */
 export type NewsPerspective = {
@@ -50,10 +51,14 @@ const TENSION_RE =
 const DIPLOMATIC_RE =
   /외교|회담|정상회담|특사|대사|협상|휴전|합의|동맹|방문|외교부|summit|diplomat|envoy|talks|ceasefire|negotiation|treaty|foreign minister|ambassador|동맹|평화협정/i;
 
-function classifyNewsKind(text: string): NewsMapTagKind {
+const MARKET_RE =
+  /시장|증시|환율|금리|유가|원유|가스|무역|관세|인플레|GDP|공급망|초크|항만|물류|반도체|희토류|원자재|stock|market|oil|gas|trade|tariff|inflation|supply.?chain|commodity|freight|shipping|choke|port|semiconductor|rare.?earth|currency|forex|yield|fed\b|ecb/i;
+
+function classifyNewsKind(text: string, feedTopic?: string | null): NewsMapTagKind {
   if (WAR_RE.test(text)) return "war";
   if (DIPLOMATIC_RE.test(text)) return "diplomatic";
   if (TENSION_RE.test(text)) return "tension";
+  if (feedTopic === "economy" || MARKET_RE.test(text)) return "market";
   // theater 기본 — 중동·우크라·대만·한반도는 긴장, 그 외 외교
   return "tension";
 }
@@ -61,6 +66,7 @@ function classifyNewsKind(text: string): NewsMapTagKind {
 function accentForKind(kind: NewsMapTagKind): NeonRippleAccent {
   if (kind === "war") return "red";
   if (kind === "diplomatic") return "blue";
+  if (kind === "market") return "cyan";
   return "orange";
 }
 
@@ -154,13 +160,17 @@ export function buildNewsStreamMapTags(items: NewsStreamItem[]): NewsStreamMapTa
   const byCell = new Map<string, NewsStreamMapTag>();
   const order: string[] = [];
 
-  // 사건 성격 심각도 (강한 색이 이김): 전쟁 > 긴장 > 외교
-  const severity: Record<NewsMapTagKind, number> = { war: 2, tension: 1, diplomatic: 0 };
+  // 사건 성격 심각도 (강한 색이 이김): 전쟁 > 긴장 > 시장 > 외교
+  const severity: Record<NewsMapTagKind, number> = {
+    war: 3,
+    tension: 2,
+    market: 1,
+    diplomatic: 0,
+  };
 
   for (const item of pool) {
-    if (item.feedTopic === "economy") continue;
     const text = `${item.title} ${item.summary ?? ""} ${item.category ?? ""}`;
-    const kind = classifyNewsKind(text);
+    const kind = classifyNewsKind(text, item.feedTopic);
     const accent = accentForKind(kind);
     const coords = resolveNewsCoords(item);
     if (!coords) continue; // 위치 불명은 지도에 안 찍음

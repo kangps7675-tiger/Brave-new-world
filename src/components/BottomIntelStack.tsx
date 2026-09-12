@@ -2227,8 +2227,24 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
               ) : (
                 <div className="mx-3 flex flex-col gap-3">
                   <TierSection
-                    label={preferEconomyNews ? ECONOMY_TIER_LABELS[1].label : "확인 보도"}
-                    detail={preferEconomyNews ? ECONOMY_TIER_LABELS[1].detail : "주요 언론·공식 보도 등 신뢰도 높은 출처"}
+                    label={
+                      preferEconomyNews
+                        ? lang === "en"
+                          ? ECONOMY_TIER_LABELS[1].labelEn
+                          : ECONOMY_TIER_LABELS[1].label
+                        : lang === "en"
+                          ? "Verified"
+                          : "확인 보도"
+                    }
+                    detail={
+                      preferEconomyNews
+                        ? lang === "en"
+                          ? ECONOMY_TIER_LABELS[1].detailEn
+                          : ECONOMY_TIER_LABELS[1].detail
+                        : lang === "en"
+                          ? "Major outlets & official wires"
+                          : "주요 언론·공식 보도 등 신뢰도 높은 출처"
+                    }
                     items={preferEconomyNews ? displayTier1 : tier1Items}
                     marker="✓"
                     tier={1}
@@ -2239,8 +2255,24 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     onOpenNewsInsight={onOpenNewsInsight}
                   />
                   <TierSection
-                    label={preferEconomyNews ? ECONOMY_TIER_LABELS[2].label : "보완 보도"}
-                    detail={preferEconomyNews ? ECONOMY_TIER_LABELS[2].detail : "확인 보도를 보완 · 가중치 낮음"}
+                    label={
+                      preferEconomyNews
+                        ? lang === "en"
+                          ? ECONOMY_TIER_LABELS[2].labelEn
+                          : ECONOMY_TIER_LABELS[2].label
+                        : lang === "en"
+                          ? "Supporting"
+                          : "보완 보도"
+                    }
+                    detail={
+                      preferEconomyNews
+                        ? lang === "en"
+                          ? ECONOMY_TIER_LABELS[2].detailEn
+                          : ECONOMY_TIER_LABELS[2].detail
+                        : lang === "en"
+                          ? "Complements verified coverage"
+                          : "확인 보도를 보완 · 가중치 낮음"
+                    }
                     items={preferEconomyNews ? displayTier2 : tier2Items}
                     marker="○"
                     tier={2}
@@ -2252,8 +2284,24 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                   />
                   {showTier3 && (preferEconomyNews ? displayTier3 : tier3Items).length > 0 ? (
                     <TierSection
-                      label={preferEconomyNews ? ECONOMY_TIER_LABELS[3].label : "속보·관영매체"}
-                      detail={preferEconomyNews ? ECONOMY_TIER_LABELS[3].detail : "⚠ 미검증 속보 · 참고용"}
+                      label={
+                        preferEconomyNews
+                          ? lang === "en"
+                            ? ECONOMY_TIER_LABELS[3].labelEn
+                            : ECONOMY_TIER_LABELS[3].label
+                          : lang === "en"
+                            ? "Flash / state media"
+                            : "속보·관영매체"
+                      }
+                      detail={
+                        preferEconomyNews
+                          ? lang === "en"
+                            ? ECONOMY_TIER_LABELS[3].detailEn
+                            : ECONOMY_TIER_LABELS[3].detail
+                          : lang === "en"
+                            ? "⚠ Unverified — for reference"
+                            : "⚠ 미검증 속보 · 참고용"
+                      }
                       items={preferEconomyNews ? displayTier3 : tier3Items}
                       marker="⚠"
                       tier={3}

@@ -33,6 +33,12 @@ type UtilityChromeMenuProps = {
   onHelp: () => void;
   onOpenSources?: () => void;
   onOpenParchment?: () => void;
+  /** Nullschool식 — 장면 모드 피커 */
+  onSceneStart?: () => void;
+  /** 좌 서랍 — 레이어 / 설정 / 데이터 */
+  onOpenLayers?: () => void;
+  onOpenSettings?: () => void;
+  onOpenData?: () => void;
   siteName?: string;
 };
 
@@ -40,6 +46,9 @@ const MENU_COPY = {
   ko: {
     trigger: "메뉴",
     triggerAria: "유틸리티 메뉴 열기",
+    layers: "레이어",
+    settings: "설정",
+    data: "데이터",
     tour: "투어",
     discord: "디스코드",
     sceneLink: "장면 링크",
@@ -50,10 +59,14 @@ const MENU_COPY = {
     help: "도움말",
     sources: "데이터 출처",
     parchment: "출처 양피지 (8)",
+    sceneStart: "장면 시작",
   },
   en: {
     trigger: "Menu",
     triggerAria: "Open utility menu",
+    layers: "Layers",
+    settings: "Settings",
+    data: "Data",
     tour: "Tour",
     discord: "Discord",
     sceneLink: "Scene link",
@@ -64,6 +77,7 @@ const MENU_COPY = {
     help: "Help",
     sources: "Data sources",
     parchment: "Source guide (8)",
+    sceneStart: "Start scene",
   },
 } as const;
 
@@ -79,6 +93,10 @@ export function UtilityChromeMenu({
   onHelp,
   onOpenSources,
   onOpenParchment,
+  onSceneStart,
+  onOpenLayers,
+  onOpenSettings,
+  onOpenData,
   siteName = "멋진 신세계",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
@@ -207,6 +225,48 @@ export function UtilityChromeMenu({
           }`}
         >
           <div className="max-h-[min(70vh,28rem)] space-y-0.5 overflow-y-auto p-1.5">
+            {onOpenLayers || onOpenSettings || onOpenData ? (
+              <div className="space-y-0.5 pb-1">
+                {onOpenLayers ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={itemClass}
+                    onClick={() => runAndClose(onOpenLayers)}
+                  >
+                    <span aria-hidden>▤</span>
+                    <span>{copy.layers}</span>
+                  </button>
+                ) : null}
+                {onOpenSettings ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={itemClass}
+                    onClick={() => runAndClose(onOpenSettings)}
+                  >
+                    <span aria-hidden>⚙</span>
+                    <span>{copy.settings}</span>
+                  </button>
+                ) : null}
+                {onOpenData ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={itemClass}
+                    onClick={() => runAndClose(onOpenData)}
+                  >
+                    <span aria-hidden>◎</span>
+                    <span>{copy.data}</span>
+                  </button>
+                ) : null}
+                <div
+                  className={`my-1 border-t ${light ? "border-slate-200" : "border-sky-300/15"}`}
+                  role="separator"
+                />
+              </div>
+            ) : null}
+
             {showProTip ? (
               <div className="rounded-lg">
                 <button
@@ -244,6 +304,18 @@ export function UtilityChromeMenu({
               <span aria-hidden>🎬</span>
               <span>{copy.tour}</span>
             </button>
+
+            {onSceneStart ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={itemClass}
+                onClick={() => runAndClose(onSceneStart)}
+              >
+                <span aria-hidden>🌐</span>
+                <span>{copy.sceneStart}</span>
+              </button>
+            ) : null}
 
             {DISCORD_INVITE ? (
               <button

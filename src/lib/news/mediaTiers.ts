@@ -196,9 +196,24 @@ export const TIER_LABELS: Record<MediaTrustTier, string> = {
 
 export const ECONOMY_TIER_LABELS: Record<
   MediaTrustTier,
-  { label: string; detail: string }
+  { label: string; detail: string; labelEn: string; detailEn: string }
 > = {
-  1: { label: "공식·와이어", detail: "Reuters · WSJ · FT · IMF · BBC" },
-  2: { label: "시장 매체", detail: "CNBC · Google · 기업·산업 RSS" },
-  3: { label: "미확인 속보", detail: "참고용" },
+  1: {
+    label: "공식·와이어",
+    detail: "Reuters · WSJ · FT · IMF · BBC",
+    labelEn: "Official / wire",
+    detailEn: "Reuters · WSJ · FT · IMF · BBC",
+  },
+  2: {
+    label: "시장 매체",
+    detail: "CNBC · Google · 기업·산업 RSS",
+    labelEn: "Market press",
+    detailEn: "CNBC · Google · industry RSS",
+  },
+  3: {
+    label: "미확인 속보",
+    detail: "참고용",
+    labelEn: "Unverified",
+    detailEn: "For reference",
+  },
 };

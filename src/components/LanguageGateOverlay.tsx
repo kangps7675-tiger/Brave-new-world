@@ -37,10 +37,10 @@ export function LanguageGateOverlay({ lang, onSelect }: LanguageGateOverlayProps
           Language
         </h1>
         <p className="mt-1.5 text-center text-sm text-slate-400">
-          언어를 선택한 뒤 지정학·지경학을 고를 수 있습니다
+          언어를 고르면 전 세계 지도로 들어갑니다
         </p>
         <p className="mt-0.5 text-center text-caption text-slate-500">
-          Choose a language before geopolitics or geo-economics
+          Choose a language to enter the global map
         </p>
         <div className="mt-6">
           <LanguagePickButtons lang={lang} onChange={onSelect} size="hero" />

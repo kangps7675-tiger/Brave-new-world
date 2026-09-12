@@ -1,8 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import type { TheaterMarketFilter } from "@/lib/theaterAssets";
+import {
+  localizedDisplayText,
+  useLocalizedTextMap,
+} from "@/hooks/useLocalizedTextMap";
 
 export type NewsPerspectiveView = {
   title: string;
@@ -16,7 +21,7 @@ type NewsPerspectivesPanelProps = {
   headline: string;
   /** 위치 라벨 (예: "Damascus") */
   placeLabel?: string;
-  kind: "war" | "tension" | "diplomatic";
+  kind: "war" | "tension" | "diplomatic" | "market";
   perspectives: NewsPerspectiveView[];
   /** 전장 — 관련 시장 반응 조회용 (전쟁과 이익을 한 화면에) */
   theater?: TheaterMarketFilter;
@@ -32,6 +37,7 @@ const KIND_LABEL: Record<string, { ko: string; en: string; color: string }> = {
   war: { ko: "전쟁·전선", en: "War / front", color: "#f87171" },
   tension: { ko: "긴장", en: "Tension", color: "#fbbf24" },
   diplomatic: { ko: "외교", en: "Diplomatic", color: "#60a5fa" },
+  market: { ko: "시장·무역", en: "Markets / trade", color: "#38bdf8" },
 };
 
 function tierBadge(tier: number, lang: LabelLanguage): { label: string; color: string } {
@@ -55,6 +61,21 @@ export function NewsPerspectivesPanel({
 }: NewsPerspectivesPanelProps) {
   const en = lang === "en";
   const k = KIND_LABEL[kind] ?? KIND_LABEL.tension;
+
+  const localizeEntries = useMemo(() => {
+    if (en) return [];
+    const entries: Array<{ key: string; text: string }> = [];
+    if (headline.trim()) entries.push({ key: "headline", text: headline });
+    perspectives.forEach((p, i) => {
+      if (p.title.trim()) entries.push({ key: `p:${i}`, text: p.title });
+    });
+    return entries;
+  }, [en, headline, perspectives]);
+
+  const localizedMap = useLocalizedTextMap(localizeEntries, "ko");
+  const displayHeadline = en
+    ? headline
+    : localizedDisplayText(localizedMap, "headline", headline);
 
   return (
     <aside
@@ -80,7 +101,7 @@ export function NewsPerspectivesPanel({
             </span>
           </div>
           <h2 className="mt-1.5 text-body font-semibold leading-snug text-slate-50">
-            {headline}
+            {displayHeadline}
           </h2>
           <p className="mt-1 text-micro leading-4 text-slate-500">
             {en
@@ -101,6 +122,9 @@ export function NewsPerspectivesPanel({
       <div className="intel-scroll-y min-h-0 flex-1 space-y-1.5 px-2.5 py-2.5">
         {perspectives.map((p, i) => {
           const badge = tierBadge(p.trustTier, lang);
+          const title = en
+            ? p.title
+            : localizedDisplayText(localizedMap, `p:${i}`, p.title);
           return (
             <a
               key={`${p.link}-${i}`}
@@ -120,7 +144,7 @@ export function NewsPerspectivesPanel({
                   {badge.label}
                 </span>
               </div>
-              <p className="mt-1 text-[12.5px] leading-snug text-slate-100">{p.title}</p>
+              <p className="mt-1 text-[12.5px] leading-snug text-slate-100">{title}</p>
             </a>
           );
         })}
