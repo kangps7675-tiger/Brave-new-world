@@ -138,7 +138,6 @@ import { LayerCapToast } from "@/components/LayerCapToast";
 import { LayerCacheStaleBadge } from "@/components/LayerCacheStaleBadge";
 import { TimeScrubberBar } from "@/components/TimeScrubberBar";
 import {
-  BottomDockModeToggle,
   type BottomDockMode,
 } from "@/components/BottomDockModeToggle";
 import { GtiHeroMoment } from "@/components/GtiHeroMoment";
@@ -403,6 +402,8 @@ export type DashboardOverlayHostProps = {
   intelStackRef: RefObject<BottomIntelStackHandle | null>;
   onCloseLeftPanel: () => void;
   onToggleLeftPanel: () => void;
+  /** false면 좌상단 레이어 햄버거 숨김 (TopChrome 메뉴가 대체) */
+  showLayerPanelToggle?: boolean;
   onSetShowUsCarriers: (v: boolean) => void;
   onSetShowGpsInterference: (v: boolean) => void;
   onSetShowUsDfcSupplyChain: (v: boolean) => void;
@@ -597,6 +598,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     intelStackRef,
     onCloseLeftPanel,
     onToggleLeftPanel,
+    showLayerPanelToggle = true,
     onSetShowUsCarriers,
     onSetShowGpsInterference,
     onSetShowUsDfcSupplyChain,
@@ -844,6 +846,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         }`}
         style={{ top: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
       >
+        {showLayerPanelToggle ? (
         <div className="pointer-events-auto flex shrink-0 items-center gap-2">
           <HoverHint
             placement="bottom"
@@ -869,9 +872,17 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             </button>
           </HoverHint>
         </div>
+        ) : null}
         {/* 모바일: 후원만 좌측 유지. 데스크톱 항모·공급망·GSCPI·Watch는 우측 레일 */}
         {!showLeftPanel && isCompactUi ? (
-          <div className="cv-compact-only pointer-events-auto shrink-0">
+          <div
+            className="cv-compact-only pointer-events-auto shrink-0"
+            style={
+              showLayerPanelToggle
+                ? undefined
+                : { marginTop: "2.75rem" }
+            }
+          >
             <ServerDonateChip lang={labelLanguage} />
           </div>
         ) : null}
@@ -1860,37 +1871,23 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {!intelSheetOpen && (timeScrubber || onBottomDockModeChange) ? (
+      {!intelSheetOpen && timeScrubber && bottomDockMode === "history" ? (
         <div
-          className={`pointer-events-none flex flex-col items-center gap-2 ${
-            bottomDockMode === "news"
-              ? "cv-bottom-chrome-above-stack cv-bottom-chrome-above-stack--dock"
-              : "cv-bottom-dock-floor"
-          } ${
+          className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-dock-floor ${
             isCompactUi
               ? "w-[min(96vw,28rem)]"
               : "w-[min(92vw,36rem)]"
           }`}
         >
-          {onBottomDockModeChange ? (
-            <BottomDockModeToggle
-              lang={labelLanguage}
-              mode={bottomDockMode}
-              onChange={onBottomDockModeChange}
-              compact={isCompactUi}
-            />
-          ) : null}
-          {bottomDockMode === "history" && timeScrubber ? (
-            <TimeScrubberBar
-              lang={labelLanguage}
-              asOf={timeScrubber.asOf}
-              today={timeScrubber.today}
-              availableDates={timeScrubber.availableDates}
-              onChange={timeScrubber.onChange}
-              onGoToday={timeScrubber.onGoToday}
-              compact={isCompactUi}
-            />
-          ) : null}
+          <TimeScrubberBar
+            lang={labelLanguage}
+            asOf={timeScrubber.asOf}
+            today={timeScrubber.today}
+            availableDates={timeScrubber.availableDates}
+            onChange={timeScrubber.onChange}
+            onGoToday={timeScrubber.onGoToday}
+            compact={isCompactUi}
+          />
         </div>
       ) : null}
 

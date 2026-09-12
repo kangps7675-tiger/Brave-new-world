@@ -100,7 +100,7 @@ export function aisVesselHeadingDeg(
 }
 
 function shipColor(vessel: AisVessel): string {
-  if (vessel.disguised) return "#ef4444";
+  if (vessel.disguised) return "#c45c5c";
   if (vessel.category === "military") {
     return AIS_SURFACE_COMBATANT_FILL;
   }
@@ -114,11 +114,12 @@ export function aisShipIconSvg(color: string, size: number, military: boolean): 
   }
   const w = size;
   const h = size;
-  const body = "M16 1.5 L24 14 L19 14 L19 28 L13 28 L13 14 L8 14 Z";
+  // 코=+Y 델타 쐐기 — 기존 막대 화살보다 짧고, 전술 맵 마커에 가깝게.
+  const body = "M16 2.2 L25.5 26.5 L16 21.2 L6.5 26.5 Z";
   return `
     <svg width="${w}" height="${h}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="${body}" fill="${color}" stroke="rgba(255,255,255,0.9)" stroke-width="1.1" stroke-linejoin="round"/>
-      <circle cx="16" cy="11" r="1.4" fill="rgba(255,255,255,0.55)"/>
+      <path d="${body}" fill="${color}" stroke="rgba(15,23,42,0.42)" stroke-width="1.05" stroke-linejoin="round"/>
+      <circle cx="16" cy="12.5" r="1.25" fill="rgba(255,255,255,0.42)"/>
     </svg>
   `.trim();
 }

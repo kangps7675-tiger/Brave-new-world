@@ -1,5 +1,10 @@
 /** 등불 「왜 중요?」 — 이 헤드라인의 인과만 짧게. 한글 모드는 자연스러운 한국어(~습니다체)만. */
 
+import {
+  KOREAN_BRIEF_STYLE_PROMPT,
+  KOREAN_PROSE_RULES_PROMPT,
+} from "@/lib/koreanProseRules";
+
 export type WhyMattersArticleInput = {
   title: string;
   source?: string | null;
@@ -10,15 +15,9 @@ export type WhyMattersArticleInput = {
 };
 
 const CAUSAL_RULES_KO = [
-  "역할: 외교·안보 브리핑. 독자는 지도를 보는 비전공자입니다. 중학생도 이해할 쉬운 말로 쓰십시오.",
+  KOREAN_BRIEF_STYLE_PROMPT,
   "오직 이 헤드라인의 인과관계를 설명합니다. 원인(무엇이 일어났는지)에서 결과(그래서 왜 중요한지)로 이어 쓰십시오.",
-  "한국어 문법: 주어+목적어+서술어 어순을 지키십시오. 조사를 빠뜨리지 마십시오.",
-  "나쁜 예: '해협 통항과 보험·운임에 바로 닿습니다.' 좋은 예: '좁은 해협을 지나는 배편과 보험료·운임에 바로 영향을 줍니다.'",
-  "종결어미: 한 문단 안에서는 '~습니다/~입니다'만 쓰십시오. '~다'체와 '~습니다'체를 섞지 마십시오. '~요'체도 쓰지 마십시오.",
   "금지: 일반론 강의, 교과서식 국제정치 개론, 기사와 무관한 주변 이슈, 장황한 배경사, 매매 권유, 예언, SNS 단정.",
-  "전문 용어는 쉬운 말로 바꿉니다. 억지→상대를 말릴 힘, 시그널→메시지, 프리미엄→위험 할증. 다만 초크포인트·OSINT·AIS처럼 한국어로도 잘 통하는 외래어는 그대로 쓰되, 주어·조사·서술어가 갖춰진 문장에 넣으십시오.",
-  "기사·발췌에 없는 사실을 지어내지 마십시오. 추론이면 '분석적 판단', 모르면 '불확실'이라고 쓰십시오.",
-  "문장은 짧고 직접적으로. 군더더기·수사·메타 코멘트('키를 넣으면…' 등) 금지.",
 ].join(" ");
 
 const CAUSAL_RULES_EN = [
@@ -41,7 +40,8 @@ export function buildWhyMattersSystem(lang: "ko" | "en"): string {
   return [
     CAUSAL_RULES_KO,
     "형식: 짧은 문단 3개 — (1) 원인 (2) 연결(어떻게 A가 B로 이어지는지) (3) 지도·전장에 끼치는 결과 + 주의 한 줄.",
-    "이 사건만 다룰 것. 한국어만. 영어 직역투·명사 나열 금지. 종결어미는 ~습니다/~입니다로 통일.",
+    "이 사건만 다룰 것. 한국어만.",
+    KOREAN_PROSE_RULES_PROMPT,
   ].join(" ");
 }
 
@@ -57,7 +57,8 @@ export function buildWhyMattersQuickSystem(lang: "ko" | "en"): string {
   return [
     CAUSAL_RULES_KO,
     "문단 정확히 2개: (1) 원인 — 무엇이 이걸 만들었는지 (2) 결과 — 그래서 지도·전장에서 왜 중요한지 + 주의 한 줄.",
-    "불릿·서론·맺음말 금지. 한국어만. ~습니다/~입니다체로 통일.",
+    "불릿·서론·맺음말 금지. 한국어만.",
+    KOREAN_PROSE_RULES_PROMPT,
   ].join(" ");
 }
 

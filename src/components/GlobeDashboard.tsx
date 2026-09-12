@@ -102,6 +102,9 @@ import { useLiveOverlayMarkers } from "@/components/globe/hooks/useLiveOverlayMa
 import { useReconSatelliteLayer } from "@/components/globe/hooks/useReconSatelliteLayer";
 import { useSituationHtmlMarkers } from "@/components/globe/hooks/useSituationHtmlMarkers";
 import { useHoverCard } from "@/components/globe/hooks/useHoverCard";
+import { useGevLiveTrack } from "@/hooks/useGevLiveTrack";
+import { GevTrackHud } from "@/components/globe/GevTrackHud";
+import type { GevContactRow } from "@/lib/gevLiveTrack";
 import {
   useTensionSpikeCut,
   type TensionCutDestination,
@@ -358,6 +361,16 @@ import {
   resolveHotTheaterFocus,
   type HotTheaterFocus,
 } from "@/lib/hotTheaterLayers";
+import {
+  asLayerPatch,
+  sceneMissionApply,
+  softZoneForMission,
+  type SceneMissionId,
+} from "@/lib/sceneMissions";
+import {
+  ReturnToGlobeChip,
+  SceneMissionPicker,
+} from "@/components/SceneMissionPicker";
 import { resolveTensionCutNav } from "@/lib/tensionSpikeCut";
 import {
   markInterestSoftApplyToday,
@@ -578,6 +591,7 @@ import {
   theaterFocusFromNav,
   type TheaterSidebarTab,
 } from "@/lib/theaterFocus";
+import { navIdForAxisHubNews } from "@/lib/selectionNewsCoords";
 import {
   flyTargetForTheater,
   newsTheaterFromCoords,
@@ -667,8 +681,7 @@ import {
 import {
   markWelcomeGateDone,
   markLangChoiceDone,
-  readWelcomeGateDone,
-  readSourcesGateDone,
+  markSourcesGateDone,
   readLangChoiceDone,
 } from "@/components/globe/formatters";
 import {
@@ -678,10 +691,9 @@ import { createDashboardHtmlOverlayElement } from "@/components/globe/markers/cr
 import { GlobeMapCanvas } from "@/components/globe/GlobeMapCanvas";
 import { useGlobeMapGlobeProps } from "@/components/globe/hooks/useGlobeMapGlobeProps";
 import { DashboardTopChrome } from "@/components/globe/DashboardTopChrome";
-import { MapZoomControl } from "@/components/MapZoomControl";
 import { useGlobeCamera } from "@/components/globe/hooks/useGlobeCamera";
 import { useTheaterNavigation } from "@/components/globe/hooks/useTheaterNavigation";
-import { LayerPanelHost } from "@/components/globe/LayerPanelHost";
+import { LayerPanelHost, type LayerPanelTab } from "@/components/globe/LayerPanelHost";
 
 export type { GlobeDashboardProps } from "@/components/globe/types";
 
@@ -717,6 +729,8 @@ export function GlobeDashboard({
   const [query, setQuery] = useState("");
   const [data, setData] = useState<AppData>(emptyData);
   const [showLeftPanel, setShowLeftPanel] = useState(false);
+  /** 좌 서랍 역할 — 레이어 / 설정 / 데이터 (탭바 없이 메뉴로 고름) */
+  const [leftPanelTab, setLeftPanelTab] = useState<LayerPanelTab>("layers");
   const [layerDropdownOpen, setLayerDropdownOpen] = useState(false);
   const [layerPanelDirty, setLayerPanelDirty] = useState(false);
   const deferLayerMapApplyRef = useRef(false);
@@ -922,6 +936,10 @@ export function GlobeDashboard({
   const [showTourInvite, setShowTourInvite] = useState(false);
   /** 전역 입장 후 — 핫 지역 이동 선택창 (수락 시에만 fly) */
   const [hotTheaterOffer, setHotTheaterOffer] = useState<HotTheaterFocus | null>(null);
+  const [showSceneMissionPicker, setShowSceneMissionPicker] = useState(false);
+  const [sceneMissionActive, setSceneMissionActive] = useState(false);
+  const quietOverviewAppliedRef = useRef(false);
+  const pendingQuietOverviewRef = useRef(false);
   const [airRaidBriefing, setAirRaidBriefing] = useState<AirRaidBriefingContent | null>(null);
   /** 귀중한 속보 타전 양피지 — S급·고충격만 */
   const [breakingFlash, setBreakingFlash] = useState<BreakingFlashBriefing | null>(null);
@@ -1869,15 +1887,12 @@ export function GlobeDashboard({
     (lang: LabelLanguage) => {
       togglePref("labelLanguage", lang);
       markLangChoiceDone();
+      markWelcomeGateDone();
+      markSourcesGateDone();
       setLangChoiceDone(true);
-      // 언어 확정 후 입장 게이트 — caution → welcome → sources → domain
-      if (!readWelcomeGateDone()) {
-        if (!readSourcesGateDone()) {
-          setEntryGate("caution");
-        } else {
-          setEntryGate("domain");
-        }
-      }
+      setEntryGate(null);
+      pendingQuietOverviewRef.current = true;
+      quietOverviewAppliedRef.current = false;
     },
     [togglePref],
   );
@@ -1976,6 +1991,25 @@ export function GlobeDashboard({
     historyImmersionRef,
     historyImmersionActive,
     historyEpisodeActive,
+  });
+
+  const {
+    tracking: gevTracking,
+    followCamera: gevFollowCamera,
+    hud: gevHud,
+    trackPath: gevTrackPath,
+    contacts: gevContacts,
+    stopTracking: stopGevTracking,
+    toggleFollow: toggleGevFollow,
+  } = useGevLiveTrack({
+    selected,
+    setSelected,
+    aisVessels,
+    milAircraft,
+    civAircraft,
+    flyTo,
+    isCameraMovingRef,
+    labelLanguage,
   });
 
   /**
@@ -2259,17 +2293,10 @@ export function GlobeDashboard({
     scheduleHubBrief(sel);
   }, [activeHubId, axisLinkOpenHub, flyTo, scheduleHubBrief, selectedAxisLink]);
 
+  const axisLinkOpenNewsRef = useRef<() => void>(() => {});
   const axisLinkOpenNews = useCallback(() => {
-    const link = selectedAxisLink;
-    trackEvent("axis_link_cta_news", {
-      pathId: link?.pathId,
-      from: link?.from,
-      to: link?.to,
-    });
-    setShowGdeltAlliance(true);
-    setShowGdeltDiplomatic(true);
-    setSelectedAxisLink(null);
-  }, [selectedAxisLink]);
+    axisLinkOpenNewsRef.current();
+  }, []);
 
   const axisLinkHighlightArms = useCallback(() => {
     const link = selectedAxisLink;
@@ -2727,8 +2754,7 @@ export function GlobeDashboard({
    * 좌하단 텔레그램 OSINT 미니 패널 — 우측 속보/선택과 독립.
    * (다른 크롬을 위로 밀지 않음 · ✕로만 닫기)
    */
-  const telegramMiniPanelVisible =
-    showTelegramOsint && !isEconomyViewer && !intelSheetOpen && !isCompactUi;
+  const telegramMiniPanelVisible = false;
 
   const isUkraineTheaterFocus = useMemo(() => {
     if (showUkraineControl) return true;
@@ -3792,6 +3818,7 @@ export function GlobeDashboard({
       ...navareaHatchPaths,
       ...exerciseHatchPaths,
       ...shipMoveTrailPaths,
+      ...(gevTrackPath ? [gevTrackPath] : []),
     ],
     [
       armsEmbargoFramePaths,
@@ -3812,6 +3839,7 @@ export function GlobeDashboard({
       navareaHatchPaths,
       exerciseHatchPaths,
       shipMoveTrailPaths,
+      gevTrackPath,
       visibleCables,
       visibleDisputeBoundaries,
       visibleLsibBoundary,
@@ -4061,9 +4089,16 @@ export function GlobeDashboard({
    * milDisplayPoints/civDisplayPoints(원본)를 쓰는 이유는 *HtmlMarkers가
    * markerId만 덧붙인 사본이라 symbol 경로에선 불필요하기 때문.
    */
+  const aircraftTrackHex =
+    selected?.kind === "mil" ? selected.item.hex : null;
+  const aisTrackMmsi = selected?.kind === "ais" ? selected.item.mmsi : null;
+
   const aircraftSymbols = useMemo(
-    () => buildAircraftSymbolModel(milDisplayPoints, civDisplayPoints),
-    [milDisplayPoints, civDisplayPoints],
+    () =>
+      buildAircraftSymbolModel(milDisplayPoints, civDisplayPoints, {
+        selectedHex: aircraftTrackHex,
+      }),
+    [milDisplayPoints, civDisplayPoints, aircraftTrackHex],
   );
 
   const visibleFirmsFires = useMemo(() => {
@@ -4422,12 +4457,13 @@ export function GlobeDashboard({
   );
 
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
-    if (isEconomyViewer || isCompactUi) return [];
+    // 지정학·지경학 모두 지도 네온 태그 (경제 기사는 market/cyan)
+    if (isCompactUi) return [];
     const payload = newsStreamPayload;
     if (!payload) return [];
     const pool: NewsStreamItem[] = [...payload.verified, ...payload.stateMedia];
     return buildNewsStreamMapTags(pool);
-  }, [isCompactUi, isEconomyViewer, newsStreamPayload]);
+  }, [isCompactUi, newsStreamPayload]);
 
   const newsInsightCalloutMarkers = useMemo<NewsInsightCalloutMarker[]>(() => {
     if (!newsInsightCallout || selected?.kind !== "news-insight") return [];
@@ -5773,11 +5809,29 @@ export function GlobeDashboard({
       dismissLayerPanel(true);
       return;
     }
+    setLeftPanelTab("layers");
+    setSelected(null);
     setIntelSheetOpen(false);
     if (!historyImmersionRef.current) setRegionNavSelection(null);
     setEconNavSelection(null);
     setShowLeftPanel(true);
   }, [dismissLayerPanel, showLeftPanel]);
+
+  const openLeftDrawer = useCallback(
+    (tab: LayerPanelTab) => {
+      if (showLeftPanel && leftPanelTab === tab) {
+        dismissLayerPanel(true);
+        return;
+      }
+      setLeftPanelTab(tab);
+      setSelected(null);
+      setIntelSheetOpen(false);
+      if (!historyImmersionRef.current) setRegionNavSelection(null);
+      setEconNavSelection(null);
+      setShowLeftPanel(true);
+    },
+    [dismissLayerPanel, leftPanelTab, showLeftPanel],
+  );
 
   const closeLeftPanel = useCallback(() => {
     dismissLayerPanel(true);
@@ -6089,14 +6143,13 @@ export function GlobeDashboard({
     enabled: screen.canRunFirstImpression,
     isPhone: isPhoneUi,
     hasGti: Boolean(wtiSnapshot),
-    hasMarketLink: Boolean(
-      hotTheaterOffer?.theaterId || hotTheaterOffer?.chokeId,
-    ),
-    hotTheaterFocus: hotTheaterOffer,
+    hasMarketLink: false,
+    /** 장면 모드가 fly를 소유 — 첫인상 자동 핫존 fly 끔 */
+    hotTheaterFocus: null,
     flyTo,
     mapElement: mapElForImpression,
     onApplyHotTheaterPatch: applyFirstImpressionPatch,
-    onHotTheaterAutoConsumed: () => setHotTheaterOffer(null),
+    onHotTheaterAutoConsumed: () => undefined,
   });
 
   const ultraLiteAutoOffer = useUltraLiteAutoOffer(
@@ -6147,6 +6200,7 @@ export function GlobeDashboard({
     lng?: number;
     altitude?: number;
   }) {
+    dismissLayerPanel(true);
     setSelected(null);
     if (!historyImmersionRef.current) setRegionNavSelection(null);
     setBottomDockMode("news");
@@ -6309,9 +6363,57 @@ export function GlobeDashboard({
     openIntelSheet({ theater });
   }, [enterTheaterFocus, filterCenter.lat, filterCenter.lng, isEconomyViewer]);
 
+  /** 지리 분석 패널 → 좌표 기반 관련 뉴스 (우측 TheaterIntel) */
+  const openRelatedNewsAt = useCallback(
+    (coords: { lat: number; lng: number }) => {
+      const theater = newsTheaterFromCoords(coords.lat, coords.lng);
+      setIntelTheaterFilter(theater);
+      const navId = navIdForNewsTheater(theater);
+      const sel = navId ? navSelectionFromId(navId) : null;
+      if (sel) {
+        enterTheaterFocus(sel, "news");
+        return;
+      }
+      openIntelSheet({ theater, tab: "news" });
+    },
+    [enterTheaterFocus],
+  );
+
+  axisLinkOpenNewsRef.current = () => {
+    const link = selectedAxisLink;
+    trackEvent("axis_link_cta_news", {
+      pathId: link?.pathId,
+      from: link?.from,
+      to: link?.to,
+    });
+    setShowGdeltAlliance(true);
+    setShowGdeltDiplomatic(true);
+    const hubId = link
+      ? preferredAxisHub(link.from, link.to, link.hubs, activeHubId)
+      : null;
+    setSelectedAxisLink(null);
+    if (hubId) {
+      const navId = navIdForAxisHubNews(hubId);
+      const sel = navSelectionFromId(navId);
+      if (sel) {
+        enterTheaterFocus(sel, "news");
+        return;
+      }
+      const hub = hubById(hubId);
+      if (hub) {
+        openRelatedNewsAt({ lat: hub.lat, lng: hub.lng });
+        return;
+      }
+    }
+    openIntelSheet({ theater: "all", tab: "news" });
+  };
+
   useEffect(() => {
     if (!initialViewConfig?.ui.openLayerPanel || isCompactUi) return;
-    const timer = window.setTimeout(() => setShowLeftPanel(true), 0);
+    const timer = window.setTimeout(() => {
+      setLeftPanelTab("layers");
+      setShowLeftPanel(true);
+    }, 0);
     return () => window.clearTimeout(timer);
   }, [initialViewConfig?.ui.openLayerPanel, isCompactUi]);
 
@@ -6343,6 +6445,7 @@ export function GlobeDashboard({
 
     startTransition(() => {
       if (merged.ui.openLayerPanel && !isCompactUi) {
+        setLeftPanelTab("layers");
         setShowLeftPanel(true);
       }
     });
@@ -6501,16 +6604,51 @@ export function GlobeDashboard({
     if (isLoading || !globeReady || loadError) return;
     if (entryGate !== null || showModePicker) return;
     if (hasPendingScene()) return; // 딥링크 진입은 게이트 생략
-    // 한글/영문 미확정이면 LanguageGate만 — 지정학·지경학 창보다 먼저
+    // 언어만 필수 — caution/welcome/sources/domain 부트 체인 제거
     if (!readLangChoiceDone()) return;
-    if (!readSourcesGateDone()) {
-      setEntryGate(readWelcomeGateDone() ? "sources" : "caution");
-      return;
-    }
-    if (readWelcomeGateDone()) return;
-    setEntryGate("domain");
+    // no-op: 전역뷰 유지
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryGate, globeReady, isLoading, loadError, showModePicker, langChoiceDone]);
+
+  /** 언어를 방금 고른 직후 1회 — 얇은 전역 히어로 + 궤도 (재방문 prefs 유지) */
+  useEffect(() => {
+    if (!langChoiceDone || !globeReady || isLoading || loadError) return;
+    if (entryGate !== null || showModePicker) return;
+    if (hasPendingScene()) return;
+    if (!pendingQuietOverviewRef.current || quietOverviewAppliedRef.current) return;
+    pendingQuietOverviewRef.current = false;
+    quietOverviewAppliedRef.current = true;
+    const overviewPrefs = buildDomainOverviewPrefs(viewerMode, {
+      labelLanguage: layerPrefsLiveRef.current.labelLanguage,
+      ultraLite: ultraLiteRef.current,
+    });
+    applyLayerPrefs(overviewPrefs);
+    const entryLook = entryOrbitCamera(size);
+    layerCenterRef.current = { lat: entryLook.lat, lng: entryLook.lng };
+    layerAltitudeRef.current = entryLook.altitude;
+    setFilterCenter({ lat: entryLook.lat, lng: entryLook.lng });
+    setLayerAltitude(entryLook.altitude);
+    flyTo(entryLook.lat, entryLook.lng, entryLook.altitude, ENTRY_GATE.zoomOutFlyMs, {
+      pitch: entryLook.pitch,
+    });
+    setViewUi((prev) => ({
+      ...prev,
+      autoEnterTheaterNavId: null,
+      autoEnterEconNavId: null,
+      autoOpenIntelSheet: false,
+    }));
+  }, [
+    applyLayerPrefs,
+    entryGate,
+    flyTo,
+    globeReady,
+    isLoading,
+    loadError,
+    langChoiceDone,
+    showModePicker,
+    size,
+    viewerMode,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -6526,6 +6664,64 @@ export function GlobeDashboard({
     setModePickerLockMode(false);
     setModePickerInitialMode(null);
     setShowModePicker(true);
+  }
+
+  function openSceneMissionPicker() {
+    if (historyStoryLockedRef.current) return;
+    if (entryGate !== null || showModePicker) return;
+    setShowSceneMissionPicker(true);
+  }
+
+  const returnToEntryOrbit = useCallback(() => {
+    const overviewPrefs = buildDomainOverviewPrefs(viewerMode, {
+      labelLanguage: layerPrefsLiveRef.current.labelLanguage,
+      ultraLite: ultraLiteRef.current,
+    });
+    applyLayerPrefs(overviewPrefs);
+    const entryLook = entryOrbitCamera(size);
+    layerCenterRef.current = { lat: entryLook.lat, lng: entryLook.lng };
+    layerAltitudeRef.current = entryLook.altitude;
+    setFilterCenter({ lat: entryLook.lat, lng: entryLook.lng });
+    setLayerAltitude(entryLook.altitude);
+    flyTo(entryLook.lat, entryLook.lng, entryLook.altitude, ENTRY_GATE.zoomOutFlyMs, {
+      pitch: entryLook.pitch,
+    });
+    setSceneMissionActive(false);
+    setRegionNavSelection(null);
+    setEconNavSelection(null);
+  }, [
+    applyLayerPrefs,
+    flyTo,
+    setFilterCenter,
+    setLayerAltitude,
+    size,
+    viewerMode,
+  ]);
+
+  function applySceneMission(id: SceneMissionId) {
+    setShowSceneMissionPicker(false);
+    const apply = sceneMissionApply(id, hotTheaterOffer);
+    if (id === "stay-global") {
+      markHotTheaterSessionApplied();
+      return;
+    }
+    markHotTheaterSessionApplied();
+    if (apply.viewerMode && apply.viewerMode !== viewerMode) {
+      handleModeApply(apply.viewerMode, "auto", "auto");
+    }
+    const patch = asLayerPatch(apply.patch);
+    if (Object.keys(patch).length > 0) {
+      patchLayerPrefsSoft(patch);
+    }
+    const soft = softZoneForMission(apply, hotTheaterOffer);
+    if (soft) {
+      battlefieldSoftZoneRef.current = soft;
+      battlefieldManualUntilRef.current = Date.now() + 24_000;
+    }
+    if (apply.fly) {
+      flyTo(apply.fly.lat, apply.fly.lng, apply.fly.altitude);
+    }
+    setSceneMissionActive(true);
   }
 
   function handleDomainSelect(mode: ViewerMode, ultraLiteOn: boolean) {
@@ -6620,11 +6816,7 @@ export function GlobeDashboard({
     setShowModePicker(false);
     setModePickerLockMode(false);
     setModePickerInitialMode(null);
-    if ((entryGate === "mode" || entryGate === "overview") && !readWelcomeGateDone()) {
-      setEntryGate("domain");
-    } else {
-      setEntryGate(null);
-    }
+    setEntryGate(null);
   }
 
   /** 공습경보 칩에 처음 다가갈 때만 1회 설명 (투어는 기능 안내에서 수동) */
@@ -7383,6 +7575,7 @@ export function GlobeDashboard({
 
   const handleOpenNewsInsight = useCallback(
     (article: NewsStreamItem) => {
+      dismissLayerPanel(true);
       setIntelSheetOpen(false);
       setNewsPerspectives(null);
       setNewsInsightCallout(null);
@@ -7394,7 +7587,7 @@ export function GlobeDashboard({
         item: { article },
       });
     },
-    [],
+    [dismissLayerPanel],
   );
 
   const handleNewsInsightApplyMap = useCallback(
@@ -7656,6 +7849,35 @@ export function GlobeDashboard({
     setSelected(next);
     recordInterestFromSelection(next);
   }, [clearRegionNavSelection, closeEconInsight, dismissLayerPanel]);
+
+  const handleGevContactSelect = useCallback(
+    (row: GevContactRow) => {
+      if (row.kind === "ais") {
+        const mmsi = row.id.replace(/^ais:/, "");
+        const vessel = aisVessels.find((v) => v.mmsi === mmsi || v.id === mmsi);
+        if (vessel) {
+          openSelection({ kind: "ais", item: vessel });
+          flyTo(vessel.lat, vessel.lng, 0.45);
+        }
+        return;
+      }
+      const hex = row.id.replace(/^(military|civil):/, "");
+      if (row.kind === "military") {
+        const ac = milAircraft.find((a) => a.hex === hex || a.id === hex);
+        if (ac) {
+          openSelection({ kind: "mil", item: ac, traffic: "military" });
+          flyTo(ac.lat, ac.lng, 0.55);
+        }
+        return;
+      }
+      const ac = civAircraft.find((a) => a.hex === hex || a.id === hex);
+      if (ac) {
+        openSelection({ kind: "mil", item: ac, traffic: "civil" });
+        flyTo(ac.lat, ac.lng, 0.55);
+      }
+    },
+    [aisVessels, civAircraft, flyTo, milAircraft, openSelection],
+  );
 
   function handlePointClick(event: ConflictEvent) {
     openIntelFromCoords(event.lat, event.lng, 0.92);
@@ -8107,6 +8329,7 @@ export function GlobeDashboard({
     handleCivAircraftSelect,
     setHoveredMilAircraft,
     aisDisplayPoints,
+    aisSymbolSelectedMmsi: aisTrackMmsi,
     handleAisSymbolSelect,
     handleAisSymbolHover,
     safecastGaugesGeoJson,
@@ -8170,13 +8393,9 @@ export function GlobeDashboard({
       <DashboardTopChrome
         intelSheetOpen={intelSheetOpen}
         entryGate={entryGate}
-        showModePicker={showModePicker}
+        showModePicker={showModePicker || showSceneMissionPicker}
         viewerMode={viewerMode}
         labelLanguage={labelLanguage}
-        wtiSnapshot={wtiSnapshot}
-        wtiFetchedAt={wtiFetchedAt}
-        showGscpiGauge={showGscpiGauge}
-        showSesChip={showSesChip && !isEconomyViewer}
         handleNavNavigate={handleNavNavigate}
         liveUpdatedAt={liveUpdatedAt}
         dataGeneratedAt={data.generatedAt}
@@ -8189,40 +8408,35 @@ export function GlobeDashboard({
         isTabletUi={isTabletUi}
         setAskLayersOpen={setAskLayersOpen}
         handleViewerModeChange={handleViewerModeChange}
-        basemapMode={basemapMode}
-        handleBasemapModeChange={handleBasemapModeChange}
-        layerCategories={layerCategories}
-        layerDropdownOpen={layerDropdownOpen}
-        setLayerDropdownOpen={setLayerDropdownOpen}
-        showLeftPanel={showLeftPanel}
-        econNavSelection={econNavSelection}
-        isEconomyViewer={isEconomyViewer}
-        regionNavSelection={regionNavSelection}
-        handleExplorationSelect={handleExplorationSelect}
-        showUsDfcSupplyChain={showUsDfcSupplyChain}
-        showBriTradeConnectivity={showBriTradeConnectivity}
-        setShowUsDfcSupplyChain={setShowUsDfcSupplyChain}
-        setShowBriTradeConnectivity={setShowBriTradeConnectivity}
-        usDfcSupplyPaths={usDfcSupplyPaths}
-        briTradePaths={briTradePaths}
-        showGpsInterference={showGpsInterference}
-        setShowGpsInterference={setShowGpsInterference}
-        gpsJamStatus={gpsJamStatus}
-        gpsJamPolygons={gpsJamPolygons}
-        gpsJamDate={gpsJamDate}
-        showUsCarriers={showUsCarriers}
-        setShowUsCarriers={setShowUsCarriers}
-        usCarriers={usCarriers}
-        deployedCarrierCount={deployedCarrierCount}
-        compactChipId={compactChipId}
-        handleCompactChipSelect={handleCompactChipSelect}
-        scenarioPresetId={scenarioPresetId}
-        handleScenarioPresetSelect={handleScenarioPresetSelect}
         globeRef={globeRef}
         getSceneForShare={getSceneForShare}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
+        onSceneStart={openSceneMissionPicker}
+        onOpenSources={() => setShowSourcesPanel(true)}
+        onOpenLayers={() => openLeftDrawer("layers")}
+        onOpenSettings={() => openLeftDrawer("settings")}
+        onOpenData={() => openLeftDrawer("data")}
+        bottomDockMode={bottomDockMode}
+        onBottomDockModeChange={handleBottomDockModeChange}
       />
+
+      {showSceneMissionPicker ? (
+        <SceneMissionPicker
+          lang={labelLanguage}
+          hotFocus={hotTheaterOffer}
+          onSelect={applySceneMission}
+          onDismiss={() => setShowSceneMissionPicker(false)}
+        />
+      ) : null}
+
+      {sceneMissionActive &&
+      entryGate === null &&
+      !showModePicker &&
+      !showSceneMissionPicker &&
+      !intelSheetOpen ? (
+        <ReturnToGlobeChip lang={labelLanguage} onClick={returnToEntryOrbit} />
+      ) : null}
 
       <GeopoliticsHubChrome
         activeHubId={activeHubId}
@@ -8442,9 +8656,6 @@ export function GlobeDashboard({
           containerBackgroundColor={globeTextures.backgroundColor}
           {...mapGlobeProps}
         />
-
-        {/* 마우스·트랙패드 없이도 조절 가능한 확대/축소 버튼 — 숨김 상태는 자체 저장 */}
-        <MapZoomControl globeRef={globeRef} isCompactUi={isCompactUi} />
 
         {/* 지구본 뷰(데스크톱·태블릿)에 상시 노출되는 출처 크레딧 — 폰은 MobileHomeView가 담당 */}
         {!isPhoneUi ? (
@@ -8740,11 +8951,7 @@ export function GlobeDashboard({
           markHotTheaterSessionApplied();
         }}
         onTensionSpikeJump={onTensionSpikeJump}
-        hotTheaterOffer={
-          tensionSpike || firstImpression.suppressHotTheaterOffer
-            ? null
-            : hotTheaterOffer
-        }
+        hotTheaterOffer={null}
         onAcceptHotTheaterOffer={acceptHotTheaterOffer}
         onDismissHotTheaterOffer={dismissHotTheaterOffer}
         ultraLiteOfferVisible={ultraLiteAutoOffer.visible}
@@ -8767,6 +8974,7 @@ export function GlobeDashboard({
         intelStackRef={intelStackRef}
         onCloseLeftPanel={closeLeftPanel}
         onToggleLeftPanel={toggleLeftPanel}
+        showLayerPanelToggle={false}
         onSetShowUsCarriers={setShowUsCarriers}
         onSetShowGpsInterference={setShowGpsInterference}
         onSetShowUsDfcSupplyChain={setShowUsDfcSupplyChain}
@@ -8830,11 +9038,19 @@ export function GlobeDashboard({
           isTabletUi={isTabletUi}
           isDesktopWideUi={isDesktopWideUi}
           labelLanguage={labelLanguage}
+          activeTab={leftPanelTab}
+          showTabBar={false}
           layerPanelDirty={layerPanelDirty}
           onConfirmDraft={confirmLayerPanelDraft}
           onCancelDraft={cancelLayerPanelDraft}
           navHeaderLabel={viewerChromePreset.navHeaderLabel}
-          layerPanelTitle={viewerChromePreset.layerPanelTitle}
+          layerPanelTitle={
+            leftPanelTab === "settings"
+              ? t("layerTabSettings", labelLanguage)
+              : leftPanelTab === "data"
+                ? t("layerTabData", labelLanguage)
+                : viewerChromePreset.layerPanelTitle
+          }
           onClose={closeLeftPanel}
           onLangDraftChange={handlePanelLangDraft}
           ultraLite={ultraLite}
@@ -8914,13 +9130,31 @@ export function GlobeDashboard({
         onSelectGdeltEvent={handleRegionEventSelect}
       />
 
-      {selected && (
+      {gevTracking && gevHud ? (
+        <GevTrackHud
+          hud={gevHud}
+          contacts={gevContacts}
+          followCamera={gevFollowCamera}
+          onToggleFollow={toggleGevFollow}
+          onStop={() => {
+            stopGevTracking();
+            setSelected(null);
+          }}
+          onSelectContact={handleGevContactSelect}
+          lang={labelLanguage === "en" ? "en" : "ko"}
+        />
+      ) : null}
+
+      {selected && !showLeftPanel && (
         <>
           <button
             type="button"
             aria-label={t("ariaCloseInfoPanel", labelLanguage)}
             className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
-            onClick={() => setSelected(null)}
+            onClick={() => {
+              stopGevTracking();
+              setSelected(null);
+            }}
           />
           <aside className="intel-panel intel-sidebar-right z-[600] flex flex-col overflow-hidden p-4">
             {selected.kind === "neptun-threat" ? (
@@ -8928,7 +9162,10 @@ export function GlobeDashboard({
                 <NeptunThreatDetailPanel
                   threat={selected.item}
                   lang={labelLanguage}
-                  onClose={() => setSelected(null)}
+                  onClose={() => {
+                    stopGevTracking();
+                    setSelected(null);
+                  }}
                 />
               </div>
             ) : selected.kind === "news-insight" ? (
@@ -8939,6 +9176,7 @@ export function GlobeDashboard({
                   lang={labelLanguage}
                   onClose={() => {
                     setNewsInsightCallout(null);
+                    stopGevTracking();
                     setSelected(null);
                   }}
                   onApplyMap={handleNewsInsightApplyMap}
@@ -8949,7 +9187,10 @@ export function GlobeDashboard({
                 {regionNavSelection && (
                   <button
                     type="button"
-                    onClick={() => setSelected(null)}
+                    onClick={() => {
+                      stopGevTracking();
+                      setSelected(null);
+                    }}
                     className="mb-3 shrink-0 text-xs text-amber-200/80 transition hover:text-amber-100"
                   >
                     ← {regionNavSelection.label} 뉴스 목록
@@ -8958,7 +9199,11 @@ export function GlobeDashboard({
                 <div className="intel-scroll-y min-h-0 flex-1">
                   <AnalysisPanel
                     selection={selected}
-                    onClose={() => setSelected(null)}
+                    onClose={() => {
+                      stopGevTracking();
+                      setSelected(null);
+                    }}
+                    onOpenRelatedNews={openRelatedNewsAt}
                     ukraineControlDate={ukraineControlDate}
                     ukraineRuCellCount={ukraineRuCellCount}
                     disputeOverview={
@@ -8978,7 +9223,7 @@ export function GlobeDashboard({
       <GeoeconomicsChrome
         labelLanguage={labelLanguage}
         isEconomyViewer={isEconomyViewer}
-        hasAnalysisSelection={selected != null}
+        hasAnalysisSelection={selected != null || showLeftPanel}
         econNavSelection={econNavSelection}
         econInsightOpen={econInsightOpen}
         econInsightBrief={econInsightBrief}

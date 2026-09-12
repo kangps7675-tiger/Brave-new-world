@@ -1,6 +1,7 @@
 /**
  * 영토분쟁 아카이브 — 심층 문서·전개 콜아웃·양피지 줄글.
- * 한글 모드: 쉬운 말, 주어·조사·서술어 갖춘 문장, 한 문단 안에서는 ~습니다/~입니다만 사용.
+ * 한글 모드: `src/lib/koreanProseRules.ts` 하드코딩 규칙
+ * (쉬운 말, 주어·조사·서술어, 한 문단 ~습니다/~입니다만).
  */
 
 import type { FrictionTimelineStage } from "@/data/frictionEpisodeDeep";
@@ -8,6 +9,7 @@ import {
   TERRITORIAL_DISPUTE_EPISODES,
   type TerritorialDisputeEpisode,
 } from "@/data/territorialDisputeEpisodes";
+import { josa } from "@/lib/koreanJosa";
 
 export type TerritorialSixW = {
   whoKo: string;
@@ -106,17 +108,19 @@ function buildStages(ep: TerritorialDisputeEpisode): FrictionTimelineStage[] {
 
 function buildSixW(ep: TerritorialDisputeEpisode): TerritorialSixW {
   const span = yearSpan(ep);
+  const parties = partiesLine(ep, false);
+  const titleBare = ep.title.replace(/\s*\(\d{4}.*$/, "");
   return {
-    whoKo: `${partiesLine(ep, false)}이(가) 이 땅과 바다의 영유권·관할권·실효 지배를 다투고 있습니다.`,
+    whoKo: `${josa(parties, "이/가")} 이 땅과 바다의 영유권과 관할권, 실효 지배를 다투고 있습니다.`,
     whoEn: `${partiesLine(ep, true)} — the sides contesting title, jurisdiction, and control.`,
-    whatKo: `${ep.title.replace(/\s*\(\d{4}.*$/, "")}을(를) 둘러싼 국경·영토 분쟁입니다.`,
+    whatKo: `${josa(titleBare, "을/를")} 둘러싼 국경·영토 분쟁입니다.`,
     whatEn: `A territorial and border dispute centered on ${ep.titleEn.replace(/\s*\(\d{4}.*$/, "")}.`,
     whenKo: `${span} 전후가 핵심 국면이었고, 그 여파는 오늘까지 이어지고 있습니다.`,
     whenEn: `The core phase was around ${span}; aftershocks reach the present.`,
     whereKo: ep.locationName,
     whereEn: ep.locationNameEn,
     whyKo:
-      "지도와 조약, 전쟁, 식민 유산을 서로 다르게 읽으면서 안보·자원·정체성이 한 경계선 위에 겹쳤기 때문입니다.",
+      "관련 당사국이 지도와 조약, 전쟁, 식민 유산을 서로 다르게 읽었고, 그 위에 안보와 자원, 정체성 문제가 겹쳤기 때문입니다.",
     whyEn:
       "Clashing readings of maps, treaties, wars, and colonial legacies stacked security, resources, and identity onto one line.",
     howKo:
@@ -135,7 +139,7 @@ function buildParagraphs(ep: TerritorialDisputeEpisode): {
   const partiesEn = partiesLine(ep, true);
   return {
     ko: [
-      `여기는 ${ep.locationName}입니다. ${span} 무렵 ${partiesKo}이(가) 그은 경계는 서로 다른 이야기를 하고 있었습니다.`,
+      `여기는 ${ep.locationName}입니다. ${span} 무렵 ${josa(partiesKo, "이/가")} 그은 경계는 서로 다른 이야기를 하고 있었습니다.`,
       ep.briefing,
       `국경은 종이 위에만 있지 않습니다. 순찰로가 생기고 주민의 일상이 바뀌며, 포대와 회담장이 같은 좌표를 씁니다. ‘우리 땅’이라는 말은 병력 배치로 바뀝니다.`,
       `완전히 끝나는 경우는 드뭅니다. 휴전선과 실질통제선, 인정받지 못한 경계, 바다 경제수역의 중첩이 남고, 다음 위기가 그 빈칸을 다시 읽습니다.`,
@@ -217,9 +221,9 @@ export function territorialParchmentParagraphs(
     paragraphs.push(...body);
   } else {
     paragraphs.push(
-      `지금은 ${ep.locationName}을(를) 보고 있습니다. ${six.whenKo} 관련 당사자는 다음과 같습니다. ${six.whoKo}`,
+      `지금은 ${josa(ep.locationName, "을/를")} 보고 있습니다. ${six.whenKo} ${six.whoKo}`,
     );
-    paragraphs.push(`무슨 일이었습니까. ${six.whatKo} ${six.whyKo}`);
+    paragraphs.push(`${six.whatKo} ${six.whyKo}`);
     paragraphs.push(`전개는 이렇게 흘러갔습니다. ${six.howKo}`);
     if (stages.length > 0) {
       const arc = stages

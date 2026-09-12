@@ -268,36 +268,36 @@ export function matchesAisClassFilter(
   return category === "commercial" || category === "other";
 }
 
-/** 민간 AIS — 함종별 색 (화물/탱커/여객/어선/고속선/기타) */
+/** 민간 AIS — 함종별 색 (저채도 전술 팔레트) */
 export function aisCommercialPointColor(shipType: number | null | undefined): string {
-  if (shipType == null || !Number.isFinite(shipType)) return "rgba(148, 163, 184, 0.88)";
-  if (shipType === 35 || shipType === 55) return "rgba(52, 211, 153, 0.92)";
+  if (shipType == null || !Number.isFinite(shipType)) return "rgba(148, 163, 184, 0.9)";
+  if (shipType === 35 || shipType === 55) return "rgba(110, 168, 150, 0.92)";
   const g = Math.floor(shipType / 10);
   switch (g) {
     case 8:
-      return "rgba(251, 146, 60, 0.92)"; // Tanker
+      return "rgba(214, 148, 88, 0.92)"; // Tanker — warm sand
     case 7:
-      return "rgba(56, 189, 248, 0.92)"; // Cargo
+      return "rgba(110, 168, 196, 0.92)"; // Cargo — slate cyan
     case 6:
-      return "rgba(244, 114, 182, 0.92)"; // Passenger
+      return "rgba(196, 132, 168, 0.9)"; // Passenger — muted rose
     case 2:
-      return "rgba(52, 211, 153, 0.9)"; // Fishing
+      return "rgba(96, 168, 132, 0.9)"; // Fishing
     case 4:
-      return "rgba(167, 139, 250, 0.92)"; // HSC
+      return "rgba(148, 132, 196, 0.9)"; // HSC
     case 3:
-      return "rgba(250, 204, 21, 0.88)"; // Special
+      return "rgba(196, 176, 96, 0.88)"; // Special
     default:
-      return "rgba(125, 211, 252, 0.88)";
+      return "rgba(130, 168, 188, 0.9)";
   }
 }
 
-/** AIS 군함 HTML 실루엣 공용 — 검정 채움 + 약한 빨간 글로우 */
-export const AIS_SURFACE_COMBATANT_FILL = "#0c0c0e";
+/** AIS 군함 HTML 실루엣 공용 — 흑연 채움 (윤곽은 아이콘 스트로크) */
+export const AIS_SURFACE_COMBATANT_FILL = "#14181e";
 /** @deprecated 동일 상수 — 군함 공용 채움 */
 export const AIS_WARSHIP_FILL = AIS_SURFACE_COMBATANT_FILL;
 
-/** 줌아웃 MapLibre 점용 — 검은 실루엣과 짝을 이루는 연한 빨강 틴트 */
-export const AIS_SURFACE_COMBATANT_POINT = "#f87171";
+/** 줌아웃 MapLibre 점용 — 흑연 실루엣과 짝을 이루는 연한 호박 틴트 */
+export const AIS_SURFACE_COMBATANT_POINT = "#d4a574";
 export const AIS_WARSHIP_POINT = AIS_SURFACE_COMBATANT_POINT;
 
 /** 군함 실루엣/포인트 틴트 — 함종 무관, 검정 통일 */

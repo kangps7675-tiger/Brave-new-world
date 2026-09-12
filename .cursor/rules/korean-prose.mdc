@@ -1,0 +1,26 @@
+---
+description: 양피지·인사이트 한국어 줄글은 하드코딩된 국어 문법 규칙을 따른다
+globs: src/data/**/*Brief*.ts,src/data/**/*Parchment*.ts,src/data/**/*Deep*.ts,src/data/friction*.ts,src/data/hubBriefs.ts,src/data/criticalNode*.ts,src/lib/news/*Narrative*.ts,src/lib/futuresSpikeInsight.ts,src/lib/llm/**/*.ts,src/lib/koreanProseRules.ts,src/lib/koreanJosa.ts
+alwaysApply: false
+---
+
+# 한국어 줄글 (하드코딩 규칙)
+
+단일 소스: `src/lib/koreanProseRules.ts` (`KOREAN_PROSE_RULES`, `KOREAN_PROSE_RULES_PROMPT`).
+조사 헬퍼: `src/lib/koreanJosa.ts` (`josa()`).
+
+## 필수
+
+1. **어순**: 주어 + 목적어 + 서술어. 수식어는 피수식어 앞.
+2. **조사**: 빠뜨리지 말 것. `이(가)` / `을(를)` 플레이스홀더 금지 → `josa(word, "이/가")` 등.
+3. **종결**: 한 문단 안 `~습니다` / `~입니다`만. `~다` / `~요` / `~됨` 텔레그래픽 금지.
+4. **직역투 금지**: 명사 나열 후 `닿다` / `맞물리다` / `겹치다`로 끝내지 말 것.
+5. **라벨 접두 금지**: `무엇을 통제하나 —`, `왜 중요한가.` 대신 완전한 문장.
+
+## 예외
+
+- `WelcomeParchmentLetter` 문학체만 종결 통일 예외.
+
+## LLM
+
+새 한국어 시스템 프롬프트에는 `KOREAN_PROSE_RULES_PROMPT` 또는 `KOREAN_BRIEF_STYLE_PROMPT`를 import 해서 붙일 것. 규칙을 파일마다 복붙하지 말 것.
