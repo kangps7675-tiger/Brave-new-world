@@ -678,17 +678,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     return () => obs.disconnect();
   }, [isCompactUi]);
 
-  /** 우측 독 열리면 우상단 칩을 사이드바 폭만큼 밀어 겹침 방지 */
+  /** 우측 독 사이드바 제거 — 칩 inset 불필요 (하단 시트만 사용) */
   useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty(
-      "--chrome-right-dock-inset",
-      rightDockOpen ? "var(--intel-sidebar-width)" : "0px",
-    );
-    return () => {
-      root.style.setProperty("--chrome-right-dock-inset", "0px");
-    };
-  }, [rightDockOpen]);
+    document.documentElement.style.setProperty("--chrome-right-dock-inset", "0px");
+  }, []);
 
   const showFoldedLampTab =
     Boolean(foldedPeriodicBriefing) && !periodicBriefing && !weeklyExpanded;
@@ -699,15 +692,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !foldedPeriodicBriefing,
   );
   const showFoldedBriefingTabs = showFoldedLampTab || showFoldedWeeklyTab;
-  const railVisible =
-    !intelSheetOpen &&
-    !isCompactUi &&
-    !showLeftPanel &&
-    !rightDockOpen &&
-    !selected;
+  /** 우측 사이드바 없음 — 좌측 레일은 레이어 패널·시트만 피하면 됨 */
+  const railVisible = !intelSheetOpen && !isCompactUi && !showLeftPanel;
 
   const foldedBriefingTabs = showFoldedBriefingTabs ? (
-    <div className="pointer-events-auto flex flex-col items-end gap-1.5">
+    <div className="pointer-events-auto flex flex-col items-start gap-1.5">
       {showFoldedLampTab && foldedPeriodicBriefing ? (
         <button
           type="button"
@@ -715,7 +704,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetPeriodicBriefing(foldedPeriodicBriefing);
             onSetFoldedPeriodicBriefing(null);
           }}
-          className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-2 pr-1.5 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pr-2.5"
+          className="group flex items-center gap-1.5 rounded-r-md border border-l-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-1.5 pr-2 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pl-2.5"
           aria-label={
             labelLanguage === "en"
               ? "Reopen today's lamp news"
@@ -723,14 +712,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           }
           title={labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
         >
-          <span className="text-sm leading-none" aria-hidden>
-            {"\uD83C\uDFEE"}
-          </span>
           <span
             className="text-micro font-semibold tracking-[0.14em]"
             style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
           >
             {labelLanguage === "en" ? "Lamp" : "등불"}
+          </span>
+          <span className="text-sm leading-none" aria-hidden>
+            {"\uD83C\uDFEE"}
           </span>
         </button>
       ) : null}
@@ -741,20 +730,20 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             clearWeeklyRecapFolded(weeklyRecap.key);
             onSetWeeklyRecapCollapsed(false);
           }}
-          className="group flex items-center gap-1.5 rounded-l-md border border-r-0 border-[#6b4a22]/60 bg-[#e8d4a8]/95 py-2.5 pl-2 pr-1.5 text-[#3d2a18] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] hover:pr-2.5"
+          className="group flex items-center gap-1.5 rounded-r-md border border-l-0 border-[#6b4a22]/60 bg-[#e8d4a8]/95 py-2.5 pl-1.5 pr-2 text-[#3d2a18] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f3e6c4] hover:pl-2.5"
           aria-label={
             labelLanguage === "en" ? "Reopen weekly recap" : "지난주 회고 다시 펼치기"
           }
           title={labelLanguage === "en" ? "Last week's recap" : "지난주 회고"}
         >
-          <span className="text-sm leading-none" aria-hidden>
-            {"\u2726"}
-          </span>
           <span
             className="text-micro font-semibold tracking-[0.14em]"
             style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
           >
             {labelLanguage === "en" ? "Recap" : "회고"}
+          </span>
+          <span className="text-sm leading-none" aria-hidden>
+            {"\u2726"}
           </span>
         </button>
       ) : null}
@@ -872,12 +861,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       </div>
       ) : null}
 
-      {/* 데스크톱·태블릿 우측 레일 — 칩 하단(--mode-index-chip-bottom)과 nav 높이 중 큰 쪽 기준 */}
+      {/* 데스크톱·태블릿 좌측 레일 — 우측은 칩만 (사이드바/우레일 이중 축 금지) */}
       {railVisible ? (
         <div
-          className="cv-desktop-only cv-chrome-rail-top pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2 overflow-y-auto overscroll-contain sm:right-4"
+          className="cv-desktop-only cv-chrome-rail-left pointer-events-none absolute left-3 z-[200] flex flex-col items-start gap-2 overflow-y-auto overscroll-contain sm:left-4"
           style={{
-            // top/maxHeight는 .cv-chrome-rail-top CSS 변수 기반
             maxWidth: isTabletUi
               ? "min(16rem, calc(100vw - 1.5rem))"
               : "min(20rem, calc(100vw - 1.5rem))",
@@ -891,16 +879,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 status={gpsJamStatus}
                 cellCount={gpsJamCellCount}
                 date={gpsJamDate}
-                hintPlacement="left"
+                hintPlacement="right"
               />
-              {/* GPSJam 솔로 중에는 항모 토글 숨김 — 작전중 잔여 표시와 충돌 방지 */}
               {!showGpsInterference ? (
                 <UsCarrierFixedToggle
                   checked={showUsCarriers}
                   onChange={onSetShowUsCarriers}
                   carrierCount={usCarriers.length}
                   deployedCount={deployedCarrierCount}
-                  hintPlacement="left"
+                  hintPlacement="right"
                 />
               ) : null}
             </>
@@ -914,6 +901,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
                 chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
                 vertical
+                align="start"
               />
               {gateClosed && !isTabletUi ? (
                 <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
@@ -926,14 +914,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             <ServerDonateChip lang={labelLanguage} />
           </div>
           {!isEconomyViewer && gateClosed ? (
-            <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-2">
+            <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-start gap-2">
               <TopWatchPanel lang={labelLanguage} />
               <div className="cv-tablet-hide-sitrep w-full">
                 <SitrepLog lang={labelLanguage} />
               </div>
             </div>
           ) : null}
-          {/* 등불·회고 탭 — 레일 안에 넣어 Finint/DFC와 top:36% 교차 겹침 방지 */}
           {foldedBriefingTabs}
         </div>
       ) : null}
@@ -1457,15 +1444,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {/*
-        접힌 등불·주간 회고 — 우레일이 보일 때는 레일 flex 안에 넣음.
-        레일이 숨겨진 경우(우측 독 오픈 등)에만 칩 아래·독 왼쪽에 단독 앵커.
+        접힌 등불·주간 회고 — 좌측 레일이 보일 때는 레일 flex 안.
+        레일 숨김(레이어 패널 등)일 때만 좌측 가장자리 단독 앵커.
       */}
       {!railVisible && showFoldedBriefingTabs ? (
         <div
-          className={`pointer-events-auto fixed right-0 ${zc("panel")}`}
+          className={`pointer-events-auto fixed left-0 ${zc("panel")}`}
           style={{
             top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
-            right: "var(--chrome-right-dock-inset, 0px)",
           }}
         >
           {foldedBriefingTabs}
