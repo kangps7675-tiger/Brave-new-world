@@ -15,6 +15,7 @@ export type LabelLanguage = "en" | "ko";
 
 /** 축 관계망 — 구 기본 ON·친화도 unlock 잔존을 한 번 OFF로 내린다 */
 const AXIS_NETWORK_DEFAULT_OFF_KEY = "geowatch-axis-network-default-off-v1";
+const TELEGRAM_DEFAULT_ON_KEY = "geowatch-telegram-default-on-v1";
 
 export type LayerPrefs = {
   /** 전쟁구역 — 빨간 사각+빗금 (combat) */
@@ -345,7 +346,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGdeltAlliance: false,
   showGdeltProtests: false,
   showGdeltOceanCompetition: false,
-  showTelegramOsint: false,
+  showTelegramOsint: true,
   showTzevaAdom: true,
   showNewfeedsIranAttacks: true,
   showUkmtoIncidents: false,
@@ -548,6 +549,25 @@ function settleAxisNetworkDefaultOff(prefs: LayerPrefs): LayerPrefs {
   return prefs;
 }
 
+/** 텔레그램 OSINT 미니패널 — 기존 저장본도 1회 ON으로 맞춤 (닫기는 X로) */
+function settleTelegramDefaultOn(prefs: LayerPrefs): LayerPrefs {
+  if (!shouldPersistLayerPrefs()) return prefs;
+  try {
+    if (!localStorage.getItem(TELEGRAM_DEFAULT_ON_KEY)) {
+      localStorage.setItem(TELEGRAM_DEFAULT_ON_KEY, "1");
+      return { ...prefs, showTelegramOsint: true };
+    }
+  } catch {
+    /* ignore */
+  }
+  return prefs;
+}
+
+function settleLayerPrefDefaults(prefs: LayerPrefs): LayerPrefs {
+  return settleTelegramDefaultOn(settleAxisNetworkDefaultOff(prefs));
+}
+
+
 /**
  * 저장된 prefs 를 읽어 온다 (상업 게이트 **적용 전**).
  *
@@ -567,7 +587,7 @@ function loadLayerPrefsRaw(): LayerPrefs {
   try {
     const v21Raw = localStorage.getItem(LAYER_PREFS_KEY);
     if (v21Raw) {
-      return settleAxisNetworkDefaultOff(
+      return settleLayerPrefDefaults(
         finalizeLayerPrefsWithAffinity(
           mergeSavedPrefs(JSON.parse(v21Raw) as SavedLayerPrefs),
         ),
@@ -578,7 +598,7 @@ function loadLayerPrefsRaw(): LayerPrefs {
     if (v19Raw) {
       const migrated = migrateV19ToV20(JSON.parse(v19Raw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return settleAxisNetworkDefaultOff(finalizeLayerPrefsWithAffinity(migrated));
+      return settleLayerPrefDefaults(finalizeLayerPrefsWithAffinity(migrated));
     }
 
     for (const legacyKey of LEGACY_LAYER_KEYS) {
@@ -586,11 +606,11 @@ function loadLayerPrefsRaw(): LayerPrefs {
       if (!legacyRaw) continue;
       const migrated = mergeSavedPrefs(JSON.parse(legacyRaw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
-      return settleAxisNetworkDefaultOff(finalizeLayerPrefsWithAffinity(migrated));
+      return settleLayerPrefDefaults(finalizeLayerPrefsWithAffinity(migrated));
     }
 
     // 첫 방문(저장된 prefs 없음) — 리퍼러/브라우저 언어로 기본 표시 언어만 추정
-    return settleAxisNetworkDefaultOff(
+    return settleLayerPrefDefaults(
       finalizeLayerPrefsWithAffinity({
         ...DEFAULT_LAYER_PREFS,
         labelLanguage: detectDefaultLabelLanguage(),

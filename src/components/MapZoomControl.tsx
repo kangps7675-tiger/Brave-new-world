@@ -109,10 +109,13 @@ export function MapZoomControl({ globeRef, isCompactUi }: MapZoomControlProps) {
     ? "border border-slate-300 divide-y divide-slate-200"
     : "border border-white/15 divide-y divide-white/10";
 
-  /** 좌측 세로 중앙 — 하단 스택·우상단 칩·우하단 FAB과 분리 */
+  /**
+   * 좌측 크롬 레일(토글·Watch)과 겹치지 않게 우측 중간.
+   * 우상단 ModeGlobalIndexChip·우하단 FAB과도 분리.
+   */
   const placeClass = isCompactUi
-    ? "left-2 top-[38%] -translate-y-1/2 sm:left-3"
-    : "left-3 top-[42%] -translate-y-1/2";
+    ? "right-2 top-[42%] -translate-y-1/2 sm:right-3"
+    : "right-3 top-[46%] -translate-y-1/2 sm:right-4";
 
   if (hidden) {
     return (
