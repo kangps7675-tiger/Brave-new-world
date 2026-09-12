@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ScoredEvent } from "@/data/eventTiers";
 import { TIER_LABELS } from "@/data/eventTiers";
 import { LocationPinIcon } from "@/components/LocationPinIcon";
@@ -8,6 +8,7 @@ import type { NavSelection } from "@/data/navRegions";
 import { useLocale } from "@/contexts/LocaleContext";
 import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { formatGdeltNewsHeadline } from "@/lib/gdeltNewsAlert";
+import { isMostlyKorean, translateTextToKorean } from "@/lib/koreanTranslate";
 
 type RegionNewsPanelProps = {
   selection: NavSelection;
@@ -38,6 +39,32 @@ export function RegionNewsPanel({
     return entries;
   }, [events]);
   const localizedMap = useLocalizedTextMap(textEntries, lang);
+  const [koHeadlineById, setKoHeadlineById] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (lang === "en") {
+      setKoHeadlineById({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const next: Record<string, string> = {};
+      await Promise.all(
+        events.map(async (event) => {
+          const raw = formatGdeltNewsHeadline(event);
+          if (isMostlyKorean(raw)) {
+            next[event.id] = raw;
+            return;
+          }
+          next[event.id] = await translateTextToKorean(raw);
+        }),
+      );
+      if (!cancelled) setKoHeadlineById(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [events, lang]);
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -92,7 +119,9 @@ export function RegionNewsPanel({
                       )}
                     </span>
                     <span className="mt-1 block text-body font-medium leading-snug text-slate-100 line-clamp-2">
-                      {formatGdeltNewsHeadline(event)}
+                      {lang === "en"
+                        ? formatGdeltNewsHeadline(event)
+                        : (koHeadlineById[event.id] ?? formatGdeltNewsHeadline(event))}
                     </span>
                     <span className="mt-1 block text-xs leading-5 text-slate-400">
                       {localizedDisplayText(localizedMap, `cat:${event.id}`, event.category)}
