@@ -4,6 +4,7 @@ import {
   episodeBriefing,
   type FrictionEpisode,
 } from "@/data/frictionEpisodes";
+import { josa } from "@/lib/koreanJosa";
 
 /** OpenAlex Works 메타 — 전문 재배포 없음, DOI·링크만 */
 export type FrictionOpenAlexWork = {
@@ -83,24 +84,24 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "sino-soviet-border-1969": {
     episodeId: "sino-soviet-border-1969",
     sixW: {
-      whoKo: "중화인민공화국 국경·정규 부대와 소비에트 연방 국경·정규 부대.",
+      whoKo: "중화인민공화국 국경·정규 부대와 소비에트 연방 국경·정규 부대입니다.",
       whoEn: "Border and regular units of the People’s Republic of China and of the Soviet Union.",
-      whatKo: "우수리강 전바오섬(소련명 다만스키) 및 인근 국경에서 무력 교전·포격·대치가 발생한 중소 국경 분쟁.",
+      whatKo: "우수리강 전바오섬(소련명 다만스키) 및 인근 국경에서 무력 교전·포격·대치가 발생한 중소 국경 분쟁입니다.",
       whatEn: "Armed clashes, shelling, and confrontation along the Sino-Soviet border, centered on Zhenbao (Damansky) Island in the Ussuri River.",
-      whenKo: "1969년 3월이 절정(주요 교전 3월 2일·15일 전후). 같은 해 추가 국경 마찰이 이어짐.",
+      whenKo: "1969년 3월이 절정입니다(주요 교전은 3월 2일·15일 전후). 같은 해에도 추가 국경 마찰이 이어졌습니다.",
       whenEn: "Peak in March 1969 (major fighting around 2 and 15 March); further border friction continued that year.",
-      whereKo: "중국–소련 동부 국경, 우수리강(흑룡강)의 전바오/다만스키 섬 및 인근 강안.",
+      whereKo: "중국–소련 동부 국경, 우수리강(흑룡강)의 전바오/다만스키 섬 및 인근 강안입니다.",
       whereEn: "Eastern Sino-Soviet border: Zhenbao/Damansky Island on the Ussuri River and adjacent riverbanks.",
-      whyKo: "강 중 섬 귀속·주항로(탈베그) 해석 등 국경선 쟁점과, 중소 이념·안보 분열이 현장 병력 충돌로 전화됨.",
+      whyKo: "강 중 섬 귀속·주항로(탈베그) 해석 등 국경선 쟁점과 중소 이념·안보 분열이 맞물리며, 현장 병력 충돌로 번졌습니다.",
       whyEn: "Disputes over island ownership and the river thalweg, layered onto the Sino-Soviet ideological and security split, turned into live combat.",
-      howKo: "순찰·점거 시도가 교전으로 확대되고 포병·증원이 동원됨. 양측 사상자 추정은 수십~수백 명대. 이후 외교 항의와 전략적 재평가가 뒤따름.",
+      howKo: "순찰·점거 시도가 교전으로 확대되고 포병·증원이 동원되었습니다. 양측 사상자 추정은 수십~수백 명대입니다. 이후 외교 항의와 전략적 재평가가 뒤따랐습니다.",
       howEn: "Patrols and occupation attempts escalated into firefights with artillery and reinforcements. Casualty estimates run from tens to hundreds. Diplomatic protests and strategic reassessment followed.",
     },
     paragraphsKo: [
-      "1960년대 중소 관계는 이념 논쟁을 넘어 군사적 불신으로 굳어졌습니다. 양국은 강과 섬을 따라 국경선을 다르게 읽었고, 주항로·섬 귀속 해석이 병력 배치와 순찰 경로로 번역되었습니다.",
+      "1960년대 중소 관계는 이념 논쟁을 넘어 군사적 불신으로 굳어졌습니다. 양국은 강과 섬을 따라 국경선을 다르게 읽었고, 주항로·섬 귀속 해석이 병력 배치와 순찰 경로로 반영되었습니다.",
       "1969년 3월 전바오섬 교전은 그 긴장의 정점이었습니다. 공개 기록과 연구는 양측이 섬과 강안에서 교전·포격을 주고받았으며, 사상자 규모에 대한 추정치가 수십에서 수백 명대까지 갈린다고 정리합니다.",
       "같은 해 추가 국경 마찰과 대치가 이어지면서, 분쟁은 ‘국지 도발’을 넘어 전략적 위기로 인식되었습니다. 핵무기 사용 가능성에 대한 당시 논의·보고는 이후 냉전사 문헌에서 반복적으로 다뤄집니다.",
-      "외교적으로는 항의·협상과 병행해 대외 정렬이 재검토되었습니다. 미·중 접근의 배경 요인 중 하나로 이 위기를 위치시키는 해석이 학계에 널리 존재합니다.",
+      "외교적으로는 항의·협상과 병행해 대외 정렬이 재검토되었습니다. 학계에서는 이 위기를 미·중 접근의 배경 요인 중 하나로 두는 해석이 널리 존재합니다.",
       "전바오는 공산권 ‘혈맹’ 서사가 실탄으로 깨진 대표 좌표로 남았습니다. 국경선 해석의 작은 차이가 대규모 대치로 커질 수 있음을 보여주는 사례입니다.",
     ],
     paragraphsEn: [
@@ -157,7 +158,7 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
         yearLabel: "1969",
         titleKo: "핵·전략 위기 인식",
         titleEn: "Nuclear and strategic alarm",
-        bodyKo: "위기 국면에서 핵 사용·대규모 전쟁 가능성에 대한 논의가 문헌에 남습니다. 분쟁은 국지전을 넘어 냉전 전략의 변수로 읽힙니다.",
+        bodyKo: "위기 속에서 핵 사용·대규모 전쟁 가능성에 대한 논의가 문헌에 남습니다. 분쟁은 국지전을 넘어 냉전 전략의 변수로 읽힙니다.",
         bodyEn: "Literature records discussion of nuclear use and larger war risk. The clash is read as a Cold War strategic variable, not only a local fight.",
         coordinates: offset([133.84, 46.64], 0.25, 0.15),
       },
@@ -180,22 +181,22 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "sino-vietnamese-war-1979": {
     episodeId: "sino-vietnamese-war-1979",
     sixW: {
-      whoKo: "중화인민공화국 인민해방군과 베트남 사회주의공화국 인민군·국경 방어 병력.",
+      whoKo: "중화인민공화국 인민해방군과 베트남 사회주의공화국 인민군·국경 방어 병력입니다.",
       whoEn: "The PLA of the People’s Republic of China and the armed forces of the Socialist Republic of Vietnam.",
-      whatKo: "중국의 베트남 북부 국경 공격으로 시작된 단기 전면전(흔히 ‘응징’ 전쟁으로 서술).",
+      whatKo: "중국의 베트남 북부 국경 공격으로 시작된 단기 전면전입니다(흔히 ‘응징’ 전쟁으로 서술됩니다).",
       whatEn: "A short full-scale war begun by China’s attack across Vietnam’s northern border (often described as a ‘punitive’ campaign).",
-      whenKo: "1979년 2월 17일 개전. 주요 교전은 약 한 달 안팎. 3월 중국군 철수 발표.",
+      whenKo: "1979년 2월 17일 개전입니다. 주요 교전은 약 한 달 안팎이며, 3월에 중국군 철수가 발표되었습니다.",
       whenEn: "War opens 17 February 1979; main fighting lasts about a month; China announces withdrawal in March.",
-      whereKo: "베트남 북부 국경 지대. 랑선(Lạng Sơn) 등 산악·국경 도시 축선이 대표 전선.",
+      whereKo: "베트남 북부 국경 지대입니다. 랑선(Lạng Sơn) 등 산악·국경 도시 축선이 대표 전선입니다.",
       whereEn: "Northern Vietnamese borderlands; Lạng Sơn and other mountain/border-town axes as emblematic fronts.",
-      whyKo: "베트남의 캄보디아 개입, 소련–베트남 밀착, 국경·소수민족·난민 문제 등이 중국의 안보·전략 인식과 충돌.",
+      whyKo: "베트남의 캄보디아 개입, 소련–베트남 밀착, 국경·소수민족·난민 문제 등이 중국의 안보·전략 인식과 충돌했습니다.",
       whyEn: "Vietnam’s Cambodia intervention, Soviet–Vietnamese alignment, and border/minority/refugee issues collided with China’s security calculus.",
-      howKo: "중국군이 다축선으로 북부 국경을 돌파·점령 후 철수. 양측 사상자 추정은 수만 명대. 이후에도 국경 긴장이 지속.",
+      howKo: "중국군이 다축선으로 북부 국경을 돌파·점령한 뒤 철수했습니다. 양측 사상자 추정은 수만 명대입니다. 이후에도 국경 긴장이 지속되었습니다.",
       howEn: "Chinese forces cross on multiple axes, seize border objectives, then withdraw. Casualty estimates run to the tens of thousands; border tension persists afterward.",
     },
     paragraphsKo: [
       "1978년 베트남의 캄보디아 침공과 친베트남 정권 수립은 인도차이나 질서를 급격히 바꿨습니다. 중국은 이를 자국 안보와 지역 영향력에 대한 도전으로 인식했고, 소련–베트남 조약으로 포위감이 강화되었습니다.",
-      "1979년 2월 17일 중국군이 베트남 북부를 공격합니다. 랑선 등 국경 축선에서 산악 지형과 도시·보급선이 얽힌 격전이 전개되었고, 양측은 서로 다른 군사·정치적 ‘성과’ 서사를 남겼습니다.",
+      "1979년 2월 17일 중국군이 베트남 북부를 공격했습니다. 랑선 등 국경 축선에서 산악 지형과 도시·보급선이 얽힌 격전이 전개되었고, 양측은 서로 다른 군사·정치적 ‘성과’ 서사를 남겼습니다.",
       "주요 교전은 약 한 달 수준으로 짧게 끝났지만, 사상자 추정은 문헌상 수만 명대에 이릅니다. 전쟁은 단기 군사 목표와 장기 외교 신호—소련·베트남에 대한 경고—를 동시에 수행한 사례로 분석됩니다.",
       "중국군 철수 발표 이후에도 국경 포격·대치와 상호 비난이 오래 이어졌습니다. 인도차이나에서는 캄보디아 점령·저항과 중월 긴장이 한 연쇄로 남았습니다.",
       "학술 연구는 동기(응징·억지), 작전의 한계, 국내 정치·군대 정비와의 연관까지 해부합니다. 랑선은 그 전선의 대표 좌표로 남습니다.",
@@ -277,17 +278,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "galwan-valley-clash-2020": {
     episodeId: "galwan-valley-clash-2020",
     sixW: {
-      whoKo: "인도군과 중국 인민해방군. 도클람에서는 부탄 영토·접근로가 겹침.",
+      whoKo: "인도군과 중국 인민해방군입니다. 도클람에서는 부탄 영토·접근로가 겹칩니다.",
       whoEn: "Indian and Chinese PLA forces; at Doklam, Bhutanese territory and access overlap.",
-      whatKo: "1962년 전면전으로 모호한 LAC가 생기고, 2017 도클람 대치와 2020 갈완 충돌로 같은 선이 재점화된 연속 분쟁.",
+      whatKo: "1962년 전면전으로 모호한 LAC가 생기고, 2017 도클람 대치와 2020 갈완 충돌로 같은 선이 재점화된 연속 분쟁입니다.",
       whatEn: "A continuum: the 1962 war left an ambiguous LAC; Doklam 2017 and Galwan 2020 reignited the same unfinished frontier.",
-      whenKo: "1962년 전쟁 · 2017년 도클람 · 2020년 6월 갈완. LAC 관리는 현재진행.",
+      whenKo: "1962년 전쟁 · 2017년 도클람 · 2020년 6월 갈완. LAC 관리는 현재진행입니다.",
       whenEn: "1962 war · Doklam 2017 · Galwan June 2020; LAC management ongoing.",
-      whereKo: "히말라야 전선 전반. 아크사이친·동부 구간·도클람 삼중접경·라다크 갈완 계곡.",
+      whereKo: "히말라야 전선 전반입니다. 아크사이친·동부 구간·도클람 삼중접경·라다크 갈완 계곡이 포함됩니다.",
       whereEn: "The Himalayan front overall—Aksai Chin, eastern sectors, Doklam trijunction, Galwan Valley in Ladakh.",
-      whyKo: "전 구간 미획정·모호한 LAC, 전방 인프라·병력 경쟁, 접근로·고지 통제가 충돌.",
+      whyKo: "전 구간이 미획정·모호한 LAC인 가운데, 전방 인프라·병력 경쟁과 접근로·고지 통제가 충돌했습니다.",
       whyEn: "An undemarcated, ambiguous LAC; forward infrastructure and force rivalry; contests over access and heights.",
-      howKo: "1962년 전면전 후 동결선이 남고, 도클람은 총성 없는 도로 대치로, 갈완은 총기 제한 하 육탄·둔기 난투로 사상자를 냈습니다. 회담과 전방 재배치가 병행됩니다.",
+      howKo: "1962년 전면전 후 동결선이 남고, 도클람은 총성 없는 도로 대치로, 갈완은 총기 제한 아래 육탄·둔기 난투로 사상자를 냈습니다. 회담과 전방 재배치가 병행됩니다.",
       howEn: "After 1962 full war a freeze line remained; Doklam was a bloodless road standoff; Galwan produced fatalities in a clubs-and-fists melee under firearm restraints. Talks and redeployments run in parallel.",
     },
     paragraphsKo: [
@@ -331,7 +332,7 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
         yearLabel: "2017",
         titleKo: "도클람 대치",
         titleEn: "Doklam standoff",
-        bodyKo: "부탄–중국–인도 삼중접경에서 도로 공사를 둘러싼 수개월 고지 대치. 총성 없는 영토 시험.",
+        bodyKo: "부탄–중국–인도 삼중접경에서 도로 공사를 둘러싼 수개월간의 고지 대치가 이어졌습니다. 총성 없는 영토 시험이었습니다.",
         bodyEn: "Months-long high-altitude standoff over road work at the Bhutan–China–India trijunction—a bloodless territory test.",
         coordinates: [89.35, 27.3],
       },
@@ -351,7 +352,7 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
         yearLabel: "2020-06",
         titleKo: "갈완 계곡 충돌",
         titleEn: "Galwan Valley clash",
-        bodyKo: "6월 15~16일 육탄·둔기 중심 충돌. 인도 공식 20명 사망, 중국은 이후 소수 사망 인정.",
+        bodyKo: "6월 15~16일 육탄·둔기 중심의 충돌이 일어났습니다. 인도는 공식으로 20명 사망을 발표했고, 중국은 이후 소수 사망을 인정했습니다.",
         bodyEn: "Clubs-and-fists clash on 15–16 June. India officially reports 20 dead; China later a smaller toll.",
         coordinates: [78.2, 34.37],
       },
@@ -374,17 +375,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "russo-georgian-war-2008": {
     episodeId: "russo-georgian-war-2008",
     sixW: {
-      whoKo: "러시아 연방군, 조지아군, 남오세티야·압하지야 분리 세력.",
+      whoKo: "러시아 연방군, 조지아군, 남오세티야·압하지야 분리 세력입니다.",
       whoEn: "Russian Federation forces, Georgian forces, and South Ossetian and Abkhaz separatist forces.",
-      whatKo: "남오세티야를 둘러싼 전투가 수일 만에 전면전으로 확대된 러시아–조지아 전쟁(5일 전쟁).",
+      whatKo: "남오세티야를 둘러싼 전투가 수일 만에 전면전으로 확대된 러시아–조지아 전쟁(5일 전쟁)입니다.",
       whatEn: "The Russo-Georgian War (‘Five-Day War’), in which fighting over South Ossetia expanded into full war within days.",
-      whenKo: "2008년 8월(주요 교전 약 8월 7~12일 전후). 직후 러시아의 독립 승인.",
+      whenKo: "2008년 8월입니다(주요 교전은 약 8월 7~12일 전후). 직후 러시아가 독립을 승인했습니다.",
       whenEn: "August 2008 (main fighting roughly 7–12 August); Russian recognition of the breakaways followed immediately after.",
-      whereKo: "남오세티야 츠힌발리 일대, 압하지야, 조지아 본토 일부 축선.",
+      whereKo: "남오세티야 츠힌발리 일대, 압하지야, 조지아 본토 일부 축선입니다.",
       whereEn: "Around Tskhinvali in South Ossetia, Abkhazia, and some axes into Georgia proper.",
-      whyKo: "분리 지역 지위, 조지아의 주권·서방 접근, 러시아의 안보·영향권 인식이 충돌.",
+      whyKo: "분리 지역 지위, 조지아의 주권·서방 접근, 러시아의 안보·영향권 인식이 충돌했습니다.",
       whyEn: "Clash of breakaway status, Georgian sovereignty and Western orientation, and Russia’s security and sphere-of-influence calculus.",
-      howKo: "조지아군–분리 세력 전투 확대 후 러시아 대규모 개입. 휴전 후 러시아가 압하지야·남오세티야 독립 승인(국제 인정은 극소수).",
+      howKo: "조지아군–분리 세력 전투가 확대된 뒤 러시아가 대규모로 개입했습니다. 휴전 후 러시아가 압하지야·남오세티야 독립을 승인했습니다(국제 인정은 극소수입니다).",
       howEn: "Fighting between Georgian and separatist forces widens; Russia intervenes at scale. After ceasefire, Russia recognizes Abkhazia and South Ossetia (sparse international recognition).",
     },
     paragraphsKo: [
@@ -470,15 +471,15 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "nagorno-karabakh-war-2020": {
     episodeId: "nagorno-karabakh-war-2020",
     sixW: {
-      whoKo: "아제르바이잔과 아르메니아(및 아르차흐/나고르노-카라바흐 측). 러시아는 중재·평화유지·CSTO 관여자.",
+      whoKo: "아제르바이잔과 아르메니아(및 아르차흐/나고르노-카라바흐 측)입니다. 러시아는 중재·평화유지·CSTO 관여자입니다.",
       whoEn: "Azerbaijan versus Armenia (and Artsakh/Nagorno-Karabakh); Russia as mediator, peacekeeper, and CSTO actor.",
-      whatKo: "1988년부터 2023년까지 이어진 나고르노-카라바흐 영토·지위 분쟁의 전면전·동결·재점화 연속.",
+      whatKo: "1988년부터 2023년까지 이어진 나고르노-카라바흐 영토·지위 분쟁의 전면전·동결·재점화 연속입니다.",
       whatEn: "The continuous Nagorno-Karabakh territory-and-status conflict from 1988 through war, freeze, reignition, and 2023 closure of the unrecognized republic.",
-      whenKo: "제1차 전쟁 1988–94 · 동결 · 제2차 2020 · 2023년 공세와 아르차흐 해체.",
+      whenKo: "제1차 전쟁 1988–94 · 동결 · 제2차 2020 · 2023년 공세와 아르차흐 해체입니다.",
       whenEn: "First war 1988–94 · freeze · Second war 2020 · 2023 offensive and end of Artsakh.",
-      whereKo: "나고르노-카라바흐/아르차흐 전선. 슈샤(Şuşa/Shusha)가 상징적 고지·도시.",
+      whereKo: "나고르노-카라바흐/아르차흐 전선입니다. 슈샤(Şuşa/Shusha)가 상징적 고지·도시입니다.",
       whereEn: "The Nagorno-Karabakh/Artsakh front; Shusha (Şuşa) as a symbolic height and town.",
-      whyKo: "소련 해체기 민족·자치 경계가 미해결인 채 남고, 군사력·동맹·중재 질서가 바뀌며 전면전과 재점화가 반복됨.",
+      whyKo: "소련 해체기 민족·자치 경계가 미해결인 채 남고, 군사력·동맹·중재 질서가 바뀌며 전면전과 재점화가 반복되었습니다.",
       whyEn: "Late-Soviet ethno-autonomy borders stayed unresolved; shifting forces, alliances, and mediation orders repeated full war and reignition.",
       howKo: "1990년대 전쟁으로 동결선이 생기고, 2020년 드론전으로 전선이 무너진 뒤 러시아 중재 휴전이 왔으며, 2023년 공세로 미인정 공화국이 사실상 소멸했습니다.",
       howEn: "The 1990s war froze a line; 2020 drone warfare broke it, a Russian-brokered ceasefire followed, and the 2023 offensive effectively ended the unrecognized republic.",
@@ -488,7 +489,7 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
       "그 선은 ‘평화’가 아니라 동결이었습니다. 산발 교전과 군비 경쟁이 이어지는 사이, 지역 강대국의 중재 언어와 무기의 세대가 바뀌었습니다.",
       "2020년 9월 27일, 제2차 전쟁이 전면전으로 터졌습니다. 약 44일 동안 UAV·정밀타격이 전장을 재구성했고, 슈샤 공방은 상징과 지리가 겹친 고지 전투로 읽힙니다. 러시아 중재 공동성명이 휴전을 묶었고 평화유지가 배치되었습니다.",
       "그러나 지위 문제는 닫히지 않았습니다. 2023년 아제르바이잔의 공세 이후 아르차흐 당국이 해체를 선언하며, 동결 분쟁의 ‘미인정 공화국’ 형태는 사실상 막을 내렸습니다. 난민·국경 획정·안보 공백은 남았습니다.",
-      "이 렌즈가 사건을 러시아 허브에 두는 이유는 모스크바가 중재·평화유지의 축이었기 때문입니다. 주교전 당사자는 아제르바이잔과 아르메니아(아르차흐)이며, 영토분쟁 아카이브에서는 ‘진영 내부·포스트소련 동결’의 대표 연속사로 읽습니다.",
+      "모스크바가 중재·평화유지의 축이었기 때문에, 이 렌즈는 사건을 러시아 허브 아래에 둡니다. 주교전 당사자는 아제르바이잔과 아르메니아(아르차흐)이며, 영토분쟁 아카이브에서는 ‘진영 내부·포스트소련 동결’의 대표 연속사로 읽습니다.",
     ],
     paragraphsEn: [
       "Nagorno-Karabakh is not one war but a generation-long territorial arc. In the late Soviet period, Armenian status claims and Azerbaijani sovereignty claims collided in the First War, leaving a ceasefire line, displacement, and an unrecognized republic.",
@@ -566,17 +567,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "iran-iraq-war-1980": {
     episodeId: "iran-iraq-war-1980",
     sixW: {
-      whoKo: "이라크 공화국군과 이란 이슬람공화국군(혁명수비대 포함).",
+      whoKo: "이라크 공화국군과 이란 이슬람공화국군(혁명수비대 포함)입니다.",
       whoEn: "The armed forces of the Republic of Iraq and of the Islamic Republic of Iran (including the Revolutionary Guards).",
-      whatKo: "이란–이라크 전쟁(8년). 국경·수로 분쟁과 지역 안보 인식이 겹친 전면 소모전.",
+      whatKo: "이란–이라크 전쟁(8년)입니다. 국경·수로 분쟁과 지역 안보 인식이 겹친 전면 소모전입니다.",
       whatEn: "The eight-year Iran–Iraq War: full attrition war layered on border/waterway dispute and regional security perceptions.",
-      whenKo: "1980년 9월 이라크 침공으로 개전 ~ 1988년 유엔 안보리 결의 598호 수용으로 종결.",
+      whenKo: "1980년 9월 이라크 침공으로 개전하여 1988년 유엔 안보리 결의 598호 수용으로 종결되었습니다.",
       whenEn: "Opens with Iraq’s September 1980 invasion; ends with acceptance of UNSCR 598 in 1988.",
-      whereKo: "이란–이라크 국경 전반. 샤트알아랍(아르반드루드) 수로가 개전·주권 담론의 핵심 좌표.",
+      whereKo: "이란–이라크 국경 전반입니다. 샤트알아랍(아르반드루드) 수로가 개전·주권 담론의 핵심 좌표입니다.",
       whereEn: "Along the Iran–Iraq border overall; the Shatt al-Arab (Arvand Rud) waterway as a core casus and sovereignty coordinate.",
-      whyKo: "샤트알아랍 주권·국경 해석, 1979년 이란 혁명 이후 위협 인식, 지역 패권·정권 안보 계산이 충돌.",
+      whyKo: "샤트알아랍 주권·국경 해석, 1979년 이란 혁명 이후 위협 인식, 지역 패권·정권 안보 계산이 충돌했습니다.",
       whyEn: "Shatt al-Arab sovereignty and border readings, post-1979 Iranian Revolution threat perceptions, and regional hegemony/regime-security calculations collided.",
-      howKo: "이라크의 초기 침공 후 장기 참호·도시·습지전. 화학무기 사용이 국제 기록에 남음. UNSCR 598로 종전.",
+      howKo: "이라크의 초기 침공 후 장기 참호·도시·습지전이 이어졌습니다. 화학무기 사용이 국제 기록에 남았습니다. UNSCR 598로 종전되었습니다.",
       howEn: "After Iraq’s initial invasion, years of trench, city, and marsh warfare. Chemical weapons use enters international records. UNSCR 598 ends the war.",
     },
     paragraphsKo: [
@@ -662,17 +663,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "tunb-islands-dispute-1971": {
     episodeId: "tunb-islands-dispute-1971",
     sixW: {
-      whoKo: "이란(당시 팔레비 왕국) 병력과, 직후 성립한 아랍에미리트(UAE)·선행 토후국 측 영유권 주장자.",
+      whoKo: "이란(당시 팔레비 왕국) 병력과, 직후 성립한 아랍에미리트(UAE)·선행 토후국 측 영유권 주장자입니다.",
       whoEn: "Iranian (Pahlavi-era) forces and, immediately afterward, the UAE (and preceding emirates) as sovereignty claimants.",
-      whatKo: "큰 톰브·작은 톰브(및 관련 조치로 아부무사)에 대한 이란의 상륙·실효 지배와 UAE의 영유권 분쟁.",
+      whatKo: "큰 톰브·작은 톰브(및 관련 조치로 아부무사)에 대한 이란의 상륙·실효 지배와 UAE의 영유권 분쟁입니다.",
       whatEn: "Iran’s landing and effective control of Greater and Lesser Tunb (and related measures on Abu Musa), disputed by the UAE.",
-      whenKo: "1971년 11월 30일 상륙·통제. 이후 반세기 넘게 외교 쟁점으로 지속.",
+      whenKo: "1971년 11월 30일 상륙·통제가 이뤄졌습니다. 이후 반세기 넘게 외교 쟁점으로 지속되었습니다.",
       whenEn: "Landing and control on 30 November 1971; diplomatic dispute continues for more than half a century.",
-      whereKo: "페르시아만 호르무즈 해협 접근 해역의 톰브 제도(및 아부무사).",
+      whereKo: "페르시아만 호르무즈 해협 접근 해역의 톰브 제도(및 아부무사)입니다.",
       whereEn: "The Tunb islands (and Abu Musa) in Gulf waters approaching the Strait of Hormuz.",
-      whyKo: "영국 철군 이후 걸프 안보 공백, 해협·도서 전략 가치, 경쟁하는 주권 서사가 충돌.",
+      whyKo: "영국 철군 이후 걸프 안보 공백, 해협·도서 전략 가치, 경쟁하는 주권 서사가 충돌했습니다.",
       whyEn: "A post-British-withdrawal Gulf security vacuum, the strategic value of strait approaches and islands, and competing sovereignty narratives collided.",
-      howKo: "이란이 병력을 상륙시켜 실효 지배를 확립. UAE는 외교·국제 포럼에서 영유권을 지속 주장. 무력 전면전으로 확대되지는 않음.",
+      howKo: "이란이 병력을 상륙시켜 실효 지배를 확립했습니다. UAE는 외교·국제 포럼에서 영유권을 지속 주장해 왔습니다. 무력 전면전으로 확대되지는 않았습니다.",
       howEn: "Iran lands forces and establishes effective control. The UAE continually asserts sovereignty in diplomacy and forums. It does not escalate into full interstate war.",
     },
     paragraphsKo: [
@@ -758,24 +759,24 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "cambodian-vietnamese-war-1978": {
     episodeId: "cambodian-vietnamese-war-1978",
     sixW: {
-      whoKo: "베트남 인민군과 민주캄푸치아(크메르 루주) 정권·병력. 이후 친베트남 캄보디아 정권.",
+      whoKo: "베트남 인민군과 민주캄푸치아(크메르 루주) 정권·병력입니다. 이후 친베트남 캄보디아 정권이 수립되었습니다.",
       whoEn: "The Vietnamese People’s Army and Democratic Kampuchea (Khmer Rouge) regime/forces; later a Vietnam-aligned Cambodian government.",
-      whatKo: "베트남의 캄보디아 침공과 프놈펜 함락, 친베트남 정권 수립. 선행 국경 교전과 학살 정권 축출이 겹침.",
+      whatKo: "베트남의 캄보디아 침공과 프놈펜 함락, 친베트남 정권 수립입니다. 선행 국경 교전과 학살 정권 축출이 겹쳤습니다.",
       whatEn: "Vietnam’s invasion of Cambodia, fall of Phnom Penh, and installation of a Vietnam-aligned government—layered on prior border clashes and ousting a genocidal regime.",
-      whenKo: "1978년 12월 침공. 1979년 1월 프놈펜 함락. 점령·저항은 이후에도 지속.",
+      whenKo: "1978년 12월 침공, 1979년 1월 프놈펜 함락입니다. 점령·저항은 이후에도 지속되었습니다.",
       whenEn: "Invasion December 1978; Phnom Penh falls January 1979; occupation and resistance continue afterward.",
-      whereKo: "캄보디아 전역. 대표 좌표는 수도 프놈펜.",
+      whereKo: "캄보디아 전역입니다. 대표 좌표는 수도 프놈펜입니다.",
       whereEn: "Cambodia nationwide; Phnom Penh as the representative coordinate.",
-      whyKo: "크메르 루주 학살·국경 공격, 인도차이나 안보·이념 대립, 중국–소련–베트남 삼각 긴장이 배경.",
+      whyKo: "크메르 루주 학살·국경 공격, 인도차이나 안보·이념 대립, 중국–소련–베트남 삼각 긴장이 배경이었습니다.",
       whyEn: "Khmer Rouge genocide and border attacks, Indochina security and ideological rivalry, and China–Soviet–Vietnam triangular tension form the backdrop.",
-      howKo: "베트남군이 속전으로 진격해 수도를 함락하고 정권을 교체. 이후 점령과 잔여 저항·국제 외교전이 장기화. 중월전쟁의 직접 계기 중 하나로 널리 서술됨.",
+      howKo: "베트남군이 속전으로 진격해 수도를 함락하고 정권을 교체했습니다. 이후 점령과 잔여 저항·국제 외교전이 장기화되었습니다. 중월전쟁의 직접 계기 중 하나로 널리 서술됩니다.",
       howEn: "Vietnamese forces advance rapidly, take the capital, and change the regime. Occupation, residual resistance, and diplomatic struggle then lengthen. Widely narrated as a direct trigger of the Sino-Vietnamese War.",
     },
     paragraphsKo: [
       "1975년 이후 민주캄푸치아(크메르 루주)는 극단적 통치와 대규모 학살을 자행했습니다. 동시에 베트남과의 국경 교전·습격이 반복되며 양국 관계는 파탄에 가까워졌습니다.",
-      "1978년 12월 베트남군이 캄보디아를 침공합니다. 1979년 1월 프놈펜이 함락되고 친베트남 정권이 수립되었으며, 학살 정권은 축출되었으나 점령과 잔여 저항이 이어졌습니다.",
-      "중국은 크메르 루주와 연계된 대응을 보였고, 같은 해 중월전쟁이 발발합니다. 학술·정책 서술은 캄보디아 개입을 중월전의 직접 계기 중 하나로 널리 연결합니다.",
-      "인도차이나에서는 ‘반서방’으로 분류되던 진영 내부에서도 무력 충돌이 연쇄되었습니다. 이 카드가 공통 렌즈에 있는 이유입니다.",
+      "1978년 12월 베트남군이 캄보디아를 침공했습니다. 1979년 1월 프놈펜이 함락되고 친베트남 정권이 수립되었으며, 학살 정권은 축출되었으나 점령과 잔여 저항이 이어졌습니다.",
+      "중국은 크메르 루주와 연계된 대응을 보였고, 같은 해 중월전쟁이 발발했습니다. 학술·정책 서술은 캄보디아 개입을 중월전의 직접 계기 중 하나로 널리 연결합니다.",
+      "인도차이나에서는 ‘반서방’으로 분류되던 진영 내부에서도 무력 충돌이 연쇄되었습니다. 이 카드가 공통 렌즈에 들어 있는 이유입니다.",
       "프놈펜은 정권 교체의 상징 좌표이자, 이후 장기 점령·외교전의 출발점입니다. 전쟁의 여파는 1980년대 지역 질서에까지 이어집니다.",
     ],
     paragraphsEn: [
@@ -854,17 +855,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "eritrean-ethiopian-war-1998": {
     episodeId: "eritrean-ethiopian-war-1998",
     sixW: {
-      whoKo: "에티오피아 연방민주공화국군과 에리트레아국군.",
+      whoKo: "에티오피아 연방민주공화국군과 에리트레아국군입니다.",
       whoEn: "The armed forces of the Federal Democratic Republic of Ethiopia and of the State of Eritrea.",
-      whatKo: "바드메 등 국경 관할을 둘러싼 충돌이 전면전으로 확대된 에티오피아–에리트레아 전쟁.",
+      whatKo: "바드메 등 국경 관할을 둘러싼 충돌이 전면전으로 확대된 에티오피아–에리트레아 전쟁입니다.",
       whatEn: "The Eritrean–Ethiopian War, in which clashes over border jurisdiction (including Badme) expanded into full war.",
-      whenKo: "1998년 5월 발화 ~ 2000년 알제 협정으로 휴전. 이후 획정·이행은 장기화.",
+      whenKo: "1998년 5월에 발화하여 2000년 알제 협정으로 휴전되었습니다. 이후 획정·이행은 장기화되었습니다.",
       whenEn: "Ignites May 1998; ceasefire with the Algiers Agreement in 2000; demarcation and implementation then drag on.",
-      whereKo: "양국 국경 지대. 바드메(Badme) 일대가 발화·상징 좌표.",
+      whereKo: "양국 국경 지대입니다. 바드메(Badme) 일대가 발화·상징 좌표입니다.",
       whereEn: "The bilateral borderlands; the Badme area as ignition and symbolic coordinate.",
-      whyKo: "식민·독립 이후 미획정 국경, 관할·행정 충돌, 주권·물류 접근·국가 건설 경쟁이 중첩.",
+      whyKo: "식민·독립 이후 미획정 국경, 관할·행정 충돌, 주권·물류 접근·국가 건설 경쟁이 중첩되었습니다.",
       whyEn: "Undemarcated post-colonial/independence borders, jurisdiction and administration clashes, and overlapping contests of sovereignty, logistics access, and nation-building.",
-      howKo: "국지 충돌이 참호전·대량 병력 소모전으로 확대. 사망자 수만 명대 추정. 알제 협정 후에도 획정 이행이 난항.",
+      howKo: "국지 충돌이 참호전·대량 병력 소모전으로 확대되었습니다. 사망자 추정은 수만 명대입니다. 알제 협정 후에도 획정 이행이 난항을 겪었습니다.",
       howEn: "Local clashes expand into trench war and mass-manpower attrition. Deaths estimated in the tens of thousands. Demarcation implementation remains difficult after Algiers.",
     },
     paragraphsKo: [
@@ -950,17 +951,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "sino-north-korean-border-clash-1969": {
     episodeId: "sino-north-korean-border-clash-1969",
     sixW: {
-      whoKo: "조선민주주의인민공화국과 중화인민공화국 당국·국경 관련 병력. 공개 1차 자료가 제한적이라 행위자·규모 세부는 확정하기 어려움.",
+      whoKo: "조선민주주의인민공화국과 중화인민공화국 당국·국경 관련 병력입니다. 공개 1차 자료가 제한적이라 행위자·규모 세부는 확정하기 어렵습니다.",
       whoEn: "DPRK and PRC authorities and border-related forces. Limited public primary sources make actor and scale details hard to pin down.",
-      whatKo: "1960년대 말 조·중 관계 악화 국면의 국경 긴장·선전·소규모 마찰 보고. 전바오 규모의 공개 전면전으로 문서화된 단일 사건은 아님.",
+      whatKo: "1960년대 말 조·중 관계 악화 국면의 국경 긴장·선전·소규모 마찰 보고입니다. 전바오 규모의 공개 전면전으로 문서화된 단일 사건은 아닙니다.",
       whatEn: "Reports of border tension, propaganda, and small frictions amid late-1960s DPRK–China cooling—not a Zhenbao-scale, publicly documented open war as a single event.",
-      whenKo: "1960년대 말, 특히 1969년 전후(중소 국경 교전과 동시기). 일자·장소 세부는 공개 자료가 희소.",
+      whenKo: "1960년대 말, 특히 1969년 전후입니다(중소 국경 교전과 동시기). 일자·장소 세부는 공개 자료가 희소합니다.",
       whenEn: "Late 1960s, especially around 1969 (same season as the Sino-Soviet border clash). Day-and-place detail is scarce in open sources.",
-      whereKo: "백두산(장백산) 일대 조·중 국경 지대. 대표 좌표로 둠.",
+      whereKo: "백두산(장백산) 일대 조·중 국경 지대입니다. 대표 좌표로 둡니다.",
       whereEn: "The Paektu/Changbai borderlands between the DPRK and China—used here as a representative coordinate.",
-      whyKo: "중소 분열·문화대혁명 국면에서 북한–중국 불신 증대. ‘혈맹’ 서사와 실제 안보·이념 긴장의 괴리.",
+      whyKo: "중소 분열과 문화대혁명 시기에 북한–중국 불신이 커졌습니다. ‘혈맹’ 서사와 실제 안보·이념 긴장 사이에 괴리가 있었습니다.",
       whyEn: "Rising DPRK–China distrust amid the Sino-Soviet split and Cultural Revolution—the gap between ‘blood alliance’ rhetoric and security/ideological tension.",
-      howKo: "공개 기록상 대규모 정규전보다 긴장·선전·소규모 마찰·외교 냉각으로 나타남. 연구·회고에 의존하며 확정적 교전 목록은 구성하기 어려움.",
+      howKo: "공개 기록상 대규모 정규전보다 긴장·선전·소규모 마찰·외교 냉각으로 나타납니다. 연구·회고에 의존하며 확정적 교전 목록은 구성하기 어렵습니다.",
       howEn: "In open records it appears more as tension, propaganda, small frictions, and diplomatic cooling than as large regular war. Research and memoirs dominate; a definitive clash list is hard to build.",
     },
     paragraphsKo: [
@@ -1046,17 +1047,17 @@ export const FRICTION_DEEP_DOCS: Record<string, FrictionDeepDoc> = {
   "ussr-north-korea-maritime-friction-1980s": {
     episodeId: "ussr-north-korea-maritime-friction-1980s",
     sixW: {
-      whoKo: "소비에트 연방(태평양함대·관련 항공 자산)과 조선민주주의인민공화국 당국·해·공 경계 세력. 공개 자료상 단일 교전 당사자를 확정하기 어려움.",
+      whoKo: "소비에트 연방(태평양함대·관련 항공 자산)과 조선민주주의인민공화국 당국·해·공 경계 세력입니다. 공개 자료상 단일 교전 당사자를 확정하기 어렵습니다.",
       whoEn: "The Soviet Union (Pacific Fleet and related air assets) and DPRK authorities/maritime–air border forces. Open sources make a single-clash cast hard to fix.",
-      whatKo: "두만강 하구·동해 접경에서의 통항·어업·정보 수집·영해·영공 관련 주권 마찰·교섭. 단일 1985년 ‘해전’으로 고정하기 어려움.",
+      whatKo: "두만강 하구·동해 접경에서의 통항·어업·정보 수집·영해·영공 관련 주권 마찰·교섭입니다. 단일 1985년 ‘해전’으로 고정하기 어렵습니다.",
       whatEn: "Sovereignty friction and bargaining over transit, fishing, intelligence collection, territorial sea and airspace near the Tumen mouth and East Sea borderlands—not fixable as one 1985 naval battle.",
-      whenKo: "냉전기, 특히 1980년대(대표 연도 표기는 1985). 반복적 마찰·교섭 구간.",
+      whenKo: "냉전기, 특히 1980년대입니다(대표 연도 표기는 1985). 반복적 마찰·교섭 구간입니다.",
       whenEn: "Cold War period, especially the 1980s (representative year label 1985): a stretch of repeated friction and talks.",
-      whereKo: "두만강 하구 및 동해(일본해) 접경 해역. 대표 좌표.",
+      whereKo: "두만강 하구 및 동해(일본해) 접경 해역입니다. 대표 좌표로 둡니다.",
       whereEn: "The Tumen River mouth and adjacent East Sea (Sea of Japan) border waters—as a representative coordinate.",
-      whyKo: "소련 태평양 방면 활동 확대와 북한의 영해·영공·기지 접근 민감성이 충돌. 동맹이면서도 주권 경계가 작동.",
+      whyKo: "소련 태평양 방면 활동 확대와 북한의 영해·영공·기지 접근 민감성이 충돌했습니다. 동맹이면서도 주권 경계가 작동했습니다.",
       whyEn: "Expanding Soviet Pacific activity collided with DPRK sensitivity over territorial sea, airspace, and base access—alliance with a working sovereignty boundary.",
-      howKo: "공개 자료는 마찰·항의·교섭의 흔적을 남김. 대규모 해전 서사보다 통항·주권 관리의 반복. 오늘날 러–북 밀착과 대비되는 ‘경계’의 기억.",
+      howKo: "공개 자료는 마찰·항의·교섭의 흔적을 남깁니다. 대규모 해전 서사보다 통항·주권 관리의 반복이 두드러집니다. 오늘날 러–북 밀착과 대비되는 ‘경계’의 기억입니다.",
       howEn: "Open sources leave traces of friction, protest, and bargaining—repeated transit/sovereignty management more than a grand naval-battle narrative. A memory of caution against today’s Russia–DPRK intimacy.",
     },
     paragraphsKo: [
@@ -1151,11 +1152,11 @@ export function frictionDeepDoc(episodeId: string): FrictionDeepDoc | null {
  */
 export const FRICTION_SIGNIFICANCE: Record<string, { ko: string; en: string }> = {
   "sino-soviet-border-1969": {
-    ko: "이념·안보 면에서 공산권 ‘혈맹’ 서사가 실탄으로 깨졌고, 군사적으로는 국경 해석 차이가 핵 논의까지 키울 수 있음이 드러났습니다. 외교적으로는 항의·협상과 함께 대외 정렬이 재검토되어 미·중 접근의 배경 요인으로 남았으며, 이후 국경 협상·전략 재평가의 장기 과제를 남겼습니다.",
+    ko: "공산권 ‘혈맹’ 서사가 실탄 교전으로 깨졌고, 국경 해석의 차이가 핵 논의까지 키울 수 있다는 점이 군사적으로 드러났습니다. 항의·협상과 함께 대외 정렬이 재검토되어 미·중 접근의 배경 요인으로 남았으며, 이후에도 국경 협상과 전략 재평가가 장기 과제로 이어졌습니다.",
     en: "Ideologically and in security terms it cracked the communist ‘fraternal’ myth under live fire; militarily it showed a cartographic quarrel could scale toward nuclear talk. Diplomatically, protests and talks ran with a realignment that fed into Sino-American rapprochement—and left long border talks and strategic reassessment in its wake.",
   },
   "sino-vietnamese-war-1979": {
-    ko: "지역 질서 면에서 중국이 인도차이나에 ‘응징·억지’ 신호를 무력으로 보낸 사례가 되었고, 군사적으로는 단기 교전 뒤에도 국경 포격·대치가 이어졌습니다. 외교·동맹 면에서는 소련–베트남 조약·캄보디아 연쇄와 맞물리며, 이후에도 중월 긴장과 인도차이나 점령·저항 구조가 한동안 남았습니다.",
+    ko: "중국이 인도차이나에 ‘응징·억지’ 신호를 무력으로 보낸 사례가 되었고, 단기 교전 뒤에도 국경 포격·대치가 이어졌습니다. 소련–베트남 조약·캄보디아 연쇄와 맞물리며, 이후에도 중월 긴장과 인도차이나 점령·저항 구조가 한동안 남았습니다.",
     en: "Regionally it became Beijing’s armed ‘punish and deter’ signal in Indochina; militarily shelling and stand-offs outlasted the short campaign. Diplomatically it locked into the Soviet–Vietnamese treaty and Cambodia chain—leaving Sino-Vietnamese tension and occupation/resistance structures for years after.",
   },
   "galwan-valley-clash-2020": {
@@ -1163,7 +1164,7 @@ export const FRICTION_SIGNIFICANCE: Record<string, { ko: string; en: string }> =
     en: "It remains a Himalayan continuum: the undemarcated 1962 LAC reignited at Doklam 2017 and Galwan 2020. Lethal clash proved possible even under firearm restraints; forward redeployment and talks locked India–China into managed confrontation.",
   },
   "russo-georgian-war-2008": {
-    ko: "주권·인정 면에서 압하지야·남오세티야 ‘승인’과 유엔 다수 미인정이 병존하는 동결 전선이 굳었고, 군사적으로는 러시아 대규모 개입의 선례가 남았습니다. 외교적으로는 EU 중재·감시와 러시아–서방 관계 악화가 겹치며, 이후 포스트소비에트 안보 질서·‘신냉전’ 서사의 이정표로 읽힙니다.",
+    ko: "압하지야·남오세티야 ‘승인’과 유엔 다수 미인정이 병존하는 동결 전선이 굳었고, 러시아 대규모 개입의 선례가 남았습니다. EU 중재·감시와 러시아–서방 관계 악화가 겹치며, 이후 포스트소비에트 안보 질서·‘신냉전’ 서사의 이정표로 읽힙니다.",
     en: "On sovereignty it froze recognition and non-recognition over Abkhazia and South Ossetia; militarily it set a precedent for large-scale Russian intervention. Diplomatically an EU ceasefire and monitoring overlapped a Russia–West chill—later read as a milestone in remade post-Soviet order and ‘new Cold War’ narratives.",
   },
   "nagorno-karabakh-war-2020": {
@@ -1171,27 +1172,27 @@ export const FRICTION_SIGNIFICANCE: Record<string, { ko: string; en: string }> =
     en: "It remains the archetype of a generation-long post-Soviet frozen conflict: the First War froze a line, 2020 UAV warfare broke it, and the 2023 offensive effectively ended the unrecognized republic. Russian mediation and peacekeeping were the axis—while the belligerents were Azerbaijan and Armenia/Artsakh—and displacement, demarcation, and security gaps did not close.",
   },
   "iran-iraq-war-1980": {
-    ko: "걸프 질서 면에서 공유 수로·국경 해석이 8년 소모전으로 비화할 수 있음이 입증되었고, 인도주의·규범 면에서는 화학무기·민간 피폭 기록이 각인되었습니다. 경제·외교적으로는 양국 피폐와 UN 종결 뒤에도 수로·국경 의제가 남아, 이후 지역 안보·제재·동맹 계산의 장기 배경이 되었습니다.",
+    ko: "공유 수로·국경 해석이 8년 소모전으로 비화할 수 있음이 입증되었고, 화학무기·민간 피폭 기록이 규범·인도주의 문제로 각인되었습니다. 양국은 피폐해졌으며 UN 종결 뒤에도 수로·국경 의제가 남아, 이후 지역 안보·제재·동맹 계산의 장기 배경이 되었습니다.",
     en: "In Gulf order it proved shared waterways and borders can escalate into eight years of attrition; in norms, chemical weapons and urban bombardment were etched into the record. Economically and diplomatically both sides were exhausted, and after UN closure waterway and border issues lingered as background to later regional security, sanctions, and alliance math.",
   },
   "tunb-islands-dispute-1971": {
-    ko: "주권 지도 면에서 영국 철수 직후 ‘점거·실효 지배’가 반세기 넘는 UAE–이란 병존 주장을 남겼고, 안보 면에서는 호르무즈 접근로·걸프 에너지 통항 서사와 맞물렸습니다. 외교적으로는 간헐적 긴장·협상이 반복되며, 이후에도 ‘닫히지 않은 섬 문제’로 지역 의제에 잔존합니다.",
+    ko: "영국 철수 직후 ‘점거·실효 지배’가 반세기 넘는 UAE–이란 병존 주장을 남겼고, 호르무즈 접근로·걸프 에너지 통항 서사와 맞물렸습니다. 간헐적 긴장·협상이 반복되며, 이후에도 ‘닫히지 않은 섬 문제’로 지역 의제에 남아 있습니다.",
     en: "On the sovereignty map, occupation and effective control right after Britain’s withdrawal left half a century of coexisting UAE–Iran claims; in security it entangles Hormuz approaches and Gulf energy-transit narratives. Diplomatically, intermittent tension and talks recur—and the unresolved islands remain on the regional agenda.",
   },
   "cambodian-vietnamese-war-1978": {
-    ko: "인도차이나 질서 면에서 ‘인도주의·안보’ 명분과 점령·저항이 한 연쇄로 묶였고, 동맹 정치 면에서는 소련–베트남 조약·중월전쟁과 맞물려 무력 개입이 지역 재편을 불렀습니다. 이후 캄보디아 점령 기간·저항·외교 고립이 길어지며, ‘동맹 안 개입’의 대가를 보여주는 유산이 되었습니다.",
+    ko: "‘인도주의·안보’ 명분과 점령·저항이 한 연쇄로 묶였고, 소련–베트남 조약·중월전쟁과 맞물려 무력 개입이 지역 재편을 불렀습니다. 이후 캄보디아 점령 기간·저항·외교 고립이 길어지며, ‘동맹 안 개입’의 대가를 보여주는 유산이 되었습니다.",
     en: "In Indochina order it bound ‘humanitarian/security’ justifications to occupation and resistance; in alliance politics it locked into the Soviet–Vietnamese treaty and Sino-Vietnamese war so force remade the map. A long occupation, resistance, and diplomatic isolation followed—leaving a legacy of the costs of intervention inside alliance politics.",
   },
   "eritrean-ethiopian-war-1998": {
-    ko: "국경 규범 면에서 획정 미완이 전면전으로 비화할 수 있음이 드러났고, 인도주의적으로는 대규모 사상·피란이 남았습니다. 외교적으로는 알제 협정 이후에도 ‘동결된 평화’가 길어지며, 이후 양국 관계·역내 중재·국경 표석 분쟁이 반복되는 구조적 영향을 남겼습니다.",
+    ko: "획정이 미완인 국경이 전면전으로 비화할 수 있음이 드러났고, 대규모 사상·피란이 남았습니다. 알제 협정 이후에도 ‘동결된 평화’가 길어지며, 이후 양국 관계·역내 중재·국경 표석 분쟁이 반복되는 구조적 영향이 이어졌습니다.",
     en: "In border norms it showed unfinished demarcation can erupt into full war; human costs included large casualties and displacement. Diplomatically a ‘frozen peace’ lingered after Algiers—structuring later bilateral chill, regional mediation, and recurring marker disputes.",
   },
   "sino-north-korean-border-clash-1969": {
-    ko: "동맹 서사 면에서는 중–북 ‘혈맹’ 안에서도 국경·어로·관할이 충돌할 수 있음이 드러났고, 군사·현장 면에서는 공개 기록이 제한적이라도 마찰의 존재를 남겼습니다. 이후에도 ‘자동 순치’가 보장되지 않는다는 렌즈로 남아, 국경 관리·동맹 관리를 함께 읽는 참고가 됩니다.",
+    ko: "중–북 ‘혈맹’ 안에서도 국경·어로·관할이 충돌할 수 있음이 드러났고, 공개 기록이 제한적이라도 마찰의 존재가 남았습니다. 이후에도 ‘자동 순치’가 보장되지 않는다는 렌즈로 남아, 국경 관리와 동맹 관리를 함께 읽는 참고가 됩니다.",
     en: "In alliance narrative it showed China–DPRK ‘fraternity’ can still clash over borders, fishing, and jurisdiction; on the ground, sparse open records still leave evidence of friction. It remains a lens that automatic harmony is not guaranteed—useful for reading border and alliance management together.",
   },
   "ussr-north-korea-maritime-friction-1980s": {
-    ko: "후원·동맹 면에서는 해상 경계·어로·관할이 ‘경계선’이 될 수 있음이 드러났고, 안보 면에서는 북방 수역의 실무 마찰이 정치적 온도를 흔들 수 있음을 남겼습니다. 오늘날 러–북 밀착과 대비되며, 이후에도 동맹 내부 마찰 가능성을 읽는 참고 좌표로 쓰입니다.",
+    ko: "해상 경계·어로·관할이 ‘경계선’이 될 수 있음이 드러났고, 북방 수역의 실무 마찰이 정치적 온도를 흔들 수 있음을 남겼습니다. 오늘날 러–북 밀착과 대비되며, 이후에도 동맹 내부 마찰 가능성을 읽는 참고 좌표로 쓰입니다.",
     en: "Under patronage and alliance it showed maritime limits, fishing, and jurisdiction can become a fault line; in security, routine northern-water friction can move political temperature. Contrasted with today’s Russia–DPRK intimacy, it remains a reference for reading possible friction inside alliance afterward.",
   },
 };
@@ -1257,17 +1258,15 @@ export function frictionParchmentParagraphs(
     } else {
       const whenLine = six.whenKo.replace(/\.$/, "");
       paragraphs.push(
-        `지금은 ${ep.locationName}을(를) 보고 있습니다. ${yearSpan} — ${whenLine}. 관련 당사자는 다음과 같습니다. ${six.whoKo}`,
+        `지금은 ${josa(ep.locationName, "을/를")} 보고 있습니다. ${yearSpan} — ${whenLine}. ${six.whoKo}`,
       );
-      paragraphs.push(
-        `무슨 일이었습니까. ${six.whatKo} 왜 중요했습니까. ${six.whyKo}`,
-      );
+      paragraphs.push(`${six.whatKo} ${six.whyKo}`);
       paragraphs.push(`전개는 이렇게 흘러갔습니다. ${six.howKo}`);
       if (stages.length > 0) {
         const arc = stages
           .map((s) => {
             const stageBody = s.bodyKo.replace(/\.$/, "");
-            return `${s.yearLabel}년 「${s.titleKo}」에서는 ${stageBody}`;
+            return `${s.yearLabel} 「${s.titleKo}」 — ${stageBody}`;
           })
           .join(". ");
         paragraphs.push(`시간 순서로 보면 이렇습니다. ${arc}.`);
@@ -1303,7 +1302,7 @@ export function frictionParchmentParagraphs(
 
   const whoBit = whoParties ? ` 당사자는 ${whoParties}입니다.` : "";
   return [
-    `지금은 ${ep.locationName}을(를) 보고 있습니다(${yearSpan}).${whoBit}`,
+    `지금은 ${josa(ep.locationName, "을/를")} 보고 있습니다(${yearSpan}).${whoBit}`,
     ep.briefing,
     ...(ep.note ? [ep.note] : []),
     ...(significance ? [`오늘에도 남는 점은 다음과 같습니다. ${significance.ko}`] : []),

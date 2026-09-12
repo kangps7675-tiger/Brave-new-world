@@ -120,19 +120,19 @@ function genericBucketColor(bucket: GenericBucket): string {
 }
 
 const GENERIC_ICON_SIZE_PX = 22;
-export const AIS_CARRIER_ICON_ID = "ais-carrier";
+export const AIS_CARRIER_ICON_ID = "ais-carrier-ink2";
 
 export function aisGenericIconId(bucket: GenericBucket): string {
-  return `ais-generic-${bucket}`;
+  return `ais-generic-${bucket}-ink2`;
 }
 export function aisSurfaceCombatantIconId(facing: Facing): string {
-  return `ais-surface-${facing}`;
+  return `ais-surface-${facing}-ink2`;
 }
 export function aisSubmarineIconId(facing: Facing): string {
-  return `ais-submarine-${facing}`;
+  return `ais-submarine-${facing}-ink2`;
 }
 export function aisShadowFleetIconId(facing: Facing): string {
-  return `ais-shadow-${facing}`;
+  return `ais-shadow-${facing}-ink2`;
 }
 
 function loadSvgImage(svg: string, width: number, height: number): Promise<HTMLImageElement> {
@@ -196,7 +196,7 @@ export async function ensureAisSymbolImages(map: MapLike): Promise<void> {
     );
     add(
       aisShadowFleetIconId(facing),
-      shadowFleetIconSvg("#ef4444", shadowSize, facing),
+      shadowFleetIconSvg("#c45c5c", shadowSize, facing),
       shadowSize.width,
       shadowSize.height,
     );
@@ -236,6 +236,17 @@ export function aisSymbolBearingBucket(mapBearingDeg: number): number {
   return Math.round(norm / 5) * 5;
 }
 
+export type AisSymbolBuildOptions = {
+  selectedMmsi?: string | null;
+};
+
+function aisTag(vessel: AisSymbolInput): string {
+  const name = vessel.shipName?.trim();
+  if (name) return name.length > 12 ? `${name.slice(0, 11)}…` : name;
+  const mmsi = vessel.mmsi || "";
+  return mmsi.length > 4 ? mmsi.slice(-4) : mmsi;
+}
+
 /**
  * `buildAircraftSymbolModel`과 동일한 역할. 두 레이어로 나눠 담는다.
  * `mapBearingDeg`는 호출 전에 {@link aisSymbolBearingBucket}로 양자화해서 넘기는 걸 권장 —
@@ -244,9 +255,11 @@ export function aisSymbolBearingBucket(mapBearingDeg: number): number {
 export function buildAisSymbolModel(
   vessels: readonly AisSymbolInput[],
   mapBearingDeg: number,
+  options?: AisSymbolBuildOptions,
 ): AisSymbolModel {
   if (vessels.length === 0) return EMPTY_MODEL;
 
+  const selectedMmsi = (options?.selectedMmsi || "").trim();
   const headingFeatures: GeoJSON.Feature[] = [];
   const aspectFeatures: GeoJSON.Feature[] = [];
   const items: AisSymbolInput[] = [];
@@ -265,6 +278,9 @@ export function buildAisSymbolModel(
 
     const index = items.length;
     items.push(vessel);
+    const selected = selectedMmsi !== "" && vessel.mmsi === selectedMmsi ? 1 : 0;
+    const tag = aisTag(vessel);
+    const scale = selected ? 1.2 : 1;
 
     if (aspectHull) {
       // 저속에서도 침로 유지(allowStationaryHeading) — 기존 badge 생성 규칙과 동일
@@ -290,7 +306,10 @@ export function buildAisSymbolModel(
           icon,
           rotate: 0,
           // 침로 미상 — 기존 DOM 배지의 opacity 규칙 그대로(위장 0.78 / 군함·잠수함 0.72)
-          opacity: heading == null ? (disguised ? 0.78 : 0.72) : 1,
+          opacity: selected ? 1 : heading == null ? (disguised ? 0.78 : 0.72) : 1,
+          selected,
+          tag,
+          scale,
         },
       });
       continue;
@@ -308,7 +327,10 @@ export function buildAisSymbolModel(
         icon,
         // 침로 없으면 -20° 기울여 "미상" 표시 (기존 DOM 아이콘 규칙 그대로)
         rotate: heading ?? -20,
-        opacity: heading == null ? 0.72 : 1,
+        opacity: selected ? 1 : heading == null ? 0.72 : 1,
+        selected,
+        tag,
+        scale,
       },
     });
   }

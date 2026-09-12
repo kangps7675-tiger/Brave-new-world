@@ -61,7 +61,9 @@ describe("breakingFlashNarrative", () => {
   });
 
   it("why-important mentions theater stakes", () => {
-    expect(formatWhyImportant("middle-east", "airstrike hormuz", "ko")).toMatch(/왜 중요/);
+    expect(formatWhyImportant("middle-east", "airstrike hormuz", "ko")).toMatch(
+      /해협|항로|에너지|석유|가스/,
+    );
   });
 
   it("why-important uses Iran axis copy for Iran kinetic", () => {
@@ -94,8 +96,8 @@ describe("breakingFlashNarrative", () => {
   });
 });
 
-describe("buildBreakingFlashBriefing supply bridge", () => {
-  it("adds supply-chain paragraph on geopolitics flash when linked", () => {
+describe("buildBreakingFlashBriefing prose essay", () => {
+  it("writes 3~4 unlabeled paragraphs and weaves supply-chain when linked", () => {
     const briefing = buildBreakingFlashBriefing(
       hero({
         title: "Missile strike near Hormuz disrupts tanker traffic",
@@ -107,10 +109,14 @@ describe("buildBreakingFlashBriefing supply bridge", () => {
       false,
     );
     expect(briefing.mode).toBe("conflict");
-    expect(briefing.paragraphs.some((p) => p.startsWith("【어떻게 · 공급망】") && !p.includes("드러나지 않습니다"))).toBe(true);
+    const body = briefing.paragraphs;
+    expect(body.length).toBeGreaterThanOrEqual(3);
+    expect(body.length).toBeLessThanOrEqual(4);
+    expect(body.some((p) => p.includes("【"))).toBe(false);
+    expect(body.some((p) => /해협|운임|보험|유조선|원유/.test(p))).toBe(true);
   });
 
-  it("omits supply-chain paragraph when no logistics signal", () => {
+  it("still yields 3~4 prose paragraphs when no logistics signal", () => {
     const briefing = buildBreakingFlashBriefing(
       hero({
         title: "Artillery duel reported on eastern front",
@@ -120,11 +126,11 @@ describe("buildBreakingFlashBriefing supply bridge", () => {
       "ko",
       false,
     );
-    expect(
-      briefing.paragraphs.some(
-        (p) => p.startsWith("【어떻게 · 공급망】") && p.includes("드러나지 않습니다"),
-      ),
-    ).toBe(true);
+    const body = briefing.paragraphs;
+    expect(body.length).toBeGreaterThanOrEqual(3);
+    expect(body.length).toBeLessThanOrEqual(4);
+    expect(body.some((p) => p.includes("【"))).toBe(false);
+    expect(body.some((p) => p.includes("드러나지 않습니다"))).toBe(true);
   });
 });
 
@@ -356,8 +362,12 @@ describe("economy geoeconomic flash gate", () => {
     );
     expect(briefing.mode).toBe("economy");
     expect(briefing.title).toMatch(/^지경학 신속 속보/);
-    expect(briefing.paragraphs.some((p) => p.startsWith("【왜】"))).toBe(true);
-    expect(briefing.paragraphs.length).toBeGreaterThanOrEqual(20);
+    expect(briefing.paragraphs.length).toBeGreaterThanOrEqual(3);
+    expect(briefing.paragraphs.length).toBeLessThanOrEqual(4);
+    expect(briefing.paragraphs.some((p) => p.includes("【"))).toBe(false);
+    expect(
+      briefing.paragraphs.some((p) => /금리|원자재|운임|초크|경제|시장|원유|공급/.test(p)),
+    ).toBe(true);
   });
 
   it("maps demand-weighted lens: transit / rates / oil / gold / mixed", () => {

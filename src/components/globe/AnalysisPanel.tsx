@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { DisputeArea, DisputeOverview, StaticPoint } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -28,6 +29,7 @@ import { CountryEconomicRiskCard } from "@/components/CountryEconomicRiskCard";
 import { stressForChokepoint, type ChokepointAisObservation } from "@/lib/chokepointStressForUi";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { coordsFromAnalysisSelection } from "@/lib/selectionNewsCoords";
 
 function chokepointTitle(point: StaticPoint, lang: LabelLanguage): string {
   if (lang === "en") {
@@ -68,33 +70,56 @@ function PanelHeader({
   title,
   badge,
   onClose,
+  footer,
 }: {
   eyebrow: string;
   title: string;
   badge: string;
   onClose?: () => void;
+  footer?: ReactNode;
 }) {
   const { t } = useLocale();
   return (
-    <header className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-xs uppercase tracking-[0.32em] text-sky-300/80">{eyebrow}</p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-50">{title}</h2>
-        <span className="mt-3 inline-flex rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs text-sky-100">
-          {badge}
-        </span>
+    <header className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.32em] text-sky-300/80">{eyebrow}</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-50">{title}</h2>
+          <span className="mt-3 inline-flex rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs text-sky-100">
+            {badge}
+          </span>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("ariaCloseInfoPanel")}
+            className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 transition hover:border-slate-500 hover:text-slate-100"
+          >
+            ✕
+          </button>
+        )}
       </div>
-      {onClose && (
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t("ariaCloseInfoPanel")}
-          className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 transition hover:border-slate-500 hover:text-slate-100"
-        >
-          ✕
-        </button>
-      )}
+      {footer}
     </header>
+  );
+}
+
+function RelatedNewsButton({
+  lang,
+  onClick,
+}: {
+  lang: LabelLanguage;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-2 text-left text-sm text-amber-50 transition hover:border-amber-300/55 hover:bg-amber-500/20"
+    >
+      {lang === "en" ? "Related news →" : "관련 뉴스 보기 →"}
+    </button>
   );
 }
 
@@ -106,6 +131,7 @@ export function AnalysisPanel({
   disputeOverview,
   ukmtoIncidents = [],
   aisByChokeId = {},
+  onOpenRelatedNews,
 }: {
   selection: AnalysisSelection;
   onClose: () => void;
@@ -116,8 +142,18 @@ export function AnalysisPanel({
   ukmtoIncidents?: UkmtoIncidentPoint[];
   /** PortWatch B급 통과량 관측 */
   aisByChokeId?: Record<string, ChokepointAisObservation>;
+  onOpenRelatedNews?: (coords: { lat: number; lng: number }) => void;
 }) {
   const { lang, t } = useLocale();
+  const labelLangTop: LabelLanguage = lang === "en" ? "en" : "ko";
+  const newsCoords = coordsFromAnalysisSelection(selection);
+  const newsFooter =
+    onOpenRelatedNews && newsCoords ? (
+      <RelatedNewsButton
+        lang={labelLangTop}
+        onClick={() => onOpenRelatedNews(newsCoords)}
+      />
+    ) : null;
   if (selection.kind === "chokepoint") {
     const point = selection.item;
     const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
@@ -137,6 +173,7 @@ export function AnalysisPanel({
           title={title}
           badge={labelLang === "en" ? "Logistics stress" : "물류 스트레스"}
           onClose={onClose}
+          footer={newsFooter}
         />
         <LogisticsStressCard title={title} stress={stress} lang={labelLang} />
         {(typeof riskNote === "string" && riskNote) ||
@@ -196,7 +233,7 @@ export function AnalysisPanel({
           : null;
     return (
       <div className="flex flex-col gap-4">
-        <PanelHeader eyebrow={eyebrow} title={title} badge={eyebrow} onClose={onClose} />
+        <PanelHeader eyebrow={eyebrow} title={title} badge={eyebrow} onClose={onClose} footer={newsFooter} />
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
           <dl className="space-y-3 text-sm leading-6 text-slate-300">
             <MetaRow
@@ -230,6 +267,7 @@ export function AnalysisPanel({
           title={country.name}
           badge={country.isoA3 || "ISO 없음"}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section className="grid grid-cols-2 gap-3">
           <Metric label="대륙" value={country.continent || "N/A"} />
@@ -259,6 +297,7 @@ export function AnalysisPanel({
           title={carrier.name}
           badge={carrier.hull}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section
           className="rounded-xl border p-4"
@@ -307,6 +346,7 @@ export function AnalysisPanel({
           title={sat.name}
           badge={`${country} · ${sensor}`}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section
           className="rounded-xl border p-4"
@@ -347,6 +387,7 @@ export function AnalysisPanel({
           title={zone.name}
           badge={ukraineControlStatusLabel(zone.controlStatus)}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section className="rounded-xl border border-red-900/50 bg-red-950/20 p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">{t("analysisSituation")}</p>
@@ -374,6 +415,7 @@ export function AnalysisPanel({
           title={area.name}
           badge={formatCategories(area.categories)}
           onClose={onClose}
+          footer={newsFooter}
         />
         {disputeOverview?.overviewKo && (
           <section className="rounded-xl border border-amber-900/35 bg-amber-950/15 p-4">
@@ -422,6 +464,7 @@ export function AnalysisPanel({
           title={zone.name}
           badge={getTensionLabel(zone.tension)}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section className="rounded-xl border border-red-900/35 bg-red-950/15 p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-red-200/70">{t("analysisAiWarZone")}</p>
@@ -464,6 +507,7 @@ export function AnalysisPanel({
           title={vessel.shipName || `MMSI ${vessel.mmsi}`}
           badge={typeLabel || "AIS"}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section className="grid grid-cols-2 gap-3">
           <Metric label="MMSI" value={vessel.mmsi} />
@@ -516,6 +560,7 @@ export function AnalysisPanel({
           title={ac.callsign || ac.hex.toUpperCase()}
           badge={milAircraftRoleLabel(kind, "ko")}
           onClose={onClose}
+          footer={newsFooter}
         />
         <section
           className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm text-slate-200 ${
@@ -623,6 +668,7 @@ export function AnalysisPanel({
         title={`Event ${event.globalEventId}`}
         badge={fresh ? "최신 속보" : tier}
         onClose={onClose}
+        footer={newsFooter}
       />
       <section className="grid grid-cols-2 gap-3">
         <Metric label="분류" value={tier} />

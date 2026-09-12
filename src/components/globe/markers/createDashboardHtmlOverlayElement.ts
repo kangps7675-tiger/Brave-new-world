@@ -279,18 +279,23 @@ export function createDashboardHtmlOverlayElement(
     );
   }
   if (item.displayKind === "news-stream-neon") {
+    const en = deps.labelLanguage === "en";
     const kindLabel =
       item.kind === "war"
-        ? deps.labelLanguage === "en"
+        ? en
           ? "War / front"
           : "전쟁·전선"
         : item.kind === "diplomatic"
-          ? deps.labelLanguage === "en"
+          ? en
             ? "Diplomatic"
             : "외교"
-          : deps.labelLanguage === "en"
-            ? "Tension"
-            : "긴장";
+          : item.kind === "market"
+            ? en
+              ? "Markets / trade"
+              : "시장·무역"
+            : en
+              ? "Tension"
+              : "긴장";
     return createNeonRippleIncidentBadge(
       {
         markerId: item.markerId,
@@ -315,8 +320,14 @@ export function createDashboardHtmlOverlayElement(
             deps.setNewsPerspectives(item);
             return;
           }
-          const link = views[0]?.link || item.link;
-          if (link) window.open(link, "_blank", "noopener,noreferrer");
+          // 단일 관점이어도 프리뷰 패널로 열어 KO 번역 제목을 본다
+          deps.setSelected(null);
+          deps.clearRegionNavSelection();
+          deps.setEconNavSelection(null);
+          deps.setEconNewsPanelReveal(false);
+          deps.closeEconInsight();
+          deps.setIntelSheetOpen(false);
+          deps.setNewsPerspectives(item);
         },
       },
     );

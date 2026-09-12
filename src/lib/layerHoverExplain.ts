@@ -47,6 +47,8 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
       return "conflict-zones";
     case "ship-movement-trail":
       return "weekly-ship-moves";
+    case "gev-track-trail":
+      return null;
     case "neptun-trail":
     case "neptun-projection":
     case "neptun-trail-archived":

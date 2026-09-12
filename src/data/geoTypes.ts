@@ -159,6 +159,8 @@ export type TransportPath = {
     | "us-dfc-supply"
     /** 주간 함선 이동 — 공개 관측 연결선 (실제 항적 아님) */
     | "ship-movement-trail"
+    /** GEV식 클릭-추적 웨이크(AIS/항공기 선택 중) */
+    | "gev-track-trail"
     /**
      * Global Trade Alert 무역정책 조치 — implementer → affected 호.
      * GTA 레코드에는 좌표가 없어 국가 중심점을 잇는 방식으로만 렌더한다.

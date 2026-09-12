@@ -35,35 +35,36 @@ export const MIL_AIRCRAFT_MARKER_ICON_SIZE: MilAircraftIconSize = {
 
 /** 역할별 강조색 (항모 status color 와 비슷한 채도) */
 /** 군용기 실루엣 — 역할 무관 단일 빨강 */
+/** 지정학 군용 — 따뜻한 호박색 계열(역할별 미세 차이). 전역 단색 빨강에서 이탈. */
 export const MIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
-  fighter: "#ef4444",
-  bomber: "#ef4444",
-  helicopter: "#ef4444",
-  tanker: "#ef4444",
-  transport: "#ef4444",
-  awacs: "#ef4444",
-  recon: "#ef4444",
-  patrol: "#ef4444",
-  gunship: "#ef4444",
-  trainer: "#ef4444",
-  uav: "#ef4444",
-  other: "#ef4444",
+  fighter: "#e09a45",
+  bomber: "#d4893a",
+  helicopter: "#c9a05c",
+  tanker: "#db9648",
+  transport: "#e2a55a",
+  awacs: "#cfa05a",
+  recon: "#d4a05a",
+  patrol: "#c89448",
+  gunship: "#b87f38",
+  trainer: "#c9ae78",
+  uav: "#b8924a",
+  other: "#d4a574",
 };
 
-/** 지경학 민간 항적 — 청록 계열 */
+/** 지경학 민간 — 진주·아이스톤(저채도). 과한 시안 네온 대신 지면에서 읽히는 밝기. */
 export const CIVIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
-  fighter: "#7dd3fc",
-  bomber: "#38bdf8",
-  helicopter: "#67e8f9",
-  tanker: "#2dd4bf",
-  transport: "#38bdf8",
-  awacs: "#a5b4fc",
-  recon: "#22d3ee",
-  patrol: "#0ea5e9",
-  gunship: "#67e8f9",
-  trainer: "#94a3b8",
-  uav: "#818cf8",
-  other: "#7dd3fc",
+  fighter: "#e4eef6",
+  bomber: "#d9e8f2",
+  helicopter: "#ddeff0",
+  tanker: "#d5ebe6",
+  transport: "#e8f1f7",
+  awacs: "#e0e6f4",
+  recon: "#d8eef3",
+  patrol: "#d2e6f2",
+  gunship: "#ddeff0",
+  trainer: "#e2e8ef",
+  uav: "#dde4f2",
+  other: "#e4eef6",
 };
 
 type SilhouetteDef = {
