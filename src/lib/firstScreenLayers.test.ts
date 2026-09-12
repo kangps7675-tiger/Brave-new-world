@@ -33,7 +33,8 @@ describe("첫 화면 Compact 장면", () => {
     expect(next.showMilitaryBases).toBe(true);
     expect(next.showShippingLanes).toBe(true);
     expect(next.showCrinkInfraRail).toBe(true);
-    expect(next.showTelegramOsint).toBe(false);
+    // DEFAULT_LAYER_PREFS — 지정학도 텔레그램 OSINT 기본 ON (닫기는 패널 X)
+    expect(next.showTelegramOsint).toBe(true);
   });
 
   it("저장된 prefs는 기본값 변경으로 덮이지 않는다", () => {

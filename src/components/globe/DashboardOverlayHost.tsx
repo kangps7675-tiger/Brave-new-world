@@ -356,7 +356,6 @@ export type DashboardOverlayHostProps = {
   showLampPreparing: boolean;
   showLanguageGate: boolean;
   showDailyRankPanel: boolean;
-  telegramMiniPanelVisible: boolean;
   showTourInvite: boolean;
   airRaidOffer: AirRaidOffer | null;
   airRaidBriefing: AirRaidBriefingContent | null;
@@ -569,7 +568,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showLampPreparing,
     showLanguageGate,
     showDailyRankPanel,
-    telegramMiniPanelVisible,
     showTourInvite,
     airRaidOffer,
     airRaidBriefing,
