@@ -12,7 +12,8 @@
  *    크롬 설치 앱이 영원히 과거 배포를 보여 주는 사고가 난다.)
  */
 
-const SW_VERSION = "cv-sw-v3-nocache-20260909";
+/** 배포 시 scripts/stamp-sw-version.mjs 가 커밋 SHA로 덮어쓴다. */
+const SW_VERSION = "cv-sw-v4-nocache-20260912";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
