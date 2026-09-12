@@ -11,6 +11,8 @@ export type SpikeTelegraphBannerOffer = {
   changePercent: number;
   direction: TickerTelegraphDirection;
   atMs: number;
+  /** 초단위 창(초). 없으면 일봉 기준 카피 */
+  changeWindowSec?: number;
 };
 
 type SpikeTelegraphBannerProps = {
@@ -24,7 +26,7 @@ const COPY = {
   ko: {
     headline: "선물 SPIKE",
     stamp: "전보 · DISPATCH",
-    hint: "투자 권유 아님 · 탭하면 증시",
+    hint: "투자 권유 아님 · 탭하면 인사이트 양피지",
     dismiss: "닫기",
     up: "오름세",
     down: "내림세",
@@ -32,7 +34,7 @@ const COPY = {
   en: {
     headline: "Futures SPIKE",
     stamp: "DISPATCH",
-    hint: "Not advice · tap for markets",
+    hint: "Not advice · tap for insight letter",
     dismiss: "Dismiss",
     up: "Up",
     down: "Down",

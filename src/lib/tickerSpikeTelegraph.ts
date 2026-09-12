@@ -8,6 +8,12 @@ export const TICKER_TELEGRAPH_COOLDOWN_MS = 45_000;
 /** 속보 모스(hero-breaking ~12s) 직후 시세 전보 억제 */
 export const BREAKING_MORSE_SUPPRESS_MS = 12_000;
 
+/**
+ * 초단위(60초 창) SPIKE 임계값 — 일봉 1.25%보다 낮게.
+ * 일봉 티커 스트립은 기존 TICKER_SPIKE_THRESHOLD_PERCENT 유지.
+ */
+export const FUTURES_LIVE_SPIKE_THRESHOLD_PERCENT = 0.35;
+
 export type TickerTelegraphDirection = "up" | "down";
 
 export type TickerSpikeCandidate = {
@@ -48,6 +54,13 @@ export function pickDatabentoSpikeLeader(
   threshold = TICKER_SPIKE_THRESHOLD_PERCENT,
 ): TickerSpikeCandidate | null {
   return listDatabentoSpikes(tickers, threshold)[0] ?? null;
+}
+
+/** 초단위 futures-live 전용 리더 */
+export function pickFuturesLiveSpikeLeader(
+  tickers: PctTicker[],
+): TickerSpikeCandidate | null {
+  return pickDatabentoSpikeLeader(tickers, FUTURES_LIVE_SPIKE_THRESHOLD_PERCENT);
 }
 
 /**
