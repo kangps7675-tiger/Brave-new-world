@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { resolveEconomyArticleFlyTarget } from "@/lib/news/economyMapFly";
 import type { MapFlyTarget } from "@/lib/news/theaterMap";
@@ -78,11 +79,16 @@ export function NewsArticleCard({
   onOpenInsight,
 }: NewsArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const { localizedTitle, localizedSummary, labelLanguage } = useNewsStreamContext();
   const isEconomy = economyMode || item.feedTopic === "economy";
   const showImage = item.imageUrl && !imageFailed;
   const tierLabel = item.trustTier === 1 ? "T1" : item.trustTier === 2 ? "T2" : "T3";
-  const displayTitle = titleOverride ?? item.title;
-  const displaySummary = summaryOverride ?? item.summary;
+  const displayTitle =
+    titleOverride ??
+    (labelLanguage === "en" ? item.title : localizedTitle(item));
+  const displaySummary =
+    summaryOverride ??
+    (labelLanguage === "en" ? item.summary : localizedSummary(item));
 
   const flyTarget = useMemo(() => {
     if (!isEconomy || !onFlyToMap) return null;
