@@ -8866,7 +8866,7 @@ export function GlobeDashboard({
             className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
             onClick={() => setSelected(null)}
           />
-          <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+          <aside className="intel-panel intel-sidebar-right z-[600] flex flex-col overflow-hidden p-4">
             {selected.kind === "neptun-threat" ? (
               <div className="intel-scroll-y min-h-0 flex-1">
                 <NeptunThreatDetailPanel

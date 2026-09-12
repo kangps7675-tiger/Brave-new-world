@@ -617,7 +617,7 @@ export function GeopoliticsSidebarChrome({
         className="absolute inset-0 z-[500] bg-black/20 lg:bg-black/10"
         onClick={onClearRegionNav}
       />
-      <aside className="intel-panel intel-sidebar-right absolute right-0 top-0 z-[600] flex h-full min-h-0 flex-col overflow-hidden border-l border-slate-800/80 p-4 shadow-2xl">
+      <aside className="intel-panel intel-sidebar-right z-[600] flex min-h-0 flex-col overflow-hidden p-4">
         {theaterFocusConfig ? (
           <TheaterIntelSidebar
             selection={regionNavSelection}

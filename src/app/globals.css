@@ -204,6 +204,21 @@ html[data-device="phone"] {
 }
 
 /**
+ * 좌측 크롬 레일 — 우측에는 ModeGlobalIndexChip만 두고 토글·Finint·등불은 왼쪽에 스택.
+ * (우측 사이드바/레일 이중 축 겹침 방지)
+ */
+.cv-chrome-rail-left {
+  top: calc(
+    max(0.75rem, env(safe-area-inset-top, 0px)) + var(--chrome-left-fab-clearance, 3.75rem) +
+      0.45rem
+  );
+  max-height: calc(
+    100dvh - max(0.75rem, env(safe-area-inset-top, 0px)) - var(--chrome-left-fab-clearance, 3.75rem) -
+      var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem
+  );
+}
+
+/**
  * 우레일·유틸 공통 top — nav 높이와 우상단 칩 하단 중 더 큰 쪽 + 갭.
  * JS에서 --mode-index-chip-stack-bottom(칩만) / --mode-index-chip-bottom(패널 포함) /
  * --hover-nav-base-height를 갱신한다.
@@ -1120,12 +1135,27 @@ main[data-ui-lang="en"]
 }
 
 .intel-sidebar-right {
-  width: min(100vw, var(--intel-sidebar-width));
-  /* 셸은 스크롤하지 않음 — 제스처 뺏김 방지. 스크롤은 .intel-scroll-y 한 곳에서만 */
+  /* ★ 하드코딩: 우측 독 사이드바 금지 — 전 브레이크포인트 하단 시트 */
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: 0;
+  width: 100%;
+  max-width: none;
+  height: min(52vh, 560px);
+  max-height: min(52vh, 560px);
   overflow: hidden;
+  padding-bottom: var(--safe-bottom, env(safe-area-inset-bottom, 0px));
+  border-left: none !important;
+  border-top: 1px solid rgba(125, 211, 252, 0.16);
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
+  box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.45);
+  z-index: 600;
 }
 
-/* 좌측 플로팅 패널 — 우측과 동일 --intel-sidebar-width */
+/* 좌측 플로팅 패널 — 레이어 ≡ 전용 */
 .intel-sidebar-left {
   width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
   max-width: var(--intel-sidebar-width);
@@ -1147,67 +1177,9 @@ main[data-ui-lang="en"]
   backdrop-filter: blur(16px);
 }
 
-/* 데스크톱: 닫기 있는 사이드바는 칩(nav z=300)보다 위 — uiStack panel */
-@media (min-width: 1024px) {
-  .intel-sidebar-right {
-    top: 5.5rem !important;
-    bottom: 0 !important;
-    height: auto !important;
-    max-height: calc(100% - 5.5rem);
-    z-index: 600;
-  }
-}
-
-/* 좁은 화면: 하단 시트로 전환 — 상단 메뉴를 가리지 않음 */
-@media (max-width: 1023px) {
-  .intel-sidebar-right {
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: none;
-    height: min(52vh, 560px) !important;
-    max-height: min(52vh, 560px);
-    padding-bottom: var(--safe-bottom);
-    border-left: none !important;
-    border-top: 1px solid rgba(125, 211, 252, 0.16);
-    border-top-left-radius: 1.25rem;
-    border-top-right-radius: 1.25rem;
-    box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.45);
-  }
-}
-
-/*
- * 태블릿: 하단 시트 대신 우측 독 — 지도와 패널을 동시에 쓰도록.
- * (max-width:1023 규칙보다 특이성 높게)
- */
-html[data-device="tablet"] .intel-sidebar-right {
-  top: 5rem !important;
-  bottom: 0 !important;
-  left: auto !important;
-  right: 0 !important;
-  width: min(100%, var(--intel-sidebar-width)) !important;
-  max-width: min(42vw, var(--intel-sidebar-width));
-  height: auto !important;
-  max-height: calc(100% - 5rem);
-  padding-bottom: var(--safe-bottom);
-  border-left: 1px solid rgba(125, 211, 252, 0.16) !important;
-  border-top: none !important;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35);
-  z-index: 120;
-}
-
 html[data-device="tablet"] .intel-sidebar-left {
   width: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
   max-width: min(42vw, var(--intel-sidebar-width));
-}
-
-/* 와이드 데스크톱: 우측 패널 여유 */
-html[data-device="desktop-wide"] .intel-sidebar-right {
-  max-height: calc(100% - 5.5rem);
 }
 
 html[data-device="desktop-wide"] .intel-sidebar-left {
