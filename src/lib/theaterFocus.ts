@@ -125,3 +125,29 @@ export function isUkraineNavId(id: string): boolean {
   const key = id.toLowerCase();
   return key === "ukraine" || key.startsWith("ukraine-");
 }
+
+/** 카메라/좌표 전장 → 우측 TheaterIntelSidebar용 nav id */
+export function navIdForNewsTheater(theater: NewsTheater): string | null {
+  switch (theater) {
+    case "russia-ukraine":
+      return "ukraine";
+    case "middle-east":
+      return "middle-east";
+    case "china-taiwan":
+      return "taiwan";
+    case "korea":
+      return "korea";
+    case "japan":
+      return "senkaku";
+    case "southeast-asia":
+      return "asean";
+    case "south-america":
+      return "latin-america";
+    case "africa":
+      return "africa";
+    case "south-asia":
+      return "india-china";
+    default:
+      return null;
+  }
+}

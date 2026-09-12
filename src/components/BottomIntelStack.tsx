@@ -555,6 +555,10 @@ type IntelCompactBarProps = {
    */
   fabOnly?: boolean;
   onOpenSheet: (theater?: IntelTheaterFilter) => void;
+  /** 현위치 태그 클릭 → 우측 전장 속보 패널 */
+  onOpenCurrentLocationNews?: () => void;
+  /** 현재 지도 중심 전장 (현위치 태그) */
+  currentLocationTheater?: IntelTheaterFilter | null;
   /** 오늘 핫한 곳 → 맵 fly-to */
   onFlyToTheater?: (theater: NewsTheater) => void;
   /** 맞춤 칩 → 레이어 ON */
@@ -725,12 +729,20 @@ export function DynamicIntelStack({
   pauseUpdates = false,
   fabOnly = false,
   onOpenSheet,
+  onOpenCurrentLocationNews,
+  currentLocationTheater = null,
   onFlyToTheater,
   onEnableLayer,
 }: IntelCompactBarProps) {
   const { lang, t } = useLocale();
   const { payload, preferEconomyNews, theaterFilter } = useNewsStreamContext();
   const isEconomy = viewerMode === "economy" || preferEconomyNews;
+  const locationTheater =
+    currentLocationTheater && currentLocationTheater !== "all"
+      ? currentLocationTheater
+      : theaterFilter && theaterFilter !== "all"
+        ? theaterFilter
+        : null;
   const timelineMode: ViewerMode = isEconomy ? "economy" : "conflict";
   const hero = payload?.hero ?? null;
   const mode = resolveIntelStackMode(hero);
@@ -1019,6 +1031,46 @@ export function DynamicIntelStack({
           : undefined
       }
     >
+      {!fabOnly && locationTheater && onOpenCurrentLocationNews ? (
+        <button
+          type="button"
+          onClick={onOpenCurrentLocationNews}
+          className={`pointer-events-auto flex w-full items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-left shadow-xl backdrop-blur-md transition hover:brightness-110 active:scale-[0.99] ${
+            isEconomy
+              ? "border-emerald-400/30 bg-[#071018]/92"
+              : "border-sky-400/35 bg-[#0a1428]/92"
+          }`}
+          aria-label={
+            lang === "en"
+              ? `Open breaking news for ${theaterLabel(locationTheater, lang)}`
+              : `${theaterLabel(locationTheater, lang)} 현위치 속보 열기`
+          }
+        >
+          <span className="min-w-0">
+            <span
+              className={`block text-micro font-bold uppercase tracking-[0.18em] ${
+                isEconomy ? "text-emerald-200/90" : "text-sky-200/90"
+              }`}
+            >
+              {lang === "en" ? "Current location" : "현위치"}
+            </span>
+            <span className="mt-0.5 block truncate text-xs font-semibold text-slate-50">
+              {theaterLabel(locationTheater, lang)}
+              <span className="ml-1.5 font-normal text-slate-400">
+                {lang === "en" ? "· related flash" : "· 관련 속보"}
+              </span>
+            </span>
+          </span>
+          <span
+            className={`shrink-0 text-micro font-semibold uppercase tracking-wider ${
+              isEconomy ? "text-emerald-300/90" : "text-sky-300/90"
+            }`}
+          >
+            {lang === "en" ? "Open →" : "열기 →"}
+          </span>
+        </button>
+      ) : null}
+
       {todayBriefing ? (
         <TodayHotspotChip
           briefing={todayBriefing}

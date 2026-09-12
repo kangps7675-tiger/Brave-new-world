@@ -171,6 +171,55 @@ export function AnalysisPanel({
       </div>
     );
   }
+  if (selection.kind === "static-infra") {
+    const point = selection.item;
+    const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
+    const title = chokepointTitle(point, labelLang);
+    const kind = point.kind;
+    const eyebrow =
+      kind === "airport"
+        ? labelLang === "en"
+          ? "Airport"
+          : "공항"
+        : kind === "port"
+          ? labelLang === "en"
+            ? "Port"
+            : "항구"
+          : labelLang === "en"
+            ? "Fixed infrastructure"
+            : "고정 인프라";
+    const note =
+      typeof point.meta?.riskNote === "string"
+        ? point.meta.riskNote
+        : typeof point.meta?.crinkCategory === "string"
+          ? String(point.meta.crinkCategory)
+          : null;
+    return (
+      <div className="flex flex-col gap-4">
+        <PanelHeader eyebrow={eyebrow} title={title} badge={eyebrow} onClose={onClose} />
+        <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
+          <dl className="space-y-3 text-sm leading-6 text-slate-300">
+            <MetaRow
+              label={labelLang === "en" ? "Coordinates" : "좌표"}
+              value={`${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}`}
+            />
+            {note ? (
+              <MetaRow
+                label={labelLang === "en" ? "Note" : "메모"}
+                value={note}
+              />
+            ) : null}
+            {typeof point.meta?.region === "string" && point.meta.region ? (
+              <MetaRow
+                label={labelLang === "en" ? "Region" : "지역"}
+                value={String(point.meta.region)}
+              />
+            ) : null}
+          </dl>
+        </section>
+      </div>
+    );
+  }
   if (selection.kind === "country") {
     const country = selection.item;
     const labelLang: LabelLanguage = lang === "en" ? "en" : "ko";
