@@ -7388,13 +7388,10 @@ export function GlobeDashboard({
       setNewsInsightCallout(null);
       setEconNavSelection(null);
       setEconNewsPanelReveal(false);
+      // 표시 제목/요약은 NewsInsightPanel이 localizedTitle·Summary로 맞춤 (영문 고착 방지)
       setSelected({
         kind: "news-insight",
-        item: {
-          article,
-          displayTitle: article.title,
-          displaySummary: article.summary,
-        },
+        item: { article },
       });
     },
     [],

@@ -57,7 +57,8 @@ export function TheaterIntelSidebar({
   onFlyToCoords,
   onSelectGdeltEvent,
 }: TheaterIntelSidebarProps) {
-  const { payload, showTier3, setShowTier3, localizedTitle } = useNewsStreamContext();
+  const { payload, showTier3, setShowTier3, localizedTitle, localizedSummary } =
+    useNewsStreamContext();
   const { lang, t } = useLocale();
   const { payload: ranksPayload, loading: ranksLoading } = useDailyRanksBrief(12);
   const [tab, setTab] = useState<TheaterSidebarTab>(initialTab);
@@ -237,6 +238,7 @@ export function TheaterIntelSidebar({
                     key={item.id}
                     item={item}
                     title={localizedTitle(item)}
+                    summary={localizedSummary(item)}
                     gdeltEvents={gdeltEvents}
                     onFlyToCoords={onFlyToCoords}
                   />
@@ -418,11 +420,13 @@ function TabButton({
 function TheaterNewsRow({
   item,
   title,
+  summary,
   gdeltEvents,
   onFlyToCoords,
 }: {
   item: NewsStreamItem;
   title: string;
+  summary?: string;
   gdeltEvents: ScoredEvent[];
   onFlyToCoords: (lat: number, lng: number, altitude?: number) => void;
 }) {
@@ -453,6 +457,11 @@ function TheaterNewsRow({
           <span className="line-clamp-2 text-sm font-medium leading-snug text-slate-100">
             {title}
           </span>
+          {summary ? (
+            <span className="mt-1 block line-clamp-2 text-xs leading-5 text-slate-400">
+              {summary}
+            </span>
+          ) : null}
           <span className="mt-1 block text-meta text-slate-500">
             {item.source}
             {matched ? " · 지도 좌표 연결됨" : " · 외부 기사"}
