@@ -281,8 +281,6 @@ export type DashboardOverlayHostProps = {
   selected: Selection | null;
   regionNavSelection: NavSelection | null;
   econNavSelection: NavSelection | null;
-  /** 우측 사이드·관점 패널이 떠 있으면 상단 유틸·탐색 탭 숨김 (겹침 방지) */
-  rightDockOpen?: boolean;
   showModePicker: boolean;
   entryGate: EntryGate;
   globeReady: boolean;
@@ -496,7 +494,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     selected,
     regionNavSelection,
     econNavSelection,
-    rightDockOpen = false,
     showModePicker,
     entryGate,
     globeReady,
