@@ -8719,7 +8719,6 @@ export function GlobeDashboard({
         showLampPreparing={showLampPreparing}
         showLanguageGate={showLanguageGate}
         showDailyRankPanel={showDailyRankPanel}
-        telegramMiniPanelVisible={telegramMiniPanelVisible}
         showTourInvite={showTourInvite}
         airRaidOffer={airRaidOffer}
         airRaidBriefing={airRaidBriefing}
