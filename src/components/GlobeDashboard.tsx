@@ -60,11 +60,6 @@ import {
   type CompactChipId,
 } from "@/lib/compactViewPreset";
 import {
-  buildScenarioPrefs,
-  findScenarioPreset,
-  type ScenarioPresetId,
-} from "@/lib/scenarioPresets";
-import {
   trackDomainSelect,
   trackModeSwitch,
   trackLayerToggle,
@@ -206,7 +201,6 @@ import { markViewerIntroDone } from "@/components/ViewerIntroOverlay";
 import { GeoeconomicsChrome } from "@/components/globe/GeoeconomicsChrome";
 import { markQuickStartDone } from "@/components/QuickStartCoach";
 import type { NavSelection } from "@/data/navRegions";
-import { EXPLORATION_PRESETS, toNavSelection } from "@/data/navRegions";
 import { econNavSelectionFromId } from "@/data/econNavRegions";
 import {
   type EconomyHubChoice,
@@ -351,7 +345,6 @@ import { globeDistanceForAltitude } from "@/lib/globeCamera";
 import { globeOrbitMaxAltitude } from "@/lib/globeFillScreen";
 import {
   applyBattlefieldPreset,
-  battlefieldZoneFromExplorationId,
   detectBattlefieldZone,
   type BattlefieldZone,
 } from "@/lib/battlefieldPresets";
@@ -731,7 +724,8 @@ export function GlobeDashboard({
   const [showLeftPanel, setShowLeftPanel] = useState(false);
   /** 좌 서랍 역할 — 레이어 / 설정 / 데이터 (탭바 없이 메뉴로 고름) */
   const [leftPanelTab, setLeftPanelTab] = useState<LayerPanelTab>("layers");
-  const [layerDropdownOpen, setLayerDropdownOpen] = useState(false);
+  /** 퀵 드롭다운 UI는 Nullschool 크롬으로 이전 — 게이트 플래그만 유지(항상 닫힘) */
+  const [layerDropdownOpen] = useState(false);
   const [layerPanelDirty, setLayerPanelDirty] = useState(false);
   const deferLayerMapApplyRef = useRef(false);
   const panelDraftPatchRef = useRef<Partial<LayerPrefs>>({});
@@ -859,8 +853,6 @@ export function GlobeDashboard({
     );
   }, [bottomDockMode, intelSheetOpen, isCompactUi]);
   const [compactChipId, setCompactChipId] = useState<CompactChipId>("frontline");
-  /** 일반 모드 시나리오 프리셋 선택 (P2-1) — null이면 직접 구성 상태 */
-  const [scenarioPresetId, setScenarioPresetId] = useState<ScenarioPresetId | null>(null);
   const desktopSnapshotRef = useRef<{ layers: LayerPrefs; ultraLite: boolean } | null>(null);
   const compactWasActiveRef = useRef(false);
   const layerPrefsLiveRef = useRef<LayerPrefs>(DEFAULT_LAYER_PREFS);
@@ -924,8 +916,8 @@ export function GlobeDashboard({
   const [, setClearanceChipSettled] = useState(false);
   /** 오늘의 WTI — 사운드·등불·예측 기축 */
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
-  /** WTI 기준 시각 — 상황판 "as of" 표시용 */
-  const [wtiFetchedAt, setWtiFetchedAt] = useState<string | null>(null);
+  /** WTI 기준 시각 캐시 — 상황판 as-of는 스냅샷 쪽을 쓰고 setter만 유지 */
+  const [, setWtiFetchedAt] = useState<string | null>(null);
   /** 일별 랭크 스크럽 기준일 (UTC YYYY-MM-DD). null = 오늘 */
   const [viewAsOf, setViewAsOf] = useState<string | null>(null);
   const [rankAvailableDates, setRankAvailableDates] = useState<string[]>([]);
@@ -1217,11 +1209,6 @@ export function GlobeDashboard({
     }
   }, [applyLayerPrefs]);
 
-  const handleBasemapModeChange = useCallback((mode: BasemapMode) => {
-    setBasemapMode(mode);
-    savePerfPrefs({ basemapMode: mode });
-  }, []);
-
   /** 지형(밝은 벡터) 베이스맵이면 라벨·마커 팔레트를 저명도로 뒤집는다 */
   const basemapTone: BasemapTone = basemapMode === "terrain" ? "light" : "dark";
 
@@ -1404,24 +1391,6 @@ export function GlobeDashboard({
 
   layerPrefsLiveRef.current = layerPrefs;
 
-  const handleCompactChipSelect = useCallback(
-    (chipId: CompactChipId) => {
-      setCompactChipId(chipId);
-      ultraLiteRef.current = true;
-      setUltraLite(true);
-      applyLayerPrefs(buildCompactPrefs(viewerMode, chipId, layerPrefsLiveRef.current));
-    },
-    [applyLayerPrefs, viewerMode],
-  );
-
-  /** 뷰어 모드가 바뀌면 다른 도메인의 프리셋 선택은 무효 (P2-1) */
-  useEffect(() => {
-    setScenarioPresetId((prev) => {
-      if (!prev) return prev;
-      return findScenarioPreset(prev)?.mode === viewerMode ? prev : null;
-    });
-  }, [viewerMode]);
-
   /** Compact 진입/해제 — 데스크톱 prefs 스냅샷 분리 */
   useEffect(() => {
     if (isCompactUi) {
@@ -1475,23 +1444,13 @@ export function GlobeDashboard({
     ultraLiteRef.current = true;
     setUltraLite(true);
     applyLayerPrefs(buildCompactPrefs(viewerMode, chip, layerPrefsLiveRef.current));
-    // chipId intentionally omitted — selection goes through handleCompactChipSelect
+    // chipId intentionally omitted — Compact 중 모드 전환 시에만 재적용
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyLayerPrefs, isCompactUi, viewerMode]);
-
-  /** 뷰어 모드가 바뀌면 다른 도메인의 프리셋 선택은 무효 (P2-1) */
-  useEffect(() => {
-    setScenarioPresetId((prev) => {
-      if (!prev) return prev;
-      return findScenarioPreset(prev)?.mode === viewerMode ? prev : null;
-    });
-  }, [viewerMode]);
 
   const handlePanelDraftPatch = useCallback(
     (patch: Partial<LayerPrefs>) => {
       pinUserLayers();
-      // 손으로 하나라도 건드린 순간 그 화면은 더 이상 프리셋이 아니다 (P2-1)
-      setScenarioPresetId(null);
       panelDraftPatchRef.current = { ...panelDraftPatchRef.current, ...patch };
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === "boolean") trackLayerToggle(key, value);
@@ -2011,34 +1970,6 @@ export function GlobeDashboard({
     isCameraMovingRef,
     labelLanguage,
   });
-
-  /**
-   * 시나리오 프리셋 선택 (P2-1).
-   *
-   * 핵심은 **단일 커밋**이다. 레이어를 하나씩 `patchLayerPrefsSoft`로 넣으면
-   * 8~10번의 debounce·재계산이 누적돼 프리셋 자체가 느려진다. 이미 완성된
-   * prefs 객체를 `applyLayerPrefs` 한 번으로 넘겨야 도허티 임계 안에 들어온다.
-   *
-   * 카메라 이동은 레이어 적용 **뒤**에 건다 — 순서가 반대면 비어 있는 화면으로
-   * 날아간 다음 레이어가 뒤늦게 나타난다.
-   *
-   * (`flyTo`가 useGlobeCamera에서 나오므로 이 훅은 반드시 그 아래에 있어야 한다.)
-   */
-  const handleScenarioPresetSelect = useCallback(
-    (id: ScenarioPresetId) => {
-      const preset = findScenarioPreset(id);
-      if (!preset) return;
-
-      setScenarioPresetId(id);
-      pinUserLayers();
-
-      const built = buildScenarioPrefs(preset, layerPrefsLiveRef.current, ultraLiteRef.current);
-      applyLayerPrefs(built);
-
-      flyTo(preset.camera.lat, preset.camera.lng, preset.camera.altitude);
-    },
-    [applyLayerPrefs, flyTo, pinUserLayers],
-  );
 
   const { syncInfo, syncGeneration, forceSync } = useDataSync({
     mode: "default",
@@ -7657,28 +7588,6 @@ export function GlobeDashboard({
     }
   }
 
-  function handleExplorationSelect(preset: (typeof EXPLORATION_PRESETS)[number]) {
-    if (historyStoryLockedRef.current) return;
-    const zone = battlefieldZoneFromExplorationId(preset.id);
-    if (zone) {
-      unpinUserLayers();
-      battlefieldManualUntilRef.current = Date.now() + 12_000;
-      battlefieldSoftZoneRef.current = zone;
-      applyLayerPrefs(applyBattlefieldPreset(zone, layerPrefsLiveRef.current));
-      setChromeCoachStep(null);
-    }
-    handleNavNavigate(toNavSelection(preset.navItem, preset.groupId));
-    if (
-      !isEconomyViewer &&
-      (preset.id === "taiwan" ||
-        preset.id === "taiwan-strait" ||
-        preset.navItem?.id === "taiwan" ||
-        preset.navItem?.id === "taiwan-strait")
-    ) {
-      setLivingTaiwanOpen(true);
-    }
-  }
-
   useEffect(() => {
     if (isEconomyViewer || entryGate !== null || showModePicker) return;
     if (historyStoryLockedRef.current) return;
@@ -8968,7 +8877,6 @@ export function GlobeDashboard({
           onGoToday: () => setViewAsOf(null),
         }}
         bottomDockMode={bottomDockMode}
-        onBottomDockModeChange={handleBottomDockModeChange}
         soundUnmuteReady={firstImpression.onboardingReady}
         globeRef={globeRef}
         intelStackRef={intelStackRef}
