@@ -1170,6 +1170,7 @@ export function GlobeDashboard({
     patchLayerPrefsSoft,
     patchDraftOnly,
     discardDraftPrefs,
+    peekDraftPrefs,
     batchPending,
     applyGeneration,
     immediateUntilRef,
@@ -1474,19 +1475,46 @@ export function GlobeDashboard({
     [patchDraftOnly],
   );
 
+  const syncFrozenCategoriesFromPrefs = useCallback((prefs: LayerPrefs) => {
+    const base = categorySnapshotRef.current ?? frozenPanelCategories;
+    if (!base) return;
+    const updated = base.map((category) => ({
+      ...category,
+      items: category.items.map((item) => {
+        const walk = (node: (typeof item)): typeof item => {
+          const key = LAYER_ITEM_PREF_KEYS[node.id];
+          const nextOptions = node.options?.map(walk);
+          const leafChecked =
+            key && typeof prefs[key] === "boolean" ? (prefs[key] as boolean) : node.checked;
+          if (nextOptions?.length) {
+            const anyOn = nextOptions.some((opt) => opt.checked);
+            return { ...node, checked: anyOn, options: nextOptions };
+          }
+          return key ? { ...node, checked: leafChecked } : node;
+        };
+        return walk(item);
+      }),
+    }));
+    categorySnapshotRef.current = updated;
+    setFrozenPanelCategories(updated);
+  }, [frozenPanelCategories]);
+
   const confirmLayerPanelDraft = useCallback(() => {
     deferLayerMapApplyRef.current = false;
-    applyLayerPrefs(draftPrefs);
+    const latest = peekDraftPrefs();
+    applyLayerPrefs(latest);
     panelDraftPatchRef.current = {};
-    panelOpenSnapshotRef.current = { ...draftPrefs };
+    panelOpenSnapshotRef.current = { ...latest };
+    syncFrozenCategoriesFromPrefs(latest);
     setLayerPanelDirty(false);
-  }, [applyLayerPrefs, draftPrefs]);
+  }, [applyLayerPrefs, peekDraftPrefs, syncFrozenCategoriesFromPrefs]);
 
   const cancelLayerPanelDraft = useCallback(() => {
     const snap = panelOpenSnapshotRef.current;
     if (snap) {
       deferLayerMapApplyRef.current = false;
       applyLayerPrefs(snap);
+      syncFrozenCategoriesFromPrefs(snap);
     } else {
       discardDraftPrefs();
     }
@@ -1496,7 +1524,7 @@ export function GlobeDashboard({
     // frozen 카테고리 체크 UI를 커밋 상태로 다시 맞춤
     categorySnapshotRef.current = null;
     setFrozenPanelCategories(null);
-  }, [applyLayerPrefs, discardDraftPrefs]);
+  }, [applyLayerPrefs, discardDraftPrefs, syncFrozenCategoriesFromPrefs]);
 
   const {
     showWarZones,
@@ -5713,7 +5741,8 @@ export function GlobeDashboard({
       // soft-apply 중인 초안이 있으면 닫을 때 커밋(버리기 → 체크했는데 안 보임 방지)
       if (layerPanelDirty) {
         deferLayerMapApplyRef.current = false;
-        applyLayerPrefs(draftPrefs);
+        const latest = peekDraftPrefs();
+        applyLayerPrefs(latest);
         panelDraftPatchRef.current = {};
         setLayerPanelDirty(false);
       }
@@ -5731,7 +5760,7 @@ export function GlobeDashboard({
         flush();
       }
     },
-    [applyLayerPrefs, draftPrefs, layerPanelDirty],
+    [applyLayerPrefs, layerPanelDirty, peekDraftPrefs],
   );
 
   const toggleLeftPanel = useCallback(() => {
