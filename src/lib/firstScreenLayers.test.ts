@@ -5,42 +5,43 @@ import { DEFAULT_LAYER_PREFS } from "@/lib/layerPrefs";
 import { mergeChromeLayers, stripEconomyGeopoliticsPatch } from "@/lib/viewerChrome";
 
 describe("첫 화면 Compact 장면", () => {
-  it("자동 전장은 미군·한일대만필호·동유럽 기지와 CRINK OSM·항로를 켠다", () => {
+  it("자동 전장은 FIRST_SCREEN_CONFLICT_ON(전선·드론·타격·전략군사·군용 항적)을 켠다", () => {
     const patch = conceptLayersForConflict("auto");
     expect(patch.showUkraineControl).toBe(true);
     expect(patch.showNeptun).toBe(true);
-    expect(patch.showMilitaryBases).toBe(true);
-    expect(patch.showRokMilitaryBases).toBe(true);
-    expect(patch.showJapanMilitaryBases).toBe(true);
-    expect(patch.showTaiwanMilitaryBases).toBe(true);
-    expect(patch.showPhilippinesMilitaryBases).toBe(true);
-    expect(patch.showAustraliaMilitaryBases).toBe(true);
-    expect(patch.showEasternNatoMilitaryBases).toBe(true);
-    expect(patch.showShippingLanes).toBe(true);
-    expect(patch.showCrinkInfraRail).toBe(true);
-    expect(patch.showTelegramOsint).toBeUndefined();
+    expect(patch.showUkraineStrikesOnRussia).toBe(true);
+    expect(patch.showMilitaryActivity).toBe(true);
+    expect(patch.showAlliedBlocs).toBe(true);
+    expect(patch.showIslandChains).toBe(true);
+    expect(patch.showFirmsFires).toBe(true);
+    expect(patch.showReefWatch).toBe(true);
   });
 
-  it("지정학 크롬이 한·일·대만·필·호·NATO·미군 기지를 켠다", () => {
+  it("지정학 크롬이 전선·드론·타격·전략군사·군용 항적·FIRMS·ReefWatch를 켠다", () => {
     const next = mergeChromeLayers(DEFAULT_LAYER_PREFS, "conflict");
     expect(next.showUkraineControl).toBe(true);
-    expect(next.showRokMilitaryBases).toBe(true);
-    expect(next.showJapanMilitaryBases).toBe(true);
-    expect(next.showTaiwanMilitaryBases).toBe(true);
-    expect(next.showPhilippinesMilitaryBases).toBe(true);
-    expect(next.showAustraliaMilitaryBases).toBe(true);
-    expect(next.showEasternNatoMilitaryBases).toBe(true);
-    expect(next.showMilitaryBases).toBe(true);
-    expect(next.showShippingLanes).toBe(true);
-    expect(next.showCrinkInfraRail).toBe(true);
-    // DEFAULT_LAYER_PREFS — 지정학도 텔레그램 OSINT 기본 ON (닫기는 패널 X)
-    expect(next.showTelegramOsint).toBe(true);
+    expect(next.showNeptun).toBe(true);
+    expect(next.showUkraineStrikesOnRussia).toBe(true);
+    expect(next.showGdeltWar).toBe(true);
+    expect(next.showFirmsFires).toBe(true);
+    expect(next.showMilitaryActivity).toBe(true);
+    expect(next.showUsCarriers).toBe(true);
+    expect(next.showWeeklyShipMoves).toBe(true);
+    expect(next.showAis).toBe(true);
+    expect(next.showReefWatch).toBe(true);
+    expect(next.showMissileSilos).toBe(true);
+    expect(next.showIslandChains).toBe(true);
+    expect(next.showAxisNetwork).toBe(true);
+    expect(next.showAlliedBlocs).toBe(true);
+    expect(next.showSubseaPipelines).toBe(true);
+    expect(next.showAirTraffic).toBe(false);
+    expect(next.showAiDataCenters).toBe(false);
+    expect(next.showGeoEconBlocs).toBe(false);
   });
 
   it("저장된 prefs는 기본값 변경으로 덮이지 않는다", () => {
     const saved = { ...DEFAULT_LAYER_PREFS, showTelegramOsint: true, showMilitaryBases: true };
     const next = mergeChromeLayers(saved, "conflict");
-    // 크롬 FORCE_ON은 Compact만 켠다. 사용자가 켠 기지는 끄지 않는다.
     expect(next.showMilitaryBases).toBe(true);
     expect(next.showTelegramOsint).toBe(true);
   });
@@ -78,11 +79,19 @@ describe("첫 화면 Compact 장면", () => {
     expect(next.showNeptun).toBe(false);
     expect(next.showTzevaAdom).toBe(false);
     expect(next.showMilitaryBases).toBe(false);
+    expect(next.showMilitaryActivity).toBe(false);
     expect(next.showLogisticsRisk).toBe(true);
     expect(next.showGasPipelines).toBe(true);
-    expect(next.showAxisNetwork).toBe(true);
+    expect(next.showOilPipelines).toBe(true);
+    expect(next.showSubseaPipelines).toBe(true);
+    expect(next.showGeoEconBlocs).toBe(true);
+    expect(next.showAis).toBe(true);
+    expect(next.showAirTraffic).toBe(true);
+    expect(next.showAiDataCenters).toBe(true);
+    expect(next.showGscpiGauge).toBe(true);
     expect(next.showSesChip).toBe(false);
     expect(next.showSanctionsEvasionCorridors).toBe(false);
+    expect(next.showAlliedBlocs).toBe(false);
   });
 
   it("묻기 패치가 지경학에서 전선·점령을 다시 켜지 못한다", () => {

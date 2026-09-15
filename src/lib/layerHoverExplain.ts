@@ -241,31 +241,35 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Historical conflict events from UCDP (Uppsala Conflict Data Program) — not live breaking news.",
   },
   "firms-fires": {
-    ko: "NASA FIRMS(미항공우주국 화재정보시스템) 위성 열점입니다. 산불·산업·폭격이 섞일 수 있어 전투 확정이 아닙니다.",
+    ko: "NASA FIRMS 위성 열점입니다. 산불·공장·폭격 흔적이 섞일 수 있어, 전투로 단정하지 마십시오.",
     en: "NASA FIRMS satellite heat detections — wildfire, industry, and strikes can mix; not confirmed combat.",
   },
   ais: {
-    ko: "AIS(선박자동식별장치)로 송신 중인 선박 위치입니다. 끈 배·위장 송신은 빠지거나 틀릴 수 있습니다.",
-    en: "Vessels broadcasting AIS (Automatic Identification System). Dark or spoofed ships may be missing or wrong.",
+    ko: "AIS로 위치를 보내는 선박입니다. 지정학 모드에서는 군함만, 지경학 모드에서는 민간·상선만 보입니다. 끈 배나 위장 송신은 빠지거나 틀릴 수 있습니다.",
+    en: "Vessels broadcasting AIS. Conflict mode shows military ships only; economy mode shows civilian/commercial. Dark or spoofed ships may be missing or wrong.",
   },
   "disguised-vessels": {
     ko: "위장·다크플리트로 관심 있는 선박 시드입니다. 법적 확정이 아닙니다.",
     en: "Watchlist matches for disguised / dark-fleet vessels — not a legal finding.",
   },
   "air-traffic": {
-    ko: "ADS-B(자동종속감시방송) 공개 항적입니다. 수신 범위 밖은 안 보입니다.",
-    en: "Public ADS-B aircraft tracks — outside coverage may be missing.",
+    ko: "민간 항공기 공개 항적(ADS-B)입니다. 수신 범위 밖은 안 보입니다. 항공기를 누르면 국가·기종 정보가 옆에 열립니다.",
+    en: "Public civilian ADS-B tracks — outside coverage may be missing. Click an aircraft for country and airframe info.",
   },
   "military-activity": {
-    ko: "군사 항공기 공개 항적(ADS-B 계열)입니다.",
-    en: "Military aircraft on public ADS-B-style tracks.",
+    ko: "군사 항공기 공개 항적입니다. 항공기를 누르면 국가와 군사자산 정보가 옆에 열립니다.",
+    en: "Military aircraft on public tracks. Click one for country and asset details.",
   },
   neptun: {
-    ko: "우크라이나 공중위협(드론·미사일 등) 공개 추적입니다. NEPTUN 지도 기반이며 비공식입니다.",
+    ko: "우크라이나 상공의 드론·미사일 위협을 공개 지도(NEPTUN)로 따라갑니다. 비공식 자료입니다.",
     en: "Ukraine air threats (drones/missiles) from the NEPTUN public map — unofficial.",
   },
   "viina-ukraine-control": {
-    ko: "우크라이나 전선·점령 구역입니다. VIINA 등 공개 전선 자료를 그립니다.",
+    ko: "우크라이나 전선과 점령 구역입니다. VIINA 등 공개 전선 자료를 그립니다.",
+    en: "Ukraine front / control polygons from public front-line sources (e.g. VIINA).",
+  },
+  ukraine: {
+    ko: "우크라이나 전선과 점령 구역입니다. VIINA 등 공개 전선 자료를 그립니다.",
     en: "Ukraine front / control polygons from public front-line sources (e.g. VIINA).",
   },
   "tzeva-adom": {
@@ -317,20 +321,52 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Public space-launch related points.",
   },
   "missile-silos": {
-    ko: "미사일 사일로·후보지 공개 연구 자료입니다. 전부 확인된 실전부대가 아닐 수 있습니다.",
+    ko: "미사일 사일로로 알려진 지점입니다. 공개 연구 자료를 모은 것이며, 전부 확인된 실전부대가 아닐 수 있습니다.",
     en: "Missile silo / candidate sites from open research — not all confirmed active.",
   },
   "strategic-missile-bases": {
-    ko: "전략미사일 기지로 알려진 공개 OOB(전투서열) 지점입니다.",
+    ko: "전략미사일 부대가 있는 곳으로 알려진 공개 지점입니다.",
     en: "Strategic missile basing points from open-source order of battle.",
   },
   "missile-launch-tests": {
-    ko: "미사일 시험·발사 관련 공개 지점입니다.",
+    ko: "미사일 시험·발사와 관련된 공개 지점입니다.",
     en: "Missile test / launch related public sites.",
   },
   "axis-network": {
-    ko: "CRINK 축(중·러·이·북) 허브와 파트너를 잇는 관계선입니다. 공개 지정학 스케치이며 비밀 동맹도가 아닙니다.",
+    ko: "중국·러시아·이란·북한(CRINK)과 파트너를 잇는 관계선입니다. 공개 자료로 그린 스케치이며, 비밀 동맹 점수가 아닙니다.",
     en: "CRINK axis (China, Russia, Iran, DPRK) hub links to partners — a public geopolitics sketch, not a secret alliance meter.",
+  },
+  "axis-hub": {
+    ko: "CRINK 네 나라(중국·러시아·이란·북한) 영토를 빨간 면으로 표시합니다. 동맹 조약이 아니라 축 허브 윤곽입니다.",
+    en: "CRINK hub countries (China, Russia, Iran, DPRK) as a red fill — hub outline, not a formal alliance treaty.",
+  },
+  "allied-blocs": {
+    ko: "NATO·AUKUS·CRINK 등 진영을 나라 면으로 칠한 배경입니다. Natural Earth 국경을 쓰며 정밀 영유권 주장이 아닙니다.",
+    en: "Alliance/camp country fills (NATO, AUKUS, CRINK, etc.) on Natural Earth borders — not a legal boundary claim.",
+  },
+  "geoecon-blocs": {
+    ko: "서방·반서방·비동맹·혼합 경제협력 진영을 나라 면으로 보여 줍니다. G7·EU·EAEU·ASEAN·RCEP 등 회원 기준입니다.",
+    en: "Geoeconomic camp fills (Western, anti-Western, non-aligned, mixed) by bloc membership such as G7, EU, EAEU, ASEAN, RCEP.",
+  },
+  "island-chains": {
+    ko: "중국 도련선과 미국 인도·태평양 방어선·대만 화약고를 선으로 그린 대치 구도입니다. 공식 경계가 아닙니다.",
+    en: "China island-chain lines, U.S. Indo-Pacific defense arcs, and Taiwan flashpoint sketch — not official borders.",
+  },
+  "gdelt-war": {
+    ko: "전쟁·무력 충돌 관련 보도를 지도에 찍은 빨간 점입니다. GDELT 등 공개 사건 자료를 씁니다.",
+    en: "War/conflict news dens as red map points from public event feeds such as GDELT.",
+  },
+  "news-stream-neon": {
+    ko: "핵심 지역 뉴스입니다. 지정학에서는 전쟁·긴장 기사(빨간 네온), 지경학에서는 거시·시장 기사(초록 네온)만 올립니다.",
+    en: "Regional news dens — conflict mode shows war/tension (red neon); economy mode shows macro/market only (green neon).",
+  },
+  firms: {
+    ko: "NASA FIRMS 위성 열점입니다. 산불·공장·폭격 흔적이 섞일 수 있어, 전투로 단정하지 마십시오.",
+    en: "NASA FIRMS satellite heat detections — wildfire, industry, and strikes can mix; not confirmed combat.",
+  },
+  "ai-dc": {
+    ko: "대형 AI·클라우드 데이터센터로 알려진 거점입니다. 공개 자료 기반입니다.",
+    en: "Known large AI/cloud data-center hubs from public sources.",
   },
   "bri-trade": {
     ko: "BRI(Belt and Road Initiative, 일대일로) 무역·운송 연결을 그린 선입니다.",
@@ -357,8 +393,8 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "DPRK missile / weapons-test dens — not confirmed splash points.",
   },
   "ukraine-strikes-russia": {
-    ko: "우크라→러 타격으로 보도된 핫스팟입니다. 궤적 미확정·미확인일 수 있습니다.",
-    en: "Reported Ukraine→Russia strike hotspots — trajectory often unverified.",
+    ko: "우크라이나가 러시아를 때렸다고 보도된 핫스팟입니다. 뉴스 스트림이 갱신되면 같이 최신화됩니다. 궤적은 미확인일 수 있습니다.",
+    en: "Reported Ukraine→Russia strike hotspots. Updates with the news stream; trajectories may be unverified.",
   },
   "hapi-conflict-casualties": {
     ko: "ACLED/HAPI 전선 사망 레이어는 제품에서 제거되었습니다.",
@@ -376,7 +412,16 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
 
 export function explainLayer(layerId: string | null | undefined, lang: LabelLanguage): string | null {
   if (!layerId) return null;
-  const bi = LAYER_EXPLAIN[layerId];
+  const aliases: Record<string, string> = {
+    firms: "firms-fires",
+    "ai-dc": "ai-data-centers",
+    "gdelt-ocean": "gdelt-war",
+    "gdelt-diplomatic": "gdelt-war",
+    "gdelt-protest": "gdelt-war",
+    "allied-logistics-corridors": "strategic-corridors",
+  };
+  const resolved = aliases[layerId] ?? layerId;
+  const bi = LAYER_EXPLAIN[resolved] ?? LAYER_EXPLAIN[layerId];
   return bi ? pick(bi, lang) : null;
 }
 

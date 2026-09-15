@@ -186,14 +186,15 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   );
 
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
-    const civilianOnly = isEconomyViewer
+    // 지정학: 군함만. 지경학: 민간·상업선만.
+    const modeFilter = isEconomyViewer
       ? (v: AisVessel) => v.category !== "military"
-      : () => true;
+      : (v: AisVessel) => v.category === "military";
     const live = showAis
       ? pickInViewOrNearest(
           aisVessels
             .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
-            .filter(civilianOnly),
+            .filter(modeFilter),
           layerViewState,
           VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
           liveAisDisplayMax(globeLodTier, ultraLite),

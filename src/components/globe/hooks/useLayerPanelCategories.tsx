@@ -1987,9 +1987,9 @@ export function useLayerPanelCategories({
               ]),
           {
             id: "allied-blocs",
-            label: "진영 블록 (NATO·AUKUS·CRINK)",
+            label: "진영 블록 (NATO·AUKUS·CRINK·양자동맹)",
             detail: layerPrefs.showAlliedBlocs
-              ? "국가별 진영 소속 음영 (조약·통칭 기반) — 기본 켜짐"
+              ? "국가별 진영 소속 음영 (조약·통칭 기반, 한국·일본·필리핀·태국·카타르·바레인 포함) — 기본 켜짐"
               : "꺼짐",
             checked: layerPrefs.showAlliedBlocs,
             onChange: setShowAlliedBlocs,
@@ -2131,9 +2131,9 @@ export function useLayerPanelCategories({
           },
           {
             id: "geoecon-blocs",
-            label: "지경학 진영 (서방·반서방·비동맹)",
+            label: "지경학 진영 (서방·반서방·비동맹·혼합)",
             detail: showGeoEconBlocs
-              ? "G7·EU·CPTPP·IPEF / EAEU·SCO / ASEAN·Mercosur·AfCFTA — 기본 켜짐"
+              ? "G7·EU·Chip4·MSP·I2U2 / EAEU·SCO·BRI·INSTC / ASEAN·NAM·AfCFTA / RCEP혼합 — 기본 켜짐"
               : "꺼짐",
             checked: layerPrefs.showGeoEconBlocs,
             onChange: setShowGeoEconBlocs,

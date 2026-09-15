@@ -1,31 +1,34 @@
 /**
- * 지경학 진영(서방/우호권 · 반서방/CRINK연계 · 비동맹권) 국가 경계 — Natural Earth 110m.
+ * 지경학 진영 국가 경계 — Natural Earth 110m.
  * allied-bloc-countries.json(군사 블록)과 별개 — 경제협력조약/플랫폼 회원국 전용.
  *
- * 다중 소속 우선순위: 비동맹권역(ASEAN/Mercosur/AfCFTA) > 반서방(EAEU/SCO핵심) > 서방(G7/EU/CPTPP/USMCA/IPEF).
- * 이유: 베트남처럼 ASEAN이면서 동시에 IPEF/CPTPP 회원인 나라를 "서방 진영"으로 칠하면
- * ASEAN 특유의 비동맹 정체성을 지우게 됨 — RCEP을 반서방으로 칠하면 안 되는 것과 같은 이유.
+ * 캠프 우선순위:
+ *   비동맹(강) ASEAN/Mercosur/AfCFTA
+ *   > 혼합(SCO 인도·파키스탄)
+ *   > 반서방(EAEU/SCO핵심/INSTC)
+ *   > 서방(G7/EU/CPTPP/USMCA/IPEF/Chip4/MSP/I2U2)
+ *   > 비동맹(약) NAM
+ *   > 반서방(약) BRI MoU soft
+ *   > 혼합(RCEP 잔여 — 절대 anti 금지)
  *
- * RCEP·SCO의 인도/파키스탄은 "진영색"을 매기지 않고 memberships 메타데이터로만 기록
- * (중국·러시아 주도 조직 회원이라고 자동으로 반서방으로 칠하는 건 인도의 Quad/IPEF 소속과 모순).
+ * RCEP은 중국 주도이지만 일·한·호·뉴도 회원이라 절대 반서방으로 칠하지 않음.
+ * NAM·BRI는 회원 폭이 넓어 메타데이터는 기록하되, 진영색은 위 우선순위로만 부여.
+ * EAEU는 5개국(타지키스탄 제외 — CSTO와 회원 구성이 다름).
  *
- * 출처 (모두 2026년 기준 확인, 상세는 각 배열 옆 주석):
- *  - G7/EU/USMCA: 공식 고정 회원 (수십 년간 불변)
- *  - CPTPP: 영국 2024-12-15 가입 포함 12개국 (Wikipedia: Accession of the UK to CPTPP)
- *  - IPEF: 14개국, 피지 2023-05-27 합류 (Wikipedia: Indo-Pacific Economic Framework)
- *  - EAEU: 5개국 — 러시아·벨라루스·카자흐스탄·아르메니아·키르기스스탄 (Wikipedia: Eurasian Economic Union)
- *  - SCO: 10개 정회원, 이란 2023 · 벨라루스 2024 가입 (Wikipedia: Member states of the SCO)
- *  - ASEAN: 10개국 (동티모르는 가입 절차 진행 중이라 미포함)
- *  - Mercosur: 정회원 5(아르헨티나·브라질·파라과이·우루과이·볼리비아), 베네수엘라는 자격정지 중이라 제외
- *  - RCEP: 15개국 — 진영색 없음, memberships만 기록 (mercosur.int, worldpopulationreview 등)
- *  - AfCFTA: AU 54개 서명국(에리트레아만 미서명) 중 UN 승인 주권국 53개 — 분쟁지역(서사하라)은 제외
- *
- * Usage: node build-geoecon-bloc-countries.js ne110_countries.geojson
+ * Usage:
+ *   node scripts/build-geoecon-bloc-countries.js [ne110.geojson]
+ *   → public/data/{lite,full}/geoecon-bloc-countries.json(+.gz)
  */
 const fs = require("fs");
+const path = require("path");
+const zlib = require("zlib");
 
-const SRC = process.argv[2] || "ne110_countries.geojson";
+const ROOT = path.join(__dirname, "..");
+const SRC =
+  process.argv[2] ||
+  path.join(ROOT, "tmp", "ne_110m_admin_0_countries.geojson");
 
+// ── 서방/우호권 ──────────────────────────────────────────────
 const G7 = ["USA", "CAN", "GBR", "FRA", "DEU", "ITA", "JPN"];
 const EU = [
   "AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA",
@@ -35,14 +38,51 @@ const EU = [
 const CPTPP = ["AUS", "BRN", "CAN", "CHL", "JPN", "MYS", "MEX", "NZL", "PER", "SGP", "VNM", "GBR"];
 const USMCA = ["USA", "CAN", "MEX"];
 const IPEF = ["AUS", "BRN", "FJI", "IND", "IDN", "JPN", "MYS", "NZL", "PHL", "SGP", "KOR", "THA", "USA", "VNM"];
+/** Chip 4 — 미국·일본·한국·대만 */
+const CHIP4 = ["USA", "JPN", "KOR", "TWN"];
+/**
+ * MSP(핵심광물안보파트너십) 파트너 15 — EU 기구는 국가 폴리곤에 없음.
+ * Forum(생산국)은 메타데이터에만 넣지 않고 파트너만 서방진영 시드로 사용.
+ */
+const MSP = [
+  "AUS", "CAN", "EST", "FIN", "FRA", "DEU", "IND", "ITA", "JPN", "NOR",
+  "KOR", "SWE", "GBR", "USA",
+];
+/** I2U2 — India, Israel, UAE, USA */
+const I2U2 = ["IND", "ISR", "ARE", "USA"];
 
+// ── 반서방/CRINK 연계 ────────────────────────────────────────
+/** EAEU 5 — 타지키스탄은 불포함(CSTO와 차이) */
 const EAEU = ["RUS", "BLR", "KAZ", "ARM", "KGZ"];
-// SCO 정회원 10개국 중 인도·파키스탄은 진영색 부여 안 함(아래 SCO_MIXED)
+/** SCO 정회원 중 인도·파키스탄은 혼합(아래 SCO_MIXED) */
 const SCO_CORE = ["CHN", "RUS", "KAZ", "KGZ", "TJK", "UZB", "IRN", "BLR"];
 const SCO_MIXED = ["IND", "PAK"];
+/**
+ * 일대일로 MoU — 활성 서명국 중심(이탈리아·에스토니아·파나마 등 탈퇴/만료 제외).
+ * 진영색은 PRO/비동맹(강)/혼합이 없을 때만 soft anti.
+ */
+const BRI = [
+  "AFG", "ALB", "DZA", "AGO", "ATG", "AZE", "BHR", "BGD", "BRB", "BLR",
+  "BEN", "BOL", "BIH", "BWA", "BRN", "BGR", "BFA", "BDI", "KHM", "CMR",
+  "CPV", "CAF", "TCD", "CHL", "CHN", "COL", "COM", "COG", "COD", "CRI",
+  "CIV", "CUB", "CYP", "CZE", "DJI", "DMA", "DOM", "ECU", "EGY",
+  "GNQ", "ERI", "ETH", "FJI", "GAB", "GMB", "GEO", "GHA", "GRD", "GIN",
+  "GNB", "GUY", "HTI", "HND", "HUN", "IDN", "IRN", "IRQ", "JAM", "JOR",
+  "KAZ", "KEN", "KWT", "KGZ", "LAO", "LBN", "LSO", "LBR", "LBY", "MDG",
+  "MWI", "MYS", "MDV", "MLI", "MRT", "MUS", "MNG", "MNE", "MAR", "MOZ",
+  "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "MKD", "OMN", "PAK", "PNG",
+  "PER", "PHL", "POL", "PRT", "QAT", "ROU", "RWA", "WSM", "STP",
+  "SAU", "SEN", "SRB", "SYC", "SLE", "SGP", "SVK", "SVN", "SLB", "SOM",
+  "ZAF", "SSD", "LKA", "SDN", "SUR", "SYR", "TJK", "TZA", "THA", "TLS",
+  "TGO", "TTO", "TUN", "TUR", "TKM", "UGA", "ARE", "UZB", "VUT", "VEN",
+  "VNM", "YEM", "ZMB", "ZWE", "GRC", "MLT", "LUX", "HRV",
+];
+/** INSTC — 이란·러시아·인도 남북교통회랑 (인도는 mixed) */
+const INSTC = ["IRN", "RUS", "IND"];
 
+// ── 비동맹권 ─────────────────────────────────────────────────
 const ASEAN = ["BRN", "KHM", "IDN", "LAO", "MYS", "MMR", "PHL", "SGP", "THA", "VNM"];
-const MERCOSUR = ["ARG", "BRA", "PRY", "URY", "BOL"]; // 베네수엘라 자격정지 — 제외
+const MERCOSUR = ["ARG", "BRA", "PRY", "URY", "BOL"];
 const AFCFTA = [
   "DZA", "AGO", "BEN", "BWA", "BFA", "BDI", "CPV", "CMR", "CAF", "TCD",
   "COM", "COG", "COD", "DJI", "EGY", "GNQ", "SWZ", "ETH", "GAB", "GMB",
@@ -51,15 +91,51 @@ const AFCFTA = [
   "SEN", "SYC", "SLE", "SOM", "ZAF", "SSD", "SDN", "TZA", "TGO", "TUN",
   "UGA", "ZMB", "ZWE",
 ];
-// 진영색 없음 — memberships 메타데이터로만 기록 (RCEP은 중국 주도이나 일본·한국·호주·뉴질랜드도 회원)
-const RCEP = ["CHN", "IDN", "JPN", "PHL", "VNM", "THA", "MMR", "KOR", "MYS", "AUS", "KHM", "LAO", "SGP", "NZL", "BRN"];
+/**
+ * NAM — 상징적 성격이 강함. 진영색은 다른 캠프가 없을 때만 soft non-aligned.
+ * NE110에 없는 소국은 빌드 시 자동 스킵.
+ */
+const NAM = [
+  "AFG", "DZA", "AGO", "ATG", "AZE", "BHS", "BHR", "BGD", "BRB", "BLR",
+  "BLZ", "BEN", "BTN", "BOL", "BWA", "BRN", "BFA", "BDI", "KHM", "CMR",
+  "CPV", "CAF", "TCD", "CHL", "COL", "COM", "COG", "COD", "CUB", "DJI",
+  "DMA", "DOM", "ECU", "EGY", "GNQ", "ERI", "SWZ", "ETH", "FJI", "GAB",
+  "GMB", "GHA", "GRD", "GTM", "GIN", "GNB", "GUY", "HTI", "HND", "IND",
+  "IDN", "IRN", "IRQ", "JAM", "JOR", "KEN", "KWT", "LAO", "LBN", "LSO",
+  "LBR", "LBY", "MDG", "MWI", "MYS", "MDV", "MLI", "MRT", "MUS", "MNG",
+  "MAR", "MOZ", "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "PRK", "OMN",
+  "PAK", "PAN", "PNG", "PER", "PHL", "QAT", "RWA", "KNA", "LCA", "VCT",
+  "STP", "SAU", "SEN", "SYC", "SLE", "SGP", "SOM", "ZAF", "LKA", "SDN",
+  "SUR", "SYR", "TZA", "THA", "TLS", "TGO", "TTO", "TUN", "TKM", "UGA",
+  "ARE", "UZB", "VUT", "VEN", "VNM", "YEM", "ZMB", "ZWE",
+];
 
-const PRO_WESTERN = new Set([...G7, ...EU, ...CPTPP, ...USMCA, ...IPEF]);
-const ANTI_WESTERN = new Set(SCO_CORE.concat(EAEU));
-const NON_ALIGNED = new Set([...ASEAN, ...MERCOSUR, ...AFCFTA]);
+// ── 혼합권 (주의) ────────────────────────────────────────────
+/** RCEP — 진영색 anti 금지. JP/KR/AU/NZ 등은 서방 시드가 우선, 잔여만 mixed */
+const RCEP = [
+  "CHN", "IDN", "JPN", "PHL", "VNM", "THA", "MMR", "KOR", "MYS", "AUS",
+  "KHM", "LAO", "SGP", "NZL", "BRN",
+];
+
+const PRO_WESTERN = new Set([
+  ...G7, ...EU, ...CPTPP, ...USMCA, ...IPEF, ...CHIP4, ...MSP, ...I2U2,
+]);
+const ANTI_WESTERN = new Set([...SCO_CORE, ...EAEU, ...INSTC.filter((iso) => iso !== "IND")]);
+const NON_ALIGNED_HARD = new Set([...ASEAN, ...MERCOSUR, ...AFCFTA]);
+const MIXED_EXPLICIT = new Set(SCO_MIXED);
+const BRI_SET = new Set(BRI);
+const NAM_SET = new Set(NAM);
+const RCEP_SET = new Set(RCEP);
 
 const ALL_ISOS = new Set([
-  ...PRO_WESTERN, ...ANTI_WESTERN, ...NON_ALIGNED, ...SCO_MIXED, ...RCEP,
+  ...PRO_WESTERN,
+  ...ANTI_WESTERN,
+  ...NON_ALIGNED_HARD,
+  ...MIXED_EXPLICIT,
+  ...RCEP_SET,
+  ...BRI_SET,
+  ...NAM_SET,
+  ...INSTC,
 ]);
 
 function membershipsOf(iso) {
@@ -69,21 +145,37 @@ function membershipsOf(iso) {
   if (CPTPP.includes(iso)) m.push("cptpp");
   if (USMCA.includes(iso)) m.push("usmca");
   if (IPEF.includes(iso)) m.push("ipef");
+  if (CHIP4.includes(iso)) m.push("chip4");
+  if (MSP.includes(iso)) m.push("msp");
+  if (I2U2.includes(iso)) m.push("i2u2");
   if (EAEU.includes(iso)) m.push("eaeu");
   if (SCO_CORE.includes(iso) || SCO_MIXED.includes(iso)) m.push("sco");
+  if (BRI_SET.has(iso)) m.push("bri");
+  if (INSTC.includes(iso)) m.push("instc");
   if (ASEAN.includes(iso)) m.push("asean");
+  if (NAM_SET.has(iso)) m.push("nam");
   if (MERCOSUR.includes(iso)) m.push("mercosur");
   if (AFCFTA.includes(iso)) m.push("afcfta");
-  if (RCEP.includes(iso)) m.push("rcep");
+  if (RCEP_SET.has(iso)) m.push("rcep");
   return m;
 }
 
 function camp(iso) {
-  // 우선순위: 비동맹권역 > 반서방 > 서방 > (색 없음)
-  if (NON_ALIGNED.has(iso)) return "non-aligned";
+  // 1) 강 비동맹 FTA/지역기구
+  if (NON_ALIGNED_HARD.has(iso)) return "non-aligned";
+  // 2) 혼합 — SCO 인도·파키스탄 (IPEF/MSP/I2U2가 있어도 단정 금지)
+  if (MIXED_EXPLICIT.has(iso)) return "mixed";
+  // 3) 반서방 핵심 (EAEU·SCO·INSTC 허브)
   if (ANTI_WESTERN.has(iso)) return "anti-western";
+  // 4) 서방/우호권 (BRI soft보다 먼저 — EU/G7 등 유지)
   if (PRO_WESTERN.has(iso)) return "pro-western";
-  return "none"; // SCO_MIXED(인도·파키스탄), RCEP 단독 소속국 등
+  // 5) NAM soft (BRI보다 먼저 — 쿠바 등 상징적 비동맹 유지)
+  if (NAM_SET.has(iso)) return "non-aligned";
+  // 6) BRI soft — PRO/NAM이 아닐 때만
+  if (BRI_SET.has(iso)) return "anti-western";
+  // 7) RCEP 잔여 — 절대 anti 아님
+  if (RCEP_SET.has(iso)) return "mixed";
+  return "none";
 }
 
 function round(n) {
@@ -217,7 +309,24 @@ function countPts(geometry) {
   return n;
 }
 
+function writeOutputs(out) {
+  const json = `${JSON.stringify(out)}\n`;
+  const gz = zlib.gzipSync(Buffer.from(json, "utf8"), { level: 9 });
+  for (const tier of ["lite", "full"]) {
+    const dir = path.join(ROOT, "public", "data", tier);
+    fs.mkdirSync(dir, { recursive: true });
+    const dest = path.join(dir, "geoecon-bloc-countries.json");
+    fs.writeFileSync(dest, json);
+    fs.writeFileSync(`${dest}.gz`, gz);
+    console.log("wrote", path.relative(ROOT, dest), json.length, "bytes; gz", gz.length);
+  }
+}
+
 function main() {
+  if (!fs.existsSync(SRC)) {
+    console.error("Missing Natural Earth source:", SRC);
+    process.exit(1);
+  }
   const fc = JSON.parse(fs.readFileSync(SRC, "utf8"));
   const byIso = new Map();
   for (const feature of fc.features || []) {
@@ -231,28 +340,58 @@ function main() {
     byIso.set(iso, { type: "Feature", id: iso, properties: { iso, name }, geometry });
   }
 
-  const missing = [...ALL_ISOS].filter((iso) => !byIso.has(iso));
-  if (missing.length) {
-    console.error("MISSING:", missing.join(", "));
-    process.exit(1);
+  const missing = [...ALL_ISOS].filter((iso) => !byIso.has(iso)).sort();
+  const fallbackPath = path.join(ROOT, "tmp", "geoecon-prev.json");
+  if (missing.length && fs.existsSync(fallbackPath)) {
+    const prev = JSON.parse(fs.readFileSync(fallbackPath, "utf8"));
+    let filled = 0;
+    for (const feature of prev.features || []) {
+      const iso = feature?.properties?.iso;
+      if (!iso || !missing.includes(iso) || byIso.has(iso)) continue;
+      if (!feature.geometry) continue;
+      byIso.set(iso, {
+        type: "Feature",
+        id: iso,
+        properties: { iso, name: feature.properties.name || iso },
+        geometry: feature.geometry,
+      });
+      filled += 1;
+    }
+    if (filled) console.warn(`Backfilled ${filled} geometries from ${path.relative(ROOT, fallbackPath)}`);
+  }
+  const stillMissing = [...ALL_ISOS].filter((iso) => !byIso.has(iso)).sort();
+  if (stillMissing.length) {
+    console.warn(
+      "SKIP (not in NE110 / unresolved ISO):",
+      stillMissing.join(", "),
+      `(${stillMissing.length})`,
+    );
   }
 
-  const features = [...ALL_ISOS].map((iso) => {
+  const present = [...ALL_ISOS].filter((iso) => byIso.has(iso)).sort();
+  const features = present.map((iso) => {
     const f = byIso.get(iso);
     f.properties.camp = camp(iso);
     f.properties.memberships = membershipsOf(iso);
     return f;
   });
 
-  const out = { type: "FeatureCollection", name: "geoecon-bloc-countries-ne110m", features };
-  const json = `${JSON.stringify(out)}\n`;
-  fs.writeFileSync("/tmp/geoecon-bloc-countries.json", json);
-  console.log("features:", features.length, "bytes:", json.length);
+  const out = {
+    type: "FeatureCollection",
+    name: "geoecon-bloc-countries-ne110m",
+    features,
+  };
+  writeOutputs(out);
+
   const byCamp = {};
   for (const f of features) {
     byCamp[f.properties.camp] = (byCamp[f.properties.camp] || 0) + 1;
   }
-  console.log("camp counts:", byCamp);
+  console.log("features:", features.length, "camp counts:", byCamp);
+  for (const iso of ["USA", "TWN", "NOR", "ISR", "ARE", "IND", "PAK", "CHN", "JPN", "KOR", "AUS", "RUS", "IRN", "SRB", "CUB"]) {
+    const f = features.find((x) => x.properties.iso === iso);
+    if (f) console.log(iso, f.properties.camp, f.properties.memberships.join("+"));
+  }
 }
 
 main();
