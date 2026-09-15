@@ -43,12 +43,13 @@ export function useLazyJsonObject<T>(
   relativePath: string,
   enabled: boolean,
   parse: (raw: unknown) => T,
-  opts?: { deferUntilIdle?: boolean },
+  opts?: { deferUntilIdle?: boolean; idleTimeoutMs?: number },
 ) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const loadedRef = useRef(false);
   const deferUntilIdle = Boolean(opts?.deferUntilIdle);
+  const idleTimeoutMs = opts?.idleTimeoutMs ?? 4_000;
 
   useEffect(() => {
     if (!enabled || loadedRef.current) return;
@@ -79,12 +80,12 @@ export function useLazyJsonObject<T>(
       };
     }
 
-    const cancelIdle = runWhenIdle(start, 4_000);
+    const cancelIdle = runWhenIdle(start, idleTimeoutMs);
     return () => {
       mounted = false;
       cancelIdle();
     };
-  }, [deferUntilIdle, enabled, relativePath, parse]);
+  }, [deferUntilIdle, enabled, idleTimeoutMs, relativePath, parse]);
 
   return { data, loading };
 }
