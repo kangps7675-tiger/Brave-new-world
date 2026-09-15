@@ -207,9 +207,13 @@ export function DashboardTopChrome({
               {onOpenLayers ? (
                 <button
                   type="button"
+                  id="layer-panel-toggle"
                   onClick={onOpenLayers}
                   className={`${stripBtn} min-w-[7.5rem] text-center`}
                   aria-haspopup="dialog"
+                  aria-label={
+                    labelLanguage === "en" ? "Open layer panel" : "레이어 패널 열기"
+                  }
                 >
                   {labelLanguage === "en" ? "Layers" : "레이어"}
                 </button>
