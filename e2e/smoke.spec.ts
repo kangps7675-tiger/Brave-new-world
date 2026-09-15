@@ -180,12 +180,14 @@ function mapCanvas(page: Page) {
 async function waitForInteractiveChrome(page: Page) {
   await expect(mapCanvas(page)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('[aria-label*="로딩 중"]')).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator('[aria-label*="버퍼링"]')).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator('[aria-label*="Buffering"]')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator("#domain-gate-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#entry-caution-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#data-source-parchment-title")).toHaveCount(0, { timeout: 5_000 });
 
-  // news-stream 로드 후 속보·등불이 늦게 뜰 수 있음 — 스크rim이 없어질 때까지 폴링
+  // news-stream load then parchment dismiss poll
   await expect
     .poll(async () => {
       await completeSourcesGateIfVisible(page);
@@ -196,7 +198,11 @@ async function waitForInteractiveChrome(page: Page) {
       return blocking;
     }, { timeout: 45_000 })
     .toBe(0);
+
+  // Nullschool chrome — top Layers button is the panel toggle
+  await expect(page.locator("#layer-panel-toggle")).toBeVisible({ timeout: 20_000 });
 }
+
 
 /** 등불·속보·기타 양피지 — CTA(접기/확인 등)로 닫는다 */
 async function dismissBlockingParchmentOverlays(page: Page) {
