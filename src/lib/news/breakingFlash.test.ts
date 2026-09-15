@@ -97,7 +97,7 @@ describe("breakingFlashNarrative", () => {
 });
 
 describe("buildBreakingFlashBriefing prose essay", () => {
-  it("writes 3~4 unlabeled paragraphs and weaves supply-chain when linked", () => {
+  it("writes 3 unlabeled inverse-pyramid paragraphs of pure news", () => {
     const briefing = buildBreakingFlashBriefing(
       hero({
         title: "Missile strike near Hormuz disrupts tanker traffic",
@@ -110,13 +110,22 @@ describe("buildBreakingFlashBriefing prose essay", () => {
     );
     expect(briefing.mode).toBe("conflict");
     const body = briefing.paragraphs;
-    expect(body.length).toBeGreaterThanOrEqual(3);
-    expect(body.length).toBeLessThanOrEqual(4);
+    expect(body).toHaveLength(3);
     expect(body.some((p) => p.includes("【"))).toBe(false);
+    expect(body.some((p) => /Tier|투자|대피|육하원칙|작성|면책|관측 메모/.test(p))).toBe(
+      false,
+    );
     expect(body.some((p) => /해협|운임|보험|유조선|원유/.test(p))).toBe(true);
+    const sentenceApprox = body
+      .join(" ")
+      .split(/(?<=다\.|습니다\.)/)
+      .map((s) => s.trim())
+      .filter(Boolean).length;
+    expect(sentenceApprox).toBeGreaterThanOrEqual(12);
+    expect(sentenceApprox).toBeLessThanOrEqual(24);
   });
 
-  it("still yields 3~4 prose paragraphs when no logistics signal", () => {
+  it("still yields 3 prose paragraphs when no logistics signal", () => {
     const briefing = buildBreakingFlashBriefing(
       hero({
         title: "Artillery duel reported on eastern front",
@@ -127,10 +136,11 @@ describe("buildBreakingFlashBriefing prose essay", () => {
       false,
     );
     const body = briefing.paragraphs;
-    expect(body.length).toBeGreaterThanOrEqual(3);
-    expect(body.length).toBeLessThanOrEqual(4);
+    expect(body).toHaveLength(3);
     expect(body.some((p) => p.includes("【"))).toBe(false);
-    expect(body.some((p) => p.includes("드러나지 않습니다"))).toBe(true);
+    expect(body.some((p) => /Tier|투자|대피|육하원칙|드러나지 않습니다/.test(p))).toBe(
+      false,
+    );
   });
 });
 

@@ -1,9 +1,12 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
+import { useState } from "react";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
+import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
+import { HoverSideDrawer } from "@/components/HoverSideDrawer";
 import {
   BottomDockModeToggle,
   type BottomDockMode,
@@ -55,13 +58,22 @@ export interface DashboardTopChromeProps {
   onOpenLayers?: () => void;
   onOpenSettings?: () => void;
   onOpenData?: () => void;
+  /** 우상단 GTI / 시계 스택 */
+  wtiScore?: number | null;
+  wtiDelta?: number | null;
+  wtiAsOf?: string | null;
+  wtiIsEstimate?: boolean | null;
+  showSesChip?: boolean;
+  showGscpi?: boolean;
+  /** 좌측 레일 슬롯 — OverlayHost가 포털하거나 children 대신 비움 */
+  leftRailSlotId?: string;
 }
 
 /**
- * Nullschool식 상단 크롬:
- * - 좌상단 햄버거
- * - 상단 중앙 지정학/지경학 토글
- * - 상단 호버 시 HoverNav reveal
+ * Nullschool식 상단 크롬 + 좌·우 호버 서랍.
+ * - 상단: 투명 스트립 · 호버 시 검색→지정학/지경학
+ * - 좌: 메뉴(+레일 슬롯) 호버 서랍
+ * - 우: 시계·GTI 호버 서랍
  */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -78,6 +90,7 @@ export function DashboardTopChrome({
   searchResults,
   handleSearchSelect,
   isCompactUi,
+  isTabletUi = false,
   setAskLayersOpen,
   handleViewerModeChange,
   bottomDockMode,
@@ -91,19 +104,36 @@ export function DashboardTopChrome({
   onOpenLayers,
   onOpenSettings,
   onOpenData,
+  wtiScore = null,
+  wtiDelta = null,
+  wtiAsOf = null,
+  wtiIsEstimate = null,
+  showSesChip = true,
+  showGscpi = true,
+  leftRailSlotId = "chrome-left-rail-slot",
 }: DashboardTopChromeProps) {
+  const [rightPinned, setRightPinned] = useState(false);
+
   if (intelSheetOpen) return null;
 
   const chromeVisible = entryGate === null && !showModePicker;
   if (!chromeVisible) return null;
 
+  const stripBtn =
+    "rounded-full border border-sky-200/30 bg-transparent px-3 py-1 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
+
   return (
     <>
-      {/* 좌상단 햄버거 */}
-      <div className="pointer-events-auto fixed left-[max(0.75rem,env(safe-area-inset-left))] top-[max(0.55rem,env(safe-area-inset-top))] z-[260]">
+      {/* 좌측 호버 서랍 — 메뉴 + 레일 슬롯 */}
+      <HoverSideDrawer
+        side="left"
+        peepLabel={labelLanguage === "en" ? "Menu" : "메뉴"}
+        zIndexClass="z-[320]"
+      >
         <UtilityChromeMenu
           lang={labelLanguage}
           showProTip={false}
+          menuAlign="left"
           captureFrame={async () => (await globeRef.current?.captureFrame()) ?? null}
           getScene={getSceneForShare}
           onTour={() => setChromeCoachStep("nav")}
@@ -115,31 +145,38 @@ export function DashboardTopChrome({
           onOpenData={onOpenData}
           siteName={brandName(labelLanguage)}
         />
-      </div>
+        <div
+          id={leftRailSlotId}
+          className="cv-desktop-only flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-start gap-2"
+        />
+      </HoverSideDrawer>
 
-      {/* 상단 중앙 — 지정학/지경학 + 히스토리/뉴스 */}
-      <div className="pointer-events-auto fixed left-1/2 top-[max(0.55rem,env(safe-area-inset-top))] z-[255] -translate-x-1/2">
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
-            <BottomDockModeToggle
-              lang={labelLanguage}
-              mode={bottomDockMode}
-              onChange={onBottomDockModeChange}
-              compact={isCompactUi}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={onSceneStart}
-            className="rounded-full border border-sky-300/30 bg-[#0a1428]/75 px-3 py-1 text-meta font-medium tracking-wide text-sky-100/90 shadow-md backdrop-blur-md hover:border-sky-200/50 hover:bg-sky-500/15"
-          >
-            {t("sceneMissionStart", labelLanguage)}
-          </button>
+      {/* 우측 호버 서랍 — 시계 · GTI */}
+      <HoverSideDrawer
+        side="right"
+        peepLabel={viewerMode === "economy" ? "GSCPI" : "GTI"}
+        forceOpen={rightPinned}
+        zIndexClass="z-[300]"
+      >
+        <div
+          onFocusCapture={() => setRightPinned(true)}
+        >
+          <ModeGlobalIndexChip
+            viewerMode={viewerMode}
+            lang={labelLanguage}
+            wtiScore={wtiScore}
+            wtiDelta={wtiDelta}
+            wtiAsOf={wtiAsOf}
+            wtiIsEstimate={wtiIsEstimate}
+            showSesChip={showSesChip}
+            showGscpi={showGscpi}
+            dense={isCompactUi || isTabletUi}
+            embedded
+            onPanelOpenChange={setRightPinned}
+          />
         </div>
-      </div>
+      </HoverSideDrawer>
 
-      {/* 호버 시만 nav — 검색·전장 메뉴 */}
       <HoverNav
         viewerMode={viewerMode}
         onNavigate={handleNavNavigate}
@@ -150,11 +187,46 @@ export function DashboardTopChrome({
         searchResults={searchResults}
         onSearchSelect={handleSearchSelect}
         compact={isCompactUi}
-        showDesktopToolsSlot={false}
+        showDesktopToolsSlot={!isCompactUi}
         hoverReveal
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
+        aboveNav={
+          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 bg-transparent py-0.5">
+            <div className="flex justify-end">
+              <BottomDockModeToggle
+                lang={labelLanguage}
+                mode={bottomDockMode}
+                onChange={onBottomDockModeChange}
+                compact={isCompactUi}
+                transparent
+              />
+            </div>
+            <div className="flex justify-center">
+              {onOpenLayers ? (
+                <button
+                  type="button"
+                  onClick={onOpenLayers}
+                  className={`${stripBtn} min-w-[7.5rem] text-center`}
+                  aria-haspopup="dialog"
+                >
+                  {labelLanguage === "en" ? "Layers" : "레이어"}
+                </button>
+              ) : (
+                <span className="min-w-[7.5rem]" aria-hidden />
+              )}
+            </div>
+            <div className="flex justify-start">
+              <button type="button" onClick={onSceneStart} className={stripBtn}>
+                {t("sceneMissionStart", labelLanguage)}
+              </button>
+            </div>
+          </div>
+        }
+        belowNav={
+          <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+        }
       />
     </>
   );

@@ -32,6 +32,8 @@ type BottomDockModeToggleProps = {
   mode: BottomDockMode;
   onChange: (mode: BottomDockMode) => void;
   compact?: boolean;
+  /** 상단 고정 스트립 — 불투명 패널 없이 지도가 비치게 */
+  transparent?: boolean;
 };
 
 /**
@@ -43,14 +45,17 @@ export function BottomDockModeToggle({
   mode,
   onChange,
   compact = false,
+  transparent = false,
 }: BottomDockModeToggleProps) {
   return (
     <div
       role="tablist"
       aria-label={t("bottomDockToggleAria", lang)}
-      className={`pointer-events-auto mx-auto flex w-fit items-center gap-0.5 rounded-full border border-sky-200/20 bg-[#0a1428]/88 p-0.5 shadow-lg backdrop-blur-md ${
-        compact ? "text-micro" : "text-caption"
-      }`}
+      className={`pointer-events-auto mx-auto flex w-fit items-center gap-0.5 rounded-full border p-0.5 ${
+        transparent
+          ? "border-sky-200/25 bg-transparent shadow-none backdrop-blur-none"
+          : "border-sky-200/20 bg-[#0a1428]/88 shadow-lg backdrop-blur-md"
+      } ${compact ? "text-micro" : "text-caption"}`}
     >
       {(
         [

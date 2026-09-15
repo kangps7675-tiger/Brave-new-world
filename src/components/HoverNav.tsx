@@ -40,6 +40,11 @@ type HoverNavProps = {
   compact?: boolean;
   /** compact 드롭다운 하단 슬롯 (전장·프리셋 등) */
   compactMenuExtra?: ReactNode;
+  /**
+   * 검색창 **위** — 최상단 고정 스트립 (히스토리/뉴스·레이어·장면 등).
+   * hoverReveal이어도 항상 보이며, 검색·belowNav과 함께 한 스택으로 내려온다.
+   */
+  aboveNav?: ReactNode;
   /** nav 본문·드롭다운 바로 아래 (지정학/지경학 스위치 등) — 메뉴 열림에 따라 함께 이동 */
   belowNav?: ReactNode;
   /** 데스크톱 확장 시 우측 도구·경보 슬롯 (포털 타깃 #hover-nav-desktop-tools) */
@@ -67,6 +72,7 @@ export function HoverNav({
   onSearchSelect,
   compact = false,
   compactMenuExtra,
+  aboveNav,
   belowNav,
   showDesktopToolsSlot = false,
   onAskLayersOpen,
@@ -183,7 +189,7 @@ export function HoverNav({
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, belowNav, showDesktopToolsSlot, menuExpanded, hoverReveal, navChromeVisible]);
+  }, [compact, aboveNav, belowNav, showDesktopToolsSlot, menuExpanded, hoverReveal, navChromeVisible]);
 
   return (
     <div
@@ -205,21 +211,51 @@ export function HoverNav({
     >
       {hoverReveal ? (
         <div
-          className="pointer-events-auto absolute inset-x-0 top-0 h-3"
+          className="pointer-events-auto absolute inset-x-0 top-0 h-5"
           aria-hidden
         />
       ) : null}
       <div
         ref={chromeRef}
-        className={`pointer-events-auto flex w-full flex-col items-center transition-all duration-300 ${
+        className={`flex w-full flex-col items-center ${
           compact ? "px-[3.4rem] sm:px-14" : "mt-1.5 px-2 sm:px-3"
-        } ${
-          hoverReveal && !navChromeVisible
-            ? "pointer-events-none -translate-y-2 opacity-0"
-            : "translate-y-0 opacity-100"
         }`}
       >
-      <div className="flex w-full flex-col items-center">
+      <div className="flex w-full flex-col items-center gap-1.5">
+      {/* 최상단 고정 — 투명, 항상 표시 (호버와 무관) */}
+      {aboveNav || showDesktopToolsSlot ? (
+        <div
+          className={`pointer-events-auto flex w-full max-w-6xl flex-col items-center gap-1.5 bg-transparent ${
+            menuExpanded ? "relative z-[100]" : "relative z-[210]"
+          }`}
+        >
+          {aboveNav ? (
+            <div className="flex w-full items-center justify-center bg-transparent px-[8%] sm:px-[12%]">
+              {aboveNav}
+            </div>
+          ) : null}
+          {showDesktopToolsSlot ? (
+            <div
+              id="hover-nav-desktop-tools"
+              className="flex w-full max-w-5xl flex-wrap items-center justify-center gap-3 bg-transparent sm:max-w-6xl"
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 검색 → 지정학/지경학 — 호버 시 상단 스트립 아래로 촤르륵 */}
+      <div
+        className={`flex w-full flex-col items-center gap-1.5 transition-all duration-300 ease-out ${
+          hoverReveal && !navChromeVisible
+            ? "pointer-events-none max-h-0 -translate-y-2 overflow-hidden opacity-0"
+            : "pointer-events-auto max-h-[48rem] translate-y-0 opacity-100"
+        }`}
+        style={
+          hoverReveal
+            ? { transitionDelay: navChromeVisible ? "30ms" : "0ms" }
+            : undefined
+        }
+      >
       {/* 메뉴 드롭다운이 토글 줄(belowNav) 위에 오도록 — expanded 시 nav만 높은 스택 */}
       <nav
         id="app-hover-nav"
@@ -604,26 +640,21 @@ export function HoverNav({
         ) : null}
       </nav>
 
-      {showDesktopToolsSlot ? (
-        <div
-          id="hover-nav-desktop-tools"
-          className={`mt-2 flex w-full max-w-5xl flex-wrap items-center justify-center gap-3 sm:max-w-6xl ${
-            // 도구 줄(주요전장·꿀팁·메뉴)이 belowNav(인텔/지형·레이어)보다 항상 위
-            // — 메뉴 드롭다운이 토글 줄에 가리지 않도록
-            menuExpanded ? "relative z-[100]" : "relative z-[200]"
-          }`}
-        />
-      ) : null}
-
       {belowNav ? (
         <div
-          className={`mt-2.5 flex justify-center ${
+          className={`mt-0.5 flex justify-center transition-all duration-300 ease-out ${
             menuExpanded ? "relative z-[100]" : "relative z-[100]"
           }`}
+          style={
+            hoverReveal
+              ? { transitionDelay: navChromeVisible ? "90ms" : "0ms" }
+              : undefined
+          }
         >
           {belowNav}
         </div>
       ) : null}
+      </div>
       </div>
       </div>
     </div>

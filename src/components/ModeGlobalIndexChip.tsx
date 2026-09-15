@@ -29,6 +29,10 @@ type ModeGlobalIndexChipProps = {
   showSwpc?: boolean;
   dense?: boolean;
   className?: string;
+  /** HoverSideDrawer 등 부모 안에 넣을 때 — fixed 해제 */
+  embedded?: boolean;
+  /** 설명/SES 패널 열림 — 부모 서랍 forceOpen용 */
+  onPanelOpenChange?: (open: boolean) => void;
 };
 
 /**
@@ -47,6 +51,8 @@ export function ModeGlobalIndexChip({
   showSwpc = true,
   dense = false,
   className = "",
+  embedded = false,
+  onPanelOpenChange,
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
   const stackRef = useRef<HTMLDivElement>(null);
@@ -54,6 +60,10 @@ export function ModeGlobalIndexChip({
   const [sesPanelOpen, setSesPanelOpen] = useState(false);
   const [explainId, setExplainId] = useState<MetricExplainId | null>(null);
   const sesEntry = useSanctionsEvasionSnapshot();
+
+  useEffect(() => {
+    onPanelOpenChange?.(sesPanelOpen || Boolean(explainId));
+  }, [sesPanelOpen, explainId, onPanelOpenChange]);
 
   const openExplain = useCallback((id: MetricExplainId) => {
     setSesPanelOpen(false);
@@ -127,12 +137,18 @@ export function ModeGlobalIndexChip({
     <>
       <div
         ref={stackRef}
-        className={`pointer-events-auto fixed z-[300] flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${className}`}
-        style={{
-          top: "max(0.75rem, env(safe-area-inset-top, 0px))",
-          right:
-            "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
-        }}
+        className={`pointer-events-auto flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${
+          embedded ? "relative z-auto" : "fixed z-[300]"
+        } ${className}`}
+        style={
+          embedded
+            ? undefined
+            : {
+                top: "max(0.75rem, env(safe-area-inset-top, 0px))",
+                right:
+                  "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
+              }
+        }
         data-chrome-obstacle="mode-index-chip"
         data-chrome-density={dense ? "dense" : "full"}
       >

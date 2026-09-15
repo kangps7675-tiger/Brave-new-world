@@ -559,11 +559,11 @@ export function buildBriefingFromStats(
       );
     }
 
-    // 어떻게
+    // 어떻게 · 전망 (관측 내용만 — 작성 원칙/면책 문구 없음)
     paragraphs.push(
       econ
-        ? "종합하면, 본 보고는 누가·언제·어디서·무엇을·왜·어떻게 순서로 확인된 사실만 정리한 것입니다. 수치는 시리즈별 기준 시점이 달라 단정적 해석은 유보합니다. 다음 보고는 6시간마다 갱신됩니다."
-        : "종합하면, 본 보고는 확인된 관측 사실을 육하원칙 순서로 정리한 것이며 추정·전망은 포함하지 않았습니다. 다음 보고는 6시간마다 갱신됩니다.",
+        ? "같은 관측 창의 신호는 시장 거래 마감 이후에도 이어질 수 있습니다. 다음 집계는 6시간마다 갱신됩니다."
+        : "같은 관측 창의 신호는 전선·열원·현장 채널에서 계속 쌓일 수 있습니다. 다음 집계는 6시간마다 갱신됩니다.",
     );
   } else {
     paragraphs.push(
@@ -589,7 +589,7 @@ export function buildBriefingFromStats(
       paragraphs.push(`Context: ${hot || placeNames} responded first and most strongly in this window.`);
     }
     paragraphs.push(
-      "In summary, this report organizes verified observations in 5W1H order and excludes projection. The next report updates every 6 hours.",
+      "Signals in this window may continue across tension observations, heat detections, and field channels. The next tally refreshes every 6 hours.",
     );
   }
 
@@ -2151,37 +2151,38 @@ export function shortenEconomyLampParagraphs(paragraphs: string[], max = 1): str
 }
 
 /**
- * 한글 UI일 때 등불 본문(제목·문단·뉴스 카드·거시표·GTI)을 최대한 한국어로 맞춤.
- * 이미 한글이 주를 이루면 재번역하지 않음.
+ * UI 언어에 맞춰 등불 본문(제목·문단·뉴스 카드·거시표·GTI)을 강제 현지화.
+ * ko → 제목·프리뷰 한글 / en → 제목·프리뷰 영어. 이미 목표 언어면 재번역하지 않음.
  */
 export async function localizePeriodicBriefing(
   briefing: PeriodicBriefing,
   lang: LabelLanguage,
 ): Promise<PeriodicBriefing> {
-  if (lang === "en") return briefing;
-
-  const { isMostlyKorean, mapPool, translateTextToKorean } = await import(
+  const { isMostlyEnglish, isMostlyKorean, mapPool, translateText } = await import(
     "@/lib/koreanTranslate"
   );
 
-  const toKo = async (text: string | undefined | null): Promise<string> => {
+  const matchesTarget = (text: string) =>
+    lang === "en" ? isMostlyEnglish(text) : isMostlyKorean(text);
+
+  const toLang = async (text: string | undefined | null): Promise<string> => {
     if (!text?.trim()) return text ?? "";
-    if (isMostlyKorean(text)) return text;
-    return translateTextToKorean(text);
+    if (matchesTarget(text)) return text;
+    return translateText(text, lang);
   };
 
   const [title, paragraphs, featuredNews, macroTable] = await Promise.all([
-    toKo(briefing.title),
-    mapPool(briefing.paragraphs, toKo, 3),
+    toLang(briefing.title),
+    mapPool(briefing.paragraphs, toLang, 3),
     briefing.featuredNews
       ? mapPool(
           briefing.featuredNews,
           async (item) => ({
             ...item,
-            title: await toKo(item.title),
-            summary: await toKo(item.summary),
-            focusLabel: item.focusLabel ? await toKo(item.focusLabel) : item.focusLabel,
-            matterHook: item.matterHook ? await toKo(item.matterHook) : item.matterHook,
+            title: await toLang(item.title),
+            summary: await toLang(item.summary),
+            focusLabel: item.focusLabel ? await toLang(item.focusLabel) : item.focusLabel,
+            matterHook: item.matterHook ? await toLang(item.matterHook) : item.matterHook,
           }),
           4,
         )
@@ -2191,10 +2192,10 @@ export async function localizePeriodicBriefing(
           briefing.macroTable,
           async (row) => ({
             ...row,
-            country: await toKo(row.country),
-            indicator: isMostlyKorean(row.indicator)
+            country: await toLang(row.country),
+            indicator: matchesTarget(row.indicator)
               ? row.indicator
-              : await toKo(row.indicator),
+              : await toLang(row.indicator),
           }),
           4,
         )
@@ -2202,7 +2203,7 @@ export async function localizePeriodicBriefing(
   ]);
 
   const wti = briefing.wti
-    ? { ...briefing.wti, lead: await toKo(briefing.wti.lead) }
+    ? { ...briefing.wti, lead: await toLang(briefing.wti.lead) }
     : briefing.wti;
 
   return {

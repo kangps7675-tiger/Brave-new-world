@@ -1,6 +1,6 @@
 import { buildNewsStream } from "@/lib/news/pipeline";
 import {
-  ensureKoreanNewsPayload,
+  ensureLocalizedNewsPayload,
   translateNewsStreamPayload,
 } from "@/lib/news/translateNews";
 import {
@@ -108,8 +108,7 @@ export async function resolveNewsStream(options: {
   if (!options.preferLive) {
     const mem = readNewsMemoryCache(key);
     if (mem) {
-      const payload =
-        options.lang === "ko" ? await ensureKoreanNewsPayload(mem) : mem;
+      const payload = await ensureLocalizedNewsPayload(mem, options.lang);
       if (payload !== mem) {
         writeNewsMemoryCache(key, payload);
         void writeNewsStreamToD1({
@@ -124,10 +123,7 @@ export async function resolveNewsStream(options: {
 
     const fromD1 = await readNewsStreamFromD1(key, NEWS_D1_TTL_MS);
     if (fromD1?.payload) {
-      const payload =
-        options.lang === "ko"
-          ? await ensureKoreanNewsPayload(fromD1.payload)
-          : fromD1.payload;
+      const payload = await ensureLocalizedNewsPayload(fromD1.payload, options.lang);
       writeNewsMemoryCache(key, payload);
       if (payload !== fromD1.payload) {
         void writeNewsStreamToD1({

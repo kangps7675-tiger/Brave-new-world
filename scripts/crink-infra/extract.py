@@ -51,7 +51,7 @@ def power_allowed(tags: osmium.TagList) -> bool:
 def rail_allowed(tags: osmium.TagList) -> bool:
     kind = tags.get("railway")
     if kind not in RAIL_TYPES:
-        return False
+    return False
     svc = tags.get("service")
     return svc not in RAIL_SKIP_SERVICE
 
@@ -103,18 +103,18 @@ def write_feature(
     geometry: dict,
     tags: dict[str, str],
 ) -> None:
-    feature = {
-        "type": "Feature",
-        "geometry": geometry,
-        "properties": {
-            "crinkCategory": cat,
+        feature = {
+            "type": "Feature",
+            "geometry": geometry,
+            "properties": {
+                "crinkCategory": cat,
             "region": region_id,
-            "osmType": osm_type,
-            "osmId": osm_id,
+                "osmType": osm_type,
+                "osmId": osm_id,
             "name": feature_name(tags),
-            "tags": tags,
-        },
-    }
+                "tags": tags,
+            },
+        }
     writers[cat].write(json.dumps(feature, ensure_ascii=False) + "\n")
     counts[cat] += 1
 
@@ -595,8 +595,8 @@ def extract_region_small(
     try:
         handler.apply_file(str(pbf_path), locations=True, idx="flex_mem")
     finally:
-        for w in writers.values():
-            w.close()
+    for w in writers.values():
+        w.close()
 
     print(f"[extract] {region_id} counts:", handler.counts, flush=True)
     return handler.counts

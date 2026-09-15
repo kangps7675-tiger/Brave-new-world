@@ -79,12 +79,12 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 첫 화면 — Compact `전선` + CRINK OSM·기지·해상 항로 */
+/** 지정학 첫 화면 — 전선·드론·타격·전략군사·군용 항적·FIRMS·ReefWatch·CRINK 영토 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 지경학 첫 화면 — 초크·항로·에너지·코리도·축 (시장 리스크 지도) */
+/** 지경학 첫 화면 — 초크·항로·에너지·진영·민간 항적·DC·해저관 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };

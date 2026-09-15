@@ -40,6 +40,8 @@ type UtilityChromeMenuProps = {
   onOpenSettings?: () => void;
   onOpenData?: () => void;
   siteName?: string;
+  /** 드롭다운 가로 정렬 — 좌상단 햄버거는 left (기본 right는 우측 유틸용) */
+  menuAlign?: "left" | "right";
 };
 
 const MENU_COPY = {
@@ -98,6 +100,7 @@ export function UtilityChromeMenu({
   onOpenSettings,
   onOpenData,
   siteName = "멋진 신세계",
+  menuAlign = "right",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
   const tipCopy = PARCHMENT_PRO_TIP_COPY[lang] ?? PARCHMENT_PRO_TIP_COPY.ko;
@@ -218,13 +221,15 @@ export function UtilityChromeMenu({
           id={menuId}
           role="menu"
           aria-label={copy.trigger}
-          className={`absolute right-0 top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
+          className={`absolute top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
+            menuAlign === "left" ? "left-0" : "right-0"
+          } ${
             light
               ? "border-slate-200 bg-white"
               : "border-sky-300/20 bg-[#0c1a2e]/94 backdrop-blur-md"
           }`}
         >
-          <div className="max-h-[min(70vh,28rem)] space-y-0.5 overflow-y-auto p-1.5">
+          <div className="max-h-[min(70vh,calc(100dvh-5.5rem))] space-y-0.5 overflow-y-auto p-1.5">
             {onOpenLayers || onOpenSettings || onOpenData ? (
               <div className="space-y-0.5 pb-1">
                 {onOpenLayers ? (
