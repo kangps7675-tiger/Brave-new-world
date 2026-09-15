@@ -517,14 +517,7 @@ export function buildBreakingFlashBriefing(
   const actors = extractFlashActors(blob, lang);
   const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
 
-  const gradeLine =
-    hero.breakingRank != null
-      ? ko
-        ? `관측 메모: 등급 ${hero.breakingRank} · 내부 ${hero.breakingGrade ?? "—"} (자동 순위, 최종 진실이 아님)`
-        : `Desk note: rank ${hero.breakingRank} · grade ${hero.breakingGrade ?? "—"} (automated—not final truth)`
-      : null;
-
-  const essay = buildFlashCausalEssay({
+  const paragraphs = buildFlashCausalEssay({
     title: titleText,
     summary: body,
     theater: hero.theater,
@@ -537,12 +530,7 @@ export function buildBreakingFlashBriefing(
       hero.trustTier === 1 || hero.trustTier === 2 || hero.trustTier === 3
         ? hero.trustTier
         : undefined,
-  });
-
-  const paragraphs =
-    gradeLine && essay.length > 0
-      ? [...essay.slice(0, -1), `${essay[essay.length - 1]} ${gradeLine}`]
-      : essay.filter((p) => p.trim().length > 0);
+  }).filter((p) => p.trim().length > 0);
 
   return {
     id: hero.id,

@@ -2025,3 +2025,45 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
     animation: none;
   }
 }
+
+/* ═══ 등불 준비 — YouTube식 버퍼링 ═══ */
+@keyframes lamp-yt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lamp-yt-buffer-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.lamp-yt-spinner {
+  animation: lamp-yt-spin 0.85s linear infinite;
+}
+
+.lamp-yt-spinner__arc {
+  transform-origin: 24px 24px;
+}
+
+.lamp-yt-buffer-bar {
+  animation: lamp-yt-buffer-slide 1.15s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lamp-yt-spinner,
+  .lamp-yt-buffer-bar {
+    animation: none;
+  }
+
+  .lamp-yt-buffer-bar {
+    width: 40%;
+    margin-inline: auto;
+    opacity: 0.7;
+  }
+}
+

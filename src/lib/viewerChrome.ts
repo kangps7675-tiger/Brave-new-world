@@ -43,10 +43,9 @@ export type NewsTierLabel = { label: string; detail: string };
  */
 export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
-/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF */
+/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF (해저관은 FIRST_SCREEN에서 ON) */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
   showOilPipelines: false,
-  showSubseaPipelines: false,
   showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
@@ -57,17 +56,17 @@ export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
 };
 
 /**
- * 지경학 자원 히어로 — 에너지 물류만 (가스관·LNG). 매장지 면은 기본 OFF.
+ * 지경학 자원 히어로 — 가스·LNG·송유·해저관.
  */
 export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
   showGasPipelines: true,
   showLngTerminals: true,
+  showOilPipelines: true,
+  showSubseaPipelines: true,
 };
 
 /** 지경학에서 비물류 자원·인프라 — 모드 진입 시 기본 OFF */
 export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
-  showOilPipelines: false,
-  showSubseaPipelines: false,
   showNuclearSites: false,
   showResources: false,
   showGemOilGasExtraction: false,
@@ -160,9 +159,10 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showGscpiGauge: false,
   showGdeltProtests: false,
   showGdeltOceanCompetition: false,
+  showGeoEconBlocs: false,
   /** 도시명 — 레이어 체크박스 ON 전까지 숨김 */
   showCityLabels: false,
-  /** CRINK 축·전략미사일은 CONFLICT_CRINK_STRATEGIC_ON */
+  /** 시험장·후보 격자는 기본 OFF (확인 사일로·전략기지는 FORCE_ON) */
   showMissileTestSites: false,
   showMissileSiloFields: false,
   /** BRI·DFC는 지경학 전용 — 지정학 prefs에 남아 있어도 강제 OFF */
@@ -173,6 +173,7 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
+  ...ECONOMY_RESOURCE_HERO_ON,
   showLogisticsStress: true,
   showGscpiGauge: true,
 };
@@ -222,14 +223,12 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showUcdpEvents: false,
   showFirmsFires: false,
   showSanctionsEntities: false,
-  /** 이란 NewFeeds는 FIRST_SCREEN_ECONOMY_ON(호르무즈·유류) — 여기서 OFF 하지 않음 */
+  showAlliedBlocs: false,
   showSubmarineTunnels: false,
   showSubmarineCables: false,
   /** 제재 회피 강도·회랑은 지정학 전용(재미·관측) — 지경학에서는 OFF */
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
-  showAiDataCenters: false,
-  showAirTraffic: false,
   showAirports: false,
   showCriticalNodes: false,
   showCrinkInfraPower: false,
@@ -327,11 +326,11 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "지명 · 국가 · 분쟁 검색",
     navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
-    modePickerTagline: "전선 · NEPTUN · 항모",
+    modePickerTagline: "전선 · 드론 · CRINK · 군용 항적",
     modePickerBullets: [
-      "우크라 전선 · NEPTUN 공습/드론",
-      "항모 위치 · 이란 타격 속보",
-      "전장에 들어가면 기지·GDELT·텔레그램이 따라 켜집니다",
+      "우크라 전선 · NEPTUN 드론 · 러시아 타격 핫스팟",
+      "미사일 사일로 · 도련선 · 축 네트워크 · CRINK 영토",
+      "군용 항공기·함선 · ReefWatch · NASA FIRMS",
     ],
     layerPanelTitle: "레이어 · 전선",
   },
@@ -353,11 +352,11 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "유가 · 초크 · 항로 · 허브 검색",
     navHeaderLabel: "멋진 신세계 · 시장",
     modePickerTitle: "경제 · 시장",
-    modePickerTagline: "초크 · 에너지 · 유가 · 물류",
+    modePickerTagline: "초크 · 에너지 · 진영 · 물류",
     modePickerBullets: [
-      "초크포인트 · 항로 · PortWatch/GSCPI로 막힘 읽기",
-      "가스·LNG · 무역 코리도 · 에너지·결제 축",
-      "허브·티커로 관련 선물·지수로 이어짐 (투자 권유 아님)",
+      "초크·항로·항구 · GSCPI로 막힘을 읽습니다",
+      "가스·LNG·송유·해저관 · 지경학 진영 폴리곤",
+      "민간 항공기·AIS · 데이터센터 (투자 권유 아님)",
     ],
     layerPanelTitle: "물류 · 시장",
   },
