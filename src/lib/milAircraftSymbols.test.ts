@@ -101,14 +101,18 @@ describe("buildAircraftSymbolModel", () => {
   /**
    * properties는 MapLibre가 타일마다 직렬화하므로 최소로 유지한다.
    * 원본 객체를 통째로 넣으면 그 비용이 그대로 프레임에 실린다.
+   * 선택 강조용 scale/selected/tag만 추가로 허용.
    */
-  it("properties는 index/icon/rotate/opacity 4개만 담는다", () => {
+  it("properties는 index/icon/rotate/opacity + selection 메타를 담는다", () => {
     const m = buildAircraftSymbolModel([ac("a", 1, 1, 0)], []);
     expect(Object.keys(m.geojson.features[0].properties ?? {}).sort()).toEqual([
       "icon",
       "index",
       "opacity",
       "rotate",
+      "scale",
+      "selected",
+      "tag",
     ]);
   });
 });
