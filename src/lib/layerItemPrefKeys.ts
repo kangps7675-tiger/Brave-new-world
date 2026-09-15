@@ -96,6 +96,21 @@ export const LAYER_ITEM_PREF_KEYS: Partial<Record<string, keyof LayerPrefs>> = {
   "east-asia-adiz": "showEastAsiaAdiz",
   "island-chains": "showIslandChains",
   "axis-network": "showAxisNetwork",
+  "allied-blocs": "showAlliedBlocs",
+  "csto-bloc": "showCstoBloc",
+  "geoecon-blocs": "showGeoEconBlocs",
+  "europe-drone-incidents": "showEuropeDroneIncidents",
+  "allied-logistics-corridors": "showAlliedLogisticsCorridors",
+  "sanctions-evasion-corridors": "showSanctionsEvasionCorridors",
+  "ses-gauge": "showSesChip",
+  "crink-power": "showCrinkInfraPower",
+  "crink-border": "showCrinkInfraBorder",
+  "crink-dam": "showCrinkInfraDams",
+  "crink-aeroway": "showCrinkInfraAeroway",
+  "crink-harbour": "showCrinkInfraHarbour",
+  "crink-checkpoint": "showCrinkInfraCheckpoint",
+  "crink-rail": "showCrinkInfraRail",
+  "crink-road": "showCrinkInfraRoad",
 };
 
 type PrefTreeItem = { id: string; options?: PrefTreeItem[] };

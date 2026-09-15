@@ -288,6 +288,9 @@ export function useLayerPrefsController(
     setDraftPrefs(committed);
   }, [clearDebounce]);
 
+  /** 확인/닫기 시 React state보다 최신 draft(ref)를 읽기 */
+  const peekDraftPrefs = useCallback(() => draftRef.current, []);
+
   return {
     layerPrefs,
     draftPrefs,
@@ -297,6 +300,7 @@ export function useLayerPrefsController(
     patchLayerPrefsSoft,
     patchDraftOnly,
     discardDraftPrefs,
+    peekDraftPrefs,
     flushPendingPrefs,
     batchPending,
     applyGeneration,

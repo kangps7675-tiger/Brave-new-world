@@ -98,13 +98,16 @@ export const LayerCategoryDraftHost = memo(function LayerCategoryDraftHost({
        * P2-2: 더 이상 상한에서 거부하지 않는다.
        * onPatch → patchLayerPrefsSoft가 clamp/evict 후 토스트로 통보한다.
        */
-      if (value && key && isLayerCapCountedKey(key) && atCap) {
+      if (!key) {
+        // 매핑 없는 id는 prefs에 안 들어가 확인 시 사라짐 — 체크 UI만 켜지지 않게 막는다
+        console.warn(`[LayerCategoryDraftHost] unmapped layer id: ${itemId}`);
+        return;
+      }
+      if (value && isLayerCapCountedKey(key) && atCap) {
         setCapWarn(true);
       }
       setChecked((prev) => ({ ...prev, [itemId]: value }));
-      if (key) {
-        onPatch({ [key]: value } as Partial<LayerPrefs>);
-      }
+      onPatch({ [key]: value } as Partial<LayerPrefs>);
     },
     [atCap, onPatch],
   );
