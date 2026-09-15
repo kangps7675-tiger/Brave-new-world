@@ -2346,31 +2346,34 @@ export function GlobeDashboard({
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** NE 10m 고정밀 — 지정학 진입 즉시 CRINK 영토 표시 */
+  /** NE 10m 고정밀 CRINK 4국 — 첫 프레임 양보 후 (idle, 상한 3s) */
   const { data: axisHubCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "axis-hub-countries.json",
     !isEconomyViewer && globeReady,
     parseAxisHubCountries,
+    { deferUntilIdle: true, idleTimeoutMs: 3_000 },
   );
   const parseAlliedBlocCountries = useCallback(
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** CRINK·NATO 등 진영 음영 — 지정학 기본 ON, 즉시 로드 */
+  /** CRINK·NATO 등 진영 음영 — CRINK보다 늦게 (idle, 상한 5.5s) */
   const { data: alliedBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "allied-bloc-countries.json",
     !isEconomyViewer && showAlliedBlocs && globeReady,
     parseAlliedBlocCountries,
+    { deferUntilIdle: true, idleTimeoutMs: 5_500 },
   );
   const parseGeoEconBlocCountries = useCallback(
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** 지경학 진영 음영 — 지경학 모드 기본 ON, 즉시 로드 */
+  /** 지경학 진영 음영 — 첫 프레임 양보 후 (idle, 상한 5.5s) */
   const { data: geoEconBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "geoecon-bloc-countries.json",
     isEconomyViewer && showGeoEconBlocs && globeReady,
     parseGeoEconBlocCountries,
+    { deferUntilIdle: true, idleTimeoutMs: 5_500 },
   );
   const { layerViewState, mapZoom } = useCameraViewport(filterCenter, layerAltitude);
 

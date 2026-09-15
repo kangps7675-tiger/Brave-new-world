@@ -15,6 +15,7 @@ import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
+import { isFatalWebglMapError } from "@/lib/isFatalWebglMapError";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 /**
@@ -304,8 +305,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   /**
    * 지도가 "한 번도" 뜨지 못한 경우 (2026-08-31, 리포트 2번).
    * `contextLost`(뜬 적은 있는데 GPU 리셋)와 달리 자동 복구를 기대할 수
-   * 없다 — webglcontextcreationerror / 로드 전 onError / 타임아웃 셋 중
-   * 하나라도 걸리면 true.
+   * 없다 — webglcontextcreationerror / 로드 전 **진짜 WebGL** onError /
+   * 타임아웃 셋 중 하나라도 걸리면 true. (스프라이트·버텍스 한도 등 비-GPU
+   * 오류는 onError에서 무시 — isFatalWebglMapError)
    */
   const [mapInitFailed, setMapInitFailed] = useState(false);
   const changeListenersRef = useRef(new Set<() => void>());
@@ -1109,10 +1111,18 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     };
   }, [mapLoaded]);
 
-  /** 로드 전 발생한 치명적 오류 — 로드 후 오류(타일 404 등)는 maplibre가 알아서 처리하므로 무시 */
-  const handleMapError = useCallback(() => {
-    if (!mapLoaded) setMapInitFailed(true);
-  }, [mapLoaded]);
+  /**
+   * 로드 전 onError 중 **GPU/WebGL 초기화 실패**만 실패로 친다.
+   * 이미지 누락·Max vertices·타일 오류 등은 지도가 떠도(또는 곧 떠도) 날 수
+   * 있어 mapInitFailed로 올리지 않는다. 로드 후 오류는 MapLibre가 처리.
+   */
+  const handleMapError = useCallback(
+    (e: unknown) => {
+      if (mapLoaded) return;
+      if (isFatalWebglMapError(e)) setMapInitFailed(true);
+    },
+    [mapLoaded],
+  );
 
   const handleLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
