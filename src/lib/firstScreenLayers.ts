@@ -5,23 +5,35 @@ type BooleanLayerKey = {
 }[keyof LayerPrefs];
 
 /**
- * 지정학 전역/전선 기본 — 우크라·이란 축 + 드론·미사일·폭발 실시간.
- * NEPTUN(우크라 공중위협), Tzeva Adom(이란·중동 경보), NewFeeds 이란 공격, FIRMS(폭발·화재).
+ * 지정학 전역/전선 기본 — 전선·드론·타격·뉴스 네온·전략군사·군용 항적·FIRMS·ReefWatch·해저관.
+ * CRINK 영토 음영은 showAlliedBlocs(+ axis-hub는 prefs 없이 지정학 상시).
  */
 export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showUkraineControl: true,
   showWarZones: true,
   showNeptun: true,
-  showTzevaAdom: true,
-  showNewfeedsIranAttacks: true,
+  showUkraineStrikesOnRussia: true,
   showGdeltWar: true,
   showFirmsFires: true,
   showMilitaryActivity: true,
   showUsCarriers: true,
-  showShippingLanes: true,
+  showWeeklyShipMoves: true,
+  showAis: true,
+  showReefWatch: true,
+  showMissileSilos: true,
+  showStrategicMissileBases: true,
+  showIslandChains: true,
+  showAxisNetwork: true,
+  showAlliedBlocs: true,
+  showSubseaPipelines: true,
+  showTzevaAdom: true,
+  showNewfeedsIranAttacks: true,
 };
 
-/** 지경학 전역 첫 화면 — 항로·초크·에너지 실루엣만. */
+/**
+ * 지경학 전역 첫 화면 — 초크·항로·에너지·진영·민간 항적·데이터센터·해저관.
+ * GSCPI·물류 스트레스는 viewerChrome FORCE_ON(+캡 면제).
+ */
 export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showLogisticsRisk: true,
   showShippingLanes: true,
@@ -29,4 +41,10 @@ export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> 
   showGasPipelines: true,
   showLngTerminals: true,
   showStrategicCorridors: true,
+  showGeoEconBlocs: true,
+  showOilPipelines: true,
+  showSubseaPipelines: true,
+  showAirTraffic: true,
+  showAis: true,
+  showAiDataCenters: true,
 };

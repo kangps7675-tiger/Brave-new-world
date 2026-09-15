@@ -1,6 +1,7 @@
 /**
  * 구글 뉴스 스트림 → 지도 네온 태그
- * (전쟁=빨강 / 긴장=주황 / 시장=시안 / 외교=파랑).
+ * (전쟁=빨강 / 긴장=주황 / 시장·지경학=초록 / 외교=파랑).
+ * 지정학·지경학은 서로 겹치지 않게 mode로 가른다.
  * 좌표는 제목·요약 지명 매칭 — 위치 불명은 찍지 않음.
  */
 
@@ -9,6 +10,7 @@ import type { NeonRippleAccent } from "@/lib/neonRippleIncidentMarker";
 import { resolveImpactPlace } from "@/lib/telegramPlaceMatch";
 
 export type NewsMapTagKind = "war" | "tension" | "diplomatic" | "market";
+export type NewsMapViewerMode = "conflict" | "economy";
 
 /** 한 사건을 보도한 개별 매체 관점 */
 export type NewsPerspective = {
@@ -43,31 +45,39 @@ export type NewsStreamMapTag = {
 };
 
 const WAR_RE =
-  /전쟁|전선|충돌|교전|공습|포격|미사일|폭격|침공|공격|전투|교전|shelling|airstrike|missile|combat|war\b|clash|offensive|invasion|strike|bombard|front\s?line|포격|드론 공격/i;
+  /전쟁|전선|충돌|교전|공습|포격|미사일|폭격|침공|공격|전투|shelling|airstrike|missile|combat|war\b|clash|offensive|invasion|strike|bombard|front\s?line|드론 공격/i;
 
 const TENSION_RE =
   /긴장|대치|확전|위기|경고|위협|제재|봉쇄|무력시위|tension|standoff|escalate|escalation|threat|sanction|blockade|show of force|위기 고조/i;
 
 const DIPLOMATIC_RE =
-  /외교|회담|정상회담|특사|대사|협상|휴전|합의|동맹|방문|외교부|summit|diplomat|envoy|talks|ceasefire|negotiation|treaty|foreign minister|ambassador|동맹|평화협정/i;
+  /외교|회담|정상회담|특사|대사|협상|휴전|합의|동맹|방문|외교부|summit|diplomat|envoy|talks|ceasefire|negotiation|treaty|foreign minister|ambassador|평화협정/i;
 
 const MARKET_RE =
-  /시장|증시|환율|금리|유가|원유|가스|무역|관세|인플레|GDP|공급망|초크|항만|물류|반도체|희토류|원자재|stock|market|oil|gas|trade|tariff|inflation|supply.?chain|commodity|freight|shipping|choke|port|semiconductor|rare.?earth|currency|forex|yield|fed\b|ecb/i;
+  /시장|증시|환율|금리|유가|원유|가스|무역|관세|인플레|GDP|공급망|초크|항만|물류|반도체|희토류|원자재|중앙은행|연준|ECB|stock|market|oil|gas|trade|tariff|inflation|supply.?chain|commodity|freight|shipping|choke|port|semiconductor|rare.?earth|currency|forex|yield|fed\b|ecb|macro|geoeconom/i;
 
 function classifyNewsKind(text: string, feedTopic?: string | null): NewsMapTagKind {
-  if (WAR_RE.test(text)) return "war";
+  const hasMarket = feedTopic === "economy" || MARKET_RE.test(text);
+  const hasWar = WAR_RE.test(text);
+  // 전쟁·시장이 겹치면 지정학(전쟁)으로 — 지경학 모드에서 제외되어 중복 없음
+  if (hasWar) return "war";
+  if (hasMarket) return "market";
   if (DIPLOMATIC_RE.test(text)) return "diplomatic";
   if (TENSION_RE.test(text)) return "tension";
-  if (feedTopic === "economy" || MARKET_RE.test(text)) return "market";
-  // theater 기본 — 중동·우크라·대만·한반도는 긴장, 그 외 외교
   return "tension";
 }
 
 function accentForKind(kind: NewsMapTagKind): NeonRippleAccent {
   if (kind === "war") return "red";
   if (kind === "diplomatic") return "blue";
-  if (kind === "market") return "cyan";
+  if (kind === "market") return "green";
   return "orange";
+}
+
+function allowsKind(mode: NewsMapViewerMode | undefined, kind: NewsMapTagKind): boolean {
+  if (mode === "economy") return kind === "market";
+  if (mode === "conflict") return kind !== "market";
+  return true;
 }
 
 function theaterRegionHint(theater: NewsTheater) {
@@ -141,8 +151,14 @@ const MAX_PERSPECTIVES_PER_MARKER = 8;
  *
  * 신선도: 기본 24시간 이내만. 결과가 너무 적으면 48시간까지 자동 완화.
  * 시점 불명(pubDate 없음) 기사는 "지금"이라 확신 못 하므로 제외.
+ *
+ * mode: conflict=전쟁·긴장·외교(빨강 계열), economy=거시·지경학 시장만(초록).
  */
-export function buildNewsStreamMapTags(items: NewsStreamItem[]): NewsStreamMapTag[] {
+export function buildNewsStreamMapTags(
+  items: NewsStreamItem[],
+  options?: { mode?: NewsMapViewerMode },
+): NewsStreamMapTag[] {
+  const mode = options?.mode;
   // 1차: 24시간 이내. 부족하면 2차: 48시간까지 완화.
   const fresh24 = items.filter((it) => {
     const h = ageHours(it.pubDate);
@@ -171,6 +187,7 @@ export function buildNewsStreamMapTags(items: NewsStreamItem[]): NewsStreamMapTa
   for (const item of pool) {
     const text = `${item.title} ${item.summary ?? ""} ${item.category ?? ""}`;
     const kind = classifyNewsKind(text, item.feedTopic);
+    if (!allowsKind(mode, kind)) continue;
     const accent = accentForKind(kind);
     const coords = resolveNewsCoords(item);
     if (!coords) continue; // 위치 불명은 지도에 안 찍음

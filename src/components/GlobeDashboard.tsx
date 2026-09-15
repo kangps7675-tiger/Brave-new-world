@@ -917,7 +917,7 @@ export function GlobeDashboard({
   /** 오늘의 WTI — 사운드·등불·예측 기축 */
   const [wtiSnapshot, setWtiSnapshot] = useState<WorldTensionSnapshot | null>(null);
   /** WTI 기준 시각 캐시 — 상황판 as-of는 스냅샷 쪽을 쓰고 setter만 유지 */
-  const [, setWtiFetchedAt] = useState<string | null>(null);
+  const [wtiFetchedAt, setWtiFetchedAt] = useState<string | null>(null);
   /** 일별 랭크 스크럽 기준일 (UTC YYYY-MM-DD). null = 오늘 */
   const [viewAsOf, setViewAsOf] = useState<string | null>(null);
   const [rankAvailableDates, setRankAvailableDates] = useState<string[]>([]);
@@ -2318,34 +2318,31 @@ export function GlobeDashboard({
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** NE 10m 고정밀 — 지구본 첫 프레임 이후 idle에 로드 (부트 JSON.parse 정체 방지) */
+  /** NE 10m 고정밀 — 지정학 진입 즉시 CRINK 영토 표시 */
   const { data: axisHubCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "axis-hub-countries.json",
     !isEconomyViewer && globeReady,
     parseAxisHubCountries,
-    { deferUntilIdle: true },
   );
   const parseAlliedBlocCountries = useCallback(
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** 진영 블록 배경색 — 토글 켰을 때만 로드 (기본 OFF) */
+  /** CRINK·NATO 등 진영 음영 — 지정학 기본 ON, 즉시 로드 */
   const { data: alliedBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "allied-bloc-countries.json",
     !isEconomyViewer && showAlliedBlocs && globeReady,
     parseAlliedBlocCountries,
-    { deferUntilIdle: true },
   );
   const parseGeoEconBlocCountries = useCallback(
     (raw: unknown) => raw as FeatureCollection,
     [],
   );
-  /** 지경학 진영 음영 — 지경학 모드에서만, 토글 켰을 때만 로드 */
+  /** 지경학 진영 음영 — 지경학 모드 기본 ON, 즉시 로드 */
   const { data: geoEconBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "geoecon-bloc-countries.json",
     isEconomyViewer && showGeoEconBlocs && globeReady,
     parseGeoEconBlocCountries,
-    { deferUntilIdle: true },
   );
   const { layerViewState, mapZoom } = useCameraViewport(filterCenter, layerAltitude);
 
@@ -4388,13 +4385,15 @@ export function GlobeDashboard({
   );
 
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
-    // 지정학·지경학 모두 지도 네온 태그 (경제 기사는 market/cyan)
+    // 지정학=빨간 네온(전쟁·긴장), 지경학=초록 네온(거시·시장만)
     if (isCompactUi) return [];
     const payload = newsStreamPayload;
     if (!payload) return [];
     const pool: NewsStreamItem[] = [...payload.verified, ...payload.stateMedia];
-    return buildNewsStreamMapTags(pool);
-  }, [isCompactUi, newsStreamPayload]);
+    return buildNewsStreamMapTags(pool, {
+      mode: isEconomyViewer ? "economy" : "conflict",
+    });
+  }, [isCompactUi, isEconomyViewer, newsStreamPayload]);
 
   const newsInsightCalloutMarkers = useMemo<NewsInsightCalloutMarker[]>(() => {
     if (!newsInsightCallout || selected?.kind !== "news-insight") return [];
@@ -7038,7 +7037,8 @@ export function GlobeDashboard({
 
       if (cancelled) return;
 
-      const hasLampContent = featuredNews.length > 0 || macroTable.length > 0;
+      // 지정학·지경학 모두 큰사진·프리뷰 카드형이 있을 때만 점화 (거시표만으로는 빈 데스크 금지)
+      const hasLampContent = featuredNews.length > 0;
       if (hasLampContent) {
         let content: PeriodicBriefing = {
           tier,
@@ -7049,7 +7049,7 @@ export function GlobeDashboard({
           macroTable,
           featuredNews,
         };
-        // 한글 UI — 서버 누락·영문 캐시 잔여분을 점화 직전 재번역
+        // UI 언어 — 제목·프리뷰를 ko/en으로 강제 (서버 누락·캐시 잔여분 보정)
         content = await localizePeriodicBriefing(content, labelLanguage);
         if (cancelled) return;
         ignite(content);
@@ -8328,6 +8328,17 @@ export function GlobeDashboard({
         onOpenData={() => openLeftDrawer("data")}
         bottomDockMode={bottomDockMode}
         onBottomDockModeChange={handleBottomDockModeChange}
+        wtiScore={wtiSnapshot?.score ?? null}
+        wtiDelta={wtiSnapshot?.deltaScore ?? null}
+        wtiAsOf={wtiFetchedAt}
+        wtiIsEstimate={
+          wtiSnapshot?.method === "theater-blend" ||
+          wtiSnapshot?.method === "estimate"
+            ? true
+            : false
+        }
+        showSesChip={showSesChip}
+        showGscpi={showGscpiGauge}
       />
 
       {showSceneMissionPicker ? (

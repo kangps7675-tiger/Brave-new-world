@@ -3,6 +3,7 @@
 import { zc } from "@/lib/uiStack";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { LampEconomyQuoteBoard } from "@/components/LampEconomyQuoteBoard";
 import { LampWhyMattersButton } from "@/components/LampWhyMattersButton";
 import { ParchmentLetter, PARCHMENT_FOLD_EXIT_MS } from "@/components/ParchmentLetter";
 import {
@@ -293,6 +294,7 @@ function PhotoNewsLampParchment({
                 : "거시 표 데이터를 불러오지 못했습니다. 아래 지역 뉴스 데스크를 보세요."}
             </p>
           )}
+          {news.length > 0 ? <LampEconomyQuoteBoard news={news} lang={lang} /> : null}
           {regionList}
         </>
       ) : (
@@ -498,16 +500,14 @@ function PhotoNewsLampParchment({
                               >
                                 {item.summary}
                               </p>
-                              {!isEconomy ? (
-                                <LampWhyMattersButton
-                                  lang={lang}
-                                  title={item.title}
-                                  source={item.source}
-                                  link={item.link}
-                                  focusLabel={item.focusLabel}
-                                  excerpt={item.summary}
-                                />
-                              ) : null}
+                              <LampWhyMattersButton
+                                lang={lang}
+                                title={item.title}
+                                source={item.source}
+                                link={item.link}
+                                focusLabel={item.focusLabel}
+                                excerpt={item.summary}
+                              />
                             </div>
                             <div className="flex shrink-0 flex-col items-center justify-center gap-2 self-center">
                               {isArticleUrl(item.link) ? (

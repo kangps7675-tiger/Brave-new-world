@@ -11,7 +11,7 @@ import {
   tierBorderCss,
 } from "@/lib/evidenceTierMarker";
 
-export type NeonRippleAccent = "red" | "orange" | "cyan" | "blue" | "white";
+export type NeonRippleAccent = "red" | "orange" | "cyan" | "blue" | "white" | "green";
 
 export const NEON_RIPPLE_MARKER_ROOT = "neon-ripple-incident-marker";
 
@@ -86,6 +86,23 @@ const ACCENT_CSS: Record<
           0 0 16px 5px rgba(37, 99, 235, 0.75);
       }`,
   },
+  /** 지경학·시장 뉴스 — emerald */
+  green: {
+    border: "rgba(52, 211, 153, 0.92)",
+    glow: "rgba(16, 185, 129, 0.55)",
+    core: "radial-gradient(circle at 35% 30%, #ecfdf5 0%, #34d399 42%, #047857 100%)",
+    keyGlow: `
+      0%, 100% {
+        box-shadow:
+          0 0 4px 1px rgba(52, 211, 153, 0.95),
+          0 0 10px 3px rgba(16, 185, 129, 0.55);
+      }
+      50% {
+        box-shadow:
+          0 0 6px 2px rgba(110, 231, 183, 1),
+          0 0 16px 5px rgba(5, 150, 105, 0.75);
+      }`,
+  },
   white: {
     border: "rgba(255, 255, 255, 0.9)",
     glow: "rgba(248, 250, 252, 0.55)",
@@ -104,7 +121,7 @@ const ACCENT_CSS: Record<
   },
 };
 
-const STYLE_VERSION = "evidence-tier-v1";
+const STYLE_VERSION = "evidence-tier-v2-green";
 
 function ensureStyles() {
   if (typeof document === "undefined") return;
@@ -131,6 +148,7 @@ function ensureStyles() {
     @keyframes neon-ripple-core-orange { ${ACCENT_CSS.orange.keyGlow} }
     @keyframes neon-ripple-core-cyan { ${ACCENT_CSS.cyan.keyGlow} }
     @keyframes neon-ripple-core-blue { ${ACCENT_CSS.blue.keyGlow} }
+    @keyframes neon-ripple-core-green { ${ACCENT_CSS.green.keyGlow} }
     @keyframes neon-ripple-core-white { ${ACCENT_CSS.white.keyGlow} }
     .${NEON_RIPPLE_MARKER_ROOT} {
       position: relative;
@@ -224,6 +242,14 @@ function ensureStyles() {
     .${NEON_RIPPLE_MARKER_ROOT}[data-accent="blue"] .neon-ripple-core {
       background: ${ACCENT_CSS.blue.core};
       animation: neon-ripple-core-blue 1.8s ease-in-out infinite;
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="green"] .neon-ripple-wave {
+      border: 1.5px solid ${ACCENT_CSS.green.border};
+      box-shadow: 0 0 8px 1px ${ACCENT_CSS.green.glow};
+    }
+    .${NEON_RIPPLE_MARKER_ROOT}[data-accent="green"] .neon-ripple-core {
+      background: ${ACCENT_CSS.green.core};
+      animation: neon-ripple-core-green 1.8s ease-in-out infinite;
     }
     .${NEON_RIPPLE_MARKER_ROOT}[data-accent="white"] .neon-ripple-wave {
       border: 1.5px solid ${ACCENT_CSS.white.border};

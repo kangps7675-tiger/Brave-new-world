@@ -1,5 +1,6 @@
 /**
- * NATO/AUKUS/CRINK/CSTO 국가 경계 — Natural Earth 110m에서 추출.
+ * NATO/AUKUS/CRINK/CSTO + 미국 양자조약(한국·일본·필리핀·태국)/기지주둔·조약없음(카타르·바레인)
+ * 국가 경계 — Natural Earth 110m에서 추출.
  * axis-hub-countries.json(CHN/RUS/PRK/IRN, 10m)과 별개 — 새 진영 오버레이 전용.
  *
  * Usage: node build-allied-bloc-countries.js ne110_countries.geojson
@@ -21,8 +22,21 @@ const AUKUS_ISOS = ["USA", "GBR", "AUS"];
 const CRINK_ISOS = ["CHN", "RUS", "PRK", "IRN"];
 // CSTO — 러시아 주도 집단안보조약기구, CRINK 비중복 회원. 출처: odkb-csto.org.
 const CSTO_ISOS = ["BLR", "ARM", "KAZ", "KGZ", "TJK"];
+// 미국 양자 상호방위조약국 (나토/오커스 비회원) — 한미(1953)·미일(1960)·美-필리핀 MDT(1951)·
+// 美-태국 조약(1954). 아시아 사각지대 보완: 조약+상시기지가 있어도 다자블록 회원이 아니면
+// 기존 스킴에서 무색 처리되던 문제를 해결.
+const US_BILATERAL_TREATY_ISOS = ["KOR", "JPN", "PHL", "THA"];
+// 기지는 주둔하나 정식 상호방위조약은 아닌 특수 케이스 — 카타르(알우데이드), 바레인(美 5함대).
+const US_SECURITY_PARTNER_ISOS = ["QAT", "BHR"];
 
-const ALL_ISOS = new Set([...NATO_ISOS, ...AUKUS_ISOS, ...CRINK_ISOS, ...CSTO_ISOS]);
+const ALL_ISOS = new Set([
+  ...NATO_ISOS,
+  ...AUKUS_ISOS,
+  ...CRINK_ISOS,
+  ...CSTO_ISOS,
+  ...US_BILATERAL_TREATY_ISOS,
+  ...US_SECURITY_PARTNER_ISOS,
+]);
 
 function round(n) {
   const f = 10 ** 3; // 110m 해상도 — 3자리로 충분
@@ -181,15 +195,25 @@ function main() {
   }
 
   function bloc(iso) {
-    // 우선순위: CRINK > CSTO(CRINK연계) > AUKUS > NATO — 다중 소속 시 더 특정적인 분류가 이김
+    // 우선순위: CRINK > CSTO(CRINK연계) > AUKUS > NATO > 양자조약 > 기지주둔·조약없음
+    // — 다중 소속 시 더 특정적인(좁은) 분류가 이김
     if (CRINK_ISOS.includes(iso)) return "crink";
     if (CSTO_ISOS.includes(iso)) return "crink-aligned";
     if (AUKUS_ISOS.includes(iso)) return "aukus";
     if (NATO_ISOS.includes(iso)) return "nato";
+    if (US_BILATERAL_TREATY_ISOS.includes(iso)) return "us-bilateral-treaty";
+    if (US_SECURITY_PARTNER_ISOS.includes(iso)) return "us-security-partner";
     return "unknown";
   }
 
-  const order = [...NATO_ISOS, ...AUKUS_ISOS, ...CRINK_ISOS, ...CSTO_ISOS];
+  const order = [
+    ...NATO_ISOS,
+    ...AUKUS_ISOS,
+    ...CRINK_ISOS,
+    ...CSTO_ISOS,
+    ...US_BILATERAL_TREATY_ISOS,
+    ...US_SECURITY_PARTNER_ISOS,
+  ];
   const seen = new Set();
   const features = [];
   for (const iso of order) {

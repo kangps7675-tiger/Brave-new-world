@@ -113,7 +113,6 @@ import { type AskLayersApplyPayload } from "@/components/AskLayersOverlay";
 import { HoverHint } from "@/components/HoverHint";
 import { EntryGateHost } from "@/components/globe/EntryGateHost";
 import { TourSequencer, type TourScene } from "@/components/globe/TourSequencer";
-import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { markBriefingStep } from "@/lib/dailyBriefingProgress";
 import { ParchmentProTipChip } from "@/components/ParchmentProTipChip";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
@@ -214,7 +213,6 @@ import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
 import { QuickStartCoach } from "@/components/QuickStartCoach";
 import type { EconomyHubChoice } from "@/lib/autoFlyTarget";
-import { trackEvent } from "@/lib/trackClient";
 import { NewFeedsIranPanel } from "@/components/NewFeedsIranPanel";
 import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
 import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
@@ -614,7 +612,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onAskLayersApply,
     onSetShowFirstVisitTour,
     onSetTourActive,
-    getSceneForShare,
     onSetSentinelActive,
     onSetPlayOverlay,
     onSetShowCityLabels,
@@ -662,6 +659,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   } = props;
 
   const [navToolsEl, setNavToolsEl] = useState<HTMLElement | null>(null);
+  const [leftRailSlotEl, setLeftRailSlotEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (isCompactUi) {
@@ -670,6 +668,20 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     }
     const sync = () => {
       setNavToolsEl(document.getElementById("hover-nav-desktop-tools"));
+    };
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [isCompactUi]);
+
+  useEffect(() => {
+    if (isCompactUi) {
+      setLeftRailSlotEl(null);
+      return;
+    }
+    const sync = () => {
+      setLeftRailSlotEl(document.getElementById("chrome-left-rail-slot"));
     };
     sync();
     const obs = new MutationObserver(sync);
@@ -791,6 +803,62 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     if (intelSheetOpen) markBriefingStep("intel");
   }, [intelSheetOpen]);
 
+  const leftRailBody = (
+    <>
+      {!isEconomyViewer ? (
+        <>
+          <GpsJamFixedToggle
+            checked={showGpsInterference}
+            onChange={onSetShowGpsInterference}
+            status={gpsJamStatus}
+            cellCount={gpsJamCellCount}
+            date={gpsJamDate}
+            hintPlacement="right"
+          />
+          {!showGpsInterference ? (
+            <UsCarrierFixedToggle
+              checked={showUsCarriers}
+              onChange={onSetShowUsCarriers}
+              carrierCount={usCarriers.length}
+              deployedCount={deployedCarrierCount}
+              hintPlacement="right"
+            />
+          ) : null}
+        </>
+      ) : (
+        <>
+          <EconomySupplyChainFixedToggle
+            showUsDfc={showUsDfcSupplyChain}
+            showChinaBri={showBriTradeConnectivity}
+            onUsDfcChange={onSetShowUsDfcSupplyChain}
+            onChinaBriChange={onSetShowBriTradeConnectivity}
+            usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
+            chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
+            vertical
+            align="start"
+          />
+          {gateClosed && !isTabletUi ? (
+            <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
+              <FinintTicker compact />
+            </div>
+          ) : null}
+        </>
+      )}
+      <div className="pointer-events-auto shrink-0">
+        <ServerDonateChip lang={labelLanguage} />
+      </div>
+      {!isEconomyViewer && gateClosed ? (
+        <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-start gap-2">
+          <TopWatchPanel lang={labelLanguage} />
+          <div className="cv-tablet-hide-sitrep w-full">
+            <SitrepLog lang={labelLanguage} />
+          </div>
+        </div>
+      ) : null}
+      {foldedBriefingTabs}
+    </>
+  );
+
   return (
     <>
       {showIntroHint && !intelSheetOpen && (
@@ -887,8 +955,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       </div>
       ) : null}
 
-      {/* 데스크톱·태블릿 좌측 레일 — 우측은 칩만 (사이드바/우레일 이중 축 금지) */}
-      {railVisible ? (
+      {/* 데스크톱 좌측 레일 → TopChrome 좌 호버 서랍 슬롯 */}
+      {railVisible && leftRailSlotEl
+        ? createPortal(leftRailBody, leftRailSlotEl)
+        : null}
+
+      {/* 슬롯 미준비 폴백 — 예전 absolute 좌레일 */}
+      {railVisible && !leftRailSlotEl ? (
         <div
           className="cv-desktop-only cv-chrome-rail-left pointer-events-none absolute left-3 z-[200] flex flex-col items-start gap-2 overflow-y-auto overscroll-contain sm:left-4"
           style={{
@@ -897,57 +970,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               : "min(20rem, calc(100vw - 1.5rem))",
           }}
         >
-          {!isEconomyViewer ? (
-            <>
-              <GpsJamFixedToggle
-                checked={showGpsInterference}
-                onChange={onSetShowGpsInterference}
-                status={gpsJamStatus}
-                cellCount={gpsJamCellCount}
-                date={gpsJamDate}
-                hintPlacement="right"
-              />
-              {!showGpsInterference ? (
-                <UsCarrierFixedToggle
-                  checked={showUsCarriers}
-                  onChange={onSetShowUsCarriers}
-                  carrierCount={usCarriers.length}
-                  deployedCount={deployedCarrierCount}
-                  hintPlacement="right"
-                />
-              ) : null}
-            </>
-          ) : (
-            <>
-              <EconomySupplyChainFixedToggle
-                showUsDfc={showUsDfcSupplyChain}
-                showChinaBri={showBriTradeConnectivity}
-                onUsDfcChange={onSetShowUsDfcSupplyChain}
-                onChinaBriChange={onSetShowBriTradeConnectivity}
-                usLinkCount={usDfcSupplyPaths.length || US_DFC_LINK_COUNT}
-                chinaLinkCount={briTradePaths.length || BRI_TRADE_LINK_COUNT}
-                vertical
-                align="start"
-              />
-              {gateClosed && !isTabletUi ? (
-                <div className="pointer-events-auto w-full max-w-[min(20rem,calc(100vw-1.5rem))]">
-                  <FinintTicker compact />
-                </div>
-              ) : null}
-            </>
-          )}
-          <div className="pointer-events-auto shrink-0">
-            <ServerDonateChip lang={labelLanguage} />
-          </div>
-          {!isEconomyViewer && gateClosed ? (
-            <div className="flex w-full max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-start gap-2">
-              <TopWatchPanel lang={labelLanguage} />
-              <div className="cv-tablet-hide-sitrep w-full">
-                <SitrepLog lang={labelLanguage} />
-              </div>
-            </div>
-          ) : null}
-          {foldedBriefingTabs}
+          {leftRailBody}
         </div>
       ) : null}
 
@@ -999,29 +1022,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 </div>
               ) : null}
               {/* 데스크톱 주요전장/허브는 TopChrome ScenarioPresetChips만 (여기 ExplorationTabs 중복 제거) */}
-              <div className="pointer-events-auto flex shrink-0 items-center gap-3">
+              <div className="pointer-events-auto flex shrink-0 items-center gap-3 bg-transparent">
                 {gateClear ? (
                   <div className="mx-1 shrink-0">
                     <ParchmentProTipChip lang={labelLanguage} />
                   </div>
                 ) : null}
-                <UtilityChromeMenu
-                  lang={labelLanguage}
-                  showProTip={false}
-                  captureFrame={async () =>
-                    (await globeRef.current?.captureFrame()) ?? null
-                  }
-                  getScene={getSceneForShare}
-                  onTour={() => {
-                    if (!isEconomyViewer && tourScenes.length > 0) {
-                      trackEvent("tour_start", { scenes: tourScenes.length }, { lang: labelLanguage });
-                      onSetTourActive(true);
-                    }
-                  }}
-                  onHelp={() => onSetShowFeatureGuide(true)}
-                  onOpenSources={() => onSetShowSourcesPanel(true)}
-                  onOpenParchment={() => onSetShowDataSourceParchment(true)}
-                />
                 {gateClear ? (
                   <>
                     <SentinelModeButton
