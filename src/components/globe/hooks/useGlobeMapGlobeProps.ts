@@ -68,6 +68,7 @@ import { mineralDepositFill, mineralDepositStroke } from "@/lib/resourceDepositS
 import { gpsJamDisclaimer, gpsJamLevelLabel } from "@/lib/gpsJam";
 import {
   isUkraineViinaPolygonLayer,
+  polygonFeatureGeometry,
   ukraineCombatZoneStroke,
   ukraineHatchStroke,
   ukraineThinOutlineStroke,
@@ -764,7 +765,8 @@ export function useGlobeMapGlobeProps(
     labelsTransitionDuration: 0,
     labelAltitude: () => 0.006,
     polygonsData: polygonDataWithUkraine,
-    polygonGeoJsonGeometry: (feature: PolygonLayerFeature) => feature.geometry,
+    polygonGeoJsonGeometry: (feature: PolygonLayerFeature) =>
+      polygonFeatureGeometry(feature),
     polygonCapColor: (feature: PolygonLayerFeature) => {
       if (feature.polygonLayer === "country") {
         if (
