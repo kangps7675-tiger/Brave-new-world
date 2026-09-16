@@ -10,7 +10,6 @@ import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import { FreightStressChip } from "@/components/FreightStressChip";
 import { PortWatchStressChip } from "@/components/PortWatchStressChip";
 import { MarketSessionChip } from "@/components/MarketSessionChip";
-import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
 import { useSanctionsEvasionSnapshot } from "@/hooks/useSanctionsEvasionSnapshot";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { MetricExplainId } from "@/lib/metricExplainCopy";
@@ -153,7 +152,6 @@ export function ModeGlobalIndexChip({
         data-chrome-obstacle="mode-index-chip"
         data-chrome-density={dense ? "dense" : "full"}
       >
-        {!dense ? <ImmersionDigitalClock lang={lang} /> : null}
         <div
           className={`flex w-full flex-col items-end gap-1.5 ${
             dense && isEconomy ? "flex-row flex-wrap justify-end" : ""

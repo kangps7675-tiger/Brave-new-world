@@ -1,6 +1,7 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
+import { useState } from "react";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
@@ -11,7 +12,7 @@ import {
   type BottomDockMode,
 } from "@/components/BottomDockModeToggle";
 import type { NavSelection } from "@/data/navRegions";
-import type { SearchPlace } from "@/data/geoTypes";
+import type { ChromeKeywordSuggestion, ChromeSearchHit } from "@/lib/chromeSearch";
 import type { EntryGate } from "@/components/globe/types";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
@@ -20,6 +21,7 @@ import type { ChromeCoachStep } from "@/components/ChromeOnboardingCoach";
 import { t } from "@/lib/uiStrings";
 import { brandName } from "@/lib/brand";
 import { zc } from "@/lib/uiStack";
+import { ImmersionDigitalClock } from "@/components/ImmersionDigitalClock";
 
 export interface DashboardTopChromeProps {
   intelSheetOpen: boolean;
@@ -33,8 +35,9 @@ export interface DashboardTopChromeProps {
   liveStatus: "idle" | "loading" | "ok" | "error";
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
-  searchResults: SearchPlace[];
-  handleSearchSelect: (place: SearchPlace) => void;
+  searchResults: ChromeSearchHit[];
+  searchKeywordSuggestions?: ChromeKeywordSuggestion[];
+  handleSearchSelect: (hit: ChromeSearchHit) => void;
   isCompactUi: boolean;
   isTabletUi?: boolean;
   setAskLayersOpen: Dispatch<SetStateAction<boolean>>;
@@ -70,10 +73,10 @@ export interface DashboardTopChromeProps {
 }
 
 /**
- * Nullschool식 상단 크롬 + 좌측 호버 서랍.
- * - 상단: 투명 스트립 · 호버 시 검색→지정학/지경학
- * - 좌: 메뉴(+레일 슬롯) 호버 서랍
- * - 시계·DEFCON/공급망 압력: 가운데~우상단 사이 고정 (호버 숨김 없음)
+ * 상단 크롬 + 좌·우 호버 서랍.
+ * - 검색창 상시 고정 · 호버 시 탐색 메뉴 · 바로 아래 지정학/지경학(메뉴와 함께 이동)
+ * - 좌: 메뉴(+레일 슬롯)
+ * - 우: 지표 칩 호버 서랍
  */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -89,6 +92,7 @@ export function DashboardTopChrome({
   setQuery,
   searchResults,
   handleSearchSelect,
+  searchKeywordSuggestions = [],
   isCompactUi,
   isTabletUi = false,
   setAskLayersOpen,
@@ -112,13 +116,14 @@ export function DashboardTopChrome({
   showGscpi = true,
   leftRailSlotId = "chrome-left-rail-slot",
 }: DashboardTopChromeProps) {
+  const [rightMetricsPinned, setRightMetricsPinned] = useState(false);
   if (intelSheetOpen) return null;
 
   const chromeVisible = entryGate === null && !showModePicker;
   if (!chromeVisible) return null;
 
   const stripBtn =
-    "rounded-full border border-sky-200/30 bg-transparent px-3 py-1 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
+    "rounded-full border border-sky-200/30 bg-transparent px-2.5 py-0.5 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
 
   return (
     <>
@@ -149,18 +154,27 @@ export function DashboardTopChrome({
         />
       </HoverSideDrawer>
 
-      {/* 시계 · DEFCON / 공급망 압력 — 가운데와 우상단 사이 고정 */}
-      <ModeGlobalIndexChip
-        viewerMode={viewerMode}
-        lang={labelLanguage}
-        wtiScore={wtiScore}
-        wtiDelta={wtiDelta}
-        wtiAsOf={wtiAsOf}
-        wtiIsEstimate={wtiIsEstimate}
-        showSesChip={showSesChip}
-        showGscpi={showGscpi}
-        dense={isCompactUi || isTabletUi}
-      />
+      {/* 우측 호버 서랍 — 긴장/공급망·SES 등 지표 (시계는 상단 중앙) */}
+      <HoverSideDrawer
+        side="right"
+        peepLabel={labelLanguage === "en" ? "Metrics" : "지표"}
+        zIndexClass={zc("nav")}
+        forceOpen={rightMetricsPinned}
+      >
+        <ModeGlobalIndexChip
+          viewerMode={viewerMode}
+          lang={labelLanguage}
+          wtiScore={wtiScore}
+          wtiDelta={wtiDelta}
+          wtiAsOf={wtiAsOf}
+          wtiIsEstimate={wtiIsEstimate}
+          showSesChip={showSesChip}
+          showGscpi={showGscpi}
+          dense={isCompactUi || isTabletUi}
+          embedded
+          onPanelOpenChange={setRightMetricsPinned}
+        />
+      </HoverSideDrawer>
 
       <HoverNav
         viewerMode={viewerMode}
@@ -170,7 +184,9 @@ export function DashboardTopChrome({
         query={query}
         onQueryChange={setQuery}
         searchResults={searchResults}
+        keywordSuggestions={searchKeywordSuggestions}
         onSearchSelect={handleSearchSelect}
+        onKeywordSelect={setQuery}
         compact={isCompactUi}
         showDesktopToolsSlot={!isCompactUi}
         hoverReveal
@@ -178,38 +194,41 @@ export function DashboardTopChrome({
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
         aboveNav={
-          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 bg-transparent py-0.5">
-            <div className="flex justify-end">
-              <BottomDockModeToggle
-                lang={labelLanguage}
-                mode={bottomDockMode}
-                onChange={onBottomDockModeChange}
-                compact={isCompactUi}
-                transparent
-              />
-            </div>
-            <div className="flex justify-center">
-              {onOpenLayers ? (
-                <button
-                  type="button"
-                  id="layer-panel-toggle"
-                  onClick={onOpenLayers}
-                  className={`${stripBtn} min-w-[7.5rem] text-center`}
-                  aria-haspopup="dialog"
-                  aria-label={
-                    labelLanguage === "en" ? "Open layer panel" : "레이어 패널 열기"
-                  }
-                >
-                  {labelLanguage === "en" ? "Layers" : "레이어"}
+          <div className="flex w-full flex-col items-center gap-0.5 bg-transparent py-0">
+            <ImmersionDigitalClock lang={labelLanguage} variant="top" />
+            <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+              <div className="flex justify-end">
+                <BottomDockModeToggle
+                  lang={labelLanguage}
+                  mode={bottomDockMode}
+                  onChange={onBottomDockModeChange}
+                  compact={isCompactUi}
+                  transparent
+                />
+              </div>
+              <div className="flex justify-center">
+                {onOpenLayers ? (
+                  <button
+                    type="button"
+                    id="layer-panel-toggle"
+                    onClick={onOpenLayers}
+                    className={`${stripBtn} min-w-[7.5rem] text-center`}
+                    aria-haspopup="dialog"
+                    aria-label={
+                      labelLanguage === "en" ? "Open layer panel" : "레이어 패널 열기"
+                    }
+                  >
+                    {labelLanguage === "en" ? "Layers" : "레이어"}
+                  </button>
+                ) : (
+                  <span className="min-w-[7.5rem]" aria-hidden />
+                )}
+              </div>
+              <div className="flex justify-start">
+                <button type="button" onClick={onSceneStart} className={stripBtn}>
+                  {t("sceneMissionStart", labelLanguage)}
                 </button>
-              ) : (
-                <span className="min-w-[7.5rem]" aria-hidden />
-              )}
-            </div>
-            <div className="flex justify-start">
-              <button type="button" onClick={onSceneStart} className={stripBtn}>
-                {t("sceneMissionStart", labelLanguage)}
-              </button>
+              </div>
             </div>
           </div>
         }

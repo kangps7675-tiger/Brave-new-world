@@ -72,6 +72,8 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAxisNetwork).toBe(true);
     expect(prefs.showAlliedBlocs).toBe(true);
     expect(prefs.showSubseaPipelines).toBe(true);
+    expect(prefs.showOilPipelines).toBe(true);
+    expect(prefs.showGasPipelines).toBe(true);
     expect(prefs.showNewfeedsIranAttacks).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);
     expect(prefs.showUsDfcSupplyChain).toBe(false);

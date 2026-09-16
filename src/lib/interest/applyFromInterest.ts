@@ -1,6 +1,7 @@
 /**
  * 관심 프로필 → 지도·뉴스 soft 적용.
  * 고정 프리셋 픽커 없음 — 행동 스코어만으로 가중·레이어 ON(끄기는 안 함).
+ * 경제 모드 뉴스는 선물·매크로 투자자 페르소나 관련도를 추가로 가점.
  */
 
 import { conceptLayersForConflict } from "@/lib/conceptLayers";
@@ -8,6 +9,7 @@ import { deriveInterestProfile } from "@/lib/interest/deriveInterestProfile";
 import { getInterestStore } from "@/lib/interest/interestStore";
 import type { InterestProfile } from "@/lib/interest/interestTypes";
 import type { LayerPrefs } from "@/lib/layerPrefs";
+import { futuresInvestorRelevance } from "@/lib/news/futuresInvestorRelevance";
 import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import type { ViewTheaterChoice } from "@/lib/viewPackages";
 
@@ -86,8 +88,8 @@ export function loadInterestTheaterScores(): Record<string, number> {
 }
 
 /**
- * 뉴스 정렬: 관심 전장 가점 → (경제면 경제 피드 우선) → 최신순.
- * 필터를 바꾸지 않고 「전체」안에서도 내 전장이 위로 오게.
+ * 뉴스 정렬: 관심 전장 → (경제면) 선물투자자 관련도 → 경제 피드 → 최신순.
+ * 필터를 바꾸지 않고 「전체」안에서도 내 전장·선물 데스크 뉴스가 위로 오게.
  */
 export function sortNewsByInterest(
   items: NewsStreamItem[],
@@ -95,12 +97,18 @@ export function sortNewsByInterest(
   preferEconomy: boolean,
 ): NewsStreamItem[] {
   const hasInterest = Object.keys(theaterScores).length > 0;
+  const personaMode = preferEconomy ? "economy" : "conflict";
   return [...items].sort((a, b) => {
     if (hasInterest) {
       const ia = theaterScores[a.theater] ?? 0;
       const ib = theaterScores[b.theater] ?? 0;
       if (Math.abs(ia - ib) > 0.05) return ib - ia;
     }
+    const fa = futuresInvestorRelevance(a, personaMode);
+    const fb = futuresInvestorRelevance(b, personaMode);
+    // economy: 관련도 차이 민감 / conflict: oil·초크만 약하게
+    const gap = preferEconomy ? 4 : 12;
+    if (Math.abs(fa - fb) > gap) return fb - fa;
     if (preferEconomy) {
       const ae = a.feedTopic === "economy" ? 0 : 1;
       const be = b.feedTopic === "economy" ? 0 : 1;

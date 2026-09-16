@@ -17,15 +17,16 @@ export type EconomyNewsGenre =
 
 export type EconomyGenreFilter = EconomyNewsGenre | "all";
 
+/** 칩 UI 순서 — 선물·매크로 투자자 페르소나 (energy/shipping/macro 앞) */
 export const ECONOMY_GENRE_ORDER: EconomyNewsGenre[] = [
-  "tech",
+  "energy",
+  "macro",
+  "shipping",
+  "markets",
+  "infra",
   "chips",
   "auto",
-  "energy",
-  "shipping",
-  "infra",
-  "macro",
-  "markets",
+  "tech",
 ];
 
 const GENRE_LABELS: Record<LabelLanguage, Record<EconomyNewsGenre, string>> = {
