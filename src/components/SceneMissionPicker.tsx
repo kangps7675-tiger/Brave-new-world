@@ -8,6 +8,7 @@ import {
 } from "@/lib/sceneMissions";
 import { t } from "@/lib/uiStrings";
 import type { HotTheaterFocus } from "@/lib/hotTheaterLayers";
+import { zc } from "@/lib/uiStack";
 
 type SceneMissionPickerProps = {
   lang: LabelLanguage;
@@ -37,7 +38,7 @@ export function SceneMissionPicker({
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className="pointer-events-auto fixed inset-0 z-[820] flex items-end justify-center bg-[#02040a]/55 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] outline-none backdrop-blur-[2px] sm:items-center"
+      className={`pointer-events-auto fixed inset-0 ${zc("gate")} flex items-end justify-center bg-[#02040a]/55 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] outline-none backdrop-blur-[2px] sm:items-center`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="scene-mission-title"
@@ -98,7 +99,7 @@ type ReturnToGlobeChipProps = {
 
 export function ReturnToGlobeChip({ lang, onClick }: ReturnToGlobeChipProps) {
   return (
-    <div className="pointer-events-auto fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-[750] -translate-x-1/2">
+    <div className={`pointer-events-auto fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 ${zc("immersive")} -translate-x-1/2`}>
       <button
         type="button"
         onClick={onClick}

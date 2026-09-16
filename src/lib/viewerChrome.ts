@@ -20,6 +20,7 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
 } from "@/lib/firstScreenLayers";
+import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 
 export type { ViewerMode };
 
@@ -216,6 +217,7 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showTelegramOsint: false,
   showUkraineControl: false,
   showUkraineStrikesOnRussia: false,
+  showConflictEvents: false,
   showNeptun: false,
   showNeptunPreviousTrails: false,
   showTzevaAdom: false,
@@ -239,6 +241,8 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showCrinkInfraCheckpoint: false,
   showCrinkInfraRail: false,
   showCrinkInfraRoad: false,
+  showCrinkInfraPipeline: false,
+  showCrinkInfraPowerLine: false,
   ...ECONOMY_MILITARY_BLOCK,
   ...ECONOMY_RESOURCE_HERO_OFF,
   showGpsInterference: false,
@@ -278,6 +282,7 @@ export const ECONOMY_FRONTLINE_BLOCK: Partial<LayerPrefs> = {
   showTelegramOsint: false,
   showUkraineControl: false,
   showUkraineStrikesOnRussia: false,
+  showConflictEvents: false,
   showNeptun: false,
   showNeptunPreviousTrails: false,
   showTzevaAdom: false,
@@ -354,7 +359,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerTitle: "경제 · 시장",
     modePickerTagline: "초크 · 에너지 · 진영 · 물류",
     modePickerBullets: [
-      "초크·항로·항구 · GSCPI로 막힘을 읽습니다",
+      "초크·항로·항구 · 공급망 압력으로 막힘을 읽습니다",
       "가스·LNG·송유·해저관 · 지경학 진영 폴리곤",
       "민간 항공기·AIS · 데이터센터 (투자 권유 아님)",
     ],
@@ -382,7 +387,7 @@ export function mergeChromeLayers(base: LayerPrefs, mode: ViewerMode): LayerPref
   }
 
   // 캡만 적용. 대치·자원 히어로는 전장/허브 진입(conceptLayers)에서 켠다.
-  return capLayerCountForMode(next, mode);
+  return capLayerCountForMode(stripLegacyConflictPrefs(next), mode);
 }
 
 export type ApplyViewerModeResult = {

@@ -808,6 +808,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             : undefined;
         return typeof meta?.hoverColor === "string" ? meta.hoverColor : undefined;
       },
+      // CRINK 인프라 세부 카테고리(power/pipeline/rail 등) — map-paths-crink-pipeline-* 필터용
+      crinkCategory: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { crinkCategory?: string } }).meta
+            : undefined;
+        return typeof meta?.crinkCategory === "string" ? meta.crinkCategory : undefined;
+      },
     });
   }, [deferredPathsData, basemapMode]);
 
@@ -815,6 +823,46 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     () => pathsGeoJson.features.some((f) => f.properties?.kind === "maritime-route"),
     [pathsGeoJson],
   );
+
+  /**
+   * CRINK 인프라 중 Point 지오메트리(변전소·발전소 등 — extract.py가 way를
+   * centroid Point로 뭉갠 것들)는 buildPathsGeoJson이 `pts.length < 2`라서
+   * 통째로 드롭한다(LineString 전용 소스라서). 그대로면 showCrinkInfraPower를
+   * 켜도 화면에 아무것도 안 뜬다 — 별도 Point 소스로 건져서 원(circle) 레이어로
+   * 그린다. deferredPathsData를 직접 훑되 LineString(≥2점)은 이미 pathsGeoJson이
+   * 담당하므로 여기서는 단일점 crink-infra만 골라낸다.
+   */
+  const crinkPointsGeoJson = useMemo(() => {
+    const features: Array<{
+      type: "Feature";
+      geometry: { type: "Point"; coordinates: [number, number] };
+      properties: { crinkCategory: string; color: string; name: string };
+    }> = [];
+    for (const raw of deferredPathsData) {
+      if (!raw || typeof raw !== "object") continue;
+      const item = raw as {
+        kind?: string;
+        points?: { lat: number; lng: number }[];
+        accentColor?: string;
+        name?: string;
+        meta?: { crinkCategory?: string };
+      };
+      if (item.kind !== "crink-infra") continue;
+      const pts = item.points;
+      if (!pts || pts.length !== 1) continue;
+      const category = item.meta?.crinkCategory ?? "";
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [pts[0].lng, pts[0].lat] },
+        properties: {
+          crinkCategory: category,
+          color: item.accentColor ?? "rgba(255, 180, 60, 0.75)",
+          name: item.name ?? "",
+        },
+      });
+    }
+    return { type: "FeatureCollection" as const, features };
+  }, [deferredPathsData]);
 
   const priorityPathsGeoJson = useMemo(() => {
     void basemapMode;
@@ -2331,11 +2379,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             data={pathsGeoJson}
             lineMetrics
           >
-            {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등) */}
+            {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등).
+                CRINK pipeline은 아래 glow+core 전용 레이어가 그리므로 여기서 제외
+                (안 빼면 실선+글로우가 겹쳐 저줌에서 과하게 밝아짐). */}
             <Layer
               id="map-paths-solid"
               type="line"
-              filter={["<=", ["get", "dashLength"], 0]}
+              filter={[
+                "all",
+                ["<=", ["get", "dashLength"], 0],
+                ["!=", ["get", "crinkCategory"], "pipeline"],
+              ]}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
@@ -2426,6 +2480,175 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
             />
             {/*
+              CRINK 가스·석유 파이프라인(showCrinkInfraPipeline) — OpenGridWorks류
+              "화려한 그리드" 참고 후 채택한 blur-halo + sharp-core 2겹 구성.
+              maritime-glow와 동일 패턴: 넓고 흐린 halo를 먼저, 얇고 또렷한 core를
+              나중에 그린다. 저줌에서는 halo가 거의 안 보이게(opacity ~0.12) 해서
+              눈아픔(가산혼합 남용) 우려를 피하고, 줌인할수록만 또렷해지는 LOD.
+              토글은 별도로 안 만들고 기존 레이어패널의 showCrinkInfraPipeline
+              체크박스가 그대로 on/off 겸 LOD 진입 조건(crinkInfraVisibility 무장줌)
+              역할을 한다 — 데이터가 없으면 필터를 통과하는 feature 자체가 없어 비용 0.
+            */}
+            <Layer
+              id="map-paths-crink-pipeline-glow"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["get", "kind"], "crink-infra"],
+                ["==", ["get", "crinkCategory"], "pipeline"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  1.6,
+                  12,
+                  3.2,
+                  16,
+                  6,
+                ],
+                "line-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  0.12,
+                  12,
+                  0.22,
+                  16,
+                  0.32,
+                ],
+                "line-blur": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  0.8,
+                  16,
+                  1.6,
+                ],
+              }}
+            />
+            <Layer
+              id="map-paths-crink-pipeline-solid"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["get", "kind"], "crink-infra"],
+                ["==", ["get", "crinkCategory"], "pipeline"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  0.8,
+                  16,
+                  2.2,
+                ],
+                "line-opacity": 0.88,
+                "line-blur": 0,
+              }}
+            />
+            {/*
+              고압 송전선(power-line) glow — pipeline과 동일 halo+core 2단 패턴이지만
+              "전기" 느낌을 주려고 core를 더 가늘고 밝은 백색-시안으로, halo는 더 넓고
+              은은하게 잡았다(줌아웃 시 그리드 전체가 옅은 빛망처럼 보이도록). 데이터가
+              없으면(showCrinkInfraPowerLine 기본 OFF, 실추출 전) 필터 통과 feature가
+              없어 비용 0 — pipeline 레이어와 동일한 이유로 별도 토글 UI 불필요.
+            */}
+            <Layer
+              id="map-paths-crink-power-line-glow"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["get", "kind"], "crink-infra"],
+                ["==", ["get", "crinkCategory"], "power-line"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  6,
+                  1.2,
+                  10,
+                  2.6,
+                  14,
+                  5,
+                  16,
+                  8,
+                ],
+                "line-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  6,
+                  0.1,
+                  10,
+                  0.18,
+                  16,
+                  0.3,
+                ],
+                "line-blur": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  6,
+                  0.9,
+                  16,
+                  1.8,
+                ],
+              }}
+            />
+            <Layer
+              id="map-paths-crink-power-line-solid"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["get", "kind"], "crink-infra"],
+                ["==", ["get", "crinkCategory"], "power-line"],
+              ]}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  6,
+                  0.5,
+                  10,
+                  0.7,
+                  16,
+                  1.8,
+                ],
+                "line-opacity": 0.92,
+                "line-blur": 0,
+              }}
+            />
+            {/*
               axis-link 국가색→관계색 호버 리컬러. base(solid/dashed) 레이어는 국가(허브)
               고유색을 그대로 두고, 그 위에 순수 추가로 덧그리는 레이어라 기존 스타일에는
               영향이 없다. 호버 중인 groupId와 같은 axis-link feature만 필터를 통과해
@@ -2502,6 +2725,59 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 }}
               />
             ))}
+          </Source>
+        ) : null}
+
+        {crinkPointsGeoJson.features.length > 0 ? (
+          <Source id="map-crink-points-source" type="geojson" data={crinkPointsGeoJson}>
+            {/* halo — circle-blur 가산 느낌 근사. 저줌에서 옅고, 줌인할수록 또렷 */}
+            <Layer
+              id="map-crink-points-glow"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  4,
+                  12,
+                  7,
+                  16,
+                  13,
+                ],
+                "circle-blur": 1.1,
+                "circle-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  0.15,
+                  16,
+                  0.35,
+                ],
+              }}
+            />
+            <Layer
+              id="map-crink-points-solid"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  9,
+                  1.6,
+                  16,
+                  4,
+                ],
+                "circle-opacity": 0.92,
+                "circle-stroke-width": 0.6,
+                "circle-stroke-color": "rgba(8, 12, 24, 0.65)",
+              }}
+            />
           </Source>
         ) : null}
 

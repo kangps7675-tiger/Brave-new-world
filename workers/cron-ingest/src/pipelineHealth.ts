@@ -48,7 +48,8 @@ export async function recordHeartbeat(db: D1Database): Promise<Heartbeat> {
     .bind(yesterday)
     .first<{ n: number }>();
 
-  // ì§ì „???¤ì œë¡?? í˜¸ê°€ ?“ì¸ ??  const prev = await db
+  // ì§ì „???¤ì œë¡?? í˜¸ê°€ ?“ì¸ ??
+  const prev = await db
     .prepare(
       `SELECT MAX(signal_date) AS d FROM theater_signal_daily WHERE signal_date < ?`,
     )
@@ -59,9 +60,9 @@ export async function recordHeartbeat(db: D1Database): Promise<Heartbeat> {
   const gapDays = prev?.d ? daysBetween(prev.d, yesterday) : 0;
 
   const problems: string[] = [];
-  if (theaterSignalRows === 0) problems.push("?´ì œ ?„ì¥ ? í˜¸ ?¤ëƒ…??0ê±?);
-  if ((mkt?.n ?? 0) === 0) problems.push("ìµœê·¼ 7???œì¥ ?œê³„??0ê±?);
-  if (gapDays > MAX_HEALTHY_GAP_DAYS) problems.push(`?¤ëƒ…??ê³µë°± ${gapDays}??);
+  if (theaterSignalRows === 0) problems.push("?´ì œ ?„ì¥ ? í˜¸ ?¤ëƒ…??0ê±?");
+  if ((mkt?.n ?? 0) === 0) problems.push("ìµœê·¼ 7???œì¥ ?œê³„??0ê±?");
+  if (gapDays > MAX_HEALTHY_GAP_DAYS) problems.push(`?¤ëƒ…??ê³µë°± ${gapDays}??`);
 
   const beat: Heartbeat = {
     checkDate: today,

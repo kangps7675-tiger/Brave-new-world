@@ -12,7 +12,7 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
   showUkraineControl: true,
   showWarZones: true,
   showNeptun: true,
-  showUkraineStrikesOnRussia: true,
+  showConflictEvents: true,
   showGdeltWar: true,
   showFirmsFires: true,
   showMilitaryActivity: true,
@@ -27,7 +27,6 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
   showAlliedBlocs: true,
   showSubseaPipelines: true,
   showTzevaAdom: true,
-  showNewfeedsIranAttacks: true,
 };
 
 /**

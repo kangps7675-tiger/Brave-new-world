@@ -52,7 +52,7 @@ describe("logisticsStress — 정확도 보증", () => {
       chokeLng: CHOKE.lng,
       ukmtoIncidents: [],
       aisObservation: demo.aisObservation,
-      oilVolatility: demo.oilVolatility,
+      assetVolatility: demo.assetVolatility,
     });
     // 목업 신호는 들어가지만 등급은 여전히 미확정
     expect(s.graded).toBe(false);
@@ -102,7 +102,7 @@ describe("logisticsStress — 정확도 보증", () => {
     const a = demoStressSignals("choke-hormuz");
     const b = demoStressSignals("choke-hormuz");
     expect(a.aisObservation?.changePct).toBe(b.aisObservation?.changePct);
-    expect(a.oilVolatility?.hint).toBe(b.oilVolatility?.hint);
+    expect(a.assetVolatility?.hint).toBe(b.assetVolatility?.hint);
   });
 
   it("PortWatch 실측 B급은 DEMO 배지 없이 출처가 IMF PortWatch", () => {

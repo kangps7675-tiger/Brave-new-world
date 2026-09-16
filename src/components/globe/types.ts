@@ -22,6 +22,7 @@ import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import type { RussiaStrikeIncident } from "@/data/russiaStrikeIncidentsSeed";
 import type { EuropeDroneIncident } from "@/data/europeDroneIncursionSeed";
 import type { ProvenanceFields } from "@/lib/eventProvenance";
+import type { ConflictEventHtmlMarker } from "@/lib/conflictEvents/buildLayer";
 import type { SituationCallout } from "@/data/situationCalloutTypes";
 import type { MissileBeltArea } from "@/data/koreaMissileBeltSeed";
 import type { FirmsSoundKind } from "@/lib/firmsSoundClassify";
@@ -237,6 +238,8 @@ export type EuropeDroneIncidentHtmlMarker = EuropeDroneIncident &
   displayKind: "europe-drone-incident";
 };
 
+export type { ConflictEventHtmlMarker };
+
 export type NeptunImpactHtmlMarker = NeptunImpactFlash & {
   markerId: string;
   displayKind: "neptun-impact";
@@ -398,6 +401,7 @@ export type GlobeDisplayPoint =
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
   | EuropeDroneIncidentHtmlMarker
+  | ConflictEventHtmlMarker
   | ReconSatelliteMarker
   | TelegramNeonMarker;
 
@@ -428,6 +432,7 @@ export type HtmlOverlayMarker =
   | KoreaMissileIncidentHtmlMarker
   | RussiaStrikeIncidentHtmlMarker
   | EuropeDroneIncidentHtmlMarker
+  | ConflictEventHtmlMarker
   | NewfeedsAttackGlobePoint
   | UkraineTheaterIntensityGlobePoint
   | NewsStreamNeonMarker

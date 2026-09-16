@@ -296,6 +296,10 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     ko: "이란·중동 공격 관련 공개 소식 핀입니다.",
     en: "Iran / Middle East attack-related public news pins.",
   },
+  "conflict-events": {
+    ko: "전장 공격·교전 보도를 사건 단위로 묶은 핀입니다. 좌표는 지명이 맞을 때만 찍히며, 소스 수가 신뢰 등급입니다.",
+    en: "Battlefield attack/clash reports clustered into incidents. Pins only when a place matches; source count is the confidence signal.",
+  },
   "telegram-osint": {
     ko: "텔레그램 공개 채널 속보입니다. 미확인 전언이며 절반 미리보기만 보입니다.",
     en: "Telegram public-channel OSINT — unverified; half preview only.",

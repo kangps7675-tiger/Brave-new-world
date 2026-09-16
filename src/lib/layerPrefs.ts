@@ -2,6 +2,7 @@ import {
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
+import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 /*
  * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
  * (import type) 런타임 순환 참조가 생기지 않는다.
@@ -189,6 +190,24 @@ export type LayerPrefs = {
   showNorthKoreaMissileTests: boolean;
   /** 우크라이나 → 러시아 타격 (보도·미확인 · 자주 피격지 네온) */
   showUkraineStrikesOnRussia: boolean;
+  /**
+   * 통합 전장 이벤트 — RSS+GDELT+NewFeeds 클러스터.
+   * REPLACE_LEGACY 기본 ON — 기존 네온 4계통은 이 레이어로 대체.
+   */
+  showConflictEvents: boolean;
+  showConflictTheaterUkraine: boolean;
+  showConflictTheaterIran: boolean;
+  showConflictTheaterLebanon: boolean;
+  showConflictTheaterSyria: boolean;
+  showConflictTheaterTaiwan: boolean;
+  showConflictTheaterKorea: boolean;
+  showConflictTheaterSouthChinaSea: boolean;
+  showConflictTheaterKuril: boolean;
+  showConflictTheaterBaltic: boolean;
+  showConflictTheaterBlackSea: boolean;
+  showConflictTheaterJapan: boolean;
+  showConflictTheaterCaucasus: boolean;
+  showConflictTheaterCentralAsia: boolean;
   /** 유럽 드론·영공 침범 (주황 네온 · 나토 회원국 공항·기지·국경 상공) */
   showEuropeDroneIncidents: boolean;
   /** NEPTUN — 우크라이나 드론·미사일·탄도미사일 실시간 궤적 (neptun.in.ua) */
@@ -219,6 +238,8 @@ export type LayerPrefs = {
   showSesChip: boolean;
   /** 미국 DFC 활성 프로젝트 기반 개발금융 공급망 */
   showUsDfcSupplyChain: boolean;
+  /** Global Trade Alert 무역조치 (implementer→affected 호, Red/Amber/Green) */
+  showGtaInterventions: boolean;
   /** CRINK OSM 인프라 — 카테고리별 (public/data/crink/) */
   showCrinkInfraPower: boolean;
   showCrinkInfraBorder: boolean;
@@ -228,6 +249,10 @@ export type LayerPrefs = {
   showCrinkInfraCheckpoint: boolean;
   showCrinkInfraRail: boolean;
   showCrinkInfraRoad: boolean;
+  /** 가스·석유 트렁크 파이프라인 (man_made=pipeline, substance 필터). 데이터 파이프라인 확장 전까지 기본 OFF. */
+  showCrinkInfraPipeline: boolean;
+  /** 고압 송전선·배전선 (power=line/minor_line) 전체 지오메트리. 실추출 전까지 기본 OFF. */
+  showCrinkInfraPowerLine: boolean;
   labelLanguage: LabelLanguage;
 };
 
@@ -348,7 +373,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showGdeltOceanCompetition: false,
   showTelegramOsint: true,
   showTzevaAdom: true,
-  showNewfeedsIranAttacks: true,
+  showNewfeedsIranAttacks: false,
   showUkmtoIncidents: false,
   // 신호가 없으면 조용하므로 기본 ON 이어도 화면을 방해하지 않는다
   showEscalationSignals: true,
@@ -361,7 +386,21 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showWeeklyShipMoves: true,
   showReefWatch: true,
   showNorthKoreaMissileTests: false,
-  showUkraineStrikesOnRussia: true,
+  showUkraineStrikesOnRussia: false,
+  showConflictEvents: true,
+  showConflictTheaterUkraine: true,
+  showConflictTheaterIran: true,
+  showConflictTheaterLebanon: true,
+  showConflictTheaterSyria: true,
+  showConflictTheaterTaiwan: true,
+  showConflictTheaterKorea: true,
+  showConflictTheaterSouthChinaSea: true,
+  showConflictTheaterKuril: true,
+  showConflictTheaterBaltic: true,
+  showConflictTheaterBlackSea: true,
+  showConflictTheaterJapan: true,
+  showConflictTheaterCaucasus: true,
+  showConflictTheaterCentralAsia: false,
   showEuropeDroneIncidents: false,
   showNeptun: true,
   showNeptunPreviousTrails: false,
@@ -374,6 +413,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showSanctionsEvasionCorridors: true,
   showSesChip: true,
   showUsDfcSupplyChain: false,
+  showGtaInterventions: false,
   showCrinkInfraPower: true,
   showCrinkInfraBorder: true,
   showCrinkInfraDams: true,
@@ -382,6 +422,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showCrinkInfraCheckpoint: true,
   showCrinkInfraRail: true,
   showCrinkInfraRoad: true,
+  showCrinkInfraPipeline: false,
+  showCrinkInfraPowerLine: false,
   labelLanguage: "ko",
 };
 
@@ -564,7 +606,9 @@ function settleTelegramDefaultOn(prefs: LayerPrefs): LayerPrefs {
 }
 
 function settleLayerPrefDefaults(prefs: LayerPrefs): LayerPrefs {
-  return settleTelegramDefaultOn(settleAxisNetworkDefaultOff(prefs));
+  return stripLegacyConflictPrefs(
+    settleTelegramDefaultOn(settleAxisNetworkDefaultOff(prefs)),
+  );
 }
 
 
@@ -636,7 +680,9 @@ function loadLayerPrefsRaw(): LayerPrefs {
  * @see docs/copyright-audit-2026-08-01.md — O-1(b)
  */
 export function loadLayerPrefs(): LayerPrefs {
-  return enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier());
+  return stripLegacyConflictPrefs(
+    enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier()),
+  );
 }
 
 export function saveLayerPrefs(prefs: LayerPrefs) {

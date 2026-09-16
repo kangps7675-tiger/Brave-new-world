@@ -7,6 +7,7 @@ describe("LAYER_ITEM_PREF_KEYS panel coverage", () => {
     expect(LAYER_ITEM_PREF_KEYS["csto-bloc"]).toBe("showCstoBloc");
     expect(LAYER_ITEM_PREF_KEYS["geoecon-blocs"]).toBe("showGeoEconBlocs");
     expect(LAYER_ITEM_PREF_KEYS["europe-drone-incidents"]).toBe("showEuropeDroneIncidents");
+    expect(LAYER_ITEM_PREF_KEYS["conflict-events"]).toBe("showConflictEvents");
     expect(LAYER_ITEM_PREF_KEYS["allied-logistics-corridors"]).toBe("showAlliedLogisticsCorridors");
     expect(LAYER_ITEM_PREF_KEYS["sanctions-evasion-corridors"]).toBe(
       "showSanctionsEvasionCorridors",

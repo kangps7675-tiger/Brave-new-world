@@ -3,7 +3,7 @@
 Extract CRINK-relevant OSM infra from .osm.pbf → GeoJSONL (one feature per line).
 Uses pyosmium (no osmium-tool CLI required).
 
-Categories: aeroway, harbour, border, dam, power, checkpoint, rail, road
+Categories: aeroway, harbour, border, dam, power, pipeline, checkpoint, rail, road, power-line
 
 Partial extract:
   py extract.py --pbf=... --region=belarus --categories=rail,road
@@ -30,6 +30,8 @@ CONFIG = json.loads((Path(__file__).parent / "config.json").read_text(encoding="
 
 from categories import (  # noqa: E402
     ALL_CATEGORIES,
+    PIPELINE_SUBSTANCES,
+    POWER_LINE_TYPES,
     RAIL_SKIP_SERVICE,
     RAIL_TYPES,
     ROAD_TYPES,
@@ -43,15 +45,31 @@ LARGE_REGIONS = frozenset({"russia", "asia"})
 
 
 def power_allowed(tags: osmium.TagList) -> bool:
-    """변전소·발전소만 — 송전선(power=line)·철탑(power=tower)은 용량 폭탄이라 제외."""
+    """변전소·발전소만 — 송전선(power=line)·철탑(power=tower)은 power-line 카테고리로 분리."""
     kind = tags.get("power")
     return kind in ("substation", "plant")
+
+
+def power_line_allowed(tags: osmium.TagList) -> bool:
+    """고압 송전선·배전선 전체 지오메트리. flat GeoJSON은 gzip 사이드카로 서빙하고
+    (merge_geojson.py GZIP_CATEGORIES), 압축 후에도 너무 크면 벡터타일 전환을 검토."""
+    return tags.get("power") in POWER_LINE_TYPES
+
+
+def pipeline_allowed(tags: osmium.TagList) -> bool:
+    """가스·석유 등 에너지 트렁크 라인만 — substance 태그 없는(대개 상수도·하수관) 건 제외."""
+    if tags.get("man_made") != "pipeline":
+        return False
+    substance = (tags.get("substance") or tags.get("content") or "").lower()
+    if not substance:
+        return False
+    return substance in PIPELINE_SUBSTANCES
 
 
 def rail_allowed(tags: osmium.TagList) -> bool:
     kind = tags.get("railway")
     if kind not in RAIL_TYPES:
-    return False
+        return False
     svc = tags.get("service")
     return svc not in RAIL_SKIP_SERVICE
 
@@ -80,6 +98,10 @@ def categorize(tags: osmium.TagList, active: frozenset[str]) -> str | None:
         return "dam"
     if "power" in active and tags.get("power") in ("substation", "plant"):
         return "power" if power_allowed(tags) else None
+    if "power-line" in active and power_line_allowed(tags):
+        return "power-line"
+    if "pipeline" in active and pipeline_allowed(tags):
+        return "pipeline"
     if "checkpoint" in active and tags.get("military") == "checkpoint":
         return "checkpoint"
     return None
@@ -103,18 +125,18 @@ def write_feature(
     geometry: dict,
     tags: dict[str, str],
 ) -> None:
-        feature = {
-            "type": "Feature",
-            "geometry": geometry,
-            "properties": {
-                "crinkCategory": cat,
+    feature = {
+        "type": "Feature",
+        "geometry": geometry,
+        "properties": {
+            "crinkCategory": cat,
             "region": region_id,
-                "osmType": osm_type,
-                "osmId": osm_id,
+            "osmType": osm_type,
+            "osmId": osm_id,
             "name": feature_name(tags),
-                "tags": tags,
-            },
-        }
+            "tags": tags,
+        },
+    }
     writers[cat].write(json.dumps(feature, ensure_ascii=False) + "\n")
     counts[cat] += 1
 
@@ -214,7 +236,7 @@ def emit_from_passes(
 
     for cat, wid, nids, tags in collectors.ways:
         coords = [locs[i] for i in nids if i in locs]
-        if cat in ("rail", "road"):
+        if cat in ("rail", "road", "pipeline", "power-line"):
             if len(coords) < 2:
                 continue
             write_feature(
@@ -573,8 +595,8 @@ class InfraExtractor(osmium.SimpleHandler):
 
 
 def _categories_need_twopass(categories: tuple[str, ...]) -> bool:
-    """Rail/road single-pass (locations=True) OOMs on dense networks."""
-    return any(str(c).lower() in ("rail", "road") for c in categories)
+    """Rail/road/power-line single-pass (locations=True) OOMs on dense networks."""
+    return any(str(c).lower() in ("rail", "road", "power-line") for c in categories)
 
 def extract_region_small(
     pbf_path: Path,
@@ -595,8 +617,8 @@ def extract_region_small(
     try:
         handler.apply_file(str(pbf_path), locations=True, idx="flex_mem")
     finally:
-    for w in writers.values():
-        w.close()
+        for w in writers.values():
+            w.close()
 
     print(f"[extract] {region_id} counts:", handler.counts, flush=True)
     return handler.counts

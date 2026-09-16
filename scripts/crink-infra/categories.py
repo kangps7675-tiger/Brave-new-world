@@ -1,9 +1,10 @@
 """Shared CRINK infra category lists — keep extract / merge / clip in sync."""
 from __future__ import annotations
 
-DEFAULT_CATEGORIES = ("aeroway", "harbour", "border", "dam", "power", "checkpoint")
+DEFAULT_CATEGORIES = ("aeroway", "harbour", "border", "dam", "power", "pipeline", "checkpoint")
 TRANSPORT_CATEGORIES = ("rail", "road")
-ALL_CATEGORIES = DEFAULT_CATEGORIES + TRANSPORT_CATEGORIES
+POWER_LINE_CATEGORIES = ("power-line",)
+ALL_CATEGORIES = DEFAULT_CATEGORIES + TRANSPORT_CATEGORIES + POWER_LINE_CATEGORIES
 
 # Rail/road mesh is for CRINK Eurasian land corridors (strategicCorridors.ts).
 # Western Hemisphere spokes (CUB|PRK sea incident etc.) are not part of that mesh.
@@ -11,6 +12,23 @@ TRANSPORT_SKIP_REGIONS = frozenset({"cuba", "venezuela"})
 
 RAIL_TYPES = frozenset({"rail", "light_rail", "subway", "narrow_gauge"})
 RAIL_SKIP_SERVICE = frozenset({"yard", "siding", "spur"})
+POWER_LINE_TYPES = frozenset({"line", "minor_line"})
+PIPELINE_SUBSTANCES = frozenset(
+    {
+        "gas",
+        "oil",
+        "lpg",
+        "lng",
+        "ngl",
+        "petroleum",
+        "diesel",
+        "fuel",
+        "crude_oil",
+        "natural_gas",
+        "condensate",
+    }
+)
+
 ROAD_TYPES = frozenset(
     {
         "motorway",
