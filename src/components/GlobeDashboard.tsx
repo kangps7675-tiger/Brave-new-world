@@ -552,7 +552,6 @@ import type {
   DisputeArea,
   FirmsFire,
   MilitaryAircraft,
-  SearchPlace,
   StaticPoint,
   TransportPath,
   UkraineControlData,

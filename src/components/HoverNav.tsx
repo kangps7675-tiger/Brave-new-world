@@ -428,6 +428,7 @@ export function HoverNav({
                         key={`kw-${tip.keyword}`}
                         type="button"
                         role="option"
+                        aria-selected={false}
                         onClick={() => onKeywordSelect?.(tip.keyword)}
                         className={`rounded-full border px-2.5 py-1 text-meta transition ${
                           light
@@ -455,6 +456,7 @@ export function HoverNav({
                         key={`news-${article.id}`}
                         type="button"
                         role="option"
+                        aria-selected={false}
                         onClick={() => handleSearchPick(hit)}
                         className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
                       >
@@ -514,6 +516,7 @@ export function HoverNav({
                       key={place.id}
                       type="button"
                       role="option"
+                      aria-selected={false}
                       onClick={() => handleSearchPick(hit)}
                       className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
                     >
