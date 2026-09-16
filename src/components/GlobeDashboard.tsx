@@ -690,6 +690,7 @@ import {
 import { geometryToBorderPaths } from "@/components/globe/geometryToBorderPaths";
 import {
   overlayPolygonsEqual,
+  polygonFeatureKey,
 } from "@/components/globe/overlayPolygons";
 import {
   markWelcomeGateDone,
@@ -7674,7 +7675,7 @@ export function GlobeDashboard({
       .join("|");
     const polygonKey = polygonData
       .slice(0, 24)
-      .map((item) => `${item.polygonLayer}:${item.id}`)
+      .map((item) => `${item.polygonLayer}:${polygonFeatureKey(item)}`)
       .join("|");
     const pathKey = rawGlobePaths
       .slice(0, 24)
