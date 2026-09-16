@@ -29,13 +29,14 @@ const UKRAINE_STACK: LayerPatch = {
 };
 
 /**
- * NEPTUN(공습·드론·미사일 궤적) + 우크라→러 타격 화염.
+ * NEPTUN(공습·드론·미사일 궤적) + 통합 전장 이벤트(우크라 칩).
  * 전선 폴리곤(showUkraineControl)은 포함하지 않음 — 별도 토글.
  */
 export const UKRAINE_LIVE_COMPANIONS: LayerPatch = {
   showNeptun: true,
   showNeptunPreviousTrails: false,
-  showUkraineStrikesOnRussia: true,
+  showConflictEvents: true,
+  showConflictTheaterUkraine: true,
 };
 
 const NO_UKRAINE: LayerPatch = {
@@ -43,6 +44,7 @@ const NO_UKRAINE: LayerPatch = {
   showNeptun: false,
   showNeptunPreviousTrails: false,
   showUkraineStrikesOnRussia: false,
+  showConflictTheaterUkraine: false,
 };
 
 const CONFLICT_BASE: LayerPatch = {
@@ -91,7 +93,8 @@ const MIDDLE_EAST_STACK: LayerPatch = {
   showUkmtoIncidents: true,
   showNavareaWarnings: true,
   showTzevaAdom: false,
-  showNewfeedsIranAttacks: true,
+  showConflictEvents: true,
+  showConflictTheaterIran: true,
 };
 
 const CONFLICT_THEATER_LAYERS: Record<ConflictConceptTheater, LayerPatch> = {

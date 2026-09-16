@@ -340,6 +340,8 @@ export function buildPathsGeoJson<T>(
     legIndex?: Accessor<T, number | undefined>;
     /** axis-link 전용 — 호버 시 기본색(국가색) 대신 드러날 관계 성격 색(군수=빨강 등) */
     hoverColor?: Accessor<T, string | undefined>;
+    /** CRINK 인프라(kind="crink-infra") 전용 — power/pipeline/rail 등 세부 카테고리 필터용 */
+    crinkCategory?: Accessor<T, string | undefined>;
   },
 ): FeatureCollection<LineString> {
   return {
@@ -377,6 +379,7 @@ export function buildPathsGeoJson<T>(
             groupId: accessors.groupId?.(item) ?? "",
             legIndex: accessors.legIndex?.(item) ?? 0,
             hoverColor: accessors.hoverColor?.(item) ?? "",
+            crinkCategory: accessors.crinkCategory?.(item) ?? "",
           },
         },
       ];

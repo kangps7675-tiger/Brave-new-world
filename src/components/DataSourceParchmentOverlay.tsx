@@ -40,6 +40,7 @@ export function DataSourceParchmentOverlay(props: Props) {
   );
   const [acknowledged, setAcknowledged] = useState(false);
   const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
+  const [expanded, setExpanded] = useState(false);
 
   const dialogRef = useDialog<HTMLDivElement>({
     open: true,
@@ -81,6 +82,14 @@ export function DataSourceParchmentOverlay(props: Props) {
     }, 900);
   }, [acknowledged, browse, onDismiss, phase]);
 
+  const shellSize = expanded
+    ? "h-[min(96vh,980px)] max-h-[96vh] w-full max-w-[min(96vw,1280px)]"
+    : "h-[min(88vh,760px)] max-h-[88vh] w-full max-w-4xl";
+
+  const faceHeight = expanded
+    ? "h-[min(96vh,980px)] max-h-[96vh]"
+    : "h-[min(88vh,760px)] max-h-[88vh]";
+
   return (
     <div
       ref={dialogRef}
@@ -91,72 +100,102 @@ export function DataSourceParchmentOverlay(props: Props) {
       aria-labelledby="data-source-parchment-title"
     >
       <div
-        className={`welcome-parchment welcome-letter-shell my-auto w-full max-w-4xl transition-opacity duration-500 ${
+        className={`welcome-parchment welcome-letter-shell my-auto transition-[max-width,height,opacity] duration-300 ease-out ${shellSize} ${
           phase === "folding" || phase === "done" ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="welcome-parchment welcome-letter-face welcome-letter-face--front relative max-h-[min(92vh,880px)] overflow-hidden rounded-sm shadow-2xl">
+        <div
+          className={`welcome-parchment welcome-letter-face welcome-letter-face--front relative overflow-hidden rounded-sm shadow-2xl ${faceHeight}`}
+        >
           <div className="welcome-parchment-edge pointer-events-none absolute inset-0" />
           <div className="welcome-parchment-filigree pointer-events-none absolute inset-0" />
 
-          <div className="flex max-h-[min(92vh,880px)] flex-col">
-            <header className="relative shrink-0 border-b border-[#8b6914]/25 px-4 py-4 sm:px-6 sm:py-5">
-              {browse ? (
+          <div className={`flex flex-col ${faceHeight}`}>
+            <header className="relative shrink-0 border-b border-[#8b6914]/25 px-4 py-3 sm:px-5 sm:py-4">
+              <div className="absolute right-2 top-2 flex items-center gap-1.5 sm:right-3 sm:top-3">
                 <button
                   type="button"
-                  onClick={() => onDismiss()}
-                  className="absolute right-3 top-3 rounded-sm border border-[#8b6914]/35 px-2 py-1 text-xs text-[#5a4428] transition hover:bg-[#efe0b8]"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="rounded-sm border border-[#8b6914]/35 px-2 py-1 text-xs text-[#5a4428] transition hover:bg-[#efe0b8]"
                   style={{ fontFamily: parchmentStack }}
-                  aria-label={ko ? "닫기" : "Close"}
+                  aria-pressed={expanded}
+                  aria-label={
+                    expanded
+                      ? ko
+                        ? "창 축소"
+                        : "Shrink window"
+                      : ko
+                        ? "창 확대"
+                        : "Expand window"
+                  }
                 >
-                  {ko ? "닫기" : "Close"}
+                  {expanded
+                    ? ko
+                      ? "축소"
+                      : "Shrink"
+                    : ko
+                      ? "확대"
+                      : "Expand"}
                 </button>
-              ) : null}
+                {browse ? (
+                  <button
+                    type="button"
+                    onClick={() => onDismiss()}
+                    className="rounded-sm border border-[#8b6914]/35 px-2 py-1 text-xs text-[#5a4428] transition hover:bg-[#efe0b8]"
+                    style={{ fontFamily: parchmentStack }}
+                    aria-label={ko ? "닫기" : "Close"}
+                  >
+                    {ko ? "닫기" : "Close"}
+                  </button>
+                ) : null}
+              </div>
               <p
-                className="text-center text-meta tracking-[0.22em] text-[#6b4a22]/75"
+                className="pr-24 text-center text-meta tracking-[0.22em] text-[#6b4a22]/75"
                 style={{ fontFamily: parchmentStack }}
               >
                 {ko ? BRAND_NAME.ko : BRAND_NAME.en}
               </p>
               <h1
                 id="data-source-parchment-title"
-                className="mt-2 text-center text-lg leading-snug text-[#2a1a0c] sm:text-xl"
+                className="mt-1.5 pr-24 text-center text-lg leading-snug text-[#2a1a0c] sm:text-xl"
                 style={{ fontFamily: parchmentStack, fontWeight: 600 }}
               >
                 {ko ? "데이터 출처 · 한계 고지" : "Data sources · limits disclosure"}
               </h1>
               <p
-                className="mx-auto mt-2 max-w-2xl text-center text-sm leading-relaxed text-[#3d2a18]/90"
+                className="mx-auto mt-1.5 max-w-2xl pr-4 text-center text-sm leading-relaxed text-[#3d2a18]/90 sm:pr-24"
                 style={{ fontFamily: parchmentStack }}
               >
                 {browse
                   ? ko
-                    ? "10개 책갈피로 레이어·한글·속보·검증 티어·한계를 솔직히 정리했습니다. ≡ 메뉴·지도 하단 「데이터 출처」에서도 다시 열 수 있습니다."
-                    : "Ten bookmarks — layers, Korean/flash design, trust tiers, and limits. Reopen anytime from ≡ menu or the map attribution bar."
+                    ? "왼쪽 책갈피로 레이어·한글·속보·검증 티어·한계를 살펴보세요. ≡ 메뉴·지도 하단 「데이터 출처」에서도 다시 열 수 있습니다."
+                    : "Use the left bookmarks for layers, Korean/flash design, trust tiers, and limits. Reopen from ≡ menu or the map attribution bar."
                   : ko
                     ? "등불·긴장지수·실시간 레이어를 보기 전에 반드시 읽어 주십시오. 완벽한 정보기관이 아니며, 아래는 있는 그대로의 재료와 공백입니다."
                     : "Read before breaking news, tension scores, or live layers. We are not a perfect agency — this is an honest inventory of what we use and what is missing."}
               </p>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
+            <div className="flex min-h-0 flex-1">
               <nav
-                className="shrink-0 overflow-x-auto border-b border-[#8b6914]/20 sm:w-44 sm:border-b-0 sm:border-r"
+                className={`flex shrink-0 flex-col overflow-y-auto border-r border-[#8b6914]/20 ${
+                  expanded ? "w-52 sm:w-56" : "w-40 sm:w-48"
+                }`}
                 aria-label={ko ? "출처 책갈피" : "Source bookmarks"}
               >
-                <ul className="flex gap-0 sm:flex-col">
+                <ul className="flex flex-col py-1">
                   {sections.map((section) => {
                     const seen = visited.has(section.id);
                     const isActive = section.id === activeId;
                     return (
-                      <li key={section.id} className="shrink-0 sm:shrink">
+                      <li key={section.id}>
                         <button
                           type="button"
                           onClick={() => setActiveId(section.id)}
-                          className={`w-full px-3 py-2.5 text-left text-xs leading-snug transition sm:px-3 sm:py-3 sm:text-sm ${
+                          className={`w-full px-3 py-2.5 text-left text-xs leading-snug transition sm:text-sm ${
                             isActive
-                              ? "bg-[#efe0b8] text-[#2a1a0c]"
-                              : "text-[#5a4428]/85 hover:bg-[#f3e4c4]/60"
+                              ? "border-l-2 border-[#6b4a22] bg-[#efe0b8] text-[#2a1a0c]"
+                              : "border-l-2 border-transparent text-[#5a4428]/85 hover:bg-[#f3e4c4]/60"
                           }`}
                           style={{ fontFamily: parchmentStack }}
                           aria-current={isActive ? "true" : undefined}
@@ -174,70 +213,79 @@ export function DataSourceParchmentOverlay(props: Props) {
                 </ul>
               </nav>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
-                <SectionBody section={active} ink={ink} font={parchmentStack} lang={lang} />
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+                  <SectionBody
+                    section={active}
+                    ink={ink}
+                    font={parchmentStack}
+                    lang={lang}
+                  />
+                </div>
+
+                <footer className="shrink-0 border-t border-[#8b6914]/25 bg-[#f3e4c4]/80 px-4 py-3 sm:px-5 sm:py-4">
+                  <div
+                    className="rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/90 px-3 py-2.5 text-xs leading-relaxed text-[#3d2a18]"
+                    style={{ fontFamily: parchmentStack }}
+                  >
+                    <p className="font-semibold">
+                      {ko ? "상태 요약 (각주)" : "Status summary"}
+                    </p>
+                    <ul className="mt-1.5 list-disc space-y-1 pl-4">
+                      {footnoteLines.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {browse ? (
+                    <button
+                      type="button"
+                      onClick={handleContinue}
+                      className="mt-3 w-full rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0]"
+                      style={{ fontFamily: parchmentStack }}
+                    >
+                      {ko ? "닫기" : "Close"}
+                    </button>
+                  ) : (
+                    <>
+                      <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={acknowledged}
+                          onChange={(e) => setAcknowledged(e.target.checked)}
+                          className="mt-1 h-4 w-4 shrink-0 accent-[#6b4a22]"
+                        />
+                        <span
+                          className="text-sm leading-snug text-[#2a1a0c]"
+                          style={{ fontFamily: parchmentStack }}
+                        >
+                          {ko
+                            ? allTabsSeen
+                              ? "책갈피를 모두 열람했고, 한글·속보·검증 티어·한계 고지를 이해했습니다."
+                              : "모든 책갈피를 열람한 뒤 체크할 수 있습니다. (아직 안 연 탭이 있습니다)"
+                            : allTabsSeen
+                              ? "I opened all bookmarks and understand Korean/flash design, trust tiers, and limits."
+                              : "Open all bookmarks before checking this box."}
+                        </span>
+                      </label>
+
+                      <button
+                        type="button"
+                        disabled={!acknowledged || !allTabsSeen || phase !== "idle"}
+                        onClick={handleContinue}
+                        className="mt-3 w-full rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-not-allowed disabled:opacity-45"
+                        style={{ fontFamily: parchmentStack }}
+                      >
+                        {ko
+                          ? "확인 · 지정학/지경학 선택으로"
+                          : "Acknowledge · choose geopolitics or geoeconomics"}
+                      </button>
+                    </>
+                  )}
+                </footer>
               </div>
             </div>
-
-            <footer className="shrink-0 border-t border-[#8b6914]/25 bg-[#f3e4c4]/80 px-4 py-4 sm:px-6">
-              <div
-                className="rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/90 px-3 py-3 text-xs leading-relaxed text-[#3d2a18]"
-                style={{ fontFamily: parchmentStack }}
-              >
-                <p className="font-semibold">
-                  {ko ? "상태 요약 (각주)" : "Status summary"}
-                </p>
-                <ul className="mt-2 list-disc space-y-1 pl-4">
-                  {footnoteLines.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-
-              {browse ? (
-                <button
-                  type="button"
-                  onClick={handleContinue}
-                  className="mt-4 w-full rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0]"
-                  style={{ fontFamily: parchmentStack }}
-                >
-                  {ko ? "닫기" : "Close"}
-                </button>
-              ) : (
-                <>
-              <label className="mt-4 flex cursor-pointer items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={acknowledged}
-                  onChange={(e) => setAcknowledged(e.target.checked)}
-                  className="mt-1 h-4 w-4 shrink-0 accent-[#6b4a22]"
-                />
-                <span
-                  className="text-sm leading-snug text-[#2a1a0c]"
-                  style={{ fontFamily: parchmentStack }}
-                >
-                  {ko
-                    ? allTabsSeen
-                      ? "10개 책갈피를 모두 열람했고, 한글·속보·검증 티어·한계 고지를 이해했습니다."
-                      : "10개 책갈피를 모두 열람한 뒤 체크할 수 있습니다. (아직 안 연 탭이 있습니다)"
-                    : allTabsSeen
-                      ? "I opened all ten bookmarks and understand Korean/flash design, trust tiers, and limits."
-                      : "Open all ten bookmarks before checking this box."}
-                </span>
-              </label>
-
-              <button
-                type="button"
-                disabled={!acknowledged || !allTabsSeen || phase !== "idle"}
-                onClick={handleContinue}
-                className="mt-4 w-full rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.04em] text-[#3d2a18] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-not-allowed disabled:opacity-45"
-                style={{ fontFamily: parchmentStack }}
-              >
-                {ko ? "확인 · 지정학/지경학 선택으로" : "Acknowledge · choose geopolitics or geoeconomics"}
-              </button>
-                </>
-              )}
-            </footer>
           </div>
         </div>
       </div>

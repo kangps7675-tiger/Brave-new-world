@@ -41,7 +41,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
       "LoC 교차 사격·침투와 시아친 고지전이 한 묶음의 남아시아 화약고로 남아 있습니다.",
     presentLinkEn:
       "LoC firefights and Siachen high-altitude war remain one South Asian powder keg.",
-    linkedHotspotIds: ["dispute-main-IND-PAK-0", "combat-sa-kashmir-loc", "tension-sa-siachen"],
+    linkedHotspotIds: ["dispute-main-1159320869-0", "combat-sa-kashmir-loc", "tension-sa-siachen"],
   },
   {
     id: "taiwan-strait-crises-1954-58",
@@ -63,7 +63,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
     presentLinkEn:
       "Gray-zone ADIZ, carrier and drone pressure is the low-intensity sequel to 1950s artillery and 1990s missile crises.",
     linkedHotspotIds: [
-      "dispute-main-CHN-TWN-0",
+      "dispute-main-1159321335-62",
       "tension-tw-strait-gray",
       "tension-kinmen-matsui",
       "tension-pratas-dongsha",
@@ -92,7 +92,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
       "tension-spratly-gray",
       "tension-scarborough",
       "tension-second-thomas",
-      "dispute-main-CHN-PHL-0",
+      "dispute-main-1159321227-97",
     ],
   },
   {
@@ -129,7 +129,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
       "기지화·제재·훈련이 겹치면 동북아에서 가장 차가운 영토 화약고로 바로 파급됩니다.",
     presentLinkEn:
       "Militarization, sanctions and drills transmit into one of Northeast Asia’s coldest territorial powder kegs.",
-    linkedHotspotIds: ["dispute-main-JPN-RUS-0", "tension-kuril-south"],
+    linkedHotspotIds: ["dispute-main-1159321213-67", "tension-kuril-south"],
   },
   {
     id: "dokdo-takeshima",
@@ -161,7 +161,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
     briefingEn: "The armistice drew a land MDL but left the maritime NLL disputed.",
     presentLinkKo: "포격·무인기·GPS 교란이 주권 시위의 연장입니다.",
     presentLinkEn: "Shelling, drones and GPS spoofing extend sovereignty signaling.",
-    linkedHotspotIds: ["dispute-main-KOR-KOR-0", "tension-nll-west-sea", "tension-dmz-corridor"],
+    linkedHotspotIds: ["dispute-main-1159320989-78", "tension-nll-west-sea", "tension-dmz-corridor"],
   },
   {
     id: "transnistria-1992",
@@ -633,7 +633,7 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
     briefingEn: "Direct strikes expanded beyond local borders into strategic-depth war.",
     presentLinkKo: "중동 전역을 하나의 화약고 네트워크로 묶습니다.",
     presentLinkEn: "It binds the Mid-East into one powder-keg network.",
-    linkedHotspotIds: ["tension-me-iran-israel", "combat-me-iran-israel", "combat-me-iran-strike-corridor"],
+    linkedHotspotIds: ["tension-me-iran-israel", "combat-me-israel", "combat-me-iran-strike-corridor"],
   },
   {
     id: "sahel-borders",
@@ -701,6 +701,148 @@ export const TERRITORIAL_DISPUTE_EPISODES: readonly TerritorialDisputeEpisode[] 
       "남대서양·남극 접근로와 맞물린 ‘해결된 듯 남은’ 해상 경계의 교훈입니다.",
     presentLinkEn:
       "A lesson in ‘settled yet lingering’ maritime borders tied to South Atlantic and Antarctic approaches.",
+    linkedHotspotIds: [],
+  },
+  {
+    id: "arunachal-pradesh-mcmahon-1947",
+    title: "아루나찰프라데시 · 맥마흔라인 분쟁 (1947–)",
+    titleEn: "Arunachal Pradesh / McMahon Line Dispute (1947–)",
+    locationName: "아루나찰프라데시 · 타왕 · 어퍼수반시리",
+    locationNameEn: "Arunachal Pradesh · Tawang · Upper Subansiri",
+    coordinates: [91.87, 27.59],
+    zoom: 6.5,
+    historicalYear: 1947,
+    parties: ["China", "India"],
+    briefing:
+      "중국이 1954~57년 신장-티베트를 잇는 G219 도로(중국 국도)를 악사이친 한복판으로 건설했고, 인도는 1957~58년 중국 측 지도·간행물을 보고서야 이를 알아챘습니다. 이 발견이 1962년 중인전쟁의 직접 도화선 중 하나였고, 전쟁 이후 중국이 계속 실효점거해 왔습니다.",
+    briefingEn:
+      "India treats the 1914 Simla Convention's McMahon Line as the border; China rejects the treaty itself. Chinese forces briefly occupied the area during the 1962 war before withdrawing unilaterally, and China has since maintained its claim under the name 'South Tibet' (Zangnan).",
+    presentLinkKo:
+      "이 지역도 조약으로 그어진 국경이 아니라 LAC(실질통제선 — 조약으로 측량된 정식 국경이 아니라 양측이 서로 다른 지점을 '우리 쪽'이라 주장하는 실질 접촉선)로 돌아갑니다. 그래서 실제로 어디까지가 자기 땅인지는 협상 문서가 아니라 '누가 그 지점에 더 자주 순찰을 가고, 초소를 세우고, 도로를 놓는가'로 그때그때 판가름 납니다. 2020년 갈완 계곡과 2022년 타왕 인근 얌초에서는 이 경쟁이 몸싸움(국경협정상 총기 금지라 곤봉·주먹 위주)으로 번졌고, 2025~26년 어퍼수반시리에서는 충돌조차 없이 — 인도군이 눈 때문에 4~10월엔 순찰을 못 가는 틈에 중국군이 그 구간을 차지해버렸다는 인도 측 현장조사 결과가 나왔습니다.",
+    presentLinkEn:
+      "This border also runs on the LAC (Line of Actual Control) — a de facto contact line each side reads differently, not a treaty-surveyed boundary — so who controls what is decided not by any agreement but by who patrols a given point more often, who plants an outpost there, who builds the road first. That contest turned into physical clashes (fists and clubs, since firearms are banned there) at Galwan Valley in 2020 and near Tawang's Yangtse sector in 2022. In 2025-26, no clash was even needed at Upper Subansiri: an Indian fact-finding team reported Chinese forces simply moved into the sector during India's April-to-October patrol gap, when snow blocks Indian access.",
+    linkedHotspotIds: ["dispute-main-1159320857-6"],
+  },
+  {
+    id: "aksai-chin-karakoram-1954",
+    title: "악사이친·트랜스카라코람 분쟁 (1954–)",
+    titleEn: "Aksai Chin / Trans-Karakoram Tract Dispute (1954–)",
+    locationName: "악사이친 · 라다크 동부 · 카라코람 회랑",
+    locationNameEn: "Aksai Chin · Eastern Ladakh · Karakoram Corridor",
+    coordinates: [79.5, 35.2],
+    zoom: 6.5,
+    historicalYear: 1954,
+    parties: ["China", "India", "Pakistan"],
+    briefing:
+      "중국이 1954~57년 신장-티베트를 잇는 G219 도로(중국 국도)를 악사이친(인도가 자국령 라다크로 주장하는 지역) 한복판으로 건설했고, 인도는 1957~58년 중국 측 지도·간행물을 보고서야 이를 알아챘습니다. 이 발견이 1962년 중인전쟁의 직접 도화선 중 하나였고, 전쟁 이후 중국이 계속 실효점거해 왔습니다. 별도로 1963년 파키스탄은 중국과의 국경협정으로 트랜스카라코람(샤크스감 계곡)을 중국에 넘겼는데, 인도는 '카슈미르는 파키스탄 소유가 아니라 넘길 권리가 없었다'며 이 협정 자체를 인정하지 않습니다.",
+    briefingEn:
+      "China built the G219 highway linking Xinjiang and Tibet straight through Aksai Chin — territory India claims as part of Ladakh — between 1954 and 1957, and India only learned of it from Chinese maps and publications in 1957-58. That discovery was a direct trigger for the 1962 war, after which China retained de facto control. Separately, Pakistan ceded the Trans-Karakoram Tract (Shaksgam Valley) to China in their 1963 border agreement — which India rejects outright, arguing Pakistan had no standing to give away Kashmiri territory it never legitimately held.",
+    presentLinkKo:
+      "1996년과 2005년 중-인 협정으로 LAC(실질통제선, 조약으로 측량된 정식 국경이 아니라 양측이 서로 다르게 인식하는 실질 접촉선) 인근에서는 총기·폭발물 사용이 금지돼 있습니다. 그래서 두 나라 군대가 서로 자기 쪽이 맞다고 믿는 지점까지 순찰을 나갔다가 마주치면, 총 대신 몸으로 밀치거나 팔을 걸어 막고, 상대가 세운 초소·천막을 부수거나 도로 공사 장비를 막아서는 식으로 부딪힙니다. 2020년 갈완 계곡에서는 이게 못이 박힌 쇠막대까지 동원된 몸싸움으로 번져 인도군 20명이 죽었는데, 이것도 총상이 아니라 구타와 강물 추락사였습니다. 판공초·뎁상평원 일대에서 지금도 양측이 도로를 내면 상대가 막아서고, 초소를 세우면 상대가 항의 공문을 보내는 식의 실랑이가 계속되고 있습니다.",
+    presentLinkEn:
+      "Under 1996 and 2005 China-India agreements, firearms and explosives are banned near the LAC (Line of Actual Control — not a surveyed treaty border but a de facto contact line each side reads differently). So when patrols from each side reach a point they each believe is theirs, they clash with bodies instead of guns: blocking each other, linking arms and shoving, tearing down the other's outposts or tents, or physically obstructing road-building equipment. In the 2020 Galwan Valley clash this escalated into hand-to-hand fighting with nail-studded iron rods, killing 20 Indian soldiers — from blunt-force injuries and drowning in the river, not gunfire. Around Pangong Tso and the Depsang Plains, the same low-grade tug-of-war continues today: one side builds a road, the other blocks it; one side plants an outpost, the other files a protest.",
+    linkedHotspotIds: ["dispute-main-1159320487-1"],
+  },
+  {
+    id: "kalapani-limpiyadhura-1816",
+    title: "칼라파니·립루레크·림피야두라 분쟁 (1816–)",
+    titleEn: "Kalapani / Lipulekh / Limpiyadhura Dispute (1816–)",
+    locationName: "칼라파니 · 립루레크 고개 · 다르출라",
+    locationNameEn: "Kalapani · Lipulekh Pass · Darchula",
+    coordinates: [80.47, 30.2],
+    zoom: 8,
+    historicalYear: 1816,
+    parties: ["Nepal", "India"],
+    briefing:
+      "1816년 수가울리조약(당시 네팔 왕국과 영국 동인도회사가 맺은 조약)이 칼리강을 네팔-인도 국경으로 정했지만 그 발원지를 명시하지 않았습니다. 네팔은 림피야두라를, 인도는 그보다 하류인 립루레크를 발원지로 주장하면서 그 사이 삼각지대(칼라파니)가 양측 공식 지도에 중복으로 표시되는 상태가 굳어졌습니다. 1962년 중인전쟁 이후 인도군이 이 지역에 주둔하며 실효점거해 왔고, 네팔은 외교적 항의를 반복해 왔습니다.",
+    briefingEn:
+      "The 1816 Treaty of Sugauli (between the Kingdom of Nepal and the British East India Company) fixed the Kali River as the Nepal-India border but never specified its source. Nepal claims the source is Limpiyadhura; India claims it's the lower-lying Lipulekh — leaving the triangle between them, Kalapani, claimed on both countries' official maps. Indian troops have occupied the area since the 1962 Sino-Indian war, while Nepal has repeated diplomatic protests without dislodging that presence.",
+    presentLinkKo:
+      "2020년 인도가 립루레크를 경유하는 신규 국경도로를 일방 개통하자 네팔이 해당 지역을 자국령으로 표기한 개정 지도를 공식 발행하며 재점화됐습니다. 2026년 6월엔 네팔 발렌드라 샤 총리가 기존 '인도만 침범했다'는 입장에서 벗어나 '네팔도 여러 곳에서 인도 영토를 침범했을 수 있다'는 이례적 발언을 하며 논란이 됐고, 인도는 제3자 개입 없는 양자 해결 원칙을 재확인했습니다. 네팔 야당은 총리 발언이 근거 없고 협상력만 훼손한다고 비판 중입니다.",
+    presentLinkEn:
+      "Tensions reignited in 2020 when India unilaterally opened a new border road through Lipulekh, prompting Nepal to issue a revised official map claiming the area. In June 2026, Nepali PM Balendra Shah broke from Nepal's longstanding position — that India alone had encroached — by controversially claiming Nepal may also have encroached on Indian territory in several places; India reaffirmed its preference for bilateral resolution without third-party involvement. Nepal's opposition has criticized Shah's remarks as baseless and damaging to Nepal's negotiating position.",
+    linkedHotspotIds: [],
+  },
+  {
+    id: "sikkim-china-recognition-1959",
+    title: "시킴 지위 분쟁 (1959–)",
+    titleEn: "Sikkim Status Dispute (1959–)",
+    locationName: "시킴 · 나투라 고개",
+    locationNameEn: "Sikkim · Nathu La Pass",
+    coordinates: [88.84, 27.39],
+    zoom: 7.5,
+    historicalYear: 1959,
+    parties: ["China", "India"],
+    briefing:
+      "1975년 인도가 독립왕국이던 시킴을 국민투표를 거쳐 병합해 22번째 주로 편입했는데, 중국은 이를 인정하지 않고 시킴을 계속 별도 지위로 취급해 왔습니다. 2003년 원자바오 총리 방인 때 중국이 지도에서 시킴을 독립국으로 표기하지 않기로 하면서(나투라 고개 국경무역 재개와 맞바꾼 조치) 관계가 풀리는 듯했지만, 중국 스스로도 이게 '인도 주권 인정'과는 다르다고 선을 그어 왔습니다.",
+    briefingEn:
+      "In 1975 India annexed the then-independent kingdom of Sikkim as its 22nd state via referendum; China never recognized this and kept treating Sikkim as a separate entity. Ties appeared to ease in 2003, when Premier Wen Jiabao's visit led China to stop marking Sikkim as an independent country on maps (in exchange for reopening Nathu La border trade) — but Beijing itself always maintained this was distinct from recognizing India's sovereignty.",
+    presentLinkKo:
+      "2024년 중국 외교부가 이례적으로 시킴 구간을 콕 짚은 국경 관련 포괄 성명을 내면서, 2005년 지도 변경 이후 잠잠했던 시킴 지위 문제를 다시 공식 의제로 끌어올렸습니다. 이 구간은 악사이친이나 도클람처럼 군대가 부딪히는 방식이 아니라, 지도에 어떤 지명·지위로 표기하고 외교 성명에 어떤 문구를 쓰느냐 자체가 곧 주권 주장의 수단이 되는 방식으로 다퉈집니다.",
+    presentLinkEn:
+      "In 2024, China's foreign ministry issued an unusually comprehensive border statement that explicitly named the Sikkim sector — reviving a dispute that had gone quiet since the 2005 map change. Unlike Aksai Chin or Doklam, this sector isn't contested through troop clashes; sovereignty is asserted through which name and status appear on maps and in diplomatic wording.",
+    linkedHotspotIds: [],
+  },
+  {
+    id: "doklam-standoff-1966",
+    title: "도클람 대치 (1966–)",
+    titleEn: "Doklam Standoff (1966–)",
+    locationName: "도클람 고원 · 신출룸파 · 기우",
+    locationNameEn: "Doklam Plateau · Sinchulumpa · Gieu",
+    coordinates: [89.04, 27.24],
+    zoom: 8,
+    historicalYear: 1966,
+    parties: ["China", "Bhutan", "India"],
+    briefing:
+      "도클람은 국제적으로 부탄 영토로 인정되지만 중국이 자국령이라 주장해온 고원지대입니다. 2017년 6월 중국군이 이 지역에 도로를 건설하려 하자, 부탄과 상호방위조약을 맺은 인도군이 부탄을 대신해 공사를 막아서며 73일간 대치가 벌어졌고, 8월 28일 양측이 동시 철수하며 끝났습니다.",
+    briefingEn:
+      "Doklam is internationally recognized as Bhutanese territory, though China claims it. In June 2017, when Chinese troops began building a road there, India — bound to Bhutan by a mutual defense treaty — sent its own forces to block the construction on Bhutan's behalf, triggering a 73-day standoff that ended August 28 with simultaneous withdrawal.",
+    presentLinkKo:
+      "대치는 끝났지만, 2020년부터 중국이 도클람 인근 부탄 영토 안에 팡다를 비롯한 마을 22곳 이상을 실제로 짓고 정착민을 이주시켰다는 게 위성사진 분석으로 드러났습니다. 군대로 다시 충돌하는 대신 '이미 사람이 사는 땅'을 만들어 실효지배를 굳히는 방식이고, 인도는 부탄과 공동검문소를 세우는 방안으로 맞대응하고 있습니다.",
+    presentLinkEn:
+      "The standoff itself ended, but satellite imagery since 2020 shows China has built more than 22 villages — including Pangda — inside Bhutanese territory near Doklam and moved settlers in. Rather than risking another military clash, China is cementing de facto control by creating an inhabited fait accompli; India has responded by proposing joint checkpoints with Bhutan.",
+    linkedHotspotIds: [],
+  },
+  {
+    id: "bengal-enclaves-partition-1947",
+    title: "벵골 월경지(enclave) 문제 (1947–2015)",
+    titleEn: "Bengal Enclaves Dispute (1947–2015)",
+    locationName: "쿠치비하르 · 팅비가 회랑 · 다하그람",
+    locationNameEn: "Cooch Behar · Tin Bigha Corridor · Dahagram",
+    coordinates: [88.98, 26.13],
+    zoom: 8,
+    historicalYear: 1947,
+    yearEnd: 2015,
+    parties: ["India", "Bangladesh"],
+    briefing:
+      "1947년 분할 때 국경선을 옛 번왕국 소유지 경계 그대로 따라 그으면서, 인도 땅 안에 방글라데시(당시 동파키스탄) 소유 땅 조각이, 그 반대의 경우도 100곳 넘게 생겼습니다(enclave — 자국 영토가 상대국 영토로 완전히 둘러싸인 땅). 그 안에 사는 주민은 어느 쪽 정부의 행정·경찰·전기도 정식으로 못 받는 사실상 무국적 상태로 수십 년을 살았습니다.",
+    briefingEn:
+      "When the 1947 partition line was drawn straight along old princely-state property boundaries, it left over 100 pockets of Indian land stranded inside Bangladesh (then East Pakistan) and vice versa — enclaves, territory fully surrounded by the other country's land. Residents there lived for decades effectively stateless, without formal access to either government's administration, policing, or electricity.",
+    presentLinkKo:
+      "2015년 인도-방글라데시 국경협정으로 162개 월경지 대부분을 서로 맞교환하며 해소됐습니다 — 그 땅에 살던 주민은 원하는 국적을 골라 눌러앉거나 이주할 수 있었습니다. 유일한 예외가 다하그람-앙가르포타 월경지인데, 인도가 헌법 개정 문제로 영토 자체는 못 넘기고 2011년부터 폭 85m짜리 팅비가 회랑을 24시간 개방해 방글라데시 주민이 오갈 수 있게 임대해주는 식으로만 풀려 있습니다.",
+    presentLinkEn:
+      "The 2015 India-Bangladesh Land Boundary Agreement swapped away most of the 162 enclaves, letting residents choose their nationality and either stay or relocate. The one holdout is Dahagram-Angarpota: a constitutional hurdle kept India from transferring sovereignty, so since 2011 it has instead leased the 85-meter Tin Bigha Corridor, keeping it open 24 hours a day for Bangladeshi residents to reach it.",
+    linkedHotspotIds: [],
+  },
+  {
+    id: "new-moore-island-1970",
+    title: "뉴무어(남탈파티) 섬 분쟁 (1970–2010년대, 자연 소멸)",
+    titleEn: "New Moore / South Talpatty Island Dispute (1970s-2010s, dissolved by erosion)",
+    locationName: "벵골만 하리아부앙가강 하구",
+    locationNameEn: "Bay of Bengal, Hariabhanga River mouth",
+    coordinates: [89.15, 21.63],
+    zoom: 8.5,
+    historicalYear: 1970,
+    yearEnd: 2010,
+    parties: ["India", "Bangladesh"],
+    briefing:
+      "1970년 사이클론 이후 벵골만 하구에 새로 드러난 무인도를 두고 인도는 뉴무어, 방글라데시는 남탈파티라 부르며 서로 자국령이라 주장했습니다. 원유·가스 매장 가능성이 걸려 있어 1980년대엔 인도가 이 섬에 해군을 상주시키기까지 했습니다.",
+    briefingEn:
+      "A new, uninhabited island surfaced in the Bay of Bengal after a 1970 cyclone — India called it New Moore, Bangladesh called it South Talpatty, and each claimed it. Possible oil and gas reserves made it valuable enough that India stationed naval personnel there in the 1980s.",
+    presentLinkKo:
+      "외교로 해결되기 전에 섬 자체가 사라졌습니다 — 해수면 상승과 침식으로 2000년대 들어 계속 작아지다, 2010년 위성사진에서 완전히 물에 잠긴 게 확인됐습니다. 다툴 영토 자체가 없어진, 협상이 아니라 자연이 결론을 내버린 드문 사례입니다.",
+    presentLinkEn:
+      "The dispute ended before diplomacy could — sea-level rise and erosion shrank the island through the 2000s until satellite images confirmed it had fully submerged by 2010. A rare case where nature, not negotiation, resolved a territorial claim by erasing the territory itself.",
     linkedHotspotIds: [],
   },
 ];

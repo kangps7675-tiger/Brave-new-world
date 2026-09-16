@@ -5,14 +5,14 @@ import { t } from "@/lib/uiStrings";
 import {
   displayGtiDelta,
   displayGtiScore,
-  gtiBand,
-  gtiBandLabel,
-  type GtiBand,
+  gtiDefcon,
+  gtiDefconColor,
+  gtiDefconLabel,
 } from "@/lib/gti";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
 
 type WorldTensionChipProps = {
-  /** GTI 전 지구 긴장도 점수 (0~100 · GTS) */
+  /** GTI 전 지구 긴장도 점수 (0~100 · GTS) — DEFCON 매핑 원천 */
   score: number | null;
   /** 전일 대비 델타 (GTI 스코어 스케일) */
   deltaScore?: number | null;
@@ -24,34 +24,6 @@ type WorldTensionChipProps = {
   className?: string;
 };
 
-const RING_RADIUS = 13;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-function bandColor(band: GtiBand, light: boolean): string {
-  if (light) {
-    switch (band) {
-      case "critical":
-        return "#be123c";
-      case "high":
-        return "#c2410c";
-      case "elevated":
-        return "#b45309";
-      default:
-        return "#047857";
-    }
-  }
-  switch (band) {
-    case "critical":
-      return "#f87171";
-    case "high":
-      return "#fb923c";
-    case "elevated":
-      return "#fbbf24";
-    default:
-      return "#34d399";
-  }
-}
-
 function formatAsOfTime(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const d = new Date(iso);
@@ -62,8 +34,8 @@ function formatAsOfTime(iso: string | null | undefined): string | null {
 }
 
 /**
- * 지정학 뷰 우상단 — 긴장지수(GTI)를 "67/100 · 고조"처럼 점수로 보여주는 배지.
- * 원유 티커(WTI)와 무관.
+ * 지정학 상단 — GTS를 DEFCON 1–5 단계로 보여 주는 배지.
+ * (공식 군사 DEFCON 선언이 아니라 서비스 긴장점수의 UI 매핑)
  */
 export function WorldTensionChip({
   score,
@@ -74,26 +46,27 @@ export function WorldTensionChip({
   className,
 }: WorldTensionChipProps) {
   const light = useBasemapTone() === "light";
-  // 점수가 아직 없으면 사라지지 않고 "집계 중"으로 자리를 지킨다
+  const ko = lang !== "en";
+
   if (score == null || !Number.isFinite(score)) {
     return (
       <div
-        className={`world-tension-chip tone-chip flex items-center gap-2 rounded-full border border-slate-400/25 bg-black/55 px-2.5 py-1.5 ${className ?? ""}`}
+        className={`world-tension-chip tone-chip flex items-center gap-2.5 rounded-xl border border-slate-400/25 bg-black/55 px-3 py-2 ${className ?? ""}`}
         title={t("worldTensionHint", lang)}
       >
         <span
-          className={`text-micro font-semibold uppercase tracking-[0.12em] ${
+          className={`text-micro font-semibold uppercase tracking-[0.14em] ${
             light ? "text-slate-700" : "text-slate-300/85"
           }`}
         >
-          {t("worldTensionTitle", lang)}
+          DEFCON
         </span>
         <span
           className={`text-meta font-medium tabular-nums ${
             light ? "text-slate-600" : "text-slate-400/70"
           }`}
         >
-          {lang === "en" ? "computing…" : "집계 중…"}
+          {ko ? "집계 중…" : "computing…"}
         </span>
       </div>
     );
@@ -101,10 +74,11 @@ export function WorldTensionChip({
 
   const clamped = displayGtiScore(score);
   if (clamped == null) return null;
-  const band = gtiBand(score);
-  const color = bandColor(band, light);
-  const urgent = band === "critical";
+  const level = gtiDefcon(score);
+  const color = gtiDefconColor(level, light);
+  const urgent = level <= 2;
   const asOfLabel = formatAsOfTime(asOf);
+  const stageLabel = gtiDefconLabel(level, ko);
 
   const delta = displayGtiDelta(deltaScore);
   const deltaLabel =
@@ -114,61 +88,37 @@ export function WorldTensionChip({
         : t("worldTensionDeltaDown", lang).replace("{n}", String(Math.abs(delta)))
       : null;
 
-  const bandLabel = gtiBandLabel(band, lang !== "en");
-
   return (
     <div
-      className={`world-tension-chip tone-chip flex items-center gap-2 rounded-full border bg-black/55 px-2.5 py-1.5 transition-colors ${
+      className={`world-tension-chip tone-chip flex items-center gap-2.5 rounded-xl border bg-black/55 px-3 py-2 transition-colors ${
         urgent ? "animate-pulse" : ""
       } ${className ?? ""}`}
-      style={{ borderColor: `${color}59` }}
+      style={{ borderColor: `${color}66` }}
       title={t("worldTensionHint", lang)}
       role="img"
-      aria-label={`${t("worldTensionTitle", lang)} — ${clamped}/100 ${bandLabel}`}
+      aria-label={`DEFCON ${level} — ${stageLabel} · GTS ${clamped}`}
     >
-      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden>
-        <circle
-          cx="16"
-          cy="16"
-          r={RING_RADIUS}
-          fill={light ? "rgba(255,252,248,0.95)" : "rgba(6,10,18,0.85)"}
-          stroke={light ? "rgba(30,41,59,0.22)" : "rgba(148,163,184,0.28)"}
-          strokeWidth="3"
-        />
-        <circle
-          cx="16"
-          cy="16"
-          r={RING_RADIUS}
-          fill="none"
-          stroke={color}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={`${(clamped / 100) * RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
-          transform="rotate(-90 16 16)"
-        />
-        <text
-          x="16"
-          y="16"
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize="11"
-          fontWeight="700"
-          fill={color}
-        >
-          {clamped}
-        </text>
-      </svg>
-      <div className="flex flex-col leading-tight">
+      <div className="flex flex-col items-center leading-none">
         <span
-          className={`text-micro font-semibold uppercase tracking-[0.12em] ${
-            light ? "text-slate-700" : "text-slate-300/85"
+          className={`text-[0.58rem] font-semibold uppercase tracking-[0.16em] ${
+            light ? "text-slate-600" : "text-slate-400/80"
           }`}
         >
-          {t("worldTensionTitle", lang)}
+          DEFCON
         </span>
-        <span className="text-meta font-medium tabular-nums" style={{ color }}>
-          {clamped}
-          <span className="opacity-60">/100</span> · {bandLabel}
+        <span className="text-2xl font-black tabular-nums" style={{ color }}>
+          {level}
+        </span>
+      </div>
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="text-meta font-semibold" style={{ color }}>
+          {stageLabel}
+        </span>
+        <span
+          className={`text-micro tabular-nums ${light ? "text-slate-600" : "text-slate-400/75"}`}
+        >
+          GTS {clamped}
+          <span className="opacity-55">/100</span>
         </span>
         {deltaLabel ? (
           <span className={`text-micro ${light ? "text-slate-600" : "text-slate-400/70"}`}>
@@ -179,19 +129,19 @@ export function WorldTensionChip({
           <span
             className={`text-micro font-medium ${light ? "text-amber-700" : "text-amber-300/80"}`}
             title={
-              lang === "en"
-                ? "Provisional — official smoothed figure not in yet, may differ."
-                : "잠정치 — 공식 집계 전 수치라 정식 값과 다를 수 있습니다."
+              ko
+                ? "잠정치 — 공식 집계 전 수치라 정식 값과 다를 수 있습니다."
+                : "Provisional — official smoothed figure not in yet, may differ."
             }
           >
-            {lang === "en" ? "provisional" : "잠정치"}
+            {ko ? "잠정치" : "provisional"}
           </span>
         ) : null}
         {asOfLabel ? (
           <span
             className={`text-micro tabular-nums ${light ? "text-slate-500" : "text-slate-400/45"}`}
           >
-            {lang === "en" ? "as of" : "기준"} {asOfLabel}
+            {ko ? "기준" : "as of"} {asOfLabel}
           </span>
         ) : null}
       </div>

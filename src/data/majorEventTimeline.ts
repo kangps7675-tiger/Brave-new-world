@@ -57,13 +57,27 @@ export type MajorEventTimelineEntry = {
   primaryForChokepoint?: boolean;
   /** 경제 타임테이블 기본 앵커 (전역 1개) */
   primaryForEconomy?: boolean;
+  /** supplyChainShiftEpisodes.ts의 해당 구조 변화 에피소드 id — 스파이크 인사이트에서 전체 맥락으로 딥링크할 때 사용 */
+  relatedSupplyChainEpisodeId?: string;
 };
 
+/**
+ * 초크포인트 preferredSymbols 상태 (진행형 — 완료 아님):
+ * - 수에즈·파나마·바브엘만데브·희망봉·호르무즈·지브롤터 등은 사실상 같은
+ *   ENERGY_GOLD / OIL_GOLD_VIX / LOGISTICS_STRESS 매크로 바스켓을 재사용한다.
+ * - 해운운임(BDI 등)·곡물(ZW=F/ZC=F) 심볼은 STOCK_TICKER_SYMBOLS에 아직 없어
+ *   초크포인트별로 갈라 넣지 않는다 — 없는 심볼을 지어내지 않는다.
+ * - 보스포루스 곡물 축도 지금은 "일반 매크로 반응"으로만 표기한다.
+ * - TSM/SMH·삼성/하이닉스 등 차별 심볼은 chokepointId가 아니라
+ *   theater + relatedSupplyChainEpisodeId(공급망 재편 축)에 붙는다.
+ * - 대만해협 초크 핀 자체는 ASIA_TECH(지역 지수) 바스켓이다.
+ */
 const ENERGY_GOLD = ["GC=F", "CL=F", "BZ=F", "DX-Y.NYB"] as const;
 const OIL_GOLD_VIX = ["CL=F", "BZ=F", "GC=F", "^VIX"] as const;
+/** 대만해협 초크 핀용 — 지역 지수 바스켓(개별 반도체 종목 아님) */
 const ASIA_TECH = ["000001.SS", "^HSI", "^IXIC", "^VIX"] as const;
 const KOREA_ASIA = ["^KS11", "^IXIC", "^HSI", "^VIX"] as const;
-/** 물류·에너지·달러 */
+/** 물류 초크 공용 매크로 — 운임·곡물 전용 심볼 확보 전 임시 바스켓 */
 const LOGISTICS_STRESS = ["CL=F", "BZ=F", "DX-Y.NYB", "^VIX", "GC=F"] as const;
 /** 경제 타임테이블 — 증시·공포·달러·금 */
 const ECONOMY_MARKETS = ["^VIX", "^GSPC", "^IXIC", "GC=F", "DX-Y.NYB", "CL=F"] as const;
@@ -215,6 +229,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Black Sea Grain Initiative deal",
     summaryKo: "보스포루스·흑해 곡물 통항 재개 시도. 식량·해운 스트레스 완화 국면.",
     summaryEn: "Attempt to reopen Black Sea grain lanes via Bosporus — food/shipping ease phase.",
+    // ZW=F/ZC=F 미확보 — 곡물 전용이 아니라 일반 매크로 반응 바스켓
     preferredSymbols: ["BZ=F", "GC=F", "^VIX", "DX-Y.NYB"],
     chokepointId: "choke-bosporus",
     primaryForChokepoint: true,
@@ -557,6 +572,101 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     summaryEn: "Counterstrike & defense-spend shift — NE Asia security reprice.",
     preferredSymbols: ["^N225", "^HSI", "^IXIC", "^VIX"],
     primaryForTheater: true,
+  },
+
+  // —— Supply-chain shift (지경학 구조 변화 — supplyChainShiftEpisodes.ts 연동) ——
+  // 니켈(Indonesia)·멕시코 니어쇼어링은 대응하는 선물/지수 심볼이 이 코드베이스 STOCK_TICKER_SYMBOLS에
+  // 아직 없어 여기서는 제외 — 없는 심볼을 지어내지 않는다(chokepoints.ts flow:null과 같은 원칙).
+  {
+    id: "tsmc-arizona-265b-2026",
+    date: "2026-07-16",
+    theater: "china-taiwan",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "TSMC 애리조나 총투자 2650억 달러로 확대 발표",
+    labelEn: "TSMC raises total Arizona commitment to $265B",
+    summaryKo: "CC 웨이 CEO가 대만 실적발표에서 1000억 달러 추가, 팹 10개·패키징 2개 규모로 재조정.",
+    summaryEn: "CEO C.C. Wei added $100B at Taipei earnings — footprint now 10 fabs, 2 packaging plants.",
+    preferredSymbols: ["TSM", "SMH", "^IXIC"],
+    relatedSupplyChainEpisodeId: "tsmc-arizona-onshoring-2020",
+  },
+  {
+    id: "tsmc-kumamoto-fab2-3nm-2026",
+    date: "2026-02-05",
+    theater: "japan",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "TSMC 구마모토 2공장 3나노 상향 보도",
+    labelEn: "TSMC Kumamoto Fab 2 reportedly upgraded to 3nm",
+    summaryKo: "6~7나노 목표였던 JASM 2공장이 AI 수요를 타고 3나노로, 일본 정부 추가 보조금 전망.",
+    summaryEn: "JASM's second fab, originally 6–7nm, upgraded to 3nm on AI demand — more Japanese subsidy expected.",
+    preferredSymbols: ["TSM", "SMH", "^N225"],
+    relatedSupplyChainEpisodeId: "tsmc-kumamoto-jasm-friendshoring-2021",
+  },
+  {
+    id: "google-pixel-vietnam-full-exit-2026",
+    date: "2026-08-18",
+    theater: "southeast-asia",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "구글, 2027년 픽셀 전량 탈중국 생산 확정 보도",
+    labelEn: "Google confirms full Pixel China-manufacturing exit by 2027",
+    summaryKo: "픽셀11 NPI를 베트남에서만 처음 완주한 직후 니혼게이자이가 전면 철수 계획 확인.",
+    summaryEn: "Nikkei Asia confirmed the full withdrawal plan right after Pixel 11's first Vietnam-only NPI.",
+    preferredSymbols: ["GOOGL", "^IXIC"],
+    relatedSupplyChainEpisodeId: "google-pixel-vietnam-china-exit-2023",
+  },
+  {
+    id: "us-bis-affiliates-rule-2025",
+    date: "2025-09-29",
+    theater: "china-taiwan",
+    domain: "economy",
+    kind: "sanction_trade",
+    labelKo: "미 상무부 '50% 계열사 규정' 즉시 발효",
+    labelEn: "US Commerce's '50% Affiliates Rule' takes immediate effect",
+    summaryKo: "Entity List 기업의 미상장 해외 계열사까지 자동으로 수출통제 대상에 포함시키는 허점 봉쇄.",
+    summaryEn: "Closes the loophole letting unlisted foreign subsidiaries of Entity List firms dodge export controls.",
+    preferredSymbols: ["TSM", "SMH", "000001.SS", "^HSI"],
+    relatedSupplyChainEpisodeId: "us-bis-affiliates-rule-export-control-2025",
+  },
+  {
+    id: "us-bis-affiliates-rule-suspended-2025",
+    date: "2025-11-10",
+    theater: "china-taiwan",
+    domain: "economy",
+    kind: "sanction_trade",
+    labelKo: "'50% 계열사 규정' 집행 1년 유예",
+    labelEn: "'50% Affiliates Rule' enforcement suspended for one year",
+    summaryKo: "베선트 재무장관 주도 미·중 무역 해빙 국면에서 2026-11-09까지 집행 유예 — 폐지 아님.",
+    summaryEn: "Enforcement paused through 2026-11-09 amid a Bessent-led US-China trade thaw — not repealed.",
+    preferredSymbols: ["TSM", "SMH", "000001.SS", "^HSI"],
+    relatedSupplyChainEpisodeId: "us-bis-affiliates-rule-export-control-2025",
+  },
+  {
+    id: "samsung-p4-acceleration-2026",
+    date: "2026-04-23",
+    theater: "korea",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "삼성 평택 P4 가동 6개월 조기화",
+    labelEn: "Samsung accelerates Pyeongtaek P4 by six months",
+    summaryKo: "임시사용승인으로 상층 7월·하층 11월 가동 목표, 엔비디아 베라 루빈 양산 일정에 맞춘 HBM4 조기 양산 노림수.",
+    summaryEn: "Using temporary-use approval to hit HBM4 output timed to Nvidia's Vera Rubin ramp.",
+    preferredSymbols: ["005930.KS", "000660.KS", "^KS11"],
+    relatedSupplyChainEpisodeId: "samsung-sk-hynix-korea-ai-memory-capacity-race-2019",
+  },
+  {
+    id: "sk-hynix-yongin-cheongju-2026",
+    date: "2026-08-07",
+    theater: "korea",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "SK하이닉스 용인·청주 54.3조원 투자 확정",
+    labelEn: "SK Hynix approves ₩54.3T for Yongin and Cheongju fabs",
+    summaryKo: "이사회가 용인 Y2(D램)·청주 M17(낸드) 투자를 확정 — AI 메모리 수요 대응, 가동은 2027~2029년 순차.",
+    summaryEn: "Board approved Yongin Y2 (DRAM) and Cheongju M17 (NAND) — cleanrooms open 2027–2029.",
+    preferredSymbols: ["005930.KS", "000660.KS", "^KS11"],
+    relatedSupplyChainEpisodeId: "samsung-sk-hynix-korea-ai-memory-capacity-race-2019",
   },
 ];
 

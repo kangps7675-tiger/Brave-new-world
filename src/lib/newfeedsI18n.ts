@@ -1,10 +1,12 @@
 /**
  * NewFeeds 이란 공격 피드 — 표시 언어 엄격 분리 (KO / EN).
  * 업스트림은 title_en 중심이라 KO는 용어·지명 치환 + 위협/심각도 맵.
+ * 지명 사전은 `@/lib/geo/gazetteer` 가 정본.
  */
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NewfeedsSeverity } from "@/lib/newfeeds";
 import { severityLabel } from "@/lib/newfeeds";
+import { LOCATION_I18N, PLACE_TITLE_PHRASE_KO } from "@/lib/geo/gazetteer";
 
 function pick(entry: { ko: string; en: string } | undefined, lang: LabelLanguage): string | null {
   if (!entry) return null;
@@ -41,62 +43,13 @@ const CATEGORY_I18N: Record<string, { ko: string; en: string }> = {
   unknown: { ko: "미분류", en: "Unknown" },
 };
 
-/** 지명·장소 — 대소문자 무시 exact / includes */
-const LOCATION_I18N: Record<string, { ko: string; en: string }> = {
-  iran: { ko: "이란", en: "Iran" },
-  tehran: { ko: "테헤란", en: "Tehran" },
-  isfahan: { ko: "이스파한", en: "Isfahan" },
-  esfahan: { ko: "이스파한", en: "Isfahan" },
-  bushehr: { ko: "부셰흐르", en: "Bushehr" },
-  bandar: { ko: "반다르", en: "Bandar" },
-  "bandar abbas": { ko: "반다르압바스", en: "Bandar Abbas" },
-  hormuz: { ko: "호르무즈", en: "Hormuz" },
-  "strait of hormuz": { ko: "호르무즈 해협", en: "Strait of Hormuz" },
-  "persian gulf": { ko: "페르시아만", en: "Persian Gulf" },
-  "gulf of oman": { ko: "오만만", en: "Gulf of Oman" },
-  iraq: { ko: "이라크", en: "Iraq" },
-  baghdad: { ko: "바그다드", en: "Baghdad" },
-  syria: { ko: "시리아", en: "Syria" },
-  damascus: { ko: "다마스쿠스", en: "Damascus" },
-  lebanon: { ko: "레바논", en: "Lebanon" },
-  beirut: { ko: "베이루트", en: "Beirut" },
-  israel: { ko: "이스라엘", en: "Israel" },
-  "tel aviv": { ko: "텔아비브", en: "Tel Aviv" },
-  jerusalem: { ko: "예루살렘", en: "Jerusalem" },
-  "red sea": { ko: "홍해", en: "Red Sea" },
-  yemen: { ko: "예멘", en: "Yemen" },
-  "saudi arabia": { ko: "사우디아라비아", en: "Saudi Arabia" },
-  bahrain: { ko: "바레인", en: "Bahrain" },
-  qatar: { ko: "카타르", en: "Qatar" },
-  uae: { ko: "아랍에미리트", en: "UAE" },
-  "united arab emirates": { ko: "아랍에미리트", en: "United Arab Emirates" },
-  kuwait: { ko: "쿠웨이트", en: "Kuwait" },
-  turkey: { ko: "튀르키예", en: "Turkey" },
-  azerbaijan: { ko: "아제르바이잔", en: "Azerbaijan" },
-  afghanistan: { ko: "아프가니스탄", en: "Afghanistan" },
-  pakistan: { ko: "파키스탄", en: "Pakistan" },
-  natanz: { ko: "나탄즈", en: "Natanz" },
-  fordow: { ko: "포르도", en: "Fordow" },
-  kharg: { ko: "하르그", en: "Kharg" },
-  mashhad: { ko: "마슈하드", en: "Mashhad" },
-  shiraz: { ko: "시라즈", en: "Shiraz" },
-  tabriz: { ko: "타브리즈", en: "Tabriz" },
-  kermanshah: { ko: "케르만샤", en: "Kermanshah" },
-};
-
 /**
  * 영문 헤드라인 → 한국어 치환 (긴 구문 우선).
+ * 지명은 gazetteer, 아래는 공격·행위 용어.
  * EN 모드에서는 원문 유지.
  */
 const TITLE_PHRASE_KO: [RegExp, string][] = [
-  [/\bStrait of Hormuz\b/gi, "호르무즈 해협"],
-  [/\bPersian Gulf\b/gi, "페르시아만"],
-  [/\bGulf of Oman\b/gi, "오만만"],
-  [/\bRed Sea\b/gi, "홍해"],
-  [/\bBandar Abbas\b/gi, "반다르압바스"],
-  [/\bTel Aviv\b/gi, "텔아비브"],
-  [/\bSaudi Arabia\b/gi, "사우디아라비아"],
-  [/\bUnited Arab Emirates\b/gi, "아랍에미리트"],
+  ...PLACE_TITLE_PHRASE_KO,
   [/\bIslamic Revolutionary Guard Corps\b/gi, "이슬람혁명수비대"],
   [/\bRevolutionary Guard\b/gi, "혁명수비대"],
   [/\bair defense\b/gi, "방공"],

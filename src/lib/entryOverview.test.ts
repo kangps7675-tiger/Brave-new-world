@@ -53,12 +53,13 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAis || prefs.showShippingLanes).toBeTruthy();
   });
 
-  it("지정학 첫 화면은 전선·드론·타격·뉴스·전략군사·군용 항적·FIRMS·ReefWatch·해저관", () => {
+  it("지정학 첫 화면은 전선·드론·통합전장·전략군사·군용 항적·FIRMS·ReefWatch·해저관", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl).toBe(true);
     expect(prefs.showWarZones).toBe(true);
     expect(prefs.showNeptun).toBe(true);
-    expect(prefs.showUkraineStrikesOnRussia).toBe(true);
+    expect(prefs.showConflictEvents).toBe(true);
+    expect(prefs.showUkraineStrikesOnRussia).toBe(false);
     expect(prefs.showGdeltWar).toBe(true);
     expect(prefs.showFirmsFires).toBe(true);
     expect(prefs.showMilitaryActivity).toBe(true);
@@ -71,7 +72,7 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAxisNetwork).toBe(true);
     expect(prefs.showAlliedBlocs).toBe(true);
     expect(prefs.showSubseaPipelines).toBe(true);
-    expect(prefs.showNewfeedsIranAttacks).toBe(true);
+    expect(prefs.showNewfeedsIranAttacks).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);
     expect(prefs.showUsDfcSupplyChain).toBe(false);
     expect(prefs.showAirTraffic).toBe(false);

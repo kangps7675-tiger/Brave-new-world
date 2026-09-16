@@ -33,6 +33,9 @@ import {
 
 export type { ProvenanceFields } from "@/lib/eventProvenance";
 import { isInCombatTheater } from "@/lib/theaterCombat";
+import { clusterConflictEvents } from "@/lib/conflictEvents/clusterEvents";
+import { scoredEventToRaw } from "@/lib/conflictEvents/fromGdelt";
+import type { ConflictEventCluster } from "@/lib/conflictEvents/types";
 
 const CHINA_SEED_MATCH_DEG = 3.2;
 const KOREA_SEED_MATCH_DEG = 2.8;
@@ -63,6 +66,22 @@ const CHINA_THEATER_EVENT_RE =
 
 export function eventText(event: ScoredEvent): string {
   return `${event.title ?? ""} ${event.category ?? ""} ${event.country ?? ""}`;
+}
+
+function clusterLiveMatches(events: ScoredEvent[]): ConflictEventCluster[] {
+  if (events.length === 0) return [];
+  return clusterConflictEvents(events.map(scoredEventToRaw));
+}
+
+function eventFromCluster(
+  cluster: ConflictEventCluster,
+  byId: Map<string, ScoredEvent>,
+): ScoredEvent | null {
+  for (const src of cluster.sources) {
+    const hit = byId.get(src.id);
+    if (hit) return hit;
+  }
+  return null;
 }
 
 function intensityFromEvent(event: ScoredEvent): number {
@@ -203,26 +222,30 @@ export function activateChinaTheaterIncidents(
   const seeds = CHINA_THEATER_INCIDENTS.filter((s) => enabledDyads.has(s.dyad));
   if (seeds.length === 0) return [];
 
-  const out: (ChinaTheaterIncident & ProvenanceFields)[] = [];
-  const seen = new Set<string>();
-
+  const matched: ScoredEvent[] = [];
   for (const event of events) {
     if (!isFreshEvent(event, now) || !isActionableTier(event)) continue;
     if (!CHINA_THEATER_EVENT_RE.test(eventText(event))) continue;
+    if (!inferChinaDyad(event, enabledDyads)) continue;
+    matched.push(event);
+  }
+
+  const byId = new Map(matched.map((e) => [e.id, e]));
+  const out: (ChinaTheaterIncident & ProvenanceFields)[] = [];
+  for (const cluster of clusterLiveMatches(matched)) {
+    const event = eventFromCluster(cluster, byId);
+    if (!event) continue;
     const dyad = inferChinaDyad(event, enabledDyads);
     if (!dyad) continue;
-
     const seed = nearestSeed(
-      event.lat,
-      event.lng,
+      cluster.lat,
+      cluster.lng,
       seeds.filter((s) => s.dyad === dyad),
       CHINA_SEED_MATCH_DEG,
     );
-    const id = `live-ct-${event.id}`;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const title = event.title?.trim();
-    const intensity = intensityFromEvent(event);
+    const title = cluster.title.trim();
+    const intensity = Math.max(0.55, intensityFromEvent(event));
+    const id = `live-ct-${cluster.clusterId}`;
 
     if (seed) {
       out.push(
@@ -230,8 +253,8 @@ export function activateChinaTheaterIncidents(
           {
             ...seed,
             id,
-            lat: event.lat,
-            lng: event.lng,
+            lat: cluster.lat,
+            lng: cluster.lng,
             titleKo: title || seed.titleKo,
             titleEn: title || seed.titleEn,
             sourceUrl: seed.sourceUrl ?? event.sourceUrl ?? undefined,
@@ -253,8 +276,8 @@ export function activateChinaTheaterIncidents(
           id,
           dyad,
           sea: defaultSeaForDyad(dyad),
-          lat: event.lat,
-          lng: event.lng,
+          lat: cluster.lat,
+          lng: cluster.lng,
           titleKo: title || "동아시아 대치·충돌 (GDELT)",
           titleEn: title || "East Asia standoff (GDELT)",
           bodyKo: "GDELT 속보 매칭 — 큐레이션 앵커 없음",
@@ -275,9 +298,7 @@ export function activateKoreaMissileIncidents(
   events: ScoredEvent[],
   now = Date.now(),
 ): (KoreaMissileIncident & ProvenanceFields)[] {
-  const out: (KoreaMissileIncident & ProvenanceFields)[] = [];
-  const seen = new Set<string>();
-
+  const matched: ScoredEvent[] = [];
   for (const event of events) {
     if (!isFreshEvent(event, now) || !isActionableTier(event)) continue;
     const text = eventText(event);
@@ -295,23 +316,26 @@ export function activateKoreaMissileIncidents(
     } else if (inKorea && !missileLike) {
       continue;
     }
+    matched.push(event);
+  }
 
+  const byId = new Map(matched.map((e) => [e.id, e]));
+  const out: (KoreaMissileIncident & ProvenanceFields)[] = [];
+  for (const cluster of clusterLiveMatches(matched)) {
+    const event = eventFromCluster(cluster, byId);
+    if (!event) continue;
     const seed =
-      nearestSeed(event.lat, event.lng, KOREA_MISSILE_INCIDENTS, KOREA_SEED_MATCH_DEG) ??
+      nearestSeed(cluster.lat, cluster.lng, KOREA_MISSILE_INCIDENTS, KOREA_SEED_MATCH_DEG) ??
       KOREA_MISSILE_INCIDENTS[0];
     if (!seed) continue;
-
-    const id = `live-nk-${event.id}`;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const title = event.title?.trim();
+    const title = cluster.title.trim();
     out.push(
       withProvenance(
         {
           ...seed,
-          id,
-          lat: event.lat,
-          lng: event.lng,
+          id: `live-nk-${cluster.clusterId}`,
+          lat: cluster.lat,
+          lng: cluster.lng,
           titleKo: title || seed.titleKo,
           titleEn: title || seed.titleEn,
           intensity: Math.max(seed.intensity * 0.65, intensityFromEvent(event)),
@@ -345,26 +369,29 @@ export function activateRussiaStrikeIncidents(
   events: ScoredEvent[],
   now = Date.now(),
 ): (RussiaStrikeIncident & ProvenanceFields)[] {
-  const out: (RussiaStrikeIncident & ProvenanceFields)[] = [];
-  const seen = new Set<string>();
-
+  const matched: ScoredEvent[] = [];
   for (const event of events) {
     if (!isFreshEvent(event, now) || !isActionableTier(event)) continue;
     const text = eventText(event);
     if (!STRIKE_EVENT_RE.test(text)) continue;
     if (!RUSSIA_TARGET_RE.test(text)) continue;
+    matched.push(event);
+  }
 
+  const byId = new Map(matched.map((e) => [e.id, e]));
+  const out: (RussiaStrikeIncident & ProvenanceFields)[] = [];
+  for (const cluster of clusterLiveMatches(matched)) {
+    const event = eventFromCluster(cluster, byId);
+    if (!event) continue;
     const seed = nearestSeed(
-      event.lat,
-      event.lng,
+      cluster.lat,
+      cluster.lng,
       RUSSIA_STRIKE_INCIDENTS,
       RUSSIA_STRIKE_MATCH_DEG,
     );
-    const id = `live-ru-${event.id}`;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const title = event.title?.trim();
+    const title = cluster.title.trim();
     const intensity = Math.max(0.55, intensityFromEvent(event));
+    const id = `live-ru-${cluster.clusterId}`;
 
     if (seed) {
       out.push(
@@ -372,8 +399,8 @@ export function activateRussiaStrikeIncidents(
           {
             ...seed,
             id,
-            lat: event.lat,
-            lng: event.lng,
+            lat: cluster.lat,
+            lng: cluster.lng,
             titleKo: title || seed.titleKo,
             titleEn: title || seed.titleEn,
             intensity: Math.max(seed.intensity * 0.65, intensity),
@@ -389,8 +416,8 @@ export function activateRussiaStrikeIncidents(
         {
           id,
           kind: "drone",
-          lat: event.lat,
-          lng: event.lng,
+          lat: cluster.lat,
+          lng: cluster.lng,
           titleKo: title || "러시아 표적 타격 보도 (GDELT)",
           titleEn: title || "Russia-target strike report (GDELT)",
           bodyKo: "GDELT 속보 매칭 — 큐레이션 앵커 없음",

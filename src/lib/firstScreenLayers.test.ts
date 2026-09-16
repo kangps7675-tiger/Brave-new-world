@@ -5,11 +5,12 @@ import { DEFAULT_LAYER_PREFS } from "@/lib/layerPrefs";
 import { mergeChromeLayers, stripEconomyGeopoliticsPatch } from "@/lib/viewerChrome";
 
 describe("첫 화면 Compact 장면", () => {
-  it("자동 전장은 FIRST_SCREEN_CONFLICT_ON(전선·드론·타격·전략군사·군용 항적)을 켠다", () => {
+  it("자동 전장은 FIRST_SCREEN_CONFLICT_ON(전선·드론·통합전장·전략군사·군용 항적)을 켠다", () => {
     const patch = conceptLayersForConflict("auto");
     expect(patch.showUkraineControl).toBe(true);
     expect(patch.showNeptun).toBe(true);
-    expect(patch.showUkraineStrikesOnRussia).toBe(true);
+    expect(patch.showConflictEvents).toBe(true);
+    expect(patch.showUkraineStrikesOnRussia).toBeUndefined();
     expect(patch.showMilitaryActivity).toBe(true);
     expect(patch.showAlliedBlocs).toBe(true);
     expect(patch.showIslandChains).toBe(true);
@@ -17,11 +18,13 @@ describe("첫 화면 Compact 장면", () => {
     expect(patch.showReefWatch).toBe(true);
   });
 
-  it("지정학 크롬이 전선·드론·타격·전략군사·군용 항적·FIRMS·ReefWatch를 켠다", () => {
+  it("지정학 크롬이 전선·드론·통합전장·전략군사·군용 항적·FIRMS·ReefWatch를 켠다", () => {
     const next = mergeChromeLayers(DEFAULT_LAYER_PREFS, "conflict");
     expect(next.showUkraineControl).toBe(true);
     expect(next.showNeptun).toBe(true);
-    expect(next.showUkraineStrikesOnRussia).toBe(true);
+    expect(next.showConflictEvents).toBe(true);
+    expect(next.showUkraineStrikesOnRussia).toBe(false);
+    expect(next.showNewfeedsIranAttacks).toBe(false);
     expect(next.showGdeltWar).toBe(true);
     expect(next.showFirmsFires).toBe(true);
     expect(next.showMilitaryActivity).toBe(true);
@@ -60,7 +63,8 @@ describe("첫 화면 Compact 장면", () => {
   it("지정학 첫 화면·크롬이 GDELT war를 켠다 (전쟁소식 빨간 점)", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showGdeltWar).toBe(true);
-    expect(prefs.showNewfeedsIranAttacks).toBe(true);
+    expect(prefs.showNewfeedsIranAttacks).toBe(false);
+    expect(prefs.showConflictEvents).toBe(true);
     const chrome = mergeChromeLayers(DEFAULT_LAYER_PREFS, "conflict");
     expect(chrome.showGdeltWar).toBe(true);
   });

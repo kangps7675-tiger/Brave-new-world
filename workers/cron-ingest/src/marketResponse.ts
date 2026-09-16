@@ -50,7 +50,8 @@ async function fetchFredSeries(
   const json = (await res.json()) as { observations?: FredObs[] };
   return (json.observations ?? [])
     .map((o) => ({ date: o.date, value: Number(o.value) }))
-    .filter((o) => Number.isFinite(o.value)); // FRED ???´ìž¥?¼ì— "." ë¥?ì¤€??}
+    .filter((o) => Number.isFinite(o.value)); // FRED ???´ìž¥?¼ì— "." ë¥?ì¤€??
+}
 
 /**
  * ìµœê·¼ ê´€ì¸¡ì¹˜ë¥?market_daily ???ìž¬?œë‹¤. ë§¤ì¼ 1??
@@ -197,7 +198,8 @@ export async function backfillOutcomes(
         }
 
         const pct = ((end.value - base.value) / base.value) * 100;
-        // ì§€??h ???„ì ?´ë?ë¡?ë³€?™ì„±???šh ë¡??¤ì???        const zChange =
+        // ì§€??h ???„ì ?´ë?ë¡?ë³€?™ì„±???šh ë¡??¤ì???
+        const zChange =
           vol && vol > 0 ? Math.log(end.value / base.value) / (vol * Math.sqrt(h)) : null;
 
         await db

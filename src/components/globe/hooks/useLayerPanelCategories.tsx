@@ -19,6 +19,18 @@ import { isClientNeptunEnabled } from "@/lib/runtimeConfig.client";
 import { TELEGRAM_CHANNEL_COUNT } from "@/lib/telegramAlerts";
 import { SANCTIONS_ENTITY_SUMMARY } from "@/data/sourceCatalog";
 import { getCorridorRankPipelineStatus } from "@/lib/corridorRanks";
+import {
+  conflictEventsReplaceLegacy,
+  LEGACY_CONFLICT_LAYER_IDS,
+} from "@/lib/conflictEvents/flags";
+import { CONFLICT_THEATER_LABEL } from "@/lib/conflictEvents/categoryKeywords";
+import {
+  CONFLICT_THEATER_META,
+  CONFLICT_THEATER_ORDER,
+  CONFLICT_THEATER_PANEL_ID,
+  CONFLICT_THEATER_PREF_KEY,
+} from "@/lib/conflictEvents/theaterMeta";
+import type { ConflictTheater } from "@/lib/conflictEvents/types";
 import type GeoJSON from "geojson";
 
 export type UseLayerPanelCategoriesArgs = {
@@ -63,6 +75,10 @@ export type UseLayerPanelCategoriesArgs = {
   setShowNorthKoreaMissileTests: (v: boolean) => void;
   setShowUkraineStrikesOnRussia: (v: boolean) => void;
   setShowEuropeDroneIncidents: (v: boolean) => void;
+  showConflictEvents: boolean;
+  setShowConflictEvents: (v: boolean) => void;
+  conflictEventMarkerCount: number;
+  setConflictTheater: (theater: ConflictTheater, enabled: boolean) => void;
   chinaTheaterIncidentMarkers: Array<{ dyad: string }>;
   koreaMissileIncidentMarkers: unknown[];
   russiaStrikeIncidentMarkers: unknown[];
@@ -189,6 +205,10 @@ export type UseLayerPanelCategoriesArgs = {
   showBriTradeConnectivity: boolean;
   briTradePaths: unknown[];
   setShowBriTradeConnectivity: (v: boolean) => void;
+  showGtaInterventions: boolean;
+  gtaTradePaths: unknown[];
+  gtaInterventionCount: number;
+  setShowGtaInterventions: (v: boolean) => void;
   showStrategicCorridors: boolean;
   strategicCorridorPaths: unknown[];
   showAlliedLogisticsCorridors: boolean;
@@ -370,6 +390,10 @@ export function useLayerPanelCategories({
   setShowNorthKoreaMissileTests,
   setShowUkraineStrikesOnRussia,
   setShowEuropeDroneIncidents,
+  showConflictEvents,
+  setShowConflictEvents,
+  conflictEventMarkerCount,
+  setConflictTheater,
   chinaTheaterIncidentMarkers,
   koreaMissileIncidentMarkers,
   russiaStrikeIncidentMarkers,
@@ -473,6 +497,10 @@ export function useLayerPanelCategories({
   showBriTradeConnectivity,
   briTradePaths,
   setShowBriTradeConnectivity,
+  showGtaInterventions,
+  gtaTradePaths,
+  gtaInterventionCount,
+  setShowGtaInterventions,
   showStrategicCorridors,
   strategicCorridorPaths,
   showAlliedLogisticsCorridors,
@@ -879,6 +907,43 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showIslandChains,
             onChange: setShowIslandChains,
             accent: "red",
+          },
+          {
+            id: "conflict-events",
+            label: "전장 이벤트",
+            detail: showConflictEvents
+              ? `사건 ${conflictEventMarkerCount}건 · 교차 보도 묶음`
+              : "꺼짐 · 전 전장 공격·교전 보도",
+            checked: layerPrefs.showConflictEvents,
+            onChange: (enabled) => {
+              setShowConflictEvents(enabled);
+              if (enabled) {
+                for (const theater of CONFLICT_THEATER_ORDER) {
+                  setConflictTheater(theater, CONFLICT_THEATER_META[theater].defaultOn);
+                }
+              }
+            },
+            accent: "red",
+            presentation: "dropdown",
+            options: CONFLICT_THEATER_ORDER.map((theater) => {
+              const prefKey = CONFLICT_THEATER_PREF_KEY[theater];
+              const on = Boolean(layerPrefs[prefKey]);
+              const accent =
+                theater === "iran" ||
+                theater === "ukraine" ||
+                theater === "taiwan" ||
+                theater === "kuril"
+                  ? ("red" as const)
+                  : ("orange" as const);
+              return {
+                id: CONFLICT_THEATER_PANEL_ID[theater],
+                label: CONFLICT_THEATER_LABEL[theater].ko,
+                detail: on ? "표시" : "숨김",
+                checked: on,
+                onChange: (v: boolean) => setConflictTheater(theater, v),
+                accent,
+              };
+            }),
           },
           {
             id: "newfeeds-iran",
@@ -1499,6 +1564,16 @@ export function useLayerPanelCategories({
                   accent: "amber",
                 },
                 {
+                  id: "gta-interventions",
+                  label: "GTA 무역조치",
+                  detail: showGtaInterventions
+                    ? `호 ${gtaTradePaths.length.toLocaleString()} · 조치 ${gtaInterventionCount.toLocaleString()}건 · Global Trade Alert`
+                    : "꺼짐 · 관세·보조금·수출제한 (시행국→대상국)",
+                  checked: layerPrefs.showGtaInterventions,
+                  onChange: setShowGtaInterventions,
+                  accent: "red",
+                },
+                {
                   id: "strategic-corridors",
                   label: "전략 물류 통로",
                   detail: showStrategicCorridors
@@ -1620,8 +1695,8 @@ export function useLayerPanelCategories({
             ? [
                 {
                   id: "gscpi-gauge" as const,
-                  label: "전 세계 물류 혼잡도",
-                  detail: showGscpiGauge ? "우상단에 0~100 점수 표시" : "꺼짐",
+                  label: "공급망 압력",
+                  detail: showGscpiGauge ? "상단 고정 · 압력 1~5" : "꺼짐",
                   checked: layerPrefs.showGscpiGauge,
                   onChange: setShowGscpiGauge,
                   accent: "emerald" as const,
@@ -1735,6 +1810,7 @@ export function useLayerPanelCategories({
               ? {
                   showBriTradeConnectivity: enabled,
                   showUsDfcSupplyChain: enabled,
+                  showGtaInterventions: enabled,
                 }
               : {}),
             showSubmarineCables: enabled,
@@ -2212,6 +2288,7 @@ export function useLayerPanelCategories({
       /** 전선·점령·타격 — 지정학 전용 */
       ukraine: ["conflict"],
       "ukraine-strikes-russia": ["conflict"],
+      "conflict-events": ["conflict"],
       "war-zones": ["conflict"],
       "conflict-zones": ["conflict"],
       "ai-dc": ["economy"],
@@ -2220,14 +2297,18 @@ export function useLayerPanelCategories({
       "air-traffic": ["economy"],
       "us-dfc-supply": ["economy"],
       "bri-trade": ["economy"],
+      "gta-interventions": ["economy"],
       "strategic-corridors": ["economy", "conflict"],
       "sanctions-evasion-corridors": ["conflict"],
       "ses-gauge": ["conflict"],
       "gscpi-gauge": ["economy"],
     };
+    const hideLegacy = conflictEventsReplaceLegacy();
+    const hideLegacyIds = new Set<string>(LEGACY_CONFLICT_LAYER_IDS);
     const filterItems = (items: LayerToggleItem[]): LayerToggleItem[] =>
       items
         .map((item) => {
+          if (hideLegacy && hideLegacyIds.has(item.id)) return null;
           const modes = item.modes ?? MODE_ONLY[item.id];
           if (modes && !modes.includes(mode)) return null;
           if (item.options?.length) {
@@ -2320,6 +2401,11 @@ export function useLayerPanelCategories({
     lpg(showNorthKoreaMissileTests, false),
     lpg(showUkraineStrikesOnRussia, false),
     lpg(showEuropeDroneIncidents, false),
+    lpg(showConflictEvents, false),
+    lpg(conflictEventMarkerCount, 0),
+    ...CONFLICT_THEATER_ORDER.map((theater) =>
+      lpg(Boolean(layerPrefs[CONFLICT_THEATER_PREF_KEY[theater]]), true),
+    ),
     lpg(chinaTheaterIncidentMarkers.length, 0),
     lpg(koreaMissileIncidentMarkers.length, 0),
     lpg(russiaStrikeIncidentMarkers.length, 0),
@@ -2329,6 +2415,7 @@ export function useLayerPanelCategories({
     lpg(crinkInfraStatus, "idle"),
     lpg(crinkInfraVisibilityHint, null),
     lpg(showBriTradeConnectivity, false),
+    lpg(showGtaInterventions, false),
     lpg(showStrategicCorridors, false),
     lpg(showAlliedLogisticsCorridors, false),
     lpg(showSanctionsEvasionCorridors, false),

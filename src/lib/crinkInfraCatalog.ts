@@ -18,6 +18,20 @@ export const CRINK_INFRA_LAYERS: CrinkInfraLayerDef[] = [
     accent: "amber",
   },
   {
+    id: "pipeline",
+    prefKey: "showCrinkInfraPipeline",
+    labelKo: "가스·석유 파이프라인",
+    labelEn: "Gas / oil pipelines",
+    accent: "orange",
+  },
+  {
+    id: "power-line",
+    prefKey: "showCrinkInfraPowerLine",
+    labelKo: "고압 송전선",
+    labelEn: "Transmission lines",
+    accent: "cyan",
+  },
+  {
     id: "border",
     prefKey: "showCrinkInfraBorder",
     labelKo: "국경 검문소",

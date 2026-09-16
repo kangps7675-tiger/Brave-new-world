@@ -69,6 +69,18 @@ export const PREF_TO_LAYER_ID: Partial<Record<LayerPrefKey, string>> = {
   // ── OSINT ─────────────────────────────────────────────────────
   showTelegramOsint: "telegram-osint",
 
+  // ── CRINK OSM 인프라 (OpenStreetMap ODbL — 전부 allowed) ─────
+  showCrinkInfraPower: "crink-infra-power",
+  showCrinkInfraBorder: "crink-infra-border",
+  showCrinkInfraDams: "crink-infra-dam",
+  showCrinkInfraAeroway: "crink-infra-aeroway",
+  showCrinkInfraHarbour: "crink-infra-harbour",
+  showCrinkInfraCheckpoint: "crink-infra-checkpoint",
+  showCrinkInfraRail: "crink-infra-rail",
+  showCrinkInfraRoad: "crink-infra-road",
+  showCrinkInfraPipeline: "crink-infra-pipeline",
+  showCrinkInfraPowerLine: "crink-infra-power-line",
+
   /*
    * 매핑 없음 — LayerPrefs 불리언으로 제어되지 않는 레이어들.
    * 이들은 API 라우트/뉴스 파이프라인에서 직접 오므로 이 게이트가 못 잡는다.
