@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { zc } from "@/lib/uiStack";
 
 type HoverSideDrawerProps = {
   side: "left" | "right";
@@ -26,7 +27,7 @@ export function HoverSideDrawer({
   forceOpen = false,
   className = "",
   top = "max(0.55rem, env(safe-area-inset-top, 0px))",
-  zIndexClass = "z-[280]",
+  zIndexClass = zc("nav"),
 }: HoverSideDrawerProps) {
   const [hovered, setHovered] = useState(false);
   const open = hovered || forceOpen;

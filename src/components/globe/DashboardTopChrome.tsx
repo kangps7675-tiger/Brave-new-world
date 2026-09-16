@@ -19,6 +19,7 @@ import type { ViewerMode } from "@/lib/viewPackages";
 import type { ChromeCoachStep } from "@/components/ChromeOnboardingCoach";
 import { t } from "@/lib/uiStrings";
 import { brandName } from "@/lib/brand";
+import { zc } from "@/lib/uiStack";
 
 export interface DashboardTopChromeProps {
   intelSheetOpen: boolean;
@@ -125,7 +126,7 @@ export function DashboardTopChrome({
       <HoverSideDrawer
         side="left"
         peepLabel={labelLanguage === "en" ? "Menu" : "메뉴"}
-        zIndexClass="z-[320]"
+        zIndexClass={zc("nav")}
       >
         <UtilityChromeMenu
           lang={labelLanguage}
