@@ -69,6 +69,10 @@ import {
 } from "@/lib/mapGlobeLayers";
 import { firmsFireIconId, ensureFirmsFireImages } from "@/lib/firmsFireIcons";
 import {
+  blocFeatureFromMapProps,
+  isBlocCountryFillLayerId,
+} from "@/lib/blocCountryHover";
+import {
   gemFacilityIconId,
   isGemFacilityKind,
   ensureGemFacilityImages,
@@ -190,6 +194,9 @@ const INTERACTIVE_LAYERS = [
   AIS_ASPECT_SYMBOL_LAYER_ID,
   "map-paths-solid",
   "map-paths-dashed",
+  "map-paths-maritime",
+  "map-paths-crink-pipeline-solid",
+  "map-paths-crink-power-line-solid",
   "map-polygons-fill",
   "map-rings",
   "firms-flame",
@@ -198,12 +205,44 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-defense",
   "ukraine-micro-combat-circle",
   "island-chains-bases",
+  "allied-bloc-countries-fill",
+  "geoecon-bloc-countries-fill",
+  "axis-hub-countries-fill",
   SAFECAST_CIRCLE_LAYER_ID,
   SAFECAST_LABEL_LAYER_ID,
 ] as const;
 
+/** GlobeDashboard가 넘기는 별칭 `map-paths` → 실제 MapLibre path 레이어들 */
+function expandInteractiveLayerIds(ids: readonly string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (id: string) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    out.push(id);
+  };
+  for (const id of ids) {
+    if (id === "map-paths") {
+      push("map-paths-solid");
+      push("map-paths-dashed");
+      push("map-paths-maritime");
+      push("map-paths-crink-pipeline-solid");
+      push("map-paths-crink-power-line-solid");
+      continue;
+    }
+    push(id);
+  }
+  return out;
+}
+
 function isMapPathsLayer(layerId: string): boolean {
-  return layerId === "map-paths-solid" || layerId === "map-paths-dashed";
+  return (
+    layerId === "map-paths-solid" ||
+    layerId === "map-paths-dashed" ||
+    layerId === "map-paths-maritime" ||
+    layerId === "map-paths-crink-pipeline-solid" ||
+    layerId === "map-paths-crink-power-line-solid"
+  );
 }
 
 /**
@@ -572,7 +611,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const fromProps = props.interactiveLayerIds;
     const base =
       Array.isArray(fromProps) && fromProps.length > 0
-        ? [...fromProps]
+        ? expandInteractiveLayerIds(fromProps)
         : [...INTERACTIVE_LAYERS];
     if (showIslandChains && !base.includes("island-chains-bases")) {
       base.push("island-chains-bases");
@@ -1505,7 +1544,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       lngLat: { lat: number; lng: number };
       features?: {
         layer?: { id?: string };
-        properties?: { index?: number; id?: string };
+        properties?: Record<string, unknown> & { index?: number; id?: string };
       }[];
     }) => {
       const { lat, lng } = event.lngLat;
@@ -1526,10 +1565,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       setHoveredIslandBaseId(baseHit);
 
+      // 1순위: 점·항공기·AIS·경로 (면보다 위)
       for (const feature of features) {
         const layerId = feature.layer?.id;
+        if (layerId == null) continue;
+        if (isBlocCountryFillLayerId(layerId) || layerId === "map-polygons-fill") continue;
         const index = feature.properties?.index;
-        if (layerId == null || index == null) continue;
+        if (index == null) continue;
         const item = resolveFeature(layerId, Number(index));
         if (!item) continue;
         if (layerId === "map-points" || layerId === "firms-flame") {
@@ -1550,11 +1592,40 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           setHoveredAxisLinkGroupId(axisLinkHoverGroupId(item));
           return;
         }
+      }
+
+      // 2순위: 오버레이 폴리곤 → 진영/지경학/축 국가 면
+      for (const feature of features) {
+        const layerId = feature.layer?.id;
+        if (layerId == null) continue;
         if (layerId === "map-polygons-fill") {
+          const index = feature.properties?.index;
+          if (index == null) continue;
+          const item = resolveFeature(layerId, Number(index));
+          if (!item) continue;
           onPolygonHover?.(item);
+          onPointHover?.(null);
+          onPathHover?.(null);
+          onAircraftHover?.(null);
+          onAisSymbolHover?.(null);
+          setHoveredPathGroupId(null);
+          setHoveredAxisLinkGroupId(null);
+          return;
+        }
+        if (isBlocCountryFillLayerId(layerId)) {
+          const blocItem = blocFeatureFromMapProps(layerId, feature.properties);
+          if (!blocItem) continue;
+          onPolygonHover?.(blocItem);
+          onPointHover?.(null);
+          onPathHover?.(null);
+          onAircraftHover?.(null);
+          onAisSymbolHover?.(null);
+          setHoveredPathGroupId(null);
+          setHoveredAxisLinkGroupId(null);
           return;
         }
       }
+
       onPointHover?.(null);
       onPathHover?.(null);
       onPolygonHover?.(null);

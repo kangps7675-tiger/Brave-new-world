@@ -638,14 +638,15 @@ export function mergeBriefingStats(
 
 /** 낮을수록 유리 — 투자·거시·칩·테크를 상단으로 */
 const LAMP_NEWS_GENRE_PRIORITY: Record<string, number> = {
+  /** 선물·매크로 데스크 — energy/shipping을 tech보다 앞 */
   macro: 0,
-  markets: 1,
-  chips: 2,
-  tech: 3,
-  auto: 4,
-  infra: 5,
-  energy: 8,
-  shipping: 10,
+  energy: 1,
+  shipping: 2,
+  markets: 3,
+  infra: 4,
+  chips: 5,
+  auto: 6,
+  tech: 7,
 };
 
 /** 등불 — 초크포인트(해협·운하) 최소 확보 슬롯 */

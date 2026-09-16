@@ -5,8 +5,11 @@
 
 import { LAND_MASK_1DEG } from "@/data/landMask1deg";
 
-const WIDTH = LAND_MASK_1DEG.width;
-const HEIGHT = LAND_MASK_1DEG.height;
+export const LAND_MASK_WIDTH = LAND_MASK_1DEG.width;
+export const LAND_MASK_HEIGHT = LAND_MASK_1DEG.height;
+
+const WIDTH = LAND_MASK_WIDTH;
+const HEIGHT = LAND_MASK_HEIGHT;
 
 /** 운하·해협 — 마스크가 육지로 칠해도 바다 */
 const OCEAN_CORRIDORS: ReadonlyArray<{
@@ -15,7 +18,8 @@ const OCEAN_CORRIDORS: ReadonlyArray<{
   minLat: number;
   maxLat: number;
 }> = [
-  { minLng: 32.2, maxLng: 33.0, minLat: 29.5, maxLat: 31.6 },
+  // Suez / Port Said Mediterranean exit — widen slightly so canal→Med hops stay ocean
+  { minLng: 32.0, maxLng: 33.2, minLat: 29.4, maxLat: 31.8 },
   { minLng: -80.1, maxLng: -79.4, minLat: 8.7, maxLat: 9.5 },
   { minLng: 99.5, maxLng: 104.5, minLat: 1.0, maxLat: 6.5 },
   { minLng: 26.0, maxLng: 29.3, minLat: 39.9, maxLat: 41.3 },
@@ -26,6 +30,8 @@ const OCEAN_CORRIDORS: ReadonlyArray<{
   { minLng: 9.4, maxLng: 11.0, minLat: 53.8, maxLat: 54.6 },
   { minLng: 118.5, maxLng: 120.2, minLat: 22.5, maxLat: 25.5 },
   { minLng: 128.5, maxLng: 130.0, minLat: 33.5, maxLat: 35.0 },
+  // Kerch (Black Sea ↔ Azov)
+  { minLng: 36.0, maxLng: 37.0, minLat: 44.8, maxLat: 45.5 },
 ];
 
 function decodeBits(base64: string): Uint8Array {
@@ -54,10 +60,28 @@ function inCorridor(lng: number, lat: number): boolean {
   );
 }
 
-function cellIndex(lng: number, lat: number): number {
+export function lngLatToCell(lng: number, lat: number): { x: number; y: number } {
   const x = Math.max(0, Math.min(WIDTH - 1, Math.floor((((lng + 180) % 360) + 360) % 360)));
   const y = Math.max(0, Math.min(HEIGHT - 1, Math.floor(90 - lat)));
+  return { x, y };
+}
+
+function cellIndex(lng: number, lat: number): number {
+  const { x, y } = lngLatToCell(lng, lat);
   return y * WIDTH + x;
+}
+
+/** 셀 중심 좌표 (1° 격자) */
+export function cellCenter(x: number, y: number): { lng: number; lat: number } {
+  return { lng: x - 179.5, lat: 89.5 - y };
+}
+
+export function isLandCell(x: number, y: number): boolean {
+  if (y < 0 || y >= HEIGHT) return true;
+  const xx = ((x % WIDTH) + WIDTH) % WIDTH;
+  const { lng, lat } = cellCenter(xx, y);
+  if (inCorridor(lng, lat)) return false;
+  return LAND_BITS[y * WIDTH + xx] === 1;
 }
 
 /** 1° 셀 중심이 육지인지 (해협/운하 corridor 제외) */

@@ -26,6 +26,29 @@ describe("sortNewsByInterest", () => {
     const sorted = sortNewsByInterest(items, { "middle-east": 3 }, false);
     expect(sorted.map((x) => x.id)).toEqual(["b", "a"]);
   });
+
+  it("in economy mode, futures-desk headlines beat newer tech noise", () => {
+    const items = [
+      item({
+        id: "tech",
+        theater: "global",
+        title: "App store ranking shakes up",
+        feedTopic: "economy",
+        econGenre: "tech",
+        pubDate: "2026-07-03T12:00:00Z",
+      }),
+      item({
+        id: "oil",
+        theater: "global",
+        title: "Brent oil surges on Hormuz tension",
+        feedTopic: "economy",
+        econGenre: "energy",
+        pubDate: "2026-07-01T12:00:00Z",
+      }),
+    ];
+    const sorted = sortNewsByInterest(items, {}, true);
+    expect(sorted.map((x) => x.id)).toEqual(["oil", "tech"]);
+  });
 });
 
 describe("suggestLayerPatchFromInterest", () => {

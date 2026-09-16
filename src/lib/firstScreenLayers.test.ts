@@ -37,6 +37,8 @@ describe("첫 화면 Compact 장면", () => {
     expect(next.showAxisNetwork).toBe(true);
     expect(next.showAlliedBlocs).toBe(true);
     expect(next.showSubseaPipelines).toBe(true);
+    expect(next.showOilPipelines).toBe(true);
+    expect(next.showGasPipelines).toBe(true);
     expect(next.showAirTraffic).toBe(false);
     expect(next.showAiDataCenters).toBe(false);
     expect(next.showGeoEconBlocs).toBe(false);

@@ -1,6 +1,7 @@
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
 import type { MaritimeGraph, MaritimeRouteResult } from "@/lib/maritime/types";
 import { maritimePathFromNodePath, SURFACE_EPSILON } from "@/lib/maritime/sphere3d";
+import { pathCrossesLand, routeOceanWaypoints } from "@/lib/oceanRoute";
 
 function pointsBbox(points: TransportPathPoint[]) {
   let minLat = Infinity;
@@ -62,15 +63,31 @@ export type SampleMaritimeRoute = {
   points: { lat: number; lng: number }[];
 };
 
+/** 노드 체인 → 바다 우회 점열 (Catmull-Rom이 육지를 가로지르면 A*로 대체) */
+function maritimePointsForSample(
+  graph: MaritimeGraph,
+  sample: SampleMaritimeRoute,
+): { lat: number; lng: number }[] {
+  const fromNodes =
+    sample.nodePath.length >= 2
+      ? maritimePathFromNodePath(graph.nodes, sample.nodePath, 12)
+      : sample.points;
+  if (fromNodes.length < 2) return fromNodes;
+  if (!pathCrossesLand(fromNodes, 8)) return fromNodes;
+  const waypoints = sample.nodePath
+    .map((id) => graph.nodes[id])
+    .filter((n): n is { lat: number; lng: number } => Boolean(n))
+    .map((n) => ({ lat: n.lat, lng: n.lng }));
+  const routed = routeOceanWaypoints(waypoints.length >= 2 ? waypoints : fromNodes);
+  return routed.length >= 2 ? routed : fromNodes;
+}
+
 export function sampleRoutesToTransportPaths(
   graph: MaritimeGraph,
   samples: SampleMaritimeRoute[],
 ): TransportPath[] {
   return samples.map((s) => {
-    const points =
-      s.nodePath.length >= 2
-        ? maritimePathFromNodePath(graph.nodes, s.nodePath, 12)
-        : s.points;
+    const points = maritimePointsForSample(graph, s);
     return maritimeRouteToTransportPath(
       {
         nodePath: s.nodePath,

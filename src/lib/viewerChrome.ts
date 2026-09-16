@@ -39,15 +39,17 @@ export type BottomStackLayout = "conflict" | "economy";
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 지정학 자원 히어로 — 기본 비움.
- * 원자력·매장지·배관은 물류/전선과 무관해 기본 OFF (레이어 패널·시나리오에서 ON).
+ * 지정학 자원 히어로 — 해저관 + GEM 송유·가스관 (전 지구 에너지 배관 실루엣).
+ * 원자력·매장지·LNG는 여전히 레이어 패널·시나리오에서 ON.
  */
-export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
+export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
+  showSubseaPipelines: true,
+  showOilPipelines: true,
+  showGasPipelines: true,
+};
 
-/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF (해저관은 FIRST_SCREEN에서 ON) */
+/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF (배관은 FIRST_SCREEN / 히어로에서 ON) */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
-  showOilPipelines: false,
-  showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
   showNuclearSites: false,
@@ -328,7 +330,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       3: { label: "속보", detail: "미확인·참고용" },
     },
     navProfile: NAV_MENU_GROUPS,
-    searchPlaceholder: "지명 · 국가 · 분쟁 검색",
+    searchPlaceholder: "지명 · 국가 · 분쟁 · 기사",
     navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
     modePickerTagline: "전선 · 드론 · CRINK · 군용 항적",
@@ -354,7 +356,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       3: { label: "미확인 속보", detail: "참고용" },
     },
     navProfile: ECON_NAV_MENU_GROUPS,
-    searchPlaceholder: "유가 · 초크 · 항로 · 허브 검색",
+    searchPlaceholder: "초크 · 항로 · 허브 · 기사",
     navHeaderLabel: "멋진 신세계 · 시장",
     modePickerTitle: "경제 · 시장",
     modePickerTagline: "초크 · 에너지 · 진영 · 물류",
