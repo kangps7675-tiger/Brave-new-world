@@ -1,7 +1,6 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
-import { useState } from "react";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
@@ -20,6 +19,7 @@ import type { ViewerMode } from "@/lib/viewPackages";
 import type { ChromeCoachStep } from "@/components/ChromeOnboardingCoach";
 import { t } from "@/lib/uiStrings";
 import { brandName } from "@/lib/brand";
+import { zc } from "@/lib/uiStack";
 
 export interface DashboardTopChromeProps {
   intelSheetOpen: boolean;
@@ -58,7 +58,7 @@ export interface DashboardTopChromeProps {
   onOpenLayers?: () => void;
   onOpenSettings?: () => void;
   onOpenData?: () => void;
-  /** 우상단 GTI / 시계 스택 */
+  /** 가운데~우상단 고정 — DEFCON / 공급망 압력 + 시계 */
   wtiScore?: number | null;
   wtiDelta?: number | null;
   wtiAsOf?: string | null;
@@ -70,10 +70,10 @@ export interface DashboardTopChromeProps {
 }
 
 /**
- * Nullschool식 상단 크롬 + 좌·우 호버 서랍.
+ * Nullschool식 상단 크롬 + 좌측 호버 서랍.
  * - 상단: 투명 스트립 · 호버 시 검색→지정학/지경학
  * - 좌: 메뉴(+레일 슬롯) 호버 서랍
- * - 우: 시계·GTI 호버 서랍
+ * - 시계·DEFCON/공급망 압력: 가운데~우상단 사이 고정 (호버 숨김 없음)
  */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -112,8 +112,6 @@ export function DashboardTopChrome({
   showGscpi = true,
   leftRailSlotId = "chrome-left-rail-slot",
 }: DashboardTopChromeProps) {
-  const [rightPinned, setRightPinned] = useState(false);
-
   if (intelSheetOpen) return null;
 
   const chromeVisible = entryGate === null && !showModePicker;
@@ -128,7 +126,7 @@ export function DashboardTopChrome({
       <HoverSideDrawer
         side="left"
         peepLabel={labelLanguage === "en" ? "Menu" : "메뉴"}
-        zIndexClass="z-[320]"
+        zIndexClass={zc("nav")}
       >
         <UtilityChromeMenu
           lang={labelLanguage}
@@ -151,31 +149,18 @@ export function DashboardTopChrome({
         />
       </HoverSideDrawer>
 
-      {/* 우측 호버 서랍 — 시계 · GTI */}
-      <HoverSideDrawer
-        side="right"
-        peepLabel={viewerMode === "economy" ? "GSCPI" : "GTI"}
-        forceOpen={rightPinned}
-        zIndexClass="z-[300]"
-      >
-        <div
-          onFocusCapture={() => setRightPinned(true)}
-        >
-          <ModeGlobalIndexChip
-            viewerMode={viewerMode}
-            lang={labelLanguage}
-            wtiScore={wtiScore}
-            wtiDelta={wtiDelta}
-            wtiAsOf={wtiAsOf}
-            wtiIsEstimate={wtiIsEstimate}
-            showSesChip={showSesChip}
-            showGscpi={showGscpi}
-            dense={isCompactUi || isTabletUi}
-            embedded
-            onPanelOpenChange={setRightPinned}
-          />
-        </div>
-      </HoverSideDrawer>
+      {/* 시계 · DEFCON / 공급망 압력 — 가운데와 우상단 사이 고정 */}
+      <ModeGlobalIndexChip
+        viewerMode={viewerMode}
+        lang={labelLanguage}
+        wtiScore={wtiScore}
+        wtiDelta={wtiDelta}
+        wtiAsOf={wtiAsOf}
+        wtiIsEstimate={wtiIsEstimate}
+        showSesChip={showSesChip}
+        showGscpi={showGscpi}
+        dense={isCompactUi || isTabletUi}
+      />
 
       <HoverNav
         viewerMode={viewerMode}

@@ -107,7 +107,9 @@ describe("activateRussiaStrikeIncidents", () => {
       ],
       NOW,
     );
-    const liveOnly = out.find((o) => o.id === "live-ru-far-moscow");
+    const liveOnly = out.find(
+      (o) => o.id.startsWith("live-ru-") && o.id.includes("far-moscow"),
+    );
     expect(liveOnly?.provenance).toBe("live-only");
   });
 });

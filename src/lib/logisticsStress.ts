@@ -13,7 +13,7 @@
  * 신호 신뢰도 등급:
  *  A = 공식·직접 (UKMTO 피습·나포 경보) — 등급 확정의 근거
  *  B = 관측·간접 (AIS 통항 변화) — 보조
- *  C = 대리지표 (유가 변동성) — 참고, 단독 판단 금지
+ *  C = 대리지표 (관련 자산 시세 변동성 — 유가·반도체주·환율 등, 초크포인트마다 다름) — 참고, 단독 판단 금지
  */
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -108,10 +108,12 @@ export type LogisticsStressInputs = {
    */
   aisObservation?: { changePct: number; observedAt?: string | null; isDemo?: boolean } | null;
   /**
-   * (선택) 유가 변동성 관측 (C급). 참고 신호로만.
-   * volatilityHint: "high" | "elevated" | "normal"
+   * (선택) 관련 자산 시세 변동성 관측 (C급). 참고 신호로만.
+   * 초크포인트마다 실제로 연동된 자산이 다르다(유가·반도체 관련주·아시아 증시·환율 등) —
+   * 유가로 고정하지 않고 자산명(assetLabel)을 함께 받는다.
    */
-  oilVolatility?: {
+  assetVolatility?: {
+    assetLabel: string;
     hint: "high" | "elevated" | "normal";
     observedAt?: string | null;
     isDemo?: boolean;
@@ -178,16 +180,17 @@ export function computeChokepointStress(input: LogisticsStressInputs): Chokepoin
     }
   }
 
-  // --- C급: 유가 변동성 (참고, 단독 판단 금지) ---
-  if (input.oilVolatility && input.oilVolatility.hint !== "normal") {
+  // --- C급: 관련 자산 시세 변동성 (참고, 단독 판단 금지) ---
+  if (input.assetVolatility && input.assetVolatility.hint !== "normal") {
+    const { assetLabel, hint } = input.assetVolatility;
     signals.push({
       tier: "C",
-      labelKo: `유가 변동성 ${input.oilVolatility.hint === "high" ? "높음" : "다소 높음"} (대리지표)`,
-      labelEn: `Oil-price volatility ${input.oilVolatility.hint} (proxy only)`,
+      labelKo: `${assetLabel} 변동성 ${hint === "high" ? "높음" : "다소 높음"} (대리지표)`,
+      labelEn: `${assetLabel} volatility ${hint} (proxy only)`,
       sourceKo: "시세 변동성 (대리지표)",
       sourceEn: "Price volatility (proxy)",
-      observedAt: input.oilVolatility.observedAt ?? null,
-      isDemo: input.oilVolatility.isDemo ?? false,
+      observedAt: input.assetVolatility.observedAt ?? null,
+      isDemo: input.assetVolatility.isDemo ?? false,
     });
   }
 
@@ -263,12 +266,12 @@ export function stressDisclaimer(lang: LabelLanguage): string {
  *  - computeChokepointStress는 목업으로 등급을 확정하지 않는다(등급은 A급=UKMTO만).
  *  - 결정론적(초크포인트 id 기반) 값이라 새로고침마다 안 흔들린다 — "가짜 실시간" 연출 금지.
  *
- * 유료 데이터가 붙으면 이 함수를 호출하는 쪽에서 실제 aisObservation/oilVolatility로
+ * 유료 데이터가 붙으면 이 함수를 호출하는 쪽에서 실제 aisObservation/assetVolatility로
  * 교체하기만 하면 된다(로직 본체는 그대로).
  */
 export function demoStressSignals(chokepointId: string): {
   aisObservation: { changePct: number; observedAt: string; isDemo: true } | null;
-  oilVolatility: { hint: "high" | "elevated" | "normal"; observedAt: string; isDemo: true } | null;
+  assetVolatility: { assetLabel: string; hint: "high" | "elevated" | "normal"; observedAt: string; isDemo: true } | null;
 } {
   // 초크포인트 id를 시드로 한 결정론적 값 (해시)
   let h = 0;
@@ -284,7 +287,7 @@ export function demoStressSignals(chokepointId: string): {
 
   return {
     aisObservation: { changePct, observedAt: now, isDemo: true },
-    oilVolatility: { hint, observedAt: now, isDemo: true },
+    assetVolatility: { assetLabel: "Brent", hint, observedAt: now, isDemo: true },
   };
 }
 

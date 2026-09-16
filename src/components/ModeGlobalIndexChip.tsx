@@ -36,7 +36,7 @@ type ModeGlobalIndexChipProps = {
 };
 
 /**
- * 우상단 고정 — 모드별 전 세계 단일 지표.
+ * 가운데~우상단 사이 고정 — 모드별 전 세계 단일 지표 + 시계.
  * 칩 클릭 시 계산·설계 설명 패널 (알아먹기 쉬운 줄글).
  */
 export function ModeGlobalIndexChip({
@@ -137,7 +137,7 @@ export function ModeGlobalIndexChip({
     <>
       <div
         ref={stackRef}
-        className={`pointer-events-auto flex max-w-[min(20rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${
+        className={`pointer-events-auto flex max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-end gap-1.5 ${
           embedded ? "relative z-auto" : "fixed z-[300]"
         } ${className}`}
         style={
@@ -145,8 +145,9 @@ export function ModeGlobalIndexChip({
             ? undefined
             : {
                 top: "max(0.75rem, env(safe-area-inset-top, 0px))",
+                /* 화면 가운데와 우상단 사이 — 맨 끝 엣지(호버 서랍)보다 안쪽 */
                 right:
-                  "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
+                  "clamp(4.75rem, 16vw, 13.5rem)",
               }
         }
         data-chrome-obstacle="mode-index-chip"
@@ -166,7 +167,7 @@ export function ModeGlobalIndexChip({
                   className={`${chipBtn} w-full max-w-full`}
                   onClick={() => openExplain("gscpi")}
                   aria-expanded={explainId === "gscpi"}
-                  aria-label={lang === "en" ? "Explain shipping congestion" : "물류 혼잡도 설명"}
+                  aria-label={lang === "en" ? "Explain supply-chain pressure" : "공급망 압력 설명"}
                 >
                   <GscpiGaugeFromData lang={lang} compact className="shadow-lg backdrop-blur-md" />
                 </button>
@@ -217,7 +218,7 @@ export function ModeGlobalIndexChip({
                 className={`${chipBtn} w-full max-w-full`}
                 onClick={() => openExplain("gts")}
                 aria-expanded={explainId === "gts"}
-                aria-label={lang === "en" ? "Explain tension score" : "긴장지수 설명"}
+                aria-label={lang === "en" ? "Explain DEFCON stage" : "DEFCON 단계 설명"}
               >
                 <WorldTensionChip
                   score={wtiScore}
@@ -273,8 +274,7 @@ export function ModeGlobalIndexChip({
           className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(20rem,calc(100vw-1.5rem))]`}
           style={{
             top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right:
-              "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
+            right: "clamp(4.75rem, 16vw, 13.5rem)",
             maxHeight:
               "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
           }}
@@ -290,8 +290,7 @@ export function ModeGlobalIndexChip({
           className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(22rem,calc(100vw-1.5rem))]`}
           style={{
             top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right:
-              "calc(max(0.75rem, env(safe-area-inset-right, 0px)) + var(--chrome-right-dock-inset, 0px))",
+            right: "clamp(4.75rem, 16vw, 13.5rem)",
             maxHeight:
               "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
           }}

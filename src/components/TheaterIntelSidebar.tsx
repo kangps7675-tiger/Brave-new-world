@@ -302,7 +302,7 @@ function TheaterInsightPanel({
       {entry && score != null ? (
         <div className="shrink-0 rounded-xl border border-rose-500/25 bg-gradient-to-br from-rose-950/35 via-slate-950/50 to-slate-950/80 px-3 py-3">
           <p className="text-micro font-semibold uppercase tracking-[0.18em] text-rose-300/75">
-            GTI · {ko ? "전장 긴장" : "Theater tension"}
+            DEFCON · {ko ? "전장 긴장" : "Theater tension"}
           </p>
           <div className="mt-1.5 flex flex-wrap items-end gap-x-3 gap-y-1">
             <span className="text-2xl font-semibold tabular-nums text-rose-50">

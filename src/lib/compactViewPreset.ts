@@ -4,6 +4,7 @@ import {
 } from "@/lib/layerPrefs";
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
+import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 import type { ViewerMode } from "@/lib/viewPackages";
 import {
   FIRST_SCREEN_CONFLICT_ON,
@@ -38,7 +39,7 @@ export const COMPACT_CONFLICT_PRESETS: CompactChipDef[] = [
       showWarZones: true,
       showGdeltWar: true,
       showTelegramOsint: true,
-      showNewfeedsIranAttacks: true,
+      showConflictEvents: true,
     },
   },
   {
@@ -49,7 +50,7 @@ export const COMPACT_CONFLICT_PRESETS: CompactChipDef[] = [
       showNeptun: true,
       showTzevaAdom: true,
       showGdeltWar: true,
-      showNewfeedsIranAttacks: true,
+      showConflictEvents: true,
     },
   },
 ];
@@ -70,7 +71,7 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
       showGasPipelines: true,
       showLngTerminals: true,
       showResources: true,
-      showNewfeedsIranAttacks: true,
+      showConflictEvents: true,
     },
   },
   {
@@ -81,7 +82,7 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
       showSanctionsEntities: true,
       showEconomicCenters: true,
       showAiDataCenters: true,
-      showNewfeedsIranAttacks: true,
+      showConflictEvents: true,
     },
   },
 ];
@@ -122,5 +123,5 @@ export function buildCompactPrefs(
   let next = allLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
   next = applyUltraLiteToLayerPrefs(next);
   next = { ...next, ...chip.layers, labelLanguage };
-  return clampPrefsToActiveCap(next, true);
+  return clampPrefsToActiveCap(stripLegacyConflictPrefs(next), true);
 }

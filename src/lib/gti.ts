@@ -115,12 +115,85 @@ export type GtiBand = "calm" | "elevated" | "high" | "critical";
 /** @deprecated use GtiBand */
 export type WtiBand = GtiBand;
 
+/**
+ * DEFCON 1–5 (5=평시 · 1=최고 긴장).
+ * GTS 0–100을 군사 경보 문법으로 읽기 위한 UI 매핑 — 공식 DEFCON 선언이 아님.
+ */
+export type DefconLevel = 1 | 2 | 3 | 4 | 5;
+
 /** 점수 → 긴장 밴드 (사운드·UI 공통) — raw score 기준 (표시 반올림 전) */
 export function gtiBand(score: number): GtiBand {
   if (score >= 75) return "critical";
   if (score >= 55) return "high";
   if (score >= 35) return "elevated";
   return "calm";
+}
+
+/** GTS → DEFCON (균등 5단). 80+ = 1, 60+ = 2, …, 20 미만 = 5 */
+export function gtiDefcon(score: number): DefconLevel {
+  if (score >= 80) return 1;
+  if (score >= 60) return 2;
+  if (score >= 40) return 3;
+  if (score >= 20) return 4;
+  return 5;
+}
+
+export function gtiDefconLabel(level: DefconLevel, ko: boolean): string {
+  if (ko) {
+    switch (level) {
+      case 1:
+        return "최고 긴장";
+      case 2:
+        return "고조";
+      case 3:
+        return "경계";
+      case 4:
+        return "주의";
+      case 5:
+        return "평시";
+    }
+  }
+  switch (level) {
+    case 1:
+      return "Maximum";
+    case 2:
+      return "High";
+    case 3:
+      return "Elevated";
+    case 4:
+      return "Watch";
+    case 5:
+      return "Normal";
+  }
+}
+
+export function gtiDefconColor(level: DefconLevel, light = false): string {
+  if (light) {
+    switch (level) {
+      case 1:
+        return "#be123c";
+      case 2:
+        return "#c2410c";
+      case 3:
+        return "#b45309";
+      case 4:
+        return "#0369a1";
+      case 5:
+        return "#047857";
+    }
+  }
+  switch (level) {
+    case 1:
+      return "#f87171";
+    case 2:
+      return "#fb923c";
+    case 3:
+      return "#fbbf24";
+    case 4:
+      return "#38bdf8";
+    case 5:
+      return "#34d399";
+  }
 }
 
 /** @deprecated use gtiBand */

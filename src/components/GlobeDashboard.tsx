@@ -381,6 +381,8 @@ import {
 } from "@/lib/eastAsiaAdiz";
 import { axisNetworkToPaths } from "@/lib/axisNetworkPaths";
 import { briTradePathsToTransport } from "@/lib/briTradePaths";
+import { gtaInterventionsToTransport } from "@/lib/gtaTradePaths";
+import type { GtaIntervention } from "@/lib/gta";
 import { getCorridorLod } from "@/lib/corridorLod";
 import { strategicCorridorPathsForLod, sanctionsEvasionCorridorPathsForLod } from "@/lib/strategicCorridorPaths";
 import {
@@ -507,6 +509,16 @@ import {
   activateEuropeDroneIncidents,
 } from "@/lib/neonIncidentActivation";
 import { provenanceFromActivation } from "@/lib/eventProvenance";
+import {
+  buildConflictEventClusters,
+  clusterToMarker,
+  filterClustersByTheaters,
+  selectConflictEventMarkers,
+  type ConflictEventHtmlMarker,
+} from "@/lib/conflictEvents/buildLayer";
+import type { ConflictTheater } from "@/lib/conflictEvents/types";
+import { CONFLICT_THEATER_ORDER, CONFLICT_THEATER_PREF_KEY } from "@/lib/conflictEvents/theaterMeta";
+import { conflictEventsReplaceLegacy } from "@/lib/conflictEvents/flags";
 import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import {
   HAPI_CASUALTY_SEED,
@@ -621,6 +633,8 @@ import { chokeStressHex } from "@/lib/chokeStressColor";
 import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
 import { usePortWatchObservations } from "@/hooks/usePortWatchObservations";
 import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsStressSiren";
+import { useLogisticsAssetTickers } from "@/components/globe/hooks/useLogisticsAssetTickers";
+import { assetVolatilityHintForPoint } from "@/lib/assetVolatilityHint";
 import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
 import { useNatoPerimeterDroneAlert } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { useUltraLiteAutoOffer } from "@/hooks/useUltraLiteAutoOffer";
@@ -1617,9 +1631,23 @@ export function GlobeDashboard({
     showReefWatch,
     showNorthKoreaMissileTests,
     showUkraineStrikesOnRussia,
+    showConflictEvents,
+    showConflictTheaterUkraine,
+    showConflictTheaterIran,
+    showConflictTheaterLebanon,
+    showConflictTheaterSyria,
+    showConflictTheaterTaiwan,
+    showConflictTheaterKorea,
+    showConflictTheaterKuril,
+    showConflictTheaterBaltic,
+    showConflictTheaterBlackSea,
+    showConflictTheaterJapan,
+    showConflictTheaterCaucasus,
+    showConflictTheaterCentralAsia,
     showEuropeDroneIncidents,
     showNeptun,
     showNeptunPreviousTrails,
+    showGtaInterventions,
     showEastAsiaAdiz,
     showIslandChains,
     showAxisNetwork,
@@ -1822,6 +1850,10 @@ export function GlobeDashboard({
     }
     togglePref("showUkraineStrikesOnRussia", false);
   };
+  const setShowConflictEvents = (v: boolean) => togglePref("showConflictEvents", v);
+  const setConflictTheater = (theater: ConflictTheater, v: boolean) => {
+    togglePref(CONFLICT_THEATER_PREF_KEY[theater], v);
+  };
   const setShowEuropeDroneIncidents = (v: boolean) =>
     togglePref("showEuropeDroneIncidents", v);
 
@@ -1845,6 +1877,7 @@ export function GlobeDashboard({
   const setShowIslandChains = (v: boolean) => togglePref("showIslandChains", v);
   const setShowAxisNetwork = (v: boolean) => togglePref("showAxisNetwork", v);
   const setShowBriTradeConnectivity = (v: boolean) => togglePref("showBriTradeConnectivity", v);
+  const setShowGtaInterventions = (v: boolean) => togglePref("showGtaInterventions", v);
   const setShowStrategicCorridors = (v: boolean) => togglePref("showStrategicCorridors", v);
   const setShowAlliedLogisticsCorridors = (v: boolean) =>
     togglePref("showAlliedLogisticsCorridors", v);
@@ -3329,6 +3362,67 @@ export function GlobeDashboard({
     return briTradePathsToTransport(labelLanguage);
   }, [showBriTradeConnectivity, labelLanguage]);
 
+  const [gtaInterventions, setGtaInterventions] = useState<GtaIntervention[]>([]);
+  const [gtaCentroids, setGtaCentroids] = useState<Record<string, { lat: number; lng: number }>>(
+    {},
+  );
+  const gtaFetchedRef = useRef(false);
+  const gtaCentroidsFetchedRef = useRef(false);
+
+  // GTA(느린 데이터, 하루 1회 갱신) — 레이어 켰을 때 한 번만 불러온다.
+  useEffect(() => {
+    if (!showGtaInterventions || gtaFetchedRef.current) return;
+    gtaFetchedRef.current = true;
+    const ac = new AbortController();
+    void fetch("/api/layers/gta-interventions?inForce=1", {
+      cache: "no-store",
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const payload = (await res.json()) as { interventions?: GtaIntervention[] };
+        if (ac.signal.aborted) return;
+        setGtaInterventions(Array.isArray(payload.interventions) ? payload.interventions : []);
+      })
+      .catch(() => undefined);
+    return () => ac.abort();
+  }, [showGtaInterventions]);
+
+  // 호를 그리려면 관할국 ISO3 → 중심점이 필요하다 (GTA 레코드엔 좌표가 없음).
+  useEffect(() => {
+    if (!showGtaInterventions || gtaCentroidsFetchedRef.current) return;
+    gtaCentroidsFetchedRef.current = true;
+    const ac = new AbortController();
+    void fetch("/api/layers/country-centroids", { cache: "no-store", signal: ac.signal })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const payload = (await res.json()) as {
+          centroids?: { iso3: string; lat: number; lng: number }[];
+        };
+        if (ac.signal.aborted) return;
+        const map: Record<string, { lat: number; lng: number }> = {};
+        for (const c of payload.centroids ?? []) map[c.iso3] = { lat: c.lat, lng: c.lng };
+        setGtaCentroids(map);
+      })
+      .catch(() => undefined);
+    return () => ac.abort();
+  }, [showGtaInterventions]);
+
+  const gtaCentroidLookup = useCallback(
+    (iso3: string) => gtaCentroids[iso3],
+    [gtaCentroids],
+  );
+
+  const gtaTradePaths = useMemo<TransportPath[]>(() => {
+    if (
+      !showGtaInterventions ||
+      gtaInterventions.length === 0 ||
+      Object.keys(gtaCentroids).length === 0
+    )
+      return [];
+    return gtaInterventionsToTransport(gtaInterventions, gtaCentroidLookup, labelLanguage);
+  }, [showGtaInterventions, gtaInterventions, gtaCentroids, gtaCentroidLookup, labelLanguage]);
+
   const corridorLod = useMemo(
     () => getCorridorLod(layerViewState.altitude),
     [layerViewState.altitude],
@@ -3760,6 +3854,7 @@ export function GlobeDashboard({
       ...plaIncursionHeatPaths,
       ...axisNetworkPaths,
       ...briTradePaths,
+      ...gtaTradePaths,
       ...strategicCorridorPaths,
       ...alliedLogisticsCorridorPaths,
       ...sanctionsEvasionCorridorPaths,
@@ -3783,6 +3878,7 @@ export function GlobeDashboard({
       armsEmbargoFramePaths,
       axisNetworkPaths,
       briTradePaths,
+      gtaTradePaths,
       strategicCorridorPaths,
       alliedLogisticsCorridorPaths,
       sanctionsEvasionCorridorPaths,
@@ -3988,6 +4084,7 @@ export function GlobeDashboard({
   }, [econNavSelection, visibleStaticPoints]);
 
   const portWatchByChokeId = usePortWatchObservations();
+  const assetTickerSnapshot = useLogisticsAssetTickers(showLogisticsRisk && showLogisticsStress);
 
   const chokeGlowColorById = useMemo(() => {
     if (!showLogisticsRisk || !showLogisticsStress) return undefined;
@@ -3998,11 +4095,12 @@ export function GlobeDashboard({
         p,
         ukmtoIncidents,
         portWatchByChokeId[p.id] ?? null,
+        assetVolatilityHintForPoint(p.meta?.relatedTickers as string | undefined, assetTickerSnapshot),
       );
       out[p.id] = chokeStressHex(stress.level);
     }
     return out;
-  }, [showLogisticsRisk, showLogisticsStress, ukmtoIncidents, portWatchByChokeId]);
+  }, [showLogisticsRisk, showLogisticsStress, ukmtoIncidents, portWatchByChokeId, assetTickerSnapshot]);
 
   const {
     airportPortHtmlMarkers,
@@ -4136,7 +4234,7 @@ export function GlobeDashboard({
   }, [showTzevaAdom, tzevaAdomActive]);
 
   const newfeedsAttackDisplayPoints = useMemo<NewfeedsAttackGlobePoint[]>(() => {
-    if (!showNewfeedsIranAttacks) return [];
+    if (conflictEventsReplaceLegacy() || !showNewfeedsIranAttacks) return [];
     // NewFeeds = 이란 국영·공식 매체 → 빨간 구체
     return newfeedsAttacks.map((attack) => ({
       ...attack,
@@ -4146,6 +4244,7 @@ export function GlobeDashboard({
   }, [newfeedsAttacks, showNewfeedsIranAttacks]);
 
   const chinaTheaterIncidentMarkers = useMemo<ChinaTheaterIncidentHtmlMarker[]>(() => {
+    if (conflictEventsReplaceLegacy()) return [];
     const enabled = new Set<ChinaTheaterDyad>();
     if (showChinaTaiwanIncidents) enabled.add("china-taiwan");
     if (showChinaJapanIncidents) enabled.add("china-japan");
@@ -4180,7 +4279,7 @@ export function GlobeDashboard({
   ]);
 
   const koreaMissileIncidentMarkers = useMemo<KoreaMissileIncidentHtmlMarker[]>(() => {
-    if (!showNorthKoreaMissileTests) return [];
+    if (conflictEventsReplaceLegacy() || !showNorthKoreaMissileTests) return [];
     return activateKoreaMissileIncidents(scoredEvents).map((item) => ({
       ...item,
       markerId: `nk-missile-${item.id}`,
@@ -4189,7 +4288,7 @@ export function GlobeDashboard({
   }, [scoredEvents, showNorthKoreaMissileTests]);
 
   const russiaStrikeIncidentMarkers = useMemo<RussiaStrikeIncidentHtmlMarker[]>(() => {
-    if (!showUkraineStrikesOnRussia) return [];
+    if (conflictEventsReplaceLegacy() || !showUkraineStrikesOnRussia) return [];
     return activateRussiaStrikeIncidents(scoredEvents).map((item) => ({
       ...item,
       markerId: `ua-strike-ru-${item.id}`,
@@ -4205,6 +4304,59 @@ export function GlobeDashboard({
       displayKind: "europe-drone-incident" as const,
     }));
   }, [scoredEvents, showEuropeDroneIncidents]);
+
+  const conflictEventTheaters = useMemo(() => {
+    const enabled = new Set<ConflictTheater>();
+    for (const theater of CONFLICT_THEATER_ORDER) {
+      if (layerPrefs[CONFLICT_THEATER_PREF_KEY[theater]]) enabled.add(theater);
+    }
+    return enabled;
+  }, [
+    showConflictTheaterIran,
+    showConflictTheaterKorea,
+    showConflictTheaterLebanon,
+    showConflictTheaterSyria,
+    showConflictTheaterTaiwan,
+    showConflictTheaterUkraine,
+    showConflictTheaterKuril,
+    showConflictTheaterBaltic,
+    showConflictTheaterBlackSea,
+    showConflictTheaterJapan,
+    showConflictTheaterCaucasus,
+    showConflictTheaterCentralAsia,
+  ]);
+
+  const conflictEventMarkers = useMemo<ConflictEventHtmlMarker[]>(() => {
+    if (!showConflictEvents) return [];
+    const newsItems = [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ];
+    const clusters = filterClustersByTheaters(
+      buildConflictEventClusters({
+        newsItems,
+        gdeltEvents: scoredEvents,
+        newfeedsAttacks,
+      }),
+      conflictEventTheaters,
+    );
+    const markers = clusters.map(clusterToMarker);
+    return selectConflictEventMarkers(markers, {
+      view: layerViewState,
+      lodTier: globeLod.tier,
+    });
+  }, [
+    conflictEventTheaters,
+    globeLod.tier,
+    layerViewState,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.stateMedia,
+    newsStreamPayload?.verified,
+    newfeedsAttacks,
+    scoredEvents,
+    showConflictEvents,
+  ]);
 
   const firmsCombatInView = firmsCombatFireIds.length > 0;
 
@@ -4515,6 +4667,7 @@ export function GlobeDashboard({
       ...koreaMissileIncidentMarkers,
       ...russiaStrikeIncidentMarkers,
       ...europeDroneIncidentMarkers,
+      ...conflictEventMarkers,
       ...reconSatelliteMarkers,
     ];
     // MapLibre는 htmlAltitude 미지원 — 사망자·콜아웃·뉴스네온이 한 좌표에 묶이지 않게 분리
@@ -4525,6 +4678,7 @@ export function GlobeDashboard({
       koreaMissileIncidentMarkers,
       russiaStrikeIncidentMarkers,
       europeDroneIncidentMarkers,
+      conflictEventMarkers,
       reconSatelliteMarkers,
       visibleCasualtySkullMarkers,
       exerciseHtmlMarkers,
@@ -4588,6 +4742,7 @@ export function GlobeDashboard({
   useEffect(() => {
     if (
       !showBriTradeConnectivity &&
+      !showGtaInterventions &&
       !showUsDfcSupplyChain &&
       !showStrategicCorridors &&
       !showAlliedLogisticsCorridors &&
@@ -4597,6 +4752,7 @@ export function GlobeDashboard({
     setGlobePaths([...rawGlobePaths]);
   }, [
     showBriTradeConnectivity,
+    showGtaInterventions,
     showUsDfcSupplyChain,
     showStrategicCorridors,
     showAlliedLogisticsCorridors,
@@ -5469,6 +5625,10 @@ export function GlobeDashboard({
     setShowNorthKoreaMissileTests,
     setShowUkraineStrikesOnRussia,
     setShowEuropeDroneIncidents,
+    showConflictEvents,
+    setShowConflictEvents,
+    conflictEventMarkerCount: conflictEventMarkers.length,
+    setConflictTheater,
     chinaTheaterIncidentMarkers,
     koreaMissileIncidentMarkers,
     russiaStrikeIncidentMarkers,
@@ -5577,6 +5737,10 @@ export function GlobeDashboard({
     showBriTradeConnectivity,
     briTradePaths,
     setShowBriTradeConnectivity,
+    showGtaInterventions,
+    gtaTradePaths,
+    gtaInterventionCount: gtaInterventions.length,
+    setShowGtaInterventions,
     showStrategicCorridors,
     strategicCorridorPaths,
     setShowStrategicCorridors,
@@ -6014,7 +6178,7 @@ export function GlobeDashboard({
     layerPrefsLiveRef,
   });
 
-  /** 초크포인트 호버 → 물류 스트레스 관측 카드 (UKMTO A + PortWatch B) */
+  /** 초크포인트 호버 → 물류 스트레스 관측 카드 (UKMTO A + PortWatch B + 연동자산 시세 대리지표 C) */
   const hoveredChokepointStress = useMemo(() => {
     if (!hoveredPoint || hoveredPoint.displayKind !== "static") return null;
     if (hoveredPoint.kind !== "chokepoint") return null;
@@ -6027,9 +6191,10 @@ export function GlobeDashboard({
       hoveredPoint,
       ukmtoIncidents,
       portWatchByChokeId[hoveredPoint.id] ?? null,
+      assetVolatilityHintForPoint(hoveredPoint.meta?.relatedTickers as string | undefined, assetTickerSnapshot),
     );
     return { title, stress };
-  }, [hoveredPoint, labelLanguage, ukmtoIncidents, portWatchByChokeId]);
+  }, [hoveredPoint, labelLanguage, ukmtoIncidents, portWatchByChokeId, assetTickerSnapshot]);
 
   useLogisticsStressSiren({
     paused: entryGate !== null || showModePicker || issueUiPausedForLamp,
@@ -7239,7 +7404,8 @@ export function GlobeDashboard({
         showLngTerminals: true,
         showResources: true,
         showAis: true,
-        showNewfeedsIranAttacks: focus.theaterId === "middle-east",
+        showConflictEvents: focus.theaterId === "middle-east",
+        showConflictTheaterIran: focus.theaterId === "middle-east",
       });
     } else {
       patchLayerPrefsSoft(focus.patch);

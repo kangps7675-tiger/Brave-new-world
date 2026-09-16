@@ -35,7 +35,8 @@ export const ENERGY_AXIS_PATCH: HotTheaterLayerPatch = {
   showPorts: true,
   showStrategicCorridors: true,
   showResources: true,
-  showNewfeedsIranAttacks: true,
+  showConflictEvents: true,
+  showConflictTheaterIran: true,
 };
 
 export const ENERGY_AXIS_FLY: SceneMissionFly = {
@@ -56,7 +57,7 @@ export const FRONTLINE_LIVE_STACK: HotTheaterLayerPatch = {
   showWarZones: true,
   showNeptun: true,
   showTzevaAdom: true,
-  showNewfeedsIranAttacks: true,
+  showConflictEvents: true,
   showGdeltWar: true,
   showFirmsFires: true,
   showMilitaryActivity: true,

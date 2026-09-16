@@ -298,7 +298,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     attribution:
       "NewFeeds · https://github.com/ktoetotam/NewFeeds (MIT) — underlying outlets retained per article",
     notes:
-      "Iran-related geocoded attack/military events on the map (layer toggle). Iran state/regional headlines merge into /api/news-stream as Tier-3 state media and compete for the bottom breaking hero. Always credit NewFeeds when displayed.",
+      "Iran-related geocoded attack/military events on the map (layer toggle). Iran state/regional headlines merge into /api/news-stream as Tier-3 state media and compete for the bottom breaking hero. Always credit NewFeeds when displayed. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on) 켜지면 지도 핀은 conflict-events(이란 전장)로 대체되어 숨김 — 하단 속보(bottom breaking)는 그대로 유지. 코드는 병행 롤백용으로 유지.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "allowed",
@@ -414,6 +414,126 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "mapped-existing",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike.",
+  },
+  {
+    layerId: "crink-infra-power",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-power.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 변전소·발전소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-border",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-border.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 국경 검문소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-dam",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-dam.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 댐·저수지. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-aeroway",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-aeroway.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 활주로·공항. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-harbour",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-harbour.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 항만. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-checkpoint",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-checkpoint.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 군사 검문소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-rail",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-rail.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 주요 철도. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-road",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-road.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 주요 도로. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-pipeline",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-pipeline.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 가스·석유 파이프라인 (man_made=pipeline, substance 필터). 2026-09-16 카테고리 추가, 아직 실추출/병합 전 — showCrinkInfraPipeline 기본 OFF.",
+    status: "planned",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
+  },
+  {
+    layerId: "crink-infra-power-line",
+    source: "Static build (scripts/crink-infra, OpenStreetMap)",
+    url: "/data/crink/crink-power-line.geojson",
+    cadence: "Manual re-extract (Geofabrik PBF → pyosmium)",
+    attribution: "© OpenStreetMap contributors (ODbL)",
+    notes: "CRINK 인프라 — 고압 송전선·배전선 전체 지오메트리 (power=line/minor_line). 2026-09-16 카테고리 추가, 아직 실추출/병합 전 — showCrinkInfraPowerLine 기본 OFF. rail/road와 동일하게 .geojson.gz 사이드카로 서빙 예정(merge_geojson.py GZIP_CATEGORIES); 압축 후에도 너무 크면 벡터타일(tippecanoe/PMTiles) 전환 검토.",
+    status: "planned",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
   {
     layerId: "nuclear-sites",
@@ -851,12 +971,56 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "implementer 중심 → affected 중심 호(arc)로 렌더한다 (gtaTradePaths.ts). " +
       "⚠️ Red/Amber/Green 은 GTA 의 평가이지 객관적 사실 판정이 아니므로 UI 에서 반드시 귀속 표기할 것. " +
       "basic 접근은 셀프서비스 API 키로 가능하고, full 접근(설명·1차출처·관세율 prior/new)은 " +
-      "data@globaltradealert.org 승인 대상이다.",
-    status: "planned",
+      "data@globaltradealert.org 승인 대상이다. " +
+      "UI 배선 완료(레이어 토글·호 렌더·country-centroids 조회) — 남은 건 .env 의 " +
+      "GTA_API_KEY 발급·등록과 npm run gta:fetch 최초 실행뿐. 키 없으면 레이어를 켜도 빈 화면(정상 동작).",
+    status: "shipped",
     ingest: "static-build",
     commercialUse: "license-required",
     commercialNote:
-      "데이터는 CC BY 4.0 이나 GTA 서비스 약관이 'free for non-commercial users'. API 접근은 별도 상업 조건 문의 필요 (data@globaltradealert.org).",
+      "데이터는 CC BY 4.0 이나 GTA 서비스 약관이 'free for non-commercial users'. 아직 SaaS(유료 티어) 전이라 지금은 노출하되, 유료화 시 이 레이어부터 재검토하거나 상업 라이선스를 문의할 것 (data@globaltradealert.org).",
+  },
+  {
+    layerId: "atop-alliances-draft",
+    source: "ATOP (Alliance Treaty Obligations and Provisions) v5.1",
+    url: "http://www.atopdata.org/data.html",
+    cadence: "1회성 — 신규 허브 국가 조사할 때 또는 ATOP 신버전 발간 시에만 재실행 (실시간 폴링 아님)",
+    attribution: "Leeds et al., ATOP Project v5.1 (atopdata.org)",
+    notes:
+      "동맹조약 원문을 코딩한 학술 데이터셋(커버리지 1815–2018). 기존 관계망 오버레이" +
+      "(src/lib/alliedBlocCountryPolygons.ts, NATO/AUKUS/CRINK/CSTO/미국 양자조약 6단계 분류)를 " +
+      "자동 대체하지 않는다 — 그건 이미 nato.int·odkb-csto.org·뉴스로 출처를 단 수기 큐레이션이다. " +
+      "scripts/fetch-atop-alliances.js가 하는 일은 (1) 기존 분류와 ATOP 공식 조약 데이터를 대조해 " +
+      "불일치·누락을 QA하고 (2) 다음 허브 후보 국가의 동맹 관계 초안을 사람이 처음부터 조사하는 대신 " +
+      "제공하는 것. ⚠️ 2018년 이후 조약(2024 북·러 포괄적 전략 동반자 조약 등)은 이 데이터셋에 없음 — " +
+      "반드시 수기 오버라이드 필요. 원본 CSV/Stata는 직접 다운로드해야 함(가입 불필요, 스크립트가 " +
+      "자동 다운로드하지 않음) — `node scripts/fetch-atop-alliances.js <원본.csv>`. 결과는 " +
+      "scripts/data/atop-alliances-draft.json 초안일 뿐, 병합은 사람이 diff 보고 판단.",
+    status: "planned",
+    ingest: "static-build",
+    commercialUse: "unknown",
+    commercialNote: "ATOP는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 atopdata.org 이용조건 재확인 필요. 수집은 1회성 CLI(자동 폴링 아님).",
+  },
+  {
+    layerId: "icow-territorial-claims-draft",
+    source: "ICOW (Issue Correlates of War) Territorial Claims Data",
+    url: "http://www.paulhensel.org/icowterr.html",
+    cadence: "1회성 — 신규 허브 후보 조사할 때 또는 ICOW 신버전 발간 시에만 재실행 (실시간 폴링 아님)",
+    attribution: "Hensel & Mitchell, ICOW Territorial Claims Data (paulhensel.org / data.icow.org)",
+    notes:
+      "국경·영유권 분쟁 dyad를 코딩한 학술 데이터셋. 기존 TERRITORIAL_DISPUTE_EPISODES" +
+      "(src/data/territorialDisputeEpisodes.ts)의 줄글 서사(briefing/presentLink 등)는 자동 생성하지 " +
+      "않는다 — 뇌피셜 서사 금지 원칙. scripts/fetch-territorial-claims.js는 구조적 사실(당사국·연도· " +
+      "클레임명)만 초안으로 뽑고, 기존 아카이브와 이름 매칭 휴리스틱으로 중복 후보만 표시한다(확정 아님). " +
+      "⚠️ 원본 데이터셋 버전에 따라 최신 커버리지가 2000년대~2010년대 초반에서 끊김 — 2020 나고르노-" +
+      "카라바흐 2차, 2023~ 가자 등 최근 분쟁은 당연히 빠져 있고 실행 로그가 실제 fileYearRange를 출력함. " +
+      "briefing류 줄글은 LLM 초안 + 필성 검수로 별도 채운 뒤 사람이 territorialDisputeEpisodes.ts에 " +
+      "직접 반영. 원본 CSV는 직접 다운로드해야 함 — `node scripts/fetch-territorial-claims.js <원본.csv>`. " +
+      "결과는 scripts/data/territorial-claims-draft.json.",
+    status: "planned",
+    ingest: "static-build",
+    commercialUse: "unknown",
+    commercialNote: "ICOW는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 paulhensel.org 이용조건 재확인 필요. 수집은 1회성 CLI(자동 폴링 아님).",
   },
   {
     layerId: "world-stats",
@@ -1078,7 +1242,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Live GDELT · layer toggle",
     attribution: "GDELT · open reporting / known launch anchors",
     notes:
-      "주황 네온 점+물결. 상시 시드가 아니라 최신(24h) 미사일·발사 속보가 있을 때만 점등. 탄착군 미확정 — 발생 좌표 기준. 실시간 궤적·탄착은 우크라 NEPTUN.",
+      "주황 네온 점+물결. 상시 시드가 아니라 최신(24h) 미사일·발사 속보가 있을 때만 점등. 탄착군 미확정 — 발생 좌표 기준. 실시간 궤적·탄착은 우크라 NEPTUN. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on) 켜지면 conflict-events 로 대체되어 숨김 — 코드는 병행 롤백용으로 유지.",
     status: "shipped",
     ingest: "live-api",
     commercialUse: "allowed",
@@ -1091,7 +1255,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Live GDELT · layer toggle",
     attribution: "GDELT · reported strikes on Russian targets (unverified)",
     notes:
-      "우크라이나 → 러시아(및 점령지) 타격. 러시아는 공식 실시간 방공 경보를 공개하지 않아 궤적·탄착 불가 — 자주 피격되는 지점(벨고로드·쿠르스크·엥겔스·세바스토폴·정유소 등) 앵커에 최신(24h) GDELT 속보가 러시아 표적 지명과 함께 있을 때만 점등. 모두 「보도·미확인」. NEPTUN(우크라로 오는 위협)의 반대 방향.",
+      "우크라이나 → 러시아(및 점령지) 타격. 러시아는 공식 실시간 방공 경보를 공개하지 않아 궤적·탄착 불가 — 자주 피격되는 지점(벨고로드·쿠르스크·엥겔스·세바스토폴·정유소 등) 앵커에 최신(24h) GDELT 속보가 러시아 표적 지명과 함께 있을 때만 점등. 모두 「보도·미확인」. NEPTUN(우크라로 오는 위협)의 반대 방향. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on) 켜지면 conflict-events 로 대체되어 숨김 — 코드는 병행 롤백용으로 유지.",
     status: "shipped",
     ingest: "live-api",
     commercialUse: "allowed",
@@ -1104,11 +1268,25 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Live GDELT · layer toggles",
     attribution: "GDELT · theater dens for China↔Taiwan / Japan / Philippines / US↔China",
     notes:
-      "빨간 네온 점 + 물방울 리플. 시드 앵커는 매칭용 — 최신(24h) GDELT 속보가 앵커 근처에 있을 때만 사건 좌표에 표시.",
+      "빨간 네온 점 + 물방울 리플. 시드 앵커는 매칭용 — 최신(24h) GDELT 속보가 앵커 근처에 있을 때만 사건 좌표에 표시. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on) 켜지면 conflict-events(대만 전장)로 대체되어 숨김 — 코드는 병행 롤백용으로 유지.",
     status: "shipped",
     ingest: "live-api",
     commercialUse: "allowed",
     commercialNote: "GDELT — 공개.",
+  },
+  {
+    layerId: "conflict-events",
+    source: "Conflict Events pipeline — GDELT + NewFeeds + news-stream (dedup·cluster)",
+    url: "src/lib/conflictEvents/* (buildConflictEventClusters, 클라이언트 병합 — 별도 API 없음)",
+    cadence: "렌더 시 즉시 병합 · geohash(정밀도5)+10km+2h+자카드≥0.34 클러스터링",
+    attribution: "GDELT · NewFeeds (MIT) · news-geopolitics-rss 산하 매체 — 호버 시 개별 소스명 표시",
+    notes:
+      "12개 전장(이란·우크라이나·대만·한국·레바논·시리아·쿠릴·발트·흑해·캅카스·일본·중앙아시아) 통합 이벤트 레이어. GDELT·NewFeeds·news-stream 원시 이벤트를 지오해시+시간+자카드 유사도로 클러스터링해 중복 핀을 제거하고, 독립 소스 수 기반 confidence(단일 보도/corroborated/high-confidence)를 매긴다. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on)가 켜지면 korea-missile-incidents·ukraine-strikes-russia·china-theater-incidents·newfeeds-iran 4개 레거시 레이어를 대체해 숨긴다. 좌표 미확정 애매 케이스만 배치당 최대 8건 LLM(gazetteer id만 선택, 좌표 창작 금지)로 보강.",
+    status: "shipped",
+    ingest: "mapped-existing",
+    commercialUse: "license-required",
+    commercialNote:
+      "GDELT(공개)·NewFeeds(MIT) 부분은 상업 이용 가능하나, news-stream 병합분은 news-geopolitics-rss 항목과 동일한 매체별 RSS 약관 제약을 그대로 상속한다 — 유료 노출 전 그쪽 확인과 동일 조건 적용.",
   },
   {
     layerId: "hapi-conflict-casualties",

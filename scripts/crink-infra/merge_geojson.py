@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -12,6 +13,10 @@ CONFIG = json.loads((Path(__file__).parent / "config.json").read_text(encoding="
 from categories import ALL_CATEGORIES, parse_categories  # noqa: E402
 
 REGIONS = [r["id"] for r in CONFIG["regions"]]
+
+# 큰 네트워크형 카테고리 — 병합 후 .gz 사이드카도 생성.
+# 클라이언트(src/lib/crinkInfraLayers.ts fetchJsonMaybeGzip)가 평문 404 시 자동 폴백.
+GZIP_CATEGORIES = frozenset({"rail", "road", "power-line"})
 
 
 def collect_lines(work: Path, region: str, cat: str) -> list[str]:
@@ -50,12 +55,24 @@ def merge_category(work: Path, out_dir: Path, cat: str) -> int:
         "features": features,
     }
     dest = out_dir / f"crink-{cat}.geojson"
-    dest.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    payload = json.dumps(out, ensure_ascii=False)
+    dest.write_text(payload, encoding="utf-8")
     # Keep unfiltered rail/road for re-snap after corridor edits
     if cat in ("rail", "road"):
         full = out_dir / f"crink-{cat}-full.geojson"
-        full.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+        full.write_text(payload, encoding="utf-8")
         print(f"[merge] {cat}-full: {len(features)} → {full.relative_to(ROOT)}", flush=True)
+    if cat in GZIP_CATEGORIES:
+        gz_dest = dest.with_suffix(dest.suffix + ".gz")
+        with gzip.open(gz_dest, "wt", encoding="utf-8", compresslevel=9) as fh:
+            fh.write(payload)
+        raw_bytes = max(1, dest.stat().st_size)
+        ratio = (gz_dest.stat().st_size / raw_bytes) * 100
+        print(
+            f"[merge] {cat}.gz: {gz_dest.stat().st_size / 1e6:.1f}MB "
+            f"({ratio:.1f}% of raw) -> {gz_dest.relative_to(ROOT)}",
+            flush=True,
+        )
     print(f"[merge] {cat}: {len(features)} → {dest.relative_to(ROOT)}", flush=True)
     return len(features)
 

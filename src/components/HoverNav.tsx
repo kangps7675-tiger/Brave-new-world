@@ -226,7 +226,7 @@ export function HoverNav({
       {aboveNav || showDesktopToolsSlot ? (
         <div
           className={`pointer-events-auto flex w-full max-w-6xl flex-col items-center gap-1.5 bg-transparent ${
-            menuExpanded ? "relative z-[100]" : "relative z-[210]"
+            menuExpanded ? "relative z-[100]" : "relative z-[200]"
           }`}
         >
           {aboveNav ? (

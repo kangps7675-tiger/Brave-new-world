@@ -33,6 +33,7 @@ import { createFinancialHubMarkerElement } from "@/lib/financialMarketHubMarkers
 import { createKoreaMissileIncidentBadge } from "@/lib/koreaMissileIncidentMarker";
 import { createRussiaStrikeIncidentBadge } from "@/lib/russiaStrikeIncidentMarker";
 import { createEuropeDroneIncidentBadge } from "@/lib/europeDroneIncidentMarker";
+import { createConflictEventBadge } from "@/lib/conflictEvents/conflictEventMarker";
 import { createMilAircraftBadge } from "@/lib/milAircraftMarkers";
 import { createMilitaryExerciseMarkerElement } from "@/lib/militaryExerciseMarkers";
 import type { MilitaryExercise } from "@/lib/militaryExercises";
@@ -455,6 +456,31 @@ export function createDashboardHtmlOverlayElement(
           deps.flyTo(inc.lat, inc.lng, 0.72);
           if (inc.sourceUrl) {
             window.open(inc.sourceUrl, "_blank", "noopener,noreferrer");
+          } else {
+            deps.openIntelFromCoords(inc.lat, inc.lng, 0.92);
+          }
+        },
+      },
+    );
+  }
+  if (item.displayKind === "conflict-event") {
+    return createConflictEventBadge(
+      item,
+      deps.labelLanguage === "en" ? "en" : "ko",
+      {
+        onHover: (inc) => {
+          if (!inc) {
+            deps.handleHtmlMarkerHover(null);
+            return;
+          }
+          deps.handleHtmlMarkerHover(inc as unknown as GlobeDisplayPoint);
+        },
+        onClick: (inc) => {
+          deps.skipNextGlobeClickRef.current = true;
+          deps.flyTo(inc.lat, inc.lng, 0.72);
+          const url = inc.sources.find((s) => s.url)?.url;
+          if (url) {
+            window.open(url, "_blank", "noopener,noreferrer");
           } else {
             deps.openIntelFromCoords(inc.lat, inc.lng, 0.92);
           }

@@ -2,6 +2,7 @@
 
 import type { GevContactRow, GevHudLines } from "@/lib/gevLiveTrack";
 import { GEV_AWARENESS_RADIUS_M } from "@/lib/gevLiveTrack";
+import { zc } from "@/lib/uiStack";
 
 type Props = {
   hud: GevHudLines;
@@ -33,7 +34,7 @@ export function GevTrackHud({
 
   return (
     <div
-      className="pointer-events-auto absolute bottom-24 left-3 z-[550] flex w-[min(100vw-1.5rem,22rem)] flex-col gap-2 font-mono text-[11px] leading-snug sm:bottom-28 sm:left-4"
+      className={`pointer-events-auto absolute bottom-24 left-3 ${zc("panelScrim")} flex w-[min(100vw-1.5rem,22rem)] flex-col gap-2 font-mono text-micro leading-snug sm:bottom-28 sm:left-4`}
       style={{ color: "rgba(226, 232, 240, 0.95)" }}
     >
       <div
@@ -46,7 +47,7 @@ export function GevTrackHud({
       >
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <span
-            className="text-[10px] uppercase tracking-[0.22em]"
+            className="text-micro uppercase tracking-[0.22em]"
             style={{ color: hud.accent }}
           >
             {hud.kind === "ais" ? "AIS TRACK" : "AIR TRACK"}
@@ -56,7 +57,7 @@ export function GevTrackHud({
             <button
               type="button"
               onClick={onToggleFollow}
-              className="rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider transition hover:bg-white/10"
+              className="rounded px-1.5 py-0.5 text-micro uppercase tracking-wider transition hover:bg-white/10"
               style={{
                 color: followCamera ? hud.accent : "rgba(148,163,184,0.9)",
                 border: `1px solid ${followCamera ? hud.accent : "rgba(148,163,184,0.35)"}`,
@@ -67,13 +68,13 @@ export function GevTrackHud({
             <button
               type="button"
               onClick={onStop}
-              className="rounded border border-slate-600/80 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
+              className="rounded border border-slate-600/80 px-1.5 py-0.5 text-micro uppercase tracking-wider text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
             >
               {stopLabel}
             </button>
           </div>
         </div>
-        <p className="whitespace-pre-wrap break-words text-[12px] font-semibold" style={{ color: hud.accent }}>
+        <p className="whitespace-pre-wrap break-words text-meta font-semibold" style={{ color: hud.accent }}>
           {hud.lines[0]}
         </p>
         <p className="mt-0.5 text-slate-300">{hud.lines[1]}</p>
@@ -82,7 +83,7 @@ export function GevTrackHud({
 
       {contacts.length > 0 ? (
         <div className="max-h-44 overflow-y-auto rounded-md border border-slate-700/70 bg-black/75 px-2 py-1.5 backdrop-blur-md">
-          <p className="mb-1 px-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+          <p className="mb-1 px-1 text-micro uppercase tracking-[0.2em] text-slate-500">
             {contactsLabel} · {contacts.length}
           </p>
           <ul className="space-y-0.5">
@@ -95,7 +96,7 @@ export function GevTrackHud({
                 >
                   <span className="min-w-0 truncate text-slate-200">
                     <span
-                      className="mr-1.5 inline-block w-7 shrink-0 text-[9px] uppercase tracking-wider"
+                      className="mr-1.5 inline-block w-7 shrink-0 text-micro uppercase tracking-wider"
                       style={{
                         color:
                           row.kind === "ais"

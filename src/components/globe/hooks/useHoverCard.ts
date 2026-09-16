@@ -71,6 +71,7 @@ import { CHINA_THEATER_DYAD_LABEL, CHINA_THEATER_SEA_LABEL } from "@/data/chinaT
 import { KOREA_MISSILE_ANCHOR_LABEL, KOREA_MISSILE_KIND_LABEL } from "@/data/koreaMissileIncidentsSeed";
 import { RUSSIA_STRIKE_KIND_LABEL } from "@/data/russiaStrikeIncidentsSeed";
 import { DRONE_INCIDENT_KIND_LABEL } from "@/data/europeDroneIncursionSeed";
+import { hoverCopyForCluster } from "@/lib/conflictEvents/buildLayer";
 import {
   provenanceBadgeLabel,
   provenanceHintLine,
@@ -134,6 +135,7 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (p.displayKind === "china-theater-incident") return "china-theater-incidents";
     if (p.displayKind === "korea-missile-incident") return "korea-missile-incidents";
     if (p.displayKind === "russia-strike-incident") return "ukraine-strikes-russia";
+    if (p.displayKind === "conflict-event") return "conflict-events";
     if (p.displayKind === "casualty-skull") {
       const id = "id" in p ? String(p.id) : "";
       if (isMediazonaCasualtyId(id)) return "mediazona-casualties";
@@ -606,6 +608,18 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           .filter(Boolean)
           .join(" · "),
         hint: prov.hintExtra ?? (lang === "en" ? "Click to fly to location" : "클릭하면 해당 위치로 이동"),
+      };
+    }
+    if (hoveredPoint.displayKind === "conflict-event") {
+      const copy = hoverCopyForCluster(hoveredPoint, labelLanguage);
+      return {
+        kind: "event",
+        badge: copy.badge,
+        title: copy.title,
+        detail: copy.detail,
+        body: copy.body,
+        meta: copy.meta,
+        hint: lang === "en" ? "Click to open a source / fly to location" : "클릭하면 출처를 열거나 해당 위치로 이동합니다",
       };
     }
     if (hoveredPoint.displayKind === "casualty-skull") {

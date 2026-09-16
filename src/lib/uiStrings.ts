@@ -786,12 +786,12 @@ const UI = {
     ko: "AI·빅테크 · 반도체 · 전기차 · 에너지 · 물류 · 인프라 · 거시 · 와이어",
     en: "AI · semis · EV · energy · shipping · infra · macro · wires",
   },
-  worldTensionTitle: { ko: "긴장지수 · GTS", en: "Tension · GTS" },
+  worldTensionTitle: { ko: "DEFCON", en: "DEFCON" },
   worldTensionDeltaUp: { ko: "어제보다 {n}점 올라감", en: "up {n} from yesterday" },
   worldTensionDeltaDown: { ko: "어제보다 {n}점 내려감", en: "down {n} from yesterday" },
   worldTensionHint: {
-    ko: "GTS(글로벌 긴장 점수) — 전 세계 분쟁 지역이 지금 얼마나 시끄러운지 0~100으로 요약. IEP 테러 지수(GTI)와 다릅니다. 원유 WTI와 무관.",
-    en: "GTS (Global Tension Score) — how loud conflict zones are, 0–100. Not the IEP Global Terrorism Index (GTI). Unrelated to oil WTI.",
+    ko: "DEFCON 1~5 — 이 서비스 긴장점수(GTS)를 단계로 읽은 값입니다. 공식 군사 DEFCON 선언이 아니며, IEP 테러 지수·원유 WTI와 무관합니다.",
+    en: "DEFCON 1–5 — a staged read of this app’s Global Tension Score (GTS). Not an official military DEFCON, not IEP GTI, not oil WTI.",
   },
   sesHint: {
     ko: "제재 회피 강도 — 섀도 플릿·원유·회랑 프록시로 제재 우회 압력을 0~100으로. OFAC 명단 전체·단속 예측이 아닙니다.",

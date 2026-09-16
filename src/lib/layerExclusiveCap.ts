@@ -1,4 +1,5 @@
 import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { CONFLICT_THEATER_PREF_KEY } from "@/lib/conflictEvents/theaterMeta";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /**
@@ -17,6 +18,7 @@ export const ACTIVE_LAYER_CAP_ULTRA = GEOWATCH_CONFIG.caps.ultraLiteMaxLayers;
  * - showGscpiGauge: 지도 레이어가 아니라 우상단 UI 칩. 캡에 잡히면
  *   clamp에서 잘려 「전 세계 물류 혼잡도」가 사라짐.
  * - showLogisticsStress: 초크포인트 색상 모드 (showLogisticsRisk 종속)
+ * - showConflictTheater*: 전장 이벤트 하위 칩 — 마스터(showConflictEvents)만 슬롯 1개
  */
 const CAP_EXEMPT_KEYS = new Set<keyof LayerPrefs>([
   "labelLanguage",
@@ -24,6 +26,7 @@ const CAP_EXEMPT_KEYS = new Set<keyof LayerPrefs>([
   "showGscpiGauge",
   "showSesChip",
   "showLogisticsStress",
+  ...Object.values(CONFLICT_THEATER_PREF_KEY),
 ]);
 
 /** 캡 초과 시 잘라낼 때 우선 유지 (앞쪽일수록 유지) */
@@ -31,6 +34,7 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showUkraineControl",
   "showNeptun",
   "showUkraineStrikesOnRussia",
+  "showConflictEvents",
   "showWarZones",
   "showDiplomaticTension",
   "showAlliedBlocs",
@@ -64,6 +68,8 @@ export const LAYER_CAP_KEEP_PRIORITY: Array<keyof LayerPrefs> = [
   "showCrinkInfraCheckpoint",
   "showCrinkInfraRail",
   "showCrinkInfraRoad",
+  "showCrinkInfraPipeline",
+  "showCrinkInfraPowerLine",
   "showUsCarriers",
   "showGpsInterference",
   "showReconSatellites",
