@@ -1,9 +1,45 @@
-import type { TransportPath } from "@/data/geoTypes";
+import type { GeoJsonGeometry, TransportPath } from "@/data/geoTypes";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import type { PolygonLayerFeature } from "@/components/globe/types";
 
+type BlocCountryPolygonLayer = "allied-bloc" | "geoecon-bloc" | "axis-hub";
+
+export function isBlocCountryPolygonLayer(
+  layer: PolygonLayerFeature["polygonLayer"],
+): layer is BlocCountryPolygonLayer {
+  return layer === "allied-bloc" || layer === "geoecon-bloc" || layer === "axis-hub";
+}
+
+/** MapLibre-only bloc fills have `iso`; globe.gl polygons have `id`. */
+export function polygonFeatureKey(feature: PolygonLayerFeature): string {
+  switch (feature.polygonLayer) {
+    case "allied-bloc":
+    case "geoecon-bloc":
+    case "axis-hub":
+      return feature.iso;
+    default:
+      return feature.id;
+  }
+}
+
+/** Bloc hover features have no globe.gl geometry. */
+export function polygonFeatureGeometry(
+  feature: PolygonLayerFeature,
+): GeoJsonGeometry | null {
+  switch (feature.polygonLayer) {
+    case "allied-bloc":
+    case "geoecon-bloc":
+    case "axis-hub":
+      return null;
+    default:
+      return feature.geometry;
+  }
+}
+
 export function overlayPolygonSignature(polygons: PolygonLayerFeature[]) {
-  return polygons.map((feature) => `${feature.id}:${feature.polygonLayer}`).join("|");
+  return polygons
+    .map((feature) => `${polygonFeatureKey(feature)}:${feature.polygonLayer}`)
+    .join("|");
 }
 
 export function overlayPolygonsEqual(

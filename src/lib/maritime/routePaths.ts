@@ -1,5 +1,5 @@
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
-import type { MaritimeGraph, MaritimeRouteResult } from "@/lib/maritime/types";
+import type { MaritimeGraph, MaritimeNode, MaritimeRouteResult } from "@/lib/maritime/types";
 import { maritimePathFromNodePath, SURFACE_EPSILON } from "@/lib/maritime/sphere3d";
 import { pathCrossesLand, routeOceanWaypoints } from "@/lib/oceanRoute";
 
@@ -76,7 +76,7 @@ function maritimePointsForSample(
   if (!pathCrossesLand(fromNodes, 8)) return fromNodes;
   const waypoints = sample.nodePath
     .map((id) => graph.nodes[id])
-    .filter((n): n is { lat: number; lng: number } => Boolean(n))
+    .filter((n): n is MaritimeNode => Boolean(n))
     .map((n) => ({ lat: n.lat, lng: n.lng }));
   const routed = routeOceanWaypoints(waypoints.length >= 2 ? waypoints : fromNodes);
   return routed.length >= 2 ? routed : fromNodes;

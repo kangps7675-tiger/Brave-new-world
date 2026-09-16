@@ -478,7 +478,7 @@ export type HoverCard =
       body?: string;
       hint?: string;
     }
-  | { kind: "polygon"; title: string; detail: string; meta?: string; body?: string; hint?: string }
+  | { kind: "polygon"; title: string; detail: string; badge?: string; meta?: string; body?: string; hint?: string }
   | { kind: "path"; title: string; detail: string; meta?: string; body?: string; hint?: string }
   | { kind: "ocean"; title: string; detail: string; meta?: string; body?: string; hint?: string };
 
