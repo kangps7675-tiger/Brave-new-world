@@ -1,6 +1,13 @@
 ﻿"use client";
 
-import Fuse from "fuse.js";
+import {
+  buildNewsKeywordCatalog,
+  createNewsSearchIndex,
+  createPlaceSearchIndex,
+  searchChromeHits,
+  suggestNewsKeywords,
+  type ChromeSearchHit,
+} from "@/lib/chromeSearch";
 import dynamic from "@/lib/clientDynamic";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
@@ -219,7 +226,7 @@ import {
 } from "@/lib/theaterIntensityRadius";
 import { deconflictTheaterHtmlOverlays } from "@/lib/htmlOverlayDeconflict";
 import { buildAircraftSymbolModel } from "@/lib/milAircraftSymbols";
-import { buildNewsStreamMapTags } from "@/lib/news/newsStreamMapTags";
+import { buildNewsStreamMapTags, resolveNewsCoords } from "@/lib/news/newsStreamMapTags";
 import {
   filterEventsByNavSelection,
   pickMenuCoreAlerts,
@@ -2759,8 +2766,15 @@ export function GlobeDashboard({
     globeLod.tier === "near" || globeLod.tier === "village";
 
   /** VIINA 근접 줌 — 폴리곤 fill 레이캐스트 제외 (수천 정점 hover 피킹 방지) */
-  const mapInteractiveLayerIds = useMemo(
-    () =>
+  const mapInteractiveLayerIds = useMemo(() => {
+    const blocFills: string[] = [];
+    if (!isEconomyViewer) {
+      blocFills.push("axis-hub-countries-fill");
+      if (showAlliedBlocs) blocFills.push("allied-bloc-countries-fill");
+    } else if (showGeoEconBlocs) {
+      blocFills.push("geoecon-bloc-countries-fill");
+    }
+    const core =
       isViinaCloseZoom && showUkraineControl
         ? (["map-points", "map-gem-facilities", "map-paths", "map-rings", "firms-flame"] as const)
         : ([
@@ -2770,9 +2784,15 @@ export function GlobeDashboard({
             "map-polygons-fill",
             "map-rings",
             "firms-flame",
-          ] as const),
-    [isViinaCloseZoom, showUkraineControl],
-  );
+          ] as const);
+    return [...core, ...blocFills];
+  }, [
+    isEconomyViewer,
+    isViinaCloseZoom,
+    showAlliedBlocs,
+    showGeoEconBlocs,
+    showUkraineControl,
+  ]);
 
   const transportLod = useMemo(
     () => getTransportLod(layerAltitude),
@@ -5007,28 +5027,6 @@ export function GlobeDashboard({
     stableNeptunLivePaths,
   ]);
 
-  const fuse = useMemo(
-    () =>
-      new Fuse(data.places, {
-        keys: [
-          { name: "name", weight: 0.45 },
-          { name: "nameKo", weight: 0.4 },
-          { name: "country", weight: 0.1 },
-          { name: "type", weight: 0.05 },
-        ],
-        threshold: 0.38,
-        ignoreLocation: true,
-        includeScore: true,
-      }),
-    [data.places],
-  );
-
-  const searchResults = useMemo(() => {
-    const q = query.trim();
-    if (!q) return [];
-    return fuse.search(q).slice(0, 10).map((result) => result.item);
-  }, [fuse, query]);
-
   const hoverCard = useHoverCard({
     hoveredCarrier,
     hoveredMilAircraft,
@@ -5561,6 +5559,59 @@ export function GlobeDashboard({
       ...(newsStreamPayload?.stateMedia ?? []),
     ],
     [newsStreamPayload?.hero, newsStreamPayload?.verified, newsStreamPayload?.stateMedia],
+  );
+
+  /** 상단 검색용 — hero·flash·verified·stateMedia (id 중복 제거) */
+  const newsSearchPool = useMemo(() => {
+    const seen = new Set<string>();
+    const out: NewsStreamItem[] = [];
+    for (const item of [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.flashHeroes ?? []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ]) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      out.push(item);
+    }
+    return out;
+  }, [
+    newsStreamPayload?.flashHeroes,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.stateMedia,
+    newsStreamPayload?.verified,
+  ]);
+
+  const placeSearchIndex = useMemo(
+    () => createPlaceSearchIndex(data.places ?? []),
+    [data.places],
+  );
+
+  const newsSearchIndex = useMemo(
+    () => createNewsSearchIndex(newsSearchPool),
+    [newsSearchPool],
+  );
+
+  const newsKeywordCatalog = useMemo(
+    () => buildNewsKeywordCatalog(newsSearchPool),
+    [newsSearchPool],
+  );
+
+  const searchResults = useMemo(
+    () =>
+      searchChromeHits({
+        query,
+        placeIndex: placeSearchIndex,
+        newsIndex: newsSearchIndex,
+        limit: 12,
+      }),
+    [newsSearchIndex, placeSearchIndex, query],
+  );
+
+  const searchKeywordSuggestions = useMemo(
+    () => suggestNewsKeywords(query, newsKeywordCatalog, 8),
+    [newsKeywordCatalog, query],
   );
 
   const escalationHotTheaters = useMemo(() => {
@@ -8391,7 +8442,34 @@ export function GlobeDashboard({
     lastGlobeClickAt.current = now;
   }
 
-  function handleSearchSelect(place: SearchPlace) {
+  function handleSearchSelect(hit: ChromeSearchHit) {
+    if (hit.kind === "news") {
+      const article = hit.article;
+      // 앱 안 인사이트 — 원문은 패널의 「원문 보기」로만
+      handleOpenNewsInsight(article);
+      const pinned = resolveNewsCoords(article);
+      const theaterFly = THEATER_FLY_TO[article.theater];
+      const lat = pinned?.lat ?? theaterFly?.lat;
+      const lng = pinned?.lng ?? theaterFly?.lng;
+      const altitude = pinned ? 0.95 : (theaterFly?.altitude ?? 1.4);
+      if (lat != null && lng != null) {
+        interruptFlySnap();
+        flyTo(lat, lng, altitude);
+        setNewsInsightCallout({
+          markerId: `news-insight-callout-search-${article.id}`,
+          displayKind: "news-insight-callout",
+          id: article.id,
+          lat,
+          lng,
+          title: article.title,
+          link: article.link,
+          article,
+        });
+      }
+      return;
+    }
+
+    const place = hit.place;
     setQuery(place.name);
     flyTo(place.lat, place.lng, place.type === "city" ? 0.88 : 1.1);
 
@@ -8510,6 +8588,7 @@ export function GlobeDashboard({
         query={query}
         setQuery={setQuery}
         searchResults={searchResults}
+        searchKeywordSuggestions={searchKeywordSuggestions}
         handleSearchSelect={handleSearchSelect}
         isCompactUi={isCompactUi}
         isTabletUi={isTabletUi}

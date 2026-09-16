@@ -92,6 +92,14 @@ import { isCombatHazard, getDisputeHatchStyle } from "@/lib/disputeHatch";
 import { lookupOceanName } from "@/lib/oceanNames";
 import { gpsJamDisclaimer, gpsJamLevelLabel } from "@/lib/gpsJam";
 import { isUkraineViinaPolygonLayer } from "@/components/globe/overlayPolygons";
+import {
+  alliedBlocAffiliationDetail,
+  alliedBlocMeaning,
+  axisHubDisplayName,
+  geoeconCampDetail,
+  geoeconCampMeaning,
+  geoeconMembershipsMeta,
+} from "@/lib/blocCountryHover";
 
 export interface HoverCardParams {
   hoveredCarrier: UsCarrier | null;
@@ -158,6 +166,10 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
       return "viina-ukraine-control";
     }
     const pl = String(params.hoveredPolygon.polygonLayer ?? "");
+    if (pl === "country") return "countries";
+    if (pl === "allied-bloc") return "allied-blocs";
+    if (pl === "geoecon-bloc") return "geoecon-blocs";
+    if (pl === "axis-hub") return "axis-hub";
     if (pl.includes("ukmto")) return "ukmto-incidents";
     if (pl.includes("navarea")) return "navarea-warnings";
     if (pl.includes("exercise")) return "military-exercises";
@@ -713,12 +725,68 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
   }
 
   if (hoveredPolygon) {
+    if (hoveredPolygon.polygonLayer === "allied-bloc") {
+      const affiliation = alliedBlocAffiliationDetail(hoveredPolygon.bloc, lang);
+      return {
+        kind: "polygon",
+        title: hoveredPolygon.name,
+        detail: affiliation,
+        badge: lang === "en" ? "Alliance bloc" : "진영 블록",
+        meta: [
+          hoveredPolygon.iso,
+          hoveredPolygon.disputed
+            ? lang === "en"
+              ? "membership disputed / inactive"
+              : "소속 논쟁·사실상 정지"
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || undefined,
+        body: alliedBlocMeaning(hoveredPolygon.bloc, lang),
+        hint: HOVER.hintDetail(lang),
+      };
+    }
+    if (hoveredPolygon.polygonLayer === "geoecon-bloc") {
+      const camp = geoeconCampDetail(hoveredPolygon.camp, lang);
+      const mem = geoeconMembershipsMeta(hoveredPolygon.memberships);
+      return {
+        kind: "polygon",
+        title: hoveredPolygon.name,
+        detail: camp,
+        badge: lang === "en" ? "Geoeconomic camp" : "지경학 진영",
+        meta: [hoveredPolygon.iso, mem].filter(Boolean).join(" · ") || undefined,
+        body: geoeconCampMeaning(hoveredPolygon.camp, lang),
+        hint: HOVER.hintDetail(lang),
+      };
+    }
+    if (hoveredPolygon.polygonLayer === "axis-hub") {
+      const title = axisHubDisplayName(hoveredPolygon.iso, hoveredPolygon.name, lang);
+      return {
+        kind: "polygon",
+        title,
+        detail:
+          lang === "en"
+            ? "CRINK axis hub country"
+            : "CRINK 축 허브 국가",
+        badge: lang === "en" ? "Axis hub" : "축 허브",
+        meta: hoveredPolygon.iso,
+        body:
+          lang === "en"
+            ? "One of the four CRINK hubs (China, Russia, Iran, North Korea). Red fill marks the hub outline — not a formal alliance treaty."
+            : "CRINK 네 나라(중국·러시아·이란·북한) 축 허브입니다. 빨간 면은 허브 윤곽이며, 공식 동맹 조약 표시가 아닙니다.",
+        hint: HOVER.hintDetail(lang),
+      };
+    }
     if (hoveredPolygon.polygonLayer === "country") {
       return {
         kind: "polygon",
         title: hoveredPolygon.name,
         detail: hoveredPolygon.nameLong || HOVER.country(lang),
-        meta: [hoveredPolygon.isoA3, hoveredPolygon.continent].filter(Boolean).join(" Â· ") || undefined,
+        meta: [hoveredPolygon.isoA3, hoveredPolygon.continent].filter(Boolean).join(" · ") || undefined,
+        body:
+          lang === "en"
+            ? "Country outline on the basemap. Not an alliance or camp fill — those are separate layers (Allied blocs / Geoeconomic camps)."
+            : "지도 위 국가 윤곽입니다. 진영·지경학 색칠과는 별개이며, 동맹/경제권은 ‘진영 블록’·‘지경학 진영’ 레이어에서 봅니다.",
       };
     }
     if (hoveredPolygon.polygonLayer === "military-base") {

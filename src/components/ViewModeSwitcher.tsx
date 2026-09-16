@@ -49,7 +49,7 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
               onClick={() => {
                 if (!active) onChange(item.id);
               }}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                 active
                   ? item.id === "economy"
                     ? light

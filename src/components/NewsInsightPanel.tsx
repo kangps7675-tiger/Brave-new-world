@@ -256,9 +256,9 @@ export function NewsInsightPanel({
             href={article.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block text-caption text-sky-300/90 underline-offset-2 hover:underline"
+            className="mt-2 inline-flex items-center gap-1 rounded-lg border border-sky-400/35 bg-sky-500/10 px-2.5 py-1 text-caption font-medium text-sky-200 transition hover:border-sky-300/55 hover:bg-sky-500/20"
           >
-            {en ? "Open original" : "원문 보기"}
+            {en ? "Open original ↗" : "원문 보기 ↗"}
           </a>
         </div>
         <button

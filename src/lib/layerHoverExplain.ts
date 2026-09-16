@@ -27,6 +27,8 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
       return "subsea-pipelines";
     case "shipping-lane":
       return "trade-routes";
+    case "maritime-route":
+      return "maritime-routes";
     case "submarine-cable":
       return "submarine-cables";
     case "bri-trade":
@@ -37,8 +39,25 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
       return "us-dfc-supply";
     case "axis-link":
       return "axis-network";
+    case "crink-infra":
+      return "crink-osm-infra";
     case "arms-embargo":
       return "arms-embargo-zones";
+    case "lsib-boundary":
+    case "country-border":
+      return "lsib-boundary";
+    case "rail":
+      return "railroads";
+    case "road":
+      return "roads";
+    case "gta-trade-measure":
+      return "gta-interventions";
+    case "recon-orbit":
+      return "recon-satellites";
+    case "coastline":
+      return null;
+    case "gev-track-trail":
+      return null;
     case "dispute-zone":
     case "dispute-hatch":
     case "dispute-boundary":
@@ -47,8 +66,6 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
       return "conflict-zones";
     case "ship-movement-trail":
       return "weekly-ship-moves";
-    case "gev-track-trail":
-      return null;
     case "neptun-trail":
     case "neptun-projection":
     case "neptun-trail-archived":
@@ -72,14 +89,6 @@ export function layerIdFromPathKind(kind: TransportPath["kind"]): string | null 
     case "ru-advance":
     case "msr":
       return "viina-ukraine-control";
-    case "lsib-boundary":
-    case "country-border":
-    case "coastline":
-    case "rail":
-    case "road":
-    case "recon-orbit":
-    case "gta-trade-measure":
-      return null;
     default:
       return null;
   }
@@ -171,6 +180,38 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
   "trade-routes": {
     ko: "오래 쓰인 주요 해상 항로 패턴입니다. 지금 그 배를 따라가는 AIS(선박자동식별) 항적이 아닙니다.",
     en: "Schematic major shipping lanes — not live AIS vessel tracks.",
+  },
+  "maritime-routes": {
+    ko: "항만·초크포인트를 이은 해상 운송 샘플 항로입니다. 점선으로 흐르며, 실제 배 한 척의 AIS 항적이 아닙니다.",
+    en: "Sample maritime routes between ports/chokepoints (animated dashes) — not a live AIS track of one ship.",
+  },
+  countries: {
+    ko: "국가 영토 윤곽입니다. 진영(NATO·CRINK 등)이나 지경학 색칠과는 다른 기본 지도 레이어입니다.",
+    en: "Country territory outline — separate from alliance or geoeconomic camp fills.",
+  },
+  "crink-osm-infra": {
+    ko: "CRINK권 OpenStreetMap 인프라(송전·파이프·철도·도로 등)입니다. 공개 지도 기반 스냅샷입니다.",
+    en: "CRINK-area OSM infrastructure (power, pipes, rail, roads) — a public map snapshot.",
+  },
+  "east-asia-adiz": {
+    ko: "동아시아 방공식별구역(ADIZ) 윤곽입니다. 영공이 아니라 식별·대응 구역입니다.",
+    en: "East Asia ADIZ outlines — identification zones, not sovereign airspace.",
+  },
+  "lsib-boundary": {
+    ko: "미국 국무부 LSIB 등 공개 국제 국경선입니다. 점선은 분쟁·미정 구간일 수 있습니다.",
+    en: "International boundaries (e.g. US State Dept LSIB). Dashed segments may be disputed or unsettled.",
+  },
+  railroads: {
+    ko: "철도 노선입니다. 공개 지도 데이터 기반이며 실시간 열차 위치가 아닙니다.",
+    en: "Railway lines from public map data — not live train positions.",
+  },
+  roads: {
+    ko: "주요 도로망입니다. 공개 지도 데이터 기반입니다.",
+    en: "Major roads from public map data.",
+  },
+  "gta-interventions": {
+    ko: "GTA(Global Trade Alert) 무역조치·개입 연결입니다. 국가 간 조치 관계를 호로 그립니다.",
+    en: "GTA (Global Trade Alert) trade-measure links as arcs between countries.",
   },
   "submarine-cables": {
     ko: "바다 밑 통신 케이블·착륙점입니다. 인터넷·통신이 지나가는 공개 케이블 지도입니다.",
@@ -429,7 +470,7 @@ export function explainLayer(layerId: string | null | undefined, lang: LabelLang
   return bi ? pick(bi, lang) : null;
 }
 
-/** body가 비었을 때 평문 설명을 채운다. 있으면 유지. 출처 캡션도 meta에 보강. */
+/** body가 비었을 때 평문 설명을 채운다. 있으면 유지하되, 진영 소속 설명 뒤에 레이어 한 줄을 보강. */
 export function withLayerExplain(
   card: HoverCard,
   layerId: string | null,
@@ -439,8 +480,17 @@ export function withLayerExplain(
   const explain = explainLayer(layerId, lang);
   const note = getSourceNote(layerId);
   let next = card;
-  if (explain && !(card.body && card.body.trim())) {
-    next = { ...next, body: explain };
+  if (explain) {
+    const bodyTrim = card.body?.trim() ?? "";
+    if (!bodyTrim) {
+      next = { ...next, body: explain };
+    } else if (
+      (layerId === "allied-blocs" || layerId === "geoecon-blocs" || layerId === "axis-hub") &&
+      !bodyTrim.includes(explain.slice(0, 12))
+    ) {
+      // 소속 설명 + 레이어 전체 의미
+      next = { ...next, body: `${bodyTrim}\n\n${explain}` };
+    }
   }
   if (note) {
     const caption = `${note.attribution} · ${note.cadence}`;

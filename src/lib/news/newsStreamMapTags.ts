@@ -94,7 +94,7 @@ function theaterRegionHint(theater: NewsTheater) {
  *  3) 둘 다 확신 없으면 null — 지도에 찍지 않는다 (전장 중심에 아무 데나 뿌리던
  *     기존 지터 폴백 제거: 위치 불명 기사가 무관한 좌표에 찍히는 오탐의 주원인이었음)
  */
-function resolveNewsCoords(
+export function resolveNewsCoords(
   item: NewsStreamItem,
 ): { lat: number; lng: number; label: string } | null {
   const hint = theaterRegionHint(item.theater);

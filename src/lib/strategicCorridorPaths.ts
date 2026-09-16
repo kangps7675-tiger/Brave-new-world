@@ -11,6 +11,7 @@ import { getCorridorRank, getCorridorScalerank } from "@/lib/corridorRanks";
 import { corridorEvasionIntensity } from "@/lib/sanctionsEvasionScore";
 import { filterTransportPathsForViewport } from "@/lib/viewportPathFilter";
 import type { CorridorLod } from "@/lib/corridorLod";
+import { pathCrossesLand, routeOceanWaypoints } from "@/lib/oceanRoute";
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -73,15 +74,48 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-function waypointsToPoints(waypoints: CorridorWaypoint[], alt: number): TransportPathPoint[] {
+/**
+ * 육로·복합: 웨이포인트 사이 대권 보간.
+ * 해상(sea): 항상 바다 A*로 재구성(항구가 육지 셀이어도 snap). 실패 시에만 대권 폴백.
+ */
+function waypointsToPoints(
+  waypoints: CorridorWaypoint[],
+  alt: number,
+  mode: CorridorMode = "mixed",
+): TransportPathPoint[] {
   if (waypoints.length === 0) return [];
+
+  if (mode === "sea") {
+    const raw = waypoints.map((w) => ({ lat: w.lat, lng: w.lng }));
+    const routed = routeOceanWaypoints(raw);
+    if (routed.length >= 2 && !pathCrossesLand(routed, 8)) {
+      return routed.map((p) => ({ lat: p.lat, lng: p.lng, alt }));
+    }
+    // 폴백: 구간별로라도 우회 시도
+    const rebuilt: TransportPathPoint[] = [];
+    for (let i = 0; i < raw.length - 1; i += 1) {
+      const seg = routeOceanWaypoints([raw[i]!, raw[i + 1]!]);
+      const use = seg.length >= 2 ? seg : [raw[i]!, raw[i + 1]!];
+      const start = i === 0 ? 0 : 1;
+      for (let j = start; j < use.length; j += 1) {
+        rebuilt.push({ lat: use[j]!.lat, lng: use[j]!.lng, alt });
+      }
+    }
+    if (rebuilt.length >= 2 && !pathCrossesLand(
+      rebuilt.map((p) => ({ lat: p.lat, lng: p.lng })),
+      8,
+    )) {
+      return rebuilt;
+    }
+  }
+
   const out: TransportPathPoint[] = [];
   for (let i = 0; i < waypoints.length - 1; i += 1) {
-    const w1 = waypoints[i];
-    const w2 = waypoints[i + 1];
+    const w1 = waypoints[i]!;
+    const w2 = waypoints[i + 1]!;
     out.push(...arcSegment(w1.lat, w1.lng, w2.lat, w2.lng, 5, alt));
   }
-  const last = waypoints[waypoints.length - 1];
+  const last = waypoints[waypoints.length - 1]!;
   out.push({ lat: last.lat, lng: last.lng, alt });
   return out;
 }
@@ -197,7 +231,7 @@ export function corridorToTransportPath(corridor: StrategicCorridor): TransportP
     lengthKm: waypointsLengthKm(corridor.waypoints),
     accentColor: colorForGroupId(corridor.id),
     bbox: waypointsBbox(corridor.waypoints),
-    points: waypointsToPoints(corridor.waypoints, alt),
+    points: waypointsToPoints(corridor.waypoints, alt, corridor.mode),
     meta: {
       corridorId: corridor.id,
       groupId: corridor.id,
@@ -208,6 +242,7 @@ export function corridorToTransportPath(corridor: StrategicCorridor): TransportP
       scalerank,
       gaugeBreak: rank?.gaugeBreak ? 1 : 0,
       euRailGateway: rank?.euRailGateway ? 1 : 0,
+      ...(corridor.mode === "sea" ? { legMode: "sea" as const } : {}),
     },
   };
 }
@@ -239,7 +274,7 @@ export function corridorToTransportPaths(corridor: StrategicCorridor): Transport
       lengthKm: waypointsLengthKm(leg.waypoints),
       accentColor,
       bbox: waypointsBbox(leg.waypoints),
-      points: waypointsToPoints(leg.waypoints, alt),
+      points: waypointsToPoints(leg.waypoints, alt, leg.mode),
       meta: {
         corridorId: corridor.id,
         corridorGroupId: corridor.id,
@@ -338,7 +373,15 @@ export function resolveCorridorWaypointsForPair(
   const matches = STRATEGIC_CORRIDORS.filter((c) => c.axisPairKeys?.includes(key));
   if (matches.length === 0) return null;
   matches.sort((x, y) => CATEGORY_PRIORITY[x.category] - CATEGORY_PRIORITY[y.category]);
-  return matches[0].waypoints;
+  return matches[0]!.waypoints;
+}
+
+function resolveCorridorForPair(a: string, b: string): StrategicCorridor | null {
+  const key = a < b ? `${a}|${b}` : `${b}|${a}`;
+  const matches = STRATEGIC_CORRIDORS.filter((c) => c.axisPairKeys?.includes(key));
+  if (matches.length === 0) return null;
+  matches.sort((x, y) => CATEGORY_PRIORITY[x.category] - CATEGORY_PRIORITY[y.category]);
+  return matches[0]!;
 }
 
 /**
@@ -350,9 +393,9 @@ export function corridorPointsForPair(
   b: string,
   alt = 0.02,
 ): TransportPathPoint[] | null {
-  const waypoints = resolveCorridorWaypointsForPair(a, b);
-  if (!waypoints) return null;
-  return waypointsToPoints(waypoints, alt);
+  const corridor = resolveCorridorForPair(a, b);
+  if (!corridor) return null;
+  return waypointsToPoints(corridor.waypoints, alt, corridor.mode);
 }
 
 /**
@@ -403,7 +446,7 @@ export function corridorLegPointsForPair(
   const { status, legs } = resolved;
   return legs.map((leg) => ({
     mode: leg.mode,
-    points: waypointsToPoints(leg.waypoints, alt),
+    points: waypointsToPoints(leg.waypoints, alt, leg.mode),
     lengthKm: waypointsLengthKm(leg.waypoints),
     status,
   }));

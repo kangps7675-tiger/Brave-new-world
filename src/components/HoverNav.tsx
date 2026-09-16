@@ -20,7 +20,7 @@ import {
   type NavSelection,
   type NavSubItem,
 } from "@/data/navRegions";
-import type { SearchPlace } from "@/data/geoTypes";
+import type { ChromeKeywordSuggestion, ChromeSearchHit } from "@/lib/chromeSearch";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
 import { getViewerChrome } from "@/lib/viewerChrome";
@@ -34,18 +34,21 @@ type HoverNavProps = {
   liveStatus: "idle" | "loading" | "ok" | "error";
   query: string;
   onQueryChange: (value: string) => void;
-  searchResults: SearchPlace[];
-  onSearchSelect: (place: SearchPlace) => void;
+  searchResults: ChromeSearchHit[];
+  /** 기사 말뭉치에서 뽑은 키워드 자동완성 */
+  keywordSuggestions?: ChromeKeywordSuggestion[];
+  onSearchSelect: (hit: ChromeSearchHit) => void;
+  /** 키워드 클릭 → 검색어 채움 (결과 패널 유지) */
+  onKeywordSelect?: (keyword: string) => void;
   /** 좁은 화면 — 패딩·드롭다운 하단 슬롯(전장·프리셋) 등 모바일 전용 */
   compact?: boolean;
   /** compact 드롭다운 하단 슬롯 (전장·프리셋 등) */
   compactMenuExtra?: ReactNode;
   /**
    * 검색창 **위** — 최상단 고정 스트립 (히스토리/뉴스·레이어·장면 등).
-   * hoverReveal이어도 항상 보이며, 검색·belowNav과 함께 한 스택으로 내려온다.
    */
   aboveNav?: ReactNode;
-  /** nav 본문·드롭다운 바로 아래 (지정학/지경학 스위치 등) — 메뉴 열림에 따라 함께 이동 */
+  /** 검색·메뉴 **바로 아래** (지정학/지경학) — 메뉴 펼침 시 함께 내려감 */
   belowNav?: ReactNode;
   /** 데스크톱 확장 시 우측 도구·경보 슬롯 (포털 타깃 #hover-nav-desktop-tools) */
   showDesktopToolsSlot?: boolean;
@@ -55,8 +58,8 @@ type HoverNavProps = {
   /** UI 문구 언어 (이벤트 메뉴 등) */
   labelLanguage?: LabelLanguage;
   /**
-   * Nullschool식 — 상단 hit-area 호버/포커스 시에만 nav 바 표시.
-   * false(기본)면 상시 고정(레거시).
+   * 검색창은 항상 고정. true면 검색창 호버 시 탐색 메뉴가 펼쳐지고,
+   * belowNav(지정학/지경학)도 메뉴 높이에 맞춰 함께 내려간다.
    */
   hoverReveal?: boolean;
 };
@@ -69,7 +72,9 @@ export function HoverNav({
   query,
   onQueryChange,
   searchResults,
+  keywordSuggestions = [],
   onSearchSelect,
+  onKeywordSelect,
   compact = false,
   compactMenuExtra,
   aboveNav,
@@ -84,14 +89,43 @@ export function HoverNav({
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [openHubId, setOpenHubId] = useState<string | null>(null);
-  const [revealOpen, setRevealOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
+  const menuCloseTimerRef = useRef<number | null>(null);
   const isEconomy = viewerMode === "economy";
   const light = useBasemapTone() === "light";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
-  const navChromeVisible = !hoverReveal || revealOpen || navOpen || hubMenuOpen || Boolean(query.trim());
+
+  const clearMenuCloseTimer = () => {
+    if (menuCloseTimerRef.current != null) {
+      window.clearTimeout(menuCloseTimerRef.current);
+      menuCloseTimerRef.current = null;
+    }
+  };
+
+  /** 검색창 호버 → 모드별 탐색 메뉴 펼침 (검색어 입력 중이면 결과만) */
+  const openMenuFromHover = () => {
+    clearMenuCloseTimer();
+    if (query.trim()) return;
+    if (isEconomy) setNavOpen(true);
+    else setHubMenuOpen(true);
+  };
+
+  const scheduleMenuClose = () => {
+    if (!hoverReveal) return;
+    clearMenuCloseTimer();
+    menuCloseTimerRef.current = window.setTimeout(() => {
+      if (Boolean(query.trim())) return;
+      setNavOpen(false);
+      setHubMenuOpen(false);
+      setOpenKey(null);
+      setOpenHubId(null);
+      menuCloseTimerRef.current = null;
+    }, 420);
+  };
+
+  useEffect(() => () => clearMenuCloseTimer(), []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -125,8 +159,8 @@ export function HoverNav({
     setHubMenuOpen(false);
   }
 
-  function handleSearchPick(place: SearchPlace) {
-    onSearchSelect(place);
+  function handleSearchPick(hit: ChromeSearchHit) {
+    onSearchSelect(hit);
     onQueryChange("");
     setNavOpen(false);
     setHubMenuOpen(false);
@@ -168,12 +202,10 @@ export function HoverNav({
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
 
-  /**
-   * 데스크톱: 상시 고정 바 (hoverReveal이면 펼침 시에만 높이 반영).
-   */
+  /** 데스크톱: 검색+토글(+펼친 메뉴) 높이 — 지도 크롬 inset용 */
   useEffect(() => {
     const root = document.documentElement;
-    if (compact || (hoverReveal && !navChromeVisible)) {
+    if (compact) {
       root.style.setProperty("--hover-nav-height", "0px");
       root.style.setProperty("--hover-nav-base-height", "0px");
       return;
@@ -189,7 +221,7 @@ export function HoverNav({
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, aboveNav, belowNav, showDesktopToolsSlot, menuExpanded, hoverReveal, navChromeVisible]);
+  }, [compact, aboveNav, belowNav, showDesktopToolsSlot, menuExpanded]);
 
   return (
     <div
@@ -199,33 +231,18 @@ export function HoverNav({
       style={{
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
       }}
-      onMouseEnter={hoverReveal ? () => setRevealOpen(true) : undefined}
-      onMouseLeave={
-        hoverReveal
-          ? () => {
-              if (!navOpen && !hubMenuOpen) setRevealOpen(false);
-            }
-          : undefined
-      }
-      onFocusCapture={hoverReveal ? () => setRevealOpen(true) : undefined}
     >
-      {hoverReveal ? (
-        <div
-          className="pointer-events-auto absolute inset-x-0 top-0 h-5"
-          aria-hidden
-        />
-      ) : null}
       <div
         ref={chromeRef}
         className={`flex w-full flex-col items-center ${
-          compact ? "px-[3.4rem] sm:px-14" : "mt-1.5 px-2 sm:px-3"
+          compact ? "px-[3.4rem] sm:px-14" : "mt-1 px-2 sm:px-3"
         }`}
       >
-      <div className="flex w-full flex-col items-center gap-1.5">
-      {/* 최상단 고정 — 투명, 항상 표시 (호버와 무관) */}
+      <div className="flex w-full flex-col items-center gap-1">
+      {/* 최상단 스트립 — 시계·레이어 등 */}
       {aboveNav || showDesktopToolsSlot ? (
         <div
-          className={`pointer-events-auto flex w-full max-w-6xl flex-col items-center gap-1.5 bg-transparent ${
+          className={`pointer-events-auto flex w-full max-w-6xl flex-col items-center gap-1 bg-transparent ${
             menuExpanded ? "relative z-[100]" : "relative z-[200]"
           }`}
         >
@@ -243,20 +260,8 @@ export function HoverNav({
         </div>
       ) : null}
 
-      {/* 검색 → 지정학/지경학 — 호버 시 상단 스트립 아래로 촤르륵 */}
-      <div
-        className={`flex w-full flex-col items-center gap-1.5 transition-all duration-300 ease-out ${
-          hoverReveal && !navChromeVisible
-            ? "pointer-events-none max-h-0 -translate-y-2 overflow-hidden opacity-0"
-            : "pointer-events-auto max-h-[48rem] translate-y-0 opacity-100"
-        }`}
-        style={
-          hoverReveal
-            ? { transitionDelay: navChromeVisible ? "30ms" : "0ms" }
-            : undefined
-        }
-      >
-      {/* 메뉴 드롭다운이 토글 줄(belowNav) 위에 오도록 — expanded 시 nav만 높은 스택 */}
+      {/* 검색(고정) → 메뉴(호버 펼침). 토글은 nav 밖이라 메뉴 높이만 따라 내려감 */}
+      <div className="pointer-events-auto flex w-full flex-col items-center gap-1">
       <nav
         id="app-hover-nav"
         ref={navRef}
@@ -266,19 +271,20 @@ export function HoverNav({
           compact
             ? "max-w-full"
             : isEconomy
-              ? // 우상단 칩 폭(--mode-index-chip-width)만큼 비움. 메뉴 펼침만 넓힘.
-                `max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))] ${
+              ? `max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))] ${
                   menuExpanded ? "max-w-[min(42rem,calc(100vw-3rem))] sm:max-w-[min(48rem,calc(100vw-4rem))]" : ""
                 }`
               : "max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))]"
         } ${isEconomy ? "hover-nav--economy font-nav-economy" : "hover-nav--conflict"}`}
+        onMouseEnter={hoverReveal ? openMenuFromHover : undefined}
+        onMouseLeave={hoverReveal ? scheduleMenuClose : undefined}
       >
         <div
           className={`relative rounded-2xl border ${borderTone} ${bgTone} shadow-lg backdrop-blur-xl transition-all duration-300 ${
             menuExpanded ? "rounded-b-none border-b-0" : ""
           }`}
         >
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
+          <div className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-2.5 sm:py-1.5">
             <SearchIcon
               className={`shrink-0 ${
                 light
@@ -299,6 +305,9 @@ export function HoverNav({
                   setOpenKey(null);
                   setOpenHubId(null);
                 }
+              }}
+              onFocus={() => {
+                if (hoverReveal && !query.trim()) openMenuFromHover();
               }}
               placeholder={chrome.searchPlaceholder}
               autoComplete="off"
@@ -334,7 +343,7 @@ export function HoverNav({
                 aria-haspopup="dialog"
                 aria-label={askLayersLabel || (isEconomy ? "Ask layers" : "묻기")}
                 title={askLayersLabel || (isEconomy ? "Ask → layers" : "묻기 → 레이어")}
-                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-meta font-medium transition sm:text-xs ${
+                className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-1.5 text-meta font-medium transition sm:text-xs ${
                   light
                     ? isEconomy
                       ? "border-emerald-700/35 bg-emerald-700/10 text-emerald-950 hover:border-emerald-700/55 hover:bg-emerald-700/15"
@@ -360,7 +369,7 @@ export function HoverNav({
                   setHubMenuOpen((v) => !v);
                   setOpenHubId(null);
                 }}
-                className={`flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-meta font-medium transition sm:text-xs ${
+                className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-1.5 text-meta font-medium transition sm:text-xs ${
                   hubMenuOpen
                     ? "border-sky-300/40 bg-sky-400/20 text-sky-50"
                     : "border-sky-200/20 bg-sky-400/10 text-sky-100/80 hover:border-sky-300/35"
@@ -377,7 +386,7 @@ export function HoverNav({
                 aria-expanded={navOpen}
                 aria-label="탐색 메뉴"
                 onClick={() => setNavOpen((v) => !v)}
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition ${
                   navOpen
                     ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-50"
                     : "border-emerald-200/20 bg-emerald-400/10 text-emerald-100/80 hover:border-emerald-300/35"
@@ -394,8 +403,104 @@ export function HoverNav({
               role="listbox"
               aria-label={labelLanguage === "en" ? "Search results" : "검색 결과"}
             >
+              {keywordSuggestions.length > 0 ? (
+                <div
+                  className={`border-b ${borderTone} px-3 py-2`}
+                  role="group"
+                  aria-label={
+                    labelLanguage === "en" ? "Keyword suggestions" : "키워드 자동완성"
+                  }
+                >
+                  <p
+                    className={`mb-1.5 text-micro uppercase tracking-[0.16em] ${
+                      light
+                        ? "text-slate-500"
+                        : isEconomy
+                          ? "text-emerald-100/45"
+                          : "text-sky-100/45"
+                    }`}
+                  >
+                    {labelLanguage === "en" ? "Keywords" : "키워드"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {keywordSuggestions.map((tip) => (
+                      <button
+                        key={`kw-${tip.keyword}`}
+                        type="button"
+                        role="option"
+                        onClick={() => onKeywordSelect?.(tip.keyword)}
+                        className={`rounded-full border px-2.5 py-1 text-meta transition ${
+                          light
+                            ? isEconomy
+                              ? "border-emerald-700/30 bg-emerald-700/10 text-emerald-950 hover:bg-emerald-700/15"
+                              : "border-cyan-700/30 bg-cyan-700/10 text-slate-900 hover:bg-cyan-700/15"
+                            : isEconomy
+                              ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-50 hover:bg-emerald-400/20"
+                              : "border-sky-300/30 bg-sky-400/10 text-sky-50 hover:bg-sky-400/20"
+                        }`}
+                      >
+                        <span className="font-medium">{tip.keyword}</span>
+                        <span className="ml-1 opacity-50">{tip.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               {searchResults.length > 0 ? (
-                searchResults.map((place) => {
+                searchResults.map((hit) => {
+                  if (hit.kind === "news") {
+                    const article = hit.article;
+                    return (
+                      <button
+                        key={`news-${article.id}`}
+                        type="button"
+                        role="option"
+                        onClick={() => handleSearchPick(hit)}
+                        className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
+                      >
+                        <span className="min-w-0">
+                          <span
+                            className={`block truncate ${
+                              light
+                                ? "text-slate-900"
+                                : isEconomy
+                                  ? "text-emerald-50/95"
+                                  : "text-sky-50/95"
+                            }`}
+                          >
+                            {article.title}
+                          </span>
+                          <span
+                            className={`block truncate text-xs ${
+                              light
+                                ? "text-slate-500"
+                                : isEconomy
+                                  ? "text-emerald-100/40"
+                                  : "text-sky-100/40"
+                            }`}
+                          >
+                            {(article.publisher || article.source) +
+                              (labelLanguage === "en"
+                                ? " · open in insight"
+                                : " · 인사이트로 열기")}
+                          </span>
+                        </span>
+                        <span
+                          className={`ml-2 shrink-0 rounded-full border px-2 py-0.5 text-micro uppercase ${
+                            light
+                              ? "border-amber-600/40 text-amber-800"
+                              : isEconomy
+                                ? "border-emerald-200/25 text-emerald-100/70"
+                                : "border-amber-200/30 text-amber-100/80"
+                          }`}
+                        >
+                          {labelLanguage === "en" ? "news" : "기사"}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const place = hit.place;
                   const primary =
                     labelLanguage === "ko" && place.nameKo?.trim()
                       ? place.nameKo
@@ -409,7 +514,7 @@ export function HoverNav({
                       key={place.id}
                       type="button"
                       role="option"
-                      onClick={() => handleSearchPick(place)}
+                      onClick={() => handleSearchPick(hit)}
                       className={`flex w-full items-center justify-between border-b ${borderTone} px-4 py-2.5 text-left text-sm transition last:border-b-0 ${accentHover}`}
                     >
                       <span className="min-w-0">
@@ -450,7 +555,7 @@ export function HoverNav({
                     </button>
                   );
                 })
-              ) : (
+              ) : keywordSuggestions.length === 0 ? (
                 <div
                   className={`px-4 py-3 text-xs ${
                     light
@@ -462,8 +567,8 @@ export function HoverNav({
                 >
                   <p>
                     {labelLanguage === "en"
-                      ? `No places match “${query.trim()}”. Search looks up place, country, and conflict names only.`
-                      : `“${query.trim()}”에 맞는 장소가 없습니다. 검색은 지명·국가·분쟁 이름만 찾습니다.`}
+                      ? `No places or articles match “${query.trim()}”. Try a city, country, dispute, or headline.`
+                      : `“${query.trim()}”에 맞는 장소·기사가 없습니다. 지명·국가·분쟁·기사 제목으로 검색해 보세요.`}
                   </p>
                   {onAskLayersOpen ? (
                     <button
@@ -490,7 +595,7 @@ export function HoverNav({
                     </button>
                   ) : null}
                 </div>
-              )}
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -640,17 +745,9 @@ export function HoverNav({
         ) : null}
       </nav>
 
+      {/* 지정학/지경학 — 검색 바로 아래, 메뉴 펼침과 같은 스택이라 함께 내려감 */}
       {belowNav ? (
-        <div
-          className={`mt-0.5 flex justify-center transition-all duration-300 ease-out ${
-            menuExpanded ? "relative z-[100]" : "relative z-[100]"
-          }`}
-          style={
-            hoverReveal
-              ? { transitionDelay: navChromeVisible ? "90ms" : "0ms" }
-              : undefined
-          }
-        >
+        <div className="relative z-[100] mt-0.5 flex justify-center">
           {belowNav}
         </div>
       ) : null}

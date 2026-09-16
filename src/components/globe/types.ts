@@ -97,7 +97,26 @@ export type PolygonLayerFeature =
   | (UkraineControlZone & {
       polygonLayer: "ukraine-ru" | "ukraine-ua" | "ukraine-contested";
     })
-  | GpsJamPolygonFeature;
+  | GpsJamPolygonFeature
+  | {
+      polygonLayer: "allied-bloc";
+      name: string;
+      iso: string;
+      bloc: import("@/lib/alliedBlocCountryPolygons").AlliedBloc;
+      disputed?: boolean;
+    }
+  | {
+      polygonLayer: "geoecon-bloc";
+      name: string;
+      iso: string;
+      camp: import("@/lib/geoeconBlocCountryPolygons").GeoEconCamp;
+      memberships: string[];
+    }
+  | {
+      polygonLayer: "axis-hub";
+      name: string;
+      iso: string;
+    };
 
 export type GlobePoint = ScoredEvent & { markerId: string; displayKind: "event" };
 

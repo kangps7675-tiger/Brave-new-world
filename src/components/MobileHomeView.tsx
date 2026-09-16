@@ -11,6 +11,7 @@ import { GscpiGaugeFromData } from "@/components/GscpiGaugeFromData";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useWorldTensionSnapshot } from "@/hooks/useWorldTensionSnapshot";
 import { brandName } from "@/lib/brand";
+import { sortNewsByInterest } from "@/lib/interest/applyFromInterest";
 import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import type { NeptunPayload } from "@/lib/neptun";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -360,22 +361,26 @@ export function MobileHomeView({
 
   const items = useMemo(() => {
     const pool = [...(payload?.verified ?? []), ...(payload?.stateMedia ?? [])];
-    return pool
+    const filtered = pool.filter((item) => {
+      if (tab === "economy") {
+        // 지경학: 경제 피드만 — 전장(지정학) 뉴스·전선 반응 카드 제외
+        if (item.feedTopic !== "economy") return false;
+        return matchesEconomyGenreFilter(item.econGenre, economyGenreFilter);
+      }
+      if (tab === "conflict") {
+        if (item.feedTopic === "economy") return false;
+        if (theaterFilter !== "all" && item.theater !== theaterFilter) return false;
+        return true;
+      }
+      return true;
+    });
+    // 경제 탭 — 선물투자자 페르소나 관련도 우선, 지정학은 최신순
+    if (tab === "economy") {
+      return sortNewsByInterest(filtered, {}, true).slice(0, MAX_ITEMS);
+    }
+    return filtered
       .slice()
       .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
-      .filter((item) => {
-        if (tab === "economy") {
-          // 지경학: 경제 피드만 — 전장(지정학) 뉴스·전선 반응 카드 제외
-          if (item.feedTopic !== "economy") return false;
-          return matchesEconomyGenreFilter(item.econGenre, economyGenreFilter);
-        }
-        if (tab === "conflict") {
-          if (item.feedTopic === "economy") return false;
-          if (theaterFilter !== "all" && item.theater !== theaterFilter) return false;
-          return true;
-        }
-        return true;
-      })
       .slice(0, MAX_ITEMS);
   }, [payload, theaterFilter, economyGenreFilter, tab]);
 

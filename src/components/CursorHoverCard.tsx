@@ -93,7 +93,14 @@ export function CursorHoverCard({
           {detail ? (
             <p className={badge ? "mt-1.5 text-sky-100/85" : "mt-1 text-sky-100/85"}>{detail}</p>
           ) : null}
-          {body ? <p className="mt-1.5 text-meta leading-4 text-sky-100/70">{body}</p> : null}
+          {body ? (
+            <div className="mt-1.5 rounded-md border border-sky-400/15 bg-sky-950/40 px-2 py-1.5">
+              <p className="text-micro font-medium uppercase tracking-wide text-sky-300/70">
+                의미 · What this is
+              </p>
+              <p className="mt-0.5 whitespace-pre-line text-meta leading-4 text-sky-100/80">{body}</p>
+            </div>
+          ) : null}
           {meta ? <p className="mt-1 text-micro text-sky-200/55">{meta}</p> : null}
           {hint ? <p className="mt-1 text-micro text-sky-200/45">{hint}</p> : null}
         </>

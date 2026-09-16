@@ -5,7 +5,7 @@ type BooleanLayerKey = {
 }[keyof LayerPrefs];
 
 /**
- * 지정학 전역/전선 기본 — 전선·드론·타격·뉴스 네온·전략군사·군용 항적·FIRMS·ReefWatch·해저관.
+ * 지정학 전역/전선 기본 — 전선·드론·타격·뉴스 네온·전략군사·군용 항적·FIRMS·ReefWatch·해저관·GEM 배관.
  * CRINK 영토 음영은 showAlliedBlocs(+ axis-hub는 prefs 없이 지정학 상시).
  */
 export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>> = {
@@ -26,6 +26,9 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
   showAxisNetwork: true,
   showAlliedBlocs: true,
   showSubseaPipelines: true,
+  /** GEM 전 지구 트렁크 — 유럽 EMODnet 해저관만으로는 황금 배관 그물이 비어 보임 */
+  showOilPipelines: true,
+  showGasPipelines: true,
   showTzevaAdom: true,
 };
 
