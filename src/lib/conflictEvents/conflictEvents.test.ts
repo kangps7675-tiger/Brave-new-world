@@ -456,9 +456,14 @@ describe("saved gold fixture (full fault line)", () => {
     }>;
     expect(items.length).toBeGreaterThanOrEqual(100);
 
-    const extractables = items.map(
-      ({ expectLocated: _e, expectPlaceId: _p, expectTheater: _t, ...rest }) => rest,
-    );
+    const extractables = items.map((row) => ({
+      id: row.id,
+      title: row.title,
+      snippet: row.snippet,
+      sourceName: row.sourceName,
+      sourceUrl: row.sourceUrl,
+      occurredAt: row.occurredAt,
+    }));
     const labels: ExtractionGold[] = items.map((row) => ({
       id: row.id,
       expectLocated: row.expectLocated,
