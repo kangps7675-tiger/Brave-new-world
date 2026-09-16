@@ -69,6 +69,9 @@ export const PREF_TO_LAYER_ID: Partial<Record<LayerPrefKey, string>> = {
   // ── OSINT ─────────────────────────────────────────────────────
   showTelegramOsint: "telegram-osint",
 
+  // ── 통합 전장 이벤트 (RSS·GDELT 추출) ──────────────────────────
+  showConflictEvents: "conflict-events",
+
   // ── CRINK OSM 인프라 (OpenStreetMap ODbL — 전부 allowed) ─────
   showCrinkInfraPower: "crink-infra-power",
   showCrinkInfraBorder: "crink-infra-border",
@@ -90,7 +93,8 @@ export const PREF_TO_LAYER_ID: Partial<Record<LayerPrefKey, string>> = {
    *   living-conflict-taiwan · hapi-conflict-casualties · reference-monitor ·
    *   crink-hub-monitor · basemap-esri-world-imagery ·
    *   news-geopolitics-rss · news-economy-rss · news-video-youtube ·
-   *   mof-port-flows · korea-macro-ecos · korea-macro-kosis · kcs-trade
+   *   mof-port-flows · korea-macro-ecos · korea-macro-kosis · kcs-trade ·
+   *   atop-alliances-draft · icow-territorial-claims-draft
    *
    * `layerPrefGate.test.ts` 가 이 목록을 검사해서, 새 pref 가 생기면
    * 매핑을 추가하도록 강제한다.

@@ -997,9 +997,9 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "자동 다운로드하지 않음) — `node scripts/fetch-atop-alliances.js <원본.csv>`. 결과는 " +
       "scripts/data/atop-alliances-draft.json 초안일 뿐, 병합은 사람이 diff 보고 판단.",
     status: "planned",
-    ingest: "manual-draft (1회성 CLI, 자동 폴링 아님)",
+    ingest: "static-build",
     commercialUse: "unknown",
-    commercialNote: "ATOP는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 atopdata.org 이용조건 재확인 필요.",
+    commercialNote: "ATOP는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 atopdata.org 이용조건 재확인 필요. 수집은 1회성 CLI(자동 폴링 아님).",
   },
   {
     layerId: "icow-territorial-claims-draft",
@@ -1018,9 +1018,9 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "직접 반영. 원본 CSV는 직접 다운로드해야 함 — `node scripts/fetch-territorial-claims.js <원본.csv>`. " +
       "결과는 scripts/data/territorial-claims-draft.json.",
     status: "planned",
-    ingest: "manual-draft (1회성 CLI, 자동 폴링 아님)",
+    ingest: "static-build",
     commercialUse: "unknown",
-    commercialNote: "ICOW는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 paulhensel.org 이용조건 재확인 필요.",
+    commercialNote: "ICOW는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 paulhensel.org 이용조건 재확인 필요. 수집은 1회성 CLI(자동 폴링 아님).",
   },
   {
     layerId: "world-stats",

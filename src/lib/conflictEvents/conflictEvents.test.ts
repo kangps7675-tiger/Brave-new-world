@@ -401,11 +401,12 @@ describe("theater defaults (1–3)", () => {
   it("칩 0개·null 전장은 마커를 비운다", () => {
     const clusters = [
       {
-        id: "a",
+        clusterId: "a",
         lat: 1,
         lng: 2,
         category: "drone" as const,
         theater: "ukraine" as const,
+        keywords: ["drone"],
         title: "a",
         snippet: "",
         sources: [],
@@ -413,15 +414,16 @@ describe("theater defaults (1–3)", () => {
         lastConfirmedAt: "2026-09-16T04:00:00Z",
         confidence: "single-source" as const,
         trustTier: 1 as const,
-        heroStatus: "verified" as const,
+        heroStatus: "confirmed" as const,
         matchedPlaceId: "belgorod",
       },
       {
-        id: "b",
+        clusterId: "b",
         lat: 3,
         lng: 4,
         category: "missile" as const,
         theater: null,
+        keywords: ["missile"],
         title: "b",
         snippet: "",
         sources: [],

@@ -1647,6 +1647,7 @@ export function GlobeDashboard({
     showEuropeDroneIncidents,
     showNeptun,
     showNeptunPreviousTrails,
+    showGtaInterventions,
     showEastAsiaAdiz,
     showIslandChains,
     showAxisNetwork,
