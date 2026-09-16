@@ -62,25 +62,51 @@ export type MajorEventTimelineEntry = {
 };
 
 /**
- * 초크포인트 preferredSymbols 상태 (진행형 — 완료 아님):
- * - 수에즈·파나마·바브엘만데브·희망봉·호르무즈·지브롤터 등은 사실상 같은
- *   ENERGY_GOLD / OIL_GOLD_VIX / LOGISTICS_STRESS 매크로 바스켓을 재사용한다.
- * - 해운운임(BDI 등)·곡물(ZW=F/ZC=F) 심볼은 STOCK_TICKER_SYMBOLS에 아직 없어
- *   초크포인트별로 갈라 넣지 않는다 — 없는 심볼을 지어내지 않는다.
- * - 보스포루스 곡물 축도 지금은 "일반 매크로 반응"으로만 표기한다.
- * - TSM/SMH·삼성/하이닉스 등 차별 심볼은 chokepointId가 아니라
- *   theater + relatedSupplyChainEpisodeId(공급망 재편 축)에 붙는다.
- * - 대만해협 초크 핀 자체는 ASIA_TECH(지역 지수) 바스켓이다.
+ * 초크포인트 preferredSymbols — STOCK_TICKER_SYMBOLS에 있는 실심볼만 사용.
+ * BDI 자체·니켈·멕시코 니어쇼어링 전용 티커는 없으므로 넣지 않는다(BDRY=운임 프록시).
+ * logisticsRiskPoints.meta.relatedTickers 라벨과 1:1로 맞춘다.
  */
 const ENERGY_GOLD = ["GC=F", "CL=F", "BZ=F", "DX-Y.NYB"] as const;
 const OIL_GOLD_VIX = ["CL=F", "BZ=F", "GC=F", "^VIX"] as const;
-/** 대만해협 초크 핀용 — 지역 지수 바스켓(개별 반도체 종목 아님) */
 const ASIA_TECH = ["000001.SS", "^HSI", "^IXIC", "^VIX"] as const;
 const KOREA_ASIA = ["^KS11", "^IXIC", "^HSI", "^VIX"] as const;
-/** 물류 초크 공용 매크로 — 운임·곡물 전용 심볼 확보 전 임시 바스켓 */
-const LOGISTICS_STRESS = ["CL=F", "BZ=F", "DX-Y.NYB", "^VIX", "GC=F"] as const;
 /** 경제 타임테이블 — 증시·공포·달러·금 */
 const ECONOMY_MARKETS = ["^VIX", "^GSPC", "^IXIC", "GC=F", "DX-Y.NYB", "CL=F"] as const;
+
+/** 호르무즈 — 원유·LNG 관문 */
+const CHOKE_HORMUZ = ["CL=F", "BZ=F", "NG=F", "^VIX"] as const;
+/** 수에즈 — 컨테이너·에너지 우회 → 운임(BDRY)·유가 */
+const CHOKE_SUEZ = ["BDRY", "BZ=F", "CL=F", "^VIX"] as const;
+/** 바브엘만데브 — 홍해 우회·안전자산 */
+const CHOKE_BAB = ["BDRY", "BZ=F", "GC=F", "^VIX"] as const;
+/** 말라카 — 동아시아 수출·에너지 병목 */
+const CHOKE_MALACCA = ["^HSI", "000001.SS", "BZ=F", "BDRY"] as const;
+/** 대만해협 — 반도체·대만·나스닥 (공급망 에피소드 TSM축과 정렬) */
+const CHOKE_TAIWAN = ["TSM", "SMH", "^TWII", "^IXIC"] as const;
+/** 파나마 — 미–아시아 컨테이너 재배치 */
+const CHOKE_PANAMA = ["BDRY", "BZ=F", "^GSPC", "^VIX"] as const;
+/** 보스포루스 — 흑해 곡물·에너지 */
+const CHOKE_BOSPORUS = ["ZW=F", "ZC=F", "BZ=F", "^VIX"] as const;
+/** 지브롤터 — 지중해–대서양 에너지·LNG·달러 */
+const CHOKE_GIBRALTAR = ["BZ=F", "NG=F", "DX-Y.NYB", "^VIX"] as const;
+/** 희망봉 — 홍해 우회 벤치마크(운임·유가·달러) */
+const CHOKE_GOOD_HOPE = ["BDRY", "BZ=F", "CL=F", "DX-Y.NYB"] as const;
+
+/** 초크 ID → 차별 바스켓 (반사실·리액션 API preferred 정본) */
+export const CHOKEPOINT_PREFERRED_SYMBOLS: Record<
+  LogisticsChokepointId,
+  readonly string[]
+> = {
+  "choke-hormuz": CHOKE_HORMUZ,
+  "choke-suez": CHOKE_SUEZ,
+  "choke-bab-el-mandeb": CHOKE_BAB,
+  "choke-malacca": CHOKE_MALACCA,
+  "choke-taiwan": CHOKE_TAIWAN,
+  "choke-panama": CHOKE_PANAMA,
+  "choke-bosporus": CHOKE_BOSPORUS,
+  "choke-gibraltar": CHOKE_GIBRALTAR,
+  "choke-good-hope": CHOKE_GOOD_HOPE,
+};
 
 /**
  * 시간순 정본 — 지정학 / 경제·시장 / 물류.
@@ -172,7 +198,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Hormuz tanker attack phase",
     summaryKo: "통항 안보 위기. 에너지 초크포인트 리스크 프리미엄.",
     summaryEn: "Transit security crisis — energy chokepoint risk premium.",
-    preferredSymbols: [...OIL_GOLD_VIX],
+    preferredSymbols: [...CHOKE_HORMUZ],
     chokepointId: "choke-hormuz",
     primaryForChokepoint: true,
   },
@@ -186,7 +212,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Saudi Abqaiq facility attack",
     summaryKo: "세계 원유 처리 허브 타격. 유가·호르무즈 민감도 급등.",
     summaryEn: "Strike on a global crude processing hub — oil/Hormuz sensitivity spiked.",
-    preferredSymbols: [...OIL_GOLD_VIX],
+    preferredSymbols: [...CHOKE_HORMUZ],
     chokepointId: "choke-hormuz",
   },
   {
@@ -200,7 +226,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Suez Ever Given grounding",
     summaryKo: "운하 통항 중단. 컨테이너·에너지 우회·지연 스트레스.",
     summaryEn: "Canal blockage — container/energy diversion and delay stress.",
-    preferredSymbols: [...LOGISTICS_STRESS],
+    preferredSymbols: [...CHOKE_SUEZ],
     chokepointId: "choke-suez",
     primaryForChokepoint: true,
   },
@@ -215,7 +241,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "China Ningbo/Yantian port COVID closures",
     summaryKo: "동아시아 수출 병목. 말라카·태평양 공급망 지연.",
     summaryEn: "East Asia export bottleneck — Malacca/Pacific supply delays.",
-    preferredSymbols: [...LOGISTICS_STRESS, "^HSI"],
+    preferredSymbols: [...CHOKE_MALACCA],
     chokepointId: "choke-malacca",
     primaryForChokepoint: true,
   },
@@ -229,8 +255,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Black Sea Grain Initiative deal",
     summaryKo: "보스포루스·흑해 곡물 통항 재개 시도. 식량·해운 스트레스 완화 국면.",
     summaryEn: "Attempt to reopen Black Sea grain lanes via Bosporus — food/shipping ease phase.",
-    // ZW=F/ZC=F 미확보 — 곡물 전용이 아니라 일반 매크로 반응 바스켓
-    preferredSymbols: ["BZ=F", "GC=F", "^VIX", "DX-Y.NYB"],
+    preferredSymbols: [...CHOKE_BOSPORUS],
     chokepointId: "choke-bosporus",
     primaryForChokepoint: true,
   },
@@ -245,7 +270,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Panama Canal drought transit cuts",
     summaryKo: "통선 슬롯 축소. 미·아시아 물류 우회·지연.",
     summaryEn: "Transit slots cut — US–Asia diversion and delay.",
-    preferredSymbols: [...LOGISTICS_STRESS],
+    preferredSymbols: [...CHOKE_PANAMA],
     chokepointId: "choke-panama",
     primaryForChokepoint: true,
   },
@@ -259,7 +284,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Red Sea Houthi transit threat escalates",
     summaryKo: "바브엘만데브·수에즈 회피 → 희망봉 우회. 운임·에너지 스트레스.",
     summaryEn: "Bab-el-Mandeb/Suez avoidance → Cape reroute — freight and energy stress.",
-    preferredSymbols: [...LOGISTICS_STRESS],
+    preferredSymbols: [...CHOKE_BAB],
     chokepointId: "choke-bab-el-mandeb",
     primaryForChokepoint: true,
   },
@@ -273,7 +298,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Cape of Good Hope reroute peak",
     summaryKo: "홍해 회피 선박 집중. 항로·리드타임·유가 연동.",
     summaryEn: "Red Sea avoidance peak — routing, lead times, oil linkage.",
-    preferredSymbols: [...LOGISTICS_STRESS],
+    preferredSymbols: [...CHOKE_GOOD_HOPE],
     chokepointId: "choke-good-hope",
     primaryForChokepoint: true,
   },
@@ -287,7 +312,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Gibraltar / Atlantic approach tension phase",
     summaryKo: "대서양–지중해 관문 안보·제재 집행 민감도.",
     summaryEn: "Atlantic–Med gateway security and sanctions-enforcement sensitivity.",
-    preferredSymbols: ["DX-Y.NYB", "BZ=F", "^VIX", "GC=F"],
+    preferredSymbols: [...CHOKE_GIBRALTAR],
     chokepointId: "choke-gibraltar",
     primaryForChokepoint: true,
   },
@@ -301,7 +326,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Taiwan Strait drills · shipping risk",
     summaryKo: "펠로시 방문 직후 포위훈련. 해협 해운·반도체 물류 민감.",
     summaryEn: "Encirclement drills after Pelosi visit — Strait shipping and chip logistics risk.",
-    preferredSymbols: [...ASIA_TECH, "GC=F"],
+    preferredSymbols: [...CHOKE_TAIWAN],
     chokepointId: "choke-taiwan",
     primaryForChokepoint: true,
   },
@@ -329,7 +354,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Russia–Ukraine full-scale invasion",
     summaryKo: "전면 침공. 에너지·곡물·흑해 항로·금 프리미엄의 기점.",
     summaryEn: "Full-scale invasion — energy, grain, Black Sea lanes, gold premium anchor.",
-    preferredSymbols: [...ENERGY_GOLD],
+    preferredSymbols: [...CHOKE_BOSPORUS, "GC=F"],
     chokepointId: "choke-bosporus",
     primaryForTheater: true,
   },
@@ -343,7 +368,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Nord Stream pipeline blasts",
     summaryKo: "유럽 가스 인프라 타격. 에너지·물류 안보 고조.",
     summaryEn: "Strike on European gas infrastructure — energy/logistics security spike.",
-    preferredSymbols: ["BZ=F", "CL=F", "GC=F", "^VIX"],
+    preferredSymbols: ["NG=F", "BZ=F", "CL=F", "GC=F", "^VIX"],
   },
   {
     id: "ukraine-kursk-incursion",
@@ -394,7 +419,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Iran direct strike on Israel",
     summaryKo: "국가 간 직접 타격. 호르무즈·유가 민감도 상승.",
     summaryEn: "State-to-state strike — Hormuz/oil sensitivity rose.",
-    preferredSymbols: [...OIL_GOLD_VIX],
+    preferredSymbols: [...CHOKE_HORMUZ],
     chokepointId: "choke-hormuz",
   },
   {
@@ -421,7 +446,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "Pelosi Taiwan visit · PLA encirclement drills",
     summaryKo: "해협 긴장·해운 리스크 급상승. 반도체·중국 지수 민감.",
     summaryEn: "Strait tension and shipping risk spike — chips and China equities.",
-    preferredSymbols: [...ASIA_TECH, "GC=F"],
+    preferredSymbols: [...CHOKE_TAIWAN],
     chokepointId: "choke-taiwan",
     primaryForTheater: true,
   },
@@ -459,7 +484,7 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     labelEn: "PLA Joint Sword-2024A drills",
     summaryKo: "취임 직후 대규모 포위형 훈련. 해협 통항 리스크.",
     summaryEn: "Large encirclement drills — Strait transit risk.",
-    preferredSymbols: [...ASIA_TECH, "GC=F"],
+    preferredSymbols: [...CHOKE_TAIWAN],
     chokepointId: "choke-taiwan",
   },
 
@@ -689,6 +714,16 @@ function assertPrimaries(rows: MajorEventTimelineEntry[]): void {
         throw new Error(`Duplicate primaryForChokepoint: ${row.chokepointId} (${row.id})`);
       }
       chokes.add(row.chokepointId);
+      const expected = CHOKEPOINT_PREFERRED_SYMBOLS[row.chokepointId];
+      const got = row.preferredSymbols;
+      if (
+        expected.length !== got.length ||
+        expected.some((sym, i) => sym !== got[i])
+      ) {
+        throw new Error(
+          `primaryForChokepoint ${row.chokepointId} (${row.id}) preferredSymbols must match CHOKEPOINT_PREFERRED_SYMBOLS`,
+        );
+      }
     }
     if (row.primaryForEconomy) economyPrimary += 1;
   }
