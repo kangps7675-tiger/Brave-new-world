@@ -8,9 +8,9 @@
  *   (3D Tiles, deck.gl Tile3DLayer)가 형태·높이·창문 패턴을 그린다.
  *   세슘 뷰어는 쓰지 않음 — MapLibre WebGL 컨텍스트를 공유한다.
  *
- * 상단 4토글 연동:
- * - 전쟁·안보(conflict) · 경제·물류(economy) → terrain (MapLibre + OSM 3D)
- * - 항적(live) → intel (다크 벡터, 항적 가독성)
+ * 상단 토글 연동:
+ * - 지정학(conflict) · 역사(history) · 지경학(economy) · 항적(live)
+ *   → 전부 intel (다크 벡터 워룸). 지형(terrain)은 수동 토글만.
  * - 관측(satellite) → Cesium (MapLibre basemap 없음)
  */
 
@@ -90,11 +90,17 @@ export function parseBasemapMode(value: unknown): BasemapMode {
 
 /**
  * 보기 모드 → MapLibre 베이스맵.
- * 관측(Cesium)은 null — MapLibre 스타일을 건드리지 않는다.
+ * 지정학·역사·지경학·항적 전부 인텔. 관측(Cesium)은 null.
  */
 export function basemapForViewerMode(mode: ViewerMode): BasemapMode | null {
-  if (mode === "conflict" || mode === "history" || mode === "economy") return "terrain";
-  if (mode === "live") return "intel";
+  if (
+    mode === "conflict" ||
+    mode === "history" ||
+    mode === "economy" ||
+    mode === "live"
+  ) {
+    return "intel";
+  }
   return null;
 }
 
@@ -452,6 +458,55 @@ export const PLACE_LABEL_KEEP_LAYER_IDS = [
   "place_city",
   "place_city_large",
 ] as const;
+
+/**
+ * OpenFreeMap / OpenMapTiles 현대 행정 국경 라인 (역사 모드에서 숨김).
+ * 스타일 버전에 따라 id가 갈라져 있어 후보를 넓게 잡는다.
+ */
+export const ADMIN_BOUNDARY_LAYER_IDS = [
+  "boundary_country",
+  "boundary_country_z0-4",
+  "boundary_country_z5-",
+  "boundary_2",
+  "boundary_2_z0-4",
+  "boundary_2_z5-",
+  "boundary_state",
+  "boundary_3",
+  "boundary_4",
+  "boundary_disputed",
+  "boundary_country_disputed",
+] as const;
+
+/**
+ * 현대 행정 국경 표시 여부.
+ * 역사 모드에서는 숨겨 Cliopatria/Korea 영토만 읽히게 한다.
+ */
+export function applyBasemapAdminBoundaries(
+  map: BasemapMapLike,
+  options?: { visible?: boolean },
+): void {
+  const visible = options?.visible !== false;
+  try {
+    for (const layerId of ADMIN_BOUNDARY_LAYER_IDS) {
+      if (!map.getLayer(layerId)) continue;
+      map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none");
+    }
+    // Fallback: any style layer whose id starts with boundary_
+    const style = map.getStyle?.();
+    const layers = style?.layers;
+    if (Array.isArray(layers)) {
+      for (const layer of layers) {
+        const id = typeof layer?.id === "string" ? layer.id : "";
+        if (!id.startsWith("boundary_")) continue;
+        if ((ADMIN_BOUNDARY_LAYER_IDS as readonly string[]).includes(id)) continue;
+        if (!map.getLayer(id)) continue;
+        map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+      }
+    }
+  } catch {
+    /* layout unsupported */
+  }
+}
 
 /**
  * 벡터 베이스맵 도시명.

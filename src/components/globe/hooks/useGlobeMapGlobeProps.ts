@@ -212,6 +212,8 @@ export interface UseGlobeMapGlobePropsParams {
   historyCliopatriaGeoJson?: FeatureCollection;
   /** 역사 토글 — Korea territory (research-selected; Balhae peak = final) */
   historyKoreaGeoJson?: FeatureCollection;
+  /** 역사 모드 — 베이스맵 현대 행정 국경 숨김 */
+  historyTerritoryActive?: boolean;
   axisHubCountriesGeoJson: FeatureCollection;
   alliedBlocCountriesGeoJson: FeatureCollection;
   geoEconBlocCountriesGeoJson: FeatureCollection;
@@ -291,6 +293,7 @@ export function useGlobeMapGlobeProps(
       type: "FeatureCollection",
       features: [],
     },
+    historyTerritoryActive = false,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
@@ -977,6 +980,7 @@ export function useGlobeMapGlobeProps(
     ukraineMicroGeoJson,
     historyCliopatriaGeoJson,
     historyKoreaGeoJson,
+    historyTerritoryActive,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
