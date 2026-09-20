@@ -35,7 +35,7 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
     },
   ];
 
-  const activeClass = (id: (typeof TOP_MODES)[number]) => {
+  const activeClass = (id: TopMode) => {
     if (id === "economy") {
       return light
         ? "bg-emerald-100 text-emerald-950 ring-1 ring-emerald-600/35"

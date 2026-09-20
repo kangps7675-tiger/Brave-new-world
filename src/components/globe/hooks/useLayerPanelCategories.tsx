@@ -199,6 +199,8 @@ export type UseLayerPanelCategoriesArgs = {
   setShowResources: (v: boolean) => void;
   setShowNuclearSites: (v: boolean) => void;
   isEconomyViewer: boolean;
+  /** 항적 모드 — ADS-B·AIS·GPSJam 홈 */
+  isLiveViewer?: boolean;
   showUsDfcSupplyChain: boolean;
   usDfcSupplyPaths: unknown[];
   setShowUsDfcSupplyChain: (v: boolean) => void;
@@ -491,6 +493,7 @@ export function useLayerPanelCategories({
   setShowResources,
   setShowNuclearSites,
   isEconomyViewer,
+  isLiveViewer = false,
   showUsDfcSupplyChain,
   usDfcSupplyPaths,
   setShowUsDfcSupplyChain,
@@ -1718,16 +1721,24 @@ export function useLayerPanelCategories({
             id: "ais",
             label:
               labelLanguage === "en"
-                ? isEconomyViewer
-                  ? "Civilian vessels (AIS)"
-                  : "Military vessels (AIS)"
-                : isEconomyViewer
-                  ? "민간 선박 (AIS)"
-                  : "군용 함정 (AIS)",
+                ? isLiveViewer
+                  ? "Vessels (AIS)"
+                  : isEconomyViewer
+                    ? "Civilian vessels (AIS)"
+                    : "Military vessels (AIS)"
+                : isLiveViewer
+                  ? "선박 (AIS)"
+                  : isEconomyViewer
+                    ? "민간 선박 (AIS)"
+                    : "군용 함정 (AIS)",
             detail: showAis
               ? labelLanguage === "en"
-                ? `${isEconomyViewer ? "Civilian" : "Military"} ${aisVessels.length.toLocaleString()}`
-                : `${isEconomyViewer ? "민간" : "군용"} ${aisVessels.length.toLocaleString()}척`
+                ? `${
+                    isLiveViewer ? "All" : isEconomyViewer ? "Civilian" : "Military"
+                  } ${aisVessels.length.toLocaleString()}`
+                : `${
+                    isLiveViewer ? "군·민" : isEconomyViewer ? "민간" : "군용"
+                  } ${aisVessels.length.toLocaleString()}척`
               : labelLanguage === "en"
                 ? "Off"
                 : "꺼짐",
@@ -1735,7 +1746,7 @@ export function useLayerPanelCategories({
             onChange: setShowAis,
             accent: "blue",
           },
-          ...(isEconomyViewer
+          ...(isEconomyViewer || isLiveViewer
             ? []
             : [
                 {
@@ -2017,6 +2028,7 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showMilitaryActivity,
             onChange: setShowMilitaryActivity,
             accent: "red",
+            modes: ["conflict", "live"] as Array<"conflict" | "economy" | "live">,
           },
           {
             id: "intel",
@@ -2025,10 +2037,10 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showIntelHotspots,
             onChange: setShowIntelHotspots,
             accent: "orange",
+            modes: ["conflict"] as Array<"conflict" | "economy" | "live">,
           },
-          ...(isEconomyViewer
-            ? []
-            : [
+          ...(!isEconomyViewer && !isLiveViewer
+            ? [
                 {
                   id: "recon-satellites",
                   label: "정찰위성",
@@ -2044,7 +2056,12 @@ export function useLayerPanelCategories({
                   checked: layerPrefs.showReconSatellites,
                   onChange: setShowReconSatellites,
                   accent: "violet" as const,
+                  modes: ["conflict"] as Array<"conflict" | "economy" | "live">,
                 },
+              ]
+            : []),
+          ...(isLiveViewer
+            ? [
                 {
                   id: "gps-interference",
                   label: "GPS 재밍",
@@ -2053,14 +2070,15 @@ export function useLayerPanelCategories({
                       ? "불러오는 중…"
                       : gpsJamStatus === "error"
                         ? "로드 실패 · 전전일 폴백 확인"
-                        : `${gpsJamCellCount.toLocaleString()}셀 · ${gpsJamDate ?? "—"} · 솔로`
-                    : "꺼짐 · ON 시 다른 레이어 숨김",
+                        : `${gpsJamCellCount.toLocaleString()}셀 · ${gpsJamDate ?? "—"} · ADS-B GNSS 이상`
+                    : "꺼짐 · 항공기 GNSS 이상 셀 (재머 위치 아님)",
                   checked: layerPrefs.showGpsInterference,
                   onChange: setShowGpsInterference,
                   accent: "red" as const,
-                  modes: ["conflict"] as Array<"conflict" | "economy">,
+                  modes: ["live"] as Array<"conflict" | "economy" | "live">,
                 },
-              ]),
+              ]
+            : []),
           {
             id: "allied-blocs",
             label: "진영 블록 (NATO·AUKUS·CRINK·양자동맹)",
@@ -2070,6 +2088,7 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showAlliedBlocs,
             onChange: setShowAlliedBlocs,
             accent: "blue",
+            modes: ["conflict"] as Array<"conflict" | "economy" | "live">,
           },
           {
             id: "csto-bloc",
@@ -2080,6 +2099,7 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showCstoBloc,
             onChange: setShowCstoBloc,
             accent: "orange",
+            modes: ["conflict"] as Array<"conflict" | "economy" | "live">,
           },
           {
             id: "refugee",
@@ -2088,6 +2108,7 @@ export function useLayerPanelCategories({
             checked: layerPrefs.showRefugeeCamps,
             onChange: setShowRefugeeCamps,
             accent: "orange",
+            modes: ["conflict"] as Array<"conflict" | "economy" | "live">,
           },
         ],
         footer: (
@@ -2267,19 +2288,24 @@ export function useLayerPanelCategories({
       },
     ];
     const allowed = new Set(viewerChromePreset.layerCategoryIds);
-    const mode = isEconomyViewer ? "economy" : "conflict";
-    const MODE_ONLY: Record<string, Array<"conflict" | "economy">> = {
+    const mode: "conflict" | "economy" | "live" = isLiveViewer
+      ? "live"
+      : isEconomyViewer
+        ? "economy"
+        : "conflict";
+    const MODE_ONLY: Record<string, Array<"conflict" | "economy" | "live">> = {
       "military-bases": ["conflict"],
       "military-bases-us": ["conflict"],
       "military-bases-rok": ["conflict"],
       "military-bases-japan": ["conflict"],
       "military-bases-philippines": ["conflict"],
       "military-bases-eastern-nato": ["conflict"],
-      "military-air": ["conflict"],
+      "military-air": ["conflict", "live"],
       intel: ["conflict"],
       "recon-satellites": ["conflict"],
-      "gps-interference": ["conflict"],
+      "gps-interference": ["live"],
       "disguised-vessels": ["conflict"],
+      "weekly-ship-moves": ["conflict"],
       "gdelt-war": ["conflict"],
       "gdelt-protest": ["conflict"],
       "telegram-osint": ["conflict"],
@@ -2294,7 +2320,7 @@ export function useLayerPanelCategories({
       "ai-dc": ["economy"],
       economic: ["economy"],
       sanctions: ["economy"],
-      "air-traffic": ["economy"],
+      "air-traffic": ["economy", "live"],
       "us-dfc-supply": ["economy"],
       "bri-trade": ["economy"],
       "gta-interventions": ["economy"],
@@ -2302,6 +2328,16 @@ export function useLayerPanelCategories({
       "sanctions-evasion-corridors": ["conflict"],
       "ses-gauge": ["conflict"],
       "gscpi-gauge": ["economy"],
+      ais: ["conflict", "economy", "live"],
+      shipping: ["conflict", "economy"],
+      "critical-nodes": ["conflict", "economy"],
+      "logistics-stress": ["conflict", "economy"],
+      "logistics-risk": ["economy"],
+      ports: ["economy", "conflict"],
+      airports: ["conflict", "economy"],
+      cables: ["conflict", "economy"],
+      "submarine-tunnels": ["conflict"],
+      "lsib-boundary": ["conflict"],
     };
     const hideLegacy = conflictEventsReplaceLegacy();
     const hideLegacyIds = new Set<string>(LEGACY_CONFLICT_LAYER_IDS);
@@ -2328,6 +2364,7 @@ export function useLayerPanelCategories({
     layerPanelReady,
     // 모드가 바뀌면 군사·안보 항목(정찰위성·GPS 재밍) 구성이 달라짐 — 반드시 재계산
     isEconomyViewer,
+    isLiveViewer,
     lpg(layerPanelGdeltCounts.alliance, 0),
     lpg(layerPanelGdeltCounts.diplomatic, 0),
     lpg(layerPanelGdeltCounts.protest, 0),

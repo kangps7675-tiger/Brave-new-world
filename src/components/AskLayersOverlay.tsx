@@ -25,7 +25,7 @@ export type AskLayersApplyPayload = {
 type AskLayersOverlayProps = {
   open: boolean;
   lang: LabelLanguage;
-  viewerMode?: "conflict" | "economy";
+  viewerMode?: import("@/lib/viewPackages").ViewerMode;
   onClose: () => void;
   onApply: (payload: AskLayersApplyPayload) => void;
 };

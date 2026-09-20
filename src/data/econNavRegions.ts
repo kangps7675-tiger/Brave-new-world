@@ -2,6 +2,7 @@ import type { ExplorationPreset, NavMenuGroup, NavSelection } from "@/data/navRe
 import { toNavSelection } from "@/data/navRegions";
 import { HUB_NAV_GROUP } from "@/data/hubNav";
 import { navSelectionFromId } from "@/lib/theaterFocus";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 /** 경제 nav id → RSS 필터 키워드 */
 export const ECON_REGION_KEYWORDS: Record<string, string[]> = {
@@ -463,7 +464,7 @@ export const ECON_EXPLORATION_PRESETS: ExplorationPreset[] = [
   },
 ];
 
-export function getNavMenuGroups(mode: "conflict" | "economy"): NavMenuGroup[] {
+export function getNavMenuGroups(mode: ViewerMode): NavMenuGroup[] {
   return mode === "economy" ? ECON_NAV_MENU_GROUPS : [HUB_NAV_GROUP as unknown as NavMenuGroup];
 }
 
@@ -480,7 +481,7 @@ export function econNavSelectionFromId(id: string, parentLabel?: string): NavSel
 
 export function navSelectionFromIdAnyMode(
   id: string,
-  mode: "conflict" | "economy",
+  mode: "conflict" | "economy" | "satellite" | "live",
   parentLabel?: string,
 ): NavSelection | null {
   if (mode === "economy") return econNavSelectionFromId(id, parentLabel);

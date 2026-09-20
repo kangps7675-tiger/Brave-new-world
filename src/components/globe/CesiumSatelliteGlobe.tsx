@@ -80,7 +80,9 @@ export function CesiumSatelliteGlobe({
 
         viewer.targetFrameRate = 60;
         viewer.scene.globe.depthTestAgainstTerrain = true;
-        viewer.scene.skyAtmosphere.show = true;
+        if (viewer.scene.skyAtmosphere) {
+          viewer.scene.skyAtmosphere.show = true;
+        }
         viewer.scene.fog.enabled = true;
         viewer.scene.globe.enableLighting = false;
 
