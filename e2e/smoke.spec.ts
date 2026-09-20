@@ -97,6 +97,8 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
         localStorage.setItem("geowatch-lang-choice-v1", "1");
         localStorage.setItem("geowatch-welcome-gate-v1", "1");
         localStorage.setItem("geowatch-sources-gate-v1", "1");
+        // 레이어 패널 첫 오픈 UX 양피지 — 스모크가 체크박스를 가리지 않게
+        localStorage.setItem("cv-ux-guide-brief-v1", "1");
         localStorage.setItem(
           "geowatch-view-config-v1",
           JSON.stringify({
@@ -105,7 +107,8 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
             theater: "auto",
             economyHub: "auto",
             appliedAt: new Date().toISOString(),
-            viewerMode: mode,
+            // conflict는 resolveViewerModeFromConfig에서 history로 정규화됨
+            viewerMode: mode === "economy" ? "economy" : "history",
           }),
         );
         const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -212,7 +215,9 @@ async function dismissBlockingParchmentOverlays(page: Page) {
     const scrim = scrims.nth(i);
     if (!(await scrim.isVisible().catch(() => false))) continue;
     const cta = scrim
-      .getByRole("button", { name: /^(접기|Fold|확인|Understood|Continue|계속)$/i })
+      .getByRole("button", {
+        name: /^(접기|Fold|확인|Understood|Continue|계속|알겠어요|Got it)$/i,
+      })
       .first();
     if (await cta.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await cta.dispatchEvent("click");
@@ -231,6 +236,26 @@ function layerPanel(page: Page) {
 /** 레이어 패널 안의 보이는 체크박스만 */
 function visibleLayerCheckbox(page: Page) {
   return layerPanel(page).locator('input[type="checkbox"]:visible:not([disabled])').first();
+}
+
+/**
+ * 역사 모드 기본은 map 카테고리만·활성 레이어 0 → 아코디언이 접혀 체크가 안 보인다.
+ * 접힌 카테고리를 한 번 펼친 뒤 체크박스를 기다린다.
+ */
+async function openLayerPanelReady(page: Page) {
+  await page.locator("#layer-panel-toggle").click();
+  const panel = layerPanel(page);
+  await expect(panel).toBeVisible({ timeout: 20_000 });
+
+  const box = visibleLayerCheckbox(page);
+  if (await box.isVisible().catch(() => false)) return box;
+
+  const collapsed = panel.locator('button[aria-expanded="false"]').first();
+  if (await collapsed.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await collapsed.click();
+  }
+  await expect(box).toBeVisible({ timeout: 20_000 });
+  return box;
 }
 
 test.describe("스모크", () => {
@@ -280,11 +305,7 @@ test.describe("스모크", () => {
     await enterGlobe(page);
     await waitForInteractiveChrome(page);
 
-    await page.locator("#layer-panel-toggle").click();
-    await expect(layerPanel(page)).toBeVisible({ timeout: 20_000 });
-
-    const box = visibleLayerCheckbox(page);
-    await expect(box).toBeVisible({ timeout: 20_000 });
+    const box = await openLayerPanelReady(page);
 
     const before = await box.isChecked();
     await tapCheckbox(box);
@@ -307,11 +328,8 @@ test.describe("스모크", () => {
     await enterGlobe(page);
     await waitForInteractiveChrome(page);
 
-    await page.locator("#layer-panel-toggle").click();
-
+    await openLayerPanelReady(page);
     const panel = layerPanel(page);
-    await expect(panel).toBeVisible({ timeout: 20_000 });
-    await expect(visibleLayerCheckbox(page)).toBeVisible({ timeout: 20_000 });
 
     /**
      * 백드롭(inset-0) click은 CI에서 CDP "performing click action"에

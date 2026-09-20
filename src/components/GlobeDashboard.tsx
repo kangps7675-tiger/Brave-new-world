@@ -639,9 +639,7 @@ import {
   shipMovementTrailPaths,
 } from "@/lib/shipMovements/globeOverlay";
 import {
-  groupKeyForObservation,
   observationsForGroupKey,
-  vesselTrackFlyTarget,
   type ShipTrailMode,
 } from "@/lib/shipMovements/shipMovementBrief";
 import {
@@ -1204,10 +1202,10 @@ export function GlobeDashboard({
   const [hoveredMilAircraft, setHoveredMilAircraft] = useState<MilitaryAircraft | null>(null);
   const [shipMovesMap, setShipMovesMap] = useState<PublicShipObservation[]>([]);
   const [shipMovesTimeline, setShipMovesTimeline] = useState<PublicShipObservation[]>([]);
-  const [shipMovesLoading, setShipMovesLoading] = useState(false);
-  const [shipMovesDisclaimer, setShipMovesDisclaimer] = useState<string | null>(null);
-  const [shipMovesSelectedId, setShipMovesSelectedId] = useState<string | null>(null);
-  const [shipMovesTrailMode, setShipMovesTrailMode] = useState<ShipTrailMode>("fleet");
+  const [, setShipMovesLoading] = useState(false);
+  const [, setShipMovesDisclaimer] = useState<string | null>(null);
+  const [, setShipMovesSelectedId] = useState<string | null>(null);
+  const [shipMovesTrailMode] = useState<ShipTrailMode>("fleet");
   const [shipMovesFocusGroupKey, setShipMovesFocusGroupKey] = useState<string | null>(null);
   const [shipMovesBriefTrack, setShipMovesBriefTrack] = useState<PublicShipObservation[] | null>(
     null,
@@ -2025,7 +2023,6 @@ export function GlobeDashboard({
           disputeEpisodeSelectedId ||
           territorialEpisodeBrief,
       ));
-  const westpacPulseActive = hubFocusMode === "westpac-pulse";
   const disputesOverviewActive = hubFocusMode === "disputes";
   const showShipMovesLayer = false;
   /** 목록·에피소드 공통 — 나가기 전까지 잠금 */
@@ -9715,6 +9712,7 @@ export function GlobeDashboard({
           layerPanelSessionKey={layerPanelSessionRef.current}
           batchPending={batchPending}
           isEconomyViewer={isEconomyViewer}
+          isHistoryViewer={isHistoryViewer}
           showUkraineControl={showUkraineControl}
           onPanelDraftPatch={handlePanelDraftPatch}
           showNeptun={showNeptun}
