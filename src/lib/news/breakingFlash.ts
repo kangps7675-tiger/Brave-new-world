@@ -498,7 +498,12 @@ export function buildBreakingFlashBriefing(
   hero: HeroBreakingItem,
   lang: LabelLanguage,
   preferEconomy: boolean,
-  opts?: { title?: string; summary?: string },
+  opts?: {
+    title?: string;
+    summary?: string;
+    /** 지정학/지경학만. null이면 peacesciencer 문단 생략 */
+    peaceScienceDomain?: "conflict" | "economy" | null;
+  },
 ): BreakingFlashBriefing {
   const ko = lang !== "en";
   const economy = preferEconomy || hero.feedTopic === "economy";
@@ -517,6 +522,13 @@ export function buildBreakingFlashBriefing(
   const actors = extractFlashActors(blob, lang);
   const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
 
+  const peaceScienceDomain =
+    opts?.peaceScienceDomain === undefined
+      ? economy
+        ? ("economy" as const)
+        : ("conflict" as const)
+      : opts.peaceScienceDomain;
+
   const paragraphs = buildFlashCausalEssay({
     title: titleText,
     summary: body,
@@ -530,6 +542,7 @@ export function buildBreakingFlashBriefing(
       hero.trustTier === 1 || hero.trustTier === 2 || hero.trustTier === 3
         ? hero.trustTier
         : undefined,
+    peaceScienceDomain,
   }).filter((p) => p.trim().length > 0);
 
   return {
@@ -551,9 +564,10 @@ export async function buildBreakingFlashBriefingForLang(
   hero: HeroBreakingItem,
   lang: LabelLanguage,
   preferEconomy: boolean,
+  opts?: { peaceScienceDomain?: "conflict" | "economy" | null },
 ): Promise<BreakingFlashBriefing> {
   if (lang === "en") {
-    return buildBreakingFlashBriefing(hero, lang, preferEconomy);
+    return buildBreakingFlashBriefing(hero, lang, preferEconomy, opts);
   }
   const { title, summary } = await ensureFlashCopyKorean({
     title: hero.title,
@@ -562,5 +576,6 @@ export async function buildBreakingFlashBriefingForLang(
   return buildBreakingFlashBriefing(hero, "ko", preferEconomy, {
     title,
     summary,
+    peaceScienceDomain: opts?.peaceScienceDomain,
   });
 }

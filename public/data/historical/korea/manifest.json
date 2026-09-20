@@ -1,0 +1,324 @@
+{
+  "version": 1,
+  "builtAt": "2026-09-19T18:46:31.500Z",
+  "sourceFile": "korean_history_geo.geojson",
+  "role": "korea_overlay",
+  "mount": "history_toggle_only",
+  "license": "mixed (per-feature; see CREDITS.md)",
+  "korea": "included — worldwide Cliopatria/basemaps exclude KR; this layer owns peninsula",
+  "stack": {
+    "worldwide": "cliopatria + historical-basemaps + ohm",
+    "peninsula": "korea"
+  },
+  "stats": {
+    "sourceFeatures": 748,
+    "layerCounts": {
+      "polity": 329,
+      "polity_prehistory": 3,
+      "basemap": 1,
+      "site": 115,
+      "hypothesis": 83,
+      "line": 11,
+      "battle": 206
+    },
+    "licenseCounts": {
+      "CC-BY-4.0 (Cliopatria, Seshat) — 단순화·클리핑 등 변경 있음": 324,
+      "original (authored; Cliopatria 원 경계를 대체)": 3,
+      "GPL-3.0 (historical-basemaps) — 이 폴리곤을 포함한 결과물 재배포 시 GPL 조건 검토 필요": 3,
+      "Public domain (Natural Earth)": 3,
+      "original (authored)": 209,
+      "original (authored; facts from cited pages)": 206
+    },
+    "yearFloor": -12000
+  },
+  "years": [
+    {
+      "year": -3000,
+      "file": "snapshots/year_-3000.geojson",
+      "featureCount": 5,
+      "fillCount": 1,
+      "uiFillCount": 1,
+      "sizeMB": 0.05
+    },
+    {
+      "year": -2000,
+      "file": "snapshots/year_-2000.geojson",
+      "featureCount": 11,
+      "fillCount": 4,
+      "uiFillCount": 4,
+      "sizeMB": 0.07
+    },
+    {
+      "year": -1000,
+      "file": "snapshots/year_-1000.geojson",
+      "featureCount": 13,
+      "fillCount": 5,
+      "uiFillCount": 5,
+      "sizeMB": 0.04
+    },
+    {
+      "year": -500,
+      "file": "snapshots/year_-500.geojson",
+      "featureCount": 11,
+      "fillCount": 6,
+      "uiFillCount": 6,
+      "sizeMB": 0.06
+    },
+    {
+      "year": -200,
+      "file": "snapshots/year_-200.geojson",
+      "featureCount": 6,
+      "fillCount": 6,
+      "uiFillCount": 5,
+      "sizeMB": 0.05
+    },
+    {
+      "year": 0,
+      "file": "snapshots/year_0.geojson",
+      "featureCount": 15,
+      "fillCount": 11,
+      "uiFillCount": 11,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 200,
+      "file": "snapshots/year_200.geojson",
+      "featureCount": 18,
+      "fillCount": 12,
+      "uiFillCount": 11,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 400,
+      "file": "snapshots/year_400.geojson",
+      "featureCount": 43,
+      "fillCount": 18,
+      "uiFillCount": 17,
+      "sizeMB": 0.07
+    },
+    {
+      "year": 600,
+      "file": "snapshots/year_600.geojson",
+      "featureCount": 62,
+      "fillCount": 27,
+      "uiFillCount": 25,
+      "sizeMB": 0.07
+    },
+    {
+      "year": 800,
+      "file": "snapshots/year_800.geojson",
+      "featureCount": 32,
+      "fillCount": 6,
+      "uiFillCount": 4,
+      "sizeMB": 0.03
+    },
+    {
+      "year": 825,
+      "file": "snapshots/year_825.geojson",
+      "featureCount": 41,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.07
+    },
+    {
+      "year": 850,
+      "file": "snapshots/year_850.geojson",
+      "featureCount": 41,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.07
+    },
+    {
+      "year": 900,
+      "file": "snapshots/year_900.geojson",
+      "featureCount": 45,
+      "fillCount": 11,
+      "uiFillCount": 9,
+      "sizeMB": 0.07
+    },
+    {
+      "year": 1000,
+      "file": "snapshots/year_1000.geojson",
+      "featureCount": 17,
+      "fillCount": 5,
+      "uiFillCount": 4,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1200,
+      "file": "snapshots/year_1200.geojson",
+      "featureCount": 16,
+      "fillCount": 5,
+      "uiFillCount": 4,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1400,
+      "file": "snapshots/year_1400.geojson",
+      "featureCount": 10,
+      "fillCount": 3,
+      "uiFillCount": 2,
+      "sizeMB": 0.01
+    },
+    {
+      "year": 1500,
+      "file": "snapshots/year_1500.geojson",
+      "featureCount": 10,
+      "fillCount": 3,
+      "uiFillCount": 2,
+      "sizeMB": 0.01
+    },
+    {
+      "year": 1600,
+      "file": "snapshots/year_1600.geojson",
+      "featureCount": 11,
+      "fillCount": 4,
+      "uiFillCount": 1,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1700,
+      "file": "snapshots/year_1700.geojson",
+      "featureCount": 10,
+      "fillCount": 3,
+      "uiFillCount": 2,
+      "sizeMB": 0.01
+    },
+    {
+      "year": 1750,
+      "file": "snapshots/year_1750.geojson",
+      "featureCount": 12,
+      "fillCount": 4,
+      "uiFillCount": 3,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1800,
+      "file": "snapshots/year_1800.geojson",
+      "featureCount": 12,
+      "fillCount": 4,
+      "uiFillCount": 3,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1850,
+      "file": "snapshots/year_1850.geojson",
+      "featureCount": 12,
+      "fillCount": 4,
+      "uiFillCount": 3,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1900,
+      "file": "snapshots/year_1900.geojson",
+      "featureCount": 14,
+      "fillCount": 5,
+      "uiFillCount": 2,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1914,
+      "file": "snapshots/year_1914.geojson",
+      "featureCount": 11,
+      "fillCount": 3,
+      "uiFillCount": 1,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1919,
+      "file": "snapshots/year_1919.geojson",
+      "featureCount": 9,
+      "fillCount": 1,
+      "uiFillCount": 1,
+      "sizeMB": 0.01
+    },
+    {
+      "year": 1939,
+      "file": "snapshots/year_1939.geojson",
+      "featureCount": 10,
+      "fillCount": 2,
+      "uiFillCount": 1,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1945,
+      "file": "snapshots/year_1945.geojson",
+      "featureCount": 11,
+      "fillCount": 2,
+      "uiFillCount": 1,
+      "sizeMB": 0.02
+    },
+    {
+      "year": 1950,
+      "file": "snapshots/year_1950.geojson",
+      "featureCount": 37,
+      "fillCount": 9,
+      "uiFillCount": 7,
+      "sizeMB": 0.11
+    },
+    {
+      "year": 1960,
+      "file": "snapshots/year_1960.geojson",
+      "featureCount": 27,
+      "fillCount": 12,
+      "uiFillCount": 9,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 1970,
+      "file": "snapshots/year_1970.geojson",
+      "featureCount": 27,
+      "fillCount": 11,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 1980,
+      "file": "snapshots/year_1980.geojson",
+      "featureCount": 26,
+      "fillCount": 11,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 1990,
+      "file": "snapshots/year_1990.geojson",
+      "featureCount": 26,
+      "fillCount": 11,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 2000,
+      "file": "snapshots/year_2000.geojson",
+      "featureCount": 25,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 2010,
+      "file": "snapshots/year_2010.geojson",
+      "featureCount": 27,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 2020,
+      "file": "snapshots/year_2020.geojson",
+      "featureCount": 25,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    },
+    {
+      "year": 2024,
+      "file": "snapshots/year_2024.geojson",
+      "featureCount": 25,
+      "fillCount": 10,
+      "uiFillCount": 8,
+      "sizeMB": 0.08
+    }
+  ]
+}

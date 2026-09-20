@@ -12,6 +12,7 @@ import { entryBootAltitude } from "@/lib/globeFillScreen";
 import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
+  FIRST_SCREEN_LIVE_ON,
 } from "@/lib/firstScreenLayers";
 
 /**
@@ -79,20 +80,26 @@ function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   return next;
 }
 
-/** 지정학 첫 화면 — 전선·드론·타격·전략군사·군용 항적·FIRMS·ReefWatch·CRINK 영토 */
+/** 전쟁·안보 첫 화면 — 영토·분쟁·진영 폴리곤 */
 const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 지경학 첫 화면 — 초크·항로·에너지·진영·민간 항적·DC·해저관 */
+/** 경제·물류 첫 화면 — 진영 폴리곤 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
+};
+
+/** 항적 첫 화면 — ADS-B · AIS · GPSJam */
+const LIVE_HERO_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_LIVE_ON,
 };
 
 /**
  * 도메인 게이트 직후 첫 화면용 레이어.
  *
- * 장면 칩 + CRINK OSM·한/일/대만/필/호/동유럽·미군 기지·해상 항로.
+ * 장면 칩 + 기지·에너지 히어로.
+ * CRINK OSM·해상 항로·물류망은 기본 OFF(레이어 패널·지경학 첫 화면에서 켠다).
  * 텔레그램·ADIZ는 전장 진입 때 conceptLayers가 붙인다. 클램프는 항상 마지막.
  */
 export function buildDomainOverviewPrefs(
@@ -102,17 +109,20 @@ export function buildDomainOverviewPrefs(
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
   let next = allBooleanLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
 
-  next =
+  const hero =
     mode === "conflict"
-      ? { ...next, ...CONFLICT_HERO_ON }
-      : { ...next, ...ECONOMY_HERO_ON };
+      ? CONFLICT_HERO_ON
+      : mode === "economy"
+        ? ECONOMY_HERO_ON
+        : mode === "live"
+          ? LIVE_HERO_ON
+          : {};
+
+  next = { ...next, ...hero };
 
   if (options?.ultraLite) {
     next = applyUltraLiteToLayerPrefs(next);
-    next =
-      mode === "conflict"
-        ? { ...next, ...CONFLICT_HERO_ON }
-        : { ...next, ...ECONOMY_HERO_ON };
+    next = { ...next, ...hero };
     next = applyUltraLiteToLayerPrefs(next);
   }
 

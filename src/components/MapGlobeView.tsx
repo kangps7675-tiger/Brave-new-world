@@ -204,6 +204,8 @@ const INTERACTIVE_LAYERS = [
   "ukraine-micro-fill",
   "ukraine-micro-defense",
   "ukraine-micro-combat-circle",
+  "history-cliopatria-fill",
+  "history-korea-fill",
   "island-chains-bases",
   "allied-bloc-countries-fill",
   "geoecon-bloc-countries-fill",
@@ -594,6 +596,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.ukraineMicroGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.ukraineMicroGeoJson]);
+  const historyCliopatriaGeoJson = useMemo(() => {
+    const raw = props.historyCliopatriaGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.historyCliopatriaGeoJson]);
+  const historyKoreaGeoJson = useMemo(() => {
+    const raw = props.historyKoreaGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.historyKoreaGeoJson]);
   const axisHubCountriesGeoJson = useMemo(() => {
     const raw = props.axisHubCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
@@ -791,20 +801,33 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       points: a.pathPoints,
       color: a.pathColor,
       stroke: a.pathStroke,
-      // 실측 회랑이 육로↔해상 다구간(legs)으로 쪼개진 경우, 해상 구간(카스피해
-      // 도하 등)만 점선(map-paths-dashed)으로 그려서 "장애물을 만나 항로로
-      // 갈아탄다"는 걸 시각적으로 드러낸다. 그 외에는 기존 접근자 그대로 위임.
+      // 해상 항로·해상 회랑 leg → PortWatch식 흐르는 항로(map-paths-maritime).
+      // 정지 점선은 추정/미확인(축 링크 등)에만 쓰고, 바다는 흐름으로 읽히게 한다.
       dashLength: (item) => {
-        const legMode =
+        const meta =
           item && typeof item === "object" && "meta" in item
-            ? (item as { meta?: { legMode?: string } }).meta?.legMode
+            ? (item as { meta?: { legMode?: string } }).meta
             : undefined;
         const kind =
           item && typeof item === "object" && "kind" in item
             ? String((item as { kind?: string }).kind ?? "")
             : undefined;
-        if (kind === "maritime-route") return 4;
-        return legMode === "sea" ? 3 : a.pathDashLength(item);
+        if (kind === "maritime-route" || meta?.legMode === "sea") return 4;
+        return a.pathDashLength(item);
+      },
+      pathStyle: (item) => {
+        const meta =
+          item && typeof item === "object" && "meta" in item
+            ? (item as { meta?: { legMode?: string } }).meta
+            : undefined;
+        const kind =
+          item && typeof item === "object" && "kind" in item
+            ? String((item as { kind?: string }).kind ?? "")
+            : undefined;
+        if (kind === "maritime-route" || meta?.legMode === "sea") {
+          return "maritime-flow";
+        }
+        return "";
       },
       dashGap: a.pathDashGap,
       kind: (item) =>
@@ -813,7 +836,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           : undefined,
       // 실측 회랑(카스피해 드론 이송로·라진-하산철도 등, axis-link 오버라이드) —
       // map-paths-glint 레이어가 태양광 글린트 밴드를 흘려보낼 대상만 표시.
-      // 육로 구간이든 해상(점선) 구간이든 같은 회랑에 속하면 동일하게 반짝여서
+      // 육로·해상(maritime-flow) 구간 모두 같은 회랑이면 동일하게 반짝여서
       // 구간이 바뀌어도 "하나로 이어진 인프라"처럼 보이게 한다.
       glint: (item) => {
         const meta =
@@ -2452,7 +2475,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           >
             {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등).
                 CRINK pipeline은 아래 glow+core 전용 레이어가 그리므로 여기서 제외
-                (안 빼면 실선+글로우가 겹쳐 저줌에서 과하게 밝아짐). */}
+                (안 빼면 실선+글로우가 겹쳐 저줌에서 과하게 밝아짐).
+                해상 흐름(pathStyle=maritime-flow)도 maritime 레이어 전용. */}
             <Layer
               id="map-paths-solid"
               type="line"
@@ -2460,6 +2484,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "all",
                 ["<=", ["get", "dashLength"], 0],
                 ["!=", ["get", "crinkCategory"], "pipeline"],
+                ["!=", ["get", "pathStyle"], "maritime-flow"],
               ]}
               layout={{
                 "line-cap": "round",
@@ -2473,7 +2498,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-blur": 0,
               }}
             />
-            {/* 점선 — 고정 dasharray + 필터 (data-driven dash 회피) */}
+            {/* 점선 — 추정·미확인·장애 우회 등. 해상 항로/해상 회랑은 제외 */}
             <Layer
               id="map-paths-dashed"
               type="line"
@@ -2481,6 +2506,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "all",
                 [">", ["get", "dashLength"], 0],
                 ["!=", ["get", "kind"], "maritime-route"],
+                ["!=", ["get", "pathStyle"], "maritime-flow"],
               ]}
               layout={{
                 "line-cap": "butt",
@@ -2493,11 +2519,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-dasharray": [2, 1.2],
               }}
             />
-            {/* PortWatch maritime — capacity glow underlay + animated dash flow */}
+            {/* PortWatch maritime + 전략/군수 해상 회랑 — glow + animated dash flow */}
             <Layer
               id="map-paths-maritime-glow"
               type="line"
-              filter={["==", ["get", "kind"], "maritime-route"]}
+              filter={[
+                "any",
+                ["==", ["get", "kind"], "maritime-route"],
+                ["==", ["get", "pathStyle"], "maritime-flow"],
+              ]}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
@@ -2538,7 +2568,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             <Layer
               id="map-paths-maritime"
               type="line"
-              filter={["==", ["get", "kind"], "maritime-route"]}
+              filter={[
+                "any",
+                ["==", ["get", "kind"], "maritime-route"],
+                ["==", ["get", "pathStyle"], "maritime-flow"],
+              ]}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
@@ -2724,7 +2758,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               고유색을 그대로 두고, 그 위에 순수 추가로 덧그리는 레이어라 기존 스타일에는
               영향이 없다. 호버 중인 groupId와 같은 axis-link feature만 필터를 통과해
               관계 성격 색(군수=빨강, 하이브리드=주황 등)으로 잠깐 바뀐다. solid/dashed를
-              나눠 그리는 이유는 해상 leg(점선)까지 실선으로 덮어써버리지 않기 위함.
+              나눠 그리는 이유는 점선 leg까지 실선으로 덮어써버리지 않기 위함.
             */}
             <Layer
               id="map-paths-hover-recolor-solid"
@@ -3328,6 +3362,81 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               />
             </Source>
           </>
+        ) : null}
+
+        {/* History territory: Cliopatria underlay → Korea research overlay */}
+        {historyCliopatriaGeoJson.features.length > 0 ? (
+          <Source
+            id="history-cliopatria-source"
+            type="geojson"
+            data={historyCliopatriaGeoJson}
+            tolerance={0}
+          >
+            <Layer
+              id="history-cliopatria-fill"
+              type="fill"
+              filter={[
+                "in",
+                ["geometry-type"],
+                ["literal", ["Polygon", "MultiPolygon"]],
+              ]}
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#94a3b8"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.18],
+              }}
+            />
+            <Layer
+              id="history-cliopatria-outline"
+              type="line"
+              filter={[
+                "in",
+                ["geometry-type"],
+                ["literal", ["Polygon", "MultiPolygon"]],
+              ]}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "#64748b"],
+                "line-width": 0.6,
+                "line-opacity": 0.55,
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {historyKoreaGeoJson.features.length > 0 ? (
+          <Source
+            id="history-korea-source"
+            type="geojson"
+            data={historyKoreaGeoJson}
+            tolerance={0}
+          >
+            <Layer
+              id="history-korea-fill"
+              type="fill"
+              filter={[
+                "in",
+                ["geometry-type"],
+                ["literal", ["Polygon", "MultiPolygon"]],
+              ]}
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#c4a35a"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.42],
+              }}
+            />
+            <Layer
+              id="history-korea-outline"
+              type="line"
+              filter={[
+                "in",
+                ["geometry-type"],
+                ["literal", ["Polygon", "MultiPolygon"]],
+              ]}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "#8b6914"],
+                "line-width": 1.2,
+                "line-opacity": 0.9,
+              }}
+            />
+          </Source>
         ) : null}
 
         {/* Ukraine front LOD: soft macro/micro overlap */}

@@ -28,7 +28,7 @@ type NewsPerspectivesPanelProps = {
   /** 사건 경과 시간(분). 시장 반응 판정 기준 */
   ageMinutes?: number;
   /** 지경학이면 사건↔시장 라벨 */
-  viewerMode?: "conflict" | "economy";
+  viewerMode?: import("@/lib/viewPackages").ViewerMode;
   lang: LabelLanguage;
   onClose: () => void;
 };

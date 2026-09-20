@@ -46,7 +46,7 @@ export type LayerToggleItem = {
    * 지정학/지경학 노출 제한. 없으면 양쪽.
    * 카테고리 필터 후 항목 단위로 한 번 더 거른다.
    */
-  modes?: Array<"conflict" | "economy">;
+  modes?: Array<"conflict" | "economy" | "live" | "satellite">;
   /**
    * P0-4: 방금 이 항목의 켜기가 거부됨 (상한 초과 등).
    * 체크박스가 움직이지 않는 것은 사용자에게 "고장"으로 읽힌다 —

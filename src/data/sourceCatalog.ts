@@ -369,8 +369,8 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     url: "/api/gps-jam",
     cadence: "Daily CSV (~04:00 UTC) · CDN 6–12h",
     attribution: "GPS interference: GPSJam.org (John Wiseman) · ADS-B Exchange",
-    notes:
-      "Share of aircraft reporting GNSS anomalies per H3 res-4 cell. MIN_AIRCRAFT filter applied. Does NOT show jammer/equipment locations. Unofficial static feed; solo mode when ON.",
+      notes:
+      "Share of aircraft reporting GNSS anomalies per H3 res-4 cell. MIN_AIRCRAFT filter applied. Does NOT show jammer/equipment locations. Unofficial static feed. Home mode: live (tracks) with ADS-B/AIS — solo mode retired.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "license-required",
@@ -1021,6 +1021,28 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     ingest: "static-build",
     commercialUse: "unknown",
     commercialNote: "ICOW는 학술 인용 요구가 있는 무료 공개 데이터. 상업 배포 전 paulhensel.org 이용조건 재확인 필요. 수집은 1회성 CLI(자동 폴링 아님).",
+  },
+  {
+    layerId: "peacesciencer-dyad-backdrop",
+    source: "peacesciencer (R) · CoW contiguity · Thompson strategic rivalries",
+    url: "https://svmiller.com/peacesciencer/",
+    cadence: "1회성 CLI — dyad 카피 갱신 시에만 Rscript 재실행 (실시간 폴링 아님)",
+    attribution:
+      "Miller, peacesciencer (Conflict Management and Peace Science, 2022); " +
+      "Correlates of War Direct Contiguity; Thompson et al. strategic rivalries — cite via ps_cite()",
+    notes:
+      "속보 양피지(buildFlashCausalEssay)에 국가쌍 역사 배경 1문단을 붙인다. " +
+      "지정학(conflict)·지경학(economy) 모드에서만 — 역사·관측·항적에서는 생략. " +
+      "사실 코어(접경·라이벌)는 고정, 속보 앵글(kinetic/patrol/diplomacy/chokepoint/market)에 따라 " +
+      "강조·연한 구조 전망만 바뀐다. 단정·투자 권유·공식 경보 아님 고지 포함. " +
+      "수치 뼈대는 scripts/export-peacesciencer-dyads.R → scripts/data/peacesciencer-dyads-draft.json, " +
+      "유저 문장은 src/data/peaceScienceDyads.ts + src/lib/peaceScienceAngles.ts. " +
+      "조회·문단 조립은 src/lib/peaceScienceInsight.ts.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "unknown",
+    commercialNote:
+      "학술 패키지·CoW/라이벌리 원천 — 상업 배포 전 각 데이터셋 이용조건·인용 재확인. 수집은 1회성 CLI.",
   },
   {
     layerId: "world-stats",

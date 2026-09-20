@@ -7,7 +7,10 @@ import type { ViewerMode } from "@/lib/viewPackages";
 
 const INTRO_KEYS: Record<ViewerMode, string> = {
   conflict: "cv-viewer-intro-v2-conflict",
+  history: "cv-viewer-intro-v2-history",
   economy: "cv-viewer-intro-v2-economy",
+  satellite: "cv-viewer-intro-v2-satellite",
+  live: "cv-viewer-intro-v2-live",
 };
 
 export function shouldShowViewerIntro(viewerMode: ViewerMode): boolean {

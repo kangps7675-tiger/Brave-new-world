@@ -7,7 +7,14 @@
  *   도로·국경·라벨은 벡터로 남는다. 줌 ≥ 14에서 Cesium OSM Buildings
  *   (3D Tiles, deck.gl Tile3DLayer)가 형태·높이·창문 패턴을 그린다.
  *   세슘 뷰어는 쓰지 않음 — MapLibre WebGL 컨텍스트를 공유한다.
+ *
+ * 상단 4토글 연동:
+ * - 전쟁·안보(conflict) · 경제·물류(economy) → terrain (MapLibre + OSM 3D)
+ * - 항적(live) → intel (다크 벡터, 항적 가독성)
+ * - 관측(satellite) → Cesium (MapLibre basemap 없음)
  */
+
+import type { ViewerMode } from "@/lib/viewPackages";
 
 export type BasemapMode = "intel" | "terrain";
 
@@ -79,6 +86,16 @@ export function isOwnMapLayerId(layerId: string): boolean {
 export function parseBasemapMode(value: unknown): BasemapMode {
   if (value === "terrain" || value === "photo") return "terrain";
   return "intel";
+}
+
+/**
+ * 보기 모드 → MapLibre 베이스맵.
+ * 관측(Cesium)은 null — MapLibre 스타일을 건드리지 않는다.
+ */
+export function basemapForViewerMode(mode: ViewerMode): BasemapMode | null {
+  if (mode === "conflict" || mode === "history" || mode === "economy") return "terrain";
+  if (mode === "live") return "intel";
+  return null;
 }
 
 /** 모드별 MapLibre style.json URL */

@@ -43,57 +43,58 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(countActiveLayers(economy)).toBeLessThan(activeLayerCap(false));
   });
 
-  it("conflict 모드 최우선 레이어(전선)는 예산 안에서도 살아남는다", () => {
+  it("conflict 모드 최우선 레이어(전선·점령)는 예산 안에서도 살아남는다", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl || prefs.showWarZones).toBeTruthy();
   });
 
-  it("economy 모드 최우선 레이어(해상 물류)는 예산 안에서도 살아남는다", () => {
+  it("economy 모드 최우선 레이어(지경학 진영)는 예산 안에서도 살아남는다", () => {
     const prefs = buildDomainOverviewPrefs("economy");
-    expect(prefs.showAis || prefs.showShippingLanes).toBeTruthy();
+    expect(prefs.showGeoEconBlocs).toBeTruthy();
   });
 
-  it("지정학 첫 화면은 전선·드론·통합전장·전략군사·군용 항적·FIRMS·ReefWatch·해저관", () => {
+  it("지정학 첫 화면은 영토·분쟁·진영 폴리곤만", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl).toBe(true);
     expect(prefs.showWarZones).toBe(true);
-    expect(prefs.showNeptun).toBe(true);
-    expect(prefs.showConflictEvents).toBe(true);
-    expect(prefs.showUkraineStrikesOnRussia).toBe(false);
-    expect(prefs.showGdeltWar).toBe(true);
-    expect(prefs.showFirmsFires).toBe(true);
-    expect(prefs.showMilitaryActivity).toBe(true);
-    expect(prefs.showUsCarriers).toBe(true);
-    expect(prefs.showWeeklyShipMoves).toBe(true);
-    expect(prefs.showAis).toBe(true);
-    expect(prefs.showReefWatch).toBe(true);
-    expect(prefs.showMissileSilos).toBe(true);
-    expect(prefs.showIslandChains).toBe(true);
-    expect(prefs.showAxisNetwork).toBe(true);
     expect(prefs.showAlliedBlocs).toBe(true);
-    expect(prefs.showSubseaPipelines).toBe(true);
-    expect(prefs.showOilPipelines).toBe(true);
-    expect(prefs.showGasPipelines).toBe(true);
+    expect(prefs.showIslandChains).toBe(true);
+    expect(prefs.showEastAsiaAdiz).toBe(true);
+    expect(prefs.showNeptun).toBe(false);
+    expect(prefs.showConflictEvents).toBe(false);
+    expect(prefs.showUkraineStrikesOnRussia).toBe(false);
+    expect(prefs.showGdeltWar).toBe(false);
+    expect(prefs.showFirmsFires).toBe(false);
+    expect(prefs.showMilitaryActivity).toBe(false);
+    expect(prefs.showUsCarriers).toBe(false);
+    expect(prefs.showWeeklyShipMoves).toBe(false);
+    expect(prefs.showAis).toBe(false);
+    expect(prefs.showReefWatch).toBe(false);
+    expect(prefs.showMissileSilos).toBe(false);
+    expect(prefs.showAxisNetwork).toBe(false);
+    expect(prefs.showSubseaPipelines).toBe(false);
+    expect(prefs.showOilPipelines).toBe(false);
+    expect(prefs.showGasPipelines).toBe(false);
     expect(prefs.showNewfeedsIranAttacks).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);
     expect(prefs.showUsDfcSupplyChain).toBe(false);
     expect(prefs.showAirTraffic).toBe(false);
   });
 
-  it("지경학 첫 화면은 초크·항로·에너지·진영·민간항적·DC·해저관", () => {
+  it("지경학 첫 화면은 진영 폴리곤만 (항로·에너지·항적은 패널)", () => {
     const prefs = buildDomainOverviewPrefs("economy");
-    expect(prefs.showLogisticsRisk).toBe(true);
-    expect(prefs.showShippingLanes).toBe(true);
-    expect(prefs.showPorts).toBe(true);
-    expect(prefs.showGasPipelines).toBe(true);
-    expect(prefs.showLngTerminals).toBe(true);
-    expect(prefs.showStrategicCorridors).toBe(true);
     expect(prefs.showGeoEconBlocs).toBe(true);
-    expect(prefs.showOilPipelines).toBe(true);
-    expect(prefs.showSubseaPipelines).toBe(true);
-    expect(prefs.showAis).toBe(true);
-    expect(prefs.showAirTraffic).toBe(true);
-    expect(prefs.showAiDataCenters).toBe(true);
+    expect(prefs.showLogisticsRisk).toBe(false);
+    expect(prefs.showShippingLanes).toBe(false);
+    expect(prefs.showPorts).toBe(false);
+    expect(prefs.showGasPipelines).toBe(false);
+    expect(prefs.showLngTerminals).toBe(false);
+    expect(prefs.showStrategicCorridors).toBe(false);
+    expect(prefs.showOilPipelines).toBe(false);
+    expect(prefs.showSubseaPipelines).toBe(false);
+    expect(prefs.showAis).toBe(false);
+    expect(prefs.showAirTraffic).toBe(false);
+    expect(prefs.showAiDataCenters).toBe(false);
     expect(prefs.showCriticalNodes).toBe(false);
     expect(prefs.showCrinkInfraRail).toBe(false);
     expect(prefs.showBriTradeConnectivity).toBe(false);

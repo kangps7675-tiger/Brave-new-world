@@ -208,6 +208,10 @@ export interface UseGlobeMapGlobePropsParams {
   airRaidFocusBox: AirRaidFocusBox | null;
   ukraineMacroGeoJson: FeatureCollection;
   ukraineMicroGeoJson: FeatureCollection;
+  /** 역사 토글 — Cliopatria worldwide fills (KR excluded) */
+  historyCliopatriaGeoJson?: FeatureCollection;
+  /** 역사 토글 — Korea territory (research-selected; Balhae peak = final) */
+  historyKoreaGeoJson?: FeatureCollection;
   axisHubCountriesGeoJson: FeatureCollection;
   alliedBlocCountriesGeoJson: FeatureCollection;
   geoEconBlocCountriesGeoJson: FeatureCollection;
@@ -279,6 +283,14 @@ export function useGlobeMapGlobeProps(
     airRaidFocusBox,
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
+    historyCliopatriaGeoJson = {
+      type: "FeatureCollection",
+      features: [],
+    },
+    historyKoreaGeoJson = {
+      type: "FeatureCollection",
+      features: [],
+    },
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
@@ -963,6 +975,8 @@ export function useGlobeMapGlobeProps(
       : null,
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
+    historyCliopatriaGeoJson,
+    historyKoreaGeoJson,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
