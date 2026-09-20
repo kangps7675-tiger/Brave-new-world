@@ -8925,64 +8925,6 @@ export function GlobeDashboard({
           if (!showChinaTaiwanIncidents) togglePref("showChinaTaiwanIncidents", true);
           flyTo(lat, lng, altitude);
         }}
-        westpacPulseOpen={westpacPulseActive}
-        shipMovesLoading={shipMovesLoading}
-        shipMovesTimeline={shipMovesTimeline}
-        shipMovesDisclaimer={shipMovesDisclaimer}
-        shipMovesSelectedId={shipMovesSelectedId}
-        shipMovesTrailMode={shipMovesTrailMode}
-        shipMovesFocusGroupKey={shipMovesFocusGroupKey}
-        westpacNewsPool={[
-          ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
-          ...(newsStreamPayload?.verified ?? []),
-          ...(newsStreamPayload?.stateMedia ?? []),
-        ]}
-        onShipMoveSelect={(obs) => {
-          setShipMovesSelectedId(obs.id);
-          setShipMovesFocusGroupKey(groupKeyForObservation(obs));
-          openSelection({ kind: "ship-movement", item: obs });
-          if (isMapDisplayableShipObservation(obs)) {
-            flyTo(
-              obs.lat!,
-              obs.lng!,
-              obs.locationStatus === "broad" ? 1.15 : 0.85,
-            );
-          }
-        }}
-        onShipTrailModeChange={(mode) => {
-          setShipMovesTrailMode(mode);
-          if (mode === "fleet") {
-            setShipMovesFocusGroupKey(null);
-          }
-        }}
-        onShipVesselSelect={(groupKey, track) => {
-          setShipMovesTrailMode("vessel");
-          setShipMovesFocusGroupKey(groupKey);
-          const latest = track[track.length - 1] ?? track[0] ?? null;
-          if (latest) {
-            setShipMovesSelectedId(latest.id);
-            openSelection({ kind: "ship-movement", item: latest });
-          }
-          const fly = vesselTrackFlyTarget(track);
-          if (fly) flyTo(fly.lat, fly.lng, fly.altitude);
-          setShipMovesBriefTrack(track);
-          setShipMovesBriefFocusId(latest?.id ?? null);
-        }}
-        onShipMoveBrief={(track, focusId) => {
-          setShipMovesBriefTrack(track);
-          setShipMovesBriefFocusId(focusId ?? null);
-          if (track[0]) {
-            setShipMovesFocusGroupKey(groupKeyForObservation(track[0]));
-          }
-        }}
-        onWestpacPulseClose={() => {
-          setShipMovesSelectedId(null);
-          setShipMovesFocusGroupKey(null);
-          setShipMovesTrailMode("fleet");
-          setShipMovesBriefTrack(null);
-          setShipMovesBriefFocusId(null);
-          setRegionNavSelection(null);
-        }}
         disputesOverviewOpen={disputesOverviewActive}
         disputeHotspots={disputeHotspots}
         disputeHotspotSelectedId={disputeHotspotSelectedId}
