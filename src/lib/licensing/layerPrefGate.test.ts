@@ -117,6 +117,7 @@ describe("layerPrefGate — 사각지대 감시", () => {
     "kcs-trade",
     "atop-alliances-draft",
     "icow-territorial-claims-draft",
+    "peacesciencer-dyad-backdrop",
   ]);
 
   it("상업 불가 레이어는 매핑되거나 예외 목록에 있어야 한다", () => {
