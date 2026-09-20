@@ -154,6 +154,11 @@ import {
 } from "@/lib/dailyPredictPrefs";
 import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchment";
 import {
+  buildNeptunLiveBriefContent,
+  markNeptunLiveBriefDone,
+  shouldOfferNeptunLiveBrief,
+} from "@/lib/neptunLiveBrief";
+import {
   buildBreakingFlashBriefingForLang,
   claimBreakingFlash,
   pickNextBreakingFlashHero,
@@ -6173,6 +6178,56 @@ export function GlobeDashboard({
     layerPrefsLiveRef,
     clearAirRaidFocus,
   });
+
+  /**
+   * NEPTUN 실피드 첫 인상 — 우크라 전장/레이어 최초 노출 시 양피지 1회.
+   * 스텁·등불·속보·공습 브리프와 배제. 「실피드」와 「추정」을 한 장에.
+   */
+  useEffect(() => {
+    if (isEconomyViewer || isHistoryViewer || isSatelliteViewer) return;
+    if (isLoading || loadError || !globeReady) return;
+    if (entryGate !== null || showModePicker) return;
+    if (!langChoiceDone) return;
+    if (chromeCoachStep || showAirRaidCoach) return;
+    if (airRaidBriefing || periodicBriefing || breakingFlash || exerciseBriefing) return;
+    if (weeklyExpanded) return;
+    if (neptunStatus !== "ok") return;
+    if (!isUkraineTheaterFocus && !showNeptun) return;
+    if (!shouldOfferNeptunLiveBrief()) return;
+
+    const timer = window.setTimeout(() => {
+      if (!shouldOfferNeptunLiveBrief()) return;
+      markNeptunLiveBriefDone();
+      if (!layerPrefsLiveRef.current.showNeptun) {
+        patchLayerPrefsSoft({ showNeptun: true });
+      }
+      setAirRaidBriefing(buildNeptunLiveBriefContent(labelLanguage));
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    airRaidBriefing,
+    breakingFlash,
+    chromeCoachStep,
+    entryGate,
+    exerciseBriefing,
+    globeReady,
+    isEconomyViewer,
+    isHistoryViewer,
+    isLoading,
+    isSatelliteViewer,
+    isUkraineTheaterFocus,
+    labelLanguage,
+    langChoiceDone,
+    loadError,
+    neptunStatus,
+    patchLayerPrefsSoft,
+    periodicBriefing,
+    showAirRaidCoach,
+    showModePicker,
+    showNeptun,
+    weeklyExpanded,
+  ]);
 
   /** 귀중한 속보 — S/고충격만 양피지 타전 · 전선별 후보 병행 · 전장 fly-to
    *  등불(사진 데스크) 점화가 끝난 뒤에만 — 속보가 등불을 가로채지 않게. */
