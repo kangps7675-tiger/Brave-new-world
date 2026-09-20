@@ -11,6 +11,7 @@ import {
   type MarketReactionVerdict,
 } from "@/lib/stockTickers";
 import type { TheaterMarketFilter } from "@/lib/theaterAssets";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 type EventMarketReactionCardProps = {
   theater: TheaterMarketFilter;
@@ -18,7 +19,7 @@ type EventMarketReactionCardProps = {
   /** 히어로 스트립용 — 더 크게 */
   prominent?: boolean;
   /** 지경학이면 라벨·배지 카피 조정 */
-  viewerMode?: "conflict" | "economy";
+  viewerMode?: ViewerMode;
 };
 
 type ReactionPayload = {
@@ -53,7 +54,8 @@ export function EventMarketReactionCard({
 }: EventMarketReactionCardProps) {
   const { lang } = useLocale();
   const ko = lang !== "en";
-  const isEconomy = viewerMode === "economy";
+  const marketMode = viewerMode === "economy" ? "economy" : "conflict";
+  const isEconomy = marketMode === "economy";
   const [payload, setPayload] = useState<ReactionPayload | null>(null);
   const [expanded, setExpanded] = useState(false);
 
@@ -62,7 +64,7 @@ export function EventMarketReactionCard({
     const params = new URLSearchParams({
       theater,
       ageMinutes: String(Math.round(ageMinutes)),
-      viewerMode,
+      viewerMode: marketMode,
     });
     fetch(`/api/stock-tickers/reaction?${params.toString()}`, { cache: "no-store" })
       .then((res) => res.json())
@@ -80,7 +82,7 @@ export function EventMarketReactionCard({
     return () => {
       cancelled = true;
     };
-  }, [theater, ageMinutes, prominent, viewerMode]);
+  }, [theater, ageMinutes, prominent, marketMode]);
 
   if (payload === null) {
     return (

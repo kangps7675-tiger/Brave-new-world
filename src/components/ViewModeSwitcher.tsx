@@ -10,15 +10,23 @@ type ViewModeSwitcherProps = {
   onChange: (mode: ViewerMode) => void;
 };
 
+/** 상단 3토글 — 지정학 · 역사 · 지경학 (관측·항적은 지정학 하위 도구) */
+type TopMode = Extract<ViewerMode, "conflict" | "history" | "economy">;
+
 export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
   const { t } = useLocale();
   const light = useBasemapTone() === "light";
 
-  const MODES: Array<{ id: ViewerMode; label: string; hint: string }> = [
+  const MODES: Array<{ id: TopMode; label: string; hint: string }> = [
     {
       id: "conflict",
       label: t("modeConflict"),
       hint: t("modeConflictHint"),
+    },
+    {
+      id: "history",
+      label: t("modeHistory"),
+      hint: t("modeHistoryHint"),
     },
     {
       id: "economy",
@@ -26,6 +34,22 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
       hint: t("modeEconomyHint"),
     },
   ];
+
+  const activeClass = (id: TopMode) => {
+    if (id === "economy") {
+      return light
+        ? "bg-emerald-100 text-emerald-950 ring-1 ring-emerald-600/35"
+        : "bg-emerald-400/25 text-emerald-50 ring-1 ring-emerald-300/35";
+    }
+    if (id === "history") {
+      return light
+        ? "bg-amber-100 text-amber-950 ring-1 ring-amber-600/35"
+        : "bg-amber-400/25 text-amber-50 ring-1 ring-amber-300/35";
+    }
+    return light
+      ? "bg-sky-100 text-sky-950 ring-1 ring-sky-700/35"
+      : "bg-sky-400/25 text-sky-50 ring-1 ring-sky-300/35";
+  };
 
   return (
     <div
@@ -46,21 +70,13 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => {
-                if (!active) onChange(item.id);
-              }}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              onClick={() => onChange(item.id)}
+              className={`rounded-full px-2.5 py-1 text-caption font-semibold transition sm:px-3 ${
                 active
-                  ? item.id === "economy"
-                    ? light
-                      ? "bg-emerald-100 text-emerald-950 ring-1 ring-emerald-600/35"
-                      : "bg-emerald-400/25 text-emerald-50 ring-1 ring-emerald-300/35"
-                    : light
-                      ? "bg-sky-100 text-sky-950 ring-1 ring-sky-700/35"
-                      : "bg-sky-400/25 text-sky-50 ring-1 ring-sky-300/35"
+                  ? activeClass(item.id)
                   : light
-                    ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    : "text-sky-100/60 hover:bg-white/5 hover:text-sky-50"
+                    ? "text-slate-600 hover:bg-slate-100"
+                    : "text-slate-300 hover:bg-white/5"
               }`}
             >
               {item.label}

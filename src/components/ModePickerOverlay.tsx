@@ -27,7 +27,7 @@ type ModePickerOverlayProps = {
   onCancel?: () => void;
 };
 
-const MODES: ViewerMode[] = ["conflict", "economy"];
+const MODES: ViewerMode[] = ["conflict", "satellite", "live", "economy"];
 
 function layerHoverTitle(
   mode: ViewerMode,
@@ -188,7 +188,7 @@ export function ModePickerOverlay({
               })}
             </div>
           </div>
-        ) : (
+        ) : activeMode === "economy" ? (
           <div className="mt-6">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{t("modePickerHub", lang)}</p>
             <p className="mt-1 text-meta text-slate-600">{t("modePickerHubHint", lang)}</p>
@@ -215,6 +215,16 @@ export function ModePickerOverlay({
               })}
             </div>
           </div>
+        ) : (
+          <p className="mt-6 text-center text-sm text-slate-500">
+            {activeMode === "live"
+              ? lang === "en"
+                ? "ADS-B · AIS · GPS jam — no theater/hub picker."
+                : "ADS-B · AIS · GPS 재밍 — 전장/허브 선택 없음."
+              : lang === "en"
+                ? "Cesium observation — no theater/hub picker."
+                : "Cesium 관측 — 전장/허브 선택 없음."}
+          </p>
         )}
 
         <div className="mt-5 space-y-2 rounded-lg border border-slate-800 bg-black/25 px-3 py-3">

@@ -197,15 +197,7 @@ export function DashboardTopChrome({
           <div className="flex w-full flex-col items-center gap-0.5 bg-transparent py-0">
             <ImmersionDigitalClock lang={labelLanguage} variant="top" />
             <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-              <div className="flex justify-end">
-                <BottomDockModeToggle
-                  lang={labelLanguage}
-                  mode={bottomDockMode}
-                  onChange={onBottomDockModeChange}
-                  compact={isCompactUi}
-                  transparent
-                />
-              </div>
+              <div className="flex justify-end" />
               <div className="flex justify-center">
                 {onOpenLayers ? (
                   <button
@@ -233,7 +225,16 @@ export function DashboardTopChrome({
           </div>
         }
         belowNav={
-          <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+          <div className="flex w-full flex-col items-center gap-1.5">
+            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+            <BottomDockModeToggle
+              lang={labelLanguage}
+              mode={bottomDockMode}
+              onChange={onBottomDockModeChange}
+              compact={isCompactUi}
+              transparent
+            />
+          </div>
         }
       />
     </>

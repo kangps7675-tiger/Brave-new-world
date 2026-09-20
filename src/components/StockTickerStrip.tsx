@@ -18,6 +18,7 @@ import { liveTickerPollMs } from "@/lib/liveRenderGuard";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -39,7 +40,7 @@ const SPARKLINE_STROKE = {
 export type StockTickerStripProps = {
   mode?: IntelStackMode;
   /** 지정학 equity vs 지경학 선물 스트립 코어 */
-  viewerMode?: "conflict" | "economy";
+  viewerMode?: import("@/lib/viewPackages").ViewerMode;
   highlightSymbols?: string[];
   alertTone?: HeroStatus;
   /** L2 패널 헤더 라벨 표시 */
@@ -50,9 +51,9 @@ export type StockTickerStripProps = {
 
 function orderStripSymbols(
   highlightSymbols: string[],
-  viewerMode: "conflict" | "economy",
+  viewerMode: ViewerMode = "conflict",
 ): string[] {
-  return mergeTickerStripSymbols(highlightSymbols, viewerMode);
+  return mergeTickerStripSymbols(highlightSymbols, viewerMode === "economy" ? "economy" : "conflict");
 }
 
 function TickerSparkline({

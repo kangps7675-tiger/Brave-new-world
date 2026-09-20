@@ -342,6 +342,11 @@ export function buildPathsGeoJson<T>(
     hoverColor?: Accessor<T, string | undefined>;
     /** CRINK 인프라(kind="crink-infra") 전용 — power/pipeline/rail 등 세부 카테고리 필터용 */
     crinkCategory?: Accessor<T, string | undefined>;
+    /**
+     * MapLibre 스타일 버킷 — `"maritime-flow"`면 PortWatch식 흐르는 항로 레이어.
+     * (해상 회랑 leg · maritime-route). 점선(dashed)과 구분.
+     */
+    pathStyle?: Accessor<T, string | undefined>;
   },
 ): FeatureCollection<LineString> {
   return {
@@ -350,6 +355,10 @@ export function buildPathsGeoJson<T>(
       const pts = accessors.points(item);
       if (!pts || pts.length < 2) return [];
       const kind = accessors.kind?.(item);
+      const pathStyle =
+        accessors.pathStyle?.(item) ||
+        (kind === "maritime-route" ? "maritime-flow" : "") ||
+        "";
       const widthMode =
         kind && CABLE_KINDS.has(kind)
           ? "cable"
@@ -375,6 +384,7 @@ export function buildPathsGeoJson<T>(
             dashLength: accessors.dashLength(item),
             dashGap: accessors.dashGap(item),
             kind: kind ?? "",
+            pathStyle,
             glint: Boolean(accessors.glint?.(item)),
             groupId: accessors.groupId?.(item) ?? "",
             legIndex: accessors.legIndex?.(item) ?? 0,

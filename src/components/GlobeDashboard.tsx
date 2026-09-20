@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   buildNewsKeywordCatalog,
@@ -112,7 +112,6 @@ import {
   type TensionCutDestination,
 } from "@/components/globe/hooks/useTensionSpikeCut";
 import { useGpsJamLayer } from "@/hooks/useGpsJamLayer";
-import { buildGpsJamSoloPatch } from "@/lib/gpsJamSolo";
 import {
   reconCountryAccent,
   sampleReconOrbitTrack,
@@ -308,6 +307,7 @@ import { useLayerPrefsController } from "@/hooks/useLayerPrefsController";
 import {
   applyViewPackages,
   DEFAULT_PACKAGE_SELECTION,
+  loadViewConfig,
   viewerModeFromPackages,
   type MergedViewConfig,
   type ViewPackageId,
@@ -323,6 +323,7 @@ import {
 } from "@/data/newsInsightCatalog";
 import {
   DEFAULT_BASEMAP_MODE,
+  basemapForViewerMode,
   type BasemapMode,
 } from "@/lib/basemapMode";
 
@@ -704,6 +705,7 @@ import {
 import { createDashboardHtmlOverlayElement } from "@/components/globe/markers/createDashboardHtmlOverlayElement";
 import { GlobeMapCanvas } from "@/components/globe/GlobeMapCanvas";
 import { useGlobeMapGlobeProps } from "@/components/globe/hooks/useGlobeMapGlobeProps";
+import { useHistoryPolityLayers } from "@/components/globe/hooks/useHistoryPolityLayers";
 import { DashboardTopChrome } from "@/components/globe/DashboardTopChrome";
 import { useGlobeCamera } from "@/components/globe/hooks/useGlobeCamera";
 import { useTheaterNavigation } from "@/components/globe/hooks/useTheaterNavigation";
@@ -853,9 +855,34 @@ export function GlobeDashboard({
     const saved = initialViewConfig?.packages.filter((id) => id !== "custom");
     return saved && saved.length > 0 ? saved : DEFAULT_PACKAGE_SELECTION;
   });
-  const viewerMode = viewerModeFromPackages(viewPackages);
+  /** packages만으로는 conflict/history 구분이 안 되어 명시 상태 유지 */
+  const [viewerMode, setViewerMode] = useState<ViewerMode>(() => {
+    const saved = loadViewConfig()?.viewerMode;
+    if (
+      saved === "conflict" ||
+      saved === "history" ||
+      saved === "economy" ||
+      saved === "satellite" ||
+      saved === "live"
+    ) {
+      return saved;
+    }
+    const pkgs = initialViewConfig?.packages.filter((id) => id !== "custom");
+    return viewerModeFromPackages(
+      pkgs && pkgs.length > 0 ? pkgs : DEFAULT_PACKAGE_SELECTION,
+    );
+  });
   const viewerChromePreset = getViewerChrome(viewerMode);
   const isEconomyViewer = viewerMode === "economy";
+  const isSatelliteViewer = viewerMode === "satellite";
+  const isLiveViewer = viewerMode === "live";
+  const isConflictViewer = viewerMode === "conflict";
+  const isHistoryViewer = viewerMode === "history";
+  /** 역사 토글 연도 스크러버 — Balhae peak 데모 기본 850 (요동·연해주 중부) */
+  const [historyYear, setHistoryYear] = useState(850);
+  /** peacesciencer 배경 — 지정학/지경학만 (역사·관측·항적 제외) */
+  const peaceScienceFlashDomain =
+    isEconomyViewer ? ("economy" as const) : isConflictViewer ? ("conflict" as const) : null;
   const isCompactUi = useCompactUi();
   // 폰: 지구본을 mount하지 않고 텍스트/알림 뷰만. 태블릿/데스크톱만 3D 지구본.
   const isPhoneUi = usePhoneUi();
@@ -1093,7 +1120,7 @@ export function GlobeDashboard({
   );
   const { data: eastAsiaAdizFc } = useLazyJsonObject<FeatureCollection>(
     "east-asia-adiz.geojson",
-    !isEconomyViewer && globeReady,
+    isConflictViewer && globeReady,
     parseEastAsiaAdiz,
     { deferUntilIdle: true },
   );
@@ -1230,6 +1257,20 @@ export function GlobeDashboard({
       applyLayerPrefs(applyUltraLiteToLayerPrefs(loadLayerPrefs()));
     }
   }, [applyLayerPrefs]);
+
+  /**
+   * 4토글 중 전쟁·안보·경제·물류 → MapLibre 지형(+고줌 OSM 3D 건물).
+   * 항적 → 인텔(다크). 관측(Cesium)은 MapLibre basemap 유지(복귀 시 재적용).
+   */
+  useEffect(() => {
+    const next = basemapForViewerMode(viewerMode);
+    if (!next) return;
+    setBasemapMode((prev) => {
+      if (prev === next) return prev;
+      savePerfPrefs({ basemapMode: next });
+      return next;
+    });
+  }, [viewerMode]);
 
   /** 지형(밝은 벡터) 베이스맵이면 라벨·마커 팔레트를 저명도로 뒤집는다 */
   const basemapTone: BasemapTone = basemapMode === "terrain" ? "light" : "dark";
@@ -1797,26 +1838,7 @@ export function GlobeDashboard({
   const setShowReefWatch = (v: boolean) => togglePref("showReefWatch", v);
   const setShowSpaceLaunches = (v: boolean) => togglePref("showSpaceLaunches", v);
   const setShowReconSatellites = (v: boolean) => togglePref("showReconSatellites", v);
-  const gpsJamSoloSnapshotRef = useRef<LayerPrefs | null>(null);
-  const setShowGpsInterference = (v: boolean) => {
-    if (v) {
-      if (!layerPrefs.showGpsInterference) {
-        gpsJamSoloSnapshotRef.current = { ...layerPrefs };
-      }
-      applyLayerPrefs({
-        ...layerPrefs,
-        ...buildGpsJamSoloPatch(layerPrefs),
-      });
-      return;
-    }
-    const snap = gpsJamSoloSnapshotRef.current;
-    gpsJamSoloSnapshotRef.current = null;
-    if (snap) {
-      applyLayerPrefs({ ...snap, showGpsInterference: false });
-    } else {
-      togglePref("showGpsInterference", false);
-    }
-  };
+  const setShowGpsInterference = (v: boolean) => togglePref("showGpsInterference", v);
   const setShowIntelHotspots = (v: boolean) => togglePref("showIntelHotspots", v);
   const setShowAiDataCenters = (v: boolean) => togglePref("showAiDataCenters", v);
   const setShowEconomicCenters = (v: boolean) => togglePref("showEconomicCenters", v);
@@ -2389,7 +2411,7 @@ export function GlobeDashboard({
   /** NE 10m 고정밀 CRINK 4국 — 첫 프레임 양보 후 (idle, 상한 3s) */
   const { data: axisHubCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "axis-hub-countries.json",
-    !isEconomyViewer && globeReady,
+    isConflictViewer && globeReady,
     parseAxisHubCountries,
     { deferUntilIdle: true, idleTimeoutMs: 3_000 },
   );
@@ -2400,7 +2422,7 @@ export function GlobeDashboard({
   /** CRINK·NATO 등 진영 음영 — CRINK보다 늦게 (idle, 상한 5.5s) */
   const { data: alliedBlocCountriesSource } = useLazyJsonObject<FeatureCollection>(
     "allied-bloc-countries.json",
-    !isEconomyViewer && showAlliedBlocs && globeReady,
+    isConflictViewer && showAlliedBlocs && globeReady,
     parseAlliedBlocCountries,
     { deferUntilIdle: true, idleTimeoutMs: 5_500 },
   );
@@ -2426,7 +2448,7 @@ export function GlobeDashboard({
     error: reconSatError,
   } = useReconSatelliteLayer({
     // 전역 시야 전용 게이트를 풀었다 — 줌인 상태에서도 filterCenter 컬링으로만 줄인다
-    enabled: showReconSatellites && !isEconomyViewer,
+    enabled: showReconSatellites && isConflictViewer,
     filterCenter,
     cameraAltitude: layerAltitude,
     keepMarkerId: selectedReconMarkerId,
@@ -2664,22 +2686,10 @@ export function GlobeDashboard({
     date: gpsJamDate,
     status: gpsJamStatus,
   } = useGpsJamLayer({
-    enabled: showGpsInterference && !isEconomyViewer,
+    enabled: showGpsInterference && isLiveViewer,
     view: layerViewState,
     radiusDeg: VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 8,
   });
-
-  // 드래프트·다른 경로로 GPSJam ON 된 경우에도 솔로 강제
-  useEffect(() => {
-    if (!showGpsInterference || isEconomyViewer) return;
-    const patch = buildGpsJamSoloPatch(layerPrefs);
-    const extra = Object.keys(patch).filter((k) => k !== "showGpsInterference");
-    if (extra.length === 0) return;
-    if (!gpsJamSoloSnapshotRef.current) {
-      gpsJamSoloSnapshotRef.current = { ...layerPrefs, showGpsInterference: false };
-    }
-    patchLayerPrefsSoft(patch);
-  }, [showGpsInterference, isEconomyViewer, layerPrefs, patchLayerPrefsSoft]);
 
   const viinaDisplay = useMemo(
     () =>
@@ -2768,7 +2778,7 @@ export function GlobeDashboard({
   /** VIINA 근접 줌 — 폴리곤 fill 레이캐스트 제외 (수천 정점 hover 피킹 방지) */
   const mapInteractiveLayerIds = useMemo(() => {
     const blocFills: string[] = [];
-    if (!isEconomyViewer) {
+    if (isConflictViewer) {
       blocFills.push("axis-hub-countries-fill");
       if (showAlliedBlocs) blocFills.push("allied-bloc-countries-fill");
     } else if (showGeoEconBlocs) {
@@ -2787,7 +2797,7 @@ export function GlobeDashboard({
           ] as const);
     return [...core, ...blocFills];
   }, [
-    isEconomyViewer,
+    isConflictViewer,
     isViinaCloseZoom,
     showAlliedBlocs,
     showGeoEconBlocs,
@@ -3045,7 +3055,7 @@ export function GlobeDashboard({
     // 미사일 벨트 — 지정학에서 해당 권역이면 자동 표시 (레이어 토글 불필요)
     if (
       !showGpsInterference &&
-      !isEconomyViewer &&
+      isConflictViewer &&
       (globeLod.tier === "continent" ||
         globeLod.tier === "regional" ||
         globeLod.tier === "near" ||
@@ -3462,9 +3472,8 @@ export function GlobeDashboard({
   ]);
 
   /**
-   * 동맹 물류 회랑(military-logistics) — showStrategicCorridors(전체 회랑, 기본 꺼짐)와
-   * 별개로 기본 켜짐. "초기 화면 최소화"의 예외 — 대전략 이미지의 핵심 요소라서 무역/
-   * 제재우회 회랑까지 다 켜지 않고 이 카테고리만 따로 뗐다.
+   * 동맹 물류 회랑(military-logistics) — 기본 꺼짐.
+   * 북-이란·예멘·쿠바 등 추정 군수해상로가 첫 화면을 어지럽혀서 레이어 패널에서 켠다.
    */
   const alliedLogisticsCorridorPaths = useMemo<TransportPath[]>(() => {
     if (!showAlliedLogisticsCorridors) return [];
@@ -3743,7 +3752,7 @@ export function GlobeDashboard({
 
   const shipMoveHtmlMarkers = useMemo(
     () =>
-      showShipMovesLayer && !isEconomyViewer
+      showShipMovesLayer && isConflictViewer
         ? shipMovementHtmlMarkers(shipMovesLayerObservations)
         : [],
     [isEconomyViewer, shipMovesLayerObservations, showShipMovesLayer],
@@ -3751,7 +3760,7 @@ export function GlobeDashboard({
 
   const shipMovePulseRings = useMemo(
     () =>
-      showShipMovesLayer && !isEconomyViewer
+      showShipMovesLayer && isConflictViewer
         ? shipMovementPulseRings(shipMovesLayerObservations)
         : [],
     [isEconomyViewer, shipMovesLayerObservations, showShipMovesLayer],
@@ -3759,7 +3768,7 @@ export function GlobeDashboard({
 
   const shipMoveTrailPaths = useMemo(
     () =>
-      showShipMovesLayer && !isEconomyViewer
+      showShipMovesLayer && isConflictViewer
         ? shipMovementTrailPaths(
             shipMovesTrailObservations,
             labelLanguage === "en" ? "en" : "ko",
@@ -4140,6 +4149,7 @@ export function GlobeDashboard({
     aisVessels,
     disguisedVessels,
     isEconomyViewer,
+    isLiveViewer,
     showUsCarriers,
     showGpsInterference,
     showMilitaryActivity,
@@ -5068,8 +5078,12 @@ export function GlobeDashboard({
 
     try {
       const max = liveAisFetchMax();
-      // 지정학: military 우선 요청하되, D1에 군함이 거의 없으면 서버가 all로 완화·데모 폴백
-      const aisClass = isEconomyViewer ? "commercial" : "military";
+      // 지정학: 군함 · 지경학: 상업 · 항적: 전부
+      const aisClass = isLiveViewer
+        ? "all"
+        : isEconomyViewer
+          ? "commercial"
+          : "military";
       const response = await fetch(
         `/api/ais?seconds=8&max=${max}&class=${aisClass}&provider=auto`,
         { cache: "no-store" },
@@ -5087,7 +5101,7 @@ export function GlobeDashboard({
 
       let vessels = (payload.vessels || []).slice(0, max);
       // military만 비면 all로 한 번 더 (체크 ON 보장)
-      if (!isEconomyViewer && vessels.length === 0) {
+      if (isConflictViewer && vessels.length === 0) {
         const retry = await fetch(
           `/api/ais?seconds=8&max=${max}&class=all&provider=auto`,
           { cache: "no-store" },
@@ -5101,7 +5115,7 @@ export function GlobeDashboard({
     } finally {
       setAisLoading(false);
     }
-  }, [isEconomyViewer]);
+  }, [isConflictViewer, isEconomyViewer, isLiveViewer]);
 
   const refreshDisguisedVessels = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -5782,6 +5796,7 @@ export function GlobeDashboard({
     setShowResources,
     setShowNuclearSites,
     isEconomyViewer,
+    isLiveViewer,
     showUsDfcSupplyChain,
     usDfcSupplyPaths,
     setShowUsDfcSupplyChain,
@@ -6174,6 +6189,7 @@ export function GlobeDashboard({
         hero,
         labelLanguage,
         isEconomyViewer,
+        { peaceScienceDomain: peaceScienceFlashDomain },
       );
       if (cancelled) return;
       if (!claimBreakingFlash(hero.id)) return;
@@ -6195,6 +6211,7 @@ export function GlobeDashboard({
     newsStreamPayload?.hero?.title,
     newsStreamPayload?.hero?.summary,
     isEconomyViewer,
+    peaceScienceFlashDomain,
     labelLanguage,
     entryGate,
     showModePicker,
@@ -6268,7 +6285,7 @@ export function GlobeDashboard({
 
   /** NATO 동부 접경 UAV — 등불 pause 우회 · 지정학+Neptun만 */
   const { natoPerimeterAlert, dismissNatoPerimeterAlert } = useNatoPerimeterDroneAlert({
-    enabled: !isEconomyViewer && showNeptun,
+    enabled: isConflictViewer && showNeptun,
     threats: neptunThreats,
     flyTo,
     hardPaused: entryGate !== null || showModePicker,
@@ -6652,14 +6669,20 @@ export function GlobeDashboard({
     if (typeof window !== "undefined") {
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
     }
-    const effectiveTheater = mode === "conflict" ? theater : "auto";
+    const effectiveTheater =
+      mode === "conflict" || mode === "history" ? theater : "auto";
     const effectiveHub = mode === "economy" ? economyHub : "auto";
     const { merged, packages } = applyViewerMode(mode, effectiveTheater, effectiveHub);
+    setViewerMode(mode);
     applyMergedViewConfig(merged, packages, effectiveTheater, effectiveHub);
-    if (mode === "conflict" && effectiveTheater !== "auto") {
+    if ((mode === "conflict" || mode === "history") && effectiveTheater !== "auto") {
       rememberConflictTheater(effectiveTheater);
     } else if (mode === "economy" && effectiveHub !== "auto") {
       rememberEconomyHub(effectiveHub, String(effectiveHub), String(effectiveHub));
+    }
+    if (mode === "history") {
+      setBottomDockMode("history");
+      writeBottomDockMode("history");
     }
     if (mode === "economy") {
       setUkraineFrontLegendEngaged(false);
@@ -6671,8 +6694,51 @@ export function GlobeDashboard({
       setTelegramLive(false);
       setTelegramStatus("idle");
     }
+    if (mode === "satellite") {
+      setUkraineFrontLegendEngaged(false);
+      setShowDisputeLegendPanel(false);
+      setShowLeftPanel(false);
+      setGdeltEvents([]);
+      setGdeltFetchedAt(null);
+      setGdeltError(null);
+      setTelegramAlerts([]);
+      setTelegramLive(false);
+      setTelegramStatus("idle");
+      packageTheaterFocusPlayedRef.current = true;
+      packageEconFocusPlayedRef.current = true;
+      setViewUi((prev) => ({
+        ...prev,
+        autoEnterTheaterNavId: null,
+        autoEnterEconNavId: null,
+        autoOpenIntelSheet: false,
+        openLayerPanel: false,
+      }));
+    }
+    if (mode === "live") {
+      setUkraineFrontLegendEngaged(false);
+      setShowDisputeLegendPanel(false);
+      setGdeltEvents([]);
+      setGdeltFetchedAt(null);
+      setGdeltError(null);
+      setTelegramAlerts([]);
+      setTelegramLive(false);
+      setTelegramStatus("idle");
+      packageTheaterFocusPlayedRef.current = true;
+      packageEconFocusPlayedRef.current = true;
+      setViewUi((prev) => ({
+        ...prev,
+        autoEnterTheaterNavId: null,
+        autoEnterEconNavId: null,
+        autoOpenIntelSheet: false,
+        openLayerPanel: true,
+      }));
+      if (!isCompactUi) {
+        setLeftPanelTab("layers");
+        setShowLeftPanel(true);
+      }
+    }
     // 지정학 + 자동 전장: 전역 궤도 하드코딩 (우크라·핫알림 자동 fly 금지)
-    if (mode === "conflict" && effectiveTheater === "auto") {
+    if ((mode === "conflict" || mode === "history") && effectiveTheater === "auto") {
       packageTheaterFocusPlayedRef.current = true;
       setViewUi((prev) => ({
         ...prev,
@@ -6719,7 +6785,7 @@ export function GlobeDashboard({
     prepareLampForModeSwitch(mode);
     handleModeApply(
       mode,
-      mode === "conflict" ? viewTheater : "auto",
+      mode === "conflict" || mode === "history" ? viewTheater : "auto",
       mode === "economy" ? viewEconomyHub : "auto",
     );
   }
@@ -7490,7 +7556,7 @@ export function GlobeDashboard({
 
   // 핫 전장·초크 긴장 스파이크 → 렌즈 컷 오퍼
   const { tensionSpike, dismissTensionSpike } = useTensionSpikeCut({
-    enabled: !isEconomyViewer,
+    enabled: isConflictViewer,
     blocked: entryGate !== null || showModePicker || Boolean(airRaidBriefing) || issueUiPausedForLamp,
     calendarDayKey,
   });
@@ -7897,7 +7963,7 @@ export function GlobeDashboard({
       dismissLayerPanel(true);
       clearRegionNavSelection();
       setIntelSheetOpen(false);
-      if (!isEconomyViewer) {
+      if (isConflictViewer) {
         setUkraineFrontLegendEngaged(true);
         if (!showUkraineControl) togglePref("showUkraineControl", true);
         if (!showNeptun) togglePref("showNeptun", true);
@@ -7924,7 +7990,7 @@ export function GlobeDashboard({
   function handleAlertSelect(alert: DisputeAlert) {
     clearRegionNavSelection();
     setIntelSheetOpen(false);
-    if (!isEconomyViewer) setShowDisputeLegendPanel(true);
+    if (isConflictViewer) setShowDisputeLegendPanel(true);
     flyTo(alert.center.lat, alert.center.lng, 0.88);
     openSelection({ kind: "dispute", item: alert });
   }
@@ -8213,7 +8279,7 @@ export function GlobeDashboard({
         const nodeId = String(point.meta?.criticalNodeId ?? "");
         if (nodeId) {
           flyTo(point.lat, point.lng, 0.72, 900, { pitch: 55, bearing: -20 });
-          openCriticalNodeInsight(nodeId, !isEconomyViewer);
+          openCriticalNodeInsight(nodeId, isConflictViewer);
         }
         return;
       }
@@ -8487,6 +8553,11 @@ export function GlobeDashboard({
     }
   }
 
+  const historyPolityLayers = useHistoryPolityLayers({
+    enabled: isHistoryViewer && !isSatelliteViewer && !isPhoneUi,
+    year: historyYear,
+  });
+
   const mapGlobeProps = useGlobeMapGlobeProps({
     showLeftPanel,
     globeTextures,
@@ -8535,6 +8606,8 @@ export function GlobeDashboard({
     airRaidFocusBox,
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
+    historyCliopatriaGeoJson: historyPolityLayers.cliopatriaGeoJson,
+    historyKoreaGeoJson: historyPolityLayers.koreaGeoJson,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
@@ -8600,7 +8673,9 @@ export function GlobeDashboard({
         setShowFeatureGuide={setShowFeatureGuide}
         onSceneStart={openSceneMissionPicker}
         onOpenSources={() => setShowSourcesPanel(true)}
-        onOpenLayers={() => openLeftDrawer("layers")}
+        onOpenLayers={
+          isSatelliteViewer ? undefined : () => openLeftDrawer("layers")
+        }
         onOpenSettings={() => openLeftDrawer("settings")}
         onOpenData={() => openLeftDrawer("data")}
         bottomDockMode={bottomDockMode}
@@ -8851,11 +8926,12 @@ export function GlobeDashboard({
           isCompactUi={isCompactUi}
           loadError={loadError}
           containerBackgroundColor={globeTextures.backgroundColor}
+          satelliteMode={isSatelliteViewer}
           {...mapGlobeProps}
         />
 
         {/* 지구본 뷰(데스크톱·태블릿)에 상시 노출되는 출처 크레딧 — 폰은 MobileHomeView가 담당 */}
-        {!isPhoneUi ? (
+        {!isPhoneUi && !isSatelliteViewer ? (
           <MapAttributionBar
             lang={labelLanguage}
             layerPrefs={layerPrefs}
@@ -8866,6 +8942,41 @@ export function GlobeDashboard({
           />
         ) : null}
 
+        {isHistoryViewer && !isPhoneUi && !isSatelliteViewer ? (
+          <div
+            className="pointer-events-auto absolute bottom-16 left-1/2 z-[100] flex w-[min(420px,92vw)] -translate-x-1/2 flex-col gap-1 rounded-md border border-stone-600/50 bg-stone-950/85 px-3 py-2 shadow-lg backdrop-blur-sm"
+            role="group"
+            aria-label="역사 연도"
+          >
+            <div className="flex items-baseline justify-between gap-2 text-meta text-stone-200">
+              <span className="font-medium tracking-wide">역사 영토</span>
+              <span className="tabular-nums text-amber-200/90">
+                {historyPolityLayers.snapYear < 0
+                  ? `BCE ${Math.abs(historyPolityLayers.snapYear)}`
+                  : `CE ${historyPolityLayers.snapYear}`}
+                {historyPolityLayers.loading ? " · …" : ""}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={historyPolityLayers.years[0] ?? -3000}
+              max={
+                historyPolityLayers.years[
+                  historyPolityLayers.years.length - 1
+                ] ?? 2024
+              }
+              step={1}
+              value={historyYear}
+              onChange={(e) => setHistoryYear(Number(e.target.value))}
+              className="w-full accent-amber-600"
+            />
+            <p className="text-micro leading-snug text-stone-400">
+              한국사 GeoJSON 조사안 우선 · 발해 전성기(≈850)는 요동·연해주 중부 해안(교과서형)
+            </p>
+          </div>
+        ) : null}
+
+        {!isSatelliteViewer ? (
         <GeopoliticsMapChrome
           isEconomyViewer={isEconomyViewer}
           regionNavSelection={regionNavSelection}
@@ -8911,6 +9022,7 @@ export function GlobeDashboard({
           showUsCarriers={showUsCarriers}
           deployedCarrierCount={usCarriers.filter((c) => c.status === "deployed").length}
         />
+        ) : null}
         {!showLeftPanel &&
           !selected &&
           !isCompactUi &&
@@ -8946,6 +9058,7 @@ export function GlobeDashboard({
           const stackVisible =
             !intelSheetOpen && !showLeftPanel && !selected && !ukraineHidesFullStack;
           if (bottomDockMode !== "news") return null;
+          if (isSatelliteViewer) return null;
           return (
             <div
               className={stackVisible ? "contents" : "pointer-events-none invisible"}
@@ -9012,7 +9125,7 @@ export function GlobeDashboard({
           onOpen={() => setIntelSheetOpen(true)}
           onFlyToMap={handleIntelFlyTo}
           onOpenNewsInsight={handleOpenNewsInsight}
-          showTelegram={!isEconomyViewer}
+          showTelegram={isConflictViewer}
           telegramAlerts={telegramAlerts}
           telegramLive={telegramLive}
           telegramStatus={telegramStatus}
@@ -9028,7 +9141,7 @@ export function GlobeDashboard({
           viinaRuCellCount={ukraineRuCellCount}
           viinaLoading={ukraineControlStatus === "loading"}
           onViinaFlyTo={handleViinaEventFlyTo}
-          showGdelt={!isEconomyViewer && isCompactUi}
+          showGdelt={isConflictViewer && isCompactUi}
           gdeltAlerts={gdeltMenuCoreAlerts}
           gdeltLiveStatus={gdeltLoading ? "loading" : gdeltError ? "error" : "ok"}
           gdeltErrorMessage={gdeltError}

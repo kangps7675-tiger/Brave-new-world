@@ -26,8 +26,8 @@ export type CompactChipDef = {
 export const COMPACT_CONFLICT_PRESETS: CompactChipDef[] = [
   {
     id: "frontline",
-    labelKo: "전선",
-    labelEn: "Front",
+    labelKo: "폴리곤",
+    labelEn: "Polygons",
     layers: { ...FIRST_SCREEN_CONFLICT_ON },
   },
   {
@@ -59,8 +59,8 @@ export const COMPACT_CONFLICT_PRESETS: CompactChipDef[] = [
 export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
   {
     id: "lanes",
-    labelKo: "항로",
-    labelEn: "Lanes",
+    labelKo: "진영",
+    labelEn: "Blocs",
     layers: { ...FIRST_SCREEN_ECONOMY_ON },
   },
   {
@@ -88,12 +88,14 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
 ];
 
 export function compactPresetsForMode(mode: ViewerMode): CompactChipDef[] {
+  if (mode === "satellite" || mode === "live") return [];
   return mode === "economy" ? COMPACT_ECONOMY_PRESETS : COMPACT_CONFLICT_PRESETS;
 }
 
 export function defaultCompactChipId(mode: ViewerMode): CompactChipId {
-  // 지경학 진입 시 매장지·가스관·LNG가 바로 보이도록 energy 기본
-  return mode === "economy" ? "energy" : "frontline";
+  if (mode === "satellite" || mode === "live") return "frontline";
+  // 경제·물류 진입 시 진영 폴리곤(lanes 칩 = FIRST_SCREEN) 기본
+  return mode === "economy" ? "lanes" : "frontline";
 }
 
 function allLayersOff(base: LayerPrefs): LayerPrefs {

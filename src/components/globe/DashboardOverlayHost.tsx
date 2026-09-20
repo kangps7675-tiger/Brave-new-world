@@ -660,6 +660,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
   const [navToolsEl, setNavToolsEl] = useState<HTMLElement | null>(null);
   const [leftRailSlotEl, setLeftRailSlotEl] = useState<HTMLElement | null>(null);
+  const [watchFocusDismissed, setWatchFocusDismissed] = useState(false);
+
+  useEffect(() => {
+    setWatchFocusDismissed(false);
+  }, [watchFocusLine]);
 
   useEffect(() => {
     if (isCompactUi) {
@@ -978,56 +983,85 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {!intelSheetOpen && !isCompactUi && navToolsEl
         ? createPortal(
             <>
-              {!issueUiPausedForLamp &&
-              ((!isEconomyViewer &&
-                (showNeptun || neptunAlertCount > 0 || showTzevaAdom || showNewfeedsIranAttacks)) ||
-                (isEconomyViewer && showNewfeedsIranAttacks)) ? (
-                <div
-                  id="air-raid-chrome"
-                  className="pointer-events-auto flex items-start gap-2"
-                  onPointerEnter={onMaybeOfferAirRaidCoach}
-                  onFocusCapture={onMaybeOfferAirRaidCoach}
-                >
-                  {!isEconomyViewer &&
-                  (showNeptun || neptunAlertCount > 0 || showTzevaAdom) ? (
-                    <UnifiedAirRaidDropdown
-                      showUkraine={showNeptun || neptunAlertCount > 0}
-                      showIsrael={showTzevaAdom}
-                      neptunAlerts={neptunAlerts}
-                      neptunLive={neptunLive}
-                      neptunStatus={neptunStatus}
-                      neptunError={neptunError}
-                      tzevaActive={tzevaAdomActive}
-                      tzevaHistory={tzevaAdomHistory}
-                      tzevaLive={tzevaAdomLive}
-                      tzevaStatus={tzevaAdomStatus}
-                      tzevaGeoRestricted={tzevaAdomGeoRestricted}
-                      tzevaError={tzevaAdomError}
-                      lang={labelLanguage}
-                      onFocusUkraine={(target) => onAirRaidFocus(target, "neptun")}
-                      onFocusIsrael={(target) => onAirRaidFocus(target, "tzeva")}
-                    />
-                  ) : null}
-                  {showNewfeedsIranAttacks ? (
-                    <NewFeedsIranPanel
-                      attacks={newfeedsAttacks}
-                      threatLabel={newfeedsThreatLabel}
-                      live={newfeedsLive}
-                      liveStatus={newfeedsStatus}
-                      error={newfeedsError}
-                      lang={labelLanguage}
-                      onFocusAttack={(target) => onAirRaidFocus(target, "newfeeds")}
-                    />
-                  ) : null}
+              {gateClear ? (
+                <div className="group/chrome-stash pointer-events-auto relative flex shrink-0 items-start">
+                  <button
+                    type="button"
+                    className="map-chrome-control flex h-9 min-w-[2.35rem] items-center justify-center rounded-md border border-slate-500/35 bg-slate-950/75 px-2 text-micro font-semibold uppercase tracking-[0.08em] text-slate-200/90 shadow-sm transition group-hover/chrome-stash:border-amber-400/40 group-hover/chrome-stash:text-amber-100"
+                    aria-label={
+                      labelLanguage === "en"
+                        ? "Air alerts and tips"
+                        : "공습경보·꿀팁"
+                    }
+                    title={
+                      labelLanguage === "en"
+                        ? "Hover for air alerts & tips"
+                        : "호버하면 공습경보·꿀팁"
+                    }
+                  >
+                    {labelLanguage === "en" ? "Tips" : "알림"}
+                  </button>
+                  <div className="pointer-events-none absolute left-0 top-full z-[200] mt-1.5 flex min-w-[max-content] flex-col items-start gap-2 opacity-0 transition-opacity duration-150 group-hover/chrome-stash:pointer-events-auto group-hover/chrome-stash:opacity-100 group-focus-within/chrome-stash:pointer-events-auto group-focus-within/chrome-stash:opacity-100">
+                    {!issueUiPausedForLamp &&
+                    ((!isEconomyViewer &&
+                      (showNeptun ||
+                        neptunAlertCount > 0 ||
+                        showTzevaAdom ||
+                        showNewfeedsIranAttacks)) ||
+                      (isEconomyViewer && showNewfeedsIranAttacks)) ? (
+                      <div
+                        id="air-raid-chrome"
+                        className="flex items-start gap-2"
+                        onPointerEnter={onMaybeOfferAirRaidCoach}
+                        onFocusCapture={onMaybeOfferAirRaidCoach}
+                      >
+                        {!isEconomyViewer &&
+                        (showNeptun || neptunAlertCount > 0 || showTzevaAdom) ? (
+                          <UnifiedAirRaidDropdown
+                            showUkraine={showNeptun || neptunAlertCount > 0}
+                            showIsrael={showTzevaAdom}
+                            neptunAlerts={neptunAlerts}
+                            neptunLive={neptunLive}
+                            neptunStatus={neptunStatus}
+                            neptunError={neptunError}
+                            tzevaActive={tzevaAdomActive}
+                            tzevaHistory={tzevaAdomHistory}
+                            tzevaLive={tzevaAdomLive}
+                            tzevaStatus={tzevaAdomStatus}
+                            tzevaGeoRestricted={tzevaAdomGeoRestricted}
+                            tzevaError={tzevaAdomError}
+                            lang={labelLanguage}
+                            onFocusUkraine={(target) =>
+                              onAirRaidFocus(target, "neptun")
+                            }
+                            onFocusIsrael={(target) =>
+                              onAirRaidFocus(target, "tzeva")
+                            }
+                          />
+                        ) : null}
+                        {showNewfeedsIranAttacks ? (
+                          <NewFeedsIranPanel
+                            attacks={newfeedsAttacks}
+                            threatLabel={newfeedsThreatLabel}
+                            live={newfeedsLive}
+                            liveStatus={newfeedsStatus}
+                            error={newfeedsError}
+                            lang={labelLanguage}
+                            onFocusAttack={(target) =>
+                              onAirRaidFocus(target, "newfeeds")
+                            }
+                          />
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <div className="shrink-0">
+                      <ParchmentProTipChip lang={labelLanguage} />
+                    </div>
+                  </div>
                 </div>
               ) : null}
               {/* 데스크톱 주요전장/허브는 TopChrome ScenarioPresetChips만 (여기 ExplorationTabs 중복 제거) */}
               <div className="pointer-events-auto flex shrink-0 items-center gap-3 bg-transparent">
-                {gateClear ? (
-                  <div className="mx-1 shrink-0">
-                    <ParchmentProTipChip lang={labelLanguage} />
-                  </div>
-                ) : null}
                 {gateClear ? (
                   <>
                     <SentinelModeButton
@@ -1043,7 +1077,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                         }
                       }}
                     />
-                    {!issueUiPausedForLamp && playOverlay === null && !sentinelActive ? (
+                    {!issueUiPausedForLamp &&
+                    playOverlay === null &&
+                    !sentinelActive ? (
                       <PlayHubButton
                         lang={labelLanguage}
                         onPick={(kind) => {
@@ -1422,24 +1458,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {watchFocusLine &&
-      gateClear &&
-      !weeklyExpanded &&
-      !periodicBriefing &&
-      !sentinelActive ? (
-        // 검색창(z≈200)과 같은 top에 두면 금색 테두리만 뒤로 비쳐 "빈 입력칸"처럼 보임.
-        // compact에선 --hover-nav-base-height=0 이라 min으로 검색줄 높이만큼 확보.
-        <div
-          className="pointer-events-none absolute left-1/2 z-[100] w-[min(92vw,32rem)] -translate-x-1/2 px-2"
-          style={{
-            top: "calc(max(3.5rem, var(--hover-nav-base-height, 0px)) + 0.45rem + env(safe-area-inset-top, 0px))",
-          }}
-        >
-          <p className="rounded-full border border-amber-500/25 bg-[#0c1018]/88 px-3 py-1.5 text-center text-meta leading-snug tracking-[0.02em] text-amber-100/90 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-caption">
-            {watchFocusLine}
-          </p>
-        </div>
-      ) : null}
+      {/* watch focus는 좌하단 daily 스택으로 이동 */}
 
       {clearanceStatus &&
       clearanceStatus.kind !== "ok" &&
@@ -1544,6 +1563,22 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"
           }`}
         >
+          {watchFocusLine && !watchFocusDismissed ? (
+            <div className="flex max-w-[min(92vw,20rem)] items-start gap-2 rounded-lg border border-amber-500/30 bg-[#0c1018]/90 px-2.5 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
+              <p className="min-w-0 flex-1 text-meta leading-snug tracking-[0.02em] text-amber-100/90 sm:text-caption">
+                {watchFocusLine}
+              </p>
+              <button
+                type="button"
+                onClick={() => setWatchFocusDismissed(true)}
+                aria-label={labelLanguage === "en" ? "Dismiss watch reminder" : "지켜보기 알림 닫기"}
+                title={labelLanguage === "en" ? "Dismiss" : "닫기"}
+                className="tap-target flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-500/25 bg-slate-950/80 text-micro text-amber-100/70 transition hover:border-amber-300/50 hover:text-amber-50"
+              >
+                ✕
+              </button>
+            </div>
+          ) : null}
           {gateClosed &&
           !showModePicker &&
           !showLeftPanel &&

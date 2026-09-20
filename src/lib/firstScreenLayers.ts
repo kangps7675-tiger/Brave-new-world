@@ -5,48 +5,32 @@ type BooleanLayerKey = {
 }[keyof LayerPrefs];
 
 /**
- * 지정학 전역/전선 기본 — 전선·드론·타격·뉴스 네온·전략군사·군용 항적·FIRMS·ReefWatch·해저관·GEM 배관.
- * CRINK 영토 음영은 showAlliedBlocs(+ axis-hub는 prefs 없이 지정학 상시).
+ * 전쟁·안보 전역 첫 화면 — 영토·분쟁·진영 폴리곤만.
+ * 배관·기지·항적·이벤트·CRINK OSM 인프라는 패널에서 수동 ON.
  */
 export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showUkraineControl: true,
   showWarZones: true,
-  showNeptun: true,
-  showConflictEvents: true,
-  showGdeltWar: true,
-  showFirmsFires: true,
-  showMilitaryActivity: true,
-  showUsCarriers: true,
-  showWeeklyShipMoves: true,
-  showAis: true,
-  showReefWatch: true,
-  showMissileSilos: true,
-  showStrategicMissileBases: true,
-  showIslandChains: true,
-  showAxisNetwork: true,
   showAlliedBlocs: true,
-  showSubseaPipelines: true,
-  /** GEM 전 지구 트렁크 — 유럽 EMODnet 해저관만으로는 황금 배관 그물이 비어 보임 */
-  showOilPipelines: true,
-  showGasPipelines: true,
-  showTzevaAdom: true,
+  showIslandChains: true,
+  showEastAsiaAdiz: true,
 };
 
 /**
- * 지경학 전역 첫 화면 — 초크·항로·에너지·진영·민간 항적·데이터센터·해저관.
- * GSCPI·물류 스트레스는 viewerChrome FORCE_ON(+캡 면제).
+ * 경제·물류 전역 첫 화면 — 지경학 진영 폴리곤만.
+ * 항로·항구·배관·DC·항적은 패널에서 수동 ON.
  */
 export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> = {
-  showLogisticsRisk: true,
-  showShippingLanes: true,
-  showPorts: true,
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showStrategicCorridors: true,
   showGeoEconBlocs: true,
-  showOilPipelines: true,
-  showSubseaPipelines: true,
-  showAirTraffic: true,
+};
+
+/**
+ * 항적(라이브) 첫 화면 — ADS-B(군·민) · AIS · GPSJam.
+ * 전선·공언·시장 레이어는 다른 모드 홈. GPSJam은 ADS-B GNSS 이상 셀이라 여기가 본진.
+ */
+export const FIRST_SCREEN_LIVE_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showAis: true,
-  showAiDataCenters: true,
+  showAirTraffic: true,
+  showMilitaryActivity: true,
+  showGpsInterference: true,
 };

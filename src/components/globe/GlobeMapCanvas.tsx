@@ -1,9 +1,23 @@
 "use client";
 
 import type { RefObject } from "react";
+import dynamic from "next/dynamic";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
+
+const CesiumSatelliteGlobe = dynamic(
+  () =>
+    import("@/components/globe/CesiumSatelliteGlobe").then((m) => m.CesiumSatelliteGlobe),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center bg-[#02040a] text-sm text-sky-100/70">
+        Loading Cesium…
+      </div>
+    ),
+  },
+);
 
 export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   containerRef: RefObject<HTMLDivElement>;
@@ -11,16 +25,16 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   isPhoneUi: boolean;
   isCompactUi: boolean;
   loadError: string | null;
-  /** globeTextures.backgroundColor 그대로 — PausedMapGlobeView 자체의 backgroundColor prop과는
-   *  별개로 컨테이너 div 배경에도 동일 값을 적용하기 위해 명시적으로 전달받음. */
+  /** globeTextures.backgroundColor — 컨테이너 div 배경 */
   containerBackgroundColor: string;
+  /** 제3 위성 모드 — MapLibre 대신 Cesium (GEV식) */
+  satelliteMode?: boolean;
 };
 
 /**
- * GlobeDashboard의 지도 캔버스 영역(컨테이너 · PausedMapGlobeView · 로드 에러 배너).
- * 인텔·지형 모두 MapLibre 단일 WebGL — 벡터 베이스(+ 지형 고줌 시 Esri 위성 래스터 underlay).
- * 지형 모드 3D 건물은 Cesium OSM Buildings(3D Tiles, deck.gl) — 세슘 뷰어 없음.
- * Ion 토큰이 없으면 OpenFreeMap fill-extrusion 폴백.
+ * GlobeDashboard 지도 캔버스.
+ * - 지정학/지경학: MapLibre
+ * - 위성: CesiumJS (Esri imagery · optional Ion photoreal)
  */
 export function GlobeMapCanvas({
   containerRef,
@@ -31,6 +45,7 @@ export function GlobeMapCanvas({
   containerBackgroundColor,
   ultraLite,
   basemapMode,
+  satelliteMode = false,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -38,7 +53,7 @@ export function GlobeMapCanvas({
       ref={containerRef}
       className="globe-shell relative h-full w-full overflow-hidden"
       style={{
-        backgroundColor: containerBackgroundColor,
+        backgroundColor: satelliteMode ? "#02040a" : containerBackgroundColor,
         transform: isCompactUi
           ? undefined
           : "translateY(var(--hover-nav-base-height, 0px))",
@@ -46,7 +61,8 @@ export function GlobeMapCanvas({
       }}
     >
       <div className="absolute inset-0 z-10">
-        {!isPhoneUi ? (
+        {!isPhoneUi && satelliteMode ? <CesiumSatelliteGlobe /> : null}
+        {!isPhoneUi && !satelliteMode ? (
           <PausedMapGlobeView
             {...mapGlobeProps}
             basemapMode={basemapMode}
@@ -54,11 +70,11 @@ export function GlobeMapCanvas({
             ref={globeRef}
           />
         ) : null}
-        {loadError && (
+        {loadError && !satelliteMode ? (
           <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-auto sm:bottom-6 sm:max-w-md">
             <LoadErrorBanner message={loadError} compact />
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

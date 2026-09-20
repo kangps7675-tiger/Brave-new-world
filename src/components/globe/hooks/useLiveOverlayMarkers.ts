@@ -37,6 +37,8 @@ export type UseLiveOverlayMarkersOptions = {
   aisVessels: AisVessel[];
   disguisedVessels: AisVessel[];
   isEconomyViewer: boolean;
+  /** 항적 모드 — AIS 군·민 모두 */
+  isLiveViewer?: boolean;
   showUsCarriers: boolean;
   /** GPSJam 솔로 — 작전중 항모 잔여 표시까지 완전 숨김 */
   showGpsInterference?: boolean;
@@ -60,6 +62,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     aisVessels,
     disguisedVessels,
     isEconomyViewer,
+    isLiveViewer = false,
     showUsCarriers,
     showGpsInterference = false,
     showMilitaryActivity,
@@ -186,10 +189,12 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   );
 
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
-    // 지정학: 군함만. 지경학: 민간·상업선만.
-    const modeFilter = isEconomyViewer
-      ? (v: AisVessel) => v.category !== "military"
-      : (v: AisVessel) => v.category === "military";
+    // 지정학: 군함만. 지경학: 민간·상업선만. 항적: 전부.
+    const modeFilter = isLiveViewer
+      ? () => true
+      : isEconomyViewer
+        ? (v: AisVessel) => v.category !== "military"
+        : (v: AisVessel) => v.category === "military";
     const live = showAis
       ? pickInViewOrNearest(
           aisVessels
@@ -200,9 +205,9 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
           liveAisDisplayMax(globeLodTier, ultraLite),
         )
       : [];
-    // 지경학: 위장·무기고 선박 제외 (경제=민간·물류만)
+    // 지경학·항적: 위장·무기고 선박 제외 (항적은 본진 AIS만)
     const disguised =
-      !isEconomyViewer && showDisguisedVessels
+      !isEconomyViewer && !isLiveViewer && showDisguisedVessels
         ? pickInViewOrNearest(
             disguisedVessels,
             layerViewState,
@@ -222,6 +227,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     disguisedVessels,
     globeLodTier,
     isEconomyViewer,
+    isLiveViewer,
     layerViewState,
     showAis,
     showDisguisedVessels,

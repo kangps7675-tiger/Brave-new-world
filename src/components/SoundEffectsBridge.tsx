@@ -18,6 +18,7 @@ import {
   markBreakingMorsePlayed,
   type TickerTelegraphDirection,
 } from "@/lib/tickerSpikeTelegraph";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 /** 공습경보·A급 속보 타전·양피지 UI 버스 — 티커/일반 UI 클릭음은 차단 */
 export const CV_SOUND_EVENT = "cv-sound";
@@ -311,7 +312,7 @@ export type EconomyAmbientKind =
 export type ConflictAmbientKind = "global" | "frontline" | "taiwan-tension" | "tension" | null;
 
 type SoundEffectsBridgeProps = {
-  viewerMode?: "conflict" | "economy";
+  viewerMode?: ViewerMode;
   /** 뷰포트 안 NEPTUN 탄착이 있으면 true — 진입 시 폭발음 */
   neptunImpactInView?: boolean;
   /** 뷰포트 안 FIRMS 전투(폭격 추정) 화재가 있으면 true */

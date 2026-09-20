@@ -1,6 +1,7 @@
 import { theaterAssetSymbols } from "@/lib/theaterAssets";
 import { A_GRADE_MIN, shouldEmitBreakingSos } from "@/lib/news/breakingGrade";
 import type { BreakingUiRank, HeroBreakingItem } from "@/lib/news/types";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 /** @deprecated grade 체계로 대체 — A급(≥6) 이상이면 alert */
 export const ALERT_URGENCY_THRESHOLD = A_GRADE_MIN * 10;
@@ -65,7 +66,7 @@ export function resolveBreakingSos(hero: HeroBreakingItem | null): boolean {
 
 export function resolveIntelStackClearance(
   mode: IntelStackMode,
-  viewerMode: "conflict" | "economy" = "conflict",
+  viewerMode: ViewerMode = "conflict",
 ): string {
   if (viewerMode === "economy") {
     return mode === "alert"
