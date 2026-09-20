@@ -505,6 +505,7 @@ import {
   buildUkraineMicroSeedGeoJson,
   emptyUkraineFrontGeoJson,
 } from "@/lib/ukraineFrontGeojson";
+import { emptyOccupiedGeoJson } from "@/lib/deepstate/toOccupiedGeoJson";
 import { filterHatchPathsByView } from "@/lib/ukraineHatchPrecompute";
 import {
   prefetchDisputeHatchPaths,
@@ -1169,6 +1170,14 @@ export function GlobeDashboard({
   const [ukraineControlStatus, setUkraineControlStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >(() => (viinaMeta?.available ? "idle" : "error"));
+  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 이후 LIVEUAMAP 폴링으로 교체 예정 */
+  const [ukraineOccupiedGeoJson, setUkraineOccupiedGeoJson] = useState<FeatureCollection>(
+    () => emptyOccupiedGeoJson(),
+  );
+  const [ukraineOccupiedStatus, setUkraineOccupiedStatus] = useState<
+    "idle" | "loading" | "ok" | "error"
+  >("idle");
+  const ukraineOccupiedFetchRef = useRef(false);
   const [hapiCasualties] = useState<HapiConflictCasualtiesPayload>(() => ({
     ...HAPI_CASUALTY_SEED,
     fronts: [],
@@ -2810,6 +2819,48 @@ export function GlobeDashboard({
     viinaMeta?.available,
   ]);
 
+  /** 임시 DeepState 점령 영토 — VIINA 빗금 박스 대신 solid fill */
+  useEffect(() => {
+    if (!showUkraineControl || !globeReady) return;
+    if (ukraineOccupiedFetchRef.current) return;
+    if (ukraineOccupiedStatus === "loading" || ukraineOccupiedStatus === "ok") return;
+    ukraineOccupiedFetchRef.current = true;
+    setUkraineOccupiedStatus("loading");
+    let cancelled = false;
+    void (async () => {
+      const applyFc = (fc: FeatureCollection | undefined) => {
+        if (!fc?.features?.length) return false;
+        setUkraineOccupiedGeoJson(fc);
+        setUkraineOccupiedStatus("ok");
+        return true;
+      };
+      try {
+        const res = await fetch("/api/deepstate/frontlines");
+        if (res.ok) {
+          const body = (await res.json()) as { occupied?: FeatureCollection };
+          if (!cancelled && applyFc(body.occupied)) return;
+        }
+      } catch {
+        // fall through to static snapshot
+      }
+      try {
+        const snap = await fetch("/data/ukraine-occupied-deepstate.json");
+        if (snap.ok) {
+          const body = (await snap.json()) as FeatureCollection;
+          if (!cancelled && applyFc(body)) return;
+        }
+      } catch {
+        // empty
+      }
+      if (cancelled) return;
+      ukraineOccupiedFetchRef.current = false;
+      setUkraineOccupiedStatus("error");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [globeReady, showUkraineControl, ukraineOccupiedStatus]);
+
   useEffect(() => {
     if (!globeReady || (!showNeptun && !showNeptunPreviousTrails)) return;
     void prefetchNeptun();
@@ -2830,14 +2881,14 @@ export function GlobeDashboard({
     prevUkraineLayerOnRef.current = showUkraineControl;
     prevNeptunLayerOnRef.current = showNeptun;
     if (!ukraineTurnedOn && !neptunTurnedOn) return;
-    if (ukraineTurnedOn && viinaMeta?.available) {
+    if (ukraineTurnedOn && (viinaMeta?.available || ukraineOccupiedStatus === "ok")) {
       ukraineZoomPendingRef.current = true;
     }
     if (neptunTurnedOn) {
       neptunZoomPendingRef.current = true;
     }
     immediateUntilRef.current = Date.now() + 1800;
-  }, [showNeptun, showUkraineControl, viinaMeta?.available, immediateUntilRef]);
+  }, [showNeptun, showUkraineControl, ukraineOccupiedStatus, viinaMeta?.available, immediateUntilRef]);
 
   useEffect(() => {
     if (!showUkraineControl) {
@@ -3471,7 +3522,14 @@ export function GlobeDashboard({
   );
 
   const ukraineMacroGeoJson = useMemo(() => {
-    if (isEconomyViewer || !showUkraineControl || viinaDisplay.lod.mode === "hidden") {
+    if (isEconomyViewer || !showUkraineControl) {
+      return emptyUkraineFrontGeoJson();
+    }
+    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). LIVEUAMAP 전.
+    if (ukraineOccupiedGeoJson.features.length > 0) {
+      return ukraineOccupiedGeoJson;
+    }
+    if (viinaDisplay.lod.mode === "hidden") {
       return emptyUkraineFrontGeoJson();
     }
     if (viinaDisplay.ruZones.length > 0 || viinaDisplay.contestedZones.length > 0) {
@@ -3485,6 +3543,7 @@ export function GlobeDashboard({
   }, [
     isEconomyViewer,
     showUkraineControl,
+    ukraineOccupiedGeoJson,
     viinaDisplay.contestedZones,
     viinaDisplay.lod.mode,
     viinaDisplay.ruZones,
@@ -3492,7 +3551,31 @@ export function GlobeDashboard({
   ]);
 
   const ukraineMicroGeoJson = useMemo(() => {
-    if (isEconomyViewer || !showUkraineControl || viinaDisplay.lod.mode === "hidden") {
+    if (isEconomyViewer || !showUkraineControl) {
+      return emptyUkraineFrontGeoJson();
+    }
+    // 임시: 동일 DeepState 점령 fill을 micro에도 사용 (빗금·전투원 박스 없음)
+    if (ukraineOccupiedGeoJson.features.length > 0) {
+      return {
+        type: "FeatureCollection" as const,
+        features: ukraineOccupiedGeoJson.features.map((f, i) => ({
+          ...f,
+          id: typeof f.id === "string" ? f.id.replace("-macro-", "-micro-") : `deepstate-micro-${i}`,
+          properties: {
+            ...(f.properties ?? {}),
+            tier: "micro" as const,
+            fillOpacity:
+              typeof (f.properties as { fillOpacity?: number } | null)?.fillOpacity === "number"
+                ? Math.min(
+                    0.48,
+                    ((f.properties as { fillOpacity?: number }).fillOpacity ?? 0.32) + 0.06,
+                  )
+                : 0.4,
+          },
+        })),
+      };
+    }
+    if (viinaDisplay.lod.mode === "hidden") {
       return emptyUkraineFrontGeoJson();
     }
     if (viinaDisplay.ruZones.length > 0 || viinaDisplay.contestedZones.length > 0) {
@@ -3502,6 +3585,7 @@ export function GlobeDashboard({
   }, [
     isEconomyViewer,
     showUkraineControl,
+    ukraineOccupiedGeoJson,
     viinaDisplay.contestedZones,
     viinaDisplay.lod.mode,
     viinaDisplay.ruZones,

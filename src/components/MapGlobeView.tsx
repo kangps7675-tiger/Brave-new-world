@@ -3468,38 +3468,23 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               maxzoom={6.25}
               filter={[
                 "all",
-                ["==", ["geometry-type"], "Polygon"],
+                ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
                 ["in", ["get", "role"], ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]]],
               ]}
               paint={{
-                "fill-color": ["coalesce", ["get", "fill"], "#b91c1c"],
-                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.34],
+                "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.32],
               }}
             />
             <Layer
               id="ukraine-macro-outline"
               type="line"
               maxzoom={6.25}
-              filter={["==", ["geometry-type"], "Polygon"]}
+              filter={["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]]}
               paint={{
-                "line-color": ["coalesce", ["get", "stroke"], "#fecaca"],
-                "line-width": 1.4,
-                "line-opacity": 0.85,
-              }}
-            />
-            <Layer
-              id="ukraine-macro-hatch"
-              type="line"
-              maxzoom={6.25}
-              filter={[
-                "all",
-                ["==", ["geometry-type"], "LineString"],
-                ["==", ["get", "role"], "hatch"],
-              ]}
-              paint={{
-                "line-color": ["coalesce", ["get", "stroke"], "rgba(248,113,113,0.5)"],
-                "line-width": 0.9,
-                "line-opacity": 0.7,
+                "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
+                "line-width": 1.2,
+                "line-opacity": 0.8,
               }}
             />
           </Source>
@@ -3513,11 +3498,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               minzoom={5.75}
               filter={[
                 "all",
-                ["==", ["geometry-type"], "Polygon"],
+                ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
                 ["in", ["get", "role"], ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]]],
               ]}
               paint={{
-                "fill-color": ["coalesce", ["get", "fill"], "#f97316"],
+                "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
                 "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.4],
               }}
             />
@@ -3525,11 +3510,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               id="ukraine-micro-outline"
               type="line"
               minzoom={5.75}
-              filter={["==", ["geometry-type"], "Polygon"]}
+              filter={["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]]}
               paint={{
-                "line-color": ["coalesce", ["get", "stroke"], "#fed7aa"],
+                "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
                 "line-width": 1.1,
-                "line-opacity": 0.9,
+                "line-opacity": 0.85,
               }}
             />
             <Layer
@@ -3554,7 +3539,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={[
                 "all",
                 ["==", ["geometry-type"], "LineString"],
-                ["in", ["get", "role"], ["literal", ["advance", "hatch"]]],
+                ["==", ["get", "role"], "advance"],
               ]}
               paint={{
                 "line-color": ["coalesce", ["get", "stroke"], "#38bdf8"],
