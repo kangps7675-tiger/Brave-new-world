@@ -110,6 +110,7 @@ import {
   applyBasemapGlobeProjection,
   applyBasemapOceanColors,
   applyBasemapPlaceLabelScale,
+  applyBasemapAdminBoundaries,
   applyBasemapSatelliteImagery,
   applyBasemapSpaceBackground,
   applyBasemapTerrain,
@@ -329,6 +330,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const basemapMode = parseBasemapMode(props.basemapMode ?? DEFAULT_BASEMAP_MODE);
   const ultraLite = Boolean(props.ultraLite);
   const showCityLabels = Boolean(props.showCityLabels);
+  const historyTerritoryActive = Boolean(props.historyTerritoryActive);
   const onGlobeReady = props.onGlobeReady as (() => void) | undefined;
   const onGlobeMouseMove = props.onGlobeMouseMove as
     | ((coords: { lat: number; lng: number } | null) => void)
@@ -362,6 +364,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const basemapModeRef = useRef<BasemapMode>(basemapMode);
   const ultraLiteRef = useRef(ultraLite);
   const showCityLabelsRef = useRef(showCityLabels);
+  const historyTerritoryActiveRef = useRef(historyTerritoryActive);
   const [mapZoom, setMapZoom] = useState(2);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapLoadedRef = useRef(false);
@@ -418,6 +421,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   useEffect(() => {
     showCityLabelsRef.current = showCityLabels;
   }, [showCityLabels]);
+
+  useEffect(() => {
+    historyTerritoryActiveRef.current = historyTerritoryActive;
+  }, [historyTerritoryActive]);
 
   /**
    * style.json을 미리 fetch해 Map 마운트를 막으면 OpenFreeMap 응답·OneDrive I/O
@@ -1177,6 +1184,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
+      applyBasemapAdminBoundaries(m, {
+        visible: !historyTerritoryActiveRef.current,
+      });
       map.triggerRepaint();
     };
 
@@ -1312,6 +1322,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
+      applyBasemapAdminBoundaries(m, {
+        visible: !historyTerritoryActiveRef.current,
+      });
     };
 
     if (map.isStyleLoaded()) {
@@ -1350,6 +1363,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyTerrainForMap(m, basemapMode, ultraLite);
       applyBasemapSatelliteImagery(m, basemapMode);
       applyBasemapPlaceLabelScale(m, basemapMode, { showCityLabels });
+      applyBasemapAdminBoundaries(m, { visible: !historyTerritoryActive });
     };
 
     if (movingRef.current) {
@@ -1381,7 +1395,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
     apply();
     return undefined;
-  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl, showCityLabels]);
+  }, [basemapMode, mapLoaded, ultraLite, mapStyleUrl, showCityLabels, historyTerritoryActive]);
 
   /** terrain DEM 소스가 React로 붙은 뒤 setTerrain 재적용 */
   useEffect(() => {
@@ -1435,6 +1449,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
+      });
+      applyBasemapAdminBoundaries(m, {
+        visible: !historyTerritoryActiveRef.current,
       });
     };
     sync();
@@ -1748,6 +1765,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapSatelliteImagery(m, basemapModeRef.current);
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
+      });
+      applyBasemapAdminBoundaries(m, {
+        visible: !historyTerritoryActiveRef.current,
       });
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);

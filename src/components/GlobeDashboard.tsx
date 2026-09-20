@@ -1259,8 +1259,8 @@ export function GlobeDashboard({
   }, [applyLayerPrefs]);
 
   /**
-   * 4토글 중 전쟁·안보·경제·물류 → MapLibre 지형(+고줌 OSM 3D 건물).
-   * 항적 → 인텔(다크). 관측(Cesium)은 MapLibre basemap 유지(복귀 시 재적용).
+   * 지정학·역사·지경학·항적 → 전부 인텔(다크). 지형은 수동 토글.
+   * 관측(Cesium)은 MapLibre basemap 유지(복귀 시 재적용).
    */
   useEffect(() => {
     const next = basemapForViewerMode(viewerMode);
@@ -8608,6 +8608,7 @@ export function GlobeDashboard({
     ukraineMicroGeoJson,
     historyCliopatriaGeoJson: historyPolityLayers.cliopatriaGeoJson,
     historyKoreaGeoJson: historyPolityLayers.koreaGeoJson,
+    historyTerritoryActive: isHistoryViewer && !isSatelliteViewer && !isPhoneUi,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,

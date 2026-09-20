@@ -9,6 +9,7 @@
  */
 
 import type { Feature, FeatureCollection, Geometry } from "geojson";
+import { colorForKoreaFamily } from "@/lib/historical/polityColors";
 
 export type KoreaYearEntry = {
   year: number;
@@ -186,37 +187,21 @@ export function selectKoreaTerritoryFeatures(
 export function paintKoreaTerritoryFeature(feature: Feature): Feature {
   const props = (feature.properties || {}) as KoreaHistoryProps;
   const role = props.role || "korean";
-  const id = props.id || "";
-  const isBalhaeFinal = id === BALHAE_PEAK_FINAL_ID;
-  const isHypothesis = props.layer === "hypothesis";
-
-  let fill = "#c4a35a";
-  let fillOpacity = 0.42;
-  let stroke = "#8b6914";
-
-  if (role === "context") {
-    fill = "#64748b";
-    fillOpacity = 0.28;
-    stroke = "#334155";
-  } else if (isBalhaeFinal) {
-    fill = "#d97706";
-    fillOpacity = 0.48;
-    stroke = "#92400e";
-  } else if (isHypothesis) {
-    fill = "#eab308";
-    fillOpacity = 0.32;
-    stroke = "#a16207";
-  }
+  const family = territoryFamilyKey(props);
+  const paint = colorForKoreaFamily(family, {
+    role,
+    layer: props.layer ?? undefined,
+    nameBlob: blob(props),
+  });
 
   return {
     ...feature,
     properties: {
       ...props,
-      fill,
-      fillOpacity,
-      stroke,
-      label:
-        props.nameKo || props.nameEn || props.id || "",
+      fill: paint.fill,
+      fillOpacity: paint.fillOpacity,
+      stroke: paint.stroke,
+      label: props.nameKo || props.nameEn || props.id || "",
     },
   };
 }

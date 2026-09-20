@@ -6,6 +6,7 @@ import {
   cliopatriaSnapshotUrl,
   fetchCliopatriaManifest,
 } from "@/lib/historical/cliopatriaManifest";
+import { colorForCliopatriaPolity } from "@/lib/historical/polityColors";
 import {
   buildKoreaTerritoryGeoJson,
   fetchKoreaManifest,
@@ -120,17 +121,25 @@ export function useHistoryPolityLayers(opts: {
         if (cancelled) return;
         setCliopatria({
           type: "FeatureCollection",
-          features: (clioJson.features || []).map((f) => ({
-            ...f,
-            properties: {
-              ...(f.properties || {}),
-              fill:
-                (f.properties as { fill?: string } | null)?.fill || "#94a3b8",
-              fillOpacity: 0.18,
-              stroke: "#64748b",
-              label: (f.properties as { name?: string } | null)?.name || "",
-            },
-          })),
+          features: (clioJson.features || []).map((f) => {
+            const props = (f.properties || {}) as {
+              name?: string;
+              wikidata?: string;
+              seshatId?: string;
+              fill?: string;
+            };
+            const paint = colorForCliopatriaPolity(props);
+            return {
+              ...f,
+              properties: {
+                ...props,
+                fill: props.fill || paint.fill,
+                fillOpacity: paint.fillOpacity,
+                stroke: paint.stroke,
+                label: props.name || "",
+              },
+            };
+          }),
         });
         setKoreaRaw(krJson);
       } catch (e) {
