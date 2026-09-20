@@ -91,7 +91,7 @@ function waypointsToPoints(
     if (routed.length >= 2 && !pathCrossesLand(routed, 8)) {
       return routed.map((p) => ({ lat: p.lat, lng: p.lng, alt }));
     }
-    // 폴백: 구간별로라도 우회 시도
+    // 폴백: 구간별로라도 우회 시도 — 해상 모드는 육지 대권으로 떨어지지 않음
     const rebuilt: TransportPathPoint[] = [];
     for (let i = 0; i < raw.length - 1; i += 1) {
       const seg = routeOceanWaypoints([raw[i]!, raw[i + 1]!]);
@@ -101,11 +101,51 @@ function waypointsToPoints(
         rebuilt.push({ lat: use[j]!.lat, lng: use[j]!.lng, alt });
       }
     }
-    if (rebuilt.length >= 2 && !pathCrossesLand(
-      rebuilt.map((p) => ({ lat: p.lat, lng: p.lng })),
-      8,
-    )) {
-      return rebuilt;
+    if (rebuilt.length >= 2) {
+      const rebuiltLatLng = rebuilt.map((p) => ({ lat: p.lat, lng: p.lng }));
+      if (!pathCrossesLand(rebuiltLatLng, 8)) return rebuilt;
+      // 최후: 육지 샘플이 남는 구간만 다시 바다 A* (대권 폴백 금지)
+      const scrubbed: TransportPathPoint[] = [rebuilt[0]!];
+      for (let i = 1; i < rebuilt.length; i += 1) {
+        const a = scrubbed[scrubbed.length - 1]!;
+        const b = rebuilt[i]!;
+        if (
+          !pathCrossesLand(
+            [
+              { lat: a.lat, lng: a.lng },
+              { lat: b.lat, lng: b.lng },
+            ],
+            8,
+          )
+        ) {
+          scrubbed.push(b);
+          continue;
+        }
+        const detour = routeOceanWaypoints([
+          { lat: a.lat, lng: a.lng },
+          { lat: b.lat, lng: b.lng },
+        ]);
+        if (detour.length >= 2) {
+          for (let j = 1; j < detour.length; j += 1) {
+            scrubbed.push({
+              lat: detour[j]!.lat,
+              lng: detour[j]!.lng,
+              alt,
+            });
+          }
+        }
+      }
+      if (scrubbed.length >= 2 && !pathCrossesLand(
+        scrubbed.map((p) => ({ lat: p.lat, lng: p.lng })),
+        8,
+      )) {
+        return scrubbed;
+      }
+      // 그래도 실패하면 바다 라우트 최선의 결과라도 쓰고, 육지 대권은 쓰지 않음
+      if (routed.length >= 2) {
+        return routed.map((p) => ({ lat: p.lat, lng: p.lng, alt }));
+      }
+      if (rebuilt.length >= 2) return rebuilt;
     }
   }
 

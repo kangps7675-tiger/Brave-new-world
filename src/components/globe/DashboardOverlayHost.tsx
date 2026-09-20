@@ -136,9 +136,6 @@ import { UltraLiteOfferBanner } from "@/components/UltraLiteOfferBanner";
 import { LayerCapToast } from "@/components/LayerCapToast";
 import { LayerCacheStaleBadge } from "@/components/LayerCacheStaleBadge";
 import { TimeScrubberBar } from "@/components/TimeScrubberBar";
-import {
-  type BottomDockMode,
-} from "@/components/BottomDockModeToggle";
 import { GtiHeroMoment } from "@/components/GtiHeroMoment";
 import { SoundUnmuteNudge } from "@/components/SoundUnmuteNudge";
 import type { PerfProbeResult } from "@/lib/perfProbe";
@@ -162,6 +159,7 @@ import {
 } from "@/components/AirRaidBriefingParchment";
 import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
+import type { UxGuideBriefContent } from "@/lib/uxGuideBrief";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
 import { SpikeTelegraphBanner } from "@/components/SpikeTelegraphBanner";
 import type { SpikeTelegraphBannerOffer } from "@/components/SpikeTelegraphBanner";
@@ -356,9 +354,13 @@ export type DashboardOverlayHostProps = {
   showTourInvite: boolean;
   airRaidOffer: AirRaidOffer | null;
   airRaidBriefing: AirRaidBriefingContent | null;
+  /** 레이어 패널 첫 오픈 UX 안내 양피지 */
+  uxGuideBrief: UxGuideBriefContent | null;
+  onDismissUxGuideBrief: () => void;
   /** 귀중한 속보 타전 양피지 */
   breakingFlash: BreakingFlashBriefing | null;
   onDismissBreakingFlash: () => void;
+  onBreakingFlashGoToLocation?: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
   /** NATO 동부 접경 UAV 1차 칩 / 2차 반쪽 양피지 */
   natoPerimeterAlert: NatoPerimeterAlertState;
@@ -389,8 +391,6 @@ export type DashboardOverlayHostProps = {
     onChange: (date: string) => void;
     onGoToday: () => void;
   } | null;
-  /** 하단 독 · 히스토리(스크럽) / 뉴스(인텔 스택) */
-  bottomDockMode?: BottomDockMode;
   /** 첫 90초 종료 후 소리 언뮤트 유도 */
   soundUnmuteReady: boolean;
   ukmtoBriefing: UkmtoBriefingContent | null;
@@ -569,8 +569,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     showTourInvite,
     airRaidOffer,
     airRaidBriefing,
+    uxGuideBrief,
+    onDismissUxGuideBrief,
     breakingFlash,
     onDismissBreakingFlash,
+    onBreakingFlashGoToLocation,
     adsbEmergencyOffer,
     natoPerimeterAlert,
     onDismissNatoPerimeterAlert,
@@ -586,7 +589,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     gtiHeroSnapshot,
     gtiHeroVisible,
     timeScrubber = null,
-    bottomDockMode = "ships",
     soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
@@ -1640,6 +1642,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         /** 배너 1개 정책: 공습 > ADS-B/훈련 > 해상 > 선물SPIKE > 긴장컷 > 핫전장 > 코치 > Ultra-Lite */
         const briefingBusy = Boolean(
           airRaidBriefing ||
+            uxGuideBrief ||
             exerciseBriefing ||
             ukmtoBriefing ||
             navareaBriefing ||
@@ -1827,16 +1830,33 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {breakingFlash && !airRaidBriefing && !periodicBriefing && !weeklyExpanded ? (
+      {uxGuideBrief && !airRaidBriefing && !periodicBriefing && !weeklyExpanded ? (
+        <ParchmentLetter
+          lang={labelLanguage}
+          title={uxGuideBrief.title}
+          paragraphs={uxGuideBrief.paragraphs}
+          ctaLabel={uxGuideBrief.ctaLabel}
+          onContinue={onDismissUxGuideBrief}
+          typewriter={false}
+          titleId="ux-guide-brief-title"
+          backMark={labelLanguage === "en" ? "Guide" : "안내"}
+          backSub={labelLanguage === "en" ? "Brave New World" : "멋진 신세계"}
+          zIndexClass="z-[900]"
+        />
+      ) : null}
+
+      {breakingFlash && !airRaidBriefing && !uxGuideBrief && !periodicBriefing && !weeklyExpanded ? (
         <BreakingFlashParchment
           briefing={breakingFlash}
           lang={labelLanguage}
           onDismiss={onDismissBreakingFlash}
+          onGoToLocation={onBreakingFlashGoToLocation}
         />
       ) : null}
 
       {futuresSpikeInsightOffer &&
       !airRaidBriefing &&
+      !uxGuideBrief &&
       !periodicBriefing &&
       !weeklyExpanded &&
       !breakingFlash ? (
@@ -1914,7 +1934,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {!intelSheetOpen && timeScrubber && bottomDockMode === "ships" ? (
+      {!intelSheetOpen &&
+      timeScrubber &&
+      viewerMode !== "history" &&
+      viewerMode !== "satellite" ? (
         <div
           className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-dock-floor ${
             isCompactUi
