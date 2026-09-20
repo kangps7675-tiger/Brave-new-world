@@ -41,6 +41,8 @@ Three product pieces:
 
 지정학(전선 MapLibre)은 상단에서 빠지고 라이브·역사「오늘 링크」·인텔 시트로 이어 간다. **주간 함선 라이브(하단 독)는 삭제.**
 
+**Deep-dive (지정학 MVP, 2026-09-20):** 허브/마찰/영토 브리프 중에는 레이어 **교체(목표 3 / 상한 6)** 하고 속보 타전을 잠근다. 상세 → `docs/plans/2026-09-20-geopolitics-deep-dive-mvp.md`.
+
 Ant적(live air) prefs may still nest under 라이브 tools; not a fourth top toggle.
 
 ---
