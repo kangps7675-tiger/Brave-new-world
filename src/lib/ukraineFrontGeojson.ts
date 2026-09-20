@@ -40,8 +40,7 @@ export type UkraineFrontLayerRole =
   | "ua-occupied"
   | "defense-line"
   | "advance"
-  | "combat-ring"
-  | "hatch";
+  | "combat-ring";
 
 export type UkraineFrontProps = {
   role: UkraineFrontLayerRole;
@@ -185,35 +184,6 @@ function dissolveZonesToPolygons(
   return polys;
 }
 
-function hatchLinesForBbox(
-  minLng: number,
-  minLat: number,
-  maxLng: number,
-  maxLat: number,
-  step: number,
-  slash: boolean,
-): LineString[] {
-  const lines: LineString[] = [];
-  if (!(maxLng > minLng && maxLat > minLat)) return lines;
-  if (slash) {
-    for (let t = minLng - (maxLat - minLat); t <= maxLng; t += step) {
-      const a: LngLat = [Math.max(minLng, t), minLat];
-      const b: LngLat = [Math.min(maxLng, t + (maxLat - minLat)), maxLat];
-      if (a[0] === b[0] && a[1] === b[1]) continue;
-      if (!isInUkraineFrontTheater(a[0], a[1]) && !isInUkraineFrontTheater(b[0], b[1])) continue;
-      lines.push({ type: "LineString", coordinates: [a, b] });
-    }
-  } else {
-    for (let lat = minLat + step * 0.5; lat < maxLat; lat += step) {
-      const a: LngLat = [minLng, lat];
-      const b: LngLat = [maxLng, lat];
-      if (!isInUkraineFrontTheater((minLng + maxLng) / 2, lat)) continue;
-      lines.push({ type: "LineString", coordinates: [a, b] });
-    }
-  }
-  return lines;
-}
-
 function emptyFc(): FeatureCollection {
   return { type: "FeatureCollection", features: [] };
 }
@@ -231,39 +201,9 @@ function feature<G extends Polygon | LineString | Point>(
   };
 }
 
-function pushHatchForPolygon(
-  features: Feature[],
-  geometry: Polygon,
-  idPrefix: string,
-  stroke: string,
-  tier: "macro" | "micro",
-  step: number,
-) {
-  const ring = geometry.coordinates[0];
-  if (!ring?.length) return;
-  const lngs = ring.map((c) => Number(c[0]));
-  const lats = ring.map((c) => Number(c[1]));
-  for (const [hi, line] of hatchLinesForBbox(
-    Math.min(...lngs),
-    Math.min(...lats),
-    Math.max(...lngs),
-    Math.max(...lats),
-    step,
-    true,
-  ).entries()) {
-    features.push(
-      feature(
-        line,
-        { role: "hatch", tier, stroke },
-        `${idPrefix}-hatch-${hi}`,
-      ),
-    );
-  }
-}
-
 /**
- * 거시 (Zoom < 6): status별 polygon-clipping union + 빗금.
- * 격자 bbox 의사-dissolve는 union 실패 시에만 폴백.
+ * 거시 (Zoom < 6): status별 polygon-clipping union 점령 fill.
+ * 격자 bbox 의사-dissolve는 union 실패 시에만 폴백. 빗금 없음.
  */
 export function buildUkraineMacroGeoJson(
   ruZones: UkraineControlZone[],
@@ -306,7 +246,6 @@ export function buildUkraineMacroGeoJson(
           `macro-ru-union-${i}`,
         ),
       );
-      pushHatchForPolygon(features, geometry, `macro-ru-union-${i}`, "rgba(220,38,38,0.45)", "macro", 0.28);
     });
     claimParts.forEach((geometry, i) => {
       features.push(
@@ -361,7 +300,6 @@ export function buildUkraineMacroGeoJson(
         `macro-ru-${i}`,
       ),
     );
-    pushHatchForPolygon(features, geometry, `macro-ru-${i}`, "rgba(220,38,38,0.45)", "macro", 0.22);
   });
   dissolveZonesToPolygons(contestedZones, cellDeg * 0.9, 12).forEach((geometry, i) => {
     features.push(
@@ -467,7 +405,6 @@ export function buildUkraineMicroGeoJson(
         `micro-ru-union-${i}`,
       ),
     );
-    pushHatchForPolygon(features, geometry, `micro-ru-union-${i}`, "rgba(220,38,38,0.4)", "micro", 0.12);
   });
 
   explodeToPolygons(dissolved.CONTESTED).forEach((geometry, i) => {
@@ -613,24 +550,6 @@ export function buildUkraineMacroSeedGeoJson(): FeatureCollection {
         blob.id,
       ),
     );
-    const lngs = ring.map((c) => c[0]);
-    const lats = ring.map((c) => c[1]);
-    for (const [hi, line] of hatchLinesForBbox(
-      Math.min(...lngs),
-      Math.min(...lats),
-      Math.max(...lngs),
-      Math.max(...lats),
-      0.2,
-      true,
-    ).entries()) {
-      features.push(
-        feature(
-          line,
-          { role: "hatch", tier: "macro", stroke: "rgba(248,113,113,0.5)" },
-          `${blob.id}-hatch-${hi}`,
-        ),
-      );
-    }
   }
   return { type: "FeatureCollection", features };
 }
