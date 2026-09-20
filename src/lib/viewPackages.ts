@@ -27,9 +27,8 @@ export type ViewPackageId =
   | "custom";
 
 /**
- * 상단 스위치 — 1 지정학 · 2 역사 · 3 지경학
- * 관측(Cesium)·항적은 지정학 하위 도구로 유지(타입만 잔존, 상단 토글 제외).
- * @see docs/plans/2026-09-19-globe-episode-history-db-design.md
+ * 상단 스위치 — 1 지정학 · 2 프리미엄(Cesium) · 3 지경학
+ * 역사 영토는 지정학 하단 독(주간 함선과 교체). viewerMode "history"는 렌즈용으로 잔존.
  */
 export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
 
@@ -50,9 +49,10 @@ export function isPeaceScienceViewerMode(mode: ViewerMode): boolean {
 
 export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
   if (mode === "economy") return [ECONOMY_VIEWER_PACKAGE];
-  if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE];
+  // 프리미엄 — Cesium + 항적(ADS-B·AIS) + 시세 연관
+  if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE, LIVE_VIEWER_PACKAGE];
   if (mode === "live") return [LIVE_VIEWER_PACKAGE];
-  // conflict + history → 동일 지정학 패키지 (역사는 타임라인/Cliopatria 렌즈)
+  // conflict + history → 동일 지정학 패키지 (역사는 하단 독 영토 렌즈)
   return [CONFLICT_VIEWER_PACKAGE];
 }
 
@@ -164,22 +164,20 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   },
   {
     id: "satellite-eye",
-    label: "관측",
-    tagline: "공중 · Cesium",
-    description: "Cesium 글로브 · 레이어 트리 없음 (GEV식 관측면)",
+    label: "프리미엄",
+    tagline: "Cesium · 항적 · 시세",
+    description:
+      "Cesium 글로브 + ADS-B·AIS·시세 연관 (LIVEUA/X 피드 확장 예정)",
     layers: {
-      // 전부 OFF — 위성 모드는 MapLibre 레이어를 쓰지 않음
+      ...FIRST_SCREEN_LIVE_ON,
       showWarZones: false,
       showDiplomaticTension: false,
       showConflictEvents: false,
       showNeptun: false,
-      showAis: false,
-      showAirTraffic: false,
-      showGpsInterference: false,
       showCityLabels: false,
     },
     ui: {
-      showTicker: false,
+      showTicker: true,
       defaultIntelTab: "news",
       autoOpenIntelSheet: false,
       openLayerPanel: false,
@@ -360,13 +358,23 @@ function capLayerCount(
 
 export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): LayerPrefs {
   if (mode === "satellite") {
-    // 위성 관측면 — 레이어 전부 OFF
+    // 프리미엄 — ADS-B · AIS · 군용 ADS-B 유지, 전선·시장 잡음 컷
+    const keepOn = new Set<keyof LayerPrefs>([
+      "showAis",
+      "showAirTraffic",
+      "showMilitaryActivity",
+      "labelLanguage",
+    ]);
     const next = { ...layers };
     for (const key of Object.keys(next) as Array<keyof LayerPrefs>) {
-      if (key === "labelLanguage") continue;
+      if (keepOn.has(key)) continue;
       if (typeof next[key] === "boolean") {
         (next as Record<string, boolean | string>)[key as string] = false;
       }
+    }
+    for (const key of keepOn) {
+      if (key === "labelLanguage") continue;
+      (next as Record<string, boolean | string>)[key as string] = true;
     }
     return next;
   }
@@ -471,6 +479,10 @@ function mergeUi(
   if (ids.includes("geo-trader") && !ids.includes("frontline-live") && !ids.includes("conflict-watch")) {
     ui.showTicker = true;
     ui.defaultIntelTab = "news";
+  } else if (ids.includes("satellite-eye")) {
+    ui.showTicker = true;
+    ui.defaultIntelTab = "news";
+    ui.openLayerPanel = false;
   } else if (ids.includes("geo-trader")) {
     ui.showTicker = false;
   } else if (ids.includes("conflict-watch") || ids.includes("frontline-live")) {
@@ -635,9 +647,13 @@ export function previewModeSelection(
     bullets.push("GDELT 전투·외교 뉴스 · Telegram OSINT");
     bullets.push("하단: 속보 + GDELT 범례");
   } else if (mode === "satellite") {
-    bullets.push("Cesium 공중 글로브 · Esri / Photorealistic");
-    bullets.push("레이어 트리 없음 — 관측 보드");
-    bullets.push("이후: LiveUAMap · 공식 SNS (예정)");
+    bullets.push("Cesium 글로브 · Esri / Photorealistic");
+    bullets.push("ADS-B · AIS 항적 + 주식 티커 연관");
+    bullets.push("LIVEUAMAP · X API 피드 확장 예정");
+  } else if (mode === "history") {
+    bullets.push("Cliopatria·한국사 영토 채움 · 연도 스크럽");
+    bullets.push("지정학 하단 독「역사 영토」에서 진입");
+    bullets.push("현대 전선·등불·CRINK fill 숨김");
   } else if (mode === "live") {
     bullets.push("군·민 ADS-B 항공기 · AIS 선박");
     bullets.push("GPSJam — 항공기 GNSS 이상 셀 (재머 위치 아님)");

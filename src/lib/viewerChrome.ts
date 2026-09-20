@@ -411,17 +411,18 @@ export function stripEconomyGeopoliticsPatch(
   );
 }
 
-/** 위성 모드 — 레이어 트리 없음 · 관측 전용 */
+/** 프리미엄(Cesium) — 전선 폴리곤 OFF, 항적·시세 키트 ON (MapLibre 오버레이/후속 Cesium 엔티티) */
+const SATELLITE_FORCE_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_LIVE_ON,
+};
+
 const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
   ...ECONOMY_MILITARY_BLOCK,
   ...ECONOMY_FRONTLINE_BLOCK,
   ...CONFLICT_FORCE_OFF,
   ...ECONOMY_FORCE_OFF,
   showCityLabels: false,
-  showAirTraffic: false,
-  showAis: false,
   showGpsInterference: false,
-  showMilitaryActivity: false,
   showNeptun: false,
   showConflictEvents: false,
   showFirmsFires: false,
@@ -429,6 +430,8 @@ const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
   showLogisticsStress: false,
   showGscpiGauge: false,
   showSesChip: false,
+  // ADS-B · AIS 는 FORCE_ON — 여기서 끄지 않음
+  showWeeklyShipMoves: false,
 };
 
 /** 항적 모드 — ADS-B · AIS · GPSJam만. 전선·시장 강제 OFF */
@@ -553,28 +556,28 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
   satellite: {
     mode: "satellite",
     packageId: "satellite-eye",
-    layerCategoryIds: [],
-    forceLayerOn: {},
+    layerCategoryIds: ["map", "transport", "live", "economy"],
+    forceLayerOn: SATELLITE_FORCE_ON,
     forceLayerOff: SATELLITE_FORCE_OFF,
     fetchGdelt: false,
     fetchTelegram: false,
     bottomStack: "conflict",
     newsTierLabels: {
       1: { label: "공식", detail: "정부·기관 1차" },
-      2: { label: "관측", detail: "공개 OSINT" },
-      3: { label: "참고", detail: "미확인" },
+      2: { label: "관측", detail: "공개 OSINT · X" },
+      3: { label: "참고", detail: "미확인 · LIVEUA" },
     },
     navProfile: [],
-    searchPlaceholder: "좌표 · 전장 · 시설",
-    navHeaderLabel: "위성 관측",
-    modePickerTitle: "관측",
-    modePickerTagline: "공중 글로브 · Cesium · 출처 표기",
+    searchPlaceholder: "좌표 · 전장 · 티커 · 항적",
+    navHeaderLabel: "프리미엄",
+    modePickerTitle: "프리미엄",
+    modePickerTagline: "Cesium · ADS-B · AIS · 시세",
     modePickerBullets: [
-      "Esri World Imagery · (Ion) Photorealistic 3D",
-      "레이어 트리 없음 — 관측 보드",
-      "출처: Esri / Maxar / Cesium ion",
+      "Cesium 글로브 (Esri / Ion Photoreal)",
+      "ADS-B · AIS 항적 + 주식 티커 연관",
+      "LIVEUAMAP · X API 피드 확장 예정",
     ],
-    layerPanelTitle: "관측",
+    layerPanelTitle: "프리미엄 · 항적",
   },
   live: {
     mode: "live",
@@ -695,7 +698,8 @@ export function applyViewerMode(
     layers: conceptLayers,
     ui: {
       ...mergedBase.ui,
-      showTicker: mode === "economy",
+      // 지경학 · 프리미엄(Cesium) — 시세 스트립
+      showTicker: mode === "economy" || mode === "satellite",
     },
   };
 

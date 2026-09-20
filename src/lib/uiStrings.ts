@@ -51,8 +51,8 @@ const UI = {
     en: "Live tracks and fire dots are not replayed for this date — live observation only.",
   },
   bottomDockToggleAria: {
-    ko: "하단 창 전환 · 히스토리 또는 뉴스",
-    en: "Bottom panel · history or news",
+    ko: "하단 창 전환 · 역사 영토 또는 주간 함선",
+    en: "Bottom panel · territory or weekly ships",
   },
   bottomDockHistory: { ko: "히스토리", en: "History" },
   bottomDockNews: { ko: "뉴스", en: "News" },
@@ -63,6 +63,16 @@ const UI = {
   bottomDockNewsHint: {
     ko: "속보·티어별 뉴스 독",
     en: "Breaking & tiered news dock",
+  },
+  bottomDockTerritory: { ko: "역사 영토", en: "Territory" },
+  bottomDockTerritoryHint: {
+    ko: "Cliopatria·한국사 연도 스크럽 (주간 함선과 교체)",
+    en: "Cliopatria · Korea year scrub (swaps with weekly ships)",
+  },
+  bottomDockShips: { ko: "주간 함선", en: "Weekly ships" },
+  bottomDockShipsHint: {
+    ko: "주간 함정 이동 · 기준일 스크럽",
+    en: "Weekly ship moves · as-of scrubber",
   },
   layerDraftHint: {
     ko: "체크하면 바로 표시됩니다. 상단 「설정」을 누르면 선택한 상태가 그대로 저장됩니다.",
@@ -492,6 +502,11 @@ const UI = {
     ko: "맥락·연표·에피소드 — 오늘과 잇는 이유",
     en: "Context · timeline · episodes — why today links to then",
   },
+  domainPremiumTitle: { ko: "프리미엄", en: "Premium" },
+  domainPremiumHint: {
+    ko: "Cesium 관측 · ADS-B · AIS · 시세 — 한 화면에서 연관",
+    en: "Cesium · ADS-B · AIS · tickers — correlated on one screen",
+  },
   domainEconomyTitle: { ko: "지경학", en: "Geoeconomics" },
   domainEconomyHint: {
     ko: "진영·초크·공급 — 막힘이 시세에 닿는 구도",
@@ -687,10 +702,15 @@ const UI = {
     ko: "진영 · 공급망·시장은 패널에서",
     en: "Blocs · supply & markets from the panel",
   },
-  modeSatellite: { ko: "관측", en: "Observe" },
+  modePremium: { ko: "프리미엄", en: "Premium" },
+  modePremiumHint: {
+    ko: "Cesium · LIVEUA/X · ADS-B · AIS · 시세 연관 관측",
+    en: "Cesium · LIVEUA/X · ADS-B · AIS · correlated tickers",
+  },
+  modeSatellite: { ko: "프리미엄", en: "Premium" },
   modeSatelliteHint: {
-    ko: "공중 글로브 · Cesium · 출처 표기 (지정학 하위)",
-    en: "Aerial globe · Cesium · attributed (under Geopolitics)",
+    ko: "Cesium 글로브 · ADS-B · AIS · 시세",
+    en: "Cesium globe · ADS-B · AIS · tickers",
   },
   modeLive: { ko: "항적", en: "Tracks" },
   modeLiveHint: {

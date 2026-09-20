@@ -42,7 +42,7 @@ export interface DashboardTopChromeProps {
   isTabletUi?: boolean;
   setAskLayersOpen: Dispatch<SetStateAction<boolean>>;
   handleViewerModeChange: (mode: ViewerMode) => void;
-  /** 히스토리 / 뉴스 — 지정학·지경학과 같은 1급 토글 */
+  /** 히스토리 / 주간함선 — 지정학 계열에서만 노출 */
   bottomDockMode: BottomDockMode;
   onBottomDockModeChange: (mode: BottomDockMode) => void;
   globeRef: RefObject<MapGlobeMethods>;
@@ -227,13 +227,15 @@ export function DashboardTopChrome({
         belowNav={
           <div className="flex w-full flex-col items-center gap-1.5">
             <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
-            <BottomDockModeToggle
-              lang={labelLanguage}
-              mode={bottomDockMode}
-              onChange={onBottomDockModeChange}
-              compact={isCompactUi}
-              transparent
-            />
+            {viewerMode === "conflict" || viewerMode === "history" ? (
+              <BottomDockModeToggle
+                lang={labelLanguage}
+                mode={bottomDockMode}
+                onChange={onBottomDockModeChange}
+                compact={isCompactUi}
+                transparent
+              />
+            ) : null}
           </div>
         }
       />
