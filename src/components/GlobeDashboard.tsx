@@ -397,6 +397,17 @@ import {
   type LiveBriefingSession,
 } from "@/lib/eventBriefingSession";
 import {
+  applyConflictDeepDiveLayers,
+  deepDiveBlocksFlash,
+  FRICTION_DEEP_DIVE_PATCH,
+  TERRITORIAL_DEEP_DIVE_PATCH,
+  type DeepDiveSession,
+} from "@/lib/deepDive/session";
+import { DEEP_DIVE_LAYER_TARGET } from "@/lib/deepDive/layerBudget";
+import { resolveGeopoliticsRings } from "@/lib/deepDive/geopoliticsRings";
+import type { DeepDiveRing } from "@/lib/deepDive/rings";
+import { DeepDiveRingPanel } from "@/components/DeepDiveRingPanel";
+import {
   eastAsiaAdizToPaths,
   isEastAsiaAdizVisibleAtAltitude,
 } from "@/lib/eastAsiaAdiz";
@@ -981,6 +992,13 @@ export function GlobeDashboard({
   const [uxGuideBrief, setUxGuideBrief] = useState<UxGuideBriefContent | null>(null);
   /** 귀중한 속보 타전 양피지 — S급·고충격만 */
   const [breakingFlash, setBreakingFlash] = useState<BreakingFlashBriefing | null>(null);
+  /**
+   * 지정학 심층 — 허브/마찰/영토 브리프 중.
+   * 레이어 교체(목표 3) · 속보 타전 잠금.
+   */
+  const [deepDiveSession, setDeepDiveSession] = useState<DeepDiveSession | null>(null);
+  const deepDiveSessionRef = useRef<DeepDiveSession | null>(null);
+  deepDiveSessionRef.current = deepDiveSession;
   /** 로컬 자정에 바뀜 — 매일 등불·인가 재점화 트리거 */
   const calendarDayKey = useLocalCalendarDayKey();
   /** 6시간 슬롯 — 등불 사진·뉴스 재점화 */
@@ -2101,6 +2119,51 @@ export function GlobeDashboard({
     });
   }, [applyLayerPrefs]);
 
+  const exitConflictDeepDive = useCallback(
+    (opts?: { restore?: boolean }) => {
+      const restore = opts?.restore !== false;
+      const prev = deepDiveSessionRef.current;
+      deepDiveSessionRef.current = null;
+      if (prev && restore) applyLayerPrefs(prev.snapshot);
+      setDeepDiveSession(null);
+    },
+    [applyLayerPrefs],
+  );
+
+  const enterConflictDeepDive = useCallback(
+    (
+      kind: DeepDiveSession["kind"],
+      key: string,
+      patch: Parameters<typeof applyConflictDeepDiveLayers>[1],
+      label: string,
+    ) => {
+      if (isEconomyViewer) return;
+      setDeepDiveSession((prev) => {
+        if (prev?.key === key) return prev;
+        const snapshot = prev?.snapshot ?? { ...layerPrefsLiveRef.current };
+        const { prefs, sceneKeys } = applyConflictDeepDiveLayers(
+          snapshot,
+          patch,
+          DEEP_DIVE_LAYER_TARGET,
+        );
+        applyLayerPrefs(prefs);
+        setBreakingFlash(null);
+        const next: DeepDiveSession = {
+          domain: "conflict",
+          kind,
+          key,
+          snapshot,
+          sceneKeys,
+          label,
+          activeRingId: null,
+        };
+        deepDiveSessionRef.current = next;
+        return next;
+      });
+    },
+    [applyLayerPrefs, isEconomyViewer],
+  );
+
   const beginLiveBriefing = useCallback(
     (
       kind: LiveBriefingSession["kind"],
@@ -2127,6 +2190,7 @@ export function GlobeDashboard({
     clearTerritorialSequence();
     clearHubBriefTimer();
     historyStoryLockedRef.current = false;
+    exitConflictDeepDive();
     setFrictionEpisodeBrief(null);
     setRegimeSelectedEpisodeId(null);
     setFrictionActiveStageId(null);
@@ -2148,7 +2212,14 @@ export function GlobeDashboard({
       controls.enablePan = true;
       controls.enableRotate = true;
     }
-  }, [clearFrictionEpisodeTimer, clearHubBriefTimer, clearTerritorialSequence, size.height, size.width]);
+  }, [
+    clearFrictionEpisodeTimer,
+    clearHubBriefTimer,
+    clearTerritorialSequence,
+    exitConflictDeepDive,
+    size.height,
+    size.width,
+  ]);
 
   const handleFrictionCoachStepChange = useCallback((next: FrictionCoachStep | null) => {
     setFrictionCoachStep((prev) => {
@@ -2227,14 +2298,22 @@ export function GlobeDashboard({
   ]);
 
   const closeHubBrief = useCallback(() => {
-    setHubBriefOpen(false);
     const sel = regionNavSelection;
+    const diveSnap = deepDiveSessionRef.current?.snapshot;
+    setHubBriefOpen(false);
+    exitConflictDeepDive({ restore: false });
+    if (diveSnap) applyLayerPrefs(diveSnap);
     if (!sel) return;
     // 분쟁사는 역사 창 유지 — 실시간 중계 데스크로 전환하지 않음
     if (sel.focusMode === "regime" || sel.focusMode === "westpac-pulse") return;
     const place = sel.label || sel.id;
     beginLiveBriefing("hub", hubBriefingLayers(sel.id), place);
-  }, [beginLiveBriefing, regionNavSelection]);
+  }, [
+    applyLayerPrefs,
+    beginLiveBriefing,
+    exitConflictDeepDive,
+    regionNavSelection,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -2263,6 +2342,110 @@ export function GlobeDashboard({
       }, 780);
     },
     [clearHubBriefTimer, labelLanguage],
+  );
+
+  /**
+   * 지정학 심층 키 — 허브/마찰/영토 브리프가 열려 있는 동안만.
+   * 레이어 목표 3교체 · 속보 타전 잠금.
+   */
+  const geopoliticsDeepDiveKey = (() => {
+    if (isEconomyViewer || isSatelliteViewer) return null;
+    if (hubBriefOpen && regionNavSelection) {
+      return `hub:${regionNavSelection.id}`;
+    }
+    if (frictionEpisodeBrief) return `friction:${frictionEpisodeBrief.id}`;
+    if (territorialEpisodeBrief) return `territorial:${territorialEpisodeBrief.id}`;
+    return null;
+  })();
+
+  useEffect(() => {
+    if (!geopoliticsDeepDiveKey) {
+      if (deepDiveSessionRef.current) {
+        exitConflictDeepDive();
+      }
+      return;
+    }
+    if (deepDiveSessionRef.current?.key === geopoliticsDeepDiveKey) return;
+    if (geopoliticsDeepDiveKey.startsWith("hub:") && regionNavSelection) {
+      enterConflictDeepDive(
+        "hub",
+        geopoliticsDeepDiveKey,
+        hubBriefingLayers(regionNavSelection.id),
+        regionNavSelection.label || regionNavSelection.id,
+      );
+      return;
+    }
+    if (geopoliticsDeepDiveKey.startsWith("friction:") && frictionEpisodeBrief) {
+      enterConflictDeepDive(
+        "friction",
+        geopoliticsDeepDiveKey,
+        FRICTION_DEEP_DIVE_PATCH,
+        frictionEpisodeBrief.title,
+      );
+      return;
+    }
+    if (geopoliticsDeepDiveKey.startsWith("territorial:") && territorialEpisodeBrief) {
+      const title =
+        labelLanguage === "en"
+          ? territorialEpisodeBrief.titleEn
+          : territorialEpisodeBrief.title;
+      enterConflictDeepDive(
+        "territorial",
+        geopoliticsDeepDiveKey,
+        TERRITORIAL_DEEP_DIVE_PATCH,
+        title,
+      );
+    }
+  }, [
+    enterConflictDeepDive,
+    exitConflictDeepDive,
+    frictionEpisodeBrief,
+    geopoliticsDeepDiveKey,
+    labelLanguage,
+    regionNavSelection,
+    territorialEpisodeBrief,
+  ]);
+
+  const deepDiveRings = useMemo(() => {
+    if (!geopoliticsDeepDiveKey || !deepDiveSession) return [];
+    const stages =
+      frictionEpisodeBrief != null
+        ? frictionDeepDoc(frictionEpisodeBrief.id)?.stages ?? null
+        : null;
+    return resolveGeopoliticsRings({
+      deepDiveKey: geopoliticsDeepDiveKey,
+      navId: regionNavSelection?.id ?? null,
+      frictionStages: stages,
+    });
+  }, [
+    deepDiveSession,
+    frictionEpisodeBrief,
+    geopoliticsDeepDiveKey,
+    regionNavSelection?.id,
+  ]);
+
+  const selectDeepDiveRing = useCallback(
+    (ring: DeepDiveRing) => {
+      const session = deepDiveSessionRef.current;
+      if (!session) return;
+      const { prefs, sceneKeys } = applyConflictDeepDiveLayers(
+        session.snapshot,
+        ring.layers,
+        DEEP_DIVE_LAYER_TARGET,
+      );
+      applyLayerPrefs(prefs);
+      const next: DeepDiveSession = {
+        ...session,
+        sceneKeys,
+        activeRingId: ring.id,
+      };
+      deepDiveSessionRef.current = next;
+      setDeepDiveSession(next);
+      if (ring.camera) {
+        flyTo(ring.camera.lat, ring.camera.lng, ring.camera.altitude);
+      }
+    },
+    [applyLayerPrefs, flyTo],
   );
 
   const dismissAxisLink = useCallback(() => {
@@ -6222,6 +6405,7 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
+    if (deepDiveBlocksFlash(deepDiveSession)) return;
     if (airRaidBriefing || periodicBriefing || breakingFlash || exerciseBriefing) return;
     if (weeklyExpanded) return;
     if (neptunStatus !== "ok") return;
@@ -6242,6 +6426,7 @@ export function GlobeDashboard({
     airRaidBriefing,
     breakingFlash,
     chromeCoachStep,
+    deepDiveSession,
     entryGate,
     exerciseBriefing,
     globeReady,
@@ -6311,6 +6496,10 @@ export function GlobeDashboard({
   useEffect(() => {
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
+    if (deepDiveBlocksFlash(deepDiveSession)) {
+      if (breakingFlash) setBreakingFlash(null);
+      return;
+    }
     if (isHistoryViewer) {
       if (breakingFlash) setBreakingFlash(null);
       return;
@@ -6372,6 +6561,7 @@ export function GlobeDashboard({
     weeklyExpanded,
     breakingFlash,
     isHistoryViewer,
+    deepDiveSession,
   ]);
 
   const { exerciseOffer, dismissExerciseOffer } = useExerciseAlertAuto({
@@ -6380,6 +6570,7 @@ export function GlobeDashboard({
       entryGate !== null ||
       showModePicker ||
       issueUiPausedForLamp ||
+      deepDiveBlocksFlash(deepDiveSession) ||
       Boolean(airRaidBriefing) ||
       Boolean(airRaidOffer) ||
       Boolean(periodicBriefing) ||
@@ -8860,6 +9051,15 @@ export function GlobeDashboard({
       !showSceneMissionPicker &&
       !intelSheetOpen ? (
         <ReturnToGlobeChip lang={labelLanguage} onClick={returnToEntryOrbit} />
+      ) : null}
+
+      {deepDiveSession && deepDiveRings.length > 0 ? (
+        <DeepDiveRingPanel
+          rings={deepDiveRings}
+          activeRingId={deepDiveSession.activeRingId}
+          onSelect={selectDeepDiveRing}
+          lang={labelLanguage}
+        />
       ) : null}
 
       <GeopoliticsHubChrome
