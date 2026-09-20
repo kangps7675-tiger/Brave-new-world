@@ -6,6 +6,6 @@
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /** @deprecated 솔로 폐기 — showGpsInterference: true 만 반환 */
-export function buildGpsJamSoloPatch(_prefs: LayerPrefs): Partial<LayerPrefs> {
+export function buildGpsJamSoloPatch(): Partial<LayerPrefs> {
   return { showGpsInterference: true };
 }

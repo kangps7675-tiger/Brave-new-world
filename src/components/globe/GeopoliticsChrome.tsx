@@ -17,7 +17,6 @@ import type { DisputeHotspotEntry } from "@/lib/disputeHotspots";
 import type { SelectedAxisLink } from "@/lib/axisLinkSelection";
 import type { SelectedCorridor } from "@/lib/corridorSelection";
 import type { TerritorialDisputeEpisode } from "@/data/territorialDisputeEpisodes";
-import type { NewsStreamItem } from "@/lib/news/types";
 import type { HubBriefDoc } from "@/data/hubBriefs";
 import type { AxisHubId } from "@/data/axisNetwork";
 import type { NavSelection } from "@/data/navRegions";
@@ -33,10 +32,7 @@ import { filterArmsForHub, type AxisArmsPayload } from "@/lib/axisArmsPaths";
 import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
-import {
-  shipMovementParchmentParagraphs,
-  type ShipTrailMode,
-} from "@/lib/shipMovements/shipMovementBrief";
+import { shipMovementParchmentParagraphs } from "@/lib/shipMovements/shipMovementBrief";
 import type { TheaterFocusConfig, TheaterSidebarTab } from "@/lib/theaterFocus";
 import type { BottomAlertPanel } from "@/lib/localOverlayPolicy";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
@@ -110,19 +106,6 @@ export type GeopoliticsHubChromeProps = {
   livingTaiwanOpen: boolean;
   onLivingTaiwanClose: () => void;
   onLivingTaiwanFlyToMap: (lat: number, lng: number, altitude: number) => void;
-  westpacPulseOpen: boolean;
-  shipMovesLoading: boolean;
-  shipMovesTimeline: PublicShipObservation[];
-  shipMovesDisclaimer: string | null;
-  shipMovesSelectedId: string | null;
-  shipMovesTrailMode: ShipTrailMode;
-  shipMovesFocusGroupKey: string | null;
-  westpacNewsPool?: NewsStreamItem[];
-  onShipMoveSelect: (obs: PublicShipObservation) => void;
-  onShipTrailModeChange: (mode: ShipTrailMode) => void;
-  onShipVesselSelect: (groupKey: string, observations: PublicShipObservation[]) => void;
-  onShipMoveBrief: (observations: PublicShipObservation[], focusId?: string | null) => void;
-  onWestpacPulseClose: () => void;
   disputesOverviewOpen: boolean;
   disputeHotspots: DisputeHotspotEntry[];
   disputeHotspotSelectedId: string | null;
@@ -169,19 +152,6 @@ export function GeopoliticsHubChrome({
   livingTaiwanOpen,
   onLivingTaiwanClose,
   onLivingTaiwanFlyToMap,
-  westpacPulseOpen,
-  shipMovesLoading,
-  shipMovesTimeline,
-  shipMovesDisclaimer,
-  shipMovesSelectedId,
-  shipMovesTrailMode,
-  shipMovesFocusGroupKey,
-  westpacNewsPool = [],
-  onShipMoveSelect,
-  onShipTrailModeChange,
-  onShipVesselSelect,
-  onShipMoveBrief,
-  onWestpacPulseClose,
   disputesOverviewOpen,
   disputeHotspots,
   disputeHotspotSelectedId,
