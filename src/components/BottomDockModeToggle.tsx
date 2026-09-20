@@ -3,19 +3,23 @@
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { t } from "@/lib/uiStrings";
 
-export type BottomDockMode = "history" | "news";
+/** 지정학 하단 독 — 역사 영토 ↔ 주간 함선 (뉴스는 인텔 시트) */
+export type BottomDockMode = "territory" | "ships";
 
 const DOCK_MODE_KEY = "cv-bottom-dock-mode";
 
 export function readBottomDockMode(): BottomDockMode {
-  if (typeof window === "undefined") return "history";
+  if (typeof window === "undefined") return "ships";
   try {
     const raw = sessionStorage.getItem(DOCK_MODE_KEY);
-    if (raw === "news" || raw === "history") return raw;
+    if (raw === "territory" || raw === "ships") return raw;
+    // 레거시: history(asOf) → 영토, news → 함선
+    if (raw === "history") return "territory";
+    if (raw === "news") return "ships";
   } catch {
     /* ignore */
   }
-  return "history";
+  return "ships";
 }
 
 export function writeBottomDockMode(mode: BottomDockMode) {
@@ -37,8 +41,8 @@ type BottomDockModeToggleProps = {
 };
 
 /**
- * 하단 독 — 히스토리(시간 스크럽) / 뉴스(인텔 스택) 전환.
- * 바 바로 위에 두는 세그먼트 컨트롤.
+ * 하단 독 — 역사 영토(연도 스크럽) / 주간 함선 전환.
+ * 상단 3토글의「역사」슬롯을 대체한다.
  */
 export function BottomDockModeToggle({
   lang,
@@ -60,14 +64,14 @@ export function BottomDockModeToggle({
       {(
         [
           {
-            id: "history" as const,
-            label: t("bottomDockHistory", lang),
-            title: t("bottomDockHistoryHint", lang),
+            id: "territory" as const,
+            label: t("bottomDockTerritory", lang),
+            title: t("bottomDockTerritoryHint", lang),
           },
           {
-            id: "news" as const,
-            label: t("bottomDockNews", lang),
-            title: t("bottomDockNewsHint", lang),
+            id: "ships" as const,
+            label: t("bottomDockShips", lang),
+            title: t("bottomDockShipsHint", lang),
           },
         ] as const
       ).map((item) => {
@@ -82,7 +86,7 @@ export function BottomDockModeToggle({
             onClick={() => onChange(item.id)}
             className={`tap-target min-h-[36px] rounded-full px-3.5 font-medium transition ${
               active
-                ? item.id === "history"
+                ? item.id === "territory"
                   ? "bg-amber-500/25 text-amber-50 shadow-sm"
                   : "bg-sky-500/30 text-sky-50 shadow-sm"
                 : "text-sky-100/55 hover:bg-white/5 hover:text-sky-50/85"

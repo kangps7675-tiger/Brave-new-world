@@ -145,7 +145,7 @@ function isPolygonGeom(geom: Geometry | null | undefined): boolean {
 
 /**
  * Pick one territory polygon per family (Balhae → textbook: Liaodong + mid Primorye coast).
- * Includes Korean fills + Chinese/neighbor context when uiDefault.
+ * Korean fills only — neighbor/context (당·요·한…) gray rings are excluded.
  */
 export function selectKoreaTerritoryFeatures(
   features: Feature[]
@@ -159,10 +159,10 @@ export function selectKoreaTerritoryFeatures(
     if (!isKoreaFillLayer(props.layer)) continue;
 
     const role = props.role || "korean";
-    // Context (당·요·한…) — only when GeoJSON marks uiDefault
-    if (role === "context" && props.uiDefault === false) continue;
+    // Neighbor/context fills — never paint (were faint gray around Korea)
+    if (role === "context") continue;
     // Korean / authored — skip explicit uiDefault false
-    if (role !== "context" && props.uiDefault === false) continue;
+    if (props.uiDefault === false) continue;
 
     cands.push({
       feature,

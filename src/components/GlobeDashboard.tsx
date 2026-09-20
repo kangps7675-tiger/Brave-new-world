@@ -586,6 +586,7 @@ import {
   GeopoliticsParchmentChrome,
   GeopoliticsSidebarChrome,
 } from "@/components/globe/GeopoliticsChrome";
+import { StockTickerStrip } from "@/components/StockTickerStrip";
 import {
   NewsStreamProvider,
   IntelCompactBar,
@@ -788,7 +789,7 @@ export function GlobeDashboard({
   useEffect(() => {
     if (intelSheetOpen) setIntelChunkReady(true);
   }, [intelSheetOpen]);
-  const [bottomDockMode, setBottomDockMode] = useState<BottomDockMode>("history");
+  const [bottomDockMode, setBottomDockMode] = useState<BottomDockMode>("ships");
   const [layerPanelReady, setLayerPanelReady] = useState(false);
   const [frozenPanelCategories, setFrozenPanelCategories] = useState<LayerCategory[] | null>(null);
 
@@ -796,11 +797,11 @@ export function GlobeDashboard({
     setBottomDockMode(readBottomDockMode());
   }, []);
 
-  /** openIntelSheet 정의 후에 실제 핸들러로 교체 (뉴스 클릭 → 시트 오픈) */
+  /** openIntelSheet / 모드 적용 정의 후에 실제 핸들러로 교체 */
   const bottomDockModeChangeRef = useRef<(mode: BottomDockMode) => void>((mode) => {
     setBottomDockMode(mode);
     writeBottomDockMode(mode);
-    if (mode === "history") setIntelSheetOpen(false);
+    if (mode === "territory") setIntelSheetOpen(false);
   });
   const handleBottomDockModeChange = useCallback((mode: BottomDockMode) => {
     bottomDockModeChangeRef.current(mode);
@@ -890,9 +891,9 @@ export function GlobeDashboard({
   const isTabletUi = deviceProfile === "tablet";
   const isDesktopWideUi = deviceProfile === "desktop-wide";
 
-  /** 히스토리 독일 때 인텔 스택이 언마운트되므로 clearance를 스크럽+토글 높이로 직접 맞춤 */
+  /** 역사 영토 독일 때 인텔 스택이 언마운트되므로 clearance를 스크럽+토글 높이로 직접 맞춤 */
   useEffect(() => {
-    if (bottomDockMode !== "history" || intelSheetOpen) return;
+    if (bottomDockMode !== "territory" || intelSheetOpen) return;
     document.documentElement.style.setProperty(
       "--bottom-intel-stack-clearance",
       isCompactUi
@@ -6404,8 +6405,6 @@ export function GlobeDashboard({
     dismissLayerPanel(true);
     setSelected(null);
     if (!historyImmersionRef.current) setRegionNavSelection(null);
-    setBottomDockMode("news");
-    writeBottomDockMode("news");
     setIntelTheaterFilter(options?.theater ?? "all");
     setIntelSheetOpen(true);
     intelStackRef.current?.openNewsPanel(
@@ -6418,15 +6417,17 @@ export function GlobeDashboard({
     }
   }
 
-  // 하단 독 「뉴스」→ 시트 즉시 오픈 (모드만 바꾸면 CompactBar만 뜨고 창은 안 열림)
+  // 하단 독 — 역사 영토 ↔ 주간 함선 (지정학 렌즈 전환)
   bottomDockModeChangeRef.current = (mode) => {
-    if (mode === "history") {
-      setBottomDockMode("history");
-      writeBottomDockMode("history");
-      setIntelSheetOpen(false);
+    setBottomDockMode(mode);
+    writeBottomDockMode(mode);
+    setIntelSheetOpen(false);
+    if (mode === "territory") {
+      handleModeApply("history", viewTheater, "auto");
       return;
     }
-    openIntelSheet({ theater: "all", tab: "news" });
+    handleModeApply("conflict", viewTheater, "auto");
+    setShowWeeklyShipMoves(true);
   };
 
   const handleViinaEventFlyTo = useCallback(
@@ -6442,8 +6443,6 @@ export function GlobeDashboard({
     clearRegionNavSelection();
     // 지경학 RSS는 대부분 theater=global — 좌표 전장 필터를 걸면 목록이 비게 됨
     const theater = isEconomyViewer ? "all" : newsTheaterFromCoords(lat, lng);
-    setBottomDockMode("news");
-    writeBottomDockMode("news");
     setIntelTheaterFilter(theater);
     setIntelSheetOpen(true);
     intelStackRef.current?.openNewsPanel(theater, "news");
@@ -6687,13 +6686,17 @@ export function GlobeDashboard({
       rememberEconomyHub(effectiveHub, String(effectiveHub), String(effectiveHub));
     }
     if (mode === "history") {
-      setBottomDockMode("history");
-      writeBottomDockMode("history");
+      setBottomDockMode("territory");
+      writeBottomDockMode("territory");
       setPeriodicBriefing(null);
       setFoldedPeriodicBriefing(null);
       setBreakingFlash(null);
       setDailyLampSettled(true);
       lampModeSwitchPendingRef.current = false;
+    }
+    if (mode === "conflict") {
+      setBottomDockMode("ships");
+      writeBottomDockMode("ships");
     }
     if (mode === "economy") {
       setUkraineFrontLegendEngaged(false);
@@ -9004,6 +9007,29 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
+        {isSatelliteViewer && !isPhoneUi && viewUi.showTicker ? (
+          <div
+            className="pointer-events-auto absolute bottom-6 left-1/2 z-[100] flex w-[min(520px,94vw)] -translate-x-1/2 flex-col gap-1.5 rounded-md border border-teal-500/35 bg-[#041018]/88 px-3 py-2 shadow-lg backdrop-blur-sm"
+            role="region"
+            aria-label="프리미엄 피드"
+          >
+            <div className="flex items-center justify-between gap-2 text-meta text-teal-100/90">
+              <span className="font-medium tracking-wide">프리미엄 · Cesium</span>
+              <span className="text-micro text-teal-200/70">
+                ADS-B {showAirTraffic || showMilitaryActivity ? "ON" : "—"} · AIS{" "}
+                {showAis ? "ON" : "—"} · 시세
+              </span>
+            </div>
+            <StockTickerStrip
+              viewerMode="satellite"
+              paused={isCameraMoving}
+            />
+            <p className="text-micro leading-snug text-teal-200/55">
+              LIVEUAMAP · X API 피드는 이 모드에 이어서 연결합니다
+            </p>
+          </div>
+        ) : null}
+
         {!isSatelliteViewer ? (
         <GeopoliticsMapChrome
           isEconomyViewer={isEconomyViewer}
@@ -9085,8 +9111,8 @@ export function GlobeDashboard({
           const fabOnly = Boolean(isCompactUi && isUkraineTheaterFocus);
           const stackVisible =
             !intelSheetOpen && !showLeftPanel && !selected && !ukraineHidesFullStack;
-          if (bottomDockMode !== "news") return null;
-          if (isSatelliteViewer) return null;
+          if (bottomDockMode !== "ships") return null;
+          if (isSatelliteViewer || isHistoryViewer) return null;
           return (
             <div
               className={stackVisible ? "contents" : "pointer-events-none invisible"}
