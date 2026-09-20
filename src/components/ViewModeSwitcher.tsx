@@ -11,17 +11,13 @@ type ViewModeSwitcherProps = {
 };
 
 /** 상단 3토글 — 지정학 · 역사 · 지경학 (관측·항적은 지정학 하위 도구) */
-const TOP_MODES: Array<Extract<ViewerMode, "conflict" | "history" | "economy">> = [
-  "conflict",
-  "history",
-  "economy",
-];
+type TopMode = Extract<ViewerMode, "conflict" | "history" | "economy">;
 
 export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
   const { t } = useLocale();
   const light = useBasemapTone() === "light";
 
-  const MODES: Array<{ id: (typeof TOP_MODES)[number]; label: string; hint: string }> = [
+  const MODES: Array<{ id: TopMode; label: string; hint: string }> = [
     {
       id: "conflict",
       label: t("modeConflict"),
