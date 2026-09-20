@@ -387,7 +387,7 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showChinaJapanIncidents: false,
   showChinaPhilippinesIncidents: false,
   showUsChinaIncidents: false,
-  showWeeklyShipMoves: true,
+  showWeeklyShipMoves: false,
   showReefWatch: true,
   showNorthKoreaMissileTests: false,
   showUkraineStrikesOnRussia: false,

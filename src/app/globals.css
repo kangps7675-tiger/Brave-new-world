@@ -305,11 +305,26 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   font-style: normal;
 }
 
-/** 뉴스 헤드라인 — UI 글꼴 */
+/** 뉴스 헤드라인 — Gmarket Sans (신속속보·배너) */
 .font-news-headline {
-  font-family: var(--font-ui);
+  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+/** 신속속보 양피지 — 헤드라인 Gmarket, 본문 Pretendard/Inter */
+.parchment-letter--news-flash {
+  font-family: var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable",
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.parchment-letter--news-flash .welcome-letter-title,
+.parchment-letter--news-flash .welcome-letter-kicker {
+  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
 }
 
 /** 영문 UI — Inter 우선, Wanted 폴백 */
@@ -329,16 +344,30 @@ main[data-ui-lang="en"] .font-news-headline,
   font-family: var(--font-ui-en);
 }
 
+main[data-ui-lang="en"] .parchment-letter--news-flash {
+  font-family: var(--font-intel);
+}
+
+main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-title,
+main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-kicker {
+  font-family: var(--font-gmarket), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
 main[data-viewer="economy"] .font-en,
 .hover-nav--economy .font-en {
   font-family: var(--font-ui-en);
 }
 
-/** EN 양피지 — Merriweather (RIDI 필체·Intel UI 편지는 제외) */
-main[data-ui-lang="en"] .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel),
+/** EN 양피지 — Merriweather (RIDI 필체·Intel UI·신속속보 제외) */
+main[data-ui-lang="en"]
+  .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel):not(
+    .parchment-letter--news-flash
+  ),
 main[data-ui-lang="en"] .econ-insight-parchment,
 main[data-ui-lang="en"]
-  .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel)
+  .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel):not(
+    .parchment-letter--news-flash
+  )
   .welcome-parchment {
   font-family: var(--font-parchment-en);
   font-optical-sizing: auto;

@@ -27,8 +27,8 @@ export type ViewPackageId =
   | "custom";
 
 /**
- * 상단 스위치 — 1 지정학 · 2 프리미엄(Cesium) · 3 지경학
- * 역사 영토는 지정학 하단 독(주간 함선과 교체). viewerMode "history"는 렌즈용으로 잔존.
+ * 상단 스위치 — 1 역사 · 2 라이브(Cesium) · 3 지경학
+ * (지정학 conflict는 레거시/내부용. 주간 함선 독은 삭제.)
  */
 export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
 
@@ -52,7 +52,7 @@ export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
   // 프리미엄 — Cesium + 항적(ADS-B·AIS) + 시세 연관
   if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE, LIVE_VIEWER_PACKAGE];
   if (mode === "live") return [LIVE_VIEWER_PACKAGE];
-  // conflict + history → 동일 지정학 패키지 (역사는 하단 독 영토 렌즈)
+  // conflict + history → 동일 지정학 패키지 (역사는 상단 1번 · Cliopatria)
   return [CONFLICT_VIEWER_PACKAGE];
 }
 
@@ -164,10 +164,10 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   },
   {
     id: "satellite-eye",
-    label: "프리미엄",
-    tagline: "Cesium · 항적 · 시세",
+    label: "라이브",
+    tagline: "Cesium · LIVEUA · 시세",
     description:
-      "Cesium 글로브 + ADS-B·AIS·시세 연관 (LIVEUA/X 피드 확장 예정)",
+      "Cesium 글로브 + ADS-B·AIS·시세 · LIVEUA 고충격 양피지 타전",
     layers: {
       ...FIRST_SCREEN_LIVE_ON,
       showWarZones: false,
@@ -649,7 +649,7 @@ export function previewModeSelection(
   } else if (mode === "satellite") {
     bullets.push("Cesium 글로브 · Esri / Photorealistic");
     bullets.push("ADS-B · AIS 항적 + 주식 티커 연관");
-    bullets.push("LIVEUAMAP · X API 피드 확장 예정");
+    bullets.push("LIVEUA 전전선 ingest · S급만 양피지 타전");
   } else if (mode === "history") {
     bullets.push("Cliopatria·한국사 영토 채움 · 연도 스크럽");
     bullets.push("지정학 하단 독「역사 영토」에서 진입");

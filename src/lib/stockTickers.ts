@@ -155,6 +155,8 @@ export const TICKER_DISPLAY_NAMES: Record<string, { ko: string; en: string }> = 
   "^STOXX50E": { ko: "유로 STOXX 50", en: "Euro Stoxx 50" },
   "^BVSP": { ko: "브라질 보베스파", en: "Bovespa" },
   BDRY: { ko: "건화물 운임 ETF", en: "Dry Bulk Shipping ETF" },
+  /** LME·COMEX 모두 야후에서 직접 조회 가능한 니켈 선물(=F) 심볼이 없다 — Sprott 니켈 광산주 ETF를 대리지표로 사용. 인도네시아 니켈 채굴사(PT Antam·Nickel Industries·PT Merdeka Battery Materials)를 상당 비중 보유. */
+  NIKL: { ko: "니켈 광산주 ETF (NIKL)", en: "Nickel Miners ETF (NIKL)" },
 };
 
 /**
@@ -231,6 +233,7 @@ export const STOCK_TICKER_SYMBOLS: StockTickerSymbol[] = [
   { symbol: "^STOXX50E", label: "Euro Stoxx 50" },
   { symbol: "^BVSP", label: "Bovespa" },
   { symbol: "BDRY", label: "Dry Bulk Shipping ETF" },
+  { symbol: "NIKL", label: "Sprott Nickel Miners ETF" },
 ];
 
 /** Yahoo 심볼을 한글/영문 표시명으로. 없으면 기존 label·심볼 정제. */
@@ -305,7 +308,7 @@ export const ECONOMY_TICKER_STRIP_CORE: string[] = [
  */
 export function mergeTickerStripSymbols(
   highlightSymbols: string[] = [],
-  mode: "conflict" | "economy" = "conflict",
+  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
 ): string[] {
   const core =
     mode === "economy" ? ECONOMY_TICKER_STRIP_CORE : CONFLICT_TICKER_STRIP_CORE;
@@ -456,7 +459,7 @@ export const THEATER_RELATED_SYMBOLS: Record<TheaterMarketFilter, string[]> = {
 export function pickRelatedTickers(
   all: StockTickerItem[],
   filter: TheaterMarketFilter,
-  mode: "conflict" | "economy" = "conflict",
+  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
 ): StockTickerItem[] {
   const order = theaterAssetSymbols(filter, mode);
   const bySymbol = new Map(all.map((t) => [t.symbol, t]));
@@ -465,7 +468,7 @@ export function pickRelatedTickers(
 
 export function theaterMarketBlurb(
   filter: TheaterMarketFilter,
-  mode: "conflict" | "economy" = "conflict",
+  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
 ): string {
   return theaterAssetNote(filter, "ko", mode);
 }

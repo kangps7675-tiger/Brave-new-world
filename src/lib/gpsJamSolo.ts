@@ -1,23 +1,11 @@
 /**
- * GPSJam 솔로 모드 — ON 시 다른 레이어 boolean을 전부 끄고 재밍 히트맵만 남긴다.
- * OFF 시 호출측이 스냅샷을 복원한다.
+ * GPSJam — 예전에는 ON 시 다른 레이어를 전부 끄는 솔로 모드였다.
+ * 항적(live) 모드에서 ADS-B·AIS와 같이 보므로 솔로는 폐기.
+ * 호출부가 아직 import하면 빈 패치(재밍 ON만)를 돌려 호환을 유지한다.
  */
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
-const PRESERVE_KEYS = new Set<keyof LayerPrefs>([
-  "labelLanguage",
-  "showGpsInterference",
-]);
-
-/** 현재 prefs에서 GPSJam 솔로용 패치 생성 (다른 레이어 OFF) */
-export function buildGpsJamSoloPatch(prefs: LayerPrefs): Partial<LayerPrefs> {
-  const patch: Partial<LayerPrefs> = { showGpsInterference: true };
-  for (const key of Object.keys(prefs) as Array<keyof LayerPrefs>) {
-    if (PRESERVE_KEYS.has(key)) continue;
-    const val = prefs[key];
-    if (typeof val === "boolean" && val === true) {
-      (patch as Record<string, boolean>)[key] = false;
-    }
-  }
-  return patch;
+/** @deprecated 솔로 폐기 — showGpsInterference: true 만 반환 */
+export function buildGpsJamSoloPatch(_prefs: LayerPrefs): Partial<LayerPrefs> {
+  return { showGpsInterference: true };
 }

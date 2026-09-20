@@ -91,6 +91,11 @@ export type ParchmentLetterProps = {
   historyHandFont?: boolean;
   /** true면 Intel UI(Inter) — 첫입장 영문 편지 등 */
   intelFont?: boolean;
+  /**
+   * 신속속보 타전 — 뉴스 헤드라인(Gmarket)·본문(Pretendard/Inter).
+   * title에 `\n`이 있으면 첫 줄=키커(소제목), 나머지=제목.
+   */
+  newsFlashFont?: boolean;
   /** 등불 등 — 글자색 전부 검정 */
   blackInk?: boolean;
   /** dialog 접근성 라벨 id */
@@ -98,8 +103,13 @@ export type ParchmentLetterProps = {
   zIndexClass?: string;
   /** 본문 float 사진 (드롭캡 인사이트용) */
   leadImageUrl?: string | null;
+  /** 본문 영상 (가능 시) */
+  leadVideoUrl?: string | null;
   /** 첫 단락 드롭캡 */
   dropCap?: boolean;
+  /** 확인 옆 보조 CTA (예: 위치로 가기) — dismiss 없이 실행 */
+  secondaryCtaLabel?: string;
+  onSecondaryCta?: () => void;
 };
 
 const TYPE_MS_PER_CHAR = 28;
@@ -119,11 +129,15 @@ export function ParchmentLetter({
   typewriter = false,
   historyHandFont = false,
   intelFont = false,
+  newsFlashFont = false,
   blackInk = false,
   titleId = "parchment-letter-title",
   zIndexClass = "z-[800]",
   leadImageUrl = null,
+  leadVideoUrl = null,
   dropCap = false,
+  secondaryCtaLabel,
+  onSecondaryCta,
 }: ParchmentLetterProps) {
   /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
   const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
@@ -135,15 +149,32 @@ export function ParchmentLetter({
   /** 타이핑 중 본문 하단 자동 추적. 유저가 스크롤하면 false. */
   const autoScrollFollowRef = useRef(true);
   const programmaticScrollRef = useRef(false);
-  const parchmentStack = intelFont
-    ? "var(--font-intel)"
-    : historyHandFont
-      ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
-      : lang === "en"
-        ? "var(--font-parchment-en)"
-        : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';
+  /** 신속속보 — Gmarket 헤드라인 + 가독성 본문 */
+  const newsHeadlineStack =
+    'var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+  const newsBodyStack =
+    lang === "en"
+      ? "var(--font-intel)"
+      : 'var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+  const parchmentStack = newsFlashFont
+    ? newsBodyStack
+    : intelFont
+      ? "var(--font-intel)"
+      : historyHandFont
+        ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
+        : lang === "en"
+          ? "var(--font-parchment-en)"
+          : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';
   const bodyFont = parchmentStack;
-  const titleFont = parchmentStack;
+  const titleFont = newsFlashFont ? newsHeadlineStack : parchmentStack;
+  const { flashKicker, flashHeadline } = useMemo(() => {
+    if (!newsFlashFont) return { flashKicker: null as string | null, flashHeadline: title };
+    const nl = title.indexOf("\n");
+    if (nl < 0) return { flashKicker: null as string | null, flashHeadline: title };
+    const k = title.slice(0, nl).trim();
+    const h = title.slice(nl + 1).trim();
+    return { flashKicker: k || null, flashHeadline: h || title };
+  }, [newsFlashFont, title]);
   const resolvedBackMark = backMark ?? (lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko);
   const resolvedBackSub = backSub ?? (lang === "en" ? BRAND_NAME.ko : BRAND_NAME.en);
 
@@ -299,6 +330,8 @@ export function ParchmentLetter({
           className={`welcome-letter-card parchment-letter ${
             historyHandFont ? "parchment-letter--history" : ""
           } ${intelFont ? "parchment-letter--intel" : ""} ${
+            newsFlashFont ? "parchment-letter--news-flash" : ""
+          } ${
             blackInk ? "parchment-letter--lamp-ink" : ""
           } ${
             exiting ? "welcome-letter-card--fold-exit" : "welcome-letter-card--unfold-enter"
@@ -328,20 +361,41 @@ export function ParchmentLetter({
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-8 py-9 sm:px-14 sm:py-11">
               <h1
                 id={titleId}
-                className={`welcome-letter-title shrink-0 whitespace-pre-line text-center text-[1.7rem] leading-[1.4] tracking-[0.03em] sm:text-[2.15rem] sm:leading-[1.35] sm:tracking-[0.04em] ${
-                  blackInk ? "text-black" : "text-[#3d2a18]"
-                }`}
-                style={{ fontFamily: titleFont, fontWeight: 400 }}
+                className={`welcome-letter-title shrink-0 whitespace-pre-line text-center ${
+                  newsFlashFont
+                    ? "text-[1.55rem] leading-[1.35] tracking-[-0.02em] sm:text-[1.95rem] sm:leading-[1.3]"
+                    : "text-[1.7rem] leading-[1.4] tracking-[0.03em] sm:text-[2.15rem] sm:leading-[1.35] sm:tracking-[0.04em]"
+                } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                style={{
+                  fontFamily: titleFont,
+                  fontWeight: newsFlashFont ? 700 : 400,
+                }}
               >
-                {title}
+                {flashKicker ? (
+                  <>
+                    <span
+                      className={`welcome-letter-kicker mb-2.5 block text-[0.72rem] font-medium uppercase leading-snug tracking-[0.14em] sm:mb-3 sm:text-[0.78rem] sm:tracking-[0.16em] ${
+                        blackInk ? "text-black/75" : "text-[#8b3a1a]/90"
+                      }`}
+                      style={{ fontFamily: titleFont, fontWeight: 500 }}
+                    >
+                      {flashKicker}
+                    </span>
+                    <span className="block">{flashHeadline}</span>
+                  </>
+                ) : (
+                  flashHeadline
+                )}
               </h1>
               <div className="welcome-letter-divider mx-auto mt-4 shrink-0" aria-hidden />
               <div
                 ref={bodyScrollRef}
-                className={`welcome-letter-body mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain text-[1.02rem] leading-[1.65] tracking-[0.012em] sm:text-[1.08rem] sm:leading-[1.7] sm:tracking-[0.015em] ${
-                  blackInk ? "text-black" : "text-[#3f2e1c]"
-                }`}
-                style={{ fontFamily: bodyFont, fontWeight: 400 }}
+                className={`welcome-letter-body mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain ${
+                  newsFlashFont
+                    ? "text-[1.05rem] leading-[1.7] tracking-[-0.01em] sm:text-[1.1rem] sm:leading-[1.75]"
+                    : "text-[1.02rem] leading-[1.65] tracking-[0.012em] sm:text-[1.08rem] sm:leading-[1.7] sm:tracking-[0.015em]"
+                } ${blackInk ? "text-black" : "text-[#3f2e1c]"}`}
+                style={{ fontFamily: bodyFont, fontWeight: newsFlashFont ? 450 : 400 }}
                 aria-live="polite"
               >
                 {leadImageUrl ? (
@@ -350,6 +404,14 @@ export function ParchmentLetter({
                     src={leadImageUrl}
                     alt=""
                     className="parchment-insight-photo"
+                  />
+                ) : null}
+                {leadVideoUrl ? (
+                  <video
+                    src={leadVideoUrl}
+                    controls
+                    playsInline
+                    className="parchment-insight-photo max-h-56 w-full object-cover"
                   />
                 ) : null}
                 {visibleParagraphs.map((p, i) => (
@@ -369,12 +431,14 @@ export function ParchmentLetter({
                 ))}
                 {signOff && typingDone ? (
                   <p
-                    className={`whitespace-pre-line pb-2 pt-2 text-right text-[1.02rem] leading-relaxed tracking-[0.04em] ${
-                      blackInk ? "text-black" : "text-[#5a4428]"
-                    }`}
+                    className={`whitespace-pre-line pb-2 pt-2 text-right leading-relaxed ${
+                      newsFlashFont
+                        ? "text-[0.92rem] tracking-[0.02em]"
+                        : "text-[1.02rem] tracking-[0.04em]"
+                    } ${blackInk ? "text-black" : "text-[#5a4428]"}`}
                     style={{
                       fontFamily: parchmentStack,
-                      fontStyle: lang === "en" ? "italic" : "normal",
+                      fontStyle: newsFlashFont ? "normal" : lang === "en" ? "italic" : "normal",
                       fontWeight: 400,
                     }}
                   >
@@ -384,21 +448,42 @@ export function ParchmentLetter({
               </div>
             </div>
             <div className="relative shrink-0 border-t border-[#8b6914]/25 bg-[#f3e4c4]/80 px-6 py-4 text-center">
-              <button
-                type="button"
-                onClick={handleContinue}
-                disabled={phase !== "idle"}
-                className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base tracking-[0.06em] shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
-                  blackInk ? "text-black" : "text-[#3d2a18]"
-                }`}
-                style={{ fontFamily: titleFont, fontWeight: 400 }}
-              >
-                {typewriter && !typingDone
-                  ? lang === "en"
-                    ? "Skip typing"
-                    : "타자 건너뛰기"
-                  : ctaLabel}
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {secondaryCtaLabel && onSecondaryCta ? (
+                  <button
+                    type="button"
+                    onClick={onSecondaryCta}
+                    disabled={phase !== "idle"}
+                    className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-5 py-2.5 text-base shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
+                      newsFlashFont ? "tracking-[0.04em]" : "tracking-[0.06em]"
+                    } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                    style={{
+                      fontFamily: titleFont,
+                      fontWeight: newsFlashFont ? 500 : 400,
+                    }}
+                  >
+                    {secondaryCtaLabel}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={phase !== "idle"}
+                  className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
+                    newsFlashFont ? "tracking-[0.04em]" : "tracking-[0.06em]"
+                  } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                  style={{
+                    fontFamily: titleFont,
+                    fontWeight: newsFlashFont ? 500 : 400,
+                  }}
+                >
+                  {typewriter && !typingDone
+                    ? lang === "en"
+                      ? "Skip typing"
+                      : "타자 건너뛰기"
+                    : ctaLabel}
+                </button>
+              </div>
             </div>
           </div>
 

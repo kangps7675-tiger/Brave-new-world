@@ -238,6 +238,7 @@ export const ECONOMY_SCENARIO_PRESETS: ScenarioPreset[] = [
 ];
 
 export function scenarioPresetsForMode(mode: ViewerMode): ScenarioPreset[] {
+  if (mode === "satellite" || mode === "live") return [];
   return mode === "economy" ? ECONOMY_SCENARIO_PRESETS : CONFLICT_SCENARIO_PRESETS;
 }
 
