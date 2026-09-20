@@ -60,6 +60,8 @@ export type LayerPanelHostProps = {
   layerPanelSessionKey: number;
   batchPending: boolean;
   isEconomyViewer: boolean;
+  /** 역사 모드 — map 카테고리만 있으므로 그걸 자동 펼침 */
+  isHistoryViewer?: boolean;
   showUkraineControl: boolean;
   onPanelDraftPatch: (patch: Partial<LayerPrefs>) => void;
   showNeptun: boolean;
@@ -122,6 +124,7 @@ export function LayerPanelHost({
   layerPanelSessionKey,
   batchPending,
   isEconomyViewer,
+  isHistoryViewer = false,
   showUkraineControl,
   onPanelDraftPatch,
   showNeptun,
@@ -378,8 +381,10 @@ export function LayerPanelHost({
                     ? t("layerBatchApplying", labelLanguage)
                     : null
               }
-              autoExpandCategoryId={isEconomyViewer ? "energy" : "conflict"}
-              autoExpandWhen={showUkraineControl}
+              autoExpandCategoryId={
+                isEconomyViewer ? "energy" : isHistoryViewer ? "map" : "conflict"
+              }
+              autoExpandWhen={isHistoryViewer || isEconomyViewer || showUkraineControl}
               expandActiveCategories
               onPatch={onPanelDraftPatch}
               onLayerInfoHover={showLayerHoverInfo ? handleLayerInfoHover : undefined}
