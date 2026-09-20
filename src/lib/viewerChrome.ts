@@ -88,7 +88,7 @@ export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
 };
 
 export function resourceHeroLayersForMode(mode: ViewerMode): Partial<LayerPrefs> {
-  if (mode === "satellite" || mode === "live") return {};
+  if (mode === "satellite" || mode === "live" || mode === "history") return {};
   return mode === "economy" ? ECONOMY_RESOURCE_HERO_ON : CONFLICT_RESOURCE_HERO_ON;
 }
 
@@ -245,6 +245,51 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
   showReefWatch: false,
   showReconSatellites: false,
   showGpsInterference: false,
+};
+
+/**
+ * 역사 모드 — 현대 MapLibre 오버레이 전부 OFF.
+ * 영토 채움은 Cliopatria/Korea 히스토리 소스만 (크롬 prefs와 무관).
+ */
+const HISTORY_FORCE_ON: Partial<LayerPrefs> = {};
+
+const HISTORY_FORCE_OFF: Partial<LayerPrefs> = {
+  ...CONFLICT_FORCE_OFF,
+  ...ECONOMY_MILITARY_BLOCK,
+  /** 지정학 첫 화면 폴리곤도 끄기 */
+  showUkraineControl: false,
+  showUkraineStrikesOnRussia: false,
+  showWarZones: false,
+  showAlliedBlocs: false,
+  showCstoBloc: false,
+  showIslandChains: false,
+  showEastAsiaAdiz: false,
+  showDiplomaticTension: false,
+  showLsibBoundary: false,
+  showLogisticsStress: false,
+  showConflictZones: false,
+  showUcdpEvents: false,
+  showTelegramOsint: false,
+  showNewfeedsIranAttacks: false,
+  showUkmtoIncidents: false,
+  showEscalationSignals: false,
+  showGdeltWar: false,
+  showGdeltDiplomatic: false,
+  showGdeltAlliance: false,
+  showGdeltProtests: false,
+  showGdeltOceanCompetition: false,
+  showUsCarriers: false,
+  showAis: false,
+  showAirTraffic: false,
+  showMilitaryActivity: false,
+  showWeeklyShipMoves: false,
+  showDisguisedVessels: false,
+  showFirmsFires: false,
+  showReefWatch: false,
+  showGeoEconBlocs: false,
+  showSesChip: false,
+  showSanctionsEvasionCorridors: false,
+  showSanctionsEntities: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -482,10 +527,10 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
   history: {
     mode: "history",
     packageId: "frontline-live",
-    layerCategoryIds: ["map", "conflict", "military", "energy", "transport", "live"],
-    forceLayerOn: CONFLICT_FORCE_ON,
-    forceLayerOff: CONFLICT_FORCE_OFF,
-    fetchGdelt: true,
+    layerCategoryIds: ["map"],
+    forceLayerOn: HISTORY_FORCE_ON,
+    forceLayerOff: HISTORY_FORCE_OFF,
+    fetchGdelt: false,
     fetchTelegram: false,
     bottomStack: "conflict",
     newsTierLabels: {
@@ -497,11 +542,11 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "연도 · 사건 · 분쟁 · 계보",
     navHeaderLabel: "역사",
     modePickerTitle: "역사",
-    modePickerTagline: "맥락 · 오늘과 잇기 · 에피소드 심화",
+    modePickerTagline: "역사 영토 · 시대 스크럽",
     modePickerBullets: [
-      "시간 스크럽·Cliopatria 연도 채움은 이 모드에서",
-      "지정학과 같은 지도 뼈대, 렌즈만 역사",
-      "속보 peacesciencer 전망 문단은 끄고 사실 맥락에 집중",
+      "Cliopatria·한국사 GeoJSON 영토 채움만 표시",
+      "현대 국경·전쟁뉴스·항모·항적은 이 모드에서 끔",
+      "민족·문화권별 색으로 폴리티를 구분",
     ],
     layerPanelTitle: "레이어 · 역사",
   },

@@ -424,7 +424,7 @@ export function conceptLayerKeysForSelection(
   theater: ViewTheaterChoice,
   economyHub: EconomyHubChoice,
 ): BooleanLayerKey[] {
-  if (mode === "satellite" || mode === "live") return [];
+  if (mode === "satellite" || mode === "live" || mode === "history") return [];
   const patch =
     mode === "conflict"
       ? conceptLayersForConflict(theater)
@@ -442,7 +442,7 @@ export function mergeConceptLayerPrefs(
   theater: ViewTheaterChoice,
   economyHub: EconomyHubChoice,
 ): LayerPrefs {
-  if (mode === "satellite" || mode === "live") return base;
+  if (mode === "satellite" || mode === "live" || mode === "history") return base;
   const patch =
     mode === "conflict"
       ? conceptLayersForConflict(theater)
