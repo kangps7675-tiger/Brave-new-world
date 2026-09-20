@@ -1,5 +1,6 @@
 import type { CountryFeature, TransportPath } from "@/data/geoTypes";
 import { expandTransportPaths } from "@/lib/compactData";
+import { sanitizeLandPipelinePaths } from "@/lib/landPipelineSanitize";
 import { sanitizeShippingLanePaths } from "@/lib/shippingLaneSanitize";
 import { loadCloudStaticJson } from "@/lib/cloudStaticJson";
 import type { GlobeLodTier } from "@/lib/globeLod";
@@ -107,7 +108,11 @@ export async function loadAllTransportPaths(
     raw as Parameters<typeof expandTransportPaths>[0],
   );
   const sanitized =
-    layer === "shipping-lanes" ? sanitizeShippingLanePaths(paths) : paths;
+    layer === "shipping-lanes"
+      ? sanitizeShippingLanePaths(paths)
+      : layer === "oil-pipelines" || layer === "gas-pipelines"
+        ? sanitizeLandPipelinePaths(paths)
+        : paths;
   pathCache.set(key, sanitized);
   return sanitized;
 }

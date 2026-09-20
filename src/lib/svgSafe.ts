@@ -2,7 +2,7 @@
  * SVG 문자열 조립 시 속성값 이스케이프.
  *
  * 이 저장소의 SVG 빌더 결과는 dangerouslySetInnerHTML 로 그대로 주입된다
- * (MapLegend·AnalysisPanel·WeeklyShipMovesPanel·LocationPinIcon).
+ * (MapLegend·AnalysisPanel·LocationPinIcon).
  * 현재 인자는 전부 코드 내부 팔레트에서 오지만, 나중에 DB·API 값이 흘러들면
  * `fill="${x}"` 한 곳이 곧바로 XSS 싱크가 된다. 회귀 방지용 가드.
  *

@@ -31,15 +31,17 @@ Three product pieces:
 
 **Editorial lens:** **한국 원툴** — every issue/episode (conflict *or* econ) must show Korea impact or it is out.
 
-**Top chrome = 3 toggles** (replaces old 4: conflict / economy / live / satellite):
+**Top chrome = 3 toggles:**
 
 | # | Toggle | What loads |
 |---|--------|------------|
-| 1 | **지정학** | Conflict realtime + conflict episodes / kits |
-| 2 | **역사** | Context · today’s link · episode deepen · **Cliopatria year fills only here** |
+| 1 | **역사** | Context · today’s link · episode deepen · **Cliopatria year fills only here** |
+| 2 | **라이브** (`satellite`) | Cesium · LIVEUAMAP 전전선 ingest · **S급 고충격만** 양피지 타전 · ADS-B/AIS prefs · 시세 |
 | 3 | **지경학** | Economy realtime + econ episodes / kits |
 
-Ant적(live air) · 관측(satellite) are **not** top-level toggles anymore — nest under 지정학 as optional tools if kept.
+지정학(전선 MapLibre)은 상단에서 빠지고 라이브·역사「오늘 링크」·인텔 시트로 이어 간다. **주간 함선 라이브(하단 독)는 삭제.**
+
+Ant적(live air) prefs may still nest under 라이브 tools; not a fourth top toggle.
 
 ---
 
@@ -321,7 +323,7 @@ No Liveuamap-style ad pressure on the explainer path.
 - Analytics: completion, deepen, domain entry, **history-toggle year scrub**
 - Editorial: first 50 nodes; origin+NG for 3 issues
 - B2B one-pager: “지정학·지경학 에피소드 패키지”
-- Migrate UI from old 4-toggle (conflict/economy/live/satellite) → 3-toggle (지정학/역사/지경학)
+- Migrate UI from old toggles → 3-toggle (**역사 / 라이브 / 지경학**); 주간 함선 독 삭제
 
 ---
 

@@ -27,7 +27,7 @@ type ModePickerOverlayProps = {
   onCancel?: () => void;
 };
 
-const MODES: ViewerMode[] = ["conflict", "satellite", "live", "economy"];
+const MODES: ViewerMode[] = ["history", "satellite", "economy"];
 
 function layerHoverTitle(
   mode: ViewerMode,
@@ -44,7 +44,7 @@ function layerHoverTitle(
 }
 
 export function ModePickerOverlay({
-  initialMode = "conflict",
+  initialMode = "history",
   initialTheater = "auto",
   initialEconomyHub = "auto",
   lockMode = false,

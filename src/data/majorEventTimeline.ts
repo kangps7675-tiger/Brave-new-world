@@ -63,7 +63,9 @@ export type MajorEventTimelineEntry = {
 
 /**
  * 초크포인트 preferredSymbols — STOCK_TICKER_SYMBOLS에 있는 실심볼만 사용.
- * BDI 자체·니켈·멕시코 니어쇼어링 전용 티커는 없으므로 넣지 않는다(BDRY=운임 프록시).
+ * BDI 자체·멕시코 니어쇼어링 전용 티커는 없으므로 넣지 않는다(BDRY=운임 프록시).
+ * 니켈은 LME·COMEX 모두 야후 직접조회 선물(=F) 심볼이 없어 Sprott 니켈 광산주 ETF(NIKL)를
+ * 대리지표로 쓴다 — 초크포인트가 아니라 economy 도메인(인도네시아 니켈 에피소드)에서만 사용.
  * logisticsRiskPoints.meta.relatedTickers 라벨과 1:1로 맞춘다.
  */
 const ENERGY_GOLD = ["GC=F", "CL=F", "BZ=F", "DX-Y.NYB"] as const;
@@ -692,6 +694,19 @@ export const MAJOR_EVENT_TIMELINE: MajorEventTimelineEntry[] = [
     summaryEn: "Board approved Yongin Y2 (DRAM) and Cheongju M17 (NAND) — cleanrooms open 2027–2029.",
     preferredSymbols: ["005930.KS", "000660.KS", "^KS11"],
     relatedSupplyChainEpisodeId: "samsung-sk-hynix-korea-ai-memory-capacity-race-2019",
+  },
+  {
+    id: "indonesia-weda-bay-nickel-quota-halt-2026",
+    date: "2026-06-04",
+    theater: "southeast-asia",
+    domain: "economy",
+    kind: "market_shock",
+    labelKo: "에라멧 웨다베이니켈, 채굴쿼터 소진으로 생산 중단",
+    labelEn: "Eramet halts Weda Bay Nickel output after mining quota runs out",
+    summaryKo: "2026년 RKAB 채굴쿼터가 4200만→1200만 톤(-71%)으로 깎이며 5월 말 채굴이 멈췄다고 확인 — 인도네시아 정부는 물량 확대가 아니라 톤당 가격 방어가 목적이라고 설명.",
+    summaryEn: "Indonesia's 2026 RKAB quota cut 71% (42M to 12M tonnes) forced Weda Bay's ore mining to stop in late May — Jakarta frames the goal as price support, not output growth.",
+    preferredSymbols: ["NIKL", "000001.SS"],
+    relatedSupplyChainEpisodeId: "indonesia-nickel-downstreaming-resource-nationalism-2020",
   },
 ];
 

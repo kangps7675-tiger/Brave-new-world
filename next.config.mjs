@@ -102,6 +102,7 @@ function shouldUseMemoryWebpackCache(dev) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: [
+    "cesium",
     "@deck.gl/core",
     "@deck.gl/mapbox",
     "@deck.gl/geo-layers",

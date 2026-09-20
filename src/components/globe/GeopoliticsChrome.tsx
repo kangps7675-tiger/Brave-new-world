@@ -72,11 +72,6 @@ const LivingConflictPanel = dynamic(
     import("@/components/LivingConflictPanel").then((m) => m.LivingConflictPanel),
   { ssr: false },
 );
-const WeeklyShipMovesPanel = dynamic(
-  () =>
-    import("@/components/WeeklyShipMovesPanel").then((m) => m.WeeklyShipMovesPanel),
-  { ssr: false },
-);
 const TelegramOsintPanel = dynamic(
   () => import("@/components/TelegramOsintPanel").then((m) => m.TelegramOsintPanel),
   { ssr: false },
@@ -313,25 +308,6 @@ export function GeopoliticsHubChrome({
           open={livingTaiwanOpen}
           onClose={onLivingTaiwanClose}
           onFlyToMap={onLivingTaiwanFlyToMap}
-        />
-      ) : null}
-
-      {!isEconomyViewer && westpacPulseOpen ? (
-        <WeeklyShipMovesPanel
-          open={westpacPulseOpen}
-          lang={labelLanguage}
-          loading={shipMovesLoading}
-          observations={shipMovesTimeline}
-          disclaimer={shipMovesDisclaimer}
-          selectedId={shipMovesSelectedId}
-          trailMode={shipMovesTrailMode}
-          focusGroupKey={shipMovesFocusGroupKey}
-          newsPool={westpacNewsPool}
-          onTrailModeChange={onShipTrailModeChange}
-          onSelect={onShipMoveSelect}
-          onSelectVessel={onShipVesselSelect}
-          onOpenBrief={onShipMoveBrief}
-          onClose={onWestpacPulseClose}
         />
       ) : null}
     </>

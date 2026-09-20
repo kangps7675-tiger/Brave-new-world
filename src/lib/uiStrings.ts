@@ -64,16 +64,6 @@ const UI = {
     ko: "속보·티어별 뉴스 독",
     en: "Breaking & tiered news dock",
   },
-  bottomDockTerritory: { ko: "역사 영토", en: "Territory" },
-  bottomDockTerritoryHint: {
-    ko: "Cliopatria·한국사 연도 스크럽 (주간 함선과 교체)",
-    en: "Cliopatria · Korea year scrub (swaps with weekly ships)",
-  },
-  bottomDockShips: { ko: "주간 함선", en: "Weekly ships" },
-  bottomDockShipsHint: {
-    ko: "주간 함정 이동 · 기준일 스크럽",
-    en: "Weekly ship moves · as-of scrubber",
-  },
   layerDraftHint: {
     ko: "체크하면 바로 표시됩니다. 상단 「설정」을 누르면 선택한 상태가 그대로 저장됩니다.",
     en: "Checks apply right away. Press Apply to save the selection as-is.",
@@ -502,10 +492,10 @@ const UI = {
     ko: "맥락·연표·에피소드 — 오늘과 잇는 이유",
     en: "Context · timeline · episodes — why today links to then",
   },
-  domainPremiumTitle: { ko: "프리미엄", en: "Premium" },
+  domainPremiumTitle: { ko: "라이브", en: "Live" },
   domainPremiumHint: {
-    ko: "Cesium 관측 · ADS-B · AIS · 시세 — 한 화면에서 연관",
-    en: "Cesium · ADS-B · AIS · tickers — correlated on one screen",
+    ko: "Cesium · LIVEUA 고충격 타전 · ADS-B · AIS · 시세",
+    en: "Cesium · LIVEUA S-tier flash · ADS-B · AIS · tickers",
   },
   domainEconomyTitle: { ko: "지경학", en: "Geoeconomics" },
   domainEconomyHint: {
@@ -702,16 +692,20 @@ const UI = {
     ko: "진영 · 공급망·시장은 패널에서",
     en: "Blocs · supply & markets from the panel",
   },
-  modePremium: { ko: "프리미엄", en: "Premium" },
+  modePremium: { ko: "라이브", en: "Live" },
   modePremiumHint: {
-    ko: "Cesium · LIVEUA/X · ADS-B · AIS · 시세 연관 관측",
-    en: "Cesium · LIVEUA/X · ADS-B · AIS · correlated tickers",
+    ko: "Cesium · LIVEUA 고충격 타전 · ADS-B · AIS · 시세",
+    en: "Cesium · LIVEUA S-tier flash · ADS-B · AIS · tickers",
   },
-  modeSatellite: { ko: "프리미엄", en: "Premium" },
+  modeSatellite: { ko: "라이브", en: "Live" },
   modeSatelliteHint: {
-    ko: "Cesium 글로브 · ADS-B · AIS · 시세",
-    en: "Cesium globe · ADS-B · AIS · tickers",
+    ko: "Cesium 글로브 · LIVEUA 타전 · ADS-B · AIS · 시세",
+    en: "Cesium globe · LIVEUA flash · ADS-B · AIS · tickers",
   },
+  breakingFlashGoToLocation: { ko: "위치로 가기", en: "Go to location" },
+  liveuaFeedStatusOk: { ko: "LIVEUA 연결", en: "LIVEUA linked" },
+  liveuaFeedStatusIdle: { ko: "LIVEUA 대기", en: "LIVEUA idle" },
+  liveuaFeedStatusError: { ko: "LIVEUA 오류", en: "LIVEUA error" },
   modeLive: { ko: "항적", en: "Tracks" },
   modeLiveHint: {
     ko: "ADS-B · AIS · GPS 재밍 (지정학 하위)",
@@ -1055,21 +1049,21 @@ export const MODE_PICKER_CHROME: Record<
   },
   satellite: {
     ko: {
-      title: "관측",
-      tagline: "Cesium · 공중 글로브",
+      title: "라이브",
+      tagline: "Cesium · LIVEUA 타전",
       bullets: [
         "Esri World Imagery · (Ion) Photorealistic 3D",
-        "레이어 트리 없음 — 관측 보드",
-        "이후: LiveUAMap · 공식 SNS (예정)",
+        "ADS-B · AIS · 시세 보드",
+        "LIVEUA 전전선 ingest · 고충격만 양피지",
       ],
     },
     en: {
-      title: "Observe",
-      tagline: "Cesium · aerial globe",
+      title: "Live",
+      tagline: "Cesium · LIVEUA flash",
       bullets: [
         "Esri World Imagery · (Ion) Photorealistic 3D",
-        "No layer tree — observation board",
-        "Later: LiveUAMap · official SNS (planned)",
+        "ADS-B · AIS · ticker board",
+        "LIVEUA all-fronts ingest · S-tier parchment only",
       ],
     },
   },
