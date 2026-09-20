@@ -586,7 +586,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     gtiHeroSnapshot,
     gtiHeroVisible,
     timeScrubber = null,
-    bottomDockMode = "history",
+    bottomDockMode = "ships",
     soundUnmuteReady,
     ukmtoBriefing,
     navareaBriefing,
@@ -1910,7 +1910,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {!intelSheetOpen && timeScrubber && bottomDockMode === "history" ? (
+      {!intelSheetOpen && timeScrubber && bottomDockMode === "ships" ? (
         <div
           className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-dock-floor ${
             isCompactUi

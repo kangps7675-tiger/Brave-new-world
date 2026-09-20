@@ -115,6 +115,12 @@ describe("Balhae territory preference", () => {
         layer: "polity",
         nameKo: "통일신라",
       }),
+      poly("tang-liaodong-context", {
+        role: "context",
+        layer: "polity",
+        nameKo: "당 · 요동",
+        uiDefault: true,
+      }),
     ]);
     const ids = selected.map((f) => (f.properties as { id: string }).id);
     expect(ids).toContain(BALHAE_PEAK_FINAL_ID);
@@ -123,5 +129,20 @@ describe("Balhae territory preference", () => {
     expect(ids).not.toContain("bh-ext-830-max");
     expect(ids).not.toContain("bh-ext-830-min");
     expect(ids).not.toContain(BALHAE_PEAK_SOUTH_FINAL_ID);
+    expect(ids).not.toContain("tang-liaodong-context");
+  });
+
+  it("drops neighbor context fills even when uiDefault", () => {
+    const selected = selectKoreaTerritoryFeatures([
+      poly("silla-main", { layer: "polity", nameKo: "신라" }),
+      poly("tang-context", {
+        role: "context",
+        layer: "polity",
+        nameKo: "당",
+        uiDefault: true,
+      }),
+    ]);
+    const ids = selected.map((f) => (f.properties as { id: string }).id);
+    expect(ids).toEqual(["silla-main"]);
   });
 });

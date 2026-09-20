@@ -34,7 +34,8 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
 /**
  * GlobeDashboard 지도 캔버스.
  * - 지정학/지경학: MapLibre
- * - 위성: CesiumJS (Esri imagery · optional Ion photoreal)
+ * - 프리미엄: CesiumJS (Esri imagery · optional Ion photoreal)
+ *   ADS-B/AIS/시세 prefs는 켜 두고, 글로브는 Cesium (항적 엔티티·LIVEUA/X는 후속)
  */
 export function GlobeMapCanvas({
   containerRef,
