@@ -3328,13 +3328,14 @@ export function GlobeDashboard({
 
   const axisHubCountriesGeoJson = useMemo(() => {
     // 지정학 전용 — NE 10m 고정밀 소스만 사용 (저정밀 countries.json 폴백 금지)
-    if (isEconomyViewer) {
+    // 역사·지경학에서는 CRINK 빨간 국토 fill 숨김 (캐시 잔존 방지)
+    if (!isConflictViewer) {
       return paintAxisHubCountriesGeoJson(null);
     }
     return paintAxisHubCountriesGeoJson(axisHubCountriesSource, {
       activeIso: activeHubId ?? null,
     });
-  }, [activeHubId, axisHubCountriesSource, isEconomyViewer]);
+  }, [activeHubId, axisHubCountriesSource, isConflictViewer]);
 
   const alliedBlocCountriesGeoJson = useMemo(() => {
     if (isEconomyViewer || !showAlliedBlocs) {
@@ -6177,6 +6178,10 @@ export function GlobeDashboard({
   useEffect(() => {
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
+    if (isHistoryViewer) {
+      if (breakingFlash) setBreakingFlash(null);
+      return;
+    }
     if (!dailyLampSettled || !weeklyRecapSettled) return;
     if (periodicBriefing || airRaidBriefing || exerciseBriefing || weeklyExpanded) return;
     if (breakingFlash) return;
@@ -6223,6 +6228,7 @@ export function GlobeDashboard({
     exerciseBriefing,
     weeklyExpanded,
     breakingFlash,
+    isHistoryViewer,
   ]);
 
   const { exerciseOffer, dismissExerciseOffer } = useExerciseAlertAuto({
@@ -6683,6 +6689,11 @@ export function GlobeDashboard({
     if (mode === "history") {
       setBottomDockMode("history");
       writeBottomDockMode("history");
+      setPeriodicBriefing(null);
+      setFoldedPeriodicBriefing(null);
+      setBreakingFlash(null);
+      setDailyLampSettled(true);
+      lampModeSwitchPendingRef.current = false;
     }
     if (mode === "economy") {
       setUkraineFrontLegendEngaged(false);
@@ -7092,6 +7103,12 @@ export function GlobeDashboard({
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
     if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
+    // 역사 모드 — 주간 등불/회고 점화 안 함
+    if (isHistoryViewer) {
+      if (weeklyRecap) setWeeklyRecap(null);
+      if (!weeklyRecapSettled) setWeeklyRecapSettled(true);
+      return;
+    }
     // 인가 칩과 병렬 — 칩 dismiss 대기로 주간·등불이 영구 정지되지 않게
 
     const offer = resolveMondayWeeklyRecap();
@@ -7176,6 +7193,7 @@ export function GlobeDashboard({
     watchFocusLine,
     weeklyRecap,
     weeklyRecapSettled,
+    isHistoryViewer,
   ]);
 
   /**
@@ -7190,6 +7208,14 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
+    // 역사 모드 — 등불(지정학 lamp-news) 점화 안 함
+    if (isHistoryViewer) {
+      lampModeSwitchPendingRef.current = false;
+      if (periodicBriefing) setPeriodicBriefing(null);
+      if (foldedPeriodicBriefing) setFoldedPeriodicBriefing(null);
+      if (!dailyLampSettled) setDailyLampSettled(true);
+      return;
+    }
     const forceModeSwitchLamp = lampModeSwitchPendingRef.current;
     // 모드 전환 직후 — 주간 회고 대기 없이 바로 등불 (지정학↔지경학 뙇!)
     if (!forceModeSwitchLamp && (!weeklyRecapSettled || weeklyExpanded)) return;
@@ -7396,6 +7422,7 @@ export function GlobeDashboard({
     viewerMode,
     weeklyExpanded,
     weeklyRecapSettled,
+    isHistoryViewer,
   ]);
 
   // 오늘의 WTI — 사운드 강도·등불 기축 (등불보다 먼저 확보) · asOf 스크럽 시 해당일
