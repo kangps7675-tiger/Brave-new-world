@@ -8,6 +8,8 @@ export type AirRaidBriefingContent = {
   kind: AirRaidSirenKind;
   title: string;
   paragraphs: string[];
+  /** 기본: 확인 / Understood */
+  ctaLabel?: string;
 };
 
 type AirRaidBriefingParchmentProps = {
@@ -17,19 +19,21 @@ type AirRaidBriefingParchmentProps = {
 };
 
 /**
- * 공습경보 순간 브리핑 — 전보음 + 전문 즉시 표시(타이핑 없음).
+ * 공습경보·NEPTUN 실피드 순간 브리핑 — 전보음 + 전문 즉시 표시(타이핑 없음).
  */
 export function AirRaidBriefingParchment({
   briefing,
   lang,
   onDismiss,
 }: AirRaidBriefingParchmentProps) {
+  const cta =
+    briefing.ctaLabel ?? (lang === "en" ? "Understood" : "확인");
   return (
     <ParchmentLetter
       lang={lang}
       title={briefing.title}
       paragraphs={briefing.paragraphs}
-      ctaLabel={lang === "en" ? "Understood" : "확인"}
+      ctaLabel={cta}
       onContinue={onDismiss}
       playBreakingDispatch
       typewriter={false}

@@ -1812,10 +1812,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           onDismiss={() => {
             const kind = airRaidBriefing.kind;
             const place =
-              labelLanguage === "en"
-                ? airRaidBriefing.title.replace(/^Air-raid alert\s*·\s*/i, "").trim() ||
-                  "Alert zone"
-                : airRaidBriefing.title.replace(/^공습경보\s*·\s*/, "").trim() || "경보 구역";
+              kind === "neptun"
+                ? labelLanguage === "en"
+                  ? "Ukraine · NEPTUN"
+                  : "우크라이나 · NEPTUN"
+                : labelLanguage === "en"
+                  ? airRaidBriefing.title.replace(/^Air-raid alert\s*·\s*/i, "").trim() ||
+                    "Alert zone"
+                  : airRaidBriefing.title.replace(/^공습경보\s*·\s*/, "").trim() || "경보 구역";
             onSetAirRaidBriefing(null);
             onReleaseAirRaidAutoBusy();
             onBeginLiveBriefing("air-raid", airRaidBriefingLayers(kind), place);
