@@ -1001,7 +1001,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   >
                     {labelLanguage === "en" ? "Tips" : "알림"}
                   </button>
-                  <div className="pointer-events-none absolute left-0 top-full z-[220] mt-1.5 flex min-w-[max-content] flex-col items-start gap-2 opacity-0 transition-opacity duration-150 group-hover/chrome-stash:pointer-events-auto group-hover/chrome-stash:opacity-100 group-focus-within/chrome-stash:pointer-events-auto group-focus-within/chrome-stash:opacity-100">
+                  <div className="pointer-events-none absolute left-0 top-full z-[200] mt-1.5 flex min-w-[max-content] flex-col items-start gap-2 opacity-0 transition-opacity duration-150 group-hover/chrome-stash:pointer-events-auto group-hover/chrome-stash:opacity-100 group-focus-within/chrome-stash:pointer-events-auto group-focus-within/chrome-stash:opacity-100">
                     {!issueUiPausedForLamp &&
                     ((!isEconomyViewer &&
                       (showNeptun ||

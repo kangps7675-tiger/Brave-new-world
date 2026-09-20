@@ -184,7 +184,7 @@ export function CesiumSatelliteGlobe({
       <div ref={containerRef} className="absolute inset-0" />
       <div
         ref={creditRef}
-        className="pointer-events-none absolute bottom-1 right-2 z-20 max-w-[min(28rem,70vw)] text-[10px] leading-tight text-sky-100/70 [&_a]:text-sky-200/90"
+        className="pointer-events-none absolute bottom-1 right-2 z-20 max-w-[min(28rem,70vw)] text-micro leading-tight text-sky-100/70 [&_a]:text-sky-200/90"
       />
 
       {status === "loading" ? (
@@ -212,10 +212,10 @@ export function CesiumSatelliteGlobe({
 
       {status === "ready" ? (
         <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-md border border-sky-200/20 bg-[#0f1d35]/75 px-2.5 py-1.5 backdrop-blur-sm">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-100/90">
+          <p className="text-micro font-semibold uppercase tracking-wider text-sky-100/90">
             Observe · Cesium
           </p>
-          <p className="mt-0.5 text-[10px] text-sky-100/55">
+          <p className="mt-0.5 text-micro text-sky-100/55">
             {stack === "photoreal"
               ? "Cesium ion · Google Photorealistic 3D"
               : "Esri World Imagery · CesiumJS"}

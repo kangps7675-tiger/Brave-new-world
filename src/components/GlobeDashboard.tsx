@@ -8944,11 +8944,11 @@ export function GlobeDashboard({
 
         {isHistoryViewer && !isPhoneUi && !isSatelliteViewer ? (
           <div
-            className="pointer-events-auto absolute bottom-16 left-1/2 z-[28] flex w-[min(420px,92vw)] -translate-x-1/2 flex-col gap-1 rounded-md border border-stone-600/50 bg-stone-950/85 px-3 py-2 shadow-lg backdrop-blur-sm"
+            className="pointer-events-auto absolute bottom-16 left-1/2 z-[100] flex w-[min(420px,92vw)] -translate-x-1/2 flex-col gap-1 rounded-md border border-stone-600/50 bg-stone-950/85 px-3 py-2 shadow-lg backdrop-blur-sm"
             role="group"
             aria-label="역사 연도"
           >
-            <div className="flex items-baseline justify-between gap-2 text-[11px] text-stone-200">
+            <div className="flex items-baseline justify-between gap-2 text-meta text-stone-200">
               <span className="font-medium tracking-wide">역사 영토</span>
               <span className="tabular-nums text-amber-200/90">
                 {historyPolityLayers.snapYear < 0
@@ -8970,7 +8970,7 @@ export function GlobeDashboard({
               onChange={(e) => setHistoryYear(Number(e.target.value))}
               className="w-full accent-amber-600"
             />
-            <p className="text-[10px] leading-snug text-stone-400">
+            <p className="text-micro leading-snug text-stone-400">
               한국사 GeoJSON 조사안 우선 · 발해 전성기(≈850)는 요동·연해주 중부 해안(교과서형)
             </p>
           </div>
