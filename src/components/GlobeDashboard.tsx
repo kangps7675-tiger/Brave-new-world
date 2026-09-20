@@ -9712,6 +9712,7 @@ export function GlobeDashboard({
           layerPanelSessionKey={layerPanelSessionRef.current}
           batchPending={batchPending}
           isEconomyViewer={isEconomyViewer}
+          isHistoryViewer={isHistoryViewer}
           showUkraineControl={showUkraineControl}
           onPanelDraftPatch={handlePanelDraftPatch}
           showNeptun={showNeptun}

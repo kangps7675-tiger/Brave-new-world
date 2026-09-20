@@ -37,6 +37,12 @@ function hero(partial: Partial<HeroBreakingItem> & Pick<HeroBreakingItem, "title
     ageMinutes: partial.ageMinutes ?? 20,
     summary: partial.summary,
     feedTopic: partial.feedTopic,
+    flashSource: partial.flashSource,
+    verbatim: partial.verbatim,
+    imageUrl: partial.imageUrl,
+    videoUrl: partial.videoUrl,
+    lat: partial.lat,
+    lng: partial.lng,
   };
 }
 
