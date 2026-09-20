@@ -266,6 +266,76 @@ describe("shouldOpenBreakingFlash", () => {
       ),
     ).toBe(true);
   });
+
+  it("allows oil-depot / grain kinetic as price-threat S flash", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Drones strike Russian oil depot near Black Sea",
+          summary: "Secondary explosions at fuel storage",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 8,
+        }),
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Missile hits Odessa grain export port",
+          summary: "Wheat loading terminal damaged",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 6,
+          feedTopic: "economy",
+        }),
+        true,
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects routine shelling without infrastructure threat", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Routine shelling continues along the front",
+          summary: "Daily artillery duel reported",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 5,
+        }),
+        false,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("LIVEUA verbatim briefing", () => {
+  it("keeps original body without causal essay rewrite", () => {
+    const body =
+      "Ukrainian drones struck a Russian oil depot near the Black Sea coast.";
+    const briefing = buildBreakingFlashBriefing(
+      hero({
+        id: "liveua:1",
+        title: "Strike near oil depot",
+        summary: body,
+        flashSource: "liveuamap",
+        verbatim: true,
+        imageUrl: "https://example.com/a.jpg",
+        lat: 45,
+        lng: 35,
+        breakingRank: "S",
+        breakingGrade: 9,
+      }),
+      "ko",
+      false,
+    );
+    expect(briefing.verbatim).toBe(true);
+    expect(briefing.paragraphs).toEqual([body]);
+    expect(briefing.imageUrl).toBe("https://example.com/a.jpg");
+    expect(briefing.coords).toEqual({ lat: 45, lng: 35 });
+  });
 });
 
 describe("pickNextBreakingFlashHero", () => {

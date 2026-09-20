@@ -575,7 +575,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerBullets: [
       "Cesium 글로브 (Esri / Ion Photoreal)",
       "ADS-B · AIS 항적 + 주식 티커 연관",
-      "LIVEUAMAP · X API 피드 확장 예정",
+      "LIVEUA 전전선 · S급 양피지 타전",
     ],
     layerPanelTitle: "프리미엄 · 항적",
   },
@@ -711,16 +711,20 @@ export function resolveViewerModeFromConfig(
   savedMode?: ViewerMode,
 ): ViewerMode {
   if (
+    savedMode === "history" ||
     savedMode === "conflict" ||
     savedMode === "economy" ||
     savedMode === "satellite" ||
     savedMode === "live"
   ) {
+    // 상단 3토글에서 conflict는 역사로, live는 라이브(satellite)로 정규화
+    if (savedMode === "conflict") return "history";
+    if (savedMode === "live") return "satellite";
     return savedMode;
   }
   const ids = packages.filter((id) => id !== "custom");
   if (ids.length === 1 && ids[0] === "satellite-eye") return "satellite";
-  if (ids.length === 1 && ids[0] === "live-tracks") return "live";
+  if (ids.length === 1 && ids[0] === "live-tracks") return "satellite";
   if (ids.length === 1 && ids[0] === "geo-trader") return "economy";
-  return "conflict";
+  return "history";
 }

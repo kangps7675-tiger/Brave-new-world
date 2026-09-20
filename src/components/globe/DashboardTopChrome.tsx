@@ -7,10 +7,6 @@ import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
 import { UtilityChromeMenu } from "@/components/UtilityChromeMenu";
 import { ModeGlobalIndexChip } from "@/components/ModeGlobalIndexChip";
 import { HoverSideDrawer } from "@/components/HoverSideDrawer";
-import {
-  BottomDockModeToggle,
-  type BottomDockMode,
-} from "@/components/BottomDockModeToggle";
 import type { NavSelection } from "@/data/navRegions";
 import type { ChromeKeywordSuggestion, ChromeSearchHit } from "@/lib/chromeSearch";
 import type { EntryGate } from "@/components/globe/types";
@@ -42,9 +38,6 @@ export interface DashboardTopChromeProps {
   isTabletUi?: boolean;
   setAskLayersOpen: Dispatch<SetStateAction<boolean>>;
   handleViewerModeChange: (mode: ViewerMode) => void;
-  /** 히스토리 / 주간함선 — 지정학 계열에서만 노출 */
-  bottomDockMode: BottomDockMode;
-  onBottomDockModeChange: (mode: BottomDockMode) => void;
   globeRef: RefObject<MapGlobeMethods>;
   getSceneForShare: () => {
     mode: ViewerMode;
@@ -97,8 +90,6 @@ export function DashboardTopChrome({
   isTabletUi = false,
   setAskLayersOpen,
   handleViewerModeChange,
-  bottomDockMode,
-  onBottomDockModeChange,
   globeRef,
   getSceneForShare,
   setChromeCoachStep,
@@ -227,15 +218,6 @@ export function DashboardTopChrome({
         belowNav={
           <div className="flex w-full flex-col items-center gap-1.5">
             <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
-            {viewerMode === "conflict" || viewerMode === "history" ? (
-              <BottomDockModeToggle
-                lang={labelLanguage}
-                mode={bottomDockMode}
-                onChange={onBottomDockModeChange}
-                compact={isCompactUi}
-                transparent
-              />
-            ) : null}
           </div>
         }
       />

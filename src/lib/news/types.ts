@@ -54,6 +54,13 @@ export type HeroBreakingItem = NewsStreamItem & {
   breakingRank: BreakingUiRank;
   ageMinutes: number;
   clusterId?: string;
+  /** LIVEUAMAP 등 원문 타전 소스 */
+  flashSource?: "rss" | "liveuamap";
+  /** 원문 그대로 양피지 (재작성 금지) */
+  verbatim?: boolean;
+  videoUrl?: string;
+  lat?: number;
+  lng?: number;
 };
 
 export type NewsStreamPayload = {

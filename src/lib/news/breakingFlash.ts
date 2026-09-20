@@ -18,6 +18,8 @@ import {
   buildFlashCausalEssay,
   isIranRelatedBreakingText,
 } from "@/lib/news/breakingFlashNarrative";
+
+export { FLASH_KINETIC_RE, FLASH_SOFT_EXCLUDE_RE };
 import type { HeroBreakingItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import { S_GRADE_MIN } from "@/lib/news/breakingGrade";
 import {
@@ -33,7 +35,7 @@ export type BreakingFlashBriefing = {
   paragraphs: string[];
   link?: string;
   mode: "conflict" | "economy";
-  /** 타전 시 지도 fly 대상 */
+  /** 타전 시 지도 fly 대상 (버튼으로만) */
   theater: NewsTheater;
   /** 하단 출처 표기 (매체·시각) */
   sourceAttribution: string;
@@ -42,6 +44,11 @@ export type BreakingFlashBriefing = {
    * dark=지정학 등불 · cheer=지경학 등불 · morse=깔개 없이 모스만(중립·애매).
    */
   dispatchBed: "dark" | "cheer" | "morse";
+  imageUrl?: string;
+  videoUrl?: string;
+  /** 수동 「위치로 가기」 */
+  coords?: { lat: number; lng: number };
+  verbatim?: boolean;
 };
 
 /** 신속 속보 — 이보다 오래된 기사는 타전하지 않음 */
@@ -79,8 +86,24 @@ export function isGeoeconomicImpactFlash(text: string): boolean {
   if (GEOECON_CORPORATE_RE.test(text)) return true;
   if (GEOECON_TRADE_MACRO_RE.test(text)) return true;
   if (detectSupplyChainLinks(text).length > 0) return true;
+  if (isPriceThreatInfrastructureFlash(text)) return true;
   return false;
 }
+
+/**
+ * 유가·곡물·물가에 직접 닿는 인프라 타격
+ * (유정·정유·곡창·수출항 — 호르무즈뿐 아니라 우크라↔러 사례 포함).
+ */
+export const PRICE_THREAT_INFRA_RE =
+  /\b(oil\s?(?:field|depot|terminal|refiner(?:y|ies)?|storage|facility|rig)|refiner(?:y|ies)?|fuel\s?depot|pipeline|lng\s?terminal|grain\s?(?:silo|elevator|terminal|export|port)|wheat|flour|corn\s?export|food\s?export|fertilizer|ammonia\s?plant|port\s?(?:of\s?)?(?:odesa|odessa|mykolaiv|novorossiysk)|chornomorsk)\b|유정|정유|유류\s?저장|연료\s?저장|송유관|곡물\s?(?:창고|엘리베이터|수출)|밀\b|밀가루|곡창|오데사|미콜라이우|노보로시스크/i;
+
+export function isPriceThreatInfrastructureFlash(text: string): boolean {
+  return PRICE_THREAT_INFRA_RE.test(text);
+}
+
+/** 일상 포격·미확인 루틴 — 단독으로는 타전 금지 */
+export const FLASH_ROUTINE_SHELLING_RE =
+  /\b(routine\s?shelling|daily\s?shelling|artillery\s?duel|sporadic\s?fire|unconfirmed\s?report|according\s?to\s?unverified)\b|일상\s?포격|산발\s?교전|미확인\s?보도|확인되지\s?않은/i;
 
 /** 사건 유형 — 우선순위 높은 것부터 */
 export type EconFlashClass =
@@ -410,6 +433,9 @@ export function shouldOpenBreakingFlash(
 
   const blob = `${hero.title} ${hero.summary ?? ""}`;
   if (FLASH_SOFT_EXCLUDE_RE.test(blob)) return false;
+  if (FLASH_ROUTINE_SHELLING_RE.test(blob) && !isPriceThreatInfrastructureFlash(blob)) {
+    return false;
+  }
 
   const iranKinetic =
     isIranRelatedBreakingText(blob) && FLASH_KINETIC_RE.test(blob);
@@ -428,33 +454,39 @@ export function shouldOpenBreakingFlash(
     }
   }
 
+  const priceThreat = isPriceThreatInfrastructureFlash(blob);
+
   if (preferEconomy || hero.feedTopic === "economy") {
     // 지정학과 동일 등급 창 — 주제만 지경학 영향력으로 좁힘
     if (rank === "S") {
-      return isGeoeconomicImpactFlash(blob);
+      return isGeoeconomicImpactFlash(blob) || priceThreat;
     }
     if (
       rank === "A" &&
       grade >= 8 &&
       age <= FLASH_A_MAX_AGE_MINUTES &&
-      isGeoeconomicImpactFlash(blob)
+      (isGeoeconomicImpactFlash(blob) || priceThreat)
     ) {
       return true;
     }
     return false;
   }
 
-  // 정세 — 신속·위중만 (S급도 키네틱·초크 필수; grade만으로 미시 기사 타전 금지)
+  // 정세 — 신속·위중만 (S급도 키네틱·초크·가격위협 인프라 필수)
   if (rank === "S") {
-    return FLASH_KINETIC_RE.test(blob) || isChokepointSecurityNews(blob);
+    return (
+      FLASH_KINETIC_RE.test(blob) ||
+      isChokepointSecurityNews(blob) ||
+      priceThreat
+    );
   }
-  // A급: 키네틱 + 더 짧은 창 (이란 Tier3는 grade≥7 허용)
+  // A급: 키네틱/가격위협 + 더 짧은 창 (이란 Tier3는 grade≥7 허용)
   const aGradeMin = iranKinetic && hero.trustTier === 3 ? 7 : 8;
   if (
     rank === "A" &&
     grade >= aGradeMin &&
     age <= FLASH_A_MAX_AGE_MINUTES &&
-    FLASH_KINETIC_RE.test(blob)
+    (FLASH_KINETIC_RE.test(blob) || priceThreat)
   ) {
     return true;
   }
@@ -510,6 +542,7 @@ export function buildBreakingFlashBriefing(
   const titleText = (opts?.title ?? hero.title).replace(/\s+/g, " ").trim();
   const summaryRaw = opts?.summary ?? hero.summary;
   const blob = `${titleText} ${summaryRaw ?? ""}`;
+  const verbatim = Boolean(hero.verbatim || hero.flashSource === "liveuamap");
 
   const kicker = economy
     ? ko
@@ -519,31 +552,44 @@ export function buildBreakingFlashBriefing(
       ? "정세 신속 속보"
       : "Situation flash";
 
-  const actors = extractFlashActors(blob, lang);
-  const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
+  let paragraphs: string[];
+  if (verbatim) {
+    const body = (summaryRaw || titleText).replace(/\s+/g, " ").trim();
+    paragraphs = body ? [body] : [titleText];
+  } else {
+    const actors = extractFlashActors(blob, lang);
+    const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
+    const peaceScienceDomain =
+      opts?.peaceScienceDomain === undefined
+        ? economy
+          ? ("economy" as const)
+          : ("conflict" as const)
+        : opts.peaceScienceDomain;
 
-  const peaceScienceDomain =
-    opts?.peaceScienceDomain === undefined
-      ? economy
-        ? ("economy" as const)
-        : ("conflict" as const)
-      : opts.peaceScienceDomain;
+    paragraphs = buildFlashCausalEssay({
+      title: titleText,
+      summary: body,
+      theater: hero.theater,
+      lang,
+      economy,
+      actors,
+      ageMinutes: hero.ageMinutes,
+      source: hero.source,
+      trustTier:
+        hero.trustTier === 1 || hero.trustTier === 2 || hero.trustTier === 3
+          ? hero.trustTier
+          : undefined,
+      peaceScienceDomain,
+    }).filter((p) => p.trim().length > 0);
+  }
 
-  const paragraphs = buildFlashCausalEssay({
-    title: titleText,
-    summary: body,
-    theater: hero.theater,
-    lang,
-    economy,
-    actors,
-    ageMinutes: hero.ageMinutes,
-    source: hero.source,
-    trustTier:
-      hero.trustTier === 1 || hero.trustTier === 2 || hero.trustTier === 3
-        ? hero.trustTier
-        : undefined,
-    peaceScienceDomain,
-  }).filter((p) => p.trim().length > 0);
+  const coords =
+    typeof hero.lat === "number" &&
+    typeof hero.lng === "number" &&
+    Number.isFinite(hero.lat) &&
+    Number.isFinite(hero.lng)
+      ? { lat: hero.lat, lng: hero.lng }
+      : undefined;
 
   return {
     id: hero.id,
@@ -556,17 +602,21 @@ export function buildBreakingFlashBriefing(
     dispatchBed: economy
       ? resolveEconomyFlashBed(blob)
       : resolveConflictFlashBed(blob),
+    imageUrl: hero.imageUrl,
+    videoUrl: hero.videoUrl,
+    coords,
+    verbatim,
   };
 }
 
-/** 한글 UI — 번역 후 타전 브리핑 생성 */
+/** 한글 UI — 번역 후 타전 브리핑 생성 (LIVEUA 원문은 번역·재작성 생략) */
 export async function buildBreakingFlashBriefingForLang(
   hero: HeroBreakingItem,
   lang: LabelLanguage,
   preferEconomy: boolean,
   opts?: { peaceScienceDomain?: "conflict" | "economy" | null },
 ): Promise<BreakingFlashBriefing> {
-  if (lang === "en") {
+  if (lang === "en" || hero.verbatim || hero.flashSource === "liveuamap") {
     return buildBreakingFlashBriefing(hero, lang, preferEconomy, opts);
   }
   const { title, summary } = await ensureFlashCopyKorean({

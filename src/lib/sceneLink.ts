@@ -73,7 +73,14 @@ export function parseSceneFromSearch(search: string): SceneLinkState | null {
     if (params.get("scene") !== "1") return null;
 
     const modeRaw = params.get("mode");
-    const mode: ViewerMode = modeRaw === "economy" ? "economy" : "conflict";
+    const mode: ViewerMode =
+      modeRaw === "economy"
+        ? "economy"
+        : modeRaw === "satellite"
+          ? "satellite"
+          : modeRaw === "live"
+            ? "live"
+            : "conflict";
     const lat = NUM(params.get("lat"));
     const lng = NUM(params.get("lng"));
     const alt = NUM(params.get("alt"));

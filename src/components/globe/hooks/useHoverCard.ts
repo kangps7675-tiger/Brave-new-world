@@ -119,7 +119,7 @@ export interface HoverCardParams {
   disputeOverviews: Map<string, DisputeOverview>;
 }
 
-/** í¸ë² ëì â sourceCatalog / ì¤ëª í¤ */
+/** 호버 대상 → sourceCatalog / 설명 키 */
 export function resolveHoverLayerId(params: HoverCardParams): string | null {
   if (params.hoveredCarrier) return "us-carriers";
   if (params.hoveredMilAircraft) {
@@ -210,7 +210,7 @@ function neonIncidentHoverExtras(
   };
 }
 
-/** ë ì´ì´ ê¸°ë³¸ ì ë¢°(ê³µíµ ì¤í¤ë§)ë¥¼ í¸ë² ì¹´ëì ë¶ì¸ë¤. í¼ì² confidenceë ê¸°ì¡´ metaì ì ì§. */
+/** 레이어 기본 신뢰(공통 스키마)를 호버 카드에 붙인다. 피처 confidence는 기존 meta에 유지. */
 export function withLayerReliability(
   card: HoverCard,
   layerId: string | null,
@@ -220,9 +220,9 @@ export function withLayerReliability(
   const rel = formatReliabilityForHover(layerId, lang);
   if (!rel) return card;
   const layerLine =
-    lang === "en" ? `Layer: ${rel.meta}` : `ë ì´ì´: ${rel.meta}`;
-  const meta = card.meta ? `${card.meta} Â· ${layerLine}` : layerLine;
-  const hint = card.hint ? `${card.hint} Â· ${rel.hint}` : rel.hint;
+    lang === "en" ? `Layer: ${rel.meta}` : `레이어: ${rel.meta}`;
+  const meta = card.meta ? `${card.meta} · ${layerLine}` : layerLine;
+  const hint = card.hint ? `${card.hint} · ${rel.hint}` : rel.hint;
   if (card.kind === "event" || card.kind === "static") {
     return {
       ...card,
@@ -238,13 +238,13 @@ export function withLayerReliability(
   };
 }
 
-/** ì§êµ¬ë³¸ í¸ë² ì¹´ë ì½íì¸  ì¡°ë¦½ â ìì í¨ì (íì¤í¸Â·ì¬ì¬ì© ì©ì´) */
+/** 지구본 호버 카드 콘텐츠 조립 — 순수 함수 (테스트·재사용 용이) */
 export function buildHoverCard(params: HoverCardParams): HoverCard {
   const layerId = resolveHoverLayerId(params);
   emitHoverLayerId(layerId);
   const lang = params.labelLanguage;
   const withRel = withLayerReliability(buildHoverCardRaw(params), layerId, lang);
-  /** ë§ì°ì¤ ì ì¹´ëì âì´ê² ë­ì§â íë¬¸ â bodyê° ë¹ìì ëë§ ì±ì */
+  /** 마우스 옆 카드에 “이게 뭔지” 평문 — body가 비었을 때만 채움 */
   return withLayerExplain(withRel, layerId, lang);
 }
 
@@ -275,7 +275,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       title: hoveredCarrier.name,
       detail: HOVER.usCarrierDetail(carrierStatusLabel(hoveredCarrier.status, lang), lang),
       badge: operational ? HOVER.operational(lang) : undefined,
-      meta: `${hoveredCarrier.hull} Â· ${hoveredCarrier.location}`,
+      meta: `${hoveredCarrier.hull} · ${hoveredCarrier.location}`,
     };
   }
   if (hoveredMilAircraft) {
@@ -286,17 +286,17 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
     return {
       kind: "event",
       title: hoveredMilAircraft.callsign || hoveredMilAircraft.hex.toUpperCase(),
-      detail: `${milAircraftRoleLabel(kind, lang)} Â· ${
+      detail: `${milAircraftRoleLabel(kind, lang)} · ${
         isCiv ? HOVER.civAircraft(lang) : HOVER.milAircraft(lang)
       }`,
       meta: [
         hoveredMilAircraft.type,
         hoveredMilAircraft.altitude != null ? `${hoveredMilAircraft.altitude} ft` : null,
         hoveredMilAircraft.groundSpeed != null ? `${hoveredMilAircraft.groundSpeed} kn` : null,
-        hoveredMilAircraft.track != null ? `${Math.round(hoveredMilAircraft.track)}Â°` : null,
+        hoveredMilAircraft.track != null ? `${Math.round(hoveredMilAircraft.track)}°` : null,
       ]
         .filter(Boolean)
-        .join(" Â· ") || undefined,
+        .join(" · ") || undefined,
       hint: HOVER.hintDetail(lang),
     };
   }
@@ -316,7 +316,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           : null,
       ]
         .filter(Boolean)
-        .join(" Â· ") || undefined,
+        .join(" · ") || undefined,
       body: hoveredNeptunThreat.explanationShort || undefined,
     };
   }
@@ -343,7 +343,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
                 : null,
             ]
               .filter(Boolean)
-              .join(" Â· ") || undefined,
+              .join(" · ") || undefined,
           hint: HOVER.hintFlyZone(lang),
         };
       }
@@ -378,13 +378,13 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               deaths != null
                 ? lang === "en"
                   ? `fatalities (best) ${deaths}`
-                  : `ì¬ë§(ì¶ì ) ${deaths}`
+                  : `사망(추정) ${deaths}`
                 : null,
             ]
               .filter(Boolean)
-              .join(" Â· ") || undefined,
-          meta: `${UCDP_ATTRIBUTION_SHORT}${version ? ` ${version}` : ""} Â· ${UCDP_ATTRIBUTION}`,
-          hint: lang === "en" ? `Source: ${UCDP_SOURCE_URL}` : `ì¶ì²: ${UCDP_SOURCE_URL}`,
+              .join(" · ") || undefined,
+          meta: `${UCDP_ATTRIBUTION_SHORT}${version ? ` ${version}` : ""} · ${UCDP_ATTRIBUTION}`,
+          hint: lang === "en" ? `Source: ${UCDP_SOURCE_URL}` : `출처: ${UCDP_SOURCE_URL}`,
         };
       }
       const firstMeta = hoveredPoint.meta
@@ -406,7 +406,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
                 hoveredPoint.meta?.country,
               ]
                 .filter(Boolean)
-                .join(" Â· ") || undefined
+                .join(" · ") || undefined
             : firstMeta
               ? `${firstMeta[0]}: ${firstMeta[1]}`
               : undefined,
@@ -428,39 +428,39 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
             : null,
         ]
           .filter(Boolean)
-          .join(" Â· ") || undefined,
+          .join(" · ") || undefined,
         hint: HOVER.hintDetail(lang),
       };
     }
     if (hoveredPoint.displayKind === "ais") {
       const kind = hoveredPoint.disguised
         ? hoveredPoint.disguisedKind === "arsenal-ship"
-          ? "ìì¥Â·ë¬´ê¸°ê³  ê°ì¡° ì ë°"
-          : "ìì¥Â·ë¤í¬íë¦¬í¸ ì ë°"
+          ? "위장·무기고 개조 선박"
+          : "위장·다크플리트 선박"
         : hoveredPoint.category === "military"
-          ? "êµ°ì© í¨ì "
+          ? "군용 함정"
           : hoveredPoint.category === "commercial"
-            ? "ë¯¼ê° ì ë°"
-            : "ì ë°";
+            ? "민간 선박"
+            : "선박";
       const typeLabel = aisDisplayTypeLabel(hoveredPoint, lang);
       return {
         kind: "static",
         title: hoveredPoint.shipName || `MMSI ${hoveredPoint.mmsi}`,
         detail: hoveredPoint.disguised
-          ? `AIS_Tracker Â· ${kind}`
-          : `AIS Â· ${kind}`,
+          ? `AIS_Tracker · ${kind}`
+          : `AIS · ${kind}`,
         meta: [
           typeLabel,
           hoveredPoint.speedOverGround != null ? `${hoveredPoint.speedOverGround} kn` : null,
           hoveredPoint.sanctionsMatch
-            ? `ì ì¬ íì¸ Â· ${hoveredPoint.sanctionsMatch.list} Â· ${hoveredPoint.sanctionsMatch.entityName} Â· ì¤ëì· ${hoveredPoint.sanctionsMatch.asOf} ê¸°ì¤`
+            ? `제재 확인 · ${hoveredPoint.sanctionsMatch.list} · ${hoveredPoint.sanctionsMatch.entityName} · 스냅샷 ${hoveredPoint.sanctionsMatch.asOf} 기준`
             : null,
           hoveredPoint.disguised
-            ? "ì¶ì² https://github.com/arandomguyhere/AIS_Tracker.git"
+            ? "출처 https://github.com/arandomguyhere/AIS_Tracker.git"
             : null,
         ]
           .filter(Boolean)
-          .join(" Â· ") || undefined,
+          .join(" · ") || undefined,
         hint: HOVER.hintDetail(lang),
       };
     }
@@ -472,24 +472,24 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         kind: "static",
         title: firmsCauseTitle(soundKind, lang),
         detail: firmsCauseBody(soundKind, lang),
-        badge: `NASA FIRMS Â· ${firmsFireSoundLabel(soundKind, lang)} Â· ${evidenceTierLabel("observed", lang)}`,
+        badge: `NASA FIRMS · ${firmsFireSoundLabel(soundKind, lang)} · ${evidenceTierLabel("observed", lang)}`,
         meta: [
           hoveredPoint.frp != null ? `FRP ${hoveredPoint.frp} MW` : null,
-          hoveredPoint.confidence ? `ì ë¢°ë ${hoveredPoint.confidence}` : null,
-          hoveredPoint.satellite ? `ìì± ${hoveredPoint.satellite}` : null,
+          hoveredPoint.confidence ? `신뢰도 ${hoveredPoint.confidence}` : null,
+          hoveredPoint.satellite ? `위성 ${hoveredPoint.satellite}` : null,
           hoveredPoint.daynight === "N"
             ? lang === "en"
               ? "Night"
-              : "ì¼ê°"
+              : "야간"
             : hoveredPoint.daynight === "D"
               ? lang === "en"
                 ? "Day"
-                : "ì£¼ê°"
+                : "주간"
               : null,
           acq,
         ]
           .filter(Boolean)
-          .join(" Â· ") || undefined,
+          .join(" · ") || undefined,
         hint: firmsCauseHint(soundKind, lang),
       };
     }
@@ -522,13 +522,13 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           localizeNewfeedsCategory(hoveredPoint.category, labelLanguage),
           localizeNewfeedsLocation(hoveredPoint.location, labelLanguage),
           hoveredPoint.hapiTag
-            ? `HAPI Â· ${hoveredPoint.hapiTag}`
+            ? `HAPI · ${hoveredPoint.hapiTag}`
             : null,
         ]
           .filter(Boolean)
-          .join(" Â· "),
+          .join(" · "),
         body: localizeNewfeedsSummary(hoveredPoint.summary, labelLanguage) || undefined,
-        meta: `${hoveredPoint.sourceName} Â· ${NEWFEEDS_ATTRIBUTION_SHORT}`,
+        meta: `${hoveredPoint.sourceName} · ${NEWFEEDS_ATTRIBUTION_SHORT}`,
         hint: newfeedsUi("hoverHint", labelLanguage),
       };
     }
@@ -540,11 +540,11 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         badge: severityLabel(sev, langKey),
         title: hoveredPoint.title,
         detail: [
-          lang === "en" ? "Ukraine front intensity" : "ì°í¬ë¼ ì ì¥ ê°ë",
-          hoveredPoint.hapiTag ? `HAPI Â· ${hoveredPoint.hapiTag}` : null,
+          lang === "en" ? "Ukraine front intensity" : "우크라 전장 강도",
+          hoveredPoint.hapiTag ? `HAPI · ${hoveredPoint.hapiTag}` : null,
         ]
           .filter(Boolean)
-          .join(" Â· "),
+          .join(" · "),
       };
     }
     if (hoveredPoint.displayKind === "china-theater-incident") {
@@ -639,23 +639,23 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       if (isMediazonaCasualtyId(hoveredPoint.id)) {
         return {
           kind: "static",
-          title: lang === "en" ? "Ukraine Â· named casualties" : "ì°í¬ë¼ Â· ëªì ì¬ìì",
-          detail: hoveredPoint.sourceAttribution || "Mediazona Ã BBC Â· CSIS",
+          title: lang === "en" ? "Ukraine · named casualties" : "우크라 · 명의 사상자",
+          detail: hoveredPoint.sourceAttribution || "Mediazona × BBC · CSIS",
           body: hoveredPoint.sourceHint,
           meta: hoveredPoint.killedLabel,
           hint:
             lang === "en"
-              ? "Named RU KIA lower bound Â· CSIS WIA estimate"
-              : "ëªì íì¸ ì ì¬(íí) Â· CSIS ë¶ì ì¶ì ",
+              ? "Named RU KIA lower bound · CSIS WIA estimate"
+              : "명의 확인 전사(하한) · CSIS 부상 추정",
         };
       }
       return {
         kind: "static",
-        title: lang === "en" ? `Active front Â· ${place}` : `ì´ë¦° ì ì  Â· ${place}`,
+        title: lang === "en" ? `Active front · ${place}` : `열린 전선 · ${place}`,
         detail: HAPI_ATTRIBUTION,
         body: hoveredPoint.sourceHint,
         meta: HAPI_SOURCE_LINE,
-        hint: lang === "en" ? `Cite ACLED Â· ${ACLED_HOME_URL}` : `ì¶ì² ACLED Â· ${ACLED_HOME_URL}`,
+        hint: lang === "en" ? `Cite ACLED · ${ACLED_HOME_URL}` : `출처 ACLED · ${ACLED_HOME_URL}`,
       };
     }
     if (hoveredPoint.displayKind === "ukraine-gdelt-neon") {
@@ -665,11 +665,11 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         title: formatGdeltNewsHeadline(hoveredPoint),
         detail: [
           gdeltLocationTagLabel(hoveredPoint.eventTier, lang),
-          hoveredPoint.hapiTag ? `HAPI Â· ${hoveredPoint.hapiTag}` : null,
+          hoveredPoint.hapiTag ? `HAPI · ${hoveredPoint.hapiTag}` : null,
         ]
           .filter(Boolean)
-          .join(" Â· "),
-        meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" Â· ") || undefined,
+          .join(" · "),
+        meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" · ") || undefined,
         hint: HOVER.hintView(lang),
       };
     }
@@ -682,11 +682,11 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           reconCountryLabel(hoveredPoint.country, langKey),
           reconSensorLabel(hoveredPoint.sensor, langKey),
           `${hoveredPoint.altKm.toFixed(0)} km`,
-        ].join(" Â· "),
+        ].join(" · "),
         hint:
           langKey === "en"
-            ? "Theoretical horizon only â not imaging activity"
-            : "ì´ë¡ ì ê°ìê¶ë§ â ì´¬ì íë ìë",
+            ? "Theoretical horizon only — not imaging activity"
+            : "이론상 가시권만 — 촬영 활동 아님",
       };
     }
     if (hoveredPoint.displayKind === "telegram-neon") {
@@ -704,10 +704,10 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
     if (hoveredPoint.displayKind === "gdelt-tag-html") {
       return {
         kind: "event",
-        badge: `${gdeltNewsAlertLabel(lang)} Â· ${evidenceTierLabel("unverified", lang)}`,
+        badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
         title: formatGdeltNewsHeadline(hoveredPoint),
         detail: gdeltLocationTagLabel(hoveredPoint.eventTier, lang),
-        meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" Â· ") || undefined,
+        meta: [hoveredPoint.country, hoveredPoint.eventDate].filter(Boolean).join(" · ") || undefined,
         hint: HOVER.hintView(lang),
       };
     }
@@ -715,7 +715,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
     const gdeltPoint = hoveredPoint as GlobePoint;
     return {
       kind: "event",
-      badge: `${gdeltNewsAlertLabel(lang)} Â· ${evidenceTierLabel("unverified", lang)}`,
+      badge: `${gdeltNewsAlertLabel(lang)} · ${evidenceTierLabel("unverified", lang)}`,
       title: formatGdeltNewsHeadline(gdeltPoint),
       detail: `${eventTierLabel(gdeltPoint.eventTier ?? "war", lang)}${
         isFreshEvent(gdeltPoint) ? HOVER.freshBreaking(lang) : ""
@@ -796,7 +796,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         detail: HOVER.militaryBase(lang, hoveredPolygon.country),
         meta: [hoveredPolygon.component, hoveredPolygon.state, hoveredPolygon.country]
           .filter(Boolean)
-          .join(" Â· ") || undefined,
+          .join(" · ") || undefined,
       };
     }
     if (hoveredPolygon.polygonLayer === "resource-deposit") {
@@ -806,26 +806,26 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         detail: hoveredPolygon.mineral,
         meta: [
           hoveredPolygon.country,
-          lang === "en" ? "deposit footprint" : "ë§¤ì¥ ì¤ê³½",
+          lang === "en" ? "deposit footprint" : "매장 윤곽",
         ]
           .filter(Boolean)
-          .join(" Â· "),
+          .join(" · "),
         hint:
           lang === "en"
             ? "Approximate deposit extent (curated outline)"
-            : "ë§¤ì¥ ë²ì ê°ëµ ì¤ê³½ (íë ì´ì)",
+            : "매장 범위 개략 윤곽 (큐레이션)",
       };
     }
     if (hoveredPolygon.polygonLayer === "missile-silo-field") {
       return {
         kind: "polygon",
         title: hoveredPolygon.gridId || hoveredPolygon.name,
-        detail: lang === "en" ? "PLARF survey grid cell" : "PLARF íë³´ ì¡°ì¬ ê²©ì",
-        meta: lang === "en" ? "not a confirmed silo" : "íì¸ ì¬ì¼ë¡ ìë",
+        detail: lang === "en" ? "PLARF survey grid cell" : "PLARF 후보 조사 격자",
+        meta: lang === "en" ? "not a confirmed silo" : "확인 사일로 아님",
         hint:
           lang === "en"
-            ? "Area screened for candidate sites â disjoint from known silo fields"
-            : "ì íë³´ì§ íì ë²ì Â· íì¸ë ì¬ì¼ë¡êµ°ê³¼ ê²¹ì¹ì§ ìì",
+            ? "Area screened for candidate sites — disjoint from known silo fields"
+            : "새 후보지 탐색 범위 · 확인된 사일로군과 겹치지 않음",
       };
     }
     if (hoveredPolygon.polygonLayer === "missile-belt") {
@@ -833,37 +833,37 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
       const theaterLabel = isNavalDomain
         ? lang === "en"
           ? "Russia Northern Fleet (naval)"
-          : "ë¬ìì ë¶ë°©í¨ë (í´êµ°)"
+          : "러시아 북방함대 (해군)"
         : hoveredPolygon.theater === "china"
           ? lang === "en"
             ? "China PLARF belt"
-            : "ì¤êµ­ PLARF ë²¨í¸"
+            : "중국 PLARF 벨트"
           : hoveredPolygon.theater === "russia"
             ? lang === "en"
               ? "Russia RVSN belt"
-              : "ë¬ìì RVSN ë²¨í¸"
+              : "러시아 RVSN 벨트"
             : hoveredPolygon.theater === "iran"
               ? lang === "en"
                 ? "Iran missile belt"
-                : "ì´ë ë¯¸ì¬ì¼ ë²¨í¸"
+                : "이란 미사일 벨트"
               : lang === "en"
                 ? "North Korea missile belt"
-                : "ë¶í ë¯¸ì¬ì¼ ë²¨í¸";
+                : "북한 미사일 벨트";
       const metaLabel = isNavalDomain
         ? lang === "en"
           ? "naval bastion / strike-range sector (not RVSN)"
-          : "í´êµ° ë²¤í¸Â·ì¬ê±°ë¦¬ê¶ (RVSN ìë)"
+          : "해군 벤트·사거리권 (RVSN 아님)"
         : hoveredPolygon.theater === "china"
           ? lang === "en"
             ? "confirmed silo-field complex"
-            : "íì¸ ì¬ì¼ë¡êµ° ë¨ì§"
+            : "확인 사일로군 단지"
           : hoveredPolygon.theater === "russia"
             ? lang === "en"
               ? "RVSN army / division garrison belt"
-              : "RVSN êµ°ë¨Â·ì¬ë¨ ì£¼ë ë²¨í¸"
+              : "RVSN 군단·사단 주둔 벨트"
             : lang === "en"
               ? "evaluative basing belt"
-              : "íê°ì© ë°°ì¹ ë²¨í¸";
+              : "평가용 배치 벨트";
       return {
         kind: "polygon",
         title: lang === "en" ? hoveredPolygon.nameEn : hoveredPolygon.name,
@@ -886,13 +886,13 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         kind: "polygon",
         title:
           lang === "en"
-            ? `GPS interference Â· ${pct}%`
-            : `GPS ì¬ë° ì¶ì  Â· ${pct}%`,
+            ? `GPS interference · ${pct}%`
+            : `GPS 재밍 추정 · ${pct}%`,
         detail: gpsJamLevelLabel(hoveredPolygon.level, lang),
         meta:
           lang === "en"
-            ? `${hoveredPolygon.total} aircraft Â· H3 Â· ${gpsJamDate ?? "â"}`
-            : `ê´ì¸¡ ${hoveredPolygon.total}ë Â· H3 Â· ${gpsJamDate ?? "â"}`,
+            ? `${hoveredPolygon.total} aircraft · H3 · ${gpsJamDate ?? "—"}`
+            : `관측 ${hoveredPolygon.total}대 · H3 · ${gpsJamDate ?? "—"}`,
         hint: gpsJamDisclaimer(lang),
       };
     }
@@ -922,16 +922,16 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           : navareaHit.description;
       return {
         kind: "path",
-        title: `NAVAREA ${navareaHit.region} Â· ${navareaHit.id}`,
+        title: `NAVAREA ${navareaHit.region} · ${navareaHit.id}`,
         detail:
           labelLanguage === "en"
             ? "In-force navigational warning"
-            : "í­íê²½ë³´ Â· ë³´ë¼ì êµ¬ì­",
+            : "항행경보 · 보라색 구역",
         body: navareaHit.areaHint || shortDesc || undefined,
         meta: [navareaHit.source.toUpperCase(), navareaHit.geometryType]
           .filter(Boolean)
-          .join(" Â· "),
-        hint: labelLanguage === "en" ? "Click for brief" : "í´ë¦­ Â· ì ë³´ ë¸ë¦¬í",
+          .join(" · "),
+        hint: labelLanguage === "en" ? "Click for brief" : "클릭 · 전보 브리프",
       };
     }
     const exerciseHit = findMilitaryExercise(displayMilitaryExercises, hoveredPath);
@@ -941,24 +941,24 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         kind: "path",
         title: exerciseHit.title,
         detail:
-          labelLanguage === "en" ? "Military exercise zone" : "êµ°ì¬ íë ¨ êµ¬ì­",
+          labelLanguage === "en" ? "Military exercise zone" : "군사 훈련 구역",
         body: exerciseHit.summary?.slice(0, 160) || exerciseHit.rfGapNote || undefined,
         meta: labelLanguage === "en" ? conf.en : conf.ko,
-        hint: labelLanguage === "en" ? "Click for brief" : "í´ë¦­ Â· ì ë³´ ë¸ë¦¬í",
+        hint: labelLanguage === "en" ? "Click for brief" : "클릭 · 전보 브리프",
       };
     }
     const ukmtoHit = findUkmtoIncident(ukmtoIncidents, hoveredPath);
     if (ukmtoHit) {
       return {
         kind: "path",
-        title: `UKMTO Â· ${ukmtoHit.incidentTypeName}`,
+        title: `UKMTO · ${ukmtoHit.incidentTypeName}`,
         detail:
           labelLanguage === "en"
             ? "Merchant vessel security warning"
-            : "ìì  ë³´ì ê²½ë³´ Â· íë°± ë¹ê¸",
+            : "상선 보안 경보 · 흑백 빗금",
         body: ukmtoHit.place || ukmtoHit.detail || undefined,
-        meta: [ukmtoHit.vesselType, ukmtoHit.pinColour].filter(Boolean).join(" Â· ") || undefined,
-        hint: labelLanguage === "en" ? "Click for brief" : "í´ë¦­ Â· ì ë³´ ë¸ë¦¬í",
+        meta: [ukmtoHit.vesselType, ukmtoHit.pinColour].filter(Boolean).join(" · ") || undefined,
+        hint: labelLanguage === "en" ? "Click for brief" : "클릭 · 전보 브리프",
       };
     }
     const dispute =
@@ -982,13 +982,13 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           tensionLabel(dispute.tension, lang),
           lang,
         )}${
-          dispute.categories.length ? ` Â· ${dispute.categories.map((category) => disputeCategoryLabel(category, lang)).join(" Â· ")}` : ""
-        }${overview?.parties?.length ? ` Â· ${overview.parties.join(" Â· ")}` : ""}`,
+          dispute.categories.length ? ` · ${dispute.categories.map((category) => disputeCategoryLabel(category, lang)).join(" · ")}` : ""
+        }${overview?.parties?.length ? ` · ${overview.parties.join(" · ")}` : ""}`,
         hint: HOVER.hintDetail(lang),
       };
     }
 
-    /** CRINK ì¶ ì ì  â ë§ì°ì¤ ììì ê´ê³ ì¢ë¥Â·ìëë¥¼ ë°ë¡ ì½ê² */
+    /** CRINK 축 점선 — 마우스 옆에서 관계 종류·상대를 바로 읽게 */
     if (hoveredPath.kind === "axis-link") {
       const meta = hoveredPath.meta ?? {};
       const mode = meta.mode === "arms" ? "arms" : "network";
@@ -1035,7 +1035,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           count != null
             ? labelLanguage === "en"
               ? `${count} deals`
-              : `${count}ê±´`
+              : `${count}건`
             : null,
           years,
         ].filter(Boolean);
@@ -1047,17 +1047,17 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               : hoveredPath.name || pathKindLabel("axis-link", lang),
           detail:
             labelLanguage === "en"
-              ? `Axis arms transfer${category ? ` Â· ${category}` : ""}${statusLabel ? ` Â· ${statusLabel}` : ""}`
-              : `ì¶ ë¬´ê¸°ì´ì ${category ? ` Â· ${category}` : ""}${statusLabel ? ` Â· ${statusLabel}` : ""}`,
+              ? `Axis arms transfer${category ? ` · ${category}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`
+              : `축 무기이전${category ? ` · ${category}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`,
           body:
             statusLabel && meta.status === "under-construction"
               ? labelLanguage === "en"
-                ? "Route geometry is mapped, but this corridor is still under construction â no completion glint."
-                : "ì¤ì¸¡ ê²½ë¡ë¡ íìíì§ë§ ìì§ ê±´ì¤ì¤ì´ë¼ ìê³µ ê¸ë¦°í¸ë ììµëë¤."
+                ? "Route geometry is mapped, but this corridor is still under construction — no completion glint."
+                : "실측 경로로 표시하지만 아직 건설중이라 완공 글린트는 없습니다."
               : labelLanguage === "en"
-                ? "Dashed arc Â· registered conventional transfer summary between axis partners."
-                : "ì ì  Â· ì¶ íí¸ë ì¬ì´ ë±ë¡ë ì¬ëì ì´ì  ìì½ìëë¤.",
-          meta: metaBits.length ? metaBits.join(" Â· ") : undefined,
+                ? "Dashed arc · registered conventional transfer summary between axis partners."
+                : "점선 · 축 파트너 사이 등록된 재래식 이전 요약입니다.",
+          meta: metaBits.length ? metaBits.join(" · ") : undefined,
         };
       }
 
@@ -1070,19 +1070,19 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         title: hoveredPath.name || pathKindLabel("axis-link", lang),
         detail:
           labelLanguage === "en"
-            ? `Axis link${kindLabel ? ` Â· ${kindLabel}` : ""}${statusLabel ? ` Â· ${statusLabel}` : ""}`
-            : `ì¶ ê´ê³ë§ ì ì ${kindLabel ? ` Â· ${kindLabel}` : ""}${statusLabel ? ` Â· ${statusLabel}` : ""}`,
+            ? `Axis link${kindLabel ? ` · ${kindLabel}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`
+            : `축 관계망 점선${kindLabel ? ` · ${kindLabel}` : ""}${statusLabel ? ` · ${statusLabel}` : ""}`,
         body:
           statusLabel && meta.status === "under-construction"
             ? labelLanguage === "en"
-              ? "Mapped corridor still under construction â shown without completion glint."
-              : "ì¤ì¸¡ íëì´ì§ë§ ìì§ ê±´ì¤ì¤ â ìê³µ ê¸ë¦°í¸ ìì´ íìí©ëë¤."
+              ? "Mapped corridor still under construction — shown without completion glint."
+              : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
             : relationKind
               ? axisRelationKindBlurb(relationKind, labelLanguage === "en" ? "en" : "ko")
               : labelLanguage === "en"
                 ? "Dashed arc linking CRINK hubs and partners."
-                : "CRINK íë¸Â·íí¸ëë¥¼ ìë ì ì ìëë¤.",
-        meta: [pair, statusLabel, distanceMeta].filter(Boolean).join(" Â· ") || undefined,
+                : "CRINK 허브·파트너를 잇는 점선입니다.",
+        meta: [pair, statusLabel, distanceMeta].filter(Boolean).join(" · ") || undefined,
       };
     }
 
@@ -1110,14 +1110,14 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         category === "military-logistics"
           ? labelLanguage === "en"
             ? "Military logistics"
-            : "êµ°ì ì´ì¡"
+            : "군수 이송"
           : category === "sanctions-evasion"
             ? labelLanguage === "en"
               ? "Sanctions evasion"
-              : "ì ì¬ ì°í"
+              : "제재 우회"
             : labelLanguage === "en"
               ? "Trade corridor"
-              : "ë¬´ì­ íë";
+              : "무역 회랑";
       return {
         kind: "path",
         title: hoveredPath.name || pathKindLabel("strategic-corridor", lang),
@@ -1129,23 +1129,23 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           meta.gaugeBreak === 1
             ? labelLanguage === "en"
               ? "gauge-break"
-              : "ê¶¤ê°ë³ê²½"
+              : "궤간변경"
             : meta.euRailGateway === 1
               ? labelLanguage === "en"
                 ? "EU gateway"
-                : "EU ê²ì´í¸ì¨ì´"
+                : "EU 게이트웨이"
               : null,
         ]
           .filter(Boolean)
-          .join(" Â· "),
+          .join(" · "),
         body:
           statusLabel && meta.status === "under-construction"
             ? labelLanguage === "en"
-              ? "Mapped corridor still under construction â shown without completion glint."
-              : "ì¤ì¸¡ íëì´ì§ë§ ìì§ ê±´ì¤ì¤ â ìê³µ ê¸ë¦°í¸ ìì´ íìí©ëë¤."
+              ? "Mapped corridor still under construction — shown without completion glint."
+              : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
             : labelLanguage === "en"
-              ? "Click for Eurostat ton-km sparkline Â· Comtrade USD dual signal Â· LOD from corridor ranks."
-              : "í´ë¦­ ì Eurostat ton-km ìê³ì´ Â· Comtrade USD ì´ì¤ ì í¸ Â· LODë ì ë íë ë­í¬.",
+              ? "Click for Eurostat ton-km sparkline · Comtrade USD dual signal · LOD from corridor ranks."
+              : "클릭 시 Eurostat ton-km 시계열 · Comtrade USD 이중 신호 · LOD는 정량 회랑 랭크.",
         meta: distanceMeta,
         hint: HOVER.hintDetail(lang),
       };
@@ -1199,7 +1199,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
   };
 }
 
-/** ì§êµ¬ë³¸ í¸ë² ì¹´ë â buildHoverCard ìì í¨ìë¥¼ useMemoë¡ ê°ì¼ ìì í */
+/** 지구본 호버 카드 — buildHoverCard 순수 함수를 useMemo로 감싼 얇은 훅 */
 export function useHoverCard(params: HoverCardParams): HoverCard {
   const {
     disputeFromPath,

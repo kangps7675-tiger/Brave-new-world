@@ -12,6 +12,13 @@ alwaysApply: true
 - Prefer `@/lib/brand` (`BRAND_NAME`, `brandName()`, `BRAND_USER_AGENT`) for user-visible strings.
 - Huxley’s novel may be cited as the literary motif; the product name and the novel title are the same phrase on purpose.
 
+## Branches
+
+- **`dev`** — developer page / environment (실험·내부용).
+- **`main`** — user-facing page / environment (일반 유저 대상).
+
 ## Git push
 
-- When the user asks to push completed work, update **both** `main` and `dev` (merge or push as appropriate)—not only one branch.
+- **First push goes to `dev`** — 작업 완료 후 처음 올릴 때는 항상 `dev`에 먼저 푸시한다 (개발자 페이지에서 검증).
+- **`main`은 그 다음** — 유저 페이지 반영은 `dev` 검증 후, 사용자가 요청할 때(또는 명시적으로 둘 다 맞추라고 할 때) `main`에 merge/push한다.
+- When the user asks to update both, sync **`dev` then `main`** — not only one branch, and not `main` before `dev`.
