@@ -190,7 +190,7 @@ export function paintKoreaTerritoryFeature(feature: Feature): Feature {
   const family = territoryFamilyKey(props);
   const paint = colorForKoreaFamily(family, {
     role,
-    layer: props.layer,
+    layer: props.layer ?? undefined,
     nameBlob: blob(props),
   });
 
