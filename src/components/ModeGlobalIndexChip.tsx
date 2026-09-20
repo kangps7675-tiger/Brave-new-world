@@ -54,6 +54,9 @@ export function ModeGlobalIndexChip({
   onPanelOpenChange,
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
+  if (viewerMode === "satellite") {
+    return null;
+  }
   const stackRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [sesPanelOpen, setSesPanelOpen] = useState(false);

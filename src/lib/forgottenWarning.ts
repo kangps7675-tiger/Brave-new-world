@@ -55,9 +55,11 @@ export function monthDayKey(now: Date = new Date()): string {
 }
 
 function domainMatchesMode(domain: MajorEventDomain, mode: ViewerMode): boolean {
+  if (mode === "satellite" || mode === "live") return false;
   if (mode === "economy") {
     return domain === "economy" || domain === "logistics" || domain === "both";
   }
+  // conflict + history — 갈등·물류 계보
   return domain === "conflict" || domain === "logistics" || domain === "both";
 }
 

@@ -17,6 +17,8 @@ export type LabelLanguage = "en" | "ko";
 /** 축 관계망 — 구 기본 ON·친화도 unlock 잔존을 한 번 OFF로 내린다 */
 const AXIS_NETWORK_DEFAULT_OFF_KEY = "geowatch-axis-network-default-off-v1";
 const TELEGRAM_DEFAULT_ON_KEY = "geowatch-telegram-default-on-v1";
+/** 물류망·CRINK 인프라 — 구 기본 ON을 1회 OFF로 정착 (레이어 패널에서 수동 ON) */
+const LOGISTICS_INFRA_DEFAULT_OFF_KEY = "bnw-logistics-infra-default-off-v1";
 
 export type LayerPrefs = {
   /** 전쟁구역 — 빨간 사각+빗금 (combat) */
@@ -230,7 +232,7 @@ export type LayerPrefs = {
    * LOD scalerank = corridor-ranks.json 정량 합성 점수.
    */
   showStrategicCorridors: boolean;
-  /** 동맹 물류 회랑(military-logistics만) — showStrategicCorridors와 별개, 기본 켜짐. */
+  /** 동맹 물류 회랑(military-logistics만) — showStrategicCorridors와 별개, 기본 OFF. */
   showAlliedLogisticsCorridors: boolean;
   /** 제재 회피 회랑(sanctions-evasion만) — SES 지도 근거 레이어 */
   showSanctionsEvasionCorridors: boolean;
@@ -281,7 +283,7 @@ export type LayerPrefs = {
  * 저장 구조 자체를 바꿔야 할 때만 버전을 올리고, 반드시 `PREF_MIGRATIONS`에
  * 변환 함수를 등록할 것. 그래야 사용자 설정이 살아서 넘어온다.
  */
-export const LAYER_PREFS_KEY = "geowatch-layers-v38";
+export const LAYER_PREFS_KEY = "geowatch-layers-v39";
 
 /**
  * 구조 변경 마이그레이션 등록부.
@@ -302,7 +304,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showRailGlow: false,
   showAis: true,
   showDisguisedVessels: false,
-  showShippingLanes: true,
+  /** 해상 항로·물류망 — 기본 OFF, 레이어 패널·지경학 첫 화면에서 켠다 */
+  showShippingLanes: false,
   showLsibBoundary: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
@@ -409,20 +412,23 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showIslandChains: true,
   showAxisNetwork: true,
   showBriTradeConnectivity: false,
+  /** 전략·동맹 물류 회랑 — 기본 OFF, 레이어 패널에서 켠다 */
   showStrategicCorridors: false,
-  showAlliedLogisticsCorridors: true,
+  /** 북-이란/예멘/쿠바 등 군수협력 해상로는 수동으로 켠다 */
+  showAlliedLogisticsCorridors: false,
   showSanctionsEvasionCorridors: true,
   showSesChip: true,
   showUsDfcSupplyChain: false,
   showGtaInterventions: false,
-  showCrinkInfraPower: true,
-  showCrinkInfraBorder: true,
-  showCrinkInfraDams: true,
-  showCrinkInfraAeroway: true,
-  showCrinkInfraHarbour: true,
-  showCrinkInfraCheckpoint: true,
-  showCrinkInfraRail: true,
-  showCrinkInfraRoad: true,
+  /** CRINK OSM 인프라(철도·도로·항만 등) — 기본 OFF, 근접 확대 후 패널에서 켠다 */
+  showCrinkInfraPower: false,
+  showCrinkInfraBorder: false,
+  showCrinkInfraDams: false,
+  showCrinkInfraAeroway: false,
+  showCrinkInfraHarbour: false,
+  showCrinkInfraCheckpoint: false,
+  showCrinkInfraRail: false,
+  showCrinkInfraRoad: false,
   showCrinkInfraPipeline: false,
   showCrinkInfraPowerLine: false,
   labelLanguage: "ko",
@@ -606,9 +612,40 @@ function settleTelegramDefaultOn(prefs: LayerPrefs): LayerPrefs {
   return prefs;
 }
 
+/** 물류망·CRINK 인프라 — 구 기본 ON 저장본을 1회 OFF (이후 사용자 토글 유지) */
+function settleLogisticsInfraDefaultOff(prefs: LayerPrefs): LayerPrefs {
+  if (!shouldPersistLayerPrefs()) return prefs;
+  try {
+    if (!localStorage.getItem(LOGISTICS_INFRA_DEFAULT_OFF_KEY)) {
+      localStorage.setItem(LOGISTICS_INFRA_DEFAULT_OFF_KEY, "1");
+      return {
+        ...prefs,
+        /** 해상 항로는 지경학 FORCE_ON — 저장본은 건드리지 않음. 지정학은 CONFLICT_FORCE_OFF */
+        showAlliedLogisticsCorridors: false,
+        showCriticalNodes: false,
+        showCrinkInfraPower: false,
+        showCrinkInfraBorder: false,
+        showCrinkInfraDams: false,
+        showCrinkInfraAeroway: false,
+        showCrinkInfraHarbour: false,
+        showCrinkInfraCheckpoint: false,
+        showCrinkInfraRail: false,
+        showCrinkInfraRoad: false,
+        showCrinkInfraPipeline: false,
+        showCrinkInfraPowerLine: false,
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return prefs;
+}
+
 function settleLayerPrefDefaults(prefs: LayerPrefs): LayerPrefs {
   return stripLegacyConflictPrefs(
-    settleTelegramDefaultOn(settleAxisNetworkDefaultOff(prefs)),
+    settleLogisticsInfraDefaultOff(
+      settleTelegramDefaultOn(settleAxisNetworkDefaultOff(prefs)),
+    ),
   );
 }
 

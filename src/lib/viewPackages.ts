@@ -12,30 +12,65 @@ import {
 import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
+  FIRST_SCREEN_LIVE_ON,
 } from "@/lib/firstScreenLayers";
 export const VIEW_CONFIG_KEY = "geowatch-view-config-v1";
 
 export type ViewIntelTab = "news" | "video" | "telegram" | "viina";
 
-export type ViewPackageId = "conflict-watch" | "geo-trader" | "frontline-live" | "custom";
+export type ViewPackageId =
+  | "conflict-watch"
+  | "geo-trader"
+  | "frontline-live"
+  | "satellite-eye"
+  | "live-tracks"
+  | "custom";
 
-/** 상단 스위치 — 지정학 뷰어 vs 경제·시장 뷰어 (패키지 1:1) */
-export type ViewerMode = "conflict" | "economy";
+/**
+ * 상단 스위치 — 1 지정학 · 2 역사 · 3 지경학
+ * 관측(Cesium)·항적은 지정학 하위 도구로 유지(타입만 잔존, 상단 토글 제외).
+ * @see docs/plans/2026-09-19-globe-episode-history-db-design.md
+ */
+export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
 
 export const CONFLICT_VIEWER_PACKAGE = "frontline-live" as const;
 export const ECONOMY_VIEWER_PACKAGE = "geo-trader" as const;
+export const SATELLITE_VIEWER_PACKAGE = "satellite-eye" as const;
+export const LIVE_VIEWER_PACKAGE = "live-tracks" as const;
+
+/** 지정학 계열(실시간 분쟁 + 역사 렌즈 공유 패키지) */
+export function isConflictFamilyMode(mode: ViewerMode): boolean {
+  return mode === "conflict" || mode === "history";
+}
+
+/** peacesciencer 속보 배경 허용 도메인 */
+export function isPeaceScienceViewerMode(mode: ViewerMode): boolean {
+  return mode === "conflict" || mode === "economy";
+}
 
 export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
-  return mode === "economy" ? [ECONOMY_VIEWER_PACKAGE] : [CONFLICT_VIEWER_PACKAGE];
+  if (mode === "economy") return [ECONOMY_VIEWER_PACKAGE];
+  if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE];
+  if (mode === "live") return [LIVE_VIEWER_PACKAGE];
+  // conflict + history → 동일 지정학 패키지 (역사는 타임라인/Cliopatria 렌즈)
+  return [CONFLICT_VIEWER_PACKAGE];
 }
 
 export function viewerModeFromPackages(packages: ViewPackageId[]): ViewerMode {
   const ids = packages.filter((id) => id !== "custom");
+  if (ids.includes(SATELLITE_VIEWER_PACKAGE) && ids.length === 1) {
+    return "satellite";
+  }
+  if (ids.includes(LIVE_VIEWER_PACKAGE) && ids.length === 1) {
+    return "live";
+  }
   // 경제 패키지만 있으면 지경학 (혼재·단독 모두)
   if (
     ids.includes(ECONOMY_VIEWER_PACKAGE) &&
     !ids.includes(CONFLICT_VIEWER_PACKAGE) &&
-    !ids.includes("conflict-watch")
+    !ids.includes("conflict-watch") &&
+    !ids.includes(SATELLITE_VIEWER_PACKAGE) &&
+    !ids.includes(LIVE_VIEWER_PACKAGE)
   ) {
     return "economy";
   }
@@ -101,9 +136,9 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   },
   {
     id: "geo-trader",
-    label: "지경학 트레이더",
-    tagline: "유가·VIX·제재",
-    description: "VIX · 유가 · 금 · 제재 · 에너지",
+    label: "경제·물류",
+    tagline: "진영 폴리곤",
+    description: "지경학 진영 폴리곤 · 물류·에너지는 패널에서",
     layers: {
       ...FIRST_SCREEN_ECONOMY_ON,
     },
@@ -116,8 +151,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   {
     id: "frontline-live",
     label: "전선 실시간",
-    tagline: "우크라·중동",
-    description: "우크라 전선 · NEPTUN · 항모",
+    tagline: "영토·분쟁 폴리곤",
+    description: "점령·분쟁·진영·ADIZ 폴리곤",
     layers: {
       ...FIRST_SCREEN_CONFLICT_ON,
     },
@@ -125,6 +160,44 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
       showTicker: false,
       defaultIntelTab: "viina",
       autoOpenIntelSheet: false,
+    },
+  },
+  {
+    id: "satellite-eye",
+    label: "관측",
+    tagline: "공중 · Cesium",
+    description: "Cesium 글로브 · 레이어 트리 없음 (GEV식 관측면)",
+    layers: {
+      // 전부 OFF — 위성 모드는 MapLibre 레이어를 쓰지 않음
+      showWarZones: false,
+      showDiplomaticTension: false,
+      showConflictEvents: false,
+      showNeptun: false,
+      showAis: false,
+      showAirTraffic: false,
+      showGpsInterference: false,
+      showCityLabels: false,
+    },
+    ui: {
+      showTicker: false,
+      defaultIntelTab: "news",
+      autoOpenIntelSheet: false,
+      openLayerPanel: false,
+    },
+  },
+  {
+    id: "live-tracks",
+    label: "항적",
+    tagline: "ADS-B · AIS · GPSJam",
+    description: "항공기·선박 라이브 + GPS 재밍 셀 (항법·트래픽)",
+    layers: {
+      ...FIRST_SCREEN_LIVE_ON,
+    },
+    ui: {
+      showTicker: false,
+      defaultIntelTab: "news",
+      autoOpenIntelSheet: false,
+      openLayerPanel: true,
     },
   },
   {
@@ -286,6 +359,39 @@ function capLayerCount(
 }
 
 export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): LayerPrefs {
+  if (mode === "satellite") {
+    // 위성 관측면 — 레이어 전부 OFF
+    const next = { ...layers };
+    for (const key of Object.keys(next) as Array<keyof LayerPrefs>) {
+      if (key === "labelLanguage") continue;
+      if (typeof next[key] === "boolean") {
+        (next as Record<string, boolean | string>)[key as string] = false;
+      }
+    }
+    return next;
+  }
+  if (mode === "live") {
+    // 항적 홈 — ADS-B/AIS/GPSJam만 유지, 전선·시장 잡음 컷
+    const keepOn = new Set<keyof LayerPrefs>([
+      "showAis",
+      "showAirTraffic",
+      "showMilitaryActivity",
+      "showGpsInterference",
+      "labelLanguage",
+    ]);
+    const next = { ...layers };
+    for (const key of Object.keys(next) as Array<keyof LayerPrefs>) {
+      if (keepOn.has(key)) continue;
+      if (typeof next[key] === "boolean") {
+        (next as Record<string, boolean | string>)[key as string] = false;
+      }
+    }
+    for (const key of keepOn) {
+      if (key === "labelLanguage") continue;
+      (next as Record<string, boolean | string>)[key as string] = true;
+    }
+    return next;
+  }
   if (mode === "economy") {
     return capLayerCount(layers, MAX_ON_LAYERS_ECONOMY, ECONOMY_LAYER_DROP_PRIORITY);
   }
@@ -528,6 +634,14 @@ export function previewModeSelection(
     bullets.push("우크라이나 전선·NEPTUN 드론·미사일 궤적");
     bullets.push("GDELT 전투·외교 뉴스 · Telegram OSINT");
     bullets.push("하단: 속보 + GDELT 범례");
+  } else if (mode === "satellite") {
+    bullets.push("Cesium 공중 글로브 · Esri / Photorealistic");
+    bullets.push("레이어 트리 없음 — 관측 보드");
+    bullets.push("이후: LiveUAMap · 공식 SNS (예정)");
+  } else if (mode === "live") {
+    bullets.push("군·민 ADS-B 항공기 · AIS 선박");
+    bullets.push("GPSJam — 항공기 GNSS 이상 셀 (재머 위치 아님)");
+    bullets.push("전선·시장 레이어 없음 — 움직임·항법");
   } else {
     bullets.push("주요 증시·VIX·유가 티커");
     bullets.push("경제 RSS · 시장 속보");
@@ -541,10 +655,12 @@ export function previewModeSelection(
     bullets.push(`시작 시 ${theaterLabel} 전장으로 카메라 이동`);
   } else if (mode === "conflict") {
     bullets.push("시작 시 지구본 전역 궤도 유지 (핫 지역 자동 이동 없음)");
-  } else if (economyHub !== "auto") {
+  } else if (mode === "economy" && economyHub !== "auto") {
     bullets.push(`시작 시 ${economyHubLabel(economyHub)} 허브로 카메라 이동`);
-  } else {
+  } else if (mode === "economy") {
     bullets.push("시작 시 핫한 투자 허브로 카메라만 이동 (양피지는 nav에서 선택)");
+  } else if (mode === "live" || mode === "satellite") {
+    bullets.push("시작 시 지구본 전역 궤도 유지");
   }
 
   return bullets.slice(0, 6);

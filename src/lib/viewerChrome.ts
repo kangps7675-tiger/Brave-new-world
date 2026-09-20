@@ -19,6 +19,7 @@ import { mergeConceptLayerPrefs } from "@/lib/conceptLayers";
 import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
+  FIRST_SCREEN_LIVE_ON,
 } from "@/lib/firstScreenLayers";
 import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 
@@ -34,22 +35,21 @@ export type LayerCategoryId =
   | "economy"
   | "live";
 
-export type BottomStackLayout = "conflict" | "economy";
+export type BottomStackLayout = "conflict" | "economy" | "live";
 
 export type NewsTierLabel = { label: string; detail: string };
 
 /**
- * 지정학 자원 히어로 — 해저관 + GEM 송유·가스관 (전 지구 에너지 배관 실루엣).
- * 원자력·매장지·LNG는 여전히 레이어 패널·시나리오에서 ON.
+ * 전쟁·안보 자원 히어로 — 비움 (첫 화면은 폴리곤만).
+ * 배관·매장지는 레이어 패널·시나리오에서 ON.
  */
-export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showSubseaPipelines: true,
-  showOilPipelines: true,
-  showGasPipelines: true,
-};
+export const CONFLICT_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
-/** 지정학에서 자원·인프라 잡음 — 모드 진입 시 기본 OFF (배관은 FIRST_SCREEN / 히어로에서 ON) */
+/** 전쟁·안보에서 자원·인프라 — 모드 진입 시 기본 OFF */
 export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
+  showSubseaPipelines: false,
+  showOilPipelines: false,
+  showGasPipelines: false,
   showLngTerminals: false,
   showResources: false,
   showNuclearSites: false,
@@ -59,17 +59,16 @@ export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
 };
 
 /**
- * 지경학 자원 히어로 — 가스·LNG·송유·해저관.
+ * 경제·물류 자원 히어로 — 비움 (첫 화면은 진영 폴리곤만).
  */
-export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {
-  showGasPipelines: true,
-  showLngTerminals: true,
-  showOilPipelines: true,
-  showSubseaPipelines: true,
-};
+export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
-/** 지경학에서 비물류 자원·인프라 — 모드 진입 시 기본 OFF */
+/** 경제·물류에서 자원·인프라 — 모드 진입 시 기본 OFF */
 export const ECONOMY_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
+  showSubseaPipelines: false,
+  showOilPipelines: false,
+  showGasPipelines: false,
+  showLngTerminals: false,
   showNuclearSites: false,
   showResources: false,
   showGemOilGasExtraction: false,
@@ -89,6 +88,7 @@ export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
 };
 
 export function resourceHeroLayersForMode(mode: ViewerMode): Partial<LayerPrefs> {
+  if (mode === "satellite" || mode === "live") return {};
   return mode === "economy" ? ECONOMY_RESOURCE_HERO_ON : CONFLICT_RESOURCE_HERO_ON;
 }
 
@@ -163,20 +163,60 @@ const CONFLICT_FORCE_OFF: Partial<LayerPrefs> = {
   showGdeltProtests: false,
   showGdeltOceanCompetition: false,
   showGeoEconBlocs: false,
+  /** GPSJam은 항적(live) 모드 홈 — 전쟁·안보에서 강제 OFF */
+  showGpsInterference: false,
   /** 도시명 — 레이어 체크박스 ON 전까지 숨김 */
   showCityLabels: false,
-  /** 시험장·후보 격자는 기본 OFF (확인 사일로·전략기지는 FORCE_ON) */
   showMissileTestSites: false,
   showMissileSiloFields: false,
-  /** BRI·DFC는 지경학 전용 — 지정학 prefs에 남아 있어도 강제 OFF */
+  /** BRI·DFC는 경제·물류 전용 */
   showBriTradeConnectivity: false,
   showUsDfcSupplyChain: false,
+  /** 물류·인프라·항적·이벤트 — 첫 화면은 폴리곤만 */
+  showShippingLanes: false,
+  showPorts: false,
+  showLogisticsRisk: false,
+  showStrategicCorridors: false,
+  showAlliedLogisticsCorridors: false,
+  showCriticalNodes: false,
+  showNeptun: false,
+  showNeptunPreviousTrails: false,
+  showConflictEvents: false,
+  showGdeltWar: false,
+  showGdeltDiplomatic: false,
+  showGdeltAlliance: false,
+  showFirmsFires: false,
+  showMilitaryActivity: false,
+  showUsCarriers: false,
+  showWeeklyShipMoves: false,
+  showAis: false,
+  showReefWatch: false,
+  showMissileSilos: false,
+  showStrategicMissileBases: false,
+  showAxisNetwork: false,
+  showTzevaAdom: false,
+  showMilitaryBases: false,
+  showRokMilitaryBases: false,
+  showJapanMilitaryBases: false,
+  showTaiwanMilitaryBases: false,
+  showPhilippinesMilitaryBases: false,
+  showAustraliaMilitaryBases: false,
+  showEasternNatoMilitaryBases: false,
+  showCrinkInfraPower: false,
+  showCrinkInfraBorder: false,
+  showCrinkInfraDams: false,
+  showCrinkInfraAeroway: false,
+  showCrinkInfraHarbour: false,
+  showCrinkInfraCheckpoint: false,
+  showCrinkInfraRail: false,
+  showCrinkInfraRoad: false,
+  showCrinkInfraPipeline: false,
+  showCrinkInfraPowerLine: false,
   ...CONFLICT_RESOURCE_HERO_OFF,
 };
 
 const ECONOMY_FORCE_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
-  ...ECONOMY_RESOURCE_HERO_ON,
   showLogisticsStress: true,
   showGscpiGauge: true,
 };
@@ -208,7 +248,7 @@ export const ECONOMY_MILITARY_BLOCK: Partial<LayerPrefs> = {
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
-  /** 지정학 전선 UI/레이어 — 지경학에서는 기본 비활성 */
+  /** 전쟁·안보 전선 UI/레이어 — 경제·물류에서는 기본 비활성 */
   showWarZones: false,
   showDiplomaticTension: false,
   showGdeltWar: false,
@@ -228,13 +268,25 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showFirmsFires: false,
   showSanctionsEntities: false,
   showAlliedBlocs: false,
+  showIslandChains: false,
+  showEastAsiaAdiz: false,
+  showAxisNetwork: false,
   showSubmarineTunnels: false,
   showSubmarineCables: false,
-  /** 제재 회피 강도·회랑은 지정학 전용(재미·관측) — 지경학에서는 OFF */
+  /** 제재 회피 강도·회랑은 전쟁·안보 전용 — 경제·물류에서는 OFF */
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
   showAirports: false,
   showCriticalNodes: false,
+  /** 인프라·항적 — 첫 화면은 진영 폴리곤만 */
+  showShippingLanes: false,
+  showPorts: false,
+  showLogisticsRisk: false,
+  showStrategicCorridors: false,
+  showAlliedLogisticsCorridors: false,
+  showAirTraffic: false,
+  showAis: false,
+  showAiDataCenters: false,
   showCrinkInfraPower: false,
   showCrinkInfraBorder: false,
   showCrinkInfraDams: false,
@@ -314,6 +366,92 @@ export function stripEconomyGeopoliticsPatch(
   );
 }
 
+/** 위성 모드 — 레이어 트리 없음 · 관측 전용 */
+const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
+  ...ECONOMY_MILITARY_BLOCK,
+  ...ECONOMY_FRONTLINE_BLOCK,
+  ...CONFLICT_FORCE_OFF,
+  ...ECONOMY_FORCE_OFF,
+  showCityLabels: false,
+  showAirTraffic: false,
+  showAis: false,
+  showGpsInterference: false,
+  showMilitaryActivity: false,
+  showNeptun: false,
+  showConflictEvents: false,
+  showFirmsFires: false,
+  showTelegramOsint: false,
+  showLogisticsStress: false,
+  showGscpiGauge: false,
+  showSesChip: false,
+};
+
+/** 항적 모드 — ADS-B · AIS · GPSJam만. 전선·시장 강제 OFF */
+const LIVE_FORCE_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_LIVE_ON,
+};
+
+const LIVE_FORCE_OFF: Partial<LayerPrefs> = {
+  ...ECONOMY_FRONTLINE_BLOCK,
+  showFirmsFires: false,
+  showTelegramOsint: false,
+  showUcdpEvents: false,
+  showAlliedBlocs: false,
+  showAxisNetwork: false,
+  showIslandChains: false,
+  showEastAsiaAdiz: false,
+  showMissileSilos: false,
+  showStrategicMissileBases: false,
+  showMissileTestSites: false,
+  showMissileSiloFields: false,
+  showMilitaryBases: false,
+  showRokMilitaryBases: false,
+  showJapanMilitaryBases: false,
+  showTaiwanMilitaryBases: false,
+  showPhilippinesMilitaryBases: false,
+  showAustraliaMilitaryBases: false,
+  showEasternNatoMilitaryBases: false,
+  showUsCarriers: false,
+  showDisguisedVessels: false,
+  showWeeklyShipMoves: false,
+  showReefWatch: false,
+  showReconSatellites: false,
+  showLogisticsRisk: false,
+  showShippingLanes: false,
+  showPorts: false,
+  showStrategicCorridors: false,
+  showGeoEconBlocs: false,
+  showAiDataCenters: false,
+  showEconomicCenters: false,
+  showSanctionsEntities: false,
+  showBriTradeConnectivity: false,
+  showUsDfcSupplyChain: false,
+  showLogisticsStress: false,
+  showGscpiGauge: false,
+  showSesChip: false,
+  showSanctionsEvasionCorridors: false,
+  showOilPipelines: false,
+  showGasPipelines: false,
+  showLngTerminals: false,
+  showSubseaPipelines: false,
+  showCityLabels: false,
+  showAirports: false,
+  showCriticalNodes: false,
+  showAlliedLogisticsCorridors: false,
+  showCrinkInfraPower: false,
+  showCrinkInfraBorder: false,
+  showCrinkInfraDams: false,
+  showCrinkInfraAeroway: false,
+  showCrinkInfraHarbour: false,
+  showCrinkInfraCheckpoint: false,
+  showCrinkInfraRail: false,
+  showCrinkInfraRoad: false,
+  showCrinkInfraPipeline: false,
+  showCrinkInfraPowerLine: false,
+  ...CONFLICT_RESOURCE_HERO_OFF,
+  ...ECONOMY_RESOURCE_HERO_OFF,
+};
+
 export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
   conflict: {
     mode: "conflict",
@@ -333,13 +471,91 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "지명 · 국가 · 분쟁 · 기사",
     navHeaderLabel: "CRINK",
     modePickerTitle: "지정학",
-    modePickerTagline: "전선 · 드론 · CRINK · 군용 항적",
+    modePickerTagline: "영토 · 분쟁 · 진영 폴리곤",
     modePickerBullets: [
-      "우크라 전선 · NEPTUN 드론 · 러시아 타격 핫스팟",
-      "미사일 사일로 · 도련선 · 축 네트워크 · CRINK 영토",
-      "군용 항공기·함선 · ReefWatch · NASA FIRMS",
+      "우크라이나 점령·주장 폴리곤",
+      "분쟁 해역·ADIZ·도련선·동맹 진영",
+      "배관·기지·항적·이벤트는 레이어 패널에서 ON",
     ],
     layerPanelTitle: "레이어 · 전선",
+  },
+  history: {
+    mode: "history",
+    packageId: "frontline-live",
+    layerCategoryIds: ["map", "conflict", "military", "energy", "transport", "live"],
+    forceLayerOn: CONFLICT_FORCE_ON,
+    forceLayerOff: CONFLICT_FORCE_OFF,
+    fetchGdelt: true,
+    fetchTelegram: false,
+    bottomStack: "conflict",
+    newsTierLabels: {
+      1: { label: "기록", detail: "연표·에피소드" },
+      2: { label: "맥락", detail: "오늘과 잇는 링크" },
+      3: { label: "참고", detail: "심화·원천" },
+    },
+    navProfile: NAV_MENU_GROUPS,
+    searchPlaceholder: "연도 · 사건 · 분쟁 · 계보",
+    navHeaderLabel: "역사",
+    modePickerTitle: "역사",
+    modePickerTagline: "맥락 · 오늘과 잇기 · 에피소드 심화",
+    modePickerBullets: [
+      "시간 스크럽·Cliopatria 연도 채움은 이 모드에서",
+      "지정학과 같은 지도 뼈대, 렌즈만 역사",
+      "속보 peacesciencer 전망 문단은 끄고 사실 맥락에 집중",
+    ],
+    layerPanelTitle: "레이어 · 역사",
+  },
+  satellite: {
+    mode: "satellite",
+    packageId: "satellite-eye",
+    layerCategoryIds: [],
+    forceLayerOn: {},
+    forceLayerOff: SATELLITE_FORCE_OFF,
+    fetchGdelt: false,
+    fetchTelegram: false,
+    bottomStack: "conflict",
+    newsTierLabels: {
+      1: { label: "공식", detail: "정부·기관 1차" },
+      2: { label: "관측", detail: "공개 OSINT" },
+      3: { label: "참고", detail: "미확인" },
+    },
+    navProfile: [],
+    searchPlaceholder: "좌표 · 전장 · 시설",
+    navHeaderLabel: "위성 관측",
+    modePickerTitle: "관측",
+    modePickerTagline: "공중 글로브 · Cesium · 출처 표기",
+    modePickerBullets: [
+      "Esri World Imagery · (Ion) Photorealistic 3D",
+      "레이어 트리 없음 — 관측 보드",
+      "출처: Esri / Maxar / Cesium ion",
+    ],
+    layerPanelTitle: "관측",
+  },
+  live: {
+    mode: "live",
+    packageId: "live-tracks",
+    layerCategoryIds: ["map", "transport", "military", "economy"],
+    forceLayerOn: LIVE_FORCE_ON,
+    forceLayerOff: LIVE_FORCE_OFF,
+    fetchGdelt: false,
+    fetchTelegram: false,
+    bottomStack: "live",
+    newsTierLabels: {
+      1: { label: "항적", detail: "ADS-B · AIS" },
+      2: { label: "항법", detail: "GPSJam GNSS 이상" },
+      3: { label: "참고", detail: "미확인" },
+    },
+    navProfile: NAV_MENU_GROUPS,
+    searchPlaceholder: "공역 · 해역 · 항로",
+    navHeaderLabel: "항적",
+    modePickerTitle: "항적",
+    modePickerTagline: "ADS-B · AIS · GPS 재밍",
+    modePickerBullets: [
+      "군·민 항공기와 선박을 같은 지도에서",
+      "GPSJam 셀 — 항공기 GNSS 이상 비율 (재머 위치 아님)",
+      "전선·시장 레이어 없음 — 움직임·항법에 집중",
+    ],
+    layerPanelTitle: "레이어 · 항적",
   },
   economy: {
     mode: "economy",
@@ -358,12 +574,12 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     navProfile: ECON_NAV_MENU_GROUPS,
     searchPlaceholder: "초크 · 항로 · 허브 · 기사",
     navHeaderLabel: "멋진 신세계 · 시장",
-    modePickerTitle: "경제 · 시장",
-    modePickerTagline: "초크 · 에너지 · 진영 · 물류",
+    modePickerTitle: "지경학",
+    modePickerTagline: "진영 폴리곤",
     modePickerBullets: [
-      "초크·항로·항구 · 공급망 압력으로 막힘을 읽습니다",
-      "가스·LNG·송유·해저관 · 지경학 진영 폴리곤",
-      "민간 항공기·AIS · 데이터센터 (투자 권유 아님)",
+      "지경학 진영 폴리곤만 기본 표시",
+      "초크·항로·배관·DC는 레이어 패널에서 ON",
+      "투자 권유 아님 — 공개 출처 관측",
     ],
     layerPanelTitle: "물류 · 시장",
   },
@@ -407,7 +623,8 @@ export function applyViewerMode(
   economyHub: EconomyHubChoice = "auto",
 ): ApplyViewerModeResult {
   const packages = packagesForViewerMode(mode);
-  const effectiveTheater = mode === "conflict" ? theater : "auto";
+  const effectiveTheater =
+    mode === "conflict" || mode === "history" ? theater : "auto";
   const effectiveHub = mode === "economy" ? economyHub : "auto";
   const mergedBase = applyViewPackages(packages, effectiveTheater, effectiveHub);
   const chromeLayers = mergeChromeLayers(mergedBase.layers, mode);
@@ -444,8 +661,17 @@ export function resolveViewerModeFromConfig(
   packages: ViewPackageId[],
   savedMode?: ViewerMode,
 ): ViewerMode {
-  if (savedMode) return savedMode;
+  if (
+    savedMode === "conflict" ||
+    savedMode === "economy" ||
+    savedMode === "satellite" ||
+    savedMode === "live"
+  ) {
+    return savedMode;
+  }
   const ids = packages.filter((id) => id !== "custom");
+  if (ids.length === 1 && ids[0] === "satellite-eye") return "satellite";
+  if (ids.length === 1 && ids[0] === "live-tracks") return "live";
   if (ids.length === 1 && ids[0] === "geo-trader") return "economy";
   return "conflict";
 }

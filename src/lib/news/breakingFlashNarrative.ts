@@ -5,6 +5,7 @@
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NewsTheater } from "@/lib/news/types";
+import { peaceScienceBackgroundForFlash } from "@/lib/peaceScienceInsight";
 import { theaterLabel } from "@/lib/uiStrings";
 import { josa } from "@/lib/koreanJosa";
 
@@ -484,6 +485,11 @@ export function buildFlashCausalEssay(input: {
   ageMinutes?: number;
   source?: string;
   trustTier?: 1 | 2 | 3;
+  /**
+   * 지정학/지경학만 peacesciencer 배경. 역사·관측·항적이면 null.
+   * 생략 시 economy 플래그로 conflict|economy 추론(레거시).
+   */
+  peaceScienceDomain?: "conflict" | "economy" | null;
 }): string[] {
   const ko = input.lang !== "en";
   const title = input.title.replace(/\s+/g, " ").trim();
@@ -513,6 +519,13 @@ export function buildFlashCausalEssay(input: {
 
   // trustTier는 내부 게이트용으로만 받고, 본문에는 쓰지 않는다.
   void input.trustTier;
+
+  const peaceDomain =
+    input.peaceScienceDomain === undefined
+      ? input.economy
+        ? ("economy" as const)
+        : ("conflict" as const)
+      : input.peaceScienceDomain;
 
   if (ko) {
     const lead = [
@@ -546,6 +559,10 @@ export function buildFlashCausalEssay(input: {
     const impact = supplyBits
       ? `당장 이어질 수 있는 여파는 이렇습니다. ${supplyBits}`
       : `당장 이어질 수 있는 여파는 전장·시장·외교 일정이 한꺼번에 흔들릴 수 있다는 점입니다.`;
+    const history = peaceScienceBackgroundForFlash(actors, input.lang, {
+      domain: peaceDomain,
+      text: `${title} ${summary}`,
+    });
     const tail = [
       why,
       impact,
@@ -555,7 +572,7 @@ export function buildFlashCausalEssay(input: {
       `원문에 실린 문장이 이번 속보의 근거입니다.`,
     ].join(" ");
 
-    return [lead, body, tail];
+    return history ? [lead, body, tail, history] : [lead, body, tail];
   }
 
   const leadEn = [
@@ -589,6 +606,10 @@ export function buildFlashCausalEssay(input: {
   const impactEn = supplyBits
     ? `Near-term spillover: ${supplyBits}`
     : `Near-term spillover can hit the theater, markets, and diplomatic calendars together.`;
+  const historyEn = peaceScienceBackgroundForFlash(actors, input.lang, {
+    domain: peaceDomain,
+    text: `${title} ${summary}`,
+  });
   const tailEn = [
     why,
     impactEn,
@@ -598,5 +619,5 @@ export function buildFlashCausalEssay(input: {
     `The article text is the ground for this bulletin.`,
   ].join(" ");
 
-  return [leadEn, bodyEn, tailEn];
+  return historyEn ? [leadEn, bodyEn, tailEn, historyEn] : [leadEn, bodyEn, tailEn];
 }

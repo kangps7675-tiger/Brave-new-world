@@ -271,12 +271,12 @@ const UI = {
   },
   hoverGpsJam: { ko: "GPS 재밍", en: "GPS jamming" },
   hoverGpsJamOff: {
-    ko: "켜면 다른 레이어를 숨기고 GNSS 재밍 추정 히트맵만 표시합니다.",
-    en: "Turns off other layers and shows the GNSS interference heatmap alone.",
+    ko: "항공기 GNSS 이상 비율 셀을 켭니다. ADS-B·AIS와 같이 볼 수 있습니다.",
+    en: "Show GNSS anomaly cells (aircraft reports). Works with ADS-B & AIS.",
   },
   hoverGpsJamOn: {
-    ko: "솔로 모드 — 재밍 히트맵만 표시 중. 끄면 이전 레이어를 복원합니다.",
-    en: "Solo mode — interference heatmap only. Off restores previous layers.",
+    ko: "GPSJam ON — ADS-B·AIS와 함께 표시. 재머 위치가 아닙니다.",
+    en: "GPSJam ON with ADS-B & AIS. Not jammer locations.",
   },
   hoverGpsJamLoading: {
     ko: "GPSJam 데이터를 불러오는 중…",
@@ -482,15 +482,20 @@ const UI = {
     ko: "상단 유틸 버튼 다시 보이기",
     en: "Show top utility buttons",
   },
-  domainConflictTitle: { ko: "전쟁·안보", en: "Conflict" },
+  domainConflictTitle: { ko: "지정학", en: "Geopolitics" },
   domainConflictHint: {
-    ko: "전선·분쟁·군사·외교 — 어디서 싸우고 긴장하는지",
-    en: "Fronts, disputes, military & diplomacy — where fighting and tension are",
+    ko: "영토·분쟁·진영 — 어디서 싸우고 긴장하는지",
+    en: "Territory · disputes · blocs — where fighting and tension are",
   },
-  domainEconomyTitle: { ko: "경제·물류", en: "Economy" },
+  domainHistoryTitle: { ko: "역사", en: "History" },
+  domainHistoryHint: {
+    ko: "맥락·연표·에피소드 — 오늘과 잇는 이유",
+    en: "Context · timeline · episodes — why today links to then",
+  },
+  domainEconomyTitle: { ko: "지경학", en: "Geoeconomics" },
   domainEconomyHint: {
-    ko: "초크·에너지·항로 — 막힘이 시세에 닿는 곳",
-    en: "Chokes · energy · lanes — where congestion hits markets",
+    ko: "진영·초크·공급 — 막힘이 시세에 닿는 구도",
+    en: "Blocs · chokepoints · supply — where congestion frames markets",
   },
   welcomeLetterCta: { ko: "편지를 접고 출처 고지로", en: "Fold — sources disclosure next" },
   welcomeBriefBody: {
@@ -667,15 +672,36 @@ const UI = {
   modeStartConflict: { ko: "전쟁·안보로 시작", en: "Start conflict view" },
   modeStartEconomy: { ko: "경제·물류로 시작", en: "Start economy view" },
   viewerModeLabel: { ko: "보기 모드", en: "View mode" },
-  modeConflict: { ko: "전쟁·안보", en: "Conflict" },
+  modeConflict: { ko: "지정학", en: "Geopolitics" },
   modeConflictHint: {
-    ko: "전선 · 분쟁 · 군사·외교",
-    en: "Fronts · disputes · mil & diplomacy",
+    ko: "영토 · 분쟁 · 진영 · 실시간 전선",
+    en: "Territory · disputes · blocs · live fronts",
   },
-  modeEconomy: { ko: "경제·물류", en: "Economy" },
+  modeHistory: { ko: "역사", en: "History" },
+  modeHistoryHint: {
+    ko: "맥락 · 오늘과 잇기 · 에피소드 심화 · 연표",
+    en: "Context · today’s link · episode deepen · timeline",
+  },
+  modeEconomy: { ko: "지경학", en: "Geoeconomics" },
   modeEconomyHint: {
-    ko: "공급망 · 에너지 · 시장",
-    en: "Supply chain · energy · markets",
+    ko: "진영 · 공급망·시장은 패널에서",
+    en: "Blocs · supply & markets from the panel",
+  },
+  modeSatellite: { ko: "관측", en: "Observe" },
+  modeSatelliteHint: {
+    ko: "공중 글로브 · Cesium · 출처 표기 (지정학 하위)",
+    en: "Aerial globe · Cesium · attributed (under Geopolitics)",
+  },
+  modeLive: { ko: "항적", en: "Tracks" },
+  modeLiveHint: {
+    ko: "ADS-B · AIS · GPS 재밍 (지정학 하위)",
+    en: "ADS-B · AIS · GPS jam (under Geopolitics)",
+  },
+  modeStartLive: { ko: "항적으로 시작", en: "Start tracks view" },
+  domainLiveTitle: { ko: "항적", en: "Tracks" },
+  domainLiveHint: {
+    ko: "항공기·선박이 움직이고, 어디서 GPS가 아픈지 봅니다.",
+    en: "See aircraft & ships move — and where GPS hurts.",
   },
   basemapModeLabel: { ko: "지도 표시 모드", en: "Basemap mode" },
   basemapIntel: { ko: "인텔", en: "Intel" },
@@ -970,43 +996,99 @@ export const MODE_PICKER_CHROME: Record<
   conflict: {
     ko: {
       title: "지정학",
-      tagline: "전선 · GDELT · 텔레그램 OSINT",
+      tagline: "영토 · 분쟁 · 진영 · 실시간 전선",
       bullets: [
-        "우크라이나 전선·NEPTUN 드론·미사일 궤적",
-        "GDELT 전투·외교 뉴스 핀",
-        "텔레그램 OSINT · VIINA 점령지",
-        "하단: 속보 + GDELT 범례",
+        "우크라이나 점령·주장 폴리곤",
+        "분쟁 해역 · ADIZ · 도련선 · 동맹 진영",
+        "배관·기지·항적·뉴스는 레이어 패널에서",
       ],
     },
     en: {
       title: "Geopolitics",
-      tagline: "Frontline · GDELT · Telegram OSINT",
+      tagline: "Territory · disputes · blocs · live fronts",
       bullets: [
-        "Ukraine front · NEPTUN drone & missile tracks",
-        "GDELT combat · diplomatic news pins",
-        "Telegram OSINT · VIINA occupation map",
-        "Bottom: breaking news + GDELT legend",
+        "Ukraine control / claim polygons",
+        "Dispute seas · ADIZ · island chains · allied blocs",
+        "Pipes, bases, tracks, news — from the layer panel",
+      ],
+    },
+  },
+  history: {
+    ko: {
+      title: "역사",
+      tagline: "맥락 · 오늘과 잇기 · 에피소드 심화",
+      bullets: [
+        "시간 스크럽·연표로 왜 오늘인지 본다",
+        "지정학과 같은 지도 뼈대, 렌즈만 역사",
+        "Cliopatria 연도 채움은 이 모드에서",
+      ],
+    },
+    en: {
+      title: "History",
+      tagline: "Context · today’s link · episode deepen",
+      bullets: [
+        "Scrub the timeline to see why today connects",
+        "Same map spine as geopolitics — history lens",
+        "Cliopatria year fills live here",
+      ],
+    },
+  },
+  satellite: {
+    ko: {
+      title: "관측",
+      tagline: "Cesium · 공중 글로브",
+      bullets: [
+        "Esri World Imagery · (Ion) Photorealistic 3D",
+        "레이어 트리 없음 — 관측 보드",
+        "이후: LiveUAMap · 공식 SNS (예정)",
+      ],
+    },
+    en: {
+      title: "Observe",
+      tagline: "Cesium · aerial globe",
+      bullets: [
+        "Esri World Imagery · (Ion) Photorealistic 3D",
+        "No layer tree — observation board",
+        "Later: LiveUAMap · official SNS (planned)",
+      ],
+    },
+  },
+  live: {
+    ko: {
+      title: "항적",
+      tagline: "ADS-B · AIS · GPS 재밍",
+      bullets: [
+        "군·민 항공기와 선박을 같은 지도에서",
+        "GPSJam — 항공기 GNSS 이상 셀 (재머 위치 아님)",
+        "전선·시장 레이어 없음 — 움직임·항법",
+      ],
+    },
+    en: {
+      title: "Tracks",
+      tagline: "ADS-B · AIS · GPS jam",
+      bullets: [
+        "Military & civil aircraft with vessels",
+        "GPSJam — GNSS anomaly cells (not jammer sites)",
+        "No frontline/markets — motion & navigation",
       ],
     },
   },
   economy: {
     ko: {
-      title: "경제 · 시장",
-      tagline: "빅테크 · 반도체 · 전기차 · 에너지",
+      title: "지경학",
+      tagline: "진영 폴리곤",
       bullets: [
-        "주요 증시·VIX·유가 티커",
-        "경제 RSS · 빅테크·반도체·전기차·에너지 기업 속보",
-        "제재·파이프라인·해운·초크포인트 레이어",
+        "지경학 진영 폴리곤만 기본 표시",
+        "초크·항로·배관·DC는 레이어 패널에서",
         "하단: 티커 + 시장 속보 (GDELT/TG 없음)",
       ],
     },
     en: {
-      title: "Markets",
-      tagline: "Big Tech · semis · EV · energy",
+      title: "Geoeconomics",
+      tagline: "Bloc polygons",
       bullets: [
-        "Major indices · VIX · oil tickers",
-        "Economy RSS · Big Tech · chips · EV · oil majors",
-        "Sanctions · pipelines · shipping · chokepoints",
+        "Geo-econ bloc polygons only by default",
+        "Chokes · lanes · pipes · DCs — from the layer panel",
         "Bottom: ticker + market headlines (no GDELT/TG)",
       ],
     },
@@ -1022,7 +1104,7 @@ export function previewModeSelectionLocalized(
   isAutoHub: boolean,
 ): string[] {
   const bullets = [...MODE_PICKER_CHROME[mode][lang].bullets];
-  if (mode === "conflict") {
+  if (mode === "conflict" || mode === "history") {
     bullets.push(
       isAutoTheater
         ? lang === "ko"
@@ -1032,7 +1114,7 @@ export function previewModeSelectionLocalized(
           ? `시작 시 ${theaterLabel_} 전장으로 카메라 이동`
           : `Camera starts at ${theaterLabel_} theater`,
     );
-  } else {
+  } else if (mode === "economy") {
     bullets.push(
       isAutoHub
         ? lang === "ko"
@@ -1041,6 +1123,10 @@ export function previewModeSelectionLocalized(
         : lang === "ko"
           ? `시작 시 ${hubLabel} 허브로 카메라 이동`
           : `Camera starts at ${hubLabel} hub`,
+    );
+  } else {
+    bullets.push(
+      lang === "ko" ? "시작 시 지구본 전역 궤도 유지" : "Start in global orbital view",
     );
   }
   return bullets.slice(0, 6);
