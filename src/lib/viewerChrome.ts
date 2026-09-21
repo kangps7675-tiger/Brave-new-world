@@ -290,6 +290,11 @@ const HISTORY_FORCE_OFF: Partial<LayerPrefs> = {
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
   showSanctionsEntities: false,
+  showEuropeDroneIncidents: false,
+  showConflictEvents: false,
+  showNeptun: false,
+  showNeptunPreviousTrails: false,
+  showNuclearSites: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {

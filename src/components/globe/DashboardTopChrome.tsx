@@ -66,10 +66,10 @@ export interface DashboardTopChromeProps {
 }
 
 /**
- * 상단 크롬 + 좌·우 호버 서랍.
+ * 상단 크롬 + 좌·우 서랍.
  * - 검색창 상시 고정 · 호버 시 탐색 메뉴 · 바로 아래 지정학/지경학(메뉴와 함께 이동)
- * - 좌: 메뉴(+레일 슬롯)
- * - 우: 지표 칩 호버 서랍
+ * - 좌: 메뉴(+레일 슬롯) 호버 peep
+ * - 우: 지표 칩 — 데스크톱 상시 공개, 모바일 peep (지경학은 해운·초크 보드 포함)
  */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -113,6 +113,11 @@ export function DashboardTopChrome({
   const chromeVisible = entryGate === null && !showModePicker;
   if (!chromeVisible) return null;
 
+  /** 데스크톱: 지정학·지경학 우측 지표를 호버 없이 상시 공개. 모바일은 peep 유지. */
+  const rightMetricsAlwaysOpen = !isCompactUi;
+  const showShippingRail =
+    viewerMode === "economy" && !isCompactUi && !isTabletUi;
+
   const stripBtn =
     "rounded-full border border-sky-200/30 bg-transparent px-2.5 py-0.5 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
 
@@ -145,12 +150,19 @@ export function DashboardTopChrome({
         />
       </HoverSideDrawer>
 
-      {/* 우측 호버 서랍 — 긴장/공급망·SES 등 지표 (시계는 상단 중앙) */}
+      {/* 우측 지표 — 데스크톱 상시 공개 / 모바일 peep (역사 지도에서는 숨김) */}
+      {viewerMode !== "history" ? (
       <HoverSideDrawer
         side="right"
-        peepLabel={labelLanguage === "en" ? "Metrics" : "지표"}
+        peepLabel={
+          rightMetricsAlwaysOpen
+            ? undefined
+            : labelLanguage === "en"
+              ? "Metrics"
+              : "지표"
+        }
         zIndexClass={zc("nav")}
-        forceOpen={rightMetricsPinned}
+        forceOpen={rightMetricsAlwaysOpen || rightMetricsPinned}
       >
         <ModeGlobalIndexChip
           viewerMode={viewerMode}
@@ -162,10 +174,12 @@ export function DashboardTopChrome({
           showSesChip={showSesChip}
           showGscpi={showGscpi}
           dense={isCompactUi || isTabletUi}
+          showShippingRail={showShippingRail}
           embedded
           onPanelOpenChange={setRightMetricsPinned}
         />
       </HoverSideDrawer>
+      ) : null}
 
       <HoverNav
         viewerMode={viewerMode}

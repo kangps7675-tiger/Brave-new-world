@@ -305,6 +305,34 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   font-style: normal;
 }
 
+/** 역사 지도 영토 명칭 — 명조 필체 (한글 직립 · 라틴 이탤릭) */
+.history-polity-atlas-label {
+  font-family: var(--font-letter-hand), "RIDI Batang", var(--font-merriweather), Merriweather,
+    "Nanum Myeongjo", "Gowun Batang", "Palatino Linotype", Palatino, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  letter-spacing: 0.14em;
+  line-height: 1.12;
+  color: #f3e4c1;
+  text-align: center;
+  max-width: 11em;
+  pointer-events: none;
+  user-select: none;
+  white-space: normal;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  text-shadow:
+    0 0 1px rgba(18, 11, 4, 1),
+    0 1px 3px rgba(18, 11, 4, 0.95),
+    0 0 12px rgba(28, 16, 6, 0.72);
+}
+
+.history-polity-atlas-label--ko {
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
 /** 뉴스 헤드라인 — Gmarket Sans (신속속보·배너) */
 .font-news-headline {
   font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
@@ -700,6 +728,27 @@ main[data-ui-lang="en"]
 .parchment-letter--lamp-ink .welcome-letter-back-sub,
 .parchment-letter--lamp-ink .welcome-letter-corner {
   color: #000000 !important;
+}
+
+/** 관련 기업 호가 — 양피지 위 잉크 + 등락/매수매도 색 (램프 잉크 강제 해제) */
+.parchment-letter--lamp-ink .lamp-quote-board,
+.parchment-letter--lamp-ink .lamp-quote-board :where(p, span, a, button, div) {
+  color: #3d2a18 !important;
+}
+.parchment-letter--lamp-ink .lamp-quote-board .quote-up {
+  color: #b42318 !important;
+}
+.parchment-letter--lamp-ink .lamp-quote-board .quote-down {
+  color: #1d4ed8 !important;
+}
+.parchment-letter--lamp-ink .lamp-quote-board .quote-ask {
+  color: #1d4ed8 !important;
+}
+.parchment-letter--lamp-ink .lamp-quote-board .quote-bid {
+  color: #b42318 !important;
+}
+.parchment-letter--lamp-ink .lamp-quote-board .quote-link {
+  color: #1d4ed8 !important;
 }
 
 .welcome-letter-face {

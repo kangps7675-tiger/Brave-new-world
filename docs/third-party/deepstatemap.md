@@ -1,7 +1,13 @@
-# DeepStateMap.live (third-party) — 검토 중, 미통합
+# DeepStateMap.live (third-party) — 임시 3일 좌표 스냅샷 (LIVEUAMAP 전)
 
-> 상태: **검토용 정리.** `sourceCatalog.ts`에 아직 레이어로 등록되지 않음.
-> 실제 데이터 수급(API 연동)을 시작하기 **전에** 이 문서의 액션 아이템을 처리할 것.
+> 상태: **LIVEUAMAP 영토 폴링 전 임시.** 점령 폴리곤 좌표만 3일에 한 번 가져와
+> `public/data/ukraine-occupied-deepstate.json` + D1 `deepstate_occupied_snapshots`에 넣고,
+> 지구본은 그 스냅샷만 그린다. news_project `occupiedUkraine.json`과 같은 패턴.
+> 유저 GET(`/api/deepstate/frontlines`)은 원본 API를 매번 치지 않는다.
+>
+> 상업 API 승인(`https://api.deepstatemap.live/request`)은 아직 미완료 —
+> 유료화 전에 승인하거나 LIVEUAMAP으로 교체할 것. `sourceCatalog.ts`
+> `deepstate-ukraine-occupied` 는 `commercialUse: "license-required"`.
 
 ## 저작권자 / 라이선스
 
@@ -32,8 +38,9 @@ VIINA(ODbL)와 달리 DeepStateMap은 **"재배포 자유" 라이선스가 아�
 ## 액션 아이템 (유료화 전 필수)
 
 - [ ] `https://api.deepstatemap.live/request` 에 상업 이용 승인 요청 제출 (SIPRI 문의와 동일 패턴 — `docs/copyright-checklist.md` "유료화 전 미해결 항목" 표에 추가함)
+- [x] LIVEUAMAP 전 임시: 3일 좌표 스냅샷만 (`npm run deepstate:occupied`, cron `DEEPSTATE_SYNC_URL` → `/api/deepstate/sync`). 유저 요청마다 원본 API 호출 금지
 - [ ] 승인 회신에 "렌더 전용/재배포 금지" 등 부가조건이 붙는지 확인 → 붙으면 `viinaRenderGate`류 게이트를 DeepStateMap 전용으로 별도 구현
-- [ ] 승인 전까지는 **트랙 ①(로고+링크 임베드)만** 사용 — 원본 좌표 API 호출 코드 작성 금지
+- [ ] 승인 전까지는 좌표 스냅샷을 임시로만 유지하고, LIVEUAMAP 영토 폴링이 붙으면 이 경로를 끈다
 - [ ] 승인/거절 결과를 `src/data/sourceCatalog.ts`에 `commercialUse: "license-required"` → 승인 시 `"allowed"`로 갱신, `commercialNote`에 계약 조건 원문 인용
 - [ ] VIINA 전선 렌더링을 DeepStateMap으로 "대체"할지, 아니면 "보강(교차검증)"할지 결정 — 대체 시 동일 저작물 금지 조항(위 리스크 참고) 검토
 

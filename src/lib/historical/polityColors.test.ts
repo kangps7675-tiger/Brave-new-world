@@ -51,5 +51,9 @@ describe("history viewer chrome", () => {
     expect(chrome.forceLayerOff.showAis).toBe(false);
     expect(chrome.forceLayerOff.showLsibBoundary).toBe(false);
     expect(chrome.forceLayerOff.showAlliedBlocs).toBe(false);
+    expect(chrome.forceLayerOff.showEuropeDroneIncidents).toBe(false);
+    expect(chrome.forceLayerOff.showNeptun).toBe(false);
+    expect(chrome.forceLayerOff.showNuclearSites).toBe(false);
+    expect(chrome.forceLayerOff.showConflictEvents).toBe(false);
   });
 });

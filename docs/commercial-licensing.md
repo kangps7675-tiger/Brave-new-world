@@ -91,9 +91,9 @@ AI/ML 학습 사용도 제한한다.
 
 ---
 
-## 검토 중 (아직 `sourceCatalog.ts` 미등록)
+## 검토 중 (LIVEUAMAP 전 임시 스냅샷)
 
-- **DeepStateMap.live** (전선 지오메트리, VIINA 대체/보강 후보) — API는 상업적 목적 단체 사전 승인제. 승인 요청 전까지 통합 금지. 상세·액션 아이템: `docs/third-party/deepstatemap.md`
+- **DeepStateMap.live** (우크라 점령 좌표) — API는 상업 사전 승인제. 지금은 **3일 좌표 스냅샷만** (`deepstate-ukraine-occupied`, `license-required`). 유료화 전 승인 또는 LIVEUAMAP 교체. 상세: `docs/third-party/deepstatemap.md`
 
 ## 확인만 하면 되는 것 (6) — 가장 싸게 늘릴 수 있다
 

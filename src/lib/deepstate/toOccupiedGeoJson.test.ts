@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyDeepstateName,
   deepstateToOccupiedGeoJson,
+  isOccupiedSnapshotFresh,
 } from "@/lib/deepstate/toOccupiedGeoJson";
 
 describe("classifyDeepstateName", () => {
@@ -77,5 +78,16 @@ describe("deepstateToOccupiedGeoJson", () => {
     expect(fc.features[0]?.geometry.type).toBe("Polygon");
     const ring = (fc.features[0]?.geometry as GeoJSON.Polygon).coordinates[0];
     expect(ring?.[0]).toEqual([37.2, 48.2]);
+    expect(fc.meta?.count).toBe(1);
+    expect(fc.meta?.refreshDays).toBe(3);
+  });
+});
+
+describe("isOccupiedSnapshotFresh", () => {
+  it("treats 3-day-old snapshots as stale", () => {
+    const now = Date.parse("2026-09-21T00:00:00.000Z");
+    expect(isOccupiedSnapshotFresh("2026-09-20T00:00:00.000Z", now)).toBe(true);
+    expect(isOccupiedSnapshotFresh("2026-09-17T23:00:00.000Z", now)).toBe(false);
+    expect(isOccupiedSnapshotFresh(undefined, now)).toBe(false);
   });
 });

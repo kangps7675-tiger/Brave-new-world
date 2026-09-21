@@ -1170,7 +1170,7 @@ export function GlobeDashboard({
   const [ukraineControlStatus, setUkraineControlStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >(() => (viinaMeta?.available ? "idle" : "error"));
-  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 이후 LIVEUAMAP 폴링으로 교체 예정 */
+  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 3일 좌표 스냅샷. LIVEUAMAP 전. */
   const [ukraineOccupiedGeoJson, setUkraineOccupiedGeoJson] = useState<FeatureCollection>(
     () => emptyOccupiedGeoJson(),
   );
@@ -2819,7 +2819,7 @@ export function GlobeDashboard({
     viinaMeta?.available,
   ]);
 
-  /** 임시 DeepState 점령 영토 — VIINA 빗금 박스 대신 solid fill */
+  /** 임시 DeepState 점령 영토 — 3일 좌표 스냅샷. VIINA 빗금 박스 대신 solid fill */
   useEffect(() => {
     if (!showUkraineControl || !globeReady) return;
     if (ukraineOccupiedFetchRef.current) return;
@@ -3528,7 +3528,7 @@ export function GlobeDashboard({
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
-    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). LIVEUAMAP 전.
+    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). 3일 좌표 스냅샷, LIVEUAMAP 전.
     if (ukraineOccupiedGeoJson.features.length > 0) {
       return ukraineOccupiedGeoJson;
     }
@@ -4870,14 +4870,14 @@ export function GlobeDashboard({
 
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
     // 지정학=빨간 네온(전쟁·긴장), 지경학=초록 네온(거시·시장만)
-    if (isCompactUi) return [];
+    if (isCompactUi || isHistoryViewer) return [];
     const payload = newsStreamPayload;
     if (!payload) return [];
     const pool: NewsStreamItem[] = [...payload.verified, ...payload.stateMedia];
     return buildNewsStreamMapTags(pool, {
       mode: isEconomyViewer ? "economy" : "conflict",
     });
-  }, [isCompactUi, isEconomyViewer, newsStreamPayload]);
+  }, [isCompactUi, isEconomyViewer, isHistoryViewer, newsStreamPayload]);
 
   const newsInsightCalloutMarkers = useMemo<NewsInsightCalloutMarker[]>(() => {
     if (!newsInsightCallout || selected?.kind !== "news-insight") return [];
@@ -4895,6 +4895,7 @@ export function GlobeDashboard({
     ukraineSettlementHtmlMarkers,
   } = useSituationHtmlMarkers({
     isEconomyViewer,
+    isHistoryViewer,
     isCompactUi,
     labelLanguage,
     gdeltTensionTags,
@@ -9034,8 +9035,9 @@ export function GlobeDashboard({
     airRaidFocusBox,
     ukraineMacroGeoJson,
     ukraineMicroGeoJson,
-    historyCliopatriaGeoJson: historyPolityLayers.cliopatriaGeoJson,
-    historyKoreaGeoJson: historyPolityLayers.koreaGeoJson,
+    historyCliopatriaGeoJson,
+    historyKoreaGeoJson,
+    historyLabelGeoJson: historyPolityLayers.labelGeoJson,
     historyTerritoryActive: isHistoryViewer && !isSatelliteViewer && !isPhoneUi,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,

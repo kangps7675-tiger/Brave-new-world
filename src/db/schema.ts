@@ -624,6 +624,22 @@ export const shipMovementObservations = sqliteTable(
 );
 
 /**
+ * DeepState 우크라 점령 좌표 스냅샷 (LIVEUAMAP 전 임시).
+ * 3일마다 좌표만 갱신 — 유저 GET에서 원본 API를 치지 않는다.
+ */
+export const deepstateOccupiedSnapshots = sqliteTable("deepstate_occupied_snapshots", {
+  cacheKey: text("cache_key").primaryKey(),
+  payloadJson: text("payload_json").notNull(),
+  featureCount: integer("feature_count").notNull().default(0),
+  fetchedAt: text("fetched_at").notNull(),
+  source: text("source"),
+  deepstateId: integer("deepstate_id"),
+  ingestedAt: text("ingested_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+/**
  * 미 항모 위치 스냅샷 — USNI Fleet Tracker 등 공개 보도로 자동 갱신.
  * `/api/us-carriers`가 정적 seed보다 D1을 우선 읽는다.
  */
@@ -948,6 +964,7 @@ export type ShipMovementReportRow = typeof shipMovementReports.$inferSelect;
 export type NewShipMovementReportRow = typeof shipMovementReports.$inferInsert;
 export type ShipMovementObservationRow = typeof shipMovementObservations.$inferSelect;
 export type NewShipMovementObservationRow = typeof shipMovementObservations.$inferInsert;
+export type DeepstateOccupiedSnapshotRow = typeof deepstateOccupiedSnapshots.$inferSelect;
 export type UsCarrierSnapshotRow = typeof usCarrierSnapshots.$inferSelect;
 export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
 export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;

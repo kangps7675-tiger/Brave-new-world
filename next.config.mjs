@@ -12,6 +12,7 @@
  *    넣지 않는다. 앱 코드에 eval/new Function 의존이 없다.
  */
 const isDev = process.env.NODE_ENV === "development";
+const enforceCsp = process.env.CSP_ENFORCE === "true";
 
 const CSP_DIRECTIVES = [
   "default-src 'self'",
@@ -19,8 +20,8 @@ const CSP_DIRECTIVES = [
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
     : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
   // Tailwind/MapLibre 런타임 스타일 주입 + Google Fonts
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+  "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
   // 지도 타일·아이콘·위성 이미지는 출처가 매우 다양하다
   "img-src 'self' data: blob: https:",
   // 오디오(Freesound 프리뷰·R2)
@@ -37,11 +38,11 @@ const CSP_DIRECTIVES = [
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
-  "upgrade-insecure-requests",
+  ...(enforceCsp && !isDev ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const CSP_HEADER_NAME =
-  process.env.CSP_ENFORCE === "true"
+  enforceCsp
     ? "Content-Security-Policy"
     : "Content-Security-Policy-Report-Only";
 
@@ -101,6 +102,9 @@ function shouldUseMemoryWebpackCache(dev) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Next 14 SWC can emit invalid octal escapes in Cesium's embedded SPZ WASM.
+  // Use Terser so the production globe chunk remains valid JavaScript.
+  swcMinify: false,
   transpilePackages: [
     "cesium",
     "@deck.gl/core",
