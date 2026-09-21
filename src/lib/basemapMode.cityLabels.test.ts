@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   PLACE_LABEL_HIDE_LAYER_IDS,
   PLACE_LABEL_KEEP_LAYER_IDS,
+  applyBasemapAdminBoundaries,
   applyBasemapCityLabelRank,
+  applyBasemapModernCountryLabels,
   applyBasemapPlaceLabelScale,
   type BasemapMapLike,
 } from "@/lib/basemapMode";
@@ -105,5 +107,48 @@ describe("applyBasemapPlaceLabelScale", () => {
     applyBasemapPlaceLabelScale(map, "terrain", { showCityLabels: true });
     expect(layouts.get("label_city")?.["text-size"]).toBeTruthy();
     expect(layouts.get("label_city_capital")?.["text-size"]).toBeTruthy();
+  });
+});
+
+describe("applyBasemapModernCountryLabels", () => {
+  it("역사 모드(visible=false)에서 현대 국가·주 라벨을 숨긴다", () => {
+    const { map, layouts } = makeMap([
+      "label_country_1",
+      "label_state",
+      "place_country_major",
+      "place_state",
+      "label_city",
+      "water",
+    ]);
+    applyBasemapModernCountryLabels(map, { visible: false });
+    expect(layouts.get("label_country_1")?.visibility).toBe("none");
+    expect(layouts.get("label_state")?.visibility).toBe("none");
+    expect(layouts.get("place_country_major")?.visibility).toBe("none");
+    expect(layouts.get("place_state")?.visibility).toBe("none");
+    expect(layouts.has("label_city")).toBe(false);
+    expect(layouts.has("water")).toBe(false);
+  });
+
+  it("visible=true면 다시 표시", () => {
+    const { map, layouts } = makeMap(["label_country_1", "place_country"]);
+    applyBasemapModernCountryLabels(map, { visible: true });
+    expect(layouts.get("label_country_1")?.visibility).toBe("visible");
+    expect(layouts.get("place_country")?.visibility).toBe("visible");
+  });
+});
+
+describe("applyBasemapAdminBoundaries", () => {
+  it("역사 모드에서 boundary_/admin_ 국경 라인을 숨긴다", () => {
+    const { map, layouts } = makeMap([
+      "boundary_country",
+      "boundary_2_custom",
+      "admin_0_boundary",
+      "label_city",
+    ]);
+    applyBasemapAdminBoundaries(map, { visible: false });
+    expect(layouts.get("boundary_country")?.visibility).toBe("none");
+    expect(layouts.get("boundary_2_custom")?.visibility).toBe("none");
+    expect(layouts.get("admin_0_boundary")?.visibility).toBe("none");
+    expect(layouts.has("label_city")).toBe(false);
   });
 });

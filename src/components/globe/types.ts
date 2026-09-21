@@ -116,6 +116,15 @@ export type PolygonLayerFeature =
       polygonLayer: "axis-hub";
       name: string;
       iso: string;
+    }
+  | {
+      /** 역사 모드 Cliopatria / Korea 영토 호버 */
+      polygonLayer: "history-polity";
+      name: string;
+      nameLong?: string;
+      source?: "cliopatria" | "korea";
+      fromYear?: number | null;
+      toYear?: number | null;
     };
 
 export type GlobePoint = ScoredEvent & { markerId: string; displayKind: "event" };

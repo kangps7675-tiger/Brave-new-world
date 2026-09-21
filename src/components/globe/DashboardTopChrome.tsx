@@ -184,6 +184,7 @@ export function DashboardTopChrome({
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
+        onHistoryMapOpen={() => handleViewerModeChange("history")}
         aboveNav={
           <div className="flex w-full flex-col items-center gap-0.5 bg-transparent py-0">
             <ImmersionDigitalClock lang={labelLanguage} variant="top" />

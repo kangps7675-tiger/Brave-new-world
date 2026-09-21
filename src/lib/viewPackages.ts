@@ -27,8 +27,8 @@ export type ViewPackageId =
   | "custom";
 
 /**
- * 상단 스위치 — 1 역사 · 2 라이브(Cesium) · 3 지경학
- * (지정학 conflict는 레거시/내부용. 주간 함선 독은 삭제.)
+ * 상단 스위치 — 1 지정학 · 2 3D 라이브(Cesium) · 3 지경학
+ * (역사는 역사지도·영토분쟁 아카이브. 주간 함선 독은 삭제.)
  */
 export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
 
@@ -52,7 +52,7 @@ export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
   // 프리미엄 — Cesium + 항적(ADS-B·AIS) + 시세 연관
   if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE, LIVE_VIEWER_PACKAGE];
   if (mode === "live") return [LIVE_VIEWER_PACKAGE];
-  // conflict + history → 동일 지정학 패키지 (역사는 상단 1번 · Cliopatria)
+  // conflict + history → 동일 지정학 패키지 (역사 immersion은 영토분쟁·역사지도)
   return [CONFLICT_VIEWER_PACKAGE];
 }
 
