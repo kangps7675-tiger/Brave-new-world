@@ -211,16 +211,20 @@ async function waitForInteractiveChrome(page: Page) {
 async function dismissBlockingParchmentOverlays(page: Page) {
   const scrims = page.locator(".welcome-letter-scrim[role='dialog']");
   const count = await scrims.count();
-  for (let i = 0; i < count; i++) {
+  for (let i = count - 1; i >= 0; i--) {
     const scrim = scrims.nth(i);
     if (!(await scrim.isVisible().catch(() => false))) continue;
     const cta = scrim
       .getByRole("button", {
-        name: /^(접기|Fold|확인|Understood|Continue|계속|알겠어요|Got it)$/i,
+        name: /^(접기|Fold|확인|Understood|Continue|계속|알겠어요|Got it|완료|Done|다음|Next|접고 뉴스 패널로|Fold → news panel|타자 건너뛰기|Skip typing)$/i,
       })
       .first();
     if (await cta.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await cta.dispatchEvent("click");
+      // The outer poll retries if React replaces the CTA while it is animating.
+      await cta.evaluate((el) => (el as HTMLButtonElement).click(), undefined, { timeout: 2_000 }).catch(() => {});
+    } else {
+      // Parchment dialogs share useDialog's Escape handler, including custom CTAs.
+      await page.keyboard.press("Escape").catch(() => {});
     }
   }
 }
@@ -243,18 +247,24 @@ function visibleLayerCheckbox(page: Page) {
  * 접힌 카테고리를 한 번 펼친 뒤 체크박스를 기다린다.
  */
 async function openLayerPanelReady(page: Page) {
-  await page.locator("#layer-panel-toggle").click();
+  const toggle = page.locator("#layer-panel-toggle");
+  await expect(toggle).toBeVisible({ timeout: 20_000 });
+  await toggle.evaluate((el) => (el as HTMLButtonElement).click());
   const panel = layerPanel(page);
   await expect(panel).toBeVisible({ timeout: 20_000 });
 
   const box = visibleLayerCheckbox(page);
   if (await box.isVisible().catch(() => false)) return box;
 
-  const collapsed = panel.locator('button[aria-expanded="false"]').first();
-  if (await collapsed.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await collapsed.click();
-  }
-  await expect(box).toBeVisible({ timeout: 20_000 });
+  await expect(async () => {
+    if (await box.isVisible()) return;
+    const collapsed = panel.locator('button[aria-expanded="false"]:visible').first();
+    if (await collapsed.isVisible()) {
+      await collapsed.evaluate((el) => (el as HTMLButtonElement).click(), undefined, { timeout: 2_000 });
+    }
+    // Do not assert against `collapsed`: after expansion it matches a different button.
+    await expect(box).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
   return box;
 }
 
