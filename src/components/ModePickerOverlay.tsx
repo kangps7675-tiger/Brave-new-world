@@ -27,7 +27,7 @@ type ModePickerOverlayProps = {
   onCancel?: () => void;
 };
 
-const MODES: ViewerMode[] = ["history", "satellite", "economy"];
+const MODES: ViewerMode[] = ["conflict", "satellite", "economy"];
 
 function layerHoverTitle(
   mode: ViewerMode,
@@ -44,7 +44,7 @@ function layerHoverTitle(
 }
 
 export function ModePickerOverlay({
-  initialMode = "history",
+  initialMode = "conflict",
   initialTheater = "auto",
   initialEconomyHub = "auto",
   lockMode = false,
@@ -119,7 +119,7 @@ export function ModePickerOverlay({
         </p>
 
         {!lockMode ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {MODES.map((m) => {
               const preset = MODE_PICKER_CHROME[m][lang];
               const active = mode === m;
@@ -128,9 +128,13 @@ export function ModePickerOverlay({
                   ? active
                     ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-50"
                     : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500"
-                  : active
-                    ? "border-orange-400/50 bg-orange-500/10 text-orange-50"
-                    : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500";
+                  : m === "satellite"
+                    ? active
+                      ? "border-teal-400/50 bg-teal-500/10 text-teal-50"
+                      : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500"
+                    : active
+                      ? "border-rose-400/50 bg-rose-500/10 text-rose-50"
+                      : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500";
               return (
                 <button
                   key={m}
@@ -144,7 +148,15 @@ export function ModePickerOverlay({
                   <ul className="mt-3 space-y-1">
                     {preset.bullets.slice(0, 3).map((line) => (
                       <li key={line} className="flex gap-2 text-micro leading-snug text-slate-300">
-                        <span className={m === "economy" ? "text-emerald-300/80" : "text-orange-300/80"}>
+                        <span
+                          className={
+                            m === "economy"
+                              ? "text-emerald-300/80"
+                              : m === "satellite"
+                                ? "text-teal-300/80"
+                                : "text-rose-300/80"
+                          }
+                        >
                           ·
                         </span>
                         <span>{line}</span>

@@ -193,7 +193,8 @@ const UI = {
   /** 하단 인텔 (P1-5) */
   intelStreamSyncing: { ko: "뉴스 스트림 동기화 중…", en: "Syncing news stream…" },
   /** 상단 nav (P1-5) */
-  navPowderKeg: { ko: "긴장 지점", en: "Flashpoints" },
+  navPowderKeg: { ko: "역사지도", en: "History map" },
+  navHubsMenu: { ko: "허브", en: "Hubs" },
   navAllyCountries: { ko: "우군 국가", en: "Allied states" },
   /** 공유 장면 카드 — 폰 (P2-3-A) */
   sceneCardKicker: { ko: "공유된 장면", en: "Shared view" },
@@ -492,7 +493,7 @@ const UI = {
     ko: "맥락·연표·에피소드 — 오늘과 잇는 이유",
     en: "Context · timeline · episodes — why today links to then",
   },
-  domainPremiumTitle: { ko: "라이브", en: "Live" },
+  domainPremiumTitle: { ko: "3D 라이브", en: "3D Live" },
   domainPremiumHint: {
     ko: "Cesium · LIVEUA 고충격 타전 · ADS-B · AIS · 시세",
     en: "Cesium · LIVEUA S-tier flash · ADS-B · AIS · tickers",
@@ -692,12 +693,12 @@ const UI = {
     ko: "진영 · 공급망·시장은 패널에서",
     en: "Blocs · supply & markets from the panel",
   },
-  modePremium: { ko: "라이브", en: "Live" },
+  modePremium: { ko: "3D 라이브", en: "3D Live" },
   modePremiumHint: {
     ko: "Cesium · LIVEUA 고충격 타전 · ADS-B · AIS · 시세",
     en: "Cesium · LIVEUA S-tier flash · ADS-B · AIS · tickers",
   },
-  modeSatellite: { ko: "라이브", en: "Live" },
+  modeSatellite: { ko: "3D 라이브", en: "3D Live" },
   modeSatelliteHint: {
     ko: "Cesium 글로브 · LIVEUA 타전 · ADS-B · AIS · 시세",
     en: "Cesium globe · LIVEUA flash · ADS-B · AIS · tickers",
@@ -846,6 +847,10 @@ const UI = {
   westpacShipMovesNavHint: {
     ko: "공개 관측",
     en: "Public obs.",
+  },
+  historyMapNavHint: {
+    ko: "연도 영토",
+    en: "Year territories",
   },
   disputesOverviewNav: {
     ko: "영토분쟁",
@@ -1049,7 +1054,7 @@ export const MODE_PICKER_CHROME: Record<
   },
   satellite: {
     ko: {
-      title: "라이브",
+      title: "3D 라이브",
       tagline: "Cesium · LIVEUA 타전",
       bullets: [
         "Esri World Imagery · (Ion) Photorealistic 3D",
@@ -1058,7 +1063,7 @@ export const MODE_PICKER_CHROME: Record<
       ],
     },
     en: {
-      title: "Live",
+      title: "3D Live",
       tagline: "Cesium · LIVEUA flash",
       bullets: [
         "Esri World Imagery · (Ion) Photorealistic 3D",

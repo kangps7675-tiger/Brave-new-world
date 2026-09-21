@@ -717,8 +717,8 @@ export function resolveViewerModeFromConfig(
     savedMode === "satellite" ||
     savedMode === "live"
   ) {
-    // 상단 3토글에서 conflict는 역사로, live는 라이브(satellite)로 정규화
-    if (savedMode === "conflict") return "history";
+    // 상단 3토글: 지정학 · 3D 라이브 · 지경학 (역사는 역사지도·영토분쟁)
+    if (savedMode === "history") return "conflict";
     if (savedMode === "live") return "satellite";
     return savedMode;
   }
@@ -726,5 +726,5 @@ export function resolveViewerModeFromConfig(
   if (ids.length === 1 && ids[0] === "satellite-eye") return "satellite";
   if (ids.length === 1 && ids[0] === "live-tracks") return "satellite";
   if (ids.length === 1 && ids[0] === "geo-trader") return "economy";
-  return "history";
+  return "conflict";
 }

@@ -24,6 +24,30 @@ export type CesiumSatelliteGlobeProps = {
 };
 
 type StackKind = "esri" | "photoreal";
+type ErrorKind = "chunk" | "assets" | "other";
+
+const CHUNK_RELOAD_KEY = "cesium-chunk-reload";
+
+function isChunkLoadError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const name = err.name || "";
+  const msg = err.message || "";
+  return (
+    name === "ChunkLoadError" ||
+    /Loading chunk [\w-]+ failed/i.test(msg) ||
+    /Failed to fetch dynamically imported module/i.test(msg)
+  );
+}
+
+function isCesiumAssetsError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message || "";
+  return (
+    /\/cesium\//i.test(msg) ||
+    /CESIUM_BASE_URL/i.test(msg) ||
+    /Workers\//i.test(msg)
+  );
+}
 
 export function CesiumSatelliteGlobe({
   className = "",
@@ -34,6 +58,7 @@ export function CesiumSatelliteGlobe({
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [stack, setStack] = useState<StackKind>("esri");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ErrorKind>("other");
 
   useEffect(() => {
     const container = containerRef.current;
@@ -158,13 +183,46 @@ export function CesiumSatelliteGlobe({
           ),
         });
 
-        if (!cancelled) setStatus("ready");
+        if (!cancelled) {
+          try {
+            sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+          } catch {
+            /* ignore */
+          }
+          setStatus("ready");
+        }
       } catch (err) {
         console.error("[CesiumSatelliteGlobe]", err);
-        if (!cancelled) {
-          setStatus("error");
-          setErrorMsg(err instanceof Error ? err.message : "Cesium failed");
+        if (cancelled) return;
+
+        if (isChunkLoadError(err) && typeof window !== "undefined") {
+          try {
+            if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+              sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+              window.location.reload();
+              return;
+            }
+            sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+          } catch {
+            /* private mode / blocked storage */
+          }
+        } else if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+          } catch {
+            /* ignore */
+          }
         }
+
+        setStatus("error");
+        setErrorMsg(err instanceof Error ? err.message : "Cesium failed");
+        setErrorKind(
+          isChunkLoadError(err)
+            ? "chunk"
+            : isCesiumAssetsError(err)
+              ? "assets"
+              : "other",
+        );
       }
     })();
 
@@ -204,10 +262,30 @@ export function CesiumSatelliteGlobe({
               Cesium globe failed to start
             </p>
             <p className="mt-2 max-w-md text-xs text-sky-100/60">{errorMsg}</p>
-            <p className="mt-3 max-w-md text-xs text-sky-100/50">
-              Run <code className="text-sky-200/80">npm run cesium:assets</code>{" "}
-              so <code className="text-sky-200/80">public/cesium</code> exists.
-            </p>
+            {errorKind === "chunk" ? (
+              <div className="mt-3 space-y-3">
+                <p className="max-w-md text-xs text-sky-100/50">
+                  배포 직후 JS 청크가 맞지 않을 때 자주 납니다. 페이지를 새로고침해
+                  주세요.
+                </p>
+                <button
+                  type="button"
+                  className="rounded-md border border-sky-200/30 bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-100 hover:bg-sky-500/25"
+                  onClick={() => window.location.reload()}
+                >
+                  새로고침
+                </button>
+              </div>
+            ) : errorKind === "assets" ? (
+              <p className="mt-3 max-w-md text-xs text-sky-100/50">
+                Run <code className="text-sky-200/80">npm run cesium:assets</code>{" "}
+                so <code className="text-sky-200/80">public/cesium</code> exists.
+              </p>
+            ) : (
+              <p className="mt-3 max-w-md text-xs text-sky-100/50">
+                잠시 후 다시 시도하거나 페이지를 새로고침해 주세요.
+              </p>
+            )}
           </div>
         </div>
       ) : null}

@@ -8,7 +8,6 @@ import {
   selectionForArms,
   selectionForClaim,
   selectionForHubNetwork,
-  selectionForWestpacPulseOverview,
   selectionForDisputesOverview,
   type HubDefinition,
 } from "@/data/hubNav";
@@ -62,6 +61,8 @@ type HoverNavProps = {
    * belowNav(지정학/지경학)도 메뉴 높이에 맞춰 함께 내려간다.
    */
   hoverReveal?: boolean;
+  /** 역사지도 — Cliopatria 연도 영토 (영토분쟁과 별도 카테고리) */
+  onHistoryMapOpen?: () => void;
 };
 
 export function HoverNav({
@@ -84,6 +85,7 @@ export function HoverNav({
   askLayersLabel,
   labelLanguage = "ko",
   hoverReveal = false,
+  onHistoryMapOpen,
 }: HoverNavProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
@@ -360,26 +362,59 @@ export function HoverNav({
               </button>
             ) : null}
             {!isEconomy ? (
-              <button
-                type="button"
-                aria-expanded={hubMenuOpen}
-                aria-label="긴장 지점 · 지정학 아카이브 메뉴"
-                title="긴장 지점 · 지정학 아카이브"
-                onClick={() => {
-                  setHubMenuOpen((v) => !v);
-                  setOpenHubId(null);
-                }}
-                className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-1.5 text-meta font-medium transition sm:text-xs ${
-                  hubMenuOpen
-                    ? "border-sky-300/40 bg-sky-400/20 text-sky-50"
-                    : "border-sky-200/20 bg-sky-400/10 text-sky-100/80 hover:border-sky-300/35"
-                }`}
-              >
-                <span className="hidden xs:inline sm:inline">
-                  {t("navPowderKeg", labelLanguage)}
-                </span>
-                <ChevronDown className={`transition ${hubMenuOpen ? "rotate-180" : ""}`} />
-              </button>
+              <>
+                <button
+                  type="button"
+                  aria-label="영토분쟁 아카이브"
+                  title="영토분쟁"
+                  onClick={() => handleHubNavigate(selectionForDisputesOverview())}
+                  className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-rose-300/30 bg-rose-500/15 px-1.5 text-meta font-medium text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25 sm:text-xs"
+                >
+                  <span className="hidden xs:inline sm:inline">
+                    {t("disputesOverviewNav", labelLanguage)}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="역사지도 · 연도 영토"
+                  title="역사지도"
+                  aria-pressed={viewerMode === "history"}
+                  onClick={() => {
+                    setHubMenuOpen(false);
+                    setOpenHubId(null);
+                    onHistoryMapOpen?.();
+                  }}
+                  className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-1.5 text-meta font-medium transition sm:text-xs ${
+                    viewerMode === "history"
+                      ? "border-amber-300/45 bg-amber-400/25 text-amber-50"
+                      : "border-amber-300/30 bg-amber-500/15 text-amber-50 hover:border-amber-200/45 hover:bg-amber-500/25"
+                  }`}
+                >
+                  <span className="hidden xs:inline sm:inline">
+                    {t("navPowderKeg", labelLanguage)}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-expanded={hubMenuOpen}
+                  aria-label="허브 메뉴"
+                  title="허브"
+                  onClick={() => {
+                    setHubMenuOpen((v) => !v);
+                    setOpenHubId(null);
+                  }}
+                  className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-1.5 text-meta font-medium transition sm:text-xs ${
+                    hubMenuOpen
+                      ? "border-sky-300/40 bg-sky-400/20 text-sky-50"
+                      : "border-sky-200/20 bg-sky-400/10 text-sky-100/80 hover:border-sky-300/35"
+                  }`}
+                >
+                  <span className="hidden xs:inline sm:inline">
+                    {t("navHubsMenu", labelLanguage)}
+                  </span>
+                  <ChevronDown className={`transition ${hubMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+              </>
             ) : (
               <button
                 type="button"
@@ -612,28 +647,6 @@ export function HoverNav({
             }`}
           >
             <div className="max-h-[min(78vh,36rem)] space-y-2 overflow-y-auto px-2 py-2">
-              <button
-                type="button"
-                onClick={() => handleHubNavigate(selectionForDisputesOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-500/15 px-2 py-2 text-meta font-semibold tracking-wide text-rose-50 transition hover:border-rose-200/45 hover:bg-rose-500/25"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
-                {t("disputesOverviewNav", labelLanguage)}
-                <span className="text-micro font-normal text-rose-200/60">
-                  {t("disputesOverviewNavHint", labelLanguage)}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleHubNavigate(selectionForWestpacPulseOverview())}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-500/15 px-2 py-2 text-meta font-semibold tracking-wide text-cyan-50 transition hover:border-cyan-200/45 hover:bg-cyan-500/25"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                {t("westpacShipMovesNav", labelLanguage)}
-                <span className="text-micro font-normal text-cyan-200/60">
-                  {t("westpacShipMovesNavHint", labelLanguage)}
-                </span>
-              </button>
               <ul className="space-y-1">
                 {HUB_DEFINITIONS.map((hub) => (
                   <HubDropdown

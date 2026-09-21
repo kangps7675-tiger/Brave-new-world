@@ -167,6 +167,7 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     }
     const pl = String(params.hoveredPolygon.polygonLayer ?? "");
     if (pl === "country") return "countries";
+    if (pl === "history-polity") return "history-territory";
     if (pl === "allied-bloc") return "allied-blocs";
     if (pl === "geoecon-bloc") return "geoecon-blocs";
     if (pl === "axis-hub") return "axis-hub";
@@ -787,6 +788,32 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
           lang === "en"
             ? "Country outline on the basemap. Not an alliance or camp fill — those are separate layers (Allied blocs / Geoeconomic camps)."
             : "지도 위 국가 윤곽입니다. 진영·지경학 색칠과는 별개이며, 동맹/경제권은 ‘진영 블록’·‘지경학 진영’ 레이어에서 봅니다.",
+      };
+    }
+    if (hoveredPolygon.polygonLayer === "history-polity") {
+      const yearRange =
+        hoveredPolygon.fromYear != null && hoveredPolygon.toYear != null
+          ? lang === "en"
+            ? `${hoveredPolygon.fromYear}–${hoveredPolygon.toYear}`
+            : `${hoveredPolygon.fromYear}–${hoveredPolygon.toYear}`
+          : undefined;
+      const sourceLabel =
+        hoveredPolygon.source === "korea"
+          ? lang === "en"
+            ? "Korea territory overlay"
+            : "한국 영토 오버레이"
+          : lang === "en"
+            ? "Historical polity (Cliopatria)"
+            : "역사 정치체 (Cliopatria)";
+      return {
+        kind: "polygon",
+        title: hoveredPolygon.name,
+        detail: hoveredPolygon.nameLong || sourceLabel,
+        meta: [yearRange, sourceLabel].filter(Boolean).join(" · ") || undefined,
+        body:
+          lang === "en"
+            ? "Territory name for this history year — modern country borders and names are hidden."
+            : "이 역사 연도의 영토 이름입니다. 현대 국경·국가명은 표시하지 않습니다.",
       };
     }
     if (hoveredPolygon.polygonLayer === "military-base") {
