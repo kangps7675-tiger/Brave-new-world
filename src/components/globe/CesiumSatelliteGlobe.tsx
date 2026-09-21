@@ -75,8 +75,17 @@ export function CesiumSatelliteGlobe({
             "/cesium/";
         }
 
-        const Cesium = await import("cesium");
-        await import("cesium/Build/Cesium/Widgets/widgets.css");
+        // 배포 URL·SW 꼬임 시 ChunkLoadError가 나기 쉬워 한 번 재시도
+        let Cesium: typeof import("cesium");
+        try {
+          Cesium = await import("cesium");
+          await import("cesium/Build/Cesium/Widgets/widgets.css");
+        } catch (firstErr) {
+          if (!isChunkLoadError(firstErr)) throw firstErr;
+          await new Promise((r) => window.setTimeout(r, 800));
+          Cesium = await import("cesium");
+          await import("cesium/Build/Cesium/Widgets/widgets.css");
+        }
 
         if (cancelled) return;
 
@@ -265,16 +274,34 @@ export function CesiumSatelliteGlobe({
             {errorKind === "chunk" ? (
               <div className="mt-3 space-y-3">
                 <p className="max-w-md text-xs text-sky-100/50">
-                  배포 직후 JS 청크가 맞지 않을 때 자주 납니다. 페이지를 새로고침해
-                  주세요.
+                  배포 직후 청크 불일치이거나,{" "}
+                  <code className="text-sky-200/80">*.vercel.app</code> 배포 URL이
+                  로그인 HTML을 돌려줄 때 납니다. 프로덕션 도메인으로 열어 주세요.
                 </p>
-                <button
-                  type="button"
-                  className="rounded-md border border-sky-200/30 bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-100 hover:bg-sky-500/25"
-                  onClick={() => window.location.reload()}
-                >
-                  새로고침
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border border-sky-200/30 bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-100 hover:bg-sky-500/25"
+                    onClick={() => {
+                      try {
+                        sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+                      } catch {
+                        /* ignore */
+                      }
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("_chunk", String(Date.now()));
+                      window.location.replace(url.toString());
+                    }}
+                  >
+                    강제 새로고침
+                  </button>
+                  <a
+                    href="https://conflict-view.vercel.app/"
+                    className="rounded-md border border-emerald-200/30 bg-emerald-500/15 px-3 py-1.5 text-xs font-medium text-emerald-100 hover:bg-emerald-500/25"
+                  >
+                    프로덕션 열기
+                  </a>
+                </div>
               </div>
             ) : errorKind === "assets" ? (
               <p className="mt-3 max-w-md text-xs text-sky-100/50">
