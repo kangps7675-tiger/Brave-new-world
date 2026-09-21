@@ -153,6 +153,14 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           ...cache.payload,
+          sourceHealth: {
+            ...cache.payload.sourceHealth,
+            opensky: {
+              ...cache.payload.sourceHealth.opensky,
+              status: "error",
+              message: errors[0],
+            },
+          },
           errors,
           fetchedAt: new Date().toISOString(),
         },
@@ -177,7 +185,6 @@ export async function GET(request: Request) {
       features,
     });
     return NextResponse.json(payload, {
-      status: 502,
       headers: {
         "Cache-Control": "no-store",
         "X-ReefWatch-Cache": "error",

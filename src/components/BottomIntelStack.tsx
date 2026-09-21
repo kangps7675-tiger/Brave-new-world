@@ -38,6 +38,7 @@ import { TelegramIntelFeed, alertMatchesMediaFilter } from "@/components/Telegra
 import { ViinaFrontEventsPanel } from "@/components/ViinaFrontEventsPanel";
 import { VideoNewsPanel } from "@/components/VideoNewsPanel";
 import { GdeltAlertPanel } from "@/components/GdeltAlertPanel";
+import { useCompactUi } from "@/hooks/useCompactUi";
 import type { MenuCoreAlert } from "@/lib/regionFilter";
 import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
@@ -1427,6 +1428,7 @@ function IntelSheetTabBar({
   onEconomyTabChange?: (tab: EconomyIntelTab) => void;
 }) {
   const { t } = useLocale();
+  const isCompactUi = useCompactUi();
   if (economyMode) {
     const economyBtn = (tab: EconomyIntelTab, label: string) => (
       <button
@@ -1452,7 +1454,10 @@ function IntelSheetTabBar({
       >
         {economyBtn("markets", t("intelSheetMarketsTab"))}
         {economyBtn("majors", t("intelSheetMajorsTab"))}
-        {economyBtn("shipping-choke", t("intelSheetShippingChokeTab"))}
+        {/* 데스크톱: 해운·초크는 우측 레일 — 모바일만 시트 탭 유지 */}
+        {isCompactUi
+          ? economyBtn("shipping-choke", t("intelSheetShippingChokeTab"))
+          : null}
         {economyBtn("aviation", t("intelSheetAviationTab"))}
         {economyBtn("news", "RSS · 속보")}
         {economyBtn("video", t("intelSheetVideoTab"))}
@@ -1683,6 +1688,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       localizedTitle,
     } = useNewsStreamContext();
     const { lang, t } = useLocale();
+    const isCompactUi = useCompactUi();
     const { profile: interestProfile } = useInterestProfile(
       preferEconomyNews ? "economy" : "conflict",
     );
@@ -1751,12 +1757,25 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
       ) => {
         setTheaterFilter(theater);
         setSheetTab(tab);
-        if (economyTabNext) setEconomyTab(economyTabNext);
+        if (economyTabNext) {
+          // 데스크톱 해운·초크는 우측 레일 — 시트로는 뉴스 폴백
+          setEconomyTab(
+            !isCompactUi && economyTabNext === "shipping-choke"
+              ? "news"
+              : economyTabNext,
+          );
+        }
         void refresh();
         onOpen?.();
       },
-      [onOpen, refresh, setTheaterFilter],
+      [isCompactUi, onOpen, refresh, setTheaterFilter],
     );
+
+    useEffect(() => {
+      if (!isCompactUi && economyTab === "shipping-choke") {
+        setEconomyTab("news");
+      }
+    }, [economyTab, isCompactUi]);
 
     useEffect(() => {
       if (!autoOpenOnMount || autoOpenedRef.current) return;

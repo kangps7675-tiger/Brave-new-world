@@ -1258,6 +1258,20 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     commercialNote: "VIINA — ODbL. 상업 이용 가능하되 렌더 전용 유지(원본 export 금지).",
   },
   {
+    layerId: "deepstate-ukraine-occupied",
+    source: "DeepState Map → 3-day occupied coordinate snapshot",
+    url: "/api/deepstate/frontlines",
+    cadence: "Every 3 days · cron `/api/deepstate/sync` · static fallback",
+    attribution: "DeepStateMap.live — occupied coordinates only (temporary)",
+    notes:
+      "LIVEUAMAP 영토 폴링 전 임시. news_project occupiedUkraine처럼 좌표만 3일마다 반영. 유저 GET은 D1/정적 스냅샷만 읽고, 3일이 지났을 때만 DeepState history/last를 한 번 친다.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "license-required",
+    commercialNote:
+      "DeepStateMap API는 상업 사전승인제. LIVEUAMAP 전 임시 3일 좌표 스냅샷 — 승인 후 유지하거나 LIVEUAMAP으로 교체.",
+  },
+  {
     layerId: "korea-missile-incidents",
     source: "GDELT live · DPRK missile dens",
     url: "/api/gdelt + src/data/koreaMissileIncidentsSeed.ts",

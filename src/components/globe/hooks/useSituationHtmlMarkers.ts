@@ -47,6 +47,7 @@ import { IRAN_MISSILE_FACILITY_CALLOUTS, isNearIranMissileBelt } from "@/data/ir
 
 export interface SituationHtmlMarkersParams {
   isEconomyViewer: boolean;
+  isHistoryViewer?: boolean;
   isCompactUi: boolean;
   labelLanguage: LabelLanguage;
 
@@ -97,6 +98,7 @@ export function useSituationHtmlMarkers(
 ): SituationHtmlMarkers {
   const {
     isEconomyViewer,
+    isHistoryViewer = false,
     isCompactUi,
     labelLanguage,
     gdeltTensionTags,
@@ -143,12 +145,12 @@ export function useSituationHtmlMarkers(
 
   /** 텔레그램 속보 → 지명 hit 흰 네온 */
   const telegramNeonMarkers = useMemo<TelegramNeonMarker[]>(() => {
-    if (isEconomyViewer || isCompactUi || !showTelegramOsint) return [];
+    if (isEconomyViewer || isHistoryViewer || isCompactUi || !showTelegramOsint) return [];
     return buildTelegramMapDots(telegramAlerts);
-  }, [isCompactUi, isEconomyViewer, showTelegramOsint, telegramAlerts]);
+  }, [isCompactUi, isEconomyViewer, isHistoryViewer, showTelegramOsint, telegramAlerts]);
 
   const situationCalloutMarkers = useMemo<SituationCalloutMarker[]>(() => {
-    if (isEconomyViewer) return [];
+    if (isEconomyViewer || isHistoryViewer) return [];
     const nearEnough =
       globeLodTier === "continent" ||
       globeLodTier === "regional" ||
@@ -214,6 +216,7 @@ export function useSituationHtmlMarkers(
     filterCenter.lng,
     globeLodTier,
     isEconomyViewer,
+    isHistoryViewer,
     showDiplomaticTension,
     showNewfeedsIranAttacks,
     showTzevaAdom,
@@ -228,10 +231,12 @@ export function useSituationHtmlMarkers(
   /**
    * OWID 핵탄두 보유량 — 각국 좌표 위 ICBM 아이콘 + 탄두 수 (지정학 뷰 자동 표시).
    */
-  const safecastReadings = useSafecastNearNuclear(showNuclearSites && !isEconomyViewer);
+  const safecastReadings = useSafecastNearNuclear(
+    showNuclearSites && !isEconomyViewer && !isHistoryViewer,
+  );
 
   const nuclearStockpileMarkers = useMemo<NuclearStockpileHtmlMarker[]>(() => {
-    if (isEconomyViewer) return [];
+    if (isEconomyViewer || isHistoryViewer) return [];
     const casualtyPts = casualtySkullMarkers.map((m) => ({ lat: m.lat, lng: m.lng }));
     const MIN_SEP_DEG = 2.1; // 마커 간 최소 간격(°)
     const MAX_SHIFT_DEG = 4.0; // 국가에서 벗어나는 최대 이동량 상한
@@ -289,10 +294,10 @@ export function useSituationHtmlMarkers(
         year: seed.year,
       };
     });
-  }, [casualtySkullMarkers, isEconomyViewer]);
+  }, [casualtySkullMarkers, isEconomyViewer, isHistoryViewer]);
 
   const safecastGaugesGeoJson = useMemo(() => {
-    if (!showNuclearSites || isEconomyViewer) {
+    if (!showNuclearSites || isEconomyViewer || isHistoryViewer) {
       return {
         type: "FeatureCollection" as const,
         features: [],
@@ -302,7 +307,7 @@ export function useSituationHtmlMarkers(
       safecastReadings,
       labelLanguage === "en" ? "en" : "ko",
     );
-  }, [isEconomyViewer, labelLanguage, safecastReadings, showNuclearSites]);
+  }, [isEconomyViewer, isHistoryViewer, labelLanguage, safecastReadings, showNuclearSites]);
 
   const ukraineSettlementHtmlMarkers = useMemo<UkraineSettlementHtmlMarker[]>(() => {
     if (!showUkraineControl) return [];

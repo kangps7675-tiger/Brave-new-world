@@ -77,6 +77,10 @@ import {
   isHistoryPolityFillLayerId,
 } from "@/lib/historical/historyPolityHover";
 import {
+  HISTORY_POLITY_LABEL_MAX_VISIBLE,
+  historyLabelUsesHangul,
+} from "@/lib/historical/historyPolityLabels";
+import {
   gemFacilityIconId,
   isGemFacilityKind,
   ensureGemFacilityImages,
@@ -162,6 +166,11 @@ function applyHistoryTerritoryBasemapChrome(
   const visible = !historyTerritoryActive;
   applyBasemapAdminBoundaries(map, { visible });
   applyBasemapModernCountryLabels(map, { visible });
+}
+
+function historyLabelFontPx(minzoom: number, zoom: number): number {
+  const base = minzoom <= 0 ? 16.5 : minzoom <= 2 ? 15 : minzoom <= 3 ? 13.8 : 12.6;
+  return Math.round((base + Math.min(Math.max(zoom, 0), 8) * 0.85) * 10) / 10;
 }
 
 function applyTerrainForMap(
@@ -626,6 +635,50 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.historyKoreaGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.historyKoreaGeoJson]);
+  const historyLabelGeoJson = useMemo(() => {
+    const raw = props.historyLabelGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.historyLabelGeoJson]);
+  const historyLabelMarkers = useMemo(() => {
+    if (!historyTerritoryActive) return [];
+    const out: {
+      id: string;
+      lng: number;
+      lat: number;
+      label: string;
+      minzoom: number;
+      hangul: boolean;
+    }[] = [];
+    for (const feature of historyLabelGeoJson.features) {
+      const geom = feature.geometry;
+      if (!geom || geom.type !== "Point") continue;
+      const coords = geom.coordinates;
+      const lng = coords[0];
+      const lat = coords[1];
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+      const propsRec = (feature.properties || {}) as {
+        label?: unknown;
+        minzoom?: unknown;
+      };
+      const label = typeof propsRec.label === "string" ? propsRec.label : "";
+      if (!label) continue;
+      const minzoom =
+        typeof propsRec.minzoom === "number" && Number.isFinite(propsRec.minzoom)
+          ? propsRec.minzoom
+          : 0;
+      if (minzoom > mapZoom) continue;
+      out.push({
+        id: `hist-label-${label}`,
+        lng,
+        lat,
+        label,
+        minzoom,
+        hangul: historyLabelUsesHangul(label),
+      });
+      if (out.length >= HISTORY_POLITY_LABEL_MAX_VISIBLE) break;
+    }
+    return out;
+  }, [historyTerritoryActive, historyLabelGeoJson, mapZoom]);
   const axisHubCountriesGeoJson = useMemo(() => {
     const raw = props.axisHubCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
@@ -3492,6 +3545,26 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             />
           </Source>
         ) : null}
+
+        {historyLabelMarkers.map((item) => (
+          <Marker
+            key={item.id}
+            longitude={item.lng}
+            latitude={item.lat}
+            anchor="center"
+            pitchAlignment="viewport"
+            rotationAlignment="viewport"
+            opacityWhenCovered={0}
+            style={{ pointerEvents: "none" }}
+          >
+            <div
+              className={`history-polity-atlas-label${item.hangul ? " history-polity-atlas-label--ko" : ""}`}
+              style={{ fontSize: `${historyLabelFontPx(item.minzoom, mapZoom)}px` }}
+            >
+              {item.label}
+            </div>
+          </Marker>
+        ))}
 
         {/* Ukraine front LOD: soft macro/micro overlap */}
         {ukraineMacroGeoJson.features.length > 0 ? (

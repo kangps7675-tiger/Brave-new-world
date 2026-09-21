@@ -70,4 +70,6 @@ export const CDN_CACHE = {
   tunnels: { sMaxAge: 300, swr: 900 } satisfies PublicCacheOpts,
   /** CSIS Beyond Parallel · NTI 레퍼런스 감시 — cron 6h 폴링, CDN 30–60min */
   referenceMonitor: { sMaxAge: 1800, swr: 3600 } satisfies PublicCacheOpts,
+  /** DeepState 점령 좌표 — 3일 스냅샷, LIVEUAMAP 전 임시 */
+  deepstateOccupied: { sMaxAge: 3 * 24 * 3600, swr: 24 * 3600 } satisfies PublicCacheOpts,
 } as const;

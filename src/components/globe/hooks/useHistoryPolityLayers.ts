@@ -14,6 +14,7 @@ import {
   nearestHistoryYear,
 } from "@/lib/historical/koreaManifest";
 import { fetchHistoryLayersConfig } from "@/lib/historical/historyLayers";
+import { buildHistoryPolityLabelGeoJson } from "@/lib/historical/historyPolityLabels";
 
 const EMPTY_FC: FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -22,6 +23,7 @@ export type HistoryPolityLayers = {
   snapYear: number;
   cliopatriaGeoJson: FeatureCollection;
   koreaGeoJson: FeatureCollection;
+  labelGeoJson: FeatureCollection;
   years: number[];
   loading: boolean;
   error: string | null;
@@ -168,11 +170,23 @@ export function useHistoryPolityLayers(opts: {
     [enabled, koreaRaw]
   );
 
+  const labelGeoJson = useMemo(
+    () =>
+      enabled
+        ? buildHistoryPolityLabelGeoJson({
+            cliopatria: cliopatriaGeoJson,
+            korea: koreaGeoJson,
+          })
+        : EMPTY_FC,
+    [cliopatriaGeoJson, enabled, koreaGeoJson]
+  );
+
   return {
     year,
     snapYear,
     cliopatriaGeoJson: enabled ? cliopatriaGeoJson : EMPTY_FC,
     koreaGeoJson,
+    labelGeoJson,
     years: koreaYears.length ? koreaYears : years,
     loading,
     error,

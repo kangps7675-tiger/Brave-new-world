@@ -155,6 +155,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "멋진 신세계",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   formatDetection: {
     telephone: false,
   },
@@ -183,7 +186,6 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning style={{ background: "#02040a" }}>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-        <link rel="preload" as="style" crossOrigin="anonymous" href={WANTED_SANS_CSS} />
         <link rel="stylesheet" href={WANTED_SANS_CSS} />
       </head>
       <body

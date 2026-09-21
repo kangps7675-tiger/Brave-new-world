@@ -84,6 +84,7 @@ npm run cf:ingest:dev
 | 해저터널 | `/api/submarine-tunnels` | `submarine_tunnels` |
 | 분쟁·이란 전선 | `/api/render/dispute-paths` | `dispute_hatch_paths` |
 | 우크라 전선 | `/api/render/ukraine-control-paths` | `ukraine_control_paths` |
+| DeepState 점령 좌표 (임시) | `/api/deepstate/frontlines` | `deepstate_occupied_snapshots` |
 
 공통: D1 우선, 레이어 OFF면 클라가 fetch하지 않음. 전선은 **초단위 라이브가 아니라 주기 스냅샷**.
 
@@ -96,6 +97,10 @@ npx wrangler secret put DISPUTE_HATCH_WARM_URL -c wrangler.ingest.toml
 npx wrangler secret put UKRAINE_HATCH_WARM_URL -c wrangler.ingest.toml
 # 예: https://your-app/api/render/ukraine-control-paths?lod=overview
 # (앱 서버에 VIINA 캐시가 있을 때만 재빌드 성공)
+
+npx wrangler secret put DEEPSTATE_SYNC_URL -c wrangler.ingest.toml
+# 예: https://your-app/api/deepstate/sync
+# 3일 좌표 스냅샷. Next 라우트가 TTL로 스로틀한다 (LIVEUAMAP 전 임시).
 ```
 
 로컬 빌드:

@@ -10,6 +10,7 @@ import { SwpcStatusChip } from "@/components/SwpcStatusChip";
 import { FreightStressChip } from "@/components/FreightStressChip";
 import { PortWatchStressChip } from "@/components/PortWatchStressChip";
 import { MarketSessionChip } from "@/components/MarketSessionChip";
+import { ThemeCompanyBoard } from "@/components/ThemeCompanyBoard";
 import { useSanctionsEvasionSnapshot } from "@/hooks/useSanctionsEvasionSnapshot";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { MetricExplainId } from "@/lib/metricExplainCopy";
@@ -27,6 +28,8 @@ type ModeGlobalIndexChipProps = {
   showGscpi?: boolean;
   showSwpc?: boolean;
   dense?: boolean;
+  /** 지경학 데스크톱 — 해운·초크 보드를 우측 레일에 상시 표시 */
+  showShippingRail?: boolean;
   className?: string;
   /** HoverSideDrawer 등 부모 안에 넣을 때 — fixed 해제 */
   embedded?: boolean;
@@ -49,12 +52,14 @@ export function ModeGlobalIndexChip({
   showGscpi = true,
   showSwpc = true,
   dense = false,
+  showShippingRail = false,
   className = "",
   embedded = false,
   onPanelOpenChange,
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
   const hideForSatellite = viewerMode === "satellite";
+  const hideForHistory = viewerMode === "history";
   const stackRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [sesPanelOpen, setSesPanelOpen] = useState(false);
@@ -126,7 +131,7 @@ export function ModeGlobalIndexChip({
     return () => window.cancelAnimationFrame(id);
   }, [sesPanelOpen, explainId, publishChromeObstacles]);
 
-  if (hideForSatellite) {
+  if (hideForSatellite || hideForHistory) {
     return null;
   }
 
@@ -269,43 +274,75 @@ export function ModeGlobalIndexChip({
             </button>
           ) : null}
         </div>
+
+        {showSesPanel ? (
+          <div
+            ref={panelRef}
+            className={`pointer-events-auto w-full max-w-full ${zc("navMenu")} ${
+              embedded ? "relative" : "fixed w-[min(20rem,calc(100vw-1.5rem))]"
+            }`}
+            style={
+              embedded
+                ? {
+                    maxHeight:
+                      "min(22rem, calc(100dvh - var(--bottom-intel-stack-clearance, 8.5rem) - 8rem))",
+                  }
+                : {
+                    top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
+                    right: "clamp(4.75rem, 16vw, 13.5rem)",
+                    maxHeight:
+                      "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
+                  }
+            }
+            data-chrome-obstacle="ses-panel"
+          >
+            <SanctionsEvasionPanel lang={lang} onClose={() => setSesPanelOpen(false)} />
+          </div>
+        ) : null}
+
+        {showExplain && explainId ? (
+          <div
+            ref={panelRef}
+            className={`pointer-events-auto w-full max-w-full ${zc("navMenu")} ${
+              embedded ? "relative" : "fixed w-[min(22rem,calc(100vw-1.5rem))]"
+            }`}
+            style={
+              embedded
+                ? {
+                    maxHeight:
+                      "min(22rem, calc(100dvh - var(--bottom-intel-stack-clearance, 8.5rem) - 8rem))",
+                  }
+                : {
+                    top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
+                    right: "clamp(4.75rem, 16vw, 13.5rem)",
+                    maxHeight:
+                      "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
+                  }
+            }
+            data-chrome-obstacle="metric-explain"
+          >
+            <MetricExplainPanel
+              metricId={explainId}
+              lang={lang}
+              onClose={() => setExplainId(null)}
+            />
+          </div>
+        ) : null}
+
+        {showShippingRail ? (
+          <div
+            className="mt-0.5 w-full max-w-full overflow-hidden rounded-xl border border-emerald-400/20 bg-[#071018]/88 shadow-lg backdrop-blur-md"
+            data-chrome-obstacle="shipping-rail"
+          >
+            <div className="border-b border-emerald-400/15 px-2.5 py-1.5">
+              <p className="text-micro font-semibold tracking-wide text-emerald-100/90">
+                {lang === "en" ? "Shipping · choke" : "해운·초크"}
+              </p>
+            </div>
+            <ThemeCompanyBoard themeId="shipping-choke" rail />
+          </div>
+        ) : null}
       </div>
-
-      {showSesPanel ? (
-        <div
-          ref={panelRef}
-          className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(20rem,calc(100vw-1.5rem))]`}
-          style={{
-            top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right: "clamp(4.75rem, 16vw, 13.5rem)",
-            maxHeight:
-              "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
-          }}
-          data-chrome-obstacle="ses-panel"
-        >
-          <SanctionsEvasionPanel lang={lang} onClose={() => setSesPanelOpen(false)} />
-        </div>
-      ) : null}
-
-      {showExplain && explainId ? (
-        <div
-          ref={panelRef}
-          className={`pointer-events-auto fixed ${zc("navMenu")} w-[min(22rem,calc(100vw-1.5rem))]`}
-          style={{
-            top: "calc(var(--mode-index-chip-stack-bottom, 3.5rem) + 0.4rem)",
-            right: "clamp(4.75rem, 16vw, 13.5rem)",
-            maxHeight:
-              "calc(100dvh - var(--mode-index-chip-stack-bottom, 3.5rem) - var(--bottom-intel-stack-clearance, 8.5rem) - 1.5rem)",
-          }}
-          data-chrome-obstacle="metric-explain"
-        >
-          <MetricExplainPanel
-            metricId={explainId}
-            lang={lang}
-            onClose={() => setExplainId(null)}
-          />
-        </div>
-      ) : null}
     </>
   );
 }
