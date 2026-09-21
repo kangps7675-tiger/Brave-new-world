@@ -94,7 +94,8 @@ export const PREF_TO_LAYER_ID: Partial<Record<LayerPrefKey, string>> = {
    *   crink-hub-monitor · basemap-esri-world-imagery ·
    *   news-geopolitics-rss · news-economy-rss · news-video-youtube ·
    *   mof-port-flows · korea-macro-ecos · korea-macro-kosis · kcs-trade ·
-   *   atop-alliances-draft · icow-territorial-claims-draft
+   *   atop-alliances-draft · icow-territorial-claims-draft ·
+   *   deepstate-ukraine-occupied (showUkraineControl 아래 임시 점령 fill)
    *
    * `layerPrefGate.test.ts` 가 이 목록을 검사해서, 새 pref 가 생기면
    * 매핑을 추가하도록 강제한다.
