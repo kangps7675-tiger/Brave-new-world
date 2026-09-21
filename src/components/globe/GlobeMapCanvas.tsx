@@ -5,10 +5,12 @@ import dynamic from "next/dynamic";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
+import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 
 const CesiumSatelliteGlobe = dynamic(
-  () =>
+  importWithChunkRetry(() =>
     import("@/components/globe/CesiumSatelliteGlobe").then((m) => m.CesiumSatelliteGlobe),
+  ),
   {
     ssr: false,
     loading: () => (
