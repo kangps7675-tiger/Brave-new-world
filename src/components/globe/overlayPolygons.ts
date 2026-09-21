@@ -17,6 +17,8 @@ export function polygonFeatureKey(feature: PolygonLayerFeature): string {
     case "geoecon-bloc":
     case "axis-hub":
       return feature.iso;
+    case "history-polity":
+      return `history:${feature.source ?? "polity"}:${feature.name}`;
     default:
       return feature.id;
   }
@@ -30,6 +32,7 @@ export function polygonFeatureGeometry(
     case "allied-bloc":
     case "geoecon-bloc":
     case "axis-hub":
+    case "history-polity":
       return null;
     default:
       return feature.geometry;

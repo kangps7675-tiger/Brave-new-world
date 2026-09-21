@@ -478,6 +478,25 @@ export const ADMIN_BOUNDARY_LAYER_IDS = [
 ] as const;
 
 /**
+ * 현대 국가·주(州) 이름 라벨 (역사 모드에서 숨김).
+ * OpenFreeMap Liberty는 label_* · Dark/OMT는 place_* 계열.
+ */
+export const MODERN_COUNTRY_LABEL_LAYER_IDS = [
+  "label_country",
+  "label_country_1",
+  "label_country_2",
+  "label_country_3",
+  "label_state",
+  "label_state_1",
+  "label_state_2",
+  "place_country",
+  "place_country_major",
+  "place_country_other",
+  "place_state",
+  "place_state_1",
+] as const;
+
+/**
  * 현대 행정 국경 표시 여부.
  * 역사 모드에서는 숨겨 Cliopatria/Korea 영토만 읽히게 한다.
  */
@@ -497,11 +516,55 @@ export function applyBasemapAdminBoundaries(
     if (Array.isArray(layers)) {
       for (const layer of layers) {
         const id = typeof layer?.id === "string" ? layer.id : "";
-        if (!id.startsWith("boundary_")) continue;
+        if (!id) continue;
+        const isBoundary =
+          id.startsWith("boundary_") ||
+          id.startsWith("admin_") ||
+          id.includes("admin_boundary") ||
+          id.includes("boundary-land") ||
+          id.includes("disputed_boundary");
+        if (!isBoundary) continue;
         if ((ADMIN_BOUNDARY_LAYER_IDS as readonly string[]).includes(id)) continue;
         if (!map.getLayer(id)) continue;
         map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
       }
+    }
+  } catch {
+    /* layout unsupported */
+  }
+}
+
+/**
+ * 현대 국가·주 라벨 표시 여부.
+ * 역사 모드에서는 숨겨 당시 polity 이름(호버)만 읽히게 한다.
+ */
+export function applyBasemapModernCountryLabels(
+  map: BasemapMapLike,
+  options?: { visible?: boolean },
+): void {
+  const visible = options?.visible !== false;
+  try {
+    for (const layerId of MODERN_COUNTRY_LABEL_LAYER_IDS) {
+      if (!map.getLayer(layerId)) continue;
+      map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none");
+    }
+    const style = map.getStyle?.();
+    const layers = style?.layers;
+    if (!Array.isArray(layers)) return;
+    for (const layer of layers) {
+      const id = typeof layer?.id === "string" ? layer.id : "";
+      if (!id) continue;
+      if ((MODERN_COUNTRY_LABEL_LAYER_IDS as readonly string[]).includes(id)) continue;
+      const isModernCountryLabel =
+        id.startsWith("label_country") ||
+        id.startsWith("label_state") ||
+        id.startsWith("place_country") ||
+        id.startsWith("place_state") ||
+        id === "country_label" ||
+        id === "state_label";
+      if (!isModernCountryLabel) continue;
+      if (!map.getLayer(id)) continue;
+      map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
     }
   } catch {
     /* layout unsupported */

@@ -73,6 +73,10 @@ import {
   isBlocCountryFillLayerId,
 } from "@/lib/blocCountryHover";
 import {
+  historyPolityFromMapProps,
+  isHistoryPolityFillLayerId,
+} from "@/lib/historical/historyPolityHover";
+import {
   gemFacilityIconId,
   isGemFacilityKind,
   ensureGemFacilityImages,
@@ -111,6 +115,7 @@ import {
   applyBasemapOceanColors,
   applyBasemapPlaceLabelScale,
   applyBasemapAdminBoundaries,
+  applyBasemapModernCountryLabels,
   applyBasemapSatelliteImagery,
   applyBasemapSpaceBackground,
   applyBasemapTerrain,
@@ -147,6 +152,16 @@ function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
   applyBasemapFog(map, mode);
   applyBasemapSpaceBackground(map, mode);
   applyBasemapOceanColors(map, mode);
+}
+
+/** 역사 모드: 현대 행정 국경 + 현대 국가/주 라벨 숨김 */
+function applyHistoryTerritoryBasemapChrome(
+  map: BasemapMapLike,
+  historyTerritoryActive: boolean,
+): void {
+  const visible = !historyTerritoryActive;
+  applyBasemapAdminBoundaries(map, { visible });
+  applyBasemapModernCountryLabels(map, { visible });
 }
 
 function applyTerrainForMap(
@@ -1184,9 +1199,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapAdminBoundaries(m, {
-        visible: !historyTerritoryActiveRef.current,
-      });
+      applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
       map.triggerRepaint();
     };
 
@@ -1322,9 +1335,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapAdminBoundaries(m, {
-        visible: !historyTerritoryActiveRef.current,
-      });
+      applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
     };
 
     if (map.isStyleLoaded()) {
@@ -1363,7 +1374,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyTerrainForMap(m, basemapMode, ultraLite);
       applyBasemapSatelliteImagery(m, basemapMode);
       applyBasemapPlaceLabelScale(m, basemapMode, { showCityLabels });
-      applyBasemapAdminBoundaries(m, { visible: !historyTerritoryActive });
+      applyHistoryTerritoryBasemapChrome(m, historyTerritoryActive);
     };
 
     if (movingRef.current) {
@@ -1450,9 +1461,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapAdminBoundaries(m, {
-        visible: !historyTerritoryActiveRef.current,
-      });
+      applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
     };
     sync();
     map.once("idle", sync);
@@ -1609,7 +1618,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       for (const feature of features) {
         const layerId = feature.layer?.id;
         if (layerId == null) continue;
-        if (isBlocCountryFillLayerId(layerId) || layerId === "map-polygons-fill") continue;
+        if (
+          isBlocCountryFillLayerId(layerId) ||
+          isHistoryPolityFillLayerId(layerId) ||
+          layerId === "map-polygons-fill"
+        ) {
+          continue;
+        }
         const index = feature.properties?.index;
         if (index == null) continue;
         const item = resolveFeature(layerId, Number(index));
@@ -1634,15 +1649,36 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         }
       }
 
-      // 2순위: 오버레이 폴리곤 → 진영/지경학/축 국가 면
+      // 2순위: 역사 polity → 오버레이 폴리곤 → 진영/지경학/축 국가 면
       for (const feature of features) {
         const layerId = feature.layer?.id;
         if (layerId == null) continue;
+        if (isHistoryPolityFillLayerId(layerId)) {
+          const polity = historyPolityFromMapProps(layerId, feature.properties);
+          if (!polity) continue;
+          onPolygonHover?.(polity);
+          onPointHover?.(null);
+          onPathHover?.(null);
+          onAircraftHover?.(null);
+          onAisSymbolHover?.(null);
+          setHoveredPathGroupId(null);
+          setHoveredAxisLinkGroupId(null);
+          return;
+        }
         if (layerId === "map-polygons-fill") {
           const index = feature.properties?.index;
           if (index == null) continue;
           const item = resolveFeature(layerId, Number(index));
           if (!item) continue;
+          // 역사 모드: 현대 국가 면 호버 차단 (데이터 비우기와 이중 방어)
+          if (
+            historyTerritoryActiveRef.current &&
+            typeof item === "object" &&
+            "polygonLayer" in item &&
+            (item as { polygonLayer?: string }).polygonLayer === "country"
+          ) {
+            continue;
+          }
           onPolygonHover?.(item);
           onPointHover?.(null);
           onPathHover?.(null);
@@ -1766,9 +1802,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyBasemapPlaceLabelScale(m, basemapModeRef.current, {
         showCityLabels: showCityLabelsRef.current,
       });
-      applyBasemapAdminBoundaries(m, {
-        visible: !historyTerritoryActiveRef.current,
-      });
+      applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);

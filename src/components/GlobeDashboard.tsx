@@ -869,7 +869,7 @@ export function GlobeDashboard({
       saved === "satellite" ||
       saved === "live"
     ) {
-      if (saved === "conflict") return "history";
+      if (saved === "history") return "conflict";
       if (saved === "live") return "satellite";
       return saved;
     }
@@ -3111,7 +3111,7 @@ export function GlobeDashboard({
     radiusDeg: pathRadiusDeg,
     viewerMode,
     showDisputeBoundaries: showAnyDisputeOverlay && globeReady,
-    showLsibBoundary: showLsibBoundary && globeReady,
+    showLsibBoundary: showLsibBoundary && globeReady && !isHistoryViewer,
     showShippingLanes,
     showSubmarineCables,
     showSubmarineTunnels,
@@ -3195,6 +3195,8 @@ export function GlobeDashboard({
   );
 
   const countryPolygonData = useMemo<PolygonLayerFeature[]>(() => {
+    // 역사 모드 — 현대 국가 면(호버·픽용) 전부 제외. Cliopatria/Korea polity만 사용.
+    if (isHistoryViewer) return [];
     const withGeometry = (data.countries ?? []).filter((country) => Boolean(country.geometry));
     if (isVectorBaseMap) {
       return withGeometry.map((country) => ({ ...country, polygonLayer: "country" as const }));
@@ -3219,6 +3221,7 @@ export function GlobeDashboard({
   }, [
     data.countries,
     globeLod.tier,
+    isHistoryViewer,
     isVectorBaseMap,
     layerViewState,
     viewportCountries,

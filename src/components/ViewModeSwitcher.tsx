@@ -10,8 +10,8 @@ type ViewModeSwitcherProps = {
   onChange: (mode: ViewerMode) => void;
 };
 
-/** 상단 3토글 — 역사 · 라이브(Cesium) · 지경학 */
-type TopMode = Extract<ViewerMode, "history" | "satellite" | "economy">;
+/** 상단 3토글 — 지정학 · 3D 라이브 · 지경학 (역사는 역사지도·영토분쟁 쪽) */
+type TopMode = Extract<ViewerMode, "conflict" | "satellite" | "economy">;
 
 export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
   const { t } = useLocale();
@@ -19,9 +19,9 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
 
   const MODES: Array<{ id: TopMode; label: string; hint: string }> = [
     {
-      id: "history",
-      label: t("modeHistory"),
-      hint: t("modeHistoryHint"),
+      id: "conflict",
+      label: t("modeConflict"),
+      hint: t("modeConflictHint"),
     },
     {
       id: "satellite",
@@ -35,13 +35,13 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
     },
   ];
 
-  /** 레거시 conflict/live 저장값은 역사·라이브 탭으로 표시 */
+  /** 레거시 history/live 저장값 → 지정학·3D 라이브 탭으로 표시 */
   const displayMode: TopMode =
     mode === "economy"
       ? "economy"
       : mode === "satellite" || mode === "live"
         ? "satellite"
-        : "history";
+        : "conflict";
 
   const activeClass = (id: TopMode) => {
     if (id === "economy") {
@@ -55,8 +55,8 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
         : "bg-teal-400/25 text-teal-50 ring-1 ring-teal-300/35";
     }
     return light
-      ? "bg-amber-100 text-amber-950 ring-1 ring-amber-700/35"
-      : "bg-amber-400/25 text-amber-50 ring-1 ring-amber-300/35";
+      ? "bg-rose-100 text-rose-950 ring-1 ring-rose-700/35"
+      : "bg-rose-400/25 text-rose-50 ring-1 ring-rose-300/35";
   };
 
   return (
