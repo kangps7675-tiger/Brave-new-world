@@ -735,6 +735,12 @@ export type { GlobeDashboardProps } from "@/components/globe/types";
 /** 좌하단 일일 랭킹·WTI·예측 패널 접기 선호 (텔레그램 패널 가림 방지) */
 const DAILY_RANK_PANEL_KEY = "cv-daily-rank-panel-open";
 
+/**
+ * 신속 속보 강제 순환 주기 (2026-09-22, 필성 요청) — 1분에 최대 3건 리듬.
+ * 유저가 직접 닫지 않아도 이 시간 뒤 다음 속보로 자동 전환된다.
+ */
+const BREAKING_FLASH_AUTO_ADVANCE_MS = 20_000;
+
 export function GlobeDashboard({
   viinaMeta = null,
   initialViewConfig = null,
@@ -6647,6 +6653,21 @@ export function GlobeDashboard({
     isHistoryViewer,
     deepDiveSession,
   ]);
+
+  /**
+   * 신속 속보 강제 순환 (2026-09-22, 필성 요청) — "화면이 정적이다" 피드백.
+   * 유저가 안 닫아도 일정 시간 뒤 자동으로 다음 속보로 넘어간다.
+   * 위 이펙트가 breakingFlash===null이 되는 순간 큐에서 다음 후보를 바로 집어오므로,
+   * 여기서는 그냥 강제로 null을 찍어주기만 하면 된다 (읽는 속도와 무관하게 회전).
+   * 목표 리듬 1분에 최대 3건 → 20초 간격.
+   */
+  useEffect(() => {
+    if (!breakingFlash) return;
+    const timer = window.setTimeout(() => {
+      setBreakingFlash(null);
+    }, BREAKING_FLASH_AUTO_ADVANCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [breakingFlash]);
 
   const { exerciseOffer, dismissExerciseOffer } = useExerciseAlertAuto({
     paused:
