@@ -29,6 +29,10 @@ export type LayerPrefs = {
   showCityLabels: boolean;
   showRailGlow: boolean;
   showAis: boolean;
+  /** AIS 중 군함만 — 관측(Cesium) 모드 전용 세부 필터. showAis가 꺼져 있으면 무의미. */
+  showAisMilitary: boolean;
+  /** AIS 중 상선·민간만 — 관측(Cesium) 모드 전용 세부 필터. */
+  showAisCommercial: boolean;
   /** 위장·다크플리트 선박 (AIS_Tracker OSINT 시드) */
   showDisguisedVessels: boolean;
   showShippingLanes: boolean;
@@ -303,6 +307,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showCityLabels: false,
   showRailGlow: false,
   showAis: true,
+  showAisMilitary: true,
+  showAisCommercial: true,
   showDisguisedVessels: false,
   /** 해상 항로·물류망 — 기본 OFF, 레이어 패널·지경학 첫 화면에서 켠다 */
   showShippingLanes: false,

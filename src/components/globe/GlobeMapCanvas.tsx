@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import type { Ref, RefObject } from "react";
 import dynamic from "next/dynamic";
 import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
@@ -47,7 +47,7 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   showMilitaryActivity?: boolean;
   showAirTraffic?: boolean;
   /** Cesium 카메라 제어(flyTo) — 관측 모드에서만 유효, GlobeDashboard가 보관 */
-  cesiumRef?: RefObject<CesiumGlobeHandle | null>;
+  cesiumRef?: Ref<CesiumGlobeHandle>;
   /** Cesium viewer가 flyTo를 받을 수 있게 된 시점 */
   onCesiumReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
