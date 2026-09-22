@@ -258,6 +258,9 @@ export type ConflictFlashClass =
   | "nuclear"
   | "kinetic"
   | "blockade"
+  | "hybrid"
+  | "security_threat"
+  | "realignment"
   | "diplomacy"
   | "posture"
   | "unknown";
@@ -282,6 +285,18 @@ const CONFLICT_DIPLOMACY_RE =
 const CONFLICT_POSTURE_RE =
   /\b(drill|exercise|deployment|carrier\s?strike|troop\s?buildup|mobiliz)\b|훈련|배치|항모|병력\s?증강|동원/i;
 
+/** 하이브리드전 — 사이버·사보타주·정보전·회색지대 도발 */
+const HYBRID_WARFARE_RE =
+  /\b(cyber\s?attack|cyberattack|hack(?:ed|ing)?|sabotage|gray[\s-]?zone|disinformation|influence\s?operation|espionage|spy\s?ring|submarine\s?cable\s?(?:cut|damaged)|gps\s?jamming|election\s?interference)\b|사이버\s?공격|해킹|사보타주|회색지대|허위정보|정보전|첩보|간첩|해저케이블|GPS\s?재밍|선거\s?개입/i;
+
+/** 안보 위협 — 테러·쿠데타·내란·계엄 등 국가 안보 사건 */
+const SECURITY_THREAT_RE =
+  /\b(security\s?threat|terror(?:ist)?\s?(?:attack|plot)|militia|insurgent|coup|uprising|unrest|riot|martial\s?law)\b|안보\s?위협|테러|쿠데타|봉기|소요|계엄/i;
+
+/** 안보 재편 — 동맹·방위조약·주둔 합의 등 안보 구조 변화 */
+const SECURITY_REALIGNMENT_RE =
+  /\b(nato|defense\s?pact|basing\s?agreement|troop\s?deployment|security\s?guarantee|joint\s?command|defense\s?treaty|pivot\s?to|strategic\s?alliance)\b|나토|방위조약|주둔\s?합의|안보\s?재편|안보\s?보장|연합사|전략적\s?동맹/i;
+
 const CONFLICT_EASE_RE =
   /\b(ceasefire|truce|peace\s?deal|withdrawal|reopen(?:s|ed|ing)?|corridor\s?(?:open|safe)|blockade\s?lifted|hostage\s?release|de[\s-]?escalat|stand[\s-]?down|arms\s?control|deal\s?struck|talks?\s?resume|forces?\s?return)\b|휴전|정전|철군|재개|인도적\s?회랑|봉쇄\s?해제|인질\s?석방|긴장\s?완화|철수|군축|합의|협상\s?재개|병력\s?복귀/i;
 
@@ -294,6 +309,9 @@ function detectConflictEventClass(text: string): ConflictFlashClass {
   if (CONFLICT_BLOCKADE_RE.test(text) || isChokepointSecurityNews(text)) {
     return "blockade";
   }
+  if (HYBRID_WARFARE_RE.test(text)) return "hybrid";
+  if (SECURITY_THREAT_RE.test(text)) return "security_threat";
+  if (SECURITY_REALIGNMENT_RE.test(text)) return "realignment";
   if (CONFLICT_DIPLOMACY_RE.test(text)) return "diplomacy";
   if (CONFLICT_POSTURE_RE.test(text)) return "posture";
   return "unknown";
@@ -346,6 +364,12 @@ function bedFromSecurityLens(
     case "nuclear":
       return polarity === "ease" ? "cheer" : "dark";
     case "blockade":
+      return polarity === "ease" ? "cheer" : "dark";
+    case "hybrid":
+      return polarity === "ease" ? "cheer" : "dark";
+    case "security_threat":
+      return polarity === "ease" ? "cheer" : "dark";
+    case "realignment":
       return polarity === "ease" ? "cheer" : "dark";
     case "diplomacy":
       return polarity === "ease" ? "cheer" : "dark";
@@ -415,9 +439,10 @@ export function formatFlashSourceAttribution(
 
 /**
  * 신속·위중 속보만 타전.
- * - 지정학: **S급**이어도 키네틱 또는 초크만 (grade만으로 열지 않음). A급은 핵·침공·공습 등 + grade≥8 + 더 짧은 시간창.
+ * - 지정학: **S급**은 전쟁·긴장·하이브리드전·안보위협·핵·군사훈련·지정학적 갈등·안보재편·외교 등
+ *   분류 가능한 주제면 전부 타전 (2026-09-22부터 키네틱·초크 한정 폐지). A급은 grade≥7 + 더 짧은 시간창.
  * - 지경학: 같은 S/A·시간창이지만 **국제 지경학 영향** 주제만 (연준·원자재·초크·대형기업·거시·공급망).
- * - 연예·스포츠·사설 제외. **45분** 초과 제외 (신속 속보).
+ * - 연예·스포츠·사설·휴먼스토리 제외. **45분** 초과 제외 (신속 속보).
  * - Tier3 단독은 S 미만 불가.
  * - 공급망과의 연결은 별도 양피지가 아니라 본문 「공급망과의 연결」 단락으로만 붙인다.
  */
@@ -463,7 +488,7 @@ export function shouldOpenBreakingFlash(
     }
     if (
       rank === "A" &&
-      grade >= 8 &&
+      grade >= 7 &&
       age <= FLASH_A_MAX_AGE_MINUTES &&
       (isGeoeconomicImpactFlash(blob) || priceThreat)
     ) {
@@ -472,21 +497,22 @@ export function shouldOpenBreakingFlash(
     return false;
   }
 
-  // 정세 — 신속·위중만 (S급도 키네틱·초크·가격위협 인프라 필수)
+  // 정세 — 지정학 갈등 전반 (2026-09-22 확장, 필성 요청):
+  // 전쟁(키네틱)·긴장·하이브리드전·안보위협·핵·국가적 군사훈련·지정학적 갈등·
+  // 안보 재편·외교까지 분류된 주제는 전부 타전 (키네틱·초크 한정 폐지).
+  // 단, 완전히 무관한(unknown) 텍스트는 가격위협이 아닌 한 계속 막는다.
+  const conflictClass = detectConflictEventClass(blob);
+  const conflictEligible = conflictClass !== "unknown" || priceThreat;
   if (rank === "S") {
-    return (
-      FLASH_KINETIC_RE.test(blob) ||
-      isChokepointSecurityNews(blob) ||
-      priceThreat
-    );
+    return conflictEligible;
   }
-  // A급: 키네틱/가격위협 + 더 짧은 창 (이란 Tier3는 grade≥7 허용)
-  const aGradeMin = iranKinetic && hero.trustTier === 3 ? 7 : 8;
+  // A급: 분류된 주제 + 더 짧은 창
+  const aGradeMin = 7;
   if (
     rank === "A" &&
     grade >= aGradeMin &&
     age <= FLASH_A_MAX_AGE_MINUTES &&
-    (FLASH_KINETIC_RE.test(blob) || priceThreat)
+    conflictEligible
   ) {
     return true;
   }
