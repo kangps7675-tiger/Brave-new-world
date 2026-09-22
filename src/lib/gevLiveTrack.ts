@@ -4,6 +4,7 @@
  */
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";
+import { nationalityForAircraft, nationalityFromMmsi } from "@/lib/entityNationality";
 
 export const GEV_AWARENESS_RADIUS_M = 250_000;
 export const GEV_TRAIL_MAX_POINTS = 400;
@@ -108,7 +109,8 @@ export function formatAircraftHud(
   ac: MilitaryAircraft,
   options?: { traffic?: "military" | "civil"; stale?: boolean },
 ): GevHudLines {
-  const cs = trimHud(ac.callsign || ac.registration || ac.hex.toUpperCase(), 16);
+  const flagPrefix = nationalityForAircraft(ac.registration).flag;
+  const cs = `${flagPrefix ? `${flagPrefix} ` : ""}${trimHud(ac.callsign || ac.registration || ac.hex.toUpperCase(), 16)}`;
   const altFt = finite(ac.altitude);
   const fl =
     altFt == null
@@ -147,7 +149,8 @@ export function formatAisHud(
   options?: { lang?: "ko" | "en"; stale?: boolean },
 ): GevHudLines {
   const lang = options?.lang ?? "ko";
-  const name = trimHud(vessel.shipName || `MMSI ${vessel.mmsi}`, 32);
+  const flagPrefix = nationalityFromMmsi(vessel.mmsi).flag;
+  const name = `${flagPrefix ? `${flagPrefix} ` : ""}${trimHud(vessel.shipName || `MMSI ${vessel.mmsi}`, 32)}`;
   const type =
     aisDisplayTypeLabel(vessel, lang) ||
     vessel.shipTypeLabel ||

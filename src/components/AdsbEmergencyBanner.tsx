@@ -10,22 +10,33 @@ type Props = {
   offer: AdsbEmergencyOffer;
   lang: LabelLanguage;
   onDismiss?: () => void;
+  /**
+   * 지정학/지경학/항적(MapLibre) 모드에서 감지된 경우에만 전달됨 — 이미
+   * 관측(Cesium) 모드라면 fly가 자동으로 일어나므로 버튼이 필요 없다.
+   */
+  onGoToObserve?: () => void;
 };
 
 const COPY = {
   ko: {
     headline: "ADS-B 비상 스쿼크",
     body: "비상 스쿼크 기체로 이동했습니다. 사이렌은 설정에서 끌 수 있습니다.",
+    bodyNeedsObserve:
+      "비상 스쿼크 기체가 감지됐습니다. 항적은 관측(Cesium) 모드에서만 보여요.",
     dismiss: "닫기",
+    goToObserve: "관측 모드로 이동",
   },
   en: {
     headline: "ADS-B emergency squawk",
     body: "Flown to the emergency squawk aircraft. Mute sirens in settings if needed.",
+    bodyNeedsObserve:
+      "Emergency squawk detected. Live tracks only render in Observe (Cesium) mode.",
     dismiss: "Dismiss",
+    goToObserve: "Go to Observe",
   },
 } as const;
 
-export function AdsbEmergencyBanner({ offer, lang, onDismiss }: Props) {
+export function AdsbEmergencyBanner({ offer, lang, onDismiss, onGoToObserve }: Props) {
   const copy = lang === "en" ? COPY.en : COPY.ko;
   const ko = lang !== "en";
   const callsign =
@@ -61,7 +72,20 @@ export function AdsbEmergencyBanner({ offer, lang, onDismiss }: Props) {
           ) : null}
         </div>
         <div className="relative flex items-start gap-3 px-4 py-3">
-          <p className="min-w-0 flex-1 text-caption leading-relaxed text-amber-50/85">{copy.body}</p>
+          <p className="min-w-0 flex-1 text-caption leading-relaxed text-amber-50/85">
+            {onGoToObserve ? copy.bodyNeedsObserve : copy.body}
+          </p>
+        </div>
+        <div className="relative flex flex-wrap items-center gap-2 px-4 pb-3">
+          {onGoToObserve ? (
+            <button
+              type="button"
+              onClick={onGoToObserve}
+              className="rounded-md border border-amber-300/50 bg-amber-500/25 px-3.5 py-1.5 text-caption font-semibold text-amber-50 hover:bg-amber-500/40"
+            >
+              {copy.goToObserve}
+            </button>
+          ) : null}
           {onDismiss ? (
             <button
               type="button"

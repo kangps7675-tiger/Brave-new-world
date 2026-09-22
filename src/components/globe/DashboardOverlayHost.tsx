@@ -362,6 +362,8 @@ export type DashboardOverlayHostProps = {
   onDismissBreakingFlash: () => void;
   onBreakingFlashGoToLocation?: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
+  /** 지정학/지경학/항적(MapLibre) 모드에서만 전달 — 관측 모드에선 자동 fly라 불필요 */
+  onGoToObserveFromAdsbEmergency?: () => void;
   /** NATO 동부 접경 UAV 1차 칩 / 2차 반쪽 양피지 */
   natoPerimeterAlert: NatoPerimeterAlertState;
   /** 확전 신호 — 임계선을 넘은 사건 보도 (useEscalationSignals) */
@@ -369,6 +371,8 @@ export type DashboardOverlayHostProps = {
   onDismissEscalationOffer: () => void;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
+  /** 양피지 "위치 보기" 보조 CTA — 누를 때만 실행 (자동 fly 없음) */
+  onExerciseFlyTo: () => void;
   maritimeOffer: MaritimeAlertOffer | null;
   /** 대만 해협 긴장 컷 — 오버레이 큐 tensionCut */
   tensionSpike: TensionSpikeSnapshot | null;
@@ -575,12 +579,14 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onDismissBreakingFlash,
     onBreakingFlashGoToLocation,
     adsbEmergencyOffer,
+    onGoToObserveFromAdsbEmergency,
     natoPerimeterAlert,
     onDismissNatoPerimeterAlert,
     escalationOffer,
     onDismissEscalationOffer,
     exerciseOffer,
     exerciseBriefing,
+    onExerciseFlyTo,
     maritimeOffer,
     tensionSpike,
     hotTheaterOffer,
@@ -1700,6 +1706,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                 offer={adsbEmergencyOffer}
                 lang={labelLanguage}
                 onDismiss={onDismissAdsbEmergencyOffer}
+                onGoToObserve={onGoToObserveFromAdsbEmergency}
               />
             ) : null}
 
@@ -1885,6 +1892,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           briefing={exerciseBriefing}
           lang={labelLanguage}
           onDismiss={() => onSetExerciseBriefing(null)}
+          onFlyTo={onExerciseFlyTo}
         />
       ) : null}
 

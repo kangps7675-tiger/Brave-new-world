@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { DisputeArea, DisputeOverview, StaticPoint } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -15,7 +15,9 @@ import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import { classifyMilAircraft, milAircraftRoleLabel } from "@/lib/milAircraftKind";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";
 import { ukraineControlStatusLabel } from "@/lib/ukraineSettlementLabels";
+import { nationalityForAircraft, nationalityFromMmsi } from "@/lib/entityNationality";
 import type { AnalysisSelection } from "@/components/globe/types";
+import type { MilitaryAircraft } from "@/data/geoTypes";
 import { Metric } from "@/components/globe/Metric";
 import { formatDateTime, hostFromUrl } from "@/components/globe/formatters";
 import {
@@ -123,6 +125,83 @@ function RelatedNewsButton({
   );
 }
 
+type AircraftEnrichment = {
+  photoUrl: string | null;
+  photoLink: string | null;
+  originIata: string | null;
+  originName: string | null;
+  destIata: string | null;
+  destName: string | null;
+  loading: boolean;
+};
+
+const EMPTY_ENRICHMENT: AircraftEnrichment = {
+  photoUrl: null,
+  photoLink: null,
+  originIata: null,
+  originName: null,
+  destIata: null,
+  destName: null,
+  loading: false,
+};
+
+/**
+ * 선택된 항공기의 사진(planespotters.net)·목적지(경로조회) — 클릭 시에만,
+ * hex가 바뀔 때만 새로 조회한다(위치 갱신마다 재조회하지 않음). best-effort:
+ * 실패·미보유 시 조용히 N/A로 남는다.
+ */
+function useAircraftEnrichment(ac: MilitaryAircraft | null): AircraftEnrichment {
+  const [state, setState] = useState<AircraftEnrichment>(EMPTY_ENRICHMENT);
+
+  useEffect(() => {
+    if (!ac || !ac.hex) {
+      setState(EMPTY_ENRICHMENT);
+      return;
+    }
+    let cancelled = false;
+    setState({ ...EMPTY_ENRICHMENT, loading: true });
+
+    const hex = ac.hex;
+    const reg = ac.registration || "";
+    const callsign = ac.callsign || "";
+    const lat = ac.lat;
+    const lng = ac.lng;
+
+    const photoReq = fetch(
+      `/api/aircraft-photo?hex=${encodeURIComponent(hex)}${reg ? `&reg=${encodeURIComponent(reg)}` : ""}`,
+    )
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+
+    const routeReq = callsign
+      ? fetch(
+          `/api/aircraft-route?callsign=${encodeURIComponent(callsign)}&lat=${lat}&lng=${lng}`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+      : Promise.resolve(null);
+
+    Promise.all([photoReq, routeReq]).then(([photo, route]) => {
+      if (cancelled) return;
+      setState({
+        photoUrl: photo?.photoUrl ?? null,
+        photoLink: photo?.link ?? null,
+        originIata: route?.originIata ?? null,
+        originName: route?.originName ?? null,
+        destIata: route?.destIata ?? null,
+        destName: route?.destName ?? null,
+        loading: false,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ac?.hex]);
+
+  return state;
+}
+
 export function AnalysisPanel({
   selection,
   onClose,
@@ -147,6 +226,9 @@ export function AnalysisPanel({
   const { lang, t } = useLocale();
   const labelLangTop: LabelLanguage = lang === "en" ? "en" : "ko";
   const newsCoords = coordsFromAnalysisSelection(selection);
+  // Rules of Hooks — selection.kind 분기 이전에 무조건 호출. mil이 아니면 ac는 null.
+  const enrichAc = selection.kind === "mil" ? selection.item : null;
+  const aircraftEnrichment = useAircraftEnrichment(enrichAc);
   const newsFooter =
     onOpenRelatedNews && newsCoords ? (
       <RelatedNewsButton
@@ -500,6 +582,11 @@ export function AnalysisPanel({
       aisDisplayTypeLabel(vessel, lang) ||
       vessel.shipTypeLabel ||
       (vessel.shipType != null ? String(vessel.shipType) : "N/A");
+    const nationality = nationalityFromMmsi(vessel.mmsi);
+    const nationalityValue =
+      lang === "en"
+        ? `${nationality.flag ?? ""} ${nationality.nameEn}`.trim()
+        : `${nationality.flag ?? ""} ${nationality.nameKo}`.trim();
     return (
       <div className="flex flex-col gap-4">
         <PanelHeader
@@ -512,6 +599,7 @@ export function AnalysisPanel({
         <section className="grid grid-cols-2 gap-3">
           <Metric label="MMSI" value={vessel.mmsi} />
           <Metric label="유형" value={typeLabel} />
+          <Metric label={lang === "en" ? "Flag" : "국적"} value={nationalityValue} />
           <Metric
             label="SOG"
             value={vessel.speedOverGround === null ? "N/A" : `${vessel.speedOverGround} kn`}
@@ -553,6 +641,17 @@ export function AnalysisPanel({
       (flags & 4) === 4 ? "PIA" : null,
       (flags & 8) === 8 ? "LADD" : null,
     ].filter(Boolean);
+    const nationality = nationalityForAircraft(ac.registration);
+    const nationalityValue =
+      lang === "en"
+        ? `${nationality.flag ?? ""} ${nationality.nameEn}`.trim()
+        : `${nationality.flag ?? ""} ${nationality.nameKo}`.trim();
+    const routeValue =
+      aircraftEnrichment.originIata || aircraftEnrichment.destIata
+        ? `${aircraftEnrichment.originIata || "?"} → ${aircraftEnrichment.destIata || "?"}`
+        : aircraftEnrichment.loading
+          ? (lang === "en" ? "Looking up…" : "조회 중…")
+          : "N/A";
     return (
       <div className="flex flex-col gap-4">
         <PanelHeader
@@ -562,6 +661,25 @@ export function AnalysisPanel({
           onClose={onClose}
           footer={newsFooter}
         />
+        {aircraftEnrichment.photoUrl ? (
+          <a
+            href={aircraftEnrichment.photoLink || undefined}
+            target="_blank"
+            rel="noreferrer"
+            className="block overflow-hidden rounded-xl border border-slate-800 bg-black/25"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={aircraftEnrichment.photoUrl}
+              alt={ac.registration || ac.hex}
+              className="h-40 w-full object-cover"
+              loading="lazy"
+            />
+            <p className="px-3 py-1.5 text-micro text-slate-500">
+              {lang === "en" ? "Photo · planespotters.net" : "사진 출처 · planespotters.net"}
+            </p>
+          </a>
+        ) : null}
         <section
           className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm text-slate-200 ${
             isCivil
@@ -601,6 +719,8 @@ export function AnalysisPanel({
         <section className="grid grid-cols-2 gap-3">
           <Metric label="ICAO hex" value={ac.hex.toUpperCase()} />
           <Metric label="등록" value={ac.registration || "N/A"} />
+          <Metric label={lang === "en" ? "Flag" : "국적"} value={nationalityValue} />
+          <Metric label={lang === "en" ? "Route" : "출발→도착"} value={routeValue} />
           <Metric label="기종 (t)" value={ac.type || "N/A"} />
           <Metric label="Category" value={ac.category || "N/A"} />
           <Metric label="고도 baro" value={fmt(ac.altitude, " ft")} />

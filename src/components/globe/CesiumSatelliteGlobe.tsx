@@ -6,8 +6,10 @@
  * @see https://github.com/bilawalsidhu/gods-eye-view
  */
 
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
+import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
+import { aisCommercialPointColor, aisMilitaryMapPointColor } from "@/lib/aisVesselClass";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -17,10 +19,53 @@ const KEYLESS_TERRAIN =
 const ION_GOOGLE_PHOTOREAL_ASSET = 2275207;
 const ION_WORLD_TERRAIN_ASSET = 1;
 
+/**
+ * globe.gl altitude(=cameraDistance/100-1, 지구 반지름 단위) ↔ Cesium 높이(m) 변환.
+ * MapLibre 쪽 `globeCamera.ts`의 단위 관례와 맞춘다 — flyTo(lat,lng,altitude,...)
+ * 호출부가 모드와 무관하게 같은 altitude 숫자를 넘길 수 있게 하기 위함.
+ */
+const EARTH_RADIUS_M = 6_371_000;
+function altitudeToHeightM(altitude: number): number {
+  const a = Number.isFinite(altitude) ? Math.max(0.02, altitude) : 1;
+  return a * EARTH_RADIUS_M;
+}
+
+export type CesiumEntitySelection =
+  | { kind: "ais"; item: AisVessel }
+  | { kind: "mil"; item: MilitaryAircraft; traffic: "military" | "civil" };
+
+/** GlobeDashboard가 관측(Cesium) 모드에서 카메라를 조작하기 위한 최소 핸들 */
+export type CesiumGlobeHandle = {
+  flyTo: (
+    lat: number,
+    lng: number,
+    altitude?: number,
+    durationMs?: number,
+    camera?: { pitch?: number; bearing?: number },
+  ) => void;
+};
+
 export type CesiumSatelliteGlobeProps = {
   className?: string;
   /** 초기 카메라 (고도 m) */
   initial?: { lat: number; lng: number; heightM?: number };
+  /** 항적(AIS/ADS-B) — MapLibre에서 제거하고 관측(Cesium)으로 일원화 */
+  aisVessels?: AisVessel[];
+  disguisedVessels?: AisVessel[];
+  milAircraft?: MilitaryAircraft[];
+  civAircraft?: MilitaryAircraft[];
+  showAis?: boolean;
+  /** AIS 군함만 표시 — showAis 켜져 있을 때의 세부 필터 */
+  showAisMilitary?: boolean;
+  /** AIS 상선·민간만 표시 — showAis 켜져 있을 때의 세부 필터 */
+  showAisCommercial?: boolean;
+  showDisguisedVessels?: boolean;
+  showMilitaryActivity?: boolean;
+  showAirTraffic?: boolean;
+  /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
+  onReady?: () => void;
+  /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
+  onSelectEntity?: (selection: CesiumEntitySelection) => void;
 };
 
 type StackKind = "esri" | "photoreal";
@@ -49,16 +94,145 @@ function isCesiumAssetsError(err: unknown): boolean {
   );
 }
 
-export function CesiumSatelliteGlobe({
-  className = "",
-  initial = { lat: 30, lng: 40, heightM: 12_000_000 },
-}: CesiumSatelliteGlobeProps) {
+/**
+ * 점 엔티티 그룹을 prefix로 diff-sync — 매 폴링마다 add/remove 대신
+ * 기존 엔티티는 위치·색만 갱신하고, 사라진 것만 지운다.
+ */
+function syncPointEntities<T>(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  prefix: string,
+  items: T[],
+  opts: {
+    getId: (item: T) => string;
+    getLat: (item: T) => number;
+    getLng: (item: T) => number;
+    getHeightM: (item: T) => number;
+    getColor: (item: T) => string;
+    pixelSize: number;
+    getName: (item: T) => string;
+  },
+): void {
+  const seen = new Set<string>();
+  const outlineColor = Cesium.Color.fromCssColorString("rgba(6, 10, 22, 0.85)");
+
+  for (const item of items) {
+    const lat = opts.getLat(item);
+    const lng = opts.getLng(item);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    const id = `${prefix}:${opts.getId(item)}`;
+    seen.add(id);
+    const position = Cesium.Cartesian3.fromDegrees(lng, lat, opts.getHeightM(item));
+    let color: import("cesium").Color;
+    try {
+      color = Cesium.Color.fromCssColorString(opts.getColor(item));
+    } catch {
+      color = Cesium.Color.LIGHTGRAY;
+    }
+
+    const existing = viewer.entities.getById(id);
+    if (existing) {
+      existing.position = new Cesium.ConstantPositionProperty(position);
+      if (existing.point) {
+        existing.point.color = new Cesium.ConstantProperty(color);
+      }
+      existing.name = opts.getName(item);
+      continue;
+    }
+
+    viewer.entities.add({
+      id,
+      name: opts.getName(item),
+      position,
+      point: new Cesium.PointGraphics({
+        pixelSize: opts.pixelSize,
+        color,
+        outlineColor,
+        outlineWidth: 1,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      }),
+    });
+  }
+
+  const toRemove: import("cesium").Entity[] = [];
+  for (const entity of viewer.entities.values) {
+    if (typeof entity.id === "string" && entity.id.startsWith(`${prefix}:`) && !seen.has(entity.id)) {
+      toRemove.push(entity);
+    }
+  }
+  for (const entity of toRemove) {
+    viewer.entities.remove(entity);
+  }
+}
+
+export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatelliteGlobeProps>(
+  function CesiumSatelliteGlobe(
+    {
+      className = "",
+      initial = { lat: 30, lng: 40, heightM: 12_000_000 },
+      aisVessels = [],
+      disguisedVessels = [],
+      milAircraft = [],
+      civAircraft = [],
+      showAis = false,
+      showAisMilitary = true,
+      showAisCommercial = true,
+      showDisguisedVessels = false,
+      showMilitaryActivity = false,
+      showAirTraffic = false,
+      onReady,
+      onSelectEntity,
+    },
+    ref,
+  ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const creditRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [stack, setStack] = useState<StackKind>("esri");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorKind, setErrorKind] = useState<ErrorKind>("other");
+  // 마운트 이펙트에서 만든 viewer/Cesium 모듈 — 엔티티 동기화 이펙트에서 재사용
+  const viewerRef = useRef<import("cesium").Viewer | null>(null);
+  const cesiumModRef = useRef<typeof import("cesium") | null>(null);
+  const clickHandlerRef = useRef<import("cesium").ScreenSpaceEventHandler | null>(null);
+
+  // 클릭 핸들러가 매 폴링마다 재등록되지 않도록 최신 데이터를 ref로 보관
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  const onSelectEntityRef = useRef(onSelectEntity);
+  onSelectEntityRef.current = onSelectEntity;
+  const aisVesselsRef = useRef(aisVessels);
+  aisVesselsRef.current = aisVessels;
+  const disguisedVesselsRef = useRef(disguisedVessels);
+  disguisedVesselsRef.current = disguisedVessels;
+  const milAircraftRef = useRef(milAircraft);
+  milAircraftRef.current = milAircraft;
+  const civAircraftRef = useRef(civAircraft);
+  civAircraftRef.current = civAircraft;
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      flyTo: (lat, lng, altitude, durationMs, camera) => {
+        const viewer = viewerRef.current;
+        const Cesium = cesiumModRef.current;
+        if (!viewer || !Cesium || viewer.isDestroyed()) return;
+        const heightM = altitudeToHeightM(altitude ?? 0.55);
+        const orientation = {
+          heading: Cesium.Math.toRadians(camera?.bearing ?? 0),
+          pitch: Cesium.Math.toRadians((camera?.pitch ?? 0) - 90),
+          roll: 0,
+        };
+        const destination = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
+        if (!durationMs || durationMs <= 0) {
+          viewer.camera.setView({ destination, orientation });
+        } else {
+          viewer.camera.flyTo({ destination, orientation, duration: durationMs / 1000 });
+        }
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     const container = containerRef.current;
@@ -192,13 +366,56 @@ export function CesiumSatelliteGlobe({
           ),
         });
 
+        // 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용.
+        // prefix(ais:/disguised:/mil:/civ:)로 어느 배열에서 찾을지 판단한다.
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+        handler.setInputAction((movement: { position: import("cesium").Cartesian2 }) => {
+          const v = viewerRef.current;
+          if (!v || v.isDestroyed()) return;
+          const picked = v.scene.pick(movement.position);
+          const rawId = picked?.id;
+          const entityId: string | undefined =
+            typeof rawId === "string"
+              ? rawId
+              : rawId && typeof rawId.id === "string"
+                ? rawId.id
+                : undefined;
+          if (!entityId) return;
+          const sep = entityId.indexOf(":");
+          if (sep < 0) return;
+          const prefix = entityId.slice(0, sep);
+          const key = entityId.slice(sep + 1);
+
+          if (prefix === "ais" || prefix === "disguised") {
+            const pool = prefix === "ais" ? aisVesselsRef.current : disguisedVesselsRef.current;
+            const vessel = pool.find((x) => x.mmsi === key || x.id === key);
+            if (vessel) onSelectEntityRef.current?.({ kind: "ais", item: vessel });
+            return;
+          }
+          if (prefix === "mil" || prefix === "civ") {
+            const pool = prefix === "mil" ? milAircraftRef.current : civAircraftRef.current;
+            const aircraft = pool.find((x) => x.hex === key || x.id === key);
+            if (aircraft) {
+              onSelectEntityRef.current?.({
+                kind: "mil",
+                item: aircraft,
+                traffic: prefix === "civ" ? "civil" : "military",
+              });
+            }
+          }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        clickHandlerRef.current = handler;
+
         if (!cancelled) {
           try {
             sessionStorage.removeItem(CHUNK_RELOAD_KEY);
           } catch {
             /* ignore */
           }
+          viewerRef.current = viewer;
+          cesiumModRef.current = Cesium;
           setStatus("ready");
+          onReadyRef.current?.();
         }
       } catch (err) {
         console.error("[CesiumSatelliteGlobe]", err);
@@ -237,6 +454,14 @@ export function CesiumSatelliteGlobe({
 
     return () => {
       cancelled = true;
+      viewerRef.current = null;
+      cesiumModRef.current = null;
+      try {
+        clickHandlerRef.current?.destroy();
+      } catch {
+        /* already destroyed */
+      }
+      clickHandlerRef.current = null;
       try {
         viewer?.destroy();
       } catch {
@@ -247,6 +472,83 @@ export function CesiumSatelliteGlobe({
     // initial lat/lng only for first mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체.
+   * viewer.entities를 prefix(ais:/disguised:/mil:/civ:)별로 diff해서
+   * 매 폴링마다 전체 재생성하지 않고 위치/색만 갱신한다.
+   */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    // 군함/상선 세부 필터 — showAisMilitary·showAisCommercial. "other" 카테고리는
+    // aisMilitaryMapPointColor 색 배정과 동일하게 상선(민간) 쪽으로 취급한다.
+    const aisFiltered = showAis
+      ? aisVessels.filter((v) => (v.category === "military" ? showAisMilitary : showAisCommercial))
+      : [];
+    syncPointEntities(Cesium, viewer, "ais", aisFiltered, {
+      getId: (v: AisVessel) => v.mmsi,
+      getLat: (v: AisVessel) => v.lat,
+      getLng: (v: AisVessel) => v.lng,
+      getHeightM: () => 0,
+      getColor: (v: AisVessel) =>
+        v.category === "military" ? aisMilitaryMapPointColor() : aisCommercialPointColor(v.shipType),
+      pixelSize: 6,
+      getName: (v: AisVessel) => v.shipName || v.mmsi,
+    });
+
+    syncPointEntities(
+      Cesium,
+      viewer,
+      "disguised",
+      showDisguisedVessels ? disguisedVessels : [],
+      {
+        getId: (v: AisVessel) => v.mmsi,
+        getLat: (v: AisVessel) => v.lat,
+        getLng: (v: AisVessel) => v.lng,
+        getHeightM: () => 0,
+        getColor: () => "#f43f5e",
+        pixelSize: 8,
+        getName: (v: AisVessel) => v.shipName || v.mmsi,
+      },
+    );
+
+    syncPointEntities(Cesium, viewer, "mil", showMilitaryActivity ? milAircraft : [], {
+      getId: (a: MilitaryAircraft) => a.hex || a.id,
+      getLat: (a: MilitaryAircraft) => a.lat,
+      getLng: (a: MilitaryAircraft) => a.lng,
+      getHeightM: (a: MilitaryAircraft) =>
+        (a.altitudeGeom ?? a.altitude ?? 10_000) * 0.3048,
+      getColor: () => "#f87171",
+      pixelSize: 7,
+      getName: (a: MilitaryAircraft) => a.callsign || a.registration || a.hex,
+    });
+
+    syncPointEntities(Cesium, viewer, "civ", showAirTraffic ? civAircraft : [], {
+      getId: (a: MilitaryAircraft) => a.hex || a.id,
+      getLat: (a: MilitaryAircraft) => a.lat,
+      getLng: (a: MilitaryAircraft) => a.lng,
+      getHeightM: (a: MilitaryAircraft) =>
+        (a.altitudeGeom ?? a.altitude ?? 10_000) * 0.3048,
+      getColor: () => "#38bdf8",
+      pixelSize: 5,
+      getName: (a: MilitaryAircraft) => a.callsign || a.registration || a.hex,
+    });
+  }, [
+    status,
+    aisVessels,
+    disguisedVessels,
+    milAircraft,
+    civAircraft,
+    showAis,
+    showAisMilitary,
+    showAisCommercial,
+    showDisguisedVessels,
+    showMilitaryActivity,
+    showAirTraffic,
+  ]);
 
   return (
     <div className={`relative h-full w-full bg-[#02040a] ${className}`}>
@@ -333,4 +635,5 @@ export function CesiumSatelliteGlobe({
       ) : null}
     </div>
   );
-}
+  },
+);

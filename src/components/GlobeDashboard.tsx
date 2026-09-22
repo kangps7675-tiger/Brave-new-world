@@ -662,6 +662,8 @@ import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsSt
 import { useLogisticsAssetTickers } from "@/components/globe/hooks/useLogisticsAssetTickers";
 import { assetVolatilityHintForPoint } from "@/lib/assetVolatilityHint";
 import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import type { CesiumEntitySelection, CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import { FlyToConfirmBanner, type FlyToConfirmOffer } from "@/components/FlyToConfirmBanner";
 import { useNatoPerimeterDroneAlert } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { useUltraLiteAutoOffer } from "@/hooks/useUltraLiteAutoOffer";
 import { useScreenState } from "@/components/globe/hooks/useScreenState";
@@ -1170,7 +1172,7 @@ export function GlobeDashboard({
   const [ukraineControlStatus, setUkraineControlStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >(() => (viinaMeta?.available ? "idle" : "error"));
-  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 이후 LIVEUAMAP 폴링으로 교체 예정 */
+  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 3일 좌표 스냅샷. LIVEUAMAP 전. */
   const [ukraineOccupiedGeoJson, setUkraineOccupiedGeoJson] = useState<FeatureCollection>(
     () => emptyOccupiedGeoJson(),
   );
@@ -1622,6 +1624,8 @@ export function GlobeDashboard({
     showCityLabels,
     showRailGlow,
     showAis,
+    showAisMilitary,
+    showAisCommercial,
     showDisguisedVessels,
     showShippingLanes,
     showLsibBoundary,
@@ -1817,6 +1821,8 @@ export function GlobeDashboard({
   const setShowCityLabels = (v: boolean) => togglePref("showCityLabels", v);
   const setShowRailGlow = (v: boolean) => togglePref("showRailGlow", v);
   const setShowAis = (v: boolean) => togglePref("showAis", v);
+  const setShowAisMilitary = (v: boolean) => togglePref("showAisMilitary", v);
+  const setShowAisCommercial = (v: boolean) => togglePref("showAisCommercial", v);
   const setShowDisguisedVessels = (v: boolean) => togglePref("showDisguisedVessels", v);
   const setShowShippingLanes = (v: boolean) => togglePref("showShippingLanes", v);
   const setShowLsibBoundary = (v: boolean) => togglePref("showLsibBoundary", v);
@@ -2069,6 +2075,131 @@ export function GlobeDashboard({
     historyEpisodeActive,
   });
 
+  /**
+   * 관측(Cesium) 모드 카메라·엔티티 클릭 브리지.
+   * - cesiumGlobeRef.current.flyTo — 관측 모드일 때만 유효 (MapLibre globeRef와 별도).
+   * - unifiedFlyTo — 어느 모드에서 호출되든 "현재 켜져 있는 지구본"의 카메라를 움직인다.
+   *   GEV 추적처럼 관측 모드 전용 엔티티를 따라가는 flyTo 호출부에 사용.
+   */
+  const cesiumGlobeRef = useRef<CesiumGlobeHandle>(null);
+  const [cesiumReady, setCesiumReady] = useState(false);
+  const pendingObserveFlyRef = useRef<{
+    lat: number;
+    lng: number;
+    altitude?: number;
+    durationMs?: number;
+    camera?: { pitch?: number; bearing?: number };
+    subtitle: string;
+    title: string;
+    selection?: Selection;
+  } | null>(null);
+  const [flyToConfirmOffer, setFlyToConfirmOffer] = useState<FlyToConfirmOffer | null>(null);
+
+  useEffect(() => {
+    if (viewerMode === "satellite") return;
+    setCesiumReady(false);
+    pendingObserveFlyRef.current = null;
+    setFlyToConfirmOffer(null);
+  }, [viewerMode]);
+
+  useEffect(() => {
+    if (!cesiumReady) return;
+    const pending = pendingObserveFlyRef.current;
+    if (!pending) return;
+    setFlyToConfirmOffer({
+      key: `${pending.lat},${pending.lng},${Date.now()}`,
+      subtitle: pending.subtitle,
+      title: pending.title,
+      lat: pending.lat,
+      lng: pending.lng,
+    });
+  }, [cesiumReady]);
+
+  const unifiedFlyTo = useCallback(
+    (
+      lat: number,
+      lng: number,
+      altitude?: number,
+      durationMs?: number,
+      camera?: { pitch?: number; bearing?: number },
+    ) => {
+      if (viewerMode === "satellite" && cesiumGlobeRef.current) {
+        cesiumGlobeRef.current.flyTo(lat, lng, altitude, durationMs, camera);
+        return;
+      }
+      flyTo(lat, lng, altitude, durationMs, camera);
+    },
+    [viewerMode, flyTo],
+  );
+
+  /**
+   * 지정학/지경학/항적(MapLibre) 모드에서 관측(Cesium)이 필요한 대상(속보 등)으로
+   * 이동해야 할 때 — 먼저 모드를 전환하고, Cesium이 준비되면 "이동할까요?" 확인
+   * 배너를 띄운 뒤 수락 시에만 flyTo한다 (모드 전환과 카메라 이동을 분리).
+   */
+  const switchToObserveAndFly = useCallback(
+    (
+      lat: number,
+      lng: number,
+      opts: {
+        altitude?: number;
+        durationMs?: number;
+        camera?: { pitch?: number; bearing?: number };
+        subtitle: string;
+        title: string;
+        selection?: Selection;
+      },
+    ) => {
+      pendingObserveFlyRef.current = { lat, lng, ...opts };
+      if (viewerMode !== "satellite") {
+        setViewerMode("satellite");
+        return;
+      }
+      if (cesiumReady) {
+        setFlyToConfirmOffer({
+          key: `${lat},${lng},${Date.now()}`,
+          subtitle: opts.subtitle,
+          title: opts.title,
+          lat,
+          lng,
+        });
+      }
+    },
+    [viewerMode, cesiumReady],
+  );
+
+  const acceptFlyToConfirm = useCallback(() => {
+    const offer = flyToConfirmOffer;
+    const pending = pendingObserveFlyRef.current;
+    setFlyToConfirmOffer(null);
+    pendingObserveFlyRef.current = null;
+    if (!offer) return;
+    cesiumGlobeRef.current?.flyTo(
+      offer.lat,
+      offer.lng,
+      pending?.altitude,
+      pending?.durationMs ?? 900,
+      pending?.camera,
+    );
+    if (pending?.selection) setSelected(pending.selection);
+  }, [flyToConfirmOffer, setSelected]);
+
+  const dismissFlyToConfirm = useCallback(() => {
+    setFlyToConfirmOffer(null);
+    pendingObserveFlyRef.current = null;
+  }, []);
+
+  const handleSelectCesiumEntity = useCallback(
+    (sel: CesiumEntitySelection) => {
+      if (sel.kind === "ais") {
+        setSelected({ kind: "ais", item: sel.item });
+      } else {
+        setSelected({ kind: "mil", item: sel.item, traffic: sel.traffic });
+      }
+    },
+    [setSelected],
+  );
+
   const {
     tracking: gevTracking,
     followCamera: gevFollowCamera,
@@ -2083,7 +2214,7 @@ export function GlobeDashboard({
     aisVessels,
     milAircraft,
     civAircraft,
-    flyTo,
+    flyTo: unifiedFlyTo,
     isCameraMovingRef,
     labelLanguage,
   });
@@ -2819,7 +2950,7 @@ export function GlobeDashboard({
     viinaMeta?.available,
   ]);
 
-  /** 임시 DeepState 점령 영토 — VIINA 빗금 박스 대신 solid fill */
+  /** 임시 DeepState 점령 영토 — 3일 좌표 스냅샷. VIINA 빗금 박스 대신 solid fill */
   useEffect(() => {
     if (!showUkraineControl || !globeReady) return;
     if (ukraineOccupiedFetchRef.current) return;
@@ -3528,7 +3659,7 @@ export function GlobeDashboard({
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
-    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). LIVEUAMAP 전.
+    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). 3일 좌표 스냅샷, LIVEUAMAP 전.
     if (ukraineOccupiedGeoJson.features.length > 0) {
       return ukraineOccupiedGeoJson;
     }
@@ -4870,14 +5001,14 @@ export function GlobeDashboard({
 
   const newsStreamNeonMarkers = useMemo<NewsStreamNeonMarker[]>(() => {
     // 지정학=빨간 네온(전쟁·긴장), 지경학=초록 네온(거시·시장만)
-    if (isCompactUi) return [];
+    if (isCompactUi || isHistoryViewer) return [];
     const payload = newsStreamPayload;
     if (!payload) return [];
     const pool: NewsStreamItem[] = [...payload.verified, ...payload.stateMedia];
     return buildNewsStreamMapTags(pool, {
       mode: isEconomyViewer ? "economy" : "conflict",
     });
-  }, [isCompactUi, isEconomyViewer, newsStreamPayload]);
+  }, [isCompactUi, isEconomyViewer, isHistoryViewer, newsStreamPayload]);
 
   const newsInsightCalloutMarkers = useMemo<NewsInsightCalloutMarker[]>(() => {
     if (!newsInsightCallout || selected?.kind !== "news-insight") return [];
@@ -4895,6 +5026,7 @@ export function GlobeDashboard({
     ukraineSettlementHtmlMarkers,
   } = useSituationHtmlMarkers({
     isEconomyViewer,
+    isHistoryViewer,
     isCompactUi,
     labelLanguage,
     gdeltTensionTags,
@@ -6104,6 +6236,7 @@ export function GlobeDashboard({
     setShowNuclearSites,
     isEconomyViewer,
     isLiveViewer,
+    isSatelliteViewer,
     showUsDfcSupplyChain,
     usDfcSupplyPaths,
     setShowUsDfcSupplyChain,
@@ -6153,6 +6286,10 @@ export function GlobeDashboard({
     showAis,
     aisVessels,
     setShowAis,
+    showAisMilitary,
+    setShowAisMilitary,
+    showAisCommercial,
+    setShowAisCommercial,
     showWeeklyShipMoves,
     weeklyShipMoveCount: combinedShipMovesMap.length,
     setShowWeeklyShipMoves,
@@ -6665,7 +6802,6 @@ export function GlobeDashboard({
       Boolean(periodicBriefing) || Boolean(airRaidBriefing) || Boolean(breakingFlash),
     exerciseBriefing,
     setExerciseBriefing,
-    flyTo,
     patchLayerPrefsSoft,
     layerPrefsLiveRef,
   });
@@ -6705,7 +6841,24 @@ export function GlobeDashboard({
       Boolean(airRaidOffer) ||
       Boolean(periodicBriefing),
     flyTo,
+    isSatelliteViewer,
   });
+
+  /** 지정학/항적 등 MapLibre 모드에서 배너의 "관측 모드로 이동" 버튼 핸들러 */
+  const handleAdsbGoToObserve = useCallback(() => {
+    if (!adsbEmergencyOffer) return;
+    const ac = adsbEmergencyOffer.aircraft;
+    const traffic: "military" | "civil" = ((ac.dbFlags ?? 0) & 1) === 1 ? "military" : "civil";
+    switchToObserveAndFly(ac.lat, ac.lng, {
+      altitude: 0.55,
+      durationMs: 900,
+      camera: { pitch: 42, bearing: -8 },
+      subtitle: "ADS-B",
+      title: ac.callsign || ac.registration || ac.hex.toUpperCase(),
+      selection: { kind: "mil", item: ac, traffic },
+    });
+    dismissAdsbEmergencyOffer();
+  }, [adsbEmergencyOffer, switchToObserveAndFly, dismissAdsbEmergencyOffer]);
 
   /** NATO 동부 접경 UAV — 등불 pause 우회 · 지정학+Neptun만 */
   const { natoPerimeterAlert, dismissNatoPerimeterAlert } = useNatoPerimeterDroneAlert({
@@ -7504,8 +7657,8 @@ export function GlobeDashboard({
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
     if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
-    // 역사 모드 — 주간 등불/회고 점화 안 함
-    if (isHistoryViewer) {
+    // 역사·관측(세슘 위성) 모드 — 주간 등불/회고 점화 안 함
+    if (isHistoryViewer || isSatelliteViewer) {
       if (weeklyRecap) setWeeklyRecap(null);
       if (!weeklyRecapSettled) setWeeklyRecapSettled(true);
       return;
@@ -7595,6 +7748,7 @@ export function GlobeDashboard({
     weeklyRecap,
     weeklyRecapSettled,
     isHistoryViewer,
+    isSatelliteViewer,
   ]);
 
   /**
@@ -7609,8 +7763,8 @@ export function GlobeDashboard({
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
-    // 역사 모드 — 등불(지정학 lamp-news) 점화 안 함
-    if (isHistoryViewer) {
+    // 역사·관측(세슘 위성) 모드 — 등불(지정학/지경학 lamp-news)은 이 두 모드에서 점화 안 함
+    if (isHistoryViewer || isSatelliteViewer) {
       lampModeSwitchPendingRef.current = false;
       if (periodicBriefing) setPeriodicBriefing(null);
       if (foldedPeriodicBriefing) setFoldedPeriodicBriefing(null);
@@ -7824,6 +7978,7 @@ export function GlobeDashboard({
     weeklyExpanded,
     weeklyRecapSettled,
     isHistoryViewer,
+    isSatelliteViewer,
   ]);
 
   // 오늘의 WTI — 사운드 강도·등불 기축 (등불보다 먼저 확보) · asOf 스크럽 시 해당일
@@ -9036,6 +9191,7 @@ export function GlobeDashboard({
     ukraineMicroGeoJson,
     historyCliopatriaGeoJson: historyPolityLayers.cliopatriaGeoJson,
     historyKoreaGeoJson: historyPolityLayers.koreaGeoJson,
+    historyLabelGeoJson: historyPolityLayers.labelGeoJson,
     historyTerritoryActive: isHistoryViewer && !isSatelliteViewer && !isPhoneUi,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
@@ -9305,6 +9461,19 @@ export function GlobeDashboard({
           loadError={loadError}
           containerBackgroundColor={globeTextures.backgroundColor}
           satelliteMode={isSatelliteViewer}
+          aisVessels={aisVessels}
+          disguisedVessels={disguisedVessels}
+          milAircraft={milAircraft}
+          civAircraft={civAircraft}
+          showAis={showAis}
+          showAisMilitary={showAisMilitary}
+          showAisCommercial={showAisCommercial}
+          showDisguisedVessels={showDisguisedVessels}
+          showMilitaryActivity={showMilitaryActivity}
+          showAirTraffic={showAirTraffic}
+          cesiumRef={cesiumGlobeRef}
+          onCesiumReady={() => setCesiumReady(true)}
+          onSelectCesiumEntity={handleSelectCesiumEntity}
           {...mapGlobeProps}
         />
 
@@ -9356,7 +9525,7 @@ export function GlobeDashboard({
 
         {isSatelliteViewer && !isPhoneUi && viewUi.showTicker ? (
           <div
-            className="pointer-events-auto absolute bottom-6 left-1/2 z-[100] flex w-[min(520px,94vw)] -translate-x-1/2 flex-col gap-1.5 rounded-md border border-teal-500/35 bg-[#041018]/88 px-3 py-2 shadow-lg backdrop-blur-sm"
+            className="pointer-events-auto cv-satellite-ticker-dock flex w-[min(520px,94vw)] flex-col gap-1.5 rounded-md border border-teal-500/35 bg-[#041018]/88 px-3 py-2 shadow-lg backdrop-blur-sm"
             role="region"
             aria-label={labelLanguage === "en" ? "Live feed" : "라이브 피드"}
           >
@@ -9672,10 +9841,15 @@ export function GlobeDashboard({
         escalationOffer={escalationOffer}
         onDismissEscalationOffer={dismissEscalationOffer}
         adsbEmergencyOffer={adsbEmergencyOffer}
+        onGoToObserveFromAdsbEmergency={isSatelliteViewer ? undefined : handleAdsbGoToObserve}
         natoPerimeterAlert={natoPerimeterAlert}
         onDismissNatoPerimeterAlert={dismissNatoPerimeterAlert}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
+        onExerciseFlyTo={() => {
+          if (!exerciseBriefing) return;
+          flyTo(exerciseBriefing.lat, exerciseBriefing.lng, 0.85, 900);
+        }}
         maritimeOffer={maritimeOffer}
         ukmtoBriefing={ukmtoBriefing}
         navareaBriefing={navareaBriefing}
@@ -9875,6 +10049,15 @@ export function GlobeDashboard({
           }}
           onSelectContact={handleGevContactSelect}
           lang={labelLanguage === "en" ? "en" : "ko"}
+        />
+      ) : null}
+
+      {flyToConfirmOffer ? (
+        <FlyToConfirmBanner
+          offer={flyToConfirmOffer}
+          lang={labelLanguage === "en" ? "en" : "ko"}
+          onAccept={acceptFlyToConfirm}
+          onDismiss={dismissFlyToConfirm}
         />
       ) : null}
 
