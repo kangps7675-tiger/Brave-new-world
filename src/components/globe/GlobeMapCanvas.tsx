@@ -54,6 +54,7 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   onSelectCesiumEntity?: (selection: CesiumEntitySelection) => void;
 };
 
+/**
  * GlobeDashboard 지도 캔버스.
  * - 지정학/지경학/역사(MapLibre): AIS/ADS-B 없음 — 해당 레이어를 켜면 관측(Cesium)으로 전환.
  * - 관측(위성): CesiumJS. AIS/ADS-B는 전부 Cesium billboard (CesiumSatelliteGlobe.tsx).
