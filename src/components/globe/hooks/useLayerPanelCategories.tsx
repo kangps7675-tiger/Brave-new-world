@@ -201,6 +201,8 @@ export type UseLayerPanelCategoriesArgs = {
   isEconomyViewer: boolean;
   /** 항적 모드 — ADS-B·AIS·GPSJam 홈 */
   isLiveViewer?: boolean;
+  /** 관측(Cesium) 모드 — AIS/ADS-B 엔티티가 실제로 그려지는 유일한 모드 */
+  isSatelliteViewer?: boolean;
   showUsDfcSupplyChain: boolean;
   usDfcSupplyPaths: unknown[];
   setShowUsDfcSupplyChain: (v: boolean) => void;
@@ -250,6 +252,12 @@ export type UseLayerPanelCategoriesArgs = {
   showAis: boolean;
   aisVessels: unknown[];
   setShowAis: (v: boolean) => void;
+  /** AIS 군함 세부 필터 — 관측 모드에서만 효과 있음 */
+  showAisMilitary: boolean;
+  setShowAisMilitary: (v: boolean) => void;
+  /** AIS 상선·민간 세부 필터 — 관측 모드에서만 효과 있음 */
+  showAisCommercial: boolean;
+  setShowAisCommercial: (v: boolean) => void;
   showWeeklyShipMoves: boolean;
   weeklyShipMoveCount: number;
   setShowWeeklyShipMoves: (v: boolean) => void;
@@ -494,6 +502,7 @@ export function useLayerPanelCategories({
   setShowNuclearSites,
   isEconomyViewer,
   isLiveViewer = false,
+  isSatelliteViewer = false,
   showUsDfcSupplyChain,
   usDfcSupplyPaths,
   setShowUsDfcSupplyChain,
@@ -543,6 +552,10 @@ export function useLayerPanelCategories({
   showAis,
   aisVessels,
   setShowAis,
+  showAisMilitary,
+  setShowAisMilitary,
+  showAisCommercial,
+  setShowAisCommercial,
   showWeeklyShipMoves,
   weeklyShipMoveCount,
   setShowWeeklyShipMoves,
@@ -1719,26 +1732,15 @@ export function useLayerPanelCategories({
           },
           {
             id: "ais",
-            label:
-              labelLanguage === "en"
-                ? isLiveViewer
-                  ? "Vessels (AIS)"
-                  : isEconomyViewer
-                    ? "Civilian vessels (AIS)"
-                    : "Military vessels (AIS)"
-                : isLiveViewer
-                  ? "선박 (AIS)"
-                  : isEconomyViewer
-                    ? "민간 선박 (AIS)"
-                    : "군용 함정 (AIS)",
+            label: labelLanguage === "en" ? "Vessels (AIS)" : "선박 (AIS)",
             detail: showAis
-              ? labelLanguage === "en"
-                ? `${
-                    isLiveViewer ? "All" : isEconomyViewer ? "Civilian" : "Military"
-                  } ${aisVessels.length.toLocaleString()}`
-                : `${
-                    isLiveViewer ? "군·민" : isEconomyViewer ? "민간" : "군용"
-                  } ${aisVessels.length.toLocaleString()}척`
+              ? isSatelliteViewer
+                ? labelLanguage === "en"
+                  ? `${aisVessels.length.toLocaleString()} shown · Observe · Cesium`
+                  : `${aisVessels.length.toLocaleString()}척 표시 · 관측 · Cesium`
+                : labelLanguage === "en"
+                  ? "On, but only renders in Observe (Cesium) mode"
+                  : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
               : labelLanguage === "en"
                 ? "Off"
                 : "꺼짐",
@@ -1746,6 +1748,38 @@ export function useLayerPanelCategories({
             onChange: setShowAis,
             accent: "blue",
           },
+          ...(isSatelliteViewer && showAis
+            ? [
+                {
+                  id: "ais-military" as const,
+                  label: labelLanguage === "en" ? "└ Military vessels" : "└ 군함",
+                  detail: showAisMilitary
+                    ? labelLanguage === "en"
+                      ? "Shown"
+                      : "표시"
+                    : labelLanguage === "en"
+                      ? "Hidden"
+                      : "숨김",
+                  checked: layerPrefs.showAisMilitary,
+                  onChange: setShowAisMilitary,
+                  accent: "red" as const,
+                },
+                {
+                  id: "ais-commercial" as const,
+                  label: labelLanguage === "en" ? "└ Commercial vessels" : "└ 상선·민간",
+                  detail: showAisCommercial
+                    ? labelLanguage === "en"
+                      ? "Shown"
+                      : "표시"
+                    : labelLanguage === "en"
+                      ? "Hidden"
+                      : "숨김",
+                  checked: layerPrefs.showAisCommercial,
+                  onChange: setShowAisCommercial,
+                  accent: "emerald" as const,
+                },
+              ]
+            : []),
           ...(isEconomyViewer || isLiveViewer
             ? []
             : [
@@ -1832,6 +1866,8 @@ export function useLayerPanelCategories({
             showLogisticsRisk: enabled,
             showCriticalNodes: enabled,
             showAis: enabled,
+            showAisMilitary: enabled,
+            showAisCommercial: enabled,
             ...(isEconomyViewer
               ? {}
               : {
@@ -2023,7 +2059,9 @@ export function useLayerPanelCategories({
             id: "military-air",
             label: "군사 항공기",
             detail: showMilitaryActivity
-              ? `비행기 ${milAircraft.length.toLocaleString()}대 · ADS-B · Bellingcat hex`
+              ? isSatelliteViewer
+                ? `비행기 ${milAircraft.length.toLocaleString()}대 · ADS-B · Bellingcat hex`
+                : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
               : "꺼짐",
             checked: layerPrefs.showMilitaryActivity,
             onChange: setShowMilitaryActivity,
@@ -2212,7 +2250,9 @@ export function useLayerPanelCategories({
             id: "air-traffic",
             label: "항공기 운항",
             detail: showAirTraffic
-              ? `민항 ${civAircraft.length.toLocaleString()}대 · 군용 제외`
+              ? isSatelliteViewer
+                ? `민항 ${civAircraft.length.toLocaleString()}대 · 군용 제외`
+                : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
               : "꺼짐",
             checked: layerPrefs.showAirTraffic,
             onChange: setShowAirTraffic,

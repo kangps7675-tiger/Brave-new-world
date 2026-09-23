@@ -212,6 +212,8 @@ export interface UseGlobeMapGlobePropsParams {
   historyCliopatriaGeoJson?: FeatureCollection;
   /** 역사 토글 — Korea territory (research-selected; Balhae peak = final) */
   historyKoreaGeoJson?: FeatureCollection;
+  /** 역사 영토 명칭 (centroid · area rank) */
+  historyLabelGeoJson?: FeatureCollection;
   /** 역사 모드 — 베이스맵 현대 행정 국경 숨김 */
   historyTerritoryActive?: boolean;
   axisHubCountriesGeoJson: FeatureCollection;
@@ -293,6 +295,10 @@ export function useGlobeMapGlobeProps(
       type: "FeatureCollection",
       features: [],
     },
+    historyLabelGeoJson = {
+      type: "FeatureCollection",
+      features: [],
+    },
     historyTerritoryActive = false,
     axisHubCountriesGeoJson,
     alliedBlocCountriesGeoJson,
@@ -312,18 +318,24 @@ export function useGlobeMapGlobeProps(
     selectedAxisPathId = null,
   } = params;
 
+  const historyOn = historyTerritoryActive;
+  const emptyHistoryFc: FeatureCollection = {
+    type: "FeatureCollection",
+    features: [],
+  };
+
   return {
     interactionPaused: showLeftPanel,
     mapStyleUrl: globeTextures.mapStyleUrl,
     backgroundColor: globeTextures.backgroundColor,
     basemapMode,
     ultraLite,
-    showCityLabels,
+    showCityLabels: historyOn ? false : showCityLabels,
     interactiveLayerIds: mapInteractiveLayerIds,
-    showIslandChains,
+    showIslandChains: historyOn ? false : showIslandChains,
     onGlobeReady: configureGlobe,
     onGlobeMouseMove: handleGlobeMouseMove,
-    heatmapsData: tensionHeatmaps,
+    heatmapsData: historyOn ? [] : tensionHeatmaps,
     heatmapPoints: (layer: { points: { lat: number; lng: number; weight: number }[] }) =>
       layer.points,
     heatmapPointLat: (point: { lat: number }) => point.lat,
@@ -339,8 +351,8 @@ export function useGlobeMapGlobeProps(
     heatmapBaseAltitude: () => 0.003,
     heatmapTopAltitude: () => (isCameraMoving ? 0.0048 : 0.006),
     heatmapsTransitionDuration: 0,
-    pointsData: globeDisplayPoints,
-    firmsFiresData: firmsDisplayPoints,
+    pointsData: historyOn ? [] : globeDisplayPoints,
+    firmsFiresData: historyOn ? [] : firmsDisplayPoints,
     firmsLat: (fire: FirmsFireGlobePoint) => fire.lat,
     firmsLng: (fire: FirmsFireGlobePoint) => fire.lng,
     firmsCause: (fire: FirmsFireGlobePoint) => fire.soundKind,
@@ -557,7 +569,7 @@ export function useGlobeMapGlobeProps(
       setHoveredPoint(point);
     },
     onPointClick: (point: GlobeDisplayPoint) => handleGlobePointClick(point),
-    ringsData: conflictClusterRings,
+    ringsData: historyOn ? [] : conflictClusterRings,
     ringLat: (point: PulseRingPoint) => point.lat,
     ringLng: (point: PulseRingPoint) => point.lng,
     ringAltitude: () => 0.005,
@@ -624,9 +636,9 @@ export function useGlobeMapGlobeProps(
       return 2.2;
     },
     /* ── 항공기: symbol 레이어 (DOM Marker 아님) ────────────────────── */
-    aircraftSymbolsData: aircraftSymbols.geojson,
-    aircraftSymbolsItems: aircraftSymbols.items,
-    aircraftSymbolsIsCivil: aircraftSymbols.isCivil,
+    aircraftSymbolsData: historyOn ? emptyHistoryFc : aircraftSymbols.geojson,
+    aircraftSymbolsItems: historyOn ? [] : aircraftSymbols.items,
+    aircraftSymbolsIsCivil: historyOn ? [] : aircraftSymbols.isCivil,
     onAircraftClick: (item: unknown, isCivil: boolean) => {
       const aircraft = item as MilitaryAircraft;
       if (isCivil) handleCivAircraftSelect(aircraft);
@@ -639,7 +651,7 @@ export function useGlobeMapGlobeProps(
      * geojson은 MapGlobeView가 mapBearingDeg와 함께 buildAisSymbolModel로 굽는다 —
      * 여기서는 원본 포인트 배열만 전달한다.
      */
-    aisSymbolVessels: aisDisplayPoints,
+    aisSymbolVessels: historyOn ? [] : aisDisplayPoints,
     aisSymbolSelectedMmsi,
     onAisSymbolClick: (item: unknown) => {
       handleAisSymbolSelect(item as AisVessel);
@@ -649,9 +661,9 @@ export function useGlobeMapGlobeProps(
     },
 
     /* ── Safecast µSv/h: circle+symbol (DOM Marker 아님) ─────────────── */
-    safecastGaugesGeoJson,
+    safecastGaugesGeoJson: historyOn ? emptyHistoryFc : safecastGaugesGeoJson,
 
-    htmlElementsData: htmlOverlayMarkers,
+    htmlElementsData: historyOn ? [] : htmlOverlayMarkers,
     htmlLat: (point: HtmlOverlayMarker) =>
       point.displayKind === "recon-sat-html"
         ? (point.orbitLat ?? point.lat)
@@ -757,7 +769,7 @@ export function useGlobeMapGlobeProps(
         : "translate(-50%, -50%) scale(0.86)";
     },
     htmlTransitionDuration: isViinaCloseZoom && showUkraineControl ? 0 : 280,
-    labelsData: globeLabels,
+    labelsData: historyOn ? [] : globeLabels,
     labelLat: (item: GlobeLabel) => item.lat,
     labelLng: (item: GlobeLabel) => item.lng,
     labelText: (item: GlobeLabel) => getSafePlaceLabel(item, labelLanguage),
@@ -779,7 +791,7 @@ export function useGlobeMapGlobeProps(
     labelResolution: 2,
     labelsTransitionDuration: 0,
     labelAltitude: () => 0.006,
-    polygonsData: polygonDataWithUkraine,
+    polygonsData: historyOn ? [] : polygonDataWithUkraine,
     polygonGeoJsonGeometry: (feature: PolygonLayerFeature) =>
       polygonFeatureGeometry(feature),
     polygonCapColor: (feature: PolygonLayerFeature) => {
@@ -959,9 +971,11 @@ export function useGlobeMapGlobeProps(
       : (feature: PolygonLayerFeature | null) => {
           setHoveredPolygon(feature);
         },
-    pathsData: globePaths,
-    priorityPathsData: airRaidFocusPaths,
-    focusFillGeoJson: airRaidFocusBox
+    pathsData: historyOn ? [] : globePaths,
+    priorityPathsData: historyOn ? [] : airRaidFocusPaths,
+    focusFillGeoJson: historyOn
+      ? null
+      : airRaidFocusBox
       ? {
           type: "FeatureCollection",
           features: [
@@ -976,14 +990,15 @@ export function useGlobeMapGlobeProps(
           ],
         }
       : null,
-    ukraineMacroGeoJson,
-    ukraineMicroGeoJson,
+    ukraineMacroGeoJson: historyOn ? emptyHistoryFc : ukraineMacroGeoJson,
+    ukraineMicroGeoJson: historyOn ? emptyHistoryFc : ukraineMicroGeoJson,
     historyCliopatriaGeoJson,
     historyKoreaGeoJson,
+    historyLabelGeoJson: historyOn ? historyLabelGeoJson : emptyHistoryFc,
     historyTerritoryActive,
-    axisHubCountriesGeoJson,
-    alliedBlocCountriesGeoJson,
-    geoEconBlocCountriesGeoJson,
+    axisHubCountriesGeoJson: historyOn ? emptyHistoryFc : axisHubCountriesGeoJson,
+    alliedBlocCountriesGeoJson: historyOn ? emptyHistoryFc : alliedBlocCountriesGeoJson,
+    geoEconBlocCountriesGeoJson: historyOn ? emptyHistoryFc : geoEconBlocCountriesGeoJson,
     pathPoints: (path: TransportPath) => path.points,
     pathPointLat: (point: { lat: number; lng: number }) => point.lat,
     pathPointLng: (point: { lat: number; lng: number }) => point.lng,

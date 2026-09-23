@@ -10,7 +10,7 @@ import {
 import type { ExerciseOffer } from "@/components/ExerciseOfferBanner";
 import { exerciseFlyTarget } from "@/lib/militaryExerciseHatch";
 
-const EXERCISE_FLY_MS = 900;
+const EXERCISE_BRIEFING_DELAY_MS = 220;
 
 type UseExerciseAlertAutoOptions = {
   paused: boolean;
@@ -19,13 +19,14 @@ type UseExerciseAlertAutoOptions = {
   briefingBlocked: boolean;
   exerciseBriefing: ExerciseBriefingContent | null;
   setExerciseBriefing: (content: ExerciseBriefingContent | null) => void;
-  flyTo: (lat: number, lng: number, altitude?: number, durationMs?: number) => void;
   patchLayerPrefsSoft: (patch: Partial<LayerPrefs>) => void;
   layerPrefsLiveRef: MutableRefObject<LayerPrefs>;
 };
 
 /**
- * 신규 군사 훈련 — 레이어 soft ON → fly → 전보 양피지 (사이렌 없음).
+ * 신규 군사 훈련 — 레이어 soft ON → 속보 배너 + 전보 양피지 (사이렌 없음).
+ * fly-to는 자동 실행하지 않는다 — 양피지의 "위치 보기" 보조 CTA를 눌러야 이동한다
+ * (카테고리가 5개로 늘면서 자동 이동이 너무 잦아지는 것을 막기 위한 결정, 2026-09-22).
  * 첫 스냅샷은 seen만. auto-ON 레이어는 활성 훈련 소진 시에만 OFF.
  */
 export function useExerciseAlertAuto({
@@ -35,7 +36,6 @@ export function useExerciseAlertAuto({
   briefingBlocked,
   exerciseBriefing,
   setExerciseBriefing,
-  flyTo,
   patchLayerPrefsSoft,
   layerPrefsLiveRef,
 }: UseExerciseAlertAutoOptions) {
@@ -78,8 +78,7 @@ export function useExerciseAlertAuto({
         setExerciseOffer(offer);
       }
 
-      flyTo(fly.lat, fly.lng, fly.altitude, EXERCISE_FLY_MS);
-
+      // fly-to는 여기서 자동 실행하지 않음 — 양피지의 "위치 보기" 보조 CTA에서 수동 실행.
       const brief = buildExerciseBriefingContent(ex, lang);
       window.setTimeout(() => {
         if (seq !== seqRef.current) return;
@@ -87,16 +86,9 @@ export function useExerciseAlertAuto({
           setExerciseBriefing(brief);
         }
         busyRef.current = false;
-      }, EXERCISE_FLY_MS + 120);
+      }, EXERCISE_BRIEFING_DELAY_MS);
     },
-    [
-      briefingBlocked,
-      flyTo,
-      labelLanguage,
-      layerPrefsLiveRef,
-      patchLayerPrefsSoft,
-      setExerciseBriefing,
-    ],
+    [briefingBlocked, labelLanguage, layerPrefsLiveRef, patchLayerPrefsSoft, setExerciseBriefing],
   );
 
   useEffect(() => {
