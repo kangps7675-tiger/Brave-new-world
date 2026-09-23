@@ -167,7 +167,9 @@ export type TransportPath = {
      */
     | "gta-trade-measure"
     /** CRINK OSM 인프라 — 송전·국경·댐·활주로·항만·검문소 */
-    | "crink-infra";
+    | "crink-infra"
+    /** 지정학 개관 — 동맹 거점 간 전략지원 연결선(대권호) */
+    | "strategic-support-arrow";
   name: string | null;
   scalerank: number;
   lengthKm: number | null;

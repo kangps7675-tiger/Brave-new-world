@@ -4,13 +4,37 @@ import { getAisstreamKey, getMarineTrafficKey } from "./db";
 const MT_BASE = "https://services.marinetraffic.com/api";
 const AISSTREAM_URL = "wss://stream.aisstream.io/v0/stream";
 
-/** 분쟁·해상 chokepoint 위주 (Cron 서브요청·수집 시간 절약) */
+/**
+ * 분쟁·해상 chokepoint 위주 (Cron 서브요청·수집 시간 절약)
+ *
+ * 2026-09-22 추가: 대만해협·남중국해·발틱해·베링해협·추크치해·흑해·카스피해를
+ * 전용 박스로 분리. 기존 "동유럽·흑해"(2번)와 "동아시아·남중국해"(3번) 박스는
+ * 범위가 넓어 신호가 희석되므로, 아래 전용 박스와 일부러 중복시켜 두었다 —
+ * 넓은 박스를 지우면 그 구역의 다른 트래픽(예: 우크라이나 내륙 GDELT 연계 등)까지
+ * 같이 빠질 수 있어 일단 남겨둠. 필요하면 나중에 정리.
+ *
+ * 주의: fetchAisstream은 4.5초 연결 + `vessels.size >= max*2`(기본 800) 도달 시
+ * 조기 종료한다. 박스가 14개로 늘면서, 말라카·남중국해처럼 트래픽이 조밀한 구역의
+ * 메시지가 800 캡을 먼저 채워버릴 가능성이 높다 — 그러면 베링해협·추크치해·카스피해처럼
+ * 트래픽이 희박한 구역은 실행마다 0척으로 나올 수 있다. 이건 버그가 아니라 구조적
+ * 한계다. AIS_MAX_VESSELS 환경변수를 올리거나(최대 800), duration을 늘리거나,
+ * 장기 실행 수집기로 바꾸기 전까지는 희박 구역 데이터가 거의 안 잡혀도 정상이다.
+ */
 const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[12, 32], [32, 52]], // 중동·홍해
-  [[44, 22], [56, 42]], // 동유럽·흑해
-  [[20, 100], [42, 130]], // 동아시아·남중국해
+  [[44, 22], [56, 42]], // 동유럽·흑해 (넓음 — 아래 흑해 전용 박스와 중복)
+  [[20, 100], [42, 130]], // 동아시아·남중국해 (넓음 — 아래 대만해협 전용 박스와 중복)
   [[-5, 95], [8, 108]], // 말라카
   [[10, -85], [28, -60]], // 카리브
+  [[22, 118], [26, 121.5]], // 대만해협 (전용 — 신호 집중)
+  [[6, 110], [12, 117]], // 남중국해 — 스프래틀리
+  [[19, 120], [22, 123]], // 남중국해 — 바시해협(대만-필리핀)
+  [[54.5, 9.5], [56.5, 13.5]], // 발틱해 — 덴마크해협(카테가트)
+  [[59, 22], [60.5, 30.5]], // 발틱해 — 핀란드만
+  [[41, 27], [47, 42]], // 흑해 (전용 — 곡물회랑)
+  [[64.3, -169], [66.5, -165]], // 베링 해협
+  [[66, -180], [72, -155]], // 추크치해 (커버리지 희박 예상)
+  [[36.5, 47], [47, 55]], // 카스피해 (내해, 트래픽 희박 예상)
 ];
 
 const MILITARY_NAME =
@@ -37,6 +61,14 @@ type AisRawMessage = {
     ShipStaticData?: {
       Type?: number;
       Name?: string;
+      MaximumStaticDraught?: number;
+      Destination?: string;
+      Dimension?: {
+        A?: number;
+        B?: number;
+        C?: number;
+        D?: number;
+      };
     };
   };
 };
@@ -82,6 +114,10 @@ function rowFromParts(
   heading: number | null,
   timestamp: string | null,
   provider: string,
+  draught: number | null = null,
+  destination: string | null = null,
+  lengthM: number | null = null,
+  beamM: number | null = null,
 ): AisVesselRow {
   const category = classifyCategory(shipType, shipName);
   return {
@@ -98,6 +134,10 @@ function rowFromParts(
     category,
     provider,
     timestamp,
+    draught,
+    destination,
+    length_m: lengthM,
+    beam_m: beamM,
   };
 }
 
@@ -191,7 +231,17 @@ async function fetchAisstream(
 ): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
   const errors: string[] = [];
   const vessels = new Map<string, AisVesselRow>();
-  const staticByMmsi = new Map<string, { shipType: number | null; shipName: string | null }>();
+  const staticByMmsi = new Map<
+    string,
+    {
+      shipType: number | null;
+      shipName: string | null;
+      draught: number | null;
+      destination: string | null;
+      lengthM: number | null;
+      beamM: number | null;
+    }
+  >();
 
   return new Promise((resolve) => {
     const ws = new WebSocket(AISSTREAM_URL);
@@ -222,6 +272,10 @@ async function fetchAisstream(
           v.true_heading,
           v.timestamp,
           "aisstream",
+          cached.draught ?? v.draught,
+          cached.destination || v.destination,
+          cached.lengthM ?? v.length_m,
+          cached.beamM ?? v.beam_m,
         );
       });
       resolve({ vessels: merged.slice(0, max), errors });
@@ -260,10 +314,23 @@ async function fetchAisstream(
           const shipType = parseNumber(staticMsg?.Type);
           const shipName =
             staticMsg?.Name?.trim() || parsed.MetaData?.ShipName?.trim() || null;
+          // MaximumStaticDraught: 만재 설계 흘수 상한(실측 흘수 아님) — DWT 가중 물동량의 크기
+          // 프록시로만 사용. Dimension A+B=선수+선미 길이, C+D=좌+우 폭 (AIS 안테나 기준 분할값).
+          const draught = parseNumber(staticMsg?.MaximumStaticDraught);
+          const destination = staticMsg?.Destination?.trim() || null;
+          const dim = staticMsg?.Dimension;
+          const lengthM =
+            dim?.A != null && dim?.B != null ? parseNumber(dim.A)! + parseNumber(dim.B)! : null;
+          const beamM =
+            dim?.C != null && dim?.D != null ? parseNumber(dim.C)! + parseNumber(dim.D)! : null;
           const prev = staticByMmsi.get(mmsi);
           staticByMmsi.set(mmsi, {
             shipType: shipType ?? prev?.shipType ?? null,
             shipName: shipName || prev?.shipName || null,
+            draught: draught ?? prev?.draught ?? null,
+            destination: destination || prev?.destination || null,
+            lengthM: lengthM ?? prev?.lengthM ?? null,
+            beamM: beamM ?? prev?.beamM ?? null,
           });
           return;
         }
@@ -291,6 +358,10 @@ async function fetchAisstream(
             parseNumber(position?.TrueHeading),
             parsed.MetaData?.time_utc || null,
             "aisstream",
+            cached?.draught ?? null,
+            cached?.destination ?? null,
+            cached?.lengthM ?? null,
+            cached?.beamM ?? null,
           ),
         );
 

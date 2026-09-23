@@ -69,8 +69,8 @@ export function aircraftSymbolIconId(
   role: MilAircraftRole,
   palette: AircraftPalette,
 ): string {
-  // ink2 — 팔레트·스트로크 변경 시 캐시 버스팅
-  return `aircraft-${palette}-${role}-ink2`;
+  // ink3 — 민간 팔레트 초록 전환 시 캐시 버스팅
+  return `aircraft-${palette}-${role}-ink3`;
 }
 
 /** 침로 없음 — 실루엣을 살짝 눕혀 "방향 미상"을 표현 (기존 DOM 마커와 동일 규칙) */

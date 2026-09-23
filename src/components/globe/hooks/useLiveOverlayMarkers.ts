@@ -6,18 +6,14 @@ import { chokeGlowRingSeed } from "@/data/logisticsRiskPoints";
 import { mergeCarriersWithAisPositions } from "@/lib/aisCarrierMatch";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { isHtmlStaticKind } from "@/lib/infraStaticMarkers";
-import {
-  liveAisDisplayMax,
-  liveAirTrafficDisplayMax,
-  liveMilDisplayMax,
-} from "@/lib/liveRenderGuard";
+// liveAisDisplayMax/liveAirTrafficDisplayMax/liveMilDisplayMax — MapLibre 심볼 레이어 제거로 더 이상 사용 안 함 (Cesium 쪽에서 자체 상한 관리)
 import { pickFairByKind } from "@/lib/staticGlobe";
 import {
   carrierLabelOffsets,
   filterVisibleCarriers,
   isOperationalCarrier,
 } from "@/lib/usCarrierMarkers";
-import { VIEWPORT_RADIUS_BY_TIER, pickInViewOrNearest } from "@/lib/viewportCull";
+// VIEWPORT_RADIUS_BY_TIER/pickInViewOrNearest — MapLibre 심볼 레이어 제거로 더 이상 사용 안 함
 import type {
   AisGlobePoint,
   MilGlobePoint,
@@ -151,22 +147,8 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     [visibleUsCarriers],
   );
 
-  const milDisplayPoints = useMemo<MilGlobePoint[]>(
-    () =>
-      !isEconomyViewer && showMilitaryActivity
-        ? pickInViewOrNearest(
-            milAircraft,
-            layerViewState,
-            VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
-            liveMilDisplayMax(globeLodTier, ultraLite),
-          ).map((aircraft) => ({
-            ...aircraft,
-            markerId: `mil-${aircraft.hex || aircraft.id}`,
-            displayKind: "mil" as const,
-          }))
-        : [],
-    [globeLodTier, isEconomyViewer, layerViewState, milAircraft, showMilitaryActivity, ultraLite],
-  );
+  // ADS-B(군용) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화 (CesiumSatelliteGlobe.tsx).
+  const milDisplayPoints = useMemo<MilGlobePoint[]>(() => [], []);
 
   /*
    * milHtmlMarkers / civHtmlMarkers 는 제거됨.
@@ -175,64 +157,12 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
    * buildAircraftSymbolModel 에 넘긴다. 사본을 만들 이유가 없어졌다.
    */
 
-  const civDisplayPoints = useMemo(
-    () =>
-      showAirTraffic
-        ? pickInViewOrNearest(
-            civAircraft,
-            layerViewState,
-            VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
-            liveAirTrafficDisplayMax(globeLodTier, ultraLite),
-          )
-        : [],
-    [civAircraft, globeLodTier, layerViewState, showAirTraffic, ultraLite],
-  );
+  // ADS-B(민간) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
+  const civDisplayPoints = useMemo(() => [] as typeof civAircraft, []);
 
-  const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
-    // 지정학: 군함만. 지경학: 민간·상업선만. 항적: 전부.
-    const modeFilter = isLiveViewer
-      ? () => true
-      : isEconomyViewer
-        ? (v: AisVessel) => v.category !== "military"
-        : (v: AisVessel) => v.category === "military";
-    const live = showAis
-      ? pickInViewOrNearest(
-          aisVessels
-            .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
-            .filter(modeFilter),
-          layerViewState,
-          VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
-          liveAisDisplayMax(globeLodTier, ultraLite),
-        )
-      : [];
-    // 지경학·항적: 위장·무기고 선박 제외 (항적은 본진 AIS만)
-    const disguised =
-      !isEconomyViewer && !isLiveViewer && showDisguisedVessels
-        ? pickInViewOrNearest(
-            disguisedVessels,
-            layerViewState,
-            VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 12,
-            liveAisDisplayMax(globeLodTier, ultraLite),
-          )
-        : [];
-    const seen = new Set(live.map((v) => v.mmsi));
-    return [...live, ...disguised.filter((v) => !seen.has(v.mmsi))].map((vessel) => ({
-      ...vessel,
-      markerId: vessel.disguised ? `disguised-${vessel.mmsi}` : `ais-${vessel.mmsi}`,
-      displayKind: "ais" as const,
-    }));
-  }, [
-    aisVessels,
-    carrierAisMerge.matchedMmsi,
-    disguisedVessels,
-    globeLodTier,
-    isEconomyViewer,
-    isLiveViewer,
-    layerViewState,
-    showAis,
-    showDisguisedVessels,
-    ultraLite,
-  ]);
+  // AIS(군함·상선·위장선 전부) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
+  // 지정학/지경학/항적 3개 모드에서 각각 다르게 필터링하던 로직은 CesiumSatelliteGlobe로 이전.
+  const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => [], []);
 
   /*
    * aisHtmlMarkers 는 제거됨 (항공기와 동일 이유).

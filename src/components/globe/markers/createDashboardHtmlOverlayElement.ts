@@ -30,6 +30,7 @@ import { createIranNewsNeonBadge, type IranNewsNeonAttack } from "@/lib/iranNews
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { createFrictionPinElement, createFrictionStageCalloutElement, createEventPinElement } from "@/lib/locationPinMarker";
 import { createFinancialHubMarkerElement } from "@/lib/financialMarketHubMarkers";
+import { createStrategicPostureElement } from "@/lib/strategicFormationMarkers";
 import { createKoreaMissileIncidentBadge } from "@/lib/koreaMissileIncidentMarker";
 import { createRussiaStrikeIncidentBadge } from "@/lib/russiaStrikeIncidentMarker";
 import { createEuropeDroneIncidentBadge } from "@/lib/europeDroneIncidentMarker";
@@ -360,6 +361,9 @@ export function createDashboardHtmlOverlayElement(
   }
   if (item.displayKind === "situation-callout") {
     return createSituationCalloutBadge(item);
+  }
+  if (item.displayKind === "strategic-posture") {
+    return createStrategicPostureElement(item, deps.labelLanguage === "en" ? "en" : "ko");
   }
   if (item.displayKind === "news-insight-callout") {
     return createNewsInsightCalloutBadge(item);

@@ -51,20 +51,20 @@ export const MIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
   other: "#d4a574",
 };
 
-/** 지경학 민간 — 진주·아이스톤(저채도). 과한 시안 네온 대신 지면에서 읽히는 밝기. */
+/** 지경학 민간 — 초록 계열. 군용(호박·적색)과 한눈에 구분. */
 export const CIVIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
-  fighter: "#e4eef6",
-  bomber: "#d9e8f2",
-  helicopter: "#ddeff0",
-  tanker: "#d5ebe6",
-  transport: "#e8f1f7",
-  awacs: "#e0e6f4",
-  recon: "#d8eef3",
-  patrol: "#d2e6f2",
-  gunship: "#ddeff0",
-  trainer: "#e2e8ef",
-  uav: "#dde4f2",
-  other: "#e4eef6",
+  fighter: "#4ade80",
+  bomber: "#34d399",
+  helicopter: "#4ade80",
+  tanker: "#22c55e",
+  transport: "#34d399",
+  awacs: "#4ade80",
+  recon: "#22c55e",
+  patrol: "#34d399",
+  gunship: "#4ade80",
+  trainer: "#86efac",
+  uav: "#22c55e",
+  other: "#34d399",
 };
 
 type SilhouetteDef = {

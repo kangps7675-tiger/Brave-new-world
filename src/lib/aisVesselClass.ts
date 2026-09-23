@@ -268,44 +268,44 @@ export function matchesAisClassFilter(
   return category === "commercial" || category === "other";
 }
 
-/** 민간 AIS — 함종별 색 (저채도 전술 팔레트) */
+/** 민간 AIS — 시안 계열 (군용 빨강과 대비). 함종은 채도만 살짝 나눔. */
 export function aisCommercialPointColor(shipType: number | null | undefined): string {
-  if (shipType == null || !Number.isFinite(shipType)) return "rgba(148, 163, 184, 0.9)";
-  if (shipType === 35 || shipType === 55) return "rgba(110, 168, 150, 0.92)";
+  if (shipType == null || !Number.isFinite(shipType)) return "rgba(56, 189, 248, 0.9)";
+  if (shipType === 35 || shipType === 55) return "rgba(248, 113, 113, 0.92)"; // mil/LE fallback
   const g = Math.floor(shipType / 10);
   switch (g) {
     case 8:
-      return "rgba(214, 148, 88, 0.92)"; // Tanker — warm sand
+      return "rgba(14, 165, 233, 0.92)"; // Tanker — sky-500
     case 7:
-      return "rgba(110, 168, 196, 0.92)"; // Cargo — slate cyan
+      return "rgba(56, 189, 248, 0.92)"; // Cargo — sky-400
     case 6:
-      return "rgba(196, 132, 168, 0.9)"; // Passenger — muted rose
+      return "rgba(125, 211, 252, 0.9)"; // Passenger — sky-300
     case 2:
-      return "rgba(96, 168, 132, 0.9)"; // Fishing
+      return "rgba(34, 211, 238, 0.9)"; // Fishing — cyan-400
     case 4:
-      return "rgba(148, 132, 196, 0.9)"; // HSC
+      return "rgba(103, 232, 249, 0.9)"; // HSC — cyan-300
     case 3:
-      return "rgba(196, 176, 96, 0.88)"; // Special
+      return "rgba(56, 189, 248, 0.88)"; // Special
     default:
-      return "rgba(130, 168, 188, 0.9)";
+      return "rgba(56, 189, 248, 0.9)";
   }
 }
 
-/** AIS 군함 HTML 실루엣 공용 — 흑연 채움 (윤곽은 아이콘 스트로크) */
-export const AIS_SURFACE_COMBATANT_FILL = "#14181e";
+/** AIS 군함 HTML 실루엣 공용 — 붉은 채움 */
+export const AIS_SURFACE_COMBATANT_FILL = "#ef4444";
 /** @deprecated 동일 상수 — 군함 공용 채움 */
 export const AIS_WARSHIP_FILL = AIS_SURFACE_COMBATANT_FILL;
 
-/** 줌아웃 MapLibre 점용 — 흑연 실루엣과 짝을 이루는 연한 호박 틴트 */
-export const AIS_SURFACE_COMBATANT_POINT = "#d4a574";
+/** 줌아웃 MapLibre/Cesium 점용 — 군함 빨강 */
+export const AIS_SURFACE_COMBATANT_POINT = "#f87171";
 export const AIS_WARSHIP_POINT = AIS_SURFACE_COMBATANT_POINT;
 
-/** 군함 실루엣/포인트 틴트 — 함종 무관, 검정 통일 */
+/** 군함 실루엣/포인트 틴트 — 함종 무관, 빨강 통일 */
 export function aisMilitaryKindColor(): string {
   return AIS_WARSHIP_FILL;
 }
 
-/** MapLibre circle — 군함은 점이 안 묻히게 연한 빨강 */
+/** MapLibre circle / Cesium — 군함 빨강 */
 export function aisMilitaryMapPointColor(): string {
   return AIS_WARSHIP_POINT;
 }

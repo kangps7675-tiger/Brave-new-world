@@ -10,6 +10,9 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
 import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
 import { aisCommercialPointColor, aisMilitaryMapPointColor } from "@/lib/aisVesselClass";
+import { classifyMilAircraft } from "@/lib/milAircraftKind";
+import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
+import type { AircraftPalette } from "@/lib/milAircraftSymbols";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -157,6 +160,123 @@ function syncPointEntities<T>(
   const toRemove: import("cesium").Entity[] = [];
   for (const entity of viewer.entities.values) {
     if (typeof entity.id === "string" && entity.id.startsWith(`${prefix}:`) && !seen.has(entity.id)) {
+      toRemove.push(entity);
+    }
+  }
+  for (const entity of toRemove) {
+    viewer.entities.remove(entity);
+  }
+}
+
+/** Cesium 항공기 빌보드 — MapLibre 실루엣과 동일 SVG, 군용=현행 팔레트·민간=초록. */
+const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
+const aircraftBillboardUriCache = new Map<string, string>();
+
+function aircraftHeadingDeg(aircraft: MilitaryAircraft): number | null {
+  const raw = aircraft.track ?? aircraft.trueHeading ?? aircraft.magHeading;
+  if (raw == null || !Number.isFinite(raw)) return null;
+  return ((raw % 360) + 360) % 360;
+}
+
+function cesiumAircraftBillboardUri(
+  aircraft: MilitaryAircraft,
+  palette: AircraftPalette,
+): string {
+  const role =
+    palette === "civil" ? ("transport" as const) : classifyMilAircraft(aircraft).role;
+  const px = palette === "civil" ? CESIUM_AIRCRAFT_SIZE.civ : CESIUM_AIRCRAFT_SIZE.mil;
+  const key = `${palette}:${role}:${px}`;
+  const cached = aircraftBillboardUriCache.get(key);
+  if (cached) return cached;
+  const svg = milAircraftIconSvg(role, { width: px, height: px }, { palette });
+  const uri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  aircraftBillboardUriCache.set(key, uri);
+  return uri;
+}
+
+function syncAircraftBillboardEntities(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  prefix: "mil" | "civ",
+  items: MilitaryAircraft[],
+  palette: AircraftPalette,
+): void {
+  const seen = new Set<string>();
+  const sizePx = palette === "civil" ? CESIUM_AIRCRAFT_SIZE.civ : CESIUM_AIRCRAFT_SIZE.mil;
+
+  for (const item of items) {
+    const lat = item.lat;
+    const lng = item.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    const id = `${prefix}:${item.hex || item.id}`;
+    seen.add(id);
+    const heightM = (item.altitudeGeom ?? item.altitude ?? 10_000) * 0.3048;
+    const position = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
+    const heading = aircraftHeadingDeg(item);
+    // SVG 코=+Y(북). Cesium billboard.rotation은 북 기준 반시계(rad).
+    const rotation =
+      heading == null
+        ? Cesium.Math.toRadians(-18)
+        : -Cesium.Math.toRadians(heading);
+    const image = cesiumAircraftBillboardUri(item, palette);
+    const name = item.callsign || item.registration || item.hex;
+
+    const existing = viewer.entities.getById(id);
+    if (existing) {
+      existing.position = new Cesium.ConstantPositionProperty(position);
+      existing.name = name;
+      if (existing.point) {
+        existing.point = undefined;
+      }
+      if (existing.billboard) {
+        existing.billboard.image = new Cesium.ConstantProperty(image);
+        existing.billboard.rotation = new Cesium.ConstantProperty(rotation);
+        existing.billboard.width = new Cesium.ConstantProperty(sizePx);
+        existing.billboard.height = new Cesium.ConstantProperty(sizePx);
+        existing.billboard.color = new Cesium.ConstantProperty(
+          Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
+        );
+      } else {
+        existing.billboard = new Cesium.BillboardGraphics({
+          image,
+          width: sizePx,
+          height: sizePx,
+          rotation,
+          alignedAxis: Cesium.Cartesian3.UNIT_Z,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
+        });
+      }
+      continue;
+    }
+
+    viewer.entities.add({
+      id,
+      name,
+      position,
+      billboard: new Cesium.BillboardGraphics({
+        image,
+        width: sizePx,
+        height: sizePx,
+        rotation,
+        alignedAxis: Cesium.Cartesian3.UNIT_Z,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
+      }),
+    });
+  }
+
+  const toRemove: import("cesium").Entity[] = [];
+  for (const entity of viewer.entities.values) {
+    if (
+      typeof entity.id === "string" &&
+      entity.id.startsWith(`${prefix}:`) &&
+      !seen.has(entity.id)
+    ) {
       toRemove.push(entity);
     }
   }
@@ -515,27 +635,20 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       },
     );
 
-    syncPointEntities(Cesium, viewer, "mil", showMilitaryActivity ? milAircraft : [], {
-      getId: (a: MilitaryAircraft) => a.hex || a.id,
-      getLat: (a: MilitaryAircraft) => a.lat,
-      getLng: (a: MilitaryAircraft) => a.lng,
-      getHeightM: (a: MilitaryAircraft) =>
-        (a.altitudeGeom ?? a.altitude ?? 10_000) * 0.3048,
-      getColor: () => "#f87171",
-      pixelSize: 7,
-      getName: (a: MilitaryAircraft) => a.callsign || a.registration || a.hex,
-    });
-
-    syncPointEntities(Cesium, viewer, "civ", showAirTraffic ? civAircraft : [], {
-      getId: (a: MilitaryAircraft) => a.hex || a.id,
-      getLat: (a: MilitaryAircraft) => a.lat,
-      getLng: (a: MilitaryAircraft) => a.lng,
-      getHeightM: (a: MilitaryAircraft) =>
-        (a.altitudeGeom ?? a.altitude ?? 10_000) * 0.3048,
-      getColor: () => "#38bdf8",
-      pixelSize: 5,
-      getName: (a: MilitaryAircraft) => a.callsign || a.registration || a.hex,
-    });
+    syncAircraftBillboardEntities(
+      Cesium,
+      viewer,
+      "mil",
+      showMilitaryActivity ? milAircraft : [],
+      "military",
+    );
+    syncAircraftBillboardEntities(
+      Cesium,
+      viewer,
+      "civ",
+      showAirTraffic ? civAircraft : [],
+      "civil",
+    );
   }, [
     status,
     aisVessels,

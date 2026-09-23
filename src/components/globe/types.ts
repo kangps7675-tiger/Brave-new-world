@@ -43,6 +43,7 @@ import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import type { ShipMovementHtmlMarker } from "@/lib/shipMovements/globeOverlay";
 import type { MilitaryExerciseHtmlMarker } from "@/lib/militaryExerciseMarkers";
 import type { FinancialHubHtmlMarker } from "@/lib/financialMarketHubMarkers";
+import type { StrategicPostureHtmlMarker } from "@/lib/strategicFormationMarkers";
 import type {
   ReefWatchFeatureHtmlMarker,
   ReefWatchTrafficHtmlMarker,
@@ -452,6 +453,7 @@ export type HtmlOverlayMarker =
   | ShipMovementHtmlMarker
   | MilitaryExerciseHtmlMarker
   | FinancialHubHtmlMarker
+  | StrategicPostureHtmlMarker
   | ReefWatchFeatureHtmlMarker
   | ReefWatchTrafficHtmlMarker
   | CasualtySkullHtmlMarker

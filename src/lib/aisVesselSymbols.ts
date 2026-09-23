@@ -120,19 +120,19 @@ function genericBucketColor(bucket: GenericBucket): string {
 }
 
 const GENERIC_ICON_SIZE_PX = 22;
-export const AIS_CARRIER_ICON_ID = "ais-carrier-ink2";
+export const AIS_CARRIER_ICON_ID = "ais-carrier-ink3";
 
 export function aisGenericIconId(bucket: GenericBucket): string {
-  return `ais-generic-${bucket}-ink2`;
+  return `ais-generic-${bucket}-ink3`;
 }
 export function aisSurfaceCombatantIconId(facing: Facing): string {
-  return `ais-surface-${facing}-ink2`;
+  return `ais-surface-${facing}-ink3`;
 }
 export function aisSubmarineIconId(facing: Facing): string {
-  return `ais-submarine-${facing}-ink2`;
+  return `ais-submarine-${facing}-ink3`;
 }
 export function aisShadowFleetIconId(facing: Facing): string {
-  return `ais-shadow-${facing}-ink2`;
+  return `ais-shadow-${facing}-ink3`;
 }
 
 function loadSvgImage(svg: string, width: number, height: number): Promise<HTMLImageElement> {

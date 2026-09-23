@@ -298,3 +298,33 @@ export function demoStressSignals(chokepointId: string): {
 export function shouldSoundLogisticsSiren(stress: ChokepointStress): boolean {
   return stress.graded && stress.level === "elevated";
 }
+
+/** 병목 통항 양피지 — |통항 변화| ≥ 이 값(%)일 때 후보. */
+export const CHOKEPOINT_TRANSIT_PARCHMENT_PCT = 12;
+
+export type ChokepointTransitDirection = "blocked" | "clearing";
+
+/**
+ * 병목 AIS/PortWatch 통항 이상 — 양피지 후보.
+ * 사이렌(A급 elevated)과 별개: B급 통항 급감·급증을 병목 중심 브리핑으로 연다.
+ * 목업(isDemo)은 후보에서 제외한다.
+ */
+export function chokepointTransitParchmentDirection(
+  aisObservation: { changePct: number; isDemo?: boolean } | null | undefined,
+): ChokepointTransitDirection | null {
+  if (!aisObservation || aisObservation.isDemo) return null;
+  const pct = aisObservation.changePct;
+  if (!Number.isFinite(pct)) return null;
+  if (pct <= -CHOKEPOINT_TRANSIT_PARCHMENT_PCT) return "blocked";
+  if (pct >= CHOKEPOINT_TRANSIT_PARCHMENT_PCT) return "clearing";
+  return null;
+}
+
+/** A급 elevated 또는 통항 급변 — 양피지 오퍼 가능. */
+export function shouldOfferChokepointStressParchment(
+  stress: ChokepointStress,
+  aisObservation: { changePct: number; isDemo?: boolean } | null | undefined,
+): boolean {
+  if (shouldSoundLogisticsSiren(stress)) return true;
+  return chokepointTransitParchmentDirection(aisObservation) != null;
+}
