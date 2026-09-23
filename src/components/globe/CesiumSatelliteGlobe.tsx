@@ -97,6 +97,24 @@ function isCesiumAssetsError(err: unknown): boolean {
   );
 }
 
+type GlobeOccluder = {
+  isPointVisible: (point: import("cesium").Cartesian3) => boolean;
+};
+
+/** Cesium 런타임에 있으나 public typings에 빠져 있는 EllipsoidalOccluder. */
+function createGlobeOccluder(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+): GlobeOccluder {
+  const Ctor = (Cesium as unknown as {
+    EllipsoidalOccluder: new (
+      ellipsoid: import("cesium").Ellipsoid,
+      cameraPosition: import("cesium").Cartesian3,
+    ) => GlobeOccluder;
+  }).EllipsoidalOccluder;
+  return new Ctor(viewer.scene.globe.ellipsoid, viewer.camera.positionWC);
+}
+
 /**
  * 점 엔티티 그룹을 prefix로 diff-sync — 매 폴링마다 add/remove 대신
  * 기존 엔티티는 위치·색만 갱신하고, 사라진 것만 지운다.
@@ -119,10 +137,7 @@ function syncPointEntities<T>(
 ): void {
   const seen = new Set<string>();
   const outlineColor = Cesium.Color.fromCssColorString("rgba(6, 10, 22, 0.85)");
-  const occluder = new Cesium.EllipsoidalOccluder(
-    viewer.scene.globe.ellipsoid,
-    viewer.camera.positionWC,
-  );
+  const occluder = createGlobeOccluder(Cesium, viewer);
 
   for (const item of items) {
     const lat = opts.getLat(item);
@@ -214,10 +229,7 @@ function syncAircraftBillboardEntities(
 ): void {
   const seen = new Set<string>();
   const sizePx = palette === "civil" ? CESIUM_AIRCRAFT_SIZE.civ : CESIUM_AIRCRAFT_SIZE.mil;
-  const occluder = new Cesium.EllipsoidalOccluder(
-    viewer.scene.globe.ellipsoid,
-    viewer.camera.positionWC,
-  );
+  const occluder = createGlobeOccluder(Cesium, viewer);
 
   for (const item of items) {
     const lat = item.lat;
