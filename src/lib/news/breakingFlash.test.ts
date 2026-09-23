@@ -188,20 +188,10 @@ describe("shouldOpenBreakingFlash", () => {
     ).toBe(true);
   });
 
-  it("rejects soft / stale / low grade", () => {
+  it("rejects soft-exclude and stale even at S grade", () => {
     expect(
       shouldOpenBreakingFlash(
         hero({ title: "Celebrity visits summit", breakingRank: "S", breakingGrade: 9 }),
-        false,
-      ),
-    ).toBe(false);
-    expect(
-      shouldOpenBreakingFlash(
-        hero({
-          title: "Diplomats meet for talks",
-          breakingRank: "A",
-          breakingGrade: 7,
-        }),
         false,
       ),
     ).toBe(false);
@@ -244,7 +234,22 @@ describe("shouldOpenBreakingFlash", () => {
     ).toBe(false);
   });
 
-  it("rejects high-grade S without kinetic or chokepoint", () => {
+  it("rejects high-grade S with no classifiable geopolitical topic", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "City council approves new downtown zoning rules",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 5,
+        }),
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it("allows diplomacy S/A flash (2026-09-22 broadened geopolitical scope)", () => {
+    // 외교(diplomacy)도 지정학 갈등 신속 속보 대상으로 확장됨 — 필성 요청
     expect(
       shouldOpenBreakingFlash(
         hero({
@@ -255,7 +260,54 @@ describe("shouldOpenBreakingFlash", () => {
         }),
         false,
       ),
-    ).toBe(false);
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Diplomats meet for talks",
+          breakingRank: "A",
+          breakingGrade: 7,
+        }),
+        false,
+      ),
+    ).toBe(true);
+  });
+
+  it("allows military drills / hybrid warfare / security realignment as A-grade flash", () => {
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "PLA launches large-scale military drill near Taiwan Strait",
+          theater: "china-taiwan",
+          breakingRank: "A",
+          breakingGrade: 7,
+          ageMinutes: 10,
+        }),
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "State-linked hackers sabotage power grid systems",
+          breakingRank: "A",
+          breakingGrade: 7,
+          ageMinutes: 10,
+        }),
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Countries sign new defense pact amid security realignment",
+          breakingRank: "A",
+          breakingGrade: 7,
+          ageMinutes: 10,
+        }),
+        false,
+      ),
+    ).toBe(true);
   });
 
   it("allows chokepoint security S flash", () => {

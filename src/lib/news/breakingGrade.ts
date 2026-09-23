@@ -34,7 +34,8 @@ const IMPACT_CRITICAL =
 const IMPACT_HIGH =
   /\b(missile|airstrike|drone\s?strike|explosion|war|offensive|ceasefire\s?collapse|sanction|embargo|blockade|crash|plunge|selloff|surge|soar|tumble|bosporus|gibraltar)\b/i;
 const IMPACT_MED =
-  /\b(attack|strike|shelling|clash|troops|carrier|escalat|retaliat|killed|dead|bomb|hike|cut|rally|shutdown|breaking|urgent|just\s?in)\b/i;
+  /\b(attack|strike|shelling|clash|troops|carrier|escalat|retaliat|killed|dead|bomb|hike|cut|rally|shutdown|breaking|urgent|just\s?in|drill|military\s?exercise|deploy(?:s|ed|ment)?|mobiliz\w*|summit|ceasefire|peace\s?talks|negotiat\w*|diplomatic|cyber\s?attack|cyberattack|hack(?:ed|ing)?|sabotage|coup|martial\s?law|unrest|nato|defense\s?pact)\b/i;
+// 2026-09-22: 하이브리드전·안보위협·군사훈련·외교·안보재편까지 신속 속보 대상으로 확장 — 필성 요청
 
 const THEATER_IMPACT_BONUS: Partial<Record<NewsTheater, number>> = {
   "middle-east": 1,
