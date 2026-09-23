@@ -100,6 +100,7 @@ function isCesiumAssetsError(err: unknown): boolean {
 /**
  * 점 엔티티 그룹을 prefix로 diff-sync — 매 폴링마다 add/remove 대신
  * 기존 엔티티는 위치·색만 갱신하고, 사라진 것만 지운다.
+ * 지구 반대편은 EllipsoidalOccluder로 숨긴다 (투명 비침 방지).
  */
 function syncPointEntities<T>(
   Cesium: typeof import("cesium"),
@@ -118,6 +119,10 @@ function syncPointEntities<T>(
 ): void {
   const seen = new Set<string>();
   const outlineColor = Cesium.Color.fromCssColorString("rgba(6, 10, 22, 0.85)");
+  const occluder = new Cesium.EllipsoidalOccluder(
+    viewer.scene.globe.ellipsoid,
+    viewer.camera.positionWC,
+  );
 
   for (const item of items) {
     const lat = opts.getLat(item);
@@ -126,6 +131,7 @@ function syncPointEntities<T>(
     const id = `${prefix}:${opts.getId(item)}`;
     seen.add(id);
     const position = Cesium.Cartesian3.fromDegrees(lng, lat, opts.getHeightM(item));
+    const visible = occluder.isPointVisible(position);
     let color: import("cesium").Color;
     try {
       color = Cesium.Color.fromCssColorString(opts.getColor(item));
@@ -136,8 +142,11 @@ function syncPointEntities<T>(
     const existing = viewer.entities.getById(id);
     if (existing) {
       existing.position = new Cesium.ConstantPositionProperty(position);
+      existing.show = visible;
       if (existing.point) {
         existing.point.color = new Cesium.ConstantProperty(color);
+        // 예전 Infinity 설정이 남아 있으면 반대편이 비침 — 매 갱신마다 깊이 테스트 강제
+        existing.point.disableDepthTestDistance = new Cesium.ConstantProperty(0);
       }
       existing.name = opts.getName(item);
       continue;
@@ -147,12 +156,14 @@ function syncPointEntities<T>(
       id,
       name: opts.getName(item),
       position,
+      show: visible,
       point: new Cesium.PointGraphics({
         pixelSize: opts.pixelSize,
         color,
         outlineColor,
         outlineWidth: 1,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        // 0 = 항상 지구/지형에 가려짐 (Infinity면 반대편까지 비침)
+        disableDepthTestDistance: 0,
       }),
     });
   }
@@ -203,6 +214,10 @@ function syncAircraftBillboardEntities(
 ): void {
   const seen = new Set<string>();
   const sizePx = palette === "civil" ? CESIUM_AIRCRAFT_SIZE.civ : CESIUM_AIRCRAFT_SIZE.mil;
+  const occluder = new Cesium.EllipsoidalOccluder(
+    viewer.scene.globe.ellipsoid,
+    viewer.camera.positionWC,
+  );
 
   for (const item of items) {
     const lat = item.lat;
@@ -212,6 +227,7 @@ function syncAircraftBillboardEntities(
     seen.add(id);
     const heightM = (item.altitudeGeom ?? item.altitude ?? 10_000) * 0.3048;
     const position = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
+    const visible = occluder.isPointVisible(position);
     const heading = aircraftHeadingDeg(item);
     // SVG 코=+Y(북). Cesium billboard.rotation은 북 기준 반시계(rad).
     const rotation =
@@ -225,6 +241,7 @@ function syncAircraftBillboardEntities(
     if (existing) {
       existing.position = new Cesium.ConstantPositionProperty(position);
       existing.name = name;
+      existing.show = visible;
       if (existing.point) {
         existing.point = undefined;
       }
@@ -236,6 +253,7 @@ function syncAircraftBillboardEntities(
         existing.billboard.color = new Cesium.ConstantProperty(
           Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         );
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
       } else {
         existing.billboard = new Cesium.BillboardGraphics({
           image,
@@ -245,7 +263,7 @@ function syncAircraftBillboardEntities(
           alignedAxis: Cesium.Cartesian3.UNIT_Z,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          disableDepthTestDistance: 0,
           color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         });
       }
@@ -256,6 +274,7 @@ function syncAircraftBillboardEntities(
       id,
       name,
       position,
+      show: visible,
       billboard: new Cesium.BillboardGraphics({
         image,
         width: sizePx,
@@ -264,7 +283,7 @@ function syncAircraftBillboardEntities(
         alignedAxis: Cesium.Cartesian3.UNIT_Z,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        disableDepthTestDistance: 0,
         color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
       }),
     });
@@ -612,7 +631,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       getId: (v: AisVessel) => v.mmsi,
       getLat: (v: AisVessel) => v.lat,
       getLng: (v: AisVessel) => v.lng,
-      getHeightM: () => 0,
+      // 수면 살짝 위 — 지구와 z-fight 줄이면서 반대편 가림은 유지
+      getHeightM: () => 80,
       getColor: (v: AisVessel) =>
         v.category === "military" ? aisMilitaryMapPointColor() : aisCommercialPointColor(v.shipType),
       pixelSize: 6,
@@ -628,7 +648,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         getId: (v: AisVessel) => v.mmsi,
         getLat: (v: AisVessel) => v.lat,
         getLng: (v: AisVessel) => v.lng,
-        getHeightM: () => 0,
+        getHeightM: () => 100,
         getColor: () => "#f43f5e",
         pixelSize: 8,
         getName: (v: AisVessel) => v.shipName || v.mmsi,
