@@ -9,10 +9,34 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
 import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
-import { aisCommercialPointColor, aisMilitaryMapPointColor } from "@/lib/aisVesselClass";
+import { SHADOW_FLEET_MARKER_SIZE } from "@/data/shadowFleetSilhouette";
+import { SUBMARINE_PROFILE_SIZE } from "@/data/submarineSilhouette";
+import { SURFACE_COMBATANT_PROFILE_SIZE } from "@/data/surfaceCombatantSilhouette";
+import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
+import {
+  aisCommercialPointColor,
+  AIS_SURFACE_COMBATANT_FILL,
+  usesSurfaceCombatantDeckIcon,
+} from "@/lib/aisVesselClass";
+import { aisShipIconSvg, aisVesselHeadingDeg } from "@/lib/aisVesselMarkers";
 import { classifyMilAircraft } from "@/lib/milAircraftKind";
 import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import type { AircraftPalette } from "@/lib/milAircraftSymbols";
+import {
+  shadowFleetFacingFromRelativeHeading,
+  shadowFleetIconSvg,
+  shadowFleetRelativeHeading,
+} from "@/lib/shadowFleetDeckIcon";
+import {
+  submarineFacingFromRelativeHeading,
+  submarineProfileIconSvg,
+} from "@/lib/submarineDeckIcon";
+import {
+  surfaceCombatantFacingFromRelativeHeading,
+  surfaceCombatantRelativeHeading,
+  warshipProfileIconSvg,
+} from "@/lib/surfaceCombatantDeckIcon";
+import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -115,88 +139,11 @@ function createGlobeOccluder(
   return new Ctor(viewer.scene.globe.ellipsoid, viewer.camera.positionWC);
 }
 
-/**
- * 점 엔티티 그룹을 prefix로 diff-sync — 매 폴링마다 add/remove 대신
- * 기존 엔티티는 위치·색만 갱신하고, 사라진 것만 지운다.
- * 지구 반대편은 EllipsoidalOccluder로 숨긴다 (투명 비침 방지).
- */
-function syncPointEntities<T>(
-  Cesium: typeof import("cesium"),
-  viewer: import("cesium").Viewer,
-  prefix: string,
-  items: T[],
-  opts: {
-    getId: (item: T) => string;
-    getLat: (item: T) => number;
-    getLng: (item: T) => number;
-    getHeightM: (item: T) => number;
-    getColor: (item: T) => string;
-    pixelSize: number;
-    getName: (item: T) => string;
-  },
-): void {
-  const seen = new Set<string>();
-  const outlineColor = Cesium.Color.fromCssColorString("rgba(6, 10, 22, 0.85)");
-  const occluder = createGlobeOccluder(Cesium, viewer);
-
-  for (const item of items) {
-    const lat = opts.getLat(item);
-    const lng = opts.getLng(item);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    const id = `${prefix}:${opts.getId(item)}`;
-    seen.add(id);
-    const position = Cesium.Cartesian3.fromDegrees(lng, lat, opts.getHeightM(item));
-    const visible = occluder.isPointVisible(position);
-    let color: import("cesium").Color;
-    try {
-      color = Cesium.Color.fromCssColorString(opts.getColor(item));
-    } catch {
-      color = Cesium.Color.LIGHTGRAY;
-    }
-
-    const existing = viewer.entities.getById(id);
-    if (existing) {
-      existing.position = new Cesium.ConstantPositionProperty(position);
-      existing.show = visible;
-      if (existing.point) {
-        existing.point.color = new Cesium.ConstantProperty(color);
-        // 예전 Infinity 설정이 남아 있으면 반대편이 비침 — 매 갱신마다 깊이 테스트 강제
-        existing.point.disableDepthTestDistance = new Cesium.ConstantProperty(0);
-      }
-      existing.name = opts.getName(item);
-      continue;
-    }
-
-    viewer.entities.add({
-      id,
-      name: opts.getName(item),
-      position,
-      show: visible,
-      point: new Cesium.PointGraphics({
-        pixelSize: opts.pixelSize,
-        color,
-        outlineColor,
-        outlineWidth: 1,
-        // 0 = 항상 지구/지형에 가려짐 (Infinity면 반대편까지 비침)
-        disableDepthTestDistance: 0,
-      }),
-    });
-  }
-
-  const toRemove: import("cesium").Entity[] = [];
-  for (const entity of viewer.entities.values) {
-    if (typeof entity.id === "string" && entity.id.startsWith(`${prefix}:`) && !seen.has(entity.id)) {
-      toRemove.push(entity);
-    }
-  }
-  for (const entity of toRemove) {
-    viewer.entities.remove(entity);
-  }
-}
-
 /** Cesium 항공기 빌보드 — MapLibre 실루엣과 동일 SVG, 군용=현행 팔레트·민간=초록. */
 const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
+const aisBillboardUriCache = new Map<string, string>();
+const CESIUM_AIS_GENERIC_PX = 22;
 
 function aircraftHeadingDeg(aircraft: MilitaryAircraft): number | null {
   const raw = aircraft.track ?? aircraft.trueHeading ?? aircraft.magHeading;
@@ -218,6 +165,181 @@ function cesiumAircraftBillboardUri(
   const uri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   aircraftBillboardUriCache.set(key, uri);
   return uri;
+}
+
+function svgDataUri(svg: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+/** MapLibre aisVesselSymbols와 동일 실루엣 — Cesium billboard용. */
+function cesiumAisBillboard(
+  vessel: AisVessel,
+  mapBearingDeg: number,
+): { image: string; width: number; height: number; rotation: number } {
+  const military = vessel.category === "military";
+  const disguised = Boolean(vessel.disguised);
+  const surface = !disguised && military && usesSurfaceCombatantDeckIcon(vessel.militaryKind);
+  const submarine = !disguised && military && vessel.militaryKind === "submarine";
+  const carrier = !disguised && military && vessel.militaryKind === "carrier";
+  const aspectHull = disguised || surface || submarine;
+  const heading = aisVesselHeadingDeg(vessel, {
+    allowStationaryHeading: aspectHull || carrier,
+  });
+
+  if (aspectHull) {
+    const relative = disguised
+      ? shadowFleetRelativeHeading(heading ?? 0, mapBearingDeg)
+      : surfaceCombatantRelativeHeading(heading ?? 0, mapBearingDeg);
+    const facing = disguised
+      ? shadowFleetFacingFromRelativeHeading(relative)
+      : submarine
+        ? submarineFacingFromRelativeHeading(relative)
+        : surfaceCombatantFacingFromRelativeHeading(relative);
+    if (disguised) {
+      const size = SHADOW_FLEET_MARKER_SIZE;
+      const key = `shadow:${facing}`;
+      let image = aisBillboardUriCache.get(key);
+      if (!image) {
+        image = svgDataUri(shadowFleetIconSvg("#c45c5c", size, facing));
+        aisBillboardUriCache.set(key, image);
+      }
+      return { image, width: size.width * 0.45, height: size.height * 0.45, rotation: 0 };
+    }
+    if (submarine) {
+      const size = SUBMARINE_PROFILE_SIZE;
+      const key = `sub:${facing}`;
+      let image = aisBillboardUriCache.get(key);
+      if (!image) {
+        image = svgDataUri(
+          submarineProfileIconSvg(AIS_SURFACE_COMBATANT_FILL, size, facing),
+        );
+        aisBillboardUriCache.set(key, image);
+      }
+      return { image, width: size.width * 0.55, height: size.height * 0.55, rotation: 0 };
+    }
+    const size = SURFACE_COMBATANT_PROFILE_SIZE;
+    const key = `surface:${facing}`;
+    let image = aisBillboardUriCache.get(key);
+    if (!image) {
+      image = svgDataUri(
+        warshipProfileIconSvg(AIS_SURFACE_COMBATANT_FILL, size, facing),
+      );
+      aisBillboardUriCache.set(key, image);
+    }
+    return { image, width: size.width * 0.5, height: size.height * 0.5, rotation: 0 };
+  }
+
+  if (carrier) {
+    const size = CARRIER_MARKER_ICON_SIZE;
+    const key = "carrier";
+    let image = aisBillboardUriCache.get(key);
+    if (!image) {
+      image = svgDataUri(carrierDeckIconSvg(size, AIS_SURFACE_COMBATANT_FILL));
+      aisBillboardUriCache.set(key, image);
+    }
+    const rotation =
+      heading == null ? 0 : -((heading * Math.PI) / 180);
+    return {
+      image,
+      width: size.width * 0.45,
+      height: size.height * 0.45,
+      rotation,
+    };
+  }
+
+  const color = military
+    ? AIS_SURFACE_COMBATANT_FILL
+    : (aisCommercialPointColor(vessel.shipType).replace(/[\d.]+\)$/, "0.98)") ||
+      aisCommercialPointColor(vessel.shipType));
+  const px = CESIUM_AIS_GENERIC_PX;
+  const key = `generic:${military ? "mil" : color}:${px}`;
+  let image = aisBillboardUriCache.get(key);
+  if (!image) {
+    image = svgDataUri(aisShipIconSvg(color, px, military));
+    aisBillboardUriCache.set(key, image);
+  }
+  const rotation =
+    heading == null ? -((18 * Math.PI) / 180) : -((heading * Math.PI) / 180);
+  return { image, width: px, height: px, rotation };
+}
+
+function syncAisBillboardEntities(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  prefix: "ais" | "disguised",
+  items: AisVessel[],
+): void {
+  const seen = new Set<string>();
+  const occluder = createGlobeOccluder(Cesium, viewer);
+  const mapBearingDeg =
+    ((Cesium.Math.toDegrees(viewer.camera.heading) % 360) + 360) % 360;
+
+  for (const item of items) {
+    const lat = item.lat;
+    const lng = item.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    const id = `${prefix}:${item.mmsi}`;
+    seen.add(id);
+    const heightM = prefix === "disguised" ? 100 : 80;
+    const position = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
+    const visible = occluder.isPointVisible(position);
+    const billboard = cesiumAisBillboard(item, mapBearingDeg);
+    const name = item.shipName || item.mmsi;
+
+    const existing = viewer.entities.getById(id);
+    if (existing) {
+      existing.position = new Cesium.ConstantPositionProperty(position);
+      existing.name = name;
+      existing.show = visible;
+      if (existing.point) existing.point = undefined;
+      if (existing.billboard) {
+        existing.billboard.image = new Cesium.ConstantProperty(billboard.image);
+        existing.billboard.width = new Cesium.ConstantProperty(billboard.width);
+        existing.billboard.height = new Cesium.ConstantProperty(billboard.height);
+        existing.billboard.rotation = new Cesium.ConstantProperty(billboard.rotation);
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+      } else {
+        existing.billboard = new Cesium.BillboardGraphics({
+          image: billboard.image,
+          width: billboard.width,
+          height: billboard.height,
+          rotation: billboard.rotation,
+          alignedAxis: Cesium.Cartesian3.UNIT_Z,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          disableDepthTestDistance: 0,
+        });
+      }
+      continue;
+    }
+
+    viewer.entities.add({
+      id,
+      name,
+      position,
+      show: visible,
+      billboard: new Cesium.BillboardGraphics({
+        image: billboard.image,
+        width: billboard.width,
+        height: billboard.height,
+        rotation: billboard.rotation,
+        alignedAxis: Cesium.Cartesian3.UNIT_Z,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        disableDepthTestDistance: 0,
+      }),
+    });
+  }
+
+  const toRemove: import("cesium").Entity[] = [];
+  for (const entity of viewer.entities.values) {
+    if (typeof entity.id === "string" && entity.id.startsWith(`${prefix}:`) && !seen.has(entity.id)) {
+      toRemove.push(entity);
+    }
+  }
+  for (const entity of toRemove) {
+    viewer.entities.remove(entity);
+  }
 }
 
 function syncAircraftBillboardEntities(
@@ -625,9 +747,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   }, []);
 
   /**
-   * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체.
+   * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체. 전부 Cesium billboard.
    * viewer.entities를 prefix(ais:/disguised:/mil:/civ:)별로 diff해서
-   * 매 폴링마다 전체 재생성하지 않고 위치/색만 갱신한다.
+   * 매 폴링마다 전체 재생성하지 않고 위치/아이콘만 갱신한다.
    */
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -635,36 +757,16 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
 
     // 군함/상선 세부 필터 — showAisMilitary·showAisCommercial. "other" 카테고리는
-    // aisMilitaryMapPointColor 색 배정과 동일하게 상선(민간) 쪽으로 취급한다.
+    // 상선(민간) 쪽으로 취급한다.
     const aisFiltered = showAis
       ? aisVessels.filter((v) => (v.category === "military" ? showAisMilitary : showAisCommercial))
       : [];
-    syncPointEntities(Cesium, viewer, "ais", aisFiltered, {
-      getId: (v: AisVessel) => v.mmsi,
-      getLat: (v: AisVessel) => v.lat,
-      getLng: (v: AisVessel) => v.lng,
-      // 수면 살짝 위 — 지구와 z-fight 줄이면서 반대편 가림은 유지
-      getHeightM: () => 80,
-      getColor: (v: AisVessel) =>
-        v.category === "military" ? aisMilitaryMapPointColor() : aisCommercialPointColor(v.shipType),
-      pixelSize: 6,
-      getName: (v: AisVessel) => v.shipName || v.mmsi,
-    });
-
-    syncPointEntities(
+    syncAisBillboardEntities(Cesium, viewer, "ais", aisFiltered);
+    syncAisBillboardEntities(
       Cesium,
       viewer,
       "disguised",
       showDisguisedVessels ? disguisedVessels : [],
-      {
-        getId: (v: AisVessel) => v.mmsi,
-        getLat: (v: AisVessel) => v.lat,
-        getLng: (v: AisVessel) => v.lng,
-        getHeightM: () => 100,
-        getColor: () => "#f43f5e",
-        pixelSize: 8,
-        getName: (v: AisVessel) => v.shipName || v.mmsi,
-      },
     );
 
     syncAircraftBillboardEntities(
