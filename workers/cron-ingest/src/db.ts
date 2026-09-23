@@ -7,6 +7,7 @@ import type {
   IngestEnv,
   TelegramAlertRow,
 } from "./env";
+import type { AisZoneCrossingRow } from "./aisZones";
 
 const INSERT_CHUNK = 40;
 
@@ -146,8 +147,9 @@ export async function upsertAisVessels(db: D1Database, vessels: AisVesselRow[]) 
         .prepare(
           `INSERT INTO ais_vessels (
             id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
-            ship_type, ship_type_label, category, provider, timestamp, ingested_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ship_type, ship_type_label, category, provider, timestamp, ingested_at,
+            draught, destination, length_m, beam_m
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             ship_name = excluded.ship_name,
             lat = excluded.lat,
@@ -160,7 +162,11 @@ export async function upsertAisVessels(db: D1Database, vessels: AisVesselRow[]) 
             category = excluded.category,
             provider = excluded.provider,
             timestamp = excluded.timestamp,
-            ingested_at = excluded.ingested_at`,
+            ingested_at = excluded.ingested_at,
+            draught = COALESCE(excluded.draught, ais_vessels.draught),
+            destination = COALESCE(excluded.destination, ais_vessels.destination),
+            length_m = COALESCE(excluded.length_m, ais_vessels.length_m),
+            beam_m = COALESCE(excluded.beam_m, ais_vessels.beam_m)`,
         )
         .bind(
           v.id,
@@ -177,6 +183,10 @@ export async function upsertAisVessels(db: D1Database, vessels: AisVesselRow[]) 
           v.provider,
           v.timestamp,
           ingestedAt,
+          v.draught,
+          v.destination,
+          v.length_m,
+          v.beam_m,
         ),
     );
     await db.batch(statements);
@@ -278,6 +288,97 @@ export async function readAisVessels(
         .bind(cutoff, opts.limit)
         .all<Record<string, unknown>>();
   return rows.results ?? [];
+}
+
+/**
+ * 이번 배치에 포함된 MMSI들의 "직전" 위치를 D1에서 읽어온다 — upsert로 덮어쓰기 전에
+ * 반드시 먼저 호출해야 한다 (아니면 이전 위치를 영영 잃는다).
+ * ais_vessels는 MMSI당 1행만 유지하므로 이게 유일한 "이전 상태" 소스다.
+ */
+export async function getAisVesselPositions(
+  db: D1Database,
+  ids: string[],
+): Promise<Map<string, { lat: number; lng: number }>> {
+  const map = new Map<string, { lat: number; lng: number }>();
+  if (ids.length === 0) return map;
+
+  for (let i = 0; i < ids.length; i += INSERT_CHUNK) {
+    const chunk = ids.slice(i, i + INSERT_CHUNK);
+    const placeholders = chunk.map(() => "?").join(",");
+    const { results } = await db
+      .prepare(`SELECT id, lat, lng FROM ais_vessels WHERE id IN (${placeholders})`)
+      .bind(...chunk)
+      .all<{ id: string; lat: number; lng: number }>();
+    for (const row of results ?? []) {
+      map.set(row.id, { lat: row.lat, lng: row.lng });
+    }
+  }
+
+  return map;
+}
+
+export async function insertAisZoneCrossings(
+  db: D1Database,
+  crossings: AisZoneCrossingRow[],
+) {
+  if (crossings.length === 0) return 0;
+  let written = 0;
+
+  for (let i = 0; i < crossings.length; i += INSERT_CHUNK) {
+    const chunk = crossings.slice(i, i + INSERT_CHUNK);
+    const statements = chunk.map((c) =>
+      db
+        .prepare(
+          `INSERT INTO ais_zone_crossings (
+            id, zone_id, direction, mmsi, ship_name, category, ship_type_label,
+            lat, lng, sog, cog, detected_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          c.id,
+          c.zone_id,
+          c.direction,
+          c.mmsi,
+          c.ship_name,
+          c.category,
+          c.ship_type_label,
+          c.lat,
+          c.lng,
+          c.sog,
+          c.cog,
+          c.detected_at,
+        ),
+    );
+    await db.batch(statements);
+    written += chunk.length;
+  }
+
+  return written;
+}
+
+/**
+ * 최근 N시간 게이트별 방향별 통과 척수 — "방향별 게이트 통과 선박 수" 지표의
+ * 가장 기본 형태다. category(민간/군용)까지 쪽개서 반환한다.
+ * DWT 가중치·속도 급감·평시 대비 z-score 같은 고급 지표는 아직 없다 —
+ * 저 값들을 신뢰성 있게 내려려면 수 주치 누적 데이터로 "평시" 기준선을 먼저
+ * 만들어야 하는데, 이 테이블이 이제 막 생겨서 기준선이 없다.
+ */
+export async function getAisZoneFlowCounts(
+  db: D1Database,
+  hours: number,
+): Promise<Array<{ zone_id: string; direction: string; category: string | null; count: number }>> {
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+  const { results } = await db
+    .prepare(
+      `SELECT zone_id, direction, category, COUNT(*) as count
+       FROM ais_zone_crossings
+       WHERE detected_at >= ?
+       GROUP BY zone_id, direction, category
+       ORDER BY zone_id, direction`,
+    )
+    .bind(cutoff)
+    .all<{ zone_id: string; direction: string; category: string | null; count: number }>();
+  return results ?? [];
 }
 
 export async function readAdsbAircraft(

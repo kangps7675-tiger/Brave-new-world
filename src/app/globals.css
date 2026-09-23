@@ -1447,6 +1447,15 @@ html[data-device="desktop-wide"] .intel-sidebar-left {
   z-index: 25;
 }
 
+/** Cesium 위성뷰 라이브 피드/증시 스트립 — map-globe-section(flex-1) 높이 변동에 흔들리지 않게 뷰포트 바닥에 강제 고정 */
+.cv-satellite-ticker-dock {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  bottom: var(--bottom-chrome-floor, calc(0.75rem + env(safe-area-inset-bottom, 0px))) !important;
+  z-index: 100;
+}
+
 /** 독/시트 드래그 핸들 — pan-y로 세로 제스처 허용, dismiss는 JS에서 하향만 확정 */
 .intel-drag-handle {
   min-height: var(--tap-target-min);

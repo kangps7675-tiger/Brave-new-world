@@ -398,6 +398,32 @@ export function strategicCorridorPathsForLod(
   return all.filter((p) => keepIds.has(String(p.meta?.corridorId ?? "")));
 }
 
+/**
+ * 상시 배경 인프라 톤 — 회랑별 무지개 해시색(colorForGroupId) 대신 단일 슬레이트/스틸블루.
+ * CRINK 축·무기거래 등 토글로 켜는 화려한 레이어와 시각적으로 경쟁하지 않도록,
+ * 코드베이스가 이미 "기본 path" 색으로 쓰는 slate-400 계열(예: extractLayerAccessors의
+ * path color 폴백, lsib-boundary RANK1 실선)과 같은 톤을 반투명으로 재사용한다.
+ */
+export const STRATEGIC_CORRIDOR_BACKGROUND_COLOR = "rgba(148, 163, 184, 0.42)";
+
+/**
+ * 토글(showStrategicCorridors 등)과 무관하게 항상 렌더링하는 배경 레이어.
+ * 기존 토글 기반 배열(강조색)과 같은 회랑을 다시 그릴 수 있지만, 배경은 무채색·저채도라
+ * 시각적으로 충돌하지 않는다 — 토글을 켜면 그 위에 화려한 색이 그대로 보인다.
+ * id를 `bg-` 접두로 분리해 React key·groupId 기반 선택 로직에서 두 레이어가 섞이지
+ * 않게 하고, meta(corridorId 등)는 그대로 유지해 클릭 시 회랑 정보 패널이 정상 동작한다.
+ */
+export function strategicCorridorBackgroundPathsForLod(
+  lod: CorridorLod,
+  view: { lat: number; lng: number },
+): TransportPath[] {
+  return strategicCorridorPathsForLod(lod, view).map((path) => ({
+    ...path,
+    id: `bg-${path.id}`,
+    accentColor: STRATEGIC_CORRIDOR_BACKGROUND_COLOR,
+  }));
+}
+
 const CATEGORY_PRIORITY: Record<StrategicCorridor["category"], number> = {
   "military-logistics": 0,
   "sanctions-evasion": 1,

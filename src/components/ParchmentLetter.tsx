@@ -1,7 +1,15 @@
 "use client";
 
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 import { BRAND_NAME } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
@@ -110,6 +118,8 @@ export type ParchmentLetterProps = {
   /** 확인 옆 보조 CTA (예: 위치로 가기) — dismiss 없이 실행 */
   secondaryCtaLabel?: string;
   onSecondaryCta?: () => void;
+  /** 본문 단락 아래 추가 슬롯 (그래프 자리 등) */
+  bodyExtra?: ReactNode;
 };
 
 const TYPE_MS_PER_CHAR = 28;
@@ -138,6 +148,7 @@ export function ParchmentLetter({
   dropCap = false,
   secondaryCtaLabel,
   onSecondaryCta,
+  bodyExtra,
 }: ParchmentLetterProps) {
   /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
   const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
@@ -429,6 +440,7 @@ export function ParchmentLetter({
                     ) : null}
                   </p>
                 ))}
+                {bodyExtra && typingDone ? bodyExtra : null}
                 {signOff && typingDone ? (
                   <p
                     className={`whitespace-pre-line pb-2 pt-2 text-right leading-relaxed ${

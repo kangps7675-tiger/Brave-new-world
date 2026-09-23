@@ -204,72 +204,6 @@ async function deactivateStaleNavareaExercises(
   }
 }
 
-/**
- * 간단 RSS 키워드 슬라이스 — news_stream_items 가 있을 때만.
- * unverified 로 적재 (관영 화이트리스트 승격은 추후 — docs/exercise-alerts.md · deferred-status.md).
- */
-async function ingestNewsKeywordExercises(
-  db: D1Database,
-  ingestedAt: string,
-): Promise<number> {
-  try {
-    const res = await db
-      .prepare(
-        `SELECT id, title, link, source, pub_date, theater, summary
-         FROM news_stream_items
-         WHERE lower(title) LIKE '%exercise%'
-            OR lower(title) LIKE '%drill%'
-            OR lower(title) LIKE '%live fire%'
-            OR title LIKE '%군사훈련%'
-            OR title LIKE '%연합훈련%'
-            OR title LIKE '%联合演习%'
-         ORDER BY pub_date DESC
-         LIMIT 40`,
-      )
-      .all<{
-        id: string;
-        title: string;
-        link: string | null;
-        source: string | null;
-        pub_date: string | null;
-        theater: string | null;
-        summary: string | null;
-      }>();
-    const rows: MilitaryExerciseRow[] = [];
-    for (const item of res.results ?? []) {
-      const blob = `${item.title}\n${item.summary ?? ""}`;
-      const actors = inferActorsFromText(blob);
-      rows.push({
-        id: `news-ex-${item.id}`.slice(0, 180),
-        title: item.title.slice(0, 200),
-        summary: (item.summary || item.title).slice(0, 1200),
-        actors_json: JSON.stringify(actors),
-        coalition: inferCoalition(actors),
-        theater: item.theater,
-        lat: null,
-        lng: null,
-        geojson: null,
-        starts_at: item.pub_date,
-        ends_at: null,
-        announced_at: item.pub_date || ingestedAt,
-        confidence: "unverified",
-        sources_json: JSON.stringify([
-          {
-            name: item.source || "RSS",
-            url: item.link || undefined,
-            official: false,
-          },
-        ]),
-        rf_gap_note: rfGapNoteForActors(actors, "ko"),
-        active: 1,
-        ingested_at: ingestedAt,
-      });
-    }
-    return upsertExercises(db, rows);
-  } catch {
-    return 0;
-  }
-}
 
 export async function fetchAndUpsertMilitaryExercises(env: IngestEnv): Promise<{
   count: number;
@@ -307,11 +241,10 @@ export async function fetchAndUpsertMilitaryExercises(env: IngestEnv): Promise<{
     errors.push(error instanceof Error ? error.message : "navarea→exercise failed");
   }
 
-  try {
-    fromNews = await ingestNewsKeywordExercises(env.DB, ingestedAt);
-  } catch (error) {
-    errors.push(error instanceof Error ? error.message : "news→exercise failed");
-  }
+  // 뉴스 키워드 스캔(news_stream_items)은 히어로 캐시 몇 건만 훑어 5개 카테고리를
+  // 실질적으로 못 잡는 것으로 확인되어 제거함(2026-09-22). 대체: Next 쪽
+  // /api/military-exercises 라우트의 카테고리별 RSS 수집(exerciseReports.ts) + 수동 검증
+  // 시드(exerciseBriefs.ts).
 
   return {
     count: fromNavarea + fromNews,

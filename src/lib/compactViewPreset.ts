@@ -119,11 +119,13 @@ export function buildCompactPrefs(
   current?: Pick<LayerPrefs, "labelLanguage">,
 ): LayerPrefs {
   const presets = compactPresetsForMode(mode);
+  // satellite·live 모드는 compactPresetsForMode()가 의도적으로 빈 배열을 반환한다
+  // (칩 프리셋이 없는 모드) — 그 경우 chip은 undefined이므로 spread 전 반드시 가드한다.
   const chip = presets.find((p) => p.id === chipId) ?? presets[0];
   const labelLanguage = current?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
 
   let next = allLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
   next = applyUltraLiteToLayerPrefs(next);
-  next = { ...next, ...chip.layers, labelLanguage };
+  next = { ...next, ...(chip?.layers ?? {}), labelLanguage };
   return clampPrefsToActiveCap(stripLegacyConflictPrefs(next), true);
 }
