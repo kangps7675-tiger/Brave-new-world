@@ -17,11 +17,14 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
 };
 
 /**
- * 경제·물류 전역 첫 화면 — 지경학 진영 폴리곤만.
- * 항로·항구·배관·DC·항적은 패널에서 수동 ON.
+ * 경제·물류 전역 첫 화면 — 진영 폴리곤 + 해상 물류 뼈대.
+ * 항구·주요 항로·초크포인트. 배관·DC·AIS는 패널에서 수동 ON.
  */
 export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showGeoEconBlocs: true,
+  showPorts: true,
+  showShippingLanes: true,
+  showLogisticsRisk: true,
 };
 
 /**

@@ -81,7 +81,7 @@ describe("첫 화면 Compact 장면", () => {
     expect(chrome.showGdeltWar).toBe(false);
   });
 
-  it("지경학 크롬이 우크라 점령·전선·NEPTUN을 강제 OFF 하고 진영 폴리곤을 켠다", () => {
+  it("지경학 크롬이 우크라 점령·전선·NEPTUN을 강제 OFF 하고 진영·항구·항로·초크를 켠다", () => {
     const saved = {
       ...DEFAULT_LAYER_PREFS,
       showUkraineControl: true,
@@ -98,8 +98,9 @@ describe("첫 화면 Compact 장면", () => {
     expect(next.showMilitaryActivity).toBe(false);
     expect(next.showGeoEconBlocs).toBe(true);
     expect(next.showGscpiGauge).toBe(true);
-    expect(next.showLogisticsRisk).toBe(false);
-    expect(next.showShippingLanes).toBe(false);
+    expect(next.showLogisticsRisk).toBe(true);
+    expect(next.showShippingLanes).toBe(true);
+    expect(next.showPorts).toBe(true);
     expect(next.showAis).toBe(false);
     expect(next.showAirTraffic).toBe(false);
     expect(next.showAiDataCenters).toBe(false);

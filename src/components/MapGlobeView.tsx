@@ -303,22 +303,6 @@ function axisLinkHoverGroupId(item: unknown): string | null {
   return typeof id === "string" && id ? id : null;
 }
 
-/** PortWatch maritime routes — flowing dash (trade particle motion). */
-const MARITIME_DASH_SEQUENCE: [number, number, number][] = [
-  [0, 5, 2.5],
-  [0.6, 5, 1.9],
-  [1.2, 5, 1.3],
-  [1.8, 5, 0.7],
-  [2.4, 5, 0.1],
-  [0, 0.6, 4.4],
-  [0, 1.2, 3.8],
-  [0, 1.8, 3.2],
-  [0, 2.4, 2.6],
-  [0, 3.0, 2.0],
-  [0, 3.6, 1.4],
-  [0, 4.2, 0.8],
-];
-
 /** 도련선 점선 흐름 — MapLibre dasharray 시퀀스 */
 const CHINA_DASH_SEQUENCE: [number, number, number][] = [
   [0, 4, 3],
@@ -876,8 +860,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       points: a.pathPoints,
       color: a.pathColor,
       stroke: a.pathStroke,
-      // 해상 항로·해상 회랑 leg → PortWatch식 흐르는 항로(map-paths-maritime).
-      // 정지 점선은 추정/미확인(축 링크 등)에만 쓰고, 바다는 흐름으로 읽히게 한다.
+      // 해상 항로·해상 회랑 leg → 실선 리본(map-paths-maritime).
+      // 점선 흐름은 지도 위를 걸어 다니는 것처럼 보여서 쓰지 않는다.
       dashLength: (item) => {
         const meta =
           item && typeof item === "object" && "meta" in item
@@ -887,7 +871,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           item && typeof item === "object" && "kind" in item
             ? String((item as { kind?: string }).kind ?? "")
             : undefined;
-        if (kind === "maritime-route" || meta?.legMode === "sea") return 4;
+        if (kind === "maritime-route" || meta?.legMode === "sea") return 0;
         return a.pathDashLength(item);
       },
       pathStyle: (item) => {
@@ -955,11 +939,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       },
     });
   }, [deferredPathsData, basemapMode]);
-
-  const hasMaritimeRoutes = useMemo(
-    () => pathsGeoJson.features.some((f) => f.properties?.kind === "maritime-route"),
-    [pathsGeoJson],
-  );
 
   /**
    * CRINK 인프라 중 Point 지오메트리(변전소·발전소 등 — extract.py가 way를
@@ -1945,26 +1924,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     return () => window.clearInterval(id);
   }, [mapLoaded, showIslandChains]);
 
-  /** PortWatch graph routes — dashOffset flow + capacity-scaled glow */
-  useEffect(() => {
-    if (!mapLoaded || !hasMaritimeRoutes) return;
-    if (prefersReducedMotion()) return;
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-    let step = 0;
-    const id = window.setInterval(() => {
-      if (!map.getLayer("map-paths-maritime")) return;
-      step = (step + 1) % MARITIME_DASH_SEQUENCE.length;
-      const dash = MARITIME_DASH_SEQUENCE[step]!;
-      try {
-        map.setPaintProperty("map-paths-maritime", "line-dasharray", dash);
-      } catch {
-        /* style reload race */
-      }
-    }, 80);
-    return () => window.clearInterval(id);
-  }, [mapLoaded, hasMaritimeRoutes]);
-
   useEffect(() => {
     if (!showIslandChains) setHoveredIslandBaseId(null);
   }, [showIslandChains]);
@@ -2626,7 +2585,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-dasharray": [2, 1.2],
               }}
             />
-            {/* PortWatch maritime + 전략/군수 해상 회랑 — glow + animated dash flow */}
+            {/* 해상 항로·해상 회랑 — 부드러운 실선 리본. 점선이 지도 위를 흐르지 않는다. */}
             <Layer
               id="map-paths-maritime-glow"
               type="line"
@@ -2687,8 +2646,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               paint={{
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
-                "line-opacity": 0.96,
-                "line-dasharray": [0, 5, 2.5],
+                "line-opacity": 0.88,
               }}
             />
             {/*

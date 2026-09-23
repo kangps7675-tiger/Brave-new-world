@@ -1095,19 +1095,19 @@ export const MODE_PICKER_CHROME: Record<
   economy: {
     ko: {
       title: "지경학",
-      tagline: "진영 폴리곤",
+      tagline: "진영 · 항구 · 항로",
       bullets: [
-        "지경학 진영 폴리곤만 기본 표시",
-        "초크·항로·배관·DC는 레이어 패널에서",
+        "진영 폴리곤과 항구·해상 항로·초크포인트 기본 표시",
+        "배관·DC·AIS는 레이어 패널에서",
         "하단: 티커 + 시장 속보 (GDELT/TG 없음)",
       ],
     },
     en: {
       title: "Geoeconomics",
-      tagline: "Bloc polygons",
+      tagline: "Blocs · ports · lanes",
       bullets: [
-        "Geo-econ bloc polygons only by default",
-        "Chokes · lanes · pipes · DCs — from the layer panel",
+        "Bloc polygons with ports, sea lanes, and chokepoints by default",
+        "Pipes · DCs · AIS — from the layer panel",
         "Bottom: ticker + market headlines (no GDELT/TG)",
       ],
     },

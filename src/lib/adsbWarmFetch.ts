@@ -8,23 +8,23 @@ import {
   readAdsbJsonBody,
   type TrackedAircraft,
 } from "@/lib/adsbClient";
+import {
+  ADSB_LOL_RADIUS_NM,
+  ADSB_WORLD_HUBS,
+  mapPool,
+  thinWorldwide,
+} from "@/lib/adsbWorld";
 
 const ADSBX_MIL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
+const ADSBX_ALL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/all";
 
-/** 민간 항적 워밍용 허브 (전역 civ는 비현실적 → 격자 샘플) */
+/** 전 세계 민항 격자. 반경은 ADSB_LOL_RADIUS_NM. */
 export const ADSB_CIV_HUBS: Array<{
   id: string;
   lat: number;
   lng: number;
   distNm: number;
-}> = [
-  { id: "europe", lat: 50.5, lng: 8.5, distNm: 280 },
-  { id: "mideast", lat: 29.5, lng: 48.0, distNm: 250 },
-  { id: "east-asia", lat: 35.5, lng: 129.0, distNm: 280 },
-  { id: "us-east", lat: 39.0, lng: -77.0, distNm: 280 },
-  { id: "us-west", lat: 34.0, lng: -118.2, distNm: 250 },
-  { id: "sg-malacca", lat: 1.3, lng: 103.8, distNm: 220 },
-];
+}> = ADSB_WORLD_HUBS.map((hub) => ({ ...hub, distNm: ADSB_LOL_RADIUS_NM }));
 
 /** ODbL — 출처 표기만 하면 무료·유료 모두 사용 가능 */
 const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
@@ -68,13 +68,13 @@ export async function fetchAdsbMilitary(max = 400): Promise<{
       ac?: unknown[];
       aircraft?: unknown[];
     };
-    const aircraft: TrackedAircraft[] = [];
+    const all: TrackedAircraft[] = [];
     for (const raw of extractAircraftList(payload as never)) {
       const item = normalizeAdsbAircraft(raw, { requireMilitary: true });
       if (!item) continue;
-      aircraft.push(item);
-      if (aircraft.length >= max) break;
+      all.push(item);
     }
+    const aircraft = thinWorldwide(all, { cellDeg: 10, perCell: 40, max });
     return { aircraft, provider: source };
   } catch (error) {
     return {
@@ -87,20 +87,57 @@ export async function fetchAdsbMilitary(max = 400): Promise<{
 
 export async function fetchAdsbCivilianHubs(options?: {
   maxPerHub?: number;
+  maxTotal?: number;
   hubs?: typeof ADSB_CIV_HUBS;
 }): Promise<{
   aircraft: MilitaryAircraft[];
   hubsOk: number;
   errors: string[];
+  provider: string;
 }> {
-  const maxPerHub = options?.maxPerHub ?? 80;
+  const maxPerHub = options?.maxPerHub ?? 40;
+  const maxTotal = options?.maxTotal ?? 1200;
   const hubs = options?.hubs ?? ADSB_CIV_HUBS;
   const apiKey = getAdsbApiKey();
+
+  if (apiKey) {
+    try {
+      const response = await fetch(ADSBX_ALL_URL, {
+        cache: "no-store",
+        headers: adsbAuthHeaders(apiKey),
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (response.ok) {
+        const payload = (await readAdsbJsonBody(response)) as {
+          ac?: unknown[];
+          aircraft?: unknown[];
+        };
+        const all: MilitaryAircraft[] = [];
+        for (const raw of extractAircraftList(payload as never)) {
+          const item = normalizeAdsbAircraft(raw, { excludeMilitary: true });
+          if (item) all.push(item);
+        }
+        if (all.length > 0) {
+          return {
+            aircraft: thinWorldwide(all, { cellDeg: 8, perCell: 12, max: maxTotal }),
+            hubsOk: hubs.length,
+            errors: [],
+            provider: "adsbx-all",
+          };
+        }
+      }
+    } catch {
+      // 전 세계 한 방이 실패하면 격자 폴링으로 내려간다
+    }
+  }
+
   const byHex = new Map<string, MilitaryAircraft>();
   const errors: string[] = [];
   let hubsOk = 0;
+  let stop = false;
 
-  for (const hub of hubs) {
+  await mapPool(hubs, 4, async (hub) => {
+    if (stop) return;
     const { url, source } = civilianTrafficUrl(hub.lat, hub.lng, hub.distNm);
     try {
       const response = await fetch(url, {
@@ -109,7 +146,8 @@ export async function fetchAdsbCivilianHubs(options?: {
       });
       if (!response.ok) {
         errors.push(`${hub.id}: HTTP ${response.status}`);
-        continue;
+        if (response.status === 429) stop = true;
+        return;
       }
       const payload = (await readAdsbJsonBody(response)) as {
         ac?: unknown[];
@@ -129,9 +167,18 @@ export async function fetchAdsbCivilianHubs(options?: {
         `${hub.id}: ${error instanceof Error ? error.message : "failed"}`,
       );
     }
-  }
+  });
 
-  return { aircraft: Array.from(byHex.values()), hubsOk, errors };
+  return {
+    aircraft: thinWorldwide(Array.from(byHex.values()), {
+      cellDeg: 8,
+      perCell: 20,
+      max: maxTotal,
+    }),
+    hubsOk,
+    errors,
+    provider: "adsb-world-hubs",
+  };
 }
 
 /** lat/lng/dist → 대략 bbox (1° ≈ 60NM) */

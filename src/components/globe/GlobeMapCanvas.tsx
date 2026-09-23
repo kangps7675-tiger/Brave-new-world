@@ -8,6 +8,7 @@ import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
 import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 import type { CesiumEntitySelection, CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
 
 const CesiumSatelliteGlobe = dynamic(
   importWithChunkRetry(() =>
@@ -52,6 +53,9 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   onCesiumReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
   onSelectCesiumEntity?: (selection: CesiumEntitySelection) => void;
+  /** 세슘 알림 핀 */
+  alertPins?: CesiumAlertItem[];
+  onSelectCesiumAlert?: (item: CesiumAlertItem) => void;
 };
 
 /**
@@ -82,6 +86,8 @@ export function GlobeMapCanvas({
   cesiumRef,
   onCesiumReady,
   onSelectCesiumEntity,
+  alertPins,
+  onSelectCesiumAlert,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -112,6 +118,8 @@ export function GlobeMapCanvas({
             showAirTraffic={showAirTraffic}
             onReady={onCesiumReady}
             onSelectEntity={onSelectCesiumEntity}
+            alertPins={alertPins}
+            onSelectAlert={onSelectCesiumAlert}
           />
         ) : null}
         {!isPhoneUi && !satelliteMode ? (

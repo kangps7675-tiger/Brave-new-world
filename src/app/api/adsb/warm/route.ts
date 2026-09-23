@@ -12,7 +12,7 @@ function authorize(request: Request): boolean {
 }
 
 /**
- * Cron 워밍: ADS-B mil(전역) + civ(허브 격자) → D1.
+ * Cron 워밍: ADS-B mil(전 세계 피드) + civ(전 세계 격자 또는 /all) → D1.
  * POST /api/adsb/warm
  */
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   let hubsOk = 0;
   let civErrors: string[] = [];
   if (!skipCiv) {
-    const civ = await fetchAdsbCivilianHubs({ maxPerHub: civPerHub });
+    const civ = await fetchAdsbCivilianHubs({ maxPerHub: civPerHub, maxTotal: 1200 });
     civFetched = civ.aircraft.length;
     hubsOk = civ.hubsOk;
     civErrors = civ.errors;

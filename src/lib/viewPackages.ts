@@ -137,8 +137,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   {
     id: "geo-trader",
     label: "경제·물류",
-    tagline: "진영 폴리곤",
-    description: "지경학 진영 폴리곤 · 물류·에너지는 패널에서",
+    tagline: "진영 · 항구 · 항로",
+    description: "지경학 진영 폴리곤 · 항구·항로·초크 · 에너지·DC는 패널에서",
     layers: {
       ...FIRST_SCREEN_ECONOMY_ON,
     },
@@ -253,11 +253,10 @@ const LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
 const ECONOMY_LAYER_DROP_PRIORITY: BooleanLayerKey[] = [
   "showDiplomaticTension",
   "showEconomicCenters",
-  "showPorts",
   "showInternetExchanges",
   "showAirports",
   "showSubmarineCables",
-  // showLngTerminals · showOilPipelines · showGasPipelines 유지 — 에너지 지도 핵심
+  // showPorts · showShippingLanes · showLogisticsRisk · 에너지 파이프 — 지경학 첫 화면 뼈대, 후순위 드롭
 ];
 
 export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
