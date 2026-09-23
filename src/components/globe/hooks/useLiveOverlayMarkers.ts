@@ -56,22 +56,13 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     showLogisticsRisk,
     usCarriers,
     aisVessels,
-    disguisedVessels,
     isEconomyViewer,
-    isLiveViewer = false,
     showUsCarriers,
     showGpsInterference = false,
-    showMilitaryActivity,
-    showAirTraffic,
-    showAis,
-    showDisguisedVessels,
-    milAircraft,
-    civAircraft,
-    globeLodTier,
-    layerViewState,
     chokeGlowColorById,
-    ultraLite = false,
   } = opts;
+  // ADS-B/AIS 표시 옵션(milAircraft·showAis 등)은 CesiumSatelliteGlobe로 일원화 —
+  // 이 훅은 인프라 HTML·초크 글로우·항모만 담당. opts 타입은 호출부 호환용으로 유지.
 
   /** 인프라 HTML 실루엣 마커 (공항·항구·DC·핵·초크 등) — DOM 비용 때문에 강하게 캡 */
   const airportPortHtmlMarkers = useMemo<StaticGlobePoint[]>(() => {
@@ -158,7 +149,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
    */
 
   // ADS-B(민간) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
-  const civDisplayPoints = useMemo(() => [] as typeof civAircraft, []);
+  const civDisplayPoints = useMemo<MilitaryAircraft[]>(() => [], []);
 
   // AIS(군함·상선·위장선 전부) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
   // 지정학/지경학/항적 3개 모드에서 각각 다르게 필터링하던 로직은 CesiumSatelliteGlobe로 이전.
