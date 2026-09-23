@@ -5,7 +5,6 @@ import type { AisVessel, MilitaryAircraft, UsCarrier } from "@/data/geoTypes";
 import { isClientApiStubMode } from "@/lib/apiStubMode";
 import { dataPath } from "@/lib/dataProfile";
 import {
-  airTrafficDistNm,
   liveAirTrafficFetchMax,
   liveAirTrafficPollMs,
   liveAisFetchMax,
@@ -15,14 +14,11 @@ import {
   liveUsCarriersPollMs,
   shouldDeferLiveNetworkRefresh,
 } from "@/lib/liveRenderGuard";
-import type { ViewState } from "@/components/globe/types";
 import { visibleInterval } from "@/lib/visibleInterval";
 
 type UseLiveVesselAirPollingOptions = {
   isCameraMovingRef: MutableRefObject<boolean>;
   isEconomyViewer: boolean;
-  layerAltitude: number;
-  layerViewState: ViewState;
   showAis: boolean;
   showDisguisedVessels: boolean;
   showMilitaryActivity: boolean;
@@ -46,13 +42,11 @@ type UseLiveVesselAirPollingOptions = {
 
 /**
  * AIS 선박(정상/위장) · ADS-B(군용/민간 항적) · 미 항모 라이브 폴링 — GlobeDashboard에서 추출 (분리 2단계).
- * 동작 변경 없음: 원본 콜백/이펙트를 그대로 옮김.
+ * 민항 ADS-B 는 카메라 주변이 아니라 전 세계 스냅샷을 폴링한다.
  */
 export function useLiveVesselAirPolling({
   isCameraMovingRef,
   isEconomyViewer,
-  layerAltitude,
-  layerViewState,
   showAis,
   showDisguisedVessels,
   showMilitaryActivity,
@@ -174,16 +168,7 @@ export function useLiveVesselAirPolling({
 
     try {
       const max = liveAirTrafficFetchMax();
-      const dist = airTrafficDistNm(layerAltitude);
-      const lat = Math.round(layerViewState.lat * 100) / 100;
-      const lng = Math.round(layerViewState.lng * 100) / 100;
-      const params = new URLSearchParams({
-        lat: String(lat),
-        lng: String(lng),
-        dist: String(dist),
-        max: String(max),
-      });
-      const response = await fetch(`/api/adsb-traffic?${params}`, {
+      const response = await fetch(`/api/adsb-traffic?max=${max}`, {
         cache: "no-store",
       });
       const payload = (await response.json()) as {
@@ -201,15 +186,7 @@ export function useLiveVesselAirPolling({
     } finally {
       setCivLoading(false);
     }
-  }, [
-    isCameraMovingRef,
-    layerAltitude,
-    layerViewState.lat,
-    layerViewState.lng,
-    setCivAircraft,
-    setCivError,
-    setCivLoading,
-  ]);
+  }, [isCameraMovingRef, setCivAircraft, setCivError, setCivLoading]);
 
   const refreshUsCarriers = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;

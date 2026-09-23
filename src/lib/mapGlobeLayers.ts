@@ -1,4 +1,5 @@
 import type { FeatureCollection, LineString, Point, Polygon } from "geojson";
+import { splitAntimeridianCoordinates } from "@/lib/antimeridianLine";
 
 type Accessor<T, R> = (item: T) => R;
 
@@ -346,7 +347,7 @@ export function buildPathsGeoJson<T>(
     /** CRINK 인프라(kind="crink-infra") 전용 — power/pipeline/rail 등 세부 카테고리 필터용 */
     crinkCategory?: Accessor<T, string | undefined>;
     /**
-     * MapLibre 스타일 버킷 — `"maritime-flow"`면 PortWatch식 흐르는 항로 레이어.
+     * MapLibre 스타일 버킷 — `"maritime-flow"`면 해상 항로 리본 레이어.
      * (해상 회랑 leg · maritime-route). 점선(dashed)과 구분.
      */
     pathStyle?: Accessor<T, string | undefined>;
@@ -372,30 +373,30 @@ export function buildPathsGeoJson<T>(
               : kind && FLOW_ARC_KINDS.has(kind)
                 ? "flow"
                 : "angular";
-      return [
-        {
-          type: "Feature" as const,
-          geometry: {
-            type: "LineString" as const,
-            coordinates: pts.map((p) => [p.lng, p.lat]),
-          },
-          properties: {
-            index,
-            color: accessors.color(item),
-            strokeAngular: accessors.stroke(item),
-            widthMode,
-            dashLength: accessors.dashLength(item),
-            dashGap: accessors.dashGap(item),
-            kind: kind ?? "",
-            pathStyle,
-            glint: Boolean(accessors.glint?.(item)),
-            groupId: accessors.groupId?.(item) ?? "",
-            legIndex: accessors.legIndex?.(item) ?? 0,
-            hoverColor: accessors.hoverColor?.(item) ?? "",
-            crinkCategory: accessors.crinkCategory?.(item) ?? "",
-          },
+      const properties = {
+        index,
+        color: accessors.color(item),
+        strokeAngular: accessors.stroke(item),
+        widthMode,
+        dashLength: accessors.dashLength(item),
+        dashGap: accessors.dashGap(item),
+        kind: kind ?? "",
+        pathStyle,
+        glint: Boolean(accessors.glint?.(item)),
+        groupId: accessors.groupId?.(item) ?? "",
+        legIndex: accessors.legIndex?.(item) ?? 0,
+        hoverColor: accessors.hoverColor?.(item) ?? "",
+        crinkCategory: accessors.crinkCategory?.(item) ?? "",
+      };
+      const pieces = splitAntimeridianCoordinates(pts.map((p) => [p.lng, p.lat]));
+      return pieces.map((coordinates) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "LineString" as const,
+          coordinates,
         },
-      ];
+        properties,
+      }));
     }),
   };
 }

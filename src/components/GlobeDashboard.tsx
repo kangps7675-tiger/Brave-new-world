@@ -72,6 +72,7 @@ import {
   trackLayerToggle,
 } from "@/lib/analyticsEvents";
 import { DashboardOverlayHost } from "@/components/globe/DashboardOverlayHost";
+import { CesiumAlertDock } from "@/components/globe/CesiumAlertDock";
 import { useSceneDeeplink } from "@/components/globe/hooks/useSceneDeeplink";
 import { useAmbientSoundSelectors } from "@/components/globe/hooks/useAmbientSoundSelectors";
 import { useMaritimeAlertBriefs } from "@/components/globe/hooks/useMaritimeAlertBriefs";
@@ -85,7 +86,11 @@ import {
   type ExerciseBriefingContent,
 } from "@/components/ExerciseBriefingParchment";
 import { useChokepointStressParchment } from "@/components/globe/hooks/useChokepointStressParchment";
-import type { ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
+import {
+  buildChokepointStressBriefing,
+  type ChokepointStressBriefing,
+} from "@/lib/chokepointStressBriefing";
+import { buildCesiumAlerts, type CesiumAlertItem } from "@/lib/cesiumAlerts";
 import {
   applyRfTrackBoost,
   type MilitaryExercise,
@@ -269,7 +274,6 @@ import {
   liveMilPollMs,
   liveAirTrafficFetchMax,
   liveAirTrafficPollMs,
-  airTrafficDistNm,
   liveTelegramPollMs,
   liveTelegramSyncPollMs,
   liveTzevaPollMs,
@@ -5571,12 +5575,13 @@ export function GlobeDashboard({
 
     try {
       const max = liveAisFetchMax();
-      // 지정학: 군함 · 지경학: 상업 · 항적: 전부
-      const aisClass = isLiveViewer
-        ? "all"
-        : isEconomyViewer
-          ? "commercial"
-          : "military";
+      // 지정학: 군함 · 지경학: 상업 · 항적·관측(Cesium): 전부
+      const aisClass =
+        isLiveViewer || isSatelliteViewer
+          ? "all"
+          : isEconomyViewer
+            ? "commercial"
+            : "military";
       const response = await fetch(
         `/api/ais?seconds=8&max=${max}&class=${aisClass}&provider=auto`,
         { cache: "no-store" },
@@ -5608,7 +5613,7 @@ export function GlobeDashboard({
     } finally {
       setAisLoading(false);
     }
-  }, [isConflictViewer, isEconomyViewer, isLiveViewer]);
+  }, [isConflictViewer, isEconomyViewer, isLiveViewer, isSatelliteViewer]);
 
   const refreshDisguisedVessels = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -5669,16 +5674,7 @@ export function GlobeDashboard({
 
     try {
       const max = liveAirTrafficFetchMax();
-      const dist = airTrafficDistNm(layerAltitude);
-      const lat = Math.round(layerViewState.lat * 100) / 100;
-      const lng = Math.round(layerViewState.lng * 100) / 100;
-      const params = new URLSearchParams({
-        lat: String(lat),
-        lng: String(lng),
-        dist: String(dist),
-        max: String(max),
-      });
-      const response = await fetch(`/api/adsb-traffic?${params}`, {
+      const response = await fetch(`/api/adsb-traffic?max=${max}`, {
         cache: "no-store",
       });
       const payload = (await response.json()) as {
@@ -5696,7 +5692,7 @@ export function GlobeDashboard({
     } finally {
       setCivLoading(false);
     }
-  }, [layerAltitude, layerViewState.lat, layerViewState.lng]);
+  }, []);
 
   const refreshUsCarriers = useCallback(async () => {
     if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
@@ -5728,21 +5724,21 @@ export function GlobeDashboard({
   }, []);
 
   useEffect(() => {
-    if (!showAis) return;
+    if (!showAis && !isSatelliteViewer) return;
     void refreshAis();
     const timer = window.setInterval(() => {
       void refreshAis();
     }, liveAisPollMs());
     return () => window.clearInterval(timer);
-  }, [refreshAis, showAis]);
+  }, [isSatelliteViewer, refreshAis, showAis]);
 
   useEffect(() => {
-    if (isEconomyViewer || !showDisguisedVessels) {
+    if (isEconomyViewer || (!showDisguisedVessels && !isSatelliteViewer)) {
       setDisguisedVessels([]);
       return;
     }
     void refreshDisguisedVessels();
-  }, [isEconomyViewer, refreshDisguisedVessels, showDisguisedVessels]);
+  }, [isEconomyViewer, isSatelliteViewer, refreshDisguisedVessels, showDisguisedVessels]);
 
   useEffect(() => {
     if (isEconomyViewer || !showMilitaryActivity) {
@@ -6051,8 +6047,8 @@ export function GlobeDashboard({
     showCyberIncidents,
     showElectionEvents,
     showFirmsFires,
-    showUkmtoIncidents,
-    showNavareaWarnings,
+    showUkmtoIncidents: showUkmtoIncidents || isSatelliteViewer,
+    showNavareaWarnings: showNavareaWarnings || isSatelliteViewer,
     showShipMovesLayer,
     showMilitaryExercises,
     showEastAsiaAdiz,
@@ -7084,8 +7080,8 @@ export function GlobeDashboard({
       Boolean(exerciseOffer) ||
       Boolean(periodicBriefing),
     labelLanguage,
-    showNavareaWarnings,
-    showUkmtoIncidents,
+    showNavareaWarnings: showNavareaWarnings || isSatelliteViewer,
+    showUkmtoIncidents: showUkmtoIncidents || isSatelliteViewer,
     navareaFeatures,
     ukmtoIncidents,
     flyTo,
@@ -7094,6 +7090,95 @@ export function GlobeDashboard({
     skipNextGlobeClickRef,
   });
 
+  const cesiumAlerts = useMemo(
+    () =>
+      isSatelliteViewer
+        ? buildCesiumAlerts({
+            lang: labelLanguage === "en" ? "en" : "ko",
+            ukmtoIncidents,
+            navareaFeatures,
+            exercises: displayMilitaryExercises,
+            disguisedVessels,
+            portWatchByChokeId,
+            assetByChokeId,
+          })
+        : [],
+    [
+      assetByChokeId,
+      disguisedVessels,
+      displayMilitaryExercises,
+      isSatelliteViewer,
+      labelLanguage,
+      navareaFeatures,
+      portWatchByChokeId,
+      ukmtoIncidents,
+    ],
+  );
+
+  const openCesiumAlert = useCallback(
+    (item: CesiumAlertItem) => {
+      const sourceId = item.id.slice(item.id.indexOf(":") + 1);
+      if (item.kind === "ukmto") {
+        const incident = ukmtoIncidents.find((row) => row.id === sourceId);
+        if (incident) openUkmtoBrief(incident);
+        return;
+      }
+      if (item.kind === "navarea") {
+        const feature = navareaFeatures.find((row) => row.id === sourceId);
+        if (feature) openNavareaBrief(feature);
+        return;
+      }
+      if (item.kind === "portwatch") {
+        const point = LOGISTICS_RISK_POINTS.find((row) => row.id === sourceId);
+        if (!point) return;
+        const briefing = buildChokepointStressBriefing({
+          point,
+          lang: labelLanguage,
+          stress: stressForChokepoint(
+            point,
+            ukmtoIncidents,
+            portWatchByChokeId[point.id] ?? null,
+            assetByChokeId[point.id] ?? null,
+          ),
+          aisObservation: portWatchByChokeId[point.id] ?? null,
+          assetVolatility: assetByChokeId[point.id] ?? null,
+        });
+        if (briefing) setChokepointStressBriefing(briefing);
+        flyTo(item.lat, item.lng, 0.72, 900);
+        return;
+      }
+      if (item.kind === "exercise") {
+        const exercise = displayMilitaryExercises.find((row) => row.id === sourceId);
+        if (!exercise) return;
+        const brief = buildExerciseBriefingContent(
+          exercise,
+          labelLanguage === "en" ? "en" : "ko",
+        );
+        if (brief) setExerciseBriefing(brief);
+        flyTo(item.lat, item.lng, 0.85, 900);
+        return;
+      }
+      if (item.kind === "dark-fleet") {
+        const vessel = disguisedVessels.find((row) => row.id === sourceId);
+        if (vessel) setSelected({ kind: "ais", item: vessel });
+        flyTo(item.lat, item.lng, 0.45, 900);
+        return;
+      }
+      flyTo(item.lat, item.lng, item.kind === "route" ? 1.15 : 0.62, 900);
+    },
+    [
+      assetByChokeId,
+      disguisedVessels,
+      displayMilitaryExercises,
+      flyTo,
+      labelLanguage,
+      navareaFeatures,
+      openNavareaBrief,
+      openUkmtoBrief,
+      portWatchByChokeId,
+      ukmtoIncidents,
+    ],
+  );
 
   function openIntelSheet(options?: {
     theater?: IntelTheaterFilter;
@@ -9599,15 +9684,17 @@ export function GlobeDashboard({
           disguisedVessels={disguisedVessels}
           milAircraft={milAircraft}
           civAircraft={civAircraft}
-          showAis={showAis}
+          showAis={showAis || isSatelliteViewer}
           showAisMilitary={showAisMilitary}
           showAisCommercial={showAisCommercial}
-          showDisguisedVessels={showDisguisedVessels}
+          showDisguisedVessels={showDisguisedVessels || isSatelliteViewer}
           showMilitaryActivity={showMilitaryActivity}
           showAirTraffic={showAirTraffic}
           cesiumRef={cesiumGlobeRef}
           onCesiumReady={() => setCesiumReady(true)}
           onSelectCesiumEntity={handleSelectCesiumEntity}
+          alertPins={cesiumAlerts}
+          onSelectCesiumAlert={openCesiumAlert}
           {...mapGlobeProps}
         />
 
@@ -9669,7 +9756,7 @@ export function GlobeDashboard({
               </span>
               <span className="text-micro text-teal-200/70">
                 ADS-B {showAirTraffic || showMilitaryActivity ? "ON" : "—"} · AIS{" "}
-                {showAis ? "ON" : "—"} ·{" "}
+                {showAis || isSatelliteViewer ? "ON" : "—"} ·{" "}
                 {liveuaFeed?.status === "ok"
                   ? t("liveuaFeedStatusOk", labelLanguage)
                   : liveuaFeed?.status === "error"
@@ -9689,6 +9776,11 @@ export function GlobeDashboard({
                 ? ` · ${liveuaFeed.events.length}`
                 : ""}
             </p>
+            <CesiumAlertDock
+              lang={labelLanguage}
+              items={cesiumAlerts}
+              onOpen={openCesiumAlert}
+            />
           </div>
         ) : null}
 

@@ -1,6 +1,12 @@
 import type { AdsbAircraftRow, IngestEnv } from "./env";
 import { getAdsbApiKey } from "./db";
 import milHexPayload from "./data/bellingcat-mil-hexes.json";
+import {
+  ADSB_LOL_RADIUS_NM,
+  ADSB_WORLD_HUBS,
+  mapPool,
+  thinWorldwide,
+} from "../../../src/lib/adsbWorld";
 
 const BELLINGCAT_MIL_HEX = new Set(
   (milHexPayload.hexes as string[]).map((h) => h.toLowerCase()),
@@ -10,15 +16,9 @@ const BELLINGCAT_MIL_HEX = new Set(
 // 사유는 milUrlCandidates 주석 참조 — 되돌리지 말 것.
 const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
 const ADSBX_MIL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
+const ADSBX_ALL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/all";
 
-const CIV_HUBS = [
-  { id: "europe", lat: 50.5, lng: 8.5, distNm: 280 },
-  { id: "mideast", lat: 29.5, lng: 48.0, distNm: 250 },
-  { id: "east-asia", lat: 35.5, lng: 129.0, distNm: 280 },
-  { id: "us-east", lat: 39.0, lng: -77.0, distNm: 280 },
-  { id: "us-west", lat: 34.0, lng: -118.2, distNm: 250 },
-  { id: "sg-malacca", lat: 1.3, lng: 103.8, distNm: 220 },
-] as const;
+const CIV_HUBS = ADSB_WORLD_HUBS;
 
 type RawAc = {
   hex?: string;
@@ -200,7 +200,7 @@ function civUrlCandidates(
   lng: number,
   distNm: number,
 ): string[] {
-  const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
+  const dist = Math.min(ADSB_LOL_RADIUS_NM, Math.max(25, Math.round(distNm)));
   const adsbLol = `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
   const adsbx = `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`;
 
@@ -224,50 +224,39 @@ async function fetchAdsbJson(
   }
 }
 
-export async function fetchAdsbAircraft(
-  env: IngestEnv,
-  options?: { milMax?: number; civPerHub?: number; maxHubs?: number },
-): Promise<{ aircraft: AdsbAircraftRow[]; errors: string[] }> {
-  const apiKey = getAdsbApiKey(env);
-  const milMax = Math.min(800, Math.max(50, options?.milMax ?? 400));
-  const civPerHub = Math.min(120, Math.max(20, options?.civPerHub ?? 80));
-  const hubLimit = Math.min(CIV_HUBS.length, Math.max(1, options?.maxHubs ?? 4));
-  const errors: string[] = [];
-  const byId = new Map<string, AdsbAircraftRow>();
-
-  // Military — 라이선스가 확인된 소스만 (ADSBexchange 키 → adsb.lol ODbL)
-  const milUrls = milUrlCandidates(apiKey);
-  for (let i = 0; i < milUrls.length; i += 1) {
-    const url = milUrls[i]!;
-    const isLast = i === milUrls.length - 1;
+async function fetchCivWorldwide(
+  apiKey: string | null,
+  civPerHub: number,
+  civMax: number,
+  hubLimit: number,
+  errors: string[],
+): Promise<AdsbAircraftRow[]> {
+  if (apiKey) {
     try {
-      const useKey = url === ADSBX_MIL_URL ? apiKey : null;
-      const result = await fetchAdsbJson(url, useKey);
-      if (!result.ok) {
-        if (result.status === 401 || result.status === 403) continue;
-        errors.push(`mil: HTTP ${result.status}`);
-        if (isLast) break;
-        continue;
+      const result = await fetchAdsbJson(ADSBX_ALL_URL, apiKey);
+      if (result.ok) {
+        const payload = result.payload as { ac?: RawAc[]; aircraft?: RawAc[] };
+        const all: AdsbAircraftRow[] = [];
+        for (const raw of extractList(payload)) {
+          const row = normalizeAircraft(raw, "civ");
+          if (row) all.push({ ...row, hub: "world" });
+        }
+        if (all.length > 0) {
+          return thinWorldwide(all, { cellDeg: 8, perCell: 12, max: civMax });
+        }
+      } else if (result.status !== 401 && result.status !== 403) {
+        errors.push(`civ-all: HTTP ${result.status}`);
       }
-      const payload = result.payload as { ac?: RawAc[]; aircraft?: RawAc[] };
-      let n = 0;
-      for (const raw of extractList(payload)) {
-        const row = normalizeAircraft(raw, "mil");
-        if (!row) continue;
-        byId.set(row.id, row);
-        n += 1;
-        if (n >= milMax) break;
-      }
-      if (n > 0 || isLast) break;
     } catch (error) {
-      errors.push(`mil: ${error instanceof Error ? error.message : "fetch failed"}`);
-      if (isLast) break;
+      errors.push(`civ-all: ${error instanceof Error ? error.message : "fetch failed"}`);
     }
   }
 
-  // Civilian hubs (cron 서브요청 절약)
-  for (const hub of CIV_HUBS.slice(0, hubLimit)) {
-    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, hub.distNm);
+  const byId = new Map<string, AdsbAircraftRow>();
+  let stop = false;
+  await mapPool(CIV_HUBS.slice(0, hubLimit), 4, async (hub) => {
+    if (stop) return;
+    const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, ADSB_LOL_RADIUS_NM);
     for (let i = 0; i < urls.length; i += 1) {
       const url = urls[i]!;
       const isLast = i === urls.length - 1;
@@ -277,6 +266,7 @@ export async function fetchAdsbAircraft(
         if (!result.ok) {
           if (result.status === 401 || result.status === 403) continue;
           errors.push(`${hub.id}: HTTP ${result.status}`);
+          if (result.status === 429) stop = true;
           if (isLast) break;
           continue;
         }
@@ -295,7 +285,61 @@ export async function fetchAdsbAircraft(
         if (isLast) break;
       }
     }
+  });
+
+  return thinWorldwide(Array.from(byId.values()), {
+    cellDeg: 8,
+    perCell: 20,
+    max: civMax,
+  });
+}
+
+export async function fetchAdsbAircraft(
+  env: IngestEnv,
+  options?: { milMax?: number; civPerHub?: number; maxHubs?: number },
+): Promise<{ aircraft: AdsbAircraftRow[]; errors: string[] }> {
+  const apiKey = getAdsbApiKey(env);
+  const milMax = Math.min(2000, Math.max(50, options?.milMax ?? 1200));
+  const civPerHub = Math.min(80, Math.max(10, options?.civPerHub ?? 40));
+  const hubLimit = Math.min(
+    CIV_HUBS.length,
+    Math.max(1, options?.maxHubs ?? CIV_HUBS.length),
+  );
+  const errors: string[] = [];
+  const byId = new Map<string, AdsbAircraftRow>();
+
+  // Military — /v2/mil 은 전 세계. 앞부분만 자르면 등록국 한쪽으로 몰린다.
+  const milUrls = milUrlCandidates(apiKey);
+  for (let i = 0; i < milUrls.length; i += 1) {
+    const url = milUrls[i]!;
+    const isLast = i === milUrls.length - 1;
+    try {
+      const useKey = url === ADSBX_MIL_URL ? apiKey : null;
+      const result = await fetchAdsbJson(url, useKey);
+      if (!result.ok) {
+        if (result.status === 401 || result.status === 403) continue;
+        errors.push(`mil: HTTP ${result.status}`);
+        if (isLast) break;
+        continue;
+      }
+      const payload = result.payload as { ac?: RawAc[]; aircraft?: RawAc[] };
+      const all: AdsbAircraftRow[] = [];
+      for (const raw of extractList(payload)) {
+        const row = normalizeAircraft(raw, "mil");
+        if (row) all.push(row);
+      }
+      for (const row of thinWorldwide(all, { cellDeg: 10, perCell: 40, max: milMax })) {
+        byId.set(row.id, row);
+      }
+      if (all.length > 0 || isLast) break;
+    } catch (error) {
+      errors.push(`mil: ${error instanceof Error ? error.message : "fetch failed"}`);
+      if (isLast) break;
+    }
   }
+
+  const civ = await fetchCivWorldwide(apiKey, civPerHub, 1200, hubLimit, errors);
+  for (const row of civ) byId.set(row.id, row);
 
   return { aircraft: Array.from(byId.values()), errors };
 }
