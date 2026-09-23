@@ -179,6 +179,8 @@ import {
   ExerciseBriefingParchment,
   type ExerciseBriefingContent,
 } from "@/components/ExerciseBriefingParchment";
+import { ChokepointStressParchment } from "@/components/ChokepointStressParchment";
+import type { ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
 import {
   MaritimeAlertOfferBanner,
   type MaritimeAlertOffer,
@@ -371,8 +373,11 @@ export type DashboardOverlayHostProps = {
   onDismissEscalationOffer: () => void;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
+  /** 병목 통항/스트레스 양피지 — 선물 그래프 슬롯 포함 */
+  chokepointStressBriefing: ChokepointStressBriefing | null;
   /** 양피지 "위치 보기" 보조 CTA — 누를 때만 실행 (자동 fly 없음) */
   onExerciseFlyTo: () => void;
+  onChokepointStressFlyTo: () => void;
   maritimeOffer: MaritimeAlertOffer | null;
   /** 대만 해협 긴장 컷 — 오버레이 큐 tensionCut */
   tensionSpike: TensionSpikeSnapshot | null;
@@ -463,6 +468,7 @@ export type DashboardOverlayHostProps = {
   onDismissNatoPerimeterAlert: () => void;
   onDismissExerciseOffer: () => void;
   onSetExerciseBriefing: (v: ExerciseBriefingContent | null) => void;
+  onSetChokepointStressBriefing: (v: ChokepointStressBriefing | null) => void;
   onAcceptMaritimeOffer: () => void;
   onDismissMaritimeOffer: () => void;
   onDismissTensionSpike: () => void;
@@ -586,7 +592,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onDismissEscalationOffer,
     exerciseOffer,
     exerciseBriefing,
+    chokepointStressBriefing,
     onExerciseFlyTo,
+    onChokepointStressFlyTo,
     maritimeOffer,
     tensionSpike,
     hotTheaterOffer,
@@ -651,6 +659,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onDismissAdsbEmergencyOffer,
     onDismissExerciseOffer,
     onSetExerciseBriefing,
+    onSetChokepointStressBriefing,
     onAcceptMaritimeOffer,
     onDismissMaritimeOffer,
     onDismissTensionSpike,
@@ -1650,6 +1659,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           airRaidBriefing ||
             uxGuideBrief ||
             exerciseBriefing ||
+            chokepointStressBriefing ||
             ukmtoBriefing ||
             navareaBriefing ||
             issueUiPausedForLamp,
@@ -1893,6 +1903,19 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           lang={labelLanguage}
           onDismiss={() => onSetExerciseBriefing(null)}
           onFlyTo={onExerciseFlyTo}
+        />
+      ) : null}
+
+      {chokepointStressBriefing &&
+      !exerciseBriefing &&
+      !airRaidBriefing &&
+      !breakingFlash &&
+      !periodicBriefing ? (
+        <ChokepointStressParchment
+          briefing={chokepointStressBriefing}
+          lang={labelLanguage}
+          onDismiss={() => onSetChokepointStressBriefing(null)}
+          onFlyTo={onChokepointStressFlyTo}
         />
       ) : null}
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { enforceIpRateLimit, RATE_PRESETS } from "@/lib/apiRateLimit";
 import { logApiRoute } from "@/lib/apiRouteLog";
 import { isApiStubMode } from "@/lib/apiStubMode";
+import { fetchOpenSky } from "@/lib/openSkyAuth";
 import {
   SCS_BBOX,
   buildReefWatchPayload,
@@ -32,6 +33,8 @@ async function fetchOpenSkyStates(): Promise<{
   time: number | undefined;
   status: number;
   querySeconds: number;
+  authenticated: boolean;
+  rateLimitRemaining: string | null;
 }> {
   const params = new URLSearchParams({
     lamin: String(SCS_BBOX.lamin),
@@ -43,17 +46,28 @@ async function fetchOpenSkyStates(): Promise<{
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   const t0 = Date.now();
   try {
-    const response = await fetch(`${OPENSKY_URL}?${params.toString()}`, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "BraveNewWorld/1.0 ReefWatch feature-centric SCS monitor",
+    const { response, authenticated } = await fetchOpenSky(
+      `${OPENSKY_URL}?${params.toString()}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "BraveNewWorld/1.0 ReefWatch feature-centric SCS monitor",
+        },
+        signal: controller.signal,
+        cache: "no-store",
       },
-      signal: controller.signal,
-      cache: "no-store",
-    });
+    );
     const querySeconds = (Date.now() - t0) / 1000;
+    const rateLimitRemaining = response.headers.get("X-Rate-Limit-Remaining");
     if (response.status === 429 || response.status === 403) {
-      return { states: [], time: undefined, status: response.status, querySeconds };
+      return {
+        states: [],
+        time: undefined,
+        status: response.status,
+        querySeconds,
+        authenticated,
+        rateLimitRemaining,
+      };
     }
     if (!response.ok) {
       throw new Error(`OpenSky HTTP ${response.status}`);
@@ -64,6 +78,8 @@ async function fetchOpenSkyStates(): Promise<{
       time: typeof body.time === "number" ? body.time : undefined,
       status: response.status,
       querySeconds,
+      authenticated,
+      rateLimitRemaining,
     };
   } finally {
     clearTimeout(timer);
@@ -120,6 +136,10 @@ export async function GET(request: Request) {
         headers: {
           "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
           "X-ReefWatch-Cache": "rate-limited",
+          "X-OpenSky-Auth": result.authenticated ? "oauth" : "anonymous",
+          ...(result.rateLimitRemaining
+            ? { "X-OpenSky-Rate-Limit-Remaining": result.rateLimitRemaining }
+            : {}),
         },
       });
     }
@@ -140,6 +160,10 @@ export async function GET(request: Request) {
       headers: {
         "Cache-Control": `s-maxage=${Math.floor(CACHE_TTL_MS / 1000)}, stale-while-revalidate=120`,
         "X-ReefWatch-Cache": "miss",
+        "X-OpenSky-Auth": result.authenticated ? "oauth" : "anonymous",
+        ...(result.rateLimitRemaining
+          ? { "X-OpenSky-Rate-Limit-Remaining": result.rateLimitRemaining }
+          : {}),
       },
     });
   } catch (error) {

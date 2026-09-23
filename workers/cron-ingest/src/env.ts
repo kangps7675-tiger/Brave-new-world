@@ -220,6 +220,12 @@ export type AisVesselRow = {
   category: string;
   provider: string;
   timestamp: string | null;
+  // ShipStaticData 기반 — DWT 가중 물동량·목적지 변경률 지표용 (draught는 흘수 실측이 아니라
+  // 만재 시 설계 흘수 상한이라 정확한 DWT는 아니지만, 선형 대비 크기 프록시로는 쓸 수 있다)
+  draught: number | null;
+  destination: string | null;
+  length_m: number | null;
+  beam_m: number | null;
 };
 
 export type AdsbAircraftRow = {

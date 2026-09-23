@@ -16,6 +16,7 @@ export type ExerciseConfidence =
 export type ExerciseActor =
   | "nk"
   | "cn"
+  | "tw"
   | "ru"
   | "ir"
   | "us"
@@ -68,6 +69,7 @@ export const EXERCISE_CONFIDENCE_LABEL: Record<
 export const EXERCISE_ACTOR_LABEL: Record<ExerciseActor, { ko: string; en: string }> = {
   nk: { ko: "북한", en: "DPRK" },
   cn: { ko: "중국", en: "China" },
+  tw: { ko: "대만", en: "Taiwan" },
   ru: { ko: "러시아", en: "Russia" },
   ir: { ko: "이란", en: "Iran" },
   us: { ko: "미국", en: "US" },
@@ -143,6 +145,7 @@ export function inferActorsFromText(blob: string): ExerciseActor[] {
   const out = new Set<ExerciseActor>();
   if (/\b(DPRK|NORTH\s*KOREA|PRK)\b/.test(t) || /북한|조선민주주의/.test(blob)) out.add("nk");
   if (/\b(PLA|PRC|CHINA|CHINESE)\b/.test(t) || /중국|인민해방군/.test(blob)) out.add("cn");
+  if (/\b(TAIWAN|TAIWANESE|ROC\b)\b/.test(t) || /대만|타이완|중화민국/.test(blob)) out.add("tw");
   if (/\b(RUSSIA|RUSSIAN|RF\b)\b/.test(t) || /러시아/.test(blob)) out.add("ru");
   if (/\b(IRAN|IRGC|IRIAN)\b/.test(t) || /이란/.test(blob)) out.add("ir");
   if (/\b(UNITED\s*STATES|U\.S\.|USN|USAF|USA)\b/.test(t) || /미국/.test(blob)) out.add("us");

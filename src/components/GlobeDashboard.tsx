@@ -84,6 +84,8 @@ import {
   buildExerciseBriefingContent,
   type ExerciseBriefingContent,
 } from "@/components/ExerciseBriefingParchment";
+import { useChokepointStressParchment } from "@/components/globe/hooks/useChokepointStressParchment";
+import type { ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
 import {
   applyRfTrackBoost,
   type MilitaryExercise,
@@ -98,6 +100,11 @@ import {
 import {
   financialHubHtmlMarkers,
 } from "@/lib/financialMarketHubMarkers";
+import {
+  strategicPostureHtmlMarkers,
+  strategicSupportArrowPaths,
+} from "@/lib/strategicFormationMarkers";
+import { STRATEGIC_OVERVIEW_CALLOUTS } from "@/data/strategicFormations";
 import { EventMarketReactionCard } from "@/components/EventMarketReactionCard";
 import { useNeptunGlobeLayer } from "@/components/globe/hooks/useNeptunGlobeLayer";
 import { useLiveOverlayMarkers } from "@/components/globe/hooks/useLiveOverlayMarkers";
@@ -179,7 +186,6 @@ import {
 import {
   buildLampMacroTable,
   hasFoldedLamp,
-  clearLampFolded,
   localizePeriodicBriefing,
   hasFoldedWeeklyRecap,
   lampSeenKey,
@@ -416,7 +422,11 @@ import { briTradePathsToTransport } from "@/lib/briTradePaths";
 import { gtaInterventionsToTransport } from "@/lib/gtaTradePaths";
 import type { GtaIntervention } from "@/lib/gta";
 import { getCorridorLod } from "@/lib/corridorLod";
-import { strategicCorridorPathsForLod, sanctionsEvasionCorridorPathsForLod } from "@/lib/strategicCorridorPaths";
+import {
+  strategicCorridorPathsForLod,
+  sanctionsEvasionCorridorPathsForLod,
+  strategicCorridorBackgroundPathsForLod,
+} from "@/lib/strategicCorridorPaths";
 import {
   usDfcSupplyPathsToTransport,
 } from "@/lib/usDfcSupplyPaths";
@@ -1137,6 +1147,8 @@ export function GlobeDashboard({
     "idle" | "loading" | "ok" | "error"
   >("idle");
   const [exerciseBriefing, setExerciseBriefing] = useState<ExerciseBriefingContent | null>(null);
+  const [chokepointStressBriefing, setChokepointStressBriefing] =
+    useState<ChokepointStressBriefing | null>(null);
   /** 공습사이렌 포커스 — 사각 틀 없이 해당 지역 빗금만 */
   const [airRaidFocusPaths, setAirRaidFocusPaths] = useState<TransportPath[]>([]);
   const [airRaidFocusBox, setAirRaidFocusBox] = useState<AirRaidFocusBox | null>(null);
@@ -1390,19 +1402,18 @@ export function GlobeDashboard({
     })();
   }, [toggleDailyRankPanel]);
 
-  /** 모드 전환 — 이전 등불 내리고 대상 모드 등불을 바로 띄울 준비 */
-  const prepareLampForModeSwitch = useCallback(
-    (targetMode: ViewerMode) => {
-      setPeriodicBriefing(null);
-      setFoldedPeriodicBriefing(null);
-      setDailyLampSettled(false);
-      lampModeSwitchPendingRef.current = true;
-      const { contentSlot } = resolveLampPeriod();
-      const slot = lampContentSlot.startsWith("daily-") ? lampContentSlot : contentSlot;
-      clearLampFolded(lampSeenKey(slot, targetMode));
-    },
-    [lampContentSlot],
-  );
+  /**
+   * 모드 전환 — 이전 등불 내리고 대상 모드 상태를 재평가할 준비만 한다.
+   * 예전엔 여기서 clearLampFolded + 강제 재점화(lampModeSwitchPendingRef)를 했는데,
+   * 그러면 이미 "접기"로 닫아 localStorage에 저장해둔 폴드 기록을 모드 전환마다 지워버려서
+   * 지정학↔지경학을 오갈 때마다 등불이 매번 새로 튀어나왔다 — 유저가 이미 본 슬롯이면
+   * 자동 점화 이펙트가 hasFoldedLamp로 알아서 접힌 탭으로만 복원하도록 그대로 둔다.
+   */
+  const prepareLampForModeSwitch = useCallback(() => {
+    setPeriodicBriefing(null);
+    setFoldedPeriodicBriefing(null);
+    setDailyLampSettled(false);
+  }, []);
 
   // 일자 전환 — 등불·주간·인가 게이트 전체 재시작
   useEffect(() => {
@@ -1420,7 +1431,7 @@ export function GlobeDashboard({
     setClearanceStatus(null);
   }, [calendarDayKey]);
 
-  // 모드 전환 — 등불만 즉시 재점화 (주간·인가는 유지)
+  // 모드 전환 — 등불 상태만 재평가 (이미 본 슬롯이면 접힌 탭으로, 주간·인가는 유지)
   useEffect(() => {
     if (prevViewerModeRef.current === null) {
       prevViewerModeRef.current = viewerMode;
@@ -1428,7 +1439,7 @@ export function GlobeDashboard({
     }
     if (prevViewerModeRef.current === viewerMode) return;
     prevViewerModeRef.current = viewerMode;
-    prepareLampForModeSwitch(viewerMode);
+    prepareLampForModeSwitch();
   }, [viewerMode, prepareLampForModeSwitch]);
 
   // 6시간 슬롯만 바뀌면 등불만 재점화 (주간·인가는 유지)
@@ -3880,6 +3891,20 @@ export function GlobeDashboard({
   ]);
 
   /**
+   * 전략 회랑 상시 배경 레이어 — 토글(showStrategicCorridors 등)과 무관하게 항상 켜져
+   * 있는 영구 인프라 배경. 위 토글 레이어들과 달리 체크박스로 끄고 켤 수 없고, 무채색
+   * 톤이라 CRINK 축·무기거래 등 토글 레이어와 시각적으로 경쟁하지 않는다.
+   */
+  const strategicCorridorBackgroundPaths = useMemo<TransportPath[]>(
+    () =>
+      strategicCorridorBackgroundPathsForLod(corridorLod, {
+        lat: layerViewState.lat,
+        lng: layerViewState.lng,
+      }),
+    [corridorLod, layerViewState.lat, layerViewState.lng],
+  );
+
+  /**
    * 동맹 물류 회랑(military-logistics) — 기본 꺼짐.
    * 북-이란·예멘·쿠바 등 추정 군수해상로가 첫 화면을 어지럽혀서 레이어 패널에서 켠다.
    */
@@ -4264,6 +4289,31 @@ export function GlobeDashboard({
     [isEconomyViewer, financialHubTick],
   );
 
+  /** 지정학 개관 — 핵심 거점(동맹/CRINK)·명명된 전략태세 라벨. 지경학 뷰에서는 숨김. */
+  const strategicPostureMarkers = useMemo(
+    () => (isEconomyViewer ? [] : strategicPostureHtmlMarkers()),
+    [isEconomyViewer],
+  );
+
+  /** 지정학 개관 상시 콜아웃 3건(북한 미사일·크름 병합·남중국해 충돌) — 기존 situation-callout 뱃지 재사용 */
+  const strategicOverviewCalloutMarkers = useMemo(
+    () =>
+      isEconomyViewer
+        ? []
+        : STRATEGIC_OVERVIEW_CALLOUTS.map((c) => ({
+            ...c,
+            markerId: `strategic-overview-${c.id}`,
+            displayKind: "situation-callout" as const,
+          })),
+    [isEconomyViewer],
+  );
+
+  /** 지정학 개관 — 동맹 거점 간 전략지원 연결선(대권호) */
+  const strategicSupportPaths = useMemo(
+    () => (isEconomyViewer ? [] : strategicSupportArrowPaths(labelLanguage)),
+    [isEconomyViewer, labelLanguage],
+  );
+
   const reefWatchFeatureMarkers = useMemo(
     () =>
       showReefWatch && reefWatch?.featureStatus
@@ -4292,6 +4342,7 @@ export function GlobeDashboard({
       ...axisNetworkPaths,
       ...briTradePaths,
       ...gtaTradePaths,
+      ...strategicCorridorBackgroundPaths,
       ...strategicCorridorPaths,
       ...alliedLogisticsCorridorPaths,
       ...sanctionsEvasionCorridorPaths,
@@ -4310,12 +4361,14 @@ export function GlobeDashboard({
       ...exerciseHatchPaths,
       ...shipMoveTrailPaths,
       ...(gevTrackPath ? [gevTrackPath] : []),
+      ...strategicSupportPaths,
     ],
     [
       armsEmbargoFramePaths,
       axisNetworkPaths,
       briTradePaths,
       gtaTradePaths,
+      strategicCorridorBackgroundPaths,
       strategicCorridorPaths,
       alliedLogisticsCorridorPaths,
       sanctionsEvasionCorridorPaths,
@@ -4332,6 +4385,7 @@ export function GlobeDashboard({
       exerciseHatchPaths,
       shipMoveTrailPaths,
       gevTrackPath,
+      strategicSupportPaths,
       visibleCables,
       visibleDisputeBoundaries,
       visibleLsibBoundary,
@@ -5108,6 +5162,8 @@ export function GlobeDashboard({
       ...europeDroneIncidentMarkers,
       ...conflictEventMarkers,
       ...reconSatelliteMarkers,
+      ...strategicPostureMarkers,
+      ...strategicOverviewCalloutMarkers,
     ];
     // MapLibre는 htmlAltitude 미지원 — 사망자·콜아웃·뉴스네온이 한 좌표에 묶이지 않게 분리
     return deconflictTheaterHtmlOverlays(markers);
@@ -5140,6 +5196,8 @@ export function GlobeDashboard({
       situationCalloutMarkers,
       ukraineSettlementHtmlMarkers,
       usCarrierHtmlMarkers,
+      strategicPostureMarkers,
+      strategicOverviewCalloutMarkers,
   ]);
 
   /**
@@ -6852,6 +6910,32 @@ export function GlobeDashboard({
     flyTo,
   });
 
+  const assetByChokeId = useMemo(() => {
+    const out: Record<string, ReturnType<typeof assetVolatilityHintForPoint>> = {};
+    for (const p of LOGISTICS_RISK_POINTS) {
+      out[p.id] = assetVolatilityHintForPoint(
+        p.meta?.relatedTickers as string | undefined,
+        assetTickerSnapshot,
+      );
+    }
+    return out;
+  }, [assetTickerSnapshot]);
+
+  useChokepointStressParchment({
+    paused: entryGate !== null || showModePicker || issueUiPausedForLamp,
+    lang: labelLanguage,
+    ukmtoIncidents,
+    aisByChokeId: portWatchByChokeId,
+    assetByChokeId,
+    blockedByOtherBriefing:
+      Boolean(airRaidBriefing) ||
+      Boolean(periodicBriefing) ||
+      Boolean(breakingFlash) ||
+      Boolean(exerciseBriefing) ||
+      Boolean(chokepointStressBriefing),
+    onOffer: setChokepointStressBriefing,
+  });
+
   const { adsbEmergencyOffer, dismissAdsbEmergencyOffer } = useAdsbEmergencyAlert({
     paused:
       isEconomyViewer ||
@@ -7368,7 +7452,7 @@ export function GlobeDashboard({
     if (viewerMode === mode) return;
     trackModeSwitch(mode);
     recordInterestMode(mode);
-    prepareLampForModeSwitch(mode);
+    prepareLampForModeSwitch();
     handleModeApply(
       mode,
       mode === "conflict" || mode === "history" ? viewTheater : "auto",
@@ -9867,9 +9951,14 @@ export function GlobeDashboard({
         onDismissNatoPerimeterAlert={dismissNatoPerimeterAlert}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
+        chokepointStressBriefing={chokepointStressBriefing}
         onExerciseFlyTo={() => {
           if (!exerciseBriefing) return;
           flyTo(exerciseBriefing.lat, exerciseBriefing.lng, 0.85, 900);
+        }}
+        onChokepointStressFlyTo={() => {
+          if (!chokepointStressBriefing) return;
+          flyTo(chokepointStressBriefing.lat, chokepointStressBriefing.lng, 0.72, 900);
         }}
         maritimeOffer={maritimeOffer}
         ukmtoBriefing={ukmtoBriefing}
@@ -9950,6 +10039,7 @@ export function GlobeDashboard({
         onDismissAdsbEmergencyOffer={dismissAdsbEmergencyOffer}
         onDismissExerciseOffer={dismissExerciseOffer}
         onSetExerciseBriefing={setExerciseBriefing}
+        onSetChokepointStressBriefing={setChokepointStressBriefing}
         onAcceptMaritimeOffer={acceptMaritimeOffer}
         onDismissMaritimeOffer={dismissMaritimeOffer}
         onCloseUkmtoBriefing={closeUkmtoBriefing}

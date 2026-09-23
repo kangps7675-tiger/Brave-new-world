@@ -18,14 +18,98 @@ import {
   NO_STORE_HEADERS,
   publicCacheHeaders,
 } from "@/lib/httpCacheHeaders";
+import { fetchOpenSky } from "@/lib/openSkyAuth";
+import {
+  hasOpenSkyCredentials,
+  openSkyBboxAround,
+  openSkyStatesUrl,
+  parseOpenSkyTraffic,
+  type OpenSkyBbox,
+} from "@/lib/openSkyTraffic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ADSB_CDN = publicCacheHeaders(CDN_CACHE.adsb);
+const OPENSKY_CACHE_MS = 60_000;
+const OPENSKY_MIN_UPSTREAM_INTERVAL_MS = 30_000;
+const OPENSKY_TIMEOUT_MS = 10_000;
+
+type OpenSkyCache = {
+  key: string;
+  at: number;
+  aircraft: TrackedAircraft[];
+  bbox: OpenSkyBbox;
+  rateLimitRemaining: string | null;
+};
+
+let openSkyCache: OpenSkyCache | null = null;
+let lastOpenSkyFetchAt = 0;
+let pendingOpenSky: {
+  key: string;
+  promise: Promise<OpenSkyCache | null>;
+} | null = null;
+
+function bboxKey(bbox: OpenSkyBbox): string {
+  return [bbox.lamin, bbox.lomin, bbox.lamax, bbox.lomax].join(":");
+}
+
+async function fetchOpenSkyTraffic(
+  lat: number,
+  lng: number,
+  max: number,
+): Promise<OpenSkyCache | null> {
+  if (!hasOpenSkyCredentials()) return null;
+  const bbox = openSkyBboxAround(lat, lng);
+  const key = bboxKey(bbox);
+  const now = Date.now();
+  if (openSkyCache?.key === key && now - openSkyCache.at < OPENSKY_CACHE_MS) {
+    return openSkyCache;
+  }
+  if (pendingOpenSky?.key === key) return pendingOpenSky.promise;
+  if (pendingOpenSky) return null;
+  // One server process may serve many users. Bound total OpenSky credit burn.
+  if (now - lastOpenSkyFetchAt < OPENSKY_MIN_UPSTREAM_INTERVAL_MS) return null;
+
+  lastOpenSkyFetchAt = now;
+  const promise = (async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), OPENSKY_TIMEOUT_MS);
+    try {
+      const { response } = await fetchOpenSky(openSkyStatesUrl(bbox), {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "BraveNewWorld/1.0 OpenSky globe traffic",
+        },
+        signal: controller.signal,
+      });
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { states?: unknown; time?: number };
+      const aircraft = parseOpenSkyTraffic(payload.states, { time: payload.time, max });
+      if (aircraft.length === 0) return null;
+      const entry: OpenSkyCache = {
+        key,
+        at: Date.now(),
+        aircraft,
+        bbox,
+        rateLimitRemaining: response.headers.get("X-Rate-Limit-Remaining"),
+      };
+      openSkyCache = entry;
+      return entry;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+      pendingOpenSky = null;
+    }
+  })();
+  pendingOpenSky = { key, promise };
+  return promise;
+}
 
 /**
- * 지경학(민간 항공 운항) — D1 → 라이브 → 데모.
+ * 지경학(민간 항공 운항) — OpenSky → D1 → 기존 라이브 공급자 → 데모.
  * GET /api/adsb-traffic?lat=&lng=&dist=&max=
  */
 export async function GET(request: Request) {
@@ -46,6 +130,25 @@ export async function GET(request: Request) {
   const { lat, lng, dist, max, live } = parsed.data;
   const preferLive = Boolean(live);
   const bbox = distNmToBbox(lat, lng, dist);
+
+  const openSky = await fetchOpenSkyTraffic(lat, lng, max);
+  if (openSky) {
+    return NextResponse.json(
+      {
+        receivedAt: new Date(openSky.at).toISOString(),
+        count: openSky.aircraft.length,
+        aircraft: openSky.aircraft,
+        attribution: "The OpenSky Network",
+        source: "https://opensky-network.org/",
+        provider: "opensky",
+        mode: "civilian",
+        bbox: openSky.bbox,
+        cached: Date.now() - openSky.at > 1_000,
+        rateLimitRemaining: openSky.rateLimitRemaining,
+      },
+      { headers: ADSB_CDN },
+    );
+  }
 
   if (!preferLive) {
     const fromD1 = await readAdsbFromD1({

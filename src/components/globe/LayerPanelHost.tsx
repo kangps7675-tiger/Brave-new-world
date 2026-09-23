@@ -368,6 +368,15 @@ export function LayerPanelHost({
           {t("layers", labelLanguage)}
         </p>
         <p className="mt-1 text-meta text-slate-600">{t("layerDraftHint", labelLanguage)}</p>
+        {!isEconomyViewer && !isHistoryViewer ? (
+          <a href="/missile-tracker" target="_blank" rel="noopener noreferrer"
+            className="mt-3 block rounded-lg border border-orange-400/30 bg-orange-950/20 px-3 py-2 text-xs text-orange-200 hover:bg-orange-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-300">
+            {labelLanguage === "en" ? "DPRK missile reports · Compare & replay ↗" : "북한 미사일 발표 비교 · 경로 재생 ↗"}
+            <span className="mt-1 block text-meta text-slate-400">
+              {labelLanguage === "en" ? "JCS · Japan MOD · Pentagon — opens in a new tab" : "합참 · 일본 방위성 · 펜타곤 — 새 탭에서 열기"}
+            </span>
+          </a>
+        ) : null}
         <div className="mt-3 text-sm">
           {frozenPanelCategories ? (
             <LayerCategoryDraftHost

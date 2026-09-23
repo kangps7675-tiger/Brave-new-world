@@ -1,6 +1,9 @@
 import type { IngestEnv } from "./env";
 import {
+  getAisVesselPositions,
+  getAisZoneFlowCounts,
   getFirmsMapKey,
+  insertAisZoneCrossings,
   insertUiEvent,
   pruneOldRows,
   readAdsbAircraft,
@@ -17,6 +20,7 @@ import {
   upsertTelegramAlerts,
 } from "./db";
 import { fetchAisVessels } from "./ais";
+import { buildAisZoneCrossings } from "./aisZones";
 import { fetchAdsbAircraft } from "./adsb";
 import { fetchFirmsForTheaters } from "./firms";
 import { fetchGdeltTensionPoints } from "./gdeltExport";
@@ -220,9 +224,27 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
 
-    const aisMax = Math.min(800, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 400)));
+    const aisMax = Math.min(1200, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 400)));
     const ais = await fetchAisVessels(env, aisMax);
     aisErrors.push(...ais.errors.slice(0, 8));
+
+    // upsert로 덮어쓰기 전에 이전 위치를 먼저 읽어서 게이트 통과 여부를 판정한다.
+    // 순서를 바꾸면(upsert 먼저) 항상 같은 위치와 비교하게 된다 — 크로싱이 영영 만들어지지 않는다.
+    try {
+      const priorPositions = await getAisVesselPositions(
+        env.DB,
+        ais.vessels.map((v) => v.id),
+      );
+      const zoneCrossings = buildAisZoneCrossings(ais.vessels, priorPositions);
+      if (zoneCrossings.length > 0) {
+        await insertAisZoneCrossings(env.DB, zoneCrossings);
+      }
+    } catch (error) {
+      aisErrors.push(
+        `zone-crossing: ${error instanceof Error ? error.message : "detection failed"}`,
+      );
+    }
+
     aisCount = await upsertAisVessels(env.DB, ais.vessels);
 
     const mapKey = getFirmsMapKey(env);
@@ -737,6 +759,7 @@ const worker = {
           firms: "GET /firms?west&south&east&north&max (public read of D1 fires)",
           gdelt: "GET /gdelt?limit=1200 (public read of D1 tension points)",
           ais: "GET /ais?category=all|military|commercial&max=250",
+          aisZones: "GET /ais/zones?hours=24",
           adsb: "GET /adsb?mode=mil|civ&west&south&east&north&max=400",
           briefingStats:
             "GET /briefing-stats?key=daily-YYYY-MM-DD|weekly-YYYY-Www|monthly-YYYY-MM or ?tier=daily|weekly|monthly",
@@ -1194,6 +1217,26 @@ const worker = {
         source: "d1-cron",
         count: vessels.length,
         vessels,
+      });
+    }
+
+    if (url.pathname === "/ais/zones") {
+      const hoursRaw = Number.parseInt(url.searchParams.get("hours") || "24", 10);
+      const hours = Math.min(168, Math.max(1, Number.isFinite(hoursRaw) ? hoursRaw : 24));
+      let counts: Array<{ zone_id: string; direction: string; category: string | null; count: number }> = [];
+      try {
+        counts = await getAisZoneFlowCounts(env.DB, hours);
+      } catch {
+        counts = [];
+      }
+      return jsonPublic({
+        receivedAt: new Date().toISOString(),
+        source: "d1-cron",
+        windowHours: hours,
+        // 어느 정도 샘플링이 느쟈한지의 자동 판정은 없다 — 숬다치해협·베링해협은
+        // 트래픽이 희박해 대부분 실행에서 0개일 수 있다. 화면에서는 0을
+        // "통과 없음"이 아니라 "이 시간대에 포착된 것 없음"으로 표기해야 한다.
+        counts,
       });
     }
 

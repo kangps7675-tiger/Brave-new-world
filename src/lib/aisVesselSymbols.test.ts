@@ -90,7 +90,7 @@ describe("buildAisSymbolModel", () => {
     expect(m.headingGeojson.features).toHaveLength(0);
     const f = m.aspectGeojson.features[0];
     expect(f.properties?.rotate).toBe(0);
-    expect(["ais-surface-e-ink2", "ais-surface-w-ink2"]).toContain(f.properties?.icon);
+    expect(["ais-surface-e-ink3", "ais-surface-w-ink3"]).toContain(f.properties?.icon);
   });
 
   it("잠수함은 aspect 레이어 — 전용 E/W 아이콘", () => {
@@ -99,7 +99,7 @@ describe("buildAisSymbolModel", () => {
       0,
     );
     const f = m.aspectGeojson.features[0];
-    expect(["ais-submarine-e-ink2", "ais-submarine-w-ink2"]).toContain(f.properties?.icon);
+    expect(["ais-submarine-e-ink3", "ais-submarine-w-ink3"]).toContain(f.properties?.icon);
   });
 
   it("위장 상선(disguised)은 aspect 레이어 — 군함/잠수함과 무관하게 그림자함대 아이콘", () => {
@@ -108,7 +108,7 @@ describe("buildAisSymbolModel", () => {
       0,
     );
     const f = m.aspectGeojson.features[0];
-    expect(["ais-shadow-e-ink2", "ais-shadow-w-ink2"]).toContain(f.properties?.icon);
+    expect(["ais-shadow-e-ink3", "ais-shadow-w-ink3"]).toContain(f.properties?.icon);
   });
 
   it("저속 군함도 aspect 침로는 유지된다 (allowStationaryHeading)", () => {
