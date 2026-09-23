@@ -43,10 +43,16 @@ type OpenSkyCache = {
   rateLimitRemaining: string | null;
 };
 
+type WorldCivCache = {
+  at: number;
+  aircraft: TrackedAircraft[];
+  provider: string;
+};
+
 let openSkyCache: OpenSkyCache | null = null;
 let lastOpenSkyFetchAt = 0;
-let worldCivCache: { at: number; aircraft: TrackedAircraft[]; provider: string } | null = null;
-let pendingWorldCiv: Promise<typeof worldCivCache> | null = null;
+let worldCivCache: WorldCivCache | null = null;
+let pendingWorldCiv: Promise<WorldCivCache | null> | null = null;
 let pendingOpenSky: {
   key: string;
   promise: Promise<OpenSkyCache | null>;
@@ -112,11 +118,7 @@ async function fetchOpenSkyTraffic(
 
 const WORLD_CIV_CACHE_MS = 45_000;
 
-async function fetchWorldwideCiv(max: number): Promise<{
-  at: number;
-  aircraft: TrackedAircraft[];
-  provider: string;
-} | null> {
+async function fetchWorldwideCiv(max: number): Promise<WorldCivCache | null> {
   const now = Date.now();
   if (worldCivCache && now - worldCivCache.at < WORLD_CIV_CACHE_MS) {
     return worldCivCache;
