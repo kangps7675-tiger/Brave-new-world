@@ -1837,10 +1837,24 @@ export function GlobeDashboard({
   };
   const setShowCityLabels = (v: boolean) => togglePref("showCityLabels", v);
   const setShowRailGlow = (v: boolean) => togglePref("showRailGlow", v);
-  const setShowAis = (v: boolean) => togglePref("showAis", v);
+  /** AIS/ADS-B 켜면 관측(Cesium)으로 — MapLibre에는 항적 없음 */
+  const switchToObserveForTracksRef = useRef<() => void>(() => {});
+  const setShowAis = (v: boolean) => {
+    if (v && viewerMode !== "satellite") {
+      switchToObserveForTracksRef.current();
+      return;
+    }
+    togglePref("showAis", v);
+  };
   const setShowAisMilitary = (v: boolean) => togglePref("showAisMilitary", v);
   const setShowAisCommercial = (v: boolean) => togglePref("showAisCommercial", v);
-  const setShowDisguisedVessels = (v: boolean) => togglePref("showDisguisedVessels", v);
+  const setShowDisguisedVessels = (v: boolean) => {
+    if (v && viewerMode !== "satellite") {
+      switchToObserveForTracksRef.current();
+      return;
+    }
+    togglePref("showDisguisedVessels", v);
+  };
   const setShowShippingLanes = (v: boolean) => togglePref("showShippingLanes", v);
   const setShowLsibBoundary = (v: boolean) => togglePref("showLsibBoundary", v);
   const setShowSubmarineCables = (v: boolean) => togglePref("showSubmarineCables", v);
@@ -1882,8 +1896,20 @@ export function GlobeDashboard({
   void _showUcdpEventsPref;
   const setShowUcdpEvents: (value: boolean) => void = () =>
     togglePref("showUcdpEvents", false);
-  const setShowMilitaryActivity = (v: boolean) => togglePref("showMilitaryActivity", v);
-  const setShowAirTraffic = (v: boolean) => togglePref("showAirTraffic", v);
+  const setShowMilitaryActivity = (v: boolean) => {
+    if (v && viewerMode !== "satellite") {
+      switchToObserveForTracksRef.current();
+      return;
+    }
+    togglePref("showMilitaryActivity", v);
+  };
+  const setShowAirTraffic = (v: boolean) => {
+    if (v && viewerMode !== "satellite") {
+      switchToObserveForTracksRef.current();
+      return;
+    }
+    togglePref("showAirTraffic", v);
+  };
   const setShowUsCarriers = (v: boolean) => togglePref("showUsCarriers", v);
   const setShowWeeklyShipMoves = (v: boolean) => togglePref("showWeeklyShipMoves", v);
   const setShowReefWatch = (v: boolean) => togglePref("showReefWatch", v);
@@ -7459,6 +7485,9 @@ export function GlobeDashboard({
       mode === "economy" ? viewEconomyHub : "auto",
     );
   }
+  switchToObserveForTracksRef.current = () => {
+    handleViewerModeChange("satellite");
+  };
 
   useEffect(() => {
     if (isLoading || loadError || !globeReady || introPlayedRef.current) return;
