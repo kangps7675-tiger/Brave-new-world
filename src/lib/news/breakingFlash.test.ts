@@ -367,10 +367,21 @@ describe("shouldOpenBreakingFlash", () => {
           summary: "Wheat loading terminal damaged",
           breakingRank: "S",
           breakingGrade: 9,
-          ageMinutes: 6,
-          feedTopic: "economy",
+          ageMinutes: 8,
         }),
-        true,
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Russian missiles strike Kremenchuk oil refinery in Ukraine",
+          summary: "Large blaze at fuel processing site",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 6,
+        }),
+        false,
       ),
     ).toBe(true);
   });

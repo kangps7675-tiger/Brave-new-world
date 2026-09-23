@@ -77,16 +77,21 @@ export function ChokepointStressParchment({
   onDismiss,
   onFlyTo,
 }: Props) {
+  const desk =
+    briefing.kind === "energy-infra"
+      ? lang === "en"
+        ? "Energy infra desk · open reporting · Not advice"
+        : "에너지 인프라 데스크 · 공개 보도 · 투자 권유 아님"
+      : lang === "en"
+        ? "Chokepoint desk · PortWatch / UKMTO · Not advice"
+        : "병목 데스크 · PortWatch / UKMTO · 투자 권유 아님";
+
   return (
     <ParchmentLetter
       lang={lang}
       title={briefing.title}
       paragraphs={briefing.paragraphs}
-      signOff={
-        lang === "en"
-          ? "Chokepoint desk · PortWatch / UKMTO · Not advice"
-          : "병목 데스크 · PortWatch / UKMTO · 투자 권유 아님"
-      }
+      signOff={desk}
       ctaLabel={lang === "en" ? "Understood" : "확인"}
       onContinue={onDismiss}
       secondaryCtaLabel={lang === "en" ? "View location" : "위치 보기"}
