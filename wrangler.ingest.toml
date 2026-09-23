@@ -55,6 +55,8 @@ REFERENCE_MONITOR_MIN_RELEVANCE = "2"
 # Optional: SHIP_MOVEMENTS_WARM_URL=https://your-app/api/ship-movements/warm
 # Optional: US_CARRIERS_WARM_URL=https://your-app/api/us-carriers/warm
 # Optional throttle (minutes) on Next side: US_CARRIERS_POLL_MIN_INTERVAL_MINUTES=360
+# Optional: DEEPSTATE_SYNC_URL=https://your-app/api/deepstate/sync
+# (3-day occupied-coordinate snapshot; LIVEUAMAP 전 임시. Next 라우트가 TTL 스로틀)
 
 [[d1_databases]]
 binding = "DB"

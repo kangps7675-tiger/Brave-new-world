@@ -125,7 +125,7 @@ export function liveMilPollMs(): number {
 }
 
 export function liveMilFetchMax(): number {
-  return isClientApiStubMode() ? 400 : 150;
+  return isClientApiStubMode() ? 400 : 1200;
 }
 
 export function liveMilDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
@@ -138,7 +138,7 @@ export function liveAirTrafficPollMs(): number {
 }
 
 export function liveAirTrafficFetchMax(): number {
-  return isClientApiStubMode() ? 350 : 280;
+  return isClientApiStubMode() ? 350 : 1200;
 }
 
 export function liveAirTrafficDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {

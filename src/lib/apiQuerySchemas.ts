@@ -25,17 +25,23 @@ export const firmsFiresQuerySchema = z.object({
 });
 
 export const adsbMilQuerySchema = z.object({
-  max: z.coerce.number().int().min(1).max(1000).optional().default(400),
+  max: z.coerce.number().int().min(1).max(2000).optional().default(400),
   live: liveFlagSchema,
 });
 
-export const adsbTrafficQuerySchema = z.object({
-  lat: z.coerce.number().min(-90).max(90),
-  lng: z.coerce.number().min(-180).max(180),
-  dist: z.coerce.number().min(25).max(1500).optional().default(250),
-  max: z.coerce.number().int().min(1).max(800).optional().default(200),
-  live: liveFlagSchema,
-});
+/** lat/lng 를 빼면 전 세계 스냅샷. 있으면 그 지점 주변만. */
+export const adsbTrafficQuerySchema = z
+  .object({
+    lat: z.coerce.number().min(-90).max(90).optional(),
+    lng: z.coerce.number().min(-180).max(180).optional(),
+    dist: z.coerce.number().min(25).max(1500).optional().default(250),
+    max: z.coerce.number().int().min(1).max(2000).optional().default(800),
+    live: liveFlagSchema,
+  })
+  .refine((data) => (data.lat == null) === (data.lng == null), {
+    message: "lat과 lng는 함께 보내야 합니다",
+    path: ["lat"],
+  });
 
 export const aisQuerySchema = z.object({
   max: z.coerce.number().int().min(1).max(1000).optional().default(250),

@@ -2,8 +2,10 @@
  * DeepState Map → 점령 영토 GeoJSON (임시).
  * 참조: osiris-ref `/api/frontlines` → https://deepstatemap.live/api/history/last
  *
- * LIVEUAMAP 폴링 전까지 정적/프록시 점령 fill만 사용. 빗금·박스 없음.
+ * LIVEUAMAP 영토 폴링 전까지 **3일 스냅샷 좌표만** 사용. 빗금·박스 없음.
+ * 유저 GET마다 DeepState를 치지 않는다.
  */
+
 
 import type { Feature, FeatureCollection, MultiPolygon, Polygon, Position } from "geojson";
 import {
@@ -12,8 +14,55 @@ import {
 } from "@/lib/ukraineFrontGeojson";
 
 export const DEEPSTATE_LAST_URL = "https://deepstatemap.live/api/history/last";
+export const DEEPSTATE_REFRESH_DAYS = 3;
+export const DEEPSTATE_REFRESH_MS = DEEPSTATE_REFRESH_DAYS * 24 * 60 * 60 * 1000;
+export const DEEPSTATE_SNAPSHOT_KEY = "ukraine";
+export const DEEPSTATE_PUBLIC_SNAPSHOT = "ukraine-occupied-deepstate.json";
 
 export type DeepstateOccupiedKind = "occupied" | "annexed" | "unknown";
+
+export type OccupiedSnapshotMeta = {
+  source: string;
+  deepstateId?: number | null;
+  fetchedAt: string;
+  count: number;
+  refreshDays: number;
+};
+
+export type OccupiedGeoJson = FeatureCollection & {
+  meta?: OccupiedSnapshotMeta;
+};
+
+export function occupiedSnapshotFetchedAt(fc: OccupiedGeoJson | null | undefined): string | undefined {
+  const raw = fc?.meta?.fetchedAt;
+  return typeof raw === "string" && raw.trim() ? raw : undefined;
+}
+
+export function isOccupiedSnapshotFresh(
+  fetchedAt: string | undefined,
+  now = Date.now(),
+): boolean {
+  if (!fetchedAt) return false;
+  const t = Date.parse(fetchedAt);
+  if (!Number.isFinite(t)) return false;
+  return now - t < DEEPSTATE_REFRESH_MS;
+}
+
+export function attachOccupiedMeta(
+  fc: FeatureCollection,
+  meta: Partial<OccupiedSnapshotMeta> & { source: string },
+): OccupiedGeoJson {
+  return {
+    ...fc,
+    meta: {
+      source: meta.source,
+      deepstateId: meta.deepstateId ?? null,
+      fetchedAt: meta.fetchedAt ?? new Date().toISOString(),
+      count: meta.count ?? fc.features.length,
+      refreshDays: meta.refreshDays ?? DEEPSTATE_REFRESH_DAYS,
+    },
+  };
+}
 
 type DeepstateFeature = {
   type?: string;
@@ -138,7 +187,7 @@ function asPolygonGeometry(
 export function deepstateToOccupiedGeoJson(
   payload: unknown,
   tier: "macro" | "micro" = "macro",
-): FeatureCollection {
+): OccupiedGeoJson {
   const data = payload as DeepstateHistoryPayload;
   const rawFeatures = data?.map?.features ?? data?.features ?? [];
   const features: Feature<Polygon | MultiPolygon, UkraineFrontProps & { source?: string }>[] =
@@ -164,9 +213,19 @@ export function deepstateToOccupiedGeoJson(
     });
   });
 
-  return { type: "FeatureCollection", features };
+  return attachOccupiedMeta(
+    { type: "FeatureCollection", features },
+    {
+      source: "deepstate-temp",
+      deepstateId: typeof data?.id === "number" ? data.id : null,
+      count: features.length,
+    },
+  );
 }
 
-export function emptyOccupiedGeoJson(): FeatureCollection {
-  return { type: "FeatureCollection", features: [] };
+export function emptyOccupiedGeoJson(): OccupiedGeoJson {
+  return attachOccupiedMeta(
+    { type: "FeatureCollection", features: [] },
+    { source: "empty", count: 0 },
+  );
 }

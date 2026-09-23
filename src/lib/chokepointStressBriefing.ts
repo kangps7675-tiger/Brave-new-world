@@ -31,6 +31,8 @@ export type ChokepointStressBriefing = {
   /** RSS/헤드라인에서 고른 짧은 인용 (없으면 null) */
   headlineSnippets: string[];
   insightTone: "tighten" | "ease" | "watch";
+  /** 병목 통항 vs 우크라·러 에너지 인프라 타격 */
+  kind?: "chokepoint" | "energy-infra";
 };
 
 function zoneName(point: StaticPoint, lang: LabelLanguage): string {
@@ -179,5 +181,6 @@ export function buildChokepointStressBriefing(params: {
     transitChangePct: pct,
     headlineSnippets: headlines,
     insightTone: tone,
+    kind: "chokepoint",
   };
 }

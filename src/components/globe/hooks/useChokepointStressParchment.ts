@@ -7,6 +7,10 @@ import {
   type ChokepointStressBriefing,
 } from "@/lib/chokepointStressBriefing";
 import {
+  buildEnergyInfraStressBriefing,
+  pickEnergyInfraStrikeHeadline,
+} from "@/lib/energyInfraStress";
+import {
   stressForChokepoint,
   type ChokepointAisObservation,
   type ChokepointAssetVolatility,
@@ -39,33 +43,39 @@ function zoneKeywords(name: string, nameEn?: string): string[] {
   return [...new Set(bits)];
 }
 
-async function fetchHeadlineSnippets(
-  lang: LabelLanguage,
-  keywords: string[],
-): Promise<string[]> {
-  if (keywords.length === 0) return [];
-  try {
-    const res = await fetch(`/api/lamp-news?mode=economy&lang=${lang === "en" ? "en" : "ko"}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as LampNewsPayload;
-    const titles = (data.featuredNews ?? [])
-      .map((n) => (n.title || n.headline || "").trim())
-      .filter(Boolean);
-    const matched = titles.filter((t) => {
-      const lower = t.toLowerCase();
-      return keywords.some((k) => lower.includes(k));
-    });
-    return (matched.length > 0 ? matched : titles).slice(0, 2);
-  } catch {
-    return [];
+async function fetchLampTitles(lang: LabelLanguage): Promise<string[]> {
+  const titles: string[] = [];
+  for (const mode of ["economy", "conflict"] as const) {
+    try {
+      const res = await fetch(
+        `/api/lamp-news?mode=${mode}&lang=${lang === "en" ? "en" : "ko"}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) continue;
+      const data = (await res.json()) as LampNewsPayload;
+      for (const n of data.featuredNews ?? []) {
+        const t = (n.title || n.headline || "").trim();
+        if (t) titles.push(t);
+      }
+    } catch {
+      /* keep going */
+    }
   }
+  return titles;
+}
+
+function filterByKeywords(titles: string[], keywords: string[]): string[] {
+  if (keywords.length === 0) return titles.slice(0, 2);
+  const matched = titles.filter((t) => {
+    const lower = t.toLowerCase();
+    return keywords.some((k) => lower.includes(k));
+  });
+  return (matched.length > 0 ? matched : titles).slice(0, 2);
 }
 
 /**
- * 병목 통항 급변 / A급 elevated 신규 진입 시 양피지 오퍼.
- * 사이렌 훅과 독립 — 통항(B) 중심, 선물 그래프는 슬롯만.
+ * 병목 통항 급변 / A급 elevated / 우크라·러 에너지 인프라 타격 → 양피지.
+ * 사이렌 훅과 독립 — 선물 그래프는 슬롯만.
  */
 export function useChokepointStressParchment({
   paused,
@@ -99,6 +109,12 @@ export function useChokepointStressParchment({
           `${point.id}:${ais?.changePct ?? "na"}:${stress.level}`,
         ),
       );
+      // 에너지 인프라는 첫 폴링에서 시드만 — 새로고침 직후 폭주 방지
+      void (async () => {
+        const titles = await fetchLampTitles(langRef.current);
+        const hit = pickEnergyInfraStrikeHeadline(titles);
+        if (hit) seenRef.current?.add(`energy:${hit.slice(0, 80)}`);
+      })();
       return;
     }
 
@@ -106,28 +122,51 @@ export function useChokepointStressParchment({
       const key = `${point.id}:${ais?.changePct ?? "na"}:${stress.level}`;
       return !seenRef.current!.has(key);
     });
-    if (!next) return;
 
-    const offerKey = `${next.point.id}:${next.ais?.changePct ?? "na"}:${next.stress.level}`;
-    seenRef.current.add(offerKey);
+    if (next) {
+      const offerKey = `${next.point.id}:${next.ais?.changePct ?? "na"}:${next.stress.level}`;
+      seenRef.current.add(offerKey);
+      busyRef.current = true;
+
+      const nameEn =
+        typeof next.point.meta?.nameEn === "string" ? next.point.meta.nameEn : undefined;
+      const keywords = zoneKeywords(next.point.name, nameEn);
+
+      void (async () => {
+        const titles = await fetchLampTitles(langRef.current);
+        const headlines = filterByKeywords(titles, keywords);
+        const briefing = buildChokepointStressBriefing({
+          point: next.point,
+          stress: next.stress,
+          aisObservation: next.ais,
+          assetVolatility: next.asset,
+          lang: langRef.current,
+          headlineSnippets: headlines,
+        });
+        busyRef.current = false;
+        if (briefing) onOfferRef.current(briefing);
+      })();
+      return;
+    }
+
+    // 병목 후보 없으면 우크라·러 정유·유정 타격 헤드라인 스캔
     busyRef.current = true;
-
-    const nameEn =
-      typeof next.point.meta?.nameEn === "string" ? next.point.meta.nameEn : undefined;
-    const keywords = zoneKeywords(next.point.name, nameEn);
-
     void (async () => {
-      const headlines = await fetchHeadlineSnippets(langRef.current, keywords);
-      const briefing = buildChokepointStressBriefing({
-        point: next.point,
-        stress: next.stress,
-        aisObservation: next.ais,
-        assetVolatility: next.asset,
-        lang: langRef.current,
-        headlineSnippets: headlines,
-      });
+      const titles = await fetchLampTitles(langRef.current);
+      const hit = pickEnergyInfraStrikeHeadline(titles);
       busyRef.current = false;
-      if (briefing) onOfferRef.current(briefing);
+      if (!hit || !seenRef.current) return;
+      const key = `energy:${hit.slice(0, 80)}`;
+      if (seenRef.current.has(key)) return;
+      seenRef.current.add(key);
+      const extras = titles.filter((t) => t !== hit).slice(0, 2);
+      onOfferRef.current(
+        buildEnergyInfraStressBriefing({
+          headline: hit,
+          lang: langRef.current,
+          extraHeadlines: extras,
+        }),
+      );
     })();
   }, [
     paused,

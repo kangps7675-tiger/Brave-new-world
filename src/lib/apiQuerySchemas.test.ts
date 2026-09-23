@@ -55,9 +55,16 @@ describe("apiQuerySchemas", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("requires lat/lng for adsb-traffic", () => {
-    const missing = parseSearchParams(new URLSearchParams(), adsbTrafficQuerySchema);
-    expect(missing.ok).toBe(false);
+  it("allows worldwide adsb-traffic and still accepts a local bbox", () => {
+    const worldwide = parseSearchParams(new URLSearchParams(), adsbTrafficQuerySchema);
+    expect(worldwide.ok).toBe(true);
+    if (worldwide.ok) {
+      expect(worldwide.data.lat).toBeUndefined();
+      expect(worldwide.data.lng).toBeUndefined();
+      expect(worldwide.data.max).toBe(800);
+    }
+    const oneSided = parseSearchParams(new URLSearchParams({ lat: "37.5" }), adsbTrafficQuerySchema);
+    expect(oneSided.ok).toBe(false);
     const ok = parseSearchParams(
       new URLSearchParams({ lat: "37.5", lng: "127.0", dist: "100" }),
       adsbTrafficQuerySchema,

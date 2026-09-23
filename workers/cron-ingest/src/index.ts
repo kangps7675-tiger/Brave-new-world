@@ -66,6 +66,7 @@ type IngestResult = {
   ukraineHatchWarm?: WarmResult;
   shipMovementsWarm?: WarmResult;
   usCarriersWarm?: WarmResult;
+  deepstateOccupiedWarm?: WarmResult;
   firmsErrors: string[];
   gdeltErrors: string[];
   telegramErrors: string[];
@@ -202,6 +203,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
   let ukraineHatchWarm: IngestResult["ukraineHatchWarm"];
   let shipMovementsWarm: IngestResult["shipMovementsWarm"];
   let usCarriersWarm: IngestResult["usCarriersWarm"];
+  let deepstateOccupiedWarm: IngestResult["deepstateOccupiedWarm"];
 
   try {
     const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 1)));
@@ -216,9 +218,9 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     );
 
     // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS/GDELT
-    const milMax = Math.min(800, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 400)));
-    const civPerHub = Math.min(120, Math.max(20, readIntVar(env, "ADSB_CIV_PER_HUB", 80)));
-    const adsb = await fetchAdsbAircraft(env, { milMax, civPerHub, maxHubs: 4 });
+    const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
+    const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
+    const adsb = await fetchAdsbAircraft(env, { milMax, civPerHub });
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
 
@@ -392,6 +394,11 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       env,
       "us-carriers",
     );
+    deepstateOccupiedWarm = await warmEndpoint(
+      env.DEEPSTATE_SYNC_URL,
+      env,
+      "deepstate-occupied",
+    );
 
     const finishedAt = new Date().toISOString();
     const hardFail =
@@ -530,6 +537,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       ukraineHatchWarm,
       shipMovementsWarm,
       usCarriersWarm,
+      deepstateOccupiedWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,
@@ -574,6 +582,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         disputeHatchWarm,
         ukraineHatchWarm,
         shipMovementsWarm,
+        usCarriersWarm,
+        deepstateOccupiedWarm,
         briefingStats,
         dailyRanks,
         sitrepPush,
@@ -596,7 +606,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         gdeltCount,
         ok: false,
         error: message,
-        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm },
+        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm, deepstateOccupiedWarm },
       });
     } catch {
       // ignore secondary logging failure
@@ -618,6 +628,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       ukraineHatchWarm,
       shipMovementsWarm,
       usCarriersWarm,
+      deepstateOccupiedWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,
@@ -1237,7 +1248,7 @@ const worker = {
       const modeParam = url.searchParams.get("mode");
       const mode: "mil" | "civ" = modeParam === "civ" ? "civ" : "mil";
       const maxRaw = Number.parseInt(url.searchParams.get("max") || "400", 10);
-      const max = Math.min(1000, Math.max(1, Number.isFinite(maxRaw) ? maxRaw : 400));
+      const max = Math.min(2000, Math.max(1, Number.isFinite(maxRaw) ? maxRaw : 400));
       const west = num("west");
       const south = num("south");
       const east = num("east");

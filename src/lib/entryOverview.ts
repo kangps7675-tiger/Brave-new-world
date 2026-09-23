@@ -85,7 +85,7 @@ const CONFLICT_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_CONFLICT_ON,
 };
 
-/** 경제·물류 첫 화면 — 진영 폴리곤 */
+/** 경제·물류 첫 화면 — 진영 · 항구 · 항로 · 초크 */
 const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };
@@ -99,8 +99,8 @@ const LIVE_HERO_ON: Partial<LayerPrefs> = {
  * 도메인 게이트 직후 첫 화면용 레이어.
  *
  * 장면 칩 + 기지·에너지 히어로.
- * CRINK OSM·해상 항로·물류망은 기본 OFF(레이어 패널·지경학 첫 화면에서 켠다).
- * 텔레그램·ADIZ는 전장 진입 때 conceptLayers가 붙인다. 클램프는 항상 마지막.
+ * CRINK OSM·배관·DC·AIS는 기본 OFF(레이어 패널에서 켠다).
+ * 지경학 첫 화면은 항구·항로·초크를 FIRST_SCREEN_ECONOMY_ON으로 켠다.
  */
 export function buildDomainOverviewPrefs(
   mode: ViewerMode,

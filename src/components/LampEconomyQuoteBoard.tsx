@@ -87,24 +87,24 @@ export function LampEconomyQuoteBoard({ news, lang }: Props) {
       : "파랑=매도 · 빨강=매수 · 표시용 호가 레이어(실시간 잔량 아님) · 투자 권유 아님";
 
   return (
-    <div className="mt-4 px-1">
-      <p className="mb-1 text-micro font-semibold uppercase tracking-[0.18em] text-[#6b4a22]/7">
+    <div className="lamp-quote-board mt-4 px-1">
+      <p className="mb-1 text-micro font-semibold uppercase tracking-[0.18em] text-[#3d2a18]">
         {title}
       </p>
-      <p className="mb-2 text-meta leading-snug text-[#5a4428]/65">{hint}</p>
+      <p className="mb-2 text-meta leading-snug text-[#5a4428]">{hint}</p>
 
       {loading && rows.length === 0 ? (
-        <p className="py-3 text-center text-caption text-[#5a4428]/65">
+        <p className="py-3 text-center text-caption text-[#5a4428]">
           {lang === "en" ? "Loading quotes…" : "시세 불러오는 중…"}
         </p>
       ) : rows.length === 0 || !active ? (
-        <p className="py-3 text-center text-caption text-[#5a4428]/65">
+        <p className="py-3 text-center text-caption text-[#5a4428]">
           {lang === "en" ? "Quotes unavailable right now." : "시세를 불러오지 못했습니다."}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-sm border border-[#1e3a5f]/35 bg-[#0b1220] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="overflow-hidden rounded-sm border border-[#8b6914]/35 bg-[#fbf4e4] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
           {/* 종목 탭 */}
-          <div className="flex gap-0.5 overflow-x-auto border-b border-white/10 bg-[#111827] px-1 py-1">
+          <div className="flex gap-0.5 overflow-x-auto border-b border-[#8b6914]/25 bg-[#efe2c0]/80 px-1 py-1">
             {rows.map((item) => {
               const tone = tickerChangeTone(item.changePercent);
               const selected = item.symbol === active.symbol;
@@ -115,20 +115,20 @@ export function LampEconomyQuoteBoard({ news, lang }: Props) {
                   onClick={() => setActiveSymbol(item.symbol)}
                   className={`shrink-0 rounded-sm px-2 py-1 text-left transition ${
                     selected
-                      ? "bg-white/10 ring-1 ring-white/25"
-                      : "hover:bg-white/5"
+                      ? "bg-[#fffaf0] ring-1 ring-[#8b6914]/40"
+                      : "hover:bg-[#f7ecd4]"
                   }`}
                 >
-                  <span className="block max-w-[4.8rem] truncate text-[0.65rem] font-medium text-slate-100">
+                  <span className="block max-w-[4.8rem] truncate text-[0.65rem] font-medium text-[#3d2a18]">
                     {tickerDisplayName(item.symbol, lang)}
                   </span>
                   <span
-                    className={`block text-[0.62rem] tabular-nums ${
+                    className={`block text-[0.62rem] font-semibold tabular-nums ${
                       tone === "up"
-                        ? "text-[#ff4d4f]"
+                        ? "quote-up text-[#b42318]"
                         : tone === "down"
-                          ? "text-[#3b82f6]"
-                          : "text-slate-400"
+                          ? "quote-down text-[#1d4ed8]"
+                          : "text-[#6b4a22]"
                     }`}
                   >
                     {formatTickerChangePercent(item.changePercent)}
@@ -159,14 +159,18 @@ function OrderBookPanel({
   const asks = ladder.filter((l) => l.side === "ask").reverse();
   const bids = ladder.filter((l) => l.side === "bid");
   const priceColor =
-    tone === "up" ? "text-[#ff4d4f]" : tone === "down" ? "text-[#3b82f6]" : "text-slate-100";
+    tone === "up"
+      ? "quote-up text-[#b42318]"
+      : tone === "down"
+        ? "quote-down text-[#1d4ed8]"
+        : "text-[#3d2a18]";
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-2 border-b border-white/10 px-2.5 py-2">
+      <div className="flex items-end justify-between gap-2 border-b border-[#8b6914]/25 bg-[#fffaf0] px-2.5 py-2">
         <div className="min-w-0">
-          <p className="truncate text-caption font-semibold text-slate-50">{name}</p>
-          <p className="text-micro tabular-nums text-slate-500">{item.symbol}</p>
+          <p className="truncate text-caption font-semibold text-[#3d2a18]">{name}</p>
+          <p className="text-micro tabular-nums text-[#6b4a22]">{item.symbol}</p>
         </div>
         <div className="shrink-0 text-right">
           <p className={`text-[1.15rem] font-bold tabular-nums leading-none ${priceColor}`}>
@@ -179,19 +183,19 @@ function OrderBookPanel({
       </div>
 
       {/* 컬럼 헤더 */}
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-1 border-b border-white/10 px-2 py-1 text-[0.58rem] uppercase tracking-[0.12em] text-slate-500">
-        <span className="text-left text-[#60a5fa]">
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-1 border-b border-[#8b6914]/25 bg-[#f7ecd4]/80 px-2 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.12em]">
+        <span className="quote-ask text-left text-[#1d4ed8]">
           {lang === "en" ? "Ask qty" : "매도잔량"}
         </span>
-        <span className="text-center text-slate-400">
+        <span className="text-center text-[#6b4a22]">
           {lang === "en" ? "Price" : "호가"}
         </span>
-        <span className="text-right text-[#f87171]">
+        <span className="quote-bid text-right text-[#b42318]">
           {lang === "en" ? "Bid qty" : "매수잔량"}
         </span>
       </div>
 
-      <div className="px-1.5 py-1 font-mono text-[0.7rem] leading-none">
+      <div className="bg-[#fffaf0] px-1.5 py-1 font-mono text-[0.7rem] leading-none">
         {/* 매도 — 파란 레이어 */}
         {asks.map((level) => (
           <LadderRow key={`ask-${level.price}`} level={level} maxQty={maxQty} />
@@ -201,19 +205,19 @@ function OrderBookPanel({
         <div
           className={`my-0.5 grid grid-cols-[1fr_auto_1fr] items-center gap-1 rounded-sm px-1 py-1.5 ${
             tone === "up"
-              ? "bg-[#ff4d4f]/15 ring-1 ring-[#ff4d4f]/45"
+              ? "bg-[#fecaca]/80 ring-1 ring-[#b42318]/40"
               : tone === "down"
-                ? "bg-[#3b82f6]/15 ring-1 ring-[#3b82f6]/45"
-                : "bg-white/5 ring-1 ring-white/15"
+                ? "bg-[#bfdbfe]/80 ring-1 ring-[#1d4ed8]/40"
+                : "bg-[#efe2c0]/90 ring-1 ring-[#8b6914]/35"
           }`}
         >
-          <span className="text-micro text-slate-500">
+          <span className="text-micro font-medium text-[#6b4a22]">
             {lang === "en" ? "Last" : "현재"}
           </span>
           <span className={`px-1 text-center text-[0.8rem] font-bold tabular-nums ${priceColor}`}>
             {formatTickerPrice(item.price)}
           </span>
-          <span className="text-right text-micro text-slate-500">
+          <span className="text-right text-micro font-medium text-[#6b4a22]">
             {lang === "en" ? "Last" : "현재"}
           </span>
         </div>
@@ -224,8 +228,8 @@ function OrderBookPanel({
         ))}
       </div>
 
-      <div className="flex items-center justify-between border-t border-white/10 px-2.5 py-1.5">
-        <p className="text-[0.58rem] leading-snug text-slate-500">
+      <div className="flex items-center justify-between border-t border-[#8b6914]/25 bg-[#f7ecd4]/70 px-2.5 py-1.5">
+        <p className="text-[0.58rem] leading-snug text-[#5a4428]">
           {lang === "en"
             ? "Synthetic depth for UI · not exchange order book"
             : "UI용 합성 호가 · 거래소 잔량 아님"}
@@ -234,7 +238,7 @@ function OrderBookPanel({
           href={yahooQuoteUrl(item.symbol)}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-micro font-medium text-[#93c5fd] underline-offset-2 hover:underline"
+          className="quote-link shrink-0 text-micro font-medium text-[#1d4ed8] underline-offset-2 hover:underline"
         >
           {lang === "en" ? "Yahoo" : "시세"}
         </a>
@@ -260,16 +264,16 @@ function LadderRow({
         {isAsk ? (
           <>
             <div
-              className="absolute inset-y-0 right-0 bg-[#1d4ed8]/35"
+              className="absolute inset-y-0 right-0 bg-[#93c5fd]/70"
               style={{ width: `${widthPct}%` }}
               aria-hidden
             />
             <div
-              className="absolute inset-y-0 right-0 border-r-2 border-[#3b82f6]"
+              className="absolute inset-y-0 right-0 border-r-2 border-[#1d4ed8]"
               style={{ width: `${widthPct}%` }}
               aria-hidden
             />
-            <span className="relative z-[1] pr-1 tabular-nums text-[#93c5fd]">
+            <span className="quote-ask relative z-[1] pr-1 font-semibold tabular-nums text-[#1e3a8a]">
               {formatQty(level.qty)}
             </span>
           </>
@@ -278,8 +282,10 @@ function LadderRow({
 
       {/* 호가 */}
       <div
-        className={`flex min-w-[4.2rem] items-center justify-center px-1 tabular-nums ${
-          isAsk ? "bg-[#172554]/55 text-[#60a5fa]" : "bg-[#450a0a]/55 text-[#f87171]"
+        className={`flex min-w-[4.2rem] items-center justify-center px-1 font-semibold tabular-nums ${
+          isAsk
+            ? "quote-ask bg-[#dbeafe] text-[#1d4ed8]"
+            : "quote-bid bg-[#fee2e2] text-[#b42318]"
         }`}
       >
         {formatLadderPrice(level.price)}
@@ -290,16 +296,16 @@ function LadderRow({
         {!isAsk ? (
           <>
             <div
-              className="absolute inset-y-0 left-0 bg-[#b91c1c]/35"
+              className="absolute inset-y-0 left-0 bg-[#fca5a5]/70"
               style={{ width: `${widthPct}%` }}
               aria-hidden
             />
             <div
-              className="absolute inset-y-0 left-0 border-l-2 border-[#ef4444]"
+              className="absolute inset-y-0 left-0 border-l-2 border-[#b42318]"
               style={{ width: `${widthPct}%` }}
               aria-hidden
             />
-            <span className="relative z-[1] pl-1 tabular-nums text-[#fca5a5]">
+            <span className="quote-bid relative z-[1] pl-1 font-semibold tabular-nums text-[#7f1d1d]">
               {formatQty(level.qty)}
             </span>
           </>

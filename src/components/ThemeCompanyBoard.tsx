@@ -98,12 +98,15 @@ function matchesTickerSearch(
 type ThemeCompanyBoardProps = {
   themeId: CompanyThemeId;
   fullPage?: boolean;
+  /** 우측 레일용 밀도 높은 목록 */
+  rail?: boolean;
   searchQuery?: string;
 };
 
 export function ThemeCompanyBoard({
   themeId,
   fullPage = false,
+  rail = false,
   searchQuery = "",
 }: ThemeCompanyBoardProps) {
   const { lang, t } = useLocale();
@@ -158,21 +161,27 @@ export function ThemeCompanyBoard({
 
   return (
     <div
-      className={`min-h-0 flex-1 overflow-y-auto px-4 py-3 ${
-        fullPage ? "pb-8" : ""
+      className={`min-h-0 ${
+        rail
+          ? "max-h-[min(22rem,calc(100dvh-14rem))] overflow-y-auto px-2 py-2"
+          : `flex-1 overflow-y-auto px-4 py-3 ${fullPage ? "pb-8" : ""}`
       }`}
     >
-      <div className={`mb-3 rounded-xl border px-3 py-2.5 ${accent}`}>
-        <p className="text-meta leading-snug text-slate-200/90">{note}</p>
-        <p className="mt-1 text-micro text-slate-500">{t("marketsNotAdvice")}</p>
+      <div className={`rounded-xl border ${accent} ${rail ? "mb-2 px-2.5 py-2" : "mb-3 px-3 py-2.5"}`}>
+        <p className={`leading-snug text-slate-200/90 ${rail ? "text-micro" : "text-meta"}`}>
+          {note}
+        </p>
+        {!rail ? (
+          <p className="mt-1 text-micro text-slate-500">{t("marketsNotAdvice")}</p>
+        ) : null}
       </div>
 
       {loading && tickers == null ? (
-        <p className="py-10 text-center text-sm text-slate-500">
+        <p className={`text-center text-slate-500 ${rail ? "py-4 text-micro" : "py-10 text-sm"}`}>
           {lang === "en" ? "Loading quotes…" : "시세 불러오는 중…"}
         </p>
       ) : rows.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-500">
+        <p className={`text-center text-slate-500 ${rail ? "py-4 text-micro" : "py-10 text-sm"}`}>
           {searchQuery.trim()
             ? lang === "en"
               ? `No matches for “${searchQuery.trim()}”.`
@@ -182,7 +191,7 @@ export function ThemeCompanyBoard({
               : "표시할 종목이 없습니다."}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className={`flex flex-col ${rail ? "gap-1.5" : "gap-2"}`}>
           {rows.map((item) => {
             const tone = tickerChangeTone(item.changePercent);
             const name = tickerDisplayName(item.symbol, lang);
@@ -191,15 +200,27 @@ export function ThemeCompanyBoard({
             return (
               <li
                 key={item.symbol}
-                className="rounded-xl border border-white/10 bg-black/25 px-3 py-2.5"
+                className={`rounded-xl border border-white/10 bg-black/25 ${
+                  rail ? "px-2 py-1.5" : "px-3 py-2.5"
+                }`}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-50">{name}</p>
+                    <p
+                      className={`truncate font-semibold text-slate-50 ${
+                        rail ? "text-xs" : "text-sm"
+                      }`}
+                    >
+                      {name}
+                    </p>
                     <p className="text-micro text-slate-500">{item.symbol}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-sm font-semibold tabular-nums text-slate-100">
+                    <p
+                      className={`font-semibold tabular-nums text-slate-100 ${
+                        rail ? "text-xs" : "text-sm"
+                      }`}
+                    >
                       {formatTickerPrice(item.price)}
                     </p>
                     <p className={`text-micro font-medium tabular-nums ${TONE_CLASS[tone]}`}>
@@ -207,28 +228,41 @@ export function ThemeCompanyBoard({
                     </p>
                   </div>
                 </div>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <TickerSparkline data={item.sparkline} tone={tone} />
+                {!rail ? (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <TickerSparkline data={item.sparkline} tone={tone} />
+                    </div>
+                    <a
+                      href={yahooQuoteUrl(item.symbol)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-micro font-medium text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
+                    >
+                      {t("openYahoo")}
+                    </a>
                   </div>
+                ) : (
                   <a
                     href={yahooQuoteUrl(item.symbol)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="shrink-0 text-micro font-medium text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
+                    className="mt-1 inline-block text-micro font-medium text-emerald-300/80 underline-offset-2 hover:text-emerald-200 hover:underline"
                   >
-                    {t("openYahoo")}
+                    Yahoo
                   </a>
-                </div>
+                )}
               </li>
             );
           })}
         </ul>
       )}
 
-      <p className="mt-4 text-center text-micro text-slate-600">
-        Yahoo Finance · 10분 캐시 · {t("marketsNotAdvice")}
-      </p>
+      {!rail ? (
+        <p className="mt-4 text-center text-micro text-slate-600">
+          Yahoo Finance · 10분 캐시 · {t("marketsNotAdvice")}
+        </p>
+      ) : null}
     </div>
   );
 }

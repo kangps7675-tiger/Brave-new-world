@@ -432,7 +432,7 @@ function formatFlashWhenPhrase(
   const src = source?.trim();
   const outlet = src
     ? ko
-      ? `「${src}」가 전했습니다.`
+      ? `매체 「${src}」의 보도입니다.`
       : `「${src}」 reports.`
     : ko
       ? `통신·현지 매체가 전했습니다.`
@@ -471,7 +471,7 @@ function formatFlashWhoPhrase(actors: FlashActors, ko: boolean): string {
 }
 
 /**
- * 신속속보 본문 — 역피라미드 3문단(~20줄 분량) 순수 속보.
+ * 신속속보 본문 — 기사 세부 내용 우선, 한국어 배경은 한 문장으로 제한.
  * 작성 원칙·Tier·면책·검증 방법론은 넣지 않는다.
  * 사실 창작 금지 · 제목·요약·전장·출처·공급망 신호만 사용.
  */
@@ -528,51 +528,42 @@ export function buildFlashCausalEssay(input: {
       : input.peaceScienceDomain;
 
   if (ko) {
+    const cleanHeadline = title.replace(/\s+\|\s+[^|]+$/, "").trim();
     const lead = [
-      who,
-      what,
-      when,
-      `이번 속보의 핵심은 「${title}」입니다.`,
-      actors.active && actors.passive
-        ? `${actors.active}와 ${actors.passive} 사이의 긴장 수위가 한 단계 올라간 장면으로 읽힙니다.`
-        : `확인된 문장만으로도 전장 긴장이 높아진 신호로 읽힙니다.`,
-      `이 한 줄이 현재 확인된 급보의 중심입니다.`,
-    ].join(" ");
-
-    const gist = summary
-      ? `보도 요지는 다음과 같습니다. ${summary}`
-      : `요지가 제목에 압축되어 있습니다.`;
-    const where = input.economy
-      ? `관심 구간은 시장·항로·물류 허브가 겹치는 축입니다.`
-      : `현장 축은 ${theaterName}입니다.`;
-    const body = [
-      where,
-      gist,
-      `지도는 이 축으로 시선을 옮깁니다.`,
-      summary
-        ? `보도에 나온 범위 안에서만 사건을 읽습니다.`
-        : `추가 세부 수치는 후속 보도를 통해 채워질 수 있습니다.`,
-      `같은 시각대 교차 보도가 쌓이면 위치·주체 표현이 더 선명해질 수 있습니다.`,
-      `현 시점의 확인된 요지는 위와 같습니다.`,
-    ].join(" ");
-
-    const impact = supplyBits
-      ? `당장 이어질 수 있는 여파는 이렇습니다. ${supplyBits}`
-      : `당장 이어질 수 있는 여파는 전장·시장·외교 일정이 한꺼번에 흔들릴 수 있다는 점입니다.`;
-    const history = peaceScienceBackgroundForFlash(actors, input.lang, {
-      domain: peaceDomain,
-      text: `${title} ${summary}`,
-    });
-    const tail = [
-      why,
-      impact,
-      `사건이 먼저 보도되고, 위험 인식이 바뀌며, 보험·운임·외교 일정·시장 가격이 따라 움직일 수 있습니다.`,
-      `이웃 전장이나 동맹 일정에 파급되면 후속 속보가 이어질 가능성이 있습니다.`,
-      `현장 긴장이 가라앉기 전까지는 같은 축의 후속 타전이 이어질 수 있습니다.`,
-      `원문에 실린 문장이 이번 속보의 근거입니다.`,
-    ].join(" ");
-
-    return history ? [lead, body, tail, history] : [lead, body, tail];
+      input.source?.trim() ? `${input.source.trim()} 보도에 따르면,` : "",
+      `이번 속보는 「${cleanHeadline}」에 관한 내용입니다.`,
+    ].filter(Boolean).join(" ");
+    const key = (text: string) => text.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
+    const titleKey = key(cleanHeadline);
+    const seen = new Set<string>([titleKey]);
+    const sentences = new Intl.Segmenter("ko", { granularity: "sentence" }).segment(summary);
+    const details: string[] = [];
+    for (const { segment } of sentences) {
+      let detail = segment.trim();
+      // RSS descriptions sometimes repeat the headline before the actual details.
+      if (detail.startsWith(cleanHeadline) && /^(?:[.。!?\s|]|$)/.test(detail.slice(cleanHeadline.length))) {
+        detail = detail.slice(cleanHeadline.length).replace(/^[.。!?\s]+/, "").trim();
+        if (/^\|/.test(detail)) continue;
+      }
+      const detailKey = key(detail);
+      if (!detailKey || seen.has(detailKey)) continue;
+      seen.add(detailKey);
+      details.push(detail);
+    }
+    const paragraphs = [lead];
+    for (let i = 0; i < details.length; i += 3) {
+      paragraphs.push(details.slice(i, i + 3).join(" "));
+    }
+    // No generic outlook when the feed supplies only a headline.
+    if (details.length > 0 && peaceDomain !== null) {
+      const background = input.economy
+        ? formatEconomyWhyImportant(`${title} ${summary}`, input.lang)
+        : isIranRelatedBreakingText(`${title} ${summary}`)
+          ? "이번 보도는 이란과 역내 관련 세력을 둘러싼 중동 안보 상황과 맞닿아 있습니다."
+          : `${josa(theaterName, "은/는")} 이번 사건의 지역적 배경입니다.`;
+      paragraphs.push(background);
+    }
+    return paragraphs;
   }
 
   const leadEn = [

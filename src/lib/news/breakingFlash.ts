@@ -95,10 +95,26 @@ export function isGeoeconomicImpactFlash(text: string): boolean {
  * (유정·정유·곡창·수출항 — 호르무즈뿐 아니라 우크라↔러 사례 포함).
  */
 export const PRICE_THREAT_INFRA_RE =
-  /\b(oil\s?(?:field|depot|terminal|refiner(?:y|ies)?|storage|facility|rig)|refiner(?:y|ies)?|fuel\s?depot|pipeline|lng\s?terminal|grain\s?(?:silo|elevator|terminal|export|port)|wheat|flour|corn\s?export|food\s?export|fertilizer|ammonia\s?plant|port\s?(?:of\s?)?(?:odesa|odessa|mykolaiv|novorossiysk)|chornomorsk)\b|유정|정유|유류\s?저장|연료\s?저장|송유관|곡물\s?(?:창고|엘리베이터|수출)|밀\b|밀가루|곡창|오데사|미콜라이우|노보로시스크/i;
+  /\b(oil\s?(?:field|well|depot|terminal|refiner(?:y|ies)?|storage|facility|rig)|oilfield|refiner(?:y|ies)?|fuel\s?depot|pipeline|lng\s?terminal|gas\s?(?:plant|processing|compressor)|power\s?(?:plant|station|grid)|energy\s?(?:infra|grid|facility)|grain\s?(?:silo|elevator|terminal|export|port)|wheat|flour|corn\s?export|food\s?export|fertilizer|ammonia\s?plant|port\s?(?:of\s?)?(?:odesa|odessa|mykolaiv|novorossiysk)|chornomorsk|kremenchuk|lisichansk|shebelinka)\b|유정|유전|정유(?:소|공장)?|유류\s?저장|연료\s?저장|송유관|가스\s?(?:플랜트|처리)|발전소|전력망|에너지\s?(?:인프라|시설)|곡물\s?(?:창고|엘리베이터|수출)|밀\b|밀가루|곡창|오데사|미콜라이우|노보로시스크|크레멘추크|리시찬스크|셰벨린카/i;
 
 export function isPriceThreatInfrastructureFlash(text: string): boolean {
   return PRICE_THREAT_INFRA_RE.test(text);
+}
+
+/** 우크라·러·흑해 전장 에너지 인프라 타격 — 병목 양피지와 같은 에너지 데스크 후보. */
+export const ENERGY_INFRA_THEATER_RE =
+  /\b(ukraine|ukrainian|russia|russian|black\s?sea|donbas|donetsk|luhansk|kherson|zaporizh|crimea|belgorod|kursk|bryansk|tuapse|ryazan|novorossiysk|odesa|odessa|mykolaiv|kremenchuk|lisichansk|lysychansk|shebelinka)\b|우크라이나|우크라|러시아|흑해|돈바스|도네츠크|루한스크|헤르손|자포리자|크림|벨고로드|쿠르스크|브랸스크|투압세|랴잔|노보로시스크|오데사|미콜라이우|크레멘추크|리시찬스크|셰벨린카/i;
+
+export const ENERGY_INFRA_KINETIC_RE =
+  /\b(strike|struck|hit|attack|bomb(?:ed|ing)?|missile|drone|shahed|explosion|destroyed|damaged|shell(?:ed|ing)?)\b|타격|폭격|피격|공습|미사일|드론|폭발|파괴|손상|포격/i;
+
+export function isUkraineRussiaEnergyInfraStrike(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  if (!isPriceThreatInfrastructureFlash(t)) return false;
+  if (!ENERGY_INFRA_THEATER_RE.test(t)) return false;
+  if (!ENERGY_INFRA_KINETIC_RE.test(t)) return false;
+  return true;
 }
 
 /** 일상 포격·미확인 루틴 — 단독으로는 타전 금지 */

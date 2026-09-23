@@ -386,7 +386,10 @@ export function useLiveGeoFeedPolling({
         const payload = (await response.json()) as ReefWatchPayload;
         if (cancelled) return;
         setReefWatch(payload);
-        setReefWatchStatus("ok");
+        const health = payload.sourceHealth.opensky.status;
+        setReefWatchStatus(
+          health === "error" || health === "rate_limited" ? "error" : "ok",
+        );
       } catch {
         if (!cancelled) setReefWatchStatus("error");
       }

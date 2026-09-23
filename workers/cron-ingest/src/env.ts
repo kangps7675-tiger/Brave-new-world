@@ -163,6 +163,11 @@ export type IngestEnv = {
    * e.g. https://your-app.example/api/us-carriers/warm
    */
   US_CARRIERS_WARM_URL?: string;
+  /**
+   * Next DeepState occupied-coordinate sync (3-day snapshot, LIVEUAMAP 전 임시)
+   * e.g. https://your-app.example/api/deepstate/sync
+   */
+  DEEPSTATE_SYNC_URL?: string;
 };
 
 export type FirmsFireRow = {

@@ -59,7 +59,7 @@ export const CONFLICT_RESOURCE_HERO_OFF: Partial<LayerPrefs> = {
 };
 
 /**
- * 경제·물류 자원 히어로 — 비움 (첫 화면은 진영 폴리곤만).
+ * 경제·물류 자원 히어로 — 비움 (항구·항로는 FIRST_SCREEN_ECONOMY_ON).
  */
 export const ECONOMY_RESOURCE_HERO_ON: Partial<LayerPrefs> = {};
 
@@ -290,6 +290,11 @@ const HISTORY_FORCE_OFF: Partial<LayerPrefs> = {
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
   showSanctionsEntities: false,
+  showEuropeDroneIncidents: false,
+  showConflictEvents: false,
+  showNeptun: false,
+  showNeptunPreviousTrails: false,
+  showNuclearSites: false,
 };
 
 const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
@@ -323,10 +328,7 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   showSanctionsEvasionCorridors: false,
   showAirports: false,
   showCriticalNodes: false,
-  /** 인프라·항적 — 첫 화면은 진영 폴리곤만 */
-  showShippingLanes: false,
-  showPorts: false,
-  showLogisticsRisk: false,
+  /** 항구·항로·초크는 FIRST_SCREEN_ECONOMY_ON — 여기선 끄지 않음 */
   showStrategicCorridors: false,
   showAlliedLogisticsCorridors: false,
   showAirTraffic: false,
@@ -414,6 +416,9 @@ export function stripEconomyGeopoliticsPatch(
 /** 프리미엄(Cesium) — 전선 폴리곤 OFF, 항적·시세 키트 ON (MapLibre 오버레이/후속 Cesium 엔티티) */
 const SATELLITE_FORCE_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_LIVE_ON,
+  showAis: true,
+  showAisMilitary: true,
+  showAisCommercial: true,
 };
 
 const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
@@ -623,10 +628,10 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     searchPlaceholder: "초크 · 항로 · 허브 · 기사",
     navHeaderLabel: "멋진 신세계 · 시장",
     modePickerTitle: "지경학",
-    modePickerTagline: "진영 폴리곤",
+    modePickerTagline: "진영 · 항구 · 항로",
     modePickerBullets: [
-      "지경학 진영 폴리곤만 기본 표시",
-      "초크·항로·배관·DC는 레이어 패널에서 ON",
+      "진영 폴리곤과 항구·해상 항로·초크포인트 기본 표시",
+      "배관·DC·AIS는 레이어 패널에서 ON",
       "투자 권유 아님 — 공개 출처 관측",
     ],
     layerPanelTitle: "물류 · 시장",

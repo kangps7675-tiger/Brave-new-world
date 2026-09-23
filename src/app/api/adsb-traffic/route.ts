@@ -9,7 +9,7 @@ import {
   readAdsbJsonBody,
   type TrackedAircraft,
 } from "@/lib/adsbClient";
-import { distNmToBbox } from "@/lib/adsbWarmFetch";
+import { distNmToBbox, fetchAdsbCivilianHubs } from "@/lib/adsbWarmFetch";
 import { readAdsbFromD1, readAdsbFromIngestWorker } from "@/lib/d1MaritimeAir";
 import { demoCivAircraft } from "@/lib/maritimeAirDemo";
 import { adsbTrafficQuerySchema, parseSearchParams } from "@/lib/apiQuerySchemas";
@@ -43,8 +43,16 @@ type OpenSkyCache = {
   rateLimitRemaining: string | null;
 };
 
+type WorldCivCache = {
+  at: number;
+  aircraft: TrackedAircraft[];
+  provider: string;
+};
+
 let openSkyCache: OpenSkyCache | null = null;
 let lastOpenSkyFetchAt = 0;
+let worldCivCache: WorldCivCache | null = null;
+let pendingWorldCiv: Promise<WorldCivCache | null> | null = null;
 let pendingOpenSky: {
   key: string;
   promise: Promise<OpenSkyCache | null>;
@@ -108,8 +116,33 @@ async function fetchOpenSkyTraffic(
   return promise;
 }
 
+const WORLD_CIV_CACHE_MS = 45_000;
+
+async function fetchWorldwideCiv(max: number): Promise<WorldCivCache | null> {
+  const now = Date.now();
+  if (worldCivCache && now - worldCivCache.at < WORLD_CIV_CACHE_MS) {
+    return worldCivCache;
+  }
+  if (pendingWorldCiv) return pendingWorldCiv;
+  pendingWorldCiv = (async () => {
+    const civ = await fetchAdsbCivilianHubs({ maxPerHub: 40, maxTotal: max });
+    if (civ.aircraft.length === 0) return null;
+    const entry = {
+      at: Date.now(),
+      aircraft: civ.aircraft.slice(0, max),
+      provider: civ.provider,
+    };
+    worldCivCache = entry;
+    return entry;
+  })().finally(() => {
+    pendingWorldCiv = null;
+  });
+  return pendingWorldCiv;
+}
+
 /**
- * 지경학(민간 항공 운항) — OpenSky → D1 → 기존 라이브 공급자 → 데모.
+ * 민간 항적. lat/lng 가 없으면 전 세계 스냅샷.
+ * GET /api/adsb-traffic?max=
  * GET /api/adsb-traffic?lat=&lng=&dist=&max=
  */
 export async function GET(request: Request) {
@@ -129,6 +162,87 @@ export async function GET(request: Request) {
   }
   const { lat, lng, dist, max, live } = parsed.data;
   const preferLive = Boolean(live);
+  const worldwide = lat == null || lng == null;
+
+  if (worldwide && !preferLive) {
+    const fromD1 = await readAdsbFromD1({ mode: "civ", max });
+    if (fromD1 && fromD1.count > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: fromD1.receivedAt,
+          count: fromD1.count,
+          aircraft: fromD1.aircraft,
+          attribution: "ADS-B civilian worldwide (via Cloudflare D1 cron warm)",
+          source: "d1",
+          provider: "d1",
+          mode: "civilian",
+          scope: "world",
+          excluded: "military (dbFlags & 1)",
+          cached: true,
+        },
+        { headers: ADSB_CDN },
+      );
+    }
+    const fromWorker = await readAdsbFromIngestWorker({ mode: "civ", max });
+    if (fromWorker && fromWorker.count > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: fromWorker.receivedAt,
+          count: fromWorker.count,
+          aircraft: fromWorker.aircraft,
+          attribution: "ADS-B civ worldwide (via Cloudflare cron worker)",
+          source: "ingest-worker",
+          provider: "ingest-worker",
+          mode: "civilian",
+          scope: "world",
+          excluded: "military (dbFlags & 1)",
+          cached: true,
+        },
+        { headers: ADSB_CDN },
+      );
+    }
+  }
+
+  if (worldwide) {
+    const liveWorld = await fetchWorldwideCiv(max);
+    if (liveWorld && liveWorld.aircraft.length > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: new Date(liveWorld.at).toISOString(),
+          count: liveWorld.aircraft.length,
+          aircraft: liveWorld.aircraft,
+          attribution:
+            liveWorld.provider === "adsbx-all"
+              ? "ADSBexchange worldwide"
+              : "adsb.lol worldwide hubs (ODbL)",
+          source: "live",
+          provider: liveWorld.provider,
+          mode: "civilian",
+          scope: "world",
+          excluded: "military (dbFlags & 1)",
+          cached: Date.now() - liveWorld.at > 1_000,
+        },
+        { headers: ADSB_CDN },
+      );
+    }
+    const demo = demoCivAircraft().slice(0, max);
+    return NextResponse.json(
+      {
+        receivedAt: new Date().toISOString(),
+        count: demo.length,
+        aircraft: demo,
+        attribution: "ADS-B civ demo",
+        source: "demo",
+        provider: "demo",
+        mode: "civilian",
+        scope: "world",
+        demo: true,
+        note: "worldwide live empty — showing demo seeds",
+      },
+      { headers: NO_STORE_HEADERS },
+    );
+  }
+
   const bbox = distNmToBbox(lat, lng, dist);
 
   const openSky = await fetchOpenSkyTraffic(lat, lng, max);

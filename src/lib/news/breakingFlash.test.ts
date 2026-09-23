@@ -103,6 +103,28 @@ describe("breakingFlashNarrative", () => {
 });
 
 describe("buildBreakingFlashBriefing prose essay", () => {
+  it("does not pad headline-only reports", () => {
+    const briefing = buildBreakingFlashBriefing(
+      hero({ title: "미국, 이란 관련 경고 | NEWSNATION", source: "The Hill" }), "ko", false,
+    );
+    expect(briefing.paragraphs).toHaveLength(1);
+    expect(briefing.paragraphs[0]).toContain("The Hill 보도에 따르면");
+    expect(briefing.paragraphs[0]).not.toMatch(/NEWSNATION|교차확인|핵·미사일|시장|The Hill」가/);
+  });
+
+  it("preserves long summaries without repeating the headline", () => {
+    const title = "미국이 이란 관련 경고를 발표했습니다";
+    const facts = Array.from({ length: 12 }, (_, i) => `당국은 ${i + 1}번째 브리핑에서 관련 발언의 구체적인 내용과 발표 시점을 설명했습니다.`).join(" ");
+    const briefing = buildBreakingFlashBriefing(
+      hero({ title, summary: `${title}. ${facts}`, source: "연합뉴스", theater: "middle-east" }), "ko", false,
+    );
+    const text = briefing.paragraphs.join(" ");
+    expect(text.split(title)).toHaveLength(2);
+    expect(text).toContain("12번째 브리핑");
+    expect(text).not.toMatch(/긴장이 높아진|보험·운임·외교|교차확인/);
+    expect(briefing.paragraphs.at(-1)).toBe("이번 보도는 이란과 역내 관련 세력을 둘러싼 중동 안보 상황과 맞닿아 있습니다.");
+  });
+
   it("writes 3 unlabeled inverse-pyramid paragraphs of pure news", () => {
     const briefing = buildBreakingFlashBriefing(
       hero({
@@ -121,14 +143,14 @@ describe("buildBreakingFlashBriefing prose essay", () => {
     expect(body.some((p) => /Tier|투자|대피|육하원칙|작성|면책|관측 메모/.test(p))).toBe(
       false,
     );
-    expect(body.some((p) => /해협|운임|보험|유조선|원유/.test(p))).toBe(true);
+    expect(body.join(" ")).toContain("Hormuz");
     const sentenceApprox = body
       .join(" ")
       .split(/(?<=다\.|습니다\.)/)
       .map((s) => s.trim())
       .filter(Boolean).length;
-    expect(sentenceApprox).toBeGreaterThanOrEqual(12);
-    expect(sentenceApprox).toBeLessThanOrEqual(24);
+    expect(body.join(" ")).toContain("War-risk premiums jump on crude tankers");
+    expect(sentenceApprox).toBeLessThanOrEqual(4);
   });
 
   it("still yields 3 prose paragraphs when no logistics signal", () => {
@@ -345,10 +367,21 @@ describe("shouldOpenBreakingFlash", () => {
           summary: "Wheat loading terminal damaged",
           breakingRank: "S",
           breakingGrade: 9,
-          ageMinutes: 6,
-          feedTopic: "economy",
+          ageMinutes: 8,
         }),
-        true,
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      shouldOpenBreakingFlash(
+        hero({
+          title: "Russian missiles strike Kremenchuk oil refinery in Ukraine",
+          summary: "Large blaze at fuel processing site",
+          breakingRank: "S",
+          breakingGrade: 9,
+          ageMinutes: 6,
+        }),
+        false,
       ),
     ).toBe(true);
   });

@@ -7,6 +7,14 @@
  */
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { FeatureCollection } from "geojson";
+import {
+  AXIS_HUB_BORDER_COLOR,
+  axisHubBorderWidthPx,
+  collectAxisHubBorderRings,
+  type LngLatRing,
+} from "@/lib/axisHubCountryPolygons";
+import { fetchDataWithFallback } from "@/lib/dataProfile";
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
 import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
 import { SHADOW_FLEET_MARKER_SIZE } from "@/data/shadowFleetSilhouette";
@@ -37,6 +45,7 @@ import {
   warshipProfileIconSvg,
 } from "@/lib/surfaceCombatantDeckIcon";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
+import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -89,6 +98,9 @@ export type CesiumSatelliteGlobeProps = {
   showDisguisedVessels?: boolean;
   showMilitaryActivity?: boolean;
   showAirTraffic?: boolean;
+  /** 세슘 알림창과 같은 경보 핀 (UKMTO·NAVAREA·초크·훈련·게이트·항로) */
+  alertPins?: CesiumAlertItem[];
+  onSelectAlert?: (item: CesiumAlertItem) => void;
   /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
   onReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
@@ -99,6 +111,16 @@ type StackKind = "esri" | "photoreal";
 type ErrorKind = "chunk" | "assets" | "other";
 
 const CHUNK_RELOAD_KEY = "cesium-chunk-reload";
+
+const ALERT_PIN_COLOR: Record<CesiumAlertKind, string> = {
+  ukmto: "#e4e4e7",
+  navarea: "#c084fc",
+  portwatch: "#f59e0b",
+  exercise: "#22d3ee",
+  "ais-gate": "#38bdf8",
+  "dark-fleet": "#fb7185",
+  route: "#a3e635",
+};
 
 function isChunkLoadError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
@@ -143,7 +165,12 @@ function createGlobeOccluder(
 const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
 const aisBillboardUriCache = new Map<string, string>();
-const CESIUM_AIS_GENERIC_PX = 22;
+/** 궤도·위성 줌에서도 선박이 읽히게 — MapLibre 22px보다 키움 */
+const CESIUM_AIS_GENERIC_PX = 36;
+/** 해수면 마커를 지형/3D Tiles에 묻히지 않게 띄움 (m) */
+const CESIUM_AIS_HEIGHT_M = 1_200;
+/** depth test 끄면 지구 뒤편도 뚫고 보이므로, 가시 반구만 Infinity */
+const CESIUM_AIS_NO_DEPTH = Number.POSITIVE_INFINITY;
 
 function aircraftHeadingDeg(aircraft: MilitaryAircraft): number | null {
   const raw = aircraft.track ?? aircraft.trueHeading ?? aircraft.magHeading;
@@ -270,9 +297,10 @@ function syncAisBillboardEntities(
   items: AisVessel[],
 ): void {
   const seen = new Set<string>();
-  const occluder = createGlobeOccluder(Cesium, viewer);
   const mapBearingDeg =
     ((Cesium.Math.toDegrees(viewer.camera.heading) % 360) + 360) % 360;
+  const heightM = prefix === "disguised" ? CESIUM_AIS_HEIGHT_M + 200 : CESIUM_AIS_HEIGHT_M;
+  const scaleByDistance = new Cesium.NearFarScalar(2.0e5, 1.35, 1.6e7, 0.55);
 
   for (const item of items) {
     const lat = item.lat;
@@ -280,9 +308,7 @@ function syncAisBillboardEntities(
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     const id = `${prefix}:${item.mmsi}`;
     seen.add(id);
-    const heightM = prefix === "disguised" ? 100 : 80;
     const position = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
-    const visible = occluder.isPointVisible(position);
     const billboard = cesiumAisBillboard(item, mapBearingDeg);
     const name = item.shipName || item.mmsi;
 
@@ -290,14 +316,19 @@ function syncAisBillboardEntities(
     if (existing) {
       existing.position = new Cesium.ConstantPositionProperty(position);
       existing.name = name;
-      existing.show = visible;
+      // 가시성(지구 뒤편)은 preRender 훅에서 매 프레임 갱신
+      existing.show = true;
       if (existing.point) existing.point = undefined;
       if (existing.billboard) {
         existing.billboard.image = new Cesium.ConstantProperty(billboard.image);
         existing.billboard.width = new Cesium.ConstantProperty(billboard.width);
         existing.billboard.height = new Cesium.ConstantProperty(billboard.height);
         existing.billboard.rotation = new Cesium.ConstantProperty(billboard.rotation);
-        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
+          CESIUM_AIS_NO_DEPTH,
+        );
+        existing.billboard.scaleByDistance = new Cesium.ConstantProperty(scaleByDistance);
+        existing.billboard.color = new Cesium.ConstantProperty(Cesium.Color.WHITE);
       } else {
         existing.billboard = new Cesium.BillboardGraphics({
           image: billboard.image,
@@ -307,7 +338,9 @@ function syncAisBillboardEntities(
           alignedAxis: Cesium.Cartesian3.UNIT_Z,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: 0,
+          disableDepthTestDistance: CESIUM_AIS_NO_DEPTH,
+          scaleByDistance,
+          color: Cesium.Color.WHITE,
         });
       }
       continue;
@@ -317,7 +350,7 @@ function syncAisBillboardEntities(
       id,
       name,
       position,
-      show: visible,
+      show: true,
       billboard: new Cesium.BillboardGraphics({
         image: billboard.image,
         width: billboard.width,
@@ -326,7 +359,9 @@ function syncAisBillboardEntities(
         alignedAxis: Cesium.Cartesian3.UNIT_Z,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        disableDepthTestDistance: 0,
+        disableDepthTestDistance: CESIUM_AIS_NO_DEPTH,
+        scaleByDistance,
+        color: Cesium.Color.WHITE,
       }),
     });
   }
@@ -339,6 +374,21 @@ function syncAisBillboardEntities(
   }
   for (const entity of toRemove) {
     viewer.entities.remove(entity);
+  }
+}
+
+/** 카메라가 돌 때마다 지구 뒤편 AIS를 숨김 — 폴링 때만 갱신하면 반대편 바다가 비어 보임 */
+function updateAisEntityOcclusion(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+): void {
+  const occluder = createGlobeOccluder(Cesium, viewer);
+  for (const entity of viewer.entities.values) {
+    if (typeof entity.id !== "string") continue;
+    if (!entity.id.startsWith("ais:") && !entity.id.startsWith("disguised:")) continue;
+    const position = entity.position?.getValue(viewer.clock.currentTime);
+    if (!position) continue;
+    entity.show = occluder.isPointVisible(position);
   }
 }
 
@@ -438,6 +488,97 @@ function syncAircraftBillboardEntities(
   }
 }
 
+/**
+ * 북한·중국·러시아·이란 국경. 굵기는 지면 폭(m)을 유지해서
+ * 줌아웃하면 화면에서 같은 비율로 얇아지고, 줌인하면 굵어진다.
+ * 반환값은 해제 함수.
+ */
+function attachAxisHubBorders(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  rings: LngLatRing[],
+): () => void {
+  const color = Cesium.Color.fromCssColorString(AXIS_HUB_BORDER_COLOR);
+  const ids: string[] = [];
+  const instances = rings.map((ring, index) => {
+    const flat: number[] = [];
+    for (const pair of ring) {
+      const lng = pair[0];
+      const lat = pair[1];
+      if (lng == null || lat == null || !Number.isFinite(lng) || !Number.isFinite(lat)) {
+        continue;
+      }
+      flat.push(lng, lat);
+    }
+    if (flat.length < 8) return null;
+    const id = `hub-border:${index}`;
+    ids.push(id);
+    return new Cesium.GeometryInstance({
+      id,
+      geometry: new Cesium.GroundPolylineGeometry({
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        width: 2,
+        arcType: Cesium.ArcType.GEODESIC,
+        granularity: 0,
+      }),
+    });
+  }).filter((instance): instance is import("cesium").GeometryInstance => instance != null);
+
+  if (!instances.length || !Cesium.GroundPolylinePrimitive.isSupported(viewer.scene)) {
+    return () => {};
+  }
+
+  const primitive = new Cesium.GroundPolylinePrimitive({
+    geometryInstances: instances,
+    appearance: new Cesium.PolylineMaterialAppearance({
+      material: Cesium.Material.fromType("Color", { color }),
+    }),
+    classificationType: Cesium.ClassificationType.BOTH,
+    allowPicking: false,
+    asynchronous: true,
+  });
+  viewer.scene.groundPrimitives.add(primitive);
+
+  const scratchCarto = new Cesium.Cartographic();
+  let lastPx = -1;
+  const removePreRender = viewer.scene.preRender.addEventListener(() => {
+    if (viewer.isDestroyed() || primitive.isDestroyed() || !primitive.ready) return;
+    const carto = Cesium.Cartographic.fromCartesian(
+      viewer.camera.positionWC,
+      viewer.scene.globe.ellipsoid,
+      scratchCarto,
+    );
+    const frustum = viewer.camera.frustum as { fovy?: number };
+    const px = axisHubBorderWidthPx({
+      cameraHeightM: carto.height,
+      canvasHeightPx: viewer.scene.canvas.clientHeight,
+      fovyRad: frustum.fovy ?? Math.PI / 3,
+    });
+    if (px === lastPx) return;
+    const width: number[] = [px];
+    try {
+      for (const id of ids) {
+        const attrs = primitive.getGeometryInstanceAttributes(id);
+        if (attrs) attrs.width = width;
+      }
+    } catch {
+      return;
+    }
+    lastPx = px;
+  });
+
+  return () => {
+    removePreRender();
+    if (!primitive.isDestroyed()) {
+      if (!viewer.isDestroyed()) {
+        viewer.scene.groundPrimitives.remove(primitive);
+      } else {
+        primitive.destroy();
+      }
+    }
+  };
+}
+
 export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatelliteGlobeProps>(
   function CesiumSatelliteGlobe(
     {
@@ -453,6 +594,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showDisguisedVessels = false,
       showMilitaryActivity = false,
       showAirTraffic = false,
+      alertPins = [],
+      onSelectAlert,
       onReady,
       onSelectEntity,
     },
@@ -474,6 +617,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   onReadyRef.current = onReady;
   const onSelectEntityRef = useRef(onSelectEntity);
   onSelectEntityRef.current = onSelectEntity;
+  const onSelectAlertRef = useRef(onSelectAlert);
+  onSelectAlertRef.current = onSelectAlert;
+  const alertPinsRef = useRef(alertPins);
+  alertPinsRef.current = alertPins;
   const aisVesselsRef = useRef(aisVessels);
   aisVesselsRef.current = aisVessels;
   const disguisedVesselsRef = useRef(disguisedVessels);
@@ -665,6 +812,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             if (vessel) onSelectEntityRef.current?.({ kind: "ais", item: vessel });
             return;
           }
+          if (prefix === "alert" || prefix === "alertline") {
+            const pin = alertPinsRef.current.find((item) => item.id === key);
+            if (pin) onSelectAlertRef.current?.(pin);
+            return;
+          }
           if (prefix === "mil" || prefix === "civ") {
             const pool = prefix === "mil" ? milAircraftRef.current : civAircraftRef.current;
             const aircraft = pool.find((x) => x.hex === key || x.id === key);
@@ -746,6 +898,50 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** 북한·중국·러시아·이란 빨간 국경. 줌 배율에 맞춰 굵기가 같이 변한다. */
+  useEffect(() => {
+    if (status !== "ready") return;
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (!viewer || !Cesium || viewer.isDestroyed()) return;
+
+    let cancelled = false;
+    let detach: (() => void) | null = null;
+
+    (async () => {
+      try {
+        const response = await fetchDataWithFallback("axis-hub-countries.json");
+        if (!response.ok || cancelled || viewer.isDestroyed()) return;
+        const rings = collectAxisHubBorderRings(
+          (await response.json()) as FeatureCollection,
+        );
+        if (cancelled || viewer.isDestroyed() || rings.length === 0) return;
+        detach = attachAxisHubBorders(Cesium, viewer, rings);
+      } catch (err) {
+        console.warn("[CesiumSatelliteGlobe] axis hub borders:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      detach?.();
+    };
+  }, [status]);
+
+  /** 카메라 회전 시 지구 뒤편 AIS 숨김 — 폴링 주기에 묶이지 않음 */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+    const remove = viewer.scene.preRender.addEventListener(() => {
+      if (viewer.isDestroyed()) return;
+      updateAisEntityOcclusion(Cesium, viewer);
+    });
+    return () => {
+      remove();
+    };
+  }, [status]);
+
   /**
    * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체. 전부 Cesium billboard.
    * viewer.entities를 prefix(ais:/disguised:/mil:/civ:)별로 diff해서
@@ -796,6 +992,74 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     showMilitaryActivity,
     showAirTraffic,
   ]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    const seen = new Set<string>();
+    for (const pin of alertPins) {
+      if (pin.kind === "dark-fleet") continue;
+      const pointId = `alert:${pin.id}`;
+      seen.add(pointId);
+      const color = Cesium.Color.fromCssColorString(ALERT_PIN_COLOR[pin.kind]);
+      const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
+      const existing = viewer.entities.getById(pointId);
+      if (existing) {
+        existing.position = new Cesium.ConstantPositionProperty(position);
+        existing.name = pin.title;
+        if (existing.point) {
+          existing.point.color = new Cesium.ConstantProperty(color);
+        }
+      } else {
+        viewer.entities.add({
+          id: pointId,
+          name: pin.title,
+          position,
+          point: {
+            pixelSize: pin.kind === "route" || pin.kind === "ais-gate" ? 7 : 11,
+            color,
+            outlineColor: Cesium.Color.BLACK.withAlpha(0.65),
+            outlineWidth: 1,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+      }
+
+      const lineId = `alertline:${pin.id}`;
+      if (pin.path && pin.path.length >= 2) {
+        seen.add(lineId);
+        const positions = pin.path.map((point) =>
+          Cesium.Cartesian3.fromDegrees(point.lng, point.lat, 0),
+        );
+        const line = viewer.entities.getById(lineId);
+        if (line?.polyline) {
+          line.polyline.positions = new Cesium.ConstantProperty(positions);
+        } else if (!line) {
+          viewer.entities.add({
+            id: lineId,
+            name: pin.title,
+            polyline: {
+              positions,
+              width: 2,
+              material: new Cesium.ColorMaterialProperty(color.withAlpha(0.85)),
+              clampToGround: true,
+            },
+          });
+        }
+      }
+    }
+
+    const stale: import("cesium").Entity[] = [];
+    for (const entity of viewer.entities.values) {
+      const id = entity.id;
+      if (typeof id !== "string") continue;
+      if (!id.startsWith("alert:") && !id.startsWith("alertline:")) continue;
+      if (!seen.has(id)) stale.push(entity);
+    }
+    for (const entity of stale) viewer.entities.remove(entity);
+  }, [alertPins, status]);
 
   return (
     <div className={`relative h-full w-full bg-[#02040a] ${className}`}>
