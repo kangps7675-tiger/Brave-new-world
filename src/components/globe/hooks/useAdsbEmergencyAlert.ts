@@ -29,6 +29,13 @@ type FlyToFn = (
 type Options = {
   paused: boolean;
   flyTo: FlyToFn;
+  /**
+   * 관측(Cesium) 모드일 때만 true — ADS-B 엔티티가 실제로 그려지는 유일한 모드다.
+   * 지정학/지경학/항적(MapLibre) 모드에서는 flyTo가 카메라를 움직여도 화면에
+   * 아무것도 안 보이므로, 자동 fly·사이렌 없이 배너만 띄우고 "관측 모드로 이동"은
+   * GlobeDashboard가 배너의 액션 버튼으로 처리한다.
+   */
+  isSatelliteViewer: boolean;
   /** Optional: open aircraft in analysis panel */
   onSelectAircraft?: (aircraft: TrackedAircraft) => void;
 };
@@ -39,13 +46,20 @@ const POLL_MS = 45_000;
  * Poll /api/adsb-emergency; on newly seen hex → flyTo + siren + banner.
  * First snapshot only seeds seen-set (no alert on page load).
  */
-export function useAdsbEmergencyAlert({ paused, flyTo, onSelectAircraft }: Options) {
+export function useAdsbEmergencyAlert({
+  paused,
+  flyTo,
+  isSatelliteViewer,
+  onSelectAircraft,
+}: Options) {
   const [offer, setOffer] = useState<AdsbEmergencyOffer | null>(null);
   const seenRef = useRef<Set<string> | null>(null);
   const busyRef = useRef(false);
   const busyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flyToRef = useRef(flyTo);
   flyToRef.current = flyTo;
+  const isSatelliteViewerRef = useRef(isSatelliteViewer);
+  isSatelliteViewerRef.current = isSatelliteViewer;
   const onSelectRef = useRef(onSelectAircraft);
   onSelectRef.current = onSelectAircraft;
 
@@ -94,12 +108,17 @@ export function useAdsbEmergencyAlert({ paused, flyTo, onSelectAircraft }: Optio
         busyRef.current = true;
 
         const squawk = normalizeSquawk(fresh.squawk) ?? "7700";
-        flyToRef.current(fresh.lat, fresh.lng, 0.55, AIR_RAID_FLY_MS, {
-          pitch: 42,
-          bearing: -8,
-        });
-        playAirRaidSirenAfterFly("tzeva", AIR_RAID_FLY_MS, () => readSoundEnabled());
-        onSelectRef.current?.(fresh);
+
+        // 관측(Cesium) 모드일 때만 즉시 fly+사이렌 — 다른 모드에선 엔티티가 안 보여서
+        // 카메라만 움직이는 건 의미가 없다. 배너의 "관측 모드로 이동" 버튼이 대신한다.
+        if (isSatelliteViewerRef.current) {
+          flyToRef.current(fresh.lat, fresh.lng, 0.55, AIR_RAID_FLY_MS, {
+            pitch: 42,
+            bearing: -8,
+          });
+          playAirRaidSirenAfterFly("tzeva", AIR_RAID_FLY_MS, () => readSoundEnabled());
+          onSelectRef.current?.(fresh);
+        }
 
         setOffer({
           key: `${fresh.hex}-${Date.now()}`,

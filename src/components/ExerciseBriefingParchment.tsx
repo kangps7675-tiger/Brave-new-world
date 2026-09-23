@@ -63,10 +63,12 @@ type Props = {
   briefing: ExerciseBriefingContent;
   lang: LabelLanguage;
   onDismiss: () => void;
+  /** "위치 보기" 보조 CTA — 누를 때만 그 훈련 좌표로 fly-to. 자동 이동 없음. */
+  onFlyTo: () => void;
 };
 
 /** 훈련 경보 양피지 — 전보음 + 즉시 전문 (공습과 동일 패턴, 사이렌 없음) */
-export function ExerciseBriefingParchment({ briefing, lang, onDismiss }: Props) {
+export function ExerciseBriefingParchment({ briefing, lang, onDismiss, onFlyTo }: Props) {
   return (
     <ParchmentLetter
       lang={lang}
@@ -74,6 +76,8 @@ export function ExerciseBriefingParchment({ briefing, lang, onDismiss }: Props) 
       paragraphs={briefing.paragraphs}
       ctaLabel={lang === "en" ? "Understood" : "확인"}
       onContinue={onDismiss}
+      secondaryCtaLabel={lang === "en" ? "View location" : "위치 보기"}
+      onSecondaryCta={onFlyTo}
       playBreakingDispatch
       typewriter={false}
       titleId="exercise-briefing-title"
