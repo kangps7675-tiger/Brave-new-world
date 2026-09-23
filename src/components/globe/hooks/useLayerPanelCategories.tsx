@@ -1736,11 +1736,11 @@ export function useLayerPanelCategories({
             detail: showAis
               ? isSatelliteViewer
                 ? labelLanguage === "en"
-                  ? `${aisVessels.length.toLocaleString()} shown · Observe · Cesium`
-                  : `${aisVessels.length.toLocaleString()}척 표시 · 관측 · Cesium`
+                  ? `${aisVessels.length.toLocaleString()} shown · Cesium 3D`
+                  : `${aisVessels.length.toLocaleString()}척 · Cesium 3D`
                 : labelLanguage === "en"
-                  ? "On, but only renders in Observe (Cesium) mode"
-                  : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
+                  ? "Turns on Observe (Cesium 3D)"
+                  : "켜면 관측(Cesium 3D)으로 전환"
               : labelLanguage === "en"
                 ? "Off"
                 : "꺼짐",
@@ -2060,8 +2060,8 @@ export function useLayerPanelCategories({
             label: "군사 항공기",
             detail: showMilitaryActivity
               ? isSatelliteViewer
-                ? `비행기 ${milAircraft.length.toLocaleString()}대 · ADS-B · Bellingcat hex`
-                : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
+                ? `비행기 ${milAircraft.length.toLocaleString()}대 · ADS-B · Cesium 3D`
+                : "켜면 관측(Cesium 3D)으로 전환"
               : "꺼짐",
             checked: layerPrefs.showMilitaryActivity,
             onChange: setShowMilitaryActivity,
@@ -2251,8 +2251,8 @@ export function useLayerPanelCategories({
             label: "항공기 운항",
             detail: showAirTraffic
               ? isSatelliteViewer
-                ? `민항 ${civAircraft.length.toLocaleString()}대 · 군용 제외`
-                : "켜짐, 하지만 관측(Cesium) 모드에서만 실제로 표시됨"
+                ? `민항 ${civAircraft.length.toLocaleString()}대 · Cesium 3D`
+                : "켜면 관측(Cesium 3D)으로 전환"
               : "꺼짐",
             checked: layerPrefs.showAirTraffic,
             onChange: setShowAirTraffic,
