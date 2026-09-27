@@ -42,7 +42,7 @@ type UseLiveVesselAirPollingOptions = {
 
 /**
  * AIS 선박(정상/위장) · ADS-B(군용/민간 항적) · 미 항모 라이브 폴링 — GlobeDashboard에서 추출 (분리 2단계).
- * 민항 ADS-B 는 카메라 주변이 아니라 전 세계 스냅샷을 폴링한다.
+ * 민항 ADS-B / AIS 는 기본 전 세계 스냅샷. (근접 densify 는 GlobeDashboard refresh* 경로)
  */
 export function useLiveVesselAirPolling({
   isCameraMovingRef,

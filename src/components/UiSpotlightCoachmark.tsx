@@ -6,12 +6,16 @@ import { placeNearAnchor, VIEWPORT_EDGE_PAD } from "@/lib/viewportClamp";
 
 export type SpotlightPlacement = "below" | "above";
 
+/** CTA 연타·단계 리마운트 직후 클릭 관통으로 투어가 촤르륵 넘어가는 걸 막음 */
+export const COACHMARK_ADVANCE_LOCK_MS = 380;
+
 type UiSpotlightCoachmarkProps = {
   open: boolean;
   targetSelector: string;
   title: string;
   body: string;
   ctaLabel: string;
+  /** CTA(다음/완료) — 백드롭·Escape로는 호출되지 않음 */
   onDismiss: () => void;
   /** 전체 설명 스킵 (첫 화면용) */
   skipLabel?: string;
@@ -29,6 +33,7 @@ type UiSpotlightCoachmarkProps = {
 /**
  * 화면 요소를 가리키는 1회성 표지 + 설명창.
  * 말풍선은 항상 브라우저 뷰포트 안에 남도록 clamp / flip 합니다.
+ * 다음 단계는 CTA만 — 배경 클릭·Escape는 스킵(있으면) 또는 무시.
  */
 export function UiSpotlightCoachmark({
   open,
@@ -46,14 +51,16 @@ export function UiSpotlightCoachmark({
   accent = "sky",
 }: UiSpotlightCoachmarkProps) {
   const bubbleRef = useRef<HTMLDivElement>(null);
+  const advanceLockUntilRef = useRef(0);
   /**
-   * 전체화면 스포트라이트 — 키보드로 빠져나갈 수단이 없었다 (P1-7).
-   * Escape는 「건너뛰기」가 있으면 그쪽, 없으면 닫기로 보낸다.
-   * 훅은 조기 반환보다 위에 있어야 한다.
+   * 전체화면 스포트라이트 — Escape는 「건너뛰기」가 있으면 그쪽만.
+   * 없으면 닫지 않음(CTA로만 진행) — Space/Enter로 단계가 연쇄 소모되지 않게.
    */
   const dialogRef = useDialog<HTMLDivElement>({
     open,
-    onClose: onSkip ?? onDismiss,
+    onClose: onSkip,
+    closeOnEscape: Boolean(onSkip),
+    initialFocus: "[data-coachmark-cta]",
   });
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const [bubblePos, setBubblePos] = useState<{
@@ -68,6 +75,8 @@ export function UiSpotlightCoachmark({
       setBubblePos(null);
       return;
     }
+    // 단계가 바뀌거나 다시 열릴 때 — 직전 클릭이 새 CTA/백드롭에 먹지 않게
+    advanceLockUntilRef.current = Date.now() + COACHMARK_ADVANCE_LOCK_MS;
 
     function measure() {
       const el = document.querySelector(targetSelector);
@@ -90,7 +99,6 @@ export function UiSpotlightCoachmark({
     }
 
     measure();
-    // 첫 렌더 후 실제 말풍선 크기로 재측정
     const raf = window.requestAnimationFrame(measure);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
@@ -102,6 +110,30 @@ export function UiSpotlightCoachmark({
       window.clearInterval(timer);
     };
   }, [open, targetSelector, placement, title, body, ctaLabel, skipLabel]);
+
+  function locked(): boolean {
+    return Date.now() < advanceLockUntilRef.current;
+  }
+
+  function handleAdvance() {
+    if (locked()) return;
+    advanceLockUntilRef.current = Date.now() + COACHMARK_ADVANCE_LOCK_MS;
+    onDismiss();
+  }
+
+  function handleSkip() {
+    if (!onSkip) return;
+    if (locked()) return;
+    advanceLockUntilRef.current = Date.now() + COACHMARK_ADVANCE_LOCK_MS;
+    onSkip();
+  }
+
+  function handleBack() {
+    if (!onBack) return;
+    if (locked()) return;
+    advanceLockUntilRef.current = Date.now() + COACHMARK_ADVANCE_LOCK_MS;
+    onBack();
+  }
 
   if (!open || !anchor) return null;
 
@@ -160,14 +192,8 @@ export function UiSpotlightCoachmark({
       role="dialog"
       aria-modal="true"
     >
-      <button
-        type="button"
-        className="absolute inset-0 bg-transparent"
-        aria-label={ctaLabel}
-        onClick={onDismiss}
-      />
-      {/* 스포트라이트: 이 박스의 box-shadow 하나가 화면 전체 딤 처리를 담당 —
-          별도 풀스크린 스크림을 겹치면 컷아웃 내부(=실제 nav)까지 어두워져 "가려진" 것처럼 보임 */}
+      {/* 딤 전용 — 클릭해도 다음으로 가지 않음 (연타·클릭 관통 방지) */}
+      <div className="absolute inset-0 bg-transparent" aria-hidden />
       <div
         className={`pointer-events-none absolute rounded-2xl border-2 ${tone.ring} shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]`}
         style={{
@@ -205,20 +231,22 @@ export function UiSpotlightCoachmark({
       </svg>
       <div
         ref={bubbleRef}
-        className={`pointer-events-auto absolute max-w-[min(88vw,300px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${tone.card}`}
+        className={`pointer-events-auto absolute max-w-[min(88vw,320px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${tone.card}`}
         style={{ left: bubbleLeft, top: bubbleTop }}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <p className="text-meta font-semibold uppercase tracking-[0.16em] opacity-70">
           {progressLabel ? `${progressLabel} · ` : ""}
           {title}
         </p>
-        <p className="mt-1.5 leading-snug">{body}</p>
+        <p className="mt-1.5 whitespace-pre-line leading-snug">{body}</p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             {skipLabel && onSkip ? (
               <button
                 type="button"
-                onClick={onSkip}
+                onClick={handleSkip}
                 className={`rounded-full border px-3 py-1 text-xs opacity-80 ${tone.btn}`}
               >
                 {skipLabel}
@@ -227,7 +255,7 @@ export function UiSpotlightCoachmark({
             {backLabel && onBack ? (
               <button
                 type="button"
-                onClick={onBack}
+                onClick={handleBack}
                 className={`rounded-full border px-3 py-1 text-xs opacity-80 ${tone.btn}`}
               >
                 {backLabel}
@@ -236,7 +264,8 @@ export function UiSpotlightCoachmark({
           </div>
           <button
             type="button"
-            onClick={onDismiss}
+            data-coachmark-cta
+            onClick={handleAdvance}
             className={`rounded-full border px-3 py-1 text-xs ${tone.btn}`}
           >
             {ctaLabel}

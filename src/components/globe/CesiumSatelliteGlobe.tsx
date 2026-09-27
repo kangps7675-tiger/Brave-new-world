@@ -46,6 +46,10 @@ import {
 } from "@/lib/surfaceCombatantDeckIcon";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
+import {
+  getNeptunTypeMeta,
+  type NeptunLiveThreat,
+} from "@/lib/neptun";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -98,6 +102,9 @@ export type CesiumSatelliteGlobeProps = {
   showDisguisedVessels?: boolean;
   showMilitaryActivity?: boolean;
   showAirTraffic?: boolean;
+  /** NEPTUN 우크라 UAV·미사일 — 뷰포트 필터·상한은 상위에서 적용 */
+  neptunThreats?: NeptunLiveThreat[];
+  showNeptun?: boolean;
   /** 세슘 알림창과 같은 경보 핀 (UKMTO·NAVAREA·초크·훈련·게이트·항로) */
   alertPins?: CesiumAlertItem[];
   onSelectAlert?: (item: CesiumAlertItem) => void;
@@ -385,10 +392,161 @@ function updateAisEntityOcclusion(
   const occluder = createGlobeOccluder(Cesium, viewer);
   for (const entity of viewer.entities.values) {
     if (typeof entity.id !== "string") continue;
-    if (!entity.id.startsWith("ais:") && !entity.id.startsWith("disguised:")) continue;
+    if (
+      !entity.id.startsWith("ais:") &&
+      !entity.id.startsWith("disguised:") &&
+      !entity.id.startsWith("neptun:")
+    ) {
+      continue;
+    }
     const position = entity.position?.getValue(viewer.clock.currentTime);
     if (!position) continue;
     entity.show = occluder.isPointVisible(position);
+  }
+}
+
+const CESIUM_NEPTUN_HEIGHT_M: Record<string, number> = {
+  uav: 2_400,
+  recon: 3_200,
+  missile: 8_000,
+  ballistic: 18_000,
+  kab: 5_000,
+  mig31k: 12_000,
+  unknown: 4_000,
+};
+const CESIUM_NEPTUN_TRAIL_MAX = 12;
+const neptunBillboardUriCache = new Map<string, string>();
+
+function neptunBillboardImage(colorCss: string): string {
+  const key = colorCss;
+  let image = neptunBillboardUriCache.get(key);
+  if (!image) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+      <circle cx="14" cy="14" r="5.5" fill="${colorCss}" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="14" cy="14" r="10" fill="none" stroke="${colorCss}" stroke-width="1.2" opacity="0.45"/>
+    </svg>`;
+    image = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    neptunBillboardUriCache.set(key, image);
+  }
+  return image;
+}
+
+function neptunTrailPositions(
+  Cesium: typeof import("cesium"),
+  threat: NeptunLiveThreat,
+  heightM: number,
+): import("cesium").Cartesian3[] {
+  const trail = threat.trail ?? [];
+  const sliced =
+    trail.length > CESIUM_NEPTUN_TRAIL_MAX - 1
+      ? trail.slice(trail.length - (CESIUM_NEPTUN_TRAIL_MAX - 1))
+      : trail;
+  const pts: import("cesium").Cartesian3[] = [];
+  for (const p of sliced) {
+    if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
+    pts.push(Cesium.Cartesian3.fromDegrees(p.lon, p.lat, heightM * 0.85));
+  }
+  const lat = threat.predictedLat ?? threat.lat;
+  const lon = threat.predictedLon ?? threat.lon;
+  if (Number.isFinite(lat) && Number.isFinite(lon)) {
+    pts.push(Cesium.Cartesian3.fromDegrees(lon, lat, heightM));
+  }
+  return pts;
+}
+
+/** NEPTUN UAV·미사일 — 빌보드 + 짧은 궤적 폴리라인 (상한·오클루전은 AIS와 동일) */
+function syncNeptunBillboardEntities(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  items: NeptunLiveThreat[],
+): void {
+  const seen = new Set<string>();
+  const scaleByDistance = new Cesium.NearFarScalar(1.5e5, 1.4, 4.0e6, 0.45);
+
+  for (const threat of items) {
+    const lat = threat.predictedLat ?? threat.lat;
+    const lon = threat.predictedLon ?? threat.lon;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const meta = getNeptunTypeMeta(threat.type);
+    const heightM = CESIUM_NEPTUN_HEIGHT_M[threat.type] ?? CESIUM_NEPTUN_HEIGHT_M.unknown;
+    const id = `neptun:${threat.id}`;
+    seen.add(id);
+    const position = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
+    const image = neptunBillboardImage(meta.color);
+    const name = threat.title || meta.label;
+
+    const existing = viewer.entities.getById(id);
+    if (existing) {
+      existing.position = new Cesium.ConstantPositionProperty(position);
+      existing.name = name;
+      existing.show = true;
+      if (existing.billboard) {
+        existing.billboard.image = new Cesium.ConstantProperty(image);
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
+          CESIUM_AIS_NO_DEPTH,
+        );
+        existing.billboard.scaleByDistance = new Cesium.ConstantProperty(scaleByDistance);
+      }
+      const trailPts = neptunTrailPositions(Cesium, threat, heightM);
+      if (trailPts.length >= 2) {
+        if (existing.polyline) {
+          existing.polyline.positions = new Cesium.ConstantProperty(trailPts);
+          existing.polyline.material = new Cesium.ColorMaterialProperty(
+            Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
+          );
+        } else {
+          existing.polyline = new Cesium.PolylineGraphics({
+            positions: trailPts,
+            width: 2.2,
+            material: Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
+            clampToGround: false,
+            arcType: Cesium.ArcType.GEODESIC,
+          });
+        }
+      } else if (existing.polyline) {
+        existing.polyline = undefined;
+      }
+      continue;
+    }
+
+    const trailPts = neptunTrailPositions(Cesium, threat, heightM);
+    viewer.entities.add({
+      id,
+      name,
+      position,
+      show: true,
+      billboard: new Cesium.BillboardGraphics({
+        image,
+        width: 22,
+        height: 22,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        disableDepthTestDistance: CESIUM_AIS_NO_DEPTH,
+        scaleByDistance,
+        color: Cesium.Color.WHITE,
+      }),
+      ...(trailPts.length >= 2
+        ? {
+            polyline: new Cesium.PolylineGraphics({
+              positions: trailPts,
+              width: 2.2,
+              material: Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
+              clampToGround: false,
+              arcType: Cesium.ArcType.GEODESIC,
+            }),
+          }
+        : {}),
+    });
+  }
+
+  const toRemove: import("cesium").Entity[] = [];
+  for (const entity of viewer.entities.values) {
+    if (typeof entity.id === "string" && entity.id.startsWith("neptun:") && !seen.has(entity.id)) {
+      toRemove.push(entity);
+    }
+  }
+  for (const entity of toRemove) {
+    viewer.entities.remove(entity);
   }
 }
 
@@ -594,6 +752,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showDisguisedVessels = false,
       showMilitaryActivity = false,
       showAirTraffic = false,
+      neptunThreats = [],
+      showNeptun = false,
       alertPins = [],
       onSelectAlert,
       onReady,
@@ -979,6 +1139,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showAirTraffic ? civAircraft : [],
       "civil",
     );
+    syncNeptunBillboardEntities(Cesium, viewer, showNeptun ? neptunThreats : []);
   }, [
     status,
     aisVessels,
@@ -991,6 +1152,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     showDisguisedVessels,
     showMilitaryActivity,
     showAirTraffic,
+    showNeptun,
+    neptunThreats,
   ]);
 
   useEffect(() => {

@@ -97,6 +97,8 @@ export function ChokepointStressParchment({
       secondaryCtaLabel={lang === "en" ? "View location" : "위치 보기"}
       onSecondaryCta={onFlyTo}
       playBreakingDispatch
+      playUnfoldSound
+      newsFlashFont
       typewriter={false}
       blackInk
       titleId="chokepoint-stress-briefing-title"

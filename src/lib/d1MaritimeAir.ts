@@ -73,34 +73,54 @@ export async function readAisFromD1(options: {
   category?: "military" | "commercial" | "other" | "all";
   max: number;
   maxAgeMs?: number;
+  west?: number;
+  south?: number;
+  east?: number;
+  north?: number;
 }): Promise<{ vessels: AisVessel[]; count: number; source: "d1"; receivedAt: string } | null> {
   try {
     const db = await getDb();
     const maxAge = options.maxAgeMs ?? AIS_D1_TTL_MS;
+    const hasBbox =
+      options.west != null &&
+      options.south != null &&
+      options.east != null &&
+      options.north != null;
     const rows = await db
       .select()
       .from(aisVessels)
       .orderBy(desc(aisVessels.ingestedAt))
-      .limit(Math.min(options.max * 3, 2000));
+      .limit(Math.min(Math.max(options.max * 3, hasBbox ? 2000 : options.max * 3), 3000));
+
+    const inBbox = (r: (typeof rows)[number]) => {
+      if (!hasBbox) return true;
+      const west = options.west!;
+      const east = options.east!;
+      const south = options.south!;
+      const north = options.north!;
+      if (r.lat < south || r.lat > north) return false;
+      if (west <= east) return r.lng >= west && r.lng <= east;
+      // antimeridian
+      return r.lng >= west || r.lng <= east;
+    };
 
     const byCategory = (pool: typeof rows) =>
       !options.category || options.category === "all"
         ? pool
         : pool.filter((r) => r.category === options.category);
 
-    let filtered = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge)));
+    let filtered = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge) && inBbox(r)));
     // 신선 데이터가 카테고리/TTL에 걸리면 스태일이라도 노출 (빈 체크박스 방지)
     if (filtered.length === 0) {
       filtered = byCategory(
-        rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS)),
+        rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS) && inBbox(r)),
       );
     }
     // 지정학 military인데 군함이 0이면 all로 완화
-    if (
-      filtered.length === 0 &&
-      options.category === "military"
-    ) {
-      filtered = rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS));
+    if (filtered.length === 0 && options.category === "military") {
+      filtered = rows.filter(
+        (r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS) && inBbox(r),
+      );
     }
     const vessels = filtered.slice(0, options.max).map(rowToAis);
     if (vessels.length === 0) return null;

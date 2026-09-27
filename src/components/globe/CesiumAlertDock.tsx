@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
@@ -21,38 +22,66 @@ type Props = {
 
 export function CesiumAlertDock({ lang, items, onOpen }: Props) {
   const en = lang === "en";
+  const [open, setOpen] = useState(true);
+
   return (
     <section
-      className="pointer-events-auto flex max-h-56 flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90"
+      className="pointer-events-auto flex flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90"
       aria-label={en ? "Cesium alerts" : "세슘 알림"}
     >
-      <header className="flex items-center justify-between gap-2 border-b border-teal-400/20 px-2.5 py-1.5 text-micro text-teal-100/90">
+      <button
+        type="button"
+        className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-teal-100/90 transition hover:bg-teal-400/10 ${
+          open ? "border-b border-teal-400/20" : ""
+        }`}
+        aria-expanded={open}
+        aria-controls="cesium-alert-dock-panel"
+        onClick={() => setOpen((v) => !v)}
+      >
         <span className="font-medium tracking-wide">{en ? "Alerts" : "알림"}</span>
-        <span className="tabular-nums text-teal-200/60">{items.length}</span>
-      </header>
-      {items.length === 0 ? (
-        <p className="px-2.5 py-2 text-micro text-teal-200/55">
-          {en ? "No maritime alerts in this snapshot." : "이 스냅샷에는 해상 알림이 없습니다."}
-        </p>
-      ) : (
-        <ul className="intel-scroll-y min-h-0 flex-1 overflow-y-auto">
-          {items.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className="flex w-full flex-col items-start gap-0.5 px-2.5 py-1.5 text-left hover:bg-teal-400/10"
-                onClick={() => onOpen(item)}
-              >
-                <span className="text-micro text-teal-300/80">{KIND_LABEL[item.kind][en ? "en" : "ko"]}</span>
-                <span className="line-clamp-1 text-meta text-teal-50">{item.title}</span>
-                {item.detail ? (
-                  <span className="line-clamp-1 text-micro text-teal-100/55">{item.detail}</span>
-                ) : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        <span className="flex items-center gap-1.5 tabular-nums text-teal-200/60">
+          {items.length}
+          <span className="text-teal-300/70" aria-hidden>
+            {open ? "▾" : "▴"}
+          </span>
+        </span>
+      </button>
+      <div
+        id="cesium-alert-dock-panel"
+        className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+        aria-hidden={!open}
+      >
+        <div className={`min-h-0 overflow-hidden ${open ? "" : "pointer-events-none"}`}>
+          {items.length === 0 ? (
+            <p className="px-2.5 py-2 text-micro text-teal-200/55">
+              {en ? "No maritime alerts in this snapshot." : "이 스냅샷에는 해상 알림이 없습니다."}
+            </p>
+          ) : (
+            <ul className="intel-scroll-y max-h-56 overflow-y-auto">
+              {items.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    tabIndex={open ? 0 : -1}
+                    className="flex w-full flex-col items-start gap-0.5 px-2.5 py-1.5 text-left hover:bg-teal-400/10"
+                    onClick={() => onOpen(item)}
+                  >
+                    <span className="text-micro text-teal-300/80">
+                      {KIND_LABEL[item.kind][en ? "en" : "ko"]}
+                    </span>
+                    <span className="line-clamp-1 text-meta text-teal-50">{item.title}</span>
+                    {item.detail ? (
+                      <span className="line-clamp-1 text-micro text-teal-100/55">{item.detail}</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

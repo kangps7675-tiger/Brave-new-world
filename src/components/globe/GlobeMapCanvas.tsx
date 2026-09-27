@@ -47,6 +47,9 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   showDisguisedVessels?: boolean;
   showMilitaryActivity?: boolean;
   showAirTraffic?: boolean;
+  /** NEPTUN — 관측(Cesium) 모드 UAV·미사일 */
+  neptunThreats?: import("@/lib/neptun").NeptunLiveThreat[];
+  showNeptun?: boolean;
   /** Cesium 카메라 제어(flyTo) — 관측 모드에서만 유효, GlobeDashboard가 보관 */
   cesiumRef?: Ref<CesiumGlobeHandle>;
   /** Cesium viewer가 flyTo를 받을 수 있게 된 시점 */
@@ -83,6 +86,8 @@ export function GlobeMapCanvas({
   showDisguisedVessels,
   showMilitaryActivity,
   showAirTraffic,
+  neptunThreats,
+  showNeptun,
   cesiumRef,
   onCesiumReady,
   onSelectCesiumEntity,
@@ -116,6 +121,8 @@ export function GlobeMapCanvas({
             showDisguisedVessels={showDisguisedVessels}
             showMilitaryActivity={showMilitaryActivity}
             showAirTraffic={showAirTraffic}
+            neptunThreats={neptunThreats}
+            showNeptun={showNeptun}
             onReady={onCesiumReady}
             onSelectEntity={onSelectCesiumEntity}
             alertPins={alertPins}

@@ -1,11 +1,13 @@
 /**
- * 첫 방문 유저 1~10 화면 투어 — 크롬·뉴스·알림까지.
+ * 첫 방문 유저 1~11 화면 투어 — 크롬·뉴스·알림·기본 켜진 레이어까지.
  * 자동 풀투어는 없음. 등불 후 짧은 권유 배너 또는 기능 안내에서 시작.
+ * 단계는 CTA(다음)만으로 진행 — 배경 클릭으로 넘어가지 않음.
  */
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ViewerMode } from "@/lib/viewPackages";
 import type { SpotlightPlacement } from "@/components/UiSpotlightCoachmark";
+import { firstScreenLayersTourBody } from "@/lib/layerOnboarding";
 
 export const FIRST_VISIT_TOUR_KEY = "geowatch-first-visit-tour-v1";
 /** 등불 후 투어 권유 배너 — 거절/수락 시 다시 안 뜸 */
@@ -17,6 +19,7 @@ export type FirstVisitTourStepId =
   | "mode"
   | "theaters"
   | "layers"
+  | "layers-on"
   | "bottom-intel"
   | "news-sheet"
   | "news-tabs"
@@ -30,8 +33,10 @@ export type FirstVisitTourStep = {
   accent: "sky" | "amber" | "emerald" | "rose" | "violet";
   /** 뉴스 시트 열기 */
   openIntel?: boolean;
-  /** 레이어 패널 열기 (선택) */
+  /** 레이어 패널 열기 */
   openLayers?: boolean;
+  /** 본문을 첫 화면 ON 레이어 목록으로 대체 */
+  useFirstScreenLayersBody?: boolean;
   titleKo: string;
   titleEn: string;
   bodyKo: string;
@@ -46,53 +51,53 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     targetSelector: "#map-globe-section",
     placement: "above",
     accent: "sky",
-    titleKo: "1 · 지구본",
-    titleEn: "1 · Globe",
+    titleKo: "지구본",
+    titleEn: "Globe",
     bodyKo:
-      "드래그로 이동·회전, 스크롤로 줌합니다. 빈 바다를 더블클릭하면 그 지점으로 확대됩니다. 화면이 사선으로 기울어졌을 때 Alt를 누른 채 드래그하면 기울기·회전을 맞출 수 있습니다 (좌우=돌리기, 위아래=눕히기/세우기).",
+      "마우스로 끌면 지구가 돌아가고, 휠로 확대·축소합니다. 빈 바다를 두 번 누르면 그곳으로 들어갑니다. 화면이 비스듬하면 Alt를 누른 채 끌어서 기울기를 맞출 수 있어요.",
     bodyEn:
-      "Drag to pan/rotate, scroll to zoom. Double-click empty ocean to zoom in. When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
+      "Drag to spin the globe, scroll to zoom. Double-click empty ocean to dive in. If the view is tilted, hold Alt and drag to straighten it.",
   },
   {
     id: "nav",
     targetSelector: "#app-hover-nav",
     placement: "below",
     accent: "sky",
-    titleKo: "2 · 상단 탐색",
-    titleEn: "2 · Top navigation",
+    titleKo: "위쪽 탐색",
+    titleEn: "Top navigation",
     bodyKo:
-      "검색과 ▾ 메뉴로 중국·러시아·북한·이란 허브, 분쟁사·축을 엽니다. 로딩만으로 자동 진입하지 않습니다.",
+      "검색과 ▾ 메뉴로 관심 나라·분쟁 이야기로 갑니다. 지도가 혼자 어디로 날아가지 않아요 — 고르신 곳으로만 갑니다.",
     bodyEn:
-      "Search and ▾ open China/Russia/DPRK/Iran hubs and dispute history. Nothing auto-enters from loading alone.",
+      "Search and ▾ take you to hubs and dispute stories. Nothing flies the camera on its own — only what you pick.",
     bodyEconomyKo:
-      "검색·▾으로 에너지·초크포인트·금융 허브를 고르면 지도가 이동합니다.",
+      "검색·▾으로 에너지·물류 급소·금융 도시를 고르면 지도가 따라갑니다.",
     bodyEconomyEn:
-      "Pick energy, chokepoints, or finance hubs from search / ▾ — the map follows your choice.",
+      "Pick energy, chokepoints, or finance hubs from search / ▾ — the map follows.",
   },
   {
     id: "mode",
     targetSelector: "#view-mode-switcher",
     placement: "below",
     accent: "emerald",
-    titleKo: "3 · 지정학 ↔ 지경학",
-    titleEn: "3 · Conflict ↔ Economy",
+    titleKo: "보는 렌즈",
+    titleEn: "View lens",
     bodyKo:
-      "지정학은 전선·OSINT, 지경학은 에너지·물류·시장입니다. 같은 지구본을 다른 렌즈로 봅니다.",
+      "같은 지구본을 다른 렌즈로 봅니다. 전쟁·안보는 전선과 공개 정보, 경제·물류는 에너지·항로·시장 쪽이에요.",
     bodyEn:
-      "Conflict = fronts & OSINT. Economy = energy, logistics, markets. Same globe, different lens.",
+      "Same globe, different lens. Conflict = fronts & open-source intel. Economy = energy, shipping, markets.",
   },
   {
     id: "theaters",
     targetSelector: "#exploration-theater-dropdown",
     placement: "below",
     accent: "amber",
-    titleKo: "4 · 주요전장",
-    titleEn: "4 · Key theaters",
+    titleKo: "주요 전장",
+    titleEn: "Key theaters",
     bodyKo:
-      "대만·한반도·우크라이나·중동으로 바로 날아갑니다. 클릭하면 해당 전장 레이어 프리셋이 켜집니다.",
+      "대만·한반도·우크라이나·중동처럼 ‘지금 시끄러운 곳’으로 한 번에 이동합니다. 누르면 그 지역에 맞는 레이어 묶음이 켜질 수 있어요.",
     bodyEn:
-      "Jump to Taiwan, Korea, Ukraine, or the Middle East. Clicking applies that theater’s layer preset.",
-    bodyEconomyKo: "주요 허브·초크포인트로 빠르게 이동합니다.",
+      "Jump to Taiwan, Korea, Ukraine, or the Middle East. A matching layer preset may turn on when you tap.",
+    bodyEconomyKo: "주요 허브·해협(초크포인트)으로 빠르게 이동합니다.",
     bodyEconomyEn: "Jump quickly to key hubs and chokepoints.",
   },
   {
@@ -100,25 +105,37 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     targetSelector: "#layer-panel-toggle",
     placement: "below",
     accent: "violet",
-    titleKo: "5 · 레이어",
-    titleEn: "5 · Layers",
+    titleKo: "레이어(정보층)",
+    titleEn: "Layers",
     bodyKo:
-      "≡ 버튼에서 전쟁구역·GDELT·AIS·ADS-B·이란 NewFeeds 등을 켜고 끕니다. 표시 언어·UI 글꼴도 여기 있습니다.",
+      "≡ 는 ‘지도 위에 무엇을 올릴지’ 스위치 모음입니다. 전쟁 구역·뉴스·배·비행기 등을 여기서 켜고 끕니다. 언어·글꼴도 여기 있어요.",
     bodyEn:
-      "≡ toggles war zones, GDELT, AIS, ADS-B, Iran NewFeeds, and more. Display language and UI font live here too.",
+      "≡ is the switchboard for what sits on the map — zones, news, ships, aircraft, and more. Language and font live here too.",
+  },
+  {
+    id: "layers-on",
+    targetSelector: "#layer-panel-toggle",
+    placement: "below",
+    accent: "violet",
+    openLayers: true,
+    useFirstScreenLayersBody: true,
+    titleKo: "지금 켜져 있는 것",
+    titleEn: "What’s already on",
+    bodyKo: "",
+    bodyEn: "",
   },
   {
     id: "bottom-intel",
     targetSelector: "#bottom-intel-compact",
     placement: "above",
     accent: "sky",
-    titleKo: "6 · 하단 인텔",
-    titleEn: "6 · Bottom intel",
+    titleKo: "아래쪽 요약",
+    titleEn: "Bottom strip",
     bodyKo:
-      "투데이 핫스팟·맞춤 추천·티커가 모인 자리입니다. 📰를 누르면 전체 뉴스 시트가 열립니다.",
+      "오늘 눈에 띄는 곳·추천·시세 줄이 모인 자리입니다. 📰 를 누르면 뉴스 전체 창이 열립니다.",
     bodyEn:
-      "Today hotspot, For-you chips, and tickers live here. Tap 📰 to open the full news sheet.",
-    bodyEconomyKo: "증시 티커와 경제 속보 입구입니다. 📈로 시장·RSS 시트를 엽니다.",
+      "Today’s hotspots, suggestions, and tickers live here. Tap 📰 for the full news sheet.",
+    bodyEconomyKo: "증시 티커와 경제 소식 입구입니다. 📈 로 시장·RSS 창을 엽니다.",
     bodyEconomyEn: "Market tickers and economy news. Tap 📈 for markets & RSS.",
   },
   {
@@ -127,12 +144,12 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     placement: "above",
     accent: "sky",
     openIntel: true,
-    titleKo: "7 · 뉴스 시트",
-    titleEn: "7 · News sheet",
+    titleKo: "뉴스 창",
+    titleEn: "News sheet",
     bodyKo:
-      "검증 보도(Tier1)·보완·속보가 쌓입니다. 카드를 누르면 원문, 「지도보러가기」로 해당 전장으로 이동합니다. 핸들을 아래로 끌면 시트가 접힙니다.",
+      "검증된 보도부터 아직 덜 확인된 속보까지 쌓입니다. 카드를 누르면 원문, 「지도로」로 그 현장으로 갑니다. 위 손잡이를 아래로 끌면 창이 접힙니다.",
     bodyEn:
-      "Verified (Tier1), secondary, and breaking items stack here. Open originals, or fly to the theater. Drag the handle down to dock.",
+      "Verified reports and fresher unverified items stack here. Open originals, or fly to the place. Drag the handle down to dock.",
   },
   {
     id: "news-tabs",
@@ -140,12 +157,12 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     placement: "above",
     accent: "violet",
     openIntel: true,
-    titleKo: "8 · 뉴스 탭·필터",
-    titleEn: "8 · News tabs & filters",
+    titleKo: "뉴스 탭",
+    titleEn: "News tabs",
     bodyKo:
-      "뉴스 / 동영상 / 텔레그램 OSINT / VIINA 전선 탭을 바꿉니다. 전장 칩으로 중동·러우 등을 거르고, Tier3(국영·속보) 토글로 수위를 조절하세요.",
+      "뉴스 / 동영상 / 텔레그램 / 전선 탭을 바꿉니다. 지역 칩으로 범위를 줄이고, 국영·속보 토글로 ‘시끄러운 정도’를 조절하세요.",
     bodyEn:
-      "Switch News / Video / Telegram OSINT / VIINA. Theater chips filter regions; Tier3 toggles state-media volume.",
+      "Switch News / Video / Telegram / front-line tabs. Theater chips narrow the region; state-media toggles control volume.",
     bodyEconomyKo: "증시 · RSS · 동영상 탭과 장르 칩으로 시장 뉴스를 고릅니다.",
     bodyEconomyEn: "Markets · RSS · Video tabs and genre chips filter economy news.",
   },
@@ -154,24 +171,24 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     targetSelector: "#air-raid-chrome",
     placement: "above",
     accent: "rose",
-    titleKo: "9 · 실시간 알림",
-    titleEn: "9 · Live alerts",
+    titleKo: "실시간 알림",
+    titleEn: "Live alerts",
     bodyKo:
-      "이스라엘 공습 경보·우크라 위협·이란 NewFeeds 칩입니다. 누르면 지도가 날아가고, 사이렌·브리핑이 이어질 수 있습니다. 대만해협 팔로우 칩도 하단 근처에 있습니다.",
+      "공습 경보·위협 칩입니다. 누르면 지도가 그쪽으로 가고, 안내 소리가 날 수 있어요. 공식 경보 앱을 대신하지 않으니 참고용으로만 봐 주세요.",
     bodyEn:
-      "Israel air-raid, Ukraine threats, and Iran NewFeeds chips. Tap to fly; sirens/briefs may follow. Taiwan Strait follow sits near the bottom strip too.",
+      "Air-raid and threat chips. Tap to fly; a brief may follow. This is not an official alert app — use it as a reference only.",
   },
   {
     id: "help",
     targetSelector: "#feature-guide-button",
     placement: "below",
     accent: "amber",
-    titleKo: "10 · 도움말·출처",
-    titleEn: "10 · Help & sources",
+    titleKo: "도움말",
+    titleEn: "Help",
     bodyKo:
-      "「기능 안내」에서 언제든 투어를 시작할 수 있고, 출처 버튼으로 데이터 라이선스를 확인합니다.",
+      "「이용 안내」에서 이 투어를 다시 시작할 수 있고, 출처에서 데이터가 어디서 왔는지 확인할 수 있습니다. 「다음」이 「완료」로 바뀌면 투어가 끝나요.",
     bodyEn:
-      "Start the tour anytime from Feature guide; Sources shows data licenses.",
+      "Restart this tour anytime from the guide; Sources shows where the data comes from. When Next becomes Done, you’re finished.",
   },
 ];
 
@@ -214,6 +231,9 @@ export function tourStepCopy(
   const en = lang === "en";
   const economy = viewerMode === "economy";
   const title = en ? step.titleEn : step.titleKo;
+  if (step.useFirstScreenLayersBody) {
+    return { title, body: firstScreenLayersTourBody(viewerMode, lang) };
+  }
   let body = en ? step.bodyEn : step.bodyKo;
   if (economy) {
     if (en && step.bodyEconomyEn) body = step.bodyEconomyEn;

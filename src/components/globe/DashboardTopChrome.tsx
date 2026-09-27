@@ -63,6 +63,9 @@ export interface DashboardTopChromeProps {
   showGscpi?: boolean;
   /** 좌측 레일 슬롯 — OverlayHost가 포털하거나 children 대신 비움 */
   leftRailSlotId?: string;
+  /** 거시 요약본 창 토글 */
+  macroBriefingOpen?: boolean;
+  onToggleMacroBriefing?: () => void;
 }
 
 /**
@@ -106,6 +109,8 @@ export function DashboardTopChrome({
   showSesChip = true,
   showGscpi = true,
   leftRailSlotId = "chrome-left-rail-slot",
+  macroBriefingOpen = false,
+  onToggleMacroBriefing,
 }: DashboardTopChromeProps) {
   const [rightMetricsPinned, setRightMetricsPinned] = useState(false);
   if (intelSheetOpen) return null;
@@ -203,7 +208,33 @@ export function DashboardTopChrome({
           <div className="flex w-full flex-col items-center gap-0.5 bg-transparent py-0">
             <ImmersionDigitalClock lang={labelLanguage} variant="top" />
             <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-              <div className="flex justify-end" />
+              <div className="flex justify-end">
+                {onToggleMacroBriefing &&
+                viewerMode !== "history" &&
+                viewerMode !== "satellite" ? (
+                  <button
+                    type="button"
+                    id="macro-briefing-toggle"
+                    onClick={onToggleMacroBriefing}
+                    className={`${stripBtn} min-w-[7.5rem] text-center ${
+                      macroBriefingOpen
+                        ? "border-sky-100/60 bg-sky-400/15 text-sky-50"
+                        : ""
+                    }`}
+                    aria-pressed={macroBriefingOpen}
+                    aria-haspopup="dialog"
+                    aria-label={
+                      labelLanguage === "en"
+                        ? "Toggle macro briefing"
+                        : "거시 요약본 창 토글"
+                    }
+                  >
+                    {labelLanguage === "en" ? "Briefing" : "요약본"}
+                  </button>
+                ) : (
+                  <span className="min-w-[7.5rem]" aria-hidden />
+                )}
+              </div>
               <div className="flex justify-center">
                 {onOpenLayers ? (
                   <button

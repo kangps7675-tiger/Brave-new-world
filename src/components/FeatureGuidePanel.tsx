@@ -450,11 +450,11 @@ export function FeatureGuidePanel({
               }}
               className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
             >
-              {en ? "Start screen tour 1→10" : "화면 투어 1→10 시작"}
+              {en ? "Start screen tour" : "화면 투어 시작"}
               <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
                 {en
-                  ? "Optional walkthrough — globe, nav, layers, news sheet, alerts"
-                  : "선택 사항 — 지구본·탐색·레이어·뉴스 시트·알림을 순서대로"}
+                  ? "You advance with Next — steps never auto-flip"
+                  : "「다음」을 눌러야 넘어갑니다 — 혼자 촤르륵 넘어가지 않아요"}
               </span>
             </button>
           ) : null}

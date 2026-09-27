@@ -1,3 +1,4 @@
+import { thinWorldwide } from "../../../src/lib/adsbWorld";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { getAisstreamKey, getMarineTrafficKey } from "./db";
 
@@ -5,37 +6,48 @@ const MT_BASE = "https://services.marinetraffic.com/api";
 const AISSTREAM_URL = "wss://stream.aisstream.io/v0/stream";
 
 /**
- * 분쟁·해상 chokepoint 위주 (Cron 서브요청·수집 시간 절약)
+ * AISstream 구독 bbox — 연안·주요 항로 전 지구 허브 + 초크포인트.
+ * 밀집 해역이 캡을 잠식하지 않도록 fetch 후 `thinWorldwide`로 균등 샘플한다.
+ * WS ~10s + early-exit(max*2) 유지.
  *
- * 2026-09-22 추가: 대만해협·남중국해·발틱해·베링해협·추크치해·흑해·카스피해를
- * 전용 박스로 분리. 기존 "동유럽·흑해"(2번)와 "동아시아·남중국해"(3번) 박스는
- * 범위가 넓어 신호가 희석되므로, 아래 전용 박스와 일부러 중복시켜 두었다 —
- * 넓은 박스를 지우면 그 구역의 다른 트래픽(예: 우크라이나 내륙 GDELT 연계 등)까지
- * 같이 빠질 수 있어 일단 남겨둠. 필요하면 나중에 정리.
- *
- * 주의: fetchAisstream은 4.5초 연결 + `vessels.size >= max*2`(기본 800) 도달 시
- * 조기 종료한다. 박스가 14개로 늘면서, 말라카·남중국해처럼 트래픽이 조밀한 구역의
- * 메시지가 800 캡을 먼저 채워버릴 가능성이 높다 — 그러면 베링해협·추크치해·카스피해처럼
- * 트래픽이 희박한 구역은 실행마다 0척으로 나올 수 있다. 이건 버그가 아니라 구조적
- * 한계다. AIS_MAX_VESSELS 환경변수를 올리거나(최대 800), duration을 늘리거나,
- * 장기 실행 수집기로 바꾸기 전까지는 희박 구역 데이터가 거의 안 잡혀도 정상이다.
+ * 형식: [[latMin, lonMin], [latMax, lonMax]] (aisstream.io)
  */
-const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
+export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
+  // —— 전 지구 연안·항로 허브 (~ADSB_WORLD_HUBS 해역판) ——
+  [[30, -85], [42, -65]], // US East / Atlantic approaches
+  [[30, -130], [42, -112]], // US West
+  [[55, -170], [68, -140]], // Alaska / North Pacific
+  [[15, -165], [28, -150]], // Hawaii approaches
+  [[15, -110], [30, -85]], // Mexico / Gulf
+  [[-25, -60], [-2, -30]], // Brazil / South Atlantic
+  [[-25, -85], [-5, -65]], // Andes Pacific
+  [[-45, -75], [-28, -50]], // South Cone
+  [[42, -10], [58, 15]], // NW Europe / Channel
+  [[48, 25], [62, 50]], // Baltic–Barents approaches
+  [[-5, -20], [18, 15]], // West Africa / Gulf of Guinea
+  [[-12, 25], [12, 50]], // East Africa / Indian Ocean west
+  [[-38, 10], [-18, 40]], // South Africa / Cape
   [[12, 32], [32, 52]], // 중동·홍해
-  [[44, 22], [56, 42]], // 동유럽·흑해 (넓음 — 아래 흑해 전용 박스와 중복)
-  [[20, 100], [42, 130]], // 동아시아·남중국해 (넓음 — 아래 대만해협 전용 박스와 중복)
-  [[-5, 95], [8, 108]], // 말라카
-  [[10, -85], [28, -60]], // 카리브
-  [[22, 118], [26, 121.5]], // 대만해협 (전용 — 신호 집중)
+  [[8, 65], [28, 90]], // India / Arabian Sea east
+  [[-5, 95], [12, 120]], // SE Asia / Malacca belt
+  [[20, 115], [42, 145]], // East Asia / NW Pacific
+  [[-40, 110], [-10, 155]], // Australia
+  [[-50, 160], [-32, 180]], // New Zealand
+  [[-40, -180], [-20, -160]], // South Pacific (dateline west)
+  // —— 초크포인트 전용 (신호 집중) ——
+  [[44, 22], [56, 42]], // 동유럽·흑해
+  [[22, 118], [26, 121.5]], // 대만해협
   [[6, 110], [12, 117]], // 남중국해 — 스프래틀리
-  [[19, 120], [22, 123]], // 남중국해 — 바시해협(대만-필리핀)
-  [[54.5, 9.5], [56.5, 13.5]], // 발틱해 — 덴마크해협(카테가트)
-  [[59, 22], [60.5, 30.5]], // 발틱해 — 핀란드만
-  [[41, 27], [47, 42]], // 흑해 (전용 — 곡물회랑)
+  [[19, 120], [22, 123]], // 바시해협
+  [[54.5, 9.5], [56.5, 13.5]], // 덴마크해협
+  [[59, 22], [60.5, 30.5]], // 핀란드만
+  [[41, 27], [47, 42]], // 흑해
   [[64.3, -169], [66.5, -165]], // 베링 해협
-  [[66, -180], [72, -155]], // 추크치해 (커버리지 희박 예상)
-  [[36.5, 47], [47, 55]], // 카스피해 (내해, 트래픽 희박 예상)
+  [[66, -180], [72, -155]], // 추크치해
+  [[36.5, 47], [47, 55]], // 카스피해
 ];
+
+const AISSTREAM_DURATION_MS = 10_000;
 
 const MILITARY_NAME =
   /\b(USS|HMS|HMAS|HMCS|HNLMS|HDMS|HSWMS|FS\s|FGS|ITS\s|ORP\s|ROKS|INS\s|JS\s|KRI\s|BRP\s|BNS\s|PLAN|PLANS|WARSHIP|NAVAL|DESTROYER|FRIGATE|CORVETTE|SUBMARINE|CARRIER|CVN)\b/i;
@@ -227,7 +239,7 @@ async function websocketDataToText(data: unknown): Promise<string> {
 async function fetchAisstream(
   apiKey: string,
   max: number,
-  durationMs = 4500,
+  durationMs = AISSTREAM_DURATION_MS,
 ): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
   const errors: string[] = [];
   const vessels = new Map<string, AisVesselRow>();
@@ -278,7 +290,7 @@ async function fetchAisstream(
           cached.beamM ?? v.beam_m,
         );
       });
-      resolve({ vessels: merged.slice(0, max), errors });
+      resolve({ vessels: merged, errors });
     };
 
     const timer = setTimeout(() => finish(), durationMs);
@@ -388,7 +400,7 @@ async function fetchAisstream(
 
 export async function fetchAisVessels(
   env: IngestEnv,
-  max = 400,
+  max = 800,
 ): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
   const mtKey = getMarineTrafficKey(env);
   const aisstreamKey = getAisstreamKey(env);
@@ -425,5 +437,12 @@ export async function fetchAisVessels(
     errors.push("AISSTREAM_API_KEY missing — commercial MT only (no military AIS warm)");
   }
 
-  return { vessels: Array.from(byMmsi.values()).slice(0, max), errors };
+  const merged = Array.from(byMmsi.values());
+  // 밀집 해역(말라카 등)이 전량 잠식하지 않도록 셀 단위 라운드로빈
+  const thinned = thinWorldwide(merged, {
+    cellDeg: 10,
+    perCell: 24,
+    max,
+  });
+  return { vessels: thinned, errors };
 }

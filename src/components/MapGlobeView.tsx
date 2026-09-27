@@ -86,6 +86,12 @@ import {
   ensureGemFacilityImages,
 } from "@/lib/gemFacilityIcons";
 import {
+  US_MILITARY_BASE_FLAG_ICON_ID,
+  ensureUsMilitaryBaseImages,
+} from "@/lib/usMilitaryBaseIcons";
+import { militaryBaseForceId } from "@/lib/militaryBaseForces";
+import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
+import {
   SAFECAST_CIRCLE_LAYER_ID,
   SAFECAST_LABEL_LAYER_ID,
   SAFECAST_SOURCE_ID,
@@ -213,6 +219,8 @@ export interface MapGlobeViewProps {
 
 const INTERACTIVE_LAYERS = [
   "map-points",
+  "map-us-base-dots",
+  "map-us-base-flags",
   "map-gem-facilities",
   AIRCRAFT_SYMBOL_LAYER_ID,
   AIS_HEADING_SYMBOL_LAYER_ID,
@@ -848,7 +856,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           item && typeof item === "object" && "kind" in item
             ? String((item as { kind?: string }).kind ?? "")
             : "";
-        return isGemFacilityKind(kind) ? gemFacilityIconId(kind) : undefined;
+        if (isGemFacilityKind(kind)) return gemFacilityIconId(kind);
+        if (kind === "military-base" && militaryBaseForceId(item as { meta?: Record<string, string | number | null> | null }) === "us") {
+          return US_MILITARY_BASE_FLAG_ICON_ID;
+        }
+        return undefined;
       },
     });
   }, [pointsData, basemapMode]);
@@ -1352,6 +1364,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     void ensureGemFacilityImages(map).catch(() => {
       /* 아이콘 로드 실패 시 circle 폴백 없음 — 재시도는 스타일 리로드 시 */
     });
+    void ensureUsMilitaryBaseImages(map).catch(() => {
+      /* 실패 시 저줌 파란 점만 유지 */
+    });
     void ensureAircraftSymbolImages(map).catch(() => {
       /* 실패 시 해당 아이콘만 안 그려진다 — 재시도는 스타일 리로드 시 */
     });
@@ -1531,7 +1546,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
   const resolveFeature = useCallback(
     (layerId: string, index: number) => {
-      if (layerId === "map-points" || layerId === "map-gem-facilities") {
+      if (
+        layerId === "map-points" ||
+        layerId === "map-gem-facilities" ||
+        layerId === "map-us-base-dots" ||
+        layerId === "map-us-base-flags"
+      ) {
         return pointsData[index] ?? null;
       }
       if (layerId === "firms-flame") {
@@ -1586,7 +1606,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         if (layerId == null || index == null) continue;
         const item = resolveFeature(layerId, Number(index));
         if (!item) continue;
-        if (layerId === "map-points" || layerId === "firms-flame") {
+        if (
+          layerId === "map-points" ||
+          layerId === "map-gem-facilities" ||
+          layerId === "map-us-base-dots" ||
+          layerId === "map-us-base-flags" ||
+          layerId === "firms-flame"
+        ) {
           onPointClick?.(item);
           return;
         }
@@ -1661,7 +1687,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         if (index == null) continue;
         const item = resolveFeature(layerId, Number(index));
         if (!item) continue;
-        if (layerId === "map-points" || layerId === "firms-flame") {
+        if (
+          layerId === "map-points" ||
+          layerId === "map-gem-facilities" ||
+          layerId === "map-us-base-dots" ||
+          layerId === "map-us-base-flags" ||
+          layerId === "firms-flame"
+        ) {
           onPointHover?.(item);
           return;
         }
@@ -1815,6 +1847,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const map = mapRef.current?.getMap();
     if (!map) return;
     void ensureGemFacilityImages(map).catch(() => undefined);
+    void ensureUsMilitaryBaseImages(map).catch(() => undefined);
     void ensureFirmsFireImages(map).catch(() => undefined);
     void ensureAircraftSymbolImages(map).catch(() => undefined);
     void ensureAisSymbolImages(map).catch(() => undefined);
@@ -1837,6 +1870,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
       methods.applyControls();
       void ensureGemFacilityImages(map).catch(() => undefined);
+      void ensureUsMilitaryBaseImages(map).catch(() => undefined);
       void ensureFirmsFireImages(map).catch(() => undefined);
       void ensureAircraftSymbolImages(map).catch(() => undefined);
       void ensureAisSymbolImages(map).catch(() => undefined);
@@ -2992,10 +3026,54 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-stroke-color": pointStrokeColor,
               }}
             />
+            {/* 미군기지 — 전역~지역: 파란 점 / zoom≥6: 성조기 */}
+            <Layer
+              id="map-us-base-dots"
+              type="circle"
+              maxzoom={SETTLEMENT_DETAIL_MIN_MAP_ZOOM}
+              filter={["==", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID]}
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": CIRCLE_RADIUS_BY_ZOOM,
+                "circle-opacity": 0.92,
+                "circle-stroke-width": pointStrokeWidth,
+                "circle-stroke-color": pointStrokeColor,
+              }}
+            />
+            <Layer
+              id="map-us-base-flags"
+              type="symbol"
+              minzoom={SETTLEMENT_DETAIL_MIN_MAP_ZOOM}
+              filter={["==", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID]}
+              layout={{
+                "icon-image": US_MILITARY_BASE_FLAG_ICON_ID,
+                "icon-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  6,
+                  0.42,
+                  8,
+                  0.55,
+                  10,
+                  0.72,
+                ],
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "icon-anchor": "center",
+              }}
+              paint={{
+                "icon-opacity": 0.95,
+              }}
+            />
             <Layer
               id="map-gem-facilities"
               type="symbol"
-              filter={["has", "icon"]}
+              filter={[
+                "all",
+                ["has", "icon"],
+                ["!=", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID],
+              ]}
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [

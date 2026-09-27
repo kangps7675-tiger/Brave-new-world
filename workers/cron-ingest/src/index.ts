@@ -224,7 +224,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
 
-    const aisMax = Math.min(1200, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 400)));
+    const aisMax = Math.min(1200, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 800)));
     const ais = await fetchAisVessels(env, aisMax);
     aisErrors.push(...ais.errors.slice(0, 8));
 
