@@ -753,7 +753,6 @@ import type {
   MacroBriefingPayload,
   MacroDomain,
   MacroStep,
-  MacroTopic,
 } from "@/lib/macroBriefing";
 import { useGlobeCamera } from "@/components/globe/hooks/useGlobeCamera";
 import { useTheaterNavigation } from "@/components/globe/hooks/useTheaterNavigation";
@@ -1845,7 +1844,7 @@ export function GlobeDashboard({
   ]);
 
   const handleMacroStepActivate = useCallback(
-    (step: MacroStep, _topic: MacroTopic) => {
+    (step: MacroStep) => {
       const cam = step.camera;
       if (cam) {
         globeRef.current?.pointOfView(
