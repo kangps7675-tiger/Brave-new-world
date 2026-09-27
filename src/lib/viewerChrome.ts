@@ -326,9 +326,8 @@ const ECONOMY_FORCE_OFF: Partial<LayerPrefs> = {
   /** 제재 회피 강도·회랑은 전쟁·안보 전용 — 경제·물류에서는 OFF */
   showSesChip: false,
   showSanctionsEvasionCorridors: false,
-  showAirports: false,
   showCriticalNodes: false,
-  /** 항구·항로·초크는 FIRST_SCREEN_ECONOMY_ON — 여기선 끄지 않음 */
+  /** 항구·항로·초크·공항은 FIRST_SCREEN_ECONOMY_ON — 여기선 끄지 않음 */
   showStrategicCorridors: false,
   showAlliedLogisticsCorridors: false,
   showAirTraffic: false,
@@ -419,6 +418,8 @@ const SATELLITE_FORCE_ON: Partial<LayerPrefs> = {
   showAis: true,
   showAisMilitary: true,
   showAisCommercial: true,
+  /** 관측 모드 — 우크라 UAV·미사일(NEPTUN) Cesium 빌보드 */
+  showNeptun: true,
 };
 
 const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
@@ -428,7 +429,7 @@ const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
   ...ECONOMY_FORCE_OFF,
   showCityLabels: false,
   showGpsInterference: false,
-  showNeptun: false,
+  /** showNeptun는 FORCE_ON — CONFLICT/ECONOMY 스프레드의 false를 덮어쓴다 */
   showConflictEvents: false,
   showFirmsFires: false,
   showTelegramOsint: false,
@@ -579,7 +580,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerTagline: "Cesium · ADS-B · AIS · 시세",
     modePickerBullets: [
       "Cesium 글로브 (Esri / Ion Photoreal)",
-      "ADS-B · AIS 항적 + 주식 티커 연관",
+      "ADS-B · AIS 항적 + NEPTUN 드론·미사일",
       "LIVEUA 전전선 · S급 양피지 타전",
     ],
     layerPanelTitle: "프리미엄 · 항적",

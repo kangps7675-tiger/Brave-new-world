@@ -1097,7 +1097,7 @@ export const MODE_PICKER_CHROME: Record<
       title: "지경학",
       tagline: "진영 · 항구 · 항로",
       bullets: [
-        "진영 폴리곤과 항구·해상 항로·초크포인트 기본 표시",
+        "진영 폴리곤과 항구·항로·초크·공항 기본 표시",
         "배관·DC·AIS는 레이어 패널에서",
         "하단: 티커 + 시장 속보 (GDELT/TG 없음)",
       ],
@@ -1106,7 +1106,7 @@ export const MODE_PICKER_CHROME: Record<
       title: "Geoeconomics",
       tagline: "Blocs · ports · lanes",
       bullets: [
-        "Bloc polygons with ports, sea lanes, and chokepoints by default",
+        "Bloc polygons with ports, sea lanes, chokepoints, and airports by default",
         "Pipes · DCs · AIS — from the layer panel",
         "Bottom: ticker + market headlines (no GDELT/TG)",
       ],
@@ -1127,8 +1127,8 @@ export function previewModeSelectionLocalized(
     bullets.push(
       isAutoTheater
         ? lang === "ko"
-          ? "시작 시 가장 뜨거운 충돌지로 자동 이동"
-          : "Auto-fly to the hottest conflict zone on start"
+          ? "시작 시 지구본 전역 궤도 유지 (핫 지역 자동 이동 없음)"
+          : "Start in global orbital view (no auto-fly to a hot zone)"
         : lang === "ko"
           ? `시작 시 ${theaterLabel_} 전장으로 카메라 이동`
           : `Camera starts at ${theaterLabel_} theater`,
@@ -1137,8 +1137,8 @@ export function previewModeSelectionLocalized(
     bullets.push(
       isAutoHub
         ? lang === "ko"
-          ? "시작 시 가장 핫한 지정학·투자 허브로 자동 이동"
-          : "Auto-fly to the hottest geopolitical · investment hub"
+          ? "시작 시 지구본 전역 궤도 유지 (핫 허브 자동 이동 없음)"
+          : "Start in global orbital view (no auto-fly to a hub)"
         : lang === "ko"
           ? `시작 시 ${hubLabel} 허브로 카메라 이동`
           : `Camera starts at ${hubLabel} hub`,

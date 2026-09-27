@@ -17,6 +17,10 @@ import {
 } from "@/lib/chokepointStressForUi";
 import { shouldOfferChokepointStressParchment } from "@/lib/logisticsStress";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import {
+  claimMaritimeFlash,
+  withMaritimeFlashTitle,
+} from "@/lib/maritimeFlash";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 
 type UseChokepointStressParchmentOptions = {
@@ -27,6 +31,8 @@ type UseChokepointStressParchmentOptions = {
   assetByChokeId?: Record<string, ChokepointAssetVolatility>;
   /** 상위 양피지(공습·속보 등)가 열려 있으면 새 오퍼를 막음 */
   blockedByOtherBriefing?: boolean;
+  /** 위성 — 신속속보형 제목·claim */
+  satelliteFlash?: boolean;
   onOffer: (briefing: ChokepointStressBriefing) => void;
 };
 
@@ -84,6 +90,7 @@ export function useChokepointStressParchment({
   aisByChokeId = {},
   assetByChokeId = {},
   blockedByOtherBriefing = false,
+  satelliteFlash = false,
   onOffer,
 }: UseChokepointStressParchmentOptions) {
   const seenRef = useRef<Set<string> | null>(null);
@@ -144,7 +151,18 @@ export function useChokepointStressParchment({
           headlineSnippets: headlines,
         });
         busyRef.current = false;
-        if (briefing) onOfferRef.current(briefing);
+        if (!briefing) return;
+        if (satelliteFlash) {
+          const flashId = `chokepoint:${briefing.id}`;
+          if (!claimMaritimeFlash(flashId)) return;
+          const flashLang = langRef.current === "en" ? "en" : "ko";
+          onOfferRef.current({
+            ...briefing,
+            title: withMaritimeFlashTitle(briefing.title, flashLang),
+          });
+          return;
+        }
+        onOfferRef.current(briefing);
       })();
       return;
     }
@@ -160,17 +178,27 @@ export function useChokepointStressParchment({
       if (seenRef.current.has(key)) return;
       seenRef.current.add(key);
       const extras = titles.filter((t) => t !== hit).slice(0, 2);
-      onOfferRef.current(
-        buildEnergyInfraStressBriefing({
-          headline: hit,
-          lang: langRef.current,
-          extraHeadlines: extras,
-        }),
-      );
+      const energyBrief = buildEnergyInfraStressBriefing({
+        headline: hit,
+        lang: langRef.current,
+        extraHeadlines: extras,
+      });
+      if (satelliteFlash) {
+        const flashId = `energy:${hit.slice(0, 80)}`;
+        if (!claimMaritimeFlash(flashId)) return;
+        const flashLang = langRef.current === "en" ? "en" : "ko";
+        onOfferRef.current({
+          ...energyBrief,
+          title: withMaritimeFlashTitle(energyBrief.title, flashLang),
+        });
+        return;
+      }
+      onOfferRef.current(energyBrief);
     })();
   }, [
     paused,
     blockedByOtherBriefing,
+    satelliteFlash,
     ukmtoIncidents,
     aisByChokeId,
     assetByChokeId,

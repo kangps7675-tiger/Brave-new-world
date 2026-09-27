@@ -600,12 +600,17 @@ export function resolveIntroFlyTarget(input: {
   conflictNavId?: string | null;
   economyNavId?: string | null;
 }): MapFlyTarget | { kind: "exploration"; presetId: string } | null {
+  // 지경학 — 허브 auto면 전역 궤도 (호르무즈 등 핫 허브 자동 fly 금지)
   if (input.viewerMode === "economy") {
-    const hubId =
-      input.economyHub && input.economyHub !== "auto"
-        ? input.economyHub
-        : (input.economyNavId ?? "hormuz");
-    return { kind: "exploration", presetId: hubId };
+    if (input.economyHub && input.economyHub !== "auto") {
+      return { kind: "exploration", presetId: input.economyHub };
+    }
+    return {
+      kind: "coords",
+      lat: 0,
+      lng: 25,
+      altitude: entryBootAltitude(),
+    };
   }
 
   // 지정학(인텔) — 초반·자동 전장은 무조건 전역 궤도 (핫 지역 자동 fly 금지)
@@ -673,7 +678,7 @@ export function previewModeSelection(
   } else if (mode === "economy" && economyHub !== "auto") {
     bullets.push(`시작 시 ${economyHubLabel(economyHub)} 허브로 카메라 이동`);
   } else if (mode === "economy") {
-    bullets.push("시작 시 핫한 투자 허브로 카메라만 이동 (양피지는 nav에서 선택)");
+    bullets.push("시작 시 지구본 전역 궤도 유지 (핫 허브 자동 이동 없음)");
   } else if (mode === "live" || mode === "satellite") {
     bullets.push("시작 시 지구본 전역 궤도 유지");
   }

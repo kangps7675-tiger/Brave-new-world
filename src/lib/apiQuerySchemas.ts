@@ -43,15 +43,23 @@ export const adsbTrafficQuerySchema = z
     path: ["lat"],
   });
 
-export const aisQuerySchema = z.object({
-  max: z.coerce.number().int().min(1).max(1000).optional().default(250),
-  seconds: z.coerce.number().int().min(1).max(20).optional().default(8),
-  debug: liveFlagSchema,
-  class: z.string().max(32).optional(),
-  provider: z.enum(["aisstream", "marinetraffic", "auto"]).optional(),
-  live: liveFlagSchema,
-  bbox: z.string().optional(),
-});
+export const aisQuerySchema = z
+  .object({
+    max: z.coerce.number().int().min(1).max(1000).optional().default(250),
+    seconds: z.coerce.number().int().min(1).max(20).optional().default(8),
+    debug: liveFlagSchema,
+    class: z.string().max(32).optional(),
+    provider: z.enum(["aisstream", "marinetraffic", "auto"]).optional(),
+    live: liveFlagSchema,
+    bbox: z.string().optional(),
+    lat: z.coerce.number().min(-90).max(90).optional(),
+    lng: z.coerce.number().min(-180).max(180).optional(),
+    dist: z.coerce.number().min(25).max(1500).optional().default(250),
+  })
+  .refine((data) => (data.lat == null) === (data.lng == null), {
+    message: "lat과 lng는 함께 보내야 합니다",
+    path: ["lat"],
+  });
 
 /** theme=cyber|election 전용. 전쟁 등은 theme 없이 /api/gdelt → events[].eventTier */
 export const GDELT_THEMES = ["cyber", "election"] as const;

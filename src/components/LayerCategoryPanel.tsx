@@ -225,6 +225,7 @@ export function LayerTagToggle({
         if (id && onInfoHover) onInfoHover({ id, label, detail });
       }}
       onBlur={() => onInfoHover?.(null)}
+      {...(id ? { "data-layer-toggle": id } : {})}
       /* 터치 타깃 (P1-6) — 칩도 44px 확보 */
       className={`min-h-[var(--tap-target-min)] min-w-0 rounded-full border px-3 py-2 text-left text-xs transition ${tagAccentClasses(accent, checked)}`}
     >
@@ -280,6 +281,7 @@ export function LayerToggle({
         className={`flex min-h-[var(--tap-target-min)] items-center justify-between gap-3 rounded-lg px-2 py-2 transition ${
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-900/40"
         } ${rejected ? "layer-reject-shake bg-amber-500/10" : ""}`}
+        {...(id ? { "data-layer-toggle": id } : {})}
       >
         <span className="min-w-0">
           <span className="flex min-w-0 items-center gap-1.5">
