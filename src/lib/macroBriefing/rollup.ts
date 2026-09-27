@@ -157,7 +157,7 @@ function buildSteps(
         title: (e.title || "GDELT event").slice(0, 120),
         url: e.sourceUrl!,
         source: "GDELT",
-        trustTier: null as const,
+        trustTier: null,
       }));
     steps.push({
       id: `${bucket.themeId}:gdelt`,
