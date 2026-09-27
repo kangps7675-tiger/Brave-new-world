@@ -122,6 +122,7 @@ import {
 } from "@/components/ChromeOnboardingCoach";
 import { FirstVisitTour } from "@/components/FirstVisitTour";
 import { clearFirstVisitTourDone } from "@/lib/firstVisitTour";
+import { LayerTurnOnCoach } from "@/components/LayerTurnOnCoach";
 import {
   TourInviteBanner,
   shouldOfferTourInvite,
@@ -274,6 +275,8 @@ export type DashboardOverlayHostProps = {
   viewerMode: ViewerMode;
   intelSheetOpen: boolean;
   showLeftPanel: boolean;
+  /** 레이어 ON 코치용 — 현재 prefs 스냅샷 */
+  layerPrefs: LayerPrefs;
   showIntroHint: boolean;
   showUkraineControl: boolean;
   showQuickStart: boolean;
@@ -408,6 +411,8 @@ export type DashboardOverlayHostProps = {
   intelStackRef: RefObject<BottomIntelStackHandle | null>;
   onCloseLeftPanel: () => void;
   onToggleLeftPanel: () => void;
+  /** 레이어 패널을 반드시 연 상태(토글 아님) */
+  onOpenLeftPanel: () => void;
   /** false면 좌상단 레이어 햄버거 숨김 (TopChrome 메뉴가 대체) */
   showLayerPanelToggle?: boolean;
   onSetShowUsCarriers: (v: boolean) => void;
@@ -497,6 +502,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     viewerMode,
     intelSheetOpen,
     showLeftPanel,
+    layerPrefs,
     showIntroHint,
     showUkraineControl,
     showQuickStart,
@@ -610,6 +616,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     intelStackRef,
     onCloseLeftPanel,
     onToggleLeftPanel,
+    onOpenLeftPanel,
     showLayerPanelToggle = true,
     onSetShowUsCarriers,
     onSetShowGpsInterference,
@@ -1216,8 +1223,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetShowDataSourceParchment(true);
           }}
           onRestartTour={() => {
-            clearFirstVisitTourDone();
-            onSetShowFirstVisitTour(true);
+            // 기능 안내 닫기 클릭이 투어 1단계를 즉시 먹지 않게 한 틱 지연
+            window.setTimeout(() => {
+              clearFirstVisitTourDone();
+              onSetShowFirstVisitTour(true);
+            }, 320);
           }}
         />
       ) : null}
@@ -1437,8 +1447,26 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetIntelSheetOpen(false);
             intelStackRef.current?.closeNewsPanel();
           }}
+          onOpenLayers={onOpenLeftPanel}
+          onCloseLayers={onCloseLeftPanel}
         />
       ) : null}
+
+      <LayerTurnOnCoach
+        layerPrefs={layerPrefs}
+        lang={labelLanguage}
+        blocked={
+          Boolean(showFirstVisitTour) ||
+          Boolean(chromeCoachStep) ||
+          Boolean(frictionCoachStep) ||
+          Boolean(showAirRaidCoach) ||
+          Boolean(uxGuideBrief) ||
+          Boolean(periodicBriefing) ||
+          Boolean(airRaidBriefing) ||
+          !gateClear
+        }
+        onEnsureLayerPanelOpen={onOpenLeftPanel}
+      />
 
       {frictionCoachStep &&
       gateClear &&
@@ -1647,8 +1675,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         open={showTourInvite && !showFirstVisitTour && !periodicBriefing && !weeklyExpanded}
         onAccept={() => {
           onSetShowTourInvite(false);
-          clearFirstVisitTourDone();
-          onSetShowFirstVisitTour(true);
+          window.setTimeout(() => {
+            clearFirstVisitTourDone();
+            onSetShowFirstVisitTour(true);
+          }, 320);
         }}
         onDismiss={() => onSetShowTourInvite(false)}
       />
@@ -1932,7 +1962,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           ctaLabel={labelLanguage === "en" ? "Understood" : "확인"}
           onContinue={onCloseUkmtoBriefing}
           playBreakingDispatch
+          playUnfoldSound
+          newsFlashFont
           typewriter={false}
+          blackInk
           titleId="ukmto-briefing-title"
           zIndexClass="z-[900]"
         />
@@ -1951,7 +1984,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           ctaLabel={labelLanguage === "en" ? "Understood" : "확인"}
           onContinue={onCloseNavareaBriefing}
           playBreakingDispatch
+          playUnfoldSound
+          newsFlashFont
           typewriter={false}
+          blackInk
           titleId="navarea-briefing-title"
           zIndexClass="z-[900]"
         />

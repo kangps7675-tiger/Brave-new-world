@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
 import { markChromeCoachDone } from "@/components/ChromeOnboardingCoach";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -19,11 +19,13 @@ type FirstVisitTourProps = {
   onClose: () => void;
   onOpenIntel: () => void;
   onCloseIntel: () => void;
+  onOpenLayers?: () => void;
+  onCloseLayers?: () => void;
 };
 
 /**
- * 첫 방문 1~10 스포트라이트 투어.
- * 뉴스 시트 단계는 시트를 연 뒤 타깃을 가리킵니다.
+ * 첫 방문 스포트라이트 투어.
+ * 단계는 「다음」CTA만으로 진행 — 배경 클릭·연타로 촤르륵 넘어가지 않음.
  */
 export function FirstVisitTour({
   active,
@@ -32,6 +34,8 @@ export function FirstVisitTour({
   onClose,
   onOpenIntel,
   onCloseIntel,
+  onOpenLayers,
+  onCloseLayers,
 }: FirstVisitTourProps) {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
@@ -41,12 +45,22 @@ export function FirstVisitTour({
   const total = steps.length;
   const en = lang === "en";
 
+  const onOpenIntelRef = useRef(onOpenIntel);
+  const onCloseIntelRef = useRef(onCloseIntel);
+  const onOpenLayersRef = useRef(onOpenLayers);
+  const onCloseLayersRef = useRef(onCloseLayers);
+  onOpenIntelRef.current = onOpenIntel;
+  onCloseIntelRef.current = onCloseIntel;
+  onOpenLayersRef.current = onOpenLayers;
+  onCloseLayersRef.current = onCloseLayers;
+
   const finish = useCallback(() => {
     markFirstVisitTourDone();
     markChromeCoachDone();
-    onCloseIntel();
+    onCloseIntelRef.current();
+    onCloseLayersRef.current?.();
     onClose();
-  }, [onClose, onCloseIntel]);
+  }, [onClose]);
 
   useEffect(() => {
     if (!active) {
@@ -60,8 +74,12 @@ export function FirstVisitTour({
   useEffect(() => {
     if (!active || !step) return;
     setReady(false);
-    if (step.openIntel) onOpenIntel();
-    else onCloseIntel();
+
+    if (step.openIntel) onOpenIntelRef.current();
+    else onCloseIntelRef.current();
+
+    if (step.openLayers) onOpenLayersRef.current?.();
+    else if (!step.openIntel) onCloseLayersRef.current?.();
 
     let cancelled = false;
     let tries = 0;
@@ -85,12 +103,13 @@ export function FirstVisitTour({
       tries += 1;
       window.setTimeout(wait, 120);
     };
-    const t = window.setTimeout(wait, step.openIntel ? 320 : 50);
+    // 패널/시트 열림 + 이전 오버레이 클릭 관통을 피하려고 약간 대기
+    const t = window.setTimeout(wait, step.openIntel || step.openLayers ? 360 : 80);
     return () => {
       cancelled = true;
       window.clearTimeout(t);
     };
-  }, [active, index, step, onOpenIntel, onCloseIntel]);
+  }, [active, index, step]);
 
   const copy = useMemo(
     () => tourStepCopy(step, lang, viewerMode),

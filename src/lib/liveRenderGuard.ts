@@ -111,7 +111,7 @@ export function liveAisPollMs(): number {
 }
 
 export function liveAisFetchMax(): number {
-  return isClientApiStubMode() ? 250 : 120;
+  return isClientApiStubMode() ? 280 : 500;
 }
 
 /** 화면 HTML 마커 상한 (fetch 상한과 별도 — 줌아웃 렉 완화) */

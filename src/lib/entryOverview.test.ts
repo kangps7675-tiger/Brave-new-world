@@ -81,12 +81,13 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
     expect(prefs.showAirTraffic).toBe(false);
   });
 
-  it("지경학 첫 화면은 진영·항구·항로·초크 (에너지·항적은 패널)", () => {
+  it("지경학 첫 화면은 진영·항구·항로·초크·공항 (에너지·항적은 패널)", () => {
     const prefs = buildDomainOverviewPrefs("economy");
     expect(prefs.showGeoEconBlocs).toBe(true);
     expect(prefs.showLogisticsRisk).toBe(true);
     expect(prefs.showShippingLanes).toBe(true);
     expect(prefs.showPorts).toBe(true);
+    expect(prefs.showAirports).toBe(true);
     expect(prefs.showGasPipelines).toBe(false);
     expect(prefs.showLngTerminals).toBe(false);
     expect(prefs.showStrategicCorridors).toBe(false);

@@ -23,6 +23,8 @@ type UseNeptunGlobeLayerOptions = {
   showNeptun: boolean;
   showNeptunPreviousTrails: boolean;
   showUkraineControl: boolean;
+  /** 관측(Cesium) — 전선 OFF여도 우크라 ops-box 위협을 전역에서 샘플 표시 */
+  forceNeptunTheater?: boolean;
   layerViewState: ViewState;
   globeTier: GlobeLodTier;
   isCameraMoving: boolean;
@@ -36,6 +38,7 @@ export function useNeptunGlobeLayer({
   showNeptun,
   showNeptunPreviousTrails,
   showUkraineControl,
+  forceNeptunTheater = false,
   layerViewState,
   globeTier,
   isCameraMoving,
@@ -55,21 +58,23 @@ export function useNeptunGlobeLayer({
     impactFlashes: neptunImpactFlashes,
   } = useNeptunStream(neptunFetchEnabled, { pausePublish: isCameraMoving });
 
+  const theaterGate = showUkraineControl || forceNeptunTheater;
+
   const neptunInTheater = useMemo(
-    () => showUkraineControl || isNeptunTheaterInView(layerViewState, globeTier),
-    [globeTier, layerViewState, showUkraineControl],
+    () => theaterGate || isNeptunTheaterInView(layerViewState, globeTier),
+    [globeTier, layerViewState, theaterGate],
   );
 
   const neptunRenderMode = useMemo(
-    () => getNeptunRenderMode(globeTier, neptunInTheater, showNeptun, showUkraineControl),
-    [globeTier, neptunInTheater, showNeptun, showUkraineControl],
+    () => getNeptunRenderMode(globeTier, neptunInTheater, showNeptun, theaterGate),
+    [globeTier, neptunInTheater, showNeptun, theaterGate],
   );
 
   const visibleNeptunThreats = useMemo(() => {
     if (!showNeptun || !neptunShowsMarkers(neptunRenderMode)) return [];
     const max = NEPTUN_THREAT_MAX_BY_TIER[globeTier];
     if (
-      showUkraineControl &&
+      theaterGate &&
       (globeTier === "global" || globeTier === "continent")
     ) {
       return filterNeptunThreatsInOpsBox(neptunThreats, max);
@@ -81,7 +86,7 @@ export function useNeptunGlobeLayer({
     neptunRenderMode,
     neptunThreats,
     showNeptun,
-    showUkraineControl,
+    theaterGate,
   ]);
 
   const visibleNeptunArchived = useMemo(() => {
@@ -90,7 +95,7 @@ export function useNeptunGlobeLayer({
     }
     const max = NEPTUN_ARCHIVED_MAX_BY_TIER[globeTier];
     if (
-      showUkraineControl &&
+      theaterGate &&
       (globeTier === "global" || globeTier === "continent")
     ) {
       return filterNeptunThreatsInOpsBox(neptunArchivedThreats, max);
@@ -108,7 +113,7 @@ export function useNeptunGlobeLayer({
     neptunRenderMode,
     showNeptun,
     showNeptunPreviousTrails,
-    showUkraineControl,
+    theaterGate,
   ]);
 
   const { neptunPathElevation, stableNeptunLivePaths, stableNeptunArchivedPaths } = useNeptunPaths({

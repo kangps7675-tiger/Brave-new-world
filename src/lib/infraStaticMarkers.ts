@@ -2,11 +2,13 @@ import type { StaticPoint } from "@/data/geoTypes";
 import { isLightTone } from "@/lib/basemapTone";
 import { staticKindLabel } from "@/lib/hoverLabels";
 
-/** HTML 실루엣 마커로 그리는 정적 포인트 kinds (globe points와 이중 렌더 금지) */
+/**
+ * HTML 실루엣 마커로 그리는 정적 포인트 kinds (globe points와 이중 렌더 금지).
+ * military-base는 MapLibre circle(저줌 파란 점) + US만 zoom≥6 성조기 심볼.
+ */
 export const HTML_STATIC_KINDS = new Set<StaticPoint["kind"]>([
   "airport",
   "port",
-  "military-base",
   "ai-data-center",
   "economic-center",
   "nuclear-site",
@@ -357,14 +359,6 @@ export function portSvg(size = 30): string {
   );
 }
 
-function militaryBaseSvg(): string {
-  return wrapSvg(`
-    <rect x="5" y="8" width="22" height="14" rx="1" fill="#2563eb" stroke="#bfdbfe" stroke-width="0.8"/>
-    <path d="M5 12 H27 M11 8 V22" stroke="#93c5fd" stroke-width="0.7" opacity="0.55"/>
-    <circle cx="20" cy="15" r="3" fill="#1d4ed8" stroke="#dbeafe" stroke-width="0.6"/>
-  `);
-}
-
 function iconFor(point: StaticPoint): string {
   switch (point.kind) {
     case "ai-data-center":
@@ -387,8 +381,6 @@ function iconFor(point: StaticPoint): string {
       return airportSvg();
     case "port":
       return portSvg();
-    case "military-base":
-      return militaryBaseSvg();
     default:
       return wrapSvg(`<circle cx="16" cy="16" r="6" fill="#94a3b8"/>`);
   }
