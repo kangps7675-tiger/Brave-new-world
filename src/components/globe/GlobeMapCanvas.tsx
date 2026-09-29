@@ -59,6 +59,9 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   /** 세슘 알림 핀 */
   alertPins?: CesiumAlertItem[];
   onSelectCesiumAlert?: (item: CesiumAlertItem) => void;
+  liveuaPins?: Array<{ id: string; title: string; lat: number; lng: number }>;
+  onSelectLiveuaPin?: (id: string) => void;
+  controlGeoJson?: GeoJSON.FeatureCollection | null;
 };
 
 /**
@@ -93,6 +96,9 @@ export function GlobeMapCanvas({
   onSelectCesiumEntity,
   alertPins,
   onSelectCesiumAlert,
+  liveuaPins,
+  onSelectLiveuaPin,
+  controlGeoJson,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -127,6 +133,9 @@ export function GlobeMapCanvas({
             onSelectEntity={onSelectCesiumEntity}
             alertPins={alertPins}
             onSelectAlert={onSelectCesiumAlert}
+            liveuaPins={liveuaPins}
+            onSelectLiveuaPin={onSelectLiveuaPin}
+            controlGeoJson={controlGeoJson}
           />
         ) : null}
         {!isPhoneUi && !satelliteMode ? (

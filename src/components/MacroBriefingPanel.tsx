@@ -39,7 +39,7 @@ function TrustChip({ badge, lang }: { badge: MacroTrustBadge | null; lang: Label
         ? "border-sky-400/50 bg-sky-500/15 text-sky-100"
         : "border-amber-400/40 bg-amber-500/10 text-amber-100";
   return (
-    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${tone}`}>
+    <span className={`rounded-full border px-2 py-0.5 text-micro font-medium ${tone}`}>
       {label}
     </span>
   );
@@ -55,7 +55,7 @@ function DensityChip({
   if (badge === "none") return null;
   const label = densityLabel(badge, lang);
   return (
-    <span className="rounded-full border border-violet-400/45 bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium text-violet-100">
+    <span className="rounded-full border border-violet-400/45 bg-violet-500/15 px-2 py-0.5 text-micro font-medium text-violet-100">
       {label}
     </span>
   );
@@ -127,7 +127,7 @@ export function MacroBriefingPanel({
           <h2 id="macro-briefing-title" className="text-sm font-semibold tracking-wide">
             {lang === "en" ? "Macro briefing" : "거시 요약본"}
           </h2>
-          <p className="mt-0.5 text-[11px] text-sky-100/65">
+          <p className="mt-0.5 text-micro text-sky-100/65">
             {lang === "en"
               ? "RSS outlets × GDELT density — macro themes only"
               : "RSS 매체 × GDELT 밀도 — 거시 테마만"}
@@ -137,14 +137,14 @@ export function MacroBriefingPanel({
           <button
             type="button"
             onClick={onFold}
-            className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-sky-100/80 hover:bg-white/5"
+            className="rounded-md border border-white/15 px-2 py-1 text-micro text-sky-100/80 hover:bg-white/5"
           >
             {lang === "en" ? "Fold" : "접기"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-sky-100/80 hover:bg-white/5"
+            className="rounded-md border border-white/15 px-2 py-1 text-micro text-sky-100/80 hover:bg-white/5"
             aria-label={lang === "en" ? "Close" : "닫기"}
           >
             ✕
@@ -163,7 +163,7 @@ export function MacroBriefingPanel({
             key={id}
             type="button"
             onClick={() => onDomainChange(id)}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+            className={`rounded-full px-2.5 py-1 text-micro font-medium transition ${
               domain === id
                 ? "bg-sky-400/20 text-sky-50 ring-1 ring-sky-300/40"
                 : "text-sky-100/60 hover:bg-white/5"
@@ -225,12 +225,12 @@ export function MacroBriefingPanel({
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-[10px] font-semibold tracking-wider text-sky-200/70">
+                    <span className="text-micro font-semibold tracking-wider text-sky-200/70">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="truncate text-[11px] text-sky-100/55">{topic.heatLabel}</span>
+                    <span className="truncate text-micro text-sky-100/55">{topic.heatLabel}</span>
                   </div>
-                  <p className="mt-1 text-[13px] font-medium leading-snug text-sky-50">
+                  <p className="mt-1 text-meta font-medium leading-snug text-sky-50">
                     {topic.title}
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-1">
@@ -245,7 +245,7 @@ export function MacroBriefingPanel({
 
         {activeTopic ? (
           <div className="mt-3 border-t border-white/10 pt-3">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-sky-200/70">
+            <p className="mb-2 text-micro font-semibold uppercase tracking-wider text-sky-200/70">
               {lang === "en" ? "Steps" : "단계"}
             </p>
             <ol className="flex flex-col gap-2">
@@ -266,7 +266,7 @@ export function MacroBriefingPanel({
                       }`}
                     >
                       <div className="mb-1 flex flex-wrap items-center gap-1">
-                        <span className="text-[10px] text-sky-200/60">
+                        <span className="text-micro text-sky-200/60">
                           {lang === "en" ? `Step ${i + 1}` : `${i + 1}단계`}
                         </span>
                         <TrustChip badge={step.trustBadge} lang={lang} />
@@ -274,11 +274,11 @@ export function MacroBriefingPanel({
                           <DensityChip badge={step.densityBadge} lang={lang} />
                         ) : null}
                       </div>
-                      <p className="text-[12px] leading-relaxed text-sky-50/95">{step.body}</p>
+                      <p className="text-meta leading-relaxed text-sky-50/95">{step.body}</p>
                       {step.sources.length > 0 ? (
                         <ul className="mt-1.5 space-y-0.5">
                           {step.sources.slice(0, 3).map((s) => (
-                            <li key={s.url} className="truncate text-[10px] text-sky-200/55">
+                            <li key={s.url} className="truncate text-micro text-sky-200/55">
                               <a
                                 href={s.url}
                                 target="_blank"

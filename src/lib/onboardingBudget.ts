@@ -41,7 +41,8 @@ export type NudgeId =
   | "theaterCoach"
   | "intelDragHint"
   | "ultraLiteOffer"
-  | "soundUnmute";
+  | "soundUnmute"
+  | "sentinelIntro";
 
 type NudgeSpec = {
   /** 낮을수록 먼저 — 예산이 부족할 때 무엇을 살릴지 결정 */
@@ -94,7 +95,6 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
    * ⚠️ legacyKey가 null인 이유 — `cv-sound-enabled`를 넣으면 안 된다.
    * 그 키는 "봤음" 플래그가 아니라 **사용자 설정값**이다.
    * markNudgeShown이 "1"을 쓰는 순간 **소리가 켜진다.**
-   * (기본 OFF 정책을 정면으로 위반한다.)
    * 완료 판정은 컴포넌트가 `hasSoundChoice()`로 직접 한다.
    *
    * eager도 아니다 — eager면 소리 설정을 안 건드린 모든 사용자에게
@@ -114,6 +114,15 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
     legacyKey: "geowatch-tour-invite-v1",
     scope: "persistent",
     eager: true,
+  },
+  /**
+   * 자동 순회(구 센티넬) 소개 — 게이트 이후·버튼이 보일 때.
+   * eager 아님: 버튼 DOM·ready 조건이 갖춰질 때까지 다른 넛지를 막지 않는다.
+   */
+  sentinelIntro: {
+    priority: 28,
+    legacyKey: "geowatch-sentinel-intro-v1",
+    scope: "persistent",
   },
   /** 사용자가 「투어 시작」을 눌러 진입 — 방해가 아니므로 예산 면제 */
   firstVisitTour: {

@@ -164,10 +164,15 @@ export type IngestEnv = {
    */
   US_CARRIERS_WARM_URL?: string;
   /**
-   * Next DeepState occupied-coordinate sync (3-day snapshot, LIVEUAMAP 전 임시)
+   * Next DeepState occupied-coordinate sync (3-day snapshot, LIVEUAMAP 폴백)
    * e.g. https://your-app.example/api/deepstate/sync
    */
   DEEPSTATE_SYNC_URL?: string;
+  /**
+   * Next LIVEUAMAP mpts sync (budgeted resid rotation)
+   * e.g. https://your-app.example/api/liveuamap/sync
+   */
+  LIVEUAMAP_SYNC_URL?: string;
 };
 
 export type FirmsFireRow = {

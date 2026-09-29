@@ -118,8 +118,10 @@ describe("layerPrefGate — 사각지대 감시", () => {
     "atop-alliances-draft",
     "icow-territorial-claims-draft",
     "peacesciencer-dyad-backdrop",
-    // showUkraineControl 토글 아래 임시 DeepState 점령 fill — 전용 pref 없음
+    // showUkraineControl / Cesium LiveUA 경로 — 전용 pref 없음 (DeepState 폴백 포함)
     "deepstate-ukraine-occupied",
+    "liveuamap-frontline-events",
+    "liveuamap-control-polygons",
   ]);
 
   it("상업 불가 레이어는 매핑되거나 예외 목록에 있어야 한다", () => {

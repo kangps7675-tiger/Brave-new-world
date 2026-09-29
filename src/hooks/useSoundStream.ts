@@ -127,7 +127,7 @@ export type PlaySoundOptions = {
 export function useSoundStream(options?: UseSoundStreamOptions) {
   const enabledOpt = options?.enabled !== false;
   const [unlocked, setUnlocked] = useState(false);
-  /** 기본 OFF 정책 — 하드코딩 true 금지 (useEffect 전 첫 프레임 누수 방지) */
+  /** DEFAULT_SOUND_ENABLED 상수만 사용 — 하드코딩으로 첫 프레임 선호 누수 방지 */
   const [soundEnabled, setSoundEnabledState] = useState(DEFAULT_SOUND_ENABLED);
   const oneShotRef = useRef<HTMLAudioElement | null>(null);
   const overlapPoolRef = useRef<HTMLAudioElement[]>([]);

@@ -603,7 +603,7 @@ const UI = {
   soundToggleLabel: { ko: "소리 on/off", en: "Sound on/off" },
   soundMuteAria: { ko: "소리 끄기", en: "Mute sound" },
   soundUnmuteAria: { ko: "소리 켜기", en: "Unmute sound" },
-  /** 기본 OFF 상태에서 한 번도 선택한 적 없는 유저용 유도 */
+  /** 소리를 끈 채 들어온 유저용 유도 (기본은 ON) */
   soundNudgeTitle: { ko: "소리를 켜면 더 생생합니다", en: "Sound makes it real" },
   soundNudgeBody: {
     ko: "공습 경보·속보 타전음이 실제 시각에 울립니다. 지금은 꺼져 있습니다.",
@@ -611,6 +611,35 @@ const UI = {
   },
   soundNudgeAccept: { ko: "소리 켜기", en: "Turn on sound" },
   soundNudgeDismiss: { ko: "계속 끄기", en: "Stay muted" },
+  /** 자동 순회(구 SENTINEL) — 한/영 친화 표기 */
+  sentinelIdleLabel: { ko: "자동 순회", en: "Auto tour" },
+  sentinelActiveLabel: { ko: "순회 중", en: "Touring" },
+  sentinelTitleConflict: {
+    ko: "자동 순회 — 긴장 전장을 스스로 돌아봅니다",
+    en: "Auto tour — fly through hot theaters on its own",
+  },
+  sentinelTitleEconomy: {
+    ko: "자동 순회 — 물류·에너지·금융 중심지를 스스로 돌아봅니다",
+    en: "Auto tour — fly through logistics, energy & finance hubs",
+  },
+  sentinelHudConflict: { ko: "자동 순회", en: "Auto tour" },
+  sentinelHudEconomy: { ko: "허브 순회", en: "Hub tour" },
+  sentinelPreparing: { ko: "순회 준비 중…", en: "Getting ready…" },
+  sentinelExit: { ko: "종료", en: "Exit" },
+  sentinelIntroTitle: {
+    ko: "자동 순회가 뭔가요?",
+    en: "What is Auto tour?",
+  },
+  sentinelIntroBodyConflict: {
+    ko: "버튼을 누르면 지도가 긴장 높은 전장과 해협을 스스로 옮겨 다닙니다. 상황실을 켜 둔 채 두고 싶을 때 쓰세요. 언제든 끌 수 있어요.",
+    en: "One tap and the map flies itself through hot theaters and chokepoints — like a situation-room screensaver. Turn it off anytime.",
+  },
+  sentinelIntroBodyEconomy: {
+    ko: "버튼을 누르면 지도가 물류·에너지·금융 중심지를 스스로 옮겨 다닙니다. 켜 두고 지켜보거나, 원치 않으면 언제든 끄세요.",
+    en: "One tap and the map flies itself through logistics, energy, and finance hubs. Leave it on, or turn it off anytime.",
+  },
+  sentinelIntroTry: { ko: "한번 켜보기", en: "Try it" },
+  sentinelIntroDismiss: { ko: "나중에", en: "Later" },
   /** FPS 프로브 → Ultra-Lite 자동 적용 + 결과 통보 (P2-2) */
   ultraLiteOfferTitle: { ko: "가벼운 모드로 전환했습니다", en: "Switched to a lighter view" },
   ultraLiteOfferBody: {

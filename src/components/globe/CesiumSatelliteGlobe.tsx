@@ -108,6 +108,11 @@ export type CesiumSatelliteGlobeProps = {
   /** 세슘 알림창과 같은 경보 핀 (UKMTO·NAVAREA·초크·훈련·게이트·항로) */
   alertPins?: CesiumAlertItem[];
   onSelectAlert?: (item: CesiumAlertItem) => void;
+  /** LIVEUA 전선 속보 핀 */
+  liveuaPins?: Array<{ id: string; title: string; lat: number; lng: number }>;
+  onSelectLiveuaPin?: (id: string) => void;
+  /** LIVEUA/DeepState 통제·점령 GeoJSON (overview fill) */
+  controlGeoJson?: GeoJSON.FeatureCollection | null;
   /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
   onReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
@@ -756,6 +761,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showNeptun = false,
       alertPins = [],
       onSelectAlert,
+      liveuaPins = [],
+      onSelectLiveuaPin,
+      controlGeoJson = null,
       onReady,
       onSelectEntity,
     },
@@ -779,8 +787,12 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   onSelectEntityRef.current = onSelectEntity;
   const onSelectAlertRef = useRef(onSelectAlert);
   onSelectAlertRef.current = onSelectAlert;
+  const onSelectLiveuaPinRef = useRef(onSelectLiveuaPin);
+  onSelectLiveuaPinRef.current = onSelectLiveuaPin;
   const alertPinsRef = useRef(alertPins);
   alertPinsRef.current = alertPins;
+  const liveuaPinsRef = useRef(liveuaPins);
+  liveuaPinsRef.current = liveuaPins;
   const aisVesselsRef = useRef(aisVessels);
   aisVesselsRef.current = aisVessels;
   const disguisedVesselsRef = useRef(disguisedVessels);
@@ -975,6 +987,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (prefix === "alert" || prefix === "alertline") {
             const pin = alertPinsRef.current.find((item) => item.id === key);
             if (pin) onSelectAlertRef.current?.(pin);
+            return;
+          }
+          if (prefix === "liveua") {
+            onSelectLiveuaPinRef.current?.(key);
             return;
           }
           if (prefix === "mil" || prefix === "civ") {
@@ -1223,6 +1239,96 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     }
     for (const entity of stale) viewer.entities.remove(entity);
   }, [alertPins, status]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    const seen = new Set<string>();
+    for (const pin of liveuaPins) {
+      if (!Number.isFinite(pin.lat) || !Number.isFinite(pin.lng)) continue;
+      const pointId = `liveua:${pin.id}`;
+      seen.add(pointId);
+      const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
+      const existing = viewer.entities.getById(pointId);
+      if (existing) {
+        existing.position = new Cesium.ConstantPositionProperty(position);
+        existing.name = pin.title;
+      } else {
+        viewer.entities.add({
+          id: pointId,
+          name: pin.title,
+          position,
+          point: {
+            pixelSize: 10,
+            color: Cesium.Color.fromCssColorString("#f59e0b"),
+            outlineColor: Cesium.Color.BLACK.withAlpha(0.65),
+            outlineWidth: 1,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+      }
+    }
+
+    const stale: import("cesium").Entity[] = [];
+    for (const entity of viewer.entities.values) {
+      const id = entity.id;
+      if (typeof id !== "string" || !id.startsWith("liveua:")) continue;
+      if (!seen.has(id)) stale.push(entity);
+    }
+    for (const entity of stale) viewer.entities.remove(entity);
+  }, [liveuaPins, status]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    let cancelled = false;
+    const dataSourceName = "liveua-control";
+
+    const removeExisting = () => {
+      const existing = viewer.dataSources.getByName(dataSourceName);
+      for (const ds of [...existing]) {
+        void viewer.dataSources.remove(ds, true);
+      }
+    };
+
+    if (!controlGeoJson?.features?.length) {
+      removeExisting();
+      return;
+    }
+
+    void (async () => {
+      try {
+        removeExisting();
+        const ds = await Cesium.GeoJsonDataSource.load(controlGeoJson, {
+          clampToGround: true,
+        });
+        if (cancelled || viewer.isDestroyed()) return;
+        ds.name = dataSourceName;
+        for (const entity of ds.entities.values) {
+          if (entity.polygon) {
+            entity.polygon.material = new Cesium.ColorMaterialProperty(
+              Cesium.Color.fromCssColorString("#b45309").withAlpha(0.35),
+            );
+            entity.polygon.outline = new Cesium.ConstantProperty(true);
+            entity.polygon.outlineColor = new Cesium.ConstantProperty(
+              Cesium.Color.fromCssColorString("#fbbf24").withAlpha(0.7),
+            );
+          }
+        }
+        await viewer.dataSources.add(ds);
+      } catch (err) {
+        console.warn("[CesiumSatelliteGlobe] control GeoJSON", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controlGeoJson, status]);
 
   return (
     <div className={`relative h-full w-full bg-[#02040a] ${className}`}>
