@@ -10,7 +10,7 @@ export const maxDuration = 60;
 
 /**
  * Cron: DeepState history/last → 점령 좌표 스냅샷 (3일 TTL).
- * LIVEUAMAP 영토 폴링 전 임시.
+ * LiveUA 통제면이 비었을 때 폴백용. 본선은 LIVEUAMAP sync.
  */
 export async function POST(request: Request) {
   if (!authorizeCronRequest(request, ["INGEST_CRON_SECRET", "DEEPSTATE_SYNC_SECRET"])) {

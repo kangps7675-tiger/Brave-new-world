@@ -1,7 +1,6 @@
 /**
  * DeepState 점령 좌표 — 3일 스냅샷.
- * news_project occupiedUkraine.json 과 같이 좌표만 주기 갱신.
- * LIVEUAMAP 영토 폴링 전 임시.
+ * LiveUA 통제면이 없을 때만 폴백으로 사용 (resolveUkraineOccupied).
  */
 
 import { readFile } from "node:fs/promises";
@@ -21,12 +20,14 @@ import {
   occupiedSnapshotFetchedAt,
   type OccupiedGeoJson,
 } from "@/lib/deepstate/toOccupiedGeoJson";
+import { readLiveuaUkraineOccupied } from "@/lib/liveuamap/controlSnapshotStore";
 
 export type OccupiedSnapshotSource =
   | "deepstate-d1"
   | "deepstate-snapshot"
   | "deepstate-live"
   | "deepstate-memory"
+  | "liveuamap"
   | "empty";
 
 export type OccupiedSnapshotResult = {
@@ -155,6 +156,17 @@ export async function refreshOccupiedSnapshot(options?: {
           occupied: cached.occupied,
           source: cached.source,
           persisted: cached.source === "deepstate-d1",
+          skipped: false,
+          error: message,
+        };
+      }
+      // DeepState 실패·캐시 없음 → LiveUA 영토 폴백
+      const liveua = await readLiveuaUkraineOccupied();
+      if (liveua?.features.length) {
+        return {
+          occupied: liveua,
+          source: "liveuamap",
+          persisted: true,
           skipped: false,
           error: message,
         };

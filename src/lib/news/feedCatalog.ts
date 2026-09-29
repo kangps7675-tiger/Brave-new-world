@@ -241,6 +241,85 @@ const SHADOW_FLEET_GOOGLE: NewsFeedDef[] = [
   },
 ];
 
+/**
+ * 하이브리드전·사보타주 — 해저케이블·파이프라인·사이버·GPS재밍·정보작전 등 회색지대.
+ * 전쟁 피드만으로는 안 잡히는 인프라 공격·비대칭 위협을 지정학 RSS에 보강.
+ */
+const HYBRID_WARFARE_GOOGLE: NewsFeedDef[] = [
+  {
+    url: G(
+      '("hybrid warfare" OR "hybrid war" OR "hybrid threat" OR "gray zone" OR "grey zone") (Russia OR China OR Iran OR NATO OR Europe OR Ukraine OR sabotage OR cyber OR espionage)',
+    ),
+    name: "Google News · Hybrid Warfare",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(sabotage OR sabotaged OR "suspected sabotage") (pipeline OR cable OR railway OR airport OR "power grid" OR "critical infrastructure" OR factory OR depot) (Russia OR Ukraine OR Europe OR Baltic OR NATO OR China OR Iran)',
+    ),
+    name: "Google News · Sabotage · Infrastructure",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("undersea cable" OR "subsea cable" OR "submarine cable" OR "fiber optic cable") (cut OR damaged OR severed OR sabotage OR rupture OR attack OR "anchor drag") (Baltic OR Taiwan OR Europe OR NATO OR Russia OR China OR Red Sea)',
+    ),
+    name: "Google News · Undersea Cable Attack",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("Nord Stream" OR Balticconnector OR "Balticconnector" OR "gas pipeline" OR "oil pipeline") (sabotage OR explosion OR rupture OR damaged OR blast OR investigation) (Baltic OR Europe OR Russia OR Ukraine OR NATO)',
+    ),
+    name: "Google News · Pipeline Sabotage",
+    theater: "russia-ukraine",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(cyberattack OR "cyber attack" OR "cyber strike" OR "state-sponsored hack" OR "APT" OR ransomware) ("critical infrastructure" OR military OR government OR "power grid" OR Russia OR China OR Iran OR "North Korea" OR Ukraine OR NATO)',
+    ),
+    name: "Google News · Cyber · Hybrid",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("GPS jamming" OR "GNSS jamming" OR "GPS spoofing" OR "electronic warfare" OR "EW attack") (Baltic OR Kaliningrad OR "Black Sea" OR aviation OR shipping OR NATO OR Russia OR Ukraine OR Finland OR Estonia)',
+    ),
+    name: "Google News · GPS Jamming · EW",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(disinformation OR "influence operation" OR "election interference" OR "information warfare" OR "cognitive warfare" OR "propaganda campaign") (Russia OR China OR Iran OR NATO OR Ukraine OR hybrid OR sabotage)',
+    ),
+    name: "Google News · Info Ops · Disinfo",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(사보타주 OR 하이브리드전 OR "하이브리드 전쟁" OR 회색지대 OR "해저 케이블" OR "해저케이블" OR GPS재밍 OR "전자전") (러시아 OR 중국 OR 나토 OR 우크라이나 OR 유럽 OR 공격 OR 파손)',
+    ),
+    name: "Google News · Hybrid · Sabotage · KO",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+];
+
 const RUSSIA_UKRAINE: NewsFeedDef[] = [
   { url: "https://feeds.bbci.co.uk/news/world/europe/rss.xml", name: "BBC", theater: "russia-ukraine" },
   { url: "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml", name: "NYT", theater: "russia-ukraine" },
@@ -880,10 +959,10 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
     unfiltered: true,
   },
 
-  // —— 에너지 메이저 ——
+  // —— 에너지 · 원유 · 가스 · 원자재 자산 (지경학 핵심) ——
   {
     url: G(
-      '("Exxon Mobil" OR ExxonMobil OR Chevron OR Shell OR BP OR TotalEnergies OR Aramco OR Equinor) (oil OR gas OR LNG OR earnings OR dividend)',
+      '("Exxon Mobil" OR ExxonMobil OR Chevron OR Shell OR BP OR TotalEnergies OR Aramco OR Equinor OR ConocoPhillips OR Eni) (oil OR gas OR LNG OR crude OR earnings OR dividend OR upstream OR downstream)',
     ),
     name: "Google · Oil Majors",
     theater: "global",
@@ -892,8 +971,10 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
     unfiltered: true,
   },
   {
-    url: G('"oil price" OR OPEC OR Brent OR WTI OR "natural gas" OR LNG'),
-    name: "Google · Energy Prices",
+    url: G(
+      '(Brent OR WTI OR "crude oil" OR "oil price" OR "oil prices" OR "oil futures" OR "oil inventory" OR "EIA inventory" OR "API inventory") (price OR rally OR plunge OR barrel OR futures OR market)',
+    ),
+    name: "Google · Crude · Brent · WTI",
     theater: "global",
     topic: "economy",
     econGenre: "energy",
@@ -901,10 +982,120 @@ const SHARED_ECONOMY: NewsFeedDef[] = [
   },
   {
     url: G(
-      '(Aramco OR ADNOC OR "QatarEnergy" OR "Petronas") (LNG OR oil OR investment OR IPO)',
+      '(OPEC OR "OPEC+" OR "oil production" OR "production cut" OR "output cut" OR quota OR "spare capacity") (oil OR crude OR barrel OR Saudi OR Russia OR UAE)',
     ),
-    name: "Google · NOCs",
+    name: "Google · OPEC · Production",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("natural gas" OR LNG OR "Henry Hub" OR TTF OR JKM OR "gas price" OR "gas futures" OR "gas storage") (price OR market OR Europe OR Asia OR US OR export OR import)',
+    ),
+    name: "Google · Natural Gas · LNG Prices",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(LNG OR "liquefied natural gas" OR "LNG cargo" OR "LNG tanker" OR "LNG terminal" OR "LNG export" OR "LNG import") (price OR contract OR spot OR Qatar OR US OR Australia OR Europe OR Asia)',
+    ),
+    name: "Google · LNG Trade · Cargoes",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Aramco OR ADNOC OR "QatarEnergy" OR Petronas OR "Petrobras" OR Rosneft OR Gazprom OR "CNPC" OR "Sinopec" OR "Saudi Aramco") (oil OR gas OR LNG OR investment OR IPO OR production OR export)',
+    ),
+    name: "Google · NOCs · State Energy",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(Hormuz OR "Strait of Hormuz" OR "Red Sea" OR Suez OR "Bab el-Mandeb") (oil OR crude OR LNG OR tanker OR freight OR insurance OR premium OR disruption OR risk)',
+    ),
+    name: "Google · Energy Chokepoint Risk",
     theater: "middle-east",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("oil sanction" OR "energy sanction" OR "oil embargo" OR "price cap" OR "oil price cap" OR "shadow fleet" OR "sanctioned oil") (Russia OR Iran OR Venezuela OR crude OR tanker OR export)',
+    ),
+    name: "Google · Energy Sanctions · Price Cap",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("strategic petroleum reserve" OR SPR OR "oil stockpile" OR "emergency oil" OR "IEA release" OR "oil release") (US OR China OR Japan OR IEA OR inventory)',
+    ),
+    name: "Google · SPR · Oil Stocks",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(pipeline OR "oil pipeline" OR "gas pipeline" OR "Nord Stream" OR TurkStream OR "Power of Siberia" OR "Keystone" OR "CPC pipeline") (oil OR gas OR LNG OR transit OR tariff OR capacity OR flow OR Europe OR Russia OR China)',
+    ),
+    name: "Google · Oil · Gas Pipelines",
+    theater: "global",
+    topic: "economy",
+    econGenre: "energy",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("geoeconomics" OR "geo-economics" OR "economic statecraft" OR "weaponized interdependence" OR "friendshoring" OR "nearshoring" OR "de-risking" OR decoupling) (trade OR sanction OR tariff OR investment OR supply OR China OR US OR energy)',
+    ),
+    name: "Google · Geoeconomics · Statecraft",
+    theater: "global",
+    topic: "economy",
+    econGenre: "macro",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(gold OR copper OR silver OR aluminum OR iron OR "iron ore" OR uranium OR wheat OR corn OR soybean OR "commodity price" OR commodities) (price OR futures OR rally OR plunge OR inventory OR market OR trade)',
+    ),
+    name: "Google · Commodity Assets",
+    theater: "global",
+    topic: "economy",
+    econGenre: "markets",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("oil ETF" OR "energy ETF" OR XLE OR USO OR "crude futures" OR "gas futures" OR "commodity ETF" OR "energy stock") (price OR market OR rally OR plunge OR traders OR investors)',
+    ),
+    name: "Google · Energy · Commodity Assets Trade",
+    theater: "global",
+    topic: "economy",
+    econGenre: "markets",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '(원유 OR 브렌트 OR WTI OR 천연가스 OR LNG OR OPEC OR "에너지 가격" OR 유가) (가격 OR 급등 OR 급락 OR 선물 OR 제재 OR 수출 OR 수입)',
+    ),
+    name: "Google · Oil · Gas · KO",
+    theater: "global",
     topic: "economy",
     econGenre: "energy",
     unfiltered: true,
@@ -1594,12 +1785,28 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
     '(Mali OR Niger OR Burkina OR Sahel) (Russia OR China) (diplomacy OR partnership OR "security agreement")',
   "shadow-fleet":
     '("shadow fleet" OR "dark fleet" OR "ghost fleet" OR "sanctioned tanker" OR "AIS spoofing" OR "ship-to-ship" OR "price cap evasion") (oil OR tanker OR sanction)',
+  "hybrid-warfare":
+    '("hybrid warfare" OR "hybrid war" OR "gray zone" OR "grey zone" OR "hybrid threat") (Russia OR China OR Iran OR NATO OR sabotage OR cyber)',
+  sabotage:
+    '(sabotage OR "suspected sabotage") (pipeline OR cable OR railway OR "critical infrastructure" OR "power grid") (Russia OR Europe OR Baltic OR NATO OR China)',
+  "undersea-cable-attack":
+    '("undersea cable" OR "subsea cable" OR "submarine cable") (cut OR damaged OR severed OR sabotage OR rupture) (Baltic OR Taiwan OR Europe OR NATO OR Russia OR China)',
+  "pipeline-sabotage":
+    '("Nord Stream" OR Balticconnector OR "gas pipeline") (sabotage OR explosion OR rupture OR damaged) (Baltic OR Europe OR Russia OR NATO)',
+  "cyber-hybrid":
+    '(cyberattack OR "cyber attack" OR "state-sponsored hack") ("critical infrastructure" OR military OR Russia OR China OR Iran OR "North Korea" OR Ukraine)',
+  "gps-jamming-ew":
+    '("GPS jamming" OR "GNSS jamming" OR "GPS spoofing" OR "electronic warfare") (Baltic OR Kaliningrad OR aviation OR shipping OR NATO OR Russia)',
   "middle-east-tribes":
     '(tribe OR tribal OR Bedouin OR clan OR Kurd OR Druze OR Yazidi OR Baloch OR Amazigh) (Iraq OR Syria OR Yemen OR Iran OR Libya OR "Middle East") (autonomy OR militia OR conflict)',
   "middle-east-unrecognized":
     '(Somaliland OR "Northern Cyprus" OR TRNC OR Sahrawi OR "Western Sahara" OR Rojava OR STC OR "South Yemen" OR KRG) (unrecognized OR "de facto" OR independence OR recognition)',
   "economy-energy":
-    '("Exxon Mobil" OR Chevron OR Shell OR Aramco OR OPEC OR Brent OR LNG)',
+    '("Exxon Mobil" OR Chevron OR Shell OR Aramco OR OPEC OR Brent OR WTI OR LNG OR "natural gas" OR "oil price")',
+  "economy-oil-gas-assets":
+    '(Brent OR WTI OR "crude oil" OR LNG OR "Henry Hub" OR TTF OR gold OR copper OR "commodity price") (price OR futures OR market)',
+  "economy-geoeconomics":
+    '("geoeconomics" OR "economic statecraft" OR "friendshoring" OR "de-risking" OR "oil sanction" OR "energy sanction" OR "price cap") (trade OR energy OR China OR Russia)',
   "economy-macro":
     'Fed OR ECB OR sanctions OR tariff OR "trade war" OR inflation OR China OR "industrial policy"',
   "economy-shipping":
@@ -1625,13 +1832,13 @@ export const GOOGLE_NEWS_QUERIES: Record<string, string> = {
 };
 
 export const ECON_RELEVANCE =
-  /oil|gas|lng|opec|brent|wti|crude|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|malacca|panama|bab[\s-]?el|bosporus|taiwan\s?strait|tanker|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|energy|pipeline|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|nickel|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex|china|chinese|beijing|huawei|alibaba|tencent|smic|pboc|renminbi|industrial\s?policy|made\s?in\s?china|new\s?productive\s?forces|advanced\s?manufacturing|shipbuilding|photovoltaic|solar\s?panel|de-?risk|decoupl|entity\s?list|section\s?301|export\s?control|korea|seoul|japan|tokyo|taiwan|taipei|asean|indonesia|vietnam|thailand|malaysia|philippines|singapore|india|modi|rupee|rbi|sensex|saudi|aramco|adnoc|qatar|uae|dubai|vision\s?2030|friendshoring|nearshoring|pli\b|hambantota/i;
+  /oil|gas|lng|opec|brent|wti|crude|henry\s?hub|ttf\b|jkm\b|sanction|tariff|trade|fed|ecb|rate|inflation|gdp|recession|supply\s?chain|shipping|freight|container|hormuz|suez|red\s?sea|malacca|panama|bab[\s-]?el|bosporus|taiwan\s?strait|tanker|semiconductor|chip|gpu|nvidia|tsmc|asml|samsung|hynix|intel|amd|broadcom|qualcomm|apple|microsoft|google|alphabet|amazon|meta|openai|anthropic|tesla|byd|toyota|hyundai|catl|exxon|chevron|shell|aramco|bp|totalenergies|equinor|conocophillips|gazprom|rosneft|adnoc|qatarenergy|petronas|maersk|cosco|hapag|fedex|ups|datacenter|data\s?center|cloud|aws|azure|market|stocks|earnings|bond|dollar|yuan|yen|euro|commodit|gold|copper|silver|uranium|wheat|soybean|energy|pipeline|nord\s?stream|spr\b|strategic\s?petroleum|geoeconom|friendshoring|nearshoring|de[\s-]?risk|decoupl|bank|currency|imf|wto|export|import|port\b|vix|infrastructure|bri\b|belt\s?and\s?road|aiib|world\s?bank|adb\b|fdi|foreign\s?direct|critical\s?mineral|rare\s?earth|lithium|cobalt|nickel|subsea|undersea\s?cable|rail\s?corridor|power\s?grid|chips?\s?act|foundry|euv|gigafactory|ev\b|electric\s?vehicle|battery|sovereign\s?debt|fiscal|oecd|antitrust|capex|china|chinese|beijing|huawei|alibaba|tencent|smic|pboc|renminbi|industrial\s?policy|made\s?in\s?china|new\s?productive\s?forces|advanced\s?manufacturing|shipbuilding|photovoltaic|solar\s?panel|entity\s?list|section\s?301|export\s?control|korea|seoul|japan|tokyo|taiwan|taipei|asean|indonesia|vietnam|thailand|malaysia|philippines|singapore|india|modi|rupee|rbi|sensex|saudi|uae|dubai|vision\s?2030|pli\b|hambantota|원유|유가|천연가스|지경학/i;
 
 export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   "middle-east":
     /iran|israel|idf|irgc|hezbollah|hamas|houthi|lebanon|gaza|tehran|tel\s?aviv|jerusalem|yemen|iraq|syria|gulf|hormuz|red\s?sea|missile|strike|nuclear|centcom|middle\s?east|west\s?bank|golan|khamenei|netanyahu|drone|saudi|emirates|uae|gcc|abraham\s?accords|normalization|diplomacy|summit|mediation|tribe|tribal|bedouin|clan|sheikh|kurd|kurdistan|krg|erbil|ypg|pyd|pkk|rojava|aanes|sdf\b|druze|yazidi|assyrian|chaldean|turkmen|circassian|baloch|ahwazi|amazigh|berber|tuareg|tebu|copt|mandaean|pjak|jaish\s?al[\s-]?adl|somaliland|puntland|hargeisa|northern\s?cyprus|trnc|sahrawi|western\s?sahara|polisario|sadr\b|south\s?yemen|stc\b|hashd|popular\s?mobilization|pmf\b|sahwa|sweida|suwayda|alawite|hadhramaut|marib|shabwa|abyan|fezzan|cyrenaica|tripolitania|haftar|libya|de\s?facto|unrecognized|autonomy|부족|종족|쿠르드|드루즈|예지디|소말릴란드|로자바|미승인|베두인|투아레그/i,
   "russia-ukraine":
-    /ukrain|russia|russian|putin|zelensky|kyiv|kharkiv|odesa|dnipro|donbas|crimea|sevastopol|kremlin|moscow|belgorod|wagner|himars|atacms|shahed|nato|diplomacy|summit|negotiation|peace\s?talks|foreign\s?minister|shadow\s?fleet|dark\s?fleet|oil\s?price\s?cap/i,
+    /ukrain|russia|russian|putin|zelensky|kyiv|kharkiv|odesa|dnipro|donbas|crimea|sevastopol|kremlin|moscow|belgorod|wagner|himars|atacms|shahed|nato|diplomacy|summit|negotiation|peace\s?talks|foreign\s?minister|shadow\s?fleet|dark\s?fleet|oil\s?price\s?cap|sabotage|nord\s?stream|balticconnector|hybrid|undersea\s?cable|gps\s?jamming|cyberattack/i,
   "china-taiwan":
     /china|taiwan|taipei|beijing|pla|strait|senkaku|diaoyu|south\s?china\s?sea|west\s?philippine\s?sea|scarborough|spratly|paracel|nine[\s-]?dash|artificial\s?island|fonop|freedom\s?of\s?navigation|second\s?thomas|ayungin|reed\s?bank|mischief|fiery\s?cross|subi\b|woody\s?island|maritime\s?militia|coast\s?guard|xi\s?jinping|cross[\s-]?strait|kinmen|us[\s-]?china|indo[\s-]?pacific|guam|philippine\s?sea|first\s?island\s?chain|second\s?island\s?chain|great\s?power\s?competition|diplomacy|summit|bilateral|strategic\s?dialogue|state\s?visit|남중국해|서필리핀해|스프래틀리|파라셀|스카보로/i,
   korea:
@@ -1651,7 +1858,7 @@ export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
   atlantic:
     /north\s?atlantic|giuk|atlantic\s?fleet|second\s?fleet|transatlantic|atlantic\s?alliance|anti[\s-]?submarine|sea\s?lines|iceland|azores|대서양|대서양동맹|지유케이/i,
   global:
-    /military|defense|war|conflict|strike|missile|pentagon|nato|sanction|geopolitic|great\s?game|central\s?asia|diplomacy|diplomatic|summit|alliance|embassy|foreign\s?minister|bilateral|multilateral|realignment|state\s?visit|strategic\s?partnership|brics|g7|sco\b|csto|multipolar|global\s?south|non[\s-]?aligned|venezuela|cuba|nicaragua|sahel|wagner|africa\s?corps|crink|axis\s?of\s?upheaval|shadow\s?fleet|dark\s?fleet|ghost\s?fleet|ghost\s?tanker|ais\s?spoof|ship[\s-]?to[\s-]?ship|sts\s?transfer|price\s?cap\s?evasion|sanctioned\s?tanker|deceptive\s?shipping|그림자\s?함대|다크\s?플릿|제재\s?유조선/i,
+    /military|defense|war|conflict|strike|missile|pentagon|nato|sanction|geopolitic|great\s?game|central\s?asia|diplomacy|diplomatic|summit|alliance|embassy|foreign\s?minister|bilateral|multilateral|realignment|state\s?visit|strategic\s?partnership|brics|g7|sco\b|csto|multipolar|global\s?south|non[\s-]?aligned|venezuela|cuba|nicaragua|sahel|wagner|africa\s?corps|crink|axis\s?of\s?upheaval|shadow\s?fleet|dark\s?fleet|ghost\s?fleet|ghost\s?tanker|ais\s?spoof|ship[\s-]?to[\s-]?ship|sts\s?transfer|price\s?cap\s?evasion|sanctioned\s?tanker|deceptive\s?shipping|hybrid\s?war|hybrid\s?threat|gray\s?zone|grey\s?zone|sabotage|cyberattack|cyber\s?attack|undersea\s?cable|subsea\s?cable|submarine\s?cable|gps\s?jamming|gnss\s?jamming|electronic\s?warfare|disinformation|influence\s?operation|nord\s?stream|balticconnector|critical\s?infrastructure|그림자\s?함대|다크\s?플릿|제재\s?유조선|하이브리드|사보타주|해저\s?케이블|회색지대/i,
 };
 
 const NOISE =
@@ -1671,6 +1878,7 @@ export const ALL_NEWS_FEEDS: NewsFeedDef[] = dedupeFeedsByUrl([
   ...ARCTIC,
   ...ATLANTIC,
   ...SHADOW_FLEET_GOOGLE,
+  ...HYBRID_WARFARE_GOOGLE,
   ...CENTRAL_ASIA_GOOGLE,
   ...DIPLOMACY_GOOGLE,
   ...SHARED_DEFENSE,

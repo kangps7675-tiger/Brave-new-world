@@ -1258,18 +1258,45 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     commercialNote: "VIINA — ODbL. 상업 이용 가능하되 렌더 전용 유지(원본 export 금지).",
   },
   {
-    layerId: "deepstate-ukraine-occupied",
-    source: "DeepState Map → 3-day occupied coordinate snapshot",
-    url: "/api/deepstate/frontlines",
-    cadence: "Every 3 days · cron `/api/deepstate/sync` · static fallback",
-    attribution: "DeepStateMap.live — occupied coordinates only (temporary)",
+    layerId: "liveuamap-frontline-events",
+    source: "Liveuamap mpts → memory store (48h)",
+    url: "/api/liveuamap · POST /api/liveuamap/sync",
+    cadence: "Cron budgeted resid rotation · client poll 60s (cache only)",
+    attribution: "Liveuamap — frontline OSINT (approximate geolocation)",
     notes:
-      "LIVEUAMAP 영토 폴링 전 임시. news_project occupiedUkraine처럼 좌표만 3일마다 반영. 유저 GET은 D1/정적 스냅샷만 읽고, 3일이 지났을 때만 DeepState history/last를 한 번 친다.",
+      "서버만 LIVEUAMAP_API_KEY로 mpts 호출. 일 200 캡·regions 슬롯. Cesium 쪽지/독/양피지·핀. KO는 sync 시 titleKo/bodyKo.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "license-required",
     commercialNote:
-      "DeepStateMap API는 상업 사전승인제. LIVEUAMAP 전 임시 3일 좌표 스냅샷 — 승인 후 유지하거나 LIVEUAMAP으로 교체.",
+      "Liveuamap API 키·약관 준수. 클라 직접 호출 금지. 계약 확인 전까지 license-required.",
+  },
+  {
+    layerId: "liveuamap-control-polygons",
+    source: "Liveuamap mpts fields/kmls → D1 liveua-{region}",
+    url: "/api/deepstate/frontlines?region=ukraine|yemen|lebanon",
+    cadence: "Same sync as events · empty fields → layer off",
+    attribution: "Liveuamap — areas of control (approx. geocoding)",
+    notes:
+      "점령면 본선. 가짜 면 생성 금지. 우크라는 LiveUA 우선·DeepState 폴백(resolveUkraineOccupied). YE/LB는 LiveUA만.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "license-required",
+    commercialNote: "docs/third-party/liveuamap.md · DeepState 폴백은 deepstate-ukraine-occupied.",
+  },
+  {
+    layerId: "deepstate-ukraine-occupied",
+    source: "DeepState Map → 3-day occupied coordinate snapshot (LiveUA fallback)",
+    url: "/api/deepstate/frontlines",
+    cadence: "Every 3 days · cron `/api/deepstate/sync` · static fallback",
+    attribution: "DeepStateMap.live — occupied coordinates (fallback when LiveUA empty)",
+    notes:
+      "LiveUA 통제면이 없을 때만 사용. news_project occupiedUkraine처럼 좌표만 3일마다 반영. 유저 GET은 D1/정적 스냅샷만 읽고, 3일이 지났을 때만 DeepState history/last를 한 번 친다.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "license-required",
+    commercialNote:
+      "DeepStateMap API는 상업 사전승인제. LiveUA 안정 시 warm 축소 — 승인 후 유지하거나 LiveUA만 사용.",
   },
   {
     layerId: "korea-missile-incidents",

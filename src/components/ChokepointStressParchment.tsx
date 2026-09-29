@@ -31,7 +31,7 @@ function AssetGraphSlot({
 
   return (
     <figure className="mt-3 overflow-hidden rounded-sm border border-[#6b4a22]/35 bg-[#f3e6c8]/55 px-3 py-2">
-      <figcaption className="mb-1 flex items-baseline justify-between gap-2 text-[11px] tracking-wide text-[#5c4030]/90">
+      <figcaption className="mb-1 flex items-baseline justify-between gap-2 text-micro tracking-wide text-[#5c4030]/90">
         <span>
           {en ? "Linked asset (slot)" : "연동 자산 (자리)"} · {label}
         </span>
