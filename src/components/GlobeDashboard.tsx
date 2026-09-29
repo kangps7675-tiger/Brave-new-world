@@ -217,7 +217,7 @@ import {
   rememberEconomyNav,
   upsertWatchPin,
 } from "@/lib/watchFocus";
-import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
+import type { NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import {
   recordInterestFromSelection,
   recordInterestMode,
@@ -1152,7 +1152,7 @@ export function GlobeDashboard({
   const [liveuaParchmentIndex, setLiveuaParchmentIndex] = useState<number | null>(null);
   const liveuaSeenIdsRef = useRef<Set<string>>(new Set());
   const liveuaSoundAtRef = useRef(0);
-  const liveuaEvents = liveuaFeed?.events ?? [];
+  const liveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
   const [telegramLive, setTelegramLive] = useState(false);
   const [telegramNeedsAuth, setTelegramNeedsAuth] = useState(false);
   const [telegramSessionExists, setTelegramSessionExists] = useState(false);
