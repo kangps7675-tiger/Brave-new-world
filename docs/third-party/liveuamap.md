@@ -19,9 +19,11 @@
 
 ## 상업·면책
 
-- Liveuamap 약관·API 키 조건을 준수. 서버 프록시만 사용하고 브라우저에 키를 넣지 않는다.
-- 통제면은 **대략 지오코딩** — UI에 OSINT·근사 고지 유지 (`sourceCatalog` `liveuamap-*`).
-- `commercialUse`는 계약 확인 전까지 `license-required` / `unknown`으로 둔다.
+- **상업 이용 가능** (Liveuamap About/ToS): data·map tiles·area polygons를 작업에 쓸 수 있으며 **liveuamap.com 참조(attribution)** 필요. 엔터프라이즈/유료 API로 기존·신규 소프트웨어 통합을 명시.
+- 서버만 `LIVEUAMAP_API_KEY`로 호출 (브라우저 노출 금지). UI·출처 패널에 Liveuamap 표기 유지.
+- 이벤트에 붙은 3rd-party 사진·원문 텍스트는 **원 소셜/매체 ToS** (`source` 링크) — LiveUA 허용과 별개.
+- 통제면은 **대략 지오코딩** — OSINT·근사 고지 유지.
+- `sourceCatalog` `liveuamap-*` → `commercialUse: "allowed"`. DeepState 폴백은 여전히 `license-required`.
 
 ## 관련 코드
 
