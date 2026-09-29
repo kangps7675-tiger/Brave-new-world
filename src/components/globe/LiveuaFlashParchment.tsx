@@ -4,6 +4,7 @@ import { ParchmentLetter } from "@/components/ParchmentLetter";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import { t } from "@/lib/uiStrings";
+import { zc } from "@/lib/uiStack";
 
 type Props = {
   lang: LabelLanguage;
@@ -37,7 +38,7 @@ export function LiveuaFlashParchment({
     <div className="relative">
       <button
         type="button"
-        className="absolute right-3 top-3 z-[910] flex h-8 w-8 items-center justify-center rounded-sm border border-[#6b4a22]/45 bg-[#f3e6c8]/95 text-lg leading-none text-[#3d2a12] shadow"
+        className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-sm border border-[#6b4a22]/45 bg-[#f3e6c8]/95 text-lg leading-none text-[#3d2a12] shadow"
         aria-label={en ? "Close" : "닫기"}
         onClick={onDismiss}
       >
@@ -56,13 +57,13 @@ export function LiveuaFlashParchment({
         newsFlashFont
         blackInk
         titleId="liveua-flash-title"
-        zIndexClass="z-[900]"
+        zIndexClass={zc("alert")}
         leadImageUrl={event.imageUrl}
         leadVideoUrl={event.videoUrl}
         secondaryCtaLabel={t("breakingFlashGoToLocation", lang)}
         onSecondaryCta={() => onGoToLocation(event)}
       />
-      <div className="pointer-events-auto absolute bottom-16 left-1/2 z-[910] flex -translate-x-1/2 gap-2">
+      <div className="pointer-events-auto absolute bottom-16 left-1/2 z-10 flex -translate-x-1/2 gap-2">
         <button
           type="button"
           className="rounded-sm border border-[#6b4a22]/40 bg-[#f3e6c8]/95 px-3 py-1 text-micro text-[#3d2a12] disabled:opacity-40"
@@ -87,7 +88,7 @@ export function LiveuaFlashParchment({
           {en ? "Next" : "다음"}
         </button>
       </div>
-      <p className="pointer-events-none absolute bottom-8 left-1/2 z-[910] -translate-x-1/2 text-micro text-[#5c4020]/80">
+      <p className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-micro text-[#5c4020]/80">
         {index + 1} / {events.length}
       </p>
     </div>

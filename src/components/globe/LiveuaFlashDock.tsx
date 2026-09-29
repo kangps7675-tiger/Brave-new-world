@@ -33,7 +33,7 @@ export function LiveuaFlashDock({ lang, events, unreadCount, onOpen }: Props) {
         </span>
         <span className="flex items-center gap-1.5 tabular-nums text-amber-200/70">
           {unreadCount > 0 ? (
-            <span className="rounded-sm bg-amber-600/80 px-1 text-[10px] text-black">
+            <span className="rounded-sm bg-amber-600/80 px-1 text-micro text-black">
               {unreadCount}
             </span>
           ) : null}

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import { zc } from "@/lib/uiStack";
 
 const VISIBLE_MS = 5_000;
 
@@ -26,7 +27,7 @@ export function LiveuaFlashToast({ lang, event, onDismiss }: Props) {
 
   return (
     <div
-      className="pointer-events-auto absolute right-3 top-3 z-[80] max-w-[min(20rem,72vw)] rounded-sm border border-amber-700/40 bg-[#1a140c]/92 px-3 py-2 shadow-lg backdrop-blur-sm"
+      className={`pointer-events-auto absolute right-3 top-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-amber-700/40 bg-[#1a140c]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
       role="status"
       aria-live="polite"
     >
