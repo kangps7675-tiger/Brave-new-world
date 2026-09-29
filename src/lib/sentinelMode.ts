@@ -1,8 +1,9 @@
 /**
- * 센티넬 모드 — 뷰어별 자동 fly-to 순회.
+ * 자동 순회(내부명 센티넬) — 뷰어별 자동 fly-to 순회.
  * - 지정학: 전장 긴장 + 초크 랭킹
  * - 지경학: 공급망 초크 + 에너지·금융·원자재 중심지 (전장 제외)
  * 매일 같은 코스가 되지 않도록 랭킹 + UTC 날짜 시드 셔플.
+ * UI 표기는 `uiStrings`의 「자동 순회」/「Auto tour」.
  */
 
 import type { DailyRankEntry, DailyRanksPayload } from "@/lib/dailyRanks";

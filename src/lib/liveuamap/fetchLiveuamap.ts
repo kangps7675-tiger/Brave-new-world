@@ -1,20 +1,39 @@
 /**
- * LIVEUAMAP 전전선 ingest 어댑터.
+ * LIVEUAMAP 전전선 ingest — 공식 mpts API + 예산 슬롯.
  *
  * Env:
- * - LIVEUAMAP_FEED_URL — JSON 피드 URL (배열 또는 { events: [] })
- * - LIVEUAMAP_API_KEY — optional Bearer / query key
- *
- * 공식 public SDK가 없으면 운영자가 제공하는 JSON 미러를 폴링한다.
- * 미설정 시 빈 피드 (idle). LIVEUAMAP_USE_MOCK=true 면 개발용 샘플.
+ * - LIVEUAMAP_API_KEY — query key (필수, mock 제외)
+ * - LIVEUAMAP_RESID_MAP — JSON resid 덮어쓰기
+ * - LIVEUAMAP_FEED_URL — 미러 폴백
+ * - LIVEUAMAP_USE_MOCK=true — 개발 샘플
  */
 
-import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import {
+  getLiveuamapBudgetSnapshot,
+  recordLiveuamapFetch,
+  selectDueLiveuamapSlots,
+} from "@/lib/liveuamap/budget";
+import type { LiveuamapRegionSlot } from "@/lib/liveuamap/regions";
+import type {
+  LiveuamapControlRegionId,
+  LiveuamapEvent,
+  LiveuamapRegionId,
+} from "@/lib/liveuamap/types";
+import {
+  isMostlyKorean,
+  mapPool,
+  translateText,
+} from "@/lib/koreanTranslate";
 import type { NewsTheater } from "@/lib/news/types";
+import type { OccupiedGeoJson } from "@/lib/deepstate/toOccupiedGeoJson";
+import { liveuamapFieldsToOccupiedGeoJson } from "@/lib/liveuamap/toOccupiedGeoJson";
+import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
+
+const MPTS_BASE = "https://a.liveuamap.com/api";
 
 const THEATER_HINTS: Array<{ re: RegExp; theater: NewsTheater }> = [
   { re: /ukrain|donetsk|kharkiv|crimea|black\s?sea/i, theater: "russia-ukraine" },
-  { re: /gaza|israel|lebanon|syria|iran|hormuz|red\s?sea|houthi/i, theater: "middle-east" },
+  { re: /gaza|israel|lebanon|syria|iran|hormuz|red\s?sea|houthi|yemen/i, theater: "middle-east" },
   { re: /taiwan|pla\b|south\s?china\s?sea|scs\b/i, theater: "china-taiwan" },
   { re: /korea|dmz|pyongyang|seoul/i, theater: "korea" },
   { re: /japan|okinawa|senkaku/i, theater: "japan" },
@@ -27,24 +46,51 @@ function inferTheater(text: string, fallback?: string): NewsTheater {
   }
   const f = (fallback || "").toLowerCase();
   if (f.includes("ukraine")) return "russia-ukraine";
-  if (f.includes("middle")) return "middle-east";
+  if (f.includes("taiwan")) return "china-taiwan";
+  if (f.includes("korea")) return "korea";
+  if (f.includes("middle") || f.includes("iran") || f.includes("yemen")) return "middle-east";
   return "global";
 }
 
-function asString(v: unknown): string {
-  return typeof v === "string" ? v.trim() : "";
-}
-
-function asNumber(v: unknown): number | null {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string" && v.trim()) {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
+function timestampToIso(raw: unknown): string {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    const ms = raw > 1e12 ? raw : raw * 1000;
+    return new Date(ms).toISOString();
   }
-  return null;
+  if (typeof raw === "string" && raw.trim()) {
+    const asNum = Number(raw);
+    if (Number.isFinite(asNum) && /^\d+$/.test(raw.trim())) {
+      const ms = asNum > 1e12 ? asNum : asNum * 1000;
+      return new Date(ms).toISOString();
+    }
+    const parsed = Date.parse(raw);
+    if (Number.isFinite(parsed)) return new Date(parsed).toISOString();
+  }
+  return new Date().toISOString();
 }
 
-function normalizeRaw(raw: unknown, index: number): LiveuamapEvent | null {
+function pickPhoto(o: Record<string, unknown>): string | undefined {
+  const photo = asString(o.photo) || asString(o.imageUrl) || asString(o.image);
+  if (photo && !/\/images\/.*\.png$/i.test(photo)) return photo;
+  const pics = o.pics;
+  if (Array.isArray(pics)) {
+    for (const p of pics) {
+      const s = asString(p);
+      if (s) return s;
+      if (p && typeof p === "object") {
+        const url = asString((p as Record<string, unknown>).url);
+        if (url) return url;
+      }
+    }
+  }
+  return undefined;
+}
+
+export function normalizePlace(
+  raw: unknown,
+  index: number,
+  slot: Pick<LiveuamapRegionSlot, "id" | "resid" | "theater">,
+): LiveuamapEvent | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const title = asString(o.title) || asString(o.name) || asString(o.headline);
@@ -60,22 +106,17 @@ function normalizeRaw(raw: unknown, index: number): LiveuamapEvent | null {
   const lng = asNumber(o.lng) ?? asNumber(o.lon) ?? asNumber(o.longitude);
   if (lat == null || lng == null) return null;
 
+  const idRaw = o.id ?? o.event_id;
   const id =
-    asString(o.id) ||
-    asString(o.event_id) ||
-    `liveua-${lat.toFixed(3)}-${lng.toFixed(3)}-${index}-${title.slice(0, 24)}`;
-
-  const publishedAt =
-    asString(o.publishedAt) ||
-    asString(o.date) ||
-    asString(o.time) ||
-    asString(o.timestamp) ||
-    new Date().toISOString();
+    asString(idRaw) ||
+    (typeof idRaw === "number" ? String(idRaw) : "") ||
+    `liveua-${slot.id}-${lat.toFixed(3)}-${lng.toFixed(3)}-${index}`;
 
   const sourceUrl =
     asString(o.sourceUrl) ||
     asString(o.url) ||
     asString(o.link) ||
+    asString(o.source) ||
     "https://liveuamap.com/";
 
   const tagsRaw = o.tags ?? o.categories ?? o.labels;
@@ -86,24 +127,27 @@ function normalizeRaw(raw: unknown, index: number): LiveuamapEvent | null {
   const blob = `${title} ${body} ${tags.join(" ")}`;
   return {
     id,
-    theater: inferTheater(blob, asString(o.theater) || asString(o.region)),
+    regionId: slot.id,
+    resid: slot.resid,
+    theater: inferTheater(blob, slot.theater) || slot.theater,
     lat,
     lng,
     title: title || body.slice(0, 120),
     body,
-    imageUrl: asString(o.imageUrl) || asString(o.image) || asString(o.photo) || undefined,
+    imageUrl: pickPhoto(o),
     videoUrl: asString(o.videoUrl) || asString(o.video) || undefined,
     sourceUrl,
-    publishedAt,
+    viaSource: asString(o.viaSource) || undefined,
+    publishedAt: timestampToIso(o.timestamp ?? o.publishedAt ?? o.date ?? o.time),
     tags,
   };
 }
 
-function extractList(payload: unknown): unknown[] {
+function extractPlaces(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload;
   if (payload && typeof payload === "object") {
     const o = payload as Record<string, unknown>;
-    for (const key of ["events", "data", "items", "features"]) {
+    for (const key of ["places", "events", "data", "items", "features"]) {
       if (Array.isArray(o[key])) return o[key] as unknown[];
     }
   }
@@ -115,23 +159,32 @@ function mockEvents(): LiveuamapEvent[] {
   return [
     {
       id: "mock-liveua-oil-1",
+      regionId: "ukraine",
+      resid: 0,
       theater: "russia-ukraine",
       lat: 45.04,
       lng: 35.38,
       title: "Strike reported near Crimea oil depot",
+      titleKo: "크림 인근 유류 저장고 타격 보고",
       body: "Ukrainian drones struck a Russian oil depot and fuel storage near the Black Sea coast, with secondary explosions reported.",
-      imageUrl: undefined,
+      bodyKo:
+        "우크라이나 드론이 흑해 연안 러시아 유류·연료 저장고를 타격했고 2차 폭발이 보고됐다.",
       sourceUrl: "https://liveuamap.com/",
       publishedAt: new Date(now - 12 * 60_000).toISOString(),
       tags: ["explosion", "oil", "ukraine"],
     },
     {
       id: "mock-liveua-grain-1",
+      regionId: "ukraine",
+      resid: 0,
       theater: "russia-ukraine",
       lat: 46.48,
       lng: 30.73,
       title: "Port infrastructure hit — grain export risk",
+      titleKo: "항구 인프라 피격 — 곡물 수출 위험",
       body: "Missile strikes hit port facilities linked to wheat and grain exports; shipping insurance risk elevated.",
+      bodyKo:
+        "밀·곡물 수출과 연결된 항구 시설이 미사일 타격을 받아 해상보험 위험이 커졌다.",
       sourceUrl: "https://liveuamap.com/",
       publishedAt: new Date(now - 20 * 60_000).toISOString(),
       tags: ["port", "grain", "missile"],
@@ -139,27 +192,81 @@ function mockEvents(): LiveuamapEvent[] {
   ];
 }
 
-export type SyncLiveuamapResult = {
+async function translateEventsKo(events: LiveuamapEvent[]): Promise<LiveuamapEvent[]> {
+  return mapPool(
+    events,
+    async (ev) => {
+      if (ev.titleKo && ev.bodyKo) return ev;
+      const titleKo = isMostlyKorean(ev.title)
+        ? ev.title
+        : await translateText(ev.title, "ko");
+      const bodyKo = isMostlyKorean(ev.body)
+        ? ev.body
+        : await translateText(ev.body.slice(0, 800), "ko");
+      return { ...ev, titleKo, bodyKo };
+    },
+    4,
+  );
+}
+
+async function fetchMptsSlot(
+  slot: LiveuamapRegionSlot,
+  apiKey: string,
+): Promise<{ events: LiveuamapEvent[]; control: OccupiedGeoJson | null; error?: string }> {
+  const url = new URL(MPTS_BASE);
+  url.searchParams.set("a", "mpts");
+  url.searchParams.set("resid", String(slot.resid));
+  url.searchParams.set("count", "50");
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("geojson", "true");
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "BraveNewWorld/liveuamap-ingest",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(45_000),
+    });
+    recordLiveuamapFetch(slot.id);
+    if (!res.ok) {
+      return {
+        events: [],
+        control: null,
+        error: `mpts resid=${slot.resid} HTTP ${res.status}`,
+      };
+    }
+    const json: unknown = await res.json();
+    const places = extractPlaces(json);
+    const events = places
+      .map((row, i) => normalizePlace(row, i, slot))
+      .filter((e): e is LiveuamapEvent => Boolean(e));
+
+    let control: OccupiedGeoJson | null = null;
+    if (slot.parseControl) {
+      control = liveuamapFieldsToOccupiedGeoJson(json, slot.id as LiveuamapControlRegionId);
+    }
+    return { events, control };
+  } catch (err) {
+    recordLiveuamapFetch(slot.id);
+    const message = err instanceof Error ? err.message : "mpts fetch failed";
+    return { events: [], control: null, error: message };
+  }
+}
+
+async function fetchFeedUrlFallback(apiKey?: string): Promise<{
   events: LiveuamapEvent[];
-  source: "liveuamap" | "empty" | "mock";
+  control: OccupiedGeoJson | null;
   error?: string;
-};
-
-export async function syncLiveuamapEvents(): Promise<SyncLiveuamapResult> {
-  if (process.env.LIVEUAMAP_USE_MOCK === "true") {
-    return { events: mockEvents(), source: "mock" };
-  }
-
+}> {
   const feedUrl = process.env.LIVEUAMAP_FEED_URL?.trim();
-  if (!feedUrl) {
-    return { events: [], source: "empty" };
-  }
+  if (!feedUrl) return { events: [], control: null, error: "no LIVEUAMAP_API_KEY or FEED_URL" };
 
   const headers: Record<string, string> = {
     Accept: "application/json",
     "User-Agent": "BraveNewWorld/liveuamap-ingest",
   };
-  const apiKey = process.env.LIVEUAMAP_API_KEY?.trim();
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
   try {
@@ -171,18 +278,119 @@ export async function syncLiveuamapEvents(): Promise<SyncLiveuamapResult> {
     if (!res.ok) {
       return {
         events: [],
-        source: "empty",
+        control: null,
         error: `LIVEUAMAP_FEED_URL HTTP ${res.status}`,
       };
     }
     const json: unknown = await res.json();
-    const list = extractList(json);
+    const list = extractPlaces(json);
+    const slot = { id: "ukraine" as LiveuamapRegionId, resid: 0, theater: "russia-ukraine" as const };
     const events = list
-      .map((row, i) => normalizeRaw(row, i))
+      .map((row, i) => normalizePlace(row, i, slot))
       .filter((e): e is LiveuamapEvent => Boolean(e));
-    return { events, source: "liveuamap" };
+    const control = liveuamapFieldsToOccupiedGeoJson(json, "ukraine");
+    return { events, control };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "liveuamap sync failed";
-    return { events: [], source: "empty", error: message };
+    return {
+      events: [],
+      control: null,
+      error: err instanceof Error ? err.message : "feed fetch failed",
+    };
   }
+}
+
+export type SyncLiveuamapResult = {
+  events: LiveuamapEvent[];
+  controls: Partial<Record<LiveuamapControlRegionId, OccupiedGeoJson>>;
+  source: "liveuamap" | "empty" | "mock";
+  error?: string;
+  fetchedSlots: LiveuamapRegionId[];
+  budget: ReturnType<typeof getLiveuamapBudgetSnapshot>;
+};
+
+export async function syncLiveuamapEvents(): Promise<SyncLiveuamapResult> {
+  const budget = getLiveuamapBudgetSnapshot();
+
+  if (process.env.LIVEUAMAP_USE_MOCK === "true") {
+    const mockControl = liveuamapFieldsToOccupiedGeoJson(
+      {
+        fields: [
+          {
+            id: "mock-ua-zone",
+            name: "mock occupied",
+            points: [
+              [48.0, 37.0],
+              [48.2, 37.0],
+              [48.2, 37.4],
+              [48.0, 37.4],
+            ],
+          },
+        ],
+      },
+      "ukraine",
+    );
+    return {
+      events: mockEvents(),
+      controls: mockControl ? { ukraine: mockControl } : {},
+      source: "mock",
+      fetchedSlots: ["ukraine"],
+      budget,
+    };
+  }
+
+  const apiKey = process.env.LIVEUAMAP_API_KEY?.trim();
+  const due = selectDueLiveuamapSlots(Date.now(), 3);
+
+  if (apiKey && due.length > 0) {
+    const errors: string[] = [];
+    const allEvents: LiveuamapEvent[] = [];
+    const controls: Partial<Record<LiveuamapControlRegionId, OccupiedGeoJson>> = {};
+    const fetchedSlots: LiveuamapRegionId[] = [];
+
+    for (const slot of due) {
+      const result = await fetchMptsSlot(slot, apiKey);
+      fetchedSlots.push(slot.id);
+      if (result.error) errors.push(result.error);
+      allEvents.push(...result.events);
+      if (result.control && result.control.features.length > 0 && slot.parseControl) {
+        controls[slot.id as LiveuamapControlRegionId] = result.control;
+      }
+    }
+
+    const translated = await translateEventsKo(allEvents);
+    return {
+      events: translated,
+      controls,
+      source: translated.length > 0 || Object.keys(controls).length > 0 ? "liveuamap" : "empty",
+      error: errors.length ? errors.join("; ") : undefined,
+      fetchedSlots,
+      budget: getLiveuamapBudgetSnapshot(),
+    };
+  }
+
+  if (apiKey && due.length === 0) {
+    return {
+      events: [],
+      controls: {},
+      source: "empty",
+      error: "no due slots (budget or interval)",
+      fetchedSlots: [],
+      budget: getLiveuamapBudgetSnapshot(),
+    };
+  }
+
+  const fallback = await fetchFeedUrlFallback(apiKey);
+  const translated = await translateEventsKo(fallback.events);
+  const controls: Partial<Record<LiveuamapControlRegionId, OccupiedGeoJson>> = {};
+  if (fallback.control?.features.length) {
+    controls.ukraine = fallback.control;
+  }
+  return {
+    events: translated,
+    controls,
+    source: translated.length > 0 || Object.keys(controls).length > 0 ? "liveuamap" : "empty",
+    error: fallback.error,
+    fetchedSlots: translated.length || Object.keys(controls).length ? (["ukraine"] as LiveuamapRegionId[]) : [],
+    budget: getLiveuamapBudgetSnapshot(),
+  };
 }

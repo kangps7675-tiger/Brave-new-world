@@ -1,12 +1,12 @@
-# DeepStateMap.live (third-party) — 임시 3일 좌표 스냅샷 (LIVEUAMAP 전)
+# DeepStateMap.live (third-party) — 우크라 점령 폴백 (LiveUA 우선)
 
-> 상태: **LIVEUAMAP 영토 폴링 전 임시.** 점령 폴리곤 좌표만 3일에 한 번 가져와
-> `public/data/ukraine-occupied-deepstate.json` + D1 `deepstate_occupied_snapshots`에 넣고,
-> 지구본은 그 스냅샷만 그린다. news_project `occupiedUkraine.json`과 같은 패턴.
-> 유저 GET(`/api/deepstate/frontlines`)은 원본 API를 매번 치지 않는다.
+> 상태: **점령면 본선은 LIVEUAMAP** (`docs/third-party/liveuamap.md`).
+> DeepState는 LiveUA `fields`/`kmls`가 없을 때만 쓰는 폴백이다.
+> `/api/deepstate/frontlines` → `resolveUkraineOccupied()` (LiveUA → DeepState).
+> DeepState live 갱신 실패 시에도 LiveUA 스냅샷으로 폴백한다.
 >
 > 상업 API 승인(`https://api.deepstatemap.live/request`)은 아직 미완료 —
-> 유료화 전에 승인하거나 LIVEUAMAP으로 교체할 것. `sourceCatalog.ts`
+> 유료화 전에 승인하거나 LiveUA만으로 운영할 것. `sourceCatalog.ts`
 > `deepstate-ukraine-occupied` 는 `commercialUse: "license-required"`.
 
 ## 저작권자 / 라이선스

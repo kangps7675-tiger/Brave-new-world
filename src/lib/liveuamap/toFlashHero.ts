@@ -17,7 +17,13 @@ function ageMinutes(iso: string): number {
  * LIVEUA → 양피지 hero.
  * 고충격만 grade 9(S)로 올리고, 그 외는 B로 두어 게이트에서 걸러지게 한다.
  */
-export function liveuamapEventToFlashHero(event: LiveuamapEvent): HeroBreakingItem {
+export function liveuamapEventToFlashHero(
+  event: LiveuamapEvent,
+  lang: "ko" | "en" = "en",
+): HeroBreakingItem {
+  const title =
+    lang === "ko" ? event.titleKo?.trim() || event.title : event.title;
+  const body = lang === "ko" ? event.bodyKo?.trim() || event.body : event.body;
   const blob = `${event.title} ${event.body} ${event.tags.join(" ")}`;
   const highImpact =
     (FLASH_KINETIC_RE.test(blob) && isGeoeconomicImpactFlash(blob)) ||
@@ -29,7 +35,7 @@ export function liveuamapEventToFlashHero(event: LiveuamapEvent): HeroBreakingIt
 
   return {
     id: `liveua:${event.id}`,
-    title: event.title,
+    title,
     link: event.sourceUrl,
     source: "Liveuamap",
     publisher: "Liveuamap",
@@ -38,7 +44,7 @@ export function liveuamapEventToFlashHero(event: LiveuamapEvent): HeroBreakingIt
     trustTier: 2,
     feedTopic: isGeoeconomicImpactFlash(blob) ? "economy" : "defense",
     imageUrl: event.imageUrl,
-    summary: event.body,
+    summary: body,
     heroStatus: "breaking",
     urgencyScore: grade * 10,
     breakingGrade: grade,
@@ -48,6 +54,6 @@ export function liveuamapEventToFlashHero(event: LiveuamapEvent): HeroBreakingIt
     videoUrl: event.videoUrl,
     lat: event.lat,
     lng: event.lng,
-    verbatim: true,
+    verbatim: lang === "en",
   };
 }

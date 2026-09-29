@@ -187,8 +187,10 @@ import {
   pickNextBreakingFlashHero,
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
-import { liveuamapEventToFlashHero } from "@/lib/liveuamap/toFlashHero";
-import type { LiveuamapFeedPayload } from "@/lib/liveuamap/types";
+import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
+import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
+import { LiveuaFlashDock } from "@/components/globe/LiveuaFlashDock";
+import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import {
   INTEL_STACK_CLEARANCE_HISTORY,
   INTEL_STACK_CLEARANCE_HISTORY_COMPACT,
@@ -1145,10 +1147,12 @@ export function GlobeDashboard({
   const [telegramAlerts, setTelegramAlerts] = useState<TelegramAlert[]>([]);
   const [newsStreamPayload, setNewsStreamPayload] = useState<NewsStreamPayload | null>(null);
   const [liveuaFeed, setLiveuaFeed] = useState<LiveuamapFeedPayload | null>(null);
-  const liveuaFlashHeroes = useMemo((): HeroBreakingItem[] => {
-    if (!liveuaFeed?.events?.length) return [];
-    return liveuaFeed.events.map(liveuamapEventToFlashHero);
-  }, [liveuaFeed]);
+  const [liveuaToast, setLiveuaToast] = useState<LiveuamapEvent | null>(null);
+  const [liveuaUnread, setLiveuaUnread] = useState(0);
+  const [liveuaParchmentIndex, setLiveuaParchmentIndex] = useState<number | null>(null);
+  const liveuaSeenIdsRef = useRef<Set<string>>(new Set());
+  const liveuaSoundAtRef = useRef(0);
+  const liveuaEvents = liveuaFeed?.events ?? [];
   const [telegramLive, setTelegramLive] = useState(false);
   const [telegramNeedsAuth, setTelegramNeedsAuth] = useState(false);
   const [telegramSessionExists, setTelegramSessionExists] = useState(false);
@@ -1235,7 +1239,7 @@ export function GlobeDashboard({
   const [ukraineControlStatus, setUkraineControlStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >(() => (viinaMeta?.available ? "idle" : "error"));
-  /** 임시: DeepState 점령 영토 (빗금 박스 대신 solid fill). 3일 좌표 스냅샷. LIVEUAMAP 전. */
+  /** 우크라 점령면 — LiveUA 우선·DeepState 폴백 (resolveUkraineOccupied). */
   const [ukraineOccupiedGeoJson, setUkraineOccupiedGeoJson] = useState<FeatureCollection>(
     () => emptyOccupiedGeoJson(),
   );
@@ -1243,6 +1247,9 @@ export function GlobeDashboard({
     "idle" | "loading" | "ok" | "error"
   >("idle");
   const ukraineOccupiedFetchRef = useRef(false);
+  /** 예멘·레바논 LiveUA 통제면 (있으면만) */
+  const [liveuaExtraControlGeoJson, setLiveuaExtraControlGeoJson] =
+    useState<FeatureCollection>(() => emptyOccupiedGeoJson());
   const [hapiCasualties] = useState<HapiConflictCasualtiesPayload>(() => ({
     ...HAPI_CASUALTY_SEED,
     fronts: [],
@@ -1801,6 +1808,28 @@ export function GlobeDashboard({
     showUsDfcSupplyChain,
     labelLanguage,
   } = layerPrefs;
+
+  const liveuaPins = useMemo(
+    () =>
+      liveuaEvents
+        .filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng))
+        .slice(0, 120)
+        .map((e) => ({
+          id: e.id,
+          title: labelLanguage === "ko" ? e.titleKo?.trim() || e.title : e.title,
+          lat: e.lat,
+          lng: e.lng,
+        })),
+    [liveuaEvents, labelLanguage],
+  );
+  const liveuaControlGeoJson = useMemo(() => {
+    const features = [
+      ...ukraineOccupiedGeoJson.features,
+      ...liveuaExtraControlGeoJson.features,
+    ];
+    if (!features.length) return null;
+    return { type: "FeatureCollection" as const, features };
+  }, [ukraineOccupiedGeoJson, liveuaExtraControlGeoJson]);
 
   useEffect(() => {
     if (!macroBriefingOpen) return;
@@ -3100,9 +3129,10 @@ export function GlobeDashboard({
     viinaMeta?.available,
   ]);
 
-  /** 임시 DeepState 점령 영토 — 3일 좌표 스냅샷. VIINA 빗금 박스 대신 solid fill */
+  /** 우크라 점령면 — LiveUA 우선 → DeepState 폴백 (MapLibre 전선 토글 또는 Cesium) */
   useEffect(() => {
-    if (!showUkraineControl || !globeReady) return;
+    if (!globeReady) return;
+    if (!showUkraineControl && !isSatelliteViewer) return;
     if (ukraineOccupiedFetchRef.current) return;
     if (ukraineOccupiedStatus === "loading" || ukraineOccupiedStatus === "ok") return;
     ukraineOccupiedFetchRef.current = true;
@@ -3116,13 +3146,14 @@ export function GlobeDashboard({
         return true;
       };
       try {
-        const res = await fetch("/api/deepstate/frontlines");
+        // LiveUA → DeepState 폴백은 서버 resolveUkraineOccupied
+        const res = await fetch("/api/deepstate/frontlines", { cache: "no-store" });
         if (res.ok) {
-          const body = (await res.json()) as { occupied?: FeatureCollection };
+          const body = (await res.json()) as { occupied?: FeatureCollection; source?: string };
           if (!cancelled && applyFc(body.occupied)) return;
         }
       } catch {
-        // fall through to static snapshot
+        // fall through — DeepState 정적은 최후 폴백
       }
       try {
         const snap = await fetch("/data/ukraine-occupied-deepstate.json");
@@ -3140,7 +3171,39 @@ export function GlobeDashboard({
     return () => {
       cancelled = true;
     };
-  }, [globeReady, showUkraineControl, ukraineOccupiedStatus]);
+  }, [globeReady, showUkraineControl, isSatelliteViewer, ukraineOccupiedStatus]);
+
+  /** Cesium: 예멘·레바논 LiveUA 통제면 (빈 응답이면 스킵) */
+  useEffect(() => {
+    if (!isSatelliteViewer || !globeReady) return;
+    let cancelled = false;
+    void (async () => {
+      const features: FeatureCollection["features"] = [];
+      for (const region of ["yemen", "lebanon"] as const) {
+        try {
+          const res = await fetch(`/api/deepstate/frontlines?region=${region}`, {
+            cache: "no-store",
+          });
+          if (!res.ok) continue;
+          const body = (await res.json()) as { occupied?: FeatureCollection };
+          if (body.occupied?.features?.length) {
+            features.push(...body.occupied.features);
+          }
+        } catch {
+          // region optional
+        }
+      }
+      if (!cancelled) {
+        setLiveuaExtraControlGeoJson({
+          type: "FeatureCollection",
+          features,
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isSatelliteViewer, globeReady]);
 
   useEffect(() => {
     if (!globeReady || (!showNeptun && !showNeptunPreviousTrails)) return;
@@ -5965,7 +6028,7 @@ export function GlobeDashboard({
     return () => window.clearInterval(timer);
   }, [isEconomyViewer, refreshUsCarriers, showUsCarriers]);
 
-  /** LIVEUAMAP 전전선 피드 — 라이브(Cesium) 모드에서 폴링, 양피지는 S급만 */
+  /** LIVEUAMAP 전전선 피드 — 라이브(Cesium) 폴링 · 쪽지/독/핀 */
   useEffect(() => {
     if (!isSatelliteViewer) return;
     let cancelled = false;
@@ -5974,7 +6037,23 @@ export function GlobeDashboard({
         const res = await fetch("/api/liveuamap", { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const payload = (await res.json()) as LiveuamapFeedPayload;
-        if (!cancelled) setLiveuaFeed(payload);
+        if (cancelled) return;
+        const events = payload.events ?? [];
+        const seen = liveuaSeenIdsRef.current;
+        const isFirst = seen.size === 0;
+        const newcomers = events.filter((e) => !seen.has(e.id));
+        for (const e of events) seen.add(e.id);
+        if (!isFirst && newcomers.length > 0) {
+          const newest = newcomers[0];
+          setLiveuaToast(newest);
+          setLiveuaUnread((n) => n + newcomers.length);
+          const now = Date.now();
+          if (now - liveuaSoundAtRef.current >= 10_000) {
+            liveuaSoundAtRef.current = now;
+            emitBreakingDispatchSound();
+          }
+        }
+        setLiveuaFeed(payload);
       } catch {
         if (!cancelled) {
           setLiveuaFeed((prev) =>
@@ -6960,10 +7039,7 @@ export function GlobeDashboard({
 
     const mergedPayload = {
       hero: newsStreamPayload?.hero ?? null,
-      flashHeroes: [
-        ...(newsStreamPayload?.flashHeroes ?? []),
-        ...liveuaFlashHeroes,
-      ],
+      flashHeroes: [...(newsStreamPayload?.flashHeroes ?? [])],
     };
     const hero = pickNextBreakingFlashHero(
       mergedPayload,
@@ -6995,7 +7071,6 @@ export function GlobeDashboard({
     newsStreamPayload?.hero?.breakingGrade,
     newsStreamPayload?.hero?.title,
     newsStreamPayload?.hero?.summary,
-    liveuaFlashHeroes,
     isEconomyViewer,
     isSatelliteViewer,
     peaceScienceFlashDomain,
@@ -9920,6 +9995,15 @@ export function GlobeDashboard({
           onSelectCesiumEntity={handleSelectCesiumEntity}
           alertPins={cesiumAlerts}
           onSelectCesiumAlert={openCesiumAlert}
+          liveuaPins={liveuaPins}
+          onSelectLiveuaPin={(id) => {
+            const idx = liveuaEvents.findIndex((e) => e.id === id);
+            if (idx >= 0) {
+              setLiveuaParchmentIndex(idx);
+              setLiveuaUnread(0);
+            }
+          }}
+          controlGeoJson={isSatelliteViewer ? liveuaControlGeoJson : null}
           {...mapGlobeProps}
         />
 
@@ -9995,18 +10079,50 @@ export function GlobeDashboard({
             />
             <p className="text-micro leading-snug text-teal-200/55">
               {labelLanguage === "en"
-                ? "LIVEUA high-impact flash only · original text on parchment"
-                : "LIVEUA 고충격만 양피지 타전 · 원문 유지"}
+                ? "LIVEUA toast → inbox · parchment prev/next · control fill when available"
+                : "LIVEUA 쪽지→속보함 · 양피지 이전/다음 · 통제면(있을 때)"}
               {liveuaFeed?.events?.length
                 ? ` · ${liveuaFeed.events.length}`
                 : ""}
             </p>
-            <CesiumAlertDock
-              lang={labelLanguage}
-              items={cesiumAlerts}
-              onOpen={openCesiumAlert}
-            />
+            <div className="flex flex-col gap-2">
+              <LiveuaFlashDock
+                lang={labelLanguage}
+                events={liveuaEvents}
+                unreadCount={liveuaUnread}
+                onOpen={(index) => {
+                  setLiveuaParchmentIndex(index);
+                  setLiveuaUnread(0);
+                }}
+              />
+              <CesiumAlertDock
+                lang={labelLanguage}
+                items={cesiumAlerts}
+                onOpen={openCesiumAlert}
+              />
+            </div>
           </div>
+        ) : null}
+
+        {isSatelliteViewer ? (
+          <LiveuaFlashToast
+            lang={labelLanguage}
+            event={liveuaToast}
+            onDismiss={() => setLiveuaToast(null)}
+          />
+        ) : null}
+
+        {isSatelliteViewer && liveuaParchmentIndex != null ? (
+          <LiveuaFlashParchment
+            lang={labelLanguage}
+            events={liveuaEvents}
+            index={liveuaParchmentIndex}
+            onIndexChange={setLiveuaParchmentIndex}
+            onDismiss={() => setLiveuaParchmentIndex(null)}
+            onGoToLocation={(ev) => {
+              flyTo(ev.lat, ev.lng, 0.85);
+            }}
+          />
         ) : null}
 
         {!isSatelliteViewer ? (

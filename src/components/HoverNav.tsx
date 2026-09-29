@@ -47,7 +47,7 @@ type HoverNavProps = {
    * 검색창 **위** — 최상단 고정 스트립 (히스토리/뉴스·레이어·장면 등).
    */
   aboveNav?: ReactNode;
-  /** 검색·메뉴 **바로 아래** (지정학/지경학) — 메뉴 펼침 시 함께 내려감 */
+  /** 검색·메뉴 **바로 아래** (지정학/지경학) — 메뉴는 오버레이라 위치 고정 */
   belowNav?: ReactNode;
   /** 데스크톱 확장 시 우측 도구·경보 슬롯 (포털 타깃 #hover-nav-desktop-tools) */
   showDesktopToolsSlot?: boolean;
@@ -57,8 +57,8 @@ type HoverNavProps = {
   /** UI 문구 언어 (이벤트 메뉴 등) */
   labelLanguage?: LabelLanguage;
   /**
-   * 검색창은 항상 고정. true면 검색창 호버 시 탐색 메뉴가 펼쳐지고,
-   * belowNav(지정학/지경학)도 메뉴 높이에 맞춰 함께 내려간다.
+   * 검색창은 항상 고정. true면 검색창 호버 시 탐색 메뉴가 오버레이로 펼쳐진다.
+   * 메뉴 높이는 레이아웃/지구본 inset에 반영하지 않는다.
    */
   hoverReveal?: boolean;
   /** 역사지도 — Cliopatria 연도 영토 (영토분쟁과 별도 카테고리) */
@@ -204,7 +204,7 @@ export function HoverNav({
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
 
-  /** 데스크톱: 검색+토글(+펼친 메뉴) 높이 — 지도 크롬 inset용 */
+  /** 데스크톱: 접힌 크롬(검색+belowNav) 높이만 — 드롭다운은 absolute라 inset/지구본에 미포함 */
   useEffect(() => {
     const root = document.documentElement;
     if (compact) {
@@ -223,7 +223,7 @@ export function HoverNav({
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, aboveNav, belowNav, showDesktopToolsSlot, menuExpanded]);
+  }, [compact, aboveNav, belowNav, showDesktopToolsSlot]);
 
   return (
     <div
@@ -262,7 +262,7 @@ export function HoverNav({
         </div>
       ) : null}
 
-      {/* 검색(고정) → 메뉴(호버 펼침). 토글은 nav 밖이라 메뉴 높이만 따라 내려감 */}
+      {/* 검색(고정) → 메뉴(absolute 오버레이). 지구본·belowNav 레이아웃은 유지 */}
       <div className="pointer-events-auto flex w-full flex-col items-center gap-1">
       <nav
         id="app-hover-nav"
@@ -640,7 +640,7 @@ export function HoverNav({
 
         {!isEconomy ? (
           <div
-            className={`relative z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`absolute left-0 right-0 top-full z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               hubMenuOpen
                 ? "max-h-[min(78vh,36rem)] opacity-100"
                 : "pointer-events-none max-h-0 border-transparent opacity-0 shadow-none"
@@ -670,7 +670,7 @@ export function HoverNav({
 
         {isEconomy ? (
           <div
-            className={`relative z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
+            className={`absolute left-0 right-0 top-full z-[400] overflow-hidden rounded-b-2xl border ${borderTone} border-t-0 ${menuBg} shadow-xl backdrop-blur-xl transition-all duration-300 ease-out ${
               navOpen ? "max-h-[80vh] opacity-100" : "pointer-events-none max-h-0 opacity-0"
             }`}
           >
@@ -761,7 +761,7 @@ export function HoverNav({
         ) : null}
       </nav>
 
-      {/* 지정학/지경학 — 검색 바로 아래, 메뉴 펼침과 같은 스택이라 함께 내려감 */}
+      {/* 지정학/지경학 — 검색 바로 아래 고정 (메뉴는 위 nav의 absolute 오버레이) */}
       {belowNav ? (
         <div className="relative z-[100] mt-0.5 flex justify-center">
           {belowNav}

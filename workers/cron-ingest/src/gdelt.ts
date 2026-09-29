@@ -78,11 +78,11 @@ export const GDELT_QUERIES: { tag: string; query: string }[] = [
       '(theme:NUCLEAR OR "ballistic missile" OR ICBM OR IRBM OR SLBM OR "missile test" OR "missile launch" OR ASAT OR "anti-satellite" OR "space force" OR "military satellite" OR "nuclear facility" OR enrichment OR "hypersonic glide")',
   },
 
-  // —— 도메인: 사이버·정보·경제안보 ——
+  // —— 도메인: 사이버·정보·경제안보·사보타주 ——
   {
     tag: "hybrid",
     query:
-      '(theme:CYBER OR theme:RANSOMWARE OR cyberattack OR disinformation OR "influence operation" OR "hybrid warfare" OR espionage OR SIGINT OR sanctions OR embargo OR "export control" OR "critical minerals" OR semiconductor OR "entity list" OR BRI OR "belt and road")',
+      '(theme:CYBER OR theme:RANSOMWARE OR cyberattack OR disinformation OR "influence operation" OR "hybrid warfare" OR "hybrid threat" OR "gray zone" OR "grey zone" OR sabotage OR "suspected sabotage" OR "undersea cable" OR "subsea cable" OR "submarine cable" OR "Nord Stream" OR Balticconnector OR "GPS jamming" OR "GNSS jamming" OR "electronic warfare" OR espionage OR SIGINT OR sanctions OR embargo OR "export control" OR "critical minerals" OR semiconductor OR "entity list" OR "critical infrastructure" OR BRI OR "belt and road")',
   },
 
   // —— 도메인: 동맹·군사외교 + 강대국 경쟁 ——

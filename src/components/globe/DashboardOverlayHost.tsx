@@ -210,6 +210,7 @@ import { SoundMuteControl } from "@/components/SoundMuteControl";
 import { PlayHubButton } from "@/components/PlayHubButton";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { SentinelHud, SentinelModeButton } from "@/components/SentinelModeControl";
+import { SentinelIntroCoach } from "@/components/SentinelIntroCoach";
 import { type AppUpdate } from "@/lib/appUpdates";
 import type { WhereIsItPoolItem } from "@/lib/whereIsItGame";
 import { QuickStartCoach } from "@/components/QuickStartCoach";
@@ -2025,6 +2026,17 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />
+      <SentinelIntroCoach
+        lang={labelLanguage}
+        ready={soundUnmuteReady && gateClear}
+        sentinelActive={sentinelActive}
+        economyMode={isEconomyViewer}
+        onTry={() => {
+          onSetSentinelActive(true);
+          onSetPlayOverlay(null);
+          onSetShowMobileAlertFeed(false);
+        }}
+      />
 
       <LayerCapToast lang={labelLanguage} suppressed={showLeftPanel} />
       <LayerCacheStaleBadge lang={labelLanguage} />
