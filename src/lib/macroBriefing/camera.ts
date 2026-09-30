@@ -26,8 +26,6 @@ function asNewsStreamItem(item: MacroRssInputItem): NewsStreamItem {
     feedTopic: item.feedTopic,
     econGenre: item.econGenre,
     summary: item.summary,
-    lat: undefined,
-    lng: undefined,
   };
 }
 

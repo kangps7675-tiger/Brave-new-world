@@ -85,11 +85,11 @@ export function LiveuaFlashParchment({
                 <div className="w-full rounded-sm border border-[#6b4a22]/35 bg-[#f3e6c8]/95 px-3 py-2 shadow">
                   {hasMarket ? (
                     <>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#5c4020]/90">
+                      <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
                         {t("liveuaFlashMarketTitle", lang)}
                       </p>
                       {marketNote ? (
-                        <p className="mt-1 text-[10px] leading-snug text-[#3d2a12]">
+                        <p className="mt-1 text-micro leading-snug text-[#3d2a12]">
                           <span className="font-semibold text-[#5c4020]/90">
                             {t("liveuaFlashMarketWhy", lang)}{" "}
                           </span>
@@ -137,12 +137,12 @@ export function LiveuaFlashParchment({
                           </a>
                         ))}
                       </div>
-                      <p className="mt-0.5 text-[10px] text-[#5c4020]/60">
+                      <p className="mt-0.5 text-micro text-[#5c4020]/60">
                         {t("liveuaFlashMarketDisclaimer", lang)}
                       </p>
                     </>
                   ) : marketNote ? (
-                    <p className="mb-1.5 text-[10px] leading-snug text-[#3d2a12]">
+                    <p className="mb-1.5 text-micro leading-snug text-[#3d2a12]">
                       <span className="font-semibold text-[#5c4020]/90">
                         {t("liveuaFlashMarketWhy", lang)}{" "}
                       </span>
@@ -157,7 +157,7 @@ export function LiveuaFlashParchment({
                           : ""
                       }
                     >
-                      <p className="text-[10px] font-semibold text-[#5c4020]/85">
+                      <p className="text-micro font-semibold text-[#5c4020]/85">
                         {t("liveuaFlashNextHint", lang)}
                       </p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
