@@ -10423,14 +10423,6 @@ export function GlobeDashboard({
                     { label: "Cesium Ion", url: "https://cesium.com/ion/" },
                     { label: "Liveuamap", url: "https://liveuamap.com/" },
                     {
-                      label: "NASA GIBS clouds",
-                      url: "https://earthdata.nasa.gov/gibs",
-                    },
-                    {
-                      label: "NASA Black Marble",
-                      url: "https://earthdata.nasa.gov/topics/earth-at-night",
-                    },
-                    {
                       label: "NASA GIBS aerosol",
                       url: "https://earthdata.nasa.gov/gibs",
                     },

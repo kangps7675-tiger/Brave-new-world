@@ -47,7 +47,6 @@ import {
 } from "@/lib/surfaceCombatantDeckIcon";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
-import { attachGibsClouds } from "@/lib/cesiumGibsClouds";
 import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
 import { attachGibsAerosolSmoke } from "@/lib/cesiumGibsSmoke";
 import {
@@ -109,7 +108,7 @@ export type CesiumGlobeHandle = {
     durationMs?: number,
     camera?: { pitch?: number; bearing?: number },
   ) => void;
-  /** 하루 리플레이 — UTC 시각(0–24)으로 태양/야경 시계 설정 */
+  /** 하루 리플레이 — UTC 시각(0–24)으로 태양 시계(터미네이터) 설정 */
   setClockHourUtc: (hourUtc: number) => void;
   /** 실시간 시계로 복귀 */
   resetClockLive: () => void;
@@ -980,7 +979,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     let viewer: import("cesium").Viewer | null = null;
     let canvasEl: HTMLCanvasElement | null = null;
     let onContextLost: ((ev: Event) => void) | null = null;
-    let detachClouds: (() => void) | null = null;
     let detachDayNight: (() => void) | null = null;
     let detachSmoke: (() => void) | null = null;
     let detachFirmsPulse: (() => void) | null = null;
@@ -1060,8 +1058,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         // 낮/밤은 attachRealtimeDayNight에서 enableLighting=true + 실시간 시계로 맞춤
         viewer.scene.globe.enableLighting = false;
 
-        // 낮/밤·야경은 Globe imagery + 태양 조명.
-        // Ion 토큰 → World Imagery(유료 화질) 우선, 실패 시 Esri.
+        // 위성 지구본 + 태양 그림자(터미네이터). 야경 텍스처·구름 껍질 없음.
         let usedPhotoreal = false;
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
         {
@@ -1371,13 +1368,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             console.warn("[CesiumSatelliteGlobe] day/night:", err);
           }
           try {
-            detachClouds = attachGibsClouds(Cesium, viewer, {
-              enableTileOverlay: !usedPhotoreal,
-            });
-          } catch (err) {
-            console.warn("[CesiumSatelliteGlobe] GIBS clouds:", err);
-          }
-          try {
             detachSmoke = attachGibsAerosolSmoke(Cesium, viewer);
           } catch (err) {
             console.warn("[CesiumSatelliteGlobe] GIBS aerosol:", err);
@@ -1477,12 +1467,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         /* ignore */
       }
       detachAirRaidPulse = null;
-      try {
-        detachClouds?.();
-      } catch {
-        /* ignore */
-      }
-      detachClouds = null;
       viewerRef.current = null;
       cesiumModRef.current = null;
       if (softErrorTimerRef.current != null) {
