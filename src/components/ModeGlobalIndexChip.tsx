@@ -86,6 +86,19 @@ export function ModeGlobalIndexChip({
       return;
     }
     const stackRect = stackEl.getBoundingClientRect();
+    /* 호버 서랍이 접혀 translate로 화면 밖이면 장애물 폭을 0으로 — 모바일 peep 측정 오차 방지 */
+    const offScreen =
+      embedded &&
+      (stackRect.right <= 8 ||
+        stackRect.left >= window.innerWidth - 8 ||
+        stackRect.width < 4);
+    if (offScreen) {
+      root.style.setProperty("--mode-index-chip-height", "0px");
+      root.style.setProperty("--mode-index-chip-stack-bottom", "0px");
+      root.style.setProperty("--mode-index-chip-bottom", "0px");
+      root.style.setProperty("--mode-index-chip-width", "0px");
+      return;
+    }
     const stackBottom = Math.max(0, Math.ceil(stackRect.bottom));
     const stackHeight = Math.max(0, Math.ceil(stackRect.height));
     const stackWidth = Math.max(0, Math.ceil(stackRect.width));
@@ -101,7 +114,7 @@ export function ModeGlobalIndexChip({
     root.style.setProperty("--mode-index-chip-stack-bottom", `${stackBottom}px`);
     root.style.setProperty("--mode-index-chip-bottom", `${chromeBottom}px`);
     root.style.setProperty("--mode-index-chip-width", `${stackWidth}px`);
-  }, [sesPanelOpen, explainId]);
+  }, [sesPanelOpen, explainId, embedded]);
 
   useEffect(() => {
     publishChromeObstacles();

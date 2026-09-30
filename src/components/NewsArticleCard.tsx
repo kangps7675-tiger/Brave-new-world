@@ -111,11 +111,9 @@ export function NewsArticleCard({
   const showImage = item.imageUrl && !imageFailed;
   const tierLabel = item.trustTier === 1 ? "T1" : item.trustTier === 2 ? "T2" : "T3";
   const displayTitle =
-    titleOverride ??
-    (lang === "en" ? item.title : localizedTitle(item));
+    titleOverride ?? localizedTitle(item);
   const displaySummary =
-    summaryOverride ??
-    (lang === "en" ? item.summary : localizedSummary(item));
+    summaryOverride ?? localizedSummary(item);
   const theaterText = theaterLabel(item.theater, lang);
 
   const flyTarget = useMemo(() => {

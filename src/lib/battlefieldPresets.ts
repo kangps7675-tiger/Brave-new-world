@@ -1,4 +1,3 @@
-import { markNudgeShown } from "@/lib/onboardingBudget";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { RegionBBox } from "@/data/navRegions";
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
@@ -22,7 +21,7 @@ function patch(base: LayerPrefs, on: Partial<LayerPrefs>): LayerPrefs {
 
 /**
  * 전장별 기본 레이어 프리셋.
- * ExplorationTabs / viewport soft-apply에서 사용.
+ * 허브/장면 이동 시 viewport soft-apply에서 사용.
  */
 export function applyBattlefieldPreset(
   zone: BattlefieldZone,
@@ -134,22 +133,3 @@ export function detectBattlefieldZone(
   }
   return null;
 }
-
-export const THEATER_COACHMARK_KEY = "geowatch-theater-coach-v1";
-
-export function readTheaterCoachmarkDone(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return localStorage.getItem(THEATER_COACHMARK_KEY) === "1";
-  } catch {
-    return true;
-  }
-}
-
-export function markTheaterCoachmarkDone(): void {
-  if (typeof window === "undefined") return;
-  markNudgeShown("theaterCoach");
-}
-
-/* 노출 게이트(`shouldOfferTheaterCoachmark`)는 실제 호출부가 있는
-   `@/components/TheaterDropdownCoachmark`에 있다 — 여기에 중복 정의하지 말 것. */

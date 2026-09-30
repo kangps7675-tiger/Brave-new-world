@@ -409,7 +409,7 @@ export function MethodologySourcesPanel({
             <h3 className="text-sm font-medium text-emerald-100">주요 출처</h3>
             <p className="mt-1.5 text-meta leading-5 text-sky-100/65">
               실시간 관측 레이어의 1차 출처입니다. 지도·패널에 NASA FIRMS · ADS-B ·
-              MarineTraffic을 명시합니다.
+              MarineTraffic · Liveuamap을 명시합니다.
             </p>
             <ul className="mt-3 space-y-3">
               {PRIMARY_LIVE_SOURCES.map((src) => (

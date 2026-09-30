@@ -18,7 +18,7 @@ export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>>
 
 /**
  * 경제·물류 전역 첫 화면 — 진영 폴리곤 + 해상 물류 뼈대 + 공항.
- * 항구·주요 항로·초크포인트·공항. 배관·DC·AIS는 패널에서 수동 ON.
+ * 항구·주요 항로·초크포인트·공항. 배관은 속보·사건 포커스 때 잠깐 ON.
  * 공항은 STATIC_POINT_MAX_BY_TIER / HTML 캡으로 전역 LOD 컷.
  */
 export const FIRST_SCREEN_ECONOMY_ON: Partial<Record<BooleanLayerKey, boolean>> = {

@@ -101,7 +101,7 @@ describe("applyBasemapTerrain", () => {
     map.getSource = () => ({});
     applyBasemapTerrain(map, "intel", { zoom: 7.2 });
     expect(map.setTerrain).toHaveBeenCalledWith(
-      expect.objectContaining({ source: "terrain-dem", exaggeration: 0.6 }),
+      expect.objectContaining({ source: "terrain-dem", exaggeration: 1.35 }),
     );
   });
 });

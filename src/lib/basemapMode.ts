@@ -1,6 +1,6 @@
 /**
  * Nav 베이스맵 모드 (둘 다 MapLibre 벡터 파이프라인 — WebGL 단일 컨텍스트)
- * - intel: OpenFreeMap Dark + DEM(0.6) + 다크 fog/우주색.
+ * - intel: OpenFreeMap Dark + DEM(1.35) + 다크 fog/우주색.
  *   위성 래스터·3D 건물·Liberty 해양톤 덮어쓰기 없음.
  * - terrain(지형): OpenFreeMap Liberty + DEM(1.4) + 고줌 3D 건물.
  *   확대 시 Esri World Imagery가 바탕에 드러나고, 토지/수역 fill만 투명해져
@@ -115,7 +115,8 @@ export type TerrainExaggeration = {
 };
 
 export const TERRAIN_EXAGGERATION: TerrainExaggeration = {
-  intel: 0.6,
+  /** 지정학·지경학 인텔 — 산악 기복이 읽히도록 (구 0.6) */
+  intel: 1.35,
   terrain: 1.4,
 };
 
@@ -413,9 +414,9 @@ export function applyBasemapTerrain(
 
   if (!map.getSource(BASEMAP_SOURCE_IDS.terrain)) return;
 
-  // 인텔: 예전 설정 exaggeration 0.6 / 지형: 1.4
+  // 인텔: 1.35 / 지형: 1.4 — 둘 다 기복이 읽히게
   const exaggeration = opts?.ultraLite
-    ? Math.min(0.4, TERRAIN_EXAGGERATION.intel)
+    ? Math.min(0.55, TERRAIN_EXAGGERATION.intel)
     : TERRAIN_EXAGGERATION[mode];
   try {
     map.setTerrain({

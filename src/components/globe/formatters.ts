@@ -2,6 +2,7 @@ import type { SearchPlace } from "@/data/geoTypes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
   LANG_CHOICE_KEY,
+  PURPOSE_JOB_KEY,
   SOURCES_GATE_KEY,
   WELCOME_GATE_KEY,
 } from "@/components/globe/constants";
@@ -145,6 +146,25 @@ export function markLangChoiceDone() {
   if (forceEntryGateReplay()) return;
   try {
     localStorage.setItem(LANG_CHOICE_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function readPurposeJobDone(): boolean {
+  if (typeof window === "undefined") return true;
+  if (forceEntryGateReplay()) return false;
+  try {
+    return localStorage.getItem(PURPOSE_JOB_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markPurposeJobDone() {
+  if (forceEntryGateReplay()) return;
+  try {
+    localStorage.setItem(PURPOSE_JOB_KEY, "1");
   } catch {
     // ignore
   }

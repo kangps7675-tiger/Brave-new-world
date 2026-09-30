@@ -10,8 +10,16 @@ import { shouldOfferChokepointStressParchment } from "@/lib/logisticsStress";
 import { exerciseFlyTarget } from "@/lib/militaryExerciseHatch";
 import type { MilitaryExercise } from "@/lib/militaryExercises";
 import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
-import { isSecurityCriticalNavarea, isUkmtoOfferWorthy } from "@/lib/navareaSecurity";
-import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import {
+  isSecurityCriticalNavarea,
+  isUkmtoOfferWorthy,
+  localizeNavareaDisplayText,
+} from "@/lib/navareaSecurity";
+import {
+  localizeUkmtoIncidentType,
+  localizeUkmtoPlaceText,
+  type UkmtoIncidentPoint,
+} from "@/lib/ukmtoHatch";
 
 /**
  * AIS 통과 게이트 중심. 박스 정의는 workers/cron-ingest/src/aisZones.ts 와 맞춘다.
@@ -89,26 +97,41 @@ export function buildCesiumAlerts(input: {
   const ukmto = [...input.ukmtoIncidents]
     .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng))
     .sort((a, b) => Number(isUkmtoOfferWorthy(b.incidentTypeName)) - Number(isUkmtoOfferWorthy(a.incidentTypeName)))
-    .map((item): CesiumAlertItem => ({
-      id: `ukmto:${item.id}`,
-      kind: "ukmto",
-      title: item.place || item.region || item.incidentTypeName,
-      detail: [item.incidentTypeName, item.vesselName].filter(Boolean).join(" · "),
-      lat: item.lat,
-      lng: item.lng,
-    }));
+    .map((item): CesiumAlertItem => {
+      const typeLabel = localizeUkmtoIncidentType(item.incidentTypeName, input.lang);
+      const place = localizeUkmtoPlaceText(
+        item.place || item.region || "",
+        input.lang,
+      );
+      return {
+        id: `ukmto:${item.id}`,
+        kind: "ukmto",
+        title: place || typeLabel,
+        detail: [typeLabel, item.vesselName].filter(Boolean).join(" · "),
+        lat: item.lat,
+        lng: item.lng,
+      };
+    });
 
   const navarea = input.navareaFeatures
     .filter((feature) => isSecurityCriticalNavarea(feature))
     .filter((feature) => feature.lat != null && feature.lng != null)
-    .map((feature): CesiumAlertItem => ({
-      id: `navarea:${feature.id}`,
-      kind: "navarea",
-      title: feature.areaHint || feature.region,
-      detail: feature.description.replace(/\s+/g, " ").slice(0, 96),
-      lat: feature.lat as number,
-      lng: feature.lng as number,
-    }));
+    .map((feature): CesiumAlertItem => {
+      const area =
+        localizeNavareaDisplayText(feature.areaHint, input.lang) || feature.region;
+      const detail = localizeNavareaDisplayText(
+        feature.description.replace(/\s+/g, " ").slice(0, 96),
+        input.lang,
+      );
+      return {
+        id: `navarea:${feature.id}`,
+        kind: "navarea",
+        title: area,
+        detail,
+        lat: feature.lat as number,
+        lng: feature.lng as number,
+      };
+    });
 
   const portwatch: CesiumAlertItem[] = [];
   for (const point of LOGISTICS_RISK_POINTS) {

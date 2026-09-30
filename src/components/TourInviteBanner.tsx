@@ -2,32 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import {
-  readFirstVisitTourDone,
-  TOUR_INVITE_KEY,
-} from "@/lib/firstVisitTour";
-import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
+import { markTourInviteDismissed } from "@/lib/tourInvite";
 
-export function readTourInviteDismissed(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return window.localStorage.getItem(TOUR_INVITE_KEY) === "1";
-  } catch {
-    return true;
-  }
-}
-
-export function markTourInviteDismissed(): void {
-  if (typeof window === "undefined") return;
-  markNudgeShown("tourInvite");
-}
-
-/** 투어 미완료 + 권유 배너 미거절 + 이번 세션 온보딩 예산이 남아 있을 때만 */
-export function shouldOfferTourInvite(): boolean {
-  if (typeof window === "undefined") return false;
-  if (readFirstVisitTourDone()) return false;
-  return canShowNudge("tourInvite", !readTourInviteDismissed());
-}
+export {
+  markTourInviteDismissed,
+  readTourInviteDismissed,
+  shouldOfferTourInvite,
+} from "@/lib/tourInvite";
 
 type Props = {
   lang: LabelLanguage;
@@ -37,8 +18,8 @@ type Props = {
 };
 
 /**
- * 등불 접은 직후 1회 — 화면 투어 짧은 권유 (수락 / 나중에).
- * 전체 투어를 자동으로 띄우지 않음.
+ * 첫 방문 1회 — 화면 투어 짧은 권유 (수락 / 나중에).
+ * 전체 투어는 자동으로 띄우지 않음. localStorage에 기록되면 같은 브라우저는 다시 안 뜸.
  */
 export function TourInviteBanner({ lang, open, onAccept, onDismiss }: Props) {
   const [visible, setVisible] = useState(false);
@@ -78,8 +59,8 @@ export function TourInviteBanner({ lang, open, onAccept, onDismiss }: Props) {
       </p>
       <p className="mt-1.5 text-body leading-relaxed text-sky-50/95">
         {en
-          ? "Want a quick walkthrough of the globe, layers, and news sheet? You can skip and open it later from Feature guide."
-          : "지구본·레이어·뉴스 시트를 짧게 안내할까요? 지금은 건너뛰고, 나중에 「기능 안내」에서 열 수도 있습니다."}
+          ? "New here? A short walkthrough of the globe, three lenses, Ask, and layers. You advance only with Next — nothing auto-flips. Skip anytime; reopen later from Menu → Help."
+          : "처음이신가요? 지구본·세 렌즈·묻기·레이어를 짧게 안내합니다. 「다음」을 눌러야만 넘어가고, 혼자 촤르륵 넘어가지 않아요. 지금은 건너뛰고 나중에 메뉴 → 이용 안내에서 다시 볼 수 있습니다."}
       </p>
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
         <button

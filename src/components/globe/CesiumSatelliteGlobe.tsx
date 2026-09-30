@@ -2,7 +2,8 @@
 
 /**
  * 위성 모드 글로브 — God's Eye View 키리스 경로와 동일한 스택.
- * Esri World Imagery + (Ion 있으면) World Terrain / Google Photorealistic 3D Tiles.
+ * Esri World Imagery + World Elevation(또는 Ion World Terrain). 산악 기복 유지.
+ * Ion 토큰이 있으면 World Imagery(AERIAL) + World Terrain 우선 — 유료 관측 화질.
  * @see https://github.com/bilawalsidhu/gods-eye-view
  */
 
@@ -46,18 +47,43 @@ import {
 } from "@/lib/surfaceCombatantDeckIcon";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
+import { attachGibsClouds } from "@/lib/cesiumGibsClouds";
+import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
+import { attachGibsAerosolSmoke } from "@/lib/cesiumGibsSmoke";
+import {
+  attachFirmsFirePulse,
+  syncFirmsFireEntities,
+  type CesiumFirmsFirePoint,
+} from "@/lib/cesiumFirmsFires";
+import {
+  attachMissileLaunchPulse,
+  syncMissileLaunchEntities,
+  type CesiumMissileLaunchPoint,
+} from "@/lib/cesiumMissileLaunches";
+import {
+  attachAirRaidZonePulse,
+  syncAirRaidZoneEntities,
+} from "@/lib/cesiumAirRaidZones";
+import {
+  resolveCinematicCamera,
+  resolveCinematicDurationMs,
+} from "@/lib/globeCamera";
 import {
   getNeptunTypeMeta,
+  type NeptunAlerts,
   type NeptunLiveThreat,
 } from "@/lib/neptun";
+import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
-const KEYLESS_TERRAIN =
-  "https://terrain.reearth.land/cesium-mesh/ellipsoid";
-/** Cesium ion — Google Photorealistic 3D Tiles (개인/비상업 Community 토큰) */
-const ION_GOOGLE_PHOTOREAL_ASSET = 2275207;
+/** Esri World Elevation 3D — Ion 없이도 산악 기복 */
+const ESRI_WORLD_ELEVATION =
+  "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
+/** Cesium ion World Terrain (createWorldTerrainAsync / asset 1) */
 const ION_WORLD_TERRAIN_ASSET = 1;
+/** 위성·지역 줌에서 기복이 읽히도록 살짝 과장 (1=실측) */
+const TERRAIN_VERTICAL_EXAGGERATION = 1.85;
 
 /**
  * globe.gl altitude(=cameraDistance/100-1, 지구 반지름 단위) ↔ Cesium 높이(m) 변환.
@@ -83,6 +109,17 @@ export type CesiumGlobeHandle = {
     durationMs?: number,
     camera?: { pitch?: number; bearing?: number },
   ) => void;
+  /** 하루 리플레이 — UTC 시각(0–24)으로 태양/야경 시계 설정 */
+  setClockHourUtc: (hourUtc: number) => void;
+  /** 실시간 시계로 복귀 */
+  resetClockLive: () => void;
+  /** 하루 재생 multiplier (0=정지, 예: 1200 ≈ 하루를 약 72초에) */
+  setClockMultiplier: (multiplier: number) => void;
+  captureFrame: () => Promise<HTMLCanvasElement | null>;
+  /** 녹화용 라이브 WebGL 캔버스 */
+  getCanvas: () => HTMLCanvasElement | null;
+  /** 장면 링크용 카메라 (globe.gl altitude 단위) */
+  pointOfView: () => { lat: number; lng: number; altitude: number } | null;
 };
 
 export type CesiumSatelliteGlobeProps = {
@@ -113,6 +150,15 @@ export type CesiumSatelliteGlobeProps = {
   onSelectLiveuaPin?: (id: string) => void;
   /** LIVEUA/DeepState 통제·점령 GeoJSON (overview fill) */
   controlGeoJson?: GeoJSON.FeatureCollection | null;
+  /** NASA FIRMS — 화염·연기 빌보드 */
+  firmsFires?: CesiumFirmsFirePoint[];
+  showFirmsFires?: boolean;
+  /** 북한 미사일 발사·시험 */
+  missileLaunches?: CesiumMissileLaunchPoint[];
+  showMissileLaunches?: boolean;
+  /** NEPTUN 공습 경보 존 */
+  neptunAlerts?: NeptunAlerts | null;
+  showAirRaidZones?: boolean;
   /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
   onReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
@@ -123,6 +169,8 @@ type StackKind = "esri" | "photoreal";
 type ErrorKind = "chunk" | "assets" | "other";
 
 const CHUNK_RELOAD_KEY = "cesium-chunk-reload";
+/** WebGL/부팅 실패를 즉시 에러 UI로 떨어뜨리지 않는 유예(ms) */
+const CESIUM_LOAD_GRACE_MS = 22_000;
 
 const ALERT_PIN_COLOR: Record<CesiumAlertKind, string> = {
   ukmto: "#e4e4e7",
@@ -764,6 +812,12 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       liveuaPins = [],
       onSelectLiveuaPin,
       controlGeoJson = null,
+      firmsFires = [],
+      showFirmsFires = false,
+      missileLaunches = [],
+      showMissileLaunches = false,
+      neptunAlerts = null,
+      showAirRaidZones = false,
       onReady,
       onSelectEntity,
     },
@@ -775,10 +829,19 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const [stack, setStack] = useState<StackKind>("esri");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorKind, setErrorKind] = useState<ErrorKind>("other");
+  const [hoverTip, setHoverTip] = useState<{
+    text: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [bootNonce, setBootNonce] = useState(0);
   // 마운트 이펙트에서 만든 viewer/Cesium 모듈 — 엔티티 동기화 이펙트에서 재사용
   const viewerRef = useRef<import("cesium").Viewer | null>(null);
   const cesiumModRef = useRef<typeof import("cesium") | null>(null);
   const clickHandlerRef = useRef<import("cesium").ScreenSpaceEventHandler | null>(null);
+  const mountAtRef = useRef(Date.now());
+  const contextLostRecreateRef = useRef(false);
+  const softErrorTimerRef = useRef<number | null>(null);
 
   // 클릭 핸들러가 매 폴링마다 재등록되지 않도록 최신 데이터를 ref로 보관
   const onReadyRef = useRef(onReady);
@@ -810,21 +873,103 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
         const heightM = altitudeToHeightM(altitude ?? 0.55);
+        const resolved = resolveCinematicCamera(camera);
         const orientation = {
-          heading: Cesium.Math.toRadians(camera?.bearing ?? 0),
-          pitch: Cesium.Math.toRadians((camera?.pitch ?? 0) - 90),
+          heading: Cesium.Math.toRadians(resolved.bearing),
+          pitch: Cesium.Math.toRadians(resolved.pitch - 90),
           roll: 0,
         };
         const destination = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
-        if (!durationMs || durationMs <= 0) {
+        // durationMs === 0 은 즉시 스냅 (인터럽트용). undefined는 시네마틱.
+        if (durationMs === 0) {
           viewer.camera.setView({ destination, orientation });
-        } else {
-          viewer.camera.flyTo({ destination, orientation, duration: durationMs / 1000 });
+          return;
         }
+        const durationSec = resolveCinematicDurationMs(durationMs) / 1000;
+        // 궤도 아크 + ease-in-out — 빠르면서도 천천히 감속하는 대각선 진입
+        viewer.camera.flyTo({
+          destination,
+          orientation,
+          duration: durationSec,
+          maximumHeight: Math.max(heightM * 2.4, heightM + 2_200_000),
+          easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+        });
+      },
+      setClockHourUtc: (hourUtc) => {
+        const viewer = viewerRef.current;
+        const Cesium = cesiumModRef.current;
+        if (!viewer || !Cesium || viewer.isDestroyed()) return;
+        const h = ((hourUtc % 24) + 24) % 24;
+        const now = new Date();
+        const iso = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}T${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}:00Z`;
+        viewer.clock.currentTime = Cesium.JulianDate.fromIso8601(iso);
+        viewer.clock.shouldAnimate = false;
+        viewer.clock.multiplier = 1;
+      },
+      resetClockLive: () => {
+        const viewer = viewerRef.current;
+        const Cesium = cesiumModRef.current;
+        if (!viewer || !Cesium || viewer.isDestroyed()) return;
+        viewer.clock.currentTime = Cesium.JulianDate.now();
+        viewer.clock.multiplier = 1;
+        viewer.clock.shouldAnimate = true;
+      },
+      setClockMultiplier: (multiplier) => {
+        const viewer = viewerRef.current;
+        if (!viewer || viewer.isDestroyed()) return;
+        viewer.clock.multiplier = multiplier;
+        viewer.clock.shouldAnimate = multiplier !== 0;
+      },
+      captureFrame: () => {
+        const viewer = viewerRef.current;
+        if (!viewer || viewer.isDestroyed()) {
+          return Promise.resolve(null);
+        }
+        const source = viewer.scene.canvas;
+        if (!source.width || !source.height) return Promise.resolve(null);
+        viewer.scene.requestRender();
+        return new Promise<HTMLCanvasElement | null>((resolve) => {
+          window.requestAnimationFrame(() => {
+            try {
+              const out = document.createElement("canvas");
+              out.width = source.width;
+              out.height = source.height;
+              const ctx = out.getContext("2d");
+              if (!ctx) {
+                resolve(null);
+                return;
+              }
+              ctx.drawImage(source, 0, 0);
+              resolve(out);
+            } catch {
+              resolve(null);
+            }
+          });
+        });
+      },
+      getCanvas: () => {
+        const viewer = viewerRef.current;
+        if (!viewer || viewer.isDestroyed()) return null;
+        return viewer.scene.canvas;
+      },
+      pointOfView: () => {
+        const viewer = viewerRef.current;
+        const Cesium = cesiumModRef.current;
+        if (!viewer || !Cesium || viewer.isDestroyed()) return null;
+        const carto = Cesium.Cartographic.fromCartesian(viewer.camera.positionWC);
+        if (!carto) return null;
+        return {
+          lat: Cesium.Math.toDegrees(carto.latitude),
+          lng: Cesium.Math.toDegrees(carto.longitude),
+          altitude: Math.max(0.02, carto.height / EARTH_RADIUS_M),
+        };
       },
     }),
     [],
   );
+
+  /** WASD / 화살표 이동, +/- 확대·축소 — MapLibre와 동일 (캔버스 포커스 불필요) */
+  useCesiumKeyboardNav(viewerRef, status === "ready");
 
   useEffect(() => {
     const container = containerRef.current;
@@ -833,6 +978,17 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
 
     let cancelled = false;
     let viewer: import("cesium").Viewer | null = null;
+    let canvasEl: HTMLCanvasElement | null = null;
+    let onContextLost: ((ev: Event) => void) | null = null;
+    let detachClouds: (() => void) | null = null;
+    let detachDayNight: (() => void) | null = null;
+    let detachSmoke: (() => void) | null = null;
+    let detachFirmsPulse: (() => void) | null = null;
+    let detachMissilePulse: (() => void) | null = null;
+    let detachAirRaidPulse: (() => void) | null = null;
+    mountAtRef.current = Date.now();
+    setStatus("loading");
+    setHoverTip(null);
 
     (async () => {
       try {
@@ -880,74 +1036,110 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
 
         viewer.targetFrameRate = 60;
         viewer.scene.globe.depthTestAgainstTerrain = true;
+        // 산·계곡 기복이 위성 뷰에서도 읽히도록 수직 과장
+        if (typeof viewer.scene.verticalExaggeration === "number") {
+          viewer.scene.verticalExaggeration = TERRAIN_VERTICAL_EXAGGERATION;
+        }
+        viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#02040a");
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#02040a");
+        const translucency = (
+          viewer.scene.globe as {
+            translucency?: { enabled: boolean; frontFaceAlpha?: number };
+          }
+        ).translucency;
+        if (translucency) {
+          translucency.enabled = false;
+          if (typeof translucency.frontFaceAlpha === "number") {
+            translucency.frontFaceAlpha = 1.0;
+          }
+        }
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.show = true;
         }
         viewer.scene.fog.enabled = true;
+        // 낮/밤은 attachRealtimeDayNight에서 enableLighting=true + 실시간 시계로 맞춤
         viewer.scene.globe.enableLighting = false;
 
+        // 낮/밤·야경은 Globe imagery + 태양 조명.
+        // Ion 토큰 → World Imagery(유료 화질) 우선, 실패 시 Esri.
         let usedPhotoreal = false;
-        if (ionToken) {
-          try {
-            const resource = await Cesium.IonResource.fromAssetId(
-              ION_GOOGLE_PHOTOREAL_ASSET,
-              { accessToken: ionToken },
-            );
-            const tileset = await Cesium.Cesium3DTileset.fromUrl(resource, {
-              maximumScreenSpaceError: 16,
-            });
-            if (cancelled) {
-              viewer.destroy();
-              return;
-            }
-            viewer.scene.primitives.add(tileset);
-            viewer.scene.globe.show = false;
-            usedPhotoreal = true;
-            setStack("photoreal");
-          } catch (err) {
-            console.warn(
-              "[CesiumSatelliteGlobe] Photorealistic 3D unavailable, Esri imagery:",
-              err,
-            );
-          }
-        }
-
-        if (!usedPhotoreal) {
+        let dayImageryLayer: import("cesium").ImageryLayer | null = null;
+        {
           viewer.scene.globe.show = true;
-          const imagery = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
-            ESRI_WORLD_IMAGERY,
-            {
-              enablePickFeatures: false,
-              credit:
-                "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
-            },
-          );
           viewer.imageryLayers.removeAll();
-          viewer.imageryLayers.addImageryProvider(imagery);
+
+          if (ionToken) {
+            try {
+              const ionImagery = await Cesium.createWorldImageryAsync({
+                style: Cesium.IonWorldImageryStyle.AERIAL,
+              });
+              dayImageryLayer = viewer.imageryLayers.addImageryProvider(ionImagery);
+              dayImageryLayer.alpha = 1.0;
+              usedPhotoreal = true;
+            } catch (ionImgErr) {
+              console.warn(
+                "[CesiumSatelliteGlobe] Ion World Imagery → Esri fallback:",
+                ionImgErr,
+              );
+            }
+          }
+
+          if (!dayImageryLayer) {
+            const imagery = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+              ESRI_WORLD_IMAGERY,
+              {
+                enablePickFeatures: false,
+                credit:
+                  "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+              },
+            );
+            dayImageryLayer = viewer.imageryLayers.addImageryProvider(imagery);
+            dayImageryLayer.alpha = 1.0;
+          }
 
           try {
             if (ionToken) {
-              const terrainRes = await Cesium.IonResource.fromAssetId(
-                ION_WORLD_TERRAIN_ASSET,
-                { accessToken: ionToken },
-              );
-              viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(
-                terrainRes,
-                {
+              try {
+                viewer.terrainProvider = await Cesium.createWorldTerrainAsync({
                   requestVertexNormals: true,
                   requestWaterMask: false,
-                },
-              );
+                });
+              } catch (ionErr) {
+                console.warn(
+                  "[CesiumSatelliteGlobe] Ion World Terrain → fromIonAssetId:",
+                  ionErr,
+                );
+                viewer.terrainProvider =
+                  await Cesium.CesiumTerrainProvider.fromIonAssetId(
+                    ION_WORLD_TERRAIN_ASSET,
+                    {
+                      requestVertexNormals: true,
+                      requestWaterMask: false,
+                    },
+                  );
+              }
             } else {
-              viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(
-                KEYLESS_TERRAIN,
-              );
+              viewer.terrainProvider =
+                await Cesium.ArcGISTiledElevationTerrainProvider.fromUrl(
+                  ESRI_WORLD_ELEVATION,
+                );
             }
           } catch (err) {
-            console.warn("[CesiumSatelliteGlobe] terrain fallback:", err);
-            viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+            console.warn(
+              "[CesiumSatelliteGlobe] terrain primary failed, Esri elevation:",
+              err,
+            );
+            try {
+              viewer.terrainProvider =
+                await Cesium.ArcGISTiledElevationTerrainProvider.fromUrl(
+                  ESRI_WORLD_ELEVATION,
+                );
+            } catch (arcErr) {
+              console.warn("[CesiumSatelliteGlobe] terrain fallback flat:", arcErr);
+              viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+            }
           }
-          setStack("esri");
+          setStack(usedPhotoreal ? "photoreal" : "esri");
         }
 
         viewer.camera.setView({
@@ -960,18 +1152,61 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
 
         // 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용.
         // prefix(ais:/disguised:/mil:/civ:)로 어느 배열에서 찾을지 판단한다.
+        const resolvePickedEntityId = (
+          picked: unknown,
+        ): string | undefined => {
+          const rawId = (picked as { id?: unknown } | undefined)?.id;
+          if (typeof rawId === "string") return rawId;
+          if (rawId && typeof (rawId as { id?: unknown }).id === "string") {
+            return (rawId as { id: string }).id;
+          }
+          return undefined;
+        };
+
+        const hoverLabelForEntity = (entityId: string): string | null => {
+          const entity = viewer!.entities.getById(entityId);
+          const name =
+            typeof entity?.name === "string" && entity.name.trim()
+              ? entity.name.trim()
+              : null;
+          const sep = entityId.indexOf(":");
+          if (sep < 0) return name;
+          const prefix = entityId.slice(0, sep);
+          const key = entityId.slice(sep + 1);
+          if (prefix === "liveua") {
+            const pin = liveuaPinsRef.current.find((p) => p.id === key);
+            return pin?.title || name;
+          }
+          if (prefix === "ais" || prefix === "disguised") {
+            const pool =
+              prefix === "ais" ? aisVesselsRef.current : disguisedVesselsRef.current;
+            const vessel = pool.find((x) => x.mmsi === key || x.id === key);
+            return vessel?.shipName || vessel?.mmsi || name;
+          }
+          if (prefix === "mil" || prefix === "civ") {
+            const pool =
+              prefix === "mil" ? milAircraftRef.current : civAircraftRef.current;
+            const aircraft = pool.find((x) => x.hex === key || x.id === key);
+            return (
+              aircraft?.callsign ||
+              aircraft?.registration ||
+              aircraft?.hex ||
+              name
+            );
+          }
+          if (prefix === "alert" || prefix === "alertline") {
+            const pin = alertPinsRef.current.find((item) => item.id === key);
+            return pin?.title || name;
+          }
+          return name;
+        };
+
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
         handler.setInputAction((movement: { position: import("cesium").Cartesian2 }) => {
           const v = viewerRef.current;
           if (!v || v.isDestroyed()) return;
           const picked = v.scene.pick(movement.position);
-          const rawId = picked?.id;
-          const entityId: string | undefined =
-            typeof rawId === "string"
-              ? rawId
-              : rawId && typeof rawId.id === "string"
-                ? rawId.id
-                : undefined;
+          const entityId = resolvePickedEntityId(picked);
           if (!entityId) return;
           const sep = entityId.indexOf(":");
           if (sep < 0) return;
@@ -1005,6 +1240,117 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             }
           }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        const geoJsonHoverLabel = (
+          ent: {
+            properties?: {
+              name?: { getValue?: (t: unknown) => unknown };
+              Name?: { getValue?: (t: unknown) => unknown };
+              region?: { getValue?: (t: unknown) => unknown };
+              getValue?: (t: unknown) => Record<string, unknown>;
+            };
+            name?: string;
+          },
+          time: import("cesium").JulianDate,
+        ): string | null => {
+          const bag = ent.properties?.getValue?.(time);
+          const fromBag =
+            (typeof bag?.name === "string" && bag.name) ||
+            (typeof bag?.Name === "string" && bag.Name) ||
+            (typeof bag?.region === "string" && bag.region) ||
+            null;
+          const fromProp =
+            (ent.properties?.name?.getValue?.(time) as string | undefined) ||
+            (ent.properties?.Name?.getValue?.(time) as string | undefined) ||
+            (ent.properties?.region?.getValue?.(time) as string | undefined) ||
+            null;
+          return (
+            (typeof fromBag === "string" && fromBag) ||
+            (typeof fromProp === "string" && fromProp) ||
+            (typeof ent.name === "string" && ent.name.trim()) ||
+            null
+          );
+        };
+
+        handler.setInputAction(
+          (movement: { endPosition: import("cesium").Cartesian2 }) => {
+            const v = viewerRef.current;
+            if (!v || v.isDestroyed()) {
+              setHoverTip(null);
+              return;
+            }
+            const picked = v.scene.pick(movement.endPosition);
+            let tip: string | null = null;
+            const raw = (picked as { id?: unknown } | undefined)?.id;
+            if (typeof raw === "string") {
+              tip = hoverLabelForEntity(raw);
+            } else if (raw && typeof raw === "object") {
+              // Cesium pick → Entity. Prefix pins live on viewer.entities;
+              // control GeoJSON lives on a DataSource (id is usually a UUID).
+              const ent = raw as {
+                id?: string;
+                name?: string;
+                properties?: {
+                  name?: { getValue?: (t: unknown) => unknown };
+                  Name?: { getValue?: (t: unknown) => unknown };
+                  region?: { getValue?: (t: unknown) => unknown };
+                  getValue?: (t: unknown) => Record<string, unknown>;
+                };
+              };
+              const eid = typeof ent.id === "string" ? ent.id : undefined;
+              if (eid && eid.includes(":")) {
+                tip = hoverLabelForEntity(eid);
+              }
+              if (!tip) {
+                tip = geoJsonHoverLabel(ent, v.clock.currentTime);
+              }
+            }
+            if (tip) {
+              const canvasW = v.canvas.clientWidth || 320;
+              const nearRight = movement.endPosition.x > canvasW - 180;
+              setHoverTip({
+                text: tip,
+                x: nearRight ? canvasW - 16 : movement.endPosition.x,
+                y: nearRight ? 28 : movement.endPosition.y,
+              });
+            } else {
+              setHoverTip(null);
+            }
+          },
+          Cesium.ScreenSpaceEventType.MOUSE_MOVE,
+        );
+
+        const canvas = viewer.canvas;
+        canvasEl = canvas;
+        onContextLost = (ev: Event) => {
+          ev.preventDefault();
+          console.warn("[CesiumSatelliteGlobe] WebGL context lost");
+          setStatus("loading");
+          setHoverTip(null);
+          try {
+            viewer?.resize();
+          } catch {
+            /* ignore */
+          }
+          if (!contextLostRecreateRef.current) {
+            contextLostRecreateRef.current = true;
+            window.setTimeout(() => setBootNonce((n) => n + 1), 400);
+            return;
+          }
+          // Already recreated once — keep loading, then soft-error after grace.
+          const elapsed = Date.now() - mountAtRef.current;
+          const remain = Math.max(0, CESIUM_LOAD_GRACE_MS - elapsed);
+          if (softErrorTimerRef.current != null) {
+            window.clearTimeout(softErrorTimerRef.current);
+          }
+          softErrorTimerRef.current = window.setTimeout(() => {
+            setStatus("error");
+            setErrorMsg("WebGL context lost");
+            setErrorKind("other");
+          }, remain);
+        };
+        canvas.addEventListener("webglcontextlost", onContextLost, false);
+
         clickHandlerRef.current = handler;
 
         if (!cancelled) {
@@ -1015,6 +1361,34 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           }
           viewerRef.current = viewer;
           cesiumModRef.current = Cesium;
+          try {
+            detachDayNight = attachRealtimeDayNight(
+              Cesium,
+              viewer,
+              dayImageryLayer,
+            );
+          } catch (err) {
+            console.warn("[CesiumSatelliteGlobe] day/night:", err);
+          }
+          try {
+            detachClouds = attachGibsClouds(Cesium, viewer, {
+              enableTileOverlay: !usedPhotoreal,
+            });
+          } catch (err) {
+            console.warn("[CesiumSatelliteGlobe] GIBS clouds:", err);
+          }
+          try {
+            detachSmoke = attachGibsAerosolSmoke(Cesium, viewer);
+          } catch (err) {
+            console.warn("[CesiumSatelliteGlobe] GIBS aerosol:", err);
+          }
+          try {
+            detachFirmsPulse = attachFirmsFirePulse(Cesium, viewer);
+            detachMissilePulse = attachMissileLaunchPulse(Cesium, viewer);
+            detachAirRaidPulse = attachAirRaidZonePulse(Cesium, viewer);
+          } catch (err) {
+            console.warn("[CesiumSatelliteGlobe] layer pulses:", err);
+          }
           setStatus("ready");
           onReadyRef.current?.();
         }
@@ -1041,22 +1415,83 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           }
         }
 
+        const kind: ErrorKind = isChunkLoadError(err)
+          ? "chunk"
+          : isCesiumAssetsError(err)
+            ? "assets"
+            : "other";
+        const msg = err instanceof Error ? err.message : "Cesium failed";
+        const elapsed = Date.now() - mountAtRef.current;
+        const remain = CESIUM_LOAD_GRACE_MS - elapsed;
+        if (remain > 0 && kind !== "chunk") {
+          // soft-load: 유예 동안 로딩 오버레이 유지 후 에러 UI
+          setStatus("loading");
+          setErrorMsg(null);
+          if (softErrorTimerRef.current != null) {
+            window.clearTimeout(softErrorTimerRef.current);
+          }
+          softErrorTimerRef.current = window.setTimeout(() => {
+            if (cancelled) return;
+            setStatus("error");
+            setErrorMsg(msg);
+            setErrorKind(kind);
+          }, remain);
+          return;
+        }
+
         setStatus("error");
-        setErrorMsg(err instanceof Error ? err.message : "Cesium failed");
-        setErrorKind(
-          isChunkLoadError(err)
-            ? "chunk"
-            : isCesiumAssetsError(err)
-              ? "assets"
-              : "other",
-        );
+        setErrorMsg(msg);
+        setErrorKind(kind);
       }
     })();
 
     return () => {
       cancelled = true;
+      try {
+        detachDayNight?.();
+      } catch {
+        /* ignore */
+      }
+      detachDayNight = null;
+      try {
+        detachSmoke?.();
+      } catch {
+        /* ignore */
+      }
+      detachSmoke = null;
+      try {
+        detachFirmsPulse?.();
+      } catch {
+        /* ignore */
+      }
+      detachFirmsPulse = null;
+      try {
+        detachMissilePulse?.();
+      } catch {
+        /* ignore */
+      }
+      detachMissilePulse = null;
+      try {
+        detachAirRaidPulse?.();
+      } catch {
+        /* ignore */
+      }
+      detachAirRaidPulse = null;
+      try {
+        detachClouds?.();
+      } catch {
+        /* ignore */
+      }
+      detachClouds = null;
       viewerRef.current = null;
       cesiumModRef.current = null;
+      if (softErrorTimerRef.current != null) {
+        window.clearTimeout(softErrorTimerRef.current);
+        softErrorTimerRef.current = null;
+      }
+      if (canvasEl && onContextLost) {
+        canvasEl.removeEventListener("webglcontextlost", onContextLost, false);
+      }
       try {
         clickHandlerRef.current?.destroy();
       } catch {
@@ -1070,9 +1505,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       }
       viewer = null;
     };
-    // initial lat/lng only for first mount
+    // initial lat/lng only for first mount; bootNonce recreates after context loss
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [bootNonce]);
 
   /** 북한·중국·러시아·이란 빨간 국경. 줌 배율에 맞춰 굵기가 같이 변한다. */
   useEffect(() => {
@@ -1170,6 +1605,31 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     showAirTraffic,
     showNeptun,
     neptunThreats,
+  ]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+    syncFirmsFireEntities(Cesium, viewer, showFirmsFires ? firmsFires : []);
+    syncMissileLaunchEntities(
+      Cesium,
+      viewer,
+      showMissileLaunches ? missileLaunches : [],
+    );
+    syncAirRaidZoneEntities(
+      Cesium,
+      viewer,
+      showAirRaidZones ? neptunAlerts : null,
+    );
+  }, [
+    status,
+    showFirmsFires,
+    firmsFires,
+    showMissileLaunches,
+    missileLaunches,
+    showAirRaidZones,
+    neptunAlerts,
   ]);
 
   useEffect(() => {
@@ -1311,11 +1771,19 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         for (const entity of ds.entities.values) {
           if (entity.polygon) {
             entity.polygon.material = new Cesium.ColorMaterialProperty(
-              Cesium.Color.fromCssColorString("#b45309").withAlpha(0.35),
+              Cesium.Color.fromCssColorString("#b45309").withAlpha(0.62),
             );
             entity.polygon.outline = new Cesium.ConstantProperty(true);
             entity.polygon.outlineColor = new Cesium.ConstantProperty(
-              Cesium.Color.fromCssColorString("#fbbf24").withAlpha(0.7),
+              Cesium.Color.fromCssColorString("#fbbf24").withAlpha(0.85),
+            );
+            entity.polygon.heightReference = new Cesium.ConstantProperty(
+              Cesium.HeightReference.CLAMP_TO_GROUND,
+            );
+            // 지구 뒤편 면이 depth-fail로 비치지 않게 — 명시적으로 제거
+            entity.polygon.depthFailMaterial = undefined;
+            entity.polygon.classificationType = new Cesium.ConstantProperty(
+              Cesium.ClassificationType.TERRAIN,
             );
           }
         }
@@ -1337,6 +1805,26 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         ref={creditRef}
         className="pointer-events-none absolute bottom-1 right-2 z-20 max-w-[min(28rem,70vw)] text-micro leading-tight text-sky-100/70 [&_a]:text-sky-200/90"
       />
+
+      {hoverTip ? (
+        <div
+          className="pointer-events-none absolute z-30 max-w-[min(18rem,70vw)] rounded-md border border-sky-200/25 bg-[#0b1628]/92 px-2.5 py-1.5 text-xs text-sky-50 shadow-lg backdrop-blur-sm"
+          style={
+            hoverTip.y <= 36
+              ? { right: 12, top: 12 }
+              : {
+                  left: Math.min(
+                    hoverTip.x + 14,
+                    (containerRef.current?.clientWidth ?? 320) - 12,
+                  ),
+                  top: Math.max(8, hoverTip.y - 8),
+                  transform: "translateY(-100%)",
+                }
+          }
+        >
+          {hoverTip.text}
+        </div>
+      ) : null}
 
       {status === "loading" ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#02040a]/70">
@@ -1406,7 +1894,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           </p>
           <p className="mt-0.5 text-micro text-sky-100/55">
             {stack === "photoreal"
-              ? "Cesium ion · Google Photorealistic 3D"
+              ? "Cesium Ion · World Imagery HD · World Terrain"
               : "Esri World Imagery · CesiumJS"}
             {" · "}
             sources attributed below

@@ -43,7 +43,7 @@ import type { MenuCoreAlert } from "@/lib/regionFilter";
 import type { ViinaFrontEvent } from "@/lib/viinaFrontEvents";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
-import { displayNewsItemTitle, newsTitleBase, withUnverifiedTitleMark } from "@/lib/newfeedsI18n";
+import { displayNewsItemBody, displayNewsItemTitle, newsTitleBase, withUnverifiedTitleMark } from "@/lib/newfeedsI18n";
 import {
   localizedDisplayText,
   useLocalizedTextMap,
@@ -288,12 +288,17 @@ type NewsStreamContextValue = {
   localizedTitle: (item: {
     id: string;
     title: string;
+    titleKo?: string | null;
     category?: string | null;
     source?: string | null;
     trustTier?: number | null;
     heroStatus?: string | null;
   }) => string;
-  localizedSummary: (item: { id: string; summary?: string | null }) => string | undefined;
+  localizedSummary: (item: {
+    id: string;
+    summary?: string | null;
+    bodyKo?: string | null;
+  }) => string | undefined;
 };
 
 const NewsStreamContext = createContext<NewsStreamContextValue | null>(null);
@@ -460,23 +465,27 @@ export function NewsStreamProvider({
     return visibleInterval(() => void refresh(), liveNewsPollMs() || POLL_MS_FALLBACK);
   }, [refresh, visible, packagesKey, langKey]);
 
-  /** 영문 모드: 원문 유지. 한글 모드: 서버 누락분 클라이언트 재번역 */
+  /** 영문 모드: 원문 유지. 한글 모드: titleKo/bodyKo 없으면 클라이언트 재번역 */
   const localizeEntries = useMemo(() => {
     if (!payload || labelLanguage === "en") return [];
     const entries: Array<{ key: string; text: string }> = [];
     const pushItem = (item: {
       id: string;
       title: string;
+      titleKo?: string | null;
       summary?: string | null;
+      bodyKo?: string | null;
       category?: string | null;
       source?: string | null;
     }) => {
-      // (미확인) 표기는 번역 후에 붙임 — 번역기에 태그를 넣지 않음
-      entries.push({
-        key: `t:${item.id}`,
-        text: newsTitleBase(item, "ko"),
-      });
-      if (item.summary?.trim()) {
+      // titleKo가 있으면 클라 번역 스킵 — KO 필드가 1차
+      if (!item.titleKo?.trim()) {
+        entries.push({
+          key: `t:${item.id}`,
+          text: newsTitleBase(item, "ko"),
+        });
+      }
+      if (item.summary?.trim() && !item.bodyKo?.trim()) {
         entries.push({ key: `s:${item.id}`, text: item.summary });
       }
     };
@@ -493,6 +502,7 @@ export function NewsStreamProvider({
     (item: {
       id: string;
       title: string;
+      titleKo?: string | null;
       category?: string | null;
       source?: string | null;
       trustTier?: number | null;
@@ -505,6 +515,10 @@ export function NewsStreamProvider({
       if (labelLanguage === "en") {
         return displayNewsItemTitle(item, "en");
       }
+      // KO: titleKo 우선 — 없으면 클라 번역 맵 / NewFeeds 치환
+      if (item.titleKo?.trim()) {
+        return withUnverifiedTitleMark(item.titleKo.trim(), "ko", markOpts);
+      }
       const translated = localizedDisplayText(
         localizedMap,
         `t:${item.id}`,
@@ -516,9 +530,10 @@ export function NewsStreamProvider({
   );
 
   const localizedSummary = useCallback(
-    (item: { id: string; summary?: string | null }) => {
+    (item: { id: string; summary?: string | null; bodyKo?: string | null }) => {
+      if (labelLanguage === "en") return displayNewsItemBody(item, "en");
+      if (item.bodyKo?.trim()) return item.bodyKo.trim();
       if (!item.summary) return undefined;
-      if (labelLanguage === "en") return item.summary;
       return localizedDisplayText(localizedMap, `s:${item.id}`, item.summary);
     },
     [labelLanguage, localizedMap],

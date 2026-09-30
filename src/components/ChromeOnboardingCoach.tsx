@@ -39,7 +39,7 @@ const COPY = {
   ko: {
     title: "탐색은 여기서",
     conflict:
-      "상단 검색·옆 「묻기」·▾ 메뉴로 허브·분쟁사를 열고, 우측 「주요전장」으로 충돌지에 바로 갈 수 있습니다. 「묻기」는 관련 레이어를 자동으로 켭니다. 하단 뉴스 창은 궁금할 때 탭하세요. 로딩만으로 자동 진입하지 않습니다.",
+      "상단 검색·옆 「묻기」·▾ 메뉴로 허브·분쟁사를 엽니다. 「묻기」는 관련 레이어를 자동으로 켭니다. 하단 뉴스 창은 궁금할 때 탭하세요.",
     economy:
       "상단 검색·옆 「묻기」·▾ 메뉴로 에너지·초크·금융 허브를 고르면 지도가 움직입니다. 「묻기」로 항로·초크 레이어를 맞출 수 있습니다. 하단은 시장·경제 뉴스와 티커입니다.",
     done: "알겠습니다",
@@ -48,7 +48,7 @@ const COPY = {
   en: {
     title: "Explore from here",
     conflict:
-      "Use top search, 「Ask」 beside it, and ▾ for hubs and dispute history; “Key theaters” jumps to Taiwan, Korea, Ukraine, or the Middle East. 「Ask」 turns on matching layers. Bottom news opens when you want it—nothing auto-enters from loading alone.",
+      "Use top search, 「Ask」 beside it, and ▾ for hubs and dispute history. 「Ask」 turns on matching layers. Bottom news opens when you want it.",
     economy:
       "Pick energy, chokepoints, or finance hubs from top search / 「Ask」 / ▾. 「Ask」 can align shipping and chokepoint layers. Bottom strip is markets and economy news.",
     done: "Got it",

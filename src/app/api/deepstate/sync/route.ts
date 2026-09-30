@@ -23,17 +23,24 @@ export async function POST(request: Request) {
   const force = new URL(request.url).searchParams.get("force") === "1";
   try {
     const result = await refreshOccupiedSnapshot({ force });
+    const hasFeatures = result.occupied.features.length > 0;
+    // LiveUA 본선이면 skipped + liveuamap — DeepState API 미호출 (200)
+    const ok = hasFeatures || (result.skipped && result.source === "liveuamap");
     return NextResponse.json(
       {
-        ok: result.occupied.features.length > 0 && !result.error,
+        ok,
         skipped: result.skipped,
         persisted: result.persisted,
         source: result.source,
         featureCount: result.occupied.features.length,
         fetchedAt: result.occupied.meta?.fetchedAt ?? null,
         error: result.error,
+        note:
+          result.source === "liveuamap" && result.skipped
+            ? "LiveUA ukraine control present — DeepState warm skipped"
+            : undefined,
       },
-      { status: result.occupied.features.length > 0 ? 200 : 502, headers: NO_STORE_HEADERS },
+      { status: ok || result.skipped ? 200 : 502, headers: NO_STORE_HEADERS },
     );
   } catch (error) {
     return NextResponse.json(
