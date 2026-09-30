@@ -62,6 +62,12 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   liveuaPins?: Array<{ id: string; title: string; lat: number; lng: number }>;
   onSelectLiveuaPin?: (id: string) => void;
   controlGeoJson?: GeoJSON.FeatureCollection | null;
+  firmsFires?: import("@/lib/cesiumFirmsFires").CesiumFirmsFirePoint[];
+  showFirmsFires?: boolean;
+  missileLaunches?: import("@/lib/cesiumMissileLaunches").CesiumMissileLaunchPoint[];
+  showMissileLaunches?: boolean;
+  neptunAlerts?: import("@/lib/neptun").NeptunAlerts | null;
+  showAirRaidZones?: boolean;
 };
 
 /**
@@ -99,12 +105,18 @@ export function GlobeMapCanvas({
   liveuaPins,
   onSelectLiveuaPin,
   controlGeoJson,
+  firmsFires,
+  showFirmsFires,
+  missileLaunches,
+  showMissileLaunches,
+  neptunAlerts: cesiumNeptunAlerts,
+  showAirRaidZones,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
     <div
       ref={containerRef}
-      className="globe-shell relative h-full w-full overflow-hidden"
+      className="globe-shell relative z-0 isolate h-full w-full overflow-hidden"
       style={{
         backgroundColor: satelliteMode ? "#02040a" : containerBackgroundColor,
         transform: isCompactUi
@@ -113,7 +125,7 @@ export function GlobeMapCanvas({
         transition: isCompactUi ? undefined : "transform 180ms ease",
       }}
     >
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 z-0">
         {!isPhoneUi && satelliteMode ? (
           <CesiumSatelliteGlobe
             ref={cesiumRef}
@@ -136,6 +148,12 @@ export function GlobeMapCanvas({
             liveuaPins={liveuaPins}
             onSelectLiveuaPin={onSelectLiveuaPin}
             controlGeoJson={controlGeoJson}
+            firmsFires={firmsFires}
+            showFirmsFires={showFirmsFires}
+            missileLaunches={missileLaunches}
+            showMissileLaunches={showMissileLaunches}
+            neptunAlerts={cesiumNeptunAlerts}
+            showAirRaidZones={showAirRaidZones}
           />
         ) : null}
         {!isPhoneUi && !satelliteMode ? (

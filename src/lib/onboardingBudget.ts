@@ -101,19 +101,22 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
    * 영구 '대기 중'이 되어 아래 넛지 전부를 막는다.
    */
   soundUnmute: { priority: 15, legacyKey: null, scope: "persistent" },
-  /** 진입 직후 자동 노출 → eager */
+  /** 메뉴에서만 수동 — 자동 노출 없음. eager면 안 뜨면서 tourInvite를 가로챔 */
   chromeCoach: {
     priority: 20,
     legacyKey: "geowatch-chrome-coach-v4",
     scope: "persistent",
-    eager: true,
   },
-  /** 등불 직후 자동 노출 → eager */
+  /**
+   * 첫 방문 「둘러보기」권유 — localStorage가 끝냄 SSOT.
+   * 세션 예산과 무관(exempt). 이미 본 브라우저는 legacyKey로 차단.
+   */
   tourInvite: {
     priority: 25,
     legacyKey: "geowatch-tour-invite-v1",
     scope: "persistent",
     eager: true,
+    exempt: true,
   },
   /**
    * 자동 순회(구 센티넬) 소개 — 게이트 이후·버튼이 보일 때.

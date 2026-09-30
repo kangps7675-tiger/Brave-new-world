@@ -30,10 +30,69 @@ type AskLayersOverlayProps = {
   onApply: (payload: AskLayersApplyPayload) => void;
 };
 
-const EXAMPLES_KO = ["홍해", "이란", "우크라", "오늘 핫한 곳"] as const;
-const EXAMPLES_EN = ["Red Sea", "Iran", "Ukraine", "Today hot"] as const;
-const EXAMPLES_ECON_KO = ["호르무즈", "수에즈", "항로", "오늘 핫한 곳"] as const;
-const EXAMPLES_ECON_EN = ["Hormuz", "Suez", "Shipping", "Today hot"] as const;
+const EXAMPLES_KO = [
+  "홍해",
+  "이란",
+  "우크라",
+  "대만",
+  "호르무즈",
+  "오늘 핫한 곳",
+] as const;
+const EXAMPLES_EN = [
+  "Red Sea",
+  "Iran",
+  "Ukraine",
+  "Taiwan",
+  "Hormuz",
+  "Today hot",
+] as const;
+const EXAMPLES_ECON_KO = [
+  "호르무즈",
+  "수에즈",
+  "말라카",
+  "항로",
+  "유가",
+  "오늘 핫한 곳",
+] as const;
+const EXAMPLES_ECON_EN = [
+  "Hormuz",
+  "Suez",
+  "Malacca",
+  "Shipping",
+  "Oil",
+  "Today hot",
+] as const;
+
+const ASK_DAY_KEY = "bnw-ask-layers-day-v1";
+const ASK_CLIENT_MAX_PER_DAY = 5;
+
+function utcDayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function readAskCountToday(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = window.localStorage.getItem(ASK_DAY_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as { day?: string; count?: number };
+    if (parsed.day !== utcDayKey()) return 0;
+    return typeof parsed.count === "number" ? parsed.count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function bumpAskCountToday(): number {
+  const day = utcDayKey();
+  const next = readAskCountToday() + 1;
+  try {
+    window.localStorage.setItem(ASK_DAY_KEY, JSON.stringify({ day, count: next }));
+  } catch {
+    // ignore
+  }
+  return next;
+}
 
 export function AskLayersOverlay({
   open,
@@ -78,6 +137,14 @@ export function AskLayersOverlay({
     async (raw: string) => {
       const q = raw.trim();
       if (!q || loading) return;
+      if (readAskCountToday() >= ASK_CLIENT_MAX_PER_DAY) {
+        setError(
+          en
+            ? `Daily ask limit (${ASK_CLIENT_MAX_PER_DAY}). Try again tomorrow — or use ≡ layers.`
+            : `오늘 묻기 ${ASK_CLIENT_MAX_PER_DAY}회를 다 썼어요. 내일 다시 하거나 ≡ 레이어를 쓰세요.`,
+        );
+        return;
+      }
       setLoading(true);
       setError(null);
       setResult(null);
@@ -100,6 +167,7 @@ export function AskLayersOverlay({
           );
           return;
         }
+        bumpAskCountToday();
         setResult(data);
         const patch: Partial<LayerPrefs> = {};
         for (const [k, v] of Object.entries(data.patch ?? {})) {
@@ -132,6 +200,7 @@ export function AskLayersOverlay({
     : en
       ? EXAMPLES_EN
       : EXAMPLES_KO;
+  const asksLeft = Math.max(0, ASK_CLIENT_MAX_PER_DAY - readAskCountToday());
 
   return (
     <div
@@ -161,11 +230,14 @@ export function AskLayersOverlay({
             <p className="mt-1 text-meta leading-relaxed text-sky-100/55 sm:text-xs">
               {viewerMode === "economy"
                 ? en
-                  ? "Name a chokepoint or trade risk (Hormuz, Suez…). Commercial shipping layers only — no military air/ships."
-                  : "초크·물류를 짧게 말하면 항로·에너지·민간 AIS만 맞춥니다. 군용 항공기·함정은 켜지 않습니다."
+                  ? "Name a chokepoint or trade risk (Hormuz, Suez…). Short asks only — not a chat."
+                  : "초크·물류를 짧게. 긴 채팅이 아니라 지도를 맞춥니다."
                 : en
-                  ? "Name a theater or risk (Red Sea, Iran…). We’ll match the map layers."
-                  : "전장·위험을 짧게 말하면 관련 지도 레이어를 맞춥니다. 세밀 조정은 ≡ 패널."}
+                  ? "Name a theater or risk. Short asks only — not a chat."
+                  : "전장·위험을 짧게. 긴 채팅이 아니라 지도를 맞춥니다."}{" "}
+              {en
+                ? `(${asksLeft}/${ASK_CLIENT_MAX_PER_DAY} left today)`
+                : `(오늘 ${asksLeft}/${ASK_CLIENT_MAX_PER_DAY}회)`}
             </p>
           </div>
           <button

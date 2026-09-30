@@ -28,7 +28,7 @@ NASA_FIRMS_API_KEY=your_nasa_firms_map_key_here
 # 우크라 전선 hatch (POST, VIINA 캐시 필요)
 # UKRAINE_HATCH_WARM_URL=http://127.0.0.1:3000/api/render/ukraine-control-paths?lod=overview
 
-# DeepState 점령 좌표 3일 스냅샷 (LIVEUAMAP 폴백)
+# DeepState 점령 좌표 (LiveUA 우크라 면이 있으면 sync가 skip — 폴백 전용)
 # DEEPSTATE_SYNC_URL=http://127.0.0.1:3000/api/deepstate/sync
 
 # LIVEUAMAP mpts sync (서버 전용 키는 Next .env — cron은 sync URL만)

@@ -1,7 +1,8 @@
 /**
- * 첫 방문 유저 1~11 화면 투어 — 크롬·뉴스·알림·기본 켜진 레이어까지.
- * 자동 풀투어는 없음. 등불 후 짧은 권유 배너 또는 기능 안내에서 시작.
+ * 첫 방문 화면 투어 — 현행 상단 크롬(3렌즈·묻기·메뉴·요약본·레이어).
+ * 자동 풀투어 없음. 「둘러보기」수락 또는 메뉴 → 이용 안내에서만 시작.
  * 단계는 CTA(다음)만으로 진행 — 배경 클릭으로 넘어가지 않음.
+ * 끝냄은 localStorage(FIRST_VISIT_TOUR_KEY) — 같은 브라우저는 자동 권유 안 함.
  */
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -10,20 +11,19 @@ import type { SpotlightPlacement } from "@/components/UiSpotlightCoachmark";
 import { firstScreenLayersTourBody } from "@/lib/layerOnboarding";
 
 export const FIRST_VISIT_TOUR_KEY = "geowatch-first-visit-tour-v1";
-/** 등불 후 투어 권유 배너 — 거절/수락 시 다시 안 뜸 */
+/** 둘러보기 권유 배너 — 거절/수락 시 다시 안 뜸 */
 export const TOUR_INVITE_KEY = "geowatch-tour-invite-v1";
 
 export type FirstVisitTourStepId =
   | "globe"
   | "nav"
+  | "ask"
   | "mode"
-  | "theaters"
+  | "menu"
   | "layers"
   | "layers-on"
+  | "brief"
   | "bottom-intel"
-  | "news-sheet"
-  | "news-tabs"
-  | "alerts"
   | "help";
 
 export type FirstVisitTourStep = {
@@ -43,6 +43,8 @@ export type FirstVisitTourStep = {
   bodyEn: string;
   bodyEconomyKo?: string;
   bodyEconomyEn?: string;
+  bodySatelliteKo?: string;
+  bodySatelliteEn?: string;
 };
 
 export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
@@ -66,39 +68,57 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     titleKo: "위쪽 탐색",
     titleEn: "Top navigation",
     bodyKo:
-      "검색과 ▾ 메뉴로 관심 나라·분쟁 이야기로 갑니다. 지도가 혼자 어디로 날아가지 않아요 — 고르신 곳으로만 갑니다.",
+      "검색과 ▾ 메뉴로 관심 나라·영토분쟁·역사지도로 갑니다. 지도가 혼자 날아가지 않아요 — 고르신 곳으로만 갑니다.",
     bodyEn:
-      "Search and ▾ take you to hubs and dispute stories. Nothing flies the camera on its own — only what you pick.",
+      "Search and ▾ take you to hubs, disputes, and the history map. Nothing flies the camera on its own — only what you pick.",
     bodyEconomyKo:
       "검색·▾으로 에너지·물류 급소·금융 도시를 고르면 지도가 따라갑니다.",
     bodyEconomyEn:
       "Pick energy, chokepoints, or finance hubs from search / ▾ — the map follows.",
   },
   {
+    id: "ask",
+    targetSelector: "#ask-layers-button",
+    placement: "below",
+    accent: "amber",
+    titleKo: "묻기",
+    titleEn: "Ask",
+    bodyKo:
+      "검색 옆 「묻기」에 홍해·이란·우크라처럼 짧게 적으면, 관련 레이어가 켜지고 지도가 그쪽으로 맞춰집니다. 긴 해설 채팅이 아니라 ‘지도를 맞추는’ 버튼입니다.",
+    bodyEn:
+      "Tap Ask beside search and type a short cue (Red Sea, Iran, Ukraine). Matching layers turn on and the camera follows — map alignment, not a long chat.",
+  },
+  {
     id: "mode",
     targetSelector: "#view-mode-switcher",
     placement: "below",
     accent: "emerald",
-    titleKo: "보는 렌즈",
-    titleEn: "View lens",
+    titleKo: "세 가지 렌즈",
+    titleEn: "Three lenses",
     bodyKo:
-      "같은 지구본을 다른 렌즈로 봅니다. 전쟁·안보는 전선과 공개 정보, 경제·물류는 에너지·항로·시장 쪽이에요.",
+      "같은 지구본을 세 렌즈로 봅니다. 「지정학」은 전선·분쟁, 「3D 라이브」는 실시간 입체 지도·항적, 「지경학」은 시장·항로·에너지입니다. 역사 지도는 위쪽 메뉴에서 따로 엽니다.",
     bodyEn:
-      "Same globe, different lens. Conflict = fronts & open-source intel. Economy = energy, shipping, markets.",
+      "Same globe, three lenses: Geopolitics (fronts & disputes), 3D Live (realtime globe & tracks), Geoeconomics (markets, lanes, energy). History map opens from the top menu, not this switch.",
+    bodyEconomyKo:
+      "지금 지경학 렌즈입니다. 「지정학」·「3D 라이브」로 바꿔 같은 지구를 다른 눈으로 볼 수 있어요.",
+    bodyEconomyEn:
+      "You’re on the Geoeconomics lens. Switch to Geopolitics or 3D Live for the same globe with a different focus.",
+    bodySatelliteKo:
+      "지금 3D 라이브입니다. Cesium 입체 지구와 실시간 신호가 중심이에요. 「지정학」·「지경학」으로도 바꿀 수 있습니다.",
+    bodySatelliteEn:
+      "You’re on 3D Live — Cesium globe and live signals. Switch to Geopolitics or Geoeconomics anytime.",
   },
   {
-    id: "theaters",
-    targetSelector: "#exploration-theater-dropdown",
+    id: "menu",
+    targetSelector: "#chrome-menu-peep",
     placement: "below",
-    accent: "amber",
-    titleKo: "주요 전장",
-    titleEn: "Key theaters",
+    accent: "sky",
+    titleKo: "메뉴",
+    titleEn: "Menu",
     bodyKo:
-      "대만·한반도·우크라이나·중동처럼 ‘지금 시끄러운 곳’으로 한 번에 이동합니다. 누르면 그 지역에 맞는 레이어 묶음이 켜질 수 있어요.",
+      "왼쪽 가장자리 「메뉴」탭(또는 연 뒤의 메뉴 버튼)에서 레이어·설정·장면 시작·이용 안내·출처를 엽니다. 이 투어도 나중에 이용 안내에서 다시 볼 수 있어요.",
     bodyEn:
-      "Jump to Taiwan, Korea, Ukraine, or the Middle East. A matching layer preset may turn on when you tap.",
-    bodyEconomyKo: "주요 허브·해협(초크포인트)으로 빠르게 이동합니다.",
-    bodyEconomyEn: "Jump quickly to key hubs and chokepoints.",
+      "The left edge Menu peep (or the Menu button when open) holds layers, settings, Scene start, Help, and Sources. Restart this tour from Help anytime.",
   },
   {
     id: "layers",
@@ -108,9 +128,9 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     titleKo: "레이어(정보층)",
     titleEn: "Layers",
     bodyKo:
-      "≡ 는 ‘지도 위에 무엇을 올릴지’ 스위치 모음입니다. 전쟁 구역·뉴스·배·비행기 등을 여기서 켜고 끕니다. 언어·글꼴도 여기 있어요.",
+      "「레이어」는 지도 위에 무엇을 올릴지 고르는 스위치입니다. 전쟁 구역·뉴스·배·비행기 등을 켜고 끕니다. 언어·글꼴도 여기(또는 메뉴 → 설정)에 있어요.",
     bodyEn:
-      "≡ is the switchboard for what sits on the map — zones, news, ships, aircraft, and more. Language and font live here too.",
+      "Layers is the switchboard for what sits on the map — zones, news, ships, aircraft. Language and font live here (or Menu → Settings).",
   },
   {
     id: "layers-on",
@@ -123,6 +143,18 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     titleEn: "What’s already on",
     bodyKo: "",
     bodyEn: "",
+  },
+  {
+    id: "brief",
+    targetSelector: "#macro-briefing-toggle",
+    placement: "below",
+    accent: "amber",
+    titleKo: "오늘 한눈에",
+    titleEn: "Overview",
+    bodyKo:
+      "「오늘 한눈에」는 오늘 상황을 짧게 읽어 주는 입구입니다. 궁금할 때만 열면 되고, 안 열어도 지도는 그대로 쓸 수 있어요.",
+    bodyEn:
+      "Overview is a short read of today’s picture. Open when curious — the map works fine without it.",
   },
   {
     id: "bottom-intel",
@@ -139,56 +171,16 @@ export const FIRST_VISIT_TOUR_STEPS: FirstVisitTourStep[] = [
     bodyEconomyEn: "Market tickers and economy news. Tap 📈 for markets & RSS.",
   },
   {
-    id: "news-sheet",
-    targetSelector: "#intel-news-sheet",
-    placement: "above",
-    accent: "sky",
-    openIntel: true,
-    titleKo: "뉴스 창",
-    titleEn: "News sheet",
-    bodyKo:
-      "검증된 보도부터 아직 덜 확인된 속보까지 쌓입니다. 카드를 누르면 원문, 「지도로」로 그 현장으로 갑니다. 위 손잡이를 아래로 끌면 창이 접힙니다.",
-    bodyEn:
-      "Verified reports and fresher unverified items stack here. Open originals, or fly to the place. Drag the handle down to dock.",
-  },
-  {
-    id: "news-tabs",
-    targetSelector: "#intel-sheet-tabs",
-    placement: "above",
-    accent: "violet",
-    openIntel: true,
-    titleKo: "뉴스 탭",
-    titleEn: "News tabs",
-    bodyKo:
-      "뉴스 / 동영상 / 텔레그램 / 전선 탭을 바꿉니다. 지역 칩으로 범위를 줄이고, 국영·속보 토글로 ‘시끄러운 정도’를 조절하세요.",
-    bodyEn:
-      "Switch News / Video / Telegram / front-line tabs. Theater chips narrow the region; state-media toggles control volume.",
-    bodyEconomyKo: "증시 · RSS · 동영상 탭과 장르 칩으로 시장 뉴스를 고릅니다.",
-    bodyEconomyEn: "Markets · RSS · Video tabs and genre chips filter economy news.",
-  },
-  {
-    id: "alerts",
-    targetSelector: "#air-raid-chrome",
-    placement: "above",
-    accent: "rose",
-    titleKo: "실시간 알림",
-    titleEn: "Live alerts",
-    bodyKo:
-      "공습 경보·위협 칩입니다. 누르면 지도가 그쪽으로 가고, 안내 소리가 날 수 있어요. 공식 경보 앱을 대신하지 않으니 참고용으로만 봐 주세요.",
-    bodyEn:
-      "Air-raid and threat chips. Tap to fly; a brief may follow. This is not an official alert app — use it as a reference only.",
-  },
-  {
     id: "help",
-    targetSelector: "#feature-guide-button",
+    targetSelector: "#chrome-menu-peep",
     placement: "below",
     accent: "amber",
-    titleKo: "도움말",
-    titleEn: "Help",
+    titleKo: "다시 보는 법",
+    titleEn: "How to revisit",
     bodyKo:
-      "「이용 안내」에서 이 투어를 다시 시작할 수 있고, 출처에서 데이터가 어디서 왔는지 확인할 수 있습니다. 「다음」이 「완료」로 바뀌면 투어가 끝나요.",
+      "왼쪽 「메뉴」→ 이용 안내에서 이 투어를 다시 시작할 수 있고, 출처에서 데이터가 어디서 왔는지 확인할 수 있습니다. 「완료」를 누르면 투어가 끝나요 — 같은 브라우저에서는 자동으로 다시 안 뜹니다.",
     bodyEn:
-      "Restart this tour anytime from the guide; Sources shows where the data comes from. When Next becomes Done, you’re finished.",
+      "Restart from left Menu → Help; Sources shows where data comes from. Tap Done to finish — this browser won’t auto-invite again.",
   },
 ];
 
@@ -229,15 +221,17 @@ export function tourStepCopy(
   viewerMode: ViewerMode,
 ): { title: string; body: string } {
   const en = lang === "en";
-  const economy = viewerMode === "economy";
   const title = en ? step.titleEn : step.titleKo;
   if (step.useFirstScreenLayersBody) {
     return { title, body: firstScreenLayersTourBody(viewerMode, lang) };
   }
   let body = en ? step.bodyEn : step.bodyKo;
-  if (economy) {
+  if (viewerMode === "economy") {
     if (en && step.bodyEconomyEn) body = step.bodyEconomyEn;
     if (!en && step.bodyEconomyKo) body = step.bodyEconomyKo;
+  } else if (viewerMode === "satellite" || viewerMode === "live") {
+    if (en && step.bodySatelliteEn) body = step.bodySatelliteEn;
+    if (!en && step.bodySatelliteKo) body = step.bodySatelliteKo;
   }
   return { title, body };
 }

@@ -27,7 +27,10 @@ export function LiveuaFlashToast({ lang, event, onDismiss }: Props) {
 
   return (
     <div
-      className={`pointer-events-auto absolute right-3 top-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-amber-700/40 bg-[#1a140c]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
+      className={`pointer-events-auto fixed right-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-amber-700/40 bg-[#1a140c]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
+      style={{
+        top: "calc(var(--hover-nav-height, 4.5rem) + 0.5rem)",
+      }}
       role="status"
       aria-live="polite"
     >

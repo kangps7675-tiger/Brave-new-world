@@ -40,7 +40,15 @@ export function FirstVisitTour({
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [resolvedSelector, setResolvedSelector] = useState("#map-globe-section");
-  const steps = FIRST_VISIT_TOUR_STEPS;
+  const steps = useMemo(() => {
+    const hideBrief =
+      viewerMode === "satellite" ||
+      viewerMode === "history" ||
+      viewerMode === "live";
+    return hideBrief
+      ? FIRST_VISIT_TOUR_STEPS.filter((s) => s.id !== "brief")
+      : FIRST_VISIT_TOUR_STEPS;
+  }, [viewerMode]);
   const step = steps[index] ?? steps[0]!;
   const total = steps.length;
   const en = lang === "en";
@@ -69,7 +77,7 @@ export function FirstVisitTour({
       return;
     }
     setIndex(0);
-  }, [active]);
+  }, [active, steps.length]);
 
   useEffect(() => {
     if (!active || !step) return;

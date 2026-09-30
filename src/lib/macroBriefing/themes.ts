@@ -115,19 +115,91 @@ export function cameraForTheme(id: MacroThemeId): MacroCameraHint {
       layerHints: ["chokepoint", "gdelt"],
     };
   }
-  // econ genres — default global-ish energy/shipping frame
-  if (key === "shipping" || key === "energy") {
-    const fly = CHOKE_FLY.hormuz!;
-    return { ...fly, layerHints: ["chokepoint", "gdelt"] };
+  // econ genres — 장르별 대표 프레임 (아프리카 글로벌 폴백 금지)
+  const econFly = ECON_GENRE_FLY[key as EconomyNewsGenre];
+  if (econFly) {
+    return {
+      lat: econFly.lat,
+      lng: econFly.lng,
+      altitude: econFly.altitude,
+      theater: econFly.theater,
+      chokepointId: econFly.chokepointId,
+      layerHints: econFly.layerHints,
+    };
   }
+  const global = THEATER_FLY_TO.global;
   return {
-    lat: 25,
-    lng: 20,
-    altitude: 2.2,
+    lat: global.lat,
+    lng: global.lng,
+    altitude: global.altitude,
     theater: "global",
     layerHints: ["gdelt"],
   };
 }
+
+const ECON_GENRE_FLY: Partial<
+  Record<
+    EconomyNewsGenre,
+    MacroCameraHint
+  >
+> = {
+  shipping: {
+    lat: 2.5,
+    lng: 102,
+    altitude: 1.55,
+    chokepointId: "malacca",
+    layerHints: ["chokepoint", "gdelt"],
+  },
+  energy: {
+    lat: 26.6,
+    lng: 56.3,
+    altitude: 1.45,
+    chokepointId: "hormuz",
+    layerHints: ["chokepoint", "gdelt"],
+  },
+  chips: {
+    lat: 24.48,
+    lng: 119.5,
+    altitude: 1.05,
+    theater: "china-taiwan",
+    layerHints: ["gdelt"],
+  },
+  tech: {
+    lat: 37.45,
+    lng: -122.12,
+    altitude: 1.35,
+    theater: "global",
+    layerHints: ["gdelt"],
+  },
+  markets: {
+    lat: 40.75,
+    lng: -74.0,
+    altitude: 1.25,
+    theater: "global",
+    layerHints: ["gdelt"],
+  },
+  macro: {
+    lat: 38.9,
+    lng: -77.04,
+    altitude: 1.35,
+    theater: "global",
+    layerHints: ["gdelt"],
+  },
+  auto: {
+    lat: 35.5,
+    lng: 129.5,
+    altitude: 1.55,
+    theater: "korea",
+    layerHints: ["gdelt"],
+  },
+  infra: {
+    lat: 1.35,
+    lng: 103.8,
+    altitude: 1.45,
+    theater: "southeast-asia",
+    layerHints: ["gdelt"],
+  },
+};
 
 /** 도메인별 후보 테마 풀 (고정 목록) */
 export function candidateThemeIds(domain: MacroDomain): MacroThemeId[] {

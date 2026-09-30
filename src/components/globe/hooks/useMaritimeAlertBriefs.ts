@@ -7,10 +7,13 @@ import {
   buildNavareaBriefingContent,
   isSecurityCriticalNavarea,
   isUkmtoOfferWorthy,
+  localizeNavareaDisplayText,
   type NavareaBriefingContent,
 } from "@/lib/navareaSecurity";
 import {
   buildUkmtoBriefingContent,
+  localizeUkmtoIncidentType,
+  localizeUkmtoPlaceText,
   type UkmtoBriefingContent,
   type UkmtoIncidentPoint,
 } from "@/lib/ukmtoHatch";
@@ -211,7 +214,7 @@ export function useMaritimeAlertBriefs({
                 : `${kindKo} · NAVAREA ${f.region}`,
             subtitle: lang === "en" ? "Maritime security · NAVAREA" : "해상 안보 · NAVAREA",
             body:
-              f.areaHint ||
+              localizeNavareaDisplayText(f.areaHint, labelLanguage) ||
               (lang === "en"
                 ? "A new in-force navigational warning may affect nearby waters."
                 : "새로 유효해진 항행경보가 인근 해역에 영향을 줄 수 있습니다."),
@@ -233,11 +236,11 @@ export function useMaritimeAlertBriefs({
           offer: {
             key: `ukmto:${inc.id}`,
             source: "ukmto",
-            title: `UKMTO · ${inc.incidentTypeName}`,
+            title: `UKMTO · ${localizeUkmtoIncidentType(inc.incidentTypeName, lang)}`,
             subtitle: lang === "en" ? "Merchant vessel threat" : "상선 피습·나포 경보",
             body:
-              inc.place ||
-              inc.detail ||
+              localizeUkmtoPlaceText(inc.place, lang) ||
+              localizeUkmtoPlaceText(inc.detail, lang) ||
               (lang === "en"
                 ? "A new high-severity UKMTO maritime alert was reported."
                 : "고위협 UKMTO 해상 경보가 새로 보고되었습니다."),

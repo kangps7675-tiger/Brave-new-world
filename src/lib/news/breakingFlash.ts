@@ -581,8 +581,15 @@ export function buildBreakingFlashBriefing(
 ): BreakingFlashBriefing {
   const ko = lang !== "en";
   const economy = preferEconomy || hero.feedTopic === "economy";
-  const titleText = (opts?.title ?? hero.title).replace(/\s+/g, " ").trim();
-  const summaryRaw = opts?.summary ?? hero.summary;
+  // KO: titleKo || title · bodyKo || summary — EN: 원문만
+  const titleText = (
+    opts?.title ??
+    (ko ? hero.titleKo?.trim() || hero.title : hero.title)
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+  const summaryRaw =
+    opts?.summary ?? (ko ? hero.bodyKo?.trim() || hero.summary : hero.summary);
   const blob = `${titleText} ${summaryRaw ?? ""}`;
   const verbatim = Boolean(hero.verbatim || hero.flashSource === "liveuamap");
 
@@ -660,6 +667,14 @@ export async function buildBreakingFlashBriefingForLang(
 ): Promise<BreakingFlashBriefing> {
   if (lang === "en" || hero.verbatim || hero.flashSource === "liveuamap") {
     return buildBreakingFlashBriefing(hero, lang, preferEconomy, opts);
+  }
+  // 이미 titleKo가 있으면 재번역하지 않고 KO 필드 우선
+  if (hero.titleKo?.trim()) {
+    return buildBreakingFlashBriefing(hero, "ko", preferEconomy, {
+      title: hero.titleKo.trim(),
+      summary: hero.bodyKo?.trim() || hero.summary,
+      peaceScienceDomain: opts?.peaceScienceDomain,
+    });
   }
   const { title, summary } = await ensureFlashCopyKorean({
     title: hero.title,

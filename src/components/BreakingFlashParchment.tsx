@@ -49,7 +49,7 @@ export function BreakingFlashParchment({
       zIndexClass="z-[900]"
       leadImageUrl={briefing.imageUrl}
       leadVideoUrl={briefing.videoUrl}
-      secondaryCtaLabel={canFly ? t("breakingFlashGoToLocation", lang) : undefined}
+      secondaryCtaLabel={canFly ? t("breakingFlashGoObserve", lang) : undefined}
       onSecondaryCta={canFly ? onGoToLocation : undefined}
     />
   );

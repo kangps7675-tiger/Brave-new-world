@@ -246,6 +246,7 @@ export function withUnverifiedTitleMark(
 
 type NewsTitleItem = {
   title: string;
+  titleKo?: string | null;
   category?: string | null;
   source?: string | null;
   trustTier?: number | null;
@@ -254,13 +255,16 @@ type NewsTitleItem = {
 
 /** NewFeeds KO 치환만 (미확인 표기 전) — 번역 입력용 */
 export function newsTitleBase(item: NewsTitleItem, lang: LabelLanguage): string {
+  if (lang === "en") return item.title;
+  const ko = item.titleKo?.trim();
+  if (ko) return ko;
   const fromNewfeeds =
     item.category === "NewFeeds Iran" ||
     (typeof item.source === "string" && /NewFeeds/i.test(item.source));
   return fromNewfeeds ? localizeNewfeedsTitle(item.title, lang) : item.title;
 }
 
-/** 뉴스 스트림 카드 — NewFeeds Iran KO 치환 + 미확인 표기 */
+/** 뉴스 스트림 카드 — KO는 titleKo 우선, EN은 원문만 */
 export function displayNewsItemTitle(
   item: NewsTitleItem,
   lang: LabelLanguage,
@@ -269,5 +273,16 @@ export function displayNewsItemTitle(
     trustTier: item.trustTier,
     heroStatus: item.heroStatus,
   });
+}
+
+/** KO: bodyKo || summary · EN: summary만 */
+export function displayNewsItemBody(
+  item: { summary?: string | null; bodyKo?: string | null },
+  lang: LabelLanguage,
+): string | undefined {
+  if (lang === "en") return item.summary?.trim() || undefined;
+  const ko = item.bodyKo?.trim();
+  if (ko) return ko;
+  return item.summary?.trim() || undefined;
 }
 

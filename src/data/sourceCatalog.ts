@@ -62,7 +62,7 @@ export interface NewsLayerSourceNote {
 
 /** 주요 실시간 출처 — 자료출처 패널 상단·도움말에 고정 표기 */
 export type PrimaryLiveSource = {
-  id: "nasa-firms" | "adsb" | "marinetraffic";
+  id: "nasa-firms" | "adsb" | "marinetraffic" | "liveuamap";
   nameKo: string;
   nameEn: string;
   product: string;
@@ -101,6 +101,16 @@ export const PRIMARY_LIVE_SOURCES: PrimaryLiveSource[] = [
     layers: "선박 AIS (/api/ais) · 위장선박 (/api/ais-disguised)",
     noteKo:
       "민간 화물·탱커·여객 등. MarineTraffic 키 실패 시 AISstream 폴백. 위장·다크플리트 시드는 AIS_Tracker(https://github.com/arandomguyhere/AIS_Tracker.git). 지도 표기: MarineTraffic · AIS.",
+  },
+  {
+    id: "liveuamap",
+    nameKo: "Liveuamap",
+    nameEn: "Live Universal Awareness Map",
+    product: "mpts API · areas of control (GeoJSON)",
+    url: "https://liveuamap.com/",
+    layers: "전선 속보·통제면 (/api/liveuamap · Cesium 핀/fill)",
+    noteKo:
+      "유료 API. 데이터·타일·영역 폴리곤은 liveuamap.com 참조와 함께 이용 가능(About/ToS). 서버만 키로 sync. 지도·양피지 표기: Liveuamap.",
   },
 ];
 
@@ -1264,12 +1274,12 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Cron budgeted resid rotation · client poll 60s (cache only)",
     attribution: "Liveuamap — frontline OSINT (approximate geolocation)",
     notes:
-      "서버만 LIVEUAMAP_API_KEY로 mpts 호출. 일 200 캡·regions 슬롯. Cesium 쪽지/독/양피지·핀. KO는 sync 시 titleKo/bodyKo.",
+      "서버만 LIVEUAMAP_API_KEY로 mpts 호출. 일 200 캡·regions 슬롯. Cesium 쪽지/독/양피지·핀. KO는 sync 시 titleKo/bodyKo. 출처 표기: liveuamap.com.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "license-required",
+    commercialUse: "allowed",
     commercialNote:
-      "Liveuamap API 키·약관 준수. 클라 직접 호출 금지. 계약 확인 전까지 license-required.",
+      "Liveuamap About/ToS: data·map tiles·area polygons may be used in your work with reference to liveuamap.com; paid API for integrating into software. 3rd-party photos/text via source link remain under original network ToS. 서버 전용 키·attribution 유지.",
   },
   {
     layerId: "liveuamap-control-polygons",
@@ -1278,11 +1288,12 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Same sync as events · empty fields → layer off",
     attribution: "Liveuamap — areas of control (approx. geocoding)",
     notes:
-      "점령면 본선. 가짜 면 생성 금지. 우크라는 LiveUA 우선·DeepState 폴백(resolveUkraineOccupied). YE/LB는 LiveUA만.",
+      "점령면 본선. 가짜 면 생성 금지. 우크라는 LiveUA 우선·DeepState 폴백(resolveUkraineOccupied). YE/LB는 LiveUA만. 출처 표기: liveuamap.com.",
     status: "shipped",
     ingest: "cached-api",
-    commercialUse: "license-required",
-    commercialNote: "docs/third-party/liveuamap.md · DeepState 폴백은 deepstate-ukraine-occupied.",
+    commercialUse: "allowed",
+    commercialNote:
+      "동일 Liveuamap ToS(영역 폴리곤 포함, liveuamap.com 참조). DeepState 폴백 레이어는 별도 license-required.",
   },
   {
     layerId: "deepstate-ukraine-occupied",

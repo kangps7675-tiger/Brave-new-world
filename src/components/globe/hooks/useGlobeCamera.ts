@@ -21,6 +21,8 @@ import {
   COMPACT_THEATER_MAX_SPAN_DEG,
   ORBITAL_OVERVIEW_ALTITUDE,
   THEATER_ENTRY_MIN_ALTITUDE,
+  resolveCinematicCamera,
+  resolveCinematicDurationMs,
 } from "@/lib/globeCamera";
 import {
   HISTORY_IMMERSION_MAX_ALTITUDE,
@@ -270,20 +272,22 @@ export function useGlobeCamera({
       lat: number,
       lng: number,
       altitude = 1.18,
-      durationMs = 850,
+      durationMs?: number,
       camera?: { pitch?: number; bearing?: number },
     ) => {
       const clampedAlt = clampGlobeAltitude(altitude);
+      const resolvedDuration = resolveCinematicDurationMs(durationMs);
+      const resolvedCamera = resolveCinematicCamera(camera);
       pendingFlyTargetRef.current = {
         lat,
         lng,
         altitude: clampedAlt,
-        pitch: camera?.pitch,
-        bearing: camera?.bearing,
+        pitch: resolvedCamera.pitch,
+        bearing: resolvedCamera.bearing,
       };
 
-      const busyMs = cameraFlyBusyMs(durationMs);
-      cameraTweenUntilRef.current = cameraBusyUntilAfterFly(durationMs);
+      const busyMs = cameraFlyBusyMs(resolvedDuration);
+      cameraTweenUntilRef.current = cameraBusyUntilAfterFly(resolvedDuration);
       isCameraMovingRef.current = true;
       setIsCameraMoving(true);
 
@@ -300,10 +304,10 @@ export function useGlobeCamera({
           lat,
           lng,
           altitude: clampedAlt,
-          pitch: camera?.pitch,
-          bearing: camera?.bearing,
+          pitch: resolvedCamera.pitch,
+          bearing: resolvedCamera.bearing,
         },
-        durationMs,
+        resolvedDuration,
       );
 
       flyBusyTimerRef.current = window.setTimeout(() => {

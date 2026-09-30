@@ -71,6 +71,12 @@ export type LayerCategory = {
 const OPEN_STATE_KEY = "geowatch-layer-categories-open-v1";
 const CAUTION_BUBBLE_MS = 2800;
 
+/**
+ * Job 밖 심화 카테고리 — 「고급」 뒤로 접는다.
+ * conflict/military/energy/economy/transport 는 1차 노출.
+ */
+const ADVANCED_LAYER_CATEGORY_IDS = new Set(["map", "live", "intel"]);
+
 function accentClass(accent: LayerToggleAccent) {
   switch (accent) {
     case "red":
@@ -557,42 +563,20 @@ export function LayerCategoryPanel({
       )
     : 0;
 
-  return (
-    <div className="space-y-2">
-      {/* 레이어 검색 (P1-3) — 100개 넘는 목록에서 이름으로 바로 찾는다 */}
-      <div className="relative">
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t("layerSearchPlaceholder")}
-          aria-label={t("layerSearchPlaceholder")}
-          className="min-h-[var(--tap-target-min)] w-full rounded-lg border border-slate-700/80 bg-black/30 px-3 py-2 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
-        />
-        {searching ? (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            aria-label={t("layerSearchClear")}
-            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded text-slate-400 transition hover:text-slate-100"
-          >
-            ✕
-          </button>
-        ) : null}
-      </div>
-      {searching ? (
-        <p className="px-1 text-meta text-slate-500">
-          {matchCount > 0
-            ? t("layerSearchCount").replace("{n}", String(matchCount))
-            : t("layerSearchEmpty")}
-        </p>
-      ) : null}
-      {batchStatus ? (
-        <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-2 text-meta leading-4 text-sky-100/90">
-          {batchStatus}
-        </p>
-      ) : null}
-      {visibleCategories.map((category) => {
+  const primaryCategories = searching
+    ? visibleCategories
+    : visibleCategories.filter((c) => !ADVANCED_LAYER_CATEGORY_IDS.has(c.id));
+  const advancedCategories = searching
+    ? []
+    : visibleCategories.filter((c) => ADVANCED_LAYER_CATEGORY_IDS.has(c.id));
+  /** 역사 모드처럼 1차가 비면 접지 않음 — 전부 바로 노출 */
+  const foldAdvanced =
+    !searching && primaryCategories.length > 0 && advancedCategories.length > 0;
+  const advancedHasActive = advancedCategories.some((category) =>
+    category.items.some((item) => countLayerLeaves(item).on > 0),
+  );
+
+  const renderCategory = (category: LayerCategory) => {
         const activeCount = category.items.reduce((n, item) => n + countLayerLeaves(item).on, 0);
         const totalCount = category.items.reduce((n, item) => n + countLayerLeaves(item).total, 0);
         // 검색 중에는 결과를 바로 보여준다 — 다시 펼치게 하지 않는다
@@ -761,7 +745,69 @@ export function LayerCategoryPanel({
             ) : null}
           </div>
         );
-      })}
+  };
+
+  return (
+    <div className="space-y-2">
+      {/* 레이어 검색 (P1-3) — 100개 넘는 목록에서 이름으로 바로 찾는다 */}
+      <div className="relative">
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t("layerSearchPlaceholder")}
+          aria-label={t("layerSearchPlaceholder")}
+          className="min-h-[var(--tap-target-min)] w-full rounded-lg border border-slate-700/80 bg-black/30 px-3 py-2 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+        />
+        {searching ? (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label={t("layerSearchClear")}
+            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded text-slate-400 transition hover:text-slate-100"
+          >
+            ✕
+          </button>
+        ) : null}
+      </div>
+      {searching ? (
+        <p className="px-1 text-meta text-slate-500">
+          {matchCount > 0
+            ? t("layerSearchCount").replace("{n}", String(matchCount))
+            : t("layerSearchEmpty")}
+        </p>
+      ) : null}
+      {batchStatus ? (
+        <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-2 text-meta leading-4 text-sky-100/90">
+          {batchStatus}
+        </p>
+      ) : null}
+      {(foldAdvanced ? primaryCategories : visibleCategories).map(renderCategory)}
+      {foldAdvanced ? (
+        <details
+          className="rounded-lg border border-slate-800/70 bg-slate-950/20"
+          open={advancedHasActive || undefined}
+        >
+          <summary className="cursor-pointer list-none px-3 py-2.5 marker:content-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="block text-sm font-medium text-slate-200">
+                  {t("layerAdvanced")}
+                </span>
+                <span className="block text-meta text-slate-500">
+                  {t("layerAdvancedHint")}
+                </span>
+              </div>
+              <span className="shrink-0 text-xs text-slate-500">
+                {advancedCategories.length}
+              </span>
+            </div>
+          </summary>
+          <div className="space-y-2 border-t border-slate-800/70 px-2 py-2">
+            {advancedCategories.map(renderCategory)}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

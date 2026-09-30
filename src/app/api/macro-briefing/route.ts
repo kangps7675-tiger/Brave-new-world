@@ -28,6 +28,7 @@ function toMacroRss(item: NewsStreamItem & Partial<MacroRssInputItem>): MacroRss
   return {
     id: item.id,
     title: item.title,
+    titleKo: item.titleKo,
     link: item.link,
     source: item.source,
     publisher: item.publisher,
@@ -37,6 +38,7 @@ function toMacroRss(item: NewsStreamItem & Partial<MacroRssInputItem>): MacroRss
     feedTopic: item.feedTopic,
     econGenre: item.econGenre,
     summary: item.summary,
+    bodyKo: item.bodyKo,
     urgencyScore: item.urgencyScore,
     breakingGrade: item.breakingGrade,
     ageMinutes: item.ageMinutes,

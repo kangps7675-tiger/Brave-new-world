@@ -70,6 +70,53 @@ function kindLabel(kind: NavareaSecurityKind, lang: LabelLanguage): string {
   return "항행 안보 경보";
 }
 
+/** NAVAREA 공식 EN TXT → KO 표시용 용어·지명 치환 */
+const NAVAREA_PHRASE_KO: Array<[RegExp, string]> = [
+  [/\bGUNNERY\s*EXERCISE\b/gi, "사격 훈련"],
+  [/\bLIVE\s*FIRE\b/gi, "실사격"],
+  [/\bGUN\s*FIRE\b/gi, "함포 사격"],
+  [/\bNAVAL\s*EXERCISE\b/gi, "해상 훈련"],
+  [/\bMILITARY\s*EXERCISE\b/gi, "군사 훈련"],
+  [/\bEXERCISE\b/gi, "훈련"],
+  [/\bFIRING\b/gi, "사격"],
+  [/\bMISSILE\b/gi, "미사일"],
+  [/\bROCKET\b/gi, "로켓"],
+  [/\bBALLISTIC\b/gi, "탄도"],
+  [/\bSPACE\s*LAUNCH\b/gi, "우주발사"],
+  [/\bLAUNCH\s*WINDOW\b/gi, "발사 창"],
+  [/\bRE[\s-]?ENTRY\b/gi, "재진입"],
+  [/\bFALLING\s*OBJECT\b/gi, "낙하물"],
+  [/\bHAZARDOUS\b/gi, "위험"],
+  [/\bDANGER\s*AREA\b/gi, "위험 구역"],
+  [/\bPROHIBITED\b/gi, "금지"],
+  [/\bCANCELLED\b/gi, "취소됨"],
+  [/\bIN[\s-]?FORCE\b/gi, "유효"],
+  [/\bYellow\s*Sea\b/gi, "황해"],
+  [/\bEast\s*China\s*Sea\b/gi, "동중국해"],
+  [/\bSouth\s*China\s*Sea\b/gi, "남중국해"],
+  [/\bSea\s*of\s*Japan\b/gi, "동해"],
+  [/\bEast\s*Sea\b/gi, "동해"],
+  [/\bPacific\s*Ocean\b/gi, "태평양"],
+  [/\bNorth\s*Korea\b/gi, "북한"],
+  [/\bSouth\s*Korea\b/gi, "한국"],
+  [/\bJapan\b/gi, "일본"],
+  [/\bChina\b/gi, "중국"],
+  [/\bRussia\b/gi, "러시아"],
+  [/\bNM\b/g, "해리"],
+  [/\bUTC\b/g, "UTC"],
+];
+
+export function localizeNavareaDisplayText(
+  text: string | null | undefined,
+  lang: LabelLanguage,
+): string {
+  const raw = text?.replace(/\s+/g, " ").trim() || "";
+  if (!raw || lang === "en") return raw;
+  let out = raw;
+  for (const [re, ko] of NAVAREA_PHRASE_KO) out = out.replace(re, ko);
+  return out.replace(/\s{2,}/g, " ").trim();
+}
+
 /** 본문에서 브리프용 짧은 문장 뽑기 */
 function summarizeBody(description: string, maxLen = 280): string {
   const one = description.replace(/\s+/g, " ").trim();
@@ -84,9 +131,15 @@ export function buildNavareaBriefingContent(
   const coords = featureCoords(feature);
   if (!coords) return null;
   const kind = classifyNavareaSecurity(feature) ?? "other-security";
-  const area = feature.areaHint || (lang === "en" ? "Reported waters" : "보고 해역");
+  const areaRaw = feature.areaHint || "";
+  const area =
+    localizeNavareaDisplayText(areaRaw, lang) ||
+    (lang === "en" ? "Reported waters" : "보고 해역");
   const when = feature.date?.trim() || null;
-  const body = summarizeBody(feature.description);
+  const body = localizeNavareaDisplayText(
+    summarizeBody(feature.description),
+    lang,
+  );
 
   if (lang === "en") {
     return {

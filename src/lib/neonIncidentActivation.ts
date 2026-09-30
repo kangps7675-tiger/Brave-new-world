@@ -22,6 +22,7 @@ import {
   KOREA_MISSILE_INCIDENTS,
   type KoreaMissileIncident,
 } from "@/data/koreaMissileIncidentsSeed";
+import { KOREA_MISSILE_LAUNCHES } from "@/data/koreaMissileLaunchesSeed";
 import {
   RUSSIA_STRIKE_INCIDENTS,
   type RussiaStrikeIncident,
@@ -345,8 +346,31 @@ export function activateKoreaMissileIncidents(
     );
   }
 
-  if (out.length > 0) return out;
-  return koreaSeedFallback();
+  if (out.length > 0) {
+    return [...koreaLaunchChronicle(), ...out];
+  }
+  return [...koreaLaunchChronicle(), ...koreaSeedFallback()];
+}
+
+/** 미사일 레이어 ON 시 역대 발사 점 — conflict-events legacy 교체 후에도 유지 */
+export function activateKoreaMissileLaunchChronicle(): (KoreaMissileIncident &
+  ProvenanceFields)[] {
+  return koreaLaunchChronicle();
+}
+
+function koreaLaunchChronicle(): (KoreaMissileIncident & ProvenanceFields)[] {
+  return KOREA_MISSILE_LAUNCHES.map((launch) =>
+    withProvenance(
+      {
+        ...launch,
+        id: `hist-nk-${launch.id}`,
+        intensity: Math.max(0.4, launch.intensity * 0.7),
+        bodyKo: `${launch.launchedAt} · ${launch.bodyKo}`,
+        bodyEn: `${launch.launchedAt} · ${launch.bodyEn}`,
+      },
+      { hadSeedMatch: true, seedSourceUrl: null, gdeltSourceUrl: null },
+    ),
+  );
 }
 
 function russiaStrikeFallback(): (RussiaStrikeIncident & ProvenanceFields)[] {
