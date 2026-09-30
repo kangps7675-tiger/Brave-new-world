@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { trustChipLabel, type TrustLang } from "@/data/newsTrustTiers";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
-import { activeSourceCredits } from "@/lib/layerAttribution";
+import { activeSourceCredits, type SourceCredit } from "@/lib/layerAttribution";
 import type { BasemapMode } from "@/lib/basemapMode";
 
 type MapAttributionBarProps = {
@@ -12,6 +12,8 @@ type MapAttributionBarProps = {
   layerPrefs: LayerPrefs | null;
   /** 지형 모드일 때만 위성 사진(Esri) 출처를 추가로 노출 */
   basemapMode?: BasemapMode;
+  /** 레이어 pref와 무관하게 항상 붙일 출처 (예: Cesium LiveUA) */
+  extraCredits?: SourceCredit[];
   /** 클릭 시 전체 자료출처·방법론 패널 열기 */
   onOpenSources: () => void;
   /** 8개 책갈피 양피지 안내서 */
@@ -39,13 +41,25 @@ export function MapAttributionBar({
   lang,
   layerPrefs,
   basemapMode,
+  extraCredits,
   onOpenSources,
   onOpenParchment,
   onOpenTrust,
   className = "",
 }: MapAttributionBarProps) {
   const en = lang === "en";
-  const credits = useMemo(() => activeSourceCredits(layerPrefs), [layerPrefs]);
+  const credits = useMemo(() => {
+    const base = activeSourceCredits(layerPrefs);
+    if (!extraCredits?.length) return base;
+    const seen = new Set(base.map((c) => c.label));
+    const merged = [...base];
+    for (const c of extraCredits) {
+      if (seen.has(c.label)) continue;
+      seen.add(c.label);
+      merged.push(c);
+    }
+    return merged;
+  }, [layerPrefs, extraCredits]);
   const shown = credits.slice(0, MAX_SHOWN);
   const extra = credits.length - shown.length;
   const trustLabel = trustChipLabel(toTrustLang(lang));

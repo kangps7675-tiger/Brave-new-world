@@ -62,7 +62,7 @@ export interface NewsLayerSourceNote {
 
 /** 주요 실시간 출처 — 자료출처 패널 상단·도움말에 고정 표기 */
 export type PrimaryLiveSource = {
-  id: "nasa-firms" | "adsb" | "marinetraffic";
+  id: "nasa-firms" | "adsb" | "marinetraffic" | "liveuamap";
   nameKo: string;
   nameEn: string;
   product: string;
@@ -101,6 +101,16 @@ export const PRIMARY_LIVE_SOURCES: PrimaryLiveSource[] = [
     layers: "선박 AIS (/api/ais) · 위장선박 (/api/ais-disguised)",
     noteKo:
       "민간 화물·탱커·여객 등. MarineTraffic 키 실패 시 AISstream 폴백. 위장·다크플리트 시드는 AIS_Tracker(https://github.com/arandomguyhere/AIS_Tracker.git). 지도 표기: MarineTraffic · AIS.",
+  },
+  {
+    id: "liveuamap",
+    nameKo: "Liveuamap",
+    nameEn: "Live Universal Awareness Map",
+    product: "mpts API · areas of control (GeoJSON)",
+    url: "https://liveuamap.com/",
+    layers: "전선 속보·통제면 (/api/liveuamap · Cesium 핀/fill)",
+    noteKo:
+      "유료 API. 데이터·타일·영역 폴리곤은 liveuamap.com 참조와 함께 이용 가능(About/ToS). 서버만 키로 sync. 지도·양피지 표기: Liveuamap.",
   },
 ];
 

@@ -250,8 +250,8 @@ const UI = {
   hoverHelpOpenAria: { ko: "도움말 열기", en: "Open help" },
   hoverSources: { ko: "자료출처", en: "Sources" },
   hoverSourcesHint: {
-    ko: "NASA FIRMS · ADS-B · MarineTraffic 및 GDELT, VIINA 등 데이터 라이선스·출처·면책 안내를 봅니다.",
-    en: "Licenses and attribution for NASA FIRMS, ADS-B, MarineTraffic, GDELT, VIINA, and more.",
+    ko: "NASA FIRMS · ADS-B · MarineTraffic · Liveuamap 및 GDELT, VIINA 등 데이터 라이선스·출처·면책 안내를 봅니다.",
+    en: "Licenses and attribution for NASA FIRMS, ADS-B, MarineTraffic, Liveuamap, GDELT, VIINA, and more.",
   },
   hoverSourcesAria: { ko: "자료출처 및 라이선스", en: "Sources and licenses" },
   shareView: { ko: "공유", en: "Share" },

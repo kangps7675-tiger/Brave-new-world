@@ -10007,12 +10007,17 @@ export function GlobeDashboard({
           {...mapGlobeProps}
         />
 
-        {/* 지구본 뷰(데스크톱·태블릿)에 상시 노출되는 출처 크레딧 — 폰은 MobileHomeView가 담당 */}
-        {!isPhoneUi && !isSatelliteViewer ? (
+        {/* 지구본·Cesium 공통 출처 크레딧 */}
+        {!isPhoneUi ? (
           <MapAttributionBar
             lang={labelLanguage}
             layerPrefs={layerPrefs}
             basemapMode={basemapMode}
+            extraCredits={
+              isSatelliteViewer
+                ? [{ label: "Liveuamap", url: "https://liveuamap.com/" }]
+                : undefined
+            }
             onOpenSources={() => setShowSourcesPanel(true)}
             onOpenParchment={() => setShowDataSourceParchment(true)}
             onOpenTrust={() => setShowTrustPanel(true)}
@@ -10071,6 +10076,15 @@ export function GlobeDashboard({
                   : liveuaFeed?.status === "error"
                     ? t("liveuaFeedStatusError", labelLanguage)
                     : t("liveuaFeedStatusIdle", labelLanguage)}
+                {" · "}
+                <a
+                  href="https://liveuamap.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-teal-400/40 underline-offset-2 hover:text-teal-50"
+                >
+                  liveuamap.com
+                </a>
               </span>
             </div>
             <StockTickerStrip

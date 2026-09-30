@@ -94,7 +94,7 @@ AI/ML 학습 사용도 제한한다.
 ## Liveuamap (유료 API · 상업 허용) / DeepState 폴백
 
 - **Liveuamap** (`liveuamap-frontline-events`, `liveuamap-control-polygons`) — About/ToS상 data·tiles·polygons를 **liveuamap.com 참조와 함께** 작업·소프트웨어 통합에 쓸 수 있음. 유료 API 플랜. `commercialUse: "allowed"`. 상세: `docs/third-party/liveuamap.md`
-- **DeepStateMap.live** (우크라 점령 좌표 폴백) — API는 상업 사전 승인제. LiveUA 면이 없을 때만 (`deepstate-ukraine-occupied`, `license-required`). LiveUA 안정 시 warm 축소. 상세: `docs/third-party/deepstatemap.md`
+- DeepStateMap.live** (우크라 점령 좌표 폴백) — API는 상업 사전 승인제. LiveUA 면이 없을 때만 (`deepstate-ukraine-occupied`, `license-required`). **`/api/deepstate/sync`는 LiveUA 우크라 통제면이 있으면 DeepState live fetch를 skip.** LiveUA 안정 시 `DEEPSTATE_SYNC_URL`을 비워 warm 자체를 끌 수 있음. 상세: `docs/third-party/deepstatemap.md`
 
 ## 확인만 하면 되는 것 (6) — 가장 싸게 늘릴 수 있다
 
