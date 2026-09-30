@@ -462,9 +462,7 @@ export function UtilityChromeMenu({
           id={menuId}
           role="menu"
           aria-label={copy.trigger}
-          className={`absolute top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
-            menuAlign === "left" ? "left-0" : "right-0"
-          } ${
+          className={`absolute top-[calc(100%+0.4rem)] right-0 z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
             light
               ? "border-slate-200 bg-white"
               : "border-sky-300/20 bg-[#0c1a2e]/94 backdrop-blur-md"
