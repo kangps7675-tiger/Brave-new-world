@@ -48,7 +48,6 @@ import {
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
-import { attachGibsAerosolSmoke } from "@/lib/cesiumGibsSmoke";
 import {
   attachFirmsFirePulse,
   syncFirmsFireEntities,
@@ -980,7 +979,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     let canvasEl: HTMLCanvasElement | null = null;
     let onContextLost: ((ev: Event) => void) | null = null;
     let detachDayNight: (() => void) | null = null;
-    let detachSmoke: (() => void) | null = null;
     let detachFirmsPulse: (() => void) | null = null;
     let detachMissilePulse: (() => void) | null = null;
     let detachAirRaidPulse: (() => void) | null = null;
@@ -1054,7 +1052,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.show = true;
         }
-        viewer.scene.fog.enabled = true;
+        // fog/지면대기는 궤도 거리에서 위성 텍스처를 희뿌옇게 만듦 — 림 glow만 skyAtmosphere
+        viewer.scene.fog.enabled = false;
         // 낮/밤은 attachRealtimeDayNight에서 enableLighting=true + 실시간 시계로 맞춤
         viewer.scene.globe.enableLighting = false;
 
@@ -1368,11 +1367,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             console.warn("[CesiumSatelliteGlobe] day/night:", err);
           }
           try {
-            detachSmoke = attachGibsAerosolSmoke(Cesium, viewer);
-          } catch (err) {
-            console.warn("[CesiumSatelliteGlobe] GIBS aerosol:", err);
-          }
-          try {
             detachFirmsPulse = attachFirmsFirePulse(Cesium, viewer);
             detachMissilePulse = attachMissileLaunchPulse(Cesium, viewer);
             detachAirRaidPulse = attachAirRaidZonePulse(Cesium, viewer);
@@ -1443,12 +1437,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         /* ignore */
       }
       detachDayNight = null;
-      try {
-        detachSmoke?.();
-      } catch {
-        /* ignore */
-      }
-      detachSmoke = null;
       try {
         detachFirmsPulse?.();
       } catch {
