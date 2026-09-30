@@ -11052,6 +11052,7 @@ export function GlobeDashboard({
         onSetShowFirstVisitTour={setShowFirstVisitTour}
         onSetTourActive={setTourActive}
         getSceneForShare={getSceneForShareResolved}
+        onSetSentinelActive={setSentinelActive}
         onSetPlayOverlay={setPlayOverlay}
         onSetShowCityLabels={setShowCityLabels}
         onEndLiveBriefing={endLiveBriefing}
