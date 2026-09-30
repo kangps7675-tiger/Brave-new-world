@@ -22,6 +22,8 @@ describe("liveuaFlashMarketContext", () => {
       theater: "middle-east",
       lat: 26.6,
       lng: 56.3,
+      title: "Hormuz incident",
+      body: "Shipping disruption near Strait of Hormuz",
     });
     expect(ctx.symbols.length).toBeGreaterThan(0);
     expect(ctx.symbols.length).toBeLessThanOrEqual(3);
@@ -35,6 +37,8 @@ describe("liveuaFlashMarketContext", () => {
       theater: "russia-ukraine",
       lat: 48.4,
       lng: 31.2,
+      title: "Frontline update",
+      body: "Activity reported inland",
     });
     expect(ctx.chokepoint).toBeNull();
     expect(ctx.symbols).toContain("ZW=F");
