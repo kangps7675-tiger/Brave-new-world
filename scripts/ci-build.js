@@ -7,6 +7,8 @@
  *
  * OpenNext itself runs `npm run build` for the Next.js step. Without a guard,
  * WORKERS_CI stays set and we recurse until the Workers Builds 20m timeout.
+ *
+ * Staging path: non-production Workers Builds should validate `dev` before main.
  */
 const { spawnSync } = require("child_process");
 const path = require("path");
