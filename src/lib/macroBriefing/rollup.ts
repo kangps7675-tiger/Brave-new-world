@@ -1,6 +1,8 @@
 import { uniqueSourceKey } from "@/lib/conflictEvents/confidence";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { assignGdeltTheme, assignRssTheme } from "./assignTheme";
+import { cameraForGdeltFocus, cameraForRssItem, cameraForTopic } from "./camera";
+import { marketHintForTheme } from "./marketAssets";
 import {
   avgGdeltTension,
   computeThemeHeat,
@@ -13,13 +15,13 @@ import {
 import {
   catalystStepBody,
   gdeltDensityStepBody,
+  macroRssDisplayTitle,
   rssClusterStepBody,
   topicLeadTitle,
 } from "./narrative";
-import { cameraForTheme, candidateThemeIds, parseMacroThemeId } from "./themes";
+import { candidateThemeIds, parseMacroThemeId } from "./themes";
 import type {
   MacroBriefingPayload,
-  MacroCameraHint,
   MacroDomain,
   MacroGdeltInputEvent,
   MacroRssInputItem,
@@ -65,22 +67,6 @@ function sortRssByUrgency(items: MacroRssInputItem[]): MacroRssInputItem[] {
   });
 }
 
-function centroid(events: MacroGdeltInputEvent[]): MacroCameraHint | null {
-  if (events.length === 0) return null;
-  let lat = 0;
-  let lng = 0;
-  for (const e of events) {
-    lat += e.lat;
-    lng += e.lng;
-  }
-  return {
-    lat: lat / events.length,
-    lng: lng / events.length,
-    altitude: 1.45,
-    layerHints: ["gdelt", "conflictEvents"],
-  };
-}
-
 function buildSteps(
   bucket: Bucket,
   lang: LabelLanguage,
@@ -91,19 +77,19 @@ function buildSteps(
   const trust = trustBadgeFromRss(bucket.rss);
   const gdelt24 = filterGdeltLast24h(bucket.gdelt);
   const dens = densityBadgeFromGdelt(gdelt24.length, avgGdeltTension(gdelt24));
-  const baseCam = cameraForTheme(bucket.themeId);
-  const gdeltCam = centroid(gdelt24) ?? baseCam;
+  const gdeltCam = cameraForGdeltFocus(gdelt24, bucket.themeId, bucket.rss);
 
   if (sorted[0]) {
     const item = sorted[0];
+    const displayTitle = macroRssDisplayTitle(item, lang);
     steps.push({
       id: `${bucket.themeId}:catalyst`,
       kind: "rss-catalyst",
       body: catalystStepBody(item, bucket.themeId, lang),
-      headline: item.title,
+      headline: displayTitle,
       sources: [
         {
-          title: item.title,
+          title: displayTitle,
           url: item.link,
           source: item.source,
           trustTier: item.trustTier,
@@ -111,14 +97,15 @@ function buildSteps(
       ],
       trustBadge: trust,
       densityBadge: null,
-      camera: baseCam,
+      camera: cameraForRssItem(item, bucket.themeId),
     });
   }
 
   if (sorted.length >= 2 && indep.length >= 2 && trust) {
     const sample = sorted[1] ?? sorted[0];
+    const sampleTitle = macroRssDisplayTitle(sample, lang);
     const sources = sorted.slice(0, 4).map((item) => ({
-      title: item.title,
+      title: macroRssDisplayTitle(item, lang),
       url: item.link,
       source: item.source,
       trustTier: item.trustTier,
@@ -137,15 +124,15 @@ function buildSteps(
       body: rssClusterStepBody({
         themeId: bucket.themeId,
         independentSources: indep.length,
-        sampleTitle: sample.title,
+        sampleTitle,
         trust,
         lang,
       }),
-      headline: sample.title,
+      headline: sampleTitle,
       sources: uniqueSources,
       trustBadge: trust,
       densityBadge: null,
-      camera: baseCam,
+      camera: cameraForRssItem(sample, bucket.themeId),
     });
   }
 
@@ -173,7 +160,7 @@ function buildSteps(
       sources: gdeltSources,
       trustBadge: null,
       densityBadge: dens,
-      camera: { ...gdeltCam, chokepointId: baseCam.chokepointId, theater: baseCam.theater },
+      camera: gdeltCam,
     });
   }
 
@@ -190,26 +177,27 @@ function buildSteps(
     if (steps.length >= MAX_STEPS) break;
     if (group.length < 2) continue;
     const head = group[0];
+    const headTitle = macroRssDisplayTitle(head, lang);
     steps.push({
       id: `${bucket.themeId}:micro:${clusterKey(head.title)}`,
       kind: "rss-cluster",
       body: rssClusterStepBody({
         themeId: bucket.themeId,
         independentSources: rssIndependentKeys(group).length,
-        sampleTitle: head.title,
+        sampleTitle: headTitle,
         trust: trustBadgeFromRss(group) ?? "single-source",
         lang,
       }),
-      headline: head.title,
+      headline: headTitle,
       sources: group.slice(0, 3).map((item) => ({
-        title: item.title,
+        title: macroRssDisplayTitle(item, lang),
         url: item.link,
         source: item.source,
         trustTier: item.trustTier,
       })),
       trustBadge: trustBadgeFromRss(group),
       densityBadge: null,
-      camera: baseCam,
+      camera: cameraForRssItem(head, bucket.themeId),
     });
   }
 
@@ -233,9 +221,20 @@ function bucketToTopic(
   const steps = buildSteps(bucket, lang);
   if (steps.length === 0) return null;
 
-  const catalyst = sortRssByUrgency(bucket.rss)[0]?.title ?? null;
+  const topRss = sortRssByUrgency(bucket.rss)[0];
+  const catalyst = topRss ? macroRssDisplayTitle(topRss, lang) : null;
   const { kind } = parseMacroThemeId(bucket.themeId);
   const surging = dens === "surge" || dens === "high";
+  const market = marketHintForTheme(bucket.themeId, lang);
+  const marketAgeMinutes =
+    topRss?.ageMinutes != null && Number.isFinite(topRss.ageMinutes)
+      ? Math.max(0, Math.round(topRss.ageMinutes))
+      : topRss?.pubDate
+        ? Math.max(
+            0,
+            Math.round((Date.now() - new Date(topRss.pubDate).getTime()) / 60_000),
+          )
+        : null;
 
   return {
     id: bucket.themeId,
@@ -254,7 +253,12 @@ function bucketToTopic(
       surging,
     }),
     steps,
-    camera: centroid(gdelt24) ?? cameraForTheme(bucket.themeId),
+    camera: cameraForTopic(bucket.themeId, topRss ?? null, gdelt24, bucket.rss),
+    marketSymbols: market.symbols,
+    marketNote: market.note,
+    marketTheater: market.theater,
+    marketChokepointId: market.chokepointId,
+    marketAgeMinutes,
   };
 }
 

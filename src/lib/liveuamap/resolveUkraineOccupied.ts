@@ -1,5 +1,6 @@
 /**
- * 우크라 점령면 해석 — LiveUA 우선, DeepState 폴백.
+ * 우크라 점령면 해석 — LiveUA 우선, DeepState 폴백(MapLibre).
+ * Cesium 경로는 `liveuaOnly: true` — DeepState/정적 JSON 금지.
  */
 
 import { readOccupiedSnapshotForClient } from "@/lib/deepstate/refreshOccupied";
@@ -13,14 +14,29 @@ export type UkraineOccupiedResolve = {
   error?: string;
 };
 
-/** LiveUA D1/메모리 → 없으면 DeepState 3일 스냅샷(필요 시 갱신). */
-export async function resolveUkraineOccupied(): Promise<UkraineOccupiedResolve> {
+export type ResolveUkraineOccupiedOptions = {
+  /** true면 LiveUA만 반환. 없으면 empty (DeepState 폴백·워밍 금지). */
+  liveuaOnly?: boolean;
+};
+
+/** LiveUA D1/메모리 → (liveuaOnly가 아니면) DeepState 3일 스냅샷. */
+export async function resolveUkraineOccupied(
+  options?: ResolveUkraineOccupiedOptions,
+): Promise<UkraineOccupiedResolve> {
   const liveua = await readLiveuaUkraineOccupied();
   if (liveua?.features.length) {
     return {
       occupied: liveua,
       source: "liveuamap",
       skipped: true,
+    };
+  }
+
+  if (options?.liveuaOnly) {
+    return {
+      occupied: emptyOccupiedGeoJson(),
+      source: "empty",
+      error: "LiveUA control polygons unavailable",
     };
   }
 

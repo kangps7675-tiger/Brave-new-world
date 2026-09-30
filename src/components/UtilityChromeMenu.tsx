@@ -20,6 +20,9 @@ type UtilityChromeMenuProps = {
   showProTip?: boolean;
   /** 현재 프레임 스냅샷 (MapGlobeMethods.captureFrame) — preserveDrawingBuffer 미사용 */
   captureFrame: () => Promise<HTMLCanvasElement | null>;
+  /** 관측(Cesium) 짧은 클립 녹화 — 없으면 메뉴 항목 숨김 */
+  recordClip?: () => Promise<void>;
+  recordClipBusy?: boolean;
   /** 카메라·모드·레이어 스냅샷 — 진짜 장면 딥링크(?scene=…)용 */
   getScene?: () => {
     mode: ViewerMode;
@@ -32,6 +35,7 @@ type UtilityChromeMenuProps = {
   onTour: () => void;
   onHelp: () => void;
   onOpenSources?: () => void;
+  onOpenPurposeJob?: () => void;
   onOpenParchment?: () => void;
   /** Nullschool식 — 장면 모드 피커 */
   onSceneStart?: () => void;
@@ -48,9 +52,9 @@ const MENU_COPY = {
   ko: {
     trigger: "메뉴",
     triggerAria: "유틸리티 메뉴 열기",
-    layers: "레이어",
-    settings: "설정",
-    data: "데이터",
+    layers: "지도에 올릴 것",
+    settings: "화면 설정",
+    data: "데이터·출처",
     tour: "투어",
     discord: "디스코드",
     sceneLink: "장면 링크",
@@ -59,16 +63,19 @@ const MENU_COPY = {
     share: "공유",
     shareBusy: "공유 중…",
     help: "도움말",
+    purposeJob: "무엇을 볼까요?",
     sources: "데이터 출처",
     parchment: "출처 양피지 (8)",
-    sceneStart: "장면 시작",
+    sceneStart: "장면으로 들어가기",
+    recordClip: "짧은 녹화",
+    recordClipBusy: "녹화 중…",
   },
   en: {
     trigger: "Menu",
     triggerAria: "Open utility menu",
-    layers: "Layers",
-    settings: "Settings",
-    data: "Data",
+    layers: "What to show",
+    settings: "Display",
+    data: "Sources",
     tour: "Tour",
     discord: "Discord",
     sceneLink: "Scene link",
@@ -77,9 +84,12 @@ const MENU_COPY = {
     share: "Share",
     shareBusy: "Sharing…",
     help: "Help",
+    purposeJob: "What to see?",
     sources: "Data sources",
     parchment: "Source guide (8)",
-    sceneStart: "Start scene",
+    sceneStart: "Enter a scene",
+    recordClip: "Short clip",
+    recordClipBusy: "Recording…",
   },
 } as const;
 
@@ -90,10 +100,13 @@ export function UtilityChromeMenu({
   lang,
   showProTip = true,
   captureFrame,
+  recordClip,
+  recordClipBusy = false,
   getScene,
   onTour,
   onHelp,
   onOpenSources,
+  onOpenPurposeJob,
   onOpenParchment,
   onSceneStart,
   onOpenLayers,
@@ -194,10 +207,238 @@ export function UtilityChromeMenu({
     ? "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-slate-800 transition hover:bg-slate-100 disabled:opacity-55"
     : "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-caption font-medium text-sky-50/95 transition hover:bg-sky-400/12 disabled:opacity-55";
 
+  /** 좌측 호버 서랍 안에서는 햄버거를 한 번 더 누르지 않고 항목을 바로 보여 줌 */
+  const inlineInDrawer = menuAlign === "left";
+  const menuVisible = inlineInDrawer || open;
+
+  const menuBody = (
+    <div className="max-h-[min(70vh,calc(100dvh-5.5rem))] space-y-0.5 overflow-y-auto p-1.5">
+      {onOpenLayers || onOpenSettings || onOpenData ? (
+        <div className="space-y-0.5 pb-1">
+          {onOpenLayers ? (
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => runAndClose(onOpenLayers)}
+            >
+              <span aria-hidden>▤</span>
+              <span>{copy.layers}</span>
+            </button>
+          ) : null}
+          {onOpenSettings ? (
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => runAndClose(onOpenSettings)}
+            >
+              <span aria-hidden>⚙</span>
+              <span>{copy.settings}</span>
+            </button>
+          ) : null}
+          {onOpenData ? (
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => runAndClose(onOpenData)}
+            >
+              <span aria-hidden>◎</span>
+              <span>{copy.data}</span>
+            </button>
+          ) : null}
+          <div
+            className={`my-1 border-t ${light ? "border-slate-200" : "border-sky-300/15"}`}
+            role="separator"
+          />
+        </div>
+      ) : null}
+
+      {showProTip ? (
+        <div className="rounded-lg">
+          <button
+            type="button"
+            role="menuitem"
+            aria-expanded={tipsOpen}
+            className={`${itemClass} ${light ? "text-amber-800" : "text-[#f0d9a8]"}`}
+            onClick={() => setTipsOpen((prev) => !prev)}
+          >
+            <span aria-hidden>✦</span>
+            <span>{tipCopy.label}</span>
+            <span aria-hidden className="ml-auto text-micro opacity-70">
+              {tipsOpen ? "▴" : "▾"}
+            </span>
+          </button>
+          {tipsOpen ? (
+            <ol
+              className={`m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-meta leading-snug ${
+                light ? "text-slate-600" : "text-sky-100/75"
+              }`}
+            >
+              {tipCopy.tips.map((tip, index) => (
+                <li key={tip} className="flex gap-1.5">
+                  <span className="shrink-0 tabular-nums opacity-60">{index + 1}.</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ol>
+          ) : null}
+        </div>
+      ) : null}
+
+      {onOpenPurposeJob ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={itemClass}
+          onClick={() => runAndClose(onOpenPurposeJob)}
+        >
+          <span aria-hidden>◎</span>
+          <span>{copy.purposeJob}</span>
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        role="menuitem"
+        className={itemClass}
+        onClick={() => runAndClose(onTour)}
+      >
+        <span aria-hidden>🎬</span>
+        <span>{copy.tour}</span>
+      </button>
+
+      {onSceneStart ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={itemClass}
+          onClick={() => runAndClose(onSceneStart)}
+        >
+          <span aria-hidden>🌐</span>
+          <span>{copy.sceneStart}</span>
+        </button>
+      ) : null}
+
+      {DISCORD_INVITE ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={`${itemClass} text-[#c4b5fd]`}
+          onClick={handleDiscord}
+        >
+          <span aria-hidden>💬</span>
+          <span>{copy.discord}</span>
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        role="menuitem"
+        className={itemClass}
+        onClick={() => void handleSceneLink()}
+      >
+        <span aria-hidden>🔗</span>
+        <span>
+          {sceneStatus === "ok"
+            ? copy.sceneCopied
+            : sceneStatus === "fail"
+              ? copy.sceneFail
+              : copy.sceneLink}
+        </span>
+      </button>
+
+            <button
+              type="button"
+              role="menuitem"
+              disabled={shareBusy}
+              className={itemClass}
+              onClick={() => void handleShare()}
+            >
+              <span aria-hidden>{shareBusy ? "⏳" : "📤"}</span>
+              <span>{shareBusy ? copy.shareBusy : copy.share}</span>
+            </button>
+
+            {recordClip ? (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={recordClipBusy || shareBusy}
+                className={itemClass}
+                onClick={() => {
+                  void (async () => {
+                    await recordClip();
+                    dismiss();
+                  })();
+                }}
+              >
+                <span aria-hidden>{recordClipBusy ? "⏳" : "⏺"}</span>
+                <span>
+                  {recordClipBusy ? copy.recordClipBusy : copy.recordClip}
+                </span>
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => runAndClose(onHelp)}
+            >
+        <span aria-hidden>?</span>
+        <span>{copy.help}</span>
+      </button>
+
+      {onOpenSources ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={`${itemClass} text-sky-200`}
+          onClick={() => runAndClose(onOpenSources)}
+        >
+          <span aria-hidden>📚</span>
+          <span>{copy.sources}</span>
+        </button>
+      ) : null}
+
+      {onOpenParchment ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={`${itemClass} text-amber-100`}
+          onClick={() => runAndClose(onOpenParchment)}
+        >
+          <span aria-hidden>📜</span>
+          <span>{copy.parchment}</span>
+        </button>
+      ) : null}
+    </div>
+  );
+
+  if (inlineInDrawer) {
+    return (
+      <div
+        ref={rootRef}
+        id="utility-chrome-menu-trigger"
+        role="menu"
+        aria-label={copy.trigger}
+        className={`w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
+          light
+            ? "border-slate-200 bg-white"
+            : "border-sky-300/20 bg-[#0c1a2e]/94 backdrop-blur-md"
+        }`}
+      >
+        {menuBody}
+      </div>
+    );
+  }
+
   return (
     <div ref={rootRef} className="relative">
       <button
         type="button"
+        id="utility-chrome-menu-trigger"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
@@ -216,185 +457,18 @@ export function UtilityChromeMenu({
         </span>
       </button>
 
-      {open ? (
+      {menuVisible ? (
         <div
           id={menuId}
           role="menu"
           aria-label={copy.trigger}
-          className={`absolute top-[calc(100%+0.4rem)] z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
-            menuAlign === "left" ? "left-0" : "right-0"
-          } ${
+          className={`absolute top-[calc(100%+0.4rem)] right-0 z-[600] w-[min(calc(100vw-1.5rem),15.5rem)] overflow-hidden rounded-2xl border shadow-[0_16px_40px_rgba(15,23,42,0.18)] ${
             light
               ? "border-slate-200 bg-white"
               : "border-sky-300/20 bg-[#0c1a2e]/94 backdrop-blur-md"
           }`}
         >
-          <div className="max-h-[min(70vh,calc(100dvh-5.5rem))] space-y-0.5 overflow-y-auto p-1.5">
-            {onOpenLayers || onOpenSettings || onOpenData ? (
-              <div className="space-y-0.5 pb-1">
-                {onOpenLayers ? (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={itemClass}
-                    onClick={() => runAndClose(onOpenLayers)}
-                  >
-                    <span aria-hidden>▤</span>
-                    <span>{copy.layers}</span>
-                  </button>
-                ) : null}
-                {onOpenSettings ? (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={itemClass}
-                    onClick={() => runAndClose(onOpenSettings)}
-                  >
-                    <span aria-hidden>⚙</span>
-                    <span>{copy.settings}</span>
-                  </button>
-                ) : null}
-                {onOpenData ? (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={itemClass}
-                    onClick={() => runAndClose(onOpenData)}
-                  >
-                    <span aria-hidden>◎</span>
-                    <span>{copy.data}</span>
-                  </button>
-                ) : null}
-                <div
-                  className={`my-1 border-t ${light ? "border-slate-200" : "border-sky-300/15"}`}
-                  role="separator"
-                />
-              </div>
-            ) : null}
-
-            {showProTip ? (
-              <div className="rounded-lg">
-                <button
-                  type="button"
-                  role="menuitem"
-                  aria-expanded={tipsOpen}
-                  className={`${itemClass} ${light ? "text-amber-800" : "text-[#f0d9a8]"}`}
-                  onClick={() => setTipsOpen((prev) => !prev)}
-                >
-                  <span aria-hidden>✦</span>
-                  <span>{tipCopy.label}</span>
-                  <span aria-hidden className="ml-auto text-micro opacity-70">
-                    {tipsOpen ? "▴" : "▾"}
-                  </span>
-                </button>
-                {tipsOpen ? (
-                  <ol className={`m-0 space-y-1.5 px-2.5 pb-2 pt-0.5 text-meta leading-snug ${light ? "text-slate-600" : "text-sky-100/75"}`}>
-                    {tipCopy.tips.map((tip, index) => (
-                      <li key={tip} className="flex gap-1.5">
-                        <span className="shrink-0 tabular-nums opacity-60">{index + 1}.</span>
-                        <span>{tip}</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : null}
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              role="menuitem"
-              className={itemClass}
-              onClick={() => runAndClose(onTour)}
-            >
-              <span aria-hidden>🎬</span>
-              <span>{copy.tour}</span>
-            </button>
-
-            {onSceneStart ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={itemClass}
-                onClick={() => runAndClose(onSceneStart)}
-              >
-                <span aria-hidden>🌐</span>
-                <span>{copy.sceneStart}</span>
-              </button>
-            ) : null}
-
-            {DISCORD_INVITE ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={`${itemClass} text-[#c4b5fd]`}
-                onClick={handleDiscord}
-              >
-                <span aria-hidden>💬</span>
-                <span>{copy.discord}</span>
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              role="menuitem"
-              className={itemClass}
-              onClick={() => void handleSceneLink()}
-            >
-              <span aria-hidden>🔗</span>
-              <span>
-                {sceneStatus === "ok"
-                  ? copy.sceneCopied
-                  : sceneStatus === "fail"
-                    ? copy.sceneFail
-                    : copy.sceneLink}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              role="menuitem"
-              disabled={shareBusy}
-              className={itemClass}
-              onClick={() => void handleShare()}
-            >
-              <span aria-hidden>{shareBusy ? "⏳" : "📤"}</span>
-              <span>{shareBusy ? copy.shareBusy : copy.share}</span>
-            </button>
-
-            <button
-              type="button"
-              role="menuitem"
-              className={itemClass}
-              onClick={() => runAndClose(onHelp)}
-            >
-              <span aria-hidden>?</span>
-              <span>{copy.help}</span>
-            </button>
-
-            {onOpenSources ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={`${itemClass} text-sky-200`}
-                onClick={() => runAndClose(onOpenSources)}
-              >
-                <span aria-hidden>📚</span>
-                <span>{copy.sources}</span>
-              </button>
-            ) : null}
-
-            {onOpenParchment ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={`${itemClass} text-amber-100`}
-                onClick={() => runAndClose(onOpenParchment)}
-              >
-                <span aria-hidden>📜</span>
-                <span>{copy.parchment}</span>
-              </button>
-            ) : null}
-          </div>
+          {menuBody}
         </div>
       ) : null}
     </div>

@@ -102,7 +102,20 @@ export function assignGdeltTheme(
   return null;
 }
 
-/** ~450km 근사 — 초크 앵커에 붙이기 */
+/** 초크 반경(km) — 너무 넓으면 레반트·페르시아만 내륙이 수에즈/호르무즈로 잘못 붙음 */
+const CHOKE_SNAP_KM: Record<ChokepointId, number> = {
+  hormuz: 200,
+  "bab-el-mandeb": 220,
+  suez: 140,
+  malacca: 280,
+  "taiwan-strait": 200,
+  panama: 200,
+  bosporus: 120,
+  gibraltar: 150,
+  "good-hope": 300,
+  generic: 0,
+};
+
 function nearestChokepoint(lat: number, lng: number): ChokepointId | null {
   const anchors: Array<{ id: ChokepointId; lat: number; lng: number }> = [
     { id: "hormuz", lat: 26.6, lng: 56.3 },
@@ -119,12 +132,14 @@ function nearestChokepoint(lat: number, lng: number): ChokepointId | null {
   let bestD = Infinity;
   for (const a of anchors) {
     const d = haversineKm(lat, lng, a.lat, a.lng);
+    const limit = CHOKE_SNAP_KM[a.id] ?? 180;
+    if (d > limit) continue;
     if (d < bestD) {
       bestD = d;
       best = a.id;
     }
   }
-  return bestD <= 450 ? best : null;
+  return best;
 }
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {

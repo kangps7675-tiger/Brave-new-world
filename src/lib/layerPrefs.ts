@@ -315,11 +315,12 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showLsibBoundary: false,
   showSubmarineCables: false,
   showSubmarineTunnels: false,
-  showOilPipelines: true,
-  showGasPipelines: true,
+  /** 배관은 속보·사건 포커스 때 잠깐 ON (상시 난사 금지) */
+  showOilPipelines: false,
+  showGasPipelines: false,
   showLngTerminals: false,
-  /** EMODnet(유럽) + GEM offshore — oil/gas와 함께 전 지구 에너지 배관 실루엣 */
-  showSubseaPipelines: true,
+  /** EMODnet(유럽) + GEM offshore — 사건 연동·패널에서 ON */
+  showSubseaPipelines: false,
   showGemCoalPlants: false,
   showGemCoalMines: false,
   showGemCoalTerminals: false,

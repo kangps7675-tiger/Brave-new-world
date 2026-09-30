@@ -33,9 +33,12 @@ export {
   macroThemeTitle,
   theaterThemeId,
 } from "./themes";
+export { cameraForGdeltFocus, cameraForRssItem, cameraForTopic, placeFromArticle } from "./camera";
+export { marketHintForTheme, logisticsChokepointForMacro } from "./marketAssets";
 export {
   catalystStepBody,
   gdeltDensityStepBody,
+  macroRssDisplayTitle,
   rssClusterStepBody,
   trustBadgeLabel,
 } from "./narrative";

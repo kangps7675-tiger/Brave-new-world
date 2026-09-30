@@ -1496,7 +1496,8 @@ html[data-device="desktop-wide"] .intel-sidebar-left {
   z-index: 25;
 }
 
-/** Cesium 위성뷰 라이브 피드/증시 스트립 — map-globe-section(flex-1) 높이 변동에 흔들리지 않게 뷰포트 바닥에 강제 고정 */
+/** Cesium 관측대 독 — DayScrubber · 센서 · LiveUA (시세 티커 없음) */
+.cv-observe-dock,
 .cv-satellite-ticker-dock {
   position: fixed !important;
   left: 50% !important;

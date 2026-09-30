@@ -455,15 +455,15 @@ export function MobileHomeView({
   const tabLabel =
     tab === "conflict"
       ? en
-        ? "Geopolitics"
-        : "지정학"
+        ? "Fronts"
+        : "분쟁·전선"
       : tab === "markets"
         ? en
           ? "Markets"
           : "증시"
         : en
-          ? "Geo-economics"
-          : "지경학";
+          ? "Markets & logistics"
+          : "시장·물류";
 
   const band = sharedTension.snapshot ? gtiBand(sharedTension.snapshot.score) : null;
 
@@ -528,9 +528,9 @@ export function MobileHomeView({
               className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
               aria-label={en ? "Select section" : "메뉴 선택"}
             >
-              <option value="conflict">{en ? "Geopolitics" : "지정학"}</option>
+              <option value="conflict">{en ? "Fronts" : "분쟁·전선"}</option>
               <option value="markets">{en ? "Markets" : "증시"}</option>
-              <option value="economy">{en ? "Geo-economics" : "지경학"}</option>
+              <option value="economy">{en ? "Markets & logistics" : "시장·물류"}</option>
             </select>
           </label>
           <label className="block">
@@ -541,8 +541,8 @@ export function MobileHomeView({
                   : "테마"
                 : tab === "conflict"
                   ? en
-                    ? "Front"
-                    : "주요전선"
+                    ? "Theater filter"
+                    : "전장 필터"
                   : en
                     ? "Category"
                     : "카테고리"}
@@ -568,7 +568,7 @@ export function MobileHomeView({
                 value={theaterFilter}
                 onChange={(e) => setTheaterFilter(e.target.value as NewsTheater | "all")}
                 className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
-                aria-label={en ? "Filter by theater" : "주요전선"}
+                aria-label={en ? "Filter by theater" : "전장 필터"}
               >
                 {THEATER_FILTERS.map((id) => (
                   <option key={id} value={id}>

@@ -164,8 +164,8 @@ export type IngestEnv = {
    */
   US_CARRIERS_WARM_URL?: string;
   /**
-   * Next DeepState occupied-coordinate sync (3-day snapshot, LIVEUAMAP 폴백)
-   * e.g. https://your-app.example/api/deepstate/sync
+   * Next DeepState occupied-coordinate sync (폴백).
+   * LiveUA 우크라 통제면이 있으면 sync가 skipped — URL을 비우면 warm 자체를 끌 수 있음.
    */
   DEEPSTATE_SYNC_URL?: string;
   /**

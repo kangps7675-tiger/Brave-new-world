@@ -129,11 +129,25 @@ async function refreshNow(): Promise<OccupiedSnapshotResult> {
 
 /**
  * 3일이 안 지났으면 캐시를 그대로 쓰고, 지났거나 force 면 DeepState에서 좌표만 가져온다.
+ * LiveUA 우크라 통제면이 있으면 DeepState live fetch를 스킵한다 (폴백 warm 축소).
  */
 export async function refreshOccupiedSnapshot(options?: {
   force?: boolean;
 }): Promise<OccupiedSnapshotResult> {
   const force = options?.force === true;
+
+  if (!force) {
+    const liveua = await readLiveuaUkraineOccupied();
+    if (liveua?.features.length) {
+      return {
+        occupied: liveua,
+        source: "liveuamap",
+        persisted: false,
+        skipped: true,
+      };
+    }
+  }
+
   const cached = await loadBestOccupiedSnapshot();
   if (!force && cached && isOccupiedSnapshotFresh(occupiedSnapshotFetchedAt(cached.occupied))) {
     return {

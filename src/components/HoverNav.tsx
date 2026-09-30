@@ -25,6 +25,7 @@ import { t } from "@/lib/uiStrings";
 import { getViewerChrome } from "@/lib/viewerChrome";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
+import { zc } from "@/lib/uiStack";
 
 type HoverNavProps = {
   viewerMode: ViewerMode;
@@ -44,10 +45,16 @@ type HoverNavProps = {
   /** compact 드롭다운 하단 슬롯 (전장·프리셋 등) */
   compactMenuExtra?: ReactNode;
   /**
-   * 검색창 **위** — 최상단 고정 스트립 (히스토리/뉴스·레이어·장면 등).
+   * 검색창 **위** — 최상단 고정 스트립 (요약본·레이어·장면·시계 등).
+   * LTR: 보조 도구(좌) → 상태(우).
    */
   aboveNav?: ReactNode;
-  /** 검색·메뉴 **바로 아래** (지정학/지경학) — 메뉴는 오버레이라 위치 고정 */
+  /**
+   * 검색 행 **왼쪽** — 렌즈(Job) 등 1급 컨트롤.
+   * LTR: Job → 찾기 → 묻기 → 아카이브.
+   */
+  leadingSlot?: ReactNode;
+  /** 검색·메뉴 **바로 아래** (레거시 슬롯 — 렌즈는 leadingSlot 권장) */
   belowNav?: ReactNode;
   /** 데스크톱 확장 시 우측 도구·경보 슬롯 (포털 타깃 #hover-nav-desktop-tools) */
   showDesktopToolsSlot?: boolean;
@@ -57,8 +64,8 @@ type HoverNavProps = {
   /** UI 문구 언어 (이벤트 메뉴 등) */
   labelLanguage?: LabelLanguage;
   /**
-   * 검색창은 항상 고정. true면 검색창 호버 시 탐색 메뉴가 오버레이로 펼쳐진다.
-   * 메뉴 높이는 레이아웃/지구본 inset에 반영하지 않는다.
+   * legacy: 호버로 메뉴를 열던 옵션. 항상 클릭(토글 버튼)만 사용 — hoverReveal은 무시.
+   * @deprecated
    */
   hoverReveal?: boolean;
   /** 역사지도 — Cliopatria 연도 영토 (영토분쟁과 별도 카테고리) */
@@ -79,55 +86,26 @@ export function HoverNav({
   compact = false,
   compactMenuExtra,
   aboveNav,
+  leadingSlot,
   belowNav,
   showDesktopToolsSlot = false,
   onAskLayersOpen,
   askLayersLabel,
   labelLanguage = "ko",
-  hoverReveal = false,
+  hoverReveal: _hoverReveal = false,
   onHistoryMapOpen,
 }: HoverNavProps) {
+  void _hoverReveal;
   const [navOpen, setNavOpen] = useState(false);
   const [hubMenuOpen, setHubMenuOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [openHubId, setOpenHubId] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
-  const menuCloseTimerRef = useRef<number | null>(null);
   const isEconomy = viewerMode === "economy";
   const light = useBasemapTone() === "light";
   const chrome = getViewerChrome(viewerMode);
   const navGroups = useMemo(() => getNavMenuGroups(viewerMode), [viewerMode]);
-
-  const clearMenuCloseTimer = () => {
-    if (menuCloseTimerRef.current != null) {
-      window.clearTimeout(menuCloseTimerRef.current);
-      menuCloseTimerRef.current = null;
-    }
-  };
-
-  /** 검색창 호버 → 모드별 탐색 메뉴 펼침 (검색어 입력 중이면 결과만) */
-  const openMenuFromHover = () => {
-    clearMenuCloseTimer();
-    if (query.trim()) return;
-    if (isEconomy) setNavOpen(true);
-    else setHubMenuOpen(true);
-  };
-
-  const scheduleMenuClose = () => {
-    if (!hoverReveal) return;
-    clearMenuCloseTimer();
-    menuCloseTimerRef.current = window.setTimeout(() => {
-      if (Boolean(query.trim())) return;
-      setNavOpen(false);
-      setHubMenuOpen(false);
-      setOpenKey(null);
-      setOpenHubId(null);
-      menuCloseTimerRef.current = null;
-    }, 420);
-  };
-
-  useEffect(() => () => clearMenuCloseTimer(), []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -204,7 +182,7 @@ export function HoverNav({
 
   const menuExpanded = isEconomy ? navOpen : hubMenuOpen;
 
-  /** 데스크톱: 접힌 크롬(검색+belowNav) 높이만 — 드롭다운은 absolute라 inset/지구본에 미포함 */
+  /** 데스크톱: 접힌 크롬(검색+leading+belowNav) 높이만 — 드롭다운은 absolute라 inset/지구본에 미포함 */
   useEffect(() => {
     const root = document.documentElement;
     if (compact) {
@@ -223,12 +201,20 @@ export function HoverNav({
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [compact, aboveNav, belowNav, showDesktopToolsSlot]);
+  }, [compact, aboveNav, leadingSlot, belowNav, showDesktopToolsSlot]);
+
+  const searchMaxClass = compact
+    ? "max-w-full"
+    : isEconomy
+      ? `max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))] ${
+          menuExpanded ? "max-w-[min(42rem,calc(100vw-3rem))] sm:max-w-[min(48rem,calc(100vw-4rem))]" : ""
+        }`
+      : "max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))]";
 
   return (
     <div
       className={`pointer-events-none fixed inset-x-0 top-0 flex flex-col ${
-        menuExpanded ? "z-[300]" : "z-[200]"
+        menuExpanded ? zc("navMenu") : zc("nav")
       }`}
       style={{
         paddingTop: "max(0.35rem, env(safe-area-inset-top, 0px))",
@@ -236,50 +222,69 @@ export function HoverNav({
     >
       <div
         ref={chromeRef}
-        className={`flex w-full flex-col items-center ${
-          compact ? "px-[3.4rem] sm:px-14" : "mt-1 px-2 sm:px-3"
+        className={`flex w-full flex-col items-stretch ${
+          compact ? "px-[3.4rem] sm:px-14" : "mt-1"
         }`}
+        style={
+          compact
+            ? undefined
+            : {
+                /* 좌 peep·우 상시 지표와 검색/렌즈가 겹치지 않게 */
+                paddingLeft:
+                  "max(0.75rem, env(safe-area-inset-left, 0px))",
+                paddingRight:
+                  "max(0.75rem, calc(var(--mode-index-chip-width, 0px) + 0.85rem))",
+              }
+        }
       >
-      <div className="flex w-full flex-col items-center gap-1">
-      {/* 최상단 스트립 — 시계·레이어 등 */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-1">
+      {/* 최상단 스트립 — LTR: 도구(좌) → 시계(우) */}
       {aboveNav || showDesktopToolsSlot ? (
         <div
-          className={`pointer-events-auto flex w-full max-w-6xl flex-col items-center gap-1 bg-transparent ${
+          className={`pointer-events-auto flex w-full flex-col gap-1 bg-transparent ${
             menuExpanded ? "relative z-[100]" : "relative z-[200]"
           }`}
         >
           {aboveNav ? (
-            <div className="flex w-full items-center justify-center bg-transparent px-[8%] sm:px-[12%]">
+            <div className="flex w-full items-center bg-transparent px-1 sm:px-2">
               {aboveNav}
             </div>
           ) : null}
           {showDesktopToolsSlot ? (
             <div
               id="hover-nav-desktop-tools"
-              className="flex w-full max-w-5xl flex-wrap items-center justify-center gap-3 bg-transparent sm:max-w-6xl"
+              className="flex w-full flex-wrap items-center justify-start gap-3 bg-transparent px-1 sm:px-2"
             />
           ) : null}
         </div>
       ) : null}
 
-      {/* 검색(고정) → 메뉴(absolute 오버레이). 지구본·belowNav 레이아웃은 유지 */}
-      <div className="pointer-events-auto flex w-full flex-col items-center gap-1">
+      {/* LTR 주 행: 렌즈(좌) → 검색·묻기(중) · belowNav는 보조 */}
+      <div className="pointer-events-auto flex w-full flex-col gap-1">
+      <div
+        className={`flex w-full flex-wrap items-center gap-2 ${
+          leadingSlot ? "justify-start" : "justify-center"
+        }`}
+      >
+      {leadingSlot ? (
+        <div
+          className={`pointer-events-auto w-full shrink-0 sm:w-auto ${
+            menuExpanded ? "relative z-[100]" : "relative z-[200]"
+          }`}
+        >
+          {leadingSlot}
+        </div>
+      ) : null}
       <nav
         id="app-hover-nav"
         ref={navRef}
-        className={`relative w-full ${
-          menuExpanded ? "z-[300]" : "z-[200]"
+        className={`relative min-w-0 flex-1 ${
+          menuExpanded ? zc("navMenu") : zc("nav")
         } ${
-          compact
-            ? "max-w-full"
-            : isEconomy
-              ? `max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))] ${
-                  menuExpanded ? "max-w-[min(42rem,calc(100vw-3rem))] sm:max-w-[min(48rem,calc(100vw-4rem))]" : ""
-                }`
-              : "max-w-[min(20rem,calc(100vw-var(--mode-index-chip-width,12rem)-3rem))] sm:max-w-[min(24rem,calc(100vw-var(--mode-index-chip-width,14rem)-3.5rem))]"
+          leadingSlot
+            ? "max-w-full sm:max-w-[min(28rem,calc(100vw-var(--mode-index-chip-width,14rem)-12rem))]"
+            : searchMaxClass
         } ${isEconomy ? "hover-nav--economy font-nav-economy" : "hover-nav--conflict"}`}
-        onMouseEnter={hoverReveal ? openMenuFromHover : undefined}
-        onMouseLeave={hoverReveal ? scheduleMenuClose : undefined}
       >
         <div
           className={`relative rounded-2xl border ${borderTone} ${bgTone} shadow-lg backdrop-blur-xl transition-all duration-300 ${
@@ -307,9 +312,6 @@ export function HoverNav({
                   setOpenKey(null);
                   setOpenHubId(null);
                 }
-              }}
-              onFocus={() => {
-                if (hoverReveal && !query.trim()) openMenuFromHover();
               }}
               placeholder={chrome.searchPlaceholder}
               autoComplete="off"
@@ -341,6 +343,7 @@ export function HoverNav({
             {onAskLayersOpen ? (
               <button
                 type="button"
+                id="ask-layers-button"
                 onClick={onAskLayersOpen}
                 aria-haspopup="dialog"
                 aria-label={askLayersLabel || (isEconomy ? "Ask layers" : "묻기")}
@@ -687,7 +690,7 @@ export function HoverNav({
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-4">
+              <div className="flex flex-wrap items-start justify-start gap-x-8 gap-y-4">
                 {navGroups.map((group) => (
                   <div key={group.id} className="min-w-[260px]">
                     <p className="mb-2 px-1 text-micro uppercase tracking-[0.22em] text-emerald-100/55">
@@ -760,10 +763,11 @@ export function HoverNav({
           </div>
         ) : null}
       </nav>
+      </div>
 
-      {/* 지정학/지경학 — 검색 바로 아래 고정 (메뉴는 위 nav의 absolute 오버레이) */}
+      {/* 보조 슬롯 — 렌즈는 leadingSlot 사용 권장 */}
       {belowNav ? (
-        <div className="relative z-[100] mt-0.5 flex justify-center">
+        <div className="relative z-[100] mt-0.5 flex justify-start">
           {belowNav}
         </div>
       ) : null}

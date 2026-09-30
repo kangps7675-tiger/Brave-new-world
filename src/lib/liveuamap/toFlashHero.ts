@@ -21,9 +21,10 @@ export function liveuamapEventToFlashHero(
   event: LiveuamapEvent,
   lang: "ko" | "en" = "en",
 ): HeroBreakingItem {
-  const title =
-    lang === "ko" ? event.titleKo?.trim() || event.title : event.title;
-  const body = lang === "ko" ? event.bodyKo?.trim() || event.body : event.body;
+  const titleKo = event.titleKo?.trim() || undefined;
+  const bodyKo = event.bodyKo?.trim() || undefined;
+  const title = event.title;
+  const body = event.body;
   const blob = `${event.title} ${event.body} ${event.tags.join(" ")}`;
   const highImpact =
     (FLASH_KINETIC_RE.test(blob) && isGeoeconomicImpactFlash(blob)) ||
@@ -36,6 +37,7 @@ export function liveuamapEventToFlashHero(
   return {
     id: `liveua:${event.id}`,
     title,
+    titleKo,
     link: event.sourceUrl,
     source: "Liveuamap",
     publisher: "Liveuamap",
@@ -45,6 +47,7 @@ export function liveuamapEventToFlashHero(
     feedTopic: isGeoeconomicImpactFlash(blob) ? "economy" : "defense",
     imageUrl: event.imageUrl,
     summary: body,
+    bodyKo,
     heroStatus: "breaking",
     urgencyScore: grade * 10,
     breakingGrade: grade,

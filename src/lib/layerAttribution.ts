@@ -42,7 +42,10 @@ const PREF_SOURCE: Partial<Record<keyof LayerPrefs, SourceCredit>> = {
   showNorthKoreaMissileTests: GDELT,
   showUkraineStrikesOnRussia: GDELT,
   // 우크라이나·중동
-  showUkraineControl: { label: "VIINA (ODbL)" },
+  showUkraineControl: {
+    label: "Liveuamap · VIINA (ODbL)",
+    url: "https://liveuamap.com/",
+  },
   showNeptun: { label: "NEPTUN", url: "https://neptun.in.ua/" },
   showTzevaAdom: { label: "Israel Home Front Command" },
   showNewfeedsIranAttacks: { label: "NewFeeds" },

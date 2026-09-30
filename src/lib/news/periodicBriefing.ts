@@ -856,12 +856,14 @@ const GENRE_FOCUS_EN: Record<string, string> = {
 type NewsPickInput = {
   id: string;
   title: string;
+  titleKo?: string;
   link: string;
   source: string;
   publisher?: string;
   trustTier: 1 | 2 | 3;
   imageUrl?: string;
   summary?: string;
+  bodyKo?: string;
   econGenre?: string;
   theater?: string;
   pubDate?: string;
@@ -869,6 +871,17 @@ type NewsPickInput = {
   breakingGrade?: number;
   clusterId?: string;
 };
+
+/** 등불·양피지 표시용 — KO: titleKo||title · EN: 원문 */
+function lampDisplayTitle(item: NewsPickInput, lang: "ko" | "en"): string {
+  if (lang === "en") return item.title;
+  return item.titleKo?.trim() || item.title;
+}
+
+function lampDisplaySummary(item: NewsPickInput, lang: "ko" | "en"): string | undefined {
+  if (lang === "en") return item.summary;
+  return item.bodyKo?.trim() || item.summary;
+}
 
 function lampClusterKey(title: string): string {
   return title
@@ -1166,10 +1179,12 @@ function toFeatured(
   const item = row.item;
   const blob = `${item.title} ${item.summary ?? ""}`;
   const theater = item.theater?.trim() || undefined;
+  const title = lampDisplayTitle(item, lang);
+  const summaryBase = lampDisplaySummary(item, lang);
   return {
     id: item.id,
-    title: item.title,
-    summary: deepenSummary(item.summary, item.title),
+    title,
+    summary: deepenSummary(summaryBase, title),
     imageUrl: normalizeLampImageUrl(item.imageUrl),
     link: item.link,
     source: item.publisher || item.source,
@@ -1919,10 +1934,12 @@ function toConflictFeatured(row: ScoredConflictNews, lang: "ko" | "en"): LampFea
   const item = row.item;
   const blob = `${item.title} ${item.summary ?? ""}`;
   const isDiplomacy = CONFLICT_DIPLOMACY_RE.test(blob);
+  const title = lampDisplayTitle(item, lang);
+  const summaryBase = lampDisplaySummary(item, lang);
   return {
     id: item.id,
-    title: item.title,
-    summary: deepenSummary(item.summary, item.title),
+    title,
+    summary: deepenSummary(summaryBase, title),
     imageUrl: normalizeLampImageUrl(item.imageUrl),
     link: item.link,
     source: item.publisher || item.source,

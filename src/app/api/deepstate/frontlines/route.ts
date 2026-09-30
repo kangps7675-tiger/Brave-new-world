@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * 점령/통제 영토 GeoJSON.
- * Ukraine: LiveUA 우선 → DeepState 폴백.
+ * Ukraine: LiveUA 우선 → DeepState 폴백 (MapLibre).
+ *   `?liveuaOnly=1` → LiveUA만 (Cesium; DeepState 금지).
  * Yemen/Lebanon: LiveUA만 (?region=yemen|lebanon).
  */
 export async function GET(req: Request) {
@@ -19,9 +20,12 @@ export async function GET(req: Request) {
   const region = (
     regionRaw === "yemen" || regionRaw === "lebanon" ? regionRaw : "ukraine"
   ) as LiveuamapControlRegionId;
+  const liveuaOnly =
+    url.searchParams.get("liveuaOnly") === "1" ||
+    url.searchParams.get("liveuaOnly") === "true";
 
   if (region === "ukraine") {
-    const result = await resolveUkraineOccupied();
+    const result = await resolveUkraineOccupied({ liveuaOnly });
     if (!result.occupied.features.length) {
       return NextResponse.json(
         {
@@ -31,7 +35,8 @@ export async function GET(req: Request) {
           error: result.error || "occupied snapshot unavailable",
           timestamp: new Date().toISOString(),
         },
-        { status: 502 },
+        // liveuaOnly: empty는 정상(동기화 대기) — 502로 DeepState 폴백 유도하지 않음
+        { status: liveuaOnly ? 200 : 502 },
       );
     }
     return NextResponse.json(
@@ -56,7 +61,8 @@ export async function GET(req: Request) {
         error: "LiveUA control polygons unavailable",
         timestamp: new Date().toISOString(),
       },
-      { status: 404 },
+      // YE/LB empty도 Cesium 폴링에서 정상 대기 상태
+      { status: liveuaOnly ? 200 : 404 },
     );
   }
   return NextResponse.json(

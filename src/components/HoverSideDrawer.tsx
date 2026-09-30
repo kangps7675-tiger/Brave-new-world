@@ -8,6 +8,8 @@ type HoverSideDrawerProps = {
   children: ReactNode;
   /** 접힌 상태에도 보이는 얇은 탭 라벨 */
   peepLabel?: string;
+  /** 투어·테스트용 — peep 래퍼에 붙는 id */
+  peepId?: string;
   /** 설명 패널 등 — 열린 동안 서랍 유지 */
   forceOpen?: boolean;
   className?: string;
@@ -28,6 +30,7 @@ export function HoverSideDrawer({
   side,
   children,
   peepLabel,
+  peepId,
   forceOpen = false,
   className = "",
   top = "0px",
@@ -94,6 +97,7 @@ export function HoverSideDrawer({
       >
         {peepLabel ? (
           <div
+            id={peepId}
             className={`pointer-events-auto absolute top-[max(0.75rem,env(safe-area-inset-top,0px))] transition-all duration-250 ease-out ${
               isLeft ? "left-0" : "right-0"
             } ${

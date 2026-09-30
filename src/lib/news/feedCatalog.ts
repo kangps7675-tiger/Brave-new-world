@@ -449,6 +449,30 @@ const KOREA: NewsFeedDef[] = [
   },
   {
     url: G(
+      '("North Korea" OR DPRK OR Pyongyang) (missile OR ICBM OR SLBM OR "ballistic missile" OR "cruise missile") site:yna.co.kr',
+    ),
+    name: "Yonhap · NK Missile",
+    theater: "korea",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("North Korea" OR DPRK OR Pyongyang) (missile OR nuclear OR launch OR ICBM) site:dailynk.com',
+    ),
+    name: "Daily NK · Missile",
+    theater: "korea",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("North Korea" OR DPRK OR KCNA OR Pyongyang) (missile OR satellite OR launch OR "ballistic") (site:kcna.kp OR site:korean-central-news-agency.com OR "Korean Central News Agency")',
+    ),
+    name: "KCNA · Missile",
+    theater: "korea",
+    unfiltered: true,
+  },
+  {
+    url: G(
       '(North Korea OR Pyongyang) AND (missile OR nuclear OR "Kim Jong Un") AND (site:nknews.org OR site:dailynk.com OR site:yna.co.kr)',
     ),
     name: "Google News",
