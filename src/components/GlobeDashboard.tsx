@@ -10982,7 +10982,12 @@ export function GlobeDashboard({
           }
           if (breakingFlash.theater && breakingFlash.theater !== "global") {
             const target = flyTargetForTheater(breakingFlash.theater);
-            if (target) fly(target.lat, target.lng);
+            if (target.kind === "coords") {
+              fly(target.lat, target.lng);
+            } else {
+              const center = THEATER_FLY_TO[target.theater];
+              fly(center.lat, center.lng);
+            }
           }
         }}
         escalationOffer={escalationOffer}
