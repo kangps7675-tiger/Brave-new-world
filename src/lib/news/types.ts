@@ -27,7 +27,10 @@ export type { EconomyNewsGenre, EconomyGenreFilter } from "@/lib/news/economyGen
 
 export type NewsStreamItem = {
   id: string;
+  /** 원문 제목 (EN 또는 소스 언어) */
   title: string;
+  /** 한국어 번역 제목 — KO UI에서 우선 */
+  titleKo?: string;
   link: string;
   source: string;
   publisher?: string;
@@ -41,7 +44,10 @@ export type NewsStreamItem = {
   /** 경제 뉴스 장르 (geo-trader) */
   econGenre?: EconomyNewsGenre;
   imageUrl?: string;
+  /** 원문 요약 */
   summary?: string;
+  /** 한국어 요약 — KO UI에서 우선 */
+  bodyKo?: string;
 };
 
 export type HeroBreakingItem = NewsStreamItem & {

@@ -5,6 +5,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { GUEST_POLICY_COPY } from "@/lib/auth/guestPolicy";
 import { AUTH_SESSION_POLICY_COPY } from "@/lib/auth/sessionPolicy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { zc } from "@/lib/uiStack";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 type FeatureGuidePanelProps = {
@@ -46,10 +47,10 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     steps: [
       "드래그로 지구본을 돌리고, 스크롤로 확대·축소합니다. 빈 바다를 두 번 클릭하면 그 지점으로 확대됩니다.",
       "화면이 사선으로 기울어졌을 때 Alt 키를 누른 채 마우스를 드래그하면 기울기·회전을 조절할 수 있습니다. (좌우=돌리기, 위아래=눕히기/세우기)",
-      "좌상단 ≡ 에서 레이어(전선·뉴스·에너지 등)를 켜고 끕니다.",
+      "상단 「올릴 것」 또는 왼쪽 가장자리 「메뉴」→「지도에 올릴 것」에서 레이어(전선·뉴스·에너지 등)를 켜고 끕니다.",
       "상단 검색창 옆 「묻기」를 누르면 화면 중앙에 흐린 입력창이 열립니다. 홍해·이란·우크라처럼 물으면 관련 레이어가 켜지고 지도가 이동합니다.",
-      "하단 📰 로 검증 보도·전장 뉴스·텔레그램 OSINT를 엽니다. 우측 「주요전장」으로 충돌지에 바로 갈 수 있습니다.",
-      "지도 위 핀·분쟁 구역을 클릭하면 오른쪽에 설명이 열립니다.",
+      "하단 📰 로 검증 보도·전장 뉴스·텔레그램 OSINT를 엽니다. 상단 검색·허브·영토분쟁으로 관심 지역으로 갈 수 있습니다.",
+      "지도 위 핀·분쟁 구역을 클릭하면 설명 패널이 열립니다.",
     ],
   },
   {
@@ -58,7 +59,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "상단 검색창 옆 「묻기」 버튼을 누릅니다.",
       "화면 가운데에 뒤가 흐릿한 반투명 입력창이 열립니다. 「홍해」「이란」「우크라」「오늘 핫한 곳」처럼 짧게 적거나 예시 칩을 탭합니다.",
       "관련 지도 레이어가 켜지고 카메라가 그쪽으로 이동합니다. 긴 정세 해설이 아니라 지도를 맞추는 기능입니다.",
-      "세밀하게 끄고 켜려면 오른쪽 위 ≡ 레이어 패널(직접 설정)을 쓰세요.",
+      "세밀하게 끄고 켜려면 상단 「올릴 것」 또는 왼쪽 「메뉴」→「지도에 올릴 것」을 쓰세요.",
     ],
   },
   {
@@ -72,9 +73,9 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "전쟁구역 · 외교적 긴장구역",
     steps: [
-      "화면 오른쪽 위 ≡(메뉴) 버튼을 눌러 레이어 패널을 열고 「전쟁구역」이나 「외교적 긴장구역」을 켭니다. (레이어 = 지도 위에 겹쳐 보여 주는 정보층)",
+      "상단 「올릴 것」 또는 왼쪽 「메뉴」→「지도에 올릴 것」에서 「전쟁구역」이나 「외교적 긴장구역」을 켭니다. (레이어 = 지도 위에 겹쳐 보여 주는 정보층)",
       "지도 위 빗금 친 상자에 마우스를 올리면 그 지역 이름·위험 등급·한 줄 요약이 뜹니다.",
-      "상자를 클릭하면 오른쪽에 한국어 설명, 얽혀 있는 나라·세력, 자세한 메모가 열립니다.",
+      "상자를 클릭하면 한국어 설명, 얽혀 있는 나라·세력, 자세한 메모가 열립니다.",
       "색으로 구분합니다 — 빨강은 실제 전쟁 중, 주황은 외교적으로 팽팽한 긴장 상태. 지도를 가까이 확대하면 더 좁은 세부 지역이 먼저 보입니다.",
     ],
   },
@@ -84,7 +85,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "레이어 패널에서 「AI 전쟁지역 (데모)」을 켜면, 분쟁 지역과 뉴스에서 전투 언급이 몰리는 곳에 붉은 원이 그려집니다. (뉴스 분석은 전 세계 기사를 자동 수집·분석하는 공개 데이터 GDELT를 사용)",
       "외부 AI 서비스 없이 앱이 자체 규칙으로 대략 판단하는 맛보기(데모) 기능입니다. 중동에 들어가도 자동으로 켜지지는 않습니다.",
       "원 위에 마우스를 올리면 지역 이름, 긴장 정도, 이 판단을 얼마나 믿을 만한지(신뢰도)를 보여 줍니다.",
-      "원을 클릭하면 그 지역으로 화면이 이동하고 오른쪽에 자세한 설명 창이 열립니다.",
+      "원을 클릭하면 그 지역으로 화면이 이동하고 자세한 설명 창이 열립니다.",
     ],
   },
   {
@@ -101,7 +102,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     steps: [
       "「CRINK 축」을 켜면 중국·러시아·이란·북한 허브와 그 파트너(스포크)가 곡선으로 이어져 표시됩니다.",
       "위쪽 메뉴 → 「영토분쟁」을 열면 같은 진영끼리의 충돌과 국경 긴장을 한 목록으로 볼 수 있습니다. 필터로 걸러 보고, 카드를 누르면 지도 연출과 이야기가 펼쳐집니다.",
-      "오른쪽 위 「주요전장」 목록에서 대만·한반도·우크라이나·중동 같은 충돌지로 한 번에 이동할 수 있습니다.",
+      "상단 ▾·허브·영토분쟁 메뉴에서 대만·한반도·우크라이나·중동 같은 관심지로 이동할 수 있습니다.",
       "이어 주는 곡선의 색은 관계의 종류입니다 — 자금 후원 · 무기 지원 · 에너지 · 복합 · 외교.",
     ],
   },
@@ -117,9 +118,9 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "지역 탐색 · 뉴스",
     steps: [
-      "화면 위쪽 「충돌지역」「대륙간 갈등」 메뉴에서 대만·한반도·중동 등으로 이동합니다.",
+      "상단 검색·허브·영토분쟁, 또는 왼쪽 「메뉴」→「장면으로 들어가기」로 대만·한반도·중동 등으로 이동합니다.",
       "지역을 고르면 화면이 그쪽으로 이동하고, 그 지역 뉴스만 모은 정보 요약 창(인텔 시트)이 열립니다.",
-      "「주요전선」 탭을 쓰면 대표적인 분쟁 지역으로 빠르게 갈 수 있습니다.",
+      "하단 📰 시트에서 전장·주제를 골라 뉴스를 좁혀 볼 수 있습니다.",
     ],
   },
   {
@@ -131,7 +132,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "위쪽 속보 바 또는 📰 아이콘을 누르면 뉴스가 전체 화면으로 열립니다. (마우스 가운데 버튼 클릭도 같은 동작)",
       "기사·속보 카드의 🎯(지도) 버튼을 누르면 창을 닫고 그 현장으로 화면이 날아갑니다.",
       "「✕ 지도로」 또는 아래쪽 닫기를 누르면 전체 화면을 닫고 지구본으로 돌아옵니다.",
-      "오른쪽 위 ≡ 메뉴에는 레이어 패널, 자료 출처(NASA FIRMS=위성 화재·열 감지, ADS-B=항공기가 쏘는 위치 신호, MarineTraffic=선박 위치 추적), 도움말, 주요전선 탭이 들어 있습니다.",
+      "왼쪽 「메뉴」에는 지도에 올릴 것·화면 설정·데이터 출처(NASA FIRMS=위성 화재·열 감지, ADS-B=항공기 위치 신호, MarineTraffic=선박 추적)·도움말·장면 입장이 들어 있습니다. 상단 「올릴 것」으로도 레이어를 엽니다.",
     ],
   },
 ];
@@ -151,10 +152,10 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     steps: [
       "Drag to rotate the globe, scroll to zoom. Double-click empty ocean to zoom into that point.",
       "When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
-      "Use ≡ (top-left) to toggle layers — fronts, news, energy, and more.",
+      "Use top 「Show」 or left-edge 「Menu」 → 「What to show」 to toggle layers — fronts, news, energy, and more.",
       "Tap 「Ask」 next to the top search bar to open a frosted center prompt. Ask about the Red Sea, Iran, or Ukraine to turn on matching layers and fly the map.",
-      "Tap 📰 at the bottom for verified reports, theater news, and Telegram OSINT. Use Key theaters on the right to jump to conflict zones.",
-      "Click pins or conflict zones on the map to open details on the right.",
+      "Tap 📰 at the bottom for verified reports, theater news, and Telegram OSINT. Use search, hubs, or territorial disputes to jump to regions.",
+      "Click pins or conflict zones on the map to open a detail panel.",
     ],
   },
   {
@@ -163,7 +164,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "Tap 「Ask」 beside the top search bar.",
       "A frosted, dimmed center dialog opens. Type a short cue (Red Sea, Iran, Ukraine, Today hot) or tap an example chip.",
       "Matching map layers turn on and the camera flies there. This is for aligning the map — not a long briefing chat.",
-      "For fine control, use the ≡ layer panel (manual checkboxes).",
+      "For fine control, use top 「Show」 or left 「Menu」 → 「What to show」.",
     ],
   },
   {
@@ -177,9 +178,9 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "War zones · Diplomatic tension",
     steps: [
-      "Open ≡ (top-right) and enable War zones or Diplomatic tension zones. (A layer is an information overlay on the map.)",
+      "Open top 「Show」 or left 「Menu」 → 「What to show」 and enable War zones or Diplomatic tension zones. (A layer is an information overlay on the map.)",
       "Hover a hatched box to see name, risk level, and a one-line summary.",
-      "Click a box for a description, involved actors, and detailed notes on the right.",
+      "Click a box for a description, involved actors, and detailed notes.",
       "Color coding — red = active war, orange = diplomatic tension. Zoom in to reveal narrower sub-regions first.",
     ],
   },
@@ -189,7 +190,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "Enable 「AI war regions (demo)」 in the layer panel — red circles mark dispute areas and news clusters mentioning combat (powered by GDELT, a public worldwide news analysis feed).",
       "This is an in-app heuristic demo with no external AI service. It does not auto-enable when you enter the Middle East.",
       "Hover a circle for region name, tension level, and confidence.",
-      "Click a circle to fly there and open a detail panel on the right.",
+      "Click a circle to fly there and open a detail panel.",
     ],
   },
   {
@@ -206,7 +207,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     steps: [
       "「CRINK axis」 links hub states (China, Russia, Iran, DPRK) to partners with curved spokes.",
       "Hub menu → 「Anti-West conflict history」 covers 11 historic flashpoints (Zhenbao, Lang Son, Galwan, Tsorak, and more). Tap a card to fly there and open a parchment brief.",
-      "Use Key theaters (top-right) to jump to Taiwan, Korea, Ukraine, or the Middle East.",
+      "Use search, hubs, or territorial disputes to jump to Taiwan, Korea, Ukraine, or the Middle East.",
       "Spoke colors mean relationship type — funding, arms, energy, hybrid, diplomacy.",
     ],
   },
@@ -222,9 +223,9 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "Explore regions · news",
     steps: [
-      "Use top menus (Conflict regions / Intercontinental friction) to jump to Taiwan, Korea, the Middle East, and more.",
+      "Use top search, hubs, territorial disputes, or left 「Menu」 → 「Enter a scene」 to jump to Taiwan, Korea, the Middle East, and more.",
       "Choosing a region flies the camera and opens an intel sheet filtered to that area.",
-      "The Key fronts tab jumps quickly to major dispute theaters.",
+      "Narrow the bottom 📰 sheet by theater or topic when you want a focused feed.",
     ],
   },
   {
@@ -236,7 +237,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "The top breaking bar or 📰 opens news full-screen (middle-click does the same).",
       "The 🎯 (map) button on a story card closes the sheet and flies to that location.",
       "「✕ Map」 or the bottom close control returns you to the globe.",
-      "≡ (top-right) holds layers, sources (NASA FIRMS, ADS-B, MarineTraffic), help, and Key fronts.",
+      "Left 「Menu」 holds What to show, Display, sources (NASA FIRMS, ADS-B, MarineTraffic), help, and Enter a scene. Top 「Show」 also opens layers.",
     ],
   },
 ];
@@ -253,7 +254,7 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
     title: "빠른 시작",
     steps: [
       "첫 화면: 초크포인트 · 항로 · 항구 · 가스/LNG · 무역 코리도 · 에너지·결제 축.",
-      "≡ 에서 BRI/DFC·송유관·민간 AIS·제재 명단은 필요할 때만 켭니다.",
+      "상단 「올릴 것」 또는 왼쪽 「메뉴」에서 BRI/DFC·송유관·민간 AIS·제재 명단은 필요할 때만 켭니다.",
       "검색 옆 「묻기」로 호르무즈·수에즈를 물으면 물류·초크 레이어를 맞출 수 있습니다.",
       "하단 📈·티커로 유가·VIX·지수를 보고, 허브를 고르면 관련 시장이 열립니다. (투자 권유 아님)",
     ],
@@ -285,7 +286,7 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
     title: "경제 지도 이동 (Geo Markets)",
     steps: [
       "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC 등으로 이동합니다.",
-      "항목을 클릭하면 오른쪽 경제 지역 패널에서 관련 뉴스(RSS)와 시세(티커)를 봅니다.",
+      "항목을 클릭하면 관련 뉴스(RSS)와 시세(티커)를 경제 정보 패널에서 봅니다.",
       "「주요 허브」 탭으로 초크포인트나 금융 도시로 빠르게 이동할 수 있습니다.",
     ],
   },
@@ -312,7 +313,7 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
     title: "Quick start",
     steps: [
       "First screen: chokepoints, lanes, ports, gas/LNG, trade corridors, energy/payment axes.",
-      "Use ≡ for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
+      "Use top 「Show」 or left 「Menu」 for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
       "「Ask」 beside search aligns logistics layers for Hormuz, Suez, and lanes.",
       "Use 📈 and the ticker for oil, VIX, and indices; hubs open related markets (not investment advice).",
     ],
@@ -385,11 +386,11 @@ export function FeatureGuidePanel({
       <button
         type="button"
         aria-label={en ? "Close guide" : "사용 안내 닫기"}
-        className="absolute inset-0 z-[500] bg-[#0a1528]/50 backdrop-blur-[1px]"
+        className={`fixed inset-0 ${zc("panelScrim")} bg-[#0a1528]/50 backdrop-blur-[1px]`}
         onClick={onClose}
       />
       <aside
-        className="intel-panel absolute right-3 top-14 z-[600] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className={`intel-panel fixed right-3 top-14 ${zc("panel")} flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl`}
         role="dialog"
         aria-label={en ? "Feature guide" : "기능 사용 안내"}
       >
@@ -453,8 +454,8 @@ export function FeatureGuidePanel({
               {en ? "Start screen tour" : "화면 투어 시작"}
               <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
                 {en
-                  ? "You advance with Next — steps never auto-flip"
-                  : "「다음」을 눌러야 넘어갑니다 — 혼자 촤르륵 넘어가지 않아요"}
+                  ? "You advance with Next — steps never auto-flip. First-time invite is remembered in this browser."
+                  : "「다음」을 눌러야 넘어갑니다. 첫 방문 권유는 이 브라우저에 기억됩니다."}
               </span>
             </button>
           ) : null}

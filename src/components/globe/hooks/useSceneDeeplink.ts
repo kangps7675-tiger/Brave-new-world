@@ -9,6 +9,7 @@ import {
   clearSceneParamsFromUrl,
   type SceneLinkState,
 } from "@/lib/sceneLink";
+import { isObserveScene } from "@/lib/observeHandoff";
 import { trackDeeplinkOpen, trackSceneOpen } from "@/lib/analyticsEvents";
 
 type UseSceneDeeplinkOptions = {
@@ -82,6 +83,8 @@ export function useSceneDeeplink({
         }
         applyLayerPrefsRef.current(next);
       }
+      // 관측(Cesium) 장면은 MapLibre globeRef가 없음 — onSceneApplied에서 핸드오프
+      if (isObserveScene(scene)) return;
       globeRef.current?.pointOfView(
         { lat: scene.lat, lng: scene.lng, altitude: scene.altitude },
         1400,

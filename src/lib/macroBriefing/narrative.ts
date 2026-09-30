@@ -21,6 +21,15 @@ function truncate(text: string, max: number): string {
   return `${t.slice(0, max - 1)}…`;
 }
 
+/** KO: titleKo || title · EN: 원문 title만 */
+export function macroRssDisplayTitle(
+  item: Pick<MacroRssInputItem, "title" | "titleKo">,
+  lang: LabelLanguage,
+): string {
+  if (lang === "en") return item.title;
+  return item.titleKo?.trim() || item.title;
+}
+
 export function trustBadgeLabel(badge: MacroTrustBadge, lang: LabelLanguage): string {
   if (lang === "en") {
     if (badge === "high-confidence") return "High confidence";
@@ -39,7 +48,7 @@ export function catalystStepBody(
   lang: LabelLanguage,
 ): string {
   const place = macroThemeTitle(themeId, lang);
-  const title = truncate(item.title, 110);
+  const title = truncate(macroRssDisplayTitle(item, lang), 110);
   if (lang === "en") {
     return `Today’s catalyst in ${place}: “${title}” (${item.source}). This is a headline cluster, not a finished judgment.`;
   }

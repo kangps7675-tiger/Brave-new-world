@@ -66,6 +66,16 @@ export type MacroTopic = {
   heatLabel: string;
   steps: MacroStep[];
   camera: MacroCameraHint | null;
+  /** 이 트리거와 연관된 관측 심볼 (유가·가스·VIX·금 등) */
+  marketSymbols: string[];
+  /** 왜 이 심볼인지 — 해석용 면책 포함 */
+  marketNote: string;
+  /** /api/stock-tickers/reaction theater */
+  marketTheater: string;
+  /** logistics chokepoint id (choke-hormuz …) or null */
+  marketChokepointId: string | null;
+  /** 촉매 RSS 경과 분 — reaction 앵커 (없으면 null) */
+  marketAgeMinutes: number | null;
 };
 
 export type MacroBriefingPayload = {
@@ -83,6 +93,8 @@ export type MacroBriefingPayload = {
 export type MacroRssInputItem = {
   id: string;
   title: string;
+  /** 한국어 제목 — KO UI에서 우선 */
+  titleKo?: string;
   link: string;
   source: string;
   publisher?: string;
@@ -92,6 +104,8 @@ export type MacroRssInputItem = {
   feedTopic?: "defense" | "economy";
   econGenre?: EconomyNewsGenre;
   summary?: string;
+  /** 한국어 요약 — KO UI에서 우선 */
+  bodyKo?: string;
   urgencyScore?: number;
   breakingGrade?: number;
   ageMinutes?: number;

@@ -51,3 +51,34 @@ export function clampGlobeAltitude(altitude: number): number {
 export function globeDistanceForAltitude(altitude: number): number {
   return (clampGlobeAltitude(altitude) + 1) * 100;
 }
+
+/**
+ * 속보·핀·알림 등 「그 위치로」이동 — 눈치채기 전에 끝나지 않게,
+ * 빠르면서도 감속하는 웅장한 대각선 진입.
+ */
+export const CINEMATIC_FLY = {
+  durationMs: 2800,
+  /** MapLibre/globe.gl pitch (0=직하, 클수록 비스듬) → Cesium에서는 pitch-90 */
+  pitch: 52,
+  /** 대각선 시선 (남서쪽에서 내려다보는 느낌) */
+  bearing: -38,
+} as const;
+
+export type FlyCameraOpts = { pitch?: number; bearing?: number };
+
+/** 생략된 pitch/bearing을 대각선 시네마틱으로 채운다 */
+export function resolveCinematicCamera(camera?: FlyCameraOpts): {
+  pitch: number;
+  bearing: number;
+} {
+  return {
+    pitch: camera?.pitch ?? CINEMATIC_FLY.pitch,
+    bearing: camera?.bearing ?? CINEMATIC_FLY.bearing,
+  };
+}
+
+export function resolveCinematicDurationMs(durationMs?: number): number {
+  return typeof durationMs === "number" && Number.isFinite(durationMs)
+    ? durationMs
+    : CINEMATIC_FLY.durationMs;
+}

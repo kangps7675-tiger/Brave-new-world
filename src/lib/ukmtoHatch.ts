@@ -46,6 +46,60 @@ const TYPE_SEVERITY: Record<string, number> = {
   Advisory: 0.2,
 };
 
+/** UKMTO 사건 유형 — KO UI용 표시명 (원문 EN 키 유지) */
+const UKMTO_TYPE_LABEL_KO: Record<string, string> = {
+  Hijack: "납치·하이재킹",
+  Boarding: "무단 승선",
+  Attack: "공격",
+  "Suspicious Activity": "수상한 활동",
+  Advisory: "주의보",
+  Robbery: "강도",
+  Theft: "절도",
+  Kidnap: "납치",
+  Piracy: "해적 행위",
+  "Fired Upon": "피격",
+  Approach: "접근",
+  "Attempted Boarding": "승선 시도",
+  "Sea Robbery": "해상 강도",
+};
+
+export function localizeUkmtoIncidentType(
+  typeName: string | null | undefined,
+  lang: "ko" | "en",
+): string {
+  const raw = typeName?.trim() || "";
+  if (!raw) return lang === "en" ? "Maritime alert" : "해상 경보";
+  if (lang === "en") return raw;
+  return UKMTO_TYPE_LABEL_KO[raw] || UKMTO_TYPE_LABEL_KO[raw.replace(/\s+/g, " ")] || raw;
+}
+
+/** 흔한 해역·지명 표시용 — 없으면 원문 유지 */
+const UKMTO_PLACE_KO: Array<[RegExp, string]> = [
+  [/\bGulf of Aden\b/gi, "아덴만"],
+  [/\bRed Sea\b/gi, "홍해"],
+  [/\bBab el[\s-]?Mandeb\b/gi, "바브엘만데브"],
+  [/\bStrait of Hormuz\b/gi, "호르무즈 해협"],
+  [/\bPersian Gulf\b/gi, "페르시아만"],
+  [/\bArabian Sea\b/gi, "아라비아해"],
+  [/\bIndian Ocean\b/gi, "인도양"],
+  [/\bSomalia\b/gi, "소말리아"],
+  [/\bYemen\b/gi, "예멘"],
+  [/\bOman\b/gi, "오만"],
+  [/\bDjibouti\b/gi, "지부티"],
+  [/\bOff\b/gi, "앞바다"],
+];
+
+export function localizeUkmtoPlaceText(
+  text: string | null | undefined,
+  lang: "ko" | "en",
+): string {
+  const raw = text?.trim() || "";
+  if (!raw || lang === "en") return raw;
+  let out = raw;
+  for (const [re, ko] of UKMTO_PLACE_KO) out = out.replace(re, ko);
+  return out.replace(/\s{2,}/g, " ").trim();
+}
+
 export function ukmtoIncidentSeverity(
   incident: Pick<UkmtoHatchIncident, "incidentTypeName" | "pinColour">,
 ): number {
@@ -212,15 +266,22 @@ export function buildUkmtoBriefingContent(
   incident: UkmtoIncidentPoint,
   lang: "ko" | "en",
 ): UkmtoBriefingContent {
-  const place =
+  const placeRaw =
     incident.place?.trim() ||
     incident.region?.trim() ||
+    "";
+  const place =
+    localizeUkmtoPlaceText(placeRaw, lang) ||
     (lang === "en" ? "Reported location" : "보고 위치");
-  const typeName = incident.incidentTypeName || (lang === "en" ? "Maritime alert" : "해상 경보");
+  const typeName = localizeUkmtoIncidentType(incident.incidentTypeName, lang);
   const vessel =
     [incident.vesselName, incident.vesselType].filter(Boolean).join(" · ") || null;
   const when = incident.utcDateOfIncident?.trim() || null;
-  const detail = incident.detail?.trim() || null;
+  const detailRaw = incident.detail?.trim() || null;
+  const detail =
+    detailRaw && lang === "ko"
+      ? localizeUkmtoPlaceText(detailRaw, "ko")
+      : detailRaw;
   const num =
     incident.incidentNumber != null && Number.isFinite(incident.incidentNumber)
       ? String(incident.incidentNumber)

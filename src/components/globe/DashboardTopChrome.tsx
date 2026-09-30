@@ -51,9 +51,14 @@ export interface DashboardTopChromeProps {
   setShowFeatureGuide: Dispatch<SetStateAction<boolean>>;
   onSceneStart: () => void;
   onOpenSources?: () => void;
+  onOpenPurposeJob?: () => void;
   onOpenLayers?: () => void;
   onOpenSettings?: () => void;
   onOpenData?: () => void;
+  /** 위성(Cesium) 모드 — MapLibre globeRef 대신 이 캡처 사용 */
+  captureFrameOverride?: () => Promise<HTMLCanvasElement | null>;
+  recordClip?: () => Promise<void>;
+  recordClipBusy?: boolean;
   /** 가운데~우상단 고정 — DEFCON / 공급망 압력 + 시계 */
   wtiScore?: number | null;
   wtiDelta?: number | null;
@@ -66,13 +71,16 @@ export interface DashboardTopChromeProps {
   /** 거시 요약본 창 토글 */
   macroBriefingOpen?: boolean;
   onToggleMacroBriefing?: () => void;
+  /** 관측대 soft unlock — ViewModeSwitcher 잠금 표시 */
+  observeUnlocked?: boolean;
 }
 
 /**
- * 상단 크롬 + 좌·우 서랍.
- * - 검색창 상시 고정 · 호버 시 탐색 메뉴 · 바로 아래 지정학/지경학(메뉴와 함께 이동)
- * - 좌: 메뉴(+레일 슬롯) 호버 peep
- * - 우: 지표 칩 — 데스크톱 상시 공개, 모바일 peep (지경학은 해운·초크 보드 포함)
+ * 상단 크롬 + 좌·우 서랍 — LTR 읽기 순서.
+ * 1) 좌: 메뉴 peep (+레일)
+ * 2) 상단 스트립: 렌즈(Job) → 보조 도구 → 시계(상태)
+ * 3) 검색 행: 찾기 → 묻기 → 아카이브(영토·역사·허브)
+ * 4) 우: 지표 칩 (데스크톱 상시 / 모바일 peep)
  */
 export function DashboardTopChrome({
   intelSheetOpen,
@@ -99,9 +107,13 @@ export function DashboardTopChrome({
   setShowFeatureGuide,
   onSceneStart,
   onOpenSources,
+  onOpenPurposeJob,
   onOpenLayers,
   onOpenSettings,
   onOpenData,
+  captureFrameOverride,
+  recordClip,
+  recordClipBusy = false,
   wtiScore = null,
   wtiDelta = null,
   wtiAsOf = null,
@@ -111,6 +123,7 @@ export function DashboardTopChrome({
   leftRailSlotId = "chrome-left-rail-slot",
   macroBriefingOpen = false,
   onToggleMacroBriefing,
+  observeUnlocked = false,
 }: DashboardTopChromeProps) {
   const [rightMetricsPinned, setRightMetricsPinned] = useState(false);
   if (intelSheetOpen) return null;
@@ -126,24 +139,36 @@ export function DashboardTopChrome({
   const stripBtn =
     "rounded-full border border-sky-200/30 bg-transparent px-2.5 py-0.5 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
 
+  const showBriefing =
+    Boolean(onToggleMacroBriefing) &&
+    viewerMode !== "history" &&
+    viewerMode !== "satellite";
+
   return (
     <>
-      {/* 좌측 호버 서랍 — 메뉴 + 레일 슬롯 */}
+      {/* 좌측 호버 서랍 — 메뉴 + 레일 슬롯 (LTR 시작점) */}
       <HoverSideDrawer
         side="left"
         peepLabel={labelLanguage === "en" ? "Menu" : "메뉴"}
+        peepId="chrome-menu-peep"
         zIndexClass={zc("nav")}
       >
         <UtilityChromeMenu
           lang={labelLanguage}
           showProTip={false}
           menuAlign="left"
-          captureFrame={async () => (await globeRef.current?.captureFrame()) ?? null}
+          captureFrame={
+            captureFrameOverride ??
+            (async () => (await globeRef.current?.captureFrame()) ?? null)
+          }
+          recordClip={recordClip}
+          recordClipBusy={recordClipBusy}
           getScene={getSceneForShare}
           onTour={() => setChromeCoachStep("nav")}
           onHelp={() => setShowFeatureGuide(true)}
           onSceneStart={onSceneStart}
           onOpenSources={onOpenSources}
+          onOpenPurposeJob={onOpenPurposeJob}
           onOpenLayers={onOpenLayers}
           onOpenSettings={onOpenSettings}
           onOpenData={onOpenData}
@@ -155,8 +180,8 @@ export function DashboardTopChrome({
         />
       </HoverSideDrawer>
 
-      {/* 우측 지표 — 데스크톱 상시 공개 / 모바일 peep (역사 지도에서는 숨김) */}
-      {viewerMode !== "history" ? (
+      {/* 우측 지표 — LTR 끝. 역사·3D 라이브에서는 숨김(위성은 칩 null이라 빈 forceOpen 방지) */}
+      {viewerMode !== "history" && viewerMode !== "satellite" ? (
       <HoverSideDrawer
         side="right"
         peepLabel={
@@ -199,71 +224,70 @@ export function DashboardTopChrome({
         onKeywordSelect={setQuery}
         compact={isCompactUi}
         showDesktopToolsSlot={!isCompactUi}
-        hoverReveal
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
         onHistoryMapOpen={() => handleViewerModeChange("history")}
-        aboveNav={
-          <div className="flex w-full flex-col items-center gap-0.5 bg-transparent py-0">
-            <ImmersionDigitalClock lang={labelLanguage} variant="top" />
-            <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-              <div className="flex justify-end">
-                {onToggleMacroBriefing &&
-                viewerMode !== "history" &&
-                viewerMode !== "satellite" ? (
-                  <button
-                    type="button"
-                    id="macro-briefing-toggle"
-                    onClick={onToggleMacroBriefing}
-                    className={`${stripBtn} min-w-[7.5rem] text-center ${
-                      macroBriefingOpen
-                        ? "border-sky-100/60 bg-sky-400/15 text-sky-50"
-                        : ""
-                    }`}
-                    aria-pressed={macroBriefingOpen}
-                    aria-haspopup="dialog"
-                    aria-label={
-                      labelLanguage === "en"
-                        ? "Toggle macro briefing"
-                        : "거시 요약본 창 토글"
-                    }
-                  >
-                    {labelLanguage === "en" ? "Briefing" : "요약본"}
-                  </button>
-                ) : (
-                  <span className="min-w-[7.5rem]" aria-hidden />
-                )}
-              </div>
-              <div className="flex justify-center">
-                {onOpenLayers ? (
-                  <button
-                    type="button"
-                    id="layer-panel-toggle"
-                    onClick={onOpenLayers}
-                    className={`${stripBtn} min-w-[7.5rem] text-center`}
-                    aria-haspopup="dialog"
-                    aria-label={
-                      labelLanguage === "en" ? "Open layer panel" : "레이어 패널 열기"
-                    }
-                  >
-                    {labelLanguage === "en" ? "Layers" : "레이어"}
-                  </button>
-                ) : (
-                  <span className="min-w-[7.5rem]" aria-hidden />
-                )}
-              </div>
-              <div className="flex justify-start">
-                <button type="button" onClick={onSceneStart} className={stripBtn}>
-                  {t("sceneMissionStart", labelLanguage)}
-                </button>
-              </div>
-            </div>
-          </div>
+        leadingSlot={
+          <ViewModeSwitcher
+            mode={viewerMode}
+            onChange={handleViewerModeChange}
+            observeUnlocked={observeUnlocked}
+          />
         }
-        belowNav={
-          <div className="flex w-full flex-col items-center gap-1.5">
-            <ViewModeSwitcher mode={viewerMode} onChange={handleViewerModeChange} />
+        aboveNav={
+          <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 bg-transparent py-0">
+            {/* LTR: 보조 도구(좌) → 시계(우, 지표 옆) */}
+            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-1.5">
+              {showBriefing ? (
+                <button
+                  type="button"
+                  id="macro-briefing-toggle"
+                  onClick={onToggleMacroBriefing}
+                  className={`${stripBtn} ${
+                    macroBriefingOpen
+                      ? "border-sky-100/60 bg-sky-400/15 text-sky-50"
+                      : ""
+                  }`}
+                  aria-pressed={macroBriefingOpen}
+                  aria-haspopup="dialog"
+                  aria-label={
+                    labelLanguage === "en"
+                      ? "Toggle today’s overview"
+                      : "오늘 한눈에 창 토글"
+                  }
+                >
+                  {labelLanguage === "en" ? "Overview" : "오늘 한눈에"}
+                </button>
+              ) : null}
+              {onOpenLayers ? (
+                <button
+                  type="button"
+                  id="layer-panel-toggle"
+                  onClick={onOpenLayers}
+                  className={stripBtn}
+                  aria-haspopup="dialog"
+                  aria-label={
+                    labelLanguage === "en"
+                      ? "Choose what to show on the map"
+                      : "지도에 올릴 것 고르기"
+                  }
+                >
+                  {labelLanguage === "en" ? "Show" : "올릴 것"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                id="scene-mission-start"
+                onClick={onSceneStart}
+                className={stripBtn}
+              >
+                {t("sceneMissionStart", labelLanguage)}
+              </button>
+            </div>
+            <div className="shrink-0">
+              <ImmersionDigitalClock lang={labelLanguage} variant="top" />
+            </div>
           </div>
         }
       />

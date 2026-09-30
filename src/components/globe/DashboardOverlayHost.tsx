@@ -123,10 +123,8 @@ import {
 import { FirstVisitTour } from "@/components/FirstVisitTour";
 import { clearFirstVisitTourDone } from "@/lib/firstVisitTour";
 import { LayerTurnOnCoach } from "@/components/LayerTurnOnCoach";
-import {
-  TourInviteBanner,
-  shouldOfferTourInvite,
-} from "@/components/TourInviteBanner";
+import { TourInviteBanner } from "@/components/TourInviteBanner";
+import { shouldOfferTourInvite } from "@/lib/tourInvite";
 import {
   FrictionOnboardingCoach,
   type FrictionCoachStep,
@@ -196,6 +194,10 @@ import {
 } from "@/lib/overlayBudget";
 import { LampPreparingOverlay } from "@/components/LampPreparingOverlay";
 import { LanguageGateOverlay } from "@/components/LanguageGateOverlay";
+import {
+  PurposeJobOverlay,
+  type PurposeJobId,
+} from "@/components/PurposeJobOverlay";
 import { markTensionPromptSeen, type DailyPrompt } from "@/lib/dailyPrompt";
 import {
   clearWeeklyRecapFolded,
@@ -272,6 +274,8 @@ export type DashboardOverlayHostProps = {
   isCompactUi: boolean;
   /** 태블릿 프로파일 — soft-compact 밀도 (1025–1366 등) */
   isTabletUi?: boolean;
+  /** 폰 셸(MobileHomeView) — 지도 FAB·compact 크롬 스킵, 게이트·모달만 유지 */
+  isPhoneUi?: boolean;
   isEconomyViewer: boolean;
   viewerMode: ViewerMode;
   intelSheetOpen: boolean;
@@ -356,6 +360,8 @@ export type DashboardOverlayHostProps = {
   weeklyRecapCollapsed: boolean;
   showLampPreparing: boolean;
   showLanguageGate: boolean;
+  showPurposeJobGate: boolean;
+  purposeJobAllowDismiss?: boolean;
   showDailyRankPanel: boolean;
   showTourInvite: boolean;
   airRaidOffer: AirRaidOffer | null;
@@ -446,6 +452,8 @@ export type DashboardOverlayHostProps = {
   onSetWhatsNewUpdate: (v: AppUpdate | null) => void;
   onLabelLanguageChange: (lang: LabelLanguage) => void;
   onConfirmLabelLanguage: (lang: LabelLanguage) => void;
+  onConfirmPurposeJob: (job: PurposeJobId) => void;
+  onDismissPurposeJob: () => void;
   onLangChoiceConfirmed: () => void;
   onSetEntryGate: (gate: EntryGate) => void;
   onDomainSelect: (mode: ViewerMode, ultraLite: boolean) => void;
@@ -499,6 +507,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     labelLanguage,
     isCompactUi,
     isTabletUi = false,
+    isPhoneUi = false,
     isEconomyViewer,
     viewerMode,
     intelSheetOpen,
@@ -582,6 +591,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     weeklyRecapCollapsed,
     showLampPreparing,
     showLanguageGate,
+    showPurposeJobGate,
+    purposeJobAllowDismiss = false,
     showDailyRankPanel,
     showTourInvite,
     airRaidOffer,
@@ -644,6 +655,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetWhatsNewUpdate,
     onLabelLanguageChange,
     onConfirmLabelLanguage,
+    onConfirmPurposeJob,
+    onDismissPurposeJob,
     onLangChoiceConfirmed,
     onSetEntryGate,
     onDomainSelect,
@@ -807,11 +820,11 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
    * (상위에서 `screen`을 prop으로 내려주게 되면 이 지역 파생은 지운다.)
    */
   const gateClosed = entryGate === null;
-  const gateClear = gateClosed && !showModePicker;
+  const gateClear = gateClosed && !showModePicker && !showLanguageGate && !showPurposeJobGate;
   const [futuresSpikeInsightOffer, setFuturesSpikeInsightOffer] =
     useState<SpikeTelegraphBannerOffer | null>(null);
   const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
-    gateClear && !showLanguageGate && !futuresSpikeInsightOffer,
+    gateClear && !futuresSpikeInsightOffer,
   );
 
   const dismissFuturesSpikeInsight = useCallback(() => {
@@ -891,14 +904,20 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
   return (
     <>
-      {showIntroHint && !intelSheetOpen && (
-        <div className="pointer-events-none absolute inset-x-0 top-[4.5rem] z-40 flex justify-center">
+      {showIntroHint && !intelSheetOpen && !isPhoneUi && (
+        <div
+          className={`pointer-events-none fixed inset-x-0 flex justify-center ${zc("mapControl")}`}
+          style={{
+            top: "calc(var(--hover-nav-height, 4.5rem) + 0.45rem)",
+          }}
+        >
           <div className="rounded-full border border-sky-300/25 bg-[#0a1830]/80 px-4 py-2 text-sm text-sky-100/90 shadow-lg backdrop-blur-md">
             {showUkraineControl ? "우크라이나 전선으로 이동 중…" : "주요 분쟁 지역으로 이동 중…"}
           </div>
         </div>
       )}
 
+      {!isPhoneUi ? (
       <QuickStartCoach
         visible={
           showQuickStart &&
@@ -915,6 +934,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         viewerMode={viewerMode}
         onDismiss={() => onSetShowQuickStart(false)}
       />
+      ) : null}
 
       {showViewerIntro && gateClear && globeReady && !isLoading ? (
         <ViewerIntroOverlay
@@ -935,7 +955,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {!intelSheetOpen ? (
+      {!isPhoneUi && !intelSheetOpen ? (
       <div
         className={`pointer-events-none absolute left-3 flex flex-col items-start gap-2 ${
           showDailyRankPanel ? zc("panel") : zc("mapControl")
@@ -1085,7 +1105,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   </div>
                 </div>
               ) : null}
-              {/* 데스크톱 주요전장/허브는 TopChrome ScenarioPresetChips만 (여기 ExplorationTabs 중복 제거) */}
               <div className="pointer-events-auto flex shrink-0 items-center gap-3 bg-transparent">
                 {gateClear ? (
                   <>
@@ -1125,7 +1144,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           )
         : null}
 
-      {!intelSheetOpen && isCompactUi ? (
+      {!isPhoneUi && !intelSheetOpen && isCompactUi ? (
         <div
           className="pointer-events-none absolute right-3 z-[200] flex flex-col items-end gap-2"
           style={{
@@ -1153,8 +1172,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         </div>
       ) : null}
 
-      {/* 모바일: 공습 경보는 하단 아이콘 — 상단 허브·주요전장 메뉴를 가리지 않음. 등불 중에는 숨김 */}
-      {!intelSheetOpen &&
+      {/* 모바일(태블릿 compact): 공습 경보 — 폰 셸에서는 MobileHomeView만 쓰므로 스킵 */}
+      {!isPhoneUi &&
+      !intelSheetOpen &&
       isCompactUi &&
       !issueUiPausedForLamp &&
       ((!isEconomyViewer &&
@@ -1273,7 +1293,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         음소거·세션 FAB — 데스크톱은 HoverNav 포털로 이관.
         모바일 compact만 우하단 유지. 실시간 중계 종료 칩은 양쪽.
       */}
-      {gateClosed && (isCompactUi || liveBriefingSession) ? (
+      {gateClosed && !isPhoneUi && (isCompactUi || liveBriefingSession) ? (
         <div
           className={`pointer-events-none fixed right-4 z-[900] flex flex-col items-end gap-2 sm:right-5 ${
             isCompactUi ? "cv-chrome-fab-bottom" : "bottom-5 sm:bottom-6"
@@ -1403,6 +1423,15 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       {showLanguageGate ? (
         <LanguageGateOverlay lang={labelLanguage} onSelect={onConfirmLabelLanguage} />
+      ) : null}
+
+      {showPurposeJobGate ? (
+        <PurposeJobOverlay
+          lang={labelLanguage}
+          onSelect={onConfirmPurposeJob}
+          allowDismiss={purposeJobAllowDismiss}
+          onDismiss={onDismissPurposeJob}
+        />
       ) : null}
 
       {showModePicker ? (
@@ -1598,7 +1627,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {!isCompactUi &&
+      {!isPhoneUi &&
+      !isCompactUi &&
       gateClear &&
       !periodicBriefing &&
       !weeklyExpanded &&
@@ -1712,7 +1742,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               showFirstVisitTour,
           ),
           // 언어 게이트·양피지 준비 중엔 묻지 않는다 (첫 90초 주인공은 지도·속보)
-          ultraLiteOffer: ultraLiteOfferVisible && !showLanguageGate && !showLampPreparing,
+          ultraLiteOffer: ultraLiteOfferVisible && !showLanguageGate && !showPurposeJobGate && !showLampPreparing,
           isEconomyViewer,
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,
@@ -2003,11 +2033,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       ) : null}
 
       {!intelSheetOpen &&
+      !isPhoneUi &&
       timeScrubber &&
       viewerMode !== "history" &&
       viewerMode !== "satellite" ? (
         <div
-          className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-dock-floor ${
+          className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-chrome-above-stack ${
             isCompactUi
               ? "w-[min(96vw,28rem)]"
               : "w-[min(92vw,36rem)]"

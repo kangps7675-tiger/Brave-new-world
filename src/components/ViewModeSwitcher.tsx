@@ -8,12 +8,18 @@ import type { ViewerMode } from "@/lib/viewPackages";
 type ViewModeSwitcherProps = {
   mode: ViewerMode;
   onChange: (mode: ViewerMode) => void;
+  /** 관측대 soft unlock — false면 잠금 표시 */
+  observeUnlocked?: boolean;
 };
 
-/** 상단 3토글 — 지정학 · 3D 라이브 · 지경학 (역사는 역사지도·영토분쟁 쪽) */
+/** 상단 3토글 — 지정학 · 관측대(잠금) · 지경학 */
 type TopMode = Extract<ViewerMode, "conflict" | "satellite" | "economy">;
 
-export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
+export function ViewModeSwitcher({
+  mode,
+  onChange,
+  observeUnlocked = false,
+}: ViewModeSwitcherProps) {
   const { t } = useLocale();
   const light = useBasemapTone() === "light";
 
@@ -35,7 +41,7 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
     },
   ];
 
-  /** 레거시 history/live 저장값 → 지정학·3D 라이브 탭으로 표시 */
+  /** 레거시 history/live 저장값 → 지정학·관측대 탭으로 표시 */
   const displayMode: TopMode =
     mode === "economy"
       ? "economy"
@@ -62,7 +68,7 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
   return (
     <div
       id="view-mode-switcher"
-      className={`flex rounded-full border p-0.5 shadow-lg ${
+      className={`flex w-full justify-start rounded-full border p-0.5 shadow-lg sm:w-auto ${
         light
           ? "border-slate-300 bg-white"
           : "border-sky-200/15 bg-[#0f1d35]/88 backdrop-blur-xl"
@@ -72,14 +78,20 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
     >
       {MODES.map((item) => {
         const active = displayMode === item.id;
+        const locked = item.id === "satellite" && !observeUnlocked;
         return (
           <HoverHint key={item.id} placement="bottom" title={item.label} detail={item.hint}>
             <button
               type="button"
               role="tab"
               aria-selected={active}
+              aria-label={
+                locked
+                  ? `${item.label} (${t("modePremiumHint")})`
+                  : item.label
+              }
               onClick={() => onChange(item.id)}
-              className={`rounded-full px-2.5 py-1 text-caption font-semibold transition sm:px-3 ${
+              className={`flex flex-1 items-center justify-center gap-1 rounded-full px-2.5 py-1 text-caption font-semibold transition sm:flex-none sm:px-3 ${
                 active
                   ? activeClass(item.id)
                   : light
@@ -87,7 +99,12 @@ export function ViewModeSwitcher({ mode, onChange }: ViewModeSwitcherProps) {
                     : "text-slate-300 hover:bg-white/5"
               }`}
             >
-              {item.label}
+              {locked ? (
+                <span className="text-micro opacity-80" aria-hidden>
+                  🔒
+                </span>
+              ) : null}
+              <span>{item.label}</span>
             </button>
           </HoverHint>
         );
