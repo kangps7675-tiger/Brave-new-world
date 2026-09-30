@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * Cesium 관측 — 하루(낮/밤) 타임 스크럽·리플레이.
- * 항적 히스토리 재생이 아니라 태양/야경 시계만 돌린다.
+ * 항적 히스토리 재생이 아니라 태양 시계(터미네이터 그림자)만 돌린다.
  */
 export function CesiumDayScrubber({
   lang,
@@ -77,8 +77,8 @@ export function CesiumDayScrubber({
         </button>
         <p className="text-micro leading-snug text-teal-200/50">
           {en
-            ? "Sun & city lights only — tracks stay live"
-            : "태양·야경만 · 항적은 실시간 유지"}
+            ? "Sun shadow only — tracks stay live"
+            : "태양 그림자만 · 항적은 실시간 유지"}
         </p>
       </div>
     </div>
