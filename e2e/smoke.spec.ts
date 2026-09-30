@@ -97,6 +97,8 @@ async function enterGlobe(page: Page, domain: "conflict" | "economy" = "conflict
         localStorage.setItem("geowatch-lang-choice-v1", "1");
         localStorage.setItem("geowatch-welcome-gate-v1", "1");
         localStorage.setItem("geowatch-sources-gate-v1", "1");
+        // Purpose Job 게이트가 뜨면 DashboardTopChrome(레이어 토글)이 통째로 숨겨짐
+        localStorage.setItem("bnw-purpose-job-v1", "1");
         // 레이어 패널 첫 오픈 UX 양피지 — 스모크가 체크박스를 가리지 않게
         localStorage.setItem("cv-ux-guide-brief-v1", "1");
         localStorage.setItem(
@@ -189,15 +191,24 @@ async function waitForInteractiveChrome(page: Page) {
   await expect(page.locator("#lang-gate-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#entry-caution-title")).toHaveCount(0, { timeout: 5_000 });
   await expect(page.locator("#data-source-parchment-title")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("#purpose-job-title")).toHaveCount(0, { timeout: 5_000 });
 
   // news-stream load then parchment dismiss poll
   await expect
     .poll(async () => {
       await completeSourcesGateIfVisible(page);
       await dismissBlockingParchmentOverlays(page);
+      // Purpose Job이 남아 있으면 "그냥 둘러보기"로 닫아 크롬을 연다
+      const purposeBrowse = page.getByRole("button", {
+        name: /그냥 둘러보기|Just explore/i,
+      });
+      if (await purposeBrowse.isVisible({ timeout: 500 }).catch(() => false)) {
+        await purposeBrowse.click().catch(() => {});
+      }
       const blocking =
         (await page.locator(".welcome-letter-scrim[role='dialog']").count()) +
-        (await page.locator("#data-source-parchment-title").count());
+        (await page.locator("#data-source-parchment-title").count()) +
+        (await page.locator("#purpose-job-title").count());
       return blocking;
     }, { timeout: 45_000 })
     .toBe(0);

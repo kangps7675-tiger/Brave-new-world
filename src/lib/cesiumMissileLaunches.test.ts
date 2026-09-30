@@ -17,7 +17,7 @@ describe("ballisticArcPositions", () => {
       39.2,
       125.67,
       "ballistic",
-    ) as Array<{ lon: number; lat: number; h: number }>;
+    ) as unknown as Array<{ lon: number; lat: number; h: number }>;
     expect(pts.length).toBeGreaterThan(10);
     expect(pts[0].h).toBeCloseTo(0, 0);
     expect(pts[pts.length - 1].h).toBeCloseTo(0, 0);
@@ -33,7 +33,7 @@ describe("ballisticArcPositions", () => {
       39.2,
       125.67,
       "ballistic",
-    ) as Array<{ lon: number; lat: number; h: number }>;
+    ) as unknown as Array<{ lon: number; lat: number; h: number }>;
     expect(pts[pts.length - 1].lon).toBeGreaterThan(pts[0].lon);
   });
 });

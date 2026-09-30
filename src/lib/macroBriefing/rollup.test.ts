@@ -181,11 +181,12 @@ describe("macroBriefing rollup", () => {
     expect(topic).toBeTruthy();
     const catalyst = topic!.steps.find((s) => s.kind === "rss-catalyst");
     expect(catalyst).toBeTruthy();
+    expect(catalyst!.camera).toBeTruthy();
     // Kyiv ~50.45, 30.52 — not theater centroid (48.5, 34)
-    expect(catalyst!.camera.lat).toBeGreaterThan(50);
-    expect(catalyst!.camera.lat).toBeLessThan(51);
-    expect(catalyst!.camera.lng).toBeGreaterThan(30);
-    expect(catalyst!.camera.lng).toBeLessThan(31.5);
+    expect(catalyst!.camera!.lat).toBeGreaterThan(50);
+    expect(catalyst!.camera!.lat).toBeLessThan(51);
+    expect(catalyst!.camera!.lng).toBeGreaterThan(30);
+    expect(catalyst!.camera!.lng).toBeLessThan(31.5);
   });
 
   it("flies to gazetteer city from Korean title (Taipei)", () => {
@@ -207,11 +208,12 @@ describe("macroBriefing rollup", () => {
     expect(topic).toBeTruthy();
     const catalyst = topic!.steps.find((s) => s.kind === "rss-catalyst");
     expect(catalyst).toBeTruthy();
+    expect(catalyst!.camera).toBeTruthy();
     // Taipei ~25.03, 121.57
-    expect(catalyst!.camera.lat).toBeGreaterThan(24.5);
-    expect(catalyst!.camera.lat).toBeLessThan(25.5);
-    expect(catalyst!.camera.lng).toBeGreaterThan(121);
-    expect(catalyst!.camera.lng).toBeLessThan(122);
+    expect(catalyst!.camera!.lat).toBeGreaterThan(24.5);
+    expect(catalyst!.camera!.lat).toBeLessThan(25.5);
+    expect(catalyst!.camera!.lng).toBeGreaterThan(121);
+    expect(catalyst!.camera!.lng).toBeLessThan(122);
   });
 
   it("flies GDELT density to densest cell, not mean centroid", () => {
@@ -257,11 +259,12 @@ describe("macroBriefing rollup", () => {
     expect(ua).toBeTruthy();
     const gdeltStep = ua!.steps.find((s) => s.kind === "gdelt-density");
     expect(gdeltStep).toBeTruthy();
+    expect(gdeltStep!.camera).toBeTruthy();
     // densest around Donbas ~48.4, 37.8 — not pulled north by Moscow/Petersburg
-    expect(gdeltStep!.camera.lat).toBeGreaterThan(48);
-    expect(gdeltStep!.camera.lat).toBeLessThan(49.5);
-    expect(gdeltStep!.camera.lng).toBeGreaterThan(37);
-    expect(gdeltStep!.camera.lng).toBeLessThan(39);
+    expect(gdeltStep!.camera!.lat).toBeGreaterThan(48);
+    expect(gdeltStep!.camera!.lat).toBeLessThan(49.5);
+    expect(gdeltStep!.camera!.lng).toBeGreaterThan(37);
+    expect(gdeltStep!.camera!.lng).toBeLessThan(39);
   });
 
   it("econ chips theme camera is East Asia, not Africa", () => {
@@ -282,8 +285,9 @@ describe("macroBriefing rollup", () => {
     });
     const chips = payload.topics.find((t) => t.id === "econ:chips");
     expect(chips).toBeTruthy();
-    expect(chips!.camera.lng).toBeGreaterThan(100);
-    expect(chips!.camera.lat).toBeGreaterThan(20);
-    expect(chips!.camera.lat).toBeLessThan(30);
+    expect(chips!.camera).toBeTruthy();
+    expect(chips!.camera!.lng).toBeGreaterThan(100);
+    expect(chips!.camera!.lat).toBeGreaterThan(20);
+    expect(chips!.camera!.lat).toBeLessThan(30);
   });
 });

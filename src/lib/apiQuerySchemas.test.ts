@@ -12,12 +12,13 @@ import {
 import { PRIMARY_LIVE_SOURCES, catalogCaption, getSourceNote } from "@/data/sourceCatalog";
 
 describe("PRIMARY_LIVE_SOURCES", () => {
-  it("lists NASA FIRMS, ADS-B, and MarineTraffic", () => {
+  it("lists NASA FIRMS, ADS-B, MarineTraffic, and Liveuamap", () => {
     const ids = PRIMARY_LIVE_SOURCES.map((s) => s.id);
-    expect(ids).toEqual(["nasa-firms", "adsb", "marinetraffic"]);
+    expect(ids).toEqual(["nasa-firms", "adsb", "marinetraffic", "liveuamap"]);
     expect(PRIMARY_LIVE_SOURCES[0]?.nameKo).toContain("NASA FIRMS");
     expect(PRIMARY_LIVE_SOURCES[1]?.nameKo).toBe("ADS-B");
     expect(PRIMARY_LIVE_SOURCES[2]?.nameKo).toBe("MarineTraffic");
+    expect(PRIMARY_LIVE_SOURCES[3]?.nameKo).toBe("Liveuamap");
   });
 });
 

@@ -1780,8 +1780,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             entity.polygon.heightReference = new Cesium.ConstantProperty(
               Cesium.HeightReference.CLAMP_TO_GROUND,
             );
-            // 지구 뒤편 면이 depth-fail로 비치지 않게 — 명시적으로 제거
-            entity.polygon.depthFailMaterial = undefined;
+            // 지형에만 클램프 — 뒷면 depth-fail 머티리얼은 PolygonGraphics에 없음
             entity.polygon.classificationType = new Cesium.ConstantProperty(
               Cesium.ClassificationType.TERRAIN,
             );
