@@ -33,14 +33,21 @@ function installMemoryStorage() {
       key: (i: number) => [...map.keys()][i] ?? null,
     };
   };
-  const g = globalThis as typeof globalThis & {
-    window?: typeof globalThis;
-    localStorage: Storage;
-    sessionStorage: Storage;
-  };
-  g.window = g.window ?? g;
-  g.localStorage = mem() as unknown as Storage;
-  g.sessionStorage = mem() as unknown as Storage;
+  Object.defineProperty(globalThis, "localStorage", {
+    value: mem(),
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, "sessionStorage", {
+    value: mem(),
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, "window", {
+    value: globalThis,
+    configurable: true,
+    writable: true,
+  });
 }
 
 describe("first-visit tour invite (localStorage)", () => {

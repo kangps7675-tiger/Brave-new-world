@@ -63,11 +63,13 @@ describe("예산 총량", () => {
     expect(remainingBudget()).toBe(ONBOARDING_BUDGET_PER_SESSION);
   });
 
-  it("소진되면 아무것도 뜨지 않는다", () => {
+  it("소진되면 예산 넛지는 막고 exempt는 남긴다", () => {
     markNudgeShown("ultraLiteOffer", NOW);
     markNudgeShown("chromeCoach", NOW);
     expect(remainingBudget()).toBe(0);
-    expect(canShowNudge("tourInvite", true, NOW + 60_000)).toBe(false);
+    expect(canShowNudge("intelDragHint", true, NOW + 60_000)).toBe(false);
+    // tourInvite는 세션 예산 면제
+    expect(canShowNudge("tourInvite", true, NOW + 60_000)).toBe(true);
   });
 });
 
@@ -81,11 +83,12 @@ describe("쿨다운", () => {
 
 describe("우선순위 선점", () => {
   it("마지막 한 자리는 덜 중요한 힌트에 주지 않는다", () => {
-    markNudgeShown("ultraLiteOffer", NOW);
+    // chromeCoach는 eager 아님 — 대기 중인 non-exempt eager(ultraLiteOffer)가 마지막 칸을 지킨다
+    markNudgeShown("chromeCoach", NOW);
     const later = NOW + 60_000;
     expect(remainingBudget()).toBe(1);
     expect(canShowNudge("intelDragHint", true, later)).toBe(false);
-    expect(canShowNudge("chromeCoach", true, later)).toBe(true);
+    expect(canShowNudge("ultraLiteOffer", true, later)).toBe(true);
   });
 
   /**

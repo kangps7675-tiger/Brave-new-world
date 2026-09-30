@@ -24,10 +24,10 @@ export function markTourInviteDismissed(): void {
   markNudgeShown("tourInvite");
 }
 
-/** 투어 미완료 + 권유 미거절 — 세션 예산·쿨다운 적용 (exempt 아님). */
+/** 투어 미완료 + 권유 미거절 — tourInvite는 예산 면제(exempt). */
 export function shouldOfferTourInvite(): boolean {
   if (typeof window === "undefined") return false;
   if (readFirstVisitTourDone()) return false;
   if (readTourInviteDismissed()) return false;
-  return canShowNudge("tourInvite", false);
+  return canShowNudge("tourInvite", true);
 }
