@@ -5751,13 +5751,12 @@ export function GlobeDashboard({
       }),
       conflictEventTheaters,
     );
-    const markers = clusters
-      .map((cluster) => {
-        const gate = gateConflictCluster(cluster);
-        if (gate.grade === "drop" || gate.grade === "hold") return null;
-        return { ...clusterToMarker(cluster), displayGrade: gate.grade };
-      })
-      .filter((m): m is ConflictEventHtmlMarker => m != null);
+    const markers: ConflictEventHtmlMarker[] = [];
+    for (const cluster of clusters) {
+      const gate = gateConflictCluster(cluster);
+      if (gate.grade === "drop" || gate.grade === "hold") continue;
+      markers.push({ ...clusterToMarker(cluster), displayGrade: gate.grade });
+    }
     return selectConflictEventMarkers(markers, {
       view: layerViewState,
       lodTier: globeLod.tier,
