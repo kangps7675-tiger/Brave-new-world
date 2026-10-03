@@ -49,6 +49,16 @@
 - **전황 책 + 센서 교차**: 관측(`satellite`)만
 - **Watchboard / Source drill 풀 UI**: 관측 우선
 
+## Desk density (밀도 전략)
+
+양을 늘리지 않고 **선별·교차·PIR·72h 창**으로 데스크 강도를 올린다.
+
+1. `theaterCanonSources.ts` — 전장별 공개 정본 채널(공식/센서/언론 소수). 빈칸은 숨기지 않음.
+2. `conflictClusters` → Gate → Watchboard (`conflict-cluster` kind). 단일 소스면 얇음/Hold.
+3. `pirModalityStatus` — 필요 / 확보 / 빈칸 카드 (`PirFulfillmentCard`).
+4. `whyPublishLines` — 소스 드릴 상단 3줄(채널·반증·PIR).
+5. Watchboard 기본 `windowHours: 72`.
+
 ## Horizon (비목표)
 
-Entity graph, human QC 워크벤치, 거시 Assessment 서사, 사후 채점 루프.
+Entity graph, human QC 워크벤치, 거시 Assessment 서사, 사후 채점 루프, D1 원문 전량 적재.

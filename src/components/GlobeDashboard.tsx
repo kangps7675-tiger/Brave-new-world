@@ -218,6 +218,7 @@ import {
   gateEscalation,
   gateTheaterSitrep,
   type GateResult,
+  type PirModalityStatus,
 } from "@/lib/intelContract";
 import {
   incidentSuggestsEnergyPipelines,
@@ -1310,6 +1311,20 @@ export function GlobeDashboard({
     useState<TheaterSitrepRegionId | null>(null);
   /** IntelContract Source drill — 관측/지정학/지경학 공통 */
   const [intelDrillGate, setIntelDrillGate] = useState<GateResult | null>(null);
+  const [intelDrillPirStatuses, setIntelDrillPirStatuses] = useState<
+    PirModalityStatus[]
+  >([]);
+  const openIntelDrill = useCallback(
+    (gate: GateResult, pirStatuses: PirModalityStatus[] = []) => {
+      setIntelDrillGate(gate);
+      setIntelDrillPirStatuses(pirStatuses);
+    },
+    [],
+  );
+  const closeIntelDrill = useCallback(() => {
+    setIntelDrillGate(null);
+    setIntelDrillPirStatuses([]);
+  }, []);
   const [breakingFlashGate, setBreakingFlashGate] = useState<GateResult | null>(null);
   /** 관측대 안건 보드 첫 안내 카드 */
   const [intelDeskTipVisible, setIntelDeskTipVisible] = useState(false);
@@ -8160,6 +8175,27 @@ export function GlobeDashboard({
     ],
   );
 
+  const observeConflictClusters = useMemo(() => {
+    if (!isSatelliteViewer) return [];
+    const newsItems = [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ];
+    return buildConflictEventClusters({
+      newsItems,
+      gdeltEvents: scoredEvents,
+      newfeedsAttacks,
+    });
+  }, [
+    isSatelliteViewer,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.stateMedia,
+    newsStreamPayload?.verified,
+    newfeedsAttacks,
+    scoredEvents,
+  ]);
+
   const observeWatchboardItems = useMemo(() => {
     if (!isSatelliteViewer) return [];
     const rssItems = [
@@ -8171,7 +8207,9 @@ export function GlobeDashboard({
       liveuaEvents,
       rssItems,
       cesiumAlerts,
+      conflictClusters: observeConflictClusters,
       lang: labelLanguage === "en" ? "en" : "ko",
+      windowHours: 72,
     });
   }, [
     cesiumAlerts,
@@ -8181,6 +8219,7 @@ export function GlobeDashboard({
     newsStreamPayload?.flashHeroes,
     newsStreamPayload?.hero,
     newsStreamPayload?.verified,
+    observeConflictClusters,
   ]);
 
   const escalationIntel = useMemo(() => {
@@ -11315,7 +11354,7 @@ export function GlobeDashboard({
                       (row) => row.sitrepRegion === regionId,
                     );
                     if (item && !canPublish("theater_sitrep", item.grade)) {
-                      setIntelDrillGate(item.gate);
+                      openIntelDrill(item.gate, item.pirStatuses);
                       return;
                     }
                     setTheaterSitrepRegion(regionId);
@@ -11325,7 +11364,7 @@ export function GlobeDashboard({
                     const item = cesiumAlerts.find((a) => a.id === cesiumAlertId);
                     if (item) openCesiumAlert(item);
                   }}
-                  onDrill={(item) => setIntelDrillGate(item.gate)}
+                  onDrill={(item) => openIntelDrill(item.gate, item.pirStatuses)}
                   onOpenFullGuide={() => setShowFeatureGuide(true)}
                 />
                 <CesiumAlertDock
@@ -11548,7 +11587,8 @@ export function GlobeDashboard({
             <IntelSourceDrill
               lang={labelLanguage}
               gate={intelDrillGate}
-              onClose={() => setIntelDrillGate(null)}
+              pirStatuses={intelDrillPirStatuses}
+              onClose={closeIntelDrill}
             />
           </div>
         ) : null}
@@ -11831,7 +11871,7 @@ export function GlobeDashboard({
         breakingFlashGrade={breakingFlashGate?.grade}
         onBreakingFlashDrill={
           breakingFlashGate
-            ? () => setIntelDrillGate(breakingFlashGate)
+            ? () => openIntelDrill(breakingFlashGate)
             : undefined
         }
         onBreakingFlashGoToLocation={() => {
@@ -11892,7 +11932,7 @@ export function GlobeDashboard({
         escalationDisplayGrade={escalationIntel?.gate.grade}
         onEscalationDrill={
           escalationIntel
-            ? () => setIntelDrillGate(escalationIntel.gate)
+            ? () => openIntelDrill(escalationIntel.gate)
             : undefined
         }
         adsbEmergencyOffer={adsbEmergencyOffer}
@@ -11907,7 +11947,7 @@ export function GlobeDashboard({
         chokepointStressGrade={chokepointStressGate?.grade}
         onChokepointStressDrill={
           chokepointStressGate
-            ? () => setIntelDrillGate(chokepointStressGate)
+            ? () => openIntelDrill(chokepointStressGate)
             : undefined
         }
         onChokepointOpenObserve={
