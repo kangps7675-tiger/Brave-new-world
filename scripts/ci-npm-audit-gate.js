@@ -31,6 +31,21 @@ const ALLOWED_HIGH = {
     "Transitive image-size advisory via texture-compressor.",
   "@luma.gl/gltf":
     "Transitive image-size advisory in GLTF render path.",
+  // @google/earthengine@1.7.x pins googleapis@^92 -> google-auth-library@7 -> gtoken ->
+  // google-p12-pem -> node-forge. GHSA-86w9-cpqp-85rv has no patched node-forge release
+  // (advisory range <=1.4.0). GEE is server-side service-account only, not browser PKCS path.
+  "node-forge":
+    "Transitive via @google/earthengine googleapis@92 chain; no patched npm release yet (<=1.4.0). Server-side GEE only.",
+  "google-p12-pem":
+    "Transitive via gtoken/google-auth-library@7/googleapis@92/@google/earthengine; blocked on node-forge above.",
+  gtoken:
+    "Transitive via google-auth-library@7/googleapis@92/@google/earthengine; blocked on google-p12-pem/node-forge.",
+  "google-auth-library":
+    "Pinned by @google/earthengine googleapis@92 (auth-library 7.x); upgrade blocked until earthengine drops googleapis@92.",
+  googleapis:
+    "Pinned ^92 by @google/earthengine@1.7.x; newer googleapis needs earthengine upstream bump.",
+  "googleapis-common":
+    "Transitive via googleapis@92/@google/earthengine; same earthengine pin as googleapis.",
 };
 
 const result = spawnSync(
