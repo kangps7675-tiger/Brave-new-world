@@ -212,6 +212,7 @@ import { type TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 import {
   buildObserveWatchboard,
   canPublish,
+  candidatesFromNewsLike,
   gateBreakingHero,
   gateChokepointStress,
   gateConflictCluster,
@@ -2018,6 +2019,34 @@ export function GlobeDashboard({
     labelLanguage,
   } = layerPrefs;
 
+  /** 올리기 직전 반증 탐색용 — RSS·LiveUA 텍스트. 없으면 게이트가 queried:false */
+  const intelDisconfirmCorpus = useMemo(
+    () => [
+      ...candidatesFromNewsLike([
+        ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+        ...(newsStreamPayload?.flashHeroes ?? []),
+        ...(newsStreamPayload?.verified ?? []),
+        ...(newsStreamPayload?.stateMedia ?? []),
+      ]),
+      ...candidatesFromNewsLike(
+        liveuaEvents.map((e) => ({
+          id: e.id,
+          title: e.title,
+          titleKo: e.titleKo,
+          summary: e.body,
+          publishedAt: e.publishedAt,
+        })),
+      ),
+    ],
+    [
+      liveuaEvents,
+      newsStreamPayload?.flashHeroes,
+      newsStreamPayload?.hero,
+      newsStreamPayload?.stateMedia,
+      newsStreamPayload?.verified,
+    ],
+  );
+
   const theaterSitrepDoc = useMemo(() => {
     if (!theaterSitrepRegion) return null;
     const rssItems = [
@@ -2032,13 +2061,17 @@ export function GlobeDashboard({
       windowHours: 72,
       lang: labelLanguage === "en" ? "en" : "ko",
     });
-    const gate = gateTheaterSitrep(doc);
+    const gate = gateTheaterSitrep(doc, {
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
+    });
     if (!canPublish("theater_sitrep", gate.grade)) return null;
     return doc;
   }, [
     theaterSitrepRegion,
     liveuaEvents,
     labelLanguage,
+    intelDisconfirmCorpus,
     newsStreamPayload?.hero,
     newsStreamPayload?.flashHeroes,
     newsStreamPayload?.verified,
@@ -5768,7 +5801,10 @@ export function GlobeDashboard({
     );
     const markers: ConflictEventHtmlMarker[] = [];
     for (const cluster of clusters) {
-      const gate = gateConflictCluster(cluster);
+      const gate = gateConflictCluster(cluster, {
+        disconfirmCorpus: intelDisconfirmCorpus,
+        windowHours: 72,
+      });
       if (gate.grade === "drop" || gate.grade === "hold") continue;
       markers.push({ ...clusterToMarker(cluster), displayGrade: gate.grade });
     }
@@ -5779,6 +5815,7 @@ export function GlobeDashboard({
   }, [
     conflictEventTheaters,
     globeLod.tier,
+    intelDisconfirmCorpus,
     layerViewState,
     newsStreamPayload?.hero,
     newsStreamPayload?.stateMedia,
@@ -7859,7 +7896,10 @@ export function GlobeDashboard({
     );
     if (!hero) return;
 
-    const flashGate = gateBreakingHero(hero);
+    const flashGate = gateBreakingHero(hero, {
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
+    });
     if (!canPublish("breaking_flash", flashGate.grade)) return;
 
     let cancelled = false;
@@ -7887,6 +7927,7 @@ export function GlobeDashboard({
     newsStreamPayload?.hero?.breakingGrade,
     newsStreamPayload?.hero?.title,
     newsStreamPayload?.hero?.summary,
+    intelDisconfirmCorpus,
     isEconomyViewer,
     isSatelliteViewer,
     peaceScienceFlashDomain,
@@ -8236,10 +8277,12 @@ export function GlobeDashboard({
           occurredAt: top.pubDate ?? null,
         },
       ],
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
     });
     if (!canPublish("escalation_banner", gate.grade)) return null;
     return { offer: escalationOffer, gate };
-  }, [escalationOffer]);
+  }, [escalationOffer, intelDisconfirmCorpus]);
 
   const chokepointStressGate = useMemo(() => {
     if (!chokepointStressBriefing) return null;
@@ -8275,12 +8318,15 @@ export function GlobeDashboard({
       },
       lat: point.lat,
       lng: point.lng,
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
     });
     if (!canPublish("economy_alert", gate.grade)) return null;
     return gate;
   }, [
     assetByChokeId,
     chokepointStressBriefing,
+    intelDisconfirmCorpus,
     portWatchByChokeId,
     ukmtoIncidents,
   ]);

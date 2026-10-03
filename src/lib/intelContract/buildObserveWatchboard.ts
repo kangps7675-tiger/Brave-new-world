@@ -6,6 +6,7 @@ import type {
 import { gateCesiumAlert } from "@/lib/intelContract/adapters/fromEconomyAlert";
 import { gateConflictCluster } from "@/lib/intelContract/adapters/fromConflictCluster";
 import { gateTheaterSitrep } from "@/lib/intelContract/adapters/fromTheaterSitrep";
+import { candidatesFromNewsLike } from "@/lib/intelContract/disconfirmPass";
 import { canPublish } from "@/lib/intelContract/publish";
 import {
   matchPirsForOrigin,
@@ -136,6 +137,25 @@ export function buildObserveWatchboard(input: {
   const nowMs = input.nowMs ?? Date.now();
   const items: WatchboardItem[] = [];
 
+  // 올리기 직전 반증 코퍼스 — RSS + LiveUA 제목/본문 (없으면 어댑터가 queried:false)
+  const disconfirmCorpus = [
+    ...candidatesFromNewsLike(input.rssItems),
+    ...candidatesFromNewsLike(
+      input.liveuaEvents.map((e) => ({
+        id: e.id,
+        title: e.title,
+        titleKo: e.titleKo,
+        summary: e.body,
+        publishedAt: e.publishedAt,
+      })),
+    ),
+  ];
+  const discOpts = {
+    disconfirmCorpus,
+    windowHours,
+    nowMs,
+  };
+
   for (const regionId of THEATER_SITREP_REGIONS) {
     const doc = buildTheaterSitrep({
       regionId,
@@ -144,7 +164,7 @@ export function buildObserveWatchboard(input: {
       windowHours,
       lang,
     });
-    const gate = gateTheaterSitrep(doc);
+    const gate = gateTheaterSitrep(doc, discOpts);
     if (!canPublish("watchboard", gate.grade)) continue;
 
     const meta = attachPirAndGaps({
@@ -171,7 +191,7 @@ export function buildObserveWatchboard(input: {
   }
 
   for (const alert of input.cesiumAlerts.slice(0, 24)) {
-    const gate = gateCesiumAlert(alert);
+    const gate = gateCesiumAlert(alert, discOpts);
     if (!canPublish("watchboard", gate.grade)) continue;
     if (gate.grade === "drop") continue;
 
@@ -212,7 +232,7 @@ export function buildObserveWatchboard(input: {
     if (clusterAdded >= MAX_CLUSTER_ITEMS) break;
     if (!withinWindow(cluster.lastConfirmedAt, windowHours, nowMs)) continue;
 
-    const gate = gateConflictCluster(cluster);
+    const gate = gateConflictCluster(cluster, discOpts);
     if (!canPublish("watchboard", gate.grade)) continue;
     if (gate.grade === "drop") continue;
 

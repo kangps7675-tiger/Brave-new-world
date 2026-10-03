@@ -72,6 +72,16 @@ export {
 export { whyPublishLines } from "@/lib/intelContract/whyPublish";
 
 export {
+  runDisconfirmPass,
+  resolveDisconfirmLog,
+  candidatesFromNewsLike,
+  DISCONFIRM_PATTERN,
+  type DisconfirmLog,
+  type DisconfirmCandidate,
+} from "@/lib/intelContract/disconfirmPass";
+export type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
+
+export {
   buildObserveWatchboard,
   type WatchboardItem,
   type WatchboardItemKind,

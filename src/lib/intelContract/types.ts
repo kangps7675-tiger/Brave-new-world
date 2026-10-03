@@ -62,8 +62,11 @@ export type EvidenceBundle = {
   geoOk: boolean;
   method: string;
   disconfirmLog: {
+    /** false면 탐색 미실행·실패 — 하드코딩 true 금지 */
     queried: boolean;
+    /** 반대·정정 표현 건수 — >0 이면 게이트가 등급을 내린다 */
     hitCount: number;
+    hitIds?: string[];
   };
   killCriteria: string[];
   altHypothesis?: {

@@ -146,6 +146,33 @@ describe("evaluateGate", () => {
     );
     expect(r.grade).toBe("low");
   });
+
+  it("caps when disconfirm hitCount > 0 even if queried", () => {
+    const r = evaluateGate(
+      base({
+        disconfirmLog: { queried: true, hitCount: 2 },
+        observations: [
+          {
+            id: "1",
+            modality: "media",
+            sourceKey: "reuters.com",
+            trustTier: 1,
+            occurredAt: null,
+            payloadRef: "1",
+          },
+          {
+            id: "2",
+            modality: "sensor",
+            sourceKey: "firms",
+            occurredAt: null,
+            payloadRef: "2",
+          },
+        ],
+      }),
+    );
+    expect(r.grade).toBe("low");
+    expect(r.reasons.some((x) => x.code === "G6" && !x.ok)).toBe(true);
+  });
 });
 
 describe("canPublish", () => {
@@ -168,14 +195,17 @@ describe("canPublish", () => {
 
 describe("sole official/alert → low", () => {
   it("caps single UKMTO alert at low (not std/high)", () => {
-    const gate = gateCesiumAlert({
-      id: "ukmto-1",
-      kind: "ukmto",
-      title: "UKMTO warning",
-      detail: "Suspicious approach",
-      lat: 12.5,
-      lng: 43.3,
-    });
+    const gate = gateCesiumAlert(
+      {
+        id: "ukmto-1",
+        kind: "ukmto",
+        title: "UKMTO warning",
+        detail: "Suspicious approach",
+        lat: 12.5,
+        lng: 43.3,
+      },
+      { disconfirmCorpus: [] },
+    );
     expect(gate.bundle.observations.some((o) => o.id.endsWith(":geo"))).toBe(
       false,
     );
@@ -249,6 +279,7 @@ describe("chokepointStressToBundle asset proxy", () => {
       },
       lat: 26.5,
       lng: 56.25,
+      disconfirmCorpus: [],
     });
     // 예전이면 asset-volatility가 독립 stat으로 잡혀 high까지 가능
     expect(gate.grade).not.toBe("high");
@@ -294,8 +325,22 @@ describe("chokepointStressToBundle asset proxy", () => {
       },
       lat: 26.5,
       lng: 56.25,
+      disconfirmCorpus: [],
     });
     expect(["std", "high"]).toContain(gate.grade);
     expect(canPublish("economy_alert", gate.grade)).toBe(true);
+  });
+
+  it("returns queried:false when corpus is omitted", () => {
+    const gate = gateCesiumAlert({
+      id: "ukmto-2",
+      kind: "ukmto",
+      title: "UKMTO",
+      detail: "approach",
+      lat: 12,
+      lng: 43,
+    });
+    expect(gate.bundle.disconfirmLog.queried).toBe(false);
+    expect(gate.grade).toBe("low");
   });
 });

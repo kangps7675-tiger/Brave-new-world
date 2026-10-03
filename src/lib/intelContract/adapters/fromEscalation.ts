@@ -1,5 +1,7 @@
 import { uniqueSourceKey } from "@/lib/conflictEvents/confidence";
+import type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 import { withComputedStats } from "@/lib/intelContract/bundleStats";
+import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
 import type { EscalationSignal } from "@/lib/escalationSignals";
@@ -14,7 +16,7 @@ export type EscalationGateInput = {
     occurredAt?: string | null;
   }>;
   itemId?: string;
-};
+} & AdapterDisconfirmOpts;
 
 export function escalationToBundle(input: EscalationGateInput): EvidenceBundle {
   const { signal } = input;
@@ -58,6 +60,15 @@ export function escalationToBundle(input: EscalationGateInput): EvidenceBundle {
     });
   }
 
+  const disconfirmLog = resolveDisconfirmLog({
+    claimText: `${signal.headlineKo} ${signal.headlineEn}`,
+    disconfirmLog: input.disconfirmLog,
+    disconfirmCorpus: input.disconfirmCorpus,
+    excludeIds: (input.sourceRefs ?? []).map((r) => r.id),
+    windowHours: input.windowHours,
+    nowMs: input.nowMs,
+  });
+
   return withComputedStats({
     bundleId: `escalation:${input.itemId ?? signal.pattern}:${signal.score}`,
     kind: "escalation",
@@ -66,7 +77,7 @@ export function escalationToBundle(input: EscalationGateInput): EvidenceBundle {
     observations,
     geoOk: true,
     method: `escalationSignals:${signal.pattern}:score=${signal.score}`,
-    disconfirmLog: { queried: true, hitCount: 0 },
+    disconfirmLog,
     killCriteria: [
       "보도가 정정되거나 임계선 키워드가 철회되면 신호 해제",
       "동일 패턴 반복이 평시 베이스라인과 구분되지 않으면 하향",

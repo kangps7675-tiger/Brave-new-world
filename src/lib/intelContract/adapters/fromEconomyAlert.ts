@@ -1,5 +1,7 @@
 import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
+import type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 import { withComputedStats } from "@/lib/intelContract/bundleStats";
+import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
 
@@ -17,7 +19,10 @@ export type ChokepointStressLike = {
   assetHint?: "high" | "elevated" | "normal" | null;
 };
 
-export function cesiumAlertToBundle(item: CesiumAlertItem): EvidenceBundle {
+export function cesiumAlertToBundle(
+  item: CesiumAlertItem,
+  opts?: AdapterDisconfirmOpts,
+): EvidenceBundle {
   const modality =
     item.kind === "portwatch"
       ? ("stat" as const)
@@ -45,6 +50,15 @@ export function cesiumAlertToBundle(item: CesiumAlertItem): EvidenceBundle {
     },
   ];
 
+  const disconfirmLog = resolveDisconfirmLog({
+    claimText: `${item.title} ${item.detail}`,
+    disconfirmLog: opts?.disconfirmLog,
+    disconfirmCorpus: opts?.disconfirmCorpus,
+    excludeIds: [item.id],
+    windowHours: opts?.windowHours,
+    nowMs: opts?.nowMs,
+  });
+
   return withComputedStats({
     bundleId: `cesium-alert:${item.id}`,
     kind: "maritime-alert",
@@ -53,7 +67,7 @@ export function cesiumAlertToBundle(item: CesiumAlertItem): EvidenceBundle {
     observations,
     geoOk: Number.isFinite(item.lat) && Number.isFinite(item.lng),
     method: `cesiumAlert:${item.kind}`,
-    disconfirmLog: { queried: true, hitCount: 0 },
+    disconfirmLog,
     killCriteria: [
       "공식 경보 만료·정정 시 해제",
       "동일 해역 후속 관측이 없으면 72h 후 하향",
@@ -69,8 +83,11 @@ export function cesiumAlertToBundle(item: CesiumAlertItem): EvidenceBundle {
   });
 }
 
-export function gateCesiumAlert(item: CesiumAlertItem): GateResult {
-  return evaluateGate(cesiumAlertToBundle(item));
+export function gateCesiumAlert(
+  item: CesiumAlertItem,
+  opts?: AdapterDisconfirmOpts,
+): GateResult {
+  return evaluateGate(cesiumAlertToBundle(item, opts));
 }
 
 export function chokepointStressToBundle(input: {
@@ -79,7 +96,7 @@ export function chokepointStressToBundle(input: {
   stress: ChokepointStressLike;
   lat: number;
   lng: number;
-}): EvidenceBundle {
+} & AdapterDisconfirmOpts): EvidenceBundle {
   const observations: Observation[] = [];
   if (input.stress.ukmtoCount > 0) {
     observations.push({
@@ -132,6 +149,15 @@ export function chokepointStressToBundle(input: {
     });
   }
 
+  const disconfirmLog = resolveDisconfirmLog({
+    claimText: `${input.nameKo} ${input.nameEn} ${input.stress.grade}`,
+    disconfirmLog: input.disconfirmLog,
+    disconfirmCorpus: input.disconfirmCorpus,
+    excludeIds: [`${input.stress.chokepointId}:ukmto`, `${input.stress.chokepointId}:ais`],
+    windowHours: input.windowHours,
+    nowMs: input.nowMs,
+  });
+
   return withComputedStats({
     bundleId: `choke-stress:${input.stress.chokepointId}`,
     kind: "indicator",
@@ -140,7 +166,7 @@ export function chokepointStressToBundle(input: {
     observations,
     geoOk: true,
     method: `chokepointStress:grade=${input.stress.grade}`,
-    disconfirmLog: { queried: true, hitCount: 0 },
+    disconfirmLog,
     killCriteria: [
       "UKMTO/NAVAREA 후속 없음 + AIS 변화 정상화 시 하향",
     ],
@@ -161,6 +187,6 @@ export function gateChokepointStress(input: {
   stress: ChokepointStressLike;
   lat: number;
   lng: number;
-}): GateResult {
+} & AdapterDisconfirmOpts): GateResult {
   return evaluateGate(chokepointStressToBundle(input));
 }

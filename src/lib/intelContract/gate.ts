@@ -170,10 +170,21 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
     reasons.push(reason("G3", true, "이질 채널 또는 비-T3", "mixed or non-T3 media"));
   }
 
-  // G6 disconfirm
-  if (!bundle.disconfirmLog.queried) {
+  // G6 disconfirm — 미실행·반대 히트 모두 등급에 반영 (queried만 보면 안 됨)
+  const disc = bundle.disconfirmLog;
+  if (!disc.queried) {
     reasons.push(
       reason("G6", false, "반증 탐색 없음 — low 캡", "no disconfirm pass → low"),
+    );
+    grade = capGrade(grade, "low");
+  } else if (disc.hitCount > 0) {
+    reasons.push(
+      reason(
+        "G6",
+        false,
+        `반증·정정 후보 ${disc.hitCount}건 — low 캡`,
+        `disconfirm hits=${disc.hitCount} → low`,
+      ),
     );
     grade = capGrade(grade, "low");
   } else {
@@ -181,8 +192,8 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
       reason(
         "G6",
         true,
-        `반증 탐색함 (hits=${bundle.disconfirmLog.hitCount})`,
-        `disconfirm queried (hits=${bundle.disconfirmLog.hitCount})`,
+        "반증 탐색함 — 반대 히트 없음",
+        "disconfirm queried — no opposing hits",
       ),
     );
   }

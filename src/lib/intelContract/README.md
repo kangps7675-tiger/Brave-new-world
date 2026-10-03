@@ -25,7 +25,7 @@
 | G3 | media-only → high 금지; T3-only → low/drop | cap |
 | G4 | geoOk (종류별 시공간) | drop |
 | G5 | claim ⊆ evidence (인용 없는 so-what 금지) | drop / strip |
-| G6 | disconfirmLog.queried | 미탐색 → ≤low |
+| G6 | `runDisconfirmPass` — corpus 없으면 `queried:false`; 실행 후 `hitCount>0`이면 반대·정정 | 미탐색 → ≤low · 히트>0 → ≤low |
 | G7 | altHypothesis (std+) | ≤low |
 | G8 | killCriteria≥1 (std+) | ≤low |
 | G9 | high → modality≥2 ∧ !media-only | ≤std |

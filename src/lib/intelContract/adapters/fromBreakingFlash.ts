@@ -1,10 +1,15 @@
 import { uniqueSourceKey } from "@/lib/conflictEvents/confidence";
+import type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 import { withComputedStats } from "@/lib/intelContract/bundleStats";
+import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
 import type { HeroBreakingItem } from "@/lib/news/types";
 
-export function breakingHeroToBundle(hero: HeroBreakingItem): EvidenceBundle {
+export function breakingHeroToBundle(
+  hero: HeroBreakingItem,
+  opts?: AdapterDisconfirmOpts,
+): EvidenceBundle {
   const observations: Observation[] = [
     {
       id: hero.id,
@@ -48,15 +53,25 @@ export function breakingHeroToBundle(hero: HeroBreakingItem): EvidenceBundle {
     });
   }
 
+  const titleKo = hero.titleKo?.trim() || hero.title;
+  const disconfirmLog = resolveDisconfirmLog({
+    claimText: `${titleKo} ${hero.title} ${hero.summary ?? ""}`,
+    disconfirmLog: opts?.disconfirmLog,
+    disconfirmCorpus: opts?.disconfirmCorpus,
+    excludeIds: [hero.id, `${hero.id}:flash`, `${hero.id}:rank`],
+    windowHours: opts?.windowHours,
+    nowMs: opts?.nowMs,
+  });
+
   return withComputedStats({
     bundleId: `breaking:${hero.id}`,
     kind: "incident",
-    titleKo: hero.titleKo?.trim() || hero.title,
+    titleKo,
     titleEn: hero.title,
     observations,
     geoOk: true,
     method: `breakingFlash:rank=${hero.breakingRank}:tier=${hero.trustTier}`,
-    disconfirmLog: { queried: true, hitCount: 0 },
+    disconfirmLog,
     killCriteria: [
       "원문 정정·철회 시 타전 중단",
       "동일 사건 중복 타전은 세션 큐에서 병합",
@@ -66,16 +81,24 @@ export function breakingHeroToBundle(hero: HeroBreakingItem): EvidenceBundle {
       labelEn: "May be unverified or overstated reporting",
       supportIds: [],
     },
-    claimKo: hero.titleKo?.trim() || hero.title,
+    claimKo: titleKo,
     claimEn: hero.title,
     originRef: hero.id,
   });
 }
 
-export function gateBreakingHero(hero: HeroBreakingItem): GateResult {
-  const result = evaluateGate(breakingHeroToBundle(hero));
+export function gateBreakingHero(
+  hero: HeroBreakingItem,
+  opts?: AdapterDisconfirmOpts,
+): GateResult {
+  const result = evaluateGate(breakingHeroToBundle(hero, opts));
+  // 반증 히트·미탐색이면 FLASH 승격 금지
+  const disc = result.bundle.disconfirmLog;
+  const disconfirmBlocks =
+    !disc.queried || disc.hitCount > 0;
   // Single-source RSS S/A often lands low — allow std if trustTier 1 and rank S/A
   if (
+    !disconfirmBlocks &&
     (result.grade === "low" || result.grade === "drop") &&
     hero.trustTier === 1 &&
     (hero.breakingRank === "S" || hero.breakingRank === "A")
