@@ -55,8 +55,8 @@ export function TerritorialHistoryChrome({
           </h2>
           <p className="mt-1 text-micro leading-4 text-rose-100/50">
             {ko
-              ? `${yearLabel} · 단계가 순서대로 지도에 표시됩니다. 나가기 전까지 이 화면을 유지합니다.`
-              : `${yearLabel} · Steps appear on the map in order. Stay here until you Exit.`}
+              ? `${yearLabel} · 영토분쟁 창 안입니다. 줌아웃으로는 나가지 않습니다. 나가기를 누르면 창 밖 시야로 돌아갑니다.`
+              : `${yearLabel} · Inside the territorial window. Zooming out stays inside. Exit pulls the view back out.`}
           </p>
         </div>
         <button
@@ -64,7 +64,7 @@ export function TerritorialHistoryChrome({
           onClick={onExitHistory}
           className="tap-target shrink-0 rounded-lg border border-rose-300/25 px-2 py-1 text-micro text-rose-100/70 transition hover:border-rose-200/40 hover:text-rose-50"
         >
-          {ko ? "역사 나가기" : "Exit history"}
+          {ko ? "분쟁 나가기" : "Exit dispute"}
         </button>
       </div>
 

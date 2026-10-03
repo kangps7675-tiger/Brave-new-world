@@ -77,9 +77,7 @@ export async function GET(request: Request) {
         ? "ADSBexchange"
         : mil.provider === "adsb.lol"
           ? "adsb.lol (ODbL)"
-          : mil.provider === "adsb.fi"
-            ? "adsb.fi"
-            : String(mil.provider ?? "ADS-B");
+          : String(mil.provider ?? "ADS-B");
 
     return NextResponse.json(
       {

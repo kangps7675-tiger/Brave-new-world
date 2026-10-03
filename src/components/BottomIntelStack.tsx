@@ -53,7 +53,7 @@ import {
   ECONOMY_GENRE_ORDER,
   economyGenreHint,
   economyGenreLabel,
-  matchesEconomyGenreFilter,
+  matchesEconomyGenreItem,
   type EconomyGenreFilter,
 } from "@/lib/news/economyGenres";
 import { isEconomyNewsMode } from "@/lib/news/feedCatalog";
@@ -1901,7 +1901,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
           if (item.feedTopic !== "economy") return false;
           // 동남아·남미·아프리카는 지정학 전용 — 지경학 시트에 절대 노출하지 않음
           if (isGeopoliticsOnlyTheater(item.theater)) return false;
-          return matchesEconomyGenreFilter(item.econGenre, economyGenre);
+          return matchesEconomyGenreItem(item, economyGenre);
         }
         return matchesTheaterFilter(item.theater, theaterFilter);
       },

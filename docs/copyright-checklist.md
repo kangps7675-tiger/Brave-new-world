@@ -102,9 +102,10 @@
 | 항목 | 리스크 | 상태 | 조치 |
 |------|--------|------|------|
 | GDELT 상업 이용 | 이용약관에 상업적 이용 관련 조건이 있을 수 있음 | 🟡 미확인 | 유료화 전 GDELT ToS 재확인 |
-| UCDP GED 상업 이용 | 연구용 라이선스 — 상업 서비스 포함 여부 불명확 | 🟡 미확인 | 유료화 전 UCDP 라이선스 확인, 필요 시 대체 데이터 검토 |
-| adsb.fi | 카탈로그(`sourceCatalog.ts`)에 "비상업"으로 명시된 소스를 그대로 사용 중 | 🔴 위반 소지 (무료 단계는 관행상 허용 범위) | 유료화 전 상업 라이선스가 있는 대체 피드(ADS-B Exchange 상업 티어 등)로 교체 |
-| DeepStateMap.live API (우크라 점령 좌표, 임시) | 상업적 목적 단체는 API 사전 승인 필수 (약관 2항) — 미승인 상태로 원본 좌표 호출 시 위반 | 🟡 미승인 · 3일 좌표 스냅샷만 임시 사용 | 유료화 전 `https://api.deepstatemap.live/request` 승인 또는 LIVEUAMAP으로 교체. 유저 GET마다 원본 API 호출 금지. 상세: `docs/third-party/deepstatemap.md` |
+| UCDP GED 상업 이용 | 연구용 라이선스 — 상업 서비스 포함 여부 불명확 | 🟢 허가 받음 (2026-10 이메일) | 허가 메일 원문(발신자·날짜·허용 범위)을 `docs/third-party/ucdp.md`에 보관. 허가 범위에 유료 서비스·재배포가 포함되는지 메일 문구로 재확인 |
+| ~~adsb.fi~~ → adsb.lol · ADSBexchange | adsb.fi는 개인·비상업 전용. 실제 요청은 `api.adsb.lol`로 나가고 있었고, 표기도 adsb.lol로 정정함 | 🟡 일부 확인 필요 | adsb.lol은 ODbL — 출처 표기 + 파생 DB 공개 시 share-alike 의무 유지. **ADSBexchange는 상업 이용 시 유료 라이선스 필요** — 현재 쓰는 플랜이 상업 이용을 허용하는지 확인 |
+| DeepStateMap.live API (우크라 점령 좌표, 임시) | 상업적 목적 단체는 API 사전 승인 필수 (약관 2항) | 🟡 폐기 예정 → Liveuamap으로 대체 | `resolveUkraineOccupied`의 DeepState 3일 스냅샷 폴백 제거 시 🟢 완료. 이후 출처 패널·`sourceCatalog`에서도 삭제 |
+| Liveuamap API (전선·통제면 본선) | 상업 이용 가능, liveuamap.com attribution 필수. 이벤트 첨부 사진·원문은 원 매체 ToS 별도 | 🟢 허용 (조건부) | API 키 서버 전용 유지, 출처 표기 유지. 유료화 시 플랜/계약 조건 재확인. 상세: `docs/third-party/liveuamap.md` |
 | Telegram 미디어 재호스팅 | 위 섹션대로 embed-only 구현은 됐으나 변호사 검토는 안 됨 | 🟢 완화됨 (미검토) | 유료화 전 변호사 1회 검토 |
 
 체크 주기: **월 1회** 또는 결제 기능 출시 직전 필수. 담당자가 이 표의 상태 컬럼을 갱신할 것.
@@ -117,10 +118,13 @@
 |------|----------------|
 | Natural Earth | 퍼블릭 도메인 (영토 경계·국가) |
 | GDELT | 공개 이벤트; 상업 이용 시 GDELT 이용 약관 확인 |
-| UCDP GED | 연구용; 상업 시 별도 확인 |
+| UCDP GED | 연구용 라이선스; 상업 이용은 이메일 허가 받음 (2026-10) |
 | NASA FIRMS | 공개; attribution 필요 |
-| adsb.fi | 비상업·출처 표기 (서비스 약관 확인) |
-| DeepStateMap.live | 임시 3일 좌표 스냅샷. API는 상업 사전승인제. `docs/third-party/deepstatemap.md` |
+| adsb.lol | ODbL — 출처 표기, 파생 DB share-alike |
+| ADSBexchange | 상업 이용 시 유료 라이선스 |
+| adsb.fi | **사용 금지** — 개인·비상업 전용 |
+| Liveuamap | 상업 이용 가능, attribution 필수. `docs/third-party/liveuamap.md` |
+| DeepStateMap.live | 폐기 예정 (Liveuamap으로 대체). `docs/third-party/deepstatemap.md` |
 | OpenStreetMap / GEM 등 | 각 라이선스(CC BY, ODbL 등)별 attribution |
 
 전체 레이어 목록: `src/data/sourceCatalog.ts` · UI: 앱 내 「데이터 출처 · 라이선스」 패널
@@ -134,3 +138,4 @@
 | 2026-07-10 | VIINA 렌더링 전용·공개 API/export 금지 원칙 문서화 |
 | 2026-07-11 | Telegram OSINT — LLM/뉴스 파이프라인 절대 분리 규칙 문서화 |
 | 2026-07-28 | Telegram 미디어(영상·사진) 재호스팅 금지 규칙 문서화 + 유료화 전 미해결 항목(GDELT·UCDP·adsb.fi·Telegram 미디어) 정기 점검표 추가 |
+| 2026-10-03 | 정기 점검 반영: ADS-B 출처 adsb.fi → adsb.lol 정정, UCDP 상업 이용 이메일 허가, DeepState 폐기·Liveuamap 대체 결정 |

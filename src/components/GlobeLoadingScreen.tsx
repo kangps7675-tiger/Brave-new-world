@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { BUNDLE_PROGRESS_CAP } from "@/lib/bootLoadingProgress";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { GLOBAL_BOOT_SHADER_CAMERA_Z } from "@/lib/globeCamera";
 import { getLoadingShaderPlan } from "@/lib/renderTier";
 import { releaseWebglContext } from "@/lib/webglSupport";
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
-function loadingStageLabel(progress: number): string {
-  if (progress < BUNDLE_PROGRESS_CAP) return "지도를 불러오는 중…";
-  if (progress < 45) return "지구본을 준비하는 중…";
-  if (progress < 78) return "피드를 맞추는 중…";
-  if (progress < 95) return "레이어를 연결하는 중…";
-  return "준비 완료";
-}
+/**
+ * 환영 편지와 같은 이름 설명.
+ * 한 문장씩 나타났다가 사라진다.
+ */
+const NAME_LINES = [
+  "여기 있는 데이터들은 가상이 아닌 현실입니다.",
+  "헉슬리의 소설에서 ‘멋진’은 칭찬이 아니라 경고입니다.",
+  "그 이름을 빌린 이 곳은, 전쟁과 돈이 한 지구본을 나눠 쓰는 세상입니다.",
+];
+
+const NAME_LINE_HOLD_MS = 3400;
+const NAME_LINE_FADE_MS = 480;
+/** 환영 편지와 같은 바탕. 모노·네온은 점수판처럼 보인다. */
+const LOADING_PROSE_FONT =
+  'var(--font-letter-hand), "RIDIBatang", Georgia, "Times New Roman", serif';
+const LOADING_FIGURE_FONT =
+  'var(--font-wanted), var(--font-ui), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 
 const VERT = `
 attribute vec2 aPos;
@@ -262,6 +272,21 @@ function createProgram(gl: WebGLRenderingContext, fbmOctaves: 2 | 4 = 4) {
   return program;
 }
 
+/** 셰이더가 없거나 컨텍스트를 반납한 뒤에도 흰 캔버스가 비치지 않게 깔아 둔다.
+ *  가운데 남색 원광 대신 앱 본문과 같은 먹색(#06070a)과 옅은 민트.
+ */
+const STATIC_BACKDROP: CSSProperties = {
+  backgroundColor: "#06070a",
+  backgroundImage:
+    "radial-gradient(1px 1px at 18% 26%, rgba(255,255,255,.5) 50%, transparent 50%)," +
+    "radial-gradient(1px 1px at 72% 18%, rgba(255,255,255,.38) 50%, transparent 50%)," +
+    "radial-gradient(1px 1px at 41% 74%, rgba(255,255,255,.45) 50%, transparent 50%)," +
+    "radial-gradient(ellipse 78% 58% at 50% 42%, rgba(0, 255, 204, 0.06) 0%, transparent 62%)," +
+    "radial-gradient(ellipse 42% 32% at 82% 14%, rgba(69, 243, 255, 0.035) 0%, transparent 54%)," +
+    "radial-gradient(ellipse 38% 28% at 14% 86%, rgba(255, 0, 127, 0.028) 0%, transparent 50%)",
+  backgroundSize: "240px 240px, 320px 320px, 400px 400px, 100% 100%, 100% 100%, 100% 100%",
+};
+
 type GlobeLoadingScreenProps = {
   progress: number;
   fading?: boolean;
@@ -287,6 +312,44 @@ export function GlobeLoadingScreen({
   /** WebGL 컨텍스트·셰이더 실패 — CSS 정적 배경으로 강등 (P0-1) */
   const [shaderFailed, setShaderFailed] = useState(false);
   progressRef.current = progress;
+  /**
+   * GPU를 지도에 넘기거나 페이드할 때만 컨텍스트를 반납한다.
+   * effect 재실행(Strict Mode 포함)마다 loseContext()를 치면
+   * 같은 캔버스가 흰 화면으로 남고, 셰이더가 처음부터 다시 돈다.
+   */
+  const releaseOnStopRef = useRef(false);
+  const pauseShader = yieldGpu || fading;
+  releaseOnStopRef.current = pauseShader;
+  const [nameLineIndex, setNameLineIndex] = useState(0);
+  const [nameLineOn, setNameLineOn] = useState(true);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer = 0;
+    const reduced = prefersReducedMotion();
+    setReduceMotion(reduced);
+    const fadeMs = reduced ? 0 : NAME_LINE_FADE_MS;
+
+    const loop = () => {
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        setNameLineOn(false);
+        timer = window.setTimeout(() => {
+          if (cancelled) return;
+          setNameLineIndex((index) => (index + 1) % NAME_LINES.length);
+          setNameLineOn(true);
+          loop();
+        }, fadeMs);
+      }, NAME_LINE_HOLD_MS);
+    };
+    loop();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     let raf = 0;
@@ -309,14 +372,14 @@ export function GlobeLoadingScreen({
     return () => cancelAnimationFrame(raf);
   }, [progress]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || pauseShader) return;
 
     /** P1-3: reduced-motion · 저코어 → 정적 / phone → fbm 2옥타브 */
     const plan = getLoadingShaderPlan();
-    if (!plan.useShader || yieldGpu || fading) {
-      if (!plan.useShader) setShaderFailed(true);
+    if (!plan.useShader) {
+      setShaderFailed(true);
       return;
     }
 
@@ -328,16 +391,20 @@ export function GlobeLoadingScreen({
     /**
      * P0-1: 예전에는 여기서 그냥 return했다 — 캔버스가 완전히 비어
      * 검은 화면 위에 퍼센트 숫자만 떠 있었다. CSS 정적 배경으로 대체한다.
+     * alpha:false 캔버스의 기본 버퍼는 흰색이라, 첫 draw 전에 검게 지운다.
      */
-    if (!gl) {
+    if (!gl || gl.isContextLost()) {
       setShaderFailed(true);
       return;
     }
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     let program: WebGLProgram;
     try {
       program = createProgram(gl, plan.fbmOctaves);
     } catch {
+      canvas.style.visibility = "hidden";
       setShaderFailed(true);
       releaseWebglContext(gl);
       return;
@@ -383,26 +450,44 @@ export function GlobeLoadingScreen({
       raf = requestAnimationFrame(draw);
     };
 
-    raf = requestAnimationFrame(draw);
+    draw(performance.now());
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       gl.deleteProgram(program);
       gl.deleteBuffer(buf);
+      /**
+       * 지도를 마운트하기 직전(yieldGpu)이나 페이드 중에만 반납한다.
+       * 그 전에 캔버스를 숨겨야 loseContext()의 흰 프레임이 안 보인다.
+       */
+      if (!releaseOnStopRef.current) return;
+      // 캔버스를 먼저 숨긴 뒤 반납해야 브라우저가 흰 프레임을 합성하지 않는다.
+      canvas.style.visibility = "hidden";
       releaseWebglContext(gl);
     };
-  }, [fading, yieldGpu]);
+  }, [pauseShader]);
 
   const clamped = Math.min(100, Math.max(0, Math.round(displayProgress)));
-  const stage = loadingStageLabel(clamped);
+  const nameLine = NAME_LINES[nameLineIndex] ?? NAME_LINES[0];
 
   return (
     <div
       // duration-200은 GlobeBootLoader의 LOADING_FADE_MS(250)와 맞춘 값이다.
       // CSS가 더 길면 페이드 도중 언마운트돼 화면이 뚝 끊긴다 (P1-2)
-      className="fixed inset-0 z-[700] flex flex-col items-center justify-center overflow-hidden bg-black transition-opacity duration-200 ease-out"
+      // 배치·배경은 인라인이다. Tailwind 청크가 늦거나 빠지면
+      // 퍼센트와 문장이 왼쪽 아래로 흘러내린다.
+      className="transition-opacity duration-200 ease-out"
       style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 700,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        background: "#06070a",
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? "none" : "auto",
       }}
@@ -410,68 +495,122 @@ export function GlobeLoadingScreen({
       aria-busy={!fading}
       aria-label={`로딩 중, ${clamped}퍼센트`}
     >
-      {shaderFailed ? (
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(1px 1px at 18% 26%, rgba(255,255,255,.5) 50%, transparent 50%)," +
-              "radial-gradient(1px 1px at 72% 18%, rgba(255,255,255,.38) 50%, transparent 50%)," +
-              "radial-gradient(1px 1px at 41% 74%, rgba(255,255,255,.45) 50%, transparent 50%)," +
-              "radial-gradient(circle at 50% 50%, rgba(28,62,112,.45), rgba(0,0,0,1) 62%)",
-            backgroundSize: "240px 240px, 320px 320px, 400px 400px, 100% 100%",
-          }}
-        />
-      ) : (
-        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-      )}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          background: "#06070a",
+          visibility: shaderFailed || pauseShader ? "hidden" : "visible",
+        }}
+      />
+      {shaderFailed || pauseShader ? (
+        <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, ...STATIC_BACKDROP }} />
+      ) : null}
 
-      <div className="pointer-events-none relative z-10 flex flex-col items-center px-4">
+      <div
+        style={{
+          pointerEvents: "none",
+          position: "relative",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "min(36rem, calc(100% - 2rem))",
+          padding: "0 1rem",
+          boxSizing: "border-box",
+        }}
+      >
         <div
-          className="relative flex items-center justify-center rounded-full"
           style={{
-            width: "min(58vw, 19rem)",
-            height: "min(58vw, 19rem)",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "min(46vw, 34vh, 16rem)",
+            height: "min(46vw, 34vh, 16rem)",
+            flexShrink: 0,
           }}
         >
           <div
-            className="absolute inset-[6%] rounded-full border border-white/10 shadow-[inset_0_0_48px_rgba(80,140,220,0.12),0_0_60px_rgba(20,60,120,0.35)]"
             aria-hidden
+            style={{
+              position: "absolute",
+              inset: "6%",
+              borderRadius: "9999px",
+              border: "1px solid rgba(0, 255, 204, 0.16)",
+              boxShadow:
+                "inset 0 0 48px rgba(0, 255, 204, 0.05), 0 0 56px rgba(0, 0, 0, 0.45)",
+            }}
           />
-          <div className="relative flex flex-col items-center justify-center text-center">
+          <div style={{ position: "relative", textAlign: "center", color: "#fff" }}>
             <span
-              className="font-mono text-6xl font-extrabold tabular-nums tracking-tight text-white sm:text-7xl"
               style={{
-                textShadow:
-                  "0 0 32px rgba(120,180,255,0.35), 0 2px 12px rgba(0,0,0,0.85), 0 0 1px rgba(255,255,255,0.9)",
+                fontFamily: LOADING_FIGURE_FONT,
+                fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                fontWeight: 500,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: "-0.03em",
+                lineHeight: 1,
+                textShadow: "0 2px 16px rgba(0,0,0,0.75)",
               }}
             >
               {clamped}
-              <span className="ml-1 text-3xl font-bold text-white/90 sm:text-4xl">%</span>
+              <span style={{ marginLeft: "0.2rem", fontSize: "0.45em", fontWeight: 700 }}>%</span>
             </span>
           </div>
         </div>
 
         <p
-          className="mt-10 max-w-xs text-center text-lg font-bold tracking-[0.12em] text-white sm:text-xl"
+          aria-hidden
           style={{
-            textShadow: "0 2px 16px rgba(0,0,0,0.9), 0 0 24px rgba(100,160,255,0.2)",
+            margin: "1.75rem 0 0",
+            minHeight: "4.8rem",
+            width: "100%",
+            textAlign: "center",
+            fontFamily: LOADING_PROSE_FONT,
+            fontSize: "clamp(0.95rem, 2.4vw, 1.125rem)",
+            fontWeight: 400,
+            lineHeight: 1.65,
+            color: "#fff",
+            opacity: nameLineOn ? 1 : 0,
+            transitionProperty: "opacity",
+            transitionTimingFunction: "ease-out",
+            transitionDuration: reduceMotion ? "0ms" : `${NAME_LINE_FADE_MS}ms`,
+            textShadow: "0 2px 12px rgba(0,0,0,0.8)",
           }}
         >
-          {stage}
+          {nameLine}
         </p>
         <p
-          className="mt-3 text-sm font-semibold tracking-wide text-slate-300 sm:text-base"
-          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.85)" }}
+          style={{
+            margin: "0.75rem 0 0",
+            textAlign: "center",
+            fontFamily: LOADING_PROSE_FONT,
+            fontSize: "0.95rem",
+            fontWeight: 400,
+            letterSpacing: "0",
+            color: "#cbd5e1",
+            textShadow: "0 1px 8px rgba(0,0,0,0.85)",
+          }}
         >
           잠시만 기다려 주세요
         </p>
         {/* P1-2: 45초 failsafe까지 침묵하지 않는다 — 8초를 넘기면 상태를 알린다 */}
         {slow ? (
           <p
-            className="mt-4 max-w-sm text-center text-xs leading-relaxed text-amber-200/85"
-            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+            style={{
+              margin: "1rem 0 0",
+              maxWidth: "24rem",
+              textAlign: "center",
+              fontFamily: LOADING_PROSE_FONT,
+              fontSize: "0.75rem",
+              lineHeight: 1.6,
+              color: "rgba(253, 230, 138, 0.85)",
+              textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+            }}
           >
             네트워크나 기기 성능 때문에 평소보다 오래 걸리고 있습니다.
             <br />

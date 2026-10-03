@@ -26,6 +26,13 @@ export {
   trustBadgeFromRss,
 } from "./heat";
 export {
+  bucketRssFear,
+  gdeltFearProxy,
+  publicFearHeatMultiplier,
+  scorePublicFearText,
+  scoreRssPublicFear,
+} from "./publicFear";
+export {
   cameraForTheme,
   candidateThemeIds,
   chokeThemeId,

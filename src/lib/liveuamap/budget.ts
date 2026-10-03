@@ -49,6 +49,12 @@ export function recordLiveuamapFetch(regionId: LiveuamapRegionId, now = Date.now
   state.lastFetchAt[regionId] = now;
 }
 
+/** HTTP 없이 동일 resid 공유 슬롯의 interval만 갱신 (예산 카운트 없음). */
+export function touchLiveuamapSlot(regionId: LiveuamapRegionId, now = Date.now()) {
+  rollDay(now);
+  state.lastFetchAt[regionId] = now;
+}
+
 /**
  * cron 틱에서 호출할 due 슬롯 (잔여 예산·지역 캡·minInterval).
  * 우선순위: regions.ts 배열 순서 (UA → Iran → …).

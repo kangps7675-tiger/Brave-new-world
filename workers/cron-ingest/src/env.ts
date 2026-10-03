@@ -173,6 +173,11 @@ export type IngestEnv = {
    * e.g. https://your-app.example/api/liveuamap/sync
    */
   LIVEUAMAP_SYNC_URL?: string;
+  /**
+   * Next NewFeeds Iran sync (attacks.json + feeds/iran.json → D1)
+   * e.g. https://your-app.example/api/newfeeds/sync
+   */
+  NEWFEEDS_SYNC_URL?: string;
 };
 
 export type FirmsFireRow = {

@@ -63,11 +63,12 @@ describe("liveuamapFieldsToOccupiedGeoJson", () => {
           {
             id: 1,
             name: "zone",
+            // [lng, lat] near Donetsk
             points: [
-              [48.0, 37.0],
-              [48.1, 37.0],
-              [48.1, 37.2],
-              [48.0, 37.2],
+              [37.0, 48.0],
+              [37.2, 48.0],
+              [37.2, 48.1],
+              [37.0, 48.1],
             ],
           },
         ],
@@ -76,6 +77,27 @@ describe("liveuamapFieldsToOccupiedGeoJson", () => {
     );
     expect(fc?.features.length).toBe(1);
     expect(fc?.meta?.source).toBe("liveuamap");
+  });
+
+  it("drops polygons outside the region bbox", () => {
+    const fc = liveuamapFieldsToOccupiedGeoJson(
+      {
+        fields: [
+          {
+            id: 1,
+            name: "gaza",
+            points: [
+              [34.3, 31.3],
+              [34.5, 31.3],
+              [34.5, 31.5],
+              [34.3, 31.5],
+            ],
+          },
+        ],
+      },
+      "lebanon",
+    );
+    expect(fc).toBeNull();
   });
 });
 

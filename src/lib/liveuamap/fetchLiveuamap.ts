@@ -12,12 +12,14 @@ import {
   getLiveuamapBudgetSnapshot,
   recordLiveuamapFetch,
   selectDueLiveuamapSlots,
+  touchLiveuamapSlot,
 } from "@/lib/liveuamap/budget";
 import type { LiveuamapRegionSlot } from "@/lib/liveuamap/regions";
-import type {
-  LiveuamapControlRegionId,
-  LiveuamapEvent,
-  LiveuamapRegionId,
+import {
+  isLiveuamapControlRegionId,
+  type LiveuamapControlRegionId,
+  type LiveuamapEvent,
+  type LiveuamapRegionId,
 } from "@/lib/liveuamap/types";
 import {
   isMostlyKorean,
@@ -212,7 +214,14 @@ async function translateEventsKo(events: LiveuamapEvent[]): Promise<LiveuamapEve
 async function fetchMptsSlot(
   slot: LiveuamapRegionSlot,
   apiKey: string,
-): Promise<{ events: LiveuamapEvent[]; control: OccupiedGeoJson | null; error?: string }> {
+  options?: { recordBudget?: boolean },
+): Promise<{
+  events: LiveuamapEvent[];
+  control: OccupiedGeoJson | null;
+  raw: unknown;
+  error?: string;
+}> {
+  const recordBudget = options?.recordBudget !== false;
   const url = new URL(MPTS_BASE);
   url.searchParams.set("a", "mpts");
   url.searchParams.set("resid", String(slot.resid));
@@ -229,29 +238,43 @@ async function fetchMptsSlot(
       cache: "no-store",
       signal: AbortSignal.timeout(45_000),
     });
-    recordLiveuamapFetch(slot.id);
+    if (recordBudget) recordLiveuamapFetch(slot.id);
+    else touchLiveuamapSlot(slot.id);
     if (!res.ok) {
       return {
         events: [],
         control: null,
+        raw: null,
         error: `mpts resid=${slot.resid} HTTP ${res.status}`,
       };
     }
     const json: unknown = await res.json();
+    // 일일 쿼터 소진 등 success:false 본문
+    if (
+      json &&
+      typeof json === "object" &&
+      (json as { success?: unknown }).success === false
+    ) {
+      const message =
+        asString((json as { message?: unknown }).message) ||
+        `mpts resid=${slot.resid} rejected`;
+      return { events: [], control: null, raw: json, error: message };
+    }
     const places = extractPlaces(json);
     const events = places
       .map((row, i) => normalizePlace(row, i, slot))
       .filter((e): e is LiveuamapEvent => Boolean(e));
 
     let control: OccupiedGeoJson | null = null;
-    if (slot.parseControl) {
-      control = liveuamapFieldsToOccupiedGeoJson(json, slot.id as LiveuamapControlRegionId);
+    if (slot.parseControl && isLiveuamapControlRegionId(slot.id)) {
+      control = liveuamapFieldsToOccupiedGeoJson(json, slot.id);
     }
-    return { events, control };
+    return { events, control, raw: json };
   } catch (err) {
-    recordLiveuamapFetch(slot.id);
+    if (recordBudget) recordLiveuamapFetch(slot.id);
+    else touchLiveuamapSlot(slot.id);
     const message = err instanceof Error ? err.message : "mpts fetch failed";
-    return { events: [], control: null, error: message };
+    return { events: [], control: null, raw: null, error: message };
   }
 }
 
@@ -318,11 +341,12 @@ export async function syncLiveuamapEvents(): Promise<SyncLiveuamapResult> {
           {
             id: "mock-ua-zone",
             name: "mock occupied",
+            // GeoJSON order: [lng, lat] — Donetsk 근방
             points: [
-              [48.0, 37.0],
-              [48.2, 37.0],
-              [48.2, 37.4],
-              [48.0, 37.4],
+              [37.0, 48.0],
+              [37.4, 48.0],
+              [37.4, 48.2],
+              [37.0, 48.2],
             ],
           },
         ],
@@ -346,14 +370,45 @@ export async function syncLiveuamapEvents(): Promise<SyncLiveuamapResult> {
     const allEvents: LiveuamapEvent[] = [];
     const controls: Partial<Record<LiveuamapControlRegionId, OccupiedGeoJson>> = {};
     const fetchedSlots: LiveuamapRegionId[] = [];
+    /** 동일 resid는 HTTP 1회만 — LB/IL-PS 공유 등 */
+    const rawByResid = new Map<
+      number,
+      { raw: unknown; error?: string; primaryId: LiveuamapRegionId }
+    >();
 
     for (const slot of due) {
-      const result = await fetchMptsSlot(slot, apiKey);
       fetchedSlots.push(slot.id);
-      if (result.error) errors.push(result.error);
-      allEvents.push(...result.events);
-      if (result.control && result.control.features.length > 0 && slot.parseControl) {
-        controls[slot.id as LiveuamapControlRegionId] = result.control;
+      let packed = rawByResid.get(slot.resid);
+      if (!packed) {
+        const result = await fetchMptsSlot(slot, apiKey, { recordBudget: true });
+        packed = {
+          raw: result.raw,
+          error: result.error,
+          primaryId: slot.id,
+        };
+        rawByResid.set(slot.resid, packed);
+        if (result.error) errors.push(result.error);
+        allEvents.push(...result.events);
+        if (result.control?.features.length && isLiveuamapControlRegionId(slot.id)) {
+          controls[slot.id] = result.control;
+        }
+        continue;
+      }
+
+      // 캐시된 raw 재사용
+      touchLiveuamapSlot(slot.id);
+      if (packed.error) {
+        // primary에서 이미 errors에 넣음
+      } else if (packed.raw) {
+        const places = extractPlaces(packed.raw);
+        const events = places
+          .map((row, i) => normalizePlace(row, i, slot))
+          .filter((e): e is LiveuamapEvent => Boolean(e));
+        allEvents.push(...events);
+        if (slot.parseControl && isLiveuamapControlRegionId(slot.id)) {
+          const control = liveuamapFieldsToOccupiedGeoJson(packed.raw, slot.id);
+          if (control?.features.length) controls[slot.id] = control;
+        }
       }
     }
 

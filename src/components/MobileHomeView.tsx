@@ -19,7 +19,7 @@ import type { NewsStreamItem, NewsTheater } from "@/lib/news/types";
 import {
   ECONOMY_GENRE_ORDER,
   economyGenreLabel,
-  matchesEconomyGenreFilter,
+  matchesEconomyGenreItem,
   type EconomyGenreFilter,
   type EconomyNewsGenre,
 } from "@/lib/news/economyGenres";
@@ -365,7 +365,7 @@ export function MobileHomeView({
       if (tab === "economy") {
         // 지경학: 경제 피드만 — 전장(지정학) 뉴스·전선 반응 카드 제외
         if (item.feedTopic !== "economy") return false;
-        return matchesEconomyGenreFilter(item.econGenre, economyGenreFilter);
+        return matchesEconomyGenreItem(item, economyGenreFilter);
       }
       if (tab === "conflict") {
         if (item.feedTopic === "economy") return false;

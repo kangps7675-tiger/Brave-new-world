@@ -68,6 +68,7 @@ type IngestResult = {
   usCarriersWarm?: WarmResult;
   deepstateOccupiedWarm?: WarmResult;
   liveuamapWarm?: WarmResult;
+  newfeedsWarm?: WarmResult;
   firmsErrors: string[];
   gdeltErrors: string[];
   telegramErrors: string[];
@@ -206,6 +207,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
   let usCarriersWarm: IngestResult["usCarriersWarm"];
   let deepstateOccupiedWarm: IngestResult["deepstateOccupiedWarm"];
   let liveuamapWarm: IngestResult["liveuamapWarm"];
+  let newfeedsWarm: IngestResult["newfeedsWarm"];
 
   try {
     const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 1)));
@@ -406,6 +408,11 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       env,
       "liveuamap",
     );
+    newfeedsWarm = await warmEndpoint(
+      env.NEWFEEDS_SYNC_URL,
+      env,
+      "newfeeds-iran",
+    );
 
     const finishedAt = new Date().toISOString();
     const hardFail =
@@ -546,6 +553,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       usCarriersWarm,
       deepstateOccupiedWarm,
       liveuamapWarm,
+      newfeedsWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,
@@ -593,6 +601,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         usCarriersWarm,
         deepstateOccupiedWarm,
         liveuamapWarm,
+        newfeedsWarm,
         briefingStats,
         dailyRanks,
         sitrepPush,
@@ -615,7 +624,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         gdeltCount,
         ok: false,
         error: message,
-        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm, deepstateOccupiedWarm, liveuamapWarm },
+        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm, deepstateOccupiedWarm, liveuamapWarm, newfeedsWarm },
       });
     } catch {
       // ignore secondary logging failure
@@ -639,6 +648,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       usCarriersWarm,
       deepstateOccupiedWarm,
       liveuamapWarm,
+      newfeedsWarm,
       firmsErrors,
       gdeltErrors,
       telegramErrors,

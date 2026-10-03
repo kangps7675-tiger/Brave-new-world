@@ -1,5 +1,9 @@
 import type { NewsFeedTopic, NewsTheater } from "@/lib/news/types";
-import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
+import {
+  economyGenreContentMatches,
+  isEconomySoftNoise,
+  type EconomyNewsGenre,
+} from "@/lib/news/economyGenres";
 import { DEFAULT_PACKAGE_SELECTION, type ViewPackageId } from "@/lib/viewPackages";
 import {
   isJapanGeopoliticsNews,
@@ -1886,7 +1890,7 @@ export const THEATER_RELEVANCE: Record<NewsTheater, RegExp> = {
 };
 
 const NOISE =
-  /world.?cup|\bfifa\b|\bioc\b|olympic|premier.?league|champions.?league|super.?bowl|\bnba\b|\bnfl\b|\bnhl\b|\bmlb\b|grammy|oscar|\bemmy|box.?office|celebrity|eurovision/i;
+  /world.?cup|\bfifa\b|\bioc\b|olympic|premier.?league|champions.?league|super.?bowl|\bnba\b|\bnfl\b|\bnhl\b|\bmlb\b|grammy|oscar|\bemmy|box.?office|celebrity|eurovision|\bsport(?:s)?\b|football|soccer|basketball|baseball|tennis|cricket|\bgolf\b|formula\s?1|\bf1\b|스포츠|축구|야구|농구|올림픽|월드컵|연예/i;
 
 export const ALL_NEWS_FEEDS: NewsFeedDef[] = dedupeFeedsByUrl([
   ...MIDDLE_EAST,
@@ -1936,19 +1940,36 @@ export function isEconomyNewsMode(packages: ViewPackageId[]): boolean {
   return ids.length > 0 && ids.every((id) => id === "geo-trader");
 }
 
+function isEconomyFeedItemRelevant(
+  title: string,
+  category: string | undefined,
+  feed: NewsFeedDef,
+): boolean {
+  const blob = `${title} ${category || ""}`;
+  if (isEconomySoftNoise(blob) || NOISE.test(title)) return false;
+  const genre = feed.econGenre ?? "markets";
+  // 개별 장르(인프라·광물 등)는 피드 태그만으로 통과시키지 않고 본문 키워드를 확인
+  if (genre !== "markets" && !economyGenreContentMatches(blob, genre)) return false;
+  if (feed.unfiltered) return true;
+  return ECON_RELEVANCE.test(blob);
+}
+
 export function isFeedItemRelevant(
   title: string,
   category: string | undefined,
   feed: NewsFeedDef,
 ): boolean {
   if (NOISE.test(title)) return false;
+  if (feed.topic === "economy") {
+    return isEconomyFeedItemRelevant(title, category, feed);
+  }
   if (feed.unfiltered) {
     // Google 쿼리도 사회·지경학 혼입 시 한 번 더 거름
-    if (feed.theater === "japan" && feed.topic !== "economy") {
+    if (feed.theater === "japan") {
       return isJapanGeopoliticsNews(`${title} ${category || ""}`);
     }
     // 동남아·남미·아프리카 — 지정학만 (지경학 topic 피드가 있어도 전장 필터는 충돌 전용)
-    if (isGeopoliticsOnlyTheater(feed.theater) && feed.topic !== "economy") {
+    if (isGeopoliticsOnlyTheater(feed.theater)) {
       const blob = `${title} ${category || ""}`;
       if (feed.theater === "southeast-asia") return isSoutheastAsiaConflictNews(blob);
       if (feed.theater === "south-america") return isSouthAmericaConflictNews(blob);
@@ -1957,7 +1978,6 @@ export function isFeedItemRelevant(
     return true;
   }
   const blob = `${title} ${category || ""}`;
-  if (feed.topic === "economy") return ECON_RELEVANCE.test(blob);
   if (feed.theater === "japan") return isJapanGeopoliticsNews(blob);
   if (feed.theater === "southeast-asia") return isSoutheastAsiaConflictNews(blob);
   if (feed.theater === "south-america") return isSouthAmericaConflictNews(blob);
