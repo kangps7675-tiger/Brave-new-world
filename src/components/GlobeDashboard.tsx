@@ -91,6 +91,8 @@ import {
   type ChokepointStressBriefing,
 } from "@/lib/chokepointStressBriefing";
 import { buildCesiumAlerts, type CesiumAlertItem } from "@/lib/cesiumAlerts";
+import { pickCesiumMissileLaunches } from "@/lib/cesiumMissileLaunches";
+import { NkMissileHistoryDock } from "@/components/missile/NkMissileHistoryDock";
 import { withMaritimeFlashTitle } from "@/lib/maritimeFlash";
 import {
   applyRfTrackBoost,
@@ -188,11 +190,35 @@ import {
   pickNextBreakingFlashHero,
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
+import { resolveRssFlashPlace } from "@/lib/news/rssFlashPlace";
 import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
+import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { LiveuaFlashDock } from "@/components/globe/LiveuaFlashDock";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
+import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
+import { TheaterSitrepBook } from "@/components/globe/TheaterSitrepBook";
+import { IntelWatchboard } from "@/components/globe/IntelWatchboard";
+import { IntelSourceDrill } from "@/components/globe/IntelSourceDrill";
+import { IntelDeskTipCard } from "@/components/globe/IntelDeskTipCard";
+import {
+  markIntelDeskTipDone,
+  shouldOfferIntelDeskTip,
+} from "@/lib/intelContract/uxCopy";
+import { shouldOfferControlsGuide } from "@/lib/controlsGuide";
 import { liveuaFlashMarketContext } from "@/lib/liveuamap/flashMarketContext";
+import { buildTheaterSitrep } from "@/lib/theaterReport/buildTheaterSitrep";
+import { type TheaterSitrepRegionId } from "@/lib/theaterReport/types";
+import {
+  buildObserveWatchboard,
+  canPublish,
+  gateBreakingHero,
+  gateChokepointStress,
+  gateConflictCluster,
+  gateEscalation,
+  gateTheaterSitrep,
+  type GateResult,
+} from "@/lib/intelContract";
 import {
   incidentSuggestsEnergyPipelines,
   PIPELINE_REVEAL_MS,
@@ -208,10 +234,12 @@ import {
 import {
   buildLampMacroTable,
   hasFoldedLamp,
+  hasLampAutoOpenedThisSession,
   localizePeriodicBriefing,
   hasFoldedWeeklyRecap,
   lampSeenKey,
   ensureLampFeaturedNews,
+  markLampAutoOpenedThisSession,
   resolveLampPeriod,
   resolveMondayWeeklyRecap,
   weeklyRecapStorageKey,
@@ -687,7 +715,10 @@ import {
 import { LogisticsStressCard } from "@/components/LogisticsStressCard";
 import { stressForChokepoint } from "@/lib/chokepointStressForUi";
 import { chokeStressHex } from "@/lib/chokeStressColor";
-import { LOGISTICS_RISK_POINTS } from "@/data/logisticsRiskPoints";
+import {
+  chokeGlowRingSeed,
+  LOGISTICS_RISK_POINTS,
+} from "@/data/logisticsRiskPoints";
 import { usePortWatchObservations } from "@/hooks/usePortWatchObservations";
 import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsStressSiren";
 import { useLogisticsAssetTickers } from "@/components/globe/hooks/useLogisticsAssetTickers";
@@ -736,6 +767,7 @@ import {
   INTRO_CAMERA_DELAY_MS,
   INTRO_CAMERA_DURATION_MS,
   INTRO_SESSION_KEY,
+  HISTORY_IMMERSION_MAX_ALTITUDE,
   LABEL_MEANINGFUL_DELTA,
   PATH_MEANINGFUL_DELTA,
   emptyData,
@@ -1114,6 +1146,33 @@ export function GlobeDashboard({
   const [uxGuideBrief, setUxGuideBrief] = useState<UxGuideBriefContent | null>(null);
   /** 귀중한 속보 타전 양피지 — S급·고충격만 */
   const [breakingFlash, setBreakingFlash] = useState<BreakingFlashBriefing | null>(null);
+  /** 가까운 경사 시야로 들어간 창. 휠 줌아웃은 막고, 나가기로만 빠진다. */
+  const [incidentSpace, setIncidentSpace] = useState<{
+    title: string;
+    kicker: string;
+    ceilingAltitude: number;
+    returnTo: { lat: number; lng: number; altitude: number };
+  } | null>(null);
+  const incidentSpaceRef = useRef(incidentSpace);
+  incidentSpaceRef.current = incidentSpace;
+  const focusAltitudeCeilingRef = useRef<number | null>(null);
+  const historyReturnRef = useRef<{ lat: number; lng: number; altitude: number } | null>(null);
+  const historyRoomTargetRef = useRef<number | null>(null);
+  const outsideViewRef = useRef<{ lat: number; lng: number; altitude: number } | null>(null);
+  const [historyEntryAlt, setHistoryEntryAlt] = useState<number | null>(null);
+  const onCloseLookRef = useRef<
+    | ((info: {
+        lat: number;
+        lng: number;
+        altitude: number;
+        pitch: number;
+        bearing: number;
+        durationMs: number;
+        title?: string;
+        kicker?: string;
+      }) => void)
+    | null
+  >(null);
   /**
    * 지정학 심층 — 허브/마찰/영토 브리프 중.
    * 레이어 교체(목표 3) · 속보 타전 잠금.
@@ -1166,6 +1225,7 @@ export function GlobeDashboard({
 
   const [showViewerIntro, setShowViewerIntro] = useState(false);
   const [showFeatureGuide, setShowFeatureGuide] = useState(false);
+  const [showControlsGuide, setShowControlsGuide] = useState(false);
   const [askLayersOpen, setAskLayersOpen] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [showSourcesPanel, setShowSourcesPanel] = useState(false);
@@ -1243,11 +1303,23 @@ export function GlobeDashboard({
   const [liveuaToast, setLiveuaToast] = useState<LiveuamapEvent | null>(null);
   const [liveuaUnread, setLiveuaUnread] = useState(0);
   const [liveuaParchmentIndex, setLiveuaParchmentIndex] = useState<number | null>(null);
+  /** 「위치로 가기」후 세슘 위 미디어 포커스 카드 — 양피지와 상호 배타 */
+  const [focusedLiveuaId, setFocusedLiveuaId] = useState<string | null>(null);
+  /** 세슘 전황 책 보고서 — 국소 프로토타입 */
+  const [theaterSitrepRegion, setTheaterSitrepRegion] =
+    useState<TheaterSitrepRegionId | null>(null);
+  /** IntelContract Source drill — 관측/지정학/지경학 공통 */
+  const [intelDrillGate, setIntelDrillGate] = useState<GateResult | null>(null);
+  const [breakingFlashGate, setBreakingFlashGate] = useState<GateResult | null>(null);
+  /** 관측대 안건 보드 첫 안내 카드 */
+  const [intelDeskTipVisible, setIntelDeskTipVisible] = useState(false);
   const liveuaSeenIdsRef = useRef<Set<string>>(new Set());
   const liveuaSoundAtRef = useRef(0);
   /** 양피지 열려 있으면 새 속보는 쌓기만 (신속속보 큐와 동일) */
   const liveuaParchmentOpenRef = useRef(false);
   liveuaParchmentOpenRef.current = liveuaParchmentIndex != null;
+  const theaterSitrepOpenRef = useRef(false);
+  theaterSitrepOpenRef.current = theaterSitrepRegion != null;
   const liveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
   /** 속보→배관 잠깐 표시 — 원래 OFF였던 키만 타이머 후 복원 */
   const pipelineRevealSnapRef = useRef<PipelineRevealSnap | null>(null);
@@ -1347,13 +1419,13 @@ export function GlobeDashboard({
   >("idle");
   const ukraineOccupiedFetchRef = useRef(false);
   /**
-   * Cesium 통제면 — LiveUA UA/YE/LB만 (토글 무관·DeepState 금지).
+   * Cesium 통제면 — LiveUA UA/IR/YE/LB (토글 무관·DeepState 금지).
    * 비면 null 유지, sync/60s 폴링으로만 채움.
    */
   const [liveuaControlGeoJson, setLiveuaControlGeoJson] =
     useState<FeatureCollection | null>(null);
   const liveuaTerritoryByRegionRef = useRef<
-    Partial<Record<"ukraine" | "yemen" | "lebanon", FeatureCollection["features"]>>
+    Partial<Record<"ukraine" | "iran" | "yemen" | "lebanon", FeatureCollection["features"]>>
   >({});
   const [hapiCasualties] = useState<HapiConflictCasualtiesPayload>(() => ({
     ...HAPI_CASUALTY_SEED,
@@ -1931,6 +2003,32 @@ export function GlobeDashboard({
     labelLanguage,
   } = layerPrefs;
 
+  const theaterSitrepDoc = useMemo(() => {
+    if (!theaterSitrepRegion) return null;
+    const rssItems = [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.flashHeroes ?? []),
+      ...(newsStreamPayload?.verified ?? []),
+    ];
+    const doc = buildTheaterSitrep({
+      regionId: theaterSitrepRegion,
+      events: liveuaEvents,
+      rssItems,
+      windowHours: 72,
+      lang: labelLanguage === "en" ? "en" : "ko",
+    });
+    const gate = gateTheaterSitrep(doc);
+    if (!canPublish("theater_sitrep", gate.grade)) return null;
+    return doc;
+  }, [
+    theaterSitrepRegion,
+    liveuaEvents,
+    labelLanguage,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.flashHeroes,
+    newsStreamPayload?.verified,
+  ]);
+
   const liveuaPins = useMemo(
     () =>
       liveuaEvents
@@ -1941,7 +2039,55 @@ export function GlobeDashboard({
           title: labelLanguage === "ko" ? e.titleKo?.trim() || e.title : e.title,
           lat: e.lat,
           lng: e.lng,
+          imageUrl: e.imageUrl,
         })),
+    [liveuaEvents, labelLanguage],
+  );
+
+  const focusedLiveuaEvent = useMemo(
+    () =>
+      focusedLiveuaId
+        ? liveuaEvents.find((e) => e.id === focusedLiveuaId) ?? null
+        : null,
+    [focusedLiveuaId, liveuaEvents],
+  );
+
+  const liveuaStrikes = useMemo(
+    () =>
+      liveuaEvents.flatMap((event) => {
+        const hit = liveuaConfirmedStrike(event);
+        if (!hit) return [];
+        const title =
+          labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title;
+        return [
+          {
+            id: event.id,
+            lat: event.lat,
+            lng: event.lng,
+            title,
+            kind: hit.kind,
+          },
+        ];
+      }).slice(0, 40),
+    [liveuaEvents, labelLanguage],
+  );
+
+  const liveuaGround = useMemo(
+    () =>
+      liveuaEvents.flatMap((event) => {
+        const hit = liveuaGroundAssault(event);
+        if (!hit) return [];
+        const title =
+          labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title;
+        return [
+          {
+            id: event.id,
+            lat: event.lat,
+            lng: event.lng,
+            title,
+          },
+        ];
+      }).slice(0, 40),
     [liveuaEvents, labelLanguage],
   );
   useEffect(() => {
@@ -2324,15 +2470,9 @@ export function GlobeDashboard({
 
   const activeHubId = regionNavSelection?.hubId ?? null;
   const hubFocusMode = regionNavSelection?.focusMode ?? null;
+  /** 역사 창·영토분쟁 창 — 목록과 에피소드 모두 나가기 전까지 잠금 */
   const historyImmersionActive =
-    hubFocusMode === "regime" ||
-    (hubFocusMode === "disputes" &&
-      Boolean(
-        regimeSelectedEpisodeId ||
-          frictionEpisodeBrief ||
-          disputeEpisodeSelectedId ||
-          territorialEpisodeBrief,
-      ));
+    hubFocusMode === "regime" || hubFocusMode === "disputes";
   const disputesOverviewActive = hubFocusMode === "disputes";
   const showShipMovesLayer = false;
   /** 목록·에피소드 공통 — 나가기 전까지 잠금 */
@@ -2343,6 +2483,15 @@ export function GlobeDashboard({
   );
   historyImmersionRef.current = historyImmersionActive;
   historyStoryLockedRef.current = historyStoryLocked;
+
+  const archiveCeiling =
+    historyImmersionActive && historyEntryAlt != null
+      ? Math.min(HISTORY_IMMERSION_MAX_ALTITUDE, historyEntryAlt + 0.12)
+      : null;
+  const focusCeilingAltitude = !isSatelliteViewer
+    ? (incidentSpace?.ceilingAltitude ?? archiveCeiling)
+    : null;
+  focusAltitudeCeilingRef.current = focusCeilingAltitude;
 
   const {
     layerCenterRef,
@@ -2366,6 +2515,9 @@ export function GlobeDashboard({
     globeReady,
     setGlobeReady,
     historyImmersionRef,
+    focusAltitudeCeilingRef,
+    focusCeilingAltitude,
+    onCloseLookRef,
     historyImmersionActive,
     historyEpisodeActive,
   });
@@ -2377,6 +2529,183 @@ export function GlobeDashboard({
    *   GEV 추적처럼 관측 모드 전용 엔티티를 따라가는 flyTo 호출부에 사용.
    */
   const cesiumGlobeRef = useRef<CesiumGlobeHandle>(null);
+
+  const INCIDENT_ENTRY_ALT = 0.85;
+  /** 이 고도보다 먼 이동은 창으로 치지 않는다. 기본 fly(1.18)와 핀 줌은 포함한다. */
+  const CLOSE_LOOK_ALT = 1.28;
+
+  const incidentReturnView = useCallback(
+    (lat: number, lng: number) => {
+      const pov = cesiumGlobeRef.current?.pointOfView();
+      if (pov && pov.altitude >= 1.8) {
+        return {
+          lat: pov.lat,
+          lng: pov.lng,
+          altitude: Math.min(pov.altitude, 7.2),
+        };
+      }
+      if (viewState.altitude >= 1.8) {
+        return {
+          lat: viewState.lat,
+          lng: viewState.lng,
+          altitude: Math.min(viewState.altitude, 7.2),
+        };
+      }
+      return { lat, lng, altitude: 2.6 };
+    },
+    [viewState.altitude, viewState.lat, viewState.lng],
+  );
+
+  const enterFocusedSpace = useCallback(
+    (info: {
+      lat: number;
+      lng: number;
+      altitude: number;
+      pitch: number;
+      title?: string;
+      kicker?: string;
+    }) => {
+      if (historyStoryLockedRef.current) {
+        if (
+          Number.isFinite(info.altitude) &&
+          info.altitude <= CLOSE_LOOK_ALT &&
+          info.pitch >= 36
+        ) {
+          historyRoomTargetRef.current = info.altitude;
+        }
+        return;
+      }
+      if (!Number.isFinite(info.altitude) || info.altitude > CLOSE_LOOK_ALT) return;
+      if (info.pitch < 36) return;
+      const ceiling = Math.min(CLOSE_LOOK_ALT, info.altitude + 0.12);
+      const title =
+        info.title?.trim() ||
+        (labelLanguage === "en" ? "This place" : "이 위치");
+      const kicker =
+        info.kicker?.trim() ||
+        (labelLanguage === "en" ? "This window" : "이 창");
+      const prev = incidentSpaceRef.current;
+      if (prev) {
+        const next = {
+          ...prev,
+          title: info.title?.trim() || prev.title,
+          kicker: info.kicker?.trim() || prev.kicker,
+          ceilingAltitude: Math.min(prev.ceilingAltitude, ceiling),
+        };
+        if (
+          next.title === prev.title &&
+          next.kicker === prev.kicker &&
+          next.ceilingAltitude === prev.ceilingAltitude
+        ) {
+          return;
+        }
+        incidentSpaceRef.current = next;
+        setIncidentSpace(next);
+        return;
+      }
+      const next = {
+        title,
+        kicker,
+        ceilingAltitude: ceiling,
+        returnTo: incidentReturnView(info.lat, info.lng),
+      };
+      incidentSpaceRef.current = next;
+      setIncidentSpace(next);
+    },
+    [incidentReturnView, labelLanguage],
+  );
+  onCloseLookRef.current = enterFocusedSpace;
+
+  if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") {
+    outsideViewRef.current = {
+      lat: viewState.lat,
+      lng: viewState.lng,
+      altitude: viewState.altitude,
+    };
+  }
+
+  useEffect(() => {
+    const active = hubFocusMode === "regime" || hubFocusMode === "disputes";
+    if (!active) {
+      historyReturnRef.current = null;
+      historyRoomTargetRef.current = null;
+      setHistoryEntryAlt(null);
+      return;
+    }
+    if (historyReturnRef.current) return;
+    const outside = outsideViewRef.current ?? {
+      lat: viewState.lat,
+      lng: viewState.lng,
+      altitude: viewState.altitude,
+    };
+    const altitude = outside.altitude;
+    historyReturnRef.current =
+      altitude >= 1.8
+        ? {
+            lat: outside.lat,
+            lng: outside.lng,
+            altitude: Math.min(7.2, altitude),
+          }
+        : {
+            lat: outside.lat,
+            lng: outside.lng,
+            altitude: Math.min(7.2, Math.max(2.6, altitude + 1.4)),
+          };
+    setHistoryEntryAlt(altitude);
+  }, [hubFocusMode, viewState.altitude, viewState.lat, viewState.lng]);
+
+  useEffect(() => {
+    if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") return;
+    const target = historyRoomTargetRef.current;
+    if (target == null) return;
+    if (viewState.altitude > target + 0.18) return;
+    historyRoomTargetRef.current = null;
+    setHistoryEntryAlt(target);
+  }, [hubFocusMode, viewState.altitude]);
+
+  const leaveIncidentSpace = useCallback(() => {
+    const space = incidentSpaceRef.current;
+    if (!space) return;
+    incidentSpaceRef.current = null;
+    focusAltitudeCeilingRef.current = null;
+    setIncidentSpace(null);
+    setFocusedLiveuaId(null);
+    if (viewerMode === "satellite") {
+      const fly = cesiumGlobeRef.current?.flyTo;
+      if (typeof fly === "function") {
+        fly(space.returnTo.lat, space.returnTo.lng, space.returnTo.altitude, 2400, {
+          pitch: 8,
+          bearing: 0,
+        });
+      }
+      return;
+    }
+    flyTo(space.returnTo.lat, space.returnTo.lng, space.returnTo.altitude, 2400, {
+      pitch: 8,
+      bearing: 0,
+    });
+  }, [viewerMode, flyTo]);
+
+  useEffect(() => {
+    if (viewerMode === "satellite") return;
+    if (!incidentSpaceRef.current) return;
+    incidentSpaceRef.current = null;
+    focusAltitudeCeilingRef.current = null;
+    setIncidentSpace(null);
+    setFocusedLiveuaId(null);
+  }, [viewerMode]);
+
+  useEffect(() => {
+    if (!incidentSpace) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      leaveIncidentSpace();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [incidentSpace, leaveIncidentSpace]);
+
   const [cesiumReady, setCesiumReady] = useState(false);
   const { hourUtc, setHourUtc, playing, setPlaying } = useCesiumDayScrubState();
   const [recordClipBusy, setRecordClipBusy] = useState(false);
@@ -2473,12 +2802,32 @@ export function GlobeDashboard({
     setFlyToConfirmOffer(null);
   }, [viewerMode]);
 
+  const flushPendingCesiumFly = useCallback(() => {
+    const pending = pendingObserveFlyRef.current;
+    const handle = cesiumGlobeRef.current;
+    // flyTo 함수가 있어도 viewer 부팅 전이면 pointOfView 가 null — 대기열을 유지한다.
+    if (!pending || typeof handle?.flyTo !== "function" || !handle.pointOfView()) {
+      return false;
+    }
+    pendingObserveFlyRef.current = null;
+    handle.flyTo(
+      pending.lat,
+      pending.lng,
+      pending.altitude,
+      resolveCinematicDurationMs(pending.durationMs),
+      resolveCinematicCamera(pending.camera),
+    );
+    if (pending.selection) setSelected(pending.selection);
+    return true;
+  }, [setSelected]);
+
   useEffect(() => {
     if (!cesiumReady) return;
     const deeplink = observeDeeplinkFlyRef.current;
-    if (deeplink) {
+    const fly = cesiumGlobeRef.current?.flyTo;
+    if (deeplink && typeof fly === "function") {
       observeDeeplinkFlyRef.current = null;
-      cesiumGlobeRef.current?.flyTo(
+      fly(
         deeplink.lat,
         deeplink.lng,
         deeplink.altitude,
@@ -2487,16 +2836,8 @@ export function GlobeDashboard({
       );
       return;
     }
-    const pending = pendingObserveFlyRef.current;
-    if (!pending) return;
-    setFlyToConfirmOffer({
-      key: `${pending.lat},${pending.lng},${Date.now()}`,
-      subtitle: pending.subtitle,
-      title: pending.title,
-      lat: pending.lat,
-      lng: pending.lng,
-    });
-  }, [cesiumReady]);
+    flushPendingCesiumFly();
+  }, [cesiumReady, flushPendingCesiumFly]);
 
   const unifiedFlyTo = useCallback(
     (
@@ -2508,13 +2849,34 @@ export function GlobeDashboard({
     ) => {
       const dur = resolveCinematicDurationMs(durationMs);
       const cam = resolveCinematicCamera(camera);
-      if (viewerMode === "satellite" && cesiumGlobeRef.current) {
-        cesiumGlobeRef.current.flyTo(lat, lng, altitude, dur, cam);
+      if (dur > 0) {
+        enterFocusedSpace({
+          lat,
+          lng,
+          altitude: altitude ?? 1.18,
+          pitch: cam.pitch,
+        });
+      }
+      if (viewerMode === "satellite") {
+        const handle = cesiumGlobeRef.current;
+        if (typeof handle?.flyTo === "function" && handle.pointOfView()) {
+          handle.flyTo(lat, lng, altitude, dur, cam);
+          return;
+        }
+        pendingObserveFlyRef.current = {
+          lat,
+          lng,
+          altitude,
+          durationMs: dur,
+          camera: cam,
+          subtitle: "",
+          title: "",
+        };
         return;
       }
       flyTo(lat, lng, altitude, dur, cam);
     },
-    [viewerMode, flyTo],
+    [viewerMode, flyTo, enterFocusedSpace],
   );
 
   /** 사건 포커스 시 송유·가스·해저관을 잠깐 켠다 (상시 난사 대신) */
@@ -2546,9 +2908,8 @@ export function GlobeDashboard({
   }, []);
 
   /**
-   * 지정학/지경학/항적(MapLibre) 모드에서 관측(Cesium)이 필요한 대상(속보 등)으로
-   * 이동해야 할 때 — 먼저 모드를 전환하고, Cesium이 준비되면 "이동할까요?" 확인
-   * 배너를 띄운 뒤 수락 시에만 flyTo한다 (모드 전환과 카메라 이동을 분리).
+   * 속보·핀의 「위치로」— 관측이 아니면 모드를 바꾼 뒤, Cesium이 준비되는 즉시
+   * 그 좌표로 날아간다. 확인 배너를 한 번 더 거치면 이동이 중간에 끊긴다.
    */
   const switchToObserveAndFly = useCallback(
     (
@@ -2560,10 +2921,28 @@ export function GlobeDashboard({
         camera?: { pitch?: number; bearing?: number };
         subtitle: string;
         title: string;
+        kicker?: string;
         selection?: Selection;
       },
     ) => {
-      pendingObserveFlyRef.current = { lat, lng, ...opts };
+      enterFocusedSpace({
+        lat,
+        lng,
+        altitude: opts.altitude ?? INCIDENT_ENTRY_ALT,
+        pitch: resolveCinematicCamera(opts.camera).pitch,
+        title: opts.title,
+        kicker: opts.kicker,
+      });
+      pendingObserveFlyRef.current = {
+        lat,
+        lng,
+        altitude: opts.altitude,
+        durationMs: opts.durationMs,
+        camera: opts.camera,
+        subtitle: opts.subtitle,
+        title: opts.title,
+        selection: opts.selection,
+      };
       if (viewerMode !== "satellite") {
         if (!canMountFullObserve(observeUnlocked)) {
           startObservePreview();
@@ -2573,17 +2952,16 @@ export function GlobeDashboard({
         setViewerMode("satellite");
         return;
       }
-      if (cesiumReady) {
-        setFlyToConfirmOffer({
-          key: `${lat},${lng},${Date.now()}`,
-          subtitle: opts.subtitle,
-          title: opts.title,
-          lat,
-          lng,
-        });
-      }
+      flushPendingCesiumFly();
     },
-    [viewerMode, cesiumReady, observeUnlocked, startObservePreview, endObservePreview],
+    [
+      viewerMode,
+      observeUnlocked,
+      startObservePreview,
+      endObservePreview,
+      flushPendingCesiumFly,
+      enterFocusedSpace,
+    ],
   );
 
   const acceptFlyToConfirm = useCallback(() => {
@@ -2592,13 +2970,16 @@ export function GlobeDashboard({
     setFlyToConfirmOffer(null);
     pendingObserveFlyRef.current = null;
     if (!offer) return;
-    cesiumGlobeRef.current?.flyTo(
-      offer.lat,
-      offer.lng,
-      pending?.altitude,
-      resolveCinematicDurationMs(pending?.durationMs),
-      resolveCinematicCamera(pending?.camera),
-    );
+    const cesiumFly = cesiumGlobeRef.current?.flyTo;
+    if (typeof cesiumFly === "function") {
+      cesiumFly(
+        offer.lat,
+        offer.lng,
+        pending?.altitude,
+        resolveCinematicDurationMs(pending?.durationMs),
+        resolveCinematicCamera(pending?.camera),
+      );
+    }
     if (pending?.selection) setSelected(pending.selection);
   }, [flyToConfirmOffer, setSelected]);
 
@@ -2741,14 +3122,29 @@ export function GlobeDashboard({
   );
 
   const exitHistoryImmersion = useCallback(() => {
+    const back =
+      historyReturnRef.current ??
+      (viewState.altitude >= 1.8
+        ? {
+            lat: viewState.lat,
+            lng: viewState.lng,
+            altitude: Math.min(7.2, viewState.altitude),
+          }
+        : { lat: viewState.lat, lng: viewState.lng, altitude: 2.6 });
+    historyReturnRef.current = null;
+    historyRoomTargetRef.current = null;
+    setHistoryEntryAlt(null);
+    focusAltitudeCeilingRef.current = null;
     clearFrictionEpisodeTimer();
     clearTerritorialSequence();
     clearHubBriefTimer();
+    historyImmersionRef.current = false;
     historyStoryLockedRef.current = false;
     exitConflictDeepDive();
     setFrictionEpisodeBrief(null);
     setRegimeSelectedEpisodeId(null);
     setFrictionActiveStageId(null);
+    setDisputeHotspotSelectedId(null);
     setDisputeEpisodeSelectedId(null);
     setTerritorialEpisodeBrief(null);
     setTerritorialActiveStageId(null);
@@ -2767,13 +3163,18 @@ export function GlobeDashboard({
       controls.enablePan = true;
       controls.enableRotate = true;
     }
+    flyTo(back.lat, back.lng, back.altitude, 2400, { pitch: 8, bearing: 0 });
   }, [
     clearFrictionEpisodeTimer,
     clearHubBriefTimer,
     clearTerritorialSequence,
     exitConflictDeepDive,
+    flyTo,
     size.height,
     size.width,
+    viewState.altitude,
+    viewState.lat,
+    viewState.lng,
   ]);
 
   const handleFrictionCoachStepChange = useCallback((next: FrictionCoachStep | null) => {
@@ -3412,14 +3813,29 @@ export function GlobeDashboard({
   }, [globeReady, showUkraineControl, isSatelliteViewer, ukraineOccupiedStatus]);
 
   /**
-   * Cesium LiveUA 통제면 always-on — UA/YE/LB를 이벤트 피드와 같은 60s 틱으로 폴링.
+   * Cesium LiveUA 통제면 always-on — UA/IR/YE/LB를 이벤트 피드와 같은 60s 틱으로 폴링.
    * `source !== liveuamap` 인 응답은 IGNORE (DeepState/정적 JSON 금지).
    * 비면 null 유지; sync/폴링으로만 채움. MapLibre ukraineOccupiedGeoJson과 분리.
    */
+  /** 관측대 설명 카드 — 첫 방문 유저가 관측대를 처음 켤 때만 */
+  useEffect(() => {
+    if (!isSatelliteViewer || isPhoneUi) {
+      setIntelDeskTipVisible(false);
+      return;
+    }
+    if (!shouldOfferIntelDeskTip()) {
+      // 일반·재방문 유저: 자동 설명창 없음
+      markIntelDeskTipDone();
+      setIntelDeskTipVisible(false);
+      return;
+    }
+    setIntelDeskTipVisible(true);
+  }, [isSatelliteViewer, isPhoneUi]);
+
   useEffect(() => {
     if (!isSatelliteViewer || !globeReady) return;
     let cancelled = false;
-    const regions = ["ukraine", "yemen", "lebanon"] as const;
+    const regions = ["ukraine", "iran", "yemen", "lebanon"] as const;
 
     const pullTerritory = async () => {
       await Promise.all(
@@ -5268,7 +5684,7 @@ export function GlobeDashboard({
   const cesiumMissileLaunches = useMemo(
     () =>
       isSatelliteViewer && showNorthKoreaMissileTests
-        ? koreaMissileIncidentMarkers.map((m) => ({
+        ? pickCesiumMissileLaunches(koreaMissileIncidentMarkers).map((m) => ({
             id: m.id,
             lat: m.lat,
             lng: m.lng,
@@ -5335,7 +5751,13 @@ export function GlobeDashboard({
       }),
       conflictEventTheaters,
     );
-    const markers = clusters.map(clusterToMarker);
+    const markers = clusters
+      .map((cluster) => {
+        const gate = gateConflictCluster(cluster);
+        if (gate.grade === "drop" || gate.grade === "hold") return null;
+        return { ...clusterToMarker(cluster), displayGrade: gate.grade };
+      })
+      .filter((m): m is ConflictEventHtmlMarker => m != null);
     return selectConflictEventMarkers(markers, {
       view: layerViewState,
       lodTier: globeLod.tier,
@@ -6046,8 +6468,8 @@ export function GlobeDashboard({
     setAisError(null);
 
     try {
-      const max = liveAisFetchMax();
-      // 지정학: 군함 · 지경학: 상업 · 항적·관측(Cesium): 전부
+      const max = isSatelliteViewer ? 1000 : liveAisFetchMax();
+      // 지정학: 군함 · 지경학: 상업 · 관측(Cesium): 전 세계 전부
       const aisClass =
         isLiveViewer || isSatelliteViewer
           ? "all"
@@ -6056,7 +6478,7 @@ export function GlobeDashboard({
             : "military";
       const alt = layerAltitudeRef.current;
       const lod = getGlobeLod(alt).tier;
-      const nearDetail = lod === "near" || lod === "village";
+      const nearDetail = !isSatelliteViewer && (lod === "near" || lod === "village");
       const center = layerCenterRef.current;
       const qs = new URLSearchParams({
         seconds: "8",
@@ -6349,24 +6771,29 @@ export function GlobeDashboard({
         const newcomers = events.filter((e) => !seen.has(e.id));
         for (const e of events) seen.add(e.id);
         if (!isFirst && newcomers.length > 0) {
-          const newest = newcomers[0];
-          setLiveuaToast(newest);
-          const now = Date.now();
-          if (now - liveuaSoundAtRef.current >= 10_000) {
-            liveuaSoundAtRef.current = now;
-            emitBreakingDispatchSound();
-          }
-          // 상단 토스트 + 양피지 동시. 양피지가 이미 열려 있으면 속보함에만 적립.
-          if (!liveuaParchmentOpenRef.current) {
-            const idx = events.findIndex((e) => e.id === newest.id);
-            if (idx >= 0) {
-              setLiveuaParchmentIndex(idx);
-              setLiveuaUnread((n) => n + Math.max(0, newcomers.length - 1));
+          // 전황 책 읽는 중 — 타전 UI 억제, 속보함에만 적립
+          if (theaterSitrepOpenRef.current) {
+            setLiveuaUnread((n) => n + newcomers.length);
+          } else {
+            const newest = newcomers[0];
+            setLiveuaToast(newest);
+            const now = Date.now();
+            if (now - liveuaSoundAtRef.current >= 10_000) {
+              liveuaSoundAtRef.current = now;
+              emitBreakingDispatchSound();
+            }
+            // 상단 토스트 + 양피지 동시. 양피지가 이미 열려 있으면 속보함에만 적립.
+            if (!liveuaParchmentOpenRef.current) {
+              const idx = events.findIndex((e) => e.id === newest.id);
+              if (idx >= 0) {
+                setLiveuaParchmentIndex(idx);
+                setLiveuaUnread((n) => n + Math.max(0, newcomers.length - 1));
+              } else {
+                setLiveuaUnread((n) => n + newcomers.length);
+              }
             } else {
               setLiveuaUnread((n) => n + newcomers.length);
             }
-          } else {
-            setLiveuaUnread((n) => n + newcomers.length);
           }
         }
         setLiveuaFeed(payload);
@@ -7337,6 +7764,57 @@ export function GlobeDashboard({
     weeklyExpanded,
   ]);
 
+  /**
+   * 지구본 조작키 안내 — 브라우저당 1회.
+   * 등불·주간 회고가 끝난 뒤, 일반 유저 포함 모두에게 처음에 띄운다.
+   */
+  useEffect(() => {
+    if (isLoading || loadError || !globeReady) return;
+    if (entryGate !== null || showModePicker) return;
+    if (!langChoiceDone || !langChoiceChecked) return;
+    if (!dailyLampSettled || !weeklyRecapSettled) return;
+    if (
+      showControlsGuide ||
+      uxGuideBrief ||
+      airRaidBriefing ||
+      periodicBriefing ||
+      breakingFlash ||
+      exerciseBriefing ||
+      weeklyExpanded ||
+      showFeatureGuide ||
+      showFirstVisitTour
+    ) {
+      return;
+    }
+    if (!shouldOfferControlsGuide()) return;
+
+    const timer = window.setTimeout(() => {
+      if (!shouldOfferControlsGuide()) return;
+      setShowControlsGuide(true);
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    airRaidBriefing,
+    breakingFlash,
+    dailyLampSettled,
+    entryGate,
+    exerciseBriefing,
+    globeReady,
+    isLoading,
+    langChoiceChecked,
+    langChoiceDone,
+    loadError,
+    periodicBriefing,
+    showControlsGuide,
+    showFeatureGuide,
+    showFirstVisitTour,
+    showModePicker,
+    uxGuideBrief,
+    weeklyExpanded,
+    weeklyRecapSettled,
+  ]);
+
   /** 귀중한 속보 — S/고충격만 양피지 타전 · RSS+LIVEUA · 위치는 버튼만 */
   useEffect(() => {
     if (entryGate !== null || showModePicker) return;
@@ -7346,6 +7824,10 @@ export function GlobeDashboard({
       return;
     }
     if (isHistoryViewer) {
+      if (breakingFlash) setBreakingFlash(null);
+      return;
+    }
+    if (theaterSitrepRegion) {
       if (breakingFlash) setBreakingFlash(null);
       return;
     }
@@ -7363,6 +7845,9 @@ export function GlobeDashboard({
     );
     if (!hero) return;
 
+    const flashGate = gateBreakingHero(hero);
+    if (!canPublish("breaking_flash", flashGate.grade)) return;
+
     let cancelled = false;
     void (async () => {
       const briefing = await buildBreakingFlashBriefingForLang(
@@ -7373,6 +7858,7 @@ export function GlobeDashboard({
       );
       if (cancelled) return;
       if (!claimBreakingFlash(hero.id)) return;
+      setBreakingFlashGate(flashGate);
       setBreakingFlash(briefing);
     })();
 
@@ -7403,6 +7889,7 @@ export function GlobeDashboard({
     breakingFlash,
     isHistoryViewer,
     deepDiveSession,
+    theaterSitrepRegion,
   ]);
 
   /**
@@ -7416,6 +7903,7 @@ export function GlobeDashboard({
     if (!breakingFlash) return;
     const timer = window.setTimeout(() => {
       setBreakingFlash(null);
+      setBreakingFlashGate(null);
     }, BREAKING_FLASH_AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
   }, [breakingFlash]);
@@ -7430,11 +7918,15 @@ export function GlobeDashboard({
       Boolean(airRaidBriefing) ||
       Boolean(airRaidOffer) ||
       Boolean(periodicBriefing) ||
-      Boolean(breakingFlash),
+      Boolean(breakingFlash) ||
+      Boolean(theaterSitrepRegion),
     labelLanguage,
     exercises: displayMilitaryExercises,
     briefingBlocked:
-      Boolean(periodicBriefing) || Boolean(airRaidBriefing) || Boolean(breakingFlash),
+      Boolean(periodicBriefing) ||
+      Boolean(airRaidBriefing) ||
+      Boolean(breakingFlash) ||
+      Boolean(theaterSitrepRegion),
     exerciseBriefing,
     setExerciseBriefing,
     patchLayerPrefsSoft,
@@ -7615,7 +8107,8 @@ export function GlobeDashboard({
       Boolean(exerciseOffer) ||
       Boolean(periodicBriefing) ||
       Boolean(breakingFlash) ||
-      Boolean(chokepointStressBriefing),
+      Boolean(chokepointStressBriefing) ||
+      Boolean(theaterSitrepRegion),
     labelLanguage,
     showNavareaWarnings: showNavareaWarnings || isSatelliteViewer,
     showUkmtoIncidents: showUkmtoIncidents || isSatelliteViewer,
@@ -7627,6 +8120,21 @@ export function GlobeDashboard({
     skipNextGlobeClickRef,
     satelliteAutoFlash: isSatelliteViewer,
   });
+
+  /** 전황 책 열리면 진행 중 타전·경보 UI 정리 */
+  useEffect(() => {
+    if (!theaterSitrepRegion) return;
+    setBreakingFlash(null);
+    setLiveuaParchmentIndex(null);
+    setLiveuaToast(null);
+    closeUkmtoBriefing();
+    closeNavareaBriefing();
+    setChokepointStressBriefing(null);
+  }, [
+    theaterSitrepRegion,
+    closeUkmtoBriefing,
+    closeNavareaBriefing,
+  ]);
 
   const cesiumAlerts = useMemo(
     () =>
@@ -7652,6 +8160,111 @@ export function GlobeDashboard({
       ukmtoIncidents,
     ],
   );
+
+  const observeWatchboardItems = useMemo(() => {
+    if (!isSatelliteViewer) return [];
+    const rssItems = [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.flashHeroes ?? []),
+      ...(newsStreamPayload?.verified ?? []),
+    ];
+    return buildObserveWatchboard({
+      liveuaEvents,
+      rssItems,
+      cesiumAlerts,
+      lang: labelLanguage === "en" ? "en" : "ko",
+    });
+  }, [
+    cesiumAlerts,
+    isSatelliteViewer,
+    labelLanguage,
+    liveuaEvents,
+    newsStreamPayload?.flashHeroes,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.verified,
+  ]);
+
+  const escalationIntel = useMemo(() => {
+    if (!escalationOffer) return null;
+    const top = escalationOffer.top;
+    const gate = gateEscalation({
+      signal: top.signal,
+      itemId: top.id,
+      sourceRefs: [
+        {
+          id: top.id,
+          name: top.publisher || top.title.slice(0, 40),
+          url: top.link ?? null,
+          occurredAt: top.pubDate ?? null,
+        },
+      ],
+    });
+    if (!canPublish("escalation_banner", gate.grade)) return null;
+    return { offer: escalationOffer, gate };
+  }, [escalationOffer]);
+
+  const chokepointStressGate = useMemo(() => {
+    if (!chokepointStressBriefing) return null;
+    const point = LOGISTICS_RISK_POINTS.find(
+      (p) => p.id === chokepointStressBriefing.chokepointId,
+    );
+    if (!point) return null;
+    const ais = portWatchByChokeId[point.id] ?? null;
+    const asset = assetByChokeId[point.id] ?? null;
+    const stress = stressForChokepoint(point, ukmtoIncidents, ais, asset);
+    const ukmtoCount = stress.signals.filter((s) =>
+      /ukmto/i.test(`${s.sourceKo} ${s.sourceEn} ${s.labelKo} ${s.labelEn}`),
+    ).length;
+    const gate = gateChokepointStress({
+      nameKo: point.name,
+      nameEn:
+        typeof point.meta?.nameEn === "string" ? point.meta.nameEn : point.name,
+      stress: {
+        chokepointId: point.id,
+        grade: stress.level,
+        ukmtoCount: Math.max(ukmtoCount, stress.graded ? 1 : 0),
+        hasAis: ais != null,
+        hasAssetHint: asset != null,
+      },
+      lat: point.lat,
+      lng: point.lng,
+    });
+    if (!canPublish("economy_alert", gate.grade)) return null;
+    return gate;
+  }, [
+    assetByChokeId,
+    chokepointStressBriefing,
+    portWatchByChokeId,
+    ukmtoIncidents,
+  ]);
+
+  /** 관측 모드 — 지정학과 같은 초크 글로우 링 (PortWatch·UKMTO 스트레스 색) */
+  const cesiumChokeRings = useMemo(() => {
+    if (!isSatelliteViewer) return [];
+    const colorForId = (id: string): string | undefined => {
+      const point = LOGISTICS_RISK_POINTS.find((p) => p.id === id);
+      if (!point || point.kind !== "chokepoint") return undefined;
+      const stress = stressForChokepoint(
+        point,
+        ukmtoIncidents,
+        portWatchByChokeId[id] ?? null,
+        assetByChokeId[id] ?? null,
+      );
+      return chokeStressHex(stress.level);
+    };
+    return chokeGlowRingSeed(undefined, colorForId).map((p) => ({
+      id: p.id,
+      lat: p.lat,
+      lng: p.lng,
+      radiusScale: p.radiusScale,
+      ...(p.color ? { color: p.color } : {}),
+    }));
+  }, [
+    assetByChokeId,
+    isSatelliteViewer,
+    portWatchByChokeId,
+    ukmtoIncidents,
+  ]);
 
   const openCesiumAlert = useCallback(
     (item: CesiumAlertItem) => {
@@ -8156,16 +8769,33 @@ export function GlobeDashboard({
     markPurposeJobDone();
     setPurposeJobDone(true);
     setPurposeJobForced(false);
-    if (job === "conflict") {
-      handleViewerModeChange("conflict");
+    const orbit = entryOrbitCamera(size);
+    if (job === "conflict" || job === "economy") {
+      handleViewerModeChange(job);
+      // 관측(Cesium)에서 넘어오면 MapLibre 는 이 클릭 직후 마운트된다.
+      // 같은 틱의 flyTo 는 아직 없는 지도에 버려지므로 한 프레임 뒤에 보낸다.
+      window.setTimeout(() => {
+        flyTo(orbit.lat, orbit.lng, orbit.altitude, ENTRY_GATE.zoomOutFlyMs, {
+          pitch: orbit.pitch,
+        });
+      }, 0);
       return;
     }
     if (job === "satellite") {
-      handleViewerModeChange("satellite");
-      return;
-    }
-    if (job === "economy") {
-      handleViewerModeChange("economy");
+      pendingObserveFlyRef.current = {
+        lat: orbit.lat,
+        lng: orbit.lng,
+        altitude: orbit.altitude,
+        durationMs: ENTRY_GATE.zoomOutFlyMs,
+        camera: { pitch: orbit.pitch },
+        subtitle: "",
+        title: "",
+      };
+      if (viewerMode !== "satellite") {
+        handleViewerModeChange("satellite");
+        return;
+      }
+      flushPendingCesiumFly();
       return;
     }
     if (job === "ask") {
@@ -8618,11 +9248,10 @@ export function GlobeDashboard({
   ]);
 
   /**
-   * 등불 — 지정학·지경학 각각 6시간 슬롯당 1회 자동 점화(대표 뉴스·큰 사진).
-   * 닫으면 우측 「등불」탭으로 접힘. 다음 슬롯이 되면 다시 자동 펼침.
+   * 등불뉴스 — **뉴비 전용 아님**. 일반·재방문 유저 포함, 세션당 모드별 첫 진입에서
+   * 자동 펼침 1회(대표 뉴스·큰 사진). 닫으면 「등불」탭으로 접힘.
+   * 설명창/투어와 달리 first-visit 게이트를 쓰지 않는다.
    * SLA: 게이트 해제 후 /api/lamp-news 응답까지 대기 — 카드 없으면 등불 생략.
-   * /api/lamp-news — 양 패키지 + og:image 추가 보강 후 기사에 붙은 사진이 있는 핫뉴스만.
-   * market-lamp / briefing-stats는 점화 후 보강만 (데드라인 블로킹 금지).
    */
   useEffect(() => {
     if (isLoading || loadError || !globeReady) return;
@@ -8661,8 +9290,17 @@ export function GlobeDashboard({
       setDailyLampSettled(true);
       return;
     }
-    /** 유저가 「접기」한 슬롯 — 모드 전환 시에는 무시하고 자동 펼침 */
-    const lampWasFolded = forceModeSwitchLamp ? false : hasFoldedLamp(lampKey);
+    /**
+     * 세션 첫 자동 펼침은 접힘 기록을 무시(일반 유저도 방문 처음에 켠다).
+     * 같은 세션에서 이미 펼쳤거나 접은 뒤에는 hasFoldedLamp를 따른다.
+     * 모드 전환 강제 점화는 항상 펼침.
+     */
+    const sessionAlreadyOpened = hasLampAutoOpenedThisSession(viewerMode);
+    const lampWasFolded = forceModeSwitchLamp
+      ? false
+      : sessionAlreadyOpened
+        ? hasFoldedLamp(lampKey)
+        : false;
 
     /** 등불 og 보강 + 선정 — 서버에서 최대 ~24s */
     const LAMP_NEWS_BUDGET_MS = 24_000;
@@ -8695,6 +9333,7 @@ export function GlobeDashboard({
       if (forceModeSwitchLamp) {
         lampModeSwitchPendingRef.current = false;
       }
+      markLampAutoOpenedThisSession(viewerMode);
       if (lampWasFolded) {
         setFoldedPeriodicBriefing(content);
       } else {
@@ -10134,6 +10773,7 @@ export function GlobeDashboard({
         }
         onOpenSettings={() => openLeftDrawer("settings")}
         onOpenData={() => openLeftDrawer("data")}
+        onOpenControlsGuide={() => setShowControlsGuide(true)}
         wtiScore={wtiSnapshot?.score ?? null}
         wtiDelta={wtiSnapshot?.deltaScore ?? null}
         wtiAsOf={wtiFetchedAt}
@@ -10315,17 +10955,7 @@ export function GlobeDashboard({
             setFrictionEpisodeBrief(episode);
           }, 750);
         }}
-        onDisputesOverviewClose={() => {
-          clearTerritorialSequence();
-          setDisputeHotspotSelectedId(null);
-          setDisputeEpisodeSelectedId(null);
-          setTerritorialEpisodeBrief(null);
-          setTerritorialActiveStageId(null);
-          setTerritorialRevealedStageIds([]);
-          setRegimeSelectedEpisodeId(null);
-          setFrictionEpisodeBrief(null);
-          setRegionNavSelection(null);
-        }}
+        onDisputesOverviewClose={exitHistoryImmersion}
         selectedAxisLink={selectedAxisLink}
         onAxisLinkDismiss={dismissAxisLink}
         onAxisLinkHubBrief={axisLinkOpenHub}
@@ -10392,11 +11022,23 @@ export function GlobeDashboard({
           onCesiumReady={() => setCesiumReady(true)}
           onSelectCesiumEntity={handleSelectCesiumEntity}
           alertPins={cesiumAlerts}
+          cameraCeilingM={
+            isSatelliteViewer && !isPhoneUi && incidentSpace
+              ? incidentSpace.ceilingAltitude * 6_371_000
+              : null
+          }
           onSelectCesiumAlert={openCesiumAlert}
+          ukmtoIncidents={isSatelliteViewer ? ukmtoIncidents : undefined}
+          navareaFeatures={isSatelliteViewer ? navareaFeatures : undefined}
+          chokeRings={cesiumChokeRings}
           liveuaPins={liveuaPins}
+          focusedLiveuaId={isSatelliteViewer ? focusedLiveuaId : null}
+          liveuaStrikes={isSatelliteViewer ? liveuaStrikes : []}
+          liveuaGround={isSatelliteViewer ? liveuaGround : []}
           onSelectLiveuaPin={(id) => {
             const idx = liveuaEvents.findIndex((e) => e.id === id);
             if (idx >= 0) {
+              setFocusedLiveuaId(null);
               setLiveuaParchmentIndex(idx);
               setLiveuaUnread(0);
             }
@@ -10410,6 +11052,86 @@ export function GlobeDashboard({
           showAirRaidZones={showNeptun || neptunAlertCount > 0}
           {...mapGlobeProps}
         />
+
+        {!isPhoneUi && incidentSpace ? (
+          <>
+            <div
+              className="pointer-events-none absolute inset-0 z-[30] shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20"
+              aria-hidden
+            />
+            <div
+              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/20 bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md`}
+            >
+              <div className="min-w-0">
+                <p className="text-micro uppercase tracking-[0.18em] text-amber-200/80">
+                  {incidentSpace.kicker}
+                </p>
+                <p className="truncate text-meta text-white/90">{incidentSpace.title}</p>
+                <p className="text-micro text-white/45">
+                  {t("breakingFlashSpaceHint", labelLanguage)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={leaveIncidentSpace}
+                className="tap-target shrink-0 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-meta font-semibold text-white hover:bg-white/20"
+              >
+                {t("breakingFlashSpaceExit", labelLanguage)}
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {!isPhoneUi && !incidentSpace && (hubFocusMode === "regime" || hubFocusMode === "disputes") ? (
+          <>
+            <div
+              className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ${
+                hubFocusMode === "regime" ? "ring-violet-300/75" : "ring-rose-300/75"
+              }`}
+              aria-hidden
+            />
+            <div
+              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md ${
+                hubFocusMode === "regime" ? "border-violet-300/45" : "border-rose-300/45"
+              }`}
+            >
+              <div className="min-w-0">
+                <p
+                  className={`text-micro uppercase tracking-[0.18em] ${
+                    hubFocusMode === "regime" ? "text-violet-200/85" : "text-rose-200/85"
+                  }`}
+                >
+                  {hubFocusMode === "regime"
+                    ? t("historyWindowKicker", labelLanguage)
+                    : t("territorialWindowKicker", labelLanguage)}
+                </p>
+                <p className="truncate text-meta text-white/90">
+                  {hubFocusMode === "regime"
+                    ? (activeFrictionEpisode?.title ?? t("historyWindowTitle", labelLanguage))
+                    : (labelLanguage === "en"
+                        ? territorialEpisodeBrief?.titleEn
+                        : territorialEpisodeBrief?.title) ||
+                      activeFrictionEpisode?.title ||
+                      t("territorialWindowTitle", labelLanguage)}
+                </p>
+                <p className="text-micro text-white/45">
+                  {t("breakingFlashSpaceHint", labelLanguage)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={exitHistoryImmersion}
+                className={`tap-target shrink-0 rounded-full border px-3 py-2 text-meta font-semibold text-white ${
+                  hubFocusMode === "regime"
+                    ? "border-violet-200/40 bg-violet-400/15 hover:bg-violet-400/25"
+                    : "border-rose-200/40 bg-rose-400/15 hover:bg-rose-400/25"
+                }`}
+              >
+                {t("breakingFlashSpaceExit", labelLanguage)}
+              </button>
+            </div>
+          </>
+        ) : null}
 
         {/* 지구본·Cesium 공통 출처 크레딧 */}
         {!isPhoneUi ? (
@@ -10492,6 +11214,9 @@ export function GlobeDashboard({
               labelLanguage === "en" ? "Observatory desk" : "관측대"
             }
           >
+            <NkMissileHistoryDock
+              lang={labelLanguage === "en" ? "en" : "ko"}
+            />
             <ObserveSensorChips
               lang={labelLanguage}
               tracksOn={
@@ -10552,8 +11277,8 @@ export function GlobeDashboard({
               <div className="flex items-center justify-between gap-2 text-meta text-teal-100/90">
                 <span className="font-medium tracking-wide">
                   {labelLanguage === "en"
-                    ? "Live · Observatory"
-                    : "라이브 · 관측대"}
+                    ? "Live desk · read the board first"
+                    : "라이브 관측 · 안건부터 읽기"}
                 </span>
                 <span className="text-micro text-teal-200/70">
                   {liveuaFeed?.status === "ok"
@@ -10578,17 +11303,51 @@ export function GlobeDashboard({
                   events={liveuaEvents}
                   unreadCount={liveuaUnread}
                   onOpen={(index) => {
+                    if (theaterSitrepRegion) return;
                     setLiveuaParchmentIndex(index);
                     setLiveuaUnread(0);
                   }}
                 />
+                <IntelWatchboard
+                  lang={labelLanguage}
+                  items={observeWatchboardItems}
+                  onOpenSitrep={(regionId) => {
+                    const item = observeWatchboardItems.find(
+                      (row) => row.sitrepRegion === regionId,
+                    );
+                    if (item && !canPublish("theater_sitrep", item.grade)) {
+                      setIntelDrillGate(item.gate);
+                      return;
+                    }
+                    setTheaterSitrepRegion(regionId);
+                  }}
+                  onOpenAlert={(cesiumAlertId) => {
+                    if (theaterSitrepRegion) return;
+                    const item = cesiumAlerts.find((a) => a.id === cesiumAlertId);
+                    if (item) openCesiumAlert(item);
+                  }}
+                  onDrill={(item) => setIntelDrillGate(item.gate)}
+                  onOpenFullGuide={() => setShowFeatureGuide(true)}
+                />
                 <CesiumAlertDock
                   lang={labelLanguage}
                   items={cesiumAlerts}
-                  onOpen={openCesiumAlert}
+                  onOpen={(item) => {
+                    if (theaterSitrepRegion) return;
+                    openCesiumAlert(item);
+                  }}
                 />
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {isSatelliteViewer && isPhoneUi ? (
+          <div
+            className="pointer-events-auto fixed left-3 z-[120]"
+            style={{ top: "calc(var(--hover-nav-height, 4.5rem) + 0.5rem)" }}
+          >
+            <NkMissileHistoryDock lang={labelLanguage === "en" ? "en" : "ko"} />
           </div>
         ) : null}
 
@@ -10627,7 +11386,7 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
-        {isSatelliteViewer ? (
+        {isSatelliteViewer && !theaterSitrepRegion ? (
           <LiveuaFlashToast
             lang={labelLanguage}
             event={liveuaToast}
@@ -10635,7 +11394,9 @@ export function GlobeDashboard({
           />
         ) : null}
 
-        {isSatelliteViewer && liveuaParchmentIndex != null ? (
+        {isSatelliteViewer &&
+        liveuaParchmentIndex != null &&
+        !theaterSitrepRegion ? (
           <LiveuaFlashParchment
             lang={labelLanguage}
             events={liveuaEvents}
@@ -10647,10 +11408,39 @@ export function GlobeDashboard({
               if (market.suggestPipelines) {
                 revealIncidentEnergyPipelines();
               }
-              unifiedFlyTo(ev.lat, ev.lng, 0.85);
+              // 사건 → 해협 함선·물류 (킬러 4묶음 브릿지)
+              if (market.chokepoint) {
+                patchLayerPrefsSoft({
+                  showAis: true,
+                  showAisCommercial: true,
+                  showLogisticsRisk: true,
+                });
+              }
+              const title =
+                labelLanguage === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
+              // 양피지를 닫아야 세슘에서 Ctrl/Alt 카메라 조작이 가능
+              setLiveuaParchmentIndex(null);
+              setFocusedLiveuaId(ev.id);
+              enterFocusedSpace({
+                lat: ev.lat,
+                lng: ev.lng,
+                altitude: 0.52,
+                pitch: CINEMATIC_FLY.pitch,
+                title,
+                kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
+              });
+              unifiedFlyTo(ev.lat, ev.lng, 0.52, undefined, {
+                pitch: CINEMATIC_FLY.pitch,
+                bearing: CINEMATIC_FLY.bearing,
+              });
             }}
             onFocusChokepoint={(choke) => {
-              patchLayerPrefsSoft({ showLogisticsRisk: true });
+              patchLayerPrefsSoft({
+                showLogisticsRisk: true,
+                showAis: true,
+                showAisCommercial: true,
+              });
+              setLiveuaParchmentIndex(null);
               unifiedFlyTo(choke.lat, choke.lng, 0.75);
             }}
             onFocusPipelines={(ev) => {
@@ -10674,6 +11464,94 @@ export function GlobeDashboard({
               handleViewerModeChange("economy");
             }}
           />
+        ) : null}
+
+        {isSatelliteViewer &&
+        focusedLiveuaEvent &&
+        liveuaParchmentIndex == null &&
+        !theaterSitrepRegion ? (
+          <LiveuaEventFocusCard
+            lang={labelLanguage}
+            event={focusedLiveuaEvent}
+            onClose={() => {
+              setFocusedLiveuaId(null);
+            }}
+            onOpenFull={() => {
+              const idx = liveuaEvents.findIndex((e) => e.id === focusedLiveuaEvent.id);
+              if (idx >= 0) {
+                setFocusedLiveuaId(null);
+                setLiveuaParchmentIndex(idx);
+              }
+            }}
+            onFocusChokepoint={(choke) => {
+              patchLayerPrefsSoft({
+                showLogisticsRisk: true,
+                showAis: true,
+                showAisCommercial: true,
+              });
+              unifiedFlyTo(choke.lat, choke.lng, 0.75);
+            }}
+            onFocusMarkets={() => {
+              handleViewerModeChange("economy");
+            }}
+            onEnableShipTraffic={() => {
+              patchLayerPrefsSoft({
+                showAis: true,
+                showAisCommercial: true,
+                showLogisticsRisk: true,
+              });
+              const market = liveuaFlashMarketContext(focusedLiveuaEvent);
+              if (market.chokepoint) {
+                unifiedFlyTo(market.chokepoint.lat, market.chokepoint.lng, 0.7);
+              }
+            }}
+          />
+        ) : null}
+
+        {isSatelliteViewer && theaterSitrepDoc ? (
+          <TheaterSitrepBook
+            lang={labelLanguage}
+            doc={theaterSitrepDoc}
+            onClose={() => setTheaterSitrepRegion(null)}
+          />
+        ) : null}
+
+        {isSatelliteViewer && intelDeskTipVisible && !theaterSitrepRegion ? (
+          <div
+            className="pointer-events-none fixed z-[930]"
+            style={{
+              right: "0.75rem",
+              bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)",
+            }}
+          >
+            <IntelDeskTipCard
+              lang={labelLanguage}
+              onDismiss={() => {
+                markIntelDeskTipDone();
+                setIntelDeskTipVisible(false);
+              }}
+              onOpenGuide={() => {
+                markIntelDeskTipDone();
+                setIntelDeskTipVisible(false);
+                setShowFeatureGuide(true);
+              }}
+            />
+          </div>
+        ) : null}
+
+        {intelDrillGate ? (
+          <div
+            className="pointer-events-none fixed bottom-4 right-3 z-[940]"
+            style={{
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }}
+          >
+            <IntelSourceDrill
+              lang={labelLanguage}
+              gate={intelDrillGate}
+              onClose={() => setIntelDrillGate(null)}
+            />
+          </div>
         ) : null}
 
         {!isSatelliteViewer ? (
@@ -10903,6 +11781,7 @@ export function GlobeDashboard({
         newfeedsError={newfeedsError}
         tourScenes={tourScenes}
         showFeatureGuide={showFeatureGuide}
+        showControlsGuide={showControlsGuide}
         askLayersOpen={askLayersOpen}
         showTrustPanel={showTrustPanel}
         showSourcesPanel={showSourcesPanel}
@@ -10946,7 +11825,16 @@ export function GlobeDashboard({
         uxGuideBrief={uxGuideBrief}
         onDismissUxGuideBrief={() => setUxGuideBrief(null)}
         breakingFlash={breakingFlash}
-        onDismissBreakingFlash={() => setBreakingFlash(null)}
+        onDismissBreakingFlash={() => {
+          setBreakingFlash(null);
+          setBreakingFlashGate(null);
+        }}
+        breakingFlashGrade={breakingFlashGate?.grade}
+        onBreakingFlashDrill={
+          breakingFlashGate
+            ? () => setIntelDrillGate(breakingFlashGate)
+            : undefined
+        }
         onBreakingFlashGoToLocation={() => {
           if (!breakingFlash) return;
           if (
@@ -10959,15 +11847,33 @@ export function GlobeDashboard({
             revealIncidentEnergyPipelines();
           }
           const fly = (lat: number, lng: number) => {
+            const headline =
+              breakingFlash.title
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .pop() || breakingFlash.title;
             switchToObserveAndFly(lat, lng, {
-              altitude: 0.85,
+              altitude: INCIDENT_ENTRY_ALT,
               durationMs: CINEMATIC_FLY.durationMs,
               camera: resolveCinematicCamera(),
               subtitle: labelLanguage === "en" ? "Breaking" : "속보",
-              title: breakingFlash.title,
+              title: headline,
+              kicker: labelLanguage === "en" ? "Inside the report" : "속보 공간",
             });
             setBreakingFlash(null);
+            setBreakingFlashGate(null);
           };
+          if (breakingFlash.flashSource !== "liveuamap") {
+            const headline =
+              breakingFlash.title.split("\n").slice(1).join("\n").trim() ||
+              breakingFlash.title;
+            const named = resolveRssFlashPlace(headline, "", breakingFlash.theater);
+            if (named) {
+              fly(named.lat, named.lng);
+              return;
+            }
+          }
           if (breakingFlash.coords) {
             fly(breakingFlash.coords.lat, breakingFlash.coords.lng);
             return;
@@ -10982,15 +11888,37 @@ export function GlobeDashboard({
             }
           }
         }}
-        escalationOffer={escalationOffer}
+        escalationOffer={escalationIntel?.offer ?? null}
         onDismissEscalationOffer={dismissEscalationOffer}
+        escalationDisplayGrade={escalationIntel?.gate.grade}
+        onEscalationDrill={
+          escalationIntel
+            ? () => setIntelDrillGate(escalationIntel.gate)
+            : undefined
+        }
         adsbEmergencyOffer={adsbEmergencyOffer}
         onGoToObserveFromAdsbEmergency={isSatelliteViewer ? undefined : handleAdsbGoToObserve}
         natoPerimeterAlert={natoPerimeterAlert}
         onDismissNatoPerimeterAlert={dismissNatoPerimeterAlert}
         exerciseOffer={exerciseOffer}
         exerciseBriefing={exerciseBriefing}
-        chokepointStressBriefing={chokepointStressBriefing}
+        chokepointStressBriefing={
+          chokepointStressGate ? chokepointStressBriefing : null
+        }
+        chokepointStressGrade={chokepointStressGate?.grade}
+        onChokepointStressDrill={
+          chokepointStressGate
+            ? () => setIntelDrillGate(chokepointStressGate)
+            : undefined
+        }
+        onChokepointOpenObserve={
+          isSatelliteViewer
+            ? undefined
+            : () => {
+                setChokepointStressBriefing(null);
+                handleViewerModeChange("satellite");
+              }
+        }
         onExerciseFlyTo={() => {
           if (!exerciseBriefing) return;
           flyTo(exerciseBriefing.lat, exerciseBriefing.lng, 0.85, 900);
@@ -11041,6 +11969,7 @@ export function GlobeDashboard({
         onSetShowTrustPanel={setShowTrustPanel}
         onSetShowSourcesPanel={setShowSourcesPanel}
         onSetShowFeatureGuide={setShowFeatureGuide}
+        onSetShowControlsGuide={setShowControlsGuide}
         onSetAskLayersOpen={setAskLayersOpen}
         onSetShowMobileAlertFeed={setShowMobileAlertFeed}
         onMaybeOfferAirRaidCoach={maybeOfferAirRaidCoach}

@@ -61,11 +61,22 @@ export function LiveuaFlashDock({ lang, events, unreadCount, onOpen }: Props) {
                     <button
                       type="button"
                       tabIndex={open ? 0 : -1}
-                      className="flex w-full flex-col items-start gap-0.5 px-2.5 py-1.5 text-left hover:bg-amber-500/10"
+                      className="flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-amber-500/10"
                       onClick={() => onOpen(index)}
                     >
-                      <span className="text-micro text-amber-300/75">{ev.regionId}</span>
-                      <span className="line-clamp-2 text-meta text-amber-50">{title}</span>
+                      {ev.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={ev.imageUrl}
+                          alt=""
+                          className="mt-0.5 h-9 w-12 shrink-0 rounded-sm object-cover"
+                          loading="lazy"
+                        />
+                      ) : null}
+                      <span className="min-w-0 flex flex-col items-start gap-0.5">
+                        <span className="text-micro text-amber-300/75">{ev.regionId}</span>
+                        <span className="line-clamp-2 text-meta text-amber-50">{title}</span>
+                      </span>
                     </button>
                   </li>
                 );

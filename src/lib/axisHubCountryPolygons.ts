@@ -14,13 +14,15 @@ export const AXIS_HUB_BORDER_COLOR = "#ff2a2a";
 
 /**
  * 국경선이 지면에서 차지하는 폭(m).
- * 화면 픽셀 = 이 폭 / 미터당 픽셀이라서, 카메라를 두 배 멀리하면 선도 절반으로 얇아진다.
+ * 화면 픽셀 = 이 폭 / 미터당 픽셀. 카메라를 두 배 멀리하면 선도 절반으로 얇아진다.
+ * 지구 전경(고도 ~1.2만 km, 1080p)에서 약 4px, 나라 단위로 들어가면 상한까지 굵어진다.
  */
-export const AXIS_HUB_BORDER_WIDTH_M = 28_000;
+export const AXIS_HUB_BORDER_WIDTH_M = 48_000;
 
 /** Cesium GroundPolyline width는 unsigned byte. 1 미만이면 선이 사라진다. */
 const BORDER_PX_MIN = 1;
-const BORDER_PX_MAX = 255;
+/** 가까이 줌인해도 국경이 넓은 빨강 띠가 되지 않게 둔 화면 상한. */
+const BORDER_PX_MAX = 18;
 
 const EMPTY_FC: FeatureCollection = { type: "FeatureCollection", features: [] };
 

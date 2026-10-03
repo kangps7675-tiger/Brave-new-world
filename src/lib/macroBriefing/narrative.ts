@@ -41,7 +41,7 @@ export function trustBadgeLabel(badge: MacroTrustBadge, lang: LabelLanguage): st
   return "단일 소스";
 }
 
-/** 오늘 촉매 — 가장 급한 RSS 한 건 */
+/** 오늘 촉매 — 대중 불안·공포가 가장 큰 RSS 한 건 */
 export function catalystStepBody(
   item: MacroRssInputItem,
   themeId: MacroThemeId,
@@ -50,9 +50,9 @@ export function catalystStepBody(
   const place = macroThemeTitle(themeId, lang);
   const title = truncate(macroRssDisplayTitle(item, lang), 110);
   if (lang === "en") {
-    return `Today’s catalyst in ${place}: “${title}” (${item.source}). This is a headline cluster, not a finished judgment.`;
+    return `What stands out as most alarming in ${place}: “${title}” (${item.source}). Headline cluster — not a finished judgment.`;
   }
-  return `${josa(place, "은/는")} 오늘의 촉매 보도로 “${title}”(${item.source})가 잡혔습니다. 헤드라인 묶음이며 확정 판정이 아닙니다.`;
+  return `${josa(place, "은/는")} 지금 가장 불안하게 읽히는 보도로 “${title}”(${item.source})가 잡혔습니다. 헤드라인 묶음이며 확정 판정이 아닙니다.`;
 }
 
 /** RSS 교차 클러스터 단계 */

@@ -8,6 +8,7 @@ import {
   attachOccupiedMeta,
   type OccupiedGeoJson,
 } from "@/lib/deepstate/toOccupiedGeoJson";
+import { featureInControlBounds } from "@/lib/liveuamap/controlBounds";
 import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
 import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
 
@@ -140,7 +141,10 @@ export function liveuamapFieldsToOccupiedGeoJson(
   const features: Feature[] = [];
   rawList.forEach((row, i) => {
     const f = featureFromUnknown(row, i, regionId);
-    if (f) features.push(f);
+    if (!f) return;
+    // 공유 resid(예: IL/LB)에서 타 전장 폴리곤이 섞이지 않게 bbox 필터
+    if (!featureInControlBounds(f, regionId)) return;
+    features.push(f);
   });
   if (!features.length) return null;
 

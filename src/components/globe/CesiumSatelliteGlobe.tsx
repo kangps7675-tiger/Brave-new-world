@@ -7,7 +7,14 @@
  * @see https://github.com/bilawalsidhu/gods-eye-view
  */
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { FeatureCollection } from "geojson";
 import {
   AXIS_HUB_BORDER_COLOR,
@@ -18,34 +25,10 @@ import {
 import { fetchDataWithFallback } from "@/lib/dataProfile";
 import { getRuntimeConfig } from "@/lib/runtimeConfig.client";
 import type { AisVessel, MilitaryAircraft } from "@/data/geoTypes";
-import { SHADOW_FLEET_MARKER_SIZE } from "@/data/shadowFleetSilhouette";
-import { SUBMARINE_PROFILE_SIZE } from "@/data/submarineSilhouette";
-import { SURFACE_COMBATANT_PROFILE_SIZE } from "@/data/surfaceCombatantSilhouette";
-import { CARRIER_MARKER_ICON_SIZE } from "@/data/usCarrierDeckSilhouette";
-import {
-  aisCommercialPointColor,
-  AIS_SURFACE_COMBATANT_FILL,
-  usesSurfaceCombatantDeckIcon,
-} from "@/lib/aisVesselClass";
-import { aisShipIconSvg, aisVesselHeadingDeg } from "@/lib/aisVesselMarkers";
+import { aisTrackerArrowSvg, aisTrackerMark, aisVesselHeadingDeg } from "@/lib/aisVesselMarkers";
 import { classifyMilAircraft } from "@/lib/milAircraftKind";
 import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import type { AircraftPalette } from "@/lib/milAircraftSymbols";
-import {
-  shadowFleetFacingFromRelativeHeading,
-  shadowFleetIconSvg,
-  shadowFleetRelativeHeading,
-} from "@/lib/shadowFleetDeckIcon";
-import {
-  submarineFacingFromRelativeHeading,
-  submarineProfileIconSvg,
-} from "@/lib/submarineDeckIcon";
-import {
-  surfaceCombatantFacingFromRelativeHeading,
-  surfaceCombatantRelativeHeading,
-  warshipProfileIconSvg,
-} from "@/lib/surfaceCombatantDeckIcon";
-import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
 import {
@@ -53,6 +36,15 @@ import {
   syncFirmsFireEntities,
   type CesiumFirmsFirePoint,
 } from "@/lib/cesiumFirmsFires";
+import {
+  attachLiveuaStrikePulse,
+  syncLiveuaStrikeEntities,
+  type CesiumLiveuaStrikePoint,
+} from "@/lib/cesiumLiveuaStrikes";
+import {
+  syncLiveuaGroundEntities,
+  type CesiumLiveuaGroundPoint,
+} from "@/lib/cesiumLiveuaGround";
 import {
   attachMissileLaunchPulse,
   syncMissileLaunchEntities,
@@ -63,6 +55,14 @@ import {
   syncAirRaidZoneEntities,
 } from "@/lib/cesiumAirRaidZones";
 import {
+  attachMaritimeOverlays,
+  buildMaritimeOverlaySegments,
+  resolveMaritimeOverlayPickId,
+  type CesiumChokeRingInput,
+} from "@/lib/cesiumMaritimeOverlays";
+import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
+import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import {
   resolveCinematicCamera,
   resolveCinematicDurationMs,
 } from "@/lib/globeCamera";
@@ -72,6 +72,7 @@ import {
   type NeptunLiveThreat,
 } from "@/lib/neptun";
 import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
+import { useCesiumModifierLook } from "@/components/globe/hooks/useCesiumModifierLook";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -142,9 +143,32 @@ export type CesiumSatelliteGlobeProps = {
   showNeptun?: boolean;
   /** 세슘 알림창과 같은 경보 핀 (UKMTO·NAVAREA·초크·훈련·게이트·항로) */
   alertPins?: CesiumAlertItem[];
+  /**
+   * 속보 공간 — 지표 위 최대 카메라 높이(m).
+   * 휠 줌아웃이 기울기를 유지한 채 멀어지기만 하지 못하게 막는다.
+   */
+  cameraCeilingM?: number | null;
   onSelectAlert?: (item: CesiumAlertItem) => void;
+  /** 지정학과 동일 UKMTO 흑백 원 빗금 — 관측 모드 GroundPolyline */
+  ukmtoIncidents?: UkmtoIncidentPoint[];
+  /** NAVAREA 보라 빗금·외곽 */
+  navareaFeatures?: NavareaFeaturePoint[];
+  /** PortWatch/초크 글로우 링 */
+  chokeRings?: CesiumChokeRingInput[];
   /** LIVEUA 전선 속보 핀 */
-  liveuaPins?: Array<{ id: string; title: string; lat: number; lng: number }>;
+  liveuaPins?: Array<{
+    id: string;
+    title: string;
+    lat: number;
+    lng: number;
+    imageUrl?: string;
+  }>;
+  /** 「위치로 가기」로 포커스된 LiveUA 사건 — 핀 강조 */
+  focusedLiveuaId?: string | null;
+  /** 드론·미사일이 실제로 떨어진 좌표 — 폭발·화염·연기 */
+  liveuaStrikes?: CesiumLiveuaStrikePoint[];
+  /** 보병·기갑·경장갑 공격 좌표 — 교차 소총 마커 */
+  liveuaGround?: CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
   /** LIVEUA/DeepState 통제·점령 GeoJSON (overview fill) */
   controlGeoJson?: GeoJSON.FeatureCollection | null;
@@ -159,6 +183,11 @@ export type CesiumSatelliteGlobeProps = {
   showAirRaidZones?: boolean;
   /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
   onReady?: () => void;
+  /**
+   * next/dynamic 은 전달된 ref 를 `{ retry }` 로 덮어써 flyTo 가 사라진다.
+   * 부모 useRef 를 prop 으로 받아 실제 카메라 핸들을 여기 심는다.
+   */
+  handleRef?: { current: CesiumGlobeHandle | null } | null;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
   onSelectEntity?: (selection: CesiumEntitySelection) => void;
 };
@@ -223,10 +252,17 @@ function createGlobeOccluder(
 const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
 const aisBillboardUriCache = new Map<string, string>();
-/** 궤도·위성 줌에서도 선박이 읽히게 — MapLibre 22px보다 키움 */
-const CESIUM_AIS_GENERIC_PX = 36;
 /** 해수면 마커를 지형/3D Tiles에 묻히지 않게 띄움 (m) */
 const CESIUM_AIS_HEIGHT_M = 1_200;
+/**
+ * 함선 화살 화면 크기 — 카메라와의 거리(m).
+ * 가까운 줌(약 120km)에서 크게, 지구 전경(약 2.2만 km)에서 작게.
+ * 그 사이는 선형으로 이어져 줌인·줌아웃에 같이 움직인다.
+ */
+const AIS_TRACKER_NEAR_M = 120_000;
+const AIS_TRACKER_NEAR_SCALE = 1.85;
+const AIS_TRACKER_FAR_M = 22_000_000;
+const AIS_TRACKER_FAR_SCALE = 0.22;
 /** depth test 끄면 지구 뒤편도 뚫고 보이므로, 가시 반구만 Infinity */
 const CESIUM_AIS_NO_DEPTH = Number.POSITIVE_INFINITY;
 
@@ -256,96 +292,20 @@ function svgDataUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-/** MapLibre aisVesselSymbols와 동일 실루엣 — Cesium billboard용. */
+/** MarineTraffic식 침로 화살 — 선종별 색·실루엣. 코=북쪽, rotation은 침로. */
 function cesiumAisBillboard(
   vessel: AisVessel,
-  mapBearingDeg: number,
 ): { image: string; width: number; height: number; rotation: number } {
-  const military = vessel.category === "military";
-  const disguised = Boolean(vessel.disguised);
-  const surface = !disguised && military && usesSurfaceCombatantDeckIcon(vessel.militaryKind);
-  const submarine = !disguised && military && vessel.militaryKind === "submarine";
-  const carrier = !disguised && military && vessel.militaryKind === "carrier";
-  const aspectHull = disguised || surface || submarine;
-  const heading = aisVesselHeadingDeg(vessel, {
-    allowStationaryHeading: aspectHull || carrier,
-  });
-
-  if (aspectHull) {
-    const relative = disguised
-      ? shadowFleetRelativeHeading(heading ?? 0, mapBearingDeg)
-      : surfaceCombatantRelativeHeading(heading ?? 0, mapBearingDeg);
-    const facing = disguised
-      ? shadowFleetFacingFromRelativeHeading(relative)
-      : submarine
-        ? submarineFacingFromRelativeHeading(relative)
-        : surfaceCombatantFacingFromRelativeHeading(relative);
-    if (disguised) {
-      const size = SHADOW_FLEET_MARKER_SIZE;
-      const key = `shadow:${facing}`;
-      let image = aisBillboardUriCache.get(key);
-      if (!image) {
-        image = svgDataUri(shadowFleetIconSvg("#c45c5c", size, facing));
-        aisBillboardUriCache.set(key, image);
-      }
-      return { image, width: size.width * 0.45, height: size.height * 0.45, rotation: 0 };
-    }
-    if (submarine) {
-      const size = SUBMARINE_PROFILE_SIZE;
-      const key = `sub:${facing}`;
-      let image = aisBillboardUriCache.get(key);
-      if (!image) {
-        image = svgDataUri(
-          submarineProfileIconSvg(AIS_SURFACE_COMBATANT_FILL, size, facing),
-        );
-        aisBillboardUriCache.set(key, image);
-      }
-      return { image, width: size.width * 0.55, height: size.height * 0.55, rotation: 0 };
-    }
-    const size = SURFACE_COMBATANT_PROFILE_SIZE;
-    const key = `surface:${facing}`;
-    let image = aisBillboardUriCache.get(key);
-    if (!image) {
-      image = svgDataUri(
-        warshipProfileIconSvg(AIS_SURFACE_COMBATANT_FILL, size, facing),
-      );
-      aisBillboardUriCache.set(key, image);
-    }
-    return { image, width: size.width * 0.5, height: size.height * 0.5, rotation: 0 };
-  }
-
-  if (carrier) {
-    const size = CARRIER_MARKER_ICON_SIZE;
-    const key = "carrier";
-    let image = aisBillboardUriCache.get(key);
-    if (!image) {
-      image = svgDataUri(carrierDeckIconSvg(size, AIS_SURFACE_COMBATANT_FILL));
-      aisBillboardUriCache.set(key, image);
-    }
-    const rotation =
-      heading == null ? 0 : -((heading * Math.PI) / 180);
-    return {
-      image,
-      width: size.width * 0.45,
-      height: size.height * 0.45,
-      rotation,
-    };
-  }
-
-  const color = military
-    ? AIS_SURFACE_COMBATANT_FILL
-    : (aisCommercialPointColor(vessel.shipType).replace(/[\d.]+\)$/, "0.98)") ||
-      aisCommercialPointColor(vessel.shipType));
-  const px = CESIUM_AIS_GENERIC_PX;
-  const key = `generic:${military ? "mil" : color}:${px}`;
+  const mark = aisTrackerMark(vessel);
+  const heading = aisVesselHeadingDeg(vessel, { allowStationaryHeading: true });
+  const key = `tracker:${mark.kind}:${mark.px}`;
   let image = aisBillboardUriCache.get(key);
   if (!image) {
-    image = svgDataUri(aisShipIconSvg(color, px, military));
+    image = svgDataUri(aisTrackerArrowSvg(mark.kind, mark.color, mark.px));
     aisBillboardUriCache.set(key, image);
   }
-  const rotation =
-    heading == null ? -((18 * Math.PI) / 180) : -((heading * Math.PI) / 180);
-  return { image, width: px, height: px, rotation };
+  const rotation = heading == null ? 0 : -((heading * Math.PI) / 180);
+  return { image, width: mark.px, height: mark.px, rotation };
 }
 
 function syncAisBillboardEntities(
@@ -355,10 +315,13 @@ function syncAisBillboardEntities(
   items: AisVessel[],
 ): void {
   const seen = new Set<string>();
-  const mapBearingDeg =
-    ((Cesium.Math.toDegrees(viewer.camera.heading) % 360) + 360) % 360;
   const heightM = prefix === "disguised" ? CESIUM_AIS_HEIGHT_M + 200 : CESIUM_AIS_HEIGHT_M;
-  const scaleByDistance = new Cesium.NearFarScalar(2.0e5, 1.35, 1.6e7, 0.55);
+  const scaleByDistance = new Cesium.NearFarScalar(
+    AIS_TRACKER_NEAR_M,
+    AIS_TRACKER_NEAR_SCALE,
+    AIS_TRACKER_FAR_M,
+    AIS_TRACKER_FAR_SCALE,
+  );
 
   for (const item of items) {
     const lat = item.lat;
@@ -367,7 +330,7 @@ function syncAisBillboardEntities(
     const id = `${prefix}:${item.mmsi}`;
     seen.add(id);
     const position = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
-    const billboard = cesiumAisBillboard(item, mapBearingDeg);
+    const billboard = cesiumAisBillboard(item);
     const name = item.shipName || item.mmsi;
 
     const existing = viewer.entities.getById(id);
@@ -435,21 +398,32 @@ function syncAisBillboardEntities(
   }
 }
 
-/** 카메라가 돌 때마다 지구 뒤편 AIS를 숨김 — 폴링 때만 갱신하면 반대편 바다가 비어 보임 */
-function updateAisEntityOcclusion(
+/** depth-test 끈 빌보드/점이 지구를 뚫고 보이지 않게 — 가시 반구만 show */
+const GLOBE_OCCLUSION_PREFIXES = [
+  "ais:",
+  "disguised:",
+  "neptun:",
+  "mil:",
+  "civ:",
+  "alert:",
+  "liveua:",
+  "liveua-strike:",
+  "liveua-ground:",
+  "firms:",
+  "nk-missile:",
+] as const;
+
+/** 카메라가 돌 때마다 지구 뒤편 점·함선·항공기를 숨김 */
+function updateGlobeEntityOcclusion(
   Cesium: typeof import("cesium"),
   viewer: import("cesium").Viewer,
 ): void {
   const occluder = createGlobeOccluder(Cesium, viewer);
   for (const entity of viewer.entities.values) {
     if (typeof entity.id !== "string") continue;
-    if (
-      !entity.id.startsWith("ais:") &&
-      !entity.id.startsWith("disguised:") &&
-      !entity.id.startsWith("neptun:")
-    ) {
-      continue;
-    }
+    if (!GLOBE_OCCLUSION_PREFIXES.some((p) => entity.id.startsWith(p))) continue;
+    // alertline 은 지면 클램프 폴리라인 — 오클루전 대상 아님
+    if (entity.id.startsWith("alertline:")) continue;
     const position = entity.position?.getValue(viewer.clock.currentTime);
     if (!position) continue;
     entity.show = occluder.isPointVisible(position);
@@ -724,9 +698,9 @@ function attachAxisHubBorders(
     ids.push(id);
     return new Cesium.GeometryInstance({
       id,
-      geometry: new Cesium.GroundPolylineGeometry({
+        geometry: new Cesium.GroundPolylineGeometry({
         positions: Cesium.Cartesian3.fromDegreesArray(flat),
-        width: 2,
+        width: 4,
         arcType: Cesium.ArcType.GEODESIC,
         granularity: 0,
       }),
@@ -764,16 +738,21 @@ function attachAxisHubBorders(
       fovyRad: frustum.fovy ?? Math.PI / 3,
     });
     if (px === lastPx) return;
-    const width: number[] = [px];
+    let wrote = false;
     try {
       for (const id of ids) {
         const attrs = primitive.getGeometryInstanceAttributes(id);
-        if (attrs) attrs.width = width;
+        const slot = attrs?.width;
+        if (!slot) continue;
+        // 같은 배열을 인스턴스끼리 공유하면 배치 테이블이 마지막 값만 남긴다.
+        slot[0] = px;
+        attrs.width = slot;
+        wrote = true;
       }
     } catch {
       return;
     }
-    lastPx = px;
+    if (wrote) lastPx = px;
   });
 
   return () => {
@@ -806,8 +785,15 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       neptunThreats = [],
       showNeptun = false,
       alertPins = [],
+      cameraCeilingM = null,
       onSelectAlert,
+      ukmtoIncidents = [],
+      navareaFeatures = [],
+      chokeRings = [],
       liveuaPins = [],
+      focusedLiveuaId = null,
+      liveuaStrikes = [],
+      liveuaGround = [],
       onSelectLiveuaPin,
       controlGeoJson = null,
       firmsFires = [],
@@ -817,6 +803,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       neptunAlerts = null,
       showAirRaidZones = false,
       onReady,
+      handleRef,
       onSelectEntity,
     },
     ref,
@@ -863,8 +850,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const civAircraftRef = useRef(civAircraft);
   civAircraftRef.current = civAircraft;
 
+  const innerHandleRef = useRef<CesiumGlobeHandle | null>(null);
   useImperativeHandle(
-    ref,
+    innerHandleRef,
     () => ({
       flyTo: (lat, lng, altitude, durationMs, camera) => {
         const viewer = viewerRef.current;
@@ -884,12 +872,18 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           return;
         }
         const durationSec = resolveCinematicDurationMs(durationMs) / 1000;
-        // 궤도 아크 + ease-in-out — 빠르면서도 천천히 감속하는 대각선 진입
+        const currentHeight = viewer.camera.positionCartographic?.height ?? heightM;
+        // 현재 고도보다 maximumHeight 가 낮으면 비행 경로가 즉시 끊긴다.
+        const maximumHeight = Math.max(
+          heightM * 2.4,
+          heightM + 2_200_000,
+          currentHeight + 50_000,
+        );
         viewer.camera.flyTo({
           destination,
           orientation,
           duration: durationSec,
-          maximumHeight: Math.max(heightM * 2.4, heightM + 2_200_000),
+          maximumHeight,
           easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
         });
       },
@@ -966,8 +960,21 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     [],
   );
 
+  useLayoutEffect(() => {
+    if (handleRef) handleRef.current = innerHandleRef.current;
+    return () => {
+      if (handleRef && handleRef.current === innerHandleRef.current) {
+        handleRef.current = null;
+      }
+    };
+  }, [handleRef]);
+
+  useImperativeHandle(ref, () => innerHandleRef.current as CesiumGlobeHandle, []);
+
   /** WASD / 화살표 이동, +/- 확대·축소 — MapLibre와 동일 (캔버스 포커스 불필요) */
   useCesiumKeyboardNav(viewerRef, status === "ready");
+  /** Ctrl/Alt+드래그 기울기 — LiveUA「위치로 가기」후 Google Earth식 조작 */
+  useCesiumModifierLook(viewerRef, status === "ready");
 
   useEffect(() => {
     const container = containerRef.current;
@@ -980,6 +987,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     let onContextLost: ((ev: Event) => void) | null = null;
     let detachDayNight: (() => void) | null = null;
     let detachFirmsPulse: (() => void) | null = null;
+    let detachStrikePulse: (() => void) | null = null;
     let detachMissilePulse: (() => void) | null = null;
     let detachAirRaidPulse: (() => void) | null = null;
     mountAtRef.current = Date.now();
@@ -1037,7 +1045,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           viewer.scene.verticalExaggeration = TERRAIN_VERTICAL_EXAGGERATION;
         }
         viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#02040a");
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#02040a");
+        // 타일 로드 전 밑색. 표면 명암은 끄고, 위성 텍스처는 attachRealtimeDayNight에서 밝게 둔다.
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#1a4d66");
         const translucency = (
           viewer.scene.globe as {
             translucency?: { enabled: boolean; frontFaceAlpha?: number };
@@ -1054,10 +1063,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         }
         // fog/지면대기는 궤도 거리에서 위성 텍스처를 희뿌옇게 만듦 — 림 glow만 skyAtmosphere
         viewer.scene.fog.enabled = false;
-        // 낮/밤은 attachRealtimeDayNight에서 enableLighting=true + 실시간 시계로 맞춤
+        // 명암·터미네이터 없음. 시계만 attachRealtimeDayNight에서 맞춘다.
         viewer.scene.globe.enableLighting = false;
 
-        // 위성 지구본 + 태양 그림자(터미네이터). 야경 텍스처·구름 껍질 없음.
+        // 위성 지구본을 명암 없이 밝게. 야경 텍스처·구름 껍질·터미네이터 없음.
         let usedPhotoreal = false;
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
         {
@@ -1138,6 +1147,23 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           setStack(usedPhotoreal ? "photoreal" : "esri");
         }
 
+        // Ion OSM Buildings — 지역 줌에서 Google Earth식 입체감 (실패해도 위성만으로 유지)
+        if (ionToken) {
+          try {
+            const buildings = await Cesium.createOsmBuildingsAsync({
+              showOutline: false,
+              enableShowOutline: false,
+            });
+            buildings.maximumScreenSpaceError = 8;
+            viewer.scene.primitives.add(buildings);
+          } catch (bldErr) {
+            console.warn(
+              "[CesiumSatelliteGlobe] OSM Buildings skipped:",
+              bldErr,
+            );
+          }
+        }
+
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(
             initial.lng,
@@ -1151,6 +1177,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         const resolvePickedEntityId = (
           picked: unknown,
         ): string | undefined => {
+          const maritime = resolveMaritimeOverlayPickId(picked);
+          if (maritime) return maritime;
           const rawId = (picked as { id?: unknown } | undefined)?.id;
           if (typeof rawId === "string") return rawId;
           if (rawId && typeof (rawId as { id?: unknown }).id === "string") {
@@ -1169,7 +1197,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (sep < 0) return name;
           const prefix = entityId.slice(0, sep);
           const key = entityId.slice(sep + 1);
-          if (prefix === "liveua") {
+          if (prefix === "liveua" || prefix === "liveua-strike" || prefix === "liveua-ground") {
             const pin = liveuaPinsRef.current.find((p) => p.id === key);
             return pin?.title || name;
           }
@@ -1220,7 +1248,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             if (pin) onSelectAlertRef.current?.(pin);
             return;
           }
-          if (prefix === "liveua") {
+          if (prefix === "liveua" || prefix === "liveua-strike" || prefix === "liveua-ground") {
             onSelectLiveuaPinRef.current?.(key);
             return;
           }
@@ -1368,6 +1396,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           }
           try {
             detachFirmsPulse = attachFirmsFirePulse(Cesium, viewer);
+            detachStrikePulse = attachLiveuaStrikePulse(Cesium, viewer);
             detachMissilePulse = attachMissileLaunchPulse(Cesium, viewer);
             detachAirRaidPulse = attachAirRaidZonePulse(Cesium, viewer);
           } catch (err) {
@@ -1439,10 +1468,12 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       detachDayNight = null;
       try {
         detachFirmsPulse?.();
+        detachStrikePulse?.();
       } catch {
         /* ignore */
       }
       detachFirmsPulse = null;
+      detachStrikePulse = null;
       try {
         detachMissilePulse?.();
       } catch {
@@ -1511,19 +1542,35 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     };
   }, [status]);
 
-  /** 카메라 회전 시 지구 뒤편 AIS 숨김 — 폴링 주기에 묶이지 않음 */
+  /** 카메라 회전 시 지구 뒤편 점·함선·항공기 숨김 — 폴링 주기에 묶이지 않음 */
   useEffect(() => {
     const viewer = viewerRef.current;
     const Cesium = cesiumModRef.current;
     if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
     const remove = viewer.scene.preRender.addEventListener(() => {
       if (viewer.isDestroyed()) return;
-      updateAisEntityOcclusion(Cesium, viewer);
+      updateGlobeEntityOcclusion(Cesium, viewer);
     });
     return () => {
       remove();
     };
   }, [status]);
+
+  /** 속보 공간 — 휠 줌아웃이 창 밖으로 새지 않게 높이 상한을 둔다 */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (status !== "ready" || !viewer || viewer.isDestroyed()) return;
+    const controller = viewer.scene.screenSpaceCameraController;
+    controller.maximumZoomDistance =
+      cameraCeilingM == null || !Number.isFinite(cameraCeilingM)
+        ? Number.POSITIVE_INFINITY
+        : cameraCeilingM;
+    return () => {
+      if (viewer.isDestroyed()) return;
+      viewer.scene.screenSpaceCameraController.maximumZoomDistance =
+        Number.POSITIVE_INFINITY;
+    };
+  }, [status, cameraCeilingM]);
 
   /**
    * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체. 전부 Cesium billboard.
@@ -1584,6 +1631,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     const Cesium = cesiumModRef.current;
     if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
     syncFirmsFireEntities(Cesium, viewer, showFirmsFires ? firmsFires : []);
+    syncLiveuaStrikeEntities(Cesium, viewer, liveuaStrikes);
+    syncLiveuaGroundEntities(Cesium, viewer, liveuaGround);
     syncMissileLaunchEntities(
       Cesium,
       viewer,
@@ -1598,6 +1647,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     status,
     showFirmsFires,
     firmsFires,
+    liveuaStrikes,
+    liveuaGround,
     showMissileLaunches,
     missileLaunches,
     showAirRaidZones,
@@ -1610,8 +1661,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
 
     const seen = new Set<string>();
+    /** 지정학 빗금/링으로 대체하는 종류 — 점 핀은 중복·지구 투과만 키움 */
+    const HATCH_KINDS = new Set<CesiumAlertKind>(["ukmto", "navarea", "portwatch"]);
     for (const pin of alertPins) {
       if (pin.kind === "dark-fleet") continue;
+      if (HATCH_KINDS.has(pin.kind)) continue;
       const pointId = `alert:${pin.id}`;
       seen.add(pointId);
       const color = Cesium.Color.fromCssColorString(ALERT_PIN_COLOR[pin.kind]);
@@ -1620,6 +1674,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = pin.title;
+        existing.show = true;
         if (existing.point) {
           existing.point.color = new Cesium.ConstantProperty(color);
         }
@@ -1633,6 +1688,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             color,
             outlineColor: Cesium.Color.BLACK.withAlpha(0.65),
             outlineWidth: 1,
+            // 앞면만 Infinity — 뒤편은 updateGlobeEntityOcclusion 이 숨김
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
         });
@@ -1672,6 +1728,23 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     for (const entity of stale) viewer.entities.remove(entity);
   }, [alertPins, status]);
 
+  /** UKMTO·NAVAREA·PortWatch — 지정학과 같은 빗금/링, 줌 연동 굵기 */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    const segments = buildMaritimeOverlaySegments({
+      ukmtoIncidents,
+      navareaFeatures,
+      chokeRings,
+    });
+    const detach = attachMaritimeOverlays(Cesium, viewer, segments);
+    return () => {
+      detach();
+    };
+  }, [status, ukmtoIncidents, navareaFeatures, chokeRings]);
+
   useEffect(() => {
     const viewer = viewerRef.current;
     const Cesium = cesiumModRef.current;
@@ -1682,21 +1755,34 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       if (!Number.isFinite(pin.lat) || !Number.isFinite(pin.lng)) continue;
       const pointId = `liveua:${pin.id}`;
       seen.add(pointId);
+      const focused = focusedLiveuaId != null && pin.id === focusedLiveuaId;
       const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
+      const color = Cesium.Color.fromCssColorString(focused ? "#fde68a" : "#f59e0b");
+      const pixelSize = focused ? 16 : 10;
+      const outlineWidth = focused ? 3 : 1;
       const existing = viewer.entities.getById(pointId);
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = pin.title;
+        existing.show = true;
+        if (existing.point) {
+          existing.point.pixelSize = new Cesium.ConstantProperty(pixelSize);
+          existing.point.color = new Cesium.ConstantProperty(color);
+          existing.point.outlineColor = new Cesium.ConstantProperty(
+            Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65),
+          );
+          existing.point.outlineWidth = new Cesium.ConstantProperty(outlineWidth);
+        }
       } else {
         viewer.entities.add({
           id: pointId,
           name: pin.title,
           position,
           point: {
-            pixelSize: 10,
-            color: Cesium.Color.fromCssColorString("#f59e0b"),
-            outlineColor: Cesium.Color.BLACK.withAlpha(0.65),
-            outlineWidth: 1,
+            pixelSize,
+            color,
+            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65),
+            outlineWidth,
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
         });
@@ -1710,7 +1796,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       if (!seen.has(id)) stale.push(entity);
     }
     for (const entity of stale) viewer.entities.remove(entity);
-  }, [liveuaPins, status]);
+  }, [liveuaPins, focusedLiveuaId, status]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -1865,10 +1951,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           </p>
           <p className="mt-0.5 text-micro text-sky-100/55">
             {stack === "photoreal"
-              ? "Cesium Ion · World Imagery HD · World Terrain"
+              ? "Cesium Ion · World Imagery HD · Terrain · OSM Buildings"
               : "Esri World Imagery · CesiumJS"}
             {" · "}
-            sources attributed below
+            Ctrl/Alt+drag tilt · sources below
           </p>
         </div>
       ) : null}

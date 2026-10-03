@@ -1,13 +1,14 @@
 /**
- * Cesium 관측 — 실제 시각 기준 낮/밤(터미네이터 그림자만).
- * 야경(도시광) 텍스처 없음. 밤쪽은 위성 텍스처를 거의 끄고 조명만으로 어둡게.
+ * Cesium 관측 — 지구본은 명암·터미네이터 없이 주간 위성 텍스처를 밝게 유지.
+ * 시계는 관측대 스크러버용으로만 두고, 지면 조명은 켜지 않는다.
  * 지면 대기(ground atmosphere)는 쓰지 않음 — 원거리에서 지구본이 희뿌옇게 씻김.
  */
 
 type CesiumNS = typeof import("cesium");
 
 /**
- * 태양 조명 + 실시간 시계. 주간 위성 레이어는 호출부에서 이미 추가된 상태를 가정한다.
+ * 실시간 시계만 맞춘다. 지구 표면은 태양 그림자 없이 밝게 둔다.
+ * 주간 위성 레이어는 호출부에서 이미 추가된 상태를 가정한다.
  */
 export function attachRealtimeDayNight(
   Cesium: CesiumNS,
@@ -15,9 +16,9 @@ export function attachRealtimeDayNight(
   dayLayer: import("cesium").ImageryLayer | null,
 ): () => void {
   const globe = viewer.scene.globe;
-  globe.enableLighting = true;
-  globe.dynamicAtmosphereLighting = true;
-  globe.dynamicAtmosphereLightingFromSun = true;
+  globe.enableLighting = false;
+  globe.dynamicAtmosphereLighting = false;
+  globe.dynamicAtmosphereLightingFromSun = false;
   // 지면 대기는 궤도 거리에서 위성 텍스처를 희뿌옇게 덮음 → 끔. 하늘쪽 림만 유지.
   if (typeof globe.showGroundAtmosphere === "boolean") {
     globe.showGroundAtmosphere = false;
@@ -28,10 +29,12 @@ export function attachRealtimeDayNight(
   viewer.clock.shouldAnimate = true;
   viewer.clock.clockRange = Cesium.ClockRange.UNBOUNDED;
 
-  // 밤쪽에 낮 위성(도시·사막 하이라이트)이 비치면 야경처럼 읽힘 → 거의 꺼서 그림자만.
   if (dayLayer) {
-    dayLayer.dayAlpha = 1.0;
-    dayLayer.nightAlpha = 0.08;
+    dayLayer.dayAlpha = 1;
+    dayLayer.nightAlpha = 1;
+    dayLayer.brightness = 1.45;
+    dayLayer.contrast = 0.9;
+    dayLayer.gamma = 0.82;
   }
 
   const syncTimer = window.setInterval(() => {
@@ -43,9 +46,9 @@ export function attachRealtimeDayNight(
     window.clearInterval(syncTimer);
     if (viewer.isDestroyed()) return;
     globe.enableLighting = false;
-    if (dayLayer) {
-      dayLayer.dayAlpha = 1.0;
-      dayLayer.nightAlpha = 1.0;
+    if (dayLayer && !viewer.isDestroyed()) {
+      dayLayer.dayAlpha = 1;
+      dayLayer.nightAlpha = 1;
     }
   };
 }

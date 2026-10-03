@@ -19,7 +19,10 @@
  * 고지 문구(ESCALATION_DISCLAIMER)는 **접히지 않고 항상 보인다.**
  */
 
+import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { DisplayGrade } from "@/lib/intelContract/types";
+import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import {
   ESCALATION_DISCLAIMER_EN,
   ESCALATION_DISCLAIMER_KO,
@@ -46,6 +49,8 @@ type Props = {
    *    "아무 일 없음"으로 오독하게 하면 안 된다.
    */
   suppressedCount?: number;
+  displayGrade?: DisplayGrade;
+  onDrill?: () => void;
   onDismiss?: () => void;
   onFocusTheater?: (theater: string) => void;
 };
@@ -103,6 +108,8 @@ export function EscalationSignalPanel({
   link,
   sourceLabel,
   suppressedCount = 0,
+  displayGrade,
+  onDrill,
   onDismiss,
   onFocusTheater,
 }: Props) {
@@ -130,15 +137,34 @@ export function EscalationSignalPanel({
               {headline}
             </h2>
           </div>
-          {onDismiss ? (
-            <button
-              type="button"
-              onClick={onDismiss}
-              className="shrink-0 rounded-md border border-white/15 px-2 py-1 text-meta text-amber-100/70 transition hover:bg-white/5"
-            >
-              {copy.dismiss}
-            </button>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {displayGrade ? (
+              <IntelGradeBadge grade={displayGrade} lang={lang} />
+            ) : null}
+            {onDrill ? (
+              <button
+                type="button"
+                onClick={onDrill}
+                className="rounded-md border border-amber-400/35 px-2 py-1 text-meta text-amber-100/85 transition hover:bg-amber-900/40"
+                title={
+                  ko
+                    ? "출처와 등급 이유 보기"
+                    : "See sources and grade reasons"
+                }
+              >
+                {INTEL_UX.drillButton[ko ? "ko" : "en"]}
+              </button>
+            ) : null}
+            {onDismiss ? (
+              <button
+                type="button"
+                onClick={onDismiss}
+                className="rounded-md border border-white/15 px-2 py-1 text-meta text-amber-100/70 transition hover:bg-white/5"
+              >
+                {copy.dismiss}
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta">

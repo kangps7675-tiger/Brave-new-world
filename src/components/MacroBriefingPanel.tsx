@@ -341,8 +341,8 @@ export function MacroBriefingPanel({
           </h2>
           <p className="mt-0.5 text-micro text-sky-100/65">
             {lang === "en"
-              ? "RSS × GDELT · linked futures (interpretive)"
-              : "RSS × GDELT · 연계 선물 관측 (해석용)"}
+              ? "Fear spikes & key talks · RSS × GDELT (interpretive)"
+              : "불안 국면·주요 회담 위주 · RSS × GDELT (해석용)"}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">

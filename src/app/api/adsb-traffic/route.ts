@@ -338,11 +338,7 @@ export async function GET(request: Request) {
             aircraft,
             // 실제 응답한 소스를 그대로 표기한다 — 폴백이 바뀌면 표기도 바뀌어야 한다
             attribution:
-              source === "adsbx"
-                ? "ADSBexchange"
-                : source === "adsb.lol"
-                  ? "adsb.lol (ODbL)"
-                  : "adsb.fi",
+              source === "adsbx" ? "ADSBexchange" : "adsb.lol (ODbL)",
             source: url,
             provider: source,
             mode: "civilian",

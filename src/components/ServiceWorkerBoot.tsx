@@ -33,12 +33,21 @@ export function ServiceWorkerBoot() {
 
     let cancelled = false;
     let pollTimer: ReturnType<typeof setInterval> | undefined;
+    /**
+     * 이 문서가 이미 SW 제어 하에 있었는가.
+     * 첫 설치의 clients.claim()도 controllerchange / CV_SW_UPDATED를 쏘는데,
+     * 그때 새로고침하면 로딩 화면이 하얗게 끊기고 처음부터 다시 시작한다.
+     * 갱신 리로드는 예전 셸을 쓰고 있던 경우만 한다.
+     */
+    const hadController = Boolean(navigator.serviceWorker.controller);
 
     const onControllerChange = () => {
+      if (!hadController) return;
       reloadOnceForNewSw();
     };
 
     const onSwMessage = (event: MessageEvent) => {
+      if (!hadController) return;
       const data = event.data as { type?: string } | null;
       if (data?.type === "CV_SW_UPDATED") reloadOnceForNewSw();
     };

@@ -13,7 +13,8 @@
 .badge { display: inline-block; flex-shrink: 0; border: 1px solid #3b4a59; border-radius: 5px; padding: 4px 9px; font-size: 11px; color: #c2d0de; }
 .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr) 300px; max-width: 1680px; margin: auto; border: 1px solid #293747; border-radius: 12px; overflow: hidden; }
 .sidebar, .evidence { padding: 22px 18px; background: #111b28; min-width: 0; }
-.sidebar { border-right: 1px solid #293747; }
+.sidebar { border-right: 1px solid #293747; max-height: 78vh; overflow-y: auto; }
+.sidebar .event + .event { margin-top: 8px; }
 .sidebar h2:not(:first-child) { margin-top: 28px; }
 .event { display: flex; flex-direction: column; gap: 7px; text-align: left; padding: 14px; border: 1px solid #456a80; background: #162b3b; border-radius: 6px; width: 100%; }
 .event time, .event span { font-size: 11px; color: #a6b7c9; }

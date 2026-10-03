@@ -38,7 +38,7 @@ const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
  *
  * @see docs/copyright-audit-2026-08-01.md — Y-2
  */
-function milUrl(): { url: string; source: "adsbx" | "adsb.lol" | "adsb.fi" } {
+function milUrl(): { url: string; source: "adsbx" | "adsb.lol" } {
   const custom = process.env.ADSBEXCHANGE_MIL_URL?.trim();
   if (custom) return { url: custom, source: "adsbx" };
   if (getAdsbApiKey()) return { url: ADSBX_MIL_URL, source: "adsbx" };

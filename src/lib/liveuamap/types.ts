@@ -47,4 +47,21 @@ export type LiveuamapFeedPayload = {
   };
 };
 
-export type LiveuamapControlRegionId = "ukraine" | "yemen" | "lebanon";
+export type LiveuamapControlRegionId =
+  | "ukraine"
+  | "iran"
+  | "yemen"
+  | "lebanon";
+
+export const LIVEUAMAP_CONTROL_REGION_IDS: LiveuamapControlRegionId[] = [
+  "ukraine",
+  "iran",
+  "yemen",
+  "lebanon",
+];
+
+export function isLiveuamapControlRegionId(
+  value: string,
+): value is LiveuamapControlRegionId {
+  return (LIVEUAMAP_CONTROL_REGION_IDS as string[]).includes(value);
+}

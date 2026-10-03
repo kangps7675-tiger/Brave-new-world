@@ -20,12 +20,19 @@ import {
 } from "@/lib/news/breakingFlashNarrative";
 
 export { FLASH_KINETIC_RE, FLASH_SOFT_EXCLUDE_RE };
+import { resolveRssFlashPlace } from "@/lib/news/rssFlashPlace";
 import type { HeroBreakingItem, NewsStreamPayload, NewsTheater } from "@/lib/news/types";
 import { S_GRADE_MIN } from "@/lib/news/breakingGrade";
 import {
   isChokepointEconomyNews,
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
+import { hasLampPhoto } from "@/lib/news/lampThumbnail";
+import {
+  buildSummitDiplomacyParagraphs,
+  extractSummitDiplomacyMeta,
+  isSummitDiplomacyText,
+} from "@/lib/news/summitDiplomacyFlash";
 
 export { isIranRelatedBreakingText };
 
@@ -46,8 +53,10 @@ export type BreakingFlashBriefing = {
   dispatchBed: "dark" | "cheer" | "morse";
   imageUrl?: string;
   videoUrl?: string;
-  /** 수동 「위치로 가기」 */
+  /** 수동 「위치로 가기」. RSS는 도시·마을 지명, Liveuamap은 피드 좌표. */
   coords?: { lat: number; lng: number };
+  /** liveuamap이면 피드 좌표를 그대로 쓴다 */
+  flashSource?: "rss" | "liveuamap";
   verbatim?: boolean;
 };
 
@@ -553,16 +562,21 @@ export function pickNextBreakingFlashHero(
   }
 
   let best: HeroBreakingItem | null = null;
+  let bestScore = -Infinity;
   for (const h of candidates) {
     if (wasBreakingFlashClaimed(h.id)) continue;
     if (!shouldOpenBreakingFlash(h, preferEconomy)) continue;
-    if (
-      !best ||
-      (h.breakingGrade ?? 0) > (best.breakingGrade ?? 0) ||
-      ((h.breakingGrade ?? 0) === (best.breakingGrade ?? 0) &&
-        (h.ageMinutes ?? 999) < (best.ageMinutes ?? 999))
-    ) {
+    const blob = `${h.title} ${h.titleKo ?? ""} ${h.summary ?? ""} ${h.bodyKo ?? ""}`;
+    const summit = isSummitDiplomacyText(blob);
+    const photo = hasLampPhoto(h.imageUrl);
+    // 등급 우선 · 동점이면 회담+사진 > 회담 > 사진 > 신선도
+    const score =
+      (h.breakingGrade ?? 0) * 1_000_000 +
+      (summit && photo ? 400_000 : summit ? 250_000 : photo ? 80_000 : 0) +
+      Math.max(0, 10_000 - (h.ageMinutes ?? 999) * 10);
+    if (!best || score > bestScore) {
       best = h;
+      bestScore = score;
     }
   }
   return best;
@@ -593,18 +607,29 @@ export function buildBreakingFlashBriefing(
   const blob = `${titleText} ${summaryRaw ?? ""}`;
   const verbatim = Boolean(hero.verbatim || hero.flashSource === "liveuamap");
 
+  const summitLike = isSummitDiplomacyText(blob);
   const kicker = economy
     ? ko
       ? "지경학 신속 속보"
       : "Geoeconomic flash"
-    : ko
-      ? "정세 신속 속보"
-      : "Situation flash";
+    : summitLike
+      ? ko
+        ? "회담 신속 속보"
+        : "Summit flash"
+      : ko
+        ? "정세 신속 속보"
+        : "Situation flash";
 
   let paragraphs: string[];
   if (verbatim) {
     const body = (summaryRaw || titleText).replace(/\s+/g, " ").trim();
-    paragraphs = body ? [body] : [titleText];
+    const actors = extractFlashActors(blob, lang);
+    const summitParas = buildSummitDiplomacyParagraphs(
+      extractSummitDiplomacyMeta(blob, actors),
+      lang,
+    );
+    const core = body ? [body] : [titleText];
+    paragraphs = summitParas.length > 0 ? [...summitParas, ...core] : core;
   } else {
     const actors = extractFlashActors(blob, lang);
     const body = deepenSummaryForFlash(summaryRaw, titleText, lang);
@@ -615,7 +640,7 @@ export function buildBreakingFlashBriefing(
           : ("conflict" as const)
         : opts.peaceScienceDomain;
 
-    paragraphs = buildFlashCausalEssay({
+    const essay = buildFlashCausalEssay({
       title: titleText,
       summary: body,
       theater: hero.theater,
@@ -630,14 +655,32 @@ export function buildBreakingFlashBriefing(
           : undefined,
       peaceScienceDomain,
     }).filter((p) => p.trim().length > 0);
+
+    // 회담: 히어로 사진(leadImageUrl) 아래 — 양자/다자 + 합의 문구(원문 있을 때만)
+    const summitParas = buildSummitDiplomacyParagraphs(
+      extractSummitDiplomacyMeta(`${titleText} ${body}`, actors),
+      lang,
+    );
+    paragraphs = summitParas.length > 0 ? [...summitParas, ...essay] : essay;
   }
 
-  const coords =
-    typeof hero.lat === "number" &&
-    typeof hero.lng === "number" &&
-    Number.isFinite(hero.lat) &&
-    Number.isFinite(hero.lng)
+  const liveua = hero.flashSource === "liveuamap";
+  const namedPlace = liveua
+    ? null
+    : resolveRssFlashPlace(
+        [titleText, hero.title].filter(Boolean).join("\n"),
+        [summaryRaw, hero.summary].filter(Boolean).join("\n"),
+        hero.theater,
+      );
+  const coords = liveua
+    ? typeof hero.lat === "number" &&
+      typeof hero.lng === "number" &&
+      Number.isFinite(hero.lat) &&
+      Number.isFinite(hero.lng)
       ? { lat: hero.lat, lng: hero.lng }
+      : undefined
+    : namedPlace
+      ? { lat: namedPlace.lat, lng: namedPlace.lng }
       : undefined;
 
   return {
@@ -654,6 +697,7 @@ export function buildBreakingFlashBriefing(
     imageUrl: hero.imageUrl,
     videoUrl: hero.videoUrl,
     coords,
+    flashSource: liveua ? "liveuamap" : "rss",
     verbatim,
   };
 }

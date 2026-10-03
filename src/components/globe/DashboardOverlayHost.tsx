@@ -32,6 +32,12 @@ const FeatureGuidePanel = dynamic(
   ),
   { ssr: false },
 );
+const ControlsGuidePanel = dynamic(
+  importWithChunkRetry(() =>
+    import("@/components/ControlsGuidePanel").then((m) => m.ControlsGuidePanel),
+  ),
+  { ssr: false },
+);
 const MethodologySourcesPanel = dynamic(
   importWithChunkRetry(() =>
     import("@/components/MethodologySourcesPanel").then(
@@ -327,6 +333,7 @@ export type DashboardOverlayHostProps = {
   newfeedsError: string | null;
   tourScenes: TourScene[];
   showFeatureGuide: boolean;
+  showControlsGuide: boolean;
   askLayersOpen: boolean;
   showTrustPanel: boolean;
   showSourcesPanel: boolean;
@@ -373,6 +380,8 @@ export type DashboardOverlayHostProps = {
   breakingFlash: BreakingFlashBriefing | null;
   onDismissBreakingFlash: () => void;
   onBreakingFlashGoToLocation?: () => void;
+  breakingFlashGrade?: import("@/lib/intelContract/types").DisplayGrade;
+  onBreakingFlashDrill?: () => void;
   adsbEmergencyOffer: AdsbEmergencyOffer | null;
   /** 지정학/지경학/항적(MapLibre) 모드에서만 전달 — 관측 모드에선 자동 fly라 불필요 */
   onGoToObserveFromAdsbEmergency?: () => void;
@@ -381,10 +390,15 @@ export type DashboardOverlayHostProps = {
   /** 확전 신호 — 임계선을 넘은 사건 보도 (useEscalationSignals) */
   escalationOffer: EscalationOffer | null;
   onDismissEscalationOffer: () => void;
+  escalationDisplayGrade?: import("@/lib/intelContract/types").DisplayGrade;
+  onEscalationDrill?: () => void;
   exerciseOffer: ExerciseOffer | null;
   exerciseBriefing: ExerciseBriefingContent | null;
   /** 병목 통항/스트레스 양피지 — 선물 그래프 슬롯 포함 */
   chokepointStressBriefing: ChokepointStressBriefing | null;
+  chokepointStressGrade?: import("@/lib/intelContract/types").DisplayGrade;
+  onChokepointStressDrill?: () => void;
+  onChokepointOpenObserve?: () => void;
   /** 양피지 "위치 보기" 보조 CTA — 누를 때만 실행 (자동 fly 없음) */
   onExerciseFlyTo: () => void;
   onChokepointStressFlyTo: () => void;
@@ -432,6 +446,7 @@ export type DashboardOverlayHostProps = {
   onSetShowSourcesPanel: (v: boolean) => void;
   onSetShowDataSourceParchment: (v: boolean) => void;
   onSetShowFeatureGuide: (v: boolean) => void;
+  onSetShowControlsGuide: (v: boolean) => void;
   onSetAskLayersOpen: (v: boolean) => void;
   onSetShowMobileAlertFeed: Dispatch<SetStateAction<boolean>>;
   onMaybeOfferAirRaidCoach: () => void;
@@ -558,6 +573,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     newfeedsError,
     tourScenes,
     showFeatureGuide,
+    showControlsGuide,
     askLayersOpen,
     showTrustPanel,
     showSourcesPanel,
@@ -602,15 +618,22 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     breakingFlash,
     onDismissBreakingFlash,
     onBreakingFlashGoToLocation,
+    breakingFlashGrade,
+    onBreakingFlashDrill,
     adsbEmergencyOffer,
     onGoToObserveFromAdsbEmergency,
     natoPerimeterAlert,
     onDismissNatoPerimeterAlert,
     escalationOffer,
     onDismissEscalationOffer,
+    escalationDisplayGrade,
+    onEscalationDrill,
     exerciseOffer,
     exerciseBriefing,
     chokepointStressBriefing,
+    chokepointStressGrade,
+    onChokepointStressDrill,
+    onChokepointOpenObserve,
     onExerciseFlyTo,
     onChokepointStressFlyTo,
     maritimeOffer,
@@ -640,6 +663,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetShowSourcesPanel,
     onSetShowDataSourceParchment,
     onSetShowFeatureGuide,
+    onSetShowControlsGuide,
     onSetAskLayersOpen,
     onSetShowMobileAlertFeed,
     onMaybeOfferAirRaidCoach,
@@ -1243,6 +1267,10 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetShowFeatureGuide(false);
             onSetShowDataSourceParchment(true);
           }}
+          onOpenControlsGuide={() => {
+            onSetShowFeatureGuide(false);
+            onSetShowControlsGuide(true);
+          }}
           onRestartTour={() => {
             // 기능 안내 닫기 클릭이 투어 1단계를 즉시 먹지 않게 한 틱 지연
             window.setTimeout(() => {
@@ -1250,6 +1278,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               onSetShowFirstVisitTour(true);
             }, 320);
           }}
+        />
+      ) : null}
+      {showControlsGuide ? (
+        <ControlsGuidePanel
+          open
+          lang={labelLanguage}
+          onClose={() => onSetShowControlsGuide(false)}
         />
       ) : null}
       {askLayersOpen ? (
@@ -1807,6 +1842,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                   link={escalationOffer.top.link}
                   sourceLabel={escalationOffer.top.publisher}
                   suppressedCount={escalationOffer.suppressed}
+                  displayGrade={escalationDisplayGrade}
+                  onDrill={onEscalationDrill}
                   onDismiss={onDismissEscalationOffer}
                 />
               </div>
@@ -1929,6 +1966,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           lang={labelLanguage}
           onDismiss={onDismissBreakingFlash}
           onGoToLocation={onBreakingFlashGoToLocation}
+          displayGrade={breakingFlashGrade}
+          onDrill={onBreakingFlashDrill}
         />
       ) : null}
 
@@ -1977,6 +2016,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           lang={labelLanguage}
           onDismiss={() => onSetChokepointStressBriefing(null)}
           onFlyTo={onChokepointStressFlyTo}
+          displayGrade={chokepointStressGrade}
+          onDrill={onChokepointStressDrill}
+          onOpenObserve={onChokepointOpenObserve}
         />
       ) : null}
 

@@ -12,6 +12,7 @@ import {
   rssIndependentKeys,
   trustBadgeFromRss,
 } from "./heat";
+import { scoreRssPublicFear } from "./publicFear";
 import {
   catalystStepBody,
   gdeltDensityStepBody,
@@ -58,8 +59,12 @@ function clusterKey(title: string): string {
     .join("-");
 }
 
+/** 촉매·스텝 순서 — 대중 공포 우선, 동점이면 urgency·신선도 */
 function sortRssByUrgency(items: MacroRssInputItem[]): MacroRssInputItem[] {
   return [...items].sort((a, b) => {
+    const fa = scoreRssPublicFear(a);
+    const fb = scoreRssPublicFear(b);
+    if (fb !== fa) return fb - fa;
     const ua = a.urgencyScore ?? (a.breakingGrade ?? 0) * 10;
     const ub = b.urgencyScore ?? (b.breakingGrade ?? 0) * 10;
     if (ub !== ua) return ub - ua;

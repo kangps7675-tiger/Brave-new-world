@@ -55,6 +55,7 @@ export interface DashboardTopChromeProps {
   onOpenLayers?: () => void;
   onOpenSettings?: () => void;
   onOpenData?: () => void;
+  onOpenControlsGuide?: () => void;
   /** 위성(Cesium) 모드 — MapLibre globeRef 대신 이 캡처 사용 */
   captureFrameOverride?: () => Promise<HTMLCanvasElement | null>;
   recordClip?: () => Promise<void>;
@@ -111,6 +112,7 @@ export function DashboardTopChrome({
   onOpenLayers,
   onOpenSettings,
   onOpenData,
+  onOpenControlsGuide,
   captureFrameOverride,
   recordClip,
   recordClipBusy = false,
@@ -146,7 +148,7 @@ export function DashboardTopChrome({
 
   return (
     <>
-      {/* 좌측 호버 서랍 — 메뉴 + 레일 슬롯 (LTR 시작점) */}
+      {/* 좌측 호버 서랍 — 열리면 nav·드롭다운 위를 덮음 (panel z) */}
       <HoverSideDrawer
         side="left"
         peepLabel={labelLanguage === "en" ? "Menu" : "메뉴"}
@@ -172,6 +174,7 @@ export function DashboardTopChrome({
           onOpenLayers={onOpenLayers}
           onOpenSettings={onOpenSettings}
           onOpenData={onOpenData}
+          onOpenControlsGuide={onOpenControlsGuide}
           siteName={brandName(labelLanguage)}
         />
         <div
@@ -180,7 +183,7 @@ export function DashboardTopChrome({
         />
       </HoverSideDrawer>
 
-      {/* 우측 지표 — LTR 끝. 역사·3D 라이브에서는 숨김(위성은 칩 null이라 빈 forceOpen 방지) */}
+      {/* 우측 지표 — 열리면 nav 위. 역사·3D 라이브에서는 숨김 */}
       {viewerMode !== "history" && viewerMode !== "satellite" ? (
       <HoverSideDrawer
         side="right"

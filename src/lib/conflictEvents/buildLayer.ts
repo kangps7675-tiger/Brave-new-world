@@ -64,6 +64,8 @@ export type ConflictEventHtmlMarker = {
   evidenceTier: EvidenceTier;
   perspectiveCount: number;
   accent: NeonRippleAccent;
+  /** IntelContract DisplayGrade — 배지·드릴용 */
+  displayGrade?: "drop" | "hold" | "low" | "std" | "high";
 };
 
 export const CATEGORY_ACCENT: Record<ConflictEventCategory | "unknown", NeonRippleAccent> = {
@@ -181,8 +183,28 @@ export function hoverCopyForCluster(
   meta: string;
 } {
   const n = marker.sources.length;
+  const grade =
+    marker.displayGrade && marker.displayGrade !== "drop"
+      ? lang === "en"
+        ? marker.displayGrade === "high"
+          ? "Strong evidence"
+          : marker.displayGrade === "std"
+            ? "Checked"
+            : marker.displayGrade === "low"
+              ? "Thin evidence"
+              : "Still collecting"
+        : marker.displayGrade === "high"
+          ? "근거 탄탄함"
+          : marker.displayGrade === "std"
+            ? "교차확인"
+            : marker.displayGrade === "low"
+              ? "근거 얇음"
+              : "모으는 중"
+      : null;
   return {
-    badge: confidenceLabel(marker.confidence, lang),
+    badge: [confidenceLabel(marker.confidence, lang), grade]
+      .filter(Boolean)
+      .join(" · "),
     title: lang === "en" ? marker.titleEn : marker.titleKo,
     detail: independentSourceLine(n, lang),
     body: lang === "en" ? marker.bodyEn : marker.bodyKo,

@@ -4,6 +4,11 @@ import {
 } from "@/lib/conflictEvents/confidence";
 import type { MediaTrustTier } from "@/lib/news/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import {
+  bucketRssFear,
+  gdeltFearProxy,
+  publicFearHeatMultiplier,
+} from "./publicFear";
 import type {
   MacroDensityBadge,
   MacroGdeltInputEvent,
@@ -76,14 +81,16 @@ function avgTierWeight(items: MacroRssInputItem[]): number {
   return sum / items.length;
 }
 
-/** RSS 성분 — 독립소스 × urgency × 신선도 × 티어 */
+/** RSS 성분 — 독립소스 × urgency × 신선도 × 티어 × 대중공포 */
 export function computeRssHeat(items: MacroRssInputItem[]): number {
   const indep = rssIndependentKeys(items).length;
   if (indep === 0) return 0;
   const urgency = avgUrgency(items);
   const fresh = freshnessFactor(items);
   const tier = avgTierWeight(items);
-  return indep * (1 + urgency / 100) * fresh * tier;
+  const { max, avg } = bucketRssFear(items);
+  const fear = publicFearHeatMultiplier(max, avg);
+  return indep * (1 + urgency / 100) * fresh * tier * fear;
 }
 
 function eventTs(event: MacroGdeltInputEvent): number {
@@ -122,6 +129,7 @@ export function computeGdeltBoost(events24h: MacroGdeltInputEvent[]): number {
 
 /**
  * 합성 heat. RSS 없으면 GDELT 밀도만으로도 순위 가능(부스트−1 스케일).
+ * 대중 관심(실존·민간 직격·봉쇄·정상회담·합의)이 볼륨·일상 긴장보다 위에 오도록 가산.
  */
 export function computeThemeHeat(
   rssItems: MacroRssInputItem[],
@@ -129,9 +137,16 @@ export function computeThemeHeat(
 ): number {
   const rss = computeRssHeat(rssItems);
   const boost = computeGdeltBoost(gdelt24h);
-  if (rss > 0) return rss * boost;
+  if (rss > 0) {
+    // GDELT 고긴장이면 RSS 공포를 한 번 더 보강(교차 신호)
+    const gdeltFear = gdeltFearProxy(gdelt24h);
+    const gdeltFearMul =
+      gdeltFear >= 3 ? 1.2 : gdeltFear >= 2 ? 1.1 : 1;
+    return rss * boost * gdeltFearMul;
+  }
   if (gdelt24h.length === 0) return 0;
-  return (boost - 1) * 8 + Math.log1p(gdelt24h.length) * 2;
+  const base = (boost - 1) * 8 + Math.log1p(gdelt24h.length) * 2;
+  return base * publicFearHeatMultiplier(gdeltFearProxy(gdelt24h), 0);
 }
 
 export function heatLabel(params: {

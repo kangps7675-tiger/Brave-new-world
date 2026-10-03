@@ -223,24 +223,33 @@ export function GlobeBootLoader({
     Dashboard !== null,
   );
 
-  const displayProgress =
+  const rawDisplayProgress =
     !pickerDone && !loadingDismissed
       ? pickerLoadingAnimating
         ? pickerLoadingProgress
         : returningUserProgress
       : returningUserProgress;
+  /** 진행률이 뒤로 가면 로딩이 다시 시작된 것처럼 보인다. */
+  const progressFloorRef = useRef(0);
+  const displayProgress = Math.max(progressFloorRef.current, rawDisplayProgress);
+  progressFloorRef.current = displayProgress;
 
   const showLoadingOverlay = overlayVisible;
   /** 패키지 완료(또는 기존 유저) — 로딩 셰이더 GPU 반납 신호 */
   const dashboardReady = pickerDone && Dashboard !== null;
-  /** 셰이더 cleanup 다음 프레임에만 실제 지도 마운트 */
-  const mountDashboard = dashboardReady && mapMountAllowed;
+  /**
+   * 한 번 GPU를 넘기면 셰이더를 다시 켜지 않는다.
+   * dashboardReady가 한 프레임이라도 꺼지면 컨텍스트를 잃었다가
+   * 지구본 로딩이 처음부터 다시 재생된다.
+   */
+  const shaderYieldedRef = useRef(false);
+  if (dashboardReady) shaderYieldedRef.current = true;
+  const yieldShader = shaderYieldedRef.current;
+  /** 셰이더를 내린 다음 프레임에만 지도를 붙인다. 한 번 붙으면 내리지 않는다. */
+  const mountDashboard = mapMountAllowed && Dashboard !== null;
 
   useEffect(() => {
-    if (!dashboardReady) {
-      setMapMountAllowed(false);
-      return;
-    }
+    if (!dashboardReady) return;
     const id = window.requestAnimationFrame(() => {
       setMapMountAllowed(true);
     });
@@ -288,7 +297,7 @@ export function GlobeBootLoader({
           progress={displayProgress}
           fading={fading}
           slow={slowBoot}
-          yieldGpu={dashboardReady}
+          yieldGpu={yieldShader}
         />
       ) : null}
     </ErrorBoundary>

@@ -108,6 +108,138 @@ function shipColor(vessel: AisVessel): string {
   return c.replace(/[\d.]+\)$/, "0.98)") || c;
 }
 
+/**
+ * 세슘 함선 트래커 — MarineTraffic식 침로 화살.
+ * 선종마다 색과 실루엣이 다르다. 코는 뷰박스 위(+Y 화면 북쪽).
+ */
+export type AisTrackerKind =
+  | "cargo"
+  | "tanker"
+  | "passenger"
+  | "fishing"
+  | "hsc"
+  | "special"
+  | "pleasure"
+  | "military"
+  | "disguised"
+  | "other";
+
+export type AisTrackerMark = {
+  kind: AisTrackerKind;
+  color: string;
+  /** 빌보드 한 변(px). 선종마다 덩치가 다르다. */
+  px: number;
+  hollow: boolean;
+};
+
+const TRACKER_COLOR: Record<AisTrackerKind, string> = {
+  cargo: "#1B8F3A",
+  tanker: "#E10600",
+  passenger: "#1565C0",
+  fishing: "#F57C00",
+  hsc: "#F9A825",
+  special: "#00ACC1",
+  pleasure: "#C2185B",
+  military: "#111827",
+  disguised: "#F59E0B",
+  other: "#90A4AE",
+};
+
+const TRACKER_PX: Record<AisTrackerKind, number> = {
+  cargo: 34,
+  tanker: 36,
+  passenger: 32,
+  fishing: 28,
+  hsc: 24,
+  special: 26,
+  pleasure: 22,
+  military: 30,
+  disguised: 30,
+  other: 24,
+};
+
+/** ITU class + 군/위장. 위장·군함이 선종 색보다 우선. */
+export function aisTrackerKind(vessel: {
+  category?: string | null;
+  shipType?: number | null;
+  disguised?: boolean | null;
+}): AisTrackerKind {
+  if (vessel.disguised) return "disguised";
+  if (vessel.category === "military" || vessel.shipType === 35 || vessel.shipType === 55) {
+    return "military";
+  }
+  const type = vessel.shipType;
+  if (type == null || !Number.isFinite(type)) return "other";
+  if (type === 30) return "fishing";
+  if (type === 36 || type === 37) return "pleasure";
+  const g = type >= 10 ? Math.floor(type / 10) : type;
+  if (g === 7) return "cargo";
+  if (g === 8) return "tanker";
+  if (g === 6) return "passenger";
+  if (g === 2) return "fishing";
+  if (g === 4) return "hsc";
+  if (g === 3 || g === 5) return "special";
+  return "other";
+}
+
+export function aisTrackerMark(vessel: {
+  category?: string | null;
+  shipType?: number | null;
+  disguised?: boolean | null;
+}): AisTrackerMark {
+  const kind = aisTrackerKind(vessel);
+  return {
+    kind,
+    color: TRACKER_COLOR[kind],
+    px: TRACKER_PX[kind],
+    hollow: kind === "disguised",
+  };
+}
+
+/** 코가 위인 화살. kind마다 실루엣이 다르다. */
+export function aisTrackerArrowSvg(kind: AisTrackerKind, color: string, size: number): string {
+  const stroke = kind === "military" ? "rgba(255,255,255,0.88)" : "rgba(15,23,42,0.55)";
+  const sw = kind === "military" ? 1.35 : 1.05;
+  const fill = kind === "disguised" ? "none" : color;
+  const body = trackerArrowPath(kind);
+  return `
+    <svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      ${body}
+    </svg>
+  `
+    .trim()
+    .replaceAll("{{fill}}", fill)
+    .replaceAll("{{stroke}}", stroke)
+    .replaceAll("{{sw}}", String(sw));
+}
+
+function trackerArrowPath(kind: AisTrackerKind): string {
+  const common = `fill="{{fill}}" stroke="{{stroke}}" stroke-width="{{sw}}" stroke-linejoin="round" stroke-linecap="round"`;
+  switch (kind) {
+    case "tanker":
+      return `<path ${common} d="M16 1.2 L29.5 29.5 L16 23.2 L2.5 29.5 Z"/>`;
+    case "passenger":
+      return `<path ${common} d="M16 1.6 L25 18 L25 30 L7 30 L7 18 Z"/><circle cx="16" cy="22" r="2.1" fill="rgba(255,255,255,0.75)"/>`;
+    case "fishing":
+      return `<path ${common} d="M16 2.4 L24 29 L16 23.5 L8 29 Z"/><path d="M5 15.5 H27" fill="none" stroke="{{stroke}}" stroke-width="1.6"/>`;
+    case "hsc":
+      return `<path ${common} d="M16 0.8 L19.2 30 L16 26.2 L12.8 30 Z"/>`;
+    case "special":
+      return `<path ${common} d="M16 7 L27 30 L16 24.5 L5 30 Z"/>`;
+    case "pleasure":
+      return `<path ${common} d="M16 5 L22.5 29 L16 24.5 L9.5 29 Z"/>`;
+    case "military":
+      return `<path ${common} d="M16 1 L26 13.5 L16 10 L6 13.5 Z"/><path ${common} d="M16 13 L26 28.5 L16 23.2 L6 28.5 Z"/>`;
+    case "disguised":
+      return `<path ${common} d="M16 2 L26 29 L16 23 L6 29 Z"/>`;
+    case "other":
+      return `<path ${common} d="M16 4 L26 28 L6 28 Z"/>`;
+    case "cargo":
+    default:
+      return `<path ${common} d="M16 1.4 L25.2 30 L16 23.6 L6.8 30 Z"/>`;
+  }
+}
+
 export function aisShipIconSvg(color: string, size: number, military: boolean): string {
   if (military) {
     return warshipProfileIconSvg(color, { width: size + 8, height: Math.round((size + 8) * 0.7) }, "e");

@@ -2,7 +2,8 @@
  * LiveUAMap mpts 지역 슬롯 — 일 200 req 예산 배분.
  * resid는 포털/실측으로 확정. LIVEUAMAP_RESID_MAP JSON으로 덮어쓰기.
  *
- * 문서 확정: Ukraine = 0. 나머지는 env 권장.
+ * 실측(2026-10): Ukraine=0, Lebanon/IL-PS 공유=2.
+ * Iran·Yemen 전용 resid는 포털에서 확인 후 env로 넣는다.
  */
 
 import type { LiveuamapRegionId } from "@/lib/liveuamap/types";
@@ -15,7 +16,7 @@ export type LiveuamapRegionSlot = {
   /** 최소 호출 간격 */
   minIntervalMs: number;
   theater: NewsTheater;
-  /** fields/kmls 통제면 파싱 대상 */
+  /** fields/kmls/Polygon 통제면 파싱 대상 */
   parseControl: boolean;
 };
 
@@ -33,7 +34,7 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     dailyCap: 48,
     minIntervalMs: 30 * 60_000,
     theater: "middle-east",
-    parseControl: false,
+    parseControl: true,
   },
   {
     id: "yemen",
@@ -73,16 +74,15 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
 ];
 
 /**
- * 기본 resid — Ukraine=0 확정.
- * 그 외는 운영자가 LIVEUAMAP_RESID_MAP으로 반드시 맞출 것.
- * (미확정 값은 포털에서 확인 후 env로 덮어쓴다.)
+ * 기본 resid — 실측분 내장. 나머지는 LIVEUAMAP_RESID_MAP으로 덮어쓴다.
+ * (-1 = 슬롯 비활성)
  */
 const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   ukraine: 0,
   iran: -1,
   yemen: -1,
-  lebanon: -1,
-  "israel-palestine": -1,
+  lebanon: 2,
+  "israel-palestine": 2,
   taiwan: -1,
   korea: -1,
 };
