@@ -183,11 +183,34 @@ export function pirFulfillment(
   pir: PirDef,
   presentModalities: Iterable<string>,
 ): number {
+  return pirModalityStatus(pir, presentModalities).score;
+}
+
+export type PirModalityStatus = {
+  pir: PirDef;
+  required: PirDef["requiredModalities"];
+  present: PirDef["requiredModalities"];
+  missing: PirDef["requiredModalities"];
+  score: number;
+};
+
+/** PIR 충족 카드용 — 필요 / 확보 / 빈칸 */
+export function pirModalityStatus(
+  pir: PirDef,
+  presentModalities: Iterable<string>,
+): PirModalityStatus {
   const have = new Set(presentModalities);
-  if (pir.requiredModalities.length === 0) return 1;
-  let n = 0;
-  for (const m of pir.requiredModalities) {
-    if (have.has(m)) n += 1;
+  const required = pir.requiredModalities;
+  if (required.length === 0) {
+    return { pir, required, present: [], missing: [], score: 1 };
   }
-  return n / pir.requiredModalities.length;
+  const present = required.filter((m) => have.has(m));
+  const missing = required.filter((m) => !have.has(m));
+  return {
+    pir,
+    required,
+    present,
+    missing,
+    score: present.length / required.length,
+  };
 }

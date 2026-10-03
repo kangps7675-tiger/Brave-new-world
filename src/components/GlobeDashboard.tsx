@@ -212,12 +212,14 @@ import { type TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 import {
   buildObserveWatchboard,
   canPublish,
+  candidatesFromNewsLike,
   gateBreakingHero,
   gateChokepointStress,
   gateConflictCluster,
   gateEscalation,
   gateTheaterSitrep,
   type GateResult,
+  type PirModalityStatus,
 } from "@/lib/intelContract";
 import {
   incidentSuggestsEnergyPipelines,
@@ -1310,6 +1312,20 @@ export function GlobeDashboard({
     useState<TheaterSitrepRegionId | null>(null);
   /** IntelContract Source drill — 관측/지정학/지경학 공통 */
   const [intelDrillGate, setIntelDrillGate] = useState<GateResult | null>(null);
+  const [intelDrillPirStatuses, setIntelDrillPirStatuses] = useState<
+    PirModalityStatus[]
+  >([]);
+  const openIntelDrill = useCallback(
+    (gate: GateResult, pirStatuses: PirModalityStatus[] = []) => {
+      setIntelDrillGate(gate);
+      setIntelDrillPirStatuses(pirStatuses);
+    },
+    [],
+  );
+  const closeIntelDrill = useCallback(() => {
+    setIntelDrillGate(null);
+    setIntelDrillPirStatuses([]);
+  }, []);
   const [breakingFlashGate, setBreakingFlashGate] = useState<GateResult | null>(null);
   /** 관측대 안건 보드 첫 안내 카드 */
   const [intelDeskTipVisible, setIntelDeskTipVisible] = useState(false);
@@ -2003,6 +2019,34 @@ export function GlobeDashboard({
     labelLanguage,
   } = layerPrefs;
 
+  /** 올리기 직전 반증 탐색용 — RSS·LiveUA 텍스트. 없으면 게이트가 queried:false */
+  const intelDisconfirmCorpus = useMemo(
+    () => [
+      ...candidatesFromNewsLike([
+        ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+        ...(newsStreamPayload?.flashHeroes ?? []),
+        ...(newsStreamPayload?.verified ?? []),
+        ...(newsStreamPayload?.stateMedia ?? []),
+      ]),
+      ...candidatesFromNewsLike(
+        liveuaEvents.map((e) => ({
+          id: e.id,
+          title: e.title,
+          titleKo: e.titleKo,
+          summary: e.body,
+          publishedAt: e.publishedAt,
+        })),
+      ),
+    ],
+    [
+      liveuaEvents,
+      newsStreamPayload?.flashHeroes,
+      newsStreamPayload?.hero,
+      newsStreamPayload?.stateMedia,
+      newsStreamPayload?.verified,
+    ],
+  );
+
   const theaterSitrepDoc = useMemo(() => {
     if (!theaterSitrepRegion) return null;
     const rssItems = [
@@ -2017,13 +2061,17 @@ export function GlobeDashboard({
       windowHours: 72,
       lang: labelLanguage === "en" ? "en" : "ko",
     });
-    const gate = gateTheaterSitrep(doc);
+    const gate = gateTheaterSitrep(doc, {
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
+    });
     if (!canPublish("theater_sitrep", gate.grade)) return null;
     return doc;
   }, [
     theaterSitrepRegion,
     liveuaEvents,
     labelLanguage,
+    intelDisconfirmCorpus,
     newsStreamPayload?.hero,
     newsStreamPayload?.flashHeroes,
     newsStreamPayload?.verified,
@@ -5751,13 +5799,15 @@ export function GlobeDashboard({
       }),
       conflictEventTheaters,
     );
-    const markers = clusters
-      .map((cluster) => {
-        const gate = gateConflictCluster(cluster);
-        if (gate.grade === "drop" || gate.grade === "hold") return null;
-        return { ...clusterToMarker(cluster), displayGrade: gate.grade };
-      })
-      .filter((m): m is ConflictEventHtmlMarker => m != null);
+    const markers: ConflictEventHtmlMarker[] = [];
+    for (const cluster of clusters) {
+      const gate = gateConflictCluster(cluster, {
+        disconfirmCorpus: intelDisconfirmCorpus,
+        windowHours: 72,
+      });
+      if (gate.grade === "drop" || gate.grade === "hold") continue;
+      markers.push({ ...clusterToMarker(cluster), displayGrade: gate.grade });
+    }
     return selectConflictEventMarkers(markers, {
       view: layerViewState,
       lodTier: globeLod.tier,
@@ -5765,6 +5815,7 @@ export function GlobeDashboard({
   }, [
     conflictEventTheaters,
     globeLod.tier,
+    intelDisconfirmCorpus,
     layerViewState,
     newsStreamPayload?.hero,
     newsStreamPayload?.stateMedia,
@@ -7845,7 +7896,10 @@ export function GlobeDashboard({
     );
     if (!hero) return;
 
-    const flashGate = gateBreakingHero(hero);
+    const flashGate = gateBreakingHero(hero, {
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
+    });
     if (!canPublish("breaking_flash", flashGate.grade)) return;
 
     let cancelled = false;
@@ -7873,6 +7927,7 @@ export function GlobeDashboard({
     newsStreamPayload?.hero?.breakingGrade,
     newsStreamPayload?.hero?.title,
     newsStreamPayload?.hero?.summary,
+    intelDisconfirmCorpus,
     isEconomyViewer,
     isSatelliteViewer,
     peaceScienceFlashDomain,
@@ -8161,6 +8216,27 @@ export function GlobeDashboard({
     ],
   );
 
+  const observeConflictClusters = useMemo(() => {
+    if (!isSatelliteViewer) return [];
+    const newsItems = [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ];
+    return buildConflictEventClusters({
+      newsItems,
+      gdeltEvents: scoredEvents,
+      newfeedsAttacks,
+    });
+  }, [
+    isSatelliteViewer,
+    newsStreamPayload?.hero,
+    newsStreamPayload?.stateMedia,
+    newsStreamPayload?.verified,
+    newfeedsAttacks,
+    scoredEvents,
+  ]);
+
   const observeWatchboardItems = useMemo(() => {
     if (!isSatelliteViewer) return [];
     const rssItems = [
@@ -8172,7 +8248,9 @@ export function GlobeDashboard({
       liveuaEvents,
       rssItems,
       cesiumAlerts,
+      conflictClusters: observeConflictClusters,
       lang: labelLanguage === "en" ? "en" : "ko",
+      windowHours: 72,
     });
   }, [
     cesiumAlerts,
@@ -8182,6 +8260,7 @@ export function GlobeDashboard({
     newsStreamPayload?.flashHeroes,
     newsStreamPayload?.hero,
     newsStreamPayload?.verified,
+    observeConflictClusters,
   ]);
 
   const escalationIntel = useMemo(() => {
@@ -8198,10 +8277,12 @@ export function GlobeDashboard({
           occurredAt: top.pubDate ?? null,
         },
       ],
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
     });
     if (!canPublish("escalation_banner", gate.grade)) return null;
     return { offer: escalationOffer, gate };
-  }, [escalationOffer]);
+  }, [escalationOffer, intelDisconfirmCorpus]);
 
   const chokepointStressGate = useMemo(() => {
     if (!chokepointStressBriefing) return null;
@@ -8215,6 +8296,14 @@ export function GlobeDashboard({
     const ukmtoCount = stress.signals.filter((s) =>
       /ukmto/i.test(`${s.sourceKo} ${s.sourceEn} ${s.labelKo} ${s.labelEn}`),
     ).length;
+    // B급: PortWatch 데이터가 있다고 신호가 아님 — 통항 급감(-12% 이하)만
+    const aisStress =
+      ais != null &&
+      Number.isFinite(ais.changePct) &&
+      ais.changePct <= -12;
+    // C급: normal 힌트·존재만으로 독립 채널을 만들지 않음
+    const assetStress =
+      asset != null && asset.hint !== "normal" ? asset.hint : null;
     const gate = gateChokepointStress({
       nameKo: point.name,
       nameEn:
@@ -8223,17 +8312,21 @@ export function GlobeDashboard({
         chokepointId: point.id,
         grade: stress.level,
         ukmtoCount: Math.max(ukmtoCount, stress.graded ? 1 : 0),
-        hasAis: ais != null,
-        hasAssetHint: asset != null,
+        hasAis: aisStress,
+        hasAssetHint: assetStress != null,
+        assetHint: assetStress,
       },
       lat: point.lat,
       lng: point.lng,
+      disconfirmCorpus: intelDisconfirmCorpus,
+      windowHours: 72,
     });
     if (!canPublish("economy_alert", gate.grade)) return null;
     return gate;
   }, [
     assetByChokeId,
     chokepointStressBriefing,
+    intelDisconfirmCorpus,
     portWatchByChokeId,
     ukmtoIncidents,
   ]);
@@ -11316,7 +11409,7 @@ export function GlobeDashboard({
                       (row) => row.sitrepRegion === regionId,
                     );
                     if (item && !canPublish("theater_sitrep", item.grade)) {
-                      setIntelDrillGate(item.gate);
+                      openIntelDrill(item.gate, item.pirStatuses);
                       return;
                     }
                     setTheaterSitrepRegion(regionId);
@@ -11326,7 +11419,7 @@ export function GlobeDashboard({
                     const item = cesiumAlerts.find((a) => a.id === cesiumAlertId);
                     if (item) openCesiumAlert(item);
                   }}
-                  onDrill={(item) => setIntelDrillGate(item.gate)}
+                  onDrill={(item) => openIntelDrill(item.gate, item.pirStatuses)}
                   onOpenFullGuide={() => setShowFeatureGuide(true)}
                 />
                 <CesiumAlertDock
@@ -11549,7 +11642,8 @@ export function GlobeDashboard({
             <IntelSourceDrill
               lang={labelLanguage}
               gate={intelDrillGate}
-              onClose={() => setIntelDrillGate(null)}
+              pirStatuses={intelDrillPirStatuses}
+              onClose={closeIntelDrill}
             />
           </div>
         ) : null}
@@ -11832,7 +11926,7 @@ export function GlobeDashboard({
         breakingFlashGrade={breakingFlashGate?.grade}
         onBreakingFlashDrill={
           breakingFlashGate
-            ? () => setIntelDrillGate(breakingFlashGate)
+            ? () => openIntelDrill(breakingFlashGate)
             : undefined
         }
         onBreakingFlashGoToLocation={() => {
@@ -11893,7 +11987,7 @@ export function GlobeDashboard({
         escalationDisplayGrade={escalationIntel?.gate.grade}
         onEscalationDrill={
           escalationIntel
-            ? () => setIntelDrillGate(escalationIntel.gate)
+            ? () => openIntelDrill(escalationIntel.gate)
             : undefined
         }
         adsbEmergencyOffer={adsbEmergencyOffer}
@@ -11908,7 +12002,7 @@ export function GlobeDashboard({
         chokepointStressGrade={chokepointStressGate?.grade}
         onChokepointStressDrill={
           chokepointStressGate
-            ? () => setIntelDrillGate(chokepointStressGate)
+            ? () => openIntelDrill(chokepointStressGate)
             : undefined
         }
         onChokepointOpenObserve={

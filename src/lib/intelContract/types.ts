@@ -42,6 +42,12 @@ export type Observation = {
   payloadRef: string;
   label?: string;
   text?: string;
+  /**
+   * false면 G1 독립성·independenceCount에 넣지 않음.
+   * 어댑터 스캐폴드(가짜 채널 부풀리기)는 반드시 false.
+   * 생략 시 true.
+   */
+  countsTowardIndependence?: boolean;
 };
 
 export type EvidenceBundle = {
@@ -56,8 +62,11 @@ export type EvidenceBundle = {
   geoOk: boolean;
   method: string;
   disconfirmLog: {
+    /** false면 탐색 미실행·실패 — 하드코딩 true 금지 */
     queried: boolean;
+    /** 반대·정정 표현 건수 — >0 이면 게이트가 등급을 내린다 */
     hitCount: number;
+    hitIds?: string[];
   };
   killCriteria: string[];
   altHypothesis?: {

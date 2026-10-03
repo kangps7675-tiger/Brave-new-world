@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
+import { PirFulfillmentCard } from "@/components/globe/PirFulfillmentCard";
 import type { WatchboardItem } from "@/lib/intelContract/buildObserveWatchboard";
 import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -20,6 +21,9 @@ type Props = {
 function kindLabel(kind: WatchboardItem["kind"], en: boolean): string {
   if (kind === "theater-sitrep") return en ? "Theater report" : "전황 보고서";
   if (kind === "maritime-alert") return en ? "Maritime alert" : "해상 경보";
+  if (kind === "conflict-cluster") {
+    return en ? INTEL_UX.kindConflict.en : INTEL_UX.kindConflict.ko;
+  }
   return en ? "Collecting" : "수집 중";
 }
 
@@ -68,14 +72,14 @@ export function IntelWatchboard({
             </span>
           </span>
           {open ? (
-            <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-teal-200/55">
+            <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-teal-200/55">
               {INTEL_UX.watchboardSubtitle[L]}
             </p>
           ) : null}
         </button>
         <button
           type="button"
-          className="mt-0.5 shrink-0 rounded-sm border border-teal-400/35 px-1.5 py-0.5 text-[10px] text-teal-100/90 hover:bg-teal-500/15"
+          className="mt-0.5 shrink-0 rounded-sm border border-teal-400/35 px-1.5 py-0.5 text-micro text-teal-100/90 hover:bg-teal-500/15"
           aria-expanded={helpOpen}
           aria-controls="intel-watchboard-help"
           onClick={() => setHelpOpen((v) => !v)}
@@ -87,7 +91,7 @@ export function IntelWatchboard({
       {helpOpen ? (
         <div
           id="intel-watchboard-help"
-          className="space-y-1.5 border-b border-teal-500/25 bg-teal-950/40 px-2.5 py-2 text-[10px] leading-snug text-teal-100/85"
+          className="space-y-1.5 border-b border-teal-500/25 bg-teal-950/40 px-2.5 py-2 text-micro leading-snug text-teal-100/85"
         >
           <p className="font-semibold text-teal-50">{INTEL_UX.helpTitle[L]}</p>
           <ul className="list-disc space-y-1 pl-3.5">
@@ -98,7 +102,7 @@ export function IntelWatchboard({
           {onOpenFullGuide ? (
             <button
               type="button"
-              className="mt-1 text-[10px] font-medium text-teal-200 underline underline-offset-2 hover:text-teal-50"
+              className="mt-1 text-micro font-medium text-teal-200 underline underline-offset-2 hover:text-teal-50"
               onClick={onOpenFullGuide}
             >
               {en ? "Open full feature guide" : "전체 기능 안내 열기"}
@@ -118,9 +122,9 @@ export function IntelWatchboard({
               {INTEL_UX.watchboardEmpty[L]}
             </p>
           ) : (
-            <div className="intel-scroll-y max-h-72 overflow-y-auto">
+            <div className="intel-scroll-y max-h-80 overflow-y-auto">
               {active.length > 0 ? (
-                <p className="px-2.5 pt-1.5 text-[10px] font-medium uppercase tracking-wide text-teal-300/55">
+                <p className="px-2.5 pt-1.5 text-micro font-medium uppercase tracking-wide text-teal-300/55">
                   {INTEL_UX.watchboardActiveHeader[L]}
                 </p>
               ) : null}
@@ -131,6 +135,7 @@ export function IntelWatchboard({
                     item={item}
                     en={en}
                     L={L}
+                    lang={lang}
                     tabbable={open}
                     onOpenSitrep={onOpenSitrep}
                     onOpenAlert={onOpenAlert}
@@ -140,10 +145,10 @@ export function IntelWatchboard({
               </ul>
               {held.length > 0 ? (
                 <>
-                  <p className="mt-1 border-t border-teal-500/20 px-2.5 pt-1.5 text-[10px] font-medium uppercase tracking-wide text-stone-300/55">
+                  <p className="mt-1 border-t border-teal-500/20 px-2.5 pt-1.5 text-micro font-medium uppercase tracking-wide text-stone-300/55">
                     {INTEL_UX.watchboardHoldHeader[L]}
                   </p>
-                  <p className="px-2.5 pb-1 text-[10px] text-stone-400/70">
+                  <p className="px-2.5 pb-1 text-micro text-stone-400/70">
                     {INTEL_UX.watchboardHoldHint[L]}
                   </p>
                   <ul>
@@ -153,6 +158,7 @@ export function IntelWatchboard({
                         item={item}
                         en={en}
                         L={L}
+                        lang={lang}
                         tabbable={open}
                         muted
                         onOpenSitrep={onOpenSitrep}
@@ -175,6 +181,7 @@ function WatchRow({
   item,
   en,
   L,
+  lang,
   tabbable,
   muted,
   onOpenSitrep,
@@ -184,6 +191,7 @@ function WatchRow({
   item: WatchboardItem;
   en: boolean;
   L: "ko" | "en";
+  lang: LabelLanguage;
   tabbable: boolean;
   muted?: boolean;
   onOpenSitrep: (region: TheaterSitrepRegionId) => void;
@@ -192,6 +200,9 @@ function WatchRow({
 }) {
   const title = en ? item.titleEn : item.titleKo;
   const sub = en ? item.subtitleEn : item.subtitleKo;
+  const gap = en ? item.gapNoteEn : item.gapNoteKo;
+  const topPir = item.pirStatuses[0] ?? null;
+
   return (
     <li
       className={`border-b border-teal-500/15 px-2.5 py-1.5 last:border-b-0 ${
@@ -212,30 +223,33 @@ function WatchRow({
         >
           <div className="flex flex-wrap items-center gap-1">
             <IntelGradeBadge grade={item.grade} lang={en ? "en" : "ko"} />
-            <span className="text-[10px] text-teal-300/55">
+            <span className="text-micro text-teal-300/55">
               {kindLabel(item.kind, en)}
             </span>
-            {item.pirScore > 0 ? (
-              <span className="text-[10px] text-teal-300/60">
-                {INTEL_UX.pirLabel[L]} {(item.pirScore * 100).toFixed(0)}%
-              </span>
-            ) : null}
           </div>
           <p className="mt-0.5 line-clamp-2 text-meta text-teal-50">{title}</p>
           {sub ? (
-            <p className="mt-0.5 line-clamp-1 text-[10px] text-teal-200/45">{sub}</p>
+            <p className="mt-0.5 line-clamp-1 text-micro text-teal-200/45">{sub}</p>
+          ) : null}
+          {gap ? (
+            <p className="mt-0.5 line-clamp-1 text-micro text-amber-200/70">{gap}</p>
           ) : null}
         </button>
         <button
           type="button"
           tabIndex={tabbable ? 0 : -1}
-          className="shrink-0 rounded-sm border border-teal-400/30 px-1.5 py-0.5 text-[10px] text-teal-100/85 hover:bg-teal-500/15"
+          className="shrink-0 rounded-sm border border-teal-400/30 px-1.5 py-0.5 text-micro text-teal-100/85 hover:bg-teal-500/15"
           title={en ? "See sources and grade reasons" : "출처와 등급 이유 보기"}
           onClick={() => onDrill(item)}
         >
           {INTEL_UX.drillButton[L]}
         </button>
       </div>
+      {topPir ? (
+        <div className="mt-1.5">
+          <PirFulfillmentCard lang={lang} status={topPir} compact />
+        </div>
+      ) : null}
     </li>
   );
 }

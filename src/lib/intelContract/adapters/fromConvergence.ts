@@ -1,4 +1,6 @@
+import type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 import { withComputedStats } from "@/lib/intelContract/bundleStats";
+import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
 
@@ -21,7 +23,10 @@ export type ConvergenceEventLike = {
   }>;
 };
 
-export function convergenceToBundle(event: ConvergenceEventLike): EvidenceBundle {
+export function convergenceToBundle(
+  event: ConvergenceEventLike,
+  opts?: AdapterDisconfirmOpts,
+): EvidenceBundle {
   const observations: Observation[] = event.channels
     .filter((c) => c.fired)
     .map((c) => ({
@@ -43,6 +48,16 @@ export function convergenceToBundle(event: ConvergenceEventLike): EvidenceBundle
   const nonTip = observations.filter((o) => o.modality !== "tip");
   const useObs = nonTip.length >= 1 ? observations : observations;
 
+  // suppressed 채널 수는 반증 검색이 아님 — 외부 corpus로만 탐색
+  const disconfirmLog = resolveDisconfirmLog({
+    claimText: `${event.theaterId} convergence ${event.signalDate}`,
+    disconfirmLog: opts?.disconfirmLog,
+    disconfirmCorpus: opts?.disconfirmCorpus,
+    excludeIds: useObs.map((o) => o.id),
+    windowHours: opts?.windowHours,
+    nowMs: opts?.nowMs,
+  });
+
   return withComputedStats({
     bundleId: `convergence:${event.id}`,
     kind: "indicator",
@@ -51,10 +66,7 @@ export function convergenceToBundle(event: ConvergenceEventLike): EvidenceBundle
     observations: useObs,
     geoOk: true,
     method: `convergence:${event.algoVersion}:channels=${event.channelCount}:peakZ=${event.peakZ}`,
-    disconfirmLog: {
-      queried: true,
-      hitCount: event.channels.filter((c) => c.suppressed).length,
-    },
+    disconfirmLog,
     killCriteria: [
       "익일 채널 z가 임계 미만으로 복귀하면 경보 하향",
       "FIRMS가 corroboration 없이 단독이면 억제 유지",
@@ -70,6 +82,9 @@ export function convergenceToBundle(event: ConvergenceEventLike): EvidenceBundle
   });
 }
 
-export function gateConvergence(event: ConvergenceEventLike): GateResult {
-  return evaluateGate(convergenceToBundle(event));
+export function gateConvergence(
+  event: ConvergenceEventLike,
+  opts?: AdapterDisconfirmOpts,
+): GateResult {
+  return evaluateGate(convergenceToBundle(event, opts));
 }

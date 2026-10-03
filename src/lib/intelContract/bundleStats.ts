@@ -1,13 +1,20 @@
 import type { EvidenceBundle, Observation } from "@/lib/intelContract/types";
 
+/** 독립성 집계 대상 — 어댑터 스캐폴드(countsTowardIndependence: false) 제외 */
+export function independenceEligible(observations: Observation[]): Observation[] {
+  return observations.filter((o) => o.countsTowardIndependence !== false);
+}
+
 export function computeObservationStats(observations: Observation[]): {
   independenceCount: number;
   modalityCount: number;
   timeSpanMs: number;
 } {
-  const keys = new Set(observations.map((o) => o.sourceKey).filter(Boolean));
-  const mods = new Set(observations.map((o) => o.modality));
-  const times = observations
+  const eligible = independenceEligible(observations);
+  const keys = new Set(eligible.map((o) => o.sourceKey).filter(Boolean));
+  // modality는 실측 채널 구성용 — 스캐폴드로 모달리티를 부풀리지 않음
+  const mods = new Set(eligible.map((o) => o.modality));
+  const times = eligible
     .map((o) => (o.occurredAt ? Date.parse(o.occurredAt) : NaN))
     .filter((t) => Number.isFinite(t));
   const timeSpanMs =

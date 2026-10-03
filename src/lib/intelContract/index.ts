@@ -52,9 +52,34 @@ export {
   matchPirsForOrigin,
   pirById,
   pirFulfillment,
+  pirModalityStatus,
   type PirDef,
   type PirId,
+  type PirModalityStatus,
 } from "@/lib/intelContract/pirRegistry";
+
+export {
+  THEATER_CANON,
+  canonForTheater,
+  canonForSitrepRegion,
+  canonForConflictTheater,
+  canonGaps,
+  formatCanonGapNote,
+  type CanonChannel,
+  type TheaterCanon,
+} from "@/lib/intelContract/theaterCanonSources";
+
+export { whyPublishLines } from "@/lib/intelContract/whyPublish";
+
+export {
+  runDisconfirmPass,
+  resolveDisconfirmLog,
+  candidatesFromNewsLike,
+  DISCONFIRM_PATTERN,
+  type DisconfirmLog,
+  type DisconfirmCandidate,
+} from "@/lib/intelContract/disconfirmPass";
+export type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 
 export {
   buildObserveWatchboard,

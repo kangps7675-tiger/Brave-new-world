@@ -84,6 +84,26 @@ export const INTEL_UX = {
     ko: "관심 주제",
     en: "Priority topic",
   },
+  pirNeed: {
+    ko: "필요",
+    en: "Need",
+  },
+  pirHave: {
+    ko: "확보",
+    en: "Have",
+  },
+  pirMissing: {
+    ko: "빈칸",
+    en: "Empty",
+  },
+  drillWhyHeader: {
+    ko: "왜 올렸나 (3줄)",
+    en: "Why it is up (3 lines)",
+  },
+  kindConflict: {
+    ko: "교차 사건",
+    en: "Corroborated event",
+  },
   helpTitle: {
     ko: "이 보드가 뭔가요?",
     en: "What is this board?",

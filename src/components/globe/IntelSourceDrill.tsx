@@ -1,14 +1,18 @@
 "use client";
 
 import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
+import { PirFulfillmentCard } from "@/components/globe/PirFulfillmentCard";
 import { summarizeGate } from "@/lib/intelContract/gate";
+import type { PirModalityStatus } from "@/lib/intelContract/pirRegistry";
 import type { GateResult, ObservationModality } from "@/lib/intelContract/types";
 import { INTEL_UX } from "@/lib/intelContract/uxCopy";
+import { whyPublishLines } from "@/lib/intelContract/whyPublish";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 type Props = {
   lang: LabelLanguage;
   gate: GateResult | null;
+  pirStatuses?: PirModalityStatus[];
   onClose: () => void;
 };
 
@@ -17,7 +21,12 @@ function modalityLabel(m: ObservationModality, en: boolean): string {
   return en ? row.en : row.ko;
 }
 
-export function IntelSourceDrill({ lang, gate, onClose }: Props) {
+export function IntelSourceDrill({
+  lang,
+  gate,
+  pirStatuses = [],
+  onClose,
+}: Props) {
   const en = lang === "en";
   const L = en ? "en" : "ko";
   if (!gate) return null;
@@ -26,6 +35,8 @@ export function IntelSourceDrill({ lang, gate, onClose }: Props) {
   const title = en ? bundle.titleEn : bundle.titleKo;
   const claim = en ? bundle.claimEn : bundle.claimKo;
   const summary = summarizeGate(gate, L);
+  const why = whyPublishLines(gate, pirStatuses, L);
+  const topPir = pirStatuses[0] ?? null;
 
   return (
     <aside
@@ -57,11 +68,24 @@ export function IntelSourceDrill({ lang, gate, onClose }: Props) {
       </header>
 
       <div className="intel-scroll-y min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-2 text-micro text-teal-100/90">
-        <p className="rounded-sm border border-teal-500/20 bg-teal-950/35 px-2 py-1.5 text-[10px] leading-snug text-teal-100/75">
+        <p className="rounded-sm border border-teal-500/20 bg-teal-950/35 px-2 py-1.5 text-micro leading-snug text-teal-100/75">
           {en
             ? "This panel shows why the item was graded — not a prediction or secret brief."
             : "등급이 나온 이유를 풀어 보여 줍니다. 예측이나 비밀 브리핑이 아닙니다."}
         </p>
+
+        <section>
+          <p className="font-semibold text-teal-200/80">
+            {INTEL_UX.drillWhyHeader[L]}
+          </p>
+          <ol className="mt-1 list-decimal space-y-1 pl-4 text-micro leading-snug text-teal-100/85">
+            {why.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ol>
+        </section>
+
+        {topPir ? <PirFulfillmentCard lang={lang} status={topPir} /> : null}
 
         {claim ? (
           <section>
@@ -82,7 +106,7 @@ export function IntelSourceDrill({ lang, gate, onClose }: Props) {
               bundle.modalityCount,
             )}
           </p>
-          <p className="mt-0.5 font-mono text-[10px] text-teal-100/50">
+          <p className="mt-0.5 font-mono text-micro text-teal-100/50">
             {bundle.method}
           </p>
         </section>
@@ -161,7 +185,7 @@ export function IntelSourceDrill({ lang, gate, onClose }: Props) {
           </section>
         ) : null}
 
-        <p className="border-t border-teal-500/20 pt-2 text-[10px] text-teal-200/55">
+        <p className="border-t border-teal-500/20 pt-2 text-micro text-teal-200/55">
           {INTEL_UX.drillFoot[L]}
         </p>
       </div>

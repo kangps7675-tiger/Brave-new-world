@@ -1,15 +1,12 @@
 /**
- * 초크포인트 C급(대리지표) 신호 — 초크포인트마다 실제로 연동된 자산(relatedTickers)의
- * 선물·지수 등락률을 "변동성 hint"로 변환한다.
+ * 초크포인트 C급(대리지표) 신호 — 초크포인트마다 연동된 자산(relatedTickers)의
+ * 선물·지수 등락을 "변동성 hint"로 변환한다.
  *
- * 유가로 한정하지 않는다: 호르무즈는 Brent·NatGas·VIX, 수에즈·희망봉은 Shipping(BDRY)·유가,
- * 대만해협은 TSMC·Semis·Taiwan·NASDAQ, 보스포루스는 Wheat·Corn처럼
- * 초크포인트마다 실제로 흔들리는 자산이 다르다 — `logisticsRiskPoints.ts`의 각 지점이
- * 이미 `meta.relatedTickers`로 그 답을 갖고 있으므로 그걸 그대로 심볼로 풀어 쓴다.
- * (`majorEventTimeline.CHOKEPOINT_PREFERRED_SYMBOLS`와 같은 실심볼 집합을 쓴다.)
- *
- * `logisticsStress.ts`의 C급 규칙과 동일한 원칙: 단독으로 등급을 정하지 않는다,
- * 연동 자산 시세를 하나도 못 구하면 null을 반환한다 — 없는 신호를 지어내지 않는다.
+ * 원칙
+ * - 단독으로 해협 사건을 확증하지 않는다 (logisticsStress.ts C급과 동일).
+ * - 여러 티커 중 최대 등락을 고르지 않는다 — 항상 튀어 보이기 때문.
+ * - relatedTickers 목록의 **첫 번째 해석 가능 티커**(대표)만 본다.
+ * - 절대 % 임계가 아니라, 자산군 대략 일중 σ 대비 |z|로 elevated/high를 나눈다.
  */
 
 import { TICKER_SPIKE_THRESHOLD_PERCENT } from "@/lib/news/intelStackMode";
@@ -18,6 +15,10 @@ export type AssetVolatilityHint = {
   /** 표시용 자산명 — Brent·NASDAQ처럼 이미 언어 중립적인 고유명사라 ko/en 분리하지 않는다. */
   assetLabel: string;
   hint: "high" | "elevated" | "normal";
+  /** |일중 등락%| / 대표 σ — UI·디버그용 */
+  zScore: number;
+  symbol: string;
+  changePercent: number;
   observedAt: string;
   isDemo: false;
 };
@@ -45,6 +46,37 @@ export const TICKER_LABEL_TO_SYMBOL: Record<string, string> = {
   Taiwan: "^TWII",
 };
 
+/**
+ * 일중 등락(%) 대략 σ — 역사 시계열이 없을 때 z-score 분모.
+ * “오늘은 평소보다 얼마나 튀었나”만 보기 위한 거친 기준선이지, 해협 확증이 아니다.
+ */
+export const TYPICAL_DAILY_SIGMA_PERCENT: Record<string, number> = {
+  "BZ=F": 1.6,
+  "CL=F": 1.6,
+  "NG=F": 3.2,
+  "GC=F": 0.9,
+  "SI=F": 1.4,
+  "HG=F": 1.3,
+  "ZW=F": 1.5,
+  "ZC=F": 1.4,
+  "DX-Y.NYB": 0.45,
+  "^VIX": 6.0,
+  BDRY: 2.4,
+  "^GSPC": 0.85,
+  "^IXIC": 1.0,
+  "000001.SS": 1.0,
+  "^HSI": 1.1,
+  TSM: 1.8,
+  SMH: 1.7,
+  "^TWII": 1.0,
+};
+
+const DEFAULT_SIGMA = TICKER_SPIKE_THRESHOLD_PERCENT; // 1.25
+/** |z| ≥ 이 값이면 elevated */
+const Z_ELEVATED = 1.0;
+/** |z| ≥ 이 값이면 high */
+const Z_HIGH = 2.0;
+
 /** relatedTickers 문자열 → 심볼 목록 (미등록 라벨은 건너뜀 — 지어내지 않음). */
 export function relatedTickerLabelsToSymbols(
   relatedTickersLabel: string | undefined,
@@ -58,49 +90,58 @@ export function relatedTickerLabelsToSymbols(
     .filter((sym): sym is string => Boolean(sym));
 }
 
+/** relatedTickers 순서상 첫 해석 가능 라벨 = 대표 티커 */
+export function primaryRelatedTicker(
+  relatedTickersLabel: string | undefined,
+): { label: string; symbol: string } | null {
+  if (!relatedTickersLabel) return null;
+  for (const label of relatedTickersLabel
+    .split("·")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
+    const symbol = TICKER_LABEL_TO_SYMBOL[label];
+    if (symbol) return { label, symbol };
+  }
+  return null;
+}
+
+export function volatilityZScore(
+  changePercent: number,
+  symbol: string,
+): number {
+  const sigma = TYPICAL_DAILY_SIGMA_PERCENT[symbol] ?? DEFAULT_SIGMA;
+  if (!(sigma > 0) || !Number.isFinite(changePercent)) return 0;
+  return Math.abs(changePercent) / sigma;
+}
+
+function hintFromZ(z: number): AssetVolatilityHint["hint"] {
+  if (z >= Z_HIGH) return "high";
+  if (z >= Z_ELEVATED) return "elevated";
+  return "normal";
+}
+
 /**
- * @param relatedTickersLabel `logisticsRiskPoints.ts`의 `meta.relatedTickers` 문자열
- *   (예: "Brent · DXY · VIX"). "·" 구분 라벨을 심볼로 풀어, 그중 등락폭이 가장 큰
- *   자산 하나를 대표 신호로 쓴다(여러 자산을 합성하지 않는다 — logisticsStress.ts 원칙과 동일).
+ * @param relatedTickersLabel `logisticsRiskPoints.ts`의 `meta.relatedTickers`
+ *   (예: "Brent · DXY · VIX"). **첫 번째** 해석 가능 티커만 사용한다.
  * @param tickerChangeBySymbol 심볼 → 전일 대비 등락률(%) 스냅샷.
  */
 export function assetVolatilityHintForPoint(
   relatedTickersLabel: string | undefined,
   tickerChangeBySymbol: Map<string, number | null>,
 ): AssetVolatilityHint | null {
-  if (!relatedTickersLabel) return null;
-  const labels = relatedTickersLabel
-    .split("·")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const primary = primaryRelatedTicker(relatedTickersLabel);
+  if (!primary) return null;
 
-  const resolved = labels
-    .map((label) => ({ label, symbol: TICKER_LABEL_TO_SYMBOL[label] }))
-    .filter((entry): entry is { label: string; symbol: string } => Boolean(entry.symbol));
-  if (resolved.length === 0) return null;
+  const pct = tickerChangeBySymbol.get(primary.symbol);
+  if (typeof pct !== "number" || !Number.isFinite(pct)) return null;
 
-  let maxAbs = -1;
-  let maxLabel: string | null = null;
-  for (const { label, symbol } of resolved) {
-    const pct = tickerChangeBySymbol.get(symbol);
-    if (typeof pct !== "number" || !Number.isFinite(pct)) continue;
-    if (Math.abs(pct) > maxAbs) {
-      maxAbs = Math.abs(pct);
-      maxLabel = label;
-    }
-  }
-  if (maxLabel === null) return null;
-
-  const hint: AssetVolatilityHint["hint"] =
-    maxAbs >= TICKER_SPIKE_THRESHOLD_PERCENT
-      ? "high"
-      : maxAbs >= TICKER_SPIKE_THRESHOLD_PERCENT / 2
-        ? "elevated"
-        : "normal";
-
+  const zScore = volatilityZScore(pct, primary.symbol);
   return {
-    assetLabel: maxLabel,
-    hint,
+    assetLabel: primary.label,
+    hint: hintFromZ(zScore),
+    zScore,
+    symbol: primary.symbol,
+    changePercent: pct,
     observedAt: new Date().toISOString(),
     isDemo: false,
   };
