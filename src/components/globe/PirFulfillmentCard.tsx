@@ -35,12 +35,12 @@ export function PirFulfillmentCard({ lang, status, compact }: Props) {
       }`}
       data-pir-fulfillment={status.pir.id}
     >
-      <p className="line-clamp-1 text-[10px] font-medium text-teal-100/90">
+      <p className="line-clamp-1 text-micro font-medium text-teal-100/90">
         {INTEL_UX.pirLabel[L]} · {title}
         <span className="ml-1 tabular-nums text-teal-300/65">{pct}%</span>
       </p>
       <dl
-        className={`mt-0.5 grid gap-x-2 text-[10px] leading-snug ${
+        className={`mt-0.5 grid gap-x-2 text-micro leading-snug ${
           compact ? "grid-cols-1" : "grid-cols-1"
         }`}
       >

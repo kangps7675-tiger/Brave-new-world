@@ -1,3 +1,4 @@
+import { independenceEligible } from "@/lib/intelContract/bundleStats";
 import type {
   DisplayGrade,
   EvidenceBundle,
@@ -21,6 +22,15 @@ function modalities(obs: Observation[]): Set<string> {
 
 function independentKeys(obs: Observation[]): Set<string> {
   return new Set(obs.map((o) => o.sourceKey).filter(Boolean));
+}
+
+/** UKMTO·NAVAREA 등 단일 공식/경보 — Watchboard 얇음만 허용 */
+function isSoleOfficialOrAlert(obs: Observation[]): boolean {
+  const eligible = independenceEligible(obs);
+  if (eligible.length === 0) return false;
+  const keys = independentKeys(eligible);
+  if (keys.size !== 1) return false;
+  return eligible.every((o) => o.modality === "alert" || o.modality === "official");
 }
 
 function allTip(obs: Observation[]): boolean {
@@ -64,13 +74,14 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
     return { grade: "drop", reasons, bundle };
   }
 
-  const indep = independentKeys(obs);
-  const mods = modalities(obs);
-  const independenceCount = Math.max(bundle.independenceCount, indep.size);
-  const modalityCount = Math.max(bundle.modalityCount, mods.size);
+  // 독립성·모달리티는 어댑터 스캐폴드(countsTowardIndependence: false) 제외
+  const eligible = independenceEligible(obs);
+  const scored = eligible.length > 0 ? eligible : obs;
+  const independenceCount = independentKeys(eligible).size;
+  const modalityCount = modalities(eligible).size;
 
-  // G2 tip-only
-  if (allTip(obs)) {
+  // G2 tip-only (실측 관측 기준)
+  if (allTip(scored)) {
     reasons.push(
       reason("G2", false, "tip 단독 — Pass 불가", "tip-only cannot pass"),
     );
@@ -85,7 +96,7 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
   }
   reasons.push(reason("G2", true, "tip 단독 아님", "not tip-only"));
 
-  // G1 independence
+  // G1 independence (어댑터 스캐폴드 제외)
   const g1 =
     independenceCount >= 2 || (modalityCount >= 2 && independenceCount >= 1);
   reasons.push(
@@ -101,7 +112,21 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
     ),
   );
   if (!g1) {
-    return { grade: "drop", reasons, bundle };
+    // 단일 UKMTO·NAVAREA 등 alert/official 1건 → drop 대신 low(얇음)
+    // Watchboard만, economy_alert / map_hero(std+)는 불가
+    if (isSoleOfficialOrAlert(obs)) {
+      reasons.push(
+        reason(
+          "G1-official",
+          true,
+          "단일 공식·경보 — low(얇음) 캡",
+          "sole official/alert → low cap",
+        ),
+      );
+      grade = "low";
+    } else {
+      return { grade: "drop", reasons, bundle };
+    }
   }
 
   // G4 geo
@@ -130,13 +155,13 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
   );
   if (!g5) return { grade: "drop", reasons, bundle };
 
-  // G3 media quality
-  if (t3OnlyMedia(obs) && mediaOnly(obs)) {
+  // G3 media quality (스캐폴드 제외)
+  if (t3OnlyMedia(scored) && mediaOnly(scored)) {
     reasons.push(
       reason("G3", false, "T3 매체만 — low 캡", "T3-only media → low cap"),
     );
     grade = capGrade(grade, "low");
-  } else if (mediaOnly(obs)) {
+  } else if (mediaOnly(scored)) {
     reasons.push(
       reason("G3", true, "매체만 — high 금지", "media-only → no high"),
     );
@@ -183,7 +208,7 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
   }
 
   // G9 high requires modality≥2 and not media-only
-  if (modalityCount < 2 || mediaOnly(obs)) {
+  if (modalityCount < 2 || mediaOnly(scored)) {
     reasons.push(
       reason(
         "G9",
@@ -200,6 +225,11 @@ export function evaluateGate(bundle: EvidenceBundle): GateResult {
   // Floor: if we still high but independence weak for high
   if (grade === "high" && independenceCount < 2) {
     grade = "std";
+  }
+
+  // 단일 공식·경보 경로는 끝까지 low를 넘지 못함
+  if (!g1 && isSoleOfficialOrAlert(obs)) {
+    grade = capGrade(grade, "low");
   }
 
   return { grade, reasons, bundle };

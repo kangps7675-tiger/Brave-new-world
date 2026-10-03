@@ -20,7 +20,7 @@
 | ID | 규칙 | 실패 시 |
 |----|------|---------|
 | G0 | schema: observations≥1, method | drop |
-| G1 | independence≥2 **or** (modality≥2 ∧ independence≥1) | drop / tip→hold |
+| G1 | independence≥2 **or** (modality≥2 ∧ independence≥1). `countsTowardIndependence: false` 스캐폴드는 제외. 단일 alert/official(UKMTO·NAVAREA 등)은 drop 대신 **low** | drop / tip→hold / sole-official→low |
 | G2 | tip-only 단독 Pass 금지 | hold |
 | G3 | media-only → high 금지; T3-only → low/drop | cap |
 | G4 | geoOk (종류별 시공간) | drop |

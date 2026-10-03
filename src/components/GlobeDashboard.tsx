@@ -8253,6 +8253,14 @@ export function GlobeDashboard({
     const ukmtoCount = stress.signals.filter((s) =>
       /ukmto/i.test(`${s.sourceKo} ${s.sourceEn} ${s.labelKo} ${s.labelEn}`),
     ).length;
+    // B급: PortWatch 데이터가 있다고 신호가 아님 — 통항 급감(-12% 이하)만
+    const aisStress =
+      ais != null &&
+      Number.isFinite(ais.changePct) &&
+      ais.changePct <= -12;
+    // C급: normal 힌트·존재만으로 독립 채널을 만들지 않음
+    const assetStress =
+      asset != null && asset.hint !== "normal" ? asset.hint : null;
     const gate = gateChokepointStress({
       nameKo: point.name,
       nameEn:
@@ -8261,8 +8269,9 @@ export function GlobeDashboard({
         chokepointId: point.id,
         grade: stress.level,
         ukmtoCount: Math.max(ukmtoCount, stress.graded ? 1 : 0),
-        hasAis: ais != null,
-        hasAssetHint: asset != null,
+        hasAis: aisStress,
+        hasAssetHint: assetStress != null,
+        assetHint: assetStress,
       },
       lat: point.lat,
       lng: point.lng,

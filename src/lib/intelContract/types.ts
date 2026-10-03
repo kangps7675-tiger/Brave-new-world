@@ -42,6 +42,12 @@ export type Observation = {
   payloadRef: string;
   label?: string;
   text?: string;
+  /**
+   * false면 G1 독립성·independenceCount에 넣지 않음.
+   * 어댑터 스캐폴드(가짜 채널 부풀리기)는 반드시 false.
+   * 생략 시 true.
+   */
+  countsTowardIndependence?: boolean;
 };
 
 export type EvidenceBundle = {
