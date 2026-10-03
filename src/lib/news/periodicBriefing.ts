@@ -325,6 +325,30 @@ export function clearLampFolded(key: string): void {
   }
 }
 
+/**
+ * 등불뉴스 — 뉴비 전용이 아님. **일반 유저 포함**, 브라우저 세션당 모드별
+ * 첫 자동 펼침 1회. (설명창/투어와 달리 재방문에도 세션 처음에 켠다)
+ */
+const LAMP_SESSION_OPENED_PREFIX = "cv-lamp-session-opened-";
+
+export function hasLampAutoOpenedThisSession(mode: ViewerMode): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.sessionStorage.getItem(LAMP_SESSION_OPENED_PREFIX + mode) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markLampAutoOpenedThisSession(mode: ViewerMode): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(LAMP_SESSION_OPENED_PREFIX + mode, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 /** 월요일 주간 회고 storage 키 — `weekly-YYYY-Www-{conflict|economy}` */
 export function weeklyRecapStorageKey(weekKey: string, mode: ViewerMode): string {
   return `${weekKey}-${mode}`;

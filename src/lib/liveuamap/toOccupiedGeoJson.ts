@@ -8,6 +8,7 @@ import {
   attachOccupiedMeta,
   type OccupiedGeoJson,
 } from "@/lib/deepstate/toOccupiedGeoJson";
+import { featureInControlBounds } from "@/lib/liveuamap/controlBounds";
 import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
 import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
 
@@ -83,8 +84,11 @@ function featureFromUnknown(raw: unknown, index: number, regionId: string): Feat
         const a = Number(p[0]);
         const b = Number(p[1]);
         if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
-        // heuristic: |lat|<=90 and first looks like lat → [lng,lat]
-        if (Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) < Math.abs(b)) {
+        // heuristic: LiveUA often sends [lat,lng]. Prefer GeoJSON [lng,lat].
+        // Swap only when the first number looks more like lat than lng
+        // (|a| > |b| within lat/lng ranges) — e.g. [48,37] → [37,48].
+        // Do NOT swap [37,48] (already lng,lat for Ukraine).
+        if (Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) > Math.abs(b)) {
           ring.push([b, a]);
         } else {
           ring.push([a, b]);
@@ -140,7 +144,10 @@ export function liveuamapFieldsToOccupiedGeoJson(
   const features: Feature[] = [];
   rawList.forEach((row, i) => {
     const f = featureFromUnknown(row, i, regionId);
-    if (f) features.push(f);
+    if (!f) return;
+    // 공유 resid(예: IL/LB)에서 타 전장 폴리곤이 섞이지 않게 bbox 필터
+    if (!featureInControlBounds(f, regionId)) return;
+    features.push(f);
   });
   if (!features.length) return null;
 

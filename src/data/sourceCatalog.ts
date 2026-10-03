@@ -86,7 +86,7 @@ export const PRIMARY_LIVE_SOURCES: PrimaryLiveSource[] = [
     id: "adsb",
     nameKo: "ADS-B",
     nameEn: "Automatic Dependent Surveillance–Broadcast",
-    product: "adsb.lol · airplanes.live · ADSBexchange / adsb.fi",
+    product: "adsb.lol · ADSBexchange",
     url: "https://www.adsbexchange.com/",
     layers: "군용기·민간 항적 (/api/adsb-mil, /api/adsb-traffic)",
     noteKo:
@@ -303,12 +303,12 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   {
     layerId: "newfeeds-iran",
     source: "NewFeeds (ktoetotam/NewFeeds)",
-    url: "/api/newfeeds-attacks?iran=1 · news via /api/news-stream",
-    cadence: "5 min cache · attacks map + iran.json → bottom breaking",
+    url: "/api/newfeeds/sync · /api/newfeeds-attacks?iran=1 · news-stream",
+    cadence: "Cron POST /api/newfeeds/sync → D1/memory · client reads snapshot",
     attribution:
       "NewFeeds · https://github.com/ktoetotam/NewFeeds (MIT) — underlying outlets retained per article",
     notes:
-      "Iran-related geocoded attack/military events on the map (layer toggle). Iran state/regional headlines merge into /api/news-stream as Tier-3 state media and compete for the bottom breaking hero. Always credit NewFeeds when displayed. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on) 켜지면 지도 핀은 conflict-events(이란 전장)로 대체되어 숨김 — 하단 속보(bottom breaking)는 그대로 유지. 코드는 병행 롤백용으로 유지.",
+      "프로덕션 경로( stub/시드 아님 ). cron이 attacks.json + feeds/iran.json을 당겨 D1·메모리에 적재하고, 지도는 conflict-events 이란 전장 칩으로, 하단 속보는 news-stream Tier-3으로 노출. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on)면 레거시 토글은 숨기고 통합 레이어만 쓴다. Always credit NewFeeds.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "allowed",

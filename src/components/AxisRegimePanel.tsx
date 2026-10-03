@@ -55,8 +55,8 @@ export function AxisRegimePanel({
         <div>
           <p className="text-micro uppercase tracking-[0.2em] text-violet-200/55">
             {en
-              ? `Territorial archive · intra-bloc · ${FRICTION_EPISODES.length} · locked`
-              : `영토분쟁 아카이브 · 진영 내부 · ${FRICTION_EPISODES.length}건 · 잠금`}
+              ? `History window · intra-bloc · ${FRICTION_EPISODES.length}`
+              : `역사 창 · 진영 내부 · ${FRICTION_EPISODES.length}건`}
           </p>
           <h2 className="mt-0.5 text-sm font-medium text-violet-50">
             {hub?.label ??
@@ -66,8 +66,8 @@ export function AxisRegimePanel({
           </h2>
           <p className="mt-1 text-micro leading-4 text-violet-100/45">
             {en
-              ? "This panel stays locked until you exit (✕). Zoom and mode switches will not leave it."
-              : "나가기(✕) 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다."}
+              ? "Inside the history window. Zooming out stays inside. Exit pulls the view back out."
+              : "역사 창 안입니다. 줌아웃으로는 나가지 않습니다. 나가기를 누르면 창 밖 시야로 돌아갑니다."}
           </p>
         </div>
         <button

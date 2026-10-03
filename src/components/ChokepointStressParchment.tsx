@@ -1,6 +1,9 @@
 "use client";
 
+import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
+import type { DisplayGrade } from "@/lib/intelContract/types";
+import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
 
@@ -9,6 +12,10 @@ type Props = {
   lang: LabelLanguage;
   onDismiss: () => void;
   onFlyTo: () => void;
+  displayGrade?: DisplayGrade;
+  onDrill?: () => void;
+  /** 관측 모드로 이동 (전황 책 이식 없음) */
+  onOpenObserve?: () => void;
 };
 
 /** 선물 등가 연동 전 — 등락 그래프 자리만 표시. */
@@ -76,6 +83,9 @@ export function ChokepointStressParchment({
   lang,
   onDismiss,
   onFlyTo,
+  displayGrade,
+  onDrill,
+  onOpenObserve,
 }: Props) {
   const desk =
     briefing.kind === "energy-infra"
@@ -104,11 +114,43 @@ export function ChokepointStressParchment({
       titleId="chokepoint-stress-briefing-title"
       zIndexClass="z-[900]"
       bodyExtra={
-        <AssetGraphSlot
-          label={briefing.assetSlotLabel}
-          changePct={briefing.transitChangePct}
-          lang={lang}
-        />
+        <>
+          {displayGrade || onDrill || onOpenObserve ? (
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {displayGrade ? (
+                <IntelGradeBadge grade={displayGrade} lang={lang} />
+              ) : null}
+              {onDrill ? (
+                <button
+                  type="button"
+                  onClick={onDrill}
+                  className="rounded-sm border border-[#6b4a22]/45 px-2 py-0.5 text-micro text-[#5c4030]/90"
+                  title={
+                    lang === "en"
+                      ? "See sources and grade reasons"
+                      : "출처와 등급 이유 보기"
+                  }
+                >
+                  {INTEL_UX.drillButton[lang === "en" ? "en" : "ko"]}
+                </button>
+              ) : null}
+              {onOpenObserve ? (
+                <button
+                  type="button"
+                  onClick={onOpenObserve}
+                  className="rounded-sm border border-teal-700/35 px-2 py-0.5 text-micro text-teal-900/80"
+                >
+                  {lang === "en" ? "View in Observe" : "관측에서 보기"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          <AssetGraphSlot
+            label={briefing.assetSlotLabel}
+            changePct={briefing.transitChangePct}
+            lang={lang}
+          />
+        </>
       }
     />
   );

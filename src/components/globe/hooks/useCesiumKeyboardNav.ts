@@ -109,7 +109,14 @@ export function useCesiumKeyboardNav(
         const amount = Math.abs(height - height / Math.pow(2, rate * clampedDt));
         try {
           if (zoomDir > 0) viewer.camera.zoomIn(amount);
-          else viewer.camera.zoomOut(amount);
+          else {
+            const max = viewer.scene.screenSpaceCameraController.maximumZoomDistance;
+            if (Number.isFinite(max) && height >= max - 40) {
+              /* 속보 공간 — 키보드 줌아웃도 창 밖에서 멈춘다 */
+            } else {
+              viewer.camera.zoomOut(amount);
+            }
+          }
         } catch {
           /* ignore */
         }
@@ -122,7 +129,47 @@ export function useCesiumKeyboardNav(
       if (!rafId) rafId = requestAnimationFrame(tick);
     };
 
+    /** Ctrl/Alt + 화살표·WASD → 기울기·좌우 회전 (LiveUA 위치 관측용) */
+    const applyModifierLook = (event: KeyboardEvent): boolean => {
+      if (!(event.altKey || event.ctrlKey) || event.metaKey) return false;
+      if (shouldIgnoreGlobeKeyboardNav(event.target, document.activeElement)) {
+        return false;
+      }
+      const code = event.code;
+      const step = event.shiftKey ? 0.045 : 0.028;
+      try {
+        const camera = viewer.camera;
+        if (code === "ArrowLeft" || code === "KeyA") {
+          camera.rotateRight(-step);
+          event.preventDefault();
+          return true;
+        }
+        if (code === "ArrowRight" || code === "KeyD") {
+          camera.rotateRight(step);
+          event.preventDefault();
+          return true;
+        }
+        if (code === "ArrowUp" || code === "KeyW") {
+          camera.rotateUp(-step);
+          event.preventDefault();
+          return true;
+        }
+        if (code === "ArrowDown" || code === "KeyS") {
+          camera.rotateUp(step);
+          event.preventDefault();
+          return true;
+        }
+      } catch {
+        /* destroyed */
+      }
+      return false;
+    };
+
     const onKeyDown = (event: KeyboardEvent) => {
+      if (applyModifierLook(event)) {
+        cancelFlightOnce();
+        return;
+      }
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (shouldIgnoreGlobeKeyboardNav(event.target, document.activeElement)) return;
 

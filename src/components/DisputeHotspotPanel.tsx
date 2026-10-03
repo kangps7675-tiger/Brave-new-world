@@ -119,8 +119,8 @@ export function DisputeHotspotPanel({
           </h2>
           <p className="mt-1 text-micro leading-4 text-rose-100/45">
             {en
-              ? "Past clashes and still-tense borders in one list. Pick one to read the story on the map."
-              : "예전에 싸운 곳과 지금도 긴장인 국경을 한 목록으로. 골라 읽으면 지도에 줄거리가 뜹니다."}
+              ? "Inside the territorial window. Zooming out stays inside. Exit pulls the view back out."
+              : "영토분쟁 창 안입니다. 줌아웃으로는 나가지 않습니다. 나가기를 누르면 창 밖 시야로 돌아갑니다."}
           </p>
         </div>
         <button

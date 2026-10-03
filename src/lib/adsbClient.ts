@@ -217,7 +217,7 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
  */
 export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
   url: string;
-  source: "adsbx" | "adsb.lol" | "adsb.fi";
+  source: "adsbx" | "adsb.lol";
 } {
   const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
   const custom = process.env.ADSBEXCHANGE_TRAFFIC_URL?.trim();

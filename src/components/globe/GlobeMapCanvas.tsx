@@ -58,8 +58,23 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   onSelectCesiumEntity?: (selection: CesiumEntitySelection) => void;
   /** 세슘 알림 핀 */
   alertPins?: CesiumAlertItem[];
+  /** 속보 공간 — 휠 줌아웃 상한(m). 없으면 제한 없음 */
+  cameraCeilingM?: number | null;
   onSelectCesiumAlert?: (item: CesiumAlertItem) => void;
-  liveuaPins?: Array<{ id: string; title: string; lat: number; lng: number }>;
+  /** 관측 모드 — 지정학과 동일 UKMTO/NAVAREA 빗금 + 초크 링 */
+  ukmtoIncidents?: import("@/lib/ukmtoHatch").UkmtoIncidentPoint[];
+  navareaFeatures?: import("@/lib/navareaHatch").NavareaFeaturePoint[];
+  chokeRings?: import("@/lib/cesiumMaritimeOverlays").CesiumChokeRingInput[];
+  liveuaPins?: Array<{
+    id: string;
+    title: string;
+    lat: number;
+    lng: number;
+    imageUrl?: string;
+  }>;
+  focusedLiveuaId?: string | null;
+  liveuaStrikes?: import("@/lib/cesiumLiveuaStrikes").CesiumLiveuaStrikePoint[];
+  liveuaGround?: import("@/lib/cesiumLiveuaGround").CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
   controlGeoJson?: GeoJSON.FeatureCollection | null;
   firmsFires?: import("@/lib/cesiumFirmsFires").CesiumFirmsFirePoint[];
@@ -101,8 +116,15 @@ export function GlobeMapCanvas({
   onCesiumReady,
   onSelectCesiumEntity,
   alertPins,
+  cameraCeilingM,
   onSelectCesiumAlert,
+  ukmtoIncidents,
+  navareaFeatures,
+  chokeRings,
   liveuaPins,
+  focusedLiveuaId,
+  liveuaStrikes,
+  liveuaGround,
   onSelectLiveuaPin,
   controlGeoJson,
   firmsFires,
@@ -129,6 +151,11 @@ export function GlobeMapCanvas({
         {!isPhoneUi && satelliteMode ? (
           <CesiumSatelliteGlobe
             ref={cesiumRef}
+            handleRef={
+              cesiumRef && typeof cesiumRef === "object" && "current" in cesiumRef
+                ? cesiumRef
+                : undefined
+            }
             aisVessels={aisVessels}
             disguisedVessels={disguisedVessels}
             milAircraft={milAircraft}
@@ -144,8 +171,15 @@ export function GlobeMapCanvas({
             onReady={onCesiumReady}
             onSelectEntity={onSelectCesiumEntity}
             alertPins={alertPins}
+            cameraCeilingM={cameraCeilingM}
             onSelectAlert={onSelectCesiumAlert}
+            ukmtoIncidents={ukmtoIncidents}
+            navareaFeatures={navareaFeatures}
+            chokeRings={chokeRings}
             liveuaPins={liveuaPins}
+            focusedLiveuaId={focusedLiveuaId}
+            liveuaStrikes={liveuaStrikes}
+            liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
             controlGeoJson={controlGeoJson}
             firmsFires={firmsFires}

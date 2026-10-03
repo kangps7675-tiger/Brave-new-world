@@ -9,13 +9,20 @@
 | 레이어 | 경로 | 비고 |
 |--------|------|------|
 | 전선 속보 이벤트 | 메모리 store 48h · Cesium 핀 · 쪽지/독/양피지 | KO=`titleKo`/`bodyKo` (sync 시 번역) |
-| 통제·점령 폴리곤 | mpts `fields`/`kmls` → D1 `liveua-{region}` | **본선.** 빈 배열이면 면 OFF (가짜 면 금지) |
-| 우크라 폴백 | DeepState 3일 스냅샷 | LiveUA 없을 때만 (`resolveUkraineOccupied`) |
+| 통제·점령 폴리곤 | mpts Polygon → D1 `liveua-{region}` | **본선.** Cesium always-on (UA/IR/YE/LB). 빈 배열이면 면 OFF |
+| 우크라 폴백 | DeepState 3일 스냅샷 | MapLibre만. Cesium은 `liveuaOnly` (DeepState 금지) |
 
 ## 예산
 
 일 `LIVEUAMAP_DAILY_BUDGET`(기본 200). 슬롯: UA96 · Iran48 · YE24 · LB16 · IL-PS12 · TW4 · KR4.
-`LIVEUAMAP_RESID_MAP` JSON으로 resid 확정(Ukraine=`0` 내장).
+내장 resid: Ukraine=`0`, Lebanon/IL-PS=`2`. Iran·Yemen은 `LIVEUAMAP_RESID_MAP`으로 넣는다.
+동일 resid는 sync 시 HTTP 1회만 쓰고, 통제면은 지역 bbox로 걸러 저장한다.
+
+## 로컬 next dev · D1
+
+`CLOUDFLARE_*` D1 HTTP 자격 증명이 있으면 next dev는 **원격 D1을 우선**한다.
+(로컬 OpenNext/wrangler 바인딩에 `deepstate_occupied_snapshots` 마이그레이션이 없으면
+통제면 쿼리가 실패해 Cesium 면이 비었다.)
 
 ## 상업·면책
 

@@ -51,8 +51,23 @@ export interface UseGlobeCameraOptions {
   globeReady: boolean;
   setGlobeReady: (v: boolean) => void;
   historyImmersionRef: MutableRefObject<boolean>;
+  /** 가까운 경사 진입 후 줌아웃 상한. 역사 잠금과 별개 */
+  focusAltitudeCeilingRef: MutableRefObject<number | null>;
+  /** 상한이 정해진 뒤 컨트롤을 다시 맞추기 위한 값 */
+  focusCeilingAltitude?: number | null;
   historyImmersionActive: boolean;
   historyEpisodeActive: boolean;
+  onCloseLookRef?: MutableRefObject<
+    | ((info: {
+        lat: number;
+        lng: number;
+        altitude: number;
+        pitch: number;
+        bearing: number;
+        durationMs: number;
+      }) => void)
+    | null
+  >;
 }
 
 export interface UseGlobeCameraResult {
@@ -101,6 +116,9 @@ export function useGlobeCamera({
   globeReady,
   setGlobeReady,
   historyImmersionRef,
+  focusAltitudeCeilingRef,
+  focusCeilingAltitude = null,
+  onCloseLookRef,
   historyImmersionActive,
   historyEpisodeActive,
 }: UseGlobeCameraOptions): UseGlobeCameraResult {
@@ -205,14 +223,20 @@ export function useGlobeCamera({
       const ALT_CLAMP_SLACK = 0.025;
       if (pov.altitude < MIN_GLOBE_ALTITUDE - ALT_CLAMP_SLACK) {
         globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: MIN_GLOBE_ALTITUDE }, 0);
-      } else if (
-        historyImmersionRef.current &&
-        pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE + ALT_CLAMP_SLACK
-      ) {
-        globe.pointOfView(
-          { lat: pov.lat, lng: pov.lng, altitude: HISTORY_IMMERSION_MAX_ALTITUDE },
-          0,
-        );
+      } else if (historyImmersionRef.current) {
+        const focusCap = focusAltitudeCeilingRef.current;
+        const cap =
+          focusCap != null
+            ? Math.min(HISTORY_IMMERSION_MAX_ALTITUDE, focusCap)
+            : HISTORY_IMMERSION_MAX_ALTITUDE;
+        if (pov.altitude > cap + ALT_CLAMP_SLACK) {
+          globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: cap }, 0);
+        }
+      } else {
+        const focusCap = focusAltitudeCeilingRef.current;
+        if (focusCap != null && pov.altitude > focusCap + ALT_CLAMP_SLACK) {
+          globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: focusCap }, 0);
+        }
       }
 
       // 드래그 중 setViewState 금지 — 대시보드 전체 리렌더가 프레임을 갉아먹음 (idle에서만 반영)
@@ -278,6 +302,16 @@ export function useGlobeCamera({
       const clampedAlt = clampGlobeAltitude(altitude);
       const resolvedDuration = resolveCinematicDurationMs(durationMs);
       const resolvedCamera = resolveCinematicCamera(camera);
+      if (resolvedDuration > 0) {
+        onCloseLookRef?.current?.({
+          lat,
+          lng,
+          altitude: clampedAlt,
+          pitch: resolvedCamera.pitch,
+          bearing: resolvedCamera.bearing,
+          durationMs: resolvedDuration,
+        });
+      }
       pendingFlyTargetRef.current = {
         lat,
         lng,
@@ -339,7 +373,7 @@ export function useGlobeCamera({
         }, CAMERA_IDLE_DEBOUNCE_MS);
       }, busyMs);
     },
-    [],
+    [onCloseLookRef],
   );
 
   /**
@@ -452,18 +486,24 @@ export function useGlobeCamera({
     const controls = globe.controls();
     if (!controls) return;
     if (historyImmersionActive) {
-      // 분쟁사: 줌아웃으로 창 탈출 불가 — 궤도 상한. 에피소드 중엔 회전도 잠금
-      controls.maxDistance = globeDistanceForAltitude(HISTORY_IMMERSION_MAX_ALTITUDE);
+      const cap =
+        focusCeilingAltitude != null
+          ? Math.min(HISTORY_IMMERSION_MAX_ALTITUDE, focusCeilingAltitude)
+          : HISTORY_IMMERSION_MAX_ALTITUDE;
+      // 분쟁사·영토분쟁: 줌아웃으로 창 탈출 불가. 에피소드 중엔 회전도 잠금
+      controls.maxDistance = globeDistanceForAltitude(cap);
       controls.enableZoom = true;
       controls.enablePan = !historyEpisodeActive;
       controls.enableRotate = !historyEpisodeActive;
       const pov = globe.pointOfView();
-      if (pov.altitude > HISTORY_IMMERSION_MAX_ALTITUDE + 0.025) {
-        globe.pointOfView(
-          { lat: pov.lat, lng: pov.lng, altitude: HISTORY_IMMERSION_MAX_ALTITUDE },
-          400,
-        );
+      if (pov.altitude > cap + 0.025) {
+        globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: cap }, 400);
       }
+    } else if (focusCeilingAltitude != null) {
+      controls.maxDistance = globeDistanceForAltitude(focusCeilingAltitude);
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
     } else {
       controls.maxDistance = globeDistanceForAltitude(
         globeOrbitMaxAltitude(size.width, size.height),
@@ -476,6 +516,7 @@ export function useGlobeCamera({
     globeReady,
     historyEpisodeActive,
     historyImmersionActive,
+    focusCeilingAltitude,
     size.height,
     size.width,
   ]);

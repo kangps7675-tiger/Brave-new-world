@@ -3,7 +3,10 @@ import { publicCacheHeaders, CDN_CACHE } from "@/lib/httpCacheHeaders";
 import { emptyOccupiedGeoJson } from "@/lib/deepstate/toOccupiedGeoJson";
 import { loadLiveuaControlFromD1 } from "@/lib/liveuamap/controlSnapshotStore";
 import { resolveUkraineOccupied } from "@/lib/liveuamap/resolveUkraineOccupied";
-import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
+import {
+  isLiveuamapControlRegionId,
+  type LiveuamapControlRegionId,
+} from "@/lib/liveuamap/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,14 +15,14 @@ export const dynamic = "force-dynamic";
  * 점령/통제 영토 GeoJSON.
  * Ukraine: LiveUA 우선 → DeepState 폴백 (MapLibre).
  *   `?liveuaOnly=1` → LiveUA만 (Cesium; DeepState 금지).
- * Yemen/Lebanon: LiveUA만 (?region=yemen|lebanon).
+ * Iran/Yemen/Lebanon: LiveUA만 (?region=iran|yemen|lebanon).
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const regionRaw = (url.searchParams.get("region") || "ukraine").toLowerCase();
-  const region = (
-    regionRaw === "yemen" || regionRaw === "lebanon" ? regionRaw : "ukraine"
-  ) as LiveuamapControlRegionId;
+  const region: LiveuamapControlRegionId = isLiveuamapControlRegionId(regionRaw)
+    ? regionRaw
+    : "ukraine";
   const liveuaOnly =
     url.searchParams.get("liveuaOnly") === "1" ||
     url.searchParams.get("liveuaOnly") === "true";
@@ -61,7 +64,7 @@ export async function GET(req: Request) {
         error: "LiveUA control polygons unavailable",
         timestamp: new Date().toISOString(),
       },
-      // YE/LB empty도 Cesium 폴링에서 정상 대기 상태
+      // empty도 Cesium 폴링에서 정상 대기 상태
       { status: liveuaOnly ? 200 : 404 },
     );
   }

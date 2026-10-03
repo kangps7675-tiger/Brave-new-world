@@ -33,3 +33,6 @@ NASA_FIRMS_API_KEY=your_nasa_firms_map_key_here
 
 # LIVEUAMAP mpts sync (서버 전용 키는 Next .env — cron은 sync URL만)
 # LIVEUAMAP_SYNC_URL=http://127.0.0.1:3000/api/liveuamap/sync
+
+# NewFeeds Iran (attacks + iran.json) — 프로덕션 ingest, stub 아님
+# NEWFEEDS_SYNC_URL=http://127.0.0.1:3000/api/newfeeds/sync

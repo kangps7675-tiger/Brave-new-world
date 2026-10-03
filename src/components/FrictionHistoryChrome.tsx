@@ -69,8 +69,8 @@ export function FrictionHistoryChrome({
           <h2 className="mt-0.5 truncate text-sm font-medium text-violet-50">{episode.title}</h2>
           <p className="mt-1 text-micro leading-4 text-violet-100/50">
             {ko
-              ? "나가기 버튼을 누르기 전까지 이 창을 떠날 수 없습니다. 줌·모드 전환으로 탈출되지 않습니다."
-              : "You can’t leave until you press Exit. Zoom and mode switches won’t eject you."}
+              ? "역사 창 안입니다. 줌아웃으로는 나가지 않습니다. 나가기를 누르면 창 밖 시야로 돌아갑니다."
+              : "Inside the history window. Zooming out stays inside. Exit pulls the view back out."}
           </p>
         </div>
         <button

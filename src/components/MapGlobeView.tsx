@@ -1279,7 +1279,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     container.addEventListener("webglcontextcreationerror", onCreationError, true);
 
     const timeoutId = window.setTimeout(() => {
-      if (!mapLoadedRef.current) setMapInitFailed(true);
+      if (mapLoadedRef.current) return;
+      // Map 객체가 있으면 WebGL 컨텍스트는 이미 만들어진 것이다.
+      // 스타일이 느린 것까지 실패로 치면 로딩이 97%에 멈추고, 재시도가 전체 로딩을 다시 시작한다.
+      if (mapRef.current?.getMap()) return;
+      setMapInitFailed(true);
     }, 15_000);
 
     return () => {

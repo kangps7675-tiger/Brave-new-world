@@ -1,6 +1,9 @@
 "use client";
 
+import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
+import type { DisplayGrade } from "@/lib/intelContract/types";
+import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { t } from "@/lib/uiStrings";
@@ -11,6 +14,8 @@ type BreakingFlashParchmentProps = {
   onDismiss: () => void;
   /** 수동 위치 이동 — 자동 fly 없음 */
   onGoToLocation?: () => void;
+  displayGrade?: DisplayGrade;
+  onDrill?: () => void;
 };
 
 /**
@@ -22,6 +27,8 @@ export function BreakingFlashParchment({
   lang,
   onDismiss,
   onGoToLocation,
+  displayGrade,
+  onDrill,
 }: BreakingFlashParchmentProps) {
   const desk =
     lang === "en" ? "Breaking desk · Globe Observatory" : "속보 데스크 · 지구본 관측대";
@@ -51,6 +58,29 @@ export function BreakingFlashParchment({
       leadVideoUrl={briefing.videoUrl}
       secondaryCtaLabel={canFly ? t("breakingFlashGoObserve", lang) : undefined}
       onSecondaryCta={canFly ? onGoToLocation : undefined}
+      bodyExtra={
+        displayGrade || onDrill ? (
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            {displayGrade ? (
+              <IntelGradeBadge grade={displayGrade} lang={lang} />
+            ) : null}
+            {onDrill ? (
+              <button
+                type="button"
+                onClick={onDrill}
+                className="rounded-sm border border-[#6b4a22]/45 px-2 py-0.5 text-micro text-[#5c4030]/90"
+                title={
+                  lang === "en"
+                    ? "See sources and grade reasons"
+                    : "출처와 등급 이유 보기"
+                }
+              >
+                {INTEL_UX.drillButton[lang === "en" ? "en" : "ko"]}
+              </button>
+            ) : null}
+          </div>
+        ) : undefined
+      }
     />
   );
 }

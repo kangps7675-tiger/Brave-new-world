@@ -119,7 +119,7 @@ Aldous Huxley 《Brave New World》를 모티브로 한 3D 지구본 관측대�
 | 인터넷 교환점 | PeeringDB |
 
 #### 군사 · 안보
-미군 기지 · **군사 항공기 (adsb.fi)** · 정보 수집 거점 · 난민 캠프 · **미 해군 항공모함**
+미군 기지 · **군사 항공기 (adsb.lol)** · 정보 수집 거점 · 난민 캠프 · **미 해군 항공모함**
 
 #### 실시간 · 사건
 NASA FIRMS 화재 · 사이버 공격 · 선거 · 우주 발사 (Launch Library 2)
@@ -252,7 +252,7 @@ Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cl
 | API | 내용 |
 |-----|------|
 | `/api/ais` | AISstream 선박 |
-| `/api/adsb-mil` | adsb.fi 군용기 |
+| `/api/adsb-mil` | adsb.lol 군용기 |
 | `/api/firms-fires` | NASA FIRMS |
 | `/api/us-carriers` | 미 항모 |
 | `/api/stock-tickers` | Yahoo Finance 티커 |
@@ -467,7 +467,7 @@ public/audio/             # 로컬 전투·공습 샘플
 | **Critical Node Atlas (MIT)** | 크리티컬 노드 |
 | **TeleGeography** | 해저 케이블 |
 | **PeeringDB** | IXP |
-| **adsb.fi / AISstream** | 군용기·선박 |
+| **adsb.lol / AISstream** | 군용기·선박 |
 | **Pikud HaOref** | 이스라엘 공습 |
 | **UKMTO** (Royal Navy) | 홍해·호르무즈 등 상선 피습·나포 경보 (비공식 엔드포인트) |
 | **The Space Devs** | 우주 발사 |

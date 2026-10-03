@@ -34,6 +34,8 @@ type UtilityChromeMenuProps = {
   } | null;
   onTour: () => void;
   onHelp: () => void;
+  /** 지구본 조작키 안내 */
+  onOpenControlsGuide?: () => void;
   onOpenSources?: () => void;
   onOpenPurposeJob?: () => void;
   onOpenParchment?: () => void;
@@ -63,6 +65,7 @@ const MENU_COPY = {
     share: "공유",
     shareBusy: "공유 중…",
     help: "도움말",
+    controls: "조작키",
     purposeJob: "무엇을 볼까요?",
     sources: "데이터 출처",
     parchment: "출처 양피지 (8)",
@@ -84,6 +87,7 @@ const MENU_COPY = {
     share: "Share",
     shareBusy: "Sharing…",
     help: "Help",
+    controls: "Controls",
     purposeJob: "What to see?",
     sources: "Data sources",
     parchment: "Source guide (8)",
@@ -105,6 +109,7 @@ export function UtilityChromeMenu({
   getScene,
   onTour,
   onHelp,
+  onOpenControlsGuide,
   onOpenSources,
   onOpenPurposeJob,
   onOpenParchment,
@@ -389,6 +394,18 @@ export function UtilityChromeMenu({
         <span aria-hidden>?</span>
         <span>{copy.help}</span>
       </button>
+
+      {onOpenControlsGuide ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={itemClass}
+          onClick={() => runAndClose(onOpenControlsGuide)}
+        >
+          <span aria-hidden>⌨</span>
+          <span>{copy.controls}</span>
+        </button>
+      ) : null}
 
       {onOpenSources ? (
         <button

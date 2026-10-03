@@ -427,6 +427,57 @@ describe("LIVEUA verbatim briefing", () => {
     expect(briefing.imageUrl).toBe("https://example.com/a.jpg");
     expect(briefing.coords).toEqual({ lat: 45, lng: 35 });
   });
+
+  it("keeps Liveuamap coordinates even when the text names another city", () => {
+    const briefing = buildBreakingFlashBriefing(
+      hero({
+        title: "Strike near Kyiv oil depot",
+        summary: "Drones hit a depot outside Kyiv",
+        flashSource: "liveuamap",
+        verbatim: true,
+        lat: 45,
+        lng: 35,
+      }),
+      "en",
+      false,
+    );
+    expect(briefing.flashSource).toBe("liveuamap");
+    expect(briefing.coords).toEqual({ lat: 45, lng: 35 });
+  });
+});
+
+describe("RSS flash place coords", () => {
+  it("flies to the city named in the headline, not a stored theater point", () => {
+    const briefing = buildBreakingFlashBriefing(
+      hero({
+        title: "Blast in Tehran",
+        summary: "Windows shattered downtown",
+        theater: "middle-east",
+        lat: 29.2,
+        lng: 42.5,
+      }),
+      "en",
+      false,
+    );
+    expect(briefing.flashSource).toBe("rss");
+    expect(briefing.coords?.lat).toBeCloseTo(35.69, 1);
+    expect(briefing.coords?.lng).toBeCloseTo(51.39, 1);
+  });
+
+  it("leaves coords empty when the headline has no city or village", () => {
+    const briefing = buildBreakingFlashBriefing(
+      hero({
+        title: "Iran vows a response",
+        summary: "No city was named",
+        theater: "middle-east",
+        lat: 29.2,
+        lng: 42.5,
+      }),
+      "ko",
+      false,
+    );
+    expect(briefing.coords).toBeUndefined();
+  });
 });
 
 describe("pickNextBreakingFlashHero", () => {
