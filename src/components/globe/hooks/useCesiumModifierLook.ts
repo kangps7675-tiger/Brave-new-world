@@ -45,10 +45,13 @@ export function useCesiumModifierLook(
         },
       ];
 
-      controller.lookEventTypes = {
-        eventType: CameraEventType.LEFT_DRAG,
-        modifier: KeyboardEventModifier.SHIFT,
-      };
+      // Cesium typings may narrow lookEventTypes to any[]; use array form like tiltEventTypes.
+      controller.lookEventTypes = [
+        {
+          eventType: CameraEventType.LEFT_DRAG,
+          modifier: KeyboardEventModifier.SHIFT,
+        },
+      ];
     });
 
     return () => {

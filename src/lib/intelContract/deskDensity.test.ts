@@ -71,7 +71,7 @@ describe("buildObserveWatchboard clusters", () => {
             {
               id: "s1",
               name: "Reuters",
-              url: "https://example.com/a",
+              url: "https://www.reuters.com/a",
               title: "Strike",
               occurredAt: "2026-10-03T10:00:00Z",
               trustTier: 1,
@@ -80,7 +80,7 @@ describe("buildObserveWatchboard clusters", () => {
             {
               id: "s2",
               name: "AP",
-              url: "https://example.com/b",
+              url: "https://apnews.com/b",
               title: "Strike",
               occurredAt: "2026-10-03T10:30:00Z",
               trustTier: 1,
