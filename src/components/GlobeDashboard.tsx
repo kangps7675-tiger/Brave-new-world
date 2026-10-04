@@ -265,7 +265,12 @@ import {
   savePerfPrefs,
 } from "@/lib/ultraLiteMode";
 
-import { CINEMATIC_FLY, resolveCinematicCamera, resolveCinematicDurationMs, type FlyCameraOpts } from "@/lib/globeCamera";
+import {
+  LOCATION_LOOK_DOWN,
+  resolveCinematicCamera,
+  resolveCinematicDurationMs,
+  type FlyCameraOpts,
+} from "@/lib/globeCamera";
 import {
   type BattlefieldZone,
 } from "@/lib/battlefieldPresets";
@@ -6861,15 +6866,15 @@ export function GlobeDashboard({
                 lat: ev.lat,
                 lng: ev.lng,
                 altitude: 0.3,
-                pitch: CINEMATIC_FLY.pitch,
+                pitch: LOCATION_LOOK_DOWN.pitch,
                 title,
                 kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
               });
-              // lookAt: 이벤트 좌표가 화면 중앙에 오게 (이전엔 카메라가 그 좌표에 놓여 대상이 화면 밖으로 빠졌다)
-              unifiedFlyTo(ev.lat, ev.lng, 0.3, undefined, {
-                pitch: CINEMATIC_FLY.pitch,
-                bearing: CINEMATIC_FLY.bearing,
-                lookAt: true,
+              // 직하 + lookAt: 사건 좌표를 화면 중앙에서 내려다봄 (대각선 CINEMATIC_FLY 아님)
+              unifiedFlyTo(ev.lat, ev.lng, 0.3, LOCATION_LOOK_DOWN.durationMs, {
+                pitch: LOCATION_LOOK_DOWN.pitch,
+                bearing: LOCATION_LOOK_DOWN.bearing,
+                lookAt: LOCATION_LOOK_DOWN.lookAt,
               });
             }}
             onFocusChokepoint={(choke) => {

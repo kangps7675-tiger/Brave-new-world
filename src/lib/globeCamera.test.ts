@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CINEMATIC_FLY,
+  LOCATION_LOOK_DOWN,
   lookAtRangeForHeight,
   resolveCinematicCamera,
 } from "./globeCamera";
@@ -14,6 +15,17 @@ describe("resolveCinematicCamera", () => {
 
   it("lookAt: true 는 보존된다", () => {
     expect(resolveCinematicCamera({ lookAt: true }).lookAt).toBe(true);
+  });
+
+  it("LOCATION_LOOK_DOWN 은 직하에 가깝고 lookAt 이다", () => {
+    const r = resolveCinematicCamera({
+      pitch: LOCATION_LOOK_DOWN.pitch,
+      bearing: LOCATION_LOOK_DOWN.bearing,
+      lookAt: LOCATION_LOOK_DOWN.lookAt,
+    });
+    expect(r.pitch).toBeLessThan(20);
+    expect(r.bearing).toBe(0);
+    expect(r.lookAt).toBe(true);
   });
 });
 
