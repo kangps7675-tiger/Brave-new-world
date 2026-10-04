@@ -88,7 +88,9 @@ import {
 } from "@/lib/cesiumObserveRenderGovernor";
 import {
   createObserveSurfaceController,
+  observePhotorealAllowedAtHeightM,
   type ObserveSurfaceController,
+  type ObserveSurfaceKind,
 } from "@/lib/cesiumObserveSurface";
 import {
   applyObserveLookToViewer,
@@ -343,7 +345,8 @@ type StackKind = "esri" | "ion" | "google3d";
 type ErrorKind = "chunk" | "assets" | "other";
 
 function readGoogle3dSessionPref(): boolean {
-  if (typeof window === "undefined") return true;
+  // 기본 OFF — 궤도·대륙 뷰에서 Google 실사 수역/LOD 얼룩을 피한다.
+  if (typeof window === "undefined") return false;
   try {
     const raw = sessionStorage.getItem(GOOGLE_3D_SESSION_KEY);
     if (raw === "0") return false;
@@ -351,7 +354,7 @@ function readGoogle3dSessionPref(): boolean {
   } catch {
     /* private mode */
   }
-  return true;
+  return false;
 }
 
 function readGoogle3dQualityPref(): "lite" | "default" {
@@ -1253,7 +1256,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [stack, setStack] = useState<StackKind>("esri");
   /** Google 3D 타일셋이 로드됐을 때 세션 토글 (GPU 완화) */
-  const [google3dOn, setGoogle3dOn] = useState(true);
+  const [google3dOn, setGoogle3dOn] = useState(false);
   const [google3dQuality, setGoogle3dQuality] = useState<"lite" | "default">(
     () => readGoogle3dQualityPref(),
   );
@@ -1292,6 +1295,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const contextLostRecreateRef = useRef(false);
   const softErrorTimerRef = useRef<number | null>(null);
   const surfaceControllerRef = useRef<ObserveSurfaceController | null>(null);
+  /** 고도 게이트가 switchTo를 매 프레임 때리지 않게 */
+  const surfaceKindAppliedRef = useRef<ObserveSurfaceKind | null>(null);
   const placeOverlayRef = useRef<ObservePlaceOverlayHandle | null>(null);
   /** 고도 look SSE — 의미 있는 변화만 armSettle */
   const lookSseAppliedRef = useRef<number | null>(null);
@@ -2532,17 +2537,25 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       applyObserveLookToViewer(viewer, look);
 
       const tileset = googleTilesetRef.current;
-      if (
-        google3dOnRef.current &&
-        tileset &&
-        !tileset.isDestroyed()
-      ) {
+      const hasTileset = Boolean(tileset && !tileset.isDestroyed());
+      if (google3dOnRef.current && hasTileset && tileset) {
         const sse = google3dSseForLook(google3dQualityRef.current, heightM);
         const prev = lookSseAppliedRef.current;
         if (prev == null || Math.abs(prev - sse) >= 0.35) {
           tileset.maximumScreenSpaceError = sse;
           lookSseAppliedRef.current = sse;
           if (prev != null) surfaceControllerRef.current?.armSettle();
+        }
+      }
+      // 대륙·궤도: Google 실사 수역/LOD 얼룩 → 위성만. 저고도에서만 photoreal.
+      if (hasTileset && surfaceControllerRef.current) {
+        const want: ObserveSurfaceKind =
+          google3dOnRef.current && observePhotorealAllowedAtHeightM(heightM)
+            ? "photoreal"
+            : "satellite";
+        if (surfaceKindAppliedRef.current !== want) {
+          surfaceKindAppliedRef.current = want;
+          surfaceControllerRef.current.switchTo(want);
         }
       }
       observeRequestRender();
@@ -2651,16 +2664,24 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       onSettlingChange: setSurfaceSettling,
     });
     surfaceControllerRef.current = ctrl;
+    const heightM =
+      viewer.camera.positionCartographic?.height ?? OBSERVE_LOOK_ORBIT_M;
     const initialPhotoreal =
-      stack === "google3d" && google3dOn && Boolean(googleTilesetRef.current);
-    ctrl.switchTo(initialPhotoreal ? "photoreal" : "satellite", {
-      immediate: true,
-    });
+      stack === "google3d" &&
+      google3dOn &&
+      Boolean(googleTilesetRef.current) &&
+      observePhotorealAllowedAtHeightM(heightM);
+    const initialKind: ObserveSurfaceKind = initialPhotoreal
+      ? "photoreal"
+      : "satellite";
+    surfaceKindAppliedRef.current = initialKind;
+    ctrl.switchTo(initialKind, { immediate: true });
     return () => {
       ctrl.dispose();
       if (surfaceControllerRef.current === ctrl) {
         surfaceControllerRef.current = null;
       }
+      surfaceKindAppliedRef.current = null;
     };
     // boot 직후 1회 + stack 확정. google3dOn 토글은 버튼에서 switchTo.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional boot bind
@@ -3697,9 +3718,15 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
                 onClick={() => {
                   const next = !google3dOn;
                   setGoogle3dOn(next);
-                  surfaceControllerRef.current?.switchTo(
-                    next ? "photoreal" : "satellite",
-                  );
+                  const heightM =
+                    viewerRef.current?.camera.positionCartographic?.height ??
+                    OBSERVE_LOOK_ORBIT_M;
+                  const kind: ObserveSurfaceKind =
+                    next && observePhotorealAllowedAtHeightM(heightM)
+                      ? "photoreal"
+                      : "satellite";
+                  surfaceKindAppliedRef.current = kind;
+                  surfaceControllerRef.current?.switchTo(kind);
                   try {
                     sessionStorage.setItem(
                       GOOGLE_3D_SESSION_KEY,

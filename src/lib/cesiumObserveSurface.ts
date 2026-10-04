@@ -86,6 +86,17 @@ function easeInOutCubic(t: number): number {
  */
 export const OBSERVE_PHOTOREAL_IMAGERY_FLOOR = 1;
 
+/**
+ * Google 실사 3D 최대 고도(m).
+ * 이보다 높으면(대륙·궤도 뷰) 수역 파란 타일·육지 LOD 누더기 얼룩이 심해서 위성만 쓴다.
+ */
+export const OBSERVE_PHOTOREAL_MAX_HEIGHT_M = 100_000;
+
+/** 카메라 고도에서 Google photoreal 타일셋을 켤 수 있는지 */
+export function observePhotorealAllowedAtHeightM(heightM: number): boolean {
+  return Number.isFinite(heightM) && heightM <= OBSERVE_PHOTOREAL_MAX_HEIGHT_M;
+}
+
 /** photoreal ON → imagery alpha floor, OFF → 1 */
 export function imageryAlphaForSurface(
   kind: ObserveSurfaceKind,
