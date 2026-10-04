@@ -91,6 +91,8 @@ export interface UseGlobeCameraResult {
   isCameraMoving: boolean;
   setIsCameraMoving: Dispatch<SetStateAction<boolean>>;
   configureGlobe: () => void;
+  /** 관측 진입 시 MapLibre 바인딩·globeReady 리셋 */
+  resetMapLibreBinding: () => void;
   flyTo: (
     lat: number,
     lng: number,
@@ -172,22 +174,47 @@ export function useGlobeCamera({
     };
   }, []);
 
+  /** 관측(Cesium) 전환 시 호출 — MapLibre 재마운트 후 configureGlobe가 다시 돌게 한다. */
+  const resetMapLibreBinding = useCallback(() => {
+    configuredGlobe.current = false;
+    setGlobeReady(false);
+  }, [setGlobeReady]);
+
   function configureGlobe() {
     if (configuredGlobe.current) return;
     const globe = globeRef.current;
     if (!globe) return;
+    // imperative handle은 onLoad 전에도 붙을 수 있음 — 실제 맵이 있을 때만 바인딩
+    const map = globe.getMapLibreMap?.() ?? null;
+    if (!map) return;
 
     configuredGlobe.current = true;
+    try {
+      map.resize();
+      map.triggerRepaint();
+    } catch {
+      /* ignore */
+    }
+
     const orbit = entryOrbitCamera(size);
-    globe.pointOfView(
-      {
-        lat: orbit.lat,
-        lng: orbit.lng,
-        altitude: orbit.altitude,
-        pitch: orbit.pitch,
-      },
-      0,
-    );
+    // 마운트 전에 날아온 flyTo는 pending에만 남아 있음 — 엔트리 궤도보다 우선
+    const pending = pendingFlyTargetRef.current;
+    const target = pending
+      ? {
+          lat: pending.lat,
+          lng: pending.lng,
+          altitude: pending.altitude,
+          pitch: pending.pitch ?? orbit.pitch,
+          bearing: pending.bearing,
+        }
+      : {
+          lat: orbit.lat,
+          lng: orbit.lng,
+          altitude: orbit.altitude,
+          pitch: orbit.pitch,
+        };
+    globe.pointOfView(target, 0);
+    if (pending) pendingFlyTargetRef.current = null;
     setGlobeReady(true);
 
     const controls = globe.controls();
@@ -320,6 +347,13 @@ export function useGlobeCamera({
         bearing: resolvedCamera.bearing,
       };
 
+      // MapLibre 미마운트·onLoad 전이면 POV는 no-op — pending만 남기고 configureGlobe가 적용
+      const globe = globeRef.current;
+      const mapReady = Boolean(globe?.getMapLibreMap?.());
+      if (!globe || !mapReady) {
+        return;
+      }
+
       const busyMs = cameraFlyBusyMs(resolvedDuration);
       cameraTweenUntilRef.current = cameraBusyUntilAfterFly(resolvedDuration);
       isCameraMovingRef.current = true;
@@ -333,7 +367,7 @@ export function useGlobeCamera({
         renderStabilizeIdleRef.current = null;
       }
 
-      globeRef.current?.pointOfView(
+      globe.pointOfView(
         {
           lat,
           lng,
@@ -542,6 +576,7 @@ export function useGlobeCamera({
     isCameraMoving,
     setIsCameraMoving,
     configureGlobe,
+    resetMapLibreBinding,
     flyTo,
     interruptFlySnap,
     computeRegionFitAltitude,

@@ -396,13 +396,16 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
         lng: orbit.lng,
       });
       setLayerAltitude(orbit.altitude);
-      flyTo(
-        orbit.lat,
-        orbit.lng,
-        orbit.altitude,
-        ENTRY_GATE.zoomOutFlyMs,
-        { pitch: orbit.pitch },
-      );
+      // 관측→지정학 전환 직후 MapLibre는 아직 없을 수 있음 — pending + 한 프레임 뒤 재시도
+      window.setTimeout(() => {
+        flyTo(
+          orbit.lat,
+          orbit.lng,
+          orbit.altitude,
+          ENTRY_GATE.zoomOutFlyMs,
+          { pitch: orbit.pitch },
+        );
+      }, 0);
     }
     // 지경학 + 허브 auto: 전역 궤도 (호르무즈 등 핫 허브 자동 fly 금지)
     if (mode === "economy" && effectiveHub === "auto") {
@@ -424,13 +427,15 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
         lng: orbit.lng,
       });
       setLayerAltitude(orbit.altitude);
-      flyTo(
-        orbit.lat,
-        orbit.lng,
-        orbit.altitude,
-        ENTRY_GATE.zoomOutFlyMs,
-        { pitch: orbit.pitch },
-      );
+      window.setTimeout(() => {
+        flyTo(
+          orbit.lat,
+          orbit.lng,
+          orbit.altitude,
+          ENTRY_GATE.zoomOutFlyMs,
+          { pitch: orbit.pitch },
+        );
+      }, 0);
     }
     window.setTimeout(() => {
       ukraineZoomPendingRef.current = false;

@@ -1396,21 +1396,30 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       applyHistoryTerritoryBasemapChrome(m, historyTerritoryActiveRef.current);
     };
 
-    if (map.isStyleLoaded()) {
+    const finishReady = () => {
       applyVisuals();
+      // 숨김/0크기 컨테이너에서 뜬 뒤 보이는 셸로 올 때 타일 공백 방지
+      try {
+        map.resize();
+        map.triggerRepaint();
+      } catch {
+        /* ignore */
+      }
       emitGlobeReady();
+    };
+
+    if (map.isStyleLoaded()) {
+      finishReady();
       return;
     }
 
     // idle이 영구히 안 오면 부트 스플래시가 고착될 수 있어 상한 후 강제 ready
     const idleFallback = window.setTimeout(() => {
-      applyVisuals();
-      emitGlobeReady();
+      finishReady();
     }, 12_000);
     map.once("idle", () => {
       window.clearTimeout(idleFallback);
-      applyVisuals();
-      emitGlobeReady();
+      finishReady();
     });
   }, [emitGlobeReady, methods, publishZoom]);
 

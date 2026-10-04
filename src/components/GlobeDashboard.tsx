@@ -2301,6 +2301,7 @@ export function GlobeDashboard({
     setLayerAltitude,
     isCameraMoving,
     configureGlobe,
+    resetMapLibreBinding,
     flyTo,
     interruptFlySnap,
     computeRegionFitAltitude,
@@ -2514,13 +2515,17 @@ export function GlobeDashboard({
   }, [viewerMode, setPlaying]);
 
   useEffect(() => {
-    if (viewerMode === "satellite") return;
+    if (viewerMode === "satellite") {
+      // MapLibre 언마운트 — 재진입 시 configureGlobe / 레이어 게이트가 다시 돌도록 리셋
+      resetMapLibreBinding();
+      return;
+    }
     setCesiumReady(false);
     pendingObserveFlyRef.current = null;
     observeDeeplinkFlyRef.current = null;
     setFlyToConfirmOffer(null);
     setObserveEntryHadTarget(false);
-  }, [viewerMode]);
+  }, [viewerMode, resetMapLibreBinding]);
 
   useEffect(() => {
     if (!cesiumReady) return;
