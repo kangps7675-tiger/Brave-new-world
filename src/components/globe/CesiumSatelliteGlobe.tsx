@@ -2077,7 +2077,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             detachClouds = attachGibsClouds(Cesium, viewer, {
               getAlpha: () => {
                 const h =
-                  viewer.camera.positionCartographic?.height ??
+                  viewer?.camera.positionCartographic?.height ??
                   OBSERVE_LOOK_ORBIT_M;
                 return observeLookForHeightM(h, {
                   cinema: cinemaOnRef.current,

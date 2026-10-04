@@ -4,6 +4,7 @@ import {
   OBSERVE_MODEL_CAMERA_MAX_HEIGHT_M,
   OBSERVE_NEAR_MODEL_MAX,
   selectObserveModelEntityIds,
+  type ObserveModelCandidate,
 } from "@/lib/cesiumTrackedModels";
 
 describe("cesiumTrackedModels", () => {
@@ -23,7 +24,9 @@ describe("cesiumTrackedModels", () => {
   });
 
   it("caps near models", () => {
-    const candidates = [{ entityId: "mil:t", lat: 0, lng: 0, headingDeg: 0 }];
+    const candidates: ObserveModelCandidate[] = [
+      { entityId: "mil:t", lat: 0, lng: 0, headingDeg: 0 },
+    ];
     for (let i = 0; i < 20; i++) {
       candidates.push({
         entityId: `mil:n${i}`,

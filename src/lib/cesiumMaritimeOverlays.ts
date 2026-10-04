@@ -208,7 +208,8 @@ export function attachMaritimeOverlays(
 
   if (!instances.length) return () => {};
 
-  // pickId ??GeometryInstance.id 媛 ?꾨땲??蹂꾨룄 留???id ??怨좎쑀?댁빞 ??  const pickIdByGeomId = new Map<string, string>();
+  // pickId !== GeometryInstance.id — keep a separate map so id stays unique.
+  const pickIdByGeomId = new Map<string, string>();
   for (const seg of segments) {
     pickIdByGeomId.set(seg.id, seg.pickId);
   }

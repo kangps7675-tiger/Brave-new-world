@@ -44,13 +44,15 @@ async function createGoogleOverlayProvider(
   lang: "ko" | "en",
 ): Promise<import("cesium").ImageryProvider | null> {
   try {
-    return await Cesium.Google2DImageryProvider.fromIonAssetId({
+    // Google2DImageryProvider.getTileCredits may return Credit[] | undefined;
+    // Cesium ImageryProvider requires Credit[] — cast at the boundary.
+    return (await Cesium.Google2DImageryProvider.fromIonAssetId({
       assetId: GOOGLE_2D_ION_ASSET_ID,
       overlayLayerType: "layerRoadmap",
       language: googleLanguage(lang),
       region: googleRegion(lang),
       maximumLevel: 22,
-    });
+    })) as import("cesium").ImageryProvider;
   } catch (err) {
     console.warn("[cesiumGooglePlaceOverlay] Google 2D overlay skipped:", err);
     return null;

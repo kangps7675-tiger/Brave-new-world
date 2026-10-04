@@ -59,7 +59,7 @@ export function sr(
   lang: LabelLanguage,
   vars?: Record<string, string | number>,
 ): string {
-  let s = STRAIT_REPLAY_I18N[key][lang === "en" ? "en" : "ko"];
+  let s: string = STRAIT_REPLAY_I18N[key][lang === "en" ? "en" : "ko"];
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       s = s.replaceAll(`{${k}}`, String(v));

@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { DeskPinStructure } from "@/components/globe/DeskPinStructure";
 import type { WatchboardItem } from "@/lib/intelContract/buildObserveWatchboard";
-import { MODALITY_RING_COLOR } from "@/lib/intelContract/deskVerifySequence";
+import {
+  DESK_HUD_SLOT_ORDER,
+  MODALITY_RING_COLOR,
+} from "@/lib/intelContract/deskVerifySequence";
 import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
-import type { ObservationModality } from "@/lib/intelContract/types";
 
 type Props = {
   lang: LabelLanguage;
@@ -241,8 +243,8 @@ function WatchRow({
     ? item.gate.bundle.disconfirmLog.hitCount
     : 0;
   const topPir = item.pirStatuses[0];
-  const slots: ObservationModality[] = topPir
-    ? (["sensor", "alert", "media", "stat"] as const).filter(
+  const slots = topPir
+    ? DESK_HUD_SLOT_ORDER.filter(
         (m) =>
           topPir.required.includes(m) || topPir.present.includes(m),
       )

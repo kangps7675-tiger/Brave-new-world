@@ -398,8 +398,6 @@ export function startObserveEntityFollow(
   if (viewer.trackedEntity === entity) {
     viewer.trackedEntity = undefined;
   }
-  frameDispose?.();
-  frameDispose = null;
 
   flightActive = true;
   beginProgrammatic?.();

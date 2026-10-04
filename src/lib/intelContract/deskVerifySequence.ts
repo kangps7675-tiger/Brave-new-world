@@ -111,12 +111,14 @@ export function litRingCount(
 }
 
 /** HUD 슬롯 표시 순서 — 센서 → 경보 → 보도 → 지표 */
-export const DESK_HUD_SLOT_ORDER: ObservationModality[] = [
+/** Watchboard HUD 슬롯 — PIR requiredModalities와 동일 집합 */
+export const DESK_HUD_SLOT_ORDER = [
   "sensor",
   "alert",
   "media",
   "stat",
-];
+] as const satisfies ReadonlyArray<ObservationModality>;
+export type DeskHudSlotModality = (typeof DESK_HUD_SLOT_ORDER)[number];
 
 export function modalityHudLabel(
   m: ObservationModality,
