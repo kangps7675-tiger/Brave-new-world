@@ -1,9 +1,10 @@
 /**
  * LiveUAMap mpts 지역 슬롯 — 일 200 req 예산 배분.
- * resid는 포털/실측으로 확정. LIVEUAMAP_RESID_MAP JSON으로 덮어쓰기.
+ * resid는 공식 Regions enum + 실측. LIVEUAMAP_RESID_MAP JSON으로 덮어쓰기.
  *
- * 실측(2026-10): Ukraine=0, Lebanon/IL-PS 공유=2.
- * Iran·Yemen 전용 resid는 포털에서 확인 후 env로 넣는다.
+ * 기본값 (liveuamap.consolecsharp.api Regions):
+ * Ukraine=0, IsraelPalestine=2, Yemen=53, Iran=66, Lebanon=74.
+ * Lebanon은 IL/PS(2)와 분리해 전용 resid를 쓴다 — 공유 시 bbox에 통제면이 탈락하던 문제 방지.
  */
 
 import type { LiveuamapRegionId } from "@/lib/liveuamap/types";
@@ -55,7 +56,8 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     dailyCap: 12,
     minIntervalMs: 2 * 60 * 60_000,
     theater: "middle-east",
-    parseControl: false,
+    /** resid 2 통제면을 IL/PS bbox로 저장 — Lebanon(74)과 분리 */
+    parseControl: true,
   },
   {
     id: "taiwan",
@@ -74,14 +76,14 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
 ];
 
 /**
- * 기본 resid — 실측분 내장. 나머지는 LIVEUAMAP_RESID_MAP으로 덮어쓴다.
+ * 기본 resid — 공식 Regions enum. LIVEUAMAP_RESID_MAP으로 덮어쓴다.
  * (-1 = 슬롯 비활성)
  */
 const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   ukraine: 0,
-  iran: -1,
-  yemen: -1,
-  lebanon: 2,
+  iran: 66,
+  yemen: 53,
+  lebanon: 74,
   "israel-palestine": 2,
   taiwan: -1,
   korea: -1,

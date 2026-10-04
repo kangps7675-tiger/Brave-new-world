@@ -919,6 +919,98 @@ export const ingestRuns = sqliteTable("ingest_runs", {
   detailJson: text("detail_json"),
 });
 
+/**
+ * 해협 사건 이력 — 사람 큐레이션(+선택 GDELT 후보).
+ * 리플레이 UI·outcome 계산의 기준 사건. source_urls 없는 insert는 앱/스크립트에서 거부.
+ */
+export const straitEventHistory = sqliteTable(
+  "strait_event_history",
+  {
+    id: text("id").primaryKey(),
+    /** hormuz | red_sea_suez | malacca */
+    straitId: text("strait_id").notNull(),
+    occurredOn: text("occurred_on").notNull(),
+    lat: real("lat").notNull(),
+    lng: real("lng").notNull(),
+    titleKo: text("title_ko").notNull(),
+    titleEn: text("title_en").notNull(),
+    /** attack | seizure | closure | accident | sanction | drill */
+    kind: text("kind").notNull(),
+    /** JSON: Array<{ label, url, publisher }> — 최소 1개 */
+    sourceUrls: text("source_urls").notNull(),
+    curatedBy: text("curated_by").notNull().default("human"),
+    reviewed: integer("reviewed").notNull().default(0),
+    isSynthetic: integer("is_synthetic").notNull().default(0),
+    baselineWindowDays: integer("baseline_window_days").notNull().default(28),
+    ingestedAt: text("ingested_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    straitDateIdx: index("idx_strait_event_strait_date").on(
+      t.straitId,
+      t.occurredOn,
+    ),
+    kindIdx: index("idx_strait_event_kind").on(t.straitId, t.kind),
+    reviewedIdx: index("idx_strait_event_reviewed").on(t.reviewed),
+  }),
+);
+
+/** IMF PortWatch 해협 일별 통행 — 리플레이 읽기 전용 적재분 */
+export const straitTrafficDaily = sqliteTable(
+  "strait_traffic_daily",
+  {
+    straitId: text("strait_id").notNull(),
+    date: text("date").notNull(),
+    vesselCount: real("vessel_count").notNull(),
+    tankerCount: real("tanker_count"),
+    capacityDwt: real("capacity_dwt"),
+    sourceVintage: text("source_vintage").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.straitId, t.date] }),
+    dateIdx: index("idx_strait_traffic_date").on(t.date),
+  }),
+);
+
+/**
+ * 사건별 결과(outcome) 캐시 — 통행·FRED 가격.
+ * EvidenceBundle.observations 에 넣지 않음 (gate 입력 금지).
+ */
+export const eventOutcome = sqliteTable(
+  "event_outcome",
+  {
+    eventId: text("event_id").notNull(),
+    metric: text("metric").notNull(),
+    horizon: text("horizon").notNull(),
+    baselineValue: real("baseline_value"),
+    observedValue: real("observed_value"),
+    deltaPct: real("delta_pct"),
+    sampleNote: text("sample_note"),
+    computedAt: text("computed_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.eventId, t.metric, t.horizon] }),
+    metricIdx: index("idx_event_outcome_metric").on(t.metric, t.horizon),
+  }),
+);
+
+/** FRED 일별 시리즈 캐시 — 백필 전용 (Yahoo/CME 금지) */
+export const fredDaily = sqliteTable(
+  "fred_daily",
+  {
+    seriesId: text("series_id").notNull(),
+    date: text("date").notNull(),
+    value: real("value").notNull(),
+    sourceVintage: text("source_vintage").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.seriesId, t.date] }),
+  }),
+);
+
 export type FirmsFireRow = typeof firmsFires.$inferSelect;
 export type NewFirmsFireRow = typeof firmsFires.$inferInsert;
 export type UkraineControlPathRow = typeof ukraineControlPaths.$inferSelect;
@@ -968,3 +1060,11 @@ export type DeepstateOccupiedSnapshotRow = typeof deepstateOccupiedSnapshots.$in
 export type UsCarrierSnapshotRow = typeof usCarrierSnapshots.$inferSelect;
 export type MilitaryExerciseRow = typeof militaryExercises.$inferSelect;
 export type NewMilitaryExerciseRow = typeof militaryExercises.$inferInsert;
+export type StraitEventHistoryRow = typeof straitEventHistory.$inferSelect;
+export type NewStraitEventHistoryRow = typeof straitEventHistory.$inferInsert;
+export type StraitTrafficDailyRow = typeof straitTrafficDaily.$inferSelect;
+export type NewStraitTrafficDailyRow = typeof straitTrafficDaily.$inferInsert;
+export type EventOutcomeRow = typeof eventOutcome.$inferSelect;
+export type NewEventOutcomeRow = typeof eventOutcome.$inferInsert;
+export type FredDailyRow = typeof fredDaily.$inferSelect;
+export type NewFredDailyRow = typeof fredDaily.$inferInsert;

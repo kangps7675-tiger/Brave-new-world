@@ -7,6 +7,20 @@ import type { UkmtoBriefingContent } from "@/lib/ukmtoHatch";
 import type { NavareaBriefingContent } from "@/lib/navareaSecurity";
 import type { TensionSpikeSnapshot, TensionCutDestination } from "@/lib/tensionSpikeCut";
 import type { HotTheaterFocus } from "@/lib/hotTheaterLayers";
+import type { ExerciseBriefingContent } from "@/components/ExerciseBriefingParchment";
+import type { ExerciseOffer } from "@/components/ExerciseOfferBanner";
+import type { ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
+import type { DisplayGrade } from "@/lib/intelContract/types";
+import type { AdsbEmergencyOffer } from "@/components/globe/hooks/useAdsbEmergencyAlert";
+import type { NatoPerimeterAlertState } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
+import type { PerfProbeResult } from "@/lib/perfProbe";
+import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
+import type { EscalationOffer } from "@/components/globe/hooks/useEscalationSignals";
+import type { DashboardOverlayHostProps } from "@/components/globe/DashboardOverlayHost";
+import type { NeptunAlerts } from "@/lib/neptun";
+import type { NeptunStreamStatus } from "@/hooks/useNeptunStream";
+import type { TzevaAdomAlert } from "@/lib/tzevaAdom";
+import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
 
 /**
  * 5단계 분리 — DashboardOverlayHost의 경보성 prop을 4개 그룹으로 정리한 타입.
@@ -56,4 +70,122 @@ export type OverlayHostAlertGroups = {
   maritime: MaritimeAlertGroup;
   tension: TensionAlertGroup;
   hotTheater: HotTheaterAlertGroup;
+};
+
+export type ExerciseChokepointGroup = {
+  offer: ExerciseOffer | null;
+  briefing: ExerciseBriefingContent | null;
+  chokepointBriefing: ChokepointStressBriefing | null;
+  chokepointGrade?: DisplayGrade;
+  onDismissOffer: () => void;
+  onSetBriefing: (v: ExerciseBriefingContent | null) => void;
+  onSetChokepointBriefing: (v: ChokepointStressBriefing | null) => void;
+  onChokepointDrill?: () => void;
+  onChokepointOpenObserve?: () => void;
+  onExerciseFlyTo: () => void;
+  onChokepointFlyTo: () => void;
+};
+
+export type PerimeterOfferGroup = {
+  adsbOffer: AdsbEmergencyOffer | null;
+  onGoToObserveFromAdsb?: () => void;
+  onDismissAdsb: () => void;
+  natoAlert: NatoPerimeterAlertState;
+  onDismissNato: () => void;
+};
+
+export type UltraLiteOfferGroup = {
+  visible: boolean;
+  probe: PerfProbeResult | null;
+  onAccept: () => void;
+  onDismiss: () => void;
+};
+
+/** Phase C — NEPTUN·Tzeva·Newfeeds 관측 피드 상태 prop 묶음 */
+export type ObserveFeedGroup = {
+  showNeptun: boolean;
+  neptunAlertCount: number;
+  showTzevaAdom: boolean;
+  showNewfeedsIranAttacks: boolean;
+  neptunAlerts: NeptunAlerts | null;
+  neptunLive: boolean;
+  neptunStatus: NeptunStreamStatus;
+  neptunError: string | null;
+  tzevaAdomActive: TzevaAdomAlert[];
+  tzevaAdomHistory: TzevaAdomAlert[];
+  tzevaAdomLive: boolean;
+  tzevaAdomStatus: "idle" | "loading" | "ok" | "error" | "stub" | "geo-blocked";
+  tzevaAdomGeoRestricted: boolean;
+  tzevaAdomError: string | null;
+  newfeedsAttacks: NewfeedsAttackPoint[];
+  newfeedsThreatLabel: string | null;
+  newfeedsLive: boolean;
+  newfeedsStatus: "idle" | "loading" | "ok" | "error";
+  newfeedsError: string | null;
+};
+
+/** Phase C — OverlayHost 하단 크롬·게이트·패널 액션 콜백 prop 묶음 */
+export type ChromeActionsGroup = Pick<
+  DashboardOverlayHostProps,
+  | "onCloseLeftPanel"
+  | "onToggleLeftPanel"
+  | "onOpenLeftPanel"
+  | "onSetShowUsCarriers"
+  | "onSetShowGpsInterference"
+  | "onSetShowUsDfcSupplyChain"
+  | "onSetShowBriTradeConnectivity"
+  | "onSetShowQuickStart"
+  | "onSetShowViewerIntro"
+  | "onSetShowTrustPanel"
+  | "onSetShowSourcesPanel"
+  | "onSetShowFeatureGuide"
+  | "onSetShowControlsGuide"
+  | "onSetAskLayersOpen"
+  | "onSetShowMobileAlertFeed"
+  | "onAskLayersApply"
+  | "onSetShowFirstVisitTour"
+  | "onSetTourActive"
+  | "getSceneForShare"
+  | "onSetSentinelActive"
+  | "onSetPlayOverlay"
+  | "onSetShowCityLabels"
+  | "onEndLiveBriefing"
+  | "flyTo"
+  | "onSetWhatsNewUpdate"
+  | "onLabelLanguageChange"
+  | "onConfirmLabelLanguage"
+  | "onConfirmPurposeJob"
+  | "onDismissPurposeJob"
+  | "onLangChoiceConfirmed"
+  | "onSetEntryGate"
+  | "onDomainSelect"
+  | "onModeApply"
+  | "onCustomLayerApply"
+  | "onModePickerCancel"
+  | "onSetChromeCoachStep"
+  | "onSetIntelSheetOpen"
+  | "onFrictionCoachStepChange"
+  | "onSetShowAirRaidCoach"
+  | "onOpenClearanceRecovery"
+  | "onSetClearanceChipSettled"
+  | "onSetWeeklyRecapCollapsed"
+  | "onSetShowTourInvite"
+  | "onSetPeriodicBriefing"
+  | "onSetFoldedPeriodicBriefing"
+  | "onSetTomorrowTensionPrompt"
+  | "onSetClearanceStatus"
+  | "onToggleDailyRankPanel"
+  | "onBeginLiveBriefing"
+>;
+
+export type BreakingEscalationGroup = {
+  breakingFlash: BreakingFlashBriefing | null;
+  onDismissBreakingFlash: () => void;
+  breakingFlashGrade?: DisplayGrade;
+  onBreakingFlashDrill?: () => void;
+  onBreakingFlashGoToLocation?: () => void;
+  escalationOffer: EscalationOffer | null;
+  onDismissEscalationOffer: () => void;
+  escalationDisplayGrade?: DisplayGrade;
+  onEscalationDrill?: () => void;
 };

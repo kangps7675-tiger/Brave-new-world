@@ -88,6 +88,40 @@ export {
 } from "@/lib/intelContract/buildObserveWatchboard";
 
 export {
+  watchboardItemToDeskFocus,
+  deskGradeVisual,
+  deskSlotOpacity,
+  deskSpotlightRadiusKm,
+  haversineKm,
+  DESK_NON_FOCUS_ALPHA,
+  SITREP_FLY_ANCHOR,
+  type DeskFocus,
+  type DeskFocusKind,
+  type DeskGradeVisual,
+  type DeskSlotOpacity,
+} from "@/lib/intelContract/deskFocus";
+
+export {
+  buildCorroborationRings,
+  deskVerifyPhase,
+  litChannelCount,
+  litRingCount,
+  MODALITY_RING_COLOR,
+  DESK_CHANNEL_STEP_MS,
+  DESK_RING_STEP_MS,
+  type CorroborationRingSpec,
+  type DeskVerifyPhase,
+} from "@/lib/intelContract/deskVerifySequence";
+
+export {
+  timeWindowAlpha,
+  coolCssColor,
+  disconfirmCollapseFactor,
+  isPromotion,
+  NEW_OBS_PULSE_MS,
+} from "@/lib/intelContract/deskDynamics";
+
+export {
   INTEL_UX,
   gradeLabelFriendly,
   gradeHint,

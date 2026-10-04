@@ -165,16 +165,16 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
   {
     id: "satellite-eye",
     label: "라이브",
-    tagline: "Cesium · LIVEUA · 시세",
+    tagline: "Cesium · 실사 센서 · LIVEUA",
     description:
-      "Cesium 글로브 + ADS-B·AIS·시세 · LIVEUA 고충격 양피지 타전",
+      "Google Photorealistic 3D + 국경·지명·conflict-events · ADS-B·AIS · LIVEUA",
     layers: {
       ...FIRST_SCREEN_LIVE_ON,
       showWarZones: false,
       showDiplomaticTension: false,
-      showConflictEvents: false,
-      showNeptun: false,
-      showCityLabels: false,
+      showConflictEvents: true,
+      showNeptun: true,
+      showCityLabels: true,
     },
     ui: {
       showTicker: true,
@@ -285,7 +285,7 @@ export const LAYER_PREF_LABELS: Partial<Record<BooleanLayerKey, string>> = {
   showIslandChains: "도련선·미군 방어선",
   showAxisNetwork: "CRINK 축",
   showBriTradeConnectivity: "일대일로 무역 연결",
-  showStrategicCorridors: "전략 물류 통로",
+  showStrategicCorridors: "전략 물류·육상 회랑",
   showUsDfcSupplyChain: "미국 개발금융 투자국",
   showAis: "선박 AIS",
   showDisguisedVessels: "위장·그림자 함대",
@@ -357,11 +357,21 @@ function capLayerCount(
 
 export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): LayerPrefs {
   if (mode === "satellite") {
-    // 프리미엄 — ADS-B · AIS · 군용 ADS-B 유지, 전선·시장 잡음 컷
+    // 프리미엄(Cesium) — 항적 + 관측 센서(전선·화재·미사일·NEPTUN·지명).
+    // MapLibre-only(showConflictEvents·warZones 등)는 끈다.
+    // showAisMilitary/Commercial을 빼면 showAis=true여도 선박 필터가 전부 탈락한다.
     const keepOn = new Set<keyof LayerPrefs>([
       "showAis",
+      "showAisMilitary",
+      "showAisCommercial",
       "showAirTraffic",
       "showMilitaryActivity",
+      "showDisguisedVessels",
+      "showNeptun",
+      "showFirmsFires",
+      "showUkraineControl",
+      "showNorthKoreaMissileTests",
+      "showCityLabels",
       "labelLanguage",
     ]);
     const next = { ...layers };

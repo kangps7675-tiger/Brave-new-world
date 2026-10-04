@@ -1,4 +1,7 @@
-import type { AxisHubId } from "@/data/axisNetwork";
+import {
+  AXIS_SATELLITE_ISO_SET,
+  type AxisHubId,
+} from "@/data/axisNetwork";
 import type { FeatureCollection, Geometry } from "geojson";
 
 /** 축 관계망 4허브 — 중국·러시아·북한·이란 */
@@ -8,6 +11,11 @@ export const AXIS_HUB_FILL = "#dc2626";
 export const AXIS_HUB_FILL_OPACITY = 0.28;
 export const AXIS_HUB_ACTIVE_FILL_OPACITY = 0.38;
 export const AXIS_HUB_STROKE = "rgba(248, 113, 113, 0.9)";
+
+/** 위성국 — 허브와 같은 빨강, 덜 진하게 (한눈에 “같은 진영·하위 스포크”) */
+export const AXIS_SATELLITE_FILL = AXIS_HUB_FILL;
+export const AXIS_SATELLITE_FILL_OPACITY = 0.14;
+export const AXIS_SATELLITE_STROKE = "rgba(248, 113, 113, 0.55)";
 
 /** 세슘 국경선 색. 위성 영상 위에서 읽히는 빨강. */
 export const AXIS_HUB_BORDER_COLOR = "#ff2a2a";
@@ -60,6 +68,41 @@ export function paintAxisHubCountriesGeoJson(
           fill: AXIS_HUB_FILL,
           fillOpacity: isActive ? AXIS_HUB_ACTIVE_FILL_OPACITY : AXIS_HUB_FILL_OPACITY,
           stroke: AXIS_HUB_STROKE,
+        },
+      },
+    ];
+  });
+
+  return { type: "FeatureCollection", features };
+}
+
+/**
+ * 축 정렬 위성국 FeatureCollection에 연한 CRINK 빨강 fill/stroke 페인트.
+ * 허브 4국과 동일 색·낮은 불투명도 — 지정학에서 “위성국” 관계가 읽히게.
+ */
+export function paintAxisSatelliteCountriesGeoJson(
+  source: FeatureCollection | null | undefined,
+): FeatureCollection {
+  if (!source?.features?.length) return EMPTY_FC;
+
+  const features = source.features.flatMap((feature) => {
+    const props = feature.properties ?? {};
+    const isoRaw = props.iso ?? props.ISO_A3 ?? props.ADM0_A3 ?? feature.id;
+    if (typeof isoRaw !== "string" || !AXIS_SATELLITE_ISO_SET.has(isoRaw)) return [];
+    if (!feature.geometry) return [];
+
+    return [
+      {
+        type: "Feature" as const,
+        id: isoRaw,
+        geometry: feature.geometry as Geometry,
+        properties: {
+          iso: isoRaw,
+          name: typeof props.name === "string" ? props.name : isoRaw,
+          fill: AXIS_SATELLITE_FILL,
+          fillOpacity: AXIS_SATELLITE_FILL_OPACITY,
+          stroke: AXIS_SATELLITE_STROKE,
+          role: "satellite",
         },
       },
     ];

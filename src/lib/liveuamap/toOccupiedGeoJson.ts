@@ -8,9 +8,43 @@ import {
   attachOccupiedMeta,
   type OccupiedGeoJson,
 } from "@/lib/deepstate/toOccupiedGeoJson";
-import { featureInControlBounds } from "@/lib/liveuamap/controlBounds";
-import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
+import {
+  featureInControlBounds,
+  LIVEUA_CONTROL_BOUNDS,
+} from "@/lib/liveuamap/controlBounds";
+import {
+  isLiveuamapControlRegionId,
+  type LiveuamapControlRegionId,
+} from "@/lib/liveuamap/types";
 import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
+
+function pointInBounds(
+  lng: number,
+  lat: number,
+  regionId: LiveuamapControlRegionId,
+): boolean {
+  const b = LIVEUA_CONTROL_BOUNDS[regionId];
+  return lng >= b.minLng && lng <= b.maxLng && lat >= b.minLat && lat <= b.maxLat;
+}
+
+/** LiveUA points는 [lng,lat] 또는 [lat,lng]. 지역 bbox에 맞는 쪽을 고른다. */
+function toLngLatForRegion(
+  a: number,
+  b: number,
+  regionId: string,
+): Position {
+  if (isLiveuamapControlRegionId(regionId)) {
+    const asLngLat = pointInBounds(a, b, regionId);
+    const asLatLng = pointInBounds(b, a, regionId);
+    if (asLngLat && !asLatLng) return [a, b];
+    if (asLatLng && !asLngLat) return [b, a];
+  }
+  // fallback: LiveUA Ukraine 스타일 [lat,lng] (lat > lng)
+  if (Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) > Math.abs(b)) {
+    return [b, a];
+  }
+  return [a, b];
+}
 
 function stripZ(coords: unknown): Position | Position[] | Position[][] | Position[][][] | null {
   if (!Array.isArray(coords) || coords.length === 0) return null;
@@ -84,15 +118,7 @@ function featureFromUnknown(raw: unknown, index: number, regionId: string): Feat
         const a = Number(p[0]);
         const b = Number(p[1]);
         if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
-        // heuristic: LiveUA often sends [lat,lng]. Prefer GeoJSON [lng,lat].
-        // Swap only when the first number looks more like lat than lng
-        // (|a| > |b| within lat/lng ranges) — e.g. [48,37] → [37,48].
-        // Do NOT swap [37,48] (already lng,lat for Ukraine).
-        if (Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) > Math.abs(b)) {
-          ring.push([b, a]);
-        } else {
-          ring.push([a, b]);
-        }
+        ring.push(toLngLatForRegion(a, b, regionId));
       }
     }
     if (ring.length >= 3) {

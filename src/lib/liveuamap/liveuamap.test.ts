@@ -49,6 +49,105 @@ describe("normalizePlace", () => {
     expect(ev?.imageUrl).toContain("p.jpg");
     expect(ev?.theater).toBe("russia-ukraine");
   });
+
+  it("maps geojson Point features from mpts geojson=true", () => {
+    const ev = normalizePlace(
+      {
+        type: "Feature",
+        properties: {
+          id: 12345,
+          title: "Clashes near Kupyansk",
+          message: "General Staff reports clashes near Kivsharivka",
+          link: "https://liveuamap.com/en/example",
+          timestamp: 1_791_093_371,
+          picture: "https://example.com/pic.jpg",
+        },
+        geometry: { type: "Point", coordinates: [37.7219, 49.6096] },
+      },
+      0,
+      { id: "ukraine", resid: 0, theater: "russia-ukraine" },
+    );
+    expect(ev?.id).toBe("12345");
+    expect(ev?.lng).toBeCloseTo(37.7219);
+    expect(ev?.lat).toBeCloseTo(49.6096);
+    expect(ev?.title).toContain("Kupyansk");
+    expect(ev?.imageUrl).toContain("pic.jpg");
+  });
+
+  it("skips geojson Polygon features (control surfaces)", () => {
+    const ev = normalizePlace(
+      {
+        type: "Feature",
+        properties: { title: "occupied zone", id: 1 },
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [37, 48],
+              [37.2, 48],
+              [37.2, 48.1],
+              [37, 48.1],
+              [37, 48],
+            ],
+          ],
+        },
+      },
+      0,
+      { id: "ukraine", resid: 0, theater: "russia-ukraine" },
+    );
+    expect(ev).toBeNull();
+  });
+
+  it("maps one FeatureCollection Point per parchment event (skips polygons)", () => {
+    const slot = { id: "ukraine" as const, resid: 0, theater: "russia-ukraine" as const };
+    const features = [
+      {
+        type: "Feature",
+        properties: {
+          id: 1,
+          title: "Flash A",
+          message: "Body A",
+          link: "https://liveuamap.com/a",
+          timestamp: 1_791_093_371,
+        },
+        geometry: { type: "Point", coordinates: [36.2, 49.9] },
+      },
+      {
+        type: "Feature",
+        properties: { id: 99, title: "Control poly" },
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [37, 48],
+              [37.2, 48],
+              [37.2, 48.1],
+              [37, 48.1],
+              [37, 48],
+            ],
+          ],
+        },
+      },
+      {
+        type: "Feature",
+        properties: {
+          id: 2,
+          title: "Flash B",
+          message: "Body B",
+          link: "https://liveuamap.com/b",
+          timestamp: 1_791_093_400,
+        },
+        geometry: { type: "Point", coordinates: [37.7, 49.6] },
+      },
+    ];
+    const events = features
+      .map((f, i) => normalizePlace(f, i, slot))
+      .filter((e): e is NonNullable<typeof e> => Boolean(e));
+    expect(events).toHaveLength(2);
+    expect(events.map((e) => e.id)).toEqual(["1", "2"]);
+    expect(events[0].sourceUrl).toContain("liveuamap.com/a");
+    expect(events[1].lat).toBeCloseTo(49.6);
+  });
 });
 
 describe("liveuamapFieldsToOccupiedGeoJson", () => {
@@ -99,6 +198,46 @@ describe("liveuamapFieldsToOccupiedGeoJson", () => {
     );
     expect(fc).toBeNull();
   });
+
+  it("keeps Gaza control under israel-palestine bbox", () => {
+    const fc = liveuamapFieldsToOccupiedGeoJson(
+      {
+        fields: [
+          {
+            id: 1,
+            name: "gaza",
+            points: [
+              [34.3, 31.3],
+              [34.5, 31.3],
+              [34.5, 31.5],
+              [34.3, 31.5],
+            ],
+          },
+        ],
+      },
+      "israel-palestine",
+    );
+    expect(fc?.features.length).toBe(1);
+  });
+});
+
+describe("liveuamap builtin resids", () => {
+  it("activates Iran Yemen Lebanon and IL/PS control slots", async () => {
+    const { getLiveuamapRegionSlots, resolveResidMap } = await import(
+      "@/lib/liveuamap/regions"
+    );
+    const map = resolveResidMap();
+    expect(map.iran).toBe(66);
+    expect(map.yemen).toBe(53);
+    expect(map.lebanon).toBe(74);
+    expect(map["israel-palestine"]).toBe(2);
+    const slots = getLiveuamapRegionSlots();
+    expect(slots.some((s) => s.id === "iran" && s.parseControl)).toBe(true);
+    expect(slots.some((s) => s.id === "yemen" && s.parseControl)).toBe(true);
+    expect(slots.some((s) => s.id === "israel-palestine" && s.parseControl)).toBe(
+      true,
+    );
+  });
 });
 
 describe("mergeLiveuamapEvents", () => {
@@ -127,5 +266,28 @@ describe("mergeLiveuamapEvents", () => {
     expect(events).toHaveLength(1);
     expect(events[0].title).toBe("Hello2");
     expect(events[0].titleKo).toBe("안녕");
+  });
+
+  it("keeps one store row per Point for parchment 1/N deck", () => {
+    const now = Date.now();
+    const batch: LiveuamapEvent[] = Array.from({ length: 12 }, (_, i) => ({
+      id: `flash-${i}`,
+      regionId: "ukraine",
+      resid: 0,
+      theater: "russia-ukraine",
+      lat: 49 + i * 0.01,
+      lng: 36 + i * 0.01,
+      title: `Flash ${i}`,
+      body: `Body ${i}`,
+      sourceUrl: `https://liveuamap.com/e/${i}`,
+      publishedAt: new Date(now - i * 60_000).toISOString(),
+      tags: [],
+    }));
+    mergeLiveuamapEvents(batch);
+    const { events } = getLiveuamapStore();
+    expect(events).toHaveLength(12);
+    // 양피지 index는 0 .. length-1
+    expect(events[0]?.id).toBeTruthy();
+    expect(events[11]?.id).toBeTruthy();
   });
 });

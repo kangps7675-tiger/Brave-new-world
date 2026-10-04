@@ -19,12 +19,20 @@ export type UseGlobeOverlayModelOptions = {
   visibleLsibBoundary: TransportPath[];
   disputeZonePaths: TransportPath[];
   frictionWarZonePaths: TransportPath[];
+  territorialWarZonePaths: TransportPath[];
   eastAsiaAdizPaths: TransportPath[];
   plaIncursionHeatPaths: TransportPath[];
   axisNetworkPaths: TransportPath[];
   briTradePaths: TransportPath[];
+  gtaTradePaths: TransportPath[];
+  strategicCorridorBackgroundPaths: TransportPath[];
+  strategicCorridorPaths: TransportPath[];
+  alliedLogisticsCorridorPaths: TransportPath[];
+  sanctionsEvasionCorridorPaths: TransportPath[];
   usDfcSupplyPaths: TransportPath[];
+  crinkInfraPaths: TransportPath[];
   visibleShipping: TransportPath[];
+  maritimeRoutePaths: TransportPath[];
   visibleCables: TransportPath[];
   visibleOilPipelines: TransportPath[];
   visibleGasPipelines: TransportPath[];
@@ -35,6 +43,8 @@ export type UseGlobeOverlayModelOptions = {
   navareaHatchPaths: TransportPath[];
   exerciseHatchPaths: TransportPath[];
   shipMoveTrailPaths: TransportPath[];
+  gevTrackPath: TransportPath | null;
+  strategicSupportPaths: TransportPath[];
 
   /** htmlOverlayMarkers inputs — already-computed per-feature HTML marker arrays */
   airportPortHtmlMarkers: HtmlOverlayMarker[];
@@ -43,17 +53,16 @@ export type UseGlobeOverlayModelOptions = {
   nuclearStockpileMarkers: HtmlOverlayMarker[];
   ukraineSettlementHtmlMarkers: HtmlOverlayMarker[];
   usCarrierHtmlMarkers: HtmlOverlayMarker[];
-  milHtmlMarkers: HtmlOverlayMarker[];
-  civHtmlMarkers: HtmlOverlayMarker[];
-  aisHtmlMarkers: HtmlOverlayMarker[];
   gdeltTagHtmlMarkers: HtmlOverlayMarker[];
-  ukraineGdeltNeonMarkers: HtmlOverlayMarker[];
   newsStreamNeonMarkers: HtmlOverlayMarker[];
+  newsInsightCalloutMarkers: HtmlOverlayMarker[];
   telegramNeonMarkers: HtmlOverlayMarker[];
   neptunHtmlMarkers: HtmlOverlayMarker[];
   neptunImpactHtmlMarkers: HtmlOverlayMarker[];
   frictionPinMarkers: HtmlOverlayMarker[];
   frictionStageMarkers: HtmlOverlayMarker[];
+  territorialPinMarkers: HtmlOverlayMarker[];
+  territorialStageMarkers: HtmlOverlayMarker[];
   exerciseHtmlMarkers: HtmlOverlayMarker[];
   financialHubMarkers: HtmlOverlayMarker[];
   reefWatchFeatureMarkers: HtmlOverlayMarker[];
@@ -62,7 +71,11 @@ export type UseGlobeOverlayModelOptions = {
   chinaTheaterIncidentMarkers: HtmlOverlayMarker[];
   koreaMissileIncidentMarkers: HtmlOverlayMarker[];
   russiaStrikeIncidentMarkers: HtmlOverlayMarker[];
+  europeDroneIncidentMarkers: HtmlOverlayMarker[];
+  conflictEventMarkers: HtmlOverlayMarker[];
   reconSatelliteMarkers: HtmlOverlayMarker[];
+  strategicPostureMarkers: HtmlOverlayMarker[];
+  strategicOverviewCalloutMarkers: HtmlOverlayMarker[];
 };
 
 export type UseGlobeOverlayModelResult = {
@@ -78,14 +91,9 @@ export type UseGlobeOverlayModelResult = {
  * consumes (`globePoints`, `rawGlobePaths`, `htmlOverlayMarkers`).
  *
  * NOTE — scope of this extraction: only the *combining* memos moved here.
- * The ~25 upstream per-feature memos that produce the individual marker
- * arrays (situationCalloutMarkers, nuclearStockpileMarkers,
- * casualtySkullMarkers, ukraineSettlementHtmlMarkers, etc.) remain in
- * GlobeDashboard.tsx because they are deeply entangled with dashboard-local
- * state (hover/selection, language, viewport, live polling results, feature
- * toggles) and were not safe to move mechanically without behavior risk.
- * A future stage could peel those off individually (similar to how
- * useLiveOverlayMarkers.ts already handles the carrier/mil/civ/ais cluster).
+ * Upstream per-feature memos remain in GlobeDashboard (or cluster hooks like
+ * useLiveOverlayMarkers). Aircraft/AIS HTML markers are intentionally absent —
+ * they render via MapLibre symbol layers.
  */
 export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseGlobeOverlayModelResult {
   const {
@@ -99,12 +107,20 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     visibleLsibBoundary,
     disputeZonePaths,
     frictionWarZonePaths,
+    territorialWarZonePaths,
     eastAsiaAdizPaths,
     plaIncursionHeatPaths,
     axisNetworkPaths,
     briTradePaths,
+    gtaTradePaths,
+    strategicCorridorBackgroundPaths,
+    strategicCorridorPaths,
+    alliedLogisticsCorridorPaths,
+    sanctionsEvasionCorridorPaths,
     usDfcSupplyPaths,
+    crinkInfraPaths,
     visibleShipping,
+    maritimeRoutePaths,
     visibleCables,
     visibleOilPipelines,
     visibleGasPipelines,
@@ -115,6 +131,8 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     navareaHatchPaths,
     exerciseHatchPaths,
     shipMoveTrailPaths,
+    gevTrackPath,
+    strategicSupportPaths,
 
     airportPortHtmlMarkers,
     situationCalloutMarkers,
@@ -122,17 +140,16 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     nuclearStockpileMarkers,
     ukraineSettlementHtmlMarkers,
     usCarrierHtmlMarkers,
-    milHtmlMarkers,
-    civHtmlMarkers,
-    aisHtmlMarkers,
     gdeltTagHtmlMarkers,
-    ukraineGdeltNeonMarkers,
     newsStreamNeonMarkers,
+    newsInsightCalloutMarkers,
     telegramNeonMarkers,
     neptunHtmlMarkers,
     neptunImpactHtmlMarkers,
     frictionPinMarkers,
     frictionStageMarkers,
+    territorialPinMarkers,
+    territorialStageMarkers,
     exerciseHtmlMarkers,
     financialHubMarkers,
     reefWatchFeatureMarkers,
@@ -141,7 +158,11 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     chinaTheaterIncidentMarkers,
     koreaMissileIncidentMarkers,
     russiaStrikeIncidentMarkers,
+    europeDroneIncidentMarkers,
+    conflictEventMarkers,
     reconSatelliteMarkers,
+    strategicPostureMarkers,
+    strategicOverviewCalloutMarkers,
   } = options;
 
   const globePoints = useMemo<GlobePoint[]>(() => {
@@ -186,12 +207,20 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...visibleLsibBoundary,
       ...disputeZonePaths,
       ...frictionWarZonePaths,
+      ...territorialWarZonePaths,
       ...eastAsiaAdizPaths,
       ...plaIncursionHeatPaths,
       ...axisNetworkPaths,
       ...briTradePaths,
+      ...gtaTradePaths,
+      ...strategicCorridorBackgroundPaths,
+      ...strategicCorridorPaths,
+      ...alliedLogisticsCorridorPaths,
+      ...sanctionsEvasionCorridorPaths,
       ...usDfcSupplyPaths,
+      ...crinkInfraPaths,
       ...visibleShipping,
+      ...maritimeRoutePaths,
       ...visibleCables,
       ...visibleOilPipelines,
       ...visibleGasPipelines,
@@ -202,21 +231,32 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...navareaHatchPaths,
       ...exerciseHatchPaths,
       ...shipMoveTrailPaths,
+      ...(gevTrackPath ? [gevTrackPath] : []),
+      ...strategicSupportPaths,
     ],
     [
       armsEmbargoFramePaths,
       axisNetworkPaths,
       briTradePaths,
+      gtaTradePaths,
+      strategicCorridorBackgroundPaths,
+      strategicCorridorPaths,
+      alliedLogisticsCorridorPaths,
+      sanctionsEvasionCorridorPaths,
       usDfcSupplyPaths,
+      crinkInfraPaths,
       disputeZonePaths,
       eastAsiaAdizPaths,
       plaIncursionHeatPaths,
       frictionWarZonePaths,
+      territorialWarZonePaths,
       railPaths,
       ukmtoHatchPaths,
       navareaHatchPaths,
       exerciseHatchPaths,
       shipMoveTrailPaths,
+      gevTrackPath,
+      strategicSupportPaths,
       visibleCables,
       visibleDisputeBoundaries,
       visibleLsibBoundary,
@@ -224,6 +264,7 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       visibleOilPipelines,
       visibleSubseaPipelines,
       visibleShipping,
+      maritimeRoutePaths,
     ],
   );
 
@@ -236,17 +277,17 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...nuclearStockpileMarkers,
       ...ukraineSettlementHtmlMarkers,
       ...usCarrierHtmlMarkers,
-      ...milHtmlMarkers,
-      ...civHtmlMarkers,
-      ...aisHtmlMarkers,
+      // 군용기·민항기·선박(AIS)은 여기 없다 — symbol 레이어로 이전됨.
       ...gdeltTagHtmlMarkers,
-      ...ukraineGdeltNeonMarkers,
       ...newsStreamNeonMarkers,
+      ...newsInsightCalloutMarkers,
       ...telegramNeonMarkers,
       ...neptunHtmlMarkers,
       ...neptunImpactHtmlMarkers,
       ...frictionPinMarkers,
       ...frictionStageMarkers,
+      ...territorialPinMarkers,
+      ...territorialStageMarkers,
       ...exerciseHtmlMarkers,
       ...financialHubMarkers,
       ...reefWatchFeatureMarkers,
@@ -255,16 +296,21 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...chinaTheaterIncidentMarkers,
       ...koreaMissileIncidentMarkers,
       ...russiaStrikeIncidentMarkers,
+      ...europeDroneIncidentMarkers,
+      ...conflictEventMarkers,
       ...reconSatelliteMarkers,
+      ...strategicPostureMarkers,
+      ...strategicOverviewCalloutMarkers,
     ];
     // MapLibre는 htmlAltitude 미지원 — 사망자·콜아웃·뉴스네온이 한 좌표에 묶이지 않게 분리
     return deconflictTheaterHtmlOverlays(markers);
   }, [
-    aisHtmlMarkers,
     airportPortHtmlMarkers,
     chinaTheaterIncidentMarkers,
     koreaMissileIncidentMarkers,
     russiaStrikeIncidentMarkers,
+    europeDroneIncidentMarkers,
+    conflictEventMarkers,
     reconSatelliteMarkers,
     visibleCasualtySkullMarkers,
     exerciseHtmlMarkers,
@@ -273,20 +319,22 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
     reefWatchTrafficMarkers,
     frictionPinMarkers,
     frictionStageMarkers,
+    territorialPinMarkers,
+    territorialStageMarkers,
     shipMoveHtmlMarkers,
     gdeltTagHtmlMarkers,
-    ukraineGdeltNeonMarkers,
     newsStreamNeonMarkers,
+    newsInsightCalloutMarkers,
     telegramNeonMarkers,
     globePoints,
-    milHtmlMarkers,
-    civHtmlMarkers,
     neptunHtmlMarkers,
     neptunImpactHtmlMarkers,
     nuclearStockpileMarkers,
     situationCalloutMarkers,
     ukraineSettlementHtmlMarkers,
     usCarrierHtmlMarkers,
+    strategicPostureMarkers,
+    strategicOverviewCalloutMarkers,
   ]);
 
   return { globePoints, rawGlobePaths, htmlOverlayMarkers };

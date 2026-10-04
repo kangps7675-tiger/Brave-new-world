@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { FeatureCollection } from "geojson";
 import {
+  AXIS_SATELLITE_FILL,
+  AXIS_SATELLITE_FILL_OPACITY,
+  AXIS_HUB_FILL,
   axisHubBorderWidthPx,
   collectAxisHubBorderRings,
+  paintAxisSatelliteCountriesGeoJson,
 } from "@/lib/axisHubCountryPolygons";
 
 const HUBS: FeatureCollection = {
@@ -65,6 +69,56 @@ const HUBS: FeatureCollection = {
     },
   ],
 };
+
+describe("paintAxisSatelliteCountriesGeoJson", () => {
+  it("paints only satellite ISOs with the same red at lower opacity than hubs", () => {
+    const source: FeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: { iso: "BLR", name: "Belarus" },
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [23, 51],
+                [32, 51],
+                [32, 56],
+                [23, 51],
+              ],
+            ],
+          },
+        },
+        {
+          type: "Feature",
+          properties: { iso: "CHN", name: "China" },
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [100, 30],
+                [110, 30],
+                [110, 40],
+                [100, 30],
+              ],
+            ],
+          },
+        },
+      ],
+    };
+    const painted = paintAxisSatelliteCountriesGeoJson(source);
+    expect(painted.features).toHaveLength(1);
+    expect(painted.features[0]?.properties).toMatchObject({
+      iso: "BLR",
+      fill: AXIS_SATELLITE_FILL,
+      fillOpacity: AXIS_SATELLITE_FILL_OPACITY,
+      role: "satellite",
+    });
+    expect(AXIS_SATELLITE_FILL).toBe(AXIS_HUB_FILL);
+    expect(AXIS_SATELLITE_FILL_OPACITY).toBeLessThan(0.28);
+  });
+});
 
 describe("collectAxisHubBorderRings", () => {
   it("keeps outer rings of China, Russia, North Korea, and Iran only", () => {

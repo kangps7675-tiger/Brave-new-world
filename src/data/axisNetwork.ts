@@ -45,7 +45,6 @@ export const AXIS_NODES: Record<string, AxisNode> = {
   RUS: { code: "RUS", nameKo: "러시아", nameEn: "Russia", lat: 55.75, lng: 37.62, hub: "RUS" },
   PRK: { code: "PRK", nameKo: "북한", nameEn: "North Korea", lat: 39.04, lng: 125.76, hub: "PRK" },
   BLR: { code: "BLR", nameKo: "벨라루스", nameEn: "Belarus", lat: 53.9, lng: 27.56 },
-  SYR: { code: "SYR", nameKo: "시리아", nameEn: "Syria", lat: 33.51, lng: 36.29 },
   IRQ: { code: "IRQ", nameKo: "이라크", nameEn: "Iraq", lat: 33.31, lng: 44.37 },
   YEM: { code: "YEM", nameKo: "예멘", nameEn: "Yemen", lat: 15.35, lng: 44.21 },
   LBN: { code: "LBN", nameKo: "레바논", nameEn: "Lebanon", lat: 33.89, lng: 35.5 },
@@ -199,7 +198,6 @@ export const AXIS_EDGES: readonly AxisEdge[] = [
   edge("RUS", "TKM", "energy", ["RUS"], "러–투르크멘 가스", "Russia–Turkmenistan gas"),
   edge("RUS", "KGZ", "patronage", ["RUS"], "러–키르기스 기지·CSTO", "Russia–Kyrgyzstan CSTO"),
   edge("RUS", "TJK", "patronage", ["RUS"], "러–타직 기지·안보", "Russia–Tajikistan security"),
-  edge("RUS", "SYR", "arms", ["RUS"], "러–시리아 군사 주둔", "Russia–Syria military"),
 
   // —— 중국 스포크 ——
   edge("CHN", "KAZ", "energy", ["CHN"], "중–카자흐 벨트·에너지", "China–Kazakhstan BRI/energy"),
@@ -213,14 +211,13 @@ export const AXIS_EDGES: readonly AxisEdge[] = [
   edge("CHN", "IRN", "energy", ["CHN", "IRN"], "중–이란 원유·제재회피", "China–Iran oil/sanctions"),
 
   // —— 이란 스포크 (중동) ——
-  edge("IRN", "SYR", "patronage", ["IRN"], "이란–시리아 축", "Iran–Syria axis"),
+  // 시리아: 아사드 붕괴·이행 정권 이후 축 정렬 해제 (현행 맵에서 제외)
   edge("IRN", "IRQ", "patronage", ["IRN"], "이란–이라크 영향권", "Iran–Iraq influence"),
   edge("IRN", "LBN", "hybrid", ["IRN"], "이란–레바논(헤즈볼라)", "Iran–Lebanon (Hezbollah)", "conflict"),
   edge("IRN", "YEM", "arms", ["IRN"], "이란–예멘(후티) 군수", "Iran–Yemen (Houthi) arms"),
 
   // —— 북한 스포크 ——
   edge("PRK", "BLR", "diplomatic", ["PRK"], "북–벨라루스 외교·군수", "DPRK–Belarus diplomacy/arms"),
-  edge("PRK", "SYR", "arms", ["PRK"], "북–시리아 군수 연계", "DPRK–Syria arms links"),
   edge("PRK", "YEM", "arms", ["PRK"], "북–예멘 무기 흐름", "DPRK–Yemen arms flows"),
   edge("PRK", "CUB", "diplomatic", ["PRK"], "북–쿠바 체제 연대", "DPRK–Cuba solidarity"),
   edge("PRK", "VEN", "diplomatic", ["PRK"], "북–베네수엘라 연대", "DPRK–Venezuela ties"),
@@ -239,7 +236,6 @@ export const AXIS_ALIGNMENT_CODES: ReadonlySet<string> = new Set([
   "RUS",
   "PRK",
   "BLR",
-  "SYR",
   "IRQ",
   "YEM",
   "LBN",
@@ -253,6 +249,29 @@ export const AXIS_ALIGNMENT_CODES: ReadonlySet<string> = new Set([
   "MMR",
   "PAK",
 ]);
+
+/**
+ * CRINK 4허브 제외 축 연계국 — 지정학 국토 음영(연한 CRINK 빨강)용.
+ * 허브와 같은 색 계열·옅은 채움으로 “연계/협력” 스포크를 구분한다.
+ * (시리아는 아사드 이후 축 정렬에서 제외)
+ */
+export const AXIS_SATELLITE_ISOS: readonly string[] = [
+  "BLR",
+  "IRQ",
+  "YEM",
+  "LBN",
+  "KAZ",
+  "UZB",
+  "TKM",
+  "KGZ",
+  "TJK",
+  "CUB",
+  "VEN",
+  "MMR",
+  "PAK",
+];
+
+export const AXIS_SATELLITE_ISO_SET: ReadonlySet<string> = new Set(AXIS_SATELLITE_ISOS);
 
 const AXIS_EDGE_PAIR_KEYS = new Set(
   AXIS_EDGES.map((e) => `${e.a}|${e.b}`),

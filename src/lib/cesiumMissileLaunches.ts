@@ -5,6 +5,7 @@
 
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import { KOREA_MISSILE_LAUNCHES } from "@/data/koreaMissileLaunchesSeed";
+import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
 
 type CesiumNS = typeof import("cesium");
 
@@ -220,9 +221,10 @@ export function attachMissileLaunchPulse(
   Cesium: CesiumNS,
   viewer: import("cesium").Viewer,
 ): () => void {
-  const remove = viewer.scene.preUpdate.addEventListener(() => {
-    if (viewer.isDestroyed()) return;
+  return startObservePulseLoop(() => {
+    if (viewer.isDestroyed()) return false;
     const t = performance.now() / 1000;
+    let any = false;
     for (const entity of viewer.entities.values) {
       if (typeof entity.id !== "string" || !entity.id.startsWith("nk-missile:")) {
         continue;
@@ -230,9 +232,10 @@ export function attachMissileLaunchPulse(
       if (entity.id.includes("-arc:") || entity.id.includes("-apex:")) continue;
       const pt = entity.point;
       if (!pt) continue;
+      any = true;
       const pulse = 0.85 + 0.15 * Math.sin(t * 4.2);
       pt.pixelSize = new Cesium.ConstantProperty(10 + pulse * 8);
     }
+    return any;
   });
-  return () => remove();
 }

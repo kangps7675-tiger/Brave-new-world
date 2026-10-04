@@ -429,18 +429,19 @@ export function applyBasemapTerrain(
 }
 
 /**
- * 지형(OpenFreeMap Liberty) 기본 도시명 — 스타일 기본값(~10–14px)이 작아
- * 줌 구간별로 한 단계 키운다. MapLibre setLayoutProperty로 가능.
- * 3선(town/village)은 applyBasemapCityLabelRank가 숨기므로 스케일하지 않는다.
+ * 지형(OpenFreeMap Liberty) 정착지명 — 스타일 기본값(~10–14px)이 작아
+ * 줌 구간별로 한 단계 키운다. town/village도 점진 LOD에 맞춰 스케일.
  */
 const TERRAIN_PLACE_LABEL_TEXT_SIZE: Record<string, unknown> = {
   label_city: ["interpolate", ["linear"], ["zoom"], 4, 14, 7, 17, 11, 22],
   label_city_capital: ["interpolate", ["linear"], ["zoom"], 4, 15, 7, 18, 11, 24],
+  label_town: ["interpolate", ["linear"], ["zoom"], 8, 12, 11, 15, 14, 18],
+  label_village: ["interpolate", ["linear"], ["zoom"], 10, 11, 13, 14, 15, 16],
 };
 
 /**
- * OpenFreeMap 3선 이하 정착지 라벨.
- * Liberty(지형): town/village/other · Dark(인텔): town/village/suburb/hamlet
+ * OpenFreeMap 중소·마을급 정착지 라벨 (체크박스 OFF 시 숨김, ON 시 스타일 minzoom LOD).
+ * Liberty(지형): town/village/other · Dark(인텔): town/village/suburb
  */
 export const PLACE_LABEL_HIDE_LAYER_IDS = [
   "label_other",
@@ -573,10 +574,11 @@ export function applyBasemapModernCountryLabels(
 }
 
 /**
- * 벡터 베이스맵 도시명.
- * - showCityLabels=false: town/village + city/capital 전부 숨김 (체크박스 OFF)
- * - showCityLabels=true: 1선·2선(city/capital)만 표시, town/village 숨김
- * 국가·주 라벨은 건드리지 않는다.
+ * 벡터 베이스맵 정착지 라벨.
+ * - showCityLabels=false: city/town/village 전부 숨김
+ * - showCityLabels=true: city + town/village 모두 표시 — OpenFreeMap 스타일 minzoom이
+ *   줌아웃(국가·대도시) → 확대(중소·마을) 점진 LOD를 담당
+ * 국가·주 라벨은 건드리지 않는다 (MODERN_COUNTRY_LABEL_LAYER_IDS).
  */
 export function applyBasemapCityLabelRank(
   map: BasemapMapLike,
@@ -586,7 +588,7 @@ export function applyBasemapCityLabelRank(
   try {
     for (const layerId of PLACE_LABEL_HIDE_LAYER_IDS) {
       if (!map.getLayer(layerId)) continue;
-      map.setLayoutProperty(layerId, "visibility", "none");
+      map.setLayoutProperty(layerId, "visibility", showCityLabels ? "visible" : "none");
     }
     for (const layerId of PLACE_LABEL_KEEP_LAYER_IDS) {
       if (!map.getLayer(layerId)) continue;

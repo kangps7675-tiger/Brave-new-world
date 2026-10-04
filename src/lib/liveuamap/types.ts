@@ -51,13 +51,15 @@ export type LiveuamapControlRegionId =
   | "ukraine"
   | "iran"
   | "yemen"
-  | "lebanon";
+  | "lebanon"
+  | "israel-palestine";
 
 export const LIVEUAMAP_CONTROL_REGION_IDS: LiveuamapControlRegionId[] = [
   "ukraine",
   "iran",
   "yemen",
   "lebanon",
+  "israel-palestine",
 ];
 
 export function isLiveuamapControlRegionId(
