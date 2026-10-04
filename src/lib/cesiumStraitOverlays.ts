@@ -6,8 +6,6 @@
 import type { StaticPoint, TransportPath } from "@/data/geoTypes";
 import type { MaritimeOverlaySegment } from "@/lib/cesiumMaritimeOverlays";
 import {
-  chokeIdForGateZone,
-  gateCongestionRing,
   gateLinePoints,
   type ObserveStraitPreset,
 } from "@/lib/cesiumStraitScene";
@@ -15,8 +13,6 @@ import {
   OBSERVE_CHOKE_RING,
   OBSERVE_STRAIT_CABLE,
   OBSERVE_STRAIT_CABLE_WIDTH_M,
-  OBSERVE_STRAIT_CONGESTION,
-  OBSERVE_STRAIT_CONGESTION_WIDTH_M,
   OBSERVE_STRAIT_GATE,
   OBSERVE_STRAIT_GATE_WIDTH_M,
   OBSERVE_STRAIT_PIPELINE,
@@ -58,11 +54,16 @@ function capForKind(kind: TransportPath["kind"]): number {
   return 10;
 }
 
-/** 통항 게이트 선 + 혼잡 bbox 외곽 */
+/**
+ * 통항 게이트 선만.
+ * 혼잡 bbox 링(GroundPolyline 폭 ~1km)은 클로즈업에서 반투명 회색 면처럼 보여 제거.
+ * 혼잡 수치는 통항 배지 텍스트로만 읽힌다.
+ */
 export function buildStraitGateSegments(
   preset: ObserveStraitPreset,
-  congestionColorByChokeId?: Record<string, string | undefined>,
+  _congestionColorByChokeId?: Record<string, string | undefined>,
 ): MaritimeOverlaySegment[] {
+  void _congestionColorByChokeId;
   const out: MaritimeOverlaySegment[] = [];
   for (const zoneId of preset.gateZoneIds) {
     const gate = gateLinePoints(zoneId);
@@ -73,19 +74,6 @@ export function buildStraitGateSegments(
         color: OBSERVE_STRAIT_GATE,
         widthM: OBSERVE_STRAIT_GATE_WIDTH_M,
         points: gate,
-      });
-    }
-    const ring = gateCongestionRing(zoneId);
-    if (ring && ring.length >= 4) {
-      const chokeId = chokeIdForGateZone(zoneId);
-      const tint =
-        (chokeId && congestionColorByChokeId?.[chokeId]) || OBSERVE_STRAIT_CONGESTION;
-      out.push({
-        id: `strait-congest:${zoneId}`,
-        pickId: chokeId ? `alert:portwatch:${chokeId}` : `alert:ais-gate:${zoneId}`,
-        color: tint,
-        widthM: OBSERVE_STRAIT_CONGESTION_WIDTH_M,
-        points: ring,
       });
     }
   }

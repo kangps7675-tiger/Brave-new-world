@@ -80,8 +80,12 @@ function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
-/** photoreal에서도 살짝 남겨 타일 갭이 빈 글로브/옛 바다색으로 안 보이게 */
-export const OBSERVE_PHOTOREAL_IMAGERY_FLOOR = 0.22;
+/**
+ * photoreal 아래 위성 imagery 최소 alpha.
+ * 1이면 3D 타일 구멍이 위성(해저 포함)으로 채워져 waterMask 액체층만 바다에 얹힌다.
+ * 갭에 baseColor/회색 면이 안 비친다.
+ */
+export const OBSERVE_PHOTOREAL_IMAGERY_FLOOR = 1;
 
 /** photoreal ON → imagery alpha floor, OFF → 1 */
 export function imageryAlphaForSurface(
