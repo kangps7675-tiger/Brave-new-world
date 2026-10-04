@@ -2,11 +2,24 @@ import { describe, expect, it } from "vitest";
 import {
   imageryAlphaForSurface,
   OBSERVE_PHOTOREAL_IMAGERY_FLOOR,
+  OBSERVE_PHOTOREAL_MAX_HEIGHT_M,
+  observePhotorealAllowedAtHeightM,
   createObserveSurfaceController,
 } from "@/lib/cesiumObserveSurface";
 import { _resetObserveRenderGovernorForTest } from "@/lib/cesiumObserveRenderGovernor";
 
 describe("cesiumObserveSurface", () => {
+  it("allows photoreal only at or below max height", () => {
+    expect(observePhotorealAllowedAtHeightM(OBSERVE_PHOTOREAL_MAX_HEIGHT_M)).toBe(
+      true,
+    );
+    expect(observePhotorealAllowedAtHeightM(50_000)).toBe(true);
+    expect(observePhotorealAllowedAtHeightM(OBSERVE_PHOTOREAL_MAX_HEIGHT_M + 1)).toBe(
+      false,
+    );
+    expect(observePhotorealAllowedAtHeightM(2_000_000)).toBe(false);
+  });
+
   it("imageryAlphaForSurface fades photoreal to floor and satellite to 1", () => {
     expect(imageryAlphaForSurface("photoreal", 0)).toBeCloseTo(1, 5);
     expect(imageryAlphaForSurface("photoreal", 1)).toBeCloseTo(
