@@ -1421,7 +1421,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           liveTrackEntityIdRef.current = null;
           liveTrackFixRef.current = null;
           liveTrackFollowingRef.current = false;
-          // 추적 해제 후에도 저고도면 카메라 근처 ADS-B 3D 유지
+          // clutter 통과 ADS-B 전부 glTF (원거리면 sync 쪽에서 빌보드 LOD)
           refreshObserveAircraftModels(Cesium, viewer, null);
           releaseObserveRender("tracked-entity");
           observeRequestRender();

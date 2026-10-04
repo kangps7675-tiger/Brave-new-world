@@ -1,6 +1,7 @@
 /**
  * Pretty Globe Stage — Cinema pref / boot intro / idle spin.
  * Content(AIS·LiveUA·증시)와 분리. continuous hold 금지 → interval + requestRender.
+ * Content 계약: `@/lib/cesiumObserveContent` — Stage 공개면은 camera/settle/governor/cinemaPref만.
  */
 
 import {

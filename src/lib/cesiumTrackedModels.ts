@@ -1,6 +1,7 @@
 /**
  * Observe ADS-B — 실제 고도에 띄운 glTF.
- * 전역 all-3D 금지: 추적 클러스터 또는 저고도 카메라 근처만.
+ * 기본: clutter 예산을 통과한 표시 항공기 전부 ModelGraphics (전 항공기 glTF).
+ * near-cluster 모드는 추적/저고도 근처만 (레거시·테스트).
  */
 import { observeRequestRender } from "@/lib/cesiumObserveRenderGovernor";
 
@@ -8,23 +9,25 @@ type CesiumNS = typeof import("cesium");
 
 /** Cesium sample Cesium_Air — public/models에 복사 */
 export const OBSERVE_AIRCRAFT_MODEL_URI = "/models/cesium-air.glb";
-/** 추적 대상 외 근접 모델 상한 */
+/** 추적 대상 외 근접 모델 상한 (near-cluster 모드) */
 export const OBSERVE_NEAR_MODEL_MAX = 8;
-/** 이 거리(m) 안만 near model 후보 */
+/** 이 거리(m) 안만 near model 후보 (near-cluster 모드) */
 export const OBSERVE_NEAR_MODEL_RADIUS_M = 80_000;
 /**
- * 추적 없을 때 — 카메라 중심 근처 모델 수.
- * 궤도에서는 0 (아래 고도 게이트).
+ * 추적 없을 때 — 카메라 중심 근처 모델 수 (near-cluster 모드).
  */
 export const OBSERVE_CAMERA_MODEL_MAX = 12;
 export const OBSERVE_CAMERA_MODEL_RADIUS_M = 120_000;
-/** 이 카메라 고도(m) 아래에서만 카메라-근처 3D (공중 관측감) */
+/** 이 카메라 고도(m) 아래에서만 카메라-근처 3D (near-cluster 모드) */
 export const OBSERVE_MODEL_CAMERA_MAX_HEIGHT_M = 650_000;
 
-export const OBSERVE_MODEL_MINIMUM_PIXEL = 56;
-export const OBSERVE_MODEL_MAXIMUM_SCALE = 28_000;
+/** 원거리에서도 실루엣만 읽히게 — 다수 기체 GPU 부담 완화 */
+export const OBSERVE_MODEL_MINIMUM_PIXEL = 28;
+export const OBSERVE_MODEL_MAXIMUM_SCALE = 14_000;
 /** 샘플 기체 스케일 — 공중에서 실루엣이 읽히게 */
-export const OBSERVE_AIRCRAFT_MODEL_SCALE = 2.2;
+export const OBSERVE_AIRCRAFT_MODEL_SCALE = 1.8;
+/** 이 카메라 거리(m) 밖이면 모델 미표시(빌보드 복구) — VRAM 보호 */
+export const OBSERVE_MODEL_MAX_CAMERA_DISTANCE_M = 2_800_000;
 
 export type ObserveModelCandidate = {
   entityId: string;
@@ -33,7 +36,14 @@ export type ObserveModelCandidate = {
   headingDeg: number | null;
 };
 
+export type SelectObserveModelMode = "all-displayed" | "near-cluster";
+
 export type SelectObserveModelOpts = {
+  /**
+   * `all-displayed`(기본): clutter 통과 집합 전부 glTF.
+   * `near-cluster`: 추적/저고도 근처만 (레거시).
+   */
+  mode?: SelectObserveModelMode;
   nearMax?: number;
   radiusM?: number;
   cameraCenter?: { lat: number; lng: number } | null;
@@ -81,13 +91,19 @@ function pickNearestIds(
 }
 
 /**
- * 추적 id(+근처) 또는 저고도 카메라 근처 항공기 id 집합.
+ * glTF를 붙일 mil:/civ: id 집합.
+ * 기본(all-displayed): candidates 전부 — 상한은 liveRenderGuard clutter.
  */
 export function selectObserveModelEntityIds(
   trackedId: string | null,
   candidates: ObserveModelCandidate[],
   opts?: SelectObserveModelOpts,
 ): Set<string> {
+  const mode = opts?.mode ?? "all-displayed";
+  if (mode === "all-displayed") {
+    return new Set(candidates.map((c) => c.entityId));
+  }
+
   const out = new Set<string>();
   const nearMax = opts?.nearMax ?? OBSERVE_NEAR_MODEL_MAX;
   const radiusM = opts?.radiusM ?? OBSERVE_NEAR_MODEL_RADIUS_M;
@@ -148,9 +164,18 @@ function applyOrientation(
   );
 }
 
+function cameraDistanceM(
+  Cesium: CesiumNS,
+  viewer: import("cesium").Viewer,
+  position: import("cesium").Cartesian3,
+): number {
+  return Cesium.Cartesian3.distance(viewer.camera.positionWC, position);
+}
+
 /**
  * mil:/civ: 엔티티에만 모델 부여. 집합 밖은 모델 제거·빌보드 복구.
  * 위치(고도)는 billboard sync가 ADS-B ft→m으로 이미 세팅.
+ * 카메라에서 너무 멀면 모델 끄고 빌보드로 LOD.
  */
 export function syncObserveAircraftModels(
   Cesium: CesiumNS,
@@ -160,23 +185,26 @@ export function syncObserveAircraftModels(
   trackedId: string | null,
 ): void {
   const time = viewer.clock.currentTime;
+  const maxDist = OBSERVE_MODEL_MAX_CAMERA_DISTANCE_M;
 
   for (const entity of viewer.entities.values) {
     if (typeof entity.id !== "string") continue;
     if (!entity.id.startsWith("mil:") && !entity.id.startsWith("civ:")) continue;
 
     const wantModel = modelIds.has(entity.id);
-    if (wantModel) {
-      const position = entity.position?.getValue(time);
-      if (position) {
-        applyOrientation(Cesium, entity, position, headings.get(entity.id) ?? null);
-      }
+    const position = entity.position?.getValue(time);
+    const dist =
+      wantModel && position ? cameraDistanceM(Cesium, viewer, position) : Infinity;
+    const inRange = Number.isFinite(dist) && dist <= maxDist;
+
+    if (wantModel && inRange && position) {
+      applyOrientation(Cesium, entity, position, headings.get(entity.id) ?? null);
       const emphasized = entity.id === trackedId;
       const scale = emphasized
         ? OBSERVE_AIRCRAFT_MODEL_SCALE * 1.15
         : OBSERVE_AIRCRAFT_MODEL_SCALE;
       const minPx = emphasized
-        ? OBSERVE_MODEL_MINIMUM_PIXEL + 16
+        ? OBSERVE_MODEL_MINIMUM_PIXEL + 20
         : OBSERVE_MODEL_MINIMUM_PIXEL;
 
       if (entity.model) {
@@ -218,6 +246,8 @@ export function syncObserveAircraftModels(
       if (entity.billboard) {
         entity.billboard.show = new Cesium.ConstantProperty(true);
       }
+    } else if (wantModel && !inRange && entity.billboard) {
+      entity.billboard.show = new Cesium.ConstantProperty(true);
     }
   }
   observeRequestRender();
