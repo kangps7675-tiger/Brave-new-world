@@ -110,7 +110,7 @@ export function ObserveLayerLegend({
     },
     {
       id: "ocean",
-      swatch: "#0a3a52",
+      swatch: "#1c1917",
       shape: "dot",
       label: en ? "Oceans" : "바다",
       detail: en
