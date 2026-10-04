@@ -72,7 +72,12 @@ function timestampToIso(raw: unknown): string {
 }
 
 function pickPhoto(o: Record<string, unknown>): string | undefined {
-  const photo = asString(o.photo) || asString(o.imageUrl) || asString(o.image);
+  const photo =
+    asString(o.photo) ||
+    asString(o.picture) ||
+    asString(o.picpath) ||
+    asString(o.imageUrl) ||
+    asString(o.image);
   if (photo && !/\/images\/.*\.png$/i.test(photo)) return photo;
   const pics = o.pics;
   if (Array.isArray(pics)) {
@@ -88,13 +93,73 @@ function pickPhoto(o: Record<string, unknown>): string | undefined {
   return undefined;
 }
 
+/** mpts geojson=true → Feature; 레거시 place 객체도 그대로 허용 */
+function flattenPlaceRow(raw: unknown): {
+  fields: Record<string, unknown>;
+  lat: number | null;
+  lng: number | null;
+} | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+
+  if (o.type === "Feature") {
+    const geom = o.geometry;
+    if (!geom || typeof geom !== "object") return null;
+    const g = geom as { type?: unknown; coordinates?: unknown };
+    // 이벤트 핀만 — Polygon 통제면은 toOccupiedGeoJson이 담당
+    if (g.type !== "Point" && g.type !== "MultiPoint") return null;
+    const coords = g.coordinates;
+    let lng: number | null = null;
+    let lat: number | null = null;
+    if (g.type === "Point" && Array.isArray(coords) && coords.length >= 2) {
+      lng = asNumber(coords[0]);
+      lat = asNumber(coords[1]);
+    } else if (
+      g.type === "MultiPoint" &&
+      Array.isArray(coords) &&
+      Array.isArray(coords[0]) &&
+      coords[0].length >= 2
+    ) {
+      lng = asNumber(coords[0][0]);
+      lat = asNumber(coords[0][1]);
+    }
+    const props =
+      o.properties && typeof o.properties === "object"
+        ? (o.properties as Record<string, unknown>)
+        : {};
+    return {
+      fields: {
+        ...props,
+        id: props.id ?? o.id,
+      },
+      lat,
+      lng,
+    };
+  }
+
+  const props =
+    o.properties && typeof o.properties === "object"
+      ? (o.properties as Record<string, unknown>)
+      : null;
+  const fields = props ? { ...props, ...o } : o;
+  return {
+    fields,
+    lat: asNumber(fields.lat) ?? asNumber(fields.latitude),
+    lng:
+      asNumber(fields.lng) ??
+      asNumber(fields.lon) ??
+      asNumber(fields.longitude),
+  };
+}
+
 export function normalizePlace(
   raw: unknown,
   index: number,
   slot: Pick<LiveuamapRegionSlot, "id" | "resid" | "theater">,
 ): LiveuamapEvent | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
+  const flat = flattenPlaceRow(raw);
+  if (!flat) return null;
+  const o = flat.fields;
   const title = asString(o.title) || asString(o.name) || asString(o.headline);
   const body =
     asString(o.body) ||
@@ -104,8 +169,9 @@ export function normalizePlace(
     title;
   if (!title && !body) return null;
 
-  const lat = asNumber(o.lat) ?? asNumber(o.latitude);
-  const lng = asNumber(o.lng) ?? asNumber(o.lon) ?? asNumber(o.longitude);
+  const lat = flat.lat ?? asNumber(o.lat) ?? asNumber(o.latitude);
+  const lng =
+    flat.lng ?? asNumber(o.lng) ?? asNumber(o.lon) ?? asNumber(o.longitude);
   if (lat == null || lng == null) return null;
 
   const idRaw = o.id ?? o.event_id;
@@ -139,7 +205,7 @@ export function normalizePlace(
     imageUrl: pickPhoto(o),
     videoUrl: asString(o.videoUrl) || asString(o.video) || undefined,
     sourceUrl,
-    viaSource: asString(o.viaSource) || undefined,
+    viaSource: asString(o.viaSource) || asString(o.resource) || undefined,
     publishedAt: timestampToIso(o.timestamp ?? o.publishedAt ?? o.date ?? o.time),
     tags,
   };

@@ -1,0 +1,67 @@
+{
+  "events": [
+    {
+      "id": "hormuz-synth-001",
+      "straitId": "hormuz",
+      "occurredOn": "2023-05-03",
+      "lat": 26.55,
+      "lng": 56.25,
+      "titleKo": "샘플 · 호르무즈 인근 선박 나포 보도",
+      "titleEn": "Sample · reported vessel seizure near Hormuz",
+      "kind": "seizure",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch methodology",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF PortWatch"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "hormuz-synth-002",
+      "straitId": "hormuz",
+      "occurredOn": "2023-07-05",
+      "lat": 26.4,
+      "lng": 56.5,
+      "titleKo": "샘플 · 호르무즈 통항 관련 훈련 공지",
+      "titleEn": "Sample · Hormuz transit drill notice",
+      "kind": "drill",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "hormuz-synth-003",
+      "straitId": "hormuz",
+      "occurredOn": "2024-01-12",
+      "lat": 26.6,
+      "lng": 56.1,
+      "titleKo": "샘플 · 호르무즈 해협 인근 사고 보고",
+      "titleEn": "Sample · reported accident near Hormuz",
+      "kind": "accident",
+      "sourceUrls": [
+        {
+          "label": "FRED",
+          "url": "https://fred.stlouisfed.org/",
+          "publisher": "Federal Reserve Bank of St. Louis"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    }
+  ]
+}

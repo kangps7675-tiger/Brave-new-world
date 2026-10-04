@@ -1,8 +1,20 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import {
+  getStraitReplayEnabled,
+  setStraitReplayEnabled,
+  subscribeStraitReplayEnabled,
+} from "@/lib/straitReplay/uiBridge";
 
-type ChipId = "tracks" | "frontline" | "hazards" | "neptun";
+type ChipId =
+  | "tracks"
+  | "frontline"
+  | "hazards"
+  | "neptun"
+  | "events"
+  | "strait-history";
 
 type Props = {
   lang: LabelLanguage;
@@ -10,12 +22,13 @@ type Props = {
   frontlineOn: boolean;
   hazardsOn: boolean;
   neptunOn: boolean;
-  onToggle: (id: ChipId, next: boolean) => void;
+  eventsOn: boolean;
+  onToggle: (id: Exclude<ChipId, "strait-history">, next: boolean) => void;
 };
 
 /**
  * 관측(Cesium) 전용 센서 묶음 — MapLibre 레이어판 복제 금지.
- * 기존 LayerPrefs 토글만 묶는다.
+ * 기존 LayerPrefs 토글만 묶는다. 「해협 이력」만 리플레이 브리지로 분리.
  */
 export function ObserveSensorChips({
   lang,
@@ -23,8 +36,14 @@ export function ObserveSensorChips({
   frontlineOn,
   hazardsOn,
   neptunOn,
+  eventsOn,
   onToggle,
 }: Props) {
+  const straitHistoryOn = useSyncExternalStore(
+    subscribeStraitReplayEnabled,
+    getStraitReplayEnabled,
+    () => false,
+  );
   const en = lang === "en";
   const chips: Array<{ id: ChipId; on: boolean; label: string }> = [
     {
@@ -47,6 +66,16 @@ export function ObserveSensorChips({
       on: neptunOn,
       label: en ? "Air threats" : "공중 위협",
     },
+    {
+      id: "events",
+      on: eventsOn,
+      label: en ? "Events" : "전장 사건",
+    },
+    {
+      id: "strait-history",
+      on: straitHistoryOn,
+      label: en ? "Strait history" : "해협 이력",
+    },
   ];
 
   return (
@@ -60,7 +89,13 @@ export function ObserveSensorChips({
           key={c.id}
           type="button"
           aria-pressed={c.on}
-          onClick={() => onToggle(c.id, !c.on)}
+          onClick={() => {
+            if (c.id === "strait-history") {
+              setStraitReplayEnabled(!c.on);
+              return;
+            }
+            onToggle(c.id, !c.on);
+          }}
           className={`rounded border px-2 py-0.5 text-micro font-semibold tracking-wide transition ${
             c.on
               ? "border-teal-400/55 bg-teal-500/25 text-teal-50"

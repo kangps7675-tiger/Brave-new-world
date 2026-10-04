@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * 점령/통제 영토 GeoJSON.
  * Ukraine: LiveUA 우선 → DeepState 폴백 (MapLibre).
  *   `?liveuaOnly=1` → LiveUA만 (Cesium; DeepState 금지).
- * Iran/Yemen/Lebanon: LiveUA만 (?region=iran|yemen|lebanon).
+ * Iran/Yemen/Lebanon/IL-PS: LiveUA만 (?region=iran|yemen|lebanon|israel-palestine).
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);

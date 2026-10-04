@@ -16,8 +16,11 @@ type Props = {
  */
 export function PortWatchStressChip({ lang, className = "" }: Props) {
   const ko = lang !== "en";
-  const byChoke = usePortWatchObservations();
-  const summary = useMemo(() => summarizePortWatchStress(byChoke), [byChoke]);
+  const snapshot = usePortWatchObservations();
+  const summary = useMemo(
+    () => summarizePortWatchStress(snapshot.byChokeId),
+    [snapshot.byChokeId],
+  );
 
   const bandLabel =
     summary.band === "critical"

@@ -3,6 +3,8 @@
  * firms: 산불 레이어와 id 를 나누기 위해 liveua-strike: 를 쓴다.
  */
 
+import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
+
 type CesiumNS = typeof import("cesium");
 
 export type CesiumLiveuaStrikePoint = {
@@ -87,21 +89,21 @@ export function attachLiveuaStrikePulse(
   Cesium: CesiumNS,
   viewer: import("cesium").Viewer,
 ): () => void {
-  const remove = viewer.scene.preUpdate.addEventListener(() => {
-    if (viewer.isDestroyed()) return;
+  return startObservePulseLoop(() => {
+    if (viewer.isDestroyed()) return false;
     const t = performance.now() / 1000;
+    let any = false;
     for (const entity of viewer.entities.values) {
       if (typeof entity.id !== "string" || !entity.id.startsWith(STRIKE_PREFIX)) continue;
       const bb = entity.billboard;
       if (!bb) continue;
+      any = true;
       const phase = (entity.id.charCodeAt(entity.id.length - 1) % 5) * 1.1;
       const pulse = 0.92 + 0.16 * Math.sin(t * 3.6 + phase);
       const alpha = 0.78 + 0.22 * Math.sin(t * 2.4 + phase * 0.5);
       bb.scale = new Cesium.ConstantProperty(pulse);
       bb.color = new Cesium.ConstantProperty(Cesium.Color.WHITE.withAlpha(alpha));
     }
+    return any;
   });
-  return () => {
-    remove();
-  };
 }

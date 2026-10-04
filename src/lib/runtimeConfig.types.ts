@@ -14,10 +14,15 @@ export type RuntimeConfig = {
    */
   dataCdnBase: string | null;
   /**
-   * Cesium ion 토큰 — 지형 모드 고줌 OSM 3D Buildings 타일 fetch용.
+   * Cesium ion 토큰 — Google Photorealistic 3D / World Terrain / OSM Buildings.
    * 브라우저로 넘어가지만 NEXT_PUBLIC_ 접두사는 쓰지 않고 서버에서 주입.
    */
   cesiumIonToken: string | null;
+  /**
+   * 관측(Cesium)에서 Google Photorealistic 3D Tiles 시도 여부.
+   * `CESIUM_GOOGLE_3D=0`이면 Ion World Imagery + OSM Buildings 경로만 씀.
+   */
+  cesiumGoogle3dEnabled: boolean;
 };
 
 export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
@@ -29,4 +34,5 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
   syncPollMs: 5 * 60 * 1000,
   dataCdnBase: null,
   cesiumIonToken: null,
+  cesiumGoogle3dEnabled: true,
 };

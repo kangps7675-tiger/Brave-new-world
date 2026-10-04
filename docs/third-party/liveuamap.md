@@ -1,8 +1,9 @@
 # Liveuamap (third-party) — 전선 속보 · 통제면
 
-> 상태: **서버 ingest 전용.** 클라는 `GET /api/liveuamap` 캐시만 읽고,
-> 쿼터는 `POST /api/liveuamap/sync`(cron `LIVEUAMAP_SYNC_URL`)만 소비한다.
-> Attribution: Liveuamap. API 키는 `LIVEUAMAP_API_KEY`(NEXT_PUBLIC 금지).
+> 상태: **서버 ingest 전용.** 클라는 `GET /api/liveuamap` 캐시를 읽고,
+> 관측 폴링 중 서버가 **UA minInterval(15분)·일 예산**을 존중해 mpts warm한다.
+> Cron `POST /api/liveuamap/sync`도 동일 ingest. Attribution: Liveuamap.
+> API 키는 `LIVEUAMAP_API_KEY`(NEXT_PUBLIC 금지).
 
 ## 제품 용도
 
@@ -14,9 +15,10 @@
 
 ## 예산
 
-일 `LIVEUAMAP_DAILY_BUDGET`(기본 200). 슬롯: UA96 · Iran48 · YE24 · LB16 · IL-PS12 · TW4 · KR4.
-내장 resid: Ukraine=`0`, Lebanon/IL-PS=`2`. Iran·Yemen은 `LIVEUAMAP_RESID_MAP`으로 넣는다.
+일 `LIVEUAMAP_DAILY_BUDGET`(기본 200). 슬롯: UA96(15분) · Iran48 · YE24 · LB16 · IL-PS12 · TW4 · KR4.
+내장 resid: Ukraine=`0`, Lebanon=`74`, IL/PS=`2`. Iran·Yemen은 `LIVEUAMAP_RESID_MAP`.
 동일 resid는 sync 시 HTTP 1회만 쓰고, 통제면은 지역 bbox로 걸러 저장한다.
+Point 기사 1건 = Cesium 양피지 1장 (`LiveuaFlashParchment` index).
 
 ## 로컬 next dev · D1
 

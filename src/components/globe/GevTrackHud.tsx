@@ -28,7 +28,13 @@ export function GevTrackHud({
   lang = "ko",
 }: Props) {
   const radiusKm = Math.round(GEV_AWARENESS_RADIUS_M / 1000);
-  const followLabel = lang === "en" ? (followCamera ? "TRACK ON" : "TRACK OFF") : followCamera ? "추적 ON" : "추적 OFF";
+  const followLabel = lang === "en"
+    ? followCamera
+      ? "TRACK ON"
+      : "RELOCK"
+    : followCamera
+      ? "추적 ON"
+      : "재추적";
   const stopLabel = lang === "en" ? "Release" : "해제";
   const contactsLabel = lang === "en" ? `CONTACTS · ${radiusKm} km` : `컨택트 · ${radiusKm} km`;
 

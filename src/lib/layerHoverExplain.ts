@@ -385,6 +385,10 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     ko: "CRINK 네 나라(중국·러시아·이란·북한) 영토를 빨간 면으로 표시합니다. 동맹 조약이 아니라 축 허브 윤곽입니다.",
     en: "CRINK hub countries (China, Russia, Iran, DPRK) as a red fill — hub outline, not a formal alliance treaty.",
   },
+  "axis-satellite": {
+    ko: "CRINK 축에 연계된 협력·파트너 영토입니다. 허브와 같은 빨강이지만 더 옅게 칠해 연계국임을 구분합니다.",
+    en: "CRINK-aligned partner / spoke countries — same red family as hubs, painted lighter to mark the spoke tier.",
+  },
   "allied-blocs": {
     ko: "NATO·AUKUS·CRINK 등 진영을 나라 면으로 칠한 배경입니다. Natural Earth 국경을 쓰며 정밀 영유권 주장이 아닙니다.",
     en: "Alliance/camp country fills (NATO, AUKUS, CRINK, etc.) on Natural Earth borders — not a legal boundary claim.",
@@ -485,7 +489,10 @@ export function withLayerExplain(
     if (!bodyTrim) {
       next = { ...next, body: explain };
     } else if (
-      (layerId === "allied-blocs" || layerId === "geoecon-blocs" || layerId === "axis-hub") &&
+      (layerId === "allied-blocs" ||
+        layerId === "geoecon-blocs" ||
+        layerId === "axis-hub" ||
+        layerId === "axis-satellite") &&
       !bodyTrim.includes(explain.slice(0, 12))
     ) {
       // 소속 설명 + 레이어 전체 의미

@@ -1,7 +1,7 @@
 /**
- * 관측(Cesium) — 지정학과 같은 UKMTO·NAVAREA 빗금 + PortWatch 초크 링.
- * 선분 굵기는 지면 폭(m)을 유지해 줌 인/아웃에 맞춰 화면 픽셀이 변한다
- * (축 허브 국경 `axisHubBorderWidthPx`와 동일 방식).
+ * 愿痢?Cesium) ??吏?뺥븰怨?媛숈? UKMTO쨌NAVAREA 鍮쀪툑 + PortWatch 珥덊겕 留?
+ * ?좊텇 援듦린??吏硫???m)???좎???以????꾩썐??留욎떠 ?붾㈃ ?쎌???蹂?쒕떎
+ * (異??덈툕 援?꼍 `axisHubBorderWidthPx`? ?숈씪 諛⑹떇).
  */
 
 import type { TransportPath } from "@/data/geoTypes";
@@ -16,33 +16,43 @@ import {
   ukmtoIncidentToHatchPaths,
   type UkmtoIncidentPoint,
 } from "@/lib/ukmtoHatch";
+import {
+  OBSERVE_CHOKE_RING,
+  OBSERVE_CHOKE_RING_WIDTH_M,
+  OBSERVE_NAVAREA_HATCH_WIDTH_M,
+  OBSERVE_NAVAREA_OUTLINE_WIDTH_M,
+  OBSERVE_UKMTO_HATCH,
+  OBSERVE_UKMTO_HATCH_WIDTH_M,
+  OBSERVE_UKMTO_OUTLINE,
+  OBSERVE_UKMTO_OUTLINE_WIDTH_M,
+} from "@/lib/observeSensorStyle";
 
 export type CesiumChokeRingInput = {
   id: string;
   lat: number;
   lng: number;
-  /** 위도 도(°) 반경 — MapLibre chokeGlowRingSeed.radiusScale 과 동일 */
+  /** ?꾨룄 ??째) 諛섍꼍 ??MapLibre chokeGlowRingSeed.radiusScale 怨??숈씪 */
   radiusScale: number;
   color?: string;
 };
 
 export type MaritimeOverlaySegment = {
-  /** GeometryInstance id — 고유 */
+  /** GeometryInstance id ??怨좎쑀 */
   id: string;
-  /** 클릭 시 alertPins id 와 맞출 픽 id (`alert:ukmto:…`) */
+  /** ?대┃ ??alertPins id ? 留욎텧 ??id (`alert:ukmto:??) */
   pickId: string;
   color: string;
-  /** 지면 폭(m) — 카메라가 멀면 화면에서 얇아짐 */
+  /** 吏硫???m) ??移대찓?쇨? 硫硫??붾㈃?먯꽌 ?뉗븘吏?*/
   widthM: number;
   points: { lat: number; lng: number }[];
 };
 
-const UKMTO_OUTLINE_WIDTH_M = 2_200;
-const UKMTO_HATCH_WIDTH_M = 1_100;
-const NAVAREA_OUTLINE_WIDTH_M = 2_000;
-const NAVAREA_HATCH_WIDTH_M = 1_000;
-const CHOKE_RING_WIDTH_M = 2_600;
-const CHOKE_RING_DEFAULT = "rgba(245, 158, 11, 0.88)";
+const UKMTO_OUTLINE_WIDTH_M = OBSERVE_UKMTO_OUTLINE_WIDTH_M;
+const UKMTO_HATCH_WIDTH_M = OBSERVE_UKMTO_HATCH_WIDTH_M;
+const NAVAREA_OUTLINE_WIDTH_M = OBSERVE_NAVAREA_OUTLINE_WIDTH_M;
+const NAVAREA_HATCH_WIDTH_M = OBSERVE_NAVAREA_HATCH_WIDTH_M;
+const CHOKE_RING_WIDTH_M = OBSERVE_CHOKE_RING_WIDTH_M;
+const CHOKE_RING_DEFAULT = OBSERVE_CHOKE_RING;
 const CIRCLE_SEGMENTS = 48;
 
 function pathToSegments(
@@ -94,12 +104,12 @@ function circleRingPoints(
   return points;
 }
 
-/** 지정학 MapLibre 와 동일한 경로 생성 → Cesium 선분 목록 */
+/** 吏?뺥븰 MapLibre ? ?숈씪??寃쎈줈 ?앹꽦 ??Cesium ?좊텇 紐⑸줉 */
 export function buildMaritimeOverlaySegments(input: {
   ukmtoIncidents: UkmtoIncidentPoint[];
   navareaFeatures: NavareaFeaturePoint[];
   chokeRings: CesiumChokeRingInput[];
-  /** Intel 내장 GPU 대비 인스턴스 상한 (건수) */
+  /** Intel ?댁옣 GPU ?鍮??몄뒪?댁뒪 ?곹븳 (嫄댁닔) */
   maxUkmto?: number;
   maxNavarea?: number;
 }): MaritimeOverlaySegment[] {
@@ -117,8 +127,8 @@ export function buildMaritimeOverlaySegments(input: {
         pickId: `alert:ukmto:${incident.id}`,
         outlineWidthM: UKMTO_OUTLINE_WIDTH_M,
         hatchWidthM: UKMTO_HATCH_WIDTH_M,
-        fallbackOutline: "rgba(20, 20, 20, 0.92)",
-        fallbackHatch: "rgba(40, 40, 40, 0.55)",
+        fallbackOutline: OBSERVE_UKMTO_OUTLINE,
+        fallbackHatch: OBSERVE_UKMTO_HATCH,
         idPrefix: "maritime",
       }),
     );
@@ -156,8 +166,8 @@ export function buildMaritimeOverlaySegments(input: {
 }
 
 /**
- * GroundPolylinePrimitive 로 올리고, preRender 에서 줌에 맞춰 width 갱신.
- * 반환: detach.
+ * GroundPolylinePrimitive 濡??щ━怨? preRender ?먯꽌 以뚯뿉 留욎떠 width 媛깆떊.
+ * 諛섑솚: detach.
  */
 export function attachMaritimeOverlays(
   Cesium: typeof import("cesium"),
@@ -198,7 +208,7 @@ export function attachMaritimeOverlays(
 
   if (!instances.length) return () => {};
 
-  // pickId 는 GeometryInstance.id 가 아니라 별도 맵 — id 는 고유해야 함
+  // pickId !== GeometryInstance.id — keep a separate map so id stays unique.
   const pickIdByGeomId = new Map<string, string>();
   for (const seg of segments) {
     pickIdByGeomId.set(seg.id, seg.pickId);
@@ -226,7 +236,7 @@ export function attachMaritimeOverlays(
     const canvasH = viewer.scene.canvas.clientHeight;
     const fovy = frustum.fovy ?? Math.PI / 3;
     const height = carto.height;
-    // 카메라 고도·캔버스가 거의 같으면 스킵
+    // 移대찓??怨좊룄쨌罹붾쾭?ㅺ? 嫄곗쓽 媛숈쑝硫??ㅽ궢
     const key = `${Math.round(height / 2_000)}:${canvasH}`;
     if (key === lastKey) return;
     lastKey = key;
@@ -242,11 +252,11 @@ export function attachMaritimeOverlays(
         if (attrs) attrs.width = [px];
       }
     } catch {
-      /* primitive 준비 전 */
+      /* primitive 以鍮???*/
     }
   });
 
-  /** pick 결과 id → alert:… 로 해석 (클릭 핸들러용) */
+  /** pick 寃곌낵 id ??alert:??濡??댁꽍 (?대┃ ?몃뱾?ъ슜) */
   (primitive as unknown as { __maritimePickIds?: Map<string, string> }).__maritimePickIds =
     pickIdByGeomId;
 
@@ -262,7 +272,7 @@ export function attachMaritimeOverlays(
   };
 }
 
-/** Scene.pick 결과가 maritime overlay 이면 alert pickId 반환 */
+/** Scene.pick 寃곌낵媛 maritime overlay ?대㈃ alert pickId 諛섑솚 */
 export function resolveMaritimeOverlayPickId(picked: unknown): string | null {
   if (!picked || typeof picked !== "object") return null;
   const raw = picked as {

@@ -119,6 +119,11 @@ export type PolygonLayerFeature =
       iso: string;
     }
   | {
+      polygonLayer: "axis-satellite";
+      name: string;
+      iso: string;
+    }
+  | {
       /** 역사 모드 Cliopatria / Korea 영토 호버 */
       polygonLayer: "history-polity";
       name: string;

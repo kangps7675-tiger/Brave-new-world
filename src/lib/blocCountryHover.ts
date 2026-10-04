@@ -41,6 +41,7 @@ const AXIS_HUB_NAME: Record<string, { ko: string; en: string }> = {
 export const BLOC_COUNTRY_FILL_LAYER_IDS = [
   "allied-bloc-countries-fill",
   "geoecon-bloc-countries-fill",
+  "axis-satellite-countries-fill",
   "axis-hub-countries-fill",
 ] as const;
 
@@ -94,6 +95,15 @@ export function blocFeatureFromMapProps(
     if (!iso) return null;
     return {
       polygonLayer: "axis-hub",
+      name,
+      iso,
+    };
+  }
+
+  if (layerId === "axis-satellite-countries-fill") {
+    if (!iso) return null;
+    return {
+      polygonLayer: "axis-satellite",
       name,
       iso,
     };

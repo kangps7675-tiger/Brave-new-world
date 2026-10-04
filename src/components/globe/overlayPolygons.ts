@@ -2,12 +2,21 @@ import type { GeoJsonGeometry, TransportPath } from "@/data/geoTypes";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import type { PolygonLayerFeature } from "@/components/globe/types";
 
-type BlocCountryPolygonLayer = "allied-bloc" | "geoecon-bloc" | "axis-hub";
+type BlocCountryPolygonLayer =
+  | "allied-bloc"
+  | "geoecon-bloc"
+  | "axis-hub"
+  | "axis-satellite";
 
 export function isBlocCountryPolygonLayer(
   layer: PolygonLayerFeature["polygonLayer"],
 ): layer is BlocCountryPolygonLayer {
-  return layer === "allied-bloc" || layer === "geoecon-bloc" || layer === "axis-hub";
+  return (
+    layer === "allied-bloc" ||
+    layer === "geoecon-bloc" ||
+    layer === "axis-hub" ||
+    layer === "axis-satellite"
+  );
 }
 
 /** MapLibre-only bloc fills have `iso`; globe.gl polygons have `id`. */
@@ -16,6 +25,7 @@ export function polygonFeatureKey(feature: PolygonLayerFeature): string {
     case "allied-bloc":
     case "geoecon-bloc":
     case "axis-hub":
+    case "axis-satellite":
       return feature.iso;
     case "history-polity":
       return `history:${feature.source ?? "polity"}:${feature.name}`;
@@ -32,6 +42,7 @@ export function polygonFeatureGeometry(
     case "allied-bloc":
     case "geoecon-bloc":
     case "axis-hub":
+    case "axis-satellite":
     case "history-polity":
       return null;
     default:

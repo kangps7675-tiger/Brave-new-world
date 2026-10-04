@@ -9,44 +9,60 @@ type Props = {
   events: LiveuamapEvent[];
   unreadCount: number;
   onOpen: (index: number) => void;
+  /** 책갈피 레일 안에서는 헤더·접기를 숨긴다 */
+  chrome?: "full" | "bare";
 };
 
-export function LiveuaFlashDock({ lang, events, unreadCount, onOpen }: Props) {
+export function LiveuaFlashDock({
+  lang,
+  events,
+  unreadCount,
+  onOpen,
+  chrome = "full",
+}: Props) {
   const en = lang === "en";
+  const bare = chrome === "bare";
   const [open, setOpen] = useState(false);
+  const expanded = bare || open;
 
   return (
     <section
-      className="pointer-events-auto flex max-w-[min(18rem,70vw)] flex-col overflow-hidden rounded-md border border-amber-600/35 bg-[#120e08]/92"
+      className={
+        bare
+          ? "pointer-events-auto flex flex-col overflow-hidden"
+          : "pointer-events-auto flex max-w-[min(18rem,70vw)] flex-col overflow-hidden rounded-md border border-amber-600/35 bg-[#120e08]/92"
+      }
       aria-label={en ? "Frontline flash inbox" : "전선 속보함"}
     >
-      <button
-        type="button"
-        className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-amber-100/90 transition hover:bg-amber-500/10 ${
-          open ? "border-b border-amber-600/25" : ""
-        }`}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="font-medium tracking-wide">
-          {en ? "Frontline" : "전선 속보"}
-        </span>
-        <span className="flex items-center gap-1.5 tabular-nums text-amber-200/70">
-          {unreadCount > 0 ? (
-            <span className="rounded-sm bg-amber-600/80 px-1 text-micro text-black">
-              {unreadCount}
-            </span>
-          ) : null}
-          {events.length}
-          <span aria-hidden>{open ? "▾" : "▴"}</span>
-        </span>
-      </button>
+      {!bare ? (
+        <button
+          type="button"
+          className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-amber-100/90 transition hover:bg-amber-500/10 ${
+            expanded ? "border-b border-amber-600/25" : ""
+          }`}
+          aria-expanded={expanded}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="font-medium tracking-wide">
+            {en ? "Frontline" : "전선 속보"}
+          </span>
+          <span className="flex items-center gap-1.5 tabular-nums text-amber-200/70">
+            {unreadCount > 0 ? (
+              <span className="rounded-sm bg-amber-600/80 px-1 text-micro text-black">
+                {unreadCount}
+              </span>
+            ) : null}
+            {events.length}
+            <span aria-hidden>{expanded ? "▾" : "▴"}</span>
+          </span>
+        </button>
+      ) : null}
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
       >
-        <div className={`min-h-0 overflow-hidden ${open ? "" : "pointer-events-none"}`}>
+        <div className={`min-h-0 overflow-hidden ${expanded ? "" : "pointer-events-none"}`}>
           {events.length === 0 ? (
             <p className="px-2.5 py-2 text-micro text-amber-200/50">
               {en ? "No frontline flashes yet." : "전선 속보가 아직 없습니다."}
@@ -60,7 +76,7 @@ export function LiveuaFlashDock({ lang, events, unreadCount, onOpen }: Props) {
                   <li key={ev.id}>
                     <button
                       type="button"
-                      tabIndex={open ? 0 : -1}
+                      tabIndex={expanded ? 0 : -1}
                       className="flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-amber-500/10"
                       onClick={() => onOpen(index)}
                     >

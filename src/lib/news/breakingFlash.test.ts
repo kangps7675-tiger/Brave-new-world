@@ -10,8 +10,10 @@ import {
 import {
   buildBreakingFlashBriefing,
   claimBreakingFlash,
+  claimBreakingFlashAllowRecycle,
   classifyConflictFlash,
   classifyEconomyFlash,
+  OBSERVE_FLASH_RECYCLE_MS,
   pickNextBreakingFlashHero,
   resolveConflictFlashBed,
   resolveEconomyFlashBed,
@@ -527,6 +529,32 @@ describe("pickNextBreakingFlashHero", () => {
       false,
     );
     expect(picked?.id).toBe(taiwan.id);
+  });
+
+  it("recycles claimed heroes for observe after recycle window", () => {
+    const only = hero({
+      id: `recycle-flash-${Date.now()}`,
+      title: "Missile barrage hits Kyiv",
+      theater: "russia-ukraine",
+      breakingRank: "S",
+      breakingGrade: 9,
+      ageMinutes: 8,
+    });
+    expect(claimBreakingFlash(only.id)).toBe(true);
+    expect(
+      pickNextBreakingFlashHero({ hero: only, flashHeroes: [] }, false),
+    ).toBeNull();
+    // force recycle clock
+    expect(
+      claimBreakingFlashAllowRecycle(only.id, 0),
+    ).toBe(true);
+    const recycled = pickNextBreakingFlashHero(
+      { hero: only, flashHeroes: [] },
+      false,
+      { recycleAfterMs: 0 },
+    );
+    expect(recycled?.id).toBe(only.id);
+    expect(OBSERVE_FLASH_RECYCLE_MS).toBeGreaterThan(0);
   });
 });
 

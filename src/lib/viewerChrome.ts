@@ -412,14 +412,20 @@ export function stripEconomyGeopoliticsPatch(
   );
 }
 
-/** 프리미엄(Cesium) — 전선 폴리곤 OFF, 항적·시세 키트 ON (MapLibre 오버레이/후속 Cesium 엔티티) */
+/** 프리미엄(Cesium) — 항적 + 관측 센서 ON. MapLibre 전용 잡음·시장 키트 OFF */
 const SATELLITE_FORCE_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_LIVE_ON,
   showAis: true,
   showAisMilitary: true,
   showAisCommercial: true,
-  /** 관측 모드 — 우크라 UAV·미사일(NEPTUN) Cesium 빌보드 */
+  showDisguisedVessels: true,
+  /** 관측 센서 칩 기본 ON — 전선·화재·미사일·공중위협·전장사건·지명 */
+  showUkraineControl: true,
+  showFirmsFires: true,
+  showNorthKoreaMissileTests: true,
   showNeptun: true,
+  showConflictEvents: true,
+  showCityLabels: true,
 };
 
 const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
@@ -427,16 +433,13 @@ const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
   ...ECONOMY_FRONTLINE_BLOCK,
   ...CONFLICT_FORCE_OFF,
   ...ECONOMY_FORCE_OFF,
-  showCityLabels: false,
   showGpsInterference: false,
-  /** showNeptun는 FORCE_ON — CONFLICT/ECONOMY 스프레드의 false를 덮어쓴다 */
-  showConflictEvents: false,
-  showFirmsFires: false,
+  /** FORCE_ON이 덮어씀 — CONFLICT/ECONOMY 스프레드 false 잔존 방지 */
   showTelegramOsint: false,
   showLogisticsStress: false,
   showGscpiGauge: false,
   showSesChip: false,
-  // ADS-B · AIS 는 FORCE_ON — 여기서 끄지 않음
+  // ADS-B · AIS · 관측 센서는 FORCE_ON — 여기서 끄지 않음
   showWeeklyShipMoves: false,
 };
 
@@ -579,9 +582,9 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     modePickerTitle: "프리미엄",
     modePickerTagline: "Cesium · ADS-B · AIS · 시세",
     modePickerBullets: [
-      "Cesium 글로브 (Esri / Ion Photoreal)",
-      "ADS-B · AIS 항적 + NEPTUN 드론·미사일",
-      "LIVEUA 전전선 · S급 양피지 타전",
+      "Google Photorealistic 3D · 국경·지명 센서",
+      "ADS-B · AIS 항적 + conflict-events 등급 핀",
+      "LIVEUA 전선 · 해상 빗금 · S급 양피지",
     ],
     layerPanelTitle: "프리미엄 · 항적",
   },

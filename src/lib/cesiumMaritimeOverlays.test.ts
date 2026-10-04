@@ -27,7 +27,8 @@ describe("buildMaritimeOverlaySegments", () => {
     expect(segs.length).toBeGreaterThan(2);
     expect(segs.every((s) => s.pickId === "alert:ukmto:u1")).toBe(true);
     expect(segs.some((s) => s.points.length > 8)).toBe(true);
-    expect(segs.every((s) => s.widthM >= 1_000)).toBe(true);
+    // 실사 센서 문법 — hatch는 outline보다 얇음 (OBSERVE_*_WIDTH_M)
+    expect(segs.every((s) => s.widthM >= 800)).toBe(true);
   });
 
   it("builds PortWatch ring with zoom-scaled widthM", () => {

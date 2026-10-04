@@ -1591,10 +1591,10 @@ export function useLayerPanelCategories({
                 },
                 {
                   id: "strategic-corridors",
-                  label: "전략 물류 통로",
+                  label: "전략 물류·육상 회랑",
                   detail: showStrategicCorridors
                     ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · ${corridorRankHint}`
-                    : "꺼짐 · INSTC·미들 코리도·TSR 등",
+                    : "꺼짐 · INSTC·미들 코리도·TSR (해상 항로와 별개)",
                   checked: layerPrefs.showStrategicCorridors,
                   onChange: setShowStrategicCorridors,
                   accent: "amber",
@@ -1603,10 +1603,10 @@ export function useLayerPanelCategories({
             : ([
                 {
                   id: "strategic-corridors",
-                  label: "전략 물류 통로",
+                  label: "전략 물류·육상 회랑",
                   detail: showStrategicCorridors
                     ? `경로 ${strategicCorridorPaths.length.toLocaleString()} · ${corridorRankHint}`
-                    : "꺼짐 · INSTC·미들 코리도·TSR 등",
+                    : "꺼짐 · INSTC·미들 코리도·TSR (해상 항로와 별개)",
                   checked: layerPrefs.showStrategicCorridors,
                   onChange: setShowStrategicCorridors,
                   accent: "amber",

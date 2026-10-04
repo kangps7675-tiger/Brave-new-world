@@ -347,8 +347,9 @@ export function buildPathsGeoJson<T>(
     /** CRINK 인프라(kind="crink-infra") 전용 — power/pipeline/rail 등 세부 카테고리 필터용 */
     crinkCategory?: Accessor<T, string | undefined>;
     /**
-     * MapLibre 스타일 버킷 — `"maritime-flow"`면 해상 항로 리본 레이어.
-     * (해상 회랑 leg · maritime-route). 점선(dashed)과 구분.
+     * MapLibre 스타일 버킷 —
+     * `"maritime-flow"`: 상업 해상 항로(shipping-lane · maritime-route) 리본
+     * `"corridor-sea"`: 전략 물류 회랑의 해상 구간(점선) — 항로와 혼동 금지
      */
     pathStyle?: Accessor<T, string | undefined>;
   },
@@ -361,7 +362,9 @@ export function buildPathsGeoJson<T>(
       const kind = accessors.kind?.(item);
       const pathStyle =
         accessors.pathStyle?.(item) ||
-        (kind === "maritime-route" ? "maritime-flow" : "") ||
+        (kind === "maritime-route" || kind === "shipping-lane"
+          ? "maritime-flow"
+          : "") ||
         "";
       const widthMode =
         kind && CABLE_KINDS.has(kind)

@@ -417,11 +417,33 @@ export function resolveConflictFlashBed(text: string): "dark" | "cheer" | "morse
 
 /** 세션 중 이미 타전한 귀중 속보 id — 동일 기사 재타전 방지 */
 const claimedFlashIds = new Set<string>();
+const claimedFlashAt = new Map<string, number>();
 let lastClaimedFlashId: string | null = null;
+
+/** 관측(Cesium) — 후보가 소진돼도 이 시간이 지나면 재타전 (빈도 유지) */
+export const OBSERVE_FLASH_RECYCLE_MS = 90_000;
 
 export function claimBreakingFlash(id: string): boolean {
   if (!id || claimedFlashIds.has(id)) return false;
   claimedFlashIds.add(id);
+  claimedFlashAt.set(id, Date.now());
+  lastClaimedFlashId = id;
+  return true;
+}
+
+/**
+ * 관측 모드 재타전 — 이미 claim된 id도 recycle 창이 지났으면 다시 연다.
+ * 일반 모드에서는 쓰지 말 것.
+ */
+export function claimBreakingFlashAllowRecycle(
+  id: string,
+  recycleAfterMs = OBSERVE_FLASH_RECYCLE_MS,
+): boolean {
+  if (!id) return false;
+  const at = claimedFlashAt.get(id);
+  if (at != null && Date.now() - at < recycleAfterMs) return false;
+  claimedFlashIds.add(id);
+  claimedFlashAt.set(id, Date.now());
   lastClaimedFlashId = id;
   return true;
 }
@@ -544,6 +566,14 @@ export function shouldOpenBreakingFlash(
   return false;
 }
 
+export type PickBreakingFlashOpts = {
+  /**
+   * 관측(Cesium) — 미타전 후보가 없으면 recycleAfterMs가 지난 claim을 다시 고른다.
+   * 기본 null = 재타전 없음.
+   */
+  recycleAfterMs?: number | null;
+};
+
 /**
  * 전역 hero + flashHeroes(전선별 보조) 중
  * 아직 타전하지 않은 최고 등급 후보를 고른다.
@@ -551,8 +581,10 @@ export function shouldOpenBreakingFlash(
 export function pickNextBreakingFlashHero(
   payload: Pick<NewsStreamPayload, "hero" | "flashHeroes"> | null | undefined,
   preferEconomy: boolean,
+  opts?: PickBreakingFlashOpts,
 ): HeroBreakingItem | null {
   if (!payload) return null;
+  const recycleAfterMs = opts?.recycleAfterMs ?? null;
   const seen = new Set<string>();
   const candidates: HeroBreakingItem[] = [];
   for (const h of [payload.hero, ...(payload.flashHeroes ?? [])]) {
@@ -561,25 +593,48 @@ export function pickNextBreakingFlashHero(
     candidates.push(h);
   }
 
+  const scoreHero = (h: HeroBreakingItem): number => {
+    const blob = `${h.title} ${h.titleKo ?? ""} ${h.summary ?? ""} ${h.bodyKo ?? ""}`;
+    const summit = isSummitDiplomacyText(blob);
+    const photo = hasLampPhoto(h.imageUrl);
+    // 등급 우선 · 동점이면 회담+사진 > 회담 > 사진 > 신선도
+    return (
+      (h.breakingGrade ?? 0) * 1_000_000 +
+      (summit && photo ? 400_000 : summit ? 250_000 : photo ? 80_000 : 0) +
+      Math.max(0, 10_000 - (h.ageMinutes ?? 999) * 10)
+    );
+  };
+
   let best: HeroBreakingItem | null = null;
   let bestScore = -Infinity;
   for (const h of candidates) {
     if (wasBreakingFlashClaimed(h.id)) continue;
     if (!shouldOpenBreakingFlash(h, preferEconomy)) continue;
-    const blob = `${h.title} ${h.titleKo ?? ""} ${h.summary ?? ""} ${h.bodyKo ?? ""}`;
-    const summit = isSummitDiplomacyText(blob);
-    const photo = hasLampPhoto(h.imageUrl);
-    // 등급 우선 · 동점이면 회담+사진 > 회담 > 사진 > 신선도
-    const score =
-      (h.breakingGrade ?? 0) * 1_000_000 +
-      (summit && photo ? 400_000 : summit ? 250_000 : photo ? 80_000 : 0) +
-      Math.max(0, 10_000 - (h.ageMinutes ?? 999) * 10);
+    const score = scoreHero(h);
     if (!best || score > bestScore) {
       best = h;
       bestScore = score;
     }
   }
-  return best;
+  if (best) return best;
+
+  // 관측 모드: 큐가 비면 오래된 claim을 재활용해 빈 화면을 막는다.
+  // recycleAfterMs === 0 은 즉시 재활용(테스트·강제 리셋).
+  if (recycleAfterMs == null || recycleAfterMs < 0) return null;
+  const now = Date.now();
+  let recycleBest: HeroBreakingItem | null = null;
+  let recycleScore = -Infinity;
+  for (const h of candidates) {
+    if (!shouldOpenBreakingFlash(h, preferEconomy)) continue;
+    const at = claimedFlashAt.get(h.id);
+    if (at == null || now - at < recycleAfterMs) continue;
+    const score = scoreHero(h) - Math.min(500_000, (now - at) / 100);
+    if (!recycleBest || score > recycleScore) {
+      recycleBest = h;
+      recycleScore = score;
+    }
+  }
+  return recycleBest;
 }
 
 export function buildBreakingFlashBriefing(

@@ -1,0 +1,67 @@
+{
+  "events": [
+    {
+      "id": "redsea-synth-001",
+      "straitId": "red_sea_suez",
+      "occurredOn": "2023-11-19",
+      "lat": 14.5,
+      "lng": 42.5,
+      "titleKo": "샘플 · 홍해 인근 상선 공격 보도",
+      "titleEn": "Sample · reported merchant attack near Red Sea",
+      "kind": "attack",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "redsea-synth-002",
+      "straitId": "red_sea_suez",
+      "occurredOn": "2023-12-15",
+      "lat": 29.9,
+      "lng": 32.5,
+      "titleKo": "샘플 · 수에즈 통항 관련 제재 공지",
+      "titleEn": "Sample · Suez-related sanction notice",
+      "kind": "sanction",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "redsea-synth-003",
+      "straitId": "red_sea_suez",
+      "occurredOn": "2024-02-01",
+      "lat": 12.7,
+      "lng": 43.3,
+      "titleKo": "샘플 · 바브엘만데브 인근 나포 보도",
+      "titleEn": "Sample · reported seizure near Bab el-Mandeb",
+      "kind": "seizure",
+      "sourceUrls": [
+        {
+          "label": "FRED",
+          "url": "https://fred.stlouisfed.org/",
+          "publisher": "Federal Reserve Bank of St. Louis"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    }
+  ]
+}

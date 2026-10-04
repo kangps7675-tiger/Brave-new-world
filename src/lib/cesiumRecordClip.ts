@@ -14,6 +14,11 @@ export type RecordClipOptions = {
   durationMs?: number;
   fps?: number;
   branding: RecordClipBranding;
+  /**
+   * preserveDrawingBuffer=false 일 때: 매 present 직후 draw를 호출하는 바인더.
+   * 반환 disposer는 녹화 종료 시 호출된다.
+   */
+  bindPresenting?: (onPresent: () => void) => () => void;
 };
 
 function pickMimeType(): string | null {
@@ -103,14 +108,21 @@ export async function recordCesiumClip(
   };
 
   let raf = 0;
+  let stopPresenting: (() => void) | null = null;
   const tick = () => {
     drawFrame();
     raf = window.requestAnimationFrame(tick);
   };
 
+  const cleanupLoop = () => {
+    window.cancelAnimationFrame(raf);
+    stopPresenting?.();
+    stopPresenting = null;
+  };
+
   const done = new Promise<Blob | null>((resolve) => {
     recorder.onstop = () => {
-      window.cancelAnimationFrame(raf);
+      cleanupLoop();
       if (chunks.length === 0) {
         resolve(null);
         return;
@@ -118,13 +130,18 @@ export async function recordCesiumClip(
       resolve(new Blob(chunks, { type: mimeType.split(";")[0] }));
     };
     recorder.onerror = () => {
-      window.cancelAnimationFrame(raf);
+      cleanupLoop();
       resolve(null);
     };
   });
 
   drawFrame();
-  raf = window.requestAnimationFrame(tick);
+  if (options.bindPresenting) {
+    // WebGL present 직후 복사 — PDB 없이도 프레임이 비지 않음
+    stopPresenting = options.bindPresenting(() => drawFrame());
+  } else {
+    raf = window.requestAnimationFrame(tick);
+  }
   recorder.start(200);
   await new Promise((r) => window.setTimeout(r, durationMs));
   if (recorder.state !== "inactive") recorder.stop();
