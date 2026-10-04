@@ -7,8 +7,8 @@
 type CesiumNS = typeof import("cesium");
 
 /**
- * 타일 로드 전·갭에 보이는 밑색 (중립 암회색).
- * 딥오션(#0a3a52)은 Google 3D/영상 구멍마다 육지에 파란 패치로 비쳤다.
+ * 타일 로드 전 순간 밑색.
+ * 갭은 photoreal 아래 위성 imagery(α=1)로 가린다 — baseColor가 회색 면으로 보이면 안 된다.
  */
 export const OBSERVE_OCEAN_BASE = "#1c1917";
 
