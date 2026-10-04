@@ -9,19 +9,15 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { emitBreakingDispatchSound } from "@/components/SoundEffectsBridge";
 import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 
 const LIVEUA_FEED_POLL_MS = 15_000;
 const LIVEUA_PARCHMENT_AUTO_ADVANCE_MS = 12_000;
-const LIVEUA_PARCHMENT_IDLE_ROTATE_MS = 18_000;
 
 export type UseLiveuaObserveFeedOptions = {
   isSatelliteViewer: boolean;
   theaterSitrepRegion: TheaterSitrepRegionId | null;
-  /** LiveUA parchment opens → clear RSS breaking flash */
-  clearBreakingFlash: () => void;
 };
 
 export type UseLiveuaObserveFeedResult = {
@@ -41,12 +37,13 @@ export type UseLiveuaObserveFeedResult = {
 };
 
 /**
- * 관측(Cesium) LiveUA 피드 폴링 · 양피지 자동/유휴 순환 — GlobeDashboard에서 추출.
+ * 관측(Cesium) LiveUA 피드 폴링 — GlobeDashboard에서 추출.
+ * 새 속보는 우상단 레일(LiveuaFlashDock)에 쌓이고 unread 배지만 오른다.
+ * 토스트·양피지 자동 오픈·유휴 순환은 하지 않는다 — 유저가 레일에서 직접 연다.
  */
 export function useLiveuaObserveFeed({
   isSatelliteViewer,
   theaterSitrepRegion,
-  clearBreakingFlash,
 }: UseLiveuaObserveFeedOptions): UseLiveuaObserveFeedResult {
   const [liveuaFeed, setLiveuaFeed] = useState<LiveuamapFeedPayload | null>(null);
   const [liveuaToast, setLiveuaToast] = useState<LiveuamapEvent | null>(null);
@@ -55,14 +52,7 @@ export function useLiveuaObserveFeed({
   const [focusedLiveuaId, setFocusedLiveuaId] = useState<string | null>(null);
 
   const liveuaSeenIdsRef = useRef<Set<string>>(new Set());
-  const liveuaSoundAtRef = useRef(0);
-  const liveuaParchmentOpenRef = useRef(false);
-  liveuaParchmentOpenRef.current = liveuaParchmentIndex != null;
-  const theaterSitrepOpenRef = useRef(false);
-  theaterSitrepOpenRef.current = theaterSitrepRegion != null;
   const liveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
-  const liveuaEventsRef = useRef(liveuaEvents);
-  liveuaEventsRef.current = liveuaEvents;
   const liveuaRotateCursorRef = useRef(0);
   const liveuaCycleStepsRef = useRef(0);
 
@@ -93,42 +83,9 @@ export function useLiveuaObserveFeed({
         const isFirst = seen.size === 0;
         const newcomers = events.filter((e) => !seen.has(e.id));
         for (const e of events) seen.add(e.id);
-        if (
-          isFirst &&
-          events.length > 0 &&
-          !theaterSitrepOpenRef.current &&
-          !liveuaParchmentOpenRef.current
-        ) {
-          clearBreakingFlash();
-          liveuaRotateCursorRef.current = 0;
-          liveuaCycleStepsRef.current = 0;
-          setLiveuaParchmentIndex(0);
-          setLiveuaToast(events[0] ?? null);
-        } else if (!isFirst && newcomers.length > 0) {
-          if (theaterSitrepOpenRef.current) {
-            setLiveuaUnread((n) => n + newcomers.length);
-          } else {
-            const newest = newcomers[0];
-            setLiveuaToast(newest);
-            const now = Date.now();
-            if (now - liveuaSoundAtRef.current >= 5_000) {
-              liveuaSoundAtRef.current = now;
-              emitBreakingDispatchSound();
-            }
-            if (!liveuaParchmentOpenRef.current) {
-              const idx = events.findIndex((e) => e.id === newest.id);
-              if (idx >= 0) {
-                clearBreakingFlash();
-                liveuaRotateCursorRef.current = idx;
-                setLiveuaParchmentIndex(idx);
-                setLiveuaUnread((n) => n + Math.max(0, newcomers.length - 1));
-              } else {
-                setLiveuaUnread((n) => n + newcomers.length);
-              }
-            } else {
-              setLiveuaUnread((n) => n + newcomers.length);
-            }
-          }
+        // 첫 로드는 기존 이력 — unread 로 세지 않는다. 이후 새 이벤트만 배지로 쌓는다.
+        if (!isFirst && newcomers.length > 0) {
+          setLiveuaUnread((n) => n + newcomers.length);
         }
         setLiveuaFeed(payload);
       } catch {
@@ -155,7 +112,7 @@ export function useLiveuaObserveFeed({
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [clearBreakingFlash, isSatelliteViewer]);
+  }, [isSatelliteViewer]);
 
   useEffect(() => {
     if (!isSatelliteViewer || liveuaParchmentIndex == null) return;
@@ -180,21 +137,6 @@ export function useLiveuaObserveFeed({
     liveuaEvents.length,
     theaterSitrepRegion,
   ]);
-
-  useEffect(() => {
-    if (!isSatelliteViewer || theaterSitrepRegion) return;
-    const timer = window.setInterval(() => {
-      if (liveuaParchmentOpenRef.current) return;
-      if (theaterSitrepOpenRef.current) return;
-      const events = liveuaEventsRef.current;
-      if (!events.length) return;
-      const next = (liveuaRotateCursorRef.current + 1) % events.length;
-      liveuaRotateCursorRef.current = next;
-      clearBreakingFlash();
-      setLiveuaParchmentIndex(next);
-    }, LIVEUA_PARCHMENT_IDLE_ROTATE_MS);
-    return () => window.clearInterval(timer);
-  }, [clearBreakingFlash, isSatelliteViewer, theaterSitrepRegion]);
 
   return {
     liveuaFeed,

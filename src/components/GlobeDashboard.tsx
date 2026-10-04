@@ -264,7 +264,7 @@ import {
   savePerfPrefs,
 } from "@/lib/ultraLiteMode";
 
-import { CINEMATIC_FLY, resolveCinematicCamera, resolveCinematicDurationMs } from "@/lib/globeCamera";
+import { CINEMATIC_FLY, resolveCinematicCamera, resolveCinematicDurationMs, type FlyCameraOpts } from "@/lib/globeCamera";
 import {
   type BattlefieldZone,
 } from "@/lib/battlefieldPresets";
@@ -850,7 +850,7 @@ export function GlobeDashboard({
     lng: number;
     altitude?: number;
     durationMs?: number;
-    camera?: { pitch?: number; bearing?: number };
+    camera?: FlyCameraOpts;
     subtitle: string;
     title: string;
     selection?: Selection;
@@ -1272,7 +1272,6 @@ export function GlobeDashboard({
   } = useLiveuaObserveFeed({
     isSatelliteViewer,
     theaterSitrepRegion,
-    clearBreakingFlash,
   });
 
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
@@ -6852,14 +6851,16 @@ export function GlobeDashboard({
               enterFocusedSpace({
                 lat: ev.lat,
                 lng: ev.lng,
-                altitude: 0.52,
+                altitude: 0.3,
                 pitch: CINEMATIC_FLY.pitch,
                 title,
                 kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
               });
-              unifiedFlyTo(ev.lat, ev.lng, 0.52, undefined, {
+              // lookAt: 이벤트 좌표가 화면 중앙에 오게 (이전엔 카메라가 그 좌표에 놓여 대상이 화면 밖으로 빠졌다)
+              unifiedFlyTo(ev.lat, ev.lng, 0.3, undefined, {
                 pitch: CINEMATIC_FLY.pitch,
                 bearing: CINEMATIC_FLY.bearing,
+                lookAt: true,
               });
             }}
             onFocusChokepoint={(choke) => {

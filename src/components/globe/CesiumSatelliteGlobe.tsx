@@ -160,6 +160,9 @@ import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import {
   resolveCinematicCamera,
+  lookAtRangeForHeight,
+  clampCesiumPitchToGlobeDeg,
+  type FlyCameraOpts,
   resolveCinematicDurationMs,
 } from "@/lib/globeCamera";
 import {
@@ -169,6 +172,7 @@ import {
 } from "@/lib/neptun";
 import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
 import { useCesiumModifierLook } from "@/components/globe/hooks/useCesiumModifierLook";
+import { useCesiumHorizonGuard } from "@/components/globe/hooks/useCesiumHorizonGuard";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -206,7 +210,7 @@ export type CesiumGlobeHandle = {
     lng: number,
     altitude?: number,
     durationMs?: number,
-    camera?: { pitch?: number; bearing?: number },
+    camera?: FlyCameraOpts,
   ) => void;
   /** 하루 리플레이 — UTC 시각(0–24)으로 태양 시계(터미네이터) 설정 */
   setClockHourUtc: (hourUtc: number) => void;
@@ -1238,12 +1242,48 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
         const heightM = altitudeToHeightM(altitude ?? 0.55);
         const resolved = resolveCinematicCamera(camera);
+        // 카메라 위치 모드: 고도에 비해 덜 숙이면 중앙 시선이 수평선 위(우주)로 간다 → 하한 보정.
+        const cesiumPitchDeg = resolved.lookAt
+          ? resolved.pitch - 90
+          : clampCesiumPitchToGlobeDeg(heightM, resolved.pitch - 90);
         const orientation = {
           heading: Cesium.Math.toRadians(resolved.bearing),
-          pitch: Cesium.Math.toRadians(resolved.pitch - 90),
+          pitch: Cesium.Math.toRadians(cesiumPitchDeg),
           roll: 0,
         };
         const destination = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
+        // lookAt: lat/lng 가 화면 중앙에 오도록 시선 반대쪽으로 물러선 카메라 위치를 Cesium 이 계산.
+        // (기본 모드는 lat/lng 를 카메라 위치로 쓰므로 비스듬한 pitch 에서 대상이 화면 밖으로 빠진다.)
+        if (resolved.lookAt) {
+          const target = Cesium.Cartesian3.fromDegrees(lng, lat, 0);
+          const sphere = new Cesium.BoundingSphere(target, 1);
+          const offset = new Cesium.HeadingPitchRange(
+            orientation.heading,
+            orientation.pitch,
+            lookAtRangeForHeight(heightM, resolved.pitch - 90),
+          );
+          if (durationMs === 0) {
+            programmaticCameraRef.current = true;
+            viewer.camera.flyToBoundingSphere(sphere, { offset, duration: 0 });
+            programmaticCameraRef.current = false;
+            return;
+          }
+          const lookCurrentHeight = viewer.camera.positionCartographic?.height ?? heightM;
+          programmaticCameraRef.current = true;
+          viewer.camera.flyToBoundingSphere(sphere, {
+            offset,
+            duration: resolveCinematicDurationMs(durationMs) / 1000,
+            maximumHeight: Math.max(heightM * 2.4, heightM + 2_200_000, lookCurrentHeight + 50_000),
+            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+            complete: () => {
+              programmaticCameraRef.current = false;
+            },
+            cancel: () => {
+              programmaticCameraRef.current = false;
+            },
+          });
+          return;
+        }
         // durationMs === 0 은 즉시 스냅 (인터럽트용). undefined는 시네마틱.
         if (durationMs === 0) {
           programmaticCameraRef.current = true;
@@ -1580,6 +1620,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   useCesiumKeyboardNav(viewerRef, status === "ready");
   /** Ctrl/Alt+드래그 기울기 — LiveUA「위치로 가기」후 Google Earth식 조작 */
   useCesiumModifierLook(viewerRef, status === "ready");
+  useCesiumHorizonGuard(viewerRef, status === "ready", programmaticCameraRef);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -13,6 +13,7 @@ import { OBSERVE_LOOK_ORBIT_M } from "@/lib/cesiumObserveLook";
 import {
   resolveCinematicCamera,
   resolveCinematicDurationMs,
+  clampCesiumPitchToGlobeDeg,
 } from "@/lib/globeCamera";
 
 export const OBSERVE_CINEMA_SESSION_KEY = "cesium-observe-cinema";
@@ -107,7 +108,8 @@ export function startObserveBootIntro(
   const destination = Cesium.Cartesian3.fromRadians(lon, lat, heightM);
   const orientation = {
     heading: Cesium.Math.toRadians(cam.bearing),
-    pitch: Cesium.Math.toRadians(cam.pitch - 90),
+    // 9,200km 에서 pitch −38° 는 수평선(−66°) 위 = 우주만 보임 → 지구에 닿도록 보정
+    pitch: Cesium.Math.toRadians(clampCesiumPitchToGlobeDeg(heightM, cam.pitch - 90)),
     roll: 0,
   };
 

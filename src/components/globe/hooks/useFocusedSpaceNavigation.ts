@@ -15,6 +15,7 @@ import {
   CINEMATIC_FLY,
   resolveCinematicCamera,
   resolveCinematicDurationMs,
+  type FlyCameraOpts,
 } from "@/lib/globeCamera";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import {
@@ -45,7 +46,7 @@ export type PendingObserveFly = {
   lng: number;
   altitude?: number;
   durationMs?: number;
-  camera?: { pitch?: number; bearing?: number };
+  camera?: FlyCameraOpts;
   subtitle: string;
   title: string;
   selection?: Selection;
@@ -288,7 +289,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       lng: number,
       altitude?: number,
       durationMs?: number,
-      camera?: { pitch?: number; bearing?: number },
+      camera?: FlyCameraOpts,
     ) => {
       const dur = resolveCinematicDurationMs(durationMs);
       const cam = resolveCinematicCamera(camera);
@@ -366,7 +367,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       opts: {
         altitude?: number;
         durationMs?: number;
-        camera?: { pitch?: number; bearing?: number };
+        camera?: FlyCameraOpts;
         subtitle: string;
         title: string;
         kicker?: string;
