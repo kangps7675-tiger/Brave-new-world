@@ -40,6 +40,16 @@ function fillForTier(Cesium: CesiumNS, tier: ObservePlaceLabelTier) {
   return Cesium.Color.fromCssColorString("#cbd5e1");
 }
 
+/**
+ * Google/CARTO 지명 타일이 켜진 동안 엔티티 지명은 country만 남겨
+ * 도시·POI 글자 이중 스택을 피한다.
+ */
+export function filterPlaceLabelsForOverlay(
+  places: CesiumPlaceLabel[],
+): CesiumPlaceLabel[] {
+  return places.filter((p) => getObservePlaceLabelTier(p) === "country");
+}
+
 /** place: 접두사 엔티티 diff 동기화 */
 export function syncPlaceLabelEntities(
   Cesium: CesiumNS,
@@ -84,7 +94,7 @@ export function syncPlaceLabelEntities(
         font,
         fillColor: fill,
         outlineColor: outline,
-        outlineWidth: tier === "country" ? 4 : 3,
+        outlineWidth: tier === "country" ? 2.5 : 2,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         pixelOffset: new Cesium.Cartesian2(0, -6),

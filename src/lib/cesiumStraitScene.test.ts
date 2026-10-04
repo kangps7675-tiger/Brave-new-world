@@ -32,16 +32,17 @@ describe("cesiumStraitScene", () => {
     expect(nextStraitId("malacca")).toBe("hormuz");
   });
 
-  it("builds gate line + congestion ring for Hormuz", () => {
+  it("builds gate line segments without congestion fill rings", () => {
     const line = gateLinePoints("hormuz");
     const ring = gateCongestionRing("hormuz");
     const badge = gateBadgeAnchor("hormuz");
     expect(line?.length).toBe(2);
+    // ring helper는 데이터용으로 남기고, 오버레이 세그먼트에는 올리지 않는다
     expect(ring?.length).toBe(5);
     expect(badge?.lat).toBeGreaterThan(26);
     const segs = buildStraitGateSegments(observeStraitPreset("hormuz"));
     expect(segs.some((s) => s.id.startsWith("strait-gate:"))).toBe(true);
-    expect(segs.some((s) => s.id.startsWith("strait-congest:"))).toBe(true);
+    expect(segs.some((s) => s.id.startsWith("strait-congest:"))).toBe(false);
   });
 
   it("formats transit badge with today/baseline", () => {

@@ -1,6 +1,6 @@
 /**
- * 해협 통항 배지 + 번들 콜아웃 (등급·빈 채널).
- * DOM 카드가 아니라 LabelGraphics — 지구본 위에 붙인다.
+ * 해협 통항 배지 + 번들 콜아웃.
+ * DOM이 아니라 LabelGraphics — 지명(Wanted/Pretendard)과 같은 필체로 얇게.
  */
 
 import type { ChokeTransitStress } from "@/lib/portWatch";
@@ -13,7 +13,6 @@ import {
 } from "@/lib/cesiumStraitScene";
 import type { StraitPortMarker } from "@/lib/cesiumStraitOverlays";
 import {
-  OBSERVE_GRADE_RING,
   OBSERVE_STRAIT_BADGE_FILL,
   OBSERVE_STRAIT_BADGE_OUTLINE,
   OBSERVE_STRAIT_CALLOUT_FILL,
@@ -34,8 +33,27 @@ export type StraitLabelEntity = {
   scale: number;
 };
 
-function gradeMark(grade: DisplayGrade): string {
-  return OBSERVE_GRADE_RING[grade]?.stroke ? `[${grade.toUpperCase()}]` : "[LOW]";
+/** 지명 라벨과 동일 스택 — Segoe/검은 배지 박스 제거 */
+const STRAIT_LABEL_FONT =
+  '600 12px "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+const STRAIT_BADGE_FONT =
+  '600 11px "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+const STRAIT_PORT_FONT =
+  '500 11px "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+
+/** low/hold는 접두 생략 — [LOW] 삼중 스택이 화면을 더럽혔다 */
+function gradePrefix(grade: DisplayGrade): string {
+  if (grade === "high") return "● ";
+  if (grade === "std") return "· ";
+  return "";
+}
+
+function normalizeTitle(title: string): string {
+  return title.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function gridCell(lat: number, lng: number, deg = 0.06): string {
+  return `${Math.round(lat / deg)}_${Math.round(lng / deg)}`;
 }
 
 export function formatTransitBadgeText(
@@ -53,7 +71,7 @@ export function formatTransitBadgeText(
   return `오늘 통항 ${today} / 기준선 ${base}`;
 }
 
-/** 통항 배지 — 게이트 중심 */
+/** 통항 배지 — 게이트당 1개 */
 export function buildTransitBadgeLabels(input: {
   preset: ObserveStraitPreset;
   transits: Record<string, ChokeTransitStress>;
@@ -72,24 +90,29 @@ export function buildTransitBadgeLabels(input: {
       text: formatTransitBadgeText(stress, input.lang),
       fillCss: OBSERVE_STRAIT_BADGE_FILL,
       outlineCss: OBSERVE_STRAIT_BADGE_OUTLINE,
-      font: '700 13px "Segoe UI", system-ui, sans-serif',
-      pixelOffsetY: -28,
-      scale: 0.95,
+      font: STRAIT_BADGE_FONT,
+      pixelOffsetY: -22,
+      scale: 0.92,
     });
   }
   return out;
 }
 
-/** 워치보드 번들 콜아웃 — 활성 해협 근처만 */
+/**
+ * 워치보드 번들 콜아웃 — 제목·격자 dedupe.
+ * portwatch + ais-gate가 같은 「호르무즈 해협」을 여러 번 올리던 문제 차단.
+ */
 export function buildBundleCalloutLabels(input: {
   preset: ObserveStraitPreset;
   items: WatchboardItem[];
   lang: "ko" | "en";
   max?: number;
 }): StraitLabelEntity[] {
-  const max = input.max ?? 5;
+  const max = input.max ?? 2;
   const out: StraitLabelEntity[] = [];
   const radiusKm = input.preset.staticRadiusDeg * 111;
+  const seenTitles = new Set<string>();
+  const seenCells = new Set<string>();
 
   const ranked = [...input.items]
     .filter((item) => item.grade !== "drop")
@@ -104,59 +127,73 @@ export function buildBundleCalloutLabels(input: {
       return { item, d };
     })
     .filter((row) => row.d <= radiusKm * 1.35)
-    .sort((a, b) => a.d - b.d);
+    .sort((a, b) => {
+      const rank = (g: DisplayGrade) =>
+        g === "high" ? 0 : g === "std" ? 1 : g === "low" ? 2 : 3;
+      const dr = rank(a.item.grade) - rank(b.item.grade);
+      return dr !== 0 ? dr : a.d - b.d;
+    });
 
   for (const { item } of ranked) {
     if (out.length >= max) break;
-    const title = input.lang === "en" ? item.titleEn : item.titleKo;
+    const title = (input.lang === "en" ? item.titleEn : item.titleKo).trim();
+    if (!title) continue;
+    const titleKey = normalizeTitle(title);
+    const cell = gridCell(item.lat!, item.lng!);
+    if (seenTitles.has(titleKey) || seenCells.has(cell)) continue;
+    seenTitles.add(titleKey);
+    seenCells.add(cell);
+
     const gap = input.lang === "en" ? item.gapNoteEn : item.gapNoteKo;
-    const grade = gradeMark(item.grade);
-    const gapLine = gap ? `\n${gap}` : "";
-    // 가격 반응은 부제에 asset hint가 있을 때만 (자막에 이미 들어온 경우)
-    const priceHint =
-      item.subtitleKo?.includes("Brent") ||
-      item.subtitleEn?.toLowerCase().includes("brent") ||
-      item.subtitleKo?.includes("운임") ||
-      item.subtitleEn?.toLowerCase().includes("freight")
-        ? input.lang === "en"
-          ? "\nPrice reaction"
-          : "\n가격 반응"
-        : "";
+    // 갭/가격 힌트는 콜아웃을 두껍게 만듦 — 제목 한 줄만
+    void gap;
     out.push({
       id: `strait-callout:${item.id}`,
       lat: item.lat!,
       lng: item.lng!,
-      text: `${grade} ${title}${priceHint}${gapLine}`,
+      text: `${gradePrefix(item.grade)}${title}`,
       fillCss: OBSERVE_STRAIT_CALLOUT_FILL,
       outlineCss: OBSERVE_STRAIT_CALLOUT_OUTLINE,
-      font: '600 12px "Segoe UI", system-ui, sans-serif',
-      pixelOffsetY: -18,
-      scale: 0.88,
+      font: STRAIT_LABEL_FONT,
+      pixelOffsetY: -16,
+      scale: 0.9,
     });
   }
   return out;
 }
 
+/** 항구 라벨 — 이름·근접 중복 제거 */
 export function buildPortLabels(
   ports: StraitPortMarker[],
   lang: "ko" | "en",
 ): StraitLabelEntity[] {
-  return ports.map((p) => ({
-    id: `strait-port:${p.id}`,
-    lat: p.lat,
-    lng: p.lng,
-    text:
-      p.kind === "lng-terminal"
-        ? lang === "en"
-          ? `LNG · ${p.name}`
-          : `LNG · ${p.name}`
-        : p.name,
-    fillCss: p.kind === "lng-terminal" ? OBSERVE_STRAIT_LNG : OBSERVE_STRAIT_PORT,
-    outlineCss: OBSERVE_STRAIT_BADGE_OUTLINE,
-    font: '500 11px "Segoe UI", system-ui, sans-serif',
-    pixelOffsetY: -10,
-    scale: 0.78,
-  }));
+  const out: StraitLabelEntity[] = [];
+  const seen = new Set<string>();
+  for (const p of ports) {
+    const nameKey = normalizeTitle(p.name);
+    const cell = gridCell(p.lat, p.lng, 0.08);
+    const key = `${nameKey}|${cell}`;
+    if (seen.has(key) || seen.has(nameKey)) continue;
+    seen.add(key);
+    seen.add(nameKey);
+    out.push({
+      id: `strait-port:${p.id}`,
+      lat: p.lat,
+      lng: p.lng,
+      text:
+        p.kind === "lng-terminal"
+          ? lang === "en"
+            ? `LNG · ${p.name}`
+            : `LNG · ${p.name}`
+          : p.name,
+      fillCss: p.kind === "lng-terminal" ? OBSERVE_STRAIT_LNG : OBSERVE_STRAIT_PORT,
+      outlineCss: OBSERVE_STRAIT_BADGE_OUTLINE,
+      font: STRAIT_PORT_FONT,
+      pixelOffsetY: -8,
+      scale: 0.82,
+    });
+  }
+  return out;
 }
 
 function haversineKm(
@@ -195,6 +232,8 @@ export function syncStraitLabelEntities(
       existing.label.fillColor = new Cesium.ConstantProperty(fill);
       existing.label.outlineColor = new Cesium.ConstantProperty(outline);
       existing.label.font = new Cesium.ConstantProperty(label.font);
+      existing.label.outlineWidth = new Cesium.ConstantProperty(2);
+      existing.label.showBackground = new Cesium.ConstantProperty(false);
       existing.label.pixelOffset = new Cesium.ConstantProperty(
         new Cesium.Cartesian2(0, label.pixelOffsetY),
       );
@@ -211,16 +250,14 @@ export function syncStraitLabelEntities(
         font: label.font,
         fillColor: fill,
         outlineColor: outline,
-        outlineWidth: 3,
+        outlineWidth: 2,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         pixelOffset: new Cesium.Cartesian2(0, label.pixelOffsetY),
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
         scale: label.scale,
-        showBackground: true,
-        backgroundColor: Cesium.Color.fromCssColorString("rgba(2, 12, 18, 0.72)"),
-        backgroundPadding: new Cesium.Cartesian2(7, 5),
+        showBackground: false,
       },
     });
   }
@@ -267,9 +304,9 @@ export function syncStraitPortPointEntities(
       name: port.name,
       position,
       point: {
-        pixelSize: port.kind === "lng-terminal" ? 9 : 7,
+        pixelSize: port.kind === "lng-terminal" ? 8 : 6,
         color,
-        outlineColor: Cesium.Color.BLACK.withAlpha(0.7),
+        outlineColor: Cesium.Color.BLACK.withAlpha(0.55),
         outlineWidth: 1,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -278,9 +315,13 @@ export function syncStraitPortPointEntities(
   }
   const stale: import("cesium").Entity[] = [];
   for (const entity of viewer.entities.values) {
-    const id = entity.id;
-    if (typeof id !== "string" || !id.startsWith("strait-portpt:")) continue;
-    if (!seen.has(id)) stale.push(entity);
+    if (
+      typeof entity.id === "string" &&
+      entity.id.startsWith("strait-portpt:") &&
+      !seen.has(entity.id)
+    ) {
+      stale.push(entity);
+    }
   }
   for (const entity of stale) viewer.entities.remove(entity);
 }
