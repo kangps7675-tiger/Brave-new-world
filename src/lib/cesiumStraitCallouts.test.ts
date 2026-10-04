@@ -15,7 +15,7 @@ function item(
 ): WatchboardItem {
   return {
     id,
-    kind: "cesium-alert",
+    kind: "maritime-alert",
     grade,
     titleKo,
     titleEn: titleKo,
@@ -23,11 +23,21 @@ function item(
     subtitleEn: "",
     gate: {
       grade,
-      score: 0,
       reasons: [],
-      modalitiesPresent: [],
-      independenceCount: 1,
-      disconfirmHitCount: 0,
+      bundle: {
+        bundleId: id,
+        kind: "maritime-alert",
+        titleKo,
+        titleEn: titleKo,
+        observations: [],
+        independenceCount: 1,
+        modalityCount: 0,
+        timeSpanMs: 0,
+        geoOk: true,
+        method: "test",
+        disconfirmLog: { queried: false, hitCount: 0 },
+        killCriteria: [],
+      },
     },
     pirIds: [],
     pirScore: 0,
@@ -37,7 +47,7 @@ function item(
     occurredAt: null,
     lat,
     lng,
-  } as WatchboardItem;
+  };
 }
 
 describe("buildBundleCalloutLabels", () => {
