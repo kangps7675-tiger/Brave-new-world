@@ -357,7 +357,8 @@ function capLayerCount(
 
 export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): LayerPrefs {
   if (mode === "satellite") {
-    // 프리미엄(Cesium) — 항적 + 관측 센서(전선·화재·미사일·NEPTUN·전장사건·지명).
+    // 프리미엄(Cesium) — 항적 + 관측 센서(전선·화재·미사일·NEPTUN·지명).
+    // MapLibre-only(showConflictEvents·warZones 등)는 끈다.
     // showAisMilitary/Commercial을 빼면 showAis=true여도 선박 필터가 전부 탈락한다.
     const keepOn = new Set<keyof LayerPrefs>([
       "showAis",
@@ -370,7 +371,6 @@ export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): Laye
       "showFirmsFires",
       "showUkraineControl",
       "showNorthKoreaMissileTests",
-      "showConflictEvents",
       "showCityLabels",
       "labelLanguage",
     ]);

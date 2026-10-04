@@ -199,7 +199,8 @@ export function keyCloudPixelsForShell(
     const minC = Math.min(r, g, b) / 255;
     const sat = maxC > 1e-3 ? (maxC - minC) / maxC : 0;
     const whiteness = 1 - sat;
-    const cloud = smoothstep(0.48, 0.88, lum) * smoothstep(0.35, 0.75, whiteness);
+    // 회색 연무(lum≈0.63)는 버리고, 순백 구름(lum≳0.9)만 남긴다.
+    const cloud = smoothstep(0.68, 0.88, lum) * smoothstep(0.35, 0.75, whiteness);
     const a = Math.round(cloud * srcA * 255);
     data[i] = 255;
     data[i + 1] = 255;

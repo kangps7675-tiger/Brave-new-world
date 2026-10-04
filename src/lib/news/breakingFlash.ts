@@ -619,7 +619,8 @@ export function pickNextBreakingFlashHero(
   if (best) return best;
 
   // 관측 모드: 큐가 비면 오래된 claim을 재활용해 빈 화면을 막는다.
-  if (recycleAfterMs == null || recycleAfterMs <= 0) return null;
+  // recycleAfterMs === 0 은 즉시 재활용(테스트·강제 리셋).
+  if (recycleAfterMs == null || recycleAfterMs < 0) return null;
   const now = Date.now();
   let recycleBest: HeroBreakingItem | null = null;
   let recycleScore = -Infinity;
