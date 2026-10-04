@@ -7,11 +7,11 @@ const LIVE = GEOWATCH_CONFIG.polling;
 
 /** 줌아웃일수록 HTML 마커(ADS-B/AIS) DOM 비용을 강하게 컷 */
 const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 28,
-  continent: 48,
-  regional: 72,
-  near: 110,
-  village: 150,
+  global: 56,
+  continent: 90,
+  regional: 120,
+  near: 160,
+  village: 220,
 };
 
 const AIS_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {

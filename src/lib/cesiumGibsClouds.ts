@@ -2,7 +2,8 @@
  * Cesium 관측 모드 — NASA GIBS 구름.
  *
  * 기본: 풀 볼륨 레이마칭 (cesiumGibsCloudsVolume).
- * 폴백: 저/중/고 다층 껍질 → WMTS imagery.
+ * 폴백: 키잉된 저/중/고 다층 껍질.
+ * 키잉 없는 raw WMTS는 바다색 팔레트가 그대로 보여 쓰지 않는다.
  *
  * @see https://nasa-gibs.github.io/gibs-api-docs/
  */
@@ -14,6 +15,9 @@ import {
   CLOUD_VOLUME_TOP_M,
   type VolumetricCloudHandle,
 } from "@/lib/cesiumGibsCloudsVolume";
+
+/** false — unkeyed MODIS/AIRS WMTS는 바다·육지 팔레트가 깨져 보임 */
+export const GIBS_ALLOW_UNKEYED_WMTS_FALLBACK = false;
 
 /** 출처 표기 */
 export const GIBS_CLOUDS_CREDIT = {
@@ -285,7 +289,6 @@ export type AttachGibsCloudsOpts = {
   mode?: "volume" | "shells";
   /** shells 모드 / volume 폴백 시 껍질 수 */
   maxShells?: 1 | 2 | 3;
-  enableTileOverlay?: boolean;
 };
 
 type CesiumNS = typeof import("cesium");
@@ -312,7 +315,6 @@ export function attachGibsClouds(
   let spinTimer: number | null = null;
   let volumeHandle: VolumetricCloudHandle | null = null;
   let shells: ShellRuntime[] = [];
-  let fallbackLayer: import("cesium").ImageryLayer | null = null;
   const t0 = performance.now();
   const scratchCarto = new Cesium.Cartographic();
 
@@ -358,17 +360,6 @@ export function attachGibsClouds(
     shells = [];
   };
 
-  const clearFallback = () => {
-    if (fallbackLayer && !viewer.isDestroyed()) {
-      try {
-        viewer.imageryLayers.remove(fallbackLayer, false);
-      } catch {
-        /* ignore */
-      }
-    }
-    fallbackLayer = null;
-  };
-
   const applyFade = (fade: number) => {
     const base = resolveBaseAlpha() * fade;
     if (volumeHandle) {
@@ -389,10 +380,6 @@ export function attachGibsClouds(
         color.blue = 1;
         color.alpha = op;
       }
-    }
-    if (fallbackLayer) {
-      fallbackLayer.show = base > 0.02;
-      fallbackLayer.alpha = Math.min(0.26, base * 0.7);
     }
   };
 
@@ -438,23 +425,6 @@ export function attachGibsClouds(
     });
     spinTimer = window.setInterval(() => tick(true), CLOUD_SHELL_SPIN_INTERVAL_MS);
     tick(true);
-  };
-
-  const attachFallbackWmts = (pick: GibsCloudLayerPick) => {
-    clearShell();
-    clearFallback();
-    if (viewer.isDestroyed() || cancelled) return;
-    const provider = new Cesium.UrlTemplateImageryProvider({
-      url: gibsCloudWmtsUrlTemplate(pick.time, pick.layerId),
-      credit: `${GIBS_CLOUDS_CREDIT.label} · ${pick.layerId} (${pick.time})`,
-      maximumLevel: GIBS_CLOUD_MAX_LEVEL,
-      tilingScheme: new Cesium.WebMercatorTilingScheme(),
-    });
-    fallbackLayer = viewer.imageryLayers.addImageryProvider(provider);
-    fallbackLayer.saturation = 0.08;
-    fallbackLayer.brightness = 1.04;
-    applyFade(cloudShellFadeForCameraHeightM(cameraHeightM()));
-    bindAltitudeFadeLoop();
   };
 
   const makeShellAppearance = (
@@ -546,7 +516,6 @@ export function attachGibsClouds(
     pick: GibsCloudLayerPick,
   ) => {
     clearShell();
-    clearFallback();
     if (viewer.isDestroyed() || cancelled) return;
 
     if (preferVolume) {
@@ -601,11 +570,12 @@ export function attachGibsClouds(
         // try next candidate
       }
     }
-    // 전부 실패 → 어제 MODIS WMTS
-    const fallback =
-      candidates.find((c) => c.layerId === GIBS_CLOUD_LAYER_ID) ??
-      candidates[candidates.length - 1]!;
-    attachFallbackWmts(fallback);
+    // 전부 실패 → 키잉 없는 WMTS는 바다색으로 깨지므로 구름 없이 둔다.
+    void GIBS_ALLOW_UNKEYED_WMTS_FALLBACK;
+    console.warn(
+      "[cesiumGibsClouds] keyed cloud snapshots failed — no unkeyed WMTS fallback",
+    );
+    clearShell();
   };
 
   void rebuild();
@@ -618,7 +588,6 @@ export function attachGibsClouds(
     if (refreshTimer != null) window.clearInterval(refreshTimer);
     refreshTimer = null;
     clearShell();
-    clearFallback();
   };
 }
 

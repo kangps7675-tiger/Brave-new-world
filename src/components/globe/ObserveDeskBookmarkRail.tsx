@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { zc } from "@/lib/uiStack";
 
@@ -69,11 +69,18 @@ export function ObserveDeskBookmarkRail({
   verify,
 }: Props) {
   const en = lang === "en";
-  const [active, setActive] = useState<ObserveDeskTabId | null>("board");
+  /** 기본은 전선 속보 — LiveUA가 계속 쌓이는 창을 바로 보이게 */
+  const [active, setActive] = useState<ObserveDeskTabId | null>("flash");
+  const prevUnreadFlashRef = useRef(0);
 
   useEffect(() => {
     if (autoOpenVerify && hasVerify) setActive("verify");
   }, [autoOpenVerify, hasVerify]);
+
+  useEffect(() => {
+    if (unreadFlash > prevUnreadFlashRef.current) setActive("flash");
+    prevUnreadFlashRef.current = unreadFlash;
+  }, [unreadFlash]);
 
   const tabs: TabDef[] = [
     {

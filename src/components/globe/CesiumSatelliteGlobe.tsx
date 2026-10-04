@@ -160,6 +160,9 @@ import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import {
   resolveCinematicCamera,
+  lookAtRangeForHeight,
+  clampCesiumPitchToGlobeDeg,
+  type FlyCameraOpts,
   resolveCinematicDurationMs,
 } from "@/lib/globeCamera";
 import {
@@ -169,6 +172,7 @@ import {
 } from "@/lib/neptun";
 import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
 import { useCesiumModifierLook } from "@/components/globe/hooks/useCesiumModifierLook";
+import { useCesiumHorizonGuard } from "@/components/globe/hooks/useCesiumHorizonGuard";
 
 const ESRI_WORLD_IMAGERY =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
@@ -206,7 +210,7 @@ export type CesiumGlobeHandle = {
     lng: number,
     altitude?: number,
     durationMs?: number,
-    camera?: { pitch?: number; bearing?: number },
+    camera?: FlyCameraOpts,
   ) => void;
   /** 하루 리플레이 — UTC 시각(0–24)으로 태양 시계(터미네이터) 설정 */
   setClockHourUtc: (hourUtc: number) => void;
@@ -509,7 +513,7 @@ function createGlobeOccluder(
 }
 
 /** Cesium 항공기 빌보드 — MapLibre 실루엣과 동일 SVG, 군용=현행 팔레트·민간=초록. */
-const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
+const CESIUM_AIRCRAFT_SIZE = { mil: 34, civ: 24 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
 const aisBillboardUriCache = new Map<string, string>();
 /** 해수면 마커를 지형/3D Tiles에 묻히지 않게 띄움 (m) */
@@ -943,7 +947,10 @@ function syncAircraftBillboardEntities(
         existing.billboard.color = new Cesium.ConstantProperty(
           Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         );
-        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+        // mil: 궤도에서도 실루엣이 읽히게 — 지구 뒤(오클루전)만 show로 숨김
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
+          Number.POSITIVE_INFINITY,
+        );
       } else {
         existing.billboard = new Cesium.BillboardGraphics({
           image,
@@ -953,7 +960,7 @@ function syncAircraftBillboardEntities(
           alignedAxis: Cesium.Cartesian3.UNIT_Z,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: 0,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
           color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         });
       }
@@ -973,7 +980,7 @@ function syncAircraftBillboardEntities(
         alignedAxis: Cesium.Cartesian3.UNIT_Z,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        disableDepthTestDistance: 0,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
       }),
     });
@@ -1103,7 +1110,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showAisMilitary = true,
       showAisCommercial = true,
       showDisguisedVessels = false,
-      showMilitaryActivity = false,
+      showMilitaryActivity = true,
       showAirTraffic = false,
       neptunThreats = [],
       showNeptun = false,
@@ -1231,20 +1238,68 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const straitReplaySceneRef = useRef<StraitReplayScene | null>(null);
   useImperativeHandle(
     innerHandleRef,
-    () => ({
-      flyTo: (lat, lng, altitude, durationMs, camera) => {
+    (): CesiumGlobeHandle => ({
+      flyTo: (
+        lat: number,
+        lng: number,
+        altitude?: number,
+        durationMs?: number,
+        camera?: FlyCameraOpts,
+      ) => {
         const viewer = viewerRef.current;
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
         const heightM = altitudeToHeightM(altitude ?? 0.55);
         const resolved = resolveCinematicCamera(camera);
+        // 고도 대비 pitch가 얕으면 시선이 수평선 위(우주)로 간다 → lookAt 포함 항상 클램프.
+        const cesiumPitchDeg = clampCesiumPitchToGlobeDeg(
+          heightM,
+          resolved.pitch - 90,
+        );
         const orientation = {
           heading: Cesium.Math.toRadians(resolved.bearing),
-          pitch: Cesium.Math.toRadians(resolved.pitch - 90),
+          pitch: Cesium.Math.toRadians(cesiumPitchDeg),
           roll: 0,
         };
         const destination = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
-        // durationMs === 0 은 즉시 스냅 (인터럽트용). undefined는 시네마틱.
+        // lookAt: lat/lng가 화면 중앙에 오도록 시선 반대쪽 카메라 위치를 Cesium이 계산.
+        // (기본 모드는 lat/lng를 카메라 위치로 쓰므로 비스듬한 pitch에서 대상이 화면 밖으로 빠진다.)
+        if (resolved.lookAt) {
+          const target = Cesium.Cartesian3.fromDegrees(lng, lat, 0);
+          const sphere = new Cesium.BoundingSphere(target, 1);
+          const offset = new Cesium.HeadingPitchRange(
+            orientation.heading,
+            orientation.pitch,
+            lookAtRangeForHeight(heightM, cesiumPitchDeg),
+          );
+          if (durationMs === 0) {
+            programmaticCameraRef.current = true;
+            viewer.camera.flyToBoundingSphere(sphere, { offset, duration: 0 });
+            programmaticCameraRef.current = false;
+            return;
+          }
+          const lookCurrentHeight =
+            viewer.camera.positionCartographic?.height ?? heightM;
+          programmaticCameraRef.current = true;
+          viewer.camera.flyToBoundingSphere(sphere, {
+            offset,
+            duration: resolveCinematicDurationMs(durationMs) / 1000,
+            maximumHeight: Math.max(
+              heightM * 2.4,
+              heightM + 2_200_000,
+              lookCurrentHeight + 50_000,
+            ),
+            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+            complete: () => {
+              programmaticCameraRef.current = false;
+            },
+            cancel: () => {
+              programmaticCameraRef.current = false;
+            },
+          });
+          return;
+        }
+        // durationMs === 0은 즉시 스냅(인터럽트용). undefined는 시네마틱.
         if (durationMs === 0) {
           programmaticCameraRef.current = true;
           viewer.camera.setView({ destination, orientation });
@@ -1252,8 +1307,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           return;
         }
         const durationSec = resolveCinematicDurationMs(durationMs) / 1000;
-        const currentHeight = viewer.camera.positionCartographic?.height ?? heightM;
-        // 현재 고도보다 maximumHeight 가 낮으면 비행 경로가 즉시 끊긴다.
+        const currentHeight =
+          viewer.camera.positionCartographic?.height ?? heightM;
+        // 현재 고도보다 maximumHeight가 낮으면 비행 경로가 즉시 끊긴다.
         const maximumHeight = Math.max(
           heightM * 2.4,
           heightM + 2_200_000,
@@ -1274,7 +1330,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           },
         });
       },
-      setClockHourUtc: (hourUtc) => {
+      setClockHourUtc: (hourUtc: number) => {
         const viewer = viewerRef.current;
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
@@ -1580,6 +1636,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   useCesiumKeyboardNav(viewerRef, status === "ready");
   /** Ctrl/Alt+드래그 기울기 — LiveUA「위치로 가기」후 Google Earth식 조작 */
   useCesiumModifierLook(viewerRef, status === "ready");
+  useCesiumHorizonGuard(viewerRef, status === "ready", programmaticCameraRef);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -3004,7 +3061,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     const radiusKm = deskFocus
       ? deskSpotlightRadiusKm(deskFocus.kind)
       : null;
-    const windowH = deskFocus?.windowHours ?? 72;
+    // deskFocus가 없어도 최근 7일 핀은 궤도에서 읽히게
+    const windowH = deskFocus?.windowHours ?? 168;
     const nowMs = Date.now();
     const firstSeen = liveuaFirstSeenRef.current;
     for (const pin of liveuaPins) {
@@ -3021,40 +3079,50 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         inSpot = d <= radiusKm;
       }
       const timeA = timeWindowAlpha(pin.publishedAt, windowH, nowMs);
-      let alpha = focused ? 1 : deskFocus ? (inSpot ? 0.55 : DESK_NON_FOCUS_ALPHA) : 1;
-      alpha *= timeA;
-      if (slots) alpha *= slots.sensor;
+      // 전선 핀은 안건 스포트 밖에서도 최소 가시성 유지
+      let alpha = focused
+        ? 1
+        : deskFocus
+          ? inSpot
+            ? 0.85
+            : Math.max(0.45, DESK_NON_FOCUS_ALPHA)
+          : 1;
+      alpha *= Math.max(0.35, timeA);
+      if (slots) alpha *= Math.max(0.55, slots.sensor);
       if (isNew) alpha = Math.min(1, alpha + 0.35);
-      const baseCss = focused || isNew ? "#fde68a" : "#f59e0b";
+      const baseCss = focused || isNew ? "#fde68a" : "#fbbf24";
       const color = Cesium.Color.fromCssColorString(baseCss).withAlpha(
-        Math.max(0.06, alpha),
+        Math.max(0.35, alpha),
       );
-      const pixelSize = focused ? 16 : isNew ? 14 : deskFocus && inSpot ? 11 : 10;
-      const outlineWidth = focused || isNew ? 3 : 1;
+      const pixelSize = focused ? 20 : isNew ? 16 : deskFocus && inSpot ? 14 : 13;
+      const outlineWidth = focused || isNew ? 3 : 2;
       const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
       const existing = viewer.entities.getById(pointId);
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = pin.title;
-        existing.show = timeA > 0.07;
+        existing.show = true;
         if (existing.point) {
           existing.point.pixelSize = new Cesium.ConstantProperty(pixelSize);
           existing.point.color = new Cesium.ConstantProperty(color);
           existing.point.outlineColor = new Cesium.ConstantProperty(
-            Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65 * alpha),
+            Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
           );
           existing.point.outlineWidth = new Cesium.ConstantProperty(outlineWidth);
+          existing.point.disableDepthTestDistance = new Cesium.ConstantProperty(
+            Number.POSITIVE_INFINITY,
+          );
         }
       } else {
         viewer.entities.add({
           id: pointId,
           name: pin.title,
           position,
-          show: timeA > 0.07,
+          show: true,
           point: {
             pixelSize,
             color,
-            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65),
+            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
             outlineWidth,
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
@@ -3092,13 +3160,13 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (!fresh) {
             const timeA = timeWindowAlpha(
               pin.publishedAt,
-              deskFocus?.windowHours ?? 72,
+              deskFocus?.windowHours ?? 168,
               tNow,
             );
-            ent.point.pixelSize = new Cesium.ConstantProperty(10);
+            ent.point.pixelSize = new Cesium.ConstantProperty(13);
             ent.point.color = new Cesium.ConstantProperty(
-              Cesium.Color.fromCssColorString("#f59e0b").withAlpha(
-                Math.max(0.06, timeA),
+              Cesium.Color.fromCssColorString("#fbbf24").withAlpha(
+                Math.max(0.35, timeA),
               ),
             );
           }
@@ -3447,7 +3515,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
 
       {hoverTip ? (
         <div
-          className="pointer-events-none absolute z-30 max-w-[min(18rem,70vw)] rounded-md border border-sky-200/25 bg-[#0b1628]/92 px-2.5 py-1.5 text-xs text-sky-50 shadow-lg backdrop-blur-sm"
+          className="pointer-events-none absolute z-30 max-w-[min(18rem,70vw)] rounded-md border border-sky-200/25 bg-[#0b1628]/92 px-2.5 py-1.5 font-sans text-micro font-medium tracking-tight text-sky-50 shadow-lg backdrop-blur-sm"
           style={
             hoverTip.y <= 36
               ? { right: 12, top: 12 }

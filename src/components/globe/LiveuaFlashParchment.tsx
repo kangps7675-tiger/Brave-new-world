@@ -64,11 +64,131 @@ export function LiveuaFlashParchment({
   const hasMarket =
     market.symbols.length > 0 || market.chokepoint || market.suggestPipelines;
   const showNextDoors = Boolean(onGoConflict || onGoEconomy);
-  const showMarketDock = hasMarket || showNextDoors;
+
+  const bodyExtra = (
+    <div className="space-y-3 border-t border-[#6b4a22]/25 pt-3">
+      {hasMarket || marketNote ? (
+        <section aria-label={t("liveuaFlashMarketTitle", lang)}>
+          <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
+            {t("liveuaFlashMarketTitle", lang)}
+          </p>
+          {marketNote ? (
+            <p className="mt-1 text-micro leading-snug text-[#3d2a12]">
+              <span className="font-semibold text-[#5c4020]/90">
+                {t("liveuaFlashMarketWhy", lang)}{" "}
+              </span>
+              {marketNote}
+            </p>
+          ) : null}
+          {hasMarket ? (
+            <>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {market.chokepoint ? (
+                  <button
+                    type="button"
+                    className="rounded-sm border border-amber-800/35 bg-amber-100/80 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-amber-50"
+                    onClick={() => onFocusChokepoint?.(market.chokepoint!)}
+                    title={
+                      en
+                        ? `~${market.chokepoint.distanceKm} km · logistics corridor`
+                        : `약 ${market.chokepoint.distanceKm} km · 물류 회랑`
+                    }
+                  >
+                    ⚓ {flashChokepointLabel(market.chokepoint, lang)}
+                  </button>
+                ) : null}
+                {market.suggestPipelines ? (
+                  <button
+                    type="button"
+                    className="rounded-sm border border-orange-800/35 bg-orange-100/80 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-orange-50"
+                    onClick={() => onFocusPipelines?.(event)}
+                    title={
+                      en
+                        ? "Briefly show oil/gas pipelines near this flash"
+                        : "이 속보 근처 송유·가스관을 잠깐 표시"
+                    }
+                  >
+                    {en ? "⛽ Pipelines" : "⛽ 송유·가스관"}
+                  </button>
+                ) : null}
+                {market.symbols.map((symbol) => (
+                  <a
+                    key={symbol}
+                    href={flashSymbolQuoteHref(symbol)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/90 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-[#e8d6a8]"
+                  >
+                    {symbol}
+                  </a>
+                ))}
+              </div>
+              <p className="mt-0.5 text-micro text-[#5c4020]/60">
+                {t("liveuaFlashMarketDisclaimer", lang)}
+              </p>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showNextDoors ? (
+        <section
+          className={
+            hasMarket || marketNote
+              ? "border-t border-[#6b4a22]/25 pt-2"
+              : undefined
+          }
+          aria-label={t("liveuaFlashNextHint", lang)}
+        >
+          <p className="text-micro font-semibold text-[#5c4020]/85">
+            {t("liveuaFlashNextHint", lang)}
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {onGoConflict ? (
+              <button
+                type="button"
+                className="rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-[#e8d6a8]"
+                onClick={onGoConflict}
+              >
+                {t("liveuaFlashNextConflict", lang)}
+              </button>
+            ) : null}
+            {onGoEconomy ? (
+              <button
+                type="button"
+                className="rounded-sm border border-emerald-800/30 bg-emerald-50/90 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-emerald-50"
+                onClick={onGoEconomy}
+              >
+                {t("liveuaFlashNextEconomy", lang)}
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-label="Liveuamap">
+        <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
+          Liveuamap
+        </p>
+        <p className="mt-1 text-micro tabular-nums text-[#3d2a12]">
+          {en ? "Coordinates" : "좌표"}: {coordLabel}
+        </p>
+        <a
+          href={sourceHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 block truncate text-micro text-[#3d2a12] underline underline-offset-2 hover:text-[#5c4020]"
+          title={sourceHref}
+        >
+          {en ? "Source URL" : "원문 URL"}
+        </a>
+      </section>
+    </div>
+  );
 
   /**
-   * ParchmentLetter는 fixed inset-0 — 형제 absolute는 높이 0 relative 부모에 붙으면
-   * 화면 상단으로 붕괴한다. body 포털 + fixed로 양피지 위에 올린다.
+   * 이전/다음만 포털 — 시세·좌표는 양피지 bodyExtra에 통합.
+   * ParchmentLetter는 fixed inset-0이라 형제 absolute가 붕괴하므로 body 포털 유지.
    */
   const chrome =
     typeof document !== "undefined"
@@ -88,128 +208,6 @@ export function LiveuaFlashParchment({
             </button>
 
             <div className="pointer-events-auto absolute bottom-8 left-1/2 flex w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-2 pb-[env(safe-area-inset-bottom,0px)]">
-              {showMarketDock ? (
-                <div className="w-full rounded-sm border border-[#6b4a22]/35 bg-[#f3e6c8]/95 px-3 py-2 shadow">
-                  {hasMarket ? (
-                    <>
-                      <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
-                        {t("liveuaFlashMarketTitle", lang)}
-                      </p>
-                      {marketNote ? (
-                        <p className="mt-1 text-micro leading-snug text-[#3d2a12]">
-                          <span className="font-semibold text-[#5c4020]/90">
-                            {t("liveuaFlashMarketWhy", lang)}{" "}
-                          </span>
-                          {marketNote}
-                        </p>
-                      ) : null}
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {market.chokepoint ? (
-                          <button
-                            type="button"
-                            className="rounded-sm border border-amber-800/35 bg-amber-100/80 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-amber-50"
-                            onClick={() => onFocusChokepoint?.(market.chokepoint!)}
-                            title={
-                              en
-                                ? `~${market.chokepoint.distanceKm} km · logistics corridor`
-                                : `약 ${market.chokepoint.distanceKm} km · 물류 회랑`
-                            }
-                          >
-                            ⚓ {flashChokepointLabel(market.chokepoint, lang)}
-                          </button>
-                        ) : null}
-                        {market.suggestPipelines ? (
-                          <button
-                            type="button"
-                            className="rounded-sm border border-orange-800/35 bg-orange-100/80 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-orange-50"
-                            onClick={() => onFocusPipelines?.(event)}
-                            title={
-                              en
-                                ? "Briefly show oil/gas pipelines near this flash"
-                                : "이 속보 근처 송유·가스관을 잠깐 표시"
-                            }
-                          >
-                            {en ? "⛽ Pipelines" : "⛽ 송유·가스관"}
-                          </button>
-                        ) : null}
-                        {market.symbols.map((symbol) => (
-                          <a
-                            key={symbol}
-                            href={flashSymbolQuoteHref(symbol)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/90 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-[#e8d6a8]"
-                          >
-                            {symbol}
-                          </a>
-                        ))}
-                      </div>
-                      <p className="mt-0.5 text-micro text-[#5c4020]/60">
-                        {t("liveuaFlashMarketDisclaimer", lang)}
-                      </p>
-                    </>
-                  ) : marketNote ? (
-                    <p className="mb-1.5 text-micro leading-snug text-[#3d2a12]">
-                      <span className="font-semibold text-[#5c4020]/90">
-                        {t("liveuaFlashMarketWhy", lang)}{" "}
-                      </span>
-                      {marketNote}
-                    </p>
-                  ) : null}
-                  {showNextDoors ? (
-                    <div
-                      className={
-                        hasMarket || marketNote
-                          ? "mt-2 border-t border-[#6b4a22]/25 pt-2"
-                          : ""
-                      }
-                    >
-                      <p className="text-micro font-semibold text-[#5c4020]/85">
-                        {t("liveuaFlashNextHint", lang)}
-                      </p>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {onGoConflict ? (
-                          <button
-                            type="button"
-                            className="rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-[#e8d6a8]"
-                            onClick={onGoConflict}
-                          >
-                            {t("liveuaFlashNextConflict", lang)}
-                          </button>
-                        ) : null}
-                        {onGoEconomy ? (
-                          <button
-                            type="button"
-                            className="rounded-sm border border-emerald-800/30 bg-emerald-50/90 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-emerald-50"
-                            onClick={onGoEconomy}
-                          >
-                            {t("liveuaFlashNextEconomy", lang)}
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <div className="w-full rounded-sm border border-[#6b4a22]/35 bg-[#f3e6c8]/95 px-3 py-2 shadow">
-                <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
-                  Liveuamap
-                </p>
-                <p className="mt-1 text-micro tabular-nums text-[#3d2a12]">
-                  {en ? "Coordinates" : "좌표"}: {coordLabel}
-                </p>
-                <a
-                  href={sourceHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 block truncate text-micro text-[#3d2a12] underline underline-offset-2 hover:text-[#5c4020]"
-                  title={sourceHref}
-                >
-                  {en ? "Source URL" : "원문 URL"}
-                </a>
-              </div>
-
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -218,13 +216,6 @@ export function LiveuaFlashParchment({
                   onClick={() => onIndexChange(index - 1)}
                 >
                   {en ? "Previous" : "이전"}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-sm border border-[#6b4a22]/40 bg-[#f3e6c8]/95 px-3 py-1 text-micro text-[#3d2a12]"
-                  onClick={() => onGoToLocation(event)}
-                >
-                  {en ? "Go to location" : "위치로 가기"}
                 </button>
                 <button
                   type="button"
@@ -264,6 +255,7 @@ export function LiveuaFlashParchment({
         leadVideoUrl={event.videoUrl}
         secondaryCtaLabel={t("breakingFlashGoToLocation", lang)}
         onSecondaryCta={() => onGoToLocation(event)}
+        bodyExtra={bodyExtra}
       />
       {chrome}
     </>
