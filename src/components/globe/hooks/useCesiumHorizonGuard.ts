@@ -5,7 +5,7 @@ import type { Viewer } from "cesium";
 import { clampCesiumPitchToGlobeDeg } from "@/lib/globeCamera";
 
 /** 수평선 위로 이만큼 여유를 두고 지구를 향하게 한다(도). */
-export const HORIZON_GUARD_MARGIN_DEG = 3;
+export const HORIZON_GUARD_MARGIN_DEG = 6;
 
 /**
  * 카메라 중앙 시선이 지구를 벗어나(수평선 위·우주) 화면이 검게 보이는 상태를 막는다.

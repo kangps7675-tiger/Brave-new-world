@@ -32,9 +32,10 @@ export function attachRealtimeDayNight(
   if (dayLayer) {
     dayLayer.dayAlpha = 1;
     dayLayer.nightAlpha = 1;
-    dayLayer.brightness = 1.45;
-    dayLayer.contrast = 0.9;
-    dayLayer.gamma = 0.82;
+    // 관측 지구본 — 밝게 (흐릿·어두운 궤도 톤 완화)
+    dayLayer.brightness = 1.62;
+    dayLayer.contrast = 0.92;
+    dayLayer.gamma = 0.9;
   }
 
   const syncTimer = window.setInterval(() => {

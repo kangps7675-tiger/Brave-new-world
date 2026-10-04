@@ -127,6 +127,7 @@ import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { LiveuaFlashDock } from "@/components/globe/LiveuaFlashDock";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
+import { ObserveScopeMask } from "@/components/globe/ObserveScopeMask";
 import { TheaterSitrepBook } from "@/components/globe/TheaterSitrepBook";
 import { IntelWatchboard } from "@/components/globe/IntelWatchboard";
 import { IntelSourceDrill } from "@/components/globe/IntelSourceDrill";
@@ -6449,12 +6450,18 @@ export function GlobeDashboard({
 
         {!isPhoneUi && incidentSpace ? (
           <>
+            {/* LiveUA 위치: GEV식 망원 원형 시야 / 그 외: 기존 인셋 비네팅 */}
+            {incidentSpace.kicker.includes("Liveuamap") ||
+            incidentSpace.kicker.includes("LiveUA") ? (
+              <ObserveScopeMask active />
+            ) : (
+              <div
+                className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20`}
+                aria-hidden
+              />
+            )}
             <div
-              className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20`}
-              aria-hidden
-            />
-            <div
-              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/20 bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md`}
+              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/20 bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md font-sans`}
             >
               <div className="min-w-0">
                 <p className="text-micro uppercase tracking-[0.18em] text-amber-200/80">

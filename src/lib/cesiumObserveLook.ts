@@ -4,15 +4,15 @@
  */
 
 export const OBSERVE_ATMO_ORBIT = {
-  light: 18,
-  sat: -0.1,
-  bright: -0.06,
+  light: 22,
+  sat: -0.04,
+  bright: 0.04,
 } as const;
 
 export const OBSERVE_ATMO_NEAR = {
-  light: 12,
-  sat: -0.04,
-  bright: -0.02,
+  light: 14,
+  sat: -0.02,
+  bright: 0.02,
 } as const;
 
 /** heightM 경계 */

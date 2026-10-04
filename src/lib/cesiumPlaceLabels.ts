@@ -61,10 +61,11 @@ export function syncPlaceLabelEntities(
     const fontPx = observePlaceLabelFontPx(tier);
     const scale = observePlaceLabelScale(tier);
     const fill = fillForTier(Cesium, tier);
+    // Wanted / Pretendard — UI와 같은 깔끔한 필체 (Segoe 하드코딩 제거)
     const font =
       tier === "country"
-        ? `700 ${fontPx}px "Segoe UI", system-ui, sans-serif`
-        : `600 ${fontPx}px "Segoe UI", system-ui, sans-serif`;
+        ? `700 ${fontPx}px "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`
+        : `600 ${fontPx}px "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
     const existing = viewer.entities.getById(id);
     if (existing?.label) {
       existing.position = new Cesium.ConstantPositionProperty(position);

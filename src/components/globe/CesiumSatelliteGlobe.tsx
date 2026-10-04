@@ -513,7 +513,7 @@ function createGlobeOccluder(
 }
 
 /** Cesium 항공기 빌보드 — MapLibre 실루엣과 동일 SVG, 군용=현행 팔레트·민간=초록. */
-const CESIUM_AIRCRAFT_SIZE = { mil: 26, civ: 22 } as const;
+const CESIUM_AIRCRAFT_SIZE = { mil: 34, civ: 24 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
 const aisBillboardUriCache = new Map<string, string>();
 /** 해수면 마커를 지형/3D Tiles에 묻히지 않게 띄움 (m) */
@@ -947,7 +947,10 @@ function syncAircraftBillboardEntities(
         existing.billboard.color = new Cesium.ConstantProperty(
           Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         );
-        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+        // mil: 궤도에서도 실루엣이 읽히게 — 지구 뒤(오클루전)만 show 로 숨김
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
+          Number.POSITIVE_INFINITY,
+        );
       } else {
         existing.billboard = new Cesium.BillboardGraphics({
           image,
@@ -957,7 +960,7 @@ function syncAircraftBillboardEntities(
           alignedAxis: Cesium.Cartesian3.UNIT_Z,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: 0,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
           color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         });
       }
@@ -977,7 +980,7 @@ function syncAircraftBillboardEntities(
         alignedAxis: Cesium.Cartesian3.UNIT_Z,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        disableDepthTestDistance: 0,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         color: Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
       }),
     });
@@ -1243,9 +1246,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         const heightM = altitudeToHeightM(altitude ?? 0.55);
         const resolved = resolveCinematicCamera(camera);
         // 카메라 위치 모드: 고도에 비해 덜 숙이면 중앙 시선이 수평선 위(우주)로 간다 → 하한 보정.
-        const cesiumPitchDeg = resolved.lookAt
-          ? resolved.pitch - 90
-          : clampCesiumPitchToGlobeDeg(heightM, resolved.pitch - 90);
+        // lookAt 포함 — 고도 대비 얕은 pitch 는 우주(검은 배경)만 보임 → 항상 클램프
+        const cesiumPitchDeg = clampCesiumPitchToGlobeDeg(
+          heightM,
+          resolved.pitch - 90,
+        );
         const orientation = {
           heading: Cesium.Math.toRadians(resolved.bearing),
           pitch: Cesium.Math.toRadians(cesiumPitchDeg),
@@ -1260,7 +1265,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           const offset = new Cesium.HeadingPitchRange(
             orientation.heading,
             orientation.pitch,
-            lookAtRangeForHeight(heightM, resolved.pitch - 90),
+            lookAtRangeForHeight(heightM, cesiumPitchDeg),
           );
           if (durationMs === 0) {
             programmaticCameraRef.current = true;
@@ -3045,7 +3050,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     const radiusKm = deskFocus
       ? deskSpotlightRadiusKm(deskFocus.kind)
       : null;
-    const windowH = deskFocus?.windowHours ?? 72;
+    // deskFocus 없을 때도 최근 7일 핀은 궤도에서 읽히게
+    const windowH = deskFocus?.windowHours ?? 168;
     const nowMs = Date.now();
     const firstSeen = liveuaFirstSeenRef.current;
     for (const pin of liveuaPins) {
@@ -3062,40 +3068,50 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         inSpot = d <= radiusKm;
       }
       const timeA = timeWindowAlpha(pin.publishedAt, windowH, nowMs);
-      let alpha = focused ? 1 : deskFocus ? (inSpot ? 0.55 : DESK_NON_FOCUS_ALPHA) : 1;
-      alpha *= timeA;
-      if (slots) alpha *= slots.sensor;
+      // 전선 핀은 안건 스포트 밖에서도 최소 가시성 유지
+      let alpha = focused
+        ? 1
+        : deskFocus
+          ? inSpot
+            ? 0.85
+            : Math.max(0.45, DESK_NON_FOCUS_ALPHA)
+          : 1;
+      alpha *= Math.max(0.35, timeA);
+      if (slots) alpha *= Math.max(0.55, slots.sensor);
       if (isNew) alpha = Math.min(1, alpha + 0.35);
-      const baseCss = focused || isNew ? "#fde68a" : "#f59e0b";
+      const baseCss = focused || isNew ? "#fde68a" : "#fbbf24";
       const color = Cesium.Color.fromCssColorString(baseCss).withAlpha(
-        Math.max(0.06, alpha),
+        Math.max(0.35, alpha),
       );
-      const pixelSize = focused ? 16 : isNew ? 14 : deskFocus && inSpot ? 11 : 10;
-      const outlineWidth = focused || isNew ? 3 : 1;
+      const pixelSize = focused ? 20 : isNew ? 16 : deskFocus && inSpot ? 14 : 13;
+      const outlineWidth = focused || isNew ? 3 : 2;
       const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
       const existing = viewer.entities.getById(pointId);
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = pin.title;
-        existing.show = timeA > 0.07;
+        existing.show = true;
         if (existing.point) {
           existing.point.pixelSize = new Cesium.ConstantProperty(pixelSize);
           existing.point.color = new Cesium.ConstantProperty(color);
           existing.point.outlineColor = new Cesium.ConstantProperty(
-            Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65 * alpha),
+            Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
           );
           existing.point.outlineWidth = new Cesium.ConstantProperty(outlineWidth);
+          existing.point.disableDepthTestDistance = new Cesium.ConstantProperty(
+            Number.POSITIVE_INFINITY,
+          );
         }
       } else {
         viewer.entities.add({
           id: pointId,
           name: pin.title,
           position,
-          show: timeA > 0.07,
+          show: true,
           point: {
             pixelSize,
             color,
-            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.85 : 0.65),
+            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
             outlineWidth,
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
@@ -3133,13 +3149,13 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (!fresh) {
             const timeA = timeWindowAlpha(
               pin.publishedAt,
-              deskFocus?.windowHours ?? 72,
+              deskFocus?.windowHours ?? 168,
               tNow,
             );
-            ent.point.pixelSize = new Cesium.ConstantProperty(10);
+            ent.point.pixelSize = new Cesium.ConstantProperty(13);
             ent.point.color = new Cesium.ConstantProperty(
-              Cesium.Color.fromCssColorString("#f59e0b").withAlpha(
-                Math.max(0.06, timeA),
+              Cesium.Color.fromCssColorString("#fbbf24").withAlpha(
+                Math.max(0.35, timeA),
               ),
             );
           }
@@ -3488,7 +3504,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
 
       {hoverTip ? (
         <div
-          className="pointer-events-none absolute z-30 max-w-[min(18rem,70vw)] rounded-md border border-sky-200/25 bg-[#0b1628]/92 px-2.5 py-1.5 text-xs text-sky-50 shadow-lg backdrop-blur-sm"
+          className="pointer-events-none absolute z-30 max-w-[min(18rem,70vw)] rounded-md border border-sky-200/25 bg-[#0b1628]/92 px-2.5 py-1.5 font-sans text-micro font-medium tracking-tight text-sky-50 shadow-lg backdrop-blur-sm"
           style={
             hoverTip.y <= 36
               ? { right: 12, top: 12 }
