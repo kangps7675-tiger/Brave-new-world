@@ -73,3 +73,63 @@ export function pushLiveuamapEvent(event: LiveuamapEvent) {
   lastIngestAt = new Date().toISOString();
   lastError = null;
 }
+
+export type LiveuamapStorePersisted = {
+  events: LiveuamapEvent[];
+  lastIngestAt: string | null;
+  lastError?: string | null;
+};
+
+/** D1/디스크용 이벤트 링버퍼 스냅샷. */
+export function exportLiveuamapStoreState(): LiveuamapStorePersisted {
+  return {
+    events: prune(events),
+    lastIngestAt,
+    lastError,
+  };
+}
+
+function isLiveuamapEvent(value: unknown): value is LiveuamapEvent {
+  if (!value || typeof value !== "object") return false;
+  const e = value as Record<string, unknown>;
+  return (
+    typeof e.id === "string" &&
+    typeof e.regionId === "string" &&
+    typeof e.lat === "number" &&
+    typeof e.lng === "number" &&
+    typeof e.title === "string" &&
+    typeof e.publishedAt === "string"
+  );
+}
+
+/**
+ * 저장된 이벤트를 메모리에 병합. 동일 id는 메모리(현재)가 우선, 나머지는 저장분이 채운다.
+ * lastIngestAt도 메모리가 이미 있으면 유지.
+ */
+export function hydrateLiveuamapStoreState(raw: unknown): void {
+  if (!raw || typeof raw !== "object") return;
+  const saved = raw as Record<string, unknown>;
+  const incoming = Array.isArray(saved.events)
+    ? saved.events.filter(isLiveuamapEvent)
+    : [];
+  if (!incoming.length && saved.lastIngestAt == null && saved.lastError == null) return;
+
+  const byId = new Map<string, LiveuamapEvent>();
+  for (const e of incoming) byId.set(e.id, e);
+  for (const e of events) byId.set(e.id, e); // 메모리 wins
+  events = prune([...byId.values()]);
+
+  if (lastIngestAt == null && typeof saved.lastIngestAt === "string") {
+    lastIngestAt = saved.lastIngestAt;
+  }
+  if (lastError == null && typeof saved.lastError === "string") {
+    lastError = saved.lastError;
+  }
+}
+
+/** 테스트용 */
+export function __resetLiveuamapStoreForTests() {
+  events = [];
+  lastIngestAt = null;
+  lastError = null;
+}

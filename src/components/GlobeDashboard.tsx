@@ -127,6 +127,7 @@ import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { LiveuaFlashDock } from "@/components/globe/LiveuaFlashDock";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
+import { ObserveScopeMask } from "@/components/globe/ObserveScopeMask";
 import { TheaterSitrepBook } from "@/components/globe/TheaterSitrepBook";
 import { IntelWatchboard } from "@/components/globe/IntelWatchboard";
 import { IntelSourceDrill } from "@/components/globe/IntelSourceDrill";
@@ -264,7 +265,7 @@ import {
   savePerfPrefs,
 } from "@/lib/ultraLiteMode";
 
-import { CINEMATIC_FLY, resolveCinematicCamera, resolveCinematicDurationMs } from "@/lib/globeCamera";
+import { CINEMATIC_FLY, resolveCinematicCamera, resolveCinematicDurationMs, type FlyCameraOpts } from "@/lib/globeCamera";
 import {
   type BattlefieldZone,
 } from "@/lib/battlefieldPresets";
@@ -850,7 +851,7 @@ export function GlobeDashboard({
     lng: number;
     altitude?: number;
     durationMs?: number;
-    camera?: { pitch?: number; bearing?: number };
+    camera?: FlyCameraOpts;
     subtitle: string;
     title: string;
     selection?: Selection;
@@ -1272,7 +1273,6 @@ export function GlobeDashboard({
   } = useLiveuaObserveFeed({
     isSatelliteViewer,
     theaterSitrepRegion,
-    clearBreakingFlash,
   });
 
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
@@ -6450,12 +6450,18 @@ export function GlobeDashboard({
 
         {!isPhoneUi && incidentSpace ? (
           <>
+            {/* LiveUA 위치: GEV식 망원 원형 시야 / 그 외: 기존 인셋 비네팅 */}
+            {incidentSpace.kicker.includes("Liveuamap") ||
+            incidentSpace.kicker.includes("LiveUA") ? (
+              <ObserveScopeMask active />
+            ) : (
+              <div
+                className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20`}
+                aria-hidden
+              />
+            )}
             <div
-              className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20`}
-              aria-hidden
-            />
-            <div
-              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/20 bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md`}
+              className={`pointer-events-auto absolute left-1/2 top-3 ${zc("immersive")} flex max-w-[min(28rem,92vw)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/20 bg-[#0b0d12]/92 py-1.5 pl-4 pr-1.5 shadow-2xl backdrop-blur-md font-sans`}
             >
               <div className="min-w-0">
                 <p className="text-micro uppercase tracking-[0.18em] text-amber-200/80">
@@ -6852,14 +6858,16 @@ export function GlobeDashboard({
               enterFocusedSpace({
                 lat: ev.lat,
                 lng: ev.lng,
-                altitude: 0.52,
+                altitude: 0.3,
                 pitch: CINEMATIC_FLY.pitch,
                 title,
                 kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
               });
-              unifiedFlyTo(ev.lat, ev.lng, 0.52, undefined, {
+              // lookAt: 이벤트 좌표가 화면 중앙에 오게 (이전엔 카메라가 그 좌표에 놓여 대상이 화면 밖으로 빠졌다)
+              unifiedFlyTo(ev.lat, ev.lng, 0.3, undefined, {
                 pitch: CINEMATIC_FLY.pitch,
                 bearing: CINEMATIC_FLY.bearing,
+                lookAt: true,
               });
             }}
             onFocusChokepoint={(choke) => {

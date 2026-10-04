@@ -32,8 +32,8 @@ export function CesiumAlertDock({ lang, items, onOpen, chrome = "full" }: Props)
     <section
       className={
         bare
-          ? "pointer-events-auto flex flex-col overflow-hidden"
-          : "pointer-events-auto flex flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90"
+          ? `pointer-events-auto flex flex-col overflow-hidden font-sans ${en ? "font-en" : ""}`
+          : `pointer-events-auto flex flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90 font-sans ${en ? "font-en" : ""}`
       }
       aria-label={en ? "Cesium alerts" : "세슘 알림"}
     >

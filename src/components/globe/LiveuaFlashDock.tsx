@@ -68,7 +68,7 @@ export function LiveuaFlashDock({
               {en ? "No frontline flashes yet." : "전선 속보가 아직 없습니다."}
             </p>
           ) : (
-            <ul className="intel-scroll-y max-h-52 overflow-y-auto">
+            <ul className={`intel-scroll-y max-h-72 overflow-y-auto font-sans ${en ? "font-en" : ""}`}>
               {events.map((ev, index) => {
                 const title =
                   lang === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
@@ -90,8 +90,12 @@ export function LiveuaFlashDock({
                         />
                       ) : null}
                       <span className="min-w-0 flex flex-col items-start gap-0.5">
-                        <span className="text-micro text-amber-300/75">{ev.regionId}</span>
-                        <span className="line-clamp-2 text-meta text-amber-50">{title}</span>
+                        <span className="text-micro font-medium tracking-tight text-amber-300/75">
+                          {ev.regionId}
+                        </span>
+                        <span className="line-clamp-2 text-meta font-medium tracking-tight text-amber-50">
+                          {title}
+                        </span>
                       </span>
                     </button>
                   </li>

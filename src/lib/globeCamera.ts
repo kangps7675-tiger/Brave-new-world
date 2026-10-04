@@ -64,17 +64,61 @@ export const CINEMATIC_FLY = {
   bearing: -38,
 } as const;
 
-export type FlyCameraOpts = { pitch?: number; bearing?: number };
+export type FlyCameraOpts = {
+  pitch?: number;
+  bearing?: number;
+  /**
+   * true면 lat/lng 를 「카메라 위치」가 아니라 「화면 중앙에 와야 할 지점」으로 해석한다
+   * (MapLibre center 규약). 비스듬한 pitch 에서 대상이 화면 밖으로 빠지는 것을 막는다.
+   * 기본값 false — 기존 호출부 동작 유지.
+   */
+  lookAt?: boolean;
+};
 
 /** 생략된 pitch/bearing을 대각선 시네마틱으로 채운다 */
 export function resolveCinematicCamera(camera?: FlyCameraOpts): {
   pitch: number;
   bearing: number;
+  lookAt?: boolean;
 } {
-  return {
+  const out: { pitch: number; bearing: number; lookAt?: boolean } = {
     pitch: camera?.pitch ?? CINEMATIC_FLY.pitch,
     bearing: camera?.bearing ?? CINEMATIC_FLY.bearing,
   };
+  if (camera?.lookAt) out.lookAt = true;
+  return out;
+}
+
+const EARTH_RADIUS_M = 6_371_000;
+
+/** 높이 h 에서 수평선이 수평 아래로 내려가 보이는 각(도). 이보다 덜 숙이면 중앙 시선이 우주를 향한다. */
+export function horizonDipDeg(heightM: number): number {
+  if (!Number.isFinite(heightM) || heightM <= 0) return 0;
+  return (Math.acos(EARTH_RADIUS_M / (EARTH_RADIUS_M + heightM)) * 180) / Math.PI;
+}
+
+/**
+ * Cesium pitch(도, 0=수평·−90=직하)를 「화면 중앙 시선이 지구에 닿는」 범위로 제한한다.
+ * 고도가 높을수록 수평선이 아래로 내려가므로(9,200km 에서 약 66°) 같은 −38° 도
+ * 우주만 보이게 된다. marginDeg 만큼 여유를 둔다.
+ */
+export function clampCesiumPitchToGlobeDeg(
+  heightM: number,
+  cesiumPitchDeg: number,
+  marginDeg = 6,
+): number {
+  const minDown = Math.min(90, horizonDipDeg(heightM) + marginDeg);
+  const down = Number.isFinite(cesiumPitchDeg) ? -cesiumPitchDeg : minDown;
+  return -Math.min(90, Math.max(down, minDown));
+}
+
+/**
+ * look-at 비행용: 카메라 고도 H, 시선 하향각 |pitch|(Cesium 기준, 수평=0) 일 때
+ * 대상까지의 거리(range = H / sin|pitch|). 수직에 가까울수록 range→H.
+ */
+export function lookAtRangeForHeight(heightM: number, cesiumPitchDeg: number): number {
+  const down = Math.min(89, Math.max(10, Math.abs(cesiumPitchDeg)));
+  return heightM / Math.sin((down * Math.PI) / 180);
 }
 
 export function resolveCinematicDurationMs(durationMs?: number): number {

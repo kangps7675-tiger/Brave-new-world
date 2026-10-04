@@ -13,6 +13,7 @@ import {
   gibsCloudLayerCandidates,
   gibsCloudWmtsUrlTemplate,
   gibsUtcDateString,
+  GIBS_ALLOW_UNKEYED_WMTS_FALLBACK,
   GIBS_CLOUD_LAYER_ID,
   GIBS_CLOUD_LAYER_ID_NRT,
   GIBS_CLOUD_REFRESH_MS,
@@ -43,6 +44,10 @@ describe("cesiumGibsClouds", () => {
     expect(gibsCloudWmtsUrlTemplate("2026-09-29", GIBS_CLOUD_LAYER_ID)).toContain(
       GIBS_CLOUD_LAYER_ID,
     );
+  });
+
+  it("does not allow unkeyed WMTS fallback (ocean-palette break)", () => {
+    expect(GIBS_ALLOW_UNKEYED_WMTS_FALLBACK).toBe(false);
   });
 
   it("keeps only white cloud pixels so global atmosphere stays clear", () => {

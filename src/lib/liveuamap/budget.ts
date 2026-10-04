@@ -78,6 +78,68 @@ export function selectDueLiveuamapSlots(now = Date.now(), maxSlots = 3): Liveuam
   return due;
 }
 
+export type LiveuamapBudgetPersisted = {
+  dayUtc: string;
+  totalUsed: number;
+  perRegion: Partial<Record<LiveuamapRegionId, number>>;
+  lastFetchAt: Partial<Record<LiveuamapRegionId, number>>;
+};
+
+/** D1/디스크용 직렬화 스냅샷 (일일 카운터·minInterval). */
+export function exportLiveuamapBudgetState(now = Date.now()): LiveuamapBudgetPersisted {
+  rollDay(now);
+  return {
+    dayUtc: state.dayUtc,
+    totalUsed: state.totalUsed,
+    perRegion: { ...state.perRegion },
+    lastFetchAt: { ...state.lastFetchAt },
+  };
+}
+
+function isRegionId(key: string): key is LiveuamapRegionId {
+  return (
+    key === "ukraine" ||
+    key === "iran" ||
+    key === "yemen" ||
+    key === "lebanon" ||
+    key === "israel-palestine" ||
+    key === "taiwan" ||
+    key === "korea"
+  );
+}
+
+/**
+ * 저장된 예산을 메모리에 병합. 다른 UTC day·깨진 payload는 무시.
+ * 카운터는 max merge — 낮은 값으로 덮어쓰지 않는다.
+ */
+export function hydrateLiveuamapBudgetState(raw: unknown, now = Date.now()): void {
+  if (!raw || typeof raw !== "object") return;
+  const saved = raw as Record<string, unknown>;
+  if (typeof saved.dayUtc !== "string") return;
+  if (typeof saved.totalUsed !== "number" || !Number.isFinite(saved.totalUsed)) return;
+
+  rollDay(now);
+  if (saved.dayUtc !== state.dayUtc) return;
+
+  state.totalUsed = Math.max(state.totalUsed, Math.max(0, Math.floor(saved.totalUsed)));
+
+  if (saved.perRegion && typeof saved.perRegion === "object") {
+    for (const [key, value] of Object.entries(saved.perRegion as Record<string, unknown>)) {
+      if (!isRegionId(key)) continue;
+      if (typeof value !== "number" || !Number.isFinite(value)) continue;
+      state.perRegion[key] = Math.max(state.perRegion[key] ?? 0, Math.max(0, Math.floor(value)));
+    }
+  }
+
+  if (saved.lastFetchAt && typeof saved.lastFetchAt === "object") {
+    for (const [key, value] of Object.entries(saved.lastFetchAt as Record<string, unknown>)) {
+      if (!isRegionId(key)) continue;
+      if (typeof value !== "number" || !Number.isFinite(value)) continue;
+      state.lastFetchAt[key] = Math.max(state.lastFetchAt[key] ?? 0, value);
+    }
+  }
+}
+
 /** 테스트용 */
 export function __resetLiveuamapBudgetForTests() {
   state = freshDay(utcDayKey());

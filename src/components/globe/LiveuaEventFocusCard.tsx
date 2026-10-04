@@ -44,7 +44,7 @@ export function LiveuaEventFocusCard({
 
   return (
     <aside
-      className={`pointer-events-auto fixed bottom-4 left-3 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-md border border-amber-500/35 bg-[#120e08]/94 shadow-2xl backdrop-blur-md sm:left-4 ${zc("immersive")}`}
+      className={`pointer-events-auto fixed bottom-4 left-3 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-md border border-amber-500/35 bg-[#120e08]/94 font-sans shadow-2xl backdrop-blur-md sm:left-4 ${en ? "font-en" : ""} ${zc("immersive")}`}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label={en ? "Liveuamap event at location" : "Liveuamap 사건 위치"}
     >
