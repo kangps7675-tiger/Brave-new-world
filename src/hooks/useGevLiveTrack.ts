@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import type { Selection } from "@/components/globe/types";
+import type { ObserveLiveTrackSpec } from "@/lib/cesiumTrackedEntity";
 import {
   GEV_AIR_TRAIL_COLOR,
   GEV_AIS_TRAIL_COLOR,
@@ -28,6 +29,21 @@ type FlyToFn = (
   camera?: { pitch?: number; bearing?: number },
 ) => void;
 
+type TrackFix = {
+  lat: number;
+  lng: number;
+  speedKn: number | null;
+  courseDeg: number | null;
+  at: number;
+  kind: "ais" | "aircraft";
+  id: string;
+  entityId: string;
+  /** globe.gl altitude 단위 — MapLibre flyTo 폴백용 */
+  altitude: number;
+  /** Cesium 엔티티 높이(m) */
+  heightM: number;
+};
+
 type Options = {
   selected: Selection | null;
   setSelected: (next: Selection | null) => void;
@@ -35,13 +51,34 @@ type Options = {
   milAircraft: MilitaryAircraft[];
   civAircraft: MilitaryAircraft[];
   flyTo: FlyToFn;
+  /**
+   * 관측(Cesium) 모드 전용. 있으면 2Hz flyTo chase 대신 trackedEntity follow.
+   * MapLibre 모드에서는 생략.
+   */
+  setLiveTrackFollow?: (spec: ObserveLiveTrackSpec | null) => void;
+  /** Cesium viewer ready — 부팅 전에 선택한 추적을 ready 후 재push */
+  cesiumTrackReady?: boolean;
   /** 사용자 드래그 중이면 추적 카메라 일시 정지 */
   isCameraMovingRef: MutableRefObject<boolean>;
   labelLanguage: "ko" | "en";
 };
 
+function aircraftHeightM(ac: MilitaryAircraft): number {
+  const ft = ac.altitudeGeom ?? ac.altitude ?? 10_000;
+  return Math.max(200, ft * 0.3048);
+}
+
+function aircraftEntityId(
+  ac: MilitaryAircraft,
+  traffic: "military" | "civil" | undefined,
+): string {
+  const hex = ac.hex || ac.id;
+  return traffic === "civil" ? `civ:${hex}` : `mil:${hex}`;
+}
+
 /**
- * GEV식 클릭-투-트랙: 선택 동기화 · 웨이크 트레일 · DR 카메라 추적 · 250km 컨택트.
+ * GEV식 클릭-투-트랙: 선택 동기화 · 웨이크 트레일 · 카메라 추적 · 250km 컨택트.
+ * Cesium에서는 trackedEntity, MapLibre에서는 flyTo DR.
  */
 export function useGevLiveTrack({
   selected,
@@ -50,6 +87,8 @@ export function useGevLiveTrack({
   milAircraft,
   civAircraft,
   flyTo,
+  setLiveTrackFollow,
+  cesiumTrackReady = false,
   isCameraMovingRef,
   labelLanguage,
 }: Options) {
@@ -57,16 +96,9 @@ export function useGevLiveTrack({
   const [trail, setTrail] = useState<GevTrailPoint[]>([]);
   const [stale, setStale] = useState(false);
   const [followCamera, setFollowCamera] = useState(true);
-  const fixRef = useRef<{
-    lat: number;
-    lng: number;
-    speedKn: number | null;
-    courseDeg: number | null;
-    at: number;
-    kind: "ais" | "aircraft";
-    id: string;
-    altitude: number;
-  } | null>(null);
+  const fixRef = useRef<TrackFix | null>(null);
+  const setLiveTrackFollowRef = useRef(setLiveTrackFollow);
+  setLiveTrackFollowRef.current = setLiveTrackFollow;
 
   const trackId =
     selected?.kind === "ais"
@@ -82,6 +114,7 @@ export function useGevLiveTrack({
       setTrail([]);
       setStale(false);
       fixRef.current = null;
+      setLiveTrackFollowRef.current?.(null);
       return;
     }
     setTracking(true);
@@ -97,7 +130,9 @@ export function useGevLiveTrack({
         at: Date.now(),
         kind: "ais",
         id: v.mmsi,
+        entityId: `ais:${v.mmsi}`,
         altitude: 0.45,
+        heightM: 80,
       };
       setTrail([{ lat: v.lat, lng: v.lng, t: Date.now() }]);
     } else {
@@ -110,7 +145,9 @@ export function useGevLiveTrack({
         at: Date.now(),
         kind: "aircraft",
         id: ac.hex,
+        entityId: aircraftEntityId(ac, selected.traffic),
         altitude: 0.55,
+        heightM: aircraftHeightM(ac),
       };
       setTrail([{ lat: ac.lat, lng: ac.lng, t: Date.now() }]);
     }
@@ -142,7 +179,9 @@ export function useGevLiveTrack({
         at: Date.now(),
         kind: "ais",
         id: item.mmsi,
+        entityId: `ais:${item.mmsi}`,
         altitude: 0.45,
+        heightM: 80,
       };
       return;
     }
@@ -170,13 +209,46 @@ export function useGevLiveTrack({
         at: Date.now(),
         kind: "aircraft",
         id: synced.item.hex,
+        entityId: aircraftEntityId(synced.item, synced.traffic),
         altitude: 0.55,
+        heightM: aircraftHeightM(synced.item),
       };
     }
   }, [aisVessels, milAircraft, civAircraft, tracking]); // eslint-disable-line react-hooks/exhaustive-deps -- poll sync only
 
-  // DR 카메라 추적 (~2 Hz, 짧은 fly)
+  // Cesium trackedEntity follow — fix/follow 변경 시 스펙 push
   useEffect(() => {
+    const push = setLiveTrackFollowRef.current;
+    if (!push) return;
+    if (!tracking || !fixRef.current) {
+      push(null);
+      return;
+    }
+    const fix = fixRef.current;
+    push({
+      entityId: fix.entityId,
+      kind: fix.kind,
+      follow: followCamera,
+      lat: fix.lat,
+      lng: fix.lng,
+      heightM: fix.heightM,
+      speedKn: fix.speedKn,
+      courseDeg: fix.courseDeg,
+    });
+  }, [
+    tracking,
+    followCamera,
+    selected,
+    aisVessels,
+    milAircraft,
+    civAircraft,
+    stale,
+    cesiumTrackReady,
+  ]);
+
+  // MapLibre 폴백: DR 카메라 추적 (~2 Hz)
+  useEffect(() => {
+    if (setLiveTrackFollowRef.current) return;
     if (!tracking || !followCamera) return;
     const tick = () => {
       const fix = fixRef.current;
@@ -193,6 +265,13 @@ export function useGevLiveTrack({
     const id = window.setInterval(tick, 2000);
     return () => window.clearInterval(id);
   }, [tracking, followCamera, flyTo, isCameraMovingRef]);
+
+  // 언마운트·모드 전환 시 Cesium 추적 해제
+  useEffect(() => {
+    return () => {
+      setLiveTrackFollowRef.current?.(null);
+    };
+  }, []);
 
   const hud: GevHudLines | null = useMemo(() => {
     if (!tracking || !selected) return null;
@@ -258,6 +337,7 @@ export function useGevLiveTrack({
     setTrail([]);
     setFollowCamera(false);
     fixRef.current = null;
+    setLiveTrackFollowRef.current?.(null);
   }, []);
 
   const toggleFollow = useCallback(() => {

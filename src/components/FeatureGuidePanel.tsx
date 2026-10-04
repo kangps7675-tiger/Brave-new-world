@@ -348,7 +348,7 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "Quick start",
     steps: [
-      "First screen: chokepoints, lanes, ports, gas/LNG, trade corridors, energy/payment axes.",
+      "First screen: chokepoints, shipping lanes, ports, gas/LNG, land logistics corridors, energy/payment axes.",
       "Use top 「Show」 or left 「Menu」 for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
       "「Ask」 beside search aligns logistics layers for Hormuz, Suez, and lanes.",
       "Use 📈 and the ticker for oil, VIX, and indices; hubs open related markets (not investment advice).",

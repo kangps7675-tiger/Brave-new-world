@@ -13,7 +13,6 @@ import type { TelegramAlert, TelegramAlertsPayload } from "@/lib/telegramAlerts"
 import type { TzevaAdomAlert, TzevaAdomPayload } from "@/lib/tzevaAdom";
 import type { NewfeedsAttackPoint, NewfeedsAttacksPayload } from "@/lib/newfeeds";
 import type { ViewerChromePreset } from "@/lib/viewerChrome";
-import { visibleInterval } from "@/lib/visibleInterval";
 
 type TelegramStatus = "idle" | "loading" | "ok" | "error" | "stub" | "waiting";
 type TzevaAdomStatus = "idle" | "loading" | "ok" | "error" | "stub" | "geo-blocked";
@@ -48,7 +47,7 @@ type UseLiveOsintPollingOptions = {
 
 /**
  * OSINT 라이브 폴링(텔레그램·Tzeva Adom·NewFeeds 이란) — GlobeDashboard에서 추출 (분리 2단계).
- * 동작 변경 없음: 원본 콜백/이펙트를 그대로 옮김.
+ * 동작 변경 없음: Dashboard 인라인 콜백/이펙트와 동일.
  */
 export function useLiveOsintPolling({
   isCameraMovingRef,
@@ -136,8 +135,7 @@ export function useLiveOsintPolling({
     setTelegramStatus("loading");
     try {
       // 스크레이핑 트리거는 Cron 전용(POST /api/telegram-alerts/sync + 시크릿).
-      // 브라우저는 이미 수집된 알림을 읽기만 한다 — 방문자마다 120초짜리
-      // 외부 스크레이핑을 유발하던 경로를 제거했다.
+      // 브라우저는 이미 수집된 알림을 읽기만 한다.
       await refreshTelegramAlerts();
     } catch {
       // 공개 embed는 t.me 응답/타임아웃이 흔함. 캐시/대기 상태를 살리고 다음 폴링에서 재시도한다.
@@ -179,16 +177,18 @@ export function useLiveOsintPolling({
 
   useEffect(() => {
     if ((!showTelegramOsint && !intelSheetOpen) || !globeReady) return;
-    return visibleInterval(() => {
+    const timer = window.setInterval(() => {
       void syncTelegramEmbed();
     }, liveTelegramSyncPollMs());
+    return () => window.clearInterval(timer);
   }, [globeReady, intelSheetOpen, showTelegramOsint, syncTelegramEmbed]);
 
   useEffect(() => {
     if ((!showTelegramOsint && !intelSheetOpen) || !globeReady) return;
-    return visibleInterval(() => {
+    const timer = window.setInterval(() => {
       void refreshTelegramAlerts();
     }, liveTelegramPollMs());
+    return () => window.clearInterval(timer);
   }, [globeReady, intelSheetOpen, refreshTelegramAlerts, showTelegramOsint]);
 
   const refreshTzevaAdom = useCallback(async () => {
@@ -224,9 +224,10 @@ export function useLiveOsintPolling({
     if (isEconomyViewer || !globeReady) return;
     void refreshTzevaAdom();
     const pollMs = liveTzevaPollMs();
-    return visibleInterval(() => {
+    const timer = window.setInterval(() => {
       void refreshTzevaAdom();
     }, pollMs);
+    return () => window.clearInterval(timer);
   }, [globeReady, isEconomyViewer, refreshTzevaAdom]);
 
   const refreshNewfeedsIran = useCallback(async () => {
@@ -259,9 +260,10 @@ export function useLiveOsintPolling({
   useEffect(() => {
     if (isEconomyViewer || !globeReady) return;
     void refreshNewfeedsIran();
-    return visibleInterval(() => {
+    const timer = window.setInterval(() => {
       void refreshNewfeedsIran();
     }, liveNewfeedsPollMs());
+    return () => window.clearInterval(timer);
   }, [globeReady, isEconomyViewer, refreshNewfeedsIran]);
 
   return {

@@ -4,6 +4,7 @@
 
 import type { NeptunAlerts } from "@/lib/neptun";
 import { geocodeUkraineAlertRegion } from "@/lib/ukraineAlertZones";
+import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
 
 type CesiumNS = typeof import("cesium");
 
@@ -70,20 +71,22 @@ export function attachAirRaidZonePulse(
   Cesium: CesiumNS,
   viewer: import("cesium").Viewer,
 ): () => void {
-  const remove = viewer.scene.preUpdate.addEventListener(() => {
-    if (viewer.isDestroyed()) return;
+  return startObservePulseLoop(() => {
+    if (viewer.isDestroyed()) return false;
     const t = performance.now() / 1000;
+    let any = false;
     for (const entity of viewer.entities.values) {
       if (typeof entity.id !== "string" || !entity.id.startsWith("airraid:")) {
         continue;
       }
       const el = entity.ellipse;
       if (!el) continue;
+      any = true;
       const pulse = 0.22 + 0.14 * (0.5 + 0.5 * Math.sin(t * 2.6));
       el.material = new Cesium.ColorMaterialProperty(
         Cesium.Color.fromCssColorString("#ef4444").withAlpha(pulse),
       );
     }
+    return any;
   });
-  return () => remove();
 }

@@ -56,6 +56,8 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   onCesiumReady?: () => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
   onSelectCesiumEntity?: (selection: CesiumEntitySelection) => void;
+  /** 유저 드래그로 추적 카메라 해제 */
+  onCesiumUserBreakFollow?: () => void;
   /** 세슘 알림 핀 */
   alertPins?: CesiumAlertItem[];
   /** 속보 공간 — 휠 줌아웃 상한(m). 없으면 제한 없음 */
@@ -65,14 +67,20 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   ukmtoIncidents?: import("@/lib/ukmtoHatch").UkmtoIncidentPoint[];
   navareaFeatures?: import("@/lib/navareaHatch").NavareaFeaturePoint[];
   chokeRings?: import("@/lib/cesiumMaritimeOverlays").CesiumChokeRingInput[];
+  straitOverlaySegments?: import("@/lib/cesiumMaritimeOverlays").MaritimeOverlaySegment[];
+  straitLabels?: import("@/lib/cesiumStraitCallouts").StraitLabelEntity[];
+  straitPorts?: import("@/lib/cesiumStraitOverlays").StraitPortMarker[];
   liveuaPins?: Array<{
     id: string;
     title: string;
     lat: number;
     lng: number;
     imageUrl?: string;
+    publishedAt?: string | null;
   }>;
   focusedLiveuaId?: string | null;
+  /** 워치보드 DeskFocus — 스포트라이트·등급 핀·PIR 슬롯 디밍 */
+  deskFocus?: import("@/lib/intelContract/deskFocus").DeskFocus | null;
   liveuaStrikes?: import("@/lib/cesiumLiveuaStrikes").CesiumLiveuaStrikePoint[];
   liveuaGround?: import("@/lib/cesiumLiveuaGround").CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
@@ -83,6 +91,14 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   showMissileLaunches?: boolean;
   neptunAlerts?: import("@/lib/neptun").NeptunAlerts | null;
   showAirRaidZones?: boolean;
+  placeLabels?: import("@/lib/cesiumPlaceLabels").CesiumPlaceLabel[];
+  placeLabelLang?: import("@/lib/layerPrefs").LabelLanguage;
+  showPlaceLabels?: boolean;
+  conflictEvents?: import("@/lib/cesiumConflictEvents").CesiumConflictEventPoint[];
+  showConflictEvents?: boolean;
+  onSelectConflictEvent?: (
+    event: import("@/lib/cesiumConflictEvents").CesiumConflictEventPoint,
+  ) => void;
 };
 
 /**
@@ -115,14 +131,19 @@ export function GlobeMapCanvas({
   cesiumRef,
   onCesiumReady,
   onSelectCesiumEntity,
+  onCesiumUserBreakFollow,
   alertPins,
   cameraCeilingM,
   onSelectCesiumAlert,
   ukmtoIncidents,
   navareaFeatures,
   chokeRings,
+  straitOverlaySegments,
+  straitLabels,
+  straitPorts,
   liveuaPins,
   focusedLiveuaId,
+  deskFocus,
   liveuaStrikes,
   liveuaGround,
   onSelectLiveuaPin,
@@ -133,6 +154,12 @@ export function GlobeMapCanvas({
   showMissileLaunches,
   neptunAlerts: cesiumNeptunAlerts,
   showAirRaidZones,
+  placeLabels,
+  placeLabelLang,
+  showPlaceLabels,
+  conflictEvents,
+  showConflictEvents,
+  onSelectConflictEvent,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -170,14 +197,19 @@ export function GlobeMapCanvas({
             showNeptun={showNeptun}
             onReady={onCesiumReady}
             onSelectEntity={onSelectCesiumEntity}
+            onUserBreakFollow={onCesiumUserBreakFollow}
             alertPins={alertPins}
             cameraCeilingM={cameraCeilingM}
             onSelectAlert={onSelectCesiumAlert}
             ukmtoIncidents={ukmtoIncidents}
             navareaFeatures={navareaFeatures}
             chokeRings={chokeRings}
+            straitOverlaySegments={straitOverlaySegments}
+            straitLabels={straitLabels}
+            straitPorts={straitPorts}
             liveuaPins={liveuaPins}
             focusedLiveuaId={focusedLiveuaId}
+            deskFocus={deskFocus}
             liveuaStrikes={liveuaStrikes}
             liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
@@ -188,6 +220,12 @@ export function GlobeMapCanvas({
             showMissileLaunches={showMissileLaunches}
             neptunAlerts={cesiumNeptunAlerts}
             showAirRaidZones={showAirRaidZones}
+            placeLabels={placeLabels}
+            placeLabelLang={placeLabelLang}
+            showPlaceLabels={showPlaceLabels}
+            conflictEvents={conflictEvents}
+            showConflictEvents={showConflictEvents}
+            onSelectConflictEvent={onSelectConflictEvent}
           />
         ) : null}
         {!isPhoneUi && !satelliteMode ? (

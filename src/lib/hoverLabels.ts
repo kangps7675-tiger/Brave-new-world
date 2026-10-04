@@ -46,7 +46,8 @@ const STATIC_KIND: Record<string, Bi> = {
 };
 
 const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
-  "shipping-lane": { ko: "해상 운송로", en: "Shipping lane" },
+  "shipping-lane": { ko: "해상 항로", en: "Shipping lane" },
+  "maritime-route": { ko: "해상 항로 (PortWatch)", en: "Maritime route (PortWatch)" },
   "submarine-cable": { ko: "해저 케이블", en: "Submarine cable" },
   "oil-pipeline": { ko: "송유관 (GEM)", en: "Oil pipeline (GEM)" },
   "gas-pipeline": { ko: "가스 파이프라인 (GEM)", en: "Gas pipeline (GEM)" },
@@ -62,7 +63,8 @@ const PATH_KIND: Partial<Record<TransportPath["kind"], Bi>> = {
   "conflict-hatch": { ko: "충돌 구역 표시", en: "Conflict zone mark" },
   "axis-link": { ko: "축 관계망", en: "Axis relationship link" },
   "bri-trade": { ko: "일대일로 무역 연결", en: "BRI trade connectivity" },
-  "strategic-corridor": { ko: "전략 물류 통로", en: "Strategic trade corridor" },
+  "strategic-corridor": { ko: "전략 물류·육상 회랑", en: "Strategic logistics corridor" },
+  "strategic-support-arrow": { ko: "전략지원 축", en: "Strategic support link" },
   "us-dfc-supply": { ko: "미국 개발금융 투자국", en: "U.S. development finance partners" },
   "crink-infra": { ko: "CRINK 인프라", en: "CRINK infrastructure" },
   "ua-axis": { ko: "UA 작전 축", en: "UA axis of advance" },
@@ -120,9 +122,44 @@ export function staticKindLabel(kind: string, lang: LabelLanguage): string {
   return STATIC_KIND[kind] ? pick(STATIC_KIND[kind], lang) : kind;
 }
 
-export function pathKindLabel(kind: TransportPath["kind"], lang: LabelLanguage): string {
+export function pathKindLabel(
+  kind: TransportPath["kind"],
+  lang: LabelLanguage,
+  meta?: { legMode?: string; mode?: string } | null,
+): string {
+  if (kind === "strategic-support-arrow" && meta?.mode === "economy-axis") {
+    return pick({ ko: "지경학 축", en: "Geo-economy axis" }, lang);
+  }
+  if (kind === "strategic-corridor" && meta?.legMode) {
+    const leg =
+      meta.legMode === "sea"
+        ? pick({ ko: "해상 구간", en: "sea leg" }, lang)
+        : meta.legMode === "rail"
+          ? pick({ ko: "철도 구간", en: "rail leg" }, lang)
+          : meta.legMode === "road"
+            ? pick({ ko: "도로 구간", en: "road leg" }, lang)
+            : pick({ ko: "복합 구간", en: "mixed leg" }, lang);
+    const base = pick(
+      { ko: "전략 물류 회랑", en: "Strategic logistics corridor" },
+      lang,
+    );
+    return `${base} · ${leg}`;
+  }
   const bi = PATH_KIND[kind];
   return bi ? pick(bi, lang) : kind;
+}
+
+/** 회랑 legMode 짧은 라벨 (호버 detail용) */
+export function corridorLegModeLabel(
+  mode: string | null | undefined,
+  lang: LabelLanguage,
+): string | null {
+  if (!mode) return null;
+  if (mode === "sea") return pick({ ko: "해상 구간", en: "Sea leg" }, lang);
+  if (mode === "rail") return pick({ ko: "철도 구간", en: "Rail leg" }, lang);
+  if (mode === "road") return pick({ ko: "도로 구간", en: "Road leg" }, lang);
+  if (mode === "mixed") return pick({ ko: "복합 구간", en: "Mixed leg" }, lang);
+  return mode;
 }
 
 export function eventTierLabel(tier: EventTier, lang: LabelLanguage): string {

@@ -18,42 +18,52 @@ type Props = {
   lang: LabelLanguage;
   items: CesiumAlertItem[];
   onOpen: (item: CesiumAlertItem) => void;
+  /** 책갈피 레일 안에서는 헤더·접기를 숨긴다 */
+  chrome?: "full" | "bare";
 };
 
-export function CesiumAlertDock({ lang, items, onOpen }: Props) {
+export function CesiumAlertDock({ lang, items, onOpen, chrome = "full" }: Props) {
   const en = lang === "en";
+  const bare = chrome === "bare";
   const [open, setOpen] = useState(true);
+  const expanded = bare || open;
 
   return (
     <section
-      className="pointer-events-auto flex flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90"
+      className={
+        bare
+          ? "pointer-events-auto flex flex-col overflow-hidden"
+          : "pointer-events-auto flex flex-col overflow-hidden rounded-md border border-teal-400/30 bg-[#041018]/90"
+      }
       aria-label={en ? "Cesium alerts" : "세슘 알림"}
     >
-      <button
-        type="button"
-        className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-teal-100/90 transition hover:bg-teal-400/10 ${
-          open ? "border-b border-teal-400/20" : ""
-        }`}
-        aria-expanded={open}
-        aria-controls="cesium-alert-dock-panel"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="font-medium tracking-wide">{en ? "Alerts" : "알림"}</span>
-        <span className="flex items-center gap-1.5 tabular-nums text-teal-200/60">
-          {items.length}
-          <span className="text-teal-300/70" aria-hidden>
-            {open ? "▾" : "▴"}
+      {!bare ? (
+        <button
+          type="button"
+          className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-teal-100/90 transition hover:bg-teal-400/10 ${
+            expanded ? "border-b border-teal-400/20" : ""
+          }`}
+          aria-expanded={expanded}
+          aria-controls="cesium-alert-dock-panel"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="font-medium tracking-wide">{en ? "Alerts" : "알림"}</span>
+          <span className="flex items-center gap-1.5 tabular-nums text-teal-200/60">
+            {items.length}
+            <span className="text-teal-300/70" aria-hidden>
+              {expanded ? "▾" : "▴"}
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
+      ) : null}
       <div
         id="cesium-alert-dock-panel"
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
-        aria-hidden={!open}
+        aria-hidden={!expanded}
       >
-        <div className={`min-h-0 overflow-hidden ${open ? "" : "pointer-events-none"}`}>
+        <div className={`min-h-0 overflow-hidden ${expanded ? "" : "pointer-events-none"}`}>
           {items.length === 0 ? (
             <p className="px-2.5 py-2 text-micro text-teal-200/55">
               {en ? "No maritime alerts in this snapshot." : "이 스냅샷에는 해상 알림이 없습니다."}
@@ -64,7 +74,7 @@ export function CesiumAlertDock({ lang, items, onOpen }: Props) {
                 <li key={item.id}>
                   <button
                     type="button"
-                    tabIndex={open ? 0 : -1}
+                    tabIndex={expanded ? 0 : -1}
                     className="flex w-full flex-col items-start gap-0.5 px-2.5 py-1.5 text-left hover:bg-teal-400/10"
                     onClick={() => onOpen(item)}
                   >

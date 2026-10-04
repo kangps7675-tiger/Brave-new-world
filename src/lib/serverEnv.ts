@@ -39,13 +39,24 @@ export function getDataCdnBase(): string | null {
   return raw.replace(/\/$/, "");
 }
 
-/** Cesium ion — OSM Buildings 3D Tiles. 비면 지형 모드는 fill-extrusion 폴백. */
+/** Cesium ion — Google Photorealistic 3D / World Terrain / OSM Buildings. */
 export function getCesiumIonToken(): string | null {
   const raw =
     process.env.CESIUM_ION_TOKEN?.trim() ||
     process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN?.trim() ||
     "";
   return raw || null;
+}
+
+/**
+ * 관측 모드 Google Photorealistic 3D Tiles.
+ * 기본 on. GPU/쿼터 부담 시 `CESIUM_GOOGLE_3D=0`.
+ * Ion Community 플랜은 개인·비상업 약관·쿼터를 확인할 것.
+ */
+export function isCesiumGoogle3dEnabled(): boolean {
+  const raw = process.env.CESIUM_GOOGLE_3D?.trim().toLowerCase();
+  if (!raw) return true;
+  return raw !== "0" && raw !== "false" && raw !== "off" && raw !== "no";
 }
 
 export function getRuntimeConfig(): RuntimeConfig {
@@ -58,5 +69,6 @@ export function getRuntimeConfig(): RuntimeConfig {
     syncPollMs: getSyncPollMs(),
     dataCdnBase: getDataCdnBase(),
     cesiumIonToken: getCesiumIonToken(),
+    cesiumGoogle3dEnabled: isCesiumGoogle3dEnabled(),
   };
 }

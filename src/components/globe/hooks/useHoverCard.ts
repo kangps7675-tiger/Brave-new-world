@@ -27,6 +27,7 @@ import {
   disputeCategoryLabel,
   eventTierLabel,
   hatchStyleLabelLocalized,
+  corridorLegModeLabel,
   pathKindLabel,
   staticKindLabel,
   tensionLabel,
@@ -171,6 +172,7 @@ export function resolveHoverLayerId(params: HoverCardParams): string | null {
     if (pl === "allied-bloc") return "allied-blocs";
     if (pl === "geoecon-bloc") return "geoecon-blocs";
     if (pl === "axis-hub") return "axis-hub";
+    if (pl === "axis-satellite") return "axis-satellite";
     if (pl.includes("ukmto")) return "ukmto-incidents";
     if (pl.includes("navarea")) return "navarea-warnings";
     if (pl.includes("exercise")) return "military-exercises";
@@ -778,6 +780,23 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
         hint: HOVER.hintDetail(lang),
       };
     }
+    if (hoveredPolygon.polygonLayer === "axis-satellite") {
+      return {
+        kind: "polygon",
+        title: hoveredPolygon.name,
+        detail:
+          lang === "en"
+            ? "CRINK-aligned partner / spoke"
+            : "CRINK 축 연계·협력국",
+        badge: lang === "en" ? "Axis partner" : "축 연계국",
+        meta: hoveredPolygon.iso,
+        body:
+          lang === "en"
+            ? "Painted in the same red family as CRINK hubs, but lighter — a partner/spoke in the axis sketch, not a formal CRINK member."
+            : "CRINK 허브와 같은 빨강 계열이지만 더 옅게 칠합니다. 축 관계망의 연계·협력국이며, CRINK 본국은 아닙니다.",
+        hint: HOVER.hintDetail(lang),
+      };
+    }
     if (hoveredPolygon.polygonLayer === "country") {
       return {
         kind: "polygon",
@@ -1129,6 +1148,7 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
             : null;
       const legMode =
         typeof meta.legMode === "string" ? meta.legMode : null;
+      const legLabel = corridorLegModeLabel(legMode, lang);
       const distanceMeta =
         hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
           ? HOVER.pathLength(hoveredPath.lengthKm.toLocaleString(), lang)
@@ -1143,16 +1163,20 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
               ? "Sanctions evasion"
               : "제재 우회"
             : labelLanguage === "en"
-              ? "Trade corridor"
-              : "무역 회랑";
+              ? "Logistics corridor"
+              : "전략 물류 회랑";
       return {
         kind: "path",
-        title: hoveredPath.name || pathKindLabel("strategic-corridor", lang),
+        title:
+          hoveredPath.name ||
+          pathKindLabel("strategic-corridor", lang, {
+            legMode: legMode ?? undefined,
+          }),
         detail: [
           categoryLabel,
           statusLabel,
           rank != null ? `rank ${rank}` : null,
-          legMode,
+          legLabel,
           meta.gaugeBreak === 1
             ? labelLanguage === "en"
               ? "gauge-break"
@@ -1170,15 +1194,79 @@ function buildHoverCardRaw(params: HoverCardParams): HoverCard {
             ? labelLanguage === "en"
               ? "Mapped corridor still under construction — shown without completion glint."
               : "실측 회랑이지만 아직 건설중 — 완공 글린트 없이 표시합니다."
-            : labelLanguage === "en"
-              ? "Click for Eurostat ton-km sparkline · Comtrade USD dual signal · LOD from corridor ranks."
-              : "클릭 시 Eurostat ton-km 시계열 · Comtrade USD 이중 신호 · LOD는 정량 회랑 랭크.",
+            : legMode === "sea"
+              ? labelLanguage === "en"
+                ? "Sea leg of a strategic logistics corridor — not a commercial shipping lane."
+                : "전략 물류 회랑의 해상 구간입니다. 상업 해상 항로와는 다릅니다."
+              : labelLanguage === "en"
+                ? "Land / rail logistics corridor — click for ton-km · Comtrade dual signal."
+                : "육상·철도 물류 회랑입니다. 클릭 시 ton-km · Comtrade 이중 신호.",
         meta: distanceMeta,
         hint: HOVER.hintDetail(lang),
       };
     }
 
-    const detail = pathKindLabel(hoveredPath.kind, lang);
+    if (hoveredPath.kind === "strategic-support-arrow") {
+      const mode =
+        typeof hoveredPath.meta?.mode === "string"
+          ? hoveredPath.meta.mode
+          : null;
+      const isEconomy = mode === "economy-axis";
+      return {
+        kind: "path",
+        title:
+          hoveredPath.name ||
+          pathKindLabel("strategic-support-arrow", lang, {
+            mode: mode ?? undefined,
+          }),
+        detail: isEconomy
+          ? labelLanguage === "en"
+            ? "Geo-economy axis"
+            : "지경학 축"
+          : labelLanguage === "en"
+            ? "Strategic support link"
+            : "전략지원 축",
+        body: isEconomy
+          ? labelLanguage === "en"
+            ? "Energy · trade · payment axis between hubs."
+            : "허브 간 에너지·무역·결제 축입니다."
+          : labelLanguage === "en"
+            ? "Allied posture support link between facilities."
+            : "동맹 거점 간 전략지원 연결입니다.",
+        hint: HOVER.hintDetail(lang),
+      };
+    }
+
+    if (
+      hoveredPath.kind === "shipping-lane" ||
+      hoveredPath.kind === "maritime-route"
+    ) {
+      return {
+        kind: "path",
+        title: hoveredPath.name || pathKindLabel(hoveredPath.kind, lang),
+        detail: pathKindLabel(hoveredPath.kind, lang),
+        body:
+          labelLanguage === "en"
+            ? "Commercial shipping lane — not a land logistics corridor."
+            : "상업 해상 항로입니다. 육상·전략 물류 회랑과 다릅니다.",
+        meta:
+          hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
+            ? HOVER.pathLength(hoveredPath.lengthKm.toLocaleString(), lang)
+            : undefined,
+        hint: HOVER.hintDetail(lang),
+      };
+    }
+
+    const detail = pathKindLabel(hoveredPath.kind, lang, {
+      legMode:
+        typeof hoveredPath.meta?.legMode === "string"
+          ? hoveredPath.meta.legMode
+          : undefined,
+      mode:
+        typeof hoveredPath.meta?.mode === "string"
+          ? hoveredPath.meta.mode
+          : undefined,
+    });
     const distanceMeta =
       hoveredPath.lengthKm && Number.isFinite(hoveredPath.lengthKm)
         ? HOVER.pathLength(hoveredPath.lengthKm.toLocaleString(), lang)

@@ -26,6 +26,17 @@ import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 import { THEATER_SITREP_REGIONS } from "@/lib/theaterReport/types";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { NewsStreamItem } from "@/lib/news/types";
+import { THEATER_FLY_TO } from "@/lib/news/theaterMap";
+
+/** sitrep → fly 앵커 (deskFocus.SITREP_FLY_ANCHOR 와 동일 값, 순환 import 회피) */
+const SITREP_FLY: Record<
+  TheaterSitrepRegionId,
+  { lat: number; lng: number; altitude: number }
+> = {
+  ukraine: THEATER_FLY_TO["russia-ukraine"],
+  iran: { lat: 28.5, lng: 52.0, altitude: 1.35 },
+  yemen: { lat: 15.0, lng: 43.2, altitude: 1.25 },
+};
 
 export type WatchboardItemKind =
   | "theater-sitrep"
@@ -57,6 +68,10 @@ export type WatchboardItem = {
   clusterId?: string;
   /** 창 안 시각 (정렬·72h 필터) */
   occurredAt: string | null;
+  /** 세슘 fly / DeskFocus 앵커 */
+  lat?: number;
+  lng?: number;
+  altitude?: number;
 };
 
 const GRADE_ORDER: Record<DisplayGrade, number> = {
@@ -174,6 +189,13 @@ export function buildObserveWatchboard(input: {
     });
     const occurredAt =
       doc.rows[0]?.occurredAt ?? doc.generatedAt ?? null;
+    const anchor = SITREP_FLY[regionId];
+    const liveAnchor = input.liveuaEvents.find(
+      (e) =>
+        e.regionId === regionId &&
+        Number.isFinite(e.lat) &&
+        Number.isFinite(e.lng),
+    );
 
     items.push({
       id: `sitrep:${regionId}`,
@@ -187,6 +209,9 @@ export function buildObserveWatchboard(input: {
       ...meta,
       sitrepRegion: regionId,
       occurredAt,
+      lat: liveAnchor?.lat ?? anchor.lat,
+      lng: liveAnchor?.lng ?? anchor.lng,
+      altitude: anchor.altitude,
     });
   }
 
@@ -217,6 +242,9 @@ export function buildObserveWatchboard(input: {
       ...meta,
       cesiumAlertId: alert.id,
       occurredAt: null,
+      lat: alert.lat,
+      lng: alert.lng,
+      altitude: 0.95,
     });
   }
 
@@ -268,6 +296,9 @@ export function buildObserveWatchboard(input: {
       ...meta,
       clusterId: cluster.clusterId,
       occurredAt: cluster.lastConfirmedAt,
+      lat: cluster.lat,
+      lng: cluster.lng,
+      altitude: 0.85,
     });
     clusterAdded += 1;
   }

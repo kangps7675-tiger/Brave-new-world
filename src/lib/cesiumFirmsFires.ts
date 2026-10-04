@@ -8,6 +8,7 @@ import {
   FIRMS_FIRE_SVGS,
   type FirmsFireIconCause,
 } from "@/lib/firmsFireIcons";
+import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
 
 type CesiumNS = typeof import("cesium");
 
@@ -96,18 +97,20 @@ export function syncFirmsFireEntities(
   for (const entity of stale) viewer.entities.remove(entity);
 }
 
-/** 화염·연기 숨쉬기 — scale + color alpha 펄스 */
+/** 화염·연기 숨쉬기 — scale + color alpha 펄스 (idle governor: interval + requestRender) */
 export function attachFirmsFirePulse(
   Cesium: CesiumNS,
   viewer: import("cesium").Viewer,
 ): () => void {
-  const remove = viewer.scene.preUpdate.addEventListener(() => {
-    if (viewer.isDestroyed()) return;
+  return startObservePulseLoop(() => {
+    if (viewer.isDestroyed()) return false;
     const t = performance.now() / 1000;
+    let any = false;
     for (const entity of viewer.entities.values) {
       if (typeof entity.id !== "string" || !entity.id.startsWith("firms:")) continue;
       const bb = entity.billboard;
       if (!bb) continue;
+      any = true;
       const phase = (entity.id.charCodeAt(entity.id.length - 1) % 5) * 1.15;
       const pulse = 0.9 + 0.14 * Math.sin(t * 3.4 + phase);
       const alpha = 0.82 + 0.16 * Math.sin(t * 2.1 + phase * 0.6);
@@ -116,6 +119,6 @@ export function attachFirmsFirePulse(
         Cesium.Color.WHITE.withAlpha(alpha),
       );
     }
+    return any;
   });
-  return () => remove();
 }

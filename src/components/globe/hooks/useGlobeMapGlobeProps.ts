@@ -217,6 +217,7 @@ export interface UseGlobeMapGlobePropsParams {
   /** 역사 모드 — 베이스맵 현대 행정 국경 숨김 */
   historyTerritoryActive?: boolean;
   axisHubCountriesGeoJson: FeatureCollection;
+  axisSatelliteCountriesGeoJson: FeatureCollection;
   alliedBlocCountriesGeoJson: FeatureCollection;
   geoEconBlocCountriesGeoJson: FeatureCollection;
   neptunPathElevation: NeptunPathElevationMode;
@@ -301,6 +302,7 @@ export function useGlobeMapGlobeProps(
     },
     historyTerritoryActive = false,
     axisHubCountriesGeoJson,
+    axisSatelliteCountriesGeoJson,
     alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson,
     neptunPathElevation,
@@ -997,6 +999,9 @@ export function useGlobeMapGlobeProps(
     historyLabelGeoJson: historyOn ? historyLabelGeoJson : emptyHistoryFc,
     historyTerritoryActive,
     axisHubCountriesGeoJson: historyOn ? emptyHistoryFc : axisHubCountriesGeoJson,
+    axisSatelliteCountriesGeoJson: historyOn
+      ? emptyHistoryFc
+      : axisSatelliteCountriesGeoJson,
     alliedBlocCountriesGeoJson: historyOn ? emptyHistoryFc : alliedBlocCountriesGeoJson,
     geoEconBlocCountriesGeoJson: historyOn ? emptyHistoryFc : geoEconBlocCountriesGeoJson,
     pathPoints: (path: TransportPath) => path.points,
@@ -1222,9 +1227,16 @@ export function useGlobeMapGlobeProps(
       }
       // DFC·BRI는 MapLibre에서 점선 data-driven이 얇게/안 보이는 경우가 있어 실선 유지
       if (path.kind === "bri-trade" || path.kind === "us-dfc-supply") return 0;
-      // 항로 — 통행 경향(실선·저채도). 미사일 호 점선과 분리
+      // 상업 항로 — 실선 리본. 미사일 호·전략 회랑 해상 환승 점선과 분리
       if (path.kind === "shipping-lane") return 0;
       if (path.kind === "maritime-route") return maritimeRouteDashLength();
+      // 전략 회랑·축 관계의 해상 leg — 페리/환승 점선 (상업 항로 리본 아님)
+      if (
+        path.meta?.legMode === "sea" &&
+        (path.kind === "strategic-corridor" || path.kind === "axis-link")
+      ) {
+        return 0.32;
+      }
       return FLOW_PATH_KINDS.has(path.kind) ? 0.35 : 0;
     },
     pathDashGap: (path: TransportPath) => {
@@ -1239,6 +1251,12 @@ export function useGlobeMapGlobeProps(
       }
       if (path.kind === "lsib-boundary") {
         return (path.scalerank ?? 1) >= 2 ? 0.16 : 0;
+      }
+      if (
+        path.meta?.legMode === "sea" &&
+        (path.kind === "strategic-corridor" || path.kind === "axis-link")
+      ) {
+        return 0.14;
       }
       return FLOW_PATH_KINDS.has(path.kind) ? 0.12 : 0;
     },
@@ -1299,7 +1317,11 @@ export function useGlobeMapGlobeProps(
                     </div>
                   `;
       }
-      const kindLabel = pathKindLabel(path.kind, lang);
+      const kindLabel = pathKindLabel(path.kind, lang, {
+        legMode:
+          typeof path.meta?.legMode === "string" ? path.meta.legMode : undefined,
+        mode: typeof path.meta?.mode === "string" ? path.meta.mode : undefined,
+      });
       const lengthLabel =
         path.lengthKm && Number.isFinite(path.lengthKm)
           ? `<br/>${escapeHtml(HOVER.pathLength(path.lengthKm.toLocaleString(), lang))}`

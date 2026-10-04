@@ -159,8 +159,8 @@ export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   "us-dfc-supply": { ko: "미국 개발금융 투자국", en: "US development finance partners" },
   "bri-trade": { ko: "일대일로 무역 연결", en: "Belt & Road trade links" },
   "strategic-corridors": {
-    ko: "전략 물류 통로",
-    en: "Strategic trade corridors",
+    ko: "전략 물류·육상 회랑",
+    en: "Strategic logistics corridors",
   },
   cables: { ko: "해저 케이블", en: "Subsea cables" },
   tunnels: { ko: "해저터널", en: "Subsea tunnels" },

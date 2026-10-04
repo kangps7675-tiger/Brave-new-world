@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { publicErrorMessage } from "@/lib/auth/clientIdentity";
 import { authorizeCronRequest } from "@/lib/auth/cronAuth";
-import { syncLiveuamapEvents } from "@/lib/liveuamap/fetchLiveuamap";
-import { mergeLiveuamapEvents } from "@/lib/liveuamap/store";
-import { saveLiveuaControlSnapshot } from "@/lib/liveuamap/controlSnapshotStore";
-import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
+import { runLiveuamapIngest } from "@/lib/liveuamap/runIngest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,30 +20,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await syncLiveuamapEvents();
-    mergeLiveuamapEvents(
-      result.events,
-      new Date().toISOString(),
-      result.error ?? null,
-    );
-
-    const controlSaved: string[] = [];
-    for (const [regionId, fc] of Object.entries(result.controls) as [
-      LiveuamapControlRegionId,
-      (typeof result.controls)[LiveuamapControlRegionId],
-    ][]) {
-      if (!fc?.features.length) continue;
-      const ok = await saveLiveuaControlSnapshot(regionId, fc);
-      if (ok) controlSaved.push(regionId);
-    }
-
+    const result = await runLiveuamapIngest();
     return NextResponse.json({
       ok: !result.error || result.events.length > 0,
-      fetchedAt: new Date().toISOString(),
+      fetchedAt: result.fetchedAt,
       eventCount: result.events.length,
       source: result.source,
       fetchedSlots: result.fetchedSlots,
-      controlSaved,
+      controlSaved: result.controlSaved,
       budget: result.budget,
       error: result.error,
     });

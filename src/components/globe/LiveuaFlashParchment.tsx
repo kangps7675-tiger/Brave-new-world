@@ -50,7 +50,14 @@ export function LiveuaFlashParchment({
   const desk = en
     ? "Frontline desk · Liveuamap · approximate geolocation"
     : "전선 데스크 · Liveuamap · 위치는 근사치";
-  const signOff = [event.viaSource, event.sourceUrl, desk].filter(Boolean).join("\n");
+  const coordLabel = `${event.lat.toFixed(4)}, ${event.lng.toFixed(4)}`;
+  const signOff = [event.viaSource, `Liveuamap · ${coordLabel}`, desk]
+    .filter(Boolean)
+    .join("\n");
+  const sourceHref =
+    event.sourceUrl && /^https?:\/\//i.test(event.sourceUrl)
+      ? event.sourceUrl
+      : "https://liveuamap.com/";
 
   const market = liveuaFlashMarketContext(event);
   const marketNote = en ? market.noteEn : market.noteKo;
@@ -184,6 +191,24 @@ export function LiveuaFlashParchment({
                   ) : null}
                 </div>
               ) : null}
+
+              <div className="w-full rounded-sm border border-[#6b4a22]/35 bg-[#f3e6c8]/95 px-3 py-2 shadow">
+                <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
+                  Liveuamap
+                </p>
+                <p className="mt-1 text-micro tabular-nums text-[#3d2a12]">
+                  {en ? "Coordinates" : "좌표"}: {coordLabel}
+                </p>
+                <a
+                  href={sourceHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 block truncate text-micro text-[#3d2a12] underline underline-offset-2 hover:text-[#5c4020]"
+                  title={sourceHref}
+                >
+                  {en ? "Source URL" : "원문 URL"}
+                </a>
+              </div>
 
               <div className="flex gap-2">
                 <button

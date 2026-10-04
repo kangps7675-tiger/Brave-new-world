@@ -19,6 +19,13 @@ export const LIVEUA_CONTROL_BOUNDS: Record<LiveuamapControlRegionId, LngLatBound
   iran: { minLng: 43.5, maxLng: 64.0, minLat: 24.5, maxLat: 40.5 },
   yemen: { minLng: 41.5, maxLng: 55.0, minLat: 11.5, maxLat: 19.5 },
   lebanon: { minLng: 34.8, maxLng: 37.0, minLat: 32.9, maxLat: 34.8 },
+  /** Gaza·West Bank·Israel 본토 — resid 2 통제면 수용 */
+  "israel-palestine": {
+    minLng: 34.15,
+    maxLng: 35.95,
+    minLat: 29.4,
+    maxLat: 33.45,
+  },
 };
 
 function ringCentroid(ring: Position[]): Position | null {

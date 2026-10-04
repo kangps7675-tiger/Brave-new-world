@@ -1271,10 +1271,10 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     layerId: "liveuamap-frontline-events",
     source: "Liveuamap mpts → memory store (48h)",
     url: "/api/liveuamap · POST /api/liveuamap/sync",
-    cadence: "Cron budgeted resid rotation · client poll 60s (cache only)",
+    cadence: "UA ≥15m warm on GET · cron sync · client poll 15s · 1 event = 1 parchment",
     attribution: "Liveuamap — frontline OSINT (approximate geolocation)",
     notes:
-      "서버만 LIVEUAMAP_API_KEY로 mpts 호출. 일 200 캡·regions 슬롯. Cesium 쪽지/독/양피지·핀. KO는 sync 시 titleKo/bodyKo. 출처 표기: liveuamap.com.",
+      "서버만 LIVEUAMAP_API_KEY로 mpts 호출. Point 1건=양피지 1장. 일 200 캡·regions 슬롯. Cesium 쪽지/독/양피지·핀. KO는 sync 시 titleKo/bodyKo. 출처 표기: liveuamap.com.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "allowed",
@@ -1418,6 +1418,48 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     commercialUse: "license-required",
     commercialNote:
       "GDELT 는 공개이나 Telegram 채널 글은 운영자 소유.",
+  },
+  {
+    layerId: "strait-replay-portwatch",
+    source: "IMF PortWatch (IMF/Oxford)",
+    url: "https://portwatch.imf.org/",
+    cadence: "Weekly PortWatch refresh · backfill into D1",
+    attribution: "Chokepoint transits: IMF PortWatch (IMF/Oxford)",
+    notes:
+      "Strait event history replay — daily vessel counts for Hormuz / Red Sea–Suez / Malacca. Read-only API /api/strait-replay. Outcomes are not EvidenceBundle observations.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "allowed",
+    commercialNote:
+      "IMF PortWatch — publicly documented chokepoint transit statistics; attribution required.",
+  },
+  {
+    layerId: "strait-replay-fred",
+    source: "FRED (Federal Reserve Bank of St. Louis)",
+    url: "https://fred.stlouisfed.org/",
+    cadence: "Daily series backfill (FRED API)",
+    attribution: "FRED® Federal Reserve Bank of St. Louis",
+    notes:
+      "Price outcome cache only (Brent DCOILBRENTEU, DTWEXBGS, VIXCLS). Never used as gate/EvidenceBundle observation. Yahoo/CME not used for backfill.",
+    status: "shipped",
+    ingest: "cached-api",
+    commercialUse: "allowed",
+    commercialNote:
+      "FRED terms allow redistribution with attribution — https://fred.stlouisfed.org/docs/api/terms_of_use.html",
+  },
+  {
+    layerId: "strait-replay-events",
+    source: "Curated strait events (+ optional GDELT candidates)",
+    url: "/api/strait-replay",
+    cadence: "Human curation; GDELT candidates reviewed:false until approved",
+    attribution: "Curated event list · GDELT Project (candidates only, with citation)",
+    notes:
+      "Human-reviewed strait incidents for replay. Synthetic seed rows marked isSynthetic. GDELT candidates stay hidden until reviewed.",
+    status: "shipped",
+    ingest: "static-build",
+    commercialUse: "allowed",
+    commercialNote:
+      "Curated citations + GDELT public data (citation required). LiveUAMap/Yahoo histories are not ingested.",
   },
 ];
 

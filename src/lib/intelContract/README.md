@@ -58,6 +58,10 @@
 3. `pirModalityStatus` — 필요 / 확보 / 빈칸 카드 (`PirFulfillmentCard`).
 4. `whyPublishLines` — 소스 드릴 상단 3줄(채널·반증·PIR).
 5. Watchboard 기본 `windowHours: 72`.
+6. `deskFocus.ts` — 워치보드 행 → 세슘 카메라 + 스포트라이트 + 등급 핀 + PIR 슬롯 디밍.
+7. `deskVerifySequence.ts` + `DeskVerifyHud` — 안건 탭 시 채널 순차 점등·교차 링 쌓임·등급 확정(텍스트 대신 모션).
+8. `DeskPinStructure` — 등급을 배지 글자 대신 핀 구조(1=점, 2+=이질색 링).
+9. `deskDynamics.ts` — 72h 시간 페이드 · Hold→Active 승격 · 반증 식힘/링 접힘.
 
 ## Horizon (비목표)
 

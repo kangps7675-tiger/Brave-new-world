@@ -228,6 +228,7 @@ const INTERACTIVE_LAYERS = [
   "map-paths-solid",
   "map-paths-dashed",
   "map-paths-maritime",
+  "map-paths-corridor-sea",
   "map-paths-crink-pipeline-solid",
   "map-paths-crink-power-line-solid",
   "map-polygons-fill",
@@ -242,6 +243,7 @@ const INTERACTIVE_LAYERS = [
   "island-chains-bases",
   "allied-bloc-countries-fill",
   "geoecon-bloc-countries-fill",
+  "axis-satellite-countries-fill",
   "axis-hub-countries-fill",
   SAFECAST_CIRCLE_LAYER_ID,
   SAFECAST_LABEL_LAYER_ID,
@@ -261,6 +263,7 @@ function expandInteractiveLayerIds(ids: readonly string[]): string[] {
       push("map-paths-solid");
       push("map-paths-dashed");
       push("map-paths-maritime");
+      push("map-paths-corridor-sea");
       push("map-paths-crink-pipeline-solid");
       push("map-paths-crink-power-line-solid");
       continue;
@@ -275,6 +278,7 @@ function isMapPathsLayer(layerId: string): boolean {
     layerId === "map-paths-solid" ||
     layerId === "map-paths-dashed" ||
     layerId === "map-paths-maritime" ||
+    layerId === "map-paths-corridor-sea" ||
     layerId === "map-paths-crink-pipeline-solid" ||
     layerId === "map-paths-crink-power-line-solid"
   );
@@ -675,6 +679,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     const raw = props.axisHubCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
   }, [emptyUkraineFc, props.axisHubCountriesGeoJson]);
+  const axisSatelliteCountriesGeoJson = useMemo(() => {
+    const raw = props.axisSatelliteCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
+    return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
+  }, [emptyUkraineFc, props.axisSatelliteCountriesGeoJson]);
   const alliedBlocCountriesGeoJson = useMemo(() => {
     const raw = props.alliedBlocCountriesGeoJson as GeoJSON.FeatureCollection | undefined;
     return raw?.type === "FeatureCollection" ? raw : emptyUkraineFc;
@@ -872,18 +880,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       points: a.pathPoints,
       color: a.pathColor,
       stroke: a.pathStroke,
-      // 해상 항로·해상 회랑 leg → 실선 리본(map-paths-maritime).
-      // 점선 흐름은 지도 위를 걸어 다니는 것처럼 보여서 쓰지 않는다.
+      // 상업 해상 항로(shipping-lane · maritime-route)만 실선 리본(maritime-flow).
+      // 전략 회랑·축 관계의 해상 leg는 corridor-sea / 점선으로 분리 — 항로와 육상협력 혼동 금지.
       dashLength: (item) => {
-        const meta =
-          item && typeof item === "object" && "meta" in item
-            ? (item as { meta?: { legMode?: string } }).meta
-            : undefined;
         const kind =
           item && typeof item === "object" && "kind" in item
             ? String((item as { kind?: string }).kind ?? "")
             : undefined;
-        if (kind === "maritime-route" || meta?.legMode === "sea") return 0;
+        if (kind === "maritime-route" || kind === "shipping-lane") return 0;
         return a.pathDashLength(item);
       },
       pathStyle: (item) => {
@@ -895,8 +899,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           item && typeof item === "object" && "kind" in item
             ? String((item as { kind?: string }).kind ?? "")
             : undefined;
-        if (kind === "maritime-route" || meta?.legMode === "sea") {
+        if (kind === "maritime-route" || kind === "shipping-lane") {
           return "maritime-flow";
+        }
+        if (kind === "strategic-corridor" && meta?.legMode === "sea") {
+          return "corridor-sea";
         }
         return "";
       },
@@ -2441,6 +2448,49 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Source>
         ) : null}
 
+        {axisSatelliteCountriesGeoJson.features.length > 0 ? (
+          <Source
+            id="axis-satellite-countries-source"
+            type="geojson"
+            data={axisSatelliteCountriesGeoJson}
+            tolerance={0}
+            buffer={64}
+          >
+            <Layer
+              id="axis-satellite-countries-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["coalesce", ["get", "fill"], "#dc2626"],
+                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.14],
+                "fill-antialias": true,
+              }}
+            />
+            <Layer
+              id="axis-satellite-countries-outline"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+              paint={{
+                "line-color": ["coalesce", ["get", "stroke"], "rgba(248,113,113,0.55)"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  0.45,
+                  6,
+                  0.85,
+                  10,
+                  1.2,
+                ],
+                "line-opacity": 0.75,
+              }}
+            />
+          </Source>
+        ) : null}
+
         {axisHubCountriesGeoJson.features.length > 0 ? (
           <Source
             id="axis-hub-countries-source"
@@ -2580,7 +2630,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             {/* 실선 — data-driven dasharray 없이 (DFC/BRI 등).
                 CRINK pipeline은 아래 glow+core 전용 레이어가 그리므로 여기서 제외
                 (안 빼면 실선+글로우가 겹쳐 저줌에서 과하게 밝아짐).
-                해상 흐름(pathStyle=maritime-flow)도 maritime 레이어 전용. */}
+                상업 항로(maritime-flow)·전략 해상 구간(corridor-sea)은 전용 레이어. */}
             <Layer
               id="map-paths-solid"
               type="line"
@@ -2589,6 +2639,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 ["<=", ["get", "dashLength"], 0],
                 ["!=", ["get", "crinkCategory"], "pipeline"],
                 ["!=", ["get", "pathStyle"], "maritime-flow"],
+                ["!=", ["get", "pathStyle"], "corridor-sea"],
               ]}
               layout={{
                 "line-cap": "round",
@@ -2602,7 +2653,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-blur": 0,
               }}
             />
-            {/* 점선 — 추정·미확인·장애 우회 등. 해상 항로/해상 회랑은 제외 */}
+            {/* 점선 — 추정·미확인·장애 우회·축 해상 환승 등. 상업 항로·전략 해상 전용 레이어 제외 */}
             <Layer
               id="map-paths-dashed"
               type="line"
@@ -2611,6 +2662,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 [">", ["get", "dashLength"], 0],
                 ["!=", ["get", "kind"], "maritime-route"],
                 ["!=", ["get", "pathStyle"], "maritime-flow"],
+                ["!=", ["get", "pathStyle"], "corridor-sea"],
               ]}
               layout={{
                 "line-cap": "butt",
@@ -2623,15 +2675,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-dasharray": [2, 1.2],
               }}
             />
-            {/* 해상 항로·해상 회랑 — 부드러운 실선 리본. 점선이 지도 위를 흐르지 않는다. */}
+            {/* 상업 해상 항로(shipping-lane · PortWatch maritime-route) — 부드러운 실선 리본 */}
             <Layer
               id="map-paths-maritime-glow"
               type="line"
-              filter={[
-                "any",
-                ["==", ["get", "kind"], "maritime-route"],
-                ["==", ["get", "pathStyle"], "maritime-flow"],
-              ]}
+              filter={["==", ["get", "pathStyle"], "maritime-flow"]}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
@@ -2672,11 +2720,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             <Layer
               id="map-paths-maritime"
               type="line"
-              filter={[
-                "any",
-                ["==", ["get", "kind"], "maritime-route"],
-                ["==", ["get", "pathStyle"], "maritime-flow"],
-              ]}
+              filter={["==", ["get", "pathStyle"], "maritime-flow"]}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
@@ -2685,6 +2729,47 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "line-color": ["get", "color"],
                 "line-width": PATH_LINE_WIDTH_BY_ZOOM,
                 "line-opacity": 0.88,
+              }}
+            />
+            {/* 전략 물류 회랑의 해상 구간 — 상업 항로 리본과 분리(점선·얇은 halo) */}
+            <Layer
+              id="map-paths-corridor-sea-glow"
+              type="line"
+              filter={["==", ["get", "pathStyle"], "corridor-sea"]}
+              layout={{
+                "line-cap": "butt",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  2,
+                  ["*", ["get", "strokeAngular"], 1.8],
+                  6,
+                  ["*", ["get", "strokeAngular"], 2.6],
+                  10,
+                  ["*", ["get", "strokeAngular"], 3.4],
+                ],
+                "line-opacity": 0.28,
+                "line-blur": 0.8,
+              }}
+            />
+            <Layer
+              id="map-paths-corridor-sea"
+              type="line"
+              filter={["==", ["get", "pathStyle"], "corridor-sea"]}
+              layout={{
+                "line-cap": "butt",
+                "line-join": "round",
+              }}
+              paint={{
+                "line-color": ["get", "color"],
+                "line-width": PATH_LINE_WIDTH_BY_ZOOM,
+                "line-opacity": 0.86,
+                "line-dasharray": [1.6, 1.1],
               }}
             />
             {/*
