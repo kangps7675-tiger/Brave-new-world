@@ -6,8 +6,12 @@
 
 type CesiumNS = typeof import("cesium");
 
-/** 타일 로드 전·바다 갭에 보이는 밑색 (딥 오션) */
-export const OBSERVE_OCEAN_BASE = "#0a3a52";
+/**
+ * 타일 로드 전·갭에 보이는 밑색.
+ * 예전 딥오션(#0a3a52)은 Google 3D/영상 구멍마다 육지에 파란 폴리곤처럼 비쳤다.
+ * 중립 암회색으로 두고, 바다는 waterMask + oceanNormal만으로 읽히게 한다.
+ */
+export const OBSERVE_OCEAN_BASE = "#1c1917";
 
 /**
  * 지형 waterMask + ocean normal map을 켠다.
