@@ -5,7 +5,7 @@ import {
   THEATER_FLY_TO,
 } from "@/lib/news/theaterMap";
 import { incidentSuggestsEnergyPipelines } from "@/lib/flashPipelineReveal";
-import { CINEMATIC_FLY, resolveCinematicCamera } from "@/lib/globeCamera";
+import { LOCATION_LOOK_DOWN, resolveCinematicCamera } from "@/lib/globeCamera";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 export type BreakingFlashNavigateDeps = {
@@ -59,8 +59,12 @@ export function runBreakingFlashGoToLocation({
         .pop() || breakingFlash.title;
     switchToObserveAndFly(lat, lng, {
       altitude: incidentEntryAltitude,
-      durationMs: CINEMATIC_FLY.durationMs,
-      camera: resolveCinematicCamera(),
+      durationMs: LOCATION_LOOK_DOWN.durationMs,
+      camera: resolveCinematicCamera({
+        pitch: LOCATION_LOOK_DOWN.pitch,
+        bearing: LOCATION_LOOK_DOWN.bearing,
+        lookAt: LOCATION_LOOK_DOWN.lookAt,
+      }),
       subtitle: labelLanguage === "en" ? "Breaking" : "속보",
       title: headline,
       kicker: labelLanguage === "en" ? "Inside the report" : "속보 공간",

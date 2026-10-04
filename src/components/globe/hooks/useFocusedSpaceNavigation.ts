@@ -178,14 +178,15 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         if (
           Number.isFinite(info.altitude) &&
           info.altitude <= CLOSE_LOOK_ALT &&
-          info.pitch >= 36
+          Number.isFinite(info.pitch)
         ) {
           historyRoomTargetRef.current = info.altitude;
         }
         return;
       }
+      // 직하(위치로 가기 pitch≈0)도 창을 연다 — 예전엔 대각선(pitch≥36)만 허용했다.
       if (!Number.isFinite(info.altitude) || info.altitude > CLOSE_LOOK_ALT) return;
-      if (info.pitch < 36) return;
+      if (!Number.isFinite(info.pitch)) return;
       const ceiling = Math.min(CLOSE_LOOK_ALT, info.altitude + 0.12);
       const title =
         info.title?.trim() ||
