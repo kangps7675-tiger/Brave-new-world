@@ -82,8 +82,7 @@ function easeInOutCubic(t: number): number {
 
 /**
  * photoreal 아래 위성 imagery 최소 alpha.
- * 1이면 3D 타일 구멍이 위성(해저 포함)으로 채워져 waterMask 액체층만 바다에 얹힌다.
- * 갭에 baseColor/회색 면이 안 비친다.
+ * 1이면 3D 타일 구멍이 위성으로 채워지고, 갭에 baseColor/회색 면이 안 비친다.
  */
 export const OBSERVE_PHOTOREAL_IMAGERY_FLOOR = 1;
 

@@ -1,21 +1,17 @@
 /**
- * Cesium 관측 — Google Earth식 바다.
- * 해저(위성/실사 imagery)가 비치고, waterMask 픽셀에만 얇은 액체(반사·노멀) 층을 얹는다.
- * 글로브 전체를 딥블루로 칠하지 않는다 — 그건 육지 갭에 파란/회색 폴리곤으로 번진다.
+ * Cesium 관측 — 바다(waterMask) 효과 OFF.
+ * 위성/실사 imagery만으로 수역을 읽고, 글로브 딥블루 페인트·액체층은 쓰지 않는다.
  */
 
 type CesiumNS = typeof import("cesium");
 
 /**
- * 타일 로드 전·잠깐 보이는 밑색만 (바다 페인트 아님).
- * 실제 해저는 imagery가 그리고, 물은 showWaterEffect가 얹는다.
+ * 타일 로드 전 순간 밑색만 (바다 페인트 아님).
+ * 갭은 photoreal 아래 위성 imagery(α=1)로 가린다.
  */
 export const OBSERVE_OCEAN_BASE = "#0a0a0a";
 
-/**
- * waterMask terrain이 준비된 뒤 호출.
- * showWaterEffect + oceanNormal → 마스크된 바다에만 “담긴 물” 느낌.
- */
+/** 글로브 밑색만 맞추고, waterMask 반사 바다는 끈다. */
 export function applyObserveOceanLook(
   Cesium: CesiumNS,
   viewer: import("cesium").Viewer,
@@ -28,14 +24,11 @@ export function applyObserveOceanLook(
     oceanNormalMapUrl?: string;
   };
   if (typeof g.showWaterEffect === "boolean") {
-    g.showWaterEffect = true;
+    g.showWaterEffect = false;
   }
   try {
-    const url = Cesium.buildModuleUrl("Assets/Textures/waterNormals.jpg");
-    if (url) {
-      g.oceanNormalMapUrl = url;
-    }
-  } catch (err) {
-    console.warn("[cesiumOceanLook] oceanNormalMapUrl skipped:", err);
+    g.oceanNormalMapUrl = "";
+  } catch {
+    /* some Cesium builds reject empty url */
   }
 }
