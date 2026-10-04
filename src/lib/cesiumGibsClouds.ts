@@ -312,7 +312,6 @@ export function attachGibsClouds(
   let volumeHandle: VolumetricCloudHandle | null = null;
   let shells: ShellRuntime[] = [];
   let fallbackLayer: import("cesium").ImageryLayer | null = null;
-  let activePick: GibsCloudLayerPick | null = null;
   const t0 = performance.now();
   const scratchCarto = new Cesium.Cartographic();
 
@@ -444,7 +443,6 @@ export function attachGibsClouds(
     clearShell();
     clearFallback();
     if (viewer.isDestroyed() || cancelled) return;
-    activePick = pick;
     const provider = new Cesium.UrlTemplateImageryProvider({
       url: gibsCloudWmtsUrlTemplate(pick.time, pick.layerId),
       credit: `${GIBS_CLOUDS_CREDIT.label} · ${pick.layerId} (${pick.time})`,
@@ -549,7 +547,6 @@ export function attachGibsClouds(
     clearShell();
     clearFallback();
     if (viewer.isDestroyed() || cancelled) return;
-    activePick = pick;
 
     if (preferVolume) {
       try {
@@ -621,7 +618,6 @@ export function attachGibsClouds(
     refreshTimer = null;
     clearShell();
     clearFallback();
-    activePick = null;
   };
 }
 
