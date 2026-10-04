@@ -71,7 +71,6 @@ import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import type { AircraftPalette } from "@/lib/milAircraftSymbols";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
-import { attachGibsClouds } from "@/lib/cesiumGibsClouds";
 import { applyObserveOceanLook } from "@/lib/cesiumOceanLook";
 import {
   holdObserveRender,
@@ -1648,7 +1647,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     let canvasEl: HTMLCanvasElement | null = null;
     let onContextLost: ((ev: Event) => void) | null = null;
     let detachDayNight: (() => void) | null = null;
-    let detachClouds: (() => void) | null = null;
     let detachFirmsPulse: (() => void) | null = null;
     let detachStrikePulse: (() => void) | null = null;
     let detachMissilePulse: (() => void) | null = null;
@@ -1738,9 +1736,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         viewer.scene.globe.enableLighting = false;
 
         installObserveRenderGovernor(viewer);
-        // 펄스/구름은 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
+        // 펄스는 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
 
-        // 위성 지구본을 명암 없이 밝게. 바다(waterMask)·얇은 GIBS 구름 껍질 ON.
+        // 위성 지구본을 명암 없이 밝게. 바다(waterMask) ON — GIBS 구름은 끈다.
         // 스택: Google Photorealistic 3D(+Terrain) → Ion Imagery+OSM → Esri.
         let stackKind: StackKind = "esri";
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
@@ -2128,22 +2126,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           } catch (err) {
             console.warn("[CesiumSatelliteGlobe] day/night:", err);
           }
-          try {
-            // WMTS imagery — 스냅샷 껍질(하얀 행성) 금지. 구름만 낮은 알파.
-            // Cinema 토글은 getAlpha로 반영 (재부착 없음).
-            detachClouds = attachGibsClouds(Cesium, viewer, {
-              getAlpha: () => {
-                const h =
-                  viewer?.camera.positionCartographic?.height ??
-                  OBSERVE_LOOK_ORBIT_M;
-                return observeLookForHeightM(h, {
-                  cinema: cinemaOnRef.current,
-                }).cloudAlpha;
-              },
-            });
-          } catch (err) {
-            console.warn("[CesiumSatelliteGlobe] GIBS clouds:", err);
-          }
+          // GIBS volumetric/shell 구름 — 제거 (하얀 껍질·네트워크 비용).
           try {
             detachFirmsPulse = attachFirmsFirePulse(Cesium, viewer);
             detachStrikePulse = attachLiveuaStrikePulse(Cesium, viewer);
@@ -2217,12 +2200,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         /* ignore */
       }
       detachDayNight = null;
-      try {
-        detachClouds?.();
-      } catch {
-        /* ignore */
-      }
-      detachClouds = null;
       try {
         detachFirmsPulse?.();
         detachStrikePulse?.();
@@ -3602,11 +3579,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           <p className="mt-0.5 text-micro text-teal-100/55">
             {stack === "google3d"
               ? google3dOn
-                ? "Google Photorealistic 3D · Terrain · Ocean · Volumetric Clouds · Borders · Labels"
-                : "Ion / Esri imagery · Terrain · Ocean · Volumetric Clouds · Labels (3D off)"
+                ? "Google Photorealistic 3D · Terrain · Ocean · Borders · Labels"
+                : "Ion / Esri imagery · Terrain · Ocean · Labels (3D off)"
               : stack === "ion"
-                ? "Cesium Ion · World Imagery · Terrain · Ocean · OSM Buildings · Volumetric Clouds · Labels"
-                : "Esri World Imagery · Ocean · Volumetric Clouds · Labels · CesiumJS"}
+                ? "Cesium Ion · World Imagery · Terrain · Ocean · OSM Buildings · Labels"
+                : "Esri World Imagery · Ocean · Labels · CesiumJS"}
             {" · "}
             Ctrl/Alt+drag tilt
           </p>
