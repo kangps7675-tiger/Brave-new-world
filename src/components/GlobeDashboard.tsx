@@ -3492,6 +3492,8 @@ export function GlobeDashboard({
     showNeptunPreviousTrails,
     showUkraineControl,
     forceNeptunTheater: isSatelliteViewer,
+    /** 드론·미사일·폭탄은 Cesium 공중 엔티티만 — MapLibre 경로/HTML 배지 OFF */
+    maplibreNeptunVisuals: false,
     layerViewState,
     globeTier: globeLod.tier,
     isCameraMoving,

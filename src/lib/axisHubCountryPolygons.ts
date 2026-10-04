@@ -17,20 +17,22 @@ export const AXIS_SATELLITE_FILL = AXIS_HUB_FILL;
 export const AXIS_SATELLITE_FILL_OPACITY = 0.14;
 export const AXIS_SATELLITE_STROKE = "rgba(248, 113, 113, 0.55)";
 
-/** 세슘 국경선 색. 위성 영상 위에서 읽히는 빨강. */
-export const AXIS_HUB_BORDER_COLOR = "#ff2a2a";
+/** 세슘 국경선 색. 위성 영상 위에서 읽히는 coral (observeSensorStyle과 정합). */
+export const AXIS_HUB_BORDER_COLOR = "#f87171";
 
 /**
- * 국경선이 지면에서 차지하는 폭(m).
+ * 국경선이 지면에서 차지하는 폭(m) — core 패스.
  * 화면 픽셀 = 이 폭 / 미터당 픽셀. 카메라를 두 배 멀리하면 선도 절반으로 얇아진다.
- * 지구 전경(고도 ~1.2만 km, 1080p)에서 약 4px, 나라 단위로 들어가면 상한까지 굵어진다.
  */
-export const AXIS_HUB_BORDER_WIDTH_M = 48_000;
+export const AXIS_HUB_BORDER_WIDTH_M = 18_000;
+
+/** Halo 패스 지면 폭 — core보다 넓게 어두운 밑선. */
+export const AXIS_HUB_BORDER_HALO_WIDTH_M = 32_000;
 
 /** Cesium GroundPolyline width는 unsigned byte. 1 미만이면 선이 사라진다. */
 const BORDER_PX_MIN = 1;
 /** 가까이 줌인해도 국경이 넓은 빨강 띠가 되지 않게 둔 화면 상한. */
-const BORDER_PX_MAX = 18;
+const BORDER_PX_MAX = 9;
 
 const EMPTY_FC: FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -155,8 +157,11 @@ export function axisHubBorderWidthPx(options: {
   canvasHeightPx: number;
   fovyRad: number;
   widthM?: number;
+  /** 화면 상한 오버라이드 (halo는 core보다 1–2px 넓게) */
+  maxPx?: number;
 }): number {
   const widthM = options.widthM ?? AXIS_HUB_BORDER_WIDTH_M;
+  const maxPx = options.maxPx ?? BORDER_PX_MAX;
   const height = Math.max(options.cameraHeightM, 1);
   const canvas = Math.max(options.canvasHeightPx, 1);
   const fovy =
@@ -165,7 +170,7 @@ export function axisHubBorderWidthPx(options: {
       : Math.PI / 3;
   const metersPerPixel = (2 * height * Math.tan(fovy / 2)) / canvas;
   const px = widthM / Math.max(metersPerPixel, 1e-6);
-  return Math.min(BORDER_PX_MAX, Math.max(BORDER_PX_MIN, Math.round(px)));
+  return Math.min(maxPx, Math.max(BORDER_PX_MIN, Math.round(px)));
 }
 
 /** @deprecated paintAxisHubCountriesGeoJson 사용 — 하위 호환 래퍼 */
