@@ -1,21 +1,19 @@
 /**
- * Cesium 관측 — 바다(워터마스크 + 파도 노멀).
- * Ion World Terrain waterMask가 있을 때만 파도 효과가 살아난다.
- * 전면 명암(터미네이터)은 켜지 않는다 — 위성 텍스처 밝기 유지.
+ * Cesium 관측 — 글로브 밑색.
+ * Ion waterMask + reflective ocean은 육지/호수·타일 갭에 파란 면으로 번져
+ * 「육지 위 푸른 폴리곤」처럼 보이므로 끈다. 바다는 위성/실사 텍스처로만 읽힌다.
  */
 
 type CesiumNS = typeof import("cesium");
 
 /**
- * 타일 로드 전·갭에 보이는 밑색.
- * 예전 딥오션(#0a3a52)은 Google 3D/영상 구멍마다 육지에 파란 폴리곤처럼 비쳤다.
- * 중립 암회색으로 두고, 바다는 waterMask + oceanNormal만으로 읽히게 한다.
+ * 타일 로드 전·갭에 보이는 밑색 (중립 암회색).
+ * 딥오션(#0a3a52)은 Google 3D/영상 구멍마다 육지에 파란 패치로 비쳤다.
  */
 export const OBSERVE_OCEAN_BASE = "#1c1917";
 
 /**
- * 지형 waterMask + ocean normal map을 켠다.
- * requestWaterMask:true 로 만든 TerrainProvider가 선행돼야 한다.
+ * 글로브 밑색만 맞추고, waterMask 반사 바다(파란 채움)는 끈다.
  */
 export function applyObserveOceanLook(
   Cesium: CesiumNS,
@@ -23,12 +21,17 @@ export function applyObserveOceanLook(
 ): void {
   const globe = viewer.scene.globe;
   globe.baseColor = Cesium.Color.fromCssColorString(OBSERVE_OCEAN_BASE);
+  // Cesium 기본 showWaterEffect=true + waterNormals → 육지에도 파란 ocean pass
+  const g = globe as {
+    showWaterEffect?: boolean;
+    oceanNormalMapUrl?: string;
+  };
+  if (typeof g.showWaterEffect === "boolean") {
+    g.showWaterEffect = false;
+  }
   try {
-    const url = Cesium.buildModuleUrl("Assets/Textures/waterNormals.jpg");
-    if (url) {
-      globe.oceanNormalMapUrl = url;
-    }
-  } catch (err) {
-    console.warn("[cesiumOceanLook] oceanNormalMapUrl skipped:", err);
+    g.oceanNormalMapUrl = "";
+  } catch {
+    /* some Cesium builds reject empty url */
   }
 }

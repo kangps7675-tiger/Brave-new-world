@@ -80,13 +80,17 @@ function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
-/** photoreal ON → imagery alpha 0, OFF → 1 */
+/** photoreal에서도 살짝 남겨 타일 갭이 빈 글로브/옛 바다색으로 안 보이게 */
+export const OBSERVE_PHOTOREAL_IMAGERY_FLOOR = 0.22;
+
+/** photoreal ON → imagery alpha floor, OFF → 1 */
 export function imageryAlphaForSurface(
   kind: ObserveSurfaceKind,
   fadeT01: number,
 ): number {
   const t = easeInOutCubic(Math.min(1, Math.max(0, fadeT01)));
-  return kind === "photoreal" ? 1 - t : t;
+  const floor = OBSERVE_PHOTOREAL_IMAGERY_FLOOR;
+  return kind === "photoreal" ? 1 - t * (1 - floor) : floor + t * (1 - floor);
 }
 
 export function createObserveSurfaceController(
@@ -206,7 +210,8 @@ export function createObserveSurfaceController(
     const finalize = () => {
       if (disposed || myGen !== gen) return;
       if (imagery) {
-        imagery.alpha = kind === "photoreal" ? 0 : 1;
+        imagery.alpha =
+          kind === "photoreal" ? OBSERVE_PHOTOREAL_IMAGERY_FLOOR : 1;
         imagery.show = true;
       }
       if (buildings) buildings.show = kind !== "photoreal";
