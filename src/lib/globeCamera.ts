@@ -55,6 +55,7 @@ export function globeDistanceForAltitude(altitude: number): number {
 /**
  * 속보·핀·알림 등 「그 위치로」이동 — 눈치채기 전에 끝나지 않게,
  * 빠르면서도 감속하는 웅장한 대각선 진입.
+ * (인트로·궤도 연출용. 사건 좌표를 내려다볼 때는 LOCATION_LOOK_DOWN 사용)
  */
 export const CINEMATIC_FLY = {
   durationMs: 2800,
@@ -62,6 +63,18 @@ export const CINEMATIC_FLY = {
   pitch: 52,
   /** 대각선 시선 (남서쪽에서 내려다보는 느낌) */
   bearing: -38,
+} as const;
+
+/**
+ * LiveUA·속보 「위치로 가기」— 좌표를 거의 직하로 내려다봄.
+ * lookAt으로 화면 중앙에 핀을 두고, bearing 0으로 대각선 오프셋을 없앤다.
+ */
+export const LOCATION_LOOK_DOWN = {
+  durationMs: 2400,
+  /** MapLibre: 0=직하. 살짝만 기울여 지형 읽힘 유지 */
+  pitch: 8,
+  bearing: 0,
+  lookAt: true as const,
 } as const;
 
 export type FlyCameraOpts = {

@@ -152,6 +152,6 @@ describe("axisHubBorderWidthPx", () => {
     ).toBe(1);
     expect(
       axisHubBorderWidthPx({ ...view, cameraHeightM: 500 }),
-    ).toBe(18);
+    ).toBe(9);
   });
 });

@@ -19,6 +19,8 @@ import {
 } from "react";
 import type { FeatureCollection } from "geojson";
 import {
+  AXIS_HUB_BORDER_HALO_WIDTH_M,
+  AXIS_HUB_BORDER_WIDTH_M,
   axisHubBorderWidthPx,
   collectAxisHubBorderRings,
   type LngLatRing,
@@ -42,6 +44,7 @@ import {
 } from "@/lib/cesiumWorldBorders";
 import {
   OBSERVE_AXIS_BORDER,
+  OBSERVE_AXIS_BORDER_HALO,
   OBSERVE_CONTROL_FILL,
   OBSERVE_CONTROL_FILL_ALPHA,
   OBSERVE_CONTROL_OUTLINE,
@@ -71,7 +74,6 @@ import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import type { AircraftPalette } from "@/lib/milAircraftSymbols";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
 import { attachRealtimeDayNight } from "@/lib/cesiumDayNight";
-import { attachGibsClouds } from "@/lib/cesiumGibsClouds";
 import { applyObserveOceanLook } from "@/lib/cesiumOceanLook";
 import {
   holdObserveRender,
@@ -754,26 +756,43 @@ function updateGlobeEntityOcclusion(
   }
 }
 
+/** 공중 고도 — MapLibre 지상 배지와 달리 떠 보이게 */
 const CESIUM_NEPTUN_HEIGHT_M: Record<string, number> = {
-  uav: 2_400,
-  recon: 3_200,
-  missile: 8_000,
-  ballistic: 18_000,
-  kab: 5_000,
-  mig31k: 12_000,
-  unknown: 4_000,
+  uav: 3_200,
+  recon: 4_200,
+  missile: 11_000,
+  ballistic: 22_000,
+  kab: 6_500,
+  mig31k: 14_000,
+  unknown: 5_000,
 };
-const CESIUM_NEPTUN_TRAIL_MAX = 12;
+const CESIUM_NEPTUN_SIZE_PX: Record<string, number> = {
+  uav: 26,
+  recon: 24,
+  missile: 30,
+  ballistic: 34,
+  kab: 28,
+  mig31k: 30,
+  unknown: 26,
+};
+const CESIUM_NEPTUN_TRAIL_MAX = 14;
 const neptunBillboardUriCache = new Map<string, string>();
 
-function neptunBillboardImage(colorCss: string): string {
-  const key = colorCss;
+function neptunBillboardImage(colorCss: string, kind: string): string {
+  const key = `${kind}:${colorCss}`;
   let image = neptunBillboardUriCache.get(key);
   if (!image) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-      <circle cx="14" cy="14" r="5.5" fill="${colorCss}" stroke="#fff" stroke-width="1.4"/>
-      <circle cx="14" cy="14" r="10" fill="none" stroke="${colorCss}" stroke-width="1.2" opacity="0.45"/>
-    </svg>`;
+    const isMissile = kind === "missile" || kind === "ballistic" || kind === "kab";
+    const svg = isMissile
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+          <path d="M16 3 L20 14 L16 12 L12 14 Z" fill="${colorCss}" stroke="#fff" stroke-width="1.1"/>
+          <circle cx="16" cy="20" r="5" fill="${colorCss}" stroke="#fff" stroke-width="1.2"/>
+          <circle cx="16" cy="20" r="9" fill="none" stroke="${colorCss}" stroke-width="1.1" opacity="0.4"/>
+        </svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+          <circle cx="14" cy="14" r="5.5" fill="${colorCss}" stroke="#fff" stroke-width="1.4"/>
+          <circle cx="14" cy="14" r="10" fill="none" stroke="${colorCss}" stroke-width="1.2" opacity="0.45"/>
+        </svg>`;
     image = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     neptunBillboardUriCache.set(key, image);
   }
@@ -791,10 +810,12 @@ function neptunTrailPositions(
       ? trail.slice(trail.length - (CESIUM_NEPTUN_TRAIL_MAX - 1))
       : trail;
   const pts: import("cesium").Cartesian3[] = [];
-  for (const p of sliced) {
-    if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
-    pts.push(Cesium.Cartesian3.fromDegrees(p.lon, p.lat, heightM * 0.85));
-  }
+  const n = sliced.length;
+  sliced.forEach((p, i) => {
+    if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) return;
+    const t = n <= 1 ? 1 : (i + 1) / (n + 1);
+    pts.push(Cesium.Cartesian3.fromDegrees(p.lon, p.lat, heightM * (0.55 + 0.4 * t)));
+  });
   const lat = threat.predictedLat ?? threat.lat;
   const lon = threat.predictedLon ?? threat.lon;
   if (Number.isFinite(lat) && Number.isFinite(lon)) {
@@ -803,14 +824,15 @@ function neptunTrailPositions(
   return pts;
 }
 
-/** NEPTUN UAV·미사일 — 빌보드 + 짧은 궤적 폴리라인 (상한·오클루전은 AIS와 동일) */
+/** NEPTUN UAV·미사일·폭탄 — Cesium 공중 빌보드 + 상승 궤적 + 지면 스템 */
 function syncNeptunBillboardEntities(
   Cesium: typeof import("cesium"),
   viewer: import("cesium").Viewer,
   items: NeptunLiveThreat[],
 ): void {
   const seen = new Set<string>();
-  const scaleByDistance = new Cesium.NearFarScalar(1.5e5, 1.4, 4.0e6, 0.45);
+  const scaleByDistance = new Cesium.NearFarScalar(1.2e5, 1.55, 5.0e6, 0.4);
+  const occluder = createGlobeOccluder(Cesium, viewer);
 
   for (const threat of items) {
     const lat = threat.predictedLat ?? threat.lat;
@@ -818,79 +840,110 @@ function syncNeptunBillboardEntities(
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
     const meta = getNeptunTypeMeta(threat.type);
     const heightM = CESIUM_NEPTUN_HEIGHT_M[threat.type] ?? CESIUM_NEPTUN_HEIGHT_M.unknown;
+    const sizePx = CESIUM_NEPTUN_SIZE_PX[threat.type] ?? CESIUM_NEPTUN_SIZE_PX.unknown;
     const id = `neptun:${threat.id}`;
+    const stemId = `neptun-stem:${threat.id}`;
     seen.add(id);
+    seen.add(stemId);
     const position = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
-    const image = neptunBillboardImage(meta.color);
+    const ground = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+    const visible = occluder.isPointVisible(position);
+    const image = neptunBillboardImage(meta.color, threat.type);
     const name = threat.title || meta.label;
+    const trailPts = neptunTrailPositions(Cesium, threat, heightM);
+    const trailColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.78);
+    const stemColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.38);
 
     const existing = viewer.entities.getById(id);
     if (existing) {
       existing.position = new Cesium.ConstantPositionProperty(position);
       existing.name = name;
-      existing.show = true;
+      existing.show = visible;
       if (existing.billboard) {
         existing.billboard.image = new Cesium.ConstantProperty(image);
+        existing.billboard.width = new Cesium.ConstantProperty(sizePx);
+        existing.billboard.height = new Cesium.ConstantProperty(sizePx);
         existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
-          CESIUM_AIS_NO_DEPTH,
+          Number.POSITIVE_INFINITY,
         );
         existing.billboard.scaleByDistance = new Cesium.ConstantProperty(scaleByDistance);
       }
-      const trailPts = neptunTrailPositions(Cesium, threat, heightM);
       if (trailPts.length >= 2) {
         if (existing.polyline) {
           existing.polyline.positions = new Cesium.ConstantProperty(trailPts);
-          existing.polyline.material = new Cesium.ColorMaterialProperty(
-            Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
-          );
+          existing.polyline.material = new Cesium.ColorMaterialProperty(trailColor);
         } else {
           existing.polyline = new Cesium.PolylineGraphics({
             positions: trailPts,
-            width: 2.2,
-            material: Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
+            width: 2.4,
+            material: trailColor,
             clampToGround: false,
-            arcType: Cesium.ArcType.GEODESIC,
+            arcType: Cesium.ArcType.NONE,
           });
         }
       } else if (existing.polyline) {
         existing.polyline = undefined;
       }
-      continue;
+    } else {
+      viewer.entities.add({
+        id,
+        name,
+        position,
+        show: visible,
+        billboard: new Cesium.BillboardGraphics({
+          image,
+          width: sizePx,
+          height: sizePx,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          scaleByDistance,
+          color: Cesium.Color.WHITE,
+        }),
+        ...(trailPts.length >= 2
+          ? {
+              polyline: new Cesium.PolylineGraphics({
+                positions: trailPts,
+                width: 2.4,
+                material: trailColor,
+                clampToGround: false,
+                arcType: Cesium.ArcType.NONE,
+              }),
+            }
+          : {}),
+      });
     }
 
-    const trailPts = neptunTrailPositions(Cesium, threat, heightM);
-    viewer.entities.add({
-      id,
-      name,
-      position,
-      show: true,
-      billboard: new Cesium.BillboardGraphics({
-        image,
-        width: 22,
-        height: 22,
-        verticalOrigin: Cesium.VerticalOrigin.CENTER,
-        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        disableDepthTestDistance: CESIUM_AIS_NO_DEPTH,
-        scaleByDistance,
-        color: Cesium.Color.WHITE,
-      }),
-      ...(trailPts.length >= 2
-        ? {
-            polyline: new Cesium.PolylineGraphics({
-              positions: trailPts,
-              width: 2.2,
-              material: Cesium.Color.fromCssColorString(meta.color).withAlpha(0.75),
-              clampToGround: false,
-              arcType: Cesium.ArcType.GEODESIC,
-            }),
-          }
-        : {}),
-    });
+    const stemExisting = viewer.entities.getById(stemId);
+    const stemPositions = [ground, position];
+    if (stemExisting) {
+      stemExisting.show = visible;
+      if (stemExisting.polyline) {
+        stemExisting.polyline.positions = new Cesium.ConstantProperty(stemPositions);
+        stemExisting.polyline.material = new Cesium.ColorMaterialProperty(stemColor);
+      }
+    } else {
+      viewer.entities.add({
+        id: stemId,
+        show: visible,
+        polyline: new Cesium.PolylineGraphics({
+          positions: stemPositions,
+          width: 1.2,
+          material: stemColor,
+          clampToGround: false,
+          arcType: Cesium.ArcType.NONE,
+        }),
+      });
+    }
   }
 
   const toRemove: import("cesium").Entity[] = [];
   for (const entity of viewer.entities.values) {
-    if (typeof entity.id === "string" && entity.id.startsWith("neptun:") && !seen.has(entity.id)) {
+    if (
+      typeof entity.id === "string" &&
+      (entity.id.startsWith("neptun:") || entity.id.startsWith("neptun-stem:")) &&
+      !seen.has(entity.id)
+    ) {
       toRemove.push(entity);
     }
   }
@@ -1002,18 +1055,25 @@ function syncAircraftBillboardEntities(
 }
 
 /**
- * 북한·중국·러시아·이란 국경. 굵기는 지면 폭(m)을 유지해서
- * 줌아웃하면 화면에서 같은 비율로 얇아지고, 줌인하면 굵어진다.
- * 반환값은 해제 함수.
+ * 북한·중국·러시아·이란 국경 — dark halo + coral core 이중선.
+ * 지면 폭(m)으로 줌에 비례해 얇아지고, 가까이에서도 알람 테이프처럼 번지지 않게 캡.
  */
 function attachAxisHubBorders(
   Cesium: typeof import("cesium"),
   viewer: import("cesium").Viewer,
   rings: LngLatRing[],
 ): () => void {
-  const color = Cesium.Color.fromCssColorString(OBSERVE_AXIS_BORDER);
-  const ids: string[] = [];
-  const instances = rings.map((ring, index) => {
+  if (!Cesium.GroundPolylinePrimitive.isSupported(viewer.scene)) {
+    return () => {};
+  }
+
+  const coreColor = Cesium.Color.fromCssColorString(OBSERVE_AXIS_BORDER);
+  const haloColor = Cesium.Color.fromCssColorString(OBSERVE_AXIS_BORDER_HALO);
+  const coreIds: string[] = [];
+  const haloIds: string[] = [];
+
+  const ringFlats: number[][] = [];
+  for (const ring of rings) {
     const flat: number[] = [];
     for (const pair of ring) {
       const lng = pair[0];
@@ -1023,77 +1083,112 @@ function attachAxisHubBorders(
       }
       flat.push(lng, lat);
     }
-    if (flat.length < 8) return null;
-    const id = `hub-border:${index}`;
-    ids.push(id);
-    return new Cesium.GeometryInstance({
-      id,
-        geometry: new Cesium.GroundPolylineGeometry({
-        positions: Cesium.Cartesian3.fromDegreesArray(flat),
-        width: 4,
-        arcType: Cesium.ArcType.GEODESIC,
-        granularity: 0,
-      }),
-    });
-  }).filter((instance): instance is import("cesium").GeometryInstance => instance != null);
-
-  if (!instances.length || !Cesium.GroundPolylinePrimitive.isSupported(viewer.scene)) {
-    return () => {};
+    if (flat.length >= 8) ringFlats.push(flat);
   }
+  if (!ringFlats.length) return () => {};
 
-  const primitive = new Cesium.GroundPolylinePrimitive({
-    geometryInstances: instances,
+  const makeInstances = (prefix: string, idsOut: string[]) =>
+    ringFlats.map((flat, index) => {
+      const id = `${prefix}:${index}`;
+      idsOut.push(id);
+      return new Cesium.GeometryInstance({
+        id,
+        geometry: new Cesium.GroundPolylineGeometry({
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          width: 3,
+          arcType: Cesium.ArcType.GEODESIC,
+          granularity: 0,
+        }),
+      });
+    });
+
+  const haloPrimitive = new Cesium.GroundPolylinePrimitive({
+    geometryInstances: makeInstances("hub-border-halo", haloIds),
     appearance: new Cesium.PolylineMaterialAppearance({
-      material: Cesium.Material.fromType("Color", { color }),
+      material: Cesium.Material.fromType("Color", { color: haloColor }),
     }),
     classificationType: Cesium.ClassificationType.BOTH,
     allowPicking: false,
     asynchronous: true,
   });
-  viewer.scene.groundPrimitives.add(primitive);
+  const corePrimitive = new Cesium.GroundPolylinePrimitive({
+    geometryInstances: makeInstances("hub-border", coreIds),
+    appearance: new Cesium.PolylineMaterialAppearance({
+      material: Cesium.Material.fromType("Color", { color: coreColor }),
+    }),
+    classificationType: Cesium.ClassificationType.BOTH,
+    allowPicking: false,
+    asynchronous: true,
+  });
+  viewer.scene.groundPrimitives.add(haloPrimitive);
+  viewer.scene.groundPrimitives.add(corePrimitive);
 
   const scratchCarto = new Cesium.Cartographic();
-  let lastPx = -1;
-  const removePreRender = viewer.scene.preRender.addEventListener(() => {
-    if (viewer.isDestroyed() || primitive.isDestroyed() || !primitive.ready) return;
-    const carto = Cesium.Cartographic.fromCartesian(
-      viewer.camera.positionWC,
-      viewer.scene.globe.ellipsoid,
-      scratchCarto,
-    );
-    const frustum = viewer.camera.frustum as { fovy?: number };
-    const px = axisHubBorderWidthPx({
-      cameraHeightM: carto.height,
-      canvasHeightPx: viewer.scene.canvas.clientHeight,
-      fovyRad: frustum.fovy ?? Math.PI / 3,
-    });
-    if (px === lastPx) return;
+  let lastCorePx = -1;
+  let lastHaloPx = -1;
+
+  const writeWidths = (
+    primitive: import("cesium").GroundPolylinePrimitive,
+    ids: string[],
+    px: number,
+  ): boolean => {
+    if (primitive.isDestroyed() || !primitive.ready) return false;
     let wrote = false;
     try {
       for (const id of ids) {
         const attrs = primitive.getGeometryInstanceAttributes(id);
         const slot = attrs?.width;
         if (!slot) continue;
-        // 같은 배열을 인스턴스끼리 공유하면 배치 테이블이 마지막 값만 남긴다.
         slot[0] = px;
         attrs.width = slot;
         wrote = true;
       }
     } catch {
-      return;
+      return false;
     }
-    if (wrote) lastPx = px;
+    return wrote;
+  };
+
+  const removePreRender = viewer.scene.preRender.addEventListener(() => {
+    if (viewer.isDestroyed()) return;
+    const carto = Cesium.Cartographic.fromCartesian(
+      viewer.camera.positionWC,
+      viewer.scene.globe.ellipsoid,
+      scratchCarto,
+    );
+    const frustum = viewer.camera.frustum as { fovy?: number };
+    const view = {
+      cameraHeightM: carto.height,
+      canvasHeightPx: viewer.scene.canvas.clientHeight,
+      fovyRad: frustum.fovy ?? Math.PI / 3,
+    };
+    const corePx = axisHubBorderWidthPx({ ...view, widthM: AXIS_HUB_BORDER_WIDTH_M });
+    const haloPx = axisHubBorderWidthPx({
+      ...view,
+      widthM: AXIS_HUB_BORDER_HALO_WIDTH_M,
+      maxPx: 12,
+    });
+    if (corePx !== lastCorePx && writeWidths(corePrimitive, coreIds, corePx)) {
+      lastCorePx = corePx;
+    }
+    if (haloPx !== lastHaloPx && writeWidths(haloPrimitive, haloIds, haloPx)) {
+      lastHaloPx = haloPx;
+    }
   });
+
+  const destroyPrimitive = (primitive: import("cesium").GroundPolylinePrimitive) => {
+    if (primitive.isDestroyed()) return;
+    if (!viewer.isDestroyed()) {
+      viewer.scene.groundPrimitives.remove(primitive);
+    } else {
+      primitive.destroy();
+    }
+  };
 
   return () => {
     removePreRender();
-    if (!primitive.isDestroyed()) {
-      if (!viewer.isDestroyed()) {
-        viewer.scene.groundPrimitives.remove(primitive);
-      } else {
-        primitive.destroy();
-      }
-    }
+    destroyPrimitive(haloPrimitive);
+    destroyPrimitive(corePrimitive);
   };
 }
 
@@ -1648,7 +1743,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     let canvasEl: HTMLCanvasElement | null = null;
     let onContextLost: ((ev: Event) => void) | null = null;
     let detachDayNight: (() => void) | null = null;
-    let detachClouds: (() => void) | null = null;
     let detachFirmsPulse: (() => void) | null = null;
     let detachStrikePulse: (() => void) | null = null;
     let detachMissilePulse: (() => void) | null = null;
@@ -1738,9 +1832,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         viewer.scene.globe.enableLighting = false;
 
         installObserveRenderGovernor(viewer);
-        // 펄스/구름은 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
+        // 펄스는 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
 
-        // 위성 지구본을 명암 없이 밝게. 바다(waterMask)·얇은 GIBS 구름 껍질 ON.
+        // 위성 지구본을 명암 없이 밝게. 바다(waterMask) ON — GIBS 구름은 끈다.
         // 스택: Google Photorealistic 3D(+Terrain) → Ion Imagery+OSM → Esri.
         let stackKind: StackKind = "esri";
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
@@ -2128,22 +2222,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           } catch (err) {
             console.warn("[CesiumSatelliteGlobe] day/night:", err);
           }
-          try {
-            // WMTS imagery — 스냅샷 껍질(하얀 행성) 금지. 구름만 낮은 알파.
-            // Cinema 토글은 getAlpha로 반영 (재부착 없음).
-            detachClouds = attachGibsClouds(Cesium, viewer, {
-              getAlpha: () => {
-                const h =
-                  viewer?.camera.positionCartographic?.height ??
-                  OBSERVE_LOOK_ORBIT_M;
-                return observeLookForHeightM(h, {
-                  cinema: cinemaOnRef.current,
-                }).cloudAlpha;
-              },
-            });
-          } catch (err) {
-            console.warn("[CesiumSatelliteGlobe] GIBS clouds:", err);
-          }
+          // GIBS volumetric/shell 구름 — 제거 (하얀 껍질·네트워크 비용).
           try {
             detachFirmsPulse = attachFirmsFirePulse(Cesium, viewer);
             detachStrikePulse = attachLiveuaStrikePulse(Cesium, viewer);
@@ -2217,12 +2296,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         /* ignore */
       }
       detachDayNight = null;
-      try {
-        detachClouds?.();
-      } catch {
-        /* ignore */
-      }
-      detachClouds = null;
       try {
         detachFirmsPulse?.();
         detachStrikePulse?.();
@@ -3602,11 +3675,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           <p className="mt-0.5 text-micro text-teal-100/55">
             {stack === "google3d"
               ? google3dOn
-                ? "Google Photorealistic 3D · Terrain · Ocean · Volumetric Clouds · Borders · Labels"
-                : "Ion / Esri imagery · Terrain · Ocean · Volumetric Clouds · Labels (3D off)"
+                ? "Google Photorealistic 3D · Terrain · Ocean · Borders · Labels"
+                : "Ion / Esri imagery · Terrain · Ocean · Labels (3D off)"
               : stack === "ion"
-                ? "Cesium Ion · World Imagery · Terrain · Ocean · OSM Buildings · Volumetric Clouds · Labels"
-                : "Esri World Imagery · Ocean · Volumetric Clouds · Labels · CesiumJS"}
+                ? "Cesium Ion · World Imagery · Terrain · Ocean · OSM Buildings · Labels"
+                : "Esri World Imagery · Ocean · Labels · CesiumJS"}
             {" · "}
             Ctrl/Alt+drag tilt
           </p>

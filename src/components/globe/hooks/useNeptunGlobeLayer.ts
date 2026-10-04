@@ -25,6 +25,11 @@ type UseNeptunGlobeLayerOptions = {
   showUkraineControl: boolean;
   /** 관측(Cesium) — 전선 OFF여도 우크라 ops-box 위협을 전역에서 샘플 표시 */
   forceNeptunTheater?: boolean;
+  /**
+   * MapLibre 경로·HTML 배지. 기본 false — 드론/미사일/폭탄은 Cesium 공중 빌보드만.
+   * (지정학 글로브에서는 숨기고, 관측 모드 entity로만 본다)
+   */
+  maplibreNeptunVisuals?: boolean;
   layerViewState: ViewState;
   globeTier: GlobeLodTier;
   isCameraMoving: boolean;
@@ -39,6 +44,7 @@ export function useNeptunGlobeLayer({
   showNeptunPreviousTrails,
   showUkraineControl,
   forceNeptunTheater = false,
+  maplibreNeptunVisuals = false,
   layerViewState,
   globeTier,
   isCameraMoving,
@@ -116,9 +122,11 @@ export function useNeptunGlobeLayer({
     theaterGate,
   ]);
 
+  const maplibreShowNeptun = showNeptun && maplibreNeptunVisuals;
+
   const { neptunPathElevation, stableNeptunLivePaths, stableNeptunArchivedPaths } = useNeptunPaths({
     neptunRenderMode,
-    showNeptun,
+    showNeptun: maplibreShowNeptun,
     showNeptunPreviousTrails,
     visibleNeptunThreats,
     visibleNeptunArchived,
@@ -127,7 +135,7 @@ export function useNeptunGlobeLayer({
   });
 
   const neptunHtmlMarkers = useMemo<NeptunHtmlMarker[]>(() => {
-    if (!showNeptun || !neptunShowsMarkers(neptunRenderMode)) return [];
+    if (!maplibreShowNeptun || !neptunShowsMarkers(neptunRenderMode)) return [];
     return visibleNeptunThreats.map((threat) => ({
       ...threat,
       lat: threat.predictedLat,
@@ -135,11 +143,11 @@ export function useNeptunGlobeLayer({
       markerId: `neptun-html-${threat.id}`,
       displayKind: "neptun-html" as const,
     }));
-  }, [neptunRenderMode, showNeptun, visibleNeptunThreats]);
+  }, [maplibreShowNeptun, neptunRenderMode, visibleNeptunThreats]);
 
   const neptunImpactHtmlMarkers = useMemo<NeptunImpactHtmlMarker[]>(
     () =>
-      showNeptun
+      maplibreShowNeptun
         ? neptunImpactFlashes.map((flash) => ({
             ...flash,
             lat: flash.lat,
@@ -148,7 +156,7 @@ export function useNeptunGlobeLayer({
             displayKind: "neptun-impact" as const,
           }))
         : [],
-    [neptunImpactFlashes, showNeptun],
+    [maplibreShowNeptun, neptunImpactFlashes],
   );
 
   const neptunImpactInView = useMemo(() => {

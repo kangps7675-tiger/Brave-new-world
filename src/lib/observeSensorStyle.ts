@@ -12,9 +12,9 @@ export const OBSERVE_CONTROL_FILL_ALPHA = 0.38;
 export const OBSERVE_CONTROL_OUTLINE = "#fbbf24";
 export const OBSERVE_CONTROL_OUTLINE_ALPHA = 0.95;
 
-/** 축 허브 강조 국경 */
-export const OBSERVE_AXIS_BORDER = "#ff2a2a";
-export const OBSERVE_AXIS_BORDER_HALO = "rgba(0,0,0,0.75)";
+/** 축 허브 강조 국경 — core + dark halo (알람 테이프 느낌 완화) */
+export const OBSERVE_AXIS_BORDER = "#f87171";
+export const OBSERVE_AXIS_BORDER_HALO = "rgba(15, 23, 42, 0.55)";
 
 /** 전 세계 admin-0 윤곽 — 실사 위 얇은 중립선 */
 export const OBSERVE_WORLD_BORDER = "rgba(226, 232, 240, 0.72)";
