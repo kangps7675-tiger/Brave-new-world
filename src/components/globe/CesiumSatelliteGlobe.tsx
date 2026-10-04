@@ -947,7 +947,7 @@ function syncAircraftBillboardEntities(
         existing.billboard.color = new Cesium.ConstantProperty(
           Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         );
-        // mil: 궤도에서도 실루엣이 읽히게 — 지구 뒤(오클루전)만 show 로 숨김
+        // mil: 궤도에서도 실루엣이 읽히게 — 지구 뒤(오클루전)만 show로 숨김
         existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
           Number.POSITIVE_INFINITY,
         );
@@ -1110,7 +1110,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showAisMilitary = true,
       showAisCommercial = true,
       showDisguisedVessels = false,
-      showMilitaryActivity = false,
+      showMilitaryActivity = true,
       showAirTraffic = false,
       neptunThreats = [],
       showNeptun = false,
@@ -1238,15 +1238,20 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const straitReplaySceneRef = useRef<StraitReplayScene | null>(null);
   useImperativeHandle(
     innerHandleRef,
-    () => ({
-      flyTo: (lat, lng, altitude, durationMs, camera) => {
+    (): CesiumGlobeHandle => ({
+      flyTo: (
+        lat: number,
+        lng: number,
+        altitude?: number,
+        durationMs?: number,
+        camera?: FlyCameraOpts,
+      ) => {
         const viewer = viewerRef.current;
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
         const heightM = altitudeToHeightM(altitude ?? 0.55);
         const resolved = resolveCinematicCamera(camera);
-        // 카메라 위치 모드: 고도에 비해 덜 숙이면 중앙 시선이 수평선 위(우주)로 간다 → 하한 보정.
-        // lookAt 포함 — 고도 대비 얕은 pitch 는 우주(검은 배경)만 보임 → 항상 클램프
+        // 고도 대비 pitch가 얕으면 시선이 수평선 위(우주)로 간다 → lookAt 포함 항상 클램프.
         const cesiumPitchDeg = clampCesiumPitchToGlobeDeg(
           heightM,
           resolved.pitch - 90,
@@ -1257,8 +1262,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           roll: 0,
         };
         const destination = Cesium.Cartesian3.fromDegrees(lng, lat, heightM);
-        // lookAt: lat/lng 가 화면 중앙에 오도록 시선 반대쪽으로 물러선 카메라 위치를 Cesium 이 계산.
-        // (기본 모드는 lat/lng 를 카메라 위치로 쓰므로 비스듬한 pitch 에서 대상이 화면 밖으로 빠진다.)
+        // lookAt: lat/lng가 화면 중앙에 오도록 시선 반대쪽 카메라 위치를 Cesium이 계산.
+        // (기본 모드는 lat/lng를 카메라 위치로 쓰므로 비스듬한 pitch에서 대상이 화면 밖으로 빠진다.)
         if (resolved.lookAt) {
           const target = Cesium.Cartesian3.fromDegrees(lng, lat, 0);
           const sphere = new Cesium.BoundingSphere(target, 1);
@@ -1273,12 +1278,17 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             programmaticCameraRef.current = false;
             return;
           }
-          const lookCurrentHeight = viewer.camera.positionCartographic?.height ?? heightM;
+          const lookCurrentHeight =
+            viewer.camera.positionCartographic?.height ?? heightM;
           programmaticCameraRef.current = true;
           viewer.camera.flyToBoundingSphere(sphere, {
             offset,
             duration: resolveCinematicDurationMs(durationMs) / 1000,
-            maximumHeight: Math.max(heightM * 2.4, heightM + 2_200_000, lookCurrentHeight + 50_000),
+            maximumHeight: Math.max(
+              heightM * 2.4,
+              heightM + 2_200_000,
+              lookCurrentHeight + 50_000,
+            ),
             easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
             complete: () => {
               programmaticCameraRef.current = false;
@@ -1289,7 +1299,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           });
           return;
         }
-        // durationMs === 0 은 즉시 스냅 (인터럽트용). undefined는 시네마틱.
+        // durationMs === 0은 즉시 스냅(인터럽트용). undefined는 시네마틱.
         if (durationMs === 0) {
           programmaticCameraRef.current = true;
           viewer.camera.setView({ destination, orientation });
@@ -1297,8 +1307,9 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           return;
         }
         const durationSec = resolveCinematicDurationMs(durationMs) / 1000;
-        const currentHeight = viewer.camera.positionCartographic?.height ?? heightM;
-        // 현재 고도보다 maximumHeight 가 낮으면 비행 경로가 즉시 끊긴다.
+        const currentHeight =
+          viewer.camera.positionCartographic?.height ?? heightM;
+        // 현재 고도보다 maximumHeight가 낮으면 비행 경로가 즉시 끊긴다.
         const maximumHeight = Math.max(
           heightM * 2.4,
           heightM + 2_200_000,
@@ -1319,7 +1330,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           },
         });
       },
-      setClockHourUtc: (hourUtc) => {
+      setClockHourUtc: (hourUtc: number) => {
         const viewer = viewerRef.current;
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
@@ -3050,7 +3061,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     const radiusKm = deskFocus
       ? deskSpotlightRadiusKm(deskFocus.kind)
       : null;
-    // deskFocus 없을 때도 최근 7일 핀은 궤도에서 읽히게
+    // deskFocus가 없어도 최근 7일 핀은 궤도에서 읽히게
     const windowH = deskFocus?.windowHours ?? 168;
     const nowMs = Date.now();
     const firstSeen = liveuaFirstSeenRef.current;
