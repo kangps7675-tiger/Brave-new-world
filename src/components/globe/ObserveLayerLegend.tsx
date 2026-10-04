@@ -110,12 +110,12 @@ export function ObserveLayerLegend({
     },
     {
       id: "ocean",
-      swatch: "#1c1917",
+      swatch: "#0ea5e9",
       shape: "dot",
       label: en ? "Oceans" : "바다",
       detail: en
-        ? "Terrain water mask · animated wave normals"
-        : "지형 워터마스크 · 파도 노멀",
+        ? "Seafloor imagery · thin waterMask liquid"
+        : "해저 영상 · 워터마스크 액체층",
       active: true,
     },
     {

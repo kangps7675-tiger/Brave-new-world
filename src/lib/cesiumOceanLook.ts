@@ -1,19 +1,20 @@
 /**
- * Cesium 관측 — 글로브 밑색.
- * Ion waterMask + reflective ocean은 육지/호수·타일 갭에 파란 면으로 번져
- * 「육지 위 푸른 폴리곤」처럼 보이므로 끈다. 바다는 위성/실사 텍스처로만 읽힌다.
+ * Cesium 관측 — Google Earth식 바다.
+ * 해저(위성/실사 imagery)가 비치고, waterMask 픽셀에만 얇은 액체(반사·노멀) 층을 얹는다.
+ * 글로브 전체를 딥블루로 칠하지 않는다 — 그건 육지 갭에 파란/회색 폴리곤으로 번진다.
  */
 
 type CesiumNS = typeof import("cesium");
 
 /**
- * 타일 로드 전 순간 밑색.
- * 갭은 photoreal 아래 위성 imagery(α=1)로 가린다 — baseColor가 회색 면으로 보이면 안 된다.
+ * 타일 로드 전·잠깐 보이는 밑색만 (바다 페인트 아님).
+ * 실제 해저는 imagery가 그리고, 물은 showWaterEffect가 얹는다.
  */
-export const OBSERVE_OCEAN_BASE = "#1c1917";
+export const OBSERVE_OCEAN_BASE = "#0a0a0a";
 
 /**
- * 글로브 밑색만 맞추고, waterMask 반사 바다(파란 채움)는 끈다.
+ * waterMask terrain이 준비된 뒤 호출.
+ * showWaterEffect + oceanNormal → 마스크된 바다에만 “담긴 물” 느낌.
  */
 export function applyObserveOceanLook(
   Cesium: CesiumNS,
@@ -21,17 +22,20 @@ export function applyObserveOceanLook(
 ): void {
   const globe = viewer.scene.globe;
   globe.baseColor = Cesium.Color.fromCssColorString(OBSERVE_OCEAN_BASE);
-  // Cesium 기본 showWaterEffect=true + waterNormals → 육지에도 파란 ocean pass
+
   const g = globe as {
     showWaterEffect?: boolean;
     oceanNormalMapUrl?: string;
   };
   if (typeof g.showWaterEffect === "boolean") {
-    g.showWaterEffect = false;
+    g.showWaterEffect = true;
   }
   try {
-    g.oceanNormalMapUrl = "";
-  } catch {
-    /* some Cesium builds reject empty url */
+    const url = Cesium.buildModuleUrl("Assets/Textures/waterNormals.jpg");
+    if (url) {
+      g.oceanNormalMapUrl = url;
+    }
+  } catch (err) {
+    console.warn("[cesiumOceanLook] oceanNormalMapUrl skipped:", err);
   }
 }

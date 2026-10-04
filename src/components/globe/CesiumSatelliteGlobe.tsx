@@ -33,7 +33,15 @@ import {
   syncConflictEventEntities,
   type CesiumConflictEventPoint,
 } from "@/lib/cesiumConflictEvents";
-import { syncPlaceLabelEntities, type CesiumPlaceLabel } from "@/lib/cesiumPlaceLabels";
+import {
+  filterPlaceLabelsForOverlay,
+  syncPlaceLabelEntities,
+  type CesiumPlaceLabel,
+} from "@/lib/cesiumPlaceLabels";
+import {
+  attachObservePlaceNameOverlay,
+  type ObservePlaceOverlayHandle,
+} from "@/lib/cesiumGooglePlaceOverlay";
 import {
   attachWorldAdminBorders,
   loadCountryBorderRings,
@@ -1284,6 +1292,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const contextLostRecreateRef = useRef(false);
   const softErrorTimerRef = useRef<number | null>(null);
   const surfaceControllerRef = useRef<ObserveSurfaceController | null>(null);
+  const placeOverlayRef = useRef<ObservePlaceOverlayHandle | null>(null);
   /** 고도 look SSE — 의미 있는 변화만 armSettle */
   const lookSseAppliedRef = useRef<number | null>(null);
   const google3dQualityRef = useRef(google3dQuality);
@@ -1829,7 +1838,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         installObserveRenderGovernor(viewer);
         // 펄스는 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
 
-        // 위성 지구본을 명암 없이 밝게. waterMask OFF(육지 파란 패치 방지) · GIBS 구름 OFF.
+        // 위성 지구본을 명암 없이 밝게. Earth식 waterMask 액체 · GIBS 구름 OFF.
         // 스택: Google Photorealistic 3D(+Terrain) → Ion Imagery+OSM → Esri.
         let stackKind: StackKind = "esri";
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
@@ -1845,8 +1854,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
               try {
                 viewer.terrainProvider = await Cesium.createWorldTerrainAsync({
                   requestVertexNormals: true,
-                  // waterMask ON이면 육지/갭에 파란 ocean fill이 붙는다
-                  requestWaterMask: false,
+                  // 해저 imagery 위에 waterMask 액체층 (육지 갭은 photoreal imagery α=1로 가림)
+                  requestWaterMask: true,
                 });
               } catch (ionErr) {
                 console.warn(
@@ -1858,7 +1867,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
                     ION_WORLD_TERRAIN_ASSET,
                     {
                       requestVertexNormals: true,
-                      requestWaterMask: false,
+                      requestWaterMask: true,
                     },
                   );
               }
@@ -2897,13 +2906,53 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     syncPlaceLabelEntities(
       Cesium,
       viewer,
-      showPlaceLabels ? placeLabels : [],
+      showPlaceLabels ? filterPlaceLabelsForOverlay(placeLabels) : [],
       lang,
     );
   }, [status, showPlaceLabels, placeLabels, placeLabelLang]);
 
-  // Google/CARTO 지명 타일 오버레이는 엔티티 지명·해협 라벨과 겹쳐 끄고,
-  // Wanted/Pretendard `place:` 엔티티만 쓴다.
+  /** Google Earth식 도로·POI·지명 타일 (해협 콜아웃 정리와 병행) */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
+
+    let cancelled = false;
+    const lang = placeLabelLang === "en" ? "en" : "ko";
+
+    void (async () => {
+      try {
+        placeOverlayRef.current?.dispose();
+        placeOverlayRef.current = null;
+        if (!showPlaceLabels) return;
+        const handle = await attachObservePlaceNameOverlay(Cesium, viewer, {
+          language: lang,
+          enabled: true,
+          googleTileset:
+            google3dOn && googleTilesetRef.current && !googleTilesetRef.current.isDestroyed()
+              ? googleTilesetRef.current
+              : null,
+        });
+        if (cancelled) {
+          handle.dispose();
+          return;
+        }
+        placeOverlayRef.current = handle;
+      } catch (err) {
+        console.warn("[CesiumSatelliteGlobe] place name overlay:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      try {
+        placeOverlayRef.current?.dispose();
+      } catch {
+        /* ignore */
+      }
+      placeOverlayRef.current = null;
+    };
+  }, [status, showPlaceLabels, placeLabelLang, google3dOn, bootNonce]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
