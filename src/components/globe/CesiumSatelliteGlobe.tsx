@@ -1834,7 +1834,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         installObserveRenderGovernor(viewer);
         // 펄스는 interval+requestRender. continuous hold는 tracked-entity·surface-fade만.
 
-        // 위성 지구본을 명암 없이 밝게. 바다(waterMask) ON — GIBS 구름은 끈다.
+        // 위성 지구본을 명암 없이 밝게. waterMask OFF(육지 파란 패치 방지) · GIBS 구름 OFF.
         // 스택: Google Photorealistic 3D(+Terrain) → Ion Imagery+OSM → Esri.
         let stackKind: StackKind = "esri";
         let dayImageryLayer: import("cesium").ImageryLayer | null = null;
@@ -1850,7 +1850,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
               try {
                 viewer.terrainProvider = await Cesium.createWorldTerrainAsync({
                   requestVertexNormals: true,
-                  requestWaterMask: true,
+                  // waterMask ON이면 육지/갭에 파란 ocean fill이 붙는다
+                  requestWaterMask: false,
                 });
               } catch (ionErr) {
                 console.warn(
@@ -1862,7 +1863,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
                     ION_WORLD_TERRAIN_ASSET,
                     {
                       requestVertexNormals: true,
-                      requestWaterMask: true,
+                      requestWaterMask: false,
                     },
                   );
               }
