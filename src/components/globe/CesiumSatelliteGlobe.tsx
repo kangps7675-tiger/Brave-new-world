@@ -35,10 +35,6 @@ import {
 } from "@/lib/cesiumConflictEvents";
 import { syncPlaceLabelEntities, type CesiumPlaceLabel } from "@/lib/cesiumPlaceLabels";
 import {
-  attachObservePlaceNameOverlay,
-  type ObservePlaceOverlayHandle,
-} from "@/lib/cesiumGooglePlaceOverlay";
-import {
   attachWorldAdminBorders,
   loadCountryBorderRings,
 } from "@/lib/cesiumWorldBorders";
@@ -1283,7 +1279,6 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const liveTrackEntityIdRef = useRef<string | null>(null);
   const onUserBreakFollowRef = useRef(onUserBreakFollow);
   onUserBreakFollowRef.current = onUserBreakFollow;
-  const placeOverlayRef = useRef<ObservePlaceOverlayHandle | null>(null);
   const clickHandlerRef = useRef<import("cesium").ScreenSpaceEventHandler | null>(null);
   const mountAtRef = useRef(Date.now());
   const contextLostRecreateRef = useRef(false);
@@ -2907,48 +2902,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     );
   }, [status, showPlaceLabels, placeLabels, placeLabelLang]);
 
-  /** Google Earth식 도로·POI·건축물 라벨 (Google 2D draping / CARTO 폴백) */
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    const Cesium = cesiumModRef.current;
-    if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
-
-    let cancelled = false;
-    const lang = placeLabelLang === "en" ? "en" : "ko";
-
-    void (async () => {
-      try {
-        placeOverlayRef.current?.dispose();
-        placeOverlayRef.current = null;
-        if (!showPlaceLabels) return;
-        const handle = await attachObservePlaceNameOverlay(Cesium, viewer, {
-          language: lang,
-          enabled: true,
-          googleTileset:
-            google3dOn && googleTilesetRef.current && !googleTilesetRef.current.isDestroyed()
-              ? googleTilesetRef.current
-              : null,
-        });
-        if (cancelled) {
-          handle.dispose();
-          return;
-        }
-        placeOverlayRef.current = handle;
-      } catch (err) {
-        console.warn("[CesiumSatelliteGlobe] place name overlay:", err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      try {
-        placeOverlayRef.current?.dispose();
-      } catch {
-        /* ignore */
-      }
-      placeOverlayRef.current = null;
-    };
-  }, [status, showPlaceLabels, placeLabelLang, google3dOn, bootNonce]);
+  // Google/CARTO 지명 타일 오버레이는 엔티티 지명·해협 라벨과 겹쳐 끄고,
+  // Wanted/Pretendard `place:` 엔티티만 쓴다.
 
   useEffect(() => {
     const viewer = viewerRef.current;

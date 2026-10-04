@@ -84,7 +84,7 @@ export function syncPlaceLabelEntities(
         font,
         fillColor: fill,
         outlineColor: outline,
-        outlineWidth: tier === "country" ? 4 : 3,
+        outlineWidth: tier === "country" ? 2.5 : 2,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         pixelOffset: new Cesium.Cartesian2(0, -6),
