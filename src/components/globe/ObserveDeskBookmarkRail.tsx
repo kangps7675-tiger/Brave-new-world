@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { zc } from "@/lib/uiStack";
 
 export type ObserveDeskTabId = "flash" | "board" | "alerts" | "verify";
 
@@ -122,7 +123,7 @@ export function ObserveDeskBookmarkRail({
 
   return (
     <div
-      className="pointer-events-auto fixed right-0 z-[120] flex flex-row-reverse items-start gap-1.5"
+      className={`pointer-events-auto fixed right-0 ${zc("mapControl")} flex flex-row-reverse items-start gap-1.5`}
       style={{
         top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
       }}

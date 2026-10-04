@@ -86,7 +86,6 @@ import {
 } from "@/lib/cesiumObserveSurface";
 import {
   applyObserveLookToViewer,
-  OBSERVE_ATMO_ORBIT,
   OBSERVE_LOOK_ORBIT_M,
   observeLookForHeightM,
 } from "@/lib/cesiumObserveLook";
@@ -1670,12 +1669,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.show = true;
           // 궤도 rim — 이후 카메라 고도 이펙트가 near/orbit 보간
-          applyObserveLookToViewer(viewer, {
-            atmosphereLightIntensity: OBSERVE_ATMO_ORBIT.light,
-            saturationShift: OBSERVE_ATMO_ORBIT.sat,
-            brightnessShift: OBSERVE_ATMO_ORBIT.bright,
-            sseBias: 2,
-          });
+          applyObserveLookToViewer(
+            viewer,
+            observeLookForHeightM(OBSERVE_LOOK_ORBIT_M),
+          );
         }
         // fog/지면대기는 궤도 거리에서 위성 텍스처를 희뿌옇게 만듦 — 림 glow만 skyAtmosphere
         viewer.scene.fog.enabled = false;

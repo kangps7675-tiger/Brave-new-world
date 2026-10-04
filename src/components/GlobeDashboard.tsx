@@ -6451,7 +6451,7 @@ export function GlobeDashboard({
         {!isPhoneUi && incidentSpace ? (
           <>
             <div
-              className="pointer-events-none absolute inset-0 z-[30] shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20"
+              className={`pointer-events-none absolute inset-0 ${zc("mapChrome")} shadow-[inset_0_0_90px_rgba(0,0,0,0.62)] ring-1 ring-inset ring-white/20`}
               aria-hidden
             />
             <div
@@ -6772,7 +6772,7 @@ export function GlobeDashboard({
 
         {isSatelliteViewer && isPhoneUi ? (
           <div
-            className="pointer-events-auto fixed left-3 z-[120]"
+            className={`pointer-events-auto fixed left-3 ${zc("mapControl")}`}
             style={{ top: "calc(var(--hover-nav-height, 4.5rem) + 0.5rem)" }}
           >
             <NkMissileHistoryDock lang={labelLanguage === "en" ? "en" : "ko"} />
@@ -6946,7 +6946,7 @@ export function GlobeDashboard({
 
         {isSatelliteViewer && intelDeskTipVisible && !theaterSitrepRegion ? (
           <div
-            className="pointer-events-none fixed z-[930]"
+            className={`pointer-events-none fixed ${zc("alert")}`}
             style={{
               right: "0.75rem",
               bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)",
@@ -6969,7 +6969,7 @@ export function GlobeDashboard({
 
         {intelDrillGate ? (
           <div
-            className="pointer-events-none fixed bottom-4 right-3 z-[940]"
+            className={`pointer-events-none fixed bottom-4 right-3 ${zc("alert")}`}
             style={{
               paddingBottom: "env(safe-area-inset-bottom)",
             }}

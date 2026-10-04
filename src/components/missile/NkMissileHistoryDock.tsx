@@ -7,6 +7,7 @@ import {
   buildNkMissileHistoryCards,
   type NkMissileHistoryCard,
 } from "@/lib/nkMissileHistory";
+import { zc } from "@/lib/uiStack";
 
 function openReference(card: NkMissileHistoryCard) {
   if (!card.sourceUrl) return;
@@ -40,7 +41,7 @@ export function NkMissileHistoryDock({ lang }: { lang: "ko" | "en" }) {
       {open && selected && typeof document !== "undefined"
         ? createPortal(
         <div
-          className="pointer-events-auto fixed left-1/2 top-[12vh] z-[140] flex max-h-[min(72vh,680px)] w-[min(560px,94vw)] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-orange-400/35 bg-[#0c141d]/95 shadow-2xl backdrop-blur-md"
+          className={`pointer-events-auto fixed left-1/2 top-[12vh] ${zc("panel")} flex max-h-[min(72vh,680px)] w-[min(560px,94vw)] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-orange-400/35 bg-[#0c141d]/95 shadow-2xl backdrop-blur-md`}
           role="dialog"
           aria-label={ko ? "북한 미사일 과거 내역" : "DPRK missile archive"}
         >
