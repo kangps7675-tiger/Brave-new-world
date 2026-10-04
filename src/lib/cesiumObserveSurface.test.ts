@@ -1,15 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
   imageryAlphaForSurface,
+  OBSERVE_PHOTOREAL_IMAGERY_FLOOR,
   createObserveSurfaceController,
 } from "@/lib/cesiumObserveSurface";
 import { _resetObserveRenderGovernorForTest } from "@/lib/cesiumObserveRenderGovernor";
 
 describe("cesiumObserveSurface", () => {
-  it("imageryAlphaForSurface fades photoreal to 0 and satellite to 1", () => {
+  it("imageryAlphaForSurface fades photoreal to floor and satellite to 1", () => {
     expect(imageryAlphaForSurface("photoreal", 0)).toBeCloseTo(1, 5);
-    expect(imageryAlphaForSurface("photoreal", 1)).toBeCloseTo(0, 5);
-    expect(imageryAlphaForSurface("satellite", 0)).toBeCloseTo(0, 5);
+    expect(imageryAlphaForSurface("photoreal", 1)).toBeCloseTo(
+      OBSERVE_PHOTOREAL_IMAGERY_FLOOR,
+      5,
+    );
+    expect(imageryAlphaForSurface("satellite", 0)).toBeCloseTo(
+      OBSERVE_PHOTOREAL_IMAGERY_FLOOR,
+      5,
+    );
     expect(imageryAlphaForSurface("satellite", 1)).toBeCloseTo(1, 5);
   });
 
