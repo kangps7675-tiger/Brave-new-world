@@ -1,7 +1,7 @@
 /**
  * 관측(Cesium) 실사 센서 시각 계약.
- * 지정학 MapLibre 다크 잉크를 복제하지 않고, Google Photorealistic 위에서 읽히는
- * 고대비 stroke + 어두운 halo / 얇은 면 / 등급 링만 정의한다.
+ * 지정학 MapLibre 네온을 복제하지 않고, Google Photorealistic 위 ISR HUD
+ * (접지 디스크·니들·코어 — cesiumObservePins) + 얇은 통제면 / 등급 링.
  */
 
 import type { DisplayGrade } from "@/lib/intelContract/types";

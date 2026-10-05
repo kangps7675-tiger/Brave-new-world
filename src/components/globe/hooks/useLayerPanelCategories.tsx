@@ -726,7 +726,7 @@ export function useLayerPanelCategories({
         items: [
           {
             id: "ukraine",
-            label: "우크라이나 전선·점령",
+            label: "다전장 통제면 (UA·중동)",
             detail:
               ukraineControlStatus === "loading"
                 ? "불러오는 중…"

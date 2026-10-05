@@ -16,7 +16,7 @@ import { chokeStressHex } from "@/lib/chokeStressColor";
 import { buildChokepointStressBriefing, type ChokepointStressBriefing } from "@/lib/chokepointStressBriefing";
 import { stressForChokepoint, type ChokepointAisObservation } from "@/lib/chokepointStressForUi";
 import { buildConflictEventClusters } from "@/lib/conflictEvents/buildLayer";
-import { CINEMATIC_FLY, resolveCinematicCamera } from "@/lib/globeCamera";
+import { LOCATION_LOOK_DOWN } from "@/lib/globeCamera";
 import { buildObserveWatchboard, type WatchboardItem, watchboardItemToDeskFocus, gradeLabelFriendly, gateEscalation, canPublish, gateChokepointStress, type DeskFocus, type DisplayGrade } from "@/lib/intelContract";
 import { isPromotion } from "@/lib/intelContract/deskDynamics";
 import type { DisconfirmCandidate } from "@/lib/intelContract/disconfirmPass";
@@ -56,7 +56,7 @@ export type UseObserveAlertModelOptions = {
   INCIDENT_ENTRY_ALT: 0.85;
   cesiumReady: boolean;
   unifiedFlyTo: (lat: number, lng: number, altitude?: number | undefined, durationMs?: number | undefined, camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined) => void;
-  switchToObserveAndFly: (lat: number, lng: number, opts: { altitude?: number | undefined; durationMs?: number | undefined; camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined; subtitle: string; title: string; kicker?: string | undefined; selection?: Selection | undefined; }) => void;
+  switchToObserveAndFly: (lat: number, lng: number, opts: { altitude?: number | undefined; durationMs?: number | undefined; camera?: { pitch?: number | undefined; bearing?: number | undefined; lookAt?: boolean | undefined; } | undefined; subtitle: string; title: string; kicker?: string | undefined; selection?: Selection | undefined; }) => void;
   displayMilitaryExercises: MilitaryExercise[];
   scoredEvents: ScoredEvent[];
   portWatchByChokeId: Record<string, ChokepointAisObservation>;
@@ -202,8 +202,12 @@ export function useObserveAlertModel(opts: UseObserveAlertModelOptions) {
     const t = window.setTimeout(() => setPromotingItemId(null), 1400);
     switchToObserveAndFly(focus.lat, focus.lng, {
       altitude: focus.altitude || INCIDENT_ENTRY_ALT,
-      durationMs: CINEMATIC_FLY.durationMs,
-      camera: resolveCinematicCamera(),
+      durationMs: LOCATION_LOOK_DOWN.durationMs,
+      camera: {
+        pitch: LOCATION_LOOK_DOWN.pitch,
+        bearing: LOCATION_LOOK_DOWN.bearing,
+        lookAt: LOCATION_LOOK_DOWN.lookAt,
+      },
       subtitle: gradeLabelFriendly(focus.grade, labelLanguage),
       title: focus.title,
       kicker: lang === "en" ? "Promoted" : "승격",

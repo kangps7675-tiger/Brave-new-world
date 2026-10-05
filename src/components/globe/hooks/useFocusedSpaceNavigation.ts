@@ -12,11 +12,17 @@ import {
   type PipelineRevealSnap,
 } from "@/lib/flashPipelineReveal";
 import {
-  CINEMATIC_FLY,
+  LOCATION_LOOK_DOWN,
   resolveCinematicCamera,
   resolveCinematicDurationMs,
   type FlyCameraOpts,
 } from "@/lib/globeCamera";
+
+const LOOK_DOWN_CAMERA: FlyCameraOpts = {
+  pitch: LOCATION_LOOK_DOWN.pitch,
+  bearing: LOCATION_LOOK_DOWN.bearing,
+  lookAt: LOCATION_LOOK_DOWN.lookAt,
+};
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import {
   gradeLabelFriendly,
@@ -292,8 +298,11 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       durationMs?: number,
       camera?: FlyCameraOpts,
     ) => {
-      const dur = resolveCinematicDurationMs(durationMs);
-      const cam = resolveCinematicCamera(camera);
+      // 사건·핀 기본은 직하. 궤도 연출이 필요하면 호출부가 camera를 명시한다.
+      const dur = resolveCinematicDurationMs(
+        durationMs ?? LOCATION_LOOK_DOWN.durationMs,
+      );
+      const cam = resolveCinematicCamera(camera ?? LOOK_DOWN_CAMERA);
       if (dur > 0) {
         enterFocusedSpace({
           lat,
@@ -437,8 +446,8 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       const gradeLabel = gradeLabelFriendly(focus.grade, labelLanguage);
       switchToObserveAndFly(focus.lat, focus.lng, {
         altitude: focus.altitude || INCIDENT_ENTRY_ALT,
-        durationMs: CINEMATIC_FLY.durationMs,
-        camera: resolveCinematicCamera(),
+        durationMs: LOCATION_LOOK_DOWN.durationMs,
+        camera: LOOK_DOWN_CAMERA,
         subtitle: gradeLabel,
         title: focus.title,
         kicker: lang === "en" ? "Desk focus" : "안건 포커스",
