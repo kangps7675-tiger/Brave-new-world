@@ -1,42 +1,25 @@
 /**
- * 관측(Cesium) conflict-events 핀 — DOM 네온 배지 대신 billboard + displayGrade 링.
+ * 관측(Cesium) conflict-events 핀 — ISR 센서 HUD billboard + displayGrade 링.
  */
 
 import type { ConflictEventHtmlMarker } from "@/lib/conflictEvents/buildLayer";
 import {
-  OBSERVE_CATEGORY_HEX,
   OBSERVE_CONFLICT_PIN_MAX,
   observeGradeStyle,
 } from "@/lib/observeSensorStyle";
 import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
+import {
+  OBSERVE_PIN_FAR_M,
+  OBSERVE_PIN_FAR_SCALE,
+  OBSERVE_PIN_HEIGHT,
+  OBSERVE_PIN_NEAR_M,
+  OBSERVE_PIN_NEAR_SCALE,
+  OBSERVE_PIN_WIDTH,
+  observePinCoreHex,
+  observeSensorPinUri,
+} from "@/lib/cesiumObservePins";
 
 type CesiumNS = typeof import("cesium");
-
-const URI_CACHE = new Map<string, string>();
-
-function svgDataUri(svg: string): string {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
-function pinSvg(accentHex: string, ringHex: string, ringWidth: number): string {
-  const rw = Math.max(1.5, ringWidth);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-  <circle cx="20" cy="20" r="15" fill="none" stroke="${ringHex}" stroke-width="${rw}" opacity="0.95"/>
-  <circle cx="20" cy="20" r="15.8" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="2.2"/>
-  <circle cx="20" cy="20" r="6.5" fill="${accentHex}" stroke="rgba(2,6,23,0.9)" stroke-width="1.5"/>
-</svg>`;
-}
-
-function billboardUri(accent: string, gradeKey: string, ringHex: string, scale: number): string {
-  const cacheKey = `${accent}|${gradeKey}|${scale.toFixed(2)}`;
-  let uri = URI_CACHE.get(cacheKey);
-  if (!uri) {
-    const accentHex = OBSERVE_CATEGORY_HEX[accent] ?? OBSERVE_CATEGORY_HEX.white;
-    uri = svgDataUri(pinSvg(accentHex, ringHex, 2.2 * scale));
-    URI_CACHE.set(cacheKey, uri);
-  }
-  return uri;
-}
 
 export type CesiumConflictEventPoint = Pick<
   ConflictEventHtmlMarker,
@@ -62,26 +45,33 @@ export function syncConflictEventEntities(
     .filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng))
     .slice(0, OBSERVE_CONFLICT_PIN_MAX);
   const seen = new Set<string>();
+  const scaleByDistance = new Cesium.NearFarScalar(
+    OBSERVE_PIN_NEAR_M,
+    OBSERVE_PIN_NEAR_SCALE,
+    OBSERVE_PIN_FAR_M,
+    OBSERVE_PIN_FAR_SCALE,
+  );
 
   for (const event of capped) {
     const id = `conflict:${event.markerId}`;
     seen.add(id);
     const grade = observeGradeStyle(event.displayGrade);
-    const image = billboardUri(
-      event.accent,
-      event.displayGrade ?? "low",
-      grade.stroke,
-      grade.scale,
-    );
-    const px = Math.round(28 * grade.scale);
-    const heightM = 350 + Math.min(1_800, (event.intensity ?? 0.4) * 2_200);
-    const position = Cesium.Cartesian3.fromDegrees(event.lng, event.lat, heightM);
+    const image = observeSensorPinUri({
+      coreHex: observePinCoreHex(event.accent),
+      kind: "conflict",
+      ringHex: grade.stroke,
+      ringWidth: 1.4 * grade.scale,
+      focused: grade.pulse,
+    });
+    const pxW = Math.round(OBSERVE_PIN_WIDTH * grade.scale);
+    const pxH = Math.round(OBSERVE_PIN_HEIGHT * grade.scale);
+    const position = Cesium.Cartesian3.fromDegrees(event.lng, event.lat, 0);
     const existing = viewer.entities.getById(id);
     if (existing?.billboard) {
       existing.position = new Cesium.ConstantPositionProperty(position);
       existing.billboard.image = new Cesium.ConstantProperty(image);
-      existing.billboard.width = new Cesium.ConstantProperty(px);
-      existing.billboard.height = new Cesium.ConstantProperty(px);
+      existing.billboard.width = new Cesium.ConstantProperty(pxW);
+      existing.billboard.height = new Cesium.ConstantProperty(pxH);
       existing.billboard.color = new Cesium.ConstantProperty(
         Cesium.Color.WHITE.withAlpha(grade.alpha),
       );
@@ -93,13 +83,14 @@ export function syncConflictEventEntities(
       position,
       billboard: {
         image,
-        width: px,
-        height: px,
-        verticalOrigin: Cesium.VerticalOrigin.CENTER,
-        heightReference: Cesium.HeightReference.NONE,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        width: pxW,
+        height: pxH,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: 8_000,
         color: Cesium.Color.WHITE.withAlpha(grade.alpha),
         scale: 1,
+        scaleByDistance,
       },
     });
   }
@@ -125,13 +116,14 @@ export function attachConflictEventPulse(
   return startObservePulseLoop(() => {
     if (viewer.isDestroyed()) return false;
     const t = performance.now() / 1000;
-    const pulse = 0.88 + 0.12 * Math.sin(t * 3.2);
+    const pulse = 0.92 + 0.08 * Math.sin(t * 2.8);
     let any = false;
     for (const entity of viewer.entities.values) {
       if (typeof entity.id !== "string" || !entity.id.startsWith("conflict:")) continue;
       if (!entity.billboard) continue;
+      // focused/high 핀만 살짝 호흡
       const image = entity.billboard.image?.getValue?.(viewer.clock.currentTime);
-      if (typeof image !== "string" || !image.includes("%2334d399")) continue;
+      if (typeof image !== "string" || !image.includes("34d399")) continue;
       any = true;
       entity.billboard.scale = new Cesium.ConstantProperty(pulse);
     }
