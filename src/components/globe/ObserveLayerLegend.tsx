@@ -56,10 +56,10 @@ export function ObserveLayerLegend({
       id: "frontline",
       swatch: OBSERVE_CONTROL_OUTLINE,
       shape: "fill",
-      label: en ? "Control areas" : "통제면·전선",
+      label: en ? "Multi-theater control" : "다전장 통제",
       detail: en
-        ? "LiveUA occupied fill (UA · IR · YE · LB · IL/PS)"
-        : "LiveUA 점령/통제 면 (우크라·이란·예멘·레바논·이스라엘/팔)",
+        ? "LiveUA (+ DeepState UA fallback) · UA · IR · YE · LB · IL/PS"
+        : "LiveUA(+우크라 DeepState 폴백) · 우크라·이란·예멘·레바논·이스라엘/팔",
       active: frontlineOn,
     },
     {

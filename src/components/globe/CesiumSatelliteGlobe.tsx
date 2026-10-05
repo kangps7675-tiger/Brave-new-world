@@ -34,6 +34,15 @@ import {
   type CesiumConflictEventPoint,
 } from "@/lib/cesiumConflictEvents";
 import {
+  OBSERVE_PIN_FAR_M,
+  OBSERVE_PIN_FAR_SCALE,
+  OBSERVE_PIN_HEIGHT,
+  OBSERVE_PIN_NEAR_M,
+  OBSERVE_PIN_NEAR_SCALE,
+  OBSERVE_PIN_WIDTH,
+  observeSensorPinUri,
+} from "@/lib/cesiumObservePins";
+import {
   filterPlaceLabelsForOverlay,
   syncPlaceLabelEntities,
   type CesiumPlaceLabel,
@@ -3189,28 +3198,50 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       alpha *= Math.max(0.35, timeA);
       if (slots) alpha *= Math.max(0.55, slots.sensor);
       if (isNew) alpha = Math.min(1, alpha + 0.35);
-      const baseCss = focused || isNew ? "#fde68a" : "#fbbf24";
-      const color = Cesium.Color.fromCssColorString(baseCss).withAlpha(
-        Math.max(0.35, alpha),
-      );
-      const pixelSize = focused ? 20 : isNew ? 16 : deskFocus && inSpot ? 14 : 13;
-      const outlineWidth = focused || isNew ? 3 : 2;
+      const coreHex = focused || isNew ? "#fde68a" : "#fbbf24";
+      const image = observeSensorPinUri({
+        coreHex,
+        kind: "event",
+        focused: focused || isNew,
+        ringHex: "#fef3c7",
+      });
+      const scale = focused ? 1.15 : isNew ? 1.08 : deskFocus && inSpot ? 1 : 0.95;
+      const pxW = Math.round(OBSERVE_PIN_WIDTH * scale);
+      const pxH = Math.round(OBSERVE_PIN_HEIGHT * scale);
       const position = Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, 0);
+      const tint = Cesium.Color.WHITE.withAlpha(Math.max(0.4, alpha));
+      const scaleByDistance = new Cesium.NearFarScalar(
+        OBSERVE_PIN_NEAR_M,
+        OBSERVE_PIN_NEAR_SCALE,
+        OBSERVE_PIN_FAR_M,
+        OBSERVE_PIN_FAR_SCALE,
+      );
       const existing = viewer.entities.getById(pointId);
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = pin.title;
         existing.show = true;
-        if (existing.point) {
-          existing.point.pixelSize = new Cesium.ConstantProperty(pixelSize);
-          existing.point.color = new Cesium.ConstantProperty(color);
-          existing.point.outlineColor = new Cesium.ConstantProperty(
-            Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
+        if (existing.point) existing.point = undefined;
+        if (existing.billboard) {
+          existing.billboard.image = new Cesium.ConstantProperty(image);
+          existing.billboard.width = new Cesium.ConstantProperty(pxW);
+          existing.billboard.height = new Cesium.ConstantProperty(pxH);
+          existing.billboard.color = new Cesium.ConstantProperty(tint);
+          existing.billboard.scaleByDistance = new Cesium.ConstantProperty(
+            scaleByDistance,
           );
-          existing.point.outlineWidth = new Cesium.ConstantProperty(outlineWidth);
-          existing.point.disableDepthTestDistance = new Cesium.ConstantProperty(
-            Number.POSITIVE_INFINITY,
-          );
+        } else {
+          existing.billboard = new Cesium.BillboardGraphics({
+            image,
+            width: pxW,
+            height: pxH,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+            disableDepthTestDistance: 8_000,
+            color: tint,
+            scale: 1,
+            scaleByDistance,
+          });
         }
       } else {
         viewer.entities.add({
@@ -3218,12 +3249,16 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           name: pin.title,
           position,
           show: true,
-          point: {
-            pixelSize,
-            color,
-            outlineColor: Cesium.Color.BLACK.withAlpha(focused ? 0.9 : 0.75),
-            outlineWidth,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          billboard: {
+            image,
+            width: pxW,
+            height: pxH,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+            disableDepthTestDistance: 8_000,
+            color: tint,
+            scale: 1,
+            scaleByDistance,
           },
         });
       }

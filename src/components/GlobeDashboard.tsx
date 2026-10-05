@@ -3346,11 +3346,32 @@ export function GlobeDashboard({
               occupied?: FeatureCollection;
               source?: string;
             };
-            // LiveUA만 수용. empty(동기화 대기)면 해당 지역 슬롯 비움.
             if (body.source === "liveuamap" && body.occupied?.features?.length) {
               liveuaTerritoryByRegionRef.current[region] = body.occupied.features;
-            } else if (body.source === "empty" || body.source !== "liveuamap") {
-              delete liveuaTerritoryByRegionRef.current[region];
+              return;
+            }
+            // empty/비-LiveUA: last-good 유지. 우크라만 DeepState 폴백(최초 빈 슬롯일 때).
+            if (
+              region === "ukraine" &&
+              !liveuaTerritoryByRegionRef.current.ukraine?.length
+            ) {
+              try {
+                const fb = await fetch(
+                  `/api/deepstate/frontlines?region=ukraine`,
+                  { cache: "no-store" },
+                );
+                if (!fb.ok) return;
+                const fbBody = (await fb.json()) as {
+                  occupied?: FeatureCollection;
+                  source?: string;
+                };
+                if (fbBody.occupied?.features?.length) {
+                  liveuaTerritoryByRegionRef.current.ukraine =
+                    fbBody.occupied.features;
+                }
+              } catch {
+                /* keep empty */
+              }
             }
           } catch {
             // region optional — last-good 유지
@@ -6455,7 +6476,17 @@ export function GlobeDashboard({
           showConflictEvents={isSatelliteViewer && showConflictEvents}
           onSelectConflictEvent={(ev) => {
             if (!Number.isFinite(ev.lat) || !Number.isFinite(ev.lng)) return;
-            void unifiedFlyTo(ev.lat, ev.lng, 0.12);
+            void unifiedFlyTo(
+              ev.lat,
+              ev.lng,
+              0.12,
+              LOCATION_LOOK_DOWN.durationMs,
+              {
+                pitch: LOCATION_LOOK_DOWN.pitch,
+                bearing: LOCATION_LOOK_DOWN.bearing,
+                lookAt: LOCATION_LOOK_DOWN.lookAt,
+              },
+            );
           }}
           {...mapGlobeProps}
         />

@@ -54,7 +54,7 @@ export function ObserveSensorChips({
     {
       id: "frontline",
       on: frontlineOn,
-      label: en ? "Fronts" : "전선",
+      label: en ? "Theaters" : "다전장 통제",
     },
     {
       id: "hazards",
