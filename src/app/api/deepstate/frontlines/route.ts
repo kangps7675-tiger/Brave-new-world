@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     : "ukraine";
 
   if (region === "ukraine") {
-    const result = await resolveUkraineOccupied({ liveuaOnly: true });
+    const result = await resolveUkraineOccupied();
     if (!result.occupied.features.length) {
       return NextResponse.json(
         {
