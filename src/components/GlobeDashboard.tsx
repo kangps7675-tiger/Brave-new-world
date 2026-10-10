@@ -1114,18 +1114,17 @@ export function GlobeDashboard({
   const [ukraineControlStatus, setUkraineControlStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >(() => (viinaMeta?.available ? "idle" : "error"));
-  /** 우크라 점령면 — MapLibre 전용 (LiveUA 우선·DeepState 폴백). Cesium은 liveuaControlGeoJson. */
+  /**
+   * LiveUA 다전장 통제면 (UA·IR·YE·LB·IL-PS) — MapLibre macro/micro + Cesium 공유.
+   * 60s 폴링으로만 채움. DeepState 금지.
+   */
   const [ukraineOccupiedGeoJson, setUkraineOccupiedGeoJson] = useState<FeatureCollection>(
     () => emptyOccupiedGeoJson(),
   );
   const [ukraineOccupiedStatus, setUkraineOccupiedStatus] = useState<
     "idle" | "loading" | "ok" | "error"
   >("idle");
-  const ukraineOccupiedFetchRef = useRef(false);
-  /**
-   * Cesium 통제면 — LiveUA UA/IR/YE/LB/IL-PS (전선 칩 ON일 때·DeepState 금지).
-   * 비면 null 유지, sync/60s 폴링으로만 채움.
-   */
+  /** Cesium DataSource용 — ukraineOccupiedGeoJson과 동일 소스 */
   const [liveuaControlGeoJson, setLiveuaControlGeoJson] =
     useState<FeatureCollection | null>(null);
   const liveuaTerritoryByRegionRef = useRef<
@@ -3304,54 +3303,6 @@ export function GlobeDashboard({
     viinaMeta?.available,
   ]);
 
-  /** MapLibre: 우크라 점령면 — LiveUA 우선 → DeepState 폴백 (세슘 경로와 분리) */
-  useEffect(() => {
-    if (!globeReady) return;
-    if (!showUkraineControl || isSatelliteViewer) return;
-    if (ukraineOccupiedFetchRef.current) return;
-    if (ukraineOccupiedStatus === "loading" || ukraineOccupiedStatus === "ok") return;
-    ukraineOccupiedFetchRef.current = true;
-    setUkraineOccupiedStatus("loading");
-    let cancelled = false;
-    void (async () => {
-      const applyFc = (fc: FeatureCollection | undefined) => {
-        if (!fc?.features?.length) return false;
-        setUkraineOccupiedGeoJson(fc);
-        setUkraineOccupiedStatus("ok");
-        return true;
-      };
-      try {
-        const res = await fetch("/api/deepstate/frontlines", { cache: "no-store" });
-        if (res.ok) {
-          const body = (await res.json()) as { occupied?: FeatureCollection; source?: string };
-          if (!cancelled && applyFc(body.occupied)) return;
-        }
-      } catch {
-        // fall through — DeepState 정적은 최후 폴백
-      }
-      try {
-        const snap = await fetch("/data/ukraine-occupied-deepstate.json");
-        if (snap.ok) {
-          const body = (await snap.json()) as FeatureCollection;
-          if (!cancelled && applyFc(body)) return;
-        }
-      } catch {
-        // empty
-      }
-      if (cancelled) return;
-      ukraineOccupiedFetchRef.current = false;
-      setUkraineOccupiedStatus("error");
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [globeReady, showUkraineControl, isSatelliteViewer, ukraineOccupiedStatus]);
-
-  /**
-   * Cesium LiveUA 통제면 — UA/IR/YE/LB/IL-PS를 이벤트 피드와 같은 60s 틱으로 폴링.
-   * `source !== liveuamap` 인 응답은 IGNORE (DeepState/정적 JSON 금지).
-   * 비면 null 유지; sync/폴링으로만 채움. MapLibre ukraineOccupiedGeoJson과 분리.
-   */
   /** 관측대 설명 카드 — 첫 방문 유저가 관측대를 처음 켤 때만 */
   useEffect(() => {
     if (!isSatelliteViewer || isPhoneUi) {
@@ -3367,10 +3318,15 @@ export function GlobeDashboard({
     setIntelDeskTipVisible(true);
   }, [isSatelliteViewer, isPhoneUi]);
 
+  /**
+   * LiveUA 다전장 통제면 — MapLibre·Cesium 공통.
+   * UA/IR/YE/LB/IL-PS를 60s 틱으로 폴링. `source !== liveuamap` IGNORE.
+   */
   useEffect(() => {
-    if (!isSatelliteViewer || !globeReady) return;
+    if (!globeReady || !showUkraineControl) return;
     let cancelled = false;
     const regions = LIVEUAMAP_CONTROL_REGION_IDS;
+    setUkraineOccupiedStatus((prev) => (prev === "ok" ? prev : "loading"));
 
     const pullTerritory = async () => {
       await Promise.all(
@@ -3380,37 +3336,13 @@ export function GlobeDashboard({
               `/api/deepstate/frontlines?region=${region}&liveuaOnly=1`,
               { cache: "no-store" },
             );
-            if (!res.ok) return; // 네트워크/5xx — 지역별 last-good 유지
+            if (!res.ok) return;
             const body = (await res.json()) as {
               occupied?: FeatureCollection;
               source?: string;
             };
             if (body.source === "liveuamap" && body.occupied?.features?.length) {
               liveuaTerritoryByRegionRef.current[region] = body.occupied.features;
-              return;
-            }
-            // empty/비-LiveUA: last-good 유지. 우크라만 DeepState 폴백(최초 빈 슬롯일 때).
-            if (
-              region === "ukraine" &&
-              !liveuaTerritoryByRegionRef.current.ukraine?.length
-            ) {
-              try {
-                const fb = await fetch(
-                  `/api/deepstate/frontlines?region=ukraine`,
-                  { cache: "no-store" },
-                );
-                if (!fb.ok) return;
-                const fbBody = (await fb.json()) as {
-                  occupied?: FeatureCollection;
-                  source?: string;
-                };
-                if (fbBody.occupied?.features?.length) {
-                  liveuaTerritoryByRegionRef.current.ukraine =
-                    fbBody.occupied.features;
-                }
-              } catch {
-                /* keep empty */
-              }
             }
           } catch {
             // region optional — last-good 유지
@@ -3421,9 +3353,16 @@ export function GlobeDashboard({
       const features = regions.flatMap(
         (r) => liveuaTerritoryByRegionRef.current[r] ?? [],
       );
-      setLiveuaControlGeoJson(
-        features.length ? { type: "FeatureCollection", features } : null,
-      );
+      const fc: FeatureCollection | null = features.length
+        ? { type: "FeatureCollection", features }
+        : null;
+      setLiveuaControlGeoJson(fc);
+      if (fc) {
+        setUkraineOccupiedGeoJson(fc);
+        setUkraineOccupiedStatus("ok");
+      } else {
+        setUkraineOccupiedStatus("error");
+      }
     };
 
     void pullTerritory();
@@ -3434,7 +3373,7 @@ export function GlobeDashboard({
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [isSatelliteViewer, globeReady]);
+  }, [globeReady, showUkraineControl]);
 
   useEffect(() => {
     if (!globeReady || (!showNeptun && !showNeptunPreviousTrails)) return;
