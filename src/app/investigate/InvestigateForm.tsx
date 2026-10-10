@@ -103,8 +103,7 @@ export function InvestigateForm() {
             const active = step === s.id;
             const done =
               (step === "extracting" && s.id === "reading") ||
-              (step === "saving" && (s.id === "reading" || s.id === "extracting")) ||
-              step === "done";
+              (step === "saving" && (s.id === "reading" || s.id === "extracting"));
             return (
               <li
                 key={s.id}
