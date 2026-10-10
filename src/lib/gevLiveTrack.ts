@@ -5,6 +5,8 @@
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";
 import { nationalityForAircraft, nationalityFromMmsi } from "@/lib/entityNationality";
+import { neptunDisplayHeightM } from "@/lib/neptunFlightProfile";
+import { getNeptunTypeLabel, type NeptunLiveThreat } from "@/lib/neptun";
 
 export const GEV_AWARENESS_RADIUS_M = 250_000;
 export const GEV_TRAIL_MAX_POINTS = 400;
@@ -13,11 +15,14 @@ export const GEV_TRAIL_MIN_MOVE_M = 25;
 export const GEV_AIR_TRAIL_COLOR = "rgba(0, 212, 255, 0.85)";
 /** 선박 추적 트레일 (GEV teal) */
 export const GEV_AIS_TRAIL_COLOR = "rgba(57, 255, 213, 0.85)";
+/** NEPTUN 위협 트레일 */
+export const GEV_NEPTUN_TRAIL_COLOR = "rgba(240, 130, 14, 0.9)";
 /** 군용기 카드 accent */
 export const GEV_MIL_ACCENT = "#ffd166";
 export const GEV_CIV_ACCENT = "#39d0ff";
+export const GEV_NEPTUN_ACCENT = "#f0820e";
 
-export type GevTrackKind = "ais" | "aircraft";
+export type GevTrackKind = "ais" | "aircraft" | "neptun";
 
 export type GevTrailPoint = { lat: number; lng: number; t: number };
 
@@ -175,6 +180,76 @@ export function formatAisHud(
     lines: [`AIS: ${name}`, line2, line3],
     stale,
   };
+}
+
+/** NEPTUN 위협 HUD */
+export function formatNeptunHud(
+  threat: NeptunLiveThreat,
+  options?: { lang?: "ko" | "en"; stale?: boolean },
+): GevHudLines {
+  const lang = options?.lang ?? "ko";
+  const title = trimHud(threat.title || threat.locality || threat.id, 36);
+  const typeLabel = getNeptunTypeLabel(threat.type, lang);
+  const speedKmh = finite(threat.velocity?.speedKmh);
+  const hdg =
+    finite(threat.predictedHeading) ??
+    finite(threat.velocity?.bearingDeg) ??
+    finite(threat.heading);
+  const stale = Boolean(options?.stale);
+  const line1 = [title, stale ? "STALE" : null].filter(Boolean).join(" · ");
+  const line2 = [
+    typeLabel,
+    speedKmh == null ? "-- km/h" : `${Math.round(speedKmh)} km/h`,
+    hdg == null ? null : `HDG ${Math.round(hdg)}°`,
+  ]
+    .filter(Boolean)
+    .join("  ");
+  const place = [threat.locality, threat.district, threat.region]
+    .filter(Boolean)
+    .join(" · ");
+  const line3 = [
+    place || null,
+    threat.confidenceLevel ? `CONF ${threat.confidenceLevel}` : null,
+    threat.id.slice(0, 12),
+  ]
+    .filter(Boolean)
+    .join("  ");
+  return {
+    kind: "neptun",
+    accent: GEV_NEPTUN_ACCENT,
+    lines: [line1, line2, line3],
+    stale,
+  };
+}
+
+export function syncNeptunSelection(
+  selected: NeptunLiveThreat,
+  pool: NeptunLiveThreat[],
+): { item: NeptunLiveThreat; stale: boolean } {
+  const next = pool.find((t) => t.id === selected.id);
+  if (!next) return { item: selected, stale: true };
+  return { item: next, stale: false };
+}
+
+/** Cesium 표시 고도와 동기 — ballistic은 위협 상태 기반 이스칸데르 프로파일 */
+export function neptunTrackHeightM(
+  type: string,
+  threat?: NeptunLiveThreat | null,
+): number {
+  if (threat && threat.type === type) return neptunDisplayHeightM(threat);
+  if (type === "ballistic") return 16_000;
+  if (type === "uav") return 3_500;
+  if (type === "kab") return 4_800;
+  if (type === "recon") return 4_200;
+  if (type === "missile") return 6_500;
+  if (type === "mig31k") return 11_000;
+  return 3_800;
+}
+
+/** km/h → kn (AIS/항공기 추적 파이프라인과 단위 통일) */
+export function kmhToKnots(kmh: number | null | undefined): number | null {
+  const n = finite(kmh);
+  return n == null ? null : n / 1.852;
 }
 
 export function appendTrailPoint(

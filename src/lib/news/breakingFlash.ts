@@ -27,6 +27,7 @@ import {
   isChokepointEconomyNews,
   isChokepointSecurityNews,
 } from "@/lib/news/chokepointNews";
+import { isEnergySupplyChainFlash } from "@/lib/news/energySupplyFlash";
 import { hasLampPhoto } from "@/lib/news/lampThumbnail";
 import {
   buildSummitDiplomacyParagraphs,
@@ -496,6 +497,7 @@ export function formatFlashSourceAttribution(
 export function shouldOpenBreakingFlash(
   hero: HeroBreakingItem | null | undefined,
   preferEconomy: boolean,
+  opts?: { energySupplyOnly?: boolean },
 ): boolean {
   if (!hero?.id) return false;
   const grade = hero.breakingGrade ?? 0;
@@ -503,10 +505,21 @@ export function shouldOpenBreakingFlash(
   const age = typeof hero.ageMinutes === "number" ? hero.ageMinutes : 999;
   if (age > FLASH_MAX_AGE_MINUTES) return false;
 
-  const blob = `${hero.title} ${hero.summary ?? ""}`;
+  const blob = `${hero.title} ${hero.titleKo ?? ""} ${hero.summary ?? ""} ${hero.bodyKo ?? ""}`;
   if (FLASH_SOFT_EXCLUDE_RE.test(blob)) return false;
   if (FLASH_ROUTINE_SHELLING_RE.test(blob) && !isPriceThreatInfrastructureFlash(blob)) {
     return false;
+  }
+
+  const energySupply =
+    isEnergySupplyChainFlash(blob) || isPriceThreatInfrastructureFlash(blob);
+
+  // 관측대 — 유가·가스·초크·공급망만. 등급 문턱을 낮추고 개수 제한 없음.
+  if (opts?.energySupplyOnly) {
+    if (!energySupply) return false;
+    // Tier3 단독은 얇은 제보 남발 방지
+    if (hero.trustTier === 3 && grade < 7) return false;
+    return true;
   }
 
   const iranKinetic =
@@ -572,6 +585,8 @@ export type PickBreakingFlashOpts = {
    * 기본 null = 재타전 없음.
    */
   recycleAfterMs?: number | null;
+  /** 관측대 — 유가·가스·초크·공급망 속보만 */
+  energySupplyOnly?: boolean;
 };
 
 /**
@@ -605,11 +620,13 @@ export function pickNextBreakingFlashHero(
     );
   };
 
+  const openOpts = { energySupplyOnly: Boolean(opts?.energySupplyOnly) };
+
   let best: HeroBreakingItem | null = null;
   let bestScore = -Infinity;
   for (const h of candidates) {
     if (wasBreakingFlashClaimed(h.id)) continue;
-    if (!shouldOpenBreakingFlash(h, preferEconomy)) continue;
+    if (!shouldOpenBreakingFlash(h, preferEconomy, openOpts)) continue;
     const score = scoreHero(h);
     if (!best || score > bestScore) {
       best = h;
@@ -625,7 +642,7 @@ export function pickNextBreakingFlashHero(
   let recycleBest: HeroBreakingItem | null = null;
   let recycleScore = -Infinity;
   for (const h of candidates) {
-    if (!shouldOpenBreakingFlash(h, preferEconomy)) continue;
+    if (!shouldOpenBreakingFlash(h, preferEconomy, openOpts)) continue;
     const at = claimedFlashAt.get(h.id);
     if (at == null || now - at < recycleAfterMs) continue;
     const score = scoreHero(h) - Math.min(500_000, (now - at) / 100);

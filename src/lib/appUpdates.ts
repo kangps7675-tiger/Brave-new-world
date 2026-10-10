@@ -25,24 +25,24 @@ const STORAGE_KEY = "cv-app-update-seen";
  * 매 커밋마다 바꾸지 말 것 — 의미 있는 묶음만.
  */
 export const CURRENT_APP_UPDATE: AppUpdate = {
-  id: "2026-07-20-play-sense",
-  titleKo: "잠깐, 새로 생긴 것들",
-  titleEn: "A few new things",
+  id: "2026-10-10-observe-liveua-case",
+  titleKo: "관측대에서 더 잘 보는 법",
+  titleEn: "See more in the Observatory",
   paragraphsKo: [
-    "우측 아래 ▶ 버튼을 눌러 보세요. 지도를 ‘보기만’ 하는 화면에서, 직접 맞춰 보는 화면으로 바뀝니다.",
-    "「여기 어디게」 — 실제 화재·분쟁·선박 좌표 근처로 날아갑니다. 지형만 보고 어느 해협·전장인지 맞춰 보세요. 밀덕 자랑하기 좋습니다.",
-    "「지정학 감각 테스트」 — 예전에 있었던 사건 직후, 유가·가스가 어떻게 움직였는지 5문제. 끝나면 점수 카드를 공유할 수 있습니다.",
-    "속보 아래에는 「그때 백만 원 넣었다면」 반사실 숫자와, 어제 예측 맞대결(나 vs 다른 요원)도 붙어 있습니다. 전쟁과 돈이 한 화면에 같이 보입니다.",
+    "LiveUA 속보 양피지 안에서 「이전 / 다음」으로 같은 전장의 다른 핀을 넘길 수 있습니다. 시세·회랑 안내는 그 소식과 이어집니다.",
+    "전선·통제면은 우크라만이 아닙니다. 이란·예멘·레바논·이스라엘/팔 전장도 「누가 어디를 잡았나」로 같이 봅니다.",
+    "「사건」탭에서 기사·좌표로 초안을 만들고, 화재·공습 이력·선박·군용기 항적을 근거로 붙일 수 있습니다.",
+    "「왜?」는 파이프라인 설명이 아닙니다. 이 소식이 지도에서 왜 중요한지, 얼마나 믿을지를 유저 말로 풀어 줍니다.",
   ],
   paragraphsEn: [
-    "Tap the ▶ button at the bottom-right. The globe stops being only a map — you get to play on it.",
-    "“Where is this?” — We fly you near a real fire, conflict, or ship coordinate. Guess the strait or theater from the terrain alone.",
-    "“Geopolitics sense” — Five questions on how oil and gas moved after real events. Share your score card when you’re done.",
-    "Under breaking news you’ll also find a “what if you’d invested” number and yesterday’s prediction duel. War and money on one screen.",
+    "Inside a LiveUA flash parchment, use Previous / Next to flip other pins in the same theater — markets and corridors follow that story.",
+    "Control layers are not Ukraine-only. Iran, Yemen, Lebanon, and Israel/Palestine show under “who holds the ground.”",
+    "In the Case tab, draft from an article or coordinates, then attach fires, air-raid history, ships, or military tracks as evidence.",
+    "Why? is not pipeline jargon — it tells you why the item matters on the map and how solid it looks.",
   ],
-  ctaKo: "한번 해보기",
-  ctaEn: "Try it",
-  ctaAction: "play-hub",
+  ctaKo: "알겠어요",
+  ctaEn: "Got it",
+  ctaAction: "dismiss",
 };
 
 export function readSeenAppUpdateId(): string | null {

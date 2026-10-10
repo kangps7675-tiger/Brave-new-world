@@ -1827,12 +1827,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     let raf = 0;
     let last = 0;
     const tick = (now: number) => {
-      if (now - last < 70) {
+      // 펄스 진폭이 ±0.06이라 ~8Hz로 충분하다. setPaintProperty는 호출마다 맵 전체
+      // 재렌더를 유발하므로 유휴 상태의 상시 비용이다 (탭이 숨겨졌을 때도 건너뜀).
+      if (now - last < 125) {
         raf = window.requestAnimationFrame(tick);
         return;
       }
       last = now;
-      if (movingRef.current) {
+      if (movingRef.current || document.hidden) {
         raf = window.requestAnimationFrame(tick);
         return;
       }
@@ -1947,6 +1949,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (!map) return;
     let step = 0;
     const id = window.setInterval(() => {
+      // 이동 중·숨은 탭에서는 paint 갱신을 건너뛴다 (호출마다 맵 전체 재렌더).
+      if (movingRef.current || document.hidden) return;
       if (!map.getLayer("island-chains-china")) return;
       step = (step + 1) % CHINA_DASH_SEQUENCE.length;
       const dash = CHINA_DASH_SEQUENCE[step]!;

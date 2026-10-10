@@ -306,12 +306,12 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "Ukraine air threats (drones/missiles) from the NEPTUN public map — unofficial.",
   },
   "viina-ukraine-control": {
-    ko: "우크라이나 전선과 점령 구역입니다. VIINA 등 공개 전선 자료를 그립니다.",
-    en: "Ukraine front / control polygons from public front-line sources (e.g. VIINA).",
+    ko: "누가 어디를 잡고 있는지 보여 주는 전선·통제면입니다. 우크라뿐 아니라 중동 전장도 LiveUA 공개 자료로 같이 볼 수 있습니다.",
+    en: "Who holds what — front and control areas. Ukraine and other theaters from LiveUA open data.",
   },
   ukraine: {
-    ko: "우크라이나 전선과 점령 구역입니다. VIINA 등 공개 전선 자료를 그립니다.",
-    en: "Ukraine front / control polygons from public front-line sources (e.g. VIINA).",
+    ko: "누가 어디를 잡고 있는지 보여 주는 전선·통제면입니다. 우크라뿐 아니라 중동 전장도 LiveUA 공개 자료로 같이 볼 수 있습니다.",
+    en: "Who holds what — front and control areas. Ukraine and other theaters from LiveUA open data.",
   },
   "tzeva-adom": {
     ko: "이스라엘 민간 로켓·공습 경보 구역입니다. 공식 경보 피드 기반입니다.",

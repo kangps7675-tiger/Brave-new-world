@@ -58,6 +58,7 @@ function parseCatalog() {
       layerId,
       status: /status: "(\w+)"/.exec(c)?.[1] ?? "?",
       commercialUse: /commercialUse: "([a-z-]+)"/.exec(c)?.[1] ?? null,
+      dataLicense: /dataLicense: "([^"]+)"/.exec(c)?.[1] ?? null,
       hasNote: /commercialNote:/.test(c),
       attribution: /attribution:\s*\n?\s*"([^"]*)"/.exec(c)?.[1] ?? "",
     });
@@ -106,6 +107,50 @@ function main() {
     `   상업 가능 ${buckets.allowed.length} · 라이선스 필요 ${buckets["license-required"].length} · ` +
       `금지 ${buckets.prohibited.length} · 미확인 ${buckets.unknown.length}`,
   );
+
+  // ②-b 데이터 라이선스 — 세 부류: 자체 제작(proprietary) · 상속 ODbL · 업스트림.
+  const withDataLicense = layers.filter((l) => l.dataLicense);
+  const proprietaryLayers = layers.filter((l) => l.dataLicense === "proprietary");
+  const odblExplicit = layers.filter((l) => l.dataLicense === "ODbL-1.0");
+  const odblInAttr = layers.filter(
+    (l) => !l.dataLicense && /odbl|open database license/i.test(l.attribution || ""),
+  );
+  console.log(
+    `   dataLicense 명시 ${withDataLicense.length} · proprietary ${proprietaryLayers.length} · ` +
+      `ODbL-1.0(상속) ${odblExplicit.length} · attribution에 ODbL ${odblInAttr.length}`,
+  );
+  console.log(
+    `   정책: 자체 제작 판단·기록물 → "proprietary", ODbL은 상속분만, 외부 원본은 원 라이선스 (odblDataPolicy.ts · DATA_LICENSE.md)`,
+  );
+  // ODbL 도장은 원본이 ODbL(OSM·VIINA 등)일 때만 정당하다. 근거 문구가 없으면 의심.
+  const odblWithoutBasis = odblExplicit.filter(
+    (l) =>
+      !/odbl|open database license|openstreetmap|\bosm\b|viina|openmaptiles|openfreemap/i.test(
+        `${l.attribution || ""} ${l.sourceName || ""}`,
+      ),
+  );
+  if (odblWithoutBasis.length) {
+    info.push(
+      `ODbL-1.0 도장이 있으나 ODbL 원본 근거가 attribution에 없음 ${odblWithoutBasis.length}개 — ` +
+        `자체 제작이면 "proprietary", 외부 원본이면 "upstream" (예: ${odblWithoutBasis
+          .slice(0, 5)
+          .map((l) => l.layerId)
+          .join(", ")}${odblWithoutBasis.length > 5 ? ", …" : ""})`,
+    );
+  }
+  const missingLicense = layers.filter(
+    (l) =>
+      !l.dataLicense &&
+      !/odbl|open database license/i.test(l.attribution || ""),
+  );
+  if (missingLicense.length) {
+    info.push(
+      `dataLicense 미지정 ${missingLicense.length}개 — 자체 제작은 proprietary, ODbL 상속은 ODbL-1.0, 외부 원본은 실제 ID (예: ${missingLicense
+        .slice(0, 5)
+        .map((l) => l.layerId)
+        .join(", ")}${missingLicense.length > 5 ? ", …" : ""})`,
+    );
+  }
 
   // ③ 유료화를 켠 상태라면, shipped 이면서 상업 불가인 레이어는 **빌드 실패**
   if (COMMERCIAL_ON) {

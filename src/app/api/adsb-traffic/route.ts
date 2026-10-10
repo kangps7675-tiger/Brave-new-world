@@ -169,8 +169,9 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         time: payload.time,
         max,
         thin: true,
-        thinCellDeg: 6,
-        thinPerCell: 28,
+        // 전역뷰에서 대양·남반구가 비지 않게 셀을 촘촘히
+        thinCellDeg: 5,
+        thinPerCell: 36,
       });
       if (aircraft.length === 0) return null;
       const entry: OpenSkyCache = {

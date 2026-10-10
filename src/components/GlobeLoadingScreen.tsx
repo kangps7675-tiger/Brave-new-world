@@ -290,20 +290,20 @@ const STATIC_BACKDROP: CSSProperties = {
 type GlobeLoadingScreenProps = {
   progress: number;
   fading?: boolean;
-  /** 부팅이 느림 — 상태 고지 문구 노출 (P1-2) */
-  slow?: boolean;
   /**
    * 대시보드(MapLibre)가 이미 마운트됨 — 로딩 셰이더 rAF를 멈춰
    * GPU·메인 스레드를 첫 지구본 프레임에 양보한다.
    */
   yieldGpu?: boolean;
+  /** 데이터는 끝났고 지도만 그리는 중 — % 옆 카피만 바꿈 (경고·Ultra-Lite 없음) */
+  waitingForMap?: boolean;
 };
 
 export function GlobeLoadingScreen({
   progress,
   fading = false,
-  slow = false,
   yieldGpu = false,
+  waitingForMap = false,
 }: GlobeLoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef(progress);
@@ -596,27 +596,8 @@ export function GlobeLoadingScreen({
             textShadow: "0 1px 8px rgba(0,0,0,0.85)",
           }}
         >
-          잠시만 기다려 주세요
+          {waitingForMap ? "지도를 그리고 있습니다…" : "잠시만 기다려 주세요"}
         </p>
-        {/* P1-2: 45초 failsafe까지 침묵하지 않는다 — 8초를 넘기면 상태를 알린다 */}
-        {slow ? (
-          <p
-            style={{
-              margin: "1rem 0 0",
-              maxWidth: "24rem",
-              textAlign: "center",
-              fontFamily: LOADING_PROSE_FONT,
-              fontSize: "0.75rem",
-              lineHeight: 1.6,
-              color: "rgba(253, 230, 138, 0.85)",
-              textShadow: "0 1px 8px rgba(0,0,0,0.9)",
-            }}
-          >
-            네트워크나 기기 성능 때문에 평소보다 오래 걸리고 있습니다.
-            <br />
-            입장 후 「간이 보기(Ultra-Lite)」로 전환하면 가벼워집니다.
-          </p>
-        ) : null}
       </div>
     </div>
   );

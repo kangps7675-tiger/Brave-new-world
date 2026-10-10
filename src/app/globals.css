@@ -872,6 +872,31 @@ main[data-ui-lang="en"]
   }
 }
 
+/* 관측대 속보 — 우측 상단 속보함으로 빨려 들어감 */
+.welcome-letter-card--fold-to-dock {
+  animation: welcome-letter-fold-to-dock 0.9s cubic-bezier(0.45, 0.05, 0.25, 1) forwards;
+  transform-origin: 92% 8%;
+}
+
+@keyframes welcome-letter-fold-to-dock {
+  0% {
+    transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
+    opacity: 1;
+  }
+  35% {
+    transform: translate3d(12vw, -10vh, 0) rotateZ(3deg) scale(0.62);
+    opacity: 0.95;
+  }
+  70% {
+    transform: translate3d(28vw, -22vh, 0) rotateZ(7deg) scale(0.28);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(42vw, -36vh, 0) rotateZ(10deg) scale(0.08);
+    opacity: 0;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    prefers-reduced-motion — 전면 대응
    ───────────────────────────────────────────────────────────────────
@@ -913,6 +938,7 @@ main[data-ui-lang="en"]
        · .access-denied-flash  — opacity 기본값 없음 + z-index 10050
          → 끄면 빨간 경고판이 앱 전체를 덮은 채 안 사라진다
        · .welcome-letter-card--fold-exit — 접혀 날아가는 편지지
+       · .welcome-letter-card--fold-to-dock — 속보함으로 들어가는 편지지
      따라서 이 둘은 위 ① 전역 규칙(0.01ms)에 맡겨 **최종 상태로 즉시 점프**시킨다.
      결과: 번쩍임 없음 + 정상적으로 사라짐. 절대 아래 목록에 넣지 말 것.
      ──────────────────────────────────────────────────────────── */

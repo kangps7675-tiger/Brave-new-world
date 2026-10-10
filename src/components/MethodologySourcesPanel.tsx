@@ -10,6 +10,13 @@ import {
   OPENALEX_POLICY,
 } from "@/lib/licensing/openAlexPolicy";
 import {
+  INHERITED_ODBL_NOTICE_EN,
+  INHERITED_ODBL_NOTICE_KO,
+  ODBL_POLICY,
+  OWN_WORK_NOTICE_EN,
+  OWN_WORK_NOTICE_KO,
+} from "@/lib/licensing/odblDataPolicy";
+import {
   VIINA_ATTRIBUTION_EN,
   VIINA_ATTRIBUTION_KO,
   VIINA_POLICY,
@@ -535,6 +542,28 @@ export function MethodologySourcesPanel({
                 </a>
               </li>
             </ul>
+          </section>
+
+          <section className="rounded-xl border border-teal-900/35 bg-teal-950/20 p-3">
+            <h3 className="text-sm font-medium text-teal-100">
+              {isEn ? "Our own judgments and records" : "직접 만든 판단과 기록"}
+            </h3>
+            <p className="mt-2 text-caption leading-5 text-sky-100/80">
+              {isEn ? OWN_WORK_NOTICE_EN : OWN_WORK_NOTICE_KO}
+            </p>
+            <p className="mt-3 text-meta leading-5 text-teal-100/75">
+              {isEn ? INHERITED_ODBL_NOTICE_EN : INHERITED_ODBL_NOTICE_KO}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2 text-meta">
+              <a
+                href={ODBL_POLICY.licenseUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded border border-teal-300/25 px-2 py-1 text-teal-100 transition hover:border-teal-200/40"
+              >
+                ODbL v1.0
+              </a>
+            </div>
           </section>
 
           <section className="rounded-xl border border-amber-900/35 bg-amber-950/15 p-3">

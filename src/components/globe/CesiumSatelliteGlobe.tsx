@@ -128,7 +128,10 @@ import {
   syncObserveAircraftModels,
   type ObserveModelCandidate,
 } from "@/lib/cesiumTrackedModels";
+import { syncNeptunModels } from "@/lib/cesiumNeptunModels";
+import { thinWorldwide } from "@/lib/adsbWorld";
 import { getGlobeLod } from "@/lib/globeLod";
+import { CAMERA_IDLE_DEBOUNCE_MS } from "@/lib/globePerformance";
 import {
   liveAirTrafficDisplayMax,
   liveAisDisplayMax,
@@ -189,6 +192,18 @@ import {
   type NeptunAlerts,
   type NeptunLiveThreat,
 } from "@/lib/neptun";
+import {
+  neptunDisplayHeightM,
+  neptunGroundRadiusM,
+  neptunTrailPointHeightM,
+} from "@/lib/neptunFlightProfile";
+import {
+  neptunGlideBombSvg,
+  neptunIskanderSvg,
+  neptunMarkerSizePx,
+  neptunMarkerSvg,
+  neptunShahedSvg,
+} from "@/lib/neptunMarkers";
 import { startObserveDescend } from "@/lib/cesiumObserveDescend";
 import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
 import { useCesiumModifierLook } from "@/components/globe/hooks/useCesiumModifierLook";
@@ -222,6 +237,7 @@ function altitudeToHeightM(altitude: number): number {
 const OBSERVE_TILT_HINT_SEEN_KEY = "observe-tilt-hint-seen";
 /** 이만큼 직하에서 벗어나면 유저가 이미 기울인 것으로 보고 안내를 닫는다 */
 const OBSERVE_TILT_HINT_DISMISS_PITCH_DEG = -75;
+const NEPTUN_MARKER_CALLOUT_SEEN_KEY = "neptun-marker-callout-seen";
 
 function hasSeenObserveTiltHint(): boolean {
   try {
@@ -234,6 +250,22 @@ function hasSeenObserveTiltHint(): boolean {
 function markObserveTiltHintSeen(): void {
   try {
     localStorage.setItem(OBSERVE_TILT_HINT_SEEN_KEY, "1");
+  } catch {
+    /* private mode */
+  }
+}
+
+function hasSeenNeptunMarkerCallout(): boolean {
+  try {
+    return localStorage.getItem(NEPTUN_MARKER_CALLOUT_SEEN_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+function markNeptunMarkerCalloutSeen(): void {
+  try {
+    localStorage.setItem(NEPTUN_MARKER_CALLOUT_SEEN_KEY, "1");
   } catch {
     /* private mode */
   }
@@ -372,6 +404,16 @@ export type CesiumSatelliteGlobeProps = {
   onSelectConflictEvent?: (event: CesiumConflictEventPoint) => void;
   /** viewer가 준비되어 flyTo를 받을 수 있게 된 시점 — 관측 모드 전환 후 flyTo 대기에 사용 */
   onReady?: () => void;
+  /**
+   * 카메라 idle — OpenSky/AIS densify용 lat·lng·altitude(지구반경 단위)를 상위에 알림.
+   * MapLibre useGlobeCamera와 같은 단위로 layerAltitudeRef를 맞춘다.
+   */
+  onCameraIdle?: (view: {
+    lat: number;
+    lng: number;
+    altitude: number;
+    heightM: number;
+  }) => void;
   /**
    * next/dynamic 은 전달된 ref 를 `{ retry }` 로 덮어써 flyTo 가 사라진다.
    * 부모 useRef 를 prop 으로 받아 실제 카메라 핸들을 여기 심는다.
@@ -514,6 +556,56 @@ function takeNearestByBudget<T extends { lat: number; lng: number }>(
   const keep = new Set(scored.slice(0, max).map((s) => s.index));
   return items.filter((_, i) => keep.has(i));
 }
+
+/**
+ * AIS 화면 샘플 — 줌아웃은 전 지구 균등, 줌인은 카메라 근접.
+ * 군함은 예산의 일부를 먼저 확보해 thinning에 묻히지 않게 한다.
+ */
+function takeAisForDisplay(
+  items: AisVessel[],
+  max: number,
+  tier: ReturnType<typeof getGlobeLod>["tier"],
+  centerLat: number,
+  centerLng: number,
+): AisVessel[] {
+  if (items.length <= max) return items;
+  const worldwide = tier === "global" || tier === "continent" || tier === "regional";
+  if (!worldwide) {
+    return takeNearestByBudget(items, max, centerLat, centerLng);
+  }
+  const military = items.filter((v) => v.category === "military");
+  const rest = items.filter((v) => v.category !== "military");
+  const milBudget = Math.min(
+    military.length,
+    Math.max(16, Math.floor(max * 0.12)),
+  );
+  const milKeep = takeNearestByBudget(military, milBudget, centerLat, centerLng);
+  const restBudget = Math.max(0, max - milKeep.length);
+  const cellDeg = tier === "global" ? 12 : tier === "continent" ? 9 : 6;
+  const perCell = tier === "global" ? 10 : tier === "continent" ? 12 : 14;
+  const thinned = thinWorldwide(rest, { cellDeg, perCell, max: restBudget });
+  return [...milKeep, ...thinned].slice(0, max);
+}
+
+/**
+ * 민간 항적 화면 샘플 — 줌아웃은 전 지구 균등, 줌인은 카메라 근접.
+ */
+function takeCivForDisplay(
+  items: MilitaryAircraft[],
+  max: number,
+  tier: ReturnType<typeof getGlobeLod>["tier"],
+  centerLat: number,
+  centerLng: number,
+): MilitaryAircraft[] {
+  if (items.length <= max) return items;
+  const worldwide = tier === "global" || tier === "continent" || tier === "regional";
+  if (!worldwide) {
+    return takeNearestByBudget(items, max, centerLat, centerLng);
+  }
+  const cellDeg = tier === "global" ? 12 : tier === "continent" ? 9 : 6;
+  const perCell = tier === "global" ? 10 : tier === "continent" ? 12 : 14;
+  return thinWorldwide(items, { cellDeg, perCell, max });
+}
 /** WebGL/부팅 실패를 즉시 에러 UI로 떨어뜨리지 않는 유예(ms) */
 const CESIUM_LOAD_GRACE_MS = 22_000;
 
@@ -580,7 +672,8 @@ const CESIUM_AIS_HEIGHT_M = 1_200;
 const AIS_TRACKER_NEAR_M = 120_000;
 const AIS_TRACKER_NEAR_SCALE = 1.85;
 const AIS_TRACKER_FAR_M = 22_000_000;
-const AIS_TRACKER_FAR_SCALE = 0.22;
+/** 지구 전경에서도 화살이 점처럼 사라지지 않게 (이전 0.22는 줌아웃에서 사실상 불가시) */
+const AIS_TRACKER_FAR_SCALE = 0.48;
 /** depth test 끄면 지구 뒤편도 뚫고 보이므로, 가시 반구만 Infinity */
 const CESIUM_AIS_NO_DEPTH = Number.POSITIVE_INFINITY;
 
@@ -774,6 +867,8 @@ const GLOBE_OCCLUSION_PREFIXES = [
   "ais:",
   "disguised:",
   "neptun:",
+  "neptun-stem:",
+  "neptun-ground:",
   "mil:",
   "civ:",
   "alert:",
@@ -808,53 +903,31 @@ function updateGlobeEntityOcclusion(
   }
 }
 
-/** 공중 고도 — MapLibre 지상 배지와 달리 떠 보이게 */
-const CESIUM_NEPTUN_HEIGHT_M: Record<string, number> = {
-  uav: 3_200,
-  recon: 4_200,
-  missile: 11_000,
-  ballistic: 22_000,
-  kab: 6_500,
-  mig31k: 14_000,
-  unknown: 5_000,
-};
-const CESIUM_NEPTUN_SIZE_PX: Record<string, number> = {
-  uav: 26,
-  recon: 24,
-  missile: 30,
-  ballistic: 34,
-  kab: 28,
-  mig31k: 30,
-  unknown: 26,
-};
-const CESIUM_NEPTUN_TRAIL_MAX = 14;
+const CESIUM_NEPTUN_TRAIL_MAX = 18;
 const neptunBillboardUriCache = new Map<string, string>();
 
-function neptunBillboardImage(colorCss: string, kind: string): string {
-  const key = `${kind}:${colorCss}`;
+function neptunBillboardImage(colorCss: string, kind: string, px: number): string {
+  const key = `${kind}:${colorCss}:${px}`;
   let image = neptunBillboardUriCache.get(key);
   if (!image) {
-    const isMissile = kind === "missile" || kind === "ballistic" || kind === "kab";
-    const svg = isMissile
-      ? `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-          <path d="M16 3 L20 14 L16 12 L12 14 Z" fill="${colorCss}" stroke="#fff" stroke-width="1.1"/>
-          <circle cx="16" cy="20" r="5" fill="${colorCss}" stroke="#fff" stroke-width="1.2"/>
-          <circle cx="16" cy="20" r="9" fill="none" stroke="${colorCss}" stroke-width="1.1" opacity="0.4"/>
-        </svg>`
-      : `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-          <circle cx="14" cy="14" r="5.5" fill="${colorCss}" stroke="#fff" stroke-width="1.4"/>
-          <circle cx="14" cy="14" r="10" fill="none" stroke="${colorCss}" stroke-width="1.2" opacity="0.45"/>
-        </svg>`;
-    image = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    image = svgDataUri(neptunMarkerSvg(kind, colorCss, px));
     neptunBillboardUriCache.set(key, image);
   }
   return image;
 }
 
+/** NEPTUN 침로 — predictedHeading 우선. 카메라 대면 빌보드용 화면 회전 */
+function neptunHeadingRad(threat: NeptunLiveThreat): number {
+  const raw = threat.predictedHeading ?? threat.heading;
+  if (raw == null || !Number.isFinite(raw)) return 0;
+  const deg = ((raw % 360) + 360) % 360;
+  return -((deg * Math.PI) / 180);
+}
+
 function neptunTrailPositions(
   Cesium: typeof import("cesium"),
   threat: NeptunLiveThreat,
-  heightM: number,
+  currentHeightM: number,
 ): import("cesium").Cartesian3[] {
   const trail = threat.trail ?? [];
   const sliced =
@@ -865,46 +938,56 @@ function neptunTrailPositions(
   const n = sliced.length;
   sliced.forEach((p, i) => {
     if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) return;
-    const t = n <= 1 ? 1 : (i + 1) / (n + 1);
-    pts.push(Cesium.Cartesian3.fromDegrees(p.lon, p.lat, heightM * (0.55 + 0.4 * t)));
+    const h = neptunTrailPointHeightM(threat, i, n);
+    pts.push(Cesium.Cartesian3.fromDegrees(p.lon, p.lat, h));
   });
   const lat = threat.predictedLat ?? threat.lat;
   const lon = threat.predictedLon ?? threat.lon;
   if (Number.isFinite(lat) && Number.isFinite(lon)) {
-    pts.push(Cesium.Cartesian3.fromDegrees(lon, lat, heightM));
+    pts.push(Cesium.Cartesian3.fromDegrees(lon, lat, currentHeightM));
   }
   return pts;
 }
 
-/** NEPTUN UAV·미사일·폭탄 — Cesium 공중 빌보드 + 상승 궤적 + 지면 스템 */
+/** NEPTUN — 지형 위 공중 부유 + 지면 그림자 + 수직 스템 + 공중 궤적 */
 function syncNeptunBillboardEntities(
   Cesium: typeof import("cesium"),
   viewer: import("cesium").Viewer,
   items: NeptunLiveThreat[],
 ): void {
   const seen = new Set<string>();
-  const scaleByDistance = new Cesium.NearFarScalar(1.2e5, 1.55, 5.0e6, 0.4);
+  // 가까이서는 크게, 멀리서는 점처럼 — 공중 물체 원근감
+  const scaleByDistance = new Cesium.NearFarScalar(8.0e4, 1.85, 4.5e6, 0.55);
   const occluder = createGlobeOccluder(Cesium, viewer);
+  const relativeGround = Cesium.HeightReference.RELATIVE_TO_GROUND;
+  const clampGround = Cesium.HeightReference.CLAMP_TO_GROUND;
 
   for (const threat of items) {
     const lat = threat.predictedLat ?? threat.lat;
     const lon = threat.predictedLon ?? threat.lon;
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
     const meta = getNeptunTypeMeta(threat.type);
-    const heightM = CESIUM_NEPTUN_HEIGHT_M[threat.type] ?? CESIUM_NEPTUN_HEIGHT_M.unknown;
-    const sizePx = CESIUM_NEPTUN_SIZE_PX[threat.type] ?? CESIUM_NEPTUN_SIZE_PX.unknown;
+    // UAV·KAB: 수천 m / ballistic: 이스칸데르식 현재 단계 고도
+    const heightM = neptunDisplayHeightM(threat);
+    const groundR = neptunGroundRadiusM(threat.type);
+    const sizePx = neptunMarkerSizePx(threat.type);
     const id = `neptun:${threat.id}`;
     const stemId = `neptun-stem:${threat.id}`;
+    const groundId = `neptun-ground:${threat.id}`;
     seen.add(id);
     seen.add(stemId);
+    seen.add(groundId);
+    // RELATIVE_TO_GROUND: height = 지형 위 m → 실제 공중에 뜸
     const position = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
     const ground = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
     const visible = occluder.isPointVisible(position);
-    const image = neptunBillboardImage(meta.color, threat.type);
+    const image = neptunBillboardImage(meta.color, threat.type, sizePx);
+    const rotation = neptunHeadingRad(threat);
     const name = threat.title || meta.label;
     const trailPts = neptunTrailPositions(Cesium, threat, heightM);
-    const trailColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.78);
-    const stemColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.38);
+    const trailColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.82);
+    const stemColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.55);
+    const groundColor = Cesium.Color.fromCssColorString(meta.color).withAlpha(0.28);
 
     const existing = viewer.entities.getById(id);
     if (existing) {
@@ -915,19 +998,25 @@ function syncNeptunBillboardEntities(
         existing.billboard.image = new Cesium.ConstantProperty(image);
         existing.billboard.width = new Cesium.ConstantProperty(sizePx);
         existing.billboard.height = new Cesium.ConstantProperty(sizePx);
-        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
-          Number.POSITIVE_INFINITY,
-        );
+        existing.billboard.rotation = new Cesium.ConstantProperty(rotation);
+        // 카메라 대면 — 기울여도 공중 실루엣이 바닥에 납작해지지 않음
+        existing.billboard.alignedAxis = new Cesium.ConstantProperty(undefined);
+        existing.billboard.heightReference = new Cesium.ConstantProperty(relativeGround);
+        existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
         existing.billboard.scaleByDistance = new Cesium.ConstantProperty(scaleByDistance);
+        existing.billboard.verticalOrigin = new Cesium.ConstantProperty(
+          Cesium.VerticalOrigin.CENTER,
+        );
       }
       if (trailPts.length >= 2) {
         if (existing.polyline) {
           existing.polyline.positions = new Cesium.ConstantProperty(trailPts);
           existing.polyline.material = new Cesium.ColorMaterialProperty(trailColor);
+          existing.polyline.width = new Cesium.ConstantProperty(2.8);
         } else {
           existing.polyline = new Cesium.PolylineGraphics({
             positions: trailPts,
-            width: 2.4,
+            width: 2.8,
             material: trailColor,
             clampToGround: false,
             arcType: Cesium.ArcType.NONE,
@@ -946,9 +1035,12 @@ function syncNeptunBillboardEntities(
           image,
           width: sizePx,
           height: sizePx,
+          rotation,
+          // alignedAxis 없음 = 항상 카메라 대면 → 공중에 떠 있는 마커
+          heightReference: relativeGround,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          disableDepthTestDistance: 0,
           scaleByDistance,
           color: Cesium.Color.WHITE,
         }),
@@ -956,7 +1048,7 @@ function syncNeptunBillboardEntities(
           ? {
               polyline: new Cesium.PolylineGraphics({
                 positions: trailPts,
-                width: 2.4,
+                width: 2.8,
                 material: trailColor,
                 clampToGround: false,
                 arcType: Cesium.ArcType.NONE,
@@ -966,6 +1058,7 @@ function syncNeptunBillboardEntities(
       });
     }
 
+    // 지면 → 기체 수직선 (고도감)
     const stemExisting = viewer.entities.getById(stemId);
     const stemPositions = [ground, position];
     if (stemExisting) {
@@ -973,6 +1066,7 @@ function syncNeptunBillboardEntities(
       if (stemExisting.polyline) {
         stemExisting.polyline.positions = new Cesium.ConstantProperty(stemPositions);
         stemExisting.polyline.material = new Cesium.ColorMaterialProperty(stemColor);
+        stemExisting.polyline.width = new Cesium.ConstantProperty(1.6);
       }
     } else {
       viewer.entities.add({
@@ -980,10 +1074,39 @@ function syncNeptunBillboardEntities(
         show: visible,
         polyline: new Cesium.PolylineGraphics({
           positions: stemPositions,
-          width: 1.2,
+          width: 1.6,
           material: stemColor,
           clampToGround: false,
           arcType: Cesium.ArcType.NONE,
+        }),
+      });
+    }
+
+    // 지면 투영 원반 — “위에 뭔가 떠 있다”는 그림자 단서
+    const groundExisting = viewer.entities.getById(groundId);
+    if (groundExisting) {
+      groundExisting.show = visible;
+      groundExisting.position = new Cesium.ConstantPositionProperty(ground);
+      if (groundExisting.ellipse) {
+        groundExisting.ellipse.semiMajorAxis = new Cesium.ConstantProperty(groundR);
+        groundExisting.ellipse.semiMinorAxis = new Cesium.ConstantProperty(groundR);
+        groundExisting.ellipse.material = new Cesium.ColorMaterialProperty(groundColor);
+        groundExisting.ellipse.heightReference = new Cesium.ConstantProperty(clampGround);
+      }
+    } else {
+      viewer.entities.add({
+        id: groundId,
+        show: visible,
+        position: ground,
+        ellipse: new Cesium.EllipseGraphics({
+          semiMajorAxis: groundR,
+          semiMinorAxis: groundR,
+          material: groundColor,
+          height: 0,
+          heightReference: clampGround,
+          outline: true,
+          outlineColor: Cesium.Color.fromCssColorString(meta.color).withAlpha(0.55),
+          outlineWidth: 1,
         }),
       });
     }
@@ -993,7 +1116,9 @@ function syncNeptunBillboardEntities(
   for (const entity of viewer.entities.values) {
     if (
       typeof entity.id === "string" &&
-      (entity.id.startsWith("neptun:") || entity.id.startsWith("neptun-stem:")) &&
+      (entity.id.startsWith("neptun:") ||
+        entity.id.startsWith("neptun-stem:") ||
+        entity.id.startsWith("neptun-ground:")) &&
       !seen.has(entity.id)
     ) {
       toRemove.push(entity);
@@ -1291,6 +1416,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       showConflictEvents = false,
       onSelectConflictEvent,
       onReady,
+      onCameraIdle,
       handleRef,
       onSelectEntity,
       onUserBreakFollow,
@@ -1298,6 +1424,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     ref,
   ) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onCameraIdleRef = useRef(onCameraIdle);
+  onCameraIdleRef.current = onCameraIdle;
+  /** 카메라 이동 후 billboard 예산·근접 cull 재적용 */
+  const [cameraSyncGen, setCameraSyncGen] = useState(0);
   const creditRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [stack, setStack] = useState<StackKind>("esri");
@@ -1322,6 +1452,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   const [bootNonce, setBootNonce] = useState(0);
   /** 첫 수직 하강 도착 — 기울이는 법 안내 (한 번만) */
   const [tiltHintOpen, setTiltHintOpen] = useState(false);
+  /** NEPTUN 실루엣=실제 추적 태그 안내 — 생애 첫 위협 표시 때만 */
+  const [neptunMarkerCalloutOpen, setNeptunMarkerCalloutOpen] = useState(false);
   // 마운트 이펙트에서 만든 viewer/Cesium 모듈 — 엔티티 동기화 이펙트에서 재사용
   const viewerRef = useRef<import("cesium").Viewer | null>(null);
   const cesiumModRef = useRef<typeof import("cesium") | null>(null);
@@ -2172,7 +2304,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             const fire = firmsFiresRef.current.find((f) => f.id === key);
             return fire ? `FIRMS ${fire.id}` : name;
           }
-          if (prefix === "neptun" || prefix === "neptun-stem") {
+          if (
+            prefix === "neptun" ||
+            prefix === "neptun-stem" ||
+            prefix === "neptun-ground"
+          ) {
             const threat = neptunThreatsRef.current.find((t) => t.id === key);
             return threat?.title || threat?.type || name;
           }
@@ -2251,7 +2387,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             if (fire) onSelectEntityRef.current?.({ kind: "firms", item: fire });
             return;
           }
-          if (prefix === "neptun" || prefix === "neptun-stem") {
+          if (
+            prefix === "neptun" ||
+            prefix === "neptun-stem" ||
+            prefix === "neptun-ground"
+          ) {
             const threat = neptunThreatsRef.current.find((t) => t.id === key);
             if (threat) onSelectEntityRef.current?.({ kind: "neptun", item: threat });
           }
@@ -2865,6 +3005,25 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     setTiltHintOpen(false);
   }, []);
 
+  const dismissNeptunMarkerCallout = useCallback(() => {
+    markNeptunMarkerCalloutSeen();
+    setNeptunMarkerCalloutOpen(false);
+  }, []);
+
+  /** NEPTUN 위협이 처음 화면에 뜰 때 — 실루엣이 실제 트래커임을 한 번만 안내 */
+  useEffect(() => {
+    if (status !== "ready" || !showNeptun) {
+      setNeptunMarkerCalloutOpen(false);
+      return;
+    }
+    if (neptunThreats.length === 0) return;
+    if (hasSeenNeptunMarkerCallout()) {
+      setNeptunMarkerCalloutOpen(false);
+      return;
+    }
+    setNeptunMarkerCalloutOpen(true);
+  }, [status, showNeptun, neptunThreats.length]);
+
   /** 안내가 떠 있는 동안 유저가 실제로 기울이면 그걸로 배운 셈 — 닫는다 */
   useEffect(() => {
     if (!tiltHintOpen || status !== "ready") return;
@@ -2880,6 +3039,43 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       remove();
     };
   }, [tiltHintOpen, status, dismissTiltHint]);
+
+  /**
+   * 카메라 idle → 상위 LOD ref 동기화 + billboard 근접 예산 재적용.
+   * 관측 모드에서 휠 줌해도 OpenSky densify·표시 cull이 안 바뀌던 원인.
+   */
+  useEffect(() => {
+    if (status !== "ready") return;
+    const viewer = viewerRef.current;
+    const Cesium = cesiumModRef.current;
+    if (!viewer || !Cesium || viewer.isDestroyed()) return;
+
+    let timer: number | null = null;
+    const publish = () => {
+      if (viewer.isDestroyed()) return;
+      const carto = viewer.camera.positionCartographic;
+      if (!carto) return;
+      const heightM = carto.height;
+      const altitude = Math.max(0.02, heightM / EARTH_RADIUS_M);
+      const lat = Cesium.Math.toDegrees(carto.latitude);
+      const lng = Cesium.Math.toDegrees(carto.longitude);
+      setCameraSyncGen((n) => n + 1);
+      onCameraIdleRef.current?.({ lat, lng, altitude, heightM });
+    };
+    const schedule = () => {
+      if (timer != null) window.clearTimeout(timer);
+      timer = window.setTimeout(publish, CAMERA_IDLE_DEBOUNCE_MS);
+    };
+
+    publish();
+    const removeChanged = viewer.camera.changed.addEventListener(schedule);
+    const removeMoveEnd = viewer.camera.moveEnd.addEventListener(schedule);
+    return () => {
+      if (timer != null) window.clearTimeout(timer);
+      removeChanged();
+      removeMoveEnd();
+    };
+  }, [status, bootNonce]);
 
   /**
    * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체. 전부 Cesium billboard.
@@ -2905,10 +3101,18 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     const milBudget = liveMilDisplayMax(tier);
     const civBudget = liveAirTrafficDisplayMax(tier);
 
-    const aisCapped = takeNearestByBudget(aisFiltered, aisBudget, centerLat, centerLng);
-    const disguisedCapped = takeNearestByBudget(
+    const aisCapped = takeAisForDisplay(
+      aisFiltered,
+      aisBudget,
+      tier,
+      centerLat,
+      centerLng,
+    );
+    const disguisedBudget = Math.max(12, Math.floor(aisBudget * 0.2));
+    const disguisedCapped = takeAisForDisplay(
       showDisguisedVessels ? disguisedVessels : [],
-      Math.max(8, Math.floor(aisBudget * 0.35)),
+      disguisedBudget,
+      tier,
       centerLat,
       centerLng,
     );
@@ -2918,9 +3122,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       centerLat,
       centerLng,
     );
-    const civCapped = takeNearestByBudget(
+    const civCapped = takeCivForDisplay(
       showAirTraffic ? civAircraft : [],
       civBudget,
+      tier,
       centerLat,
       centerLng,
     );
@@ -3012,6 +3217,11 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     );
 
     syncNeptunBillboardEntities(Cesium, viewer, showNeptun ? neptunThreats : []);
+    if (showNeptun && neptunThreats.length > 0) {
+      const neptunTracked =
+        preserveId && preserveId.startsWith("neptun:") ? preserveId : null;
+      syncNeptunModels(Cesium, viewer, neptunThreats, neptunTracked);
+    }
     observeRequestRender();
 
     // PIR 빈칸(stat) → AIS/항적 슬롯 희미
@@ -3049,6 +3259,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     showNeptun,
     neptunThreats,
     deskFocus,
+    cameraSyncGen,
   ]);
 
   useEffect(() => {
@@ -3815,6 +4026,63 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         ref={creditRef}
         className="pointer-events-none absolute bottom-1 right-2 z-20 max-w-[min(28rem,70vw)] text-micro leading-tight text-sky-100/70 [&_a]:text-sky-200/90"
       />
+
+      {neptunMarkerCalloutOpen ? (
+        <div
+          role="status"
+          className="pointer-events-auto absolute top-14 left-1/2 z-30 w-[min(26rem,94vw)] -translate-x-1/2 rounded-xl border border-orange-300/35 bg-[#120b08]/94 px-4 py-3 font-sans shadow-2xl backdrop-blur-md"
+        >
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-meta font-semibold text-orange-100">
+                {t("neptunMarkerCalloutTitle", placeLabelLang)}
+              </p>
+              <p className="mt-1 text-micro leading-relaxed text-white/70">
+                {t("neptunMarkerCalloutBody", placeLabelLang)}
+              </p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-micro text-white/80">
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-7 w-7 shrink-0"
+                    aria-hidden
+                    dangerouslySetInnerHTML={{
+                      __html: neptunShahedSvg("#f0820e", 28),
+                    }}
+                  />
+                  {t("neptunMarkerCalloutUav", placeLabelLang)}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-7 w-7 shrink-0"
+                    aria-hidden
+                    dangerouslySetInnerHTML={{
+                      __html: neptunGlideBombSvg("#d9531e", 28),
+                    }}
+                  />
+                  {t("neptunMarkerCalloutKab", placeLabelLang)}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-7 w-7 shrink-0"
+                    aria-hidden
+                    dangerouslySetInnerHTML={{
+                      __html: neptunIskanderSvg("#b21e6b", 28),
+                    }}
+                  />
+                  {t("neptunMarkerCalloutBallistic", placeLabelLang)}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={dismissNeptunMarkerCallout}
+              className="tap-target shrink-0 rounded-full border border-orange-200/30 bg-orange-400/15 px-3 py-1.5 text-meta font-semibold text-orange-50 hover:bg-orange-400/25"
+            >
+              {t("neptunMarkerCalloutOk", placeLabelLang)}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {tiltHintOpen ? (
         <div

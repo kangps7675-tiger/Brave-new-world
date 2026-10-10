@@ -45,6 +45,26 @@ export {
 } from "@/lib/caseFile/verdict";
 export type { VerdictExplanation } from "@/lib/caseFile/verdict";
 export {
+  INVESTIGATION_STEPS,
+  deriveInvestigationStep,
+  investigationStepProgress,
+} from "@/lib/caseFile/investigationSteps";
+export type {
+  InvestigationStepId,
+  StepState,
+} from "@/lib/caseFile/investigationSteps";
+export {
+  eventTypeLabel,
+  findStepsForEventType,
+  isProcedureItemDone,
+  procedureChecklistFor,
+} from "@/lib/caseFile/procedureChecklists";
+export type {
+  FindStep,
+  ProcedureCheckItem,
+  SensorAttachMode,
+} from "@/lib/caseFile/procedureChecklists";
+export {
   applyCaseRevision,
   CaseNotFoundError,
   CaseRevConflictError,

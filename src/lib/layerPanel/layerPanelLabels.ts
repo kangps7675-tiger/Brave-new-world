@@ -59,7 +59,7 @@ export const LAYER_CATEGORY_COPY: Record<
 export const LAYER_ITEM_LABELS: Record<string, { ko: string; en: string }> = {
   "city-labels": { ko: "도시명", en: "City labels" },
   rail: { ko: "철도", en: "Railways" },
-  ukraine: { ko: "우크라이나 전선·점령", en: "Ukraine front line & occupation" },
+  ukraine: { ko: "누가 어디를 잡았나 (우크라·중동)", en: "Who holds the ground (UA · ME)" },
   neptun: { ko: "우크라이나 공중 위협 (실시간)", en: "Ukraine air threats (live)" },
   "east-asia-neon": { ko: "동아시아 대치·발사", en: "East Asia standoffs & launches" },
   "china-taiwan-incidents": { ko: "중국–대만 대치", en: "China–Taiwan standoffs" },
