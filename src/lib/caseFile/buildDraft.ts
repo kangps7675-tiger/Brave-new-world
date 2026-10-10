@@ -245,7 +245,7 @@ export async function buildCaseDraft(input: {
   let title: string | null = null;
   let outlet = input.outlet?.trim() || undefined;
   let publishedAt: string | null = null;
-  let url = input.url?.trim() || undefined;
+  const url = input.url?.trim() || undefined;
 
   if (url) {
     extract = await fetchAndExtractArticle(url);
