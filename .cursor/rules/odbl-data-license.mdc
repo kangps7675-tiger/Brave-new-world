@@ -1,0 +1,26 @@
+---
+description: 데이터·레이어 라이선스 분류. 자체 판단·기록물은 proprietary, ODbL은 상속분만, 업스트림은 재표기 금지.
+globs: src/data/sourceCatalog.ts,src/lib/licensing/**/*,docs/commercial-licensing.md,docs/copyright-checklist.md,DATA_LICENSE.md
+alwaysApply: false
+---
+
+# 데이터·레이어 라이선스 — 세 부류
+
+| 부류 | `dataLicense` | 예 |
+|---|---|---|
+| **자체 제작 판단·기록물** | `"proprietary"` | 확전 신호, 사건 파일 근거·판정, 일별 이력, 직접 큐레이션 레이어 |
+| **상속 의무가 있는 파생물** | `"ODbL-1.0"` | OpenStreetMap 기반 인프라 레이어, VIINA |
+| **외부 원본** | `"upstream"` 또는 실제 ID | ACLED, MarineTraffic, FIRMS, 언론사 RSS, adsb.fi |
+
+## 규칙
+
+- **ODbL을 기본값으로 쓰지 말 것.** ODbL은 복제·상업적 재사용을 허용하는 공개 라이선스다. 원본이 ODbL이라 의무가 상속될 때만 쓴다.
+- 새 **자체 제작** 레이어는 `dataLicense: "proprietary"`.
+- **우리가 권리를 갖지 않는 것**(언론 기사·영상, 외부 통계, 업스트림 피드)에 `proprietary`나 `ODbL-1.0`을 적지 말 것. 줄 수 없는 권리를 준다고 적는 것이다.
+- 근거 없이 추정해서 도장을 찍지 말 것. 모르면 비우거나 `"unknown"`.
+- ODbL 파생 DB는 통째로 내보내지 않는다. 화면 렌더(제작물)로만 제공한다 (`viinaRenderGate` 패턴).
+- `commercialUse`(유료 게이트)와 `dataLicense`는 별개 축이다.
+- 새 레이어는 `NEWS_LAYER_SOURCE_CATALOG`에 `commercialUse` + `dataLicense`를 함께 추가.
+- 정본: `src/lib/licensing/odblDataPolicy.ts`, `DATA_LICENSE.md`, `docs/commercial-licensing.md`
+
+> 독점 선언과 ODbL 렌더 전용 해석의 법적 효력은 변호사 확인 대기 중이다.

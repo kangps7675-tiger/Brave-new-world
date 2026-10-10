@@ -1,10 +1,11 @@
 /**
- * 소스 드릴용 「왜 올렸는지」 3줄 — 채널 수 · 반증 · PIR.
+ * 「왜?」 3줄 — 유저가 이 안건을 왜 지금 보면 좋은지.
+ * 파이프라인·게이트·PIR 채움 수치 같은 제작 용어는 쓰지 않는다.
  */
 
 import type { GateResult } from "@/lib/intelContract/types";
 import type { PirModalityStatus } from "@/lib/intelContract/pirRegistry";
-import { INTEL_UX } from "@/lib/intelContract/uxCopy";
+import { gradeHint } from "@/lib/intelContract/uxCopy";
 
 export function whyPublishLines(
   gate: GateResult,
@@ -13,52 +14,33 @@ export function whyPublishLines(
 ): [string, string, string] {
   const { bundle } = gate;
   const en = lang === "en";
+  const claim = (en ? bundle.claimEn : bundle.claimKo)?.trim();
+  const title = (en ? bundle.titleEn : bundle.titleKo)?.trim();
 
-  const channels = en
-    ? INTEL_UX.drillIndependence.en(
-        bundle.independenceCount,
-        bundle.modalityCount,
-      )
-    : INTEL_UX.drillIndependence.ko(
-        bundle.independenceCount,
-        bundle.modalityCount,
-      );
+  const whatItMeans = claim
+    ? claim
+    : title
+      ? en
+        ? `Open reporting points to: ${title}`
+        : `공개 보도가 가리키는 장면: ${title}`
+      : en
+        ? "This is a public-source watch item on the board."
+        : "보드에 올린 공개 출처 안건입니다.";
 
-  const disc = bundle.disconfirmLog;
-  let disconfirm: string;
-  if (!disc.queried) {
-    disconfirm = en
-      ? "Counter-check not run yet — grade stays cautious."
-      : "반증 탐색 전 — 등급을 보수적으로 둡니다.";
-  } else if (disc.hitCount > 0) {
-    disconfirm = en
-      ? `Counter-check found ${disc.hitCount} opposing note(s).`
-      : `반증·정정 후보 ${disc.hitCount}건을 확인했습니다.`;
-  } else {
-    disconfirm = en
-      ? "Counter-check ran — no opposing hits logged."
-      : "반증 탐색함 — 반대 히트는 기록되지 않았습니다.";
-  }
+  const howSure = gradeHint(gate.grade, lang === "en" ? "en" : "ko");
 
   const top = pirStatuses[0];
-  let pirLine: string;
-  if (!top) {
-    pirLine = en
-      ? "No priority topic linked — general open-source watch."
-      : "연결된 관심 주제 없음 — 일반 공개 관측.";
+  let whatToDo: string;
+  if (top) {
+    const topic = en ? top.pir.titleEn : top.pir.titleKo;
+    whatToDo = en
+      ? `Related to what you’re watching: ${topic}. Tap sources below if you want the receipts.`
+      : `지금 보고 있는 주제와 이어집니다: ${topic}. 근거가 궁금하면 아래 출처를 열어 보세요.`;
   } else {
-    const title = en ? top.pir.titleEn : top.pir.titleKo;
-    const need = top.required.length;
-    const got = top.present.length;
-    const miss = top.missing.length;
-    pirLine = en
-      ? `Priority: ${title} — ${got}/${need} channels filled${
-          miss > 0 ? ` · ${miss} still empty` : ""
-        }.`
-      : `관심 주제: ${title} — ${got}/${need} 채널 확보${
-          miss > 0 ? ` · 빈칸 ${miss}` : ""
-        }.`;
+    whatToDo = en
+      ? "Use it as a map cue — open sources before treating it as settled fact."
+      : "지도에서 짚어 보는 단서로 쓰세요. 사실로 굳히기 전에 출처를 한 번 열어 보세요.";
   }
 
-  return [channels, disconfirm, pirLine];
+  return [whatItMeans, howSure, whatToDo];
 }

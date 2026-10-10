@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import { zc } from "@/lib/uiStack";
 
@@ -22,8 +23,9 @@ export function LiveuaFlashToast({ lang, event, onDismiss }: Props) {
 
   if (!event) return null;
 
-  const title =
+  const raw =
     lang === "ko" ? event.titleKo?.trim() || event.title : event.title;
+  const title = peelUrlsFromText(raw).text || raw;
 
   return (
     <div

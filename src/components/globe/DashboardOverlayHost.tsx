@@ -1968,6 +1968,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           onGoToLocation={onBreakingFlashGoToLocation}
           displayGrade={breakingFlashGrade}
           onDrill={onBreakingFlashDrill}
+          exitToDock={viewerMode === "satellite"}
         />
       ) : null}
 

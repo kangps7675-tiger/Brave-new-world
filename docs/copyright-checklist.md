@@ -2,6 +2,29 @@
 
 멋진 신세계 목표 문서용. **법률 자문이 아닙니다.** 유료 SaaS 직전에는 변호사 검토를 권장합니다.
 
+## 프로젝트 데이터 · 세 부류 (개정 2026-10-11)
+
+| 항목 | 정책 |
+|------|------|
+| **자체 제작 판단·기록물** | `dataLicense: "proprietary"` — 허락 없는 복제·재배포·대량 수집 금지 |
+| **ODbL 상속 파생물** (OSM·VIINA 등) | `dataLicense: "ODbL-1.0"` — 원 조건 상속, 렌더 전용 |
+| **업스트림** | 원 라이선스 유지 — ODbL·proprietary로 재표기 금지 |
+| **코드** | `src/lib/licensing/odblDataPolicy.ts` |
+| **UI** | 출처(Methodology) 패널 · 자체 제작물 / ODbL 상속분 고지 |
+
+> ODbL은 기본값이 아니다. 복제를 허용하는 라이선스이므로 상속 의무가 있을 때만 쓴다.
+> 법적 효력은 변호사 확인 대기 중.
+
+체크리스트:
+
+- [ ] 새 자체 제작 레이어에 `dataLicense: "proprietary"`
+- [ ] ODbL 원본 파생물에만 `"ODbL-1.0"`
+- [ ] 업스트림 레이어에 실제 `dataLicense` (또는 `"upstream"`)
+- [ ] 출처 패널에 자체 제작물 고지와 ODbL 링크 노출
+- [ ] Share-Alike: 파생 DB를 bulk export 할 경우 ODbL 의무 재검토 (렌더 전용은 VIINA 정책과 동일 취지)
+
+---
+
 ## VIINA (ODbL) — 핵심 원칙
 
 | 항목 | 정책 |

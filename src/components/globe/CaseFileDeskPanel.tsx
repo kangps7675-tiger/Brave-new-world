@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -15,7 +15,7 @@ import {
   uploadEvidenceImage,
   type SensorEvidenceSource,
 } from "@/lib/caseFile/clientApi";
-import { evidenceSourceKind, type EvidenceSourceKind } from "@/lib/caseFile/sourceKind";
+import { evidenceSourceKind } from "@/lib/caseFile/sourceKind";
 import {
   readActiveCaseId,
   readCaseEditorToken,
@@ -35,6 +35,18 @@ import {
   effectiveClaimVerdict,
   type VerdictExplanation,
 } from "@/lib/caseFile/verdict";
+import {
+  INVESTIGATION_STEPS,
+  deriveInvestigationStep,
+  investigationStepProgress,
+} from "@/lib/caseFile/investigationSteps";
+import {
+  eventTypeLabel,
+  findStepsForEventType,
+  isProcedureItemDone,
+  procedureChecklistFor,
+  type SensorAttachMode,
+} from "@/lib/caseFile/procedureChecklists";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 type Props = {
@@ -68,14 +80,6 @@ const VERDICT_LABEL: Record<Verdict, { ko: string; en: string }> = {
   refuted: { ko: "반박됨", en: "Refuted" },
 };
 
-type SensorAttachMode =
-  | "firms"
-  | "air-raid"
-  | "ais"
-  | "adsb"
-  | "satellite-auto"
-  | "control-zone"
-  | "facility";
 type SoftAttachMode = SoftEvidenceKind;
 
 const SENSOR_DEFAULT_RADIUS_KM: Partial<Record<SensorAttachMode, number>> = {
@@ -89,23 +93,6 @@ const SENSOR_DEFAULT_RADIUS_KM: Partial<Record<SensorAttachMode, number>> = {
 function sensorSource(mode: SensorAttachMode): SensorEvidenceSource {
   return mode === "satellite-auto" ? "satellite" : mode;
 }
-
-/** 「한 번에 찾기」 순서 — 통제 구역·시설은 사건 자체를 보여 주지 않아 맥락으로 붙임 */
-const FIND_ALL_STEPS: Array<{
-  mode: SensorAttachMode;
-  kinds: EvidenceSourceKind[];
-  role: EvidenceRole;
-  ko: string;
-  en: string;
-}> = [
-  { mode: "satellite-auto", kinds: ["satellite"], role: "supports", ko: "위성 전후", en: "Satellite" },
-  { mode: "firms", kinds: ["firms"], role: "supports", ko: "화재(FIRMS)", en: "Fire (FIRMS)" },
-  { mode: "air-raid", kinds: ["neptun", "tzeva-adom"], role: "supports", ko: "공습 경보", en: "Air raid" },
-  { mode: "ais", kinds: ["ais"], role: "supports", ko: "선박(AIS)", en: "Ships (AIS)" },
-  { mode: "adsb", kinds: ["adsb"], role: "supports", ko: "군용기(ADS-B)", en: "Military aircraft" },
-  { mode: "control-zone", kinds: ["control-zone"], role: "context", ko: "통제 구역", en: "Control zone" },
-  { mode: "facility", kinds: ["facility"], role: "context", ko: "주변 시설", en: "Facilities" },
-];
 
 type FindAllRow = { label: string; state: "found" | "none" | "skipped" | "failed"; detail: string };
 type AttachMode = SensorAttachMode | SoftAttachMode | null;
@@ -668,7 +655,8 @@ export function CaseFileDeskPanel({
       (claim?.evidence ?? []).map((ev) => evidenceSourceKind(ev.sourceKey)),
     );
     let rev = caseFile.rev;
-    for (const step of FIND_ALL_STEPS) {
+    const findSteps = findStepsForEventType(caseFile.eventType);
+    for (const step of findSteps) {
       const label = en ? step.en : step.ko;
       if (step.kinds.some((k) => existingKinds.has(k))) {
         rows.push({ label, state: "skipped", detail: en ? "already attached" : "이미 붙어 있음" });
@@ -723,8 +711,17 @@ export function CaseFileDeskPanel({
     if (v === "confirmed") return "text-emerald-200";
     if (v === "partial") return "text-amber-200";
     if (v === "refuted") return "text-rose-200";
-    return "text-white/55";
+    return "text-white/80";
   };
+
+  const stepProgress = investigationStepProgress(caseFile);
+  const activeStepId = deriveInvestigationStep(caseFile);
+  const activeStepMeta = INVESTIGATION_STEPS.find((s) => s.id === activeStepId);
+  const procedureItems = caseFile
+    ? procedureChecklistFor(caseFile.eventType)
+    : [];
+  const unconfirmedCore =
+    explanation?.core.filter((c) => c.verdict === "unconfirmed") ?? [];
 
   return (
     <section
@@ -752,12 +749,53 @@ export function CaseFileDeskPanel({
             </p>
           )}
         </div>
-        <span className="text-micro tabular-nums text-white/40">
+        <span className="text-micro tabular-nums text-white/65">
           {camera.lat.toFixed(2)}, {camera.lng.toFixed(2)}
         </span>
       </header>
 
-      <label className="block text-micro text-white/55">
+      <nav
+        aria-label={en ? "Investigation steps" : "조사 단계"}
+        className="rounded-sm border border-white/10 bg-black/35 px-1.5 py-1.5"
+      >
+        <ol className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+          {INVESTIGATION_STEPS.map((step, i) => {
+            const state = stepProgress[step.id];
+            const tone =
+              state === "done"
+                ? "text-emerald-200/90"
+                : state === "active"
+                  ? "text-rose-100"
+                  : "text-white/60";
+            return (
+              <li key={step.id} className={`flex items-center gap-1 text-micro ${tone}`}>
+                {i > 0 ? <span className="text-white/50" aria-hidden>→</span> : null}
+                <span
+                  className={
+                    state === "active"
+                      ? "font-semibold underline underline-offset-2"
+                      : state === "done"
+                        ? "font-medium"
+                        : ""
+                  }
+                >
+                  {en ? step.en : step.ko}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+        {activeStepMeta ? (
+          <p className="mt-1 text-micro leading-snug text-white/80">
+            {en ? "Next: " : "다음: "}
+            <span className="text-white/95">
+              {en ? activeStepMeta.hintEn : activeStepMeta.hintKo}
+            </span>
+          </p>
+        ) : null}
+      </nav>
+
+      <label className="block text-micro text-white/80">
         {en ? "Editor token" : "편집 토큰"}
         <div className="mt-0.5 flex gap-1">
           <input
@@ -778,7 +816,7 @@ export function CaseFileDeskPanel({
         </div>
       </label>
 
-      <label className="block text-micro text-white/55">
+      <label className="block text-micro text-white/80">
         {en ? "Case ID" : "사건 ID"}
         <div className="mt-0.5 flex gap-1">
           <input
@@ -800,7 +838,7 @@ export function CaseFileDeskPanel({
 
       {!caseFile ? (
         <div className="flex flex-col gap-1.5 border-t border-white/10 pt-2">
-          <label className="block text-micro text-white/55">
+          <label className="block text-micro text-white/80">
             URL
             <input
               value={urlInput}
@@ -809,7 +847,7 @@ export function CaseFileDeskPanel({
               placeholder="https://…"
             />
           </label>
-          <label className="block text-micro text-white/55">
+          <label className="block text-micro text-white/80">
             {en ? "Or paste text" : "또는 본문 붙여넣기"}
             <textarea
               value={textInput}
@@ -839,8 +877,9 @@ export function CaseFileDeskPanel({
             <p className="text-sm font-medium text-white/90 line-clamp-2">
               {caseFile.title || caseFile.id}
             </p>
-            <p className="mt-0.5 text-micro text-white/45">
-              rev {caseFile.rev} · {caseFile.eventType}
+            <p className="mt-0.5 text-micro text-white/70">
+              rev {caseFile.rev} ·{" "}
+              {eventTypeLabel(caseFile.eventType, en ? "en" : "ko")}
             </p>
             <a
               href={`/case/${encodeURIComponent(caseFile.id)}`}
@@ -850,6 +889,29 @@ export function CaseFileDeskPanel({
             >
               {en ? "Open share page" : "공유 페이지 열기"}
             </a>
+          </div>
+
+          <div className="rounded-sm border border-white/10 bg-black/30 p-1.5">
+            <p className="text-micro font-semibold text-white/70">
+              {en ? "Check procedure" : "확인 절차"}{" "}
+              <span className="font-normal text-white/65">
+                ({eventTypeLabel(caseFile.eventType, en ? "en" : "ko")})
+              </span>
+            </p>
+            <ul className="mt-1 flex flex-col gap-0.5">
+              {procedureItems.map((item) => {
+                const done = isProcedureItemDone(caseFile, item);
+                return (
+                  <li
+                    key={item.id}
+                    className={`text-micro leading-snug ${done ? "text-emerald-200/90" : "text-white/75"}`}
+                  >
+                    <span aria-hidden>{done ? "☑" : "☐"} </span>
+                    {en ? item.en : item.ko}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           <div className="rounded-sm border border-white/10 bg-black/30 p-1.5">
@@ -874,7 +936,7 @@ export function CaseFileDeskPanel({
               <input
                 value={placeLabelEdit}
                 onChange={(e) => setPlaceLabelEdit(e.target.value)}
-                className="w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                className="w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                 placeholder={en ? "Place name" : "장소 이름"}
               />
               <div className="flex gap-1">
@@ -882,7 +944,7 @@ export function CaseFileDeskPanel({
                   inputMode="decimal"
                   value={placeLatEdit}
                   onChange={(e) => setPlaceLatEdit(e.target.value)}
-                  className="min-w-0 flex-1 rounded-sm border border-white/15 bg-black/40 px-1 py-1 font-mono text-micro text-white"
+                  className="min-w-0 flex-1 rounded-sm border border-white/15 bg-black/70 px-1 py-1 font-mono text-micro text-white"
                   placeholder={en ? "Lat" : "위도"}
                   aria-label={en ? "Latitude" : "위도"}
                 />
@@ -890,7 +952,7 @@ export function CaseFileDeskPanel({
                   inputMode="decimal"
                   value={placeLngEdit}
                   onChange={(e) => setPlaceLngEdit(e.target.value)}
-                  className="min-w-0 flex-1 rounded-sm border border-white/15 bg-black/40 px-1 py-1 font-mono text-micro text-white"
+                  className="min-w-0 flex-1 rounded-sm border border-white/15 bg-black/70 px-1 py-1 font-mono text-micro text-white"
                   placeholder={en ? "Lng" : "경도"}
                   aria-label={en ? "Longitude" : "경도"}
                 />
@@ -937,14 +999,14 @@ export function CaseFileDeskPanel({
                   {en ? "Save place" : "위치 저장"}
                 </button>
               </div>
-              <label className="block text-micro text-white/55">
+              <label className="block text-micro text-white/80">
                 {en ? "Occurred at (UTC)" : "사건 시각 (UTC 기준 입력)"}
                 <div className="mt-0.5 flex gap-1">
                   <input
                     type="datetime-local"
                     value={occurredAtEdit}
                     onChange={(e) => setOccurredAtEdit(e.target.value)}
-                    className="min-w-0 flex-1 rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                    className="min-w-0 flex-1 rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                   />
                   <button
                     type="button"
@@ -985,7 +1047,7 @@ export function CaseFileDeskPanel({
                     }}
                   >
                     {en ? CLAIM_LABEL[c.kind].en : CLAIM_LABEL[c.kind].ko}
-                    <span className="ml-1 font-normal text-white/35">
+                    <span className="ml-1 font-normal text-white/65">
                       {en ? "edit" : "수정"}
                     </span>
                   </button>
@@ -1002,16 +1064,16 @@ export function CaseFileDeskPanel({
                 </div>
                 {editing ? (
                   <div className="mt-1 flex flex-col gap-1 border-t border-white/10 pt-1">
-                    <label className="block text-micro text-white/55">
+                    <label className="block text-micro text-white/80">
                       {en ? "Statement" : "주장 문장"}
                       <textarea
                         value={editStatement}
                         onChange={(e) => setEditStatement(e.target.value)}
                         rows={2}
-                        className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                        className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       />
                     </label>
-                    <label className="block text-micro text-white/55">
+                    <label className="block text-micro text-white/80">
                       {en ? "Editor verdict" : "편집자 판정"}
                       <select
                         value={editOverride}
@@ -1020,7 +1082,7 @@ export function CaseFileDeskPanel({
                             (e.target.value as Verdict | "") || "",
                           )
                         }
-                        className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                        className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       >
                         <option value="">
                           {en ? "Rule only (clear override)" : "규칙만 (편집자 판정 해제)"}
@@ -1033,12 +1095,12 @@ export function CaseFileDeskPanel({
                       </select>
                     </label>
                     {editOverride ? (
-                      <label className="block text-micro text-white/55">
+                      <label className="block text-micro text-white/80">
                         {en ? "Reason" : "이유"}
                         <input
                           value={editOverrideReason}
                           onChange={(e) => setEditOverrideReason(e.target.value)}
-                          className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                          className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                           placeholder={en ? "Required" : "필수"}
                         />
                       </label>
@@ -1069,13 +1131,13 @@ export function CaseFileDeskPanel({
                         {c.statement}
                       </p>
                     ) : null}
-                    <p className="mt-0.5 text-micro text-white/35">
+                    <p className="mt-0.5 text-micro text-white/65">
                       {en ? "Evidence" : "근거"} {c.evidence.length}
                     </p>
                     {c.evidence.length > 0 ? (
                       <ul className="mt-1 flex flex-col gap-0.5 border-t border-white/5 pt-1">
                         {c.evidence.slice(0, 4).map((ev) => (
-                          <li key={ev.id} className="text-micro text-white/45">
+                          <li key={ev.id} className="text-micro text-white/70">
                             <span className="text-white/60">
                               {ev.sourceKey.split(":")[0]}
                             </span>
@@ -1101,7 +1163,7 @@ export function CaseFileDeskPanel({
                           </li>
                         ))}
                         {c.evidence.length > 4 ? (
-                          <li className="text-micro text-white/30">
+                          <li className="text-micro text-white/55">
                             +{c.evidence.length - 4}
                           </li>
                         ) : null}
@@ -1115,7 +1177,47 @@ export function CaseFileDeskPanel({
           </ul>
 
           {explanation?.why ? (
-            <p className="text-micro leading-snug text-white/55">{explanation.why}</p>
+            <div className="rounded-sm border border-white/10 bg-black/30 p-1.5">
+              <p className="text-micro font-semibold text-white/70">
+                {en ? "Why this verdict" : "왜 이 판정인가"}
+              </p>
+              <p className="mt-0.5 text-micro leading-snug text-white/80">
+                {explanation.why}
+              </p>
+            </div>
+          ) : null}
+
+          {unconfirmedCore.length > 0 ||
+          (explanation?.whatWouldChange.length ?? 0) > 0 ? (
+            <div className="rounded-sm border border-amber-400/25 bg-amber-950/30 p-1.5">
+              <p className="text-micro font-semibold text-amber-100/90">
+                {en ? "Not confirmed yet" : "아직 확인 못 한 것"}
+              </p>
+              {unconfirmedCore.length > 0 ? (
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {unconfirmedCore.map((c) => (
+                    <li key={c.kind} className="text-micro text-white/75">
+                      · {en ? CLAIM_LABEL[c.kind].en : CLAIM_LABEL[c.kind].ko}
+                      {c.statement ? ` — ${c.statement.slice(0, 48)}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {explanation && explanation.whatWouldChange.length > 0 ? (
+                <>
+                  <p className="mt-1.5 text-micro font-semibold text-amber-100/80">
+                    {en ? "What would change the verdict" : "무엇이 있으면 판정이 바뀌나"}
+                  </p>
+                  <ul className="mt-0.5 flex flex-col gap-0.5">
+                    {explanation.whatWouldChange.slice(0, 4).map((line) => (
+                      <li key={line} className="text-micro leading-snug text-white/70">
+                        · {line}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </div>
           ) : null}
 
           {attachMode ? (
@@ -1165,12 +1267,12 @@ export function CaseFileDeskPanel({
                               ? "Attach manual note"
                               : "수동 근거 첨부"}
               </p>
-              <label className="block text-micro text-white/55">
+              <label className="block text-micro text-white/80">
                 {en ? "Claim" : "세부 주장"}
                 <select
                   value={claimId}
                   onChange={(e) => setClaimId(e.target.value)}
-                  className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                  className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                 >
                   {caseFile.claims.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1180,12 +1282,12 @@ export function CaseFileDeskPanel({
                   ))}
                 </select>
               </label>
-              <label className="block text-micro text-white/55">
+              <label className="block text-micro text-white/80">
                 {en ? "Role" : "역할"}
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as EvidenceRole)}
-                  className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                  className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                 >
                   <option value="supports">{en ? "Supports" : "뒷받침"}</option>
                   <option value="contradicts">
@@ -1195,7 +1297,7 @@ export function CaseFileDeskPanel({
                 </select>
               </label>
               {isSensorAttach(attachMode) && SENSOR_DEFAULT_RADIUS_KM[attachMode] != null ? (
-                <label className="block text-micro text-white/55">
+                <label className="block text-micro text-white/80">
                   {en ? "Radius km" : "반경 km"}
                   <input
                     type="number"
@@ -1203,48 +1305,48 @@ export function CaseFileDeskPanel({
                     max={100}
                     value={radiusKm}
                     onChange={(e) => setRadiusKm(Number(e.target.value) || 15)}
-                    className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                    className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                   />
                 </label>
               ) : null}
               {attachMode === "media" ? (
                 <>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     URL <span className="text-rose-300/80">*</span>
                     <input
                       value={softUrl}
                       onChange={(e) => setSoftUrl(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       placeholder="https://…"
                     />
                   </label>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "Outlet (optional)" : "매체명 (선택)"}
                     <input
                       value={softOutlet}
                       onChange={(e) => setSoftOutlet(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                     />
                   </label>
                 </>
               ) : null}
               {attachMode === "photo" ? (
                 <>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "Image URL" : "이미지 URL"}
                     <input
                       value={softUrl}
                       onChange={(e) => setSoftUrl(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       placeholder="https://… or capture"
                     />
                   </label>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "Geolocation method" : "위치 맞춤 방법"}
                     <input
                       value={geoMethod}
                       onChange={(e) => setGeoMethod(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       placeholder={en ? "e.g. landmarks vs sat" : "예: 지형지물·위성 대조"}
                     />
                   </label>
@@ -1252,39 +1354,39 @@ export function CaseFileDeskPanel({
               ) : null}
               {attachMode === "satellite" ? (
                 <>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "Before URL" : "전 URL"}
                     <input
                       value={beforeUrl}
                       onChange={(e) => setBeforeUrl(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                     />
                   </label>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "After URL" : "후 URL"}
                     <input
                       value={afterUrl}
                       onChange={(e) => setAfterUrl(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                     />
                   </label>
                   <div className="grid grid-cols-2 gap-1">
-                    <label className="block text-micro text-white/55">
+                    <label className="block text-micro text-white/80">
                       {en ? "Before date" : "전 촬영일"}
                       <input
                         type="date"
                         value={beforeDate}
                         onChange={(e) => setBeforeDate(e.target.value)}
-                        className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                        className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       />
                     </label>
-                    <label className="block text-micro text-white/55">
+                    <label className="block text-micro text-white/80">
                       {en ? "After date" : "후 촬영일"}
                       <input
                         type="date"
                         value={afterDate}
                         onChange={(e) => setAfterDate(e.target.value)}
-                        className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                        className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                       />
                     </label>
                   </div>
@@ -1292,21 +1394,21 @@ export function CaseFileDeskPanel({
               ) : null}
               {attachMode === "manual" ? (
                 <>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     URL
                     <input
                       value={softUrl}
                       onChange={(e) => setSoftUrl(e.target.value)}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                     />
                   </label>
-                  <label className="block text-micro text-white/55">
+                  <label className="block text-micro text-white/80">
                     {en ? "Note" : "설명"}
                     <textarea
                       value={softNote}
                       onChange={(e) => setSoftNote(e.target.value)}
                       rows={2}
-                      className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                      className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                     />
                   </label>
                 </>
@@ -1346,12 +1448,12 @@ export function CaseFileDeskPanel({
           ) : (
             <div className="flex flex-col gap-1">
               {caseFile.claims.length > 1 ? (
-                <label className="block text-micro text-white/55">
+                <label className="block text-micro text-white/80">
                   {en ? "Find for claim" : "찾기 대상 주장"}
                   <select
                     value={claimId}
                     onChange={(e) => setClaimId(e.target.value)}
-                    className="mt-0.5 w-full rounded-sm border border-white/15 bg-black/40 px-1 py-1 text-micro text-white"
+                    className="mt-0.5 w-full rounded-sm border border-white/25 bg-black/70 px-1 py-1 text-micro text-white [&>option]:bg-[#121820] [&>option]:text-white"
                   >
                     {caseFile.claims.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -1368,7 +1470,9 @@ export function CaseFileDeskPanel({
                 onClick={() => void onFindAll()}
                 className="rounded-sm border border-emerald-400/50 bg-emerald-500/20 px-2 py-1.5 text-left text-micro font-semibold text-emerald-50 hover:bg-emerald-500/30 disabled:opacity-40"
               >
-                {en ? "Find all (sensors at incident)" : "한 번에 찾기 · 사건 앵커 전체 센서"}
+                {en
+                  ? `Find all · ${eventTypeLabel(caseFile.eventType, "en")} order`
+                  : `한 번에 찾기 · ${eventTypeLabel(caseFile.eventType, "ko")} 순서`}
               </button>
               {findAllRows?.length ? (
                 <ul className="flex flex-col gap-0.5 rounded-sm border border-white/10 bg-black/30 p-1">
@@ -1379,7 +1483,7 @@ export function CaseFileDeskPanel({
                           r.state === "found"
                             ? "text-emerald-200"
                             : r.state === "skipped"
-                              ? "text-white/40"
+                              ? "text-white/65"
                               : r.state === "failed"
                                 ? "text-rose-200"
                                 : "text-amber-200"
@@ -1394,7 +1498,7 @@ export function CaseFileDeskPanel({
                               : en ? "None" : "없음"}{" "}
                         · {r.label}
                       </span>
-                      <span className="block text-white/55">{r.detail}</span>
+                      <span className="block text-white/80">{r.detail}</span>
                     </li>
                   ))}
                 </ul>

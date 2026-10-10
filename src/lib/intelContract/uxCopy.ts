@@ -24,27 +24,27 @@ export function gradeHint(
   const en = lang === "en";
   if (grade === "high") {
     return en
-      ? "Different kinds of sources agree — worth reading first."
-      : "서로 다른 종류의 출처가 맞춰져, 먼저 보기 좋습니다.";
+      ? "Several kinds of open sources agree — start here if you’re short on time."
+      : "여러 종류의 공개 출처가 맞춰져 있어요. 시간 없으면 여기부터 보시면 됩니다.";
   }
   if (grade === "std") {
     return en
-      ? "Enough independent sources to show on the board or as an alert."
-      : "독립 출처가 충분해 보드·경보에 올릴 수 있는 수준입니다.";
+      ? "More than one separate source lines up — worth a careful look."
+      : "서로 다른 출처가 한쪽으로 맞춰져, 천천히 볼 만합니다.";
   }
   if (grade === "low") {
     return en
-      ? "Useful as a tip — open Why? before treating it as fact."
-      : "참고용입니다. 「왜?」를 열어 본 뒤에만 사실처럼 읽으세요.";
+      ? "Still thin — treat it as a lead, not settled fact."
+      : "아직 얇습니다. 단서로만 보고, 사실처럼 굳히지 마세요.";
   }
   if (grade === "hold") {
     return en
-      ? "Still collecting — not ready to highlight as a desk item."
-      : "아직 근거를 모으는 중이라 강조 안건으로 올리지 않습니다.";
+      ? "Still gathering — you can skip this for now."
+      : "아직 모으는 중이라, 지금은 넘겨도 됩니다.";
   }
   return en
-    ? "Did not pass the evidence check — kept in raw data only."
-    : "근거 검사를 통과하지 못해 원자료에만 남깁니다.";
+    ? "Not solid enough to highlight — leave it in the background."
+    : "아직 강조할 만큼은 아닙니다. 배경에만 남겨 둡니다.";
 }
 
 export const INTEL_UX = {
@@ -53,16 +53,16 @@ export const INTEL_UX = {
     en: "Today's watch items",
   },
   watchboardSubtitle: {
-    ko: "교차확인을 통과한 것만 올립니다. 비밀 정보가 아니라 공개 출처 규율입니다.",
-    en: "Only items that pass an evidence check. Public sources — not secret intel.",
+    ko: "서로 다른 공개 출처가 맞춰진 소식만 모았습니다. 비밀 정보가 아닙니다.",
+    en: "Only open-source items that cross-check. Not secret intel.",
   },
   watchboardEmpty: {
-    ko: "아직 올릴 안건이 없습니다. 피드가 채워지면 여기부터 읽으면 됩니다.",
-    en: "Nothing ready yet. When feeds fill in, start reading here.",
+    ko: "아직 읽을 안건이 없습니다. 소식이 쌓이면 여기부터 보시면 됩니다.",
+    en: "Nothing to read yet. When items arrive, start here.",
   },
   watchboardActiveHeader: {
-    ko: "올려둔 안건",
-    en: "On the board",
+    ko: "지금 볼 안건",
+    en: "Ready to read",
   },
   watchboardHoldHeader: {
     ko: "근거 모으는 중",
@@ -85,24 +85,24 @@ export const INTEL_UX = {
     en: "Priority topic",
   },
   pirNeed: {
-    ko: "필요",
-    en: "Need",
+    ko: "보면 좋은 것",
+    en: "Helpful to have",
   },
   pirHave: {
-    ko: "확보",
-    en: "Have",
+    ko: "이미 있는 것",
+    en: "Already here",
   },
   pirMissing: {
-    ko: "빈칸",
-    en: "Empty",
+    ko: "아직 없는 것",
+    en: "Still missing",
   },
   drillWhyHeader: {
-    ko: "왜 올렸나 (3줄)",
-    en: "Why it is up (3 lines)",
+    ko: "왜 지금 보면 좋은가",
+    en: "Why this matters now",
   },
   kindConflict: {
-    ko: "교차 사건",
-    en: "Corroborated event",
+    ko: "교차 확인된 사건",
+    en: "Cross-checked event",
   },
   helpTitle: {
     ko: "이 보드가 뭔가요?",
@@ -110,55 +110,55 @@ export const INTEL_UX = {
   },
   helpBody: {
     ko: [
-      "관측대는 ‘다 보여주기’가 아니라, 교차확인을 통과한 안건만 강조합니다.",
-      "등급(탄탄함·교차확인·얇음·모으는 중)은 비밀 등급이 아니라 「얼마나 여러 출처가 맞는지」입니다.",
-      "「왜?」를 누르면 출처·탈락 이유·언제 폐기할지(하향 조건)가 나옵니다. 의도·확률·임박 %는 말하지 않습니다.",
-      "전황 보고서는 여기서만 엽니다. 지정학·지경학 화면에는 같은 책을 이식하지 않습니다.",
+      "여기에는 ‘다 모아 둔 소식’이 아니라, 서로 다른 공개 출처가 맞춰진 안건만 올립니다.",
+      "탄탄함·교차확인·얇음은 비밀 등급이 아닙니다. 출처가 얼마나 겹치는지입니다.",
+      "「왜?」는 이 소식이 지도에서 왜 눈에 띄는지, 얼마나 믿을지, 다음에 뭘 보면 좋은지를 짧게 말해 줍니다.",
+      "전황 보고서는 관측대에서만 엽니다.",
     ],
     en: [
-      "The Observatory highlights only items that pass an evidence check — not everything collected.",
-      "Grades (Strong / Checked / Thin / Waiting) are about source agreement, not secrecy.",
-      "Why? shows sources, fail reasons, and when we would drop the item. We do not claim intent or odds.",
-      "Theater sitrep books open only from here — not on the geopolitics or geoeconomics desks.",
+      "This board is not every feed item — only open-source items that cross-check.",
+      "Strong / Checked / Thin are about source agreement, not secrecy.",
+      "Why? explains what the item means on the map, how solid it looks, and what to check next.",
+      "Theater sitrep books open only from the Observatory.",
     ],
   },
   drillTitle: {
-    ko: "왜 이 안건인가요?",
-    en: "Why is this on the desk?",
+    ko: "이 소식이 왜 중요한가",
+    en: "Why this item matters",
   },
   drillClaim: {
-    ko: "지금 말하는 것",
-    en: "What we are saying",
+    ko: "한 줄로 보면",
+    en: "In one line",
   },
   drillHow: {
-    ko: "어떻게 모았나",
-    en: "How it was gathered",
+    ko: "출처가 얼마나 겹치나",
+    en: "How sources line up",
   },
   drillIndependence: {
     ko: (indep: number, mods: number) =>
-      `서로 다른 출처 ${indep}곳 · 종류 ${mods}가지`,
+      `서로 다른 곳에서 ${indep}곳 · 종류 ${mods}가지가 맞춰져 있습니다`,
     en: (indep: number, mods: number) =>
-      `${indep} independent source(s) · ${mods} kind(s)`,
+      `${indep} separate source(s) · ${mods} kind(s) agree`,
   },
   drillReasons: {
-    ko: "통과·보류 이유",
-    en: "Pass / hold reasons",
+    ko: "믿을 때 참고할 점",
+    en: "What to keep in mind",
   },
   drillSources: {
-    ko: "근거로 쓴 출처",
-    en: "Sources used",
+    ko: "직접 열어볼 출처",
+    en: "Sources you can open",
   },
   drillKill: {
-    ko: "이런 일이면 내립니다",
-    en: "We would drop it if…",
+    ko: "이런 소식이 나오면 중요도가 내려갑니다",
+    en: "It would matter less if…",
   },
   drillAlt: {
-    ko: "다른 설명도 가능",
-    en: "Other explanations possible",
+    ko: "다른 해석도 가능합니다",
+    en: "Other readings are possible",
   },
   drillFoot: {
-    ko: "예측이 아닙니다. 의도나 확률은 평가하지 않습니다.",
-    en: "Not a forecast. Intent and probability are not assessed.",
+    ko: "미래를 맞히거나 의도를 단정하지 않습니다. 공개 자료를 지도 위에 모아 둔 참고용입니다.",
+    en: "Not a forecast or a claim about intent — a map-side reading aid from open sources.",
   },
   modality: {
     media: { ko: "보도", en: "Press" },
@@ -169,12 +169,12 @@ export const INTEL_UX = {
     tip: { ko: "제보·미확인", en: "Tip/unverified" },
   },
   observeFirstTipTitle: {
-    ko: "관측대 · 안건 보드",
-    en: "Observatory · watch board",
+    ko: "관측대 · 오늘 볼 안건",
+    en: "Observatory · today's items",
   },
   observeFirstTipBody: {
-    ko: "오른쪽 「오늘 볼 안건」은 레이어 목록이 아닙니다. 교차확인을 통과한 전황·해상 경보만 모은 읽기 목록입니다. 「왜?」로 근거를 펼치고, 제목을 누르면 보고서가 열립니다.",
-    en: "「Today's watch items」 is not a layer list — it is a reading queue of theater and maritime items that passed an evidence check. Use Why? for sources; tap a title to open the report.",
+    ko: "오른쪽은 레이어 스위치가 아니라 읽을 안건 목록입니다. 「왜?」로 왜 중요한지 보고, 제목을 누르면 보고서가 열립니다. 아래 책갈피로 속보·알림·검증·사건(화재·공습·항적 붙이기)도 바꿀 수 있어요.",
+    en: "The list on the right is a reading queue, not a layer switch. Tap Why? for why it matters; tap a title for the report. Bottom bookmarks switch flashes, alerts, verify, and Case (attach fires, air raids, tracks).",
   },
   observeFirstTipCta: {
     ko: "알겠어요",

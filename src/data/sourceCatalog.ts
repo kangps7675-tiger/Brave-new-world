@@ -21,6 +21,28 @@ export interface NewsLayerSourceNote {
     /** 서드파티 데모 저장소에서 온 합성 데이터. 프로덕션 노출 금지. */
     | "synthetic-demo";
   /**
+   * 데이터셋 라이선스 식별자.
+   *
+   * 세 부류 (`src/lib/licensing/odblDataPolicy.ts`):
+   *  - 직접 만든 판단·기록물 → `"proprietary"` (독점, 허락 없는 복제 금지)
+   *  - ODbL 원본에서 상속된 파생물(OSM·VIINA 등) → `"ODbL-1.0"`
+   *  - 외부 원본 → `"upstream"` 또는 실제 ID (예: `"CC-BY-4.0"`)
+   * **ODbL은 기본값이 아니다.** 복제·재사용을 허용하는 공개 라이선스이므로
+   * 상속 의무가 있을 때만 쓴다. 권리가 없는 것(언론 기사·외부 통계·피드)을
+   * `proprietary`/`ODbL-1.0`으로 적지 말 것. 모르면 비운다.
+   */
+  dataLicense?:
+    | "ODbL-1.0"
+    | "CC-BY-4.0"
+    | "CC0-1.0"
+    | "MIT"
+    | "OGL"
+    | "KOGL"
+    | "public-domain"
+    | "upstream"
+    | "proprietary"
+    | "unknown";
+  /**
    * 상업적 이용 가능 여부 — **유료화의 정본**.
    *
    * ⚠️ 핵심 오해: "데이터를 팔지 않으니 상업적 이용이 아니다"는 **틀렸다.**
@@ -144,6 +166,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Demo mode: no external AI API. Heuristically detects war zones from territorial disputes and recent combat news density.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "Natural Earth(퍼블릭 도메인) + GDELT(공개). 상업 이용 가능.",
   },
@@ -158,6 +181,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Military aircraft via ADS-B. Cron → D1 `adsb_aircraft` (mode=mil). ICAO hex military flags enriched from Bellingcat/Turnstone modes.csv (adsb-history, MIT). User toggle reads D1 first; ?live=1 forces upstream.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "allowed",
     commercialNote:
       "2026-08-01 재판정 (prohibited → allowed). adsb.fi('for personal, non-commercial use only')와 airplanes.live(독점 라이선스 미확인)를 런타임 폴백에서 완전히 제거했다. 남은 소스는 adsb.lol(ODbL — 출처 표기만) + ADSBexchange(상업 키) + Bellingcat adsb-history(MIT) 뿐이다. ⚠️ 폴백에 adsb.fi·airplanes.live 를 되돌리면 이 등급도 함께 내려야 한다. @see src/lib/adsbClient.ts · workers/cron-ingest/src/adsb.ts",
@@ -173,6 +197,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Feature-centric SCS monitoring bridge. Renders 77 Spratly/Paracel features from ReefWatch target_features.json. Polls OpenSky once over the combined bbox (quick_check policy) and attributes aircraft only within ±0.15° (~16.7 km) of a feature. Not a live battlefield truth engine; Planet/imagery ingest stays optional upstream.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "ReefWatch 는 MIT 이나 OpenSky Network 가 비상업·연구용. 상업 시 OpenSky 계약 필요.",
@@ -187,6 +212,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Civilian ADS-B traffic (exclude dbFlags&1 and Bellingcat military hex). Cron warms hub grids into D1; viewport query prefers D1 bbox then live.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "allowed",
     commercialNote:
       "2026-08-01 재판정 (prohibited → allowed). adsb.fi·airplanes.live 를 런타임 폴백에서 제거하고 adsb.lol(ODbL) + ADSBexchange 만 남겼다. ⚠️ 되돌리면 등급도 함께 내릴 것.",
@@ -201,6 +227,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Commercial AIS via MarineTraffic → D1 `ais_vessels`. Toggle reads D1 first; AISstream live fallback when MT unavailable.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "MarineTraffic 상업 라이선스 필요. AISstream 도 상업 조건 확인 필요.",
@@ -229,6 +256,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Major undersea tunnels (Eurotunnel, Seikan, Marmaray, …). Stored in D1 `submarine_tunnels`; fetched only when layer toggled ON.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "proprietary",
     commercialUse: "allowed",
     commercialNote: "자체 제작 시드 — 우리 저작물.",
   },
@@ -242,6 +270,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Near-real-time satellite fire detections (VIIRS NOAA-20 / SNPP NRT). Cron → D1 → /api/firms-fires. Map attribution: NASA FIRMS.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "NASA FIRMS — 미 정부 저작물, 퍼블릭 도메인.",
   },
@@ -255,6 +284,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Tzeva Adom rocket/missile alerts via AlertsHistory.json — same feed as DavidTheExplorer/Tzeva-Adom-API. Geo-restricted to Israeli IP; use OREF_HISTORY_URL proxy abroad.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "Pikud HaOref 비공식 엔드포인트. 상업 이용 시 정식 채널 문의 필요.",
@@ -269,6 +299,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Merchant vessel attack / boarding / hijack / suspicious-activity warnings (Red Sea, Gulf of Aden, Strait of Hormuz, etc.). No documented public API — endpoint identified via client JS bundle inspection. Not an official alert substitute; see README 비공식 엔드포인트 사용 원칙.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "OGL",
     commercialUse: "license-required",
     commercialNote:
       "OGL 자체는 상업 허용이나 **비공식(리버스 엔지니어링) 엔드포인트**를 쓰고 있음. 수익화 시 Royal Navy/UKMTO 정식 피드 요청 필요 — 프로젝트 자체 원칙.",
@@ -296,6 +327,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Normalized military exercise zones (cyan hatch). Confidence: announced / announced_osint / unverified; client may soft-bump to announced_rf when ADS-B/AIS points fall in bbox — RF is a bonus, not proof. DPRK/IR auto-alert does not force military ADS-B ON. See docs/exercise-alerts.md.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "훈련별 출처가 매체 인용. 유료 노출 전 개별 확인.",
@@ -324,6 +356,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Ukraine air threats (UAV, missile, KAB) and official air-raid alerts. Free public API, no key. Not an official alert system — informational only.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "NEPTUN 비공식 피드. 상업 이용 시 제공자 문의 필요.",
@@ -345,6 +378,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "카탈로그는 UCDP GED 라 적었으나 실제 데이터는 데모 15건 (2026-07-31 감사 P0-3). " +
       "npm run data:ucdp 미실행.",
     ingest: "synthetic-demo",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "UCDP GED — CC BY 4.0 (실데이터 연결 후 유효).",
   },
@@ -383,6 +417,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Share of aircraft reporting GNSS anomalies per H3 res-4 cell. MIN_AIRCRAFT filter applied. Does NOT show jammer/equipment locations. Unofficial static feed. Home mode: live (tracks) with ADS-B/AIS — solo mode retired.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "GPSJam.org·ADSBexchange — 상업 이용 조건 확인 필요.",
@@ -422,6 +457,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "U.S. bases plus Korea/Japan/Philippines OSM airfields and eastern NATO front-line air/naval sites.",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike.",
   },
@@ -434,6 +470,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 변전소·발전소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -446,6 +483,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 국경 검문소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -458,6 +496,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 댐·저수지. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -470,6 +509,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 활주로·공항. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -482,6 +522,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 항만. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -494,6 +535,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 군사 검문소. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -506,6 +548,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 주요 철도. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -518,6 +561,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 주요 도로. Geofabrik PBF → pyosmium 추출, public/data/crink/ 정적 파일로 서빙.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -530,6 +574,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 가스·석유 파이프라인 (man_made=pipeline, substance 필터). 2026-09-16 카테고리 추가, 아직 실추출/병합 전 — showCrinkInfraPipeline 기본 OFF.",
     status: "planned",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -542,6 +587,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "CRINK 인프라 — 고압 송전선·배전선 전체 지오메트리 (power=line/minor_line). 2026-09-16 카테고리 추가, 아직 실추출/병합 전 — showCrinkInfraPowerLine 기본 OFF. rail/road와 동일하게 .geojson.gz 사이드카로 서빙 예정(merge_geojson.py GZIP_CATEGORIES); 압축 후에도 너무 크면 벡터타일(tippecanoe/PMTiles) 전환 검토.",
     status: "planned",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap(ODbL) — 상업 이용 가능, 표기+share-alike 필요.",
   },
@@ -568,6 +614,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "µSv/h gauges near Zaporizhzhia, Fukushima, Yongbyon, Dimona, Chernobyl, Kori, Sellafield when nuclear sites layer is on.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "Safecast — CC BY.",
   },
@@ -580,6 +627,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Planetary K-index and NOAA R/S/G scales as a status chip under the global index.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "NOAA SWPC — 미 정부 저작물, 퍼블릭 도메인.",
   },
@@ -592,6 +640,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Squawk 7700/7600/7500 emergency contacts — auto flyTo + siren + banner.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "allowed",
     commercialNote: "adsb.lol — ODbL. 상업 이용 가능, 표기 필수.",
   },
@@ -675,6 +724,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "좌표 있는 허브 카드 썸네일. Sentinel 키 없으면 NASA GIBS. CSIS/ISW og:image 미사용.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "Sentinel CC BY 4.0 표기 · NASA 퍼블릭 도메인.",
   },
@@ -688,6 +738,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "가제트 placeId 프리베이크. Workers 요청 경로에서 헤드리스 렌더하지 않음.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "자체 렌더링 — 저작권 이슈 없음.",
   },
@@ -701,6 +752,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Nav 「지형」 — OpenFreeMap Liberty 벡터 + DEM. 고줌에서 Esri World Imagery가 바탕에 드러남(도로·라벨은 벡터 유지).",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "upstream",
     commercialUse: "allowed",
     commercialNote: "OpenFreeMap·OpenMapTiles·OSM(ODbL) — 표기 필수.",
   },
@@ -739,6 +791,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Terrain mode zoom ≥ 14: Cesium OSM Buildings (3D Tiles via deck.gl, shared MapLibre WebGL). Fill-extrusion fallback if no Ion token.",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "upstream",
     commercialUse: "allowed",
     commercialNote:
       "Cesium OSM Buildings — OSM(ODbL) 표기 + Cesium ion 약관. 세슘 뷰어가 아니라 타일셋만 사용.",
@@ -753,6 +806,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "AI/cloud data center clusters from Wikidata entities and OSM facilities. Deterministic confidence and importance scoring. Clusters merge nearby sites within 50 km.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "Wikidata(CC0) + OSM(ODbL) — 상업 이용 가능.",
   },
@@ -767,6 +821,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Upstream GeoJSON vertices from Benden Global Shipping Lanes (Major/Middle/Minor). Coordinates preserved at build (no ocean A* reshape). Low-opacity cyan strokes; rose tint near curated chokepoints. Not live AIS tracks.",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote:
       "CC BY 4.0 — 저작자 표기 필수 (Benden 2022 · Zenodo DOI 10.5281/zenodo.6361763). Statista 재사용 제외는 업스트림 LICENSE·docs/third-party/shipping-lanes.md 참고.",
@@ -806,6 +861,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Oil and NGL pipeline segments from GEM GOIT tracker.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "Global Energy Monitor — CC BY 4.0. NC 조항 없음, 상업 이용 가능.",
   },
@@ -818,6 +874,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Gas transmission pipelines from GEM GGIT tracker.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "Global Energy Monitor — CC BY 4.0.",
   },
@@ -830,6 +887,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "LNG import/export terminal points from GEM GGIT.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "Global Energy Monitor — CC BY 4.0.",
   },
@@ -844,6 +902,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Worldwide offshore/subsea oil·gas from GEM name/location heuristics, plus European seas from EMODnet WFS. Zoomed-in OSM underwater merges client-side.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "GEM(CC BY 4.0) + EMODnet(공개).",
   },
@@ -857,6 +916,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Viewport Overpass: man_made=pipeline (substance oil|gas|petroleum) and location=underwater|offshore|seabed. Merged with GEM/EMODnet when zoomed in.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "OpenStreetMap — ODbL.",
   },
@@ -871,6 +931,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Major global economic hubs scored by finance infrastructure, trade gateway presence, urban scale, and country GDP.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "Wikidata(CC0) + OSM(ODbL) + World Bank(CC BY 4.0).",
   },
@@ -890,6 +951,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "가중치는 '임계선을 넘었을 때 대응 의무가 얼마나 성문화되어 있는가' 기준이며 심각도가 아니다.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "proprietary",
     commercialUse: "allowed",
     commercialNote: "자체 파생 지표 — 우리 저작물. 문헌은 개념 인용.",
   },
@@ -927,6 +989,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "⚠️ 결측을 0 으로 만들면 '환율 0원'이 되어 차트가 무너진다 — null 로 둔다.",
     status: "planned",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "unknown",
     commercialNote:
       "ECOS 자체 이용약관 확인 필요 (data.go.kr 공공데이터법 체계와 별개). 확인 전 유료 노출 금지.",
@@ -944,6 +1007,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "⚠️ 단위(UNIT_NM)가 행마다 다를 수 있어 버리면 다른 지표를 같은 축에 그리게 된다.",
     status: "planned",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "unknown",
     commercialNote:
       "KOSIS 자체 이용약관 확인 필요. 확인 전 유료 노출 금지.",
@@ -986,6 +1050,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "GTA_API_KEY 발급·등록과 npm run gta:fetch 최초 실행뿐. 키 없으면 레이어를 켜도 빈 화면(정상 동작).",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "데이터는 CC BY 4.0 이나 GTA 서비스 약관이 'free for non-commercial users'. 아직 SaaS(유료 티어) 전이라 지금은 노출하되, 유료화 시 이 레이어부터 재검토하거나 상업 라이선스를 문의할 것 (data@globaltradealert.org).",
@@ -1064,6 +1129,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Country GDP·population·trade·defense·inflation·growth cards for econ insight parchment and region panel. History shock + peer compare. Proxied with STATSOFTHEWORLD_API_KEY. Routes: /macro, /market-lamp, /compare, /rankings, /history. Bulk CSV: statisticsoftheworld.com/data.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "Statistics of the World — 유료 API, 제공자 약관에 상업 조건 확인.",
@@ -1077,6 +1143,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     notes: "Key critical mineral deposits and processing sites (mapped to resources).",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "USGS — 미 정부 저작물, 퍼블릭 도메인.",
   },
@@ -1090,6 +1157,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Irregular Polygon footprints for major lithium/REE/uranium/titanium/copper belts. Not cadastral geology — thematic map extents. Shown with showResources.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "proprietary",
     commercialUse: "allowed",
     commercialNote: "자체 큐레이션 외곽선 — 우리 저작물.",
   },
@@ -1109,6 +1177,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     blockedReason:
       "합성 데모 데이터를 PeeringDB 로 표기하고 있었다 (2026-07-31 감사 P0-3).",
     ingest: "synthetic-demo",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "PeeringDB — CC BY 4.0 (실데이터 연결 후 유효).",
   },
@@ -1154,6 +1223,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Country-level arms embargo zones from official sources with Wikidata SPARQL fallback.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "CC0-1.0",
     commercialUse: "allowed",
     commercialNote: "UN·EU·UK·US 공공 목록 + Wikidata(CC0).",
   },
@@ -1177,6 +1247,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "지정학 뉴스 스트림 — feedCatalog.ts 의 12개 전역(global·middle-east·russia-ukraine·china-taiwan·korea·japan·south-asia·southeast-asia·africa·arctic·atlantic·south-america) RSS 피드. 제목 + 최대 220자 스니펫 + 원문 링크만 보관하며 한국어 번역본을 함께 제공한다.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "매체별 RSS 약관이 제각각이다. NYT·WSJ·Reuters 등 주요 매체는 RSS 를 개인·비상업 이용으로 한정한다. 제목+링크 인용은 통상 허용되나 (a) 본문 스니펫 재배포와 (b) 한국어 번역(2차적저작물 작성, 저작권법 제22조)은 별개 권리다. 스니펫 상한 220자(RSS_BODY_SNIPPET_MAX)·표시 200자(LAMP_DISPLAY_SUMMARY_MAX)로 묶어뒀으나, 유료 노출 전 매체별 개별 확인 또는 자체 LLM 요약(docs/llm-news-digest.md)으로 대체 필요.",
@@ -1196,6 +1267,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "방송·와이어 공식 채널의 Atom 피드. 재생은 공식 embed 플레이어(youtube.com/embed), 썸네일은 i.ytimg.com 핫링크 — 영상 파일을 내려받거나 재호스팅하지 않는다.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "unknown",
     commercialNote:
       "YouTube ToS 는 API Services 또는 공식 embed 플레이어 외의 프로그램적 접근을 제한한다. 공개 Atom 피드(feeds/videos.xml) 사용은 회색지대 — 유료 노출 전 YouTube Data API v3 로 전환하거나 약관 확인 필요. 재생·썸네일 구현 자체는 ToS 가 요구하는 패턴을 따르고 있다.",
@@ -1210,6 +1282,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Major-industry & company headlines for geo-trader: Big Tech/AI, semis (Nvidia·TSMC·ASML), EV/batteries, oil majors, shipping lines, plus market wires. Fetched via ALL_ECON_FEEDS.",
     status: "shipped",
     ingest: "live-poll",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "매체별 RSS 약관. 제목+링크 인용은 통상 허용되나 본문·이미지 재배포는 별도. 유료 노출 전 매체별 확인.",
@@ -1224,6 +1297,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Public Telegram channel catalog derived from IRONSIGHT (MIT). Post bodies belong to channel operators — in-product shows ~half snippet only; full post via t.me CTA (optional click-to-load embed). Not in LLM pipeline. See telegramOsintPolicy.ts.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "IRONSIGHT 채널 카탈로그는 MIT. 채널 게시물은 운영자 저작물 — 제품은 약 절반 스니펫만 표시하고 전문은 t.me CTA. 임베드는 사용자 클릭 시에만.",
@@ -1238,6 +1312,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Manifest app-data.json + countries/disputes/places chunks. First paint loads countries+disputes only; places.json deferred. gzip: npm run data:compress.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "public-domain",
     commercialUse: "allowed",
     commercialNote: "Natural Earth(퍼블릭 도메인) + GDELT(공개).",
   },
@@ -1264,6 +1339,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Ukraine control hatch precomputed (`ukraine:hatch:build`) into D1. Globe toggles fetch snapshot paths only — no client geometry hatch. VIINA raw stays private.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "ODbL-1.0",
     commercialUse: "allowed",
     commercialNote: "VIINA — ODbL. 상업 이용 가능하되 렌더 전용 유지(원본 export 금지).",
   },
@@ -1305,6 +1381,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "LiveUA 통제면이 없을 때만 사용. news_project occupiedUkraine처럼 좌표만 3일마다 반영. 유저 GET은 D1/정적 스냅샷만 읽고, 3일이 지났을 때만 DeepState history/last를 한 번 친다.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "DeepStateMap API는 상업 사전승인제. LiveUA 안정 시 warm 축소 — 승인 후 유지하거나 LiveUA만 사용.",
@@ -1358,6 +1435,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "12개 전장(이란·우크라이나·대만·한국·레바논·시리아·쿠릴·발트·흑해·캅카스·일본·중앙아시아) 통합 이벤트 레이어. GDELT·NewFeeds·news-stream 원시 이벤트를 지오해시+시간+자카드 유사도로 클러스터링해 중복 핀을 제거하고, 독립 소스 수 기반 confidence(단일 보도/corroborated/high-confidence)를 매긴다. NEXT_PUBLIC_CONFLICT_EVENTS_REPLACE_LEGACY(기본 on)가 켜지면 korea-missile-incidents·ukraine-strikes-russia·china-theater-incidents·newfeeds-iran 4개 레거시 레이어를 대체해 숨긴다. 좌표 미확정 애매 케이스만 배치당 최대 8건 LLM(gazetteer id만 선택, 좌표 창작 금지)로 보강.",
     status: "shipped",
     ingest: "mapped-existing",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "GDELT(공개)·NewFeeds(MIT) 부분은 상업 이용 가능하나, news-stream 병합분은 news-geopolitics-rss 항목과 동일한 매체별 RSS 약관 제약을 그대로 상속한다 — 유료 노출 전 그쪽 확인과 동일 조건 적용.",
@@ -1374,6 +1452,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     blockedReason:
       "ACLED / HDX HAPI conflict-events 레이어는 제품에서 제거됨 (ACLED EULA 상업 이용 금지). API는 410.",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "prohibited",
     commercialNote:
       "ACLED EULA — 상업 이용 금지. 제품 노출 중단.",
@@ -1388,6 +1467,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "각국 좌표 위 ICBM 아이콘 + 최신(2026) 핵탄두 보유 수. 보유 9개국(러·미·중·프·영·인·파·이스라엘·북한)만 표시, 폐기국(남아공)·세계 합계 제외.",
     status: "shipped",
     ingest: "static-build",
+    dataLicense: "CC-BY-4.0",
     commercialUse: "allowed",
     commercialNote: "Our World in Data(CC BY) + FAS Nuclear Notebook.",
   },
@@ -1401,6 +1481,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "Globe overlay: named RU KIA (lower bound) + CSIS WIA estimate on the Ukraine theater. (Removed from map UI with frontline casualty layer.)",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "Mediazona·BBC·Meduza — 언론사 저작물. 수치 인용과 본문 재배포는 다름.",
@@ -1415,6 +1496,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "진행형 대만해협 타임라인. LLM 없이 점수·시간 상위 헤드라인을 1~2줄로 압축. 「자동 요약 · 오보 가능」 고지. 수동 검수는 시드/JSON 덮어쓰기.",
     status: "shipped",
     ingest: "cached-api",
+    dataLicense: "upstream",
     commercialUse: "license-required",
     commercialNote:
       "GDELT 는 공개이나 Telegram 채널 글은 운영자 소유.",

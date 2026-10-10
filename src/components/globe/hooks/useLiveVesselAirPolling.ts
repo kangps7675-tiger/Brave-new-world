@@ -208,10 +208,15 @@ export function useLiveVesselAirPolling({
       const max = liveAirTrafficFetchMax();
       const alt = layerAltitudeRef.current;
       const lod = getGlobeLod(alt).tier;
-      const nearDetail = lod === "near" || lod === "village";
+      // 관측(Cesium): 전 지구 외에는 카메라 주변 OpenSky bbox densify.
+      // MapLibre: 기존처럼 near/village만.
+      const densify =
+        (isSatelliteViewer ? lod !== "global" : lod === "near" || lod === "village") &&
+        Number.isFinite(layerCenterRef.current.lat) &&
+        Number.isFinite(layerCenterRef.current.lng);
       const center = layerCenterRef.current;
       const qs = new URLSearchParams({ max: String(max) });
-      if (nearDetail && Number.isFinite(center.lat) && Number.isFinite(center.lng)) {
+      if (densify) {
         qs.set("lat", String(center.lat));
         qs.set("lng", String(center.lng));
         qs.set("dist", String(airTrafficDistNm(alt)));
@@ -229,15 +234,14 @@ export function useLiveVesselAirPolling({
       }
 
       const next = (payload.aircraft || []).slice(0, max);
-      if (!nearDetail) {
+      if (!densify) {
         setCivAircraft(next);
       } else {
-        // 근접 densify: 같은 hex는 뷰포트 데이터 우선, 전역 스냅샷과 merge
+        // 근접 densify: 로컬 응답을 앞에 두어 slice가 새 기체를 자르지 않게 한다.
         setCivAircraft((prev) => {
-          const byHex = new Map<string, MilitaryAircraft>();
-          for (const ac of prev) byHex.set(ac.hex.toLowerCase(), ac);
-          for (const ac of next) byHex.set(ac.hex.toLowerCase(), ac);
-          return Array.from(byHex.values()).slice(0, Math.max(max, prev.length));
+          const localHex = new Set(next.map((ac) => ac.hex.toLowerCase()));
+          const fillers = prev.filter((ac) => !localHex.has(ac.hex.toLowerCase()));
+          return [...next, ...fillers].slice(0, Math.max(max, next.length));
         });
       }
     } catch (error) {
@@ -247,6 +251,7 @@ export function useLiveVesselAirPolling({
     }
   }, [
     isCameraMovingRef,
+    isSatelliteViewer,
     layerAltitudeRef,
     layerCenterRef,
     setCivAircraft,

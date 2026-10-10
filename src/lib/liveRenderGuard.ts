@@ -14,25 +14,33 @@ const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
   village: 220,
 };
 
+/**
+ * Cesium AIS billboard 예산.
+ * 줌아웃에서도 전 지구 함선 트랙이 보이도록 global/continent를 크게 둔다.
+ * (과거 HTML 마커 시절 32/48은 Cesium billboard 대비 과도하게 빡셌음)
+ */
 const AIS_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 32,
-  continent: 48,
-  regional: 72,
-  near: 100,
-  village: 120,
+  global: 480,
+  continent: 560,
+  regional: 640,
+  near: 720,
+  village: 800,
 };
 
+/** 관측(Cesium) fetch max=1000과 맞춤 — display가 fetch(500)에 막히지 않게 */
+const AIS_DISPLAY_CEILING = 1000;
+
 /**
- * Cesium billboard 예산 (이름은 과거 HTML 마커 시절 잔재).
- * OpenSky/ADS-B 전 세계 스냅샷을 받아도 줌아웃에서는 카메라 근접분만 그림.
- * billboard는 DOM보다 싸서 HTML 시절보다 여유 있게 둔다 — 렉 기둥(폴링 간격·fetch cap)은 유지.
+ * Cesium 민항 billboard 예산 (이름은 과거 HTML 마커 시절 잔재).
+ * 줌아웃은 전 지구 균등 샘플이 보이도록 AIS와 비슷한 규모.
+ * 렉 기둥(폴링 간격·fetch cap)은 유지.
  */
 const AIR_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 160,
-  continent: 260,
-  regional: 400,
-  near: 650,
-  village: 900,
+  global: 520,
+  continent: 640,
+  regional: 780,
+  near: 900,
+  village: 1100,
 };
 
 /**
@@ -119,9 +127,12 @@ export function liveAisFetchMax(): number {
   return isClientApiStubMode() ? 280 : 500;
 }
 
-/** 화면 HTML 마커 상한 (fetch 상한과 별도 — 줌아웃 렉 완화) */
+/** 화면 AIS 마커 상한 (Cesium billboard — 줌아웃에서도 전 지구 트랙 유지) */
 export function liveAisDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
-  return applyUltraLite(Math.min(liveAisFetchMax(), AIS_HTML_DISPLAY_BY_TIER[tier]), ultraLite);
+  return applyUltraLite(
+    Math.min(AIS_DISPLAY_CEILING, AIS_HTML_DISPLAY_BY_TIER[tier]),
+    ultraLite,
+  );
 }
 
 /** ADS-B 군용기 */

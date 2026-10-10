@@ -1,8 +1,27 @@
 # 상업 라이선스 — 유료화 체크리스트
 
-> 정본: `src/data/sourceCatalog.ts` 의 `commercialUse` 필드
+> 정본: `src/data/sourceCatalog.ts` 의 `commercialUse` · `dataLicense` 필드
 > 게이트: `npm run verify:commercial` (빌드에서 자동 실행)
-> 코드: `src/lib/licensing/commercialGate.ts`
+> 코드: `src/lib/licensing/commercialGate.ts` · `src/lib/licensing/odblDataPolicy.ts`
+
+---
+
+## 데이터 라이선스 — 세 부류 (개정 2026-10-11)
+
+| 대상 | 라이선스 |
+|------|----------|
+| **자체 제작 판단·기록물** (확전 신호, 사건 파일 근거·판정, 일별 이력, 큐레이션 레이어) | **`proprietary`** — 허락 없는 복제·재배포·대량 수집 금지 |
+| **ODbL 원본에서 상속된 파생물** (OSM 기반 인프라, VIINA) | **`ODbL-1.0`** — 원 조건 상속. 렌더 전용으로만 제공 |
+| **업스트림 원본** (ACLED·MarineTraffic·FIRMS·Liveuamap·언론 RSS 등) | 원 라이선스 유지. `dataLicense: "upstream"` 또는 `"CC-BY-4.0"` 등 **명시** |
+
+> **ODbL은 기본값이 아니다.** ODbL은 복제와 상업적 재사용을 허용하는 공개 라이선스라서,
+> 독점으로 지킬 자산에 쓰면 복제를 막을 법적 근거가 사라진다.
+> 독점 선언과 ODbL 렌더 전용 해석의 법적 효력은 **변호사 확인 대기 중**이다.
+
+`commercialUse`(유료 노출 가능 여부)와 `dataLicense`(데이터셋 라이선스)는 **별개**다.
+업스트림을 ODbL이나 `proprietary`로 재표기하지 말 것.
+
+정책 상수: `src/lib/licensing/odblDataPolicy.ts` · 출처 패널에 자체 제작물·ODbL 상속분 고지.
 
 ---
 
@@ -131,10 +150,15 @@ GDELT 계열 전부 · 분쟁구역 · 제재·무기금수
 
 1. `sourceCatalog.ts` 에 `commercialUse` 를 **반드시** 지정
    — 모르면 `"unknown"`. 그러면 유료 노출만 막히고 무료는 정상 동작한다
-2. `allowed` 가 아니면 `commercialNote` 에 **약관 원문 인용**
+2. **`dataLicense` 지정**
+   — 직접 만든 판단·기록물이면 `"proprietary"`
+   — ODbL 원본(OSM·VIINA 등)에서 상속된 파생물이면 `"ODbL-1.0"`
+   — 외부 원본이면 `"upstream"` / `"CC-BY-4.0"` 등 실제 값 (**권리 없는 것을 proprietary로 적지 말 것**)
+3. `allowed` 가 아니면 `commercialNote` 에 **약관 원문 인용**
    — 나중에 왜 막았는지 다시 조사하지 않도록
-3. `npm run verify:commercial` 통과 확인
-4. 유료 상품 패키지는 `commercialSafeLayerIds()` 에서만 고를 것
+4. UI 토글이면 `PREF_TO_LAYER_ID` 에 매핑
+5. `npm run verify:commercial` 통과 확인
+6. 유료 상품 패키지는 `commercialSafeLayerIds()` 에서만 고를 것
 
 ---
 

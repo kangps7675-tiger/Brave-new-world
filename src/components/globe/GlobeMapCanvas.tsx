@@ -54,6 +54,13 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   cesiumRef?: Ref<CesiumGlobeHandle>;
   /** Cesium viewer가 flyTo를 받을 수 있게 된 시점 */
   onCesiumReady?: () => void;
+  /** Cesium 카메라 idle — OpenSky densify용 중심·고도 */
+  onCesiumCameraIdle?: (view: {
+    lat: number;
+    lng: number;
+    altitude: number;
+    heightM: number;
+  }) => void;
   /** 함선/항공기 엔티티 클릭 — God's eye view 상세 카드용 */
   onSelectCesiumEntity?: (selection: CesiumEntitySelection) => void;
   /** 유저 드래그로 추적 카메라 해제 */
@@ -131,6 +138,7 @@ export function GlobeMapCanvas({
   showNeptun,
   cesiumRef,
   onCesiumReady,
+  onCesiumCameraIdle,
   onSelectCesiumEntity,
   onCesiumUserBreakFollow,
   alertPins,
@@ -198,6 +206,7 @@ export function GlobeMapCanvas({
             neptunThreats={neptunThreats}
             showNeptun={showNeptun}
             onReady={onCesiumReady}
+            onCameraIdle={onCesiumCameraIdle}
             onSelectEntity={onSelectCesiumEntity}
             onUserBreakFollow={onCesiumUserBreakFollow}
             alertPins={alertPins}

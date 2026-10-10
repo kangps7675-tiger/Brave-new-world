@@ -48,7 +48,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     title: "근거 등급 · 「왜?」 창",
     steps: [
       "속보·확전 배너·전장 이벤트에는 「탄탄함 / 교차확인 / 얇음 / 모으는 중」 배지가 붙을 수 있습니다. 비밀 등급이 아니라, 공개 출처가 얼마나 서로 맞는지입니다.",
-      "「왜?」를 누르면 출처·통과/보류 이유·언제 내릴지(하향 조건)가 나옵니다. 의도·확률·임박 %는 말하지 않습니다.",
+      "「왜?」를 누르면 이 소식이 지도에서 왜 중요한지, 얼마나 믿을지, 다음에 뭘 보면 좋은지가 나옵니다. 의도·확률·임박 %는 말하지 않습니다.",
       "근거가 얇은 속보는 큰 양피지·히어로에 올리지 않습니다. 사라진 게 아니라, 읽기 전에 걸러 둔 것입니다.",
       "전황 보고서(책)는 관측대 안건 보드에서만 엽니다. 지정학 화면에 같은 책을 심지 않습니다.",
     ],
@@ -162,7 +162,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     title: "Evidence grades · Why?",
     steps: [
       "Breaking flash, escalation banners, and battlefield events may show Strong / Checked / Thin / Waiting — about source agreement, not secrecy.",
-      "Why? opens sources, pass/hold reasons, and when we would drop the item. We do not claim intent or odds.",
+      "Why? explains why the item matters on the map, how solid it looks, and what to check next. We do not claim intent or odds.",
       "Thin items stay off the big parchment/hero. They are filtered for reading, not deleted from raw data.",
       "Theater sitrep books open only from the Observatory watch board — not transplanted onto this geopolitics desk.",
     ],
@@ -274,7 +274,7 @@ const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
     title: "물류 경보 · 근거 등급",
     steps: [
       "초크포인트 스트레스 양피지에도 「교차확인 / 얇음」 같은 근거 등급이 붙습니다. 투자 신호가 아니라 공개 관측이 얼마나 겹쳤는지입니다.",
-      "「왜?」로 출처·하향 조건을 보고, 「관측에서 보기」로 3D 관측대로 넘어갈 수 있습니다. 전황 보고서는 여기 없습니다.",
+      "「왜?」로 왜 중요한지·얼마나 믿을지를 보고, 「관측에서 보기」로 3D 관측대로 넘어갈 수 있습니다. 전황 보고서는 여기 없습니다.",
       "근거가 부족한 경보는 큰 양피지에 올리지 않습니다 — 다 보여주기보다, 읽을 만한 것만 강조합니다.",
     ],
   },
@@ -341,7 +341,7 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
     title: "Logistics alerts · evidence grades",
     steps: [
       "Chokepoint stress parchments carry the same evidence grades (Checked / Thin…) — about overlapping public signals, not investment tips.",
-      "Why? shows sources and drop conditions; View in Observe jumps to the 3D desk. No theater sitrep book here.",
+      "Why? explains why it matters and how solid it looks; View in Observe jumps to the 3D desk. No theater sitrep book here.",
       "Weak alerts stay off the hero parchment — we emphasize readable items, not everything collected.",
     ],
   },
@@ -399,32 +399,33 @@ const SATELLITE_GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "관측대란?",
     steps: [
-      "실시간 3D(세슘) 관측 창입니다. 항적·전선·화재·해상 경보를 한자리에서 봅니다.",
-      "비밀 정보가 아니라 공개 출처를, 정보기관식 규율로 걸러 보여 줍니다. 수집은 넓게, 강조는 교차확인을 통과한 것만.",
+      "실시간 3D 관측 창입니다. 항적·전선·화재·해상 경보를 한자리에서 봅니다.",
+      "비밀 정보가 아닙니다. 공개 소식 중 서로 맞춰진 것만 크게 보여 줍니다.",
     ],
   },
   {
-    title: "오늘 볼 안건 (워치보드)",
+    title: "오늘 볼 안건",
     steps: [
-      "오른쪽 「오늘 볼 안건」은 레이어 ON/OFF 목록이 아닙니다. 전황 보고서·해상 경보 중 근거 검사를 통과한 읽기 목록입니다.",
-      "제목을 누르면 전황 책이나 경보가 열립니다. 「왜?」를 누르면 출처·등급 이유·하향 조건이 나옵니다.",
-      "「모으는 중」은 사라진 항목이 아닙니다 — 출처가 더 쌓이면 위로 올라옵니다.",
-      "관심 주제 %는 오늘 우리가 특히 지켜보는 창(우크라·홍해 등)에 얼마나 맞춰져 있는지입니다.",
+      "오른쪽 목록은 레이어 스위치가 아닙니다. 전황 보고서·해상 경보 중 읽을 만한 것만 모은 짧은 목록입니다.",
+      "제목을 누르면 보고서가 열립니다. 「왜?」는 왜 지금 보면 좋은지·얼마나 믿을지를 말해 줍니다.",
+      "「모으는 중」은 사라진 게 아닙니다 — 출처가 더 쌓이면 위로 올라옵니다.",
+      "관심 주제는 오늘 특히 지켜보는 창(우크라·홍해 등)과 얼마나 이어지는지입니다.",
     ],
   },
   {
-    title: "전황 보고서 · 타전",
+    title: "전선 속보 · 누가 어디를 잡았나",
     steps: [
-      "전황 보고서는 안건 보드에서만 엽니다. 책이 열려 있는 동안 다른 속보 타전은 잠시 멈춥니다.",
-      "LiveUA 창이 짧으면 공격 표 대신 Tier-1 보도만 모은 「참고」 모드가 될 수 있습니다. 숫자는 추정하지 않습니다.",
-      "지도의 ADS-B 전량 같은 원자료 레이어는 남을 수 있지만, 큰 타전·보드 강조는 근거 합격분만 씁니다.",
+      "LiveUA 속보 양피지에서는 이전·다음으로 같은 지역의 다른 핀을 넘길 수 있습니다.",
+      "전선·통제면은 우크라만이 아닙니다. 이란·예멘·레바논·이스라엘/팔 전장도 같이 봅니다.",
+      "속보 아래 「이 소식이 건드릴 수 있는 곳」은 시세·회랑 참고용입니다. 투자 권유가 아닙니다.",
     ],
   },
   {
-    title: "센서 칩 · 시계",
+    title: "사건 파일 · 공습·항적",
     steps: [
+      "「사건」탭에서 기사·좌표로 초안을 만들고, 화재·공습 이력·선박·군용기 항적을 근거로 붙일 수 있습니다.",
       "항적·전선·화재·공중 위협 칩으로 지도 레이어를 빠르게 켜고 끕니다.",
-      "아래 시간 스크럽으로 하루 중 시각을 돌려 볼 수 있습니다. 공식 경보 앱이 아니니 참고용으로만 보세요.",
+      "아래 시간으로 하루 중 시각을 돌려 볼 수 있습니다. 공식 경보 앱이 아니니 참고용으로만 보세요.",
     ],
   },
 ];
@@ -433,32 +434,33 @@ const SATELLITE_GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "What is the Observatory?",
     steps: [
-      "A live 3D (Cesium) desk for tracks, fronts, fires, and maritime alerts.",
-      "Public sources only, with desk-style discipline: collect widely, highlight only what passes an evidence check.",
+      "A live 3D desk for tracks, fronts, fires, and maritime alerts.",
+      "Not secret intel — we highlight open-source items that cross-check.",
     ],
   },
   {
     title: "Today's watch items",
     steps: [
-      "The board is not a layer ON/OFF list — it is a reading queue of theater reports and maritime alerts that passed the check.",
-      "Tap a title to open the sitrep book or alert. Why? shows sources, grade reasons, and drop conditions.",
+      "The list on the right is not a layer switch — a short reading queue of theater reports and maritime alerts.",
+      "Tap a title for the report. Why? explains why it matters now and how solid it looks.",
       "Waiting items are not deleted — they move up when more sources arrive.",
-      "Priority topic % shows fit to today's watch windows (Ukraine, Red Sea, etc.).",
+      "Priority topics show how an item ties to today's windows (Ukraine, Red Sea, etc.).",
     ],
   },
   {
-    title: "Theater report · flashes",
+    title: "Frontline flashes · who holds the ground",
     steps: [
-      "Theater sitrep books open only from the watch board. Other flash parchments pause while a book is open.",
-      "If the LiveUA window is short, you may get a references-only mode from Tier-1 press — no invented counts.",
-      "Raw layers (full ADS-B, etc.) can stay on the map, but hero/board flashes use publish-path items only.",
+      "On a LiveUA flash parchment, use Previous / Next to flip other pins in the same theater.",
+      "Control layers are not Ukraine-only — Iran, Yemen, Lebanon, and Israel/Palestine too.",
+      "“Where this may show up next” is market/corridor context — not investment advice.",
     ],
   },
   {
-    title: "Sensor chips · clock",
+    title: "Case file · air raids · tracks",
     steps: [
+      "In the Case tab, draft from an article or coordinates, then attach fires, air-raid history, ships, or military tracks as evidence.",
       "Use track / front / fire / air-threat chips to toggle map layers quickly.",
-      "The day scrubber moves the clock through the day. This is a reference tool, not an official alert app.",
+      "The day scrubber moves the clock through the day. Reference only — not an official alert app.",
     ],
   },
 ];
@@ -555,11 +557,11 @@ export function FeatureGuidePanel({
                   onClick={onOpenSources}
                   className="w-full rounded-xl border border-sky-300/25 bg-sky-500/10 px-3 py-2.5 text-left text-caption font-medium text-sky-50 transition hover:border-sky-200/40 hover:bg-sky-500/15"
                 >
-                  {en ? "Full sources catalog →" : "소스 카탈로그 · 라이선스 →"}
+                  {en ? "Full sources catalog →" : "어떤 자료를 쓰는지 →"}
                   <span className="mt-0.5 block text-micro font-normal text-sky-100/60">
                     {en
-                      ? "Shipped layers, corridor pipeline, blocked demo data"
-                      : "운영 레이어 · 코리도 파이프라인 · 차단된 데모"}
+                      ? "What’s live, what’s a snapshot, and what we leave out"
+                      : "실시간·고정 자료·일부러 빼 둔 것까지 정리"}
                   </span>
                 </button>
               ) : null}

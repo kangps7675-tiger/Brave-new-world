@@ -2,7 +2,6 @@
 
 import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
 import { PirFulfillmentCard } from "@/components/globe/PirFulfillmentCard";
-import { summarizeGate } from "@/lib/intelContract/gate";
 import type { PirModalityStatus } from "@/lib/intelContract/pirRegistry";
 import type { GateResult, ObservationModality } from "@/lib/intelContract/types";
 import { INTEL_UX } from "@/lib/intelContract/uxCopy";
@@ -21,6 +20,18 @@ function modalityLabel(m: ObservationModality, en: boolean): string {
   return en ? row.en : row.ko;
 }
 
+/** 게이트 코드 대신, 유저가 읽을 짧은 주의/신뢰 문장 */
+function reasonLine(
+  r: GateResult["reasons"][number],
+  en: boolean,
+): string {
+  const detail = en ? r.detailEn : r.detailKo;
+  if (r.ok) {
+    return en ? `Looks solid: ${detail}` : `괜찮은 점: ${detail}`;
+  }
+  return en ? `Keep in mind: ${detail}` : `참고: ${detail}`;
+}
+
 export function IntelSourceDrill({
   lang,
   gate,
@@ -34,9 +45,10 @@ export function IntelSourceDrill({
   const { bundle } = gate;
   const title = en ? bundle.titleEn : bundle.titleKo;
   const claim = en ? bundle.claimEn : bundle.claimKo;
-  const summary = summarizeGate(gate, L);
   const why = whyPublishLines(gate, pirStatuses, L);
   const topPir = pirStatuses[0] ?? null;
+  const softReasons = gate.reasons.filter((r) => !r.ok).slice(0, 4);
+  const okCount = gate.reasons.filter((r) => r.ok).length;
 
   return (
     <aside
@@ -70,8 +82,8 @@ export function IntelSourceDrill({
       <div className="intel-scroll-y min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-2 text-micro text-teal-100/90">
         <p className="rounded-sm border border-teal-500/20 bg-teal-950/35 px-2 py-1.5 text-micro leading-snug text-teal-100/75">
           {en
-            ? "This panel shows why the item was graded — not a prediction or secret brief."
-            : "등급이 나온 이유를 풀어 보여 줍니다. 예측이나 비밀 브리핑이 아닙니다."}
+            ? "Why this item is worth a look on the map — and how sure you can be. Not a forecast."
+            : "지도에서 왜 눈에 띄는지, 얼마나 믿을지 짧게 정리합니다. 예측이 아닙니다."}
         </p>
 
         <section>
@@ -106,31 +118,32 @@ export function IntelSourceDrill({
               bundle.modalityCount,
             )}
           </p>
-          <p className="mt-0.5 font-mono text-micro text-teal-100/50">
-            {bundle.method}
-          </p>
+          {okCount > 0 ? (
+            <p className="mt-0.5 text-teal-100/65">
+              {en
+                ? `${okCount} check(s) lined up with open sources.`
+                : `공개 출처 기준 ${okCount}가지가 맞아떨어집니다.`}
+            </p>
+          ) : null}
         </section>
 
-        <section>
-          <p className="font-semibold text-teal-200/80">
-            {INTEL_UX.drillReasons[L]}
-          </p>
-          <p className="mt-0.5 text-teal-100/75">{summary}</p>
-          <ul className="mt-1.5 space-y-1">
-            {gate.reasons.map((r) => (
-              <li
-                key={`${r.code}:${r.detailKo}`}
-                className={r.ok ? "text-emerald-200/85" : "text-amber-200/90"}
-              >
-                <span className="font-medium">
-                  {r.ok ? (en ? "OK" : "통과") : en ? "Note" : "주의"}
-                </span>
-                {" · "}
-                {en ? r.detailEn : r.detailKo}
-              </li>
-            ))}
-          </ul>
-        </section>
+        {softReasons.length > 0 ? (
+          <section>
+            <p className="font-semibold text-teal-200/80">
+              {INTEL_UX.drillReasons[L]}
+            </p>
+            <ul className="mt-1.5 space-y-1">
+              {softReasons.map((r) => (
+                <li
+                  key={`${r.code}:${r.detailKo}`}
+                  className="text-amber-200/90"
+                >
+                  {reasonLine(r, en)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section>
           <p className="font-semibold text-teal-200/80">

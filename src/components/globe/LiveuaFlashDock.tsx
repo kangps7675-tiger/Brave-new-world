@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 
 type Props = {
@@ -52,7 +53,7 @@ export function LiveuaFlashDock({
           onClick={() => setOpen((v) => !v)}
         >
           <span className="font-medium tracking-wide">
-            {en ? "Frontline" : "전선 속보"}
+            {en ? "Energy · routes" : "유가·항로"}
           </span>
           <span className="flex items-center gap-1.5 tabular-nums text-amber-200/70">
             {unreadCount > 0 ? (
@@ -73,7 +74,9 @@ export function LiveuaFlashDock({
         <div className={`min-h-0 overflow-hidden ${expanded ? "" : "pointer-events-none"}`}>
           {events.length === 0 ? (
             <p className="px-2.5 py-2 text-micro text-amber-200/50">
-              {en ? "No frontline flashes yet." : "전선 속보가 아직 없습니다."}
+              {en
+                ? "No oil · gas · chokepoint flashes yet."
+                : "유가·가스·해협 속보가 아직 없습니다."}
             </p>
           ) : (
             <>
@@ -94,8 +97,9 @@ export function LiveuaFlashDock({
             ) : null}
             <ul className={`intel-scroll-y max-h-72 overflow-y-auto font-sans ${en ? "font-en" : ""}`}>
               {events.map((ev, index) => {
-                const title =
+                const raw =
                   lang === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
+                const title = peelUrlsFromText(raw).text || raw;
                 const isRead = readIds?.has(ev.id) ?? false;
                 return (
                   <li key={ev.id}>

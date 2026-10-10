@@ -16,7 +16,7 @@ type Props = {
 
 /**
  * GEV식 미니 텔레메트리 HUD + 250 km Contacts 로스터.
- * 우측 AnalysisPanel과 별도로, 추적 중 좌하단에 고정 표시.
+ * 클릭한 AIS / OpenSky / NEPTUN 대상을 줌인·추적할 때 좌하단에 고정.
  */
 export function GevTrackHud({
   hud,
@@ -28,15 +28,28 @@ export function GevTrackHud({
   lang = "ko",
 }: Props) {
   const radiusKm = Math.round(GEV_AWARENESS_RADIUS_M / 1000);
+  const trackBadge =
+    hud.kind === "ais"
+      ? "AIS TRACK"
+      : hud.kind === "neptun"
+        ? "NEPTUN TRACK"
+        : "AIR TRACK";
   const followLabel = lang === "en"
     ? followCamera
-      ? "TRACK ON"
+      ? "FOLLOWING"
       : "RELOCK"
     : followCamera
-      ? "추적 ON"
-      : "재추적";
-  const stopLabel = lang === "en" ? "Release" : "해제";
+      ? "따라가는 중"
+      : "다시 따라가기";
+  const stopLabel = lang === "en" ? "Release" : "추적 해제";
   const contactsLabel = lang === "en" ? `CONTACTS · ${radiusKm} km` : `컨택트 · ${radiusKm} km`;
+  const hint = lang === "en"
+    ? followCamera
+      ? "Camera locked on target — drag to look around, Relock to re-attach."
+      : "Follow paused. Tap Relock to zoom back onto the target."
+    : followCamera
+      ? "카메라가 대상을 따라갑니다. 드래그로 시야를 돌리고, 끊기면 「다시 따라가기」."
+      : "추적이 멈췄습니다. 「다시 따라가기」로 다시 줌인합니다.";
 
   return (
     <div
@@ -47,8 +60,10 @@ export function GevTrackHud({
         className="rounded-md border px-3 py-2 shadow-lg backdrop-blur-md"
         style={{
           borderColor: `${hud.accent}55`,
-          background: "rgba(2, 6, 14, 0.82)",
-          boxShadow: `0 0 0 1px ${hud.accent}22, 0 12px 40px rgba(0,0,0,0.45)`,
+          background: "rgba(2, 6, 14, 0.88)",
+          boxShadow: followCamera
+            ? `0 0 0 1px ${hud.accent}33, 0 0 24px ${hud.accent}22, 0 12px 40px rgba(0,0,0,0.45)`
+            : `0 0 0 1px ${hud.accent}22, 0 12px 40px rgba(0,0,0,0.45)`,
         }}
       >
         <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -56,8 +71,9 @@ export function GevTrackHud({
             className="text-micro uppercase tracking-[0.22em]"
             style={{ color: hud.accent }}
           >
-            {hud.kind === "ais" ? "AIS TRACK" : "AIR TRACK"}
+            {trackBadge}
             {hud.stale ? " · STALE" : ""}
+            {followCamera ? (lang === "en" ? " · LIVE" : " · 실시간") : ""}
           </span>
           <div className="flex gap-1">
             <button
@@ -85,6 +101,9 @@ export function GevTrackHud({
         </p>
         <p className="mt-0.5 text-slate-300">{hud.lines[1]}</p>
         <p className="mt-0.5 text-slate-500">{hud.lines[2]}</p>
+        <p className="mt-2 border-t border-white/10 pt-1.5 text-micro leading-relaxed text-slate-400">
+          {hint}
+        </p>
       </div>
 
       {contacts.length > 0 ? (

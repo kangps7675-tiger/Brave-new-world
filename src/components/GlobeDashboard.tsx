@@ -1278,6 +1278,7 @@ export function GlobeDashboard({
 
   const {
     liveuaEvents,
+    liveuaEnergyEvents,
     liveuaToast,
     setLiveuaToast,
     liveuaUnread,
@@ -2561,6 +2562,7 @@ export function GlobeDashboard({
 
   const handleSelectCesiumEntity = useCallback(
     (sel: CesiumEntitySelection) => {
+      // AIS / OpenSky(ADS-B) / NEPTUN 클릭 → 선택 + useGevLiveTrack가 줌인·팔로우
       if (sel.kind === "ais") {
         setSelected({ kind: "ais", item: sel.item });
         return;
@@ -2593,39 +2595,6 @@ export function GlobeDashboard({
     },
     [firmsFires, setSelected],
   );
-
-  const {
-    tracking: gevTracking,
-    followCamera: gevFollowCamera,
-    hud: gevHud,
-    trackPath: gevTrackPath,
-    contacts: gevContacts,
-    stopTracking: stopGevTracking,
-    toggleFollow: toggleGevFollow,
-    setFollowCamera: setGevFollowCamera,
-  } = useGevLiveTrack({
-    selected,
-    setSelected,
-    aisVessels,
-    milAircraft,
-    civAircraft,
-    flyTo: unifiedFlyTo,
-    setLiveTrackFollow:
-      viewerMode === "satellite"
-        ? (spec) => {
-            cesiumGlobeRef.current?.setLiveTrackFollow(spec);
-          }
-        : undefined,
-    cesiumTrackReady: viewerMode === "satellite" && cesiumReady,
-    isCameraMovingRef,
-    labelLanguage,
-  });
-
-  // 관측 모드를 벗어나면 Cesium trackedEntity 잔존 방지
-  useEffect(() => {
-    if (viewerMode === "satellite") return;
-    cesiumGlobeRef.current?.setLiveTrackFollow(null);
-  }, [viewerMode]);
 
   const { syncInfo, syncGeneration, forceSync } = useDataSync({
     mode: "default",
@@ -3508,6 +3477,41 @@ export function GlobeDashboard({
     isCameraMoving,
     immediateUntilRef,
   });
+
+  /** AIS · OpenSky/ADS-B · NEPTUN 클릭 → Cesium 줌인·팔로우 */
+  const {
+    tracking: gevTracking,
+    followCamera: gevFollowCamera,
+    hud: gevHud,
+    trackPath: gevTrackPath,
+    contacts: gevContacts,
+    stopTracking: stopGevTracking,
+    toggleFollow: toggleGevFollow,
+    setFollowCamera: setGevFollowCamera,
+  } = useGevLiveTrack({
+    selected,
+    setSelected,
+    aisVessels,
+    milAircraft,
+    civAircraft,
+    neptunThreats: visibleNeptunThreats,
+    flyTo: unifiedFlyTo,
+    setLiveTrackFollow:
+      viewerMode === "satellite"
+        ? (spec) => {
+            cesiumGlobeRef.current?.setLiveTrackFollow(spec);
+          }
+        : undefined,
+    cesiumTrackReady: viewerMode === "satellite" && cesiumReady,
+    isCameraMovingRef,
+    labelLanguage,
+  });
+
+  // 관측 모드를 벗어나면 Cesium trackedEntity 잔존 방지
+  useEffect(() => {
+    if (viewerMode === "satellite") return;
+    cesiumGlobeRef.current?.setLiveTrackFollow(null);
+  }, [viewerMode]);
 
   /** 전선 레이어 ON 또는 우크라이나 극동부를 확대해 볼 때 하단 UI 전환 */
   /**
@@ -4459,6 +4463,44 @@ export function GlobeDashboard({
     setUsCarriers,
     setUsCarriersLoading,
   });
+
+  /** Cesium 줌/팬 idle → LOD ref 동기화 + OpenSky 지역 densify 즉시 요청 */
+  const handleCesiumCameraIdle = useCallback(
+    (view: { lat: number; lng: number; altitude: number; heightM: number }) => {
+      const prevLat = layerCenterRef.current.lat;
+      const prevLng = layerCenterRef.current.lng;
+      const prevAlt = layerAltitudeRef.current;
+      const prevTier = getGlobeLod(prevAlt).tier;
+      const nextTier = getGlobeLod(view.altitude).tier;
+
+      layerCenterRef.current = { lat: view.lat, lng: view.lng };
+      layerAltitudeRef.current = view.altitude;
+      layerLodTierRef.current = nextTier;
+      setFilterCenter({ lat: view.lat, lng: view.lng });
+      setLayerAltitude(view.altitude);
+
+      if (!showAirTraffic) return;
+      const densifyNow = nextTier !== "global";
+      const densifyWas = prevTier !== "global";
+      const movedDeg = Math.hypot(view.lat - prevLat, view.lng - prevLng);
+      if (
+        densifyNow &&
+        (!densifyWas || movedDeg >= 1.2 || prevTier !== nextTier)
+      ) {
+        void refreshCivAircraft();
+      }
+    },
+    [
+      getGlobeLod,
+      layerAltitudeRef,
+      layerCenterRef,
+      layerLodTierRef,
+      refreshCivAircraft,
+      setFilterCenter,
+      setLayerAltitude,
+      showAirTraffic,
+    ],
+  );
 
   // 지경학: 군용·전선 레이어가 soft patch 등으로 켜져도 즉시 OFF
   useEffect(() => {
@@ -6404,6 +6446,7 @@ export function GlobeDashboard({
           neptunThreats={visibleNeptunThreats}
           cesiumRef={cesiumGlobeRef}
           onCesiumReady={() => setCesiumReady(true)}
+          onCesiumCameraIdle={handleCesiumCameraIdle}
           onSelectCesiumEntity={handleSelectCesiumEntity}
           onCesiumUserBreakFollow={() => setGevFollowCamera(false)}
           alertPins={cesiumAlerts}
@@ -6438,10 +6481,16 @@ export function GlobeDashboard({
               : undefined
           }
           onSelectLiveuaPin={(id) => {
-            const idx = liveuaEvents.findIndex((e) => e.id === id);
-            if (idx >= 0) {
+            // 양피지는 유가·가스·초크만 — 그 외는 포커스 카드
+            const energyIdx = liveuaEnergyEvents.findIndex((e) => e.id === id);
+            if (energyIdx >= 0) {
               setFocusedLiveuaId(null);
-              setLiveuaParchmentIndex(idx);
+              setLiveuaParchmentIndex(energyIdx);
+              return;
+            }
+            if (liveuaEvents.some((e) => e.id === id)) {
+              setLiveuaParchmentIndex(null);
+              setFocusedLiveuaId(id);
             }
           }}
           controlGeoJson={
@@ -6751,7 +6800,7 @@ export function GlobeDashboard({
               <LiveuaFlashDock
                 lang={labelLanguage}
                 chrome="bare"
-                events={liveuaEvents}
+                events={liveuaEnergyEvents}
                 unreadCount={liveuaUnread}
                 readIds={liveuaReadIds}
                 onMarkAllRead={markAllLiveuaRead}
@@ -6882,10 +6931,11 @@ export function GlobeDashboard({
         !theaterSitrepRegion ? (
           <LiveuaFlashParchment
             lang={labelLanguage}
-            events={liveuaEvents}
+            events={liveuaEnergyEvents}
             index={liveuaParchmentIndex}
             onIndexChange={setLiveuaParchmentIndex}
             onDismiss={() => setLiveuaParchmentIndex(null)}
+            exitToDock
             onGoToLocation={(ev) => {
               const market = liveuaFlashMarketContext(ev);
               if (market.suggestPipelines) {
@@ -6969,7 +7019,9 @@ export function GlobeDashboard({
               setFocusedLiveuaId(null);
             }}
             onOpenFull={() => {
-              const idx = liveuaEvents.findIndex((e) => e.id === focusedLiveuaEvent.id);
+              const idx = liveuaEnergyEvents.findIndex(
+                (e) => e.id === focusedLiveuaEvent.id,
+              );
               if (idx >= 0) {
                 setFocusedLiveuaId(null);
                 setLiveuaParchmentIndex(idx);

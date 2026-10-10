@@ -16,9 +16,11 @@ export const HANDOFF_DURATION_MAX_S = 1.05;
 /** duration 보간에 쓰는 거리 상한(m) */
 export const HANDOFF_DURATION_REF_M = 2_500_000;
 
+export type ObserveLiveTrackKind = "ais" | "aircraft" | "neptun";
+
 export type ObserveLiveTrackSpec = {
   entityId: string;
-  kind: "ais" | "aircraft";
+  kind: ObserveLiveTrackKind;
   follow: boolean;
   lat: number;
   lng: number;
@@ -30,7 +32,7 @@ export type ObserveLiveTrackSpec = {
 
 export type ObserveLiveTrackFix = {
   entityId: string;
-  kind: "ais" | "aircraft";
+  kind: ObserveLiveTrackKind;
   lat: number;
   lng: number;
   heightM: number;
@@ -78,14 +80,18 @@ function sceneFrameNumber(viewer: import("cesium").Viewer): number {
   return typeof n === "number" && Number.isFinite(n) ? n : -1;
 }
 
-/** ENU viewFrom — 항공기/선박별 측면·후방 오프셋(m) */
+/** ENU viewFrom — 항공기/선박/NEPTUN별 측면·후방 오프셋(m) */
 export function observeTrackViewFrom(
   Cesium: CesiumNS,
-  kind: "ais" | "aircraft",
+  kind: ObserveLiveTrackKind,
 ): import("cesium").Cartesian3 {
   // +X east, +Y north, +Z up — 후측방·약간 위에서 내려다봄
   if (kind === "aircraft") {
     return new Cesium.Cartesian3(-2_800, -6_400, 3_200);
+  }
+  if (kind === "neptun") {
+    // 드론·활공(수천 m) + 탄도(최대 ~45km) — 후측방에서 공중 궤적이 보이게
+    return new Cesium.Cartesian3(-2_400, -5_500, 2_800);
   }
   return new Cesium.Cartesian3(-1_600, -3_800, 2_200);
 }

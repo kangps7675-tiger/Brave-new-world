@@ -39,8 +39,8 @@ export const PREF_TO_LAYER_META: Partial<
 > = {
   showUkraineControl: {
     layerId: "ukraine",
-    titleKo: "우크라이나 전선·점령",
-    titleEn: "Ukraine front & control",
+    titleKo: "누가 어디를 잡았나 (우크라·중동)",
+    titleEn: "Who holds the ground (UA · ME)",
   },
   showWarZones: {
     layerId: "war-zones",

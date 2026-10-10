@@ -22,6 +22,8 @@ import {
 
 /** 접기(뒷면) + 상승 모션 총 길이 (CSS와 맞춤) */
 export const PARCHMENT_FOLD_EXIT_MS = 1100;
+/** 관측대 — 우측 상단 속보함으로 빨려 들어가는 퇴장 */
+export const PARCHMENT_FOLD_TO_DOCK_MS = 900;
 
 function LetterCorner({ corner }: { corner: "tl" | "tr" | "bl" | "br" }) {
   const rot =
@@ -120,6 +122,11 @@ export type ParchmentLetterProps = {
   onSecondaryCta?: () => void;
   /** 본문 단락 아래 추가 슬롯 (그래프 자리 등) */
   bodyExtra?: ReactNode;
+  /**
+   * true면 위로 날아가는 대신 우측 상단 속보함 쪽으로 축소·퇴장.
+   * 관측대 LiveUA·RSS 양피지용.
+   */
+  exitToDock?: boolean;
 };
 
 const TYPE_MS_PER_CHAR = 28;
@@ -149,6 +156,7 @@ export function ParchmentLetter({
   secondaryCtaLabel,
   onSecondaryCta,
   bodyExtra,
+  exitToDock = false,
 }: ParchmentLetterProps) {
   /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
   const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
@@ -304,13 +312,15 @@ export function ParchmentLetter({
     }
     setPhase("folding");
     emitParchmentFoldSound();
-    const reduced =
-      prefersReducedMotion();
+    const reduced = prefersReducedMotion();
+    const exitMs = exitToDock
+      ? PARCHMENT_FOLD_TO_DOCK_MS
+      : PARCHMENT_FOLD_EXIT_MS;
     window.setTimeout(() => {
       setPhase("done");
       onContinue();
-    }, reduced ? 80 : PARCHMENT_FOLD_EXIT_MS);
-  }, [onContinue, phase, totalChars, typewriter, typingDone]);
+    }, reduced ? 80 : exitMs);
+  }, [exitToDock, onContinue, phase, totalChars, typewriter, typingDone]);
 
   const exiting = phase === "folding" || phase === "done";
 
@@ -345,7 +355,11 @@ export function ParchmentLetter({
           } ${
             blackInk ? "parchment-letter--lamp-ink" : ""
           } ${
-            exiting ? "welcome-letter-card--fold-exit" : "welcome-letter-card--unfold-enter"
+            exiting
+              ? exitToDock
+                ? "welcome-letter-card--fold-to-dock"
+                : "welcome-letter-card--fold-exit"
+              : "welcome-letter-card--unfold-enter"
           }`}
           style={{ fontFamily: bodyFont }}
         >

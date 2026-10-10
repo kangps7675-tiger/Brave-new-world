@@ -55,6 +55,25 @@ describe("normalizePlace", () => {
     expect(ev?.theater).toBe("russia-ukraine");
   });
 
+  it("moves urls out of the title into the body", () => {
+    const ev = normalizePlace(
+      {
+        id: 42,
+        name: "Depot fire https://t.me/example/1",
+        lat: 45.0,
+        lng: 35.0,
+        timestamp: 1_700_000_000,
+        link: "https://liveuamap.com/",
+      },
+      0,
+      { id: "ukraine", resid: 0, theater: "russia-ukraine" },
+    );
+    expect(ev?.title).toBe("Depot fire");
+    expect(ev?.title).not.toMatch(/https?:\/\//);
+    expect(ev?.body).toContain("https://t.me/example/1");
+    expect(ev?.sourceUrl).toBe("https://t.me/example/1");
+  });
+
   it("maps geojson Point features from mpts geojson=true", () => {
     const ev = normalizePlace(
       {
