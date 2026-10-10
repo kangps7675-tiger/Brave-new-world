@@ -11,6 +11,7 @@
 
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
@@ -65,6 +66,7 @@ import {
 } from "@/lib/observeSensorStyle";
 import { IntelGradeBadge } from "@/components/globe/IntelGradeBadge";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { t } from "@/lib/uiStrings";
 import {
   DESK_NON_FOCUS_ALPHA,
   deskGradeVisual,
@@ -187,6 +189,7 @@ import {
   type NeptunAlerts,
   type NeptunLiveThreat,
 } from "@/lib/neptun";
+import { startObserveDescend } from "@/lib/cesiumObserveDescend";
 import { useCesiumKeyboardNav } from "@/components/globe/hooks/useCesiumKeyboardNav";
 import { useCesiumModifierLook } from "@/components/globe/hooks/useCesiumModifierLook";
 import { useCesiumHorizonGuard } from "@/components/globe/hooks/useCesiumHorizonGuard";
@@ -216,9 +219,31 @@ function altitudeToHeightM(altitude: number): number {
   return a * EARTH_RADIUS_M;
 }
 
+const OBSERVE_TILT_HINT_SEEN_KEY = "observe-tilt-hint-seen";
+/** 이만큼 직하에서 벗어나면 유저가 이미 기울인 것으로 보고 안내를 닫는다 */
+const OBSERVE_TILT_HINT_DISMISS_PITCH_DEG = -75;
+
+function hasSeenObserveTiltHint(): boolean {
+  try {
+    return localStorage.getItem(OBSERVE_TILT_HINT_SEEN_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+function markObserveTiltHintSeen(): void {
+  try {
+    localStorage.setItem(OBSERVE_TILT_HINT_SEEN_KEY, "1");
+  } catch {
+    /* private mode */
+  }
+}
+
 export type CesiumEntitySelection =
   | { kind: "ais"; item: AisVessel }
-  | { kind: "mil"; item: MilitaryAircraft; traffic: "military" | "civil" };
+  | { kind: "mil"; item: MilitaryAircraft; traffic: "military" | "civil" }
+  | { kind: "firms"; item: CesiumFirmsFirePoint }
+  | { kind: "neptun"; item: NeptunLiveThreat };
 
 /** GlobeDashboard가 관측(Cesium) 모드에서 카메라를 조작하기 위한 최소 핸들 */
 export type CesiumGlobeHandle = {
@@ -228,6 +253,15 @@ export type CesiumGlobeHandle = {
     altitude?: number,
     durationMs?: number,
     camera?: FlyCameraOpts,
+  ) => void;
+  /**
+   * 「위치로 내려가기」— 미터 단위 수직 하강 (지면 + clearanceM, 기본 600m).
+   * flyTo의 0.02(≈127km) 하한과 무관. 도착 시선은 수직, 기울기는 유저 몫.
+   */
+  descendTo: (
+    lat: number,
+    lng: number,
+    opts?: { clearanceM?: number },
   ) => void;
   /** 하루 리플레이 — UTC 시각(0–24)으로 태양 시계(터미네이터) 설정 */
   setClockHourUtc: (hourUtc: number) => void;
@@ -315,6 +349,8 @@ export type CesiumSatelliteGlobeProps = {
   /** 보병·기갑·경장갑 공격 좌표 — 교차 소총 마커 */
   liveuaGround?: CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
+  /** 지정 시 다음 지면 클릭은 개체 선택 대신 좌표만 넘김 (사건 기준점 찍기) */
+  onPickGroundPoint?: (point: { lat: number; lng: number }) => void;
   /** LIVEUA/DeepState 통제·점령 GeoJSON (overview fill) */
   controlGeoJson?: GeoJSON.FeatureCollection | null;
   /** NASA FIRMS — 화염·연기 빌보드 */
@@ -1240,6 +1276,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       liveuaStrikes = [],
       liveuaGround = [],
       onSelectLiveuaPin,
+      onPickGroundPoint,
       controlGeoJson = null,
       firmsFires = [],
       showFirmsFires = false,
@@ -1283,6 +1320,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     y: number;
   } | null>(null);
   const [bootNonce, setBootNonce] = useState(0);
+  /** 첫 수직 하강 도착 — 기울이는 법 안내 (한 번만) */
+  const [tiltHintOpen, setTiltHintOpen] = useState(false);
   // 마운트 이펙트에서 만든 viewer/Cesium 모듈 — 엔티티 동기화 이펙트에서 재사용
   const viewerRef = useRef<import("cesium").Viewer | null>(null);
   const cesiumModRef = useRef<typeof import("cesium") | null>(null);
@@ -1317,6 +1356,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   cinemaOnRef.current = cinemaOn;
   const idleSpinPointerActiveRef = useRef(false);
   const bootIntroDoneRef = useRef(false);
+  /** 진행 중 수직 하강 취소 — 동기적으로 programmatic 플래그를 내린다 */
+  const descentCancelRef = useRef<(() => void) | null>(null);
 
   // 클릭 핸들러가 매 폴링마다 재등록되지 않도록 최신 데이터를 ref로 보관
   const onReadyRef = useRef(onReady);
@@ -1327,6 +1368,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   onSelectAlertRef.current = onSelectAlert;
   const onSelectLiveuaPinRef = useRef(onSelectLiveuaPin);
   onSelectLiveuaPinRef.current = onSelectLiveuaPin;
+  const onPickGroundPointRef = useRef(onPickGroundPoint);
+  onPickGroundPointRef.current = onPickGroundPoint;
   const onSelectConflictEventRef = useRef(onSelectConflictEvent);
   onSelectConflictEventRef.current = onSelectConflictEvent;
   const alertPinsRef = useRef(alertPins);
@@ -1345,10 +1388,31 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   milAircraftRef.current = milAircraft;
   const civAircraftRef = useRef(civAircraft);
   civAircraftRef.current = civAircraft;
+  const firmsFiresRef = useRef(firmsFires);
+  firmsFiresRef.current = firmsFires;
+  const neptunThreatsRef = useRef(neptunThreats);
+  neptunThreatsRef.current = neptunThreats;
 
   const innerHandleRef = useRef<CesiumGlobeHandle | null>(null);
   const straitReplayEntityIdsRef = useRef<Set<string>>(new Set());
   const straitReplaySceneRef = useRef<StraitReplayScene | null>(null);
+
+  /**
+   * 새 비행 전 카메라 주인을 하나로 — 하강·부팅 인트로·이전 비행을 끊는다.
+   * cancelFlight는 이전 비행의 cancel 콜백(programmatic=false)을 동기 호출하므로
+   * 호출부는 이 뒤에 programmatic=true를 세워야 한다.
+   */
+  const claimProgrammaticCamera = (viewer: import("cesium").Viewer) => {
+    descentCancelRef.current?.();
+    descentCancelRef.current = null;
+    try {
+      viewer.camera.cancelFlight();
+    } catch {
+      /* ignore */
+    }
+    bootIntroDoneRef.current = true;
+  };
+
   useImperativeHandle(
     innerHandleRef,
     (): CesiumGlobeHandle => ({
@@ -1362,6 +1426,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         const viewer = viewerRef.current;
         const Cesium = cesiumModRef.current;
         if (!viewer || !Cesium || viewer.isDestroyed()) return;
+        claimProgrammaticCamera(viewer);
         const heightM = altitudeToHeightM(altitude ?? 0.55);
         const resolved = resolveCinematicCamera(camera);
         // 고도 대비 pitch가 얕으면 시선이 수평선 위(우주)로 간다 → lookAt 포함 항상 클램프.
@@ -1442,6 +1507,48 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             programmaticCameraRef.current = false;
           },
         });
+      },
+      descendTo: (lat, lng, opts) => {
+        const viewer = viewerRef.current;
+        const Cesium = cesiumModRef.current;
+        if (!viewer || !Cesium || viewer.isDestroyed()) return;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        claimProgrammaticCamera(viewer);
+        if (liveTrackFollowingRef.current || viewer.trackedEntity) {
+          liveTrackFrameDisposeRef.current?.();
+          liveTrackFrameDisposeRef.current = null;
+          liveTrackFollowingRef.current = false;
+          viewer.trackedEntity = undefined;
+          releaseObserveRender("tracked-entity");
+          onUserBreakFollowRef.current?.();
+        }
+        const tileset = googleTilesetRef.current;
+        const photoreal = Boolean(
+          google3dOnRef.current && tileset && !tileset.isDestroyed(),
+        );
+        const cancel = startObserveDescend(
+          Cesium,
+          viewer,
+          { lat, lng },
+          {
+            clearanceM: opts?.clearanceM,
+            photoreal,
+            terrainExaggeration: TERRAIN_VERTICAL_EXAGGERATION,
+            beginProgrammatic: () => {
+              programmaticCameraRef.current = true;
+            },
+            endProgrammatic: () => {
+              programmaticCameraRef.current = false;
+            },
+            done: (completed) => {
+              if (descentCancelRef.current === cancel) {
+                descentCancelRef.current = null;
+              }
+              if (completed && !hasSeenObserveTiltHint()) setTiltHintOpen(true);
+            },
+          },
+        );
+        descentCancelRef.current = cancel;
       },
       setClockHourUtc: (hourUtc: number) => {
         const viewer = viewerRef.current;
@@ -1567,10 +1674,13 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           liveTrackDrDisposeRef.current?.();
           liveTrackDrDisposeRef.current = null;
           if (!viewer.isDestroyed()) {
-            try {
-              viewer.camera.cancelFlight();
-            } catch {
-              /* ignore */
+            // 하강이 추적을 끊은 직후 상위가 해제를 다시 통보한다 — 하강은 살린다
+            if (!descentCancelRef.current) {
+              try {
+                viewer.camera.cancelFlight();
+              } catch {
+                /* ignore */
+              }
             }
             if (viewer.trackedEntity) {
               viewer.trackedEntity = undefined;
@@ -1676,6 +1786,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           const needsHandoff =
             entityChanged || !liveTrackFollowingRef.current;
           if (needsHandoff) {
+            claimProgrammaticCamera(viewer);
             liveTrackFrameDisposeRef.current?.();
             const viewFrom = observeTrackViewFrom(Cesium, spec.kind);
             liveTrackFollowingRef.current = true;
@@ -1704,10 +1815,12 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (viewer.trackedEntity) {
             viewer.trackedEntity = undefined;
           }
-          try {
-            viewer.camera.cancelFlight();
-          } catch {
-            /* ignore */
+          if (!descentCancelRef.current) {
+            try {
+              viewer.camera.cancelFlight();
+            } catch {
+              /* ignore */
+            }
           }
           releaseObserveRender("tracked-entity");
         }
@@ -2055,6 +2168,14 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
             );
             return ev?.titleKo || ev?.titleEn || name;
           }
+          if (prefix === "firms") {
+            const fire = firmsFiresRef.current.find((f) => f.id === key);
+            return fire ? `FIRMS ${fire.id}` : name;
+          }
+          if (prefix === "neptun" || prefix === "neptun-stem") {
+            const threat = neptunThreatsRef.current.find((t) => t.id === key);
+            return threat?.title || threat?.type || name;
+          }
           return name;
         };
 
@@ -2062,6 +2183,20 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         handler.setInputAction((movement: { position: import("cesium").Cartesian2 }) => {
           const v = viewerRef.current;
           if (!v || v.isDestroyed()) return;
+          const pickGround = onPickGroundPointRef.current;
+          if (pickGround) {
+            const ray = v.camera.getPickRay(movement.position);
+            const cartesian =
+              (ray && v.scene.globe.pick(ray, v.scene)) ||
+              v.camera.pickEllipsoid(movement.position, v.scene.globe.ellipsoid);
+            if (!cartesian) return;
+            const carto = Cesium.Cartographic.fromCartesian(cartesian);
+            pickGround({
+              lat: Cesium.Math.toDegrees(carto.latitude),
+              lng: Cesium.Math.toDegrees(carto.longitude),
+            });
+            return;
+          }
           const picked = v.scene.pick(movement.position);
           const entityId = resolvePickedEntityId(picked);
           if (!entityId) return;
@@ -2109,6 +2244,16 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
                 traffic: prefix === "civ" ? "civil" : "military",
               });
             }
+            return;
+          }
+          if (prefix === "firms") {
+            const fire = firmsFiresRef.current.find((f) => f.id === key);
+            if (fire) onSelectEntityRef.current?.({ kind: "firms", item: fire });
+            return;
+          }
+          if (prefix === "neptun" || prefix === "neptun-stem") {
+            const threat = neptunThreatsRef.current.find((t) => t.id === key);
+            if (threat) onSelectEntityRef.current?.({ kind: "neptun", item: threat });
           }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -2358,6 +2503,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           /* ignore */
         }
       }
+      descentCancelRef.current?.();
+      descentCancelRef.current = null;
       bootIntroDoneRef.current = false;
       idleSpinPointerActiveRef.current = false;
       viewerRef.current = null;
@@ -2621,6 +2768,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           return observeIdleSpinShouldRun({
             cinemaOn: cinemaOnRef.current,
             tracked: liveTrackFollowingRef.current,
+            programmatic: programmaticCameraRef.current,
             pointerActive: idleSpinPointerActiveRef.current,
             visibilityVisible: document.visibilityState === "visible",
             heightM,
@@ -2711,6 +2859,27 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         Number.POSITIVE_INFINITY;
     };
   }, [status, cameraCeilingM]);
+
+  const dismissTiltHint = useCallback(() => {
+    markObserveTiltHintSeen();
+    setTiltHintOpen(false);
+  }, []);
+
+  /** 안내가 떠 있는 동안 유저가 실제로 기울이면 그걸로 배운 셈 — 닫는다 */
+  useEffect(() => {
+    if (!tiltHintOpen || status !== "ready") return;
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    // camera.changed는 화면 50% 변화 기준이라 작은 기울기를 놓친다
+    const remove = viewer.camera.moveEnd.addEventListener(() => {
+      if (viewer.isDestroyed() || programmaticCameraRef.current) return;
+      const deg = (viewer.camera.pitch * 180) / Math.PI;
+      if (deg > OBSERVE_TILT_HINT_DISMISS_PITCH_DEG) dismissTiltHint();
+    });
+    return () => {
+      remove();
+    };
+  }, [tiltHintOpen, status, dismissTiltHint]);
 
   /**
    * AIS/ADS-B 라이브 엔티티 동기화 — MapLibre 심볼 레이어를 대체. 전부 Cesium billboard.
@@ -3646,6 +3815,29 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
         ref={creditRef}
         className="pointer-events-none absolute bottom-1 right-2 z-20 max-w-[min(28rem,70vw)] text-micro leading-tight text-sky-100/70 [&_a]:text-sky-200/90"
       />
+
+      {tiltHintOpen ? (
+        <div
+          role="status"
+          className="pointer-events-auto absolute bottom-12 left-1/2 z-30 flex w-[min(24rem,92vw)] -translate-x-1/2 items-start gap-3 rounded-xl border border-white/20 bg-[#0b0d12]/92 px-4 py-3 font-sans shadow-2xl backdrop-blur-md"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-meta font-semibold text-white/90">
+              {t("observeTiltHintTitle", placeLabelLang)}
+            </p>
+            <p className="mt-1 text-micro leading-relaxed text-white/65">
+              {t("observeTiltHintBody", placeLabelLang)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={dismissTiltHint}
+            className="tap-target shrink-0 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-meta font-semibold text-white hover:bg-white/20"
+          >
+            {t("observeTiltHintOk", placeLabelLang)}
+          </button>
+        </div>
+      ) : null}
 
       {hoverTip ? (
         <div

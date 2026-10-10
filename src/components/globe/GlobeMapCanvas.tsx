@@ -84,6 +84,7 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   liveuaStrikes?: import("@/lib/cesiumLiveuaStrikes").CesiumLiveuaStrikePoint[];
   liveuaGround?: import("@/lib/cesiumLiveuaGround").CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
+  onPickGroundPoint?: (point: { lat: number; lng: number }) => void;
   controlGeoJson?: GeoJSON.FeatureCollection | null;
   firmsFires?: import("@/lib/cesiumFirmsFires").CesiumFirmsFirePoint[];
   showFirmsFires?: boolean;
@@ -147,6 +148,7 @@ export function GlobeMapCanvas({
   liveuaStrikes,
   liveuaGround,
   onSelectLiveuaPin,
+  onPickGroundPoint,
   controlGeoJson,
   firmsFires,
   showFirmsFires,
@@ -213,6 +215,7 @@ export function GlobeMapCanvas({
             liveuaStrikes={liveuaStrikes}
             liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
+            onPickGroundPoint={onPickGroundPoint}
             controlGeoJson={controlGeoJson}
             firmsFires={firmsFires}
             showFirmsFires={showFirmsFires}

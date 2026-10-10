@@ -2251,9 +2251,9 @@ export function useLayerPanelCategories({
             label: "항공기 운항",
             detail: showAirTraffic
               ? isSatelliteViewer
-                ? `민항 ${civAircraft.length.toLocaleString()}대 · Cesium 3D`
+                ? `민항 ${civAircraft.length.toLocaleString()}대 · OpenSky/ADS-B · Cesium`
                 : "켜면 관측(Cesium 3D)으로 전환"
-              : "꺼짐",
+              : "꺼짐 · OpenSky 전세계(자격증 있으면)",
             checked: layerPrefs.showAirTraffic,
             onChange: setShowAirTraffic,
             accent: "blue",

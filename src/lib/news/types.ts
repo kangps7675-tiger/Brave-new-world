@@ -62,6 +62,8 @@ export type HeroBreakingItem = NewsStreamItem & {
   clusterId?: string;
   /** LIVEUAMAP 등 원문 타전 소스 */
   flashSource?: "rss" | "liveuamap";
+  /** LIVEUAMAP 핀이 인용한 원래 출처명 (Reuters, 텔레그램 채널 등) */
+  viaSource?: string;
   /** 원문 그대로 양피지 (재작성 금지) */
   verbatim?: boolean;
   videoUrl?: string;

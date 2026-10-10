@@ -44,7 +44,11 @@ export function classifyAisVessel(input: {
   if (input.shipName && MILITARY_NAME.test(input.shipName)) return "military";
 
   const g = aisGenericClass(type);
-  if (g === null) return "other";
+  if (g === null) {
+    // type 미수신 + 실선명 → 민간 후보(필터에서 commercial과 함께 취급)
+    const name = input.shipName?.replace(/\s+/g, "") ?? "";
+    return name.length >= 3 ? "commercial" : "other";
+  }
 
   // 2 Fishing · 4 HSC · 6 Passenger · 7 Cargo · 8 Tanker
   if (g === 2 || g === 4 || g === 6 || g === 7 || g === 8) return "commercial";
@@ -52,6 +56,16 @@ export function classifyAisVessel(input: {
   if (g === 3) return "other";
   // 9 Other / 0–1 reserved → other
   return "other";
+}
+
+/** D1/worker 저장 category와 API class 필터 매칭 (commercial ⊃ other) */
+export function matchesStoredAisCategory(
+  stored: string | null | undefined,
+  requested: "military" | "commercial" | "other" | "all" | undefined,
+): boolean {
+  if (!requested || requested === "all") return true;
+  if (requested === "commercial") return stored === "commercial" || stored === "other";
+  return stored === requested;
 }
 
 /**

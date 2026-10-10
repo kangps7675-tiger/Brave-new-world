@@ -100,8 +100,6 @@ function AlertBellIcon({ urgent }: { urgent: boolean }) {
   );
 }
 
-const ISRAEL_FALLBACK = { lat: 31.5, lng: 34.85 };
-
 type UaListItem = NeptunAlertRegion & { scope: "raion" | "oblast" };
 
 /**
@@ -217,17 +215,13 @@ export function UnifiedAirRaidDropdown({
   }
 
   function focusIsrael(alert?: Pick<TzevaAdomAlert, "lat" | "lng" | "region">) {
-    if (alert) {
-      const lat = Number.isFinite(alert.lat) ? alert.lat : ISRAEL_FALLBACK.lat;
-      const lng = Number.isFinite(alert.lng) ? alert.lng : ISRAEL_FALLBACK.lng;
-      onFocusIsrael?.({
-        lat,
-        lng,
-        label: translateOrefRegion(alert.region, lang),
-      });
-      return;
-    }
-    onFocusIsrael?.({ ...ISRAEL_FALLBACK });
+    // 좌표를 못 찾은 경보는 지도로 보내지 않음 (가짜 이스라엘 중심 좌표 금지)
+    if (!alert || !Number.isFinite(alert.lat) || !Number.isFinite(alert.lng)) return;
+    onFocusIsrael?.({
+      lat: alert.lat as number,
+      lng: alert.lng as number,
+      label: translateOrefRegion(alert.region, lang),
+    });
   }
 
   if (!showUkraine && !showIsrael) return null;

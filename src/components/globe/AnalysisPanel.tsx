@@ -642,20 +642,31 @@ export function AnalysisPanel({
       (flags & 8) === 8 ? "LADD" : null,
     ].filter(Boolean);
     const nationality = nationalityForAircraft(ac.registration);
+    const openSkyCountry = ac.originCountry?.trim() || null;
     const nationalityValue =
-      lang === "en"
-        ? `${nationality.flag ?? ""} ${nationality.nameEn}`.trim()
-        : `${nationality.flag ?? ""} ${nationality.nameKo}`.trim();
+      nationality.code != null
+        ? lang === "en"
+          ? `${nationality.flag ?? ""} ${nationality.nameEn}`.trim()
+          : `${nationality.flag ?? ""} ${nationality.nameKo}`.trim()
+        : openSkyCountry ||
+          (lang === "en" ? nationality.nameEn : nationality.nameKo);
     const routeValue =
       aircraftEnrichment.originIata || aircraftEnrichment.destIata
         ? `${aircraftEnrichment.originIata || "?"} → ${aircraftEnrichment.destIata || "?"}`
         : aircraftEnrichment.loading
           ? (lang === "en" ? "Looking up…" : "조회 중…")
           : "N/A";
+    const fromOpenSky = Boolean(openSkyCountry) || ac.positionSource != null;
     return (
       <div className="flex flex-col gap-4">
         <PanelHeader
-          eyebrow={isCivil ? "ADS-B Civilian" : "ADS-B Military"}
+          eyebrow={
+            isCivil
+              ? fromOpenSky
+                ? "OpenSky Civilian"
+                : "ADS-B Civilian"
+              : "ADS-B Military"
+          }
           title={ac.callsign || ac.hex.toUpperCase()}
           badge={milAircraftRoleLabel(kind, "ko")}
           onClose={onClose}
@@ -701,7 +712,9 @@ export function AnalysisPanel({
             {ac.type ? ` · ${ac.type}` : ""}
             <span className="mt-0.5 block text-micro text-slate-500">
               {isCivil
-                ? "민간 운항 · 군용(dbFlags&1) 제외 · 출처 ADS-B"
+                ? fromOpenSky
+                  ? "민간 운항 · OpenSky Network state vector"
+                  : "민간 운항 · 군용(dbFlags&1) 제외 · 출처 ADS-B"
                 : "탑다운 실루엣 · 출처 ADS-B"}
             </span>
           </span>
@@ -720,9 +733,19 @@ export function AnalysisPanel({
           <Metric label="ICAO hex" value={ac.hex.toUpperCase()} />
           <Metric label="등록" value={ac.registration || "N/A"} />
           <Metric label={lang === "en" ? "Flag" : "국적"} value={nationalityValue} />
+          <Metric
+            label={lang === "en" ? "Origin country" : "등록국(OpenSky)"}
+            value={openSkyCountry || "N/A"}
+          />
           <Metric label={lang === "en" ? "Route" : "출발→도착"} value={routeValue} />
           <Metric label="기종 (t)" value={ac.type || "N/A"} />
           <Metric label="Category" value={ac.category || "N/A"} />
+          <Metric
+            label={lang === "en" ? "On ground" : "지상"}
+            value={
+              ac.onGround == null ? "N/A" : ac.onGround ? (lang === "en" ? "Yes" : "예") : lang === "en" ? "No" : "아니오"
+            }
+          />
           <Metric label="고도 baro" value={fmt(ac.altitude, " ft")} />
           <Metric label="고도 geom" value={fmt(ac.altitudeGeom, " ft")} />
           <Metric label="GS" value={fmt(ac.groundSpeed, " kn")} />
@@ -756,6 +779,17 @@ export function AnalysisPanel({
             <MetaRow
               label="dbFlags"
               value={flagBits.length ? flagBits.join(", ") : String(ac.dbFlags ?? "N/A")}
+            />
+            <MetaRow
+              label="Position source"
+              value={
+                ac.positionSource == null
+                  ? "N/A"
+                  : ({ 0: "ADS-B", 1: "ASTERIX", 2: "MLAT", 3: "FLARM" } as Record<
+                      number,
+                      string
+                    >)[ac.positionSource] ?? String(ac.positionSource)
+              }
             />
             <MetaRow label="Nav MCP alt" value={fmt(ac.navAltitudeMcp, " ft")} />
             <MetaRow

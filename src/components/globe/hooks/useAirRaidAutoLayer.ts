@@ -191,21 +191,23 @@ export function useAirRaidAutoLayer({
     const langKey = labelLanguage === "en" ? "en" : "ko";
 
     for (const alert of tzevaAdomActive) {
+      // 좌표 없는 경보는 자동 포커스 후보에서 제외 (가짜 좌표 금지)
+      if (!Number.isFinite(alert.lat) || !Number.isFinite(alert.lng)) continue;
       const key = `tzeva:${alert.id}`;
       keys.push(key);
       candidates.push({
         key,
         kind: "tzeva",
         target: {
-          lat: alert.lat,
-          lng: alert.lng,
+          lat: alert.lat as number,
+          lng: alert.lng as number,
           label: translateOrefRegion(alert.region || "", labelLanguage) || alert.region,
         },
         title: translateOrefTitle(alert.title || "", labelLanguage, alert.category) || alert.title,
         since: alert.alertDate,
         activeCount: tzevaAdomActive.length,
         threatLabel: tzevaCategoryThreatLabel(alert.category, langKey),
-        approachFrom: inferIsraelApproachHint(alert.lat, alert.lng, langKey),
+        approachFrom: inferIsraelApproachHint(alert.lat as number, alert.lng as number, langKey),
       });
     }
 

@@ -10,6 +10,7 @@ import {
   shouldIgnoreGlobeKeyboardNav,
   type GlobeNavPanDir,
 } from "@/lib/globeKeyboardNav";
+import { orbitCameraAroundScreenCenter } from "@/lib/cesiumOrbitLook";
 
 /**
  * MapLibre `useGlobeKeyboardNav`와 동일 키: WASD / 화살표 pan, +/- 연속 줌.
@@ -129,40 +130,36 @@ export function useCesiumKeyboardNav(
       if (!rafId) rafId = requestAnimationFrame(tick);
     };
 
-    /** Ctrl/Alt + 화살표·WASD → 기울기·좌우 회전 (LiveUA 위치 관측용) */
+    let cesiumMod: typeof import("cesium") | null = null;
+    void import("cesium").then((mod) => {
+      cesiumMod = mod;
+    });
+
+    /**
+     * Ctrl/Alt + 화살표·WASD → 화면 중앙 지점을 축으로 기울기(↑ 수평선 쪽 / ↓ 직하)·회전(←→).
+     */
     const applyModifierLook = (event: KeyboardEvent): boolean => {
       if (!(event.altKey || event.ctrlKey) || event.metaKey) return false;
       if (shouldIgnoreGlobeKeyboardNav(event.target, document.activeElement)) {
         return false;
       }
       const code = event.code;
-      const step = event.shiftKey ? 0.045 : 0.028;
+      const step = event.shiftKey ? 0.07 : 0.04;
+      let dPitch = 0;
+      let dHeading = 0;
+      if (code === "ArrowLeft" || code === "KeyA") dHeading = -step;
+      else if (code === "ArrowRight" || code === "KeyD") dHeading = step;
+      else if (code === "ArrowUp" || code === "KeyW") dPitch = step;
+      else if (code === "ArrowDown" || code === "KeyS") dPitch = -step;
+      else return false;
+      event.preventDefault();
+      if (!cesiumMod || viewer.isDestroyed()) return true;
       try {
-        const camera = viewer.camera;
-        if (code === "ArrowLeft" || code === "KeyA") {
-          camera.rotateRight(-step);
-          event.preventDefault();
-          return true;
-        }
-        if (code === "ArrowRight" || code === "KeyD") {
-          camera.rotateRight(step);
-          event.preventDefault();
-          return true;
-        }
-        if (code === "ArrowUp" || code === "KeyW") {
-          camera.rotateUp(-step);
-          event.preventDefault();
-          return true;
-        }
-        if (code === "ArrowDown" || code === "KeyS") {
-          camera.rotateUp(step);
-          event.preventDefault();
-          return true;
-        }
+        orbitCameraAroundScreenCenter(cesiumMod, viewer, dPitch, dHeading);
       } catch {
         /* destroyed */
       }
-      return false;
+      return true;
     };
 
     const onKeyDown = (event: KeyboardEvent) => {

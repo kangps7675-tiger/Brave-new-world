@@ -4,41 +4,51 @@ import { withComputedStats } from "@/lib/intelContract/bundleStats";
 import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
+import { classifyLiveuaOrigin, type LiveuaOrigin } from "@/lib/liveuamap/originSource";
 import type { HeroBreakingItem } from "@/lib/news/types";
+
+function liveuaOriginOfHero(hero: HeroBreakingItem): LiveuaOrigin | null {
+  if (hero.flashSource !== "liveuamap") return null;
+  return classifyLiveuaOrigin({ sourceUrl: hero.link, viaSource: hero.viaSource });
+}
 
 export function breakingHeroToBundle(
   hero: HeroBreakingItem,
   opts?: AdapterDisconfirmOpts,
 ): EvidenceBundle {
+  const geo =
+    hero.lat != null && hero.lng != null
+      ? { lat: hero.lat, lng: hero.lng, precision: "point" as const }
+      : undefined;
+  const origin = liveuaOriginOfHero(hero);
+
   const observations: Observation[] = [
     {
       id: hero.id,
-      modality: hero.flashSource === "liveuamap" ? "sensor" : "media",
-      sourceKey: uniqueSourceKey(hero.source, hero.link),
-      trustTier: hero.trustTier,
+      modality: origin && origin.kind !== "media" ? "tip" : "media",
+      sourceKey: origin ? origin.sourceKey : uniqueSourceKey(hero.source, hero.link),
+      trustTier: origin && origin.kind !== "media" ? null : hero.trustTier,
       occurredAt: hero.pubDate,
       theater: hero.theater,
       url: hero.link,
       payloadRef: hero.id,
       label: hero.source,
       text: hero.title,
-      geo:
-        hero.lat != null && hero.lng != null
-          ? { lat: hero.lat, lng: hero.lng, precision: "point" }
-          : undefined,
+      geo,
     },
   ];
 
-  // cluster-style second source if publisher differs in title path — use summary as weak second only when liveuamap
-  if (hero.flashSource === "liveuamap") {
+  if (origin) {
+    // LiveUA가 찍은 좌표 — 위치 근거일 뿐 사건을 한 번 더 확인해 주지 않는다
     observations.push({
-      id: `${hero.id}:flash`,
-      modality: "alert",
-      sourceKey: "liveuamap-flash",
+      id: `${hero.id}:pin`,
+      modality: "sensor",
+      sourceKey: "liveuamap-pin",
       occurredAt: hero.pubDate,
-      payloadRef: `${hero.id}:flash`,
-      label: "flash",
-      text: hero.summary,
+      payloadRef: `${hero.id}:pin`,
+      label: "liveuamap-pin",
+      geo,
+      countsTowardIndependence: false,
     });
   } else if (hero.breakingRank === "S" || hero.breakingRank === "A") {
     // high-urgency RSS: allow second synthetic from grade channel as stat (not tip)
@@ -58,7 +68,7 @@ export function breakingHeroToBundle(
     claimText: `${titleKo} ${hero.title} ${hero.summary ?? ""}`,
     disconfirmLog: opts?.disconfirmLog,
     disconfirmCorpus: opts?.disconfirmCorpus,
-    excludeIds: [hero.id, `${hero.id}:flash`, `${hero.id}:rank`],
+    excludeIds: [hero.id, `${hero.id}:pin`, `${hero.id}:rank`],
     windowHours: opts?.windowHours,
     nowMs: opts?.nowMs,
   });
@@ -96,6 +106,32 @@ export function gateBreakingHero(
   const disc = result.bundle.disconfirmLog;
   const disconfirmBlocks =
     !disc.queried || disc.hitCount > 0;
+
+  const origin = liveuaOriginOfHero(hero);
+  if (origin) {
+    // LiveUA 핀 단독은 원래 출처가 T1이어도 출처 1곳 — 단일 공식 발표처럼 low가 상한
+    if (origin.kind !== "media") return result;
+    const grade =
+      result.grade === "drop" && !disconfirmBlocks
+        ? "low"
+        : result.grade === "std" || result.grade === "high"
+          ? "low"
+          : result.grade;
+    if (grade === result.grade) return result;
+    return {
+      ...result,
+      grade,
+      reasons: [
+        ...result.reasons,
+        {
+          code: "LIVEUA",
+          ok: true,
+          detailKo: `LiveUA 핀 · 원래 출처 ${origin.label} 1곳 — low 상한`,
+          detailEn: `LiveUA pin · single origin ${origin.label} → low cap`,
+        },
+      ],
+    };
+  }
   // Single-source RSS S/A often lands low — allow std if trustTier 1 and rank S/A
   if (
     !disconfirmBlocks &&

@@ -52,9 +52,21 @@ function readSeedPayload(): TzevaAdomPayload {
 }
 
 function enrichAlert(alert: TzevaAdomAlert): TzevaAdomAlert {
-  if (Number.isFinite(alert.lat) && Number.isFinite(alert.lng)) return alert;
+  if (
+    Number.isFinite(alert.lat) &&
+    Number.isFinite(alert.lng) &&
+    alert.geocodeMatch &&
+    alert.geocodeMatch !== "none"
+  ) {
+    return alert;
+  }
   const coords = geocodeOrefRegion(alert.region);
-  return { ...alert, lat: coords.lat, lng: coords.lng };
+  return {
+    ...alert,
+    lat: coords.lat,
+    lng: coords.lng,
+    geocodeMatch: coords.match,
+  };
 }
 
 function enrichPayload(payload: TzevaAdomPayload): TzevaAdomPayload {

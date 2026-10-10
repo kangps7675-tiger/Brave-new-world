@@ -40,6 +40,8 @@ FIRMS_MAX_PER_THEATER = "400"
 GDELT_MAX_POINTS = "250"
 # Retain window for prune (hours)
 RETENTION_HOURS = "48"
+# 사건 조사용 선박·군용기 위치 이력 (ais_position_history / adsb_track_history) 보관 일수
+TRACK_HISTORY_RETENTION_DAYS = "60"
 # Web Push VAPID (public — private은 wrangler secret)
 VAPID_PUBLIC_KEY = "BBVEwTmDSfLWMTtvbYbLwJhK_i4ZUvB_yW9aoUtGy80oi5GwIlWE6oVIHJJ0MR9yyGaeKVFEc4_ZvMNEff-PUhk"
 VAPID_SUBJECT = "mailto:kangps7675@gmail.com"

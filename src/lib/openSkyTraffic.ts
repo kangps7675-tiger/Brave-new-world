@@ -1,7 +1,10 @@
 import type { MilitaryAircraft } from "@/data/geoTypes";
+import { thinWorldwide } from "@/lib/adsbWorld";
 
 export const OPENSKY_STATES_URL = "https://opensky-network.org/api/states/all";
 export const OPENSKY_BBOX_SPAN_DEG = 5;
+/** Global `/states/all` costs 4 credits; keep parse memory bounded. */
+export const OPENSKY_PARSE_HARD_CAP = 20_000;
 
 export type OpenSkyBbox = { lamin: number; lomin: number; lamax: number; lomax: number };
 
@@ -22,10 +25,18 @@ export function openSkyBboxAround(lat: number, lng: number): OpenSkyBbox {
 
 export function openSkyStatesUrl(bbox: OpenSkyBbox): string {
   const params = new URLSearchParams({
-    lamin: String(bbox.lamin), lomin: String(bbox.lomin),
-    lamax: String(bbox.lamax), lomax: String(bbox.lomax), extended: "1",
+    lamin: String(bbox.lamin),
+    lomin: String(bbox.lomin),
+    lamax: String(bbox.lamax),
+    lomax: String(bbox.lomax),
+    extended: "1",
   });
   return `${OPENSKY_STATES_URL}?${params.toString()}`;
+}
+
+/** Worldwide state vectors — 4 credits per request when authenticated. */
+export function openSkyWorldwideUrl(): string {
+  return `${OPENSKY_STATES_URL}?extended=1`;
 }
 
 function numberAt(row: unknown[], index: number): number | null {
@@ -48,17 +59,41 @@ function feetPerMinute(value: number | null): number | null {
 function categoryLabel(value: number | null): string | null {
   if (value == null || value <= 1) return null;
   const labels: Record<number, string> = {
-    2: "light", 3: "small", 4: "large", 5: "high-vortex", 6: "heavy",
-    7: "high-performance", 8: "rotorcraft", 9: "glider", 10: "lighter-than-air",
-    11: "parachutist", 12: "ultralight", 14: "uav", 15: "space",
-    16: "surface-emergency", 17: "surface-service",
+    2: "light",
+    3: "small",
+    4: "large",
+    5: "high-vortex",
+    6: "heavy",
+    7: "high-performance",
+    8: "rotorcraft",
+    9: "glider",
+    10: "lighter-than-air",
+    11: "parachutist",
+    12: "ultralight",
+    14: "uav",
+    15: "space",
+    16: "surface-emergency",
+    17: "surface-service",
   };
   return labels[value] ?? `category-${value}`;
 }
 
+export type ParseOpenSkyOptions = {
+  time?: number;
+  /** Cap after parse (and after optional thin). Default 280 for bbox, raise for world. */
+  max?: number;
+  /**
+   * Spread aircraft across lat/lng cells so Europe/US don't eat the whole budget.
+   * Use for worldwide snapshots.
+   */
+  thin?: boolean;
+  thinCellDeg?: number;
+  thinPerCell?: number;
+};
+
 export function parseOpenSkyTraffic(
   states: unknown,
-  options: { time?: number; max?: number } = {},
+  options: ParseOpenSkyOptions = {},
 ): MilitaryAircraft[] {
   if (!Array.isArray(states)) return [];
   const observedAt = options.time ?? Math.floor(Date.now() / 1000);
@@ -74,28 +109,59 @@ export function parseOpenSkyTraffic(
     const lastPosition = numberAt(value, 3);
     const lastContact = numberAt(value, 4);
     const callsign = typeof value[1] === "string" ? value[1].trim() || null : null;
+    const originCountry = typeof value[2] === "string" ? value[2].trim() || null : null;
     const squawk = typeof value[14] === "string" ? value[14] : null;
     const onGround = value[8] === true;
+    const positionSource = numberAt(value, 16);
 
     aircraft.push({
-      id: hex, hex, callsign, registration: null, lat, lng,
+      id: hex,
+      hex,
+      callsign,
+      registration: null,
+      originCountry,
+      onGround,
+      positionSource,
+      lat,
+      lng,
       altitude: onGround ? 0 : feet(numberAt(value, 7)),
       altitudeGeom: onGround ? 0 : feet(numberAt(value, 13)),
       groundSpeed: knots(numberAt(value, 9)),
-      indicatedAirspeed: null, trueAirspeed: null, mach: null,
-      track: numberAt(value, 10), trackRate: null, roll: null,
-      magHeading: null, trueHeading: null,
-      baroRate: feetPerMinute(numberAt(value, 11)), geomRate: null, squawk,
+      indicatedAirspeed: null,
+      trueAirspeed: null,
+      mach: null,
+      track: numberAt(value, 10),
+      trackRate: null,
+      roll: null,
+      magHeading: null,
+      trueHeading: null,
+      baroRate: feetPerMinute(numberAt(value, 11)),
+      geomRate: null,
+      squawk,
       emergency: squawk === "7500" || squawk === "7600" || squawk === "7700" ? squawk : null,
-      type: null, category: categoryLabel(numberAt(value, 17)), dbFlags: null,
-      windDirection: null, windSpeed: null, navAltitudeMcp: null, navHeading: null,
+      type: null,
+      category: categoryLabel(numberAt(value, 17)),
+      dbFlags: null,
+      windDirection: null,
+      windSpeed: null,
+      navAltitudeMcp: null,
+      navHeading: null,
       navModes: null,
       seen: lastContact == null ? null : Math.max(0, observedAt - lastContact),
       seenPos: lastPosition == null ? null : Math.max(0, observedAt - lastPosition),
-      rssi: null, acasAdvisory: null,
+      rssi: null,
+      acasAdvisory: null,
       timestamp: new Date(observedAt * 1000).toISOString(),
     });
-    if (aircraft.length >= max) break;
+    if (aircraft.length >= OPENSKY_PARSE_HARD_CAP) break;
   }
-  return aircraft;
+
+  if (options.thin) {
+    return thinWorldwide(aircraft, {
+      cellDeg: options.thinCellDeg ?? 8,
+      perCell: options.thinPerCell ?? 24,
+      max,
+    });
+  }
+  return aircraft.slice(0, max);
 }

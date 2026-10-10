@@ -53,10 +53,29 @@ export type PendingObserveFly = {
   altitude?: number;
   durationMs?: number;
   camera?: FlyCameraOpts;
+  /** 관측 모드에서 altitude 대신 지면 + 600m까지 수직 하강 */
+  descend?: boolean;
   subtitle: string;
   title: string;
   selection?: Selection;
 };
+
+function runObserveFly(
+  handle: CesiumGlobeHandle,
+  fly: Pick<PendingObserveFly, "lat" | "lng" | "altitude" | "durationMs" | "camera" | "descend">,
+) {
+  if (fly.descend) {
+    handle.descendTo(fly.lat, fly.lng);
+    return;
+  }
+  handle.flyTo(
+    fly.lat,
+    fly.lng,
+    fly.altitude,
+    resolveCinematicDurationMs(fly.durationMs),
+    resolveCinematicCamera(fly.camera),
+  );
+}
 
 export type UseFocusedSpaceNavigationOptions = {
   cesiumGlobeRef: RefObject<CesiumGlobeHandle | null>;
@@ -279,13 +298,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       return false;
     }
     pendingObserveFlyRef.current = null;
-    handle.flyTo(
-      pending.lat,
-      pending.lng,
-      pending.altitude,
-      resolveCinematicDurationMs(pending.durationMs),
-      resolveCinematicCamera(pending.camera),
-    );
+    runObserveFly(handle, pending);
     if (pending.selection) setSelected(pending.selection);
     return true;
   }, [cesiumGlobeRef, pendingObserveFlyRef, setSelected]);
@@ -297,6 +310,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       altitude?: number,
       durationMs?: number,
       camera?: FlyCameraOpts,
+      flyOpts?: { descend?: boolean },
     ) => {
       // 사건·핀 기본은 직하. 궤도 연출이 필요하면 호출부가 camera를 명시한다.
       const dur = resolveCinematicDurationMs(
@@ -313,8 +327,9 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       }
       if (viewerMode === "satellite") {
         const handle = cesiumGlobeRef.current;
+        const descend = Boolean(flyOpts?.descend);
         if (typeof handle?.flyTo === "function" && handle.pointOfView()) {
-          handle.flyTo(lat, lng, altitude, dur, cam);
+          runObserveFly(handle, { lat, lng, altitude, durationMs: dur, camera: cam, descend });
           return;
         }
         pendingObserveFlyRef.current = {
@@ -323,6 +338,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
           altitude,
           durationMs: dur,
           camera: cam,
+          descend,
           subtitle: "",
           title: "",
         };
@@ -378,6 +394,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         altitude?: number;
         durationMs?: number;
         camera?: FlyCameraOpts;
+        descend?: boolean;
         subtitle: string;
         title: string;
         kicker?: string;
@@ -398,6 +415,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         altitude: opts.altitude,
         durationMs: opts.durationMs,
         camera: opts.camera,
+        descend: opts.descend,
         subtitle: opts.subtitle,
         title: opts.title,
         selection: opts.selection,
@@ -448,6 +466,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         altitude: focus.altitude || INCIDENT_ENTRY_ALT,
         durationMs: LOCATION_LOOK_DOWN.durationMs,
         camera: LOOK_DOWN_CAMERA,
+        descend: true,
         subtitle: gradeLabel,
         title: focus.title,
         kicker: lang === "en" ? "Desk focus" : "안건 포커스",
@@ -468,15 +487,16 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
     setFlyToConfirmOffer(null);
     pendingObserveFlyRef.current = null;
     if (!offer) return;
-    const cesiumFly = cesiumGlobeRef.current?.flyTo;
-    if (typeof cesiumFly === "function") {
-      cesiumFly(
-        offer.lat,
-        offer.lng,
-        pending?.altitude,
-        resolveCinematicDurationMs(pending?.durationMs),
-        resolveCinematicCamera(pending?.camera),
-      );
+    const handle = cesiumGlobeRef.current;
+    if (typeof handle?.flyTo === "function") {
+      runObserveFly(handle, {
+        lat: offer.lat,
+        lng: offer.lng,
+        altitude: pending?.altitude,
+        durationMs: pending?.durationMs,
+        camera: pending?.camera,
+        descend: pending?.descend,
+      });
     }
     if (pending?.selection) setSelected(pending.selection);
   }, [

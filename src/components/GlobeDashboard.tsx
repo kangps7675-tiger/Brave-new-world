@@ -494,7 +494,11 @@ import { ObserveStraitTourChips } from "@/components/globe/ObserveStraitTourChip
 import { StraitReplayHost } from "@/components/globe/replay/StraitReplayHost";
 import { ObserveLayerLegend } from "@/components/globe/ObserveLayerLegend";
 import { ObserveDeskBookmarkRail } from "@/components/globe/ObserveDeskBookmarkRail";
+import { CaseFileDeskPanel } from "@/components/globe/CaseFileDeskPanel";
+import { CaseEvidenceAttachBar } from "@/components/globe/CaseEvidenceAttachBar";
+import { FirmsFireDetailPanel } from "@/components/globe/FirmsFireDetailPanel";
 import { DeskVerifyHud } from "@/components/globe/DeskVerifyHud";
+import { readActiveCaseId } from "@/lib/caseFile/clientSession";
 import { ObservePaywallOverlay } from "@/components/ObservePaywallOverlay";
 import {
   OBSERVE_PREVIEW_MS,
@@ -949,6 +953,16 @@ export function GlobeDashboard({
   const [showGdeltAlertPanel, setShowGdeltAlertPanel] = useState(false);
   const [showDisputeLegendPanel, setShowDisputeLegendPanel] = useState(false);
   const [selected, setSelected] = useState<Selection | null>(null);
+  const [activeCaseOpen, setActiveCaseOpen] = useState(false);
+  const [incidentPickActive, setIncidentPickActive] = useState(false);
+  const [pickedIncidentPoint, setPickedIncidentPoint] = useState<{
+    lat: number;
+    lng: number;
+    seq: number;
+  } | null>(null);
+  useEffect(() => {
+    setActiveCaseOpen(Boolean(readActiveCaseId()));
+  }, []);
   const [hoveredPoint, setHoveredPoint] = useState<GlobeDisplayPoint | null>(null);
   const [hoveredNeptunThreat, setHoveredNeptunThreat] = useState<NeptunLiveThreat | null>(null);
   const [hoveredPolygon, setHoveredPolygon] = useState<PolygonLayerFeature | null>(null);
@@ -1268,7 +1282,8 @@ export function GlobeDashboard({
     liveuaToast,
     setLiveuaToast,
     liveuaUnread,
-    setLiveuaUnread,
+    liveuaReadIds,
+    markAllLiveuaRead,
     liveuaParchmentIndex,
     setLiveuaParchmentIndex,
     focusedLiveuaId,
@@ -2549,11 +2564,35 @@ export function GlobeDashboard({
     (sel: CesiumEntitySelection) => {
       if (sel.kind === "ais") {
         setSelected({ kind: "ais", item: sel.item });
-      } else {
+        return;
+      }
+      if (sel.kind === "mil") {
         setSelected({ kind: "mil", item: sel.item, traffic: sel.traffic });
+        return;
+      }
+      if (sel.kind === "firms") {
+        const full =
+          firmsFires.find((f) => f.id === sel.item.id) ??
+          ({
+            id: sel.item.id,
+            lat: sel.item.lat,
+            lng: sel.item.lng,
+            frp: sel.item.frp ?? null,
+            brightness: null,
+            confidence: null,
+            acqDate: null,
+            acqTime: null,
+            satellite: null,
+            daynight: null,
+          } satisfies import("@/data/geoTypes").FirmsFire);
+        setSelected({ kind: "firms-fire", item: full });
+        return;
+      }
+      if (sel.kind === "neptun") {
+        setSelected({ kind: "neptun-threat", item: sel.item });
       }
     },
-    [setSelected],
+    [firmsFires, setSelected],
   );
 
   const {
@@ -6448,12 +6487,22 @@ export function GlobeDashboard({
           deskFocus={isSatelliteViewer ? deskFocus : null}
           liveuaStrikes={isSatelliteViewer ? liveuaStrikes : []}
           liveuaGround={isSatelliteViewer ? liveuaGround : []}
+          onPickGroundPoint={
+            isSatelliteViewer && incidentPickActive
+              ? (point) => {
+                  setPickedIncidentPoint((prev) => ({
+                    ...point,
+                    seq: (prev?.seq ?? 0) + 1,
+                  }));
+                  setIncidentPickActive(false);
+                }
+              : undefined
+          }
           onSelectLiveuaPin={(id) => {
             const idx = liveuaEvents.findIndex((e) => e.id === id);
             if (idx >= 0) {
               setFocusedLiveuaId(null);
               setLiveuaParchmentIndex(idx);
-              setLiveuaUnread(0);
             }
           }}
           controlGeoJson={
@@ -6486,6 +6535,7 @@ export function GlobeDashboard({
                 bearing: LOCATION_LOOK_DOWN.bearing,
                 lookAt: LOCATION_LOOK_DOWN.lookAt,
               },
+              { descend: true },
             );
           }}
           {...mapGlobeProps}
@@ -6757,16 +6807,18 @@ export function GlobeDashboard({
             boardCount={observeWatchboardItems.filter((i) => i.grade !== "hold").length}
             hasVerify={Boolean(deskFocus)}
             autoOpenVerify={Boolean(deskFocus)}
+            hasCase={activeCaseOpen}
             flash={
               <LiveuaFlashDock
                 lang={labelLanguage}
                 chrome="bare"
                 events={liveuaEvents}
                 unreadCount={liveuaUnread}
+                readIds={liveuaReadIds}
+                onMarkAllRead={markAllLiveuaRead}
                 onOpen={(index) => {
                   if (theaterSitrepRegion) return;
                   setLiveuaParchmentIndex(index);
-                  setLiveuaUnread(0);
                 }}
               />
             }
@@ -6815,6 +6867,21 @@ export function GlobeDashboard({
                   onDismiss={() => setDeskFocus(null)}
                 />
               ) : null
+            }
+            casePanel={
+              <CaseFileDeskPanel
+                lang={labelLanguage}
+                chrome="bare"
+                camera={{ lat: viewState.lat, lng: viewState.lng }}
+                captureFrame={captureFrameResolved}
+                onCaseChange={(id) => {
+                  setActiveCaseOpen(Boolean(id));
+                  if (!id) setIncidentPickActive(false);
+                }}
+                mapPickActive={incidentPickActive}
+                onToggleMapPick={setIncidentPickActive}
+                pickedPoint={pickedIncidentPoint}
+              />
             }
           />
         ) : null}
@@ -6907,11 +6974,18 @@ export function GlobeDashboard({
                 kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
               });
               // 직하 + lookAt: 사건 좌표를 화면 중앙에서 내려다봄 (대각선 CINEMATIC_FLY 아님)
-              unifiedFlyTo(ev.lat, ev.lng, 0.3, LOCATION_LOOK_DOWN.durationMs, {
-                pitch: LOCATION_LOOK_DOWN.pitch,
-                bearing: LOCATION_LOOK_DOWN.bearing,
-                lookAt: LOCATION_LOOK_DOWN.lookAt,
-              });
+              unifiedFlyTo(
+                ev.lat,
+                ev.lng,
+                0.3,
+                LOCATION_LOOK_DOWN.durationMs,
+                {
+                  pitch: LOCATION_LOOK_DOWN.pitch,
+                  bearing: LOCATION_LOOK_DOWN.bearing,
+                  lookAt: LOCATION_LOOK_DOWN.lookAt,
+                },
+                { descend: true },
+              );
             }}
             onFocusChokepoint={(choke) => {
               patchLayerPrefsSoft({
@@ -7612,6 +7686,47 @@ export function GlobeDashboard({
                     setSelected(null);
                   }}
                 />
+                <CaseEvidenceAttachBar
+                  lang={labelLanguage}
+                  captureFrame={captureFrameResolved}
+                  target={{
+                    source: "air-raid",
+                    lat: selected.item.lat,
+                    lng: selected.item.lon,
+                    at: selected.item.confirmedAt ?? selected.item.updatedAt ?? null,
+                    pickThreatId: selected.item.id,
+                    label:
+                      labelLanguage === "en"
+                        ? `NEPTUN ${selected.item.type}`
+                        : `NEPTUN ${selected.item.type}`,
+                  }}
+                />
+              </div>
+            ) : selected.kind === "firms-fire" ? (
+              <div className="intel-scroll-y min-h-0 flex-1">
+                <FirmsFireDetailPanel
+                  fire={selected.item}
+                  lang={labelLanguage}
+                  onClose={() => {
+                    stopGevTracking();
+                    setSelected(null);
+                  }}
+                  footer={
+                    <CaseEvidenceAttachBar
+                      lang={labelLanguage}
+                      captureFrame={captureFrameResolved}
+                      target={{
+                        source: "firms",
+                        lat: selected.item.lat,
+                        lng: selected.item.lng,
+                        pickId: selected.item.id,
+                        fromDate: selected.item.acqDate,
+                        toDate: selected.item.acqDate,
+                        label: `FIRMS ${selected.item.id}`,
+                      }}
+                    />
+                  }
+                />
               </div>
             ) : selected.kind === "news-insight" ? (
               <div className="intel-scroll-y min-h-0 flex-1">
@@ -7659,6 +7774,25 @@ export function GlobeDashboard({
                     ukmtoIncidents={ukmtoIncidents}
                     aisByChokeId={portWatchByChokeId}
                   />
+                  {selected.kind === "ais" &&
+                  Number.isFinite(selected.item.lat) &&
+                  Number.isFinite(selected.item.lng) ? (
+                    <CaseEvidenceAttachBar
+                      lang={labelLanguage}
+                      captureFrame={captureFrameResolved}
+                      target={{
+                        source: "ais",
+                        lat: selected.item.lat,
+                        lng: selected.item.lng,
+                        pickId: selected.item.id,
+                        pickMmsi: selected.item.mmsi,
+                        label:
+                          selected.item.shipName ||
+                          selected.item.mmsi ||
+                          selected.item.id,
+                      }}
+                    />
+                  ) : null}
                 </div>
               </>
             )}

@@ -254,6 +254,53 @@ export const adsbAircraft = sqliteTable(
   }),
 );
 
+/** 사건 조사용 AIS 위치 이력 — 30분 버킷당 선박 1행 (migration 0031) */
+export const aisPositionHistory = sqliteTable(
+  "ais_position_history",
+  {
+    id: text("id").primaryKey(),
+    mmsi: text("mmsi").notNull(),
+    shipName: text("ship_name"),
+    lat: real("lat").notNull(),
+    lng: real("lng").notNull(),
+    sog: real("sog"),
+    cog: real("cog"),
+    category: text("category"),
+    sampledAt: text("sampled_at").notNull(),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    geoAtIdx: index("idx_ais_hist_geo_at").on(t.lat, t.lng, t.sampledAt),
+    mmsiAtIdx: index("idx_ais_hist_mmsi_at").on(t.mmsi, t.sampledAt),
+    ingestedIdx: index("idx_ais_hist_ingested").on(t.ingestedAt),
+  }),
+);
+
+/** 사건 조사용 군용기 항적 이력 — 30분 버킷당 기체 1행 (migration 0031) */
+export const adsbTrackHistory = sqliteTable(
+  "adsb_track_history",
+  {
+    id: text("id").primaryKey(),
+    hex: text("hex").notNull(),
+    callsign: text("callsign"),
+    registration: text("registration"),
+    type: text("type"),
+    lat: real("lat").notNull(),
+    lng: real("lng").notNull(),
+    altitude: real("altitude"),
+    groundSpeed: real("ground_speed"),
+    track: real("track"),
+    squawk: text("squawk"),
+    sampledAt: text("sampled_at").notNull(),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    geoAtIdx: index("idx_adsb_hist_geo_at").on(t.lat, t.lng, t.sampledAt),
+    hexAtIdx: index("idx_adsb_hist_hex_at").on(t.hex, t.sampledAt),
+    ingestedIdx: index("idx_adsb_hist_ingested").on(t.ingestedAt),
+  }),
+);
+
 /** 해저터널 정적 인프라 (시드 + 온디맨드 API) */
 export const submarineTunnels = sqliteTable(
   "submarine_tunnels",
@@ -811,6 +858,96 @@ export const airRaidAlerts = sqliteTable(
     theaterAtIdx: index("idx_air_raid_theater_at").on(t.theaterId, t.alertAt),
     sourceAtIdx: index("idx_air_raid_source_at").on(t.source, t.alertAt),
     ingestedIdx: index("idx_air_raid_ingested").on(t.ingestedAt),
+  }),
+);
+
+/** 조사 사건 파일 — 현재 스냅샷 캐시 */
+export const cases = sqliteTable(
+  "cases",
+  {
+    id: text("id").primaryKey(),
+    title: text("title"),
+    eventType: text("event_type").notNull(),
+    verdict: text("verdict").notNull(),
+    rev: integer("rev").notNull().default(1),
+    snapshotJson: text("snapshot_json").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (t) => ({
+    updatedIdx: index("idx_cases_updated").on(t.updatedAt),
+    verdictIdx: index("idx_cases_verdict").on(t.verdict, t.updatedAt),
+  }),
+);
+
+/** 사건 파일 수정 이력 — 추가만, 덮어쓰기 없음 */
+export const caseRevisions = sqliteTable(
+  "case_revisions",
+  {
+    id: text("id").primaryKey(),
+    caseId: text("case_id").notNull(),
+    rev: integer("rev").notNull(),
+    at: text("at").notNull(),
+    op: text("op").notNull(),
+    payloadJson: text("payload_json").notNull(),
+    reason: text("reason"),
+  },
+  (t) => ({
+    caseRevIdx: index("idx_case_revisions_case_rev").on(t.caseId, t.rev),
+  }),
+);
+
+/** NEPTUN 위협 좌표 샘플 — 조사 도구용 이력 (덮어쓰지 않음) */
+export const neptunThreatSamples = sqliteTable(
+  "neptun_threat_samples",
+  {
+    id: text("id").primaryKey(),
+    threatId: text("threat_id").notNull(),
+    threatType: text("threat_type"),
+    lat: real("lat").notNull(),
+    lon: real("lon").notNull(),
+    heading: real("heading"),
+    speedKmh: real("speed_kmh"),
+    confidence: text("confidence"),
+    sourceCount: integer("source_count"),
+    uncertaintyKm: real("uncertainty_km"),
+    sampledAt: text("sampled_at").notNull(),
+    trailJson: text("trail_json"),
+    detailJson: text("detail_json"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    threatAtIdx: index("idx_neptun_threat_samples_threat_at").on(t.threatId, t.sampledAt),
+    atIdx: index("idx_neptun_threat_samples_at").on(t.sampledAt),
+    geoAtIdx: index("idx_neptun_threat_samples_geo_at").on(t.lat, t.lon, t.sampledAt),
+  }),
+);
+
+/** 공습 경보 시작·해제 구간 — Tzeva / NEPTUN 구역 경보 */
+export const airRaidAlertIntervals = sqliteTable(
+  "air_raid_alert_intervals",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(),
+    theaterId: text("theater_id").notNull(),
+    regionKey: text("region_key").notNull(),
+    regionName: text("region_name"),
+    title: text("title"),
+    category: integer("category"),
+    startedAt: text("started_at").notNull(),
+    endedAt: text("ended_at"),
+    lastSeenAt: text("last_seen_at").notNull(),
+    detailJson: text("detail_json"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    sourceRegionIdx: index("idx_air_raid_intervals_source_region").on(
+      t.source,
+      t.regionKey,
+      t.startedAt,
+    ),
+    openIdx: index("idx_air_raid_intervals_open").on(t.source, t.endedAt, t.lastSeenAt),
+    theaterAtIdx: index("idx_air_raid_intervals_theater_at").on(t.theaterId, t.startedAt),
   }),
 );
 

@@ -62,7 +62,7 @@ describe("apiQuerySchemas", () => {
     if (worldwide.ok) {
       expect(worldwide.data.lat).toBeUndefined();
       expect(worldwide.data.lng).toBeUndefined();
-      expect(worldwide.data.max).toBe(800);
+      expect(worldwide.data.max).toBe(2000);
     }
     const oneSided = parseSearchParams(new URLSearchParams({ lat: "37.5" }), adsbTrafficQuerySchema);
     expect(oneSided.ok).toBe(false);

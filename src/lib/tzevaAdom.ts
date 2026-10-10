@@ -1,3 +1,5 @@
+import type { OrefGeocodeMatch } from "@/lib/israelAlertZones";
+
 /** Tzeva Adom (צבע אדום) — Pikud HaOref 비공식 JSON 피드 타입 */
 
 export type TzevaAdomAlert = {
@@ -7,8 +9,11 @@ export type TzevaAdomAlert = {
   alertDate: string;
   category?: number;
   active: boolean;
-  lat: number;
-  lng: number;
+  /** 사전 매칭 실패 시 null — 가짜 좌표를 쓰지 않음 */
+  lat: number | null;
+  lng: number | null;
+  /** 좌표 매칭 방식. 조사 근거로는 exact만 사용. 구 페이로드에는 없을 수 있음 */
+  geocodeMatch?: OrefGeocodeMatch;
 };
 
 export type TzevaAdomPayload = {

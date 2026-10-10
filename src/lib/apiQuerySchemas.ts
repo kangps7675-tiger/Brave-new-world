@@ -35,7 +35,7 @@ export const adsbTrafficQuerySchema = z
     lat: z.coerce.number().min(-90).max(90).optional(),
     lng: z.coerce.number().min(-180).max(180).optional(),
     dist: z.coerce.number().min(25).max(1500).optional().default(250),
-    max: z.coerce.number().int().min(1).max(2000).optional().default(800),
+    max: z.coerce.number().int().min(1).max(5000).optional().default(2000),
     live: liveFlagSchema,
   })
   .refine((data) => (data.lat == null) === (data.lng == null), {
@@ -125,6 +125,37 @@ export const stockReactionQuerySchema = z.object({
   mode: z.enum(["reaction", "counterfactual"]).optional().default("reaction"),
 });
 
+/**
+ * 공습 이력 시각+반경 검색.
+ * - at + windowHours: 주장 시각 ±N시간
+ * - 또는 from + to: 명시 구간
+ */
+export const airRaidHistoryQuerySchema = z
+  .object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    /** ISO 시각. windowHours와 함께 쓰면 ±window 구간 */
+    at: z.string().min(8).max(40).optional(),
+    windowHours: z.coerce.number().min(0.25).max(72).optional().default(1),
+    from: z.string().min(8).max(40).optional(),
+    to: z.string().min(8).max(40).optional(),
+    radiusKm: z.coerce.number().min(1).max(200).optional().default(30),
+    source: z.enum(["all", "neptun", "tzeva-adom"]).optional().default("all"),
+    maxThreats: z.coerce.number().int().min(1).max(200).optional().default(50),
+    maxAlerts: z.coerce.number().int().min(1).max(200).optional().default(80),
+  })
+  .superRefine((data, ctx) => {
+    const hasRange = Boolean(data.from && data.to);
+    const hasAt = Boolean(data.at);
+    if (!hasRange && !hasAt) {
+      ctx.addIssue({
+        code: "custom",
+        message: "at 또는 from+to 중 하나가 필요합니다",
+        path: ["at"],
+      });
+    }
+  });
+
 export type FirmsFiresQuery = z.infer<typeof firmsFiresQuerySchema>;
 export type AdsbMilQuery = z.infer<typeof adsbMilQuerySchema>;
 export type AdsbTrafficQuery = z.infer<typeof adsbTrafficQuerySchema>;
@@ -134,6 +165,7 @@ export type ViewportPathsQuery = z.infer<typeof viewportPathsQuerySchema>;
 export type ViewportPointsQuery = z.infer<typeof viewportPointsQuerySchema>;
 export type ShipMovementsQuery = z.infer<typeof shipMovementsQuerySchema>;
 export type StockReactionQuery = z.infer<typeof stockReactionQuerySchema>;
+export type AirRaidHistoryQueryParams = z.infer<typeof airRaidHistoryQuerySchema>;
 
 /** Parse URLSearchParams with a Zod schema; returns 400 payload on failure. */
 export function parseSearchParams<T extends z.ZodTypeAny>(

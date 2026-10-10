@@ -784,6 +784,15 @@ const UI = {
     ko: "Ctrl 또는 Alt + 드래그(또는 화살표)로 기울기·회전 · WASD로 이동",
     en: "Ctrl or Alt + drag (or arrows) to tilt/orbit · WASD to pan",
   },
+  observeTiltHintTitle: {
+    ko: "지금은 바로 위에서 내려다보는 중입니다",
+    en: "You're looking straight down",
+  },
+  observeTiltHintBody: {
+    ko: "기울여 보려면 Ctrl을 누른 채 드래그하세요. 키보드는 Alt + ↑↓로 기울이고, Alt + ←→로 돌립니다.",
+    en: "Hold Ctrl and drag to tilt. On the keyboard, Alt + ↑↓ tilts and Alt + ←→ turns.",
+  },
+  observeTiltHintOk: { ko: "알겠어요", en: "Got it" },
   liveuaFocusShips: {
     ko: "해협 함선 AIS",
     en: "Strait ship AIS",

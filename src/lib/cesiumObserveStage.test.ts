@@ -20,6 +20,9 @@ describe("cesiumObserveStage idle spin gate", () => {
   it("stops when tracked, dragging, hidden, low, or lite", () => {
     expect(observeIdleSpinShouldRun({ ...base, cinemaOn: false })).toBe(false);
     expect(observeIdleSpinShouldRun({ ...base, tracked: true })).toBe(false);
+    expect(observeIdleSpinShouldRun({ ...base, programmatic: true })).toBe(
+      false,
+    );
     expect(observeIdleSpinShouldRun({ ...base, pointerActive: true })).toBe(
       false,
     );

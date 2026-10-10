@@ -212,12 +212,16 @@ export async function fetchAndUpsertMilitaryExercises(env: IngestEnv): Promise<{
   errors: string[];
   skipped: boolean;
 }> {
-  const enabled = (env.MILITARY_EXERCISE_INGEST_ENABLED ?? "true").trim().toLowerCase();
+  const vars = env as unknown as Record<string, string | undefined>;
+  const enabled = (vars.MILITARY_EXERCISE_INGEST_ENABLED ?? "true").trim().toLowerCase();
   if (enabled === "0" || enabled === "false" || enabled === "off") {
     return { count: 0, fromNavarea: 0, fromNews: 0, errors: [], skipped: true };
   }
 
-  const minInterval = Math.max(10, readIntVar(env.MILITARY_EXERCISE_POLL_MIN_INTERVAL_MINUTES, 20));
+  const minInterval = Math.max(
+    10,
+    readIntVar(env, "MILITARY_EXERCISE_POLL_MIN_INTERVAL_MINUTES" as keyof IngestEnv, 20),
+  );
   if (!(await shouldPoll(env.DB, minInterval))) {
     return { count: 0, fromNavarea: 0, fromNews: 0, errors: [], skipped: true };
   }

@@ -8,6 +8,9 @@ type Props = {
   lang: LabelLanguage;
   events: LiveuamapEvent[];
   unreadCount: number;
+  /** 이미 연 속보 — 흐리게 + 읽음 표시. 목록에서 지우지는 않는다 */
+  readIds?: ReadonlySet<string>;
+  onMarkAllRead?: () => void;
   onOpen: (index: number) => void;
   /** 책갈피 레일 안에서는 헤더·접기를 숨긴다 */
   chrome?: "full" | "bare";
@@ -17,6 +20,8 @@ export function LiveuaFlashDock({
   lang,
   events,
   unreadCount,
+  readIds,
+  onMarkAllRead,
   onOpen,
   chrome = "full",
 }: Props) {
@@ -24,6 +29,9 @@ export function LiveuaFlashDock({
   const bare = chrome === "bare";
   const [open, setOpen] = useState(false);
   const expanded = bare || open;
+  const unopenedCount = readIds
+    ? events.filter((ev) => !readIds.has(ev.id)).length
+    : 0;
 
   return (
     <section
@@ -68,16 +76,36 @@ export function LiveuaFlashDock({
               {en ? "No frontline flashes yet." : "전선 속보가 아직 없습니다."}
             </p>
           ) : (
+            <>
+            {onMarkAllRead && unopenedCount > 0 ? (
+              <div className="flex items-center justify-between gap-2 border-b border-amber-600/20 px-2.5 py-1 text-micro text-amber-200/60">
+                <span className="tabular-nums">
+                  {en ? `${unopenedCount} not opened` : `안 연 속보 ${unopenedCount}`}
+                </span>
+                <button
+                  type="button"
+                  tabIndex={expanded ? 0 : -1}
+                  className="rounded-sm px-1 text-amber-200/80 hover:bg-amber-500/15 hover:text-amber-50"
+                  onClick={onMarkAllRead}
+                >
+                  {en ? "Mark all read" : "모두 읽음 처리"}
+                </button>
+              </div>
+            ) : null}
             <ul className={`intel-scroll-y max-h-72 overflow-y-auto font-sans ${en ? "font-en" : ""}`}>
               {events.map((ev, index) => {
                 const title =
                   lang === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
+                const isRead = readIds?.has(ev.id) ?? false;
                 return (
                   <li key={ev.id}>
                     <button
                       type="button"
                       tabIndex={expanded ? 0 : -1}
-                      className="flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-amber-500/10"
+                      className={`flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-amber-500/10 ${
+                        isRead ? "opacity-55 hover:opacity-90" : ""
+                      }`}
+                      aria-label={isRead ? `${title} (${en ? "read" : "읽음"})` : undefined}
                       onClick={() => onOpen(index)}
                     >
                       {ev.imageUrl ? (
@@ -90,8 +118,19 @@ export function LiveuaFlashDock({
                         />
                       ) : null}
                       <span className="min-w-0 flex flex-col items-start gap-0.5">
-                        <span className="text-micro font-medium tracking-tight text-amber-300/75">
+                        <span className="flex items-center gap-1.5 text-micro font-medium tracking-tight text-amber-300/75">
+                          {readIds && !isRead ? (
+                            <span
+                              aria-hidden
+                              className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
+                            />
+                          ) : null}
                           {ev.regionId}
+                          {isRead ? (
+                            <span className="text-amber-200/60">
+                              ✓ {en ? "Read" : "읽음"}
+                            </span>
+                          ) : null}
                         </span>
                         <span className="line-clamp-2 text-meta font-medium tracking-tight text-amber-50">
                           {title}
@@ -102,6 +141,7 @@ export function LiveuaFlashDock({
                 );
               })}
             </ul>
+            </>
           )}
         </div>
       </div>

@@ -248,11 +248,17 @@ export function useFirmsTheaterDisplayModel(opts: UseFirmsTheaterDisplayModelOpt
   const tzevaAdomDisplayPoints = useMemo<TzevaAdomGlobePoint[]>(() => {
     if (!showTzevaAdom) return [];
     // 활성 경보만 — history fallback은 해제 후에도 빨간 마커가 남는 원인
-    return tzevaAdomActive.map((alert) => ({
-      ...alert,
-      markerId: `tzeva-${alert.id}`,
-      displayKind: "tzeva-adom" as const,
-    }));
+    // 좌표 없는 경보(사전 미매칭)는 지도에 찍지 않음 — 가짜 좌표 금지
+    return tzevaAdomActive
+      .filter(
+        (alert): alert is TzevaAdomAlert & { lat: number; lng: number } =>
+          Number.isFinite(alert.lat) && Number.isFinite(alert.lng),
+      )
+      .map((alert) => ({
+        ...alert,
+        markerId: `tzeva-${alert.id}`,
+        displayKind: "tzeva-adom" as const,
+      }));
   }, [showTzevaAdom, tzevaAdomActive]);
 
   const newfeedsAttackDisplayPoints = useMemo<NewfeedsAttackGlobePoint[]>(() => {
