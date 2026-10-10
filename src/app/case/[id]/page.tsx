@@ -5,6 +5,11 @@ import { CaseShareActions } from "@/components/case/CaseShareActions";
 import { getDb } from "@/db";
 import { brandName } from "@/lib/brand";
 import { plainVerdictBlurb } from "@/lib/caseFile/investigatePublic";
+import {
+  eventTypeLabel,
+  isProcedureItemDone,
+  procedureChecklistFor,
+} from "@/lib/caseFile/procedureChecklists";
 import { evidenceSourceKind } from "@/lib/caseFile/sourceKind";
 import { getCaseFile } from "@/lib/caseFile/store";
 import { effectiveClaimVerdict, explainCaseVerdict } from "@/lib/caseFile/verdict";
@@ -117,6 +122,10 @@ export default async function CaseFilePage({ params, searchParams }: PageProps) 
     (n, c) => n + c.evidence.length,
     0,
   );
+  const procedureItems = procedureChecklistFor(caseFile.eventType);
+  const unconfirmedClaims = explanation.core.filter(
+    (c) => c.verdict === "unconfirmed",
+  );
   const globeHref = `/?viewer=satellite&case=${encodeURIComponent(caseFile.id)}`;
   const shareUrl = absoluteUrl(`/case/${caseFile.id}`);
   const incident = caseFile.incident;
@@ -183,17 +192,30 @@ export default async function CaseFilePage({ params, searchParams }: PageProps) 
               {VERDICT_KO[caseFile.verdict]}
             </span>
             <span className="text-sm text-slate-400">
-              {caseFile.eventType === "strike"
-                ? "공습·타격 유형"
-                : caseFile.eventType === "maritime"
-                  ? "해상 유형"
-                  : "기타 유형"}
+              {eventTypeLabel(caseFile.eventType, "ko")} 유형
             </span>
           </div>
           <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-slate-300">
             {plainVerdictBlurb(caseFile.verdict)}
           </p>
         </header>
+
+        <section className="mt-6 rounded-lg border border-white/10 bg-black/35 p-4">
+          <h2 className="text-sm font-semibold text-slate-100">
+            확인 절차 · {eventTypeLabel(caseFile.eventType, "ko")}
+          </h2>
+          <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-slate-300">
+            {procedureItems.map((item) => {
+              const done = isProcedureItemDone(caseFile, item);
+              return (
+                <li key={item.id} className={done ? "text-emerald-200/90" : "text-slate-400"}>
+                  <span aria-hidden>{done ? "☑" : "☐"} </span>
+                  {item.ko}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
 
         <div className="mt-6 flex flex-wrap gap-2">
           <CaseShareActions
@@ -256,6 +278,26 @@ export default async function CaseFilePage({ params, searchParams }: PageProps) 
             ) : null}
           </div>
         </section>
+
+        {unconfirmedClaims.length > 0 ? (
+          <section className="mt-8 rounded-lg border border-amber-400/25 bg-amber-950/25 p-4">
+            <h2 className="text-sm font-semibold text-amber-100">
+              아직 확인 못 한 것
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-amber-100/70">
+              못 찾은 근거는 숨기지 않습니다. 아래 주장은 지금 기준으로 「확인 못
+              함」입니다.
+            </p>
+            <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-slate-300">
+              {unconfirmedClaims.map((c) => (
+                <li key={c.kind}>
+                  · {CLAIM_KO[c.kind]}
+                  {c.statement ? ` — ${c.statement}` : ""}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="mt-8 rounded-lg border border-white/10 bg-black/35 p-4">
           <h2 className="text-sm font-semibold text-slate-100">왜 이 판정인가</h2>

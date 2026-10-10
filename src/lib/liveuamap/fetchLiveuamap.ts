@@ -30,6 +30,7 @@ import type { NewsTheater } from "@/lib/news/types";
 import type { OccupiedGeoJson } from "@/lib/deepstate/toOccupiedGeoJson";
 import { liveuamapFieldsToOccupiedGeoJson } from "@/lib/liveuamap/toOccupiedGeoJson";
 import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
+import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 
 const MPTS_BASE = "https://a.liveuamap.com/api";
 
@@ -160,14 +161,14 @@ export function normalizePlace(
   const flat = flattenPlaceRow(raw);
   if (!flat) return null;
   const o = flat.fields;
-  const title = asString(o.title) || asString(o.name) || asString(o.headline);
-  const body =
+  const rawTitle = asString(o.title) || asString(o.name) || asString(o.headline);
+  const rawBody =
     asString(o.body) ||
     asString(o.text) ||
     asString(o.description) ||
     asString(o.message) ||
-    title;
-  if (!title && !body) return null;
+    rawTitle;
+  if (!rawTitle && !rawBody) return null;
 
   const lat = flat.lat ?? asNumber(o.lat) ?? asNumber(o.latitude);
   const lng =
@@ -180,12 +181,20 @@ export function normalizePlace(
     (typeof idRaw === "number" ? String(idRaw) : "") ||
     `liveua-${slot.id}-${lat.toFixed(3)}-${lng.toFixed(3)}-${index}`;
 
-  const sourceUrl =
+  const rawSourceUrl =
     asString(o.sourceUrl) ||
     asString(o.url) ||
     asString(o.link) ||
     asString(o.source) ||
     "https://liveuamap.com/";
+
+  /** name/title에 붙은 URL은 제목이 아니라 본문으로 */
+  const { title, body, sourceUrl } = splitLiveuaTitleBody(
+    rawTitle || rawBody.slice(0, 120),
+    rawBody,
+    rawSourceUrl,
+  );
+  if (!title && !body) return null;
 
   const tagsRaw = o.tags ?? o.categories ?? o.labels;
   const tags = Array.isArray(tagsRaw)

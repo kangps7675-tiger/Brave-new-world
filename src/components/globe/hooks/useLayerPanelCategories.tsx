@@ -726,21 +726,36 @@ export function useLayerPanelCategories({
         items: [
           {
             id: "ukraine",
-            label: "다전장 통제면 (UA·중동)",
+            label:
+              labelLanguage === "en"
+                ? "Who holds the ground (UA · ME)"
+                : "누가 어디를 잡았나 (우크라·중동)",
             detail:
               ukraineControlStatus === "loading"
-                ? "불러오는 중…"
+                ? labelLanguage === "en"
+                  ? "Loading…"
+                  : "불러오는 중…"
                 : showUkraineControl &&
                     (ukraineMacroGeoJson.features.length > 0 ||
                       ukraineMicroGeoJson.features.length > 0)
-                  ? `전선 구역 ${ukraineMacroGeoJson.features.length} · 상세 ${ukraineMicroGeoJson.features.length}`
+                  ? labelLanguage === "en"
+                    ? `Front zones ${ukraineMacroGeoJson.features.length} · detail ${ukraineMicroGeoJson.features.length}`
+                    : `전선 구역 ${ukraineMacroGeoJson.features.length} · 상세 ${ukraineMicroGeoJson.features.length}`
                   : showUkraineControl
                     ? viinaMeta?.available
                       ? ukraineControlStatus === "ok"
-                        ? "켜짐"
-                        : "로드 실패"
-                      : "데이터 빌드 필요"
-                    : "꺼짐 · 점령·주장 경계",
+                        ? labelLanguage === "en"
+                          ? "On · LiveUA control"
+                          : "켜짐 · LiveUA 통제면"
+                        : labelLanguage === "en"
+                          ? "Could not load"
+                          : "불러오지 못함"
+                      : labelLanguage === "en"
+                        ? "No polygons to show yet"
+                        : "아직 표시할 면이 없음"
+                    : labelLanguage === "en"
+                      ? "Off · hides front & control outlines"
+                      : "꺼짐 · 전선·점령 경계를 숨김",
             checked: layerPrefs.showUkraineControl,
             onChange: setShowUkraineControl,
             accent: "red",

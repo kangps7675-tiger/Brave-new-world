@@ -6,7 +6,9 @@ import type { RuntimeConfig } from "@/lib/runtimeConfig.types";
 import { initRuntimeConfig } from "@/lib/runtimeConfig.client";
 import {
   BUNDLE_PROGRESS_CAP,
+  WAITING_GLOBE_BASE,
   combineBootProgress,
+  waitingGlobeCrawlBonus,
 } from "@/lib/bootLoadingProgress";
 import { GlobeLoadingScreen } from "@/components/GlobeLoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -36,13 +38,8 @@ type DashboardComponent = ComponentType<GlobeDashboardProps>;
 const PICKER_LOADING_MAX_MS = 1400;
 /** 준비 완료 후 최소한의 시각적 연결감만 남긴 페이드 (720 → 250) */
 const LOADING_FADE_MS = 250;
-/** onBootReady 미수신 시 로딩 강제 해제 */
+/** onBootReady 미수신 시 로딩 강제 해제 — 실제 준비될 때까지 오버레이 유지 */
 const DASHBOARD_BOOT_TIMEOUT_MS = 45_000;
-/**
- * 부팅이 이 시간을 넘기면 침묵하지 않고 상태를 알린다.
- * 45초를 아무 말 없이 채우면 사용자는 고장으로 판단하고 떠난다.
- */
-const SLOW_BOOT_NOTICE_MS = 8_000;
 
 export function GlobeBootLoader({
   viinaMeta,
@@ -76,8 +73,8 @@ export function GlobeBootLoader({
   const [loadingDismissed, setLoadingDismissed] = useState(() => !needsPickerRef.current);
   const [pickerLoadingProgress, setPickerLoadingProgress] = useState(0);
   const [pickerLoadingAnimating, setPickerLoadingAnimating] = useState(false);
-  /** 부팅이 8초를 넘겼는가 — 침묵 대신 상태 고지 (P1-2) */
-  const [slowBoot, setSlowBoot] = useState(false);
+  /** 데이터 끝·지도 대기 중 soft-crawl 보너스 (멈춘 98% 체감 방지) */
+  const [globeWaitBonus, setGlobeWaitBonus] = useState(0);
   const [viewConfig] = useState<MergedViewConfig>(() => resolveMergedViewConfig());
   /**
    * 로딩 셰이더가 WebGL 컨텍스트를 반납한 다음 프레임에 지도를 마운트한다.
@@ -171,19 +168,6 @@ export function GlobeBootLoader({
     };
   }, []);
 
-  /**
-   * P1-2: 45초 failsafe까지 아무 말 없이 두지 않는다.
-   * 오버레이가 사라지면 타이머도 멈춘다.
-   */
-  useEffect(() => {
-    if (!overlayVisible) {
-      setSlowBoot(false);
-      return;
-    }
-    const id = window.setTimeout(() => setSlowBoot(true), SLOW_BOOT_NOTICE_MS);
-    return () => window.clearTimeout(id);
-  }, [overlayVisible]);
-
   /** 신규 유저: 번들 로드 후 로딩 100% → 페이드 → 패키지 선택 */
   useEffect(() => {
     if (!Dashboard || pickerDone || loadingDismissed || pickerLoadingStartedRef.current) return;
@@ -217,23 +201,6 @@ export function GlobeBootLoader({
     return () => cancelAnimationFrame(raf);
   }, [Dashboard, finishPrePickerLoading, loadingDismissed, pickerDone]);
 
-  const returningUserProgress = combineBootProgress(
-    bundleProgress,
-    dashboardProgress,
-    Dashboard !== null,
-  );
-
-  const rawDisplayProgress =
-    !pickerDone && !loadingDismissed
-      ? pickerLoadingAnimating
-        ? pickerLoadingProgress
-        : returningUserProgress
-      : returningUserProgress;
-  /** 진행률이 뒤로 가면 로딩이 다시 시작된 것처럼 보인다. */
-  const progressFloorRef = useRef(0);
-  const displayProgress = Math.max(progressFloorRef.current, rawDisplayProgress);
-  progressFloorRef.current = displayProgress;
-
   const showLoadingOverlay = overlayVisible;
   /** 패키지 완료(또는 기존 유저) — 로딩 셰이더 GPU 반납 신호 */
   const dashboardReady = pickerDone && Dashboard !== null;
@@ -257,6 +224,28 @@ export function GlobeBootLoader({
   }, [dashboardReady]);
 
   /**
+   * 데이터는 끝났는데 지도 엔진만 남는 구간 — %가 한자리에 박히지 않게
+   * 천천히 올라가게 한다. 100%는 onBootReady(실제 완료)에서만.
+   */
+  useEffect(() => {
+    if (!mountDashboard || !overlayVisible) {
+      setGlobeWaitBonus(0);
+      return;
+    }
+    if (dashboardProgress >= 100 || dashboardProgress < WAITING_GLOBE_BASE) {
+      setGlobeWaitBonus(0);
+      return;
+    }
+    const start = performance.now();
+    const tick = () => {
+      setGlobeWaitBonus(waitingGlobeCrawlBonus(performance.now() - start));
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [dashboardProgress, mountDashboard, overlayVisible]);
+
+  /**
    * shouldShowModePicker()가 꺼진 기본 경로에서는 예전 beginDashboardLoading()이
    * 호출되지 않아 45초 failsafe가 안 걸렸고, globeReady/isLoading이 안 풀리면
    * 스플래시가 영구 고착됐다. 대시보드 마운트 시 타이머가 없으면 여기서 보강한다.
@@ -269,6 +258,31 @@ export function GlobeBootLoader({
       finishDashboardLoading();
     }, DASHBOARD_BOOT_TIMEOUT_MS);
   }, [finishDashboardLoading, mountDashboard]);
+
+  const dashboardForDisplay =
+    dashboardProgress >= WAITING_GLOBE_BASE && dashboardProgress < 100
+      ? Math.min(
+          99,
+          Math.max(dashboardProgress, WAITING_GLOBE_BASE + globeWaitBonus),
+        )
+      : dashboardProgress;
+
+  const returningUserProgress = combineBootProgress(
+    bundleProgress,
+    dashboardForDisplay,
+    Dashboard !== null,
+  );
+
+  const rawDisplayProgress =
+    !pickerDone && !loadingDismissed
+      ? pickerLoadingAnimating
+        ? pickerLoadingProgress
+        : returningUserProgress
+      : returningUserProgress;
+  /** 진행률이 뒤로 가면 로딩이 다시 시작된 것처럼 보인다. */
+  const progressFloorRef = useRef(0);
+  const displayProgress = Math.max(progressFloorRef.current, rawDisplayProgress);
+  progressFloorRef.current = displayProgress;
 
   /**
    * WebGL2 없음 — 지도를 그릴 수 없다. 검은 화면 대신 이유·해결책·텍스트 브리핑.
@@ -296,8 +310,10 @@ export function GlobeBootLoader({
         <GlobeLoadingScreen
           progress={displayProgress}
           fading={fading}
-          slow={slowBoot}
           yieldGpu={yieldShader}
+          waitingForMap={
+            dashboardProgress >= WAITING_GLOBE_BASE && dashboardProgress < 100
+          }
         />
       ) : null}
     </ErrorBoundary>

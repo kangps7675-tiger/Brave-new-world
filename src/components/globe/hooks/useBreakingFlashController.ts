@@ -6,11 +6,10 @@ import type { ExerciseBriefingContent } from "@/components/ExerciseBriefingParch
 import {
   buildBreakingFlashBriefingForLang,
   claimBreakingFlash,
-  claimBreakingFlashAllowRecycle,
-  OBSERVE_FLASH_RECYCLE_MS,
   pickNextBreakingFlashHero,
   type BreakingFlashBriefing,
 } from "@/lib/news/breakingFlash";
+import { isEnergySupplyChainFlash } from "@/lib/news/energySupplyFlash";
 import {
   canPublish,
   gateBreakingHero,
@@ -119,7 +118,10 @@ export function useBreakingFlashController({
       mergedPayload,
       isEconomyViewer && !isSatelliteViewer,
       isSatelliteViewer
-        ? { recycleAfterMs: OBSERVE_FLASH_RECYCLE_MS }
+        ? {
+            /** 관측대 RSS — 유가·가스·초크·공급망만. 한 번 본 건 재타전 안 함 */
+            energySupplyOnly: true,
+          }
         : undefined,
     );
     if (!hero) return;
@@ -128,11 +130,16 @@ export function useBreakingFlashController({
       disconfirmCorpus: intelDisconfirmCorpus,
       windowHours: 72,
     });
+    const energyBlob = `${hero.title} ${hero.titleKo ?? ""} ${hero.summary ?? ""} ${hero.bodyKo ?? ""}`;
+    const energyOk =
+      isSatelliteViewer && isEnergySupplyChainFlash(energyBlob);
     const publishOk =
       canPublish("breaking_flash", flashGate.grade) ||
       (isSatelliteViewer &&
         flashGate.grade === "low" &&
-        (hero.breakingRank === "S" || hero.breakingRank === "A"));
+        (hero.breakingRank === "S" ||
+          hero.breakingRank === "A" ||
+          energyOk));
     if (!publishOk) return;
 
     let cancelled = false;
@@ -144,10 +151,8 @@ export function useBreakingFlashController({
         { peaceScienceDomain: peaceScienceFlashDomain },
       );
       if (cancelled) return;
-      const claimed = isSatelliteViewer
-        ? claimBreakingFlashAllowRecycle(hero.id, OBSERVE_FLASH_RECYCLE_MS)
-        : claimBreakingFlash(hero.id);
-      if (!claimed) return;
+      // 세션 중 한 번 본 신속속보는 다시 안 띄움 (관측대 포함)
+      if (!claimBreakingFlash(hero.id)) return;
       setBreakingFlashGate(flashGate);
       setBreakingFlash(briefing);
     })();

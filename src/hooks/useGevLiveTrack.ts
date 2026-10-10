@@ -3,18 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import type { Selection } from "@/components/globe/types";
-import type { ObserveLiveTrackSpec } from "@/lib/cesiumTrackedEntity";
+import type { ObserveLiveTrackKind, ObserveLiveTrackSpec } from "@/lib/cesiumTrackedEntity";
+import type { NeptunLiveThreat } from "@/lib/neptun";
 import {
   GEV_AIR_TRAIL_COLOR,
   GEV_AIS_TRAIL_COLOR,
   GEV_MIL_ACCENT,
+  GEV_NEPTUN_TRAIL_COLOR,
   appendTrailPoint,
   deadReckonLatLng,
   findNearbyContacts,
   formatAircraftHud,
   formatAisHud,
+  formatNeptunHud,
+  kmhToKnots,
+  neptunTrackHeightM,
   syncAircraftSelection,
   syncAisSelection,
+  syncNeptunSelection,
   trailToTransportPath,
   type GevContactRow,
   type GevHudLines,
@@ -35,7 +41,7 @@ type TrackFix = {
   speedKn: number | null;
   courseDeg: number | null;
   at: number;
-  kind: "ais" | "aircraft";
+  kind: ObserveLiveTrackKind;
   id: string;
   entityId: string;
   /** globe.gl altitude 단위 — MapLibre flyTo 폴백용 */
@@ -50,6 +56,7 @@ type Options = {
   aisVessels: AisVessel[];
   milAircraft: MilitaryAircraft[];
   civAircraft: MilitaryAircraft[];
+  neptunThreats?: NeptunLiveThreat[];
   flyTo: FlyToFn;
   /**
    * 관측(Cesium) 모드 전용. 있으면 2Hz flyTo chase 대신 trackedEntity follow.
@@ -76,9 +83,22 @@ function aircraftEntityId(
   return traffic === "civil" ? `civ:${hex}` : `mil:${hex}`;
 }
 
+function neptunLatLng(threat: NeptunLiveThreat): { lat: number; lng: number } {
+  return {
+    lat: threat.predictedLat ?? threat.lat,
+    lng: threat.predictedLon ?? threat.lon,
+  };
+}
+
+function neptunCourseDeg(threat: NeptunLiveThreat): number | null {
+  const raw =
+    threat.predictedHeading ?? threat.velocity?.bearingDeg ?? threat.heading;
+  return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+}
+
 /**
- * GEV식 클릭-투-트랙: 선택 동기화 · 웨이크 트레일 · 카메라 추적 · 250km 컨택트.
- * Cesium에서는 trackedEntity, MapLibre에서는 flyTo DR.
+ * GEV식 클릭-투-트랙: AIS · OpenSky/ADS-B · NEPTUN.
+ * Cesium에서는 trackedEntity 줌인+팔로우, MapLibre에서는 flyTo DR.
  */
 export function useGevLiveTrack({
   selected,
@@ -86,6 +106,7 @@ export function useGevLiveTrack({
   aisVessels,
   milAircraft,
   civAircraft,
+  neptunThreats = [],
   flyTo,
   setLiveTrackFollow,
   cesiumTrackReady = false,
@@ -105,11 +126,19 @@ export function useGevLiveTrack({
       ? `ais:${selected.item.mmsi}`
       : selected?.kind === "mil"
         ? `mil:${selected.item.hex}:${selected.traffic ?? "military"}`
-        : null;
+        : selected?.kind === "neptun-threat"
+          ? `neptun:${selected.item.id}`
+          : null;
 
   // 선택 시 추적 시작 · 해제 시 리셋
   useEffect(() => {
-    if (!trackId || !selected || (selected.kind !== "ais" && selected.kind !== "mil")) {
+    if (
+      !trackId ||
+      !selected ||
+      (selected.kind !== "ais" &&
+        selected.kind !== "mil" &&
+        selected.kind !== "neptun-threat")
+    ) {
       setTracking(false);
       setTrail([]);
       setStale(false);
@@ -132,10 +161,10 @@ export function useGevLiveTrack({
         id: v.mmsi,
         entityId: `ais:${v.mmsi}`,
         altitude: 0.45,
-        heightM: 80,
+        heightM: 1_200,
       };
       setTrail([{ lat: v.lat, lng: v.lng, t: Date.now() }]);
-    } else {
+    } else if (selected.kind === "mil") {
       const ac = selected.item;
       fixRef.current = {
         lat: ac.lat,
@@ -150,6 +179,22 @@ export function useGevLiveTrack({
         heightM: aircraftHeightM(ac),
       };
       setTrail([{ lat: ac.lat, lng: ac.lng, t: Date.now() }]);
+    } else {
+      const threat = selected.item;
+      const { lat, lng } = neptunLatLng(threat);
+      fixRef.current = {
+        lat,
+        lng,
+        speedKn: kmhToKnots(threat.velocity?.speedKmh),
+        courseDeg: neptunCourseDeg(threat),
+        at: Date.now(),
+        kind: "neptun",
+        id: threat.id,
+        entityId: `neptun:${threat.id}`,
+        altitude: 0.5,
+        heightM: neptunTrackHeightM(threat.type, threat),
+      };
+      setTrail([{ lat, lng, t: Date.now() }]);
     }
   }, [trackId]); // eslint-disable-line react-hooks/exhaustive-deps -- identity-only reset
 
@@ -181,7 +226,7 @@ export function useGevLiveTrack({
         id: item.mmsi,
         entityId: `ais:${item.mmsi}`,
         altitude: 0.45,
-        heightM: 80,
+        heightM: 1_200,
       };
       return;
     }
@@ -213,8 +258,39 @@ export function useGevLiveTrack({
         altitude: 0.55,
         heightM: aircraftHeightM(synced.item),
       };
+      return;
     }
-  }, [aisVessels, milAircraft, civAircraft, tracking]); // eslint-disable-line react-hooks/exhaustive-deps -- poll sync only
+    if (selected.kind === "neptun-threat") {
+      const { item, stale: isStale } = syncNeptunSelection(selected.item, neptunThreats);
+      setStale(isStale);
+      if (isStale) return;
+      const prev = selected.item;
+      const nextPos = neptunLatLng(item);
+      const prevPos = neptunLatLng(prev);
+      const moved =
+        prevPos.lat !== nextPos.lat ||
+        prevPos.lng !== nextPos.lng ||
+        prev.velocity?.speedKmh !== item.velocity?.speedKmh ||
+        prev.heading !== item.heading ||
+        prev.title !== item.title;
+      if (moved) {
+        setSelected({ kind: "neptun-threat", item });
+        setTrail((t) => appendTrailPoint(t, nextPos.lat, nextPos.lng));
+      }
+      fixRef.current = {
+        lat: nextPos.lat,
+        lng: nextPos.lng,
+        speedKn: kmhToKnots(item.velocity?.speedKmh),
+        courseDeg: neptunCourseDeg(item),
+        at: Date.now(),
+        kind: "neptun",
+        id: item.id,
+        entityId: `neptun:${item.id}`,
+        altitude: 0.5,
+        heightM: neptunTrackHeightM(item.type, item),
+      };
+    }
+  }, [aisVessels, milAircraft, civAircraft, neptunThreats, tracking]); // eslint-disable-line react-hooks/exhaustive-deps -- poll sync only
 
   // Cesium trackedEntity follow — fix/follow 변경 시 스펙 push
   useEffect(() => {
@@ -242,6 +318,7 @@ export function useGevLiveTrack({
     aisVessels,
     milAircraft,
     civAircraft,
+    neptunThreats,
     stale,
     cesiumTrackReady,
   ]);
@@ -257,7 +334,7 @@ export function useGevLiveTrack({
       const pos = deadReckonLatLng(fix.lat, fix.lng, fix.speedKn, fix.courseDeg, Math.min(dt, 90));
       const bearing = fix.courseDeg ?? undefined;
       flyTo(pos.lat, pos.lng, fix.altitude, 450, {
-        pitch: fix.kind === "aircraft" ? 52 : 48,
+        pitch: fix.kind === "aircraft" || fix.kind === "neptun" ? 52 : 48,
         bearing: bearing != null ? bearing - 90 : undefined,
       });
     };
@@ -284,6 +361,9 @@ export function useGevLiveTrack({
         stale,
       });
     }
+    if (selected.kind === "neptun-threat") {
+      return formatNeptunHud(selected.item, { lang: labelLanguage, stale });
+    }
     return null;
   }, [tracking, selected, labelLanguage, stale]);
 
@@ -304,11 +384,22 @@ export function useGevLiveTrack({
           selected.traffic === "civil" ? GEV_AIR_TRAIL_COLOR : GEV_MIL_ACCENT,
       });
     }
+    if (selected.kind === "neptun-threat") {
+      return trailToTransportPath(trail, {
+        id: `gev-trail-neptun-${selected.item.id}`,
+        name: selected.item.title || selected.item.id,
+        accentColor: GEV_NEPTUN_TRAIL_COLOR,
+      });
+    }
     return null;
   }, [tracking, trail, selected]);
 
   const contacts: GevContactRow[] = useMemo(() => {
     if (!tracking || !selected) return [];
+    if (selected.kind === "neptun-threat") {
+      // NEPTUN은 공중 위협 전용 — AIS/ADS-B 컨택트 로스터는 생략
+      return [];
+    }
     const center =
       selected.kind === "ais"
         ? selected.item

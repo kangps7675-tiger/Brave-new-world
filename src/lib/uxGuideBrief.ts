@@ -54,7 +54,8 @@ export function buildUxGuideBriefContent(
         onNames
           ? `For this view, these layers start on: ${onNames}. They’re map overlays — not official alerts. You can switch any off in ≡.`
           : "Open ≡ to pick layers. Nothing scary is forced on.",
-        "Alerts and flashes may show grades like Strong / Checked / Thin — that means how well public sources agree, not a secrecy level. Tap Why? to see sources.",
+        "Alerts and flashes may show grades like Strong / Checked / Thin — how well public sources agree, not secrecy. Tap Why? for why it matters on the map.",
+        "In Observatory you can flip LiveUA flashes with Previous/Next, see who holds the ground across several theaters, and open a Case tab to attach fires, air-raid history, or tracks as evidence.",
         "When you turn a new layer on, a short tip can point at that switch and explain it. Tap Got it to continue — tips never auto-flip by themselves.",
         "Tap a mark on the map (or a menu item) and a parchment like this opens. This is a reference tool, not an official alert app.",
       ],
@@ -69,7 +70,8 @@ export function buildUxGuideBriefContent(
       onNames
         ? `지금 이 보기에서는 이런 레이어가 켜져 시작합니다: ${onNames}. 지도 위에 올린 정보층일 뿐, 공식 경보가 아닙니다. ≡ 에서 언제든 끌 수 있어요.`
         : "≡ 에서 레이어를 골라 켜면 됩니다. 강제로 위험한 것이 켜져 있지는 않습니다.",
-      "속보·경보에 「탄탄함 / 교차확인 / 얇음」 같은 배지가 붙을 수 있습니다. 비밀 등급이 아니라 공개 출처가 얼마나 맞는지입니다. 「왜?」를 누르면 근거가 열립니다.",
+      "속보·경보에 「탄탄함 / 교차확인 / 얇음」 같은 배지가 붙을 수 있습니다. 비밀 등급이 아니라 공개 출처가 얼마나 맞는지입니다. 「왜?」는 지도에서 왜 중요한지를 말해 줍니다.",
+      "관측대에서는 LiveUA 속보를 이전·다음으로 넘기고, 여러 전장의 통제면을 보며, 「사건」탭에 화재·공습 이력·항적을 근거로 붙일 수 있습니다.",
       "레이어를 새로 켜면, 그 스위치를 가리키며 짧은 설명이 뜰 수 있습니다. 「알겠어요」를 눌러야 다음으로 갑니다 — 혼자 촤르륵 넘어가지 않아요.",
       "지도 위 표시나 메뉴 항목을 누르면 지금처럼 양피지 설명창이 열립니다. 공식 경보 앱이 아니니 참고용으로만 봐 주세요.",
     ],

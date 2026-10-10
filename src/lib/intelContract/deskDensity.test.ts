@@ -179,6 +179,7 @@ describe("whyPublishLines", () => {
     );
     const lines = whyPublishLines(gate, [], "ko");
     expect(lines).toHaveLength(3);
-    expect(lines[0]).toMatch(/출처/);
+    expect(lines[0]).toBe("주장");
+    expect(lines[1]).toMatch(/출처|맞춰|얇|모으/);
   });
 });

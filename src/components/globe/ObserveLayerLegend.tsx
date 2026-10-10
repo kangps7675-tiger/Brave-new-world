@@ -56,10 +56,10 @@ export function ObserveLayerLegend({
       id: "frontline",
       swatch: OBSERVE_CONTROL_OUTLINE,
       shape: "fill",
-      label: en ? "Multi-theater control" : "다전장 통제",
+      label: en ? "Who holds the ground" : "누가 어디를 잡았나",
       detail: en
-        ? "LiveUA (+ DeepState UA fallback) · UA · IR · YE · LB · IL/PS"
-        : "LiveUA(+우크라 DeepState 폴백) · 우크라·이란·예멘·레바논·이스라엘/팔",
+        ? "LiveUA control — Ukraine, Iran, Yemen, Lebanon, Israel/Palestine"
+        : "LiveUA 통제면 — 우크라·이란·예멘·레바논·이스라엘/팔",
       active: frontlineOn,
     },
     {
@@ -94,18 +94,18 @@ export function ObserveLayerLegend({
       shape: "ring",
       label: en ? "Conflict events" : "전장 사건",
       detail: en
-        ? "Gated clusters · ring = confidence grade"
-        : "게이트된 클러스터 · 링 = 신뢰도 등급",
+        ? "Event clusters · ring color = how solid the sources look"
+        : "사건 묶음 · 링 색 = 출처가 얼마나 탄탄한지",
       active: eventsOn,
     },
     {
       id: "liveua-pin",
       swatch: OBSERVE_LEGEND.liveuaPin,
       shape: "dot",
-      label: en ? "LiveUA pins" : "LiveUA 핀",
+      label: en ? "Frontline flashes" : "전선 속보 핀",
       detail: en
-        ? "Flash points · strikes · ground assaults"
-        : "속보 핀·확인 타격·지상 공격",
+        ? "Where something just happened — strike, assault, flash report"
+        : "방금 뭔가 일어난 자리 — 타격·지상 공격·속보",
       active: true,
     },
     {

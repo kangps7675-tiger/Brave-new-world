@@ -94,8 +94,8 @@ export function ObserveDeskBookmarkRail({
   const tabs: TabDef[] = [
     {
       id: "flash",
-      ko: "속보",
-      en: "Flash",
+      ko: "유가·항로",
+      en: "Oil·routes",
       accent: "amber",
       badge: unreadFlash > 0 ? unreadFlash : undefined,
     },

@@ -16,6 +16,8 @@ type BreakingFlashParchmentProps = {
   onGoToLocation?: () => void;
   displayGrade?: DisplayGrade;
   onDrill?: () => void;
+  /** 관측대 — 접을 때 우측 상단 속보함으로 들어감 */
+  exitToDock?: boolean;
 };
 
 /**
@@ -29,6 +31,7 @@ export function BreakingFlashParchment({
   onGoToLocation,
   displayGrade,
   onDrill,
+  exitToDock = false,
 }: BreakingFlashParchmentProps) {
   const desk =
     lang === "en" ? "Breaking desk · Globe Observatory" : "속보 데스크 · 지구본 관측대";
@@ -56,6 +59,7 @@ export function BreakingFlashParchment({
       zIndexClass="z-[900]"
       leadImageUrl={briefing.imageUrl}
       leadVideoUrl={briefing.videoUrl}
+      exitToDock={exitToDock}
       secondaryCtaLabel={canFly ? t("breakingFlashGoObserve", lang) : undefined}
       onSecondaryCta={canFly ? onGoToLocation : undefined}
       bodyExtra={

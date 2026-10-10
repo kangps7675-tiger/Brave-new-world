@@ -7,6 +7,7 @@ import {
   liveuaFlashMarketContext,
   type LiveuaFlashChokepoint,
 } from "@/lib/liveuamap/flashMarketContext";
+import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
@@ -35,8 +36,13 @@ export function LiveuaEventFocusCard({
   onEnableShipTraffic,
 }: Props) {
   const en = lang === "en";
-  const title = en ? event.title : event.titleKo?.trim() || event.title;
-  const body = en ? event.body : event.bodyKo?.trim() || event.body;
+  const peeled = splitLiveuaTitleBody(
+    en ? event.title : event.titleKo?.trim() || event.title,
+    en ? event.body : event.bodyKo?.trim() || event.body,
+    event.sourceUrl,
+  );
+  const title = peeled.title;
+  const body = peeled.body;
   const market = liveuaFlashMarketContext(event);
   const hasMedia = Boolean(event.imageUrl || event.videoUrl);
   const hasBridge =
@@ -104,6 +110,14 @@ export function LiveuaEventFocusCard({
             <p className="text-micro font-semibold uppercase tracking-wide text-amber-200/70">
               {t("liveuaFlashMarketTitle", lang)}
             </p>
+            {(en ? market.noteEn : market.noteKo) ? (
+              <p className="text-micro leading-snug text-amber-100/75">
+                <span className="font-semibold text-amber-200/80">
+                  {t("liveuaFlashMarketWhy", lang)}{" "}
+                </span>
+                {en ? market.noteEn : market.noteKo}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-1.5">
               {market.chokepoint ? (
                 <button
