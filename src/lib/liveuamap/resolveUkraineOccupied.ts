@@ -12,15 +12,13 @@ export type UkraineOccupiedResolve = {
   error?: string;
 };
 
+/** @deprecated LiveUA 전용 — DeepState 폴백 없음. 호환용 타입만 유지. */
 export type ResolveUkraineOccupiedOptions = {
-  /** @deprecated LiveUA 전용 — DeepState 폴백 없음. 호환용으로만 유지. */
   liveuaOnly?: boolean;
 };
 
 /** LiveUA D1/메모리 통제면만. 없으면 empty. */
-export async function resolveUkraineOccupied(
-  _options?: ResolveUkraineOccupiedOptions,
-): Promise<UkraineOccupiedResolve> {
+export async function resolveUkraineOccupied(): Promise<UkraineOccupiedResolve> {
   const liveua = await readLiveuaUkraineOccupied();
   if (liveua?.features.length) {
     return {
