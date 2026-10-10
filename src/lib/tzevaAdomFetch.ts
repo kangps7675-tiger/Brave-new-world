@@ -42,6 +42,7 @@ function toAlert(
     active,
     lat: coords.lat,
     lng: coords.lng,
+    geocodeMatch: coords.match,
   };
 }
 

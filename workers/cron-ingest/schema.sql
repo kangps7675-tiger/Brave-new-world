@@ -155,6 +155,57 @@ CREATE INDEX IF NOT EXISTS idx_air_raid_source_at
 CREATE INDEX IF NOT EXISTS idx_air_raid_ingested
   ON air_raid_alerts (ingested_at);
 
+-- Investigation history (append samples + open/close intervals). Soft-rank still uses air_raid_alerts.
+CREATE TABLE IF NOT EXISTS neptun_threat_samples (
+  id TEXT PRIMARY KEY NOT NULL,
+  threat_id TEXT NOT NULL,
+  threat_type TEXT,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  heading REAL,
+  speed_kmh REAL,
+  confidence TEXT,
+  source_count INTEGER,
+  uncertainty_km REAL,
+  sampled_at TEXT NOT NULL,
+  trail_json TEXT,
+  detail_json TEXT,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_neptun_threat_samples_threat_at
+  ON neptun_threat_samples (threat_id, sampled_at);
+
+CREATE INDEX IF NOT EXISTS idx_neptun_threat_samples_at
+  ON neptun_threat_samples (sampled_at);
+
+CREATE INDEX IF NOT EXISTS idx_neptun_threat_samples_geo_at
+  ON neptun_threat_samples (lat, lon, sampled_at);
+
+CREATE TABLE IF NOT EXISTS air_raid_alert_intervals (
+  id TEXT PRIMARY KEY NOT NULL,
+  source TEXT NOT NULL,
+  theater_id TEXT NOT NULL,
+  region_key TEXT NOT NULL,
+  region_name TEXT,
+  title TEXT,
+  category INTEGER,
+  started_at TEXT NOT NULL,
+  ended_at TEXT,
+  last_seen_at TEXT NOT NULL,
+  detail_json TEXT,
+  ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_intervals_source_region
+  ON air_raid_alert_intervals (source, region_key, started_at);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_intervals_open
+  ON air_raid_alert_intervals (source, ended_at, last_seen_at);
+
+CREATE INDEX IF NOT EXISTS idx_air_raid_intervals_theater_at
+  ON air_raid_alert_intervals (theater_id, started_at);
+
 CREATE TABLE IF NOT EXISTS theater_signal_daily (
   signal_date TEXT NOT NULL,
   theater_id TEXT NOT NULL,
@@ -260,4 +311,32 @@ CREATE TABLE IF NOT EXISTS us_carrier_snapshots (
   report_url TEXT,
   ingested_at TEXT NOT NULL
 );
+
+-- Investigation case files (Next app; shared D1)
+CREATE TABLE IF NOT EXISTS cases (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT,
+  event_type TEXT NOT NULL,
+  verdict TEXT NOT NULL,
+  rev INTEGER NOT NULL DEFAULT 1,
+  snapshot_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cases_updated ON cases (updated_at);
+CREATE INDEX IF NOT EXISTS idx_cases_verdict ON cases (verdict, updated_at);
+
+CREATE TABLE IF NOT EXISTS case_revisions (
+  id TEXT PRIMARY KEY NOT NULL,
+  case_id TEXT NOT NULL,
+  rev INTEGER NOT NULL,
+  at TEXT NOT NULL,
+  op TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  reason TEXT,
+  UNIQUE (case_id, rev)
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_revisions_case_rev ON case_revisions (case_id, rev);
 

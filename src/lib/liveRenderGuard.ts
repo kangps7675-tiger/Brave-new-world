@@ -22,12 +22,17 @@ const AIS_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
   village: 120,
 };
 
+/**
+ * Cesium billboard 예산 (이름은 과거 HTML 마커 시절 잔재).
+ * OpenSky/ADS-B 전 세계 스냅샷을 받아도 줌아웃에서는 카메라 근접분만 그림.
+ * billboard는 DOM보다 싸서 HTML 시절보다 여유 있게 둔다 — 렉 기둥(폴링 간격·fetch cap)은 유지.
+ */
 const AIR_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 36,
-  continent: 64,
-  regional: 110,
-  near: 180,
-  village: 280,
+  global: 160,
+  continent: 260,
+  regional: 400,
+  near: 650,
+  village: 900,
 };
 
 /**
@@ -138,7 +143,7 @@ export function liveAirTrafficPollMs(): number {
 }
 
 export function liveAirTrafficFetchMax(): number {
-  return isClientApiStubMode() ? 350 : 1200;
+  return isClientApiStubMode() ? 350 : 2000;
 }
 
 export function liveAirTrafficDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {

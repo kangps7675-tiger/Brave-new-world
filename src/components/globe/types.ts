@@ -66,13 +66,14 @@ export type Selection =
   | { kind: "ship-movement"; item: PublicShipObservation }
   | { kind: "recon-sat"; item: ReconSatelliteMarker }
   | { kind: "neptun-threat"; item: NeptunLiveThreat }
+  | { kind: "firms-fire"; item: FirmsFire }
   | { kind: "chokepoint"; item: StaticPoint }
   | { kind: "static-infra"; item: StaticPoint }
   | { kind: "news-insight"; item: NewsInsightSelectionItem };
 
 export type AnalysisSelection = Exclude<
   Selection,
-  { kind: "neptun-threat" } | { kind: "news-insight" }
+  { kind: "neptun-threat" } | { kind: "news-insight" } | { kind: "firms-fire" }
 >;
 
 /** 뉴스 인사이트 「지도에서 보기」 콜아웃 — 전쟁 빨간 점과 다른 앰버 스타일 */
@@ -225,7 +226,9 @@ export type PulseRingPoint =
       markerId: string;
     };
 
-export type TzevaAdomGlobePoint = TzevaAdomAlert & {
+export type TzevaAdomGlobePoint = Omit<TzevaAdomAlert, "lat" | "lng"> & {
+  lat: number;
+  lng: number;
   markerId: string;
   displayKind: "tzeva-adom";
 };

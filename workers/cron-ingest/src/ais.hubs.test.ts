@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { thinWorldwide } from "../../../src/lib/adsbWorld";
 import { AISSTREAM_BBOXES } from "./ais";
+import { classifyAisVessel } from "../../../src/lib/aisVesselClass";
 
 describe("AISSTREAM_BBOXES world hubs", () => {
   it("covers multiple longitude bands (not hotspot-only)", () => {
@@ -36,5 +37,9 @@ describe("AISSTREAM_BBOXES world hubs", () => {
     expect(ids.has("tokyo")).toBe(true);
     expect(ids.has("sydney")).toBe(true);
     expect(thinned.length).toBeLessThanOrEqual(40);
+  });
+
+  it("named AIS without type classifies as commercial (not blank other)", () => {
+    expect(classifyAisVessel({ shipType: null, shipName: "PILOT GP01" })).toBe("commercial");
   });
 });

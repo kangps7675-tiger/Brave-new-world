@@ -7,6 +7,7 @@ import {
 } from "@/lib/intelContract/disconfirmPass";
 import { evaluateGate } from "@/lib/intelContract/gate";
 import type { EvidenceBundle, GateResult, Observation } from "@/lib/intelContract/types";
+import { classifyLiveuaOrigin } from "@/lib/liveuamap/originSource";
 import type { TheaterSitrepDoc } from "@/lib/theaterReport/types";
 
 export function theaterSitrepToBundle(
@@ -16,10 +17,13 @@ export function theaterSitrepToBundle(
   const observations: Observation[] = [];
 
   for (const row of doc.rows) {
+    // 같은 원문을 RSS도 실었으면 sourceKey(원문 도메인)가 겹쳐 출처 1곳으로 묶인다
+    const origin = classifyLiveuaOrigin(row);
     observations.push({
       id: `liveua:${row.id}`,
-      modality: "sensor",
-      sourceKey: uniqueSourceKey(row.viaSource || "liveuamap", row.sourceUrl),
+      modality: origin.kind === "media" ? "media" : "tip",
+      sourceKey: origin.sourceKey,
+      trustTier: origin.kind === "media" ? origin.tier : null,
       occurredAt: row.occurredAt,
       theater: doc.regionId,
       url: row.sourceUrl,

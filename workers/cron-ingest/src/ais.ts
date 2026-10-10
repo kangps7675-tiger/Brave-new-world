@@ -8,7 +8,7 @@ const AISSTREAM_URL = "wss://stream.aisstream.io/v0/stream";
 /**
  * AISstream 구독 bbox — 연안·주요 항로 전 지구 허브 + 초크포인트.
  * 밀집 해역이 캡을 잠식하지 않도록 fetch 후 `thinWorldwide`로 균등 샘플한다.
- * WS ~10s + early-exit(max*2) 유지.
+ * bbox를 배치로 나눠 순차 WS(배치당 ~12s) — 한 방에 전부 구독하면 신호가 한쪽에 몰린다.
  *
  * 형식: [[latMin, lonMin], [latMax, lonMax]] (aisstream.io)
  */
@@ -47,13 +47,18 @@ export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[36.5, 47], [47, 55]], // 카스피해
 ];
 
-const AISSTREAM_DURATION_MS = 10_000;
+const AISSTREAM_BATCH_DURATION_MS = 12_000;
+const AISSTREAM_BBOX_BATCH_SIZE = 12;
 
 const MILITARY_NAME =
   /\b(USS|HMS|HMAS|HMCS|HNLMS|HDMS|HSWMS|FS\s|FGS|ITS\s|ORP\s|ROKS|INS\s|JS\s|KRI\s|BRP\s|BNS\s|PLAN|PLANS|WARSHIP|NAVAL|DESTROYER|FRIGATE|CORVETTE|SUBMARINE|CARRIER|CVN)\b/i;
 
+type AisBbox = [[number, number], [number, number]];
+
 type AisRawMessage = {
   MessageType?: string;
+  error?: string;
+  Error?: string;
   MetaData?: {
     MMSI?: number | string;
     ShipName?: string;
@@ -71,6 +76,7 @@ type AisRawMessage = {
       TrueHeading?: number;
     };
     ShipStaticData?: {
+      UserID?: number | string;
       Type?: number;
       Name?: string;
       MaximumStaticDraught?: number;
@@ -95,7 +101,40 @@ function classifyCategory(shipType: number | null, shipName: string | null): str
   if (shipName && MILITARY_NAME.test(shipName)) return "military";
   const g = shipType != null && Number.isFinite(shipType) ? Math.floor(shipType / 10) : null;
   if (g === 2 || g === 4 || g === 6 || g === 7 || g === 8) return "commercial";
+  // type 미수신이어도 실선명이 있으면 민간 후보로 둔다(군함명 휴리스틱은 위에서 이미 처리).
+  if (g === null && shipName && shipName.replace(/\s+/g, "").length >= 3) return "commercial";
   return "other";
+}
+
+function chunkBboxes(boxes: AisBbox[], size: number): AisBbox[][] {
+  const out: AisBbox[][] = [];
+  for (let i = 0; i < boxes.length; i += size) out.push(boxes.slice(i, i + size));
+  return out;
+}
+
+function preferVesselRow(prev: AisVesselRow | undefined, next: AisVesselRow): AisVesselRow {
+  if (!prev) return next;
+  if (next.category === "military" && prev.category !== "military") return next;
+  if (prev.category === "military" && next.category !== "military") return prev;
+  // static type·이름이 더 채워진 쪽 우선
+  const prevScore =
+    (prev.ship_type != null ? 2 : 0) + (prev.ship_name ? 1 : 0) + (prev.category !== "other" ? 1 : 0);
+  const nextScore =
+    (next.ship_type != null ? 2 : 0) + (next.ship_name ? 1 : 0) + (next.category !== "other" ? 1 : 0);
+  if (nextScore > prevScore) return next;
+  // 위치는 최신 next 유지, 메타는 더 나은 쪽
+  return {
+    ...next,
+    ship_name: next.ship_name || prev.ship_name,
+    ship_type: next.ship_type ?? prev.ship_type,
+    ship_type_label: next.ship_type_label ?? prev.ship_type_label,
+    category:
+      next.category !== "other" || prev.category === "other" ? next.category : prev.category,
+    draught: next.draught ?? prev.draught,
+    destination: next.destination || prev.destination,
+    length_m: next.length_m ?? prev.length_m,
+    beam_m: next.beam_m ?? prev.beam_m,
+  };
 }
 
 function shipTypeLabel(shipType: number | null): string | null {
@@ -230,16 +269,17 @@ async function websocketDataToText(data: unknown): Promise<string> {
   if (typeof data === "string") return data;
   if (data instanceof ArrayBuffer) return new TextDecoder().decode(data);
   if (ArrayBuffer.isView(data)) {
-    return new TextDecoder().decode(data.buffer, data.byteOffset, data.byteLength);
+    return new TextDecoder().decode(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
   }
   if (data instanceof Blob) return data.text();
   return String(data);
 }
 
-async function fetchAisstream(
+async function fetchAisstreamBoxes(
   apiKey: string,
   max: number,
-  durationMs = AISSTREAM_DURATION_MS,
+  boxes: AisBbox[],
+  durationMs: number,
 ): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
   const errors: string[] = [];
   const vessels = new Map<string, AisVesselRow>();
@@ -300,7 +340,7 @@ async function fetchAisstream(
         ws.send(
           JSON.stringify({
             APIKey: apiKey,
-            BoundingBoxes: AISSTREAM_BBOXES,
+            BoundingBoxes: boxes,
             FilterMessageTypes: ["PositionReport", "ShipStaticData"],
           }),
         );
@@ -313,16 +353,22 @@ async function fetchAisstream(
     ws.addEventListener("message", async (event) => {
       try {
         const parsed = JSON.parse(await websocketDataToText(event.data)) as AisRawMessage;
+        const streamErr = parsed.error || parsed.Error;
+        if (streamErr) {
+          clearTimeout(timer);
+          finish(String(streamErr));
+          return;
+        }
 
         if (parsed.MessageType === "ShipStaticData") {
+          const staticMsg = parsed.Message?.ShipStaticData;
           const mmsi =
             parsed.MetaData?.MMSI != null
               ? String(parsed.MetaData.MMSI)
-              : parsed.Message?.PositionReport?.UserID != null
-                ? String(parsed.Message.PositionReport.UserID)
+              : staticMsg?.UserID != null
+                ? String(staticMsg.UserID)
                 : null;
           if (!mmsi) return;
-          const staticMsg = parsed.Message?.ShipStaticData;
           const shipType = parseNumber(staticMsg?.Type);
           const shipName =
             staticMsg?.Name?.trim() || parsed.MetaData?.ShipName?.trim() || null;
@@ -344,6 +390,29 @@ async function fetchAisstream(
             lengthM: lengthM ?? prev?.lengthM ?? null,
             beamM: beamM ?? prev?.beamM ?? null,
           });
+          // 이미 PositionReport로 들어온 선박이면 즉시 type·이름 반영
+          const existing = vessels.get(mmsi);
+          if (existing) {
+            vessels.set(
+              mmsi,
+              rowFromParts(
+                mmsi,
+                existing.lat,
+                existing.lng,
+                shipName || existing.ship_name,
+                shipType ?? existing.ship_type,
+                existing.sog,
+                existing.cog,
+                existing.true_heading,
+                existing.timestamp,
+                "aisstream",
+                draught ?? existing.draught,
+                destination || existing.destination,
+                lengthM ?? existing.length_m,
+                beamM ?? existing.beam_m,
+              ),
+            );
+          }
           return;
         }
 
@@ -377,7 +446,7 @@ async function fetchAisstream(
           ),
         );
 
-        if (vessels.size >= max * 2) {
+        if (vessels.size >= Math.max(max * 2, max + 50)) {
           clearTimeout(timer);
           finish();
         }
@@ -396,6 +465,32 @@ async function fetchAisstream(
       finish();
     });
   });
+}
+
+async function fetchAisstream(
+  apiKey: string,
+  max: number,
+): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
+  const errors: string[] = [];
+  const byMmsi = new Map<string, AisVesselRow>();
+  const batches = chunkBboxes(AISSTREAM_BBOXES, AISSTREAM_BBOX_BATCH_SIZE);
+
+  for (const boxes of batches) {
+    if (byMmsi.size >= max) break;
+    const remaining = Math.max(50, max - byMmsi.size);
+    const part = await fetchAisstreamBoxes(
+      apiKey,
+      remaining,
+      boxes,
+      AISSTREAM_BATCH_DURATION_MS,
+    );
+    errors.push(...part.errors);
+    for (const vessel of part.vessels) {
+      byMmsi.set(vessel.mmsi, preferVesselRow(byMmsi.get(vessel.mmsi), vessel));
+    }
+  }
+
+  return { vessels: Array.from(byMmsi.values()), errors };
 }
 
 export async function fetchAisVessels(
@@ -421,11 +516,7 @@ export async function fetchAisVessels(
     const stream = await fetchAisstream(aisstreamKey, max);
     errors.push(...stream.errors);
     for (const vessel of stream.vessels) {
-      const prev = byMmsi.get(vessel.mmsi);
-      // 군함은 stream 분류 우선, 그 외는 기존(MT) 유지
-      if (!prev || vessel.category === "military") {
-        byMmsi.set(vessel.mmsi, vessel);
-      }
+      byMmsi.set(vessel.mmsi, preferVesselRow(byMmsi.get(vessel.mmsi), vessel));
     }
   }
 

@@ -71,8 +71,6 @@ function AlertBellIcon({ urgent }: { urgent: boolean }) {
   );
 }
 
-const ISRAEL_FALLBACK = { lat: 31.5, lng: 34.85 };
-
 export function TzevaAdomPanel({
   active,
   history,
@@ -136,11 +134,11 @@ export function TzevaAdomPanel({
             : tzevaUi("idle", lang);
 
   function focusAlert(alert: Pick<TzevaAdomAlert, "lat" | "lng" | "region">) {
-    const lat = Number.isFinite(alert.lat) ? alert.lat : ISRAEL_FALLBACK.lat;
-    const lng = Number.isFinite(alert.lng) ? alert.lng : ISRAEL_FALLBACK.lng;
+    // 좌표를 못 찾은 경보는 지도로 보내지 않음 (가짜 이스라엘 중심 좌표 금지)
+    if (!Number.isFinite(alert.lat) || !Number.isFinite(alert.lng)) return;
     onFocusRegion?.({
-      lat,
-      lng,
+      lat: alert.lat as number,
+      lng: alert.lng as number,
       label: translateOrefRegion(alert.region, lang),
     });
   }
@@ -160,7 +158,6 @@ export function TzevaAdomPanel({
         onClick={() => {
           const primary = active[0] ?? history[0];
           if (primary) focusAlert(primary);
-          else if (onFocusRegion) onFocusRegion({ ...ISRAEL_FALLBACK });
           setOpen((v) => !v);
         }}
         className={

@@ -10,6 +10,13 @@ NASA_FIRMS_API_KEY=your_nasa_firms_map_key_here
 # Optional — if set, POST /run requires Authorization: Bearer <secret>
 # INGEST_CRON_SECRET=change-me
 
+# Case-file editor write APIs (/api/cases/* except GET by id)
+# CASE_EDITOR_SECRET=change-me
+# 센서 근거 frozenPayload HMAC (필수 · 편집 토큰과 분리)
+# CASE_EVIDENCE_HMAC_SECRET=change-me-hmac
+# 일반 유저 공개 조사 /investigate (기본 true)
+# INVESTIGATE_PUBLIC_ENABLED=true
+
 # Optional — Cron이 Next 뉴스 워밍을 호출할 URL
 # NEWS_WARM_URL=http://127.0.0.1:3000/api/news-stream/warm
 

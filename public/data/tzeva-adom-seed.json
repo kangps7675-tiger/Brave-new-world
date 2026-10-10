@@ -12,7 +12,8 @@
       "category": 1,
       "active": false,
       "lat": 31.525,
-      "lng": 34.596
+      "lng": 34.596,
+      "geocodeMatch": "exact"
     },
     {
       "id": "2026-07-10 10:15:00|אשקלון|ירי רקטות וטילים",
@@ -22,7 +23,8 @@
       "category": 1,
       "active": false,
       "lat": 31.6688,
-      "lng": 34.5743
+      "lng": 34.5743,
+      "geocodeMatch": "exact"
     }
   ]
 }

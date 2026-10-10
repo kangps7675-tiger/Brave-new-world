@@ -1,3 +1,4 @@
+import { classifyLiveuaOrigin } from "@/lib/liveuamap/originSource";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { HeroBreakingItem } from "@/lib/news/types";
 import {
@@ -33,17 +34,19 @@ export function liveuamapEventToFlashHero(
 
   const grade = highImpact ? S_GRADE_MIN : 5;
   const age = ageMinutes(event.publishedAt);
+  const origin = classifyLiveuaOrigin(event);
 
   return {
     id: `liveua:${event.id}`,
     title,
     titleKo,
     link: event.sourceUrl,
-    source: "Liveuamap",
+    source: origin.kind === "none" ? "Liveuamap" : origin.label,
     publisher: "Liveuamap",
+    viaSource: event.viaSource,
     pubDate: event.publishedAt,
     theater: event.theater,
-    trustTier: 2,
+    trustTier: origin.kind === "media" ? origin.tier : 3,
     feedTopic: isGeoeconomicImpactFlash(blob) ? "economy" : "defense",
     imageUrl: event.imageUrl,
     summary: body,
