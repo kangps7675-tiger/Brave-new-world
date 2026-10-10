@@ -51,13 +51,16 @@ export type ObserveIdleSpinGate = {
   pointerActive: boolean;
   visibilityVisible: boolean;
   heightM: number;
+  /** 코드가 카메라를 비행 중 — 회전이 비행 경로를 비튼다 */
+  programmatic?: boolean;
   orbitMinM?: number;
 };
 
-/** idle spin 게이트 — 추적/드래그/저고도/숨김이면 false */
+/** idle spin 게이트 — 추적/드래그/비행/저고도/숨김이면 false */
 export function observeIdleSpinShouldRun(gate: ObserveIdleSpinGate): boolean {
   if (!gate.cinemaOn) return false;
   if (gate.tracked) return false;
+  if (gate.programmatic) return false;
   if (gate.pointerActive) return false;
   if (!gate.visibilityVisible) return false;
   const minH = gate.orbitMinM ?? OBSERVE_IDLE_SPIN_MIN_HEIGHT_M;

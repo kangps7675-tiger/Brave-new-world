@@ -3,12 +3,14 @@ import type { AisVessel, MilitaryAircraft, StaticPoint } from "@/data/geoTypes";
 import { SUBMARINE_TUNNEL_SEED } from "@/data/submarineTunnels";
 import { getDb } from "@/db";
 import { adsbAircraft, aisVessels, submarineTunnels } from "@/db/schema";
-import { enrichAisClassification } from "@/lib/aisVesselClass";
+import { enrichAisClassification, matchesStoredAisCategory } from "@/lib/aisVesselClass";
 import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
 
 /** AIS/ADS-B D1 신선도 (Cron 10분 주기보다 약간 길게) */
 export const AIS_D1_TTL_MS = 15 * 60_000;
 export const ADSB_D1_TTL_MS = 12 * 60_000;
+/** 신선 샘플이 얇을 때 최근 스냅샷으로 max까지 채움 (위치는 수시간 이내) */
+export const AIS_D1_BACKFILL_MS = 3 * 60 * 60_000;
 /** 신선 데이터 없을 때 체크박스 빈 화면 방지용 스태일 허용 상한 */
 export const AIS_D1_STALE_FALLBACK_MS = 48 * 60 * 60_000;
 export const ADSB_D1_STALE_FALLBACK_MS = 6 * 60 * 60_000;
@@ -45,12 +47,7 @@ function rowToAis(row: typeof aisVessels.$inferSelect): AisVessel {
 }
 
 function ensureMilitaryKind(vessel: AisVessel): AisVessel {
-  const needsKind = vessel.category === "military" && vessel.militaryKind == null;
-  const needsDisguised = vessel.disguised == null;
-  if (!needsKind && !needsDisguised) {
-    if (vessel.category !== "military") return { ...vessel, militaryKind: null };
-    return vessel;
-  }
+  // 워커/스냅샷의 other·type null도 선명 휴리스틱으로 재분류
   const classified = enrichAisClassification({
     shipType: vessel.shipType,
     shipName: vessel.shipName,
@@ -105,12 +102,24 @@ export async function readAisFromD1(options: {
     };
 
     const byCategory = (pool: typeof rows) =>
-      !options.category || options.category === "all"
-        ? pool
-        : pool.filter((r) => r.category === options.category);
+      pool.filter((r) => matchesStoredAisCategory(r.category, options.category));
 
-    let filtered = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge) && inBbox(r)));
-    // 신선 데이터가 카테고리/TTL에 걸리면 스태일이라도 노출 (빈 체크박스 방지)
+    const fresh = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge) && inBbox(r)));
+    let filtered = fresh;
+    // 한 cron 분량이 얇으면 최근 수시간 스냅샷으로 max까지 백필
+    if (filtered.length < options.max) {
+      const seen = new Set(filtered.map((r) => r.id));
+      const backfill = byCategory(
+        rows.filter(
+          (r) =>
+            isFresh(r.ingestedAt, AIS_D1_BACKFILL_MS) &&
+            inBbox(r) &&
+            !seen.has(r.id),
+        ),
+      );
+      filtered = [...filtered, ...backfill];
+    }
+    // 그래도 비면 스태일 허용 (빈 체크박스 방지)
     if (filtered.length === 0) {
       filtered = byCategory(
         rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS) && inBbox(r)),
@@ -169,15 +178,21 @@ export async function writeAisToD1(
       .onConflictDoUpdate({
         target: aisVessels.id,
         set: {
-          shipName: sql`excluded.ship_name`,
+          shipName: sql`COALESCE(NULLIF(excluded.ship_name, ''), ais_vessels.ship_name)`,
           lat: sql`excluded.lat`,
           lng: sql`excluded.lng`,
           sog: sql`excluded.sog`,
           cog: sql`excluded.cog`,
           trueHeading: sql`excluded.true_heading`,
-          shipType: sql`excluded.ship_type`,
-          shipTypeLabel: sql`excluded.ship_type_label`,
-          category: sql`excluded.category`,
+          shipType: sql`COALESCE(excluded.ship_type, ais_vessels.ship_type)`,
+          shipTypeLabel: sql`COALESCE(excluded.ship_type_label, ais_vessels.ship_type_label)`,
+          category: sql`CASE
+            WHEN excluded.category = 'other'
+              AND excluded.ship_type IS NULL
+              AND ais_vessels.category IN ('military', 'commercial')
+            THEN ais_vessels.category
+            ELSE excluded.category
+          END`,
           provider: sql`excluded.provider`,
           timestamp: sql`excluded.timestamp`,
           ingestedAt: sql`excluded.ingested_at`,

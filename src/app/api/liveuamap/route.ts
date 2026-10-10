@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hydrateLiveuamapStateFromD1 } from "@/lib/liveuamap/persistState";
 import { maybeWarmLiveuamapIngest } from "@/lib/liveuamap/runIngest";
 import { getLiveuamapStore } from "@/lib/liveuamap/store";
 import type { LiveuamapFeedPayload } from "@/lib/liveuamap/types";
@@ -8,6 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  // 콜드스타트 인스턴스도 첫 응답부터 D1에 저장된 속보를 내보낸다 (20초 스로틀)
+  await hydrateLiveuamapStateFromD1();
   // 관측 폴링 → 서버만 키로 warm (UA 15분·일 예산은 sync/budget이 게이트)
   maybeWarmLiveuamapIngest();
 

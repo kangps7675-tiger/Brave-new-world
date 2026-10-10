@@ -21,6 +21,7 @@ export type BreakingFlashNavigateDeps = {
       altitude: number;
       durationMs: number;
       camera: ReturnType<typeof resolveCinematicCamera>;
+      descend?: boolean;
       subtitle: string;
       title: string;
       kicker: string;
@@ -65,6 +66,7 @@ export function runBreakingFlashGoToLocation({
         bearing: LOCATION_LOOK_DOWN.bearing,
         lookAt: LOCATION_LOOK_DOWN.lookAt,
       }),
+      descend: true,
       subtitle: labelLanguage === "en" ? "Breaking" : "속보",
       title: headline,
       kicker: labelLanguage === "en" ? "Inside the report" : "속보 공간",

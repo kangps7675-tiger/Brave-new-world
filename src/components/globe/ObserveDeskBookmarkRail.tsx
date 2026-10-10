@@ -4,13 +4,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { zc } from "@/lib/uiStack";
 
-export type ObserveDeskTabId = "flash" | "board" | "alerts" | "verify";
+export type ObserveDeskTabId = "flash" | "board" | "alerts" | "verify" | "case";
 
 type TabDef = {
   id: ObserveDeskTabId;
   ko: string;
   en: string;
-  accent: "amber" | "teal" | "cyan" | "violet";
+  accent: "amber" | "teal" | "cyan" | "violet" | "rose";
   badge?: number;
   visible?: boolean;
 };
@@ -23,10 +23,13 @@ type Props = {
   hasVerify?: boolean;
   /** 포커스 안건이 생기면 검증 탭을 자동으로 연다 */
   autoOpenVerify?: boolean;
+  /** 활성 사건 ID가 있으면 배지 */
+  hasCase?: boolean;
   flash: ReactNode;
   board: ReactNode;
   alerts: ReactNode;
   verify?: ReactNode;
+  casePanel?: ReactNode;
 };
 
 const ACCENT: Record<
@@ -49,6 +52,10 @@ const ACCENT: Record<
     tab: "border-violet-500/45 bg-[#1a1230]/95 text-violet-50 hover:bg-[#241840]",
     panel: "border-violet-400/30 bg-[#0c0818]/94",
   },
+  rose: {
+    tab: "border-rose-500/45 bg-[#2a1018]/95 text-rose-50 hover:bg-[#3a1520]",
+    panel: "border-rose-400/30 bg-[#140810]/94",
+  },
 };
 
 /**
@@ -63,10 +70,12 @@ export function ObserveDeskBookmarkRail({
   boardCount = 0,
   hasVerify = false,
   autoOpenVerify = false,
+  hasCase = false,
   flash,
   board,
   alerts,
   verify,
+  casePanel,
 }: Props) {
   const en = lang === "en";
   /** 기본은 전선 속보 — LiveUA가 계속 쌓이는 창을 바로 보이게 */
@@ -111,6 +120,13 @@ export function ObserveDeskBookmarkRail({
       accent: "violet",
       visible: hasVerify,
     },
+    {
+      id: "case",
+      ko: "사건",
+      en: "Case",
+      accent: "rose",
+      badge: hasCase ? 1 : undefined,
+    },
   ];
 
   const visibleTabs = tabs.filter((t) => t.visible !== false);
@@ -126,7 +142,9 @@ export function ObserveDeskBookmarkRail({
           ? alerts
           : active === "verify"
             ? verify
-            : null;
+            : active === "case"
+              ? casePanel
+              : null;
 
   return (
     <div

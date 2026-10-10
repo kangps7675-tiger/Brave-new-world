@@ -23,6 +23,7 @@ import {
   hasOpenSkyCredentials,
   openSkyBboxAround,
   openSkyStatesUrl,
+  openSkyWorldwideUrl,
   parseOpenSkyTraffic,
   type OpenSkyBbox,
 } from "@/lib/openSkyTraffic";
@@ -33,14 +34,19 @@ export const dynamic = "force-dynamic";
 const ADSB_CDN = publicCacheHeaders(CDN_CACHE.adsb);
 const OPENSKY_CACHE_MS = 60_000;
 const OPENSKY_MIN_UPSTREAM_INTERVAL_MS = 30_000;
+/** Global query = 4 credits. Standard tier 4000/day → ~90s keeps headroom. */
+const OPENSKY_WORLD_CACHE_MS = 90_000;
+const OPENSKY_WORLD_MIN_INTERVAL_MS = 90_000;
 const OPENSKY_TIMEOUT_MS = 10_000;
+const OPENSKY_WORLD_TIMEOUT_MS = 18_000;
 
 type OpenSkyCache = {
   key: string;
   at: number;
   aircraft: TrackedAircraft[];
-  bbox: OpenSkyBbox;
+  bbox: OpenSkyBbox | null;
   rateLimitRemaining: string | null;
+  scope: "bbox" | "world";
 };
 
 type WorldCivCache = {
@@ -51,6 +57,7 @@ type WorldCivCache = {
 
 let openSkyCache: OpenSkyCache | null = null;
 let lastOpenSkyFetchAt = 0;
+let lastOpenSkyWorldFetchAt = 0;
 let worldCivCache: WorldCivCache | null = null;
 let pendingWorldCiv: Promise<WorldCivCache | null> | null = null;
 let pendingOpenSky: {
@@ -102,6 +109,77 @@ async function fetchOpenSkyTraffic(
         aircraft,
         bbox,
         rateLimitRemaining: response.headers.get("X-Rate-Limit-Remaining"),
+        scope: "bbox",
+      };
+      openSkyCache = entry;
+      return entry;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+      pendingOpenSky = null;
+    }
+  })();
+  pendingOpenSky = { key, promise };
+  return promise;
+}
+
+async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> {
+  if (!hasOpenSkyCredentials()) return null;
+  const key = "world";
+  const now = Date.now();
+  if (
+    openSkyCache?.key === key &&
+    openSkyCache.scope === "world" &&
+    now - openSkyCache.at < OPENSKY_WORLD_CACHE_MS
+  ) {
+    return {
+      ...openSkyCache,
+      aircraft: openSkyCache.aircraft.slice(0, max),
+    };
+  }
+  if (pendingOpenSky?.key === key) return pendingOpenSky.promise;
+  if (pendingOpenSky) return null;
+  if (now - lastOpenSkyWorldFetchAt < OPENSKY_WORLD_MIN_INTERVAL_MS) {
+    if (openSkyCache?.scope === "world") {
+      return {
+        ...openSkyCache,
+        aircraft: openSkyCache.aircraft.slice(0, max),
+      };
+    }
+    return null;
+  }
+
+  lastOpenSkyWorldFetchAt = now;
+  const promise = (async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), OPENSKY_WORLD_TIMEOUT_MS);
+    try {
+      const { response, authenticated } = await fetchOpenSky(openSkyWorldwideUrl(), {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "BraveNewWorld/1.0 OpenSky worldwide traffic",
+        },
+        signal: controller.signal,
+      });
+      if (!response.ok || !authenticated) return null;
+      const payload = (await response.json()) as { states?: unknown; time?: number };
+      const aircraft = parseOpenSkyTraffic(payload.states, {
+        time: payload.time,
+        max,
+        thin: true,
+        thinCellDeg: 6,
+        thinPerCell: 28,
+      });
+      if (aircraft.length === 0) return null;
+      const entry: OpenSkyCache = {
+        key,
+        at: Date.now(),
+        aircraft,
+        bbox: null,
+        rateLimitRemaining: response.headers.get("X-Rate-Limit-Remaining"),
+        scope: "world",
       };
       openSkyCache = entry;
       return entry;
@@ -164,46 +242,66 @@ export async function GET(request: Request) {
   const preferLive = Boolean(live);
   const worldwide = lat == null || lng == null;
 
-  if (worldwide && !preferLive) {
-    const fromD1 = await readAdsbFromD1({ mode: "civ", max });
-    if (fromD1 && fromD1.count > 0) {
-      return NextResponse.json(
-        {
-          receivedAt: fromD1.receivedAt,
-          count: fromD1.count,
-          aircraft: fromD1.aircraft,
-          attribution: "ADS-B civilian worldwide (via Cloudflare D1 cron warm)",
-          source: "d1",
-          provider: "d1",
-          mode: "civilian",
-          scope: "world",
-          excluded: "military (dbFlags & 1)",
-          cached: true,
-        },
-        { headers: ADSB_CDN },
-      );
-    }
-    const fromWorker = await readAdsbFromIngestWorker({ mode: "civ", max });
-    if (fromWorker && fromWorker.count > 0) {
-      return NextResponse.json(
-        {
-          receivedAt: fromWorker.receivedAt,
-          count: fromWorker.count,
-          aircraft: fromWorker.aircraft,
-          attribution: "ADS-B civ worldwide (via Cloudflare cron worker)",
-          source: "ingest-worker",
-          provider: "ingest-worker",
-          mode: "civilian",
-          scope: "world",
-          excluded: "military (dbFlags & 1)",
-          cached: true,
-        },
-        { headers: ADSB_CDN },
-      );
-    }
-  }
-
   if (worldwide) {
+    // OpenSky OAuth: 전 세계 states/all (4 credits). ADSBX 키 없이도 글로브에 민항이 뜬다.
+    const openSkyWorld = await fetchOpenSkyWorldwide(max);
+    if (openSkyWorld && openSkyWorld.aircraft.length > 0) {
+      return NextResponse.json(
+        {
+          receivedAt: new Date(openSkyWorld.at).toISOString(),
+          count: openSkyWorld.aircraft.length,
+          aircraft: openSkyWorld.aircraft,
+          attribution: "The OpenSky Network (worldwide)",
+          source: "https://opensky-network.org/",
+          provider: "opensky",
+          mode: "civilian",
+          scope: "world",
+          cached: Date.now() - openSkyWorld.at > 1_000,
+          rateLimitRemaining: openSkyWorld.rateLimitRemaining,
+        },
+        { headers: ADSB_CDN },
+      );
+    }
+
+    if (!preferLive) {
+      const fromD1 = await readAdsbFromD1({ mode: "civ", max });
+      if (fromD1 && fromD1.count > 0) {
+        return NextResponse.json(
+          {
+            receivedAt: fromD1.receivedAt,
+            count: fromD1.count,
+            aircraft: fromD1.aircraft,
+            attribution: "ADS-B civilian worldwide (via Cloudflare D1 cron warm)",
+            source: "d1",
+            provider: "d1",
+            mode: "civilian",
+            scope: "world",
+            excluded: "military (dbFlags & 1)",
+            cached: true,
+          },
+          { headers: ADSB_CDN },
+        );
+      }
+      const fromWorker = await readAdsbFromIngestWorker({ mode: "civ", max });
+      if (fromWorker && fromWorker.count > 0) {
+        return NextResponse.json(
+          {
+            receivedAt: fromWorker.receivedAt,
+            count: fromWorker.count,
+            aircraft: fromWorker.aircraft,
+            attribution: "ADS-B civ worldwide (via Cloudflare cron worker)",
+            source: "ingest-worker",
+            provider: "ingest-worker",
+            mode: "civilian",
+            scope: "world",
+            excluded: "military (dbFlags & 1)",
+            cached: true,
+          },
+          { headers: ADSB_CDN },
+        );
+      }
+    }
+
     const liveWorld = await fetchWorldwideCiv(max);
     if (liveWorld && liveWorld.aircraft.length > 0) {
       return NextResponse.json(

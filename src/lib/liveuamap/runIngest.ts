@@ -5,6 +5,10 @@
 
 import { syncLiveuamapEvents } from "@/lib/liveuamap/fetchLiveuamap";
 import { saveLiveuaControlSnapshot } from "@/lib/liveuamap/controlSnapshotStore";
+import {
+  hydrateLiveuamapStateFromD1,
+  persistLiveuamapState,
+} from "@/lib/liveuamap/persistState";
 import { mergeLiveuamapEvents } from "@/lib/liveuamap/store";
 import type { LiveuamapControlRegionId } from "@/lib/liveuamap/types";
 
@@ -14,9 +18,12 @@ export type LiveuamapIngestResult = Awaited<ReturnType<typeof syncLiveuamapEvent
 };
 
 export async function runLiveuamapIngest(): Promise<LiveuamapIngestResult> {
+  // 콜드스타트 직후 예산 카운터가 0이면 minInterval·일 한도를 무시하고 몰아서 호출한다
+  await hydrateLiveuamapStateFromD1({ force: true });
   const result = await syncLiveuamapEvents();
   const fetchedAt = new Date().toISOString();
   mergeLiveuamapEvents(result.events, fetchedAt, result.error ?? null);
+  await persistLiveuamapState();
 
   const controlSaved: string[] = [];
   for (const [regionId, fc] of Object.entries(result.controls) as [

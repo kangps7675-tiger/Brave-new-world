@@ -354,6 +354,12 @@ export type MilitaryAircraft = {
   callsign: string | null;
   /** 등록번호 (registration) */
   registration: string | null;
+  /** OpenSky origin_country (등록국 문자열). ADS-B 경로에는 보통 없음. */
+  originCountry?: string | null;
+  /** OpenSky on_ground */
+  onGround?: boolean | null;
+  /** OpenSky position_source: 0 ADS-B, 1 ASTERIX, 2 MLAT, 3 FLARM */
+  positionSource?: number | null;
   lat: number;
   lng: number;
   /** 기압 고도 ft */

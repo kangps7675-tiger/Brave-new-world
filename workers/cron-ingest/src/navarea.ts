@@ -212,7 +212,7 @@ export async function fetchAndReplaceNavarea(env: IngestEnv): Promise<{
     return { count: 0, fetched: 0, errors: [], skipped: true };
   }
 
-  const minInterval = Math.max(15, readIntVar(env.NAVAREA_POLL_MIN_INTERVAL_MINUTES, 30));
+  const minInterval = Math.max(15, readIntVar(env, "NAVAREA_POLL_MIN_INTERVAL_MINUTES", 30));
   if (!(await shouldPoll(env.DB, minInterval))) {
     return { count: 0, fetched: 0, errors: [], skipped: true };
   }

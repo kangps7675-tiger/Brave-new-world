@@ -151,15 +151,21 @@ export async function upsertAisVessels(db: D1Database, vessels: AisVesselRow[]) 
             draught, destination, length_m, beam_m
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
-            ship_name = excluded.ship_name,
+            ship_name = COALESCE(NULLIF(excluded.ship_name, ''), ais_vessels.ship_name),
             lat = excluded.lat,
             lng = excluded.lng,
             sog = excluded.sog,
             cog = excluded.cog,
             true_heading = excluded.true_heading,
-            ship_type = excluded.ship_type,
-            ship_type_label = excluded.ship_type_label,
-            category = excluded.category,
+            ship_type = COALESCE(excluded.ship_type, ais_vessels.ship_type),
+            ship_type_label = COALESCE(excluded.ship_type_label, ais_vessels.ship_type_label),
+            category = CASE
+              WHEN excluded.category = 'other'
+                AND excluded.ship_type IS NULL
+                AND ais_vessels.category IN ('military', 'commercial')
+              THEN ais_vessels.category
+              ELSE excluded.category
+            END,
             provider = excluded.provider,
             timestamp = excluded.timestamp,
             ingested_at = excluded.ingested_at,
@@ -262,38 +268,51 @@ export async function readAisVessels(
   db: D1Database,
   opts: { category?: string; limit: number; maxAgeMinutes?: number },
 ) {
+  // 한 cron(~12s×배치)만으로는 수십 척뿐이라, 최근 수시간 스냅샷을 합쳐 전 지구 밀도를 유지한다.
   const cutoff = new Date(
-    Date.now() - (opts.maxAgeMinutes ?? 20) * 60 * 1000,
+    Date.now() - (opts.maxAgeMinutes ?? 180) * 60 * 1000,
   ).toISOString();
   const category = opts.category && opts.category !== "all" ? opts.category : null;
-  const rows = category
+  // commercial 필터는 type 미수신 other도 민간 후보로 포함 (프론트 matchesAisClassFilter와 동일)
+  const rows = category === "commercial"
     ? await db
         .prepare(
           `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
                   ship_type, ship_type_label, category, provider, timestamp, ingested_at
            FROM ais_vessels
-           WHERE ingested_at >= ? AND category = ?
-           ORDER BY ingested_at DESC LIMIT ?`,
-        )
-        .bind(cutoff, category, opts.limit)
-        .all<Record<string, unknown>>()
-    : await db
-        .prepare(
-          `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
-                  ship_type, ship_type_label, category, provider, timestamp, ingested_at
-           FROM ais_vessels
-           WHERE ingested_at >= ?
+           WHERE ingested_at >= ? AND category IN ('commercial', 'other')
            ORDER BY ingested_at DESC LIMIT ?`,
         )
         .bind(cutoff, opts.limit)
-        .all<Record<string, unknown>>();
+        .all<Record<string, unknown>>()
+    : category
+      ? await db
+          .prepare(
+            `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
+                    ship_type, ship_type_label, category, provider, timestamp, ingested_at
+             FROM ais_vessels
+             WHERE ingested_at >= ? AND category = ?
+             ORDER BY ingested_at DESC LIMIT ?`,
+          )
+          .bind(cutoff, category, opts.limit)
+          .all<Record<string, unknown>>()
+      : await db
+          .prepare(
+            `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
+                    ship_type, ship_type_label, category, provider, timestamp, ingested_at
+             FROM ais_vessels
+             WHERE ingested_at >= ?
+             ORDER BY ingested_at DESC LIMIT ?`,
+          )
+          .bind(cutoff, opts.limit)
+          .all<Record<string, unknown>>();
   return rows.results ?? [];
 }
 
 /**
- * 이번 배치에 포함된 MMSI들의 "직전" 위치를 D1에서 읽어온다 — upsert로 덮어쓰기 전에
- * 반드시 먼저 호출해야 한다 (아니면 이전 위치를 영영 잃는다).
- * ais_vessels는 MMSI당 1행만 유지하므로 이게 유일한 "이전 상태" 소스다.
+ * ì´ë² ë°°ì¹ì í¬í¨ë MMSIë¤ì "ì§ì " ìì¹ë¥¼ D1ìì ì½ì´ì¨ë¤ â upsertë¡ ë®ì´ì°ê¸° ì ì
+ * ë°ëì ë¨¼ì  í¸ì¶í´ì¼ íë¤ (ìëë©´ ì´ì  ìì¹ë¥¼ ìì ìëë¤).
+ * ais_vesselsë MMSIë¹ 1íë§ ì ì§íë¯ë¡ ì´ê² ì ì¼í "ì´ì  ìí" ìì¤ë¤.
  */
 export async function getAisVesselPositions(
   db: D1Database,
@@ -357,11 +376,11 @@ export async function insertAisZoneCrossings(
 }
 
 /**
- * 최근 N시간 게이트별 방향별 통과 척수 — "방향별 게이트 통과 선박 수" 지표의
- * 가장 기본 형태다. category(민간/군용)까지 쪽개서 반환한다.
- * DWT 가중치·속도 급감·평시 대비 z-score 같은 고급 지표는 아직 없다 —
- * 저 값들을 신뢰성 있게 내려려면 수 주치 누적 데이터로 "평시" 기준선을 먼저
- * 만들어야 하는데, 이 테이블이 이제 막 생겨서 기준선이 없다.
+ * ìµê·¼ Nìê° ê²ì´í¸ë³ ë°©í¥ë³ íµê³¼ ì²ì â "ë°©í¥ë³ ê²ì´í¸ íµê³¼ ì ë° ì" ì§íì
+ * ê°ì¥ ê¸°ë³¸ ííë¤. category(ë¯¼ê°/êµ°ì©)ê¹ì§ ìª½ê°ì ë°ííë¤.
+ * DWT ê°ì¤ì¹Â·ìë ê¸ê°Â·íì ëë¹ z-score ê°ì ê³ ê¸ ì§íë ìì§ ìë¤ â
+ * ì  ê°ë¤ì ì ë¢°ì± ìê² ë´ë ¤ë ¤ë©´ ì ì£¼ì¹ ëì  ë°ì´í°ë¡ "íì" ê¸°ì¤ì ì ë¨¼ì 
+ * ë§ë¤ì´ì¼ íëë°, ì´ íì´ë¸ì´ ì´ì  ë§ ìê²¨ì ê¸°ì¤ì ì´ ìë¤.
  */
 export async function getAisZoneFlowCounts(
   db: D1Database,
@@ -516,7 +535,7 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0002
   }
 
-  // ?�레그램?� ?�빈도 채널???�어 보존창을 2배로 (최소 24h)
+  // ?ë ê·¸ë¨? ?ë¹ë ì±ë???ì´ ë³´ì¡´ì°½ì 2ë°°ë¡ (ìµì 24h)
   let telegramDeleted = 0;
   try {
     const tgCutoff = new Date(
@@ -531,21 +550,22 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
     // until migration 0005
   }
 
-  // ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-  // ?�래 집계·?�벤???�이블�? **?�품 ?�산**?�다 (?�자�??�님).
+  // ????????????????????????????????????????????????????????????????
+  // ?ë ì§ê³Â·?´ë²¤???ì´ë¸ì? **?í ?ì°**?´ë¤ (?ìë£??ë).
   //
-  // ?�자�?FIRMS/GDELT/AIS/ADS-B/?�스)??무겁�??�취??가?�하므�?계속 prune ?�다.
-  // 반면 ?�별 집계?� ?�벤??로그??
-  //   - ?�이 극히 ?�다 (?�장 20�?× 365??= ??7,300??
-  //   - ??�?지?�면 **?�원??복구 불�?**?�다 (?�천 API가 과거�???준??
-  //   - 컨버?�스 ?�중률·베?�스?�인·백테?�트???�일??근거??  //
-  // 2026-08-07: ?�계?�이 ?�품???�면??"?�??= 비용"?�서 "?�??= ?�산"?�로
-  // ?�제가 바뀌었?? 90/120??롤링 ??���?중단?�다.
-  // ?�돌리려�?반드??별도 ?�카?�브(R2 ??�?먼�? 붙일 �?
-  // ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+  // ?ìë£?FIRMS/GDELT/AIS/ADS-B/?´ì¤)??ë¬´ê²ê³??¬ì·¨??ê°?¥íë¯ë¡?ê³ì prune ?ë¤.
+  // ë°ë©´ ?¼ë³ ì§ê³? ?´ë²¤??ë¡ê·¸??
+  //   - ?ì´ ê·¹í ?ë¤ (?ì¥ 20ê°?Ã 365??= ??7,300??
+  //   - ??ë²?ì§?°ë©´ **?ì??ë³µêµ¬ ë¶ê?**?ë¤ (?ì² APIê° ê³¼ê±°ë¥???ì¤??
+  //   - ì»¨ë²?ì¤ ?ì¤ë¥ Â·ë² ?´ì¤?¼ì¸Â·ë°±í?¤í¸??? ì¼??ê·¼ê±°??  //
+  // 2026-08-07: ?ê³?´ì´ ?í???ë©´??"???= ë¹ì©"?ì "???= ?ì°"?¼ë¡
+  // ?ì ê° ë°ëì?? 90/120??ë¡¤ë§ ?? ë¥?ì¤ë¨?ë¤.
+  // ?ëë¦¬ë ¤ë©?ë°ë??ë³ë ?ì¹´?´ë¸(R2 ??ë¥?ë¨¼ì? ë¶ì¼ ê²?
+  // ????????????????????????????????????????????????????????????????
 
-  // 공습 경보 ???�벤??로그. 컨버?�스 채널 �??�나?��?�??�기 보존.
+  // soft-rank 스냅샷은 길게, 조사 이력(샘플·구간)은 90일.
   const AIR_RAID_RETENTION_DAYS = 1200;
+  const AIR_RAID_HISTORY_RETENTION_DAYS = 90;
   let airRaidDeleted = 0;
   try {
     const airCutoff = new Date(
@@ -559,9 +579,25 @@ export async function pruneOldRows(db: D1Database, retentionHours: number) {
   } catch {
     // until migration 0014
   }
+  try {
+    const historyCutoff = new Date(
+      Date.now() - AIR_RAID_HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const samples = await db
+      .prepare(`DELETE FROM neptun_threat_samples WHERE ingested_at < ?`)
+      .bind(historyCutoff)
+      .run();
+    const intervals = await db
+      .prepare(`DELETE FROM air_raid_alert_intervals WHERE ingested_at < ?`)
+      .bind(historyCutoff)
+      .run();
+    airRaidDeleted += (samples.meta.changes ?? 0) + (intervals.meta.changes ?? 0);
+  } catch {
+    // until migration 0029
+  }
 
-  // ?�장�??�별 ?�호 집계 ??**??��?��? ?�는??**
-  // (?�전: 120??롤링 ??��. 베이?�라??계산�?목적?�던 ?�절???�계.)
+  // ?ì¥ë³??¼ë³ ? í¸ ì§ê³ ??**?? ?ì? ?ë??**
+  // (?´ì : 120??ë¡¤ë§ ?? . ë² ì´?¤ë¼??ê³ì°ë§?ëª©ì ?´ë ?ì ???¤ê³.)
   const signalDailyDeleted = 0;
 
   return {
@@ -609,8 +645,8 @@ export async function recordIngestRun(
 }
 
 /**
- * 경량 UI ?�벤??로그 ?�재 ??Vercel(D1 바인???�음)?�서 /track 경유�??�달받아 ?�기???�.
- * 개인?�별 ?�보 ?�음. ?�패?�도 ?�출 측에??조용??무시?�다.
+ * ê²½ë UI ?´ë²¤??ë¡ê·¸ ?ì¬ ??Vercel(D1 ë°ì¸???ì)?ì /track ê²½ì ë¡??ë¬ë°ì ?¬ê¸°???.
+ * ê°ì¸?ë³ ?ë³´ ?ì. ?¤í¨?´ë ?¸ì¶ ì¸¡ì??ì¡°ì©??ë¬´ì?ë¤.
  */
 export async function insertUiEvent(
   db: D1Database,

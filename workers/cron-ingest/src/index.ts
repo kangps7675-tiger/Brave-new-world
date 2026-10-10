@@ -43,6 +43,12 @@ import {
   upsertPushSubscription,
 } from "./push";
 import { dispatchSitrepDigestPush } from "./sitrepPush";
+import {
+  appendAisHistory,
+  appendMilAdsbHistory,
+  pruneTrackHistory,
+  trackHistoryRetentionDays,
+} from "./trackHistory";
 
 export type { IngestEnv };
 
@@ -90,6 +96,8 @@ type IngestResult = {
     count: number;
     tzevaCount: number;
     neptunCount: number;
+    sampleCount?: number;
+    intervalTouched?: number;
     geoRestricted: boolean;
     errors: string[];
   } | null;
@@ -227,6 +235,13 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     const adsb = await fetchAdsbAircraft(env, { milMax, civPerHub });
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
+    try {
+      await appendMilAdsbHistory(env.DB, adsb.aircraft);
+    } catch (error) {
+      adsbErrors.push(
+        `track-history: ${error instanceof Error ? error.message : "append failed"}`,
+      );
+    }
 
     const aisMax = Math.min(1200, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 800)));
     const ais = await fetchAisVessels(env, aisMax);
@@ -250,6 +265,13 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     }
 
     aisCount = await upsertAisVessels(env.DB, ais.vessels);
+    try {
+      await appendAisHistory(env.DB, ais.vessels);
+    } catch (error) {
+      aisErrors.push(
+        `track-history: ${error instanceof Error ? error.message : "append failed"}`,
+      );
+    }
 
     const mapKey = getFirmsMapKey(env);
     if (mapKey) {
@@ -285,6 +307,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         count: air.count,
         tzevaCount: air.tzevaCount,
         neptunCount: air.neptunCount,
+        sampleCount: air.sampleCount,
+        intervalTouched: air.intervalTouched,
         geoRestricted: air.geoRestricted,
         errors: air.errors.slice(0, 6),
       };
@@ -293,6 +317,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         count: 0,
         tzevaCount: 0,
         neptunCount: 0,
+        sampleCount: 0,
+        intervalTouched: 0,
         geoRestricted: false,
         errors: [error instanceof Error ? error.message : "air raid ingest failed"],
       };
@@ -381,6 +407,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     }
 
     pruned = await pruneOldRows(env.DB, retentionHours);
+    await pruneTrackHistory(env.DB, trackHistoryRetentionDays(env));
     newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
     videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
     aisWarm = await warmEndpoint(env.AIS_WARM_URL, env, "ais");
