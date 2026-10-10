@@ -78,7 +78,7 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
-    // 임시: DeepState 점령 영토 solid fill (빗금·박스 폐기). 3일 좌표 스냅샷, LIVEUAMAP 전.
+    // LiveUAMap 다전장(UA·중동) 통제면. 없으면 우크라 VIINA macro만.
     if (ukraineOccupiedGeoJson.features.length > 0) {
       return ukraineOccupiedGeoJson;
     }
@@ -107,13 +107,13 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
-    // 임시: 동일 DeepState 점령 fill을 micro에도 사용 (빗금·전투원 박스 없음)
+    // LiveUA 다전장 통제면을 micro 줌에서도 동일 fill
     if (ukraineOccupiedGeoJson.features.length > 0) {
       return {
         type: "FeatureCollection" as const,
         features: ukraineOccupiedGeoJson.features.map((f, i) => ({
           ...f,
-          id: typeof f.id === "string" ? f.id.replace("-macro-", "-micro-") : `deepstate-micro-${i}`,
+          id: typeof f.id === "string" ? f.id.replace("-macro-", "-micro-") : `liveua-micro-${i}`,
           properties: {
             ...(f.properties ?? {}),
             tier: "micro" as const,

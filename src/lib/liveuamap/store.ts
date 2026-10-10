@@ -3,8 +3,11 @@ import {
   getLiveuamapBudgetSnapshot,
 } from "@/lib/liveuamap/budget";
 
-/** 24–48h 링버퍼 — 프로세스 메모리 (telegramAlertStore 패턴) */
-const MAX_EVENTS = 400;
+/**
+ * 지역별 최신 속보 상한 — mpts `count=50`과 맞춤.
+ * 전역 링버퍼만 쓰면 우크라가 비우크라 슬롯을 밀어내므로 regionId당 유지.
+ */
+export const LIVEUAMAP_MAX_EVENTS_PER_REGION = 50;
 const MAX_AGE_MS = 48 * 60 * 60 * 1000;
 
 let events: LiveuamapEvent[] = [];
@@ -13,13 +16,22 @@ let lastError: string | null = null;
 
 function prune(list: LiveuamapEvent[]): LiveuamapEvent[] {
   const cutoff = Date.now() - MAX_AGE_MS;
-  return list
+  const fresh = list
     .filter((e) => {
       const t = Date.parse(e.publishedAt);
       return Number.isFinite(t) ? t >= cutoff : true;
     })
-    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
-    .slice(0, MAX_EVENTS);
+    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+
+  const perRegion = new Map<string, number>();
+  const out: LiveuamapEvent[] = [];
+  for (const e of fresh) {
+    const n = perRegion.get(e.regionId) ?? 0;
+    if (n >= LIVEUAMAP_MAX_EVENTS_PER_REGION) continue;
+    perRegion.set(e.regionId, n + 1);
+    out.push(e);
+  }
+  return out;
 }
 
 export function getLiveuamapStore() {

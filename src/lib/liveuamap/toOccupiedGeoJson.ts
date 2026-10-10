@@ -72,6 +72,26 @@ function asGeometry(raw: unknown): Geometry | null {
   return { type: g.type, coordinates: coords } as Geometry;
 }
 
+/** MapLibre ukraine-*-fill의 role 필터·색과 맞춤 (DeepState 스키마 호환). */
+function liveuaPaintProps(
+  regionId: string,
+  extras: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const fill =
+    asString(extras.fill) || asString(extras.color) || "#a52714";
+  const fillOpacity =
+    typeof extras.fillOpacity === "number" ? extras.fillOpacity : 0.32;
+  return {
+    ...extras,
+    region: regionId,
+    source: "liveuamap",
+    role: asString(extras.role) || "ru-occupied",
+    fill,
+    fillOpacity,
+    stroke: asString(extras.stroke) || "#ef9a9a",
+  };
+}
+
 function featureFromUnknown(raw: unknown, index: number, regionId: string): Feature | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -85,12 +105,10 @@ function featureFromUnknown(raw: unknown, index: number, regionId: string): Feat
         : {};
     return {
       type: "Feature",
-      properties: {
+      properties: liveuaPaintProps(regionId, {
         ...props,
-        region: regionId,
         name: asString(props.name) || asString(o.name) || `liveua-control-${index}`,
-        source: "liveuamap",
-      },
+      }),
       geometry,
     };
   }
@@ -99,12 +117,10 @@ function featureFromUnknown(raw: unknown, index: number, regionId: string): Feat
   if (geometry) {
     return {
       type: "Feature",
-      properties: {
-        region: regionId,
+      properties: liveuaPaintProps(regionId, {
         name: asString(o.name) || asString(o.title) || `liveua-control-${index}`,
         fill: asString(o.fill) || asString(o.color) || undefined,
-        source: "liveuamap",
-      },
+      }),
       geometry,
     };
   }
@@ -127,12 +143,12 @@ function featureFromUnknown(raw: unknown, index: number, regionId: string): Feat
       if (first[0] !== last[0] || first[1] !== last[1]) ring.push([...first]);
       return {
         type: "Feature",
-        properties: {
-          region: regionId,
+        properties: liveuaPaintProps(regionId, {
           name: asString(o.name) || `liveua-control-${index}`,
-          source: "liveuamap",
-          fieldId: asString(o.id) || (asNumber(o.id) != null ? String(asNumber(o.id)) : undefined),
-        },
+          fieldId:
+            asString(o.id) ||
+            (asNumber(o.id) != null ? String(asNumber(o.id)) : undefined),
+        }),
         geometry: { type: "Polygon", coordinates: [ring] },
       };
     }

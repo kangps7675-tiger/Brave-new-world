@@ -7,8 +7,13 @@ import {
 } from "@/lib/liveuamap/budget";
 import { normalizePlace } from "@/lib/liveuamap/fetchLiveuamap";
 import { liveuamapFieldsToOccupiedGeoJson } from "@/lib/liveuamap/toOccupiedGeoJson";
-import { mergeLiveuamapEvents, getLiveuamapStore, replaceLiveuamapEvents } from "@/lib/liveuamap/store";
-import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import {
+  LIVEUAMAP_MAX_EVENTS_PER_REGION,
+  mergeLiveuamapEvents,
+  getLiveuamapStore,
+  replaceLiveuamapEvents,
+} from "@/lib/liveuamap/store";
+import type { LiveuamapEvent, LiveuamapRegionId } from "@/lib/liveuamap/types";
 
 describe("liveuamap budget", () => {
   beforeEach(() => {
@@ -176,6 +181,9 @@ describe("liveuamapFieldsToOccupiedGeoJson", () => {
     );
     expect(fc?.features.length).toBe(1);
     expect(fc?.meta?.source).toBe("liveuamap");
+    expect(fc?.features[0]?.properties?.role).toBe("ru-occupied");
+    expect(fc?.features[0]?.properties?.source).toBe("liveuamap");
+    expect(fc?.features[0]?.properties?.fill).toBe("#a52714");
   });
 
   it("drops polygons outside the region bbox", () => {
@@ -289,5 +297,43 @@ describe("mergeLiveuamapEvents", () => {
     // 양피지 index는 0 .. length-1
     expect(events[0]?.id).toBeTruthy();
     expect(events[11]?.id).toBeTruthy();
+  });
+
+  it("keeps up to 50 newest flashes per region so non-UA slots are not crowded out", () => {
+    const now = Date.now();
+    const mk = (
+      regionId: LiveuamapRegionId,
+      resid: number,
+      theater: LiveuamapEvent["theater"],
+      n: number,
+      prefix: string,
+    ): LiveuamapEvent[] =>
+      Array.from({ length: n }, (_, i) => ({
+        id: `${prefix}-${i}`,
+        regionId,
+        resid,
+        theater,
+        lat: 40,
+        lng: 40,
+        title: `${prefix} ${i}`,
+        body: "",
+        sourceUrl: `https://liveuamap.com/${prefix}/${i}`,
+        publishedAt: new Date(now - i * 1_000).toISOString(),
+        tags: [],
+      }));
+
+    mergeLiveuamapEvents(mk("ukraine", 0, "russia-ukraine", 80, "ua"));
+    mergeLiveuamapEvents(mk("iran", 66, "middle-east", 55, "ir"));
+    mergeLiveuamapEvents(mk("yemen", 53, "middle-east", 40, "ye"));
+
+    const { events } = getLiveuamapStore();
+    const byRegion = (id: LiveuamapRegionId) =>
+      events.filter((e) => e.regionId === id);
+
+    expect(byRegion("ukraine")).toHaveLength(LIVEUAMAP_MAX_EVENTS_PER_REGION);
+    expect(byRegion("iran")).toHaveLength(LIVEUAMAP_MAX_EVENTS_PER_REGION);
+    expect(byRegion("yemen")).toHaveLength(40);
+    expect(byRegion("ukraine")[0]?.id).toBe("ua-0");
+    expect(byRegion("iran")[0]?.id).toBe("ir-0");
   });
 });
