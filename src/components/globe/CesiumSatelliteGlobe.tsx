@@ -586,6 +586,26 @@ function takeAisForDisplay(
   const thinned = thinWorldwide(rest, { cellDeg, perCell, max: restBudget });
   return [...milKeep, ...thinned].slice(0, max);
 }
+
+/**
+ * 민간 항적 화면 샘플 — 줌아웃은 전 지구 균등, 줌인은 카메라 근접.
+ */
+function takeCivForDisplay(
+  items: MilitaryAircraft[],
+  max: number,
+  tier: ReturnType<typeof getGlobeLod>["tier"],
+  centerLat: number,
+  centerLng: number,
+): MilitaryAircraft[] {
+  if (items.length <= max) return items;
+  const worldwide = tier === "global" || tier === "continent" || tier === "regional";
+  if (!worldwide) {
+    return takeNearestByBudget(items, max, centerLat, centerLng);
+  }
+  const cellDeg = tier === "global" ? 12 : tier === "continent" ? 9 : 6;
+  const perCell = tier === "global" ? 10 : tier === "continent" ? 12 : 14;
+  return thinWorldwide(items, { cellDeg, perCell, max });
+}
 /** WebGL/부팅 실패를 즉시 에러 UI로 떨어뜨리지 않는 유예(ms) */
 const CESIUM_LOAD_GRACE_MS = 22_000;
 

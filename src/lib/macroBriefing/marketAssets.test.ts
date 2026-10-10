@@ -24,7 +24,7 @@ describe("macro market assets", () => {
     expect(hint.chokepointId).toBe("choke-hormuz");
     expect(hint.symbols).toEqual(expect.arrayContaining(["CL=F", "BZ=F", "NG=F", "^VIX"]));
     expect(hint.symbols.length).toBeLessThanOrEqual(6);
-    expect(hint.note).toMatch(/해석용|투자 권유 아님/);
+    expect(hint.note).toMatch(/초크 연계|원유|호르무즈|에너지/);
   });
 
   it("maps russia-ukraine theater to grain/energy economy set", () => {
