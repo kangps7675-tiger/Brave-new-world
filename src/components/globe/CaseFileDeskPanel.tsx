@@ -15,7 +15,7 @@ import {
   uploadEvidenceImage,
   type SensorEvidenceSource,
 } from "@/lib/caseFile/clientApi";
-import { evidenceSourceKind, type EvidenceSourceKind } from "@/lib/caseFile/sourceKind";
+import { evidenceSourceKind } from "@/lib/caseFile/sourceKind";
 import {
   readActiveCaseId,
   readCaseEditorToken,
