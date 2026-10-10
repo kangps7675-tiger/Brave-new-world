@@ -3700,7 +3700,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Marker>
         ))}
 
-        {/* Ukraine front LOD: soft macro/micro overlap */}
+        {/* LiveUA 다전장 전선 LOD: soft macro/micro overlap (UA·IR·YE·LB·IL-PS) */}
         {ukraineMacroGeoJson.features.length > 0 ? (
           <Source id="ukraine-macro-source" type="geojson" data={ukraineMacroGeoJson}>
             <Layer
@@ -3710,7 +3710,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={[
                 "all",
                 ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
-                ["in", ["get", "role"], ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]]],
+                [
+                  "any",
+                  [
+                    "in",
+                    ["get", "role"],
+                    ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]],
+                  ],
+                  ["==", ["get", "source"], "liveuamap"],
+                ],
               ]}
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
@@ -3740,7 +3748,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={[
                 "all",
                 ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
-                ["in", ["get", "role"], ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]]],
+                [
+                  "any",
+                  [
+                    "in",
+                    ["get", "role"],
+                    ["literal", ["ru-occupied", "ua-occupied", "ru-claimed", "ua-claimed"]],
+                  ],
+                  ["==", ["get", "source"], "liveuamap"],
+                ],
               ]}
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
