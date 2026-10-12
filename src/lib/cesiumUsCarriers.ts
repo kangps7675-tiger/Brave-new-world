@@ -1,7 +1,8 @@
 /**
  * 관측(Cesium) — 미 항모 갑판 아이콘 + 추정 해역 링.
  * USNI 보도는 해역 단위라 정확 좌표가 아니다 → 모항이 아니면 반경 링으로 불확실성을 보인다.
- * 빌보드/라벨은 지구 뒤편을 뚫지 않게 depth + EllipsoidalOccluder(show)로 가린다.
+ * 빌보드/라벨은 지구 뒤편을 뚫지 않게 depth=0 + EllipsoidalOccluder(show)로 가린다.
+ * (라이브 AIS처럼 Infinity depth를 쓰지 않는다 — 한 프레임만 오클루전이 늦어도 관통한다.)
  */
 import type { UsCarrier } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
@@ -32,6 +33,18 @@ function createGlobeOccluder(
   return new Ctor(viewer.scene.globe.ellipsoid, viewer.camera.positionWC);
 }
 
+/** 카메라 기준 가시 여부 — 빌보드/라벨/타원 show에 매 프레임 평가 */
+function occlusionShowProperty(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+  position: import("cesium").Cartesian3,
+): import("cesium").CallbackProperty {
+  return new Cesium.CallbackProperty(() => {
+    if (viewer.isDestroyed()) return false;
+    return createGlobeOccluder(Cesium, viewer).isPointVisible(position);
+  }, false);
+}
+
 let deckIconUri: string | null = null;
 function deckIcon(): string {
   if (!deckIconUri) {
@@ -60,7 +73,6 @@ export function syncUsCarrierEntities(
   show: boolean,
 ): void {
   const seen = new Set<string>();
-  const occluder = createGlobeOccluder(Cesium, viewer);
   if (show) {
     for (const c of carriers) {
       if (!Number.isFinite(c.lat) || !Number.isFinite(c.lng)) continue;
@@ -68,7 +80,7 @@ export function syncUsCarrierEntities(
       const ringId = `${RING_PREFIX}${c.id}`;
       seen.add(id);
       const position = Cesium.Cartesian3.fromDegrees(c.lng, c.lat, CARRIER_HEIGHT_M);
-      const visible = occluder.isPointVisible(position);
+      const graphicsShow = occlusionShowProperty(Cesium, viewer, position);
       const statusColor = Cesium.Color.fromCssColorString(US_CARRIER_STATUS_COLORS[c.status]);
       const name = usCarrierHoverLabel(c);
       const labelText = `${c.name.replace(/^USS\s+/i, "")} ${c.hull}`;
@@ -77,11 +89,13 @@ export function syncUsCarrierEntities(
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = name;
-        existing.show = visible;
+        existing.show = true;
         if (existing.billboard) {
+          existing.billboard.show = graphicsShow;
           existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
         }
         if (existing.label) {
+          existing.label.show = graphicsShow;
           existing.label.text = new Cesium.ConstantProperty(labelText);
           existing.label.fillColor = new Cesium.ConstantProperty(statusColor);
           existing.label.disableDepthTestDistance = new Cesium.ConstantProperty(0);
@@ -91,15 +105,17 @@ export function syncUsCarrierEntities(
           id,
           name,
           position,
-          show: visible,
+          show: true,
           billboard: {
+            show: graphicsShow,
             image: deckIcon(),
             width: 44,
             height: 22,
-            // 지구 반대편 관통 방지 — 가시 반구는 show + preRender 오클루전
+            // 절대 Infinity 금지 — 지구 반대편 관통 방지
             disableDepthTestDistance: 0,
           },
           label: {
+            show: graphicsShow,
             text: labelText,
             font: "600 11px system-ui, sans-serif",
             fillColor: statusColor,
@@ -118,14 +134,18 @@ export function syncUsCarrierEntities(
         seen.add(ringId);
         if (ring) {
           ring.position = new Cesium.ConstantPositionProperty(position);
-          ring.show = visible;
+          ring.show = true;
+          if (ring.ellipse) {
+            ring.ellipse.show = graphicsShow;
+          }
         } else {
           viewer.entities.add({
             id: ringId,
             name,
             position,
-            show: visible,
+            show: true,
             ellipse: {
+              show: graphicsShow,
               semiMajorAxis: AREA_RING_M,
               semiMinorAxis: AREA_RING_M,
               height: 0,
