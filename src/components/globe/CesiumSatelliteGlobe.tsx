@@ -744,7 +744,8 @@ const LIVE_DEPTH_PREFIXES = [
   "mil:",
   "civ:",
   "hybrid-pin:",
-  "carrier:",
+  // 항모는 제외 — Infinity depth면 오클루전 한 프레임이라도 뚫려 보임.
+  // 갑판 아이콘은 depth=0 + show 오클루전만 쓴다 (cesiumUsCarriers).
 ] as const;
 const liveDepthFarByViewer = new WeakMap<import("cesium").Viewer, boolean>();
 
@@ -1031,8 +1032,22 @@ function updateGlobeEntityOcclusion(
       continue;
     }
     const position = entity.position?.getValue(viewer.clock.currentTime);
-    if (!position) continue;
-    entity.show = occluder.isPointVisible(position);
+    if (!position) {
+      // 위치 없으면 이전 show 유지 금지 — 뒤편에 Infinity billboard가 남을 수 있음
+      entity.show = false;
+      continue;
+    }
+    const visible = occluder.isPointVisible(position);
+    entity.show = visible;
+    // 항모: LIVE_DEPTH가 다시 Infinity를 넣지 못하게 매 프레임 depth 고정
+    if (entity.id.startsWith("carrier:")) {
+      if (entity.billboard) {
+        entity.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+      }
+      if (entity.label) {
+        entity.label.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+      }
+    }
   }
 }
 
