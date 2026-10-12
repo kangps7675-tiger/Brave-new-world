@@ -738,7 +738,14 @@ const AIS_TRACKER_FAR_SCALE_STRONG = 1.0;
  */
 const LIVE_DEPTH_OFF_ABOVE_M = 2_500_000;
 const LIVE_DEPTH_ON_BELOW_M = 1_800_000;
-const LIVE_DEPTH_PREFIXES = ["ais:", "disguised:", "mil:", "civ:", "hybrid-pin:"] as const;
+const LIVE_DEPTH_PREFIXES = [
+  "ais:",
+  "disguised:",
+  "mil:",
+  "civ:",
+  "hybrid-pin:",
+  "carrier:",
+] as const;
 const liveDepthFarByViewer = new WeakMap<import("cesium").Viewer, boolean>();
 
 function liveDepthTestDistance(viewer: import("cesium").Viewer): number {
@@ -978,6 +985,8 @@ const GLOBE_OCCLUSION_PREFIXES = [
   "neptun-ground:",
   "mil:",
   "civ:",
+  "carrier:",
+  "carrier-ring:",
   "alert:",
   "liveua:",
   "liveua-strike:",
