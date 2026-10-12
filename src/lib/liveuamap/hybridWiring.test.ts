@@ -8,6 +8,7 @@ import {
 import {
   __resetLiveuamapStoreForTests,
   getLiveuamapStore,
+  LIVEUAMAP_MAX_EVENTS_PER_REGION,
   LIVEUAMAP_MAX_HYBRID_EVENTS,
   mergeLiveuamapEvents,
 } from "@/lib/liveuamap/store";
@@ -68,14 +69,14 @@ describe("normalizePlace hybrid tagging", () => {
 });
 
 describe("store keeps hybrid incidents past the per-region window", () => {
-  it("retains hybrid events that 50 newer strikes would otherwise push out", () => {
+  it("retains hybrid events that newer strikes would otherwise push out of the region window", () => {
     const now = Date.now();
     const hybrid = event({
       id: "hy-old",
       publishedAt: new Date(now - 30 * 3_600_000).toISOString(),
       tags: ["hybrid", "hybrid:airspace-incursion", "hybrid-zone:ce-europe"],
     });
-    const flood = Array.from({ length: 60 }, (_, i) =>
+    const flood = Array.from({ length: LIVEUAMAP_MAX_EVENTS_PER_REGION + 20 }, (_, i) =>
       event({
         id: `s-${i}`,
         publishedAt: new Date(now - i * 60_000).toISOString(),
@@ -84,7 +85,9 @@ describe("store keeps hybrid incidents past the per-region window", () => {
     mergeLiveuamapEvents([hybrid, ...flood]);
     const ids = getLiveuamapStore().events.map((e) => e.id);
     expect(ids).toContain("hy-old");
-    expect(ids.filter((id) => id.startsWith("s-"))).toHaveLength(50);
+    expect(ids.filter((id) => id.startsWith("s-"))).toHaveLength(
+      LIVEUAMAP_MAX_EVENTS_PER_REGION,
+    );
   });
 
   it("drops a normal event older than 48h but keeps a hybrid one up to 72h", () => {
@@ -118,7 +121,7 @@ describe("store keeps hybrid incidents past the per-region window", () => {
     );
     mergeLiveuamapEvents(many);
     const hybrids = getLiveuamapStore().events.filter((e) => e.tags.includes("hybrid"));
-    // 지역별 50건 창과 별도로 하이브리드 보관 상한(40건)이 적용된다
+    // 지역별 창과 별도로 하이브리드 보관 상한(40건)이 적용된다
     expect(hybrids.length).toBeLessThanOrEqual(LIVEUAMAP_MAX_HYBRID_EVENTS + 20);
     expect(hybrids.length).toBeGreaterThan(0);
   });

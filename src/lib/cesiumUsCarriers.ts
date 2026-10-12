@@ -1,15 +1,36 @@
 /**
  * 관측(Cesium) — 미 항모 갑판 아이콘 + 추정 해역 링.
  * USNI 보도는 해역 단위라 정확 좌표가 아니다 → 모항이 아니면 반경 링으로 불확실성을 보인다.
+ * 빌보드/라벨은 지구 뒤편을 뚫지 않게 depth + EllipsoidalOccluder(show)로 가린다.
  */
 import type { UsCarrier } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { carrierDeckIconSvg } from "@/lib/usCarrierDeckIcon";
 
 export const CESIUM_CARRIER_PREFIX = "carrier:";
-const RING_PREFIX = "carrier-ring:";
+export const CESIUM_CARRIER_RING_PREFIX = "carrier-ring:";
+const RING_PREFIX = CESIUM_CARRIER_RING_PREFIX;
 /** 해역 추정 반경 — 보도 해역 중심 좌표에서 실제 위치까지 흔히 수백 km */
 const AREA_RING_M = 250_000;
+/** 글로브에 묻히지 않게 살짝 띄움 (m) — depth test 켠 상태에서도 보임 */
+const CARRIER_HEIGHT_M = 800;
+
+type GlobeOccluder = {
+  isPointVisible: (point: import("cesium").Cartesian3) => boolean;
+};
+
+function createGlobeOccluder(
+  Cesium: typeof import("cesium"),
+  viewer: import("cesium").Viewer,
+): GlobeOccluder {
+  const Ctor = (Cesium as unknown as {
+    EllipsoidalOccluder: new (
+      ellipsoid: import("cesium").Ellipsoid,
+      cameraPosition: import("cesium").Cartesian3,
+    ) => GlobeOccluder;
+  }).EllipsoidalOccluder;
+  return new Ctor(viewer.scene.globe.ellipsoid, viewer.camera.positionWC);
+}
 
 let deckIconUri: string | null = null;
 function deckIcon(): string {
@@ -39,13 +60,15 @@ export function syncUsCarrierEntities(
   show: boolean,
 ): void {
   const seen = new Set<string>();
+  const occluder = createGlobeOccluder(Cesium, viewer);
   if (show) {
     for (const c of carriers) {
       if (!Number.isFinite(c.lat) || !Number.isFinite(c.lng)) continue;
       const id = `${CESIUM_CARRIER_PREFIX}${c.id}`;
       const ringId = `${RING_PREFIX}${c.id}`;
       seen.add(id);
-      const position = Cesium.Cartesian3.fromDegrees(c.lng, c.lat, 0);
+      const position = Cesium.Cartesian3.fromDegrees(c.lng, c.lat, CARRIER_HEIGHT_M);
+      const visible = occluder.isPointVisible(position);
       const statusColor = Cesium.Color.fromCssColorString(US_CARRIER_STATUS_COLORS[c.status]);
       const name = usCarrierHoverLabel(c);
       const labelText = `${c.name.replace(/^USS\s+/i, "")} ${c.hull}`;
@@ -54,20 +77,27 @@ export function syncUsCarrierEntities(
       if (existing) {
         existing.position = new Cesium.ConstantPositionProperty(position);
         existing.name = name;
+        existing.show = visible;
+        if (existing.billboard) {
+          existing.billboard.disableDepthTestDistance = new Cesium.ConstantProperty(0);
+        }
         if (existing.label) {
           existing.label.text = new Cesium.ConstantProperty(labelText);
           existing.label.fillColor = new Cesium.ConstantProperty(statusColor);
+          existing.label.disableDepthTestDistance = new Cesium.ConstantProperty(0);
         }
       } else {
         viewer.entities.add({
           id,
           name,
           position,
+          show: visible,
           billboard: {
             image: deckIcon(),
             width: 44,
             height: 22,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            // 지구 반대편 관통 방지 — 가시 반구는 show + preRender 오클루전
+            disableDepthTestDistance: 0,
           },
           label: {
             text: labelText,
@@ -77,7 +107,7 @@ export function syncUsCarrierEntities(
             outlineWidth: 3,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             pixelOffset: new Cesium.Cartesian2(0, 18),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            disableDepthTestDistance: 0,
           },
         });
       }
@@ -88,11 +118,13 @@ export function syncUsCarrierEntities(
         seen.add(ringId);
         if (ring) {
           ring.position = new Cesium.ConstantPositionProperty(position);
+          ring.show = visible;
         } else {
           viewer.entities.add({
             id: ringId,
             name,
             position,
+            show: visible,
             ellipse: {
               semiMajorAxis: AREA_RING_M,
               semiMinorAxis: AREA_RING_M,

@@ -318,7 +318,7 @@ describe("mergeLiveuamapEvents", () => {
     expect(events[11]?.id).toBeTruthy();
   });
 
-  it("keeps up to 50 newest flashes per region so non-UA slots are not crowded out", () => {
+  it("keeps up to LIVEUAMAP_MAX_EVENTS_PER_REGION newest flashes per region", () => {
     const now = Date.now();
     const mk = (
       regionId: LiveuamapRegionId,
@@ -341,8 +341,8 @@ describe("mergeLiveuamapEvents", () => {
         tags: [],
       }));
 
-    mergeLiveuamapEvents(mk("ukraine", 0, "russia-ukraine", 80, "ua"));
-    mergeLiveuamapEvents(mk("iran", 66, "middle-east", 55, "ir"));
+    mergeLiveuamapEvents(mk("ukraine", 0, "russia-ukraine", 250, "ua"));
+    mergeLiveuamapEvents(mk("iran", 66, "middle-east", 220, "ir"));
     mergeLiveuamapEvents(mk("yemen", 53, "middle-east", 40, "ye"));
 
     const { events } = getLiveuamapStore();

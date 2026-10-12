@@ -4,14 +4,14 @@ import {
 } from "@/lib/liveuamap/budget";
 
 /**
- * 지역별 최신 속보 상한 — mpts `count=50`과 맞춤.
+ * 지역별 최신 속보 상한 — mpts `count`(LIVEUAMAP_MPTS_COUNT=200)과 맞춤.
  * 전역 링버퍼만 쓰면 우크라가 비우크라 슬롯을 밀어내므로 regionId당 유지.
  */
-export const LIVEUAMAP_MAX_EVENTS_PER_REGION = 50;
+export const LIVEUAMAP_MAX_EVENTS_PER_REGION = 200;
 const MAX_AGE_MS = 48 * 60 * 60 * 1000;
 /**
  * 하이브리드전 사건은 드물고 우크라 전투 속보에 묻히기 쉬워 따로 보관한다.
- * 지역별 50건 창과 48시간을 넘겨 72시간·최대 40건까지 유지.
+ * 지역별 창과 48시간을 넘겨 72시간·최대 40건까지 유지.
  */
 const HYBRID_MAX_AGE_MS = 72 * 60 * 60 * 1000;
 export const LIVEUAMAP_MAX_HYBRID_EVENTS = 40;
