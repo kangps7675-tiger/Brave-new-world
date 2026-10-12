@@ -5,6 +5,8 @@ export type RawRssItem = {
   category?: string;
   publisher?: string;
   imageUrl?: string;
+  /** 사진 설명 — 지명 추출 전용. 표시·재배포하지 않는다 */
+  imageCaption?: string;
   summary?: string;
 };
 
@@ -88,6 +90,32 @@ function extractImageUrl(block: string, description: string): string | undefined
   return undefined;
 }
 
+/** 사진 설명 상한 — 요약과 같은 인용 한도 안에서만 보관한다 */
+const IMAGE_CAPTION_MAX = 200;
+
+/**
+ * 사진 설명(캡션) — 「위치로 가기」 지명 추출 재료.
+ * media:description / media:title / figcaption / img alt 순. 표시용 본문이 아니다.
+ */
+function extractImageCaption(block: string, description: string): string | undefined {
+  const candidates: string[] = [
+    tagContent(block, "media:description"),
+    tagContent(block, "media:title"),
+    tagContent(block, "media:text"),
+  ];
+  const html = description || tagContent(block, "content:encoded") || tagContent(block, "content");
+  const figcaption = html.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i);
+  if (figcaption) candidates.push(figcaption[1]);
+  const alt = html.match(/<img[^>]+alt=["']([^"']{8,})["']/i);
+  if (alt) candidates.push(alt[1]);
+
+  for (const raw of candidates) {
+    const plain = stripHtml(raw ?? "").trim();
+    if (plain.length >= 8) return truncateSummary(plain, IMAGE_CAPTION_MAX);
+  }
+  return undefined;
+}
+
 function extractSummary(block: string, title: string): string | undefined {
   /*
    * 순서가 곧 저작권 정책이다 — **뒤집지 말 것.**
@@ -150,6 +178,7 @@ export function parseRssXml(xml: string): RawRssItem[] {
       category,
       publisher,
       imageUrl: extractImageUrl(block, description),
+      imageCaption: extractImageCaption(block, description),
       summary: extractSummary(block, title),
     });
   }

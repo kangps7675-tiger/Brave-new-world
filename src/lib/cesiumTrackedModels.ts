@@ -1,7 +1,6 @@
 /**
- * Observe ADS-B — 실제 고도에 띄운 glTF.
- * 기본: clutter 예산을 통과한 표시 항공기 전부 ModelGraphics (전 항공기 glTF).
- * near-cluster 모드는 추적/저고도 근처만 (레거시·테스트).
+ * Observe ADS-B — 실제 고도에 띄운 glTF (추적·저고도 근처만).
+ * 빌보드는 항상 유지 — glTF 부재/실패 시에도 실루엣이 남는다.
  */
 import { observeRequestRender } from "@/lib/cesiumObserveRenderGovernor";
 
@@ -92,14 +91,15 @@ function pickNearestIds(
 
 /**
  * glTF를 붙일 mil:/civ: id 집합.
- * 기본(all-displayed): candidates 전부 — 상한은 liveRenderGuard clutter.
+ * 기본(near-cluster): 추적·저고도 근처만 — glTF 부재/실패 시에도 빌보드가 남게 한다.
+ * all-displayed는 테스트·명시 옵트인용.
  */
 export function selectObserveModelEntityIds(
   trackedId: string | null,
   candidates: ObserveModelCandidate[],
   opts?: SelectObserveModelOpts,
 ): Set<string> {
-  const mode = opts?.mode ?? "all-displayed";
+  const mode = opts?.mode ?? "near-cluster";
   if (mode === "all-displayed") {
     return new Set(candidates.map((c) => c.entityId));
   }
@@ -238,8 +238,9 @@ export function syncObserveAircraftModels(
           silhouetteSize: emphasized ? 1.2 : 0,
         });
       }
+      // glTF 로드 실패·부재 시에도 실루엣이 남도록 빌보드는 끄지 않는다.
       if (entity.billboard) {
-        entity.billboard.show = new Cesium.ConstantProperty(false);
+        entity.billboard.show = new Cesium.ConstantProperty(true);
       }
     } else if (entity.model) {
       entity.model = undefined;

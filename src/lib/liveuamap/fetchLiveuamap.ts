@@ -31,6 +31,7 @@ import type { OccupiedGeoJson } from "@/lib/deepstate/toOccupiedGeoJson";
 import { liveuamapFieldsToOccupiedGeoJson } from "@/lib/liveuamap/toOccupiedGeoJson";
 import { asNumber, asString } from "@/lib/liveuamap/parseHelpers";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
+import { classifyHybridIncident, withHybridTags } from "@/lib/liveuamap/hybridWarfare";
 
 const MPTS_BASE = "https://a.liveuamap.com/api";
 
@@ -202,6 +203,14 @@ export function normalizePlace(
     : [];
 
   const blob = `${title} ${body} ${tags.join(" ")}`;
+  // 하이브리드전(나토 동부 국경 침범·아시아 회색지대) — 분류가 맞으면 태그로 남겨 보관·표시에 쓴다
+  const hybrid = classifyHybridIncident({
+    title: title || body.slice(0, 120),
+    body,
+    tags,
+    lat,
+    lng,
+  });
   return {
     id,
     regionId: slot.id,
@@ -216,7 +225,7 @@ export function normalizePlace(
     sourceUrl,
     viaSource: asString(o.viaSource) || asString(o.resource) || undefined,
     publishedAt: timestampToIso(o.timestamp ?? o.publishedAt ?? o.date ?? o.time),
-    tags,
+    tags: withHybridTags(tags, hybrid),
   };
 }
 

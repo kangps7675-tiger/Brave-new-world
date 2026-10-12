@@ -55,7 +55,103 @@ const REGIONS: RegionHit[] = [
     score: 10,
   },
   {
-    keys: [/arabian\s*sea/i, /persian\s*gulf/i, /\bhormuz\b/i, /gulf of oman/i, /red\s*sea/i],
+    keys: [/red\s*sea/i, /\bjeddah\b/i, /bab[\s-]*el[\s-]*mandeb/i],
+    lat: 20.0,
+    lng: 38.5,
+    location: "Red Sea",
+    defaultStatus: "deployed",
+    score: 11,
+  },
+  {
+    keys: [/gulf of aden/i, /\bdjibouti\b/i],
+    lat: 12.5,
+    lng: 47.0,
+    location: "Gulf of Aden",
+    defaultStatus: "deployed",
+    score: 11,
+  },
+  {
+    keys: [/mediterranean/i, /\badriatic\b/i, /ionian\s*sea/i, /\bsouda\s*bay\b/i],
+    lat: 35.5,
+    lng: 18.0,
+    location: "Mediterranean Sea",
+    defaultStatus: "deployed",
+    score: 10,
+  },
+  {
+    keys: [/north\s*sea/i, /norwegian\s*sea/i, /north\s*atlantic/i, /\bbaltic\b/i],
+    lat: 62.0,
+    lng: 2.0,
+    location: "North Atlantic / North Sea",
+    defaultStatus: "deployed",
+    score: 9,
+  },
+  {
+    keys: [/caribbean/i],
+    lat: 15.0,
+    lng: -75.0,
+    location: "Caribbean Sea",
+    defaultStatus: "deployed",
+    score: 9,
+  },
+  {
+    keys: [/east\s*china\s*sea/i],
+    lat: 29.0,
+    lng: 125.0,
+    location: "East China Sea",
+    defaultStatus: "deployed",
+    score: 10,
+  },
+  {
+    keys: [/sea\s+of\s+japan/i, /\beast\s+sea\b/i],
+    lat: 39.5,
+    lng: 134.0,
+    location: "Sea of Japan (East Sea)",
+    defaultStatus: "deployed",
+    score: 10,
+  },
+  {
+    keys: [/\bbusan\b/i],
+    lat: 35.1,
+    lng: 129.05,
+    location: "Busan, South Korea",
+    defaultStatus: "deployed",
+    score: 12,
+  },
+  {
+    keys: [/\bokinawa\b/i],
+    lat: 26.3,
+    lng: 127.8,
+    location: "Near Okinawa",
+    defaultStatus: "deployed",
+    score: 9,
+  },
+  {
+    keys: [/\bguam\b/i, /apra\s*harbor/i],
+    lat: 13.44,
+    lng: 144.66,
+    location: "Guam",
+    defaultStatus: "deployed",
+    score: 9,
+  },
+  {
+    keys: [/pearl\s*harbor/i, /\bhawaii/i],
+    lat: 21.35,
+    lng: -157.95,
+    location: "Pearl Harbor / Hawaii",
+    defaultStatus: "deployed",
+    score: 8,
+  },
+  {
+    keys: [/indian\s*ocean/i, /diego\s*garcia/i],
+    lat: -5.0,
+    lng: 75.0,
+    location: "Indian Ocean",
+    defaultStatus: "deployed",
+    score: 7,
+  },
+  {
+    keys: [/arabian\s*sea/i, /persian\s*gulf/i, /\bhormuz\b/i, /gulf of oman/i],
     lat: 17.2,
     lng: 63.8,
     location: "Arabian Sea / CENTCOM",
@@ -145,6 +241,8 @@ function escapeRegExp(s: string): string {
 }
 
 function inferStatus(windowText: string, fallback: UsCarrierStatus): UsCarrierStatus {
+  // The text window spans neighbouring carriers' paragraphs, so an open-sea region outranks port wording.
+  if (fallback === "deployed") return "deployed";
   if (
     /\b(DPIA|RCOH|shipyard|drydock|dry-dock|maintenance|PIA|decommission)/i.test(windowText)
   ) {

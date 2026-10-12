@@ -2134,7 +2134,7 @@ export function useLayerPanelCategories({
             : []),
           {
             id: "allied-blocs",
-            label: "진영 블록 (NATO·AUKUS·CRINK·양자동맹)",
+            label: "진영 블록 (NATO·AUKUS·QUAD·CRINK·양자동맹)",
             detail: layerPrefs.showAlliedBlocs
               ? "국가별 진영 소속 음영 (조약·통칭 기반, 한국·일본·필리핀·태국·카타르·바레인 포함) — 기본 켜짐"
               : "꺼짐",

@@ -1,4 +1,8 @@
-import type { TransportPath } from "@/data/geoTypes";
+import {
+  formatAisMatchParagraph,
+  matchIncidentToAis,
+} from "@/lib/vesselIncidentMatch";
+import type { AisVessel, TransportPath } from "@/data/geoTypes";
 
 /**
  * UKMTO 사건 → 「검은 동그라미 빗금 박스」.
@@ -263,6 +267,31 @@ export type UkmtoBriefingContent = {
 };
 
 export function buildUkmtoBriefingContent(
+  incident: UkmtoIncidentPoint,
+  lang: "ko" | "en",
+  /** 현재 수신 중인 AIS — 있으면 선박 교차 대조 문단을 붙인다 (비어 있으면 생략) */
+  aisVessels?: AisVessel[],
+): UkmtoBriefingContent {
+  const content = buildUkmtoBriefingBase(incident, lang);
+  if (!aisVessels || aisVessels.length === 0) return content;
+  const matches = matchIncidentToAis(
+    {
+      id: incident.id,
+      lat: incident.lat,
+      lng: incident.lng,
+      vesselName: incident.vesselName,
+      vesselType: incident.vesselType,
+      utcDateOfIncident: incident.utcDateOfIncident,
+    },
+    aisVessels,
+  );
+  const paragraphs = [...content.paragraphs];
+  // 선박 줄(2번째) 바로 뒤에 붙인다
+  paragraphs.splice(2, 0, formatAisMatchParagraph(matches, lang, aisVessels.length));
+  return { ...content, paragraphs };
+}
+
+function buildUkmtoBriefingBase(
   incident: UkmtoIncidentPoint,
   lang: "ko" | "en",
 ): UkmtoBriefingContent {

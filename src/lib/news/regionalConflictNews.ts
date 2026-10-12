@@ -37,9 +37,17 @@ export const REGIONAL_SOCIAL_SOFT_RE =
 export const REGIONAL_CONFLICT_HARD_RE =
   /\bwar\b|\bwarfare\b|\bconflict\b|\bmilitary\b|\barmy\b|\bnavy\b|\bair\s?force\b|\bmissile\b|\bdrone\b|\bstrike\b|\bbomb(ing)?\b|\bartillery\b|\boffensive\b|\binsurgency\b|\bmilitia\b|\bjihad\b|\bterror(ist|ism)?\b|\bcoup\b|\bjunta\b|\brebel\b|\barmed\b|\bcombat\b|\bbattle\b|\bceasefire\b|\bfront\s?line\b|\btension\b|\bescalat|\bdeployment\b|\bexercise\b|\bdrill\b|\bnaval\b|\bbase\b|\bsanction\b|\bblockade\b|\bmartial\s?law\b|\bwagner\b|\bafrica\s?corps\b|\bpla\b|\bplan\b|\bcoast\s?guard\b|\bmilitia|군사|전선|교전|미사일|드론|공습|쿠데타|반군|민병|긴장|제재|해군|훈련|배치/i;
 
+/**
+ * 시위·선거 기사라도 체제가 흔들리는 수준(계엄·통금·무력진압·사망·총파업·쿠데타)이면
+ * 사회면 소프트 배제에서 건져 지정학 속보로 올린다.
+ */
+export const REGIONAL_UNREST_ESCALATION_RE =
+  /\b(martial\s?law|state\s?of\s?emergency|curfew|crackdown|tear\s?gas|live\s?(?:fire|rounds)|protesters?\s?(?:killed|dead|shot)|general\s?strike|coup|junta|troops?\s?(?:deployed|fire[sd]?)|army\s?(?:deployed|deploys?)|storm(?:ed|ing)\s?(?:the\s?)?(?:parliament|palace|capitol)|election\s?(?:fraud|rigg\w*|annul\w*)|rigged\s?election|vote\s?rigging|ballot\s?stuffing|post[ -]?election\s?(?:violence|unrest))\b|부정\s?선거|선거\s?(?:조작|불복|무효)|계엄|비상사태|통행금지|무력\s?진압|최루탄|총파업|쿠데타/i;
+
 export function isConflictTensionNews(text: string): boolean {
   const blob = text.trim();
   if (!blob) return false;
+  if (REGIONAL_UNREST_ESCALATION_RE.test(blob)) return true;
 
   const softOnly =
     REGIONAL_SOCIAL_SOFT_RE.test(blob) && !REGIONAL_CONFLICT_HARD_RE.test(blob);

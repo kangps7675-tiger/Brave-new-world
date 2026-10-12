@@ -143,3 +143,26 @@ describe("liveuaGroundAssault", () => {
     expect(liveuaConfirmedStrike(event("Infantry assaulted the village"))).toBeNull();
   });
 });
+
+describe("liveuaConfirmedStrike — guided bombs", () => {
+  it("keeps a guided glide bomb that hit a site", () => {
+    expect(
+      liveuaConfirmedStrike(event("Russian guided bomb struck a residential block in Kharkiv")),
+    ).toEqual({ kind: "bomb" });
+    expect(
+      liveuaConfirmedStrike(event("하르키우에 유도폭탄 피격", { titleKo: "하르키우에 유도폭탄 피격" })),
+    ).toEqual({ kind: "bomb" });
+  });
+
+  it("prefers missile when both are named", () => {
+    expect(
+      liveuaConfirmedStrike(event("Missile and KAB glide bomb hit Zaporizhzhia")),
+    ).toEqual({ kind: "missile" });
+  });
+
+  it("ignores a bomb that was not confirmed to land", () => {
+    expect(
+      liveuaConfirmedStrike(event("Guided bomb intercepted over Sumy")),
+    ).toBeNull();
+  });
+});

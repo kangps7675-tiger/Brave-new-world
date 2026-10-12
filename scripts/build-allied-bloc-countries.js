@@ -1,7 +1,10 @@
 /**
- * NATO/AUKUS/CRINK/CSTO + 미국 양자조약(한국·일본·필리핀·태국)/기지주둔·조약없음(카타르·바레인)
+ * NATO/AUKUS/QUAD/CRINK/CSTO + 미국 양자조약(한국·필리핀·태국)/기지주둔·조약없음(카타르·바레인)
  * 국가 경계 — Natural Earth 110m에서 추출.
  * axis-hub-countries.json(CHN/RUS/PRK/IRN, 10m)과 별개 — 새 진영 오버레이 전용.
+ *
+ * 우선순위(다중 소속): CRINK > CSTO > AUKUS > QUAD > NATO > 양자조약 > 기지주둔
+ * 예) 미·호 → AUKUS / 일본·인도 → QUAD / 한국 → 양자조약(파란)
  *
  * Usage: node build-allied-bloc-countries.js ne110_countries.geojson
  */
@@ -18,13 +21,14 @@ const NATO_ISOS = [
 ];
 // AUKUS — 3개 서명국 (2021 조약). 출처: aukusalliance.org / gov.uk.
 const AUKUS_ISOS = ["USA", "GBR", "AUS"];
+// QUAD — 미·일·호·인 4자 안보대화. 출처: 쿼드 정상회의 정례 멤버십.
+const QUAD_ISOS = ["USA", "JPN", "AUS", "IND"];
 // CRINK — 중·러·이란·북한 (서방 국방 당국·언론이 쓰는 통칭, 조약 아님).
 const CRINK_ISOS = ["CHN", "RUS", "PRK", "IRN"];
 // CSTO — 러시아 주도 집단안보조약기구, CRINK 비중복 회원. 출처: odkb-csto.org.
 const CSTO_ISOS = ["BLR", "ARM", "KAZ", "KGZ", "TJK"];
-// 미국 양자 상호방위조약국 (나토/오커스 비회원) — 한미(1953)·미일(1960)·美-필리핀 MDT(1951)·
-// 美-태국 조약(1954). 아시아 사각지대 보완: 조약+상시기지가 있어도 다자블록 회원이 아니면
-// 기존 스킴에서 무색 처리되던 문제를 해결.
+// 미국 양자 상호방위조약국 — 한미(1953)·미일(1960)·美-필리핀 MDT(1951)·美-태국(1954).
+// 일본은 QUAD에 포함되므로 화면에서는 QUAD 색이 이김(목록은 근거용으로 유지).
 const US_BILATERAL_TREATY_ISOS = ["KOR", "JPN", "PHL", "THA"];
 // 기지는 주둔하나 정식 상호방위조약은 아닌 특수 케이스 — 카타르(알우데이드), 바레인(美 5함대).
 const US_SECURITY_PARTNER_ISOS = ["QAT", "BHR"];
@@ -32,6 +36,7 @@ const US_SECURITY_PARTNER_ISOS = ["QAT", "BHR"];
 const ALL_ISOS = new Set([
   ...NATO_ISOS,
   ...AUKUS_ISOS,
+  ...QUAD_ISOS,
   ...CRINK_ISOS,
   ...CSTO_ISOS,
   ...US_BILATERAL_TREATY_ISOS,
@@ -195,11 +200,12 @@ function main() {
   }
 
   function bloc(iso) {
-    // 우선순위: CRINK > CSTO(CRINK연계) > AUKUS > NATO > 양자조약 > 기지주둔·조약없음
+    // 우선순위: CRINK > CSTO > AUKUS > QUAD > NATO > 양자조약 > 기지주둔
     // — 다중 소속 시 더 특정적인(좁은) 분류가 이김
     if (CRINK_ISOS.includes(iso)) return "crink";
     if (CSTO_ISOS.includes(iso)) return "crink-aligned";
     if (AUKUS_ISOS.includes(iso)) return "aukus";
+    if (QUAD_ISOS.includes(iso)) return "quad";
     if (NATO_ISOS.includes(iso)) return "nato";
     if (US_BILATERAL_TREATY_ISOS.includes(iso)) return "us-bilateral-treaty";
     if (US_SECURITY_PARTNER_ISOS.includes(iso)) return "us-security-partner";
@@ -209,6 +215,7 @@ function main() {
   const order = [
     ...NATO_ISOS,
     ...AUKUS_ISOS,
+    ...QUAD_ISOS,
     ...CRINK_ISOS,
     ...CSTO_ISOS,
     ...US_BILATERAL_TREATY_ISOS,

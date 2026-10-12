@@ -8,6 +8,7 @@ import {
   type LiveuaFlashChokepoint,
 } from "@/lib/liveuamap/flashMarketContext";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
+import { hybridNote } from "@/lib/liveuamap/hybridWarfare";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
@@ -44,6 +45,7 @@ export function LiveuaEventFocusCard({
   const title = peeled.title;
   const body = peeled.body;
   const market = liveuaFlashMarketContext(event);
+  const hybrid = hybridNote(event, en ? "en" : "ko");
   const hasMedia = Boolean(event.imageUrl || event.videoUrl);
   const hasBridge =
     market.symbols.length > 0 || Boolean(market.chokepoint) || Boolean(onEnableShipTraffic);
@@ -97,6 +99,9 @@ export function LiveuaEventFocusCard({
           </button>
         </div>
 
+        {hybrid ? (
+          <p className="text-micro font-medium leading-snug text-sky-200/90">{hybrid}</p>
+        ) : null}
         {body ? (
           <p className="line-clamp-3 text-micro leading-snug text-amber-100/70">{body}</p>
         ) : null}

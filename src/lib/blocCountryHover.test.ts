@@ -16,6 +16,19 @@ describe("blocCountryHover", () => {
     }
   });
 
+  it("parses QUAD bloc properties", () => {
+    const f = blocFeatureFromMapProps("allied-bloc-countries-fill", {
+      iso: "IND",
+      name: "India",
+      bloc: "quad",
+    });
+    expect(f?.polygonLayer).toBe("allied-bloc");
+    if (f?.polygonLayer === "allied-bloc") {
+      expect(f.bloc).toBe("quad");
+      expect(f.iso).toBe("IND");
+    }
+  });
+
   it("parses geoecon memberships", () => {
     const f = blocFeatureFromMapProps("geoecon-bloc-countries-fill", {
       iso: "SGP",

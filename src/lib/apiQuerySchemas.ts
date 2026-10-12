@@ -25,7 +25,7 @@ export const firmsFiresQuerySchema = z.object({
 });
 
 export const adsbMilQuerySchema = z.object({
-  max: z.coerce.number().int().min(1).max(2000).optional().default(400),
+  max: z.coerce.number().int().min(1).max(3000).optional().default(400),
   live: liveFlagSchema,
 });
 
@@ -35,7 +35,7 @@ export const adsbTrafficQuerySchema = z
     lat: z.coerce.number().min(-90).max(90).optional(),
     lng: z.coerce.number().min(-180).max(180).optional(),
     dist: z.coerce.number().min(25).max(1500).optional().default(250),
-    max: z.coerce.number().int().min(1).max(5000).optional().default(2000),
+    max: z.coerce.number().int().min(1).max(5000).optional().default(3000),
     live: liveFlagSchema,
   })
   .refine((data) => (data.lat == null) === (data.lng == null), {
