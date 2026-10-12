@@ -7,11 +7,12 @@ const LIVE = GEOWATCH_CONFIG.polling;
 
 /** 줌아웃일수록 HTML 마커(ADS-B/AIS) DOM 비용을 강하게 컷 */
 const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 56,
-  continent: 90,
-  regional: 120,
-  near: 160,
-  village: 220,
+  // Cesium billboard 기준 — 전 세계 군용기가 줌아웃에서도 보이게 (fetch max 3000까지)
+  global: 600,
+  continent: 900,
+  regional: 1300,
+  near: 1800,
+  village: 2400,
 };
 
 /**
@@ -36,11 +37,12 @@ const AIS_DISPLAY_CEILING = 1000;
  * 렉 기둥(폴링 간격·fetch cap)은 유지.
  */
 const AIR_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 520,
-  continent: 640,
-  regional: 780,
-  near: 900,
-  village: 1100,
+  // fetch max(3000)까지 — 전 지구 균등 샘플이 줌아웃에서도 촘촘히 보이게
+  global: 1500,
+  continent: 1800,
+  regional: 2200,
+  near: 2600,
+  village: 3000,
 };
 
 /**
@@ -141,7 +143,7 @@ export function liveMilPollMs(): number {
 }
 
 export function liveMilFetchMax(): number {
-  return isClientApiStubMode() ? 400 : 1200;
+  return isClientApiStubMode() ? 400 : 3000;
 }
 
 export function liveMilDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
@@ -154,7 +156,7 @@ export function liveAirTrafficPollMs(): number {
 }
 
 export function liveAirTrafficFetchMax(): number {
-  return isClientApiStubMode() ? 350 : 2000;
+  return isClientApiStubMode() ? 350 : 3000;
 }
 
 export function liveAirTrafficDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {

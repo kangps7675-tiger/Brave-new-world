@@ -104,7 +104,8 @@ function isRegionId(key: string): key is LiveuamapRegionId {
     key === "lebanon" ||
     key === "israel-palestine" ||
     key === "taiwan" ||
-    key === "korea"
+    key === "korea" ||
+    key === "nato-east"
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
+import type { AisVessel } from "@/data/geoTypes";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
 import type { MaritimeAlertOffer } from "@/components/MaritimeAlertOfferBanner";
 import {
@@ -45,6 +46,8 @@ type UseMaritimeAlertBriefsOptions = {
   showUkmtoIncidents: boolean;
   navareaFeatures: NavareaFeaturePoint[];
   ukmtoIncidents: UkmtoIncidentPoint[];
+  /** 현재 수신 AIS — UKMTO 브리핑에 선박 교차 대조를 붙인다 */
+  aisVessels?: AisVessel[];
   flyTo: FlyToFn;
   patchLayerPrefsSoft: (patch: Partial<LayerPrefs>) => void;
   layerPrefsLiveRef: MutableRefObject<LayerPrefs>;
@@ -69,12 +72,15 @@ export function useMaritimeAlertBriefs({
   showUkmtoIncidents,
   navareaFeatures,
   ukmtoIncidents,
+  aisVessels,
   flyTo,
   patchLayerPrefsSoft,
   layerPrefsLiveRef,
   skipNextGlobeClickRef,
   satelliteAutoFlash = false,
 }: UseMaritimeAlertBriefsOptions) {
+  const aisVesselsRef = useRef<AisVessel[] | undefined>(aisVessels);
+  aisVesselsRef.current = aisVessels;
   const [ukmtoBriefing, setUkmtoBriefing] = useState<UkmtoBriefingContent | null>(null);
   const ukmtoBriefTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [navareaBriefing, setNavareaBriefing] = useState<NavareaBriefingContent | null>(null);
@@ -98,7 +104,9 @@ export function useMaritimeAlertBriefs({
       flyTo(incident.lat, incident.lng, 0.52, 900, { pitch: 48, bearing: -12 });
       ukmtoBriefTimerRef.current = setTimeout(() => {
         ukmtoBriefTimerRef.current = null;
-        setUkmtoBriefing(buildUkmtoBriefingContent(incident, labelLanguage));
+        setUkmtoBriefing(
+          buildUkmtoBriefingContent(incident, labelLanguage, aisVesselsRef.current),
+        );
       }, 780);
     },
     [flyTo, labelLanguage, skipNextGlobeClickRef],
@@ -267,7 +275,11 @@ export function useMaritimeAlertBriefs({
       if (!claimMaritimeFlash(fresh.key)) return;
       maritimeOfferBusyRef.current = true;
       if (fresh.payload.source === "ukmto" && fresh.payload.ukmto) {
-        const content = buildUkmtoBriefingContent(fresh.payload.ukmto, labelLanguage);
+        const content = buildUkmtoBriefingContent(
+          fresh.payload.ukmto,
+          labelLanguage,
+          aisVesselsRef.current,
+        );
         setUkmtoBriefing({
           ...content,
           title: withMaritimeFlashTitle(content.title, lang),

@@ -47,6 +47,9 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   showDisguisedVessels?: boolean;
   showMilitaryActivity?: boolean;
   showAirTraffic?: boolean;
+  /** 미 항모 — 관측(Cesium) 갑판 아이콘 */
+  cesiumUsCarriers?: import("@/data/geoTypes").UsCarrier[];
+  showCesiumUsCarriers?: boolean;
   /** NEPTUN — 관측(Cesium) 모드 UAV·미사일 */
   neptunThreats?: import("@/lib/neptun").NeptunLiveThreat[];
   showNeptun?: boolean;
@@ -89,6 +92,8 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   /** 워치보드 DeskFocus — 스포트라이트·등급 핀·PIR 슬롯 디밍 */
   deskFocus?: import("@/lib/intelContract/deskFocus").DeskFocus | null;
   liveuaStrikes?: import("@/lib/cesiumLiveuaStrikes").CesiumLiveuaStrikePoint[];
+  /** 하이브리드전 사건 핀 (Liveuamap + RSS) */
+  hybridPins?: import("@/lib/hybridIncidentPins").HybridIncidentPin[];
   liveuaGround?: import("@/lib/cesiumLiveuaGround").CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
   onPickGroundPoint?: (point: { lat: number; lng: number }) => void;
@@ -134,6 +139,8 @@ export function GlobeMapCanvas({
   showDisguisedVessels,
   showMilitaryActivity,
   showAirTraffic,
+  cesiumUsCarriers,
+  showCesiumUsCarriers,
   neptunThreats,
   showNeptun,
   cesiumRef,
@@ -154,6 +161,7 @@ export function GlobeMapCanvas({
   focusedLiveuaId,
   deskFocus,
   liveuaStrikes,
+  hybridPins,
   liveuaGround,
   onSelectLiveuaPin,
   onPickGroundPoint,
@@ -203,6 +211,8 @@ export function GlobeMapCanvas({
             showDisguisedVessels={showDisguisedVessels}
             showMilitaryActivity={showMilitaryActivity}
             showAirTraffic={showAirTraffic}
+            usCarriers={cesiumUsCarriers}
+            showUsCarriers={showCesiumUsCarriers}
             neptunThreats={neptunThreats}
             showNeptun={showNeptun}
             onReady={onCesiumReady}
@@ -222,6 +232,7 @@ export function GlobeMapCanvas({
             focusedLiveuaId={focusedLiveuaId}
             deskFocus={deskFocus}
             liveuaStrikes={liveuaStrikes}
+            hybridPins={hybridPins}
             liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
             onPickGroundPoint={onPickGroundPoint}

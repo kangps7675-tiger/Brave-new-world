@@ -49,6 +49,7 @@ import {
   pruneTrackHistory,
   trackHistoryRetentionDays,
 } from "./trackHistory";
+import { refreshUsCarriers } from "./usCarriers";
 
 export type { IngestEnv };
 
@@ -420,11 +421,19 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       env,
       "ship-movements",
     );
-    usCarriersWarm = await warmEndpoint(
-      env.US_CARRIERS_WARM_URL,
-      env,
-      "us-carriers",
-    );
+    if (env.US_CARRIERS_WARM_URL?.trim()) {
+      usCarriersWarm = await warmEndpoint(env.US_CARRIERS_WARM_URL, env, "us-carriers");
+    } else {
+      try {
+        usCarriersWarm = await refreshUsCarriers(env);
+      } catch (error) {
+        usCarriersWarm = {
+          ok: false,
+          status: 0,
+          detail: error instanceof Error ? error.message : "us-carriers refresh failed",
+        };
+      }
+    }
     deepstateOccupiedWarm = await warmEndpoint(
       env.DEEPSTATE_SYNC_URL,
       env,

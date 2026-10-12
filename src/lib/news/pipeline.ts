@@ -397,6 +397,7 @@ async function fetchFeedItems(feed: NewsFeedDef): Promise<NewsStreamItem[]> {
         econGenre: feedTopic === "economy" ? feed.econGenre ?? "markets" : undefined,
         category: item.category,
         imageUrl: item.imageUrl,
+        imageCaption: item.imageCaption,
         summary: item.summary,
       } satisfies NewsStreamItem;
     });

@@ -19,13 +19,20 @@ import {
   type LiveuaReadState,
 } from "@/lib/liveuamap/readState";
 import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
-import { filterLiveuaEnergySupplyFlashes } from "@/lib/news/energySupplyFlash";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 
 const LIVEUA_FEED_POLL_MS = 15_000;
 const LIVEUA_PARCHMENT_AUTO_ADVANCE_MS = 12_000;
-/** 새 에너지 속보 도착 후 양피지 자동 오픈까지 짧은 유예 */
-const LIVEUA_ENERGY_AUTO_OPEN_MS = 1_200;
+/** 새 속보 도착 후 양피지 자동 오픈까지 짧은 유예 */
+const LIVEUA_AUTO_OPEN_MS = 1_200;
+/** 속보함·양피지 큐에 올리는 최근 구간 — 그 이전 이력은 지도 핀으로만 */
+const LIVEUA_BREAKING_WINDOW_MS = 6 * 60 * 60 * 1000;
+/** 하이브리드전 사건은 드물어 더 길게 큐에 둔다 */
+const LIVEUA_HYBRID_WINDOW_MS = 24 * 60 * 60 * 1000;
+/** 큐 상한 — 최신순으로 자른다 */
+const LIVEUA_BREAKING_MAX = 30;
+/** 접속 시점에 이미 있던 속보라도 이 안쪽이면 "방금 난 속보"로 보고 띄운다 */
+const LIVEUA_FRESH_MS = 10 * 60 * 1000;
 
 export type UseLiveuaObserveFeedOptions = {
   isSatelliteViewer: boolean;
@@ -38,18 +45,18 @@ export type UseLiveuaObserveFeedResult = {
   /** 원본 전체 (지도 핀 등) */
   liveuaEvents: LiveuamapEvent[];
   /**
-   * 관측대 속보함·양피지용 — 유가·가스·초크·공급망만.
-   * 개수 제한 없음.
+   * 관측대 속보함·양피지용 — 주제 무관, 최근 6시간 최신순 (최대 30건).
+   * 양피지 자동 오픈은 접속 후 새로 들어온 것만.
    */
-  liveuaEnergyEvents: LiveuamapEvent[];
+  liveuaBreakingEvents: LiveuamapEvent[];
   liveuaToast: LiveuamapEvent | null;
   setLiveuaToast: Dispatch<SetStateAction<LiveuamapEvent | null>>;
-  /** 에너지 속보 중 미열람 수 */
+  /** 속보 큐 중 미열람 수 */
   liveuaUnread: number;
   liveuaReadIds: ReadonlySet<string>;
   markLiveuaRead: (id: string) => void;
   markAllLiveuaRead: () => void;
-  /** liveuaEnergyEvents 기준 인덱스 */
+  /** liveuaBreakingEvents 기준 인덱스 */
   liveuaParchmentIndex: number | null;
   setLiveuaParchmentIndex: Dispatch<SetStateAction<number | null>>;
   focusedLiveuaId: string | null;
@@ -60,7 +67,7 @@ export type UseLiveuaObserveFeedResult = {
 
 /**
  * 관측(Cesium) LiveUA 피드.
- * 속보함·양피지는 유가·가스·초크·공급망만 — 해당하면 몇 개든 큐에 올린다.
+ * 속보함·양피지는 주제 구분 없이 최근 속보 — 자동 오픈은 접속 후 새로 도착한 것만.
  */
 export function useLiveuaObserveFeed({
   isSatelliteViewer,
@@ -73,10 +80,21 @@ export function useLiveuaObserveFeed({
   const [focusedLiveuaId, setFocusedLiveuaId] = useState<string | null>(null);
 
   const liveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
-  const liveuaEnergyEvents = useMemo(
-    () => filterLiveuaEnergySupplyFlashes(liveuaEvents),
-    [liveuaEvents],
-  );
+  const liveuaBreakingEvents = useMemo(() => {
+    const now = Date.now();
+    const cutoff = now - LIVEUA_BREAKING_WINDOW_MS;
+    const hybridCutoff = now - LIVEUA_HYBRID_WINDOW_MS;
+    return liveuaEvents
+      .map((e) => ({ e, at: Date.parse(e.publishedAt) }))
+      .filter(
+        ({ e, at }) =>
+          Number.isFinite(at) &&
+          at >= ((e.tags ?? []).includes("hybrid") ? hybridCutoff : cutoff),
+      )
+      .sort((a, b) => b.at - a.at)
+      .slice(0, LIVEUA_BREAKING_MAX)
+      .map(({ e }) => e);
+  }, [liveuaEvents]);
 
   useEffect(() => {
     if (readState) saveLiveuaReadState(readState);
@@ -85,10 +103,10 @@ export function useLiveuaObserveFeed({
   const liveuaUnread = useMemo(
     () =>
       readState
-        ? liveuaEnergyEvents.filter((e) => isLiveuaUnreadArrival(readState, e.id))
+        ? liveuaBreakingEvents.filter((e) => isLiveuaUnreadArrival(readState, e.id))
             .length
         : 0,
-    [liveuaEnergyEvents, readState],
+    [liveuaBreakingEvents, readState],
   );
 
   const liveuaReadIds = useMemo(
@@ -103,21 +121,23 @@ export function useLiveuaObserveFeed({
   }, []);
 
   const markAllLiveuaRead = useCallback(() => {
-    const ids = liveuaEnergyEvents.map((e) => e.id);
+    const ids = liveuaBreakingEvents.map((e) => e.id);
     setReadState((prev) =>
       markLiveuaIdsRead(prev ?? loadLiveuaReadState() ?? createLiveuaReadState(), ids),
     );
-  }, [liveuaEnergyEvents]);
+  }, [liveuaBreakingEvents]);
 
   const openedLiveuaId =
     liveuaParchmentIndex != null
-      ? liveuaEnergyEvents[liveuaParchmentIndex]?.id ?? null
+      ? liveuaBreakingEvents[liveuaParchmentIndex]?.id ?? null
       : focusedLiveuaId;
   useEffect(() => {
     if (openedLiveuaId) markLiveuaRead(openedLiveuaId);
   }, [openedLiveuaId, markLiveuaRead]);
   const liveuaCycleStepsRef = useRef(0);
   const autoOpenedIdsRef = useRef<Set<string>>(new Set());
+  /** 이 접속에서 첫 피드에 이미 들어 있던 id — 자동 오픈 대상이 아니다 */
+  const baselineIdsRef = useRef<Set<string> | null>(null);
 
   const focusedLiveuaEvent = useMemo(
     () =>
@@ -142,6 +162,9 @@ export function useLiveuaObserveFeed({
         const payload = (await res.json()) as LiveuamapFeedPayload;
         if (cancelled) return;
         const ids = (payload.events ?? []).map((e) => e.id);
+        if (baselineIdsRef.current === null && payload.status !== "error") {
+          baselineIdsRef.current = new Set(ids);
+        }
         const nowMs = Date.now();
         setReadState((prev) =>
           registerLiveuaArrivals(
@@ -177,41 +200,46 @@ export function useLiveuaObserveFeed({
     };
   }, [isSatelliteViewer]);
 
-  /** 에너지 속보가 새로 오면 양피지 자동 오픈 (몇 개든 큐) */
+  /** 접속 후 새 속보가 오면 양피지 자동 오픈 (첫 피드의 기존 이력은 제외) */
   useEffect(() => {
     if (!isSatelliteViewer || theaterSitrepRegion) return;
     if (liveuaParchmentIndex != null) return;
     if (focusedLiveuaId) return;
-    if (!readState || liveuaEnergyEvents.length === 0) return;
+    if (!readState || liveuaBreakingEvents.length === 0) return;
 
-    const unreadIdx = liveuaEnergyEvents.findIndex(
-      (e) =>
-        isLiveuaUnreadArrival(readState, e.id) &&
-        !autoOpenedIdsRef.current.has(e.id),
-    );
+    const baseline = baselineIdsRef.current;
+    if (!baseline) return;
+    const nowMs = Date.now();
+    const unreadIdx = liveuaBreakingEvents.findIndex((e) => {
+      if (autoOpenedIdsRef.current.has(e.id)) return false;
+      if (!isLiveuaUnreadArrival(readState, e.id)) return false;
+      if (!baseline.has(e.id)) return true;
+      const at = Date.parse(e.publishedAt);
+      return Number.isFinite(at) && nowMs - at <= LIVEUA_FRESH_MS;
+    });
     if (unreadIdx < 0) return;
 
-    const targetId = liveuaEnergyEvents[unreadIdx]!.id;
+    const targetId = liveuaBreakingEvents[unreadIdx]!.id;
     const timer = window.setTimeout(() => {
       autoOpenedIdsRef.current.add(targetId);
       liveuaCycleStepsRef.current = 0;
       setLiveuaParchmentIndex(unreadIdx);
-    }, LIVEUA_ENERGY_AUTO_OPEN_MS);
+    }, LIVEUA_AUTO_OPEN_MS);
     return () => window.clearTimeout(timer);
   }, [
     isSatelliteViewer,
     theaterSitrepRegion,
     liveuaParchmentIndex,
     focusedLiveuaId,
-    liveuaEnergyEvents,
+    liveuaBreakingEvents,
     readState,
   ]);
 
-  /** 에너지 큐 순환 — 한 바퀴면 닫고 속보함으로 */
+  /** 속보 큐 순환 — 한 바퀴면 닫고 속보함으로 */
   useEffect(() => {
     if (!isSatelliteViewer || liveuaParchmentIndex == null) return;
     if (theaterSitrepRegion) return;
-    const n = liveuaEnergyEvents.length;
+    const n = liveuaBreakingEvents.length;
     if (n <= 0) {
       setLiveuaParchmentIndex(null);
       return;
@@ -230,27 +258,27 @@ export function useLiveuaObserveFeed({
   }, [
     isSatelliteViewer,
     liveuaParchmentIndex,
-    liveuaEnergyEvents.length,
+    liveuaBreakingEvents.length,
     theaterSitrepRegion,
   ]);
 
-  // 에너지 목록이 줄어 인덱스가 벗어나면 보정
+  // 속보 목록이 줄어 인덱스가 벗어나면 보정
   useEffect(() => {
     if (liveuaParchmentIndex == null) return;
-    if (liveuaEnergyEvents.length === 0) {
+    if (liveuaBreakingEvents.length === 0) {
       setLiveuaParchmentIndex(null);
       return;
     }
-    if (liveuaParchmentIndex >= liveuaEnergyEvents.length) {
-      setLiveuaParchmentIndex(liveuaEnergyEvents.length - 1);
+    if (liveuaParchmentIndex >= liveuaBreakingEvents.length) {
+      setLiveuaParchmentIndex(liveuaBreakingEvents.length - 1);
     }
-  }, [liveuaEnergyEvents.length, liveuaParchmentIndex]);
+  }, [liveuaBreakingEvents.length, liveuaParchmentIndex]);
 
   return {
     liveuaFeed,
     setLiveuaFeed,
     liveuaEvents,
-    liveuaEnergyEvents,
+    liveuaBreakingEvents,
     liveuaToast,
     setLiveuaToast,
     liveuaUnread,

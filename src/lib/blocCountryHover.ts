@@ -18,6 +18,7 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 const ALLIED_BLOCS = new Set<string>([
   "nato",
   "aukus",
+  "quad",
   "crink",
   "crink-aligned",
   "us-bilateral-treaty",
@@ -138,13 +139,15 @@ export function alliedBlocMeaning(bloc: AlliedBloc, lang: LabelLanguage): string
       case "nato":
         return "This country is shaded as NATO — the North Atlantic mutual-defense alliance.";
       case "aukus":
-        return "Shaded as AUKUS (Australia–UK–US security pact). More specific than NATO membership here.";
+        return "Shaded as AUKUS (Australia–UK–US security pact). More specific than QUAD/NATO here.";
+      case "quad":
+        return "Shaded as QUAD (US–Japan–Australia–India). Indo-Pacific dialogue — AUKUS members stay teal.";
       case "crink":
         return "Shaded as CRINK hub (China–Russia–Iran–North Korea). A Western analytic label, not a formal treaty.";
       case "crink-aligned":
         return "Shaded as CSTO / CRINK-aligned — Russia-led collective security, linked to the CRINK sketch.";
       case "us-bilateral-treaty":
-        return "US bilateral mutual-defense treaty partner (e.g. Korea, Japan, Philippines, Thailand).";
+        return "US bilateral mutual-defense treaty partner (e.g. Korea, Philippines, Thailand).";
       case "us-security-partner":
         return "Hosts major US bases under defense cooperation, without a full mutual-defense treaty.";
     }
@@ -153,13 +156,15 @@ export function alliedBlocMeaning(bloc: AlliedBloc, lang: LabelLanguage): string
     case "nato":
       return "이 나라는 NATO(북대서양조약기구) 상호방위 동맹 소속으로 칠해져 있습니다.";
     case "aukus":
-      return "AUKUS(호주·영국·미국 안보협정) 소속입니다. 이 지도에서는 NATO보다 더 특정한 분류로 표시됩니다.";
+      return "AUKUS(호주·영국·미국 안보협정) 소속입니다. 이 지도에서는 QUAD·NATO보다 더 특정한 분류로 표시됩니다.";
+    case "quad":
+      return "QUAD(미·일·호·인 4자 안보대화) 소속입니다. AUKUS 겹침 국가는 틸(AUKUS)이 이깁니다.";
     case "crink":
       return "CRINK(중국·러시아·이란·북한) 축 허브로 표시됩니다. 공식 동맹 조약 이름이 아니라 분석용 통칭입니다.";
     case "crink-aligned":
       return "CSTO(집단안보조약기구)·CRINK 연계권으로 표시됩니다. 러시아 주도 안보 협력권입니다.";
     case "us-bilateral-treaty":
-      return "미국과 양자 상호방위조약을 맺은 나라입니다(예: 한국·일본·필리핀·태국).";
+      return "미국과 양자 상호방위조약을 맺은 나라입니다(예: 한국·필리핀·태국).";
     case "us-security-partner":
       return "미군 기지가 있으나 정식 상호방위조약은 없는 안보 파트너입니다(예: 카타르·바레인).";
   }

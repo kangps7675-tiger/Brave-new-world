@@ -35,6 +35,7 @@ function kindLabel(kind: TheaterSitrepRow["kind"], en: boolean): string {
   if (en) return kind;
   if (kind === "drone") return "드론";
   if (kind === "missile") return "미사일";
+  if (kind === "bomb") return "유도폭탄";
   if (kind === "ground") return "지상";
   return "기타";
 }

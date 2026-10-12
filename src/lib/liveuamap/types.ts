@@ -12,7 +12,8 @@ export type LiveuamapRegionId =
   | "lebanon"
   | "israel-palestine"
   | "taiwan"
-  | "korea";
+  | "korea"
+  | "nato-east";
 
 export type LiveuamapEvent = {
   id: string;

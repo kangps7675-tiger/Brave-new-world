@@ -56,6 +56,16 @@ export type BreakingFlashBriefing = {
   videoUrl?: string;
   /** 수동 「위치로 가기」. RSS는 도시·마을 지명, Liveuamap은 피드 좌표. */
   coords?: { lat: number; lng: number };
+  /**
+   * 「위치로 가기」 좌표를 어디서 어떻게 얻었는지 — 정확한 지점인지 대표 도시 추정인지 구분해 표기한다.
+   * coords 가 있는데 place 가 없으면 전장 사전(제목 지명) 또는 LIVEUA 피드 좌표다.
+   */
+  place?: {
+    label: string;
+    precision: "city" | "landmark" | "country-rep";
+    country?: string;
+    from: "title" | "caption" | "summary";
+  };
   /** liveuamap이면 피드 좌표를 그대로 쓴다 */
   flashSource?: "rss" | "liveuamap";
   verbatim?: boolean;
@@ -286,6 +296,10 @@ export type ConflictFlashClass =
   | "blockade"
   | "hybrid"
   | "security_threat"
+  | "election_integrity"
+  | "civil_unrest"
+  | "political_emergence"
+  | "weapons"
   | "realignment"
   | "diplomacy"
   | "posture"
@@ -309,15 +323,57 @@ const CONFLICT_DIPLOMACY_RE =
   /\b(ceasefire|truce|peace\s?deal|withdrawal|talks?|negotiat|summit|deal\s?struck|hostage\s?release|de[\s-]?escalat|stand[\s-]?down)\b|휴전|정전|철군|협상|회담|합의|인질\s?석방|긴장\s?완화|철수/i;
 
 const CONFLICT_POSTURE_RE =
-  /\b(drill|exercise|deployment|carrier\s?strike|troop\s?buildup|mobiliz)\b|훈련|배치|항모|병력\s?증강|동원/i;
+  /\b(drills?|exercises?|war\s?games?|wargames?|live[\s-]?fire|maneuvers?|manoeuvres?|amphibious\s?(?:landing|assault|exercise)|deployment|carrier\s?strike|troop\s?buildup|mobiliz\w*)\b|훈련|연습|실사격|기동|배치|항모|병력\s?증강|동원/i;
+
+/** 훈련·연습 자체를 가리키는 표현만 (병력 배치·동원은 posture 일반 규칙에 남긴다) */
+const CONFLICT_EXERCISE_RE =
+  /\b(drills?|exercises?|war\s?games?|wargames?|live[\s-]?fire|maneuvers?|manoeuvres?|amphibious\s?(?:landing|assault|exercise))\b|훈련|연습|실사격/i;
+
+/**
+ * 신무기 — 시험(발사·비행시험), 실전배치(취역·인도·작전배치), 전장 첫 사용, 전쟁이 만든 무기 개발.
+ * 타격 결과(피격·사망) 기사는 kinetic 이 가져가므로 무기 이름만 나온 보도를 여기서 먼저 잡는다.
+ */
+const WEAPONS_TEST_RE =
+  /\b(test[\s-]?(?:fire[sd]?|launch(?:es|ed)?|flight|flew)|flight\s?test|successful(?:ly)?\s?test\w*|test(?:ed|s)\s?(?:a|its|new)\s?[\w\s-]{0,24}(?:missile|weapon|system|drone|warhead|engine)|launch(?:ed|es)\s?(?:a|its|new)\s?[\w\s-]{0,24}(?:missile|rocket|icbm|slbm))\b|시험\s?발사|발사\s?시험|비행\s?시험|성공적\s?시험|시험\s?비행/i;
+const WEAPONS_DEPLOY_RE =
+  /\b(?:enter(?:s|ed)?\s?service|commission(?:s|ed|ing)?|induct(?:s|ed|ion)|operational(?:ly)?\s?deploy\w*|put\s?into\s?service|initial\s?operating\s?capability|full[\s-]?rate\s?production|delivered\s?to|first\s?deliver\w*|(?:deploys?|deployed)\s?(?:new|its|the\s?first|first)\b)|실전\s?배치|작전\s?배치|취역|인수|전력화|양산\s?돌입|납품/i;
+const WEAPONS_COMBAT_RE =
+  /\b(?:first\s?(?:combat\s?)?use|combat\s?debut|battlefield\s?debut|first\s?used\s?in\s?(?:combat|battle)|(?:used|deployed|employed|fired)\s?in\s?(?:combat|battle|action)\s?for\s?the\s?first\s?time|used\s?for\s?the\s?first\s?time|combat[\s-]?tested|battle[\s-]?tested|combat[\s-]?proven|first\s?time\s?in\s?combat)\b|전장\s?(?:투입|첫\s?사용)|실전\s?투입|첫\s?실전|전투\s?검증/i;
+const WEAPONS_DEV_RE =
+  /\b(?:lessons?\s?from\s?(?:the\s?war\s?in\s?)?(?:ukraine|gaza|the\s?war)|wartime\s?(?:innovation|production|development)|war[\s-]?driven|developed\s?(?:in|during)\s?(?:the\s?)?war|new\s?(?:generation|type)\s?of\s?(?:drones?|weapons?|munitions?)|unveil(?:s|ed)\s?(?:a\s?|its\s?)?new|prototype|next[\s-]?generation\s?(?:drone|missile|weapon|fighter|tank)|counter[\s-]?drone\s?(?:system|laser)|loitering\s?munition)\b|전쟁\s?(?:교훈|경험)|신형|신무기|차세대|시제품|개발\s?완료/i;
+/** 무기 시험·배치 기사가 아니라 타격·사상 결과 보도 */
+const WEAPONS_STRIKE_OUTCOME_RE =
+  /\b(?:struck|hit|killed|dead|wounded|casualt\w*|injured|destroyed|shot\s?down|intercept\w*)\b|피격|사망|부상|격추|요격/i;
+
 
 /** 하이브리드전 — 사이버·사보타주·정보전·회색지대 도발 */
 const HYBRID_WARFARE_RE =
-  /\b(cyber\s?attack|cyberattack|hack(?:ed|ing)?|sabotage|gray[\s-]?zone|disinformation|influence\s?operation|espionage|spy\s?ring|submarine\s?cable\s?(?:cut|damaged)|gps\s?jamming|election\s?interference)\b|사이버\s?공격|해킹|사보타주|회색지대|허위정보|정보전|첩보|간첩|해저케이블|GPS\s?재밍|선거\s?개입/i;
+  /\b(cyber\s?attack|cyberattack|hack(?:ed|ing)?|sabotage|gray[\s-]?zone|disinformation|influence\s?operation|espionage|spy\s?ring|submarine\s?cable\s?(?:cut|damaged)|gps\s?jamming|election\s?interference|airspace\s?(?:violation|breach|incursion)|border\s?(?:violation|incursion)|drone\s?incursion|trash\s?balloons?|maritime\s?militia|water\s?cannon|undersea\s?cable)\b|사이버\s?공격|해킹|사보타주|회색지대|허위정보|정보전|첩보|간첩|해저케이블|GPS\s?재밍|선거\s?개입|영공\s?침범|국경\s?침범|오물\s?풍선|물대포/i;
 
 /** 안보 위협 — 테러·쿠데타·내란·계엄 등 국가 안보 사건 */
 const SECURITY_THREAT_RE =
   /\b(security\s?threat|terror(?:ist)?\s?(?:attack|plot)|militia|insurgent|coup|uprising|unrest|riot|martial\s?law)\b|안보\s?위협|테러|쿠데타|봉기|소요|계엄/i;
+
+/**
+ * 국가적 소요·정치 혼란 — 대규모 시위, 지지율 급락, 탄핵·불신임, 정부·연정 붕괴, 총파업.
+ * 군사 충돌은 아니지만 정권 안정·치안·시장에 번지는 사건이라 타전 대상이다.
+ */
+const CIVIL_UNREST_RE =
+  /\b(protest(?:s|ers?|ing)?|demonstrat(?:ion|ions|ors?)|mass\s?rall(?:y|ies)|anti[\s-]?government|general\s?strike|nation[\s-]?wide\s?strike|curfew|state\s?of\s?emergency|crackdown|tear\s?gas|impeach\w*|no[\s-]?confidence|approval\s?(?:rating|ratings)|snap\s?election|government\s?(?:collapse[sd]?|falls?)|coalition\s?collapse\w*|cabinet\s?resign\w*|political\s?(?:crisis|turmoil|deadlock)|power\s?struggle|opposition\s?(?:leader|party)\s?(?:arrested|detained|banned))\b|시위|집회|대규모\s?시위|총파업|통행금지|비상사태|무력\s?진압|탄핵|불신임|지지율|조기\s?총선|정부\s?붕괴|연정\s?붕괴|정국\s?혼란|정치\s?위기/i;
+
+/**
+ * 선거 공정성 — 부정선거·부실 관리·결과 불복·재검표·무효·개표 조작 주장.
+ * 투표일 일정 기사가 아니라 선거 체제 자체가 의심받는 사건만 잡는다.
+ */
+const ELECTION_INTEGRITY_RE =
+  /\b(election[s]?\s?(?:fraud|rigg(?:ed|ing)|manipulat\w*|irregularit\w*|interference|meddling|annul\w*|cancel\w*|postpone\w*|dispute[sd]?|crisis)|(?:rigged|stolen|disputed|contested|flawed|sham|fraudulent)\s?(?:election|vote|poll|ballot|result)s?|vote[\s-]?(?:rigging|buying|fraud|tampering|count\s?(?:halted|dispute))|ballot[\s-]?(?:stuffing|box\s?(?:theft|tamper\w*))|(?:recount|re[\s-]?run|runoff\s?(?:dispute|annul\w*))|results?\s?(?:rejected|annulled|contested|disputed|delayed|withheld)|electoral\s?(?:commission|body|fraud|irregularit\w*|malpractice)|(?:opposition|candidate)\s?(?:rejects?|refuses?\s?to\s?concede|claims?\s?(?:victory|fraud)|boycott\w*)|election\s?observers?|osce\s?observers?|post[\s-]?election\s?(?:violence|unrest|crackdown))\b|부정\s?선거|부실\s?선거|선거\s?(?:조작|부정|불복|무효|연기|취소|논란|개입)|개표\s?(?:조작|중단|논란)|재검표|결과\s?불복|선관위|선거\s?관리\s?(?:부실|논란)|투표\s?(?:조작|부정)/i;
+
+/**
+ * 차기 정치인 부상 — 선두 주자·여론조사 1위·출마 선언·후계 구도·정치 신예·야권 약진.
+ * 사람 이름을 지어내지 않고, 이런 신호가 기사에 있다는 사실만 표시한다.
+ */
+const POLITICAL_EMERGENCE_RE =
+  /\b(front[\s-]?runner|poll\s?(?:leader|lead|tops?|surge)|leads?\s?(?:the\s?)?polls?|(?:announces?|declares?|launches?|confirms?)\s?(?:a\s?)?(?:presidential\s?|prime[\s-]?ministerial\s?|leadership\s?)?(?:bid|candidacy|run|campaign)|runs?\s?for\s?(?:president|prime\s?minister|office|leader)|presidential\s?(?:bid|hopeful|contender|candidate)|(?:heir|successor|likely\s?successor|anointed\s?successor)|(?:rising|new)\s?(?:star|face|leader)|dark[\s-]?horse|political\s?(?:newcomer|outsider)|(?:wins?|clinch(?:es)?)\s?(?:the\s?)?(?:primary|party\s?leadership|nomination)|opposition\s?(?:surge|wave|gains?|landslide)|landslide\s?(?:win|victory)|exit\s?polls?)\b|차기\s?(?:대선|대통령|총리|주자|후보|지도자)|대선\s?(?:주자|출마|후보)|출마\s?선언|여론조사\s?(?:1위|선두)|지지율\s?(?:1위|선두|급등|급락)|후계\s?(?:구도|자)|정치\s?신예|출구조사|압승|돌풍/i;
 
 /** 안보 재편 — 동맹·방위조약·주둔 합의 등 안보 구조 변화 */
 const SECURITY_REALIGNMENT_RE =
@@ -329,14 +385,40 @@ const CONFLICT_EASE_RE =
 const CONFLICT_STRESS_RE =
   /\b(airstrike(?:s)?|missile(?:s)?|invasion|massacre|bombard(?:s|ed|ing|ment)?|shelling|blockade(?!\s+lifted)|ultimatum|talks?\s?collapse|escalat(?:e|es|ed|ing|ion)?|offensive|assassinate|nuclear|warhead|siege|killed|casualt(?:y|ies)?)\b|공습|미사일|침공|학살|포격|봉쇄(?!\s*해제)|최후통첩|협상\s?결렬|확전|공세|암살|핵|포위|사망|사상/i;
 
+export type WeaponsFlashKind = "test" | "deployment" | "combat" | "development";
+
+/** 신무기 보도의 성격 — 실전 투입 > 시험 > 배치 > 개발 순으로 강한 신호를 먼저 본다 */
+export function weaponsFlashKind(text: string): WeaponsFlashKind | null {
+  if (WEAPONS_COMBAT_RE.test(text)) return "combat";
+  if (WEAPONS_TEST_RE.test(text)) return "test";
+  if (WEAPONS_DEPLOY_RE.test(text)) return "deployment";
+  if (WEAPONS_DEV_RE.test(text)) return "development";
+  return null;
+}
+
+export function isWeaponsFlashText(text: string): boolean {
+  if (!weaponsFlashKind(text)) return false;
+  // 전장 첫 사용 보도는 타격 결과가 같이 있어도 신무기 사건이다
+  if (WEAPONS_COMBAT_RE.test(text)) return true;
+  return !WEAPONS_STRIKE_OUTCOME_RE.test(text);
+}
+
 function detectConflictEventClass(text: string): ConflictFlashClass {
   if (CONFLICT_NUCLEAR_RE.test(text)) return "nuclear";
+  if (isWeaponsFlashText(text)) return "weapons";
+  // "미사일 훈련"·"실사격 훈련"은 타격이 아니라 훈련 — 사상·피격 결과가 없을 때만
+  if (CONFLICT_EXERCISE_RE.test(text) && !WEAPONS_STRIKE_OUTCOME_RE.test(text)) return "posture";
   if (CONFLICT_KINETIC_RE.test(text)) return "kinetic";
   if (CONFLICT_BLOCKADE_RE.test(text) || isChokepointSecurityNews(text)) {
     return "blockade";
   }
   if (HYBRID_WARFARE_RE.test(text)) return "hybrid";
   if (SECURITY_THREAT_RE.test(text)) return "security_threat";
+  if (ELECTION_INTEGRITY_RE.test(text)) return "election_integrity";
+  if (CIVIL_UNREST_RE.test(text)) return "civil_unrest";
+  if (POLITICAL_EMERGENCE_RE.test(text)) return "political_emergence";
+  // "NATO 훈련"은 동맹 재편이 아니라 훈련이다 — realignment 가 NATO 단어를 먼저 가져가지 않게 앞에서 판정
+  if (CONFLICT_EXERCISE_RE.test(text)) return "posture";
   if (SECURITY_REALIGNMENT_RE.test(text)) return "realignment";
   if (CONFLICT_DIPLOMACY_RE.test(text)) return "diplomacy";
   if (CONFLICT_POSTURE_RE.test(text)) return "posture";
@@ -395,6 +477,16 @@ function bedFromSecurityLens(
       return polarity === "ease" ? "cheer" : "dark";
     case "security_threat":
       return polarity === "ease" ? "cheer" : "dark";
+    case "civil_unrest":
+      return polarity === "ease" ? "cheer" : "dark";
+    case "election_integrity":
+      return polarity === "ease" ? "cheer" : "dark";
+    case "political_emergence":
+      // 승패·부상은 가치중립 — 깔개 없이 모스만
+      return "morse";
+    case "weapons":
+      // 성능 과시·시험은 우열이 없다 — 깔개 없이 모스만
+      return "morse";
     case "realignment":
       return polarity === "ease" ? "cheer" : "dark";
     case "diplomacy":
@@ -414,6 +506,59 @@ function bedFromSecurityLens(
 export function resolveConflictFlashBed(text: string): "dark" | "cheer" | "morse" {
   const { eventClass, polarity } = classifyConflictFlash(text);
   return bedFromSecurityLens(eventClass, polarity);
+}
+
+/**
+ * 정치 신호 한 줄 — 이 속보가 어떤 정치 사건 유형으로 분류됐는지만 밝힌다.
+ * 인물·결과를 지어내지 않는다. 판단은 원문이 한다.
+ */
+function politicalSignalNote(
+  eventClass: ConflictFlashClass | "unknown",
+  ko: boolean,
+  text = "",
+): string | null {
+  switch (eventClass) {
+    case "weapons": {
+      const kind = weaponsFlashKind(text);
+      const koKind =
+        kind === "combat"
+          ? "전장 첫 투입"
+          : kind === "test"
+            ? "시험·발사"
+            : kind === "deployment"
+              ? "실전배치·취역"
+              : "개발·공개";
+      const enKind =
+        kind === "combat"
+          ? "first combat use"
+          : kind === "test"
+            ? "test / launch"
+            : kind === "deployment"
+              ? "deployment / commissioning"
+              : "development / unveiling";
+      return ko
+        ? `분류: 신무기 — ${koKind}. 성능·성과는 발표 주체의 주장일 수 있어 독립 검증 전까지 참고용입니다.`
+        : `Signal: new weapons — ${enKind}. Performance claims come from the announcing party and are not independently verified.`;
+    }
+    case "posture":
+      return ko
+        ? "분류: 군사훈련·병력 배치 — 일정·규모는 발표 기준이며 실제 전개와 다를 수 있습니다."
+        : "Signal: military exercise or deployment — schedule and scale are as announced and may differ in practice.";
+    case "election_integrity":
+      return ko
+        ? "분류: 선거 공정성 논란 — 부정·부실 관리·결과 불복 주장은 당사자 주장일 수 있어 원문 출처로 확인이 필요합니다."
+        : "Signal: election integrity dispute — fraud or mismanagement claims may be partisan; check the original source.";
+    case "political_emergence":
+      return ko
+        ? "분류: 차기 주자 부상 신호 — 여론조사·출마·후계 구도 관련 보도입니다. 이후 정권 향방의 선행 신호로 볼 수 있으나 결과는 확정이 아닙니다."
+        : "Signal: rising political contender — polls, candidacy or succession reporting; an early sign of leadership change, not a result.";
+    case "civil_unrest":
+      return ko
+        ? "분류: 국가적 소요·정치 혼란 — 시위 규모와 정부 대응 수위에 따라 사태가 커질 수 있습니다."
+        : "Signal: civil unrest or political turmoil — scale and the state's response determine whether it escalates.";
+    default:
+      return null;
+  }
 }
 
 /** 세션 중 이미 타전한 귀중 속보 id — 동일 기사 재타전 방지 */
@@ -680,6 +825,7 @@ export function buildBreakingFlashBriefing(
   const verbatim = Boolean(hero.verbatim || hero.flashSource === "liveuamap");
 
   const summitLike = isSummitDiplomacyText(blob);
+  const politicalClass = economy ? "unknown" : detectConflictEventClass(blob);
   const kicker = economy
     ? ko
       ? "지경학 신속 속보"
@@ -688,9 +834,29 @@ export function buildBreakingFlashBriefing(
       ? ko
         ? "회담 신속 속보"
         : "Summit flash"
-      : ko
-        ? "정세 신속 속보"
-        : "Situation flash";
+      : politicalClass === "election_integrity"
+        ? ko
+          ? "선거 공정성 신속 속보"
+          : "Election integrity flash"
+        : politicalClass === "political_emergence"
+          ? ko
+            ? "차기 주자 신속 속보"
+            : "Rising contender flash"
+          : politicalClass === "civil_unrest"
+            ? ko
+              ? "국가 소요 신속 속보"
+              : "Civil unrest flash"
+            : politicalClass === "weapons"
+              ? ko
+                ? "신무기 신속 속보"
+                : "New weapons flash"
+              : politicalClass === "posture"
+                ? ko
+                  ? "군사훈련 신속 속보"
+                  : "Military exercise flash"
+                : ko
+                  ? "정세 신속 속보"
+                  : "Situation flash";
 
   let paragraphs: string[];
   if (verbatim) {
@@ -736,6 +902,9 @@ export function buildBreakingFlashBriefing(
     paragraphs = summitParas.length > 0 ? [...summitParas, ...essay] : essay;
   }
 
+  const signalNote = politicalSignalNote(politicalClass, ko, blob);
+  if (signalNote) paragraphs = [signalNote, ...paragraphs];
+
   const liveua = hero.flashSource === "liveuamap";
   const namedPlace = liveua
     ? null
@@ -774,8 +943,82 @@ export function buildBreakingFlashBriefing(
   };
 }
 
-/** 한글 UI — 번역 후 타전 브리핑 생성 (LIVEUA 원문은 번역·재작성 생략) */
+/**
+ * RSS 속보에 위치가 없으면(전장 사전에 없는 나라의 시위·정변 등) 제목·사진 설명·요약에서
+ * 세계 도시/국가를 찾아 「위치로 가기」 좌표를 채운다. 사전은 커서 이때만 동적 import 한다.
+ */
+async function withWorldPlace(
+  briefing: BreakingFlashBriefing,
+  hero: HeroBreakingItem,
+  lang: LabelLanguage,
+): Promise<BreakingFlashBriefing> {
+  if (briefing.coords || briefing.flashSource === "liveuamap") return briefing;
+  try {
+    const { resolveWorldPlace } = await import("@/lib/geo/worldPlaceMatch");
+    // 제목 → 사진 설명 → 요약 → 한글 번역 제목·요약 순으로 기사 안의 위치 단서를 모두 본다
+    const hit = resolveWorldPlace([
+      hero.title,
+      hero.imageCaption,
+      hero.summary,
+      hero.titleKo,
+      hero.bodyKo,
+    ]);
+    if (!hit) return briefing;
+    const from =
+      hit.partIndex === 0 || hit.partIndex === 3
+        ? "title"
+        : hit.partIndex === 1
+          ? "caption"
+          : "summary";
+    const ko = lang !== "en";
+    const fromLabel = ko
+      ? { title: "제목", caption: "사진 설명", summary: "요약" }[from]
+      : { title: "headline", caption: "photo caption", summary: "summary" }[from];
+    const note =
+      hit.precision === "city"
+        ? ko
+          ? `위치: ${hit.label} — 기사 ${fromLabel}에 나온 지명 기준.`
+          : `Location: ${hit.label} — named in the article ${fromLabel}.`
+        : hit.precision === "landmark"
+          ? ko
+            ? `위치: ${hit.label} — 기사 ${fromLabel}에 나온 시험장·기지·해역 기준(대략적 중심점, 정확한 발사·훈련 지점은 아님).`
+            : `Location: ${hit.label} — a test range, base or sea area named in the ${fromLabel} (approximate centre, not the exact launch or drill spot).`
+        : ko
+          ? `위치: ${hit.country} 대표 도시 ${hit.label} 기준(추정) — 기사 ${fromLabel}에 도시가 없어 나라만으로 잡았으며, 실제 사건 지점은 다를 수 있습니다.`
+          : `Location: ${hit.label}, representative city of ${hit.country} (estimate) — only the country was named in the ${fromLabel}; the actual spot may differ.`;
+    return {
+      ...briefing,
+      coords: { lat: hit.lat, lng: hit.lng },
+      place: {
+        label: hit.label,
+        precision: hit.precision,
+        country: hit.country,
+        from,
+      },
+      paragraphs: [...briefing.paragraphs, note],
+    };
+  } catch {
+    return briefing;
+  }
+}
+
+/** 한글 UI — 번역 후 타전 브리핑 생성 + 위치 보강 (LIVEUA 원문은 번역·재작성 생략) */
 export async function buildBreakingFlashBriefingForLang(
+  hero: HeroBreakingItem,
+  lang: LabelLanguage,
+  preferEconomy: boolean,
+  opts?: { peaceScienceDomain?: "conflict" | "economy" | null },
+): Promise<BreakingFlashBriefing> {
+  const briefing = await buildBreakingFlashBriefingTranslated(
+    hero,
+    lang,
+    preferEconomy,
+    opts,
+  );
+  return withWorldPlace(briefing, hero, lang);
+}
+
+async function buildBreakingFlashBriefingTranslated(
   hero: HeroBreakingItem,
   lang: LabelLanguage,
   preferEconomy: boolean,

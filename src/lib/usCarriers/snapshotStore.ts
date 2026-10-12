@@ -1,18 +1,12 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { usCarrierSnapshots } from "@/db/schema";
-import { US_CARRIERS_SEED, type UsCarrier } from "@/data/usCarriers";
+import { US_CARRIERS_SEED } from "@/data/usCarriers";
+import type { UsCarrierSnapshotPayload } from "@/lib/usCarriers/buildSnapshot";
+
+export type { UsCarrierSnapshotPayload } from "@/lib/usCarriers/buildSnapshot";
 
 export const US_CARRIER_SNAPSHOT_KEY = "latest";
-
-export type UsCarrierSnapshotPayload = {
-  carriers: UsCarrier[];
-  updatedAt: string;
-  source: string;
-  updatedIds?: string[];
-  reportUrl?: string | null;
-  via?: string | null;
-};
 
 export async function loadUsCarrierSnapshot(): Promise<UsCarrierSnapshotPayload | null> {
   try {

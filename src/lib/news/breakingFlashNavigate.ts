@@ -51,6 +51,13 @@ export function runBreakingFlashGoToLocation({
   ) {
     revealIncidentEnergyPipelines();
   }
+  /** 이름 있는 지점·해역·나라 대표 도시는 도시보다 넓게 보여 줘야 위치가 어긋나 보이지 않는다 */
+  const altitudeFor = () => {
+    const precision = breakingFlash.place?.precision;
+    if (precision === "country-rep") return Math.max(incidentEntryAltitude, 1.1);
+    if (precision === "landmark") return Math.max(incidentEntryAltitude, 0.7);
+    return incidentEntryAltitude;
+  };
   const fly = (lat: number, lng: number) => {
     const headline =
       breakingFlash.title
@@ -59,7 +66,7 @@ export function runBreakingFlashGoToLocation({
         .filter(Boolean)
         .pop() || breakingFlash.title;
     switchToObserveAndFly(lat, lng, {
-      altitude: incidentEntryAltitude,
+      altitude: altitudeFor(),
       durationMs: LOCATION_LOOK_DOWN.durationMs,
       camera: resolveCinematicCamera({
         pitch: LOCATION_LOOK_DOWN.pitch,
@@ -73,19 +80,22 @@ export function runBreakingFlashGoToLocation({
     });
     dismissBreakingFlash();
   };
+  // 브리핑을 만들 때 제목·사진 설명·요약·번역문에서 이미 위치를 풀었다 — 그 좌표를 먼저 쓴다.
+  // (예전엔 제목만 다시 풀어 기사 안의 시험장·해역·사진 설명 단서를 버렸다)
+  if (breakingFlash.coords) {
+    fly(breakingFlash.coords.lat, breakingFlash.coords.lng);
+    return;
+  }
   if (breakingFlash.flashSource !== "liveuamap") {
     const headline =
       breakingFlash.title.split("\n").slice(1).join("\n").trim() ||
       breakingFlash.title;
-    const named = resolveRssFlashPlace(headline, "", breakingFlash.theater);
+    const body = breakingFlash.paragraphs?.join("\n") ?? "";
+    const named = resolveRssFlashPlace(headline, body, breakingFlash.theater);
     if (named) {
       fly(named.lat, named.lng);
       return;
     }
-  }
-  if (breakingFlash.coords) {
-    fly(breakingFlash.coords.lat, breakingFlash.coords.lng);
-    return;
   }
   if (breakingFlash.theater && breakingFlash.theater !== "global") {
     const target = flyTargetForTheater(breakingFlash.theater);

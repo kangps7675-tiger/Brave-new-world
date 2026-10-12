@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction,
+} from "react";
 import type { AisVessel, MilitaryAircraft, UsCarrier } from "@/data/geoTypes";
 import { isClientApiStubMode } from "@/lib/apiStubMode";
 import { dataPath } from "@/lib/dataProfile";
@@ -16,6 +23,11 @@ import {
   liveUsCarriersPollMs,
   shouldDeferLiveNetworkRefresh,
 } from "@/lib/liveRenderGuard";
+
+/** 카메라가 움직여 건너뛴 새로고침을 다시 시도하는 간격(ms) */
+const DEFER_RETRY_MS = 1_500;
+
+type LivePollKey = "ais" | "disguised" | "mil" | "civ";
 
 type UseLiveVesselAirPollingOptions = {
   isCameraMovingRef: MutableRefObject<boolean>;
@@ -78,8 +90,32 @@ export function useLiveVesselAirPolling({
   setUsCarriers,
   setUsCarriersLoading,
 }: UseLiveVesselAirPollingOptions) {
+  const retryTimersRef = useRef(new Map<LivePollKey, number>());
+  const runnersRef = useRef<Partial<Record<LivePollKey, () => void | Promise<void>>>>({});
+
+  /**
+   * 카메라 조작·백그라운드 탭이면 이번 새로고침을 미룬다.
+   * 예전엔 그냥 버려서, 첫 로드·드래그 직후엔 다음 폴링(최대 ~1분)까지 항적이 비어 보였다.
+   * 카메라 때문에 미룬 건 짧게 다시 시도하고, 숨겨진 탭은 복귀 시 되살린다(아래 effect).
+   */
+  const deferOrRetry = useCallback(
+    (key: LivePollKey): boolean => {
+      if (!shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return false;
+      if (typeof document !== "undefined" && document.hidden) return true;
+      if (!retryTimersRef.current.has(key)) {
+        const timer = window.setTimeout(() => {
+          retryTimersRef.current.delete(key);
+          void runnersRef.current[key]?.();
+        }, DEFER_RETRY_MS);
+        retryTimersRef.current.set(key, timer);
+      }
+      return true;
+    },
+    [isCameraMovingRef],
+  );
+
   const refreshAis = useCallback(async () => {
-    if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
+    if (deferOrRetry("ais")) return;
     setAisLoading(true);
     setAisError(null);
 
@@ -135,7 +171,7 @@ export function useLiveVesselAirPolling({
       setAisLoading(false);
     }
   }, [
-    isCameraMovingRef,
+    deferOrRetry,
     isConflictViewer,
     isEconomyViewer,
     isLiveViewer,
@@ -148,7 +184,7 @@ export function useLiveVesselAirPolling({
   ]);
 
   const refreshDisguisedVessels = useCallback(async () => {
-    if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
+    if (deferOrRetry("disguised")) return;
     setDisguisedLoading(true);
     setDisguisedError(null);
     try {
@@ -166,14 +202,14 @@ export function useLiveVesselAirPolling({
     } finally {
       setDisguisedLoading(false);
     }
-  }, [isCameraMovingRef, setDisguisedError, setDisguisedLoading, setDisguisedVessels]);
+  }, [deferOrRetry, setDisguisedError, setDisguisedLoading, setDisguisedVessels]);
 
   const refreshMilAircraft = useCallback(async () => {
     if (isEconomyViewer) {
       setMilAircraft([]);
       return;
     }
-    if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
+    if (deferOrRetry("mil")) return;
     setMilLoading(true);
     setMilError(null);
 
@@ -197,10 +233,10 @@ export function useLiveVesselAirPolling({
     } finally {
       setMilLoading(false);
     }
-  }, [isCameraMovingRef, isEconomyViewer, setMilAircraft, setMilError, setMilLoading]);
+  }, [deferOrRetry, isEconomyViewer, setMilAircraft, setMilError, setMilLoading]);
 
   const refreshCivAircraft = useCallback(async () => {
-    if (shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return;
+    if (deferOrRetry("civ")) return;
     setCivLoading(true);
     setCivError(null);
 
@@ -250,7 +286,7 @@ export function useLiveVesselAirPolling({
       setCivLoading(false);
     }
   }, [
-    isCameraMovingRef,
+    deferOrRetry,
     isSatelliteViewer,
     layerAltitudeRef,
     layerCenterRef,
@@ -288,6 +324,44 @@ export function useLiveVesselAirPolling({
     }
   }, [isCameraMovingRef, setUsCarriers, setUsCarriersLoading]);
 
+  runnersRef.current = {
+    ais: refreshAis,
+    disguised: refreshDisguisedVessels,
+    mil: refreshMilAircraft,
+    civ: refreshCivAircraft,
+  };
+
+  useEffect(() => {
+    const timers = retryTimersRef.current;
+    return () => {
+      for (const timer of timers.values()) window.clearTimeout(timer);
+      timers.clear();
+    };
+  }, []);
+
+  /** 숨겨졌던 탭이 돌아오면 다음 폴링을 기다리지 말고 바로 갱신 */
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.hidden) return;
+      if (showAis || isSatelliteViewer) void refreshAis();
+      if (!isEconomyViewer && (showMilitaryActivity || isSatelliteViewer)) {
+        void refreshMilAircraft();
+      }
+      if (showAirTraffic || isSatelliteViewer) void refreshCivAircraft();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [
+    isEconomyViewer,
+    isSatelliteViewer,
+    refreshAis,
+    refreshCivAircraft,
+    refreshMilAircraft,
+    showAirTraffic,
+    showAis,
+    showMilitaryActivity,
+  ]);
+
   useEffect(() => {
     if (!showAis && !isSatelliteViewer) return;
     void refreshAis();
@@ -306,7 +380,7 @@ export function useLiveVesselAirPolling({
   }, [isEconomyViewer, isSatelliteViewer, refreshDisguisedVessels, setDisguisedVessels, showDisguisedVessels]);
 
   useEffect(() => {
-    if (isEconomyViewer || !showMilitaryActivity) {
+    if (isEconomyViewer || (!showMilitaryActivity && !isSatelliteViewer)) {
       if (isEconomyViewer) setMilAircraft([]);
       return;
     }
@@ -315,10 +389,16 @@ export function useLiveVesselAirPolling({
       void refreshMilAircraft();
     }, liveMilPollMs());
     return () => window.clearInterval(timer);
-  }, [isEconomyViewer, refreshMilAircraft, setMilAircraft, showMilitaryActivity]);
+  }, [
+    isEconomyViewer,
+    isSatelliteViewer,
+    refreshMilAircraft,
+    setMilAircraft,
+    showMilitaryActivity,
+  ]);
 
   useEffect(() => {
-    if (!showAirTraffic) {
+    if (!showAirTraffic && !isSatelliteViewer) {
       setCivAircraft([]);
       return;
     }
@@ -327,17 +407,17 @@ export function useLiveVesselAirPolling({
       void refreshCivAircraft();
     }, liveAirTrafficPollMs());
     return () => window.clearInterval(timer);
-  }, [refreshCivAircraft, setCivAircraft, showAirTraffic]);
+  }, [isSatelliteViewer, refreshCivAircraft, setCivAircraft, showAirTraffic]);
 
   useEffect(() => {
     // 지경학에서는 항모·항구 위치 레이어/폴링 비활성
-    if (isEconomyViewer || !showUsCarriers) return;
+    if (isEconomyViewer || (!showUsCarriers && !isSatelliteViewer)) return;
     void refreshUsCarriers();
     const timer = window.setInterval(() => {
       void refreshUsCarriers();
     }, liveUsCarriersPollMs());
     return () => window.clearInterval(timer);
-  }, [isEconomyViewer, refreshUsCarriers, showUsCarriers]);
+  }, [isEconomyViewer, isSatelliteViewer, refreshUsCarriers, showUsCarriers]);
 
   return {
     refreshAis,

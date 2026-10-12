@@ -76,7 +76,7 @@ export type LayerPrefs = {
   /** Critical Node Atlas — 지정학/지경학 공통 크리티컬 노드 */
   showCriticalNodes: boolean;
   showMilitaryBases: boolean;
-  /** 진영 블록(NATO·AUKUS·CRINK) 국가 음영 오버레이 — Natural Earth 110m. 기본 켜짐(대전략 요약 뷰). */
+  /** 진영 블록(NATO·AUKUS·QUAD·CRINK) 국가 음영 오버레이 — Natural Earth 110m. 기본 켜짐(대전략 요약 뷰). */
   showAlliedBlocs: boolean;
   /** showAlliedBlocs 안의 CSTO(반서방 연계) 표시 여부 — 아르메니아 등 소속 논쟁 있어 기본 꺼짐, 별도 토글. */
   showCstoBloc: boolean;
@@ -362,7 +362,8 @@ export const DEFAULT_LAYER_PREFS: LayerPrefs = {
   showRefugeeCamps: false,
   showUcdpEvents: false,
   showMilitaryActivity: true,
-  showAirTraffic: false,
+  /** 관측·항적 모드에서 민항도 기본 ON — Cesium 빌보드로 표시 */
+  showAirTraffic: true,
   showUsCarriers: true,
   showSpaceLaunches: false,
   showReconSatellites: false,

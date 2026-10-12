@@ -28,7 +28,7 @@ export type TheaterSitrepRow = {
   id: string;
   occurredAt: string;
   place: string;
-  kind: "drone" | "missile" | "ground" | "other";
+  kind: "drone" | "missile" | "bomb" | "ground" | "other";
   killed: number | null;
   wounded: number | null;
   materialDamage: string | null;

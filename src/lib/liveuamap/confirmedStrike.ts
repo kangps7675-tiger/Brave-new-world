@@ -1,11 +1,11 @@
 /**
- * 라이브유어맵 속보 중, 드론·미사일이 실제로 어딘가에 떨어진 경우만 고른다.
+ * 라이브유어맵 속보 중, 드론·미사일·유도폭탄이 실제로 어딘가에 떨어진 경우만 고른다.
  * 발사, 요격, 격추, 경보, 훈련, 시험발사, 미확인 언급은 타격으로 치지 않는다.
  */
 
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 
-export type LiveuaStrikeKind = "drone" | "missile";
+export type LiveuaStrikeKind = "drone" | "missile" | "bomb";
 
 export type LiveuaConfirmedStrike = {
   kind: LiveuaStrikeKind;
@@ -21,6 +21,10 @@ const DRONE_RE =
 
 const MISSILE_RE =
   /\b(?:missiles?|ballistic|cruise missiles?|iskanders?|kalibrs?|kinzhals?)\b|미사일|탄도탄|탄도미사일|순항미사일|이스칸데르|칼리브르|킨잘/i;
+
+/** 유도·활공폭탄 (KAB·FAB+UMPK·JDAM 등). 일반 "bomb" 단독은 폭탄 테러와 섞여 제외. */
+const GUIDED_BOMB_RE =
+  /\b(?:guided bombs?|glide bombs?|gliding bombs?|kabs?|umpk|jdams?|fabs?[- ]?\d{3,4}|smart bombs?|aerial bombs?)\b|유도\s*폭탄|활공\s*폭탄|글라이드\s*폭탄|항공\s*폭탄|카브/i;
 
 /** 맞은 사실이 문장에 있다. */
 const STRONG_IMPACT_RE =
@@ -94,7 +98,8 @@ export function liveuaConfirmedStrike(event: StrikeText): LiveuaConfirmedStrike 
 
   const drone = DRONE_RE.test(text);
   const missile = hasMissile(text);
-  if (!drone && !missile) return null;
+  const bomb = GUIDED_BOMB_RE.test(text);
+  if (!drone && !missile && !bomb) return null;
 
   const strong = STRONG_IMPACT_RE.test(text);
   const weak = WEAK_IMPACT_RE.test(text);
@@ -102,7 +107,8 @@ export function liveuaConfirmedStrike(event: StrikeText): LiveuaConfirmedStrike 
   if (HARD_VETO_RE.test(text) && !CONFIRMED_WORD_RE.test(text)) return null;
   if (SOFT_VETO_RE.test(text) && !GROUND_HIT_RE.test(text)) return null;
 
-  return { kind: missile ? "missile" : "drone" };
+  // 미사일 > 유도폭탄 > 드론 (한 속보에 같이 나오면 가장 큰 쪽)
+  return { kind: missile ? "missile" : bomb ? "bomb" : "drone" };
 }
 
 /** 지상군이 공격한 좌표. 드론·미사일 타격이 잡히면 그쪽 표시에 맡긴다. */
