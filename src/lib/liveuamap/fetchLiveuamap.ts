@@ -34,6 +34,12 @@ import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { classifyHybridIncident, withHybridTags } from "@/lib/liveuamap/hybridWarfare";
 
 const MPTS_BASE = "https://a.liveuamap.com/api";
+/**
+ * 지역(resid) 1 요청당 이벤트 상한.
+ * LiveUAMap mpts `count` — 플랜의 「200 requests/day」와는 별개(그건 HTTP 호출 횟수).
+ * API가 더 낮게 캡하면 그 수만큼만 돌아온다.
+ */
+export const LIVEUAMAP_MPTS_COUNT = 200;
 
 const THEATER_HINTS: Array<{ re: RegExp; theater: NewsTheater }> = [
   { re: /ukrain|donetsk|kharkiv|crimea|black\s?sea/i, theater: "russia-ukraine" },
@@ -309,7 +315,7 @@ async function fetchMptsSlot(
   const url = new URL(MPTS_BASE);
   url.searchParams.set("a", "mpts");
   url.searchParams.set("resid", String(slot.resid));
-  url.searchParams.set("count", "50");
+  url.searchParams.set("count", String(LIVEUAMAP_MPTS_COUNT));
   url.searchParams.set("key", apiKey);
   url.searchParams.set("geojson", "true");
 
