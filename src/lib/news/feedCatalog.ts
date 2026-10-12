@@ -246,6 +246,108 @@ const SHADOW_FLEET_GOOGLE: NewsFeedDef[] = [
 ];
 
 /**
+ * 신무기 — 시험·실전배치·전장 첫 사용·전쟁이 만든 무기 개발 + 아시아 신무기 공개.
+ * 신속속보 양피지(분류: weapons)로 올라가고, 기사 속 시험장·해역으로 「위치로 가기」가 된다.
+ * 요약 인용 한도(220자)는 파서가 지킨다 — docs/copyright-audit-2026-08-01.md R-3.
+ */
+const WEAPONS_GOOGLE: NewsFeedDef[] = [
+  {
+    url: G(
+      '("test-fired" OR "test fired" OR "test launch" OR "flight test" OR "successful test") (missile OR hypersonic OR "cruise missile" OR "ballistic missile" OR "anti-ship" OR "air defense" OR drone OR "laser weapon" OR "railgun" OR "submarine-launched" OR ICBM)',
+    ),
+    name: "Google News · New Weapon Tests",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("enters service" OR "entered service" OR "commissioned" OR "inducted" OR "operationally deployed" OR "initial operating capability" OR "delivered to") (hypersonic OR "missile system" OR "air defense" OR "stealth" OR "unmanned" OR drone OR fighter OR warship OR submarine OR "main battle tank")',
+    ),
+    name: "Google News · New Weapon Deployment",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("first combat use" OR "combat debut" OR "battlefield debut" OR "first used in combat" OR "used for the first time" OR "combat-tested" OR "battle-tested") (drone OR missile OR "glide bomb" OR "electronic warfare" OR robot OR "loitering munition" OR "unmanned" OR weapon)',
+    ),
+    name: "Google News · Weapons First Used in Combat",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("lessons from Ukraine" OR "wartime innovation" OR "battlefield lessons" OR "war-driven" OR "combat-proven") (drone OR "counter-drone" OR "electronic warfare" OR artillery OR "air defense" OR armor OR robotic OR "unmanned")',
+    ),
+    name: "Google News · War-Driven Weapons Development",
+    theater: "russia-ukraine",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("North Korea" OR China OR Japan OR "South Korea" OR Taiwan OR India OR Pakistan OR Iran) ("new missile" OR "new weapon" OR "unveils" OR "test-fires" OR "hypersonic" OR "new-type" OR "new type")',
+    ),
+    name: "Google News · Asia & Iran New Weapons",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  { url: "https://www.navalnews.com/feed/", name: "Naval News", theater: "global" },
+  {
+    url: "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml",
+    name: "Defense News",
+    theater: "global",
+  },
+];
+
+/**
+ * 각지 군사훈련 — 유럽·인도태평양·중동·그 밖의 실시간 훈련·연습·실사격·상륙훈련.
+ * 분류: posture. 훈련 지명(해역·기지·나라)으로 「위치로 가기」.
+ */
+const EXERCISES_GOOGLE: NewsFeedDef[] = [
+  {
+    url: G(
+      '("military exercise" OR "joint exercise" OR "live-fire" OR "war games" OR "military drills" OR "combined exercise") (NATO OR Russia OR Belarus OR Baltic OR Poland OR Finland OR Europe OR Arctic)',
+    ),
+    name: "Google News · Exercises · Europe",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("military exercise" OR "joint exercise" OR "live-fire" OR "military drills" OR "war games" OR "amphibious landing" OR "joint combat readiness") (China OR Taiwan OR Japan OR Korea OR Philippines OR "South China Sea" OR "Indo-Pacific" OR Australia OR India)',
+    ),
+    name: "Google News · Exercises · Asia-Pacific",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("military exercise" OR "joint exercise" OR "naval drills" OR "military drills" OR "missile drill" OR "air defense drill") (Iran OR Israel OR Gulf OR "Red Sea" OR Turkey OR Egypt OR "Saudi Arabia" OR UAE OR Syria OR Iraq)',
+    ),
+    name: "Google News · Exercises · Middle East",
+    theater: "middle-east",
+    topic: "defense",
+    unfiltered: true,
+  },
+  {
+    url: G(
+      '("military exercise" OR "joint exercise" OR "war games" OR "naval exercise" OR "live-fire") ("US Navy" OR "US Army" OR "US Air Force" OR "United States" OR Pacific OR Atlantic OR Africa OR "Latin America" OR Mediterranean)',
+    ),
+    name: "Google News · Exercises · Americas & Global",
+    theater: "global",
+    topic: "defense",
+    unfiltered: true,
+  },
+];
+
+/**
  * 하이브리드전·사보타주 — 해저케이블·파이프라인·사이버·GPS재밍·정보작전 등 회색지대.
  * 전쟁 피드만으로는 안 잡히는 인프라 공격·비대칭 위협을 지정학 RSS에 보강.
  */
@@ -1907,6 +2009,8 @@ export const ALL_NEWS_FEEDS: NewsFeedDef[] = dedupeFeedsByUrl([
   ...ATLANTIC,
   ...SHADOW_FLEET_GOOGLE,
   ...HYBRID_WARFARE_GOOGLE,
+  ...WEAPONS_GOOGLE,
+  ...EXERCISES_GOOGLE,
   ...CENTRAL_ASIA_GOOGLE,
   ...DIPLOMACY_GOOGLE,
   ...SHARED_DEFENSE,

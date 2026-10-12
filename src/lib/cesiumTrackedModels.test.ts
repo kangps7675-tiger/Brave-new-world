@@ -8,14 +8,31 @@ import {
 } from "@/lib/cesiumTrackedModels";
 
 describe("cesiumTrackedModels", () => {
-  it("all-displayed (default): every candidate gets a model id", () => {
-    const ids = selectObserveModelEntityIds("mil:aa", [
-      { entityId: "mil:aa", lat: 0, lng: 0, headingDeg: 0 },
-      { entityId: "mil:bb", lat: 0.1, lng: 0, headingDeg: 90 },
-      { entityId: "civ:cc", lat: 20, lng: 0, headingDeg: 10 },
-    ]);
+  it("all-displayed (opt-in): every candidate gets a model id", () => {
+    const ids = selectObserveModelEntityIds(
+      "mil:aa",
+      [
+        { entityId: "mil:aa", lat: 0, lng: 0, headingDeg: 0 },
+        { entityId: "mil:bb", lat: 0.1, lng: 0, headingDeg: 90 },
+        { entityId: "civ:cc", lat: 20, lng: 0, headingDeg: 10 },
+      ],
+      { mode: "all-displayed" },
+    );
     expect(ids.size).toBe(3);
     expect(ids.has("civ:cc")).toBe(true);
+  });
+
+  it("default near-cluster: far candidates stay billboard-only", () => {
+    const ids = selectObserveModelEntityIds(
+      "mil:aa",
+      [
+        { entityId: "mil:aa", lat: 0, lng: 0, headingDeg: 0 },
+        { entityId: "civ:cc", lat: 20, lng: 0, headingDeg: 10 },
+      ],
+      { nearMax: 2, radiusM: 50_000 },
+    );
+    expect(ids.has("mil:aa")).toBe(true);
+    expect(ids.has("civ:cc")).toBe(false);
   });
 
   it("near-cluster: includes tracked and nearest within radius only", () => {

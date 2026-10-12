@@ -675,6 +675,47 @@ main[data-ui-lang="en"]
   display: none;
 }
 
+/*
+ * 신속속보 양피지 — 본문 스크롤바를 보이게 한다.
+ * 긴 속보·사이드 문단을 막대로 끌어 올리고 내릴 수 있어야 한다. 막대는 종이 가장자리 쪽으로 붙이고
+ * (본문 안쪽 여백만큼 바깥으로 빼서 글자와 겹치지 않게), 양피지 색조에 맞춘 얇은 갈색.
+ */
+.parchment-letter--news-flash .welcome-letter-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 74, 34, 0.7) rgba(139, 105, 20, 0.14);
+  -ms-overflow-style: auto;
+  margin-right: -1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .parchment-letter--news-flash .welcome-letter-body {
+    margin-right: -2.4rem;
+    padding-right: 2.4rem;
+  }
+}
+
+.parchment-letter--news-flash .welcome-letter-body::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+
+.parchment-letter--news-flash .welcome-letter-body::-webkit-scrollbar-track {
+  background: rgba(139, 105, 20, 0.14);
+  border-radius: 6px;
+}
+
+.parchment-letter--news-flash .welcome-letter-body::-webkit-scrollbar-thumb {
+  background: rgba(107, 74, 34, 0.7);
+  border-radius: 6px;
+  border: 2px solid rgba(243, 228, 196, 0.9);
+}
+
+.parchment-letter--news-flash .welcome-letter-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 58, 26, 0.85);
+}
+
 .welcome-letter-scrim {
   /* 편지 뒤 스크림 — 배경을 어둡게 깔고 블러 (전환은 아래 transition) */
   background: rgba(2, 4, 10, 0.72);

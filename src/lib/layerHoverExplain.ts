@@ -390,8 +390,8 @@ const LAYER_EXPLAIN: Record<string, Bi> = {
     en: "CRINK-aligned partner / spoke countries — same red family as hubs, painted lighter to mark the spoke tier.",
   },
   "allied-blocs": {
-    ko: "NATO·AUKUS·CRINK 등 진영을 나라 면으로 칠한 배경입니다. Natural Earth 국경을 쓰며 정밀 영유권 주장이 아닙니다.",
-    en: "Alliance/camp country fills (NATO, AUKUS, CRINK, etc.) on Natural Earth borders — not a legal boundary claim.",
+    ko: "NATO·AUKUS·QUAD·CRINK 등 진영을 나라 면으로 칠한 배경입니다. Natural Earth 국경을 쓰며 정밀 영유권 주장이 아닙니다.",
+    en: "Alliance/camp country fills (NATO, AUKUS, QUAD, CRINK, etc.) on Natural Earth borders — not a legal boundary claim.",
   },
   "geoecon-blocs": {
     ko: "서방·반서방·비동맹·혼합 경제협력 진영을 나라 면으로 보여 줍니다. G7·EU·EAEU·ASEAN·RCEP 등 회원 기준입니다.",

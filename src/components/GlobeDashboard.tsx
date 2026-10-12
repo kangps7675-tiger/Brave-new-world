@@ -61,6 +61,7 @@ import { CesiumAlertDock } from "@/components/globe/CesiumAlertDock";
 import { useSceneDeeplink } from "@/components/globe/hooks/useSceneDeeplink";
 import { useAmbientSoundSelectors } from "@/components/globe/hooks/useAmbientSoundSelectors";
 import { useMaritimeAlertBriefs } from "@/components/globe/hooks/useMaritimeAlertBriefs";
+import { useHybridIncidentPins } from "@/components/globe/hooks/useHybridIncidentPins";
 import { useLayerPanelCategories } from "@/components/globe/hooks/useLayerPanelCategories";
 
 import { useAirRaidAutoLayer } from "@/components/globe/hooks/useAirRaidAutoLayer";
@@ -1278,7 +1279,7 @@ export function GlobeDashboard({
 
   const {
     liveuaEvents,
-    liveuaEnergyEvents,
+    liveuaBreakingEvents,
     liveuaToast,
     setLiveuaToast,
     liveuaUnread,
@@ -1866,6 +1867,13 @@ export function GlobeDashboard({
     [liveuaEvents, labelLanguage],
   );
 
+  const hybridPins = useHybridIncidentPins({
+    liveuaEvents,
+    newsStreamPayload,
+    lang: labelLanguage === "en" ? "en" : "ko",
+    enabled: isSatelliteViewer,
+  });
+
   const liveuaStrikes = useMemo(
     () =>
       liveuaEvents.flatMap((event) => {
@@ -1880,6 +1888,7 @@ export function GlobeDashboard({
             lng: event.lng,
             title,
             kind: hit.kind,
+            publishedAt: event.publishedAt,
           },
         ];
       }).slice(0, 40),
@@ -4479,7 +4488,8 @@ export function GlobeDashboard({
       setFilterCenter({ lat: view.lat, lng: view.lng });
       setLayerAltitude(view.altitude);
 
-      if (!showAirTraffic) return;
+      // 관측(Cesium)은 레이어 토글과 무관하게 항공 항적을 폴링한다 (useLiveVesselAirPolling)
+      if (!showAirTraffic && !isSatelliteViewer) return;
       const densifyNow = nextTier !== "global";
       const densifyWas = prevTier !== "global";
       const movedDeg = Math.hypot(view.lat - prevLat, view.lng - prevLng);
@@ -4495,6 +4505,7 @@ export function GlobeDashboard({
       layerAltitudeRef,
       layerCenterRef,
       layerLodTierRef,
+      isSatelliteViewer,
       refreshCivAircraft,
       setFilterCenter,
       setLayerAltitude,
@@ -5363,6 +5374,7 @@ export function GlobeDashboard({
     showUkmtoIncidents: showUkmtoIncidents || isSatelliteViewer,
     navareaFeatures,
     ukmtoIncidents,
+    aisVessels,
     flyTo,
     patchLayerPrefsSoft,
     layerPrefsLiveRef,
@@ -6440,8 +6452,10 @@ export function GlobeDashboard({
           showAisMilitary={showAisMilitary}
           showAisCommercial={showAisCommercial}
           showDisguisedVessels={showDisguisedVessels || isSatelliteViewer}
-          showMilitaryActivity={showMilitaryActivity}
-          showAirTraffic={showAirTraffic}
+          showMilitaryActivity={showMilitaryActivity || isSatelliteViewer}
+          showAirTraffic={showAirTraffic || isSatelliteViewer}
+          cesiumUsCarriers={usCarriers}
+          showCesiumUsCarriers={isSatelliteViewer}
           showNeptun={showNeptun}
           neptunThreats={visibleNeptunThreats}
           cesiumRef={cesiumGlobeRef}
@@ -6468,6 +6482,7 @@ export function GlobeDashboard({
           focusedLiveuaId={isSatelliteViewer ? focusedLiveuaId : null}
           deskFocus={isSatelliteViewer ? deskFocus : null}
           liveuaStrikes={isSatelliteViewer ? liveuaStrikes : []}
+          hybridPins={isSatelliteViewer ? hybridPins : []}
           liveuaGround={isSatelliteViewer ? liveuaGround : []}
           onPickGroundPoint={
             isSatelliteViewer && incidentPickActive
@@ -6481,8 +6496,8 @@ export function GlobeDashboard({
               : undefined
           }
           onSelectLiveuaPin={(id) => {
-            // 양피지는 유가·가스·초크만 — 그 외는 포커스 카드
-            const energyIdx = liveuaEnergyEvents.findIndex((e) => e.id === id);
+            // 최근 속보 큐에 있으면 양피지, 오래된 핀은 포커스 카드
+            const energyIdx = liveuaBreakingEvents.findIndex((e) => e.id === id);
             if (energyIdx >= 0) {
               setFocusedLiveuaId(null);
               setLiveuaParchmentIndex(energyIdx);
@@ -6800,7 +6815,7 @@ export function GlobeDashboard({
               <LiveuaFlashDock
                 lang={labelLanguage}
                 chrome="bare"
-                events={liveuaEnergyEvents}
+                events={liveuaBreakingEvents}
                 unreadCount={liveuaUnread}
                 readIds={liveuaReadIds}
                 onMarkAllRead={markAllLiveuaRead}
@@ -6931,7 +6946,7 @@ export function GlobeDashboard({
         !theaterSitrepRegion ? (
           <LiveuaFlashParchment
             lang={labelLanguage}
-            events={liveuaEnergyEvents}
+            events={liveuaBreakingEvents}
             index={liveuaParchmentIndex}
             onIndexChange={setLiveuaParchmentIndex}
             onDismiss={() => setLiveuaParchmentIndex(null)}
@@ -7019,7 +7034,7 @@ export function GlobeDashboard({
               setFocusedLiveuaId(null);
             }}
             onOpenFull={() => {
-              const idx = liveuaEnergyEvents.findIndex(
+              const idx = liveuaBreakingEvents.findIndex(
                 (e) => e.id === focusedLiveuaEvent.id,
               );
               if (idx >= 0) {

@@ -21,7 +21,19 @@ export type LiveuamapRegionSlot = {
   parseControl: boolean;
 };
 
-/** 플랜 배분: UA96 Iran48 YE24 LB16 IL12 TW4 KR4 — 합 204 → 실무 200 캡 */
+/**
+ * 발트 3국·동유럽(폴란드·루마니아·몰도바 등) 국경 침범·사보타주 전용 일일 요청 수.
+ * 기존 배분에서 떼지 않고 **추가**한다 (우크라이나·이란·중동 몫은 그대로).
+ * 지역 번호(LIVEUAMAP_RESID_MAP 의 "nato-east")가 없으면 슬롯이 꺼져 있고, 그동안 요청은 나가지 않는다.
+ */
+export const NATO_EAST_DAILY_CAP = 10;
+
+/**
+ * 플랜 배분: UA96 Iran48 YE24 LB16 IL12 NATO-E10 TW4 KR4 — 합 214, 번호가 없는 슬롯은 제외.
+ * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동(예멘·레바논·이스라엘) → 동유럽(발트 3국).
+ * 한 틱에 도는 슬롯 수가 제한돼 있어 배열 순서가 곧 우선순위다.
+ * 하이브리드전 분류는 전용 슬롯과 무관하게 모든 슬롯 응답에 적용된다 (hybridWarfare.ts).
+ */
 const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
   {
     id: "ukraine",
@@ -60,6 +72,14 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     parseControl: true,
   },
   {
+    id: "nato-east",
+    dailyCap: NATO_EAST_DAILY_CAP,
+    // 하루 10회 — 약 2.4시간에 한 번
+    minIntervalMs: 2 * 60 * 60_000,
+    theater: "russia-ukraine",
+    parseControl: false,
+  },
+  {
     id: "taiwan",
     dailyCap: 4,
     minIntervalMs: 6 * 60 * 60_000,
@@ -87,6 +107,8 @@ const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   "israel-palestine": 2,
   taiwan: -1,
   korea: -1,
+  /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP 으로 설정하기 전까지 비활성 */
+  "nato-east": -1,
 };
 
 function parseResidMapEnv(): Partial<Record<LiveuamapRegionId, number>> {
@@ -126,7 +148,8 @@ export function getRegionSlot(id: LiveuamapRegionId): LiveuamapRegionSlot | null
   return getLiveuamapRegionSlots().find((s) => s.id === id) ?? null;
 }
 
-export const LIVEUAMAP_DAILY_BUDGET_DEFAULT = 200;
+/** 기존 200 + 발트·동유럽 전용 10회 (LIVEUAMAP_DAILY_BUDGET 으로 덮어쓸 수 있다) */
+export const LIVEUAMAP_DAILY_BUDGET_DEFAULT = 210;
 
 export function getLiveuamapDailyBudgetCap(): number {
   const raw = process.env.LIVEUAMAP_DAILY_BUDGET?.trim();

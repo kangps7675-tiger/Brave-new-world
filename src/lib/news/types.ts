@@ -44,6 +44,8 @@ export type NewsStreamItem = {
   /** 경제 뉴스 장르 (geo-trader) */
   econGenre?: EconomyNewsGenre;
   imageUrl?: string;
+  /** 사진 설명 — 「위치로 가기」 지명 추출 전용 (화면에 싣지 않음) */
+  imageCaption?: string;
   /** 원문 요약 */
   summary?: string;
   /** 한국어 요약 — KO UI에서 우선 */

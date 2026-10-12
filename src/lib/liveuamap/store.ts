@@ -9,29 +9,50 @@ import {
  */
 export const LIVEUAMAP_MAX_EVENTS_PER_REGION = 50;
 const MAX_AGE_MS = 48 * 60 * 60 * 1000;
+/**
+ * 하이브리드전 사건은 드물고 우크라 전투 속보에 묻히기 쉬워 따로 보관한다.
+ * 지역별 50건 창과 48시간을 넘겨 72시간·최대 40건까지 유지.
+ */
+const HYBRID_MAX_AGE_MS = 72 * 60 * 60 * 1000;
+export const LIVEUAMAP_MAX_HYBRID_EVENTS = 40;
 
 let events: LiveuamapEvent[] = [];
 let lastIngestAt: string | null = null;
 let lastError: string | null = null;
 
 function prune(list: LiveuamapEvent[]): LiveuamapEvent[] {
-  const cutoff = Date.now() - MAX_AGE_MS;
+  const now = Date.now();
+  const cutoff = now - MAX_AGE_MS;
+  const hybridCutoff = now - HYBRID_MAX_AGE_MS;
+  const isHybrid = (e: LiveuamapEvent) => (e.tags ?? []).includes("hybrid");
   const fresh = list
     .filter((e) => {
       const t = Date.parse(e.publishedAt);
-      return Number.isFinite(t) ? t >= cutoff : true;
+      if (!Number.isFinite(t)) return true;
+      return t >= (isHybrid(e) ? hybridCutoff : cutoff);
     })
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 
   const perRegion = new Map<string, number>();
   const out: LiveuamapEvent[] = [];
+  const kept = new Set<string>();
   for (const e of fresh) {
     const n = perRegion.get(e.regionId) ?? 0;
     if (n >= LIVEUAMAP_MAX_EVENTS_PER_REGION) continue;
     perRegion.set(e.regionId, n + 1);
     out.push(e);
+    kept.add(e.id);
   }
-  return out;
+  // 창에서 밀려난 하이브리드 사건을 따로 살린다 (최신순, 상한 내)
+  let hybridExtra = 0;
+  for (const e of fresh) {
+    if (kept.has(e.id) || !isHybrid(e)) continue;
+    if (hybridExtra >= LIVEUAMAP_MAX_HYBRID_EVENTS) break;
+    out.push(e);
+    kept.add(e.id);
+    hybridExtra += 1;
+  }
+  return out.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
 
 export function getLiveuamapStore() {

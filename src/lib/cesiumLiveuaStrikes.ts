@@ -13,6 +13,8 @@ import {
   observeSensorPinUri,
 } from "@/lib/cesiumObservePins";
 
+import type { LiveuaStrikeKind } from "@/lib/liveuamap/confirmedStrike";
+
 type CesiumNS = typeof import("cesium");
 
 export type CesiumLiveuaStrikePoint = {
@@ -20,7 +22,9 @@ export type CesiumLiveuaStrikePoint = {
   lat: number;
   lng: number;
   title: string;
-  kind: "drone" | "missile";
+  kind: LiveuaStrikeKind;
+  /** 화염·연기 단계(blaze → smolder → 핀만) 계산용 */
+  publishedAt?: string;
 };
 
 const STRIKE_PREFIX = "liveua-strike:";

@@ -10,6 +10,7 @@ import {
   type LiveuaFlashChokepoint,
 } from "@/lib/liveuamap/flashMarketContext";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
+import { hybridNote } from "@/lib/liveuamap/hybridWarfare";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import { t } from "@/lib/uiStrings";
 import { Z, zc } from "@/lib/uiStack";
@@ -253,7 +254,9 @@ export function LiveuaFlashParchment({
       <ParchmentLetter
         lang={lang}
         title={title}
-        paragraphs={[body]}
+        paragraphs={[hybridNote(event, en ? "en" : "ko"), body].filter(
+          (p): p is string => Boolean(p),
+        )}
         signOff={signOff}
         ctaLabel={en ? "Close" : "닫기"}
         onContinue={onDismiss}

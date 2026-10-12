@@ -10,6 +10,9 @@ export type UsCarrier = {
   location: string;
   airwing: string;
   notes: string;
+  /** 이 위치를 준 공개 보도 시각 (ISO) — 시드 값이면 없음 */
+  asOf?: string;
+  evidenceUrl?: string;
 };
 
 export const US_CARRIER_STATUS_COLORS: Record<UsCarrierStatus, string> = {
