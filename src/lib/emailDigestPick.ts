@@ -206,7 +206,14 @@ export function pickDigestIncidents(
 
   return omitNgaNearUkmto(pointed)
     .sort((a, b) => b.at - a.at)
-    .map(({ at: _at, lat: _lat, lng: _lng, ...incident }) => incident);
+    .map(({ source, title, place, occurredAt, publishedAt, firstSeenAt }) => ({
+      source,
+      title,
+      place,
+      occurredAt,
+      publishedAt,
+      firstSeenAt,
+    }));
 }
 
 /** 창 안에 새로 저장된 보도 수치. 해역별 최신 한 건. 시세 칸에 없는 해역은 뺀다. */
