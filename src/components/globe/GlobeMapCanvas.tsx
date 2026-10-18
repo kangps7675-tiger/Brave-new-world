@@ -96,6 +96,9 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   hybridPins?: import("@/lib/hybridIncidentPins").HybridIncidentPin[];
   liveuaGround?: import("@/lib/cesiumLiveuaGround").CesiumLiveuaGroundPoint[];
   onSelectLiveuaPin?: (id: string) => void;
+  /** 양피지를 닫은 뒤 사건 좌표에 남는 콜아웃 (세슘 쪽) */
+  eventCallout?: import("@/lib/eventCallout").EventCallout | null;
+  onDismissEventCallout?: () => void;
   onPickGroundPoint?: (point: { lat: number; lng: number }) => void;
   controlGeoJson?: GeoJSON.FeatureCollection | null;
   firmsFires?: import("@/lib/cesiumFirmsFires").CesiumFirmsFirePoint[];
@@ -164,6 +167,8 @@ export function GlobeMapCanvas({
   hybridPins,
   liveuaGround,
   onSelectLiveuaPin,
+  eventCallout,
+  onDismissEventCallout,
   onPickGroundPoint,
   controlGeoJson,
   firmsFires,
@@ -235,6 +240,8 @@ export function GlobeMapCanvas({
             hybridPins={hybridPins}
             liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
+            eventCallout={eventCallout}
+            onDismissEventCallout={onDismissEventCallout}
             onPickGroundPoint={onPickGroundPoint}
             controlGeoJson={controlGeoJson}
             firmsFires={firmsFires}

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import type { AisVessel, MilitaryAircraft, StaticPoint } from "@/data/geoTypes";
 import { SUBMARINE_TUNNEL_SEED } from "@/data/submarineTunnels";
 import { getDb } from "@/db";
@@ -6,9 +6,9 @@ import { adsbAircraft, aisVessels, submarineTunnels } from "@/db/schema";
 import { enrichAisClassification, matchesStoredAisCategory } from "@/lib/aisVesselClass";
 import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
 
-/** AIS/ADS-B D1 신선도 (Cron 10분 주기보다 약간 길게) */
-export const AIS_D1_TTL_MS = 15 * 60_000;
-export const ADSB_D1_TTL_MS = 12 * 60_000;
+/** AIS/ADS-B D1 신선도 (Cron 15분 주기보다 길게 — 같거나 짧으면 매번 스태일로 취급된다) */
+export const AIS_D1_TTL_MS = 25 * 60_000;
+export const ADSB_D1_TTL_MS = 25 * 60_000;
 /** 신선 샘플이 얇을 때 최근 스냅샷으로 max까지 채움 (위치는 수시간 이내) */
 export const AIS_D1_BACKFILL_MS = 3 * 60 * 60_000;
 /** 신선 데이터 없을 때 체크박스 빈 화면 방지용 스태일 허용 상한 */
@@ -83,28 +83,27 @@ export async function readAisFromD1(options: {
       options.south != null &&
       options.east != null &&
       options.north != null;
+    // bbox는 SQL에서 건다 — 최신 N행만 읽고 나서 JS로 거르면 그 N행 밖의 해역(예: 호르무즈)이 통째로 비었다.
+    const whereBbox = hasBbox
+      ? and(
+          gte(aisVessels.lat, options.south!),
+          lte(aisVessels.lat, options.north!),
+          options.west! <= options.east!
+            ? and(gte(aisVessels.lng, options.west!), lte(aisVessels.lng, options.east!))
+            : or(gte(aisVessels.lng, options.west!), lte(aisVessels.lng, options.east!)),
+        )
+      : undefined;
     const rows = await db
       .select()
       .from(aisVessels)
+      .where(whereBbox)
       .orderBy(desc(aisVessels.ingestedAt))
-      .limit(Math.min(Math.max(options.max * 3, hasBbox ? 2000 : options.max * 3), 6000));
-
-    const inBbox = (r: (typeof rows)[number]) => {
-      if (!hasBbox) return true;
-      const west = options.west!;
-      const east = options.east!;
-      const south = options.south!;
-      const north = options.north!;
-      if (r.lat < south || r.lat > north) return false;
-      if (west <= east) return r.lng >= west && r.lng <= east;
-      // antimeridian
-      return r.lng >= west || r.lng <= east;
-    };
+      .limit(Math.min(Math.max(options.max * 3, 2000), 9000));
 
     const byCategory = (pool: typeof rows) =>
       pool.filter((r) => matchesStoredAisCategory(r.category, options.category));
 
-    const fresh = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge) && inBbox(r)));
+    const fresh = byCategory(rows.filter((r) => isFresh(r.ingestedAt, maxAge)));
     let filtered = fresh;
     // 한 cron 분량이 얇으면 최근 수시간 스냅샷으로 max까지 백필
     if (filtered.length < options.max) {
@@ -112,9 +111,7 @@ export async function readAisFromD1(options: {
       const backfill = byCategory(
         rows.filter(
           (r) =>
-            isFresh(r.ingestedAt, AIS_D1_BACKFILL_MS) &&
-            inBbox(r) &&
-            !seen.has(r.id),
+            isFresh(r.ingestedAt, AIS_D1_BACKFILL_MS) && !seen.has(r.id),
         ),
       );
       filtered = [...filtered, ...backfill];
@@ -122,13 +119,13 @@ export async function readAisFromD1(options: {
     // 그래도 비면 스태일 허용 (빈 체크박스 방지)
     if (filtered.length === 0) {
       filtered = byCategory(
-        rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS) && inBbox(r)),
+        rows.filter((r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS)),
       );
     }
     // 지정학 military인데 군함이 0이면 all로 완화
     if (filtered.length === 0 && options.category === "military") {
       filtered = rows.filter(
-        (r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS) && inBbox(r),
+        (r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS),
       );
     }
     const vessels = filtered.slice(0, options.max).map(rowToAis);

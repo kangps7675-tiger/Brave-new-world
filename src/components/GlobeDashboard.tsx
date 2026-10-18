@@ -131,6 +131,13 @@ import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
+import { StackItemParchment } from "@/components/globe/StackItemParchment";
+import { WarRiskStrip } from "@/components/globe/WarRiskStrip";
+import { EmailDigestSignup } from "@/components/globe/EmailDigestSignup";
+import { ngaSecurityStackItems } from "@/lib/incidentStack/ngaSecurity";
+import { parseNavareaApiPayload } from "@/lib/navareaHatch";
+import { calloutFromLiveua, calloutFromStackItem, type EventCallout } from "@/lib/eventCallout";
+import { isMostlyEnglish, translateTextToKorean } from "@/lib/koreanTranslate";
 import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
 import { ObserveScopeMask } from "@/components/globe/ObserveScopeMask";
 import { TheaterSitrepBook } from "@/components/globe/TheaterSitrepBook";
@@ -1319,6 +1326,28 @@ export function GlobeDashboard({
   /** 슬롯 A 사건 스택 — 펼친 사건은 동시에 하나 */
   const [stackSelectedId, setStackSelectedId] = useState<string | null>(null);
   const myCaseStackItems = useMyCaseStackItems();
+
+  /**
+   * NGA 항행경보 중 "보안 사건"(피습) — UKMTO와 달리 선박명이 적혀 있다.
+   * 항행경보 레이어(지도)와 별개로, 선박 사건 스택용으로 10분마다 읽는다.
+   */
+  const [ngaSecurityRaw, setNgaSecurityRaw] = useState<ReturnType<typeof parseNavareaApiPayload>>([]);
+  useEffect(() => {
+    let alive = true;
+    const pull = () =>
+      fetch("/api/navarea", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((payload) => {
+          if (alive && payload) setNgaSecurityRaw(parseNavareaApiPayload(payload));
+        })
+        .catch(() => undefined);
+    void pull();
+    const timer = window.setInterval(pull, 10 * 60_000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, []);
   /**
    * 우측: 선박 사건(UKMTO·내 케이스·해역 안 선박 속보)은 사건 스택으로,
    * 그 밖의 liveuamap 전선 소식은 서랍("전선 속보")으로 가른다.
@@ -1334,11 +1363,20 @@ export function GlobeDashboard({
     const ukmtoItems = ukmtoIncidents
       .map((u) => stackItemFromUkmto(u, layerPrefs.labelLanguage !== "en"))
       .filter((x): x is StackItem => x !== null && x.at >= ukmtoCutoff);
+    // 같은 선박·72시간 안에 UKMTO 건이 있으면 NGA 건은 겹침으로 보고 뺀다 (UKMTO는 선박명 비공개라 대개 해역·시각으로 겹침을 본다)
+    const ngaItems = ngaSecurityStackItems(ngaSecurityRaw, layerPrefs.labelLanguage !== "en", now).filter(
+      (n) =>
+        !ukmtoItems.some(
+          (u) =>
+            Math.abs(u.at - n.at) < 72 * 3_600_000 &&
+            Math.hypot((u.lat - n.lat) * 60, (u.lng - n.lng) * 60 * Math.cos((n.lat * Math.PI) / 180)) < 40,
+        ),
+    );
     return {
-      incidentStackItems: mergeStackItems([ship, ukmtoItems, myCaseStackItems], INCIDENT_STACK_MAX),
+      incidentStackItems: mergeStackItems([ship, ukmtoItems, ngaItems, myCaseStackItems], INCIDENT_STACK_MAX),
       frontNewsItems: mergeStackItems([front], INCIDENT_STACK_MAX),
     };
-  }, [liveuaEvents, ukmtoIncidents, myCaseStackItems, layerPrefs.labelLanguage]);
+  }, [liveuaEvents, ukmtoIncidents, ngaSecurityRaw, myCaseStackItems, layerPrefs.labelLanguage]);
   const stackUnread = useMemo(
     () => incidentStackItems.filter((i) => i.source === "liveua" && !liveuaReadIds.has(i.id)).length,
     [incidentStackItems, liveuaReadIds],
@@ -2478,10 +2516,51 @@ export function GlobeDashboard({
       return;
     }
     if (r.armed) {
-      stackReturnViewRef.current = null;
-      unifiedFlyTo(r.view.lat, r.view.lng, r.view.altitude);
+      // 모드 전환이 전역 궤도로 날리는 fly(setTimeout 0) 뒤에 실행되도록 조금 미룬다.
+      // 의존성이 바뀌어 타이머가 취소돼도 다시 예약되도록 ref는 실행 시점에 비운다.
+      const timer = window.setTimeout(() => {
+        stackReturnViewRef.current = null;
+        unifiedFlyTo(r.view.lat, r.view.lng, r.view.altitude);
+      }, 120);
+      return () => window.clearTimeout(timer);
     }
   }, [isSatelliteViewer, unifiedFlyTo]);
+
+  /** 양피지를 닫은 뒤 사건 좌표에 남는 콜아웃 (일반 지도·위성 공통) */
+  const [eventCallout, setEventCallout] = useState<EventCallout | null>(null);
+  const openEventCallout = useCallback(
+    (c: EventCallout) => {
+      setEventCallout(c);
+      if (labelLanguage === "en") return;
+      // 영어 원문이면 한글로 번역해 같은 콜아웃에 덮어쓴다 (그 사이 다른 콜아웃으로 바뀌었으면 버린다)
+      const patch = (key: "title" | "body") => {
+        const text = c[key];
+        if (!text || !isMostlyEnglish(text)) return;
+        void translateTextToKorean(text).then((ko) => {
+          if (!ko || ko === text) return;
+          setEventCallout((prev) => (prev && prev.id === c.id ? { ...prev, [key]: ko } : prev));
+        });
+      };
+      patch("title");
+      patch("body");
+    },
+    [labelLanguage],
+  );
+  const dismissEventCallout = useCallback(() => setEventCallout(null), []);
+
+  /** 선박 사건 스택 → 큰 양피지 */
+  const [stackParchmentId, setStackParchmentId] = useState<string | null>(null);
+
+  /** 지정학 지도의 전선 속보 서랍 → 큰 양피지 (신속속보처럼 하나씩 크게) */
+  const [frontParchmentIndex, setFrontParchmentIndex] = useState<number | null>(null);
+
+  /** 위성(세슘)을 나와 일반 지도로 — 렌더마다 최신 클로저로 갱신(핸들러 정의가 아래에 있다) */
+  const exitToMapRef = useRef<() => void>(() => {});
+  /**
+   * "위성으로 보기" 직후 시점 이동은 모드 전환 뒤에 불린다. 클릭 시점의 클로저로 부르면
+   * viewerMode가 아직 conflict라 MapLibre 쪽으로 날아가므로 ref로 최신 클로저를 부른다.
+   */
+  const focusStackItemInSpaceRef = useRef<(it: StackItem) => void>(() => {});
 
   /** 사건 스택 행 → 세슘 시점 이동. 위성으로 보기·위성 모드 안의 위치로 가기가 같이 쓴다 */
   const focusStackItemInSpace = (it: StackItem) => {
@@ -2508,6 +2587,16 @@ export function GlobeDashboard({
     );
   };
 
+
+  focusStackItemInSpaceRef.current = focusStackItemInSpace;
+
+  /** 일반 지도 → 위성(세슘)으로 그 사건 보기. 돌아올 때 쓸 시점을 저장한다. */
+  const viewStackItemInSatellite = (it: StackItem) => {
+    setStackSelectedId(null);
+    stackReturnViewRef.current = { view: { ...viewState }, armed: false };
+    handleViewerModeChange("satellite");
+    window.setTimeout(() => focusStackItemInSpaceRef.current(it), 600);
+  };
 
   if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") {
     outsideViewRef.current = {
@@ -2566,15 +2655,22 @@ export function GlobeDashboard({
   }, [viewerMode, setFocusedLiveuaId]);
 
   useEffect(() => {
+    if (viewerMode === "satellite" || !incidentSpace) return;
+    incidentSpaceRef.current = null;
+    focusAltitudeCeilingRef.current = null;
+    setIncidentSpace(null);
+  }, [viewerMode, incidentSpace, focusAltitudeCeilingRef]);
+
+  useEffect(() => {
     if (!incidentSpace) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
-      leaveIncidentSpace();
+      exitToMapRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [incidentSpace, leaveIncidentSpace]);
+  }, [incidentSpace]);
 
   const [cesiumReady, setCesiumReady] = useState(false);
   const { hourUtc, setHourUtc, playing, setPlaying } = useCesiumDayScrubState();
@@ -5929,6 +6025,13 @@ export function GlobeDashboard({
     firstImpression,
   });
 
+  // 위성은 사건 카드의 "위성으로 보기"로만 들어온다 — 나갈 때는 일반 지도(지정학)로 돌아간다.
+  // (incidentSpace 정리와 카메라 복원은 viewerMode 변화 이펙트가 맡는다)
+  exitToMapRef.current = () => {
+    if (viewerMode === "satellite") handleViewerModeChange("conflict");
+    else leaveIncidentSpace();
+  };
+
   /**
    * 세션 시작 자동 제안·핫시어터·텐션 스파이크 이펙트 묶음.
    * useSessionOfferEffects 훅으로 추출 (분리 Phase D).
@@ -6216,7 +6319,9 @@ export function GlobeDashboard({
                 }`}
                 onClick={() => {
                   markLiveuaRead(it.id);
-                  unifiedFlyTo(it.lat, it.lng, 0.5);
+                  const idx = frontNewsItems.filter((x) => x.liveua).findIndex((x) => x.id === it.id);
+                  if (idx >= 0) setFrontParchmentIndex(idx);
+                  else unifiedFlyTo(it.lat, it.lng, 0.5);
                 }}
               >
                 <span className="flex flex-wrap items-center gap-x-1.5 text-teal-200/70">
@@ -6301,6 +6406,8 @@ export function GlobeDashboard({
     globeDisplayPoints,
     firmsDisplayPoints,
     liveuaStrikesMapData,
+    eventCallout,
+    onDismissEventCallout: dismissEventCallout,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -6688,6 +6795,8 @@ export function GlobeDashboard({
           focusedLiveuaId={isSatelliteViewer ? focusedLiveuaId : null}
           deskFocus={isSatelliteViewer ? deskFocus : null}
           liveuaStrikes={isSatelliteViewer ? liveuaStrikes : []}
+          eventCallout={isSatelliteViewer ? eventCallout : null}
+          onDismissEventCallout={dismissEventCallout}
           hybridPins={isSatelliteViewer ? hybridPins : []}
           liveuaGround={isSatelliteViewer ? liveuaGround : []}
           onPickGroundPoint={
@@ -6751,6 +6860,17 @@ export function GlobeDashboard({
           {...mapGlobeProps}
         />
 
+        {isSatelliteViewer ? (
+          <button
+            type="button"
+            onClick={() => exitToMapRef.current()}
+            className={`tap-target pointer-events-auto fixed ${isPhoneUi ? "right-3" : "left-3"} ${zc("immersive")} rounded-full border border-white/30 bg-[#0b0d12]/92 px-4 py-2 text-meta font-semibold text-white shadow-2xl backdrop-blur-md hover:bg-white/15`}
+            style={{ top: "calc(var(--hover-nav-height, 4.5rem) + 0.5rem)" }}
+          >
+            ← {t("hoverBackToMap", labelLanguage)}
+          </button>
+        ) : null}
+
         {!isPhoneUi && incidentSpace ? (
           <>
             {/* LiveUA 위치: GEV식 망원 원형 시야 / 그 외: 기존 인셋 비네팅 */}
@@ -6777,7 +6897,7 @@ export function GlobeDashboard({
               </div>
               <button
                 type="button"
-                onClick={leaveIncidentSpace}
+                onClick={() => exitToMapRef.current()}
                 className="tap-target shrink-0 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-meta font-semibold text-white hover:bg-white/20"
               >
                 {t("breakingFlashSpaceExit", labelLanguage)}
@@ -7044,18 +7164,17 @@ export function GlobeDashboard({
                 setStackSelectedId(id);
                 const picked = incidentStackItems.find((x) => x.id === id);
                 if (picked?.source === "liveua") markLiveuaRead(picked.id);
+                // 한 건을 누르면 큰 양피지로 (일반 속보와 같은 방식)
+                if (picked) setStackParchmentId(picked.id);
               }}
               onMarkAllRead={markAllLiveuaRead}
               onGoToLocation={(it) => {
                 unifiedFlyTo(it.lat, it.lng, 0.5);
               }}
-              onViewSatellite={(it) => {
-                setStackSelectedId(null);
-                stackReturnViewRef.current = { view: { ...viewState }, armed: false };
-                handleViewerModeChange("satellite");
-                window.setTimeout(() => focusStackItemInSpace(it), 600);
-              }}
+              onViewSatellite={viewStackItemInSatellite}
             />
+            <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
+            <EmailDigestSignup lang={labelLanguage} />
             {feedDrawerActive ? (
               <FeedDrawer
                 lang={labelLanguage}
@@ -7187,7 +7306,11 @@ export function GlobeDashboard({
             events={liveuaBreakingEvents}
             index={liveuaParchmentIndex}
             onIndexChange={setLiveuaParchmentIndex}
-            onDismiss={() => setLiveuaParchmentIndex(null)}
+            onDismiss={() => {
+              const cur = liveuaBreakingEvents[liveuaParchmentIndex];
+              if (cur) openEventCallout(calloutFromLiveua(cur, labelLanguage));
+              setLiveuaParchmentIndex(null);
+            }}
             exitToDock
             onGoToLocation={(ev) => {
               const market = liveuaFlashMarketContext(ev);
@@ -7205,6 +7328,7 @@ export function GlobeDashboard({
               const title =
                 labelLanguage === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
               // 양피지를 닫아야 세슘에서 Ctrl/Alt 카메라 조작이 가능
+              openEventCallout(calloutFromLiveua(ev, labelLanguage));
               setLiveuaParchmentIndex(null);
               setFocusedLiveuaId(ev.id);
               enterFocusedSpace({
@@ -7245,6 +7369,81 @@ export function GlobeDashboard({
             }}
           />
         ) : null}
+
+        {!isSatelliteViewer && stackParchmentId != null
+          ? (() => {
+              const idx = incidentStackItems.findIndex((x) => x.id === stackParchmentId);
+              if (idx < 0) return null;
+              return (
+                <StackItemParchment
+                  lang={labelLanguage}
+                  items={incidentStackItems}
+                  index={idx}
+                  onIndexChange={(next) => {
+                    const nextItem = incidentStackItems[next];
+                    if (!nextItem) return;
+                    setStackParchmentId(nextItem.id);
+                    setStackSelectedId(nextItem.id);
+                    if (nextItem.source === "liveua") markLiveuaRead(nextItem.id);
+                  }}
+                  onDismiss={() => {
+                    const cur = incidentStackItems[idx];
+                    if (cur) openEventCallout(calloutFromStackItem(cur, labelLanguage));
+                    setStackParchmentId(null);
+                  }}
+                  onGoToLocation={(it) => {
+                    openEventCallout(calloutFromStackItem(it, labelLanguage));
+                    setStackParchmentId(null);
+                    unifiedFlyTo(it.lat, it.lng, 0.5);
+                  }}
+                  onViewSatellite={(it) => {
+                    openEventCallout(calloutFromStackItem(it, labelLanguage));
+                    setStackParchmentId(null);
+                    viewStackItemInSatellite(it);
+                  }}
+                />
+              );
+            })()
+          : null}
+
+        {!isSatelliteViewer && frontParchmentIndex != null
+          ? (() => {
+              const rows = frontNewsItems.filter((x) => x.liveua);
+              const events = rows.map((x) => x.liveua!);
+              if (!events[frontParchmentIndex]) return null;
+              return (
+                <LiveuaFlashParchment
+                  lang={labelLanguage}
+                  events={events}
+                  index={frontParchmentIndex}
+                  onIndexChange={(next) => {
+                    setFrontParchmentIndex(next);
+                    const id = events[next]?.id;
+                    if (id) markLiveuaRead(id);
+                  }}
+                  onDismiss={() => {
+                    const cur = events[frontParchmentIndex];
+                    if (cur) openEventCallout(calloutFromLiveua(cur, labelLanguage));
+                    setFrontParchmentIndex(null);
+                  }}
+                  exitToDock={false}
+                  hideMarket
+                  onGoToLocation={(ev) => {
+                    openEventCallout(calloutFromLiveua(ev, labelLanguage));
+                    setFrontParchmentIndex(null);
+                    unifiedFlyTo(ev.lat, ev.lng, 0.5);
+                  }}
+                  extraCtaLabel={labelLanguage === "en" ? "View in satellite" : "위성으로 보기"}
+                  onExtraCta={(ev) => {
+                    const row = rows.find((x) => x.id === ev.id);
+                    openEventCallout(calloutFromLiveua(ev, labelLanguage));
+                    setFrontParchmentIndex(null);
+                    if (row) viewStackItemInSatellite(row);
+                  }}
+                />
+              );
+            })()
+          : null}
 
         {isSatelliteViewer &&
         focusedLiveuaEvent &&

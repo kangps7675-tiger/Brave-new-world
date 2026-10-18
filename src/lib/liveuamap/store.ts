@@ -94,6 +94,8 @@ export function mergeLiveuamapEvents(
       ...e,
       titleKo: e.titleKo || prev?.titleKo,
       bodyKo: e.bodyKo || prev?.bodyKo,
+      // 처음 받은 시각은 유지한다
+      seenAt: prev?.seenAt ?? e.seenAt ?? fetchedAt ?? new Date().toISOString(),
     });
   }
   events = prune([...byId.values()]);

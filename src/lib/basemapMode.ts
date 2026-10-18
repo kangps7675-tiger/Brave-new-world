@@ -1,7 +1,7 @@
 /**
  * Nav 베이스맵 모드 (둘 다 MapLibre 벡터 파이프라인 — WebGL 단일 컨텍스트)
  * - intel: OpenFreeMap Dark + DEM(1.35) + 다크 fog/우주색.
- *   위성 래스터·3D 건물·Liberty 해양톤 덮어쓰기 없음.
+ *   위성 래스터·Liberty 해양톤 덮어쓰기 없음. 3D 건물(OpenFreeMap extrusion)은 줌 13부터 켠다.
  * - terrain(지형): OpenFreeMap Liberty + DEM(1.4) + 고줌 3D 건물.
  *   확대 시 Esri World Imagery가 바탕에 드러나고, 토지/수역 fill만 투명해져
  *   도로·국경·라벨은 벡터로 남는다. 줌 ≥ 14에서 Cesium OSM Buildings

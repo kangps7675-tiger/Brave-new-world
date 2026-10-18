@@ -238,7 +238,8 @@ CREATE TABLE IF NOT EXISTS ukmto_incidents (
   detail TEXT,
   utc_date_of_incident TEXT,
   utc_date_created TEXT,
-  ingested_at TEXT NOT NULL
+  ingested_at TEXT NOT NULL,
+  first_seen_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_ukmto_geo
@@ -246,6 +247,11 @@ CREATE INDEX IF NOT EXISTS idx_ukmto_geo
 
 CREATE INDEX IF NOT EXISTS idx_ukmto_date
   ON ukmto_incidents (utc_date_of_incident);
+
+CREATE TABLE IF NOT EXISTS ukmto_push_sent (
+  id TEXT PRIMARY KEY NOT NULL,
+  sent_at TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS navarea_features (
   id TEXT PRIMARY KEY NOT NULL,

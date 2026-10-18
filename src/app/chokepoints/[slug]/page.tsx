@@ -9,6 +9,7 @@ import {
   getChokepoint,
 } from "@/data/chokepoints";
 import { absoluteUrl } from "@/lib/siteUrl";
+import WarRiskQuotes from "@/components/chokepoints/WarRiskQuotes";
 
 /**
  * 초크포인트 상세 — 검색·LLM이 읽는 정적 텍스트 페이지.
@@ -174,6 +175,8 @@ export default function ChokepointPage({ params }: { params: { slug: string } })
           <p className="mt-3 text-sm leading-relaxed text-white/45">{cp.ifDisrupted.ko}</p>
         </article>
       </section>
+
+      <WarRiskQuotes slug={cp.slug} />
 
       <footer className="mt-14 border-t border-white/10 pt-6 text-xs leading-relaxed text-white/40">
         {cp.flow ? (

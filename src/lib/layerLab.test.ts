@@ -6,7 +6,7 @@ const KEEP = [
   "showAis", "showAisMilitary", "showAisCommercial", "showDisguisedVessels", "showAirTraffic",
   "showMilitaryActivity", "showGpsInterference", "showFirmsFires", "showUkraineControl",
   "showNeptun", "showTzevaAdom", "showUkmtoIncidents", "showNavareaWarnings", "showConflictEvents",
-  "showShippingLanes", "showLogisticsRisk", "showPorts", "showUsCarriers", "showAlliedBlocs",
+  "showPorts", "showUsCarriers", "showAlliedBlocs",
   "showAxisNetwork", "showConflictTheaterIran", "showConflictTheaterUkraine",
 ];
 

@@ -91,6 +91,7 @@ function ShipSilhouette({ kind }: { kind: ShipKind }) {
 
 function sourceTag(item: StackItem, en: boolean): string {
   if (item.source === "ukmto") return "UKMTO";
+  if (item.source === "nga") return "NGA";
   if (item.source === "case") return en ? "My case" : "내 케이스";
   return "Liveuamap";
 }
@@ -134,7 +135,7 @@ export function ShipIncidentCard({ lang, item }: { lang: LabelLanguage; item: St
   })();
   const anonymous = !item.vesselName?.trim();
   const caption = current
-    ? [current.artist, current.license, "Wikimedia Commons"].filter(Boolean).join(" · ")
+    ? [en ? "Reference photo, not from the incident" : "참고용 사진 · 사건 당시 사진 아님", current.artist, current.license, "Wikimedia Commons"].filter(Boolean).join(" · ")
     : status === "loading"
       ? en
         ? "Looking for a photo…"

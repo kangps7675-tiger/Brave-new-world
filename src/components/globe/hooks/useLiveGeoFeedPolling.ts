@@ -468,7 +468,7 @@ export function useLiveGeoFeedPolling({
     }, retryMs);
     const stopInterval = visibleInterval(() => {
       void refreshUkmto();
-    }, 15 * 60 * 1000);
+    }, 5 * 60 * 1000);
     return () => {
       window.clearTimeout(retryTimer);
       stopInterval();

@@ -5,6 +5,8 @@ import type { LayerPrefs } from "@/lib/layerPrefs";
  * 실험실(lab) 레이어 — 해운·전쟁위험 담당자의 사건 확인에 증거·맥락으로 쓰이지 않는 레이어.
  * 코드는 남기고 화면 노출만 막는다(`NEXT_PUBLIC_LAB=1`이면 풀림). 분류: docs/layer-triage-2026-10-14.md
  *
+ * 전쟁·교전 구역(showWarZones, 이란·우크라 위 빨간 빗금 박스)과 항로(showShippingLanes)·병목해역(showLogisticsRisk)은 핵심 화면(AIS·ADS-B·피격 사건)에 방해라 2026-10-18에 실험실로 내렸다.
+ *
  * 문서의 실험실 96개 중 아래는 일부러 뺐다.
  * - showConflictTheater* 13개: 전장별 사건 핀(useIncidentMarkers)을 가르는 스위치라 끄면 핀이 사라진다.
  * - showUsCarriers: 해상 사건 맥락으로 쓰므로 맥락 등급으로 올림.
@@ -68,6 +70,7 @@ export const LAB_LAYER_KEYS = [
   "showIslandChains",
   "showJapanMilitaryBases",
   "showLngTerminals",
+  "showLogisticsRisk",
   "showLogisticsStress",
   "showLsibBoundary",
   "showMissileSiloFields",
@@ -86,6 +89,7 @@ export const LAB_LAYER_KEYS = [
   "showSanctionsEntities",
   "showSanctionsEvasionCorridors",
   "showSesChip",
+  "showShippingLanes",
   "showSpaceLaunches",
   "showStrategicCorridors",
   "showStrategicMissileBases",
@@ -96,6 +100,7 @@ export const LAB_LAYER_KEYS = [
   "showUcdpEvents",
   "showUsChinaIncidents",
   "showUsDfcSupplyChain",
+  "showWarZones",
   "showWeeklyShipMoves",
 ] as const satisfies readonly (keyof LayerPrefs)[];
 
@@ -132,7 +137,7 @@ const LAB_PANEL_ITEM_IDS: ReadonlySet<string> = new Set([
   "ixp", "ai-dc", "sanctions", "refugee", "cyber", "election", "space",
   "military-bases-rok", "military-bases-japan", "military-bases-taiwan",
   "military-bases-philippines", "military-bases-australia", "military-bases-eastern-nato",
-  "oil-pipelines", "gas-pipelines", "lng-terminals", "nuclear", "critical-nodes", "east-asia-adiz",
+  "shipping", "logistics-risk", "war-zones", "oil-pipelines", "gas-pipelines", "lng-terminals", "nuclear", "critical-nodes", "east-asia-adiz",
 ]);
 
 export function isLabPanelItem(id: string, lab: boolean = LAB_UI): boolean {

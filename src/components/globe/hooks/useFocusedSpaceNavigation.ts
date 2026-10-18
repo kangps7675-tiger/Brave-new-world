@@ -317,7 +317,9 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         durationMs ?? LOCATION_LOOK_DOWN.durationMs,
       );
       const cam = resolveCinematicCamera(camera ?? LOOK_DOWN_CAMERA);
-      if (dur > 0) {
+      // 사건 창(고도 천장으로 줌아웃을 막는 몰입 시점)은 위성(세슘) 전용이다.
+      // 일반 지도에서 "위치로 가기"로 확대한 뒤 줌아웃이 막히던 원인이 이것이었다.
+      if (dur > 0 && viewerMode === "satellite") {
         enterFocusedSpace({
           lat,
           lng,
