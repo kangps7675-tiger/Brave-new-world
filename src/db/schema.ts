@@ -539,6 +539,8 @@ export const ukmtoIncidents = sqliteTable(
     utcDateOfIncident: text("utc_date_of_incident"),
     utcDateCreated: text("utc_date_created"),
     ingestedAt: text("ingested_at").notNull(),
+    /** 우리가 처음 확인한 시각 — 새 사건에만 채워진다 (이전 행은 null) */
+    firstSeenAt: text("first_seen_at"),
   },
   (t) => ({
     geoIdx: index("idx_ukmto_geo").on(t.lat, t.lng),
@@ -1205,3 +1207,96 @@ export type EventOutcomeRow = typeof eventOutcome.$inferSelect;
 export type NewEventOutcomeRow = typeof eventOutcome.$inferInsert;
 export type FredDailyRow = typeof fredDaily.$inferSelect;
 export type NewFredDailyRow = typeof fredDaily.$inferInsert;
+
+/**
+ * 보도 기준 전쟁위험(war risk) 보험료 — 기사 1건 = 1행 (`drizzle/0032_war_risk_quotes.sql`).
+ * 공개 시세가 아니라 언론이 보도한 수치. 원문은 저장하지 않고 근거 구절 + 링크만.
+ * 적재: workers/cron-ingest/src/warRisk.ts
+ */
+export const warRiskQuotes = sqliteTable(
+  "war_risk_quotes",
+  {
+    id: text("id").primaryKey(),
+    /** red-sea | hormuz | black-sea | taiwan-strait | malacca | other */
+    region: text("region").notNull(),
+    /** 선박 가치 대비 % (0.7 = 0.7%) */
+    ratePct: real("rate_pct"),
+    /** 범위 보도("7.5%-10%")의 상단 */
+    rateHighPct: real("rate_high_pct"),
+    ratePrevPct: real("rate_prev_pct"),
+    usdPerVoyage: real("usd_per_voyage"),
+    /** up | down | flat | null */
+    direction: text("direction"),
+    /** strong(hull value 명시) | medium */
+    confidence: text("confidence").notNull(),
+    quote: text("quote").notNull(),
+    headline: text("headline").notNull(),
+    url: text("url").notNull(),
+    outlet: text("outlet"),
+    feed: text("feed").notNull(),
+    publishedAt: text("published_at"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    regionPubIdx: index("idx_war_risk_region_pub").on(t.region, t.publishedAt),
+  }),
+);
+
+export type WarRiskQuoteDbRow = typeof warRiskQuotes.$inferSelect;
+
+/**
+ * 선박 신원 — aisstream 정적 메시지의 IMO·호출부호 (`drizzle/0033_vessel_identity.sql`).
+ * MMSI 당 1행. 적재: workers/cron-ingest/src/vesselIdentity.ts
+ */
+export const vesselIdentity = sqliteTable(
+  "vessel_identity",
+  {
+    mmsi: text("mmsi").primaryKey(),
+    imo: text("imo"),
+    callSign: text("call_sign"),
+    shipName: text("ship_name"),
+    shipType: integer("ship_type"),
+    source: text("source").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (t) => ({
+    imoIdx: index("idx_vessel_identity_imo").on(t.imo),
+  }),
+);
+
+/**
+ * 이메일 다이제스트 구독 — 확인 메일 전 pending (`drizzle/0034_email_subscribers.sql`).
+ * 발송: workers/cron-ingest/src/emailSub.ts. 주소는 소문자.
+ */
+export const emailSubscribers = sqliteTable(
+  "email_subscribers",
+  {
+    email: text("email").primaryKey(),
+    lang: text("lang").notNull().default("ko"),
+    /** pending | active | unsubscribed */
+    status: text("status").notNull().default("pending"),
+    confirmToken: text("confirm_token"),
+    unsubToken: text("unsub_token").notNull(),
+    createdAt: text("created_at").notNull(),
+    confirmedAt: text("confirmed_at"),
+    unsubscribedAt: text("unsubscribed_at"),
+    confirmSentAt: text("confirm_sent_at"),
+    /** 수집·이용 동의를 체크하고 신청한 시각 */
+    consentAt: text("consent_at"),
+  },
+  (t) => ({
+    statusIdx: index("idx_email_sub_status").on(t.status),
+  }),
+);
+
+/** 한국시간 날짜당 다이제스트 1회 */
+export const emailDigestRuns = sqliteTable("email_digest_runs", {
+  windowDate: text("window_date").primaryKey(),
+  startedAt: text("started_at").notNull(),
+  finishedAt: text("finished_at"),
+  incidentCount: integer("incident_count").notNull().default(0),
+  quoteCount: integer("quote_count").notNull().default(0),
+  recipientCount: integer("recipient_count").notNull().default(0),
+  sent: integer("sent").notNull().default(0),
+  error: text("error"),
+});

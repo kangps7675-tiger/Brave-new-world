@@ -31,6 +31,13 @@ type Props = {
   onGoEconomy?: () => void;
   /** 접을 때 우측 상단 속보함으로 */
   exitToDock?: boolean;
+  /** 보조 버튼 문구(기본 "위치로 가기") */
+  secondaryCtaLabel?: string;
+  /** 본문 아래 추가 버튼(예: 위성으로 보기) */
+  extraCtaLabel?: string;
+  onExtraCta?: (event: LiveuamapEvent) => void;
+  /** 시장·초크 칩 숨김 — 해당 레이어를 켜는 핸들러가 없는 화면에서 */
+  hideMarket?: boolean;
 };
 
 export function LiveuaFlashParchment({
@@ -45,6 +52,10 @@ export function LiveuaFlashParchment({
   onGoConflict,
   onGoEconomy,
   exitToDock = true,
+  secondaryCtaLabel,
+  extraCtaLabel,
+  onExtraCta,
+  hideMarket = false,
 }: Props) {
   const event = events[index];
   if (!event) return null;
@@ -108,7 +119,7 @@ export function LiveuaFlashParchment({
         </section>
       ) : null}
 
-      {hasMarket || marketNote ? (
+      {!hideMarket && (hasMarket || marketNote) ? (
         <section aria-label={t("liveuaFlashMarketTitle", lang)}>
           <p className="text-micro font-semibold uppercase tracking-wide text-[#5c4020]/90">
             {t("liveuaFlashMarketTitle", lang)}
@@ -175,7 +186,7 @@ export function LiveuaFlashParchment({
       {showNextDoors ? (
         <section
           className={
-            hasMarket || marketNote
+            !hideMarket && (hasMarket || marketNote)
               ? "border-t border-[#6b4a22]/25 pt-2"
               : undefined
           }
@@ -204,6 +215,18 @@ export function LiveuaFlashParchment({
               </button>
             ) : null}
           </div>
+        </section>
+      ) : null}
+
+      {extraCtaLabel && onExtraCta ? (
+        <section>
+          <button
+            type="button"
+            className="rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2.5 py-0.5 text-micro text-[#3d2a12] hover:bg-[#e8d6a8]"
+            onClick={() => onExtraCta(event)}
+          >
+            {extraCtaLabel}
+          </button>
         </section>
       ) : null}
 
@@ -270,7 +293,7 @@ export function LiveuaFlashParchment({
         leadImageUrl={event.imageUrl}
         leadVideoUrl={event.videoUrl}
         exitToDock={exitToDock}
-        secondaryCtaLabel={t("breakingFlashGoToLocation", lang)}
+        secondaryCtaLabel={secondaryCtaLabel ?? t("breakingFlashGoToLocation", lang)}
         onSecondaryCta={() => onGoToLocation(event)}
         bodyExtra={bodyExtra}
       />

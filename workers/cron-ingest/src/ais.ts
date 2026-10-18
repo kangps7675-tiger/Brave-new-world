@@ -1,3 +1,4 @@
+import { flushVesselIdentities, recordStaticIdentity } from "./vesselIdentity";
 import { thinWorldwide } from "../../../src/lib/adsbWorld";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { getAisstreamKey, getMarineTrafficKey } from "./db";
@@ -116,6 +117,8 @@ type AisRawMessage = {
       UserID?: number | string;
       Type?: number;
       Name?: string;
+      ImoNumber?: number;
+      CallSign?: string;
       MaximumStaticDraught?: number;
       Destination?: string;
       Dimension?: {
@@ -406,6 +409,7 @@ async function fetchAisstreamBoxes(
                 ? String(staticMsg.UserID)
                 : null;
           if (!mmsi) return;
+          recordStaticIdentity(mmsi, staticMsg);
           const shipType = parseNumber(staticMsg?.Type);
           const shipName =
             staticMsg?.Name?.trim() || parsed.MetaData?.ShipName?.trim() || null;
@@ -553,6 +557,12 @@ export async function fetchAisVessels(
   if (aisstreamKey) {
     const stream = await fetchAisstream(aisstreamKey, max);
     errors.push(...stream.errors);
+    // 정적 메시지에서 모은 IMO → vessel_identity (피격 확인용). 실패해도 위치 수집은 계속.
+    try {
+      await flushVesselIdentities(env.DB);
+    } catch (error) {
+      errors.push(`vessel_identity: ${error instanceof Error ? error.message : "flush failed"} (migration 0033?)`);
+    }
     for (const vessel of stream.vessels) {
       byMmsi.set(vessel.mmsi, preferVesselRow(byMmsi.get(vessel.mmsi), vessel));
     }

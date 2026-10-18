@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
       { incidents: rows, fetchedAt: new Date().toISOString() },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
+      { headers: { "Cache-Control": "public, s-maxage=45, stale-while-revalidate=90" } },
     );
   } catch {
     return NextResponse.json(

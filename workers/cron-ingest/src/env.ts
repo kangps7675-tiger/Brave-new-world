@@ -116,6 +116,8 @@ export type IngestEnv = {
   UKMTO_INGEST_ENABLED?: string;
   /** ìµì ?¬í´ë§?ê°ê²©(ë¶? ???ì???¬ì  ?ê², ê¸°ë³¸ 30 */
   UKMTO_POLL_MIN_INTERVAL_MINUTES?: string;
+  /** "false"/"0"/"off"면 새 피습 푸시 알림 끔. 기본 켜짐 */
+  UKMTO_PUSH_ENABLED?: string;
   /**
    * JHOD NAVAREA XI ê³µê° TXT.
    * ê¸°ë³¸ https://www1.kaiho.mlit.go.jp/TUHO/freetext/NavareaXI.txt
@@ -181,6 +183,21 @@ export type IngestEnv = {
    * e.g. https://your-app.example/api/newfeeds/sync
    */
   NEWFEEDS_SYNC_URL?: string;
+  /**
+   * Resend API 키. `npx wrangler secret put RESEND_API_KEY -c wrangler.ingest.toml`
+   * 비어 있으면 구독 접수·발송을 하지 않는다.
+   */
+  RESEND_API_KEY?: string;
+  /** 예: 멋진 신세계 <digest@example.com> — secret 또는 vars */
+  EMAIL_FROM?: string;
+  /**
+   * 확인·해지 링크의 공개 주소 (끝 슬래시 없이).
+   * 예: https://conflict-view.vercel.app
+   * 비우면 구독 접수 시점의 워커 주소를 쓰고, 하루 발송은 건너뛴다.
+   */
+  EMAIL_PUBLIC_BASE?: string;
+  /** "false"/"0"/"off"면 하루 다이제스트를 보내지 않는다. 구독 접수·확인은 그대로다. */
+  EMAIL_DIGEST_ENABLED?: string;
 };
 
 export type FirmsFireRow = {

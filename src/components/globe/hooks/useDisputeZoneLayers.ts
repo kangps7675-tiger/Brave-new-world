@@ -4,18 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { EMPTY_OVERLAY_POLYGONS } from "@/components/globe/constants";
 import { geometryToBorderPaths } from "@/components/globe/geometryToBorderPaths";
 import type { PolygonLayerFeature, ConflictClusterPoint } from "@/components/globe/types";
-import { isNearChinaMissileBelt, CHINA_MISSILE_BELTS } from "@/data/chinaMissileBeltSeed";
 import type { TransportPath, DisputeArea, ConflictZoneFeature } from "@/data/geoTypes";
-import { isNearIranMissileBelt, IRAN_MISSILE_BELTS } from "@/data/iranMissileBeltSeed";
-import { KOREA_MISSILE_BELTS } from "@/data/koreaMissileBeltSeed";
-import { isNearRussiaMissileBelt, RUSSIA_MISSILE_BELTS } from "@/data/russiaMissileBeltSeed";
-import { isNearRussiaNavalBastion, RUSSIA_NAVAL_BASTION_BELTS } from "@/data/russiaNavalBastionSeed";
 import { resolveDisputeCenter } from "@/lib/disputeCenter";
 import { disputeMatchesWarDiplomaticLayers, rankDisputesForDisplay, disputeGeometryBbox, conflictZoneToOutlineAndHatchPaths } from "@/lib/disputeHatch";
 import { getCachedDisputeHatchPaths } from "@/lib/disputeHatchCache";
 import type { DisputeHatchLod } from "@/lib/disputeHatchPrecompute";
 import { readDisputeHatchPathsCache, prefetchDisputeHatchPaths } from "@/lib/disputeHatchPrefetch";
-import { resolveCombatTheaterAt } from "@/lib/theaterCombat";
 import { filterHatchPathsByView } from "@/lib/ukraineHatchPrecompute";
 import { VIEWPORT_RADIUS_BY_TIER, COUNTRY_POLYGON_MAX_BY_TIER, filterByViewportCenter, DISPUTE_MAX_BY_TIER, isBboxNearView, isCenterInView } from "@/lib/viewportCull";
 
@@ -61,7 +55,6 @@ export function useDisputeZoneLayers(opts: UseDisputeZoneLayersOptions) {
   const {
     data,
     isEconomyViewer,
-    isConflictViewer,
     isHistoryViewer,
     globeReady,
     showWarZones,
@@ -148,75 +141,9 @@ export function useDisputeZoneLayers(opts: UseDisputeZoneLayersOptions) {
       layers.push(...gpsJamPolygons);
     }
 
-    if (!showGpsInterference && showMilitaryBases && visibleMilitaryBaseAreas.length > 0) {
-      layers.push(
-        ...visibleMilitaryBaseAreas.map((area) => ({
-          ...area,
-          polygonLayer: "military-base" as const,
-        })),
-      );
-    }
-    if (
-      !showGpsInterference &&
-      showResources &&
-      visibleResourceDeposits.length > 0
-    ) {
-      layers.push(
-        ...visibleResourceDeposits.map((area) => ({
-          ...area,
-          polygonLayer: "resource-deposit" as const,
-        })),
-      );
-    }
-    if (
-      !showGpsInterference &&
-      showMissileSiloFields &&
-      visibleMissileSiloFields.length > 0
-    ) {
-      layers.push(
-        ...visibleMissileSiloFields.map((area) => ({
-          ...area,
-          polygonLayer: "missile-silo-field" as const,
-        })),
-      );
-    }
-
-    // 미사일 벨트 — 지정학에서 해당 권역이면 자동 표시 (레이어 토글 불필요)
-    if (
-      !showGpsInterference &&
-      isConflictViewer &&
-      (globeLod.tier === "continent" ||
-        globeLod.tier === "regional" ||
-        globeLod.tier === "near" ||
-        globeLod.tier === "village")
-    ) {
-      const theater = resolveCombatTheaterAt(filterCenter.lat, filterCenter.lng);
-      if (theater === "korea") {
-        for (const belt of KOREA_MISSILE_BELTS) {
-          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
-        }
-      }
-      if (isNearChinaMissileBelt(filterCenter.lat, filterCenter.lng)) {
-        for (const belt of CHINA_MISSILE_BELTS) {
-          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
-        }
-      }
-      if (isNearRussiaMissileBelt(filterCenter.lat, filterCenter.lng)) {
-        for (const belt of RUSSIA_MISSILE_BELTS) {
-          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
-        }
-      }
-      if (isNearRussiaNavalBastion(filterCenter.lat, filterCenter.lng)) {
-        for (const belt of RUSSIA_NAVAL_BASTION_BELTS) {
-          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
-        }
-      }
-      if (isNearIranMissileBelt(filterCenter.lat, filterCenter.lng)) {
-        for (const belt of IRAN_MISSILE_BELTS) {
-          layers.push({ ...belt, polygonLayer: "missile-belt" as const });
-        }
-      }
-    }
+    // 군사기지 면·자원 매장지·사일로 필드·미사일 벨트(이란·러시아·중국·한반도) 같은 정적 면은
+    // 확대할 때마다 박스처럼 나타나 시선을 가려서 지정학 지도에서는 그리지 않는다.
+    // 면으로 남기는 건 우크라이나 점령지·중동 통제면(liveuamap, 별도 레이어)과 GPS 재밍뿐이다.
 
     return layers.length > 0 ? layers : EMPTY_OVERLAY_POLYGONS;
   }, [

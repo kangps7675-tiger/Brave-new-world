@@ -78,6 +78,14 @@ NAVAREA IV 100/26.
   it("보안 사건 분류 — 공격은 hostile, 사격 훈련은 제외, 단어 경계 지킴", () => {
     expect(classifySecurity("MERCHANT VESSEL ATTACKED BY UAV")).toBe("hostile");
     expect(classifySecurity("MISSILE FIRING OPERATIONS")).toBeNull();
+    // 실제 NGA 문구 — 호르무즈·오만만의 "보안 사건"은 피습으로 본다 (표류만 있는 사고와 구분)
+    expect(
+      classifySecurity("M/V PETRO DOLPHIN SUFFERED SECURITY INCIDENT, ADRIFT IN 24-30.36N 057-27.11E ON 12 OCT. EXERCISE EXTREME CAUTION."),
+    ).toBe("hostile");
+    expect(classifySecurity("M/V LIPSI SUFFERED A SECURITY INCIDENT, DISABLED AND ADRIFT IN 26-23.00N 056-26.30E.")).toBe("hostile");
+    expect(classifySecurity("M/V BARIMA SANK IN 07-28.23N 058-23.40W.")).toBe("casualty");
+    expect(classifySecurity("MAN OVERBOARD FROM M/V MSC SKY II IN 15-01.20N 062-24.40E. KEEP A SHARP LOOKOUT.")).toBeNull();
+    expect(classifySecurity("HAZARDOUS OPERATIONS, ROCKET LAUNCHING 191951Z TO 192013Z OCT.")).toBeNull();
     expect(classifySecurity("KEEP STARBOARD SIDE. DETERMINE POSITION.")).toBeNull();
     expect(classifySecurity("NAVAL MINES REPORTED. EXERCISE EXTREME CAUTION.")).toBe("mine");
   });

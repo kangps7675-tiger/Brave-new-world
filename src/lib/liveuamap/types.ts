@@ -33,6 +33,8 @@ export type LiveuamapEvent = {
   sourceUrl: string;
   viaSource?: string;
   publishedAt: string;
+  /** 우리 서버가 이 속보를 처음 받은 시각 */
+  seenAt?: string;
   tags: string[];
 };
 

@@ -1,6 +1,6 @@
 /**
  * 미군기지 — MapLibre symbol 아이콘.
- * 저줌(파란 점)은 circle 레이어, zoom ≥ SETTLEMENT_DETAIL_MIN_MAP_ZOOM 에서만 성조기.
+ * 전 줌에서 작은 성조기로 그린다(다른 군사기지는 작은 원).
  */
 
 export const US_MILITARY_BASE_FLAG_ICON_ID = "us-military-base-flag";
