@@ -1,33 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { zc } from "@/lib/uiStack";
 
-export type ObserveDeskTabId = "flash" | "board" | "alerts" | "verify" | "case";
+export type ObserveDeskTabId = "board" | "verify" | "case";
 
 type TabDef = {
   id: ObserveDeskTabId;
   ko: string;
   en: string;
-  accent: "amber" | "teal" | "cyan" | "violet" | "rose";
+  accent: "teal" | "violet" | "rose";
   badge?: number;
   visible?: boolean;
 };
 
 type Props = {
   lang: LabelLanguage;
-  unreadFlash?: number;
-  alertCount?: number;
   boardCount?: number;
   hasVerify?: boolean;
   /** 포커스 안건이 생기면 검증 탭을 자동으로 연다 */
   autoOpenVerify?: boolean;
   /** 활성 사건 ID가 있으면 배지 */
   hasCase?: boolean;
-  flash: ReactNode;
   board: ReactNode;
-  alerts: ReactNode;
   verify?: ReactNode;
   casePanel?: ReactNode;
 };
@@ -36,17 +32,9 @@ const ACCENT: Record<
   TabDef["accent"],
   { tab: string; panel: string }
 > = {
-  amber: {
-    tab: "border-amber-700/55 bg-[#f0d99f]/95 text-[#34230f] hover:bg-[#f8e8bd]",
-    panel: "border-amber-600/35 bg-[#120e08]/94",
-  },
   teal: {
     tab: "border-teal-600/50 bg-[#0a2430]/95 text-teal-50 hover:bg-[#0e3140]",
     panel: "border-teal-500/35 bg-[#041018]/94",
-  },
-  cyan: {
-    tab: "border-cyan-600/45 bg-[#062028]/95 text-cyan-50 hover:bg-[#0a2e38]",
-    panel: "border-cyan-500/30 bg-[#041018]/94",
   },
   violet: {
     tab: "border-violet-500/45 bg-[#1a1230]/95 text-violet-50 hover:bg-[#241840]",
@@ -60,58 +48,33 @@ const ACCENT: Record<
 
 /**
  * 등불뉴스 접힘 탭과 같은 책갈피 패턴 —
- * 전선 속보·안건판·훈련/해상 알림·교차확인 HUD를 화면 좌측에 세로로 꽂아 두고
- * 필요할 때만 펼친다. 하단 관측대 독은 센서·스크러버만 남긴다.
+ * 관측판·교차확인(검증)·케이스를 화면 우측에 세로로 꽂아 두고 필요할 때만 펼친다.
+ * 속보는 지정학 지도 화면의 전선 속보 서랍 한 곳에서만 본다(여기에는 두지 않는다). 하단 관측대 독은 센서·스크러버만 남긴다.
  */
 export function ObserveDeskBookmarkRail({
   lang,
-  unreadFlash = 0,
-  alertCount = 0,
   boardCount = 0,
   hasVerify = false,
   autoOpenVerify = false,
   hasCase = false,
-  flash,
   board,
-  alerts,
   verify,
   casePanel,
 }: Props) {
   const en = lang === "en";
-  /** 기본은 전선 속보 — LiveUA가 계속 쌓이는 창을 바로 보이게 */
-  const [active, setActive] = useState<ObserveDeskTabId | null>("flash");
-  const prevUnreadFlashRef = useRef(0);
+  const [active, setActive] = useState<ObserveDeskTabId | null>("board");
 
   useEffect(() => {
     if (autoOpenVerify && hasVerify) setActive("verify");
   }, [autoOpenVerify, hasVerify]);
 
-  useEffect(() => {
-    if (unreadFlash > prevUnreadFlashRef.current) setActive("flash");
-    prevUnreadFlashRef.current = unreadFlash;
-  }, [unreadFlash]);
-
   const tabs: TabDef[] = [
-    {
-      id: "flash",
-      ko: "유가·항로",
-      en: "Oil·routes",
-      accent: "amber",
-      badge: unreadFlash > 0 ? unreadFlash : undefined,
-    },
     {
       id: "board",
       ko: "안건",
       en: "Desk",
       accent: "teal",
       badge: boardCount > 0 ? boardCount : undefined,
-    },
-    {
-      id: "alerts",
-      ko: "알림",
-      en: "Alert",
-      accent: "cyan",
-      badge: alertCount > 0 ? alertCount : undefined,
     },
     {
       id: "verify",
@@ -134,17 +97,13 @@ export function ObserveDeskBookmarkRail({
     visibleTabs.find((t) => t.id === active)?.accent ?? "teal";
 
   const panel: ReactNode =
-    active === "flash"
-      ? flash
-      : active === "board"
-        ? board
-        : active === "alerts"
-          ? alerts
-          : active === "verify"
-            ? verify
-            : active === "case"
-              ? casePanel
-              : null;
+    active === "board"
+      ? board
+      : active === "verify"
+        ? verify
+        : active === "case"
+          ? casePanel
+          : null;
 
   return (
     <div

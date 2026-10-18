@@ -45,6 +45,43 @@ export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[64.3, -169], [66.5, -165]], // 베링 해협
   [[66, -180], [72, -155]], // 추크치해
   [[36.5, 47], [47, 55]], // 카스피해
+  // —— 중동 ——
+  [[23, 47], [31, 57]], // 페르시아만
+  [[22, 56], [27, 62]], // 호르무즈·오만만
+  [[8, 44], [16, 60]], // 아덴만·소코트라
+  [[30, 28], [37, 37]], // 동지중해·레반트
+  // —— 남아시아 ——
+  [[18, 60], [25, 72]], // 파키스탄·구자라트 연안
+  [[5, 80], [22, 95]], // 벵골만
+  [[-5, 70], [8, 90]], // 스리랑카·인도양 북부
+  // —— 동아시아·동북아 ——
+  [[32, 119], [41, 127]], // 황해·발해·한반도 서해
+  [[33, 127], [46, 142]], // 동해(일본해)·대한해협
+  [[24, 120], [33, 132]], // 동중국해·난세이 제도
+  [[5, 118], [19, 128]], // 필리핀 해역
+  // —— 북아시아(러시아 극동) ——
+  [[42, 130], [55, 142]], // 연해주·타타르 해협
+  [[45, 135], [60, 165]], // 오호츠크해
+  [[44, 155], [60, 170]], // 캄차카·쿠릴
+  [[55, 160], [66, 180]], // 서부 베링해
+  // —— 북극해 ——
+  [[62, 0], [75, 45]], // 노르웨이해·바렌츠해
+  [[68, 45], [78, 90]], // 카라해·북동항로 서부
+  [[70, 90], [78, 180]], // 랍테프해·동시베리아해
+  [[68, -156], [76, -100]], // 보퍼트해·캐나다 북극
+  [[60, -45], [72, -10]], // 그린란드·아이슬란드
+  [[60, -80], [78, -45]], // 배핀만·데이비스 해협
+  // —— 먼바다(대양 유역) ——
+  [[35, -55], [55, -15]], // 북대서양
+  [[-5, -45], [25, -20]], // 중부 대서양
+  [[-40, -30], [-15, 10]], // 남대서양
+  [[28, 150], [48, 180]], // 북서태평양 원양
+  [[28, -180], [48, -130]], // 북동태평양 원양
+  [[5, -175], [25, -120]], // 중부 태평양
+  [[-10, -120], [15, -85]], // 동태평양
+  [[-5, 130], [20, 175]], // 서태평양 적도
+  [[-30, 50], [0, 95]], // 중부 인도양
+  [[-45, 30], [-30, 110]], // 남인도양
 ];
 
 const AISSTREAM_BATCH_DURATION_MS = 12_000;
@@ -475,12 +512,13 @@ async function fetchAisstream(
   const byMmsi = new Map<string, AisVesselRow>();
   const batches = chunkBboxes(AISSTREAM_BBOXES, AISSTREAM_BBOX_BATCH_SIZE);
 
+  // 배치마다 몫을 나눠 준다 — 앞 배치가 한도를 다 쓰면 뒤 해역(북극·먼바다)이 통째로 빠진다.
+  const perBatch = Math.max(50, Math.ceil(max / batches.length));
+
   for (const boxes of batches) {
-    if (byMmsi.size >= max) break;
-    const remaining = Math.max(50, max - byMmsi.size);
     const part = await fetchAisstreamBoxes(
       apiKey,
-      remaining,
+      perBatch,
       boxes,
       AISSTREAM_BATCH_DURATION_MS,
     );
@@ -495,7 +533,7 @@ async function fetchAisstream(
 
 export async function fetchAisVessels(
   env: IngestEnv,
-  max = 800,
+  max = 3000,
 ): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
   const mtKey = getMarineTrafficKey(env);
   const aisstreamKey = getAisstreamKey(env);

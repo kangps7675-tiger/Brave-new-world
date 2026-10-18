@@ -10,7 +10,8 @@ import { commercialUseForSourceKey } from "@/lib/caseFile/commercialUse";
 import { strengthCapFor } from "@/lib/caseFile/strengthCaps";
 import { findTrackGaps } from "@/lib/caseFile/trackFreeze";
 import { classifyFacility, toNearbyFacilities } from "@/lib/caseFile/nearbyFacilities";
-import { pickSnapshotFor, pointInPolygonGeometry } from "@/lib/caseFile/controlZone";
+import { evaluateLiveuaControl, isLandOrCoastal, pickSnapshotFor, pointInPolygonGeometry } from "@/lib/caseFile/controlZone";
+import { liveuaControlRegionsAt } from "@/lib/liveuamap/controlBounds";
 import { evidence, refreshCaseVerdicts } from "@/lib/caseFile/verdict";
 import type { CaseFile, CaseIncident, Claim, ClaimKind } from "@/lib/caseFile/types";
 
@@ -293,5 +294,49 @@ describe("통제 구역·시설", () => {
     };
     expect(pointInPolygonGeometry(0.5, 0.5, square)).toBe(true);
     expect(pointInPolygonGeometry(1.5, 0.5, square)).toBe(false);
+  });
+});
+
+describe("LiveUA control-zone evaluation (non-Ukraine theaters)", () => {
+  const square = (name: string, w: number, s: number, e: number, n: number) => ({
+    type: "Feature" as const,
+    properties: { name },
+    geometry: {
+      type: "Polygon" as const,
+      coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
+    },
+  });
+  const fc = { type: "FeatureCollection" as const, features: [square("Hodeidah", 42.5, 14.5, 43.5, 15.5)] };
+
+  it("is inside a LiveUA area without claiming who controls it", () => {
+    const v = evaluateLiveuaControl(fc, 43.0, 15.0);
+    expect(v.status).toBe("liveua-area");
+    expect(v.featureName).toBe("Hodeidah");
+  });
+
+  it("reports distance when outside every area", () => {
+    const v = evaluateLiveuaControl(fc, 44.5, 15.0);
+    expect(v.status).toBe("outside-liveua-areas");
+    expect(v.boundaryKm).toBeGreaterThan(90);
+  });
+
+  it("maps Bab el-Mandeb to the yemen region and Beirut to lebanon", () => {
+    expect(liveuaControlRegionsAt(43.4, 12.6)).toContain("yemen");
+    expect(liveuaControlRegionsAt(35.5, 33.9)).toContain("lebanon");
+    expect(liveuaControlRegionsAt(-30, 0)).toEqual([]);
+  });
+});
+
+describe("isLandOrCoastal (Ukraine theater)", () => {
+  it("accepts inland and port points", () => {
+    expect(isLandOrCoastal(30.52, 50.45)).toBe(true); // Kyiv
+    expect(isLandOrCoastal(30.74, 46.48)).toBe(true); // Odesa
+    expect(isLandOrCoastal(37.8, 48.0)).toBe(true); // Donetsk area
+  });
+
+  it("rejects open Black Sea points", () => {
+    expect(isLandOrCoastal(29.5, 44.6)).toBe(false); // ~20 nm off Romania
+    expect(isLandOrCoastal(31.0, 45.0)).toBe(false); // central NW Black Sea
+    expect(isLandOrCoastal(35.5, 45.8)).toBe(false); // Sea of Azov
   });
 });

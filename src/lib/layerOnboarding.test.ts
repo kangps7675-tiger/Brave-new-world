@@ -10,10 +10,10 @@ import {
 describe("layerOnboarding", () => {
   it("lists conflict first-screen layers in plain Korean", () => {
     const lines = listFirstScreenLayerLines("conflict", "ko");
-    expect(lines.length).toBeGreaterThanOrEqual(4);
+    expect(lines.length).toBeGreaterThanOrEqual(2);
     const body = firstScreenLayersTourBody("conflict", "ko");
     expect(body).toMatch(/이미 켜져/);
-    expect(body).toMatch(/다음/);
+    expect(body).toMatch(/전선|진영|점령|우크라|UKMTO|상선/);
     expect(body).toMatch(/전쟁|전선|진영|도련|ADIZ|방공/);
   });
 

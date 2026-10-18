@@ -3,7 +3,7 @@
  *
  * 소스(JHOD/NGA)는 상황이 생기면 그때 TXT에 추가하는 이벤트 발행이지만
  * 웹훅/푸시가 없어 멋진 신세계가 주기적으로 fetch해야만 지도에 반영된다.
- * Worker cron(매 10분)은 다른 레이어 때문에 자주 돌고, 이 모듈은
+ * Worker cron(매 15분)은 다른 레이어 때문에 자주 돌고, 이 모듈은
  * NAVAREA_POLL_MIN_INTERVAL_MINUTES(기본 30)로 자체 스로틀한다.
  *
  * TXT → parseNavareaText → region 단위 DELETE + INSERT (append-only 금지).
@@ -16,6 +16,8 @@ import {
   type NavareaFeatureProps,
   type NavareaRegionCode,
 } from "../../../src/lib/navarea/parseNavareaText";
+import { navAreaRegionCode, ngaWarningsToNavareaCollection } from "../../../src/lib/navarea/ngaMsi";
+import { fetchNavWarnMemos } from "../../../src/lib/navarea/msiNga";
 import type { IngestEnv } from "./env";
 import { readIntVar } from "./db";
 
@@ -94,6 +96,8 @@ function featureCollectionToRows(fc: FeatureCollection): NavareaFeatureRow[] {
 
 type NavareaFeed = {
   url: string;
+  /** "ngaMemo" = NGA MSI Daily Memo(in-force 전체 텍스트). broadcast-warn JSON API는 2024-05 이후 갱신이 멈췄다. */
+  kind?: "text" | "ngaMemo";
   sourceHint?: "jhod" | "nga";
   jhodRegion?: NavareaRegionCode;
   label: string;
@@ -117,6 +121,13 @@ function resolveFeeds(env: IngestEnv): NavareaFeed[] {
       if (!url) continue;
       feeds.push({ url, sourceHint: "nga", label: "NGA" });
     }
+  } else {
+    // 텍스트 URL을 따로 주지 않았다면 NGA MSI Daily Memo(NAVAREA IV·XII, HYDROLANT/PAC/ARC)를 쓴다.
+    // 같은 지역을 텍스트와 Daily Memo로 이중 수집하면 지도에 겹쳐 그려지므로 둘 중 하나만.
+    // NAVAREA_NGA_JSON_URL=off 로 끌 수 있다(이름은 예전 JSON 방식 때 것을 그대로 쓴다).
+    if ((env.NAVAREA_NGA_JSON_URL || "").trim() !== "off") {
+      feeds.push({ url: "https://msi.nga.mil", kind: "ngaMemo", sourceHint: "nga", label: "NGA MSI" });
+    }
   }
   return feeds;
 }
@@ -130,9 +141,32 @@ async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<b
     if (!last) return true;
     const lastMs = new Date(last).getTime();
     if (!Number.isFinite(lastMs)) return true;
-    return Date.now() - lastMs >= minIntervalMinutes * 60 * 1000;
+    // 틱 시각과 적재 시각이 수 초 어긋나므로 1분 여유를 둔다 — 안 그러면 15분 크론에서 한 틱씩 건너뛴다
+    return Date.now() - lastMs >= minIntervalMinutes * 60 * 1000 - 60_000;
   } catch {
     return true;
+  }
+}
+
+/**
+ * NGA MSI Daily Memo → 행. 점검·WAF 차단(HTML)이면 throw — 기존 스냅샷은 건드리지 않는다.
+ * 크론에서는 한 번만 시도하고(재시도로 몇 분 세워 두지 않는다) 파일 사이에 짧은 간격만 둔다.
+ */
+async function fetchNgaMemoRows(
+  feed: NavareaFeed,
+): Promise<{ rows: NavareaFeatureRow[]; regions: string[]; error?: string }> {
+  try {
+    const { warnings } = await fetchNavWarnMemos(undefined, { tries: 1, gapMs: 1_500 });
+    const fc = ngaWarningsToNavareaCollection(warnings);
+    // 좌표가 없거나 이미 종료된 경보만 남은 리전도 교체 대상 — 안 그러면 죽은 지오메트리가 남는다
+    const regions = [...new Set(warnings.map((w) => navAreaRegionCode(w.navArea)))];
+    return { rows: featureCollectionToRows(fc), regions };
+  } catch (error) {
+    return {
+      rows: [],
+      regions: [],
+      error: `${feed.label}: ${error instanceof Error ? error.message : "fetch failed"}`,
+    };
   }
 }
 
@@ -228,6 +262,20 @@ export async function fetchAndReplaceNavarea(env: IngestEnv): Promise<{
   let fetched = 0;
 
   for (const feed of feeds) {
+    if (feed.kind === "ngaMemo") {
+      const json = await fetchNgaMemoRows(feed);
+      if (json.error) {
+        errors.push(json.error);
+        continue;
+      }
+      fetched += 1;
+      for (const region of json.regions) regions.add(region);
+      for (const row of json.rows) {
+        regions.add(row.region);
+        allRows.push(row);
+      }
+      continue;
+    }
     const { text, error } = await fetchFeedText(feed);
     if (error || !text) {
       if (error) errors.push(error);

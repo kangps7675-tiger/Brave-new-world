@@ -70,7 +70,7 @@ migrations_dir = "drizzle"
 # NAVAREA는 웹훅이 없는 정적 TXT라 폴링이 필요하지만, 정부기관 예우상
 # navarea.ts 내부 min-interval(기본 30분)로 자체 스로틀한다 (크론을 늦출 필요 없음).
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["*/15 * * * *"]
 
 # Local secrets: copy .dev.vars.example → .dev.vars (gitignored)
 # Production: wrangler secret put NASA_FIRMS_API_KEY

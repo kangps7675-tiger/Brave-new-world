@@ -68,3 +68,11 @@ export function featureInControlBounds(
   const [lng, lat] = c;
   return lng >= b.minLng && lng <= b.maxLng && lat >= b.minLat && lat <= b.maxLat;
 }
+
+/** 지점이 속하는 LiveUA 통제면 전장들 (레바논·이스라엘 bbox는 겹칠 수 있다). */
+export function liveuaControlRegionsAt(lng: number, lat: number): LiveuamapControlRegionId[] {
+  return (Object.keys(LIVEUA_CONTROL_BOUNDS) as LiveuamapControlRegionId[]).filter((id) => {
+    const b = LIVEUA_CONTROL_BOUNDS[id];
+    return lng >= b.minLng && lng <= b.maxLng && lat >= b.minLat && lat <= b.maxLat;
+  });
+}

@@ -377,6 +377,7 @@ export function HoverNav({
                     {t("disputesOverviewNav", labelLanguage)}
                   </span>
                 </button>
+                {onHistoryMapOpen ? (
                 <button
                   type="button"
                   aria-label="역사지도 · 연도 영토"
@@ -397,6 +398,7 @@ export function HoverNav({
                     {t("navPowderKeg", labelLanguage)}
                   </span>
                 </button>
+                ) : null}
                 <button
                   type="button"
                   aria-expanded={hubMenuOpen}

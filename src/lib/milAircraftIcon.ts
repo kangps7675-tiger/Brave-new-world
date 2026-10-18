@@ -1,6 +1,8 @@
 import type { MilAircraftRole } from "@/lib/milAircraftKind";
 import {
-  CIVIL_ROLE_COLORS,
+  CIVIL_FILL,
+  CIVIL_SILHOUETTES,
+  CIVIL_STROKE,
   MIL_AIRCRAFT_MARKER_ICON_SIZE,
   MIL_AIRCRAFT_VIEWBOX,
   MIL_ROLE_COLORS,
@@ -23,18 +25,14 @@ export function milAircraftIconSvg(
   options?: { palette?: "military" | "civil" },
 ): string {
   const palette = options?.palette ?? "military";
-  const color =
-    palette === "civil"
-      ? CIVIL_ROLE_COLORS[role] ?? "#e8f1f7"
-      : MIL_ROLE_COLORS[role];
+  if (palette === "civil") return civilAircraftIconSvg(role, size);
+  const color = MIL_ROLE_COLORS[role];
   const { width, height } = size;
   const sil = MIL_SILHOUETTES[role];
   const glowId = `${glowFilterId(role, width)}-${palette}`;
   const vb = `${MIL_AIRCRAFT_VIEWBOX.width} ${MIL_AIRCRAFT_VIEWBOX.height}`;
-  const stroke =
-    palette === "civil" ? "rgba(15, 23, 42, 0.48)" : "rgba(15, 23, 42, 0.38)";
-  const accentFill =
-    palette === "civil" ? "rgba(15, 23, 42, 0.18)" : "rgba(255, 255, 255, 0.22)";
+  const stroke = "rgba(15, 23, 42, 0.38)";
+  const accentFill = "rgba(255, 255, 255, 0.22)";
 
   const accents = (sil.accents ?? [])
     .map(
@@ -67,11 +65,36 @@ export function milAircraftIconSvg(
   `.trim();
 }
 
+/** 역할 → 민간 실루엣. helicopter·trainer(경항공기)만 갈리고 나머지는 여객기. */
+function civilShape(role: MilAircraftRole): keyof typeof CIVIL_SILHOUETTES {
+  if (role === "helicopter") return "helicopter";
+  if (role === "trainer") return "light";
+  return "airliner";
+}
+
+/**
+ * Flightradar24식 민간 기체 — 단색 노랑 + 가는 검은 윤곽, 글로우 없음.
+ * 군용(호박빛 글로우)과 겹쳐 보여도 윤곽이 또렷하게 갈린다.
+ */
+function civilAircraftIconSvg(role: MilAircraftRole, size: MilAircraftIconSize): string {
+  const { width, height } = size;
+  const sil = CIVIL_SILHOUETTES[civilShape(role)];
+  const vb = `${MIL_AIRCRAFT_VIEWBOX.width} ${MIL_AIRCRAFT_VIEWBOX.height}`;
+  const accents = (sil.accents ?? [])
+    .map((d) => `<path d="${d}" fill="rgba(0, 0, 0, 0.3)" stroke="none"/>`)
+    .join("");
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 ${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="${sil.body}" fill="${CIVIL_FILL}" stroke="${CIVIL_STROKE}" stroke-width="1.1" stroke-linejoin="round"/>
+      ${accents}
+    </svg>
+  `.trim();
+}
+
 export function milAircraftGlowShadow(
   role: MilAircraftRole,
   palette: "military" | "civil" = "military",
 ): string {
-  const color =
-    palette === "civil" ? CIVIL_ROLE_COLORS[role] ?? "#e8f1f7" : MIL_ROLE_COLORS[role];
+  const color = palette === "civil" ? CIVIL_FILL : MIL_ROLE_COLORS[role];
   return `0 0 10px ${color}cc, 0 0 18px ${color}66, 0 2px 6px rgba(0,0,0,0.55)`;
 }

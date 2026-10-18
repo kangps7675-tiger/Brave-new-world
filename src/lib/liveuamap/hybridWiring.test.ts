@@ -156,9 +156,9 @@ describe("Baltic / Eastern Europe slot is additive", () => {
     expect(idx("israel-palestine")).toBeLessThan(idx("nato-east"));
   });
 
-  it("raises the daily budget by exactly the new slot", () => {
+  it("keeps the daily budget at liveuamap's official 200", () => {
     delete process.env.LIVEUAMAP_DAILY_BUDGET;
-    expect(getLiveuamapDailyBudgetCap()).toBe(210);
+    expect(getLiveuamapDailyBudgetCap()).toBe(200);
   });
 });
 

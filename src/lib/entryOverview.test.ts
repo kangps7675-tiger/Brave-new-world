@@ -56,10 +56,10 @@ describe("buildDomainOverviewPrefs — 첫 화면 레이어 예산", () => {
   it("지정학 첫 화면은 영토·분쟁·진영 폴리곤만", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl).toBe(true);
-    expect(prefs.showWarZones).toBe(true);
+    expect(prefs.showWarZones).toBe(false);
     expect(prefs.showAlliedBlocs).toBe(true);
-    expect(prefs.showIslandChains).toBe(true);
-    expect(prefs.showEastAsiaAdiz).toBe(true);
+    expect(prefs.showIslandChains).toBe(false);
+    expect(prefs.showEastAsiaAdiz).toBe(false);
     expect(prefs.showNeptun).toBe(false);
     expect(prefs.showConflictEvents).toBe(false);
     expect(prefs.showUkraineStrikesOnRussia).toBe(false);

@@ -6,14 +6,18 @@ import { chokeGlowRingSeed } from "@/data/logisticsRiskPoints";
 import { mergeCarriersWithAisPositions } from "@/lib/aisCarrierMatch";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { isHtmlStaticKind } from "@/lib/infraStaticMarkers";
-// liveAisDisplayMax/liveAirTrafficDisplayMax/liveMilDisplayMax — MapLibre 심볼 레이어 제거로 더 이상 사용 안 함 (Cesium 쪽에서 자체 상한 관리)
+import {
+  liveAirTrafficDisplayMax,
+  liveAisDisplayMax,
+  liveMilDisplayMax,
+} from "@/lib/liveRenderGuard";
 import { pickFairByKind } from "@/lib/staticGlobe";
 import {
   carrierLabelOffsets,
   filterVisibleCarriers,
   isOperationalCarrier,
 } from "@/lib/usCarrierMarkers";
-// VIEWPORT_RADIUS_BY_TIER/pickInViewOrNearest — MapLibre 심볼 레이어 제거로 더 이상 사용 안 함
+import { VIEWPORT_RADIUS_BY_TIER, pickInViewOrNearest } from "@/lib/viewportCull";
 import type {
   AisGlobePoint,
   MilGlobePoint,
@@ -41,6 +45,9 @@ export type UseLiveOverlayMarkersOptions = {
   showMilitaryActivity: boolean;
   showAirTraffic: boolean;
   showAis: boolean;
+  /** AIS 세부 필터 — 군함 / 상선·민간 (기본 둘 다 켜짐) */
+  showAisMilitary?: boolean;
+  showAisCommercial?: boolean;
   showDisguisedVessels: boolean;
   milAircraft: MilitaryAircraft[];
   civAircraft: MilitaryAircraft[];
@@ -56,13 +63,24 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     showLogisticsRisk,
     usCarriers,
     aisVessels,
+    disguisedVessels,
     isEconomyViewer,
     showUsCarriers,
     showGpsInterference = false,
     chokeGlowColorById,
+    showAis,
+    showAisMilitary = true,
+    showAisCommercial = true,
+    showDisguisedVessels,
+    showMilitaryActivity,
+    showAirTraffic,
+    milAircraft,
+    civAircraft,
+    globeLodTier,
+    layerViewState,
+    ultraLite,
   } = opts;
-  // ADS-B/AIS 표시 옵션(milAircraft·showAis 등)은 CesiumSatelliteGlobe로 일원화 —
-  // 이 훅은 인프라 HTML·초크 글로우·항모만 담당. opts 타입은 호출부 호환용으로 유지.
+  // AIS·ADS-B는 지정학 지도(MapLibre)에서만 그린다. 세슘(위성)은 지도 레이어를 그리지 않는다.
 
   /** 인프라 HTML 실루엣 마커 (공항·항구·DC·핵·초크 등) — DOM 비용 때문에 강하게 캡 */
   const airportPortHtmlMarkers = useMemo<StaticGlobePoint[]>(() => {
@@ -138,8 +156,23 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     [visibleUsCarriers],
   );
 
-  // ADS-B(군용) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화 (CesiumSatelliteGlobe.tsx).
-  const milDisplayPoints = useMemo<MilGlobePoint[]>(() => [], []);
+  // ADS-B(군용) — 지정학 지도 심볼 레이어. 3,000대까지 화면 안(없으면 가까운 순)으로 추린다.
+  const milDisplayPoints = useMemo<MilGlobePoint[]>(
+    () =>
+      showMilitaryActivity
+        ? pickInViewOrNearest(
+            milAircraft,
+            layerViewState,
+            VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
+            liveMilDisplayMax(globeLodTier, ultraLite),
+          ).map((aircraft) => ({
+            ...aircraft,
+            markerId: `mil-${aircraft.hex || aircraft.id}`,
+            displayKind: "mil" as const,
+          }))
+        : [],
+    [globeLodTier, layerViewState, milAircraft, showMilitaryActivity, ultraLite],
+  );
 
   /*
    * milHtmlMarkers / civHtmlMarkers 는 제거됨.
@@ -148,12 +181,61 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
    * buildAircraftSymbolModel 에 넘긴다. 사본을 만들 이유가 없어졌다.
    */
 
-  // ADS-B(민간) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
-  const civDisplayPoints = useMemo<MilitaryAircraft[]>(() => [], []);
+  // ADS-B(민간) — 지정학 지도 심볼 레이어.
+  const civDisplayPoints = useMemo<MilitaryAircraft[]>(
+    () =>
+      showAirTraffic
+        ? pickInViewOrNearest(
+            civAircraft,
+            layerViewState,
+            VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 4,
+            liveAirTrafficDisplayMax(globeLodTier, ultraLite),
+          )
+        : [],
+    [civAircraft, globeLodTier, layerViewState, showAirTraffic, ultraLite],
+  );
 
-  // AIS(군함·상선·위장선 전부) — MapLibre 심볼 레이어에서 제거, 관측(Cesium) 모드로 일원화.
-  // 지정학/지경학/항적 3개 모드에서 각각 다르게 필터링하던 로직은 CesiumSatelliteGlobe로 이전.
-  const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => [], []);
+  // AIS — 지정학 지도(MapLibre) 전용. 모드는 하나라 군함·상선을 모두 보이고,
+  // 군/민 세부 토글(showAisMilitary/showAisCommercial)로만 거른다. 바닷길 보기도 같은 경로.
+  const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
+    const live = showAis
+      ? pickInViewOrNearest(
+          aisVessels
+            .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
+            .filter((vessel) =>
+              vessel.category === "military" ? showAisMilitary : showAisCommercial,
+            ),
+          layerViewState,
+          VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
+          liveAisDisplayMax(globeLodTier, ultraLite),
+        )
+      : [];
+    const disguised = showDisguisedVessels
+      ? pickInViewOrNearest(
+          disguisedVessels,
+          layerViewState,
+          VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 12,
+          liveAisDisplayMax(globeLodTier, ultraLite),
+        )
+      : [];
+    const seen = new Set(live.map((v) => v.mmsi));
+    return [...live, ...disguised.filter((v) => !seen.has(v.mmsi))].map((vessel) => ({
+      ...vessel,
+      markerId: vessel.disguised ? `disguised-${vessel.mmsi}` : `ais-${vessel.mmsi}`,
+      displayKind: "ais" as const,
+    }));
+  }, [
+    aisVessels,
+    carrierAisMerge.matchedMmsi,
+    disguisedVessels,
+    globeLodTier,
+    layerViewState,
+    showAis,
+    showAisCommercial,
+    showAisMilitary,
+    showDisguisedVessels,
+    ultraLite,
+  ]);
 
   /*
    * aisHtmlMarkers 는 제거됨 (항공기와 동일 이유).

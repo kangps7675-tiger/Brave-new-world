@@ -233,7 +233,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS/GDELT
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
     const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
-    const adsb = await fetchAdsbAircraft(env, { milMax, civPerHub });
+    const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
+    const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub });
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
     try {
@@ -244,7 +245,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       );
     }
 
-    const aisMax = Math.min(1200, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 800)));
+    const aisMax = Math.min(3000, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 3000)));
     const ais = await fetchAisVessels(env, aisMax);
     aisErrors.push(...ais.errors.slice(0, 8));
 
@@ -806,7 +807,7 @@ const worker = {
     if (url.pathname === "/" || url.pathname === "/health") {
       return Response.json({
         service: "conflict-view-ingest",
-        cron: "*/10 * * * *",
+        cron: "*/15 * * * *",
         endpoints: {
           health: "GET /health",
           run: "POST /run (Bearer INGEST_CRON_SECRET — required)",
