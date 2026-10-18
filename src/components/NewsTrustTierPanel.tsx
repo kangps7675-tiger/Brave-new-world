@@ -15,6 +15,8 @@ type NewsTrustTierPanelProps = {
   open: boolean;
   onClose: () => void;
   lang: LabelLanguage;
+  /** 우측 서랍(슬롯 C) 안에 넣을 때. 배경 막·위치·닫기 없음 */
+  embedded?: boolean;
 };
 
 const TIER_BADGE: Record<1 | 2 | 3, string> = {
@@ -27,8 +29,8 @@ function toTrustLang(lang: LabelLanguage): TrustLang {
   return lang === "en" ? "en" : "ko";
 }
 
-export function NewsTrustTierPanel({ open, onClose, lang }: NewsTrustTierPanelProps) {
-  if (!open) return null;
+export function NewsTrustTierPanel({ open, onClose, lang, embedded = false }: NewsTrustTierPanelProps) {
+  if (!open && !embedded) return null;
 
   const tLang = toTrustLang(lang);
   const isEn = tLang === "en";
@@ -36,14 +38,20 @@ export function NewsTrustTierPanel({ open, onClose, lang }: NewsTrustTierPanelPr
 
   return (
     <>
+      {embedded ? null : (
       <button
         type="button"
         aria-label={isEn ? "Close trust grades panel" : "신뢰도 패널 닫기"}
         className="absolute inset-0 z-[500] bg-[#0a1528]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
+      )}
       <aside
-        className="intel-panel absolute right-3 top-14 z-[600] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),420px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        className={
+          embedded
+            ? "flex min-h-0 flex-col"
+            : "intel-panel absolute right-3 top-14 z-[600] flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),420px)] flex-col overflow-hidden rounded-2xl shadow-2xl"
+        }
         role="dialog"
         aria-label={trustPanelTitle(tLang)}
       >
@@ -53,6 +61,7 @@ export function NewsTrustTierPanel({ open, onClose, lang }: NewsTrustTierPanelPr
             <h2 className="mt-1 text-lg font-semibold text-sky-50">{trustPanelTitle(tLang)}</h2>
             <p className="mt-1 text-meta text-sky-100/55">{trustPanelSubtitle(tLang)}</p>
           </div>
+          {embedded ? null : (
           <button
             type="button"
             onClick={onClose}
@@ -60,6 +69,7 @@ export function NewsTrustTierPanel({ open, onClose, lang }: NewsTrustTierPanelPr
           >
             {isEn ? "Close" : "닫기"}
           </button>
+          )}
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">

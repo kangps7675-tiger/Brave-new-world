@@ -32,10 +32,37 @@ export function readActiveCaseId(): string {
   }
 }
 
+const MY_CASES_KEY = "bnw.myCaseIds";
+const MY_CASES_MAX = 20;
+
+/** 이 브라우저에서 연/만든 케이스 — 사건 스택의 "내 케이스". 서버 목록은 공개하지 않는다. */
+export function readMyCaseIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(MY_CASES_KEY) ?? "[]");
+    return Array.isArray(raw)
+      ? raw.filter((x): x is string => typeof x === "string" && x.length > 0)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberMyCase(id: string): void {
+  try {
+    const next = [id, ...readMyCaseIds().filter((x) => x !== id)].slice(0, MY_CASES_MAX);
+    localStorage.setItem(MY_CASES_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("bnw:my-cases"));
+  } catch {
+    /* private mode */
+  }
+}
+
 export function writeActiveCaseId(caseId: string): void {
   if (typeof window === "undefined") return;
   try {
     const id = caseId.trim();
+    if (id) rememberMyCase(id);
     if (id) sessionStorage.setItem(CASE_ID_KEY, id);
     else sessionStorage.removeItem(CASE_ID_KEY);
   } catch {

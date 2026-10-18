@@ -27,7 +27,11 @@ import {
   MIL_AIRCRAFT_MARKER_ICON_SIZE,
   type MilAircraftIconSize,
 } from "@/data/milAircraftSilhouettes";
-import { classifyMilAircraft, type MilAircraftRole } from "@/lib/milAircraftKind";
+import {
+  civilAircraftIconRole,
+  classifyMilAircraft,
+  type MilAircraftRole,
+} from "@/lib/milAircraftKind";
 import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 
 export const AIRCRAFT_SYMBOL_SOURCE_ID = "aircraft-symbols-source";
@@ -56,12 +60,14 @@ const PALETTES: AircraftPalette[] = ["military", "civil"];
  * 역할별 표시 크기 (CSS px) — createMilAircraftBadge의 기존 값을 그대로 옮겼다.
  * 이 값 그대로 이미지를 굽고 icon-size는 1로 둔다 (스케일 보간 없음 = 더 선명).
  */
-function iconSizeForRole(role: MilAircraftRole): MilAircraftIconSize {
-  if (role === "bomber") return { width: 46, height: 46 };
+function iconSizeForRole(role: MilAircraftRole, palette: AircraftPalette): MilAircraftIconSize {
+  // 민항은 3,000대까지 한 화면에 깔리므로 작고 균일하게 (Flightradar24식)
+  if (palette === "civil") return { width: 22, height: 22 };
+  if (role === "bomber") return { width: 38, height: 38 };
   if (role === "transport" || role === "tanker" || role === "awacs") {
-    return { width: 34, height: 34 };
+    return { width: 30, height: 30 };
   }
-  if (role === "helicopter" || role === "gunship") return { width: 30, height: 30 };
+  if (role === "helicopter" || role === "gunship") return { width: 28, height: 28 };
   return MIL_AIRCRAFT_MARKER_ICON_SIZE;
 }
 
@@ -69,8 +75,8 @@ export function aircraftSymbolIconId(
   role: MilAircraftRole,
   palette: AircraftPalette,
 ): string {
-  // ink3 — 민간 팔레트 초록 전환 시 캐시 버스팅
-  return `aircraft-${palette}-${role}-ink3`;
+  // ink4 — 군용 항모 빨강·민간 FR24 노랑 전환 시 캐시 버스팅
+  return `aircraft-${palette}-${role}-ink4`;
 }
 
 /** 침로 없음 — 실루엣을 살짝 눕혀 "방향 미상"을 표현 (기존 DOM 마커와 동일 규칙) */
@@ -110,7 +116,7 @@ export async function ensureAircraftSymbolImages(map: MapLike): Promise<void> {
     for (const role of ROLES) {
       const id = aircraftSymbolIconId(role, palette);
       if (map.hasImage(id)) continue;
-      const size = iconSizeForRole(role);
+      const size = iconSizeForRole(role, palette);
       // 2배 해상도로 구운 뒤 pixelRatio 2 → 화면에서는 size 그대로
       const svg = milAircraftIconSvg(
         role,
@@ -191,9 +197,8 @@ export function buildAircraftSymbolModel(
     const lng = Number(item.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-    // 민항은 여객기 실루엣으로 통일 (기존 createMilAircraftBadge와 동일 규칙)
-    const role =
-      palette === "civil" ? ("transport" as const) : classifyMilAircraft(item).role;
+    // 민항은 여객기·경항공기·헬기 3종 (FR24식), 군용은 역할별 실루엣
+    const role = palette === "civil" ? civilAircraftIconRole(item) : classifyMilAircraft(item).role;
     const heading = headingDeg(item);
     const index = items.length;
     const selected = selectedHex !== "" && item.hex.toLowerCase() === selectedHex ? 1 : 0;

@@ -8,14 +8,31 @@ import { paintAxisHubCountriesGeoJson, paintAxisSatelliteCountriesGeoJson } from
 import { paintGeoEconBlocCountriesGeoJson } from "@/lib/geoeconBlocCountryPolygons";
 import { emptyUkraineFrontGeoJson, buildUkraineMacroGeoJson, buildUkraineMacroSeedGeoJson, buildUkraineMicroGeoJson, buildUkraineMicroSeedGeoJson } from "@/lib/ukraineFrontGeojson";
 
-import type { FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
+import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import type { MutableRefObject } from "react";
 import type { ViinaPolygonLayers } from "@/lib/viinaLod";
+
+function withWarCountries(
+  base: FeatureCollection<Geometry, GeoJsonProperties>,
+  war: Feature<Geometry, GeoJsonProperties>[] | undefined,
+  enabled: boolean,
+  tier: "macro" | "micro",
+): FeatureCollection<Geometry, GeoJsonProperties> {
+  if (!enabled || !war || war.length === 0) return base;
+  const extra = war.map((f) => ({
+    ...f,
+    id: typeof f.id === "string" ? f.id.replace("-macro", `-${tier}`) : f.id,
+    properties: { ...(f.properties ?? {}), tier },
+  }));
+  return { ...base, features: [...base.features, ...extra] };
+}
 
 export type UseBlocPolygonLayersOptions = {
   isEconomyViewer: boolean;
   isConflictViewer: boolean;
   ukraineOccupiedGeoJson: FeatureCollection<Geometry, GeoJsonProperties>;
+  /** 전쟁 중인 나라 국경 폴리곤(liveuamap 기반) — 통제면 유무와 상관없이 덧붙인다 */
+  warCountryFeatures?: Feature<Geometry, GeoJsonProperties>[];
   applyGeneration: number;
   immediateUntilRef: MutableRefObject<number>;
   showAlliedBlocs: boolean;
@@ -42,6 +59,7 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     isEconomyViewer,
     isConflictViewer,
     ukraineOccupiedGeoJson,
+    warCountryFeatures,
     applyGeneration,
     immediateUntilRef,
     showAlliedBlocs,
@@ -74,7 +92,7 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     [countryPolygonData, stableOverlayPolygons],
   );
 
-  const ukraineMacroGeoJson = useMemo(() => {
+  const ukraineMacroBase = useMemo(() => {
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
@@ -103,7 +121,7 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     viinaDisplay.uaZones,
   ]);
 
-  const ukraineMicroGeoJson = useMemo(() => {
+  const ukraineMicroBase = useMemo(() => {
     if (isEconomyViewer || !showUkraineControl) {
       return emptyUkraineFrontGeoJson();
     }
@@ -143,6 +161,15 @@ export function useBlocPolygonLayers(opts: UseBlocPolygonLayersOptions) {
     viinaDisplay.lod.mode,
     viinaDisplay.ruZones,
   ]);
+
+  const ukraineMacroGeoJson = useMemo(
+    () => withWarCountries(ukraineMacroBase, warCountryFeatures, !isEconomyViewer && showUkraineControl, "macro"),
+    [isEconomyViewer, showUkraineControl, ukraineMacroBase, warCountryFeatures],
+  );
+  const ukraineMicroGeoJson = useMemo(
+    () => withWarCountries(ukraineMicroBase, warCountryFeatures, !isEconomyViewer && showUkraineControl, "micro"),
+    [isEconomyViewer, showUkraineControl, ukraineMicroBase, warCountryFeatures],
+  );
 
   const polygonDataWithUkraine = polygonData;
 

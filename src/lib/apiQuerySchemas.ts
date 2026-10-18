@@ -45,7 +45,7 @@ export const adsbTrafficQuerySchema = z
 
 export const aisQuerySchema = z
   .object({
-    max: z.coerce.number().int().min(1).max(1000).optional().default(250),
+    max: z.coerce.number().int().min(1).max(3000).optional().default(250),
     seconds: z.coerce.number().int().min(1).max(20).optional().default(8),
     debug: liveFlagSchema,
     class: z.string().max(32).optional(),

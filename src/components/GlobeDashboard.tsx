@@ -1,5 +1,7 @@
 "use client";
 
+import { coerceBootViewerMode } from "@/lib/viewerModePolicy";
+import { LAB_UI } from "@/lib/labFlag";
 import {
   buildNewsKeywordCatalog,
   createNewsSearchIndex,
@@ -57,7 +59,6 @@ import {
   trackLayerToggle,
 } from "@/lib/analyticsEvents";
 import { DashboardOverlayHost } from "@/components/globe/DashboardOverlayHost";
-import { CesiumAlertDock } from "@/components/globe/CesiumAlertDock";
 import { useSceneDeeplink } from "@/components/globe/hooks/useSceneDeeplink";
 import { useAmbientSoundSelectors } from "@/components/globe/hooks/useAmbientSoundSelectors";
 import { useMaritimeAlertBriefs } from "@/components/globe/hooks/useMaritimeAlertBriefs";
@@ -125,7 +126,10 @@ import {
 
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
-import { LiveuaFlashDock } from "@/components/globe/LiveuaFlashDock";
+import { IncidentStack } from "@/components/globe/IncidentStack";
+import { FeedDrawer } from "@/components/globe/FeedDrawer";
+import { type FeedTabId } from "@/lib/feedDrawer/tabs";
+import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
 import { ObserveScopeMask } from "@/components/globe/ObserveScopeMask";
@@ -532,12 +536,22 @@ import {
 } from "@/components/globe/overlayHostPropGroups";
 import { useHistoryImmersionActions } from "@/components/globe/hooks/useHistoryImmersionActions";
 import { useAlertDisplayModel } from "@/components/globe/hooks/useAlertDisplayModel";
+import { buildWarCountryFeatures, warCountryIsos } from "@/lib/warCountries";
 import { runBreakingFlashGoToLocation } from "@/lib/news/breakingFlashNavigate";
 import { useGlobeOverlayModel } from "@/components/globe/hooks/useGlobeOverlayModel";
 import { useLiveVesselAirPolling } from "@/components/globe/hooks/useLiveVesselAirPolling";
 import { useLiveOsintPolling } from "@/components/globe/hooks/useLiveOsintPolling";
 import { useDailyLampPipeline } from "@/components/globe/hooks/useDailyLampPipeline";
 import { useLiveuaObserveFeed } from "@/components/globe/hooks/useLiveuaObserveFeed";
+import { useMyCaseStackItems } from "@/components/globe/hooks/useMyCaseStackItems";
+import {
+  INCIDENT_STACK_MAX,
+  mergeStackItems,
+  splitShipAndFront,
+  stackItemFromLiveua,
+  stackItemFromUkmto,
+  type StackItem,
+} from "@/lib/incidentStack/build";
 import { useBreakingFlashController } from "@/components/globe/hooks/useBreakingFlashController";
 import { useMapInteractionHandlers } from "@/components/globe/hooks/useMapInteractionHandlers";
 import { useEpisodePostureOverlays } from "@/components/globe/hooks/useEpisodePostureOverlays";
@@ -558,6 +572,8 @@ export type { GlobeDashboardProps } from "@/components/globe/types";
 
 /** 좌하단 일일 랭킹·WTI·예측 패널 접기 선호 (텔레그램 패널 가림 방지) */
 const DAILY_RANK_PANEL_KEY = "cv-daily-rank-panel-open";
+
+const NO_CESIUM_FIRMS: never[] = [];
 
 export function GlobeDashboard({
   viinaMeta = null,
@@ -690,13 +706,15 @@ export function GlobeDashboard({
       saved === "satellite" ||
       saved === "live"
     ) {
-      if (saved === "history") return "conflict";
-      if (saved === "live") return "satellite";
-      return saved;
+      if (saved === "history") return coerceBootViewerMode("conflict");
+      if (saved === "live") return coerceBootViewerMode("satellite");
+      return coerceBootViewerMode(saved);
     }
     const pkgs = initialViewConfig?.packages.filter((id) => id !== "custom");
-    return viewerModeFromPackages(
-      pkgs && pkgs.length > 0 ? pkgs : DEFAULT_PACKAGE_SELECTION,
+    return coerceBootViewerMode(
+      viewerModeFromPackages(
+        pkgs && pkgs.length > 0 ? pkgs : DEFAULT_PACKAGE_SELECTION,
+      ),
     );
   });
   const viewerChromePreset = getViewerChrome(viewerMode);
@@ -1282,8 +1300,8 @@ export function GlobeDashboard({
     liveuaBreakingEvents,
     liveuaToast,
     setLiveuaToast,
-    liveuaUnread,
     liveuaReadIds,
+    markLiveuaRead,
     markAllLiveuaRead,
     liveuaParchmentIndex,
     setLiveuaParchmentIndex,
@@ -1294,8 +1312,37 @@ export function GlobeDashboard({
   } = useLiveuaObserveFeed({
     isSatelliteViewer,
     theaterSitrepRegion,
+    pollFeed: true,
+    koreanFallback: layerPrefs.labelLanguage !== "en",
   });
 
+  /** 슬롯 A 사건 스택 — 펼친 사건은 동시에 하나 */
+  const [stackSelectedId, setStackSelectedId] = useState<string | null>(null);
+  const myCaseStackItems = useMyCaseStackItems();
+  /**
+   * 우측: 선박 사건(UKMTO·내 케이스·해역 안 선박 속보)은 사건 스택으로,
+   * 그 밖의 liveuamap 전선 소식은 서랍("전선 속보")으로 가른다.
+   */
+  const { incidentStackItems, frontNewsItems } = useMemo(() => {
+    const now = Date.now();
+    const liveCutoff = now - 48 * 60 * 60 * 1000;
+    const ukmtoCutoff = now - 30 * 24 * 60 * 60 * 1000;
+    const liveItems = liveuaEvents
+      .map((ev) => stackItemFromLiveua(ev, layerPrefs.labelLanguage !== "en"))
+      .filter((x): x is StackItem => x !== null && x.at >= liveCutoff);
+    const { ship, front } = splitShipAndFront(liveItems);
+    const ukmtoItems = ukmtoIncidents
+      .map((u) => stackItemFromUkmto(u, layerPrefs.labelLanguage !== "en"))
+      .filter((x): x is StackItem => x !== null && x.at >= ukmtoCutoff);
+    return {
+      incidentStackItems: mergeStackItems([ship, ukmtoItems, myCaseStackItems], INCIDENT_STACK_MAX),
+      frontNewsItems: mergeStackItems([front], INCIDENT_STACK_MAX),
+    };
+  }, [liveuaEvents, ukmtoIncidents, myCaseStackItems, layerPrefs.labelLanguage]);
+  const stackUnread = useMemo(
+    () => incidentStackItems.filter((i) => i.source === "liveua" && !liveuaReadIds.has(i.id)).length,
+    [incidentStackItems, liveuaReadIds],
+  );
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
   const togglePref = useCallback(
     ((key, value) => {
@@ -1895,6 +1942,32 @@ export function GlobeDashboard({
     [liveuaEvents, labelLanguage],
   );
 
+  /** MapLibre 공습 마커 — 우크라이나·중동 liveuamap 타격(드론·미사일·유도폭탄)을 한 지도에 */
+  const liveuaStrikesMapData = useMemo(
+    () =>
+      showUkraineControl && !isSatelliteViewer
+        ? liveuaEvents
+            .flatMap((event) => {
+              const hit = liveuaConfirmedStrike(event);
+              if (!hit || !Number.isFinite(event.lat) || !Number.isFinite(event.lng)) return [];
+              return [
+                {
+                  id: event.id,
+                  lat: event.lat,
+                  lng: event.lng,
+                  title:
+                    labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title,
+                  kind: hit.kind,
+                  region: event.regionId,
+                  publishedAt: event.publishedAt,
+                },
+              ];
+            })
+            .slice(0, 150)
+        : [],
+    [isSatelliteViewer, labelLanguage, liveuaEvents, showUkraineControl],
+  );
+
   const liveuaGround = useMemo(
     () =>
       liveuaEvents.flatMap((event) => {
@@ -2391,6 +2464,50 @@ export function GlobeDashboard({
     setDeskFocus,
     setPromotingItemId,
   });
+
+  /** 위성으로 보기 전의 일반 지도 카메라 — 위성에서 돌아오면 복원 */
+  const stackReturnViewRef = useRef<{
+    view: { lat: number; lng: number; altitude: number };
+    armed: boolean;
+  } | null>(null);
+  useEffect(() => {
+    const r = stackReturnViewRef.current;
+    if (!r) return;
+    if (isSatelliteViewer) {
+      r.armed = true;
+      return;
+    }
+    if (r.armed) {
+      stackReturnViewRef.current = null;
+      unifiedFlyTo(r.view.lat, r.view.lng, r.view.altitude);
+    }
+  }, [isSatelliteViewer, unifiedFlyTo]);
+
+  /** 사건 스택 행 → 세슘 시점 이동. 위성으로 보기·위성 모드 안의 위치로 가기가 같이 쓴다 */
+  const focusStackItemInSpace = (it: StackItem) => {
+    if (it.source === "liveua") setFocusedLiveuaId(it.id);
+    enterFocusedSpace({
+      lat: it.lat,
+      lng: it.lng,
+      altitude: 0.3,
+      pitch: LOCATION_LOOK_DOWN.pitch,
+      title: it.title,
+      kicker: labelLanguage === "en" ? "Liveuamap · location" : "Liveuamap · 위치",
+    });
+    unifiedFlyTo(
+      it.lat,
+      it.lng,
+      0.3,
+      LOCATION_LOOK_DOWN.durationMs,
+      {
+        pitch: LOCATION_LOOK_DOWN.pitch,
+        bearing: LOCATION_LOOK_DOWN.bearing,
+        lookAt: LOCATION_LOOK_DOWN.lookAt,
+      },
+      { descend: true },
+    );
+  };
+
 
   if (hubFocusMode !== "regime" && hubFocusMode !== "disputes") {
     outsideViewRef.current = {
@@ -3412,7 +3529,7 @@ export function GlobeDashboard({
     date: gpsJamDate,
     status: gpsJamStatus,
   } = useGpsJamLayer({
-    enabled: showGpsInterference && isLiveViewer,
+    enabled: showGpsInterference,
     view: layerViewState,
     radiusDeg: VIEWPORT_RADIUS_BY_TIER[globeLod.tier] + 8,
   });
@@ -3551,7 +3668,7 @@ export function GlobeDashboard({
     }
     const core =
       isViinaCloseZoom && showUkraineControl
-        ? (["map-points", "map-gem-facilities", "map-paths", "map-rings", "firms-flame"] as const)
+        ? (["map-points", "map-gem-facilities", "map-paths", "map-rings", "firms-flame", "liveua-strikes"] as const)
         : ([
             "map-points",
             "map-gem-facilities",
@@ -3559,6 +3676,7 @@ export function GlobeDashboard({
             "map-polygons-fill",
             "map-rings",
             "firms-flame",
+            "liveua-strikes",
           ] as const);
     return [...core, ...blocFills];
   }, [
@@ -3772,6 +3890,31 @@ export function GlobeDashboard({
    * useBlocPolygonLayers 훅으로 추출 (분리 Phase D).
    * src/components/globe/hooks/useBlocPolygonLayers.ts
    */
+  const parseWarExtraCountries = useCallback((raw: unknown) => raw as FeatureCollection, []);
+  /** 이스라엘 등 CRINK·위성국 파일에 없는 전쟁 당사국 국경 */
+  const { data: warExtraCountriesSource } = useLazyJsonObject<FeatureCollection>(
+    "war-extra-countries.json",
+    isConflictViewer && globeReady,
+    parseWarExtraCountries,
+    { deferUntilIdle: true, idleTimeoutMs: 4_000 },
+  );
+
+  /** 전쟁 중인 나라(이란 등) — liveuamap 최근 사건이 이어지면 국경 폴리곤을 통제면과 같은 색으로 칠한다 */
+  const warCountryFeatures = useMemo(() => {
+    if (!isConflictViewer) return [];
+    return buildWarCountryFeatures(warCountryIsos(liveuaEvents), [
+      axisHubCountriesSource,
+      axisSatelliteCountriesSource,
+      warExtraCountriesSource,
+    ]);
+  }, [
+    isConflictViewer,
+    liveuaEvents,
+    axisHubCountriesSource,
+    axisSatelliteCountriesSource,
+    warExtraCountriesSource,
+  ]);
+
   const {
     polygonData,
     ukraineMacroGeoJson,
@@ -3785,6 +3928,7 @@ export function GlobeDashboard({
     isEconomyViewer,
     isConflictViewer,
     ukraineOccupiedGeoJson,
+    warCountryFeatures,
     applyGeneration,
     immediateUntilRef,
     showAlliedBlocs,
@@ -4072,6 +4216,8 @@ export function GlobeDashboard({
     showMilitaryActivity,
     showAirTraffic,
     showAis,
+    showAisMilitary,
+    showAisCommercial,
     showDisguisedVessels,
     milAircraft,
     civAircraft,
@@ -4090,7 +4236,6 @@ export function GlobeDashboard({
     visibleFirmsFires,
     firmsCombatFireIds,
     firmsDisplayPoints,
-    cesiumFirmsFires,
     firmsCombatInView,
     gdeltTensionTags,
     ukraineGdeltNeonMarkers,
@@ -6033,6 +6178,65 @@ export function GlobeDashboard({
    */
   handleAirRaidFocusRef.current = handleAirRaidFocus;
 
+  /**
+   * 슬롯 C — 우측 서랍장. 데스크톱(폰 아님)·일반 지도에서만.
+   * 켜져 있으면 같은 피드의 옛 자리(우하단 GDELT·지역 경보, 상단 "알림" 안 공습경보)는 숨긴다.
+   * @see src/lib/feedDrawer/tabs.ts
+   */
+  const feedDrawerActive = !isPhoneUi && !isSatelliteViewer;
+  const feedSignatures = useMemo<Partial<Record<FeedTabId, string | null>>>(
+    () => ({ front: frontNewsItems[0]?.id ?? null }),
+    [frontNewsItems],
+  );
+  const feedCounts = useMemo<Partial<Record<FeedTabId, number>>>(
+    () => ({ front: frontNewsItems.length }),
+    [frontNewsItems.length],
+  );
+
+  function renderFeedTab(id: FeedTabId) {
+    const en = labelLanguage === "en";
+    if (id !== "front") return null;
+    if (frontNewsItems.length === 0) {
+      return (
+        <p className="px-2.5 py-2 text-micro text-teal-100/50">
+          {en ? "No front news." : "전선 소식이 없습니다."}
+        </p>
+      );
+    }
+    return (
+      <ul className="divide-y divide-teal-500/10">
+        {frontNewsItems.slice(0, 30).map((it) => {
+          const isRead = liveuaReadIds.has(it.id);
+          return (
+            <li key={it.id}>
+              <button
+                type="button"
+                className={`w-full px-2.5 py-1.5 text-left text-micro hover:bg-teal-500/10 ${
+                  isRead ? "opacity-55 hover:opacity-90" : ""
+                }`}
+                onClick={() => {
+                  markLiveuaRead(it.id);
+                  unifiedFlyTo(it.lat, it.lng, 0.5);
+                }}
+              >
+                <span className="flex flex-wrap items-center gap-x-1.5 text-teal-200/70">
+                  {!isRead ? (
+                    <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                  ) : null}
+                  <span className="tabular-nums">
+                    {new Date(it.at).toISOString().slice(5, 16).replace("T", " ")}
+                  </span>
+                  <span>{it.place}</span>
+                </span>
+                <span className="line-clamp-2 text-meta text-cyan-50/90">{it.title}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
   function handleSearchSelect(hit: ChromeSearchHit) {
     if (hit.kind === "news") {
       const article = hit.article;
@@ -6096,6 +6300,7 @@ export function GlobeDashboard({
     isCameraMoving,
     globeDisplayPoints,
     firmsDisplayPoints,
+    liveuaStrikesMapData,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -6238,7 +6443,8 @@ export function GlobeDashboard({
       />
       ) : null}
 
-      {!intelSheetOpen &&
+      {LAB_UI &&
+      !intelSheetOpen &&
       entryGate === null &&
       !showModePicker &&
       !periodicBriefing &&
@@ -6448,12 +6654,12 @@ export function GlobeDashboard({
           disguisedVessels={disguisedVessels}
           milAircraft={milAircraft}
           civAircraft={civAircraft}
-          showAis={showAis || isSatelliteViewer}
+          showAis={false /* AIS는 지정학 지도(MapLibre)에서만 그린다 */}
           showAisMilitary={showAisMilitary}
           showAisCommercial={showAisCommercial}
-          showDisguisedVessels={showDisguisedVessels || isSatelliteViewer}
-          showMilitaryActivity={showMilitaryActivity || isSatelliteViewer}
-          showAirTraffic={showAirTraffic || isSatelliteViewer}
+          showDisguisedVessels={false}
+          showMilitaryActivity={false /* ADS-B는 지정학 지도(MapLibre)에서만 */}
+          showAirTraffic={false}
           cesiumUsCarriers={usCarriers}
           showCesiumUsCarriers={isSatelliteViewer}
           showNeptun={showNeptun}
@@ -6511,8 +6717,9 @@ export function GlobeDashboard({
           controlGeoJson={
             isSatelliteViewer && showUkraineControl ? liveuaControlGeoJson : null
           }
-          firmsFires={cesiumFirmsFires}
-          showFirmsFires={showFirmsFires}
+          // NASA FIRMS는 MapLibre(지정학)에서만 — 위성(Cesium)에는 올리지 않는다
+          firmsFires={NO_CESIUM_FIRMS}
+          showFirmsFires={false}
           missileLaunches={cesiumMissileLaunches}
           showMissileLaunches={showNorthKoreaMissileTests}
           neptunAlerts={neptunAlerts}
@@ -6802,29 +7009,71 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
+        {!isSatelliteViewer ? (
+          <div
+            className={`pointer-events-none fixed ${isPhoneUi ? "inset-x-3" : "right-3 flex flex-col gap-2"} ${zc("mapControl")}`}
+            style={
+              isPhoneUi
+                ? { bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }
+                : {
+                    top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
+                    maxHeight: "calc(100vh - var(--mode-index-chip-bottom, 4rem) - 1.5rem)",
+                  }
+            }
+          >
+            <TrackingToggles
+              lang={labelLanguage}
+              vesselsOn={showAis}
+              aircraftOn={showAirTraffic || showGpsInterference}
+              onVesselsChange={(next) => togglePref("showAis", next)}
+              onAircraftChange={(next) => {
+                // 민항기는 GPS 재밍·공항과 한 묶음
+                togglePref("showAirTraffic", next);
+                togglePref("showGpsInterference", next);
+                togglePref("showAirports", next);
+              }}
+            />
+            <IncidentStack
+              compact={isPhoneUi}
+              lang={labelLanguage}
+              items={incidentStackItems}
+              readIds={liveuaReadIds}
+              unreadCount={stackUnread}
+              selectedId={stackSelectedId}
+              onSelect={(id) => {
+                setStackSelectedId(id);
+                const picked = incidentStackItems.find((x) => x.id === id);
+                if (picked?.source === "liveua") markLiveuaRead(picked.id);
+              }}
+              onMarkAllRead={markAllLiveuaRead}
+              onGoToLocation={(it) => {
+                unifiedFlyTo(it.lat, it.lng, 0.5);
+              }}
+              onViewSatellite={(it) => {
+                setStackSelectedId(null);
+                stackReturnViewRef.current = { view: { ...viewState }, armed: false };
+                handleViewerModeChange("satellite");
+                window.setTimeout(() => focusStackItemInSpace(it), 600);
+              }}
+            />
+            {feedDrawerActive ? (
+              <FeedDrawer
+                lang={labelLanguage}
+                signatures={feedSignatures}
+                counts={feedCounts}
+                renderTab={renderFeedTab}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
         {isSatelliteViewer && !isPhoneUi ? (
           <ObserveDeskBookmarkRail
             lang={labelLanguage}
-            unreadFlash={liveuaUnread}
-            alertCount={cesiumAlerts.length}
             boardCount={observeWatchboardItems.filter((i) => i.grade !== "hold").length}
             hasVerify={Boolean(deskFocus)}
             autoOpenVerify={Boolean(deskFocus)}
             hasCase={activeCaseOpen}
-            flash={
-              <LiveuaFlashDock
-                lang={labelLanguage}
-                chrome="bare"
-                events={liveuaBreakingEvents}
-                unreadCount={liveuaUnread}
-                readIds={liveuaReadIds}
-                onMarkAllRead={markAllLiveuaRead}
-                onOpen={(index) => {
-                  if (theaterSitrepRegion) return;
-                  setLiveuaParchmentIndex(index);
-                }}
-              />
-            }
             board={
               <IntelWatchboard
                 lang={labelLanguage}
@@ -6849,17 +7098,6 @@ export function GlobeDashboard({
                 }}
                 onDrill={(item) => openIntelDrill(item.gate, item.pirStatuses)}
                 onOpenFullGuide={() => setShowFeatureGuide(true)}
-              />
-            }
-            alerts={
-              <CesiumAlertDock
-                lang={labelLanguage}
-                chrome="bare"
-                items={cesiumAlerts}
-                onOpen={(item) => {
-                  if (theaterSitrepRegion) return;
-                  openCesiumAlert(item);
-                }}
               />
             }
             verify={
@@ -6908,7 +7146,7 @@ export function GlobeDashboard({
           />
         ) : null}
 
-        {observeTracksNudge && !isSatelliteViewer ? (
+        {LAB_UI && observeTracksNudge && !isSatelliteViewer ? (
           <div
             className={`pointer-events-auto fixed right-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-teal-500/40 bg-[#041018]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
             style={{
@@ -7003,22 +7241,7 @@ export function GlobeDashboard({
             onFocusPipelines={(ev) => {
               revealIncidentEnergyPipelines();
               setLiveuaParchmentIndex(null);
-              if (isSatelliteViewer) {
-                handleModeApply("economy", "auto", "auto");
-                window.setTimeout(() => {
-                  flyTo(ev.lat, ev.lng, 0.85);
-                }, 500);
-                return;
-              }
               unifiedFlyTo(ev.lat, ev.lng, 0.85);
-            }}
-            onGoConflict={() => {
-              setLiveuaParchmentIndex(null);
-              handleViewerModeChange("conflict");
-            }}
-            onGoEconomy={() => {
-              setLiveuaParchmentIndex(null);
-              handleViewerModeChange("economy");
             }}
           />
         ) : null}
@@ -7050,9 +7273,6 @@ export function GlobeDashboard({
               });
               unifiedFlyTo(choke.lat, choke.lng, 0.75);
             }}
-            onFocusMarkets={() => {
-              handleViewerModeChange("economy");
-            }}
             onEnableShipTraffic={() => {
               patchLayerPrefsSoft({
                 showAis: true,
@@ -7075,7 +7295,7 @@ export function GlobeDashboard({
           />
         ) : null}
 
-        {isSatelliteViewer && intelDeskTipVisible && !theaterSitrepRegion ? (
+        {LAB_UI && isSatelliteViewer && intelDeskTipVisible && !theaterSitrepRegion ? (
           <div
             className={`pointer-events-none fixed ${zc("alert")}`}
             style={{
@@ -7142,7 +7362,7 @@ export function GlobeDashboard({
           isCompactUi={isCompactUi}
           onCloseTelegram={closeTelegramOsintLayer}
           onTelegramFlyToPlace={isEconomyViewer ? undefined : handleTelegramFlyToPlace}
-          bottomAlertPanel={bottomAlertPanel}
+          bottomAlertPanel={feedDrawerActive ? "none" : bottomAlertPanel}
           gdeltMenuCoreAlerts={gdeltMenuCoreAlerts}
           gdeltLoading={gdeltLoading}
           gdeltError={gdeltError}
@@ -7320,6 +7540,7 @@ export function GlobeDashboard({
         usDfcSupplyPaths={usDfcSupplyPaths}
         briTradePaths={briTradePaths}
         issueUiPausedForLamp={issueUiPausedForLamp}
+        feedDrawerActive={feedDrawerActive}
         {...buildOverlayHostObserveFeedProps({
           showNeptun,
           neptunAlertCount,
@@ -7851,7 +8072,7 @@ export function GlobeDashboard({
         activeHubId={activeHubId}
       />
 
-      {newsPerspectives ? (
+      {LAB_UI && newsPerspectives ? (
         <NewsPerspectivesPanel
           headline={newsPerspectives.title}
           placeLabel={newsPerspectives.placeLabel}

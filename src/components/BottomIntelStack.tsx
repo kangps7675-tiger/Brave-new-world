@@ -965,13 +965,18 @@ export function DynamicIntelStack({
             type="button"
             onClick={() => onOpenSheet("all")}
             aria-label={isEconomy ? t("hoverEconomyFabOpenAria") : t("hoverIntelFabOpenAria")}
-            className={`intel-mini-fab tap-target pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm shadow-lg backdrop-blur-md transition ${
+            className={`intel-mini-fab tap-target pointer-events-auto flex h-11 shrink-0 items-center justify-center gap-1.5 px-3 rounded-xl border text-sm shadow-lg backdrop-blur-md transition ${
               isEconomy
-                ? "border-emerald-300/25 bg-emerald-950/85 text-emerald-100 hover:border-emerald-200/40 hover:bg-emerald-900/90"
-                : "border-sky-300/20 bg-[#0a1830]/85 text-sky-100 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
+                ? "border-emerald-300/55 bg-emerald-900/95 text-emerald-50 ring-1 ring-emerald-300/25 hover:border-emerald-200/40 hover:bg-emerald-900/90"
+                : "border-sky-300/55 bg-[#0d2a55]/95 text-sky-50 ring-1 ring-sky-300/25 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
             }`}
           >
-            {isEconomy ? "📈" : "📰"}
+            <span className="text-xl leading-none" aria-hidden>
+                {isEconomy ? "📈" : "📰"}
+              </span>
+              <span className="text-meta font-semibold tracking-tight">
+                {lang === "en" ? "News" : isEconomy ? "시황" : "뉴스"}
+              </span>
           </button>
         </HoverHint>
       </div>
@@ -1020,13 +1025,18 @@ export function DynamicIntelStack({
                 onOpenSheet("all");
               }}
               aria-label={isEconomy ? t("hoverEconomyFabOpenAria") : t("hoverIntelFabOpenAria")}
-              className={`intel-mini-fab tap-target flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm transition ${
+              className={`intel-mini-fab tap-target flex h-11 shrink-0 items-center justify-center gap-1.5 px-3 rounded-xl border text-sm transition ${
                 isEconomy
-                  ? "border-emerald-300/25 bg-emerald-950/85 text-emerald-100"
-                  : "border-sky-300/20 bg-[#0a1830]/85 text-sky-100"
+                  ? "border-emerald-300/55 bg-emerald-900/95 text-emerald-50 ring-1 ring-emerald-300/25"
+                  : "border-sky-300/55 bg-[#0d2a55]/95 text-sky-50 ring-1 ring-sky-300/25"
               }`}
             >
-              {isEconomy ? "📈" : "📰"}
+              <span className="text-xl leading-none" aria-hidden>
+                {isEconomy ? "📈" : "📰"}
+              </span>
+              <span className="text-meta font-semibold tracking-tight">
+                {lang === "en" ? "News" : isEconomy ? "시황" : "뉴스"}
+              </span>
             </button>
           </HoverHint>
         </div>
@@ -1208,13 +1218,18 @@ export function DynamicIntelStack({
               type="button"
               onClick={() => onOpenSheet("all")}
               aria-label={isEconomy ? t("hoverEconomyFabOpenAria") : t("hoverIntelFabOpenAria")}
-              className={`intel-mini-fab tap-target pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm shadow-lg backdrop-blur-md transition ${
+              className={`intel-mini-fab tap-target pointer-events-auto flex h-11 shrink-0 items-center justify-center gap-1.5 px-3 rounded-xl border text-sm shadow-lg backdrop-blur-md transition ${
                 isEconomy
-                  ? "border-emerald-300/25 bg-emerald-950/85 text-emerald-100 hover:border-emerald-200/40 hover:bg-emerald-900/90"
-                  : "border-sky-300/20 bg-[#0a1830]/85 text-sky-100 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
+                  ? "border-emerald-300/55 bg-emerald-900/95 text-emerald-50 ring-1 ring-emerald-300/25 hover:border-emerald-200/40 hover:bg-emerald-900/90"
+                  : "border-sky-300/55 bg-[#0d2a55]/95 text-sky-50 ring-1 ring-sky-300/25 hover:border-sky-200/40 hover:bg-[#0c2040]/90"
               }`}
             >
-              {isEconomy ? "📈" : "📰"}
+              <span className="text-xl leading-none" aria-hidden>
+                {isEconomy ? "📈" : "📰"}
+              </span>
+              <span className="text-meta font-semibold tracking-tight">
+                {lang === "en" ? "News" : isEconomy ? "시황" : "뉴스"}
+              </span>
             </button>
           </HoverHint>
         </div>

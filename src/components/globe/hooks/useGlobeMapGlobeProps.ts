@@ -159,6 +159,7 @@ export interface UseGlobeMapGlobePropsParams {
   isCameraMoving: boolean;
   globeDisplayPoints: GlobeDisplayPoint[];
   firmsDisplayPoints: FirmsFireGlobePoint[];
+  liveuaStrikesMapData: unknown[];
   viewState: ViewState;
   basemapTone: BasemapTone;
   firmsCombatFireIds: string[];
@@ -253,6 +254,7 @@ export function useGlobeMapGlobeProps(
     isCameraMoving,
     globeDisplayPoints,
     firmsDisplayPoints,
+    liveuaStrikesMapData,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -355,6 +357,7 @@ export function useGlobeMapGlobeProps(
     heatmapsTransitionDuration: 0,
     pointsData: historyOn ? [] : globeDisplayPoints,
     firmsFiresData: historyOn ? [] : firmsDisplayPoints,
+    liveuaStrikesData: historyOn ? [] : liveuaStrikesMapData,
     firmsLat: (fire: FirmsFireGlobePoint) => fire.lat,
     firmsLng: (fire: FirmsFireGlobePoint) => fire.lng,
     firmsCause: (fire: FirmsFireGlobePoint) => fire.soundKind,

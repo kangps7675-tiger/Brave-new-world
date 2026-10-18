@@ -80,6 +80,7 @@ export type IngestEnv = {
   AIS_MAX_VESSELS?: string;
   ADSB_MIL_MAX?: string;
   ADSB_CIV_PER_HUB?: string;
+  ADSB_CIV_MAX?: string;
   /**
    * ? ë£ ?°ì´ ?´ì ?¬ë?.
    *
@@ -126,6 +127,8 @@ export type IngestEnv = {
    * ?? https://.../navarea_iv.txt,https://.../navarea_xii.txt
    */
   NAVAREA_NGA_TXT_URLS?: string;
+  /** NGA MSI 활성 경보 JSON. 비우면 기본 URL, "off"면 끔. NAVAREA_NGA_TXT_URLS가 있으면 쓰지 않는다. */
+  NAVAREA_NGA_JSON_URL?: string;
   /** "false"/"0" ?´ë©´ NAVAREA ?¸ì ?¤í¸ ë¹í??*/
   NAVAREA_INGEST_ENABLED?: string;
   /** ìµì ?¬í´ë§?ê°ê²©(ë¶? ???ë? TXT ?ì??15~30, ê¸°ë³¸ 30 */

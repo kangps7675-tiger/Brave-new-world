@@ -6,6 +6,7 @@
  */
 
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { isMostlyEnglish } from "@/lib/koreanTranslate";
 import {
   deepenSummaryForFlash,
   ensureFlashCopyKorean,
@@ -1024,11 +1025,13 @@ async function buildBreakingFlashBriefingTranslated(
   preferEconomy: boolean,
   opts?: { peaceScienceDomain?: "conflict" | "economy" | null },
 ): Promise<BreakingFlashBriefing> {
-  if (lang === "en" || hero.verbatim || hero.flashSource === "liveuamap") {
+  // 명시적 원문 인용(verbatim)만 번역하지 않는다. liveuamap은 서버가 titleKo를 채우지만
+  // 번역 엔드포인트가 실패하면 titleKo가 비거나 영어 그대로라, 그때는 아래에서 번역한다.
+  if (lang === "en" || hero.verbatim) {
     return buildBreakingFlashBriefing(hero, lang, preferEconomy, opts);
   }
-  // 이미 titleKo가 있으면 재번역하지 않고 KO 필드 우선
-  if (hero.titleKo?.trim()) {
+  // 이미 (진짜) 한글 titleKo가 있으면 재번역하지 않고 KO 필드 우선
+  if (hero.titleKo?.trim() && !isMostlyEnglish(hero.titleKo)) {
     return buildBreakingFlashBriefing(hero, "ko", preferEconomy, {
       title: hero.titleKo.trim(),
       summary: hero.bodyKo?.trim() || hero.summary,

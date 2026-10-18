@@ -1,5 +1,6 @@
 "use client";
 
+import { enforceLabTier } from "@/lib/layerLab";
 import { startTransition, useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import {
   DEFAULT_LAYER_PREFS,
@@ -69,7 +70,7 @@ export function useLayerPrefsController(
   const flushPrefs = useCallback(
     (next: LayerPrefs, intent: LayerRenderIntent) => {
       const ultra = ultraLiteRef?.current ?? false;
-      const clamped = clampPrefsToActiveCap(next, ultra);
+      const clamped = enforceLabTier(clampPrefsToActiveCap(next, ultra));
       draftRef.current = clamped;
       // leading-edge 판정 기준 — immediate/deferred 어느 경로든 여기서 기록 (P1-1)
       lastFlushAtRef.current = Date.now();

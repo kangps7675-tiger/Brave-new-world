@@ -68,7 +68,6 @@ export function useLiveVesselAirPolling({
   layerCenterRef,
   isEconomyViewer,
   isConflictViewer,
-  isLiveViewer,
   isSatelliteViewer,
   showAis,
   showDisguisedVessels,
@@ -120,17 +119,12 @@ export function useLiveVesselAirPolling({
     setAisError(null);
 
     try {
-      const max = isSatelliteViewer ? 1000 : liveAisFetchMax();
-      // 지정학: 군함 · 지경학: 상업 · 관측(Cesium): 전 세계 전부
-      const aisClass =
-        isLiveViewer || isSatelliteViewer
-          ? "all"
-          : isEconomyViewer
-            ? "commercial"
-            : "military";
+      const max = liveAisFetchMax();
+      // 모드가 지정학 하나라 군함·상선 모두 받는다 (군/민은 레이어 토글로 거른다)
+      const aisClass = "all";
       const alt = layerAltitudeRef.current;
       const lod = getGlobeLod(alt).tier;
-      const nearDetail = !isSatelliteViewer && (lod === "near" || lod === "village");
+      const nearDetail = lod === "near" || lod === "village";
       const center = layerCenterRef.current;
       const qs = new URLSearchParams({
         seconds: "8",
@@ -173,9 +167,6 @@ export function useLiveVesselAirPolling({
   }, [
     deferOrRetry,
     isConflictViewer,
-    isEconomyViewer,
-    isLiveViewer,
-    isSatelliteViewer,
     layerAltitudeRef,
     layerCenterRef,
     setAisError,
@@ -247,7 +238,7 @@ export function useLiveVesselAirPolling({
       // 관측(Cesium): 전 지구 외에는 카메라 주변 OpenSky bbox densify.
       // MapLibre: 기존처럼 near/village만.
       const densify =
-        (isSatelliteViewer ? lod !== "global" : lod === "near" || lod === "village") &&
+        (lod === "near" || lod === "village") &&
         Number.isFinite(layerCenterRef.current.lat) &&
         Number.isFinite(layerCenterRef.current.lng);
       const center = layerCenterRef.current;
@@ -287,7 +278,6 @@ export function useLiveVesselAirPolling({
     }
   }, [
     deferOrRetry,
-    isSatelliteViewer,
     layerAltitudeRef,
     layerCenterRef,
     setCivAircraft,
@@ -343,17 +333,14 @@ export function useLiveVesselAirPolling({
   useEffect(() => {
     const onVisible = () => {
       if (document.hidden) return;
-      if (showAis || isSatelliteViewer) void refreshAis();
-      if (!isEconomyViewer && (showMilitaryActivity || isSatelliteViewer)) {
-        void refreshMilAircraft();
-      }
-      if (showAirTraffic || isSatelliteViewer) void refreshCivAircraft();
+      if (showAis) void refreshAis();
+      if (!isEconomyViewer && showMilitaryActivity) void refreshMilAircraft();
+      if (showAirTraffic) void refreshCivAircraft();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [
     isEconomyViewer,
-    isSatelliteViewer,
     refreshAis,
     refreshCivAircraft,
     refreshMilAircraft,
@@ -363,25 +350,25 @@ export function useLiveVesselAirPolling({
   ]);
 
   useEffect(() => {
-    if (!showAis && !isSatelliteViewer) return;
+    if (!showAis) return;
     void refreshAis();
     const timer = window.setInterval(() => {
       void refreshAis();
     }, liveAisPollMs());
     return () => window.clearInterval(timer);
-  }, [isSatelliteViewer, refreshAis, showAis]);
+  }, [refreshAis, showAis]);
 
   useEffect(() => {
-    if (isEconomyViewer || (!showDisguisedVessels && !isSatelliteViewer)) {
+    if (isEconomyViewer || !showDisguisedVessels) {
       setDisguisedVessels([]);
       return;
     }
     void refreshDisguisedVessels();
-  }, [isEconomyViewer, isSatelliteViewer, refreshDisguisedVessels, setDisguisedVessels, showDisguisedVessels]);
+  }, [isEconomyViewer, refreshDisguisedVessels, setDisguisedVessels, showDisguisedVessels]);
 
   useEffect(() => {
-    if (isEconomyViewer || (!showMilitaryActivity && !isSatelliteViewer)) {
-      if (isEconomyViewer) setMilAircraft([]);
+    if (isEconomyViewer || !showMilitaryActivity) {
+      setMilAircraft([]);
       return;
     }
     void refreshMilAircraft();
@@ -389,16 +376,10 @@ export function useLiveVesselAirPolling({
       void refreshMilAircraft();
     }, liveMilPollMs());
     return () => window.clearInterval(timer);
-  }, [
-    isEconomyViewer,
-    isSatelliteViewer,
-    refreshMilAircraft,
-    setMilAircraft,
-    showMilitaryActivity,
-  ]);
+  }, [isEconomyViewer, refreshMilAircraft, setMilAircraft, showMilitaryActivity]);
 
   useEffect(() => {
-    if (!showAirTraffic && !isSatelliteViewer) {
+    if (!showAirTraffic) {
       setCivAircraft([]);
       return;
     }
@@ -407,7 +388,7 @@ export function useLiveVesselAirPolling({
       void refreshCivAircraft();
     }, liveAirTrafficPollMs());
     return () => window.clearInterval(timer);
-  }, [isSatelliteViewer, refreshCivAircraft, setCivAircraft, showAirTraffic]);
+  }, [refreshCivAircraft, setCivAircraft, showAirTraffic]);
 
   useEffect(() => {
     // 지경학에서는 항모·항구 위치 레이어/폴링 비활성

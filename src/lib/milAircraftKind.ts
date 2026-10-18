@@ -176,6 +176,19 @@ function pack(role: MilAircraftRole): MilAircraftKindInfo {
   };
 }
 
+/**
+ * 민간 기체 아이콘 역할 — 헬기(A7)·경항공기(A1)만 따로, 나머지는 여객기 실루엣.
+ * classifyMilAircraft는 군용 휴리스틱이라 민항기에 쓰면 엉뚱한 역할이 나온다.
+ */
+export function civilAircraftIconRole(
+  aircraft: Pick<MilitaryAircraft, "category" | "type">,
+): MilAircraftRole {
+  const cat = (aircraft.category || "").toUpperCase();
+  if (cat.includes("A7")) return "helicopter";
+  if (cat.includes("A1")) return "trainer";
+  return "transport";
+}
+
 export function milAircraftRoleLabel(
   kind: MilAircraftKindInfo,
   lang: "ko" | "en" = "ko",

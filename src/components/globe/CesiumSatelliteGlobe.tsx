@@ -85,7 +85,7 @@ import {
   timeWindowAlpha,
 } from "@/lib/intelContract/deskDynamics";
 import { aisTrackerArrowSvg, aisTrackerMark, aisVesselHeadingDeg } from "@/lib/aisVesselMarkers";
-import { classifyMilAircraft } from "@/lib/milAircraftKind";
+import { civilAircraftIconRole, classifyMilAircraft } from "@/lib/milAircraftKind";
 import { milAircraftIconSvg } from "@/lib/milAircraftIcon";
 import type { AircraftPalette } from "@/lib/milAircraftSymbols";
 import type { CesiumAlertItem, CesiumAlertKind } from "@/lib/cesiumAlerts";
@@ -709,7 +709,12 @@ function createGlobeOccluder(
 }
 
 /** Cesium 항공기 빌보드 — MapLibre 실루엣과 동일 SVG, 군용=현행 팔레트·민간=초록. */
-const CESIUM_AIRCRAFT_SIZE = { mil: 34, civ: 24 } as const;
+const CESIUM_AIRCRAFT_SIZE = { mil: 30, civ: 22 } as const;
+/**
+ * 항공기 3,000대가 줌아웃에서도 겹쳐 뭉개지지 않도록 거리로 크기를 줄인다.
+ * 가까이(≤1,500km)는 기본 크기, 지구 전체가 보이는 거리(≈25,000km)는 0.4배.
+ */
+const AIRCRAFT_SCALE_BY_DISTANCE = { near: 1_500_000, nearScale: 1, far: 25_000_000, farScale: 0.4 } as const;
 const aircraftBillboardUriCache = new Map<string, string>();
 const aisBillboardUriCache = new Map<string, string>();
 /** 해수면 마커를 지형/3D Tiles에 묻히지 않게 띄움 (m) */
@@ -786,7 +791,7 @@ function cesiumAircraftBillboardUri(
   palette: AircraftPalette,
 ): string {
   const role =
-    palette === "civil" ? ("transport" as const) : classifyMilAircraft(aircraft).role;
+    palette === "civil" ? civilAircraftIconRole(aircraft) : classifyMilAircraft(aircraft).role;
   const px = palette === "civil" ? CESIUM_AIRCRAFT_SIZE.civ : CESIUM_AIRCRAFT_SIZE.mil;
   const key = `${palette}:${role}:${px}`;
   const cached = aircraftBillboardUriCache.get(key);
@@ -1277,6 +1282,11 @@ function syncNeptunBillboardEntities(
   }
 }
 
+function aircraftScaleByDistance(Cesium: typeof import("cesium")) {
+  const s = AIRCRAFT_SCALE_BY_DISTANCE;
+  return new Cesium.NearFarScalar(s.near, s.nearScale, s.far, s.farScale);
+}
+
 function syncAircraftBillboardEntities(
   Cesium: typeof import("cesium"),
   viewer: import("cesium").Viewer,
@@ -1322,6 +1332,9 @@ function syncAircraftBillboardEntities(
         existing.billboard.rotation = new Cesium.ConstantProperty(rotation);
         existing.billboard.width = new Cesium.ConstantProperty(sizePx);
         existing.billboard.height = new Cesium.ConstantProperty(sizePx);
+        existing.billboard.scaleByDistance = new Cesium.ConstantProperty(
+          aircraftScaleByDistance(Cesium),
+        );
         existing.billboard.color = new Cesium.ConstantProperty(
           Cesium.Color.WHITE.withAlpha(heading == null ? 0.82 : 1),
         );
@@ -1334,6 +1347,7 @@ function syncAircraftBillboardEntities(
           image,
           width: sizePx,
           height: sizePx,
+          scaleByDistance: aircraftScaleByDistance(Cesium),
           rotation,
           alignedAxis: Cesium.Cartesian3.UNIT_Z,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
@@ -1354,6 +1368,7 @@ function syncAircraftBillboardEntities(
         image,
         width: sizePx,
         height: sizePx,
+        scaleByDistance: aircraftScaleByDistance(Cesium),
         rotation,
         alignedAxis: Cesium.Cartesian3.UNIT_Z,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,

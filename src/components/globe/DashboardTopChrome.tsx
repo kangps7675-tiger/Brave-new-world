@@ -1,5 +1,6 @@
 "use client";
 
+import { LAB_UI } from "@/lib/labFlag";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useState } from "react";
 import { HoverNav } from "@/components/HoverNav";
@@ -142,6 +143,7 @@ export function DashboardTopChrome({
     "rounded-full border border-sky-200/30 bg-transparent px-2.5 py-0.5 text-meta font-medium tracking-wide text-sky-50/90 shadow-none backdrop-blur-none transition hover:border-sky-100/50 hover:bg-sky-400/10";
 
   const showBriefing =
+    LAB_UI &&
     Boolean(onToggleMacroBriefing) &&
     viewerMode !== "history" &&
     viewerMode !== "satellite";
@@ -184,7 +186,7 @@ export function DashboardTopChrome({
       </HoverSideDrawer>
 
       {/* 우측 지표 — 열리면 nav 위. 역사·3D 라이브에서는 숨김 */}
-      {viewerMode !== "history" && viewerMode !== "satellite" ? (
+      {LAB_UI && viewerMode !== "history" && viewerMode !== "satellite" ? (
       <HoverSideDrawer
         side="right"
         peepLabel={
@@ -230,13 +232,15 @@ export function DashboardTopChrome({
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
-        onHistoryMapOpen={() => handleViewerModeChange("history")}
+        onHistoryMapOpen={LAB_UI ? () => handleViewerModeChange("history") : undefined}
         leadingSlot={
-          <ViewModeSwitcher
-            mode={viewerMode}
-            onChange={handleViewerModeChange}
-            observeUnlocked={observeUnlocked}
-          />
+          LAB_UI ? (
+            <ViewModeSwitcher
+              mode={viewerMode}
+              onChange={handleViewerModeChange}
+              observeUnlocked={observeUnlocked}
+            />
+          ) : null
         }
         aboveNav={
           <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 bg-transparent py-0">

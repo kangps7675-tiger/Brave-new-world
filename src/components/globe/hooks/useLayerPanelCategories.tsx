@@ -1,5 +1,6 @@
 "use client";
 
+import { isLabPanelItem } from "@/lib/layerLab";
 import { startTransition, useMemo, type MutableRefObject } from "react";
 import { UkraineFrontLegendContent } from "@/components/UkraineFrontLegend";
 import { type LayerCategory, type LayerToggleItem } from "@/components/LayerCategoryPanel";
@@ -729,7 +730,7 @@ export function useLayerPanelCategories({
             label:
               labelLanguage === "en"
                 ? "Who holds the ground (UA · ME)"
-                : "누가 어디를 잡았나 (우크라·중동)",
+                : "누가 어디를 잡았나 · 공습 (우크라·중동)",
             detail:
               ukraineControlStatus === "loading"
                 ? labelLanguage === "en"
@@ -2400,6 +2401,7 @@ export function useLayerPanelCategories({
       items
         .map((item) => {
           if (hideLegacy && hideLegacyIds.has(item.id)) return null;
+          if (isLabPanelItem(item.id)) return null;
           const modes = item.modes ?? MODE_ONLY[item.id];
           if (modes && !modes.includes(mode)) return null;
           if (item.options?.length) {

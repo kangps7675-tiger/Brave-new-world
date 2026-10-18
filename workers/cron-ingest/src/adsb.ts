@@ -296,10 +296,11 @@ async function fetchCivWorldwide(
 
 export async function fetchAdsbAircraft(
   env: IngestEnv,
-  options?: { milMax?: number; civPerHub?: number; maxHubs?: number },
+  options?: { milMax?: number; civMax?: number; civPerHub?: number; maxHubs?: number },
 ): Promise<{ aircraft: AdsbAircraftRow[]; errors: string[] }> {
   const apiKey = getAdsbApiKey(env);
   const milMax = Math.min(2000, Math.max(50, options?.milMax ?? 1200));
+  const civMax = Math.min(5000, Math.max(50, options?.civMax ?? 3000));
   const civPerHub = Math.min(80, Math.max(10, options?.civPerHub ?? 40));
   const hubLimit = Math.min(
     CIV_HUBS.length,
@@ -338,7 +339,7 @@ export async function fetchAdsbAircraft(
     }
   }
 
-  const civ = await fetchCivWorldwide(apiKey, civPerHub, 1200, hubLimit, errors);
+  const civ = await fetchCivWorldwide(apiKey, civPerHub, civMax, hubLimit, errors);
   for (const row of civ) byId.set(row.id, row);
 
   return { aircraft: Array.from(byId.values()), errors };

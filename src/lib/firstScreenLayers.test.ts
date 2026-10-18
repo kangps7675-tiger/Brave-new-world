@@ -8,10 +8,10 @@ describe("첫 화면 Compact 장면", () => {
   it("자동 전장은 FIRST_SCREEN_CONFLICT_ON(영토·분쟁·진영 폴리곤)을 켠다", () => {
     const patch = conceptLayersForConflict("auto");
     expect(patch.showUkraineControl).toBe(true);
-    expect(patch.showWarZones).toBe(true);
+    expect(patch.showWarZones).toBe(false);
     expect(patch.showAlliedBlocs).toBe(true);
-    expect(patch.showIslandChains).toBe(true);
-    expect(patch.showEastAsiaAdiz).toBe(true);
+    expect(patch.showIslandChains).toBeUndefined();
+    expect(patch.showEastAsiaAdiz).toBeUndefined();
     expect(patch.showNeptun).toBeUndefined();
     expect(patch.showConflictEvents).toBeUndefined();
     expect(patch.showMilitaryActivity).toBeUndefined();
@@ -20,10 +20,9 @@ describe("첫 화면 Compact 장면", () => {
   it("지정학 크롬이 영토·분쟁·진영 폴리곤만 강제 ON 한다", () => {
     const next = mergeChromeLayers(DEFAULT_LAYER_PREFS, "conflict");
     expect(next.showUkraineControl).toBe(true);
-    expect(next.showWarZones).toBe(true);
+    expect(next.showWarZones).toBe(false);
     expect(next.showAlliedBlocs).toBe(true);
-    expect(next.showIslandChains).toBe(true);
-    expect(next.showEastAsiaAdiz).toBe(true);
+    expect(next.showEastAsiaAdiz).toBe(false);
     expect(next.showNeptun).toBe(false);
     expect(next.showConflictEvents).toBe(false);
     expect(next.showUkraineStrikesOnRussia).toBe(false);
@@ -73,7 +72,7 @@ describe("첫 화면 Compact 장면", () => {
   it("지정학 첫 화면은 폴리곤 히어로만 켠다 (이벤트·항적은 패널)", () => {
     const prefs = buildDomainOverviewPrefs("conflict");
     expect(prefs.showUkraineControl).toBe(true);
-    expect(prefs.showWarZones).toBe(true);
+    expect(prefs.showWarZones).toBe(false);
     expect(prefs.showAlliedBlocs).toBe(true);
     expect(prefs.showGdeltWar).toBe(false);
     expect(prefs.showConflictEvents).toBe(false);

@@ -1,5 +1,6 @@
 "use client";
 
+import { LAB_UI } from "@/lib/labFlag";
 import dynamic from "next/dynamic";
 import { DisputeZoneLegend } from "@/components/DisputeZoneLegend";
 import { MapLegend } from "@/components/MapLegend";
@@ -173,7 +174,8 @@ export function GeopoliticsHubChrome({
 }: GeopoliticsHubChromeProps) {
   return (
     <>
-      {selectedCorridor &&
+      {LAB_UI &&
+      selectedCorridor &&
       !selectedAxisLink &&
       !hubBriefOpen &&
       hubFocusMode !== "regime" &&
@@ -186,7 +188,8 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {selectedAxisLink &&
+      {LAB_UI &&
+      selectedAxisLink &&
       !hubBriefOpen &&
       hubFocusMode !== "regime" &&
       hubFocusMode !== "arms" &&
@@ -202,7 +205,8 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {SIPRI_ARMS_LENS_ENABLED &&
+      {LAB_UI &&
+      SIPRI_ARMS_LENS_ENABLED &&
       activeHubId &&
       hubFocusMode === "arms" &&
       axisArmsPayload &&
@@ -217,7 +221,7 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {hubFocusMode === "regime" && !hubBriefOpen && !regimeSelectedEpisodeId ? (
+      {LAB_UI && hubFocusMode === "regime" && !hubBriefOpen && !regimeSelectedEpisodeId ? (
         <AxisRegimePanel
           hubId={activeHubId}
           selectedEpisodeId={regimeSelectedEpisodeId}
@@ -227,7 +231,8 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {disputesOverviewOpen &&
+      {LAB_UI &&
+      disputesOverviewOpen &&
       !hubBriefOpen &&
       !disputeEpisodeSelectedId &&
       !disputeFrictionSelectedId ? (
@@ -272,7 +277,7 @@ export function GeopoliticsHubChrome({
         />
       ) : null}
 
-      {!isEconomyViewer && livingTaiwanOpen ? (
+      {LAB_UI && !isEconomyViewer && livingTaiwanOpen ? (
         <LivingConflictPanel
           lang={labelLanguage}
           open={livingTaiwanOpen}
@@ -627,7 +632,7 @@ export function GeopoliticsParchmentChrome({
 
   return (
     <>
-      {activeHubId ? (
+      {LAB_UI && activeHubId ? (
         <HubMonitorRail
           hubId={activeHubId}
           labelLanguage={labelLanguage}

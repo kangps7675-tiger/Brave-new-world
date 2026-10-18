@@ -11,6 +11,7 @@ export type LiveuamapRegionId =
   | "yemen"
   | "lebanon"
   | "israel-palestine"
+  | "gulf"
   | "taiwan"
   | "korea"
   | "nato-east";

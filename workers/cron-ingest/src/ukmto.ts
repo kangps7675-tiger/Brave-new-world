@@ -4,7 +4,8 @@
  * 공식 문서화된 API 없음 — 클라이언트 JS 번들 리버싱으로 확인한 엔드포인트.
  * README「비공식(문서화되지 않은) 엔드포인트 사용 원칙」을 그대로 적용:
  *  - User-Agent에 식별 정보 명시(익명 위장 안 함)
- *  - 폴링 주기 여유 있게 — 기본 30분 최소 간격 (D1 ingested_at 기준 자체 스로틀, 별도 KV 불필요)
+ *  - 폴링 주기 여유 있게 — 기본 15분 최소 간격 (D1 ingested_at 기준 자체 스로틀, 별도 KV 불필요).
+ *    크론이 15분마다 돌아 최소 간격과 같다(적재 시각과 틱 시각의 어긋남은 스로틀의 1분 여유로 흡수).
  *  - 실패해도 메인 인제스트 파이프라인은 절대 안 깨지게 try/catch
  */
 
@@ -113,7 +114,8 @@ async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<b
     if (!last) return true;
     const lastMs = new Date(last).getTime();
     if (!Number.isFinite(lastMs)) return true;
-    return Date.now() - lastMs >= minIntervalMinutes * 60 * 1000;
+    // 틱 시각과 적재 시각이 수 초 어긋나므로 1분 여유를 둔다 — 안 그러면 15분 크론에서 한 틱씩 건너뛴다
+    return Date.now() - lastMs >= minIntervalMinutes * 60 * 1000 - 60_000;
   } catch {
     // 테이블 없으면(마이그레이션 전) 통과 — upsert 단계에서 다시 잡힘
     return true;
@@ -192,7 +194,7 @@ export async function fetchAndUpsertUkmto(env: IngestEnv): Promise<{
     return { count: 0, fetched: 0, errors: [], skipped: true };
   }
 
-  const minInterval = Math.max(5, readIntVar(env, "UKMTO_POLL_MIN_INTERVAL_MINUTES", 30));
+  const minInterval = Math.max(5, readIntVar(env, "UKMTO_POLL_MIN_INTERVAL_MINUTES", 15));
   const poll = await shouldPoll(env.DB, minInterval);
   if (!poll) {
     return { count: 0, fetched: 0, errors: [], skipped: true };

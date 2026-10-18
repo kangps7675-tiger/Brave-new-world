@@ -11,6 +11,7 @@
  * viewBox 공통: 코(nose) = +Y 위쪽, 좌우 = 날개. 마커에서 track으로 회전.
  */
 
+import { AIS_WARSHIP_FILL } from "@/lib/aisVesselClass";
 import type { MilAircraftRole } from "@/lib/milAircraftKind";
 
 export const MIL_AIRCRAFT_VIEWBOX = { width: 40, height: 40 } as const;
@@ -35,23 +36,29 @@ export const MIL_AIRCRAFT_MARKER_ICON_SIZE: MilAircraftIconSize = {
 
 /** 역할별 강조색 (항모 status color 와 비슷한 채도) */
 /** 군용기 실루엣 — 역할 무관 단일 빨강 */
-/** 지정학 군용 — 따뜻한 호박색 계열(역할별 미세 차이). 전역 단색 빨강에서 이탈. */
+/** 군용기 — 항모·군함 마커와 같은 빨강(AIS_WARSHIP_FILL). 역할은 실루엣으로만 구분한다. */
 export const MIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
-  fighter: "#e09a45",
-  bomber: "#d4893a",
-  helicopter: "#c9a05c",
-  tanker: "#db9648",
-  transport: "#e2a55a",
-  awacs: "#cfa05a",
-  recon: "#d4a05a",
-  patrol: "#c89448",
-  gunship: "#b87f38",
-  trainer: "#c9ae78",
-  uav: "#b8924a",
-  other: "#d4a574",
+  fighter: AIS_WARSHIP_FILL,
+  bomber: AIS_WARSHIP_FILL,
+  helicopter: AIS_WARSHIP_FILL,
+  tanker: AIS_WARSHIP_FILL,
+  transport: AIS_WARSHIP_FILL,
+  awacs: AIS_WARSHIP_FILL,
+  recon: AIS_WARSHIP_FILL,
+  patrol: AIS_WARSHIP_FILL,
+  gunship: AIS_WARSHIP_FILL,
+  trainer: AIS_WARSHIP_FILL,
+  uav: AIS_WARSHIP_FILL,
+  other: AIS_WARSHIP_FILL,
 };
 
-/** 지경학 민간 — 초록 계열. 군용(호박·적색)과 한눈에 구분. */
+/** 민간 기체 색 — Flightradar24 호박빛 노랑. 군용(항모와 같은 빨강)과는 색·글로우 유무로 구분한다. */
+export const CIVIL_FILL = "#ffc400";
+
+/** 민간 기체 외곽선 — 밝은 베이스맵에서도 윤곽이 남는 가는 검정 */
+export const CIVIL_STROKE = "#161616";
+
+/** 지경학 시절 초록 팔레트 — 민간 아이콘은 CIVIL_FILL로 통일해 더는 쓰지 않지만 호환용으로 남긴다. */
 export const CIVIL_ROLE_COLORS: Record<MilAircraftRole, string> = {
   fighter: "#4ade80",
   bomber: "#34d399",
@@ -72,6 +79,40 @@ type SilhouetteDef = {
   body: string;
   /** 보조 디테일 (엔진, 로터, 돔 등) */
   accents?: string[];
+};
+
+/**
+ * 민간 기체 실루엣 — Flightradar24식. 가는 동체 + 뒤로 젖힌 날개 + 수평꼬리, 코가 위(북).
+ * 역할 12종을 다 나누지 않고 모양 3종만 쓴다: 여객기(기본) / 경항공기(직선익) / 헬기.
+ * 로 키: transport·그 외 → airliner, trainer → light, helicopter → helicopter.
+ */
+export const CIVIL_SILHOUETTES: Record<"airliner" | "light" | "helicopter", SilhouetteDef> = {
+  airliner: {
+    body:
+      "M20,1.4 C21.6,1.4 22,3.2 22,5.5 L22,14.2 L38,25.2 L38,27.4 L22,23.4 L22,31.6 " +
+      "L29.2,35.6 L29.2,37.6 L21.4,36.4 L20.8,38.6 L20,38.9 L19.2,38.6 L18.6,36.4 " +
+      "L10.8,37.6 L10.8,35.6 L18,31.6 L18,23.4 L2,27.4 L2,25.2 L18,14.2 L18,5.5 " +
+      "C18,3.2 18.4,1.4 20,1.4 Z",
+    accents: [
+      "M11.4,16.6 C11.4,15.2 14.2,15.2 14.2,16.6 L14.2,20.2 C14.2,21.4 11.4,21.4 11.4,20.2 Z",
+      "M28.6,16.6 C28.6,15.2 25.8,15.2 25.8,16.6 L25.8,20.2 C25.8,21.4 28.6,21.4 28.6,20.2 Z",
+    ],
+  },
+  light: {
+    body:
+      "M20,2 C21.5,2 22,3.4 22,5 L22,14.5 L37.5,15 L37.5,19 L22,19.6 L22,31 " +
+      "L28.5,32 L28.5,35 L22,35.2 L21,37.6 L20,38 L19,37.6 L18,35.2 L11.5,35 " +
+      "L11.5,32 L18,31 L18,19.6 L2.5,19 L2.5,15 L18,14.5 L18,5 C18,3.4 18.5,2 20,2 Z",
+  },
+  helicopter: {
+    body:
+      "M20,6 C23,6 24.2,9 24.2,13 L24.2,20 L21.2,22 L21.2,34.6 L22.8,36.2 L22.8,38 " +
+      "L17.2,38 L17.2,36.2 L18.8,34.6 L18.8,22 L15.8,20 L15.8,13 C15.8,9 17,6 20,6 Z",
+    accents: [
+      "M4,12.4 L36,24.6 L35.2,26.4 L3.2,14.2 Z",
+      "M36,12.4 L4,24.6 L4.8,26.4 L36.8,14.2 Z",
+    ],
+  },
 };
 
 /**
