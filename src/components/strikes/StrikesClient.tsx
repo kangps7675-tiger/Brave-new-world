@@ -87,7 +87,7 @@ function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
           MMSI {c.mmsi}
           {c.imo ? ` · IMO ${c.imo}` : " · IMO 미수신"}
         </span>
-        <span className="rounded border border-white/15 px-1.5 text-[11px] text-white/55">{VERDICT_KO[c.verdict]}</span>
+        <span className="rounded border border-white/15 px-1.5 text-micro text-white/55">{VERDICT_KO[c.verdict]}</span>
       </div>
       <ul className="mt-1.5 space-y-0.5 text-sm text-white/60">
         {c.signals

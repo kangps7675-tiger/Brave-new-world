@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
  * aisstream ShipStaticData → D1 vessel_identity (migration 0033).
  * ais.ts 의 WebSocket 수신 중에 recordStaticIdentity 로 모으고, 수집이 끝나면 flushVesselIdentities 로 한 번에 쓴다.

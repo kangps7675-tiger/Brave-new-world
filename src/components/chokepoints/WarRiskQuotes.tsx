@@ -126,7 +126,7 @@ export default function WarRiskQuotes({ slug }: { slug: string }) {
                   ) : null}
                   {q.direction ? <span className="text-white/50">{ARROW[q.direction]}</span> : null}
                   {q.confidence === "medium" ? (
-                    <span className="rounded border border-white/15 px-1.5 text-[10px] uppercase text-white/40">
+                    <span className="rounded border border-white/15 px-1.5 text-micro uppercase text-white/40">
                       unclear basis
                     </span>
                   ) : null}
