@@ -148,6 +148,8 @@ import {
   syncLiveuaStrikeEntities,
   type CesiumLiveuaStrikePoint,
 } from "@/lib/cesiumLiveuaStrikes";
+import { syncEventCalloutEntity } from "@/lib/cesiumEventCallout";
+import type { EventCallout } from "@/lib/eventCallout";
 import { syncHybridPinEntities } from "@/lib/cesiumHybridPins";
 import type { HybridIncidentPin } from "@/lib/hybridIncidentPins";
 import {
@@ -388,6 +390,9 @@ export type CesiumSatelliteGlobeProps = {
   deskFocus?: import("@/lib/intelContract/deskFocus").DeskFocus | null;
   /** 드론·미사일이 실제로 떨어진 좌표 — 폭발·화염·연기 */
   liveuaStrikes?: CesiumLiveuaStrikePoint[];
+  /** 양피지를 닫은 뒤 사건 좌표에 남는 입체 콜아웃 */
+  eventCallout?: EventCallout | null;
+  onDismissEventCallout?: () => void;
   /** 하이브리드전 사건 핀 — 사보타주·국경 침범·회색지대 (Liveuamap + RSS) */
   hybridPins?: HybridIncidentPin[];
   /** 보병·기갑·경장갑 공격 좌표 — 교차 소총 마커 */
@@ -996,6 +1001,7 @@ const GLOBE_OCCLUSION_PREFIXES = [
   "alert:",
   "liveua:",
   "liveua-strike:",
+  "event-callout:",
   "liveua-ground:",
   "hybrid-pin:",
   "firms:",
@@ -1564,6 +1570,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
       focusedLiveuaId = null,
       deskFocus = null,
       liveuaStrikes = [],
+      eventCallout = null,
+      onDismissEventCallout,
       hybridPins = [],
       liveuaGround = [],
       onSelectLiveuaPin,
@@ -1671,6 +1679,8 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
   onSelectAlertRef.current = onSelectAlert;
   const onSelectLiveuaPinRef = useRef(onSelectLiveuaPin);
   onSelectLiveuaPinRef.current = onSelectLiveuaPin;
+  const onDismissEventCalloutRef = useRef(onDismissEventCallout);
+  onDismissEventCalloutRef.current = onDismissEventCallout;
   const onPickGroundPointRef = useRef(onPickGroundPoint);
   onPickGroundPointRef.current = onPickGroundPoint;
   const onSelectConflictEventRef = useRef(onSelectConflictEvent);
@@ -2522,6 +2532,10 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
           if (prefix === "alert" || prefix === "alertline") {
             const pin = alertPinsRef.current.find((item) => item.id === key);
             if (pin) onSelectAlertRef.current?.(pin);
+            return;
+          }
+          if (prefix === "event-callout") {
+            onDismissEventCalloutRef.current?.();
             return;
           }
           if (prefix === "liveua" || prefix === "liveua-strike" || prefix === "liveua-ground") {
@@ -3464,6 +3478,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     if (status !== "ready" || !viewer || !Cesium || viewer.isDestroyed()) return;
     syncFirmsFireEntities(Cesium, viewer, showFirmsFires ? firmsFires : []);
     syncLiveuaStrikeEntities(Cesium, viewer, liveuaStrikes);
+    syncEventCalloutEntity(Cesium, viewer, eventCallout);
     syncStrikeFireSmokeEffects(Cesium, viewer, liveuaStrikes);
     syncHybridPinEntities(Cesium, viewer, hybridPins, {
       depthTestDistance: liveDepthTestDistance(viewer),
@@ -3501,6 +3516,7 @@ export const CesiumSatelliteGlobe = forwardRef<CesiumGlobeHandle, CesiumSatellit
     showFirmsFires,
     firmsFires,
     liveuaStrikes,
+    eventCallout,
     hybridPins,
     placeLabelLang,
     liveuaGround,

@@ -113,6 +113,15 @@ export function useLiveVesselAirPolling({
     [isCameraMovingRef],
   );
 
+  /** 마지막 AIS 요청의 카메라 — 이동하면 다시 받아 보는 해역이 비지 않게 한다 */
+  const aisLastFetchRef = useRef<{
+    lat: number;
+    lng: number;
+    tier: string;
+    distNm: number;
+    at: number;
+  } | null>(null);
+
   const refreshAis = useCallback(async () => {
     if (deferOrRetry("ais")) return;
     setAisLoading(true);
@@ -124,7 +133,8 @@ export function useLiveVesselAirPolling({
       const aisClass = "all";
       const alt = layerAltitudeRef.current;
       const lod = getGlobeLod(alt).tier;
-      const nearDetail = lod === "near" || lod === "village";
+      // 전 지구 말고는 카메라 주변을 따로 받는다 — 세계 표본만으로는 보고 있는 해역(호르무즈 등)이 비기 쉽다
+      const nearDetail = lod !== "global";
       const center = layerCenterRef.current;
       const qs = new URLSearchParams({
         seconds: "8",
@@ -137,6 +147,13 @@ export function useLiveVesselAirPolling({
         qs.set("lng", String(center.lng));
         qs.set("dist", String(airTrafficDistNm(alt)));
       }
+      aisLastFetchRef.current = {
+        lat: center.lat,
+        lng: center.lng,
+        tier: lod,
+        distNm: nearDetail ? airTrafficDistNm(alt) : 0,
+        at: Date.now(),
+      };
       const response = await fetch(`/api/ais?${qs.toString()}`, { cache: "no-store" });
       const payload = (await response.json()) as {
         vessels?: AisVessel[];
@@ -355,8 +372,40 @@ export function useLiveVesselAirPolling({
     const timer = window.setInterval(() => {
       void refreshAis();
     }, liveAisPollMs());
-    return () => window.clearInterval(timer);
-  }, [refreshAis, showAis]);
+    // 카메라가 멈춘 지 한참 뒤에만, 받아 둔 범위를 벗어났을 때 그 해역을 다시 받는다.
+    // 줌인은 이미 받은 범위 안이라 다시 받지 않는다(줌 도중 3,000척을 반복해 받으면 화면이 버벅인다).
+    let lastMovingAt = Date.now();
+    const follow = window.setInterval(() => {
+      if (isCameraMovingRef.current) {
+        lastMovingAt = Date.now();
+        return;
+      }
+      if (Date.now() - lastMovingAt < 1_500) return;
+      const last = aisLastFetchRef.current;
+      if (last && Date.now() - last.at < 12_000) return;
+      const alt = layerAltitudeRef.current;
+      const tier = getGlobeLod(alt).tier;
+      const center = layerCenterRef.current;
+      if (!Number.isFinite(center.lat) || !Number.isFinite(center.lng)) return;
+      const needNm = tier === "global" ? Infinity : airTrafficDistNm(alt);
+      let refetch = !last;
+      if (last && !refetch) {
+        const haveNm = last.distNm > 0 ? last.distNm : Infinity;
+        if (needNm > haveNm) {
+          refetch = true; // 줌아웃 — 받아 둔 범위보다 넓게 보고 있다
+        } else if (haveNm !== Infinity) {
+          const dLat = (center.lat - last.lat) * 60;
+          const dLng = (center.lng - last.lng) * 60 * Math.cos((center.lat * Math.PI) / 180);
+          refetch = Math.hypot(dLat, dLng) > haveNm * 0.4; // 다른 해역으로 이동
+        }
+      }
+      if (refetch) void refreshAis();
+    }, 2_500);
+    return () => {
+      window.clearInterval(timer);
+      window.clearInterval(follow);
+    };
+  }, [isCameraMovingRef, layerAltitudeRef, layerCenterRef, refreshAis, showAis]);
 
   useEffect(() => {
     if (isEconomyViewer || !showDisguisedVessels) {

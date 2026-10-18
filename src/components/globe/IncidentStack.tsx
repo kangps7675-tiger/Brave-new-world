@@ -4,12 +4,14 @@ import { useMemo, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
   filterBySea,
+  stackSourceName,
   type StackItem,
   type StackSea,
 } from "@/lib/incidentStack/build";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
+import { provenanceLines } from "@/lib/provenance";
 
 const SEA_LABEL: Record<StackSea, { ko: string; en: string }> = {
   hormuz: { ko: "호르무즈", en: "Hormuz" },
@@ -203,6 +205,9 @@ export function IncidentStack({
                               UKMTO
                             </span>
                           ) : null}
+                          {it.source === "nga" ? (
+                            <span className="rounded-sm bg-sky-500/25 px-1 text-sky-100">NGA</span>
+                          ) : null}
                           {it.source === "case" ? (
                             <span className="rounded-sm bg-rose-500/25 px-1 text-rose-100">
                               {en ? "My case" : "내 케이스"}
@@ -256,7 +261,9 @@ function IncidentCard({
   const ev = item.liveua;
   // UKMTO 본문은 영어 원문이라 한글 모드에서는 클라이언트에서 번역한다 (liveuamap은 titleKo·bodyKo가 이미 온다)
   const ukmtoText = useLocalizedTextMap(
-    item.source === "ukmto" && item.detail ? [{ key: item.id, text: item.detail }] : [],
+    (item.source === "ukmto" || item.source === "nga") && item.detail
+      ? [{ key: item.id, text: item.detail }]
+      : [],
     en ? "en" : "ko",
   );
   const body = ev
@@ -281,6 +288,27 @@ function IncidentCard({
             ? "Source: UKMTO (UK Royal Navy). Vessel names are withheld."
             : "출처: UKMTO(영국 해군). 선박명은 공개되지 않습니다."}
         </p>
+      ) : null}
+      {item.source === "nga" ? (
+        <p className="text-micro text-[#5c4020]/80">
+          {en
+            ? "Source: US NGA maritime safety broadcast (HYDROPAC/HYDROLANT/NAVAREA)."
+            : "출처: 미 NGA 항행안전 방송(HYDROPAC·HYDROLANT·NAVAREA). 선박명이 공개됩니다."}
+        </p>
+      ) : null}
+      {item.times ? (
+        <dl className="space-y-0.5 text-micro text-[#5c4020]/85">
+          {provenanceLines(
+            item.times,
+            stackSourceName(item),
+            en ? "en" : "ko",
+          ).map((l) => (
+            <div key={l.label} className="flex gap-1.5">
+              <dt className="shrink-0 font-semibold">{l.label}</dt>
+              <dd className="tabular-nums">{l.value}</dd>
+            </div>
+          ))}
+        </dl>
       ) : null}
       {item.caseId ? (
         <a

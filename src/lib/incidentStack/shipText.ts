@@ -51,6 +51,13 @@ const STOP = new Set([
   "unknown", "unidentified", "commercial", "merchant", "iranian", "yemeni", "greek", "us",
 ]);
 
+/** 선박명 뒤에 오는 동사·전치사 — 이름에 붙어 들어가지 않게 자른다 */
+const NAME_END_WORDS: ReadonlySet<string> = new Set([
+  "SUFFERED", "SANK", "SINKING", "REPORTED", "REPORTS", "IS", "WAS", "WERE", "HAS", "HAD", "DISABLED", "ADRIFT",
+  "AGROUND", "ON", "IN", "AT", "WITH", "HIT", "STRUCK", "ATTACKED", "SEIZED", "BOARDED", "HIJACKED", "FIRED",
+  "CAPSIZED", "REQUESTS", "REQUESTED", "AND", "BY", "NEAR", "OFF", "FROM", "TO", "UNDER", "FOR", "AFTER",
+]);
+
 function cleanName(raw: string): string | null {
   const name = raw
     .replace(/[“”"'‘’`]/g, "")
@@ -72,7 +79,13 @@ function cleanName(raw: string): string | null {
 export function extractVesselName(text: string): string | null {
   const prefixed = /\b(?:M\/V|M\/T|MV|MT|MS|M\.V\.|M\.T\.)\s+([A-Z][A-Za-z0-9'’\-]*(?:\s+[A-Z0-9][A-Za-z0-9'’\-]*){0,2})/.exec(text);
   if (prefixed?.[1]) {
-    const name = cleanName(prefixed[1]);
+    // 대문자로 쓰는 항행경보 문체("M/V PETRO DOLPHIN SUFFERED SECURITY INCIDENT")는 동사부터 잘라낸다
+    const words: string[] = [];
+    for (const w of prefixed[1].split(/\s+/)) {
+      if (NAME_END_WORDS.has(w.toUpperCase())) break;
+      words.push(w);
+    }
+    const name = cleanName(words.join(" "));
     if (name) return name;
   }
   const quoted =

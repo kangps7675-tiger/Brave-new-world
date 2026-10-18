@@ -185,6 +185,8 @@ export function parseDailyMemo(raw: string): { asOf?: string; warnings: MemoWarn
 // 실제 Daily Memo 문구로 튜닝 (2026-10-18). 단어 경계 필수:
 //   BOARD→STARBOARD, MINE→DETERMINE 오탐 실제 확인됨
 // 훈련·사격장 경보("MISSILE FIRING OPERATIONS", "GUNNERY EXERCISES")는 hostile에서 제외
+// 실제 10월 파일 729건으로 점검(2026-10-19): NGA는 피습을 "SUFFERED (A) SECURITY INCIDENT"로 쓴다
+//   (호르무즈 M/V LIPSI 10-04, 오만만 M/V PETRO DOLPHIN 10-12). 이전엔 ADRIFT 때문에 사고(casualty)로 분류됐다.
 export type SecurityClass =
   | "hostile" // 공격·해적·납치·나포·봉쇄
   | "mine" // 기뢰
@@ -193,7 +195,7 @@ export type SecurityClass =
 
 const R = {
   hostile:
-    /\b(ATTACK(ED|S)?|PIRA(CY|TES?)|HIJACK(ED|ING)?|ARMED ROBBERY|BOARDED|FIRED UPON|STRUCK BY|PROJECTILES?|EXPLOSIONS?|HOSTILE|KIDNAPP?(ED|ING)?|SEIZED|SEIZURE|DETAINED|BLOCKADE|UNMANNED (SURFACE|AERIAL|UNDERWATER) (VESSELS?|VEHICLES?)|USVS?|UAVS?|DRONES?)\b/,
+    /\b(ATTACK(ED|S)?|PIRA(CY|TES?)|HIJACK(ED|ING)?|ARMED ROBBERY|BOARDED|FIRED UPON|STRUCK BY|PROJECTILES?|EXPLOSIONS?|HOSTILE|KIDNAPP?(ED|ING)?|SEIZED|SEIZURE|DETAINED|BLOCKADE|SECURITY INCIDENTS?|SUSPICIOUS (APPROACH|VESSELS?|CRAFT)|UNMANNED (SURFACE|AERIAL|UNDERWATER) (VESSELS?|VEHICLES?)|USVS?|UAVS?|DRONES?)\b/,
   // 훈련/사격장 문맥: 이것만 있으면 hostile 아님
   // "EXERCISE (EXTREME) CAUTION"은 경보 상투 문구라 제외 (실데이터에서 기뢰 경보 오분류 확인)
   drill:
@@ -209,7 +211,7 @@ export function classifySecurity(text: string): SecurityClass | null {
   const body = t.replace(/\b\d\. CANCEL[^.]*\./g, "");
   if (R.hostile.test(body)) {
     // 공격 단어가 있어도 훈련 문맥이면 제외. 단 실제 사건 단어(BOARDED/HIJACK/PIRACY/SEIZED)는 훈련보다 우선
-    const strong = /\b(PIRA(CY|TES?)|HIJACK|ARMED ROBBERY|BOARDED|FIRED UPON|STRUCK BY|SEIZED|KIDNAP|BLOCKADE|ATTACKED)\b/.test(body);
+    const strong = /\b(PIRA(CY|TES?)|HIJACK|ARMED ROBBERY|BOARDED|FIRED UPON|STRUCK BY|SEIZED|KIDNAP|BLOCKADE|ATTACKED|SECURITY INCIDENT)\b/.test(body);
     if (strong || !R.drill.test(body)) return "hostile";
   }
   if (R.mine.test(body) && !R.drill.test(body)) return "mine";

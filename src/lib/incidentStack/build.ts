@@ -1,6 +1,7 @@
 import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
 import type { CaseFile, Verdict } from "@/lib/caseFile/types";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import { parseTime, type ProvenanceTimes } from "@/lib/provenance";
 import { localizeUkmtoIncidentType, localizeUkmtoPlaceText } from "@/lib/ukmtoHatch";
 import {
   extractVesselName,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/incidentStack/shipText";
 
 /** 우측 사건 스택(슬롯 A)에 쌓이는 한 건. 출처가 달라도 이 모양으로 모은다. */
-export type StackSource = "liveua" | "case" | "ukmto";
+export type StackSource = "liveua" | "case" | "ukmto" | "nga";
 
 /** 해운 사용자가 걸러 보는 해역. 해당 없으면 null */
 export type StackSea = "hormuz" | "red_sea" | "gulf_of_aden" | "black_sea" | "baltic";
@@ -36,6 +37,8 @@ export type StackItem = {
   /** source가 case일 때 — 카드 링크와 판정 뱃지 */
   caseId?: string;
   verdict?: Verdict;
+  /** 사건 발생·원 소스 발표·우리 확인 시각 */
+  times?: ProvenanceTimes;
 };
 
 /** 스택 상한 — 최신순으로 자른다 */
@@ -83,6 +86,7 @@ export function stackItemFromLiveua(ev: LiveuamapEvent, ko: boolean): StackItem 
     sea: seaForPoint(ev.lat, ev.lng),
     liveua: ev,
     ...liveuaVesselHints(ev, raw),
+    times: { publishedAt: at, firstSeenAt: parseTime(ev.seenAt) },
   };
 }
 
@@ -119,6 +123,9 @@ type UkmtoLikePoint = {
   vesselType: string | null;
   detail: string | null;
   utcDateOfIncident: string | null;
+  utcDateCreated?: string | null;
+  firstSeenAt?: string | null;
+  ingestedAt?: string | null;
 };
 
 const VESSEL_TYPE_KO: Record<string, string> = {
@@ -161,7 +168,20 @@ export function stackItemFromUkmto(u: UkmtoLikePoint, ko = false): StackItem | n
     detail: u.detail,
     vesselName: name,
     vesselType: u.vesselType?.trim() || null,
+    times: {
+      occurredAt: at,
+      publishedAt: parseTime(u.utcDateCreated),
+      firstSeenAt: parseTime(u.firstSeenAt),
+      lastSeenAt: parseTime(u.ingestedAt),
+    },
   };
+}
+
+/** 출처 표기 이름 (카드·양피지·알림 머리글) */
+export function stackSourceName(item: Pick<StackItem, "source">): string {
+  if (item.source === "ukmto") return "UKMTO";
+  if (item.source === "nga") return "NGA";
+  return "Liveuamap";
 }
 
 /** 같은 id는 한 번만, 최신순, 상한까지. */

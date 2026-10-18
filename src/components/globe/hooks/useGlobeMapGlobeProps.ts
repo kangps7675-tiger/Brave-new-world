@@ -160,6 +160,8 @@ export interface UseGlobeMapGlobePropsParams {
   globeDisplayPoints: GlobeDisplayPoint[];
   firmsDisplayPoints: FirmsFireGlobePoint[];
   liveuaStrikesMapData: unknown[];
+  eventCallout: unknown;
+  onDismissEventCallout: () => void;
   viewState: ViewState;
   basemapTone: BasemapTone;
   firmsCombatFireIds: string[];
@@ -255,6 +257,8 @@ export function useGlobeMapGlobeProps(
     globeDisplayPoints,
     firmsDisplayPoints,
     liveuaStrikesMapData,
+    eventCallout,
+    onDismissEventCallout,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -358,6 +362,8 @@ export function useGlobeMapGlobeProps(
     pointsData: historyOn ? [] : globeDisplayPoints,
     firmsFiresData: historyOn ? [] : firmsDisplayPoints,
     liveuaStrikesData: historyOn ? [] : liveuaStrikesMapData,
+    eventCallout,
+    onDismissEventCallout,
     firmsLat: (fire: FirmsFireGlobePoint) => fire.lat,
     firmsLng: (fire: FirmsFireGlobePoint) => fire.lng,
     firmsCause: (fire: FirmsFireGlobePoint) => fire.soundKind,

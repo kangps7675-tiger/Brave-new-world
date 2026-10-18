@@ -2,9 +2,11 @@
  * LiveUAMap mpts 지역 슬롯 — 일 200 req 예산 배분.
  * resid는 공식 Regions enum + 실측. LIVEUAMAP_RESID_MAP JSON으로 덮어쓰기.
  *
- * 기본값 (liveuamap.consolecsharp.api Regions):
- * Ukraine=0, IsraelPalestine=2, Yemen=53, Iran=66, Lebanon=74.
+ * 기본값 (liveuamap.consolecsharp.api Regions + 사이트 실측):
+ * Ukraine=0, IsraelPalestine=2, Yemen=53, Iran=66, Lebanon=74, SaudiArabia=179.
  * Lebanon은 IL/PS(2)와 분리해 전용 resid를 쓴다 — 공유 시 bbox에 통제면이 탈락하던 문제 방지.
+ * 사우디 179는 2018 enum에 없고, saudiarabia.liveuamap.com 의 resource_id 다.
+ * 같은 페이지의 resource_id 가 이란 66·예멘 53 과 일치해 resid 로 쓴다.
  */
 
 import type { LiveuamapRegionId } from "@/lib/liveuamap/types";
@@ -72,7 +74,7 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     parseControl: true,
   },
   {
-    // 사우디·걸프 아랍권(이란·후티 미사일·드론이 인프라를 때리는 곳). 지역 번호를 모르면 꺼져 있다.
+    // 사우디(saudiarabia.liveuamap.com resource_id=179, 중심 리야드). 이란·후티가 인프라를 때리는 곳.
     id: "gulf",
     dailyCap: 12,
     minIntervalMs: 60 * 60_000,
@@ -113,8 +115,8 @@ const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   yemen: 53,
   lebanon: 74,
   "israel-palestine": 2,
-  /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP {"gulf": 번호} 로 설정하기 전까지 비활성 */
-  gulf: -1,
+  /** saudiarabia.liveuamap.com resource_id (2020-04 아카이브, 좌표 23.17N 46.36E) */
+  gulf: 179,
   taiwan: -1,
   korea: -1,
   /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP 으로 설정하기 전까지 비활성 */

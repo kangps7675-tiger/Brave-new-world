@@ -39,6 +39,12 @@ export type UkmtoIncidentPoint = {
   vesselType: string | null;
   detail: string | null;
   utcDateOfIncident: string | null;
+  /** UKMTO가 발표(게시)한 시각 */
+  utcDateCreated?: string | null;
+  /** 우리가 처음 확인한 시각 (새 사건만) */
+  firstSeenAt?: string | null;
+  /** 우리가 마지막으로 확인한 시각 */
+  ingestedAt?: string | null;
 };
 
 /** 사건 유형별 기준 강도(0~1) — 1이 가장 진한 검정, 0에 가까울수록 흰색 */

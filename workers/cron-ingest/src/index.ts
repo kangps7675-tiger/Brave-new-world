@@ -34,6 +34,8 @@ import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
+import { fetchAndUpsertWarRisk } from "./warRisk";
+import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
 import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
 import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
 import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
@@ -190,6 +192,30 @@ async function warmEndpoint(
       detail: error instanceof Error ? error.message : `${label} warm failed`,
     };
   }
+}
+
+/** wrangler.ingest.toml 의 빠른 크론 표현식과 같아야 한다 */
+const FAST_ALERT_CRON = "*/5 * * * *";
+
+/**
+ * 시간에 민감한 경보만 5분 간격으로: UKMTO 피습·나포, liveuamap 속보 동기화, 이란·중동 공격 소식.
+ * 각 소스는 자체 최소 간격(UKMTO 5분, liveuamap 슬롯별 한도)으로 스스로 스로틀한다.
+ * 전체 수집(runIngest)은 AIS WebSocket·FIRMS·GDELT 때문에 ~90초가 걸려 이 주기로 돌리지 않는다.
+ */
+async function runFastAlerts(env: IngestEnv): Promise<void> {
+  const out: string[] = [];
+  try {
+    const uk = await fetchAndUpsertUkmto(env);
+    out.push(`ukmto=${uk.skipped ? "skip" : uk.count}`);
+    if (uk.errors.length > 0) out.push(`ukmtoErr=${uk.errors[0]}`);
+  } catch (error) {
+    out.push(`ukmtoErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
+  if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);
+  const feeds = await warmEndpoint(env.NEWFEEDS_SYNC_URL, env, "newfeeds-iran");
+  if (feeds) out.push(`newfeeds=${feeds.ok ? "ok" : "fail"}`);
+  console.log(`[fast-alerts] ${out.join(" ")}`);
 }
 
 async function runIngest(env: IngestEnv): Promise<IngestResult> {
@@ -422,6 +448,17 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       env,
       "ship-movements",
     );
+    try {
+      const wr = await fetchAndUpsertWarRisk(env);
+      if (!wr.skipped) {
+        console.log(
+          `[war-risk] scanned=${wr.scanned} stored=${wr.count}` +
+            (wr.errors.length > 0 ? ` errors=${wr.errors.join(" | ")}` : ""),
+        );
+      }
+    } catch (error) {
+      console.warn("[war-risk] skipped:", error instanceof Error ? error.message : error);
+    }
     if (env.US_CARRIERS_WARM_URL?.trim()) {
       usCarriersWarm = await warmEndpoint(env.US_CARRIERS_WARM_URL, env, "us-carriers");
     } else {
@@ -784,10 +821,38 @@ function authorizeManual(request: Request, env: IngestEnv): boolean {
 
 const worker = {
   async scheduled(
-    _controller: ScheduledController,
+    controller: ScheduledController,
     env: IngestEnv,
     ctx: ExecutionContext,
   ) {
+    // 빠른 경보 크론 — 무거운 전체 수집(AIS·ADS-B·FIRMS·GDELT…)과 분리해 5분마다 돈다
+    if (controller.cron === EMAIL_DIGEST_CRON) {
+      ctx.waitUntil(
+        runDailyEmailDigest(env).then(
+          (result) => {
+            console.log(`[email-digest] ${JSON.stringify(result)}`);
+          },
+          (error) => {
+            console.warn("[email-digest]", error instanceof Error ? error.message : error);
+          },
+        ),
+      );
+      return;
+    }
+    if (controller.cron === FAST_ALERT_CRON) {
+      ctx.waitUntil(runFastAlerts(env));
+      return;
+    }
+    ctx.waitUntil(
+      runDailyEmailDigest(env, { retryOnly: true }).then(
+        (result) => {
+          if (!result.skipped) console.log(`[email-digest] retry ${JSON.stringify(result)}`);
+        },
+        (error) => {
+          console.warn("[email-digest] retry", error instanceof Error ? error.message : error);
+        },
+      ),
+    );
     ctx.waitUntil(
       runIngest(env).then((result) => {
         console.log(
@@ -804,10 +869,13 @@ const worker = {
   async fetch(request: Request, env: IngestEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    const emailResponse = await handleEmailRequest(request, env, url);
+    if (emailResponse) return emailResponse;
+
     if (url.pathname === "/" || url.pathname === "/health") {
       return Response.json({
         service: "conflict-view-ingest",
-        cron: "*/15 * * * *",
+        cron: "*/10 * * * *", fastAlertCron: FAST_ALERT_CRON, emailDigestCron: EMAIL_DIGEST_CRON,
         endpoints: {
           health: "GET /health",
           run: "POST /run (Bearer INGEST_CRON_SECRET — required)",
@@ -830,6 +898,10 @@ const worker = {
           pushSubscribe: "POST /push/subscribe (public; body endpoint,keys)",
           pushUnsubscribe: "POST /push/unsubscribe (body endpoint)",
           pushSend: "POST /push/send (Bearer INGEST_CRON_SECRET; body title,body,url,tag)",
+          emailSubscribe: "POST /email/subscribe (public; body email,lang)",
+          emailConfirm: "GET /email/confirm?token=",
+          emailUnsubscribe: "GET or POST /email/unsubscribe?token=",
+          emailDigest: "POST /email/digest (Bearer INGEST_CRON_SECRET; ?force=1 resends today)",
         },
       });
     }
@@ -1247,7 +1319,7 @@ const worker = {
 
     if (url.pathname === "/ais") {
       const maxRaw = Number.parseInt(url.searchParams.get("max") || "250", 10);
-      const max = Math.min(1000, Math.max(1, Number.isFinite(maxRaw) ? maxRaw : 250));
+      const max = Math.min(3000, Math.max(1, Number.isFinite(maxRaw) ? maxRaw : 250));
       const category = url.searchParams.get("category") || "all";
       let vessels: Array<Record<string, unknown>> = [];
       try {

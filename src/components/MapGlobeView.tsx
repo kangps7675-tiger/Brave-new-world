@@ -69,6 +69,8 @@ import {
 } from "@/lib/mapGlobeLayers";
 import { firmsFireIconId, ensureFirmsFireImages } from "@/lib/firmsFireIcons";
 import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameIcon";
+import { EventCalloutCard } from "@/components/globe/EventCalloutCard";
+import type { EventCallout } from "@/lib/eventCallout";
 import {
   blocFeatureFromMapProps,
   isBlocCountryFillLayerId,
@@ -91,7 +93,6 @@ import {
   ensureUsMilitaryBaseImages,
 } from "@/lib/usMilitaryBaseIcons";
 import { militaryBaseForceId } from "@/lib/militaryBaseForces";
-import { SETTLEMENT_DETAIL_MIN_MAP_ZOOM } from "@/lib/globePerformance";
 import {
   SAFECAST_CIRCLE_LAYER_ID,
   SAFECAST_LABEL_LAYER_ID,
@@ -217,6 +218,61 @@ export interface MapGlobeViewProps {
   ultraLite?: boolean;
   [key: string]: unknown;
 }
+
+/**
+ * CRINK(중·러·이란·북한)와 위성국 면 — 줌 4(대륙 단위)부터 옅어지다 줌 6(지역 단위)에서 채움이 사라진다.
+ * 우크라 통제면 micro 레이어가 줌 5.75부터 올라오므로 그 자리를 넘겨주는 경계다.
+ * 경계선은 줌 7 이후 아주 옅게만 남는다.
+ */
+const CRINK_FADE_START_ZOOM = 4;
+const CRINK_FADE_END_ZOOM = 6;
+function crinkFillOpacity(fallback: number): number {
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    CRINK_FADE_START_ZOOM,
+    ["coalesce", ["get", "fillOpacity"], fallback],
+    CRINK_FADE_END_ZOOM,
+    0,
+  ] as unknown as number;
+}
+function crinkLineOpacity(base: number): number {
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    CRINK_FADE_START_ZOOM,
+    base,
+    CRINK_FADE_END_ZOOM + 1,
+    0.18,
+  ] as unknown as number;
+}
+
+/**
+ * 점령·통제 영토 채움 — 멀리서는 면으로 보이고, 줌인할수록 옅어져 경계선과 아주 약한 붉은 기운만 남는다.
+ * (zoom은 최상위 interpolate의 입력으로만 쓸 수 있어 면별 불투명도는 출력 쪽 식에 넣는다)
+ */
+const TERRITORY_FILL_OPACITY = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  3,
+  ["coalesce", ["get", "fillOpacity"], 0.32],
+  6,
+  ["*", ["coalesce", ["get", "fillOpacity"], 0.32], 0.5],
+  9,
+  0.07,
+  12,
+  0.04,
+] as unknown as number;
+
+/** 경계선은 줌인할수록 또렷하고 굵게 */
+const TERRITORY_LINE_WIDTH = ["interpolate", ["linear"], ["zoom"], 3, 1.2, 8, 1.8, 12, 2.6] as unknown as number;
+
+/** 군사기지·공항·항구 점 크기용 각반경 — 최소 반지름(2px)에서 시작해 줌인 때만 조금 커진다 */
+const SMALL_DOT_ANGULAR_RADIUS = 0.0003;
+const SMALL_DOT_KINDS: ReadonlySet<string> = new Set(["military-base", "airport", "port"]);
 
 type LiveuaStrikeMapItem = {
   id: string;
@@ -530,9 +586,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     void import("@/components/globe/OsmBuildingsOverlay");
   }, [osmEligible]);
   const showOsmBuildings = osmBuildingsArmed;
-  /** Ion 3D Tiles가 켜지면 상자 extrusion은 겹치지 않게 끈다. 토큰 없으면 폴백. */
-  const showVectorBuildings =
-    basemapMode === "terrain" && !ultraLite && !showOsmBuildings;
+  /**
+   * 3D 건물 — 지정학(인텔 다크)·지형 모두 켠다. Ion 3D Tiles가 켜지면 상자 extrusion은 겹치지 않게 끈다.
+   * 인텔은 다크 베이스라 한 단계 일찍(줌 13) 올라오고 밝은 회청색으로 윤곽이 읽히게 한다.
+   */
+  const showVectorBuildings = !ultraLite && !showOsmBuildings;
+  const vectorBuildingsMinZoom = basemapMode === "terrain" ? BUILDINGS_MIN_ZOOM : BUILDINGS_MIN_ZOOM - 1;
   const terrainWanted = shouldEnableBasemapTerrain({
     mode: basemapMode,
     zoom: mapZoom,
@@ -880,7 +939,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       lat: a.pointLat,
       lng: a.pointLng,
       color: a.pointColor,
-      radius: a.pointRadius,
+      // 군사기지·공항·항구는 전역에서도 작은 점 — 각반경을 줄여 최소 반지름(2px)에 머물게 한다
+      radius: (item) =>
+        item &&
+        typeof item === "object" &&
+        SMALL_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
+          ? SMALL_DOT_ANGULAR_RADIUS
+          : a.pointRadius(item),
       kind: (item) =>
         item && typeof item === "object" && "kind" in item
           ? String((item as { kind?: string }).kind ?? "")
@@ -1080,6 +1145,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [liveuaStrikesData],
   );
   const [strikePopup, setStrikePopup] = useState<LiveuaStrikeMapItem | null>(null);
+  const eventCallout = (props.eventCallout as EventCallout | null | undefined) ?? null;
+  const onDismissEventCallout = props.onDismissEventCallout as (() => void) | undefined;
 
   const firmsGeoJson = useMemo(() => {
     const a = accessorsRef.current;
@@ -2496,18 +2563,19 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="fill-extrusion"
               {...({
                 "source-layer": "building",
-                minzoom: BUILDINGS_MIN_ZOOM,
+                minzoom: vectorBuildingsMinZoom,
                 filter: ["!=", ["get", "hide_3d"], true],
                 paint: {
-                  "fill-extrusion-color": "#c4b8a8",
-                  "fill-extrusion-opacity": 0.72,
+                  "fill-extrusion-color": basemapMode === "terrain" ? "#c4b8a8" : "#6f7d95",
+                  "fill-extrusion-opacity": basemapMode === "terrain" ? 0.72 : 0.88,
+                  "fill-extrusion-vertical-gradient": true,
                   "fill-extrusion-height": [
                     "interpolate",
                     ["linear"],
                     ["zoom"],
-                    BUILDINGS_MIN_ZOOM,
+                    vectorBuildingsMinZoom,
                     0,
-                    BUILDINGS_MIN_ZOOM + 1,
+                    vectorBuildingsMinZoom + 1,
                     ["coalesce", ["get", "render_height"], ["get", "height"], 10],
                   ],
                   "fill-extrusion-base": [
@@ -2557,7 +2625,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="fill"
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#dc2626"],
-                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.14],
+                "fill-opacity": crinkFillOpacity(0.14),
                 "fill-antialias": true,
               }}
             />
@@ -2581,7 +2649,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   10,
                   1.2,
                 ],
-                "line-opacity": 0.75,
+                "line-opacity": crinkLineOpacity(0.75),
               }}
             />
           </Source>
@@ -2600,7 +2668,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="fill"
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#dc2626"],
-                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.28],
+                "fill-opacity": crinkFillOpacity(0.28),
                 "fill-antialias": true,
               }}
             />
@@ -2624,7 +2692,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   10,
                   1.6,
                 ],
-                "line-opacity": 0.92,
+                "line-opacity": crinkLineOpacity(0.92),
               }}
             />
           </Source>
@@ -3211,38 +3279,14 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-stroke-color": pointStrokeColor,
               }}
             />
-            {/* 미군기지 — 전역~지역: 파란 점 / zoom≥6: 성조기 */}
-            <Layer
-              id="map-us-base-dots"
-              type="circle"
-              maxzoom={SETTLEMENT_DETAIL_MIN_MAP_ZOOM}
-              filter={["==", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID]}
-              paint={{
-                "circle-color": ["get", "color"],
-                "circle-radius": CIRCLE_RADIUS_BY_ZOOM,
-                "circle-opacity": 0.92,
-                "circle-stroke-width": pointStrokeWidth,
-                "circle-stroke-color": pointStrokeColor,
-              }}
-            />
+            {/* 미군기지 — 전 줌에서 작은 성조기 (다른 군사기지는 map-points의 작은 점) */}
             <Layer
               id="map-us-base-flags"
               type="symbol"
-              minzoom={SETTLEMENT_DETAIL_MIN_MAP_ZOOM}
               filter={["==", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID]}
               layout={{
                 "icon-image": US_MILITARY_BASE_FLAG_ICON_ID,
-                "icon-size": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  6,
-                  0.42,
-                  8,
-                  0.55,
-                  10,
-                  0.72,
-                ],
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.26, 4, 0.32, 7, 0.45, 10, 0.7],
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
@@ -3261,19 +3305,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               ]}
               layout={{
                 "icon-image": ["get", "icon"],
-                "icon-size": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  1.5,
-                  0.28,
-                  4,
-                  0.42,
-                  7,
-                  0.62,
-                  10,
-                  0.85,
-                ],
+                // 인프라 아이콘은 지구 전체에서 아주 작게, 가까이 갈수록 커진다
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.12, 4, 0.18, 7, 0.3, 10, 0.5],
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
@@ -3544,6 +3577,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               }}
             />
           </Source>
+        ) : null}
+        {eventCallout ? (
+          <Marker
+            longitude={eventCallout.lng}
+            latitude={eventCallout.lat}
+            anchor="bottom"
+            offset={[0, 6]}
+            style={{ zIndex: 20 }}
+          >
+            <EventCalloutCard callout={eventCallout} onClose={() => onDismissEventCallout?.()} />
+          </Marker>
         ) : null}
         {strikePopup ? (
           <Popup
@@ -3849,7 +3893,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               ]}
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
-                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.32],
+                "fill-opacity": TERRITORY_FILL_OPACITY,
               }}
             />
             <Layer
@@ -3859,8 +3903,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]]}
               paint={{
                 "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
-                "line-width": 1.2,
-                "line-opacity": 0.8,
+                "line-width": TERRITORY_LINE_WIDTH,
+                "line-opacity": 0.9,
               }}
             />
           </Source>
@@ -3887,7 +3931,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               ]}
               paint={{
                 "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
-                "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.4],
+                "fill-opacity": TERRITORY_FILL_OPACITY,
               }}
             />
             <Layer
@@ -3897,8 +3941,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]]}
               paint={{
                 "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
-                "line-width": 1.1,
-                "line-opacity": 0.85,
+                "line-width": TERRITORY_LINE_WIDTH,
+                "line-opacity": 0.95,
               }}
             />
             <Layer

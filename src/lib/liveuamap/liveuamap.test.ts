@@ -258,7 +258,9 @@ describe("liveuamap builtin resids", () => {
     expect(map.yemen).toBe(53);
     expect(map.lebanon).toBe(74);
     expect(map["israel-palestine"]).toBe(2);
+    expect(map.gulf).toBe(179);
     const slots = getLiveuamapRegionSlots();
+    expect(slots.some((s) => s.id === "gulf" && s.resid === 179)).toBe(true);
     expect(slots.some((s) => s.id === "iran" && s.parseControl)).toBe(true);
     expect(slots.some((s) => s.id === "yemen" && s.parseControl)).toBe(true);
     expect(slots.some((s) => s.id === "israel-palestine" && s.parseControl)).toBe(

@@ -6,7 +6,7 @@ Next.js `src/workers/`(브라우저 Web Worker)와 분리해 **`workers/cron-ing
 
 | 파일 | 역할 |
 |------|------|
-| `../../wrangler.ingest.toml` | Worker 이름, D1 바인딩, Cron `*/15 * * * *` |
+| `../../wrangler.ingest.toml` | Worker 이름, D1 바인딩, Cron `*/10 * * * *` + 빠른 경보 `*/5 * * * *` |
 | `../../drizzle/*.sql` | D1 마이그레이션 (`migrations_dir`) |
 | `src/index.ts` | Cron + `GET /health` · `GET /latest` · `POST /run` |
 | `src/firms.ts` | NASA FIRMS area CSV (전장 bbox) |
@@ -58,7 +58,7 @@ npm run cf:ingest:dev
 
 ## Cron
 
-- 표현식: `*/15 * * * *` (15분마다)
+- 표현식: `*/10 * * * *`(전체 수집) + `*/5 * * * *`(빠른 경보: UKMTO·liveuamap 동기화)
 - FIRMS + GDELT → D1 upsert → prune
   - 우크라이나·중동·중국-대만·한반도 일반 뉴스
   - 같은 4개 권역의 군사훈련·봉쇄·억지·제재·미사일 등 긴장 신호
