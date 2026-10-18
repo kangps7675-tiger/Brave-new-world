@@ -19,6 +19,8 @@ import {
   type LiveuaReadState,
 } from "@/lib/liveuamap/readState";
 import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
+import { translateTextsBatch } from "@/lib/koreanTranslate";
+import { applyKoPatches, bodyNeedsKo, titleNeedsKo, type KoPatch } from "@/lib/liveuamap/koFallback";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 
 const LIVEUA_FEED_POLL_MS = 15_000;
@@ -37,6 +39,16 @@ const LIVEUA_FRESH_MS = 10 * 60 * 1000;
 export type UseLiveuaObserveFeedOptions = {
   isSatelliteViewer: boolean;
   theaterSitrepRegion: TheaterSitrepRegionId | null;
+  /**
+   * 피드 폴링 여부. 기본은 위성 뷰어일 때만이지만, 일반 지도의 사건 스택도
+   * 같은 피드를 쓰므로 호출 쪽에서 true로 켠다. 양피지 자동 오픈·순환은 위성 뷰어 전용으로 유지.
+   */
+  pollFeed?: boolean;
+  /**
+   * 한글 UI일 때 true — 서버가 못 채운(번역 실패로 비었거나 영어 그대로인) titleKo·bodyKo를
+   * 클라이언트에서 한 번 더 번역해 속보함·양피지·사건 스택이 한글로 보이게 한다.
+   */
+  koreanFallback?: boolean;
 };
 
 export type UseLiveuaObserveFeedResult = {
@@ -72,14 +84,61 @@ export type UseLiveuaObserveFeedResult = {
 export function useLiveuaObserveFeed({
   isSatelliteViewer,
   theaterSitrepRegion,
+  pollFeed,
+  koreanFallback = false,
 }: UseLiveuaObserveFeedOptions): UseLiveuaObserveFeedResult {
+  const shouldPoll = pollFeed ?? isSatelliteViewer;
   const [liveuaFeed, setLiveuaFeed] = useState<LiveuamapFeedPayload | null>(null);
   const [liveuaToast, setLiveuaToast] = useState<LiveuamapEvent | null>(null);
   const [readState, setReadState] = useState<LiveuaReadState | null>(null);
   const [liveuaParchmentIndex, setLiveuaParchmentIndex] = useState<number | null>(null);
   const [focusedLiveuaId, setFocusedLiveuaId] = useState<string | null>(null);
 
-  const liveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
+  const rawLiveuaEvents = useMemo(() => liveuaFeed?.events ?? [], [liveuaFeed?.events]);
+
+  // 클라이언트 한글 보강 — 번역 요청은 이벤트당 한 번만(실패해도 다시 두들기지 않는다)
+  const [koPatches, setKoPatches] = useState<ReadonlyMap<string, KoPatch>>(() => new Map());
+  const koRequestedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!koreanFallback) return;
+    const pending = rawLiveuaEvents
+      .filter((ev) => !koRequestedRef.current.has(ev.id) && (titleNeedsKo(ev) || bodyNeedsKo(ev)))
+      .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
+      .slice(0, 40);
+    if (pending.length === 0) return;
+    for (const ev of pending) koRequestedRef.current.add(ev.id);
+    void (async () => {
+      for (let i = 0; i < pending.length; i += 10) {
+        const slice = pending.slice(i, i + 10);
+        const texts: string[] = [];
+        const refs: { id: string; field: "titleKo" | "bodyKo" }[] = [];
+        for (const ev of slice) {
+          if (titleNeedsKo(ev)) {
+            texts.push(ev.title);
+            refs.push({ id: ev.id, field: "titleKo" });
+          }
+          if (bodyNeedsKo(ev)) {
+            texts.push(ev.body.slice(0, 800));
+            refs.push({ id: ev.id, field: "bodyKo" });
+          }
+        }
+        if (texts.length === 0) continue;
+        const out = await translateTextsBatch(texts, "ko");
+        setKoPatches((prev) => {
+          const next = new Map(prev);
+          refs.forEach((r, idx) => {
+            next.set(r.id, { ...(next.get(r.id) ?? {}), [r.field]: out[idx] });
+          });
+          return next;
+        });
+      }
+    })();
+  }, [koreanFallback, rawLiveuaEvents]);
+
+  const liveuaEvents = useMemo(
+    () => applyKoPatches(rawLiveuaEvents, koPatches),
+    [rawLiveuaEvents, koPatches],
+  );
   const liveuaBreakingEvents = useMemo(() => {
     const now = Date.now();
     const cutoff = now - LIVEUA_BREAKING_WINDOW_MS;
@@ -153,7 +212,7 @@ export function useLiveuaObserveFeed({
   }, []);
 
   useEffect(() => {
-    if (!isSatelliteViewer) return;
+    if (!shouldPoll) return;
     let cancelled = false;
     const pull = async () => {
       try {
@@ -198,7 +257,7 @@ export function useLiveuaObserveFeed({
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [isSatelliteViewer]);
+  }, [shouldPoll]);
 
   /** 접속 후 새 속보가 오면 양피지 자동 오픈 (첫 피드의 기존 이력은 제외) */
   useEffect(() => {

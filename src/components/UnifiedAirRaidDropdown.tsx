@@ -33,6 +33,8 @@ type UnifiedAirRaidDropdownProps = {
   onFocusUkraine?: (target: AirRaidFocusTarget) => void;
   onFocusIsrael?: (target: AirRaidFocusTarget) => void;
   compact?: boolean;
+  /** 우측 서랍(슬롯 C) 안에 펼친 채로 넣는다. 트리거 버튼 없이 목록만. */
+  inline?: boolean;
 };
 
 const UI = {
@@ -122,8 +124,10 @@ export function UnifiedAirRaidDropdown({
   onFocusUkraine,
   onFocusIsrael,
   compact = false,
+  inline = false,
 }: UnifiedAirRaidDropdownProps) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpen] = useState(false);
+  const open = inline || openState;
   const rootRef = useRef<HTMLDivElement>(null);
 
   const uaList = useMemo(() => {
@@ -227,7 +231,8 @@ export function UnifiedAirRaidDropdown({
   if (!showUkraine && !showIsrael) return null;
 
   return (
-    <div ref={rootRef} className="pointer-events-auto relative z-[100]">
+    <div ref={rootRef} className={inline ? "pointer-events-auto relative" : "pointer-events-auto relative z-[100]"}>
+      {inline ? null : (
       <button
         type="button"
         aria-expanded={open}
@@ -310,9 +315,10 @@ export function UnifiedAirRaidDropdown({
           </>
         )}
       </button>
+      )}
 
       <div
-        className={`absolute right-0 z-[200] w-[min(92vw,340px)] origin-top transition-all duration-200 ease-out ${
+        className={inline ? "relative w-full" : `absolute right-0 z-[200] w-[min(92vw,340px)] origin-top transition-all duration-200 ease-out ${
           compact ? "bottom-full mb-1.5 origin-bottom" : "top-full"
         } ${
           open
@@ -321,9 +327,13 @@ export function UnifiedAirRaidDropdown({
         }`}
       >
         <div
-          className={`overflow-hidden border border-red-400/25 bg-[#1a0c10]/95 shadow-2xl backdrop-blur-md ${
-            compact ? "rounded-2xl" : "rounded-b-2xl rounded-tl-2xl border-t-0"
-          }`}
+          className={
+            inline
+              ? "overflow-hidden"
+              : `overflow-hidden border border-red-400/25 bg-[#1a0c10]/95 shadow-2xl backdrop-blur-md ${
+                  compact ? "rounded-2xl" : "rounded-b-2xl rounded-tl-2xl border-t-0"
+                }`
+          }
         >
           <div className="border-b border-red-400/15 px-3 py-2">
             <p className="text-micro font-semibold uppercase tracking-[0.18em] text-red-200/75">

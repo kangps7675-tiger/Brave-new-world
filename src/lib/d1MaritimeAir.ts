@@ -87,7 +87,7 @@ export async function readAisFromD1(options: {
       .select()
       .from(aisVessels)
       .orderBy(desc(aisVessels.ingestedAt))
-      .limit(Math.min(Math.max(options.max * 3, hasBbox ? 2000 : options.max * 3), 3000));
+      .limit(Math.min(Math.max(options.max * 3, hasBbox ? 2000 : options.max * 3), 6000));
 
     const inBbox = (r: (typeof rows)[number]) => {
       if (!hasBbox) return true;

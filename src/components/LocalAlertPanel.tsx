@@ -20,6 +20,8 @@ type LocalAlertPanelProps = {
   errorMessage?: string | null;
   onSelect: (alert: DisputeAlert) => void;
   onClose: () => void;
+  /** 우측 서랍(슬롯 C) 안에 넣을 때. 위치·닫기 버튼 없음 */
+  embedded?: boolean;
 };
 
 export function LocalAlertPanel({
@@ -28,9 +30,16 @@ export function LocalAlertPanel({
   errorMessage,
   onSelect,
   onClose,
+  embedded = false,
 }: LocalAlertPanelProps) {
   return (
-    <div className="pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[600] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md">
+    <div
+      className={
+        embedded
+          ? "flex min-h-0 flex-col"
+          : "pointer-events-auto absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-[600] w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-orange-300/20 bg-[#140f0a]/82 shadow-2xl backdrop-blur-md"
+      }
+    >
       <div className="flex items-center justify-between gap-3 border-b border-orange-300/15 px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <p className="text-micro uppercase tracking-[0.24em] text-orange-200/75">로컬 경보</p>
@@ -40,6 +49,7 @@ export function LocalAlertPanel({
           <span className="rounded-full border border-orange-300/25 bg-orange-300/10 px-2 py-0.5 text-micro text-orange-100/80">
             {dataStatus === "loading" ? "로딩 중" : dataStatus === "error" ? "오류" : `${alerts.length}건`}
           </span>
+          {embedded ? null : (
           <button
             type="button"
             onClick={onClose}
@@ -48,6 +58,7 @@ export function LocalAlertPanel({
           >
             ✕
           </button>
+          )}
         </div>
       </div>
 

@@ -8,11 +8,11 @@ const LIVE = GEOWATCH_CONFIG.polling;
 /** 줌아웃일수록 HTML 마커(ADS-B/AIS) DOM 비용을 강하게 컷 */
 const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
   // Cesium billboard 기준 — 전 세계 군용기가 줌아웃에서도 보이게 (fetch max 3000까지)
-  global: 600,
-  continent: 900,
-  regional: 1300,
-  near: 1800,
-  village: 2400,
+  global: 3000,
+  continent: 3000,
+  regional: 3000,
+  near: 3000,
+  village: 3000,
 };
 
 /**
@@ -21,15 +21,15 @@ const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
  * (과거 HTML 마커 시절 32/48은 Cesium billboard 대비 과도하게 빡셌음)
  */
 const AIS_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
-  global: 480,
-  continent: 560,
-  regional: 640,
-  near: 720,
-  village: 800,
+  global: 3000,
+  continent: 3000,
+  regional: 3000,
+  near: 3000,
+  village: 3000,
 };
 
-/** 관측(Cesium) fetch max=1000과 맞춤 — display가 fetch(500)에 막히지 않게 */
-const AIS_DISPLAY_CEILING = 1000;
+/** 관측(Cesium) fetch max=3000과 맞춤 — display가 fetch에 막히지 않게 */
+const AIS_DISPLAY_CEILING = 3000;
 
 /**
  * Cesium 민항 billboard 예산 (이름은 과거 HTML 마커 시절 잔재).
@@ -38,10 +38,10 @@ const AIS_DISPLAY_CEILING = 1000;
  */
 const AIR_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
   // fetch max(3000)까지 — 전 지구 균등 샘플이 줌아웃에서도 촘촘히 보이게
-  global: 1500,
-  continent: 1800,
-  regional: 2200,
-  near: 2600,
+  global: 3000,
+  continent: 3000,
+  regional: 3000,
+  near: 3000,
   village: 3000,
 };
 
@@ -126,7 +126,7 @@ export function liveAisPollMs(): number {
 }
 
 export function liveAisFetchMax(): number {
-  return isClientApiStubMode() ? 280 : 500;
+  return isClientApiStubMode() ? 280 : 3000;
 }
 
 /** 화면 AIS 마커 상한 (Cesium billboard — 줌아웃에서도 전 지구 트랙 유지) */

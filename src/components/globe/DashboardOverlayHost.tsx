@@ -1,5 +1,6 @@
 "use client";
 
+import { LAB_UI } from "@/lib/labFlag";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -312,6 +313,8 @@ export type DashboardOverlayHostProps = {
   usDfcSupplyPaths: TransportPath[];
   briTradePaths: TransportPath[];
   issueUiPausedForLamp: boolean;
+  /** 우측 서랍장(슬롯 C)이 공습경보를 맡을 때 상단 드롭다운은 숨긴다 */
+  feedDrawerActive?: boolean;
   showNeptun: boolean;
   neptunAlertCount: number;
   showTzevaAdom: boolean;
@@ -552,6 +555,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     usDfcSupplyPaths,
     briTradePaths,
     issueUiPausedForLamp,
+    feedDrawerActive = false,
     showNeptun,
     neptunAlertCount,
     showTzevaAdom,
@@ -1084,7 +1088,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                         onPointerEnter={onMaybeOfferAirRaidCoach}
                         onFocusCapture={onMaybeOfferAirRaidCoach}
                       >
-                        {!isEconomyViewer &&
+                        {!feedDrawerActive &&
+                        !isEconomyViewer &&
                         (showNeptun || neptunAlertCount > 0 || showTzevaAdom) ? (
                           <UnifiedAirRaidDropdown
                             showUkraine={showNeptun || neptunAlertCount > 0}
@@ -1108,7 +1113,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
                             }
                           />
                         ) : null}
-                        {showNewfeedsIranAttacks ? (
+                        {LAB_UI && showNewfeedsIranAttacks ? (
                           <NewFeedsIranPanel
                             attacks={newfeedsAttacks}
                             threatLabel={newfeedsThreatLabel}
@@ -1738,7 +1743,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
       <TourInviteBanner
         lang={labelLanguage}
-        open={showTourInvite && !showFirstVisitTour && !periodicBriefing && !weeklyExpanded}
+        open={LAB_UI && showTourInvite && !showFirstVisitTour && !periodicBriefing && !weeklyExpanded}
         onAccept={() => {
           onSetShowTourInvite(false);
           window.setTimeout(() => {
@@ -1908,7 +1913,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               />
             ) : null}
 
-            {show("ultraLite") ? (
+            {LAB_UI && show("ultraLite") ? (
               <UltraLiteOfferBanner
                 probe={ultraLiteOfferProbe}
                 lang={labelLanguage}
@@ -1985,7 +1990,8 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {natoPerimeterAlert.phase === "tier2" &&
+      {LAB_UI &&
+      natoPerimeterAlert.phase === "tier2" &&
       natoPerimeterAlert.cross &&
       natoPerimeterAlert.story ? (
         <NatoPerimeterHalfParchment
@@ -2099,7 +2105,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         </div>
       ) : null}
 
-      <SoundUnmuteNudge lang={labelLanguage} ready={soundUnmuteReady} />
+      <SoundUnmuteNudge lang={labelLanguage} ready={LAB_UI && soundUnmuteReady} />
       <SentinelIntroCoach
         lang={labelLanguage}
         ready={soundUnmuteReady && gateClear}

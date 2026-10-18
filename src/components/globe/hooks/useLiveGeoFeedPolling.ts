@@ -451,8 +451,8 @@ export function useLiveGeoFeedPolling({
   }, [isCameraMovingRef, setUkmtoIncidents, setUkmtoStatus]);
 
   /**
-   * UKMTO — cron이 30분 최소 간격으로 상류를 찌르고 D1에 적재한 걸 클라이언트는 읽기만 함.
-   * 원본이 며칠에 한 번꼴로 갱신되는 소스라 클라이언트 폴링도 넉넉하게(10분).
+   * UKMTO — cron이 15분 최소 간격으로 상류를 찌르고 D1에 적재한 걸 클라이언트는 읽기만 함.
+   * 클라이언트도 15분마다 읽는다.
    * 지정학 입구 fly 중에는 defer로 첫 페치가 스킵되지 않도록 force + idle 재시도.
    */
   useEffect(() => {
@@ -468,7 +468,7 @@ export function useLiveGeoFeedPolling({
     }, retryMs);
     const stopInterval = visibleInterval(() => {
       void refreshUkmto();
-    }, 10 * 60 * 1000);
+    }, 15 * 60 * 1000);
     return () => {
       window.clearTimeout(retryTimer);
       stopInterval();

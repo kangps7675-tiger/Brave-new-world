@@ -1,5 +1,6 @@
 "use client";
 
+import { coerceViewerMode } from "@/lib/viewerModePolicy";
 import { useCallback, useEffect, startTransition, type MutableRefObject, type Dispatch, type SetStateAction } from "react";
 import { shouldOfferAirRaidCoach } from "@/components/AirRaidOnboardingCoach";
 import { markQuickStartDone } from "@/components/QuickStartCoach";
@@ -283,11 +284,12 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
   }
 
   function handleModeApply(
-    mode: ViewerMode,
+    requestedMode: ViewerMode,
     theater: ViewTheaterChoice,
     economyHub: EconomyHubChoice = "auto",
   ) {
     if (historyStoryLockedRef.current) return;
+    const mode = coerceViewerMode(requestedMode);
     setIntelSheetOpen(false);
     clearRegionNavSelection();
     setEconNavSelection(null);

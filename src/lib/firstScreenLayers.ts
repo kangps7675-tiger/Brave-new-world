@@ -10,10 +10,11 @@ type BooleanLayerKey = {
  */
 export const FIRST_SCREEN_CONFLICT_ON: Partial<Record<BooleanLayerKey, boolean>> = {
   showUkraineControl: true,
-  showWarZones: true,
+  // 이란·우크라이나 위 빨간 빗금은 시선을 가려서 기본 OFF — 패널의 "전쟁·교전 구역"에서 켠다
+  showWarZones: false,
   showAlliedBlocs: true,
-  showIslandChains: true,
-  showEastAsiaAdiz: true,
+  // 선박 사건 스택(우측)의 1차 출처 — UKMTO 상선 피습·나포 경보
+  showUkmtoIncidents: true,
 };
 
 /**

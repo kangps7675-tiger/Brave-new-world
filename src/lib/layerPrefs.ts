@@ -2,6 +2,7 @@ import {
   finalizeLayerPrefsWithAffinity,
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
+import { enforceLabTier } from "@/lib/layerLab";
 import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 /*
  * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
@@ -302,7 +303,7 @@ export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLaye
 
 /** 토글 가능 레이어는 기본 OFF. 첫 화면은 전선 + CRINK OSM·기지·항로 ON */
 export const DEFAULT_LAYER_PREFS: LayerPrefs = {
-  showWarZones: true,
+  showWarZones: false,
   showDiplomaticTension: false,
   showCityLabels: false,
   showRailGlow: false,
@@ -727,7 +728,7 @@ function loadLayerPrefsRaw(): LayerPrefs {
  */
 export function loadLayerPrefs(): LayerPrefs {
   return stripLegacyConflictPrefs(
-    enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier()),
+    enforceLabTier(enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier())),
   );
 }
 

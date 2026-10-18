@@ -29,7 +29,7 @@ export type LiveuamapRegionSlot = {
 export const NATO_EAST_DAILY_CAP = 10;
 
 /**
- * 플랜 배분: UA96 Iran48 YE24 LB16 IL12 NATO-E10 TW4 KR4 — 합 214, 번호가 없는 슬롯은 제외.
+ * 플랜 배분: UA96 Iran48 YE24 LB12 IL8 Gulf12 NATO-E10 TW4 KR4 — 활성 슬롯(번호 있는 것) 합이 200 이하가 되게 맞춘다, 번호가 없는 슬롯은 제외.
  * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동(예멘·레바논·이스라엘) → 동유럽(발트 3국).
  * 한 틱에 도는 슬롯 수가 제한돼 있어 배열 순서가 곧 우선순위다.
  * 하이브리드전 분류는 전용 슬롯과 무관하게 모든 슬롯 응답에 적용된다 (hybridWarfare.ts).
@@ -58,18 +58,26 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
   },
   {
     id: "lebanon",
-    dailyCap: 16,
+    dailyCap: 12,
     minIntervalMs: 90 * 60_000,
     theater: "middle-east",
     parseControl: true,
   },
   {
     id: "israel-palestine",
-    dailyCap: 12,
+    dailyCap: 8,
     minIntervalMs: 2 * 60 * 60_000,
     theater: "middle-east",
     /** resid 2 통제면을 IL/PS bbox로 저장 — Lebanon(74)과 분리 */
     parseControl: true,
+  },
+  {
+    // 사우디·걸프 아랍권(이란·후티 미사일·드론이 인프라를 때리는 곳). 지역 번호를 모르면 꺼져 있다.
+    id: "gulf",
+    dailyCap: 12,
+    minIntervalMs: 60 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
   },
   {
     id: "nato-east",
@@ -105,6 +113,8 @@ const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   yemen: 53,
   lebanon: 74,
   "israel-palestine": 2,
+  /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP {"gulf": 번호} 로 설정하기 전까지 비활성 */
+  gulf: -1,
   taiwan: -1,
   korea: -1,
   /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP 으로 설정하기 전까지 비활성 */
@@ -148,8 +158,8 @@ export function getRegionSlot(id: LiveuamapRegionId): LiveuamapRegionSlot | null
   return getLiveuamapRegionSlots().find((s) => s.id === id) ?? null;
 }
 
-/** 기존 200 + 발트·동유럽 전용 10회 (LIVEUAMAP_DAILY_BUDGET 으로 덮어쓸 수 있다) */
-export const LIVEUAMAP_DAILY_BUDGET_DEFAULT = 210;
+/** liveuamap 공식 일일 한도 200 (LIVEUAMAP_DAILY_BUDGET 으로 덮어쓸 수 있다). 활성 슬롯 합이 이를 넘지 않게 맞춘다 */
+export const LIVEUAMAP_DAILY_BUDGET_DEFAULT = 200;
 
 export function getLiveuamapDailyBudgetCap(): number {
   const raw = process.env.LIVEUAMAP_DAILY_BUDGET?.trim();
