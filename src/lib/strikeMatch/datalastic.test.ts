@@ -41,7 +41,7 @@ describe("enrichWithDatalastic", () => {
 
   it("키 있으면 빈 구간을 채우고 IMO 를 붙인다", async () => {
     vi.stubEnv("DATALASTIC_API_KEY", "k");
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn<(url: string) => Promise<Response>>(async () =>
       new Response(
         JSON.stringify({
           data: { imo: "9000001", positions: [{ lat: 1, lon: 2, speed: 3, course: 4, last_position_UTC: "2026-07-12T05:00:00Z" }] },

@@ -1,4 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
 /**
  * aisstream ShipStaticData → D1 vessel_identity (migration 0033).
  * ais.ts 의 WebSocket 수신 중에 recordStaticIdentity 로 모으고, 수집이 끝나면 flushVesselIdentities 로 한 번에 쓴다.
@@ -44,6 +43,13 @@ export function recordStaticIdentity(
     ship_type: type ?? prev?.ship_type ?? null,
   });
 }
+
+// 루트 tsc(src/ 테스트가 이 파일을 import)가 워커 전용 전역 타입을 끌어오지 않도록 필요한 모양만 지역으로 둔다.
+type D1PreparedStatement = { bind(...values: unknown[]): D1PreparedStatement };
+type D1Database = {
+  prepare(query: string): D1PreparedStatement;
+  batch(statements: D1PreparedStatement[]): Promise<unknown>;
+};
 
 export async function flushVesselIdentities(db: D1Database): Promise<number> {
   if (pending.size === 0) return 0;
