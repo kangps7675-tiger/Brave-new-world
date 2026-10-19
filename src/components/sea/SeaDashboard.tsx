@@ -28,6 +28,8 @@ import { parseNavareaApiPayload } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { SeaCesiumPick } from "@/components/sea/SeaCesiumView";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
+import { flamesFromLiveua, mergeStrikeFlames } from "@/lib/strikeFlames";
+import { buildWarCountryFeatures, warCountryIsos } from "@/lib/warCountries";
 import { calloutFromStackItem, type EventCallout } from "@/lib/eventCallout";
 import { stackItemFromLiveua, stackItemFromUkmto, type StackItem } from "@/lib/incidentStack/build";
 
@@ -226,6 +228,39 @@ export default function SeaDashboard() {
     };
   }, []);
 
+  // ── 폴리곤: LiveUAMap 통제면 + 전쟁 중인 나라 국경 ────────────────────
+  const [control, setControl] = useState<FeatureCollection>({ type: "FeatureCollection", features: [] });
+  const [warBorders, setWarBorders] = useState<FeatureCollection | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void getJson<FeatureCollection>("/data/war-countries.json").then((d) => {
+      if (alive && d?.type === "FeatureCollection") setWarBorders(d);
+    });
+    const loadControl = () =>
+      getJson<FeatureCollection>("/api/control").then((d) => {
+        if (alive && d?.type === "FeatureCollection") setControl(d);
+      });
+    void loadControl();
+    const t = setInterval(loadControl, 10 * 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
+  const warCountries = useMemo<FeatureCollection>(
+    () => ({
+      type: "FeatureCollection",
+      features: buildWarCountryFeatures(warCountryIsos(liveua), [warBorders]),
+    }),
+    [liveua, warBorders],
+  );
+
+  // 드론·미사일 공습 — 러-우전과 중동 깊숙한 곳을 같은 촛불 불꽃으로, 최근 72시간
+  const flames = useMemo(() => {
+    const since = Date.now() - 72 * 3_600_000;
+    return mergeStrikeFlames([flamesFromLiveua(liveua, true).filter((f) => Date.parse(f.publishedAt) >= since)]);
+  }, [liveua]);
+
   // ── 해역별 기상 ─────────────────────────────────────────────────
   useEffect(() => {
     let alive = true;
@@ -334,7 +369,7 @@ export default function SeaDashboard() {
           locate(u.id, u.lat, u.lng);
           item = stackItemFromUkmto(u, true);
         }
-      } else if (sel.type === "liveua" || sel.type === "energy") {
+      } else if (sel.type === "liveua" || sel.type === "energy" || sel.type === "flame") {
         const e = liveua.find((x) => x.id === sel.id);
         if (e) {
           locate(e.id, e.lat, e.lng);
@@ -411,6 +446,9 @@ export default function SeaDashboard() {
           showWar={showWar}
           selectedId={selectedId}
           onSelect={onGlobeSelect}
+          control={control}
+          warCountries={warCountries}
+          flames={flames}
           callout={callout}
           onCalloutClose={() => setCallout(null)}
         />
