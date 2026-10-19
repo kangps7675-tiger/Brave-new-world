@@ -1,0 +1,561 @@
+"use client";
+
+import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
+import { BRAND_NAME } from "@/lib/brand";
+import type { LabelLanguage } from "@/lib/labelLanguage";
+import { useDialog } from "@/hooks/useDialog";
+
+/** 접기(뒷면) + 상승 모션 총 길이 (CSS와 맞춤) */
+export const PARCHMENT_FOLD_EXIT_MS = 1100;
+/** 관측대 — 우측 상단 속보함으로 빨려 들어가는 퇴장 */
+export const PARCHMENT_FOLD_TO_DOCK_MS = 900;
+
+function LetterCorner({ corner }: { corner: "tl" | "tr" | "bl" | "br" }) {
+  const rot =
+    corner === "tl" ? 0 : corner === "tr" ? 90 : corner === "br" ? 180 : 270;
+  const pos =
+    corner === "tl"
+      ? "left-2 top-2 sm:left-3 sm:top-3"
+      : corner === "tr"
+        ? "right-2 top-2 sm:right-3 sm:top-3"
+        : corner === "br"
+          ? "bottom-2 right-2 sm:bottom-3 sm:right-3"
+          : "bottom-2 left-2 sm:bottom-3 sm:left-3";
+
+  return (
+    <svg
+      className={`welcome-letter-corner pointer-events-none absolute h-10 w-10 text-[#6b4a22]/70 sm:h-12 sm:w-12 ${pos}`}
+      style={{ transform: `rotate(${rot}deg)` }}
+      viewBox="0 0 64 64"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M8 48 V18 C8 10 14 6 22 6 H48"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 48 V22 C12 14 18 10 26 10 H48"
+        stroke="currentColor"
+        strokeWidth="0.7"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      <path
+        d="M22 6 C18 14 14 18 6 22"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
+      <circle cx="22" cy="6" r="1.6" fill="currentColor" />
+      <circle cx="8" cy="48" r="1.4" fill="currentColor" />
+      <path
+        d="M28 14 C32 10 38 10 42 14 M30 18 C34 15 38 15 42 18"
+        stroke="currentColor"
+        strokeWidth="0.75"
+        strokeLinecap="round"
+        opacity="0.65"
+      />
+    </svg>
+  );
+}
+
+export type ParchmentLetterProps = {
+  lang: LabelLanguage;
+  title: string;
+  paragraphs: string[];
+  signOff?: string;
+  backMark?: string;
+  backSub?: string;
+  ctaLabel: string;
+  onContinue: () => void;
+  /** 펼침 시 종이 소리 (기본 true) */
+  playUnfoldSound?: boolean;
+  /** 펼침과 동시에 SOS 모스(타전) 재생 — 분쟁 외교사 등 */
+  playBreakingDispatch?: boolean;
+  /** dark=지정학(기본) · cheer=지경학 등불과 동일 깔개 */
+  breakingDispatchBed?: unknown;
+  /** 본문을 타자기처럼 한 글자씩 출력 (분쟁 외교사 등) */
+  typewriter?: boolean;
+  /**
+   * true면 반서방 11대·첫입장(한글) 등 RIDI Batang 필체.
+   * 기본(false)은 Wanted Sans / EN Merriweather.
+   */
+  historyHandFont?: boolean;
+  /** true면 Intel UI(Inter) — 첫입장 영문 편지 등 */
+  intelFont?: boolean;
+  /**
+   * 신속속보 타전 — 뉴스 헤드라인(Gmarket)·본문(Pretendard/Inter).
+   * title에 `\n`이 있으면 첫 줄=키커(소제목), 나머지=제목.
+   */
+  newsFlashFont?: boolean;
+  /** 등불 등 — 글자색 전부 검정 */
+  blackInk?: boolean;
+  /** dialog 접근성 라벨 id */
+  titleId?: string;
+  zIndexClass?: string;
+  /** 본문 float 사진 (드롭캡 인사이트용) */
+  leadImageUrl?: string | null;
+  /** 본문 영상 (가능 시) */
+  leadVideoUrl?: string | null;
+  /** 첫 단락 드롭캡 */
+  dropCap?: boolean;
+  /** 확인 옆 보조 CTA (예: 위치로 가기) — dismiss 없이 실행 */
+  secondaryCtaLabel?: string;
+  onSecondaryCta?: () => void;
+  /** 본문 단락 아래 추가 슬롯 (그래프 자리 등) */
+  bodyExtra?: ReactNode;
+  /** 본문 맨 위에 크게 싣는 실제 사진들 (속보 원 게시물의 사진) */
+  galleryImageUrls?: readonly string[];
+  /** 갤러리 아래 한 줄 — 출처·권리 안내 */
+  galleryCaption?: string;
+  /**
+   * true면 위로 날아가는 대신 우측 상단 속보함 쪽으로 축소·퇴장.
+   * 관측대 LiveUA·RSS 양피지용.
+   */
+  exitToDock?: boolean;
+};
+
+const TYPE_MS_PER_CHAR = 28;
+
+export function ParchmentLetter({
+  lang,
+  title,
+  paragraphs,
+  signOff,
+  backMark,
+  backSub,
+  ctaLabel,
+  onContinue,
+  typewriter = false,
+  historyHandFont = false,
+  intelFont = false,
+  newsFlashFont = false,
+  blackInk = false,
+  titleId = "parchment-letter-title",
+  zIndexClass = "z-[800]",
+  leadImageUrl = null,
+  leadVideoUrl = null,
+  dropCap = false,
+  secondaryCtaLabel,
+  onSecondaryCta,
+  bodyExtra,
+  galleryImageUrls,
+  galleryCaption,
+  exitToDock = false,
+}: ParchmentLetterProps) {
+  /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
+  const dialogRef = useDialog<HTMLDivElement>({ open: true, onClose: onContinue });
+  const [phase, setPhase] = useState<"idle" | "folding" | "done">("idle");
+  const [typedChars, setTypedChars] = useState(0);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const typingSkipRef = useRef(false);
+  const typingIntervalRef = useRef<number | null>(null);
+  /** 타이핑 중 본문 하단 자동 추적. 유저가 스크롤하면 false. */
+  const autoScrollFollowRef = useRef(true);
+  const programmaticScrollRef = useRef(false);
+  /** 신속속보 — Gmarket 헤드라인 + 가독성 본문 */
+  const newsHeadlineStack =
+    'var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+  const newsBodyStack =
+    lang === "en"
+      ? "var(--font-intel)"
+      : 'var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+  const parchmentStack = newsFlashFont
+    ? newsBodyStack
+    : intelFont
+      ? "var(--font-intel)"
+      : historyHandFont
+        ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
+        : lang === "en"
+          ? "var(--font-parchment-en)"
+          : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';
+  const bodyFont = parchmentStack;
+  const titleFont = newsFlashFont ? newsHeadlineStack : parchmentStack;
+  const { flashKicker, flashHeadline } = useMemo(() => {
+    if (!newsFlashFont) return { flashKicker: null as string | null, flashHeadline: title };
+    const nl = title.indexOf("\n");
+    if (nl < 0) return { flashKicker: null as string | null, flashHeadline: title };
+    const k = title.slice(0, nl).trim();
+    const h = title.slice(nl + 1).trim();
+    return { flashKicker: k || null, flashHeadline: h || title };
+  }, [newsFlashFont, title]);
+  const resolvedBackMark = backMark ?? (lang === "en" ? BRAND_NAME.en : BRAND_NAME.ko);
+  const resolvedBackSub = backSub ?? (lang === "en" ? BRAND_NAME.ko : BRAND_NAME.en);
+
+  const fullBody = useMemo(() => paragraphs.join("\n\n"), [paragraphs]);
+  const totalChars = fullBody.length;
+  const typingDone = !typewriter || typedChars >= totalChars;
+
+  useEffect(() => {
+    if (!typewriter) {
+      typingSkipRef.current = true;
+      setTypedChars(totalChars);
+      return;
+    }
+    typingSkipRef.current = false;
+    autoScrollFollowRef.current = true;
+    setTypedChars(0);
+    const reduced =
+      prefersReducedMotion();
+    if (reduced || totalChars === 0) {
+      typingSkipRef.current = true;
+      setTypedChars(totalChars);
+      return;
+    }
+    let i = 0;
+    const id = window.setInterval(() => {
+      if (typingSkipRef.current) {
+        window.clearInterval(id);
+        typingIntervalRef.current = null;
+        return;
+      }
+      i += 1;
+      setTypedChars(i);
+      if (i >= totalChars) {
+        window.clearInterval(id);
+        typingIntervalRef.current = null;
+      }
+    }, TYPE_MS_PER_CHAR);
+    typingIntervalRef.current = id;
+    return () => {
+      window.clearInterval(id);
+      typingIntervalRef.current = null;
+    };
+  }, [typewriter, totalChars, fullBody]);
+
+  const visibleParagraphs = useMemo(() => {
+    if (!typewriter || typedChars >= totalChars) return paragraphs;
+    let remaining = typedChars;
+    const out: string[] = [];
+    for (const p of paragraphs) {
+      if (remaining <= 0) break;
+      if (remaining >= p.length) {
+        out.push(p);
+        remaining -= p.length;
+        // account for "\n\n" join separators between paragraphs
+        if (remaining > 0) remaining = Math.max(0, remaining - 2);
+      } else {
+        out.push(p.slice(0, remaining));
+        remaining = 0;
+      }
+    }
+    return out.length > 0 ? out : [""];
+  }, [paragraphs, typewriter, typedChars, totalChars]);
+
+  useEffect(() => {
+    if (!typewriter) return;
+    const el = bodyScrollRef.current;
+    if (!el) return;
+
+    const stopAutoFollow = () => {
+      autoScrollFollowRef.current = false;
+    };
+    const onScroll = () => {
+      if (programmaticScrollRef.current) return;
+      autoScrollFollowRef.current = false;
+    };
+
+    el.addEventListener("wheel", stopAutoFollow, { passive: true });
+    el.addEventListener("touchmove", stopAutoFollow, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", stopAutoFollow);
+      el.removeEventListener("touchmove", stopAutoFollow);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [typewriter, fullBody]);
+
+  useEffect(() => {
+    if (!typewriter || !autoScrollFollowRef.current) return;
+    const el = bodyScrollRef.current;
+    if (!el) return;
+    programmaticScrollRef.current = true;
+    el.scrollTop = el.scrollHeight;
+    requestAnimationFrame(() => {
+      programmaticScrollRef.current = false;
+    });
+  }, [typedChars, typewriter, typingDone]);
+
+  const handleContinue = useCallback(() => {
+    if (phase !== "idle") return;
+    if (typewriter && !typingDone) {
+      typingSkipRef.current = true;
+      if (typingIntervalRef.current != null) {
+        window.clearInterval(typingIntervalRef.current);
+        typingIntervalRef.current = null;
+      }
+      setTypedChars(totalChars);
+      return;
+    }
+    setPhase("folding");
+    
+    const reduced = prefersReducedMotion();
+    const exitMs = exitToDock
+      ? PARCHMENT_FOLD_TO_DOCK_MS
+      : PARCHMENT_FOLD_EXIT_MS;
+    window.setTimeout(() => {
+      setPhase("done");
+      onContinue();
+    }, reduced ? 80 : exitMs);
+  }, [exitToDock, onContinue, phase, totalChars, typewriter, typingDone]);
+
+  const exiting = phase === "folding" || phase === "done";
+
+  const onScrimPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.target !== e.currentTarget) return;
+      if (phase !== "idle") return;
+      handleContinue();
+    },
+    [handleContinue, phase],
+  );
+
+  return (
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`welcome-letter-scrim fixed inset-0 ${zIndexClass} flex items-center justify-center p-3 sm:p-6 ${
+        exiting ? "welcome-letter-scrim--exit" : ""
+      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-busy={phase === "folding"}
+      onPointerDown={onScrimPointerDown}
+    >
+      <div className="welcome-letter-stage" onPointerDown={(e) => e.stopPropagation()}>
+        <div
+          className={`welcome-letter-card parchment-letter ${
+            historyHandFont ? "parchment-letter--history" : ""
+          } ${intelFont ? "parchment-letter--intel" : ""} ${
+            newsFlashFont ? "parchment-letter--news-flash" : ""
+          } ${
+            blackInk ? "parchment-letter--lamp-ink" : ""
+          } ${
+            exiting
+              ? exitToDock
+                ? "welcome-letter-card--fold-to-dock"
+                : "welcome-letter-card--fold-exit"
+              : "welcome-letter-card--unfold-enter"
+          }`}
+          style={{ fontFamily: bodyFont }}
+        >
+          <div className="welcome-parchment welcome-letter-face welcome-letter-face--front relative flex max-h-[min(92vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-sm shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
+            <div className="welcome-parchment-edge pointer-events-none absolute inset-0" aria-hidden />
+            <div className="welcome-parchment-filigree pointer-events-none absolute inset-0" aria-hidden />
+            <LetterCorner corner="tl" />
+            <LetterCorner corner="tr" />
+            <LetterCorner corner="bl" />
+            <LetterCorner corner="br" />
+
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={phase !== "idle"}
+              className={`absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-sm border border-[#8b6914]/35 bg-[#efe0b8]/90 text-lg leading-none transition hover:bg-[#f7ecd0] disabled:opacity-50 ${
+                blackInk ? "text-black" : "text-[#3d2a18]"
+              }`}
+              aria-label={lang === "en" ? "Close" : "닫기"}
+            >
+              ×
+            </button>
+
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-8 py-9 sm:px-14 sm:py-11">
+              <h1
+                id={titleId}
+                className={`welcome-letter-title shrink-0 whitespace-pre-line text-center ${
+                  newsFlashFont
+                    ? "text-[1.55rem] leading-[1.35] tracking-[-0.02em] sm:text-[1.95rem] sm:leading-[1.3]"
+                    : "text-[1.7rem] leading-[1.4] tracking-[0.03em] sm:text-[2.15rem] sm:leading-[1.35] sm:tracking-[0.04em]"
+                } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                style={{
+                  fontFamily: titleFont,
+                  fontWeight: newsFlashFont ? 700 : 400,
+                }}
+              >
+                {flashKicker ? (
+                  <>
+                    <span
+                      className={`welcome-letter-kicker mb-2.5 block text-[0.72rem] font-medium uppercase leading-snug tracking-[0.14em] sm:mb-3 sm:text-[0.78rem] sm:tracking-[0.16em] ${
+                        blackInk ? "text-black/75" : "text-[#8b3a1a]/90"
+                      }`}
+                      style={{ fontFamily: titleFont, fontWeight: 500 }}
+                    >
+                      {flashKicker}
+                    </span>
+                    <span className="block">{flashHeadline}</span>
+                  </>
+                ) : (
+                  flashHeadline
+                )}
+              </h1>
+              <div className="welcome-letter-divider mx-auto mt-4 shrink-0" aria-hidden />
+              <div
+                ref={bodyScrollRef}
+                className={`welcome-letter-body mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain ${
+                  newsFlashFont
+                    ? "text-[1.05rem] leading-[1.7] tracking-[-0.01em] sm:text-[1.1rem] sm:leading-[1.75]"
+                    : "text-[1.02rem] leading-[1.65] tracking-[0.012em] sm:text-[1.08rem] sm:leading-[1.7] sm:tracking-[0.015em]"
+                } ${blackInk ? "text-black" : "text-[#3f2e1c]"}`}
+                style={{ fontFamily: bodyFont, fontWeight: newsFlashFont ? 450 : 400 }}
+                aria-live="polite"
+              >
+                {galleryImageUrls && galleryImageUrls.length > 0 ? (
+                  <figure className="space-y-2">
+                    {galleryImageUrls.map((src) => (
+                      <a
+                        key={src}
+                        href={src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block overflow-hidden rounded-md border border-[#6b4a22]/35 bg-black/5"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={src}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="max-h-[22rem] w-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget.parentElement as HTMLElement | null)?.setAttribute("hidden", "");
+                          }}
+                        />
+                      </a>
+                    ))}
+                    {galleryCaption ? (
+                      <figcaption className="text-micro leading-snug text-[#5c4020]/75">{galleryCaption}</figcaption>
+                    ) : null}
+                  </figure>
+                ) : null}
+                {leadImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={leadImageUrl}
+                    alt=""
+                    className="parchment-insight-photo"
+                  />
+                ) : null}
+                {leadVideoUrl ? (
+                  <video
+                    src={leadVideoUrl}
+                    controls
+                    playsInline
+                    className="parchment-insight-photo max-h-56 w-full object-cover"
+                  />
+                ) : null}
+                {visibleParagraphs.map((p, i) => (
+                  <p
+                    key={i}
+                    className={`welcome-letter-verse whitespace-pre-line text-pretty ${
+                      dropCap && i === 0 ? "parchment-drop-cap" : ""
+                    }`}
+                  >
+                    {p}
+                    {typewriter && !typingDone && i === visibleParagraphs.length - 1 ? (
+                      <span className="parchment-type-caret" aria-hidden>
+                        ▍
+                      </span>
+                    ) : null}
+                  </p>
+                ))}
+                {bodyExtra && typingDone ? bodyExtra : null}
+                {signOff && typingDone ? (
+                  <p
+                    className={`whitespace-pre-line pb-2 pt-2 text-right leading-relaxed ${
+                      newsFlashFont
+                        ? "text-[0.92rem] tracking-[0.02em]"
+                        : "text-[1.02rem] tracking-[0.04em]"
+                    } ${blackInk ? "text-black" : "text-[#5a4428]"}`}
+                    style={{
+                      fontFamily: parchmentStack,
+                      fontStyle: newsFlashFont ? "normal" : lang === "en" ? "italic" : "normal",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {signOff}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="relative shrink-0 border-t border-[#8b6914]/25 bg-[#f3e4c4]/80 px-6 py-4 text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {secondaryCtaLabel && onSecondaryCta ? (
+                  <button
+                    type="button"
+                    onClick={onSecondaryCta}
+                    disabled={phase !== "idle"}
+                    className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-5 py-2.5 text-base shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
+                      newsFlashFont ? "tracking-[0.04em]" : "tracking-[0.06em]"
+                    } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                    style={{
+                      fontFamily: titleFont,
+                      fontWeight: newsFlashFont ? 500 : 400,
+                    }}
+                  >
+                    {secondaryCtaLabel}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={phase !== "idle"}
+                  className={`rounded-sm border border-[#8b6914]/45 bg-[#efe0b8] px-6 py-2.5 text-base shadow-sm transition hover:bg-[#f7ecd0] disabled:cursor-wait disabled:opacity-70 ${
+                    newsFlashFont ? "tracking-[0.04em]" : "tracking-[0.06em]"
+                  } ${blackInk ? "text-black" : "text-[#3d2a18]"}`}
+                  style={{
+                    fontFamily: titleFont,
+                    fontWeight: newsFlashFont ? 500 : 400,
+                  }}
+                >
+                  {typewriter && !typingDone
+                    ? lang === "en"
+                      ? "Skip typing"
+                      : "타자 건너뛰기"
+                    : ctaLabel}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="welcome-parchment welcome-letter-face welcome-letter-face--back"
+            aria-hidden
+          >
+            <div className="welcome-parchment-edge pointer-events-none absolute inset-0" />
+            <div className="welcome-parchment-filigree pointer-events-none absolute inset-0" />
+            <LetterCorner corner="tl" />
+            <LetterCorner corner="tr" />
+            <LetterCorner corner="bl" />
+            <LetterCorner corner="br" />
+            <div className="welcome-letter-back-inner">
+              <div className="welcome-letter-wax" />
+              <p className="welcome-letter-back-mark" style={{ fontFamily: titleFont }}>
+                {resolvedBackMark}
+              </p>
+              <p
+                className="welcome-letter-back-sub"
+                style={{ fontFamily: parchmentStack }}
+              >
+                {resolvedBackSub}
+              </p>
+              <div className="welcome-letter-back-lines" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

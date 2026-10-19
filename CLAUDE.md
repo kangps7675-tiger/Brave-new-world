@@ -50,7 +50,11 @@
 
 지구본은 두 개로 역할을 나눈다: 해역 전체는 maplibre(`SeaGlobe.tsx`), 사건 하나는 세슘(`SeaCesiumView.tsx`).
 
-**넣지 않는 것**: 공습경보, 예측게임, 전세계 레이어, 통제선·VIINA·DeepState 점령지·전선 해칭 같은
+**지도에 되살린 것 (2026-10-20 결정)**: 사건 큰 양피지(+닫으면 좌표 콜아웃), LiveUAMap 통제면(우크라 점령지·중동 통제 구역,
+`/api/control`), 전쟁 중인 나라 국경 폴리곤(`warCountries`), 러-우·중동 드론/미사일 공습 촛불 불꽃(`strikeFlames`).
+출처는 LiveUAMap 하나이고 모두 사건 양피지로 이어진다.
+
+**넣지 않는 것**: 공습경보, 예측게임, 전세계 레이어, VIINA·DeepState 점령지·전선 해칭 같은
 전용 레이어(부활 금지), GDELT, 텔레그램 수집, MarineTraffic. 옛 지정학 전체 버전은
 git 태그 `archive/geopolitics-full` 에 있다 — 되살릴 게 있으면 거기서 필요한 파일만 꺼낸다.
 
