@@ -22,6 +22,7 @@ import {
 } from "@/lib/news/periodicBriefing";
 import { displayGtiDelta, displayGtiScore, formatGtiTitle, gtiBand, gtiBandLabel } from "@/lib/gti";
 import { useDialog } from "@/hooks/useDialog";
+import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import {
   LAMP_THUMB_GRADIENT,
   LAMP_THUMB_LABEL,
@@ -112,6 +113,32 @@ function PhotoNewsLampParchment({
   const articleInkMuted = "#000000";
   const exiting = phase === "folding" || phase === "done";
   const news = useMemo(() => briefing.featuredNews ?? [], [briefing.featuredNews]);
+  /**
+   * 한글 UI인데 제목·요약이 영어로 남은 등불 기사(서버 번역 실패·누락)는 여기서 한 번 더 번역한다.
+   * 이미 한글이면 그대로 두고, 번역이 실패하면 원문을 보여 준다.
+   */
+  const koEntries = useMemo(
+    () =>
+      lang === "en"
+        ? []
+        : news.flatMap((item) => [
+            { key: `t:${item.id}`, text: item.title },
+            { key: `s:${item.id}`, text: item.summary },
+            ...(item.matterHook ? [{ key: `m:${item.id}`, text: item.matterHook }] : []),
+          ]),
+    [lang, news],
+  );
+  const koMap = useLocalizedTextMap(koEntries, "ko");
+  const titleOf = (item: (typeof news)[number]) =>
+    lang === "en" ? item.title : localizedDisplayText(koMap, `t:${item.id}`, item.title);
+  const summaryOf = (item: (typeof news)[number]) =>
+    lang === "en" ? item.summary : localizedDisplayText(koMap, `s:${item.id}`, item.summary);
+  const hookOf = (item: (typeof news)[number]) =>
+    !item.matterHook
+      ? undefined
+      : lang === "en"
+        ? item.matterHook
+        : localizedDisplayText(koMap, `m:${item.id}`, item.matterHook);
   const macroRows = briefing.macroTable ?? [];
   const isWeeklyRecap = isWeeklyRecapBriefingKey(briefing.key);
   /** 거시 표 실패해도 키로 지경학 판별 — 지역 요약·컬러 면이 빠지지 않게 */
@@ -450,8 +477,8 @@ function PhotoNewsLampParchment({
                         >
                           <LampCardHero
                             imageUrl={item.imageUrl}
-                            title={item.title}
-                            summary={item.summary}
+                            title={titleOf(item)}
+                            summary={summaryOf(item)}
                             focusLabel={item.focusLabel}
                             theater={item.theater}
                             econGenre={item.econGenre}
@@ -484,29 +511,29 @@ function PhotoNewsLampParchment({
                                 className="mt-2 text-[1.2rem] leading-snug tracking-[0.02em] sm:text-[1.45rem] sm:leading-snug"
                                 style={{ color: articleInk, fontFamily: parchmentStack }}
                               >
-                                {item.title}
+                                {titleOf(item)}
                               </h2>
                               {item.matterHook ? (
                                 <p
                                   className="mt-2 text-caption leading-snug sm:text-body"
                                   style={{ color: articleInkMuted, fontFamily: parchmentStack }}
                                 >
-                                  {item.matterHook}
+                                  {hookOf(item)}
                                 </p>
                               ) : null}
                               <p
                                 className="mt-3 text-[0.98rem] leading-[1.75] sm:text-[1.08rem] sm:leading-[1.8]"
                                 style={{ color: articleInk, fontFamily: parchmentStack }}
                               >
-                                {item.summary}
+                                {summaryOf(item)}
                               </p>
                               <LampWhyMattersButton
                                 lang={lang}
-                                title={item.title}
+                                title={titleOf(item)}
                                 source={item.source}
                                 link={item.link}
                                 focusLabel={item.focusLabel}
-                                excerpt={item.summary}
+                                excerpt={summaryOf(item)}
                               />
                             </div>
                             <div className="flex shrink-0 flex-col items-center justify-center gap-2 self-center">
@@ -519,7 +546,7 @@ function PhotoNewsLampParchment({
                                   aria-label={
                                     lang === "en"
                                       ? `Open article: ${item.title}`
-                                      : `원문 보기: ${item.title}`
+                                      : `원문 보기: ${titleOf(item)}`
                                   }
                                   title={lang === "en" ? "Open article" : "원문"}
                                 >

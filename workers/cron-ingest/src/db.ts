@@ -102,37 +102,100 @@ export async function upsertTelegramAlerts(db: D1Database, alerts: TelegramAlert
   const ingestedAt = nowIso();
   let written = 0;
 
+  const withMedia = (alert: TelegramAlertRow) =>
+    db
+      .prepare(
+        `INSERT INTO telegram_alerts (
+          id, channel_username, channel_title, region, text, message_url, received_at, ingested_at, media_kind
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          text = excluded.text,
+          channel_title = excluded.channel_title,
+          region = excluded.region,
+          received_at = excluded.received_at,
+          ingested_at = excluded.ingested_at,
+          media_kind = excluded.media_kind`,
+      )
+      .bind(
+        alert.id,
+        alert.channel_username,
+        alert.channel_title,
+        alert.region,
+        alert.text,
+        alert.message_url,
+        alert.received_at,
+        ingestedAt,
+        alert.media_kind ?? null,
+      );
+  // 마이그레이션 0035 적용 전에도 기존 수집이 멈추지 않게 옛 문장으로 되돌린다
+  const legacy = (alert: TelegramAlertRow) =>
+    db
+      .prepare(
+        `INSERT INTO telegram_alerts (
+          id, channel_username, channel_title, region, text, message_url, received_at, ingested_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          text = excluded.text,
+          channel_title = excluded.channel_title,
+          region = excluded.region,
+          received_at = excluded.received_at,
+          ingested_at = excluded.ingested_at`,
+      )
+      .bind(
+        alert.id,
+        alert.channel_username,
+        alert.channel_title,
+        alert.region,
+        alert.text,
+        alert.message_url,
+        alert.received_at,
+        ingestedAt,
+      );
+
+  let useMedia = true;
   for (let i = 0; i < alerts.length; i += INSERT_CHUNK) {
     const chunk = alerts.slice(i, i + INSERT_CHUNK);
-    const statements = chunk.map((alert) =>
-      db
-        .prepare(
-          `INSERT INTO telegram_alerts (
-            id, channel_username, channel_title, region, text, message_url, received_at, ingested_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(id) DO UPDATE SET
-            text = excluded.text,
-            channel_title = excluded.channel_title,
-            region = excluded.region,
-            received_at = excluded.received_at,
-            ingested_at = excluded.ingested_at`,
-        )
-        .bind(
-          alert.id,
-          alert.channel_username,
-          alert.channel_title,
-          alert.region,
-          alert.text,
-          alert.message_url,
-          alert.received_at,
-          ingestedAt,
-        ),
-    );
-    await db.batch(statements);
+    if (useMedia) {
+      try {
+        await db.batch(chunk.map(withMedia));
+        written += chunk.length;
+        continue;
+      } catch (error) {
+        if (!/media_kind|no such column/i.test(error instanceof Error ? error.message : String(error))) throw error;
+        useMedia = false;
+      }
+    }
+    await db.batch(chunk.map(legacy));
     written += chunk.length;
   }
 
   return written;
+}
+
+export type TelegramVideoRow = {
+  id: string;
+  channel_username: string;
+  channel_title: string | null;
+  region: string;
+  text: string;
+  message_url: string | null;
+  received_at: string;
+};
+
+/** 영상이 달린 게시물만 최신순. 0035 적용 전이면 빈 배열. */
+export async function readTelegramVideos(db: D1Database, limit = 24): Promise<TelegramVideoRow[]> {
+  try {
+    const rows = await db
+      .prepare(
+        `SELECT id, channel_username, channel_title, region, text, message_url, received_at
+         FROM telegram_alerts WHERE media_kind = 'video' ORDER BY received_at DESC LIMIT ?`,
+      )
+      .bind(limit)
+      .all<TelegramVideoRow>();
+    return rows.results ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function upsertAisVessels(db: D1Database, vessels: AisVesselRow[]) {

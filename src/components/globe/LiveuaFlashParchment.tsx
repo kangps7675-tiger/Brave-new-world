@@ -290,7 +290,14 @@ export function LiveuaFlashParchment({
         blackInk
         titleId="liveua-flash-title"
         zIndexClass={zc("alert")}
-        leadImageUrl={event.imageUrl}
+        galleryImageUrls={event.imageUrls ?? (event.imageUrl ? [event.imageUrl] : [])}
+        galleryCaption={
+          event.imageUrls?.length || event.imageUrl
+            ? en
+              ? "Photos are from the original posts cited by Liveuamap; rights belong to their owners. Click for the original."
+              : "사진은 Liveuamap이 인용한 원 게시물(텔레그램·X 등)의 것으로, 권리는 원 소유자에게 있습니다. 누르면 원본이 열립니다."
+            : undefined
+        }
         leadVideoUrl={event.videoUrl}
         exitToDock={exitToDock}
         secondaryCtaLabel={secondaryCtaLabel ?? t("breakingFlashGoToLocation", lang)}

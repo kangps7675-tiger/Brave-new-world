@@ -122,6 +122,10 @@ export type ParchmentLetterProps = {
   onSecondaryCta?: () => void;
   /** 본문 단락 아래 추가 슬롯 (그래프 자리 등) */
   bodyExtra?: ReactNode;
+  /** 본문 맨 위에 크게 싣는 실제 사진들 (속보 원 게시물의 사진) */
+  galleryImageUrls?: readonly string[];
+  /** 갤러리 아래 한 줄 — 출처·권리 안내 */
+  galleryCaption?: string;
   /**
    * true면 위로 날아가는 대신 우측 상단 속보함 쪽으로 축소·퇴장.
    * 관측대 LiveUA·RSS 양피지용.
@@ -156,6 +160,8 @@ export function ParchmentLetter({
   secondaryCtaLabel,
   onSecondaryCta,
   bodyExtra,
+  galleryImageUrls,
+  galleryCaption,
   exitToDock = false,
 }: ParchmentLetterProps) {
   /** 편지 — Escape는 '계속'과 같은 의미(다음으로 넘어감) (P1-7) */
@@ -423,6 +429,34 @@ export function ParchmentLetter({
                 style={{ fontFamily: bodyFont, fontWeight: newsFlashFont ? 450 : 400 }}
                 aria-live="polite"
               >
+                {galleryImageUrls && galleryImageUrls.length > 0 ? (
+                  <figure className="space-y-2">
+                    {galleryImageUrls.map((src) => (
+                      <a
+                        key={src}
+                        href={src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block overflow-hidden rounded-md border border-[#6b4a22]/35 bg-black/5"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={src}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="max-h-[22rem] w-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget.parentElement as HTMLElement | null)?.setAttribute("hidden", "");
+                          }}
+                        />
+                      </a>
+                    ))}
+                    {galleryCaption ? (
+                      <figcaption className="text-micro leading-snug text-[#5c4020]/75">{galleryCaption}</figcaption>
+                    ) : null}
+                  </figure>
+                ) : null}
                 {leadImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

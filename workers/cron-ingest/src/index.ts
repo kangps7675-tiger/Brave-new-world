@@ -12,6 +12,7 @@ import {
   readGdeltPoints,
   readIntVar,
   readTelegramAlerts,
+  readTelegramVideos,
   recordIngestRun,
   upsertAdsbAircraft,
   upsertAisVessels,
@@ -35,6 +36,8 @@ import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
+import { fetchAndUpsertMarineWeather } from "./marineWeather";
+import { videoCaption } from "../../../src/lib/telegramVideo";
 import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
 import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
 import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
@@ -260,7 +263,9 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
     const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
     const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
-    const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub });
+    // 허브를 2등분해 10분 크론마다 번갈아 호출 — 허브당 20분 주기, 호출량 절반.
+    const hubSlice = Math.floor(Date.now() / (10 * 60_000)) % 2;
+    const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub, hubSlice, hubSlices: 2 });
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
     try {
@@ -458,6 +463,17 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       }
     } catch (error) {
       console.warn("[war-risk] skipped:", error instanceof Error ? error.message : error);
+    }
+    try {
+      const mw = await fetchAndUpsertMarineWeather(env);
+      if (!mw.skipped && (mw.files > 0 || mw.errors.length > 0)) {
+        console.log(
+          `[marine-weather] cycle=${mw.cycle ?? "-"} files=${mw.files} rows=${mw.rows}` +
+            (mw.errors.length > 0 ? ` errors=${mw.errors.join(" | ")}` : ""),
+        );
+      }
+    } catch (error) {
+      console.warn("[marine-weather] skipped:", error instanceof Error ? error.message : error);
     }
     if (env.US_CARRIERS_WARM_URL?.trim()) {
       usCarriersWarm = await warmEndpoint(env.US_CARRIERS_WARM_URL, env, "us-carriers");
@@ -1424,6 +1440,25 @@ const worker = {
         mode,
         count: aircraft.length,
         aircraft,
+      });
+    }
+
+    if (url.pathname === "/telegram/videos") {
+      const limitRaw = Number.parseInt(url.searchParams.get("limit") || "24", 10);
+      const limit = Math.min(60, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 24));
+      const rows = await readTelegramVideos(env.DB, limit);
+      return jsonPublic({
+        fetchedAt: new Date().toISOString(),
+        count: rows.length,
+        // 영상 자체는 내려받지 않는다 — 앱이 텔레그램 공식 임베드로 보여 준다. 캡션은 짧게만.
+        videos: rows.map((row) => ({
+          id: row.id,
+          channelTitle: row.channel_title,
+          region: row.region,
+          caption: videoCaption(row.text),
+          receivedAt: row.received_at,
+          messageUrl: row.message_url,
+        })),
       });
     }
 

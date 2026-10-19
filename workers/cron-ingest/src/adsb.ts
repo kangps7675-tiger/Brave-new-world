@@ -214,7 +214,17 @@ async function fetchAdsbJson(
   url: string,
   apiKey: string | null,
 ): Promise<{ ok: boolean; status: number; payload?: unknown }> {
-  const res = await fetch(url, { headers: authHeaders(apiKey) });
+  // 429/503 은 워커 공유 egress IP 의 한도 때문에 자주 난다 — Retry-After 를 존중해 짧게 두 번 재시도.
+  let res = await fetch(url, { headers: authHeaders(apiKey) });
+  for (let attempt = 0; attempt < 2 && (res.status === 429 || res.status === 503); attempt += 1) {
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const waitMs = Math.min(
+      4000,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 1200 * (attempt + 1),
+    );
+    await new Promise((r) => setTimeout(r, waitMs + Math.random() * 300));
+    res = await fetch(url, { headers: authHeaders(apiKey) });
+  }
   if (!res.ok) return { ok: false, status: res.status };
   try {
     const payload = await readJsonMaybeGzip(res);
@@ -228,7 +238,7 @@ async function fetchCivWorldwide(
   apiKey: string | null,
   civPerHub: number,
   civMax: number,
-  hubLimit: number,
+  hubs: readonly (typeof CIV_HUBS)[number][],
   errors: string[],
 ): Promise<AdsbAircraftRow[]> {
   if (apiKey) {
@@ -254,8 +264,9 @@ async function fetchCivWorldwide(
 
   const byId = new Map<string, AdsbAircraftRow>();
   let stop = false;
-  await mapPool(CIV_HUBS.slice(0, hubLimit), 4, async (hub) => {
+  await mapPool(hubs, 2, async (hub) => {
     if (stop) return;
+    await new Promise((r) => setTimeout(r, 200 + Math.random() * 300));
     const urls = civUrlCandidates(apiKey, hub.lat, hub.lng, ADSB_LOL_RADIUS_NM);
     for (let i = 0; i < urls.length; i += 1) {
       const url = urls[i]!;
@@ -264,7 +275,12 @@ async function fetchCivWorldwide(
         const useKey = apiKey && url.includes("adsbexchange") ? apiKey : null;
         const result = await fetchAdsbJson(url, useKey);
         if (!result.ok) {
-          if (result.status === 401 || result.status === 403) continue;
+          if (result.status === 401 || result.status === 403) {
+            if (url.includes("adsbexchange") && !errors.some((e) => e.startsWith("adsbx"))) {
+              errors.push(`adsbx: key rejected (HTTP ${result.status}) — falling back to adsb.lol`);
+            }
+            continue;
+          }
           errors.push(`${hub.id}: HTTP ${result.status}`);
           if (result.status === 429) stop = true;
           if (isLast) break;
@@ -296,7 +312,15 @@ async function fetchCivWorldwide(
 
 export async function fetchAdsbAircraft(
   env: IngestEnv,
-  options?: { milMax?: number; civMax?: number; civPerHub?: number; maxHubs?: number },
+  options?: {
+    milMax?: number;
+    civMax?: number;
+    civPerHub?: number;
+    maxHubs?: number;
+    /** 허브를 `hubSlices` 등분해 이번 실행은 `hubSlice` 번째만 호출 (rate limit 완화) */
+    hubSlice?: number;
+    hubSlices?: number;
+  },
 ): Promise<{ aircraft: AdsbAircraftRow[]; errors: string[] }> {
   const apiKey = getAdsbApiKey(env);
   const milMax = Math.min(2000, Math.max(50, options?.milMax ?? 1200));
@@ -318,7 +342,10 @@ export async function fetchAdsbAircraft(
       const useKey = url === ADSBX_MIL_URL ? apiKey : null;
       const result = await fetchAdsbJson(url, useKey);
       if (!result.ok) {
-        if (result.status === 401 || result.status === 403) continue;
+        if (result.status === 401 || result.status === 403) {
+          if (url === ADSBX_MIL_URL) errors.push(`adsbx: key rejected (HTTP ${result.status}) — falling back to adsb.lol`);
+          continue;
+        }
         errors.push(`mil: HTTP ${result.status}`);
         if (isLast) break;
         continue;
@@ -339,7 +366,10 @@ export async function fetchAdsbAircraft(
     }
   }
 
-  const civ = await fetchCivWorldwide(apiKey, civPerHub, civMax, hubLimit, errors);
+  const slices = Math.max(1, options?.hubSlices ?? 1);
+  const slice = ((options?.hubSlice ?? 0) % slices + slices) % slices;
+  const hubs = CIV_HUBS.slice(0, hubLimit).filter((_, i) => i % slices === slice);
+  const civ = await fetchCivWorldwide(apiKey, civPerHub, civMax, hubs, errors);
   for (const row of civ) byId.set(row.id, row);
 
   return { aircraft: Array.from(byId.values()), errors };

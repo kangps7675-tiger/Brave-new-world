@@ -12,6 +12,9 @@ export type LiveuamapRegionId =
   | "lebanon"
   | "israel-palestine"
   | "gulf"
+  | "pirates"
+  | "emirates"
+  | "qatar"
   | "taiwan"
   | "korea"
   | "nato-east";
@@ -29,6 +32,8 @@ export type LiveuamapEvent = {
   titleKo?: string;
   bodyKo?: string;
   imageUrl?: string;
+  /** Liveuamap이 인용한 원 게시물의 사진들(첫 장이 imageUrl) — 최대 6장 */
+  imageUrls?: string[];
   videoUrl?: string;
   sourceUrl: string;
   viaSource?: string;

@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS telegram_alerts (
   text TEXT NOT NULL,
   message_url TEXT,
   received_at TEXT NOT NULL,
-  ingested_at TEXT NOT NULL
+  ingested_at TEXT NOT NULL,
+  media_kind TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_tg_received ON telegram_alerts (received_at);
