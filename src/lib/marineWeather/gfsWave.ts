@@ -10,6 +10,7 @@
 
 export const GFS_S3_BASE_DEFAULT = "https://noaa-gfs-bdp-pds.s3.amazonaws.com";
 export const GFS_WAVE_GRID_DEFAULT = "global.0p25";
+export const NOMADS_FILTER_URL = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfswave.pl";
 
 /** 0~72시간, 6시간 간격 (우회·대기 판단용 3일) */
 export const FORECAST_HOURS = Array.from({ length: 13 }, (_, i) => i * 6);
@@ -107,4 +108,35 @@ export function beaufort(windMs: number | null): number | null {
   const limits = [0.5, 1.6, 3.4, 5.5, 8, 10.8, 13.9, 17.2, 20.8, 24.5, 28.5, 32.7];
   const k = limits.findIndex((l) => windMs < l);
   return k < 0 ? 12 : k;
+}
+
+/**
+ * NOMADS grib_filter URL — 해역 지점들을 감싸는 상자(±0.75°) 안의 변수 하나만.
+ * 예: .../filter_gfswave.pl?dir=/gfs.20261019/00/wave/gridded&file=gfswave.t00z.global.0p25.f006.grib2&var_HTSGW=on&lev_surface=on&subregion=&toplat=..
+ */
+export function nomadsFilterUrl(
+  base: string,
+  cycle: string,
+  fhour: number,
+  field: { varName: string; level: string },
+  points: Array<{ lat: number; lng: number }>,
+  grid = GFS_WAVE_GRID_DEFAULT,
+): string {
+  const ymd = cycle.slice(0, 8);
+  const hh = cycle.slice(8, 10);
+  const pad = 0.75;
+  const lats = points.map((p) => p.lat);
+  const lngs = points.map((p) => p.lng);
+  const q = new URLSearchParams({
+    dir: `/gfs.${ymd}/${hh}/wave/gridded`,
+    file: `gfswave.t${hh}z.${grid}.f${String(fhour).padStart(3, "0")}.grib2`,
+    [`var_${field.varName}`]: "on",
+    [field.level === "surface" ? "lev_surface" : "lev_1_in_sequence"]: "on",
+    subregion: "",
+    toplat: String(Math.min(90, Math.max(...lats) + pad)),
+    bottomlat: String(Math.max(-90, Math.min(...lats) - pad)),
+    leftlon: String(Math.min(...lngs) - pad),
+    rightlon: String(Math.max(...lngs) + pad),
+  });
+  return `${base}?${q.toString()}`;
 }

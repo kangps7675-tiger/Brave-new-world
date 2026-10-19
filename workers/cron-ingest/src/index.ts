@@ -263,7 +263,9 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
     const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
     const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
-    const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub });
+    // 허브를 2등분해 10분 크론마다 번갈아 호출 — 허브당 20분 주기, 호출량 절반.
+    const hubSlice = Math.floor(Date.now() / (10 * 60_000)) % 2;
+    const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub, hubSlice, hubSlices: 2 });
     adsbErrors.push(...adsb.errors.slice(0, 12));
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
     try {

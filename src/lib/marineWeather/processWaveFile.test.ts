@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { processWaveFile } from "./processWaveFile";
+import { processWaveFile, processWaveFileFiltered } from "./processWaveFile";
 import { MARINE_POINTS } from "./zones";
 
 /**
@@ -66,5 +66,32 @@ describe("processWaveFile", () => {
     const { impl } = fakeFetch({ missing: true });
     const out = await processWaveFile("2026101900", 6, { base: "https://x.test", grid: "global.0p25", fetchImpl: impl });
     expect(out.kind).toBe("not-published");
+  });
+});
+
+describe("processWaveFileFiltered (NOMADS grib_filter, 실제 홍해 상자 응답)", () => {
+  const REAL = new Uint8Array(readFileSync(join(DIR, "nomads-filter-redsea-htsgw.grib2")));
+
+  it("홍해 지점만 값이 채워지고 URL 이 상자·변수를 담는다", async () => {
+    const urls: string[] = [];
+    const impl = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      urls.push(url);
+      // 홍해 상자 + HTSGW 만 실제 응답, 나머지는 "아직 없음"
+      return url.includes("var_HTSGW") && url.includes("leftlon=37.65") ? new Response(REAL) : new Response("nope", { status: 404 });
+    }) as typeof fetch;
+    const out = await processWaveFileFiltered("2026101900", 6, { fetchImpl: impl });
+    expect(out.kind).toBe("ok");
+    if (out.kind !== "ok") return;
+    const south = out.rows.find((r) => r.point_id === "red-sea-south")!;
+    expect(south.hs_m).toBeGreaterThan(0.3);
+    expect(south.hs_m).toBeLessThan(2);
+    expect(south.period_s).toBeNull();
+    expect(urls.some((u) => u.includes("var_SWELL") && u.includes("lev_1_in_sequence=on"))).toBe(true);
+  });
+
+  it("전부 404 면 not-published", async () => {
+    const impl = (async () => new Response("x", { status: 404 })) as typeof fetch;
+    expect((await processWaveFileFiltered("2026101900", 6, { fetchImpl: impl })).kind).toBe("not-published");
   });
 });

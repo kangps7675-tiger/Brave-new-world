@@ -2,7 +2,7 @@
  * 보도 기준 전쟁위험(war risk) 보험료 → D1 `war_risk_quotes`.
  *
  * 공개 시세가 없으므로 "언론이 보도한 수치"를 기사 단위로 쌓는다.
- *  - 소스: Google News RSS 검색(해역별) + 해운 전문지 RSS(gCaptain, Splash247)
+ *  - 소스: Bing 뉴스 RSS 검색(해역별) + 해운 전문지 RSS(gCaptain, Splash247, Insurance Journal, Hellenic)
  *  - 기사 제목·요약에서 `extractWarRiskQuote` 가 수치를 못 뽑으면 저장하지 않는다
  *  - 원문은 저장하지 않는다 — 근거 구절(240자 이내) + 링크만 (저작권 체크리스트 기준)
  *  - 60분 최소 간격 자체 스로틀, 실패해도 메인 인제스트는 안 깨지게 호출부에서 try/catch
@@ -12,30 +12,37 @@ import type { IngestEnv } from "./env";
 import { extractWarRiskQuote } from "../../../src/lib/warRisk/extractPremium";
 import { parseRssItems, splitGoogleNewsTitle } from "../../../src/lib/warRisk/rss";
 
-const G_EN = (q: string) =>
-  `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
-const G_KO = (q: string) =>
-  `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=ko&gl=KR&ceid=KR:ko`;
+// Google News RSS 는 Cloudflare Worker egress IP 에서 전부 HTTP 503 이라 Bing 뉴스 RSS 로 교체했다.
+const B_EN = (q: string) =>
+  `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=en-US&setlang=en-US&cc=US`;
+const B_KO = (q: string) =>
+  `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=ko-KR&setlang=ko-KR&cc=KR`;
 
 export const WAR_RISK_FEEDS: Array<{ url: string; name: string }> = [
-  { url: G_EN('"war risk" (premium OR premiums OR insurance) when:30d'), name: "Google · war risk" },
-  {
-    url: G_EN('"war risk" ("Red Sea" OR Houthi OR "Bab el-Mandeb" OR "Gulf of Aden") when:30d'),
-    name: "Google · war risk Red Sea",
-  },
-  {
-    url: G_EN('"war risk" (Hormuz OR Gulf OR Iran) (tanker OR shipping OR insurers) when:30d'),
-    name: "Google · war risk Hormuz",
-  },
-  {
-    url: G_EN('"war risk" ("Black Sea" OR Ukraine OR Odesa) (insurance OR premium) when:30d'),
-    name: "Google · war risk Black Sea",
-  },
-  { url: G_EN('("hull value" OR "ship\'s value") (insurance OR premium) when:30d'), name: "Google · hull value" },
-  { url: G_KO("전쟁위험 보험료 OR 전쟁보험료 OR 전쟁 할증 보험 when:30d"), name: "Google · 전쟁위험 보험료" },
+  { url: B_EN("war risk premium"), name: "Bing · war risk" },
+  { url: B_EN("war risk insurance Red Sea Houthi"), name: "Bing · war risk Red Sea" },
+  { url: B_EN("war risk insurance Hormuz Gulf Iran tanker"), name: "Bing · war risk Hormuz" },
+  { url: B_EN("war risk insurance Black Sea Ukraine Odesa"), name: "Bing · war risk Black Sea" },
+  { url: B_EN("hull war risk rate percent of hull value"), name: "Bing · hull value" },
+  { url: B_KO("전쟁위험 보험료 선박"), name: "Bing · 전쟁위험 보험료" },
+  { url: "https://gcaptain.com/?s=war+risk&feed=rss2", name: "gCaptain · war risk" },
+  { url: "https://splash247.com/?s=war+risk&feed=rss2", name: "Splash247 · war risk" },
+  { url: "https://www.insurancejournal.com/?s=war+risk&feed=rss2", name: "Insurance Journal · war risk" },
+  { url: "https://www.hellenicshippingnews.com/feed/", name: "Hellenic Shipping News" },
   { url: "https://gcaptain.com/feed/", name: "gCaptain" },
   { url: "https://splash247.com/feed/", name: "Splash247" },
 ];
+
+/** Bing 뉴스 RSS 링크는 apiclick 리다이렉트 — 원문 URL 만 꺼낸다 */
+export function unwrapBingLink(link: string): string {
+  if (!link.includes("bing.com/news/apiclick")) return link;
+  try {
+    const u = new URL(link).searchParams.get("url");
+    return u && /^https?:\/\//.test(u) ? u : link;
+  } catch {
+    return link;
+  }
+}
 
 export type WarRiskQuoteRow = {
   id: string;
@@ -81,7 +88,7 @@ export async function rowsFromFeed(xml: string, feedName: string): Promise<WarRi
     const q = extractWarRiskQuote(desc ? `${headline}. ${desc}` : headline);
     if (!q) continue;
     rows.push({
-      id: await sha1Hex(item.link),
+      id: await sha1Hex(unwrapBingLink(item.link)),
       region: q.region,
       rate_pct: q.ratePct,
       rate_high_pct: q.rateHighPct,
@@ -91,7 +98,7 @@ export async function rowsFromFeed(xml: string, feedName: string): Promise<WarRi
       confidence: q.confidence,
       quote: q.quote,
       headline: headline.slice(0, 300),
-      url: item.link,
+      url: unwrapBingLink(item.link),
       outlet: item.source ?? outlet,
       feed: feedName,
       published_at: toIso(item.pubDate),
@@ -173,7 +180,7 @@ export async function fetchAndUpsertWarRisk(env: IngestEnv): Promise<{
   const results = await Promise.allSettled(
     WAR_RISK_FEEDS.map(async (f) => {
       const res = await fetch(f.url, {
-        headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": UA },
+        headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": f.url.includes("bing.com") ? "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" : UA },
       });
       if (!res.ok) throw new Error(`${f.name} HTTP ${res.status}`);
       const xml = await res.text();

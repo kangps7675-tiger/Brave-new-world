@@ -2,7 +2,8 @@
  * NOAA GFS-Wave(WAVEWATCH III) 해상 기상 → D1 `marine_weather` (해역 대표 지점별 0~72시간 예보).
  *
  *  - 소스: NOAA NODD AWS 버킷(퍼블릭 도메인). .idx 로 필요한 변수만 HTTP Range 로 받는다 (파일 전체 X).
- *  - 디코딩: src/lib/marineWeather/grib2.ts (순수 TS, 5.0/5.2/5.3 패킹)
+ *  - 디코딩: src/lib/marineWeather/grib2.ts (순수 TS, 5.0/5.2/5.3 패킹). NODD 원본은 JPEG2000(5.40)이라
+ *    기본은 NOMADS grib_filter(해역 상자·변수별 요청, 단순 패킹으로 재인코딩) — processWaveFileFiltered
  *  - 증분 처리: 한 틱(10분 크론)에 파일 `MARINE_WEATHER_MAX_FILES_PER_RUN`(기본 2)개만 → 한 사이클(13개 파일)이
  *    약 1시간에 걸쳐 채워진다. CPU·서브요청을 한 번에 몰지 않으려는 것.
  *  - 완료 여부는 `marine_weather_files` (사이클·예보시간별 상태)로 판단. 3번 실패한 파일은 건너뛴다.
@@ -18,7 +19,7 @@ import {
   candidateCycles,
   cycleId,
 } from "../../../src/lib/marineWeather/gfsWave";
-import { processWaveFile, type MarineWeatherRow } from "../../../src/lib/marineWeather/processWaveFile";
+import { processWaveFile, processWaveFileFiltered, type MarineWeatherRow } from "../../../src/lib/marineWeather/processWaveFile";
 
 const MAX_ATTEMPTS = 3;
 
@@ -116,7 +117,9 @@ export async function fetchAndUpsertMarineWeather(env: IngestEnv): Promise<{
   }
   const base = v.GFS_S3_BASE?.trim() || GFS_S3_BASE_DEFAULT;
   const grid = v.GFS_WAVE_GRID?.trim() || GFS_WAVE_GRID_DEFAULT;
-  let budget = Math.min(13, Math.max(1, Number(v.MARINE_WEATHER_MAX_FILES_PER_RUN) || 2));
+  // 기본 소스는 NOMADS grib_filter(단순 패킹). "s3" 는 NODD 원본(JPEG2000 이라 현재 디코딩 불가).
+  const source = (v.MARINE_WEATHER_SOURCE ?? "nomads").toLowerCase();
+  let budget = Math.min(13, Math.max(1, Number(v.MARINE_WEATHER_MAX_FILES_PER_RUN) || (source === "s3" ? 2 : 1)));
   const historyDays = Math.max(7, Number(v.MARINE_WEATHER_HISTORY_DAYS) || 365);
 
   const errors: string[] = [];
@@ -136,7 +139,10 @@ export async function fetchAndUpsertMarineWeather(env: IngestEnv): Promise<{
     let published = any;
     for (const fh of pending) {
       if (budget <= 0) break;
-      const out = await processWaveFile(cycle, fh, { base, grid });
+      const out =
+        source === "s3"
+          ? await processWaveFile(cycle, fh, { base, grid })
+          : await processWaveFileFiltered(cycle, fh, { filterUrl: v.GFS_FILTER_URL?.trim() || undefined, grid });
       if (out.kind === "not-published") break; // 이 예보시간 파일이 아직 안 올라옴 — 다음 틱에
       published = true;
       budget--;
