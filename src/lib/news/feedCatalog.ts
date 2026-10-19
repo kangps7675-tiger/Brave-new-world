@@ -4,7 +4,7 @@ import {
   isEconomySoftNoise,
   type EconomyNewsGenre,
 } from "@/lib/news/economyGenres";
-import { DEFAULT_PACKAGE_SELECTION, type ViewPackageId } from "@/lib/viewPackages";
+import { DEFAULT_PACKAGE_SELECTION, type ViewPackageId } from "@/lib/viewPackageIds";
 import {
   isJapanGeopoliticsNews,
   JAPAN_GEOPOLITICS_QUERY_ANCHOR,

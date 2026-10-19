@@ -1,4 +1,5 @@
 import type { FirmsFireRow } from "./env";
+import { nearestEnergyFacility } from "../../../src/data/energyFacilities";
 
 const DEFAULT_SOURCE = "VIIRS_SNPP_NRT";
 
@@ -8,8 +9,11 @@ const DEFAULT_SOURCE = "VIIRS_SNPP_NRT";
  */
 const FIRMS_SOURCES = ["VIIRS_NOAA20_NRT"];
 
-/** Conflict theaters — keep small for Worker CPU/time limits.
- * Keep in sync with `src/lib/firmsTheaters.ts` (client display filter).
+/**
+ * 에너지·항만 시설 감시 범위 (2026-10-20) — 전세계 분쟁 theater 대신
+ * src/data/energyFacilities.ts 시설들이 들어가는 큰 상자 6개만 조회하고,
+ * 받은 열점 중 **시설 반경 안**의 것만 저장한다 (나머지 농경지 화재 등은 버림).
+ * 시설을 추가해서 상자 밖으로 나가면 여기 상자도 넓힌다 (firms.test 참고).
  */
 export const FIRMS_THEATERS: {
   id: string;
@@ -18,14 +22,22 @@ export const FIRMS_THEATERS: {
   east: number;
   north: number;
 }[] = [
-  { id: "ukraine", west: 22, south: 44, east: 41, north: 53 },
-  { id: "middle-east", west: 24.5, south: 22, east: 50, north: 38 },
-  { id: "taiwan", west: 116, south: 20, east: 125, north: 27 },
-  { id: "korea", west: 123, south: 33, east: 132, north: 43 },
-  { id: "red-sea", west: 32, south: 10, east: 48, north: 28 },
-  { id: "black-sea", west: 28, south: 41, east: 42, north: 47 },
-  { id: "south-china-sea", west: 105, south: 5, east: 122, north: 23 },
+  // 우크라이나 전역 + 흑해 연안 러시아(크라스노다르·노보로시스크·투압세·크림)
+  { id: "energy-black-sea", west: 22, south: 44, east: 41, north: 50.5 },
+  // 러시아 중부 (모스크바·랴잔·야로슬라블·크스토보·우네차·키리시)
+  { id: "energy-central-ru", west: 31, south: 52, east: 45, north: 60 },
+  // 발트 수출터미널 (프리모르스크·우스트루가·비소츠크)
+  { id: "energy-baltic", west: 27, south: 59.3, east: 30, north: 61 },
+  // 볼가·우랄 (볼고그라드·사라토프·시즈란·사마라·우파·살라바트·오르스크)
+  { id: "energy-volga-ural", west: 43, south: 48, east: 59.5, north: 56 },
+  { id: "energy-ukhta", west: 52.5, south: 63, east: 55, north: 64.2 },
+  { id: "energy-tyumen", west: 64.5, south: 56.5, east: 66.5, north: 57.7 },
 ];
+
+/** 시설 반경 안 열점만 남긴다 */
+export function keepFacilityFires(rows: FirmsFireRow[], slackKm = 2): FirmsFireRow[] {
+  return rows.filter((r) => nearestEnergyFacility(r.lat, r.lng, slackKm) !== null);
+}
 
 export function buildFirmsAreaUrl(options: {
   mapKey: string;
@@ -161,7 +173,8 @@ export async function fetchFirmsForTheaters(options: {
           }
           continue;
         }
-        const parsed = parseFirmsCsv(csv, theater.id, source, remaining);
+        // 상자가 커서 농경지 화재가 많다 — 넉넉히 읽고 시설 반경으로 거른 뒤 상한 적용
+        const parsed = keepFacilityFires(parseFirmsCsv(csv, theater.id, source, 20_000));
         for (const fire of parsed) {
           const dedupeKey = `${theater.id}|${fire.lat.toFixed(3)}|${fire.lng.toFixed(3)}|${fire.acq_date || ""}|${fire.acq_time || ""}`;
           if (seen.has(dedupeKey)) continue;
