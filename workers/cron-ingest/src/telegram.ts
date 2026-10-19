@@ -149,6 +149,7 @@ async function fetchChannel(
       text: post.text,
       message_url: `https://t.me/${channel.username}/${post.postId}`,
       received_at: post.date,
+      media_kind: post.mediaKind,
     }));
   } catch {
     return [];

@@ -5,6 +5,7 @@ import type { VideoNewsItem, VideoNewsPayload } from "@/lib/news/videoTypes";
 import { liveVideoNewsFetchMax, liveVideoNewsPollMs } from "@/lib/liveRenderGuard";
 import type { ViewPackageId } from "@/lib/viewPackages";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { TelegramVideoPreviews } from "@/components/TelegramVideoPreviews";
 import {
   localizedDisplayText,
   useLocalizedTextMap,
@@ -106,6 +107,8 @@ export function VideoNewsPanel({
               ? "BBC · Reuters · AP · Al Jazeera · DW — live geopolitics video only. Metadata polls; play on click. Anti-west conflict docs stay curated (no poll)."
               : "BBC · Reuters · AP · Al Jazeera · DW — 지정학 현실 뉴스만. 메타만 폴링, 재생은 클릭 시. 반서방 충돌사 다큐는 스토리 큐레이션(폴링 없음)."}
         </p>
+
+        {!economyMode ? <TelegramVideoPreviews active={active} labelLanguage={labelLanguage} /> : null}
 
         {loading && !payload ? (
           <p className="py-12 text-center text-sm text-slate-500">동영상 뉴스 동기화 중…</p>

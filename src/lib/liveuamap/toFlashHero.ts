@@ -49,6 +49,7 @@ export function liveuamapEventToFlashHero(
     trustTier: origin.kind === "media" ? origin.tier : 3,
     feedTopic: isGeoeconomicImpactFlash(blob) ? "economy" : "defense",
     imageUrl: event.imageUrl,
+    imageUrls: event.imageUrls,
     summary: body,
     bodyKo,
     heroStatus: "breaking",

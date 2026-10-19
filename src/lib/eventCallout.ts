@@ -69,6 +69,8 @@ export function calloutFromStackItem(item: StackItem, lang: LabelLanguage): Even
     title: clipCalloutText(item.title, 70),
     body: clipCalloutText(item.detail ?? ""),
     meta: [calloutAgeLabel(item.at, lang), item.place].filter(Boolean).join(" · "),
-    source: item.source === "ukmto" ? "UKMTO" : item.source === "nga" ? "NGA" : en ? "My case" : "내 케이스",
+    source:
+      item.sourceLabel ??
+      (item.source === "ukmto" ? "UKMTO" : item.source === "nga" ? "NGA" : item.source === "newfeeds" ? "NewFeeds" : item.source === "rss" ? "RSS" : en ? "My case" : "내 케이스"),
   };
 }

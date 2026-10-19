@@ -79,6 +79,30 @@ function timestampToIso(raw: unknown): string {
   return new Date().toISOString();
 }
 
+const ICON_PNG_RE = /\/images\/.*\.png$/i;
+
+/** 사진 후보를 모두 모은다: picture / photo / image / pics[]. 분류 아이콘(/images/*.png)은 사진이 아니다. */
+export function pickPhotos(o: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const push = (raw: unknown) => {
+    const s = asString(raw);
+    if (!s || ICON_PNG_RE.test(s) || !/^https?:\/\//i.test(s) || out.includes(s)) return;
+    out.push(s);
+  };
+  push(o.photo);
+  push(o.picture);
+  push(o.imageUrl);
+  push(o.image);
+  const pics = o.pics;
+  if (Array.isArray(pics)) {
+    for (const p of pics) {
+      if (p && typeof p === "object") push((p as Record<string, unknown>).url);
+      else push(p);
+    }
+  }
+  return out.slice(0, 6);
+}
+
 function pickPhoto(o: Record<string, unknown>): string | undefined {
   const photo =
     asString(o.photo) ||
@@ -227,6 +251,10 @@ export function normalizePlace(
     title: title || body.slice(0, 120),
     body,
     imageUrl: pickPhoto(o),
+    imageUrls: (() => {
+      const urls = pickPhotos(o);
+      return urls.length > 0 ? urls : undefined;
+    })(),
     videoUrl: asString(o.videoUrl) || asString(o.video) || undefined,
     sourceUrl,
     viaSource: asString(o.viaSource) || asString(o.resource) || undefined,

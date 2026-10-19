@@ -305,6 +305,19 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
       "OGL 자체는 상업 허용이나 **비공식(리버스 엔지니어링) 엔드포인트**를 쓰고 있음. 수익화 시 Royal Navy/UKMTO 정식 피드 요청 필요 — 프로젝트 자체 원칙.",
   },
   {
+    layerId: "marine-weather",
+    source: "NOAA NCEP GFS-Wave (WAVEWATCH III) · NODD AWS bucket noaa-gfs-bdp-pds",
+    url: "/api/marine-weather",
+    cadence: "Cron */10 incremental (2 files/tick) → D1, model cycles 00/06/12/18 UTC, 0–72h every 6h",
+    attribution: "NOAA NCEP GFS-Wave (WAVEWATCH III)",
+    notes:
+      "해역 대표 지점(src/lib/marineWeather/zones.ts) 유의파고·주기·방향·풍속·풍향·너울·풍랑. .idx + HTTP Range 로 필요한 변수만 받아 Worker 안에서 GRIB2 디코딩. 전구 0.25° 격자라 해협 안쪽·연안은 부정확 — 항해용 예보 아님. 지도 레이어·케이스 파일 연결 전이라 planned.",
+    status: "planned",
+    ingest: "cached-api",
+    commercialUse: "allowed",
+    commercialNote: "미국 정부(NOAA) 자료 — 퍼블릭 도메인. 출처 표기 권장, NOAA 보증처럼 보이게 쓰지 말 것.",
+  },
+  {
     layerId: "navarea-warnings",
     source: "JHOD NAVAREA XI · NGA NAVAREA IV/XII (public TXT)",
     url: "/api/navarea",

@@ -31,7 +31,7 @@ export type LiveuamapRegionSlot = {
 export const NATO_EAST_DAILY_CAP = 10;
 
 /**
- * 플랜 배분: UA96 Iran48 YE24 LB12 IL8 Gulf12 NATO-E10 TW4 KR4 — 활성 슬롯(번호 있는 것) 합이 200 이하가 되게 맞춘다, 번호가 없는 슬롯은 제외.
+ * 플랜 배분: UA96 Iran40 YE16 Saudi12 Pirates10 LB8 IL6 UAE6 Qatar6 (=200) NATO-E10 TW4 KR4 — 활성 슬롯(번호 있는 것) 합이 200 이하가 되게 맞춘다, 번호가 없는 슬롯은 제외.
  * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동(예멘·레바논·이스라엘) → 동유럽(발트 3국).
  * 한 틱에 도는 슬롯 수가 제한돼 있어 배열 순서가 곧 우선순위다.
  * 하이브리드전 분류는 전용 슬롯과 무관하게 모든 슬롯 응답에 적용된다 (hybridWarfare.ts).
@@ -46,29 +46,37 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
   },
   {
     id: "iran",
-    dailyCap: 48,
-    minIntervalMs: 30 * 60_000,
+    dailyCap: 40,
+    minIntervalMs: 36 * 60_000,
     theater: "middle-east",
     parseControl: true,
   },
   {
     id: "yemen",
-    dailyCap: 24,
-    minIntervalMs: 60 * 60_000,
-    theater: "middle-east",
-    parseControl: true,
-  },
-  {
-    id: "lebanon",
-    dailyCap: 12,
+    dailyCap: 16,
     minIntervalMs: 90 * 60_000,
     theater: "middle-east",
     parseControl: true,
   },
   {
-    id: "israel-palestine",
+    // 해적·해상 사건 피드(pirates.liveuamap.com) — 페르시아만 나포·피격, 소말리아·기니만. 선박 사건 스택의 핵심 출처.
+    id: "pirates",
+    dailyCap: 10,
+    minIntervalMs: 140 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    id: "lebanon",
     dailyCap: 8,
-    minIntervalMs: 2 * 60 * 60_000,
+    minIntervalMs: 3 * 60 * 60_000,
+    theater: "middle-east",
+    parseControl: true,
+  },
+  {
+    id: "israel-palestine",
+    dailyCap: 6,
+    minIntervalMs: 4 * 60 * 60_000,
     theater: "middle-east",
     /** resid 2 통제면을 IL/PS bbox로 저장 — Lebanon(74)과 분리 */
     parseControl: true,
@@ -78,6 +86,20 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     id: "gulf",
     dailyCap: 12,
     minIntervalMs: 60 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    id: "emirates",
+    dailyCap: 6,
+    minIntervalMs: 4 * 60 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    id: "qatar",
+    dailyCap: 6,
+    minIntervalMs: 4 * 60 * 60_000,
     theater: "middle-east",
     parseControl: false,
   },
@@ -117,6 +139,12 @@ const BUILTIN_RESIDS: Record<LiveuamapRegionId, number> = {
   "israel-palestine": 2,
   /** saudiarabia.liveuamap.com resource_id (2020-04 아카이브, 좌표 23.17N 46.36E) */
   gulf: 179,
+  /** pirates.liveuamap.com resource_id (2025-01 아카이브 확인, 2026-10 API로 최근 이벤트 확인) */
+  pirates: 68,
+  /** emirates.liveuamap.com — 페르시아만 UAE 쪽(호르파칸 선박 피격 등) */
+  emirates: 187,
+  /** qatar.liveuamap.com — 라스라판·호르무즈 봉쇄·UKMTO 카타르 북방 사건 */
+  qatar: 73,
   taiwan: -1,
   korea: -1,
   /** 공식 지역 번호 미확인 — LIVEUAMAP_RESID_MAP 으로 설정하기 전까지 비활성 */

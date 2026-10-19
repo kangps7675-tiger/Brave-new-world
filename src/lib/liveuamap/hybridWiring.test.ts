@@ -143,8 +143,8 @@ describe("Baltic / Eastern Europe slot is additive", () => {
       dailyCap: NATO_EAST_DAILY_CAP,
     });
     expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(96);
-    expect(slots.find((s) => s.id === "iran")?.dailyCap).toBe(48);
-    expect(slots.find((s) => s.id === "yemen")?.dailyCap).toBe(24);
+    expect(slots.find((s) => s.id === "iran")?.dailyCap).toBe(40);
+    expect(slots.find((s) => s.id === "yemen")?.dailyCap).toBe(16);
   });
 
   it("is polled after Ukraine, Iran and the Middle East slots", () => {

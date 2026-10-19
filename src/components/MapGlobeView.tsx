@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
-import Map, { Layer, Marker, Popup, Source, type MapRef } from "react-map-gl/maplibre";
+import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
@@ -71,6 +71,7 @@ import { firmsFireIconId, ensureFirmsFireImages } from "@/lib/firmsFireIcons";
 import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameIcon";
 import { EventCalloutCard } from "@/components/globe/EventCalloutCard";
 import type { EventCallout } from "@/lib/eventCallout";
+import type { StrikeFlame } from "@/lib/strikeFlames";
 import {
   blocFeatureFromMapProps,
   isBlocCountryFillLayerId,
@@ -274,29 +275,8 @@ const TERRITORY_LINE_WIDTH = ["interpolate", ["linear"], ["zoom"], 3, 1.2, 8, 1.
 const SMALL_DOT_ANGULAR_RADIUS = 0.0003;
 const SMALL_DOT_KINDS: ReadonlySet<string> = new Set(["military-base", "airport", "port"]);
 
-type LiveuaStrikeMapItem = {
-  id: string;
-  lat: number;
-  lng: number;
-  title: string;
-  kind: "drone" | "missile" | "bomb";
-  region: string;
-  publishedAt: string;
-};
+type LiveuaStrikeMapItem = StrikeFlame;
 
-const LIVEUA_STRIKE_KIND_LABEL: Record<string, string> = {
-  drone: "드론 타격",
-  missile: "미사일 타격",
-  bomb: "유도폭탄 타격",
-};
-
-function strikeAgeLabel(publishedAt: string): string {
-  const ms = Date.now() - Date.parse(publishedAt);
-  if (!Number.isFinite(ms) || ms < 0) return "";
-  const h = Math.floor(ms / 3_600_000);
-  if (h < 1) return `${Math.max(1, Math.floor(ms / 60_000))}분 전`;
-  return h < 48 ? `${h}시간 전` : `${Math.floor(h / 24)}일 전`;
-}
 
 const INTERACTIVE_LAYERS = [
   "map-points",
@@ -1144,7 +1124,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     }),
     [liveuaStrikesData],
   );
-  const [strikePopup, setStrikePopup] = useState<LiveuaStrikeMapItem | null>(null);
+  const onLiveuaStrikeClick = props.onLiveuaStrikeClick as ((item: LiveuaStrikeMapItem) => void) | undefined;
   const eventCallout = (props.eventCallout as EventCallout | null | undefined) ?? null;
   const onDismissEventCallout = props.onDismissEventCallout as (() => void) | undefined;
 
@@ -1741,7 +1721,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         const item = resolveFeature(layerId, Number(index));
         if (!item) continue;
         if (layerId === "liveua-strikes") {
-          setStrikePopup(item as LiveuaStrikeMapItem);
+          onLiveuaStrikeClick?.(item as LiveuaStrikeMapItem);
           return;
         }
         if (
@@ -2003,7 +1983,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const flicker =
         0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * 9.3)) * (0.6 + 0.4 * Math.sin(t * 23.7 + 1.3));
       try {
-        map.setPaintProperty("liveua-strikes", "icon-opacity", flicker);
+        map.setPaintProperty("liveua-strikes", "icon-opacity", 0.86 + 0.14 * flicker);
+        if (map.getLayer("liveua-strikes-bloom")) map.setPaintProperty("liveua-strikes-bloom", "circle-opacity", 0.16 + 0.26 * flicker);
+        if (map.getLayer("liveua-strikes-glow")) map.setPaintProperty("liveua-strikes-glow", "circle-opacity", 0.32 + 0.36 * flicker);
       } catch {
         /* style swap mid-frame */
       }
@@ -3286,7 +3268,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={["==", ["get", "icon"], US_MILITARY_BASE_FLAG_ICON_ID]}
               layout={{
                 "icon-image": US_MILITARY_BASE_FLAG_ICON_ID,
-                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.26, 4, 0.32, 7, 0.45, 10, 0.7],
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.42, 4, 0.5, 7, 0.65, 10, 0.95],
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "center",
@@ -3563,12 +3545,39 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {liveuaStrikesGeoJson.features.length > 0 ? (
           <Source id="liveua-strikes-source" type="geojson" data={liveuaStrikesGeoJson}>
+            {/* 네온 번짐 — 그림이 아니라 실제로 빛나게: 불꽃 높이에 넓은 빨강 후광 + 좁은 주황 후광 (깜빡임은 아래 이펙트) */}
+            <Layer
+              id="liveua-strikes-bloom"
+              type="circle"
+              paint={{
+                "circle-color": "#ff4a0e",
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 17, 4, 21, 7, 27, 10, 36],
+                "circle-blur": 1,
+                "circle-opacity": 0.3,
+                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+                "circle-translate-anchor": "viewport",
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="liveua-strikes-glow"
+              type="circle"
+              paint={{
+                "circle-color": "#ffb347",
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 7, 4, 9, 7, 12, 10, 16],
+                "circle-blur": 0.75,
+                "circle-opacity": 0.55,
+                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+                "circle-translate-anchor": "viewport",
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
             <Layer
               id="liveua-strikes"
               type="symbol"
               layout={{
                 "icon-image": STRIKE_FLAME_ICON_ID,
-                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.16, 5, 0.24, 9, 0.4],
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.3, 4, 0.36, 7, 0.46, 10, 0.62],
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "bottom",
@@ -3588,23 +3597,6 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           >
             <EventCalloutCard callout={eventCallout} onClose={() => onDismissEventCallout?.()} />
           </Marker>
-        ) : null}
-        {strikePopup ? (
-          <Popup
-            longitude={strikePopup.lng}
-            latitude={strikePopup.lat}
-            anchor="bottom"
-            closeButton
-            closeOnClick={false}
-            maxWidth="280px"
-            onClose={() => setStrikePopup(null)}
-          >
-            <div style={{ color: "#1a1208", fontSize: 12, lineHeight: 1.4 }}>
-              <strong>{LIVEUA_STRIKE_KIND_LABEL[strikePopup.kind] ?? "공습"}</strong>
-              <span style={{ opacity: 0.6 }}> · {strikeAgeLabel(strikePopup.publishedAt)}</span>
-              <div style={{ marginTop: 4 }}>{strikePopup.title}</div>
-            </div>
-          </Popup>
         ) : null}
 
         {firmsGeoJson.features.length > 0 ? (

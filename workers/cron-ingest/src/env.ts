@@ -198,6 +198,16 @@ export type IngestEnv = {
   EMAIL_PUBLIC_BASE?: string;
   /** "false"/"0"/"off"면 하루 다이제스트를 보내지 않는다. 구독 접수·확인은 그대로다. */
   EMAIL_DIGEST_ENABLED?: string;
+  /** "false"/"0"/"off"면 NOAA GFS-Wave 해상 기상 수집 끔. 기본 켜짐 */
+  MARINE_WEATHER_INGEST_ENABLED?: string;
+  /** 한 틱(10분)에 처리할 GFS-Wave 파일 수 (기본 2, 최대 13). 사이클 하나 = 13개 파일 */
+  MARINE_WEATHER_MAX_FILES_PER_RUN?: string;
+  /** 분석값(f000) 보관 일수 (기본 365) */
+  MARINE_WEATHER_HISTORY_DAYS?: string;
+  /** NOAA NODD 버킷 주소 (기본 https://noaa-gfs-bdp-pds.s3.amazonaws.com) */
+  GFS_S3_BASE?: string;
+  /** GFS-Wave 격자 이름 (기본 global.0p25) */
+  GFS_WAVE_GRID?: string;
 };
 
 export type FirmsFireRow = {
@@ -234,6 +244,8 @@ export type TelegramAlertRow = {
   text: string;
   message_url: string | null;
   received_at: string;
+  /** video | photo | none */
+  media_kind?: string | null;
 };
 
 export type AisVesselRow = {
