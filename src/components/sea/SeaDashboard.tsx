@@ -27,6 +27,9 @@ import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
 import { parseNavareaApiPayload } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { SeaCesiumPick } from "@/components/sea/SeaCesiumView";
+import { StackItemParchment } from "@/components/globe/StackItemParchment";
+import { calloutFromStackItem, type EventCallout } from "@/lib/eventCallout";
+import { stackItemFromLiveua, stackItemFromUkmto, type StackItem } from "@/lib/incidentStack/build";
 
 const SeaCesiumView = dynamic(
   () => import("@/components/sea/SeaCesiumView").then((m) => m.SeaCesiumView),
@@ -318,21 +321,41 @@ export default function SeaDashboard() {
     globeRef.current?.flyTo(lat, lng, 6.5);
   }, []);
 
+  // 지도에서 사건을 누르면 큰 양피지, 닫으면 그 좌표에 콜아웃이 남는다.
+  const [parchment, setParchment] = useState<StackItem | null>(null);
+  const [callout, setCallout] = useState<EventCallout | null>(null);
+
   const onGlobeSelect = useCallback(
     (sel: SeaGlobeSelection) => {
+      let item: StackItem | null = null;
       if (sel.type === "ukmto") {
         const u = ukmto.find((x) => x.id === sel.id);
-        if (u) locate(u.id, u.lat, u.lng);
+        if (u) {
+          locate(u.id, u.lat, u.lng);
+          item = stackItemFromUkmto(u, true);
+        }
       } else if (sel.type === "liveua" || sel.type === "energy") {
         const e = liveua.find((x) => x.id === sel.id);
         if (e) {
           locate(e.id, e.lat, e.lng);
           if (e.regionId === "ukraine" && sel.type === "energy") setRegionId("black-sea");
+          item = stackItemFromLiveua(e, true);
         }
+      }
+      if (item) {
+        setCallout(null);
+        setParchment(item);
       }
     },
     [ukmto, liveua, locate],
   );
+
+  const dismissParchment = useCallback(() => {
+    setParchment((cur) => {
+      if (cur) setCallout(calloutFromStackItem(cur, "ko"));
+      return null;
+    });
+  }, []);
 
   // ── 세슘 (사건 하나 깊게 보기) ──────────────────────────────────
   const [satAis, setSatAis] = useState<AisVessel[]>([]);
@@ -388,7 +411,26 @@ export default function SeaDashboard() {
           showWar={showWar}
           selectedId={selectedId}
           onSelect={onGlobeSelect}
+          callout={callout}
+          onCalloutClose={() => setCallout(null)}
         />
+        {parchment ? (
+          <StackItemParchment
+            lang="ko"
+            items={[parchment]}
+            index={0}
+            onIndexChange={() => {}}
+            onDismiss={dismissParchment}
+            onGoToLocation={(it) => {
+              dismissParchment();
+              globeRef.current?.flyTo(it.lat, it.lng, 7);
+            }}
+            onViewSatellite={(it) => {
+              setParchment(null);
+              setSat({ lat: it.lat, lng: it.lng, title: it.title });
+            }}
+          />
+        ) : null}
         <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs leading-relaxed text-white/60 backdrop-blur">
           <p>
             <span className="text-rose-400">●</span> 피격 확인 <span className="ml-2 text-amber-400">●</span> 유력{" "}

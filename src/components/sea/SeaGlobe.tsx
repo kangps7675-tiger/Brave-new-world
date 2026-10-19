@@ -10,7 +10,7 @@
  */
 
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from "react";
-import Map, { Layer, Source, type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
+import Map, { Layer, Marker, Source, type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -19,6 +19,8 @@ import { ENERGY_FACILITIES } from "@/data/energyFacilities";
 import type { EnergyStrike } from "@/lib/sea/energyStrikes";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import { EventCalloutCard } from "@/components/globe/EventCalloutCard";
+import type { EventCallout } from "@/lib/eventCallout";
 
 if (typeof window !== "undefined") {
   setWorkerUrl("/maplibre-gl-worker.mjs");
@@ -46,6 +48,9 @@ type Props = {
   showWar: boolean;
   selectedId: string | null;
   onSelect: (sel: SeaGlobeSelection) => void;
+  /** 양피지를 닫은 뒤 사건 좌표에 남는 콜아웃 */
+  callout?: EventCallout | null;
+  onCalloutClose?: () => void;
 };
 
 const INTERACTIVE = ["sea-ukmto", "sea-liveua", "sea-energy", "sea-facility", "sea-war"];
@@ -275,6 +280,11 @@ export const SeaGlobe = forwardRef<SeaGlobeHandle, Props>(function SeaGlobe(prop
           }}
         />
       </Source>
+      {props.callout ? (
+        <Marker longitude={props.callout.lng} latitude={props.callout.lat} anchor="bottom">
+          <EventCalloutCard callout={props.callout} onClose={() => props.onCalloutClose?.()} />
+        </Marker>
+      ) : null}
     </Map>
   );
 });
