@@ -1302,3 +1302,35 @@ export const emailDigestRuns = sqliteTable("email_digest_runs", {
   sent: integer("sent").notNull().default(0),
   error: text("error"),
 });
+
+/**
+ * 해상 기상 — NOAA GFS-Wave 해역 대표 지점별 예보 (`drizzle/0036_marine_weather.sql`).
+ * 적재: workers/cron-ingest/src/marineWeather.ts · 지점: src/lib/marineWeather/zones.ts
+ */
+export const marineWeather = sqliteTable(
+  "marine_weather",
+  {
+    cycle: text("cycle").notNull(),
+    fhour: integer("fhour").notNull(),
+    validTime: text("valid_time").notNull(),
+    pointId: text("point_id").notNull(),
+    region: text("region").notNull(),
+    gridLat: real("grid_lat").notNull(),
+    gridLng: real("grid_lng").notNull(),
+    offsetCells: real("offset_cells").notNull(),
+    hsM: real("hs_m"),
+    periodS: real("period_s"),
+    dirDeg: real("dir_deg"),
+    windMs: real("wind_ms"),
+    windDirDeg: real("wind_dir_deg"),
+    swellM: real("swell_m"),
+    windWaveM: real("wind_wave_m"),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.cycle, t.fhour, t.pointId] }),
+    regionValidIdx: index("idx_marine_weather_region_valid").on(t.region, t.validTime),
+  }),
+);
+
+export type MarineWeatherDbRow = typeof marineWeather.$inferSelect;

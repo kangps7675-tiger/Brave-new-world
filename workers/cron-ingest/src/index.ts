@@ -36,6 +36,7 @@ import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
+import { fetchAndUpsertMarineWeather } from "./marineWeather";
 import { videoCaption } from "../../../src/lib/telegramVideo";
 import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
 import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
@@ -460,6 +461,17 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       }
     } catch (error) {
       console.warn("[war-risk] skipped:", error instanceof Error ? error.message : error);
+    }
+    try {
+      const mw = await fetchAndUpsertMarineWeather(env);
+      if (!mw.skipped && (mw.files > 0 || mw.errors.length > 0)) {
+        console.log(
+          `[marine-weather] cycle=${mw.cycle ?? "-"} files=${mw.files} rows=${mw.rows}` +
+            (mw.errors.length > 0 ? ` errors=${mw.errors.join(" | ")}` : ""),
+        );
+      }
+    } catch (error) {
+      console.warn("[marine-weather] skipped:", error instanceof Error ? error.message : error);
     }
     if (env.US_CARRIERS_WARM_URL?.trim()) {
       usCarriersWarm = await warmEndpoint(env.US_CARRIERS_WARM_URL, env, "us-carriers");
