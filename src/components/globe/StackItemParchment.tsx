@@ -26,6 +26,8 @@ const SOURCE_LABEL: Record<StackItem["source"], { ko: string; en: string }> = {
   liveua: { ko: "Liveuamap", en: "Liveuamap" },
   nga: { ko: "미 NGA 항행안전 방송", en: "US NGA maritime safety broadcast" },
   case: { ko: "내 케이스", en: "My case" },
+  newfeeds: { ko: "NewFeeds", en: "NewFeeds" },
+  rss: { ko: "뉴스(RSS)", en: "News (RSS)" },
 };
 
 /** 선박 사건 스택의 한 건을 큰 양피지로 — 일반 속보 양피지와 같은 모양, 이전·다음으로 넘긴다. */
@@ -42,7 +44,7 @@ export function StackItemParchment({
   const en = lang === "en";
   // UKMTO 본문은 영어 원문 — 한글 모드에서는 번역해서 보여 준다
   const translated = useLocalizedTextMap(
-    (item?.source === "ukmto" || item?.source === "nga") && item.detail
+    item && item.source !== "liveua" && item.source !== "case" && item.detail
       ? [{ key: item.id, text: item.detail }]
       : [],
     en ? "en" : "ko",
@@ -66,8 +68,8 @@ export function StackItemParchment({
   const meta = [item.place, `${when} UTC`].filter(Boolean).join(" · ");
   const coord = `${item.lat.toFixed(4)}, ${item.lng.toFixed(4)}`;
   const sourceLine = en
-    ? `Source: ${SOURCE_LABEL[item.source].en} · ${coord}`
-    : `출처: ${SOURCE_LABEL[item.source].ko} · ${coord}`;
+    ? `Source: ${item.sourceLabel ?? SOURCE_LABEL[item.source].en} · ${coord}`
+    : `출처: ${item.sourceLabel ?? SOURCE_LABEL[item.source].ko} · ${coord}`;
   const note =
     item.source === "ukmto"
       ? en
@@ -123,6 +125,11 @@ export function StackItemParchment({
         </section>
       ) : null}
       <section className="flex flex-wrap items-center gap-2">
+        {item.url && /^https?:\/\//i.test(item.url) ? (
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className={btn}>
+            {en ? "Read the source" : "원문 보기"}
+          </a>
+        ) : null}
         <button type="button" className={btn} onClick={() => onViewSatellite(item)}>
           {en ? "View in satellite" : "위성으로 보기"}
         </button>
@@ -165,7 +172,14 @@ export function StackItemParchment({
         blackInk
         titleId="stack-item-title"
         zIndexClass={zc("alert")}
-        leadImageUrl={ev?.imageUrl}
+        galleryImageUrls={ev?.imageUrls ?? (ev?.imageUrl ? [ev.imageUrl] : [])}
+        galleryCaption={
+          ev?.imageUrls?.length || ev?.imageUrl
+            ? en
+              ? "Photos are from the original posts cited by Liveuamap; rights belong to their owners. Click for the original."
+              : "사진은 Liveuamap이 인용한 원 게시물(텔레그램·X 등)의 것으로, 권리는 원 소유자에게 있습니다. 누르면 원본이 열립니다."
+            : undefined
+        }
         leadVideoUrl={ev?.videoUrl}
         secondaryCtaLabel={en ? "Go to location" : "위치로 가기"}
         onSecondaryCta={() => onGoToLocation(item)}

@@ -420,6 +420,8 @@ export const telegramAlerts = sqliteTable(
     messageUrl: text("message_url"),
     receivedAt: text("received_at").notNull(),
     ingestedAt: text("ingested_at").notNull(),
+    /** video | photo | none — 영상 임베드 목록용 (이전 행은 null) */
+    mediaKind: text("media_kind"),
   },
   (t) => ({
     receivedIdx: index("idx_tg_received").on(t.receivedAt),

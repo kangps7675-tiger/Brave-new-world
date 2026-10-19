@@ -234,6 +234,8 @@ export type TelegramAlertRow = {
   text: string;
   message_url: string | null;
   received_at: string;
+  /** video | photo | none */
+  media_kind?: string | null;
 };
 
 export type AisVesselRow = {

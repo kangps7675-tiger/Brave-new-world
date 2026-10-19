@@ -57,7 +57,20 @@ export function BreakingFlashParchment({
       blackInk
       titleId="breaking-flash-title"
       zIndexClass="z-[900]"
-      leadImageUrl={briefing.imageUrl}
+      galleryImageUrls={
+        briefing.imageUrls?.length ? briefing.imageUrls : briefing.imageUrl ? [briefing.imageUrl] : []
+      }
+      galleryCaption={
+        briefing.imageUrls?.length || briefing.imageUrl
+          ? briefing.flashSource === "liveuamap"
+            ? lang === "en"
+              ? "Photos are from the original posts cited by Liveuamap; rights belong to their owners. Click for the original."
+              : "사진은 Liveuamap이 인용한 원 게시물(텔레그램·X 등)의 것으로, 권리는 원 소유자에게 있습니다. 누르면 원본이 열립니다."
+            : lang === "en"
+              ? "Photo attached to the news report; rights belong to the outlet. Click for the original."
+              : "기사에 첨부된 사진으로, 권리는 해당 매체에 있습니다. 누르면 원본이 열립니다."
+          : undefined
+      }
       leadVideoUrl={briefing.videoUrl}
       exitToDock={exitToDock}
       secondaryCtaLabel={canFly ? t("breakingFlashGoObserve", lang) : undefined}

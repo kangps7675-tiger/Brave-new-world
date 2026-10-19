@@ -44,6 +44,8 @@ export type NewsStreamItem = {
   /** 경제 뉴스 장르 (geo-trader) */
   econGenre?: EconomyNewsGenre;
   imageUrl?: string;
+  /** 사진이 여러 장인 속보(Liveuamap 인용 게시물)의 전체 사진 — 첫 장이 imageUrl */
+  imageUrls?: string[];
   /** 사진 설명 — 「위치로 가기」 지명 추출 전용 (화면에 싣지 않음) */
   imageCaption?: string;
   /** 원문 요약 */

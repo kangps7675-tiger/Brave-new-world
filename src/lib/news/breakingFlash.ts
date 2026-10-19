@@ -54,6 +54,8 @@ export type BreakingFlashBriefing = {
    */
   dispatchBed: "dark" | "cheer" | "morse";
   imageUrl?: string;
+  /** 사진이 여러 장일 때 전체 (첫 장이 imageUrl) */
+  imageUrls?: string[];
   videoUrl?: string;
   /** 수동 「위치로 가기」. RSS는 도시·마을 지명, Liveuamap은 피드 좌표. */
   coords?: { lat: number; lng: number };
@@ -937,6 +939,7 @@ export function buildBreakingFlashBriefing(
       ? resolveEconomyFlashBed(blob)
       : resolveConflictFlashBed(blob),
     imageUrl: hero.imageUrl,
+    imageUrls: hero.imageUrls,
     videoUrl: hero.videoUrl,
     coords,
     flashSource: liveua ? "liveuamap" : "rss",

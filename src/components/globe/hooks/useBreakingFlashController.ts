@@ -16,7 +16,6 @@ import {
 } from "@/lib/intelContract";
 import { deepDiveBlocksFlash, type DeepDiveSession } from "@/lib/deepDive/session";
 import type { NewsStreamPayload } from "@/lib/news/types";
-import { looksLikeMerchantAttack } from "@/lib/incidentStack/shipText";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -131,14 +130,9 @@ export function useBreakingFlashController({
       (typeof h.ageMinutes === "number" &&
         h.ageMinutes <= BREAKING_FLASH_FRESH_MINUTES);
     const baseHero = newsStreamPayload?.hero ?? null;
-    // 자동 팝업은 상선 피격 속보만 — 일반 속보(liveuamap 포함)는 우측 전선 속보 서랍에서 직접 연다
-    const isShipAttackHero = (h: { title: string; titleKo?: string; summary?: string }) =>
-      looksLikeMerchantAttack(`${h.title} ${h.titleKo ?? ""} ${h.summary ?? ""}`);
     const mergedPayload = {
-      hero: baseHero && isNewHero(baseHero) && isShipAttackHero(baseHero) ? baseHero : null,
-      flashHeroes: (newsStreamPayload?.flashHeroes ?? []).filter(
-        (h) => isNewHero(h) && isShipAttackHero(h),
-      ),
+      hero: baseHero && isNewHero(baseHero) ? baseHero : null,
+      flashHeroes: (newsStreamPayload?.flashHeroes ?? []).filter(isNewHero),
     };
     // 주제 제한 없음 — 등급·신선도 기준(shouldOpenBreakingFlash)만 적용
     const hero = pickNextBreakingFlashHero(

@@ -12,7 +12,7 @@ import {
 } from "@/lib/incidentStack/shipText";
 
 /** 우측 사건 스택(슬롯 A)에 쌓이는 한 건. 출처가 달라도 이 모양으로 모은다. */
-export type StackSource = "liveua" | "case" | "ukmto" | "nga";
+export type StackSource = "liveua" | "case" | "ukmto" | "nga" | "newfeeds" | "rss";
 
 /** 해운 사용자가 걸러 보는 해역. 해당 없으면 null */
 export type StackSea = "hormuz" | "red_sea" | "gulf_of_aden" | "black_sea" | "baltic";
@@ -39,6 +39,10 @@ export type StackItem = {
   verdict?: Verdict;
   /** 사건 발생·원 소스 발표·우리 확인 시각 */
   times?: ProvenanceTimes;
+  /** 출처 표기를 그대로 쓰고 싶을 때 (예: "NewFeeds · Reuters") */
+  sourceLabel?: string;
+  /** 원문 링크 */
+  url?: string;
 };
 
 /** 스택 상한 — 최신순으로 자른다 */
@@ -178,9 +182,12 @@ export function stackItemFromUkmto(u: UkmtoLikePoint, ko = false): StackItem | n
 }
 
 /** 출처 표기 이름 (카드·양피지·알림 머리글) */
-export function stackSourceName(item: Pick<StackItem, "source">): string {
+export function stackSourceName(item: Pick<StackItem, "source"> & { sourceLabel?: string }): string {
+  if (item.sourceLabel) return item.sourceLabel;
   if (item.source === "ukmto") return "UKMTO";
   if (item.source === "nga") return "NGA";
+  if (item.source === "newfeeds") return "NewFeeds";
+  if (item.source === "rss") return "RSS";
   return "Liveuamap";
 }
 

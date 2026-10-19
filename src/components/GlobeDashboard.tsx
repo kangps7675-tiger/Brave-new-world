@@ -132,7 +132,16 @@ import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
+import { SatelliteExitButton } from "@/components/globe/SatelliteExitButton";
 import { WarRiskStrip } from "@/components/globe/WarRiskStrip";
+import {
+  flamesFromLiveua,
+  flamesFromNews,
+  flamesFromNewfeeds,
+  mergeStrikeFlames,
+  type StrikeFlame,
+} from "@/lib/strikeFlames";
+import { parseTime } from "@/lib/provenance";
 import { EmailDigestSignup } from "@/components/globe/EmailDigestSignup";
 import { ngaSecurityStackItems } from "@/lib/incidentStack/ngaSecurity";
 import { parseNavareaApiPayload } from "@/lib/navareaHatch";
@@ -1980,30 +1989,49 @@ export function GlobeDashboard({
     [liveuaEvents, labelLanguage],
   );
 
-  /** MapLibre 공습 마커 — 우크라이나·중동 liveuamap 타격(드론·미사일·유도폭탄)을 한 지도에 */
+  /**
+   * 걸프·사우디·이라크 등 이란 외 지역의 공습 소식 — NewFeeds 전체 공격 분류를 10분마다 읽는다.
+   * (이란 관련만 보는 "중동 공격 소식" 레이어와 별개로, 불꽃 표시용으로 필터 없이 받는다.)
+   */
+  const [nfStrikeRaw, setNfStrikeRaw] = useState<NewfeedsAttackPoint[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const pull = () =>
+      fetch("/api/newfeeds-attacks?iran=0", { cache: "no-store" })
+        .then((r) => (r.ok ? (r.json() as Promise<{ attacks?: NewfeedsAttackPoint[] }>) : null))
+        .then((p) => {
+          if (alive && p && Array.isArray(p.attacks)) setNfStrikeRaw(p.attacks);
+        })
+        .catch(() => undefined);
+    void pull();
+    // 최신성: NewFeeds 스냅샷은 서버 크론(5분)이 갱신하므로 화면은 3분마다 읽는다
+    const timer = window.setInterval(pull, 3 * 60_000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  /** MapLibre 공습 불꽃 — 지구 전역의 드론·미사일·유도폭탄 타격(우크라·러시아·흑해·걸프·중동…)을 한 지도에 */
   const liveuaStrikesMapData = useMemo(
     () =>
       showUkraineControl && !isSatelliteViewer
-        ? liveuaEvents
-            .flatMap((event) => {
-              const hit = liveuaConfirmedStrike(event);
-              if (!hit || !Number.isFinite(event.lat) || !Number.isFinite(event.lng)) return [];
-              return [
-                {
-                  id: event.id,
-                  lat: event.lat,
-                  lng: event.lng,
-                  title:
-                    labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title,
-                  kind: hit.kind,
-                  region: event.regionId,
-                  publishedAt: event.publishedAt,
-                },
-              ];
-            })
-            .slice(0, 150)
+        ? mergeStrikeFlames([
+            // 우선순위: liveuamap → NewFeeds → RSS (같은 사건은 앞쪽만)
+            flamesFromLiveua(liveuaEvents, labelLanguage === "ko"),
+            flamesFromNewfeeds(nfStrikeRaw),
+            flamesFromNews(
+              [
+                ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+                ...(newsStreamPayload?.flashHeroes ?? []),
+                ...(newsStreamPayload?.verified ?? []),
+                ...(newsStreamPayload?.stateMedia ?? []),
+              ],
+              labelLanguage === "ko",
+            ),
+          ])
         : [],
-    [isSatelliteViewer, labelLanguage, liveuaEvents, showUkraineControl],
+    [isSatelliteViewer, labelLanguage, liveuaEvents, newsStreamPayload, nfStrikeRaw, showUkraineControl],
   );
 
   const liveuaGround = useMemo(
@@ -2508,6 +2536,11 @@ export function GlobeDashboard({
     view: { lat: number; lng: number; altitude: number };
     armed: boolean;
   } | null>(null);
+  /**
+   * 일반 지도에서 마지막으로 보던 시점. 위성으로 들어온 경로가 시점을 저장하지 않았을 때
+   * (ADS-B 비상 배너의 "관측 모드로 이동" 등) 나갈 때 이 시점으로 돌려보낸다.
+   */
+  const lastMapViewRef = useRef<{ lat: number; lng: number; altitude: number } | null>(null);
   useEffect(() => {
     const r = stackReturnViewRef.current;
     if (!r) return;
@@ -2551,8 +2584,78 @@ export function GlobeDashboard({
   /** 선박 사건 스택 → 큰 양피지 */
   const [stackParchmentId, setStackParchmentId] = useState<string | null>(null);
 
+  /** 촛불(공습 불꽃)을 누르면 사건 설명이 큰 양피지로 */
+  const [strikeParchmentId, setStrikeParchmentId] = useState<string | null>(null);
+  const strikeStackItems = useMemo<StackItem[]>(
+    () =>
+      liveuaStrikesMapData.map((f: StrikeFlame) => {
+        const at = Date.parse(f.publishedAt);
+        const ev = f.origin === "liveuamap" ? liveuaEvents.find((e) => e.id === f.id) : undefined;
+        return {
+          id: f.id,
+          source: f.origin === "liveuamap" ? "liveua" : f.origin,
+          at,
+          title: f.title,
+          place: "",
+          lat: f.lat,
+          lng: f.lng,
+          sea: null,
+          liveua: ev,
+          detail: f.body,
+          url: f.url,
+          sourceLabel: f.source,
+          times: { publishedAt: at, firstSeenAt: parseTime(ev?.seenAt) },
+        } satisfies StackItem;
+      }),
+    [liveuaEvents, liveuaStrikesMapData],
+  );
+
   /** 지정학 지도의 전선 속보 서랍 → 큰 양피지 (신속속보처럼 하나씩 크게) */
   const [frontParchmentIndex, setFrontParchmentIndex] = useState<number | null>(null);
+
+  /**
+   * 새 선박 피격(UKMTO·NGA·해역 안 선박 속보)이 올라오면 신속속보처럼 큰 양피지로 바로 띄운다.
+   * 접속 직후 25초 동안 들어온 건은 "원래 있던 것"으로 보고 띄우지 않으며, 6시간 넘은 건도 띄우지 않는다.
+   * 다른 양피지·신속속보가 열려 있으면 그 사이에는 띄우지 않고(다음 갱신 때 다시 본다) 이미 본 것으로 치지 않는다.
+   */
+  const shipSeenRef = useRef<Set<string>>(new Set());
+  const shipMountedAtRef = useRef(Date.now());
+  useEffect(() => {
+    const seen = shipSeenRef.current;
+    const warm = Date.now() - shipMountedAtRef.current < 25_000;
+    const fresh = incidentStackItems.filter((i) => !seen.has(i.id));
+    if (fresh.length === 0) return;
+    if (warm) {
+      for (const i of fresh) seen.add(i.id);
+      return;
+    }
+    const busy =
+      Boolean(breakingFlash) ||
+      frontParchmentIndex != null ||
+      stackParchmentId != null ||
+      strikeParchmentId != null ||
+      liveuaParchmentIndex != null ||
+      isSatelliteViewer;
+    const newest = fresh
+      .filter((i) => i.source !== "case" && Date.now() - i.at < 6 * 3_600_000)
+      .sort((a, b) => b.at - a.at)[0];
+    if (!newest) {
+      for (const i of fresh) seen.add(i.id);
+      return;
+    }
+    if (busy) return;
+    for (const i of fresh) seen.add(i.id);
+    setStackSelectedId(newest.id);
+    setStackParchmentId(newest.id);
+  }, [
+    breakingFlash,
+    frontParchmentIndex,
+    incidentStackItems,
+    isSatelliteViewer,
+    liveuaParchmentIndex,
+    stackParchmentId,
+    strikeParchmentId,
+  ]);
 
   /** 위성(세슘)을 나와 일반 지도로 — 렌더마다 최신 클로저로 갱신(핸들러 정의가 아래에 있다) */
   const exitToMapRef = useRef<() => void>(() => {});
@@ -6028,9 +6131,17 @@ export function GlobeDashboard({
   // 위성은 사건 카드의 "위성으로 보기"로만 들어온다 — 나갈 때는 일반 지도(지정학)로 돌아간다.
   // (incidentSpace 정리와 카메라 복원은 viewerMode 변화 이펙트가 맡는다)
   exitToMapRef.current = () => {
-    if (viewerMode === "satellite") handleViewerModeChange("conflict");
-    else leaveIncidentSpace();
+    if (viewerMode === "satellite") {
+      // 들어올 때 저장한 시점이 없으면(경로 불문) 마지막 일반 지도 시점으로 복귀
+      if (!stackReturnViewRef.current && lastMapViewRef.current) {
+        stackReturnViewRef.current = { view: { ...lastMapViewRef.current }, armed: true };
+      }
+      handleViewerModeChange("conflict");
+    } else leaveIncidentSpace();
   };
+  if (!isSatelliteViewer && !isCameraMoving) {
+    lastMapViewRef.current = { lat: viewState.lat, lng: viewState.lng, altitude: viewState.altitude };
+  }
 
   /**
    * 세션 시작 자동 제안·핫시어터·텐션 스파이크 이펙트 묶음.
@@ -6408,6 +6519,7 @@ export function GlobeDashboard({
     liveuaStrikesMapData,
     eventCallout,
     onDismissEventCallout: dismissEventCallout,
+    onLiveuaStrikeClick: (item: unknown) => setStrikeParchmentId((item as StrikeFlame).id),
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -6861,14 +6973,12 @@ export function GlobeDashboard({
         />
 
         {isSatelliteViewer ? (
-          <button
-            type="button"
-            onClick={() => exitToMapRef.current()}
-            className={`tap-target pointer-events-auto fixed ${isPhoneUi ? "right-3" : "left-3"} ${zc("immersive")} rounded-full border border-white/30 bg-[#0b0d12]/92 px-4 py-2 text-meta font-semibold text-white shadow-2xl backdrop-blur-md hover:bg-white/15`}
-            style={{ top: "calc(var(--hover-nav-height, 4.5rem) + 0.5rem)" }}
-          >
-            ← {t("hoverBackToMap", labelLanguage)}
-          </button>
+          <SatelliteExitButton
+            label={t("hoverBackToMap", labelLanguage)}
+            closeWord={labelLanguage === "en" ? "Close" : "닫기"}
+            onExit={() => exitToMapRef.current()}
+            phone={isPhoneUi}
+          />
         ) : null}
 
         {!isPhoneUi && incidentSpace ? (
@@ -7369,6 +7479,39 @@ export function GlobeDashboard({
             }}
           />
         ) : null}
+
+        {!isSatelliteViewer && strikeParchmentId != null
+          ? (() => {
+              const idx = strikeStackItems.findIndex((x) => x.id === strikeParchmentId);
+              if (idx < 0) return null;
+              return (
+                <StackItemParchment
+                  lang={labelLanguage}
+                  items={strikeStackItems}
+                  index={idx}
+                  onIndexChange={(next) => {
+                    const nextItem = strikeStackItems[next];
+                    if (nextItem) setStrikeParchmentId(nextItem.id);
+                  }}
+                  onDismiss={() => {
+                    const cur = strikeStackItems[idx];
+                    if (cur) openEventCallout(calloutFromStackItem(cur, labelLanguage));
+                    setStrikeParchmentId(null);
+                  }}
+                  onGoToLocation={(it) => {
+                    openEventCallout(calloutFromStackItem(it, labelLanguage));
+                    setStrikeParchmentId(null);
+                    unifiedFlyTo(it.lat, it.lng, 0.5);
+                  }}
+                  onViewSatellite={(it) => {
+                    openEventCallout(calloutFromStackItem(it, labelLanguage));
+                    setStrikeParchmentId(null);
+                    viewStackItemInSatellite(it);
+                  }}
+                />
+              );
+            })()
+          : null}
 
         {!isSatelliteViewer && stackParchmentId != null
           ? (() => {

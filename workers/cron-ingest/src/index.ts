@@ -12,6 +12,7 @@ import {
   readGdeltPoints,
   readIntVar,
   readTelegramAlerts,
+  readTelegramVideos,
   recordIngestRun,
   upsertAdsbAircraft,
   upsertAisVessels,
@@ -35,6 +36,7 @@ import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
+import { videoCaption } from "../../../src/lib/telegramVideo";
 import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
 import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
 import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
@@ -1424,6 +1426,25 @@ const worker = {
         mode,
         count: aircraft.length,
         aircraft,
+      });
+    }
+
+    if (url.pathname === "/telegram/videos") {
+      const limitRaw = Number.parseInt(url.searchParams.get("limit") || "24", 10);
+      const limit = Math.min(60, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 24));
+      const rows = await readTelegramVideos(env.DB, limit);
+      return jsonPublic({
+        fetchedAt: new Date().toISOString(),
+        count: rows.length,
+        // 영상 자체는 내려받지 않는다 — 앱이 텔레그램 공식 임베드로 보여 준다. 캡션은 짧게만.
+        videos: rows.map((row) => ({
+          id: row.id,
+          channelTitle: row.channel_title,
+          region: row.region,
+          caption: videoCaption(row.text),
+          receivedAt: row.received_at,
+          messageUrl: row.message_url,
+        })),
       });
     }
 
