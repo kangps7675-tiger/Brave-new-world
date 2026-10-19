@@ -132,7 +132,7 @@ describe("Baltic / Eastern Europe slot is additive", () => {
     delete process.env.LIVEUAMAP_RESID_MAP;
     const slots = getLiveuamapRegionSlots();
     expect(slots.find((s) => s.id === "nato-east")).toBeUndefined();
-    expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(96);
+    expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(45);
   });
 
   it("adds 10 requests without taking from Ukraine, Iran or the Middle East", () => {
@@ -142,17 +142,17 @@ describe("Baltic / Eastern Europe slot is additive", () => {
       resid: 123,
       dailyCap: NATO_EAST_DAILY_CAP,
     });
-    expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(96);
-    expect(slots.find((s) => s.id === "iran")?.dailyCap).toBe(40);
-    expect(slots.find((s) => s.id === "yemen")?.dailyCap).toBe(16);
+    expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(45);
+    expect(slots.find((s) => s.id === "iran")?.dailyCap).toBe(35);
+    expect(slots.find((s) => s.id === "yemen")?.dailyCap).toBe(45);
   });
 
-  it("is polled after Ukraine, Iran and the Middle East slots", () => {
+  it("is polled after the maritime, Ukraine, Iran and Middle East slots", () => {
     process.env.LIVEUAMAP_RESID_MAP = JSON.stringify({ "nato-east": 123 });
     const order = getLiveuamapRegionSlots().map((s) => s.id);
     const idx = (id: string) => order.indexOf(id as (typeof order)[number]);
+    expect(idx("yemen")).toBeLessThan(idx("ukraine"));
     expect(idx("ukraine")).toBeLessThan(idx("iran"));
-    expect(idx("iran")).toBeLessThan(idx("yemen"));
     expect(idx("israel-palestine")).toBeLessThan(idx("nato-east"));
   });
 
