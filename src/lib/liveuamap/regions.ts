@@ -31,49 +31,72 @@ export type LiveuamapRegionSlot = {
 export const NATO_EAST_DAILY_CAP = 10;
 
 /**
- * 플랜 배분: UA96 Iran40 YE16 Saudi12 Pirates10 LB8 IL6 UAE6 Qatar6 (=200) NATO-E10 TW4 KR4 — 활성 슬롯(번호 있는 것) 합이 200 이하가 되게 맞춘다, 번호가 없는 슬롯은 제외.
- * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동(예멘·레바논·이스라엘) → 동유럽(발트 3국).
- * 한 틱에 도는 슬롯 수가 제한돼 있어 배열 순서가 곧 우선순위다.
+ * 플랜 배분 (2026-10-20, 해역 위험 판단 중심으로 재배분):
+ *   YE45 UA45 IR35 Pirates35 UAE12 Saudi10 QA8 IL6 LB4 (=200) · NATO-E10 TW4 KR4 (번호 없으면 비활성)
+ * 홍해·걸프·해상 비중을 올리고, 우크라이나는 흑해·러시아 에너지 시설·전쟁 동향 탭 몫만 남긴다.
+ * 배열 순서가 곧 호출 우선순위다 (한 틱에 도는 슬롯 수 제한).
+ * minIntervalMs ≈ 24h / dailyCap.
  * 하이브리드전 분류는 전용 슬롯과 무관하게 모든 슬롯 응답에 적용된다 (hybridWarfare.ts).
  */
 const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
   {
-    id: "ukraine",
-    dailyCap: 96,
-    minIntervalMs: 15 * 60_000,
-    theater: "russia-ukraine",
-    parseControl: true,
-  },
-  {
-    id: "iran",
-    dailyCap: 40,
-    minIntervalMs: 36 * 60_000,
-    theater: "middle-east",
-    parseControl: true,
-  },
-  {
+    // 홍해·바브엘만데브 — 후티 대함 공격의 발원지
     id: "yemen",
-    dailyCap: 16,
-    minIntervalMs: 90 * 60_000,
+    dailyCap: 45,
+    minIntervalMs: 32 * 60_000,
     theater: "middle-east",
     parseControl: true,
   },
   {
     // 해적·해상 사건 피드(pirates.liveuamap.com) — 페르시아만 나포·피격, 소말리아·기니만. 선박 사건 스택의 핵심 출처.
     id: "pirates",
-    dailyCap: 10,
-    minIntervalMs: 140 * 60_000,
+    dailyCap: 35,
+    minIntervalMs: 41 * 60_000,
     theater: "middle-east",
     parseControl: false,
   },
   {
-    id: "lebanon",
-    dailyCap: 8,
-    minIntervalMs: 3 * 60 * 60_000,
+    // 흑해 + 러시아·우크라이나 에너지 시설 피격 + 전쟁 동향 탭
+    id: "ukraine",
+    dailyCap: 45,
+    minIntervalMs: 32 * 60_000,
+    theater: "russia-ukraine",
+    parseControl: true,
+  },
+  {
+    // 호르무즈
+    id: "iran",
+    dailyCap: 35,
+    minIntervalMs: 41 * 60_000,
     theater: "middle-east",
     parseControl: true,
   },
   {
+    // 걸프 — 푸자이라 정박지·호르파칸 선박 피격
+    id: "emirates",
+    dailyCap: 12,
+    minIntervalMs: 2 * 60 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    // 사우디(saudiarabia.liveuamap.com resource_id=179) — 홍해 연안 + 걸프 에너지 인프라
+    id: "gulf",
+    dailyCap: 10,
+    minIntervalMs: 144 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    // 걸프 LNG (라스라판)
+    id: "qatar",
+    dailyCap: 8,
+    minIntervalMs: 3 * 60 * 60_000,
+    theater: "middle-east",
+    parseControl: false,
+  },
+  {
+    // 에일라트, 후티 미사일
     id: "israel-palestine",
     dailyCap: 6,
     minIntervalMs: 4 * 60 * 60_000,
@@ -82,26 +105,11 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     parseControl: true,
   },
   {
-    // 사우디(saudiarabia.liveuamap.com resource_id=179, 중심 리야드). 이란·후티가 인프라를 때리는 곳.
-    id: "gulf",
-    dailyCap: 12,
-    minIntervalMs: 60 * 60_000,
+    id: "lebanon",
+    dailyCap: 4,
+    minIntervalMs: 6 * 60 * 60_000,
     theater: "middle-east",
-    parseControl: false,
-  },
-  {
-    id: "emirates",
-    dailyCap: 6,
-    minIntervalMs: 4 * 60 * 60_000,
-    theater: "middle-east",
-    parseControl: false,
-  },
-  {
-    id: "qatar",
-    dailyCap: 6,
-    minIntervalMs: 4 * 60 * 60_000,
-    theater: "middle-east",
-    parseControl: false,
+    parseControl: true,
   },
   {
     id: "nato-east",

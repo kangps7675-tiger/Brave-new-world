@@ -9,164 +9,64 @@ import {
   readAdsbAircraft,
   readAisVessels,
   readFirmsFires,
-  readGdeltPoints,
   readIntVar,
-  readTelegramAlerts,
-  readTelegramVideos,
   recordIngestRun,
   upsertAdsbAircraft,
   upsertAisVessels,
   upsertFirmsFires,
-  upsertGdeltPoints,
-  upsertTelegramAlerts,
 } from "./db";
 import { fetchAisVessels } from "./ais";
 import { buildAisZoneCrossings } from "./aisZones";
 import { fetchAdsbAircraft } from "./adsb";
 import { fetchFirmsForTheaters } from "./firms";
-import { fetchGdeltTensionPoints } from "./gdeltExport";
-import { fetchTelegramAlerts } from "./telegram";
-import { readBriefingStats, upsertBriefingPeriodStats } from "./briefingStats";
-import { readDailyRanks, readWorldTension, upsertDailyRanks } from "./dailyRanks";
-import { detectAndRecordConvergence } from "./convergence";
-import { backfillOutcomes, ingestMarketDaily } from "./marketResponse";
 import { recordHeartbeat } from "./pipelineHealth";
-import { curateLivingTaiwan } from "./livingTaiwan";
-import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
 import { fetchAndUpsertMarineWeather } from "./marineWeather";
-import { videoCaption } from "../../../src/lib/telegramVideo";
 import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
-import { fetchAndUpsertReferenceMonitor } from "./referenceMonitor";
-import { fetchAndUpsertMilitaryExercises } from "./exerciseIngest";
-import { maybeLightBaselineBackfill, runBaselineBackfill } from "./baselineBackfill";
 import {
   broadcastPush,
   deletePushSubscription,
   upsertPushSubscription,
 } from "./push";
-import { dispatchSitrepDigestPush } from "./sitrepPush";
 import {
   appendAisHistory,
   appendMilAdsbHistory,
   pruneTrackHistory,
   trackHistoryRetentionDays,
 } from "./trackHistory";
-import { refreshUsCarriers } from "./usCarriers";
 
 export type { IngestEnv };
 
 type WarmResult = { ok: boolean; status: number; detail?: string };
 
+type SourceRun = { count: number; fetched?: number; errors: string[]; skipped: boolean } | null;
+
+/**
+ * 해역 위험 판단용 수집만 (2026-10-20 정리):
+ *   ADS-B(군용, 사건 카드용) · AIS(+항적 이력·해역 게이트) · FIRMS(에너지 시설 반경) ·
+ *   UKMTO · NAVAREA · 전쟁위험 보험료 · 해상 기상 · 뉴스/AIS/ADS-B/선박이동/LiveUAMap warm.
+ * GDELT·텔레그램·공습경보·일일 랭크·예측·컨버전스·레퍼런스 감시·훈련·항모·DeepState 는 제거.
+ */
 type IngestResult = {
   ok: boolean;
   startedAt: string;
   finishedAt: string;
   firmsCount: number;
-  gdeltCount: number;
-  telegramCount: number;
   aisCount: number;
   adsbCount: number;
   newsWarm?: WarmResult;
-  videoNewsWarm?: WarmResult;
   aisWarm?: WarmResult;
   adsbWarm?: WarmResult;
-  tunnelsWarm?: WarmResult;
-  disputeHatchWarm?: WarmResult;
-  ukraineHatchWarm?: WarmResult;
   shipMovementsWarm?: WarmResult;
-  usCarriersWarm?: WarmResult;
-  deepstateOccupiedWarm?: WarmResult;
   liveuamapWarm?: WarmResult;
-  newfeedsWarm?: WarmResult;
   firmsErrors: string[];
-  gdeltErrors: string[];
-  telegramErrors: string[];
   aisErrors: string[];
   adsbErrors: string[];
-  pruned?: {
-    firmsDeleted: number;
-    gdeltDeleted: number;
-    newsSnapshotsDeleted?: number;
-    newsItemsDeleted?: number;
-    aisDeleted?: number;
-    adsbDeleted?: number;
-    telegramDeleted?: number;
-    airRaidDeleted?: number;
-    signalDailyDeleted?: number;
-    cutoff: string;
-  };
-  airRaid?: {
-    count: number;
-    tzevaCount: number;
-    neptunCount: number;
-    sampleCount?: number;
-    intervalTouched?: number;
-    geoRestricted: boolean;
-    errors: string[];
-  } | null;
-  baselineBackfill?: {
-    ran: boolean;
-    rowsUpserted?: number;
-    errors?: string[];
-  } | null;
-  briefingStats?: {
-    dailyKey: string;
-    weeklyKey: string;
-    monthlyKey: string;
-  } | null;
-  dailyRanks?: {
-    rankDate: string;
-    theaterCount: number;
-    chokepointCount: number;
-    worldTension: number;
-  } | null;
-  sitrepPush?: {
-    skipped: boolean;
-    reason?: string;
-    rankDate?: string;
-    eventCount?: number;
-    koSent?: number;
-    enSent?: number;
-  } | null;
-  livingTaiwan?: {
-    conflictId: string;
-    entryDate: string;
-    upserted: number;
-    skipped: boolean;
-    reason?: string;
-  } | null;
-  ukmto?: {
-    count: number;
-    fetched: number;
-    errors: string[];
-    skipped: boolean;
-  } | null;
-  navarea?: {
-    count: number;
-    fetched: number;
-    errors: string[];
-    skipped: boolean;
-  } | null;
-  referenceMonitor?: {
-    count: number;
-    fetched: number;
-    csis: number;
-    nti: number;
-    crink: number;
-    ntiPath: string;
-    errors: string[];
-    skipped: boolean;
-  } | null;
-  militaryExercises?: {
-    count: number;
-    fromNavarea: number;
-    fromNews: number;
-    errors: string[];
-    skipped: boolean;
-  } | null;
+  pruned?: Awaited<ReturnType<typeof pruneOldRows>>;
+  ukmto?: SourceRun;
+  navarea?: SourceRun;
   error: string | null;
 };
 
@@ -216,50 +116,36 @@ async function runFastAlerts(env: IngestEnv): Promise<void> {
   }
   const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
   if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);
-  const feeds = await warmEndpoint(env.NEWFEEDS_SYNC_URL, env, "newfeeds-iran");
-  if (feeds) out.push(`newfeeds=${feeds.ok ? "ok" : "fail"}`);
   console.log(`[fast-alerts] ${out.join(" ")}`);
+}
+
+async function runSource(
+  label: string,
+  fn: () => Promise<{ count: number; fetched?: number; errors: string[]; skipped: boolean }>,
+): Promise<SourceRun> {
+  try {
+    const r = await fn();
+    return { count: r.count, fetched: r.fetched, errors: r.errors.slice(0, 6), skipped: r.skipped };
+  } catch (error) {
+    return { count: 0, errors: [error instanceof Error ? error.message : `${label} failed`], skipped: false };
+  }
 }
 
 async function runIngest(env: IngestEnv): Promise<IngestResult> {
   const startedAt = new Date().toISOString();
   const firmsErrors: string[] = [];
-  const gdeltErrors: string[] = [];
-  const telegramErrors: string[] = [];
   const aisErrors: string[] = [];
   const adsbErrors: string[] = [];
   let firmsCount = 0;
-  let gdeltCount = 0;
-  let telegramCount = 0;
   let aisCount = 0;
   let adsbCount = 0;
-  let pruned: IngestResult["pruned"];
-  let newsWarm: IngestResult["newsWarm"];
-  let videoNewsWarm: IngestResult["videoNewsWarm"];
-  let aisWarm: IngestResult["aisWarm"];
-  let adsbWarm: IngestResult["adsbWarm"];
-  let tunnelsWarm: IngestResult["tunnelsWarm"];
-  let disputeHatchWarm: IngestResult["disputeHatchWarm"];
-  let ukraineHatchWarm: IngestResult["ukraineHatchWarm"];
-  let shipMovementsWarm: IngestResult["shipMovementsWarm"];
-  let usCarriersWarm: IngestResult["usCarriersWarm"];
-  let deepstateOccupiedWarm: IngestResult["deepstateOccupiedWarm"];
-  let liveuamapWarm: IngestResult["liveuamapWarm"];
-  let newfeedsWarm: IngestResult["newfeedsWarm"];
 
   try {
-    const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 1)));
-    const maxPerTheater = Math.min(
-      800,
-      Math.max(50, readIntVar(env, "FIRMS_MAX_PER_THEATER", 400)),
-    );
-    const gdeltMax = Math.min(400, Math.max(80, readIntVar(env, "GDELT_MAX_POINTS", 250)));
-    const retentionHours = Math.min(
-      168,
-      Math.max(6, readIntVar(env, "RETENTION_HOURS", 48)),
-    );
+    const dayRange = Math.min(5, Math.max(1, readIntVar(env, "FIRMS_DAY_RANGE", 2)));
+    const maxPerTheater = Math.min(800, Math.max(50, readIntVar(env, "FIRMS_MAX_PER_THEATER", 400)));
+    const retentionHours = Math.min(168, Math.max(6, readIntVar(env, "RETENTION_HOURS", 48)));
 
-    // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS/GDELT
+    // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
     const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
     const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
@@ -271,9 +157,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     try {
       await appendMilAdsbHistory(env.DB, adsb.aircraft);
     } catch (error) {
-      adsbErrors.push(
-        `track-history: ${error instanceof Error ? error.message : "append failed"}`,
-      );
+      adsbErrors.push(`track-history: ${error instanceof Error ? error.message : "append failed"}`);
     }
 
     const aisMax = Math.min(3000, Math.max(50, readIntVar(env, "AIS_MAX_VESSELS", 3000)));
@@ -283,176 +167,39 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     // upsert로 덮어쓰기 전에 이전 위치를 먼저 읽어서 게이트 통과 여부를 판정한다.
     // 순서를 바꾸면(upsert 먼저) 항상 같은 위치와 비교하게 된다 — 크로싱이 영영 만들어지지 않는다.
     try {
-      const priorPositions = await getAisVesselPositions(
-        env.DB,
-        ais.vessels.map((v) => v.id),
-      );
+      const priorPositions = await getAisVesselPositions(env.DB, ais.vessels.map((v) => v.id));
       const zoneCrossings = buildAisZoneCrossings(ais.vessels, priorPositions);
-      if (zoneCrossings.length > 0) {
-        await insertAisZoneCrossings(env.DB, zoneCrossings);
-      }
+      if (zoneCrossings.length > 0) await insertAisZoneCrossings(env.DB, zoneCrossings);
     } catch (error) {
-      aisErrors.push(
-        `zone-crossing: ${error instanceof Error ? error.message : "detection failed"}`,
-      );
+      aisErrors.push(`zone-crossing: ${error instanceof Error ? error.message : "detection failed"}`);
     }
 
     aisCount = await upsertAisVessels(env.DB, ais.vessels);
     try {
       await appendAisHistory(env.DB, ais.vessels);
     } catch (error) {
-      aisErrors.push(
-        `track-history: ${error instanceof Error ? error.message : "append failed"}`,
-      );
+      aisErrors.push(`track-history: ${error instanceof Error ? error.message : "append failed"}`);
     }
 
+    // FIRMS — 러시아·우크라이나 에너지·항만 시설 반경 안 열점만 (firms.ts)
     const mapKey = getFirmsMapKey(env);
     if (mapKey) {
-      const firms = await fetchFirmsForTheaters({
-        mapKey,
-        dayRange,
-        maxPerTheater,
-      });
+      const firms = await fetchFirmsForTheaters({ mapKey, dayRange, maxPerTheater });
       firmsErrors.push(...firms.errors);
       firmsCount = await upsertFirmsFires(env.DB, firms.fires);
     } else {
       firmsErrors.push("NASA_FIRMS_API_KEY (or FIRMS_MAP_KEY) missing — FIRMS skipped");
     }
 
-    const gdelt = await fetchGdeltTensionPoints({ maxPoints: gdeltMax });
-    gdeltErrors.push(...gdelt.errors);
-    gdeltCount = await upsertGdeltPoints(env.DB, gdelt.points);
+    const ukmto = await runSource("ukmto", () => fetchAndUpsertUkmto(env));
+    const navarea = await runSource("navarea", () => fetchAndReplaceNavarea(env));
 
-    const telegramEnabled =
-      (env.TELEGRAM_INGEST_ENABLED ?? "true").toLowerCase() !== "false" &&
-      env.TELEGRAM_INGEST_ENABLED !== "0";
-    if (telegramEnabled) {
-      const tgMax = Math.min(400, Math.max(50, readIntVar(env, "TELEGRAM_MAX_ALERTS", 200)));
-      const telegram = await fetchTelegramAlerts({ maxAlerts: tgMax, maxChannels: 25 });
-      telegramErrors.push(...telegram.errors.slice(0, 10));
-      telegramCount = await upsertTelegramAlerts(env.DB, telegram.alerts);
-    }
-
-    let airRaid: IngestResult["airRaid"] = null;
-    try {
-      const air = await fetchAndUpsertAirRaids(env);
-      airRaid = {
-        count: air.count,
-        tzevaCount: air.tzevaCount,
-        neptunCount: air.neptunCount,
-        sampleCount: air.sampleCount,
-        intervalTouched: air.intervalTouched,
-        geoRestricted: air.geoRestricted,
-        errors: air.errors.slice(0, 6),
-      };
-    } catch (error) {
-      airRaid = {
-        count: 0,
-        tzevaCount: 0,
-        neptunCount: 0,
-        sampleCount: 0,
-        intervalTouched: 0,
-        geoRestricted: false,
-        errors: [error instanceof Error ? error.message : "air raid ingest failed"],
-      };
-    }
-
-    let ukmto: IngestResult["ukmto"] = null;
-    try {
-      const uk = await fetchAndUpsertUkmto(env);
-      ukmto = {
-        count: uk.count,
-        fetched: uk.fetched,
-        errors: uk.errors.slice(0, 6),
-        skipped: uk.skipped,
-      };
-    } catch (error) {
-      ukmto = {
-        count: 0,
-        fetched: 0,
-        errors: [error instanceof Error ? error.message : "ukmto ingest failed"],
-        skipped: false,
-      };
-    }
-
-    let navarea: IngestResult["navarea"] = null;
-    try {
-      const na = await fetchAndReplaceNavarea(env);
-      navarea = {
-        count: na.count,
-        fetched: na.fetched,
-        errors: na.errors.slice(0, 6),
-        skipped: na.skipped,
-      };
-    } catch (error) {
-      navarea = {
-        count: 0,
-        fetched: 0,
-        errors: [error instanceof Error ? error.message : "navarea ingest failed"],
-        skipped: false,
-      };
-    }
-
-    let referenceMonitor: IngestResult["referenceMonitor"] = null;
-    try {
-      const rm = await fetchAndUpsertReferenceMonitor(env);
-      referenceMonitor = {
-        count: rm.count,
-        fetched: rm.fetched,
-        csis: rm.csis,
-        nti: rm.nti,
-        crink: rm.crink,
-        ntiPath: rm.ntiPath,
-        errors: rm.errors.slice(0, 6),
-        skipped: rm.skipped,
-      };
-    } catch (error) {
-      referenceMonitor = {
-        count: 0,
-        fetched: 0,
-        csis: 0,
-        nti: 0,
-        crink: 0,
-        ntiPath: "error",
-        errors: [error instanceof Error ? error.message : "reference monitor ingest failed"],
-        skipped: false,
-      };
-    }
-
-    let militaryExercises: IngestResult["militaryExercises"] = null;
-    try {
-      const ex = await fetchAndUpsertMilitaryExercises(env);
-      militaryExercises = {
-        count: ex.count,
-        fromNavarea: ex.fromNavarea,
-        fromNews: ex.fromNews,
-        errors: ex.errors.slice(0, 6),
-        skipped: ex.skipped,
-      };
-    } catch (error) {
-      militaryExercises = {
-        count: 0,
-        fromNavarea: 0,
-        fromNews: 0,
-        errors: [error instanceof Error ? error.message : "military exercise ingest failed"],
-        skipped: false,
-      };
-    }
-
-    pruned = await pruneOldRows(env.DB, retentionHours);
+    const pruned = await pruneOldRows(env.DB, retentionHours);
     await pruneTrackHistory(env.DB, trackHistoryRetentionDays(env));
-    newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
-    videoNewsWarm = await warmEndpoint(env.VIDEO_NEWS_WARM_URL, env, "video-news");
-    aisWarm = await warmEndpoint(env.AIS_WARM_URL, env, "ais");
-    adsbWarm = await warmEndpoint(env.ADSB_WARM_URL, env, "adsb");
-    tunnelsWarm = await warmEndpoint(env.TUNNELS_WARM_URL, env, "tunnels");
-    disputeHatchWarm = await warmEndpoint(env.DISPUTE_HATCH_WARM_URL, env, "dispute-hatch");
-    ukraineHatchWarm = await warmEndpoint(env.UKRAINE_HATCH_WARM_URL, env, "ukraine-hatch");
-    shipMovementsWarm = await warmEndpoint(
-      env.SHIP_MOVEMENTS_WARM_URL,
-      env,
-      "ship-movements",
-    );
+    const newsWarm = await warmEndpoint(env.NEWS_WARM_URL, env, "news");
+    const aisWarm = await warmEndpoint(env.AIS_WARM_URL, env, "ais");
+    const adsbWarm = await warmEndpoint(env.ADSB_WARM_URL, env, "adsb");
+    const shipMovementsWarm = await warmEndpoint(env.SHIP_MOVEMENTS_WARM_URL, env, "ship-movements");
     try {
       const wr = await fetchAndUpsertWarRisk(env);
       if (!wr.skipped) {
@@ -475,233 +222,46 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     } catch (error) {
       console.warn("[marine-weather] skipped:", error instanceof Error ? error.message : error);
     }
-    if (env.US_CARRIERS_WARM_URL?.trim()) {
-      usCarriersWarm = await warmEndpoint(env.US_CARRIERS_WARM_URL, env, "us-carriers");
-    } else {
-      try {
-        usCarriersWarm = await refreshUsCarriers(env);
-      } catch (error) {
-        usCarriersWarm = {
-          ok: false,
-          status: 0,
-          detail: error instanceof Error ? error.message : "us-carriers refresh failed",
-        };
-      }
-    }
-    deepstateOccupiedWarm = await warmEndpoint(
-      env.DEEPSTATE_SYNC_URL,
-      env,
-      "deepstate-occupied",
-    );
-    liveuamapWarm = await warmEndpoint(
-      env.LIVEUAMAP_SYNC_URL,
-      env,
-      "liveuamap",
-    );
-    newfeedsWarm = await warmEndpoint(
-      env.NEWFEEDS_SYNC_URL,
-      env,
-      "newfeeds-iran",
-    );
-
-    const finishedAt = new Date().toISOString();
-    const hardFail =
-      Boolean(mapKey) && firmsCount === 0 && firmsErrors.length > 0 && gdeltCount === 0;
-
-    let briefingStats: IngestResult["briefingStats"] = null;
-    try {
-      briefingStats = await upsertBriefingPeriodStats(env.DB);
-    } catch (error) {
-      console.warn(
-        "[ingest] briefing stats upsert skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
-    let dailyRanks: IngestResult["dailyRanks"] = null;
-    try {
-      dailyRanks = await upsertDailyRanks(env.DB);
-    } catch (error) {
-      console.warn(
-        "[ingest] daily ranks upsert skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
-    // ── 컨버전스 파이프라인 ────────────────────────────────────
-    // 순서가 중요하다: 시장 시계열 적재 → 발화 감지 → 결과 백필 → 하트비트.
-    // 어느 하나가 실패해도 인제스트 전체를 죽이지 않는다(전부 try/catch).
-    // 단 하트비트는 실패 사실 자체를 기록하므로 마지막에 둔다.
-    try {
-      if (env.FRED_API_KEY) {
-        const mkt = await ingestMarketDaily(env.DB, env.FRED_API_KEY);
-        if (mkt.errors.length) console.warn("[market] partial:", mkt.errors.join("; "));
-      }
-    } catch (error) {
-      console.warn(
-        "[market] daily ingest skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
-    try {
-      const conv = await detectAndRecordConvergence(env.DB);
-      if (conv.fired > 0) {
-        console.log(`[convergence] fired=${conv.fired} ids=${conv.ids.join(",")}`);
-      }
-    } catch (error) {
-      console.warn(
-        "[convergence] detection skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
-    try {
-      await backfillOutcomes(env.DB);
-    } catch (error) {
-      console.warn(
-        "[convergence] outcome backfill skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
+    const liveuamapWarm = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
 
     try {
       await recordHeartbeat(env.DB);
     } catch (error) {
-      console.warn(
-        "[heartbeat] skipped:",
-        error instanceof Error ? error.message : error,
-      );
+      console.warn("[heartbeat] skipped:", error instanceof Error ? error.message : error);
     }
 
-    let sitrepPush: IngestResult["sitrepPush"] = null;
-    try {
-      const digest = await dispatchSitrepDigestPush(env);
-      sitrepPush = {
-        skipped: digest.skipped,
-        reason: digest.reason,
-        rankDate: digest.rankDate,
-        eventCount: digest.eventCount,
-        koSent: digest.ko?.sent,
-        enSent: digest.en?.sent,
-      };
-    } catch (error) {
-      console.warn(
-        "[ingest] sitrep push skipped:",
-        error instanceof Error ? error.message : error,
-      );
-      sitrepPush = {
-        skipped: true,
-        reason: error instanceof Error ? error.message : "sitrep push failed",
-      };
-    }
-
-    let baselineBackfill: IngestResult["baselineBackfill"] = null;
-    try {
-      const light = await maybeLightBaselineBackfill(env);
-      baselineBackfill = light.ran
-        ? {
-            ran: true,
-            rowsUpserted: light.detail?.rowsUpserted,
-            errors: light.detail?.errors,
-          }
-        : { ran: false };
-    } catch (error) {
-      baselineBackfill = {
-        ran: false,
-        errors: [error instanceof Error ? error.message : "baseline backfill failed"],
-      };
-    }
-
-    let livingTaiwan: IngestResult["livingTaiwan"] = null;
-    try {
-      livingTaiwan = await curateLivingTaiwan(env.DB);
-    } catch (error) {
-      console.warn(
-        "[ingest] living taiwan curate skipped:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
+    const finishedAt = new Date().toISOString();
+    const hardFail = aisCount === 0 && adsbCount === 0 && aisErrors.length > 0 && adsbErrors.length > 0;
     const result: IngestResult = {
       ok: !hardFail,
       startedAt,
       finishedAt,
       firmsCount,
-      gdeltCount,
-      telegramCount,
       aisCount,
       adsbCount,
       newsWarm,
-      videoNewsWarm,
       aisWarm,
       adsbWarm,
-      tunnelsWarm,
-      disputeHatchWarm,
-      ukraineHatchWarm,
       shipMovementsWarm,
-      usCarriersWarm,
-      deepstateOccupiedWarm,
       liveuamapWarm,
-      newfeedsWarm,
       firmsErrors,
-      gdeltErrors,
-      telegramErrors,
       aisErrors,
       adsbErrors,
       pruned,
-      briefingStats,
-      dailyRanks,
-      sitrepPush,
-      airRaid,
-      baselineBackfill,
-      livingTaiwan,
       ukmto,
       navarea,
-      referenceMonitor,
-      militaryExercises,
-      error: hardFail ? firmsErrors.join("; ") || "ingest failed" : null,
+      error: hardFail ? [...aisErrors, ...adsbErrors].slice(0, 4).join("; ") || "ingest failed" : null,
     };
 
     await recordIngestRun(env.DB, {
       startedAt,
       finishedAt,
       firmsCount,
-      gdeltCount,
+      gdeltCount: 0,
       ok: result.ok,
       error: result.error,
-      detail: {
-        firmsErrors,
-        gdeltErrors,
-        telegramErrors,
-        telegramCount,
-        aisCount,
-        adsbCount,
-        aisErrors,
-        adsbErrors,
-        pruned,
-        newsWarm,
-        videoNewsWarm,
-        aisWarm,
-        adsbWarm,
-        tunnelsWarm,
-        disputeHatchWarm,
-        ukraineHatchWarm,
-        shipMovementsWarm,
-        usCarriersWarm,
-        deepstateOccupiedWarm,
-        liveuamapWarm,
-        newfeedsWarm,
-        briefingStats,
-        dailyRanks,
-        sitrepPush,
-        livingTaiwan,
-        ukmto,
-        navarea,
-        referenceMonitor,
-      },
+      detail: { ...result },
     });
-
     return result;
   } catch (error) {
     const finishedAt = new Date().toISOString();
@@ -711,10 +271,10 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
         startedAt,
         finishedAt,
         firmsCount,
-        gdeltCount,
+        gdeltCount: 0,
         ok: false,
         error: message,
-        detail: { firmsErrors, gdeltErrors, telegramErrors, telegramCount, aisCount, adsbCount, aisErrors, adsbErrors, newsWarm, aisWarm, adsbWarm, tunnelsWarm, disputeHatchWarm, ukraineHatchWarm, shipMovementsWarm, usCarriersWarm, deepstateOccupiedWarm, liveuamapWarm, newfeedsWarm },
+        detail: { firmsErrors, aisErrors, adsbErrors, aisCount, adsbCount },
       });
     } catch {
       // ignore secondary logging failure
@@ -724,24 +284,9 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       startedAt,
       finishedAt,
       firmsCount,
-      gdeltCount,
-      telegramCount,
       aisCount,
       adsbCount,
-      newsWarm,
-      aisWarm,
-      adsbWarm,
-      tunnelsWarm,
-      disputeHatchWarm,
-      ukraineHatchWarm,
-      shipMovementsWarm,
-      usCarriersWarm,
-      deepstateOccupiedWarm,
-      liveuamapWarm,
-      newfeedsWarm,
       firmsErrors,
-      gdeltErrors,
-      telegramErrors,
       aisErrors,
       adsbErrors,
       error: message,
@@ -872,7 +417,7 @@ const worker = {
     ctx.waitUntil(
       runIngest(env).then((result) => {
         console.log(
-          `[ingest] ok=${result.ok} firms=${result.firmsCount} gdelt=${result.gdeltCount} telegram=${result.telegramCount} ais=${result.aisCount} adsb=${result.adsbCount}` +
+          `[ingest] ok=${result.ok} firms=${result.firmsCount} ais=${result.aisCount} adsb=${result.adsbCount}` +
             (result.newsWarm
               ? ` newsWarm=${result.newsWarm.ok ? "ok" : "fail"}`
               : ""),
@@ -896,20 +441,10 @@ const worker = {
           health: "GET /health",
           run: "POST /run (Bearer INGEST_CRON_SECRET — required)",
           latest: "GET /latest",
-          telegram: "GET /telegram?limit=200 (public read of D1 alerts)",
           firms: "GET /firms?west&south&east&north&max (public read of D1 fires)",
-          gdelt: "GET /gdelt?limit=1200 (public read of D1 tension points)",
           ais: "GET /ais?category=all|military|commercial&max=250",
           aisZones: "GET /ais/zones?hours=24",
           adsb: "GET /adsb?mode=mil|civ&west&south&east&north&max=400",
-          briefingStats:
-            "GET /briefing-stats?key=daily-YYYY-MM-DD|weekly-YYYY-Www|monthly-YYYY-MM or ?tier=daily|weekly|monthly",
-          dailyRanks:
-            "GET /daily-ranks?date=YYYY-MM-DD&kind=theater|chokepoint&limit=5",
-          dailyPredictionStats:
-            "GET /daily-prediction-stats?date=YYYY-MM-DD&kind=theater",
-          dailyPredict:
-            "POST /daily-predict (Bearer INGEST_CRON_SECRET; body targetDate,kind,deviceId,pickEntityId)",
           track: "POST /track (Bearer INGEST_CRON_SECRET, D1-less hosts like Vercel forward here)",
           pushSubscribe: "POST /push/subscribe (public; body endpoint,keys)",
           pushUnsubscribe: "POST /push/unsubscribe (body endpoint)",
@@ -1043,233 +578,6 @@ const worker = {
       }
     }
 
-    if (url.pathname === "/briefing-stats") {
-      const key = (url.searchParams.get("key") || "").trim();
-      const tier = (url.searchParams.get("tier") || "").trim();
-      try {
-        if (key) {
-          const row = await readBriefingStats(env.DB, key);
-          return jsonPublic({
-            fetchedAt: new Date().toISOString(),
-            source: "d1-cron",
-            stats: row,
-          });
-        }
-        if (tier === "daily" || tier === "weekly" || tier === "monthly") {
-          const row = await env.DB.prepare(
-            `SELECT period_key, tier, gdelt_count, firms_count, telegram_count, news_item_count,
-                    top_gdelt_tag, top_telegram_region, detail_json, window_start, window_end, updated_at
-             FROM briefing_period_stats
-             WHERE tier = ?
-             ORDER BY updated_at DESC
-             LIMIT 1`,
-          )
-            .bind(tier)
-            .first();
-          return jsonPublic({
-            fetchedAt: new Date().toISOString(),
-            source: "d1-cron",
-            stats: row ?? null,
-          });
-        }
-        return Response.json(
-          { error: "Provide ?key= or ?tier=daily|weekly|monthly", stats: null },
-          { status: 400 },
-        );
-      } catch (error) {
-        return jsonPublic({
-          fetchedAt: new Date().toISOString(),
-          source: "d1-cron",
-          stats: null,
-          error: error instanceof Error ? error.message : "briefing-stats failed",
-        });
-      }
-    }
-
-    if (url.pathname === "/daily-ranks") {
-      const date = (url.searchParams.get("date") || "").trim() || undefined;
-      const kindRaw = (url.searchParams.get("kind") || "").trim();
-      const kind =
-        kindRaw === "theater" || kindRaw === "chokepoint" ? kindRaw : undefined;
-      const limit = Number(url.searchParams.get("limit") || "5");
-      try {
-        const ranks = await readDailyRanks(env.DB, {
-          date,
-          kind,
-          limit: Number.isFinite(limit) ? limit : 5,
-        });
-        let yesterdayCorrectPct: number | null = null;
-        try {
-          const { readPredictionStats } = await import("./dailyPredictions");
-          const { prevUtcRankDate } = await import("./dailyRanks");
-          const stats = await readPredictionStats(env.DB, {
-            date: prevUtcRankDate(),
-            kind: "theater",
-          });
-          if (stats && Number(stats.total) > 0) {
-            yesterdayCorrectPct = Number(stats.correct_pct);
-          }
-        } catch {
-          // optional attach
-        }
-        let worldTension: Awaited<ReturnType<typeof readWorldTension>> = null;
-        try {
-          worldTension = await readWorldTension(env.DB, date);
-        } catch {
-          worldTension = null;
-        }
-        return jsonPublic({
-          fetchedAt: new Date().toISOString(),
-          source: "d1-cron",
-          date: date || null,
-          kind: kind || "all",
-          ranks,
-          worldTension,
-          yesterdayCorrectPct,
-        });
-      } catch (error) {
-        return jsonPublic({
-          fetchedAt: new Date().toISOString(),
-          source: "d1-cron",
-          ranks: [],
-          error: error instanceof Error ? error.message : "daily-ranks failed",
-        });
-      }
-    }
-
-    if (url.pathname === "/daily-prediction-stats") {
-      const date = (url.searchParams.get("date") || "").trim() || undefined;
-      const kindRaw = (url.searchParams.get("kind") || "").trim();
-      const kind =
-        kindRaw === "tension-dir" ? "tension-dir" : kindRaw === "theater" ? "theater" : "tension-dir";
-      try {
-        const { readPredictionStats } = await import("./dailyPredictions");
-        const stats = await readPredictionStats(env.DB, { date, kind });
-        return jsonPublic({
-          fetchedAt: new Date().toISOString(),
-          source: "d1-cron",
-          date: date || null,
-          kind,
-          stats: stats
-            ? {
-                targetDate: stats.target_date,
-                kind: stats.kind,
-                total: Number(stats.total) || 0,
-                correct: Number(stats.correct) || 0,
-                correctPct: Number(stats.correct_pct) || 0,
-                winnerEntityId: stats.winner_entity_id,
-                resolvedAt: stats.resolved_at,
-              }
-            : null,
-        });
-      } catch (error) {
-        return jsonPublic({
-          fetchedAt: new Date().toISOString(),
-          source: "d1-cron",
-          stats: null,
-          error:
-            error instanceof Error
-              ? error.message
-              : "daily-prediction-stats failed",
-        });
-      }
-    }
-
-    if (url.pathname === "/daily-prompt") {
-      try {
-        const dateParam = (url.searchParams.get("date") || "").trim();
-        const { nextUtcRankDate, utcRankDate } = await import("./dailyRanks");
-        const { readPrompt, upsertTomorrowPrompt } = await import("./dailyPrompts");
-        const targetDate =
-          /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : nextUtcRankDate();
-        let prompt = await readPrompt(env.DB, targetDate);
-        if (!prompt) {
-          await upsertTomorrowPrompt(env.DB, { rankDate: utcRankDate() });
-          prompt = await readPrompt(env.DB, targetDate);
-        }
-        return Response.json({
-          ok: true,
-          prompt: prompt
-            ? {
-                targetDate: prompt.target_date,
-                subjectKind: prompt.subject_kind,
-                subjectId: prompt.subject_id,
-                labelKo: prompt.label_ko,
-                labelEn: prompt.label_en,
-                baselineScore: Number(prompt.baseline_score) || 0,
-                questionKo: prompt.question_ko,
-                questionEn: prompt.question_en,
-                createdAt: prompt.created_at,
-              }
-            : null,
-        });
-      } catch (error) {
-        return Response.json(
-          {
-            ok: false,
-            error: error instanceof Error ? error.message : "daily-prompt failed",
-          },
-          { status: 500 },
-        );
-      }
-    }
-
-    if (url.pathname === "/daily-predict" && request.method === "POST") {
-      if (!authorizeManual(request, env)) {
-        return Response.json({ error: "unauthorized" }, { status: 401 });
-      }
-      try {
-        const body = (await request.json()) as {
-          targetDate?: string;
-          kind?: string;
-          deviceId?: string;
-          pickEntityId?: string;
-        };
-        const targetDate = (body.targetDate || "").trim();
-        const deviceId = (body.deviceId || "").trim();
-        const pickEntityId = (body.pickEntityId || "").trim();
-        const kind =
-          body.kind === "tension-dir"
-            ? "tension-dir"
-            : body.kind === "theater"
-              ? "theater"
-              : null;
-        const { THEATER_ENTITY_IDS } = await import("./dailyRanks");
-        const pickOk =
-          kind === "tension-dir"
-            ? pickEntityId === "up" || pickEntityId === "down"
-            : Boolean(pickEntityId && THEATER_ENTITY_IDS.includes(pickEntityId));
-        if (
-          !/^\d{4}-\d{2}-\d{2}$/.test(targetDate) ||
-          !kind ||
-          !deviceId ||
-          deviceId.length > 80 ||
-          !pickOk
-        ) {
-          return Response.json({ error: "invalid body" }, { status: 400 });
-        }
-        const { upsertPrediction } = await import("./dailyPredictions");
-        const result = await upsertPrediction(env.DB, {
-          targetDate,
-          kind,
-          deviceId,
-          pickEntityId,
-        });
-        if (!result.ok) {
-          return Response.json({ error: result.error }, { status: 500 });
-        }
-        return Response.json({ ok: true, createdAt: result.createdAt });
-      } catch (error) {
-        return Response.json(
-          {
-            error:
-              error instanceof Error ? error.message : "daily-predict failed",
-          },
-          { status: 500 },
-        );
-      }
-    }
-
     if (url.pathname === "/firms") {
       const num = (k: string, d: number) => {
         const v = Number(url.searchParams.get(k));
@@ -1304,32 +612,6 @@ const worker = {
         count: fires.length,
         bbox: { west, south, east, north },
         fires,
-      });
-    }
-
-    if (url.pathname === "/gdelt") {
-      const limitRaw = Number.parseInt(url.searchParams.get("limit") || "1200", 10);
-      const limit = Math.min(2000, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 1200));
-      let events: Array<Record<string, unknown>> = [];
-      try {
-        const rows = await readGdeltPoints(env.DB, limit);
-        events = rows.map((row) => ({
-          id: row.id,
-          lat: row.lat,
-          lng: row.lng,
-          name: row.name,
-          url: row.url,
-          mentionCount: row.mention_count,
-          queryTag: row.query_tag,
-        }));
-      } catch {
-        events = [];
-      }
-      return jsonPublic({
-        fetchedAt: new Date().toISOString(),
-        source: "d1-cron",
-        count: events.length,
-        events,
       });
     }
 
@@ -1443,90 +725,10 @@ const worker = {
       });
     }
 
-    if (url.pathname === "/telegram/videos") {
-      const limitRaw = Number.parseInt(url.searchParams.get("limit") || "24", 10);
-      const limit = Math.min(60, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 24));
-      const rows = await readTelegramVideos(env.DB, limit);
-      return jsonPublic({
-        fetchedAt: new Date().toISOString(),
-        count: rows.length,
-        // 영상 자체는 내려받지 않는다 — 앱이 텔레그램 공식 임베드로 보여 준다. 캡션은 짧게만.
-        videos: rows.map((row) => ({
-          id: row.id,
-          channelTitle: row.channel_title,
-          region: row.region,
-          caption: videoCaption(row.text),
-          receivedAt: row.received_at,
-          messageUrl: row.message_url,
-        })),
-      });
-    }
-
-    if (url.pathname === "/telegram") {
-      const limitRaw = Number.parseInt(url.searchParams.get("limit") || "200", 10);
-      const limit = Math.min(400, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 200));
-      let alerts: Array<Record<string, unknown>> = [];
-      let fetchedAt: string | null = null;
-      try {
-        const rows = await readTelegramAlerts(env.DB, limit);
-        alerts = rows.map((row) => {
-          const full = typeof row.text === "string" ? row.text.trim() : "";
-          // 공개 엔드포인트 — 짧은 글 포함 약 절반만 (전문은 messageUrl CTA)
-          let snippet = full;
-          if (full.length === 1) {
-            snippet = `${full}…`;
-          } else if (full.length > 1) {
-            const half = Math.min(Math.ceil(full.length / 2), 280);
-            let cut = full.slice(0, half);
-            if (half >= 4) {
-              const breakAt = Math.max(cut.lastIndexOf("\n"), cut.lastIndexOf(" "));
-              if (breakAt >= Math.floor(half * 0.55)) cut = cut.slice(0, breakAt);
-            }
-            cut = cut.trimEnd() || full.slice(0, half);
-            if (cut.length >= full.length) {
-              cut = full.slice(0, Math.max(1, Math.ceil(full.length / 2))).trimEnd();
-            }
-            snippet = `${cut}…`;
-          }
-          return {
-            id: row.id,
-            channelUsername: row.channel_username,
-            channelTitle: row.channel_title,
-            region: row.region,
-            text: snippet,
-            textTruncated: full.length > 0,
-            messageUrl: row.message_url,
-            receivedAt: row.received_at,
-          };
-        });
-        fetchedAt = rows[0]?.ingested_at ?? null;
-      } catch {
-        alerts = [];
-      }
-      return jsonPublic({
-        fetchedAt: fetchedAt ?? new Date().toISOString(),
-        live: alerts.length > 0,
-        source: "d1-cron",
-        alerts,
-      });
-    }
-
     if (url.pathname === "/latest") {
       const firms = await env.DB.prepare(
         `SELECT COUNT(*) AS c FROM firms_fires`,
       ).first<{ c: number }>();
-      const gdelt = await env.DB.prepare(
-        `SELECT COUNT(*) AS c FROM gdelt_points`,
-      ).first<{ c: number }>();
-      let telegramRows = 0;
-      try {
-        const tg = await env.DB.prepare(
-          `SELECT COUNT(*) AS c FROM telegram_alerts`,
-        ).first<{ c: number }>();
-        telegramRows = tg?.c ?? 0;
-      } catch {
-        // migration 0005 not applied yet
-      }
       let aisRows = 0;
       let adsbRows = 0;
       try {
@@ -1557,8 +759,6 @@ const worker = {
       ).first();
       return Response.json({
         firmsRows: firms?.c ?? 0,
-        gdeltRows: gdelt?.c ?? 0,
-        telegramRows,
         aisRows,
         adsbRows,
         newsSnapshots,
@@ -1573,30 +773,6 @@ const worker = {
       }
       const result = await runIngest(env);
       ctx.waitUntil(Promise.resolve());
-      return Response.json(result, { status: result.ok ? 200 : 502 });
-    }
-
-    if (
-      url.pathname === "/backfill-baseline" &&
-      (request.method === "POST" || request.method === "GET")
-    ) {
-      if (!authorizeManual(request, env)) {
-        return Response.json({ error: "unauthorized" }, { status: 401 });
-      }
-      const days = Math.min(
-        90,
-        Math.max(7, Number(url.searchParams.get("days") || "90") || 90),
-      );
-      const archiveChunks = Math.min(
-        12,
-        Math.max(0, Number(url.searchParams.get("archiveChunks") || "6") || 6),
-      );
-      const result = await runBaselineBackfill(env, {
-        days,
-        firmsDays: 5,
-        includeArchive: archiveChunks > 0,
-        archiveChunks,
-      });
       return Response.json(result, { status: result.ok ? 200 : 502 });
     }
 

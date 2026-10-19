@@ -1,4 +1,4 @@
-import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { LabelLanguage } from "@/lib/labelLanguage";
 
 const translationCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 1200;
