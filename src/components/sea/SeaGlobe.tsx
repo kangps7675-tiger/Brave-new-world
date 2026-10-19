@@ -9,8 +9,8 @@
  * 사건 하나를 깊게 볼 때는 세슘(CesiumSatelliteGlobe)으로 넘어간다.
  */
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from "react";
-import Map, { Layer, Source, type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import Map, { Layer, Marker, Source, type MapLayerMouseEvent, type MapRef } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -19,6 +19,10 @@ import { ENERGY_FACILITIES } from "@/data/energyFacilities";
 import type { EnergyStrike } from "@/lib/sea/energyStrikes";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import { EventCalloutCard } from "@/components/globe/EventCalloutCard";
+import type { EventCallout } from "@/lib/eventCallout";
+import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameIcon";
+import type { StrikeFlame } from "@/lib/strikeFlames";
 
 if (typeof window !== "undefined") {
   setWorkerUrl("/maplibre-gl-worker.mjs");
@@ -28,7 +32,8 @@ export type SeaGlobeSelection =
   | { type: "ukmto"; id: string }
   | { type: "liveua"; id: string }
   | { type: "energy"; id: string }
-  | { type: "facility"; id: string };
+  | { type: "facility"; id: string }
+  | { type: "flame"; id: string };
 
 export type SeaGlobeHandle = {
   flyTo: (lat: number, lng: number, zoom?: number) => void;
@@ -46,9 +51,19 @@ type Props = {
   showWar: boolean;
   selectedId: string | null;
   onSelect: (sel: SeaGlobeSelection) => void;
+  /** 양피지를 닫은 뒤 사건 좌표에 남는 콜아웃 */
+  /** LiveUAMap 통제면(우크라 점령지 + 중동) */
+  control?: FeatureCollection;
+  /** 전쟁 중인 나라 국경 폴리곤 */
+  warCountries?: FeatureCollection;
+  /** 드론·미사일 공습 — 촛불 불꽃 */
+  flames?: StrikeFlame[];
+  callout?: EventCallout | null;
+  onCalloutClose?: () => void;
 };
 
-const INTERACTIVE = ["sea-ukmto", "sea-liveua", "sea-energy", "sea-facility", "sea-war"];
+const INTERACTIVE = ["sea-ukmto", "sea-liveua", "sea-energy", "sea-facility", "sea-war", "sea-flame"];
+const EMPTY_FC: FeatureCollection = { type: "FeatureCollection", features: [] };
 
 function points<T>(rows: readonly T[], f: (r: T) => { lat: number; lng: number; props: Record<string, unknown> } | null) {
   const features = [];
@@ -134,10 +149,48 @@ export const SeaGlobe = forwardRef<SeaGlobeHandle, Props>(function SeaGlobe(prop
     [props.warEvents, props.showWar],
   );
 
+  const flameFc = useMemo(
+    () =>
+      points(props.flames ?? [], (f) => ({
+        lat: f.lat,
+        lng: f.lng,
+        props: { id: f.id, kind: "flame" },
+      })),
+    [props.flames],
+  );
+  const flameCount = flameFc.features.length;
+
+  // 촛불 불꽃 깜빡임 — 후광 투명도를 흔들어 네온처럼 보이게 한다.
+  useEffect(() => {
+    if (flameCount === 0) return;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      raf = window.requestAnimationFrame(tick);
+      if (now - last < 90 || document.hidden) return;
+      last = now;
+      const map = mapRef.current?.getMap();
+      if (!map?.getLayer("sea-flame")) return;
+      const t = now / 1000;
+      const flicker = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * 9.3)) * (0.6 + 0.4 * Math.sin(t * 23.7 + 1.3));
+      try {
+        map.setPaintProperty("sea-flame", "icon-opacity", 0.86 + 0.14 * flicker);
+        if (map.getLayer("sea-flame-bloom")) map.setPaintProperty("sea-flame-bloom", "circle-opacity", 0.16 + 0.26 * flicker);
+        if (map.getLayer("sea-flame-glow")) map.setPaintProperty("sea-flame-glow", "circle-opacity", 0.32 + 0.36 * flicker);
+      } catch {
+        /* 스타일 교체 중 */
+      }
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [flameCount]);
+
   const handleLoad = useCallback(() => {
     const m = mapRef.current?.getMap();
     if (!m) return;
     applyBasemapGlobeProjection(m as never);
+    void ensureStrikeFlameImage(m as never);
+    m.on("styleimagemissing", () => void ensureStrikeFlameImage(m as never));
     // OpenFreeMap 스타일은 projection 이 없어 스타일 재로딩 때 Mercator 로 떨어진다
     m.on("style.load", () => applyBasemapGlobeProjection(m as never));
   }, []);
@@ -168,6 +221,50 @@ export const SeaGlobe = forwardRef<SeaGlobeHandle, Props>(function SeaGlobe(prop
       onClick={handleClick}
       cursor="grab"
     >
+      {/* 전쟁 중인 나라 국경 — 줌인하면 경계선만 남고 칠은 거의 사라진다 */}
+      <Source id="sea-war-countries" type="geojson" data={props.warCountries ?? EMPTY_FC}>
+        <Layer
+          id="sea-war-countries-fill"
+          type="fill"
+          paint={{
+            "fill-color": "#a52714",
+            "fill-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.22, 5, 0.14, 8, 0.05, 10, 0.02],
+          }}
+        />
+        <Layer
+          id="sea-war-countries-line"
+          type="line"
+          paint={{
+            "line-color": "#ef9a9a",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 2, 0.8, 8, 1.6],
+            "line-opacity": 0.75,
+          }}
+        />
+      </Source>
+
+      {/* LiveUAMap 통제면 — 우크라 점령지·중동 통제 구역 */}
+      <Source id="sea-control" type="geojson" data={props.control ?? EMPTY_FC}>
+        <Layer
+          id="sea-control-fill"
+          type="fill"
+          filter={["==", ["geometry-type"], "Polygon"]}
+          paint={{
+            "fill-color": ["coalesce", ["get", "fill"], "#a52714"],
+            "fill-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.32, 7, 0.22, 10, 0.1],
+          }}
+        />
+        <Layer
+          id="sea-control-line"
+          type="line"
+          filter={["!=", ["geometry-type"], "Point"]}
+          paint={{
+            "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.6, 9, 1.4],
+            "line-opacity": 0.8,
+          }}
+        />
+      </Source>
+
       {/* 항행경보 (NAVAREA) — 보라 면·선 */}
       <Source id="sea-navarea" type="geojson" data={props.navarea}>
         <Layer
@@ -275,6 +372,54 @@ export const SeaGlobe = forwardRef<SeaGlobeHandle, Props>(function SeaGlobe(prop
           }}
         />
       </Source>
+      {/* 드론·미사일 공습 — 촛농 위의 네온 촛불 (러-우 + 중동 공통) */}
+      <Source id="sea-flame" type="geojson" data={flameFc}>
+        <Layer
+          id="sea-flame-bloom"
+          type="circle"
+          paint={{
+            "circle-color": "#ff4a0e",
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 17, 4, 21, 7, 27, 10, 36],
+            "circle-blur": 1,
+            "circle-opacity": 0.3,
+            "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+            "circle-translate-anchor": "viewport",
+            "circle-pitch-alignment": "viewport",
+          }}
+        />
+        <Layer
+          id="sea-flame-glow"
+          type="circle"
+          paint={{
+            "circle-color": "#ffb347",
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 7, 4, 9, 7, 12, 10, 16],
+            "circle-blur": 0.75,
+            "circle-opacity": 0.55,
+            "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+            "circle-translate-anchor": "viewport",
+            "circle-pitch-alignment": "viewport",
+          }}
+        />
+        <Layer
+          id="sea-flame"
+          type="symbol"
+          layout={{
+            "icon-image": STRIKE_FLAME_ICON_ID,
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.3, 4, 0.36, 7, 0.46, 10, 0.62],
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+            "icon-anchor": "bottom",
+            "icon-pitch-alignment": "viewport",
+            "icon-rotation-alignment": "viewport",
+          }}
+        />
+      </Source>
+
+      {props.callout ? (
+        <Marker longitude={props.callout.lng} latitude={props.callout.lat} anchor="bottom">
+          <EventCalloutCard callout={props.callout} onClose={() => props.onCalloutClose?.()} />
+        </Marker>
+      ) : null}
     </Map>
   );
 });
