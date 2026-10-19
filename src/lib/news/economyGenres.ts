@@ -3,7 +3,7 @@
  * @see feedCatalog SHARED_ECONOMY · BottomIntelStack EconomyGenreChipBar
  */
 
-import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { LabelLanguage } from "@/lib/labelLanguage";
 
 export type EconomyNewsGenre =
   | "macro"

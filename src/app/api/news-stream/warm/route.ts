@@ -7,8 +7,8 @@ import {
   parseLangParam,
   parsePackagesParam,
 } from "@/lib/news/newsStreamService";
-import type { LabelLanguage } from "@/lib/layerPrefs";
-import type { ViewPackageId } from "@/lib/viewPackages";
+import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { ViewPackageId } from "@/lib/viewPackageIds";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

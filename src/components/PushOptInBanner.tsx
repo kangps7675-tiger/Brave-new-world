@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ensurePushSubscription } from "@/lib/pushClient";
-import { LAYER_PREFS_KEY } from "@/lib/layerPrefs";
+import { LEGACY_LAYER_PREFS_KEY as LAYER_PREFS_KEY } from "@/lib/labelLanguage";
 import { trackEvent } from "@/lib/trackClient";
 import { bumpVisitCountOncePerSession, getVisitCount } from "@/lib/visitPrefs";
 import { zc } from "@/lib/uiStack";

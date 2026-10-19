@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { LabelLanguage } from "@/lib/labelLanguage";
 import { EMAIL_CONSENT } from "@/lib/emailConsent";
 
 /**

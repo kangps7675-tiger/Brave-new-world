@@ -26,10 +26,10 @@ import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types
 import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
 import { parseNavareaApiPayload } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
-import type { CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import type { SeaCesiumPick } from "@/components/sea/SeaCesiumView";
 
-const CesiumSatelliteGlobe = dynamic(
-  () => import("@/components/globe/CesiumSatelliteGlobe").then((m) => m.CesiumSatelliteGlobe),
+const SeaCesiumView = dynamic(
+  () => import("@/components/sea/SeaCesiumView").then((m) => m.SeaCesiumView),
   {
     ssr: false,
     loading: () => (
@@ -173,13 +173,13 @@ type SatTarget = { lat: number; lng: number; title: string };
 
 export default function SeaDashboard() {
   const globeRef = useRef<SeaGlobeHandle | null>(null);
-  const cesiumRef = useRef<CesiumGlobeHandle | null>(null);
 
   const [regionId, setRegionId] = useState<SeaRegionId>(DEFAULT_SEA_REGION);
   const region = getSeaRegion(regionId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showWar, setShowWar] = useState(false);
   const [sat, setSat] = useState<SatTarget | null>(null);
+  const [satPick, setSatPick] = useState<SeaCesiumPick | null>(null);
 
   const [strikes, setStrikes] = useState<Strike[] | null>(null);
   const [ukmto, setUkmto] = useState<UkmtoIncidentPoint[]>([]);
@@ -402,19 +402,23 @@ export default function SeaDashboard() {
 
         {sat ? (
           <div className="absolute inset-0 z-20 bg-black">
-            <CesiumSatelliteGlobe
-              handleRef={cesiumRef}
+            <SeaCesiumView
+              key={`${sat.lat},${sat.lng}`}
               initial={{ lat: sat.lat, lng: sat.lng, heightM: 450_000 }}
-              aisVessels={satAis}
-              showAis
-              milAircraft={satAir}
-              showMilitaryActivity
-              ukmtoIncidents={ukmto}
-              navareaFeatures={navareaPoints}
-              liveuaStrikes={satStrikes}
-              firmsFires={fires}
-              showFirmsFires
+              vessels={satAis}
+              aircraft={satAir}
+              ukmto={ukmto}
+              navarea={navareaPoints}
+              strikes={satStrikes}
+              fires={fires}
+              onPick={setSatPick}
             />
+            {satPick ? (
+              <div className="absolute bottom-3 left-3 max-w-sm rounded-lg border border-white/15 bg-black/75 px-3 py-2 text-sm backdrop-blur">
+                <p className="font-medium text-white">{satPick.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-white/60">{satPick.detail}</p>
+              </div>
+            ) : null}
             <div className="absolute left-3 top-3 flex items-center gap-3 rounded-lg border border-white/15 bg-black/70 px-3 py-2 text-sm backdrop-blur">
               <span className="text-white/80">{sat.title}</span>
               <span className="text-xs text-white/45">
@@ -422,7 +426,10 @@ export default function SeaDashboard() {
               </span>
               <button
                 type="button"
-                onClick={() => setSat(null)}
+                onClick={() => {
+                  setSat(null);
+                  setSatPick(null);
+                }}
                 className="rounded border border-white/20 px-2 py-0.5 text-xs text-white/80 hover:bg-white/10"
               >
                 ✕ 지구본으로

@@ -14,7 +14,7 @@
  * - 관측(satellite) → Cesium (MapLibre basemap 없음)
  */
 
-import type { ViewerMode } from "@/lib/viewPackages";
+import type { ViewerMode } from "@/lib/viewPackageIds";
 
 export type BasemapMode = "intel" | "terrain";
 
