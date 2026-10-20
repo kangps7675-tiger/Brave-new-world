@@ -20,14 +20,32 @@
  *
  * package.json의 predev/prebuild에서 자동 실행됨.
  */
-import { existsSync, mkdirSync, copyFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, copyFileSync, statSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "..");
 const distDir = join(projectRoot, "node_modules", "maplibre-gl", "dist");
-const destDir = join(projectRoot, "public");
+
+/**
+ * 워커는 버전 폴더(public/maplibre-gl/<버전>/)에 둔다.
+ * 예전엔 public/maplibre-gl-worker.mjs 고정 URL에 max-age=1일 캐시를 줬는데, maplibre-gl 을
+ * 올린 직후 브라우저가 옛 워커를 들고 새 메인 번들과 섞여
+ * "can't deserialize unregistered class StructArrayLayout…" 로 지도가 통째로 죽었다.
+ * 버전이 URL 에 들어가면 메인 번들과 워커가 항상 같은 버전이다.
+ */
+const version = JSON.parse(readFileSync(join(distDir, "..", "package.json"), "utf8")).version;
+const baseDir = join(projectRoot, "public", "maplibre-gl");
+const destDir = join(baseDir, version);
+
+// 옛 버전 폴더·옛 고정 URL 파일 정리
+if (existsSync(baseDir)) {
+  for (const d of readdirSync(baseDir)) if (d !== version) rmSync(join(baseDir, d), { recursive: true, force: true });
+}
+for (const legacy of ["maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs"]) {
+  rmSync(join(projectRoot, "public", legacy), { force: true });
+}
 
 /** worker가 상대 import하는 파일까지 포함 — 빠진 파일이 있으면 워커가 조용히 죽음 */
 const FILES = ["maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs"];
@@ -63,10 +81,10 @@ for (const name of FILES) {
   }
   if (needsCopy(src, dest)) {
     copyFileSync(src, dest);
-    console.log(`[copy-maplibre-worker] ${name} -> public/${name} 복사 완료`);
+    console.log(`[copy-maplibre-worker] ${name} -> public/maplibre-gl/${version}/${name} 복사 완료`);
     copied += 1;
   } else {
-    console.log(`[copy-maplibre-worker] public/${name} 최신 상태 — 건너뜀`);
+    console.log(`[copy-maplibre-worker] public/maplibre-gl/${version}/${name} 최신 상태 — 건너뜀`);
     skipped += 1;
   }
 }

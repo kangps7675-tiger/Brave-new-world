@@ -1,0 +1,67 @@
+{
+  "events": [
+    {
+      "id": "malacca-synth-001",
+      "straitId": "malacca",
+      "occurredOn": "2023-06-10",
+      "lat": 2.5,
+      "lng": 101.2,
+      "titleKo": "샘플 · 말라카 해협 인근 사고 보고",
+      "titleEn": "Sample · reported accident near Malacca",
+      "kind": "accident",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "malacca-synth-002",
+      "straitId": "malacca",
+      "occurredOn": "2023-09-01",
+      "lat": 3.0,
+      "lng": 100.5,
+      "titleKo": "샘플 · 말라카 통항 훈련 공지",
+      "titleEn": "Sample · Malacca transit drill notice",
+      "kind": "drill",
+      "sourceUrls": [
+        {
+          "label": "IMF PortWatch",
+          "url": "https://portwatch.imf.org/",
+          "publisher": "IMF"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    },
+    {
+      "id": "malacca-synth-003",
+      "straitId": "malacca",
+      "occurredOn": "2024-03-20",
+      "lat": 1.8,
+      "lng": 102.5,
+      "titleKo": "샘플 · 말라카 인근 폐쇄 공지",
+      "titleEn": "Sample · closure notice near Malacca",
+      "kind": "closure",
+      "sourceUrls": [
+        {
+          "label": "FRED",
+          "url": "https://fred.stlouisfed.org/",
+          "publisher": "Federal Reserve Bank of St. Louis"
+        }
+      ],
+      "curatedBy": "human",
+      "reviewed": true,
+      "isSynthetic": true,
+      "baselineWindowDays": 28
+    }
+  ]
+}

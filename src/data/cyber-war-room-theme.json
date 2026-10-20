@@ -1,0 +1,21 @@
+{
+  "theme": "cyber-war-room",
+  "globe": {
+    "backgroundColor": "#0b0c10",
+    "baseColor": "#1a1a2e",
+    "oceanColor": "#0b0c10",
+    "atmosphereColor": "#00ffcc",
+    "atmosphereGlowPower": 4
+  },
+  "polygon": {
+    "defaultFill": "#1f2833",
+    "conflictZoneFill": "#4e0e17",
+    "strokeColor": "#45f3ff",
+    "strokeWidth": 0.5
+  },
+  "intel": {
+    "missileArc": "#ff007f",
+    "telegramMarker": "#00ffcc",
+    "nasaFire": "#ffb703"
+  }
+}

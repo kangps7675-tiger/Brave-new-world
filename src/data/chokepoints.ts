@@ -18,7 +18,7 @@
  * 정성 서술만 한다. 빈칸을 그럴듯한 숫자로 메우는 순간 전부를 잃는다.
  */
 
-import type { ViewerMode } from "@/lib/viewPackageIds";
+import type { ViewerMode } from "@/lib/viewPackages";
 
 export type Bilingual = { ko: string; en: string };
 

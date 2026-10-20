@@ -1,0 +1,317 @@
+[
+  {
+    "id": "combat-ua-theater",
+    "kind": "dispute",
+    "name": "Ukraine Active War Theater",
+    "nameLong": "우크라이나 활성 전쟁구역 · 전장 개관",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "IRONSIGHT regionBoxes · Ukraine · 전역 전장 개관(세부 전선 박스와 병행)",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 48.2, "lng": 31.1 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[22.0, 44.0], [40.2, 44.0], [40.2, 52.4], [22.0, 52.4], [22.0, 44.0]]]
+    }
+  },
+  {
+    "id": "combat-ua-donbas-front",
+    "kind": "dispute",
+    "name": "Donbas Active Front (Donetsk–Luhansk)",
+    "nameLong": "돈바스 활성 전선 · 도네츠크–루한스크 교전면",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "동부 주전선 · 포크로우스크–바흐무트 축 · 포격·지상전·공습 지속",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 48.35, "lng": 37.85 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[36.4, 47.2], [39.9, 47.2], [39.9, 49.6], [36.4, 49.6], [36.4, 47.2]]]
+    }
+  },
+  {
+    "id": "combat-ua-zaporizhzhia-front",
+    "kind": "dispute",
+    "name": "Zaporizhzhia Combat Front",
+    "nameLong": "자포리자 전선 · 남부전선 교전",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "로보티네–토크마크 축 · 지상전·포격 · NPP 인근 긴장",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 47.35, "lng": 35.7 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[34.6, 46.7], [36.9, 46.7], [36.9, 48.0], [34.6, 48.0], [34.6, 46.7]]]
+    }
+  },
+  {
+    "id": "combat-ua-kherson-dnipro",
+    "kind": "dispute",
+    "name": "Kherson / Dnipro Front",
+    "nameLong": "헤르손·드니프로 전선 · 강변 교전·포격",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "드니프로 강변 · 좌안·우안 교차 포격",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 46.7, "lng": 33.3 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[32.2, 46.1], [34.6, 46.1], [34.6, 47.3], [32.2, 47.3], [32.2, 46.1]]]
+    }
+  },
+  {
+    "id": "combat-ua-kharkiv-front",
+    "kind": "dispute",
+    "name": "Kharkiv Front / Border Belt",
+    "nameLong": "하르키우 전선 · 북동 접경 교전",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "쿠피얀스크–보프찬스크 축 · 접경 포격·공습",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 49.85, "lng": 37.0 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[35.8, 49.2], [38.2, 49.2], [38.2, 50.5], [35.8, 50.5], [35.8, 49.2]]]
+    }
+  },
+  {
+    "id": "combat-ua-sumy-chernihiv",
+    "kind": "dispute",
+    "name": "Sumy–Chernihiv Northern Border Belt",
+    "nameLong": "수미–체르니히우 북부 접경 · 포격·침투 교전",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active combat / fire",
+    "note": "북부 접경 · 포격·무인기·국경 침투",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 51.2, "lng": 33.5 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[31.5, 50.4], [35.5, 50.4], [35.5, 52.2], [31.5, 52.2], [31.5, 50.4]]]
+    }
+  },
+  {
+    "id": "combat-ua-odesa-mykolaiv",
+    "kind": "dispute",
+    "name": "Odesa–Mykolaiv Strike / Port Belt",
+    "nameLong": "오데사–미콜라이우 · 항구·연안 타격 벨트",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine / Russia / Shipping",
+    "type": "Active bombardment / maritime strike",
+    "note": "곡물 수출항·연안 인프라 · 미사일·무인기 타격",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 46.5, "lng": 31.2 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[29.8, 45.6], [32.6, 45.6], [32.6, 47.2], [29.8, 47.2], [29.8, 45.6]]]
+    }
+  },
+  {
+    "id": "combat-ua-kyiv-strike",
+    "kind": "dispute",
+    "name": "Kyiv / Central Strike Exposure",
+    "nameLong": "키이우·중부 · 미사일·무인기 타격 피해 가중",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine",
+    "type": "Active bombardment / strike exposure",
+    "note": "수도·에너지·방공 · 장거리 타격 노출 (전선과 별도)",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 50.45, "lng": 30.52 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[29.4, 49.8], [31.8, 49.8], [31.8, 51.1], [29.4, 51.1], [29.4, 49.8]]]
+    }
+  },
+  {
+    "id": "combat-ua-dnipro-city-strike",
+    "kind": "dispute",
+    "name": "Dnipro / Central-East Strike Belt",
+    "nameLong": "드니프로·중동부 · 후방 타격 벨트",
+    "admin": "Ukraine",
+    "sovereignty": "Ukraine",
+    "type": "Active bombardment / strike exposure",
+    "note": "후방 도시·물류·에너지 · 미사일·무인기",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 48.46, "lng": 35.05 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[33.8, 47.8], [36.4, 47.8], [36.4, 49.2], [33.8, 49.2], [33.8, 47.8]]]
+    }
+  },
+  {
+    "id": "combat-ru-kursk",
+    "kind": "dispute",
+    "name": "Kursk Oblast Combat Zone (W. Russia)",
+    "nameLong": "쿠르스크주 교전 구역 · 서러시아 전장",
+    "admin": "Russia",
+    "sovereignty": "Russia / Ukraine (operations)",
+    "type": "Active combat / fire",
+    "note": "우크라 공세·대치 · 서러시아 활성 교전면",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 51.35, "lng": 35.2 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[34.2, 50.7], [36.6, 50.7], [36.6, 52.0], [34.2, 52.0], [34.2, 50.7]]]
+    }
+  },
+  {
+    "id": "combat-ru-belgorod-belt",
+    "kind": "dispute",
+    "name": "Belgorod Border Combat / Strike Belt",
+    "nameLong": "벨고로드 접경 교전·타격 벨트 · 서러시아",
+    "admin": "Russia",
+    "sovereignty": "Russia / Ukraine (cross-border)",
+    "type": "Active combat / bombardment",
+    "note": "접경 포격·무인기·침투 교전",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 50.55, "lng": 36.4 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[35.4, 50.1], [37.6, 50.1], [37.6, 51.1], [35.4, 51.1], [35.4, 50.1]]]
+    }
+  },
+  {
+    "id": "combat-ru-bryansk-border",
+    "kind": "dispute",
+    "name": "Bryansk Border Strike Belt",
+    "nameLong": "브랸스크 접경 · 타격·방공 벨트",
+    "admin": "Russia",
+    "sovereignty": "Russia / Ukraine (cross-border)",
+    "type": "Active bombardment / border strike",
+    "note": "접경 무인기·미사일·방공 소모",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 52.8, "lng": 33.8 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[32.4, 52.0], [35.2, 52.0], [35.2, 53.6], [32.4, 53.6], [32.4, 52.0]]]
+    }
+  },
+  {
+    "id": "combat-ua-crimea-strike",
+    "kind": "dispute",
+    "name": "Crimea Strike / Bombardment Exposure",
+    "nameLong": "크림 반도 · 타격·방공·폭격 피해 가중",
+    "admin": "Ukraine / Russia (disputed)",
+    "sovereignty": "Ukraine / Russia",
+    "type": "Active bombardment / strike exposure",
+    "note": "항만·공군기지·교량 타격 · 방공 소모 (영토분쟁 폴리곤과 별도 전쟁구역)",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 45.3, "lng": 34.2 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[32.4, 44.3], [36.6, 44.3], [36.6, 46.2], [32.4, 46.2], [32.4, 44.3]]]
+    }
+  },
+  {
+    "id": "combat-ua-black-sea-strike",
+    "kind": "dispute",
+    "name": "NW Black Sea Maritime Strike Zone",
+    "nameLong": "흑해 북서 · 해상·연안 타격 구역",
+    "admin": "Ukraine / Black Sea",
+    "sovereignty": "Ukraine / Russia / Shipping",
+    "type": "Active bombardment / maritime strike",
+    "note": "함정·무인선·연안 인프라 타격",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 45.2, "lng": 31.5 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[29.8, 44.0], [33.2, 44.0], [33.2, 46.4], [29.8, 46.4], [29.8, 44.0]]]
+    }
+  },
+  {
+    "id": "combat-ua-azov-sea",
+    "kind": "dispute",
+    "name": "Sea of Azov / Kerch Maritime Zone",
+    "nameLong": "아조프해·케르치 · 해상·연안 교전·봉쇄",
+    "admin": "Ukraine / Russia / Azov",
+    "sovereignty": "Ukraine / Russia / Shipping",
+    "type": "Active combat / maritime blockade",
+    "note": "케르치 교량·연안 · 해상 접근·타격",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 46.0, "lng": 36.0 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[34.5, 45.0], [38.2, 45.0], [38.2, 47.2], [34.5, 47.2], [34.5, 45.0]]]
+    }
+  }
+]

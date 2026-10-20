@@ -1,0 +1,12 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360" role="img" aria-label="Energy">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2a1a0a"/>
+      <stop offset="100%" stop-color="#6b3a12"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" fill="url(#g)"/>
+  <circle cx="320" cy="120" r="54" fill="#f59e0b" opacity="0.9"/>
+  <path d="M40 280 C120 200 200 240 280 210 C340 190 400 220 460 180" stroke="#fbbf24" stroke-width="8" fill="none" opacity="0.75"/>
+  <text x="28" y="48" fill="#fde68a" font-family="Georgia, serif" font-size="28">ENERGY</text>
+</svg>

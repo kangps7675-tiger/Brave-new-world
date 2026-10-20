@@ -1,0 +1,152 @@
+[
+  {
+    "id": "seed-tw-hualien",
+    "kind": "military-base",
+    "name": "Hualien Air Base",
+    "lat": 24.0239,
+    "lng": 121.618,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-tainan",
+    "kind": "military-base",
+    "name": "Tainan Air Base",
+    "lat": 22.9504,
+    "lng": 120.205,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-chiayi",
+    "kind": "military-base",
+    "name": "Chiayi Air Base",
+    "lat": 23.4617,
+    "lng": 120.393,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-cck",
+    "kind": "military-base",
+    "name": "Ching Chuan Kang Air Base",
+    "lat": 24.2647,
+    "lng": 120.621,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-zuoying",
+    "kind": "military-base",
+    "name": "Zuoying Naval Base",
+    "lat": 22.689,
+    "lng": 120.278,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-magong",
+    "kind": "military-base",
+    "name": "Magong Air Base",
+    "lat": 23.5687,
+    "lng": 119.628,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-pingtung",
+    "kind": "military-base",
+    "name": "Pingtung Air Base",
+    "lat": 22.7,
+    "lng": 120.482,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-chihhang",
+    "kind": "military-base",
+    "name": "Chihhang Air Base",
+    "lat": 22.793,
+    "lng": 121.182,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-songshan",
+    "kind": "military-base",
+    "name": "Songshan Air Force Base",
+    "lat": 25.0694,
+    "lng": 121.552,
+    "tier": 2,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "airfield",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "seed-tw-makung-naval",
+    "kind": "military-base",
+    "name": "Penghu Naval Base",
+    "lat": 23.565,
+    "lng": 119.563,
+    "tier": 1,
+    "meta": {
+      "country": "Taiwan",
+      "iso": "TW",
+      "theater": "taiwan-strait",
+      "branch": "naval_base",
+      "source": "seed-frontline"
+    }
+  }
+]

@@ -1,0 +1,903 @@
+[
+  {
+    "id": "hormuz",
+    "name": "Strait of Hormuz",
+    "lat": 26.565,
+    "lon": 56.491,
+    "category": "physical",
+    "tot": 34006,
+    "con": 2817,
+    "tank": 15447,
+    "bulk": 4502,
+    "plain": "A third of all the world's seaborne oil \u2014 about 20 million barrels every day \u2014 must pass through this 33km gap between Iran and Oman.",
+    "what": "The Strait of Hormuz is the only maritime exit for oil and gas exports from Saudi Arabia, Iraq, Kuwait, UAE and Qatar. At its narrowest it is just 33km wide. Five countries share the Persian Gulf \u2014 none of them have another way out.",
+    "why": "About 20 million barrels of oil pass through every day \u2014 roughly 20% of global petroleum liquids consumption (EIA, 2024). Nearly one-fifth of global LNG trade also transits here, almost entirely from Qatar. There is no pipeline that could replace this volume.",
+    "disruption": "Oil prices would spike to $150-200+ per barrel within 48 hours. Petrol prices would double. Inflation would surge globally within weeks. Japan, South Korea and much of Europe would face energy rationing within months. The IEA estimates pipeline bypasses could cover at most 3.5-5.5 million b/d \u2014 leaving a net shortfall of 14-16 million b/d.",
+    "realEvent": "In 2019, multiple oil tankers were attacked using limpet mines in the strait, attributed to Iran. Insurance rates tripled overnight. In 2011-12 and 2018, Iran explicitly threatened closure during US sanctions negotiations, each time causing immediate market reactions.",
+    "risk": "critical",
+    "source": "IEA Oil Market Report / IMF PortWatch",
+    "cascades": [
+      {
+        "id": "rlaff",
+        "layer": "energy",
+        "effect": "Qatar's LNG exports \u2014 a fifth of global supply \u2014 are trapped inside the Gulf"
+      },
+      {
+        "id": "tanenergy",
+        "layer": "energy",
+        "effect": "Japan and South Korea lose their primary energy supply source"
+      },
+      {
+        "id": "malacca",
+        "layer": "maritime",
+        "effect": "Alternative routes through the Indian Ocean become massively congested"
+      }
+    ],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Strait_of_Hormuz_(MODIS_2020-12-04).jpg?width=800"
+  },
+  {
+    "id": "malacca",
+    "name": "Strait of Malacca",
+    "lat": 2.5,
+    "lon": 101.3,
+    "category": "physical",
+    "tot": 71452,
+    "con": 24801,
+    "tank": 9234,
+    "bulk": 14500,
+    "plain": "The world's busiest shipping lane \u2014 the only viable sea route between the Pacific and Indian Oceans.",
+    "what": "An 800km waterway between Malaysia and Indonesia, narrowing to just 2.8km at the Philips Channel. Every ship sailing between East Asia and the Middle East, Africa or Europe must pass through here.",
+    "why": "About 40% of global trade passes through \u2014 including most of China's oil imports and the majority of trade between East Asia and Europe. The strait is so narrow that a grounded ship could block it entirely.",
+    "disruption": "China's manufacturing would face oil shortages within weeks. Japanese and South Korean economies \u2014 almost entirely import-dependent for energy \u2014 would be crippled. Global supply chains serving electronics, clothing and cars would break.",
+    "realEvent": "Piracy in the strait peaked in 2004 with 38 attacks \u2014 close to the level at which insurers declare it a war zone. China's trillion-dollar Belt and Road Initiative is partly a hedge against Malacca dependency, funding an overland route through Pakistan and Central Asia.",
+    "risk": "critical",
+    "source": "IMF PortWatch / ReCAAP Piracy Report",
+    "cascades": [
+      {
+        "id": "singapore",
+        "layer": "cables",
+        "effect": "Singapore's cable hub \u2014 the internet backbone for all of SE Asia \u2014 is in the Malacca exit zone"
+      },
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "Chip manufacturing materials and finished chips ship through here between Taiwan, China and the world"
+      }
+    ],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Strait_of_Malacca_and_Andaman_Sea,_S.E.A._Aquarium,_Marine_Life_Park,_Resorts_World_Sentosa,_Singapore_-_20130105-07.JPG?width=800"
+  },
+  {
+    "id": "suez",
+    "name": "Suez Canal",
+    "lat": 30.593,
+    "lon": 32.437,
+    "category": "physical",
+    "tot": 19787,
+    "con": 5513,
+    "tank": 6418,
+    "bulk": 5222,
+    "plain": "The shortcut between Europe and Asia that saves 10 days and 7,000km \u2014 and can be blocked by a single ship.",
+    "what": "A 193km man-made canal in Egypt connecting the Mediterranean Sea to the Red Sea. Opened in 1869, it eliminated the need to sail around Africa. About 12-15% of global trade passes through here.",
+    "why": "The canal is only 24 metres deep and between 121-313 metres wide. A single ship running aground \u2014 which happened in 2021 \u2014 can stop all traffic in both directions. Egypt earns $9-10bn per year in fees, making it a key political lever.",
+    "disruption": "Ships divert around Africa's Cape of Good Hope, adding 10-14 days and significant fuel cost. Global shipping costs spike. Just-in-time supply chains across manufacturing break down. European energy prices rise.",
+    "realEvent": "In March 2021, the container ship Ever Given ran aground for 6 days, blocking an estimated $9.6 billion of goods per day. In 2024, Houthi rebel attacks in the Red Sea caused major shipping lines to suspend Suez routes \u2014 canal traffic fell 50% and shipping costs doubled.",
+    "risk": "critical",
+    "source": "Suez Canal Authority / IMF PortWatch",
+    "cascades": [
+      {
+        "id": "badmandeb",
+        "layer": "maritime",
+        "effect": "Ships avoiding the Red Sea can't use Suez \u2014 Bab el-Mandeb and Suez are the same route"
+      },
+      {
+        "id": "egypt_cables",
+        "layer": "cables",
+        "effect": "Key submarine cables run alongside the canal corridor through Egyptian waters"
+      },
+      {
+        "id": "goodhope",
+        "layer": "maritime",
+        "effect": "All diverted ships pile onto the Cape of Good Hope route, its only alternative"
+      }
+    ],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ever_Given_ship_stuck_in_the_Suez_Canal_(51329719336).png?width=800"
+  },
+  {
+    "id": "taiwan_strait",
+    "name": "Taiwan Strait",
+    "lat": 24.2,
+    "lon": 119.8,
+    "category": "physical",
+    "tot": 88436,
+    "con": 12000,
+    "tank": 8000,
+    "bulk": 20000,
+    "plain": "The world's busiest strait \u2014 and the location where a conflict would simultaneously destroy global technology and energy supply chains.",
+    "what": "A 180km-wide channel between mainland China and Taiwan. The most trafficked strait in the world by vessel count, carrying trade between Northeast Asia and the rest of the world. Taiwan sits in the middle.",
+    "why": "A conflict here would not just disrupt maritime trade. Taiwan houses TSMC \u2014 maker of 90% of the world's advanced chips. Japan and South Korea, which import almost all their energy through this region, would face simultaneous energy and technology crises. No other location on earth concentrates so many critical dependencies.",
+    "disruption": "Semiconductor shortages within months \u2014 every iPhone, AI system, car computer and military chip affected. Japan and South Korea trigger energy emergencies. Global markets reprice in real time. The combined economic shock would exceed any previous supply chain crisis.",
+    "realEvent": "In August 2022, China's PLA conducted military exercises simulating a Taiwan Strait blockade following Nancy Pelosi's visit. Global markets fell sharply. Shipping companies temporarily rerouted. Japanese officials noted the exercises also simulated disruption of energy shipping lanes.",
+    "risk": "critical",
+    "source": "IMF PortWatch / US DoD China Military Report",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "TSMC \u2014 maker of 90% of advanced chips \u2014 sits on the island at the centre of this strait"
+      },
+      {
+        "id": "tanenergy",
+        "layer": "energy",
+        "effect": "Japan and South Korea import almost all their energy through this shipping corridor"
+      },
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "ASML machines shipped to TSMC must transit through or near this strait"
+      }
+    ],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/ISS038-E-2905_-_View_of_Taiwan.jpg?width=800"
+  },
+  {
+    "id": "badmandeb",
+    "name": "Bab el-Mandeb Strait",
+    "lat": 12.789,
+    "lon": 43.35,
+    "category": "physical",
+    "tot": 19306,
+    "con": 5062,
+    "tank": 6424,
+    "bulk": 5228,
+    "plain": "The southern entrance to the Suez route \u2014 currently one of the most actively attacked shipping lanes on earth.",
+    "what": "A 29km-wide strait between Yemen and Djibouti connecting the Red Sea to the Indian Ocean. Ships must pass through here to use the Suez Canal route between Europe and Asia. Yemen, a failed state, controls the eastern shore.",
+    "why": "About 12% of global trade passes through here on its way to or from the Suez Canal. The strait is also critical for oil exports from the Gulf heading to Europe. Houthi rebels have demonstrated that even a non-state actor can effectively close it.",
+    "disruption": "Trade diverts around Africa, adding 10-14 days per voyage. European energy costs rise immediately. Consumer goods become more expensive. The impact compounds with Suez: together, they are the same chokepoint.",
+    "realEvent": "From late 2023, Houthi rebels in Yemen attacked over 100 ships transiting the strait using drones and missiles. By early 2024, Maersk, MSC and most major shipping lines had suspended Red Sea routes. Suez Canal traffic fell 50%. The disruption continued through 2025.",
+    "risk": "critical",
+    "source": "IMF PortWatch / Ambrey Maritime Intelligence",
+    "cascades": [
+      {
+        "id": "suez",
+        "layer": "maritime",
+        "effect": "Bab el-Mandeb and Suez are the same corridor \u2014 one attack closes both"
+      },
+      {
+        "id": "egypt_cables",
+        "layer": "cables",
+        "effect": "Houthi attacks damaged submarine cables in the Red Sea in early 2024"
+      }
+    ],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bab-el-Mandeb_Strait,_Africa-Arabia_(ASTER).jpg?width=800"
+  },
+  {
+    "id": "panama",
+    "name": "Panama Canal",
+    "lat": 9.121,
+    "lon": -79.767,
+    "category": "physical",
+    "tot": 11020,
+    "con": 2712,
+    "tank": 4507,
+    "bulk": 2412,
+    "plain": "The only shortcut between the Atlantic and Pacific Oceans, now vulnerable to climate change-driven drought.",
+    "what": "An 82km canal across Panama connecting the Atlantic and Pacific Oceans. Saves ships up to 12,500km of sailing around South America. About 5% of global trade uses it, including 40% of US container traffic.",
+    "why": "The canal uses fresh water from Gatun Lake to fill its locks. Drought reduces water levels and forces the canal to restrict ship drafts and daily transits. Climate change is making droughts more frequent and severe.",
+    "disruption": "Ships queue for weeks or reroute via Cape Horn, adding 2-4 weeks. US agricultural exports to Asia, Asian goods to the US East Coast \u2014 all affected. LNG from the US Gulf Coast to Asia was particularly disrupted.",
+    "realEvent": "In 2023-24, a severe drought reduced the canal to its lowest water level in over 100 years, cutting daily transits from 38 to 18 ships. Queues of 100+ vessels formed. Shipping costs doubled. This was the first major canal disruption caused by climate rather than conflict.",
+    "risk": "high",
+    "source": "Panama Canal Authority / IMF PortWatch",
+    "cascades": [],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Panama_canal_image.jpg?width=800"
+  },
+  {
+    "id": "bosporus",
+    "name": "Bosporus Strait",
+    "lat": 41.169,
+    "lon": 29.092,
+    "category": "physical",
+    "tot": 35125,
+    "con": 3015,
+    "tank": 8555,
+    "bulk": 8058,
+    "plain": "The only sea route in or out of the Black Sea \u2014 Turkey controls the entire maritime trade of a region.",
+    "what": "A 30km strait entirely within Turkish territory. The only maritime exit for Russia, Ukraine, Bulgaria, Romania and Georgia. The 1936 Montreux Convention gives Turkey legal authority over military passage.",
+    "why": "Black Sea grain exports \u2014 critical for global food security, particularly for Africa and the Middle East \u2014 must pass through here. Russia's energy exports transited through here. Ukraine's entire maritime trade is Turkish-controlled.",
+    "disruption": "Black Sea countries lose their only maritime outlet. Russian energy exports are blocked. Global wheat and sunflower oil prices spike \u2014 food-import dependent countries in Africa and the Middle East face shortages.",
+    "realEvent": "After Russia's 2022 invasion of Ukraine, Turkey invoked Montreux to restrict warship passage \u2014 blocking Russian naval reinforcements. Turkey simultaneously brokered the Black Sea Grain Initiative and later allowed it to collapse, demonstrating how completely it controls the chokepoint.",
+    "risk": "high",
+    "source": "IMF PortWatch / Montreux Convention",
+    "cascades": [],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bosphorus,_aerial_view_-_Turkey_-_panoramio.jpg?width=800"
+  },
+  {
+    "id": "goodhope",
+    "name": "Cape of Good Hope",
+    "lat": -34.357,
+    "lon": 18.474,
+    "category": "physical",
+    "tot": 3200,
+    "con": 800,
+    "tank": 1100,
+    "bulk": 800,
+    "plain": "The world's most important backup route \u2014 currently overwhelmed by ships diverted from the Red Sea.",
+    "what": "The southern tip of Africa where ships can sail between the Atlantic and Indian Oceans. Before the Suez Canal, this was the only Europe-Asia sea route. It is now the primary diversion route when Suez is unavailable.",
+    "why": "When the Suez/Red Sea route is disrupted, the entire volume of diverted global shipping piles onto this single alternative. The Cape route itself is subject to severe storms in the South Atlantic and Southern Ocean, making it unreliable.",
+    "disruption": "The Cape route cannot easily be 'closed', but storm seasons cause frequent multi-day delays. With Red Sea disruptions pushing record traffic through here, bottlenecks at South African ports compound the delay.",
+    "realEvent": "Red Sea Houthi attacks from late 2023 caused Cape of Good Hope transits to surge dramatically. South African ports \u2014 Durban and Cape Town \u2014 were unprepared for the volume increase. The route added 10-14 days per voyage at a cost of ~$1M extra fuel per ship.",
+    "risk": "moderate",
+    "source": "IMF PortWatch / SA Ports Authority",
+    "cascades": [],
+    "layer": "maritime",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cape_of_Good_Hope_(Zaian_2008).JPG?width=800"
+  },
+  {
+    "id": "singapore",
+    "name": "Singapore",
+    "country": "Singapore",
+    "lat": 1.352,
+    "lon": 103.82,
+    "category": "physical",
+    "cables": 26,
+    "plain": "The most cable-connected city on earth \u2014 the internet hub of all Southeast Asia.",
+    "what": "Singapore has more submarine cable landings than any other city globally \u2014 26+ cable systems converge here. Every major trans-Asia cable system passes through, making it the routing hub for internet traffic across Southeast Asia, South Asia and the Pacific.",
+    "why": "When you stream video in Indonesia, process a payment in Thailand or run a cloud server in Malaysia, your data almost certainly routes through Singapore's cable landing stations. The city's concentration of digital infrastructure is extreme by design \u2014 it built its economy around being a hub.",
+    "disruption": "A major cable cut near Singapore would degrade or disconnect internet for hundreds of millions across Southeast Asia. Cloud services, financial trading platforms and e-commerce would slow dramatically. Recovery takes months \u2014 cables must be located, ships dispatched and repairs made underwater.",
+    "realEvent": "In 2022, a ship's anchor cut a cable near Singapore, briefly degrading connectivity for several Southeast Asian countries. In early 2024, multiple cable cuts in the Red Sea disrupted traffic globally and forced rerouting through Singapore-adjacent systems, demonstrating the network's fragility.",
+    "risk": "critical",
+    "source": "TeleGeography Submarine Cable Map",
+    "cascades": [
+      {
+        "id": "malacca",
+        "layer": "maritime",
+        "effect": "Singapore sits at the exit of the Malacca Strait \u2014 maritime and cable chokepoints overlap exactly here"
+      }
+    ],
+    "layer": "cables",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aerial_panorama_of_the_Singapore_Strait_and_the_Pasir_Panjang_Port_Terminal.jpg?width=800"
+  },
+  {
+    "id": "egypt_cables",
+    "name": "Egypt / Red Sea Corridor",
+    "country": "Egypt",
+    "lat": 27.0,
+    "lon": 33.5,
+    "category": "physical",
+    "cables": 12,
+    "plain": "Where internet cables squeeze through the same geographic bottleneck as shipping \u2014 the Red Sea cable corridor.",
+    "what": "As ships must transit the Red Sea and Suez Canal, so must submarine cables. They run along the seabed through the same Red Sea corridor, landing at Alexandria on the Mediterranean and connecting to landing stations in Djibouti. Most Europe-Asia internet traffic uses this route.",
+    "why": "The geographic coincidence between the Suez shipping lane and the cable corridor means a single regional conflict \u2014 like Houthi attacks in the Red Sea \u2014 can simultaneously disrupt global shipping AND global internet in the same incident.",
+    "disruption": "Multiple cable cuts reduce Europe-Asia internet capacity significantly. Cloud services slow. Financial data feeds are disrupted. Repair ships take weeks to reach cable break locations and months to fix.",
+    "realEvent": "In January-February 2024, Houthi rebel attacks in the Red Sea directly damaged at least four major submarine cables \u2014 SeaCom, TGN-Gulf, AAE-1, and EIG. Internet capacity from Europe to South Asia fell by an estimated 25%. ISPs had to reroute traffic at significantly reduced speeds. Repair operations were complicated by active conflict in the area.",
+    "risk": "critical",
+    "source": "TeleGeography / IISS Strategic Comments",
+    "cascades": [
+      {
+        "id": "suez",
+        "layer": "maritime",
+        "effect": "Ships and cables share the same Red Sea corridor \u2014 one crisis damages both"
+      },
+      {
+        "id": "badmandeb",
+        "layer": "maritime",
+        "effect": "The Houthi attacks that targeted shipping also cut the cables in the same area"
+      }
+    ],
+    "layer": "cables",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Suez_Canal,_Egypt_(satellite_view).jpg?width=800"
+  },
+  {
+    "id": "marseille",
+    "name": "Marseille",
+    "country": "France",
+    "lat": 43.296,
+    "lon": 5.381,
+    "category": "physical",
+    "cables": 15,
+    "plain": "Europe's digital gateway to Asia and Africa \u2014 15 cable systems converge on one French city.",
+    "what": "Europe's most-connected submarine cable hub, with 15+ systems landing here \u2014 including SEA-ME-WE 4 & 5, PEACE, 2Africa, and AAE-1. A disproportionate fraction of Europe-Asia internet traffic flows through a single Mediterranean city.",
+    "why": "The concentration is a product of geography: Marseille sits at the natural convergence point for cables entering the Mediterranean from the Atlantic and those entering from the Red Sea via the Suez corridor.",
+    "disruption": "Significant degradation of Europe-Asia internet. European cloud services accessing Asian infrastructure would slow. The concentration in one city means a single large accident \u2014 fire, flood, infrastructure attack \u2014 has continental impact.",
+    "realEvent": "In 2021, a fire at an OVH Cloud data centre in Strasbourg (not Marseille, but illustrative of French infrastructure concentration) knocked out millions of European websites in hours, including many reliant on the Marseille cable hub for international connectivity.",
+    "risk": "high",
+    "source": "TeleGeography Submarine Cable Map",
+    "cascades": [],
+    "layer": "cables",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marseille,_aerial_view_from_plane.jpg?width=800"
+  },
+  {
+    "id": "mombasa",
+    "name": "Mombasa",
+    "country": "Kenya",
+    "lat": -4.05,
+    "lon": 39.668,
+    "category": "physical",
+    "cables": 8,
+    "plain": "East Africa's internet lifeline \u2014 the single city through which most of the region's international internet flows.",
+    "what": "Mombasa is East Africa's primary cable landing hub, with 8 cable systems \u2014 EASSy, SEACOM, TEAMS, PEACE and others. It is the internet gateway for Kenya, Tanzania, Uganda, Ethiopia, Rwanda and beyond.",
+    "why": "The concentration is extreme. Most of East Africa's international internet traffic flows through a single Kenyan coastal city. The region has very limited alternative cable routes.",
+    "disruption": "East African internet connectivity severely reduced. Nairobi's 'Silicon Savannah' tech sector, mobile banking infrastructure (M-Pesa and equivalents serve hundreds of millions), international business connectivity \u2014 all impacted.",
+    "realEvent": "In early 2024, the Red Sea cable cuts propagated their effects to East Africa. ISPs in Kenya, Tanzania, Uganda and Mozambique reported 50%+ capacity reductions. Some countries were cut off from specific international services entirely for days.",
+    "risk": "critical",
+    "source": "TeleGeography / African Telecommunications Union",
+    "cascades": [
+      {
+        "id": "egypt_cables",
+        "layer": "cables",
+        "effect": "EASSy and SEACOM, the cables landing in Mombasa, transit through the Red Sea corridor before reaching Europe"
+      }
+    ],
+    "layer": "cables",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Old_port_mombasa.JPG?width=800"
+  },
+  {
+    "id": "rlaff",
+    "name": "Ras Laffan (Qatar)",
+    "country": "Qatar",
+    "lat": 25.903,
+    "lon": 51.55,
+    "category": "physical",
+    "flow": "77M tonnes LNG/year",
+    "plain": "The world's largest LNG export complex \u2014 where a fifth of all globally traded liquefied gas is produced.",
+    "what": "Ras Laffan is a purpose-built industrial city in Qatar housing the world's largest LNG liquefaction complex. QatarEnergy operates facilities that produce approximately 20% of all internationally traded LNG \u2014 serving Japan, South Korea, China, India and Europe.",
+    "why": "Qatar became Europe's critical alternative LNG supplier after Russia reduced gas supplies in 2022. Ras Laffan's vulnerability is compounded by being inside the Strait of Hormuz \u2014 a single chokepoint that can simultaneously trap Qatar's oil and gas exports.",
+    "disruption": "Removing 20% of global LNG supply would cause immediate gas price spikes globally. European countries that shifted from Russian to Qatari LNG would face winter energy crises. Asian countries competing for alternative LNG would drive prices even higher.",
+    "realEvent": "In 2017, Saudi Arabia, UAE, Bahrain and Egypt blockaded Qatar by land, sea and air. Qatar continued LNG exports by sea \u2014 demonstrating Hormuz dependency and that Ras Laffan is exposed to any blockade of the strait.",
+    "risk": "critical",
+    "source": "QatarEnergy Annual Report / IEA",
+    "cascades": [
+      {
+        "id": "hormuz",
+        "layer": "maritime",
+        "effect": "Ras Laffan's entire export route passes through the Strait of Hormuz \u2014 it has no alternative"
+      }
+    ],
+    "layer": "energy",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Al_khor-_ras_laffan_road._qatar_-_panoramio.jpg?width=800"
+  },
+  {
+    "id": "norway_pipes",
+    "name": "Norwegian Gas Pipelines",
+    "country": "Norway",
+    "lat": 59.1,
+    "lon": 2.5,
+    "category": "physical",
+    "flow": "~117 bcm/year to Europe (2023)",
+    "plain": "Europe's biggest gas supplier after Russia was cut off \u2014 now carrying load it wasn't designed for.",
+    "what": "Norway operates a network of sub-sea pipelines \u2014 Europipe, FLAGS, Langeled \u2014 delivering gas directly to Germany, UK, France and Belgium. After Russia's 2022 invasion of Ukraine, Norway rapidly became Europe's single largest gas supplier, exporting approximately 117 billion cubic metres in 2023.",
+    "why": "Europe replaced most of its Russian pipeline gas with Norwegian gas and LNG. This placed enormous strategic weight on Norwegian infrastructure that previously had relatively low geopolitical profile. It is now critical to European energy security.",
+    "disruption": "A major attack on Norwegian infrastructure would reduce European gas supplies by 20-30% immediately. Winter energy rationing across northern and central Europe would become likely. Gas prices would spike to crisis levels.",
+    "realEvent": "In September 2022, the Nord Stream 1 and 2 pipelines \u2014 carrying Russian gas to Europe \u2014 were destroyed by underwater explosions in the Baltic Sea. The sabotage, still legally unresolved, transferred Norway's strategic importance to a new level. The Balticconnector pipeline between Finland and Estonia was also damaged in 2023.",
+    "risk": "high",
+    "source": "Norwegian Petroleum Directorate / IEA",
+    "cascades": [],
+    "layer": "energy",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Oil_platform_in_the_North_Sea.jpg?width=800"
+  },
+  {
+    "id": "tanenergy",
+    "name": "Taiwan Strait (Energy)",
+    "country": "Taiwan Strait",
+    "lat": 24.5,
+    "lon": 120.5,
+    "category": "physical",
+    "flow": "~1,000 energy ships/month",
+    "plain": "The shipping lane Japan and South Korea depend on for almost all their imported energy \u2014 with near-zero domestic production.",
+    "what": "Japan imports ~90% of its energy and South Korea imports ~85%. Most of their LNG, coal and oil arrives on ships that pass through or near the Taiwan Strait region. Both countries have almost no domestic fossil fuel production \u2014 they are entirely exposed.",
+    "why": "A Taiwan conflict would simultaneously: disrupt semiconductor supply (TSMC), block energy imports to America's two most important Pacific allies, and create a naval conflict zone. No other location concentrates so many cascading vulnerabilities.",
+    "disruption": "Japan and South Korea face immediate energy rationing. Both would burn through strategic petroleum reserves within weeks. Industrial production would slow. As key US allies and major global economies, their economic shock would cascade through global supply chains and financial markets.",
+    "realEvent": "In August 2022, China's PLA blockade exercises explicitly simulated disruption of energy shipping lanes \u2014 not just semiconductor supply. Japanese and South Korean governments issued emergency energy security assessments within days.",
+    "risk": "critical",
+    "source": "IEA / Japanese METI / South Korean Ministry of Trade",
+    "cascades": [
+      {
+        "id": "taiwan_strait",
+        "layer": "maritime",
+        "effect": "Same geographic chokepoint \u2014 the Taiwan Strait is simultaneously a shipping lane and an energy corridor"
+      },
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "A Taiwan conflict triggers simultaneous semiconductor and energy crises for Japan and South Korea"
+      }
+    ],
+    "layer": "energy",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/ISS038-E-2905_-_View_of_Taiwan.jpg?width=800"
+  },
+  {
+    "id": "druzhba",
+    "name": "Druzhba Pipeline",
+    "country": "Ukraine / Poland",
+    "lat": 51.519,
+    "lon": 31.299,
+    "category": "physical",
+    "flow": "Up to 1.2M barrels/day",
+    "plain": "A Soviet-era oil pipeline that made Central Europe dependent on Russian crude for 50 years \u2014 now being severed.",
+    "what": "The Druzhba ('Friendship') pipeline stretches from Russia through Ukraine to Hungary, Slovakia, Czech Republic, Germany and Poland. Central European refineries were built specifically to process Druzhba crude. They had no port access for alternatives.",
+    "why": "Fifty years of deliberate infrastructure dependency left Central Europe with refineries that required Druzhba crude and pipelines that connected to nothing else. This was geopolitical leverage embedded in engineering.",
+    "disruption": "Ukraine halted Russian oil transit through its section in January 2025. Hungary and Slovakia \u2014 still partially dependent \u2014 face increased costs and supply insecurity. Refineries originally built for Druzhba crude require expensive adaptation to process alternatives.",
+    "realEvent": "Russia used gas pipeline supply as political leverage repeatedly \u2014 cutting supplies to Ukraine during price disputes in 2006, 2009 and 2014. After the 2022 invasion, EU countries spent two years at enormous cost trying to reduce Druzhba dependency. Ukraine stopped the remaining transit in January 2025.",
+    "risk": "high",
+    "source": "IEA / Global Energy Monitor",
+    "cascades": [],
+    "layer": "energy",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Naftoprovid_Druzhba_2.JPG?width=800"
+  },
+  {
+    "id": "swift",
+    "name": "SWIFT",
+    "country": "Belgium",
+    "lat": 50.737,
+    "lon": 4.509,
+    "category": "institutional",
+    "type": "Bank Messaging",
+    "flow": "53M+ messages/day",
+    "plain": "The messaging system all banks use to talk to each other internationally \u2014 cutting a country off is like blocking every international bank transfer simultaneously.",
+    "what": "SWIFT (Society for Worldwide Interbank Financial Telecommunication) is a Belgian cooperative connecting 11,500+ financial institutions in 200+ countries. It doesn't move money \u2014 it sends the messages that tell banks where to move money. Without SWIFT, banks cannot communicate payment instructions internationally.",
+    "why": "Its monopoly emerged from network effects: every bank that joined made it more valuable for the next bank to join. After decades, SWIFT is the only globally adopted messaging standard. Alternatives exist but none approach universal coverage \u2014 China's CIPS serves ~100 countries versus SWIFT's 200+.",
+    "disruption": "A country cut from SWIFT cannot receive international payments. Businesses cannot pay foreign suppliers. Citizens cannot receive remittances. The government cannot access foreign currency reserves. Trade collapses within days. The full economic impact arrives within weeks.",
+    "realEvent": "Iran was disconnected from SWIFT in 2012 \u2014 its currency lost 50% of its value within months and oil exports collapsed. Russia was partially disconnected within 48 hours of invading Ukraine in February 2022. The ruble fell 30% on the first trading day. Both cases demonstrated that SWIFT disconnection can be deployed faster than most governments can respond.",
+    "risk": "critical",
+    "source": "SWIFT Annual Review 2024 / BIS CPMI",
+    "institutional_note": "This chokepoint is institutional, not geographic. SWIFT's location in Belgium is largely irrelevant \u2014 what matters is that virtually every bank on earth has no alternative messaging system for international payments.",
+    "cascades": [
+      {
+        "id": "chips",
+        "layer": "financial",
+        "effect": "SWIFT carries the messages; CHIPS executes the dollar payments \u2014 they depend on each other"
+      },
+      {
+        "id": "visa_mc",
+        "layer": "financial",
+        "effect": "Card networks like Visa need SWIFT-connected banking infrastructure to settle internationally"
+      }
+    ],
+    "layer": "financial",
+    "image": "https://cdn.archilovers.com/projects/cd415997-0dd0-432c-96ba-ae5c578ae472.jpg",
+    "imageCredit": "\u00a9 Ricardo Bofill Taller de Arquitectura"
+  },
+  {
+    "id": "chips",
+    "name": "CHIPS + Fedwire",
+    "country": "USA",
+    "lat": 40.714,
+    "lon": -74.006,
+    "category": "institutional",
+    "type": "Dollar Settlement",
+    "flow": "$5.5T+/day combined",
+    "plain": "The US systems that settle virtually all international dollar transactions \u2014 controlling them means controlling the currency most global trade is priced in.",
+    "what": "CHIPS (Clearing House Interbank Payments System) clears ~95% of cross-border US dollar transactions. Fedwire, operated by the Federal Reserve, settles US Treasury securities and bank reserves. Together, they are the infrastructure through which dollars actually move globally.",
+    "why": "The US dollar is the world's reserve currency \u2014 most global commodities, including oil, are priced in dollars. Any company or country that needs to buy or sell in dollars must ultimately settle through US-controlled infrastructure. This gives the US Treasury extraordinary leverage.",
+    "disruption": "Dollar-denominated international trade faces severe friction. Since most commodity markets price in dollars, a CHIPS disruption cascades into commodity markets globally. The dollar's reserve currency status weaponises this against sanctioned countries.",
+    "realEvent": "In 2021, the US froze $9 billion in Afghan central bank reserves via Fedwire after the Taliban takeover \u2014 causing Afghanistan's economy to collapse. In 2022, approximately $300 billion in Russian central bank dollar reserves were frozen overnight using the same mechanism.",
+    "risk": "critical",
+    "source": "BIS CPMI Annual Report / US Treasury",
+    "institutional_note": "The chokepoint here is legal and institutional, not geographic. The US dollar's reserve currency status means these New York systems control access to the currency that most global trade requires.",
+    "cascades": [
+      {
+        "id": "swift",
+        "layer": "financial",
+        "effect": "SWIFT carries the messages; CHIPS/Fedwire execute the payments \u2014 a complete dollar embargo requires both"
+      }
+    ],
+    "layer": "financial",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg?width=800"
+  },
+  {
+    "id": "visa_mc",
+    "name": "Visa / Mastercard",
+    "country": "USA",
+    "lat": 37.563,
+    "lon": -122.269,
+    "category": "institutional",
+    "type": "Card Payment Networks",
+    "flow": "700M+ transactions/day",
+    "plain": "Two US companies process 90% of global card payments \u2014 and can cut a country off from consumer finance within 72 hours.",
+    "what": "Visa and Mastercard together process roughly 90% of global card payment transactions. Both are US-incorporated and subject to US sanctions law. Modern retail economies run on card payments \u2014 they are woven into everyday commerce in a way that cash cannot easily replace.",
+    "why": "Their dominance emerged from network effects over decades: every merchant that accepts Visa makes it more valuable for cardholders, and vice versa. No competing network approaches global coverage. UnionPay (China) is large but mainly domestic.",
+    "disruption": "Consumer spending becomes cash-only overnight. Tourism collapses immediately \u2014 visitors cannot pay. E-commerce stops. International business payments are disrupted. The economy that depended on card infrastructure faces immediate friction that compounds daily.",
+    "realEvent": "Within 72 hours of the February 2022 Russia sanctions, Visa and Mastercard suspended all Russian operations. 100 million Russian cardholders had cards that suddenly didn't work outside Russia. Tourism halted immediately. International business commerce froze. The speed \u2014 72 hours \u2014 demonstrated how quickly institutional chokepoints can be activated.",
+    "risk": "high",
+    "source": "Visa / Mastercard annual reports / sanctions announcements",
+    "institutional_note": "Location is symbolic. The chokepoint is legal \u2014 US incorporation means US sanctions jurisdiction. The actual transactions process through distributed data centres globally.",
+    "cascades": [],
+    "layer": "financial",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Three_credit_cards-_Visa,_Mastercard_and_American_Express_(close-up_on_logos).jpg?width=800"
+  },
+  {
+    "id": "tsmc",
+    "name": "TSMC",
+    "country": "Taiwan",
+    "lat": 24.788,
+    "lon": 120.997,
+    "category": "physical",
+    "type": "Chip Manufacturing",
+    "metric": "~65% foundry market; near-exclusive at 3nm+",
+    "plain": "The factory that makes the processor chips inside virtually every iPhone, AI system and modern computer \u2014 irreplaceable, and sitting on the world's most dangerous geopolitical fault line.",
+    "what": "Taiwan Semiconductor Manufacturing Company is the world's largest contract chipmaker with ~65% of the global pure-play foundry market (2024). At the most advanced process nodes \u2014 3nm and below \u2014 it is near-exclusive: Samsung manufactures some 3nm chips but at a fraction of TSMC's volume and yield. It manufactures chips designed by Apple, NVIDIA, AMD, Qualcomm, Google and almost every major technology company.",
+    "why": "At 3nm and 2nm process nodes \u2014 required for advanced AI chips, modern smartphones, and cutting-edge military hardware \u2014 TSMC has essentially no competitor at volume. The AI boom depends on TSMC. Modern smartphones depend on TSMC. TSMC's 2024 annual report shows advanced technologies (7nm and below) accounted for 69% of its wafer revenue.",
+    "disruption": "A shutdown of TSMC would create a global chip shortage within months that would dwarf the 2021 shortage. Smartphone production would halt. AI systems could not be expanded. Car manufacturing would slow. Medical devices would be affected. The economic damage would exceed any previous supply chain crisis.",
+    "realEvent": "The 2021 global chip shortage \u2014 caused by pandemic demand spikes, not a TSMC disruption \u2014 cost the automotive industry alone $210 billion. It showed how quickly chip scarcity cascades. A TSMC shutdown would be many times worse, as TSMC makes far more critical chips than those affected in 2021.",
+    "risk": "critical",
+    "source": "SIA / TSMC Annual Report / OECD Semiconductor Report",
+    "institutional_note": "Unlike most tech chokepoints, TSMC is also geographically physical \u2014 the factories are real buildings in a specific location. This is what makes it uniquely dangerous: it combines geographic and institutional vulnerability.",
+    "cascades": [
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "TSMC depends entirely on ASML EUV machines \u2014 without them it cannot produce advanced chips"
+      },
+      {
+        "id": "nvidia",
+        "layer": "tech",
+        "effect": "All NVIDIA AI chips are manufactured at TSMC \u2014 no TSMC means no AI hardware expansion"
+      },
+      {
+        "id": "taiwan_strait",
+        "layer": "maritime",
+        "effect": "TSMC's location in Taiwan means any Taiwan conflict immediately becomes a global chip crisis"
+      }
+    ],
+    "layer": "tech",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/TSMC_Fab5.JPG?width=800"
+  },
+  {
+    "id": "asml",
+    "name": "ASML",
+    "country": "Netherlands",
+    "lat": 51.421,
+    "lon": 5.465,
+    "category": "institutional",
+    "type": "Chip Equipment",
+    "metric": "Only EUV lithography supplier",
+    "plain": "The Dutch company that makes the only machines capable of printing advanced chips \u2014 a monopoly so absolute it has become a geopolitical weapon.",
+    "what": "ASML makes Extreme Ultraviolet (EUV) lithography machines \u2014 the equipment used to etch circuits onto silicon at the smallest scales. Each machine costs ~$350 million and takes over a year to build. ASML is the only company on earth that can make them.",
+    "why": "Without an EUV machine, it is physically impossible to manufacture chips below 7nm \u2014 which means no advanced smartphones, no modern AI chips, no cutting-edge military hardware. Every advanced fab on earth \u2014 TSMC, Samsung, Intel \u2014 depends entirely on ASML machines.",
+    "disruption": "Without EUV machines, no country can independently produce leading-edge chips. China has been blocked from purchasing them since 2019 and has been unable to bridge the gap despite massive investment \u2014 demonstrating how absolute this chokepoint is.",
+    "realEvent": "In 2019, under US diplomatic pressure, the Dutch government stopped renewing ASML's export licence for EUV machines to China. In 2023 this was extended to older DUV machines. China's entire advanced semiconductor ambition has been set back by an estimated 5-10 years by this single export control on a single product from a single Dutch city.",
+    "risk": "critical",
+    "source": "ASML Annual Report 2024 / Dutch Export Control",
+    "institutional_note": "The chokepoint is both geographic (one company in one Dutch city) and institutional (decades of accumulated R&D created an unassailable technological monopoly). The Netherlands has weaponised this by restricting exports under US pressure.",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "TSMC cannot produce advanced chips without ASML EUV machines \u2014 this is the upstream dependency"
+      },
+      {
+        "id": "nvidia",
+        "layer": "tech",
+        "effect": "NVIDIA chips can only be made on ASML-equipped fabs \u2014 its AI dominance depends on ASML access"
+      }
+    ],
+    "layer": "tech",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/ASML_headquarters_Veldhoven.jpg?width=800"
+  },
+  {
+    "id": "nvidia",
+    "name": "NVIDIA",
+    "country": "USA",
+    "lat": 37.371,
+    "lon": -121.965,
+    "category": "institutional",
+    "type": "AI Hardware",
+    "metric": "80-90% of data center GPU market",
+    "plain": "The company whose chips power almost all AI \u2014 and whose export controls are now a primary tool of US-China technology competition.",
+    "what": "NVIDIA's H100 and H200 GPUs are the dominant hardware for training and running AI models. Its CUDA software platform, built over 15 years, creates deep switching costs \u2014 AI researchers build on CUDA, making alternatives harder to adopt even if hardware improves.",
+    "why": "The AI race is fundamentally a hardware race, and NVIDIA controls 80-90% of the data center GPU market. Its CUDA software platform, built over 20 years with 4M+ developers, creates deep switching costs \u2014 AI researchers build on CUDA, making alternatives harder to adopt even when hardware improves. US export controls on NVIDIA chips to China have become the primary mechanism of AI competition between the two superpowers.",
+    "disruption": "Restricted access to NVIDIA chips directly limits AI development capacity. Chinese AI labs scrambled to stockpile H100s before export controls tightened in 2023. The controls have measurably slowed Chinese AI development while accelerating domestic chip efforts.",
+    "realEvent": "In October 2022 and October 2023, the US Commerce Department imposed increasingly strict export controls on NVIDIA's A100 and H100 GPUs to China. NVIDIA estimated the controls would cost it ~$5.5 billion in quarterly revenue. Chinese AI labs bought every chip they could before each deadline. Huawei launched its Ascend 910B as a partial domestic alternative.",
+    "risk": "high",
+    "source": "US BIS Export Control Orders / NVIDIA Annual Report",
+    "institutional_note": "NVIDIA's dominance is institutional \u2014 built on CUDA software lock-in over 15 years. The hardware itself could theoretically be replicated, but the software ecosystem cannot be reproduced quickly.",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "All NVIDIA chips are manufactured at TSMC \u2014 NVIDIA's dominance depends entirely on TSMC's manufacturing"
+      },
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "TSMC manufactures on ASML machines \u2014 NVIDIA's supply chain runs through both Dutch equipment and Taiwanese factories"
+      }
+    ],
+    "layer": "tech",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nvidia_Tesla_A100.png?width=800"
+  },
+  {
+    "id": "google_android",
+    "name": "Google / Android",
+    "country": "USA",
+    "lat": 37.422,
+    "lon": -122.084,
+    "category": "institutional",
+    "type": "Mobile OS & App Store",
+    "metric": "72% of global smartphones",
+    "plain": "The software that runs 3.6 billion phones \u2014 and that one US export control removed from Huawei overnight, collapsing its smartphone business.",
+    "what": "Google's Android OS runs on ~72% of the world's smartphones. Google Play Services \u2014 the underlying layer that enables maps, payments, app stores and core functionality \u2014 is even more pervasive. Without Google's licence, Android phones cannot access any of this.",
+    "why": "Android's dominance is a network effects story: apps are built for Android/iOS, users have Android phones, manufacturers ship Android devices. The ecosystem is self-reinforcing. The US government discovered it can sever access to this ecosystem via export controls on a single company.",
+    "disruption": "A phone manufacturer cut from Android loses maps, the app store, Gmail, payments and any app using Google Play Services. Their phones become non-functional for most users outside China. Building an alternative ecosystem took Huawei three years and remains incomplete.",
+    "realEvent": "In May 2019, Google revoked Huawei's Android licence following US sanctions. New Huawei phones could no longer run Google Maps, Gmail or the Play Store. Huawei's global smartphone market share fell from ~20% to under 3% within 18 months \u2014 the fastest collapse of a major consumer electronics company in the smartphone era.",
+    "risk": "high",
+    "source": "US BIS / Google statements / IDC market data",
+    "institutional_note": "The chokepoint is entirely institutional \u2014 it's a software licence, not a physical resource. The speed of its weaponisation (Huawei was sanctioned and effectively cut off within days) is what makes it remarkable.",
+    "cascades": [],
+    "layer": "tech",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Android_Update_Screen.JPG?width=800"
+  },
+  {
+    "id": "arm",
+    "name": "ARM Holdings",
+    "country": "UK",
+    "lat": 52.202,
+    "lon": 0.134,
+    "category": "institutional",
+    "type": "Chip Architecture",
+    "metric": "99% of smartphones",
+    "plain": "The British company whose chip blueprints sit inside nearly every smartphone \u2014 including all iPhones and Android devices.",
+    "what": "ARM licenses the instruction set architecture \u2014 the fundamental design blueprint \u2014 used in virtually all mobile processors and increasingly in data centre chips. ARM doesn't make chips; it licenses the design and takes a royalty on every chip sold.",
+    "why": "Any company designing a mobile chip almost certainly uses ARM architecture. This includes Apple, Samsung, Qualcomm, MediaTek and hundreds of others. Huawei's chip division HiSilicon used ARM. When the US sanctioned Huawei, ARM was required to suspend its licence.",
+    "disruption": "A company cut from ARM must either develop its own instruction set (a multi-year effort requiring massive software ecosystem rebuilding) or switch to an alternative like RISC-V (possible but slow). Neither option is quick enough to avoid significant product disruption.",
+    "realEvent": "When Huawei was sanctioned in 2019, ARM suspended its licence despite being a British, not American, company. ARM concluded its designs incorporated enough US technology to trigger export controls. Huawei's chip design operation was crippled. It has been developing its own architecture since, but the process takes years.",
+    "risk": "high",
+    "source": "ARM Annual Report / US BIS / House of Commons Technology Committee",
+    "institutional_note": "ARM's chokepoint is pure intellectual property \u2014 a design licence. Its physical location in Cambridge is irrelevant. What matters is US jurisdiction over its technology content.",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "ARM designs the chips; TSMC manufactures them \u2014 both licences must survive for a chip to reach market"
+      }
+    ],
+    "layer": "tech",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/NXP_ARM_processor.JPG?width=800"
+  },
+  {
+    "id": "carl_zeiss",
+    "name": "Carl Zeiss SMT",
+    "country": "Germany",
+    "lat": 48.7748,
+    "lon": 10.0914,
+    "category": "hidden",
+    "layer": "tech",
+    "type": "Optical Components",
+    "metric": "Lenses inside 100% of ASML EUV machines",
+    "plain": "The German company that makes the lenses inside every machine capable of printing advanced chips — without them, ASML cannot build, and without ASML, no advanced chips exist anywhere on earth.",
+    "what": "Carl Zeiss SMT, based in Oberkochen, Germany, is the sole supplier of the extreme ultraviolet optical systems inside every ASML EUV lithography machine. These precision lenses — some of the most perfect optical instruments ever made — focus the light that prints circuits onto silicon at scales smaller than a virus. No other company makes them.",
+    "why": "Every advanced chip on earth — in iPhones, AI systems, military hardware, medical devices — is manufactured using ASML machines. Every ASML machine contains Carl Zeiss optics. This makes a single company in a small German city the deepest single-point dependency in the entire global technology stack. It sits one layer upstream of ASML, which sits one layer upstream of TSMC, which sits one layer upstream of almost every advanced chip on earth.",
+    "disruption": "If Carl Zeiss SMT were disrupted — through conflict, disaster or industrial accident — ASML could not build new EUV machines. Existing machines would continue operating until they required maintenance parts that could not be replaced. The global chip industry would begin degrading within months and could not recover until an alternative optical supplier was qualified — a process that would take years and may not be technically possible.",
+    "realEvent": "In 2023, ASML publicly acknowledged that Carl Zeiss SMT is an irreplaceable sole supplier for its EUV optics. The two companies have a formal joint development agreement and ASML holds a 24.9% stake in Zeiss SMT — a structure that reflects how existentially dependent ASML is on a single optical partner.",
+    "risk": "critical",
+    "source": "ASML Annual Report 2024 / Carl Zeiss SMT / OECD Semiconductor Supply Chain Analysis",
+    "institutional_note": "Unlike most tech chokepoints, Carl Zeiss SMT is both geographic (one facility in one German city) and institutional (decades of accumulated optical precision that cannot be replicated quickly). It is the upstream chokepoint that makes ASML's own monopoly possible.",
+    "cascades": [
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "Carl Zeiss makes the optics inside every ASML EUV machine — no Zeiss, no ASML machines"
+      },
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "TSMC depends on ASML machines which depend on Zeiss optics — a three-node chain from Germany to Taiwan"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carl-zeiss-oberkochen-south-smt-building-2014.jpg?width=800",
+    "imageCredit": "© Hardwareonkel / Wikimedia Commons (CC BY-SA 4.0)"
+  },
+  {
+    "id": "euroclear",
+    "name": "Euroclear",
+    "country": "Belgium",
+    "lat": 50.8503,
+    "lon": 4.3517,
+    "category": "hidden",
+    "layer": "financial",
+    "type": "Securities Settlement",
+    "flow": "$40 trillion in assets under custody",
+    "plain": "The Belgian system that settles most European securities transactions — it's where $40 trillion in assets sit, and where Russian sovereign wealth was frozen in 2022.",
+    "what": "Euroclear is a Brussels-based financial market infrastructure that settles securities transactions — bonds, equities, funds — across Europe and internationally. It holds approximately $40 trillion in assets under custody on behalf of financial institutions globally, making it the world's largest securities settlement system.",
+    "why": "Euroclear sits one layer beneath the financial markets most people follow. When you hear that a country's assets have been 'frozen', Euroclear is often the mechanism. It became the centre of the largest sovereign asset freeze in history when approximately $300 billion in Russian central bank reserves held there were immobilised in 2022. It is currently at the centre of live geopolitical debate about whether those assets should be used to fund Ukraine's reconstruction.",
+    "disruption": "A disruption to Euroclear would freeze the settlement of European securities markets. Bonds could not be transferred, equity trades could not be settled, and the interbank lending that depends on securities as collateral would seize up. The cascading effect on European financial stability would be immediate and severe.",
+    "realEvent": "In February 2022, within days of Russia's invasion of Ukraine, Western governments froze approximately $300 billion in Russian sovereign assets held at Euroclear and other custodians. Euroclear held the largest single share. As of 2024, the interest accruing on those frozen assets — approximately $3 billion per year — has become a major source of funding for Ukraine, with the G7 agreeing to use it as collateral for a $50 billion loan.",
+    "risk": "high",
+    "source": "Euroclear Annual Report 2024 / BIS CPMI / European Commission sovereign asset freeze documentation",
+    "institutional_note": "Euroclear's chokepoint status is entirely institutional — it exists because European financial markets converged on a single settlement infrastructure over decades. Its location in Belgium means it is subject to EU jurisdiction, which is what made the Russian asset freeze legally possible.",
+    "cascades": [
+      {
+        "id": "swift",
+        "layer": "financial",
+        "effect": "SWIFT carries payment messages; Euroclear settles the underlying securities — together they are the complete financial weaponisation stack"
+      },
+      {
+        "id": "chips",
+        "layer": "financial",
+        "effect": "Dollar settlement and securities settlement are complementary systems — disrupting both simultaneously would freeze global capital markets"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Brussels_-_Euroclear_HQ.jpg?width=800",
+    "imageCredit": "© Marek Śliwecki / Wikimedia Commons (CC BY-SA 4.0)"
+  },
+  {
+    "id": "shin_etsu_sumco",
+    "name": "Shin-Etsu / Sumco (Silicon Wafers)",
+    "country": "Japan",
+    "lat": 35.6762,
+    "lon": 139.6503,
+    "category": "hidden",
+    "layer": "tech",
+    "type": "Silicon Wafer Manufacturing",
+    "metric": "~60% of global silicon wafer supply",
+    "plain": "Two Japanese companies supply the silicon wafers that every chip on earth is built on — before a chip can be designed, printed or manufactured, someone has to grow the perfect silicon it starts from.",
+    "what": "Shin-Etsu Chemical and Sumco Corporation, both headquartered in Japan, together produce approximately 60% of the global supply of silicon wafers — the thin discs of ultra-pure silicon that serve as the starting material for every semiconductor chip. Growing a silicon wafer requires pulling a perfect single crystal from molten silicon at extreme temperatures, a process that takes years to master and is extraordinarily difficult to scale.",
+    "why": "Silicon wafers are the most upstream physical input in the entire chip supply chain. Before TSMC can manufacture, before ASML can print, before Qualcomm can design — someone must provide perfect silicon. That someone is overwhelmingly Japanese. The concentration is so extreme that in 2019, when Japan restricted exports of semiconductor materials to South Korea, Samsung and SK Hynix — which together control most of the world's memory chip supply — were immediately threatened.",
+    "disruption": "A disruption to Japanese silicon wafer supply would halt chip manufacturing globally within weeks. There is no short-term alternative source at the required scale and purity. Wafer production requires specialised equipment and decades of accumulated process knowledge that cannot be replicated quickly.",
+    "realEvent": "In July 2019, Japan restricted exports of three semiconductor materials to South Korea — including photoresists and hydrogen fluoride essential to chip manufacturing — in a diplomatic dispute over wartime labour compensation. Samsung, SK Hynix and LG Display were immediately affected. The restrictions demonstrated how upstream material dependencies could be weaponised independently of chip design or fabrication controls.",
+    "risk": "high",
+    "source": "METI Japan / Shin-Etsu Chemical Annual Report / SEMI Industry Data / OECD Semiconductor Supply Chain Analysis 2023",
+    "institutional_note": "Japan's dominance in semiconductor materials is institutional — built over decades of chemical engineering specialisation that competitors have found extremely difficult to replicate. It is the reason US-China chip competition has drawn Japan into a role neither country initially anticipated.",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "TSMC manufactures on silicon wafers — Shin-Etsu and Sumco supply the raw material the entire fab depends on"
+      },
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "Without wafers to print on, ASML machines have nothing to process — wafer supply is upstream of the entire lithography chain"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/12-inch_silicon_wafer.jpg?width=800",
+    "imageCredit": "© Peellden / Wikimedia Commons (CC BY-SA 3.0)"
+  },
+  {
+    "id": "gerd_nile",
+    "name": "Grand Ethiopian Renaissance Dam",
+    "country": "Ethiopia / Egypt / Sudan",
+    "lat": 11.2147,
+    "lon": 35.0938,
+    "category": "hidden",
+    "layer": "energy",
+    "type": "Water Infrastructure",
+    "flow": "86% of the Nile's flow originates here",
+    "plain": "The largest dam in Africa, built on the river that Egypt depends on for 90% of its fresh water — with no binding agreement between the three countries involved and 350 million people caught in the middle.",
+    "what": "The Grand Ethiopian Renaissance Dam (GERD) on the Blue Nile in Ethiopia is the largest hydroelectric dam in Africa, with a reservoir capacity of 74 billion cubic metres. The Blue Nile contributes approximately 86% of the total flow of the Nile. Egypt, which has almost no rainfall and no alternative freshwater source, receives 90% of its fresh water from the Nile. Sudan sits between them.",
+    "why": "This is one of the most consequential resource disputes on earth and one of the least covered in Western business media. Egypt has described GERD as an existential threat and has not ruled out military action. Ethiopia has filled the reservoir over Egyptian objections. Sudan's position shifts depending on its government. There is no binding international agreement governing the Nile's waters between these three countries despite years of negotiation. The combined population affected is over 350 million people.",
+    "disruption": "A reduction in Nile flow to Egypt — whether through GERD operation, conflict, or dam failure — would threaten Egyptian agriculture, drinking water supply and political stability. Egypt has almost no groundwater alternative and extremely limited desalination capacity at present. A water crisis in Egypt would trigger food insecurity, mass displacement and regional instability affecting the entire Horn of Africa and Middle East.",
+    "realEvent": "Ethiopia began filling the GERD reservoir in 2020 without reaching agreement with Egypt or Sudan. Egypt formally raised the matter at the UN Security Council in 2020 and 2021. In 2023, talks mediated by the African Union collapsed again without resolution. Ethiopia completed the fourth filling of the reservoir in 2024. Egypt has repeatedly stated that its water security is a red line.",
+    "risk": "critical",
+    "source": "UN Security Council records / African Union mediation documents / Nile Basin Initiative / World Bank water security reports",
+    "cascades": [
+      {
+        "id": "badmandeb",
+        "layer": "maritime",
+        "effect": "An Egyptian water crisis would destabilise the Red Sea region — Egypt controls both the Suez Canal and the Bab el-Mandeb approach"
+      },
+      {
+        "id": "suez",
+        "layer": "maritime",
+        "effect": "Egyptian political instability triggered by water scarcity would threaten continued operation of the Suez Canal"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/GERD_Dam.jpg?width=800",
+    "imageCredit": "Prime Minister Office Ethiopia / Wikimedia Commons (public domain)"
+  },
+  {
+    "id": "luzon_strait_cables",
+    "name": "Luzon Strait (Cable Corridor)",
+    "country": "Philippines / Taiwan",
+    "lat": 20.5,
+    "lon": 121.5,
+    "category": "hidden",
+    "layer": "cables",
+    "cables": 9,
+    "plain": "The underwater corridor where trans-Pacific internet cables run between Asia and the Americas — directly through the Taiwan conflict zone.",
+    "what": "The Luzon Strait between Taiwan and the Philippines is the passage through which several major trans-Pacific submarine cables are routed — including systems connecting the United States, Japan, the Philippines and broader Asia. These cables carry a significant share of internet traffic between Asia and the Americas.",
+    "why": "This node makes the Taiwan situation dramatically more complex than the semiconductor story alone. A Taiwan conflict or Chinese military operation in the strait would not just disrupt chip manufacturing at TSMC — it would physically threaten the cables carrying internet traffic between Asia and the Americas. The geographic overlap between the military conflict zone and the cable corridor means that the internet and semiconductor crises would arrive simultaneously.",
+    "disruption": "Cable cuts in the Luzon Strait would reduce trans-Pacific internet capacity significantly, slowing cloud services, financial data feeds, and communications between Asian and American operations of multinational companies. Repair ships would be unable to operate in an active conflict zone, extending outages from weeks to months.",
+    "realEvent": "In February 2023, two of three submarine cables connecting Taiwan to the Matsu Islands — Taiwan's outlying islands close to mainland China — were cut by Chinese vessels. Taiwan's 14,000 Matsu residents lost most of their internet connectivity for 50 days while repairs were completed. Taiwanese officials described it as an act of grey-zone warfare. The incident demonstrated that cable cutting is already being used as a tool of pressure in the Taiwan Strait region.",
+    "risk": "critical",
+    "source": "TeleGeography Submarine Cable Map / US CISA Infrastructure Reports / Taiwan NCC incident reports 2023",
+    "cascades": [
+      {
+        "id": "taiwan_strait",
+        "layer": "maritime",
+        "effect": "The Luzon cable corridor and the Taiwan Strait shipping lane are the same geographic conflict zone — one crisis affects both"
+      },
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "A Taiwan conflict simultaneously cuts chip supply (TSMC) and trans-Pacific internet (Luzon cables)"
+      },
+      {
+        "id": "singapore",
+        "layer": "cables",
+        "effect": "Traffic rerouted away from Luzon would increase load on Singapore — the only alternative major hub in the region"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luzon-strait0010.jpg?width=800",
+    "imageCredit": "© Mirada / Wikimedia Commons (CC BY-SA 3.0)"
+  },
+  {
+    "id": "spruce_pine",
+    "name": "Spruce Pine",
+    "country": "USA",
+    "lat": 35.9201,
+    "lon": -82.0646,
+    "layer": "tech",
+    "category": "hidden",
+    "type": "High-Purity Quartz",
+    "metric": "Majority of global semiconductor-grade quartz",
+    "plain": "A town of 2,000 people in the North Carolina mountains produces the ultra-pure quartz that silicon wafers are made from. There is no commercial alternative source on earth.",
+    "what": "Spruce Pine sits on a geological anomaly — an igneous rock formation that took hundreds of millions of years to form and produces quartz of extraordinary purity found nowhere else on earth at commercial scale. Two companies mine it here: Sibelco and The Quartz Corp. The quartz is used to make the crucibles inside which silicon ingots are grown at extreme temperatures — the first step in making every silicon wafer, and therefore every chip, on earth. It must be 99.9998% pure or better. Ordinary quartz sand cannot do this job.",
+    "why": "Every silicon wafer — the foundation of every chip on earth — is grown inside a quartz crucible. Those crucibles are made from Spruce Pine quartz. There is no substitute material and no alternative source at comparable scale or purity. The entire global semiconductor industry, from TSMC to Samsung to Intel, depends on the output of one small American mountain town whose geology took hundreds of millions of years to produce and cannot be replicated.",
+    "disruption": "A sustained disruption to Spruce Pine would halt silicon wafer production globally within weeks as stockpiles ran down. No wafers means no new chips. No new chips means smartphone production halts, AI infrastructure cannot expand, automotive manufacturing slows, and defence electronics face shortages. The cascade reaches every industry that depends on semiconductors — which is effectively every industry.",
+    "realEvent": "In September 2024, Hurricane Helene caused severe flooding in western North Carolina, directly hitting Spruce Pine and shutting down both mining operations. The global semiconductor industry quietly began assessing quartz stockpiles within days. Intel, TSMC and other major fabs monitored the situation closely. Operations resumed after several weeks — but the event revealed a vulnerability the industry had known about privately and hoped nobody would notice.",
+    "risk": "critical",
+    "source": "USGS Mineral Resources / industry analysis / Hurricane Helene impact reporting 2024",
+    "institutional_note": "Unlike most technology chokepoints, this one is entirely physical and geological — it cannot be replicated by investment or policy. The geology of Spruce Pine is unique. This makes it one of the few chokepoints in the technology layer that money alone cannot solve.",
+    "cascades": [
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "TSMC's silicon wafer supply depends on crucibles made from Spruce Pine quartz — no quartz means no wafers means no chips"
+      },
+      {
+        "id": "asml",
+        "layer": "tech",
+        "effect": "ASML machines print chips onto silicon wafers — if wafer production halts, ASML's entire output becomes temporarily irrelevant"
+      },
+      {
+        "id": "nvidia",
+        "layer": "tech",
+        "effect": "All NVIDIA AI chips are built on silicon wafers — a quartz disruption halts AI hardware expansion globally"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bon_Ami_mine.jpg?width=800"
+  },
+  {
+    "id": "baotou_rare_earth",
+    "name": "Baotou Rare Earth Complex",
+    "country": "China",
+    "lat": 40.6567,
+    "lon": 109.8400,
+    "layer": "energy",
+    "category": "hidden",
+    "type": "Rare Earth Processing",
+    "flow": "~85-90% of global rare earth processing",
+    "plain": "A Chinese industrial city processes the majority of the world's rare earth elements — the metals inside every EV battery, wind turbine, smartphone, fighter jet and MRI machine on earth.",
+    "what": "Baotou in Inner Mongolia is the centre of China's rare earth industry and the world's largest rare earth processing complex. Rare earth elements — 17 metals including neodymium, dysprosium and terbium — are essential to permanent magnets, EV motors, wind turbines, defence electronics, smartphones and medical equipment. While other countries have rare earth deposits, China has built the refining and processing infrastructure that turns raw ore into usable materials. The chokepoint is not the mining — it is the processing. Roughly 85-90% of global rare earth refining happens in China, the majority in and around Baotou.",
+    "why": "There is no green energy transition without rare earths. There is no advanced military capability without rare earths. There are no modern smartphones, EVs or wind turbines without rare earths. And almost all of them are processed through Chinese infrastructure before they reach the factories that build these products. Even rare earths mined in the US, Australia or Africa typically travel to China for processing. This gives China extraordinary leverage over industries and governments globally — leverage it has already demonstrated willingness to use.",
+    "disruption": "A disruption to Chinese rare earth processing would immediately affect EV manufacturing, defence electronics and consumer technology globally. Stockpiles would provide months of buffer, not years. Countries and companies that have been trying to build alternative processing capacity — the US, EU, Australia — are years away from meaningful scale. In the interim, the green energy transition slows, defence procurement is complicated, and consumer electronics face supply pressure.",
+    "realEvent": "In 2010, China restricted rare earth exports to Japan during a territorial dispute over the Senkaku Islands, causing immediate disruption to Japanese electronics and automotive manufacturing. Japan has spent every year since diversifying away from Chinese rare earth dependency. In 2023, China restricted exports of gallium and germanium — critical to semiconductors and defence electronics — in direct response to US chip export controls. In 2025, China expanded these restrictions further in response to US tariffs, adding more critical minerals to the restricted list and triggering immediate concern across US and European defence and technology supply chains.",
+    "risk": "critical",
+    "source": "USGS Critical Minerals / IEA Critical Minerals Report 2024 / Chinese Ministry of Commerce export control announcements",
+    "institutional_note": "Unlike most physical chokepoints, this one was created deliberately over decades through Chinese industrial policy — not by geography alone. China chose to build processing dominance as a strategic asset. That makes it both a physical and an institutional chokepoint simultaneously, and it means it can be partially unwound given sufficient investment and time — which is exactly what the US Inflation Reduction Act and EU Critical Raw Materials Act are attempting.",
+    "cascades": [
+      {
+        "id": "tanenergy",
+        "layer": "energy",
+        "effect": "EV batteries and wind turbines depend on rare earth magnets — a processing disruption slows the energy transition directly"
+      },
+      {
+        "id": "tsmc",
+        "layer": "tech",
+        "effect": "Gallium and germanium — rare earth adjacent materials China has already restricted — are used in compound semiconductors and chip manufacturing"
+      },
+      {
+        "id": "nvidia",
+        "layer": "tech",
+        "effect": "Rare earth materials are used in the magnets inside data centre cooling systems and power infrastructure that AI hardware depends on"
+      }
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Baiyunebo_ast_2006181.jpg?width=800"
+  }
+]

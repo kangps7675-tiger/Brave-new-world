@@ -1,0 +1,438 @@
+{
+  "generatedAt": "2026-08-28T16:29:49.803Z",
+  "source": "UNCTADstat US.FleetBeneficialOwners + US.MerchantFleet + US.VesselValueByOwnership + US.VesselValueByRegistration",
+  "sourceDataYear": 2026,
+  "method": "foreignFlagSharePct = (DWT beneficially owned by country X, flagged under any OTHER country) / (total DWT owned by X, any flag) — the core shadow-fleet-exposure metric. flagOfConvenienceGap = registration value share % − ownership value share % (positive = flag-of-convenience state). Country-level, not bilateral — matched into corridors via max(endpointCountries).",
+  "countryCount": 24,
+  "withOwnershipData": 20,
+  "countries": {
+    "CHN": {
+      "foreignFlagSharePct": 66.7,
+      "totalOwnedDwtThousands": 417366.2,
+      "topFlags": [
+        {
+          "flag": "China",
+          "dwtThousands": 138894.8
+        },
+        {
+          "flag": "China, Hong Kong SAR",
+          "dwtThousands": 88732.2
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 70440
+        }
+      ],
+      "avgAgeAsFlagYears": 26.52,
+      "ownershipValueSharePct": 2.49338,
+      "registrationValueSharePct": 0.24373,
+      "flagOfConvenienceGap": -2.25
+    },
+    "IND": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 6307.4,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 2645.8
+        },
+        {
+          "flag": "Singapore",
+          "dwtThousands": 1260.5
+        },
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 1136.3
+        }
+      ],
+      "avgAgeAsFlagYears": 21.38,
+      "ownershipValueSharePct": 0.76724,
+      "registrationValueSharePct": 0.54375,
+      "flagOfConvenienceGap": -0.22
+    },
+    "NLD": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 10109.6,
+      "topFlags": [
+        {
+          "flag": "Bahamas",
+          "dwtThousands": 2648.2
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 2626.7
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 1656.6
+        }
+      ],
+      "avgAgeAsFlagYears": 22.33,
+      "ownershipValueSharePct": 1.85723,
+      "registrationValueSharePct": 0.68561,
+      "flagOfConvenienceGap": -1.17
+    },
+    "POL": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 2253.9,
+      "topFlags": [
+        {
+          "flag": "Bahamas",
+          "dwtThousands": 876.4
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 652.2
+        },
+        {
+          "flag": "Portugal",
+          "dwtThousands": 300.1
+        }
+      ],
+      "avgAgeAsFlagYears": 37.96,
+      "ownershipValueSharePct": 0.11415,
+      "registrationValueSharePct": 0.00361,
+      "flagOfConvenienceGap": -0.11
+    },
+    "KOR": {
+      "foreignFlagSharePct": 77.2,
+      "totalOwnedDwtThousands": 98761.8,
+      "topFlags": [
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 29237.9
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 27264.4
+        },
+        {
+          "flag": "Republic of Korea",
+          "dwtThousands": 22472.7
+        }
+      ],
+      "avgAgeAsFlagYears": 26.79,
+      "ownershipValueSharePct": 3.83338,
+      "registrationValueSharePct": 0.93274,
+      "flagOfConvenienceGap": -2.9
+    },
+    "RUS": {
+      "foreignFlagSharePct": 2.1,
+      "totalOwnedDwtThousands": 16472.3,
+      "topFlags": [
+        {
+          "flag": "Russian Federation",
+          "dwtThousands": 16122.2
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 140.6
+        },
+        {
+          "flag": "Malta",
+          "dwtThousands": 110
+        }
+      ],
+      "avgAgeAsFlagYears": 31.84,
+      "ownershipValueSharePct": 0.94636,
+      "registrationValueSharePct": 1.03011,
+      "flagOfConvenienceGap": 0.08
+    },
+    "TUR": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 30646.5,
+      "topFlags": [
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 9206.9
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 9175.5
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 5713.6
+        }
+      ],
+      "avgAgeAsFlagYears": 25.49,
+      "ownershipValueSharePct": 1.29936,
+      "registrationValueSharePct": 0.34461,
+      "flagOfConvenienceGap": -0.95
+    },
+    "ARE": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 40566,
+      "topFlags": [
+        {
+          "flag": "Liberia",
+          "dwtThousands": 15960.4
+        },
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 12851.3
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 7408.5
+        }
+      ],
+      "avgAgeAsFlagYears": 21.24,
+      "ownershipValueSharePct": 1.84113,
+      "registrationValueSharePct": 0.10005,
+      "flagOfConvenienceGap": -1.74
+    },
+    "MMR": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 83,
+      "topFlags": [
+        {
+          "flag": "Liberia",
+          "dwtThousands": 67
+        },
+        {
+          "flag": "China, Hong Kong SAR",
+          "dwtThousands": 16
+        }
+      ],
+      "avgAgeAsFlagYears": 28.25,
+      "ownershipValueSharePct": 0.00809,
+      "registrationValueSharePct": 0.00425,
+      "flagOfConvenienceGap": 0
+    },
+    "EGY": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 2320.4,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 2106.1
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 172.5
+        },
+        {
+          "flag": "Cyprus",
+          "dwtThousands": 35.3
+        }
+      ],
+      "avgAgeAsFlagYears": 29.43,
+      "ownershipValueSharePct": 0.1715,
+      "registrationValueSharePct": 0.04996,
+      "flagOfConvenienceGap": -0.12
+    },
+    "IRQ": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 22.4,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 19
+        },
+        {
+          "flag": "Cyprus",
+          "dwtThousands": 3.4
+        }
+      ],
+      "avgAgeAsFlagYears": 27.22,
+      "ownershipValueSharePct": 0.02016,
+      "registrationValueSharePct": 0.01326,
+      "flagOfConvenienceGap": -0.01
+    },
+    "IRN": {
+      "foreignFlagSharePct": 0,
+      "totalOwnedDwtThousands": 18937.4,
+      "topFlags": [
+        {
+          "flag": "Iran (Islamic Republic of)",
+          "dwtThousands": 18930.3
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 7.1
+        }
+      ],
+      "avgAgeAsFlagYears": 29.72,
+      "ownershipValueSharePct": 0.27626,
+      "registrationValueSharePct": 0.2863,
+      "flagOfConvenienceGap": 0.01
+    },
+    "GEO": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 240.9,
+      "topFlags": [
+        {
+          "flag": "Liberia",
+          "dwtThousands": 240.9
+        }
+      ],
+      "avgAgeAsFlagYears": 32.45,
+      "ownershipValueSharePct": 0.01157,
+      "registrationValueSharePct": 0.00013,
+      "flagOfConvenienceGap": -0.01
+    },
+    "LBN": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 432.7,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 427.5
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 5.2
+        }
+      ],
+      "avgAgeAsFlagYears": 48.54,
+      "ownershipValueSharePct": 0.02999,
+      "registrationValueSharePct": 0.00102,
+      "flagOfConvenienceGap": -0.03
+    },
+    "SAU": {
+      "foreignFlagSharePct": 3,
+      "totalOwnedDwtThousands": 19970.4,
+      "topFlags": [
+        {
+          "flag": "Saudi Arabia",
+          "dwtThousands": 19373.7
+        },
+        {
+          "flag": "Liberia",
+          "dwtThousands": 542.7
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 31.3
+        }
+      ],
+      "avgAgeAsFlagYears": 20.46,
+      "ownershipValueSharePct": 0.62832,
+      "registrationValueSharePct": 0.48491,
+      "flagOfConvenienceGap": -0.14
+    },
+    "YEM": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 332.5,
+      "topFlags": [
+        {
+          "flag": "Liberia",
+          "dwtThousands": 321.6
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 10.9
+        }
+      ],
+      "avgAgeAsFlagYears": 41.16,
+      "ownershipValueSharePct": 0.00259,
+      "registrationValueSharePct": 0.00098,
+      "flagOfConvenienceGap": 0
+    },
+    "AZE": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 145.4,
+      "topFlags": [
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 75.7
+        },
+        {
+          "flag": "Malta",
+          "dwtThousands": 43.1
+        },
+        {
+          "flag": "Panama",
+          "dwtThousands": 14
+        }
+      ],
+      "avgAgeAsFlagYears": 35.43,
+      "ownershipValueSharePct": 0.13117,
+      "registrationValueSharePct": 0.08255,
+      "flagOfConvenienceGap": -0.05
+    },
+    "KAZ": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 234.8,
+      "topFlags": [
+        {
+          "flag": "Marshall Islands",
+          "dwtThousands": 231.8
+        },
+        {
+          "flag": "Russian Federation",
+          "dwtThousands": 3
+        }
+      ],
+      "avgAgeAsFlagYears": 23.51,
+      "ownershipValueSharePct": 0.02455,
+      "registrationValueSharePct": 0.01298,
+      "flagOfConvenienceGap": -0.01
+    },
+    "CUB": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 15.8,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 15.8
+        }
+      ],
+      "avgAgeAsFlagYears": 33.97,
+      "ownershipValueSharePct": 0.00373,
+      "registrationValueSharePct": 0.01067,
+      "flagOfConvenienceGap": 0.01
+    },
+    "PAK": {
+      "foreignFlagSharePct": 100,
+      "totalOwnedDwtThousands": 208.3,
+      "topFlags": [
+        {
+          "flag": "Panama",
+          "dwtThousands": 208.3
+        }
+      ],
+      "avgAgeAsFlagYears": 27.87,
+      "ownershipValueSharePct": 0.01622,
+      "registrationValueSharePct": 0.01796,
+      "flagOfConvenienceGap": 0
+    },
+    "BLR": {
+      "foreignFlagSharePct": null,
+      "totalOwnedDwtThousands": null,
+      "topFlags": [],
+      "avgAgeAsFlagYears": 55.92,
+      "ownershipValueSharePct": null,
+      "registrationValueSharePct": null,
+      "flagOfConvenienceGap": null
+    },
+    "MNG": {
+      "foreignFlagSharePct": null,
+      "totalOwnedDwtThousands": null,
+      "topFlags": [],
+      "avgAgeAsFlagYears": 29.81,
+      "ownershipValueSharePct": null,
+      "registrationValueSharePct": 0.01848,
+      "flagOfConvenienceGap": null
+    },
+    "SYR": {
+      "foreignFlagSharePct": null,
+      "totalOwnedDwtThousands": null,
+      "topFlags": [],
+      "avgAgeAsFlagYears": 40.13,
+      "ownershipValueSharePct": 0.00127,
+      "registrationValueSharePct": 0.00003,
+      "flagOfConvenienceGap": 0
+    },
+    "TKM": {
+      "foreignFlagSharePct": null,
+      "totalOwnedDwtThousands": null,
+      "topFlags": [],
+      "avgAgeAsFlagYears": 25.19,
+      "ownershipValueSharePct": 0.00809,
+      "registrationValueSharePct": 0.01465,
+      "flagOfConvenienceGap": 0.01
+    }
+  }
+}

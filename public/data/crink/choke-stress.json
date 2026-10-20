@@ -1,0 +1,258 @@
+{
+  "generatedAt": "2026-08-28T18:08:19.529Z",
+  "source": "IMF PortWatch Daily Chokepoint Transit Calls and Trade Volume Estimates (AIS-derived daily vessel transit counts measured at each chokepoint itself)",
+  "method": "Per chokepoint: pct change in (avg daily n_total transits, most recent 2 years) vs (avg daily n_total, the 2 years before that). Stress = max(0, -pctChange) — only a drop in transit volume counts as stress (rerouting/disruption); rising traffic scores 0. Max-normalized across the 9 chokepoints to 0-1. Supersedes the littoral-country UNCTAD PortCalls proxy (build-choke-stress.js) for all 9 chokepoints, not just the 5 that proxy couldn't reach.",
+  "rowsScanned": 78176,
+  "rowsKept": 25128,
+  "matchedCount": 9,
+  "totalChokepoints": 9,
+  "unmatchedPortnames": [
+    "Balabac Strait",
+    "Bering Strait",
+    "Bohai Strait",
+    "Dover Strait",
+    "Kerch Strait",
+    "Korea Strait",
+    "Lombok Strait",
+    "Luzon Strait",
+    "Magellan Strait",
+    "Makassar Strait",
+    "Mindoro Strait",
+    "Mona Passage",
+    "Ombai Strait",
+    "Oresund Strait",
+    "Sunda Strait",
+    "Torres Strait",
+    "Tsugaru Strait",
+    "Windward Passage",
+    "Yucatan Channel"
+  ],
+  "chokepoints": {
+    "choke-suez": {
+      "littoral": [
+        "EGY"
+      ],
+      "transitTrendPct": -30,
+      "recentAvgDailyTransits": 39.6,
+      "earlierAvgDailyTransits": 56.6,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 37,
+      "recent7dAvgDailyTransits": 42,
+      "baseline30dAvgDailyTransits": 41.1,
+      "changePct7vs30": 2.3,
+      "stressRaw": 30.0472556141609,
+      "stressNorm": 0.7296643551065456
+    },
+    "choke-malacca": {
+      "littoral": [
+        "MYS",
+        "IDN",
+        "SGP"
+      ],
+      "transitTrendPct": 3.7,
+      "recentAvgDailyTransits": 230,
+      "earlierAvgDailyTransits": 221.8,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 192,
+      "recent7dAvgDailyTransits": 203.7,
+      "baseline30dAvgDailyTransits": 215.5,
+      "changePct7vs30": -5.5,
+      "stressRaw": 0,
+      "stressNorm": 0
+    },
+    "choke-hormuz": {
+      "littoral": [
+        "IRN",
+        "OMN",
+        "ARE"
+      ],
+      "transitTrendPct": -41.2,
+      "recentAvgDailyTransits": 53.9,
+      "earlierAvgDailyTransits": 91.7,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 3,
+      "recent7dAvgDailyTransits": 5,
+      "baseline30dAvgDailyTransits": 4.9,
+      "changePct7vs30": 2,
+      "stressRaw": 41.179557976041465,
+      "stressNorm": 1
+    },
+    "choke-taiwan": {
+      "littoral": [
+        "TWN",
+        "CHN"
+      ],
+      "transitTrendPct": 0.1,
+      "recentAvgDailyTransits": 237.7,
+      "earlierAvgDailyTransits": 237.5,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 225,
+      "recent7dAvgDailyTransits": 236.6,
+      "baseline30dAvgDailyTransits": 235.8,
+      "changePct7vs30": 0.3,
+      "stressRaw": 0,
+      "stressNorm": 0
+    },
+    "choke-bab-el-mandeb": {
+      "littoral": [
+        "YEM",
+        "DJI",
+        "ERI"
+      ],
+      "transitTrendPct": -35.9,
+      "recentAvgDailyTransits": 34.1,
+      "earlierAvgDailyTransits": 53.3,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 29,
+      "recent7dAvgDailyTransits": 29.4,
+      "baseline30dAvgDailyTransits": 28.2,
+      "changePct7vs30": 4.2,
+      "stressRaw": 35.92706999678123,
+      "stressNorm": 0.8724491413357043
+    },
+    "choke-panama": {
+      "littoral": [
+        "PAN"
+      ],
+      "transitTrendPct": 11.6,
+      "recentAvgDailyTransits": 31.7,
+      "earlierAvgDailyTransits": 28.4,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 28,
+      "recent7dAvgDailyTransits": 26.7,
+      "baseline30dAvgDailyTransits": 29.1,
+      "changePct7vs30": -8.2,
+      "stressRaw": 0,
+      "stressNorm": 0
+    },
+    "choke-gibraltar": {
+      "littoral": [
+        "ESP",
+        "MAR"
+      ],
+      "transitTrendPct": -4.3,
+      "recentAvgDailyTransits": 133.8,
+      "earlierAvgDailyTransits": 139.8,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 119,
+      "recent7dAvgDailyTransits": 123.3,
+      "baseline30dAvgDailyTransits": 129,
+      "changePct7vs30": -4.4,
+      "stressRaw": 4.309349652868515,
+      "stressNorm": 0.10464778799655214
+    },
+    "choke-bosporus": {
+      "littoral": [
+        "TUR"
+      ],
+      "transitTrendPct": -10.5,
+      "recentAvgDailyTransits": 87,
+      "earlierAvgDailyTransits": 97.2,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 67,
+      "recent7dAvgDailyTransits": 69,
+      "baseline30dAvgDailyTransits": 62.8,
+      "changePct7vs30": 9.9,
+      "stressRaw": 10.516297640958669,
+      "stressNorm": 0.2553766518590879
+    },
+    "choke-good-hope": {
+      "littoral": [
+        "ZAF"
+      ],
+      "transitTrendPct": 32.8,
+      "recentAvgDailyTransits": 90.4,
+      "earlierAvgDailyTransits": 68.1,
+      "recentYears": [
+        2025,
+        2026
+      ],
+      "earlierYears": [
+        2023,
+        2024
+      ],
+      "yearsOfData": 8,
+      "latestDate": "2026-08-23",
+      "latestDailyTransits": 84,
+      "recent7dAvgDailyTransits": 91.6,
+      "baseline30dAvgDailyTransits": 89.9,
+      "changePct7vs30": 1.8,
+      "stressRaw": 0,
+      "stressNorm": 0
+    }
+  },
+  "latestDate": "2026-08-23",
+  "sourceFile": "Daily_Chokepoints_Data.geojson"
+}

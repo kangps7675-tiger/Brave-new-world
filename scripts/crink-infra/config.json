@@ -1,0 +1,17 @@
+{
+  "defaultInputDir": "data/sources/osm-pbf",
+  "outputDir": "public/data/crink",
+  "workDir": "scripts/crink-infra/work",
+  "asiaClipIso3": [
+    "CHN", "IRN", "PRK", "PAK", "KAZ", "UZB", "TKM", "KGZ", "TJK", "MMR",
+    "IRQ", "SYR", "YEM", "LBN", "ARE", "SAU"
+  ],
+  "regions": [
+    { "id": "asia", "pbf": "asia-260825.osm.pbf", "clip": true },
+    { "id": "russia", "pbf": "russia-260825.osm.pbf", "clip": false },
+    { "id": "belarus", "pbf": "belarus-260824.osm.pbf", "clip": false },
+    { "id": "ukraine", "pbf": "ukraine-260824.osm.pbf", "clip": false },
+    { "id": "cuba", "pbf": "cuba-260825.osm.pbf", "clip": false },
+    { "id": "venezuela", "pbf": "venezuela-260825.osm.pbf", "clip": false }
+  ]
+}

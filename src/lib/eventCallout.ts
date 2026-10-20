@@ -1,4 +1,4 @@
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { StackItem } from "@/lib/incidentStack/build";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";

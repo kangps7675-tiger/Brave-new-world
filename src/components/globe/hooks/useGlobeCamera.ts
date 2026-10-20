@@ -1,0 +1,585 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type RefObject,
+  type SetStateAction,
+} from "react";
+import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
+import type { NavSelection, RegionBBox } from "@/data/navRegions";
+import type { GlobeSize, ViewState } from "@/components/globe/types";
+import { entryOrbitCamera } from "@/lib/entryOverview";
+import {
+  clampGlobeAltitude,
+  globeDistanceForAltitude,
+  MIN_GLOBE_ALTITUDE,
+  COMPACT_THEATER_MAX_SPAN_DEG,
+  ORBITAL_OVERVIEW_ALTITUDE,
+  THEATER_ENTRY_MIN_ALTITUDE,
+  resolveCinematicCamera,
+  resolveCinematicDurationMs,
+} from "@/lib/globeCamera";
+import {
+  HISTORY_IMMERSION_MAX_ALTITUDE,
+  LAYER_ALTITUDE_SYNC_MIN_DELTA,
+  MOVING_IDLE_DELAY_MS,
+  REGION_FIT_PADDING,
+  REGION_MAX_ALTITUDE,
+  REGION_MIN_ALTITUDE,
+  REGION_MIN_SPAN_DEG,
+} from "@/components/globe/constants";
+import { CAMERA_IDLE_DEBOUNCE_MS } from "@/lib/globePerformance";
+import {
+  cameraBusyUntilAfterFly,
+  cameraFlyBusyMs,
+  cameraIdleClearBlocked,
+} from "@/lib/cameraBusyGuard";
+import { getGlobeLod, type GlobeLodTier } from "@/lib/globeLod";
+import { getStableLodTier } from "@/components/globe/htmlOverlayPointerEvents";
+import { clamp, longitudeDistance } from "@/components/globe/formatters";
+import { isInUkraineTheater } from "@/lib/ukraineSettlementLabels";
+import { globeOrbitMaxAltitude } from "@/lib/globeFillScreen";
+
+export interface UseGlobeCameraOptions {
+  globeRef: RefObject<MapGlobeMethods | null>;
+  size: GlobeSize;
+  globeReady: boolean;
+  setGlobeReady: (v: boolean) => void;
+  historyImmersionRef: MutableRefObject<boolean>;
+  /** 가까운 경사 진입 후 줌아웃 상한. 역사 잠금과 별개 */
+  focusAltitudeCeilingRef: MutableRefObject<number | null>;
+  /** 상한이 정해진 뒤 컨트롤을 다시 맞추기 위한 값 */
+  focusCeilingAltitude?: number | null;
+  historyImmersionActive: boolean;
+  historyEpisodeActive: boolean;
+  onCloseLookRef?: MutableRefObject<
+    | ((info: {
+        lat: number;
+        lng: number;
+        altitude: number;
+        pitch: number;
+        bearing: number;
+        durationMs: number;
+      }) => void)
+    | null
+  >;
+}
+
+export interface UseGlobeCameraResult {
+  configuredGlobe: MutableRefObject<boolean>;
+  lastViewUpdateAt: MutableRefObject<number>;
+  lastFilterCenterUpdateAt: MutableRefObject<number>;
+  layerCenterRef: MutableRefObject<{ lat: number; lng: number }>;
+  layerAltitudeRef: MutableRefObject<number>;
+  layerLodTierRef: MutableRefObject<GlobeLodTier>;
+  moveIdleTimerRef: MutableRefObject<number | null>;
+  renderStabilizeIdleRef: MutableRefObject<number | null>;
+  isCameraMovingRef: MutableRefObject<boolean>;
+  cameraTweenUntilRef: MutableRefObject<number>;
+  flyBusyTimerRef: MutableRefObject<number | null>;
+  viewState: ViewState;
+  setViewState: Dispatch<SetStateAction<ViewState>>;
+  filterCenter: { lat: number; lng: number };
+  setFilterCenter: Dispatch<SetStateAction<{ lat: number; lng: number }>>;
+  layerAltitude: number;
+  setLayerAltitude: Dispatch<SetStateAction<number>>;
+  isCameraMoving: boolean;
+  setIsCameraMoving: Dispatch<SetStateAction<boolean>>;
+  configureGlobe: () => void;
+  /** 관측 진입 시 MapLibre 바인딩·globeReady 리셋 */
+  resetMapLibreBinding: () => void;
+  flyTo: (
+    lat: number,
+    lng: number,
+    altitude?: number,
+    durationMs?: number,
+    camera?: { pitch?: number; bearing?: number },
+  ) => void;
+  /** P3-4: 진행 중 fly를 목적지 스냅 */
+  interruptFlySnap: () => void;
+  computeRegionFitAltitude: (bbox: RegionBBox, fallbackAltitude: number) => number;
+  flyToBounds: (
+    selection: NavSelection,
+    durationMs?: number,
+    mode?: "overview" | "detail",
+    camera?: { pitch?: number; bearing?: number },
+  ) => void;
+}
+
+/** 지구본 카메라 상태·flyTo·회전/몰입 동기화 — GlobeDashboard에서 추출 */
+export function useGlobeCamera({
+  globeRef,
+  size,
+  globeReady,
+  setGlobeReady,
+  historyImmersionRef,
+  focusAltitudeCeilingRef,
+  focusCeilingAltitude = null,
+  onCloseLookRef,
+  historyImmersionActive,
+  historyEpisodeActive,
+}: UseGlobeCameraOptions): UseGlobeCameraResult {
+  const bootOrbit = entryOrbitCamera(size);
+  const configuredGlobe = useRef(false);
+  const lastViewUpdateAt = useRef(0);
+  const lastFilterCenterUpdateAt = useRef(0);
+  const layerCenterRef = useRef<{ lat: number; lng: number }>({
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
+  });
+  const layerAltitudeRef: { current: number } = useRef(bootOrbit.altitude);
+  const layerLodTierRef = useRef<GlobeLodTier>("global");
+  const moveIdleTimerRef = useRef<number | null>(null);
+  const renderStabilizeIdleRef = useRef<number | null>(null);
+  const isCameraMovingRef = useRef(false);
+  /** flyTo tween 강제 busy 창 — idle debounce가 중간에 moving을 끄지 못하게 */
+  const cameraTweenUntilRef = useRef(0);
+  const flyBusyTimerRef = useRef<number | null>(null);
+  /** P3-4: mid-flight 개입 시 스냅할 목적지 */
+  const pendingFlyTargetRef = useRef<{
+    lat: number;
+    lng: number;
+    altitude: number;
+    pitch?: number;
+    bearing?: number;
+  } | null>(null);
+
+  const [viewState, setViewState] = useState<ViewState>({
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
+    altitude: bootOrbit.altitude,
+  });
+  const [filterCenter, setFilterCenter] = useState<{ lat: number; lng: number }>({
+    lat: bootOrbit.lat,
+    lng: bootOrbit.lng,
+  });
+  const [layerAltitude, setLayerAltitude] = useState<number>(bootOrbit.altitude);
+  const [isCameraMoving, setIsCameraMoving] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (moveIdleTimerRef.current != null) {
+        window.clearTimeout(moveIdleTimerRef.current);
+        moveIdleTimerRef.current = null;
+      }
+      if (renderStabilizeIdleRef.current != null) {
+        window.clearTimeout(renderStabilizeIdleRef.current);
+        renderStabilizeIdleRef.current = null;
+      }
+    };
+  }, []);
+
+  /** 관측(Cesium) 전환 시 호출 — MapLibre 재마운트 후 configureGlobe가 다시 돌게 한다. */
+  const resetMapLibreBinding = useCallback(() => {
+    configuredGlobe.current = false;
+    setGlobeReady(false);
+  }, [setGlobeReady]);
+
+  function configureGlobe() {
+    if (configuredGlobe.current) return;
+    const globe = globeRef.current;
+    if (!globe) return;
+    // imperative handle은 onLoad 전에도 붙을 수 있음 — 실제 맵이 있을 때만 바인딩
+    const map = globe.getMapLibreMap?.() ?? null;
+    if (!map) return;
+
+    configuredGlobe.current = true;
+    try {
+      map.resize();
+      map.triggerRepaint();
+    } catch {
+      /* ignore */
+    }
+
+    const orbit = entryOrbitCamera(size);
+    // 마운트 전에 날아온 flyTo는 pending에만 남아 있음 — 엔트리 궤도보다 우선
+    const pending = pendingFlyTargetRef.current;
+    const target = pending
+      ? {
+          lat: pending.lat,
+          lng: pending.lng,
+          altitude: pending.altitude,
+          pitch: pending.pitch ?? orbit.pitch,
+          bearing: pending.bearing,
+        }
+      : {
+          lat: orbit.lat,
+          lng: orbit.lng,
+          altitude: orbit.altitude,
+          pitch: orbit.pitch,
+        };
+    globe.pointOfView(target, 0);
+    if (pending) pendingFlyTargetRef.current = null;
+    setGlobeReady(true);
+
+    const controls = globe.controls();
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = globeDistanceForAltitude(MIN_GLOBE_ALTITUDE);
+    controls.maxDistance = globeDistanceForAltitude(
+      globeOrbitMaxAltitude(size.width, size.height),
+    );
+    // controls()는 더 이상 apply하지 않음 — 로드 직후 한계를 한 번 더 심는다
+    globe.applyControls();
+
+    const syncViewState = () => {
+      if (moveIdleTimerRef.current != null) {
+        window.clearTimeout(moveIdleTimerRef.current);
+      }
+      if (!isCameraMovingRef.current) {
+        isCameraMovingRef.current = true;
+        setIsCameraMoving(true);
+      }
+      if (renderStabilizeIdleRef.current != null) {
+        window.clearTimeout(renderStabilizeIdleRef.current);
+      }
+      renderStabilizeIdleRef.current = window.setTimeout(() => {
+        if (cameraIdleClearBlocked(Date.now(), cameraTweenUntilRef.current)) return;
+        isCameraMovingRef.current = false;
+        setIsCameraMoving(false);
+      }, MOVING_IDLE_DELAY_MS);
+
+      const pov = globe.pointOfView();
+
+      // zoom↔altitude 양자화 오차(~0.02)보다 클 때만 클램프 — 매 프레임 jumpTo 핑퐁 방지
+      const ALT_CLAMP_SLACK = 0.025;
+      if (pov.altitude < MIN_GLOBE_ALTITUDE - ALT_CLAMP_SLACK) {
+        globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: MIN_GLOBE_ALTITUDE }, 0);
+      } else if (historyImmersionRef.current) {
+        const focusCap = focusAltitudeCeilingRef.current;
+        const cap =
+          focusCap != null
+            ? Math.min(HISTORY_IMMERSION_MAX_ALTITUDE, focusCap)
+            : HISTORY_IMMERSION_MAX_ALTITUDE;
+        if (pov.altitude > cap + ALT_CLAMP_SLACK) {
+          globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: cap }, 0);
+        }
+      } else {
+        const focusCap = focusAltitudeCeilingRef.current;
+        if (focusCap != null && pov.altitude > focusCap + ALT_CLAMP_SLACK) {
+          globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: focusCap }, 0);
+        }
+      }
+
+      // 드래그 중 setViewState 금지 — 대시보드 전체 리렌더가 프레임을 갉아먹음 (idle에서만 반영)
+      lastViewUpdateAt.current = Date.now();
+
+      moveIdleTimerRef.current = window.setTimeout(() => {
+        if (cameraIdleClearBlocked(Date.now(), cameraTweenUntilRef.current)) return;
+        const idlePov = globe.pointOfView();
+        // 티어는 히스테리시스로만 안정화. 고도는 실제 카메라값 유지(앵커 스냅 금지).
+        // 티어가 바뀔 때는 delta가 작아도 altitude를 동기화해 레이어가 한 박자 늦게 남는 걸 막음.
+        const nextTier = getStableLodTier(layerLodTierRef.current, idlePov.altitude);
+        const tierChanged = nextTier !== layerLodTierRef.current;
+        layerLodTierRef.current = nextTier;
+
+        if (
+          tierChanged ||
+          Math.abs(idlePov.altitude - layerAltitudeRef.current) >= LAYER_ALTITUDE_SYNC_MIN_DELTA
+        ) {
+          layerAltitudeRef.current = idlePov.altitude;
+          setLayerAltitude(idlePov.altitude);
+        }
+
+        const prevCenter = layerCenterRef.current;
+        const centerMoved =
+          Math.abs(idlePov.lat - prevCenter.lat) >= 0.01 ||
+          Math.abs(idlePov.lng - prevCenter.lng) >= 0.01;
+        if (centerMoved) {
+          const nextCenter = { lat: idlePov.lat, lng: idlePov.lng };
+          lastFilterCenterUpdateAt.current = Date.now();
+          layerCenterRef.current = nextCenter;
+          setFilterCenter(nextCenter);
+        }
+
+        setViewState((prev) => {
+          if (
+            Math.abs(prev.lat - idlePov.lat) < 0.01 &&
+            Math.abs(prev.lng - idlePov.lng) < 0.01 &&
+            Math.abs(prev.altitude - idlePov.altitude) < LAYER_ALTITUDE_SYNC_MIN_DELTA
+          ) {
+            return prev;
+          }
+          return {
+            lat: idlePov.lat,
+            lng: idlePov.lng,
+            altitude: idlePov.altitude,
+          };
+        });
+      }, MOVING_IDLE_DELAY_MS);
+    };
+
+    controls.addEventListener("change", syncViewState);
+    syncViewState();
+  }
+
+  const flyTo = useCallback(
+    (
+      lat: number,
+      lng: number,
+      altitude = 1.18,
+      durationMs?: number,
+      camera?: { pitch?: number; bearing?: number },
+    ) => {
+      const clampedAlt = clampGlobeAltitude(altitude);
+      const resolvedDuration = resolveCinematicDurationMs(durationMs);
+      const resolvedCamera = resolveCinematicCamera(camera);
+      if (resolvedDuration > 0) {
+        onCloseLookRef?.current?.({
+          lat,
+          lng,
+          altitude: clampedAlt,
+          pitch: resolvedCamera.pitch,
+          bearing: resolvedCamera.bearing,
+          durationMs: resolvedDuration,
+        });
+      }
+      pendingFlyTargetRef.current = {
+        lat,
+        lng,
+        altitude: clampedAlt,
+        pitch: resolvedCamera.pitch,
+        bearing: resolvedCamera.bearing,
+      };
+
+      // MapLibre 미마운트·onLoad 전이면 POV는 no-op — pending만 남기고 configureGlobe가 적용
+      const globe = globeRef.current;
+      const mapReady = Boolean(globe?.getMapLibreMap?.());
+      if (!globe || !mapReady) {
+        return;
+      }
+
+      const busyMs = cameraFlyBusyMs(resolvedDuration);
+      cameraTweenUntilRef.current = cameraBusyUntilAfterFly(resolvedDuration);
+      isCameraMovingRef.current = true;
+      setIsCameraMoving(true);
+
+      if (flyBusyTimerRef.current != null) {
+        window.clearTimeout(flyBusyTimerRef.current);
+      }
+      if (renderStabilizeIdleRef.current != null) {
+        window.clearTimeout(renderStabilizeIdleRef.current);
+        renderStabilizeIdleRef.current = null;
+      }
+
+      globe.pointOfView(
+        {
+          lat,
+          lng,
+          altitude: clampedAlt,
+          pitch: resolvedCamera.pitch,
+          bearing: resolvedCamera.bearing,
+        },
+        resolvedDuration,
+      );
+
+      flyBusyTimerRef.current = window.setTimeout(() => {
+        flyBusyTimerRef.current = null;
+        cameraTweenUntilRef.current = 0;
+        pendingFlyTargetRef.current = null;
+        const pov = globeRef.current?.pointOfView();
+        if (!pov) {
+          isCameraMovingRef.current = false;
+          setIsCameraMoving(false);
+          return;
+        }
+        const nextAlt = clampGlobeAltitude(pov.altitude);
+        // fly 완료 시 한 번에 LOD·뷰 반영 (tween 중 프레임 업데이트 없음)
+        setViewState({
+          lat: pov.lat,
+          lng: pov.lng,
+          altitude: nextAlt,
+        });
+        layerCenterRef.current = { lat: pov.lat, lng: pov.lng };
+        layerAltitudeRef.current = nextAlt;
+        layerLodTierRef.current = getGlobeLod(nextAlt).tier;
+        setLayerAltitude(nextAlt);
+        setFilterCenter({ lat: pov.lat, lng: pov.lng });
+        renderStabilizeIdleRef.current = window.setTimeout(() => {
+          if (cameraIdleClearBlocked(Date.now(), cameraTweenUntilRef.current)) return;
+          isCameraMovingRef.current = false;
+          setIsCameraMoving(false);
+        }, CAMERA_IDLE_DEBOUNCE_MS);
+      }, busyMs);
+    },
+    [onCloseLookRef],
+  );
+
+  /**
+   * P3-4: 사용자 드래그·클릭 시 진행 중 fly를 목적지 스냅으로 끊는다.
+   */
+  const interruptFlySnap = useCallback(() => {
+    const pending = pendingFlyTargetRef.current;
+    if (!pending || !isCameraMovingRef.current) return;
+    if (flyBusyTimerRef.current != null) {
+      window.clearTimeout(flyBusyTimerRef.current);
+      flyBusyTimerRef.current = null;
+    }
+    flyTo(pending.lat, pending.lng, pending.altitude, 0, {
+      pitch: pending.pitch,
+      bearing: pending.bearing,
+    });
+  }, [flyTo]);
+
+  /** 지도 조작이 오면 intro/auto fly를 목적지 스냅 (P3-4) */
+  useEffect(() => {
+    if (!isCameraMoving) return;
+    const onIntervene = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        !target.closest(
+          "canvas.maplibregl-canvas, .maplibregl-map, .maplibregl-canvas-container, [data-globe-shell]",
+        )
+      ) {
+        return;
+      }
+      interruptFlySnap();
+    };
+    const opts: AddEventListenerOptions = { passive: true, capture: true };
+    document.addEventListener("pointerdown", onIntervene, opts);
+    document.addEventListener("wheel", onIntervene, opts);
+    document.addEventListener("touchstart", onIntervene, opts);
+    return () => {
+      document.removeEventListener("pointerdown", onIntervene, opts);
+      document.removeEventListener("wheel", onIntervene, opts);
+      document.removeEventListener("touchstart", onIntervene, opts);
+    };
+  }, [interruptFlySnap, isCameraMoving]);
+
+  const computeRegionFitAltitude = useCallback(
+    (bbox: RegionBBox, fallbackAltitude: number) => {
+      const latSpan = Math.max(REGION_MIN_SPAN_DEG, (bbox.maxLat - bbox.minLat) * REGION_FIT_PADDING);
+      const lngSpan = Math.max(REGION_MIN_SPAN_DEG, longitudeDistance(bbox.minLng, bbox.maxLng) * REGION_FIT_PADDING);
+      const aspect = Math.max(0.75, size.width / Math.max(1, size.height));
+      const dominantSpan = Math.max(latSpan, lngSpan / aspect);
+      // 넓은 전장(중동급)일수록 ISS급 원거리에 가깝게 — 타이트 줌인 방지
+      const fittedAltitude =
+        dominantSpan <= 8
+          ? 0.72 + dominantSpan * 0.08
+          : dominantSpan <= 24
+            ? 1.35 + (dominantSpan - 8) * 0.028
+            : Math.min(ORBITAL_OVERVIEW_ALTITUDE + 0.15, 1.55 + (dominantSpan - 24) * 0.012);
+      const seededAltitude = fittedAltitude * 0.72 + fallbackAltitude * 0.28;
+      const centerLat = (bbox.minLat + bbox.maxLat) / 2;
+      const centerLng = (bbox.minLng + bbox.maxLng) / 2;
+      const minAltitude =
+        isInUkraineTheater(centerLat, centerLng) ? MIN_GLOBE_ALTITUDE : REGION_MIN_ALTITUDE;
+      return clamp(seededAltitude, minAltitude, REGION_MAX_ALTITUDE);
+    },
+    [size.height, size.width],
+  );
+
+  const flyToBounds = useCallback(
+    (
+      selection: NavSelection,
+      durationMs = 850,
+      mode: "overview" | "detail" = "overview",
+      camera?: { pitch?: number; bearing?: number },
+    ) => {
+      const targetLat = (selection.bbox.minLat + selection.bbox.maxLat) / 2;
+      const targetLng = (selection.bbox.minLng + selection.bbox.maxLng) / 2;
+      const fittedAltitude = computeRegionFitAltitude(selection.bbox, selection.altitude);
+      const latSpan = Math.max(0.1, selection.bbox.maxLat - selection.bbox.minLat);
+      const lngSpan = Math.max(0.1, longitudeDistance(selection.bbox.minLng, selection.bbox.maxLng));
+      const spanDeg = Math.max(latSpan, lngSpan);
+      const isCompactTheater = spanDeg <= COMPACT_THEATER_MAX_SPAN_DEG;
+
+      let targetAltitude: number;
+      if (mode === "detail") {
+        targetAltitude = fittedAltitude;
+      } else if (isCompactTheater) {
+        // 한반도·대만급: 궤도 하한 없이 작성 고도 위주로 화면을 채움
+        targetAltitude = clamp(
+          selection.altitude * 0.82 + fittedAltitude * 0.18,
+          REGION_MIN_ALTITUDE,
+          1.2,
+        );
+      } else {
+        // 중동·우크라 전역 등 넓은 전장만 ISS급 하한 유지
+        targetAltitude = Math.max(
+          fittedAltitude,
+          selection.altitude,
+          THEATER_ENTRY_MIN_ALTITUDE,
+          ORBITAL_OVERVIEW_ALTITUDE * 0.92,
+        );
+      }
+      flyTo(targetLat, targetLng, targetAltitude, durationMs, camera);
+    },
+    [computeRegionFitAltitude, flyTo],
+  );
+
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe || !globeReady) return;
+    const controls = globe.controls();
+    if (!controls) return;
+    if (historyImmersionActive) {
+      const cap =
+        focusCeilingAltitude != null
+          ? Math.min(HISTORY_IMMERSION_MAX_ALTITUDE, focusCeilingAltitude)
+          : HISTORY_IMMERSION_MAX_ALTITUDE;
+      // 분쟁사·영토분쟁: 줌아웃으로 창 탈출 불가. 에피소드 중엔 회전도 잠금
+      controls.maxDistance = globeDistanceForAltitude(cap);
+      controls.enableZoom = true;
+      controls.enablePan = !historyEpisodeActive;
+      controls.enableRotate = !historyEpisodeActive;
+      const pov = globe.pointOfView();
+      if (pov.altitude > cap + 0.025) {
+        globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: cap }, 400);
+      }
+    } else if (focusCeilingAltitude != null) {
+      controls.maxDistance = globeDistanceForAltitude(focusCeilingAltitude);
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
+    } else {
+      controls.maxDistance = globeDistanceForAltitude(
+        globeOrbitMaxAltitude(size.width, size.height),
+      );
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
+    }
+  }, [
+    globeReady,
+    historyEpisodeActive,
+    historyImmersionActive,
+    focusCeilingAltitude,
+    size.height,
+    size.width,
+  ]);
+
+  return {
+    configuredGlobe,
+    lastViewUpdateAt,
+    lastFilterCenterUpdateAt,
+    layerCenterRef,
+    layerAltitudeRef,
+    layerLodTierRef,
+    moveIdleTimerRef,
+    renderStabilizeIdleRef,
+    isCameraMovingRef,
+    cameraTweenUntilRef,
+    flyBusyTimerRef,
+    viewState,
+    setViewState,
+    filterCenter,
+    setFilterCenter,
+    layerAltitude,
+    setLayerAltitude,
+    isCameraMoving,
+    setIsCameraMoving,
+    configureGlobe,
+    resetMapLibreBinding,
+    flyTo,
+    interruptFlySnap,
+    computeRegionFitAltitude,
+    flyToBounds,
+  };
+}

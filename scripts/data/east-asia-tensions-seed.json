@@ -1,0 +1,362 @@
+[
+  {
+    "id": "tension-tw-strait-gray",
+    "kind": "dispute",
+    "name": "Taiwan Strait Gray Zone",
+    "nameLong": "대만 해협 회색지대 (군사·민병·ADIZ 압박)",
+    "admin": "Taiwan",
+    "sovereignty": "China / Taiwan",
+    "type": "Gray zone / crisis flashpoint",
+    "note": "함정·항공기·해경 일상화 압박, 봉쇄·상륙 시나리오 리스크",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 24.2, "lng": 119.3 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[117.8, 22.6], [121.2, 22.6], [121.2, 26.0], [117.8, 26.0], [117.8, 22.6]]]
+    }
+  },
+  {
+    "id": "tension-kinmen-matsui",
+    "kind": "dispute",
+    "name": "Kinmen–Matsu Gray Zone",
+    "nameLong": "진먼·마쭈 전선 인접 회색지대",
+    "admin": "Taiwan",
+    "sovereignty": "China / Taiwan",
+    "type": "Frontline islands",
+    "note": "드론·포격·해상 침투 등 저강도 압박",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 24.45, "lng": 118.35 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[118.0, 24.2], [118.7, 24.2], [118.7, 24.7], [118.0, 24.7], [118.0, 24.2]]]
+    }
+  },
+  {
+    "id": "tension-senkaku-adiz",
+    "kind": "dispute",
+    "name": "Senkaku / Diaoyu Tension Zone",
+    "nameLong": "센카쿠(댜오위) 제도 · 동중국해 ADIZ 긴장",
+    "admin": "Japan",
+    "sovereignty": "Japan / China / Taiwan",
+    "type": "Island dispute + ADIZ",
+    "note": "해경 상시 순찰, 영해 진입·항공 식별구역 경합",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 25.75, "lng": 123.48 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[122.8, 25.2], [124.2, 25.2], [124.2, 26.3], [122.8, 26.3], [122.8, 25.2]]]
+    }
+  },
+  {
+    "id": "tension-ecs-adiz-overlap",
+    "kind": "dispute",
+    "name": "East China Sea ADIZ Overlap",
+    "nameLong": "동중국해 방공식별구역(ADIZ) 중첩 해역",
+    "admin": "China / Japan / Korea",
+    "sovereignty": "Multiple",
+    "type": "Airspace gray zone",
+    "note": "ADIZ·EEZ·어업 경합이 겹치는 상시 긴장 해역",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 30.5, "lng": 125.5 },
+    "categories": ["②"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[123.5, 28.5], [128.0, 28.5], [128.0, 33.0], [123.5, 33.0], [123.5, 28.5]]]
+    }
+  },
+  {
+    "id": "tension-spratly-gray",
+    "kind": "dispute",
+    "name": "Spratly Gray Zone",
+    "nameLong": "스프래틀리 군도 회색지대 (인공섬·민병대)",
+    "admin": "Spratly Islands",
+    "sovereignty": "China / Vietnam / Philippines / Malaysia / Brunei",
+    "type": "Maritime gray zone",
+    "note": "간척·해경·민병 어선단, 해상교통로(MSC) 리스크",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 10.5, "lng": 115.0 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[111.5, 7.0], [118.5, 7.0], [118.5, 13.5], [111.5, 13.5], [111.5, 7.0]]]
+    }
+  },
+  {
+    "id": "tension-scarborough",
+    "kind": "dispute",
+    "name": "Scarborough Shoal Standoff",
+    "nameLong": "스카버러 암초(황옌다오) 대치",
+    "admin": "Philippines",
+    "sovereignty": "Philippines / China",
+    "type": "Reef occupation / EEZ",
+    "note": "2012 이후 접근 통제, 어민·해경 충돌 반복",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 15.15, "lng": 117.75 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[117.3, 14.8], [118.2, 14.8], [118.2, 15.5], [117.3, 15.5], [117.3, 14.8]]]
+    }
+  },
+  {
+    "id": "tension-second-thomas",
+    "kind": "dispute",
+    "name": "Second Thomas Shoal",
+    "nameLong": "세컨드 토마스 암초 (시에라 마드레)",
+    "admin": "Philippines",
+    "sovereignty": "Philippines / China",
+    "type": "Resupply crisis flashpoint",
+    "note": "보급 차단·선박 추돌·물대포 등 회색지대 충돌",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 9.74, "lng": 115.86 },
+    "categories": ["①"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[115.5, 9.5], [116.2, 9.5], [116.2, 10.0], [115.5, 10.0], [115.5, 9.5]]]
+    }
+  },
+  {
+    "id": "tension-paracel",
+    "kind": "dispute",
+    "name": "Paracel Militarized Zone",
+    "nameLong": "파라셀(시사) 군도 군사화 해역",
+    "admin": "China",
+    "sovereignty": "China / Vietnam / Taiwan",
+    "type": "Occupied islands",
+    "note": "활주로·레이더·거부접근 능력 집중",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 16.5, "lng": 112.0 },
+    "categories": ["①"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[111.0, 15.5], [113.0, 15.5], [113.0, 17.3], [111.0, 17.3], [111.0, 15.5]]]
+    }
+  },
+  {
+    "id": "tension-nll-west-sea",
+    "kind": "dispute",
+    "name": "West Sea NLL Flashpoint",
+    "nameLong": "서해 NLL · 연평·백령 일대",
+    "admin": "South Korea",
+    "sovereignty": "South Korea / North Korea",
+    "type": "Maritime boundary crisis",
+    "note": "북방한계선·어로·포격·침투 관련 상시 위기",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 37.7, "lng": 125.5 },
+    "categories": ["②"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[124.4, 37.0], [126.2, 37.0], [126.2, 38.4], [124.4, 38.4], [124.4, 37.0]]]
+    }
+  },
+  {
+    "id": "tension-dmz-corridor",
+    "kind": "dispute",
+    "name": "DMZ Tension Corridor",
+    "nameLong": "한반도 DMZ 긴장 지대",
+    "admin": "Korea",
+    "sovereignty": "South Korea / North Korea",
+    "type": "Armistice line",
+    "note": "군사분계선·포병·심리전·확성기·무인기",
+    "source": "main",
+    "scalerank": 1,
+    "center": { "lat": 38.3, "lng": 127.2 },
+    "categories": ["②"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[126.2, 37.8], [129.0, 37.8], [129.0, 38.8], [126.2, 38.8], [126.2, 37.8]]]
+    }
+  },
+  {
+    "id": "tension-dokdo",
+    "kind": "dispute",
+    "name": "Dokdo / Takeshima",
+    "nameLong": "독도(다케시마) 영유권·EEZ 갈등",
+    "admin": "South Korea",
+    "sovereignty": "South Korea / Japan",
+    "type": "Island dispute",
+    "note": "실효지배 vs 영유권 주장, 외교·역사 갈등과 연동",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 37.24, "lng": 131.87 },
+    "categories": ["①"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[131.7, 37.1], [132.05, 37.1], [132.05, 37.35], [131.7, 37.35], [131.7, 37.1]]]
+    }
+  },
+  {
+    "id": "tension-ieodo",
+    "kind": "dispute",
+    "name": "Ieodo / Socotra Rock",
+    "nameLong": "이어도(수중암초) · 한·중 EEZ 중첩",
+    "admin": "South Korea",
+    "sovereignty": "South Korea / China",
+    "type": "EEZ gray zone",
+    "note": "해양과학기지·어업·관할권 주장 충돌",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 32.12, "lng": 125.18 },
+    "categories": ["②"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[124.7, 31.7], [125.7, 31.7], [125.7, 32.5], [124.7, 32.5], [124.7, 31.7]]]
+    }
+  },
+  {
+    "id": "tension-yellow-sea-eez",
+    "kind": "dispute",
+    "name": "Yellow Sea Provisional Measures Zone",
+    "nameLong": "황해 한·중 잠정조치수역 · 불법조업",
+    "admin": "South Korea / China",
+    "sovereignty": "Multiple",
+    "type": "Fisheries / EEZ gray zone",
+    "note": "불법 조업·해경 단속·주권 마찰",
+    "source": "main",
+    "scalerank": 3,
+    "center": { "lat": 35.5, "lng": 124.0 },
+    "categories": ["②"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[122.5, 33.5], [125.5, 33.5], [125.5, 37.0], [122.5, 37.0], [122.5, 33.5]]]
+    }
+  },
+  {
+    "id": "tension-kuril-south",
+    "kind": "dispute",
+    "name": "Southern Kurils / Northern Territories",
+    "nameLong": "남쿠릴(북방영토) 영유권 분쟁",
+    "admin": "Russia",
+    "sovereignty": "Russia / Japan",
+    "type": "Island dispute",
+    "note": "에토로후·쿠나시리·시코탄·하보마이",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 44.5, "lng": 146.5 },
+    "categories": ["①"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[145.2, 43.3], [148.2, 43.3], [148.2, 45.6], [145.2, 45.6], [145.2, 43.3]]]
+    }
+  },
+  {
+    "id": "tension-miyako-chokepoint",
+    "kind": "dispute",
+    "name": "Miyako Strait Chokepoint",
+    "nameLong": "미야코 해협 · 제1열도선 통과 항로",
+    "admin": "Japan",
+    "sovereignty": "Japan / China (transit)",
+    "type": "Maritime chokepoint",
+    "note": "PLA 함정·항공기 통과와 감시·대응 상시화",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 24.8, "lng": 125.5 },
+    "categories": ["③"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[124.5, 24.0], [126.8, 24.0], [126.8, 25.6], [124.5, 25.6], [124.5, 24.0]]]
+    }
+  },
+  {
+    "id": "tension-japan-sea-missile",
+    "kind": "dispute",
+    "name": "Sea of Japan Missile Corridor",
+    "nameLong": "동해(일본해) 미사일·발사체 낙하 해역",
+    "admin": "North Korea",
+    "sovereignty": "North Korea / Japan / Russia",
+    "type": "WMD / missile crisis zone",
+    "note": "탄도미사일·SLBM·위성 발사체로 인한 항행·안보 긴장",
+    "source": "main",
+    "scalerank": 2,
+    "center": { "lat": 39.5, "lng": 135.0 },
+    "categories": ["③"],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[132.0, 37.5], [138.5, 37.5], [138.5, 42.0], [132.0, 42.0], [132.0, 37.5]]]
+    }
+  },
+  {
+    "id": "tension-pratas-dongsha",
+    "kind": "dispute",
+    "name": "Pratas / Dongsha",
+    "nameLong": "둥사(프라타스) 군도 접근 압박",
+    "admin": "Taiwan",
+    "sovereignty": "Taiwan / China",
+    "type": "Island outpost",
+    "note": "남중국해 북단 거점, 해·공 접근 감시",
+    "source": "main",
+    "scalerank": 3,
+    "center": { "lat": 20.7, "lng": 116.7 },
+    "categories": ["①"],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[116.3, 20.4], [117.1, 20.4], [117.1, 21.0], [116.3, 21.0], [116.3, 20.4]]]
+    }
+  },
+  {
+    "id": "tension-tsushima-korea-strait",
+    "kind": "dispute",
+    "name": "Korea / Tsushima Strait Monitoring",
+    "nameLong": "대한해협·쓰시마 해협 감시·억지 해역",
+    "admin": "South Korea / Japan",
+    "sovereignty": "Multiple",
+    "type": "Chokepoint / readiness",
+    "note": "연합 감시, 잠수함·상선 통항, 긴급 전개 통로",
+    "source": "main",
+    "scalerank": 3,
+    "center": { "lat": 34.2, "lng": 129.3 },
+    "categories": ["③"],
+    "tension": "low",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[128.3, 33.5], [130.3, 33.5], [130.3, 34.9], [128.3, 34.9], [128.3, 33.5]]]
+    }
+  }
+]

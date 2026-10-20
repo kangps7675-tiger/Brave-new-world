@@ -1,0 +1,835 @@
+[
+  {
+    "id": "tension-ee-transnistria",
+    "kind": "dispute",
+    "name": "Transnistria Flashpoint",
+    "nameLong": "트란스니스트리아 미인정 거점 · 동유럽 긴장",
+    "admin": "Moldova",
+    "sovereignty": "Moldova / Russia",
+    "type": "Frozen conflict / gray zone",
+    "note": "러시아군 주둔·에너지·군사물자 리스크",
+    "hazardClass": "gray-zone",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 46.85,
+      "lng": 29.6
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            28.9,
+            46.3
+          ],
+          [
+            30.2,
+            46.3
+          ],
+          [
+            30.2,
+            47.4
+          ],
+          [
+            28.9,
+            47.4
+          ],
+          [
+            28.9,
+            46.3
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-ee-kaliningrad",
+    "kind": "dispute",
+    "name": "Kaliningrad A2/AD Tension",
+    "nameLong": "칼리닌그라드 A2/AD · 수바우키 회랑 인접 긴장",
+    "admin": "Russia",
+    "sovereignty": "Russia / NATO",
+    "type": "Military tension / chokepoint",
+    "note": "미사일·해군·보급로 억지",
+    "hazardClass": "tension",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 54.7,
+      "lng": 21
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            19.6,
+            54.3
+          ],
+          [
+            22.6,
+            54.3
+          ],
+          [
+            22.6,
+            55.4
+          ],
+          [
+            19.6,
+            55.4
+          ],
+          [
+            19.6,
+            54.3
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-ee-suwalki",
+    "kind": "dispute",
+    "name": "Suwałki Corridor",
+    "nameLong": "수바우키 회랑 · NATO–칼리닌그라드 병목",
+    "admin": "Poland / Lithuania",
+    "sovereignty": "NATO / Russia (adjacent)",
+    "type": "Strategic chokepoint",
+    "note": "동맹 보급·억지 핵심",
+    "hazardClass": "tension",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 54.1,
+      "lng": 23
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            22.3,
+            53.7
+          ],
+          [
+            23.8,
+            53.7
+          ],
+          [
+            23.8,
+            54.5
+          ],
+          [
+            22.3,
+            54.5
+          ],
+          [
+            22.3,
+            53.7
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-gaza",
+    "kind": "dispute",
+    "name": "Gaza Combat / Bombardment Zone",
+    "nameLong": "가자 지구 · 교전·폭격 피해 가중",
+    "admin": "Palestine",
+    "sovereignty": "Israel / Palestine",
+    "type": "Active combat / bombardment",
+    "note": "지상전·공습·포격 지속",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 31.45,
+      "lng": 34.4
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            34.2,
+            31.22
+          ],
+          [
+            34.57,
+            31.22
+          ],
+          [
+            34.57,
+            31.6
+          ],
+          [
+            34.2,
+            31.6
+          ],
+          [
+            34.2,
+            31.22
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-lebanon-south",
+    "kind": "dispute",
+    "name": "Southern Lebanon Combat Belt",
+    "nameLong": "레바논 남부 · 교차 포격·공습",
+    "admin": "Lebanon",
+    "sovereignty": "Lebanon / Israel",
+    "type": "Active combat / fire",
+    "note": "헤즈볼라–이스라엘 전선",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 33.25,
+      "lng": 35.35
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            35.05,
+            33.05
+          ],
+          [
+            35.7,
+            33.05
+          ],
+          [
+            35.7,
+            33.5
+          ],
+          [
+            35.05,
+            33.5
+          ],
+          [
+            35.05,
+            33.05
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-red-sea-houthi",
+    "kind": "dispute",
+    "name": "Red Sea / Bab el-Mandeb Strike Zone",
+    "nameLong": "홍해·바브엘만데브 · 미사일·무인기 타격",
+    "admin": "Yemen / Red Sea",
+    "sovereignty": "Yemen (Houthi) / Coalition / Shipping",
+    "type": "Active bombardment / maritime strike",
+    "note": "상선·군함 피격, 항로 피해",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 14,
+      "lng": 42.5
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            41,
+            12
+          ],
+          [
+            45,
+            12
+          ],
+          [
+            45,
+            16.5
+          ],
+          [
+            41,
+            16.5
+          ],
+          [
+            41,
+            12
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-syria-north",
+    "kind": "dispute",
+    "name": "Northern Syria Combat Zones",
+    "nameLong": "시리아 북부 · 다중 전선 교전",
+    "admin": "Syria",
+    "sovereignty": "Syria / Turkey / SDF / Russia / Iran (proxy)",
+    "type": "Active combat / fire",
+    "note": "공습·포격·지상전 산발",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 36.4,
+      "lng": 38.5
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            36,
+            35.5
+          ],
+          [
+            42,
+            35.5
+          ],
+          [
+            42,
+            37.3
+          ],
+          [
+            36,
+            37.3
+          ],
+          [
+            36,
+            35.5
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-iraq-isis-belt",
+    "kind": "dispute",
+    "name": "Iraq–Syria Insurgent Combat Belt",
+    "nameLong": "이라크–시리아 접경 반군·대테러 교전",
+    "admin": "Iraq / Syria",
+    "sovereignty": "Multiple",
+    "type": "Active combat / fire",
+    "note": "IS 잔존·공습·특수작전",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 34.5,
+      "lng": 41.5
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            39.5,
+            33
+          ],
+          [
+            44,
+            33
+          ],
+          [
+            44,
+            36
+          ],
+          [
+            39.5,
+            36
+          ],
+          [
+            39.5,
+            33
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-iran-israel",
+    "kind": "dispute",
+    "name": "Iran–Israel Active Strike / Ceasefire Oscillation",
+    "nameLong": "이란–이스라엘 · 휴전과 교전을 오가는 실타격 지대",
+    "admin": "Iran / Israel",
+    "sovereignty": "Iran / Israel",
+    "type": "Active combat / ceasefire oscillation",
+    "note": "장거리 타격·방공·핵·대리전이 겹침. 휴전·전투 사이 진동 → 피해 가중(빨강). 보라(무기금수)와 별개",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 32.5,
+      "lng": 48
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            44,
+            29
+          ],
+          [
+            54.5,
+            29
+          ],
+          [
+            54.5,
+            37.5
+          ],
+          [
+            44,
+            37.5
+          ],
+          [
+            44,
+            29
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-me-iran-heartland",
+    "kind": "dispute",
+    "name": "Iran Heartland Strike Exposure",
+    "nameLong": "이란 본토 핵심부 · 타격·방공 피해 가중",
+    "admin": "Iran",
+    "sovereignty": "Iran",
+    "type": "Active bombardment / strike exposure",
+    "note": "수도·핵·군사시설 타격 리스크·방공 소모",
+    "hazardClass": "bombardment",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 33.5,
+      "lng": 52
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            48.5,
+            30.5
+          ],
+          [
+            55.5,
+            30.5
+          ],
+          [
+            55.5,
+            36.8
+          ],
+          [
+            48.5,
+            36.8
+          ],
+          [
+            48.5,
+            30.5
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-me-hormuz",
+    "kind": "dispute",
+    "name": "Strait of Hormuz Gray Zone",
+    "nameLong": "호르무즈 해협 회색지대 · 해상억지",
+    "admin": "Iran / Oman / UAE",
+    "sovereignty": "Multiple",
+    "type": "Maritime gray zone / chokepoint",
+    "note": "유조선·나포·기뢰·항행 리스크",
+    "hazardClass": "gray-zone",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 26.5,
+      "lng": 56.3
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            55.2,
+            25.5
+          ],
+          [
+            57.5,
+            25.5
+          ],
+          [
+            57.5,
+            27.3
+          ],
+          [
+            55.2,
+            27.3
+          ],
+          [
+            55.2,
+            25.5
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-sa-kashmir-loc",
+    "kind": "dispute",
+    "name": "Kashmir LoC Combat / Fire Exchanges",
+    "nameLong": "카슈미르 실질통제선(LoC) · 교차 사격",
+    "admin": "India / Pakistan",
+    "sovereignty": "India / Pakistan",
+    "type": "Active combat / fire",
+    "note": "포격·국경 사격 반복, 피해 가중",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 34.2,
+      "lng": 74
+    },
+    "categories": [
+      "②"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            73,
+            33.2
+          ],
+          [
+            75.5,
+            33.2
+          ],
+          [
+            75.5,
+            35
+          ],
+          [
+            73,
+            35
+          ],
+          [
+            73,
+            33.2
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-sa-siachen",
+    "kind": "dispute",
+    "name": "Siachen Glacier Militarized Zone",
+    "nameLong": "시achen 빙하 군사화 고지 분쟁",
+    "admin": "India / Pakistan",
+    "sovereignty": "India / Pakistan",
+    "type": "Militarized territorial dispute",
+    "note": "고지 주둔·영유권",
+    "hazardClass": "territorial",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 35.4,
+      "lng": 77
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            76.5,
+            35.1
+          ],
+          [
+            77.5,
+            35.1
+          ],
+          [
+            77.5,
+            35.7
+          ],
+          [
+            76.5,
+            35.7
+          ],
+          [
+            76.5,
+            35.1
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-sa-afghanistan",
+    "kind": "dispute",
+    "name": "Afghanistan Cross-Border Combat Belt",
+    "nameLong": "아프간–파키스탄 접경 교전·공습",
+    "admin": "Afghanistan / Pakistan",
+    "sovereignty": "Afghanistan / Pakistan",
+    "type": "Active combat / fire",
+    "note": "국경 공격·공습·반군",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 33,
+      "lng": 69.5
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            66.5,
+            31
+          ],
+          [
+            72.5,
+            31
+          ],
+          [
+            72.5,
+            35
+          ],
+          [
+            66.5,
+            35
+          ],
+          [
+            66.5,
+            31
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-sa-india-china-lac",
+    "kind": "dispute",
+    "name": "India–China LAC Tension",
+    "nameLong": "인도–중국 실제통제선(LAC) 긴장",
+    "admin": "India / China",
+    "sovereignty": "India / China",
+    "type": "Gray zone / militarized frontier",
+    "note": "전개·격돌 이력, 인프라 경쟁",
+    "hazardClass": "gray-zone",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 33,
+      "lng": 79
+    },
+    "categories": [
+      "②"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            76,
+            30
+          ],
+          [
+            82,
+            30
+          ],
+          [
+            82,
+            36
+          ],
+          [
+            76,
+            36
+          ],
+          [
+            76,
+            30
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "combat-sa-myanmar-rakhine",
+    "kind": "dispute",
+    "name": "Myanmar Rakhine / Civil War Front",
+    "nameLong": "미얀마 내전 전선 (라카인 등)",
+    "admin": "Myanmar",
+    "sovereignty": "Myanmar (junta / resistance)",
+    "type": "Active combat / fire",
+    "note": "지상전·공습·민간 피해",
+    "hazardClass": "combat",
+    "source": "main",
+    "scalerank": 1,
+    "center": {
+      "lat": 20.5,
+      "lng": 93.5
+    },
+    "categories": [
+      "①"
+    ],
+    "tension": "high",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            92,
+            17.5
+          ],
+          [
+            96,
+            17.5
+          ],
+          [
+            96,
+            22.5
+          ],
+          [
+            92,
+            22.5
+          ],
+          [
+            92,
+            17.5
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "tension-ee-belarus-frontier",
+    "kind": "dispute",
+    "name": "Belarus–NATO Frontier Tension",
+    "nameLong": "벨라루스–NATO 접경 긴장·핵공유 리스크",
+    "admin": "Belarus",
+    "sovereignty": "Belarus / Russia / NATO",
+    "type": "Military tension",
+    "note": "병력·핵무기 배치 관련 긴장",
+    "hazardClass": "tension",
+    "source": "main",
+    "scalerank": 2,
+    "center": {
+      "lat": 53.5,
+      "lng": 26
+    },
+    "categories": [
+      "③"
+    ],
+    "tension": "medium",
+    "matchedEventCount": 0,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            23,
+            51.5
+          ],
+          [
+            30.5,
+            51.5
+          ],
+          [
+            30.5,
+            56
+          ],
+          [
+            23,
+            56
+          ],
+          [
+            23,
+            51.5
+          ]
+        ]
+      ]
+    }
+  }
+]

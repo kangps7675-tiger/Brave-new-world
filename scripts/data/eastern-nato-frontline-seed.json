@@ -1,0 +1,258 @@
+[
+  {
+    "id": "front-pl-lask",
+    "kind": "military-base",
+    "name": "Łask Air Base",
+    "lat": 51.5517,
+    "lng": 19.1797,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-malbork",
+    "kind": "military-base",
+    "name": "Malbork Air Base",
+    "lat": 54.0269,
+    "lng": 19.1342,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-krzesiny",
+    "kind": "military-base",
+    "name": "Poznań-Krzesiny Air Base",
+    "lat": 52.3314,
+    "lng": 16.9664,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-swidwin",
+    "kind": "military-base",
+    "name": "Świdwin Air Base",
+    "lat": 53.7906,
+    "lng": 15.8264,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-miroslawiec",
+    "kind": "military-base",
+    "name": "Mirosławiec Air Base",
+    "lat": 53.3953,
+    "lng": 16.0822,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-minsk-maz",
+    "kind": "military-base",
+    "name": "Mińsk Mazowiecki Air Base",
+    "lat": 52.1956,
+    "lng": 21.6558,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Polish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-pl-gdynia-oksywie",
+    "kind": "military-base",
+    "name": "Gdynia-Oksywie Naval Air Base",
+    "lat": 54.5797,
+    "lng": 18.5172,
+    "tier": 1,
+    "meta": {
+      "country": "Poland",
+      "iso": "PL",
+      "theater": "eastern-nato",
+      "branch": "naval_base",
+      "operator": "Polish Navy",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-lt-siauliai",
+    "kind": "military-base",
+    "name": "Šiauliai Air Base (Zokniai)",
+    "lat": 55.8939,
+    "lng": 23.395,
+    "tier": 1,
+    "meta": {
+      "country": "Lithuania",
+      "iso": "LT",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Lithuanian Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-fi-rovaniemi",
+    "kind": "military-base",
+    "name": "Rovaniemi Air Base",
+    "lat": 66.5648,
+    "lng": 25.8304,
+    "tier": 1,
+    "meta": {
+      "country": "Finland",
+      "iso": "FI",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Finnish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-fi-pirkkala",
+    "kind": "military-base",
+    "name": "Tampere-Pirkkala Air Base",
+    "lat": 61.4141,
+    "lng": 23.6044,
+    "tier": 1,
+    "meta": {
+      "country": "Finland",
+      "iso": "FI",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Finnish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-fi-kuopio",
+    "kind": "military-base",
+    "name": "Kuopio-Rissala Air Base",
+    "lat": 63.0086,
+    "lng": 27.7978,
+    "tier": 1,
+    "meta": {
+      "country": "Finland",
+      "iso": "FI",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Finnish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-fi-tikkakoski",
+    "kind": "military-base",
+    "name": "Jyväskylä-Tikkakoski Air Base",
+    "lat": 62.3995,
+    "lng": 25.6782,
+    "tier": 1,
+    "meta": {
+      "country": "Finland",
+      "iso": "FI",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Finnish Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ro-campia-turzii",
+    "kind": "military-base",
+    "name": "Câmpia Turzii Air Base",
+    "lat": 46.5022,
+    "lng": 23.8858,
+    "tier": 1,
+    "meta": {
+      "country": "Romania",
+      "iso": "RO",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Romanian Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-ro-fetesti",
+    "kind": "military-base",
+    "name": "Fetești-Borcea Air Base",
+    "lat": 44.5411,
+    "lng": 27.0128,
+    "tier": 1,
+    "meta": {
+      "country": "Romania",
+      "iso": "RO",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Romanian Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-sk-sliac",
+    "kind": "military-base",
+    "name": "Sliač Air Base",
+    "lat": 48.6378,
+    "lng": 19.1342,
+    "tier": 1,
+    "meta": {
+      "country": "Slovakia",
+      "iso": "SK",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Slovak Air Force",
+      "source": "seed-frontline"
+    }
+  },
+  {
+    "id": "front-sk-kuchyna",
+    "kind": "military-base",
+    "name": "Kuchyňa Air Base (Malacky)",
+    "lat": 48.4022,
+    "lng": 17.1183,
+    "tier": 1,
+    "meta": {
+      "country": "Slovakia",
+      "iso": "SK",
+      "theater": "eastern-nato",
+      "branch": "airfield",
+      "operator": "Slovak Air Force",
+      "source": "seed-frontline"
+    }
+  }
+]

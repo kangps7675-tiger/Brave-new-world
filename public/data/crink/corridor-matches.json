@@ -1,0 +1,3259 @@
+{
+  "matches": [
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 56.838,
+        "lng": 60.605,
+        "name": "Yekaterinburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 968457984,
+        "lat": 56.818175,
+        "lng": 60.6456701
+      },
+      "distanceKm": 3.31
+    },
+    {
+      "waypoint": {
+        "lat": 54.989,
+        "lng": 73.368,
+        "name": "Omsk"
+      },
+      "match": {
+        "category": "border",
+        "name": "Омская таможня",
+        "osmId": 3886581694,
+        "lat": 54.9826043,
+        "lng": 73.3853432
+      },
+      "distanceKm": 1.32
+    },
+    {
+      "waypoint": {
+        "lat": 55.03,
+        "lng": 82.92,
+        "name": "Novosibirsk"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Новосибирский речной порт",
+        "osmId": 665119629,
+        "lat": 55.0148049,
+        "lng": 82.9143495
+      },
+      "distanceKm": 1.73
+    },
+    {
+      "waypoint": {
+        "lat": 56.01,
+        "lng": 92.852,
+        "name": "Krasnoyarsk"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Отдых",
+        "osmId": 516535021,
+        "lat": 55.9954681,
+        "lng": 92.8844402
+      },
+      "distanceKm": 2.58
+    },
+    {
+      "waypoint": {
+        "lat": 52.287,
+        "lng": 104.305,
+        "name": "Irkutsk"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 8849774216,
+        "lat": 52.2579002,
+        "lng": 104.3008744
+      },
+      "distanceKm": 3.25
+    },
+    {
+      "waypoint": {
+        "lat": 51.833,
+        "lng": 107.584,
+        "name": "Ulan-Ude"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1297694707,
+        "lat": 51.8981421,
+        "lng": 107.5257791
+      },
+      "distanceKm": 8.27
+    },
+    {
+      "waypoint": {
+        "lat": 52.033,
+        "lng": 113.501,
+        "name": "Chita"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 641593058,
+        "lat": 52.0496444,
+        "lng": 113.4722493
+      },
+      "distanceKm": 2.7
+    },
+    {
+      "waypoint": {
+        "lat": 53.983,
+        "lng": 123.933,
+        "name": "Skovorodino"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "ВП на ПНН \"Сковородино\"",
+        "osmId": 148848394,
+        "lat": 53.9981813,
+        "lng": 123.9693607
+      },
+      "distanceKm": 2.92
+    },
+    {
+      "waypoint": {
+        "lat": 48.48,
+        "lng": 135.084,
+        "name": "Khabarovsk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 300885662,
+        "lat": 48.5134679,
+        "lng": 135.1000345
+      },
+      "distanceKm": 3.9
+    },
+    {
+      "waypoint": {
+        "lat": 43.116,
+        "lng": 131.885,
+        "name": "Vladivostok"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП Владивосток",
+        "osmId": 10195420754,
+        "lat": 43.1113166,
+        "lng": 131.8828265
+      },
+      "distanceKm": 0.55
+    },
+    {
+      "waypoint": {
+        "lat": 51.833,
+        "lng": 107.584,
+        "name": "Ulan-Ude"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1297694707,
+        "lat": 51.8981421,
+        "lng": 107.5257791
+      },
+      "distanceKm": 8.27
+    },
+    {
+      "waypoint": {
+        "lat": 50.231,
+        "lng": 106.213,
+        "name": "Sükhbaatar"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 805391087,
+        "lat": 50.3683205,
+        "lng": 106.4351888
+      },
+      "distanceKm": 21.96
+    },
+    {
+      "waypoint": {
+        "lat": 43.73,
+        "lng": 111.887,
+        "name": "Zamyn-Üüd"
+      },
+      "match": {
+        "category": "border",
+        "name": "Mongolia Border Control",
+        "osmId": 10548355992,
+        "lat": 43.6957604,
+        "lng": 111.9367631
+      },
+      "distanceKm": 5.52
+    },
+    {
+      "waypoint": {
+        "lat": 43.648,
+        "lng": 111.978,
+        "name": "Erenhot (Erlian)"
+      },
+      "match": {
+        "category": "border",
+        "name": "二连海关",
+        "osmId": 1240489110,
+        "lat": 43.659927,
+        "lng": 111.9651174
+      },
+      "distanceKm": 1.68
+    },
+    {
+      "waypoint": {
+        "lat": 39.904,
+        "lng": 116.407,
+        "name": "Beijing"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1020553077,
+        "lat": 39.9035446,
+        "lng": 116.3977014
+      },
+      "distanceKm": 0.79
+    },
+    {
+      "waypoint": {
+        "lat": 52.033,
+        "lng": 113.501,
+        "name": "Chita"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 641593058,
+        "lat": 52.0496444,
+        "lng": 113.4722493
+      },
+      "distanceKm": 2.7
+    },
+    {
+      "waypoint": {
+        "lat": 49.65,
+        "lng": 117.324,
+        "name": "Zabaykalsk"
+      },
+      "match": {
+        "category": "border",
+        "name": "МАПП Забайкальск",
+        "osmId": 10548298276,
+        "lat": 49.6309267,
+        "lng": 117.3717004
+      },
+      "distanceKm": 4.04
+    },
+    {
+      "waypoint": {
+        "lat": 49.588,
+        "lng": 117.432,
+        "name": "Manzhouli"
+      },
+      "match": {
+        "category": "border",
+        "name": "China Border Control",
+        "osmId": 10548298273,
+        "lat": 49.6279132,
+        "lng": 117.3777412
+      },
+      "distanceKm": 5.91
+    },
+    {
+      "waypoint": {
+        "lat": 45.803,
+        "lng": 126.535,
+        "name": "Harbin"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 6313518863,
+        "lat": 45.7546955,
+        "lng": 126.5462837
+      },
+      "distanceKm": 5.44
+    },
+    {
+      "waypoint": {
+        "lat": 44.394,
+        "lng": 131.156,
+        "name": "Suifenhe"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 815572125,
+        "lat": 44.410266,
+        "lng": 131.184948
+      },
+      "distanceKm": 2.93
+    },
+    {
+      "waypoint": {
+        "lat": 43.802,
+        "lng": 131.944,
+        "name": "Ussuriysk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Авиабаза Воздвиженка",
+        "osmId": 375603671,
+        "lat": 43.90926432941177,
+        "lng": 131.91672338235293
+      },
+      "distanceKm": 12.13
+    },
+    {
+      "waypoint": {
+        "lat": 43.116,
+        "lng": 131.885,
+        "name": "Vladivostok"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП Владивосток",
+        "osmId": 10195420754,
+        "lat": 43.1113166,
+        "lng": 131.8828265
+      },
+      "distanceKm": 0.55
+    },
+    {
+      "waypoint": {
+        "lat": 56.153,
+        "lng": 101.634,
+        "name": "Bratsk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1409568888,
+        "lat": 56.1642165,
+        "lng": 101.5867635
+      },
+      "distanceKm": 3.18
+    },
+    {
+      "waypoint": {
+        "lat": 55.639,
+        "lng": 109.329,
+        "name": "Severobaikalsk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Аэропорт Нижнеангарск",
+        "osmId": 75208041,
+        "lat": 55.80102362413793,
+        "lng": 109.59605096206896
+      },
+      "distanceKm": 24.58
+    },
+    {
+      "waypoint": {
+        "lat": 55.169,
+        "lng": 124.723,
+        "name": "Tynda"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "06/24",
+        "osmId": 35090981,
+        "lat": 55.2814581,
+        "lng": 124.7719746
+      },
+      "distanceKm": 12.88
+    },
+    {
+      "waypoint": {
+        "lat": 50.55,
+        "lng": 137.007,
+        "name": "Komsomolsk-on-Amur"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1425079954,
+        "lat": 50.6066526,
+        "lng": 137.07281
+      },
+      "distanceKm": 7.83
+    },
+    {
+      "waypoint": {
+        "lat": 48.967,
+        "lng": 140.278,
+        "name": "Sovetskaya Gavan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 238396544,
+        "lat": 48.9828038,
+        "lng": 140.3190092
+      },
+      "distanceKm": 3.47
+    },
+    {
+      "waypoint": {
+        "lat": 43.116,
+        "lng": 131.885,
+        "name": "Vladivostok"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП Владивосток",
+        "osmId": 10195420754,
+        "lat": 43.1113166,
+        "lng": 131.8828265
+      },
+      "distanceKm": 0.55
+    },
+    {
+      "waypoint": {
+        "lat": 43.802,
+        "lng": 131.944,
+        "name": "Ussuriysk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Авиабаза Воздвиженка",
+        "osmId": 375603671,
+        "lat": 43.90926432941177,
+        "lng": 131.91672338235293
+      },
+      "distanceKm": 12.13
+    },
+    {
+      "waypoint": {
+        "lat": 42.43,
+        "lng": 130.635,
+        "name": "Khasan, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "防川第一码头",
+        "osmId": 7809638913,
+        "lat": 42.4299944,
+        "lng": 130.6180077
+      },
+      "distanceKm": 1.39
+    },
+    {
+      "waypoint": {
+        "lat": 42.417,
+        "lng": 130.639,
+        "name": "Tumangang, DPRK"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 1545421583,
+        "lat": 42.4086382,
+        "lng": 130.6363125
+      },
+      "distanceKm": 0.96
+    },
+    {
+      "waypoint": {
+        "lat": 42.35,
+        "lng": 130.397,
+        "name": "Rajin (Rason), DPRK"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Uam-ri Port",
+        "osmId": 6756005429,
+        "lat": 42.2749272,
+        "lng": 130.5986461
+      },
+      "distanceKm": 18.56
+    },
+    {
+      "waypoint": {
+        "lat": 37.971,
+        "lng": 126.554,
+        "name": "Kaesong"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2259941912,
+        "lat": 37.926127,
+        "lng": 126.6459182
+      },
+      "distanceKm": 9.48
+    },
+    {
+      "waypoint": {
+        "lat": 39.019,
+        "lng": 125.738,
+        "name": "Pyongyang"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1250061937,
+        "lat": 39.0288956,
+        "lng": 125.7714227
+      },
+      "distanceKm": 3.09
+    },
+    {
+      "waypoint": {
+        "lat": 40.1,
+        "lng": 124.395,
+        "name": "Sinuiju"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2276859640,
+        "lat": 40.1100755,
+        "lng": 124.398236
+      },
+      "distanceKm": 1.15
+    },
+    {
+      "waypoint": {
+        "lat": 40.128,
+        "lng": 124.395,
+        "name": "Dandong, China"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 218437325,
+        "lat": 40.1195979,
+        "lng": 124.3872732
+      },
+      "distanceKm": 1.14
+    },
+    {
+      "waypoint": {
+        "lat": 39.152,
+        "lng": 127.443,
+        "name": "Wonsan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "02/20",
+        "osmId": 624199709,
+        "lat": 39.1594528,
+        "lng": 127.4828516
+      },
+      "distanceKm": 3.53
+    },
+    {
+      "waypoint": {
+        "lat": 41.797,
+        "lng": 129.783,
+        "name": "Chongjin"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 1204520077,
+        "lat": 41.7711367,
+        "lng": 129.7818147
+      },
+      "distanceKm": 2.88
+    },
+    {
+      "waypoint": {
+        "lat": 42.35,
+        "lng": 130.397,
+        "name": "Rajin (Rason)"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Uam-ri Port",
+        "osmId": 6756005429,
+        "lat": 42.2749272,
+        "lng": 130.5986461
+      },
+      "distanceKm": 18.56
+    },
+    {
+      "waypoint": {
+        "lat": 42.43,
+        "lng": 130.635,
+        "name": "Khasan, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "防川第一码头",
+        "osmId": 7809638913,
+        "lat": 42.4299944,
+        "lng": 130.6180077
+      },
+      "distanceKm": 1.39
+    },
+    {
+      "waypoint": {
+        "lat": 43.826,
+        "lng": 87.617,
+        "name": "Urumqi, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "安平路机场",
+        "osmId": 1071636645,
+        "lat": 43.817091434000005,
+        "lng": 87.68791282599999
+      },
+      "distanceKm": 5.77
+    },
+    {
+      "waypoint": {
+        "lat": 44.208,
+        "lng": 80.406,
+        "name": "Khorgos border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Qorğas border checkpoint",
+        "osmId": 2711018269,
+        "lat": 44.2177974,
+        "lng": 80.3933039
+      },
+      "distanceKm": 1.49
+    },
+    {
+      "waypoint": {
+        "lat": 43.238,
+        "lng": 76.945,
+        "name": "Almaty"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1134613215,
+        "lat": 43.2343228,
+        "lng": 76.9468779
+      },
+      "distanceKm": 0.44
+    },
+    {
+      "waypoint": {
+        "lat": 43.65,
+        "lng": 51.157,
+        "name": "Aktau (Caspian port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1231885245,
+        "lat": 43.6191399,
+        "lng": 51.2231432
+      },
+      "distanceKm": 6.33
+    },
+    {
+      "waypoint": {
+        "lat": 43.826,
+        "lng": 87.617,
+        "name": "Urumqi, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "安平路机场",
+        "osmId": 1071636645,
+        "lat": 43.817091434000005,
+        "lng": 87.68791282599999
+      },
+      "distanceKm": 5.77
+    },
+    {
+      "waypoint": {
+        "lat": 44.208,
+        "lng": 80.406,
+        "name": "Khorgos border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Qorğas border checkpoint",
+        "osmId": 2711018269,
+        "lat": 44.2177974,
+        "lng": 80.3933039
+      },
+      "distanceKm": 1.49
+    },
+    {
+      "waypoint": {
+        "lat": 43.238,
+        "lng": 76.945,
+        "name": "Almaty"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1134613215,
+        "lat": 43.2343228,
+        "lng": 76.9468779
+      },
+      "distanceKm": 0.44
+    },
+    {
+      "waypoint": {
+        "lat": 43.65,
+        "lng": 51.157,
+        "name": "Aktau (Caspian port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1231885245,
+        "lat": 43.6191399,
+        "lng": 51.2231432
+      },
+      "distanceKm": 6.33
+    },
+    {
+      "waypoint": {
+        "lat": 43.65,
+        "lng": 51.157,
+        "name": "Aktau (Caspian port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1231885245,
+        "lat": 43.6191399,
+        "lng": 51.2231432
+      },
+      "distanceKm": 6.33
+    },
+    {
+      "waypoint": {
+        "lat": 38.897,
+        "lng": 46.246,
+        "name": "Meghri, Armenia (Syunik)"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 3450729709,
+        "lat": 38.8541045,
+        "lng": 46.2063328
+      },
+      "distanceKm": 5.88
+    },
+    {
+      "waypoint": {
+        "lat": 38.96,
+        "lng": 45.63,
+        "name": "Julfa"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 179674162,
+        "lat": 38.9430749,
+        "lng": 45.6336783
+      },
+      "distanceKm": 1.91
+    },
+    {
+      "waypoint": {
+        "lat": 29.306,
+        "lng": 120.075,
+        "name": "Yiwu, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "02/20",
+        "osmId": 93077848,
+        "lat": 29.3391762,
+        "lng": 120.0302252
+      },
+      "distanceKm": 5.7
+    },
+    {
+      "waypoint": {
+        "lat": 43.826,
+        "lng": 87.617,
+        "name": "Urumqi"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "安平路机场",
+        "osmId": 1071636645,
+        "lat": 43.817091434000005,
+        "lng": 87.68791282599999
+      },
+      "distanceKm": 5.77
+    },
+    {
+      "waypoint": {
+        "lat": 44.208,
+        "lng": 80.406,
+        "name": "Khorgos border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Qorğas border checkpoint",
+        "osmId": 2711018269,
+        "lat": 44.2177974,
+        "lng": 80.3933039
+      },
+      "distanceKm": 1.49
+    },
+    {
+      "waypoint": {
+        "lat": 43.238,
+        "lng": 76.945,
+        "name": "Almaty"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1134613215,
+        "lat": 43.2343228,
+        "lng": 76.9468779
+      },
+      "distanceKm": 0.44
+    },
+    {
+      "waypoint": {
+        "lat": 42.317,
+        "lng": 69.586,
+        "name": "Shymkent"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1383282049,
+        "lat": 42.3722629,
+        "lng": 69.6140832
+      },
+      "distanceKm": 6.56
+    },
+    {
+      "waypoint": {
+        "lat": 41.299,
+        "lng": 69.24,
+        "name": "Tashkent, Uzbekistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1474149028,
+        "lat": 41.3146226,
+        "lng": 69.2520158
+      },
+      "distanceKm": 2.01
+    },
+    {
+      "waypoint": {
+        "lat": 39.083,
+        "lng": 63.578,
+        "name": "Turkmenabat, Turkmenistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 422009287,
+        "lat": 39.0923965,
+        "lng": 63.5883802
+      },
+      "distanceKm": 1.38
+    },
+    {
+      "waypoint": {
+        "lat": 37.96,
+        "lng": 58.326,
+        "name": "Ashgabat"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 410844105,
+        "lat": 37.9516087,
+        "lng": 58.3381418
+      },
+      "distanceKm": 1.42
+    },
+    {
+      "waypoint": {
+        "lat": 36.545,
+        "lng": 61.16,
+        "name": "Sarakhs border"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 13234569556,
+        "lat": 36.5509171,
+        "lng": 61.1600102
+      },
+      "distanceKm": 0.66
+    },
+    {
+      "waypoint": {
+        "lat": 36.297,
+        "lng": 59.606,
+        "name": "Mashhad, Iran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1244078106,
+        "lat": 36.2689923,
+        "lng": 59.5702084
+      },
+      "distanceKm": 4.47
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 59.934,
+        "lng": 30.335,
+        "name": "St. Petersburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Hotel Ambassador",
+        "osmId": 209086592,
+        "lat": 59.9248796,
+        "lng": 30.3104969
+      },
+      "distanceKm": 1.7
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 46.347,
+        "lng": 48.033,
+        "name": "Astrakhan (Caspian port)"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП «Астрахань»",
+        "osmId": 10176144643,
+        "lat": 46.3599088,
+        "lng": 48.0371216
+      },
+      "distanceKm": 1.47
+    },
+    {
+      "waypoint": {
+        "lat": 37.47,
+        "lng": 49.461,
+        "name": "Bandar-e Anzali, Iran"
+      },
+      "match": {
+        "category": "border",
+        "name": "اداره گمرک بندر انزلی",
+        "osmId": 532989853,
+        "lat": 37.4669955,
+        "lng": 49.4700377
+      },
+      "distanceKm": 0.86
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 27.187,
+        "lng": 56.278,
+        "name": "Bandar Abbas (Persian Gulf port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 825815828,
+        "lat": 27.2100517,
+        "lng": 56.3351778
+      },
+      "distanceKm": 6.21
+    },
+    {
+      "waypoint": {
+        "lat": 59.934,
+        "lng": 30.335,
+        "name": "St. Petersburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Hotel Ambassador",
+        "osmId": 209086592,
+        "lat": 59.9248796,
+        "lng": 30.3104969
+      },
+      "distanceKm": 1.7
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 46.347,
+        "lng": 48.033,
+        "name": "Astrakhan (Caspian port)"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП «Астрахань»",
+        "osmId": 10176144643,
+        "lat": 46.3599088,
+        "lng": 48.0371216
+      },
+      "distanceKm": 1.47
+    },
+    {
+      "waypoint": {
+        "lat": 46.347,
+        "lng": 48.033,
+        "name": "Astrakhan (Caspian port)"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП «Астрахань»",
+        "osmId": 10176144643,
+        "lat": 46.3599088,
+        "lng": 48.0371216
+      },
+      "distanceKm": 1.47
+    },
+    {
+      "waypoint": {
+        "lat": 37.47,
+        "lng": 49.461,
+        "name": "Bandar-e Anzali, Iran"
+      },
+      "match": {
+        "category": "border",
+        "name": "اداره گمرک بندر انزلی",
+        "osmId": 532989853,
+        "lat": 37.4669955,
+        "lng": 49.4700377
+      },
+      "distanceKm": 0.86
+    },
+    {
+      "waypoint": {
+        "lat": 37.47,
+        "lng": 49.461,
+        "name": "Bandar-e Anzali, Iran"
+      },
+      "match": {
+        "category": "border",
+        "name": "اداره گمرک بندر انزلی",
+        "osmId": 532989853,
+        "lat": 37.4669955,
+        "lng": 49.4700377
+      },
+      "distanceKm": 0.86
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 27.187,
+        "lng": 56.278,
+        "name": "Bandar Abbas (Persian Gulf port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 825815828,
+        "lat": 27.2100517,
+        "lng": 56.3351778
+      },
+      "distanceKm": 6.21
+    },
+    {
+      "waypoint": {
+        "lat": 27.187,
+        "lng": 56.278,
+        "name": "Bandar Abbas (Persian Gulf port)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 825815828,
+        "lat": 27.2100517,
+        "lng": 56.3351778
+      },
+      "distanceKm": 6.21
+    },
+    {
+      "waypoint": {
+        "lat": 46.347,
+        "lng": 48.033,
+        "name": "Astrakhan"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП «Астрахань»",
+        "osmId": 10176144643,
+        "lat": 46.3599088,
+        "lng": 48.0371216
+      },
+      "distanceKm": 1.47
+    },
+    {
+      "waypoint": {
+        "lat": 42.983,
+        "lng": 47.504,
+        "name": "Makhachkala"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Makhachkala",
+        "osmId": 13416455044,
+        "lat": 42.9886494,
+        "lng": 47.5053974
+      },
+      "distanceKm": 0.64
+    },
+    {
+      "waypoint": {
+        "lat": 38.421,
+        "lng": 48.877,
+        "name": "Astara border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Border regiment",
+        "osmId": 697562008,
+        "lat": 38.4137165,
+        "lng": 48.7416978
+      },
+      "distanceKm": 11.82
+    },
+    {
+      "waypoint": {
+        "lat": 37.28,
+        "lng": 49.583,
+        "name": "Rasht, Iran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1236073734,
+        "lat": 37.2864012,
+        "lng": 49.57816
+      },
+      "distanceKm": 0.83
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 36.86,
+        "lng": 53.3,
+        "name": "Amirabad port (Caspian)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1296618589,
+        "lat": 36.8426009,
+        "lng": 53.2843306
+      },
+      "distanceKm": 2.38
+    },
+    {
+      "waypoint": {
+        "lat": 42.983,
+        "lng": 47.504,
+        "name": "Makhachkala, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Makhachkala",
+        "osmId": 13416455044,
+        "lat": 42.9886494,
+        "lng": 47.5053974
+      },
+      "distanceKm": 0.64
+    },
+    {
+      "waypoint": {
+        "lat": 46.35,
+        "lng": 41.0,
+        "name": "overland via southern Russia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "08/26",
+        "osmId": 127579502,
+        "lat": 46.4629154,
+        "lng": 40.8424523
+      },
+      "distanceKm": 17.42
+    },
+    {
+      "waypoint": {
+        "lat": 46.05,
+        "lng": 38.17,
+        "name": "Primorsko-Akhtarsk air base"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 9949488417,
+        "lat": 46.0381126,
+        "lng": 38.1504418
+      },
+      "distanceKm": 2.01
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 36.86,
+        "lng": 53.3,
+        "name": "Amirabad port (Caspian)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1296618589,
+        "lat": 36.8426009,
+        "lng": 53.2843306
+      },
+      "distanceKm": 2.38
+    },
+    {
+      "waypoint": {
+        "lat": 36.86,
+        "lng": 53.3,
+        "name": "Amirabad port (Caspian)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1296618589,
+        "lat": 36.8426009,
+        "lng": 53.2843306
+      },
+      "distanceKm": 2.38
+    },
+    {
+      "waypoint": {
+        "lat": 42.983,
+        "lng": 47.504,
+        "name": "Makhachkala, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Makhachkala",
+        "osmId": 13416455044,
+        "lat": 42.9886494,
+        "lng": 47.5053974
+      },
+      "distanceKm": 0.64
+    },
+    {
+      "waypoint": {
+        "lat": 42.983,
+        "lng": 47.504,
+        "name": "Makhachkala, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Makhachkala",
+        "osmId": 13416455044,
+        "lat": 42.9886494,
+        "lng": 47.5053974
+      },
+      "distanceKm": 0.64
+    },
+    {
+      "waypoint": {
+        "lat": 46.35,
+        "lng": 41.0,
+        "name": "overland via southern Russia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "08/26",
+        "osmId": 127579502,
+        "lat": 46.4629154,
+        "lng": 40.8424523
+      },
+      "distanceKm": 17.42
+    },
+    {
+      "waypoint": {
+        "lat": 46.05,
+        "lng": 38.17,
+        "name": "Primorsko-Akhtarsk air base"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 9949488417,
+        "lat": 46.0381126,
+        "lng": 38.1504418
+      },
+      "distanceKm": 2.01
+    },
+    {
+      "waypoint": {
+        "lat": 42.983,
+        "lng": 47.504,
+        "name": "Makhachkala, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Makhachkala",
+        "osmId": 13416455044,
+        "lat": 42.9886494,
+        "lng": 47.5053974
+      },
+      "distanceKm": 0.64
+    },
+    {
+      "waypoint": {
+        "lat": 46.347,
+        "lng": 48.033,
+        "name": "Astrakhan"
+      },
+      "match": {
+        "category": "border",
+        "name": "ММПП «Астрахань»",
+        "osmId": 10176144643,
+        "lat": 46.3599088,
+        "lng": 48.0371216
+      },
+      "distanceKm": 1.47
+    },
+    {
+      "waypoint": {
+        "lat": 53.29,
+        "lng": 34.03,
+        "name": "Seshcha air base, Bryansk Oblast"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Страшевичи",
+        "osmId": 1090805533,
+        "lat": 53.277685285714284,
+        "lng": 33.907966622857145
+      },
+      "distanceKm": 8.23
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 34.314,
+        "lng": 47.065,
+        "name": "Kermanshah"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "پد هوایی بیمارستان",
+        "osmId": 6765141917,
+        "lat": 34.2983111,
+        "lng": 47.0677376
+      },
+      "distanceKm": 1.76
+    },
+    {
+      "waypoint": {
+        "lat": 33.315,
+        "lng": 44.366,
+        "name": "Baghdad"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 832799037,
+        "lat": 33.3117922,
+        "lng": 44.3651055
+      },
+      "distanceKm": 0.37
+    },
+    {
+      "waypoint": {
+        "lat": 35.336,
+        "lng": 40.147,
+        "name": "Deir ez-Zor"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Deirezzor International Airport",
+        "osmId": 316077289,
+        "lat": 35.29020773414634,
+        "lng": 40.16942528414634
+      },
+      "distanceKm": 5.48
+    },
+    {
+      "waypoint": {
+        "lat": 33.513,
+        "lng": 36.276,
+        "name": "Damascus"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 43906447,
+        "lat": 33.51966,
+        "lng": 36.264221
+      },
+      "distanceKm": 1.32
+    },
+    {
+      "waypoint": {
+        "lat": 34.89,
+        "lng": 35.886,
+        "name": "Tartus"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 236827085,
+        "lat": 34.9164426,
+        "lng": 35.8759166
+      },
+      "distanceKm": 3.08
+    },
+    {
+      "waypoint": {
+        "lat": 31.23,
+        "lng": 121.474,
+        "name": "Shanghai"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1240809366,
+        "lat": 31.2333805,
+        "lng": 121.4644476
+      },
+      "distanceKm": 0.98
+    },
+    {
+      "waypoint": {
+        "lat": 12.6,
+        "lng": 43.4,
+        "name": "Bab-el-Mandeb"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1187565163,
+        "lat": 12.6665315,
+        "lng": 43.4063731
+      },
+      "distanceKm": 7.43
+    },
+    {
+      "waypoint": {
+        "lat": 27.95,
+        "lng": 34.66,
+        "name": "Red Sea approach"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1299520991,
+        "lat": 28.1452668,
+        "lng": 34.6625256
+      },
+      "distanceKm": 21.71
+    },
+    {
+      "waypoint": {
+        "lat": 60.72,
+        "lng": 114.93,
+        "name": "Lensk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "ILS Lenszk",
+        "osmId": 492043375,
+        "lat": 60.7456615,
+        "lng": 114.9010706
+      },
+      "distanceKm": 3.26
+    },
+    {
+      "waypoint": {
+        "lat": 58.6,
+        "lng": 125.39,
+        "name": "Aldan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "06/24",
+        "osmId": 25688642,
+        "lat": 58.6006059,
+        "lng": 125.402968
+      },
+      "distanceKm": 0.75
+    },
+    {
+      "waypoint": {
+        "lat": 51.37,
+        "lng": 128.13,
+        "name": "Svobodny"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Svobodny Airport",
+        "osmId": 412049030,
+        "lat": 51.4550285,
+        "lng": 128.1002637
+      },
+      "distanceKm": 9.68
+    },
+    {
+      "waypoint": {
+        "lat": 50.27,
+        "lng": 127.54,
+        "name": "Blagoveshchensk"
+      },
+      "match": {
+        "category": "border",
+        "name": "黑河口岸",
+        "osmId": 6245915601,
+        "lat": 50.2481192,
+        "lng": 127.5334528
+      },
+      "distanceKm": 2.48
+    },
+    {
+      "waypoint": {
+        "lat": 50.24,
+        "lng": 127.48,
+        "name": "Heihe, China"
+      },
+      "match": {
+        "category": "border",
+        "name": "黑河口岸",
+        "osmId": 6245915601,
+        "lat": 50.2481192,
+        "lng": 127.5334528
+      },
+      "distanceKm": 3.91
+    },
+    {
+      "waypoint": {
+        "lat": 45.8,
+        "lng": 126.54,
+        "name": "Harbin"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 6313518863,
+        "lat": 45.7546955,
+        "lng": 126.5462837
+      },
+      "distanceKm": 5.06
+    },
+    {
+      "waypoint": {
+        "lat": 31.23,
+        "lng": 121.47,
+        "name": "Shanghai"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1240809366,
+        "lat": 31.2333805,
+        "lng": 121.4644476
+      },
+      "distanceKm": 0.65
+    },
+    {
+      "waypoint": {
+        "lat": 47.72,
+        "lng": 132.51,
+        "name": "Tongjiang, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1029394666,
+        "lat": 47.6912133,
+        "lng": 132.5167674
+      },
+      "distanceKm": 3.24
+    },
+    {
+      "waypoint": {
+        "lat": 47.7,
+        "lng": 132.55,
+        "name": "Nizhneleninskoye, Russia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1029394339,
+        "lat": 47.6851004,
+        "lng": 132.5264365
+      },
+      "distanceKm": 2.42
+    },
+    {
+      "waypoint": {
+        "lat": 40.128,
+        "lng": 124.395,
+        "name": "Dandong, China"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 218437325,
+        "lat": 40.1195979,
+        "lng": 124.3872732
+      },
+      "distanceKm": 1.14
+    },
+    {
+      "waypoint": {
+        "lat": 40.1,
+        "lng": 124.4,
+        "name": "Sinuiju, DPRK"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2276859640,
+        "lat": 40.1100755,
+        "lng": 124.398236
+      },
+      "distanceKm": 1.13
+    },
+    {
+      "waypoint": {
+        "lat": 38.74,
+        "lng": 125.41,
+        "name": "Nampo, DPRK"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 2373043032,
+        "lat": 38.7233507,
+        "lng": 125.4041975
+      },
+      "distanceKm": 1.92
+    },
+    {
+      "waypoint": {
+        "lat": 27.187,
+        "lng": 56.278,
+        "name": "Bandar Abbas, Iran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 825815828,
+        "lat": 27.2100517,
+        "lng": 56.3351778
+      },
+      "distanceKm": 6.21
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 54.782,
+        "lng": 32.045,
+        "name": "Smolensk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1249637843,
+        "lat": 54.7478666,
+        "lng": 32.0687823
+      },
+      "distanceKm": 4.09
+    },
+    {
+      "waypoint": {
+        "lat": 54.508,
+        "lng": 30.416,
+        "name": "Orsha"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 341385748,
+        "lat": 54.5110806,
+        "lng": 30.5169964
+      },
+      "distanceKm": 6.53
+    },
+    {
+      "waypoint": {
+        "lat": 53.9,
+        "lng": 27.56,
+        "name": "Minsk"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1424647679,
+        "lat": 53.9012592,
+        "lng": 27.5950592
+      },
+      "distanceKm": 2.3
+    },
+    {
+      "waypoint": {
+        "lat": 52.097,
+        "lng": 23.734,
+        "name": "Brest (1520 mm)"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 6682342112,
+        "lat": 52.1008999,
+        "lng": 23.6814249
+      },
+      "distanceKm": 3.62
+    },
+    {
+      "waypoint": {
+        "lat": 52.05,
+        "lng": 23.52,
+        "name": "Małaszewicze (1435 mm)"
+      },
+      "match": {
+        "category": "border",
+        "name": "Przejście graniczne Kukuryki — Kozłowicze",
+        "osmId": 128228051,
+        "lat": 52.1102044,
+        "lng": 23.5611205
+      },
+      "distanceKm": 7.26
+    },
+    {
+      "waypoint": {
+        "lat": 54.64,
+        "lng": 25.55,
+        "name": "Kena / Mockava area"
+      },
+      "match": {
+        "category": "border",
+        "name": "Medininkai (≤3,5t, BUS)",
+        "osmId": 11894982412,
+        "lat": 54.5455626,
+        "lng": 25.6948906
+      },
+      "distanceKm": 14.05
+    },
+    {
+      "waypoint": {
+        "lat": 54.58,
+        "lng": 25.85,
+        "name": "Belarus border"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 737355600,
+        "lat": 54.584303,
+        "lng": 25.8245513
+      },
+      "distanceKm": 1.71
+    },
+    {
+      "waypoint": {
+        "lat": 56.386,
+        "lng": 28.122,
+        "name": "Zilupe"
+      },
+      "match": {
+        "category": "border",
+        "name": "Terehova",
+        "osmId": 4871349613,
+        "lat": 56.3554509,
+        "lng": 28.1875012
+      },
+      "distanceKm": 5.27
+    },
+    {
+      "waypoint": {
+        "lat": 56.35,
+        "lng": 28.35,
+        "name": "Russia border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Тыловой пограничный пост «Исса»",
+        "osmId": 961077889,
+        "lat": 56.3563176,
+        "lng": 28.2717332
+      },
+      "distanceKm": 4.87
+    },
+    {
+      "waypoint": {
+        "lat": 59.379,
+        "lng": 28.179,
+        "name": "Narva"
+      },
+      "match": {
+        "category": "border",
+        "name": "Narva-1",
+        "osmId": 4849141533,
+        "lat": 59.3774031,
+        "lng": 28.1961861
+      },
+      "distanceKm": 0.99
+    },
+    {
+      "waypoint": {
+        "lat": 59.377,
+        "lng": 28.22,
+        "name": "Ivangorod"
+      },
+      "match": {
+        "category": "border",
+        "name": "МАПП «Ивангород»",
+        "osmId": 85217003,
+        "lat": 59.3756428,
+        "lng": 28.2118011
+      },
+      "distanceKm": 0.49
+    },
+    {
+      "waypoint": {
+        "lat": 60.7,
+        "lng": 27.85,
+        "name": "Vainikkala"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 1306100066,
+        "lat": 60.6060744,
+        "lng": 27.850446
+      },
+      "distanceKm": 10.44
+    },
+    {
+      "waypoint": {
+        "lat": 60.71,
+        "lng": 28.75,
+        "name": "Vyborg"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Причал №15",
+        "osmId": 1421366159,
+        "lat": 60.7169836,
+        "lng": 28.7472795
+      },
+      "distanceKm": 0.79
+    },
+    {
+      "waypoint": {
+        "lat": 49.807,
+        "lng": 22.932,
+        "name": "Medyka / Przemyśl"
+      },
+      "match": {
+        "category": "border",
+        "name": "Medyka",
+        "osmId": 4588756401,
+        "lat": 49.8000948,
+        "lng": 22.9422403
+      },
+      "distanceKm": 1.06
+    },
+    {
+      "waypoint": {
+        "lat": 49.79,
+        "lng": 23.05,
+        "name": "Mostyska"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Shegini Heliport",
+        "osmId": 663588151,
+        "lat": 49.7955263,
+        "lng": 22.9667837
+      },
+      "distanceKm": 6.0
+    },
+    {
+      "waypoint": {
+        "lat": 48.405,
+        "lng": 22.176,
+        "name": "Záhony"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 10066471816,
+        "lat": 48.4112975,
+        "lng": 22.1727526
+      },
+      "distanceKm": 0.74
+    },
+    {
+      "waypoint": {
+        "lat": 48.42,
+        "lng": 22.25,
+        "name": "Chop"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2051644462,
+        "lat": 48.4116968,
+        "lng": 22.1737683
+      },
+      "distanceKm": 5.7
+    },
+    {
+      "waypoint": {
+        "lat": 48.39,
+        "lng": 22.09,
+        "name": "Čierna nad Tisou"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2051644423,
+        "lat": 48.4114092,
+        "lng": 22.1716547
+      },
+      "distanceKm": 6.48
+    },
+    {
+      "waypoint": {
+        "lat": 48.42,
+        "lng": 22.2,
+        "name": "Chop area"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 10308736033,
+        "lat": 48.4179764,
+        "lng": 22.1711917
+      },
+      "distanceKm": 2.14
+    },
+    {
+      "waypoint": {
+        "lat": 47.95,
+        "lng": 26.0,
+        "name": "Vadul Siret / Vicșani"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 2974093834,
+        "lat": 47.9886845,
+        "lng": 26.059695
+      },
+      "distanceKm": 6.18
+    },
+    {
+      "waypoint": {
+        "lat": 48.05,
+        "lng": 26.15,
+        "name": "Ukraine border"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 3019220143,
+        "lat": 47.9895233,
+        "lng": 26.0605709
+      },
+      "distanceKm": 9.46
+    },
+    {
+      "waypoint": {
+        "lat": 46.2,
+        "lng": 53.4,
+        "name": "Tengiz field, Kazakhstan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 569410339,
+        "lat": 46.1817543,
+        "lng": 53.4193215
+      },
+      "distanceKm": 2.52
+    },
+    {
+      "waypoint": {
+        "lat": 47.1,
+        "lng": 51.92,
+        "name": "Atyrau"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 765856256,
+        "lat": 47.1068012,
+        "lng": 51.8934218
+      },
+      "distanceKm": 2.15
+    },
+    {
+      "waypoint": {
+        "lat": 45.44,
+        "lng": 40.57,
+        "name": "Kropotkin, Russia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Sovkhoz Kuban'",
+        "osmId": 1424569430,
+        "lat": 45.33583104,
+        "lng": 40.40871874
+      },
+      "distanceKm": 17.11
+    },
+    {
+      "waypoint": {
+        "lat": 44.72,
+        "lng": 37.77,
+        "name": "Novorossiysk marine terminal"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Новороссийский порт, участок 1",
+        "osmId": 1168951234,
+        "lat": 44.7211171,
+        "lng": 37.781918
+      },
+      "distanceKm": 0.95
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 53.2,
+        "lng": 50.15,
+        "name": "Samara"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "у парома",
+        "osmId": 1176233630,
+        "lat": 53.2250837,
+        "lng": 50.1478814
+      },
+      "distanceKm": 2.79
+    },
+    {
+      "waypoint": {
+        "lat": 51.77,
+        "lng": 55.1,
+        "name": "Orenburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1205904731,
+        "lat": 51.8052478,
+        "lng": 55.1771316
+      },
+      "distanceKm": 6.6
+    },
+    {
+      "waypoint": {
+        "lat": 50.28,
+        "lng": 57.21,
+        "name": "Aktobe"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Әуе қорғанысы күштері Әскери институтының авиациялық тұрағы",
+        "osmId": 326134505,
+        "lat": 50.255440893333336,
+        "lng": 57.19874287333334
+      },
+      "distanceKm": 2.85
+    },
+    {
+      "waypoint": {
+        "lat": 44.85,
+        "lng": 65.52,
+        "name": "Kyzylorda"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Korkyt Ata Airport",
+        "osmId": 249855017,
+        "lat": 44.70876111818182,
+        "lng": 65.5903694490909
+      },
+      "distanceKm": 16.66
+    },
+    {
+      "waypoint": {
+        "lat": 41.3,
+        "lng": 69.24,
+        "name": "Tashkent"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1474149028,
+        "lat": 41.3146226,
+        "lng": 69.2520158
+      },
+      "distanceKm": 1.91
+    },
+    {
+      "waypoint": {
+        "lat": 39.083,
+        "lng": 63.578,
+        "name": "Turkmenabat, Turkmenistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 422009287,
+        "lat": 39.0923965,
+        "lng": 63.5883802
+      },
+      "distanceKm": 1.38
+    },
+    {
+      "waypoint": {
+        "lat": 39.77,
+        "lng": 64.42,
+        "name": "Bukhara, Uzbekistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 259026335,
+        "lat": 39.8036643,
+        "lng": 64.4387523
+      },
+      "distanceKm": 4.07
+    },
+    {
+      "waypoint": {
+        "lat": 42.78,
+        "lng": 59.14,
+        "name": "Kungrad area"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1165087454,
+        "lat": 42.819579,
+        "lng": 58.9950702
+      },
+      "distanceKm": 12.62
+    },
+    {
+      "waypoint": {
+        "lat": 45.32,
+        "lng": 55.2,
+        "name": "Beyneu, Kazakhstan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "14/32",
+        "osmId": 39727599,
+        "lat": 45.3312718,
+        "lng": 55.1249123
+      },
+      "distanceKm": 6.0
+    },
+    {
+      "waypoint": {
+        "lat": 47.1,
+        "lng": 51.92,
+        "name": "Atyrau"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 765856256,
+        "lat": 47.1068012,
+        "lng": 51.8934218
+      },
+      "distanceKm": 2.15
+    },
+    {
+      "waypoint": {
+        "lat": 50.15,
+        "lng": 48.57,
+        "name": "Alexandrov Gay, Russia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1204596630,
+        "lat": 50.1333844,
+        "lng": 48.6403555
+      },
+      "distanceKm": 5.34
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 51.77,
+        "lng": 55.1,
+        "name": "Orenburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1205904731,
+        "lat": 51.8052478,
+        "lng": 55.1771316
+      },
+      "distanceKm": 6.6
+    },
+    {
+      "waypoint": {
+        "lat": 50.28,
+        "lng": 57.21,
+        "name": "Aktobe"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Әуе қорғанысы күштері Әскери институтының авиациялық тұрағы",
+        "osmId": 326134505,
+        "lat": 50.255440893333336,
+        "lng": 57.19874287333334
+      },
+      "distanceKm": 2.85
+    },
+    {
+      "waypoint": {
+        "lat": 43.238,
+        "lng": 76.945,
+        "name": "Almaty"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1134613215,
+        "lat": 43.2343228,
+        "lng": 76.9468779
+      },
+      "distanceKm": 0.44
+    },
+    {
+      "waypoint": {
+        "lat": 42.87,
+        "lng": 74.59,
+        "name": "Bishkek"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 55969520,
+        "lat": 42.900861,
+        "lng": 74.51671
+      },
+      "distanceKm": 6.89
+    },
+    {
+      "waypoint": {
+        "lat": 55.751,
+        "lng": 37.617,
+        "name": "Moscow"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1219452674,
+        "lat": 55.7499309,
+        "lng": 37.6211098
+      },
+      "distanceKm": 0.28
+    },
+    {
+      "waypoint": {
+        "lat": 51.77,
+        "lng": 55.1,
+        "name": "Orenburg"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1205904731,
+        "lat": 51.8052478,
+        "lng": 55.1771316
+      },
+      "distanceKm": 6.6
+    },
+    {
+      "waypoint": {
+        "lat": 50.28,
+        "lng": 57.21,
+        "name": "Aktobe"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Әуе қорғанысы күштері Әскери институтының авиациялық тұрағы",
+        "osmId": 326134505,
+        "lat": 50.255440893333336,
+        "lng": 57.19874287333334
+      },
+      "distanceKm": 2.85
+    },
+    {
+      "waypoint": {
+        "lat": 41.3,
+        "lng": 69.24,
+        "name": "Tashkent"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1474149028,
+        "lat": 41.3146226,
+        "lng": 69.2520158
+      },
+      "distanceKm": 1.91
+    },
+    {
+      "waypoint": {
+        "lat": 38.56,
+        "lng": 68.78,
+        "name": "Dushanbe"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1351904663,
+        "lat": 38.5460051,
+        "lng": 68.8048951
+      },
+      "distanceKm": 2.67
+    },
+    {
+      "waypoint": {
+        "lat": 44.72,
+        "lng": 37.77,
+        "name": "Novorossiysk, Russia"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "Новороссийский порт, участок 1",
+        "osmId": 1168951234,
+        "lat": 44.7211171,
+        "lng": 37.781918
+      },
+      "distanceKm": 0.95
+    },
+    {
+      "waypoint": {
+        "lat": 34.89,
+        "lng": 35.89,
+        "name": "Tartus, Syria"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 236827085,
+        "lat": 34.9164426,
+        "lng": 35.8759166
+      },
+      "distanceKm": 3.21
+    },
+    {
+      "waypoint": {
+        "lat": 47.1,
+        "lng": 51.92,
+        "name": "Atyrau"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 765856256,
+        "lat": 47.1068012,
+        "lng": 51.8934218
+      },
+      "distanceKm": 2.15
+    },
+    {
+      "waypoint": {
+        "lat": 48.2,
+        "lng": 57.45,
+        "name": "Kenkiyak"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 324822382,
+        "lat": 48.3408846,
+        "lng": 57.4319353
+      },
+      "distanceKm": 15.72
+    },
+    {
+      "waypoint": {
+        "lat": 48.68,
+        "lng": 71.65,
+        "name": "Atasu"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1087591650,
+        "lat": 48.6543507,
+        "lng": 71.6231649
+      },
+      "distanceKm": 3.47
+    },
+    {
+      "waypoint": {
+        "lat": 45.18,
+        "lng": 82.57,
+        "name": "Alashankou, China border"
+      },
+      "match": {
+        "category": "border",
+        "name": null,
+        "osmId": 1942796850,
+        "lat": 45.1933217,
+        "lng": 82.5670353
+      },
+      "distanceKm": 1.5
+    },
+    {
+      "waypoint": {
+        "lat": 43.826,
+        "lng": 87.617,
+        "name": "Urumqi"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "安平路机场",
+        "osmId": 1071636645,
+        "lat": 43.817091434000005,
+        "lng": 87.68791282599999
+      },
+      "distanceKm": 5.77
+    },
+    {
+      "waypoint": {
+        "lat": 39.47,
+        "lng": 75.99,
+        "name": "Kashgar, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Kashgar Airport",
+        "osmId": 102528860,
+        "lat": 39.54004962333333,
+        "lng": 76.01677694333333
+      },
+      "distanceKm": 8.12
+    },
+    {
+      "waypoint": {
+        "lat": 39.69,
+        "lng": 73.95,
+        "name": "Irkeshtam Pass"
+      },
+      "match": {
+        "category": "border",
+        "name": "伊尔克什坦口岸",
+        "osmId": 273356521,
+        "lat": 39.6956473,
+        "lng": 73.9254246
+      },
+      "distanceKm": 2.19
+    },
+    {
+      "waypoint": {
+        "lat": 40.53,
+        "lng": 72.8,
+        "name": "Osh, Kyrgyzstan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1290382569,
+        "lat": 40.5163678,
+        "lng": 72.753913
+      },
+      "distanceKm": 4.18
+    },
+    {
+      "waypoint": {
+        "lat": 40.93,
+        "lng": 72.98,
+        "name": "Jalal-Abad"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "01 / 19",
+        "osmId": 61940445,
+        "lat": 40.9423413,
+        "lng": 72.9766872
+      },
+      "distanceKm": 1.4
+    },
+    {
+      "waypoint": {
+        "lat": 40.78,
+        "lng": 72.34,
+        "name": "Andijan, Uzbekistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "04/22",
+        "osmId": 22821390,
+        "lat": 40.7326205,
+        "lng": 72.3001886
+      },
+      "distanceKm": 6.25
+    },
+    {
+      "waypoint": {
+        "lat": 39.77,
+        "lng": 64.42,
+        "name": "Bukhara, Uzbekistan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 259026335,
+        "lat": 39.8036643,
+        "lng": 64.4387523
+      },
+      "distanceKm": 4.07
+    },
+    {
+      "waypoint": {
+        "lat": 42.32,
+        "lng": 69.59,
+        "name": "Shymkent, Kazakhstan"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1383282049,
+        "lat": 42.3722629,
+        "lng": 69.6140832
+      },
+      "distanceKm": 6.14
+    },
+    {
+      "waypoint": {
+        "lat": 44.21,
+        "lng": 80.41,
+        "name": "Khorgos border"
+      },
+      "match": {
+        "category": "border",
+        "name": "Qorğas border checkpoint",
+        "osmId": 2711018269,
+        "lat": 44.2177974,
+        "lng": 80.3933039
+      },
+      "distanceKm": 1.59
+    },
+    {
+      "waypoint": {
+        "lat": 43.826,
+        "lng": 87.617,
+        "name": "Urumqi"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "安平路机场",
+        "osmId": 1071636645,
+        "lat": 43.817091434000005,
+        "lng": 87.68791282599999
+      },
+      "distanceKm": 5.77
+    },
+    {
+      "waypoint": {
+        "lat": 39.47,
+        "lng": 75.99,
+        "name": "Kashgar, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Kashgar Airport",
+        "osmId": 102528860,
+        "lat": 39.54004962333333,
+        "lng": 76.01677694333333
+      },
+      "distanceKm": 8.12
+    },
+    {
+      "waypoint": {
+        "lat": 36.85,
+        "lng": 75.42,
+        "name": "Khunjerab Pass"
+      },
+      "match": {
+        "category": "border",
+        "name": "End of Karakoram Highway",
+        "osmId": 1937710278,
+        "lat": 36.846411,
+        "lng": 75.4267066
+      },
+      "distanceKm": 0.72
+    },
+    {
+      "waypoint": {
+        "lat": 35.92,
+        "lng": 74.31,
+        "name": "Gilgit"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "07/25",
+        "osmId": 25019896,
+        "lat": 35.918336,
+        "lng": 74.3319884
+      },
+      "distanceKm": 1.99
+    },
+    {
+      "waypoint": {
+        "lat": 33.68,
+        "lng": 73.05,
+        "name": "Islamabad"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1172849549,
+        "lat": 33.6917568,
+        "lng": 73.0975608
+      },
+      "distanceKm": 4.59
+    },
+    {
+      "waypoint": {
+        "lat": 24.86,
+        "lng": 67.01,
+        "name": "Karachi"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1238525090,
+        "lat": 24.8394646,
+        "lng": 67.0491316
+      },
+      "distanceKm": 4.56
+    },
+    {
+      "waypoint": {
+        "lat": 25.13,
+        "lng": 62.32,
+        "name": "Gwadar Port"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1538000882,
+        "lat": 25.1173234,
+        "lng": 62.313221
+      },
+      "distanceKm": 1.57
+    },
+    {
+      "waypoint": {
+        "lat": 26.64,
+        "lng": 50.16,
+        "name": "Ras Tanura, Saudi Arabia"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 388626346,
+        "lat": 26.7060342,
+        "lng": 50.0913498
+      },
+      "distanceKm": 10.02
+    },
+    {
+      "waypoint": {
+        "lat": 29.87,
+        "lng": 121.55,
+        "name": "Ningbo, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1336600625,
+        "lat": 29.8711988,
+        "lng": 121.5614364
+      },
+      "distanceKm": 1.11
+    },
+    {
+      "waypoint": {
+        "lat": 25.01,
+        "lng": 55.06,
+        "name": "Jebel Ali, UAE"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 664469615,
+        "lat": 25.0130091,
+        "lng": 55.0488682
+      },
+      "distanceKm": 1.17
+    },
+    {
+      "waypoint": {
+        "lat": 31.23,
+        "lng": 121.47,
+        "name": "Shanghai"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1240809366,
+        "lat": 31.2333805,
+        "lng": 121.4644476
+      },
+      "distanceKm": 0.65
+    },
+    {
+      "waypoint": {
+        "lat": 19.43,
+        "lng": 93.55,
+        "name": "Kyaukpyu, Myanmar"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 489588787,
+        "lat": 19.4291517,
+        "lng": 93.5346945
+      },
+      "distanceKm": 1.61
+    },
+    {
+      "waypoint": {
+        "lat": 21.98,
+        "lng": 96.08,
+        "name": "Mandalay"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Chanmyathazi Airport",
+        "osmId": 393378682,
+        "lat": 21.94546962173913,
+        "lng": 96.09080717826086
+      },
+      "distanceKm": 4.0
+    },
+    {
+      "waypoint": {
+        "lat": 24.0,
+        "lng": 97.85,
+        "name": "Muse/Ruili border"
+      },
+      "match": {
+        "category": "border",
+        "name": "瑞丽口岸联检中心",
+        "osmId": 1431949439,
+        "lat": 23.9846693,
+        "lng": 97.8722128
+      },
+      "distanceKm": 2.83
+    },
+    {
+      "waypoint": {
+        "lat": 25.04,
+        "lng": 102.71,
+        "name": "Kunming, China"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1002870695,
+        "lat": 25.0491673,
+        "lng": 102.708994
+      },
+      "distanceKm": 1.02
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 34.314,
+        "lng": 47.065,
+        "name": "Kermanshah"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "پد هوایی بیمارستان",
+        "osmId": 6765141917,
+        "lat": 34.2983111,
+        "lng": 47.0677376
+      },
+      "distanceKm": 1.76
+    },
+    {
+      "waypoint": {
+        "lat": 33.315,
+        "lng": 44.366,
+        "name": "Baghdad"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 832799037,
+        "lat": 33.3117922,
+        "lng": 44.3651055
+      },
+      "distanceKm": 0.37
+    },
+    {
+      "waypoint": {
+        "lat": 32.616,
+        "lng": 44.024,
+        "name": "Karbala"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "ساحة اقلاع وهبوط طائرات الهليكوبتر قيادة عمليات كربلاء",
+        "osmId": 1310990610,
+        "lat": 32.5959463,
+        "lng": 44.0363707
+      },
+      "distanceKm": 2.51
+    },
+    {
+      "waypoint": {
+        "lat": 35.689,
+        "lng": 51.389,
+        "name": "Tehran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 509483060,
+        "lat": 35.6878753,
+        "lng": 51.3904262
+      },
+      "distanceKm": 0.18
+    },
+    {
+      "waypoint": {
+        "lat": 34.314,
+        "lng": 47.065,
+        "name": "Kermanshah"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "پد هوایی بیمارستان",
+        "osmId": 6765141917,
+        "lat": 34.2983111,
+        "lng": 47.0677376
+      },
+      "distanceKm": 1.76
+    },
+    {
+      "waypoint": {
+        "lat": 33.315,
+        "lng": 44.366,
+        "name": "Baghdad"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 832799037,
+        "lat": 33.3117922,
+        "lng": 44.3651055
+      },
+      "distanceKm": 0.37
+    },
+    {
+      "waypoint": {
+        "lat": 35.336,
+        "lng": 40.147,
+        "name": "Deir ez-Zor"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "Deirezzor International Airport",
+        "osmId": 316077289,
+        "lat": 35.29020773414634,
+        "lng": 40.16942528414634
+      },
+      "distanceKm": 5.48
+    },
+    {
+      "waypoint": {
+        "lat": 33.513,
+        "lng": 36.276,
+        "name": "Damascus"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 43906447,
+        "lat": 33.51966,
+        "lng": 36.264221
+      },
+      "distanceKm": 1.32
+    },
+    {
+      "waypoint": {
+        "lat": 33.888,
+        "lng": 35.495,
+        "name": "Beirut"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1312849352,
+        "lat": 33.8970219,
+        "lng": 35.501378
+      },
+      "distanceKm": 1.16
+    },
+    {
+      "waypoint": {
+        "lat": 25.45,
+        "lng": 60.4,
+        "name": "Chabahar/Konarak, Iran"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "09L/27R",
+        "osmId": 668429207,
+        "lat": 25.4453175,
+        "lng": 60.388459
+      },
+      "distanceKm": 1.27
+    },
+    {
+      "waypoint": {
+        "lat": 16.2,
+        "lng": 52.19,
+        "name": "Al Ghaydah/Nishtun, Yemen (al-Mahrah)"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": "08/26",
+        "osmId": 1186516654,
+        "lat": 16.1932099,
+        "lng": 52.1729037
+      },
+      "distanceKm": 1.98
+    },
+    {
+      "waypoint": {
+        "lat": 38.74,
+        "lng": 125.41,
+        "name": "Nampo, DPRK"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 2373043032,
+        "lat": 38.7233507,
+        "lng": 125.4041975
+      },
+      "distanceKm": 1.92
+    },
+    {
+      "waypoint": {
+        "lat": 12.6,
+        "lng": 43.4,
+        "name": "Bab-el-Mandeb"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1187565163,
+        "lat": 12.6665315,
+        "lng": 43.4063731
+      },
+      "distanceKm": 7.43
+    },
+    {
+      "waypoint": {
+        "lat": 35.52,
+        "lng": 35.79,
+        "name": "Latakia, Syria"
+      },
+      "match": {
+        "category": "harbour",
+        "name": "مرسا الصيادين",
+        "osmId": 1147860615,
+        "lat": 35.4999966,
+        "lng": 35.7817982
+      },
+      "distanceKm": 2.34
+    },
+    {
+      "waypoint": {
+        "lat": 38.74,
+        "lng": 125.41,
+        "name": "Nampo, DPRK"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 2373043032,
+        "lat": 38.7233507,
+        "lng": 125.4041975
+      },
+      "distanceKm": 1.92
+    },
+    {
+      "waypoint": {
+        "lat": 14.8,
+        "lng": 42.95,
+        "name": "Al Hudaydah, Yemen"
+      },
+      "match": {
+        "category": "aeroway",
+        "name": null,
+        "osmId": 1835923501,
+        "lat": 14.7892321,
+        "lng": 43.0031127
+      },
+      "distanceKm": 5.83
+    },
+    {
+      "waypoint": {
+        "lat": 23.13,
+        "lng": -82.35,
+        "name": "Havana, Cuba"
+      },
+      "match": {
+        "category": "border",
+        "name": "Aduana del Puerto",
+        "osmId": 6667337186,
+        "lat": 23.1332102,
+        "lng": -82.3481324
+      },
+      "distanceKm": 0.4
+    },
+    {
+      "waypoint": {
+        "lat": 38.74,
+        "lng": 125.41,
+        "name": "Nampo, DPRK (intended destination)"
+      },
+      "match": {
+        "category": "harbour",
+        "name": null,
+        "osmId": 2373043032,
+        "lat": 38.7233507,
+        "lng": 125.4041975
+      },
+      "distanceKm": 1.92
+    }
+  ]
+}

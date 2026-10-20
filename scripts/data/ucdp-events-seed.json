@@ -1,0 +1,11 @@
+[
+  {"id":"ucdp-seed-sudan-1","kind":"ucdp-event","name":"Khartoum violence (sample)","lat":15.5,"lng":32.56,"tier":1,"meta":{"year":2024,"deaths":45,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-gaza-1","kind":"ucdp-event","name":"Gaza Strip violence (sample)","lat":31.5,"lng":34.47,"tier":1,"meta":{"year":2024,"deaths":80,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-myanmar-1","kind":"ucdp-event","name":"Sagaing clashes (sample)","lat":22.0,"lng":95.4,"tier":2,"meta":{"year":2023,"deaths":18,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-sahel-1","kind":"ucdp-event","name":"Central Sahel attack (sample)","lat":14.5,"lng":-1.5,"tier":2,"meta":{"year":2023,"deaths":22,"type":"non-state","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-yemen-1","kind":"ucdp-event","name":"Hodeidah violence (sample)","lat":14.8,"lng":42.95,"tier":2,"meta":{"year":2023,"deaths":9,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-drc-1","kind":"ucdp-event","name":"North Kivu violence (sample)","lat":-1.68,"lng":29.22,"tier":1,"meta":{"year":2024,"deaths":30,"type":"non-state","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-syria-1","kind":"ucdp-event","name":"Idlib shelling (sample)","lat":35.93,"lng":36.63,"tier":2,"meta":{"year":2023,"deaths":15,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-ethiopia-1","kind":"ucdp-event","name":"Amhara clashes (sample)","lat":11.6,"lng":37.4,"tier":2,"meta":{"year":2023,"deaths":25,"type":"state-based","source":"ucdp-seed"}},
+  {"id":"ucdp-seed-colombia-1","kind":"ucdp-event","name":"Catatumbo violence (sample)","lat":8.6,"lng":-72.8,"tier":3,"meta":{"year":2022,"deaths":7,"type":"non-state","source":"ucdp-seed"}}
+]

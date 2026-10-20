@@ -16,7 +16,7 @@
  *  C = 대리지표 (관련 자산 시세 변동성 — 유가·반도체주·환율 등, 초크포인트마다 다름) — 참고, 단독 판단 금지
  */
 
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 
 export type StressLevel = "normal" | "watch" | "elevated" | "unknown";

@@ -8,9 +8,9 @@ import {
   readNewsStreamFromD1,
   writeNewsStreamToD1,
 } from "@/lib/news/d1NewsSnapshots";
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { NewsStreamPayload, NewsTheater } from "@/lib/news/types";
-import type { ViewPackageId } from "@/lib/viewPackageIds";
+import type { ViewPackageId } from "@/lib/viewPackages";
 
 export const NEWS_MEMORY_TTL_MS = 90_000;
 

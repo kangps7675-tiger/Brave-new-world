@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
-import { Inter, JetBrains_Mono, Merriweather } from "next/font/google";
 import localFont from "next/font/local";
 import { COMPACT_QUERY } from "@/hooks/compactQuery";
 import { DEVICE_BOOT_SCRIPT } from "@/hooks/deviceQueries";
@@ -79,27 +78,31 @@ const gmarket = localFont({
  * - Inter: UI·데이터 (메인)
  * - Merriweather: 양피지·긴 브리핑
  * - JetBrains Mono: 좌표·수치 터미널
+ * 세 폰트는 빌드 때 Google Fonts 를 받지 않도록 woff2(OFL, @fontsource-variable)를 저장소에 둔다 —
+ * Cloudflare 빌드에서 구글 응답이 깨지면 next/font 가 빌드를 죽였다.
  */
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: "./fonts/Inter-latin-wght.woff2",
   variable: "--font-inter",
+  weight: "100 900",
   display: "swap",
   preload: false,
 });
 
-const merriweather = Merriweather({
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
+const merriweather = localFont({
+  src: [
+    { path: "./fonts/Merriweather-latin-wght.woff2", style: "normal", weight: "300 900" },
+    { path: "./fonts/Merriweather-latin-wght-italic.woff2", style: "italic", weight: "300 900" },
+  ],
   variable: "--font-merriweather",
   display: "swap",
   preload: false,
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  weight: ["400", "500"],
-  subsets: ["latin"],
+const jetbrainsMono = localFont({
+  src: "./fonts/JetBrainsMono-latin-wght.woff2",
   variable: "--font-jetbrains-mono",
+  weight: "100 800",
   display: "swap",
   preload: false,
 });

@@ -1,0 +1,6 @@
+# Optional hard-bind: corridor-level TEU from UNCTAD RMT / TITR / INSTC official releases.
+# Country ContPortThroughput cannot express a single corridor — fill these by hand when you have numbers.
+# corridorId,teu,year,note
+corridorId,teu,year,note
+middle-corridor,85000,2023,"TITR / Middle Corridor reported TEU (placeholder — replace with RMT or TITR figure)"
+instc-trans-caspian,42000,2023,"INSTC reported TEU placeholder — replace with official INSTC/UNCTAD RMT figure"

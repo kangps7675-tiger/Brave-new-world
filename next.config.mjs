@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 /**
  * Content-Security-Policy.
  *
@@ -100,8 +102,14 @@ function shouldUseMemoryWebpackCache(dev) {
   }
 }
 
+/** 워커 URL 에 들어가는 maplibre-gl 버전 — 메인 번들과 워커를 항상 같은 버전으로 맞춘다 */
+const MAPLIBRE_VERSION = JSON.parse(
+  readFileSync(new URL("./node_modules/maplibre-gl/package.json", import.meta.url), "utf8"),
+).version;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: { NEXT_PUBLIC_MAPLIBRE_VERSION: MAPLIBRE_VERSION },
   // Next 14 SWC can emit invalid octal escapes in Cesium's embedded SPZ WASM.
   // Use Terser so the production globe chunk remains valid JavaScript.
   swcMinify: false,
@@ -153,20 +161,13 @@ const nextConfig = {
           },
         ],
       },
-      // MapLibre v6 worker (+ shared) — MIME/캐시 고정.
+      // MapLibre v6 worker (+ shared) — 버전 폴더라 내용이 불변. MIME 고정.
       // nosniff 환경에서 .mjs가 잘못된 타입으로 나가면 모듈 워커가 조용히 실패한다.
       {
-        source: "/maplibre-gl-worker.mjs",
+        source: "/maplibre-gl/:version/:file*.mjs",
         headers: [
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
-          { key: "Cache-Control", value: "public, max-age=86400" },
-        ],
-      },
-      {
-        source: "/maplibre-gl-shared.mjs",
-        headers: [
-          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
-          { key: "Cache-Control", value: "public, max-age=86400" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
     ];
