@@ -7,7 +7,7 @@ const painted = paintBlocPolygons(data as unknown as FeatureCollection);
 const blocOf = (iso: string) => painted.features.find((f) => f.properties?.iso === iso)?.properties?.bloc;
 
 describe("paintBlocPolygons", () => {
-  it("covers the five requested blocs", () => {
+  it("covers every bloc", () => {
     expect(blocOf("RUS")).toBe("crink");
     expect(blocOf("IRN")).toBe("crink");
     expect(blocOf("KAZ")).toBe("csto");
@@ -16,11 +16,10 @@ describe("paintBlocPolygons", () => {
     expect(blocOf("KOR")).toBe("us-treaty");
   });
 
-  it("repaints AUKUS countries as NATO / QUAD", () => {
-    expect(blocOf("USA")).toBe("nato");
-    expect(blocOf("GBR")).toBe("nato");
-    expect(blocOf("AUS")).toBe("quad");
-    expect(painted.features.some((f) => f.properties?.bloc === "aukus")).toBe(false);
+  it("paints AUKUS members as their own bloc", () => {
+    expect(blocOf("USA")).toBe("aukus");
+    expect(blocOf("GBR")).toBe("aukus");
+    expect(blocOf("AUS")).toBe("aukus");
   });
 
   it("dims disputed / weaker members", () => {

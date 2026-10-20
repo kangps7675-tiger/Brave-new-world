@@ -514,7 +514,7 @@ export default function SeaDashboard() {
           </p>
           {showBlocs ? (
             <p>
-              {(["crink", "csto", "nato", "quad", "us-treaty", "us-base"] as SeaBloc[]).map((b) => (
+              {(["aukus", "nato", "quad", "us-treaty", "us-base", "crink", "csto"] as SeaBloc[]).map((b) => (
                 <span key={b} className="mr-2 inline-block whitespace-nowrap">
                   <span style={{ color: SEA_BLOC_COLOR[b] }}>■</span> {SEA_BLOC_LABEL[b]}
                 </span>
