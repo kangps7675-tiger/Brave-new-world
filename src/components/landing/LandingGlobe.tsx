@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { geoGraticule10, geoInterpolate, geoOrthographic, geoPath, type GeoPermissibleObjects } from "d3-geo";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { useScrollProgress } from "@/components/landing/LandingMotion";
 
 /**
  * 랜딩 첫 화면의 돌아가는 지구본 — One Page Love의 DCS AML(천천히 도는 지구본)과
@@ -77,6 +78,20 @@ export const HOTSPOTS: Hotspot[] = [
 
 type Land = GeoPermissibleObjects;
 
+/**
+ * 연출용 바닷길 — 배 점이 이 길을 따라 흐른다. 실제 AIS가 아니라 대표 항로를 그린 것이다(캡션에 밝힌다).
+ */
+const LANES: [number, number][][] = [
+  [[56.4, 26.3], [60, 22], [72, 12], [80, 6], [95, 5.5], [100.9, 2.6]],
+  [[100.9, 2.6], [105, 3], [110, 10], [116, 18], [119.6, 24.2], [123, 30]],
+  [[32.4, 30.5], [33.6, 27.5], [37, 22], [40.5, 16], [43.4, 12.6], [50, 12.5], [56, 14], [60, 20], [56.4, 26.3]],
+  [[29, 41.1], [26, 39.5], [24, 36], [28, 34], [32.4, 31.3]],
+  [[29, 41.1], [31, 42.5], [34.5, 43.6], [37.8, 44.7]],
+  [[32.4, 31.3], [20, 34], [10, 37.5], [-5.6, 36]],
+];
+
+type Incident = { lng: number; lat: number };
+
 const TRAVEL_MS = 1500;
 const HOLD_MS = 3800;
 
@@ -94,6 +109,10 @@ export function LandingGlobe() {
   const pausedUntilRef = useRef(0);
   const visibleRef = useRef(true);
   const hotspotScreenRef = useRef<{ i: number; x: number; y: number }[]>([]);
+  const incidentsRef = useRef<Incident[]>([]);
+  const [incidentCount, setIncidentCount] = useState<number | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const scroll = useScrollProgress(stageRef);
 
   useEffect(() => {
     setReduced(prefersReducedMotion());
@@ -102,6 +121,23 @@ export function LandingGlobe() {
       .then((r) => (r.ok ? r.json() : null))
       .then((g) => {
         if (alive && g) setLand(g as Land);
+      })
+      .catch(() => undefined);
+    // 실제 최근 해상 피습 경보(UKMTO) — 60일 안의 것만 붉은 점으로
+    fetch("/api/ukmto", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p: { incidents?: Array<{ lat?: number; lng?: number; utcDateOfIncident?: string | null }> } | null) => {
+        if (!alive || !p?.incidents) return;
+        const cutoff = Date.now() - 60 * 86_400_000;
+        const pts = p.incidents
+          .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lng))
+          .filter((x) => {
+            const t = x.utcDateOfIncident ? Date.parse(x.utcDateOfIncident) : Number.NaN;
+            return Number.isFinite(t) && t >= cutoff;
+          })
+          .map((x) => ({ lng: x.lng as number, lat: x.lat as number }));
+        incidentsRef.current = pts;
+        setIncidentCount(pts.length);
       })
       .catch(() => undefined);
     return () => {
@@ -226,8 +262,66 @@ export function LandingGlobe() {
         ctx.stroke();
       }
 
-      // 길목 점
       const center: [number, number] = [-rotRef.current[0], -rotRef.current[1]];
+      const front = (lng: number, lat: number) => {
+        const dLng = ((lng - center[0] + 540) % 360) - 180;
+        return (
+          Math.sin((center[1] * Math.PI) / 180) * Math.sin((lat * Math.PI) / 180) +
+            Math.cos((center[1] * Math.PI) / 180) * Math.cos((lat * Math.PI) / 180) * Math.cos((dLng * Math.PI) / 180) >
+          0.04
+        );
+      };
+
+      // 바닷길(연출) + 그 위를 흐르는 배
+      ctx.setLineDash([2, 4]);
+      ctx.strokeStyle = "rgba(147,197,253,0.22)";
+      ctx.lineWidth = 0.9;
+      LANES.forEach((lane) => {
+        ctx.beginPath();
+        path({ type: "LineString", coordinates: lane });
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      LANES.forEach((lane, li) => {
+        const segs = lane.length - 1;
+        for (let k = 0; k < 3; k++) {
+          const u = (((now / 1000) * 0.035 + k / 3 + li * 0.17) % 1) * segs;
+          const si = Math.min(segs - 1, Math.floor(u));
+          const [lng, lat] = geoInterpolate(lane[si], lane[si + 1])(u - si);
+          if (!front(lng, lat)) continue;
+          const q = projection([lng, lat]);
+          if (!q) continue;
+          const g = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+          g.addColorStop(0, "rgba(191,219,254,0.95)");
+          g.addColorStop(1, "rgba(147,197,253,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(q[0], q[1], 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // 실제 최근 UKMTO 경보
+      const ping = (now % 1600) / 1600;
+      incidentsRef.current.forEach((pt, n) => {
+        if (!front(pt.lng, pt.lat)) return;
+        const q = projection([pt.lng, pt.lat]);
+        if (!q) return;
+        const ph = (ping + n * 0.13) % 1;
+        if (!reduced) {
+          ctx.strokeStyle = `rgba(248,113,113,${0.7 * (1 - ph)})`;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(q[0], q[1], 3 + ph * 12, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = "#f87171";
+        ctx.beginPath();
+        ctx.arc(q[0], q[1], 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 길목 점
       const screen: { i: number; x: number; y: number }[] = [];
       const pulse = (now % 2000) / 2000;
       HOTSPOTS.forEach((h, i) => {
@@ -300,7 +394,15 @@ export function LandingGlobe() {
   const h = HOTSPOTS[active];
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div
+      ref={stageRef}
+      className="flex min-w-0 flex-col gap-4 will-change-transform"
+      style={{
+        transform: `perspective(1200px) scale(${1 - scroll * 0.08}) rotateX(${scroll * 16}deg)`,
+        transformOrigin: "50% 0%",
+        opacity: 1 - scroll * 0.6,
+      }}
+    >
       <div ref={wrapRef} className="relative mx-auto aspect-square w-full max-w-[520px]">
         <canvas
           ref={canvasRef}
@@ -323,6 +425,13 @@ export function LandingGlobe() {
           <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">지구본에서 보는 것 · {h.see}</p>
         </div>
       </div>
+      <p className="m-0 text-center text-caption text-[#7d8f9c]">
+        <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#f87171] align-middle" />
+        {incidentCount != null && incidentCount > 0
+          ? `붉은 점: 최근 60일 실제 UKMTO 해상 경보 ${incidentCount}건`
+          : "붉은 점: 최근 UKMTO 해상 경보"}
+        <span className="mx-2 text-white/20">|</span>흐르는 배와 점선 항로는 이해를 돕는 연출입니다
+      </p>
       <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label="길목 고르기">
         {HOTSPOTS.map((s, i) => (
           <button

@@ -2249,3 +2249,37 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
 .landing-cta-glow {
   box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.45), 0 10px 40px -8px rgba(245, 196, 81, 0.55);
 }
+@keyframes landing-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes landing-grid-pan {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(40px, 40px, 0); }
+}
+@keyframes landing-cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.5), 0 10px 40px -8px rgba(245, 196, 81, 0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(245, 196, 81, 0), 0 10px 50px -6px rgba(245, 196, 81, 0.75); }
+}
+.landing-cta-glow { animation: landing-cta-pulse 2.6s ease-in-out infinite; }
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(94, 234, 212, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 234, 212, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  animation: landing-grid-pan 6s linear infinite;
+}
+.landing-spot {
+  background: radial-gradient(520px circle at var(--sx, 70%) var(--sy, 35%), rgba(245, 196, 81, 0.09), transparent 60%);
+}
+.landing-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s ease-out;
+  background-image: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgba(94, 234, 212, 0.1), transparent 55%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-cta-glow, .landing-grid { animation: none; }
+  .landing-tilt { transform: none; transition: none; }
+}

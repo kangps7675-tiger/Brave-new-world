@@ -1,7 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LandingGlobe } from "@/components/landing/LandingGlobe";
-import { AlertDemo, FaqItem, Reveal, SectionDots } from "@/components/landing/LandingMotion";
+import {
+  AlertScrolly,
+  CountUp,
+  DecodeText,
+  FaqItem,
+  HeroBackdrop,
+  LiveTicker,
+  Reveal,
+  SectionDots,
+  TiltCard,
+} from "@/components/landing/LandingMotion";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
@@ -264,13 +274,15 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
       <SectionDots sections={SECTIONS} />
 
       {/* HERO */}
-      <section id="top" className={`${WRAP} flex flex-wrap items-center gap-x-12 gap-y-10 pb-20 pt-14`}>
+      <section id="top" className="relative overflow-hidden">
+        <HeroBackdrop />
+        <div className={`${WRAP} relative flex flex-wrap items-center gap-x-12 gap-y-10 pb-20 pt-14`}>
         <div className="min-w-0 flex-[1.1_1_480px]">
           <p className={EYEBROW}>해운 위험 상황실 · 홍해 · 호르무즈 · 흑해 · 말라카</p>
           <h1 className="mb-0 mt-5 text-[clamp(38px,4.6vw,64px)] font-bold leading-[1.14] tracking-[-0.035em] text-white">
-            정보기관 상황실처럼,
+            <DecodeText text="정보기관 상황실처럼," />
             <br className="hidden sm:block" />{" "}
-            <span className="text-[#f5c451]">바다의 위험을 한눈에.</span>
+            <DecodeText text="바다의 위험을 한눈에." delay={350} className="text-[#f5c451]" />
           </h1>
           <p className={`mt-6 max-w-[560px] text-[19px] leading-[1.75] ${MUTED}`}>
             어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지.
@@ -291,6 +303,27 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         <div className="min-w-0 flex-[1_1_440px]">
           <LandingGlobe />
         </div>
+        </div>
+      </section>
+
+      <LiveTicker />
+
+      {/* STATS — 숫자로 보는 범위 */}
+      <section className={`${WRAP} grid gap-px py-14 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]`}>
+        {[
+          { n: 6, s: "곳", label: "지켜보는 해운 길목" },
+          { n: 8, s: "종", label: "서로 맞춰 보는 공개 출처" },
+          { n: 6, s: "시간", label: "마다 새로 고르는 사진 뉴스" },
+          { n: 9, s: "개", label: "핵심 화면 밖 상세 기능" },
+        ].map((x) => (
+          <div key={x.label} className="px-2 py-4 sm:px-6">
+            <div className="text-[clamp(40px,4.4vw,58px)] font-bold leading-none tracking-[-0.03em] text-white">
+              <CountUp to={x.n} />
+              <span className="ml-1 text-[0.45em] font-semibold text-[#f5c451]">{x.s}</span>
+            </div>
+            <div className={`mt-2 text-[15px] ${MUTED}`}>{x.label}</div>
+          </div>
+        ))}
       </section>
 
       {/* ASK — 경보 하나에 질문 넷 */}
@@ -313,15 +346,15 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </div>
       </section>
 
-      {/* FLOW — 경보가 뜨면 (반복 데모) */}
+      {/* FLOW — 경보가 뜨면 (스크롤로 넘기는 데모) */}
       <section id="flow" className={`${WRAP} pb-4 pt-24`}>
         <Reveal>
           <p className={EYEBROW}>경보가 뜨면</p>
-          <h2 className={`${H2} max-w-[820px]`}>피격 경보 한 건이 지구본에서 어떻게 펼쳐지는지 보세요.</h2>
+          <h2 className={`${H2} max-w-[820px]`}>피격 경보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.</h2>
         </Reveal>
-        <Reveal className="mt-12">
-          <AlertDemo />
-        </Reveal>
+        <div className="mt-16">
+          <AlertScrolly />
+        </div>
       </section>
 
       {/* READ — 화면 읽는 법 */}
@@ -334,12 +367,14 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </h2>
         <div className="mt-12 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
           {READ_CARDS.map((c, i) => (
-            <Reveal key={c.title} delay={(i % 3) * 90} className="flex gap-4 rounded-xl border border-white/10 bg-[#0a141f] p-6">
-              <div className="flex-none">{c.mark}</div>
-              <div className="min-w-0">
-                <h3 className="m-0 text-[18px] font-bold leading-snug text-white">{c.title}</h3>
-                <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{c.body}</p>
-              </div>
+            <Reveal key={c.title} delay={(i % 3) * 90}>
+              <TiltCard className="flex h-full gap-4 rounded-xl border border-white/10 bg-[#0a141f] p-6">
+                <div className="flex-none">{c.mark}</div>
+                <div className="min-w-0">
+                  <h3 className="m-0 text-[18px] font-bold leading-snug text-white">{c.title}</h3>
+                  <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{c.body}</p>
+                </div>
+              </TiltCard>
             </Reveal>
           ))}
         </div>
@@ -369,6 +404,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
               );
               return (
                 <Reveal key={f.title} delay={(i % 3) * 80}>
+                  <TiltCard className="h-full rounded-xl">
                   {f.href ? (
                     <Link
                       href={f.href}
@@ -379,6 +415,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
                   ) : (
                     <div className="h-full rounded-xl border border-white/10 bg-[#0a141f] p-6">{inner}</div>
                   )}
+                  </TiltCard>
                 </Reveal>
               );
             })}
