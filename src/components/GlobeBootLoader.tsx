@@ -11,6 +11,7 @@ import {
   waitingGlobeCrawlBonus,
 } from "@/lib/bootLoadingProgress";
 import { GlobeLoadingScreen } from "@/components/GlobeLoadingScreen";
+import { LandingCurtain, shouldShowLandingCurtain } from "@/components/landing/LandingCurtain";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UnsupportedBrowserNotice } from "@/components/UnsupportedBrowserNotice";
 import { detectWebglSupport, type WebglSupport } from "@/lib/webglSupport";
@@ -62,6 +63,20 @@ export function GlobeBootLoader({
   const mapUnsupported = webglSupport != null && webglSupport !== "webgl2";
 
   const needsPickerRef = useRef(shouldShowModePicker());
+
+  /**
+   * 첫 방문이면 로딩 창 대신 랜딩 막(LandingCurtain)을 띄운다. 지구본은 그 아래에서 그대로 부팅하고,
+   * 준비가 끝나도 막은 사람이 "지구본 보기"를 누를 때까지 남는다.
+   * localStorage를 읽으므로 마운트 후에 정한다 — 그 전 한 프레임은 같은 바탕색만 칠한다.
+   */
+  const [curtainMode, setCurtainMode] = useState<boolean | null>(null);
+  const curtainModeRef = useRef(false);
+  const [globeBootDone, setGlobeBootDone] = useState(false);
+  useEffect(() => {
+    const on = !needsPickerRef.current && shouldShowLandingCurtain();
+    curtainModeRef.current = on;
+    setCurtainMode(on);
+  }, []);
 
   const [Dashboard, setDashboard] = useState<DashboardComponent | null>(null);
   const [bundleProgress, setBundleProgress] = useState(0);
@@ -152,6 +167,10 @@ export function GlobeBootLoader({
       dashboardBootTimerRef.current = null;
     }
     setDashboardProgress(100);
+    if (curtainModeRef.current) {
+      setGlobeBootDone(true);
+      return;
+    }
     dismissLoadingOverlay();
   }, [dismissLoadingOverlay]);
 
@@ -306,7 +325,17 @@ export function GlobeBootLoader({
           onBootReady={handleBootReady}
         />
       ) : null}
-      {showLoadingOverlay ? (
+      {showLoadingOverlay && curtainMode == null ? (
+        <div aria-hidden style={{ position: "fixed", inset: 0, zIndex: 700, background: "#06070a" }} />
+      ) : null}
+      {showLoadingOverlay && curtainMode === true ? (
+        <LandingCurtain
+          progress={displayProgress}
+          ready={globeBootDone}
+          onLifted={() => setOverlayVisible(false)}
+        />
+      ) : null}
+      {showLoadingOverlay && curtainMode === false ? (
         <GlobeLoadingScreen
           progress={displayProgress}
           fading={fading}
