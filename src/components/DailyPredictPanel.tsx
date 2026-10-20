@@ -16,6 +16,7 @@ import { trackEvent } from "@/lib/trackClient";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { GTI } from "@/lib/gti";
 import { markBriefingStep } from "@/lib/dailyBriefingProgress";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type DailyPredictPanelProps = {
   lang: LabelLanguage;
@@ -25,7 +26,7 @@ type DailyPredictPanelProps = {
 /**
  * 사이드 패널용 UP/DOWN — 모달과 같은 tension-dir 문제.
  */
-export function DailyPredictPanel({
+function DailyPredictPanelInner({
   lang,
   yesterdayCorrectPct,
 }: DailyPredictPanelProps) {
@@ -271,4 +272,10 @@ export function DailyPredictPanel({
       </p>
     </div>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function DailyPredictPanel(props: DailyPredictPanelProps) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <DailyPredictPanelInner {...props} />;
 }

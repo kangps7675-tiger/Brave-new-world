@@ -4,9 +4,9 @@ import { LandingContent, type EnterPlace } from "@/components/landing/LandingCon
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
-  title: "Brave New World — 정보기관 상황실에 앉은 듯한 현장감",
+  title: "Brave New World — 정보기관 상황실처럼, 바다의 위험을 한눈에",
   description:
-    "어디에 미사일이 떨어졌는지, 어느 바다에서 배가 공격받았는지, 누가 어느 땅을 차지했는지. 세계의 전쟁과 분쟁 소식을 3D 지구본 하나에 실시간으로 겹쳐 보여 드립니다. 공개 정보(OSINT) 기반, 가입 없이 무료.",
+    "어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지. 피격 경보·선박 위치·항구 타격·항행경보를 3D 지구본 한 화면에. 공개 정보(OSINT) 기반, 가입 없이 무료.",
   alternates: { canonical: absoluteUrl("/landing") },
 };
 

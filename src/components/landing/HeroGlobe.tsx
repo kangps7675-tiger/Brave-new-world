@@ -5,12 +5,12 @@
  */
 
 export const GLOBE_MARKS = [
-  { n: 1, title: "불꽃", body: "드론·미사일이 실제로 떨어진 곳" },
-  { n: 2, title: "붉은 면", body: "지금 누가 그 땅을 차지하고 있는지" },
+  { n: 1, title: "불꽃", body: "항구·정유소·배에 드론·미사일이 떨어진 곳" },
+  { n: 2, title: "붉은 면", body: "전쟁 중인 땅, 지금 누가 차지했는지" },
   { n: 3, title: "배 표시", body: "공격받거나 붙잡힌 배, 항공모함 위치" },
   { n: 4, title: "비행기 표시", body: "지금 떠 있는 군용기" },
-  { n: 5, title: "깜빡이는 점", body: "방금 들어온 속보가 난 자리" },
-  { n: 6, title: "빛나는 선", body: "같은 편끼리의 무기·자금·에너지 연결" },
+  { n: 5, title: "깜빡이는 점", body: "방금 들어온 해상·전선 속보" },
+  { n: 6, title: "빛나는 선", body: "같은 편끼리의 무기·에너지 연결" },
 ] as const;
 
 function Badge({ x, y, n }: { x: number; y: number; n: number }) {

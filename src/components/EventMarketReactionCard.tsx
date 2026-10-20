@@ -12,6 +12,7 @@ import {
 } from "@/lib/stockTickers";
 import type { TheaterMarketFilter } from "@/lib/theaterAssets";
 import type { ViewerMode } from "@/lib/viewPackages";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type EventMarketReactionCardProps = {
   theater: TheaterMarketFilter;
@@ -46,7 +47,7 @@ const VERDICT_CLASS: Record<MarketReactionVerdict, string> = {
  * "이 사건이 시장에 영향을 줬나" 판정 카드.
  * prominent=true면 기본 펼침·큰 타이포로 알림 상단에 꽂는다.
  */
-export function EventMarketReactionCard({
+function EventMarketReactionCardInner({
   theater,
   ageMinutes,
   prominent = false,
@@ -227,4 +228,10 @@ export function EventMarketReactionCard({
       ) : null}
     </div>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function EventMarketReactionCard(props: EventMarketReactionCardProps) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <EventMarketReactionCardInner {...props} />;
 }
