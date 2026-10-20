@@ -25,7 +25,9 @@ import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameI
 import type { StrikeFlame } from "@/lib/strikeFlames";
 
 if (typeof window !== "undefined") {
-  setWorkerUrl("/maplibre-gl-worker.mjs");
+  // 워커는 maplibre-gl 버전 폴더에서 받는다 (scripts/copy-maplibre-worker.mjs) —
+  // 메인 번들과 워커 버전이 어긋나면 "can't deserialize unregistered class" 로 지도가 죽는다.
+  setWorkerUrl(`/maplibre-gl/${process.env.NEXT_PUBLIC_MAPLIBRE_VERSION}/maplibre-gl-worker.mjs`);
 }
 
 export type SeaGlobeSelection =
