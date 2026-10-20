@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "name": "east-asia-adiz",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "kadiz",
+      "properties": {
+        "id": "kadiz",
+        "name": "KADIZ",
+        "nameKo": "한국 방공식별구역",
+        "country": "KR"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.0, 39.0],
+            [124.0, 37.0],
+            [125.2, 32.0],
+            [127.2, 32.0],
+            [129.5, 34.3],
+            [133.0, 37.3],
+            [131.0, 39.0],
+            [124.0, 39.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "jadiz",
+      "properties": {
+        "id": "jadiz",
+        "name": "JADIZ",
+        "nameKo": "일본 방공식별구역",
+        "country": "JP"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [132.0, 41.0],
+            [142.0, 41.5],
+            [146.0, 35.0],
+            [142.0, 28.0],
+            [128.0, 28.0],
+            [123.0, 26.0],
+            [129.0, 34.5],
+            [131.5, 37.5],
+            [132.0, 41.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "taidiz",
+      "properties": {
+        "id": "taidiz",
+        "name": "TAIDIZ",
+        "nameKo": "대만 방공식별구역",
+        "country": "TW"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [117.5, 29.0],
+            [123.0, 29.0],
+            [123.0, 21.0],
+            [117.5, 21.0],
+            [117.5, 29.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "dprk-adiz",
+      "properties": {
+        "id": "dprk-adiz",
+        "name": "DPRK ADIZ",
+        "nameKo": "북한 반항공구역",
+        "country": "KP"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.2, 39.8],
+            [124.3, 38.2],
+            [128.5, 38.6],
+            [131.5, 40.0],
+            [130.6, 42.4],
+            [124.2, 39.8]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cadiz",
+      "properties": {
+        "id": "cadiz",
+        "name": "CADIZ",
+        "nameKo": "중국 동중국해 ADIZ",
+        "country": "CN"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [122.5, 33.2],
+            [124.5, 32.0],
+            [126.0, 26.0],
+            [124.0, 24.5],
+            [120.0, 25.5],
+            [122.5, 33.2]
+          ]
+        ]
+      }
+    }
+  ]
+}

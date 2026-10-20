@@ -14,12 +14,7 @@ import { enrichNewsStreamImages } from "@/lib/news/enrichArticleImage";
 import { hasLampPhoto } from "@/lib/news/lampThumbnail";
 import { classifyMediaTier } from "@/lib/news/mediaTiers";
 import { fetchNewfeedsIranNewsItems } from "@/lib/news/newfeedsIranNews";
-/** 이란 관련 긴급속보 — 우크라와 별도 양피지 후보 (예전 breakingFlashNarrative.ts 에서 옮김) */
-const IRAN_RELATED_FLASH_RE =
-  /\biran\b|\biranian\b|\btehran\b|\birgc\b|\bquds\s?force\b|\bpersian\s?gulf\b|\bstrait\s?of\s?hormuz\b|\bhormuz\b|\bnatanz\b|\bfordo\b|\bbushehr\b|이란|테헤란|혁명수비대|쿠드스|호르무즈|나탄즈|포르도|부셰르/i;
-function isIranRelatedBreakingText(text: string): boolean {
-  return IRAN_RELATED_FLASH_RE.test(text);
-}
+import { isIranRelatedBreakingText } from "@/lib/news/breakingFlashNarrative";
 import { fetchRssFeed } from "@/lib/news/rssParser";
 import type {
   HeroBreakingItem,
@@ -31,7 +26,7 @@ import type {
   NewsTheater,
 } from "@/lib/news/types";
 import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
-import type { ViewPackageId } from "@/lib/viewPackageIds";
+import type { ViewPackageId } from "@/lib/viewPackages";
 import { isCrinkAnalysisUrl } from "@/data/crinkSourceRegistry";
 
 const URGENCY =

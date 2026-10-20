@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-08-28T16:23:04.571Z",
+  "source": "UNCTADstat US.SeaborneTrade (by cargo type) + US.SDG_LULFRG (SDG 14 total loaded+unloaded freight)",
+  "sourceFiles": [
+    "US_SeaborneTrade.csv",
+    "US_SDG_LULFRG.csv"
+  ],
+  "method": "Average of most recent 3 valid years. CargoType=30 (total) preferred, CargoType=11 (crude oil loaded) captured separately for sanctions-evasion corridors. SDG_LULFRG used as fallback + cross-check.",
+  "unit": "metric tons",
+  "rowsScanned": {
+    "seaborneTrade": 64424,
+    "sdgLulfrg": 7469
+  },
+  "countryCount": 28,
+  "withData": 28,
+  "withOilData": 27,
+  "crossCheck": {
+    "pairsCompared": 28,
+    "avgAgreementPct": 100
+  },
+  "countries": {
+    "ARM": {
+      "totalTonnage": 3496403.6666666665,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": null,
+      "seaborneTradeTotal": 3496403.6666666665,
+      "sdgLulfrgTotal": 3496403.6666666665,
+      "crossCheckAgreementPct": 100
+    },
+    "AZE": {
+      "totalTonnage": 41200793,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 23455912.666666668,
+      "seaborneTradeTotal": 41200793,
+      "sdgLulfrgTotal": 41200793,
+      "crossCheckAgreementPct": 100
+    },
+    "BLR": {
+      "totalTonnage": 44529035.333333336,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 1,
+      "seaborneTradeTotal": 44529035.333333336,
+      "sdgLulfrgTotal": 44529035.333333336,
+      "crossCheckAgreementPct": 100
+    },
+    "CHN": {
+      "totalTonnage": 297998942.3333334,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 9.000000000000002,
+      "seaborneTradeTotal": 297998942.3333334,
+      "sdgLulfrgTotal": 297998942.3333334,
+      "crossCheckAgreementPct": 100
+    },
+    "CUB": {
+      "totalTonnage": 5309807.666666667,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 3656,
+      "seaborneTradeTotal": 5309807.666666667,
+      "sdgLulfrgTotal": 5309807.666666667,
+      "crossCheckAgreementPct": 100
+    },
+    "EGY": {
+      "totalTonnage": 110240327.66666667,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 3235218.3333333335,
+      "seaborneTradeTotal": 110240327.66666667,
+      "sdgLulfrgTotal": 110240327.66666667,
+      "crossCheckAgreementPct": 100
+    },
+    "GEO": {
+      "totalTonnage": 7053063.666666666,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 49107.33333333334,
+      "seaborneTradeTotal": 7053063.666666666,
+      "sdgLulfrgTotal": 7053063.666666666,
+      "crossCheckAgreementPct": 100
+    },
+    "IND": {
+      "totalTonnage": 847762828.0000001,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 23999.666666666668,
+      "seaborneTradeTotal": 847762828.0000001,
+      "sdgLulfrgTotal": 847762828.0000001,
+      "crossCheckAgreementPct": 100
+    },
+    "IRN": {
+      "totalTonnage": 39633351.333333336,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 443549,
+      "seaborneTradeTotal": 39633351.333333336,
+      "sdgLulfrgTotal": 39633351.333333336,
+      "crossCheckAgreementPct": 100
+    },
+    "IRQ": {
+      "totalTonnage": 231250961.3333333,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 173037001,
+      "seaborneTradeTotal": 231250961.3333333,
+      "sdgLulfrgTotal": 231250961.3333333,
+      "crossCheckAgreementPct": 100
+    },
+    "KAZ": {
+      "totalTonnage": 134616857.66666666,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 54904947.333333336,
+      "seaborneTradeTotal": 134616857.66666666,
+      "sdgLulfrgTotal": 134616857.66666666,
+      "crossCheckAgreementPct": 100
+    },
+    "KGZ": {
+      "totalTonnage": 4213929.333333334,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 24639.333333333336,
+      "seaborneTradeTotal": 4213929.333333334,
+      "sdgLulfrgTotal": 4213929.333333334,
+      "crossCheckAgreementPct": 100
+    },
+    "LBN": {
+      "totalTonnage": 9407934.666666666,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 3.6666666666666665,
+      "seaborneTradeTotal": 9407934.666666666,
+      "sdgLulfrgTotal": 9407934.666666666,
+      "crossCheckAgreementPct": 100
+    },
+    "MNG": {
+      "totalTonnage": 23126943,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 509236.6666666667,
+      "seaborneTradeTotal": 23126943,
+      "sdgLulfrgTotal": 23126943,
+      "crossCheckAgreementPct": 100
+    },
+    "MMR": {
+      "totalTonnage": 22270551.000000004,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 18093.666666666668,
+      "seaborneTradeTotal": 22270551.000000004,
+      "sdgLulfrgTotal": 22270551.000000004,
+      "crossCheckAgreementPct": 100
+    },
+    "NLD": {
+      "totalTonnage": 583193106.3333334,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 33440722.333333332,
+      "seaborneTradeTotal": 583193106.3333334,
+      "sdgLulfrgTotal": 583193106.3333334,
+      "crossCheckAgreementPct": 100
+    },
+    "PAK": {
+      "totalTonnage": 80906306.33333333,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 237572.3333333333,
+      "seaborneTradeTotal": 80906306.33333333,
+      "sdgLulfrgTotal": 80906306.33333333,
+      "crossCheckAgreementPct": 100
+    },
+    "POL": {
+      "totalTonnage": 206379466,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 179259,
+      "seaborneTradeTotal": 206379466,
+      "sdgLulfrgTotal": 206379466,
+      "crossCheckAgreementPct": 100
+    },
+    "KOR": {
+      "totalTonnage": 716551039,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 157129.33333333334,
+      "seaborneTradeTotal": 716551039,
+      "sdgLulfrgTotal": 716551039,
+      "crossCheckAgreementPct": 100
+    },
+    "RUS": {
+      "totalTonnage": 853921653.6666667,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 218018375.99999997,
+      "seaborneTradeTotal": 853921653.6666667,
+      "sdgLulfrgTotal": 853921653.6666667,
+      "crossCheckAgreementPct": 100
+    },
+    "SAU": {
+      "totalTonnage": 515444481.3333333,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 334281083.6666666,
+      "seaborneTradeTotal": 515444481.3333333,
+      "sdgLulfrgTotal": 515444481.3333333,
+      "crossCheckAgreementPct": 100
+    },
+    "SYR": {
+      "totalTonnage": 7703965.666666667,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 1031444.6666666665,
+      "seaborneTradeTotal": 7703965.666666667,
+      "sdgLulfrgTotal": 7703965.666666667,
+      "crossCheckAgreementPct": 100
+    },
+    "TJK": {
+      "totalTonnage": 2223576,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 84.66666666666667,
+      "seaborneTradeTotal": 2223576,
+      "sdgLulfrgTotal": 2223576,
+      "crossCheckAgreementPct": 100
+    },
+    "TUR": {
+      "totalTonnage": 315020610.6666667,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 2800877,
+      "seaborneTradeTotal": 315020610.6666667,
+      "sdgLulfrgTotal": 315020610.6666667,
+      "crossCheckAgreementPct": 100
+    },
+    "TKM": {
+      "totalTonnage": 21851706.333333336,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 586180.3333333334,
+      "seaborneTradeTotal": 21851706.333333336,
+      "sdgLulfrgTotal": 21851706.333333336,
+      "crossCheckAgreementPct": 100
+    },
+    "ARE": {
+      "totalTonnage": 424259748.3333334,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 172026005.6666667,
+      "seaborneTradeTotal": 424259748.3333334,
+      "sdgLulfrgTotal": 424259748.3333334,
+      "crossCheckAgreementPct": 100
+    },
+    "UZB": {
+      "totalTonnage": 14772181.000000002,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 1377.6666666666665,
+      "seaborneTradeTotal": 14772181.000000002,
+      "sdgLulfrgTotal": 14772181.000000002,
+      "crossCheckAgreementPct": 100
+    },
+    "YEM": {
+      "totalTonnage": 8757023.666666666,
+      "totalSource": "seaborne-trade-30",
+      "crudeOilLoadedTonnage": 1177779.0000000002,
+      "seaborneTradeTotal": 8757023.666666666,
+      "sdgLulfrgTotal": 8757023.666666666,
+      "crossCheckAgreementPct": 100
+    }
+  }
+}

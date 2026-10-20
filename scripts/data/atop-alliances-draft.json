@@ -1,0 +1,8668 @@
+{
+  "generatedAt": "2026-09-16T12:50:48.630Z",
+  "source": "ATOP (Alliance Treaty Obligations and Provisions) v5.1",
+  "sourceUrl": "http://www.atopdata.org/data.html",
+  "coverageNote": "ATOP v5.1 커버리지는 1815–2018. 이후 조약(예: 2024 북·러 포괄적 전략 동반자 조약)은 여기 없음 — 별도 수기 확인 필요.",
+  "targetIsos": [
+    "ALB",
+    "ARM",
+    "AUS",
+    "BEL",
+    "BGR",
+    "BHR",
+    "BLR",
+    "CAN",
+    "CHN",
+    "CZE",
+    "DEU",
+    "DNK",
+    "ESP",
+    "EST",
+    "FIN",
+    "FRA",
+    "GBR",
+    "GRC",
+    "HRV",
+    "HUN",
+    "IRN",
+    "ISL",
+    "ITA",
+    "JPN",
+    "KAZ",
+    "KGZ",
+    "KOR",
+    "LTU",
+    "LUX",
+    "LVA",
+    "MKD",
+    "MNE",
+    "NLD",
+    "NOR",
+    "PHL",
+    "POL",
+    "PRK",
+    "PRT",
+    "QAT",
+    "ROU",
+    "RUS",
+    "SVK",
+    "SVN",
+    "SWE",
+    "THA",
+    "TJK",
+    "TUR",
+    "USA"
+  ],
+  "allianceCount": 645,
+  "unmappedMemberCodes": [
+    "221",
+    "223",
+    "232",
+    "240",
+    "245",
+    "267",
+    "269",
+    "271",
+    "273",
+    "275",
+    "280",
+    "300",
+    "329",
+    "331",
+    "332",
+    "335",
+    "337",
+    "403",
+    "404",
+    "53",
+    "54",
+    "540",
+    "55",
+    "56",
+    "57",
+    "58",
+    "581",
+    "591",
+    "60",
+    "679",
+    "730",
+    "80",
+    "8152",
+    "946",
+    "947",
+    "955",
+    "990"
+  ],
+  "_usage": "이 파일은 초안이다. src/lib/alliedBlocCountryPolygons.ts를 자동 덮어쓰지 않는다 — 기존 6단계 분류와 대조해 불일치·누락만 사람이 확인해서 반영할 것.",
+  "alliances": [
+    {
+      "atopId": "1005",
+      "members": [
+        "FRA",
+        "GBR",
+        "NLD"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1815,
+      "endYear": 1815
+    },
+    {
+      "atopId": "1020",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1815,
+      "endYear": 1866
+    },
+    {
+      "atopId": "1035",
+      "members": [
+        "DEU",
+        "GBR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1815,
+      "endYear": 1822
+    },
+    {
+      "atopId": "1040",
+      "members": [
+        "NLD",
+        "SPN"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1816,
+      "endYear": 1820
+    },
+    {
+      "atopId": "1045",
+      "members": [
+        "FRA",
+        "GBR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1827,
+      "endYear": 1829
+    },
+    {
+      "atopId": "1050",
+      "members": [
+        "ITA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1831,
+      "endYear": 1848
+    },
+    {
+      "atopId": "1055",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1832,
+      "endYear": 1833
+    },
+    {
+      "atopId": "1060",
+      "members": [
+        "BEL",
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1832,
+      "endYear": 1833
+    },
+    {
+      "atopId": "1065",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "offense"
+      ],
+      "begYear": 1833,
+      "endYear": 1839
+    },
+    {
+      "atopId": "1070",
+      "members": [
+        "ITA"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1833,
+      "endYear": 1848
+    },
+    {
+      "atopId": "1075",
+      "members": [
+        "RUS",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1833,
+      "endYear": 1841
+    },
+    {
+      "atopId": "1080",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1833,
+      "endYear": 1853
+    },
+    {
+      "atopId": "1085",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1833,
+      "endYear": 1854
+    },
+    {
+      "atopId": "1090",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1833,
+      "endYear": 1848
+    },
+    {
+      "atopId": "1095",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1833,
+      "endYear": 1848
+    },
+    {
+      "atopId": "1100",
+      "members": [
+        "FRA",
+        "GBR",
+        "PRT",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1834,
+      "endYear": 1839
+    },
+    {
+      "atopId": "1110",
+      "members": [
+        "DEU",
+        "GBR",
+        "RUS",
+        "TUR"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1840,
+      "endYear": 1840
+    },
+    {
+      "atopId": "1115",
+      "members": [
+        "GBR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1844,
+      "endYear": 1846
+    },
+    {
+      "atopId": "1118",
+      "members": [
+        "CHN",
+        "GBR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1846,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1120",
+      "members": [
+        "FRA",
+        "GBR",
+        "PRT",
+        "SPN"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1847,
+      "endYear": 1847
+    },
+    {
+      "atopId": "1135",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1849,
+      "endYear": 1849
+    },
+    {
+      "atopId": "1145",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1851,
+      "endYear": 1854
+    },
+    {
+      "atopId": "1160",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1165",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "offense"
+      ],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1170",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1175",
+      "members": [
+        "TUR"
+      ],
+      "obligations": [],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1180",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1185",
+      "members": [
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1854,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1190",
+      "members": [
+        "FRA",
+        "GBR",
+        "SWE"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1855,
+      "endYear": 1856
+    },
+    {
+      "atopId": "1195",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "consul",
+        "offense"
+      ],
+      "begYear": 1856,
+      "endYear": 1877
+    },
+    {
+      "atopId": "1210",
+      "members": [
+        "FRA",
+        "ITA"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1859,
+      "endYear": 1859
+    },
+    {
+      "atopId": "1215",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1859,
+      "endYear": 1859
+    },
+    {
+      "atopId": "1225",
+      "members": [
+        "FRA",
+        "GBR",
+        "SPN"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1861,
+      "endYear": 1862
+    },
+    {
+      "atopId": "1230",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1863,
+      "endYear": 1863
+    },
+    {
+      "atopId": "1245",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "consul",
+        "offense"
+      ],
+      "begYear": 1864,
+      "endYear": 1866
+    },
+    {
+      "atopId": "1265",
+      "members": [
+        "DEU",
+        "ITA"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1866,
+      "endYear": 1866
+    },
+    {
+      "atopId": "1270",
+      "members": [
+        "FRA"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1866,
+      "endYear": 1866
+    },
+    {
+      "atopId": "1275",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1866,
+      "endYear": 1870
+    },
+    {
+      "atopId": "1280",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1866,
+      "endYear": 1870
+    },
+    {
+      "atopId": "1285",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1866,
+      "endYear": 1870
+    },
+    {
+      "atopId": "1287",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1866,
+      "endYear": 1867
+    },
+    {
+      "atopId": "1290",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1867,
+      "endYear": 1871
+    },
+    {
+      "atopId": "1295",
+      "members": [
+        "DEU",
+        "GBR"
+      ],
+      "obligations": [
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1870,
+      "endYear": 1872
+    },
+    {
+      "atopId": "1300",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1870,
+      "endYear": 1872
+    },
+    {
+      "atopId": "1310",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1873,
+      "endYear": 1878
+    },
+    {
+      "atopId": "1315",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1873,
+      "endYear": 1878
+    },
+    {
+      "atopId": "1320",
+      "members": [
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1874,
+      "endYear": 1883
+    },
+    {
+      "atopId": "1325",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [],
+      "begYear": 1877,
+      "endYear": 1878
+    },
+    {
+      "atopId": "1330",
+      "members": [
+        "GBR",
+        "TUR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1878,
+      "endYear": 1880
+    },
+    {
+      "atopId": "1335",
+      "members": [
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1879,
+      "endYear": 1918
+    },
+    {
+      "atopId": "1340",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1881,
+      "endYear": 1887
+    },
+    {
+      "atopId": "1350",
+      "members": [
+        "DEU",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1882,
+      "endYear": 1918
+    },
+    {
+      "atopId": "1355",
+      "members": [
+        "DEU",
+        "ITA",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1883,
+      "endYear": 1918
+    },
+    {
+      "atopId": "1360",
+      "members": [
+        "GBR",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1887,
+      "endYear": 1897
+    },
+    {
+      "atopId": "1365",
+      "members": [
+        "DEU",
+        "ITA",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1887,
+      "endYear": 1895
+    },
+    {
+      "atopId": "1370",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1887,
+      "endYear": 1890
+    },
+    {
+      "atopId": "1375",
+      "members": [
+        "GBR",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "offense"
+      ],
+      "begYear": 1887,
+      "endYear": 1897
+    },
+    {
+      "atopId": "1380",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1891,
+      "endYear": 1917
+    },
+    {
+      "atopId": "1385",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1893,
+      "endYear": 1917
+    },
+    {
+      "atopId": "1390",
+      "members": [
+        "JPN"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1894,
+      "endYear": 1895
+    },
+    {
+      "atopId": "1395",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1896,
+      "endYear": 1900
+    },
+    {
+      "atopId": "1400",
+      "members": [
+        "GBR",
+        "PRT"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1899,
+      "endYear": 1949
+    },
+    {
+      "atopId": "1410",
+      "members": [
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1901,
+      "endYear": 1915
+    },
+    {
+      "atopId": "1415",
+      "members": [
+        "GBR",
+        "JPN"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1902,
+      "endYear": 1921
+    },
+    {
+      "atopId": "1420",
+      "members": [
+        "FRA",
+        "ITA"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1902,
+      "endYear": 1918
+    },
+    {
+      "atopId": "1425",
+      "members": [
+        "BGR",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1904,
+      "endYear": 1909
+    },
+    {
+      "atopId": "1430",
+      "members": [
+        "FRA",
+        "SPN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1904,
+      "endYear": 1907
+    },
+    {
+      "atopId": "1435",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1904,
+      "endYear": 1908
+    },
+    {
+      "atopId": "1440",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1905,
+      "endYear": 1905
+    },
+    {
+      "atopId": "1445",
+      "members": [
+        "FRA",
+        "GBR",
+        "SPN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1907,
+      "endYear": 1915
+    },
+    {
+      "atopId": "1455",
+      "members": [
+        "JPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1908,
+      "endYear": 1910
+    },
+    {
+      "atopId": "1460",
+      "members": [
+        "ITA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1909,
+      "endYear": 1917
+    },
+    {
+      "atopId": "1465",
+      "members": [
+        "JPN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1910,
+      "endYear": 1916
+    },
+    {
+      "atopId": "1470",
+      "members": [
+        "BGR",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1912,
+      "endYear": 1913
+    },
+    {
+      "atopId": "1475",
+      "members": [
+        "BGR",
+        "GRC"
+      ],
+      "obligations": [
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1912,
+      "endYear": 1913
+    },
+    {
+      "atopId": "1480",
+      "members": [
+        "MNE",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1912,
+      "endYear": 1915
+    },
+    {
+      "atopId": "1485",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1912,
+      "endYear": 1918
+    },
+    {
+      "atopId": "1490",
+      "members": [
+        "GRC",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1913,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2005",
+      "members": [
+        "DEU",
+        "TUR"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1914,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2010",
+      "members": [
+        "BGR",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1914,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2012",
+      "members": [
+        "BGR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1914,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2013",
+      "members": [
+        "BGR",
+        "DEU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1914,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2015",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA",
+        "JPN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1914,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2020",
+      "members": [
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1914,
+      "endYear": 1916
+    },
+    {
+      "atopId": "2025",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1915,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2030",
+      "members": [
+        "BGR",
+        "DEU"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1915,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2035",
+      "members": [
+        "JPN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1916,
+      "endYear": 1917
+    },
+    {
+      "atopId": "2040",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA",
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1916,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2045",
+      "members": [
+        "CHN",
+        "JPN"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1918,
+      "endYear": 1918
+    },
+    {
+      "atopId": "2050",
+      "members": [
+        "CZE",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1920,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2055",
+      "members": [
+        "BEL",
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1920,
+      "endYear": 1936
+    },
+    {
+      "atopId": "2060",
+      "members": [
+        "FRA",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1921,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2070",
+      "members": [
+        "POL",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1921,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2075",
+      "members": [
+        "AFG",
+        "TUR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1921,
+      "endYear": 1950
+    },
+    {
+      "atopId": "2080",
+      "members": [
+        "CZE",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1921,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2085",
+      "members": [
+        "ROU",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1921,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2090",
+      "members": [
+        "AFG",
+        "IRN"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1921,
+      "endYear": 1937
+    },
+    {
+      "atopId": "2095",
+      "members": [
+        "FRA",
+        "GBR",
+        "JPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1921,
+      "endYear": 1931
+    },
+    {
+      "atopId": "2100",
+      "members": [
+        "AUT",
+        "CZE"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1921,
+      "endYear": 1927
+    },
+    {
+      "atopId": "2110",
+      "members": [
+        "EST",
+        "LVA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1923,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2115",
+      "members": [
+        "ITA",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1924,
+      "endYear": 1929
+    },
+    {
+      "atopId": "2120",
+      "members": [
+        "CZE",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1924,
+      "endYear": 1938
+    },
+    {
+      "atopId": "2125",
+      "members": [
+        "CZE",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1924,
+      "endYear": 1929
+    },
+    {
+      "atopId": "2130",
+      "members": [
+        "BEL",
+        "DEU",
+        "FRA",
+        "GBR",
+        "ITA"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1925,
+      "endYear": 1937
+    },
+    {
+      "atopId": "2135",
+      "members": [
+        "FRA",
+        "POL"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1925,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2140",
+      "members": [
+        "CZE",
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1925,
+      "endYear": 1938
+    },
+    {
+      "atopId": "2145",
+      "members": [
+        "RUS",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1925,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2150",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1926,
+      "endYear": 1933
+    },
+    {
+      "atopId": "2155",
+      "members": [
+        "IRN",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1926,
+      "endYear": 1937
+    },
+    {
+      "atopId": "2160",
+      "members": [
+        "FRA",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1926,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2165",
+      "members": [
+        "ITA",
+        "SPN"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1926,
+      "endYear": 1936
+    },
+    {
+      "atopId": "2170",
+      "members": [
+        "AFG",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1926,
+      "endYear": 1979
+    },
+    {
+      "atopId": "2175",
+      "members": [
+        "ITA",
+        "ROU"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1926,
+      "endYear": 1932
+    },
+    {
+      "atopId": "2185",
+      "members": [
+        "LTU",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1926,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2195",
+      "members": [
+        "IRN",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1927,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2200",
+      "members": [
+        "FRA",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1927,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2205",
+      "members": [
+        "ALB",
+        "ITA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1927,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2210",
+      "members": [
+        "AFG",
+        "IRN"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1927,
+      "endYear": 1937
+    },
+    {
+      "atopId": "2215",
+      "members": [
+        "GRC",
+        "ROU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1928,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2218",
+      "members": [
+        "AFG",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1928,
+      "endYear": 1948
+    },
+    {
+      "atopId": "2220",
+      "members": [
+        "ITA",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1928,
+      "endYear": 1935
+    },
+    {
+      "atopId": "2225",
+      "members": [
+        "ETH",
+        "ITA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1928,
+      "endYear": 1935
+    },
+    {
+      "atopId": "2230",
+      "members": [
+        "GRC",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1928,
+      "endYear": 1935
+    },
+    {
+      "atopId": "2235",
+      "members": [
+        "HUN",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1929,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2240",
+      "members": [
+        "EST",
+        "LVA",
+        "POL",
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1929,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2245",
+      "members": [
+        "BGR",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1929,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2250",
+      "members": [
+        "GRC",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1929,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2255",
+      "members": [
+        "CZE",
+        "GRC"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1929,
+      "endYear": 1938
+    },
+    {
+      "atopId": "2260",
+      "members": [
+        "FRA",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1930,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2270",
+      "members": [
+        "GBR",
+        "IRQ"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1930,
+      "endYear": 1955
+    },
+    {
+      "atopId": "2275",
+      "members": [
+        "GRC",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1930,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2280",
+      "members": [
+        "FIN",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1932,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2285",
+      "members": [
+        "LVA",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1932,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2290",
+      "members": [
+        "EST",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1932,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2295",
+      "members": [
+        "POL",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1932,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2300",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1932,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2302",
+      "members": [
+        "CZE",
+        "ROU",
+        "SRB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1933,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2305",
+      "members": [
+        "ITA",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1933,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2315",
+      "members": [
+        "ROU",
+        "TUR"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1933,
+      "endYear": 1944
+    },
+    {
+      "atopId": "2320",
+      "members": [
+        "SRB",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1933,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2325",
+      "members": [
+        "DEU",
+        "POL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1934,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2330",
+      "members": [
+        "GRC",
+        "ROU",
+        "SRB",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1934,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2335",
+      "members": [
+        "AUT",
+        "HUN",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1934,
+      "endYear": 1938
+    },
+    {
+      "atopId": "2345",
+      "members": [
+        "EST",
+        "LTU",
+        "LVA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1934,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2350",
+      "members": [
+        "FRA",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1935,
+      "endYear": 1935
+    },
+    {
+      "atopId": "2355",
+      "members": [
+        "FRA",
+        "GBR",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1935,
+      "endYear": 1935
+    },
+    {
+      "atopId": "2360",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1935,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2365",
+      "members": [
+        "CZE",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1935,
+      "endYear": 1938
+    },
+    {
+      "atopId": "2370",
+      "members": [
+        "MNG",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1936,
+      "endYear": 1966
+    },
+    {
+      "atopId": "2385",
+      "members": [
+        "EGY",
+        "GBR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1936,
+      "endYear": 1951
+    },
+    {
+      "atopId": "2395",
+      "members": [
+        "DEU",
+        "HUN",
+        "ITA",
+        "JPN",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1936,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2405",
+      "members": [
+        "ITA",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1937,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2410",
+      "members": [
+        "AFG",
+        "IRN",
+        "IRQ",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1937,
+      "endYear": 1955
+    },
+    {
+      "atopId": "2415",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1937,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2420",
+      "members": [
+        "BGR",
+        "EGY",
+        "FRA",
+        "GBR",
+        "GRC",
+        "ROU",
+        "RUS",
+        "SRB",
+        "TUR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1937,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2425",
+      "members": [
+        "BGR",
+        "GRC",
+        "ROU",
+        "SRB",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1938,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2430",
+      "members": [
+        "DEU",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1938,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2435",
+      "members": [
+        "PRT",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1939,
+      "endYear": 1977
+    },
+    {
+      "atopId": "2440",
+      "members": [
+        "GBR",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1939,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2445",
+      "members": [
+        "DEU",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1939,
+      "endYear": 1943
+    },
+    {
+      "atopId": "2450",
+      "members": [
+        "DEU",
+        "DNK"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2455",
+      "members": [
+        "DEU",
+        "EST"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2460",
+      "members": [
+        "DEU",
+        "LVA"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2465",
+      "members": [
+        "FRA",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1939,
+      "endYear": 1939
+    },
+    {
+      "atopId": "2470",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1939,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2475",
+      "members": [
+        "EST",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2480",
+      "members": [
+        "LVA",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2485",
+      "members": [
+        "LTU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1939,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2490",
+      "members": [
+        "FRA",
+        "GBR",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1939,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2500",
+      "members": [
+        "FIN",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1940,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2505",
+      "members": [
+        "GBR",
+        "THA"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1940,
+      "endYear": 1940
+    },
+    {
+      "atopId": "2510",
+      "members": [
+        "JPN",
+        "THA"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1940,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2515",
+      "members": [
+        "BGR",
+        "DEU",
+        "HUN",
+        "ITA",
+        "JPN",
+        "ROU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1940,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2520",
+      "members": [
+        "RUS",
+        "SRB"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1941,
+      "endYear": 1941
+    },
+    {
+      "atopId": "2525",
+      "members": [
+        "JPN",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1941,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2530",
+      "members": [
+        "DEU",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1941,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2535",
+      "members": [
+        "GBR",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1941,
+      "endYear": 1955
+    },
+    {
+      "atopId": "2540",
+      "members": [
+        "DEU",
+        "ITA",
+        "JPN"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1941,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2545",
+      "members": [
+        "JPN",
+        "THA"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1941,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2550",
+      "members": [
+        "AUS",
+        "BEL",
+        "BOL",
+        "BRA",
+        "CAN",
+        "CHL",
+        "CHN",
+        "COL",
+        "CRI",
+        "CUB",
+        "CZE",
+        "DOM",
+        "ECU",
+        "EGY",
+        "ETH",
+        "FRA",
+        "GBR",
+        "GRC",
+        "GTM",
+        "HND",
+        "HTI",
+        "IRN",
+        "IRQ",
+        "LBR",
+        "LUX",
+        "MEX",
+        "NIC",
+        "NLD",
+        "NOR",
+        "NZL",
+        "PAN",
+        "PER",
+        "POL",
+        "PRY",
+        "RUS",
+        "SAU",
+        "SLV",
+        "SRB",
+        "TUR",
+        "URY",
+        "USA",
+        "VEN",
+        "ZAF"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1942,
+      "endYear": 1945
+    },
+    {
+      "atopId": "2555",
+      "members": [
+        "GBR",
+        "IRN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1942,
+      "endYear": 1946
+    },
+    {
+      "atopId": "2560",
+      "members": [
+        "GBR",
+        "PRT"
+      ],
+      "obligations": [
+        "defense",
+        "neutral"
+      ],
+      "begYear": 1943,
+      "endYear": 1946
+    },
+    {
+      "atopId": "2563",
+      "members": [
+        "CZE",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1943,
+      "endYear": 1970
+    },
+    {
+      "atopId": "2565",
+      "members": [
+        "AUS",
+        "NZL"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1944,
+      "endYear": 0
+    },
+    {
+      "atopId": "2570",
+      "members": [
+        "GBR",
+        "PRT"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1944,
+      "endYear": 1946
+    },
+    {
+      "atopId": "2571",
+      "members": [
+        "PRT",
+        "USA"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1944,
+      "endYear": 1946
+    },
+    {
+      "atopId": "2575",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1944,
+      "endYear": 1955
+    },
+    {
+      "atopId": "2580",
+      "members": [
+        "ETH",
+        "GBR"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1944,
+      "endYear": 1945
+    },
+    {
+      "atopId": "3005",
+      "members": [
+        "GBR",
+        "RUS",
+        "USA"
+      ],
+      "obligations": [
+        "offense"
+      ],
+      "begYear": 1945,
+      "endYear": 1945
+    },
+    {
+      "atopId": "3010",
+      "members": [
+        "ARG",
+        "BOL",
+        "BRA",
+        "CHL",
+        "COL",
+        "CRI",
+        "CUB",
+        "DOM",
+        "ECU",
+        "GTM",
+        "HND",
+        "HTI",
+        "MEX",
+        "NIC",
+        "PAN",
+        "PER",
+        "PRY",
+        "SLV",
+        "URY",
+        "USA",
+        "VEN"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1945,
+      "endYear": 1947
+    },
+    {
+      "atopId": "3015",
+      "members": [
+        "ARE",
+        "BHR",
+        "DJI",
+        "DZA",
+        "EGY",
+        "IRQ",
+        "JOR",
+        "KWT",
+        "LBN",
+        "LBY",
+        "MAR",
+        "MRT",
+        "OMN",
+        "QAT",
+        "SAU",
+        "SDN",
+        "SOM",
+        "SYR",
+        "TUN",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1945,
+      "endYear": 2011
+    },
+    {
+      "atopId": "3020",
+      "members": [
+        "RUS",
+        "SRB"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1945,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3025",
+      "members": [
+        "POL",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1945,
+      "endYear": 1965
+    },
+    {
+      "atopId": "3030",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1945,
+      "endYear": 1950
+    },
+    {
+      "atopId": "3035",
+      "members": [
+        "POL",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1946,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3040",
+      "members": [
+        "GBR",
+        "JOR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1946,
+      "endYear": 1948
+    },
+    {
+      "atopId": "3045",
+      "members": [
+        "CZE",
+        "SRB"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1946,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3050",
+      "members": [
+        "ALB",
+        "SRB"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1946,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3055",
+      "members": [
+        "FRA",
+        "GBR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "offense"
+      ],
+      "begYear": 1947,
+      "endYear": 1954
+    },
+    {
+      "atopId": "3060",
+      "members": [
+        "CZE",
+        "POL"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1947,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3070",
+      "members": [
+        "PHL",
+        "TWN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 1975
+    },
+    {
+      "atopId": "3075",
+      "members": [
+        "ARG",
+        "BHS",
+        "BOL",
+        "BRA",
+        "CHL",
+        "COL",
+        "CRI",
+        "CUB",
+        "DOM",
+        "ECU",
+        "GTM",
+        "HND",
+        "HTI",
+        "MEX",
+        "NIC",
+        "PAN",
+        "PER",
+        "PRY",
+        "SLV",
+        "TTO",
+        "URY",
+        "USA",
+        "VEN"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 2016
+    },
+    {
+      "atopId": "3077",
+      "members": [
+        "PHL",
+        "SPN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 2000
+    },
+    {
+      "atopId": "3080",
+      "members": [
+        "GBR",
+        "LKA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1947,
+      "endYear": 1962
+    },
+    {
+      "atopId": "3085",
+      "members": [
+        "BGR",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3090",
+      "members": [
+        "HUN",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3095",
+      "members": [
+        "ROU",
+        "SRB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1947,
+      "endYear": 1949
+    },
+    {
+      "atopId": "3100",
+      "members": [
+        "ALB",
+        "BGR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1947,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3105",
+      "members": [
+        "BGR",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1948,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3110",
+      "members": [
+        "HUN",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1948,
+      "endYear": 1972
+    },
+    {
+      "atopId": "3115",
+      "members": [
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3120",
+      "members": [
+        "HUN",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3125",
+      "members": [
+        "GBR",
+        "JOR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1948,
+      "endYear": 1957
+    },
+    {
+      "atopId": "3130",
+      "members": [
+        "BEL",
+        "DEU",
+        "FRA",
+        "GBR",
+        "GRC",
+        "ITA",
+        "LUX",
+        "NLD",
+        "PRT",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1948,
+      "endYear": 2011
+    },
+    {
+      "atopId": "3135",
+      "members": [
+        "BGR",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3140",
+      "members": [
+        "FIN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1948,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3145",
+      "members": [
+        "BGR",
+        "CZE"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1968
+    },
+    {
+      "atopId": "3150",
+      "members": [
+        "ARG",
+        "BHS",
+        "BOL",
+        "BRA",
+        "CHL",
+        "COL",
+        "CRI",
+        "CUB",
+        "DOM",
+        "ECU",
+        "GTM",
+        "GUY",
+        "HND",
+        "HTI",
+        "JAM",
+        "MEX",
+        "NIC",
+        "PAN",
+        "PER",
+        "PRY",
+        "SLV",
+        "SUR",
+        "TTO",
+        "URY",
+        "USA",
+        "VEN"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1948,
+      "endYear": 1962
+    },
+    {
+      "atopId": "3155",
+      "members": [
+        "BGR",
+        "POL"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1948,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3160",
+      "members": [
+        "HUN",
+        "POL"
+      ],
+      "obligations": [
+        "defense",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1968
+    },
+    {
+      "atopId": "3165",
+      "members": [
+        "BGR",
+        "HUN"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1969
+    },
+    {
+      "atopId": "3170",
+      "members": [
+        "CZE",
+        "ROU"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1948,
+      "endYear": 1968
+    },
+    {
+      "atopId": "3175",
+      "members": [
+        "POL",
+        "ROU"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1949,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3180",
+      "members": [
+        "ALB",
+        "BEL",
+        "BGR",
+        "BIH",
+        "CAN",
+        "CZE",
+        "DEU",
+        "DNK",
+        "EST",
+        "FRA",
+        "GBR",
+        "GRC",
+        "HUN",
+        "ISL",
+        "ITA",
+        "LTU",
+        "LUX",
+        "LVA",
+        "MNE",
+        "NLD",
+        "NOR",
+        "POL",
+        "PRT",
+        "ROU",
+        "SPN",
+        "SVK",
+        "SVN",
+        "TUR",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1949,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3185",
+      "members": [
+        "CZE",
+        "HUN"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg",
+        "offense"
+      ],
+      "begYear": 1949,
+      "endYear": 1968
+    },
+    {
+      "atopId": "3190",
+      "members": [
+        "PHL",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1949,
+      "endYear": 0
+    },
+    {
+      "atopId": "3195",
+      "members": [
+        "PHL",
+        "THA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1949,
+      "endYear": 0
+    },
+    {
+      "atopId": "3200",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1950,
+      "endYear": 1980
+    },
+    {
+      "atopId": "3205",
+      "members": [
+        "ARE",
+        "BHR",
+        "DJI",
+        "DZA",
+        "EGY",
+        "IRQ",
+        "JOR",
+        "KWT",
+        "LBN",
+        "LBY",
+        "MAR",
+        "OMN",
+        "QAT",
+        "SAU",
+        "SDN",
+        "SOM",
+        "SYR",
+        "TUN",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1950,
+      "endYear": 2011
+    },
+    {
+      "atopId": "3210",
+      "members": [
+        "PHL",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1951,
+      "endYear": 0
+    },
+    {
+      "atopId": "3215",
+      "members": [
+        "AUS",
+        "NZL",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1951,
+      "endYear": 1986
+    },
+    {
+      "atopId": "3220",
+      "members": [
+        "JPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1951,
+      "endYear": 1960
+    },
+    {
+      "atopId": "3225",
+      "members": [
+        "IND",
+        "PHL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1952,
+      "endYear": 0
+    },
+    {
+      "atopId": "3230",
+      "members": [
+        "GRC",
+        "SRB",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1953,
+      "endYear": 1964
+    },
+    {
+      "atopId": "3235",
+      "members": [
+        "GBR",
+        "LBY"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1953,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3240",
+      "members": [
+        "KOR",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1953,
+      "endYear": 0
+    },
+    {
+      "atopId": "3245",
+      "members": [
+        "FRA",
+        "LAO"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1953,
+      "endYear": 1954
+    },
+    {
+      "atopId": "3250",
+      "members": [
+        "IDN",
+        "THA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1954,
+      "endYear": 0
+    },
+    {
+      "atopId": "3255",
+      "members": [
+        "PAK",
+        "TUR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1954,
+      "endYear": 1955
+    },
+    {
+      "atopId": "3260",
+      "members": [
+        "AUS",
+        "FRA",
+        "GBR",
+        "NZL",
+        "PAK",
+        "PHL",
+        "THA",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1954,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3265",
+      "members": [
+        "EGY",
+        "GBR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1954,
+      "endYear": 1956
+    },
+    {
+      "atopId": "3270",
+      "members": [
+        "TWN",
+        "USA"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1954,
+      "endYear": 1980
+    },
+    {
+      "atopId": "3275",
+      "members": [
+        "GBR",
+        "IRN",
+        "IRQ",
+        "PAK",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1955,
+      "endYear": 1979
+    },
+    {
+      "atopId": "3280",
+      "members": [
+        "GBR",
+        "IRQ"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1955,
+      "endYear": 1959
+    },
+    {
+      "atopId": "3285",
+      "members": [
+        "ALB",
+        "BGR",
+        "CZE",
+        "DDR",
+        "HUN",
+        "POL",
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1955,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3290",
+      "members": [
+        "GBR",
+        "ZAF"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1955,
+      "endYear": 1975
+    },
+    {
+      "atopId": "3295",
+      "members": [
+        "FRA",
+        "LBY"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1955,
+      "endYear": 2011
+    },
+    {
+      "atopId": "3315",
+      "members": [
+        "FRA",
+        "MAR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1956,
+      "endYear": 1966
+    },
+    {
+      "atopId": "3320",
+      "members": [
+        "PHL",
+        "SUI"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1956,
+      "endYear": 0
+    },
+    {
+      "atopId": "3322",
+      "members": [
+        "FRA",
+        "GBR",
+        "ISR"
+      ],
+      "obligations": [
+        "neutral",
+        "offense"
+      ],
+      "begYear": 1956,
+      "endYear": 1956
+    },
+    {
+      "atopId": "3330",
+      "members": [
+        "GBR",
+        "MYS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1957,
+      "endYear": 1971
+    },
+    {
+      "atopId": "3333",
+      "members": [
+        "ETH",
+        "JPN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1957,
+      "endYear": 0
+    },
+    {
+      "atopId": "3335",
+      "members": [
+        "CHN",
+        "YEM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1958,
+      "endYear": 1964
+    },
+    {
+      "atopId": "3355",
+      "members": [
+        "PAK",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1959,
+      "endYear": 0
+    },
+    {
+      "atopId": "3360",
+      "members": [
+        "TUR",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1959,
+      "endYear": 0
+    },
+    {
+      "atopId": "3365",
+      "members": [
+        "IRN",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1959,
+      "endYear": 1979
+    },
+    {
+      "atopId": "3370",
+      "members": [
+        "LBR",
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1959,
+      "endYear": 0
+    },
+    {
+      "atopId": "3373",
+      "members": [
+        "CZE",
+        "ETH"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1959,
+      "endYear": 1982
+    },
+    {
+      "atopId": "3375",
+      "members": [
+        "JPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 0
+    },
+    {
+      "atopId": "3380",
+      "members": [
+        "CHN",
+        "MMR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 1967
+    },
+    {
+      "atopId": "3383",
+      "members": [
+        "CHN",
+        "NPL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 0
+    },
+    {
+      "atopId": "3385",
+      "members": [
+        "FRA",
+        "MLI"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1960
+    },
+    {
+      "atopId": "3390",
+      "members": [
+        "FRA",
+        "MDG"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1973
+    },
+    {
+      "atopId": "3395",
+      "members": [
+        "CAF",
+        "COG",
+        "FRA",
+        "TCD"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1976
+    },
+    {
+      "atopId": "3400",
+      "members": [
+        "CYP",
+        "GRC",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1964
+    },
+    {
+      "atopId": "3405",
+      "members": [
+        "CYP",
+        "GBR",
+        "GRC",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1974
+    },
+    {
+      "atopId": "3410",
+      "members": [
+        "FRA",
+        "GAB"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 0
+    },
+    {
+      "atopId": "3415",
+      "members": [
+        "AFG",
+        "CHN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 2006
+    },
+    {
+      "atopId": "3420",
+      "members": [
+        "CHN",
+        "GIN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 0
+    },
+    {
+      "atopId": "3423",
+      "members": [
+        "GBR",
+        "NGA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1960,
+      "endYear": 1962
+    },
+    {
+      "atopId": "3424",
+      "members": [
+        "CZE",
+        "KHM",
+        "SVK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3425",
+      "members": [
+        "CHN",
+        "KHM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1960,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3433",
+      "members": [
+        "CZE",
+        "IDN",
+        "SVK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1961,
+      "endYear": 2008
+    },
+    {
+      "atopId": "3435",
+      "members": [
+        "FRA",
+        "MRT"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1961,
+      "endYear": 1972
+    },
+    {
+      "atopId": "3440",
+      "members": [
+        "PRK",
+        "RUS"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1961,
+      "endYear": 1996
+    },
+    {
+      "atopId": "3445",
+      "members": [
+        "CHN",
+        "PRK"
+      ],
+      "obligations": [
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1961,
+      "endYear": 0
+    },
+    {
+      "atopId": "3450",
+      "members": [
+        "CHN",
+        "GHA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1961,
+      "endYear": 0
+    },
+    {
+      "atopId": "3452",
+      "members": [
+        "HUN",
+        "IDN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1961,
+      "endYear": 0
+    },
+    {
+      "atopId": "3460",
+      "members": [
+        "CAN",
+        "CHN",
+        "FRA",
+        "GBR",
+        "IND",
+        "KHM",
+        "MMR",
+        "POL",
+        "RUS",
+        "THA",
+        "USA",
+        "VNM"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1962,
+      "endYear": 1964
+    },
+    {
+      "atopId": "3470",
+      "members": [
+        "DEU",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1963,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3475",
+      "members": [
+        "FRA",
+        "TGO"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1963,
+      "endYear": 0
+    },
+    {
+      "atopId": "3480",
+      "members": [
+        "SPN",
+        "USA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1963,
+      "endYear": 1970
+    },
+    {
+      "atopId": "3495",
+      "members": [
+        "CHN",
+        "YEM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1964,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3500",
+      "members": [
+        "DDR",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1964,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3505",
+      "members": [
+        "GBR",
+        "MLT"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1964,
+      "endYear": 1972
+    },
+    {
+      "atopId": "3510",
+      "members": [
+        "CHN",
+        "MLI"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1964,
+      "endYear": 0
+    },
+    {
+      "atopId": "3515",
+      "members": [
+        "CHN",
+        "TZA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1965,
+      "endYear": 0
+    },
+    {
+      "atopId": "3520",
+      "members": [
+        "POL",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1965,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3535",
+      "members": [
+        "MNG",
+        "RUS"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1966,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3540",
+      "members": [
+        "CZE",
+        "POL"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3545",
+      "members": [
+        "DDR",
+        "POL"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3550",
+      "members": [
+        "CZE",
+        "DDR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3555",
+      "members": [
+        "BGR",
+        "POL"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3560",
+      "members": [
+        "BGR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3565",
+      "members": [
+        "DDR",
+        "HUN"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3575",
+      "members": [
+        "BGR",
+        "DDR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3580",
+      "members": [
+        "HUN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1967,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3585",
+      "members": [
+        "COM",
+        "GBR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1968,
+      "endYear": 1976
+    },
+    {
+      "atopId": "3595",
+      "members": [
+        "BGR",
+        "CZE"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1968,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3600",
+      "members": [
+        "HUN",
+        "POL"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1968,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3605",
+      "members": [
+        "CZE",
+        "HUN"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1968,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3610",
+      "members": [
+        "CZE",
+        "ROU",
+        "SVK"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1968,
+      "endYear": 1994
+    },
+    {
+      "atopId": "3620",
+      "members": [
+        "BGR",
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1969,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3625",
+      "members": [
+        "CZE",
+        "RUS",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1970,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3630",
+      "members": [
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1970,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3635",
+      "members": [
+        "SPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1970,
+      "endYear": 1976
+    },
+    {
+      "atopId": "3640",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1970,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3642",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1970,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3645",
+      "members": [
+        "POL",
+        "ROU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1970,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3650",
+      "members": [
+        "BGR",
+        "ROU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1970,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3655",
+      "members": [
+        "DEU",
+        "POL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1970,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3665",
+      "members": [
+        "CAN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1971,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3670",
+      "members": [
+        "EGY",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1971,
+      "endYear": 1976
+    },
+    {
+      "atopId": "3675",
+      "members": [
+        "IND",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1971,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3677",
+      "members": [
+        "BHR",
+        "GBR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1971,
+      "endYear": 0
+    },
+    {
+      "atopId": "3678",
+      "members": [
+        "GBR",
+        "QAT"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1971,
+      "endYear": 0
+    },
+    {
+      "atopId": "3679",
+      "members": [
+        "ARE",
+        "GBR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1971,
+      "endYear": 0
+    },
+    {
+      "atopId": "3680",
+      "members": [
+        "HUN",
+        "ROU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1972,
+      "endYear": 1996
+    },
+    {
+      "atopId": "3690",
+      "members": [
+        "IRQ",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1972,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3695",
+      "members": [
+        "DDR",
+        "ROU"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1972,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3708",
+      "members": [
+        "CHN",
+        "MDV"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1972,
+      "endYear": 0
+    },
+    {
+      "atopId": "3710",
+      "members": [
+        "DDR",
+        "FIN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1972,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3715",
+      "members": [
+        "DDR",
+        "DEU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1972,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3720",
+      "members": [
+        "CZE",
+        "DEU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1973,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3730",
+      "members": [
+        "FRA",
+        "SEN"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1974,
+      "endYear": 0
+    },
+    {
+      "atopId": "3733",
+      "members": [
+        "CHN",
+        "MYS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1974,
+      "endYear": 0
+    },
+    {
+      "atopId": "3735",
+      "members": [
+        "RUS",
+        "SOM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1974,
+      "endYear": 1977
+    },
+    {
+      "atopId": "3736",
+      "members": [
+        "CHN",
+        "PHL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1975,
+      "endYear": 0
+    },
+    {
+      "atopId": "3737",
+      "members": [
+        "CHN",
+        "THA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1975,
+      "endYear": 0
+    },
+    {
+      "atopId": "3740",
+      "members": [
+        "ALB",
+        "ARM",
+        "AUT",
+        "AZE",
+        "BEL",
+        "BGR",
+        "BIH",
+        "BLR",
+        "CAN",
+        "CYP",
+        "CZE",
+        "DDR",
+        "DEU",
+        "DNK",
+        "EST",
+        "FIN",
+        "FRA",
+        "GBR",
+        "GEO",
+        "GRC",
+        "HRV",
+        "HUN",
+        "IRL",
+        "ISL",
+        "ITA",
+        "KAZ",
+        "KGZ",
+        "LTU",
+        "LUX",
+        "LVA",
+        "MDA",
+        "MKD",
+        "MLT",
+        "MNE",
+        "MNG",
+        "NLD",
+        "NOR",
+        "POL",
+        "PRT",
+        "ROU",
+        "RUS",
+        "SPN",
+        "SRB",
+        "SUI",
+        "SVK",
+        "SVN",
+        "SWE",
+        "TJK",
+        "TKM",
+        "TUR",
+        "UKR",
+        "USA",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1975,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3745",
+      "members": [
+        "DDR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1975,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3746",
+      "members": [
+        "CHN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1975,
+      "endYear": 0
+    },
+    {
+      "atopId": "3750",
+      "members": [
+        "SPN",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1976,
+      "endYear": 1981
+    },
+    {
+      "atopId": "3755",
+      "members": [
+        "AUS",
+        "BGD",
+        "BRA",
+        "BRN",
+        "CAN",
+        "CHL",
+        "CHN",
+        "EGY",
+        "FRA",
+        "GBR",
+        "IDN",
+        "IND",
+        "JPN",
+        "KHM",
+        "KOR",
+        "LAO",
+        "LKA",
+        "MAR",
+        "MMR",
+        "MNG",
+        "MYS",
+        "NOR",
+        "NZL",
+        "PAK",
+        "PHL",
+        "PNG",
+        "PRK",
+        "RUS",
+        "SGP",
+        "THA",
+        "TLS",
+        "TUR",
+        "USA",
+        "VNM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1976,
+      "endYear": 0
+    },
+    {
+      "atopId": "3760",
+      "members": [
+        "DNK",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1976,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3765",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1976,
+      "endYear": 0
+    },
+    {
+      "atopId": "3767",
+      "members": [
+        "CHN",
+        "PNG"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1976,
+      "endYear": 0
+    },
+    {
+      "atopId": "3770",
+      "members": [
+        "DDR",
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3775",
+      "members": [
+        "MOZ",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1977,
+      "endYear": 0
+    },
+    {
+      "atopId": "3780",
+      "members": [
+        "DDR",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3790",
+      "members": [
+        "DJI",
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 2011
+    },
+    {
+      "atopId": "3795",
+      "members": [
+        "PAN",
+        "USA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 1999
+    },
+    {
+      "atopId": "3800",
+      "members": [
+        "BGR",
+        "DDR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3805",
+      "members": [
+        "CZE",
+        "DDR"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1977,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3815",
+      "members": [
+        "CHN",
+        "JPN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1978,
+      "endYear": 0
+    },
+    {
+      "atopId": "3820",
+      "members": [
+        "BGR",
+        "MOZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1978,
+      "endYear": 0
+    },
+    {
+      "atopId": "3825",
+      "members": [
+        "RUS",
+        "VNM"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1978,
+      "endYear": 1994
+    },
+    {
+      "atopId": "3830",
+      "members": [
+        "FRA"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1978,
+      "endYear": 0
+    },
+    {
+      "atopId": "3835",
+      "members": [
+        "ETH",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1978,
+      "endYear": 0
+    },
+    {
+      "atopId": "3840",
+      "members": [
+        "AFG",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1978,
+      "endYear": 1979
+    },
+    {
+      "atopId": "3841",
+      "members": [
+        "BRN",
+        "GBR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1979,
+      "endYear": 0
+    },
+    {
+      "atopId": "3842",
+      "members": [
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1979,
+      "endYear": 0
+    },
+    {
+      "atopId": "3852",
+      "members": [
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1979,
+      "endYear": 0
+    },
+    {
+      "atopId": "3855",
+      "members": [
+        "RUS",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1979,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3861",
+      "members": [
+        "BGR",
+        "ETH"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1980,
+      "endYear": 2003
+    },
+    {
+      "atopId": "3865",
+      "members": [
+        "ITA",
+        "MLT"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1980,
+      "endYear": 1984
+    },
+    {
+      "atopId": "3870",
+      "members": [
+        "ETH",
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1980,
+      "endYear": 0
+    },
+    {
+      "atopId": "3875",
+      "members": [
+        "HUN",
+        "MOZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1980,
+      "endYear": 0
+    },
+    {
+      "atopId": "3880",
+      "members": [
+        "RUS",
+        "SYR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1980,
+      "endYear": 0
+    },
+    {
+      "atopId": "3890",
+      "members": [
+        "COG",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 0
+    },
+    {
+      "atopId": "3905",
+      "members": [
+        "CZE",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3910",
+      "members": [
+        "MLT",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 1987
+    },
+    {
+      "atopId": "3915",
+      "members": [
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 0
+    },
+    {
+      "atopId": "3918",
+      "members": [
+        "HUN",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3920",
+      "members": [
+        "BGR",
+        "YEM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1981,
+      "endYear": 1990
+    },
+    {
+      "atopId": "3925",
+      "members": [
+        "ISR",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1981,
+      "endYear": 1991
+    },
+    {
+      "atopId": "3940",
+      "members": [
+        "CZE",
+        "LBY"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1982,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3942",
+      "members": [
+        "AFG",
+        "HUN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1982,
+      "endYear": 2001
+    },
+    {
+      "atopId": "3945",
+      "members": [
+        "BGR",
+        "LBY"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1983,
+      "endYear": 1992
+    },
+    {
+      "atopId": "3970",
+      "members": [
+        "BGR",
+        "SYR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1985,
+      "endYear": 0
+    },
+    {
+      "atopId": "3973",
+      "members": [
+        "CZE",
+        "SYR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1985,
+      "endYear": 1993
+    },
+    {
+      "atopId": "3975",
+      "members": [
+        "CUB",
+        "PRK"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1986,
+      "endYear": 0
+    },
+    {
+      "atopId": "3984",
+      "members": [
+        "AUS",
+        "PNG"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1987,
+      "endYear": 0
+    },
+    {
+      "atopId": "4002",
+      "members": [
+        "CHN",
+        "SAU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 0
+    },
+    {
+      "atopId": "4005",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4010",
+      "members": [
+        "DEU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 0
+    },
+    {
+      "atopId": "4015",
+      "members": [
+        "ITA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 1994
+    },
+    {
+      "atopId": "4016",
+      "members": [
+        "RUS",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4018",
+      "members": [
+        "BLR",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1990,
+      "endYear": 1995
+    },
+    {
+      "atopId": "4020",
+      "members": [
+        "BHR",
+        "CAN"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1991,
+      "endYear": 1991
+    },
+    {
+      "atopId": "4022",
+      "members": [
+        "KAZ",
+        "KGZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 1993
+    },
+    {
+      "atopId": "4023",
+      "members": [
+        "KAZ",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 1994
+    },
+    {
+      "atopId": "4025",
+      "members": [
+        "FRA",
+        "POL"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4035",
+      "members": [
+        "DEU",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4045",
+      "members": [
+        "HUN",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4055",
+      "members": [
+        "LTU",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4060",
+      "members": [
+        "FRA",
+        "HUN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4061",
+      "members": [
+        "CHN",
+        "LVA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4063",
+      "members": [
+        "CHN",
+        "LTU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4065",
+      "members": [
+        "ROU",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4070",
+      "members": [
+        "CZE",
+        "FRA",
+        "SVK"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4075",
+      "members": [
+        "CZE",
+        "POL",
+        "SVK"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4080",
+      "members": [
+        "HUN",
+        "POL"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4085",
+      "members": [
+        "BGR",
+        "GRC"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4090",
+      "members": [
+        "BGR",
+        "DEU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4095",
+      "members": [
+        "ITA",
+        "POL"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4099",
+      "members": [
+        "BLR",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4100",
+      "members": [
+        "CZE",
+        "SPN",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4105",
+      "members": [
+        "FRA",
+        "ROU"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4110",
+      "members": [
+        "GRC",
+        "ROU"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4115",
+      "members": [
+        "HUN",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4120",
+      "members": [
+        "HUN",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4125",
+      "members": [
+        "KOR",
+        "PRK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 0
+    },
+    {
+      "atopId": "4130",
+      "members": [
+        "ARM",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4131",
+      "members": [
+        "BLR",
+        "KGZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1991,
+      "endYear": 2006
+    },
+    {
+      "atopId": "4135",
+      "members": [
+        "BGR",
+        "ITA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4140",
+      "members": [
+        "LTU",
+        "POL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 1994
+    },
+    {
+      "atopId": "4145",
+      "members": [
+        "FIN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4148",
+      "members": [
+        "CHN",
+        "ISR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4150",
+      "members": [
+        "BGR",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4155",
+      "members": [
+        "ROU",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4160",
+      "members": [
+        "HUN",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4165",
+      "members": [
+        "DEU",
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4170",
+      "members": [
+        "FRA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4175",
+      "members": [
+        "AUT",
+        "BEL",
+        "BGR",
+        "BIH",
+        "CYP",
+        "CZE",
+        "DEU",
+        "DNK",
+        "EST",
+        "FIN",
+        "FRA",
+        "GBR",
+        "GRC",
+        "HUN",
+        "IRL",
+        "ITA",
+        "LTU",
+        "LUX",
+        "LVA",
+        "MLT",
+        "NLD",
+        "POL",
+        "PRT",
+        "ROU",
+        "SPN",
+        "SVK",
+        "SVN",
+        "SWE"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1992,
+      "endYear": 2007
+    },
+    {
+      "atopId": "4180",
+      "members": [
+        "BGR",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4185",
+      "members": [
+        "CZE",
+        "DEU",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4190",
+      "members": [
+        "GRC",
+        "HUN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4195",
+      "members": [
+        "BGR",
+        "CZE",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 1992
+    },
+    {
+      "atopId": "4200",
+      "members": [
+        "DEU",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4205",
+      "members": [
+        "TUR",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4210",
+      "members": [
+        "BGR",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4215",
+      "members": [
+        "FRA",
+        "LTU"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4220",
+      "members": [
+        "ARM",
+        "AZE",
+        "BLR",
+        "GEO",
+        "KAZ",
+        "KGZ",
+        "RUS",
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 2012
+    },
+    {
+      "atopId": "4225",
+      "members": [
+        "POL",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4230",
+      "members": [
+        "POL",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4235",
+      "members": [
+        "KAZ",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4240",
+      "members": [
+        "RUS",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4241",
+      "members": [
+        "EST",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4245",
+      "members": [
+        "RUS",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4250",
+      "members": [
+        "ALB",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4255",
+      "members": [
+        "KGZ",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4260",
+      "members": [
+        "FRA",
+        "UKR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4265",
+      "members": [
+        "RUS",
+        "USA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4270",
+      "members": [
+        "CAN",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4275",
+      "members": [
+        "BLR",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4276",
+      "members": [
+        "KAZ",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1992,
+      "endYear": 1998
+    },
+    {
+      "atopId": "4280",
+      "members": [
+        "LVA",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4285",
+      "members": [
+        "EST",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4290",
+      "members": [
+        "EST",
+        "ROU"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4293",
+      "members": [
+        "BLR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1992,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4295",
+      "members": [
+        "BIH",
+        "HRV"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4300",
+      "members": [
+        "RUS",
+        "TKM"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 2002
+    },
+    {
+      "atopId": "4305",
+      "members": [
+        "BGR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4310",
+      "members": [
+        "HUN",
+        "LVA"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4315",
+      "members": [
+        "EST",
+        "HUN"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4320",
+      "members": [
+        "HUN",
+        "LTU"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4325",
+      "members": [
+        "BGR",
+        "MDA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4330",
+      "members": [
+        "FRA",
+        "KAZ"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4335",
+      "members": [
+        "KGZ",
+        "UZB"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1992,
+      "endYear": 1996
+    },
+    {
+      "atopId": "4340",
+      "members": [
+        "BGR",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4342",
+      "members": [
+        "AZE",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4350",
+      "members": [
+        "POL",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4355",
+      "members": [
+        "KAZ",
+        "MDA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4360",
+      "members": [
+        "KGZ",
+        "MDA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4365",
+      "members": [
+        "KOR",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4370",
+      "members": [
+        "CZE",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4375",
+      "members": [
+        "HUN",
+        "SVN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4380",
+      "members": [
+        "BIH",
+        "HUN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4385",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 2001
+    },
+    {
+      "atopId": "4390",
+      "members": [
+        "BLR",
+        "MDA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1992,
+      "endYear": 0
+    },
+    {
+      "atopId": "4392",
+      "members": [
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4395",
+      "members": [
+        "MNG",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4400",
+      "members": [
+        "ARM",
+        "AZE",
+        "BLR",
+        "GEO",
+        "KAZ",
+        "KGZ",
+        "RUS",
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 2009
+    },
+    {
+      "atopId": "4405",
+      "members": [
+        "POL",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4410",
+      "members": [
+        "EST",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4415",
+      "members": [
+        "IND",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4420",
+      "members": [
+        "FRA",
+        "MDA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4430",
+      "members": [
+        "ALB",
+        "BGR"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4435",
+      "members": [
+        "BGR",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4440",
+      "members": [
+        "FRA",
+        "LVA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4441",
+      "members": [
+        "ALB",
+        "BIH"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4445",
+      "members": [
+        "ARM",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4455",
+      "members": [
+        "GEO",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4460",
+      "members": [
+        "BLR",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4462",
+      "members": [
+        "ARM",
+        "GEO"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 2001
+    },
+    {
+      "atopId": "4463",
+      "members": [
+        "KAZ",
+        "TKM"
+      ],
+      "obligations": [
+        "consul",
+        "neutral"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4465",
+      "members": [
+        "BGR",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4470",
+      "members": [
+        "RUS",
+        "TJK"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4475",
+      "members": [
+        "FRA",
+        "SPN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4476",
+      "members": [
+        "GEO",
+        "KAZ"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4480",
+      "members": [
+        "ITA",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4481",
+      "members": [
+        "KAZ",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4485",
+      "members": [
+        "GRC",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4490",
+      "members": [
+        "SVK",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4495",
+      "members": [
+        "BGR",
+        "KAZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4497",
+      "members": [
+        "CHN",
+        "LBR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 1997
+    },
+    {
+      "atopId": "4500",
+      "members": [
+        "CZE",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4505",
+      "members": [
+        "RUS",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4507",
+      "members": [
+        "CHN",
+        "IND"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 1996
+    },
+    {
+      "atopId": "4510",
+      "members": [
+        "ROU",
+        "SVK"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4515",
+      "members": [
+        "BGR",
+        "BLR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4520",
+      "members": [
+        "CHN",
+        "KAZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 2002
+    },
+    {
+      "atopId": "4521",
+      "members": [
+        "KAZ",
+        "MNG"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4525",
+      "members": [
+        "FRA",
+        "UZB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4530",
+      "members": [
+        "POL",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4532",
+      "members": [
+        "KAZ",
+        "LTU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4535",
+      "members": [
+        "AZE",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1993,
+      "endYear": 0
+    },
+    {
+      "atopId": "4539",
+      "members": [
+        "KAZ",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4540",
+      "members": [
+        "FRA",
+        "GEO"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4545",
+      "members": [
+        "LTU",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4550",
+      "members": [
+        "AZE",
+        "TUR"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4555",
+      "members": [
+        "BIH",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4560",
+      "members": [
+        "RUS",
+        "UZB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4565",
+      "members": [
+        "LTU",
+        "ROU"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4568",
+      "members": [
+        "COL",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4570",
+      "members": [
+        "RUS",
+        "SPN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4575",
+      "members": [
+        "LTU",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4580",
+      "members": [
+        "FRA",
+        "TKM"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4585",
+      "members": [
+        "CHN",
+        "MNG"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4595",
+      "members": [
+        "FRA",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4600",
+      "members": [
+        "MDA",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4605",
+      "members": [
+        "RUS",
+        "VNM"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4610",
+      "members": [
+        "CZE",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4615",
+      "members": [
+        "BIH",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4620",
+      "members": [
+        "CHN",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4625",
+      "members": [
+        "HUN",
+        "TUR"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4630",
+      "members": [
+        "ARM",
+        "ROU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4635",
+      "members": [
+        "ITA",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4638",
+      "members": [
+        "CAN",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4645",
+      "members": [
+        "BGR",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4650",
+      "members": [
+        "MDA",
+        "POL"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4655",
+      "members": [
+        "HUN",
+        "KAZ"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1994,
+      "endYear": 0
+    },
+    {
+      "atopId": "4663",
+      "members": [
+        "POL",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4665",
+      "members": [
+        "BGR",
+        "GEO"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4670",
+      "members": [
+        "BLR",
+        "LTU"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4675",
+      "members": [
+        "BLR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4680",
+      "members": [
+        "HUN",
+        "SVK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4685",
+      "members": [
+        "LTU",
+        "MDA"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4695",
+      "members": [
+        "BGR",
+        "MNG"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4700",
+      "members": [
+        "ARM",
+        "BGR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4705",
+      "members": [
+        "HUN",
+        "MDA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4710",
+      "members": [
+        "CZE",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4715",
+      "members": [
+        "LVA",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4720",
+      "members": [
+        "LVA",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4725",
+      "members": [
+        "AZE",
+        "BGR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4730",
+      "members": [
+        "BLR",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4735",
+      "members": [
+        "GRC",
+        "MKD"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 2018
+    },
+    {
+      "atopId": "4740",
+      "members": [
+        "ALB",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4750",
+      "members": [
+        "BIH",
+        "HRV",
+        "SRB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4758",
+      "members": [
+        "ARM",
+        "IND"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1995,
+      "endYear": 0
+    },
+    {
+      "atopId": "4760",
+      "members": [
+        "AUS",
+        "IDN"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1995,
+      "endYear": 1999
+    },
+    {
+      "atopId": "4765",
+      "members": [
+        "BLR",
+        "KAZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4770",
+      "members": [
+        "BGR",
+        "BIH"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4775",
+      "members": [
+        "CZE",
+        "ITA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4780",
+      "members": [
+        "BLR",
+        "SRB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4785",
+      "members": [
+        "ALB",
+        "GRC"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4790",
+      "members": [
+        "AZE",
+        "ROU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4795",
+      "members": [
+        "EST",
+        "MDA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4800",
+      "members": [
+        "MKD",
+        "SRB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4805",
+      "members": [
+        "BGR",
+        "LTU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4810",
+      "members": [
+        "CHN",
+        "IND",
+        "KAZ",
+        "KGZ",
+        "PAK",
+        "RUS",
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 2001
+    },
+    {
+      "atopId": "4815",
+      "members": [
+        "ARM",
+        "UKR"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4820",
+      "members": [
+        "ROU",
+        "SRB"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4825",
+      "members": [
+        "ROU",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4830",
+      "members": [
+        "GRC",
+        "POL"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4833",
+      "members": [
+        "KGZ",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4837",
+      "members": [
+        "KGZ",
+        "TJK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4845",
+      "members": [
+        "HUN",
+        "ROU"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4846",
+      "members": [
+        "AZE",
+        "KAZ"
+      ],
+      "obligations": [
+        "neutral"
+      ],
+      "begYear": 1996,
+      "endYear": 2005
+    },
+    {
+      "atopId": "4855",
+      "members": [
+        "GRC",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4857",
+      "members": [
+        "KGZ",
+        "UZB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1996,
+      "endYear": 0
+    },
+    {
+      "atopId": "4859",
+      "members": [
+        "KAZ",
+        "KGZ",
+        "UZB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4860",
+      "members": [
+        "SVK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4864",
+      "members": [
+        "GRC",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4865",
+      "members": [
+        "BLR",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1997,
+      "endYear": 1999
+    },
+    {
+      "atopId": "4867",
+      "members": [
+        "KAZ",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4869",
+      "members": [
+        "GEO",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4870",
+      "members": [
+        "BLR",
+        "VNM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4875",
+      "members": [
+        "RUS",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4880",
+      "members": [
+        "ROU",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4885",
+      "members": [
+        "AZE",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4890",
+      "members": [
+        "ARM",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4895",
+      "members": [
+        "ITA",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4896",
+      "members": [
+        "PAN",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4897",
+      "members": [
+        "ECU",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1997,
+      "endYear": 0
+    },
+    {
+      "atopId": "4905",
+      "members": [
+        "BGR",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1998,
+      "endYear": 0
+    },
+    {
+      "atopId": "4908",
+      "members": [
+        "CHN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1998,
+      "endYear": 0
+    },
+    {
+      "atopId": "4910",
+      "members": [
+        "KAZ",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1998,
+      "endYear": 0
+    },
+    {
+      "atopId": "4913",
+      "members": [
+        "MKD",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 1998,
+      "endYear": 0
+    },
+    {
+      "atopId": "4925",
+      "members": [
+        "ARM",
+        "KAZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 1999,
+      "endYear": 0
+    },
+    {
+      "atopId": "4930",
+      "members": [
+        "ARM",
+        "GEO"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 1999,
+      "endYear": 0
+    },
+    {
+      "atopId": "4940",
+      "members": [
+        "PRK",
+        "RUS"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4950",
+      "members": [
+        "BLR",
+        "TJK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4951",
+      "members": [
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4952",
+      "members": [
+        "PHL",
+        "SPN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4955",
+      "members": [
+        "BLR",
+        "CUB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4957",
+      "members": [
+        "GTM",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4958",
+      "members": [
+        "PRY",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4965",
+      "members": [
+        "ARE",
+        "BHR",
+        "KWT",
+        "OMN",
+        "QAT",
+        "SAU"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 2000,
+      "endYear": 0
+    },
+    {
+      "atopId": "4968",
+      "members": [
+        "IRN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4970",
+      "members": [
+        "MKD",
+        "ROU"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4975",
+      "members": [
+        "ARM",
+        "BLR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4978",
+      "members": [
+        "TJK",
+        "UKR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4980",
+      "members": [
+        "CHN",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4988",
+      "members": [
+        "ARM",
+        "GEO"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4990",
+      "members": [
+        "MDA",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4995",
+      "members": [
+        "ALB",
+        "SPN"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2001,
+      "endYear": 0
+    },
+    {
+      "atopId": "4998",
+      "members": [
+        "USA",
+        "UZB"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "4999",
+      "members": [
+        "ARM",
+        "KGZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5000",
+      "members": [
+        "RUS",
+        "TKM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5005",
+      "members": [
+        "BLR",
+        "TKM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5010",
+      "members": [
+        "CHN",
+        "FJI"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5015",
+      "members": [
+        "CHN",
+        "KGZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5020",
+      "members": [
+        "LTU",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5027",
+      "members": [
+        "MDA",
+        "TJK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5030",
+      "members": [
+        "CHN",
+        "KAZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2002,
+      "endYear": 0
+    },
+    {
+      "atopId": "5032",
+      "members": [
+        "DZA",
+        "ITA"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2003,
+      "endYear": 0
+    },
+    {
+      "atopId": "5034",
+      "members": [
+        "PRT",
+        "TUN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2003,
+      "endYear": 0
+    },
+    {
+      "atopId": "5035",
+      "members": [
+        "ROU",
+        "RUS"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2003,
+      "endYear": 0
+    },
+    {
+      "atopId": "5040",
+      "members": [
+        "KAZ",
+        "KGZ"
+      ],
+      "obligations": [
+        "defense"
+      ],
+      "begYear": 2003,
+      "endYear": 0
+    },
+    {
+      "atopId": "5045",
+      "members": [
+        "RUS",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2004,
+      "endYear": 0
+    },
+    {
+      "atopId": "5053",
+      "members": [
+        "DZA",
+        "PRT"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2005,
+      "endYear": 0
+    },
+    {
+      "atopId": "5060",
+      "members": [
+        "CHN",
+        "PAK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2005,
+      "endYear": 0
+    },
+    {
+      "atopId": "5065",
+      "members": [
+        "AZE",
+        "KAZ"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2005,
+      "endYear": 0
+    },
+    {
+      "atopId": "5070",
+      "members": [
+        "CHN",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2005,
+      "endYear": 2013
+    },
+    {
+      "atopId": "5075",
+      "members": [
+        "RUS",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "defense"
+      ],
+      "begYear": 2005,
+      "endYear": 0
+    },
+    {
+      "atopId": "5064",
+      "members": [
+        "DZA",
+        "TUR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2006,
+      "endYear": 0
+    },
+    {
+      "atopId": "5080",
+      "members": [
+        "CHN",
+        "MNE"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2006,
+      "endYear": 0
+    },
+    {
+      "atopId": "5085",
+      "members": [
+        "BLR",
+        "KGZ"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2006,
+      "endYear": 0
+    },
+    {
+      "atopId": "5095",
+      "members": [
+        "AUS",
+        "IDN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2006,
+      "endYear": 0
+    },
+    {
+      "atopId": "6005",
+      "members": [
+        "CHN",
+        "TJK"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2007,
+      "endYear": 0
+    },
+    {
+      "atopId": "6010",
+      "members": [
+        "AZE",
+        "TJK"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2007,
+      "endYear": 0
+    },
+    {
+      "atopId": "6015",
+      "members": [
+        "AZE",
+        "BLR"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2007,
+      "endYear": 0
+    },
+    {
+      "atopId": "6020",
+      "members": [
+        "CHN",
+        "KAZ",
+        "KGZ",
+        "RUS",
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2007,
+      "endYear": 0
+    },
+    {
+      "atopId": "6030",
+      "members": [
+        "ITA",
+        "LBY"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2008,
+      "endYear": 2011
+    },
+    {
+      "atopId": "6032",
+      "members": [
+        "IRQ",
+        "USA"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2008,
+      "endYear": 2011
+    },
+    {
+      "atopId": "6035",
+      "members": [
+        "AZE",
+        "TUR"
+      ],
+      "obligations": [
+        "consul",
+        "defense",
+        "nonagg"
+      ],
+      "begYear": 2010,
+      "endYear": 0
+    },
+    {
+      "atopId": "6040",
+      "members": [
+        "DJI",
+        "FRA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 2011,
+      "endYear": 0
+    },
+    {
+      "atopId": "6050",
+      "members": [
+        "AFG",
+        "USA"
+      ],
+      "obligations": [
+        "consul"
+      ],
+      "begYear": 2012,
+      "endYear": 0
+    },
+    {
+      "atopId": "6053",
+      "members": [
+        "KAZ",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2013,
+      "endYear": 0
+    },
+    {
+      "atopId": "6055",
+      "members": [
+        "BLR",
+        "LAO"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2013,
+      "endYear": 0
+    },
+    {
+      "atopId": "6060",
+      "members": [
+        "CHN",
+        "UZB"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2013,
+      "endYear": 0
+    },
+    {
+      "atopId": "6070",
+      "members": [
+        "KAZ",
+        "RUS"
+      ],
+      "obligations": [
+        "neutral",
+        "nonagg"
+      ],
+      "begYear": 2013,
+      "endYear": 0
+    },
+    {
+      "atopId": "6075",
+      "members": [
+        "CHN",
+        "UKR"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2013,
+      "endYear": 0
+    },
+    {
+      "atopId": "6085",
+      "members": [
+        "CHN",
+        "TKM"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2014,
+      "endYear": 0
+    },
+    {
+      "atopId": "6095",
+      "members": [
+        "BLR",
+        "CHN"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2015,
+      "endYear": 0
+    },
+    {
+      "atopId": "7005",
+      "members": [
+        "GUY",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2016,
+      "endYear": 0
+    },
+    {
+      "atopId": "7015",
+      "members": [
+        "HND",
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2017,
+      "endYear": 0
+    },
+    {
+      "atopId": "7025",
+      "members": [
+        "BGR",
+        "MKD"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2017,
+      "endYear": 0
+    },
+    {
+      "atopId": "7030",
+      "members": [
+        "RUS",
+        "TKM"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2017,
+      "endYear": 0
+    },
+    {
+      "atopId": "7040",
+      "members": [
+        "GRC",
+        "MKD"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2018,
+      "endYear": 0
+    },
+    {
+      "atopId": "7043",
+      "members": [
+        "TJK",
+        "UZB"
+      ],
+      "obligations": [
+        "consul",
+        "nonagg"
+      ],
+      "begYear": 2018,
+      "endYear": 0
+    },
+    {
+      "atopId": "7045",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2018,
+      "endYear": 0
+    },
+    {
+      "atopId": "7050",
+      "members": [
+        "RUS"
+      ],
+      "obligations": [
+        "nonagg"
+      ],
+      "begYear": 2018,
+      "endYear": 0
+    }
+  ]
+}

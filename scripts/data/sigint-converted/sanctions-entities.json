@@ -1,0 +1,17 @@
+[
+	{"i":"sigint-sanctions-entity-sanc-ir","k":"sanctions-entity","n":"Iran","la":32.427,"ln":53.688,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU/UN","sector":"nuclear, finance, oil","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-kp","k":"sanctions-entity","n":"North Korea","la":40.339,"ln":127.51,"s":1,"m":{"source":"sigint-snapshot","regime":"US/UN","sector":"arms, finance, proliferation","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ru","k":"sanctions-entity","n":"Russia (Moscow entities)","la":55.752,"ln":37.615,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU/UK","sector":"energy, finance, defense","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-by","k":"sanctions-entity","n":"Belarus","la":53.902,"ln":27.561,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU","sector":"political, finance","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-mm","k":"sanctions-entity","n":"Myanmar","la":19.763,"ln":96.129,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU/UK","sector":"military, gems, finance","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ve","k":"sanctions-entity","n":"Venezuela","la":10.48,"ln":-66.88,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU","sector":"oil, finance, political","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-cu","k":"sanctions-entity","n":"Cuba","la":23.136,"ln":-82.366,"s":1,"m":{"source":"sigint-snapshot","regime":"US","sector":"finance, trade","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-sy","k":"sanctions-entity","n":"Syria","la":33.51,"ln":36.292,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU","sector":"oil, finance, arms","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-zw","k":"sanctions-entity","n":"Zimbabwe","la":-17.829,"ln":31.053,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU","sector":"political, finance","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-sd","k":"sanctions-entity","n":"Sudan","la":15.558,"ln":32.534,"s":1,"m":{"source":"sigint-snapshot","regime":"US","sector":"political, arms","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-so","k":"sanctions-entity","n":"Somalia (Al-Shabaab entities)","la":2.047,"ln":45.341,"s":1,"m":{"source":"sigint-snapshot","regime":"UN/US","sector":"arms, finance","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ye","k":"sanctions-entity","n":"Yemen (Houthi entities)","la":15.369,"ln":44.207,"s":1,"m":{"source":"sigint-snapshot","regime":"US/UN","sector":"arms, finance","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ly","k":"sanctions-entity","n":"Libya","la":32.903,"ln":13.18,"s":1,"m":{"source":"sigint-snapshot","regime":"UN/EU","sector":"arms, oil","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ht","k":"sanctions-entity","n":"Haiti (Gang entities)","la":18.542,"ln":-72.338,"s":1,"m":{"source":"sigint-snapshot","regime":"US/UN","sector":"arms, political","ts":1772435598914}},
+	{"i":"sigint-sanctions-entity-sanc-ml","k":"sanctions-entity","n":"Mali","la":17.571,"ln":-8,"s":1,"m":{"source":"sigint-snapshot","regime":"US/EU/UN","sector":"arms, political","ts":1772435598914}}
+]

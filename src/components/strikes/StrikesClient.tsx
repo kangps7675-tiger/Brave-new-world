@@ -9,7 +9,7 @@ import {
 } from "@/lib/warRisk/regionGeo";
 import type { WarRiskRegionId } from "@/lib/warRisk/extractPremium";
 
-export type Strike = {
+type Strike = {
   incident: {
     id: string;
     typeName: string;
@@ -31,7 +31,7 @@ export type Strike = {
   warRiskRegion: WarRiskRegionId;
 };
 
-export type Quote = {
+type Quote = {
   region: string;
   ratePct: number | null;
   rateHighPct: number | null;
@@ -103,21 +103,7 @@ function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
   );
 }
 
-export function StrikeCard({
-  s,
-  latestQuote,
-  onLocate,
-  onSatellite,
-  selected,
-}: {
-  s: Strike;
-  latestQuote: Quote | null;
-  /** 해역 대시보드 — 지구본에서 이 사건 위치로 */
-  onLocate?: (s: Strike) => void;
-  /** 해역 대시보드 — 세슘 위성 화면으로 이 사건 깊게 보기 */
-  onSatellite?: (s: Strike) => void;
-  selected?: boolean;
-}) {
+function StrikeCard({ s, latestQuote }: { s: Strike; latestQuote: Quote | null }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Strike | null>(null);
   const [loading, setLoading] = useState(false);
@@ -138,9 +124,7 @@ export function StrikeCard({
   };
 
   return (
-    <article
-      className={`rounded-xl border bg-white/[0.03] p-4 sm:p-5 ${selected ? "border-rose-300/50" : "border-white/10"}`}
-    >
+    <article className="rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs tabular-nums text-white/45">
@@ -186,16 +170,6 @@ export function StrikeCard({
           ) : loading ? (
             <span className="text-white/40">불러오는 중…</span>
           ) : null}
-          {onLocate ? (
-            <button type="button" onClick={() => onLocate(view)} className="text-white/55 underline underline-offset-4 hover:text-white">
-              지구본에서 위치
-            </button>
-          ) : null}
-          {onSatellite ? (
-            <button type="button" onClick={() => onSatellite(view)} className="text-sky-200/80 underline underline-offset-4 hover:text-white">
-              위성으로 보기
-            </button>
-          ) : null}
         </div>
       </section>
 
@@ -230,20 +204,6 @@ export function StrikeCard({
   );
 }
 
-/** 해역별 최신 보도 요율 — hull value 가 명시된(strong) 것 우선 */
-export function latestQuoteByRegion(quotes: readonly Quote[]): Map<string, Quote> {
-  const m = new Map<string, Quote>();
-  const sorted = [...quotes]
-    .filter((q) => q.ratePct !== null)
-    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
-  for (const q of sorted) {
-    const prev = m.get(q.region);
-    // 최신순으로 훑으며, 처음 본 것을 두되 이후 strong 이 나오면 한 번만 교체
-    if (!prev || (prev.confidence !== "strong" && q.confidence === "strong")) m.set(q.region, q);
-  }
-  return m;
-}
-
 export default function StrikesClient() {
   const [strikes, setStrikes] = useState<Strike[] | null>(null);
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -263,7 +223,19 @@ export default function StrikesClient() {
     };
   }, []);
 
-  const latestByRegion = useMemo(() => latestQuoteByRegion(quotes), [quotes]);
+  /** 해역별 최신 보도 요율 — hull value 가 명시된(strong) 것 우선 */
+  const latestByRegion = useMemo(() => {
+    const m = new Map<string, Quote>();
+    const sorted = [...quotes]
+      .filter((q) => q.ratePct !== null)
+      .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
+    for (const q of sorted) {
+      const prev = m.get(q.region);
+      // 최신순으로 훑으며, 처음 본 것을 두되 이후 strong 이 나오면 한 번만 교체
+      if (!prev || (prev.confidence !== "strong" && q.confidence === "strong")) m.set(q.region, q);
+    }
+    return m;
+  }, [quotes]);
 
   const counts = useMemo(() => {
     const c: Record<MatchStatus, number> = { confirmed: 0, likely: 0, ambiguous: 0, unknown: 0 };

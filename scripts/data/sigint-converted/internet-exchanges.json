@@ -1,0 +1,7 @@
+[
+	{"i":"sigint-internet-exchange-internet-exchanges-0","k":"internet-exchange","n":"internet-exchanges site 0","la":38.9,"ln":-77.04,"s":1,"m":{"source":"sigint-snapshot","ts":1772435598920}},
+	{"i":"sigint-internet-exchange-internet-exchanges-1","k":"internet-exchange","n":"internet-exchanges site 1","la":48.86,"ln":2.35,"s":1,"m":{"source":"sigint-snapshot","ts":1772435598920}},
+	{"i":"sigint-internet-exchange-internet-exchanges-2","k":"internet-exchange","n":"internet-exchanges site 2","la":35.68,"ln":139.76,"s":1,"m":{"source":"sigint-snapshot","ts":1772435598920}},
+	{"i":"sigint-internet-exchange-internet-exchanges-3","k":"internet-exchange","n":"internet-exchanges site 3","la":25.2,"ln":55.27,"s":1,"m":{"source":"sigint-snapshot","ts":1772435598920}},
+	{"i":"sigint-internet-exchange-internet-exchanges-4","k":"internet-exchange","n":"internet-exchanges site 4","la":-23.55,"ln":-46.63,"s":1,"m":{"source":"sigint-snapshot","ts":1772435598920}}
+]

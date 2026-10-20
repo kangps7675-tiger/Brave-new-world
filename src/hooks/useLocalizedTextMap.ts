@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import { isMostlyEnglish, isMostlyKorean, translateTextsBatch } from "@/lib/koreanTranslate";
 
 type TextEntry = { key: string; text: string };

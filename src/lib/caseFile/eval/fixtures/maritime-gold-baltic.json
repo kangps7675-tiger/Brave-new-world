@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-17",
+  "note": "Baltic Sea undersea cable/pipeline damage incidents 2022-2026. Different incident type from ship attacks: intent is contested per case. IMO numbers not published in the source. Seed list, not exhaustive.",
+  "items": [
+    {
+      "id": "baltic-001",
+      "sea": "baltic",
+      "date": "2022-09-26",
+      "ship": "(none named)",
+      "imo": null,
+      "locationText": "Off Bornholm, Denmark",
+      "description": "Nord Stream 1 and 2 pipelines ruptured (three of four lines). Sweden found explosive traces. Sweden and Denmark closed investigations in 2024 with no suspects named; no claim of responsibility.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)"
+    },
+    {
+      "id": "baltic-002",
+      "sea": "baltic",
+      "date": "2023-10-07",
+      "dateEnd": "2023-10-08",
+      "ship": "NewNew Polar Bear",
+      "imo": null,
+      "locationText": "Gulf of Finland / Baltic Sea (exact position not given)",
+      "description": "Balticconnector gas pipeline (Finland-Estonia) and telecom cables severed. Finnish investigators found the ship dragged its anchor. Captain charged with criminal damage in Hong Kong.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)"
+    },
+    {
+      "id": "baltic-003",
+      "sea": "baltic",
+      "date": "2024-11-17",
+      "dateEnd": "2024-11-18",
+      "ship": "Yi Peng 3",
+      "imo": null,
+      "locationText": "Baltic Sea (two breaks >100 nm apart)",
+      "description": "Lithuania-Gotland (Telia) and Helsinki-Rostock (Cinia) telecom cables broke. Chinese bulk carrier from Ust-Luga; Reuters analysis of MarineTraffic data placed it at both breaches. Swedish inquiry (Apr 2025) found no conclusive evidence of deliberate anchor dragging.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)"
+    },
+    {
+      "id": "baltic-004",
+      "sea": "baltic",
+      "date": "2024-12-25",
+      "ship": "Eagle S",
+      "imo": null,
+      "locationText": "Gulf of Finland",
+      "description": "Estlink 2 power cable and four telecom lines damaged. Cook Islands-flagged tanker described as shadow fleet. Seized 26 Dec 2024. Oct 2025 Finnish court dismissed case against captain and crew: intent not proven.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)",
+      "flag": "Cook Islands"
+    },
+    {
+      "id": "baltic-005",
+      "sea": "baltic",
+      "date": "2025-01-26",
+      "ship": "Vezhen",
+      "imo": null,
+      "locationText": "Baltic Sea (Latvia-Gotland cable)",
+      "description": "Latvia-Gotland fibre cable damaged; Cinia C-Lion1 also damaged around the same time (no vessel linked). Sweden first suspected gross sabotage; operator said anchor snagged in high winds. Swedish prosecutor ruled breach accidental and released the Maltese-flagged bulk carrier.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)",
+      "flag": "Malta"
+    },
+    {
+      "id": "baltic-006",
+      "sea": "baltic",
+      "date": "2025-12-30",
+      "dateEnd": "2025-12-31",
+      "ship": "Fitburg",
+      "imo": null,
+      "locationText": "Gulf of Finland",
+      "description": "Helsinki-Estonia telecom cable and a second Arelion Finland-Estonia cable damaged; Estonia-Sweden cable failed 30 Dec. Cargo vessel from Russia to Israel reportedly dragging anchor; Finnish police seized it, two crew arrested. Investigation ongoing.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)"
+    },
+    {
+      "id": "baltic-007",
+      "sea": "baltic",
+      "date": "2026-01-02",
+      "ship": "(unnamed ship docked at Liepaja)",
+      "imo": null,
+      "locationText": "Sventoji (Lithuania) - Liepaja (Latvia), ~65 km",
+      "description": "Arelion telecom cable damaged. Latvian police boarded a ship at Liepaja; on 5 Jan said no evidence linking the ship to the damage. Investigation continuing.",
+      "incidentType": "infrastructure_damage",
+      "goldSource": "media",
+      "confidence": "reported",
+      "goldRef": "Baird Maritime factbox (secondary source; verify against national investigation bodies before treating as gold)"
+    }
+  ]
+}

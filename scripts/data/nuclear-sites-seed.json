@@ -1,0 +1,22 @@
+[
+  {"id":"nuke-kr-kori","kind":"nuclear-site","name":"Kori NPP","lat":35.32,"lng":129.29,"tier":1,"meta":{"country":"KR","type":"power","source":"public"}},
+  {"id":"nuke-kr-hanul","kind":"nuclear-site","name":"Hanul NPP","lat":37.09,"lng":129.38,"tier":1,"meta":{"country":"KR","type":"power","source":"public"}},
+  {"id":"nuke-jp-kashima","kind":"nuclear-site","name":"Kashiwazaki-Kariwa","lat":37.43,"lng":138.6,"tier":1,"meta":{"country":"JP","type":"power","source":"public"}},
+  {"id":"nuke-fr-gru","kind":"nuclear-site","name":"Gravelines NPP","lat":51.01,"lng":2.14,"tier":1,"meta":{"country":"FR","type":"power","source":"public"}},
+  {"id":"nuke-us-palo","kind":"nuclear-site","name":"Palo Verde","lat":33.39,"lng":-112.86,"tier":1,"meta":{"country":"US","type":"power","source":"public"}},
+  {"id":"nuke-us-diablo","kind":"nuclear-site","name":"Diablo Canyon","lat":35.21,"lng":-120.85,"tier":1,"meta":{"country":"US","type":"power","source":"public"}},
+  {"id":"nuke-cn-qinshan","kind":"nuclear-site","name":"Qinshan","lat":30.43,"lng":120.96,"tier":1,"meta":{"country":"CN","type":"power","source":"public"}},
+  {"id":"nuke-ru-balakovo","kind":"nuclear-site","name":"Balakovo NPP","lat":52.09,"lng":47.96,"tier":2,"meta":{"country":"RU","type":"power","source":"public"}},
+  {"id":"nuke-ua-zap","kind":"nuclear-site","name":"Zaporizhzhia NPP","lat":47.51,"lng":34.59,"tier":1,"meta":{"country":"UA","type":"power","source":"public"}},
+  {"id":"nuke-uk-sellafield","kind":"nuclear-site","name":"Sellafield","lat":54.42,"lng":-3.5,"tier":2,"meta":{"country":"GB","type":"research","source":"public"}},
+  {"id":"nuke-ir-bushehr","kind":"nuclear-site","name":"Bushehr NPP","lat":28.83,"lng":50.89,"tier":1,"meta":{"country":"IR","type":"power","source":"public"}},
+  {"id":"nuke-pk-chashma","kind":"nuclear-site","name":"Chashma NPP","lat":32.39,"lng":71.46,"tier":2,"meta":{"country":"PK","type":"power","source":"public"}},
+  {"id":"nuke-in-tarapur","kind":"nuclear-site","name":"Tarapur","lat":19.83,"lng":72.66,"tier":2,"meta":{"country":"IN","type":"power","source":"public"}},
+  {"id":"nuke-ca-bruce","kind":"nuclear-site","name":"Bruce NPP","lat":44.33,"lng":-81.6,"tier":1,"meta":{"country":"CA","type":"power","source":"public"}},
+  {"id":"nuke-se-forsmark","kind":"nuclear-site","name":"Forsmark","lat":60.4,"lng":18.17,"tier":2,"meta":{"country":"SE","type":"power","source":"public"}},
+  {"id":"nuke-de-brokdorf","kind":"nuclear-site","name":"Brokdorf (decommissioning)","lat":53.85,"lng":9.35,"tier":3,"meta":{"country":"DE","type":"power","source":"public"}},
+  {"id":"nuke-fi-olkiluoto","kind":"nuclear-site","name":"Olkiluoto","lat":61.24,"lng":21.44,"tier":2,"meta":{"country":"FI","type":"power","source":"public"}},
+  {"id":"nuke-cn-taishan","kind":"nuclear-site","name":"Taishan","lat":21.92,"lng":112.98,"tier":1,"meta":{"country":"CN","type":"power","source":"public"}},
+  {"id":"nuke-ae-barakah","kind":"nuclear-site","name":"Barakah","lat":23.97,"lng":52.28,"tier":1,"meta":{"country":"AE","type":"power","source":"public"}},
+  {"id":"nuke-tr-akkuyu","kind":"nuclear-site","name":"Akkuyu","lat":36.14,"lng":33.54,"tier":2,"meta":{"country":"TR","type":"power","source":"public"}}
+]

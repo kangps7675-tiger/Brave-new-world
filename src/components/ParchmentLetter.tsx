@@ -11,8 +11,14 @@ import {
   type ReactNode,
 } from "react";
 import { BRAND_NAME } from "@/lib/brand";
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
+import {
+  emitBreakingDispatchSound,
+  type BreakingDispatchBed,
+  emitParchmentFoldSound,
+  emitParchmentUnfoldSound,
+} from "@/components/SoundEffectsBridge";
 
 /** 접기(뒷면) + 상승 모션 총 길이 (CSS와 맞춤) */
 export const PARCHMENT_FOLD_EXIT_MS = 1100;
@@ -85,7 +91,7 @@ export type ParchmentLetterProps = {
   /** 펼침과 동시에 SOS 모스(타전) 재생 — 분쟁 외교사 등 */
   playBreakingDispatch?: boolean;
   /** dark=지정학(기본) · cheer=지경학 등불과 동일 깔개 */
-  breakingDispatchBed?: unknown;
+  breakingDispatchBed?: BreakingDispatchBed;
   /** 본문을 타자기처럼 한 글자씩 출력 (분쟁 외교사 등) */
   typewriter?: boolean;
   /**
@@ -138,6 +144,9 @@ export function ParchmentLetter({
   backSub,
   ctaLabel,
   onContinue,
+  playUnfoldSound = true,
+  playBreakingDispatch = false,
+  breakingDispatchBed = "dark",
   typewriter = false,
   historyHandFont = false,
   intelFont = false,
@@ -197,6 +206,14 @@ export function ParchmentLetter({
   const fullBody = useMemo(() => paragraphs.join("\n\n"), [paragraphs]);
   const totalChars = fullBody.length;
   const typingDone = !typewriter || typedChars >= totalChars;
+
+  useEffect(() => {
+    if (!playUnfoldSound && !playBreakingDispatch) return;
+    if (playUnfoldSound) emitParchmentUnfoldSound();
+    if (playBreakingDispatch) {
+      emitBreakingDispatchSound({ bed: breakingDispatchBed });
+    }
+  }, [playUnfoldSound, playBreakingDispatch, breakingDispatchBed]);
 
   useEffect(() => {
     if (!typewriter) {
@@ -300,7 +317,7 @@ export function ParchmentLetter({
       return;
     }
     setPhase("folding");
-    
+    emitParchmentFoldSound();
     const reduced = prefersReducedMotion();
     const exitMs = exitToDock
       ? PARCHMENT_FOLD_TO_DOCK_MS

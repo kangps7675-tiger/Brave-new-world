@@ -1,0 +1,8 @@
+[
+  {"id":"port-sgp","kind":"port","name":"Singapore","lat":1.26,"lng":103.84,"tier":1,"meta":{"country":"SGP"}},
+  {"id":"port-rotterdam","kind":"port","name":"Rotterdam","lat":51.92,"lng":4.48,"tier":1,"meta":{"country":"NLD"}},
+  {"id":"port-shanghai","kind":"port","name":"Shanghai","lat":31.23,"lng":121.47,"tier":1,"meta":{"country":"CHN"}},
+  {"id":"port-busans","kind":"port","name":"Busan","lat":35.1,"lng":129.04,"tier":1,"meta":{"country":"KOR"}},
+  {"id":"port-la","kind":"port","name":"Los Angeles","lat":33.74,"lng":-118.27,"tier":1,"meta":{"country":"USA"}},
+  {"id":"port-hormuz","kind":"port","name":"Fujairah (Hormuz approach)","lat":25.12,"lng":56.35,"tier":1,"meta":{"country":"ARE"}}
+]

@@ -1,0 +1,151 @@
+{
+  "bufferKm": 18.0,
+  "corridors": {
+    "tsr": {
+      "rail": 9599
+    },
+    "tmgr": {
+      "rail": 198
+    },
+    "tmr": {
+      "rail": 1241
+    },
+    "bam": {
+      "rail": 1339
+    },
+    "rajin-khasan": {
+      "rail": 620
+    },
+    "trans-korean-west": {
+      "rail": 0
+    },
+    "trans-korean-east": {
+      "rail": 35
+    },
+    "middle-corridor": {
+      "rail": 0,
+      "road": 0
+    },
+    "zangezur-corridor": {
+      "rail": 0,
+      "road": 0
+    },
+    "chn-irn-rail": {
+      "rail": 0
+    },
+    "instc-trans-caspian": {
+      "rail": 7362,
+      "road": 22889
+    },
+    "instc-baku-branch": {
+      "rail": 375,
+      "road": 1619
+    },
+    "irn-rus-caspian-arms": {
+      "rail": 660,
+      "road": 1975
+    },
+    "irn-rus-caspian-arms-seshcha-branch": {
+      "rail": 1264,
+      "road": 5140
+    },
+    "power-of-siberia": {
+      "rail": 296,
+      "road": 627
+    },
+    "tongjiang-nizhneleninskoye-bridge": {
+      "rail": 54
+    },
+    "rus-blr-rail": {
+      "rail": 5288
+    },
+    "brest-malaszewicze-gauge-terminal": {
+      "rail": 158
+    },
+    "lithuania-belarus-rail-gateway": {
+      "rail": 54
+    },
+    "latvia-russia-rail-gateway": {
+      "rail": 15
+    },
+    "estonia-russia-rail-gateway": {
+      "rail": 19
+    },
+    "finland-russia-rail-gateway": {
+      "rail": 136
+    },
+    "poland-ukraine-rail-gateway": {
+      "rail": 77
+    },
+    "hungary-ukraine-rail-gateway": {
+      "rail": 168
+    },
+    "slovakia-ukraine-rail-gateway": {
+      "rail": 150
+    },
+    "romania-ukraine-rail-gateway": {
+      "rail": 17
+    },
+    "greece-turkey-rail-gateway": {
+      "rail": 0
+    },
+    "cpc-pipeline": {
+      "rail": 504,
+      "road": 3426
+    },
+    "rus-uzb-rail": {
+      "rail": 4805
+    },
+    "central-asia-center-gas-pipeline": {
+      "rail": 5,
+      "road": 0
+    },
+    "rus-kgz-route": {
+      "rail": 4788,
+      "road": 10450
+    },
+    "rus-tjk-route": {
+      "rail": 4788,
+      "road": 10450
+    },
+    "chn-kaz-oil-pipeline": {
+      "rail": 0,
+      "road": 0
+    },
+    "cku-railway": {
+      "rail": 0
+    },
+    "chn-tkm-gas-pipeline": {
+      "rail": 0,
+      "road": 0
+    },
+    "cpec": {
+      "rail": 0,
+      "road": 0
+    },
+    "kyaukpyu-pipeline": {
+      "rail": 0,
+      "road": 0
+    },
+    "irn-syr-landbridge": {
+      "road": 0
+    },
+    "dandong-sinuiju-bridge": {
+      "road": 0
+    },
+    "irn-irq-route": {
+      "road": 0
+    },
+    "irn-lbn-hezbollah-route": {
+      "road": 0
+    }
+  },
+  "counts": {
+    "rail": 22570,
+    "road": 35724
+  },
+  "rawCounts": {
+    "rail": 100541,
+    "road": 278257
+  }
+}

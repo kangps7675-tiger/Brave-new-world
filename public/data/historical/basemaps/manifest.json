@@ -1,0 +1,441 @@
+{
+  "version": 1,
+  "builtAt": "2026-09-19T13:39:22.228Z",
+  "sourceProject": "https://github.com/aourednik/historical-basemaps",
+  "license": "GPL-3.0",
+  "licenseNote": "GeoJSON redistributed under GPL-3.0. Keep LICENSE with these files. App code remains separate; do not amalgamate into proprietary closed distribution without GPL compliance.",
+  "korea": "excluded — separate Claude pipeline",
+  "mount": "history_toggle_only",
+  "stats": {
+    "years": 49,
+    "skippedKoreaTotal": 56
+  },
+  "years": [
+    {
+      "year": -3000,
+      "file": "geojson/world_bc3000.geojson",
+      "featureCount": 138,
+      "skippedKorea": 0,
+      "sizeMB": 0.75
+    },
+    {
+      "year": -2000,
+      "file": "geojson/world_bc2000.geojson",
+      "featureCount": 145,
+      "skippedKorea": 0,
+      "sizeMB": 0.82
+    },
+    {
+      "year": -1500,
+      "file": "geojson/world_bc1500.geojson",
+      "featureCount": 163,
+      "skippedKorea": 0,
+      "sizeMB": 0.84
+    },
+    {
+      "year": -1000,
+      "file": "geojson/world_bc1000.geojson",
+      "featureCount": 163,
+      "skippedKorea": 0,
+      "sizeMB": 0.84
+    },
+    {
+      "year": -700,
+      "file": "geojson/world_bc700.geojson",
+      "featureCount": 174,
+      "skippedKorea": 0,
+      "sizeMB": 0.84
+    },
+    {
+      "year": -500,
+      "file": "geojson/world_bc500.geojson",
+      "featureCount": 189,
+      "skippedKorea": 0,
+      "sizeMB": 0.88
+    },
+    {
+      "year": -400,
+      "file": "geojson/world_bc400.geojson",
+      "featureCount": 189,
+      "skippedKorea": 1,
+      "sizeMB": 0.85
+    },
+    {
+      "year": -323,
+      "file": "geojson/world_bc323.geojson",
+      "featureCount": 149,
+      "skippedKorea": 0,
+      "sizeMB": 0.85
+    },
+    {
+      "year": -300,
+      "file": "geojson/world_bc300.geojson",
+      "featureCount": 155,
+      "skippedKorea": 0,
+      "sizeMB": 0.87
+    },
+    {
+      "year": -200,
+      "file": "geojson/world_bc200.geojson",
+      "featureCount": 183,
+      "skippedKorea": 0,
+      "sizeMB": 0.91
+    },
+    {
+      "year": -100,
+      "file": "geojson/world_bc100.geojson",
+      "featureCount": 233,
+      "skippedKorea": 0,
+      "sizeMB": 0.92
+    },
+    {
+      "year": -1,
+      "file": "geojson/world_bc1.geojson",
+      "featureCount": 440,
+      "skippedKorea": 2,
+      "sizeMB": 1.11
+    },
+    {
+      "year": 100,
+      "file": "geojson/world_100.geojson",
+      "featureCount": 436,
+      "skippedKorea": 4,
+      "sizeMB": 1.11
+    },
+    {
+      "year": 200,
+      "file": "geojson/world_200.geojson",
+      "featureCount": 350,
+      "skippedKorea": 4,
+      "sizeMB": 1.12
+    },
+    {
+      "year": 300,
+      "file": "geojson/world_300.geojson",
+      "featureCount": 463,
+      "skippedKorea": 3,
+      "sizeMB": 1.12
+    },
+    {
+      "year": 400,
+      "file": "geojson/world_400.geojson",
+      "featureCount": 363,
+      "skippedKorea": 4,
+      "sizeMB": 1.08
+    },
+    {
+      "year": 500,
+      "file": "geojson/world_500.geojson",
+      "featureCount": 202,
+      "skippedKorea": 3,
+      "sizeMB": 0.92
+    },
+    {
+      "year": 600,
+      "file": "geojson/world_600.geojson",
+      "featureCount": 201,
+      "skippedKorea": 3,
+      "sizeMB": 0.98
+    },
+    {
+      "year": 700,
+      "file": "geojson/world_700.geojson",
+      "featureCount": 250,
+      "skippedKorea": 3,
+      "sizeMB": 0.91
+    },
+    {
+      "year": 800,
+      "file": "geojson/world_800.geojson",
+      "featureCount": 224,
+      "skippedKorea": 1,
+      "sizeMB": 0.93
+    },
+    {
+      "year": 900,
+      "file": "geojson/world_900.geojson",
+      "featureCount": 242,
+      "skippedKorea": 2,
+      "sizeMB": 0.98
+    },
+    {
+      "year": 1000,
+      "file": "geojson/world_1000.geojson",
+      "featureCount": 263,
+      "skippedKorea": 1,
+      "sizeMB": 0.99
+    },
+    {
+      "year": 1100,
+      "file": "geojson/world_1100.geojson",
+      "featureCount": 234,
+      "skippedKorea": 1,
+      "sizeMB": 1.01
+    },
+    {
+      "year": 1200,
+      "file": "geojson/world_1200.geojson",
+      "featureCount": 285,
+      "skippedKorea": 1,
+      "sizeMB": 0.97
+    },
+    {
+      "year": 1279,
+      "file": "geojson/world_1279.geojson",
+      "featureCount": 247,
+      "skippedKorea": 0,
+      "sizeMB": 0.99
+    },
+    {
+      "year": 1300,
+      "file": "geojson/world_1300.geojson",
+      "featureCount": 237,
+      "skippedKorea": 0,
+      "sizeMB": 0.98
+    },
+    {
+      "year": 1400,
+      "file": "geojson/world_1400.geojson",
+      "featureCount": 233,
+      "skippedKorea": 0,
+      "sizeMB": 1.01
+    },
+    {
+      "year": 1492,
+      "file": "geojson/world_1492.geojson",
+      "featureCount": 1945,
+      "skippedKorea": 1,
+      "sizeMB": 3.32
+    },
+    {
+      "year": 1500,
+      "file": "geojson/world_1500.geojson",
+      "featureCount": 290,
+      "skippedKorea": 1,
+      "sizeMB": 1.12
+    },
+    {
+      "year": 1530,
+      "file": "geojson/world_1530.geojson",
+      "featureCount": 493,
+      "skippedKorea": 1,
+      "sizeMB": 1.33
+    },
+    {
+      "year": 1600,
+      "file": "geojson/world_1600.geojson",
+      "featureCount": 865,
+      "skippedKorea": 1,
+      "sizeMB": 1.6
+    },
+    {
+      "year": 1650,
+      "file": "geojson/world_1650.geojson",
+      "featureCount": 777,
+      "skippedKorea": 1,
+      "sizeMB": 1.56
+    },
+    {
+      "year": 1700,
+      "file": "geojson/world_1700.geojson",
+      "featureCount": 781,
+      "skippedKorea": 1,
+      "sizeMB": 1.54
+    },
+    {
+      "year": 1715,
+      "file": "geojson/world_1715.geojson",
+      "featureCount": 757,
+      "skippedKorea": 1,
+      "sizeMB": 1.63
+    },
+    {
+      "year": 1783,
+      "file": "geojson/world_1783.geojson",
+      "featureCount": 640,
+      "skippedKorea": 1,
+      "sizeMB": 1.57
+    },
+    {
+      "year": 1800,
+      "file": "geojson/world_1800.geojson",
+      "featureCount": 626,
+      "skippedKorea": 1,
+      "sizeMB": 1.54
+    },
+    {
+      "year": 1815,
+      "file": "geojson/world_1815.geojson",
+      "featureCount": 435,
+      "skippedKorea": 1,
+      "sizeMB": 2.28
+    },
+    {
+      "year": 1878,
+      "file": "geojson/world_1878.geojson",
+      "featureCount": 238,
+      "skippedKorea": 1,
+      "sizeMB": 1.26
+    },
+    {
+      "year": 1880,
+      "file": "geojson/world_1880.geojson",
+      "featureCount": 235,
+      "skippedKorea": 1,
+      "sizeMB": 1.22
+    },
+    {
+      "year": 1900,
+      "file": "geojson/world_1900.geojson",
+      "featureCount": 269,
+      "skippedKorea": 1,
+      "sizeMB": 1.21
+    },
+    {
+      "year": 1914,
+      "file": "geojson/world_1914.geojson",
+      "featureCount": 177,
+      "skippedKorea": 0,
+      "sizeMB": 1.23
+    },
+    {
+      "year": 1920,
+      "file": "geojson/world_1920.geojson",
+      "featureCount": 205,
+      "skippedKorea": 0,
+      "sizeMB": 1.41
+    },
+    {
+      "year": 1930,
+      "file": "geojson/world_1930.geojson",
+      "featureCount": 200,
+      "skippedKorea": 0,
+      "sizeMB": 1.29
+    },
+    {
+      "year": 1938,
+      "file": "geojson/world_1938.geojson",
+      "featureCount": 254,
+      "skippedKorea": 0,
+      "sizeMB": 1.37
+    },
+    {
+      "year": 1945,
+      "file": "geojson/world_1945.geojson",
+      "featureCount": 225,
+      "skippedKorea": 2,
+      "sizeMB": 1.28
+    },
+    {
+      "year": 1960,
+      "file": "geojson/world_1960.geojson",
+      "featureCount": 195,
+      "skippedKorea": 2,
+      "sizeMB": 1.23
+    },
+    {
+      "year": 1994,
+      "file": "geojson/world_1994.geojson",
+      "featureCount": 238,
+      "skippedKorea": 2,
+      "sizeMB": 1.55
+    },
+    {
+      "year": 2000,
+      "file": "geojson/world_2000.geojson",
+      "featureCount": 238,
+      "skippedKorea": 2,
+      "sizeMB": 1.56
+    },
+    {
+      "year": 2010,
+      "file": "geojson/world_2010.geojson",
+      "featureCount": 238,
+      "skippedKorea": 2,
+      "sizeMB": 1.55
+    }
+  ],
+  "knownIssueRules": [
+    {
+      "id": "turkey-1930-label",
+      "years": [
+        1930
+      ],
+      "status": "upstream_fixed_verify",
+      "issue": "https://github.com/aourednik/historical-basemaps/issues/52",
+      "note": "1930 had Ottoman label error; author closed as fixed Sep 2026 — verify Republic of Turkey present.",
+      "onFail": "prefer_cliopatria_near_east"
+    },
+    {
+      "id": "turkey-1938-fragment",
+      "years": [
+        1938
+      ],
+      "status": "verify",
+      "issue": "https://github.com/aourednik/historical-basemaps/issues/52",
+      "note": "Report claimed Sèvres-like fragmentation; verify single Turkey with BP>=2.",
+      "onFail": "prefer_cliopatria_near_east"
+    },
+    {
+      "id": "umayyad-abbasid-borders",
+      "years": [
+        700,
+        800
+      ],
+      "status": "caution",
+      "issue": "https://github.com/aourednik/historical-basemaps/issues/47",
+      "note": "Umayyad/Abbasid border disputes reported — keep BORDERPRECISION blur; prefer Cliopatria for polity fills when both loaded.",
+      "prefer": "cliopatria_fill_basemap_outline"
+    },
+    {
+      "id": "polygon-winding-1600s",
+      "years": [
+        1500,
+        1600,
+        1650,
+        1700,
+        1715,
+        1783,
+        1800
+      ],
+      "status": "upstream_fixed_historical",
+      "issue": "https://github.com/aourednik/historical-basemaps/issues/18",
+      "note": "Past d3 winding bugs (PR #21). Re-check render; if broken, skip basemap for that year."
+    },
+    {
+      "id": "india-present-borders",
+      "years": [
+        1994,
+        2000,
+        2010
+      ],
+      "status": "caution",
+      "issue": "https://github.com/aourednik/historical-basemaps/issues/14",
+      "note": "Modern India border disputes — show BP; do not treat as legal boundary."
+    },
+    {
+      "id": "pre-westphalia-fuzzy",
+      "yearsBefore": 1648,
+      "status": "expected",
+      "note": "Basemaps README: national borders less meaningful pre-1648; use opacity/blur via BORDERPRECISION."
+    }
+  ],
+  "verifications": [
+    {
+      "year": 1930,
+      "check": "turkey_label",
+      "ok": true,
+      "hasOttoman": false,
+      "hasRepublic": true,
+      "turkeyCount": 3
+    },
+    {
+      "year": 1938,
+      "check": "turkey_fragment",
+      "ok": true,
+      "turkeyFeatures": 1,
+      "multiParts": 2
+    }
+  ],
+  "preferRules": []
+}
