@@ -104,7 +104,7 @@ const UA_LABEL_BY_NORM = new Map<string, string>([
   ["sevastopol", "Sevastopol"],
 ]);
 
-function normalizePlaceKey(s: string): string {
+export function normalizePlaceKey(s: string): string {
   return s
     .trim()
     .toLowerCase()
@@ -142,7 +142,7 @@ const KO_JOSA =
  * 앞: 라틴·한글 등 글자/숫자가 붙어 있으면 비매칭(대이란 등 부수언급 차단).
  * 뒤: 글자/숫자가 없거나(영어 표준 경계), 한국어 조사가 붙은 경우만 인정.
  */
-function textHasExactPlace(haystackNorm: string, placeNorm: string): boolean {
+export function textHasExactPlace(haystackNorm: string, placeNorm: string): boolean {
   if (!placeNorm || isTooShortKey(placeNorm)) return false;
   if (!haystackNorm.includes(placeNorm)) return false;
   const esc = escapeRegExp(placeNorm);

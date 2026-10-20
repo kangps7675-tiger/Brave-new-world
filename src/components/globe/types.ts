@@ -527,4 +527,9 @@ export type GlobeDashboardProps = {
   initialViewConfig?: MergedViewConfig | null;
   onBootProgress?: (progress: number) => void;
   onBootReady?: () => void;
+  /**
+   * 첫 방문 랜딩 막(LandingCurtain)이 아직 지구본을 덮고 있다.
+   * 켜져 있는 동안 등불 사진 뉴스·월요일 회고를 띄우지 않는다 — 막이 다 걷힌 뒤에 시작한다.
+   */
+  introCurtainActive?: boolean;
 };

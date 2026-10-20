@@ -323,6 +323,7 @@ export function GlobeBootLoader({
           initialViewConfig={viewConfig}
           onBootProgress={setDashboardProgress}
           onBootReady={handleBootReady}
+          introCurtainActive={showLoadingOverlay && curtainMode !== false}
         />
       ) : null}
       {showLoadingOverlay && curtainMode == null ? (

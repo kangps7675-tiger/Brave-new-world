@@ -596,6 +596,7 @@ export function GlobeDashboard({
   initialViewConfig = null,
   onBootProgress,
   onBootReady,
+  introCurtainActive = false,
 }: GlobeDashboardProps) {
   const globeRef = useRef<MapGlobeMethods>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1277,7 +1278,8 @@ export function GlobeDashboard({
     isHistoryViewer,
     isSatelliteViewer,
     labelLanguage: layerPrefs.labelLanguage,
-    globeReady,
+    // 랜딩 막 아래에서 지구본이 먼저 떠도, 등불은 막이 다 걷힌 뒤에 점화한다
+    globeReady: globeReady && !introCurtainActive,
     isLoading,
     loadError,
     entryGate,
