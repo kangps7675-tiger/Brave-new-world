@@ -1,0 +1,16 @@
+{
+  "fetchedAt": "2026-07-10T11:00:00.000Z",
+  "live": false,
+  "stub": true,
+  "alerts": [
+    {
+      "id": "seed-ukr-1",
+      "channelUsername": "kpszsu",
+      "channelTitle": "Ukraine Air Force",
+      "region": "ukraine",
+      "text": "[demo] Run collector.py for live Telegram alerts.",
+      "receivedAt": "2026-07-10T10:58:00.000Z",
+      "messageUrl": "https://t.me/kpszsu"
+    }
+  ]
+}

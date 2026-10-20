@@ -1,0 +1,22 @@
+[
+	{"i":"sigint-refugee-camp-ref-cxb","k":"refugee-camp","n":"Cox's Bazar / Kutupalong","la":21.427,"ln":92.163,"s":1,"m":{"source":"sigint-snapshot","country":"BD","population":900000,"origin":"Myanmar","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-kakuma","k":"refugee-camp","n":"Kakuma Camp","la":3.714,"ln":34.813,"s":1,"m":{"source":"sigint-snapshot","country":"KE","population":200000,"origin":"Multi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-dadaab","k":"refugee-camp","n":"Dadaab Complex","la":1.755,"ln":40.318,"s":1,"m":{"source":"sigint-snapshot","country":"KE","population":220000,"origin":"Somalia","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-zaatari","k":"refugee-camp","n":"Za'atari Camp","la":32.296,"ln":36.997,"s":1,"m":{"source":"sigint-snapshot","country":"JO","population":79000,"origin":"Syria","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-dollo","k":"refugee-camp","n":"Dollo Ado Complex","la":4.188,"ln":42.071,"s":1,"m":{"source":"sigint-snapshot","country":"ET","population":210000,"origin":"Somalia","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-tongog","k":"refugee-camp","n":"Kalobeyei Settlement","la":4.68,"ln":34.59,"s":1,"m":{"source":"sigint-snapshot","country":"KE","population":60000,"origin":"S. Sudan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-bidibid","k":"refugee-camp","n":"Bidi Bidi Camp","la":3.631,"ln":31.836,"s":1,"m":{"source":"sigint-snapshot","country":"UG","population":270000,"origin":"S. Sudan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-nakivale","k":"refugee-camp","n":"Nakivale Settlement","la":-1.02,"ln":30.898,"s":1,"m":{"source":"sigint-snapshot","country":"UG","population":130000,"origin":"Multi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-minawao","k":"refugee-camp","n":"Minawao Camp","la":10.81,"ln":14.003,"s":1,"m":{"source":"sigint-snapshot","country":"CM","population":65000,"origin":"Nigeria","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-azraq","k":"refugee-camp","n":"Azraq Camp","la":31.846,"ln":36.835,"s":1,"m":{"source":"sigint-snapshot","country":"JO","population":41000,"origin":"Syria","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-mahama","k":"refugee-camp","n":"Mahama Camp","la":-1.793,"ln":30.61,"s":1,"m":{"source":"sigint-snapshot","country":"RW","population":54000,"origin":"Burundi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-nyarugusu","k":"refugee-camp","n":"Nyarugusu Camp","la":-4.263,"ln":30.391,"s":1,"m":{"source":"sigint-snapshot","country":"TZ","population":140000,"origin":"DRC/Burundi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-nduta","k":"refugee-camp","n":"Nduta Camp","la":-4.08,"ln":30.565,"s":1,"m":{"source":"sigint-snapshot","country":"TZ","population":60000,"origin":"Burundi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-dzaleka","k":"refugee-camp","n":"Dzaleka Camp","la":-13.788,"ln":33.654,"s":1,"m":{"source":"sigint-snapshot","country":"MW","population":52000,"origin":"Multi","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-mandera","k":"refugee-camp","n":"Ifo / Hagadera / Dagahaley","la":3.933,"ln":41.859,"s":1,"m":{"source":"sigint-snapshot","country":"KE","population":180000,"origin":"Somalia","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-maban","k":"refugee-camp","n":"Maban Refugee Camps","la":9.833,"ln":33.649,"s":1,"m":{"source":"sigint-snapshot","country":"SD","population":140000,"origin":"S. Sudan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-gorom","k":"refugee-camp","n":"Gorom Settlement","la":4.297,"ln":31.561,"s":1,"m":{"source":"sigint-snapshot","country":"UG","population":45000,"origin":"S. Sudan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-rhino","k":"refugee-camp","n":"Rhino Camp","la":3.062,"ln":31.347,"s":1,"m":{"source":"sigint-snapshot","country":"UG","population":120000,"origin":"S. Sudan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-mahd","k":"refugee-camp","n":"Mahd Camp (Urmia)","la":37.45,"ln":49.041,"s":1,"m":{"source":"sigint-snapshot","country":"IR","population":30000,"origin":"Afghanistan","ts":1772435598914}},
+	{"i":"sigint-refugee-camp-ref-cox2","k":"refugee-camp","n":"Teknaf Settlement","la":21.253,"ln":92.209,"s":1,"m":{"source":"sigint-snapshot","country":"BD","population":75000,"origin":"Myanmar","ts":1772435598914}}
+]

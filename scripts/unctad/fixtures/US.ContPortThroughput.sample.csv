@@ -1,0 +1,29 @@
+Economy,Economy_Label,Year,US.ContPortThroughput_Value
+CHN,China,2022,290000000
+CHN,China,2023,310000000
+RUS,Russian Federation,2022,5500000
+RUS,Russian Federation,2023,5800000
+IRN,"Iran (Islamic Republic of)",2022,3200000
+IRN,"Iran (Islamic Republic of)",2023,3400000
+IND,India,2022,20000000
+IND,India,2023,22000000
+KAZ,Kazakhstan,2022,450000
+KAZ,Kazakhstan,2023,480000
+TUR,Türkiye,2022,12500000
+TUR,Türkiye,2023,13200000
+AZE,Azerbaijan,2022,120000
+AZE,Azerbaijan,2023,130000
+ARE,United Arab Emirates,2022,19000000
+ARE,United Arab Emirates,2023,20500000
+SAU,Saudi Arabia,2022,10000000
+SAU,Saudi Arabia,2023,11000000
+PAK,Pakistan,2022,3500000
+PAK,Pakistan,2023,3700000
+NLD,Netherlands,2022,15000000
+NLD,Netherlands,2023,14800000
+EGY,Egypt,2022,7500000
+EGY,Egypt,2023,7800000
+KOR,"Republic of Korea",2022,29000000
+KOR,"Republic of Korea",2023,30000000
+SGP,Singapore,2022,37000000
+SGP,Singapore,2023,39000000

@@ -1,0 +1,3303 @@
+{
+  "generatedAt": "2026-08-28T18:54:09.292Z",
+  "source": "IMF PortWatch Daily Ports + Daily Chokepoints + virtual waypoints (curated sea backbone, A* ready adjacency list)",
+  "sourceFiles": [
+    "Daily_Ports_Data.geojson",
+    "PortWatch_ports_database",
+    "PortWatch_chokepoints_database"
+  ],
+  "nodeCount": 94,
+  "edgeCount": 209,
+  "nodes": {
+    "vwp-agulhas": {
+      "id": "vwp-agulhas",
+      "type": "waypoint",
+      "name": "Agulhas passage",
+      "lat": -38.5,
+      "lng": 22,
+      "capacityNorm": 0.5
+    },
+    "vwp-arabian-sea": {
+      "id": "vwp-arabian-sea",
+      "type": "waypoint",
+      "name": "Arabian Sea lane",
+      "lat": 14,
+      "lng": 64,
+      "capacityNorm": 0.5
+    },
+    "vwp-bay-bengal": {
+      "id": "vwp-bay-bengal",
+      "type": "waypoint",
+      "name": "Bay of Bengal lane",
+      "lat": 8,
+      "lng": 85,
+      "capacityNorm": 0.5
+    },
+    "vwp-central-atlantic": {
+      "id": "vwp-central-atlantic",
+      "type": "waypoint",
+      "name": "Central Atlantic lane",
+      "lat": 25,
+      "lng": -40,
+      "capacityNorm": 0.5
+    },
+    "vwp-central-pacific": {
+      "id": "vwp-central-pacific",
+      "type": "waypoint",
+      "name": "Central Pacific lane",
+      "lat": 5,
+      "lng": -150,
+      "capacityNorm": 0.5
+    },
+    "choke-suez": {
+      "id": "choke-suez",
+      "type": "chokepoint",
+      "portid": "chokepoint1",
+      "name": "Suez Canal",
+      "lat": 30.59334599385357,
+      "lng": 32.43688221451525,
+      "iso3": null,
+      "capacityNorm": 0.18910015813336262
+    },
+    "choke-panama": {
+      "id": "choke-panama",
+      "type": "chokepoint",
+      "portid": "chokepoint2",
+      "name": "Panama Canal",
+      "lat": 9.120512368258863,
+      "lng": -79.76723826110369,
+      "iso3": null,
+      "capacityNorm": 0.1089025899014792
+    },
+    "choke-bosporus": {
+      "id": "choke-bosporus",
+      "type": "chokepoint",
+      "portid": "chokepoint3",
+      "name": "Bosporus Strait",
+      "lat": 41.16928167474169,
+      "lng": 29.091501264049565,
+      "iso3": null,
+      "capacityNorm": 0.0922085740770708
+    },
+    "choke-bab-el-mandeb": {
+      "id": "choke-bab-el-mandeb",
+      "type": "chokepoint",
+      "portid": "chokepoint4",
+      "name": "Bab el-Mandeb Strait",
+      "lat": 12.788597151750617,
+      "lng": 43.349544766034306,
+      "iso3": null,
+      "capacityNorm": 0.11810689909910076
+    },
+    "choke-malacca": {
+      "id": "choke-malacca",
+      "type": "chokepoint",
+      "portid": "chokepoint5",
+      "name": "Malacca Strait",
+      "lat": 1.5169548172111205,
+      "lng": 102.66510611429109,
+      "iso3": null,
+      "capacityNorm": 1
+    },
+    "choke-hormuz": {
+      "id": "choke-hormuz",
+      "type": "chokepoint",
+      "portid": "chokepoint6",
+      "name": "Strait of Hormuz",
+      "lat": 26.296853493403407,
+      "lng": 56.85984844791495,
+      "iso3": null,
+      "capacityNorm": 0.015010040834520151
+    },
+    "choke-good-hope": {
+      "id": "choke-good-hope",
+      "type": "chokepoint",
+      "portid": "chokepoint7",
+      "name": "Cape of Good Hope",
+      "lat": -34.92728556425881,
+      "lng": 20.8827366629069,
+      "iso3": null,
+      "capacityNorm": 0.7198466415480191
+    },
+    "choke-gibraltar": {
+      "id": "choke-gibraltar",
+      "type": "chokepoint",
+      "portid": "chokepoint8",
+      "name": "Gibraltar Strait",
+      "lat": 35.94227416434586,
+      "lng": -5.754895722801088,
+      "iso3": null,
+      "capacityNorm": 0.45258339636554884
+    },
+    "choke-taiwan": {
+      "id": "choke-taiwan",
+      "type": "chokepoint",
+      "portid": "chokepoint11",
+      "name": "Taiwan Strait",
+      "lat": 24.723509723227853,
+      "lng": 119.83136441668061,
+      "iso3": null,
+      "capacityNorm": 0.7979802342098011
+    },
+    "port1201": {
+      "id": "port1201",
+      "type": "port",
+      "name": "Singapore",
+      "lat": 1.271989257177043,
+      "lng": 103.70748161443618,
+      "iso3": "SGP",
+      "country": "Singapore",
+      "tradeVolume": 2275319412,
+      "capacityNorm": 1
+    },
+    "port824": {
+      "id": "port824",
+      "type": "port",
+      "name": "Ningbo",
+      "lat": 29.920768973786107,
+      "lng": 121.88184081696608,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1828908905,
+      "capacityNorm": 0.803803147529249
+    },
+    "port1188": {
+      "id": "port1188",
+      "type": "port",
+      "name": "Shanghai",
+      "lat": 31.191795363912597,
+      "lng": 121.64419681693302,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1710970911,
+      "capacityNorm": 0.7519695485286002
+    },
+    "port1297": {
+      "id": "port1297",
+      "type": "port",
+      "name": "Tianjin Xin Gang",
+      "lat": 38.939725904584,
+      "lng": 117.73361491638867,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1417838122,
+      "capacityNorm": 0.6231380590005707
+    },
+    "port955": {
+      "id": "port955",
+      "type": "port",
+      "name": "Port Hedland",
+      "lat": -20.33066003271125,
+      "lng": 118.56434161650431,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 1386459034,
+      "capacityNorm": 0.6093469895645579
+    },
+    "port1069": {
+      "id": "port1069",
+      "type": "port",
+      "name": "Qingdao Port",
+      "lat": 36.026779054352964,
+      "lng": 120.2226181167351,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 1307817353,
+      "capacityNorm": 0.5747840703606673
+    },
+    "port1114": {
+      "id": "port1114",
+      "type": "port",
+      "name": "Rotterdam",
+      "lat": 51.92228121523344,
+      "lng": 4.2151449675867525,
+      "iso3": "NLD",
+      "country": "The Netherlands",
+      "tradeVolume": 990460215,
+      "capacityNorm": 0.43530601012601916
+    },
+    "port2027": {
+      "id": "port2027",
+      "type": "port",
+      "name": "Shanghai (Yangshan)",
+      "lat": 30.615085511283485,
+      "lng": 122.07478535879808,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 904275987,
+      "capacityNorm": 0.397428151067873
+    },
+    "port1195": {
+      "id": "port1195",
+      "type": "port",
+      "name": "Shougang Jingtang",
+      "lat": 39.006865244589015,
+      "lng": 118.47549271649193,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 756876981,
+      "capacityNorm": 0.3326464746040676
+    },
+    "port57": {
+      "id": "port57",
+      "type": "port",
+      "name": "Antwerp",
+      "lat": 51.27935494521791,
+      "lng": 4.317802311601043,
+      "iso3": "BEL",
+      "country": "Belgium",
+      "tradeVolume": 701806305,
+      "capacityNorm": 0.30844298224622185
+    },
+    "port481": {
+      "id": "port481",
+      "type": "port",
+      "name": "Houston (US-TX)",
+      "lat": 29.72023114376576,
+      "lng": -95.13978775324355,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 611256188,
+      "capacityNorm": 0.26864632050174764
+    },
+    "port1189": {
+      "id": "port1189",
+      "type": "port",
+      "name": "Shekou (Shenzhen)",
+      "lat": 22.58146762298057,
+      "lng": 113.81033771584252,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 569051563,
+      "capacityNorm": 0.2500974412642158
+    },
+    "port154": {
+      "id": "port154",
+      "type": "port",
+      "name": "Huanghua",
+      "lat": 38.323131234537406,
+      "lng": 117.86724451640725,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 558541230,
+      "capacityNorm": 0.24547816322150728
+    },
+    "port664": {
+      "id": "port664",
+      "type": "port",
+      "name": "Los Angeles-Long Beach",
+      "lat": 33.755691934154505,
+      "lng": -118.24378811645967,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 541865765,
+      "capacityNorm": 0.23814931747261867
+    },
+    "port744": {
+      "id": "port744",
+      "type": "port",
+      "name": "Jebel Ali",
+      "lat": 24.999419473259046,
+      "lng": 55.07781687766689,
+      "iso3": "ARE",
+      "country": "United Arab Emirates",
+      "tradeVolume": 537464879,
+      "capacityNorm": 0.23621513364911248
+    },
+    "port474": {
+      "id": "port474",
+      "type": "port",
+      "name": "Hong Kong",
+      "lat": 22.33510926295155,
+      "lng": 114.09665191588236,
+      "iso3": "HKG",
+      "country": "Hong Kong SAR",
+      "tradeVolume": 525064416,
+      "capacityNorm": 0.23076514586515556
+    },
+    "port432": {
+      "id": "port432",
+      "type": "port",
+      "name": "Gwangyang (Kwangyang)",
+      "lat": 34.87669716425439,
+      "lng": 127.71655331777828,
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 498491846,
+      "capacityNorm": 0.21908653500293698
+    },
+    "port1404": {
+      "id": "port1404",
+      "type": "port",
+      "name": "Xiamen",
+      "lat": 24.46593394319861,
+      "lng": 118.02055361642859,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 498398035,
+      "capacityNorm": 0.21904530518724374
+    },
+    "port1266": {
+      "id": "port1266",
+      "type": "port",
+      "name": "Tangshan (Jingtang)",
+      "lat": 39.235289194605905,
+      "lng": 119.02124691656786,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 473446134,
+      "capacityNorm": 0.20807897629803196
+    },
+    "port506": {
+      "id": "port506",
+      "type": "port",
+      "name": "Itaqui",
+      "lat": -2.627113568365438,
+      "lng": -44.35349287617405,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 467994312,
+      "capacityNorm": 0.2056829074334817
+    },
+    "port632": {
+      "id": "port632",
+      "type": "port",
+      "name": "Lanqiao Port",
+      "lat": 35.110482684274764,
+      "lng": 119.3568500166146,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 460604735,
+      "capacityNorm": 0.20243519770049762
+    },
+    "port541": {
+      "id": "port541",
+      "type": "port",
+      "name": "Kaohsiung",
+      "lat": 22.561527802978233,
+      "lng": 120.32268471674907,
+      "iso3": "TWN",
+      "country": "Taiwan Province of China",
+      "tradeVolume": 451484150,
+      "capacityNorm": 0.19842671214374538
+    },
+    "port1065": {
+      "id": "port1065",
+      "type": "port",
+      "name": "Busan",
+      "lat": 35.08955067427294,
+      "lng": 128.9385952179484,
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 435751109,
+      "capacityNorm": 0.19151206054932562
+    },
+    "port981": {
+      "id": "port981",
+      "type": "port",
+      "name": "Port Walcott",
+      "lat": -20.608286122744964,
+      "lng": 117.1656515163096,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 425579470,
+      "capacityNorm": 0.18704163809067875
+    },
+    "port276": {
+      "id": "port276",
+      "type": "port",
+      "name": "Dampier",
+      "lat": -20.6266866027472,
+      "lng": 116.74247611625067,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 418654358,
+      "capacityNorm": 0.18399806013697387
+    },
+    "port1160": {
+      "id": "port1160",
+      "type": "port",
+      "name": "Santos",
+      "lat": -23.91706787313584,
+      "lng": -46.3365635364501,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 408189757,
+      "capacityNorm": 0.17939888125034817
+    },
+    "port776": {
+      "id": "port776",
+      "type": "port",
+      "name": "Mumbai",
+      "lat": 18.91732276253762,
+      "lng": 72.93965040015328,
+      "iso3": "IND",
+      "country": "India",
+      "tradeVolume": 400830188,
+      "capacityNorm": 0.1761643599953605
+    },
+    "port816": {
+      "id": "port816",
+      "type": "port",
+      "name": "Newcastle",
+      "lat": -32.8944558840753,
+      "lng": 151.75774712112482,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 370699816,
+      "capacityNorm": 0.16292209965991358
+    },
+    "port1265": {
+      "id": "port1265",
+      "type": "port",
+      "name": "Tangier-Mediterranean",
+      "lat": 35.879852424340605,
+      "lng": -5.51102390176714,
+      "iso3": "MAR",
+      "country": "Morocco",
+      "tradeVolume": 354113996,
+      "capacityNorm": 0.15563265277499422
+    },
+    "port1338": {
+      "id": "port1338",
+      "type": "port",
+      "name": "Ulsan",
+      "lat": 35.486472944307145,
+      "lng": 129.37808381800957,
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 347210115,
+      "capacityNorm": 0.15259840581890136
+    },
+    "port1253": {
+      "id": "port1253",
+      "type": "port",
+      "name": "Suzhou (Taicang)",
+      "lat": 31.687515753960803,
+      "lng": 121.13761601686247,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 336980999,
+      "capacityNorm": 0.1481027222915461
+    },
+    "port446": {
+      "id": "port446",
+      "type": "port",
+      "name": "Hamburg",
+      "lat": 53.51640056526344,
+      "lng": 9.964294339387042,
+      "iso3": "DEU",
+      "country": "Germany",
+      "tradeVolume": 336743370,
+      "capacityNorm": 0.1479982846469909
+    },
+    "port1429": {
+      "id": "port1429",
+      "type": "port",
+      "name": "Zhoushan",
+      "lat": 30.056350323799812,
+      "lng": 122.10083681699656,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 328524129,
+      "capacityNorm": 0.14438593863673327
+    },
+    "port526": {
+      "id": "port526",
+      "type": "port",
+      "name": "Juaymah",
+      "lat": 26.803190513458727,
+      "lng": 49.976980136956854,
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 326721043,
+      "capacityNorm": 0.14359348462324814
+    },
+    "port960": {
+      "id": "port960",
+      "type": "port",
+      "name": "Port Klang",
+      "lat": 2.9725948264134168,
+      "lng": 101.34030631410666,
+      "iso3": "MYS",
+      "country": "Malaysia",
+      "tradeVolume": 320002213,
+      "capacityNorm": 0.1406405673472978
+    },
+    "port1105": {
+      "id": "port1105",
+      "type": "port",
+      "name": "Rizhao",
+      "lat": 35.34890965429536,
+      "lng": 119.53255751663905,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 310752398,
+      "capacityNorm": 0.13657528536920863
+    },
+    "port1070": {
+      "id": "port1070",
+      "type": "port",
+      "name": "Dongjiakou",
+      "lat": 35.609317634317634,
+      "lng": 119.76327801667114,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 291613897,
+      "capacityNorm": 0.12816393841762733
+    },
+    "port812": {
+      "id": "port812",
+      "type": "port",
+      "name": "New Orleans",
+      "lat": 29.93003343378705,
+      "lng": -90.1308677325463,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 288768050,
+      "capacityNorm": 0.12691319226524492
+    },
+    "port2479": {
+      "id": "port2479",
+      "type": "port",
+      "name": "Basrah Oil Terminal",
+      "lat": 29.681608484091857,
+      "lng": 48.8248373961447,
+      "iso3": "IRQ",
+      "country": "Iraq",
+      "tradeVolume": 279303908,
+      "capacityNorm": 0.12275371384208979
+    },
+    "port1350": {
+      "id": "port1350",
+      "type": "port",
+      "name": "Vancouver",
+      "lat": 49.28996399515797,
+      "lng": -123.02890441712577,
+      "iso3": "CAN",
+      "country": "Canada",
+      "tradeVolume": 277884825,
+      "capacityNorm": 0.12213002866078479
+    },
+    "port815": {
+      "id": "port815",
+      "type": "port",
+      "name": "New York-New Jersey",
+      "lat": 40.63298387470534,
+      "lng": -74.17942127032585,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 276518886,
+      "capacityNorm": 0.12152970020017567
+    },
+    "port1197": {
+      "id": "port1197",
+      "type": "port",
+      "name": "Laem Chabang",
+      "lat": 13.088733701790272,
+      "lng": 100.89999161404539,
+      "iso3": "THA",
+      "country": "Thailand",
+      "tradeVolume": 267774867,
+      "capacityNorm": 0.11768671492352213
+    },
+    "port273": {
+      "id": "port273",
+      "type": "port",
+      "name": "Dalian",
+      "lat": 38.987035504587546,
+      "lng": 121.77030101695054,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 266644450,
+      "capacityNorm": 0.11718989808363663
+    },
+    "port1426": {
+      "id": "port1426",
+      "type": "port",
+      "name": "Zhanjiang",
+      "lat": 21.212127952817827,
+      "lng": 110.40841031536897,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 261503318,
+      "capacityNorm": 0.1149303770806136
+    },
+    "port398": {
+      "id": "port398",
+      "type": "port",
+      "name": "Gladstone",
+      "lat": -23.81907969312457,
+      "lng": 151.21552772104934,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 259264580,
+      "capacityNorm": 0.11394645456485913
+    },
+    "port517": {
+      "id": "port517",
+      "type": "port",
+      "name": "Jiangyin",
+      "lat": 31.93240385398436,
+      "lng": 120.1593407167263,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 255742374,
+      "capacityNorm": 0.11239844948855031
+    },
+    "port1073": {
+      "id": "port1073",
+      "type": "port",
+      "name": "Qiwei",
+      "lat": 31.998317563990668,
+      "lng": 120.61762421679009,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 251613247,
+      "capacityNorm": 0.11058370340137545
+    },
+    "port644": {
+      "id": "port644",
+      "type": "port",
+      "name": "Lianyungang",
+      "lat": 34.741330174242535,
+      "lng": 119.43596631662558,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 251352071,
+      "capacityNorm": 0.11046891688014131
+    },
+    "port112": {
+      "id": "port112",
+      "type": "port",
+      "name": "Banjarmasin",
+      "lat": -3.288021408457199,
+      "lng": 114.56292701594728,
+      "iso3": "IDN",
+      "country": "Indonesia",
+      "tradeVolume": 246358750,
+      "capacityNorm": 0.10827435862442332
+    },
+    "port1428": {
+      "id": "port1428",
+      "type": "port",
+      "name": "Zhouliwang",
+      "lat": 37.70154909448915,
+      "lng": 121.08299321685485,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 242409520,
+      "capacityNorm": 0.10653867704091824
+    },
+    "port133": {
+      "id": "port133",
+      "type": "port",
+      "name": "Bayuquan",
+      "lat": 40.26513000467984,
+      "lng": 122.06684211699184,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 240592406,
+      "capacityNorm": 0.10574005773919885
+    },
+    "port570": {
+      "id": "port570",
+      "type": "port",
+      "name": "Yanbu (King Fahd Port)",
+      "lat": 23.95087468313973,
+      "lng": 38.271703655327464,
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 237659176,
+      "capacityNorm": 0.1044509068689825
+    },
+    "port1095": {
+      "id": "port1095",
+      "type": "port",
+      "name": "Ust-Luga",
+      "lat": 59.68266556525773,
+      "lng": 28.4056647539541,
+      "iso3": "RUS",
+      "country": "Russian Federation",
+      "tradeVolume": 237166791,
+      "capacityNorm": 0.10423450428506255
+    },
+    "port458": {
+      "id": "port458",
+      "type": "port",
+      "name": "Hay Point",
+      "lat": -21.281240792826118,
+      "lng": 149.28745402078098,
+      "iso3": "AUS",
+      "country": "Australia",
+      "tradeVolume": 231065460,
+      "capacityNorm": 0.10155297703758175
+    },
+    "port833": {
+      "id": "port833",
+      "type": "port",
+      "name": "Novorossiysk",
+      "lat": 44.72345598495597,
+      "lng": 37.80872150526301,
+      "iso3": "RUS",
+      "country": "Russian Federation",
+      "tradeVolume": 230662366,
+      "capacityNorm": 0.10137581773507938
+    },
+    "port339": {
+      "id": "port339",
+      "type": "port",
+      "name": "Fangcheng",
+      "lat": 21.614205342865972,
+      "lng": 108.36433931508444,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 228426666,
+      "capacityNorm": 0.10039323041647745
+    },
+    "port425": {
+      "id": "port425",
+      "type": "port",
+      "name": "Guangzhou (Nansha)",
+      "lat": 23.027540523032826,
+      "lng": 113.48360001579704,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 225551894,
+      "capacityNorm": 0.09912977176322706
+    },
+    "port1328": {
+      "id": "port1328",
+      "type": "port",
+      "name": "Tubarao",
+      "lat": -20.25882714270251,
+      "lng": -40.23787540560116,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 223536214,
+      "capacityNorm": 0.09824388295598122
+    },
+    "port31": {
+      "id": "port31",
+      "type": "port",
+      "name": "Algeciras",
+      "lat": 36.16592191436463,
+      "lng": -5.4142665287536715,
+      "iso3": "ESP",
+      "country": "Spain",
+      "tradeVolume": 219722429,
+      "capacityNorm": 0.09656772927844207
+    },
+    "port380": {
+      "id": "port380",
+      "type": "port",
+      "name": "Gdansk",
+      "lat": 54.37579704527448,
+      "lng": 18.69364423260218,
+      "iso3": "POL",
+      "country": "Poland",
+      "tradeVolume": 217301557,
+      "capacityNorm": 0.09550375910035087
+    },
+    "port1072": {
+      "id": "port1072",
+      "type": "port",
+      "name": "Qinhuangdao",
+      "lat": 39.92645539465591,
+      "lng": 119.65000661665539,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 216497023,
+      "capacityNorm": 0.09515016742625144
+    },
+    "port1214": {
+      "id": "port1214",
+      "type": "port",
+      "name": "South Louisiana",
+      "lat": 30.123795263806606,
+      "lng": -90.8678107326489,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 214056970,
+      "capacityNorm": 0.094077767222952
+    },
+    "port2045": {
+      "id": "port2045",
+      "type": "port",
+      "name": "Porto de Itaguai",
+      "lat": -22.936302343859772,
+      "lng": -43.81836371384801,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 212895741,
+      "capacityNorm": 0.09356740854808827
+    },
+    "port786": {
+      "id": "port786",
+      "type": "port",
+      "name": "Nagoya",
+      "lat": 35.03618543426829,
+      "lng": 136.8500784190497,
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 211414707,
+      "capacityNorm": 0.092916495980741
+    },
+    "port362": {
+      "id": "port362",
+      "type": "port",
+      "name": "Fujairah",
+      "lat": 25.200172783281616,
+      "lng": 56.35942059784529,
+      "iso3": "ARE",
+      "country": "United Arab Emirates",
+      "tradeVolume": 209759110,
+      "capacityNorm": 0.09218886319596872
+    },
+    "port792": {
+      "id": "port792",
+      "type": "port",
+      "name": "Nantong",
+      "lat": 31.986285403989513,
+      "lng": 120.83744381682071,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 209385832,
+      "capacityNorm": 0.09202480798770594
+    },
+    "port166": {
+      "id": "port166",
+      "type": "port",
+      "name": "Porto do Acu",
+      "lat": -21.850656212894144,
+      "lng": -41.01992427571002,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 205280789,
+      "capacityNorm": 0.09022064678802995
+    },
+    "port518": {
+      "id": "port518",
+      "type": "port",
+      "name": "Jeddah",
+      "lat": 21.46079659284764,
+      "lng": 39.166405945452006,
+      "iso3": "SAU",
+      "country": "Saudi Arabia",
+      "tradeVolume": 195753915,
+      "capacityNorm": 0.08603359773032165
+    },
+    "port1405": {
+      "id": "port1405",
+      "type": "port",
+      "name": "Xiuyu",
+      "lat": 25.165278913277696,
+      "lng": 118.98704491656312,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 191232344,
+      "capacityNorm": 0.08404637300215677
+    },
+    "port2401": {
+      "id": "port2401",
+      "type": "port",
+      "name": "Guangzhou (Huangpu)",
+      "lat": 23.04324001940121,
+      "lng": 113.5125714684273,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 190699530,
+      "capacityNorm": 0.08381220192393805
+    },
+    "port1099": {
+      "id": "port1099",
+      "type": "port",
+      "name": "Richards Bay",
+      "lat": -28.79239882367035,
+      "lng": 32.039372724459916,
+      "iso3": "ZAF",
+      "country": "South Africa",
+      "tradeVolume": 186629153,
+      "capacityNorm": 0.08202327638735937
+    },
+    "port1403": {
+      "id": "port1403",
+      "type": "port",
+      "name": "Xiagong",
+      "lat": 26.565520283432836,
+      "lng": 119.72153381666537,
+      "iso3": "CHN",
+      "country": "China",
+      "tradeVolume": 186182976,
+      "capacityNorm": 0.08182718216091939
+    },
+    "port752": {
+      "id": "port752",
+      "type": "port",
+      "name": "Mizushima",
+      "lat": 34.50033451422128,
+      "lng": 133.72429241861454,
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 181122949,
+      "capacityNorm": 0.07960330670268109
+    },
+    "port1417": {
+      "id": "port1417",
+      "type": "port",
+      "name": "Yokohama",
+      "lat": 35.4275555343021,
+      "lng": 139.66881231944208,
+      "iso3": "JPN",
+      "country": "Japan",
+      "tradeVolume": 180866847,
+      "capacityNorm": 0.07949075019802099
+    },
+    "port700": {
+      "id": "port700",
+      "type": "port",
+      "name": "Manzanillo",
+      "lat": 9.36789442829242,
+      "lng": -79.88215482111968,
+      "iso3": "PAN",
+      "country": "Panama",
+      "tradeVolume": 180452578,
+      "capacityNorm": 0.07930867949717119
+    },
+    "port985": {
+      "id": "port985",
+      "type": "port",
+      "name": "Le Havre",
+      "lat": 49.4720613251642,
+      "lng": 0.20938154702914616,
+      "iso3": "FRA",
+      "country": "France",
+      "tradeVolume": 178380934,
+      "capacityNorm": 0.07839819458280084
+    },
+    "port264": {
+      "id": "port264",
+      "type": "port",
+      "name": "Corpus Christi",
+      "lat": 27.841227253570324,
+      "lng": -97.37990792355538,
+      "iso3": "USA",
+      "country": "United States",
+      "tradeVolume": 175885522,
+      "capacityNorm": 0.07730146416911068
+    },
+    "port885": {
+      "id": "port885",
+      "type": "port",
+      "name": "Paranaguá",
+      "lat": -25.505238723315756,
+      "lng": -48.51713504675364,
+      "iso3": "BRA",
+      "country": "Brazil",
+      "tradeVolume": 175861974,
+      "capacityNorm": 0.07729111485293301
+    },
+    "port105": {
+      "id": "port105",
+      "type": "port",
+      "name": "Bandar-E Pars Terminal",
+      "lat": 27.56361956354073,
+      "lng": 52.51242998730979,
+      "iso3": "IRN",
+      "country": "Iran",
+      "tradeVolume": 174860947,
+      "capacityNorm": 0.07685116475418177
+    },
+    "port494": {
+      "id": "port494",
+      "type": "port",
+      "name": "Incheon",
+      "lat": 37.444357784468814,
+      "lng": 126.62008241762564,
+      "iso3": "KOR",
+      "country": "Korea",
+      "tradeVolume": 168820855,
+      "capacityNorm": 0.07419655196964496
+    }
+  },
+  "adjacency": {
+    "choke-hormuz": [
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 1556.3,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 5612.1,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "port744",
+        "distanceKm": 229.6,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "port526",
+        "distanceKm": 686.9,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "port2479",
+        "distanceKm": 873.8,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "port362",
+        "distanceKm": 131.8,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "port105",
+        "distanceKm": 453.4,
+        "capacityNorm": 0.015010040834520151
+      }
+    ],
+    "vwp-arabian-sea": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 1556.3,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 2237.1,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 2385.7,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "port744",
+        "distanceKm": 1538.4,
+        "capacityNorm": 0.23621513364911248
+      },
+      {
+        "to": "port776",
+        "distanceKm": 1098.6,
+        "capacityNorm": 0.1761643599953605
+      },
+      {
+        "to": "port362",
+        "distanceKm": 1479.4,
+        "capacityNorm": 0.09218886319596872
+      }
+    ],
+    "choke-bab-el-mandeb": [
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 2237.1,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "choke-suez",
+        "distanceKm": 2274.9,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "port526",
+        "distanceKm": 1704.7,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "port570",
+        "distanceKm": 1351.5,
+        "capacityNorm": 0.1044509068689825
+      },
+      {
+        "to": "port518",
+        "distanceKm": 1061.6,
+        "capacityNorm": 0.08603359773032165
+      },
+      {
+        "to": "port105",
+        "distanceKm": 1899,
+        "capacityNorm": 0.07685116475418177
+      }
+    ],
+    "choke-suez": [
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 2274.9,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 3577.2,
+        "capacityNorm": 0.18910015813336262
+      },
+      {
+        "to": "choke-good-hope",
+        "distanceKm": 7385.3,
+        "capacityNorm": 0.18910015813336262
+      },
+      {
+        "to": "port2479",
+        "distanceKm": 1577.8,
+        "capacityNorm": 0.12275371384208979
+      },
+      {
+        "to": "port570",
+        "distanceKm": 936.7,
+        "capacityNorm": 0.1044509068689825
+      },
+      {
+        "to": "port833",
+        "distanceKm": 1639.8,
+        "capacityNorm": 0.10137581773507938
+      },
+      {
+        "to": "port518",
+        "distanceKm": 1217.2,
+        "capacityNorm": 0.08603359773032165
+      }
+    ],
+    "choke-gibraltar": [
+      {
+        "to": "choke-suez",
+        "distanceKm": 3577.2,
+        "capacityNorm": 0.18910015813336262
+      },
+      {
+        "to": "vwp-agulhas",
+        "distanceKm": 8755.2,
+        "capacityNorm": 0.45258339636554884
+      },
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 3064.1,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "vwp-central-atlantic",
+        "distanceKm": 3478.5,
+        "capacityNorm": 0.45258339636554884
+      },
+      {
+        "to": "port1114",
+        "distanceKm": 1943.8,
+        "capacityNorm": 0.43530601012601916
+      },
+      {
+        "to": "port57",
+        "distanceKm": 1884.3,
+        "capacityNorm": 0.30844298224622185
+      },
+      {
+        "to": "port1265",
+        "distanceKm": 23,
+        "capacityNorm": 0.15563265277499422
+      },
+      {
+        "to": "port446",
+        "distanceKm": 2303.9,
+        "capacityNorm": 0.1479982846469909
+      },
+      {
+        "to": "port31",
+        "distanceKm": 39.4,
+        "capacityNorm": 0.09656772927844207
+      },
+      {
+        "to": "port380",
+        "distanceKm": 2778.4,
+        "capacityNorm": 0.09550375910035087
+      },
+      {
+        "to": "port985",
+        "distanceKm": 1580.1,
+        "capacityNorm": 0.07839819458280084
+      }
+    ],
+    "choke-good-hope": [
+      {
+        "to": "choke-suez",
+        "distanceKm": 7385.3,
+        "capacityNorm": 0.18910015813336262
+      },
+      {
+        "to": "vwp-agulhas",
+        "distanceKm": 409.5,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "choke-panama",
+        "distanceKm": 11554,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port1099",
+        "distanceKm": 1253.9,
+        "capacityNorm": 0.08202327638735937
+      }
+    ],
+    "vwp-agulhas": [
+      {
+        "to": "choke-good-hope",
+        "distanceKm": 409.5,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 8755.2,
+        "capacityNorm": 0.45258339636554884
+      },
+      {
+        "to": "port1099",
+        "distanceKm": 1422.4,
+        "capacityNorm": 0.08202327638735937
+      }
+    ],
+    "choke-bosporus": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 3064.1,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port1114",
+        "distanceKm": 2230,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port57",
+        "distanceKm": 2196.8,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port446",
+        "distanceKm": 1978.6,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port1095",
+        "distanceKm": 2059.1,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port833",
+        "distanceKm": 811.5,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port380",
+        "distanceKm": 1657.4,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port985",
+        "distanceKm": 2420.8,
+        "capacityNorm": 0.07839819458280084
+      }
+    ],
+    "choke-malacca": [
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 2085,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 5612.1,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 3171.4,
+        "capacityNorm": 0.7979802342098011
+      },
+      {
+        "to": "vwp-central-pacific",
+        "distanceKm": 11911.4,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "port1201",
+        "distanceKm": 119,
+        "capacityNorm": 1
+      },
+      {
+        "to": "port1189",
+        "distanceKm": 2633.6,
+        "capacityNorm": 0.2500974412642158
+      },
+      {
+        "to": "port474",
+        "distanceKm": 2624.1,
+        "capacityNorm": 0.23076514586515556
+      },
+      {
+        "to": "port960",
+        "distanceKm": 218.8,
+        "capacityNorm": 0.1406405673472978
+      },
+      {
+        "to": "port1197",
+        "distanceKm": 1301.3,
+        "capacityNorm": 0.11768671492352213
+      },
+      {
+        "to": "port1426",
+        "distanceKm": 2345.4,
+        "capacityNorm": 0.1149303770806136
+      },
+      {
+        "to": "port112",
+        "distanceKm": 1426.3,
+        "capacityNorm": 0.10827435862442332
+      },
+      {
+        "to": "port339",
+        "distanceKm": 2318.4,
+        "capacityNorm": 0.10039323041647745
+      },
+      {
+        "to": "port425",
+        "distanceKm": 2661.6,
+        "capacityNorm": 0.09912977176322706
+      },
+      {
+        "to": "port2401",
+        "distanceKm": 2664.5,
+        "capacityNorm": 0.08381220192393805
+      }
+    ],
+    "vwp-bay-bengal": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2085,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 2385.7,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "port1201",
+        "distanceKm": 2203,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "port776",
+        "distanceKm": 1780,
+        "capacityNorm": 0.1761643599953605
+      },
+      {
+        "to": "port960",
+        "distanceKm": 1892.4,
+        "capacityNorm": 0.1406405673472978
+      },
+      {
+        "to": "port1197",
+        "distanceKm": 1827.1,
+        "capacityNorm": 0.11768671492352213
+      }
+    ],
+    "choke-taiwan": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 3171.4,
+        "capacityNorm": 0.7979802342098011
+      },
+      {
+        "to": "port824",
+        "distanceKm": 612.3,
+        "capacityNorm": 0.7979802342098011
+      },
+      {
+        "to": "port1188",
+        "distanceKm": 740.9,
+        "capacityNorm": 0.7519695485286002
+      },
+      {
+        "to": "port1297",
+        "distanceKm": 1593,
+        "capacityNorm": 0.6231380590005707
+      },
+      {
+        "to": "port1069",
+        "distanceKm": 1257.4,
+        "capacityNorm": 0.5747840703606673
+      },
+      {
+        "to": "port2027",
+        "distanceKm": 691.3,
+        "capacityNorm": 0.397428151067873
+      },
+      {
+        "to": "port1195",
+        "distanceKm": 1593.3,
+        "capacityNorm": 0.3326464746040676
+      },
+      {
+        "to": "port1189",
+        "distanceKm": 657.8,
+        "capacityNorm": 0.2500974412642158
+      },
+      {
+        "to": "port154",
+        "distanceKm": 1523.5,
+        "capacityNorm": 0.24547816322150728
+      },
+      {
+        "to": "port474",
+        "distanceKm": 642,
+        "capacityNorm": 0.23076514586515556
+      },
+      {
+        "to": "port432",
+        "distanceKm": 1360.2,
+        "capacityNorm": 0.21908653500293698
+      },
+      {
+        "to": "port1404",
+        "distanceKm": 185.3,
+        "capacityNorm": 0.21904530518724374
+      },
+      {
+        "to": "port1266",
+        "distanceKm": 1615.4,
+        "capacityNorm": 0.20807897629803196
+      },
+      {
+        "to": "port632",
+        "distanceKm": 1155.9,
+        "capacityNorm": 0.20243519770049762
+      },
+      {
+        "to": "port541",
+        "distanceKm": 245.6,
+        "capacityNorm": 0.19842671214374538
+      },
+      {
+        "to": "port1065",
+        "distanceKm": 1447.3,
+        "capacityNorm": 0.19151206054932562
+      },
+      {
+        "to": "port1338",
+        "distanceKm": 1506.7,
+        "capacityNorm": 0.15259840581890136
+      },
+      {
+        "to": "port1253",
+        "distanceKm": 784.8,
+        "capacityNorm": 0.1481027222915461
+      },
+      {
+        "to": "port1429",
+        "distanceKm": 633.9,
+        "capacityNorm": 0.14438593863673327
+      },
+      {
+        "to": "port1105",
+        "distanceKm": 1181.8,
+        "capacityNorm": 0.13657528536920863
+      },
+      {
+        "to": "port1070",
+        "distanceKm": 1210.5,
+        "capacityNorm": 0.12816393841762733
+      },
+      {
+        "to": "port273",
+        "distanceKm": 1596.5,
+        "capacityNorm": 0.11718989808363663
+      },
+      {
+        "to": "port1426",
+        "distanceKm": 1040.4,
+        "capacityNorm": 0.1149303770806136
+      },
+      {
+        "to": "port517",
+        "distanceKm": 802.2,
+        "capacityNorm": 0.11239844948855031
+      },
+      {
+        "to": "port1073",
+        "distanceKm": 812.6,
+        "capacityNorm": 0.11058370340137545
+      },
+      {
+        "to": "port644",
+        "distanceKm": 1114.6,
+        "capacityNorm": 0.11046891688014131
+      },
+      {
+        "to": "port1428",
+        "distanceKm": 1447.9,
+        "capacityNorm": 0.10653867704091824
+      },
+      {
+        "to": "port133",
+        "distanceKm": 1740.6,
+        "capacityNorm": 0.10574005773919885
+      },
+      {
+        "to": "port339",
+        "distanceKm": 1221.7,
+        "capacityNorm": 0.10039323041647745
+      },
+      {
+        "to": "port425",
+        "distanceKm": 672.3,
+        "capacityNorm": 0.09912977176322706
+      },
+      {
+        "to": "port1072",
+        "distanceKm": 1690.6,
+        "capacityNorm": 0.09515016742625144
+      },
+      {
+        "to": "port786",
+        "distanceKm": 1997,
+        "capacityNorm": 0.092916495980741
+      },
+      {
+        "to": "port792",
+        "distanceKm": 813.5,
+        "capacityNorm": 0.09202480798770594
+      },
+      {
+        "to": "port1405",
+        "distanceKm": 98.3,
+        "capacityNorm": 0.08404637300215677
+      },
+      {
+        "to": "port2401",
+        "distanceKm": 669,
+        "capacityNorm": 0.08381220192393805
+      },
+      {
+        "to": "port1403",
+        "distanceKm": 205.1,
+        "capacityNorm": 0.08182718216091939
+      },
+      {
+        "to": "port752",
+        "distanceKm": 1724.8,
+        "capacityNorm": 0.07960330670268109
+      },
+      {
+        "to": "port1417",
+        "distanceKm": 2242.7,
+        "capacityNorm": 0.07949075019802099
+      },
+      {
+        "to": "port494",
+        "distanceKm": 1554,
+        "capacityNorm": 0.07419655196964496
+      }
+    ],
+    "choke-panama": [
+      {
+        "to": "vwp-central-pacific",
+        "distanceKm": 7753.5,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "vwp-central-atlantic",
+        "distanceKm": 4558,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "choke-good-hope",
+        "distanceKm": 11554,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port481",
+        "distanceKm": 2793.8,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port812",
+        "distanceKm": 2552.6,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 2604.7,
+        "capacityNorm": 0.094077767222952
+      },
+      {
+        "to": "port700",
+        "distanceKm": 30.3,
+        "capacityNorm": 0.07930867949717119
+      },
+      {
+        "to": "port264",
+        "distanceKm": 2782,
+        "capacityNorm": 0.07730146416911068
+      }
+    ],
+    "vwp-central-pacific": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 7753.5,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 11911.4,
+        "capacityNorm": 0.5
+      }
+    ],
+    "vwp-central-atlantic": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 4558,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 3478.5,
+        "capacityNorm": 0.45258339636554884
+      }
+    ],
+    "port1201": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 119,
+        "capacityNorm": 1
+      },
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 2203,
+        "capacityNorm": 0.5
+      },
+      {
+        "to": "port960",
+        "distanceKm": 323.9,
+        "capacityNorm": 0.08438434040837868
+      },
+      {
+        "to": "port112",
+        "distanceKm": 1308.8,
+        "capacityNorm": 0.06496461517465399
+      }
+    ],
+    "port824": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 612.3,
+        "capacityNorm": 0.7979802342098011
+      },
+      {
+        "to": "port1429",
+        "distanceKm": 25.9,
+        "capacityNorm": 0.08663156318203996
+      },
+      {
+        "to": "port2027",
+        "distanceKm": 79.4,
+        "capacityNorm": 0.23845689064072378
+      }
+    ],
+    "port1188": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 740.9,
+        "capacityNorm": 0.7519695485286002
+      },
+      {
+        "to": "port1253",
+        "distanceKm": 73.1,
+        "capacityNorm": 0.08886163337492767
+      },
+      {
+        "to": "port2027",
+        "distanceKm": 76.2,
+        "capacityNorm": 0.23845689064072378
+      }
+    ],
+    "port1297": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1593,
+        "capacityNorm": 0.6231380590005707
+      },
+      {
+        "to": "port1195",
+        "distanceKm": 64.6,
+        "capacityNorm": 0.19958788476244055
+      },
+      {
+        "to": "port154",
+        "distanceKm": 69.5,
+        "capacityNorm": 0.14728689793290436
+      }
+    ],
+    "port1069": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1257.4,
+        "capacityNorm": 0.5747840703606673
+      },
+      {
+        "to": "port1070",
+        "distanceKm": 62.2,
+        "capacityNorm": 0.07689836305057639
+      },
+      {
+        "to": "port1105",
+        "distanceKm": 97.8,
+        "capacityNorm": 0.08194517122152517
+      },
+      {
+        "to": "port1428",
+        "distanceKm": 201.3,
+        "capacityNorm": 0.06392320622455094
+      }
+    ],
+    "port1114": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 1943.8,
+        "capacityNorm": 0.43530601012601916
+      },
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 2230,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port57",
+        "distanceKm": 71.8,
+        "capacityNorm": 0.1850657893477331
+      },
+      {
+        "to": "port985",
+        "distanceKm": 392.1,
+        "capacityNorm": 0.047038916749680505
+      },
+      {
+        "to": "port446",
+        "distanceKm": 425.7,
+        "capacityNorm": 0.08879897078819454
+      }
+    ],
+    "port2027": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 691.3,
+        "capacityNorm": 0.397428151067873
+      },
+      {
+        "to": "port824",
+        "distanceKm": 79.4,
+        "capacityNorm": 0.23845689064072378
+      },
+      {
+        "to": "port1188",
+        "distanceKm": 76.2,
+        "capacityNorm": 0.23845689064072378
+      },
+      {
+        "to": "port1429",
+        "distanceKm": 62.2,
+        "capacityNorm": 0.08663156318203996
+      }
+    ],
+    "port1195": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1593.3,
+        "capacityNorm": 0.3326464746040676
+      },
+      {
+        "to": "port1297",
+        "distanceKm": 64.6,
+        "capacityNorm": 0.19958788476244055
+      },
+      {
+        "to": "port1266",
+        "distanceKm": 53.5,
+        "capacityNorm": 0.12484738577881917
+      },
+      {
+        "to": "port154",
+        "distanceKm": 92.6,
+        "capacityNorm": 0.14728689793290436
+      },
+      {
+        "to": "port1072",
+        "distanceKm": 143.6,
+        "capacityNorm": 0.057090100455750865
+      }
+    ],
+    "port57": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 1884.3,
+        "capacityNorm": 0.30844298224622185
+      },
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 2196.8,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port1114",
+        "distanceKm": 71.8,
+        "capacityNorm": 0.1850657893477331
+      },
+      {
+        "to": "port985",
+        "distanceKm": 353.8,
+        "capacityNorm": 0.047038916749680505
+      },
+      {
+        "to": "port446",
+        "distanceKm": 456.6,
+        "capacityNorm": 0.08879897078819454
+      }
+    ],
+    "port481": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 2793.8,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port264",
+        "distanceKm": 302.2,
+        "capacityNorm": 0.04638087850146641
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 414.1,
+        "capacityNorm": 0.056446660333771194
+      },
+      {
+        "to": "port812",
+        "distanceKm": 483.7,
+        "capacityNorm": 0.07614791535914694
+      },
+      {
+        "to": "port1350",
+        "distanceKm": 3200.6,
+        "capacityNorm": 0.07327801719647087
+      }
+    ],
+    "port1189": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 657.8,
+        "capacityNorm": 0.2500974412642158
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2633.6,
+        "capacityNorm": 0.2500974412642158
+      },
+      {
+        "to": "port474",
+        "distanceKm": 40.2,
+        "capacityNorm": 0.13845908751909333
+      },
+      {
+        "to": "port2401",
+        "distanceKm": 59.7,
+        "capacityNorm": 0.05028732115436283
+      },
+      {
+        "to": "port425",
+        "distanceKm": 59.8,
+        "capacityNorm": 0.05947786305793623
+      }
+    ],
+    "port154": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1523.5,
+        "capacityNorm": 0.24547816322150728
+      },
+      {
+        "to": "port1297",
+        "distanceKm": 69.5,
+        "capacityNorm": 0.14728689793290436
+      },
+      {
+        "to": "port1195",
+        "distanceKm": 92.6,
+        "capacityNorm": 0.14728689793290436
+      }
+    ],
+    "port744": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 229.6,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 1538.4,
+        "capacityNorm": 0.23621513364911248
+      },
+      {
+        "to": "port362",
+        "distanceKm": 131,
+        "capacityNorm": 0.055313317917581234
+      },
+      {
+        "to": "port105",
+        "distanceKm": 383,
+        "capacityNorm": 0.04611069885250906
+      },
+      {
+        "to": "port776",
+        "distanceKm": 1960.1,
+        "capacityNorm": 0.1056986159972163
+      }
+    ],
+    "port474": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 642,
+        "capacityNorm": 0.23076514586515556
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2624.1,
+        "capacityNorm": 0.23076514586515556
+      },
+      {
+        "to": "port1189",
+        "distanceKm": 40.2,
+        "capacityNorm": 0.13845908751909333
+      },
+      {
+        "to": "port2401",
+        "distanceKm": 98.9,
+        "capacityNorm": 0.05028732115436283
+      }
+    ],
+    "port432": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1360.2,
+        "capacityNorm": 0.21908653500293698
+      },
+      {
+        "to": "port1065",
+        "distanceKm": 113.8,
+        "capacityNorm": 0.11490723632959537
+      },
+      {
+        "to": "port1338",
+        "distanceKm": 165.5,
+        "capacityNorm": 0.09155904349134081
+      },
+      {
+        "to": "port494",
+        "distanceKm": 302,
+        "capacityNorm": 0.04451793118178698
+      }
+    ],
+    "port1404": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 185.3,
+        "capacityNorm": 0.21904530518724374
+      },
+      {
+        "to": "port1405",
+        "distanceKm": 124.7,
+        "capacityNorm": 0.05042782380129406
+      },
+      {
+        "to": "port1403",
+        "distanceKm": 289.2,
+        "capacityNorm": 0.04909630929655163
+      },
+      {
+        "to": "port541",
+        "distanceKm": 316.1,
+        "capacityNorm": 0.11905602728624723
+      }
+    ],
+    "port1266": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1615.4,
+        "capacityNorm": 0.20807897629803196
+      },
+      {
+        "to": "port1195",
+        "distanceKm": 53.5,
+        "capacityNorm": 0.12484738577881917
+      },
+      {
+        "to": "port1072",
+        "distanceKm": 93.9,
+        "capacityNorm": 0.057090100455750865
+      }
+    ],
+    "port632": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1155.9,
+        "capacityNorm": 0.20243519770049762
+      },
+      {
+        "to": "port1105",
+        "distanceKm": 30.9,
+        "capacityNorm": 0.08194517122152517
+      },
+      {
+        "to": "port644",
+        "distanceKm": 41.7,
+        "capacityNorm": 0.06628135012808478
+      }
+    ],
+    "port541": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 245.6,
+        "capacityNorm": 0.19842671214374538
+      },
+      {
+        "to": "port1404",
+        "distanceKm": 316.1,
+        "capacityNorm": 0.11905602728624723
+      },
+      {
+        "to": "port1405",
+        "distanceKm": 319.8,
+        "capacityNorm": 0.05042782380129406
+      }
+    ],
+    "port1065": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1447.3,
+        "capacityNorm": 0.19151206054932562
+      },
+      {
+        "to": "port432",
+        "distanceKm": 113.8,
+        "capacityNorm": 0.11490723632959537
+      },
+      {
+        "to": "port1338",
+        "distanceKm": 59.5,
+        "capacityNorm": 0.09155904349134081
+      }
+    ],
+    "port776": [
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 1098.6,
+        "capacityNorm": 0.1761643599953605
+      },
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 1780,
+        "capacityNorm": 0.1761643599953605
+      },
+      {
+        "to": "port362",
+        "distanceKm": 1844,
+        "capacityNorm": 0.055313317917581234
+      },
+      {
+        "to": "port744",
+        "distanceKm": 1960.1,
+        "capacityNorm": 0.1056986159972163
+      }
+    ],
+    "port1265": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 23,
+        "capacityNorm": 0.15563265277499422
+      },
+      {
+        "to": "port31",
+        "distanceKm": 33,
+        "capacityNorm": 0.05794063756706524
+      },
+      {
+        "to": "port985",
+        "distanceKm": 1580.9,
+        "capacityNorm": 0.047038916749680505
+      }
+    ],
+    "port1338": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1506.7,
+        "capacityNorm": 0.15259840581890136
+      },
+      {
+        "to": "port432",
+        "distanceKm": 165.5,
+        "capacityNorm": 0.09155904349134081
+      },
+      {
+        "to": "port1065",
+        "distanceKm": 59.5,
+        "capacityNorm": 0.09155904349134081
+      },
+      {
+        "to": "port752",
+        "distanceKm": 410.8,
+        "capacityNorm": 0.04776198402160865
+      },
+      {
+        "to": "port494",
+        "distanceKm": 328.9,
+        "capacityNorm": 0.04451793118178698
+      }
+    ],
+    "port1253": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 784.8,
+        "capacityNorm": 0.1481027222915461
+      },
+      {
+        "to": "port1188",
+        "distanceKm": 73.1,
+        "capacityNorm": 0.08886163337492767
+      },
+      {
+        "to": "port792",
+        "distanceKm": 43.7,
+        "capacityNorm": 0.05521488479262356
+      },
+      {
+        "to": "port1073",
+        "distanceKm": 60.1,
+        "capacityNorm": 0.06635022204082527
+      }
+    ],
+    "port446": [
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 1978.6,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 2303.9,
+        "capacityNorm": 0.1479982846469909
+      },
+      {
+        "to": "port1114",
+        "distanceKm": 425.7,
+        "capacityNorm": 0.08879897078819454
+      },
+      {
+        "to": "port57",
+        "distanceKm": 456.6,
+        "capacityNorm": 0.08879897078819454
+      },
+      {
+        "to": "port1095",
+        "distanceKm": 1314.2,
+        "capacityNorm": 0.06254070257103753
+      },
+      {
+        "to": "port380",
+        "distanceKm": 578.8,
+        "capacityNorm": 0.05730225546021052
+      }
+    ],
+    "port1429": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 633.9,
+        "capacityNorm": 0.14438593863673327
+      },
+      {
+        "to": "port824",
+        "distanceKm": 25.9,
+        "capacityNorm": 0.08663156318203996
+      },
+      {
+        "to": "port2027",
+        "distanceKm": 62.2,
+        "capacityNorm": 0.08663156318203996
+      }
+    ],
+    "port526": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 686.9,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 1704.7,
+        "capacityNorm": 0.11810689909910076
+      },
+      {
+        "to": "port105",
+        "distanceKm": 264.7,
+        "capacityNorm": 0.04611069885250906
+      },
+      {
+        "to": "port2479",
+        "distanceKm": 339.4,
+        "capacityNorm": 0.07365222830525386
+      },
+      {
+        "to": "port570",
+        "distanceKm": 1217.4,
+        "capacityNorm": 0.06267054412138949
+      },
+      {
+        "to": "port518",
+        "distanceKm": 1246.7,
+        "capacityNorm": 0.05162015863819299
+      }
+    ],
+    "port960": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 218.8,
+        "capacityNorm": 0.1406405673472978
+      },
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 1892.4,
+        "capacityNorm": 0.1406405673472978
+      },
+      {
+        "to": "port1201",
+        "distanceKm": 323.9,
+        "capacityNorm": 0.08438434040837868
+      },
+      {
+        "to": "port1197",
+        "distanceKm": 1125.9,
+        "capacityNorm": 0.07061202895411328
+      },
+      {
+        "to": "port112",
+        "distanceKm": 1626.1,
+        "capacityNorm": 0.06496461517465399
+      }
+    ],
+    "port1105": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1181.8,
+        "capacityNorm": 0.13657528536920863
+      },
+      {
+        "to": "port1069",
+        "distanceKm": 97.8,
+        "capacityNorm": 0.08194517122152517
+      },
+      {
+        "to": "port632",
+        "distanceKm": 30.9,
+        "capacityNorm": 0.08194517122152517
+      },
+      {
+        "to": "port1070",
+        "distanceKm": 35.7,
+        "capacityNorm": 0.07689836305057639
+      },
+      {
+        "to": "port644",
+        "distanceKm": 68.1,
+        "capacityNorm": 0.06628135012808478
+      }
+    ],
+    "port1070": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1210.5,
+        "capacityNorm": 0.12816393841762733
+      },
+      {
+        "to": "port1069",
+        "distanceKm": 62.2,
+        "capacityNorm": 0.07689836305057639
+      },
+      {
+        "to": "port1105",
+        "distanceKm": 35.7,
+        "capacityNorm": 0.07689836305057639
+      }
+    ],
+    "port812": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 2552.6,
+        "capacityNorm": 0.1089025899014792
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 74.1,
+        "capacityNorm": 0.056446660333771194
+      },
+      {
+        "to": "port481",
+        "distanceKm": 483.7,
+        "capacityNorm": 0.07614791535914694
+      },
+      {
+        "to": "port815",
+        "distanceKm": 1869,
+        "capacityNorm": 0.0729178201201054
+      },
+      {
+        "to": "port700",
+        "distanceKm": 2522.3,
+        "capacityNorm": 0.04758520769830271
+      }
+    ],
+    "port2479": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 873.8,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-suez",
+        "distanceKm": 1577.8,
+        "capacityNorm": 0.12275371384208979
+      },
+      {
+        "to": "port526",
+        "distanceKm": 339.4,
+        "capacityNorm": 0.07365222830525386
+      },
+      {
+        "to": "port105",
+        "distanceKm": 430.1,
+        "capacityNorm": 0.04611069885250906
+      }
+    ],
+    "port1197": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 1301.3,
+        "capacityNorm": 0.11768671492352213
+      },
+      {
+        "to": "vwp-bay-bengal",
+        "distanceKm": 1827.1,
+        "capacityNorm": 0.11768671492352213
+      },
+      {
+        "to": "port960",
+        "distanceKm": 1125.9,
+        "capacityNorm": 0.07061202895411328
+      },
+      {
+        "to": "port339",
+        "distanceKm": 1234.8,
+        "capacityNorm": 0.06023593824988647
+      }
+    ],
+    "port273": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1596.5,
+        "capacityNorm": 0.11718989808363663
+      },
+      {
+        "to": "port133",
+        "distanceKm": 144.4,
+        "capacityNorm": 0.0634440346435193
+      },
+      {
+        "to": "port1428",
+        "distanceKm": 155,
+        "capacityNorm": 0.06392320622455094
+      }
+    ],
+    "port1426": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1040.4,
+        "capacityNorm": 0.1149303770806136
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2345.4,
+        "capacityNorm": 0.1149303770806136
+      },
+      {
+        "to": "port339",
+        "distanceKm": 216.3,
+        "capacityNorm": 0.06023593824988647
+      },
+      {
+        "to": "port425",
+        "distanceKm": 375.6,
+        "capacityNorm": 0.05947786305793623
+      }
+    ],
+    "port517": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 802.2,
+        "capacityNorm": 0.11239844948855031
+      },
+      {
+        "to": "port1073",
+        "distanceKm": 43.8,
+        "capacityNorm": 0.06635022204082527
+      },
+      {
+        "to": "port792",
+        "distanceKm": 64.3,
+        "capacityNorm": 0.05521488479262356
+      }
+    ],
+    "port1073": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 812.6,
+        "capacityNorm": 0.11058370340137545
+      },
+      {
+        "to": "port1253",
+        "distanceKm": 60.1,
+        "capacityNorm": 0.06635022204082527
+      },
+      {
+        "to": "port517",
+        "distanceKm": 43.8,
+        "capacityNorm": 0.06635022204082527
+      },
+      {
+        "to": "port792",
+        "distanceKm": 20.8,
+        "capacityNorm": 0.05521488479262356
+      }
+    ],
+    "port644": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1114.6,
+        "capacityNorm": 0.11046891688014131
+      },
+      {
+        "to": "port632",
+        "distanceKm": 41.7,
+        "capacityNorm": 0.06628135012808478
+      },
+      {
+        "to": "port1105",
+        "distanceKm": 68.1,
+        "capacityNorm": 0.06628135012808478
+      }
+    ],
+    "port112": [
+      {
+        "to": "choke-malacca",
+        "distanceKm": 1426.3,
+        "capacityNorm": 0.10827435862442332
+      },
+      {
+        "to": "port1201",
+        "distanceKm": 1308.8,
+        "capacityNorm": 0.06496461517465399
+      },
+      {
+        "to": "port960",
+        "distanceKm": 1626.1,
+        "capacityNorm": 0.06496461517465399
+      }
+    ],
+    "port1428": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1447.9,
+        "capacityNorm": 0.10653867704091824
+      },
+      {
+        "to": "port273",
+        "distanceKm": 155,
+        "capacityNorm": 0.06392320622455094
+      },
+      {
+        "to": "port1069",
+        "distanceKm": 201.3,
+        "capacityNorm": 0.06392320622455094
+      }
+    ],
+    "port133": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1740.6,
+        "capacityNorm": 0.10574005773919885
+      },
+      {
+        "to": "port273",
+        "distanceKm": 144.4,
+        "capacityNorm": 0.0634440346435193
+      },
+      {
+        "to": "port1072",
+        "distanceKm": 209,
+        "capacityNorm": 0.057090100455750865
+      }
+    ],
+    "port570": [
+      {
+        "to": "choke-suez",
+        "distanceKm": 936.7,
+        "capacityNorm": 0.1044509068689825
+      },
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 1351.5,
+        "capacityNorm": 0.1044509068689825
+      },
+      {
+        "to": "port518",
+        "distanceKm": 291.7,
+        "capacityNorm": 0.05162015863819299
+      },
+      {
+        "to": "port526",
+        "distanceKm": 1217.4,
+        "capacityNorm": 0.06267054412138949
+      }
+    ],
+    "port1095": [
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 2059.1,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "port380",
+        "distanceKm": 831.3,
+        "capacityNorm": 0.05730225546021052
+      },
+      {
+        "to": "port446",
+        "distanceKm": 1314.2,
+        "capacityNorm": 0.06254070257103753
+      },
+      {
+        "to": "port833",
+        "distanceKm": 1778.4,
+        "capacityNorm": 0.06082549064104763
+      }
+    ],
+    "port833": [
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 811.5,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "choke-suez",
+        "distanceKm": 1639.8,
+        "capacityNorm": 0.10137581773507938
+      },
+      {
+        "to": "port380",
+        "distanceKm": 1737.9,
+        "capacityNorm": 0.05730225546021052
+      },
+      {
+        "to": "port1095",
+        "distanceKm": 1778.4,
+        "capacityNorm": 0.06082549064104763
+      }
+    ],
+    "port339": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1221.7,
+        "capacityNorm": 0.10039323041647745
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2318.4,
+        "capacityNorm": 0.10039323041647745
+      },
+      {
+        "to": "port1197",
+        "distanceKm": 1234.8,
+        "capacityNorm": 0.06023593824988647
+      },
+      {
+        "to": "port1426",
+        "distanceKm": 216.3,
+        "capacityNorm": 0.06023593824988647
+      },
+      {
+        "to": "port425",
+        "distanceKm": 549.5,
+        "capacityNorm": 0.05947786305793623
+      }
+    ],
+    "port425": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 672.3,
+        "capacityNorm": 0.09912977176322706
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2661.6,
+        "capacityNorm": 0.09912977176322706
+      },
+      {
+        "to": "port1426",
+        "distanceKm": 375.6,
+        "capacityNorm": 0.05947786305793623
+      },
+      {
+        "to": "port339",
+        "distanceKm": 549.5,
+        "capacityNorm": 0.05947786305793623
+      },
+      {
+        "to": "port2401",
+        "distanceKm": 3.4,
+        "capacityNorm": 0.05028732115436283
+      },
+      {
+        "to": "port1189",
+        "distanceKm": 59.8,
+        "capacityNorm": 0.05947786305793623
+      }
+    ],
+    "port31": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 39.4,
+        "capacityNorm": 0.09656772927844207
+      },
+      {
+        "to": "port1265",
+        "distanceKm": 33,
+        "capacityNorm": 0.05794063756706524
+      },
+      {
+        "to": "port985",
+        "distanceKm": 1547.9,
+        "capacityNorm": 0.047038916749680505
+      }
+    ],
+    "port380": [
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 1657.4,
+        "capacityNorm": 0.0922085740770708
+      },
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 2778.4,
+        "capacityNorm": 0.09550375910035087
+      },
+      {
+        "to": "port1095",
+        "distanceKm": 831.3,
+        "capacityNorm": 0.05730225546021052
+      },
+      {
+        "to": "port833",
+        "distanceKm": 1737.9,
+        "capacityNorm": 0.05730225546021052
+      },
+      {
+        "to": "port446",
+        "distanceKm": 578.8,
+        "capacityNorm": 0.05730225546021052
+      }
+    ],
+    "port1072": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1690.6,
+        "capacityNorm": 0.09515016742625144
+      },
+      {
+        "to": "port1266",
+        "distanceKm": 93.9,
+        "capacityNorm": 0.057090100455750865
+      },
+      {
+        "to": "port133",
+        "distanceKm": 209,
+        "capacityNorm": 0.057090100455750865
+      },
+      {
+        "to": "port1195",
+        "distanceKm": 143.6,
+        "capacityNorm": 0.057090100455750865
+      }
+    ],
+    "port1214": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 2604.7,
+        "capacityNorm": 0.094077767222952
+      },
+      {
+        "to": "port481",
+        "distanceKm": 414.1,
+        "capacityNorm": 0.056446660333771194
+      },
+      {
+        "to": "port812",
+        "distanceKm": 74.1,
+        "capacityNorm": 0.056446660333771194
+      },
+      {
+        "to": "port815",
+        "distanceKm": 1906.1,
+        "capacityNorm": 0.056446660333771194
+      },
+      {
+        "to": "port700",
+        "distanceKm": 2574.5,
+        "capacityNorm": 0.04758520769830271
+      },
+      {
+        "to": "port264",
+        "distanceKm": 682.2,
+        "capacityNorm": 0.04638087850146641
+      }
+    ],
+    "port786": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1997,
+        "capacityNorm": 0.092916495980741
+      },
+      {
+        "to": "port1417",
+        "distanceKm": 259.7,
+        "capacityNorm": 0.04769445011881259
+      },
+      {
+        "to": "port752",
+        "distanceKm": 291.7,
+        "capacityNorm": 0.04776198402160865
+      }
+    ],
+    "port362": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 131.8,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "vwp-arabian-sea",
+        "distanceKm": 1479.4,
+        "capacityNorm": 0.09218886319596872
+      },
+      {
+        "to": "port744",
+        "distanceKm": 131,
+        "capacityNorm": 0.055313317917581234
+      },
+      {
+        "to": "port776",
+        "distanceKm": 1844,
+        "capacityNorm": 0.055313317917581234
+      },
+      {
+        "to": "port105",
+        "distanceKm": 464.6,
+        "capacityNorm": 0.04611069885250906
+      }
+    ],
+    "port792": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 813.5,
+        "capacityNorm": 0.09202480798770594
+      },
+      {
+        "to": "port1253",
+        "distanceKm": 43.7,
+        "capacityNorm": 0.05521488479262356
+      },
+      {
+        "to": "port517",
+        "distanceKm": 64.3,
+        "capacityNorm": 0.05521488479262356
+      },
+      {
+        "to": "port1073",
+        "distanceKm": 20.8,
+        "capacityNorm": 0.05521488479262356
+      }
+    ],
+    "port518": [
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 1061.6,
+        "capacityNorm": 0.08603359773032165
+      },
+      {
+        "to": "choke-suez",
+        "distanceKm": 1217.2,
+        "capacityNorm": 0.08603359773032165
+      },
+      {
+        "to": "port570",
+        "distanceKm": 291.7,
+        "capacityNorm": 0.05162015863819299
+      },
+      {
+        "to": "port526",
+        "distanceKm": 1246.7,
+        "capacityNorm": 0.05162015863819299
+      }
+    ],
+    "port1405": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 98.3,
+        "capacityNorm": 0.08404637300215677
+      },
+      {
+        "to": "port1404",
+        "distanceKm": 124.7,
+        "capacityNorm": 0.05042782380129406
+      },
+      {
+        "to": "port541",
+        "distanceKm": 319.8,
+        "capacityNorm": 0.05042782380129406
+      },
+      {
+        "to": "port1403",
+        "distanceKm": 172.2,
+        "capacityNorm": 0.04909630929655163
+      }
+    ],
+    "port2401": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 669,
+        "capacityNorm": 0.08381220192393805
+      },
+      {
+        "to": "choke-malacca",
+        "distanceKm": 2664.5,
+        "capacityNorm": 0.08381220192393805
+      },
+      {
+        "to": "port1189",
+        "distanceKm": 59.7,
+        "capacityNorm": 0.05028732115436283
+      },
+      {
+        "to": "port474",
+        "distanceKm": 98.9,
+        "capacityNorm": 0.05028732115436283
+      },
+      {
+        "to": "port425",
+        "distanceKm": 3.4,
+        "capacityNorm": 0.05028732115436283
+      }
+    ],
+    "port1099": [
+      {
+        "to": "choke-good-hope",
+        "distanceKm": 1253.9,
+        "capacityNorm": 0.08202327638735937
+      },
+      {
+        "to": "vwp-agulhas",
+        "distanceKm": 1422.4,
+        "capacityNorm": 0.08202327638735937
+      }
+    ],
+    "port1403": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 205.1,
+        "capacityNorm": 0.08182718216091939
+      },
+      {
+        "to": "port1404",
+        "distanceKm": 289.2,
+        "capacityNorm": 0.04909630929655163
+      },
+      {
+        "to": "port1405",
+        "distanceKm": 172.2,
+        "capacityNorm": 0.04909630929655163
+      }
+    ],
+    "port752": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1724.8,
+        "capacityNorm": 0.07960330670268109
+      },
+      {
+        "to": "port786",
+        "distanceKm": 291.7,
+        "capacityNorm": 0.04776198402160865
+      },
+      {
+        "to": "port1338",
+        "distanceKm": 410.8,
+        "capacityNorm": 0.04776198402160865
+      },
+      {
+        "to": "port1417",
+        "distanceKm": 551.3,
+        "capacityNorm": 0.04769445011881259
+      }
+    ],
+    "port1417": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 2242.7,
+        "capacityNorm": 0.07949075019802099
+      },
+      {
+        "to": "port786",
+        "distanceKm": 259.7,
+        "capacityNorm": 0.04769445011881259
+      },
+      {
+        "to": "port752",
+        "distanceKm": 551.3,
+        "capacityNorm": 0.04769445011881259
+      }
+    ],
+    "port700": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 30.3,
+        "capacityNorm": 0.07930867949717119
+      },
+      {
+        "to": "port812",
+        "distanceKm": 2522.3,
+        "capacityNorm": 0.04758520769830271
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 2574.5,
+        "capacityNorm": 0.04758520769830271
+      }
+    ],
+    "port985": [
+      {
+        "to": "choke-gibraltar",
+        "distanceKm": 1580.1,
+        "capacityNorm": 0.07839819458280084
+      },
+      {
+        "to": "choke-bosporus",
+        "distanceKm": 2420.8,
+        "capacityNorm": 0.07839819458280084
+      },
+      {
+        "to": "port1114",
+        "distanceKm": 392.1,
+        "capacityNorm": 0.047038916749680505
+      },
+      {
+        "to": "port57",
+        "distanceKm": 353.8,
+        "capacityNorm": 0.047038916749680505
+      },
+      {
+        "to": "port1265",
+        "distanceKm": 1580.9,
+        "capacityNorm": 0.047038916749680505
+      },
+      {
+        "to": "port31",
+        "distanceKm": 1547.9,
+        "capacityNorm": 0.047038916749680505
+      }
+    ],
+    "port264": [
+      {
+        "to": "choke-panama",
+        "distanceKm": 2782,
+        "capacityNorm": 0.07730146416911068
+      },
+      {
+        "to": "port481",
+        "distanceKm": 302.2,
+        "capacityNorm": 0.04638087850146641
+      },
+      {
+        "to": "port664",
+        "distanceKm": 2094,
+        "capacityNorm": 0.04638087850146641
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 682.2,
+        "capacityNorm": 0.04638087850146641
+      }
+    ],
+    "port105": [
+      {
+        "to": "choke-hormuz",
+        "distanceKm": 453.4,
+        "capacityNorm": 0.015010040834520151
+      },
+      {
+        "to": "choke-bab-el-mandeb",
+        "distanceKm": 1899,
+        "capacityNorm": 0.07685116475418177
+      },
+      {
+        "to": "port744",
+        "distanceKm": 383,
+        "capacityNorm": 0.04611069885250906
+      },
+      {
+        "to": "port526",
+        "distanceKm": 264.7,
+        "capacityNorm": 0.04611069885250906
+      },
+      {
+        "to": "port2479",
+        "distanceKm": 430.1,
+        "capacityNorm": 0.04611069885250906
+      },
+      {
+        "to": "port362",
+        "distanceKm": 464.6,
+        "capacityNorm": 0.04611069885250906
+      }
+    ],
+    "port494": [
+      {
+        "to": "choke-taiwan",
+        "distanceKm": 1554,
+        "capacityNorm": 0.07419655196964496
+      },
+      {
+        "to": "port432",
+        "distanceKm": 302,
+        "capacityNorm": 0.04451793118178698
+      },
+      {
+        "to": "port1338",
+        "distanceKm": 328.9,
+        "capacityNorm": 0.04451793118178698
+      }
+    ],
+    "port955": [
+      {
+        "to": "port981",
+        "distanceKm": 148.9,
+        "capacityNorm": 0.11222498285440725
+      },
+      {
+        "to": "port276",
+        "distanceKm": 192.6,
+        "capacityNorm": 0.11039883608218432
+      }
+    ],
+    "port981": [
+      {
+        "to": "port955",
+        "distanceKm": 148.9,
+        "capacityNorm": 0.11222498285440725
+      },
+      {
+        "to": "port276",
+        "distanceKm": 44.1,
+        "capacityNorm": 0.11039883608218432
+      }
+    ],
+    "port276": [
+      {
+        "to": "port955",
+        "distanceKm": 192.6,
+        "capacityNorm": 0.11039883608218432
+      },
+      {
+        "to": "port981",
+        "distanceKm": 44.1,
+        "capacityNorm": 0.11039883608218432
+      }
+    ],
+    "port664": [
+      {
+        "to": "port1350",
+        "distanceKm": 1771.7,
+        "capacityNorm": 0.07327801719647087
+      },
+      {
+        "to": "port264",
+        "distanceKm": 2094,
+        "capacityNorm": 0.04638087850146641
+      }
+    ],
+    "port1350": [
+      {
+        "to": "port664",
+        "distanceKm": 1771.7,
+        "capacityNorm": 0.07327801719647087
+      },
+      {
+        "to": "port481",
+        "distanceKm": 3200.6,
+        "capacityNorm": 0.07327801719647087
+      }
+    ],
+    "port506": [
+      {
+        "to": "port1328",
+        "distanceKm": 2010.8,
+        "capacityNorm": 0.058946329773588726
+      },
+      {
+        "to": "port166",
+        "distanceKm": 2167.7,
+        "capacityNorm": 0.05413238807281797
+      }
+    ],
+    "port1328": [
+      {
+        "to": "port506",
+        "distanceKm": 2010.8,
+        "capacityNorm": 0.058946329773588726
+      },
+      {
+        "to": "port166",
+        "distanceKm": 194.7,
+        "capacityNorm": 0.05413238807281797
+      },
+      {
+        "to": "port2045",
+        "distanceKm": 475,
+        "capacityNorm": 0.05614044512885296
+      }
+    ],
+    "port166": [
+      {
+        "to": "port506",
+        "distanceKm": 2167.7,
+        "capacityNorm": 0.05413238807281797
+      },
+      {
+        "to": "port1328",
+        "distanceKm": 194.7,
+        "capacityNorm": 0.05413238807281797
+      },
+      {
+        "to": "port2045",
+        "distanceKm": 312,
+        "capacityNorm": 0.05413238807281797
+      }
+    ],
+    "port1160": [
+      {
+        "to": "port2045",
+        "distanceKm": 279.1,
+        "capacityNorm": 0.05614044512885296
+      },
+      {
+        "to": "port885",
+        "distanceKm": 282.3,
+        "capacityNorm": 0.04637466891175981
+      }
+    ],
+    "port2045": [
+      {
+        "to": "port1160",
+        "distanceKm": 279.1,
+        "capacityNorm": 0.05614044512885296
+      },
+      {
+        "to": "port1328",
+        "distanceKm": 475,
+        "capacityNorm": 0.05614044512885296
+      },
+      {
+        "to": "port166",
+        "distanceKm": 312,
+        "capacityNorm": 0.05413238807281797
+      },
+      {
+        "to": "port885",
+        "distanceKm": 555.5,
+        "capacityNorm": 0.04637466891175981
+      }
+    ],
+    "port885": [
+      {
+        "to": "port1160",
+        "distanceKm": 282.3,
+        "capacityNorm": 0.04637466891175981
+      },
+      {
+        "to": "port2045",
+        "distanceKm": 555.5,
+        "capacityNorm": 0.04637466891175981
+      }
+    ],
+    "port816": [
+      {
+        "to": "port398",
+        "distanceKm": 1010.5,
+        "capacityNorm": 0.06836787273891548
+      },
+      {
+        "to": "port458",
+        "distanceKm": 1314.1,
+        "capacityNorm": 0.06093178622254904
+      }
+    ],
+    "port398": [
+      {
+        "to": "port816",
+        "distanceKm": 1010.5,
+        "capacityNorm": 0.06836787273891548
+      },
+      {
+        "to": "port458",
+        "distanceKm": 344.7,
+        "capacityNorm": 0.06093178622254904
+      }
+    ],
+    "port458": [
+      {
+        "to": "port816",
+        "distanceKm": 1314.1,
+        "capacityNorm": 0.06093178622254904
+      },
+      {
+        "to": "port398",
+        "distanceKm": 344.7,
+        "capacityNorm": 0.06093178622254904
+      }
+    ],
+    "port815": [
+      {
+        "to": "port812",
+        "distanceKm": 1869,
+        "capacityNorm": 0.0729178201201054
+      },
+      {
+        "to": "port1214",
+        "distanceKm": 1906.1,
+        "capacityNorm": 0.056446660333771194
+      }
+    ]
+  }
+}

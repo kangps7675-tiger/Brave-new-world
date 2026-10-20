@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "builtAt": "2026-09-19T13:45:45.647Z",
+  "id": "ohm",
+  "role": "historic_osm_detail",
+  "license": "ODbL (OpenHistoricalMap / OSM-style contribution)",
+  "base": "https://vtiles.openhistoricalmap.org/maps/ohm",
+  "styleUrl": "https://www.openhistoricalmap.org/map-styles/main/main.json",
+  "tiles": "https://vtiles.openhistoricalmap.org/maps/ohm/{z}/{x}/{y}.pbf",
+  "dateFilter": "@openhistoricalmap/maplibre-gl-dates",
+  "mount": "history_toggle_only",
+  "planetS3": "https://s3.amazonaws.com/planet.openhistoricalmap.org/",
+  "planetNote": "Planet PBFs often Glacier/Deep Archive — use live vtiles, do not mirror into git.",
+  "reuseWiki": "https://wiki.openstreetmap.org/wiki/OpenHistoricalMap/Reuse",
+  "plugin": "https://github.com/OpenHistoricalMap/maplibre-gl-dates"
+}

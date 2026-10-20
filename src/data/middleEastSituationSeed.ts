@@ -1,0 +1,98 @@
+/**
+ * 중동·이란 전선 콜아웃 — IRONSIGHT iran-israel strike/launch 시드 기반.
+ * 분쟁 폴리곤(combat-me-*)과 함께 표시용 평가 문구.
+ */
+import type { SituationCallout } from "@/data/situationCalloutTypes";
+
+export const MIDDLE_EAST_SITUATION_CALLOUTS: SituationCallout[] = [
+  {
+    id: "me-natanz-corridor",
+    theater: "middle-east",
+    lat: 33.51,
+    lng: 51.73,
+    title: "나탄즈–이스파한 축",
+    body: "핵·미사일 기반 · 타격 회랑 (평가)",
+    side: "red",
+  },
+  {
+    id: "me-tehran-depth",
+    theater: "middle-east",
+    lat: 35.69,
+    lng: 51.39,
+    title: "테헤란 종심",
+    body: "지휘·방공 · 전략 표적 밀집",
+    side: "red",
+  },
+  {
+    id: "me-bandar-abbas",
+    theater: "middle-east",
+    lat: 27.19,
+    lng: 56.28,
+    title: "반다르아바스 · 호르무즈",
+    body: "해군·봉쇄 · 해협 초크포인트",
+    side: "red",
+  },
+  {
+    id: "me-bushehr-kharg",
+    theater: "middle-east",
+    lat: 28.97,
+    lng: 50.84,
+    title: "부셰르–카르그",
+    body: "에너지·원전 · 걸프 타격권",
+    side: "red",
+  },
+  {
+    id: "me-iran-israel-corridor",
+    theater: "middle-east",
+    lat: 31.8,
+    lng: 42.5,
+    title: "이란–이스라엘 타격 회랑",
+    body: "탄도·UAV 교차 경로 (평가)",
+    side: "neutral",
+  },
+  {
+    id: "me-tel-aviv-alert",
+    theater: "middle-east",
+    lat: 32.09,
+    lng: 34.78,
+    title: "텔아비브 경보권",
+    body: "공습경보 · 인구밀집 방어",
+    side: "blue",
+  },
+  {
+    id: "me-dimona",
+    theater: "middle-east",
+    lat: 31.07,
+    lng: 35.03,
+    title: "디모나 방면",
+    body: "전략 시설 · 경보·방공",
+    side: "blue",
+  },
+  {
+    id: "me-gaza-belt",
+    theater: "middle-east",
+    lat: 31.45,
+    lng: 34.4,
+    title: "가자 교전·폭격대",
+    body: "지상전·공습 지속",
+    side: "neutral",
+  },
+  {
+    id: "me-lebanon-south",
+    theater: "middle-east",
+    lat: 33.35,
+    lng: 35.4,
+    title: "레바논 남부 벨트",
+    body: "헤즈볼라–이스라엘 교차 포격",
+    side: "neutral",
+  },
+  {
+    id: "me-hormuz",
+    theater: "middle-east",
+    lat: 26.56,
+    lng: 56.25,
+    title: "호르무즈 해협",
+    body: "해상 봉쇄·호위 · 에너지 초크",
+    side: "neutral",
+  },
+];

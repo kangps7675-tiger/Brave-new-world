@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { provenanceLines } from "@/lib/provenance";
 import { stackSourceName, type StackItem } from "@/lib/incidentStack/build";

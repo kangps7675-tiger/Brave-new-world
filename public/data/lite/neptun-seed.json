@@ -1,0 +1,65 @@
+{
+  "fetchedAt": "2026-07-10T12:00:00.000Z",
+  "serverTime": "2026-07-10T12:00:00.000Z",
+  "live": false,
+  "stub": true,
+  "threats": [
+    {
+      "id": "trk_seed_uav",
+      "type": "uav",
+      "title": "Шахед",
+      "region": "Одеська область",
+      "district": "Одеський район",
+      "locality": "Чорноморськ",
+      "lat": 46.3,
+      "lon": 30.65,
+      "heading": 42,
+      "confidenceLevel": "high",
+      "sourceCount": 3,
+      "count": 2,
+      "updatedAt": "2026-07-10T11:58:00.000Z",
+      "status": "active",
+      "explanationShort": "БпЛА курсом на Чорноморськ",
+      "velocity": { "bearingDeg": 42, "speedKmh": 150 },
+      "confirmedAt": "2026-07-10T11:55:00.000Z",
+      "trail": [
+        { "lat": 45.82, "lon": 31.42, "t": "2026-07-10T11:35:00.000Z" },
+        { "lat": 46.3, "lon": 30.65, "t": "2026-07-10T11:55:00.000Z" }
+      ]
+    },
+    {
+      "id": "trk_seed_ballistic",
+      "type": "ballistic",
+      "title": "Балістична ракета",
+      "region": "Дніпропетровська область",
+      "district": "",
+      "locality": "Дніпро",
+      "lat": 48.45,
+      "lon": 35.05,
+      "heading": 220,
+      "confidenceLevel": "high",
+      "sourceCount": 4,
+      "updatedAt": "2026-07-10T11:52:00.000Z",
+      "status": "active",
+      "explanationShort": "Балістична загроза на південь",
+      "velocity": { "bearingDeg": 220, "speedKmh": 5500 },
+      "confirmedAt": "2026-07-10T11:50:00.000Z",
+      "trail": [
+        { "lat": 50.1, "lon": 36.8, "t": "2026-07-10T11:40:00.000Z" },
+        { "lat": 48.45, "lon": 35.05, "t": "2026-07-10T11:50:00.000Z" }
+      ]
+    }
+  ],
+  "alerts": {
+    "raions": [
+      {
+        "key": "odeska:odeskyi",
+        "name": "Одеський район",
+        "oblast": "Одеська область",
+        "since": "2026-07-10T11:30:00.000Z"
+      }
+    ],
+    "oblasts": []
+  },
+  "archivedThreats": []
+}

@@ -1,0 +1,174 @@
+{
+  "generatedAt": "2026-08-28T16:30:43.773Z",
+  "source": "UNCTADstat US.SDG_PORFVOL (SDG 14 official port freight volume, TEU)",
+  "sourceFile": "US_SDG_PORFVOL.csv",
+  "method": "Average of most recent 3 valid years. Independent TEU series from ContPortThroughput — used as fallback + cross-check.",
+  "unit": "TEU",
+  "rowsScanned": 2910,
+  "countryCount": 18,
+  "withData": 18,
+  "countries": {
+    "CHN": {
+      "teu": 14073237,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "CUB": {
+      "teu": 262857.3333333333,
+      "latestYear": 2023,
+      "yearsUsed": [
+        2021,
+        2022,
+        2023
+      ]
+    },
+    "EGY": {
+      "teu": 8196285.666666667,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "GEO": {
+      "teu": 605134.6666666666,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IND": {
+      "teu": 21941056,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "IRN": {
+      "teu": 2793779.6666666665,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2017,
+        2018,
+        2024
+      ]
+    },
+    "LBN": {
+      "teu": 612181,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2021,
+        2022,
+        2024
+      ]
+    },
+    "MMR": {
+      "teu": 796978,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "NLD": {
+      "teu": 14519270,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "PAK": {
+      "teu": 3210193.3333333335,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "POL": {
+      "teu": 3109268.6666666665,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "KOR": {
+      "teu": 30118703,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "RUS": {
+      "teu": 4562523.666666667,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SAU": {
+      "teu": 9959578.333333334,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "SYR": {
+      "teu": 300325.6666666667,
+      "latestYear": 2020,
+      "yearsUsed": [
+        2018,
+        2019,
+        2020
+      ]
+    },
+    "TUR": {
+      "teu": 12809274.333333334,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "ARE": {
+      "teu": 21796584.333333332,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "YEM": {
+      "teu": 389069.6666666667,
+      "latestYear": 2024,
+      "yearsUsed": [
+        2021,
+        2022,
+        2024
+      ]
+    }
+  }
+}

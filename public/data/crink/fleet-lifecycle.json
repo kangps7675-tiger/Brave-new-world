@@ -1,0 +1,190 @@
+{
+  "generatedAt": "2026-08-28T16:31:58.371Z",
+  "source": "UNCTADstat US.ShipBuilding (GT delivered) + US.ShipScrapping (GT demolished)",
+  "method": "Top 15 countries by average GT over the most recent 3 valid years. Global content data — not restricted to CRINK corridor countries, not wired into corridor-ranks scoring.",
+  "unit": "Gross Tonnage",
+  "topBuilders": [
+    {
+      "country": "China",
+      "avgGrossTonnage": 37857758.333333336,
+      "avgSharePct": 53.038579999999996,
+      "latestYear": 2025
+    },
+    {
+      "country": "Republic of Korea",
+      "avgGrossTonnage": 19846887.666666668,
+      "avgSharePct": 27.882273333333334,
+      "latestYear": 2025
+    },
+    {
+      "country": "Japan",
+      "avgGrossTonnage": 9694693.666666666,
+      "avgSharePct": 13.67721,
+      "latestYear": 2025
+    },
+    {
+      "country": "Viet Nam",
+      "avgGrossTonnage": 708668,
+      "avgSharePct": 0.9839600000000001,
+      "latestYear": 2025
+    },
+    {
+      "country": "Philippines",
+      "avgGrossTonnage": 704540,
+      "avgSharePct": 1.0012433333333333,
+      "latestYear": 2025
+    },
+    {
+      "country": "Italy",
+      "avgGrossTonnage": 501845.6666666667,
+      "avgSharePct": 0.6981833333333333,
+      "latestYear": 2025
+    },
+    {
+      "country": "France",
+      "avgGrossTonnage": 341562,
+      "avgSharePct": 0.4788966666666667,
+      "latestYear": 2025
+    },
+    {
+      "country": "Germany",
+      "avgGrossTonnage": 304652,
+      "avgSharePct": 0.4247166666666667,
+      "latestYear": 2025
+    },
+    {
+      "country": "Finland",
+      "avgGrossTonnage": 240162.66666666666,
+      "avgSharePct": 0.3380033333333334,
+      "latestYear": 2025
+    },
+    {
+      "country": "Russian Federation",
+      "avgGrossTonnage": 162491,
+      "avgSharePct": 0.22833,
+      "latestYear": 2025
+    },
+    {
+      "country": "Indonesia",
+      "avgGrossTonnage": 120909.33333333333,
+      "avgSharePct": 0.16612000000000002,
+      "latestYear": 2025
+    },
+    {
+      "country": "Turkiye",
+      "avgGrossTonnage": 104786.66666666667,
+      "avgSharePct": 0.14497666666666667,
+      "latestYear": 2025
+    },
+    {
+      "country": "Singapore",
+      "avgGrossTonnage": 66771,
+      "avgSharePct": 0.09459333333333332,
+      "latestYear": 2025
+    },
+    {
+      "country": "India",
+      "avgGrossTonnage": 46339.666666666664,
+      "avgSharePct": 0.06470666666666668,
+      "latestYear": 2025
+    },
+    {
+      "country": "United States",
+      "avgGrossTonnage": 40254.333333333336,
+      "avgSharePct": 0.058519999999999996,
+      "latestYear": 2025
+    }
+  ],
+  "topScrappers": [
+    {
+      "country": "Bangladesh",
+      "avgGrossTonnage": 2926712.3333333335,
+      "avgSharePct": 40.166500000000006,
+      "latestYear": 2025
+    },
+    {
+      "country": "India",
+      "avgGrossTonnage": 2403834,
+      "avgSharePct": 32.26380666666667,
+      "latestYear": 2025
+    },
+    {
+      "country": "Turkiye",
+      "avgGrossTonnage": 678759.6666666666,
+      "avgSharePct": 8.9621,
+      "latestYear": 2025
+    },
+    {
+      "country": "Pakistan",
+      "avgGrossTonnage": 487883.3333333333,
+      "avgSharePct": 6.7034400000000005,
+      "latestYear": 2025
+    },
+    {
+      "country": "China",
+      "avgGrossTonnage": 332268.3333333333,
+      "avgSharePct": 4.112003333333333,
+      "latestYear": 2025
+    },
+    {
+      "country": "Denmark",
+      "avgGrossTonnage": 202017.33333333334,
+      "avgSharePct": 2.91985,
+      "latestYear": 2025
+    },
+    {
+      "country": "Brazil",
+      "avgGrossTonnage": 93495,
+      "avgSharePct": 1.25027,
+      "latestYear": 2025
+    },
+    {
+      "country": "Indonesia",
+      "avgGrossTonnage": 62970.333333333336,
+      "avgSharePct": 0.8459566666666666,
+      "latestYear": 2025
+    },
+    {
+      "country": "Canada",
+      "avgGrossTonnage": 24112,
+      "avgSharePct": 0.33650666666666673,
+      "latestYear": 2025
+    },
+    {
+      "country": "United States",
+      "avgGrossTonnage": 16823,
+      "avgSharePct": 0.23388333333333336,
+      "latestYear": 2025
+    },
+    {
+      "country": "Belgium",
+      "avgGrossTonnage": 6249.666666666667,
+      "avgSharePct": 0.07614,
+      "latestYear": 2025
+    },
+    {
+      "country": "Republic of Korea",
+      "avgGrossTonnage": 6042.666666666667,
+      "avgSharePct": 0.07821,
+      "latestYear": 2025
+    },
+    {
+      "country": "Norway",
+      "avgGrossTonnage": 6008,
+      "avgSharePct": 0.07986,
+      "latestYear": 2025
+    },
+    {
+      "country": "Russian Federation",
+      "avgGrossTonnage": 5847.666666666667,
+      "avgSharePct": 0.09115000000000001,
+      "latestYear": 2025
+    },
+    {
+      "country": "Spain",
+      "avgGrossTonnage": 3214.3333333333335,
+      "avgSharePct": 0.03863333333333333,
+      "latestYear": 2025
+    }
+  ]
+}

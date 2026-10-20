@@ -1,0 +1,18 @@
+[
+  {"id":"ixp-de-cix","kind":"internet-exchange","name":"DE-CIX Frankfurt","lat":50.12,"lng":8.68,"tier":1,"meta":{"city":"Frankfurt","country":"DE","source":"peeringdb-public"}},
+  {"id":"ixp-ams-ix","kind":"internet-exchange","name":"AMS-IX","lat":52.37,"lng":4.9,"tier":1,"meta":{"city":"Amsterdam","country":"NL","source":"peeringdb-public"}},
+  {"id":"ixp-linx","kind":"internet-exchange","name":"LINX LON1","lat":51.51,"lng":-0.09,"tier":1,"meta":{"city":"London","country":"GB","source":"peeringdb-public"}},
+  {"id":"ixp-equinix-ash","kind":"internet-exchange","name":"Equinix Ashburn","lat":39.04,"lng":-77.49,"tier":1,"meta":{"city":"Ashburn","country":"US","source":"peeringdb-public"}},
+  {"id":"ixp-equinix-sg","kind":"internet-exchange","name":"Equinix Singapore","lat":1.29,"lng":103.85,"tier":1,"meta":{"city":"Singapore","country":"SG","source":"peeringdb-public"}},
+  {"id":"ixp-hkix","kind":"internet-exchange","name":"HKIX","lat":22.28,"lng":114.16,"tier":1,"meta":{"city":"Hong Kong","country":"HK","source":"peeringdb-public"}},
+  {"id":"ixp-jpix","kind":"internet-exchange","name":"JPIX Tokyo","lat":35.68,"lng":139.76,"tier":1,"meta":{"city":"Tokyo","country":"JP","source":"peeringdb-public"}},
+  {"id":"ixp-kix","kind":"internet-exchange","name":"KINX Seoul","lat":37.49,"lng":127.03,"tier":2,"meta":{"city":"Seoul","country":"KR","source":"peeringdb-public"}},
+  {"id":"ixp-msk-ix","kind":"internet-exchange","name":"MSK-IX","lat":55.75,"lng":37.62,"tier":2,"meta":{"city":"Moscow","country":"RU","source":"peeringdb-public"}},
+  {"id":"ixp-nixi","kind":"internet-exchange","name":"NIXI Mumbai","lat":19.08,"lng":72.88,"tier":2,"meta":{"city":"Mumbai","country":"IN","source":"peeringdb-public"}},
+  {"id":"ixp-sao","kind":"internet-exchange","name":"IX.br São Paulo","lat":-23.55,"lng":-46.63,"tier":1,"meta":{"city":"São Paulo","country":"BR","source":"peeringdb-public"}},
+  {"id":"ixp-sydney","kind":"internet-exchange","name":"IX Australia Sydney","lat":-33.87,"lng":151.21,"tier":2,"meta":{"city":"Sydney","country":"AU","source":"peeringdb-public"}},
+  {"id":"ixp-johannesburg","kind":"internet-exchange","name":"NAPAfrica Johannesburg","lat":-26.2,"lng":28.04,"tier":2,"meta":{"city":"Johannesburg","country":"ZA","source":"peeringdb-public"}},
+  {"id":"ixp-torix","kind":"internet-exchange","name":"TorIX","lat":43.65,"lng":-79.38,"tier":2,"meta":{"city":"Toronto","country":"CA","source":"peeringdb-public"}},
+  {"id":"ixp-franceix","kind":"internet-exchange","name":"France-IX Paris","lat":48.86,"lng":2.35,"tier":1,"meta":{"city":"Paris","country":"FR","source":"peeringdb-public"}},
+  {"id":"ixp-seattle","kind":"internet-exchange","name":"SIX Seattle","lat":47.61,"lng":-122.33,"tier":2,"meta":{"city":"Seattle","country":"US","source":"peeringdb-public"}}
+]

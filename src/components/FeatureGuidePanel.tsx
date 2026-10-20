@@ -1,0 +1,629 @@
+"use client";
+
+import { HoverHint } from "@/components/HoverHint";
+import { useLocale } from "@/contexts/LocaleContext";
+import { GUEST_POLICY_COPY } from "@/lib/auth/guestPolicy";
+import { AUTH_SESSION_POLICY_COPY } from "@/lib/auth/sessionPolicy";
+import type { LabelLanguage } from "@/lib/layerPrefs";
+import { zc } from "@/lib/uiStack";
+import type { ViewerMode } from "@/lib/viewPackages";
+
+type FeatureGuidePanelProps = {
+  open: boolean;
+  viewerMode?: ViewerMode;
+  onClose: () => void;
+  /** 첫 방문 1~10 투어 다시 보기 */
+  onRestartTour?: () => void;
+  onOpenSources?: () => void;
+  onOpenParchment?: () => void;
+  /** 지구본 조작키 안내 */
+  onOpenControlsGuide?: () => void;
+};
+
+type GuideSection = {
+  title: string;
+  steps: string[];
+};
+
+function accountGuideSections(lang: LabelLanguage): GuideSection[] {
+  const guest = GUEST_POLICY_COPY[lang];
+  const session = AUTH_SESSION_POLICY_COPY[lang];
+  return [
+    { title: guest.title, steps: [...guest.steps] },
+    { title: session.title, steps: [...session.steps] },
+  ];
+}
+
+const GUIDE_SECTIONS_KO: GuideSection[] = [
+  {
+    title: "개인용 인텔리전스 터미널",
+    steps: [
+      "한 화면에 지정학·지경학 신호를 겹쳐 보는 개인용 관측 도구입니다. 기관 전용 블룸버그·팔란티어와 같은 ‘밀도’를, 공개 OSINT만으로 만듭니다.",
+      "우상단 GTS(글로벌 긴장 점수)는 오늘 세계가 평소보다 얼마나 시끄러운지 한 숫자로 요약합니다. IEP 테러 지수(GTI)와 다릅니다.",
+      "≡ → 데이터 출처·출처 양피지(8개 책갈피)에서 레이어별 재료·한계·데모 데이터를 먼저 읽을 수 있습니다. 지도 하단 「데이터 출처」「출처 안내서」에서도 열립니다.",
+      "GTS 감각 연습(UP/DOWN)은 페이퍼 트레이딩처럼 ‘내 판단 vs 지표’를 연습하는 장치입니다. 공습·인명 예측이 아닙니다.",
+    ],
+  },
+  {
+    title: "근거 등급 · 「왜?」 창",
+    steps: [
+      "속보·확전 배너·전장 이벤트에는 「탄탄함 / 교차확인 / 얇음 / 모으는 중」 배지가 붙을 수 있습니다. 비밀 등급이 아니라, 공개 출처가 얼마나 서로 맞는지입니다.",
+      "「왜?」를 누르면 이 소식이 지도에서 왜 중요한지, 얼마나 믿을지, 다음에 뭘 보면 좋은지가 나옵니다. 의도·확률·임박 %는 말하지 않습니다.",
+      "근거가 얇은 속보는 큰 양피지·히어로에 올리지 않습니다. 사라진 게 아니라, 읽기 전에 걸러 둔 것입니다.",
+      "전황 보고서(책)는 관측대 안건 보드에서만 엽니다. 지정학 화면에 같은 책을 심지 않습니다.",
+    ],
+  },
+  {
+    title: "빠른 시작",
+    steps: [
+      "드래그로 지구본을 돌리고, 스크롤로 확대·축소합니다. 빈 바다를 두 번 클릭하면 그 지점으로 확대됩니다.",
+      "화면이 사선으로 기울어졌을 때 Alt 키를 누른 채 마우스를 드래그하면 기울기·회전을 조절할 수 있습니다. (좌우=돌리기, 위아래=눕히기/세우기)",
+      "상단 「올릴 것」 또는 왼쪽 가장자리 「메뉴」→「지도에 올릴 것」에서 레이어(전선·뉴스·에너지 등)를 켜고 끕니다.",
+      "상단 검색창 옆 「묻기」를 누르면 화면 중앙에 흐린 입력창이 열립니다. 홍해·이란·우크라처럼 물으면 관련 레이어가 켜지고 지도가 이동합니다.",
+      "하단 📰 로 검증 보도·전장 뉴스·텔레그램 OSINT를 엽니다. 상단 검색·허브·영토분쟁으로 관심 지역으로 갈 수 있습니다.",
+      "지도 위 핀·분쟁 구역을 클릭하면 설명 패널이 열립니다.",
+    ],
+  },
+  {
+    title: "묻기로 레이어 켜기",
+    steps: [
+      "상단 검색창 옆 「묻기」 버튼을 누릅니다.",
+      "화면 가운데에 뒤가 흐릿한 반투명 입력창이 열립니다. 「홍해」「이란」「우크라」「오늘 핫한 곳」처럼 짧게 적거나 예시 칩을 탭합니다.",
+      "관련 지도 레이어가 켜지고 카메라가 그쪽으로 이동합니다. 긴 정세 해설이 아니라 지도를 맞추는 기능입니다.",
+      "세밀하게 끄고 켜려면 상단 「올릴 것」 또는 왼쪽 「메뉴」→「지도에 올릴 것」을 쓰세요.",
+    ],
+  },
+  {
+    title: "일일 랭킹 카드",
+    steps: [
+      "좌하단 「위험 지역 TOP 5 / 공급망 TOP 5」는 매일 UTC 기준으로 자동 집계됩니다.",
+      "어제 대비 ▲▼ 순위 변동이 붙고, 「카드 공유」로 1080×1080 PNG를 Threads·릴스에 바로 올릴 수 있습니다.",
+      "지정학(전장 긴장)과 지경학(초크포인트 스트레스)이 같은 템플릿으로 한 쌍입니다.",
+    ],
+  },
+  {
+    title: "전쟁구역 · 외교적 긴장구역",
+    steps: [
+      "상단 「올릴 것」 또는 왼쪽 「메뉴」→「지도에 올릴 것」에서 「전쟁구역」이나 「외교적 긴장구역」을 켭니다. (레이어 = 지도 위에 겹쳐 보여 주는 정보층)",
+      "지도 위 빗금 친 상자에 마우스를 올리면 그 지역 이름·위험 등급·한 줄 요약이 뜹니다.",
+      "상자를 클릭하면 한국어 설명, 얽혀 있는 나라·세력, 자세한 메모가 열립니다.",
+      "색으로 구분합니다 — 빨강은 실제 전쟁 중, 주황은 외교적으로 팽팽한 긴장 상태. 지도를 가까이 확대하면 더 좁은 세부 지역이 먼저 보입니다.",
+    ],
+  },
+  {
+    title: "AI 전쟁지역 (맛보기)",
+    steps: [
+      "레이어 패널에서 「AI 전쟁지역 (데모)」을 켜면, 분쟁 지역과 뉴스에서 전투 언급이 몰리는 곳에 붉은 원이 그려집니다. (뉴스 분석은 전 세계 기사를 자동 수집·분석하는 공개 데이터 GDELT를 사용)",
+      "외부 AI 서비스 없이 앱이 자체 규칙으로 대략 판단하는 맛보기(데모) 기능입니다. 중동에 들어가도 자동으로 켜지지는 않습니다.",
+      "원 위에 마우스를 올리면 지역 이름, 긴장 정도, 이 판단을 얼마나 믿을 만한지(신뢰도)를 보여 줍니다.",
+      "원을 클릭하면 그 지역으로 화면이 이동하고 자세한 설명 창이 열립니다.",
+    ],
+  },
+  {
+    title: "도련선 · 미군 방어선",
+    steps: [
+      "레이어 패널에서 「도련선 · 미군 방어선」을 켭니다. (대만·한반도 전장 패키지에서는 기본으로 켜질 수 있습니다)",
+      "붉은 점선은 중국 제1·제2도련선입니다. 점선이 천천히 흘러 차단벽처럼 보입니다.",
+      "푸른 실선은 미군 전방 포위선·전략 심도선입니다. 기지 점(파란 마커)에 마우스를 올리면 탐지 반경이 펼쳐집니다.",
+      "대만 주변에 펄스 링이 보이면 — 적·청 선이 교차하는 긴장 지점을 표시한 것입니다.",
+    ],
+  },
+  {
+    title: "CRINK 축 · 영토분쟁 모아보기",
+    steps: [
+      "「CRINK 축」을 켜면 중국·러시아·이란·북한 허브와 그 파트너(스포크)가 곡선으로 이어져 표시됩니다.",
+      "위쪽 메뉴 → 「영토분쟁」을 열면 같은 진영끼리의 충돌과 국경 긴장을 한 목록으로 볼 수 있습니다. 필터로 걸러 보고, 카드를 누르면 지도 연출과 이야기가 펼쳐집니다.",
+      "상단 ▾·허브·영토분쟁 메뉴에서 대만·한반도·우크라이나·중동 같은 관심지로 이동할 수 있습니다.",
+      "이어 주는 곡선의 색은 관계의 종류입니다 — 자금 후원 · 무기 지원 · 에너지 · 복합 · 외교.",
+    ],
+  },
+  {
+    title: "뉴스 알림 핀",
+    steps: [
+      "「뉴스 · 전투·충돌」「뉴스 · 외교 긴장」「뉴스 · 시위」 칩(작은 토글 버튼)을 누르면 관련 뉴스 알림이 켜집니다. (전 세계 기사를 자동 분석하는 공개 데이터 기반)",
+      "지도에는 빨강·주황·회색 위치 핀이 찍히고, 화면 아래쪽에 「뉴스」 표시가 함께 뜹니다.",
+      "핀에 마우스를 올리면 「뉴스 알림」 표시와 함께 뉴스 종류·제목을 볼 수 있습니다.",
+      "동맹·시위를 나타내는 핀에도 같은 뉴스 표시가 붙습니다. 색이 무슨 뜻인지는 화면 아래 범례(색상 설명표)에서 확인하세요.",
+    ],
+  },
+  {
+    title: "지역 탐색 · 뉴스",
+    steps: [
+      "상단 검색·허브·영토분쟁, 또는 왼쪽 「메뉴」→「장면으로 들어가기」로 대만·한반도·중동 등으로 이동합니다.",
+      "지역을 고르면 화면이 그쪽으로 이동하고, 그 지역 뉴스만 모은 정보 요약 창(인텔 시트)이 열립니다.",
+      "하단 📰 시트에서 전장·주제를 골라 뉴스를 좁혀 볼 수 있습니다.",
+    ],
+  },
+  {
+    title: "지도 조작법",
+    steps: [
+      "드래그하면 지구본이 돌고, 스크롤하면 확대·축소되며, 빈 바다를 두 번 클릭하면 그 지점으로 확대됩니다.",
+      "카메라가 사선으로 눕혀졌을 때: Alt를 누른 채 드래그하면 기울기(피치)와 회전(베어링)을 직접 맞출 수 있습니다. 좌우로 돌리고, 위아래로 눕히거나 세웁니다.",
+      "뉴스 핀이나 분쟁 상자를 클릭하면 그 지역으로 확대되면서 관련 뉴스 요약 창(인텔 시트)이 열립니다.",
+      "위쪽 속보 바 또는 📰 아이콘을 누르면 뉴스가 전체 화면으로 열립니다. (마우스 가운데 버튼 클릭도 같은 동작)",
+      "기사·속보 카드의 🎯(지도) 버튼을 누르면 창을 닫고 그 현장으로 화면이 날아갑니다.",
+      "「✕ 지도로」 또는 아래쪽 닫기를 누르면 전체 화면을 닫고 지구본으로 돌아옵니다.",
+      "왼쪽 「메뉴」에는 지도에 올릴 것·화면 설정·데이터 출처(NASA FIRMS=위성 화재·열 감지, ADS-B=항공기 위치 신호, MarineTraffic=선박 추적)·도움말·장면 입장이 들어 있습니다. 상단 「올릴 것」으로도 레이어를 엽니다.",
+    ],
+  },
+];
+
+const GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Personal intelligence terminal",
+    steps: [
+      "One screen to stack geopolitics and geoeconomics signals — institutional-grade density for individuals, built from public OSINT only.",
+      "Top-right GTS (Global Tension Score) summarizes how loud conflict zones are today vs baseline. Not the IEP Global Terrorism Index (GTI).",
+      "≡ → Sources lists layer provenance, limits, and how GTS is built. Transparency is part of the product promise.",
+      "GTS intuition (UP/DOWN) is paper-trading for your read vs the index — not a raid or casualty forecast.",
+    ],
+  },
+  {
+    title: "Evidence grades · Why?",
+    steps: [
+      "Breaking flash, escalation banners, and battlefield events may show Strong / Checked / Thin / Waiting — about source agreement, not secrecy.",
+      "Why? explains why the item matters on the map, how solid it looks, and what to check next. We do not claim intent or odds.",
+      "Thin items stay off the big parchment/hero. They are filtered for reading, not deleted from raw data.",
+      "Theater sitrep books open only from the Observatory watch board — not transplanted onto this geopolitics desk.",
+    ],
+  },
+  {
+    title: "Quick start",
+    steps: [
+      "Drag to rotate the globe, scroll to zoom. Double-click empty ocean to zoom into that point.",
+      "When the view is tilted, hold Alt and drag to adjust pitch and bearing (left/right = spin, up/down = tilt).",
+      "Use top 「Show」 or left-edge 「Menu」 → 「What to show」 to toggle layers — fronts, news, energy, and more.",
+      "Tap 「Ask」 next to the top search bar to open a frosted center prompt. Ask about the Red Sea, Iran, or Ukraine to turn on matching layers and fly the map.",
+      "Tap 📰 at the bottom for verified reports, theater news, and Telegram OSINT. Use search, hubs, or territorial disputes to jump to regions.",
+      "Click pins or conflict zones on the map to open a detail panel.",
+    ],
+  },
+  {
+    title: "Ask → turn on layers",
+    steps: [
+      "Tap 「Ask」 beside the top search bar.",
+      "A frosted, dimmed center dialog opens. Type a short cue (Red Sea, Iran, Ukraine, Today hot) or tap an example chip.",
+      "Matching map layers turn on and the camera flies there. This is for aligning the map — not a long briefing chat.",
+      "For fine control, use top 「Show」 or left 「Menu」 → 「What to show」.",
+    ],
+  },
+  {
+    title: "Daily ranking cards",
+    steps: [
+      "Bottom-left 「Risk TOP 5 / Supply-chain TOP 5」 auto-aggregates daily on UTC.",
+      "▲▼ shows rank change vs yesterday; 「Share card」 exports a 1080×1080 PNG for Threads or Reels.",
+      "Conflict (theater tension) and Economy (chokepoint stress) share the same card template as a pair.",
+    ],
+  },
+  {
+    title: "War zones · Diplomatic tension",
+    steps: [
+      "Open top 「Show」 or left 「Menu」 → 「What to show」 and enable War zones or Diplomatic tension zones. (A layer is an information overlay on the map.)",
+      "Hover a hatched box to see name, risk level, and a one-line summary.",
+      "Click a box for a description, involved actors, and detailed notes.",
+      "Color coding — red = active war, orange = diplomatic tension. Zoom in to reveal narrower sub-regions first.",
+    ],
+  },
+  {
+    title: "AI war regions (demo)",
+    steps: [
+      "Enable 「AI war regions (demo)」 in the layer panel — red circles mark dispute areas and news clusters mentioning combat (powered by GDELT, a public worldwide news analysis feed).",
+      "This is an in-app heuristic demo with no external AI service. It does not auto-enable when you enter the Middle East.",
+      "Hover a circle for region name, tension level, and confidence.",
+      "Click a circle to fly there and open a detail panel.",
+    ],
+  },
+  {
+    title: "Island chains · US defense lines",
+    steps: [
+      "Enable 「Island chains · US defense lines」 in the layer panel (may be on by default in Taiwan/Korea theater packages).",
+      "Red dashed lines are China’s first and second island chains — the dashes drift slowly like a barrier.",
+      "Blue solid lines are US forward containment / strategic depth. Hover blue base markers for detection radii.",
+      "A pulse ring near Taiwan marks where red and blue lines cross — a powder keg.",
+    ],
+  },
+  {
+    title: "CRINK axis · anti-West conflict history",
+    steps: [
+      "「CRINK axis」 links hub states (China, Russia, Iran, DPRK) to partners with curved spokes.",
+      "Hub menu → 「Anti-West conflict history」 covers 11 historic flashpoints (Zhenbao, Lang Son, Galwan, Tsorak, and more). Tap a card to fly there and open a parchment brief.",
+      "Use search, hubs, or territorial disputes to jump to Taiwan, Korea, Ukraine, or the Middle East.",
+      "Spoke colors mean relationship type — funding, arms, energy, hybrid, diplomacy.",
+    ],
+  },
+  {
+    title: "News alert pins (GDELT)",
+    steps: [
+      "Toggle 「News · combat」「News · diplomatic tension」「News · protest」 chips (GDELT-based).",
+      "Red, orange, and gray pins appear on the map with a News badge in the strip below.",
+      "Hover a pin for alert type and headline.",
+      "Alliance/protest pins use the same badge. Check the legend at the bottom for color meanings.",
+    ],
+  },
+  {
+    title: "Explore regions · news",
+    steps: [
+      "Use top search, hubs, territorial disputes, or left 「Menu」 → 「Enter a scene」 to jump to Taiwan, Korea, the Middle East, and more.",
+      "Choosing a region flies the camera and opens an intel sheet filtered to that area.",
+      "Narrow the bottom 📰 sheet by theater or topic when you want a focused feed.",
+    ],
+  },
+  {
+    title: "Map controls",
+    steps: [
+      "Drag to rotate, scroll to zoom, double-click empty ocean to zoom in.",
+      "When the camera is tilted: hold Alt and drag to set pitch and bearing — left/right spins, up/down tilts.",
+      "Click a news pin or conflict box to zoom in and open the related intel sheet.",
+      "The top breaking bar or 📰 opens news full-screen (middle-click does the same).",
+      "The 🎯 (map) button on a story card closes the sheet and flies to that location.",
+      "「✕ Map」 or the bottom close control returns you to the globe.",
+      "Left 「Menu」 holds What to show, Display, sources (NASA FIRMS, ADS-B, MarineTraffic), help, and Enter a scene. Top 「Show」 also opens layers.",
+    ],
+  },
+];
+
+const ECONOMY_GUIDE_SECTIONS_KO: GuideSection[] = [
+  {
+    title: "지경학 데스크",
+    steps: [
+      "같은 터미널의 시장 창입니다. 지정학(GTS·전선·제재 회피)과 짝을 이루며, 초크·에너지·항로로 ‘돈이 어디서 막히는가’를 봅니다.",
+      "GSCPI·PortWatch·해운 프록시는 막힘 강도. 지도는 그 원인이 어디인지 보여 줍니다.",
+    ],
+  },
+  {
+    title: "물류 경보 · 근거 등급",
+    steps: [
+      "초크포인트 스트레스 양피지에도 「교차확인 / 얇음」 같은 근거 등급이 붙습니다. 투자 신호가 아니라 공개 관측이 얼마나 겹쳤는지입니다.",
+      "「왜?」로 왜 중요한지·얼마나 믿을지를 보고, 「관측에서 보기」로 3D 관측대로 넘어갈 수 있습니다. 전황 보고서는 여기 없습니다.",
+      "근거가 부족한 경보는 큰 양피지에 올리지 않습니다 — 다 보여주기보다, 읽을 만한 것만 강조합니다.",
+    ],
+  },
+  {
+    title: "빠른 시작",
+    steps: [
+      "첫 화면: 초크포인트 · 항로 · 항구 · 가스/LNG · 무역 코리도 · 에너지·결제 축.",
+      "상단 「올릴 것」 또는 왼쪽 「메뉴」에서 BRI/DFC·송유관·민간 AIS·제재 명단은 필요할 때만 켭니다.",
+      "검색 옆 「묻기」로 호르무즈·수에즈를 물으면 물류·초크 레이어를 맞출 수 있습니다.",
+      "하단 📈·티커로 유가·VIX·지수를 보고, 허브를 고르면 관련 시장이 열립니다. (투자 권유 아님)",
+    ],
+  },
+  {
+    title: "일일 공급망 랭킹",
+    steps: [
+      "좌하단 「공급망 TOP 5」는 초크포인트별 AIS·인근 긴장 신호를 묶어 매일 집계합니다.",
+      "지정학 「위험 지역」카드와 같은 날 한 쌍으로 공유하면 콘텐츠 엔진이 됩니다.",
+    ],
+  },
+  {
+    title: "초크 · 에너지 · 물류",
+    steps: [
+      "초크포인트(호르무즈·수에즈 등)와 항로가 기본입니다. 물류 스트레스를 켜면 막힌 곳이 붉게 보입니다.",
+      "가스관·LNG는 기본 ON. 송유관·해저 파이프·매장지는 토글.",
+      "에너지·결제 축(중–이란 원유 등)은 지경학 축 네트워크로 보입니다. 제재 회피 강도 칩·회랑은 지정학 창에 있습니다.",
+    ],
+  },
+  {
+    title: "하단 시세줄 · 경제 정보",
+    steps: [
+      "화면 아래 좁은 패널에 주요 증시·VIX(공포지수)·유가가 흐르는 시세 표시줄(티커)로 나옵니다.",
+      "📈 버튼을 누르면 경제 뉴스와 증시 화면을 모은 정보 요약 창(인텔 시트)이 열립니다.",
+      "뉴스는 신뢰도 등급으로 나뉩니다 — 공식·통신사 / 시장 전문 매체 / 아직 확인 안 된 속보.",
+    ],
+  },
+  {
+    title: "경제 지도 이동 (Geo Markets)",
+    steps: [
+      "위쪽 검색·메뉴에서 호르무즈 해협·수에즈 운하·금융 중심 도시·TSMC 등으로 이동합니다.",
+      "항목을 클릭하면 관련 뉴스(RSS)와 시세(티커)를 경제 정보 패널에서 봅니다.",
+      "「주요 허브」 탭으로 초크포인트나 금융 도시로 빠르게 이동할 수 있습니다.",
+    ],
+  },
+  {
+    title: "지도 조작법",
+    steps: [
+      "드래그하면 회전, 스크롤하면 확대·축소, 두 번 클릭하면 그 지점으로 확대됩니다.",
+      "카메라가 사선으로 눕혀졌을 때 Alt + 드래그로 기울기·회전을 조절합니다.",
+      "위쪽 「지정학 | 경제·시장」 스위치로 보기 모드를 바꿉니다.",
+      "모드를 바꾸면 레이어, 위쪽 메뉴, 아래쪽 정보 창이 함께 바뀝니다.",
+    ],
+  },
+];
+
+const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "Geoeconomics desk",
+    steps: [
+      "The markets desk — pairs with geopolitics (GTS, fronts, sanctions-evasion intensity) for chokepoints, energy, and shipping stress.",
+      "GSCPI, PortWatch, and shipping proxies measure congestion; the map shows where it comes from.",
+    ],
+  },
+  {
+    title: "Logistics alerts · evidence grades",
+    steps: [
+      "Chokepoint stress parchments carry the same evidence grades (Checked / Thin…) — about overlapping public signals, not investment tips.",
+      "Why? explains why it matters and how solid it looks; View in Observe jumps to the 3D desk. No theater sitrep book here.",
+      "Weak alerts stay off the hero parchment — we emphasize readable items, not everything collected.",
+    ],
+  },
+  {
+    title: "Quick start",
+    steps: [
+      "First screen: chokepoints, shipping lanes, ports, gas/LNG, land logistics corridors, energy/payment axes.",
+      "Use top 「Show」 or left 「Menu」 for BRI/DFC, oil pipelines, civilian AIS, sanctions list — only when needed.",
+      "「Ask」 beside search aligns logistics layers for Hormuz, Suez, and lanes.",
+      "Use 📈 and the ticker for oil, VIX, and indices; hubs open related markets (not investment advice).",
+    ],
+  },
+  {
+    title: "Daily supply-chain ranking",
+    steps: [
+      "Bottom-left Supply TOP 5 rolls chokepoint AIS and nearby tension signals each day.",
+      "Pair it with geopolitics risk cards as a same-day content engine.",
+    ],
+  },
+  {
+    title: "Chokes · energy · logistics",
+    steps: [
+      "Chokepoints (Hormuz, Suez, …) and shipping lanes are on by default; logistics stress paints blocked spots red.",
+      "Gas pipelines and LNG start ON; oil/subsea pipes and deposits stay toggles.",
+      "Energy/payment axes show on the economy axis network. Sanctions-evasion intensity chip and corridors live on the geopolitics desk.",
+    ],
+  },
+  {
+    title: "Ticker strip · economy intel",
+    steps: [
+      "The bottom strip streams major indices, VIX, and oil as a ticker.",
+      "📈 opens an intel sheet with economy news and markets.",
+      "News is split by trust tier — official/wire · specialist market media · unverified breaking.",
+    ],
+  },
+  {
+    title: "Geo Markets navigation",
+    steps: [
+      "Jump from search/menus to Hormuz, Suez, finance hubs, TSMC, and more.",
+      "Selecting an item shows related RSS and tickers in the economy region panel.",
+      "Use Key hubs to fly quickly to chokepoints or finance cities.",
+    ],
+  },
+  {
+    title: "Map controls",
+    steps: [
+      "Drag to rotate, scroll to zoom, double-click to zoom into a point.",
+      "When the camera is tilted, Alt + drag adjusts pitch and bearing.",
+      "Use the Conflict | Economy switch at the top — layers, menus, and bottom chrome follow.",
+    ],
+  },
+];
+
+const SATELLITE_GUIDE_SECTIONS_KO: GuideSection[] = [
+  {
+    title: "관측대란?",
+    steps: [
+      "실시간 3D 관측 창입니다. 항적·전선·화재·해상 경보를 한자리에서 봅니다.",
+      "비밀 정보가 아닙니다. 공개 소식 중 서로 맞춰진 것만 크게 보여 줍니다.",
+    ],
+  },
+  {
+    title: "오늘 볼 안건",
+    steps: [
+      "오른쪽 목록은 레이어 스위치가 아닙니다. 전황 보고서·해상 경보 중 읽을 만한 것만 모은 짧은 목록입니다.",
+      "제목을 누르면 보고서가 열립니다. 「왜?」는 왜 지금 보면 좋은지·얼마나 믿을지를 말해 줍니다.",
+      "「모으는 중」은 사라진 게 아닙니다 — 출처가 더 쌓이면 위로 올라옵니다.",
+      "관심 주제는 오늘 특히 지켜보는 창(우크라·홍해 등)과 얼마나 이어지는지입니다.",
+    ],
+  },
+  {
+    title: "전선 속보 · 누가 어디를 잡았나",
+    steps: [
+      "LiveUA 속보 양피지에서는 이전·다음으로 같은 지역의 다른 핀을 넘길 수 있습니다.",
+      "전선·통제면은 우크라만이 아닙니다. 이란·예멘·레바논·이스라엘/팔 전장도 같이 봅니다.",
+      "속보 아래 「이 소식이 건드릴 수 있는 곳」은 시세·회랑 참고용입니다. 투자 권유가 아닙니다.",
+    ],
+  },
+  {
+    title: "사건 파일 · 공습·항적",
+    steps: [
+      "「사건」탭에서 기사·좌표로 초안을 만들고, 화재·공습 이력·선박·군용기 항적을 근거로 붙일 수 있습니다.",
+      "항적·전선·화재·공중 위협 칩으로 지도 레이어를 빠르게 켜고 끕니다.",
+      "아래 시간으로 하루 중 시각을 돌려 볼 수 있습니다. 공식 경보 앱이 아니니 참고용으로만 보세요.",
+    ],
+  },
+];
+
+const SATELLITE_GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: "What is the Observatory?",
+    steps: [
+      "A live 3D desk for tracks, fronts, fires, and maritime alerts.",
+      "Not secret intel — we highlight open-source items that cross-check.",
+    ],
+  },
+  {
+    title: "Today's watch items",
+    steps: [
+      "The list on the right is not a layer switch — a short reading queue of theater reports and maritime alerts.",
+      "Tap a title for the report. Why? explains why it matters now and how solid it looks.",
+      "Waiting items are not deleted — they move up when more sources arrive.",
+      "Priority topics show how an item ties to today's windows (Ukraine, Red Sea, etc.).",
+    ],
+  },
+  {
+    title: "Frontline flashes · who holds the ground",
+    steps: [
+      "On a LiveUA flash parchment, use Previous / Next to flip other pins in the same theater.",
+      "Control layers are not Ukraine-only — Iran, Yemen, Lebanon, and Israel/Palestine too.",
+      "“Where this may show up next” is market/corridor context — not investment advice.",
+    ],
+  },
+  {
+    title: "Case file · air raids · tracks",
+    steps: [
+      "In the Case tab, draft from an article or coordinates, then attach fires, air-raid history, ships, or military tracks as evidence.",
+      "Use track / front / fire / air-threat chips to toggle map layers quickly.",
+      "The day scrubber moves the clock through the day. Reference only — not an official alert app.",
+    ],
+  },
+];
+
+export function FeatureGuidePanel({
+  open,
+  viewerMode = "conflict",
+  onClose,
+  onRestartTour,
+  onOpenSources,
+  onOpenParchment,
+  onOpenControlsGuide,
+}: FeatureGuidePanelProps) {
+  const { lang } = useLocale();
+  const en = lang === "en";
+  if (!open) return null;
+
+  const base =
+    viewerMode === "economy"
+      ? en
+        ? ECONOMY_GUIDE_SECTIONS_EN
+        : ECONOMY_GUIDE_SECTIONS_KO
+      : viewerMode === "satellite"
+        ? en
+          ? SATELLITE_GUIDE_SECTIONS_EN
+          : SATELLITE_GUIDE_SECTIONS_KO
+        : en
+          ? GUIDE_SECTIONS_EN
+          : GUIDE_SECTIONS_KO;
+  const sections = [...base, ...accountGuideSections(lang)];
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={en ? "Close guide" : "사용 안내 닫기"}
+        className={`fixed inset-0 ${zc("panelScrim")} bg-[#0a1528]/50 backdrop-blur-[1px]`}
+        onClick={onClose}
+      />
+      <aside
+        className={`intel-panel fixed right-3 top-14 ${zc("panel")} flex max-h-[calc(100vh-4.5rem)] w-[min(calc(100vw-1.5rem),360px)] flex-col overflow-hidden rounded-2xl shadow-2xl`}
+        role="dialog"
+        aria-label={en ? "Feature guide" : "기능 사용 안내"}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-sky-300/15 px-4 py-3">
+          <div>
+            <p className="text-micro uppercase tracking-[0.28em] text-sky-200/70">Guide</p>
+            <h2 className="mt-1 text-lg font-semibold text-sky-50">
+              {en ? "Feature guide" : "기능 사용 안내"}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-sky-200/15 px-2 py-1 text-xs text-sky-100/80 transition hover:border-sky-200/30 hover:text-sky-50"
+          >
+            {en ? "Close" : "닫기"}
+          </button>
+        </div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {onOpenSources || onOpenParchment || onOpenControlsGuide ? (
+            <div className="space-y-2">
+              {onOpenControlsGuide ? (
+                <button
+                  type="button"
+                  onClick={onOpenControlsGuide}
+                  className="w-full rounded-xl border border-sky-300/35 bg-sky-500/10 px-3 py-2.5 text-left text-caption font-medium text-sky-50 transition hover:border-sky-200/50 hover:bg-sky-500/15"
+                >
+                  {en ? "Globe controls (keys) →" : "지구본 조작키 →"}
+                  <span className="mt-0.5 block text-micro font-normal text-sky-100/60">
+                    {en
+                      ? "WASD, arrows, +/−, Alt+drag, scroll"
+                      : "WASD·화살표·+/−·Alt+드래그·휠"}
+                  </span>
+                </button>
+              ) : null}
+              {onOpenParchment ? (
+                <button
+                  type="button"
+                  onClick={onOpenParchment}
+                  className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+                >
+                  {en ? "Source parchment (8 bookmarks) →" : "데이터 출처 양피지 (8개 책갈피) →"}
+                  <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
+                    {en
+                      ? "Honest inventory — what is real, demo, or missing"
+                      : "진짜·데모·공백을 솔직히 정리한 안내서"}
+                  </span>
+                </button>
+              ) : null}
+              {onOpenSources ? (
+                <button
+                  type="button"
+                  onClick={onOpenSources}
+                  className="w-full rounded-xl border border-sky-300/25 bg-sky-500/10 px-3 py-2.5 text-left text-caption font-medium text-sky-50 transition hover:border-sky-200/40 hover:bg-sky-500/15"
+                >
+                  {en ? "Full sources catalog →" : "어떤 자료를 쓰는지 →"}
+                  <span className="mt-0.5 block text-micro font-normal text-sky-100/60">
+                    {en
+                      ? "What’s live, what’s a snapshot, and what we leave out"
+                      : "실시간·고정 자료·일부러 빼 둔 것까지 정리"}
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {onRestartTour ? (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onRestartTour();
+              }}
+              className="w-full rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2.5 text-left text-caption font-medium text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/15"
+            >
+              {en ? "Start screen tour" : "화면 투어 시작"}
+              <span className="mt-0.5 block text-micro font-normal text-amber-100/60">
+                {en
+                  ? "You advance with Next — steps never auto-flip. First-time invite is remembered in this browser."
+                  : "「다음」을 눌러야 넘어갑니다. 첫 방문 권유는 이 브라우저에 기억됩니다."}
+              </span>
+            </button>
+          ) : null}
+          {sections.map((section) => (
+            <section key={section.title} className="rounded-xl border border-sky-300/12 bg-black/20 p-3">
+              <h3 className="text-sm font-medium text-sky-50/95">{section.title}</h3>
+              <ol className="mt-2.5 list-decimal space-y-1.5 pl-4 text-caption leading-5 text-sky-100/75">
+                {section.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+export function FeatureGuideButton({
+  onClick,
+  viewerMode = "conflict",
+}: {
+  onClick: () => void;
+  viewerMode?: ViewerMode;
+}) {
+  const isEconomy = viewerMode === "economy";
+  const { t } = useLocale();
+  return (
+    <HoverHint
+      placement="bottom"
+      title={t("hoverHelp")}
+      detail={isEconomy ? t("hoverHelpHintEconomy") : t("hoverHelpHintConflict")}
+    >
+      <button
+        type="button"
+        id="feature-guide-button"
+        aria-label={t("hoverHelpOpenAria")}
+        onClick={onClick}
+        className="flex h-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/15 bg-[#1e3a5f]/55 px-2.5 text-meta font-medium text-sky-50/90 shadow-lg backdrop-blur-md transition hover:border-sky-200/30 hover:bg-[#254875]/65"
+      >
+        {t("hoverHelp")}
+      </button>
+    </HoverHint>
+  );
+}

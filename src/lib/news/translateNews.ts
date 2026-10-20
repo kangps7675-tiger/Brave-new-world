@@ -9,7 +9,7 @@ import {
   mapPool,
   translateText,
 } from "@/lib/koreanTranslate";
-import type { LabelLanguage } from "@/lib/labelLanguage";
+import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { HeroBreakingItem, NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
 
 async function translateNewsItem(

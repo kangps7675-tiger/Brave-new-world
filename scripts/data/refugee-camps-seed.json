@@ -1,0 +1,17 @@
+[
+  {"id":"camp-jo-zaatari","kind":"refugee-camp","name":"Zaatari","lat":32.29,"lng":36.32,"tier":1,"meta":{"country":"JO","population":80000,"source":"unhcr-public"}},
+  {"id":"camp-bd-cox","kind":"refugee-camp","name":"Kutupalong","lat":21.21,"lng":92.16,"tier":1,"meta":{"country":"BD","population":600000,"source":"unhcr-public"}},
+  {"id":"camp-ke-dadaab","kind":"refugee-camp","name":"Dadaab","lat":0.05,"lng":40.32,"tier":1,"meta":{"country":"KE","population":220000,"source":"unhcr-public"}},
+  {"id":"camp-ke-kakuma","kind":"refugee-camp","name":"Kakuma","lat":3.72,"lng":34.86,"tier":1,"meta":{"country":"KE","population":180000,"source":"unhcr-public"}},
+  {"id":"camp-ug-bidibidi","kind":"refugee-camp","name":"Bidi Bidi","lat":3.5,"lng":31.4,"tier":1,"meta":{"country":"UG","population":230000,"source":"unhcr-public"}},
+  {"id":"camp-tr-kilis","kind":"refugee-camp","name":"Öncüpınar / Kilis area","lat":36.73,"lng":37.12,"tier":2,"meta":{"country":"TR","population":25000,"source":"unhcr-public"}},
+  {"id":"camp-sd-white-nile","kind":"refugee-camp","name":"White Nile camps","lat":13.57,"lng":32.54,"tier":2,"meta":{"country":"SD","population":150000,"source":"unhcr-public"}},
+  {"id":"camp-td-gore","kind":"refugee-camp","name":"Goré / eastern Chad","lat":12.18,"lng":21.3,"tier":2,"meta":{"country":"TD","population":120000,"source":"unhcr-public"}},
+  {"id":"camp-co-necocli","kind":"refugee-camp","name":"Necoclí transit","lat":8.43,"lng":-76.78,"tier":3,"meta":{"country":"CO","population":5000,"source":"unhcr-public"}},
+  {"id":"camp-gr-lesvos","kind":"refugee-camp","name":"Mavrovouni (Lesvos)","lat":39.11,"lng":26.55,"tier":2,"meta":{"country":"GR","population":5000,"source":"unhcr-public"}},
+  {"id":"camp-mm-raikhine","kind":"refugee-camp","name":"Rakhine IDP sites","lat":20.15,"lng":92.9,"tier":2,"meta":{"country":"MM","population":100000,"source":"unhcr-public"}},
+  {"id":"camp-ye-marib","kind":"refugee-camp","name":"Marib IDP sites","lat":15.46,"lng":45.32,"tier":2,"meta":{"country":"YE","population":150000,"source":"unhcr-public"}},
+  {"id":"camp-ps-jabalia","kind":"refugee-camp","name":"Jabalia Camp","lat":31.53,"lng":34.5,"tier":1,"meta":{"country":"PS","population":110000,"source":"unhcr-public"}},
+  {"id":"camp-lb-bekaa","kind":"refugee-camp","name":"Bekaa informal settlements","lat":33.85,"lng":35.98,"tier":2,"meta":{"country":"LB","population":300000,"source":"unhcr-public"}},
+  {"id":"camp-et-gambella","kind":"refugee-camp","name":"Gambella camps","lat":8.25,"lng":34.58,"tier":2,"meta":{"country":"ET","population":350000,"source":"unhcr-public"}}
+]

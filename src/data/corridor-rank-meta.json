@@ -1,0 +1,1138 @@
+{
+  "version": 1,
+  "note": "Strategic corridor ranking inputs for build-corridor-ranks.js. Comtrade/ports/rail TEU slots filled later.",
+  "corridors": [
+    {
+      "id": "tsr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "briDestCodes": [
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 9200
+    },
+    {
+      "id": "tmgr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "MNG",
+        "CHN"
+      ],
+      "comtradePair": [
+        "CHN",
+        "MNG"
+      ],
+      "briDestCodes": [
+        "mng"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 2200
+    },
+    {
+      "id": "tmr",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "briDestCodes": [
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 1800
+    },
+    {
+      "id": "bam",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "briDestCodes": [
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 4300
+    },
+    {
+      "id": "rajin-khasan",
+      "category": "trade",
+      "status": "partial",
+      "mode": "rail",
+      "endpointCountries": [
+        "PRK",
+        "RUS"
+      ],
+      "comtradePair": [
+        "PRK",
+        "RUS"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 55
+    },
+    {
+      "id": "trans-korean-west",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "KOR",
+        "PRK",
+        "CHN"
+      ],
+      "comtradePair": [
+        "KOR",
+        "CHN"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 900
+    },
+    {
+      "id": "trans-korean-east",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "KOR",
+        "PRK",
+        "RUS"
+      ],
+      "comtradePair": [
+        "KOR",
+        "RUS"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 1100
+    },
+    {
+      "id": "middle-corridor",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "KAZ",
+        "AZE",
+        "GEO",
+        "TUR"
+      ],
+      "comtradePair": [
+        "CHN",
+        "TUR"
+      ],
+      "briDestCodes": [
+        "kaz",
+        "aze",
+        "geo",
+        "tur"
+      ],
+      "chokeIds": [
+        "choke-bosporus"
+      ],
+      "lengthKmApprox": 6500,
+      "modalFamily": "middle-corridor",
+      "relatedCorridorIds": [
+        "greece-turkey-rail-gateway",
+        "instc-trans-caspian"
+      ]
+    },
+    {
+      "id": "zangezur-corridor",
+      "category": "trade",
+      "status": "proposed",
+      "mode": "rail",
+      "endpointCountries": [
+        "AZE",
+        "ARM",
+        "TUR"
+      ],
+      "comtradePair": [
+        "AZE",
+        "TUR"
+      ],
+      "briDestCodes": [
+        "aze",
+        "tur"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 45
+    },
+    {
+      "id": "chn-irn-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "IRN"
+      ],
+      "comtradePair": [
+        "CHN",
+        "IRN"
+      ],
+      "briDestCodes": [
+        "irn",
+        "tkm",
+        "uzb",
+        "kaz"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 8500
+    },
+    {
+      "id": "instc-trans-caspian",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "IRN",
+        "IND"
+      ],
+      "comtradePair": [
+        "RUS",
+        "IND"
+      ],
+      "briDestCodes": [
+        "irn",
+        "ind"
+      ],
+      "chokeIds": [
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 7200,
+      "modalFamily": "middle-corridor",
+      "relatedCorridorIds": [
+        "middle-corridor",
+        "greece-turkey-rail-gateway"
+      ]
+    },
+    {
+      "id": "instc-baku-branch",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "AZE",
+        "IRN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "IRN"
+      ],
+      "briDestCodes": [
+        "aze",
+        "irn"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 1400
+    },
+    {
+      "id": "irn-rus-caspian-arms",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "mixed",
+      "endpointCountries": [
+        "IRN",
+        "RUS"
+      ],
+      "comtradePair": [
+        "IRN",
+        "RUS"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 2200
+    },
+    {
+      "id": "irn-rus-caspian-arms-seshcha-branch",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS"
+      ],
+      "comtradePair": [
+        "IRN",
+        "RUS"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 1600
+    },
+    {
+      "id": "irn-syr-landbridge",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "IRQ",
+        "SYR"
+      ],
+      "comtradePair": [
+        "IRN",
+        "SYR"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 1400
+    },
+    {
+      "id": "suez-baseline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "EGY",
+        "NLD"
+      ],
+      "comtradePair": [
+        "CHN",
+        "NLD"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-bab-el-mandeb",
+        "choke-suez",
+        "choke-gibraltar"
+      ],
+      "lengthKmApprox": 20000,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "brest-malaszewicze-gauge-terminal",
+        "lithuania-belarus-rail-gateway",
+        "finland-russia-rail-gateway",
+        "poland-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "power-of-siberia",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "RUS",
+        "CHN"
+      ],
+      "comtradePair": [
+        "RUS",
+        "CHN"
+      ],
+      "briDestCodes": [
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 3000
+    },
+    {
+      "id": "tongjiang-nizhneleninskoye-bridge",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "RUS"
+      ],
+      "comtradePair": [
+        "CHN",
+        "RUS"
+      ],
+      "briDestCodes": [
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 2
+    },
+    {
+      "id": "dandong-sinuiju-bridge",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "PRK"
+      ],
+      "comtradePair": [
+        "CHN",
+        "PRK"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 1
+    },
+    {
+      "id": "irn-prk-missile-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "IRN",
+        "PRK"
+      ],
+      "comtradePair": [
+        "IRN",
+        "PRK"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 11000
+    },
+    {
+      "id": "rus-blr-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "BLR"
+      ],
+      "comtradePair": [
+        "RUS",
+        "BLR"
+      ],
+      "briDestCodes": [
+        "blr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 700
+    },
+    {
+      "id": "brest-malaszewicze-gauge-terminal",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "China-Europe 화물열차의 EU 진입 게이트웨이 — 1520mm(구소련권 광궤)→1435mm(유럽 표준궤) 환적/궤간변경 터미널. China-Europe 철도화물의 상당수가 이 국경을 통과한다.",
+      "endpointCountries": [
+        "BLR",
+        "POL"
+      ],
+      "comtradePair": [
+        "BLR",
+        "POL"
+      ],
+      "railFreightPair": {
+        "geo": "PL",
+        "partner": "BY"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "blr",
+        "pol"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 20,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "suez-baseline",
+        "lithuania-belarus-rail-gateway",
+        "finland-russia-rail-gateway",
+        "poland-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "lithuania-belarus-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "EU–벨라루스 철도 게이트웨이 (Kena/Mockava 인근). PL–BY 제재·우회 시 발트 대안 축.",
+      "endpointCountries": [
+        "LTU",
+        "BLR"
+      ],
+      "comtradePair": [
+        "LTU",
+        "BLR"
+      ],
+      "railFreightPair": {
+        "geo": "LT",
+        "partner": "BY"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "ltu",
+        "blr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 40,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "suez-baseline",
+        "brest-malaszewicze-gauge-terminal",
+        "poland-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "latvia-russia-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "라트비아–러시아 철도 국경 (Zilupe 축). 제재 이후 ton-km 충격 센서.",
+      "endpointCountries": [
+        "LVA",
+        "RUS"
+      ],
+      "comtradePair": [
+        "LVA",
+        "RUS"
+      ],
+      "railFreightPair": {
+        "geo": "LV",
+        "partner": "RU"
+      },
+      "euRailGateway": true,
+      "briDestCodes": [
+        "lva",
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 60,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "suez-baseline",
+        "finland-russia-rail-gateway",
+        "estonia-russia-rail-gateway"
+      ]
+    },
+    {
+      "id": "estonia-russia-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "에스토니아–러시아 철도 국경 (Narva 축).",
+      "endpointCountries": [
+        "EST",
+        "RUS"
+      ],
+      "comtradePair": [
+        "EST",
+        "RUS"
+      ],
+      "railFreightPair": {
+        "geo": "EE",
+        "partner": "RU"
+      },
+      "euRailGateway": true,
+      "briDestCodes": [
+        "est",
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 30,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "suez-baseline",
+        "latvia-russia-rail-gateway",
+        "finland-russia-rail-gateway"
+      ]
+    },
+    {
+      "id": "finland-russia-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "핀란드–러시아 철도 (Vainikkala–Vyborg). 2022 이후 국경 물동량 붕괴 관측점.",
+      "endpointCountries": [
+        "FIN",
+        "RUS"
+      ],
+      "comtradePair": [
+        "FIN",
+        "RUS"
+      ],
+      "railFreightPair": {
+        "geo": "FI",
+        "partner": "RU"
+      },
+      "euRailGateway": true,
+      "briDestCodes": [
+        "fin",
+        "rus"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 50,
+      "modalFamily": "china-europe",
+      "relatedCorridorIds": [
+        "suez-baseline",
+        "brest-malaszewicze-gauge-terminal",
+        "latvia-russia-rail-gateway"
+      ]
+    },
+    {
+      "id": "poland-ukraine-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "폴란드–우크라이나 철도 (Medyka/Przemyśl). 곡물·군수·인도적 회랑 겸 EU 진입 레그.",
+      "endpointCountries": [
+        "POL",
+        "UKR"
+      ],
+      "comtradePair": [
+        "POL",
+        "UKR"
+      ],
+      "railFreightPair": {
+        "geo": "PL",
+        "partner": "UA"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "pol",
+        "ukr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 35,
+      "modalFamily": "ukraine-eu",
+      "relatedCorridorIds": [
+        "hungary-ukraine-rail-gateway",
+        "slovakia-ukraine-rail-gateway",
+        "romania-ukraine-rail-gateway",
+        "suez-baseline",
+        "brest-malaszewicze-gauge-terminal"
+      ]
+    },
+    {
+      "id": "hungary-ukraine-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "헝가리–우크라이나 철도 (Záhony 궤간변경).",
+      "endpointCountries": [
+        "HUN",
+        "UKR"
+      ],
+      "comtradePair": [
+        "HUN",
+        "UKR"
+      ],
+      "railFreightPair": {
+        "geo": "HU",
+        "partner": "UA"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "hun",
+        "ukr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 25,
+      "modalFamily": "ukraine-eu",
+      "relatedCorridorIds": [
+        "poland-ukraine-rail-gateway",
+        "slovakia-ukraine-rail-gateway",
+        "romania-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "slovakia-ukraine-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "슬로바키아–우크라이나 철도 (Čierna nad Tisou).",
+      "endpointCountries": [
+        "SVK",
+        "UKR"
+      ],
+      "comtradePair": [
+        "SVK",
+        "UKR"
+      ],
+      "railFreightPair": {
+        "geo": "SK",
+        "partner": "UA"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "svk",
+        "ukr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 25,
+      "modalFamily": "ukraine-eu",
+      "relatedCorridorIds": [
+        "poland-ukraine-rail-gateway",
+        "hungary-ukraine-rail-gateway",
+        "romania-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "romania-ukraine-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "루마니아–우크라이나 철도 (Vadul Siret 축). 흑해 우회·다뉴브 연결.",
+      "endpointCountries": [
+        "ROU",
+        "UKR"
+      ],
+      "comtradePair": [
+        "ROU",
+        "UKR"
+      ],
+      "railFreightPair": {
+        "geo": "RO",
+        "partner": "UA"
+      },
+      "euRailGateway": true,
+      "gaugeBreak": true,
+      "briDestCodes": [
+        "rou",
+        "ukr"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 40,
+      "modalFamily": "ukraine-eu",
+      "relatedCorridorIds": [
+        "poland-ukraine-rail-gateway",
+        "hungary-ukraine-rail-gateway",
+        "slovakia-ukraine-rail-gateway"
+      ]
+    },
+    {
+      "id": "greece-turkey-rail-gateway",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "note": "그리스–튀르키예 철도 연결 — Middle Corridor / INSTC EU 남부 진입 센서.",
+      "endpointCountries": [
+        "GRC",
+        "TUR"
+      ],
+      "comtradePair": [
+        "GRC",
+        "TUR"
+      ],
+      "railFreightPair": {
+        "geo": "EL",
+        "partner": "TR"
+      },
+      "euRailGateway": true,
+      "briDestCodes": [
+        "grc",
+        "tur"
+      ],
+      "chokeIds": [
+        "choke-bosporus"
+      ],
+      "lengthKmApprox": 350,
+      "modalFamily": "middle-corridor",
+      "relatedCorridorIds": [
+        "middle-corridor",
+        "instc-trans-caspian"
+      ]
+    },
+    {
+      "id": "cpc-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "KAZ",
+        "RUS"
+      ],
+      "comtradePair": [
+        "KAZ",
+        "RUS"
+      ],
+      "briDestCodes": [
+        "kaz"
+      ],
+      "chokeIds": [
+        "choke-bosporus"
+      ],
+      "lengthKmApprox": 1500
+    },
+    {
+      "id": "rus-uzb-rail",
+      "category": "trade",
+      "status": "operational",
+      "mode": "rail",
+      "endpointCountries": [
+        "RUS",
+        "UZB"
+      ],
+      "comtradePair": [
+        "RUS",
+        "UZB"
+      ],
+      "briDestCodes": [
+        "uzb"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 2800
+    },
+    {
+      "id": "central-asia-center-gas-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "TKM",
+        "RUS"
+      ],
+      "comtradePair": [
+        "TKM",
+        "RUS"
+      ],
+      "briDestCodes": [
+        "tkm"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 2000
+    },
+    {
+      "id": "rus-kgz-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS",
+        "KGZ"
+      ],
+      "comtradePair": [
+        "RUS",
+        "KGZ"
+      ],
+      "briDestCodes": [
+        "kgz"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 3200
+    },
+    {
+      "id": "rus-tjk-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "RUS",
+        "TJK"
+      ],
+      "comtradePair": [
+        "RUS",
+        "TJK"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 3400
+    },
+    {
+      "id": "syrian-express",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "RUS",
+        "SYR"
+      ],
+      "comtradePair": [
+        "RUS",
+        "SYR"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-bosporus"
+      ],
+      "lengthKmApprox": 2200
+    },
+    {
+      "id": "chn-kaz-oil-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "KAZ"
+      ],
+      "comtradePair": [
+        "CHN",
+        "KAZ"
+      ],
+      "briDestCodes": [
+        "kaz"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 2200
+    },
+    {
+      "id": "cku-railway",
+      "category": "trade",
+      "status": "under-construction",
+      "mode": "rail",
+      "endpointCountries": [
+        "CHN",
+        "KGZ",
+        "UZB"
+      ],
+      "comtradePair": [
+        "CHN",
+        "UZB"
+      ],
+      "briDestCodes": [
+        "kgz",
+        "uzb"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 500
+    },
+    {
+      "id": "chn-tkm-gas-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "TKM"
+      ],
+      "comtradePair": [
+        "CHN",
+        "TKM"
+      ],
+      "briDestCodes": [
+        "tkm"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 1800
+    },
+    {
+      "id": "cpec",
+      "category": "trade",
+      "status": "partial",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "PAK"
+      ],
+      "comtradePair": [
+        "CHN",
+        "PAK"
+      ],
+      "briDestCodes": [
+        "pak"
+      ],
+      "chokeIds": [
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 3000
+    },
+    {
+      "id": "chn-sau-sea-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "SAU"
+      ],
+      "comtradePair": [
+        "CHN",
+        "SAU"
+      ],
+      "briDestCodes": [
+        "sau"
+      ],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 12000
+    },
+    {
+      "id": "chn-are-sea-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "sea",
+      "endpointCountries": [
+        "CHN",
+        "ARE"
+      ],
+      "comtradePair": [
+        "CHN",
+        "ARE"
+      ],
+      "briDestCodes": [
+        "are"
+      ],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 11500
+    },
+    {
+      "id": "kyaukpyu-pipeline",
+      "category": "trade",
+      "status": "operational",
+      "mode": "mixed",
+      "endpointCountries": [
+        "CHN",
+        "MMR"
+      ],
+      "comtradePair": [
+        "CHN",
+        "MMR"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-malacca"
+      ],
+      "lengthKmApprox": 770
+    },
+    {
+      "id": "irn-irq-route",
+      "category": "trade",
+      "status": "operational",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "IRQ"
+      ],
+      "comtradePair": [
+        "IRN",
+        "IRQ"
+      ],
+      "briDestCodes": [
+        "irq"
+      ],
+      "chokeIds": [],
+      "lengthKmApprox": 800
+    },
+    {
+      "id": "irn-lbn-hezbollah-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "road",
+      "endpointCountries": [
+        "IRN",
+        "SYR",
+        "LBN"
+      ],
+      "comtradePair": [
+        "IRN",
+        "LBN"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [],
+      "lengthKmApprox": 1600
+    },
+    {
+      "id": "irn-yem-houthi-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "IRN",
+        "YEM"
+      ],
+      "comtradePair": [
+        "IRN",
+        "YEM"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-bab-el-mandeb",
+        "choke-hormuz"
+      ],
+      "lengthKmApprox": 2800
+    },
+    {
+      "id": "prk-syr-arms-sea-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "PRK",
+        "SYR"
+      ],
+      "comtradePair": [
+        "PRK",
+        "SYR"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-suez",
+        "choke-bab-el-mandeb"
+      ],
+      "lengthKmApprox": 14000
+    },
+    {
+      "id": "prk-yem-arms-sea-route",
+      "category": "military-logistics",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "PRK",
+        "YEM"
+      ],
+      "comtradePair": [
+        "PRK",
+        "YEM"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-malacca",
+        "choke-bab-el-mandeb"
+      ],
+      "lengthKmApprox": 12000
+    },
+    {
+      "id": "chong-chon-gang-route",
+      "category": "sanctions-evasion",
+      "status": "reported",
+      "mode": "sea",
+      "endpointCountries": [
+        "CUB",
+        "PRK"
+      ],
+      "comtradePair": [
+        "CUB",
+        "PRK"
+      ],
+      "briDestCodes": [],
+      "chokeIds": [
+        "choke-panama"
+      ],
+      "lengthKmApprox": 18000
+    }
+  ]
+}

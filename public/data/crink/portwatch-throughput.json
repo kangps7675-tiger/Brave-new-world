@@ -1,0 +1,239 @@
+{
+  "generatedAt": "2026-09-01T17:26:00.159Z",
+  "source": "IMF PortWatch Daily_Ports_Data (ArcGIS FeatureServer)",
+  "caveat": "AIS 위성신호 기반 추정치 — 실측 TEU/톤수 통계 아님 (portcalls=입항횟수, import/export=추정 지수값)",
+  "windowDays": 90,
+  "cutoffDate": "2026-06-03",
+  "countryCount": 38,
+  "withData": 29,
+  "countries": {
+    "ARE": {
+      "portcalls": 2640,
+      "import": 17927175,
+      "export": 20488736,
+      "throughputScore": 38442311
+    },
+    "ARM": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "AZE": {
+      "portcalls": 583,
+      "import": 1345102,
+      "export": 144613,
+      "throughputScore": 1495545
+    },
+    "BLR": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "CHN": {
+      "portcalls": 51122,
+      "import": 819292931,
+      "export": 523420177,
+      "throughputScore": 1343224328
+    },
+    "CUB": {
+      "portcalls": 184,
+      "import": 1134860,
+      "export": 330691,
+      "throughputScore": 1467391
+    },
+    "EGY": {
+      "portcalls": 2432,
+      "import": 29340878,
+      "export": 24201231,
+      "throughputScore": 53566429
+    },
+    "EST": {
+      "portcalls": 548,
+      "import": 475693,
+      "export": 992176,
+      "throughputScore": 1473349
+    },
+    "FIN": {
+      "portcalls": 2083,
+      "import": 5184122,
+      "export": 4323945,
+      "throughputScore": 9528897
+    },
+    "GEO": {
+      "portcalls": 348,
+      "import": 1241994,
+      "export": 1278635,
+      "throughputScore": 2524109
+    },
+    "GRC": {
+      "portcalls": 3757,
+      "import": 14233319,
+      "export": 11573685,
+      "throughputScore": 25844574
+    },
+    "HUN": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "IND": {
+      "portcalls": 8970,
+      "import": 128770425,
+      "export": 62777840,
+      "throughputScore": 191637965
+    },
+    "IRN": {
+      "portcalls": 895,
+      "import": 4320019,
+      "export": 2842329,
+      "throughputScore": 7171298
+    },
+    "IRQ": {
+      "portcalls": 294,
+      "import": 995802,
+      "export": 5046340,
+      "throughputScore": 6045082
+    },
+    "KAZ": {
+      "portcalls": 318,
+      "import": 25269,
+      "export": 877470,
+      "throughputScore": 905919
+    },
+    "KGZ": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "KOR": {
+      "portcalls": 15895,
+      "import": 120773821,
+      "export": 54041606,
+      "throughputScore": 174974377
+    },
+    "LBN": {
+      "portcalls": 445,
+      "import": 2177217,
+      "export": 301544,
+      "throughputScore": 2483211
+    },
+    "LTU": {
+      "portcalls": 666,
+      "import": 4403689,
+      "export": 3417538,
+      "throughputScore": 7827887
+    },
+    "LVA": {
+      "portcalls": 706,
+      "import": 842131,
+      "export": 1632703,
+      "throughputScore": 2481894
+    },
+    "MMR": {
+      "portcalls": 298,
+      "import": 1468696,
+      "export": 442546,
+      "throughputScore": 1914222
+    },
+    "MNG": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "NLD": {
+      "portcalls": 12151,
+      "import": 69589753,
+      "export": 31309316,
+      "throughputScore": 101020579
+    },
+    "PAK": {
+      "portcalls": 766,
+      "import": 10169070,
+      "export": 3043422,
+      "throughputScore": 13220152
+    },
+    "POL": {
+      "portcalls": 1970,
+      "import": 20519520,
+      "export": 6776910,
+      "throughputScore": 27316130
+    },
+    "PRK": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "ROU": {
+      "portcalls": 897,
+      "import": 3758395,
+      "export": 6178330,
+      "throughputScore": 9945695
+    },
+    "RUS": {
+      "portcalls": 5409,
+      "import": 6608147,
+      "export": 78188305,
+      "throughputScore": 84850542
+    },
+    "SAU": {
+      "portcalls": 1624,
+      "import": 18985812,
+      "export": 47503130,
+      "throughputScore": 66505182
+    },
+    "SVK": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "SYR": {
+      "portcalls": 343,
+      "import": 1874054,
+      "export": 299095,
+      "throughputScore": 2176579
+    },
+    "TJK": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "TKM": {
+      "portcalls": 248,
+      "import": 62027,
+      "export": 314620,
+      "throughputScore": 379127
+    },
+    "TUR": {
+      "portcalls": 10772,
+      "import": 52066519,
+      "export": 46012677,
+      "throughputScore": 98186916
+    },
+    "UKR": {
+      "portcalls": 32,
+      "import": 113898,
+      "export": 176819,
+      "throughputScore": 291037
+    },
+    "UZB": {
+      "portcalls": 0,
+      "import": 0,
+      "export": 0,
+      "throughputScore": 0
+    },
+    "YEM": {
+      "portcalls": 176,
+      "import": 2488106,
+      "export": 64635,
+      "throughputScore": 2554501
+    }
+  }
+}
