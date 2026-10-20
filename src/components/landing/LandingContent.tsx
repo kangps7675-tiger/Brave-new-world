@@ -22,7 +22,10 @@ const SECTIONS = [
   { id: "ask", label: "질문 넷" },
   { id: "flow", label: "경보가 뜨면" },
   { id: "read", label: "화면 읽는 법" },
+  { id: "features", label: "상세 기능" },
+  { id: "devices", label: "데스크톱·휴대폰" },
   { id: "who", label: "누가 쓰나" },
+  { id: "name", label: "이름의 뜻" },
   { id: "trust", label: "믿을 수 있나" },
   { id: "faq", label: "자주 묻는 질문" },
 ];
@@ -117,6 +120,57 @@ const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
         <path d="M5 30 C12 8 28 8 35 28" fill="none" stroke="#c4b5fd" strokeWidth="1.8" strokeDasharray="4 3" />
       </svg>
     ),
+  },
+];
+
+/** 핵심 화면 말고도 들어가 볼 수 있는 기능들. href가 있으면 따로 열리는 페이지다. */
+const FEATURES: { title: string; body: string; where: string; href?: string }[] = [
+  {
+    title: "뉴스 창",
+    body: "검증된 보도, 전장별 뉴스, 텔레그램 현지 채널을 한 창에서 봅니다. 기사마다 붙은 지도 버튼을 누르면 그 현장으로 바로 날아가요.",
+    where: "지구본 아래 「뉴스」 버튼",
+  },
+  {
+    title: "선박 사건 목록",
+    body: "해상 피습 경보와 해역 안 선박 속보가 오른쪽에 쌓입니다. 새 사건이 들어오면 큰 창으로 먼저 알려 드려요.",
+    where: "지구본 오른쪽",
+  },
+  {
+    title: "전쟁위험 보험료 줄",
+    body: "해역별로 기사에 보도된 보험료를 이전 값과 나란히 보여 주고, 어느 매체의 언제 기사인지 함께 적습니다.",
+    where: "지구본 오른쪽",
+  },
+  {
+    title: "오늘의 등불",
+    body: "6시간마다 지금 꼭 봐야 할 사진 뉴스를 골라 펼쳐 드립니다. 「왜 중요?」를 누르면 그 기사가 바다와 에너지에 왜 중요한지 짧게 풀어 줘요.",
+    where: "지구본을 열면 자동으로",
+  },
+  {
+    title: "묻기",
+    body: "\"홍해\", \"호르무즈\"처럼 짧게 적으면 관련 표시가 켜지고 지구본이 그 바다로 이동합니다.",
+    where: "지구본 위쪽 검색창 옆",
+  },
+  {
+    title: "피격 확인",
+    body: "경보가 뜰 때마다 그 시각 주변을 지나던 배의 항적으로 실제 맞은 배의 후보를 좁혀 봅니다.",
+    where: "따로 열리는 페이지",
+    href: "/strikes",
+  },
+  {
+    title: "기사 확인",
+    body: "속보 기사를 붙여 넣으면 장소와 시각을 뽑아, 지도로 확인되는 것과 확인되지 않는 것을 나눠 보여 줍니다.",
+    where: "따로 열리는 페이지",
+    href: "/investigate",
+  },
+  {
+    title: "하루 한 번 메일",
+    body: "새로 공격받은 배와 보도된 보험료를 매일 한 번 메일로 받습니다. 확인 링크를 눌러야 발송이 시작돼요.",
+    where: "이 페이지 맨 아래",
+  },
+  {
+    title: "데이터 출처",
+    body: "표시마다 어디서 온 자료인지, 얼마나 자주 바뀌는지, 무엇을 알 수 없는지를 정리해 두었습니다.",
+    where: "지구본 왼쪽 메뉴",
   },
 ];
 
@@ -294,6 +348,84 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </p>
       </section>
 
+      {/* FEATURES — 상세 기능 */}
+      <section id="features" className="border-t border-white/10 bg-[#081019]">
+        <div className={`${WRAP} py-24`}>
+          <Reveal>
+            <p className={EYEBROW}>상세 기능</p>
+            <h2 className={`${H2} max-w-[820px]`}>핵심 화면 말고도, 이런 기능이 있어요.</h2>
+          </Reveal>
+          <div className="mt-12 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+            {FEATURES.map((f, i) => {
+              const inner = (
+                <>
+                  <span className="block text-caption font-semibold text-[#5eead4]">{f.where}</span>
+                  <span className="mt-2 flex items-center justify-between gap-2 text-[19px] font-bold text-white">
+                    {f.title}
+                    {f.href ? <span aria-hidden="true" className="text-[#5eead4]">→</span> : null}
+                  </span>
+                  <span className={`mt-2 block text-[15px] leading-[1.7] ${MUTED}`}>{f.body}</span>
+                </>
+              );
+              return (
+                <Reveal key={f.title} delay={(i % 3) * 80}>
+                  {f.href ? (
+                    <Link
+                      href={f.href}
+                      className="block h-full rounded-xl border border-white/10 bg-[#0a141f] p-6 no-underline hover:border-[#5eead4]/60"
+                    >
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div className="h-full rounded-xl border border-white/10 bg-[#0a141f] p-6">{inner}</div>
+                  )}
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* DEVICES — 데스크톱은 상황실, 휴대폰은 알림창 */}
+      <section id="devices" className={`${WRAP} py-24`}>
+        <Reveal>
+          <p className={EYEBROW}>데스크톱 · 휴대폰</p>
+          <h2 className={`${H2} max-w-[820px]`}>
+            상황실은 데스크톱에서,
+            <br className="hidden md:block" /> 휴대폰은 주머니 속 알림창으로.
+          </h2>
+        </Reveal>
+        <div className="mt-12 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))]">
+          <Reveal className="rounded-xl border border-[#f5c451]/35 bg-[#0a141f] p-7">
+            <svg width="64" height="48" viewBox="0 0 64 48" aria-hidden="true" fill="none" stroke="#f5c451" strokeWidth="1.8">
+              <rect x="4" y="4" width="56" height="32" rx="3" />
+              <circle cx="32" cy="20" r="9" stroke="#5eead4" />
+              <path d="M24 44 H40 M32 36 V44" />
+            </svg>
+            <h3 className="mb-0 mt-5 text-[21px] font-bold text-white">데스크톱 — 주로 쓰는 상황실</h3>
+            <ul className={`mb-0 mt-3 list-disc space-y-1.5 pl-5 text-[15px] leading-[1.7] ${MUTED}`}>
+              <li>3D 지구본 위에 배·비행기·불꽃·경보를 모두 겹쳐 봅니다.</li>
+              <li>선박 사건 목록, 보험료 줄, 뉴스 창을 옆에 띄워 두고 함께 봅니다.</li>
+              <li>넓은 화면에서 해역 하나를 끝까지 따라가며 판단하는 데 맞춰져 있어요.</li>
+            </ul>
+          </Reveal>
+          <Reveal delay={90} className="rounded-xl border border-white/10 bg-[#0a141f] p-7">
+            <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="#5eead4" strokeWidth="1.8">
+              <rect x="13" y="3" width="22" height="42" rx="4" />
+              <path d="M20 39 H28" />
+              <path d="M31 8 C35 9 38 12 39 16" stroke="#f5c451" />
+              <circle cx="31" cy="12" r="3" fill="#f5c451" stroke="none" />
+            </svg>
+            <h3 className="mb-0 mt-5 text-[21px] font-bold text-white">휴대폰 — 보조 알림창</h3>
+            <ul className={`mb-0 mt-3 list-disc space-y-1.5 pl-5 text-[15px] leading-[1.7] ${MUTED}`}>
+              <li>무거운 3D 지구본 대신 속보·경보를 글 목록으로 가볍게 봅니다.</li>
+              <li>알림을 허용하면 새 소식을 푸시로 받을 수 있어요.</li>
+              <li>홈 화면에 추가하면 앱처럼 바로 열립니다. 자세히 볼 일은 데스크톱에서 이어서 보세요.</li>
+            </ul>
+          </Reveal>
+        </div>
+      </section>
+
       {/* WHO — 누가 쓰나 */}
       <section id="who" className="bg-[#081019]">
         <div className={`${WRAP} py-24`}>
@@ -333,6 +465,32 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* NAME — 왜 '멋진 신세계'인가 */}
+      <section id="name" className="border-y border-white/10 bg-[#081019]">
+        <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
+          <Reveal className="min-w-0 flex-[1_1_360px]">
+            <p className={EYEBROW}>이름의 뜻</p>
+            <h2 className={H2}>
+              왜 &lsquo;멋진 신세계&rsquo;인가요?
+            </h2>
+            <p className={`mt-4 text-sm ${MUTED}`}>Brave New World · 올더스 헉슬리, 1932</p>
+          </Reveal>
+          <Reveal delay={100} className="min-w-0 flex-[1.4_1_440px] space-y-5 text-[17px] leading-[1.85] text-[#d7e0e6]">
+            <p className="m-0">
+              헉슬리의 소설 『멋진 신세계』에서 &lsquo;멋진&rsquo;은 칭찬이 아니라 경고입니다. 모두가 편안한 화면 앞에 있는 동안,
+              진짜 세상은 보이지 않는 곳에서 돌아가죠.
+            </p>
+            <p className="m-0">
+              바다도 그렇습니다. 물건은 제때 도착하고 기름값은 화면 속 숫자일 뿐이지만, 그 뒤에서는 홍해의 미사일 한 발이
+              항로를 바꾸고, 해협 하나가 막히면 보험료와 운임이 함께 뛰어오릅니다.
+            </p>
+            <p className="m-0 font-semibold text-white">
+              멋진 신세계는 그 가려진 장면을 지구본 위에 그대로 꺼내 놓습니다. 매끈한 화면 대신, 지금 바다에서 실제로 벌어지는 일을요.
+            </p>
+          </Reveal>
+        </div>
       </section>
 
       {/* TRUST — 출처와 근거 등급 */}
