@@ -72,9 +72,16 @@ const MARITIME_RE =
 
 async function getJson<T>(url: string): Promise<T | null> {
   try {
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    return (await r.json()) as T;
+    // 응답이 안 오는 요청 하나가 화면 전체를 "불러오는 중"에 붙잡지 않게 20초에서 끊는다
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 20_000);
+    try {
+      const r = await fetch(url, { signal: ctl.signal });
+      if (!r.ok) return null;
+      return (await r.json()) as T;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return null;
   }
@@ -199,26 +206,30 @@ export default function SeaDashboard() {
   // ── 전역 데이터 (해역 무관) ──────────────────────────────────────
   useEffect(() => {
     let alive = true;
-    const load = async () => {
-      const [s, u, q, n, l, f, ns, pw] = await Promise.all([
-        getJson<{ strikes?: Strike[] }>("/api/strikes?days=60&limit=30"),
-        getJson<{ incidents?: UkmtoIncidentPoint[] }>("/api/ukmto"),
-        getJson<{ quotes?: Quote[] }>("/api/war-risk?days=180"),
-        getJson<FeatureCollection>("/api/navarea"),
-        getJson<LiveuamapFeedPayload>("/api/liveuamap"),
-        getJson<{ fires?: FirmsFire[] }>("/api/firms-fires?days=2&west=22&south=40&east=70&north=66"),
-        getJson<NewsStreamPayload>("/api/news-stream?lang=ko"),
-        getJson<PortwatchPayload>("/api/portwatch"),
-      ]);
-      if (!alive) return;
-      setStrikes(Array.isArray(s?.strikes) ? s!.strikes! : []);
-      setUkmto(Array.isArray(u?.incidents) ? u!.incidents! : []);
-      setQuotes(Array.isArray(q?.quotes) ? q!.quotes! : []);
-      if (n?.type === "FeatureCollection") setNavarea(n);
-      setLiveua(Array.isArray(l?.events) ? l!.events : []);
-      setFires(Array.isArray(f?.fires) ? f!.fires! : []);
-      setNews([...(ns?.verified ?? []), ...(ns?.stateMedia ?? [])]);
-      setPortwatch(pw);
+    // 소스마다 따로 받아 오는 대로 채운다 — 가장 느린 소스(뉴스 등)가 피격 카드를 막지 않게.
+    const pull = <T,>(url: string, apply: (d: T | null) => void) =>
+      void getJson<T>(url).then((d) => {
+        if (alive) apply(d);
+      });
+    const load = () => {
+      pull<{ strikes?: Strike[] }>("/api/strikes?days=60&limit=30", (s) =>
+        setStrikes(Array.isArray(s?.strikes) ? s!.strikes! : []),
+      );
+      pull<{ incidents?: UkmtoIncidentPoint[] }>("/api/ukmto", (u) =>
+        setUkmto(Array.isArray(u?.incidents) ? u!.incidents! : []),
+      );
+      pull<{ quotes?: Quote[] }>("/api/war-risk?days=180", (q) => setQuotes(Array.isArray(q?.quotes) ? q!.quotes! : []));
+      pull<FeatureCollection>("/api/navarea", (n) => {
+        if (n?.type === "FeatureCollection") setNavarea(n);
+      });
+      pull<LiveuamapFeedPayload>("/api/liveuamap", (l) => setLiveua(Array.isArray(l?.events) ? l!.events : []));
+      pull<{ fires?: FirmsFire[] }>("/api/firms-fires?days=2&west=22&south=40&east=70&north=66", (f) =>
+        setFires(Array.isArray(f?.fires) ? f!.fires! : []),
+      );
+      pull<NewsStreamPayload>("/api/news-stream?lang=ko", (ns) =>
+        setNews([...(ns?.verified ?? []), ...(ns?.stateMedia ?? [])]),
+      );
+      pull<PortwatchPayload>("/api/portwatch", (pw) => setPortwatch(pw));
     };
     void load();
     const t = setInterval(load, REFRESH_MS);

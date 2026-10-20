@@ -67,10 +67,19 @@ async function stubApis(page: Page) {
 
 test.describe("해역 대시보드", () => {
   const pageErrors: string[] = [];
+  const pending = new Set<string>();
 
   test.beforeEach(async ({ page }) => {
     pageErrors.length = 0;
     page.on("pageerror", (e) => pageErrors.push(`pageerror: ${e.message}`));
+    // 시작했지만 끝나지 않은 요청 — WebKit 에서 어떤 fetch 가 걸리는지 로그로 보이게
+    pending.clear();
+    page.on("request", (r) => pending.add(r.url()));
+    page.on("requestfinished", (r) => pending.delete(r.url()));
+    page.on("requestfailed", (r) => {
+      pending.delete(r.url());
+      pageErrors.push(`requestfailed: ${r.url().slice(0, 120)} ${r.failure()?.errorText ?? ""}`);
+    });
     page.on("console", (m) => m.type() === "error" && pageErrors.push(`console: ${m.text()}`));
     await stubApis(page);
   });
@@ -79,7 +88,7 @@ test.describe("해역 대시보드", () => {
   test.afterEach(async ({ page }, info) => {
     if (info.status === info.expectedStatus) return;
     const text = await page.evaluate(() => document.body.innerText.slice(0, 1500)).catch(() => "(page gone)");
-    console.log(`[${info.project.name}] ${info.title}\n--- body ---\n${text}\n--- errors ---\n${pageErrors.join("\n")}`);
+    console.log(`[${info.project.name}] ${info.title}\n--- body ---\n${text}\n--- pending requests ---\n${[...pending].join("\n")}\n--- errors ---\n${pageErrors.map((e) => e.slice(0, 300)).join("\n")}`);
   });
 
   test("첫 화면이 뜨고 해역 패널이 보인다", async ({ page }) => {
