@@ -1983,9 +1983,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const flicker =
         0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * 9.3)) * (0.6 + 0.4 * Math.sin(t * 23.7 + 1.3));
       try {
-        map.setPaintProperty("liveua-strikes", "icon-opacity", 0.86 + 0.14 * flicker);
-        if (map.getLayer("liveua-strikes-bloom")) map.setPaintProperty("liveua-strikes-bloom", "circle-opacity", 0.16 + 0.26 * flicker);
-        if (map.getLayer("liveua-strikes-glow")) map.setPaintProperty("liveua-strikes-glow", "circle-opacity", 0.32 + 0.36 * flicker);
+        map.setPaintProperty("liveua-strikes", "icon-opacity", 0.9 + 0.1 * flicker);
+        if (map.getLayer("liveua-strikes-bloom")) map.setPaintProperty("liveua-strikes-bloom", "circle-opacity", 0.26 + 0.3 * flicker);
+        if (map.getLayer("liveua-strikes-glow")) map.setPaintProperty("liveua-strikes-glow", "circle-opacity", 0.5 + 0.4 * flicker);
       } catch {
         /* style swap mid-frame */
       }
@@ -3545,16 +3545,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
 
         {liveuaStrikesGeoJson.features.length > 0 ? (
           <Source id="liveua-strikes-source" type="geojson" data={liveuaStrikesGeoJson}>
-            {/* 네온 번짐 — 그림이 아니라 실제로 빛나게: 불꽃 높이에 넓은 빨강 후광 + 좁은 주황 후광 (깜빡임은 아래 이펙트) */}
+            {/* 불꽃만 — 작지만 밝게. 넓은 주황 후광 → 노란 후광 → 하얗게 달아오른 심(아이콘) 순으로 겹쳐 실제로 타는 점처럼 보이게 (깜빡임은 아래 이펙트).
+                후광 위치는 불꽃 중심(아이콘 높이 × STRIKE_FLAME_CENTER_RATIO)에 맞춘다. */}
             <Layer
               id="liveua-strikes-bloom"
               type="circle"
               paint={{
-                "circle-color": "#ff4a0e",
-                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 17, 4, 21, 7, 27, 10, 36],
+                "circle-color": "#ff5a0a",
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 11, 4, 13, 7, 16, 10, 21],
                 "circle-blur": 1,
-                "circle-opacity": 0.3,
-                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+                "circle-opacity": 0.4,
+                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -6]], 10, ["literal", [0, -10]]],
                 "circle-translate-anchor": "viewport",
                 "circle-pitch-alignment": "viewport",
               }}
@@ -3563,11 +3564,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               id="liveua-strikes-glow"
               type="circle"
               paint={{
-                "circle-color": "#ffb347",
-                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 7, 4, 9, 7, 12, 10, 16],
-                "circle-blur": 0.75,
-                "circle-opacity": 0.55,
-                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -10]], 10, ["literal", [0, -22]]],
+                "circle-color": "#ffd25a",
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 5, 4, 6, 7, 7.5, 10, 10],
+                "circle-blur": 0.8,
+                "circle-opacity": 0.75,
+                "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -6]], 10, ["literal", [0, -10]]],
                 "circle-translate-anchor": "viewport",
                 "circle-pitch-alignment": "viewport",
               }}
@@ -3577,7 +3578,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="symbol"
               layout={{
                 "icon-image": STRIKE_FLAME_ICON_ID,
-                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.3, 4, 0.36, 7, 0.46, 10, 0.62],
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 1.5, 0.55, 4, 0.62, 7, 0.72, 10, 0.86],
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "icon-anchor": "bottom",

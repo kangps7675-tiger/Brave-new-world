@@ -3,6 +3,7 @@ import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
 import { resolveNewsCoords } from "@/lib/news/newsStreamMapTags";
 import type { NewsStreamItem } from "@/lib/news/types";
+import { resolveStrikePlace } from "@/lib/strikePlaceMatch";
 
 /**
  * 지구 전역 공습 불꽃 — 드론·미사일·유도폭탄이 실제로 떨어진 곳.
@@ -87,6 +88,27 @@ export function flamesFromNewfeeds(
   return out;
 }
 
+/** 기본 사전에서 나라 이름으로만 잡힌 경우 — 나라 한가운데에 불꽃을 찍게 되므로 더 좁은 지점이 있으면 그쪽을 쓴다 */
+const COUNTRY_LEVEL = new Set(["Iran", "Syria", "Lebanon", "Yemen", "Iraq"]);
+
+/**
+ * 기사 → 타격 좌표. 기본 지명 사전(우크라 경보 구역·이스라엘·중동 수도)에
+ * 불꽃 전용 사전(러시아 본토·흑해·카스피해·이란 내륙·걸프·초승달)을 더한다.
+ * 전용 사전에서 "맞은 곳"이 뚜렷하면 그걸 먼저, 아니면 기본 사전의 도시, 그다음 전용 사전.
+ */
+export function resolveStrikeCoords(item: NewsStreamItem): { lat: number; lng: number; label: string } | null {
+  const strike =
+    resolveStrikePlace(item.title ?? "") ??
+    (() => {
+      const s = resolveStrikePlace(item.summary ?? "");
+      return s && s.score >= 2 ? s : null;
+    })();
+  if (strike && strike.score >= 2) return strike;
+  const base = resolveNewsCoords(item);
+  if (base && !COUNTRY_LEVEL.has(base.label)) return base;
+  return strike ?? base;
+}
+
 /**
  * RSS 뉴스 — 제목·요약에서 지명을 좌표로 풀 수 있고, 드론·미사일이 실제로 맞았다고 읽히는 건만.
  * 지명을 못 푸는 기사는 불꽃이 될 수 없다(좌표를 지어내지 않는다).
@@ -103,7 +125,7 @@ export function flamesFromNews(
     seen.add(item.id);
     const at = Date.parse(item.pubDate);
     if (!Number.isFinite(at) || now - at > RSS_MAX_AGE_MS || at > now + 3_600_000) continue;
-    const coords = resolveNewsCoords(item);
+    const coords = resolveStrikeCoords(item);
     if (!coords) continue;
     const hit = liveuaConfirmedStrike({
       title: item.title,
