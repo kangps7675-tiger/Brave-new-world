@@ -1,59 +1,46 @@
 /**
- * 드론·미사일 공습 지점 — 촛농이 흘러내린 양초 위에 네온으로 타오르는 불꽃.
- * MapLibre symbol 아이콘, 앵커 = 하단(양초 밑동이 좌표). 지도 쪽에서 불꽃 위치에
- * 번짐(blur) 원 레이어를 한 겹 더 깔아 그림이 아니라 실제로 빛나는 것처럼 보이게 한다.
+ * 드론·미사일 공습 지점 — 양초·촛농 없이 불꽃 하나만. 작지만 하얗게 달아오른 심에서
+ * 노랑 → 주황으로 번지는, 실제로 타는 불처럼 밝은 그림.
+ * MapLibre symbol 아이콘, 앵커 = 하단(불꽃 밑동이 좌표). 지도 쪽에서 불꽃 중심에
+ * 번짐(blur) 원을 두 겹 더 깔아 그림이 아니라 빛나는 점처럼 보이게 한다.
  */
 
-export const STRIKE_FLAME_ICON_ID = "strike-candle-flame-v2";
+export const STRIKE_FLAME_ICON_ID = "strike-flame-v3";
 
 /** 아이콘 높이 대비 불꽃 중심의 높이 비율 (밑동 기준) — 번짐 원의 위치를 맞추는 데 쓴다 */
-export const STRIKE_FLAME_CENTER_RATIO = 0.7;
+export const STRIKE_FLAME_CENTER_RATIO = 0.42;
 
-const FLAME_PATH =
-  "M16 2.5 C17.6 8.6 22.4 12.4 22.4 18.2 C22.4 22.6 19.6 25.6 16 25.6 C12.4 25.6 9.6 22.6 9.6 18.2 C9.6 14.2 12.8 11.6 14.2 8 C15 9.6 15.6 9.9 16.1 9.2 C16.5 7.2 16 5 16 2.5 Z";
+/** 바깥 불꽃 — 위로 갈수록 가늘게 휘어 오르는 혀 모양 */
+const OUTER =
+  "M12 1.5 C13.4 6.4 18.6 10.4 18.6 17.6 C18.6 22.6 15.6 26.4 12 26.4 C8.4 26.4 5.4 22.6 5.4 17.6 C5.4 13.2 8.6 10.6 10 6.8 C10.7 8.4 11.3 8.7 11.8 8 C12.3 6 12 3.8 12 1.5 Z";
+/** 안쪽 불꽃 */
+const INNER =
+  "M12 9.6 C13 12.8 15.6 14.8 15.6 18.6 C15.6 21.6 14 23.8 12 23.8 C10 23.8 8.4 21.6 8.4 18.6 C8.4 15.4 10.8 13.4 12 9.6 Z";
+/** 하얗게 달아오른 심 */
+const CORE =
+  "M12 12.6 C13.2 15.4 14.8 16.8 14.8 19.6 C14.8 21.6 13.6 23 12 23 C10.4 23 9.2 21.6 9.2 19.6 C9.2 17.2 11 15.6 12 12.6 Z";
 
-const STRIKE_FLAME_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="96" viewBox="0 0 32 48">
+const STRIKE_FLAME_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="56" viewBox="0 0 24 28">
   <defs>
-    <filter id="bw" x="-120%" y="-80%" width="340%" height="260%"><feGaussianBlur stdDeviation="3.2"/></filter>
-    <filter id="bm" x="-80%" y="-60%" width="260%" height="220%"><feGaussianBlur stdDeviation="1.4"/></filter>
-    <linearGradient id="wax" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#cdb98c"/>
-      <stop offset="35%" stop-color="#fbf1d6"/>
-      <stop offset="70%" stop-color="#eadbb2"/>
-      <stop offset="100%" stop-color="#b9a272"/>
+    <filter id="halo" x="-100%" y="-60%" width="300%" height="220%"><feGaussianBlur stdDeviation="2.4"/></filter>
+    <filter id="soft" x="-60%" y="-40%" width="220%" height="180%"><feGaussianBlur stdDeviation="0.9"/></filter>
+    <linearGradient id="outer" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ff7417"/>
+      <stop offset="50%" stop-color="#ffb02a"/>
+      <stop offset="100%" stop-color="#ffe066"/>
     </linearGradient>
-    <linearGradient id="pool" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#f3e5c0"/>
-      <stop offset="100%" stop-color="#a98f5c"/>
-    </linearGradient>
-    <linearGradient id="fl" x1="50%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" stop-color="#ff4a12"/>
-      <stop offset="45%" stop-color="#ff9a1f"/>
-      <stop offset="100%" stop-color="#ffe27a"/>
-    </linearGradient>
-    <linearGradient id="core" x1="50%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" stop-color="#fff0b8"/>
-      <stop offset="100%" stop-color="#ffffff"/>
+    <linearGradient id="inner" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ffe45c"/>
+      <stop offset="100%" stop-color="#fffbe0"/>
     </linearGradient>
   </defs>
-  <!-- 바닥에 굳은 촛농 웅덩이 -->
-  <ellipse cx="16" cy="45.2" rx="12.5" ry="2.6" fill="#7d6a43" opacity="0.55"/>
-  <ellipse cx="16" cy="44.4" rx="11.5" ry="2.9" fill="url(#pool)"/>
-  <!-- 양초 몸통 + 윗면 -->
-  <path d="M10.5 31 L10.5 43.6 C10.5 44.6 21.5 44.6 21.5 43.6 L21.5 31 Z" fill="url(#wax)"/>
-  <ellipse cx="16" cy="31" rx="5.5" ry="1.9" fill="#fff6dd"/>
-  <ellipse cx="16" cy="31.2" rx="3.6" ry="1.1" fill="#f0d79a"/>
-  <!-- 흘러내린 촛농 -->
-  <path d="M10.6 31.4 C9.2 33 9.4 36 10.2 37.8 C10.9 39.2 12 38.6 11.8 36.8 C11.7 35.2 11.9 33.4 12.2 32 Z" fill="#fdf3d8"/>
-  <path d="M20.4 31.6 C21.9 34.2 21.7 38.6 20.9 41 C20.4 42.4 19.3 41.8 19.4 40 C19.5 37.8 19.2 34.4 18.9 32.2 Z" fill="#f3e3b8"/>
-  <!-- 심지 -->
-  <rect x="15.55" y="25.4" width="0.9" height="6" rx="0.4" fill="#3a2a18"/>
-  <!-- 네온 번짐: 넓은 빨강 → 주황 → 노랑 -->
-  <path d="${FLAME_PATH}" fill="#ff3d00" opacity="0.95" filter="url(#bw)"/>
-  <path d="${FLAME_PATH}" fill="#ff8a1f" opacity="0.95" filter="url(#bm)"/>
-  <!-- 불꽃 본체 + 밝은 테두리 -->
-  <path d="${FLAME_PATH}" fill="url(#fl)" stroke="#ffd98a" stroke-width="0.8" stroke-linejoin="round"/>
-  <path d="M16 12.4 C17.1 15.6 19.4 17.2 19.4 20.4 C19.4 22.7 17.9 24.2 16 24.2 C14.1 24.2 12.6 22.7 12.6 20.4 C12.6 17.4 15 15.6 16 12.4 Z" fill="url(#core)"/>
+  <!-- 번짐: 주황 후광 → 노란 후광 -->
+  <path d="${OUTER}" fill="#ff7a00" opacity="1" filter="url(#halo)"/>
+  <path d="${OUTER}" fill="#ffc23d" opacity="0.85" filter="url(#soft)"/>
+  <!-- 불꽃 본체 -->
+  <path d="${OUTER}" fill="url(#outer)"/>
+  <path d="${INNER}" fill="url(#inner)"/>
+  <path d="${CORE}" fill="#ffffff"/>
 </svg>`;
 
 type MapLike = {
@@ -68,7 +55,7 @@ type MapLike = {
 export async function ensureStrikeFlameImage(map: MapLike): Promise<void> {
   if (map.hasImage(STRIKE_FLAME_ICON_ID)) return;
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const el = new Image(64, 96);
+    const el = new Image(48, 56);
     el.onload = () => resolve(el);
     el.onerror = () => reject(new Error("Failed to load strike flame SVG"));
     el.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(STRIKE_FLAME_SVG)}`;
