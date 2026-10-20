@@ -24,3 +24,7 @@ The catalog field is `dataLicense` in `src/data/sourceCatalog.ts`.
 | Public notices | `OWN_WORK_NOTICE_*` / `INHERITED_ODBL_NOTICE_*` in `odblDataPolicy.ts` |
 
 > The legal effect of the proprietary declaration and of the render-only reading of ODbL is **pending legal review**.
+
+## Landing globe land outline
+
+`public/data/landing-land-110m.json` (the spinning globe on the landing page) is Natural Earth 1:110m land (public domain), converted from the `world-atlas` package (ISC, © Mike Bostock) with coordinates rounded to 0.01°.

@@ -82,7 +82,7 @@ function buildNoise(w: number, h: number): Float32Array {
 
 const ENTER_CLASS: Record<EnterPlace, string> = {
   nav: "rounded-md bg-[#f5c451] px-[18px] py-3 font-bold text-[#05080d] hover:bg-[#ffd772]",
-  hero: "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] hover:bg-[#ffd772]",
+  hero: "landing-cta-glow inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] hover:bg-[#ffd772]",
   footer: "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] hover:bg-[#ffd772]",
 };
 

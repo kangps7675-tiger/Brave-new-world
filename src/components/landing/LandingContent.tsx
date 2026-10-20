@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { GLOBE_MARKS, HeroGlobe } from "@/components/landing/HeroGlobe";
+import { LandingGlobe } from "@/components/landing/LandingGlobe";
+import { AlertDemo, FaqItem, Reveal, SectionDots } from "@/components/landing/LandingMotion";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
@@ -9,9 +10,22 @@ export type EnterPlace = "nav" | "hero" | "footer";
 /**
  * 랜딩 본문 — 해운업계 한 곳만 겨냥한다(2026-10-20 결정).
  * 피격 경보가 뜬 순간 운항·선적·보험 담당자가 묻는 질문에, 지구본의 무엇이 답하는지를 먼저 보여 준다.
- * 구성(One Page Love식 한 장짜리): 첫 화면 → 경보 하나에 질문 넷 → 화면 읽는 법 → 누가 쓰나
- * → 해협별 안내 → 출처·근거 → 자주 묻는 질문 → 마지막 버튼.
+ * 구성(One Page Love식 한 장짜리): 첫 화면 → 경보 하나에 질문 넷 → 경보가 뜨면(반복 데모) → 화면 읽는 법
+ * → 누가 쓰나 → 해협별 안내 → 출처·근거 → 자주 묻는 질문 → 마지막 버튼.
+ *
+ * 움직임은 One Page Love 후보에서 골랐다: DCS AML(천천히 도는 지구본·내비 점·버튼 빛),
+ * World Pollution(누를 수 있는 지구본 지점), Flashform(스크롤로 떠오르는 섹션·반복 데모·FAQ 접기).
  */
+
+const SECTIONS = [
+  { id: "top", label: "처음" },
+  { id: "ask", label: "질문 넷" },
+  { id: "flow", label: "경보가 뜨면" },
+  { id: "read", label: "화면 읽는 법" },
+  { id: "who", label: "누가 쓰나" },
+  { id: "trust", label: "믿을 수 있나" },
+  { id: "faq", label: "자주 묻는 질문" },
+];
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono)]";
 const EYEBROW = "m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]";
@@ -193,11 +207,13 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </nav>
       </header>
 
+      <SectionDots sections={SECTIONS} />
+
       {/* HERO */}
-      <section id="top" className={`${WRAP} flex flex-wrap items-center gap-x-14 gap-y-10 pb-20 pt-16`}>
-        <div className="min-w-0 flex-[1_1_440px]">
+      <section id="top" className={`${WRAP} flex flex-wrap items-center gap-x-12 gap-y-10 pb-20 pt-14`}>
+        <div className="min-w-0 flex-[1.1_1_480px]">
           <p className={EYEBROW}>해운 위험 상황실 · 홍해 · 호르무즈 · 흑해 · 말라카</p>
-          <h1 className="mb-0 mt-5 text-[clamp(38px,5vw,62px)] font-bold leading-[1.2] tracking-[-0.03em] text-white">
+          <h1 className="mb-0 mt-5 text-[clamp(38px,4.6vw,64px)] font-bold leading-[1.14] tracking-[-0.035em] text-white">
             정보기관 상황실처럼,
             <br className="hidden sm:block" />{" "}
             <span className="text-[#f5c451]">바다의 위험을 한눈에.</span>
@@ -218,26 +234,9 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           <p className={`mt-4 text-sm ${MUTED}`}>가입 없이 무료로 바로 볼 수 있어요.</p>
         </div>
 
-        <figure className="m-0 flex min-w-0 flex-[1_1_480px] flex-wrap items-center gap-6">
-          <div className="min-w-0 flex-[1_1_300px]">
-            <HeroGlobe />
-          </div>
-          <figcaption className="min-w-0 flex-[1_1_190px]">
-            <p className={`mb-3 mt-0 text-sm font-semibold ${MUTED}`}>지구본에 뜨는 것들</p>
-            <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-              {GLOBE_MARKS.map((m) => (
-                <li key={m.n} className="flex items-start gap-2.5 text-[15px] leading-snug">
-                  <span className="mt-px inline-flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-[1.5px] border-[#f5c451] text-caption font-bold text-[#f5c451]">
-                    {m.n}
-                  </span>
-                  <span>
-                    <b className="font-semibold text-white">{m.title}</b> <span className={MUTED}>{m.body}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </figcaption>
-        </figure>
+        <div className="min-w-0 flex-[1_1_440px]">
+          <LandingGlobe />
+        </div>
       </section>
 
       {/* ASK — 경보 하나에 질문 넷 */}
@@ -250,14 +249,25 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           </h2>
           <div className="mt-12 grid gap-px border border-white/10 bg-white/10 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
             {QUESTIONS.map((x, i) => (
-              <div key={x.q} className="bg-[#081019] p-7">
+              <Reveal key={x.q} delay={i * 90} className="bg-[#081019] p-7">
                 <div className={`text-sm text-[#f5c451] ${MONO}`}>{String(i + 1).padStart(2, "0")}</div>
                 <h3 className="mb-0 mt-3 text-xl font-bold leading-snug text-white">{x.q}</h3>
                 <p className={`mb-0 mt-3 text-[15px] leading-[1.75] ${MUTED}`}>{x.a}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* FLOW — 경보가 뜨면 (반복 데모) */}
+      <section id="flow" className={`${WRAP} pb-4 pt-24`}>
+        <Reveal>
+          <p className={EYEBROW}>경보가 뜨면</p>
+          <h2 className={`${H2} max-w-[820px]`}>피격 경보 한 건이 지구본에서 어떻게 펼쳐지는지 보세요.</h2>
+        </Reveal>
+        <Reveal className="mt-12">
+          <AlertDemo />
+        </Reveal>
       </section>
 
       {/* READ — 화면 읽는 법 */}
@@ -269,14 +279,14 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           색과 모양만 알면 30초 만에 읽힙니다.
         </h2>
         <div className="mt-12 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
-          {READ_CARDS.map((c) => (
-            <div key={c.title} className="flex gap-4 rounded-xl border border-white/10 bg-[#0a141f] p-6">
+          {READ_CARDS.map((c, i) => (
+            <Reveal key={c.title} delay={(i % 3) * 90} className="flex gap-4 rounded-xl border border-white/10 bg-[#0a141f] p-6">
               <div className="flex-none">{c.mark}</div>
               <div className="min-w-0">
                 <h3 className="m-0 text-[18px] font-bold leading-snug text-white">{c.title}</h3>
                 <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{c.body}</p>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
         <p className={`mt-8 text-[15px] leading-relaxed ${MUTED}`}>
@@ -293,11 +303,11 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
             <br className="hidden md:block" /> 출항을 미룰지 정해야 하는 분들께
           </h2>
           <div className="mt-12 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
-            {AUDIENCES.map((a) => (
-              <div key={a.who} className="rounded-xl border border-white/10 bg-[#0a141f] px-7 py-8">
+            {AUDIENCES.map((a, i) => (
+              <Reveal key={a.who} delay={i * 90} className="rounded-xl border border-white/10 bg-[#0a141f] px-7 py-8">
                 <h3 className="m-0 text-[21px] font-bold text-white">{a.who}</h3>
                 <p className={`mb-0 mt-3 text-base leading-[1.75] ${MUTED}`}>{a.body}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -361,17 +371,16 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="border-t border-white/10">
+      {/* FAQ — 접었다 펴는 질문 */}
+      <section id="faq" className="border-t border-white/10">
         <div className={`${WRAP} py-20`}>
-          <p className={EYEBROW}>자주 묻는 질문</p>
-          <div className="mt-8 grid gap-x-12 gap-y-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))]">
-            {FAQ.map((f) => (
-              <div key={f.q}>
-                <h3 className="m-0 text-lg font-bold text-white">{f.q}</h3>
-                <p className={`mb-0 mt-2 text-[15px] leading-[1.75] ${MUTED}`}>{f.a}</p>
-              </div>
-            ))}
+          <div className="max-w-[900px]">
+            <p className={EYEBROW}>자주 묻는 질문</p>
+            <div className="mt-6">
+              {FAQ.map((f) => (
+                <FaqItem key={f.q} q={f.q} a={f.a} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
