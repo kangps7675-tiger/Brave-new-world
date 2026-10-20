@@ -49,9 +49,15 @@ const STUBS: Record<string, unknown> = {
   "/api/news-stream": { fetchedAt: now, hero: null, verified: [], stateMedia: [], stats: { total: 0, tier1: 0, tier2: 0, tier3: 0, theaters: {} } },
   "/api/portwatch": { transits: {}, byChokeId: {} },
   "/api/marine-weather": { forecast: [], history: [] },
+  "/api/control": { type: "FeatureCollection", features: [] },
 };
 
 async function stubApis(page: Page) {
+  // 외부 호스트(지도 타일·폰트 등)는 끊는다 — 느린 외부 요청이 WebKit 에서 렌더를 붙잡지 않게.
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (route) => route.abort());
+  await page.route("**/data/war-countries.json", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ type: "FeatureCollection", features: [] }) }),
+  );
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     const body = STUBS[path] ?? {};
@@ -60,8 +66,20 @@ async function stubApis(page: Page) {
 }
 
 test.describe("해역 대시보드", () => {
+  const pageErrors: string[] = [];
+
   test.beforeEach(async ({ page }) => {
+    pageErrors.length = 0;
+    page.on("pageerror", (e) => pageErrors.push(`pageerror: ${e.message}`));
+    page.on("console", (m) => m.type() === "error" && pageErrors.push(`console: ${m.text()}`));
     await stubApis(page);
+  });
+
+  // 실패하면 화면에 뭐가 떠 있었는지 로그에 남긴다 (WebKit 은 CI 에서만 돌아 재현이 어렵다)
+  test.afterEach(async ({ page }, info) => {
+    if (info.status === info.expectedStatus) return;
+    const text = await page.evaluate(() => document.body.innerText.slice(0, 1500)).catch(() => "(page gone)");
+    console.log(`[${info.project.name}] ${info.title}\n--- body ---\n${text}\n--- errors ---\n${pageErrors.join("\n")}`);
   });
 
   test("첫 화면이 뜨고 해역 패널이 보인다", async ({ page }) => {
@@ -69,7 +87,9 @@ test.describe("해역 대시보드", () => {
     await expect(page.getByRole("heading", { name: "이 바다는 지금 다닐 만한가" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "피격 선박" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "전쟁위험 보험료" })).toBeVisible();
-    await expect(page.getByText("Bab el-Mandeb")).toBeVisible();
+    // 데이터가 다 들어온 뒤 카드가 뜬다 — "불러오는 중…" 이 사라질 때까지 기다린다
+    await expect(page.getByText("불러오는 중…").first()).toBeHidden({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "Bab el-Mandeb" })).toBeVisible();
   });
 
   test("지구본 캔버스가 그려진다", async ({ page }) => {
