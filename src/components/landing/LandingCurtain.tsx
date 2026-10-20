@@ -6,10 +6,11 @@ import { useDialog } from "@/hooks/useDialog";
 import { LandingContent, type EnterPlace } from "@/components/landing/LandingContent";
 
 /**
- * 첫 방문 화면 — 로딩 창 자리에 랜딩을 덮는다.
+ * 첫 화면 — 로딩 창 자리에 랜딩을 덮는다. 처음 온 사람뿐 아니라 매번 보인다:
+ * 지구본만 봐서는 반짝이는 게 무슨 뜻인지 모르고 닫아 버리기 때문이다(2026-10-20 결정).
  *
  * 지구본(GlobeDashboard)은 이 막 아래에서 평소처럼 부팅한다. 사람이 랜딩을 읽는 동안
- * 로딩이 끝나고, "지구본 보기"를 누르면 안개가 걷히듯 막이 사라지면서 이미 떠 있는 지구본이 드러난다.
+ * 로딩이 끝나고, "지구본 열기"를 누르면 안개가 걷히듯 막이 사라지면서 이미 떠 있는 지구본이 드러난다.
  * 준비 전에 누르면 예약해 두었다가 준비되는 즉시 걷는다.
  *
  * "바로 보기"는 기다리지 않는다. 블라인드가 왼쪽부터 촤르르 접히듯 0.65초 만에 열고,
@@ -19,7 +20,6 @@ import { LandingContent, type EnterPlace } from "@/components/landing/LandingCon
  * 지구본이 GPU를 쓰는 순간에 셰이더를 하나 더 띄우면 저사양 기기에서 끊긴다.
  */
 
-const SEEN_KEY = "bnw.landing.seen";
 const LIFT_MS = 1700;
 const REDUCED_LIFT_MS = 250;
 const SHUTTER_MS = 650;
@@ -27,25 +27,16 @@ const SHUTTER_SLATS = 12;
 const SHUTTER_W = 288;
 const FOG_W = 200;
 
-/** 첫 방문인지. 공유된 장면 링크(?scene=1)로 들어온 사람은 바로 그 장면을 봐야 하므로 막을 띄우지 않는다. */
+/**
+ * 랜딩을 띄울지. 기본은 항상 띄운다. 공유된 장면 링크(?scene=1)도 마찬가지 — 링크를 받은 사람이
+ * 가장 이 서비스를 모르는 사람이다. ?landing=0 은 개발·점검용으로만 끈다.
+ */
 export function shouldShowLandingCurtain(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("landing") === "1") return true;
-    if (params.get("landing") === "0") return false;
-    if (params.has("scene")) return false;
-    return window.localStorage.getItem(SEEN_KEY) !== "1";
+    return new URLSearchParams(window.location.search).get("landing") !== "0";
   } catch {
-    return false;
-  }
-}
-
-function markSeen() {
-  try {
-    window.localStorage.setItem(SEEN_KEY, "1");
-  } catch {
-    /* 저장이 막힌 브라우저 — 다음 방문에 랜딩이 다시 보일 뿐이다 */
+    return true;
   }
 }
 
@@ -90,10 +81,9 @@ function buildNoise(w: number, h: number): Float32Array {
 }
 
 const ENTER_CLASS: Record<EnterPlace, string> = {
-  nav: "rounded-md bg-[#0E1A24] px-[18px] py-3 font-semibold text-white hover:bg-[#1B2C38]",
-  hero: "inline-flex h-[52px] items-center rounded-md bg-[#C2410C] px-6 text-base font-semibold text-white hover:bg-[#A8380A]",
-  footer:
-    "mt-8 inline-flex h-[52px] items-center rounded-md bg-[#0E1A24] px-6 text-base font-semibold text-white hover:bg-[#1B2C38]",
+  nav: "rounded-md bg-[#f5c451] px-[18px] py-3 font-bold text-[#05080d] hover:bg-[#ffd772]",
+  hero: "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] hover:bg-[#ffd772]",
+  footer: "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] hover:bg-[#ffd772]",
 };
 
 export function LandingCurtain({
@@ -156,7 +146,6 @@ export function LandingCurtain({
 
   useEffect(() => {
     if (!lift) return;
-    markSeen();
     const content = contentRef.current;
     const reduced = prefersReducedMotion();
     const start = performance.now();
@@ -274,9 +263,9 @@ export function LandingCurtain({
   }, [lift, finish, dialogRef]);
 
   const label = (place: EnterPlace) => {
-    if (ready || lifting) return "지구본 보기";
+    if (ready || lifting) return "지구본 열기";
     if (queued) return place === "nav" ? `곧 열려요 ${pct}%` : `준비되면 바로 열려요 · ${pct}%`;
-    return place === "nav" ? `지구본 ${pct}%` : `지구본 보기 · 준비 중 ${pct}%`;
+    return place === "nav" ? `지구본 ${pct}%` : `지구본 열기 · 준비 중 ${pct}%`;
   };
 
   return (
@@ -314,7 +303,7 @@ export function LandingCurtain({
           <button
             type="button"
             onClick={openNow}
-            className="fixed bottom-6 right-6 inline-flex h-[52px] cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-[#0E1A24]/92 pl-6 pr-5 font-[inherit] text-base font-semibold text-white shadow-[0_8px_28px_rgba(14,26,36,0.35)] backdrop-blur hover:bg-[#1B2C38]"
+            className="fixed bottom-6 right-6 inline-flex h-[52px] cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-[#0a141f]/90 pl-6 pr-5 font-[inherit] text-base font-semibold text-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur hover:border-white/40"
           >
             바로 보기
             <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">

@@ -4,18 +4,18 @@ import { LandingContent, type EnterPlace } from "@/components/landing/LandingCon
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
-  title: "Brave New World — 이 바다, 지금 지나가도 될까요?",
+  title: "Brave New World — 정보기관 상황실에 앉은 듯한 현장감",
   description:
-    "피격 선박, 해역 상황, 전쟁위험 보험료, 해상 날씨, 지정학 뉴스를 해역별로 한 화면에 모았습니다. 모든 판정에 근거와 한계를 함께 적습니다.",
+    "어디에 미사일이 떨어졌는지, 어느 바다에서 배가 공격받았는지, 누가 어느 땅을 차지했는지. 세계의 전쟁과 분쟁 소식을 3D 지구본 하나에 실시간으로 겹쳐 보여 드립니다. 공개 정보(OSINT) 기반, 가입 없이 무료.",
   alternates: { canonical: absoluteUrl("/landing") },
 };
 
-/** 공유·검색용 독립 랜딩. 첫 방문 화면에서는 같은 내용이 LandingCurtain으로 지구본 위에 덮인다. */
+/** 공유·검색용 독립 랜딩. 첫 화면(/)에서는 같은 내용이 LandingCurtain으로 지구본 위에 덮인다. */
 const ENTER_CLASS: Record<EnterPlace, string> = {
-  nav: "rounded-md bg-[#0E1A24] px-[18px] py-3 font-semibold text-white no-underline hover:bg-[#1B2C38]",
-  hero: "inline-flex h-[52px] items-center rounded-md bg-[#C2410C] px-6 text-base font-semibold text-white no-underline hover:bg-[#A8380A]",
+  nav: "rounded-md bg-[#f5c451] px-[18px] py-3 font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
+  hero: "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
   footer:
-    "mt-8 inline-flex h-[52px] items-center rounded-md bg-[#0E1A24] px-6 text-base font-semibold text-white no-underline hover:bg-[#1B2C38]",
+    "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
 };
 
 export default function LandingPage() {
@@ -23,7 +23,7 @@ export default function LandingPage() {
     <LandingContent
       renderEnter={(place) => (
         <Link href="/" className={ENTER_CLASS[place]}>
-          지구본 보기
+          지구본 열기
         </Link>
       )}
     />
