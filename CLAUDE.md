@@ -53,6 +53,8 @@
 **지도에 되살린 것 (2026-10-20 결정)**: 사건 큰 양피지(+닫으면 좌표 콜아웃), LiveUAMap 통제면(우크라 점령지·중동 통제 구역,
 `/api/control`), 전쟁 중인 나라 국경 폴리곤(`warCountries`), 러-우·중동 드론/미사일 공습 촛불 불꽃(`strikeFlames`).
 출처는 LiveUAMap 하나이고 모두 사건 양피지로 이어진다.
+진영 국가 면(CRINK·CSTO·NATO·QUAD·미국 양자조약·기지주둔, `src/lib/sea/blocPolygons.ts`, 데이터 `public/data/allied-bloc-countries.json`)도
+지도 배경색으로 되살렸다(범례에서 끌 수 있음, 2026-10-20 결정). 서방은 청록 계열(AUKUS 진하게·NATO 연하게), CRINK 는 적갈색(핵심 진하게·연계국 연하게)으로 칠한다.
 
 **넣지 않는 것**: 공습경보, 예측게임, 전세계 레이어, VIINA·DeepState 점령지·전선 해칭 같은
 전용 레이어(부활 금지), GDELT, 텔레그램 수집, MarineTraffic. 옛 지정학 전체 버전은

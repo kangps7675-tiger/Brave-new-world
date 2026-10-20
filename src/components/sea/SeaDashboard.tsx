@@ -27,6 +27,7 @@ import type { NewsStreamItem, NewsStreamPayload } from "@/lib/news/types";
 import { parseNavareaApiPayload } from "@/lib/navareaHatch";
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { SeaCesiumPick } from "@/components/sea/SeaCesiumView";
+import { SEA_BLOC_COLOR, SEA_BLOC_LABEL, paintBlocPolygons, type SeaBloc } from "@/lib/sea/blocPolygons";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
 import { flamesFromLiveua, mergeStrikeFlames } from "@/lib/strikeFlames";
 import { buildWarCountryFeatures, warCountryIsos } from "@/lib/warCountries";
@@ -258,6 +259,21 @@ export default function SeaDashboard() {
       clearInterval(t);
     };
   }, []);
+
+  // 진영 국가 면 (CRINK·CSTO·NATO·QUAD·미국 양자조약) — 켜고 끌 수 있다
+  const [blocRaw, setBlocRaw] = useState<FeatureCollection | null>(null);
+  const [showBlocs, setShowBlocs] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    void getJson<FeatureCollection>("/data/allied-bloc-countries.json").then((d) => {
+      if (alive && d?.type === "FeatureCollection") setBlocRaw(d);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const blocs = useMemo(() => (showBlocs ? paintBlocPolygons(blocRaw) : paintBlocPolygons(null)), [blocRaw, showBlocs]);
+
   const warCountries = useMemo<FeatureCollection>(
     () => ({
       type: "FeatureCollection",
@@ -458,6 +474,7 @@ export default function SeaDashboard() {
           selectedId={selectedId}
           onSelect={onGlobeSelect}
           control={control}
+          blocs={blocs}
           warCountries={warCountries}
           flames={flames}
           callout={callout}
@@ -489,6 +506,21 @@ export default function SeaDashboard() {
             <span className="text-sky-400">●</span> 해상 속보 <span className="ml-2 text-orange-400">●</span> 에너지 시설 피격{" "}
             <span className="ml-2 text-purple-400">■</span> 항행경보
           </p>
+          <p className="pointer-events-auto mt-1 border-t border-white/10 pt-1">
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input type="checkbox" checked={showBlocs} onChange={(e) => setShowBlocs(e.target.checked)} />
+              <span>진영 색칠</span>
+            </label>
+          </p>
+          {showBlocs ? (
+            <p>
+              {(["aukus", "nato", "quad", "us-treaty", "us-base", "crink", "csto"] as SeaBloc[]).map((b) => (
+                <span key={b} className="mr-2 inline-block whitespace-nowrap">
+                  <span style={{ color: SEA_BLOC_COLOR[b] }}>■</span> {SEA_BLOC_LABEL[b]}
+                </span>
+              ))}
+            </p>
+          ) : null}
         </div>
 
         {sat ? (
