@@ -54,6 +54,8 @@ type Props = {
   selectedId: string | null;
   onSelect: (sel: SeaGlobeSelection) => void;
   /** 양피지를 닫은 뒤 사건 좌표에 남는 콜아웃 */
+  /** 진영 국가 면 (CRINK·CSTO·NATO·QUAD·양자조약) — 가장 아래 배경색 */
+  blocs?: FeatureCollection;
   /** LiveUAMap 통제면(우크라 점령지 + 중동) */
   control?: FeatureCollection;
   /** 전쟁 중인 나라 국경 폴리곤 */
@@ -263,6 +265,27 @@ export const SeaGlobe = forwardRef<SeaGlobeHandle, Props>(function SeaGlobe(prop
             "line-color": ["coalesce", ["get", "stroke"], "#ef9a9a"],
             "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.6, 9, 1.4],
             "line-opacity": 0.8,
+          }}
+        />
+      </Source>
+
+      {/* 진영 국가 면 — CRINK·CSTO·NATO·QUAD·미국 양자조약, 가장 아래 배경색 */}
+      <Source id="sea-blocs" type="geojson" data={props.blocs ?? EMPTY_FC}>
+        <Layer
+          id="sea-blocs-fill"
+          type="fill"
+          paint={{
+            "fill-color": ["coalesce", ["get", "fill"], "#3b82f6"],
+            "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.16],
+          }}
+        />
+        <Layer
+          id="sea-blocs-line"
+          type="line"
+          paint={{
+            "line-color": ["coalesce", ["get", "stroke"], "rgba(96,165,250,0.9)"],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 2, 0.5, 6, 0.9, 10, 1.3],
+            "line-opacity": 0.85,
           }}
         />
       </Source>
