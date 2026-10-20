@@ -2222,3 +2222,64 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   }
 }
 
+
+/* ── 랜딩 (LandingContent / LandingGlobe) ─────────────────────────────
+   카드가 바뀔 때 살짝 떠오르고, 섹션은 화면에 들어올 때 아래에서 올라온다.
+   동작 줄이기 설정이면 위쪽 전역 규칙이 애니메이션을 0초로 만든다. */
+@keyframes landing-card {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.landing-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+.landing-cta-glow {
+  box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.45), 0 10px 40px -8px rgba(245, 196, 81, 0.55);
+}
+@keyframes landing-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes landing-grid-pan {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(40px, 40px, 0); }
+}
+@keyframes landing-cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.5), 0 10px 40px -8px rgba(245, 196, 81, 0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(245, 196, 81, 0), 0 10px 50px -6px rgba(245, 196, 81, 0.75); }
+}
+.landing-cta-glow { animation: landing-cta-pulse 2.6s ease-in-out infinite; }
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(94, 234, 212, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 234, 212, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  animation: landing-grid-pan 6s linear infinite;
+}
+.landing-spot {
+  background: radial-gradient(520px circle at var(--sx, 70%) var(--sy, 35%), rgba(245, 196, 81, 0.09), transparent 60%);
+}
+.landing-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s ease-out;
+  background-image: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgba(94, 234, 212, 0.1), transparent 55%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-cta-glow, .landing-grid { animation: none; }
+  .landing-tilt { transform: none; transition: none; }
+}

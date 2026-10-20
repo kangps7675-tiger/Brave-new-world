@@ -7,6 +7,7 @@ import type { BunkerPick, BunkerSentimentSnapshot } from "@/lib/bunkerSentiment"
 import { trackEvent } from "@/lib/trackClient";
 import { visibleInterval } from "@/lib/visibleInterval";
 import { GTI } from "@/lib/gti";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type Props = {
   lang: LabelLanguage;
@@ -16,7 +17,7 @@ type Props = {
  * 내일 전망 — 안정 vs 긴장 고조 이진 투표.
  * 자유텍스트 없음. 긴장 고조 전망 비율만 집계.
  */
-export function BunkerSentimentVote({ lang }: Props) {
+function BunkerSentimentVoteInner({ lang }: Props) {
   const ko = lang !== "en";
   const [snap, setSnap] = useState<BunkerSentimentSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -113,4 +114,10 @@ export function BunkerSentimentVote({ lang }: Props) {
       </p>
     </div>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function BunkerSentimentVote(props: Props) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <BunkerSentimentVoteInner {...props} />;
 }

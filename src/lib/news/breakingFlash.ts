@@ -35,6 +35,7 @@ import {
   extractSummitDiplomacyMeta,
   isSummitDiplomacyText,
 } from "@/lib/news/summitDiplomacyFlash";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 export { isIranRelatedBreakingText };
 
@@ -690,6 +691,8 @@ export function shouldOpenBreakingFlash(
   const priceThreat = isPriceThreatInfrastructureFlash(blob);
 
   if (preferEconomy || hero.feedTopic === "economy") {
+    // 지경학 신속 속보(시장·연준·원자재)는 투자 화면과 함께 일단 내린다 (2026-10-20)
+    if (!SHOW_INVESTMENT_UI) return false;
     // 지정학과 동일 등급 창 — 주제만 지경학 영향력으로 좁힘
     if (rank === "S") {
       return isGeoeconomicImpactFlash(blob) || priceThreat;

@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// 지경학 신속 속보는 기본으로 꺼져 있다(투자 화면 숨김). 이 파일은 켜진 상태의 판정 규칙을 검사한다.
+vi.mock("@/lib/investmentUi", () => ({ SHOW_INVESTMENT_UI: true }));
 import {
   detectSupplyChainLinks,
   extractFlashActors,
