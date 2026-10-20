@@ -66,6 +66,10 @@ async function stubApis(page: Page) {
 }
 
 test.describe("해역 대시보드", () => {
+  // 프로덕션 빌드는 서비스워커(public/sw.js)를 등록한다. WebKit 에서는 SW 가 잡은 뒤의 fetch 가
+  // page.route 를 우회해 스텁 대신 실제 API(느린 외부 소스 포함)로 나가 피격 카드가 안 뜬다.
+  test.use({ serviceWorkers: "block" });
+
   const pageErrors: string[] = [];
   const pending = new Set<string>();
 
