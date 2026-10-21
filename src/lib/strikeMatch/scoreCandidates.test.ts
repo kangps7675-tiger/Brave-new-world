@@ -160,3 +160,81 @@ describe("scoreCandidates", () => {
     expect(summarizeMatch([]).status).toBe("unknown");
   });
 });
+
+describe("한 척을 지목하는 판정은 보수적으로", () => {
+  const base = (over: Partial<VesselTrack> & { points: TrackPoint[] }): VesselTrack => ({
+    mmsi: "900",
+    name: "SOME SHIP",
+    imo: null,
+    shipType: 80,
+    category: "commercial",
+    ...over,
+  });
+  const tankerIncident = { ...INCIDENT, vesselType: "Tanker" };
+
+  it("신호 끊김만으로는 유력이 아니다 (수신 공백일 수 있음)", () => {
+    const dark = base({
+      points: [
+        { lat: 13.95, lng: 42.0, sog: 12, cog: 0, sampledAt: iso(-190) },
+        { lat: 14.1, lng: 42.0, sog: 12, cog: 0, sampledAt: iso(200) },
+      ],
+    });
+    const res = scoreCandidates(tankerIncident, [dark]);
+    expect(res[0]!.signals.map((s) => s.key)).toContain("dark_at_incident");
+    expect(res[0]!.verdict).toBe("possible");
+    expect(summarizeMatch(res).status).toBe("ambiguous");
+  });
+
+  it("앞뒤 표본이 90분 넘게 떨어져 있으면 급감속을 믿지 않는다", () => {
+    const sparse = base({
+      points: [
+        { lat: 13.95, lng: 42.0, sog: 12, cog: 0, sampledAt: iso(-120) },
+        { lat: 14.0, lng: 42.0, sog: 0.2, cog: 0, sampledAt: iso(120) },
+      ],
+    });
+    expect(behaviorSignals(sparse.points, T0).map((s) => s.key)).not.toContain("slowdown");
+  });
+
+  it("사건 지점에서 30km 넘게 떨어져 있으면 행동 변화가 있어도 유력이 아니다", () => {
+    const off = base({
+      points: [
+        ...cruising(14.3, 42.0, 12, -180, 0),
+        { lat: 14.4, lng: 42.0, sog: 0.3, cog: 0, sampledAt: iso(30) },
+        { lat: 14.4, lng: 42.0, sog: 0.2, cog: 0, sampledAt: iso(60) },
+      ],
+    });
+    const res = scoreCandidates(tankerIncident, [off]);
+    expect(res[0]!.distanceKm).toBeGreaterThan(30);
+    expect(res[0]!.verdict).toBe("possible");
+  });
+
+  it("행동 변화가 있는 배가 둘이면 점수가 비슷할 때 하나를 지목하지 않는다", () => {
+    const mk = (mmsi: string, lat: number) =>
+      base({
+        mmsi,
+        name: `SHIP ${mmsi}`,
+        points: [
+          ...cruising(lat - 0.15, 42.0, 12, -180, 0),
+          { lat, lng: 42.0, sog: 0.3, cog: 0, sampledAt: iso(30) },
+          { lat, lng: 42.0, sog: 0.2, cog: 0, sampledAt: iso(60) },
+        ],
+      });
+    const res = scoreCandidates(tankerIncident, [mk("901", 14.0), mk("902", 14.02)]);
+    expect(summarizeMatch(res).status).toBe("ambiguous");
+  });
+
+  it("경보가 선명 대신 쓴 일반 단어(MERCHANT·TKR)는 선명 일치로 치지 않는다", () => {
+    expect(namesMatch("MERCHANT", "MERCHANT STAR")).toBe(false);
+    expect(namesMatch("TKR", "TKR")).toBe(false);
+    expect(namesMatch("Tanker", "TANKER ONE")).toBe(false);
+    expect(namesMatch("Sounion", "DELTA SOUNION")).toBe(true);
+  });
+
+  it("선명이 같은 배가 둘이면 확인하지 않는다", () => {
+    const a = base({ mmsi: "911", name: "EVER ALPHA", points: cruising(14.0, 42.0, 10) });
+    const b = base({ mmsi: "912", name: "EVER ALPHA", points: cruising(14.05, 42.0, 10) });
+    const res = scoreCandidates({ ...INCIDENT, vesselName: "Ever Alpha" }, [a, b]);
+    expect(summarizeMatch(res).status).toBe("ambiguous");
+  });
+});
+
