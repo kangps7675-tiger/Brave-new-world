@@ -20,7 +20,9 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  *  - 불덩이: 미리 구운 부드러운 불 스프라이트를 더하기 합성(lighter)으로 겹치고, 나이에 따라 흰색→노랑→주황→암적색으로 식는다
  *  - 연기: 노이즈를 구운 연기 스프라이트가 부력으로 오르고, 바람에 밀리며 부풀고, 회전한다
  *  - 파편: 중력·공기저항을 받는 조각이 연기 꼬리를 끌고 날아가 바다에 떨어지며 물보라를 낸다
- *  - 불씨·옅은 섬광·충격파, 불빛이 배와 수면을 비춘다(게임처럼 보이지 않게 화면 흔들림은 뺐다)
+ *  - 섬광 순간 불붙은 파편이 튀어 불꼬리를 끌고 바다에 떨어진다(드론 몇 조각 / 미사일 수십 조각)
+ *  - 기뢰: 수면 돔 → 굵은 흰 물기둥과 비스듬한 물줄기 → 중력으로 무너지며 수면을 타고 번지는 물안개
+ *  - 게임처럼 보이지 않게 화면 흔들림·충격파 고리는 뺐다
  *  - 배: 롤·히브 스프링. 충격을 받으면 흔들리다 기울어진 채로 멈추고, 기뢰면 들렸다가 가라앉는다
  * Unity(C#) 같은 엔진은 수십 MB를 받아야 하고 아래에서 도는 실제 지구본과 GPU를 다퉈서 쓰지 않았다.
  * 화면 밖·탭 숨김이면 멈추고, 동작 줄이기 설정이면 폭발 직후 한 장면만 그린다.
@@ -55,7 +57,7 @@ const MAX_PARTS = 950;
 /** 미사일은 충돌 0.32초 전에야 화면에 들어와 운석처럼 내리꽂힌다 */
 const MISSILE_T = 320;
 
-type PKind = "fire" | "smoke" | "ember" | "debris" | "spray" | "mist" | "flame";
+type PKind = "fire" | "smoke" | "ember" | "debris" | "spray" | "mist" | "flame" | "brand";
 type P = {
   k: PKind;
   x: number;
@@ -70,6 +72,8 @@ type P = {
   vr: number;
   a: number;
   trail?: number;
+  /** 개별 중력(px/ms²). 없으면 종류별 기본값 */
+  g?: number;
 };
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -175,7 +179,6 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
     let hit = false;
     let light = 0;
     let flash = 0;
-    let ring = -1;
     let hitPt = { x: 0, y: 0 };
     let roll = 0;
     let vroll = 0;
@@ -192,6 +195,8 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
     let hitOff = 0; // 맞은 지점의 선체 기준 위치 — 불은 배와 함께 움직인다
     let extraFires: { off: number; at: number }[] = [];
     let secondary = -1;
+    let surge = -1; // 기뢰: 물기둥이 무너질 때 수면을 타고 번지는 물안개(base surge) 시각
+    let mineX = 0;
 
     const geo = () => {
       const horizon = H * 0.5;
@@ -228,28 +233,58 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
     };
     const base = (k: PKind, x: number, y: number, o: Partial<P>): P => ({ k, x, y, vx: 0, vy: 0, age: 0, life: 1000, r: 4, grow: 1, rot: rnd(0, 6.28), vr: rnd(-0.0008, 0.0008), a: 1, ...o });
 
+    /** 불붙은 파편 — 섬광 순간 사방으로 튀어 불꼬리와 연기를 끌고 날다가 바다에 떨어져 김을 낸다 */
+    const brands = (x: number, y: number, n: number, sp0: number, sp1: number, size: number) => {
+      const s = geo().L / 520;
+      for (let i = 0; i < n; i++) {
+        const a = rnd(-Math.PI * 0.92, -Math.PI * 0.08);
+        const sp = rnd(sp0, sp1) * s;
+        push(base("brand", x + rnd(-4, 4), y + rnd(-3, 3), { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(1600, 3200), r: rnd(1.6, 3.2) * size * s, trail: 0, vr: rnd(-0.03, 0.03) }));
+      }
+    };
+
     const explode = (x: number, y: number, kind: Kind) => {
       const { L, seaY } = geo();
       hit = true;
       hitPt = { x, y };
       hitOff = x - geo().shipX;
       light = 1;
-      flash = kind === "mine" ? 0.6 : 1;
+      flash = kind === "mine" ? 0.25 : 1; // 물속 폭발은 섬광이 물에 묻힌다
 
-      ring = 0;
       const s = L / 520;
       if (kind === "mine") {
-        // 배 밑 물기둥 + 안개 + 작은 불덩이
-        for (let i = 0; i < 190; i++) {
-          push(base("spray", x + rnd(-L * 0.06, L * 0.06), seaY + rnd(-4, 6), { vx: rnd(-0.06, 0.06), vy: -rnd(0.32, 0.85) * s, life: rnd(1400, 2300), r: rnd(5, 15) * s }));
+        // 수중 폭발: ① 수면이 하얗게 부풀어 오르는 돔 → ② 가운데로 치솟는 물기둥과 왕관처럼 퍼지는 물줄기
+        // → ③ 중력으로 무너져 내리며 수면을 타고 번지는 물안개. 물속이라 불덩이는 거의 안 보인다.
+        mushT = 0;
+        surge = 1900;
+        mineX = x;
+        // 물기둥은 화면에 비해 수십 m 크기라 천천히 솟고 천천히 무너진다(꼭대기까지 약 1.1초)
+        const g = (2 * H * 0.78) / (1200 * 1200);
+        const up = (h: number) => Math.sqrt(2 * g * h); // 높이 h까지 올라가는 초속
+        // 물기둥 본체: 배 길이의 1/4쯤 되는 굵은 흰 기둥. 가운데일수록 높게 치솟는다
+        for (let i = 0; i < 460; i++) {
+          const q = rnd(-1, 1);
+          const off = q * L * 0.085;
+          const hgt = H * (0.78 - Math.abs(q) ** 1.5 * 0.4) * rnd(0.7, 1.05);
+          push(base("spray", x + off, seaY + rnd(-3, 4), { vx: off * 0.0011 + rnd(-0.01, 0.01), vy: -up(hgt), life: 4200, g, r: rnd(5, 14) * s * (1.25 - Math.abs(q) * 0.45) }));
         }
-        for (let i = 0; i < 34; i++) {
-          push(base("mist", x + rnd(-L * 0.08, L * 0.08), seaY - rnd(0, 60) * s, { vx: rnd(-0.03, 0.03), vy: -rnd(0.03, 0.12), life: rnd(2200, 3600), r: rnd(22, 46) * s, grow: rnd(1.6, 2.6) }));
+        // 부피감: 큰 물 덩어리(같은 물리로 솟았다가 떨어진다)
+        for (let i = 0; i < 70; i++) {
+          const q = rnd(-1, 1);
+          const off = q * L * 0.06;
+          push(base("spray", x + off, seaY, { vx: off * 0.0009, vy: -up(H * rnd(0.2, 0.55)), life: 4200, g, r: rnd(14, 26) * s, a: 0.5 }));
         }
-        for (let i = 0; i < 10; i++) {
-          push(base("fire", x + rnd(-14, 14), y + rnd(-6, 6), { vx: rnd(-0.08, 0.08), vy: -rnd(0.02, 0.12), life: rnd(500, 900), r: rnd(18, 34) * s, grow: 2 }));
+        // 비스듬히 뻗는 물줄기(왕관)
+        for (let i = 0; i < 40; i++) {
+          const a = -Math.PI / 2 + (Math.random() < 0.5 ? -1 : 1) * rnd(0.3, 0.8);
+          const v = up(H * rnd(0.2, 0.45));
+          push(base("spray", x + rnd(-L * 0.03, L * 0.03), seaY, { vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 3800, g, r: rnd(4, 9) * s }));
         }
-        vheave -= 0.075 * s; // 들썩
+        // 기둥 꼭대기에 걸리는 옅은 물안개
+        for (let i = 0; i < 18; i++) {
+          push(base("mist", x + rnd(-L * 0.06, L * 0.06), seaY - H * rnd(0.25, 0.55), { vx: rnd(-0.015, 0.0), vy: -rnd(0, 0.015), life: rnd(1800, 2800), r: rnd(14, 26) * s, grow: rnd(1.6, 2.2), a: 0.45 }));
+        }
+        vheave -= 0.09 * s; // 물이 부풀며 배를 들어 올린다
         vroll += 0.0006;
         rollRest = 0.03;
         sink = 7 * s;
@@ -288,6 +323,9 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
             cap: false,
           });
         }
+        // 섬광과 함께 불붙은 파편: 드론은 몇 조각, 대함미사일은 사방으로 크게
+        if (kind === "missile") brands(x, y, 28, 0.5, 1.25, 2.2);
+        else brands(x, y, 7, 0.3, 0.7, 1.4);
         if (kind === "missile") {
           // 큰 탄두: 0.4초 뒤 선체 안에서 2차 폭발, 불이 갑판 앞뒤로 번진다
           secondary = 420;
@@ -330,12 +368,12 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       parts = [];
       hit = false;
       light = flash = 0;
-      ring = -1;
       roll = vroll = heave = vheave = rollRest = sink = fireRate = 0;
       mpuffs = [];
       mushT = -1;
       extraFires = [];
       secondary = -1;
+      surge = -1;
     };
 
     const update = (dt: number) => {
@@ -350,6 +388,13 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
         else {
           const ip = impactPt();
           explode(ip.x, ip.y, kind);
+        }
+      }
+      if (surge >= 0 && mushT >= surge) {
+        surge = -1;
+        for (let i = 0; i < 46; i++) {
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          push(base("mist", mineX + rnd(-L * 0.05, L * 0.05), seaY - rnd(0, 10) * s, { vx: dir * rnd(0.03, 0.12), vy: -rnd(0.0, 0.02), life: rnd(2600, 4000), r: rnd(12, 24) * s, grow: rnd(2.2, 3.4), a: 0.7 }));
         }
       }
       // 불난 자리는 배에 붙어 함께 나아간다. 거기서 나온 연기는 뒤(왼쪽)로 처진다
@@ -382,6 +427,7 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
           const sp = rnd(0.03, 0.14) * s;
           push(base("fire", sx + rnd(-6, 6), hitPt.y + rnd(-4, 4), { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6 - 0.05, life: rnd(500, 1000), r: rnd(14, 28) * s, grow: 2.4 }));
         }
+        brands(sx, hitPt.y, 10, 0.4, 0.9, 1.6);
         for (let i = 0; i < 10; i++) {
           const a = rnd(-Math.PI * 0.9, -Math.PI * 0.1);
           const sp = rnd(0.12, 0.36) * s;
@@ -397,10 +443,9 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
 
       light *= Math.pow(0.9965, dt);
       flash *= Math.pow(0.986, dt); // 섬광은 짧고 세게
-      if (ring >= 0) ring += dt;
 
       // 맞은 뒤: 불길과 검은 연기 기둥
-      if (hit) {
+      if (hit && (kind !== "mine" || mushT > 2600)) {
         fireRate = Math.max(0.55, fireRate * Math.pow(0.9998, dt));
         const spots = [0, ...extraFires.filter((e) => mushT >= e.at).map((e) => e.off)];
         const fx = hitPt.x + spots[(Math.random() * spots.length) | 0] + rnd(-L * 0.04, L * 0.04);
@@ -440,9 +485,27 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
             p.vx *= Math.pow(0.999, dt);
             break;
           case "spray":
-            p.vy += 0.00085 * dt;
+            p.vy += (p.g ?? 0.00085) * dt;
+            if (p.g && p.vy > 0) p.vx *= Math.pow(1.0004, dt); // 무너지는 물은 커튼처럼 옆으로 벌어진다
             p.vx *= Math.pow(0.999, dt);
             break;
+          case "brand": {
+            p.vy += 0.00045 * dt;
+            p.vx *= Math.pow(0.9994, dt);
+            p.trail = (p.trail ?? 0) + dt;
+            const burn = 1 - p.age / p.life;
+            if (p.trail > 18) {
+              p.trail = 0;
+              if (burn > 0.15) push(base("flame", p.x, p.y, { vx: p.vx * 0.1, vy: -0.01, life: rnd(180, 320), r: p.r * rnd(1.6, 2.4), grow: 0.5 }));
+              push(base("smoke", p.x, p.y, { vx: 0, vy: -0.012, life: rnd(800, 1400), r: p.r * 1.4, grow: 3, a: 0.45 }));
+            }
+            if (p.y > seaY + 6 && p.vy > 0) {
+              p.age = p.life; // 바다에 떨어져 치익 — 물보라와 김
+              for (let i = 0; i < 6; i++) push(base("spray", p.x, seaY, { vx: rnd(-0.04, 0.04), vy: -rnd(0.1, 0.25), life: rnd(400, 800), r: rnd(2, 4) * s }));
+              push(base("mist", p.x, seaY - 4, { vx: 0, vy: -0.02, life: 1200, r: 6 * s, grow: 2.5, a: 0.4 }));
+            }
+            break;
+          }
           case "debris":
             p.vy += 0.0007 * dt;
             p.vx *= Math.pow(0.9995, dt);
@@ -459,7 +522,11 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
         }
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        if (p.k === "spray" && p.y > seaY + 10) p.age = p.life;
+        if (p.k === "spray" && p.y > seaY + 10 && p.vy > 0) {
+          p.age = p.life;
+          // 무너지는 물이 수면을 때리며 하얀 거품을 남긴다
+          if (p.k === "spray" && Math.random() < 0.06) push(base("mist", p.x, seaY - 2, { vx: rnd(-0.03, 0.03), vy: -0.005, life: rnd(1200, 2200), r: rnd(6, 12) * s, grow: 2.2, a: 0.5 }));
+        }
       }
       parts = parts.filter((p) => p.age < p.life);
     };
@@ -816,21 +883,43 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
         sprite(img, m.x, m.y, r, a * (1 - heat * 0.6));
       }
 
+      // 기뢰: 터진 직후 배 밑 수면이 하얗게 부풀어 오르는 돔
+      if (kind === "mine" && mushT >= 0 && mushT < 450) {
+        const k = mushT / 450;
+        const rx = L * 0.13 * Math.min(1, mushT / 160);
+        ctx.save();
+        ctx.globalAlpha = 0.85 * (1 - k);
+        ctx.translate(mineX, seaY + 2);
+        ctx.scale(1, 0.5);
+        const dg = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+        dg.addColorStop(0, "rgba(240,248,252,1)");
+        dg.addColorStop(0.7, "rgba(200,222,235,0.7)");
+        dg.addColorStop(1, "rgba(180,205,222,0)");
+        ctx.fillStyle = dg;
+        ctx.beginPath();
+        ctx.arc(0, 0, rx, Math.PI, 0);
+        ctx.fill();
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
       // 물보라
       for (const p of parts) {
         if (p.k !== "spray") continue;
         const k = p.age / p.life;
-        sprite(SPRAY, p.x, p.y, p.r * (1 + k * 0.8), 0.9 * (1 - k));
+        // 올라가는 동안은 촘촘한 흰 물, 떨어지며 흩어진다
+        const falling = p.vy > 0 ? 1 : 0;
+        sprite(SPRAY, p.x, p.y, p.r * (1 + k * 0.8 + falling * 0.4), 0.9 * p.a * (1 - k) * (falling ? 0.75 : 1));
       }
       // 파편
       ctx.globalAlpha = 1;
       ctx.fillStyle = "#151a1f";
       for (const p of parts) {
-        if (p.k !== "debris") continue;
+        if (p.k !== "debris" && p.k !== "brand") continue;
+        const dr = p.k === "brand" ? p.r * 0.7 : p.r;
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
-        ctx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
+        ctx.fillRect(-dr, -dr * 0.5, dr * 2, dr);
         ctx.restore();
       }
 
@@ -847,6 +936,11 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
           sprite(k < 0.35 ? FIRE_HOT : FIRE_MID, p.x, p.y, r, 0.85 * (1 - k));
         } else if (p.k === "ember") {
           sprite(FIRE_HOT, p.x, p.y, p.r * 2.4, (1 - k) * 0.95);
+        } else if (p.k === "brand") {
+          // 타는 파편: 밝은 불덩이가 점점 작아지며 꺼진다
+          const burn = Math.max(0, 1 - k * 1.1);
+          sprite(FIRE_MID, p.x, p.y, p.r * (3 + 2 * burn), 0.9 * burn);
+          sprite(FIRE_HOT, p.x, p.y, p.r * 1.6 * burn, burn);
         }
       }
       // 버섯구름 속 불빛: 처음엔 하얗게 달아오른 불덩이, 식으며 주황→검붉은색
@@ -874,16 +968,7 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;
 
-      // 충격파
-      if (ring >= 0 && ring < 800 && kind === "mine") {
-        const k = ring / 800;
-        ctx.strokeStyle = `rgba(255,225,170,${0.75 * (1 - k)})`;
-        ctx.lineWidth = 3 * (1 - k) + 0.6;
-        ctx.beginPath();
-        ctx.ellipse(hitPt.x, kind === "mine" ? seaY : hitPt.y, 12 + k * L * 0.5, 4 + k * L * 0.13, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      ctx.restore();
+            ctx.restore();
 
       // 섬광
       if (flash > 0.01) {
