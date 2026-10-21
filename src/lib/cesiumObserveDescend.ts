@@ -11,7 +11,9 @@ import {
 } from "@/lib/cesiumObserveRenderGovernor";
 
 /** 지면 위 최종 여유 높이 */
-export const DESCEND_CLEARANCE_M = 600;
+export const DESCEND_CLEARANCE_M = 300;
+/** 외부 요인으로 비행이 끊겼을 때 재시도 횟수 */
+export const DESCEND_FLY_RETRIES = 2;
 /** 1단계 수평 이동 고도 범위 */
 export const DESCEND_TRANSIT_MIN_M = 400_000;
 export const DESCEND_TRANSIT_MAX_M = 1_500_000;
@@ -188,7 +190,7 @@ export function startObserveDescend(
   const currentHeight = () =>
     viewer.camera.positionCartographic?.height ?? DESCEND_TRANSIT_MAX_M;
 
-  const fly = (heightM: number, durationSec: number, maximumHeight: number) =>
+  const flyOnce = (heightM: number, durationSec: number, maximumHeight: number) =>
     new Promise<boolean>((resolve) => {
       if (cancelled || viewer.isDestroyed()) {
         resolve(false);
@@ -204,6 +206,17 @@ export function startObserveDescend(
         cancel: () => resolve(false),
       });
     });
+
+  // 유저 입력·새 이동 요청(cancelled)이 아닌데 비행이 끊기면(부팅 인트로·타일 로딩 등) 다시 건다
+  const fly = async (heightM: number, durationSec: number, maximumHeight: number) => {
+    for (let attempt = 0; attempt <= DESCEND_FLY_RETRIES; attempt++) {
+      const ok = await flyOnce(heightM, durationSec, maximumHeight);
+      if (ok) return true;
+      if (cancelled || viewer.isDestroyed()) return false;
+      await new Promise<void>((r) => setTimeout(r, 350));
+    }
+    return false;
+  };
 
   holdObserveRender("descend");
   opts?.beginProgrammatic?.();

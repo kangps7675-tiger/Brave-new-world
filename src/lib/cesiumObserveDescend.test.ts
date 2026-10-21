@@ -8,7 +8,7 @@ import {
 } from "@/lib/cesiumObserveDescend";
 
 describe("planObserveDescend", () => {
-  it("transits at capped orbit height, then gates and lands at ground + 600m", () => {
+  it("transits at capped orbit height, then gates and lands at ground + 300m", () => {
     const plan = planObserveDescend({
       currentHeightM: 5_400_000,
       surfaceDistanceM: 3_000_000,
