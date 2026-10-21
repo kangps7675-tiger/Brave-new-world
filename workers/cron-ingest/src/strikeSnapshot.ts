@@ -59,7 +59,7 @@ export type StrikeSnapshotResult = {
   errors: string[];
 };
 
-function readPositiveInt(raw: string | undefined, fallback: number): number {
+export function readPositiveInt(raw: string | undefined, fallback: number): number {
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
@@ -74,7 +74,7 @@ function parseCandidates(raw: string | null): SnapshotCandidate[] {
   }
 }
 
-async function addUsage(env: IngestEnv, month: string, credits: number, stamp: string): Promise<void> {
+export async function addUsage(env: IngestEnv, month: string, credits: number, stamp: string): Promise<void> {
   await env.DB
     .prepare(
       `INSERT INTO datalastic_usage (month, credits, calls, updated_at) VALUES (?, ?, 1, ?)

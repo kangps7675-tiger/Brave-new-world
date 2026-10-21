@@ -276,6 +276,29 @@ export const aisPositionHistory = sqliteTable(
   }),
 );
 
+/** 뉴스에서 뽑은 피격선 이름 후보 + AIS 위치 검증 결과 (migration 0039). verified 만 선명 일치("확인")에 쓴다. */
+export const strikeNamed = sqliteTable(
+  "strike_named",
+  {
+    incidentId: text("incident_id").notNull(),
+    nameKey: text("name_key").notNull(),
+    name: text("name").notNull(),
+    imo: text("imo"),
+    outlets: integer("outlets").notNull().default(1),
+    sources: text("sources").notNull().default("[]"),
+    status: text("status").notNull().default("new"),
+    mmsi: text("mmsi"),
+    distKm: real("dist_km"),
+    offsetMin: integer("offset_min"),
+    tries: integer("tries").notNull().default(0),
+    checkedAt: text("checked_at"),
+    note: text("note"),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.incidentId, t.nameKey] }),
+  }),
+);
+
 /** 사건 조사용 군용기 항적 이력 — 30분 버킷당 기체 1행 (migration 0031) */
 export const adsbTrackHistory = sqliteTable(
   "adsb_track_history",

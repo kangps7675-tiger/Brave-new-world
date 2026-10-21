@@ -5,11 +5,13 @@
  *  신원: vessel_identity (aisstream 정적 메시지의 IMO, migration 0033) → 없으면 ais_vessels 의 선종
  */
 
-import { and, desc, gte, inArray, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import type { AppDb } from "@/db/client";
-import { aisPositionHistory, aisVessels, ukmtoIncidents, vesselIdentity } from "@/db/schema";
+import { aisPositionHistory, aisVessels, strikeNamed, ukmtoIncidents, vesselIdentity } from "@/db/schema";
 import { extractShipName } from "@/lib/strikeMatch/shipName";
 import {
+  GENERIC_NAMES,
+  normalizeShipName,
   scoreCandidates,
   summarizeMatch,
   type MatchStatus,
@@ -44,10 +46,50 @@ export type StrikeMatchResult = {
   nearbyCount: number;
   /** 근거 한계 — 숨기지 않는다 */
   limits: string[];
+  /** 선명을 기사에서 가져왔고 AIS 위치로 검증된 경우의 출처 (UKMTO 가 선명을 공개하지 않을 때) */
+  nameSource?: NameSource;
   trackSource: "ais_position_history" | "ais_position_history+datalastic";
 };
 
+export type NameSource = {
+  name: string;
+  /** 같은 이름을 낸 서로 다른 매체 수 */
+  outlets: number;
+  /** 사건 시각 추정 위치와 사건 지점의 거리(km) — AIS 검증 */
+  distKm: number | null;
+  sources: Array<{ url: string; outlet: string | null; headline: string; publishedAt: string | null }>;
+};
+
 type UkmtoRow = typeof ukmtoIncidents.$inferSelect;
+
+/** UKMTO 가 선명 대신 쓰는 자리표시(".", "-", MERCHANT, TKR …)인가 */
+function reportedNameUnusable(name: string | null): boolean {
+  if (!name) return true;
+  const n = normalizeShipName(name);
+  return n.length < 3 || GENERIC_NAMES.has(n);
+}
+
+/** 기사에서 뽑고 AIS 위치로 검증된 선명 (migration 0039 전이면 빈 배열) */
+export async function loadVerifiedNames(db: AppDb, incidentId: string): Promise<NameSource[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(strikeNamed)
+      .where(and(eq(strikeNamed.incidentId, incidentId), eq(strikeNamed.status, "verified")));
+    return rows.map((r) => {
+      let sources: NameSource["sources"] = [];
+      try {
+        const parsed = JSON.parse(r.sources) as unknown;
+        if (Array.isArray(parsed)) sources = parsed as NameSource["sources"];
+      } catch {
+        // 깨진 JSON — 출처 없이 진행
+      }
+      return { name: r.name, outlets: r.outlets, distKm: r.distKm, sources };
+    });
+  } catch {
+    return [];
+  }
+}
 
 function toCase(r: UkmtoRow): StrikeCase | null {
   const occurredAt = r.utcDateOfIncident || r.utcDateCreated;
@@ -193,12 +235,28 @@ export async function matchStrikeCase(
     limits.push(`AIS 위치 이력은 ${coverageStart.slice(0, 10)}부터 — 그 이전 사건은 항적 자료 없음`);
   }
 
+  // UKMTO 가 선명을 안 냈으면 기사에서 뽑아 AIS 로 검증한 이름을 쓴다 — 검증된 이름이 둘 이상이면 하나를 고르지 않는다
+  let nameSource: NameSource | undefined;
+  let scoringName = c.reportedVesselName;
+  if (reportedNameUnusable(c.reportedVesselName)) {
+    const named = await loadVerifiedNames(db, c.id);
+    if (named.length === 1) {
+      nameSource = named[0];
+      scoringName = named[0]!.name;
+      limits.push(
+        `선명은 기사 ${named[0]!.outlets}곳 보도 + AIS 위치 검증${named[0]!.distKm != null ? `(사건 시각 ${Math.round(named[0]!.distKm)}km 이내)` : ""} — UKMTO 는 선명을 공개하지 않음`,
+      );
+    } else if (named.length > 1) {
+      limits.push(`기사마다 다른 선명(${named.map((n) => n.name).join(", ")})이 검증돼 하나로 못 정함`);
+    }
+  }
+
   const incident: StrikeIncident = {
     lat: c.lat,
     lng: c.lng,
     atIso: c.occurredAt,
     vesselType: c.reportedVesselType,
-    vesselName: c.reportedVesselName,
+    vesselName: scoringName,
   };
   let candidates = scoreCandidates(incident, tracks, { radiusKm });
   let trackSource: StrikeMatchResult["trackSource"] = "ais_position_history";
@@ -222,7 +280,7 @@ export async function matchStrikeCase(
   if (s.status === "unknown" && coverageStart && c.occurredAt >= coverageStart) {
     limits.push("사건 주변에 AIS 기록이 없음 — 수신 공백일 수 있음 (\"아무 배도 없었다\"는 뜻이 아님)");
   }
-  if (!c.reportedVesselName) limits.push("경보에 선명이 없어 '확인'은 불가 — 항적 정황으로만 판단");
+  if (!scoringName) limits.push("경보에 선명이 없어 '확인'은 불가 — 항적 정황으로만 판단");
   if (s.top && !s.top.imo) limits.push("1순위 후보의 IMO 미수신 — MMSI 로만 식별");
 
   return {
@@ -232,6 +290,7 @@ export async function matchStrikeCase(
     candidates: candidates.slice(0, 10),
     nearbyCount: s.nearbyCount,
     limits,
+    ...(nameSource ? { nameSource } : {}),
     trackSource,
   };
 }

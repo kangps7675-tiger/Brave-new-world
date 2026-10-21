@@ -27,6 +27,13 @@ type Strike = {
   candidates: ScoredCandidate[];
   nearbyCount: number;
   limits: string[];
+  /** 선명을 기사에서 가져와 AIS 위치로 검증한 경우의 출처 */
+  nameSource?: {
+    name: string;
+    outlets: number;
+    distKm: number | null;
+    sources: Array<{ url: string; outlet: string | null; headline: string; publishedAt: string | null }>;
+  };
   trackSource: string;
   warRiskRegion: WarRiskRegionId;
 };
@@ -155,6 +162,19 @@ function StrikeCard({ s, latestQuote }: { s: Strike; latestQuote: Quote | null }
             <p className="text-sm text-white/45">{st.hint}</p>
           )}
         </div>
+        {view.nameSource && view.status === "confirmed" ? (
+          <p className="mt-2 text-xs leading-relaxed text-white/55">
+            선명 출처 · 기사 {view.nameSource.outlets}곳 보도, AIS 위치로 검증
+            {view.nameSource.sources.slice(0, 3).map((src) => (
+              <span key={src.url}>
+                {" · "}
+                <a href={src.url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4 hover:text-white">
+                  {src.outlet || "기사"}
+                </a>
+              </span>
+            ))}
+          </p>
+        ) : null}
         {open && others.length ? (
           <div className="mt-3 space-y-3">
             {others.map((c) => (
