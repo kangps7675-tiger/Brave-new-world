@@ -1,175 +1,68 @@
 # Strait Desk
 
-해협을 지켜보는 상황실입니다. 홍해·호르무즈·말라카 같은 해운 길목에서 어느 배가 맞았는지, 그 바다가 얼마나 위험한지, 전쟁위험 보험료와 날씨가 어떻게 움직이는지를 3D 지구본 한 화면에 모았습니다.
+**해협을 지켜보는 해운 위험 상황실.** 홍해·호르무즈·말라카 같은 해운 길목에서 어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료와 날씨가 어느 쪽으로 움직이는지를 3D 지구본 한 화면에 모았습니다.
 
-> **한 줄:** 지정학으로 축과 전선을 보고, 지경학으로 돈과 물류를 본다.
+> 피격 경보가 뜬 직후 "이 바다는 지금 다닐 만한가"라는 질문에 근거를 갖춘 답을 가장 먼저 건네는 것이 목표입니다.
 
-- **npm 패키지명:** `brave-new-world` · **사용자 브랜드:** Strait Desk (구 Brave New World / 멋진 신세계)
-- **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · react-map-gl · Tailwind CSS
-- **언어:** UI 기본 한국어 · 입장 주의창·레이어 패널에서 **English** 전환 (`labelLanguage`)
-- **UX 시나리오 상세:** [`docs/ux-scenarios.md`](docs/ux-scenarios.md)
-- **출처 표기 의무:** [출처 표기 · 라이선스 공개 의무](#출처-표기--라이선스-공개-의무) · 앱 UI 「출처」 패널 · [`docs/copyright-checklist.md`](docs/copyright-checklist.md)
-
----
-
-## 제품 구조 요약
-
-### 두 도메인 (뷰어 모드)
-
-| 모드 | 초점 | 상단 nav | 하단 Intel |
-|------|------|----------|------------|
-| **지정학** | 전선·분쟁·GDELT·Telegram OSINT·공습 경보 | **반서방 4허브** (중국·러시아·북한·이란) | 속보·GDELT 범례 |
-| **지경학** | 증시·유가·물류·에너지·제재 RSS | 검색 포커스 시 에너지·초크·금융 허브 메뉴 | 티커·경제 RSS |
-
-`ViewModeSwitcher`로 전환하면 레이어 패키지·nav·하단 Intel·fetch 정책이 함께 바뀝니다. 스위처는 **허브 nav 아래** 고정(지정학 `top-[7.35rem]` / 지경학 `top-[4.35rem]`).
-
-### 지정학 — 반서방 4허브 nav
-
-상단 **중국 · 러시아 · 북한 · 이란** (`grid-cols-4` 한 줄). 각 허브 드롭다운:
-
-1. **국경 · 우군 관계망** — soft fly → 양피지 브리프
-2. **우군 국가** — 우군 좌표 fly → 양피지
-3. **영유권 주장 및 영향** — claim 링 + 양피지 + 속보 타전음(SOS 모스)
-4. **무기거래 (SIPRI)** — 호 + 양피지 → 접은 뒤 `AxisArmsPanel` 상세
-5. **반서방국간 분쟁 외교사** — 11개 큐레이션 에피소드 (`frictionEpisodes.ts`) → `AxisRegimePanel` → 현장 fly + 전장 빗금·핀 + 양피지
-
-- 입장·로딩 중에는 **허브/전장으로 자동 fly·양피지 금지** — 유저가 nav를 직접 열 때만 동작
-- 구 「주요전선」 ExplorationTabs(대만/한반도/우크라/중동)는 **지정학에서 숨김**
-- 부트 시 ModePicker 세부 전장 창 **없음** (`shouldShowModePicker(): false`)
-
-### 지경학 — econ nav
-
-검색 포커스 시 6그룹(에너지·초크포인트, 에너지 허브, 금리·통화, 금융·무역, 공급망·제조, 원자재·식량). 허브 선택 시 soft fly + **`EconInsightParchment`** (Risk / Impact / Market Link 스코어보드) + Critical Nodes 강조.
+- **상태:** 베타 — 지금은 가입 없이 볼 수 있습니다. 정식 출시 후 알림·해역 판단 같은 일부 기능은 유료가 될 예정입니다.
+- **이름:** Strait Desk (구 Brave New World / 멋진 신세계 / GeoWatch). 패키지명 `brave-new-world`, localStorage 키 `geowatch-*`, 설정 파일 `geowatch.config.ts`는 호환을 위해 그대로 둡니다.
+- **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · Cesium(위성 보기) · Tailwind CSS
+- **언어:** UI 기본 한국어, 레이어 패널에서 English 전환
+- **출처 표기 의무:** [출처 표기 · 라이선스 공개 의무](#출처-표기--라이선스-공개-의무) · 앱 「출처」 패널 · [`docs/copyright-checklist.md`](docs/copyright-checklist.md)
 
 ---
 
-## 입장 UX
+## 무엇을 보여주나
 
-**순서 (1회 통과형, `entryOverview.ts`):**  
-로딩(고도 ≈ 2.85) → **주의** → **환영 편지** → **도메인 선택** → 히어로 지구본
+해역 하나를 고르면 다섯 가지가 한 흐름으로 나옵니다.
 
-| 단계 | 컴포넌트 | 내용 |
-|------|----------|------|
-| 주의 | `EntryCautionOverlay` | 성능·사운드 규칙 · 벨 토글 · English / 한글모드 |
-| 환영 | `WelcomeParchmentLetter` | 양피지 타이핑 · 펼침/접힘 사운드 (Freesound) |
-| 도메인 | `DomainGateOverlay` | 지정학의 창 / 지경학의 창 · **초기화 모드(Ultra-Lite)** 토글 |
-| 스킵 | 주의창 우상단 | 경고+편지 생략 → 도메인 직행 |
-| 온보딩 | `ChromeOnboardingCoach` | 상단 nav·하단 뉴스 표지 (1회) |
+| # | 정보 | 내용 |
+|---|------|------|
+| 1 | **피격 선박** | UKMTO 피습 경보 시각 주변을 지나던 선박의 AIS 항적을 분석해 사건 직후 멈추거나 방향을 틀거나 신호가 끊긴 배를 찾고, IMO 번호로 식별합니다. Datalastic으로 제원(톤수·길이·건조년도 등)을 보강합니다. |
+| 2 | **해역 상황** | 바브엘만데브·호르무즈·흑해 등 해협별 최근 피격 이력, 항행 경보, 통항량 변화. |
+| 3 | **전쟁위험 보험료 동향** | 공개 시세가 없어 해운·보험 매체 보도에서 해역별로 추출해 날짜순으로 쌓고, 출처와 근거 문장을 함께 제시합니다. |
+| 4 | **날씨** | 해역의 기상·해상 상태. 우회나 대기 판단용. |
+| 5 | **지정학 뉴스** | 해당 해역에 영향을 주는 군사·외교 소식을 위치별로 태깅. |
 
-- 재방문: `localStorage` welcome gate 완료 시 caution/welcome 생략
-- 도메인 선택 직후 `buildDomainOverviewPrefs()`로 히어로 레이어 적용 (아래 표)
-- 프로덕션만 레이어 prefs `localStorage` 유지; 개발은 매 새로고침 기본값 경향
+### 판정과 한계를 같이 표시합니다
 
-### 히어로 기본 레이어
+- 피격 선박은 선명이 일치할 때만 **확인**, 정황이 하나로 좁혀질 때 **유력**, 그 밖은 **가능** 또는 판정 보류로 구분합니다.
+- AIS 수신이 끊긴 구간은 "배가 없었다"가 아니라 **"자료가 없다"** 로 표시합니다.
+- 보험료는 추출한 기사 문장과 출처 링크가 없으면 올리지 않습니다.
 
-| 지정학 ON | 지경학 ON |
-|-----------|-----------|
-| 전쟁구역 · 동아시아 ADIZ · GDELT 4종 · 군용기 · AIS · 물류·초크 · 축 관계망 · 해저 케이블 | AIS · 민항 · 물류·초크 · 크리티컬 노드 · 케이블 · 유가스 파이프 · 원자력 · AI DC · 항구 · 공항 |
+### 누구를 위한 것인가
 
-대부분 기타 레이어는 **기본 OFF** (성능). Ultra-Lite는 무거운 레이어에 **「클릭 주의」** 태그.
-
----
-
-## 레이어 패널 (≡)
-
-- **체크 → 지도 반영** — 패널을 닫을 때까지 기다리지 않음. 첫 체크는 즉시 flush, 연속 토글만 ~120ms로 배칭 (`useLayerPrefsController` leading-edge debounce)
-- **KO / EN** 라벨 언어도 즉시 적용
-- **동시 ON 상한 (코드 정본):** 일반 **30** · Ultra-Lite **16** — [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap.ts` (UI에는 "상한" 숫자 대신 자동 강등 + 되돌리기)
-- **오버레이 top-1:** [`src/lib/overlayQueue.ts`](src/lib/overlayQueue.ts) (우선순위도 geowatch.config) — 공습 > ADS-B/훈련 > 해상 > 긴장컷 > 핫전장 > 코치
-- **폴링(stub OFF):** geowatch.config `polling.*` → `liveRenderGuard.ts`
-- 패키지 hard cap: 지정학·지경학 각 **64** (`viewPackages` `MAX_ON_LAYERS*`) — UI 캡보다 느슨한 안전망
-- 카테고리 「전체」/「끔」 · 밀도 초과 시 자동 강등 (`LayerCategoryDraftHost` / `enableLayerEvictingCap`)
-- **제거됨:** 「지나간 미사일·드론 궤적」체크박스 — 저장 시 강제 OFF (`layerPrefs` v21)
-
-### 카테고리별 레이어
-
-#### 지도 · 지명
-| 레이어 | 설명 |
-|--------|------|
-| 도시명 | 주요 도시 라벨 (줌별 LOD) |
-| 철도 | 철도 경로 글로우 |
-
-#### 분쟁 · 영토
-| 레이어 | 설명 |
-|--------|------|
-| **우크라이나 전선** | VIINA 기반 RU/UA 점령·주장 **경계선·빗금** (면 채움 제거) |
-| **우크라 드론·미사일** | [NEPTUN](https://neptun.in.ua) 공중 위협·공습 경보 |
-| **전쟁구역 / 외교적 긴장구역** | 분쟁 빗금 박스 — 레이어 분리 토글 |
-| 동아시아 ADIZ | KADIZ/JADIZ/TAIDIZ/북한/CADIZ |
-| 축 관계망 | IRN–CHN–RUS–PRK 외교·군수·하이브리드 호 |
-| AI 전쟁지역 | GDELT·분쟁 데이터 휴리스틱 데모 (외부 AI API 없음) |
-| 무기 금수 · 분쟁 사건(UCDP) | UN 등 · UCDP GED |
-| GDELT 뉴스 | 전투·외교·동맹·시위 핀 |
-| **텔레그램 채널** | 중동·우크라 공개 채널 OSINT (70+ 채널) |
-| **이스라엘 / 우크라 공습 경보** | Tzeva Adom · NEPTUN 경보 구역 |
-
-#### 에너지 · 자원
-기름 파이프 · 가스관 · LNG · 광물·자원지 · 원자력 시설 (GEM·정적 빌드)
-
-#### 운송 · 통신 · 인프라
-| 레이어 | 설명 |
-|--------|------|
-| **항로** | 해운로 (정적 경로, 줌 LOD) |
-| **해저 케이블 · 해저터널** | TeleGeography 계열 · 터널 D1 |
-| **공항 · 항구** | OurAirports 등 — `infraStaticMarkers.ts` HTML 실루엣 |
-| **초크포인트·물류 거점** | chokepoint + logistics-hub |
-| **크리티컬 노드 (MIT Atlas)** | 양 모드 공통 (`criticalNodes.ts`) |
-| **선박 위치 (AIS)** | 지정학=군용 함정, 지경학=민간 |
-| **민간 항공 (ADS-B)** | 지경학 히어로 기본 ON |
-| 인터넷 교환점 | PeeringDB |
-
-#### 군사 · 안보
-미군 기지 · **군사 항공기 (adsb.lol)** · 정보 수집 거점 · 난민 캠프 · **미 해군 항공모함**
-
-#### 실시간 · 사건
-NASA FIRMS 화재 · 사이버 공격 · 선거 · 우주 발사 (Launch Library 2)
-
-#### 경제 · 제재
-경제 중심지 · AI 데이터센터 · 제재 대상 (OFAC·UN·EU·UK)
+- **해운사** — 통항 강행 / 희망봉 우회 / 출항 연기 판단
+- **해운 관련 중소기업·화주** — 선적·납기 계획
+- **보험업계** — 해역별 위험 평가와 요율 판단의 참고 자료
 
 ---
 
-## UI · 타이포그래피
+## 화면 구성
 
-| 용도 | 폰트 |
-|------|------|
-| 본문/UI 모노 | Geist Mono, IBM Plex Mono |
-| 지경학 nav | Pretendard |
-| 뉴스 헤드라인 | Gmarket Sans |
-| 지경학 양피지 | Space Grotesk |
-| 환영 편지 필체 | Griun PolSensibility |
-| 영문 UI | IBM Plex Sans |
+- **첫 화면:** 신규 방문자는 해운 화면으로 들어옵니다. 선박(AIS)·해협 길목 콜아웃·피격 사건이 켜지고, 지정학 개관(핵탄두 수 등)은 숨깁니다. 레이어 기본값은 `src/lib/firstScreenLayers.ts` (`FIRST_SCREEN_MARITIME_ON/OFF`)가 정합니다.
+- **전체 지정학 버전:** 메뉴·「무엇을 볼까요」로 바꿀 수 있습니다. 무료로 넓게 보여주는 층이고, 그 위에 해역 판단·알림 같은 프리미엄을 얹는 구조입니다.
+- **사건 카드:** 피격 사건 카드에서 선박 사진·제원, 지도, 「위성으로 보기」(Cesium으로 수백 미터 상공까지 하강)로 들어갑니다. 위성 화면에는 선박(AIS)을 그리지 않습니다.
+- **페이지:** `/strikes`(피격 목록·판정), `/chokepoints/[slug]`(해협별 상황)
+- **새 레이어 기준:** 케이스 파일(기사 확인)의 증거·판정에 연결될 때만 노출하고, 아니면 `src/lib/layerLab.ts` 실험실로 숨깁니다(`NEXT_PUBLIC_LAB=1`로 해제).
 
 ---
 
-## 사운드 시스템
+## 데이터 소스
 
-지휘소 매니페스트: [`src/data/audioManifest.ts`](src/data/audioManifest.ts) · 로컬: [`public/audio/`](public/audio/) · 프록시: `GET /api/sound-stream?eventId=…`
+키는 서버 전용 환경 변수로만 둡니다(`NEXT_PUBLIC_` 금지).
 
-### 재생 규칙 (체크박스 ≠ 즉시 재생)
+| 용도 | 소스 | 변수 |
+|------|------|------|
+| 피습·나포 경보 | UKMTO (비공식 엔드포인트) | — |
+| 항행 경보 | NAVAREA | — |
+| 선박 위치 | AISstream · Datalastic | `DATALASTIC_API_KEY` 등 |
+| 선박 제원·이력 | Datalastic `vessel_info` / `vessel_history` | `DATALASTIC_API_KEY` |
+| 선박 사진 | Wikimedia Commons (Datalastic은 사진 미제공) | — |
+| 항공기 | ADS-B Exchange(RapidAPI), 실패 시 adsb.lol | `ADSBEXCHANGE_API_KEY` |
+| 뉴스 | GDELT · RSS | — |
 
-| 소리 | 트리거 |
-|------|--------|
-| **공습 사이렌** | 경보 칩·버튼 fly 시 (~10초, 로컬 Mega Siren) |
-| **NEPTUN 폭발 · FIRMS** | 레이어 ON + 이벤트가 뷰포트 진입 |
-| **전선 교전음** | 지정학 · 전장 위 · regional 이하 줌 |
-| **긴장 rumble** | 전쟁/고긴장 구역 위 |
-| **항모 갑판** | 미 항모가 화면에 있을 때 |
-| **경제 앰비언트** | 지경학 · 파이프라인 → DC → 항구 → 경제중심 |
-| **양피지 펼침/접힘** | 허브·환영·에피소드 브리프 |
-| **속보 타전음** | 주장·영향 / 분쟁 외교사 양피지 (S급 속보와 동일 SOS 모스) |
-| 티커 · 모드 전환 · 일반 UI 클릭 | **무음** |
-
-벨 버튼(`SoundMuteControl`)으로 전역 음소거.
-
----
-
-## 모바일 · Compact
-
-- **트리거:** `max-width: 768px` 또는 coarse pointer + `max-width: 1024px`
-- 자동 Ultra-Lite · ≡ 레이어 패널 비활성 · **Compact 칩** 프리셋
-  - 지정학: 전선 · 뉴스 · 공습
-  - 지경학: 항로 · 에너지 · 시장
+`API_STUB_MODE=false` 일 때 실데이터를 씁니다. `true`면 외부 호출 없이 `public/data/*-seed.json` 시드를 씁니다(운영 `.env.production`은 `false`).
 
 ---
 
@@ -181,22 +74,19 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000) 을 엽니다.
+[http://localhost:3000](http://localhost:3000) 을 엽니다.
 
 ```bash
 npm run build   # 프로덕션 빌드
 npm run start   # 프로덕션 서버
 npm run lint    # ESLint
+npm test        # vitest
 ```
 
-### Cloudflare에 배포
+### 배포
 
-```bash
-npx wrangler login
-npm run cf:app:deploy   # OpenNext → Workers (conflict-view)
-```
-
-Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cloudflare-deploy.md)
+- **Vercel:** 저장소 연결 후 환경 변수 설정 ([`docs/vercel-cdn-and-workers-fs.md`](docs/vercel-cdn-and-workers-fs.md))
+- **Cloudflare Workers:** `npx wrangler login` → `npm run cf:app:deploy` (OpenNext) · Cron ingest `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cloudflare-deploy.md)
 
 ---
 
@@ -204,62 +94,19 @@ Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cl
 
 | 변수 | 기본 | 설명 |
 |------|------|------|
-| `API_STUB_MODE` | `true` | stub 정책 (외부 API 차단, 시드 JSON) |
+| `API_STUB_MODE` | `true` | stub 정책 (외부 API 차단, 시드 JSON). 운영은 `false` |
 | `DATA_PROFILE` | `lite` | `lite` \| `full` — 서버 전용 |
-| `VIINA_RENDERING_ONLY` | `true` | VIINA ODbL 렌더링 전용 |
-| `VIINA_RENDER_GATE_SECRET` | (권장) | 렌더 세션 쿠키 HMAC 시크릿 — 없으면 cron 시크릿 폴백 |
-| `VIINA_RENDER_GATE_RELAX` | — | `true`면 게이트 해제 (로컬 curl 디버그만, 프로덕션 금지) |
-| `NEPTUN_ENABLED` | — | NEPTUN 레이어·API |
-| `TZEVA_ADOM_ENABLED` | — | 이스라엘 공습 경보 |
+| `DATALASTIC_API_KEY` | — | 선박 제원·이력·반경 조회 |
+| `ADSBEXCHANGE_API_KEY` | — | ADS-B Exchange (RapidAPI). 없으면 adsb.lol |
 | `TELEGRAM_OSINT_ENABLED` | `true` | 텔레그램 OSINT |
-| `FREESOUND_API_KEY` | — | 앰비언트·경제·UI 사운드 프록시 |
 | `FIRMS_MAP_KEY` | — | NASA FIRMS (있으면 라이브) |
-| `STATSOFTHEWORLD_API_KEY` | — | SOTW API Pro. 지경학 양피지·구역 패널·시장 등불에 GDP/인플레/성장 충격·피어 비교 (`/api/world-stats/macro`, `/market-lamp`). [docs](https://statisticsoftheworld.com/api-docs) |
+| `FREESOUND_API_KEY` | — | 사운드 프록시 |
 | `SYNC_POLL_MS` | `300000` | `/api/data-sync` 폴링 |
 | `NEWS_TRANSLATE_KO` / `TELEGRAM_TRANSLATE_KO` | `true` | 자동 한국어 번역 |
 
-템플릿: [`.env.example`](.env.example) (안내) · [`.env.local.example`](.env.local.example) (Next) · [`.dev.vars.example`](.dev.vars.example) (Wrangler)
+전체 목록·템플릿: [`.env.example`](.env.example) · [`.env.local.example`](.env.local.example) · [`.dev.vars.example`](.dev.vars.example)
 
-> **보안:** API 키·운영 플래그는 `NEXT_PUBLIC_` 없이 서버 전용. 클라이언트는 `initRuntimeConfig()` 경로만 사용.
-
----
-
-## 핵심 모듈
-
-### VIINA — 우크라이나 전선
-- ODbL **렌더링 전용** · `GET /api/render/ukraine-control`
-- 테두리·빗금·진격 화살 · `npm run viina:build`
-
-### NEPTUN — 우크라이나 드론·미사일
-- REST ≤5초 + WebSocket · `useNeptunStream`
-- 줌 LOD: `flat` / `low` / `elevated` 궤적
-- **지나간 궤적 UI 제거** — 아카이브는 내부만
-
-### 반서방 허브 · 마찰 에피소드
-- `hubNav.ts` · `hubBriefs.ts` · `ParchmentLetter`
-- `frictionEpisodes.ts` — 11대 큐레이션 (전바오·랑선·갈완·츠힌발리·슈샤·샤트알아랍·톰브·프놈펜·바드메·백두산·두만강 등)
-- V-Dem **전수 연표 아님** — 개념 프레임·출처 표기만 (`vdemPolicy.ts`)
-
-### Telegram OSINT
-- `telegramChannels.ts` (IRONSIGHT 카탈로그 MIT) · **LLM/뉴스 파이프라인과 분리**
-
-### GDELT · Intel
-- `GET /api/gdelt` · `GET /api/news-stream`
-- 지경학: 거시·인프라·에너지·물류·반도체·시장 **장르 칩**
-
-### API 요약
-
-| API | 내용 |
-|-----|------|
-| `/api/ais` | AISstream 선박 |
-| `/api/adsb-mil` | adsb.lol 군용기 |
-| `/api/firms-fires` | NASA FIRMS |
-| `/api/us-carriers` | 미 항모 |
-| `/api/stock-tickers` | Yahoo Finance 티커 |
-| `/api/sound-stream` | 로컬 audio / Freesound |
-| `/api/data-sync` | 스냅샷 동기화 |
-
-정적 레이어: `/api/layers/conflict-zones` · `arms-embargo-zones` · `ai-data-centers` · `economic-centers` · `sanctions-entities` · `ukraine-control`
+> **보안:** API 키·운영 플래그는 서버 전용. 클라이언트는 `initRuntimeConfig()` 경로만 사용합니다.
 
 ---
 
@@ -270,29 +117,14 @@ Cron ingest: `npm run cf:ingest:deploy` · [`docs/cloudflare-deploy.md`](docs/cl
 | 항목 | 동작 |
 |------|------|
 | stub 모드 | `public/data/*-seed.json` |
-| live 가드 | `liveRenderGuard` — stub off 시 폴링·상한 보수화 |
+| live 가드 | `liveRenderGuard` — stub off 시 폴링·상한 보수화 (AIS 표시 상한 1500) |
 | lite / full | `DATA_PROFILE` — 창고 해상도 옵션 |
 | gzip JSON | `fetchJsonPreferGzip` · `compress-data-gzip.js` |
 | JSON 워커 | `jsonParse.worker.ts` |
-| 레이어 캡 | 일반 30 · Ultra-Lite 16 — SSOT [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap` · 패키지 hard 64 |
-| 뷰포트 LOD | NEPTUN·VIINA·정적 포인트 tier별 상한 |
+| 레이어 캡 | 일반 **30** · Ultra-Lite **16** — SSOT [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap` · 패키지 hard **64** |
 | `cameraBusyGuard` | tween/드래그 중 무거운 갱신 pause |
 
----
-
-## 데이터 빌드
-
-```bash
-npm run gdelt:fetch
-npm run data:build:lite
-npm run data:build:full
-npm run gem:build
-npm run viina:build
-npm run data:sync
-npm run telegram:sync
-npm run dev:live
-node scripts/compress-data-gzip.js all
-```
+(위 레이어 캡 줄은 `npm run verify:product-spec`이 검사합니다.)
 
 ---
 
@@ -300,77 +132,32 @@ node scripts/compress-data-gzip.js all
 
 ```
 src/
-  app/                    # Next.js App Router + API
+  app/                  # Next.js App Router + API (/api/strikes, /api/strikes/:id …)
   components/
-    GlobeDashboard.tsx    # 지구본·레이어·패널 통합
-    EntryCautionOverlay · WelcomeParchmentLetter · DomainGateOverlay
-    HoverNav.tsx          # 반서방 4허브 nav
-    ViewModeSwitcher.tsx  # 지정학 ↔ 지경학
-    LayerCategoryDraftHost.tsx · ParchmentLetter.tsx
-    AxisRegimePanel.tsx · AxisArmsPanel.tsx · EconInsightParchment.tsx
-    BottomIntelStack.tsx · ChromeOnboardingCoach.tsx
-    ...
-  data/
-    hubNav.ts · hubBriefs.ts · frictionEpisodes.ts
-    econNavRegions.ts · audioManifest.ts · sourceCatalog.ts
+    GlobeDashboard.tsx  # 지구본·레이어·패널 통합
+    globe/ShipIncidentCard.tsx
+    landing/            # 랜딩(해운 위험 상황실)
   hooks/
-    useLayerPrefsController.ts · useGlobeStaticLayers.ts · useNeptunStream.ts
   lib/
-    entryOverview.ts · layerExclusiveCap.ts · infraStaticMarkers.ts
-    viewerChrome.ts · viewPackages.ts · ultraLiteMode.ts
-    licensing/ (viina · sipri · vdem · telegram · ironsight)
-docs/
-  ux-scenarios.md · stub-off-checklist.md · deferred-status.md
-  cloudflare-deploy.md · data-architecture-2tier.md · vercel-cdn-and-workers-fs.md
-IRONSIGHT/                # 별도 서브프로젝트 (본 앱 핵심 경로와 분리 · Telegram 카탈로그만 MIT 인용)
-public/audio/             # 로컬 전투·공습 샘플
+    brand.ts            # 서비스명 SSOT
+    strikeMatch/        # 피격 선박 매칭 (확인/유력/가능)
+    firstScreenLayers.ts · layerLab.ts · viewerModePolicy.ts
+    liveRenderGuard.ts · cesiumObserveDescend.ts
+docs/                   # 설계·체크리스트
+public/data/            # stub 시드
 ```
 
 ---
 
-## 문서 vs 코드 · 미완 항목
+## 데이터 빌드
 
-수치·플래그는 **코드가 정본**이다. 요약: [`docs/deferred-status.md`](docs/deferred-status.md)
-
-| 항목 | 현행 |
-|------|------|
-| 레이어 UI 캡 | `ACTIVE_LAYER_CAP_DEFAULT=30` / `ULTRA=16` |
-| 지정학 기본 패키지 | `frontline-live` (`CONFLICT_VIEWER_PACKAGE`) — `conflict-watch`는 레거시 정의 유지 |
-| ModePicker 부트 | `shouldShowModePicker(): false` |
-| stub OFF | D1 cron + warm secrets + (권장) R2 — [`docs/stub-off-checklist.md`](docs/stub-off-checklist.md) · `npm run verify:stub-off-gate` |
-| 스펙 SSOT | 캡·폴링 숫자 — `npm run verify:product-spec` (`layerExclusiveCap` · `liveRenderGuard` · README) |
-| 시장 로드맵 | Yahoo·전장 심볼·watchlist P0 · TV/증권 임베드·일일 cron 일부 미완 — [`docs/retention-markets-roadmap.md`](docs/retention-markets-roadmap.md) |
-| LLM digest | 스캐폴딩만 — [`docs/llm-news-digest.md`](docs/llm-news-digest.md) |
-
----
-
-## UI 조작 요약
-
-| 동작 | 결과 |
-|------|------|
-| 드래그 / 스크롤 | 지구본 회전 · 줌 |
-| 빈 바다 더블클릭 | 해당 지점 확대 |
-| 분쟁 구역·뉴스 핀 클릭 | fly-to + Intel 시트 |
-| NEPTUN 트랙 클릭 | 이동 + 우측 상세 패널 |
-| 공습 경보 칩/버튼 | fly + 사이렌 + 지역 아웃라인 |
-| 허브 nav 항목 | soft fly → 양피지 (+ SIPRI/분쟁 외교사는 패널) |
-| ≡ 메뉴 레이어 체크 | **즉시** 지도 반영 |
-| ViewModeSwitcher | 지정학 ↔ 지경학 |
-| 벨 버튼 | 사운드 on/off |
-| 중클릭 (빈 지도) | Intel 뉴스 시트 |
-
----
-
-## 의도적으로 하지 않는 것
-
-- 입구 **서방 대칭 4허브** 또는 **반서방↔서방 상단 토글**
-- 지정학 히어로에 ADS-B/AIS **상시 ON**
-- 분쟁 외교사 **전 연도 핀 살포·연속 자동 fly**
-- **V-Dem으로 가짜 조약 연표** 생성
-- **제3 모드 「축 전용 앱」** 입장
-- Telegram → **LLM/뉴스 요약 파이프라인** 포함
-- VIINA 원본 GeoJSON/API export
-- NEPTUN·Tzeva Adom·사운드를 **공식 경보 대체**
+```bash
+npm run data:build:lite
+npm run data:build:full
+npm run data:sync
+npm run dev:live
+node scripts/compress-data-gzip.js all
+```
 
 ---
 
@@ -489,6 +276,8 @@ public/audio/             # 로컬 전투·공습 샘플
 | **사운드** | 시뮬레이션 UX용 · 실제 전장·경보 대체 아님 |
 
 문자열 단일 출처: [`src/data/sourceCatalog.ts`](src/data/sourceCatalog.ts)
+
+---
 
 ---
 
