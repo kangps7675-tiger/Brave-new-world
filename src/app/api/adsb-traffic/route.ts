@@ -96,7 +96,7 @@ async function fetchOpenSkyTraffic(
         cache: "no-store",
         headers: {
           Accept: "application/json",
-          "User-Agent": "BraveNewWorld/1.0 OpenSky globe traffic",
+          "User-Agent": "StraitDesk/1.0 OpenSky globe traffic",
         },
         signal: controller.signal,
       });
@@ -160,7 +160,7 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         cache: "no-store",
         headers: {
           Accept: "application/json",
-          "User-Agent": "BraveNewWorld/1.0 OpenSky worldwide traffic",
+          "User-Agent": "StraitDesk/1.0 OpenSky worldwide traffic",
         },
         signal: controller.signal,
       });

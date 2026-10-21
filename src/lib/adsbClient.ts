@@ -206,7 +206,7 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
-    "User-Agent": "BraveNewWorld/1.0",
+    "User-Agent": "StraitDesk/1.0",
   };
   if (apiKey) {
     if (isRapidApiKey(apiKey)) {

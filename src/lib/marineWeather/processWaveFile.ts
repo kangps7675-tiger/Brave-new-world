@@ -16,7 +16,7 @@ import {
 } from "./gfsWave";
 import { MARINE_POINTS, MARINE_REGIONS } from "./zones";
 
-const UA = "BraveNewWorld-Ingest/1.0 (+contact: kangps7675@gmail.com; NOAA GFS-Wave point sampler)";
+const UA = "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; NOAA GFS-Wave point sampler)";
 
 export type MarineWeatherRow = {
   cycle: string;

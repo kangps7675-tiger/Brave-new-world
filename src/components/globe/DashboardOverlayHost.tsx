@@ -1960,7 +1960,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           typewriter={false}
           titleId="ux-guide-brief-title"
           backMark={labelLanguage === "en" ? "Guide" : "안내"}
-          backSub={labelLanguage === "en" ? "Brave New World" : "멋진 신세계"}
+          backSub={"Strait Desk"}
           zIndexClass="z-[900]"
         />
       ) : null}

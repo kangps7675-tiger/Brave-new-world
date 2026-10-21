@@ -5,7 +5,7 @@ export const JSO_PRESS_INDEX_URL = "https://www.mod.go.jp/js/press/index.html";
 export const JSO_PRESS_BASE = "https://www.mod.go.jp/js/";
 
 const UA =
-  "BraveNewWorld/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; contact kangps7675@gmail.com)";
+  "StraitDesk/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; contact kangps7675@gmail.com)";
 
 const NAVAL_TITLE_RE =
   /海軍艦艇|艦艇の動向|共同航行|中国海軍|ロシア海軍|Chinese Navy|Russian Navy|naval vessel/i;

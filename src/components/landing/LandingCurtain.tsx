@@ -274,7 +274,7 @@ export function LandingCurtain({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Brave New World 소개"
+        aria-label="Strait Desk 소개"
         style={{
           position: "fixed",
           inset: 0,

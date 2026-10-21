@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 소스마다 응답 필드가 달라 느슨하게 받는다 */
-// NGA MSI(msi.nga.mil) 수집기 — Brave New World ingest Worker용  [실응답 확인 2026-10-18]
+// NGA MSI(msi.nga.mil) 수집기 — Strait Desk ingest Worker용  [실응답 확인 2026-10-18]
 //
 // ⚠ 항행 경보: /api/publications/broadcast-warn JSON API는 2024-05-10 이후 갱신 중단
 //   (/broadcast-warn/latest-warning → {"date":"2024-05-10T15:42:00Z"}).
@@ -64,7 +64,7 @@ async function getJson(url: string, opts: MsiFetchOptions = {}): Promise<any> {
   const blockedWaitMs = opts.blockedWaitMs ?? 60_000;
   for (let i = 0; i < tries; i++) {
     const res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "BraveNewWorld-ingest/1.0" },
+      headers: { Accept: "application/json", "User-Agent": "StraitDesk-ingest/1.0" },
     });
     const ct = res.headers.get("content-type") ?? "";
     if (res.ok && ct.includes("json")) return res.json();
@@ -79,7 +79,7 @@ async function getText(url: string, opts: MsiFetchOptions = {}): Promise<string>
   const tries = Math.max(1, opts.tries ?? 3);
   const blockedWaitMs = opts.blockedWaitMs ?? 60_000;
   for (let i = 0; i < tries; i++) {
-    const res = await fetch(url, { headers: { "User-Agent": "BraveNewWorld-ingest/1.0" } });
+    const res = await fetch(url, { headers: { "User-Agent": "StraitDesk-ingest/1.0" } });
     const body = res.ok ? await res.text() : "";
     if (res.ok && !body.includes("Request Rejected")) return body;
     if (i < tries - 1) await sleep(blockedWaitMs);

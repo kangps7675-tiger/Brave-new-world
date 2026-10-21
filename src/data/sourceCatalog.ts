@@ -248,10 +248,10 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
   },
   {
     layerId: "tunnels",
-    source: "멋진 신세계 submarine tunnel seed → D1",
+    source: "Strait Desk submarine tunnel seed → D1",
     url: "/api/submarine-tunnels",
     cadence: "On demand (seeded once)",
-    attribution: "멋진 신세계 logistics seed",
+    attribution: "Strait Desk logistics seed",
     notes:
       "Major undersea tunnels (Eurotunnel, Seikan, Marmaray, …). Stored in D1 `submarine_tunnels`; fetched only when layer toggled ON.",
     status: "shipped",
@@ -324,7 +324,7 @@ export const NEWS_LAYER_SOURCE_CATALOG: NewsLayerSourceNote[] = [
     cadence: "Cron self-throttle ~30 min (worker */10, NAVAREA min-interval) → D1 snapshot replace",
     attribution: "Japan Coast Guard (JHOD) · U.S. NGA Navigational Warnings",
     notes:
-      "Sources publish event-driven into static TXT (no webhook). 멋진 신세계 polls; each successful poll recomputes the full in-force snapshot and replaces by region. IDs are region-prefixed (XI-26-0330, IV-26-0695). Optional ?region=XI filter. Prefer 15–30 min poll — not FIRMS/AIS cadence.",
+      "Sources publish event-driven into static TXT (no webhook). Strait Desk polls; each successful poll recomputes the full in-force snapshot and replaces by region. IDs are region-prefixed (XI-26-0330, IV-26-0695). Optional ?region=XI filter. Prefer 15–30 min poll — not FIRMS/AIS cadence.",
     status: "shipped",
     ingest: "cached-api",
     commercialUse: "allowed",

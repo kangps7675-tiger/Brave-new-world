@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 const TTL_MS = 30_000;
 const CACHE_KEY = "adsb-emergency:sqk";
 const ADSB_CDN = publicCacheHeaders(CDN_CACHE.adsb);
-const USER_AGENT = "BraveNewWorld/1.0 (+https://bravenew.world; ADS-B emergency squawk)";
+const USER_AGENT = "StraitDesk/1.0 (+https://bravenew.world; ADS-B emergency squawk)";
 const FETCH_TIMEOUT_MS = 12_000;
 
 async function fetchSquawk(sqk: string): Promise<TrackedAircraft[]> {

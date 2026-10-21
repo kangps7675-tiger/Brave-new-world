@@ -29,7 +29,7 @@ export async function fetchOsmTileManifest(): Promise<OsmTileManifest | null> {
 export function buildOsmDarkStyle(pmtilesProtocolUrl: string): Record<string, unknown> {
   return {
     version: 8,
-    name: "Brave New World OSM Dark",
+    name: "Strait Desk OSM Dark",
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {
       openmaptiles: {

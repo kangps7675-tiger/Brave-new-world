@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-이 프로젝트(Brave New World, 구 GeoWatch/멋진 신세계)에서 에이전트가 작업할 때 지켜야 할 규칙.
+이 프로젝트(Strait Desk, 구 Brave New World / 멋진 신세계 / GeoWatch)에서 에이전트가 작업할 때 지켜야 할 규칙.
 
 ## 유저 인사이트 / 브리핑 설명 톤
 
@@ -61,3 +61,11 @@
 세슘(위성)에는 선박 위치(AIS)를 그리지 않는다. 선박은 Datalastic·AISstream으로 보는 데이터이고, 지도(MapLibre)와 세슘에 둘 다 그리면 GPU가 무거워진다. 항공기·불꽃·해협 오버레이·라벨·사건 콜아웃 등 나머지는 세슘에도 그대로 그린다.
 - 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
 - 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
+
+## 2026-10-21 서비스명 = Strait Desk
+
+서비스명을 **Strait Desk**로 바꿨다(구 Brave New World / 멋진 신세계 / GeoWatch). 뜻: Strait=해협(길목), Desk=상황실의 데스크. 헉슬리 소설 모티브는 폐기했다.
+- 화면·메타데이터·카드·이메일 제목·User-Agent 는 전부 새 이름이다. 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)를 쓴다.
+- **일부러 안 바꾼 것(인프라 식별자):** localStorage·IndexedDB 키(`geowatch-*` 등 — 바꾸면 방문자 저장 설정이 초기화된다), npm 패키지명·저장소명(`brave-new-world`)·Vercel/Cloudflare 프로젝트명, `src/config/geowatch.config.ts` 파일명, 도메인·UA 안의 연락 URL(`bravenew.world`).
+- `docs/` 아래 날짜가 붙은 보고서·계획서는 당시 기록이라 옛 이름 그대로 둔다.
+- 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다 — 디자인 교체가 필요하다.

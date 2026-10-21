@@ -16,7 +16,7 @@ const AHEAD_CHECK = 12;
 /**
  * 봇 신원 — **브라우저로 위장하지 말 것.**
  *
- * 이전 값은 `Mozilla/5.0 (compatible; BraveNewWorld/1.0)` 이었다.
+ * 이전 값은 `Mozilla/5.0 (compatible; StraitDesk/1.0)` 이었다.
  * 자동화 트래픽을 브라우저인 척 보내는 건 단순 약관 위반과 달리 "우회 의도"로
  * 읽혀 분쟁 시 불리하게 평가된다. 차단당하면 정식 경로를 찾는 게 맞는 순서다.
  *
