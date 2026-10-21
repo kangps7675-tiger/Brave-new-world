@@ -2336,3 +2336,59 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ── 호외 지면 (랜딩 · 보험료 섹션) ── */
+.landing-paper {
+  position: relative;
+  color: #1b1712;
+  background-color: #e8dcbc;
+  background-image:
+    radial-gradient(ellipse at 50% 38%, rgba(255, 250, 232, 0.55), rgba(255, 250, 232, 0) 62%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(110, 78, 28, 0.38) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .26  0 0 0 0 .12  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(90, 62, 20, 0.35);
+}
+.landing-ink {
+  /* 활자가 종이에 번지는 느낌 */
+  text-shadow: 0 0 0.6px rgba(27, 23, 18, 0.65), 0.4px 0.4px 0 rgba(27, 23, 18, 0.18);
+}
+.landing-stamp {
+  color: #9b2c2c;
+  border: 3px solid #9b2c2c;
+  border-radius: 6px;
+  mix-blend-mode: multiply;
+  animation: landing-stamp 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes landing-stamp {
+  0% { opacity: 0; transform: scale(2) rotate(-14deg); }
+  55% { opacity: 0.95; transform: scale(0.94) rotate(-3deg); }
+  100% { opacity: 0.88; transform: scale(1) rotate(-4deg); }
+}
+.landing-headline {
+  animation: landing-headline 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes landing-headline {
+  from { opacity: 0; transform: translateY(16px); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.landing-pen {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: landing-pen 0.7s ease-out 0.15s forwards;
+}
+@keyframes landing-pen {
+  to { stroke-dashoffset: 0; }
+}
+.landing-dot-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: landing-dot-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes landing-dot-in {
+  from { opacity: 0; transform: scale(0.2); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-pen { stroke-dashoffset: 0; animation: none; }
+  .landing-stamp { animation: none; opacity: 0.88; transform: rotate(-4deg); }
+}
