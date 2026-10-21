@@ -12,7 +12,8 @@ import {
   SectionDots,
   TiltCard,
 } from "@/components/landing/LandingMotion";
-import { Grain, Magnetic, MegaMarquee, Reticle, StraitRail } from "@/components/landing/LandingHip";
+import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
+import { ExtraEdition } from "@/components/landing/LandingExtra";
 import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
@@ -35,6 +36,8 @@ const SECTIONS = [
   { id: "ask", label: "질문 넷" },
   { id: "flow", label: "경보가 뜨면" },
   { id: "read", label: "화면 읽는 법" },
+  { id: "extra", label: "호외" },
+  { id: "breaking", label: "속보" },
   { id: "features", label: "상세 기능" },
   { id: "devices", label: "데스크톱·휴대폰" },
   { id: "who", label: "누가 쓰나" },
@@ -137,6 +140,39 @@ const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
 ];
 
 /** 핵심 화면 말고도 들어가 볼 수 있는 기능들. href가 있으면 따로 열리는 페이지다. */
+const BREAKING: { tag: string; title: string; body: string }[] = [
+  {
+    tag: "새 속보",
+    title: "중요한 새 속보는 양피지로 펼쳐집니다",
+    body: "접속한 뒤에 새로 나온 중요 속보(또는 10분 안에 나온 것)만 한 번씩 띄워요. 같은 속보가 계속 뜨지 않고, 20초 뒤엔 저절로 넘어갑니다. 다른 안내가 떠 있으면 끝날 때까지 기다렸다 나와요.",
+  },
+  {
+    tag: "걸러내기",
+    title: "반증이 나온 소문은 띄우지 않습니다",
+    body: "속보를 내보내기 전에 최근 72시간 보도와 맞춰 보고, 반대되는 보도가 있으면 발행하지 않아요. 그래도 뉴스 창의 속보 칸에는 「미검증 속보 · 참고용」이라고 붙여 둡니다.",
+  },
+  {
+    tag: "해상 경보",
+    title: "배가 공격받으면 \"그 바다로 갈까요?\" 하고 묻습니다",
+    body: "영국 해군 해상무역작전본부(UKMTO)에 피습·승선·나포 경보가 새로 올라오거나, 미사일·군사훈련처럼 안전과 직결된 항행 경보가 나오면 물어봐요. 「예」를 누르면 그 해역으로 날아가 브리프를 열고, 근처 선박 항적을 맞춰 본 내용도 함께 보여 줍니다. 접속 때 이미 있던 옛 경보는 띄우지 않아요.",
+  },
+  {
+    tag: "속보함",
+    title: "읽은 속보와 안 읽은 속보가 구분됩니다",
+    body: "지도 화면의 속보 서랍에 쌓이고, 읽은 건 표시되며 「안 연 속보 N」으로 남은 개수가 보여요. 하나씩 넘겨 볼 땐 「3 / 12」처럼 위치가 나오고, 속보 근처의 송유관·가스관이 잠깐 같이 표시됩니다.",
+  },
+  {
+    tag: "소리",
+    title: "가장 급한 것만 소리가 납니다",
+    body: "S급 속보에만 짧은 SOS 신호음이 울리고, A급은 소리 없이 배너로만 알려요. 사이렌처럼 계속 울리는 소리는 없습니다.",
+  },
+  {
+    tag: "휴대폰 · 알림",
+    title: "휴대폰은 지구본 없이 알림 목록으로",
+    body: "작은 화면에서는 전장별로 묶은 알림·속보 목록이 열립니다. 하루 한 번 \"상황이 바뀌었다\"는 푸시를 받을 수 있고, 변화가 없는 날은 보내지 않아요.",
+  },
+];
+
 const FEATURES: { title: string; body: string; where: string; href?: string }[] = [
   {
     title: "뉴스 창",
@@ -276,7 +312,6 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
 
       <SectionDots sections={SECTIONS} />
       <Grain />
-      <Reticle />
 
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
@@ -401,6 +436,40 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         <p className={`mt-8 text-[15px] leading-relaxed ${MUTED}`}>
           지구본 위 무엇이든 누르면 설명 창이 열립니다. 위쪽 「묻기」에 &quot;홍해&quot;, &quot;호르무즈&quot;처럼 적으면 그 바다로 날아가요.
         </p>
+      </section>
+
+      {/* EXTRA — 호외: 공개 보도로 본 보험료 */}
+      <ExtraEdition />
+
+      {/* BREAKING — 속보 기능 설명 */}
+      <section id="breaking" className="border-t border-white/10 bg-[#0b0f14]">
+        <div className={`${WRAP} py-24`}>
+          <Reveal>
+            <p className={EYEBROW}>속보 기능</p>
+            <h2 className={`${H2} max-w-[820px]`}>속보는 이렇게 알려 드립니다.</h2>
+            <p className={`mt-5 mb-0 max-w-[720px] text-[17px] leading-[1.75] ${MUTED}`}>
+              속보가 많을수록 정말 급한 것이 묻히기 쉬워요. 그래서 많이 띄우기보다, 한 번만 · 근거와 함께 · 급한 것만 알리는 쪽으로 만들었습니다.
+            </p>
+          </Reveal>
+          <div className="mt-12 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
+            {BREAKING.map((b, i) => (
+              <Reveal key={b.title} delay={(i % 3) * 80}>
+                <TiltCard className="h-full rounded-xl">
+                  <div className="h-full rounded-xl border border-white/10 bg-[#0a141f] p-6">
+                    <span className="block text-caption font-semibold text-[#f5c451]">{b.tag}</span>
+                    <h3 className="mb-0 mt-2 text-[19px] font-bold leading-snug text-white">{b.title}</h3>
+                    <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{b.body}</p>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <p className={`mt-8 mb-0 max-w-[820px] rounded-xl border border-white/10 bg-white/[0.03] p-5 text-[15px] leading-[1.7] ${MUTED}`}>
+              <strong className="text-white">아직 없는 것.</strong> 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시는 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 메일이 전부예요. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 안전한 것으로 오해하지 않게 합니다.
+            </p>
+          </Reveal>
+        </div>
       </section>
 
       {/* FEATURES — 상세 기능 */}

@@ -7,7 +7,6 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 /**
  * 랜딩을 "힙하게" 만드는 조각들.
  *  - Grain: 화면 전체에 깔리는 필름 노이즈 + 아주 옅은 주사선
- *  - Reticle: 마우스를 따라오는 조준경. 링크·버튼 위에서는 커지고 글자가 붙는다
  *  - MegaMarquee: 해협 이름이 거대한 외곽선 글자로 흐르고, 스크롤 속도에 따라 빨라지며 기운다
  *  - Magnetic: 버튼이 커서 쪽으로 끌려온다
  *  - StraitRail: 세로 스크롤을 가로 이동으로 바꿔 해협 카드를 한 장씩 넘긴다(고정 + 가로 스크롤)
@@ -15,7 +14,7 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  */
 
 /** 문서 어디서 스크롤되든(랜딩 막 안의 스크롤 포함) 프레임마다 콜백을 부른다 */
-function useAnyScroll(cb: () => void) {
+export function useAnyScroll(cb: () => void) {
   const ref = useRef(cb);
   ref.current = cb;
   useEffect(() => {
@@ -42,65 +41,19 @@ export function Grain() {
   return <div aria-hidden="true" className="landing-grain pointer-events-none fixed inset-[-12%]" />;
 }
 
-export function Reticle() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [label, setLabel] = useState("");
-  const [hot, setHot] = useState(false);
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    if (prefersReducedMotion() || !window.matchMedia("(pointer: fine)").matches) return;
-    setOn(true);
-    let x = -100;
-    let y = -100;
-    let cx = x;
-    let cy = y;
-    let raf = 0;
-    const move = (e: PointerEvent) => {
-      x = e.clientX;
-      y = e.clientY;
-      const t = (e.target as HTMLElement | null)?.closest?.("a,button,summary,[data-reticle]") as HTMLElement | null;
-      setHot(Boolean(t));
-      setLabel(t?.dataset.reticle ?? "");
-    };
-    const tick = () => {
-      cx += (x - cx) * 0.22;
-      cy += (y - cy) * 0.22;
-      if (ref.current) ref.current.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
-      raf = requestAnimationFrame(tick);
-    };
-    window.addEventListener("pointermove", move, { passive: true });
-    raf = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-  if (!on) return null;
-  return (
-    <div ref={ref} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 mix-blend-difference" style={{ zIndex: 60 }}>
-      <div
-        className={`relative -translate-x-1/2 -translate-y-1/2 rounded-full border transition-[width,height,border-color] duration-200 ${
-          hot ? "h-16 w-16 border-[#f5c451]" : "h-8 w-8 border-white/70"
-        }`}
-      >
-        <span className="absolute left-1/2 top-[-6px] h-3 w-px -translate-x-1/2 bg-white/70" />
-        <span className="absolute bottom-[-6px] left-1/2 h-3 w-px -translate-x-1/2 bg-white/70" />
-        <span className="absolute left-[-6px] top-1/2 h-px w-3 -translate-y-1/2 bg-white/70" />
-        <span className="absolute right-[-6px] top-1/2 h-px w-3 -translate-y-1/2 bg-white/70" />
-        {label ? (
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-micro font-bold text-[#f5c451]">
-            {label}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-const MEGA = ["HORMUZ", "BAB EL-MANDEB", "BLACK SEA", "SUEZ", "MALACCA", "TAIWAN STRAIT", "BOSPORUS"];
+/** 랜딩 아래 해협 카드(StraitRail)와 같은 6곳 — 영문은 크게, 한글 이름은 옆에 작게 */
+const MEGA: { en: string; ko: string }[] = [
+  { en: "HORMUZ", ko: "호르무즈 해협" },
+  { en: "BAB EL-MANDEB", ko: "바브엘만데브 해협" },
+  { en: "SUEZ", ko: "수에즈 운하" },
+  { en: "MALACCA", ko: "말라카 해협" },
+  { en: "TAIWAN STRAIT", ko: "대만해협" },
+  { en: "BOSPORUS", ko: "튀르키예 해협 · 흑해 입구" },
+];
 
 /**
- * 거대한 외곽선 글자 띠. 기본으로 천천히 흐르고, 스크롤을 빨리 할수록 빨라지며 진행 방향으로 기운다.
+ * 거대한 외곽선 글자 띠 = 서비스가 지켜보는 해운 길목 이름. 무엇인지 알 수 있게 위에 제목, 단어마다 한글 이름을 붙인다.
+ * 기본으로 천천히 흐르고, 스크롤을 빨리 할수록 빨라지며 진행 방향으로 기운다.
  */
 export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -114,7 +67,7 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
       const dt = Math.min(64, now - (s.last || now));
       s.last = now;
       s.vel *= 0.92;
-      const speed = (0.035 + Math.min(1.4, Math.abs(s.vel)) * 0.9) * dt;
+      const speed = (0.018 + Math.min(1.4, Math.abs(s.vel)) * 0.5) * dt;
       s.x = (s.x + (reverse ? -speed : speed)) % 50;
       const el = trackRef.current;
       if (el) {
@@ -137,14 +90,20 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
   });
   const words = [...MEGA, ...MEGA];
   return (
-    <div aria-hidden="true" className="overflow-hidden py-6 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-      <div ref={trackRef} className="flex w-max will-change-transform">
-        {words.map((w, i) => (
-          <span key={`${w}-${i}`} className="landing-outline flex items-center whitespace-nowrap pr-10 text-[clamp(56px,10vw,150px)] font-black uppercase leading-none tracking-[0.01em]">
-            {w}
-            <span className="ml-10 inline-block h-[0.18em] w-[0.18em] rounded-full bg-[#f5c451] align-middle" />
-          </span>
-        ))}
+    <div className="py-6">
+      <p className="mx-auto mb-3 max-w-[1200px] px-6 text-sm font-semibold text-[#8fa3b1]">
+        <span className="text-[#f5c451]">●</span> Brave New World가 지켜보는 해운 길목 6곳 — {MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}
+      </p>
+      <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+        <div ref={trackRef} className="flex w-max will-change-transform">
+          {words.map((w, i) => (
+            <span key={`${w.en}-${i}`} className="flex items-center whitespace-nowrap pr-10">
+              <span className="landing-outline text-[clamp(56px,10vw,150px)] font-black uppercase leading-none tracking-[0.01em]">{w.en}</span>
+              <span className="ml-4 self-end pb-[0.6em] text-[clamp(15px,1.4vw,20px)] font-bold text-[#c9d5dd]">{w.ko}</span>
+              <span className="ml-10 inline-block h-4 w-4 rounded-full bg-[#f5c451]" />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
