@@ -11,7 +11,10 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  *   멀쩡히 항해 → 위협이 날아옴(또는 기뢰 위로 지나감) → 폭발 → 불기둥·검은 연기가 치솟음 → 어두워졌다가 다음 위협.
  *
  * 드론·미사일은 오른쪽 위에서 갑판으로 대각선으로 내리꽂히고(미사일은 0.3초 만에 운석처럼), 닿는 그 프레임에 터진다.
- * 폭발은 섬광(눈부신 핵 + 가로 빛줄기 + 화면 전체 번쩍임)과 버섯구름(솟는 기둥 + 말려 내려오는 갓) 위주.
+ * 폭발은 섬광(눈부신 핵 + 가로 빛줄기 + 화면 전체 번쩍임)과 재래식 폭발 버섯구름 위주.
+ * 버섯은 검은 연기 덩어리 하나하나가 솟고 느려지며 옆으로 퍼지는 물리로 만든다(핵폭발식 고리 X).
+ * 드론은 탄두가 작아 약한 버섯, 대함미사일은 큰 버섯 + 2차 폭발 + 현측 구멍 + 앞뒤로 번지는 불.
+ * 불난 자리는 배에 붙어 함께 나아가고, 연기는 배 진행 반대쪽(뒤)으로 처진다.
  *
  * 폭발은 2D 캔버스 위의 작은 물리 시뮬레이션이다.
  *  - 불덩이: 미리 구운 부드러운 불 스프라이트를 더하기 합성(lighter)으로 겹치고, 나이에 따라 흰색→노랑→주황→암적색으로 식는다
@@ -181,10 +184,14 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
     let rollRest = 0;
     let sink = 0;
     let fireRate = 0;
-    // 버섯구름: 맞은 지점에서 불덩이가 솟아 기둥(stem)과 둥글게 말리는 갓(cap)을 만든다
-    let cloud: { t: number; x: number; y: number; sc: number } | null = null;
-    let caps: { u: number; th: number; r: number; v: number }[] = [];
-    let stems: { f: number; j: number; r: number; v: number }[] = [];
+    // 재래식 폭발 버섯구름: 불덩이가 솟구치며 검은 연기 덩어리들이 위에서 옆으로 퍼진다.
+    // 핵폭발처럼 반듯한 고리가 아니라 덩어리마다 제각각 솟고, 바람(배 진행 반대쪽)에 밀려 기운다.
+    type MP = { x: number; y: number; vx: number; vy: number; age: number; delay: number; r0: number; grow: number; v: number; cap: boolean };
+    let mpuffs: MP[] = [];
+    let mushT = -1;
+    let hitOff = 0; // 맞은 지점의 선체 기준 위치 — 불은 배와 함께 움직인다
+    let extraFires: { off: number; at: number }[] = [];
+    let secondary = -1;
 
     const geo = () => {
       const horizon = H * 0.5;
@@ -225,6 +232,7 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       const { L, seaY } = geo();
       hit = true;
       hitPt = { x, y };
+      hitOff = x - geo().shipX;
       light = 1;
       flash = kind === "mine" ? 0.6 : 1;
 
@@ -246,10 +254,48 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
         rollRest = 0.03;
         sink = 7 * s;
       } else {
-        const big = kind === "missile" ? 1.3 : 1;
-        cloud = { t: 0, x, y, sc: big };
-        caps = Array.from({ length: 64 }, () => ({ u: rnd(-1, 1), th: rnd(0, Math.PI * 2), r: rnd(0.75, 1.2), v: (Math.random() * 3) | 0 }));
-        stems = Array.from({ length: 30 }, () => ({ f: Math.random(), j: rnd(-1, 1), r: rnd(0.8, 1.2), v: (Math.random() * 3) | 0 }));
+        // 드론은 탄두가 작아 약한 버섯, 대함미사일은 탄두가 커서 크게 부서지고 버섯도 크다
+        const big = kind === "missile" ? 1.45 : 0.6;
+        const hs = H / 400;
+        mushT = 0;
+        const nCap = Math.round(46 * big);
+        for (let i = 0; i < nCap; i++) {
+          mpuffs.push({
+            x: x + rnd(-L * 0.025, L * 0.025),
+            y: y - rnd(0, 6),
+            vx: rnd(-0.05, 0.05) * Math.sqrt(big),
+            vy: -rnd(0.2, 0.3) * Math.sqrt(big) * hs,
+            age: 0,
+            delay: rnd(0, 140),
+            r0: rnd(9, 16) * s * big,
+            grow: rnd(2.2, 3.6),
+            v: (Math.random() * 3) | 0,
+            cap: true,
+          });
+        }
+        const nStem = Math.round(40 * big);
+        for (let i = 0; i < nStem; i++) {
+          mpuffs.push({
+            x: x + rnd(-L * 0.015, L * 0.015),
+            y: y - rnd(0, 4),
+            vx: rnd(-0.015, 0.015),
+            vy: -rnd(0.04, 0.14) * Math.sqrt(big) * hs,
+            age: 0,
+            delay: rnd(80, 1400),
+            r0: rnd(8, 13) * s * big,
+            grow: rnd(1.8, 2.6),
+            v: (Math.random() * 3) | 0,
+            cap: false,
+          });
+        }
+        if (kind === "missile") {
+          // 큰 탄두: 0.4초 뒤 선체 안에서 2차 폭발, 불이 갑판 앞뒤로 번진다
+          secondary = 420;
+          extraFires = [
+            { off: L * 0.07, at: 650 },
+            { off: -L * 0.06, at: 1300 },
+          ];
+        }
         // 불덩이(버섯구름의 밑동)
         for (let i = 0; i < 34 * big; i++) {
           const a = rnd(0, Math.PI * 2);
@@ -263,7 +309,7 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
           push(base("ember", x, y, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(700, 1900), r: rnd(1, 2.4) }));
         }
         // 파편
-        for (let i = 0; i < 8 * big; i++) {
+        for (let i = 0; i < (kind === "missile" ? 26 : 6); i++) {
           const a = rnd(-Math.PI * 0.95, -Math.PI * 0.05);
           const sp = rnd(0.14, 0.42) * s;
           push(base("debris", x, y, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4000, r: rnd(2, 5) * s, vr: rnd(-0.02, 0.02), trail: 0 }));
@@ -272,8 +318,8 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
         for (let i = 0; i < 10; i++) {
           push(base("smoke", x + rnd(-20, 20), y + rnd(-10, 6), { vx: rnd(-0.04, 0.04), vy: -rnd(0.02, 0.07), life: rnd(2400, 4200), r: rnd(18, 34) * s, grow: rnd(2.2, 3.4), a: 0.9 }));
         }
-        vroll += kind === "missile" ? -0.0007 : -0.0005;
-        rollRest = kind === "missile" ? -0.022 : -0.014;
+        vroll += kind === "missile" ? -0.0011 : -0.0004;
+        rollRest = kind === "missile" ? -0.035 : -0.01;
         sink = 2 * s;
       }
       fireRate = 1;
@@ -286,9 +332,10 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       light = flash = 0;
       ring = -1;
       roll = vroll = heave = vheave = rollRest = sink = fireRate = 0;
-      cloud = null;
-      caps = [];
-      stems = [];
+      mpuffs = [];
+      mushT = -1;
+      extraFires = [];
+      secondary = -1;
     };
 
     const update = (dt: number) => {
@@ -305,9 +352,41 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
           explode(ip.x, ip.y, kind);
         }
       }
-      if (cloud) {
-        cloud.t += dt;
-        cloud.x += 0.004 * dt * Math.min(1, cloud.t / 3000); // 바람에 천천히 밀린다
+      // 불난 자리는 배에 붙어 함께 나아간다. 거기서 나온 연기는 뒤(왼쪽)로 처진다
+      if (hit && kind !== "mine") hitPt.x = shipX + hitOff;
+      if (mushT >= 0) {
+        mushT += dt;
+        const hs = H / 400;
+        for (const m of mpuffs) {
+          if (mushT < m.delay) continue;
+          m.age += dt;
+          // 부력으로 솟다가 공기저항에 느려지고, 느려진 갓 덩어리는 옆으로 퍼진다
+          m.vy *= Math.pow(m.cap ? 0.9978 : 0.999, dt);
+          m.vy -= 0.0000015 * dt * hs;
+          m.vx *= Math.pow(0.998, dt);
+          if (m.cap && m.age > 250 && m.age < 1200) m.vx += Math.sign(m.vx || rnd(-1, 1)) * (kind === "missile" ? 0.000015 : 0.000008) * dt;
+          // 바람: 배가 오른쪽으로 가니 연기는 왼쪽으로, 높을수록 더 밀린다
+          const height = Math.max(0, (hitPt.y - m.y) / H);
+          m.vx -= (0.000006 + height * 0.000022) * dt;
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
+        }
+      }
+      if (secondary >= 0 && mushT >= secondary) {
+        secondary = -1;
+        flash = Math.max(flash, 0.45);
+        light = Math.max(light, 0.7);
+        const sx = hitPt.x + L * 0.04;
+        for (let i = 0; i < 18; i++) {
+          const a = rnd(0, Math.PI * 2);
+          const sp = rnd(0.03, 0.14) * s;
+          push(base("fire", sx + rnd(-6, 6), hitPt.y + rnd(-4, 4), { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6 - 0.05, life: rnd(500, 1000), r: rnd(14, 28) * s, grow: 2.4 }));
+        }
+        for (let i = 0; i < 10; i++) {
+          const a = rnd(-Math.PI * 0.9, -Math.PI * 0.1);
+          const sp = rnd(0.12, 0.36) * s;
+          push(base("debris", sx, hitPt.y, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4000, r: rnd(2, 4) * s, vr: rnd(-0.02, 0.02), trail: 0 }));
+        }
       }
 
       // 배 스프링(롤·히브)
@@ -323,19 +402,20 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       // 맞은 뒤: 불길과 검은 연기 기둥
       if (hit) {
         fireRate = Math.max(0.55, fireRate * Math.pow(0.9998, dt));
-        const fx = hitPt.x + rnd(-L * 0.04, L * 0.04);
+        const spots = [0, ...extraFires.filter((e) => mushT >= e.at).map((e) => e.off)];
+        const fx = hitPt.x + spots[(Math.random() * spots.length) | 0] + rnd(-L * 0.04, L * 0.04);
         const fy = kind === "mine" ? deckY - 2 : hitPt.y;
         const nFlame = (dt / 16) * 2.2 * fireRate;
         for (let i = 0; i < nFlame; i++) {
           push(base("flame", fx + rnd(-L * 0.02, L * 0.02), fy, { vx: rnd(-0.01, 0.01), vy: -rnd(0.06, 0.15) * s, life: rnd(380, 700), r: rnd(7, 15) * s, grow: 0.55 }));
         }
-        const nSmoke = (dt / 16) * 1.9 * fireRate * (cloud ? Math.min(1, cloud.t / 3500) : 1);
+        const nSmoke = (dt / 16) * 1.9 * fireRate * (mushT >= 0 ? Math.min(1, mushT / 3500) : 1);
         for (let i = 0; i < nSmoke; i++) {
           push(base("smoke", fx, fy - 10 * s, { vx: rnd(-0.01, 0.015), vy: -rnd(0.04, 0.085) * s, life: rnd(4200, 6500), r: rnd(14, 24) * s, grow: rnd(3.5, 6), a: 0.9 }));
         }
       }
 
-      const wind = 0.000012;
+      const wind = -0.000014; // 배 진행(오른쪽) 반대로 부는 맞바람
       for (const p of parts) {
         p.age += dt;
         p.rot += p.vr * dt;
@@ -480,11 +560,30 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       // 탄 자국·구멍
       if (burning) {
         const lx = hitPt.x - x;
-        const g = ctx.createRadialGradient(lx, -h * 0.5, 0, lx, -h * 0.5, L * 0.09);
-        g.addColorStop(0, "rgba(5,5,5,0.9)");
+        const big = kind === "missile";
+        const br = L * (big ? 0.15 : 0.07);
+        const g = ctx.createRadialGradient(lx, -h * 0.5, 0, lx, -h * 0.5, br);
+        g.addColorStop(0, "rgba(5,5,5,0.92)");
         g.addColorStop(1, "rgba(5,5,5,0)");
         ctx.fillStyle = g;
-        ctx.fillRect(lx - L * 0.1, -h * 1.6, L * 0.2, h * 2.2);
+        ctx.fillRect(lx - br * 1.1, -h * 1.8, br * 2.2, h * 2.4);
+        if (big) {
+          // 대함미사일: 현측이 찢겨 나간 구멍과 안쪽 불빛
+          ctx.fillStyle = "#050607";
+          ctx.beginPath();
+          ctx.moveTo(lx - L * 0.05, -h);
+          ctx.lineTo(lx - L * 0.035, -h * 0.35);
+          ctx.lineTo(lx - L * 0.012, -h * 0.05);
+          ctx.lineTo(lx + L * 0.02, -h * 0.25);
+          ctx.lineTo(lx + L * 0.045, -h * 0.1);
+          ctx.lineTo(lx + L * 0.055, -h * 0.6);
+          ctx.lineTo(lx + L * 0.04, -h);
+          ctx.closePath();
+          ctx.fill();
+          ctx.globalCompositeOperation = "lighter";
+          ctx.drawImage(FIRE_MID, lx - L * 0.035, -h * 0.85, L * 0.07, h * 0.7);
+          ctx.globalCompositeOperation = "source-over";
+        }
       }
       ctx.restore();
     };
@@ -703,45 +802,18 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
       }
       // 버섯구름 계산(연기층은 여기서, 불빛층은 아래 더하기 합성에서)
       const mush: { x: number; y: number; r: number; heat: number; a: number; v: number }[] = [];
-      if (cloud) {
-        const T = cloud.t;
-        const sc = cloud.sc;
-        const rise = H * 0.36 * sc * (1 - Math.exp(-T / 900));
-        const cx = cloud.x;
-        const cy = cloud.y - rise;
-        const R = L * 0.19 * sc * (0.3 + 0.7 * (1 - Math.exp(-T / 700)));
-        const fade = T < 3800 ? 1 : Math.max(0, 1 - (T - 3800) / 3000);
-        const appear = Math.min(1, T / 180);
-        const heat = Math.max(0, 1 - T / 1400);
-        const ember = 0.4 * fade * Math.max(0, 1 - T / 5500); // 갓 아랫면에 남는 불빛
-        // 기둥: 맞은 지점에서 갓 밑까지, 위로 갈수록 굵어진다
-        for (const st of stems) {
-          const f = st.f;
-          const topY = cy + R * 0.2;
-          mush.push({
-            x: cloud.x + (cx - cloud.x) * f + st.j * R * 0.1 * (0.6 + f * 0.6),
-            y: cloud.y + (topY - cloud.y) * f,
-            r: st.r * R * (0.18 + 0.14 * f),
-            heat: heat * (1 - f * 0.5),
-            a: 0.8 * fade * appear * Math.min(1, rise / (H * 0.06)),
-            v: st.v,
-          });
-        }
-        // 갓: 바깥쪽이 위로 올라갔다 아래로 말려 내려오는 고리(토러스)
-        for (const c of caps) {
-          const side = c.u < 0 ? -1 : 1;
-          const th = c.th + T * 0.0024 * side;
-          // 가운데가 솟은 돔 + 양 끝이 말려 내려오는 고리
-          mush.push({
-            x: cx + c.u * R + Math.cos(th) * R * 0.2 * side,
-            y: cy + Math.sin(th) * R * 0.2 - (1 - c.u * c.u) * R * 0.32,
-            r: c.r * R * 0.36,
-            heat: Math.max(heat, Math.sin(th) > 0.2 ? ember : 0),
-            a: 0.92 * fade * appear,
-            v: c.v,
-          });
-        }
-        for (const m of mush) sprite(SMOKE_MUSH[m.v], m.x, m.y, m.r, m.a * (1 - m.heat * 0.5));
+      for (const m of mpuffs) {
+        if (mushT < m.delay) continue;
+        const T = m.age;
+        const r = m.r0 * (1 + (m.grow - 1) * (1 - Math.exp(-T / 900)));
+        const fade = T < 3600 ? 1 : Math.max(0, 1 - (T - 3600) / 2600);
+        const appear = Math.min(1, T / 120);
+        const heat = Math.max(0, 1 - T / (m.cap ? 1000 : 700));
+        // 재래식 폭발 연기는 검다. 불빛을 받는 덩어리만 조금 밝게
+        const img = m.v === 0 ? SMOKE_MUSH[1] : SMOKE_DARK[m.v];
+        const a = (m.cap ? 0.92 : 0.8) * fade * appear;
+        mush.push({ x: m.x, y: m.y, r, heat, a, v: m.v });
+        sprite(img, m.x, m.y, r, a * (1 - heat * 0.6));
       }
 
       // 물보라
