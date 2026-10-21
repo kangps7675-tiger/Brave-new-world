@@ -2389,14 +2389,37 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
 
 /* ── 호외 지면 (랜딩 · 보험료 섹션) ── */
 .landing-paper {
+  /* 1950년대 신문용지: 누렇게 바랜 종이, 가장자리가 더 짙다 */
   position: relative;
-  color: #141210;
-  background-color: #f4f1e8;
+  color: #1a150e;
+  background-color: #ecdfbd;
   background-image:
-    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 252, 0.7), rgba(255, 255, 252, 0) 65%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 70%, rgba(90, 80, 55, 0.16) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .2  0 0 0 .38 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.4'/></svg>");
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(60, 52, 36, 0.25);
+    radial-gradient(ellipse at 50% 35%, rgba(255, 246, 215, 0.55), rgba(255, 246, 215, 0) 62%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(120, 86, 30, 0.34) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .34  0 0 0 0 .25  0 0 0 0 .11  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.6'/></svg>");
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(96, 66, 22, 0.4);
+}
+.landing-photo {
+  /* 인쇄된 흑백 사진: 망점 + 빛바램 */
+  position: relative;
+  border: 1px solid #1a150e;
+  padding: 3px;
+  background: #e4d6b0;
+}
+.landing-photo > .landing-photo-in {
+  position: relative;
+  overflow: hidden;
+  filter: grayscale(1) contrast(1.2) sepia(0.28);
+}
+.landing-photo > .landing-photo-in::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at center, rgba(20, 14, 6, 0.55) 0.9px, transparent 1.3px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  pointer-events: none;
 }
 .landing-ink {
   /* 활자가 종이에 번지는 느낌 */
