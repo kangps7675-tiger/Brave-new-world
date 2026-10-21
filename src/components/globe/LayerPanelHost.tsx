@@ -387,6 +387,22 @@ export function LayerPanelHost({
           {t("layers", labelLanguage)}
         </p>
         <p className="mt-1 text-meta text-slate-600">{t("layerDraftHint", labelLanguage)}</p>
+        <div className="mt-3 grid gap-2" data-testid="layer-panel-maritime-links">
+          <a href="/strikes" target="_blank" rel="noopener noreferrer"
+            className="block rounded-lg border border-sky-400/30 bg-sky-950/20 px-3 py-2 text-xs text-sky-200 hover:bg-sky-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+            {labelLanguage === "en" ? "Which ship was hit? · Strike cases ↗" : "어느 배가 맞았나 · 피격 사건 확인 ↗"}
+            <span className="mt-1 block text-meta text-slate-400">
+              {labelLanguage === "en" ? "UKMTO alert + AIS track — opens in a new tab" : "UKMTO 경보 + AIS 항적 대조 — 새 탭에서 열기"}
+            </span>
+          </a>
+          <a href="/chokepoints/bab-el-mandeb" target="_blank" rel="noopener noreferrer"
+            className="block rounded-lg border border-sky-400/30 bg-sky-950/20 px-3 py-2 text-xs text-sky-200 hover:bg-sky-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+            {labelLanguage === "en" ? "Sea area · war-risk premium & weather ↗" : "해역별 보험료 · 날씨 ↗"}
+            <span className="mt-1 block text-meta text-slate-400">
+              {labelLanguage === "en" ? "Red Sea · Hormuz · Black Sea — opens in a new tab" : "홍해 · 호르무즈 · 흑해 — 새 탭에서 열기"}
+            </span>
+          </a>
+        </div>
         {!isEconomyViewer && !isHistoryViewer ? (
           <a href="/missile-tracker" target="_blank" rel="noopener noreferrer"
             className="mt-3 block rounded-lg border border-orange-400/30 bg-orange-950/20 px-3 py-2 text-xs text-orange-200 hover:bg-orange-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-300">
