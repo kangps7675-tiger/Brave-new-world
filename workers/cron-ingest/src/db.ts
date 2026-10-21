@@ -748,6 +748,10 @@ export function getMarineTrafficKey(env: IngestEnv): string | null {
 
 export function getAdsbApiKey(env: IngestEnv): string | null {
   const key = (env.ADSBEXCHANGE_API_KEY || env.ADSB_API_KEY || env.ADSBX_API_KEY || "").trim();
+  // RapidAPI 로 산 키(`…msh…p…jsn…` 형식)는 게이트웨이용이 아니다 — 게이트웨이로 보내면 401/403 이고 키도 엉뚱한 곳에 간다.
+  // 크론은 호출 수가 많아(5분마다 군용기 + 격자) RapidAPI 한도를 소진하므로 키 없이 adsb.lol(ODbL)로만 돈다.
+  // RapidAPI 키는 웹 쪽 사용자 조회(뷰포트·군용기)에서만 쓴다 — src/lib/adsbClient.ts.
+  if (/^[0-9a-f]{8,12}msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(key)) return null;
   return key || null;
 }
 

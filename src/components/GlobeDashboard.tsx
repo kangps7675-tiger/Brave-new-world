@@ -126,6 +126,7 @@ import {
 
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
+import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { IncidentStack } from "@/components/globe/IncidentStack";
 import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
@@ -141,6 +142,7 @@ import {
   mergeStrikeFlames,
   type StrikeFlame,
 } from "@/lib/strikeFlames";
+import { strikeFacilityLabel } from "@/lib/strikeFacility";
 import { parseTime } from "@/lib/provenance";
 import { EmailDigestSignup } from "@/components/globe/EmailDigestSignup";
 import { ngaSecurityStackItems } from "@/lib/incidentStack/ngaSecurity";
@@ -739,6 +741,10 @@ export function GlobeDashboard({
   const isSatelliteViewer = viewerMode === "satellite";
   const isLiveViewer = viewerMode === "live";
   const isConflictViewer = viewerMode === "conflict";
+  /** 해운 위험 첫 화면 — 지정학(conflict) 모드 + 해운 패키지. 지정학 개관 마커(핵탄두·전략태세)를 숨기고 길목 콜아웃을 띄운다 */
+  const isMaritimeView = isConflictViewer && viewPackages.includes("maritime");
+  /** 랜딩 막이 덮고 있는 동안은 속보 팝업을 띄우지 않는다 */
+  const landingCurtainActive = useLandingCurtainActive();
   const isHistoryViewer = viewerMode === "history";
   /** 역사 토글 연도 스크러버 — Balhae peak 데모 기본 850 (요동·연해주 중부) */
   const [historyYear, setHistoryYear] = useState(850);
@@ -1507,12 +1513,17 @@ export function GlobeDashboard({
   /** 일일 패널 접기 상태 복원 — 마운트 후 1회 (SSR 하이드레이션 불일치 방지) */
   useEffect(() => {
     try {
-      if (localStorage.getItem(DAILY_RANK_PANEL_KEY) === "0") {
+      const saved = localStorage.getItem(DAILY_RANK_PANEL_KEY);
+      // 해운 위험으로 시작하면 「오늘의 GTS」(지정학 긴장 순위)는 접어 둔다 — 왼쪽 절반을 가려 바다 판단을 방해한다.
+      // 직접 열어 둔 적이 있으면("1") 그 선택을 따른다. 왼쪽 「오늘의 GTS」 버튼으로 언제든 다시 연다.
+      if (saved === "0" || (saved == null && viewPackages.includes("maritime"))) {
         setShowDailyRankPanel(false);
       }
     } catch {
       /* localStorage 차단 환경 — 기본값(열림) 유지 */
     }
+    // 마운트 1회 — 첫 화면의 패키지 기준
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleDailyRankPanel = useCallback((next: boolean) => {
@@ -1987,7 +1998,7 @@ export function GlobeDashboard({
             publishedAt: event.publishedAt,
           },
         ];
-      }).slice(0, 40),
+      }).slice(0, 200),
     [liveuaEvents, labelLanguage],
   );
 
@@ -2031,7 +2042,12 @@ export function GlobeDashboard({
               ],
               labelLanguage === "ko",
             ),
-          ])
+          ]).map((f) =>
+            // 항구·정유소·터미널을 맞힌 불꽃 — 지도 라벨·양피지에 시설명을 붙인다 (랜딩 「불꽃」 약속)
+            f.facility
+              ? { ...f, facilityLabel: strikeFacilityLabel(f.facility, labelLanguage === "en" ? "en" : "ko") }
+              : f,
+          )
         : [],
     [isSatelliteViewer, labelLanguage, liveuaEvents, newsStreamPayload, nfStrikeRaw, showUkraineControl],
   );
@@ -2598,7 +2614,7 @@ export function GlobeDashboard({
           source: f.origin === "liveuamap" ? "liveua" : f.origin,
           at,
           title: f.title,
-          place: "",
+          place: f.facilityLabel ?? "",
           lat: f.lat,
           lng: f.lng,
           sea: null,
@@ -2700,6 +2716,7 @@ export function GlobeDashboard({
     setStackSelectedId(null);
     stackReturnViewRef.current = { view: { ...viewState }, armed: false };
     handleViewerModeChange("satellite");
+    // 세슘이 아직 안 떠 있으면 pendingObserveFly 큐가 ready 때 대신 실행한다. 600ms 는 모드 전환 정리용
     window.setTimeout(() => focusStackItemInSpaceRef.current(it), 600);
   };
 
@@ -4276,6 +4293,7 @@ export function GlobeDashboard({
   } = useEpisodePostureOverlays({
     labelLanguage,
     isEconomyViewer,
+    isMaritimeView,
     isConflictViewer,
     hubFocusMode,
     frictionEpisodeBrief,
@@ -4602,6 +4620,7 @@ export function GlobeDashboard({
     ukraineSettlementHtmlMarkers,
   } = useSituationHtmlMarkers({
     isEconomyViewer,
+    isMaritimeView,
     isHistoryViewer,
     isCompactUi,
     labelLanguage,
@@ -7402,7 +7421,7 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
-        {isSatelliteViewer && !theaterSitrepRegion ? (
+        {isSatelliteViewer && !theaterSitrepRegion && !landingCurtainActive ? (
           <LiveuaFlashToast
             lang={labelLanguage}
             event={liveuaToast}
@@ -7412,7 +7431,8 @@ export function GlobeDashboard({
 
         {isSatelliteViewer &&
         liveuaParchmentIndex != null &&
-        !theaterSitrepRegion ? (
+        !theaterSitrepRegion &&
+        !landingCurtainActive ? (
           <LiveuaFlashParchment
             lang={labelLanguage}
             events={liveuaBreakingEvents}
@@ -7551,7 +7571,7 @@ export function GlobeDashboard({
             })()
           : null}
 
-        {!isSatelliteViewer && frontParchmentIndex != null
+        {!isSatelliteViewer && frontParchmentIndex != null && !landingCurtainActive
           ? (() => {
               const rows = frontNewsItems.filter((x) => x.liveua);
               const events = rows.map((x) => x.liveua!);

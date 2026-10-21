@@ -28,7 +28,7 @@ import { canMountFullObserve, markObserveUnlocked } from "@/lib/observeAccess";
 import { type SceneMissionId, sceneMissionApply, asLayerPatch, softZoneForMission } from "@/lib/sceneMissions";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import { savePerfPrefs } from "@/lib/ultraLiteMode";
-import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi } from "@/lib/viewPackages";
+import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersMaritimeFirstScreen } from "@/lib/viewPackages";
 import { applyViewerMode } from "@/lib/viewerChrome";
 import { rememberConflictTheater, rememberEconomyHub } from "@/lib/watchFocus";
 
@@ -479,6 +479,26 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     setPurposeJobDone(true);
     setPurposeJobForced(false);
     const orbit = entryOrbitCamera(size);
+    if (job === "maritime") {
+      // 해운 위험 — 지정학(conflict) 모드 위에 해운 패키지를 얹는다. 관측(Cesium)에서 왔으면 MapLibre 로 돌아온다.
+      const packages: ViewPackageId[] = [MARITIME_VIEWER_PACKAGE];
+      const merged = applyViewPackages(packages, "auto", "auto");
+      setViewerMode("conflict");
+      applyMergedViewConfig(merged, packages, "auto", "auto");
+      applyLayerPrefs(
+        buildDomainOverviewPrefs("conflict", {
+          labelLanguage: layerPrefsLiveRef.current.labelLanguage,
+          ultraLite: ultraLiteRef.current,
+          maritime: true,
+        }),
+      );
+      window.setTimeout(() => {
+        flyTo(orbit.lat, orbit.lng, orbit.altitude, ENTRY_GATE.zoomOutFlyMs, {
+          pitch: orbit.pitch,
+        });
+      }, 0);
+      return;
+    }
     if (job === "conflict" || job === "economy") {
       handleViewerModeChange(job);
       // 관측(Cesium)에서 넘어오면 MapLibre 는 이 클릭 직후 마운트된다.
@@ -602,6 +622,8 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     const overviewPrefs = buildDomainOverviewPrefs(viewerMode, {
       labelLanguage: layerPrefsLiveRef.current.labelLanguage,
       ultraLite: ultraLiteRef.current,
+      // 신규 방문·해운 패키지 — 랜딩이 약속한 해운 위험 첫 화면 (UKMTO·항행경보·AIS·항모·불꽃)
+      maritime: viewerMode === "conflict" && prefersMaritimeFirstScreen(),
     });
     applyLayerPrefs(overviewPrefs);
     const entryLook = entryOrbitCamera(size);
@@ -658,6 +680,8 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     const overviewPrefs = buildDomainOverviewPrefs(viewerMode, {
       labelLanguage: layerPrefsLiveRef.current.labelLanguage,
       ultraLite: ultraLiteRef.current,
+      // 신규 방문·해운 패키지 — 랜딩이 약속한 해운 위험 첫 화면 (UKMTO·항행경보·AIS·항모·불꽃)
+      maritime: viewerMode === "conflict" && prefersMaritimeFirstScreen(),
     });
     applyLayerPrefs(overviewPrefs);
     const entryLook = entryOrbitCamera(size);

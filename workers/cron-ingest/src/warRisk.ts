@@ -62,7 +62,7 @@ export type WarRiskQuoteRow = {
 };
 
 const UA =
-  "BraveNewWorld-Ingest/1.0 (+contact: kangps7675@gmail.com; war-risk premium news monitor)";
+  "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; war-risk premium news monitor)";
 
 async function sha1Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s));
@@ -180,7 +180,7 @@ export async function fetchAndUpsertWarRisk(env: IngestEnv): Promise<{
   const results = await Promise.allSettled(
     WAR_RISK_FEEDS.map(async (f) => {
       const res = await fetch(f.url, {
-        headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": f.url.includes("bing.com") ? "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" : UA },
+        headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": f.url.includes("bing.com") ? "Mozilla/5.0 (compatible; StraitDesk/1.0)" : UA },
       });
       if (!res.ok) throw new Error(`${f.name} HTTP ${res.status}`);
       const xml = await res.text();

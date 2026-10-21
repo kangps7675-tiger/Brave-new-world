@@ -25,7 +25,7 @@ function num(value: string | string[] | undefined): number | null {
  * 사이트 OG 이미지·문구는 이미 있었지만 **고정**이었다. 그래서 카카오톡·
  * 스레드에 어떤 장면을 공유하든 미리보기가 전부 똑같았다:
  *
- *   "멋진 신세계 — 3D 지구본 관측대"   ← 호르무즈를 공유해도 이 문구
+ *   "Strait Desk — 3D 지구본 관측대"   ← 호르무즈를 공유해도 이 문구
  *
  * 링크를 받은 사람 입장에서 **왜 이걸 보내줬는지 알 수 없다.** 클릭 전에
  * 이미 정보가 죽어 있으니, 폰 카드(P2-3-A)를 잘 만들어도 거기까지 오질 않는다.
@@ -63,7 +63,7 @@ export function generateMetadata({
     "ko",
   );
 
-  const title = `${card.placeLabel} · ${card.modeLabel} — 멋진 신세계`;
+  const title = `${card.placeLabel} · ${card.modeLabel} — Strait Desk`;
   const description =
     card.topics.length > 0
       ? `이 장면에서 보던 것 — ${card.topics.join(" · ")}`

@@ -8,6 +8,7 @@ import {
   localizedDisplayText,
   useLocalizedTextMap,
 } from "@/hooks/useLocalizedTextMap";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 export type NewsPerspectiveView = {
   title: string;
@@ -151,7 +152,7 @@ export function NewsPerspectivesPanel({
       </div>
 
       {/* 전쟁 → 이익: 이 사건이 관련 시장을 움직였는지 (지정학 ↔ 지경학 연결) */}
-      {theater ? (
+      {theater && SHOW_INVESTMENT_UI ? (
         <div className="border-t border-slate-500/15">
           <p className="px-3.5 pt-2 text-micro font-semibold tracking-wide text-slate-400">
             {en ? "Market reaction" : "시장 반응"}

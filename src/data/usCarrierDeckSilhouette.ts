@@ -15,7 +15,7 @@ export const CARRIER_DECK_REFERENCE = {
   description:
     "US Navy aircraft carrier — top-down deck silhouette for map markers (warship fill)",
   bowDirection: "east" as const,
-  sourceNote: "멋진 신세계 design reference (2026)",
+  sourceNote: "Strait Desk design reference (2026)",
 };
 
 /** 俯視 외곽선 (레거시) */

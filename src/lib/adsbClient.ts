@@ -64,6 +64,26 @@ export function getAdsbApiKey(): string | null {
   return key || null;
 }
 
+/**
+ * RapidAPI 로 산 ADS-B Exchange 키인가. 형식: `<10hex>msh<hex>p<hex>jsn<hex>` (RapidAPI 공통 발급 형식).
+ * ADS-B Exchange 가 직접 발급하는 게이트웨이 키와 호스트·헤더가 달라서 구분해야 한다.
+ */
+export function isRapidApiKey(key: string | null | undefined): boolean {
+  return typeof key === "string" && /^[0-9a-f]{8,12}msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(key.trim());
+}
+
+export const ADSBX_RAPIDAPI_HOST = "adsbexchange-com1.p.rapidapi.com";
+/** RapidAPI ADS-B Exchange 의 lat/lon/dist 검색 반경 상한(NM) — 문서 기억 기준, 넘으면 폴백으로 처리됨 */
+export const ADSBX_RAPIDAPI_MAX_DIST_NM = 250;
+
+/** 군용기 전체 조회 주소 (키 종류에 따라 다름). 키가 없으면 null */
+export function adsbxMilUrl(key: string | null): string | null {
+  if (!key) return null;
+  return isRapidApiKey(key)
+    ? `https://${ADSBX_RAPIDAPI_HOST}/v2/mil/`
+    : "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
+}
+
 export function numOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() !== "") {
@@ -186,11 +206,17 @@ export function adsbAuthHeaders(apiKey: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
-    "User-Agent": "BraveNewWorld/1.0",
+    "User-Agent": "StraitDesk/1.0",
   };
   if (apiKey) {
-    headers["x-api-key"] = apiKey;
-    headers["api-auth"] = apiKey;
+    if (isRapidApiKey(apiKey)) {
+      // RapidAPI 키는 RapidAPI 호스트로만 보낸다 — 게이트웨이에 보내면 401/403 이고 키도 엉뚱한 곳에 간다
+      headers["x-rapidapi-key"] = apiKey;
+      headers["x-rapidapi-host"] = ADSBX_RAPIDAPI_HOST;
+    } else {
+      headers["x-api-key"] = apiKey;
+      headers["api-auth"] = apiKey;
+    }
   }
   return headers;
 }
@@ -231,15 +257,28 @@ export function civilianTrafficUrl(lat: number, lng: number, distNm: number): {
       source: "adsbx",
     };
   }
-  if (getAdsbApiKey()) {
+  const key = getAdsbApiKey();
+  if (key) {
+    if (isRapidApiKey(key)) {
+      const d = Math.min(ADSBX_RAPIDAPI_MAX_DIST_NM, dist);
+      return {
+        url: `https://${ADSBX_RAPIDAPI_HOST}/v2/lat/${lat}/lon/${lng}/dist/${d}/`,
+        source: "adsbx",
+      };
+    }
     return {
       url: `https://gateway.adsbexchange.com/api/aircraft/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
       source: "adsbx",
     };
   }
-  // 키가 없을 때의 폴백 — ODbL 소스로 고정 (무료·유료 구분 없음)
-  return {
-    url: `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`,
-    source: "adsb.lol",
-  };
+  return adsbLolTrafficUrl(lat, lng, dist);
+}
+
+/** 키가 없거나 키 호출이 실패했을 때의 폴백 — ODbL 소스로 고정 (무료·유료 구분 없음) */
+export function adsbLolTrafficUrl(lat: number, lng: number, distNm: number): {
+  url: string;
+  source: "adsb.lol";
+} {
+  const dist = Math.min(1500, Math.max(25, Math.round(distNm)));
+  return { url: `https://api.adsb.lol/v2/lat/${lat}/lon/${lng}/dist/${dist}`, source: "adsb.lol" };
 }

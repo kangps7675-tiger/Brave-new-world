@@ -12,7 +12,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
-import { setWorkerUrl } from "maplibre-gl";
+import { setWorkerUrl, type ExpressionSpecification } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
 import { isFatalWebglMapError } from "@/lib/isFatalWebglMapError";
@@ -159,6 +159,9 @@ const OsmBuildingsOverlay = dynamic(
     ),
   { ssr: false },
 );
+
+/** symbol icon-size: ["zoom"]은 최상위 interpolate 입력으로만 쓸 수 있다 — 피처 scale 배수는 각 stop 출력 안에서 곱한다 */
+const SYMBOL_SCALE: ExpressionSpecification = ["coalesce", ["get", "scale"], 1];
 
 /** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
 function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
@@ -1118,7 +1121,13 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       type: "FeatureCollection" as const,
       features: liveuaStrikesData.map((s, index) => ({
         type: "Feature" as const,
-        properties: { index, kind: s.kind },
+        properties: {
+          index,
+          kind: s.kind,
+          // 항구·정유소·터미널 피격 — 하얀 고리 + 시설 이름 (strikeFacility.ts)
+          facility: s.facility ? 1 : 0,
+          facilityLabel: s.facilityLabel ?? "",
+        },
         geometry: { type: "Point" as const, coordinates: [s.lng, s.lat] },
       })),
     }),
@@ -3319,21 +3328,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 // 항공기 3,000대가 한 화면에 깔려도 뭉개지지 않게 줌아웃일수록 작게 +
                 // 선택 시 scale 배수. 지구 전체(줌 ~1.5)에서 0.36배 → 줌 8 이상에서 기본 크기.
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.36,
-                    3,
-                    0.46,
-                    5,
-                    0.66,
-                    8,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.36],
+                  3,
+                  ["*", SYMBOL_SCALE, 0.46],
+                  5,
+                  ["*", SYMBOL_SCALE, 0.66],
+                  8,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
@@ -3407,19 +3412,18 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.62,
-                    4,
-                    0.82,
-                    7,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  // 전역뷰(줌 ~1.5)에서 1,500척이 뭉개지지 않게 작게, 줌 7에서 기본 크기
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.45],
+                  3,
+                  ["*", SYMBOL_SCALE, 0.6],
+                  5,
+                  ["*", SYMBOL_SCALE, 0.8],
+                  7,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
@@ -3485,19 +3489,18 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.62,
-                    4,
-                    0.82,
-                    7,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  // 전역뷰(줌 ~1.5)에서 1,500척이 뭉개지지 않게 작게, 줌 7에서 기본 크기
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.45],
+                  3,
+                  ["*", SYMBOL_SCALE, 0.6],
+                  5,
+                  ["*", SYMBOL_SCALE, 0.8],
+                  7,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "viewport",
@@ -3571,6 +3574,40 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-translate": ["interpolate", ["linear"], ["zoom"], 1.5, ["literal", [0, -6]], 10, ["literal", [0, -10]]],
                 "circle-translate-anchor": "viewport",
                 "circle-pitch-alignment": "viewport",
+              }}
+            />
+            {/* 시설 피격 표시 — 불꽃 아래 하얀 고리. 일반 공습과 한눈에 구분된다 */}
+            <Layer
+              id="liveua-strikes-facility-ring"
+              type="circle"
+              filter={["==", ["get", "facility"], 1]}
+              paint={{
+                "circle-color": "rgba(0,0,0,0)",
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 7, 4, 9, 7, 11, 10, 14],
+                "circle-stroke-color": "rgba(248, 250, 252, 0.92)",
+                "circle-stroke-width": 1.6,
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="liveua-strikes-facility-label"
+              type="symbol"
+              filter={["==", ["get", "facility"], 1]}
+              minzoom={3.2}
+              layout={{
+                "text-field": ["get", "facilityLabel"],
+                "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+                "text-size": 11,
+                "text-anchor": "top",
+                "text-offset": [0, 0.9],
+                "text-max-width": 12,
+                "text-allow-overlap": false,
+                "text-optional": true,
+              }}
+              paint={{
+                "text-color": "rgba(248, 250, 252, 0.92)",
+                "text-halo-color": "rgba(2, 6, 14, 0.85)",
+                "text-halo-width": 1.2,
               }}
             />
             <Layer

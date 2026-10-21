@@ -9,6 +9,7 @@ import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe
 import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 import type { CesiumEntitySelection, CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
 import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
+import { cesiumShipProps } from "@/lib/satelliteLayers";
 
 const CesiumSatelliteGlobe = dynamic(
   importWithChunkRetry(() =>
@@ -206,14 +207,17 @@ export function GlobeMapCanvas({
                 ? cesiumRef
                 : undefined
             }
-            aisVessels={aisVessels}
-            disguisedVessels={disguisedVessels}
+            // 선박(AIS)은 세슘에 그리지 않는다 — 기본에서 비움 (src/lib/satelliteLayers.ts)
+            {...cesiumShipProps({
+              aisVessels,
+              disguisedVessels,
+              showAis,
+              showAisMilitary,
+              showAisCommercial,
+              showDisguisedVessels,
+            })}
             milAircraft={milAircraft}
             civAircraft={civAircraft}
-            showAis={showAis}
-            showAisMilitary={showAisMilitary}
-            showAisCommercial={showAisCommercial}
-            showDisguisedVessels={showDisguisedVessels}
             showMilitaryActivity={showMilitaryActivity}
             showAirTraffic={showAirTraffic}
             usCarriers={cesiumUsCarriers}

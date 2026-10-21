@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
-import { flamesFromNewfeeds, mergeStrikeFlames, type StrikeFlame } from "./strikeFlames";
+import { flamesFromLiveua, flamesFromNewfeeds, mergeStrikeFlames, STRIKE_FLAME_MAX, type StrikeFlame } from "./strikeFlames";
 
 const NOW = Date.parse("2026-10-19T00:00:00Z");
 
@@ -71,5 +71,46 @@ describe("공습 불꽃", () => {
     const merged = mergeStrikeFlames([[flame({})], [...dup, ...far]], 10);
     expect(merged.map((f) => f.id)).toEqual(["nf:a9", "l1"]); // 최신순, 중복(nf:a1) 제거
     expect(mergeStrikeFlames([[flame({})], far], 1)).toHaveLength(1);
+  });
+});
+
+describe("48시간 창 · 드론 타격 표현", () => {
+  const now = Date.parse("2026-10-21T12:00:00Z");
+  const ev = (title: string, hoursAgo: number) =>
+    ({
+      id: `e-${title}`,
+      title,
+      body: "",
+      lat: 50.4,
+      lng: 30.5,
+      regionId: "ukraine",
+      publishedAt: new Date(now - hoursAgo * 3_600_000).toISOString(),
+      tags: [],
+    }) as never;
+
+  it("'Drone strike in … Kyiv' 같은 짧은 속보도 불꽃이 된다", () => {
+    const out = flamesFromLiveua(
+      [ev("Drone strike in Svyatoshynskyi District of Kyiv", 20), ev("Russian missile strike reported in Kharkiv", 30)],
+      false,
+      now,
+    );
+    expect(out).toHaveLength(2);
+  });
+
+  it("47시간은 남기고 49시간은 뺀다", () => {
+    const out = flamesFromLiveua(
+      [ev("Drone strike reported in Kyiv", 47), ev("Drone strike reported in Kyiv again", 49)],
+      false,
+      now,
+    );
+    expect(out).toHaveLength(1);
+  });
+
+  it("요격만 한 소식은 여전히 제외", () => {
+    expect(flamesFromLiveua([ev("Saudi Arabia announces interception and destruction of drone over Riyadh", 25)], false, now)).toHaveLength(0);
+  });
+
+  it("상한은 48시간치가 잘리지 않을 만큼 넉넉하다", () => {
+    expect(STRIKE_FLAME_MAX).toBeGreaterThanOrEqual(400);
   });
 });

@@ -164,6 +164,7 @@ import {
   type AirRaidBriefingContent,
 } from "@/components/AirRaidBriefingParchment";
 import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
+import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import type { UxGuideBriefContent } from "@/lib/uxGuideBrief";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
@@ -521,6 +522,7 @@ export type DashboardOverlayHostProps = {
 };
 
 export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
+  const landingCurtainActive = useLandingCurtainActive();
   const {
     labelLanguage,
     isCompactUi,
@@ -1615,7 +1617,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       */}
       {!railVisible && showFoldedBriefingTabs ? (
         <div
-          className={`pointer-events-auto fixed left-0 ${zc("panel")}`}
+          className={`cv-folded-briefing-tabs pointer-events-auto fixed left-0 ${zc("panel")}`}
           style={{
             top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
           }}
@@ -1960,12 +1962,12 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           typewriter={false}
           titleId="ux-guide-brief-title"
           backMark={labelLanguage === "en" ? "Guide" : "안내"}
-          backSub={labelLanguage === "en" ? "Brave New World" : "멋진 신세계"}
+          backSub={"Strait Desk"}
           zIndexClass="z-[900]"
         />
       ) : null}
 
-      {breakingFlash && !airRaidBriefing && !uxGuideBrief && !periodicBriefing && !weeklyExpanded ? (
+      {breakingFlash && !landingCurtainActive && !airRaidBriefing && !uxGuideBrief && !periodicBriefing && !weeklyExpanded ? (
         <BreakingFlashParchment
           briefing={breakingFlash}
           lang={labelLanguage}

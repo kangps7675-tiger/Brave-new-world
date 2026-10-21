@@ -13,6 +13,7 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
   FIRST_SCREEN_LIVE_ON,
+  FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
 
 /**
@@ -36,9 +37,11 @@ export const ENTRY_GATE: {
   /**
    * 적도 중심 — pitch 0 이면 구 실루엣(남극 포함)이 한 화면에 들어온다.
    */
+  // 전역 궤도의 중심 — 홍해·아덴만·걸프·흑해·동지중해가 한 화면 정면에 오도록 (확대는 하지 않는다).
+  // 예전 (0, 25)는 아프리카 한가운데라 랜딩이 말하는 바다들이 가장자리로 밀렸다.
   bootLookAt: {
-    lat: 0,
-    lng: 25,
+    lat: 20,
+    lng: 45,
   },
   /** 정면. 틸트하면 남반구가 잘려 "지구 전체"가 안 보인다. */
   bootPitch: 0,
@@ -90,6 +93,11 @@ const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };
 
+/** 해운 위험 첫 화면 — 랜딩이 약속한 화면 (UKMTO·항행경보·AIS·항모·군용기·불꽃) */
+const MARITIME_HERO_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_MARITIME_ON,
+};
+
 /** 항적 첫 화면 — ADS-B · AIS · GPSJam */
 const LIVE_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_LIVE_ON,
@@ -104,13 +112,20 @@ const LIVE_HERO_ON: Partial<LayerPrefs> = {
  */
 export function buildDomainOverviewPrefs(
   mode: ViewerMode,
-  options?: { labelLanguage?: LabelLanguage; ultraLite?: boolean },
+  options?: {
+    labelLanguage?: LabelLanguage;
+    ultraLite?: boolean;
+    /** 지정학(conflict) 모드지만 해운 위험 첫 화면으로 — 신규 방문·해운 패키지 사용자 */
+    maritime?: boolean;
+  },
 ): LayerPrefs {
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
   let next = allBooleanLayersOff({ ...DEFAULT_LAYER_PREFS, labelLanguage });
 
   const hero =
-    mode === "conflict"
+    mode === "conflict" && options?.maritime
+      ? MARITIME_HERO_ON
+      : mode === "conflict"
       ? CONFLICT_HERO_ON
       : mode === "economy"
         ? ECONOMY_HERO_ON

@@ -13,6 +13,7 @@ import {
   yahooQuoteUrl,
   type StockTickerItem,
 } from "@/lib/stockTickers";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type Props = {
   news: LampFeaturedNews[];
@@ -33,7 +34,7 @@ type LadderLevel = {
  * 지경학 등불 좌측 — 관련 기업 호가창 UI.
  * 매도(파랑) / 매수(빨강) 레이어. 잔량은 표시용 합성(실시간 order book 아님).
  */
-export function LampEconomyQuoteBoard({ news, lang }: Props) {
+function LampEconomyQuoteBoardInner({ news, lang }: Props) {
   const symbols = useMemo(() => pickEconomyLampRelatedSymbols(news, 6), [news]);
   const symbolSet = useMemo(() => new Set(symbols), [symbols]);
   const [tickers, setTickers] = useState<StockTickerItem[] | null>(null);
@@ -381,4 +382,10 @@ function hashSymbol(symbol: string): number {
     h = (h * 31 + symbol.charCodeAt(i)) >>> 0;
   }
   return h || 1;
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function LampEconomyQuoteBoard(props: Props) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <LampEconomyQuoteBoardInner {...props} />;
 }

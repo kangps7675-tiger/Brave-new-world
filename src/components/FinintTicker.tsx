@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
 import type { FreightIndex } from "@/lib/freightIndicesFetch";
 import { visibleInterval } from "@/lib/visibleInterval";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 export type { FreightIndex };
 
@@ -20,7 +21,7 @@ function formatSigned(value: number, suffix = ""): string {
   return `${sign}${value.toFixed(2)}${suffix}`;
 }
 
-export function FinintTicker({ compact = false }: { compact?: boolean } = {}) {
+function FinintTickerInner({ compact = false }: { compact?: boolean } = {}) {
   const [indices, setIndices] = useState<FreightIndex[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,4 +147,10 @@ export function FinintTicker({ compact = false }: { compact?: boolean } = {}) {
       )}
     </section>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function FinintTicker(props: { compact?: boolean } = {}) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <FinintTickerInner {...props} />;
 }

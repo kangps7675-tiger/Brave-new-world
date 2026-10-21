@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "Brave New World OSM Dark (OpenMapTiles)",
+  "name": "Strait Desk OSM Dark (OpenMapTiles)",
   "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
     "openmaptiles": {

@@ -15,6 +15,7 @@ import {
 import { renderCounterfactualInvestCard } from "@/lib/counterfactualInvestCard";
 import { shareOrDownloadImageBlob } from "@/lib/captureShareImage";
 import { trackEvent } from "@/lib/trackClient";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type CounterfactualInvestCardProps = {
   theater: TheaterMarketFilter;
@@ -56,7 +57,7 @@ function safeTheaterLabel(theater: TheaterMarketFilter, lang: "ko" | "en"): stri
  * - conflict: 전장 개전·위기 시점
  * - economy: 경제 타임테이블(금·VIX·증시) 또는 초크포인트 물류 앵커
  */
-export function CounterfactualInvestCard({
+function CounterfactualInvestCardInner({
   theater,
   ageMinutes,
   viewerMode = "conflict",
@@ -289,4 +290,10 @@ export function CounterfactualInvestCard({
       ) : null}
     </div>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function CounterfactualInvestCard(props: CounterfactualInvestCardProps) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <CounterfactualInvestCardInner {...props} />;
 }

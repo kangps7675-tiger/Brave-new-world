@@ -39,12 +39,12 @@ export type SyncNewfeedsResult = {
 async function fetchAttacksPayload(): Promise<NewfeedsAttacksPayload> {
   const [attacksRes, threatRes] = await Promise.all([
     fetch(NEWFEEDS_ATTACKS_URL, {
-      headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/newfeeds-ingest" },
+      headers: { Accept: "application/json", "User-Agent": "StraitDesk/newfeeds-ingest" },
       cache: "no-store",
       signal: AbortSignal.timeout(45_000),
     }),
     fetch(NEWFEEDS_THREAT_URL, {
-      headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/newfeeds-ingest" },
+      headers: { Accept: "application/json", "User-Agent": "StraitDesk/newfeeds-ingest" },
       cache: "no-store",
       signal: AbortSignal.timeout(20_000),
     }).catch(() => null),

@@ -28,7 +28,7 @@ import type { IngestEnv } from "./env";
 import { readIntVar } from "./db";
 
 const UA =
-  "BraveNewWorld-Ingest/1.0 (+contact: kangps7675@gmail.com; non-commercial situational dashboard)";
+  "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; non-commercial situational dashboard)";
 
 async function fetchText(url: string): Promise<{ text: string; error?: string }> {
   try {

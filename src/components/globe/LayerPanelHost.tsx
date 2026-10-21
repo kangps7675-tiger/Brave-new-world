@@ -197,6 +197,14 @@ export function LayerPanelHost({
 
   useEffect(() => () => clearHoverTimer(), [clearHoverTimer]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.layerDrawer = "open";
+    return () => {
+      delete root.dataset.layerDrawer;
+    };
+  }, []);
+
   const layerInfoContent = useMemo(() => {
     if (!layerInfoHover) return null;
     return buildLayerInfoHoverContent(layerInfoHover.id, labelLanguage, {
@@ -207,17 +215,24 @@ export function LayerPanelHost({
 
   const panelLayoutClass = isTabletUi || isCompactUi
     ? "top-[4.75rem] max-h-[calc(100dvh-5.75rem)]"
-    : "top-14 max-h-[calc(100vh-5rem)]";
+    : // top-14(3.5rem) 아래에서 시작해 하단 크롬(날짜 막대·「오늘의 GTS」) 영역 위에서 끝난다.
+      // 예전 100vh-5rem 은 하단 크롬 자리까지 내려가 그 위에 겹쳤다.
+      "top-14 max-h-[calc(100dvh-3.5rem-var(--bottom-intel-stack-clearance,3.5rem)-1rem)]";
 
   return (
     <aside
-      className={`intel-panel intel-sidebar-left intel-scroll-y pointer-events-auto absolute left-3 z-[600] flex flex-col gap-4 rounded-2xl p-4 shadow-2xl ${panelLayoutClass}`}
+      className={`intel-panel intel-sidebar-left pointer-events-auto absolute left-3 z-[600] flex flex-col rounded-2xl shadow-2xl ${panelLayoutClass}`}
     >
+      {/*
+        고정 머리 — 제목·닫기·적용 확인은 스크롤해도 사라지지 않는다.
+        aside 에는 overflow-hidden 을 걸지 않는다: 넓은 화면의 레이어 설명 카드가 서랍 오른쪽 바깥(left: 100%)에 뜨기 때문.
+      */}
+      <div className="flex shrink-0 flex-col gap-3 border-b border-sky-200/10 px-4 pb-3 pt-4">
       {layerPanelDirty ? (
         <div
           role="dialog"
           aria-label={t("layerApplyConfirm", labelLanguage)}
-          className="sticky top-0 z-20 -mx-1 mb-1 rounded-xl border border-sky-300/40 bg-[#0a1830]/96 px-3 py-2.5 shadow-lg backdrop-blur-md"
+          className="-mx-1 rounded-xl border border-sky-300/40 bg-[#0a1830]/96 px-3 py-2.5 shadow-lg backdrop-blur-md"
         >
           <p className="text-body font-semibold text-sky-50">
             {t("layerApplyConfirm", labelLanguage)}
@@ -291,6 +306,10 @@ export function LayerPanelHost({
         })}
       </div>
       ) : null}
+      </div>
+
+      {/* 안쪽 스크롤 — 얇은 스크롤바가 둥근 모서리 안쪽 여백에 머문다 */}
+      <div className="intel-scroll-y intel-drawer-scroll flex min-h-0 flex-1 flex-col gap-4 px-4 pb-4 pt-3">
 
       {tab === "settings" ? (
       <>
@@ -368,6 +387,22 @@ export function LayerPanelHost({
           {t("layers", labelLanguage)}
         </p>
         <p className="mt-1 text-meta text-slate-600">{t("layerDraftHint", labelLanguage)}</p>
+        <div className="mt-3 grid gap-2" data-testid="layer-panel-maritime-links">
+          <a href="/strikes" target="_blank" rel="noopener noreferrer"
+            className="block rounded-lg border border-sky-400/30 bg-sky-950/20 px-3 py-2 text-xs text-sky-200 hover:bg-sky-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+            {labelLanguage === "en" ? "Which ship was hit? · Strike cases ↗" : "어느 배가 맞았나 · 피격 사건 확인 ↗"}
+            <span className="mt-1 block text-meta text-slate-400">
+              {labelLanguage === "en" ? "UKMTO alert + AIS track — opens in a new tab" : "UKMTO 경보 + AIS 항적 대조 — 새 탭에서 열기"}
+            </span>
+          </a>
+          <a href="/chokepoints/bab-el-mandeb" target="_blank" rel="noopener noreferrer"
+            className="block rounded-lg border border-sky-400/30 bg-sky-950/20 px-3 py-2 text-xs text-sky-200 hover:bg-sky-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+            {labelLanguage === "en" ? "Sea area · war-risk premium & weather ↗" : "해역별 보험료 · 날씨 ↗"}
+            <span className="mt-1 block text-meta text-slate-400">
+              {labelLanguage === "en" ? "Red Sea · Hormuz · Black Sea — opens in a new tab" : "홍해 · 호르무즈 · 흑해 — 새 탭에서 열기"}
+            </span>
+          </a>
+        </div>
         {!isEconomyViewer && !isHistoryViewer ? (
           <a href="/missile-tracker" target="_blank" rel="noopener noreferrer"
             className="mt-3 block rounded-lg border border-orange-400/30 bg-orange-950/20 px-3 py-2 text-xs text-orange-200 hover:bg-orange-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-300">
@@ -504,12 +539,16 @@ export function LayerPanelHost({
       {/* 로드 실패는 어느 탭에서든 보여야 한다 */}
       {loadError ? <LoadErrorBanner message={loadError} className="mt-3" /> : null}
 
+      {/* 좁은 화면 — 패널 안 sticky */}
+      {showLayerHoverInfo && layerInfoContent ? (
+        <div className="sticky bottom-0 z-10 -mx-1 mt-1 lg:hidden">
+          <LayerInfoHoverPanel content={layerInfoContent} lang={labelLanguage} />
+        </div>
+      ) : null}
+      </div>
+
       {showLayerHoverInfo && layerInfoContent ? (
         <>
-          {/* 좁은 화면 — 패널 안 sticky */}
-          <div className="sticky bottom-0 z-10 -mx-1 mt-1 lg:hidden">
-            <LayerInfoHoverPanel content={layerInfoContent} lang={labelLanguage} />
-          </div>
           {/* 넓은 화면 — 서랍 오른쪽 바깥 */}
           <div className="pointer-events-none absolute left-[calc(100%+0.5rem)] top-14 z-10 hidden w-[min(18rem,28vw)] lg:block">
             <LayerInfoHoverPanel

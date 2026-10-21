@@ -1338,6 +1338,56 @@ main[data-ui-lang="en"]
   max-width: var(--intel-sidebar-width);
 }
 
+/*
+ * 좌측 서랍 안쪽 스크롤 — 윈도우 기본 스크롤바(17px·화살표)가 둥근 패널을 파먹지 않게 얇게.
+ * scrollbar-gutter 로 스크롤바가 생겨도 내용 폭이 흔들리지 않는다.
+ */
+.intel-drawer-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 197, 255, 0.28) transparent;
+  scrollbar-gutter: stable;
+}
+.intel-drawer-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.intel-drawer-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.intel-drawer-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 197, 255, 0.28);
+}
+.intel-drawer-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 197, 255, 0.45);
+}
+
+/*
+ * 좌측 서랍(레이어 · 전선)이 열린 동안 — html[data-layer-drawer="open"] (LayerPanelHost 가 켜고 끈다).
+ * 같은 왼쪽 자리를 쓰는 요소들이 서랍과 겹치지 않게 비킨다.
+ */
+html[data-layer-drawer="open"] {
+  --intel-drawer-w: min(calc(100vw - 1.5rem), var(--intel-sidebar-width));
+}
+/* 「오늘의 GTS」 — 서랍과 같은 left-3·같은 z 라 서랍 아래쪽 위에 올라탔다. 서랍 닫으면 다시 보인다. */
+html[data-layer-drawer="open"] .cv-chrome-daily-bottom {
+  display: none !important;
+}
+/* 접힌 등불 탭 — 서랍 왼쪽 위 모서리를 덮었다. 넓은 화면은 서랍 오른쪽 옆으로, 좁은 화면은 숨김. */
+html[data-layer-drawer="open"] .cv-folded-briefing-tabs {
+  display: none;
+}
+html[data-layer-drawer="open"][data-device="desktop"] .cv-folded-briefing-tabs,
+html[data-layer-drawer="open"][data-device="desktop-wide"] .cv-folded-briefing-tabs {
+  display: block;
+  left: calc(0.75rem + var(--intel-drawer-w) + 0.5rem) !important;
+}
+/* 날짜 막대 등 하단 가운데 크롬 — 화면 가운데가 아니라 「서랍 오른쪽 남은 공간」의 가운데로. */
+html[data-layer-drawer="open"][data-device="desktop"] .cv-bottom-chrome-above-stack,
+html[data-layer-drawer="open"][data-device="desktop-wide"] .cv-bottom-chrome-above-stack {
+  left: calc(0.75rem + var(--intel-drawer-w) + (100vw - 0.75rem - var(--intel-drawer-w)) / 2);
+  max-width: calc(100vw - var(--intel-drawer-w) - 2.5rem);
+}
+
 /* 유일한 세로 스크롤 포트: 위·아래 터치 스크롤 (중첩 overflow-y-auto 금지) */
 .intel-scroll-y {
   -webkit-overflow-scrolling: touch;
@@ -2222,3 +2272,196 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   }
 }
 
+
+/* ── 랜딩 (LandingContent / LandingGlobe) ─────────────────────────────
+   카드가 바뀔 때 살짝 떠오르고, 섹션은 화면에 들어올 때 아래에서 올라온다.
+   동작 줄이기 설정이면 위쪽 전역 규칙이 애니메이션을 0초로 만든다. */
+@keyframes landing-card {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.landing-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+.landing-cta-glow {
+  box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.45), 0 10px 40px -8px rgba(245, 196, 81, 0.55);
+}
+@keyframes landing-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes landing-grid-pan {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(40px, 40px, 0); }
+}
+@keyframes landing-cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.5), 0 10px 40px -8px rgba(245, 196, 81, 0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(245, 196, 81, 0), 0 10px 50px -6px rgba(245, 196, 81, 0.75); }
+}
+.landing-cta-glow { animation: landing-cta-pulse 2.6s ease-in-out infinite; }
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(94, 234, 212, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 234, 212, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000 30%, transparent 75%);
+  animation: landing-grid-pan 6s linear infinite;
+}
+.landing-spot {
+  background: radial-gradient(520px circle at var(--sx, 70%) var(--sy, 35%), rgba(245, 196, 81, 0.09), transparent 60%);
+}
+.landing-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s ease-out;
+  background-image: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgba(94, 234, 212, 0.1), transparent 55%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-cta-glow, .landing-grid { animation: none; }
+  .landing-tilt { transform: none; transition: none; }
+}
+
+/* ── 랜딩 · 힙 레이어 (LandingHip) ── */
+.landing-grain {
+  z-index: 1;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px);
+  animation: landing-grain-shift 0.9s steps(4) infinite;
+}
+@keyframes landing-grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -1%); }
+  100% { transform: translate(0, 0); }
+}
+.landing-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(230, 237, 242, 0.35);
+}
+.landing-glitch::before,
+.landing-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.landing-glitch::before { color: #ff3b6b; }
+.landing-glitch::after { color: #2de2ff; }
+.landing-glitch:hover::before,
+.landing-glitch.is-live::before { animation: landing-glitch-a 2.2s steps(1) 2s infinite; }
+.landing-glitch:hover::after,
+.landing-glitch.is-live::after { animation: landing-glitch-b 2.2s steps(1) 2s infinite; }
+@keyframes landing-glitch-a {
+  0%, 86%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  88% { opacity: 0.85; transform: translate(-3px, 1px); clip-path: inset(10% 0 55% 0); }
+  92% { opacity: 0.85; transform: translate(3px, -1px); clip-path: inset(60% 0 8% 0); }
+  95% { opacity: 0.7; transform: translate(-2px, 0); clip-path: inset(35% 0 40% 0); }
+}
+@keyframes landing-glitch-b {
+  0%, 86%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  89% { opacity: 0.85; transform: translate(3px, -1px); clip-path: inset(50% 0 20% 0); }
+  93% { opacity: 0.85; transform: translate(-3px, 1px); clip-path: inset(5% 0 70% 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-grain { animation: none; }
+  .landing-glitch::before, .landing-glitch::after { animation: none !important; opacity: 0 !important; }
+}
+@keyframes landing-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 호외 지면 (랜딩 · 보험료 섹션) ── */
+.landing-paper {
+  /* 1950년대 신문용지: 누렇게 바랜 종이, 가장자리가 더 짙다 */
+  position: relative;
+  color: #1a150e;
+  background-color: #ecdfbd;
+  background-image:
+    radial-gradient(ellipse at 50% 35%, rgba(255, 246, 215, 0.55), rgba(255, 246, 215, 0) 62%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(120, 86, 30, 0.34) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .34  0 0 0 0 .25  0 0 0 0 .11  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.6'/></svg>");
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(96, 66, 22, 0.4);
+}
+.landing-photo {
+  /* 인쇄된 흑백 사진: 망점 + 빛바램 */
+  position: relative;
+  border: 1px solid #1a150e;
+  padding: 3px;
+  background: #e4d6b0;
+}
+.landing-photo > .landing-photo-in {
+  position: relative;
+  overflow: hidden;
+  filter: grayscale(1) contrast(1.2) sepia(0.28);
+}
+.landing-photo > .landing-photo-in::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at center, rgba(20, 14, 6, 0.55) 0.9px, transparent 1.3px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.landing-ink {
+  /* 활자가 종이에 번지는 느낌 */
+  text-shadow: 0 0 0.6px rgba(27, 23, 18, 0.65), 0.4px 0.4px 0 rgba(27, 23, 18, 0.18);
+}
+.landing-stamp {
+  color: #9b2c2c;
+  border: 3px solid #9b2c2c;
+  border-radius: 6px;
+  mix-blend-mode: multiply;
+  animation: landing-stamp 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes landing-stamp {
+  0% { opacity: 0; transform: scale(2) rotate(-14deg); }
+  55% { opacity: 0.95; transform: scale(0.94) rotate(-3deg); }
+  100% { opacity: 0.88; transform: scale(1) rotate(-4deg); }
+}
+.landing-headline {
+  animation: landing-headline 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes landing-headline {
+  from { opacity: 0; transform: translateY(16px); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.landing-pen {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: landing-pen 0.7s ease-out 0.15s forwards;
+}
+@keyframes landing-pen {
+  to { stroke-dashoffset: 0; }
+}
+.landing-dot-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: landing-dot-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes landing-dot-in {
+  from { opacity: 0; transform: scale(0.2); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-pen { stroke-dashoffset: 0; animation: none; }
+  .landing-stamp { animation: none; opacity: 0.88; transform: rotate(-4deg); }
+}

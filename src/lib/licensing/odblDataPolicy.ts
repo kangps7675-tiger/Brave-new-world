@@ -1,5 +1,5 @@
 /**
- * 멋진 신세계 — 데이터·레이어 라이선스 정책
+ * Strait Desk — 데이터·레이어 라이선스 정책
  *
  * 세 가지 부류로 나눈다.
  *
@@ -53,7 +53,7 @@ export type DataLicenseId =
 
 /** 출처·방법론 패널 — 자체 제작물 고지 */
 export const OWN_WORK_NOTICE_EN =
-  "Judgments and records produced by Brave New World (escalation signals, case-file evidence and verdicts, daily history, curated layers) are not licensed for copying, redistribution, or bulk collection without permission. Upstream sources keep their own licenses — see the Sources panel.";
+  "Judgments and records produced by Strait Desk (escalation signals, case-file evidence and verdicts, daily history, curated layers) are not licensed for copying, redistribution, or bulk collection without permission. Upstream sources keep their own licenses — see the Sources panel.";
 
 export const OWN_WORK_NOTICE_KO =
   "이 서비스가 직접 만든 판단과 기록(확전 신호, 사건 파일의 근거·판정, 일별 이력, 직접 큐레이션한 레이어)은 허락 없이 복제·재배포·대량 수집할 수 없습니다. 외부 원본 자료는 각자의 라이선스를 따르며 출처 패널에 따로 표기합니다.";

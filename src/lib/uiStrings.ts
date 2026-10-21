@@ -78,6 +78,11 @@ const UI = {
     ko: "하나만 고르면 됩니다. 나중에 메뉴에서 다시 열 수 있어요.",
     en: "Pick one. You can reopen this from the menu anytime.",
   },
+  purposeJobMaritime: { ko: "해운 위험 보기", en: "Shipping risk" },
+  purposeJobMaritimeHint: {
+    ko: "어느 배가 맞았나 · 항행경보 · 전쟁위험 보험료 · 주변 군함",
+    en: "Which ship was hit · nav warnings · war-risk premiums · warships nearby",
+  },
   purposeJobConflict: { ko: "전선·분쟁 보기", en: "Fronts & conflicts" },
   purposeJobConflictHint: {
     ko: "지정학 지도 · 인텔 피드",

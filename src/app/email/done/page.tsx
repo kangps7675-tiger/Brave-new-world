@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "이메일 · 멋진 신세계",
+  title: "이메일 · Strait Desk",
   robots: { index: false, follow: false },
 };
 
@@ -29,7 +29,7 @@ export default function EmailDonePage({
   const copy = COPY[searchParams.result ?? ""] ?? COPY.invalid!;
   return (
     <main className="mx-auto flex min-h-[70dvh] max-w-md flex-col justify-center px-6 text-amber-50">
-      <p className="text-xs tracking-wide text-amber-200/60">멋진 신세계</p>
+      <p className="text-xs tracking-wide text-amber-200/60">Strait Desk</p>
       <h1 className="mt-2 text-2xl font-semibold">{copy.title}</h1>
       <p className="mt-3 text-sm leading-relaxed text-amber-100/80">{copy.body}</p>
       <Link href="/" className="mt-8 text-sm text-amber-200 underline underline-offset-4">

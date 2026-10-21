@@ -102,6 +102,7 @@ import {
 import { resolveEconomyArticleFlyTarget } from "@/lib/news/economyMapFly";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 import { visibleInterval } from "@/lib/visibleInterval";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 const INTEL_DRAG_HINT_KEY = "geowatch-intel-drag-hint-v1";
 
@@ -1482,7 +1483,7 @@ function IntelSheetTabBar({
         id="intel-sheet-tabs"
         className="flex shrink-0 gap-1 overflow-x-auto border-b border-emerald-400/15 px-4 py-2"
       >
-        {economyBtn("markets", t("intelSheetMarketsTab"))}
+        {SHOW_INVESTMENT_UI ? economyBtn("markets", t("intelSheetMarketsTab")) : null}
         {economyBtn("majors", t("intelSheetMajorsTab"))}
         {/* 데스크톱: 해운·초크는 우측 레일 — 모바일만 시트 탭 유지 */}
         {isCompactUi

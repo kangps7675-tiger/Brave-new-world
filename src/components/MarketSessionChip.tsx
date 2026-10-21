@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { openHubCount } from "@/lib/marketSessions";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type Props = {
   lang: LabelLanguage;
@@ -11,7 +12,7 @@ type Props = {
 };
 
 /** 세션 N/6 개장 — 1분 갱신 */
-export function MarketSessionChip({ lang, className = "" }: Props) {
+function MarketSessionChipInner({ lang, className = "" }: Props) {
   const ko = lang !== "en";
   const [count, setCount] = useState(() => openHubCount());
 
@@ -51,4 +52,10 @@ export function MarketSessionChip({ lang, className = "" }: Props) {
       </p>
     </div>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function MarketSessionChip(props: Props) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <MarketSessionChipInner {...props} />;
 }

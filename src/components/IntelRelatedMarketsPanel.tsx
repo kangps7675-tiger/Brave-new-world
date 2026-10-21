@@ -30,6 +30,7 @@ import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { SovereignRatesPanel } from "@/components/SovereignRatesPanel";
 import { listDatabentoSpikes } from "@/lib/tickerSpikeTelegraph";
 import { TICKER_SPIKE_THRESHOLD_PERCENT } from "@/lib/news/intelStackMode";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type StockTickersResponse = {
   tickers?: StockTickerItem[];
@@ -289,7 +290,7 @@ function matchesTickerSearch(item: StockTickerItem, query: string, lang: "ko" | 
   );
 }
 
-export function IntelRelatedMarketsPanel({
+function IntelRelatedMarketsPanelInner({
   theaterFilter,
   fullPage = false,
   embedInNews = false,
@@ -587,4 +588,10 @@ export function IntelRelatedMarketsPanel({
       </div>
     </section>
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function IntelRelatedMarketsPanel(props: IntelRelatedMarketsPanelProps) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <IntelRelatedMarketsPanelInner {...props} />;
 }

@@ -12,6 +12,7 @@ import type { SpikeTelegraphBannerOffer } from "@/components/SpikeTelegraphBanne
 import { tickerDisplayName } from "@/lib/stockTickers";
 import { pickCounterfactualSymbol } from "@/lib/eventMarketAnchors";
 import type { MarketReactionItem } from "@/lib/stockTickers";
+import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
 type FuturesSpikeInsightParchmentProps = {
   offer: SpikeTelegraphBannerOffer;
@@ -28,7 +29,7 @@ type ReactionPayload = {
  * 선물 SPIKE → 드롭캡+사진 두괄식 양피지.
  * 오픈 직후 counterfactual 1회로 과거 동행 단락을 보강한다.
  */
-export function FuturesSpikeInsightParchment({
+function FuturesSpikeInsightParchmentInner({
   offer,
   lang,
   onDismiss,
@@ -117,4 +118,10 @@ export function FuturesSpikeInsightParchment({
       zIndexClass="z-[900]"
     />
   );
+}
+
+/** 투자·시장 화면은 일단 숨긴다 — `SHOW_INVESTMENT_UI`(실험실 플래그)일 때만 보인다. */
+export function FuturesSpikeInsightParchment(props: FuturesSpikeInsightParchmentProps) {
+  if (!SHOW_INVESTMENT_UI) return null;
+  return <FuturesSpikeInsightParchmentInner {...props} />;
 }

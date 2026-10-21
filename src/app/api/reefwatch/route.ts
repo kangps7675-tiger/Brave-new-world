@@ -51,7 +51,7 @@ async function fetchOpenSkyStates(): Promise<{
       {
         headers: {
           Accept: "application/json",
-          "User-Agent": "BraveNewWorld/1.0 ReefWatch feature-centric SCS monitor",
+          "User-Agent": "StraitDesk/1.0 ReefWatch feature-centric SCS monitor",
         },
         signal: controller.signal,
         cache: "no-store",

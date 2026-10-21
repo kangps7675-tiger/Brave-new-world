@@ -65,7 +65,7 @@ export function GlobeBootLoader({
   const needsPickerRef = useRef(shouldShowModePicker());
 
   /**
-   * 첫 방문이면 로딩 창 대신 랜딩 막(LandingCurtain)을 띄운다. 지구본은 그 아래에서 그대로 부팅하고,
+   * 로딩 창 대신 랜딩 막(LandingCurtain)을 띄운다. 지구본은 그 아래에서 그대로 부팅하고,
    * 준비가 끝나도 막은 사람이 "지구본 보기"를 누를 때까지 남는다.
    * localStorage를 읽으므로 마운트 후에 정한다 — 그 전 한 프레임은 같은 바탕색만 칠한다.
    */

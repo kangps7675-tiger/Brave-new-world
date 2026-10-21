@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { apiStubResponse } from "@/lib/apiStub";
 import {
   adsbAuthHeaders,
+  adsbLolTrafficUrl,
   civilianTrafficUrl,
   extractAircraftList,
   getAdsbApiKey,
@@ -95,7 +96,7 @@ async function fetchOpenSkyTraffic(
         cache: "no-store",
         headers: {
           Accept: "application/json",
-          "User-Agent": "BraveNewWorld/1.0 OpenSky globe traffic",
+          "User-Agent": "StraitDesk/1.0 OpenSky globe traffic",
         },
         signal: controller.signal,
       });
@@ -159,7 +160,7 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         cache: "no-store",
         headers: {
           Accept: "application/json",
-          "User-Agent": "BraveNewWorld/1.0 OpenSky worldwide traffic",
+          "User-Agent": "StraitDesk/1.0 OpenSky worldwide traffic",
         },
         signal: controller.signal,
       });
@@ -410,14 +411,18 @@ export async function GET(request: Request) {
     }
   }
 
-  const { url, source } = civilianTrafficUrl(lat, lng, dist);
+  const primary = civilianTrafficUrl(lat, lng, dist);
+  // 키 호출(adsbx)이 실패하거나 비어 있으면 ODbL 소스(adsb.lol)로 한 번 더 — 곧바로 데모로 가지 않는다
+  const candidates: Array<{ url: string; source: "adsbx" | "adsb.lol" }> =
+    primary.source === "adsbx" ? [primary, adsbLolTrafficUrl(lat, lng, dist)] : [primary];
 
-  try {
-    const response = await fetch(url, {
-      cache: "no-store",
-      headers: adsbAuthHeaders(source === "adsbx" ? apiKey : null),
-    });
-    if (response.ok) {
+  for (const { url, source } of candidates) {
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: adsbAuthHeaders(source === "adsbx" ? apiKey : null),
+      });
+      if (!response.ok) continue;
       const payload = (await readAdsbJsonBody(response)) as {
         ac?: unknown[];
         aircraft?: unknown[];
@@ -446,9 +451,9 @@ export async function GET(request: Request) {
           { headers: ADSB_CDN },
         );
       }
+    } catch {
+      // 다음 후보로
     }
-  } catch {
-    // fall through to demo
   }
 
   const demo = demoCivAircraft().slice(0, max);

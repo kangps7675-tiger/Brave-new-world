@@ -94,7 +94,7 @@ async function fetchUkmtoRows(
       headers: {
         Accept: "application/json",
         "User-Agent":
-          "BraveNewWorld-Ingest/1.0 (+contact: kangps7675@gmail.com; non-commercial situational dashboard)",
+          "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; non-commercial situational dashboard)",
       },
     });
     if (!res.ok) return { rows: [], error: `UKMTO HTTP ${res.status}` };

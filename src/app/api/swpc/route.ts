@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const TTL_MS = 10 * 60 * 1000;
 const CACHE_KEY = "swpc:scales-kp";
 const SWPC_CDN = publicCacheHeaders(CDN_CACHE.swpc);
-const USER_AGENT = "BraveNewWorld/1.0 (+https://bravenew.world; NOAA SWPC status)";
+const USER_AGENT = "StraitDesk/1.0 (+https://bravenew.world; NOAA SWPC status)";
 const FETCH_TIMEOUT_MS = 12_000;
 
 const KP_URL = "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json";

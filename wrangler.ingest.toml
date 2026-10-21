@@ -49,7 +49,7 @@ VAPID_SUBJECT = "mailto:kangps7675@gmail.com"
 # 보내는 주소·Resend 키는 시크릿이다 (비어 있으면 구독 메일을 보내지 않는다).
 #   npx wrangler secret put RESEND_API_KEY -c wrangler.ingest.toml
 #   npx wrangler secret put EMAIL_FROM -c wrangler.ingest.toml
-# EMAIL_FROM 예: 멋진 신세계 <digest@example.com>
+# EMAIL_FROM 예: Strait Desk <digest@example.com>
 EMAIL_PUBLIC_BASE = "https://conflict-view.vercel.app"
 # NAVAREA TXT 폴링 최소 간격(분). 소스 자체는 이벤트 발행이지만 웹훅 없음 →
 # cron이 확인할 때만 지도에 반영. 15~30 권장 (너무 짧으면 봇 취급 위험).

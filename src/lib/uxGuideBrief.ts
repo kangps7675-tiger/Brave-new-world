@@ -49,7 +49,7 @@ export function buildUxGuideBriefContent(
     return {
       title: "How to read this screen",
       paragraphs: [
-        "Brave New World is an observatory map — news and movement stacked on a globe. You don’t need geopolitics training. Turn on only what you’re curious about.",
+        "Strait Desk is an observatory map — news and movement stacked on a globe. You don’t need geopolitics training. Turn on only what you’re curious about.",
         "The buttons up top are lenses: History (why today looks like this), Live (what’s moving now), Geoeconomics (trade, energy, markets), Observatory (3D tracks & theater board).",
         onNames
           ? `For this view, these layers start on: ${onNames}. They’re map overlays — not official alerts. You can switch any off in ≡.`
@@ -65,7 +65,7 @@ export function buildUxGuideBriefContent(
   return {
     title: "이 화면, 이렇게 보시면 됩니다",
     paragraphs: [
-      "멋진 신세계는 세계 소식과 움직임을 지구본에 모아 보여 주는 관측 지도입니다. 지정학을 몰라도 괜찮습니다 — 궁금한 것만 켜서 보시면 됩니다.",
+      "Strait Desk는 세계 소식과 움직임을 지구본에 모아 보여 주는 관측 지도입니다. 지정학을 몰라도 괜찮습니다 — 궁금한 것만 켜서 보시면 됩니다.",
       "맨 위 버튼들은 보는 렌즈입니다. 「역사」는 왜 오늘이 이렇게 됐는지, 「라이브」는 지금 움직이는 것, 「지경학」은 무역·에너지·시장, 「관측대」는 3D 항적·전황 안건 보드입니다.",
       onNames
         ? `지금 이 보기에서는 이런 레이어가 켜져 시작합니다: ${onNames}. 지도 위에 올린 정보층일 뿐, 공식 경보가 아닙니다. ≡ 에서 언제든 끌 수 있어요.`

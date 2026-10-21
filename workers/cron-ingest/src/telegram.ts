@@ -17,7 +17,7 @@ const FETCH_TIMEOUT_MS = 6000;
 
 /**
  * 봇 신원 — **브라우저로 위장하지 말 것.**
- * 이전 값: `Mozilla/5.0 (compatible; BraveNewWorld/1.0; +https://t.me)`
+ * 이전 값: `Mozilla/5.0 (compatible; StraitDesk/1.0; +https://t.me)`
  * (연락처가 t.me 로 돼 있어 사실상 신원 미표시이기도 했다.)
  *
  * @see docs/copyright-audit-2026-08-01.md — R-2

@@ -47,6 +47,8 @@ import { IRAN_MISSILE_FACILITY_CALLOUTS, isNearIranMissileBelt } from "@/data/ir
 
 export interface SituationHtmlMarkersParams {
   isEconomyViewer: boolean;
+  /** 해운 위험 첫 화면 — 핵탄두 보유량 같은 지정학 개관 마커를 숨긴다 */
+  isMaritimeView?: boolean;
   isHistoryViewer?: boolean;
   isCompactUi: boolean;
   labelLanguage: LabelLanguage;
@@ -98,6 +100,7 @@ export function useSituationHtmlMarkers(
 ): SituationHtmlMarkers {
   const {
     isEconomyViewer,
+    isMaritimeView = false,
     isHistoryViewer = false,
     isCompactUi,
     labelLanguage,
@@ -236,7 +239,7 @@ export function useSituationHtmlMarkers(
   );
 
   const nuclearStockpileMarkers = useMemo<NuclearStockpileHtmlMarker[]>(() => {
-    if (isEconomyViewer || isHistoryViewer) return [];
+    if (isEconomyViewer || isHistoryViewer || isMaritimeView) return [];
     const casualtyPts = casualtySkullMarkers.map((m) => ({ lat: m.lat, lng: m.lng }));
     const MIN_SEP_DEG = 2.1; // 마커 간 최소 간격(°)
     const MAX_SHIFT_DEG = 4.0; // 국가에서 벗어나는 최대 이동량 상한
@@ -294,7 +297,7 @@ export function useSituationHtmlMarkers(
         year: seed.year,
       };
     });
-  }, [casualtySkullMarkers, isEconomyViewer, isHistoryViewer]);
+  }, [casualtySkullMarkers, isEconomyViewer, isHistoryViewer, isMaritimeView]);
 
   const safecastGaugesGeoJson = useMemo(() => {
     if (!showNuclearSites || isEconomyViewer || isHistoryViewer) {
