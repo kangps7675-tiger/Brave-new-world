@@ -8,7 +8,7 @@
  *     항적은 ais_position_history 에도 넣어 화면의 매칭이 같은 근거를 쓰게 한다.
  *     자료가 없으면 unresolved(나중에 다시, 최대 3회), 멀리 있었으면 rejected.
  *
- * ⚠️ vessel_find 응답 모양·크레딧은 실제 호출로 확인 전이다 (vesselFind.ts 머리말). 크레딧은 호출 1회 = 1 로 보수 추정해 기록한다.
+ * vessel_find 응답 모양은 2026-10-22 실제 호출로 확인했다(vesselFind.ts 머리말). 크레딧은 아직 미확인 — 호출 1회 = 1 로 보수 추정해 기록한다.
  * 비용 가드: datalastic_usage·strike_named(migration 0039)가 없거나 D1 실패 시 Datalastic 호출 안 함. 키 없으면 검색만 한다.
  */
 

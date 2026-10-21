@@ -1,9 +1,11 @@
 /**
  * Datalastic vessel_find(이름 검색) 응답 파서 — 순수 로직.
  *
- * ⚠️ 응답 모양은 아직 실제 호출로 확인하지 못했다(문서에 필드 설명 없음). vessel_info / vessel_inradius 가 쓰는 필드
- *    (name, mmsi, imo, type, type_specific, country_iso)가 같다고 보고 배열 위치만 여러 군데를 허용한다.
- *    실제 응답을 확인하면 이 파일의 테스트 픽스처를 실제 값으로 바꿀 것.
+ * 응답 모양은 2026-10-22 실제 호출(name=EVER GIVEN&fuzzy=0)로 확인했다:
+ *   { data: [{ uuid, name, name_ais, mmsi, imo, callsign, country_iso, type, type_specific, gross_tonnage, ... }], meta: { success } }
+ *   - 같은 배가 MMSI 가 같은 두 줄로 온다(첫 줄은 type·country 등이 null, 둘째 줄이 상세). → MMSI 로 합치고 값이 있는 쪽을 쓴다.
+ *   - name 과 별개로 name_ais(AIS 로 수신한 이름)가 있다. 둘 다 이름 비교에 쓴다.
+ *   - 크레딧은 아직 확인 전.
  */
 
 import { validImo } from "../../../workers/cron-ingest/src/vesselIdentity";
@@ -13,6 +15,8 @@ export type FoundVessel = {
   mmsi: string;
   imo: string | null;
   name: string | null;
+  /** AIS 로 수신한 이름 (name 과 다를 수 있다) */
+  nameAis: string | null;
   type: string | null;
 };
 
@@ -37,12 +41,33 @@ function pickList(json: unknown): Record<string, unknown>[] {
 export function parseVesselFind(json: unknown): { ok: boolean; vessels: FoundVessel[] } {
   const root = json as { meta?: { success?: unknown } } | null;
   if (!root || root.meta?.success === false) return { ok: false, vessels: [] };
-  const vessels: FoundVessel[] = [];
+  // 같은 MMSI 가 여러 줄로 오므로 합친다 — 값이 있는 쪽을 쓴다
+  const byMmsi = new Map<string, FoundVessel>();
   for (const r of pickList(json)) {
     const mmsi = str(r.mmsi);
     if (!mmsi || !/^\d{9}$/.test(mmsi)) continue;
-    vessels.push({ mmsi, imo: validImo(r.imo), name: str(r.name), type: str(r.type) });
+    const next: FoundVessel = {
+      mmsi,
+      imo: validImo(r.imo),
+      name: str(r.name),
+      nameAis: str(r.name_ais),
+      type: str(r.type_specific) ?? str(r.type),
+    };
+    const cur = byMmsi.get(mmsi);
+    byMmsi.set(
+      mmsi,
+      cur
+        ? {
+            mmsi,
+            imo: cur.imo ?? next.imo,
+            name: cur.name ?? next.name,
+            nameAis: cur.nameAis ?? next.nameAis,
+            type: cur.type ?? next.type,
+          }
+        : next,
+    );
   }
+  const vessels = [...byMmsi.values()];
   return { ok: true, vessels };
 }
 
@@ -56,7 +81,7 @@ export function pickByName(
   max = 3,
 ): FoundVessel[] {
   const want = normalizeShipName(claim.name);
-  const same = found.filter((v) => normalizeShipName(v.name) === want);
+  const same = found.filter((v) => normalizeShipName(v.name) === want || normalizeShipName(v.nameAis) === want);
   const byImo = claim.imo ? same.filter((v) => v.imo === claim.imo) : same;
   const seen = new Set<string>();
   const out: FoundVessel[] = [];
