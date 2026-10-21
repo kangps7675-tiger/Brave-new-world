@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { StackItem } from "@/lib/incidentStack/build";
 import { describeVessel } from "@/lib/incidentStack/shipText";
-import { loadStrikeMatches, pickMatchedVessel, type MatchedVessel } from "@/lib/strikeMatch/matchedVessel";
+import { caseIdOfStackItem, loadMatchedVessel, type MatchedVessel } from "@/lib/strikeMatch/matchedVessel";
 import { fetchShipPhotos, shipKindFromType, type ShipKind, type ShipPhoto } from "@/lib/shipPhoto";
 
 // 평면 지도는 뒷면을 처음 돌릴 때 불러온다 — 카드를 그냥 보는 동안은 WebGL 컨텍스트를 안 쓴다.
@@ -43,9 +43,11 @@ function useMatchedVessel(item: StackItem): MatchedVessel | null {
   useEffect(() => {
     setMatched(null);
     if (item.source !== "ukmto" || item.vesselName?.trim()) return;
+    const caseId = caseIdOfStackItem(item.id);
+    if (!caseId) return;
     let cancelled = false;
-    void loadStrikeMatches().then((rows) => {
-      if (!cancelled) setMatched(pickMatchedVessel(rows, item.id));
+    void loadMatchedVessel(caseId).then((v) => {
+      if (!cancelled) setMatched(v);
     });
     return () => {
       cancelled = true;

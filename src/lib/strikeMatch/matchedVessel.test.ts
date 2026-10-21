@@ -1,26 +1,44 @@
-import { describe, expect, it } from "vitest";
-import { pickMatchedVessel } from "./matchedVessel";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { caseIdOfStackItem, loadMatchedVessel, matchedVesselOf, resetMatchedVesselCache } from "./matchedVessel";
 
-const rows = [
-  { incident: { id: "a1" }, status: "confirmed", top: { name: "SOUNION", imo: "9000001" } },
-  { incident: { id: "b2" }, status: "likely", top: { name: "TUTOR", imo: null } },
-  { incident: { id: "c3" }, status: "ambiguous", top: { name: "X" } },
-  { incident: { id: "d4" }, status: "unknown", top: null },
-  { incident: { id: "e5" }, status: "likely", top: { name: "  ", imo: null } },
-];
-
-describe("pickMatchedVessel", () => {
+describe("matchedVesselOf", () => {
   it("확인·유력만 이름을 돌려준다", () => {
-    expect(pickMatchedVessel(rows, "ukmto:a1")).toEqual({ name: "SOUNION", imo: "9000001", status: "confirmed" });
-    expect(pickMatchedVessel(rows, "ukmto:b2")).toEqual({ name: "TUTOR", imo: null, status: "likely" });
+    expect(matchedVesselOf({ status: "confirmed", top: { name: "SOUNION", imo: "9000001" } })).toEqual({ name: "SOUNION", imo: "9000001", status: "confirmed" });
+    expect(matchedVesselOf({ status: "likely", top: { name: "TUTOR", imo: null } })).toEqual({ name: "TUTOR", imo: null, status: "likely" });
   });
   it("후보가 여럿이거나 못 좁힌 사건·이름 없는 후보는 null", () => {
-    expect(pickMatchedVessel(rows, "ukmto:c3")).toBeNull();
-    expect(pickMatchedVessel(rows, "ukmto:d4")).toBeNull();
-    expect(pickMatchedVessel(rows, "ukmto:e5")).toBeNull();
+    expect(matchedVesselOf({ status: "ambiguous", top: { name: "X" } })).toBeNull();
+    expect(matchedVesselOf({ status: "unknown", top: null })).toBeNull();
+    expect(matchedVesselOf({ status: "likely", top: { name: "  " } })).toBeNull();
+    expect(matchedVesselOf(null)).toBeNull();
   });
-  it("UKMTO 가 아니거나 없는 id 는 null", () => {
-    expect(pickMatchedVessel(rows, "liveua:a1")).toBeNull();
-    expect(pickMatchedVessel(rows, "ukmto:zzz")).toBeNull();
+});
+
+describe("caseIdOfStackItem", () => {
+  it("ukmto 항목만 사건 id 를 돌려준다", () => {
+    expect(caseIdOfStackItem("ukmto:abc")).toBe("abc");
+    expect(caseIdOfStackItem("liveua:abc")).toBeNull();
+    expect(caseIdOfStackItem("ukmto:")).toBeNull();
+  });
+});
+
+describe("loadMatchedVessel", () => {
+  afterEach(() => resetMatchedVesselCache());
+
+  it("상세 응답에서 선박을 읽고 같은 사건은 다시 부르지 않는다", async () => {
+    const f = vi.fn<(url: string) => Promise<Response>>(async () =>
+      new Response(JSON.stringify({ strike: { status: "likely", top: { name: "TUTOR", imo: "9943396" } } })),
+    );
+    const a = await loadMatchedVessel("c1", f as unknown as typeof fetch);
+    const b = await loadMatchedVessel("c1", f as unknown as typeof fetch);
+    expect(a).toEqual({ name: "TUTOR", imo: "9943396", status: "likely" });
+    expect(b).toEqual(a);
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(String(f.mock.calls[0]?.[0])).toBe("/api/strikes/c1");
+  });
+
+  it("실패하면 null", async () => {
+    const f = vi.fn(async () => new Response("x", { status: 500 }));
+    expect(await loadMatchedVessel("c2", f as unknown as typeof fetch)).toBeNull();
   });
 });
