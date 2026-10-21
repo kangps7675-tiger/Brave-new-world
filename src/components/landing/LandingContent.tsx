@@ -13,6 +13,7 @@ import {
   TiltCard,
 } from "@/components/landing/LandingMotion";
 import { Grain, Magnetic, MegaMarquee, Reticle, StraitRail } from "@/components/landing/LandingHip";
+import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
@@ -30,6 +31,7 @@ export type EnterPlace = "nav" | "hero" | "footer";
 
 const SECTIONS = [
   { id: "top", label: "처음" },
+  { id: "threat", label: "위협" },
   { id: "ask", label: "질문 넷" },
   { id: "flow", label: "경보가 뜨면" },
   { id: "read", label: "화면 읽는 법" },
@@ -312,6 +314,17 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
       </section>
 
       <LiveTicker />
+
+      {/* THREAT — 상선을 때리는 것들 (연출) */}
+      <section id="threat" className={`${WRAP} pb-6 pt-20`}>
+        <Reveal>
+          <p className={EYEBROW}>바다에서 지금 벌어지는 일</p>
+          <h2 className={`${H2} max-w-[900px]`}>상선은 드론, 미사일, 기뢰에 맞고 있습니다.</h2>
+        </Reveal>
+        <div className="mt-10">
+          <ShipStrikeScene />
+        </div>
+      </section>
 
       {/* STATS — 숫자로 보는 범위 */}
       <section className={`${WRAP} grid gap-px py-14 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]`}>
