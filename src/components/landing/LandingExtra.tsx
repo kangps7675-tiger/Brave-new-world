@@ -97,7 +97,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
               ) : (
                 <circle cx={cx} cy={y(b.lo)} r={8} fill={INK} />
               )}
-              <text x={cx} y={labelY} textAnchor="middle" fontSize={cur ? 22 : 17} fill={cur ? RED : INK} style={GMARKET}>
+              <text x={i === 0 ? cx - 4 : cx} y={labelY} textAnchor={i === 0 ? "start" : "middle"} fontSize={cur ? 22 : 17} fill={cur ? RED : INK} style={GMARKET}>
                 {b.approx ? "약 " : ""}
                 {b.label}
               </text>
@@ -136,7 +136,7 @@ export function ExtraEdition() {
   const [narrow, setNarrow] = useState(false);
 
   useEffect(() => {
-    const ok = !prefersReducedMotion() && window.matchMedia("(min-width: 1024px) and (min-height: 640px)").matches;
+    const ok = !prefersReducedMotion() && window.matchMedia("(min-width: 1024px) and (min-height: 700px)").matches;
     setPin(ok);
     const mq = window.matchMedia("(max-width: 639px)");
     const sync = () => setNarrow(mq.matches);
@@ -168,14 +168,12 @@ export function ExtraEdition() {
     else setManual(t);
   };
 
-  // 등장: 작고 투명한 채로 빙글 돌며 커진다
-  const e = 1 - (1 - intro) ** 3;
+  // 등장: 가운데 접힌 선에서 양쪽으로 사르륵 펼쳐진다 (섹션이 올라와 붙을 즈음 다 펼쳐짐)
+  const open = clamp01((intro - 0.3) / 0.6);
+  const eo = 1 - (1 - open) ** 3;
+  const half = 50 * (1 - eo);
   const paperStyle = pin
-    ? {
-        transform: `scale(${0.1 + 0.9 * e}) rotate(${(1 - e) * -720 - 0.6}deg)`,
-        opacity: Math.min(1, intro * 2.6),
-        willChange: "transform, opacity",
-      }
+    ? { clipPath: `inset(0 ${half.toFixed(2)}% 0 ${half.toFixed(2)}%)`, willChange: "clip-path" }
     : { transform: "rotate(-0.2deg)" };
 
   return (
@@ -206,8 +204,34 @@ export function ExtraEdition() {
             ))
           : null}
 
-        <div className={pin ? "sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6" : "px-4 pb-24 pt-4 sm:px-6"}>
-          <article className="landing-paper mx-auto w-full max-w-[1080px] rounded-sm p-4 sm:p-7" style={paperStyle} aria-label="호르무즈 전쟁위험 보험료 호외">
+        <div className={pin ? "sticky top-0 h-screen overflow-hidden" : "px-4 pb-24 pt-4 sm:px-6"}>
+          <article
+            className={pin ? "landing-paper relative h-full w-full" : "landing-paper mx-auto w-full max-w-[1080px] rounded-sm p-4 sm:p-7"}
+            style={paperStyle}
+            aria-label="호르무즈 전쟁위험 보험료 호외"
+          >
+            {pin ? (
+              <>
+                {/* 접은 자국: 가로 한 줄은 늘 보이고, 세로 가운데 선과 펼쳐지는 가장자리 그림자는 펼치는 동안만 */}
+                <div aria-hidden="true" className="landing-crease pointer-events-none absolute inset-0" />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-[#1a150e]/40"
+                  style={{ opacity: 1 - eo }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 w-16"
+                  style={{ left: `${half}%`, opacity: 1 - eo, background: "linear-gradient(to right, rgba(40,28,8,.45), transparent)" }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 w-16"
+                  style={{ right: `${half}%`, opacity: 1 - eo, background: "linear-gradient(to left, rgba(40,28,8,.45), transparent)" }}
+                />
+              </>
+            ) : null}
+            <div className={pin ? "relative mx-auto flex h-full max-w-[1320px] flex-col px-[clamp(24px,4vw,64px)] py-[clamp(14px,2.6vh,32px)]" : undefined}>
             {/* 제호 — 1950년대 신문 1면: 별 장식, 굵은 제호, 겹줄, 발행 줄 */}
             <header className="text-center">
               <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={BATANG}>
@@ -216,7 +240,7 @@ export function ExtraEdition() {
                 <span className="w-[22%] text-right">{beat + 1} / {N}</span>
               </div>
               <h3
-                className="landing-ink m-0 mt-1 whitespace-nowrap text-[clamp(28px,5.2vw,70px)] font-black uppercase leading-[0.95] tracking-[0.02em]"
+                className={`landing-ink m-0 mt-1 whitespace-nowrap font-black uppercase leading-[0.95] tracking-[0.02em] ${pin ? "text-[clamp(32px,min(6.4vw,8.6vh),96px)]" : "text-[clamp(28px,5.2vw,70px)]"}`}
                 style={SERIF}
               >
                 Strait Desk
@@ -226,7 +250,7 @@ export function ExtraEdition() {
               </div>
             </header>
 
-            <div className="grid gap-6 pt-4 md:grid-cols-[1.45fr_1fr] md:gap-6">
+            <div className={`grid gap-6 pt-4 md:gap-8 ${pin ? "min-h-0 flex-1 md:grid-cols-[1.5fr_1fr]" : "md:grid-cols-[1.45fr_1fr]"}`}>
               {/* 기사 */}
               <div className="min-w-0">
                 <div aria-live="polite">
@@ -235,21 +259,21 @@ export function ExtraEdition() {
                   </p>
                   <h4
                     key={`h-${beat}`}
-                    className="landing-headline landing-ink m-0 mt-2 text-[clamp(28px,3.4vw,46px)] font-black leading-[1.2] tracking-[-0.03em]"
+                    className={`landing-headline landing-ink m-0 mt-2 font-black leading-[1.2] tracking-[-0.03em] ${pin ? "text-[clamp(30px,min(4vw,6vh),60px)]" : "text-[clamp(28px,3.4vw,46px)]"}`}
                     style={BATANG}
                   >
                     {b.headline}
                   </h4>
                   <p
                     key={`n-${beat}`}
-                    className="landing-headline landing-ink m-0 mt-1 text-[clamp(40px,5vw,72px)] font-black leading-none tracking-[-0.03em]"
+                    className={`landing-headline landing-ink m-0 mt-1 font-black leading-none tracking-[-0.03em] ${pin ? "text-[clamp(44px,min(6vw,9vh),104px)]" : "text-[clamp(40px,5vw,72px)]"}`}
                     style={{ ...SERIF, color: RED }}
                   >
                     {b.approx ? <span className="mr-2 align-middle text-[0.3em] font-bold text-[#1a150e]">약</span> : null}
                     {b.label}
                   </p>
-                  <div className="mt-3 grid gap-4 border-t-2 border-[#1a150e] pt-3 sm:grid-cols-[0.95fr_1fr]">
-                    <figure key={`p-${beat}`} className="landing-headline m-0">
+                  <div className={`mt-3 grid gap-4 border-t-2 border-[#1a150e] pt-3 ${pin ? "sm:grid-cols-[auto_1fr]" : "sm:grid-cols-[1.05fr_1fr]"}`}>
+                    <figure key={`p-${beat}`} className="landing-headline m-0" style={pin ? { width: "calc(26vh * 1.48)" } : undefined}>
                       <div className="landing-photo">
                         <div className="landing-photo-in">
                           <ExtraPhoto scene={b.scene} />
@@ -261,7 +285,7 @@ export function ExtraEdition() {
                     </figure>
                     <p
                       key={`s-${beat}`}
-                      className="landing-headline m-0 text-[16px] leading-[1.75]"
+                      className={`landing-headline m-0 leading-[1.75] ${pin ? "text-[clamp(16px,2.2vh,21px)]" : "text-[16px]"}`}
                       style={BATANG}
                     >
                       {b.summary}
@@ -302,7 +326,7 @@ export function ExtraEdition() {
             </div>
 
             {/* 넘기기 */}
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#1a150e]/50 pt-3">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#1a150e]/50 pt-3">
               <div className="flex items-center gap-2" role="group" aria-label="기사 넘기기">
                 {EXTRA_BEATS.map((x, i) => (
                   <button
@@ -337,7 +361,7 @@ export function ExtraEdition() {
                   </button>
                 </div>
               ) : (
-                <span className="text-caption" style={BATANG}>
+                <span className="text-caption lg:mr-[150px]" style={BATANG}>
                   스크롤하면 다음 속보가 넘어갑니다
                 </span>
               )}
@@ -346,6 +370,7 @@ export function ExtraEdition() {
             <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
               이 지면은 Strait Desk가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.
             </p>
+          </div>
           </article>
         </div>
       </div>
