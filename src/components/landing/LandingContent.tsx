@@ -12,7 +12,7 @@ import {
   SectionDots,
   TiltCard,
 } from "@/components/landing/LandingMotion";
-import { Grain, Magnetic, MegaMarquee, Reticle, StraitRail } from "@/components/landing/LandingHip";
+import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
 import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
@@ -276,7 +276,6 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
 
       <SectionDots sections={SECTIONS} />
       <Grain />
-      <Reticle />
 
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
