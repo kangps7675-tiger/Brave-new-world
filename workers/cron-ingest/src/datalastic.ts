@@ -5,7 +5,7 @@
  * 비용 가드 (선박 1척 = 1크레딧):
  *  - datalastic_usage(월 집계)·datalastic_zone_poll(구역별 마지막 폴링) 테이블이 있어야만 호출한다 (migration 0037).
  *    테이블이 없거나 D1 이 실패하면 예산을 셀 수 없으므로 호출하지 않는다.
- *  - 남은 월 예산이 MIN_REMAINING_CREDITS 미만이면 호출하지 않는다.
+ *  - 남은 월 예산이 MIN_REMAINING_CREDITS 미만이면 호출하지 않는다. 월 예산 중 EVENT_RESERVE_CREDITS 는 사건 스냅샷용으로 남긴다.
  *  - 구역마다 DATALASTIC_POLL_HOURS(기본 6) 간격.
  * 키가 없으면 아무것도 하지 않는다.
  */
@@ -19,11 +19,36 @@ import {
   monthKey,
   parseInradius,
   zonesDue,
+  type DatalasticVessel,
 } from "../../../src/lib/datalasticAis";
+import { EVENT_RESERVE_CREDITS, aisTypeCodeFromDatalastic } from "../../../src/lib/strikeSnapshot";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { recordStaticIdentity } from "./vesselIdentity";
 
 const BASE = "https://api.datalastic.com/api/v0";
+
+/** vessel_inradius 응답 선박 → ais 행 (상시 구역 폴링·사건 스냅샷 공용) */
+export function datalasticToAisRow(v: DatalasticVessel): AisVesselRow {
+  return {
+    id: v.mmsi,
+    mmsi: v.mmsi,
+    ship_name: v.name,
+    lat: v.lat,
+    lng: v.lng,
+    sog: v.sog,
+    cog: v.cog,
+    true_heading: v.heading,
+    ship_type: aisTypeCodeFromDatalastic(v.type),
+    ship_type_label: v.typeSpecific ?? v.type,
+    category: categoryFromType(v.type),
+    provider: "datalastic",
+    timestamp: v.at,
+    draught: null,
+    destination: v.destination,
+    length_m: null,
+    beam_m: null,
+  };
+}
 
 function readPositiveInt(raw: string | undefined, fallback: number): number {
   const n = Number(raw);
@@ -62,8 +87,10 @@ export async function fetchDatalasticZones(
   let creditsSpent = 0;
 
   for (const zone of due) {
-    if (!canSpend(used + creditsSpent, budget)) {
-      errors.push(`datalastic: 월 크레딧 예산 소진(${used + creditsSpent}/${budget}) — ${zone.id} 이후 호출 중단`);
+    // 사건 스냅샷용 예비분(EVENT_RESERVE_CREDITS)은 상시 폴링이 건드리지 않는다
+    const zoneBudget = Math.max(0, budget - EVENT_RESERVE_CREDITS);
+    if (!canSpend(used + creditsSpent, zoneBudget)) {
+      errors.push(`datalastic: 상시 폴링 예산 소진(${used + creditsSpent}/${zoneBudget}, 사건용 ${EVENT_RESERVE_CREDITS} 별도) — ${zone.id} 이후 호출 중단`);
       break;
     }
     try {
@@ -85,27 +112,8 @@ export async function fetchDatalasticZones(
       const spent = Math.min(500, parsed.total);
       creditsSpent += spent;
       for (const v of parsed.vessels) {
-        const category = categoryFromType(v.type);
-        rows.set(v.mmsi, {
-          id: v.mmsi,
-          mmsi: v.mmsi,
-          ship_name: v.name,
-          lat: v.lat,
-          lng: v.lng,
-          sog: v.sog,
-          cog: v.cog,
-          true_heading: v.heading,
-          ship_type: null,
-          ship_type_label: v.typeSpecific ?? v.type,
-          category,
-          provider: "datalastic",
-          timestamp: v.at,
-          draught: null,
-          destination: v.destination,
-          length_m: null,
-          beam_m: null,
-        });
-        if (v.imo) recordStaticIdentity(v.mmsi, { ImoNumber: v.imo, Name: v.name });
+        rows.set(v.mmsi, datalasticToAisRow(v));
+        if (v.imo) recordStaticIdentity(v.mmsi, { ImoNumber: v.imo, Name: v.name, Type: aisTypeCodeFromDatalastic(v.type) ?? undefined });
       }
       const stamp = now.toISOString();
       await env.DB.batch([

@@ -16,7 +16,7 @@
  *    크레딧: 조회 1회 평균 ~5 (기간 길수록 증가) — 그래서 후보 5척 × 사건 1건으로 제한.
  */
 
-import type { TrackPoint, VesselTrack } from "@/lib/strikeMatch/scoreCandidates";
+import type { TrackPoint, VesselTrack } from "./scoreCandidates";
 
 const BASE = "https://api.datalastic.com/api/v0";
 
