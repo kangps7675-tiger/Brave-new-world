@@ -14,7 +14,7 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  */
 
 /** 문서 어디서 스크롤되든(랜딩 막 안의 스크롤 포함) 프레임마다 콜백을 부른다 */
-function useAnyScroll(cb: () => void) {
+export function useAnyScroll(cb: () => void) {
   const ref = useRef(cb);
   ref.current = cb;
   useEffect(() => {

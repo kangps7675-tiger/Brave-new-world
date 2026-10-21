@@ -13,6 +13,7 @@ import {
   TiltCard,
 } from "@/components/landing/LandingMotion";
 import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
+import { ExtraEdition } from "@/components/landing/LandingExtra";
 import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
@@ -35,6 +36,7 @@ const SECTIONS = [
   { id: "ask", label: "질문 넷" },
   { id: "flow", label: "경보가 뜨면" },
   { id: "read", label: "화면 읽는 법" },
+  { id: "extra", label: "호외" },
   { id: "features", label: "상세 기능" },
   { id: "devices", label: "데스크톱·휴대폰" },
   { id: "who", label: "누가 쓰나" },
@@ -401,6 +403,9 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           지구본 위 무엇이든 누르면 설명 창이 열립니다. 위쪽 「묻기」에 &quot;홍해&quot;, &quot;호르무즈&quot;처럼 적으면 그 바다로 날아가요.
         </p>
       </section>
+
+      {/* EXTRA — 호외: 공개 보도로 본 보험료 */}
+      <ExtraEdition />
 
       {/* FEATURES — 상세 기능 */}
       <section id="features" className="border-t border-white/10 bg-[#081019]">
