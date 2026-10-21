@@ -12,7 +12,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
-import { setWorkerUrl } from "maplibre-gl";
+import { setWorkerUrl, type ExpressionSpecification } from "maplibre-gl";
 import { WebglContextLostOverlay } from "@/components/WebglContextLostOverlay";
 import { MapInitFailedOverlay } from "@/components/MapInitFailedOverlay";
 import { isFatalWebglMapError } from "@/lib/isFatalWebglMapError";
@@ -159,6 +159,9 @@ const OsmBuildingsOverlay = dynamic(
     ),
   { ssr: false },
 );
+
+/** symbol icon-size: ["zoom"]은 최상위 interpolate 입력으로만 쓸 수 있다 — 피처 scale 배수는 각 stop 출력 안에서 곱한다 */
+const SYMBOL_SCALE: ExpressionSpecification = ["coalesce", ["get", "scale"], 1];
 
 /** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
 function applyBasemapAtmosphere(map: BasemapMapLike, mode: BasemapMode): void {
@@ -3325,21 +3328,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 // 항공기 3,000대가 한 화면에 깔려도 뭉개지지 않게 줌아웃일수록 작게 +
                 // 선택 시 scale 배수. 지구 전체(줌 ~1.5)에서 0.36배 → 줌 8 이상에서 기본 크기.
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.36,
-                    3,
-                    0.46,
-                    5,
-                    0.66,
-                    8,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.36],
+                  3,
+                  ["*", SYMBOL_SCALE, 0.46],
+                  5,
+                  ["*", SYMBOL_SCALE, 0.66],
+                  8,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
@@ -3413,19 +3412,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.62,
-                    4,
-                    0.82,
-                    7,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.62],
+                  4,
+                  ["*", SYMBOL_SCALE, 0.82],
+                  7,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "map",
@@ -3491,19 +3486,15 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               layout={{
                 "icon-image": ["get", "icon"],
                 "icon-size": [
-                  "*",
-                  ["coalesce", ["get", "scale"], 1],
-                  [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    1.5,
-                    0.62,
-                    4,
-                    0.82,
-                    7,
-                    1,
-                  ],
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  1.5,
+                  ["*", SYMBOL_SCALE, 0.62],
+                  4,
+                  ["*", SYMBOL_SCALE, 0.82],
+                  7,
+                  ["*", SYMBOL_SCALE, 1],
                 ],
                 "icon-rotate": ["get", "rotate"],
                 "icon-rotation-alignment": "viewport",
