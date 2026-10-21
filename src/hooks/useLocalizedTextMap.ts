@@ -8,18 +8,23 @@ type TextEntry = { key: string; text: string };
 
 /** 사이드바·패널 표시용 — 제목·본문을 선택 언어로 번역 (캐시·배치) */
 export function useLocalizedTextMap(
-  entries: TextEntry[],
+  entriesInput: TextEntry[],
   lang: LabelLanguage,
 ): Map<string, string> {
   const signature = useMemo(
-    () => `${lang}\n${entries.map((e) => `${e.key}\0${e.text}`).join("\n")}`,
-    [entries, lang],
+    () => `${lang}\n${entriesInput.map((e) => `${e.key}\0${e.text}`).join("\n")}`,
+    [entriesInput, lang],
   );
+  // 호출부가 렌더마다 새 배열(`[]`, 인라인 리터럴)을 넘겨도 내용(signature)이 같으면 같은 배열로 본다.
+  // 이게 없으면 effect 가 렌더마다 돌고, 그 안의 setMap 이 다시 렌더를 불러 React #185(무한 갱신)로 터진다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const entries = useMemo(() => entriesInput, [signature]);
   const [map, setMap] = useState<Map<string, string>>(() => new Map());
 
   useEffect(() => {
     if (entries.length === 0) {
-      setMap(new Map());
+      // 이미 비어 있으면 같은 상태를 돌려줘 불필요한 재렌더를 막는다
+      setMap((prev) => (prev.size === 0 ? prev : new Map()));
       return;
     }
 
