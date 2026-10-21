@@ -299,7 +299,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
 
     aisCount = await upsertAisVessels(env.DB, ais.vessels);
     try {
-      await appendAisHistory(env.DB, ais.vessels);
+      // 이력은 솎아내기 전 초크포인트 선박까지 포함 — 피격 매칭 후보가 10° 셀 캡에 지워지지 않게
+      await appendAisHistory(env.DB, ais.historyVessels);
     } catch (error) {
       aisErrors.push(
         `track-history: ${error instanceof Error ? error.message : "append failed"}`,

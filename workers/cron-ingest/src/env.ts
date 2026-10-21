@@ -70,6 +70,10 @@ export type IngestEnv = {
   ADSBX_API_KEY?: string;
   /** AISstream WebSocket (MarineTraffic ?¤í¨ ???´ë°±) */
   AISSTREAM_API_KEY?: string;
+  /** Datalastic — 홍해 등 AISstream 공백 해역 보강 (없으면 건너뜀). 크레딧 월 예산·폴링 주기는 아래 */
+  DATALASTIC_API_KEY?: string;
+  DATALASTIC_MONTHLY_CREDITS?: string;
+  DATALASTIC_POLL_HOURS?: string;
 
   /**
    * FRED API key â ì»¨ë²ì ì¤ ë°í ì´í ìì¥ ë°ì ì¸¡ì ì©.

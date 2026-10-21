@@ -1,4 +1,6 @@
 import { flushVesselIdentities, recordStaticIdentity } from "./vesselIdentity";
+import { fetchDatalasticZones } from "./datalastic";
+import { isHistoryKeepPoint } from "../../../src/lib/datalasticAis";
 import { thinWorldwide } from "../../../src/lib/adsbWorld";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { getAisstreamKey, getMarineTrafficKey } from "./db";
@@ -538,7 +540,7 @@ async function fetchAisstream(
 export async function fetchAisVessels(
   env: IngestEnv,
   max = 3000,
-): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
+): Promise<{ vessels: AisVesselRow[]; historyVessels: AisVesselRow[]; errors: string[] }> {
   const mtKey = getMarineTrafficKey(env);
   const aisstreamKey = getAisstreamKey(env);
   const errors: string[] = [];
@@ -568,6 +570,18 @@ export async function fetchAisVessels(
     }
   }
 
+  // AISstream 지상 수신이 없는 해역(홍해 등)만 Datalastic 으로 보강 — 키·예산 가드는 datalastic.ts
+  try {
+    const dl = await fetchDatalasticZones(env);
+    errors.push(...dl.errors);
+    for (const vessel of dl.vessels) {
+      byMmsi.set(vessel.mmsi, preferVesselRow(byMmsi.get(vessel.mmsi), vessel));
+    }
+    await flushVesselIdentities(env.DB);
+  } catch (error) {
+    errors.push(`datalastic: ${error instanceof Error ? error.message : "failed"}`);
+  }
+
   if (!mtKey && !aisstreamKey) {
     errors.push("MARINETRAFFIC_API_KEY and AISSTREAM_API_KEY missing — AIS skipped");
   } else if (!mtKey) {
@@ -583,5 +597,11 @@ export async function fetchAisVessels(
     perCell: 24,
     max,
   });
-  return { vessels: thinned, errors };
+  // 이력(피격 매칭용)은 초크포인트 박스 안 선박을 솎아내지 않고 보존한다.
+  const keptIds = new Set(thinned.map((v) => v.id));
+  const historyVessels = [
+    ...thinned,
+    ...merged.filter((v) => !keptIds.has(v.id) && isHistoryKeepPoint(v.lat, v.lng)),
+  ];
+  return { vessels: thinned, historyVessels, errors };
 }
