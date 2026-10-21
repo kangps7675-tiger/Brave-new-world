@@ -9,6 +9,7 @@ import { PausedMapGlobeView, type PausedMapGlobeProps } from "@/components/globe
 import { importWithChunkRetry } from "@/lib/importWithChunkRetry";
 import type { CesiumEntitySelection, CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
 import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
+import { cesiumLayerProps } from "@/lib/satelliteLayers";
 
 const CesiumSatelliteGlobe = dynamic(
   importWithChunkRetry(() =>
@@ -206,56 +207,59 @@ export function GlobeMapCanvas({
                 ? cesiumRef
                 : undefined
             }
-            aisVessels={aisVessels}
-            disguisedVessels={disguisedVessels}
-            milAircraft={milAircraft}
-            civAircraft={civAircraft}
-            showAis={showAis}
-            showAisMilitary={showAisMilitary}
-            showAisCommercial={showAisCommercial}
-            showDisguisedVessels={showDisguisedVessels}
-            showMilitaryActivity={showMilitaryActivity}
-            showAirTraffic={showAirTraffic}
-            usCarriers={cesiumUsCarriers}
-            showUsCarriers={showCesiumUsCarriers}
-            neptunThreats={neptunThreats}
-            showNeptun={showNeptun}
             onReady={onCesiumReady}
             onCameraIdle={onCesiumCameraIdle}
             onSelectEntity={onSelectCesiumEntity}
             onUserBreakFollow={onCesiumUserBreakFollow}
-            alertPins={alertPins}
             cameraCeilingM={cameraCeilingM}
             onSelectAlert={onSelectCesiumAlert}
-            ukmtoIncidents={ukmtoIncidents}
-            navareaFeatures={navareaFeatures}
-            chokeRings={chokeRings}
-            straitOverlaySegments={straitOverlaySegments}
-            straitLabels={straitLabels}
-            straitPorts={straitPorts}
-            liveuaPins={liveuaPins}
             focusedLiveuaId={focusedLiveuaId}
-            deskFocus={deskFocus}
-            liveuaStrikes={liveuaStrikes}
-            hybridPins={hybridPins}
-            liveuaGround={liveuaGround}
             onSelectLiveuaPin={onSelectLiveuaPin}
             eventCallout={eventCallout}
             onDismissEventCallout={onDismissEventCallout}
             onPickGroundPoint={onPickGroundPoint}
-            controlGeoJson={controlGeoJson}
-            firmsFires={firmsFires}
-            showFirmsFires={showFirmsFires}
-            missileLaunches={missileLaunches}
-            showMissileLaunches={showMissileLaunches}
-            neptunAlerts={cesiumNeptunAlerts}
-            showAirRaidZones={showAirRaidZones}
-            placeLabels={placeLabels}
             placeLabelLang={placeLabelLang}
-            showPlaceLabels={showPlaceLabels}
-            conflictEvents={conflictEvents}
-            showConflictEvents={showConflictEvents}
             onSelectConflictEvent={onSelectConflictEvent}
+            // 레이어는 기본에서 그리지 않는다(src/lib/satelliteLayers.ts) — 사건 콜아웃만 남긴다
+            {...cesiumLayerProps({
+              aisVessels,
+              disguisedVessels,
+              milAircraft,
+              civAircraft,
+              showAis,
+              showAisMilitary,
+              showAisCommercial,
+              showDisguisedVessels,
+              showMilitaryActivity,
+              showAirTraffic,
+              usCarriers: cesiumUsCarriers,
+              showUsCarriers: showCesiumUsCarriers,
+              neptunThreats,
+              showNeptun,
+              alertPins,
+              ukmtoIncidents,
+              navareaFeatures,
+              chokeRings,
+              straitOverlaySegments,
+              straitLabels,
+              straitPorts,
+              liveuaPins,
+              deskFocus,
+              liveuaStrikes,
+              hybridPins,
+              liveuaGround,
+              controlGeoJson,
+              firmsFires,
+              showFirmsFires,
+              missileLaunches,
+              showMissileLaunches,
+              neptunAlerts: cesiumNeptunAlerts,
+              showAirRaidZones,
+              placeLabels,
+              showPlaceLabels,
+              conflictEvents,
+              showConflictEvents,
+            })}
           />
         ) : null}
         {!isPhoneUi && !satelliteMode ? (
