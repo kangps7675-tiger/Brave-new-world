@@ -35,6 +35,7 @@ import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { runStrikeSnapshots } from "./strikeSnapshot";
+import { runStrikeNames } from "./strikeNames";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
 import { fetchAndUpsertMarineWeather } from "./marineWeather";
@@ -223,6 +224,15 @@ async function runFastAlerts(env: IngestEnv): Promise<void> {
     if (snap.errors.length > 0) out.push(`strikeSnapErr=${snap.errors[0]}`);
   } catch (error) {
     out.push(`strikeSnapErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  try {
+    const names = await runStrikeNames(env);
+    if (names.searched + names.verified + names.rejected > 0) {
+      out.push(`strikeNames=search${names.searched} claims${names.claims} ok${names.verified} no${names.rejected} credits=${names.credits}`);
+    }
+    if (names.errors.length > 0) out.push(`strikeNamesErr=${names.errors[0]}`);
+  } catch (error) {
+    out.push(`strikeNamesErr=${error instanceof Error ? error.message : "failed"}`);
   }
   const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
   if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);

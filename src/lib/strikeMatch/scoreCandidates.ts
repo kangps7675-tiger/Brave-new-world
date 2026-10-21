@@ -176,7 +176,7 @@ export function normalizeShipName(s: string | null | undefined): string {
 }
 
 /** 경보가 선명 대신 쓰는 일반 단어 — 이런 이름이 AIS 선명에 들어 있다고 같은 배가 아니다 */
-const GENERIC_NAMES = new Set([
+export const GENERIC_NAMES = new Set([
   "MERCHANT", "TANKER", "TKR", "TUG", "CARGO", "VESSEL", "SHIP", "CONTAINER", "BULK", "CARRIER",
   "UNKNOWN", "OIL TANKER", "CRUDE TANKER", "CONTAINER SHIP", "BULK CARRIER", "GENERAL CARGO",
 ]);
