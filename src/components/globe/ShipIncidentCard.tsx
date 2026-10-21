@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { StackItem } from "@/lib/incidentStack/build";
 import { describeVessel } from "@/lib/incidentStack/shipText";
+import { loadStrikeMatches, pickMatchedVessel, type MatchedVessel } from "@/lib/strikeMatch/matchedVessel";
 import { fetchShipPhotos, shipKindFromType, type ShipKind, type ShipPhoto } from "@/lib/shipPhoto";
 
 // 평면 지도는 뒷면을 처음 돌릴 때 불러온다 — 카드를 그냥 보는 동안은 WebGL 컨텍스트를 안 쓴다.
@@ -34,6 +35,23 @@ function useShipPhotos(name: string | null | undefined): PhotoState {
     return () => ac.abort();
   }, [name]);
   return state;
+}
+
+/** UKMTO 사건 — 우리 AIS 매칭이 한 척으로 좁힌 경우에만 그 배를 돌려준다 (확인·유력) */
+function useMatchedVessel(item: StackItem): MatchedVessel | null {
+  const [matched, setMatched] = useState<MatchedVessel | null>(null);
+  useEffect(() => {
+    setMatched(null);
+    if (item.source !== "ukmto" || item.vesselName?.trim()) return;
+    let cancelled = false;
+    void loadStrikeMatches().then((rows) => {
+      if (!cancelled) setMatched(pickMatchedVessel(rows, item.id));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [item.id, item.source, item.vesselName]);
+  return matched;
 }
 
 /** 대표 일러스트 — 실제 선박 사진이 아님. 선종별 실루엣만 다르다. */
@@ -104,7 +122,8 @@ export function ShipIncidentCard({ lang, item }: { lang: LabelLanguage; item: St
   const en = lang === "en";
   const [flipped, setFlipped] = useState(false);
   const [mapMounted, setMapMounted] = useState(false);
-  const { status, photos } = useShipPhotos(item.vesselName);
+  const matched = useMatchedVessel(item);
+  const { status, photos } = useShipPhotos(item.vesselName?.trim() || matched?.name);
   const [photoIdx, setPhotoIdx] = useState(0);
   const count = photos.length;
   const current = count > 0 ? photos[Math.min(photoIdx, count - 1)]! : null;
@@ -134,8 +153,13 @@ export function ShipIncidentCard({ lang, item }: { lang: LabelLanguage; item: St
     return info.tonnes ? `${label} · ${en ? "~" : "약 "}${info.tonnes.toLocaleString()}${en ? " t" : "톤"}` : label;
   })();
   const anonymous = !item.vesselName?.trim();
+  const matchNote = matched
+    ? matched.status === "confirmed"
+      ? en ? "AIS name match" : "AIS 선명 일치"
+      : en ? "Likely vessel by AIS (not confirmed)" : "AIS 정황상 유력 · 확정 아님"
+    : null;
   const caption = current
-    ? [en ? "Reference photo, not from the incident" : "참고용 사진 · 사건 당시 사진 아님", current.artist, current.license, "Wikimedia Commons"].filter(Boolean).join(" · ")
+    ? [matchNote, en ? "Reference photo, not from the incident" : "참고용 사진 · 사건 당시 사진 아님", current.artist, current.license, "Wikimedia Commons"].filter(Boolean).join(" · ")
     : status === "loading"
       ? en
         ? "Looking for a photo…"
@@ -203,8 +227,10 @@ export function ShipIncidentCard({ lang, item }: { lang: LabelLanguage; item: St
             ) : null}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-6">
               <p className="truncate text-meta font-semibold text-amber-50">
-                {item.vesselName?.trim() || kindLabel}
-                {item.vesselName?.trim() ? <span className="font-normal text-amber-200/80"> · {kindLabel}</span> : null}
+                {item.vesselName?.trim() || (current ? matched?.name : null) || kindLabel}
+                {item.vesselName?.trim() || (current && matched?.name) ? (
+                  <span className="font-normal text-amber-200/80"> · {kindLabel}</span>
+                ) : null}
               </p>
               <p className="truncate text-micro text-amber-100/60">{caption}</p>
             </div>
