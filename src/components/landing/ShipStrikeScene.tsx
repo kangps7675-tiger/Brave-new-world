@@ -341,38 +341,93 @@ export function ShipStrikeScene() {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(roll);
-      // 선체
-      const hull = ctx.createLinearGradient(0, -h, 0, h * 0.6);
-      hull.addColorStop(0, "#2a3946");
-      hull.addColorStop(1, "#141d25");
+      // 선체 — 유조선 옆모습. 오른쪽이 선수.
+      //  선미: 갑판 끝에서 수직으로 내려오다 물 위에서 안쪽으로 깎인 트랜섬(counter stern)
+      //  갑판: 평평한 상갑판, 선수 쪽 1/10은 한 단 높은 선수루(forecastle)
+      //  선수: 위가 앞으로 나온 직선 경사 선수재 + 물 밑의 구상선수(bulbous bow)
+      const fc = h * 0.28; // 선수루 높이
+      const bowX = L / 2;
+      const hull = ctx.createLinearGradient(0, -h - fc, 0, h * 0.6);
+      hull.addColorStop(0, "#2c3b48");
+      hull.addColorStop(1, "#131b23");
       ctx.fillStyle = hull;
       ctx.beginPath();
+      ctx.moveTo(-L / 2, -h); // 선미 갑판 끝
+      ctx.lineTo(bowX - L * 0.13, -h); // 상갑판
+      ctx.lineTo(bowX - L * 0.12, -h - fc); // 선수루 단
+      ctx.lineTo(bowX, -h - fc * 1.15); // 선수루 갑판(살짝 올라감)
+      ctx.lineTo(bowX - L * 0.045, h * 0.05); // 경사 선수재 → 흘수선
+      ctx.quadraticCurveTo(bowX - L * 0.01, h * 0.12, bowX - L * 0.02, h * 0.4); // 구상선수
+      ctx.quadraticCurveTo(bowX - L * 0.035, h * 0.55, bowX - L * 0.08, h * 0.55);
+      ctx.lineTo(-L / 2 + L * 0.06, h * 0.55); // 용골
+      ctx.lineTo(-L / 2 + L * 0.03, -h * 0.05); // 선미 아래 깎인 면
+      ctx.lineTo(-L / 2, -h * 0.25); // 트랜섬
+      ctx.closePath();
+      ctx.fill();
+      // 흘수선 아래 붉은 선저 도료(선수·선미 곡선을 따라가도록 선체 모양으로 잘라 칠함)
+      ctx.save();
+      ctx.clip();
+      ctx.fillStyle = "#6e2626";
+      ctx.fillRect(-L / 2, h * 0.18, L, h);
+      ctx.restore();
+      // 갑판 가장자리 밝은 선
+      ctx.strokeStyle = "#5b6d7c";
+      ctx.lineWidth = Math.max(1, L * 0.003);
+      ctx.beginPath();
       ctx.moveTo(-L / 2, -h);
-      ctx.lineTo(L / 2 - L * 0.05, -h);
-      ctx.quadraticCurveTo(L / 2 + L * 0.01, -h * 0.6, L / 2 - L * 0.012, h * 0.55);
-      ctx.lineTo(-L / 2 + L * 0.02, h * 0.55);
+      ctx.lineTo(bowX - L * 0.13, -h);
+      ctx.moveTo(bowX - L * 0.12, -h - fc);
+      ctx.lineTo(bowX, -h - fc * 1.15);
+      ctx.stroke();
+      // 상갑판 장비: 화물 배관 + 캣워크(난간 통로), 중앙 매니폴드 크레인, 선수 마스트
+      const dk = -h;
+      ctx.strokeStyle = "#465867";
+      ctx.lineWidth = Math.max(1, L * 0.0028);
+      ctx.beginPath();
+      ctx.moveTo(-L * 0.33, dk - L * 0.006);
+      ctx.lineTo(bowX - L * 0.13, dk - L * 0.006);
+      ctx.moveTo(-L * 0.33, dk - L * 0.016);
+      ctx.lineTo(bowX - L * 0.13, dk - L * 0.016);
+      for (let i = 0; i <= 14; i++) {
+        const px = -L * 0.33 + (i / 14) * (bowX - L * 0.13 + L * 0.33);
+        ctx.moveTo(px, dk);
+        ctx.lineTo(px, dk - L * 0.016);
+      }
+      // 매니폴드 크레인
+      ctx.moveTo(L * 0.02, dk);
+      ctx.lineTo(L * 0.02, dk - L * 0.045);
+      ctx.lineTo(L * 0.07, dk - L * 0.02);
+      // 선수 마스트
+      ctx.moveTo(bowX - L * 0.06, dk - fc);
+      ctx.lineTo(bowX - L * 0.06, dk - fc - L * 0.05);
+      ctx.stroke();
+      // 선미 거주구역(브리지) — 층이 진 흰 블록 + 양옆으로 튀어나온 브리지 윙
+      const ax = -L * 0.45;
+      ctx.fillStyle = "#dfe6ec";
+      ctx.fillRect(ax, dk - L * 0.1, L * 0.1, L * 0.1);
+      ctx.fillStyle = "#cfd7de";
+      ctx.fillRect(ax + L * 0.008, dk - L * 0.125, L * 0.084, L * 0.026);
+      ctx.fillStyle = "#bfc9d1";
+      ctx.fillRect(ax - L * 0.015, dk - L * 0.128, L * 0.13, L * 0.012);
+      // 굴뚝 — 거주구역 뒤쪽, 위가 뒤로 기운 사다리꼴
+      ctx.fillStyle = "#2b3a46";
+      ctx.beginPath();
+      ctx.moveTo(ax - L * 0.005, dk - L * 0.1);
+      ctx.lineTo(ax + L * 0.03, dk - L * 0.1);
+      ctx.lineTo(ax + L * 0.025, dk - L * 0.165);
+      ctx.lineTo(ax - L * 0.012, dk - L * 0.165);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = "#6e2626";
-      ctx.fillRect(-L / 2 + L * 0.02, h * 0.2, L - L * 0.035, h * 0.35);
-      // 갑판 배관·매니폴드
-      ctx.strokeStyle = "#465867";
-      ctx.lineWidth = Math.max(1, L * 0.0035);
-      ctx.beginPath();
-      ctx.moveTo(-L * 0.32, -h - 2);
-      ctx.lineTo(L * 0.42, -h - 2);
-      ctx.moveTo(L * 0.05, -h - 2);
-      ctx.lineTo(L * 0.05, -h - L * 0.02);
-      ctx.stroke();
-      // 선교
-      ctx.fillStyle = "#dfe6ec";
-      ctx.fillRect(-L * 0.45, -h - L * 0.115, L * 0.1, L * 0.115);
-      ctx.fillStyle = "#bfc9d1";
-      ctx.fillRect(-L * 0.47, -h - L * 0.13, L * 0.14, L * 0.018);
-      ctx.fillStyle = "#2b3a46";
-      ctx.fillRect(-L * 0.425, -h - L * 0.17, L * 0.04, L * 0.05);
+      ctx.fillRect(ax - L * 0.011, dk - L * 0.165, L * 0.036, L * 0.01);
+      // 창문 불빛
       ctx.fillStyle = "#f5c451";
-      for (let i = 0; i < 4; i++) ctx.fillRect(-L * 0.44 + i * L * 0.02, -h - L * 0.095, L * 0.01, L * 0.008);
+      for (let i = 0; i < 4; i++) ctx.fillRect(ax + L * 0.015 + i * L * 0.02, dk - L * 0.115, L * 0.01, L * 0.007);
+      for (let r = 0; r < 3; r++)
+        for (let i = 0; i < 4; i++) ctx.fillRect(ax + L * 0.015 + i * L * 0.02, dk - L * 0.085 + r * L * 0.025, L * 0.008, L * 0.006);
+      // 구명정(거주구역 옆 주황색)
+      ctx.fillStyle = "#e0702c";
+      ctx.fillRect(ax + L * 0.1, dk - L * 0.05, L * 0.03, L * 0.012);
       // 탄 자국·구멍
       if (burning) {
         const lx = hitPt.x - x;
