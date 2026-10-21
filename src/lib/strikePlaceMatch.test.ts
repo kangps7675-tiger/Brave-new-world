@@ -16,6 +16,17 @@ describe("공습 불꽃 지명 — 깊숙한 지역", () => {
     ["Houthi missile hit Abqaiq processing plant", "Abqaiq", "gulf"],
     ["Drone strike on Ain al-Asad air base", "Ain al-Asad", "levant-iraq"],
     ["우크라이나 드론이 사라토프 정유공장을 타격", "Saratov", "russia"],
+    ["Ukrainian drones struck a refinery in Kirov region", "Kirov", "russia"],
+    ["Drones hit Severomorsk naval base near Murmansk", "Severomorsk", "russia"],
+    ["Ukraine drone attack on Iranian ships at Olya port in the Caspian Sea", "Olya", "caspian"],
+    ["Drone strike on Iranian vessel at Amirabad port", "Amirabad port", "caspian"],
+    ["Explosions in Tehran after drone attack", "Tehran", "iran"],
+    ["Drone strike hits Asaluyeh South Pars gas facilities", "Asaluyeh", "iran"],
+    ["Houthi drones struck Medina airport", "Medina", "gulf"],
+    ["Missile attack on Basra oil terminal", "Basra", "gulf"],
+    ["Iranian-made drone attack on Leipzig-Halle Airport in Germany", "Leipzig-Halle Airport", "europe"],
+    ["Drone hit near Rzeszow airport in Poland", "Rzeszow", "europe"],
+    ["Drone strike on Akrotiri air base in Cyprus", "Akrotiri", "europe"],
   ])("%s → %s", (text, label, area) => {
     expect(resolveStrikePlace(text)).toMatchObject({ label, area });
   });
