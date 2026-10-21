@@ -2390,13 +2390,13 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
 /* ── 호외 지면 (랜딩 · 보험료 섹션) ── */
 .landing-paper {
   position: relative;
-  color: #1b1712;
-  background-color: #e8dcbc;
+  color: #141210;
+  background-color: #f4f1e8;
   background-image:
-    radial-gradient(ellipse at 50% 38%, rgba(255, 250, 232, 0.55), rgba(255, 250, 232, 0) 62%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(110, 78, 28, 0.38) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .26  0 0 0 0 .12  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(90, 62, 20, 0.35);
+    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 252, 0.7), rgba(255, 255, 252, 0) 65%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 70%, rgba(90, 80, 55, 0.16) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .2  0 0 0 .38 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.4'/></svg>");
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(60, 52, 36, 0.25);
 }
 .landing-ink {
   /* 활자가 종이에 번지는 느낌 */
