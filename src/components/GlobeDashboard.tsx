@@ -1998,7 +1998,7 @@ export function GlobeDashboard({
             publishedAt: event.publishedAt,
           },
         ];
-      }).slice(0, 40),
+      }).slice(0, 200),
     [liveuaEvents, labelLanguage],
   );
 
