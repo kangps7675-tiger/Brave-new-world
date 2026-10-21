@@ -61,6 +61,7 @@ export const FIRST_SCREEN_MARITIME_ON: Partial<Record<BooleanLayerKey, boolean>>
   showUsCarriers: true,
   showMilitaryActivity: true,
   showUkraineControl: true,
+  showUkraineStrikesOnRussia: true,
   showAxisNetwork: true,
   showFirmsFires: true,
   showConflictEvents: true,
