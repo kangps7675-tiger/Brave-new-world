@@ -34,6 +34,7 @@ import { recordHeartbeat } from "./pipelineHealth";
 import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
+import { runStrikeSnapshots } from "./strikeSnapshot";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
 import { fetchAndUpsertMarineWeather } from "./marineWeather";
@@ -213,6 +214,15 @@ async function runFastAlerts(env: IngestEnv): Promise<void> {
     if (uk.errors.length > 0) out.push(`ukmtoErr=${uk.errors[0]}`);
   } catch (error) {
     out.push(`ukmtoErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  try {
+    const snap = await runStrikeSnapshots(env);
+    if (snap.snapshots + snap.shared + snap.histories > 0) {
+      out.push(`strikeSnap=${snap.snapshots}+${snap.shared}shared hist=${snap.histories} credits=${snap.credits}`);
+    }
+    if (snap.errors.length > 0) out.push(`strikeSnapErr=${snap.errors[0]}`);
+  } catch (error) {
+    out.push(`strikeSnapErr=${error instanceof Error ? error.message : "failed"}`);
   }
   const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
   if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);
