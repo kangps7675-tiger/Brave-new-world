@@ -12,6 +12,7 @@ import {
   SectionDots,
   TiltCard,
 } from "@/components/landing/LandingMotion";
+import { Grain, Magnetic, MegaMarquee, Reticle, StraitRail } from "@/components/landing/LandingHip";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
@@ -42,7 +43,7 @@ const SECTIONS = [
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono)]";
 const EYEBROW = "m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]";
-const H2 = "mt-4 mb-0 text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.3] tracking-[-0.02em] text-white";
+const H2 = "mt-4 mb-0 text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white";
 const WRAP = "mx-auto max-w-[1200px] px-6";
 const MUTED = "text-[#a3b3bf]";
 
@@ -200,13 +201,13 @@ const AUDIENCES = [
 ];
 
 const STRAITS = [
-  ["strait-of-hormuz", "호르무즈 해협", "페르시아만 원유·LNG의 출구"],
-  ["bab-el-mandeb", "바브엘만데브 해협", "홍해·수에즈 항로의 입구"],
-  ["suez-canal", "수에즈 운하", "아시아와 유럽을 잇는 지름길"],
-  ["strait-of-malacca", "말라카 해협", "중동 원유가 동아시아로 오는 길"],
-  ["taiwan-strait", "대만해협", "동아시아 컨테이너선의 길목"],
-  ["turkish-straits", "튀르키예 해협", "흑해와 지중해를 잇는 유일한 길"],
-] as const;
+  { slug: "strait-of-hormuz", name: "호르무즈 해협", en: "STRAIT OF HORMUZ", stat: "세계 원유 소비량의 약 5분의 1", what: "페르시아만 원유·LNG가 바다로 나가는 사실상 유일한 출구." },
+  { slug: "bab-el-mandeb", name: "바브엘만데브 해협", en: "BAB EL-MANDEB", stat: "막히면 희망봉 우회, 1~2주 더", what: "홍해와 수에즈 항로의 입구. 후티 공격이 이어지는 바다." },
+  { slug: "suez-canal", name: "수에즈 운하", en: "SUEZ CANAL", stat: "아시아↔유럽 가장 짧은 바닷길", what: "홍해 쪽 위험이 그대로 이어지는 운하." },
+  { slug: "strait-of-malacca", name: "말라카 해협", en: "STRAIT OF MALACCA", stat: "중동 원유가 동아시아로 오는 길", what: "한국·중국·일본으로 오는 유조선이 지나는 가장 짧은 길." },
+  { slug: "taiwan-strait", name: "대만해협", en: "TAIWAN STRAIT", stat: "동아시아 컨테이너선의 길목", what: "첨단 반도체 생산이 몰린 대만을 끼고 있는 바다." },
+  { slug: "turkish-straits", name: "튀르키예 해협", en: "BOSPORUS · DARDANELLES", stat: "흑해와 지중해를 잇는 유일한 길", what: "우크라이나·러시아 곡물과 원유가 나가는 통로." },
+];
 
 const BADGES = [
   { tag: "탄탄함", cls: "bg-[#0f766e] text-white", body: "여러 종류의 공개 출처가 같은 이야기를 해요. 시간이 없으면 여기부터 보세요." },
@@ -272,6 +273,8 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
       </header>
 
       <SectionDots sections={SECTIONS} />
+      <Grain />
+      <Reticle />
 
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
@@ -282,14 +285,16 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           <h1 className="mb-0 mt-5 text-[clamp(38px,4.6vw,64px)] font-bold leading-[1.14] tracking-[-0.035em] text-white">
             <DecodeText text="정보기관 상황실처럼," />
             <br className="hidden sm:block" />{" "}
-            <DecodeText text="바다의 위험을 한눈에." delay={350} className="text-[#f5c451]" />
+            <span className="landing-glitch is-live text-[#f5c451]" data-text="바다의 위험을 한눈에.">
+              <DecodeText text="바다의 위험을 한눈에." delay={350} />
+            </span>
           </h1>
           <p className={`mt-6 max-w-[560px] text-[19px] leading-[1.75] ${MUTED}`}>
             어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지.
             피격 경보가 뜰 때 운항 담당자가 한꺼번에 찾던 답을 3D 지구본 한 화면에 모았습니다.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            {renderEnter("hero")}
+            <Magnetic>{renderEnter("hero")}</Magnetic>
             <a
               href="#read"
               className="inline-flex h-[54px] items-center rounded-md border border-white/25 px-6 text-base font-semibold text-white no-underline hover:border-white/60"
@@ -326,11 +331,13 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         ))}
       </section>
 
+      <MegaMarquee />
+
       {/* ASK — 경보 하나에 질문 넷 */}
       <section id="ask" className="border-y border-white/10 bg-[#081019]">
         <div className={`${WRAP} py-24`}>
           <p className={EYEBROW}>경보 하나에 질문 넷</p>
-          <h2 className={`${H2} max-w-[860px]`}>
+          <h2 className={`${H2} max-w-[1080px]`}>
             대형 선사는 비싼 해사 정보 서비스로 답을 얻습니다.
             <br className="hidden md:block" /> 이제 뉴스 창 열 개 대신 지구본 하나면 됩니다.
           </h2>
@@ -482,26 +489,17 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         </div>
       </section>
 
-      {/* STRAITS — 해협별 안내 */}
-      <section className={`${WRAP} pb-8 pt-24`}>
-        <p className={EYEBROW}>해협별로 보기</p>
-        <h2 className={`${H2} max-w-[780px]`}>배가 꼭 지나야 하는 길목부터 살펴보세요.</h2>
-        <ul className="mt-10 grid list-none gap-3 p-0 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
-          {STRAITS.map(([slug, name, what]) => (
-            <li key={slug}>
-              <Link
-                href={`/chokepoints/${slug}`}
-                className="flex h-full items-center justify-between gap-3 rounded-lg border border-white/10 px-5 py-4 text-white no-underline hover:border-[#5eead4]/60"
-              >
-                <span>
-                  <span className="block text-[17px] font-semibold">{name}</span>
-                  <span className={`block text-sm ${MUTED}`}>{what}</span>
-                </span>
-                <span aria-hidden="true" className="text-[#5eead4]">→</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      {/* STRAITS — 세로 스크롤을 가로로 넘기는 해협 카드 */}
+      <section className="pt-16">
+        <StraitRail
+          cards={STRAITS}
+          heading={
+            <>
+              <p className={EYEBROW}>해협별로 보기</p>
+              <h2 className={`${H2} max-w-[820px]`}>배가 꼭 지나야 하는 길목, 하나씩 넘겨 보세요.</h2>
+            </>
+          }
+        />
       </section>
 
       {/* NAME — 왜 '멋진 신세계'인가 */}
@@ -579,6 +577,8 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           </div>
         </div>
       </section>
+
+      <MegaMarquee reverse />
 
       {/* CTA */}
       <section id="join" className="border-t border-white/10 bg-[#081019]">
