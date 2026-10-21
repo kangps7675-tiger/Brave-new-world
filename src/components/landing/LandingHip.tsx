@@ -67,7 +67,7 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
       const dt = Math.min(64, now - (s.last || now));
       s.last = now;
       s.vel *= 0.92;
-      const speed = (0.035 + Math.min(1.4, Math.abs(s.vel)) * 0.9) * dt;
+      const speed = (0.018 + Math.min(1.4, Math.abs(s.vel)) * 0.5) * dt;
       s.x = (s.x + (reverse ? -speed : speed)) % 50;
       const el = trackRef.current;
       if (el) {
