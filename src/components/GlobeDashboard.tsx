@@ -126,6 +126,7 @@ import {
 
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
+import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { IncidentStack } from "@/components/globe/IncidentStack";
 import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
@@ -742,6 +743,8 @@ export function GlobeDashboard({
   const isConflictViewer = viewerMode === "conflict";
   /** 해운 위험 첫 화면 — 지정학(conflict) 모드 + 해운 패키지. 지정학 개관 마커(핵탄두·전략태세)를 숨기고 길목 콜아웃을 띄운다 */
   const isMaritimeView = isConflictViewer && viewPackages.includes("maritime");
+  /** 랜딩 막이 덮고 있는 동안은 속보 팝업을 띄우지 않는다 */
+  const landingCurtainActive = useLandingCurtainActive();
   const isHistoryViewer = viewerMode === "history";
   /** 역사 토글 연도 스크러버 — Balhae peak 데모 기본 850 (요동·연해주 중부) */
   const [historyYear, setHistoryYear] = useState(850);
@@ -7418,7 +7421,7 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
-        {isSatelliteViewer && !theaterSitrepRegion ? (
+        {isSatelliteViewer && !theaterSitrepRegion && !landingCurtainActive ? (
           <LiveuaFlashToast
             lang={labelLanguage}
             event={liveuaToast}
@@ -7428,7 +7431,8 @@ export function GlobeDashboard({
 
         {isSatelliteViewer &&
         liveuaParchmentIndex != null &&
-        !theaterSitrepRegion ? (
+        !theaterSitrepRegion &&
+        !landingCurtainActive ? (
           <LiveuaFlashParchment
             lang={labelLanguage}
             events={liveuaBreakingEvents}
@@ -7567,7 +7571,7 @@ export function GlobeDashboard({
             })()
           : null}
 
-        {!isSatelliteViewer && frontParchmentIndex != null
+        {!isSatelliteViewer && frontParchmentIndex != null && !landingCurtainActive
           ? (() => {
               const rows = frontNewsItems.filter((x) => x.liveua);
               const events = rows.map((x) => x.liveua!);

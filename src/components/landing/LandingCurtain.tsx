@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { setLandingCurtainActive } from "@/lib/landingCurtainState";
 import { useDialog } from "@/hooks/useDialog";
 import { LandingContent, type EnterPlace } from "@/components/landing/LandingContent";
 
@@ -109,6 +110,11 @@ export function LandingCurtain({
   const fogRef = useRef<HTMLCanvasElement>(null);
   /** 막이 떠 있는 동안 Tab이 아래 지구본 컨트롤로 새지 않게 가둔다. Esc로는 닫지 않는다. */
   const dialogRef = useDialog<HTMLDivElement>({ open: !lifting, closeOnEscape: false });
+  // 막이 떠 있는 동안 속보 팝업·타전음을 막는다 (막이 언마운트되면 풀린다)
+  useEffect(() => {
+    setLandingCurtainActive(true);
+    return () => setLandingCurtainActive(false);
+  }, []);
   const onLiftedRef = useRef(onLifted);
   onLiftedRef.current = onLifted;
   const readyRef = useRef(ready);
