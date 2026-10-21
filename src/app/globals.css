@@ -2283,3 +2283,56 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   .landing-cta-glow, .landing-grid { animation: none; }
   .landing-tilt { transform: none; transition: none; }
 }
+
+/* ── 랜딩 · 힙 레이어 (LandingHip) ── */
+.landing-grain {
+  z-index: 1;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px);
+  animation: landing-grain-shift 0.9s steps(4) infinite;
+}
+@keyframes landing-grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -1%); }
+  100% { transform: translate(0, 0); }
+}
+.landing-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(230, 237, 242, 0.35);
+}
+.landing-glitch::before,
+.landing-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.landing-glitch::before { color: #ff3b6b; }
+.landing-glitch::after { color: #2de2ff; }
+.landing-glitch:hover::before,
+.landing-glitch.is-live::before { animation: landing-glitch-a 2.2s steps(1) 2s infinite; }
+.landing-glitch:hover::after,
+.landing-glitch.is-live::after { animation: landing-glitch-b 2.2s steps(1) 2s infinite; }
+@keyframes landing-glitch-a {
+  0%, 86%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  88% { opacity: 0.85; transform: translate(-3px, 1px); clip-path: inset(10% 0 55% 0); }
+  92% { opacity: 0.85; transform: translate(3px, -1px); clip-path: inset(60% 0 8% 0); }
+  95% { opacity: 0.7; transform: translate(-2px, 0); clip-path: inset(35% 0 40% 0); }
+}
+@keyframes landing-glitch-b {
+  0%, 86%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  89% { opacity: 0.85; transform: translate(3px, -1px); clip-path: inset(50% 0 20% 0); }
+  93% { opacity: 0.85; transform: translate(-3px, 1px); clip-path: inset(5% 0 70% 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-grain { animation: none; }
+  .landing-glitch::before, .landing-glitch::after { animation: none !important; opacity: 0 !important; }
+}
+@keyframes landing-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
