@@ -2713,6 +2713,7 @@ export function GlobeDashboard({
     setStackSelectedId(null);
     stackReturnViewRef.current = { view: { ...viewState }, armed: false };
     handleViewerModeChange("satellite");
+    // 세슘이 아직 안 떠 있으면 pendingObserveFly 큐가 ready 때 대신 실행한다. 600ms 는 모드 전환 정리용
     window.setTimeout(() => focusStackItemInSpaceRef.current(it), 600);
   };
 

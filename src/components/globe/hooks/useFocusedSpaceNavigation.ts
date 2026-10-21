@@ -53,7 +53,7 @@ export type PendingObserveFly = {
   altitude?: number;
   durationMs?: number;
   camera?: FlyCameraOpts;
-  /** 관측 모드에서 altitude 대신 지면 + 600m까지 수직 하강 */
+  /** 관측 모드에서 altitude 대신 지면 + 300m까지 수직 하강 */
   descend?: boolean;
   subtitle: string;
   title: string;

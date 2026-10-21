@@ -296,7 +296,7 @@ export type CesiumGlobeHandle = {
     camera?: FlyCameraOpts,
   ) => void;
   /**
-   * 「위치로 내려가기」— 미터 단위 수직 하강 (지면 + clearanceM, 기본 600m).
+   * 「위치로 내려가기」— 미터 단위 수직 하강 (지면 + clearanceM, 기본 300m).
    * flyTo의 0.02(≈127km) 하한과 무관. 도착 시선은 수직, 기울기는 유저 몫.
    */
   descendTo: (
