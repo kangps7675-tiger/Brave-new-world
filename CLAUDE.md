@@ -56,9 +56,8 @@
 - 해운 화면에서는 지정학 개관(핵탄두 수·전략태세 라벨)을 숨기고 길목 콜아웃(`MARITIME_OVERVIEW_CALLOUTS`)을 띄운다. 「오늘의 GTS」는 접힌 채 시작.
 - 랜딩 문구(질문 넷·화면 읽는 법·불꽃)가 약속하는 레이어를 끄거나 실험실로 내리려면 랜딩 문구도 같이 고친다 (`src/lib/maritimeFirstScreen.test.ts`가 막는다).
 
-## 2026-10-21 세슘은 위성 화면 + 사건 콜아웃만
+## 2026-10-21 세슘에는 선박(AIS)을 그리지 않는다
 
-세슘(위성)에서는 지도(MapLibre)와 같은 레이어를 다시 그리지 않는다. 사건 카드의 "위성으로 보기"로 들어가 정확한 위치로 날아가고, 사건 콜아웃(`eventCallout`)만 띄운다. 둘 다 그리면 GPU가 너무 무거워서다.
-- 구현: `src/lib/satelliteLayers.ts`의 `cesiumLayerProps` — `GlobeMapCanvas`가 세슘에 넘기는 레이어 데이터·표시 플래그를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
-- 아직 안 한 것: 위성 모드일 때 AIS·항공·항모·NEPTUN 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 화면만 비운 것이라 네트워크 부하는 남아 있다.
-- 새 레이어를 만들 때 세슘 쪽에는 그리지 않는다(지도에서만).
+세슘(위성)에는 선박 위치(AIS)를 그리지 않는다. 선박은 Datalastic·AISstream으로 보는 데이터이고, 지도(MapLibre)와 세슘에 둘 다 그리면 GPU가 무거워진다. 항공기·불꽃·해협 오버레이·라벨·사건 콜아웃 등 나머지는 세슘에도 그대로 그린다.
+- 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
+- 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.

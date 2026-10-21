@@ -2,57 +2,27 @@ import { LAB_UI } from "@/lib/labFlag";
 import type { CesiumSatelliteGlobeProps } from "@/components/globe/CesiumSatelliteGlobe";
 
 /**
- * 세슘(위성) 화면은 "사건 현장을 위성사진으로 보는 곳"이다. 지도(MapLibre)와 같은 레이어를 또 그리면
- * GPU가 무거워지므로, 기본에서는 세슘에 레이어를 그리지 않고 사건 콜아웃(eventCallout)만 남긴다.
- * 코드는 지우지 않는다 — NEXT_PUBLIC_LAB=1(실험실)이면 예전처럼 전부 그린다. (2026-10-21 필성 확정)
+ * 세슘(위성) 화면에는 선박(AIS) 점을 그리지 않는다. 선박 위치는 Datalastic(유료)·AISstream 으로 보는 데이터라서
+ * 지도(MapLibre)와 세슘에 둘 다 그리면 무거워지고, 세슘은 "사건 현장을 위성사진으로 보는 곳"이어서다.
+ * 항공기·불꽃·해협 오버레이·라벨·콜아웃 등 나머지는 그대로 그린다. (2026-10-21 필성 확정)
+ * 코드는 지우지 않는다 — NEXT_PUBLIC_LAB=1(실험실)이면 선박도 예전처럼 그린다.
  */
-export const SATELLITE_DRAWS_LAYERS = LAB_UI;
+export const SATELLITE_DRAWS_SHIPS = LAB_UI;
 
-/** 세슘에 넘기는 레이어 데이터·표시 플래그 — 이 값들만 비운다. 카메라·콜아웃·핸들러는 건드리지 않는다. */
-export const CESIUM_LAYERS_OFF: Partial<CesiumSatelliteGlobeProps> = {
+/** 세슘에 넘기는 선박 데이터·표시 플래그 — 이 값들만 비운다. */
+export const CESIUM_SHIPS_OFF: Partial<CesiumSatelliteGlobeProps> = {
   aisVessels: undefined,
   disguisedVessels: undefined,
-  milAircraft: undefined,
-  civAircraft: undefined,
   showAis: false,
   showAisMilitary: false,
   showAisCommercial: false,
   showDisguisedVessels: false,
-  showMilitaryActivity: false,
-  showAirTraffic: false,
-  usCarriers: undefined,
-  showUsCarriers: false,
-  neptunThreats: undefined,
-  showNeptun: false,
-  alertPins: undefined,
-  ukmtoIncidents: undefined,
-  navareaFeatures: undefined,
-  chokeRings: undefined,
-  straitOverlaySegments: undefined,
-  straitLabels: undefined,
-  straitPorts: undefined,
-  liveuaPins: undefined,
-  deskFocus: undefined,
-  liveuaStrikes: undefined,
-  hybridPins: undefined,
-  liveuaGround: undefined,
-  controlGeoJson: undefined,
-  firmsFires: undefined,
-  showFirmsFires: false,
-  missileLaunches: undefined,
-  showMissileLaunches: false,
-  neptunAlerts: undefined,
-  showAirRaidZones: false,
-  placeLabels: undefined,
-  showPlaceLabels: false,
-  conflictEvents: undefined,
-  showConflictEvents: false,
 };
 
-/** 실험실이 아니면 레이어 props 를 비운다. 나머지(eventCallout·카메라 제어 등)는 그대로 통과. */
-export function cesiumLayerProps<T extends Partial<CesiumSatelliteGlobeProps>>(
+/** 실험실이 아니면 선박 props 를 비운다. 나머지는 그대로 통과. */
+export function cesiumShipProps<T extends Partial<CesiumSatelliteGlobeProps>>(
   props: T,
-  draw: boolean = SATELLITE_DRAWS_LAYERS,
+  draw: boolean = SATELLITE_DRAWS_SHIPS,
 ): T {
-  return draw ? props : { ...props, ...CESIUM_LAYERS_OFF };
+  return draw ? props : { ...props, ...CESIUM_SHIPS_OFF };
 }
