@@ -33,8 +33,11 @@ export type WarRiskQuote = {
   /** 항차당 USD (예: "$1 million per voyage") */
   usdPerVoyage: number | null;
   direction: WarRiskDirection;
-  /** strong = hull/ship value 명시, medium = war-risk premium 근처의 % */
-  confidence: "strong" | "medium";
+  /**
+   * strong = hull/ship value 명시, medium = war-risk premium 근처의 %,
+   * headline = 수치는 못 뽑았지만 전쟁위험 보험 시장 보도 (ratePct=null, 방향·해역·링크만)
+   */
+  confidence: "strong" | "medium" | "headline";
   /** 근거가 된 구절 (원문 그대로, 240자 이내) */
   quote: string;
 };
@@ -282,4 +285,31 @@ export function extractWarRiskQuote(text: string): WarRiskQuote | null {
   }
 
   return best;
+}
+
+/** 헤드라인 단계 주제 — 수치 없이도 "전쟁위험 보험 시장" 보도로 볼 수 있는 표현 */
+const HEADLINE_TOPIC =
+  /\bwar[\s-]?risks?\b|\b(?:shipping|marine|cargo|hull|tanker|vessel|maritime)\s+insur\w*|\binsurance\s+(?:costs?|premiums?|rates?|market)\b|\bunderwriters?\b|\bjoint war committee\b|전쟁\s?위험|전쟁보험|해상보험|선박\s?보험|보험료/i;
+
+/** 투자 종목 소개·주가 기사는 보험 시장 보도가 아니다 */
+const HEADLINE_NOISE = /\b(?:stocks?|shares|etfs?|investors?|equit(?:y|ies)|dividends?)\b|주식|종목|투자자/i;
+
+/**
+ * 2단계 — `extractWarRiskQuote` 가 수치를 못 뽑은 기사 중 전쟁위험 보험 시장 보도를 헤드라인 단위로 남긴다.
+ * 언론이 요율이 아니라 변동폭("1,000% 급등")이나 "보험료 상승"만 쓰는 경우가 많아, 수치만 받으면 화면이 빈다.
+ * ratePct 는 null — 시세처럼 보이면 안 되므로 화면은 방향·해역·출처 링크만 보여준다.
+ */
+export function extractWarRiskHeadline(text: string): WarRiskQuote | null {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (!clean || !HEADLINE_TOPIC.test(clean) || HEADLINE_NOISE.test(clean)) return null;
+  return {
+    region: detectWarRiskRegion(clean),
+    ratePct: null,
+    rateHighPct: null,
+    ratePrevPct: null,
+    usdPerVoyage: null,
+    direction: directionOf(clean.slice(0, 200)),
+    confidence: "headline",
+    quote: trimQuote(clean),
+  };
 }

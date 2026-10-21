@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectWarRiskRegion, extractWarRiskQuote } from "./extractPremium";
+import { detectWarRiskRegion, extractWarRiskHeadline, extractWarRiskQuote } from "./extractPremium";
 
 describe("extractWarRiskQuote", () => {
   it("hull value % 를 strong 으로 뽑는다", () => {
@@ -119,5 +119,33 @@ describe("2026년 실제 보도 문구", () => {
       "A vessel insured for $100 million could face a war risk premium of about $10 million for a single voyage.",
     );
     expect(q?.usdPerVoyage).toBe(10_000_000);
+  });
+});
+
+describe("extractWarRiskHeadline (수치 없는 보도)", () => {
+  // 2026-10-21 Bing 뉴스 RSS 에서 실제로 수치 추출이 0건이던 제목들
+  it("변동폭만 쓴 제목은 요율 없이 헤드라인 단계로 남긴다", () => {
+    const text = "Hormuz, Red Sea spark a 1,000% war-risk premium shock";
+    expect(extractWarRiskQuote(text)).toBeNull();
+    const q = extractWarRiskHeadline(text);
+    expect(q).toMatchObject({ region: "hormuz", ratePct: null, rateHighPct: null, confidence: "headline" });
+  });
+
+  it("보험 시장 기사는 방향과 해역을 잡는다", () => {
+    const q = extractWarRiskHeadline("Red Sea ship insurance costs surge due to Houthi blockade of Saudi Arabia");
+    expect(q).toMatchObject({ region: "red-sea", direction: "up", ratePct: null });
+    const m = extractWarRiskHeadline("Middle East shipping insurance costs rise on Hormuz risks: Marsh");
+    expect(m).toMatchObject({ region: "hormuz", direction: "up" });
+  });
+
+  it("투자 종목 소개·무관한 프리미엄 기사는 버린다", () => {
+    expect(extractWarRiskHeadline("3 Insurance Stocks Linked To Higher Marine War Risk Premiums")).toBeNull();
+    expect(extractWarRiskHeadline("Imported iron ore margins narrow to 9.62 yuan/mt on higher brand premiums")).toBeNull();
+    expect(extractWarRiskHeadline("Persian Gulf oil exports top prewar levels under US-protected shipping lanes")).toBeNull();
+  });
+
+  it("수치가 있는 기사는 기존 추출기가 우선이다", () => {
+    const text = "Red Sea war risk premiums jump to 1% of ship value after Houthi attack";
+    expect(extractWarRiskQuote(text)).toMatchObject({ ratePct: 1, confidence: "strong" });
   });
 });
