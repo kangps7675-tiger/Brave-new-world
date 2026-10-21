@@ -1615,7 +1615,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       */}
       {!railVisible && showFoldedBriefingTabs ? (
         <div
-          className={`pointer-events-auto fixed left-0 ${zc("panel")}`}
+          className={`cv-folded-briefing-tabs pointer-events-auto fixed left-0 ${zc("panel")}`}
           style={{
             top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
           }}
