@@ -24,8 +24,12 @@ type HoverSideDrawerProps = {
   closeDelayMs?: number;
 };
 
-/** 접힌 상태 엣지 hit 폭 — 너무 넓으면 지도 조작을 가로챔 */
-const PEEP_HIT_PX = 14;
+/**
+ * 접힌 상태 엣지 hit 폭 — 너무 넓으면 지도 조작을 가로챔.
+ * 손잡이(peep, 세로 글자)가 이 폭 안에 다 들어와야 한다: 테두리 2 + 좌우 패딩 8 + 글자 11 = 21px.
+ * 예전 14px 은 손잡이(30px)보다 좁은데 셸이 overflow-hidden 이라 손잡이가 반쯤 잘렸다.
+ */
+const PEEP_HIT_PX = 22;
 
 /**
  * 화면 좌·우 엣지 호버 서랍.
@@ -132,7 +136,7 @@ export function HoverSideDrawer({
             aria-hidden={open}
           >
             <div
-              className={`rounded-full border border-sky-200/25 bg-[#0a1428]/55 px-1.5 py-2 text-micro font-medium tracking-wide text-sky-100/80 shadow-md backdrop-blur-sm ${
+              className={`rounded-full border border-sky-200/25 bg-[#0a1428]/55 px-1 py-2.5 text-micro font-medium leading-none tracking-wide text-sky-100/80 shadow-md backdrop-blur-sm ${
                 isLeft ? "rounded-l-none" : "rounded-r-none"
               }`}
               style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
