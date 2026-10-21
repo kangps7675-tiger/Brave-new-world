@@ -5,6 +5,7 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
 /**
  * 상선이 드론·미사일·기뢰에 공격받는 장면(연출). 실제 사건 영상이 아니다(화면에 밝힌다).
+ * 작은 화면 세 개를 가로로 놓고 드론 → 미사일 → 기뢰 순서로 하나씩 재생한다. 쉬는 화면은 멀쩡한 배 한 장.
  *
  * 한 바퀴(약 9.5초)는 늘 멀쩡한 배에서 시작한다:
  *   멀쩡히 항해 → 위협이 날아옴(또는 기뢰 위로 지나감) → 폭발 → 불기둥·검은 연기가 치솟음 → 어두워졌다가 다음 위협.
@@ -13,7 +14,7 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  *  - 불덩이: 미리 구운 부드러운 불 스프라이트를 더하기 합성(lighter)으로 겹치고, 나이에 따라 흰색→노랑→주황→암적색으로 식는다
  *  - 연기: 노이즈를 구운 연기 스프라이트가 부력으로 오르고, 바람에 밀리며 부풀고, 회전한다
  *  - 파편: 중력·공기저항을 받는 조각이 연기 꼬리를 끌고 날아가 바다에 떨어지며 물보라를 낸다
- *  - 불씨·섬광·충격파·화면 흔들림, 불빛이 배와 수면을 비춘다
+ *  - 불씨·옅은 섬광·충격파, 불빛이 배와 수면을 비춘다(게임처럼 보이지 않게 화면 흔들림은 뺐다)
  *  - 배: 롤·히브 스프링. 충격을 받으면 흔들리다 기울어진 채로 멈추고, 기뢰면 들렸다가 가라앉는다
  * Unity(C#) 같은 엔진은 수십 MB를 받아야 하고 아래에서 도는 실제 지구본과 GPU를 다퉈서 쓰지 않았다.
  * 화면 밖·탭 숨김이면 멈추고, 동작 줄이기 설정이면 폭발 직후 한 장면만 그린다.
@@ -112,10 +113,17 @@ function makeGlow(size: number, stops: [number, string][]): HTMLCanvasElement {
   return c;
 }
 
-export function ShipStrikeScene() {
+/**
+ * 공격 한 종류를 보여주는 작은 화면 하나.
+ * active일 때만 한 바퀴를 재생하고, 끝나면 onDone을 부른 뒤 멀쩡한 배 한 장으로 멈춰 있는다.
+ */
+function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: boolean; onDone: () => void; reduced: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [idx, setIdx] = useState(0);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -123,7 +131,6 @@ export function ShipStrikeScene() {
     if (!wrap || !canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const reduced = prefersReducedMotion();
     const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 
     const SMOKE_DARK = [makeSmoke(128, 34), makeSmoke(128, 46), makeSmoke(128, 28)];
@@ -136,8 +143,8 @@ export function ShipStrikeScene() {
     let W = 0;
     let H = 0;
     const resize = () => {
-      W = Math.max(320, wrap.clientWidth);
-      H = Math.round(W * (W < 640 ? 0.66 : 0.44));
+      W = Math.max(240, wrap.clientWidth);
+      H = Math.round(W * 0.62);
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
       canvas.style.width = `${W}px`;
@@ -153,13 +160,11 @@ export function ShipStrikeScene() {
     const stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random() * 0.42, a: Math.random() }));
 
     // ── 상태 ──
-    let threat = 0;
     let clock = 0; // 이번 바퀴 경과 ms
     let parts: P[] = [];
     let hit = false;
     let light = 0;
     let flash = 0;
-    let shake = 0;
     let ring = -1;
     let hitPt = { x: 0, y: 0 };
     let roll = 0;
@@ -172,8 +177,8 @@ export function ShipStrikeScene() {
 
     const geo = () => {
       const horizon = H * 0.5;
-      const L = Math.min(W * 0.42, 520);
-      const shipX = W * 0.3 + (clock / CYCLE) * W * 0.14;
+      const L = W * 0.6;
+      const shipX = W * 0.36 + (clock / CYCLE) * W * 0.08;
       const seaY = horizon + H * 0.22;
       return { horizon, L, shipX, seaY };
     };
@@ -189,7 +194,7 @@ export function ShipStrikeScene() {
       hitPt = { x, y };
       light = 1;
       flash = kind === "mine" ? 0.7 : 1;
-      shake = 1;
+
       ring = 0;
       const s = L / 520;
       if (kind === "mine") {
@@ -238,19 +243,17 @@ export function ShipStrikeScene() {
       fireRate = 1;
     };
 
+    const reset = () => {
+      clock = 0;
+      parts = [];
+      hit = false;
+      light = flash = 0;
+      ring = -1;
+      roll = vroll = heave = vheave = rollRest = sink = fireRate = 0;
+    };
+
     const update = (dt: number) => {
       clock += dt;
-      if (clock >= CYCLE) {
-        clock = 0;
-        parts = [];
-        hit = false;
-        light = flash = shake = 0;
-        ring = -1;
-        roll = vroll = heave = vheave = rollRest = sink = fireRate = 0;
-        threat = (threat + 1) % THREATS.length;
-        setIdx(threat);
-      }
-      const kind = THREATS[threat].kind;
       const { L, shipX, seaY } = geo();
       const s = L / 520;
       const deckY = seaY - L * 0.075 + heave + sink;
@@ -268,7 +271,6 @@ export function ShipStrikeScene() {
 
       light *= Math.pow(0.9965, dt);
       flash *= Math.pow(0.992, dt);
-      shake *= Math.pow(0.993, dt);
       if (ring >= 0) ring += dt;
 
       // 맞은 뒤: 불길과 검은 연기 기둥
@@ -527,8 +529,7 @@ export function ShipStrikeScene() {
       } else ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
     };
 
-    const draw = (now: number) => {
-      const kind = THREATS[threat].kind;
+    const draw = (now: number, idle = false) => {
       const { horizon, L, shipX, seaY } = geo();
       const s = L / 520;
       const shipY = seaY + Math.sin(now / 950) * 1.6 + heave + sink;
@@ -539,7 +540,6 @@ export function ShipStrikeScene() {
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = "source-over";
       ctx.save();
-      if (shake > 0.01) ctx.translate(rnd(-1, 1) * 12 * shake, rnd(-1, 1) * 7 * shake);
 
       // 하늘·별·수평선
       const sky = ctx.createLinearGradient(0, 0, 0, horizon);
@@ -601,7 +601,7 @@ export function ShipStrikeScene() {
 
       // 기뢰(맞기 전, 수면 아래) — 배가 다가와 그 위를 지난다
       if (kind === "mine" && !hit) {
-        const mx = hx + ((IMPACT - clock) * (W * 0.14)) / CYCLE;
+        const mx = hx + ((IMPACT - clock) * (W * 0.08)) / CYCLE;
         drawMine(mx, seaY + L * 0.085, Math.max(5, L * 0.017));
       }
 
@@ -619,7 +619,7 @@ export function ShipStrikeScene() {
           const y = cruiseY + (deckY - cruiseY) * dive ** 1.6 + Math.sin(now / 110) * 1.5 * (1 - dive);
           // 기수(왼쪽)를 아래로 숙이며 내리꽂는다
           const ang = 0.75 * dive;
-          drawDrone(x, y, Math.max(11, W * 0.02), ang, now);
+          drawDrone(x, y, Math.max(8, W * 0.032), ang, now);
         } else {
           const sx = W + 80;
           const sy = deckY - 4;
@@ -627,7 +627,7 @@ export function ShipStrikeScene() {
           const pop = u > 0.8 ? Math.sin(((u - 0.8) / 0.2) * Math.PI) * -H * 0.05 : 0;
           const y = sy + pop;
           if (Math.random() < 0.95) push(base("smoke", x + W * 0.02, y, { vx: rnd(0.005, 0.02), vy: -rnd(0.002, 0.01), life: rnd(1400, 2200), r: rnd(4, 7) * s, grow: 3, a: 0.5 }));
-          drawMissile(x, y, Math.max(11, W * 0.016), u > 0.8 ? Math.cos(((u - 0.8) / 0.2) * Math.PI) * -0.25 : 0);
+          drawMissile(x, y, Math.max(8, W * 0.028), u > 0.8 ? Math.cos(((u - 0.8) / 0.2) * Math.PI) * -0.25 : 0);
         }
       }
 
@@ -699,14 +699,14 @@ export function ShipStrikeScene() {
 
       // 섬광
       if (flash > 0.01) {
-        ctx.fillStyle = `rgba(255,236,200,${flash * 0.32})`;
+        ctx.fillStyle = `rgba(255,236,200,${flash * 0.18})`;
         ctx.fillRect(0, 0, W, H);
       }
       // 바퀴 사이 암전
       let dark = 0;
       if (clock < FADE_IN) dark = 1 - clock / FADE_IN;
       if (clock > CYCLE - FADE_OUT) dark = (clock - (CYCLE - FADE_OUT)) / FADE_OUT;
-      if (!reduced && dark > 0) {
+      if (!reduced && !idle && dark > 0) {
         ctx.fillStyle = `rgba(3,6,10,${Math.min(1, dark)})`;
         ctx.fillRect(0, 0, W, H);
       }
@@ -722,10 +722,37 @@ export function ShipStrikeScene() {
       };
     }
 
+    // 쉬는 화면: 멀쩡한 배 한 장
+    const drawIdle = () => {
+      reset();
+      draw(performance.now(), true);
+    };
+    drawIdle();
+    let playing = false;
+    let waiting = false; // 한 바퀴를 끝내고 부모가 다음 화면으로 넘길 때까지
     let raf = 0;
     let last = performance.now();
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      const act = activeRef.current;
+      if (!act) {
+        waiting = false;
+        if (playing) {
+          playing = false;
+          drawIdle();
+        }
+        last = now;
+        return;
+      }
+      if (waiting) {
+        last = now;
+        return;
+      }
+      if (!playing) {
+        playing = true;
+        reset();
+        last = now;
+      }
       if (!visible || document.hidden) {
         last = now;
         return;
@@ -737,39 +764,65 @@ export function ShipStrikeScene() {
         update(step);
         dt -= step;
       }
+      if (clock >= CYCLE) {
+        playing = false;
+        waiting = true;
+        drawIdle();
+        doneRef.current();
+        return;
+      }
       draw(now);
     };
+    const onResize = () => {
+      if (!playing) draw(performance.now(), true);
+    };
+    ro.disconnect();
+    const ro2 = new ResizeObserver(() => {
+      resize();
+      onResize();
+    });
+    ro2.observe(wrap);
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
-      ro.disconnect();
+      ro2.disconnect();
       io.disconnect();
     };
-  }, []);
+  }, [kind, reduced]);
 
-  const th = THREATS[idx];
+  const th = THREATS.find((t) => t.kind === kind)!;
+  const on = active || reduced;
   return (
     <figure className="m-0">
-      <div ref={wrapRef} className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#03060a]">
+      <div
+        ref={wrapRef}
+        className={`relative overflow-hidden rounded-xl border bg-[#03060a] transition-[border-color,opacity] duration-500 ${
+          on ? "border-[#f87171]/60 opacity-100" : "border-white/10 opacity-55"
+        }`}
+      >
         <canvas ref={canvasRef} role="img" aria-label={`연출 장면: 상선이 ${th.title}에 공격받는 모습`} className="block w-full" />
-        <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-1.5">
-          {THREATS.map((x, i) => (
-            <span
-              key={x.kind}
-              className={`rounded-full border px-3 py-1 text-caption font-semibold backdrop-blur ${
-                i === idx ? "border-[#f87171] bg-[#f87171]/20 text-[#fecaca]" : "border-white/15 bg-black/30 text-[#8fa3b1]"
-              }`}
-            >
-              {x.title}
-            </span>
-          ))}
-        </div>
-        <span className="pointer-events-none absolute right-4 top-4 rounded bg-black/40 px-2 py-1 text-micro text-[#a3b3bf]">연출 장면 · 실제 영상 아님</span>
       </div>
-      <figcaption key={th.kind} aria-live="polite" className="mt-5 max-w-[760px] motion-safe:animate-[landing-fade_0.5s_ease-out]">
-        <span className="block text-xl font-bold text-white">{th.title}</span>
-        <span className="mt-2 block text-[16px] leading-[1.75] text-[#a3b3bf]">{th.body}</span>
+      <figcaption className="mt-4">
+        <span className={`block text-[17px] font-bold transition-colors ${on ? "text-white" : "text-[#8fa3b1]"}`}>{th.title}</span>
+        <span className="mt-1.5 block text-[15px] leading-[1.7] text-[#a3b3bf]">{th.body}</span>
       </figcaption>
     </figure>
+  );
+}
+
+/** 드론·미사일·기뢰 세 화면을 가로로 놓고, 하나씩 차례로 재생한다 */
+export function ShipStrikeScene() {
+  const [idx, setIdx] = useState(0);
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => setReduced(prefersReducedMotion()), []);
+  return (
+    <div>
+      <div className="grid gap-6 md:grid-cols-3">
+        {THREATS.map((t, i) => (
+          <StrikePanel key={t.kind} kind={t.kind} active={!reduced && i === idx} reduced={reduced} onDone={() => setIdx((i + 1) % THREATS.length)} />
+        ))}
+      </div>
+      <p className="mt-4 text-micro text-[#8fa3b1]">연출 장면이며 실제 사건 영상이 아닙니다.</p>
+    </div>
   );
 }
