@@ -21,7 +21,7 @@ import {
   territorialEpisodeWarGeometry,
 } from "@/data/territorialDisputeDeep";
 import { ECONOMY_OVERVIEW_CALLOUTS, economyAxisArrowPaths } from "@/data/economyOverviewFormations";
-import { STRATEGIC_OVERVIEW_CALLOUTS } from "@/data/strategicFormations";
+import { MARITIME_OVERVIEW_CALLOUTS, STRATEGIC_OVERVIEW_CALLOUTS } from "@/data/strategicFormations";
 import type { MilitaryAircraft, AisVessel, TransportPath } from "@/data/geoTypes";
 import type { NavSelection } from "@/data/navRegions";
 import type {
@@ -52,6 +52,8 @@ import { ukmtoIncidentToHatchPaths, type UkmtoIncidentPoint } from "@/lib/ukmtoH
 export type UseEpisodePostureOverlaysOptions = {
   labelLanguage: LabelLanguage;
   isEconomyViewer: boolean;
+  /** 해운 위험 첫 화면 — 지정학 개관(거점·전략태세 라벨)을 숨기고 길목 콜아웃으로 바꾼다 */
+  isMaritimeView?: boolean;
   isConflictViewer: boolean;
   hubFocusMode: NavSelection["focusMode"] | null;
 
@@ -95,6 +97,7 @@ export function useEpisodePostureOverlays(opts: UseEpisodePostureOverlaysOptions
   const {
     labelLanguage,
     isEconomyViewer,
+    isMaritimeView = false,
     isConflictViewer,
     hubFocusMode,
     frictionEpisodeBrief,
@@ -408,19 +411,24 @@ export function useEpisodePostureOverlays(opts: UseEpisodePostureOverlaysOptions
 
   /** 지정학 개관 — 핵심 거점(동맹/CRINK)·명명된 전략태세 라벨. 지경학 뷰에서는 숨김. */
   const strategicPostureMarkers = useMemo(
-    () => (isEconomyViewer ? [] : strategicPostureHtmlMarkers()),
-    [isEconomyViewer],
+    () => (isEconomyViewer || isMaritimeView ? [] : strategicPostureHtmlMarkers()),
+    [isEconomyViewer, isMaritimeView],
   );
 
   /** 지정학 개관 상시 콜아웃 3건 / 지경학 개관 콜아웃 3건 — 기존 situation-callout 뱃지 재사용 */
   const strategicOverviewCalloutMarkers = useMemo(
     () =>
-      (isEconomyViewer ? ECONOMY_OVERVIEW_CALLOUTS : STRATEGIC_OVERVIEW_CALLOUTS).map((c) => ({
+      (isEconomyViewer
+        ? ECONOMY_OVERVIEW_CALLOUTS
+        : isMaritimeView
+          ? MARITIME_OVERVIEW_CALLOUTS
+          : STRATEGIC_OVERVIEW_CALLOUTS
+      ).map((c) => ({
         ...c,
-        markerId: `${isEconomyViewer ? "economy" : "strategic"}-overview-${c.id}`,
+        markerId: `${isEconomyViewer ? "economy" : isMaritimeView ? "maritime" : "strategic"}-overview-${c.id}`,
         displayKind: "situation-callout" as const,
       })),
-    [isEconomyViewer],
+    [isEconomyViewer, isMaritimeView],
   );
 
   /** 지정학 전략지원 호 / 지경학 에너지·무역·결제 축 호 */

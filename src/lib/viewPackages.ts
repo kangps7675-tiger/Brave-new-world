@@ -5,6 +5,7 @@ import { economyHubLabel } from "@/lib/autoFlyTarget";
 import { entryBootAltitude } from "@/lib/globeFillScreen";
 import {
   DEFAULT_LAYER_PREFS,
+  hasSavedLayerPrefs,
   loadLayerPrefs,
   saveLayerPrefs,
   type LayerPrefs,
@@ -13,12 +14,15 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
   FIRST_SCREEN_LIVE_ON,
+  FIRST_SCREEN_MARITIME_OFF,
+  FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
 export const VIEW_CONFIG_KEY = "geowatch-view-config-v1";
 
 export type ViewIntelTab = "news" | "video" | "telegram" | "viina";
 
 export type ViewPackageId =
+  | "maritime"
   | "conflict-watch"
   | "geo-trader"
   | "frontline-live"
@@ -33,6 +37,8 @@ export type ViewPackageId =
 export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
 
 export const CONFLICT_VIEWER_PACKAGE = "frontline-live" as const;
+/** 해운 위험 — 랜딩이 약속한 첫 화면. 신규 방문 기본값 (viewerMode 는 conflict 계열) */
+export const MARITIME_VIEWER_PACKAGE = "maritime" as const;
 export const ECONOMY_VIEWER_PACKAGE = "geo-trader" as const;
 export const SATELLITE_VIEWER_PACKAGE = "satellite-eye" as const;
 export const LIVE_VIEWER_PACKAGE = "live-tracks" as const;
@@ -115,10 +121,27 @@ type ViewPackageDef = {
   tagline: string;
   description: string;
   layers: Partial<LayerPrefs>;
+  /** 이 패키지에서 끄는 기본 레이어 — 켜기(layers)보다 먼저 적용, 다른 패키지가 켜면 켜진다 */
+  layersOff?: BooleanLayerKey[];
   ui: Partial<ViewPackageUi>;
 };
 
 export const VIEW_PACKAGES: ViewPackageDef[] = [
+  {
+    id: "maritime",
+    label: "해운 위험",
+    tagline: "피격 선박 · 항행경보 · 보험료",
+    description: "어느 배가 맞았나 · 그 바다가 얼마나 위험한가 · 전쟁위험 보험료 · 주변 군함·군용기",
+    layers: {
+      ...FIRST_SCREEN_MARITIME_ON,
+    },
+    layersOff: FIRST_SCREEN_MARITIME_OFF,
+    ui: {
+      showTicker: false,
+      defaultIntelTab: "news",
+      autoOpenIntelSheet: false,
+    },
+  },
   {
     /** 레거시 — 활성 지정학 기본은 `frontline-live` (`CONFLICT_VIEWER_PACKAGE`). 병합·마이그레이션용으로 유지. */
     id: "conflict-watch",
@@ -216,7 +239,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
 ];
 
 /** 패키지 선택 화면 기본 체크 — 첫 방문자에게 가장 직관적인 프리셋 */
-export const RECOMMENDED_PACKAGE_ID: ViewPackageId = "frontline-live";
+/** 신규 방문 기본 — 랜딩(해운 위험 상황실)에서 들어온 사람이 약속받은 화면을 본다 (2026-10-21) */
+export const RECOMMENDED_PACKAGE_ID: ViewPackageId = MARITIME_VIEWER_PACKAGE;
 
 export const DEFAULT_PACKAGE_SELECTION: ViewPackageId[] = [RECOMMENDED_PACKAGE_ID];
 
@@ -419,6 +443,13 @@ function mergeLayersRaw(ids: ViewPackageId[]): LayerPrefs {
   // DEFAULT_LAYER_PREFS — Compact 전선(우크라·NEPTUN·항모)
   const layers: LayerPrefs = { ...DEFAULT_LAYER_PREFS };
 
+  // 끄기 먼저 → 켜기 나중: 여러 패키지를 겹치면 누군가 켠 레이어는 켜진 채로 남는다
+  for (const id of ids) {
+    for (const key of PACKAGE_BY_ID[id]?.layersOff ?? []) {
+      (layers as Record<string, unknown>)[key] = false;
+    }
+  }
+
   for (const id of ids) {
     const pkg = PACKAGE_BY_ID[id];
     if (!pkg) continue;
@@ -496,6 +527,12 @@ function mergeUi(
     ui.showTicker = false;
   } else if (ids.includes("conflict-watch") || ids.includes("frontline-live")) {
     ui.showTicker = false;
+  }
+
+  if (ids.includes("maritime")) {
+    ui.showTicker = false;
+    ui.defaultIntelTab = "news";
+    ui.autoOpenIntelSheet = false;
   }
 
   if (ids.includes("frontline-live")) {
@@ -588,16 +625,35 @@ export function shouldShowModePicker(): boolean {
 /** @deprecated use shouldShowModePicker */
 export const shouldShowPackagePicker = shouldShowModePicker;
 
+/**
+ * 지정학(conflict) 첫 화면을 해운 위험으로 보여 줄까 — 저장된 보기 설정이 없거나(신규) 해운 패키지를 고른 경우.
+ * 「무엇을 볼까요 → 전선·분쟁」을 고른 사람은 frontline-live 가 저장돼 있어 기존 지정학 히어로를 본다.
+ */
+export function prefersMaritimeFirstScreen(): boolean {
+  const saved = loadViewConfig();
+  if (!saved || saved.packages.length === 0) return true;
+  return saved.packages.includes(MARITIME_VIEWER_PACKAGE);
+}
+
 export function resolveMergedViewConfig(): MergedViewConfig {
   const saved = loadViewConfig();
   if (saved && !saved.customizedLayers) {
     return mergeViewPackages(saved.packages, saved.theater, saved.economyHub ?? "auto");
   }
+  // 신규 방문(저장된 레이어 설정 없음) — 기본 패키지(해운 위험)로 시작한다.
+  // 레이어 자체는 loadLayerPrefs() 의 첫 방문 경로(firstVisitLayerPrefs)가 같은 해운 레이어를 돌려준다.
+  // 여기서는 패키지·UI(뉴스 피드·「오늘의 GTS」 접힘 등)가 해운 기준으로 잡히게 한다.
+  // 레이어를 직접 바꿔 둔 재방문자(저장값 있음)는 건드리지 않는다.
+  const current = loadLayerPrefs();
+  if (!hasSavedLayerPrefs()) {
+    const merged = mergeViewPackages(DEFAULT_PACKAGE_SELECTION, "auto", "auto");
+    return { ...merged, layers: current };
+  }
   return {
     packages: [],
     theater: "auto",
     economyHub: "auto",
-    layers: loadLayerPrefs(),
+    layers: current,
     ui: DEFAULT_UI,
   };
 }
@@ -617,8 +673,9 @@ export function resolveIntroFlyTarget(input: {
     }
     return {
       kind: "coords",
-      lat: 0,
-      lng: 25,
+      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (홍해·걸프·흑해 정면, 확대 없음)
+      lat: 20,
+      lng: 45,
       altitude: entryBootAltitude(),
     };
   }
@@ -627,8 +684,9 @@ export function resolveIntroFlyTarget(input: {
   if (input.theater === "auto" || input.theater === "all") {
     return {
       kind: "coords",
-      lat: 0,
-      lng: 25,
+      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (홍해·걸프·흑해 정면, 확대 없음)
+      lat: 20,
+      lng: 45,
       altitude: entryBootAltitude(),
     };
   }

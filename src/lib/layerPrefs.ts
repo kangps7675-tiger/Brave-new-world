@@ -3,6 +3,7 @@ import {
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
 import { enforceLabTier } from "@/lib/layerLab";
+import { FIRST_SCREEN_MARITIME_OFF, FIRST_SCREEN_MARITIME_ON } from "@/lib/firstScreenLayers";
 import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 /*
  * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
@@ -660,6 +661,25 @@ function settleLayerPrefDefaults(prefs: LayerPrefs): LayerPrefs {
 
 
 /**
+ * 신규 방문(저장된 레이어 설정 없음) 첫 화면 — 랜딩이 약속한 「해운 위험」 (2026-10-21).
+ *
+ * 지구본 레이어 상태(useLayerPrefsController)는 마운트 때 이 파일의 loadLayerPrefs() 만 읽는다.
+ * 그래서 첫 방문 화면은 보기 패키지가 아니라 여기서 정해진다 — 예전엔 DEFAULT_LAYER_PREFS 그대로라
+ * UKMTO·항행경보가 꺼지고 우크라 공중위협·한국/쿠릴 전장·미군기지가 켜진 지정학 화면이 떴다.
+ * DEFAULT_LAYER_PREFS 자체는 재방문자 저장값 병합 기준이라 바꾸지 않는다.
+ */
+export function firstVisitLayerPrefs(base: LayerPrefs): LayerPrefs {
+  const next: LayerPrefs = { ...base };
+  for (const key of FIRST_SCREEN_MARITIME_OFF) {
+    (next as Record<string, unknown>)[key] = false;
+  }
+  for (const [key, on] of Object.entries(FIRST_SCREEN_MARITIME_ON)) {
+    if (on === true) (next as Record<string, unknown>)[key] = true;
+  }
+  return next;
+}
+
+/**
  * 저장된 prefs 를 읽어 온다 (상업 게이트 **적용 전**).
  *
  * ⚠️ 이 함수를 직접 쓰지 말 것 — `loadLayerPrefs()` 를 쓸 것.
@@ -673,7 +693,8 @@ function loadLayerPrefsRaw(): LayerPrefs {
    *  한 번도 못 보는 상태였다. i18n 누락이 오래 안 잡힌 원인 중 하나.)
    */
   if (!shouldPersistLayerPrefs()) {
-    return { ...DEFAULT_LAYER_PREFS, labelLanguage: detectDefaultLabelLanguage() };
+    // dev 는 저장하지 않으므로 매번 신규 방문 — 프로덕션 첫 방문과 같은 화면을 본다
+    return firstVisitLayerPrefs({ ...DEFAULT_LAYER_PREFS, labelLanguage: detectDefaultLabelLanguage() });
   }
   try {
     const v21Raw = localStorage.getItem(LAYER_PREFS_KEY);
@@ -700,12 +721,15 @@ function loadLayerPrefsRaw(): LayerPrefs {
       return settleLayerPrefDefaults(finalizeLayerPrefsWithAffinity(migrated));
     }
 
-    // 첫 방문(저장된 prefs 없음) — 리퍼러/브라우저 언어로 기본 표시 언어만 추정
-    return settleLayerPrefDefaults(
-      finalizeLayerPrefsWithAffinity({
-        ...DEFAULT_LAYER_PREFS,
-        labelLanguage: detectDefaultLabelLanguage(),
-      }),
+    // 첫 방문(저장된 prefs 없음) — 리퍼러/브라우저 언어로 기본 표시 언어를 추정하고,
+    // 해운 위험 첫 화면을 마지막에 덮는다 (settle 단계의 텔레그램 1회 ON 등보다 우선)
+    return firstVisitLayerPrefs(
+      settleLayerPrefDefaults(
+        finalizeLayerPrefsWithAffinity({
+          ...DEFAULT_LAYER_PREFS,
+          labelLanguage: detectDefaultLabelLanguage(),
+        }),
+      ),
     );
   } catch {
     return DEFAULT_LAYER_PREFS;
@@ -727,9 +751,27 @@ function loadLayerPrefsRaw(): LayerPrefs {
  * @see docs/copyright-audit-2026-08-01.md — O-1(b)
  */
 export function loadLayerPrefs(): LayerPrefs {
-  return stripLegacyConflictPrefs(
-    enforceLabTier(enforceCommercialTier(loadLayerPrefsRaw(), currentProductTier())),
-  );
+  return gateLayerPrefs(loadLayerPrefsRaw());
+}
+
+/** 상업·실험실 게이트 + 레거시 정리 — 저장값이 아닌 곳(패키지 병합 등)에서 만든 prefs 도 반드시 통과시킨다 */
+export function gateLayerPrefs(prefs: LayerPrefs): LayerPrefs {
+  return stripLegacyConflictPrefs(enforceLabTier(enforceCommercialTier(prefs, currentProductTier())));
+}
+
+/**
+ * 이 브라우저에 레이어 설정이 저장돼 있나 — 신규 방문 판별용.
+ * dev 는 레이어를 저장하지 않으므로(shouldPersistLayerPrefs) 늘 신규 방문처럼 동작한다.
+ */
+export function hasSavedLayerPrefs(): boolean {
+  if (typeof window === "undefined" || !shouldPersistLayerPrefs()) return false;
+  try {
+    if (localStorage.getItem(LAYER_PREFS_KEY)) return true;
+    if (localStorage.getItem("geowatch-layers-v19")) return true;
+    return LEGACY_LAYER_KEYS.some((k) => localStorage.getItem(k) != null);
+  } catch {
+    return false;
+  }
 }
 
 export function saveLayerPrefs(prefs: LayerPrefs) {

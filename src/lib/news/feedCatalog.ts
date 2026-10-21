@@ -2030,7 +2030,8 @@ function dedupeFeedsByUrl(feeds: NewsFeedDef[]): NewsFeedDef[] {
 /** view 패키지에 따라 defense / economy RSS 목록 선택 */
 export function feedsForPackages(packages: ViewPackageId[]): NewsFeedDef[] {
   const ids = packages.length > 0 ? packages : DEFAULT_PACKAGE_SELECTION;
-  const wantEcon = ids.includes("geo-trader");
+  // 해운 위험 — 해협·유가·운임·보험 기사는 경제 피드(「Energy Chokepoint Risk」 등)에 있어 같이 받는다
+  const wantEcon = ids.includes("geo-trader") || ids.includes("maritime");
   const wantDefense = ids.some((id) => id !== "geo-trader") || ids.length > 1;
 
   const merged: NewsFeedDef[] = [];
