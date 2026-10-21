@@ -206,7 +206,7 @@ export function ExtraEdition() {
           : null}
 
         <div className={pin ? "sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6" : "px-4 pb-24 pt-4 sm:px-6"}>
-          <article className="landing-paper w-full max-w-[1080px] rounded-sm p-4 sm:p-7" style={paperStyle} aria-label="호르무즈 전쟁위험 보험료 호외">
+          <article className="landing-paper mx-auto w-full max-w-[1080px] rounded-sm p-4 sm:p-7" style={paperStyle} aria-label="호르무즈 전쟁위험 보험료 호외">
             {/* 제호 */}
             <header className="border-b-[3px] border-double border-[#1b1712] pb-3">
               <div className="flex items-end justify-between gap-3">
