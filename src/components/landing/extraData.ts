@@ -4,7 +4,12 @@
  * 헤드라인·요약은 Brave New World가 짧게 다시 쓴 문장이고, 기사 문장을 옮겨 싣지 않는다.
  * 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 단순 비교할 수 없다 — 지면 하단에 밝힌다.
  */
+export type ExtraScene = "calm" | "alarm" | "waiting" | "recover" | "hit" | "night";
+
 export type ExtraBeat = {
+  /** 지면에 싣는 그림 장면과 캡션(실제 사진이 아니라 편집부 일러스트) */
+  scene: ExtraScene;
+  caption: string;
   /** x축 짧은 이름 */
   tick: string;
   /** 보험료율(%) 범위. 한 점이면 lo === hi */
@@ -25,6 +30,8 @@ export type ExtraBeat = {
 
 export const EXTRA_BEATS: ExtraBeat[] = [
   {
+    scene: "calm",
+    caption: "개전 전, 호르무즈를 지나는 유조선",
     tick: "개전 전",
     lo: 0.25,
     hi: 0.25,
@@ -38,6 +45,8 @@ export const EXTRA_BEATS: ExtraBeat[] = [
     url: "https://www.thenationalnews.com/business/2026/07/17/war-risk-shipping-premium-surges-again-as-tensions-escalate-at-strait-of-hormuz/",
   },
   {
+    scene: "alarm",
+    caption: "수평선 너머로 연기가 오르면 보험료부터 움직인다",
     tick: "3월 15일",
     lo: 1,
     hi: 3,
@@ -50,6 +59,8 @@ export const EXTRA_BEATS: ExtraBeat[] = [
     url: "https://www.seoul.co.kr/news/economy/finance/2026/03/15/20260315500052",
   },
   {
+    scene: "waiting",
+    caption: "보험 효력이 짧아 출항을 미루는 배들",
     tick: "4월 2일",
     lo: 7.5,
     hi: 7.5,
@@ -63,6 +74,8 @@ export const EXTRA_BEATS: ExtraBeat[] = [
     url: "https://www.etoday.co.kr/news/view/2572262",
   },
   {
+    scene: "recover",
+    caption: "휴전 뒤 다시 움직이기 시작한 배",
     tick: "6월경",
     lo: 2,
     hi: 2,
@@ -76,6 +89,8 @@ export const EXTRA_BEATS: ExtraBeat[] = [
     url: "https://theopscon.com/intelligence/hormuz-war-risk-cover-five-percent-norm-2026-07-14",
   },
   {
+    scene: "hit",
+    caption: "피격 소식이 돌면 요율의 기준이 다시 바뀐다",
     tick: "7월 14일",
     lo: 5,
     hi: 5,
@@ -89,6 +104,8 @@ export const EXTRA_BEATS: ExtraBeat[] = [
     url: "https://theopscon.com/intelligence/hormuz-war-risk-cover-five-percent-norm-2026-07-14",
   },
   {
+    scene: "night",
+    caption: "밤에도 요율은 널뛴다",
     tick: "7월 17일",
     lo: 3,
     hi: 10,

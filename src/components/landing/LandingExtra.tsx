@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useAnyScroll } from "@/components/landing/LandingHip";
 import { EXTRA_BEATS, EXTRA_CHART_LABEL } from "@/components/landing/extraData";
+import { ExtraPhoto } from "@/components/landing/LandingExtraPhoto";
 
 /**
  * 호외 — 호르무즈 전쟁위험 보험료 보도 6건을 신문 지면으로 넘겨 본다.
@@ -19,8 +20,8 @@ const N = EXTRA_BEATS.length;
 const MIN = 0;
 const MAX = 10; // 그래프 세로축(%)
 
-const INK = "#1b1712";
-const RED = "#9b2c2c";
+const INK = "#1a150e";
+const RED = "#9b2a1c";
 
 const GMARKET = { fontFamily: "var(--font-gmarket), var(--font-geist-sans), sans-serif" } as const;
 const BATANG = { fontFamily: "var(--font-letter-hand), 'Noto Serif KR', serif" } as const;
@@ -32,7 +33,7 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const shortTick = (t: string) => t.replace(/(\d+)월 (\d+)일/, "$1/$2");
 
 function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => void; narrow: boolean }) {
-  const W = narrow ? 360 : 520;
+  const W = narrow ? 360 : 430;
   const H = narrow ? 340 : 360;
   const left = narrow ? 46 : 54;
   const right = narrow ? 14 : 18;
@@ -59,7 +60,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
       ))}
       {EXTRA_BEATS.map((b, i) => (
         <text key={b.tick} x={x(i)} y={H - bottom + 26} textAnchor="middle" fontSize={15} fill={INK} fillOpacity={i <= beat ? 0.9 : 0.4} style={BATANG}>
-          {narrow ? shortTick(b.tick) : b.tick}
+          {shortTick(b.tick)}
         </text>
       ))}
       {/* 기사 사이를 잇는 점선 — 흐름을 보기 위한 선일 뿐, 그 사이 시세는 없다 */}
@@ -78,7 +79,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
             role="button"
             tabIndex={0}
             aria-label={`${b.tick} ${b.approx ? "약 " : ""}${b.label} 기사 보기`}
-            className="cursor-pointer outline-none [&:focus-visible_circle:last-child]:stroke-[#9b2c2c]"
+            className="cursor-pointer outline-none [&:focus-visible_circle:last-child]:stroke-[#9b2a1c]"
             onClick={() => onPick(i)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -91,7 +92,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
               {range ? (
                 <>
                   <line x1={cx} x2={cx} y1={y(b.lo)} y2={y(b.hi)} stroke={INK} strokeWidth={9} strokeLinecap="round" />
-                  <circle cx={cx} cy={y(mid(i))} r={3.5} fill="#e8dcbc" />
+                  <circle cx={cx} cy={y(mid(i))} r={3.5} fill="#ecdfbd" />
                 </>
               ) : (
                 <circle cx={cx} cy={y(b.lo)} r={8} fill={INK} />
@@ -175,7 +176,7 @@ export function ExtraEdition() {
         opacity: Math.min(1, intro * 2.6),
         willChange: "transform, opacity",
       }
-    : { transform: "rotate(-0.4deg)" };
+    : { transform: "rotate(-0.2deg)" };
 
   return (
     <section id="extra" className="relative border-y border-white/10 bg-[#081019]">
@@ -207,36 +208,25 @@ export function ExtraEdition() {
 
         <div className={pin ? "sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6" : "px-4 pb-24 pt-4 sm:px-6"}>
           <article className="landing-paper mx-auto w-full max-w-[1080px] rounded-sm p-4 sm:p-7" style={paperStyle} aria-label="호르무즈 전쟁위험 보험료 호외">
-            {/* 제호 */}
-            <header className="border-b-[3px] border-double border-[#1b1712] pb-3">
-              <div className="flex items-end justify-between gap-3">
-                <span
-                  className="inline-block bg-[#1b1712] px-3 py-1 text-[clamp(18px,2vw,26px)] font-black tracking-[0.3em] text-[#e8dcbc]"
-                  style={GMARKET}
-                >
-                  호외
-                </span>
-                <h3
-                  className="landing-ink m-0 text-center text-[clamp(22px,3.8vw,48px)] font-black uppercase leading-none tracking-[-0.02em]"
-                  style={SERIF}
-                >
-                  Brave New World
-                </h3>
-                <span className="hidden text-right text-caption leading-snug sm:block" style={BATANG}>
-                  해운 위험 속보
-                  <br />
-                  공개 보도 기준
-                </span>
+            {/* 제호 — 1950년대 신문 1면: 별 장식, 굵은 제호, 겹줄, 발행 줄 */}
+            <header className="text-center">
+              <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={BATANG}>
+                <span className="w-[22%] text-left font-bold tracking-[0.12em]">★ 호외 ★</span>
+                <span className="flex-1 text-center tracking-[0.18em]">EXTRA EDITION</span>
+                <span className="w-[22%] text-right">{beat + 1} / {N}</span>
+              </div>
+              <h3
+                className="landing-ink m-0 mt-1 whitespace-nowrap text-[clamp(28px,5.2vw,70px)] font-black uppercase leading-[0.95] tracking-[0.02em]"
+                style={SERIF}
+              >
+                Brave New World
+              </h3>
+              <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={BATANG}>
+                ★ 해운 위험 속보 ★ 호르무즈 해협 · 전쟁위험 보험료 ★ {b.tick} 보도 ★
               </div>
             </header>
-            <div className="flex items-center justify-between border-b border-[#1b1712]/60 py-1.5 text-caption" style={BATANG}>
-              <span>호르무즈 해협 · 전쟁위험 보험료</span>
-              <span>
-                속보 {beat + 1} / {N}
-              </span>
-            </div>
 
-            <div className="grid gap-6 pt-5 md:grid-cols-[1.05fr_1fr] md:gap-8">
+            <div className="grid gap-6 pt-4 md:grid-cols-[1.45fr_1fr] md:gap-6">
               {/* 기사 */}
               <div className="min-w-0">
                 <div aria-live="polite">
@@ -245,26 +235,38 @@ export function ExtraEdition() {
                   </p>
                   <h4
                     key={`h-${beat}`}
-                    className="landing-headline landing-ink m-0 mt-2 text-[clamp(28px,3.3vw,46px)] font-bold leading-[1.2] tracking-[-0.035em]"
-                    style={GMARKET}
+                    className="landing-headline landing-ink m-0 mt-2 text-[clamp(28px,3.4vw,46px)] font-black leading-[1.2] tracking-[-0.03em]"
+                    style={BATANG}
                   >
                     {b.headline}
                   </h4>
                   <p
                     key={`n-${beat}`}
-                    className="landing-headline landing-ink m-0 mt-3 text-[clamp(44px,6vw,84px)] font-black leading-none tracking-[-0.03em]"
+                    className="landing-headline landing-ink m-0 mt-1 text-[clamp(40px,5vw,72px)] font-black leading-none tracking-[-0.03em]"
                     style={{ ...SERIF, color: RED }}
                   >
-                    {b.approx ? <span className="mr-2 align-middle text-[0.3em] font-bold text-[#1b1712]">약</span> : null}
+                    {b.approx ? <span className="mr-2 align-middle text-[0.3em] font-bold text-[#1a150e]">약</span> : null}
                     {b.label}
                   </p>
-                  <p
-                    key={`s-${beat}`}
-                    className="landing-headline m-0 mt-4 border-t border-[#1b1712]/50 pt-3 text-[16px] leading-[1.8] sm:text-[17px]"
-                    style={BATANG}
-                  >
-                    {b.summary}
-                  </p>
+                  <div className="mt-3 grid gap-4 border-t-2 border-[#1a150e] pt-3 sm:grid-cols-[0.95fr_1fr]">
+                    <figure key={`p-${beat}`} className="landing-headline m-0">
+                      <div className="landing-photo">
+                        <div className="landing-photo-in">
+                          <ExtraPhoto scene={b.scene} />
+                        </div>
+                      </div>
+                      <figcaption className="mt-1 text-caption leading-snug" style={BATANG}>
+                        ▲ {b.caption} <span className="whitespace-nowrap">(편집부 일러스트)</span>
+                      </figcaption>
+                    </figure>
+                    <p
+                      key={`s-${beat}`}
+                      className="landing-headline m-0 text-[16px] leading-[1.75]"
+                      style={BATANG}
+                    >
+                      {b.summary}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -275,7 +277,7 @@ export function ExtraEdition() {
                     href={b.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[14px] font-bold text-[#1b1712] underline decoration-[#9b2c2c] decoration-2 underline-offset-4 hover:text-[#9b2c2c]"
+                    className="text-[14px] font-bold text-[#1a150e] underline decoration-[#9b2a1c] decoration-2 underline-offset-4 hover:text-[#9b2a1c]"
                   >
                     원문 기사 보기 ↗
                   </a>
@@ -288,7 +290,7 @@ export function ExtraEdition() {
               </div>
 
               {/* 인쇄 그래프 */}
-              <div className="min-w-0 border-t border-[#1b1712]/40 pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+              <div className="min-w-0 border-t border-[#1a150e]/40 pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
                 <p className="m-0 mb-1 text-[14px] font-bold" style={BATANG}>
                   기사에 나온 전쟁위험 보험료율(%)
                 </p>
@@ -300,7 +302,7 @@ export function ExtraEdition() {
             </div>
 
             {/* 넘기기 */}
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#1b1712]/50 pt-3">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#1a150e]/50 pt-3">
               <div className="flex items-center gap-2" role="group" aria-label="기사 넘기기">
                 {EXTRA_BEATS.map((x, i) => (
                   <button
@@ -309,7 +311,7 @@ export function ExtraEdition() {
                     onClick={() => go(i)}
                     aria-label={`${i + 1}번째 기사, ${x.tick}`}
                     aria-current={i === beat ? "true" : undefined}
-                    className={`h-3 rounded-full border border-[#1b1712] transition-all ${i === beat ? "w-8 bg-[#9b2c2c] border-[#9b2c2c]" : "w-3 bg-transparent hover:bg-[#1b1712]/40"}`}
+                    className={`h-3 rounded-full border border-[#1a150e] transition-all ${i === beat ? "w-8 bg-[#9b2a1c] border-[#9b2a1c]" : "w-3 bg-transparent hover:bg-[#1a150e]/40"}`}
                   />
                 ))}
               </div>
@@ -319,7 +321,7 @@ export function ExtraEdition() {
                     type="button"
                     onClick={() => go(beat - 1)}
                     disabled={beat === 0}
-                    className="rounded border border-[#1b1712] px-3 py-1.5 text-[14px] font-bold disabled:opacity-30"
+                    className="rounded border border-[#1a150e] px-3 py-1.5 text-[14px] font-bold disabled:opacity-30"
                     style={BATANG}
                   >
                     ◀ 이전
@@ -328,7 +330,7 @@ export function ExtraEdition() {
                     type="button"
                     onClick={() => go(beat + 1)}
                     disabled={beat === N - 1}
-                    className="rounded border border-[#1b1712] bg-[#1b1712] px-3 py-1.5 text-[14px] font-bold text-[#e8dcbc] disabled:opacity-30"
+                    className="rounded border border-[#1a150e] bg-[#1a150e] px-3 py-1.5 text-[14px] font-bold text-[#ecdfbd] disabled:opacity-30"
                     style={BATANG}
                   >
                     다음 ▶
@@ -341,7 +343,7 @@ export function ExtraEdition() {
               )}
             </div>
 
-            <p className="m-0 mt-3 border-t-2 border-[#1b1712] pt-2 text-caption leading-snug" style={BATANG}>
+            <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
               이 지면은 Brave New World가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.
             </p>
           </article>
