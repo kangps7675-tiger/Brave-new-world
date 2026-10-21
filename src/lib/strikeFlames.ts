@@ -34,14 +34,24 @@ export type StrikeFlame = {
   facilityLabel?: string;
 };
 
-const NEWFEEDS_MAX_AGE_MS = 48 * 3_600_000;
-const RSS_MAX_AGE_MS = 24 * 3_600_000;
+/** 불꽃으로 남기는 기간 — 세 출처 모두 48시간 안의 사건은 전부 찍는다 */
+export const STRIKE_FLAME_WINDOW_MS = 48 * 3_600_000;
+const NEWFEEDS_MAX_AGE_MS = STRIKE_FLAME_WINDOW_MS;
+const RSS_MAX_AGE_MS = STRIKE_FLAME_WINDOW_MS;
+/** 한 화면에 올리는 불꽃 상한 — 48시간치가 잘리지 않을 만큼 넉넉히 */
+export const STRIKE_FLAME_MAX = 600;
 
-export function flamesFromLiveua(events: readonly LiveuamapEvent[], ko: boolean): StrikeFlame[] {
+export function flamesFromLiveua(
+  events: readonly LiveuamapEvent[],
+  ko: boolean,
+  now: number = Date.now(),
+): StrikeFlame[] {
   const out: StrikeFlame[] = [];
   for (const ev of events) {
     const hit = liveuaConfirmedStrike(ev);
     if (!hit || !Number.isFinite(ev.lat) || !Number.isFinite(ev.lng)) continue;
+    const at = Date.parse(ev.publishedAt);
+    if (Number.isFinite(at) && (now - at > STRIKE_FLAME_WINDOW_MS || at > now + 3_600_000)) continue;
     out.push({
       id: ev.id,
       lat: ev.lat,
@@ -172,7 +182,7 @@ function sameEvent(a: StrikeFlame, b: StrikeFlame): boolean {
  * 같은 사건(30km 안 · 12시간 안)이 여러 출처에 있으면 앞 그룹 것만 남긴다 — 순서가 곧 우선순위.
  * 결과는 최신순, 상한까지.
  */
-export function mergeStrikeFlames(groups: StrikeFlame[][], max = 150): StrikeFlame[] {
+export function mergeStrikeFlames(groups: StrikeFlame[][], max = STRIKE_FLAME_MAX): StrikeFlame[] {
   const kept: StrikeFlame[] = [];
   for (const group of groups) {
     const base = kept.length;

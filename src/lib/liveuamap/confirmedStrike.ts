@@ -36,7 +36,7 @@ const GROUND_HIT_RE =
 
 /** 공격 표현. 요격·미확인·경보가 같이 있으면 이것만으로는 통과하지 않는다. */
 const WEAK_IMPACT_RE =
-  /\b(?:attack(?:s|ed)? (?:on|in)|strike on|airstrike on|drone attack|missile attack|uav attack)\b|드론\s*공격|무인기\s*공격|미사일\s*공격|미사일\s*피격|공습/i;
+  /\b(?:attack(?:s|ed)? (?:on|in)|strike on|airstrike on|drone attacks?|missile attacks?|uav attacks?|(?:drone|uav|missile|rocket)[- ]strikes?|strikes? (?:at|in|near)|(?:drones?|missiles?) (?:attacks?|targets?|targeted|targeting) |hitting|(?:drone|missile)s? (?:crash(?:es|ed)?|fell|fall)|drone raids?)\b|드론\s*(?:공격|타격)|무인기\s*(?:공격|타격)|미사일\s*(?:공격|타격|피격)|공습/i;
 
 /** 맞았다는 뜻으로 읽으면 안 되는 문맥. 지상 타격 단어가 있으면 넘긴다. */
 const SOFT_VETO_RE =
@@ -56,8 +56,8 @@ function hasMissile(text: string): boolean {
   return MISSILE_RE.test(offensive);
 }
 
-function strikeBlob(event: StrikeText): string {
-  return [event.title, event.body, event.titleKo, event.bodyKo, ...(event.tags ?? [])]
+function strikeBlob(event: StrikeText, withTags = true): string {
+  return [event.title, event.body, event.titleKo, event.bodyKo, ...(withTags ? (event.tags ?? []) : [])]
     .filter((part) => typeof part === "string" && part.trim())
     .join("\n");
 }
@@ -102,7 +102,8 @@ export function liveuaConfirmedStrike(event: StrikeText): LiveuaConfirmedStrike 
   if (!drone && !missile && !bomb) return null;
 
   const strong = STRONG_IMPACT_RE.test(text);
-  const weak = WEAK_IMPACT_RE.test(text);
+  // 분류 태그("drone strike")는 무기 단어 판정에만 쓴다 — 태그만으로 "맞았다"고 읽지 않는다
+  const weak = WEAK_IMPACT_RE.test(strikeBlob(event, false));
   if (!strong && !weak) return null;
   if (HARD_VETO_RE.test(text) && !CONFIRMED_WORD_RE.test(text)) return null;
   if (SOFT_VETO_RE.test(text) && !GROUND_HIT_RE.test(text)) return null;
