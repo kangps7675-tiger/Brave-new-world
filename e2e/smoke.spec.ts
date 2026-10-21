@@ -245,7 +245,8 @@ async function dismissBlockingParchmentOverlays(page: Page) {
  * GPS Jam·항모 등 고정 토글(h-4)과 구분 — 그쪽은 패널이 닫혀도 남는다.
  */
 function layerPanel(page: Page) {
-  return page.locator("aside.intel-panel.intel-scroll-y");
+  // 서랍은 aside.intel-sidebar-left — 스크롤은 안쪽 .intel-drawer-scroll 로 옮겨 aside 에는 intel-scroll-y 가 없다
+  return page.locator("aside.intel-panel.intel-sidebar-left");
 }
 
 /** 레이어 패널 안의 보이는 체크박스만 */
