@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { adsbAircraft, aisVessels, submarineTunnels } from "@/db/schema";
 import { enrichAisClassification, matchesStoredAisCategory } from "@/lib/aisVesselClass";
 import { ingestWorkerBase } from "@/lib/d1LiveSnapshots";
+import { balanceWorldSample, CHOKEPOINT_BOXES } from "@/lib/aisSampling";
 
 /** AIS/ADS-B D1 신선도 (Cron 15분 주기보다 길게 — 같거나 짧으면 매번 스태일로 취급된다) */
 export const AIS_D1_TTL_MS = 25 * 60_000;
@@ -100,6 +101,37 @@ export async function readAisFromD1(options: {
       .orderBy(desc(aisVessels.ingestedAt))
       .limit(Math.min(Math.max(options.max * 3, 2000), 9000));
 
+    // 전 지구 표본 — 최신순 9000행은 수신국이 촘촘한 유럽에 쏠려 호르무즈·홍해가 비므로 길목을 따로 읽어 합친다
+    if (!hasBbox) {
+      const perBox = Math.max(60, Math.floor(options.max * 0.2));
+      const boxRows = await Promise.all(
+        CHOKEPOINT_BOXES.map((b) =>
+          db
+            .select()
+            .from(aisVessels)
+            .where(
+              and(
+                gte(aisVessels.lat, b.south),
+                lte(aisVessels.lat, b.north),
+                gte(aisVessels.lng, b.west),
+                lte(aisVessels.lng, b.east),
+              ),
+            )
+            .orderBy(desc(aisVessels.ingestedAt))
+            .limit(perBox),
+        ),
+      );
+      const seenIds = new Set(rows.map((r) => r.id));
+      for (const list of boxRows) {
+        for (const r of list) {
+          if (!seenIds.has(r.id)) {
+            seenIds.add(r.id);
+            rows.push(r);
+          }
+        }
+      }
+    }
+
     const byCategory = (pool: typeof rows) =>
       pool.filter((r) => matchesStoredAisCategory(r.category, options.category));
 
@@ -128,7 +160,8 @@ export async function readAisFromD1(options: {
         (r) => isFresh(r.ingestedAt, AIS_D1_STALE_FALLBACK_MS),
       );
     }
-    const vessels = filtered.slice(0, options.max).map(rowToAis);
+    const picked = hasBbox ? filtered.slice(0, options.max) : balanceWorldSample(filtered, options.max);
+    const vessels = picked.map(rowToAis);
     if (vessels.length === 0) return null;
     return {
       source: "d1",
