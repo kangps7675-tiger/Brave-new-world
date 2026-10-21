@@ -4,6 +4,7 @@ import type { NewfeedsAttackPoint } from "@/lib/newfeeds";
 import { resolveNewsCoords } from "@/lib/news/newsStreamMapTags";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { resolveStrikePlace } from "@/lib/strikePlaceMatch";
+import { strikeFacilityFor, type StrikeFacilityTag } from "@/lib/strikeFacility";
 
 /**
  * 지구 전역 공습 불꽃 — 드론·미사일·유도폭탄이 실제로 떨어진 곳.
@@ -27,6 +28,10 @@ export type StrikeFlame = {
   source: string;
   /** 원문 링크 */
   url?: string;
+  /** 항구·정유소·터미널 등 감시 시설을 맞힌 경우 (strikeFacility.ts) */
+  facility?: StrikeFacilityTag | null;
+  /** 지도 라벨용 — 화면 언어로 고른 "시설 · 종류" (GlobeDashboard 에서 채움) */
+  facilityLabel?: string;
 };
 
 const NEWFEEDS_MAX_AGE_MS = 48 * 3_600_000;
@@ -177,5 +182,10 @@ export function mergeStrikeFlames(groups: StrikeFlame[][], max = 150): StrikeFla
   }
   return kept
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
-    .slice(0, max);
+    .slice(0, max)
+    .map((f) => {
+      if (f.facility) return f;
+      const facility = strikeFacilityFor({ lat: f.lat, lng: f.lng, text: `${f.title} ${f.body}` });
+      return facility ? { ...f, facility } : f;
+    });
 }

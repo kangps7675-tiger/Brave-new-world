@@ -319,6 +319,40 @@ export const STRATEGIC_OVERVIEW_CALLOUTS: SituationCallout[] = [
   },
 ];
 
+/**
+ * 해운 위험 첫 화면의 상시 콜아웃 — 지정학 개관 3건(북한·크름·남중국해) 대신 랜딩이 다루는 길목 3곳.
+ * 바다를 지나는 배에게 무슨 일이 생기는지(공격 수단 → 운항·보험에 미치는 결과) 순서로 쓴다.
+ */
+export const MARITIME_OVERVIEW_CALLOUTS: SituationCallout[] = [
+  {
+    id: "overview-bab-el-mandeb",
+    theater: "middle-east",
+    lat: 13.2,
+    lng: 42.9,
+    title: "바브엘만데브 — 홍해 입구",
+    body: "예멘 후티 반군이 드론·미사일·무인 보트로 지나가는 상선을 공격해 온 길목입니다. 위험이 커지면 배들이 희망봉으로 돌아가 항해가 1~2주 길어집니다.",
+    side: "red",
+  },
+  {
+    id: "overview-hormuz",
+    theater: "middle-east",
+    lat: 26.4,
+    lng: 56.6,
+    title: "호르무즈 해협",
+    body: "걸프 산유국의 원유·LNG가 빠져나가는 유일한 바닷길입니다. 유조선 나포·기뢰·드론 위협이 나오면 이 해역 전쟁위험 보험료가 먼저 뜁니다.",
+    side: "red",
+  },
+  {
+    id: "overview-black-sea",
+    theater: "russia-ukraine",
+    lat: 44.6,
+    lng: 33.6,
+    title: "흑해 — 항구와 유조선",
+    body: "우크라이나·러시아의 항구와 유조선이 드론·미사일·해상 드론에 맞는 바다입니다. 수출항이 맞으면 곡물·원유 선적이 멈추거나 밀립니다.",
+    side: "neutral",
+  },
+];
+
 export function strategicFacilityById(id: string): StrategicPostureSeed | undefined {
   return ALL_STRATEGIC_POSTURE_SEEDS.find((s) => s.id === id);
 }

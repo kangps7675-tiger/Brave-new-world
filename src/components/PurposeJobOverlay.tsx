@@ -7,7 +7,7 @@ import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
 
 /** 언어 직후 목적(Job) — ViewerMode id와 맞추되 ask/browse는 별도 */
-export type PurposeJobId = "conflict" | "satellite" | "economy" | "ask" | "browse";
+export type PurposeJobId = "maritime" | "conflict" | "satellite" | "economy" | "ask" | "browse";
 
 type PurposeJobOverlayProps = {
   lang: LabelLanguage;
@@ -103,8 +103,21 @@ export function PurposeJobOverlay({
           {t("purposeJobSubtitle", lang)}
         </p>
 
+        {/* 해운 위험 — 랜딩이 약속한 화면이라 맨 위 넓은 카드로 */}
+        <button
+          type="button"
+          onClick={() => onSelect("maritime")}
+          className="mt-5 flex w-full flex-col items-start gap-1 rounded-xl border border-amber-300/40 bg-amber-400/[0.08] px-3.5 py-3 text-left transition hover:border-amber-300/70 hover:bg-amber-400/15"
+        >
+          <span className="text-lg" aria-hidden>
+            ⚓
+          </span>
+          <span className="text-sm font-semibold text-slate-50">{t("purposeJobMaritime", lang)}</span>
+          <span className="text-caption leading-snug text-slate-300">{t("purposeJobMaritimeHint", lang)}</span>
+        </button>
+
         {/* LTR: 전선 → 3D → 시장 → 묻기 (grid는 좌→우·위→아래) */}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {JOBS.map((job) => (
             <button
               key={job.id}

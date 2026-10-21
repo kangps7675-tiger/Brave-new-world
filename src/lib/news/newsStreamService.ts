@@ -15,6 +15,7 @@ import type { ViewPackageId } from "@/lib/viewPackages";
 export const NEWS_MEMORY_TTL_MS = 90_000;
 
 export const VALID_NEWS_PACKAGES = new Set<ViewPackageId>([
+  "maritime",
   "conflict-watch",
   "geo-trader",
   "frontline-live",

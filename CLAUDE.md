@@ -47,3 +47,11 @@
 이유: 무료로 넓게 보여줄 전체 버전이 있어야 그 위에 프리미엄(해역 판단·알림)을 얹을 수 있다.
 해역 축소판 코드와 이날 추가된 것(에너지 시설 피격, 양피지, 진영 면 등)은 복원 직전 `main` 커밋 이력에 남아 있다.
 복원하면서 유지한 수정: Google Fonts 로컬화(빌드 안정성), MapLibre 워커의 버전 경로(`/maplibre-gl/<버전>/`).
+
+## 2026-10-21 첫 화면 = 랜딩이 약속한 「해운 위험」
+
+랜딩(해운 위험 상황실)에서 들어온 신규 방문자는 지정학 상황판이 아니라 해운 화면을 본다. 전체 지정학 버전은 그대로 있고 메뉴·「무엇을 볼까요」로 바꾼다.
+- 신규 방문 레이어는 `layerPrefs.ts`의 `firstVisitLayerPrefs`(= `firstScreenLayers.ts`의 `FIRST_SCREEN_MARITIME_ON/OFF`)에서 정해진다. 지구본은 마운트 때 `loadLayerPrefs()`만 읽으므로 보기 패키지만 바꿔서는 첫 화면이 안 바뀐다.
+- 기본 패키지 `maritime`(viewPackages.ts), 언어 선택 직후 히어로·「처음 화면으로」도 `buildDomainOverviewPrefs(…, { maritime })`로 같은 레이어.
+- 해운 화면에서는 지정학 개관(핵탄두 수·전략태세 라벨)을 숨기고 길목 콜아웃(`MARITIME_OVERVIEW_CALLOUTS`)을 띄운다. 「오늘의 GTS」는 접힌 채 시작.
+- 랜딩 문구(질문 넷·화면 읽는 법·불꽃)가 약속하는 레이어를 끄거나 실험실로 내리려면 랜딩 문구도 같이 고친다 (`src/lib/maritimeFirstScreen.test.ts`가 막는다).
