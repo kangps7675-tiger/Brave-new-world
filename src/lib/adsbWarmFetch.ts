@@ -1,9 +1,12 @@
 import type { MilitaryAircraft } from "@/data/geoTypes";
 import {
   adsbAuthHeaders,
+  adsbLolTrafficUrl,
+  adsbxMilUrl,
   civilianTrafficUrl,
   extractAircraftList,
   getAdsbApiKey,
+  isRapidApiKey,
   normalizeAdsbAircraft,
   readAdsbJsonBody,
   type TrackedAircraft,
@@ -15,7 +18,6 @@ import {
   thinWorldwide,
 } from "@/lib/adsbWorld";
 
-const ADSBX_MIL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/mil";
 const ADSBX_ALL_URL = "https://gateway.adsbexchange.com/api/aircraft/v2/all";
 
 /** 전 세계 민항 격자. 반경은 ADSB_LOL_RADIUS_NM. */
@@ -41,7 +43,8 @@ const ADSB_LOL_MIL_URL = "https://api.adsb.lol/v2/mil";
 function milUrl(): { url: string; source: "adsbx" | "adsb.lol" } {
   const custom = process.env.ADSBEXCHANGE_MIL_URL?.trim();
   if (custom) return { url: custom, source: "adsbx" };
-  if (getAdsbApiKey()) return { url: ADSBX_MIL_URL, source: "adsbx" };
+  const keyed = adsbxMilUrl(getAdsbApiKey());
+  if (keyed) return { url: keyed, source: "adsbx" };
   return { url: ADSB_LOL_MIL_URL, source: "adsb.lol" };
 }
 
@@ -51,38 +54,38 @@ export async function fetchAdsbMilitary(max = 400): Promise<{
   error?: string;
 }> {
   const apiKey = getAdsbApiKey();
-  const { url, source } = milUrl();
-  try {
-    const response = await fetch(url, {
-      cache: "no-store",
-      headers: adsbAuthHeaders(source === "adsbx" ? apiKey : null),
-    });
-    if (!response.ok) {
-      return {
-        aircraft: [],
-        provider: source,
-        error: `ADS-B mil HTTP ${response.status}`,
+  const primary = milUrl();
+  // 키 호출(adsbx)이 실패하면 ODbL 소스(adsb.lol)로 내려간다 — 빈 배열로 끝내지 않는다
+  const candidates: Array<{ url: string; source: "adsbx" | "adsb.lol" }> =
+    primary.source === "adsbx" ? [primary, { url: ADSB_LOL_MIL_URL, source: "adsb.lol" }] : [primary];
+  let lastError: string | undefined;
+  for (const { url, source } of candidates) {
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: adsbAuthHeaders(source === "adsbx" ? apiKey : null),
+      });
+      if (!response.ok) {
+        lastError = `ADS-B mil ${source} HTTP ${response.status}`;
+        continue;
+      }
+      const payload = (await readAdsbJsonBody(response)) as {
+        ac?: unknown[];
+        aircraft?: unknown[];
       };
+      const all: TrackedAircraft[] = [];
+      for (const raw of extractAircraftList(payload as never)) {
+        const item = normalizeAdsbAircraft(raw, { requireMilitary: true });
+        if (!item) continue;
+        all.push(item);
+      }
+      const aircraft = thinWorldwide(all, { cellDeg: 10, perCell: 40, max });
+      return { aircraft, provider: source };
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : "mil fetch failed";
     }
-    const payload = (await readAdsbJsonBody(response)) as {
-      ac?: unknown[];
-      aircraft?: unknown[];
-    };
-    const all: TrackedAircraft[] = [];
-    for (const raw of extractAircraftList(payload as never)) {
-      const item = normalizeAdsbAircraft(raw, { requireMilitary: true });
-      if (!item) continue;
-      all.push(item);
-    }
-    const aircraft = thinWorldwide(all, { cellDeg: 10, perCell: 40, max });
-    return { aircraft, provider: source };
-  } catch (error) {
-    return {
-      aircraft: [],
-      provider: source,
-      error: error instanceof Error ? error.message : "mil fetch failed",
-    };
   }
+  return { aircraft: [], provider: candidates[candidates.length - 1]!.source, error: lastError };
 }
 
 export async function fetchAdsbCivilianHubs(options?: {
@@ -99,8 +102,11 @@ export async function fetchAdsbCivilianHubs(options?: {
   const maxTotal = options?.maxTotal ?? 1200;
   const hubs = options?.hubs ?? ADSB_CIV_HUBS;
   const apiKey = getAdsbApiKey();
+  // RapidAPI 요금제는 호출 수 한도가 있고 /all 도 없다 — 격자(허브) 폴링은 무료 ODbL 소스(adsb.lol)로 하고,
+  // RapidAPI 키는 사용자가 보는 뷰포트·군용기 조회에만 쓴다.
+  const rapid = isRapidApiKey(apiKey);
 
-  if (apiKey) {
+  if (apiKey && !rapid) {
     try {
       const response = await fetch(ADSBX_ALL_URL, {
         cache: "no-store",
@@ -138,7 +144,9 @@ export async function fetchAdsbCivilianHubs(options?: {
 
   await mapPool(hubs, 4, async (hub) => {
     if (stop) return;
-    const { url, source } = civilianTrafficUrl(hub.lat, hub.lng, hub.distNm);
+    const { url, source } = rapid
+      ? adsbLolTrafficUrl(hub.lat, hub.lng, hub.distNm)
+      : civilianTrafficUrl(hub.lat, hub.lng, hub.distNm);
     try {
       const response = await fetch(url, {
         cache: "no-store",
