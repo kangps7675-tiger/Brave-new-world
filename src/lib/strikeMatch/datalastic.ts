@@ -4,10 +4,15 @@
  * 역할: 우리 AIS 이력(무료 수신, 원양 공백 많음)에서 찾은 상위 후보 몇 척만
  *       Datalastic 항적으로 빈 구간을 메우고 IMO·선종을 채운다. 후보 "발견"은 여전히 우리 D1.
  *
- * ⚠️ 응답 형태는 공개 문서 기준 추정 — 키 받은 날 실제 응답 1건으로 반드시 확인할 것.
- *    (필드명이 다르면 pickNum/pickStr 의 후보 키만 고치면 된다)
+ * 응답 형태는 2026-10-21 실제 호출(EVER GIVEN, 하루 구간)로 확인했다:
  *    - GET /api/v0/vessel_history?api-key=&mmsi=&from=YYYY-MM-DD&to=YYYY-MM-DD
- *      → { data: { name, mmsi, imo, type, positions: [{ lat, lon, speed, course, last_position_UTC }] } }
+ *      → { data: { name, mmsi, imo, type, type_specific, positions: [{ lat, lon, speed(노트), course, heading,
+ *          destination, last_position_epoch, last_position_UTC }] }, meta: { success } }
+ *    - positions 는 최신순, 대양에서 20~30분 간격이고 수시간 비는 구간도 있다("자료 없음" 처리 대상).
+ *    - `to` 날짜 쪽 표본이 안 왔다: from=10-20&to=10-21 응답의 마지막 표본이 10-20T23:56Z 인데, 같은 시각 `vessel`
+ *      최신 위치는 10-21T11:00Z 였다. `to` 가 배타적인지 당일분이 늦게 쌓이는지는 아직 모른다(표본 1건).
+ *      어느 쪽이든 사건이 하루 안이면 from=to 는 비어 올 위험이 있어, to 를 하루 뒤로 보내고(exclusiveEndDate)
+ *      구간 밖 표본은 아래에서 걸러낸다.
  *    크레딧: 조회 1회 평균 ~5 (기간 길수록 증가) — 그래서 후보 5척 × 사건 1건으로 제한.
  */
 
@@ -71,6 +76,11 @@ export function parseVesselHistory(json: unknown): {
   return { imo: imo && imo !== "0" ? imo : null, name: pickStr(data, "name"), points };
 }
 
+/** `to` 가 배타적이므로, 구간 끝 시각이 속한 날의 다음 날 (YYYY-MM-DD, UTC) */
+export function exclusiveEndDate(toIso: string): string {
+  return new Date(Date.parse(toIso) + 86_400_000).toISOString().slice(0, 10);
+}
+
 export async function enrichWithDatalastic(
   tracks: VesselTrack[],
   range: { fromIso: string; toIso: string },
@@ -85,7 +95,7 @@ export async function enrichWithDatalastic(
       url.searchParams.set("api-key", k);
       url.searchParams.set("mmsi", t.mmsi);
       url.searchParams.set("from", range.fromIso.slice(0, 10));
-      url.searchParams.set("to", range.toIso.slice(0, 10));
+      url.searchParams.set("to", exclusiveEndDate(range.toIso));
       try {
         const res = await fetch(url.toString(), { headers: { Accept: "application/json" } });
         if (!res.ok) {
