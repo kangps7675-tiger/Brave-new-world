@@ -219,7 +219,7 @@ export function ExtraEdition() {
                 className="landing-ink m-0 mt-1 whitespace-nowrap text-[clamp(28px,5.2vw,70px)] font-black uppercase leading-[0.95] tracking-[0.02em]"
                 style={SERIF}
               >
-                Brave New World
+                Strait Desk
               </h3>
               <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={BATANG}>
                 ★ 해운 위험 속보 ★ 호르무즈 해협 · 전쟁위험 보험료 ★ {b.tick} 보도 ★
@@ -344,7 +344,7 @@ export function ExtraEdition() {
             </div>
 
             <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
-              이 지면은 Brave New World가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.
+              이 지면은 Strait Desk가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.
             </p>
           </article>
         </div>

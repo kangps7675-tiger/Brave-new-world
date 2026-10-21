@@ -46,5 +46,5 @@ NASA_FIRMS_API_KEY=your_nasa_firms_map_key_here
 
 # 이메일 다이제스트 (Resend). 키와 보내는 주소가 없으면 구독을 받지 않는다.
 # RESEND_API_KEY=re_xxxxxxxx
-# EMAIL_FROM=멋진 신세계 <digest@example.com>
+# EMAIL_FROM=Strait Desk <digest@example.com>
 # EMAIL_PUBLIC_BASE=http://127.0.0.1:3000

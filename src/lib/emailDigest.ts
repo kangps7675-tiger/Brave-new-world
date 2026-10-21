@@ -97,8 +97,8 @@ export function buildDigest(
   const dateStr = formatUtcFull(now, lang).slice(0, 10);
 
   const subject = ko
-    ? `[멋진 신세계] 선박 피격 ${shownIncidents.length}건 · 전쟁위험 보험료 ${shownQuotes.length}곳 — ${dateStr}`
-    : `[Brave New World] ${shownIncidents.length} ship incident(s) · ${shownQuotes.length} war-risk figure(s) — ${dateStr}`;
+    ? `[Strait Desk] 선박 피격 ${shownIncidents.length}건 · 전쟁위험 보험료 ${shownQuotes.length}곳 — ${dateStr}`
+    : `[Strait Desk] ${shownIncidents.length} ship incident(s) · ${shownQuotes.length} war-risk figure(s) — ${dateStr}`;
 
   const textParts: string[] = [];
   const htmlParts: string[] = [];
@@ -193,8 +193,8 @@ export function buildConfirmMail(
 ): { subject: string; text: string; html: string } {
   const ko = lang === "ko";
   const subject = ko
-    ? "[멋진 신세계] 이메일 수신을 확인해 주세요"
-    : "[Brave New World] Confirm your email";
+    ? "[Strait Desk] 이메일 수신을 확인해 주세요"
+    : "[Strait Desk] Confirm your email";
   const lead = ko
     ? "선박 피격 사건과 보도 기준 전쟁위험 보험료를 하루 한 번 보내 드립니다. 아래 링크를 누르면 구독이 시작됩니다. 링크를 누르기 전에는 메일이 가지 않습니다."
     : "We send new ship incidents and reported war-risk figures once a day. Open the link below to start. Nothing is sent until you confirm.";

@@ -7,7 +7,7 @@ import { isArticleUrl } from "@/lib/news/articleLink";
 import { canFetchArticle } from "@/lib/news/robotsTxt";
 import { SITE_URL } from "@/lib/siteUrl";
 
-const UA = `BraveNewWorldBot/1.0 (+${SITE_URL}; case-file article extract)`;
+const UA = `StraitDeskBot/1.0 (+${SITE_URL}; case-file article extract)`;
 const TIMEOUT_MS = 8_000;
 const MAX_HTML_CHARS = 220_000;
 

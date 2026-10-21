@@ -1,6 +1,6 @@
 # Data license policy
 
-Brave New World (**멋진 신세계**) separates its data into three classes.
+Strait Desk separates its data into three classes.
 The catalog field is `dataLicense` in `src/data/sourceCatalog.ts`.
 
 | Class | `dataLicense` | What it covers |

@@ -60,7 +60,7 @@ async function fetchJson(url: string): Promise<unknown> {
   const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "BraveNewWorld-CaseFile/1.0" },
+      headers: { Accept: "application/json", "User-Agent": "StraitDesk-CaseFile/1.0" },
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`DeepState HTTP ${res.status}`);

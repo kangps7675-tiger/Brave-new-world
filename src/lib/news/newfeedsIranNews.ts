@@ -71,7 +71,7 @@ export async function fetchNewfeedsIranNewsItemsFromUpstream(
   limit = 30,
 ): Promise<NewsStreamItem[]> {
   const res = await fetch(NEWFEEDS_IRAN_FEED_URL, {
-    headers: { Accept: "application/json", "User-Agent": "BraveNewWorld/newfeeds-ingest" },
+    headers: { Accept: "application/json", "User-Agent": "StraitDesk/newfeeds-ingest" },
     cache: "no-store",
     signal: AbortSignal.timeout(45_000),
   });

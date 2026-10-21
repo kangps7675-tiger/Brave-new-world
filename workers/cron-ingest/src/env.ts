@@ -188,7 +188,7 @@ export type IngestEnv = {
    * 비어 있으면 구독 접수·발송을 하지 않는다.
    */
   RESEND_API_KEY?: string;
-  /** 예: 멋진 신세계 <digest@example.com> — secret 또는 vars */
+  /** 예: Strait Desk <digest@example.com> — secret 또는 vars */
   EMAIL_FROM?: string;
   /**
    * 확인·해지 링크의 공개 주소 (끝 슬래시 없이).

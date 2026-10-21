@@ -13,7 +13,7 @@ const path = require("path");
 const DEFAULT_URL = "https://deepstatemap.live/api/history/last";
 const DEST = path.join(__dirname, "..", "public", "data", "ukraine-occupied-deepstate.json");
 const UA = { minLng: 22, maxLng: 42, minLat: 44, maxLat: 53 };
-const USER_AGENT = "BraveNewWorld/0.2 (+deepstate-occupied-snapshot/3d)";
+const USER_AGENT = "StraitDesk/0.2 (+deepstate-occupied-snapshot/3d)";
 
 function strip(coords) {
   if (typeof coords[0] === "number") return [Number(coords[0]), Number(coords[1])];

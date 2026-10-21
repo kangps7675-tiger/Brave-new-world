@@ -630,7 +630,7 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
     },
     navProfile: ECON_NAV_MENU_GROUPS,
     searchPlaceholder: "초크 · 항로 · 허브 · 기사",
-    navHeaderLabel: "멋진 신세계 · 시장",
+    navHeaderLabel: "Strait Desk · 시장",
     modePickerTitle: "지경학",
     modePickerTagline: "진영 · 항구 · 항로",
     modePickerBullets: [

@@ -299,7 +299,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
               <circle cx="14" cy="14" r="6" fill="none" stroke="#5eead4" strokeWidth="2" strokeDasharray="3 3" />
               <circle cx="14" cy="14" r="2" fill="#f5c451" />
             </svg>
-            <span className="text-lg font-bold tracking-[-0.01em]">Brave New World</span>
+            <span className="text-lg font-bold tracking-[-0.01em]">Strait Desk</span>
           </a>
           <div className="flex flex-wrap items-center gap-6 text-[15px]">
             <a href="#ask" className="hidden text-[#c9d5dd] no-underline hover:text-white md:inline">무엇을 알려 주나</a>
@@ -584,27 +584,27 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         />
       </section>
 
-      {/* NAME — 왜 '멋진 신세계'인가 */}
+      {/* NAME — 왜 'Strait Desk'인가 */}
       <section id="name" className="border-y border-white/10 bg-[#081019]">
         <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
           <Reveal className="min-w-0 flex-[1_1_360px]">
             <p className={EYEBROW}>이름의 뜻</p>
             <h2 className={H2}>
-              왜 &lsquo;멋진 신세계&rsquo;인가요?
+              왜 &lsquo;Strait Desk&rsquo;인가요?
             </h2>
-            <p className={`mt-4 text-sm ${MUTED}`}>Brave New World · 올더스 헉슬리, 1932</p>
+            <p className={`mt-4 text-sm ${MUTED}`}>Strait Desk · 해협을 지켜보는 상황실</p>
           </Reveal>
           <Reveal delay={100} className="min-w-0 flex-[1.4_1_440px] space-y-5 text-[17px] leading-[1.85] text-[#d7e0e6]">
             <p className="m-0">
-              헉슬리의 소설 『멋진 신세계』에서 &lsquo;멋진&rsquo;은 칭찬이 아니라 경고입니다. 모두가 편안한 화면 앞에 있는 동안,
-              진짜 세상은 보이지 않는 곳에서 돌아가죠.
+              Strait는 해협입니다. 바브엘만데브(홍해 입구)·호르무즈·말라카처럼, 세계 물동량의 큰 몫이 좁은 길목 몇 곳으로
+              몰려 지나갑니다.
             </p>
             <p className="m-0">
-              바다도 그렇습니다. 물건은 제때 도착하고 기름값은 화면 속 숫자일 뿐이지만, 그 뒤에서는 홍해의 미사일 한 발이
-              항로를 바꾸고, 해협 하나가 막히면 보험료와 운임이 함께 뛰어오릅니다.
+              Desk는 상황실의 데스크입니다. 홍해의 미사일 한 발이 항로를 바꾸고 해협 하나가 막히면 보험료와 운임이 함께 뛰어오르는데,
+              경보가 뜬 순간 운항·선적·보험 담당자가 한 책상 위에서 확인해야 할 것들을 모아 둔 곳이에요.
             </p>
             <p className="m-0 font-semibold text-white">
-              멋진 신세계는 그 가려진 장면을 지구본 위에 그대로 꺼내 놓습니다. 매끈한 화면 대신, 지금 바다에서 실제로 벌어지는 일을요.
+              Strait Desk는 그 길목의 상황을 지구본 위에 한 화면으로 펼쳐 놓습니다. 어느 배가 맞았는지, 그 바다가 얼마나 위험한지를 근거와 한계까지 함께요.
             </p>
           </Reveal>
         </div>
@@ -684,7 +684,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
       <footer className="border-t border-white/10 bg-[#05080d] text-[#8796a3]">
         <div className={`${WRAP} flex flex-wrap justify-between gap-5 py-10 text-sm leading-[1.7]`}>
           <div>
-            <span className="font-semibold text-[#e6edf2]">Brave New World</span> · PhilSolution
+            <span className="font-semibold text-[#e6edf2]">Strait Desk</span> · PhilSolution
           </div>
           <p className="m-0 max-w-[640px]">
             공개 정보를 모아 보여 주는 서비스이며, 정부·정보기관과는 관계가 없습니다. 항행·보험에 관한 최종 판단은 이용자에게 있습니다.

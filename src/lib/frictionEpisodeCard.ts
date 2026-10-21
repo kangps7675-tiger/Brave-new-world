@@ -13,12 +13,12 @@ const COPY = {
   ko: {
     kicker: "영토분쟁 아카이브 · 진영 내부",
     parties: "당사국",
-    brand: "멋진 신세계",
+    brand: "Strait Desk",
   },
   en: {
     kicker: "Territorial archive · intra-bloc",
     parties: "Parties",
-    brand: "Brave New World",
+    brand: "Strait Desk",
   },
 } as const;
 

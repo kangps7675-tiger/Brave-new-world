@@ -92,7 +92,7 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
   return (
     <div className="py-6">
       <p className="mx-auto mb-3 max-w-[1200px] px-6 text-sm font-semibold text-[#8fa3b1]">
-        <span className="text-[#f5c451]">●</span> Brave New World가 지켜보는 해운 길목 6곳 — {MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}
+        <span className="text-[#f5c451]">●</span> Strait Desk가 지켜보는 해운 길목 6곳 — {MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}
       </p>
       <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <div ref={trackRef} className="flex w-max will-change-transform">

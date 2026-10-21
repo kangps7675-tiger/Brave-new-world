@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       count: tunnels.length,
       tunnels,
       source: fromD1?.source ?? "seed",
-      attribution: "멋진 신세계 submarine tunnel seed (geopolitical logistics)",
+      attribution: "Strait Desk submarine tunnel seed (geopolitical logistics)",
     },
     { headers: TUNNELS_CDN },
   );

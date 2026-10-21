@@ -117,7 +117,7 @@ export function UtilityChromeMenu({
   onOpenLayers,
   onOpenSettings,
   onOpenData,
-  siteName = "멋진 신세계",
+  siteName = "Strait Desk",
   menuAlign = "right",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;

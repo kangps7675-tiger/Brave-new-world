@@ -91,7 +91,7 @@ async function fetchOverpass(query: string, cacheKey: string): Promise<OsmElemen
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
-        "User-Agent": "BraveNewWorld-CaseFile/1.0",
+        "User-Agent": "StraitDesk-CaseFile/1.0",
       },
       body: `data=${encodeURIComponent(query)}`,
     });

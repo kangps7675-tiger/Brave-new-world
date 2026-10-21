@@ -351,7 +351,7 @@ async function fetchMptsSlot(
     const res = await fetch(url.toString(), {
       headers: {
         Accept: "application/json",
-        "User-Agent": "BraveNewWorld/liveuamap-ingest",
+        "User-Agent": "StraitDesk/liveuamap-ingest",
       },
       cache: "no-store",
       signal: AbortSignal.timeout(45_000),
@@ -406,7 +406,7 @@ async function fetchFeedUrlFallback(apiKey?: string): Promise<{
 
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "User-Agent": "BraveNewWorld/liveuamap-ingest",
+    "User-Agent": "StraitDesk/liveuamap-ingest",
   };
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 

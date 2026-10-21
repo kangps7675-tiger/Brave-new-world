@@ -198,7 +198,7 @@ export async function fetchRssFeed(
       signal: controller.signal,
       cache: "no-store",
       headers: {
-        "User-Agent": "BraveNewWorld/1.0 RSS Reader",
+        "User-Agent": "StraitDesk/1.0 RSS Reader",
         Accept: "application/rss+xml, application/xml, text/xml, */*",
       },
       redirect: "follow",
