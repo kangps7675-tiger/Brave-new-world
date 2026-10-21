@@ -21,7 +21,7 @@
 | 1 | **피격 선박** | UKMTO 피습 경보 시각 주변을 지나던 선박의 AIS 항적을 분석해 사건 직후 멈추거나 방향을 틀거나 신호가 끊긴 배를 찾고, IMO 번호로 식별합니다. Datalastic으로 제원(톤수·길이·건조년도 등)을 보강합니다. |
 | 2 | **해역 상황** | 바브엘만데브·호르무즈·흑해 등 해협별 최근 피격 이력, 항행 경보, 통항량 변화. |
 | 3 | **전쟁위험 보험료 동향** | 공개 시세가 없어 해운·보험 매체 보도에서 해역별로 추출해 날짜순으로 쌓고, 출처와 근거 문장을 함께 제시합니다. |
-| 4 | **날씨** | 해역의 기상·해상 상태. 우회나 대기 판단용. |
+| 4 | **날씨** | 해역의 기상·해상 상태(Datalastic 날씨 + NOAA GFS-Wave 파고 예보). 우회나 대기 판단용. 공식 항해 예보를 대체하지 않습니다. |
 | 5 | **지정학 뉴스** | 해당 해역에 영향을 주는 군사·외교 소식을 위치별로 태깅. |
 
 ### 판정과 한계를 같이 표시합니다
@@ -60,6 +60,8 @@
 | 선박 제원·이력 | Datalastic `vessel_info` / `vessel_history` | `DATALASTIC_API_KEY` |
 | 선박 사진 | Wikimedia Commons (Datalastic은 사진 미제공) | — |
 | 항공기 | ADS-B Exchange(RapidAPI), 실패 시 adsb.lol | `ADSBEXCHANGE_API_KEY` |
+| 날씨 | Datalastic Weather (`/api/sea-weather`) · NOAA NCEP GFS-Wave (`/api/marine-weather`) | `DATALASTIC_API_KEY` |
+| 전쟁위험 보험료 | 해운·보험 매체 보도 추출 → D1 적재 (`/api/war-risk`, 읽기 전용) | `INGEST_CRON_SECRET` (cron) |
 | 뉴스 | GDELT · RSS | — |
 
 `API_STUB_MODE=false` 일 때 실데이터를 씁니다. `true`면 외부 호출 없이 `public/data/*-seed.json` 시드를 씁니다(운영 `.env.production`은 `false`).
@@ -81,6 +83,7 @@ npm run build   # 프로덕션 빌드
 npm run start   # 프로덕션 서버
 npm run lint    # ESLint
 npm test        # vitest
+npm run verify:product-spec   # README·상한·폴링 수치 가드
 ```
 
 ### 배포
@@ -97,6 +100,8 @@ npm test        # vitest
 | `API_STUB_MODE` | `true` | stub 정책 (외부 API 차단, 시드 JSON). 운영은 `false` |
 | `DATA_PROFILE` | `lite` | `lite` \| `full` — 서버 전용 |
 | `DATALASTIC_API_KEY` | — | 선박 제원·이력·반경 조회 |
+| `AISSTREAM_API_KEY` | — | AISstream 선박 위치 |
+| `INGEST_CRON_SECRET` | — | Cron ingest 인증 |
 | `ADSBEXCHANGE_API_KEY` | — | ADS-B Exchange (RapidAPI). 없으면 adsb.lol |
 | `TELEGRAM_OSINT_ENABLED` | `true` | 텔레그램 OSINT |
 | `FIRMS_MAP_KEY` | — | NASA FIRMS (있으면 라이브) |
@@ -256,6 +261,8 @@ node scripts/compress-data-gzip.js all
 | **PeeringDB** | IXP |
 | **adsb.lol / AISstream** | 군용기·선박 |
 | **Pikud HaOref** | 이스라엘 공습 |
+| **Datalastic** | 선박 제원·이력·반경, 해역 날씨 (유료 API) |
+| **NOAA NCEP GFS-Wave** | 해상 파고 예보 (미 정부 자료, 퍼블릭 도메인) |
 | **UKMTO** (Royal Navy) | 홍해·호르무즈 등 상선 피습·나포 경보 (비공식 엔드포인트) |
 | **The Space Devs** | 우주 발사 |
 | **Freesound** | 긴장·경제·UI 앰비언트 |
