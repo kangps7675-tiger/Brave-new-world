@@ -164,6 +164,7 @@ import {
   type AirRaidBriefingContent,
 } from "@/components/AirRaidBriefingParchment";
 import { BreakingFlashParchment } from "@/components/BreakingFlashParchment";
+import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import type { UxGuideBriefContent } from "@/lib/uxGuideBrief";
 import { AirRaidOfferBanner, type AirRaidOffer } from "@/components/AirRaidOfferBanner";
@@ -521,6 +522,7 @@ export type DashboardOverlayHostProps = {
 };
 
 export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
+  const landingCurtainActive = useLandingCurtainActive();
   const {
     labelLanguage,
     isCompactUi,
@@ -1965,7 +1967,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
         />
       ) : null}
 
-      {breakingFlash && !airRaidBriefing && !uxGuideBrief && !periodicBriefing && !weeklyExpanded ? (
+      {breakingFlash && !landingCurtainActive && !airRaidBriefing && !uxGuideBrief && !periodicBriefing && !weeklyExpanded ? (
         <BreakingFlashParchment
           briefing={breakingFlash}
           lang={labelLanguage}

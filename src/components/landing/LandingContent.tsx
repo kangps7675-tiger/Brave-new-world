@@ -268,7 +268,7 @@ const SOURCES = [
 const FAQ = [
   {
     q: "돈을 내야 하나요?",
-    a: "아니요. 지구본은 가입 없이 무료로 볼 수 있습니다.",
+    a: "지금은 베타 기간이라 가입 없이 바로 볼 수 있습니다. 정식 출시 후에는 알림·해역 판단 같은 일부 기능이 유료가 될 예정이며, 시작 전에 미리 알려 드립니다.",
   },
   {
     q: "정말 정보기관 자료를 쓰나요?",
@@ -339,7 +339,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
               화면 읽는 법 먼저 보기
             </a>
           </div>
-          <p className={`mt-4 text-sm ${MUTED}`}>가입 없이 무료로 바로 볼 수 있어요.</p>
+          <p className={`mt-4 text-sm ${MUTED}`}>베타 기간에는 가입 없이 바로 볼 수 있어요.</p>
         </div>
 
         <div className="min-w-0 flex-[1_1_440px]">
