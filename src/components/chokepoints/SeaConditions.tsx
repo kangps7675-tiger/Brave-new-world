@@ -21,7 +21,7 @@ type Payload = {
 function Cell({ label, ko, value }: { label: string; ko: string; value: string }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-      <p className="text-[11px] uppercase tracking-wide text-white/40">
+      <p className="text-micro uppercase tracking-wide text-white/40">
         {label} <span className="normal-case text-white/30">· {ko}</span>
       </p>
       <p className="mt-1 text-lg font-semibold text-white">{value}</p>
