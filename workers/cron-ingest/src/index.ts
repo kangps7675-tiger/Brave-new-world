@@ -287,6 +287,15 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
     const hubSlice = Math.floor(Date.now() / (10 * 60_000)) % 2;
     const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub, hubSlice, hubSlices: 2 });
     adsbErrors.push(...adsb.errors.slice(0, 12));
+    // 유료 RapidAPI 보강(해운 위험 해역 3곳) — 허브 행 뒤에 붙여 같은 기체는 더 촘촘한 쪽 위치로 덮어쓴다
+    try {
+      const dens = await runAdsbxDensify(env);
+      if (dens.aircraft.length > 0) adsb.aircraft.push(...dens.aircraft);
+      if (dens.calls > 0) adsbErrors.push(`adsbxDens=calls${dens.calls} rows${dens.aircraft.length}`);
+      adsbErrors.push(...dens.errors);
+    } catch (error) {
+      adsbErrors.push(`adsbx-rapid: ${error instanceof Error ? error.message : "failed"}`);
+    }
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
     try {
       await appendMilAdsbHistory(env.DB, adsb.aircraft);

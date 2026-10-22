@@ -105,6 +105,18 @@ async function readJsonMaybeGzip(response: Response): Promise<unknown> {
   }
 }
 
+/** RapidAPI 보강 수집용 — 응답 한 덩어리를 민항·군용 행으로 (군용/민항 판정은 허브 경로와 같은 규칙) */
+export function normalizeRapidPayload(payload: unknown, hubId: string, maxRows: number): AdsbAircraftRow[] {
+  const out: AdsbAircraftRow[] = [];
+  const list = extractList((payload ?? {}) as { ac?: RawAc[]; aircraft?: RawAc[] });
+  for (const raw of list) {
+    if (out.length >= maxRows) break;
+    const row = normalizeAircraft(raw, "civ") ?? normalizeAircraft(raw, "mil");
+    if (row) out.push({ ...row, hub: hubId });
+  }
+  return out;
+}
+
 function extractList(payload: { ac?: RawAc[]; aircraft?: RawAc[] }): RawAc[] {
   if (Array.isArray(payload.aircraft)) return payload.aircraft;
   if (Array.isArray(payload.ac)) return payload.ac;
