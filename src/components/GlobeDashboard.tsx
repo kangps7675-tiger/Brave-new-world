@@ -1405,6 +1405,15 @@ export function GlobeDashboard({
     () => mergeStackItems([incidentStackItems, frontNewsItems], INCIDENT_STACK_MAX * 2),
     [incidentStackItems, frontNewsItems],
   );
+  const deskNewsPool = useMemo(
+    () => [
+      ...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []),
+      ...(newsStreamPayload?.flashHeroes ?? []),
+      ...(newsStreamPayload?.verified ?? []),
+      ...(newsStreamPayload?.stateMedia ?? []),
+    ],
+    [newsStreamPayload],
+  );
   const liveDeskShipIds = useMemo(() => new Set(incidentStackItems.map((i) => i.id)), [incidentStackItems]);
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
   const togglePref = useCallback(
@@ -7301,6 +7310,7 @@ export function GlobeDashboard({
               lang={labelLanguage}
               shipItems={incidentStackItems}
               liveuaEvents={liveuaEvents}
+              newsPool={deskNewsPool}
               onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 0.5)}
               onFocusVessel={(vessel) => handleAisSymbolSelect(vessel)}
             />
@@ -7560,8 +7570,10 @@ export function GlobeDashboard({
             })()
           : null}
 
-        {!isSatelliteViewer && !landingCurtainActive && deskOpenId != null ? (
+        {!landingCurtainActive && deskOpenId != null ? (
           <LiveFlashDesk
+            narrow={isSatelliteViewer}
+            newsPool={deskNewsPool}
             lang={labelLanguage}
             items={liveDeskItems}
             shipIds={liveDeskShipIds}
@@ -7571,20 +7583,25 @@ export function GlobeDashboard({
               setFrontParchmentIndex(null);
               setStackSelectedId(id);
               markLiveuaRead(id);
+              // 누를 때마다 그 지역으로 — 다른 속보를 누르기 전까지 거기 머문다
+              const picked = liveDeskItems.find((x) => x.id === id);
+              if (picked && Number.isFinite(picked.lat) && Number.isFinite(picked.lng)) {
+                if (isSatelliteViewer) focusStackItemInSpaceRef.current(picked);
+                else unifiedFlyTo(picked.lat, picked.lng, 0.5);
+              }
             }}
             onClose={() => {
               setStackParchmentId(null);
               setFrontParchmentIndex(null);
             }}
             onGoToLocation={(it) => {
-              openEventCallout(calloutFromStackItem(it, labelLanguage));
-              unifiedFlyTo(it.lat, it.lng, 0.5);
+              if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
+              else unifiedFlyTo(it.lat, it.lng, 0.5);
             }}
             onViewSatellite={(it) => {
-              openEventCallout(calloutFromStackItem(it, labelLanguage));
-              setStackParchmentId(null);
-              setFrontParchmentIndex(null);
-              viewStackItemInSatellite(it);
+              // 속보창은 닫지 않는다 — 위성 실지도를 같이 본다
+              if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
+              else viewStackItemInSatellite(it);
             }}
           />
         ) : null}
