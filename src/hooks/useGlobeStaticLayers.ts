@@ -11,6 +11,7 @@ import type {
   StaticPoint,
   TransportPath,
 } from "@/data/geoTypes";
+import { ARCTIC_ROUTE_PATHS } from "@/data/arcticRoutes";
 import { dataPath } from "@/lib/dataProfile";
 import { expandStaticPoints } from "@/lib/compactData";
 import type { GlobeLodTier } from "@/lib/globeLod";
@@ -1156,7 +1157,8 @@ export function useGlobeStaticLayers(options: {
     if (!options.showShippingLanes) return [];
     const max = SHIPPING_LANE_MAX_BY_TIER[options.globeTier];
     // viewport-paths API가 이미 컷 — 클라 재필터는 이동 중 stale 응답을 전부 버릴 수 있음
-    return shippingPaths.slice(0, max);
+    // 북극항로는 기존 항로 데이터에 없어 직접 만든 근사 경로를 항상 같이 그린다
+    return [...shippingPaths.slice(0, max), ...ARCTIC_ROUTE_PATHS];
   }, [
     options.globeTier,
     options.showShippingLanes,
