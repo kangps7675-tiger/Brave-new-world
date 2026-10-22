@@ -36,6 +36,19 @@ type Strike = {
   };
   trackSource: string;
   warRiskRegion: WarRiskRegionId;
+  /** 사건 시각 근처 해상 분석값(NOAA GFS-Wave) — 없으면 null */
+  seaAtIncident?: {
+    pointId: string;
+    distKm: number;
+    validTime: string;
+    offsetMin: number;
+    hsM: number | null;
+    periodS: number | null;
+    windKn: number | null;
+    windDirDeg: number | null;
+    beaufort: number | null;
+    seaStateKo: string | null;
+  } | null;
 };
 
 type Quote = {
@@ -193,7 +206,26 @@ function StrikeCard({ s, latestQuote }: { s: Strike; latestQuote: Quote | null }
         </div>
       </section>
 
-      <section className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
+      <p className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
+        <span className="text-white/45">사건 당시 바다 · </span>
+        {view.seaAtIncident ? (
+          <>
+            <span className="font-medium text-white">
+              {view.seaAtIncident.hsM != null ? `파고 ${view.seaAtIncident.hsM.toFixed(1)} m` : "파고 자료 없음"}
+              {view.seaAtIncident.seaStateKo ? ` (${view.seaAtIncident.seaStateKo})` : ""}
+              {view.seaAtIncident.windKn != null ? ` · 바람 ${view.seaAtIncident.windKn} kn` : ""}
+            </span>
+            <span className="text-white/45">
+              {" "}
+              (모델 분석값, 사건 지점에서 약 {view.seaAtIncident.distKm} km 떨어진 대표 지점 · {view.seaAtIncident.validTime.slice(5, 16).replace("T", " ")} UTC)
+            </span>
+          </>
+        ) : (
+          <span className="text-white/45">자료 없음 (없다는 뜻이지 잔잔했다는 뜻이 아닙니다)</span>
+        )}
+      </p>
+
+      <section className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
         <span className="text-white/45">{WAR_RISK_REGION_LABEL_KO[view.warRiskRegion]} 전쟁위험 보험료 · </span>
         {latestQuote ? (
           <>

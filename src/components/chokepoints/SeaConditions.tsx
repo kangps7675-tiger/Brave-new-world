@@ -2,36 +2,47 @@
 
 import { useEffect, useState } from "react";
 import { WAR_RISK_REGION_BY_SLUG } from "@/components/chokepoints/WarRiskQuotes";
-import { beaufort, seaStateKo } from "@/lib/marineWeather/gfsWave";
-import { kmhToKnots, type SeaWeatherNow } from "@/lib/seaWeather/datalastic";
+import type { ForecastCell, ForecastSummary } from "@/lib/marineWeather/summary";
 
 /**
- * 초크포인트 페이지 — 해역 현재 해상·기상.
- * 해역 "대표 지점 하나"의 값이다(해협 안쪽·연안은 다를 수 있다). 항해용 예보가 아니라 우회·대기 판단의 참고용.
+ * 초크포인트 페이지 — 해역 해상 상태(지금·24/48/72시간 뒤).
+ * 소스는 NOAA GFS-Wave(전구 모델, 격자 약 28km)를 cron 이 D1 에 적재한 값 — 외부 호출·유료 크레딧 없음.
+ * 해역 "대표 지점"의 값이라 해협 안쪽·연안은 다를 수 있다. 항해용 예보가 아니라 우회·대기 판단의 참고용.
  */
 
 type Payload = {
-  enabled: boolean;
-  stale?: boolean;
-  point: { nameKo: string; nameEn: string; lat: number; lng: number };
-  now: SeaWeatherNow | null;
-  fetchedAt?: string;
+  cycle: string | null;
+  now: string;
+  summary: ForecastSummary;
+  points: Array<{ id: string; nameKo: string; nameEn: string }>;
 };
 
-function Cell({ label, ko, value }: { label: string; ko: string; value: string }) {
+const WIND_DIR = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+function dirLabel(deg: number): string {
+  return WIND_DIR[Math.round((((deg % 360) + 360) % 360) / 45) % 8]!;
+}
+
+function colLabel(h: number): string {
+  return h === 0 ? "지금" : `+${h}시간`;
+}
+
+function Cell({ c }: { c: ForecastCell }) {
+  if (!c || (c.hsM == null && c.windKn == null)) return <span className="text-white/30">자료 없음</span>;
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-      <p className="text-micro uppercase tracking-wide text-white/40">
-        {label} <span className="normal-case text-white/30">· {ko}</span>
+    <div>
+      <p className="font-medium text-white">
+        {c.hsM != null ? `${c.hsM.toFixed(1)} m` : "—"}
+        {c.seaStateKo ? <span className="ml-1 text-xs font-normal text-white/45">{c.seaStateKo}</span> : null}
       </p>
-      <p className="mt-1 text-lg font-semibold text-white">{value}</p>
+      <p className="text-xs text-white/50">
+        {c.windKn != null ? `바람 ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}${c.beaufort != null ? ` · 보퍼트 ${c.beaufort}` : ""}` : "바람 자료 없음"}
+      </p>
     </div>
   );
 }
 
-function dirLabel(deg: number): string {
-  const names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  return names[Math.round((((deg % 360) + 360) % 360) / 45) % 8]!;
+function cycleLabel(cycle: string): string {
+  return `${cycle.slice(0, 4)}-${cycle.slice(4, 6)}-${cycle.slice(6, 8)} ${cycle.slice(8, 10)}:00 UTC`;
 }
 
 export default function SeaConditions({ slug }: { slug: string }) {
@@ -43,7 +54,7 @@ export default function SeaConditions({ slug }: { slug: string }) {
     let alive = true;
     void (async () => {
       try {
-        const r = await fetch(`/api/sea-weather?region=${region}`);
+        const r = await fetch(`/api/sea-forecast?region=${region}`);
         const d: Payload | "error" = r.ok ? ((await r.json()) as Payload) : "error";
         if (alive) setData(d);
       } catch {
@@ -58,56 +69,65 @@ export default function SeaConditions({ slug }: { slug: string }) {
   if (!region) return null;
 
   const payload = data && data !== "error" ? data : null;
-  const now = payload ? payload.now : null;
-  const bf = now?.windKmh != null ? beaufort(now.windKmh / 3.6) : null;
+  const rows = payload?.summary.points ?? [];
+  const nameOf = (id: string) => payload?.points.find((p) => p.id === id);
+  const peak = payload?.summary.peak ?? null;
+  const hasData = !!payload?.cycle && rows.some((p) => p.cells.some((c) => c));
 
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-semibold text-white">Sea conditions now</h2>
-      <p className="mt-1 text-sm text-white/45">현재 해상·기상 — 우회·대기 판단 참고</p>
+      <h2 className="text-xl font-semibold text-white">Sea conditions</h2>
+      <p className="mt-1 text-sm text-white/45">해상 상태 · 지금부터 72시간 — 우회·대기 판단 참고</p>
 
       {data === null ? (
         <p className="mt-4 text-sm text-white/40">Loading…</p>
-      ) : !payload || !now ? (
+      ) : !payload || !hasData ? (
         <p className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
-          No weather reading is available for this area right now.
-          <span className="mt-1 block text-white/40">지금은 이 해역의 날씨 자료가 없습니다. (없다는 뜻이지 잔잔하다는 뜻이 아닙니다)</span>
+          No sea-state forecast is available for this area right now.
+          <span className="mt-1 block text-white/40">지금은 이 해역의 해상 자료가 없습니다. (없다는 뜻이지 잔잔하다는 뜻이 아닙니다)</span>
         </p>
       ) : (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {now.waveHeightM != null ? (
-              <Cell
-                label="Wave height"
-                ko="파고"
-                value={`${now.waveHeightM.toFixed(1)} m${seaStateKo(now.waveHeightM) ? ` · ${seaStateKo(now.waveHeightM)}` : ""}`}
-              />
-            ) : null}
-            {now.windKmh != null ? (
-              <Cell
-                label="Wind"
-                ko="바람"
-                value={`${Math.round(kmhToKnots(now.windKmh))} kn${now.windDirDeg != null ? ` ${dirLabel(now.windDirDeg)}` : ""}${bf != null ? ` · 보퍼트 ${bf}` : ""}`}
-              />
-            ) : null}
-            {now.visibilityKm != null ? (
-              <Cell label="Visibility" ko="시정" value={`${now.visibilityKm >= 10 ? Math.round(now.visibilityKm) : now.visibilityKm.toFixed(1)} km`} />
-            ) : null}
-            {now.swellHeightM != null ? (
-              <Cell
-                label="Swell"
-                ko="너울"
-                value={`${now.swellHeightM.toFixed(1)} m${now.wavePeriodS != null ? ` · ${now.wavePeriodS.toFixed(0)} s` : ""}`}
-              />
-            ) : null}
-            {now.seaTempC != null ? <Cell label="Sea temp" ko="수온" value={`${now.seaTempC.toFixed(0)} °C`} /> : null}
-            {now.pressureHpa != null ? <Cell label="Pressure" ko="기압" value={`${Math.round(now.pressureHpa)} hPa`} /> : null}
+          {peak ? (
+            <p className="mt-4 text-sm text-white/70">
+              앞으로 72시간 중 가장 높은 파고는{" "}
+              <span className="font-semibold text-white">{peak.hsM.toFixed(1)} m</span> —{" "}
+              {nameOf(peak.pointId)?.nameKo ?? peak.pointId}, {peak.validTime.slice(5, 16).replace("T", " ")} UTC 무렵
+            </p>
+          ) : null}
+          <div className="mt-3 overflow-x-auto rounded-lg border border-white/10">
+            <table className="w-full min-w-[34rem] text-left text-sm">
+              <thead className="bg-white/[0.04] text-micro uppercase tracking-wide text-white/40">
+                <tr>
+                  <th className="px-3 py-2 font-normal">지점</th>
+                  {payload.summary.offsetsH.map((h) => (
+                    <th key={h} className="px-3 py-2 font-normal">
+                      {colLabel(h)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {rows.map((p) => (
+                  <tr key={p.pointId}>
+                    <td className="px-3 py-2 align-top text-white/80">
+                      {nameOf(p.pointId)?.nameKo ?? p.pointId}
+                      <span className="block text-xs text-white/35">{nameOf(p.pointId)?.nameEn}</span>
+                    </td>
+                    {p.cells.map((c, i) => (
+                      <td key={i} className="px-3 py-2 align-top">
+                        <Cell c={c} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-white/40">
-            {`${payload.point.nameEn} (${payload.point.nameKo}) · `}
-            {now.at ? `${now.at.slice(0, 16).replace("T", " ")} UTC` : ""}
-            {payload.stale ? " · 최신 갱신 실패 — 마지막 값" : ""}
-            {" · "}해역 대표 지점 한 곳의 값이며 항해용 예보가 아닙니다. 출처: Datalastic.
+            모델 사이클 {payload.cycle ? cycleLabel(payload.cycle) : ""} · 파고는 유의파고(가장 높은 1/3 파도의 평균) 기준 ·
+            전구 모델(격자 약 28km)이라 해협 안쪽·연안은 다를 수 있고 항해용 공식 예보를 대체하지 않습니다. 시정은 이 모델에 없습니다.
+            출처: NOAA NCEP GFS-Wave.
           </p>
         </>
       )}
