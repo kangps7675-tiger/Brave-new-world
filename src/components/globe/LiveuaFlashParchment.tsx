@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/hooks/useTr";
 import { createPortal } from "react-dom";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -58,6 +59,10 @@ export function LiveuaFlashParchment({
   hideMarket = false,
 }: Props) {
   const event = events[index];
+  const trPeel = event
+    ? splitLiveuaTitleBody(event.titleKo?.trim() || event.title, event.bodyKo?.trim() || event.body, event.sourceUrl)
+    : null;
+  const tr = useTr([trPeel?.title, trPeel?.body], lang);
   if (!event) return null;
 
   const en = lang === "en";
@@ -65,8 +70,8 @@ export function LiveuaFlashParchment({
   const rawBody = en ? event.body : event.bodyKo?.trim() || event.body;
   /** 캐시된 이벤트에도 name에 URL이 붙어 있을 수 있음 → 표시 시 한 번 더 분리 */
   const peeled = splitLiveuaTitleBody(rawTitle, rawBody, event.sourceUrl);
-  const title = peeled.title;
-  const body = peeled.body;
+  const title = tr(peeled.title);
+  const body = tr(peeled.body);
   const desk = en
     ? "Frontline desk · Liveuamap · approximate geolocation"
     : "전선 데스크 · Liveuamap · 위치는 근사치";
