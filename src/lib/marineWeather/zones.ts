@@ -6,7 +6,13 @@
  * 그래도 육지 격자에 걸리면 `sampleNearest` 가 2칸 안의 가장 가까운 바다 격자로 옮기고 offset 을 남긴다.
  */
 
-export type MarineRegion = "red-sea" | "hormuz" | "black-sea" | "taiwan-strait" | "malacca";
+import type { WaveFieldKey } from "./gfsWave";
+
+/**
+ * 앞의 5개는 전쟁위험 보험료 해역 id 와 같다. "arabian-sea"·"cape" 는 우회 판단용 대양 해역 —
+ * 보험료 해역이 아니므로 war-risk 와는 연결되지 않는다 (초크포인트 페이지가 우회로로 같이 보여준다).
+ */
+export type MarineRegion = "red-sea" | "hormuz" | "black-sea" | "taiwan-strait" | "malacca" | "arabian-sea" | "cape";
 
 export type MarinePoint = {
   id: string;
@@ -39,6 +45,20 @@ export const MARINE_POINTS: MarinePoint[] = [
   // 말라카
   { id: "malacca-central", region: "malacca", nameKo: "말라카 해협 중부", nameEn: "Central Strait of Malacca", lat: 2.6, lng: 100.9 },
   { id: "singapore-east-approach", region: "malacca", nameKo: "싱가포르 해협 동쪽 접근수역", nameEn: "Singapore Strait eastern approach", lat: 1.7, lng: 104.8 },
+  // 아라비아해 — 호르무즈·아덴만에서 인도양으로 나가는 길목 (대양)
+  { id: "arabian-sea-west", region: "arabian-sea", nameKo: "아라비아해 서부(소코트라 동쪽)", nameEn: "Western Arabian Sea (east of Socotra)", lat: 14.0, lng: 58.0 },
+  { id: "arabian-sea-central", region: "arabian-sea", nameKo: "아라비아해 중부", nameEn: "Central Arabian Sea", lat: 15.0, lng: 64.0 },
+  { id: "arabian-sea-east", region: "arabian-sea", nameKo: "아라비아해 동부(인도 서안 앞)", nameEn: "Eastern Arabian Sea (off west India)", lat: 18.5, lng: 68.5 },
+  // 희망봉 우회로 — 홍해를 피할 때 가는 길 (대양)
+  { id: "mozambique-channel", region: "cape", nameKo: "모잠비크 해협", nameEn: "Mozambique Channel", lat: -22.0, lng: 40.5 },
+  { id: "agulhas-south", region: "cape", nameKo: "아굴라스 곶 남쪽", nameEn: "South of Cape Agulhas", lat: -36.5, lng: 20.0 },
+  { id: "cape-west", region: "cape", nameKo: "케이프타운 서쪽 대서양", nameEn: "Atlantic west of Cape Town", lat: -34.0, lng: 16.0 },
 ];
+
+/** 대양 해역은 요청 수(해역 × 변수 × 예보시간)를 줄이려 필요한 변수만 받는다. 목록에 없는 해역은 전부 받는다. */
+export const MARINE_REGION_FIELDS: Partial<Record<MarineRegion, WaveFieldKey[]>> = {
+  "arabian-sea": ["hs_m", "period_s", "wind_ms", "swell_m"],
+  cape: ["hs_m", "period_s", "wind_ms", "swell_m"],
+};
 
 export const MARINE_REGIONS = [...new Set(MARINE_POINTS.map((p) => p.region))] as MarineRegion[];

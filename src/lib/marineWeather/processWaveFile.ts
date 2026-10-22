@@ -14,7 +14,7 @@ import {
   waveFileUrl,
   type WaveFieldKey,
 } from "./gfsWave";
-import { MARINE_POINTS, MARINE_REGIONS } from "./zones";
+import { MARINE_POINTS, MARINE_REGIONS, MARINE_REGION_FIELDS } from "./zones";
 
 const UA = "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; NOAA GFS-Wave point sampler)";
 
@@ -56,7 +56,10 @@ export async function processWaveFileFiltered(
   let total = 0;
 
   const jobs: Array<{ region: (typeof MARINE_REGIONS)[number]; field: (typeof WAVE_FIELDS)[number] }> = [];
-  for (const region of MARINE_REGIONS) for (const field of WAVE_FIELDS) jobs.push({ region, field });
+  for (const region of MARINE_REGIONS) {
+    const only = MARINE_REGION_FIELDS[region];
+    for (const field of WAVE_FIELDS) if (!only || only.includes(field.key)) jobs.push({ region, field });
+  }
 
   const queue = [...jobs];
   async function worker() {
