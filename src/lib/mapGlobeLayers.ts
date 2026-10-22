@@ -83,7 +83,7 @@ function angularScaleByZoom(
   featureProp: string,
   k: number,
   offset: number,
-  floor: number,
+  floor: number | ZoomExpr,
   ceil: number,
 ): ZoomExpr {
   const stops: unknown[] = [];
@@ -99,11 +99,15 @@ function angularScaleByZoom(
 }
 
 /** MapLibre paint — 줌 중에도 끊김 없이 점 크기 추적 (GeoJSON 재빌드 불필요) */
+/** 항구·공항 점의 각반경(이 값 미만이면 아주 작은 점) — MapGlobeView의 PORT_AIRPORT_ANGULAR_RADIUS와 맞춘다 */
+export const TINY_DOT_ANGULAR_RADIUS_MAX = 0.0002;
+
 export const CIRCLE_RADIUS_BY_ZOOM: ZoomExpr = angularScaleByZoom(
   "angularRadius",
   14,
   0.5,
-  2,
+  // 항구·공항은 먼 줌에서도 반지름 1.2px(=지름 약 2.4px), 나머지는 2px
+  ["case", ["<", ["get", "angularRadius"], TINY_DOT_ANGULAR_RADIUS_MAX], 1.2, 2],
   MAX_ANGULAR_POINT_RADIUS_PX,
 );
 

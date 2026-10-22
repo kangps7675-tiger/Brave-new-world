@@ -283,9 +283,12 @@ const TERRITORY_FILL_OPACITY = [
 /** 경계선은 줌인할수록 또렷하고 굵게 */
 const TERRITORY_LINE_WIDTH = ["interpolate", ["linear"], ["zoom"], 3, 1.2, 8, 1.8, 12, 2.6] as unknown as number;
 
-/** 군사기지·공항·항구 점 크기용 각반경 — 최소 반지름(2px)에서 시작해 줌인 때만 조금 커진다 */
+/** 군사기지 점 크기용 각반경 — 최소 반지름(2px)에서 시작해 줌인 때만 조금 커진다 */
 const SMALL_DOT_ANGULAR_RADIUS = 0.0003;
+/** 공항·항구는 그보다도 작게 — 최소 반지름 1.2px, 줌인 때도 천천히 커진다 (mapGlobeLayers의 TINY_DOT_ANGULAR_RADIUS_MAX 미만이어야 한다) */
+const PORT_AIRPORT_ANGULAR_RADIUS = 0.00012;
 const SMALL_DOT_KINDS: ReadonlySet<string> = new Set(["military-base", "airport", "port"]);
+const TINY_DOT_KINDS: ReadonlySet<string> = new Set(["airport", "port"]);
 
 type LiveuaStrikeMapItem = StrikeFlame;
 
@@ -935,9 +938,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       radius: (item) =>
         item &&
         typeof item === "object" &&
-        SMALL_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
-          ? SMALL_DOT_ANGULAR_RADIUS
-          : a.pointRadius(item),
+        TINY_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
+          ? PORT_AIRPORT_ANGULAR_RADIUS
+          : SMALL_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
+            ? SMALL_DOT_ANGULAR_RADIUS
+            : a.pointRadius(item),
       kind: (item) =>
         item && typeof item === "object" && "kind" in item
           ? String((item as { kind?: string }).kind ?? "")
