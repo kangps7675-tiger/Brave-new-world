@@ -58,6 +58,8 @@ type Props = {
   newsPool?: readonly NewsStreamItem[];
   /** 위성 모드에서는 지구본이 보이도록 좁게 */
   narrow?: boolean;
+  /** 폰: 위치로 가기·위성으로 보기 뒤에 창을 접어 지도를 보여 준다 */
+  collapseOnAction?: boolean;
 };
 
 /**
@@ -75,6 +77,7 @@ export function LiveFlashDesk({
   onViewSatellite,
   newsPool = [],
   narrow = false,
+  collapseOnAction = false,
 }: Props) {
   const en = lang === "en";
   const [now, setNow] = useState(() => Date.now());
@@ -100,6 +103,7 @@ export function LiveFlashDesk({
     return () => window.removeEventListener("keydown", onKey);
   }, [idx, sorted, onClose, onSelect]);
 
+  const [minimized, setMinimized] = useState(false);
   const [photoIdx, setPhotoIdx] = useState(0);
   const [shipPhotos, setShipPhotos] = useState<string[]>([]);
   const own = item ? photosOf(item) : [];
@@ -172,6 +176,23 @@ export function LiveFlashDesk({
     "rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2.5 py-0.5 text-micro text-[#3d2a12] hover:bg-[#e8d6a8] disabled:opacity-40";
   const shownPhoto = photos[Math.min(photoIdx, Math.max(0, photos.length - 1))];
 
+  if (minimized) {
+    return (
+      <button
+        type="button"
+        onClick={() => setMinimized(false)}
+        className={`pointer-events-auto fixed inset-x-2 bottom-2 flex items-center justify-between gap-2 rounded-md border border-[#6b4a22]/60 bg-[#f3e6c8] px-3 py-2 text-left text-micro font-semibold text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 sm:w-80 ${zc("alert")}`}
+        aria-label={en ? "Open flash desk" : "속보창 열기"}
+      >
+        <span className="min-w-0 truncate">
+          <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-rose-600" aria-hidden />
+          {title}
+        </span>
+        <span aria-hidden>▴</span>
+      </button>
+    );
+  }
+
   return (
     <aside
       className={`pointer-events-auto fixed inset-x-2 bottom-2 top-16 flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/55 bg-[#f3e6c8] text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 ${narrow ? "sm:w-[min(40rem,60vw)]" : "sm:w-[min(56rem,calc(100vw-1.5rem))]"} sm:flex-row ${zc("alert")}`}
@@ -230,9 +251,14 @@ export function LiveFlashDesk({
           <span className="font-semibold">
             {en ? CAT_LABEL[cat].en : CAT_LABEL[cat].ko} · {item.place} · {ago(item.at, now, en)}
           </span>
-          <button type="button" className={btn} aria-label={en ? "Close" : "닫기"} onClick={onClose}>
-            ×
-          </button>
+          <span className="flex gap-1">
+            <button type="button" className={`${btn} sm:hidden`} aria-label={en ? "Minimize" : "접기"} onClick={() => setMinimized(true)}>
+              ▾
+            </button>
+            <button type="button" className={btn} aria-label={en ? "Close" : "닫기"} onClick={onClose}>
+              ×
+            </button>
+          </span>
         </header>
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
           {ev?.videoUrl ? (
@@ -303,10 +329,24 @@ export function LiveFlashDesk({
         </div>
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#6b4a22]/30 px-3 py-1.5">
           <div className="flex flex-wrap gap-1.5">
-            <button type="button" className={btn} onClick={() => onGoToLocation(item)}>
+            <button
+              type="button"
+              className={btn}
+              onClick={() => {
+                onGoToLocation(item);
+                if (collapseOnAction) setMinimized(true);
+              }}
+            >
               {en ? "Go to location" : "위치로 가기"}
             </button>
-            <button type="button" className={btn} onClick={() => onViewSatellite(item)}>
+            <button
+              type="button"
+              className={btn}
+              onClick={() => {
+                onViewSatellite(item);
+                if (collapseOnAction) setMinimized(true);
+              }}
+            >
               {en ? "View in satellite" : "위성으로 보기"}
             </button>
             {item.url && /^https?:\/\//i.test(item.url) ? (
