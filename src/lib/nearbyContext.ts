@@ -37,5 +37,9 @@ export function nearbyPlaces(lat: number, lng: number, lang: "ko" | "en", radius
   return out
     .sort((a, b) => a.d - b.d)
     .slice(0, max)
-    .map(({ d: _d, ...p }) => p);
+    .map((p) => {
+      const rest = { ...p } as Partial<typeof p>;
+      delete rest.d;
+      return rest as Omit<typeof p, "d">;
+    });
 }
