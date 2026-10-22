@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     );
   }
   return NextResponse.json(
-    { enabled: r.reason !== "no-key", reason: r.reason, region, point, now: null },
+    { enabled: r.reason !== "no-key", reason: r.reason, ...("status" in r && r.status ? { status: r.status } : {}), region, point, now: null },
     { headers: { "Cache-Control": "public, s-maxage=60" } },
   );
 }

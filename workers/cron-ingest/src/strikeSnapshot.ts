@@ -20,6 +20,7 @@ import {
   MAX_SNAPSHOTS_PER_TICK,
   SNAPSHOT_MAX_AGE_HOURS,
   aisTypeCodeFromDatalastic,
+  attachWeather,
   canShareSnapshot,
   canSpendOnEvent,
   historyDays,
@@ -27,15 +28,20 @@ import {
   historyRange,
   incidentMs,
   pickCandidates,
+  planWeatherCells,
   snapshotRadiusNm,
+  type CandidateWeather,
   type SnapshotCandidate,
 } from "../../../src/lib/strikeSnapshot";
+import { fetchSeaWeather, toCandidateWeather } from "../../../src/lib/seaWeather/datalastic";
 import { datalasticToAisRow } from "./datalastic";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { appendAisHistory } from "./trackHistory";
 import { flushVesselIdentities, recordStaticIdentity } from "./vesselIdentity";
 
 const BASE = "https://api.datalastic.com/api/v0";
+/** Datalastic weather 호출당 크레딧 — 문서 확인 전까지 1 로 가정(실측 후 조정) */
+const WEATHER_CREDITS = 1;
 
 type Row = {
   id: string;
@@ -178,7 +184,25 @@ export async function runStrikeSnapshots(env: IngestEnv): Promise<StrikeSnapshot
       }
       await appendAisHistory(env.DB, aisRows);
       await flushVesselIdentities(env.DB);
-      const cands = pickCandidates(parsed.vessels, { lat: r.lat, lng: r.lng, vesselType: r.vessel_type });
+      let cands = pickCandidates(parsed.vessels, { lat: r.lat, lng: r.lng, vesselType: r.vessel_type });
+      // 후보 선박 위치의 날씨 — 격자 칸마다 한 번(최대 3회). 실패해도 스냅샷은 그대로 남긴다.
+      try {
+        const positions = new Map(parsed.vessels.map((v) => [v.mmsi, { lat: v.lat, lng: v.lng }]));
+        const byCell = new Map<string, CandidateWeather>();
+        for (const cell of planWeatherCells(cands, positions)) {
+          if (!canSpendOnEvent(used, budget)) break;
+          const w = await fetchSeaWeather(cell.lat, cell.lng, { apiKey: key });
+          if (!w.ok) {
+            out.errors.push(`strike-weather ${r.id.slice(0, 8)}: ${w.reason}${w.status ? ` ${w.status}` : ""}`);
+            continue;
+          }
+          await spend(WEATHER_CREDITS);
+          byCell.set(cell.key, toCandidateWeather(w.now));
+        }
+        cands = attachWeather(cands, positions, byCell);
+      } catch (error) {
+        out.errors.push(`strike-weather ${r.id.slice(0, 8)}: ${error instanceof Error ? error.message : "failed"}`);
+      }
       await env.DB
         .prepare(
           `INSERT OR IGNORE INTO strike_snapshot (incident_id, stage, snapshot_at, radius_nm, vessel_count, credits, candidates)

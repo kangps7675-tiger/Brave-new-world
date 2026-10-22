@@ -5,7 +5,8 @@
 
 import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import type { AppDb } from "@/db/client";
-import { marineWeather } from "@/db/schema";
+import { marineWeather, seaWeatherNow } from "@/db/schema";
+import { isFreshSeaWeather } from "@/lib/seaWeather/schedule";
 import { MARINE_POINTS, type MarineRegion } from "@/lib/marineWeather/zones";
 import {
   INCIDENT_MAX_OFFSET_MIN,
@@ -62,9 +63,27 @@ export async function loadSeaAtIncident(
   }
 }
 
+/** Datalastic 현재값 (Worker 가 적재) */
+export type PointNow = {
+  at: string | null;
+  fetchedAt: string | null;
+  waveHeightM: number | null;
+  wavePeriodS: number | null;
+  swellHeightM: number | null;
+  windKn: number | null;
+  windDirDeg: number | null;
+  visibilityKm: number | null;
+  pressureHpa: number | null;
+  seaTempC: number | null;
+};
+
 export type RegionForecast = {
   region: MarineRegion;
   cycle: string | null;
+  /** 지점 id → Datalastic 현재값. 12시간 넘은 값·실패한 지점은 없다(= 화면은 "자료 없음") */
+  current: Record<string, PointNow>;
+  /** 마지막 Datalastic 호출이 실패했으면 그 사유 (운영 확인용) */
+  currentError: string | null;
   summary: ForecastSummary;
   points: Array<{ id: string; nameKo: string; nameEn: string }>;
 };
@@ -76,7 +95,10 @@ export async function loadRegionForecast(db: AppDb, region: MarineRegion, nowMs 
     nameKo: p.nameKo,
     nameEn: p.nameEn,
   }));
-  const empty: RegionForecast = { region, cycle: null, summary: summarizeForecast([], nowMs), points };
+  const empty: RegionForecast = { region, cycle: null, current: {}, currentError: null, summary: summarizeForecast([], nowMs), points };
+  const { current, currentError } = await loadCurrent(db, region, nowMs);
+  empty.current = current;
+  empty.currentError = currentError;
   try {
     const latest = await db
       .select({ cycle: marineWeather.cycle })
@@ -91,8 +113,39 @@ export async function loadRegionForecast(db: AppDb, region: MarineRegion, nowMs 
       .from(marineWeather)
       .where(and(eq(marineWeather.cycle, cycle), eq(marineWeather.region, region)))
       .orderBy(asc(marineWeather.pointId), asc(marineWeather.fhour));
-    return { region, cycle, summary: summarizeForecast(rows, nowMs), points };
+    return { ...empty, cycle, summary: summarizeForecast(rows, nowMs) };
   } catch {
     return empty;
   }
+}
+
+async function loadCurrent(
+  db: AppDb,
+  region: MarineRegion,
+  nowMs: number,
+): Promise<{ current: Record<string, PointNow>; currentError: string | null }> {
+  const current: Record<string, PointNow> = {};
+  let currentError: string | null = null;
+  try {
+    const rows = await db.select().from(seaWeatherNow).where(eq(seaWeatherNow.region, region));
+    for (const r of rows) {
+      if (r.error && !currentError) currentError = r.error;
+      if (!isFreshSeaWeather(r.at, r.fetchedAt, nowMs)) continue;
+      current[r.pointId] = {
+        at: r.at,
+        fetchedAt: r.fetchedAt,
+        waveHeightM: r.waveHeightM,
+        wavePeriodS: r.wavePeriodS,
+        swellHeightM: r.swellHeightM,
+        windKn: r.windKn,
+        windDirDeg: r.windDirDeg,
+        visibilityKm: r.visibilityKm,
+        pressureHpa: r.pressureHpa,
+        seaTempC: r.seaTempC,
+      };
+    }
+  } catch {
+    // 0040 마이그레이션 전 — 현재값 없이 NOAA 예보만
+  }
+  return { current, currentError };
 }

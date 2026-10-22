@@ -35,6 +35,7 @@ import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
 import { runStrikeSnapshots } from "./strikeSnapshot";
+import { runSeaWeatherNow } from "./seaWeatherNow";
 import { runStrikeNames } from "./strikeNames";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
@@ -233,6 +234,13 @@ async function runFastAlerts(env: IngestEnv): Promise<void> {
     if (names.errors.length > 0) out.push(`strikeNamesErr=${names.errors[0]}`);
   } catch (error) {
     out.push(`strikeNamesErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  try {
+    const wx = await runSeaWeatherNow(env);
+    if (wx.fetched + wx.failed > 0) out.push(`seaWx=ok${wx.fetched} fail${wx.failed} credits=${wx.credits}`);
+    if (wx.errors.length > 0) out.push(`seaWxErr=${wx.errors[0]}`);
+  } catch (error) {
+    out.push(`seaWxErr=${error instanceof Error ? error.message : "failed"}`);
   }
   const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
   if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);
