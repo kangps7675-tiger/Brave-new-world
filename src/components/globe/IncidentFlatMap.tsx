@@ -60,7 +60,7 @@ export default function IncidentFlatMap({
       {places.map((p) => (
         <Marker key={p.id} latitude={p.lat} longitude={p.lng} anchor="top">
           <span
-            className={`pointer-events-none block max-w-[9rem] truncate rounded-sm bg-black/55 px-1 text-[10px] leading-4 ${
+            className={`pointer-events-none block max-w-[9rem] truncate rounded-sm bg-black/55 px-1 text-micro leading-4 ${
               p.kind === "choke" ? "text-cyan-200" : "text-amber-200"
             }`}
           >
@@ -77,9 +77,9 @@ export default function IncidentFlatMap({
       </Marker>
       {callout ? (
         <Marker latitude={lat} longitude={lng} anchor="bottom" offset={[0, -14]}>
-          <span className="pointer-events-none block max-w-[12rem] rounded-md border border-red-300/50 bg-[#1a0c0c]/92 px-2 py-1 text-[11px] leading-snug text-red-50 shadow-lg">
+          <span className="pointer-events-none block max-w-[12rem] rounded-md border border-red-300/50 bg-[#1a0c0c]/92 px-2 py-1 text-micro leading-snug text-red-50 shadow-lg">
             <span className="block font-semibold">{callout.title}</span>
-            {callout.subtitle ? <span className="block text-[10px] text-red-200/80">{callout.subtitle}</span> : null}
+            {callout.subtitle ? <span className="block text-micro text-red-200/80">{callout.subtitle}</span> : null}
           </span>
         </Marker>
       ) : null}
