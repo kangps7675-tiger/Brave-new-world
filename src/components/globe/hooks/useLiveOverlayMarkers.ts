@@ -57,6 +57,8 @@ export type UseLiveOverlayMarkersOptions = {
   ultraLite?: boolean;
 };
 
+const AIS_WORLD_RADIUS_DEG = 400; // 뷰포트 컷 해제 — 선박은 symbol 레이어라 3000척까지 전 지구를 그린다
+
 export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   const {
     staticGlobePoints,
@@ -206,7 +208,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
               vessel.category === "military" ? showAisMilitary : showAisCommercial,
             ),
           layerViewState,
-          VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
+          AIS_WORLD_RADIUS_DEG,
           liveAisDisplayMax(globeLodTier, ultraLite),
         )
       : [];
