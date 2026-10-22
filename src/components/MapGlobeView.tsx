@@ -1205,6 +1205,49 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }),
     [aisSymbolVessels, mapBearingDeg, aisSymbolSelectedMmsi],
   );
+  /**
+   * 진단용 — 브라우저 콘솔에서 `__aisDebug()` 로 선박이 어느 단계에서 비는지 본다.
+   * (받은 선박 수 → 지도에 올린 점 수 → 아이콘 등록 → 실제 그려진 점 수). 호출할 때만 계산한다.
+   */
+  const aisDebugRef = useRef<() => unknown>(() => null);
+  aisDebugRef.current = () => {
+    const map = mapRef.current?.getMap();
+    const out: Record<string, unknown> = {
+      vesselsIn: aisSymbolVessels.length,
+      headingFeatures: aisSymbolModel.headingGeojson.features.length,
+      aspectFeatures: aisSymbolModel.aspectGeojson.features.length,
+      mapLoaded,
+    };
+    if (!map) return { ...out, map: "none" };
+    try {
+      const style = map.getStyle();
+      const layers = style?.layers?.filter((l: { id: string }) => /ais/i.test(l.id)).map((l: { id: string }) => l.id) ?? [];
+      const icons = [
+        ...new Set(
+          [...aisSymbolModel.headingGeojson.features, ...aisSymbolModel.aspectGeojson.features].map(
+            (f) => String((f.properties as { icon?: string } | null)?.icon),
+          ),
+        ),
+      ];
+      out.zoom = Number(map.getZoom().toFixed(2));
+      out.styleLoaded = map.isStyleLoaded();
+      out.layers = layers;
+      out.iconsUsed = icons.length;
+      out.iconsMissing = icons.filter((id) => !map.hasImage(id));
+      out.rendered = layers.length ? map.queryRenderedFeatures({ layers }).length : 0;
+      out.layerVisibility = layers.map((id: string) => map.getLayoutProperty(id, "visibility") ?? "visible");
+    } catch (error) {
+      out.error = String(error);
+    }
+    return out;
+  };
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    (window as unknown as { __aisDebug?: () => unknown }).__aisDebug = () => aisDebugRef.current();
+    return () => {
+      delete (window as unknown as { __aisDebug?: () => unknown }).__aisDebug;
+    };
+  }, []);
   const onAisSymbolClick = props.onAisSymbolClick as ((item: unknown) => void) | undefined;
   const onAisSymbolHover = props.onAisSymbolHover as
     | ((item: unknown | null) => void)
