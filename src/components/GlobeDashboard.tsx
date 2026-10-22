@@ -7305,10 +7305,13 @@ export function GlobeDashboard({
 
         {!isSatelliteViewer ? (
           <div
-            className={`pointer-events-none fixed ${isPhoneUi ? "inset-x-3" : "right-3 flex flex-col gap-2"} ${zc("mapControl")}`}
+            className={`pointer-events-none fixed ${isPhoneUi ? "inset-x-3 flex flex-col justify-end gap-2" : "right-3 flex flex-col gap-2"} ${zc("mapControl")}`}
             style={
               isPhoneUi
-                ? { bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }
+                ? {
+                    bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)",
+                    maxHeight: "calc(100dvh - 5rem)",
+                  }
                 : {
                     top: "calc(var(--mode-index-chip-bottom, 4rem) + 0.75rem)",
                     maxHeight: "calc(100vh - var(--mode-index-chip-bottom, 4rem) - 1.5rem)",
@@ -7328,6 +7331,7 @@ export function GlobeDashboard({
               }}
             />
             <EventDock
+              compact={isPhoneUi}
               lang={labelLanguage}
               shipItems={incidentStackItems}
               liveuaEvents={liveuaEvents}
@@ -7593,6 +7597,7 @@ export function GlobeDashboard({
         {!landingCurtainActive && deskOpenId != null ? (
           <LiveFlashDesk
             narrow={isSatelliteViewer}
+            collapseOnAction={isPhoneUi}
             newsPool={deskNewsPool}
             lang={labelLanguage}
             items={liveDeskItems}

@@ -65,6 +65,8 @@ type Props = {
   onGoToLocation: (lat: number, lng: number) => void;
   onFocusVessel: (vessel: AisVessel) => void;
   newsPool?: readonly NewsStreamItem[];
+  /** 폰: 가로 전체 폭 + 접힌 배너로 시작해 화면을 덜 가린다 */
+  compact?: boolean;
 };
 
 /**
@@ -74,10 +76,11 @@ type Props = {
  * - 예민한 지역의 외교 움직임·공격적 언사 → 정세 상세(걸린 표현 포함)
  * 닫으면 그 건은 사라지고 다시 뜨지 않는다(브라우저에 기억). 접속 시 3시간 넘은 건 띄우지 않는다.
  */
-export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFocusVessel, newsPool = [] }: Props) {
+export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFocusVessel, newsPool = [], compact = false }: Props) {
   const en = lang === "en";
   const [dismissed, setDismissed] = useState<Set<string> | null>(null);
   const [cursor, setCursor] = useState(0);
+  const [expanded, setExpanded] = useState(!compact);
   useEffect(() => setDismissed(loadDismissed()), []);
 
   const candidates = useMemo<Entry[]>(() => {
@@ -127,17 +130,46 @@ export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFoc
           ? POSTURE_LABEL[cur.posture.kind].en
           : POSTURE_LABEL[cur.posture.kind].ko;
 
+  if (compact && !expanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className="pointer-events-auto flex w-full items-center justify-between gap-2 rounded-md border border-[#6b4a22]/60 bg-[#f3e6c8] px-3 py-2 text-left text-micro font-semibold text-[#2a1c0a] shadow-lg"
+        aria-label={en ? "Open event detail" : "사건 상세 열기"}
+        data-event-dock
+      >
+        <span className="min-w-0 truncate">
+          <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-rose-600" aria-hidden />
+          {headLabel}
+        </span>
+        <span className="shrink-0 tabular-nums">
+          {open.length > 1 ? `${open.length} ` : ""}▴
+        </span>
+      </button>
+    );
+  }
+
   return (
     <section
-      className="pointer-events-auto flex w-[min(20rem,84vw)] flex-col overflow-hidden rounded-md border border-[#6b4a22]/50 bg-[#f3e6c8] text-[#2a1c0a] shadow-lg"
+      className={`pointer-events-auto flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/50 bg-[#f3e6c8] text-[#2a1c0a] shadow-lg ${
+        compact ? "max-h-[55dvh] w-full overflow-y-auto" : "w-[min(20rem,84vw)]"
+      }`}
       aria-label={en ? "Event detail" : "사건 상세"}
       data-event-dock
     >
       <header className="flex items-center justify-between gap-2 border-b border-[#6b4a22]/30 px-2.5 py-1.5 text-micro">
         <span className="font-semibold">{headLabel}</span>
-        <button type="button" aria-label={en ? "Close" : "닫기"} className={btn} onClick={() => close(cur.id)}>
-          ×
-        </button>
+        <span className="flex gap-1">
+          {compact ? (
+            <button type="button" aria-label={en ? "Collapse" : "접기"} className={btn} onClick={() => setExpanded(false)}>
+              ▾
+            </button>
+          ) : null}
+          <button type="button" aria-label={en ? "Close" : "닫기"} className={btn} onClick={() => close(cur.id)}>
+            ×
+          </button>
+        </span>
       </header>
 
       {cur.kind === "ship" ? (
