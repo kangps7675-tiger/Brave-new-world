@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AisVessel } from "@/data/geoTypes";
+import { loadIncidentVessels, type IncidentVessel } from "@/lib/incidentVesselsClient";
 
-export type IncidentVessel = AisVessel & {
-  incident: 1 | 2;
-  incidentCaseId?: string | null;
-  incidentType?: string | null;
-};
+export type { IncidentVessel };
 
 const REFRESH_MS = 10 * 60_000;
 
@@ -20,15 +16,12 @@ export function useIncidentVessels(enabled: boolean): IncidentVessel[] {
       return;
     }
     let alive = true;
-    const load = () =>
-      fetch("/api/incident-vessels")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => {
-          if (alive && j && Array.isArray(j.vessels)) setVessels(j.vessels as IncidentVessel[]);
-        })
-        .catch(() => {});
-    void load();
-    const t = setInterval(load, REFRESH_MS);
+    const load = (force: boolean) =>
+      void loadIncidentVessels(force).then((v) => {
+        if (alive) setVessels(v);
+      });
+    load(false);
+    const t = setInterval(() => load(true), REFRESH_MS);
     return () => {
       alive = false;
       clearInterval(t);

@@ -10,6 +10,8 @@ import {
 } from "@/lib/incidentStack/build";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
+import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
+import type { AisVessel } from "@/data/geoTypes";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { provenanceLines } from "@/lib/provenance";
 
@@ -34,6 +36,8 @@ type Props = {
   onMarkAllRead?: () => void;
   /** 지도 이동은 이 버튼을 눌렀을 때만 */
   onGoToLocation: (item: StackItem) => void;
+  /** 후보 선박 패널에서 배를 누르면 — 지도에서 그 배를 선택하고 날아간다 */
+  onFocusVessel?: (vessel: AisVessel) => void;
   /** 세슘 위성 뷰는 이 버튼을 눌렀을 때만 켜진다 */
   onViewSatellite?: (item: StackItem) => void;
   /** 이미 위성 모드면 "위성으로 보기"를 숨긴다 */
@@ -73,6 +77,7 @@ export function IncidentStack({
   onSelect,
   onMarkAllRead,
   onGoToLocation,
+  onFocusVessel,
   onViewSatellite,
   hideSatelliteCta = false,
   compact = false,
@@ -126,6 +131,9 @@ export function IncidentStack({
         <>
           {(focus ?? visible[0]) ? (
             <ShipIncidentCard lang={lang} item={(focus ?? visible[0])!} />
+          ) : null}
+          {focus && focus.source === "ukmto" && onFocusVessel ? (
+            <IncidentVesselPanel lang={lang} item={focus} onFocusVessel={onFocusVessel} />
           ) : null}
           {presentSeas.length > 0 ? (
             <div
