@@ -282,26 +282,30 @@ export function matchesAisClassFilter(
   return category === "commercial" || category === "other";
 }
 
-/** 민간 AIS — 시안 계열 (군용 빨강과 대비). 함종은 채도만 살짝 나눔. */
+/**
+ * 민간 AIS — 마린트래픽식 선종 색 관례(화물 초록·여객 파랑·예인/특수 청록·고속 노랑·레저 자홍·미상 회색).
+ * 유조선은 마린트래픽이 빨강이지만 군함(빨강)과 겹쳐 주황으로 둔다. 군함은 실루엣으로도 구분된다.
+ */
 export function aisCommercialPointColor(shipType: number | null | undefined): string {
-  if (shipType == null || !Number.isFinite(shipType)) return "rgba(56, 189, 248, 0.9)";
+  if (shipType == null || !Number.isFinite(shipType)) return "rgba(156, 163, 175, 0.92)"; // 미상 — 회색
   if (shipType === 35 || shipType === 55) return "rgba(248, 113, 113, 0.92)"; // mil/LE fallback
+  if (shipType === 36 || shipType === 37) return "rgba(232, 121, 249, 0.92)"; // Pleasure — 자홍
   const g = Math.floor(shipType / 10);
   switch (g) {
     case 8:
-      return "rgba(14, 165, 233, 0.92)"; // Tanker — sky-500
+      return "rgba(234, 88, 12, 0.94)"; // Tanker — 주황
     case 7:
-      return "rgba(56, 189, 248, 0.92)"; // Cargo — sky-400
+      return "rgba(74, 222, 128, 0.94)"; // Cargo — 초록
     case 6:
-      return "rgba(125, 211, 252, 0.9)"; // Passenger — sky-300
+      return "rgba(59, 130, 246, 0.94)"; // Passenger — 파랑
     case 2:
-      return "rgba(34, 211, 238, 0.9)"; // Fishing — cyan-400
+      return "rgba(253, 186, 116, 0.94)"; // Fishing — 연주황
     case 4:
-      return "rgba(103, 232, 249, 0.9)"; // HSC — cyan-300
+      return "rgba(250, 204, 21, 0.94)"; // HSC — 노랑
     case 3:
-      return "rgba(56, 189, 248, 0.88)"; // Special
+      return "rgba(34, 211, 238, 0.94)"; // Tug·Special — 청록
     default:
-      return "rgba(56, 189, 248, 0.9)";
+      return "rgba(156, 163, 175, 0.92)"; // 기타 — 회색
   }
 }
 

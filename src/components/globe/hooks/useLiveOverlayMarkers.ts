@@ -58,6 +58,8 @@ export type UseLiveOverlayMarkersOptions = {
   ultraLite?: boolean;
 };
 
+const AIS_WORLD_RADIUS_DEG = 400; // 뷰포트 컷 해제 — 선박은 symbol 레이어라 3000척까지 전 지구를 그린다
+
 export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   const {
     staticGlobePoints,
@@ -200,15 +202,17 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   // 군/민 세부 토글(showAisMilitary/showAisCommercial)로만 거른다. 바닷길 보기도 같은 경로.
   const incidentVessels = useIncidentVessels(showAis);
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
+    // 군·민 세부 토글이 둘 다 꺼진 저장값은 의도된 상태가 아니다 — 전부 걸러 빈 화면이 되므로 둘 다 켠 것으로 본다
+    const subBothOff = !showAisMilitary && !showAisCommercial;
     const live = showAis
       ? pickInViewOrNearest(
           aisVessels
             .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
             .filter((vessel) =>
-              vessel.category === "military" ? showAisMilitary : showAisCommercial,
+              subBothOff || (vessel.category === "military" ? showAisMilitary : showAisCommercial),
             ),
           layerViewState,
-          VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
+          AIS_WORLD_RADIUS_DEG,
           liveAisDisplayMax(globeLodTier, ultraLite),
         )
       : [];
