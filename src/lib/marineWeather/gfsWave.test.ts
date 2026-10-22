@@ -70,11 +70,15 @@ describe("대양 해역 변수 제한", () => {
     for (const list of Object.values(MARINE_REGION_FIELDS)) for (const k of list ?? []) expect(keys.has(k)).toBe(true);
   });
 
-  it("파일당 NOMADS 요청 수가 50 을 넘지 않는다 (Workers 서브요청 한도 여유)", async () => {
-    const { MARINE_REGIONS, MARINE_REGION_FIELDS } = await import("./zones");
+  it("파트(위험/전 세계)별 파일당 NOMADS 요청 수가 50 을 넘지 않는다 (Workers 서브요청 한도 여유)", async () => {
+    const { MARINE_REGIONS, MARINE_REGION_FIELDS, isGlobalMarineRegion } = await import("./zones");
     const { WAVE_FIELDS } = await import("./gfsWave");
-    let jobs = 0;
-    for (const r of MARINE_REGIONS) jobs += MARINE_REGION_FIELDS[r]?.length ?? WAVE_FIELDS.length;
-    expect(jobs).toBeLessThanOrEqual(45);
+    const count = (global: boolean) =>
+      MARINE_REGIONS.filter((r) => isGlobalMarineRegion(r) === global).reduce(
+        (n, r) => n + (MARINE_REGION_FIELDS[r]?.length ?? WAVE_FIELDS.length),
+        0,
+      );
+    expect(count(false)).toBeLessThanOrEqual(45);
+    expect(count(true)).toBeLessThanOrEqual(45);
   });
 });

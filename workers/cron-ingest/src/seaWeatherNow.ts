@@ -9,7 +9,7 @@
  */
 
 import { DEFAULT_MONTHLY_CREDITS, monthKey } from "../../../src/lib/datalasticAis";
-import { MARINE_POINTS } from "../../../src/lib/marineWeather/zones";
+import { RISK_MARINE_POINTS as MARINE_POINTS } from "../../../src/lib/marineWeather/zones";
 import { fetchSeaWeather, toCandidateWeather } from "../../../src/lib/seaWeather/datalastic";
 import { SEA_WX_CREDITS, canSpendOnSeaWeather, dueSeaWeatherPoints } from "../../../src/lib/seaWeather/schedule";
 import { EVENT_RESERVE_CREDITS } from "../../../src/lib/strikeSnapshot";
