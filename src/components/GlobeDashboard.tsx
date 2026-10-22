@@ -144,7 +144,6 @@ import {
 } from "@/lib/strikeFlames";
 import { strikeFacilityLabel } from "@/lib/strikeFacility";
 import { parseTime } from "@/lib/provenance";
-import { EmailDigestSignup } from "@/components/globe/EmailDigestSignup";
 import { ngaSecurityStackItems } from "@/lib/incidentStack/ngaSecurity";
 import { parseNavareaApiPayload } from "@/lib/navareaHatch";
 import { calloutFromLiveua, calloutFromStackItem, type EventCallout } from "@/lib/eventCallout";
@@ -7310,7 +7309,6 @@ export function GlobeDashboard({
               onViewSatellite={viewStackItemInSatellite}
             />
             <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
-            <EmailDigestSignup lang={labelLanguage} />
             {feedDrawerActive ? (
               <FeedDrawer
                 lang={labelLanguage}
