@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/hooks/useTr";
 import { useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
@@ -30,6 +31,7 @@ export function LiveuaFlashDock({
   const bare = chrome === "bare";
   const [open, setOpen] = useState(false);
   const expanded = bare || open;
+  const trList = useTr(events.map((ev) => peelUrlsFromText(ev.titleKo?.trim() || ev.title).text), lang);
   const unopenedCount = readIds
     ? events.filter((ev) => !readIds.has(ev.id)).length
     : 0;
@@ -99,7 +101,7 @@ export function LiveuaFlashDock({
               {events.map((ev, index) => {
                 const raw =
                   lang === "ko" ? ev.titleKo?.trim() || ev.title : ev.title;
-                const title = peelUrlsFromText(raw).text || raw;
+                const title = trList(peelUrlsFromText(raw).text || raw);
                 const isRead = readIds?.has(ev.id) ?? false;
                 return (
                   <li key={ev.id}>

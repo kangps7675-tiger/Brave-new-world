@@ -9,6 +9,7 @@ import { isMajorConfirmedStrike, type MajorStrike } from "@/lib/liveuamap/majorS
 import { classifyRegionalPosture, type RegionalPosture } from "@/lib/liveuamap/regionalPosture";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import { useTr } from "@/hooks/useTr";
 import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
@@ -212,6 +213,9 @@ function EventBody({
     [event.id, own.length, newsPool],
   );
   const photos = own.length > 0 ? own : related ? [related.imageUrl] : [];
+  const basisRaw =
+    entry.kind === "strike" ? (entry.strike.facilityName ? [] : entry.strike.evidence) : entry.posture.evidence;
+  const tr = useTr([peeled.title, peeled.body, related?.articleTitle, ...basisRaw], en ? "en" : "ko");
   const when = new Date(Date.parse(event.publishedAt)).toISOString().slice(0, 16).replace("T", " ");
   const basis =
     entry.kind === "strike"
@@ -245,7 +249,7 @@ function EventBody({
         <p className="text-micro text-[#5c4020]/80">
           {en ? "Related photo · " : "연관 사진 · "}
           <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
-            {related.outlet}: {related.articleTitle}
+            {related.outlet}: {tr(related.articleTitle)}
           </a>
           {en ? " (may not be from the scene)" : " (현장 사진이 아닐 수 있음)"}
         </p>
@@ -253,12 +257,12 @@ function EventBody({
       <p className="text-micro tabular-nums text-[#5c4020]/85">
         {event.regionId} · {when} UTC
       </p>
-      <h3 className="text-meta font-semibold leading-snug">{peeled.title}</h3>
-      {peeled.body ? <p className="text-micro leading-snug text-[#3d2a12]">{peeled.body}</p> : null}
+      <h3 className="text-meta font-semibold leading-snug">{tr(peeled.title)}</h3>
+      {peeled.body ? <p className="text-micro leading-snug text-[#3d2a12]">{tr(peeled.body)}</p> : null}
       {basis.length > 0 ? (
         <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60 px-2 py-1">
           <p className="text-micro font-semibold text-[#5c4020]/90">{basisTitle}</p>
-          <p className="text-micro text-[#3d2a12]">{basis.join(" · ")}</p>
+          <p className="text-micro text-[#3d2a12]">{basis.map(tr).join(" · ")}</p>
         </div>
       ) : null}
       <p className="text-micro tabular-nums text-[#5c4020]/75">

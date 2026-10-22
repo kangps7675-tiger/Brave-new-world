@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/hooks/useTr";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import {
   flashChokepointLabel,
@@ -42,8 +43,9 @@ export function LiveuaEventFocusCard({
     en ? event.body : event.bodyKo?.trim() || event.body,
     event.sourceUrl,
   );
-  const title = peeled.title;
-  const body = peeled.body;
+  const tr = useTr([peeled.title, peeled.body], lang);
+  const title = tr(peeled.title);
+  const body = tr(peeled.body);
   const market = liveuaFlashMarketContext(event);
   const hybrid = hybridNote(event, en ? "en" : "ko");
   const hasMedia = Boolean(event.imageUrl || event.videoUrl);

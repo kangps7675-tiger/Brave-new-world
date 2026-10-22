@@ -10,6 +10,7 @@ import { fetchShipPhotos } from "@/lib/shipPhoto";
 import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
+import { useTr } from "@/hooks/useTr";
 import { zc } from "@/lib/uiStack";
 
 export type DeskCategory = "ship" | "strike" | "posture" | "front";
@@ -131,6 +132,15 @@ export function LiveFlashDesk({
     item && !item.liveua && item.detail ? [{ key: item.id, text: item.detail }] : [],
     en ? "en" : "ko",
   );
+  const trEv = item?.liveua;
+  const trSrc = trEv ? splitLiveuaTitleBody(trEv.titleKo?.trim() || trEv.title, trEv.bodyKo?.trim() || trEv.body, trEv.sourceUrl) : null;
+  const trBasis = trEv
+    ? [...(isMajorConfirmedStrike(trEv)?.evidence ?? []), ...(classifyRegionalPosture(trEv)?.evidence ?? [])]
+    : [];
+  const tr = useTr(
+    [...sorted.map((i) => i.title), trSrc?.title, trSrc?.body, related?.articleTitle, ...trBasis],
+    lang,
+  );
   if (!item) return null;
 
   const ev = item.liveua;
@@ -142,10 +152,11 @@ export function LiveFlashDesk({
       en ? ev.body : ev.bodyKo?.trim() || ev.body,
       ev.sourceUrl,
     );
-    title = p.title;
-    body = p.body;
+    title = tr(p.title);
+    body = tr(p.body);
   } else {
     body = (translated.get(item.id) ?? item.detail ?? "").trim();
+    title = tr(title);
   }
   const photos = own.length > 0 ? own : related ? [related.imageUrl] : shipPhotos;
   const cat = deskCategory(item, shipIds.has(item.id));
@@ -207,7 +218,7 @@ export function LiveFlashDesk({
                   {isNew ? <span className="rounded-sm bg-rose-600 px-1 text-white">NEW</span> : null}
                   <span className="ml-auto tabular-nums text-[#5c4020]/75">{ago(it.at, now, en)}</span>
                 </span>
-                <span className="line-clamp-2 text-micro font-medium leading-snug">{it.title}</span>
+                <span className="line-clamp-2 text-micro font-medium leading-snug">{tr(it.title)}</span>
               </span>
             </button>
           );
@@ -257,7 +268,7 @@ export function LiveFlashDesk({
                   <>
                     {en ? "Related photo · " : "연관 사진 · "}
                     <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                      {related.outlet}: {related.articleTitle}
+                      {related.outlet}: {tr(related.articleTitle)}
                     </a>
                     {en ? " (not from the scene itself)" : " (사건 현장 사진이 아닐 수 있음)"}
                   </>
@@ -282,7 +293,7 @@ export function LiveFlashDesk({
               <p className="text-micro font-semibold text-[#5c4020]/90">
                 {strike ? (en ? "Why it's flagged" : "큰 타격으로 본 근거") : en ? "Matched wording" : "걸린 표현"}
               </p>
-              <p className="text-micro">{basis.join(" · ")}</p>
+              <p className="text-micro">{basis.map(tr).join(" · ")}</p>
             </div>
           ) : null}
           <p className="text-micro tabular-nums text-[#5c4020]/80">

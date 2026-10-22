@@ -12,6 +12,7 @@ import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
 import type { AisVessel } from "@/data/geoTypes";
+import { useTr } from "@/hooks/useTr";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { provenanceLines } from "@/lib/provenance";
 
@@ -100,6 +101,7 @@ export function IncidentStack({
     () => filterBySea(items, activeSea),
     [items, activeSea],
   );
+  const trRow = useTr(visible.map((i) => i.title), lang);
 
   return (
     <section
@@ -229,7 +231,7 @@ export function IncidentStack({
                           ) : null}
                         </span>
                         <span className="line-clamp-2 text-meta font-medium tracking-tight text-amber-50">
-                          {it.title}
+                          {trRow(it.title)}
                         </span>
                       </span>
                     </button>
@@ -274,13 +276,15 @@ function IncidentCard({
       : [],
     en ? "en" : "ko",
   );
-  const body = ev
+  const rawBody = ev
     ? splitLiveuaTitleBody(
         en ? ev.title : ev.titleKo?.trim() || ev.title,
         en ? ev.body : ev.bodyKo?.trim() || ev.body,
         ev.sourceUrl,
       ).body
     : (ukmtoText.get(item.id) ?? item.detail ?? "").trim();
+  const tr = useTr([item.title, rawBody], en ? "en" : "ko");
+  const body = tr(rawBody);
   const btn =
     "rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2 py-0.5 text-micro font-medium text-[#3d2a12] hover:bg-[#e8d6a8]";
   return (
@@ -288,7 +292,7 @@ function IncidentCard({
       className="mx-2 mb-2 space-y-2 rounded-sm border border-[#6b4a22]/45 bg-[#f3e6c8] p-2.5 text-[#2a1c0a]"
       data-incident-card
     >
-      <p className="text-meta font-semibold leading-snug">{item.title}</p>
+      <p className="text-meta font-semibold leading-snug">{tr(item.title)}</p>
       {body ? <p className="text-micro leading-snug text-[#3d2a12]">{body}</p> : null}
       {item.source === "ukmto" ? (
         <p className="text-micro text-[#5c4020]/80">

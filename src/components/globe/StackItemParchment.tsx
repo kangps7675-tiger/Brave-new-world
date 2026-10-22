@@ -2,6 +2,7 @@
 
 import { createPortal } from "react-dom";
 import { ParchmentLetter } from "@/components/ParchmentLetter";
+import { useTr } from "@/hooks/useTr";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
@@ -49,6 +50,11 @@ export function StackItemParchment({
       : [],
     en ? "en" : "ko",
   );
+  const trEv = item?.liveua;
+  const trPeel = trEv
+    ? splitLiveuaTitleBody(trEv.titleKo?.trim() || trEv.title, trEv.bodyKo?.trim() || trEv.body, trEv.sourceUrl)
+    : null;
+  const tr = useTr([item?.title, trPeel?.title, trPeel?.body], lang);
   if (!item) return null;
 
   const ev = item.liveua;
@@ -58,10 +64,11 @@ export function StackItemParchment({
     const rawTitle = en ? ev.title : ev.titleKo?.trim() || ev.title;
     const rawBody = en ? ev.body : ev.bodyKo?.trim() || ev.body;
     const peeled = splitLiveuaTitleBody(rawTitle, rawBody, ev.sourceUrl);
-    title = peeled.title;
-    body = peeled.body;
+    title = tr(peeled.title);
+    body = tr(peeled.body);
   } else {
     body = (translated.get(item.id) ?? item.detail ?? "").trim();
+    title = tr(title);
   }
 
   const when = new Date(item.at).toISOString().slice(0, 16).replace("T", " ");
