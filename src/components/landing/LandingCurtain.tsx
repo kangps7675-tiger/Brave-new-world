@@ -21,7 +21,7 @@ import { LandingContent, type EnterPlace } from "@/components/landing/LandingCon
  * 지구본이 GPU를 쓰는 순간에 셰이더를 하나 더 띄우면 저사양 기기에서 끊긴다.
  */
 
-const LIFT_MS = 1700;
+const LIFT_MS = 4600;
 const REDUCED_LIFT_MS = 250;
 const SHUTTER_MS = 650;
 const SHUTTER_SLATS = 12;
@@ -237,21 +237,21 @@ export function LandingCurtain({
       const t = Math.min(1, (now - start) / LIFT_MS);
       // 랜딩은 안개에 먼저 잠기고, 그 다음 안개가 버튼 쪽부터 바깥으로 흩어진다.
       if (content) {
-        content.style.opacity = String(1 - smooth(0.06, 0.34, t));
-        content.style.filter = `blur(${(smooth(0, 0.34, t) * 10).toFixed(1)}px)`;
-        content.style.transform = `scale(${1 + smooth(0, 0.34, t) * 0.025})`;
+        content.style.opacity = String(1 - smooth(0.1, 0.55, t));
+        content.style.filter = `blur(${(smooth(0, 0.55, t) * 12).toFixed(1)}px)`;
+        content.style.transform = `scale(${1 + smooth(0, 0.55, t) * 0.03})`;
       }
       if (ctx && img) {
-        const cover = smooth(0, 0.3, t);
-        const thr = smooth(0.24, 1, t) * 1.25 - 0.12;
+        const cover = smooth(0, 0.35, t) * (1 - smooth(0.85, 1, t));
+        const thr = smooth(0.12, 0.98, t) * 1.9 - 0.45;
         const drift = Math.floor(t * pad);
         const data = img.data;
         for (let y = 0; y < h; y++) {
           for (let x = 0; x < w; x++) {
             const i = y * w + x;
             const n = noise[y * (w + pad) + x + drift];
-            const s = n * 0.6 + dist[i] * 0.4;
-            const a = cover * smooth(thr - 0.1, thr + 0.06, s);
+            const s = n * 0.7 + dist[i] * 0.3;
+            const a = cover * smooth(thr - 0.4, thr + 0.22, s);
             const p = i * 4;
             data[p] = 204 + n * 38;
             data[p + 1] = 212 + n * 32;
@@ -339,7 +339,7 @@ export function LandingCurtain({
             height: "106%",
             zIndex: 701,
             pointerEvents: "none",
-            filter: "blur(12px)",
+            filter: "blur(18px)",
           }}
         />
       ) : null}
