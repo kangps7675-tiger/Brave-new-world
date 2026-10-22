@@ -93,21 +93,9 @@ const GeopoliticsSenseQuizModal = dynamic(
   ),
   { ssr: false },
 );
-const DailyRankSharePanel = dynamic(
-  importWithChunkRetry(() =>
-    import("@/components/DailyRankSharePanel").then((m) => m.DailyRankSharePanel),
-  ),
-  { ssr: false },
-);
 const TopWatchPanel = dynamic(
   importWithChunkRetry(() =>
     import("@/components/TopWatchPanel").then((m) => m.TopWatchPanel),
-  ),
-  { ssr: false },
-);
-const DailyBriefingChrome = dynamic(
-  importWithChunkRetry(() =>
-    import("@/components/DailyBriefingChrome").then((m) => m.DailyBriefingChrome),
   ),
   { ssr: false },
 );
@@ -237,7 +225,6 @@ import { FinintTicker } from "@/components/FinintTicker";
 import { BRI_TRADE_LINK_COUNT } from "@/lib/briTradePaths";
 import { US_DFC_LINK_COUNT } from "@/lib/usDfcSupplyPaths";
 import { HamburgerIcon } from "@/components/globe/HamburgerIcon";
-import { LegendReopenButton } from "@/components/MapOverlayLegendPanel";
 import type { EntryGate, Selection } from "@/components/globe/types";
 import type { NavSelection } from "@/data/navRegions";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
@@ -705,7 +692,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     onSetFoldedPeriodicBriefing,
     onSetTomorrowTensionPrompt,
     onSetClearanceStatus,
-    onToggleDailyRankPanel,
     onDismissAirRaidOffer,
     onDismissAdsbEmergencyOffer,
     onDismissExerciseOffer,
@@ -767,15 +753,13 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
     document.documentElement.style.setProperty("--chrome-right-dock-inset", "0px");
   }, []);
 
-  const showFoldedLampTab =
-    Boolean(foldedPeriodicBriefing) && !periodicBriefing && !weeklyExpanded;
   const showFoldedWeeklyTab = Boolean(
     weeklyRecap &&
       weeklyRecapCollapsed &&
       !periodicBriefing &&
       !foldedPeriodicBriefing,
   );
-  const showFoldedBriefingTabs = showFoldedLampTab || showFoldedWeeklyTab;
+  const showFoldedBriefingTabs = showFoldedWeeklyTab;
   /** 등불·주간 회고 중엔 좌레일 언마운트 — 스크림/접기 애니에 가려지거나 위로 밀리지 않게 */
   const railVisible =
     !intelSheetOpen &&
@@ -786,32 +770,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
 
   const foldedBriefingTabs = showFoldedBriefingTabs ? (
     <div className="pointer-events-auto flex flex-col items-start gap-1.5">
-      {showFoldedLampTab && foldedPeriodicBriefing ? (
-        <button
-          type="button"
-          onClick={() => {
-            onSetPeriodicBriefing(foldedPeriodicBriefing);
-            onSetFoldedPeriodicBriefing(null);
-          }}
-          className="group flex items-center gap-1.5 rounded-r-md border border-l-0 border-amber-700/60 bg-[#f0d99f]/95 py-2.5 pl-1.5 pr-2 text-[#34230f] shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-[#f8e8bd] hover:pl-2.5"
-          aria-label={
-            labelLanguage === "en"
-              ? "Reopen today's lamp news"
-              : "오늘의 등불뉴스 다시 펼치기"
-          }
-          title={labelLanguage === "en" ? "Today's lamp news" : "오늘의 등불뉴스"}
-        >
-          <span
-            className="text-micro font-semibold tracking-[0.14em]"
-            style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-          >
-            {labelLanguage === "en" ? "Lamp" : "등불"}
-          </span>
-          <span className="text-sm leading-none" aria-hidden>
-            {"\uD83C\uDFEE"}
-          </span>
-        </button>
-      ) : null}
       {showFoldedWeeklyTab && weeklyRecap ? (
         <button
           type="button"
@@ -1677,9 +1635,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       !tomorrowTensionPrompt &&
       !sentinelActive ? (
         <div
-          className={`cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-stretch gap-2 sm:left-4 cv-chrome-daily-bottom ${
-            showDailyRankPanel ? "cv-chrome-daily-open" : "w-fit"
-          }`}
+          className="cv-desktop-only pointer-events-auto fixed left-3 z-[600] flex flex-col items-stretch gap-2 sm:left-4 cv-chrome-daily-bottom w-fit"
         >
           {watchFocusLine && !watchFocusDismissed ? (
             <div className="flex max-w-[min(92vw,20rem)] items-start gap-2 rounded-lg border border-amber-500/30 bg-[#0c1018]/90 px-2.5 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
@@ -1697,49 +1653,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               </button>
             </div>
           ) : null}
-          {gateClosed &&
-          !showModePicker &&
-          !showLeftPanel &&
-          !showDailyRankPanel ? (
-            <DailyBriefingChrome
-              lang={labelLanguage}
-              layout="stack"
-              suppressed={Boolean(weeklyExpanded || tomorrowTensionPrompt || sentinelActive)}
-              onOpenDailyPanel={() => {
-                markBriefingStep("share");
-                onToggleDailyRankPanel(true);
-              }}
-            />
-          ) : null}
-          {showDailyRankPanel ? (
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-sky-400/25 bg-[#071018]/94 shadow-2xl backdrop-blur-md">
-              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-                <p className="min-w-0 truncate text-meta font-semibold text-sky-100">
-                  {labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onToggleDailyRankPanel(false)}
-                  aria-label={labelLanguage === "en" ? "Close daily panel" : "일일 패널 닫기"}
-                  title={labelLanguage === "en" ? "Close" : "닫기"}
-                  className="tap-target flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-500/60 bg-slate-950/90 text-sm text-slate-200 transition hover:border-slate-300 hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="intel-scroll-y min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2.5 py-2">
-                <DailyRankSharePanel lang={labelLanguage} />
-              </div>
-            </div>
-          ) : (
-            <LegendReopenButton
-              label={labelLanguage === "en" ? "Daily · GTS" : "오늘의 GTS"}
-              onClick={() => {
-                markBriefingStep("gti");
-                onToggleDailyRankPanel(true);
-              }}
-            />
-          )}
         </div>
       ) : null}
 
