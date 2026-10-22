@@ -11,6 +11,15 @@ export type StrikeCandidateView = {
   signals: Array<{ key: string; ko: string }>;
 };
 
+export type ReportedNameView = {
+  name: string;
+  imo: string | null;
+  mmsi: string | null;
+  outlets: number;
+  status: "new" | "unresolved";
+  sources: Array<{ url: string; outlet: string | null; headline: string }>;
+};
+
 export type StrikeDetailView = {
   status: MatchStatus;
   top: StrikeCandidateView | null;
@@ -18,6 +27,7 @@ export type StrikeDetailView = {
   nearbyCount: number;
   limits: string[];
   nameSource?: { name: string; outlets: number } | null;
+  reportedNames?: ReportedNameView[];
 };
 
 const TTL_MS = 10 * 60_000;

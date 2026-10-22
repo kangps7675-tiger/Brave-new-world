@@ -53,6 +53,8 @@ export type StrikeMatchResult = {
   /** 선명을 기사에서 가져왔고 AIS 위치로 검증된 경우의 출처 (UKMTO 가 선명을 공개하지 않을 때) */
   nameSource?: NameSource;
   trackSource: "ais_position_history" | "ais_position_history+datalastic";
+  /** 기사 보도 선명(위치 검증 전) — 확정 아님 */
+  reportedNames?: ReportedName[];
 };
 
 export type NameSource = {
@@ -90,6 +92,44 @@ export async function loadVerifiedNames(db: AppDb, incidentId: string): Promise<
       }
       return { name: r.name, outlets: r.outlets, distKm: r.distKm, sources };
     });
+  } catch {
+    return [];
+  }
+}
+
+export type ReportedName = {
+  name: string;
+  imo: string | null;
+  mmsi: string | null;
+  outlets: number;
+  /** new: 아직 위치 검증 전 · unresolved: 사건 시각 항적 자료가 없어 검증 못 함 */
+  status: "new" | "unresolved";
+  sources: NameSource["sources"];
+};
+
+/**
+ * 기사가 보도한 선명 중 아직 위치로 검증되지 않은 것. 확정이 아니라 "기사가 이렇게 보도했다"일 뿐이다.
+ * AIS 수신 공백으로 항적 후보가 없을 때도 사용자가 이름·IMO 단서를 볼 수 있게 한다. 테이블이 없으면 빈 배열.
+ */
+export async function loadReportedNames(db: AppDb, incidentId: string): Promise<ReportedName[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(strikeNamed)
+      .where(and(eq(strikeNamed.incidentId, incidentId), inArray(strikeNamed.status, ["new", "unresolved"])));
+    return rows
+      .sort((a, b) => b.outlets - a.outlets)
+      .slice(0, 3)
+      .map((r) => {
+        let sources: NameSource["sources"] = [];
+        try {
+          const parsed = JSON.parse(r.sources) as unknown;
+          if (Array.isArray(parsed)) sources = parsed as NameSource["sources"];
+        } catch {
+          // 깨진 JSON — 출처 없이 진행
+        }
+        return { name: r.name, imo: r.imo, mmsi: r.mmsi, outlets: r.outlets, status: r.status as "new" | "unresolved", sources };
+      });
   } catch {
     return [];
   }
@@ -309,6 +349,8 @@ export async function matchStrikeCase(
   if (s.top && !s.top.imo) limits.push("1순위 후보의 IMO 미수신 — MMSI 로만 식별");
 
   const wx = await loadCandidateWeather(db, c.id);
+  // 검증된 이름이 있으면 그걸 쓰므로, 없을 때만 '보도 선명(미검증)'을 단서로 붙인다
+  const reportedNames = nameSource ? [] : await loadReportedNames(db, c.id);
   const withWx = (x: ScoredCandidate): WeatheredCandidate => (wx.has(x.mmsi) ? { ...x, weather: wx.get(x.mmsi)! } : x);
 
   return {
@@ -319,6 +361,7 @@ export async function matchStrikeCase(
     nearbyCount: s.nearbyCount,
     limits,
     ...(nameSource ? { nameSource } : {}),
+    ...(reportedNames.length ? { reportedNames } : {}),
     trackSource,
   };
 }
