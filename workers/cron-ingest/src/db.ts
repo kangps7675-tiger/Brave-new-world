@@ -755,6 +755,12 @@ export function getAdsbApiKey(env: IngestEnv): string | null {
   return key || null;
 }
 
+/** RapidAPI 로 산 ADS-B Exchange 키만 돌려준다 (보강 수집 전용 — 허브 폴링은 여전히 키 없이 adsb.lol) */
+export function getRapidAdsbKey(env: IngestEnv): string | null {
+  const key = (env.ADSBEXCHANGE_API_KEY || env.ADSB_API_KEY || env.ADSBX_API_KEY || "").trim();
+  return /^[0-9a-f]{8,12}msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(key) ? key : null;
+}
+
 export function getAisstreamKey(env: IngestEnv): string | null {
   const key = (env.AISSTREAM_API_KEY || "").trim();
   return key || null;
