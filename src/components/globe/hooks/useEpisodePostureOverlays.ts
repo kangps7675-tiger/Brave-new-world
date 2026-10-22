@@ -47,7 +47,7 @@ import {
 import { observationsForGroupKey, type ShipTrailMode } from "@/lib/shipMovements/shipMovementBrief";
 import type { PublicShipObservation } from "@/lib/shipMovements/types";
 import { strategicPostureHtmlMarkers, strategicSupportArrowPaths } from "@/lib/strategicFormationMarkers";
-import { ukmtoIncidentToHatchPaths, type UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
+import { ukmtoIncidentToHatchPaths, ukmtoRadiusDegForZoom, type UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 
 export type UseEpisodePostureOverlaysOptions = {
   labelLanguage: LabelLanguage;
@@ -81,6 +81,8 @@ export type UseEpisodePostureOverlaysOptions = {
   reefWatch: ReefWatchPayload | null;
 
   showUkmtoIncidents: boolean;
+  /** 지도 줌 — UKMTO 빗금 원이 줌인할수록 작아지게 한다 */
+  mapZoom?: number;
   showNavareaWarnings: boolean;
   showMilitaryExercises: boolean;
   showEastAsiaAdiz: boolean;
@@ -120,6 +122,7 @@ export function useEpisodePostureOverlays(opts: UseEpisodePostureOverlaysOptions
     aisVessels,
     reefWatch,
     showUkmtoIncidents,
+    mapZoom,
     showNavareaWarnings,
     showMilitaryExercises,
     showEastAsiaAdiz,
@@ -333,12 +336,13 @@ export function useEpisodePostureOverlays(opts: UseEpisodePostureOverlaysOptions
   /** UKMTO 사건 → 검은 동그라미 빗금 박스 (강도별 흑↔백) — dispute-zone/conflict-hatch kind 재사용 */
   const ukmtoHatchPaths = useMemo<TransportPath[]>(() => {
     if (!showUkmtoIncidents || ukmtoIncidents.length === 0) return [];
+    const radiusDeg = ukmtoRadiusDegForZoom(mapZoom ?? 0);
     const out: TransportPath[] = [];
     for (const incident of ukmtoIncidents) {
-      out.push(...ukmtoIncidentToHatchPaths(incident));
+      out.push(...ukmtoIncidentToHatchPaths(incident, radiusDeg));
     }
     return out;
-  }, [showUkmtoIncidents, ukmtoIncidents]);
+  }, [showUkmtoIncidents, ukmtoIncidents, mapZoom]);
 
   /** NAVAREA → 보라색 폴리곤/선 */
   const navareaHatchPaths = useMemo<TransportPath[]>(() => {
