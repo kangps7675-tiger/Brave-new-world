@@ -16,7 +16,7 @@ describe("pickDockEntries", () => {
     );
     expect(r.map((x) => x.id)).toEqual(["a"]);
   });
-  it("최신순으로 최대 2건", () => {
+  it("최신순으로 상한까지", () => {
     const r = pickDockEntries(
       [
         { id: "a", at: now - 3 * 60_000 },
@@ -25,6 +25,7 @@ describe("pickDockEntries", () => {
       ],
       new Set(),
       now,
+      2,
     );
     expect(r.map((x) => x.id)).toEqual(["b", "c"]);
   });

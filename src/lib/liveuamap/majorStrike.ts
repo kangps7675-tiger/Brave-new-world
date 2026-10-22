@@ -20,7 +20,15 @@ export type MajorStrikeReason = "facility" | "infrastructure" | "casualty" | "he
 export type MajorStrike = {
   kind: LiveuaStrikeKind;
   reason: MajorStrikeReason;
+  /** 판정 근거 — 원문에서 걸린 표현 (감시 시설이면 시설 이름) */
+  evidence: string[];
+  facilityName?: { ko: string; en: string };
 };
+
+function hits(re: RegExp, text: string): string[] {
+  const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
+  return [...new Set([...text.matchAll(g)].map((m) => m[0]).filter(Boolean))].slice(0, 4);
+}
 
 type Input = Pick<LiveuamapEvent, "title" | "body" | "titleKo" | "bodyKo" | "tags" | "lat" | "lng">;
 
@@ -40,12 +48,21 @@ export function isMajorConfirmedStrike(event: Input): MajorStrike | null {
     .filter((p) => typeof p === "string" && p.trim())
     .join("\n");
   const facility = strikeFacilityFor({ lat: event.lat, lng: event.lng, text });
-  if (facility) return { kind: strike.kind, reason: "facility" };
+  if (facility) {
+    return {
+      kind: strike.kind,
+      reason: "facility",
+      evidence: [],
+      facilityName: { ko: `${facility.nameKo} (${facility.kindKo})`, en: `${facility.nameEn} (${facility.kindEn})` },
+    };
+  }
   const damage = DAMAGE_RE.test(text);
-  if (INFRA_RE.test(text) && damage) return { kind: strike.kind, reason: "infrastructure" };
-  if (CASUALTY_RE.test(text)) return { kind: strike.kind, reason: "casualty" };
+  if (INFRA_RE.test(text) && damage) {
+    return { kind: strike.kind, reason: "infrastructure", evidence: [...hits(INFRA_RE, text), ...hits(DAMAGE_RE, text)].slice(0, 4) };
+  }
+  if (CASUALTY_RE.test(text)) return { kind: strike.kind, reason: "casualty", evidence: hits(CASUALTY_RE, text) };
   if ((strike.kind === "missile" || strike.kind === "bomb") && damage) {
-    return { kind: strike.kind, reason: "heavy" };
+    return { kind: strike.kind, reason: "heavy", evidence: hits(DAMAGE_RE, text) };
   }
   return null;
 }
