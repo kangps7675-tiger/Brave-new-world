@@ -27,6 +27,9 @@ export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[-45, -75], [-28, -50]], // South Cone
   [[42, -10], [58, 15]], // NW Europe / Channel
   [[48, 25], [62, 50]], // Baltic–Barents approaches
+  [[68, 10], [75, 50]], // 북극: 노르웨이 북부·바렌츠해·무르만스크 (북동항로 서쪽 입구)
+  [[76, 8], [81, 32]], // 북극: 스발바르
+  [[60, 168], [68, 180]], // 북극: 베링해 서쪽·추코트카 (북동항로 동쪽 출구)
   [[-5, -20], [18, 15]], // West Africa / Gulf of Guinea
   [[-12, 25], [12, 50]], // East Africa / Indian Ocean west
   [[-38, 10], [-18, 40]], // South Africa / Cape

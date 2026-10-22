@@ -53,6 +53,12 @@ export const DATALASTIC_ZONES: DatalasticZone[] = [
   { id: "us-gulf", name: "미 멕시코만", lat: 28.5, lon: -94.0, radiusNm: 50 },
   { id: "us-west", name: "미 서안(LA)", lat: 33.5, lon: -118.4, radiusNm: 50 },
   { id: "us-east", name: "미 동안(뉴욕)", lat: 40.3, lon: -73.8, radiusNm: 50 },
+  // 북극항로 (NSR·북서항로) — 선박이 드물어 크레딧을 거의 안 쓴다
+  { id: "arctic-barents", name: "바렌츠해(무르만스크)", lat: 71.5, lon: 33.5, radiusNm: 50 },
+  { id: "arctic-kara-strait", name: "카라 해협", lat: 70.5, lon: 57.5, radiusNm: 50 },
+  { id: "arctic-vilkitsky", name: "빌키츠키 해협", lat: 77.6, lon: 104.3, radiusNm: 50 },
+  { id: "arctic-bering", name: "베링 해협", lat: 66.0, lon: -169.0, radiusNm: 50 },
+  { id: "arctic-lancaster", name: "랭커스터 해협(북서항로)", lat: 74.2, lon: -88.0, radiusNm: 50 },
   // 먼바다 표본 (드물어 싸다)
   { id: "n-atlantic", name: "북대서양", lat: 45.0, lon: -35.0, radiusNm: 50 },
   { id: "s-atlantic", name: "남대서양", lat: -20.0, lon: -15.0, radiusNm: 50 },
