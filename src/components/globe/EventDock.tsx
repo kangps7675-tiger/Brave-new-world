@@ -9,6 +9,8 @@ import { isMajorConfirmedStrike, type MajorStrike } from "@/lib/liveuamap/majorS
 import { classifyRegionalPosture, type RegionalPosture } from "@/lib/liveuamap/regionalPosture";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
 
@@ -61,6 +63,7 @@ type Props = {
   liveuaEvents: LiveuamapEvent[];
   onGoToLocation: (lat: number, lng: number) => void;
   onFocusVessel: (vessel: AisVessel) => void;
+  newsPool?: readonly NewsStreamItem[];
 };
 
 /**
@@ -70,7 +73,7 @@ type Props = {
  * - 예민한 지역의 외교 움직임·공격적 언사 → 정세 상세(걸린 표현 포함)
  * 닫으면 그 건은 사라지고 다시 뜨지 않는다(브라우저에 기억). 접속 시 3시간 넘은 건 띄우지 않는다.
  */
-export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFocusVessel }: Props) {
+export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFocusVessel, newsPool = [] }: Props) {
   const en = lang === "en";
   const [dismissed, setDismissed] = useState<Set<string> | null>(null);
   const [cursor, setCursor] = useState(0);
@@ -144,7 +147,7 @@ export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFoc
           ) : null}
         </>
       ) : (
-        <EventBody en={en} entry={cur} />
+        <EventBody en={en} entry={cur} newsPool={newsPool} />
       )}
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#6b4a22]/30 px-2.5 py-1.5">
@@ -184,14 +187,31 @@ export function EventDock({ lang, shipItems, liveuaEvents, onGoToLocation, onFoc
   );
 }
 
-function EventBody({ en, entry }: { en: boolean; entry: Extract<Entry, { kind: "strike" | "posture" }> }) {
+function EventBody({
+  en,
+  entry,
+  newsPool,
+}: {
+  en: boolean;
+  entry: Extract<Entry, { kind: "strike" | "posture" }>;
+  newsPool: readonly NewsStreamItem[];
+}) {
   const { event } = entry;
   const peeled = splitLiveuaTitleBody(
     en ? event.title : event.titleKo?.trim() || event.title,
     en ? event.body : event.bodyKo?.trim() || event.body,
     event.sourceUrl,
   );
-  const photos = event.imageUrls?.length ? event.imageUrls : event.imageUrl ? [event.imageUrl] : [];
+  const own = event.imageUrls?.length ? event.imageUrls : event.imageUrl ? [event.imageUrl] : [];
+  const related = useMemo(
+    () =>
+      own.length === 0
+        ? findRelatedPhoto({ text: `${event.title} ${event.body ?? ""}`, at: Date.parse(event.publishedAt) }, newsPool)
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [event.id, own.length, newsPool],
+  );
+  const photos = own.length > 0 ? own : related ? [related.imageUrl] : [];
   const when = new Date(Date.parse(event.publishedAt)).toISOString().slice(0, 16).replace("T", " ");
   const basis =
     entry.kind === "strike"
@@ -220,6 +240,15 @@ function EventBody({ en, entry }: { en: boolean; entry: Extract<Entry, { kind: "
             <img key={src} src={src} alt="" className="h-28 w-auto shrink-0 rounded-sm object-cover" />
           ))}
         </div>
+      ) : null}
+      {related ? (
+        <p className="text-micro text-[#5c4020]/80">
+          {en ? "Related photo · " : "연관 사진 · "}
+          <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
+            {related.outlet}: {related.articleTitle}
+          </a>
+          {en ? " (may not be from the scene)" : " (현장 사진이 아닐 수 있음)"}
+        </p>
       ) : null}
       <p className="text-micro tabular-nums text-[#5c4020]/85">
         {event.regionId} · {when} UTC

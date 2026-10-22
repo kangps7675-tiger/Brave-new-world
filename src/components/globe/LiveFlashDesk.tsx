@@ -7,6 +7,8 @@ import { isMajorConfirmedStrike } from "@/lib/liveuamap/majorStrike";
 import { classifyRegionalPosture } from "@/lib/liveuamap/regionalPosture";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { fetchShipPhotos } from "@/lib/shipPhoto";
+import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { zc } from "@/lib/uiStack";
 
@@ -51,6 +53,10 @@ type Props = {
   onClose: () => void;
   onGoToLocation: (item: StackItem) => void;
   onViewSatellite: (item: StackItem) => void;
+  /** RSS 뉴스 풀 — 속보에 사진이 없을 때 같은 사건 기사의 사진을 레퍼런스와 함께 붙인다 */
+  newsPool?: readonly NewsStreamItem[];
+  /** 위성 모드에서는 지구본이 보이도록 좁게 */
+  narrow?: boolean;
 };
 
 /**
@@ -66,6 +72,8 @@ export function LiveFlashDesk({
   onClose,
   onGoToLocation,
   onViewSatellite,
+  newsPool = [],
+  narrow = false,
 }: Props) {
   const en = lang === "en";
   const [now, setNow] = useState(() => Date.now());
@@ -108,6 +116,17 @@ export function LiveFlashDesk({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item?.id]);
 
+  const related = useMemo(
+    () =>
+      item && own.length === 0
+        ? findRelatedPhoto(
+            { text: `${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`, at: item.at },
+            newsPool,
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [item?.id, own.length, newsPool],
+  );
   const translated = useLocalizedTextMap(
     item && !item.liveua && item.detail ? [{ key: item.id, text: item.detail }] : [],
     en ? "en" : "ko",
@@ -128,7 +147,7 @@ export function LiveFlashDesk({
   } else {
     body = (translated.get(item.id) ?? item.detail ?? "").trim();
   }
-  const photos = own.length > 0 ? own : shipPhotos;
+  const photos = own.length > 0 ? own : related ? [related.imageUrl] : shipPhotos;
   const cat = deskCategory(item, shipIds.has(item.id));
   const strike = ev ? isMajorConfirmedStrike(ev) : null;
   const posture = ev ? classifyRegionalPosture(ev) : null;
@@ -144,7 +163,7 @@ export function LiveFlashDesk({
 
   return (
     <aside
-      className={`pointer-events-auto fixed inset-x-2 bottom-2 top-16 flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/55 bg-[#f3e6c8] text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 sm:w-[min(56rem,calc(100vw-1.5rem))] sm:flex-row ${zc("alert")}`}
+      className={`pointer-events-auto fixed inset-x-2 bottom-2 top-16 flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/55 bg-[#f3e6c8] text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 ${narrow ? "sm:w-[min(40rem,60vw)]" : "sm:w-[min(56rem,calc(100vw-1.5rem))]"} sm:flex-row ${zc("alert")}`}
       aria-label={en ? "Live flash desk" : "실시간 속보창"}
       data-live-flash-desk
     >
@@ -234,7 +253,15 @@ export function LiveFlashDesk({
                 </div>
               ) : null}
               <p className="mt-1 text-micro text-[#5c4020]/70">
-                {ev
+                {own.length === 0 && related ? (
+                  <>
+                    {en ? "Related photo · " : "연관 사진 · "}
+                    <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                      {related.outlet}: {related.articleTitle}
+                    </a>
+                    {en ? " (not from the scene itself)" : " (사건 현장 사진이 아닐 수 있음)"}
+                  </>
+                ) : ev
                   ? en
                     ? "Photos come from the original posts cited by Liveuamap; rights belong to their owners."
                     : "사진은 Liveuamap이 인용한 원 게시물의 것으로, 권리는 원 소유자에게 있습니다."

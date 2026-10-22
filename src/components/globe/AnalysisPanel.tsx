@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { DisputeArea, DisputeOverview, StaticPoint } from "@/data/geoTypes";
 import { US_CARRIER_STATUS_COLORS, US_CARRIER_STATUS_LABELS } from "@/data/usCarriers";
 import { isFreshEvent, TIER_LABELS } from "@/data/eventTiers";
@@ -32,6 +32,8 @@ import { stressForChokepoint, type ChokepointAisObservation } from "@/lib/chokep
 import type { UkmtoIncidentPoint } from "@/lib/ukmtoHatch";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { coordsFromAnalysisSelection } from "@/lib/selectionNewsCoords";
+import { newsAboutVessel, usableVesselKey, type NewsRef } from "@/lib/news/vesselNews";
+import { fetchShipPhotos, type ShipPhoto } from "@/lib/shipPhoto";
 
 function chokepointTitle(point: StaticPoint, lang: LabelLanguage): string {
   if (lang === "en") {
@@ -211,6 +213,7 @@ export function AnalysisPanel({
   ukmtoIncidents = [],
   aisByChokeId = {},
   onOpenRelatedNews,
+  newsPool = [],
 }: {
   selection: AnalysisSelection;
   onClose: () => void;
@@ -222,6 +225,8 @@ export function AnalysisPanel({
   /** PortWatch B급 통과량 관측 */
   aisByChokeId?: Record<string, ChokepointAisObservation>;
   onOpenRelatedNews?: (coords: { lat: number; lng: number }) => void;
+  /** 선박·군용기 관련 기사 후보 (RSS + liveuamap) */
+  newsPool?: readonly NewsRef[];
 }) {
   const { lang, t } = useLocale();
   const labelLangTop: LabelLanguage = lang === "en" ? "en" : "ko";
@@ -614,6 +619,8 @@ export function AnalysisPanel({
           />
           <Metric label="구분" value={categoryLabel} />
         </section>
+        <VesselPhotoBlock name={vessel.shipName} lang={lang} />
+        <VesselNewsBlock names={[vessel.shipName]} pool={newsPool} lang={lang} />
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisLivePosition")}</p>
           <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
@@ -772,6 +779,9 @@ export function AnalysisPanel({
             }
           />
         </section>
+        {!isCivil ? (
+          <VesselNewsBlock names={[ac.callsign, ac.registration]} pool={newsPool} lang={lang} />
+        ) : null}
         <section className="rounded-xl border border-slate-800 bg-black/25 p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{t("analysisDetail")}</p>
           <dl className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
@@ -864,5 +874,71 @@ export function AnalysisPanel({
         mock AI 요약은 제거했습니다. 실제 3줄 요약은 화이트리스트 뉴스/LLM 파이프라인을 붙인 뒤 다시 추가하는 영역입니다.
       </p>
     </div>
+  );
+}
+
+
+/** 선박명으로 찾은 참고 사진 (위키미디어 커먼즈) — 이름이 쓸 만할 때만 */
+function VesselPhotoBlock({ name, lang }: { name: string | null | undefined; lang: string }) {
+  const [photo, setPhoto] = useState<ShipPhoto | null>(null);
+  const key = usableVesselKey(name);
+  useEffect(() => {
+    setPhoto(null);
+    if (!key || !name) return;
+    const ac = new AbortController();
+    void fetchShipPhotos(name, ac.signal).then((p) => {
+      if (!ac.signal.aborted) setPhoto(p[0] ?? null);
+    });
+    return () => ac.abort();
+  }, [key, name]);
+  if (!photo) return null;
+  return (
+    <a
+      href={photo.pageUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="block overflow-hidden rounded-xl border border-slate-800 bg-black/25"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo.url} alt={name ?? ""} className="h-40 w-full object-cover" loading="lazy" />
+      <p className="px-3 py-1.5 text-micro text-slate-500">
+        {lang === "en" ? "Reference photo · Wikimedia Commons" : "참고 사진 · 위키미디어 커먼즈"}
+        {photo.artist ? ` · ${photo.artist}` : ""}
+        {photo.license ? ` (${photo.license})` : ""}
+      </p>
+    </a>
+  );
+}
+
+/** 이름이 제목에 나온 관련 기사 몇 건 — 없으면 아무것도 그리지 않는다 */
+function VesselNewsBlock({
+  names,
+  pool,
+  lang,
+}: {
+  names: ReadonlyArray<string | null | undefined>;
+  pool: readonly NewsRef[];
+  lang: string;
+}) {
+  const hits = useMemo(() => newsAboutVessel(names, pool), [names, pool]);
+  if (hits.length === 0) return null;
+  return (
+    <section className="rounded-xl border border-amber-700/30 bg-amber-950/10 p-4">
+      <p className="text-xs uppercase tracking-[0.24em] text-amber-200/70">
+        {lang === "en" ? "Related reports" : "관련 기사"}
+      </p>
+      <ul className="mt-2 space-y-2 text-sm leading-5 text-slate-200">
+        {hits.map((h) => (
+          <li key={h.link}>
+            <a href={h.link} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+              {h.title}
+            </a>
+            <span className="ml-1 text-micro text-slate-500">
+              {h.source} · {new Date(h.at).toISOString().slice(0, 10)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
