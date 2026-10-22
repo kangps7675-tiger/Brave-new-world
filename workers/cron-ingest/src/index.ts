@@ -21,6 +21,7 @@ import {
   upsertTelegramAlerts,
 } from "./db";
 import { fetchAisVessels } from "./ais";
+import { spreadByGrid } from "./aisSpread";
 import { buildAisZoneCrossings } from "./aisZones";
 import { fetchAdsbAircraft } from "./adsb";
 import { fetchFirmsForTheaters } from "./firms";
@@ -1377,7 +1378,11 @@ const worker = {
       const category = url.searchParams.get("category") || "all";
       let vessels: Array<Record<string, unknown>> = [];
       try {
-        const rows = await readAisVessels(env.DB, { category, limit: max });
+        const pool = await readAisVessels(env.DB, { category, limit: Math.min(9000, max * 3) });
+        const rows = spreadByGrid(
+          pool as Array<Record<string, unknown> & { lat: number; lng: number }>,
+          max,
+        );
         vessels = rows.map((row) => ({
           id: row.id,
           mmsi: row.mmsi,

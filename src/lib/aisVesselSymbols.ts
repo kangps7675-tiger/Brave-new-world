@@ -70,7 +70,15 @@ export const AIS_ASPECT_SYMBOL_LAYER_ID = "ais-aspect-symbols";
 type Facing = "e" | "w";
 
 /** 일반 상선 아이콘 색 버킷 — aisCommercialPointColor()의 유한 분기와 1:1 대응 */
-type GenericBucket = "default" | "tanker" | "cargo" | "passenger" | "fishing" | "hsc" | "special";
+type GenericBucket =
+  | "default"
+  | "tanker"
+  | "cargo"
+  | "passenger"
+  | "fishing"
+  | "hsc"
+  | "special"
+  | "pleasure";
 const GENERIC_BUCKETS: GenericBucket[] = [
   "default",
   "tanker",
@@ -79,6 +87,7 @@ const GENERIC_BUCKETS: GenericBucket[] = [
   "fishing",
   "hsc",
   "special",
+  "pleasure",
 ];
 /** 버킷당 대표 shipType — aisCommercialPointColor 분기(g값)만 맞으면 되므로 아무 값이나 대표값 사용 */
 const GENERIC_BUCKET_SAMPLE_SHIP_TYPE: Record<GenericBucket, number> = {
@@ -89,11 +98,13 @@ const GENERIC_BUCKET_SAMPLE_SHIP_TYPE: Record<GenericBucket, number> = {
   fishing: 20,
   hsc: 40,
   special: 30,
+  pleasure: 37,
 };
 
 /** 군함(35/55)·other 분기는 실제로는 도달하지 않는다 — 군함은 전부 aspect-hull 경로로 빠진다. */
 function genericBucket(shipType: number | null | undefined): GenericBucket {
   if (shipType == null || !Number.isFinite(shipType)) return "default";
+  if (shipType === 36 || shipType === 37) return "pleasure";
   const g = Math.floor(shipType / 10);
   switch (g) {
     case 8:
@@ -122,8 +133,14 @@ function genericBucketColor(bucket: GenericBucket): string {
 const GENERIC_ICON_SIZE_PX = 22;
 export const AIS_CARRIER_ICON_ID = "ais-carrier-ink3";
 
-export function aisGenericIconId(bucket: GenericBucket): string {
-  return `ais-generic-${bucket}-ink3`;
+export function aisGenericIconId(bucket: GenericBucket, stopped = false): string {
+  return stopped ? `ais-generic-${bucket}-stop-ink4` : `ais-generic-${bucket}-ink4`;
+}
+
+/** 정박·정지(대지속력 0.4kn 미만) — 마린트래픽식으로 화살 대신 원 */
+function isStopped(vessel: { speedOverGround?: number | null }): boolean {
+  const sog = vessel.speedOverGround;
+  return sog != null && Number.isFinite(sog) && sog < 0.4;
 }
 export function aisSurfaceCombatantIconId(facing: Facing): string {
   return `ais-surface-${facing}-ink3`;
@@ -170,12 +187,14 @@ export async function ensureAisSymbolImages(map: MapLike): Promise<void> {
   };
 
   for (const bucket of GENERIC_BUCKETS) {
-    add(
-      aisGenericIconId(bucket),
-      aisShipIconSvg(genericBucketColor(bucket), GENERIC_ICON_SIZE_PX * 2, false),
-      GENERIC_ICON_SIZE_PX,
-      GENERIC_ICON_SIZE_PX,
-    );
+    for (const stopped of [false, true]) {
+      add(
+        aisGenericIconId(bucket, stopped),
+        aisShipIconSvg(genericBucketColor(bucket), GENERIC_ICON_SIZE_PX * 2, false, stopped),
+        GENERIC_ICON_SIZE_PX,
+        GENERIC_ICON_SIZE_PX,
+      );
+    }
   }
 
   const surfaceSize: SurfaceCombatantIconSize = SURFACE_COMBATANT_PROFILE_SIZE;
@@ -328,16 +347,19 @@ export function buildAisSymbolModel(
     // 일반 상선 + 항모 — useGlobeMapGlobeProps.htmlRotation과 동일하게
     // allowStationaryHeading 옵션 없이 계산한다 (항모도 기존 배선과 동일하게 취급).
     const heading = aisVesselHeadingDeg(vessel);
-    const icon = carrier ? AIS_CARRIER_ICON_ID : aisGenericIconId(genericBucket(vessel.shipType));
+    const stopped = !carrier && isStopped(vessel);
+    const icon = carrier
+      ? AIS_CARRIER_ICON_ID
+      : aisGenericIconId(genericBucket(vessel.shipType), stopped);
     headingFeatures.push({
       type: "Feature",
       geometry: { type: "Point", coordinates: [lng, lat] },
       properties: {
         index,
         icon,
-        // 침로 없으면 -20° 기울여 "미상" 표시 (기존 DOM 아이콘 규칙 그대로)
-        rotate: heading ?? -20,
-        opacity: incident || selected ? 1 : (heading == null ? 0.72 : 1) * dim,
+        // 정박 중이면 원(회전 없음). 움직이는데 침로를 모르면 -20° 기울여 "미상" 표시
+        rotate: stopped ? 0 : (heading ?? -20),
+        opacity: incident || selected ? 1 : (heading == null && !stopped ? 0.72 : 1) * dim,
         selected,
         incident,
         tag,

@@ -33,19 +33,19 @@ export function shadowFleetIconSvg(
   const details = drawing.details
     .map(
       (d) =>
-        `<path d="${d}" fill="${fillColor}" stroke="rgba(255,255,255,0.55)" stroke-width="0.4" stroke-linejoin="miter" stroke-linecap="square"/>`,
+        `<path d="${d}" fill="${fillColor}" stroke="${fillColor}" stroke-width="0.55" stroke-linejoin="miter" stroke-linecap="square"/>`,
     )
     .join("");
 
   const wires = (drawing.wires ?? [])
     .map(
       (w) =>
-        `<path d="${w}" fill="none" stroke="${fillColor}" stroke-width="0.7" stroke-linecap="square"/>`,
+        `<path d="${w}" fill="none" stroke="${fillColor}" stroke-width="0.9" stroke-linecap="square"/>`,
     )
     .join("");
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 4 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg width="${width}" height="${height}" viewBox="0 4 64 35" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path
         d="${drawing.hull}"
         fill="${fillColor}"
