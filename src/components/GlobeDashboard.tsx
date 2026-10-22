@@ -7297,7 +7297,12 @@ export function GlobeDashboard({
                 if (picked?.source === "liveua") markLiveuaRead(picked.id);
                 // 한 건을 누르면 큰 양피지로 (일반 속보와 같은 방식)
                 if (picked) setStackParchmentId(picked.id);
+                // 사건을 누르면 바로 그 좌표로 — 지도 이동 버튼을 따로 누르지 않아도 된다
+                if (picked && Number.isFinite(picked.lat) && Number.isFinite(picked.lng)) {
+                  unifiedFlyTo(picked.lat, picked.lng, 0.5);
+                }
               }}
+              onFocusVessel={(vessel) => handleAisSymbolSelect(vessel)}
               onMarkAllRead={markAllLiveuaRead}
               onGoToLocation={(it) => {
                 unifiedFlyTo(it.lat, it.lng, 0.5);
