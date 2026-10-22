@@ -276,6 +276,24 @@ export const aisPositionHistory = sqliteTable(
   }),
 );
 
+/** 해역 대표 지점별 현재 해상·기상 — Datalastic /weather, Worker 가 6시간 간격으로 적재 (migration 0040). */
+export const seaWeatherNow = sqliteTable("sea_weather_now", {
+  pointId: text("point_id").primaryKey(),
+  region: text("region").notNull(),
+  checkedAt: text("checked_at").notNull(),
+  error: text("error"),
+  fetchedAt: text("fetched_at"),
+  at: text("at"),
+  waveHeightM: real("wave_height_m"),
+  wavePeriodS: real("wave_period_s"),
+  swellHeightM: real("swell_height_m"),
+  windKn: real("wind_kn"),
+  windDirDeg: real("wind_dir_deg"),
+  visibilityKm: real("visibility_km"),
+  pressureHpa: real("pressure_hpa"),
+  seaTempC: real("sea_temp_c"),
+});
+
 /** 피격 사건마다 한 번 찍는 Datalastic 스냅샷 + 후보 선박(날씨 포함) (migration 0038). */
 export const strikeSnapshot = sqliteTable("strike_snapshot", {
   incidentId: text("incident_id").primaryKey(),

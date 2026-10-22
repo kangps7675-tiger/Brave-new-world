@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   if (!region) return NextResponse.json({ error: "region 이 필요합니다" }, { status: 400 });
 
   if (isApiStubMode()) {
-    return NextResponse.json({ region, cycle: null, summary: { offsetsH: [], points: [], peak: null }, points: [], stub: true });
+    return NextResponse.json({ region, cycle: null, current: {}, currentError: null, summary: { offsetsH: [], points: [], peak: null }, points: [], stub: true });
   }
 
   try {
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     );
   } catch {
     return NextResponse.json(
-      { region, cycle: null, summary: { offsetsH: [], points: [], peak: null }, points: [], now: new Date().toISOString() },
+      { region, cycle: null, current: {}, currentError: null, summary: { offsetsH: [], points: [], peak: null }, points: [], now: new Date().toISOString() },
       { headers: { "Cache-Control": "public, s-maxage=60" } },
     );
   }
