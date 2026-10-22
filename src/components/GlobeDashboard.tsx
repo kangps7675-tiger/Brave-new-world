@@ -128,11 +128,13 @@ import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/conf
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { IncidentStack } from "@/components/globe/IncidentStack";
+import { EventDock } from "@/components/globe/EventDock";
 import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
+import { LiveFlashDesk } from "@/components/globe/LiveFlashDesk";
 import { SatelliteExitButton } from "@/components/globe/SatelliteExitButton";
 import { WarRiskStrip } from "@/components/globe/WarRiskStrip";
 import {
@@ -1397,6 +1399,12 @@ export function GlobeDashboard({
     () => incidentStackItems.filter((i) => i.source === "liveua" && !liveuaReadIds.has(i.id)).length,
     [incidentStackItems, liveuaReadIds],
   );
+  /** 실시간 속보창: 선박 사건 + 전선·정세 소식을 최신순으로 한 줄에 */
+  const liveDeskItems = useMemo(
+    () => mergeStackItems([incidentStackItems, frontNewsItems], INCIDENT_STACK_MAX * 2),
+    [incidentStackItems, frontNewsItems],
+  );
+  const liveDeskShipIds = useMemo(() => new Set(incidentStackItems.map((i) => i.id)), [incidentStackItems]);
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
   const togglePref = useCallback(
     ((key, value) => {
@@ -2629,6 +2637,11 @@ export function GlobeDashboard({
 
   /** 지정학 지도의 전선 속보 서랍 → 큰 양피지 (신속속보처럼 하나씩 크게) */
   const [frontParchmentIndex, setFrontParchmentIndex] = useState<number | null>(null);
+  const deskOpenId =
+    stackParchmentId ??
+    (frontParchmentIndex != null
+      ? (frontNewsItems.filter((x) => x.liveua)[frontParchmentIndex]?.id ?? null)
+      : null);
 
   /**
    * 새 선박 피격(UKMTO·NGA·해역 안 선박 속보)이 올라오면 신속속보처럼 큰 양피지로 바로 띄운다.
@@ -7283,8 +7296,15 @@ export function GlobeDashboard({
                 togglePref("showAirports", next);
               }}
             />
+            <EventDock
+              lang={labelLanguage}
+              shipItems={incidentStackItems}
+              liveuaEvents={liveuaEvents}
+              onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 0.5)}
+              onFocusVessel={(vessel) => handleAisSymbolSelect(vessel)}
+            />
             <IncidentStack
-              compact={isPhoneUi}
+              compact
               lang={labelLanguage}
               items={incidentStackItems}
               readIds={liveuaReadIds}
@@ -7538,80 +7558,34 @@ export function GlobeDashboard({
             })()
           : null}
 
-        {!isSatelliteViewer && stackParchmentId != null
-          ? (() => {
-              const idx = incidentStackItems.findIndex((x) => x.id === stackParchmentId);
-              if (idx < 0) return null;
-              return (
-                <StackItemParchment
-                  lang={labelLanguage}
-                  items={incidentStackItems}
-                  index={idx}
-                  onIndexChange={(next) => {
-                    const nextItem = incidentStackItems[next];
-                    if (!nextItem) return;
-                    setStackParchmentId(nextItem.id);
-                    setStackSelectedId(nextItem.id);
-                    if (nextItem.source === "liveua") markLiveuaRead(nextItem.id);
-                  }}
-                  onDismiss={() => {
-                    const cur = incidentStackItems[idx];
-                    if (cur) openEventCallout(calloutFromStackItem(cur, labelLanguage));
-                    setStackParchmentId(null);
-                  }}
-                  onGoToLocation={(it) => {
-                    openEventCallout(calloutFromStackItem(it, labelLanguage));
-                    setStackParchmentId(null);
-                    unifiedFlyTo(it.lat, it.lng, 0.5);
-                  }}
-                  onViewSatellite={(it) => {
-                    openEventCallout(calloutFromStackItem(it, labelLanguage));
-                    setStackParchmentId(null);
-                    viewStackItemInSatellite(it);
-                  }}
-                />
-              );
-            })()
-          : null}
-
-        {!isSatelliteViewer && frontParchmentIndex != null && !landingCurtainActive
-          ? (() => {
-              const rows = frontNewsItems.filter((x) => x.liveua);
-              const events = rows.map((x) => x.liveua!);
-              if (!events[frontParchmentIndex]) return null;
-              return (
-                <LiveuaFlashParchment
-                  lang={labelLanguage}
-                  events={events}
-                  index={frontParchmentIndex}
-                  onIndexChange={(next) => {
-                    setFrontParchmentIndex(next);
-                    const id = events[next]?.id;
-                    if (id) markLiveuaRead(id);
-                  }}
-                  onDismiss={() => {
-                    const cur = events[frontParchmentIndex];
-                    if (cur) openEventCallout(calloutFromLiveua(cur, labelLanguage));
-                    setFrontParchmentIndex(null);
-                  }}
-                  exitToDock={false}
-                  hideMarket
-                  onGoToLocation={(ev) => {
-                    openEventCallout(calloutFromLiveua(ev, labelLanguage));
-                    setFrontParchmentIndex(null);
-                    unifiedFlyTo(ev.lat, ev.lng, 0.5);
-                  }}
-                  extraCtaLabel={labelLanguage === "en" ? "View in satellite" : "위성으로 보기"}
-                  onExtraCta={(ev) => {
-                    const row = rows.find((x) => x.id === ev.id);
-                    openEventCallout(calloutFromLiveua(ev, labelLanguage));
-                    setFrontParchmentIndex(null);
-                    if (row) viewStackItemInSatellite(row);
-                  }}
-                />
-              );
-            })()
-          : null}
+        {!isSatelliteViewer && !landingCurtainActive && deskOpenId != null ? (
+          <LiveFlashDesk
+            lang={labelLanguage}
+            items={liveDeskItems}
+            shipIds={liveDeskShipIds}
+            selectedId={deskOpenId}
+            onSelect={(id) => {
+              setStackParchmentId(id);
+              setFrontParchmentIndex(null);
+              setStackSelectedId(id);
+              markLiveuaRead(id);
+            }}
+            onClose={() => {
+              setStackParchmentId(null);
+              setFrontParchmentIndex(null);
+            }}
+            onGoToLocation={(it) => {
+              openEventCallout(calloutFromStackItem(it, labelLanguage));
+              unifiedFlyTo(it.lat, it.lng, 0.5);
+            }}
+            onViewSatellite={(it) => {
+              openEventCallout(calloutFromStackItem(it, labelLanguage));
+              setStackParchmentId(null);
+              setFrontParchmentIndex(null);
+              viewStackItemInSatellite(it);
+            }}
+          />
+        ) : null}
 
         {isSatelliteViewer &&
         focusedLiveuaEvent &&
