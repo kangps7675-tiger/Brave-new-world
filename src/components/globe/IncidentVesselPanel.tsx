@@ -8,6 +8,7 @@ import { aisShipTypeLabel } from "@/lib/aisVesselClass";
 import { flagFromMmsi } from "@/lib/mmsiFlag";
 import { loadIncidentVessels, type IncidentVessel } from "@/lib/incidentVesselsClient";
 import { caseIdOfStackItem } from "@/lib/strikeMatch/matchedVessel";
+import { fetchShipPhotos, type ShipPhoto } from "@/lib/shipPhoto";
 import { loadStrikeDetail, type StrikeCandidateView, type StrikeDetailView } from "@/lib/strikeMatch/strikeDetailClient";
 
 const TYPE_KO: Record<string, string> = {
@@ -35,6 +36,56 @@ const STATUS_NOTE = {
   unknown: { ko: "근처 AIS 기록 없음 — 수집 공백일 수 있음(‘맞은 배 없음’ 아님)", en: "No nearby AIS record — may be a coverage gap" },
 } as const;
 
+/** 선명이 제목에 들어간 Wikimedia Commons 사진만(shipPhoto 가 거른다). 없으면 아무것도 그리지 않는다. */
+function CandidatePhoto({ name, verdict, en }: { name: string | null; verdict: StrikeCandidateView["verdict"]; en: boolean }) {
+  const [photos, setPhotos] = useState<ShipPhoto[] | null>(null);
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    setPhotos(null);
+    setIdx(0);
+    const n = name?.trim();
+    if (!n) {
+      setPhotos([]);
+      return;
+    }
+    const ac = new AbortController();
+    void fetchShipPhotos(n, ac.signal).then((p) => !ac.signal.aborted && setPhotos(p));
+    return () => ac.abort();
+  }, [name]);
+  if (photos === null) return <div className="mt-1 h-24 animate-pulse rounded-sm bg-black/30" aria-hidden />;
+  if (photos.length === 0) {
+    return (
+      <p className="mt-1 text-micro text-amber-100/45">
+        {name?.trim()
+          ? en ? "No photo of this ship found on Wikimedia Commons." : "이 선박 이름으로 찾은 사진이 없어요(Wikimedia Commons)."
+          : en ? "No name received — no photo search." : "선명을 못 받아 사진을 찾지 않았어요."}
+      </p>
+    );
+  }
+  const cur = photos[Math.min(idx, photos.length - 1)]!;
+  return (
+    <figure className="relative mt-1 overflow-hidden rounded-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={cur.url} alt={cur.title} loading="lazy" referrerPolicy="no-referrer" className="h-24 w-full object-cover" />
+      {photos.length > 1 ? (
+        <>
+          <button type="button" aria-label={en ? "Previous photo" : "이전 사진"} onClick={() => setIdx((i) => (i - 1 + photos.length) % photos.length)} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-1.5 text-sm text-amber-50">‹</button>
+          <button type="button" aria-label={en ? "Next photo" : "다음 사진"} onClick={() => setIdx((i) => (i + 1) % photos.length)} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-1.5 text-sm text-amber-50">›</button>
+        </>
+      ) : null}
+      <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-1.5 pb-0.5 pt-4 text-micro leading-tight text-amber-100/75">
+        {[
+          verdict === "possible" ? (en ? "Candidate — not confirmed" : "후보 · 확정 아님") : null,
+          en ? "Reference photo, not from the incident" : "참고용 사진 · 사건 당시 아님",
+          cur.artist,
+          cur.license,
+          "Wikimedia Commons",
+        ].filter(Boolean).join(" · ")}
+      </figcaption>
+    </figure>
+  );
+}
+
 function Row({
   c,
   en,
@@ -56,6 +107,7 @@ function Row({
           {c.name?.trim() || (en ? "Name unknown" : "선명 미상")}
         </span>
       </div>
+      <CandidatePhoto name={c.name} verdict={c.verdict} en={en} />
       <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-micro text-amber-100/80">
         <dt className="text-amber-200/55">{en ? "Flag (est.)" : "기국(추정)"}</dt>
         <dd>{flag ?? (en ? "Unknown" : "미상")}</dd>
