@@ -2,7 +2,7 @@
  * 진행형 분쟁 팔로우 — 기기 로컬.
  */
 
-export const LIVING_CONFLICT_PREFS_KEY = "geowatch-living-conflicts-v1";
+export const LIVING_CONFLICT_PREFS_KEY = "straitdesk-living-conflicts-v1";
 
 export type LivingConflictPrefs = {
   followedConflictIds: string[];

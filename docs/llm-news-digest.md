@@ -105,7 +105,7 @@ RSS/GDELT whitelist
 - `LLM_NEWS_DIGEST_ENABLED=false` — true + 키 + stub OFF 일 때만 배치 LLM
 - `ANTHROPIC_MODEL=claude-sonnet-4-5`
 
-유저 키: 브라우저 `localStorage` (`bnw-user-anthropic-api-key`) → 요청 헤더로만 전달, 서버 미저장.
+유저 키: 브라우저 `localStorage` (`straitdesk-user-anthropic-api-key`) → 요청 헤더로만 전달, 서버 미저장.
 
 ---
 

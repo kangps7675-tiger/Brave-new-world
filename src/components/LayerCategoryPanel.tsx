@@ -68,7 +68,7 @@ export type LayerCategory = {
   onToggleAll?: (enabled: boolean) => void;
 };
 
-const OPEN_STATE_KEY = "geowatch-layer-categories-open-v1";
+const OPEN_STATE_KEY = "straitdesk-layer-categories-open-v1";
 const CAUTION_BUBBLE_MS = 2800;
 
 /**

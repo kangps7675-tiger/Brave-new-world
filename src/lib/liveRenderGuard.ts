@@ -1,9 +1,9 @@
-import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { STRAITDESK_CONFIG } from "@/config/straitdesk.config";
 import type { GlobeLodTier } from "@/lib/globeLod";
 import { FIRMS_FIRE_MAX_BY_TIER } from "@/lib/viewportCull";
 import { isClientApiStubMode } from "@/lib/runtimeConfig.client";
 
-const LIVE = GEOWATCH_CONFIG.polling;
+const LIVE = STRAITDESK_CONFIG.polling;
 
 /** 줌아웃일수록 HTML 마커(ADS-B/AIS) DOM 비용을 강하게 컷 */
 const MIL_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {

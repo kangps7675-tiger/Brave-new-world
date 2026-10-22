@@ -29,8 +29,8 @@ export const ONBOARDING_BUDGET_PER_SESSION = 2;
 /** 넛지 사이 최소 간격 — 연속 폭격 방지 */
 export const ONBOARDING_COOLDOWN_MS = 45_000;
 
-const BUDGET_KEY = "geowatch-onboarding-budget-v1";
-const LAST_SHOWN_KEY = "geowatch-onboarding-last-v1";
+const BUDGET_KEY = "straitdesk-onboarding-budget-v1";
+const LAST_SHOWN_KEY = "straitdesk-onboarding-last-v1";
 
 export type NudgeId =
   | "chromeCoach"
@@ -85,7 +85,7 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
   /** FPS 프로브가 자동으로 돌아 세션 초반에 뜬다 → eager */
   ultraLiteOffer: {
     priority: 10,
-    legacyKey: "geowatch-ultralite-offer-v1",
+    legacyKey: "straitdesk-ultralite-offer-v1",
     scope: "session",
     eager: true,
   },
@@ -104,7 +104,7 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
   /** 메뉴에서만 수동 — 자동 노출 없음. eager면 안 뜨면서 tourInvite를 가로챔 */
   chromeCoach: {
     priority: 20,
-    legacyKey: "geowatch-chrome-coach-v4",
+    legacyKey: "straitdesk-chrome-coach-v4",
     scope: "persistent",
   },
   /**
@@ -113,7 +113,7 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
    */
   tourInvite: {
     priority: 25,
-    legacyKey: "geowatch-tour-invite-v1",
+    legacyKey: "straitdesk-tour-invite-v1",
     scope: "persistent",
     eager: true,
     exempt: true,
@@ -124,20 +124,20 @@ export const NUDGE_REGISTRY: Record<NudgeId, NudgeSpec> = {
    */
   sentinelIntro: {
     priority: 28,
-    legacyKey: "geowatch-sentinel-intro-v1",
+    legacyKey: "straitdesk-sentinel-intro-v1",
     scope: "persistent",
   },
   /** 사용자가 「투어 시작」을 눌러 진입 — 방해가 아니므로 예산 면제 */
   firstVisitTour: {
     priority: 30,
-    legacyKey: "geowatch-first-visit-tour-v1",
+    legacyKey: "straitdesk-first-visit-tour-v1",
     scope: "persistent",
     exempt: true,
   },
-  airRaidCoach: { priority: 32, legacyKey: "geowatch-air-raid-coach-v1", scope: "persistent" },
-  frictionCoach: { priority: 34, legacyKey: "geowatch-friction-coach-v1", scope: "persistent" },
-  theaterCoach: { priority: 36, legacyKey: "geowatch-theater-coach-v1", scope: "persistent" },
-  intelDragHint: { priority: 40, legacyKey: "geowatch-intel-drag-hint-v1", scope: "persistent" },
+  airRaidCoach: { priority: 32, legacyKey: "straitdesk-air-raid-coach-v1", scope: "persistent" },
+  frictionCoach: { priority: 34, legacyKey: "straitdesk-friction-coach-v1", scope: "persistent" },
+  theaterCoach: { priority: 36, legacyKey: "straitdesk-theater-coach-v1", scope: "persistent" },
+  intelDragHint: { priority: 40, legacyKey: "straitdesk-intel-drag-hint-v1", scope: "persistent" },
 };
 
 function store(scope: NudgeSpec["scope"]): Storage | null {

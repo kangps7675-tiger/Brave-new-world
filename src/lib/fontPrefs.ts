@@ -3,7 +3,7 @@
  * 양피지·모노·데이터 폰트는 건드리지 않음 (--font-ui 만).
  */
 
-export const UI_FONT_PREFS_KEY = "geowatch-ui-font-v1";
+export const UI_FONT_PREFS_KEY = "straitdesk-ui-font-v1";
 
 export type UiFontPresetId =
   | "wanted"

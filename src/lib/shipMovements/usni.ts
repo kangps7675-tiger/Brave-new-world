@@ -8,7 +8,7 @@ export const USNI_FLEET_TRACKER_ARCHIVE =
   "https://news.usni.org/category/fleet-tracker";
 
 const UA =
-  "StraitDesk/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; contact kangps7675@gmail.com)";
+  "StraitDesk/1.0 (+https://github.com/kangps7675-tiger/Strait-Desk; contact kangps7675@gmail.com)";
 
 function stripHtml(html: string): string {
   return html

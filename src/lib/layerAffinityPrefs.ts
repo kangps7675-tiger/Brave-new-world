@@ -9,7 +9,7 @@
 
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
-export const LAYER_AFFINITY_KEY = "geowatch-layer-affinity-v1";
+export const LAYER_AFFINITY_KEY = "straitdesk-layer-affinity-v1";
 
 /**
  * 친화도 unlock으로 자동 ON 하지 않는 레이어.

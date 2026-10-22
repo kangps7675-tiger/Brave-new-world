@@ -63,7 +63,7 @@ const EXAMPLES_ECON_EN = [
   "Today hot",
 ] as const;
 
-const ASK_DAY_KEY = "bnw-ask-layers-day-v1";
+const ASK_DAY_KEY = "straitdesk-ask-layers-day-v1";
 const ASK_CLIENT_MAX_PER_DAY = 5;
 
 function utcDayKey(): string {

@@ -29,21 +29,21 @@ export const GUEST_POLICY = {
 
 /** 로그인 붙일 때 계정으로 올릴 로컬 키 후보 (실제 마이그레이션 목록) */
 export const GUEST_LOCAL_PREF_KEYS = [
-  "geowatch-layers-v21",
-  "geowatch-view-config-v1",
-  "geowatch-watch-symbols-v1",
-  "geowatch-interest-v1",
+  "straitdesk-layers-v21",
+  "straitdesk-view-config-v1",
+  "straitdesk-watch-symbols-v1",
+  "straitdesk-interest-v1",
   /** 게스트 예측 deviceId — 로그인 시 계정 연동 후보 */
-  "geowatch-predict-device-v1",
+  "straitdesk-predict-device-v1",
   /** 로컬 스트릭·오늘 픽 캐시 */
-  "geowatch-predict-prefs-v1",
+  "straitdesk-predict-prefs-v1",
   /** 진행형 분쟁 팔로우 */
-  "geowatch-living-conflicts-v1",
+  "straitdesk-living-conflicts-v1",
   /** UI 글꼴 프리셋·커스텀 Google family */
-  "geowatch-ui-font-v1",
+  "straitdesk-ui-font-v1",
   /** 첫 방문 1~10 화면 투어 */
-  "geowatch-first-visit-tour-v1",
-  "geowatch-tour-invite-v1",
+  "straitdesk-first-visit-tour-v1",
+  "straitdesk-tour-invite-v1",
   "cv-intel-dock-collapsed",
   "cv-watch-focus-v1",
   "cv-app-update-seen",

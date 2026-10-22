@@ -1,6 +1,6 @@
 const CHUNK_RETRY_MAX = 2;
 const CHUNK_RETRY_BASE_MS = 700;
-const CHUNK_RELOAD_KEY = "geowatch-chunk-reload-v1";
+const CHUNK_RELOAD_KEY = "straitdesk-chunk-reload-v1";
 
 function isChunkLoadError(err: unknown): boolean {
   if (!(err instanceof Error)) {

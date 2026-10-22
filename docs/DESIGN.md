@@ -112,7 +112,7 @@
 **원인:** `entryOverview.ts`의 `buildDomainOverviewPrefs`가 `clampPrefsToActiveCap`으로 자른 **직후** 히어로 레이어를 통째로 되살리고, 그 뒤에 `ensureConfrontationLayersOn`/`ensureResourceLayersOn`이 또 강제 ON — 클램프가 매번 무효화되어 결과가 항상 정확히 `fullModeMaxLayers`(30, = 상한 전부)였다. 레이어가 사라질 때마다 "마지막에 강제로 켜기"를 덧댄 흔적으로 보이고, 여섯 번 덧대다 보니 "전부 켜기"가 됐다.
 
 **수정:**
-1. `geowatch.config.ts`에 `firstScreenMaxLayers: 10` 신설 — 상한(30)과 별개의 첫 화면 예산.
+1. `straitdesk.config.ts`에 `firstScreenMaxLayers: 10` 신설 — 상한(30)과 별개의 첫 화면 예산.
 2. `layerExclusiveCap.ts`에 임의 상한용 `clampPrefsToLimit(prefs, limit)` 신설. 기존 `clampPrefsToActiveCap`은 이를 감싸는 wrapper로 리팩터.
 3. `buildDomainOverviewPrefs`를 4단계로 재구성 — ① 히어로 후보 전부 ON → ② Ultra-Lite 강제 OFF → ③ 필수 보강(ensure*, 자르기 **전에**) → ④ `clampPrefsToLimit`로 **한 번만** 자르기.
 4. 회귀 방지 테스트: `src/lib/entryOverview.test.ts` — conflict/economy × 일반/Ultra-Lite 4종 모두 예산 이내인지, `fullModeMaxLayers`만큼 켜지지 않는지 검증.

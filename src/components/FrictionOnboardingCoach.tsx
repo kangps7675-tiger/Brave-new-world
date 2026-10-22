@@ -3,7 +3,7 @@
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 
-export const FRICTION_COACH_KEY = "geowatch-friction-coach-v1";
+export const FRICTION_COACH_KEY = "straitdesk-friction-coach-v1";
 
 export type FrictionCoachStep = "list" | "history";
 

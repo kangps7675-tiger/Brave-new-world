@@ -24,10 +24,10 @@ export function useMyCaseStackItems(): StackItem[] {
     };
     void load();
     const onChange = () => void load();
-    window.addEventListener("bnw:my-cases", onChange);
+    window.addEventListener("straitdesk:my-cases", onChange);
     return () => {
       cancelled = true;
-      window.removeEventListener("bnw:my-cases", onChange);
+      window.removeEventListener("straitdesk:my-cases", onChange);
     };
   }, []);
 

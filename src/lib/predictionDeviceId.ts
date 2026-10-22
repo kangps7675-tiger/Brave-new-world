@@ -4,7 +4,7 @@
  * @see docs/deferred-status.md · docs/retention-markets-roadmap.md §3.6
  */
 
-export const PREDICTION_DEVICE_ID_KEY = "geowatch-predict-device-v1";
+export const PREDICTION_DEVICE_ID_KEY = "straitdesk-predict-device-v1";
 
 function randomUuid(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {

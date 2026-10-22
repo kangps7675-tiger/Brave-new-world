@@ -69,7 +69,7 @@
 
 ## 3.5 관심 프로필 · 맞춤 추천 (P0 로컬)
 
-> **상태:** P0+ — `geowatch-interest-v1` localStorage · For you 칩 · **행동 스코어로 뉴스 가중·레이어 soft ON** · 로그인 이관 키 등록.  
+> **상태:** P0+ — `straitdesk-interest-v1` localStorage · For you 칩 · **행동 스코어로 뉴스 가중·레이어 soft ON** · 로그인 이관 키 등록.  
 > **하지 않음:** 고정 관심 프리셋 픽커(중동 화약고 등). 알고리즘만.
 
 | Phase | 내용 |
@@ -155,7 +155,7 @@ UI: Intel 관련 시장 패널 · 경제 허브 패널에 “왜 이 심볼?” 
 
 ## 8. 비목표
 
-- 멋진 신세계 = 증권 앱
+- Strait Desk = 증권 앱
 - 푸시로 매수 타이밍 알림
 - Telegram 기반 자동 트레이딩 시그널
 

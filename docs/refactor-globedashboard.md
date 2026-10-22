@@ -90,14 +90,14 @@
 
 | 단계 | 내용 | 상태 |
 |------|------|------|
-| 1 | `geowatch.config` SSOT + overlayQueue 다듬기 + 핫전장 큐 편입 | 완료 |
+| 1 | `straitdesk.config` SSOT + overlayQueue 다듬기 + 핫전장 큐 편입 | 완료 |
 | 2 | 실시간 폴링 — `useLiveVesselAirPolling` / `useLiveOsintPolling` | 완료 |
 | 3 | `useGlobeOverlayModel` + HTML overlay factory | 완료 |
 | 4 | `GlobeMapCanvas` JSX 분리 | 완료 |
 | 5 | OverlayHost prop 번들 + LayerPanelHost | 완료 |
 | 후속 | `useHoverCard` · `useSituationHtmlMarkers` · `useLiveGeoFeedPolling` | 완료 |
 
-SSOT: [`src/config/geowatch.config.ts`](../src/config/geowatch.config.ts)  
+SSOT: [`src/config/straitdesk.config.ts`](../src/config/straitdesk.config.ts)  
 오버레이 정본: [`src/lib/overlayQueue.ts`](../src/lib/overlayQueue.ts)
 
 **현재 GlobeDashboard:** **7,559줄** (시작 ~10,885 → 누적 약 3.3k줄 감소).  

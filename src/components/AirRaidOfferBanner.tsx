@@ -7,7 +7,7 @@ import type { AirRaidFocusTarget } from "@/components/TzevaAdomPanel";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
 /** fly-to + 양피지 브리핑 — 계정/브라우저당 최초 1회만 */
-export const AIR_RAID_FLY_BRIEF_KEY = "geowatch-air-raid-fly-brief-v1";
+export const AIR_RAID_FLY_BRIEF_KEY = "straitdesk-air-raid-fly-brief-v1";
 
 export function readAirRaidFlyBriefDone(): boolean {
   if (typeof window === "undefined") return true;

@@ -74,7 +74,7 @@ export async function renderGeopoliticsSenseCard(options: {
 
   ctx.fillStyle = "#64748b";
   ctx.font = "400 13px Inter, Wanted Sans, sans-serif";
-  ctx.fillText(ko ? "bnw.watch · 결과 공유" : "bnw.watch · share your result", 48, 360);
+  ctx.fillText(ko ? "straitdesk.app · 결과 공유" : "straitdesk.app · share your result", 48, 360);
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), "image/png");

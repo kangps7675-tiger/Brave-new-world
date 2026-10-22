@@ -35,8 +35,8 @@ globalThis.sessionStorage = {
 };
 
 // Resolve @/ via dynamic import of compiled-free TS is hard; test via source text + duplicated gate logic.
-const FIRST_VISIT_TOUR_KEY = "geowatch-first-visit-tour-v1";
-const TOUR_INVITE_KEY = "geowatch-tour-invite-v1";
+const FIRST_VISIT_TOUR_KEY = "straitdesk-first-visit-tour-v1";
+const TOUR_INVITE_KEY = "straitdesk-tour-invite-v1";
 
 function readTourDone() {
   return localStorage.getItem(FIRST_VISIT_TOUR_KEY) === "1";

@@ -4,7 +4,7 @@ import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 import type { ViewerMode } from "@/lib/viewPackages";
 
-export const CHROME_COACH_KEY = "geowatch-chrome-coach-v4";
+export const CHROME_COACH_KEY = "straitdesk-chrome-coach-v4";
 
 export type ChromeCoachStep = "nav";
 

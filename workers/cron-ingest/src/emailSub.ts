@@ -207,7 +207,7 @@ export async function subscribeEmail(
     subject: mail.subject,
     text: mail.text,
     html: mail.html,
-    idempotencyKey: `bnw-confirm-${confirmToken}`,
+    idempotencyKey: `straitdesk-confirm-${confirmToken}`,
   });
   if (!sent.ok) {
     await env.DB.prepare(
@@ -537,7 +537,7 @@ export async function runDailyEmailDigest(
           "List-Unsubscribe": `<${unsub}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
-        idempotencyKey: `bnw-digest-${window.dateKey}-${await emailKey(sub.email)}`,
+        idempotencyKey: `straitdesk-digest-${window.dateKey}-${await emailKey(sub.email)}`,
       });
       if (result.ok) sent += 1;
       else {

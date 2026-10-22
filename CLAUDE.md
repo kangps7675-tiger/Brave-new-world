@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-이 프로젝트(Strait Desk, 구 Brave New World / 멋진 신세계 / GeoWatch)에서 에이전트가 작업할 때 지켜야 할 규칙.
+이 프로젝트(Strait Desk)에서 에이전트가 작업할 때 지켜야 할 규칙.
 
 ## 유저 인사이트 / 브리핑 설명 톤
 
@@ -62,10 +62,10 @@
 - 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
 - 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
 
-## 2026-10-21 서비스명 = Strait Desk
+## 서비스명 = Strait Desk (2026-10-23 전면 교체 완료)
 
-서비스명을 **Strait Desk**로 바꿨다(구 Brave New World / 멋진 신세계 / GeoWatch). 뜻: Strait=해협(길목), Desk=상황실의 데스크. 헉슬리 소설 모티브는 폐기했다.
-- 화면·메타데이터·카드·이메일 제목·User-Agent 는 전부 새 이름이다. 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)를 쓴다.
-- **일부러 안 바꾼 것(인프라 식별자):** localStorage·IndexedDB 키(`geowatch-*` 등 — 바꾸면 방문자 저장 설정이 초기화된다), npm 패키지명·저장소명(`brave-new-world`)·Vercel/Cloudflare 프로젝트명, `src/config/geowatch.config.ts` 파일명, 도메인·UA 안의 연락 URL(`bravenew.world`).
-- `docs/` 아래 날짜가 붙은 보고서·계획서는 당시 기록이라 옛 이름 그대로 둔다.
+서비스명은 **Strait Desk**뿐이다. 옛 이름은 화면·코드·문서·식별자 어디에도 남기지 않는다. 뜻: Strait=해협(길목), Desk=상황실의 데스크.
+- 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)를 쓴다.
+- localStorage·IndexedDB 키는 `straitdesk-*`, 설정 파일은 `src/config/straitdesk.config.ts`, 도메인·UA 연락 URL은 `straitdesk.app`이다. 옛 키로 저장된 방문자 설정은 이어받지 않는다(초기화됨).
+- npm 패키지명은 `strait-desk`. 저장소명·Vercel/Cloudflare 프로젝트명은 대시보드에서 따로 바꿔야 한다.
 - 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다 — 디자인 교체가 필요하다.

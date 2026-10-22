@@ -13,8 +13,8 @@ export const BRIEFING_STEP_IDS = [
 
 export type BriefingStepId = (typeof BRIEFING_STEP_IDS)[number];
 
-const STORAGE_KEY = "geowatch-daily-briefing-progress-v1";
-const DATE_KEY = "geowatch-daily-briefing-date-v1";
+const STORAGE_KEY = "straitdesk-daily-briefing-progress-v1";
+const DATE_KEY = "straitdesk-daily-briefing-date-v1";
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
@@ -64,7 +64,7 @@ export function markBriefingStep(step: BriefingStepId): void {
   if (typeof window !== "undefined") {
     try {
       window.dispatchEvent(
-        new CustomEvent("geowatch-briefing-progress", { detail: { step } }),
+        new CustomEvent("straitdesk-briefing-progress", { detail: { step } }),
       );
     } catch {
       /* ignore */

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const TTL_MS = 6 * 60 * 60 * 1000; // 노선은 하루 몇 번 안 바뀜 — 6h 캐시
 const FETCH_TIMEOUT_MS = 8_000;
-const USER_AGENT = "StraitDesk/1.0 (+https://bravenew.world; aircraft route lookup)";
+const USER_AGENT = "StraitDesk/1.0 (+https://straitdesk.app; aircraft route lookup)";
 const ROUTESET_URL = "https://api.adsb.lol/api/0/routeset";
 
 export type AircraftRouteResult = {

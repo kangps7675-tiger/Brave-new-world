@@ -4,7 +4,7 @@
  * 제품 결정: PC(데스크톱)와 모바일 동시 접속(듀얼 세션)을 허용한다.
  * 단일 기기 강제 로그아웃은 기본값이 아니다.
  *
- * 관심 프로필(`geowatch-interest-v1` / InterestStore): 로그인 후 계정 문서 필드로 동기.
+ * 관심 프로필(`straitdesk-interest-v1` / InterestStore): 로그인 후 계정 문서 필드로 동기.
  * 최초 로그인 시 guestPolicy.onFirstLoginMigrateLocal 에 따라 로컬 → 계정 merge.
  *
  * 구현 시 권장 골격:

@@ -40,7 +40,7 @@ const CONFLICT_THEATERS = new Set<string>([
   "global",
 ]);
 
-export const INTEREST_SOFT_APPLY_KEY = "geowatch-interest-soft-apply-v1";
+export const INTEREST_SOFT_APPLY_KEY = "straitdesk-interest-soft-apply-v1";
 
 /** 신호 너무 적으면 soft 레이어 적용 안 함 (뉴스 가중은 약하게라도 가능) */
 export const INTEREST_APPLY_MIN_EVENTS = 3;

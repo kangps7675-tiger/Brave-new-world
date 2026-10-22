@@ -1,7 +1,7 @@
 /** 파일럿 — 편집 토큰·활성 사건 ID는 브라우저 세션에만 둔다. */
 
-const TOKEN_KEY = "bnw.caseEditorToken";
-const CASE_ID_KEY = "bnw.activeCaseId";
+const TOKEN_KEY = "straitdesk.caseEditorToken";
+const CASE_ID_KEY = "straitdesk.activeCaseId";
 
 export function readCaseEditorToken(): string {
   if (typeof window === "undefined") return "";
@@ -32,7 +32,7 @@ export function readActiveCaseId(): string {
   }
 }
 
-const MY_CASES_KEY = "bnw.myCaseIds";
+const MY_CASES_KEY = "straitdesk.myCaseIds";
 const MY_CASES_MAX = 20;
 
 /** 이 브라우저에서 연/만든 케이스 — 사건 스택의 "내 케이스". 서버 목록은 공개하지 않는다. */
@@ -52,7 +52,7 @@ function rememberMyCase(id: string): void {
   try {
     const next = [id, ...readMyCaseIds().filter((x) => x !== id)].slice(0, MY_CASES_MAX);
     localStorage.setItem(MY_CASES_KEY, JSON.stringify(next));
-    window.dispatchEvent(new Event("bnw:my-cases"));
+    window.dispatchEvent(new Event("straitdesk:my-cases"));
   } catch {
     /* private mode */
   }

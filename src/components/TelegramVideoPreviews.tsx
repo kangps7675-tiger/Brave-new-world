@@ -6,7 +6,7 @@ import { formatUtcFull, parseTime } from "@/lib/provenance";
 import { telegramEmbedUrl, type TelegramVideoPost } from "@/lib/telegramVideo";
 import { localizedDisplayText, useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 
-const HIDE_KEY = "bnw.tgVideo.blur";
+const HIDE_KEY = "straitdesk.tgVideo.blur";
 const FIRST_BATCH = 4;
 
 function readBlur(): boolean {

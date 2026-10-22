@@ -1,7 +1,7 @@
 # UX · 성능 · 크로스브라우저 개선 실행 계획
 
 **작성일:** 2026-08-06
-**대상:** 멋진 신세계 (Brave New World) — Next.js 14 / MapLibre GL v5 / Cloudflare Workers
+**대상:** Strait Desk — Next.js 14 / MapLibre GL v5 / Cloudflare Workers
 **근거 진단:** 도허티 임계(<400ms) · Laws of UX 총괄 · 브라우저별 최적화
 
 **우선순위 축:** 사고 방지 → 체감 속도 → UX 구조
@@ -256,7 +256,7 @@ const BATCH_DEBOUNCE_MS = 400;   // 도허티 임계와 동일 = 안전 마진 0
 1. 일반 모드도 Ultra-Lite처럼 `enableLayerEvictingCap` 사용 — 거부 대신 **우선순위 낮은 레이어 자동 해제 후 실행**.
 2. 해제 결과만 통보: `"공항·항구를 잠시 껐습니다 [되돌리기]"` — 상한 숫자를 문구에서 제거.
 3. `PERF_PROBE_*` FPS 프로브를 자동 강등에 연결: FPS < 30이 3초 지속 → 무거운 레이어 자동 해제 + 동일 형식 통보. `UltraLiteOfferBanner`(제안형)를 결과 통보형으로 전환.
-4. `layerExclusiveCap.ts`의 우선순위 테이블을 `geowatch.config`로 승격(SSOT).
+4. `layerExclusiveCap.ts`의 우선순위 테이블을 `straitdesk.config`로 승격(SSOT).
 
 **수용 기준** 사용자에게 "상한"이라는 단어가 UI에 노출되지 않는다.
 

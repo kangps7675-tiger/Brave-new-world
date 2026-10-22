@@ -1,6 +1,6 @@
-# 멋진 신세계 (Brave New World) 종합 프로젝트 리포트
+# Strait Desk 종합 프로젝트 리포트
 
-> 작성일: 2026-09-06 · 작성 근거: 저장소 `Confilct-view-dev`(nested repo, `github.com/kangps7675-tiger/Brave-new-world`) 코드·문서 실측 + 프로젝트 메모리 7건 종합
+> 작성일: 2026-09-06 · 작성 근거: 저장소 `Confilct-view-dev`(nested repo, `github.com/kangps7675-tiger/Strait-Desk`) 코드·문서 실측 + 프로젝트 메모리 7건 종합
 > 목적: 여기저기 흩어져 있던 구상(코드 주석, docs/*.md 30여 건, 세션별 결정)을 타깃 · DB · UI/UX · 킬러콘텐츠 · 기능 축으로 한 번에 정리한다.
 
 ---
@@ -25,9 +25,9 @@
 
 | 항목 | 내용 |
 |---|---|
-| npm 패키지명 | `brave-new-world` (v0.2.0) |
-| 사용자 브랜드 | 멋진 신세계 (Brave New World) — Aldous Huxley 모티브 |
-| 저장소 | `Confilct-view-dev/Confilct-view-dev`(중첩 폴더, 바깥쪽은 구버전 잔재) · GitHub `kangps7675-tiger/Brave-new-world` |
+| npm 패키지명 | `strait-desk` (v0.2.0) |
+| 사용자 브랜드 | Strait Desk |
+| 저장소 | `Confilct-view-dev/Confilct-view-dev`(중첩 폴더, 바깥쪽은 구버전 잔재) · GitHub `kangps7675-tiger/Strait-Desk` |
 | 스택 | Next.js 14.2 (App Router) · React 18 · TypeScript · MapLibre GL 6 + react-map-gl 8 · deck.gl 9(GL 오버레이) · Tailwind CSS |
 | 배포 | Cloudflare Workers (`opennextjs-cloudflare` 빌드) — Workers 이름 `confilct-view` |
 | DB | Cloudflare **D1**(SQLite) + Drizzle ORM, 별도 Worker(`conflict-view-ingest`)가 cron으로 적재 |
@@ -193,7 +193,7 @@ CRINK 축 관계망의 관계유형(`AXIS_RELATION_COLORS`)이 이미 두 모드
 
 ## 5. 핵심 기능 · 레이어 전수 목록
 
-레이어 패널(≡)에 있는 것만 8개 카테고리, 40개 이상의 개별 레이어가 존재한다. UI 동시 ON 상한은 일반 **30개**, 저사양 모드(Ultra-Lite) **16개**이며(`geowatch.config.ts` → `layerExclusiveCap.ts`), 첫 화면은 별도 예산인 **10개**로 더 타이트하게 자른다(`firstScreenMaxLayers`).
+레이어 패널(≡)에 있는 것만 8개 카테고리, 40개 이상의 개별 레이어가 존재한다. UI 동시 ON 상한은 일반 **30개**, 저사양 모드(Ultra-Lite) **16개**이며(`straitdesk.config.ts` → `layerExclusiveCap.ts`), 첫 화면은 별도 예산인 **10개**로 더 타이트하게 자른다(`firstScreenMaxLayers`).
 
 ### 5.1 지도·지명
 도시명(줌별 LOD) · 철도 경로 글로우
@@ -232,7 +232,7 @@ NASA FIRMS 화재 · 사이버 공격 · 선거 · 우주 발사(Launch Library 
 - **사운드 시스템**: 공습 사이렌·NEPTUN 폭발·전선 교전음·긴장 rumble·항모 갑판음·경제 앰비언트·양피지 펼침음 등, 전역 음소거 벨 버튼
 - **모바일/Compact**: 폰은 지구본 자체를 마운트하지 않음(의도적 설계) — `?scene=` 공유 링크 → 카드 랜딩(지명·주제·GTS·CTA)으로 대체
 - **과거 스냅샷**(`?asOf=YYYY-MM-DD`): 일별 랭크·GTS를 그날로 되돌림. AIS/ADS-B/FIRMS/Telegram 등 라이브 점은 재생하지 않음("현재 관측만" 고지)
-- **관심 프로필 개인화**(P0 로컬): `geowatch-interest-v1` localStorage, "For you" 칩, 행동 스코어 기반 뉴스 가중치·레이어 soft-ON
+- **관심 프로필 개인화**(P0 로컬): `straitdesk-interest-v1` localStorage, "For you" 칩, 행동 스코어 기반 뉴스 가중치·레이어 soft-ON
 - **일일 긴장도 랭킹 + 내일 1위 예측 게임**(P0 MVP 구현됨): `log1p` 가중 → EMA 스무딩 → 일일 변동폭 캡 → 게스트 익명 1표 예측 → "어제 맞춘 N%"
 - **관련 시장 패널**: 전장→심볼 매핑(`theaterAssets.ts`) · Yahoo Finance 티커 · watchlist(localStorage) · TradingView 심볼 URL 딥링크 ("투자 권유 아님" 고지 상시)
 

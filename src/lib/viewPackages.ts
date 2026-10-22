@@ -17,7 +17,7 @@ import {
   FIRST_SCREEN_MARITIME_OFF,
   FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
-export const VIEW_CONFIG_KEY = "geowatch-view-config-v1";
+export const VIEW_CONFIG_KEY = "straitdesk-view-config-v1";
 
 export type ViewIntelTab = "news" | "video" | "telegram" | "viina";
 

@@ -5,7 +5,7 @@
 > 피격 경보가 뜬 직후 "이 바다는 지금 다닐 만한가"라는 질문에 근거를 갖춘 답을 가장 먼저 건네는 것이 목표입니다.
 
 - **상태:** 베타 — 지금은 가입 없이 볼 수 있습니다. 정식 출시 후 알림·해역 판단 같은 일부 기능은 유료가 될 예정입니다.
-- **이름:** Strait Desk (구 Brave New World / 멋진 신세계 / GeoWatch). 패키지명 `brave-new-world`, localStorage 키 `geowatch-*`, 설정 파일 `geowatch.config.ts`는 호환을 위해 그대로 둡니다.
+- **이름:** Strait Desk. 패키지명 `strait-desk`, localStorage 키 `straitdesk-*`, 설정 파일 `straitdesk.config.ts`.
 - **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · Cesium(위성 보기) · Tailwind CSS
 - **언어:** UI 기본 한국어, 레이어 패널에서 English 전환
 - **출처 표기 의무:** [출처 표기 · 라이선스 공개 의무](#출처-표기--라이선스-공개-의무) · 앱 「출처」 패널 · [`docs/copyright-checklist.md`](docs/copyright-checklist.md)
@@ -126,7 +126,7 @@ npm run verify:product-spec   # README·상한·폴링 수치 가드
 | lite / full | `DATA_PROFILE` — 창고 해상도 옵션 |
 | gzip JSON | `fetchJsonPreferGzip` · `compress-data-gzip.js` |
 | JSON 워커 | `jsonParse.worker.ts` |
-| 레이어 캡 | 일반 **30** · Ultra-Lite **16** — SSOT [`src/config/geowatch.config.ts`](src/config/geowatch.config.ts) → `layerExclusiveCap` · 패키지 hard **64** |
+| 레이어 캡 | 일반 **30** · Ultra-Lite **16** — SSOT [`src/config/straitdesk.config.ts`](src/config/straitdesk.config.ts) → `layerExclusiveCap` · 패키지 hard **64** |
 | `cameraBusyGuard` | tween/드래그 중 무거운 갱신 pause |
 
 (위 레이어 캡 줄은 `npm run verify:product-spec`이 검사합니다.)
@@ -292,6 +292,6 @@ node scripts/compress-data-gzip.js all
 
 - Windows·OneDrive: `next.config.mjs` dev 시 webpack 메모리 캐시 (청크 404 방지)
 - `npm run dev:clean` — `.next` 삭제 후 dev
-- 레이어: `localStorage` `geowatch-layers-v21`
+- 레이어: `localStorage` `straitdesk-layers-v21`
 - 사운드 on/off: `soundPrefs` / 벨 토글
 - TypeScript·ESLint: Next.js 기본 설정

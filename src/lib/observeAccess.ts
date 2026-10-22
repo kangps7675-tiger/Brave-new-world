@@ -5,7 +5,7 @@
 
 export const OBSERVE_PREVIEW_MS = 30_000;
 
-const UNLOCK_KEY = "bnw-observe-unlocked";
+const UNLOCK_KEY = "straitdesk-observe-unlocked";
 
 export function readObserveUnlocked(): boolean {
   if (typeof window === "undefined") return false;
