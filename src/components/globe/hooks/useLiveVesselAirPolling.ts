@@ -27,6 +27,12 @@ import {
 /** 카메라가 움직여 건너뛴 새로고침을 다시 시도하는 간격(ms) */
 const DEFER_RETRY_MS = 1_500;
 
+/**
+ * 카메라가 "움직이는 중"으로 이만큼 계속 잡히면 미루지 않고 받는다.
+ * 움직임 플래그가 안 풀리거나(자동 순회·연속 fly) 매 프레임 다시 켜지면 선박·항공기가 영영 안 뜬다.
+ */
+const DEFER_MAX_MS = 8_000;
+
 type LivePollKey = "ais" | "disguised" | "mil" | "civ";
 
 type UseLiveVesselAirPollingOptions = {
@@ -97,10 +103,20 @@ export function useLiveVesselAirPolling({
    * 예전엔 그냥 버려서, 첫 로드·드래그 직후엔 다음 폴링(최대 ~1분)까지 항적이 비어 보였다.
    * 카메라 때문에 미룬 건 짧게 다시 시도하고, 숨겨진 탭은 복귀 시 되살린다(아래 effect).
    */
+  const deferSinceRef = useRef(new Map<LivePollKey, number>());
   const deferOrRetry = useCallback(
     (key: LivePollKey): boolean => {
-      if (!shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) return false;
+      if (!shouldDeferLiveNetworkRefresh(isCameraMovingRef.current)) {
+        deferSinceRef.current.delete(key);
+        return false;
+      }
       if (typeof document !== "undefined" && document.hidden) return true;
+      const since = deferSinceRef.current.get(key) ?? Date.now();
+      deferSinceRef.current.set(key, since);
+      if (Date.now() - since >= DEFER_MAX_MS) {
+        deferSinceRef.current.delete(key);
+        return false;
+      }
       if (!retryTimersRef.current.has(key)) {
         const timer = window.setTimeout(() => {
           retryTimersRef.current.delete(key);
