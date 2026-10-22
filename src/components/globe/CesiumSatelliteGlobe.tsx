@@ -449,8 +449,9 @@ type StackKind = "esri" | "ion" | "google3d";
 type ErrorKind = "chunk" | "assets" | "other";
 
 function readGoogle3dSessionPref(): boolean {
-  // 기본 OFF — 궤도·대륙 뷰에서 Google 실사 수역/LOD 얼룩을 피한다.
-  if (typeof window === "undefined") return false;
+  // 기본 ON (2026-10-23) — 실사 3D 건물이 위성 뷰의 핵심. 궤도·대륙 높이에서는
+  // observePhotorealAllowedAtHeightM 이 알아서 꺼 주고, 유저가 버튼으로 끄면(세션 "0") 그 선택을 따른다.
+  if (typeof window === "undefined") return true;
   try {
     const raw = sessionStorage.getItem(GOOGLE_3D_SESSION_KEY);
     if (raw === "0") return false;
@@ -458,7 +459,7 @@ function readGoogle3dSessionPref(): boolean {
   } catch {
     /* private mode */
   }
-  return false;
+  return true;
 }
 
 function readGoogle3dQualityPref(): "lite" | "default" {
