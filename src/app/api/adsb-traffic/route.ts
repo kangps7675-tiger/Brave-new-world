@@ -59,6 +59,8 @@ type WorldCivCache = {
 let openSkyCache: OpenSkyCache | null = null;
 let lastOpenSkyFetchAt = 0;
 let lastOpenSkyWorldFetchAt = 0;
+/** 전세계 OpenSky 조회가 비었던 이유 — 응답에 실어 운영에서 원인을 볼 수 있게 한다 (성공하면 null) */
+let lastOpenSkyWorldNote: string | null = null;
 let worldCivCache: WorldCivCache | null = null;
 let pendingWorldCiv: Promise<WorldCivCache | null> | null = null;
 let pendingOpenSky: {
@@ -126,7 +128,10 @@ async function fetchOpenSkyTraffic(
 }
 
 async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> {
-  if (!hasOpenSkyCredentials()) return null;
+  if (!hasOpenSkyCredentials()) {
+    lastOpenSkyWorldNote = "no-credentials";
+    return null;
+  }
   const key = "world";
   const now = Date.now();
   if (
@@ -140,7 +145,10 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
     };
   }
   if (pendingOpenSky?.key === key) return pendingOpenSky.promise;
-  if (pendingOpenSky) return null;
+  if (pendingOpenSky) {
+    lastOpenSkyWorldNote = "busy";
+    return null;
+  }
   if (now - lastOpenSkyWorldFetchAt < OPENSKY_WORLD_MIN_INTERVAL_MS) {
     if (openSkyCache?.scope === "world") {
       return {
@@ -148,6 +156,7 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         aircraft: openSkyCache.aircraft.slice(0, max),
       };
     }
+    lastOpenSkyWorldNote = lastOpenSkyWorldNote ?? "throttled";
     return null;
   }
 
@@ -164,7 +173,10 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         },
         signal: controller.signal,
       });
-      if (!response.ok || !authenticated) return null;
+      if (!response.ok || !authenticated) {
+        lastOpenSkyWorldNote = !authenticated ? `unauthenticated(http ${response.status})` : `http ${response.status}`;
+        return null;
+      }
       const payload = (await response.json()) as { states?: unknown; time?: number };
       const aircraft = parseOpenSkyTraffic(payload.states, {
         time: payload.time,
@@ -174,7 +186,10 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         thinCellDeg: 5,
         thinPerCell: 36,
       });
-      if (aircraft.length === 0) return null;
+      if (aircraft.length === 0) {
+        lastOpenSkyWorldNote = "empty";
+        return null;
+      }
       const entry: OpenSkyCache = {
         key,
         at: Date.now(),
@@ -184,8 +199,10 @@ async function fetchOpenSkyWorldwide(max: number): Promise<OpenSkyCache | null> 
         scope: "world",
       };
       openSkyCache = entry;
+      lastOpenSkyWorldNote = null;
       return entry;
-    } catch {
+    } catch (error) {
+      lastOpenSkyWorldNote = error instanceof Error && error.name === "AbortError" ? "timeout" : "network";
       return null;
     } finally {
       clearTimeout(timer);
@@ -278,6 +295,7 @@ export async function GET(request: Request) {
             provider: "d1",
             mode: "civilian",
             scope: "world",
+            openskyNote: lastOpenSkyWorldNote,
             excluded: "military (dbFlags & 1)",
             cached: true,
           },
@@ -296,6 +314,7 @@ export async function GET(request: Request) {
             provider: "ingest-worker",
             mode: "civilian",
             scope: "world",
+            openskyNote: lastOpenSkyWorldNote,
             excluded: "military (dbFlags & 1)",
             cached: true,
           },
@@ -319,6 +338,7 @@ export async function GET(request: Request) {
           provider: liveWorld.provider,
           mode: "civilian",
           scope: "world",
+          openskyNote: lastOpenSkyWorldNote,
           excluded: "military (dbFlags & 1)",
           cached: Date.now() - liveWorld.at > 1_000,
         },
