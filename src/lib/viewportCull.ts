@@ -180,9 +180,10 @@ export function viewToBbox(
 ): { west: number; south: number; east: number; north: number } {
   const pad = radiusDeg > 0 ? radiusDeg : 40;
   return {
-    west: view.lng - pad,
+    // 경도도 ±180으로 자른다 — 동경 125° 넘게 보면 east 가 180을 넘어 API(firms-fires 등)가 400을 낸다
+    west: Math.max(-180, view.lng - pad),
     south: Math.max(-90, view.lat - pad),
-    east: view.lng + pad,
+    east: Math.min(180, view.lng + pad),
     north: Math.min(90, view.lat + pad),
   };
 }
