@@ -128,6 +128,7 @@ import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/conf
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { IncidentStack } from "@/components/globe/IncidentStack";
+import { EventDock } from "@/components/globe/EventDock";
 import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
@@ -7284,8 +7285,15 @@ export function GlobeDashboard({
                 togglePref("showAirports", next);
               }}
             />
+            <EventDock
+              lang={labelLanguage}
+              shipItems={incidentStackItems}
+              liveuaEvents={liveuaEvents}
+              onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 0.5)}
+              onFocusVessel={(vessel) => handleAisSymbolSelect(vessel)}
+            />
             <IncidentStack
-              compact={isPhoneUi}
+              compact
               lang={labelLanguage}
               items={incidentStackItems}
               readIds={liveuaReadIds}
