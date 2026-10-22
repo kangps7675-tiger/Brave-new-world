@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import { SharedSceneCard } from "@/components/SharedSceneCard";
 import { usePhoneSceneLanding } from "@/hooks/usePhoneSceneLanding";
@@ -42,10 +42,12 @@ type MobileHomeViewProps = {
   onViewerModeChange: (mode: ViewerMode) => void;
   labelLanguage: LabelLanguage;
   onLabelLanguageChange: (lang: LabelLanguage) => void;
+  /** 실시간 속보 피드(선박·타격·정세) — 있으면 첫 탭으로 */
+  liveFeed?: ReactNode;
 };
 
 /** 모바일 홈 3탭 */
-type MobileTab = "conflict" | "markets" | "economy";
+type MobileTab = "live" | "conflict" | "markets" | "economy";
 
 /** 한 화면에 당겨올 최근 기사 상한 (기존 40 → 3배) */
 const MAX_ITEMS = 120;
@@ -217,6 +219,7 @@ export function MobileHomeView({
   onViewerModeChange,
   labelLanguage,
   onLabelLanguageChange,
+  liveFeed,
 }: MobileHomeViewProps) {
   const { payload, localizedTitle } = useNewsStreamContext();
   const { lang: locale } = useLocale();
@@ -226,7 +229,7 @@ export function MobileHomeView({
   /** 공유 장면 링크(?scene=)를 폰에서 잡는다 — 훅은 조기 반환보다 위 (P2-3-A) */
   const sceneLanding = usePhoneSceneLanding(true);
 
-  const [tab, setTab] = useState<MobileTab>(() => tabFromViewer(viewerMode));
+  const [tab, setTab] = useState<MobileTab>(() => (liveFeed ? "live" : tabFromViewer(viewerMode)));
   /** 지정학: 전장 필터 / 지경학: 경제 장르 필터 */
   const [theaterFilter, setTheaterFilter] = useState<NewsTheater | "all">("all");
   const [economyGenreFilter, setEconomyGenreFilter] = useState<EconomyGenreFilter>("all");
@@ -247,7 +250,8 @@ export function MobileHomeView({
   const [tickers, setTickers] = useState<StockTickerItem[]>([]);
 
   useEffect(() => {
-    setTab(tabFromViewer(viewerMode));
+    // 실시간 속보 탭을 보고 있으면 뷰어 모드가 바뀌어도 그대로 둔다
+    setTab((prev) => (prev === "live" ? prev : tabFromViewer(viewerMode)));
   }, [viewerMode]);
 
   const selectTab = (next: MobileTab) => {
@@ -453,7 +457,11 @@ export function MobileHomeView({
   );
 
   const tabLabel =
-    tab === "conflict"
+    tab === "live"
+      ? en
+        ? "Live"
+        : "실시간 속보"
+      : tab === "conflict"
       ? en
         ? "Fronts"
         : "분쟁·전선"
@@ -528,6 +536,7 @@ export function MobileHomeView({
               className="tap-target w-full rounded-lg border border-white/15 bg-[#0a1428] px-2.5 py-2 text-body font-semibold text-slate-100"
               aria-label={en ? "Select section" : "메뉴 선택"}
             >
+              {liveFeed ? <option value="live">{en ? "Live incidents" : "실시간 속보"}</option> : null}
               <option value="conflict">{en ? "Fronts" : "분쟁·전선"}</option>
               <option value="markets">{en ? "Markets" : "증시"}</option>
               <option value="economy">{en ? "Markets & logistics" : "시장·물류"}</option>
@@ -587,7 +596,9 @@ export function MobileHomeView({
                 className="tap-target w-full rounded-lg border border-white/10 bg-[#0a1428]/60 px-2.5 py-2 text-body font-semibold text-slate-500"
                 aria-label={en ? "Category unavailable" : "카테고리 없음"}
               >
-                <option value="all">{en ? "Indices only" : "지수만 표시"}</option>
+                <option value="all">
+                  {tab === "live" ? (en ? "Filters are in the feed" : "필터는 목록 위") : en ? "Indices only" : "지수만 표시"}
+                </option>
               </select>
             )}
           </label>
@@ -596,7 +607,9 @@ export function MobileHomeView({
 
       <div className="intel-scroll-y min-h-0 flex-1 px-3 pb-6">
         {/* 히어로 — 탭별 안내 */}
-        {tab === "markets" ? (
+        {tab === "live" ? (
+          liveFeed
+        ) : tab === "markets" ? (
           <div className="mt-3 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.07] px-3 py-2.5">
             <p className="text-[12.5px] font-semibold text-emerald-100">
               {en ? "Major equity indices" : "주요 주가지수"}
@@ -809,7 +822,7 @@ export function MobileHomeView({
         ) : null}
 
         {/* 뉴스 피드 — 증시 탭 제외 */}
-        {tab !== "markets" ? (
+        {tab !== "markets" && tab !== "live" ? (
         <div className="mt-4 space-y-3">
             {groups.map((group, index) => {
               const groupTitle =
