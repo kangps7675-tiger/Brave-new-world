@@ -756,7 +756,20 @@ export function loadLayerPrefs(): LayerPrefs {
 
 /** 상업·실험실 게이트 + 레거시 정리 — 저장값이 아닌 곳(패키지 병합 등)에서 만든 prefs 도 반드시 통과시킨다 */
 export function gateLayerPrefs(prefs: LayerPrefs): LayerPrefs {
-  return stripLegacyConflictPrefs(enforceLabTier(enforceCommercialTier(prefs, currentProductTier())));
+  return ensureAisSubfilter(
+    stripLegacyConflictPrefs(enforceLabTier(enforceCommercialTier(prefs, currentProductTier()))),
+  );
+}
+
+/**
+ * 선박(AIS)을 켰는데 군함·상선 세부 토글이 둘 다 꺼진 저장값 — 받은 선박이 전부 걸러져 아무것도 안 보인다.
+ * 이런 조합은 의도된 상태가 아니므로(끄려면 AIS 자체를 끈다) 둘 다 켠다.
+ */
+export function ensureAisSubfilter(prefs: LayerPrefs): LayerPrefs {
+  if (prefs.showAis && !prefs.showAisMilitary && !prefs.showAisCommercial) {
+    return { ...prefs, showAisMilitary: true, showAisCommercial: true };
+  }
+  return prefs;
 }
 
 /**
