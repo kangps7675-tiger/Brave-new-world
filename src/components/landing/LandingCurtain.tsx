@@ -14,18 +14,12 @@ import { LandingContent, type EnterPlace } from "@/components/landing/LandingCon
  * 로딩이 끝나고, "지구본 열기"를 누르면 안개가 걷히듯 막이 사라지면서 이미 떠 있는 지구본이 드러난다.
  * 준비 전에 누르면 예약해 두었다가 준비되는 즉시 걷는다.
  *
- * "바로 보기"는 기다리지 않는다. 블라인드가 왼쪽부터 촤르르 접히듯 0.65초 만에 열고,
- * 지구본이 아직이면 위쪽에 진행률 알약만 남겼다가 준비되면 치운다.
- *
  * 안개는 WebGL이 아니라 저해상도 2D 캔버스다(약 200×110 픽셀을 CSS로 늘리고 blur).
  * 지구본이 GPU를 쓰는 순간에 셰이더를 하나 더 띄우면 저사양 기기에서 끊긴다.
  */
 
 const LIFT_MS = 4600;
 const REDUCED_LIFT_MS = 250;
-const SHUTTER_MS = 650;
-const SHUTTER_SLATS = 12;
-const SHUTTER_W = 288;
 const FOG_W = 260;
 
 /**
@@ -100,11 +94,9 @@ export function LandingCurtain({
   onLifted: () => void;
 }) {
   const [queued, setQueued] = useState(false);
-  /** 걷히는 방식 — 안개(지구본 보기) 또는 블라인드(바로 보기). null이면 아직 덮여 있다. */
-  const [lift, setLift] = useState<null | "fog" | "shutter">(null);
+  /** 걷히는 방식 — 안개(지구본 열기). null이면 아직 덮여 있다. */
+  const [lift, setLift] = useState<null | "fog">(null);
   const lifting = lift !== null;
-  /** 바로 보기로 열었는데 지구본이 아직 — 진행률 알약만 남긴다 */
-  const [openedEarly, setOpenedEarly] = useState(false);
   const originRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
   const contentRef = useRef<HTMLDivElement>(null);
   const fogRef = useRef<HTMLCanvasElement>(null);
@@ -117,8 +109,6 @@ export function LandingCurtain({
   }, []);
   const onLiftedRef = useRef(onLifted);
   onLiftedRef.current = onLifted;
-  const readyRef = useRef(ready);
-  readyRef.current = ready;
 
   const pct = Math.min(100, Math.max(0, Math.round(progress)));
 
@@ -139,16 +129,7 @@ export function LandingCurtain({
     if (queued && ready) setLift((cur) => cur ?? "fog");
   }, [queued, ready]);
 
-  const openNow = useCallback(() => setLift("shutter"), []);
-
-  /** 블라인드가 다 접힌 뒤: 지구본이 준비됐으면 바로 내리고, 아니면 준비될 때까지 알약만 둔다 */
-  const finish = useCallback(() => {
-    if (readyRef.current) onLiftedRef.current();
-    else setOpenedEarly(true);
-  }, []);
-  useEffect(() => {
-    if (openedEarly && ready) onLiftedRef.current();
-  }, [openedEarly, ready]);
+  const finish = useCallback(() => onLiftedRef.current(), []);
 
   useEffect(() => {
     if (!lift) return;
@@ -163,51 +144,6 @@ export function LandingCurtain({
         if (content) content.style.opacity = String(1 - t);
         if (t < 1) raf = requestAnimationFrame(tick);
         else finish();
-      };
-      raf = requestAnimationFrame(tick);
-      return () => cancelAnimationFrame(raf);
-    }
-
-    if (lift === "shutter") {
-      // 가로 288×1 마스크 한 줄을 매 프레임 다시 그려 화면 높이로 늘린다.
-      // 슬랫마다 왼쪽부터 조금씩 늦게 시작해서 블라인드가 촤르르 접히는 것처럼 보인다.
-      const host = dialogRef.current;
-      const mask = document.createElement("canvas");
-      mask.width = SHUTTER_W;
-      mask.height = 1;
-      const mctx = mask.getContext("2d");
-      const row = mctx ? mctx.createImageData(SHUTTER_W, 1) : null;
-      const slatW = SHUTTER_W / SHUTTER_SLATS;
-      const setMask = (value: string) => {
-        if (!host) return;
-        host.style.setProperty("mask-image", value);
-        host.style.setProperty("-webkit-mask-image", value);
-      };
-      if (host) {
-        for (const prop of ["mask-size", "-webkit-mask-size"]) host.style.setProperty(prop, "100% 100%");
-        for (const prop of ["mask-repeat", "-webkit-mask-repeat"]) host.style.setProperty(prop, "no-repeat");
-      }
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / SHUTTER_MS);
-        if (mctx && row) {
-          for (let x = 0; x < SHUTTER_W; x++) {
-            const k = Math.floor(x / slatW);
-            const u = (x - k * slatW) / slatW;
-            const delay = (k / SHUTTER_SLATS) * 0.5;
-            const pk = smooth(delay, delay + 0.5, t);
-            row.data[x * 4 + 3] = smooth(pk - 0.06, pk + 0.02, u) * 255;
-          }
-          mctx.putImageData(row, 0, 0);
-          setMask(`url(${mask.toDataURL()})`);
-        } else if (content) {
-          content.style.opacity = String(1 - t);
-        }
-        if (t < 1) raf = requestAnimationFrame(tick);
-        else {
-          setMask("none");
-          if (content) content.style.opacity = "0";
-          finish();
-        }
       };
       raf = requestAnimationFrame(tick);
       return () => cancelAnimationFrame(raf);
@@ -311,28 +247,7 @@ export function LandingCurtain({
             )}
           />
         </div>
-        {!lifting ? (
-          <button
-            type="button"
-            onClick={openNow}
-            className="fixed bottom-6 right-6 inline-flex h-[52px] cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-[#0a141f]/90 pl-6 pr-5 font-[inherit] text-base font-semibold text-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur hover:border-white/40"
-          >
-            바로 보기
-            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M4 4 L9 9 L4 14 M9 4 L14 9 L9 14" />
-            </svg>
-          </button>
-        ) : null}
       </div>
-      {openedEarly ? (
-        <p
-          role="status"
-          className="fixed left-1/2 top-4 m-0 -translate-x-1/2 rounded-full bg-[#0E1A24]/90 px-4 py-2 text-body tabular-nums text-white"
-          style={{ zIndex: 701 }}
-        >
-          지구본 불러오는 중 {pct}%
-        </p>
-      ) : null}
       {lift === "fog" ? (
         <canvas
           ref={fogRef}
