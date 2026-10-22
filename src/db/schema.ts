@@ -276,6 +276,21 @@ export const aisPositionHistory = sqliteTable(
   }),
 );
 
+/** 피격 사건마다 한 번 찍는 Datalastic 스냅샷 + 후보 선박(날씨 포함) (migration 0038). */
+export const strikeSnapshot = sqliteTable("strike_snapshot", {
+  incidentId: text("incident_id").primaryKey(),
+  stage: integer("stage").notNull().default(1),
+  snapshotAt: text("snapshot_at").notNull(),
+  radiusNm: integer("radius_nm").notNull(),
+  vesselCount: integer("vessel_count").notNull().default(0),
+  credits: integer("credits").notNull().default(0),
+  candidates: text("candidates").notNull().default("[]"),
+  historyAt: text("history_at"),
+  historyCredits: integer("history_credits").notNull().default(0),
+  historyTries: integer("history_tries").notNull().default(0),
+  note: text("note"),
+});
+
 /** 뉴스에서 뽑은 피격선 이름 후보 + AIS 위치 검증 결과 (migration 0039). verified 만 선명 일치("확인")에 쓴다. */
 export const strikeNamed = sqliteTable(
   "strike_named",

@@ -38,7 +38,70 @@ export const EVENT_MIN_REMAINING_CREDITS = 200;
 export const MAX_SNAPSHOTS_PER_TICK = 2;
 export const MAX_HISTORIES_PER_TICK = 2;
 
-export type SnapshotCandidate = { mmsi: string; name: string | null; imo: string | null; distNm: number };
+/**
+ * 후보 선박 위치의 날씨 (Datalastic Weather, 스냅샷을 찍은 시각의 현재값).
+ * 사건 "당시"가 아니라 `at` 시각의 값이다 — 화면은 이 시각을 같이 보여준다.
+ */
+export type CandidateWeather = {
+  at: string | null;
+  waveHeightM: number | null;
+  wavePeriodS: number | null;
+  swellHeightM: number | null;
+  windKn: number | null;
+  windDirDeg: number | null;
+  visibilityKm: number | null;
+};
+
+export type SnapshotCandidate = {
+  mmsi: string;
+  name: string | null;
+  imo: string | null;
+  distNm: number;
+  weather?: CandidateWeather;
+};
+
+/** 스냅샷 한 번에 부르는 날씨 격자 수 상한 (격자 0.25° ≈ 28km, 30NM 반경 안은 보통 1~3칸) */
+export const MAX_WEATHER_CELLS = 3;
+export const WEATHER_CELL_DEG = 0.25;
+
+export type WeatherCell = { key: string; lat: number; lng: number };
+
+/** 위치 → 날씨 격자 칸 (중심 좌표). 같은 칸의 선박은 날씨를 한 번만 받는다. */
+export function weatherCell(lat: number, lng: number): WeatherCell {
+  const q = (v: number) => Math.round(v / WEATHER_CELL_DEG) * WEATHER_CELL_DEG;
+  const la = q(lat);
+  const lo = q(lng);
+  return { key: `${la.toFixed(2)},${lo.toFixed(2)}`, lat: la, lng: lo };
+}
+
+/** 가까운 후보부터 훑어 필요한 격자 칸을 최대 max 개 고른다 (후보는 거리순으로 들어온다) */
+export function planWeatherCells(
+  cands: SnapshotCandidate[],
+  positions: Map<string, { lat: number; lng: number }>,
+  max = MAX_WEATHER_CELLS,
+): WeatherCell[] {
+  const cells = new Map<string, WeatherCell>();
+  for (const c of cands) {
+    const p = positions.get(c.mmsi);
+    if (!p) continue;
+    const cell = weatherCell(p.lat, p.lng);
+    if (!cells.has(cell.key) && cells.size < max) cells.set(cell.key, cell);
+  }
+  return [...cells.values()];
+}
+
+/** 받아온 칸별 날씨를 후보에 붙인다 — 못 받은 칸의 후보는 날씨 없이 둔다 (옆 칸 값으로 대신하지 않는다) */
+export function attachWeather(
+  cands: SnapshotCandidate[],
+  positions: Map<string, { lat: number; lng: number }>,
+  byCell: Map<string, CandidateWeather>,
+): SnapshotCandidate[] {
+  return cands.map((c) => {
+    const p = positions.get(c.mmsi);
+    const w = p ? byCell.get(weatherCell(p.lat, p.lng).key) : undefined;
+    return w ? { ...c, weather: w } : c;
+  });
+}
 
 const KM_PER_NM = 1.852;
 
