@@ -14,7 +14,7 @@ import {
   waveFileUrl,
   type WaveFieldKey,
 } from "./gfsWave";
-import { MARINE_POINTS, MARINE_REGIONS, MARINE_REGION_FIELDS } from "./zones";
+import { MARINE_POINTS, MARINE_REGIONS, MARINE_REGION_FIELDS, isGlobalMarineRegion } from "./zones";
 
 const UA = "StraitDesk-Ingest/1.0 (+contact: kangps7675@gmail.com; NOAA GFS-Wave point sampler)";
 
@@ -44,7 +44,7 @@ const round = (v: number, d: number) => Math.round(v * 10 ** d) / 10 ** d;
 export async function processWaveFileFiltered(
   cycle: string,
   fhour: number,
-  opts: { filterUrl?: string; grid?: string; fetchImpl?: typeof fetch },
+  opts: { filterUrl?: string; grid?: string; fetchImpl?: typeof fetch; part?: "risk" | "global" },
 ): Promise<FileOutcome> {
   const f = opts.fetchImpl ?? fetch;
   const base = opts.filterUrl ?? NOMADS_FILTER_URL;
@@ -57,6 +57,9 @@ export async function processWaveFileFiltered(
 
   const jobs: Array<{ region: (typeof MARINE_REGIONS)[number]; field: (typeof WAVE_FIELDS)[number] }> = [];
   for (const region of MARINE_REGIONS) {
+    // part: risk=위험 해역만 · global=전 세계 확대 해역만 · 없으면 전부. 파일당 서브요청 한도(≈50) 때문에 틱을 나눠 처리한다.
+    if (opts.part === "risk" && isGlobalMarineRegion(region)) continue;
+    if (opts.part === "global" && !isGlobalMarineRegion(region)) continue;
     const only = MARINE_REGION_FIELDS[region];
     for (const field of WAVE_FIELDS) if (!only || only.includes(field.key)) jobs.push({ region, field });
   }
