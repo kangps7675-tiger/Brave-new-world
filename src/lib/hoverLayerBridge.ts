@@ -2,7 +2,7 @@
  * 지도 피처 호버 ↔ 범례 하이라이트 (P3-6).
  */
 
-export const HOVER_LAYER_EVENT = "geowatch-hover-layer";
+export const HOVER_LAYER_EVENT = "straitdesk-hover-layer";
 
 export function emitHoverLayerId(layerId: string | null): void {
   if (typeof window === "undefined") return;

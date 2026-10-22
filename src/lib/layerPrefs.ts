@@ -17,10 +17,10 @@ import {
 export type LabelLanguage = "en" | "ko";
 
 /** 축 관계망 — 구 기본 ON·친화도 unlock 잔존을 한 번 OFF로 내린다 */
-const AXIS_NETWORK_DEFAULT_OFF_KEY = "geowatch-axis-network-default-off-v1";
-const TELEGRAM_DEFAULT_ON_KEY = "geowatch-telegram-default-on-v1";
+const AXIS_NETWORK_DEFAULT_OFF_KEY = "straitdesk-axis-network-default-off-v1";
+const TELEGRAM_DEFAULT_ON_KEY = "straitdesk-telegram-default-on-v1";
 /** 물류망·CRINK 인프라 — 구 기본 ON을 1회 OFF로 정착 (레이어 패널에서 수동 ON) */
-const LOGISTICS_INFRA_DEFAULT_OFF_KEY = "bnw-logistics-infra-default-off-v1";
+const LOGISTICS_INFRA_DEFAULT_OFF_KEY = "straitdesk-logistics-infra-default-off-v1";
 
 export type LayerPrefs = {
   /** 전쟁구역 — 빨간 사각+빗금 (combat) */
@@ -289,7 +289,7 @@ export type LayerPrefs = {
  * 저장 구조 자체를 바꿔야 할 때만 버전을 올리고, 반드시 `PREF_MIGRATIONS`에
  * 변환 함수를 등록할 것. 그래야 사용자 설정이 살아서 넘어온다.
  */
-export const LAYER_PREFS_KEY = "geowatch-layers-v39";
+export const LAYER_PREFS_KEY = "straitdesk-layers-v39";
 
 /**
  * 구조 변경 마이그레이션 등록부.
@@ -299,7 +299,7 @@ export const LAYER_PREFS_KEY = "geowatch-layers-v39";
  * (mergeSavedPrefs가 기본값으로 채운다).
  */
 export const PREF_MIGRATIONS: Record<string, (raw: SavedLayerPrefs) => SavedLayerPrefs> = {
-  // 예시) "geowatch-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
+  // 예시) "straitdesk-layers-v38": (raw) => ({ ...raw, showFoo: raw.showLegacyFoo }),
 };
 
 /** 토글 가능 레이어는 기본 OFF. 첫 화면은 전선 + CRINK OSM·기지·항로 ON */
@@ -462,7 +462,7 @@ export const LAYER_PREFS_VERSION = Number(
  */
 const LEGACY_LAYER_KEYS: readonly string[] = Array.from(
   { length: Math.max(0, LAYER_PREFS_VERSION - 1) },
-  (_, i) => `geowatch-layers-v${LAYER_PREFS_VERSION - 1 - i}`,
+  (_, i) => `straitdesk-layers-v${LAYER_PREFS_VERSION - 1 - i}`,
 );
 
 function parseLabelLanguage(value: unknown): LabelLanguage {
@@ -706,7 +706,7 @@ function loadLayerPrefsRaw(): LayerPrefs {
       );
     }
 
-    const v19Raw = localStorage.getItem("geowatch-layers-v19");
+    const v19Raw = localStorage.getItem("straitdesk-layers-v19");
     if (v19Raw) {
       const migrated = migrateV19ToV20(JSON.parse(v19Raw) as SavedLayerPrefs);
       saveLayerPrefs(migrated);
@@ -780,7 +780,7 @@ export function hasSavedLayerPrefs(): boolean {
   if (typeof window === "undefined" || !shouldPersistLayerPrefs()) return false;
   try {
     if (localStorage.getItem(LAYER_PREFS_KEY)) return true;
-    if (localStorage.getItem("geowatch-layers-v19")) return true;
+    if (localStorage.getItem("straitdesk-layers-v19")) return true;
     return LEGACY_LAYER_KEYS.some((k) => localStorage.getItem(k) != null);
   } catch {
     return false;

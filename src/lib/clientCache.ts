@@ -11,7 +11,7 @@ export type ClientCacheEntry<T> = {
   fetchedAt: number;
 };
 
-const DB_NAME = "geowatch-client-cache";
+const DB_NAME = "straitdesk-client-cache";
 const STORE = "entries";
 const DB_VERSION = 1;
 const MEMORY = new Map<string, ClientCacheEntry<unknown>>();

@@ -137,13 +137,13 @@ export const MOVING_IDLE_DELAY_MS = CAMERA_IDLE_DEBOUNCE_MS;
 export const INTRO_CAMERA_DURATION_MS = 2200;
 export const INTRO_CAMERA_DELAY_MS = 900;
 export const INTRO_SESSION_KEY = "cv-intro-seen";
-export const WELCOME_GATE_KEY = "geowatch-welcome-gate-v1";
+export const WELCOME_GATE_KEY = "straitdesk-welcome-gate-v1";
 /** 데이터 출처 양피지 확인 — 도메인·등불 직전 */
-export const SOURCES_GATE_KEY = "geowatch-sources-gate-v1";
+export const SOURCES_GATE_KEY = "straitdesk-sources-gate-v1";
 /** 유저가 EN/KO를 한 번이라도 확정했는지 — 등불 직전 게이트 */
-export const LANG_CHOICE_KEY = "geowatch-lang-choice-v1";
+export const LANG_CHOICE_KEY = "straitdesk-lang-choice-v1";
 /** 언어 직후 「무엇을 볼까요」목적 카드 — 한 번 고르면 스킵(메뉴에서 재오픈) */
-export const PURPOSE_JOB_KEY = "bnw-purpose-job-v1";
+export const PURPOSE_JOB_KEY = "straitdesk-purpose-job-v1";
 
 export const FLOW_PATH_KINDS = new Set([
   "msr",

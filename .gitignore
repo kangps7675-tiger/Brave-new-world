@@ -66,7 +66,7 @@ scripts/telegram-osint/.session/
 /scripts/data/ne_110m_land.geojson
 
 # legacy removed ??ignore empty shell if node_modules lock prevents deletion
-/geowatch/
+/straitdesk/
 
 # vercel
 .vercel

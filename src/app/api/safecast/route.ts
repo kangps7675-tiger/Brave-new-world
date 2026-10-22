@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const TTL_MS = 60 * 60 * 1000;
 const CACHE_KEY = "safecast:priority-sites";
 const SAFECAST_CDN = publicCacheHeaders(CDN_CACHE.safecast);
-const USER_AGENT = "StraitDesk/1.0 (+https://bravenew.world; Safecast radiation near nuclear sites)";
+const USER_AGENT = "StraitDesk/1.0 (+https://straitdesk.app; Safecast radiation near nuclear sites)";
 const FETCH_TIMEOUT_MS = 14_000;
 const DISTANCE_M = 80_000;
 

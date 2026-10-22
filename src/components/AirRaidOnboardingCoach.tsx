@@ -3,7 +3,7 @@
 import { UiSpotlightCoachmark } from "@/components/UiSpotlightCoachmark";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 
-export const AIR_RAID_COACH_KEY = "geowatch-air-raid-coach-v1";
+export const AIR_RAID_COACH_KEY = "straitdesk-air-raid-coach-v1";
 
 export function readAirRaidCoachDone(): boolean {
   if (typeof window === "undefined") return true;

@@ -22,7 +22,7 @@ import {
 
 export { nextUtcRankDate, prevUtcRankDate, utcRankDate };
 
-export const DAILY_PREDICT_PREFS_KEY = "geowatch-predict-prefs-v1";
+export const DAILY_PREDICT_PREFS_KEY = "straitdesk-predict-prefs-v1";
 
 export type DailyPredictPrefs = {
   /** YYYY-MM-DD → pick entity id (내일 타깃 날짜 키) */

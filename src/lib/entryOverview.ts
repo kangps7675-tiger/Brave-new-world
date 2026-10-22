@@ -4,7 +4,7 @@ import {
   type LabelLanguage,
 } from "@/lib/layerPrefs";
 import { activeLayerCap, clampPrefsToLimit } from "@/lib/layerExclusiveCap";
-import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { STRAITDESK_CONFIG } from "@/config/straitdesk.config";
 import { applyUltraLiteToLayerPrefs } from "@/lib/ultraLiteMode";
 import type { ViewerMode } from "@/lib/viewPackages";
 import { GLOBAL_BOOT_ALTITUDE } from "@/lib/globeCamera";
@@ -70,8 +70,8 @@ export function entryOrbitCamera(size?: { width: number; height: number }): {
    ENTRY_GATE로 대체된 뒤 자기 파일 외 참조가 0건인 채 남아 있던 별칭이다.
    필요하면 ENTRY_GATE.zoomOutAltitude / bootLookAt / zoomOutFlyMs를 직접 쓸 것. */
 
-/** 첫 화면 예산 — SSOT는 `geowatch.config.caps.firstScreenMaxLayers` */
-export const FIRST_SCREEN_MAX_LAYERS = GEOWATCH_CONFIG.caps.firstScreenMaxLayers;
+/** 첫 화면 예산 — SSOT는 `straitdesk.config.caps.firstScreenMaxLayers` */
+export const FIRST_SCREEN_MAX_LAYERS = STRAITDESK_CONFIG.caps.firstScreenMaxLayers;
 
 function allBooleanLayersOff(base: LayerPrefs): LayerPrefs {
   const next = { ...base };

@@ -14,7 +14,7 @@ import type { NewsStreamItem } from "@/lib/news/types";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
 
-const STORAGE_KEY = "geowatch-event-dock-dismissed";
+const STORAGE_KEY = "straitdesk-event-dock-dismissed";
 const KEEP = 300;
 
 function loadDismissed(): Set<string> {

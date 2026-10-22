@@ -46,7 +46,7 @@ export const TAIWAN_SPIKE_SCORE = HOT_SPIKE_SCORE;
 /** @deprecated HOT_SPIKE_DELTA 사용 */
 export const TAIWAN_SPIKE_DELTA = HOT_SPIKE_DELTA;
 
-const DISMISS_KEY = "geowatch-tension-cut-dismiss-v1";
+const DISMISS_KEY = "straitdesk-tension-cut-dismiss-v1";
 
 export function tensionCutDismissedToday(): boolean {
   if (typeof window === "undefined") return true;

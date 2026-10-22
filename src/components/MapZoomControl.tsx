@@ -13,7 +13,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { clampGlobeAltitude } from "@/lib/globeCamera";
 import type { MapGlobeMethods } from "@/lib/mapGlobeRef";
 
-const HIDDEN_KEY = "geowatch-zoom-control-hidden";
+const HIDDEN_KEY = "straitdesk-zoom-control-hidden";
 /** 누르고 있는 동안 초당 altitude 배수 변화 (1보다 작으면 확대, 크면 축소 쪽 속도) */
 const HOLD_ZOOM_FACTOR_PER_SEC = 1.18;
 const HOLD_TICK_MS = 50;

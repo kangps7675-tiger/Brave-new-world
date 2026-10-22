@@ -1,11 +1,11 @@
 /**
  * 동시 모달/배너 — 한 번에 하나만.
- * 우선순위 정본: `@/config/geowatch.config` overlay.bannerPriority
+ * 우선순위 정본: `@/config/straitdesk.config` overlay.bannerPriority
  *
  * 브리핑(양피지)·진입 게이트는 이 큐보다 상위(화면 점유)로 취급한다.
  */
 
-import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { STRAITDESK_CONFIG } from "@/config/straitdesk.config";
 
 export type OverlayBannerKind =
   | "airRaid"
@@ -22,7 +22,7 @@ export type OverlayBannerKind =
 
 /** 낮을수록 우선 — SSOT */
 export const OVERLAY_BANNER_PRIORITY: Record<OverlayBannerKind, number> = {
-  ...GEOWATCH_CONFIG.overlay.bannerPriority,
+  ...STRAITDESK_CONFIG.overlay.bannerPriority,
 };
 
 export type OverlayBannerCandidates = Partial<Record<OverlayBannerKind, boolean>>;

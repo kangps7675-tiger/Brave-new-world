@@ -23,7 +23,7 @@ const AHEAD_CHECK = 12;
  * @see docs/copyright-audit-2026-08-01.md — R-2
  */
 const TELEGRAM_SCRAPE_USER_AGENT =
-  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
+  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Strait-Desk)";
 
 type CachedPost = {
   text: string;

@@ -120,7 +120,7 @@ describe("기존 사용자 보호", () => {
    * (LAYER_PREFS_KEY가 v38까지 올라가며 설정을 날린 것과 같은 실수)
    */
   it("기존 저장 키를 그대로 존중한다", () => {
-    localStorage.setItem("geowatch-chrome-coach-v4", "1");
+    localStorage.setItem("straitdesk-chrome-coach-v4", "1");
     expect(isNudgeDone("chromeCoach")).toBe(true);
     expect(canShowNudge("chromeCoach", true, NOW)).toBe(false);
   });
@@ -147,9 +147,9 @@ describe("설정 키 오염 방지", () => {
 describe("리셋", () => {
   it("코치 기록은 지우되 소리 설정은 보존한다", () => {
     localStorage.setItem("cv-sound-enabled", "0");
-    localStorage.setItem("geowatch-chrome-coach-v4", "1");
+    localStorage.setItem("straitdesk-chrome-coach-v4", "1");
     resetOnboarding();
-    expect(localStorage.getItem("geowatch-chrome-coach-v4")).toBeNull();
+    expect(localStorage.getItem("straitdesk-chrome-coach-v4")).toBeNull();
     // 소리는 온보딩 기록이 아니라 사용자 설정이다
     expect(localStorage.getItem("cv-sound-enabled")).toBe("0");
     expect(remainingBudget()).toBe(ONBOARDING_BUDGET_PER_SESSION);

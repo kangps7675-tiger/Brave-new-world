@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 const TTL_MS = 24 * 60 * 60 * 1000; // 사진은 자주 안 바뀜 — 24h 캐시
 const FETCH_TIMEOUT_MS = 8_000;
-const USER_AGENT = "StraitDesk/1.0 (+https://bravenew.world; aircraft photo lookup)";
+const USER_AGENT = "StraitDesk/1.0 (+https://straitdesk.app; aircraft photo lookup)";
 
 export type AircraftPhotoResult = {
   photoUrl: string | null;

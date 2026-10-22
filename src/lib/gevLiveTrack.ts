@@ -1,6 +1,6 @@
 /**
  * God's Eye View 스타일 — AIS/항공기 텔레메트리·추적·트레일 헬퍼.
- * 데이터 소스는 BNW(/api/ais, /api/adsb-*)를 유지하고, 표시 형식만 GEV에 맞춘다.
+ * 데이터 소스는 Strait Desk(/api/ais, /api/adsb-*)를 유지하고, 표시 형식만 GEV에 맞춘다.
  */
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import { aisDisplayTypeLabel } from "@/lib/aisVesselClass";

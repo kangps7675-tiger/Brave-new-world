@@ -545,11 +545,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       try {
         const w = window as Window & {
-          __GEOWATCH_MAP_PROJECTION?: () => unknown;
-          __GEOWATCH_FORCE_GLOBE?: () => void;
+          __STRAITDESK_MAP_PROJECTION?: () => unknown;
+          __STRAITDESK_FORCE_GLOBE?: () => void;
         };
-        w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
-        w.__GEOWATCH_FORCE_GLOBE = () => {
+        w.__STRAITDESK_MAP_PROJECTION = () => map.getProjection?.();
+        w.__STRAITDESK_FORCE_GLOBE = () => {
           applyBasemapGlobeProjection(m);
           try {
             map.setProjection?.({ type: "vertical-perspective" });
@@ -1481,11 +1481,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // 진단 훅을 최우선 등록 (아래 setStyle 래핑이 실패해도 e2e/콘솔이 살도록)
     try {
       const w = window as Window & {
-        __GEOWATCH_MAP_PROJECTION?: () => unknown;
-        __GEOWATCH_FORCE_GLOBE?: () => void;
+        __STRAITDESK_MAP_PROJECTION?: () => unknown;
+        __STRAITDESK_FORCE_GLOBE?: () => void;
       };
-      w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
-      w.__GEOWATCH_FORCE_GLOBE = () => {
+      w.__STRAITDESK_MAP_PROJECTION = () => map.getProjection?.();
+      w.__STRAITDESK_FORCE_GLOBE = () => {
         applyBasemapGlobeProjection(m);
         try {
           map.setProjection?.({ type: "vertical-perspective" });

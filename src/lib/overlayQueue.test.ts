@@ -4,7 +4,7 @@ import {
   canShowOverlayBanner,
   resolveTopOverlayBanner,
 } from "@/lib/overlayQueue";
-import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { STRAITDESK_CONFIG } from "@/config/straitdesk.config";
 import {
   ACTIVE_LAYER_CAP_DEFAULT,
   ACTIVE_LAYER_CAP_ULTRA,
@@ -137,16 +137,16 @@ describe("overlayQueue", () => {
   });
 });
 
-describe("geowatch.config SSOT", () => {
+describe("straitdesk.config SSOT", () => {
   it("layer caps match config", () => {
-    expect(ACTIVE_LAYER_CAP_DEFAULT).toBe(GEOWATCH_CONFIG.caps.fullModeMaxLayers);
-    expect(ACTIVE_LAYER_CAP_ULTRA).toBe(GEOWATCH_CONFIG.caps.ultraLiteMaxLayers);
+    expect(ACTIVE_LAYER_CAP_DEFAULT).toBe(STRAITDESK_CONFIG.caps.fullModeMaxLayers);
+    expect(ACTIVE_LAYER_CAP_ULTRA).toBe(STRAITDESK_CONFIG.caps.ultraLiteMaxLayers);
   });
 
   it("overlay priorities match config", () => {
-    expect(GEOWATCH_CONFIG.overlay.bannerPriority.airRaid).toBe(10);
-    expect(GEOWATCH_CONFIG.overlay.bannerPriority.tickerSpike).toBe(42);
-    expect(GEOWATCH_CONFIG.overlay.bannerPriority.hotTheater).toBe(55);
-    expect(GEOWATCH_CONFIG.overlay.bannerPriority.ultraLite).toBe(65);
+    expect(STRAITDESK_CONFIG.overlay.bannerPriority.airRaid).toBe(10);
+    expect(STRAITDESK_CONFIG.overlay.bannerPriority.tickerSpike).toBe(42);
+    expect(STRAITDESK_CONFIG.overlay.bannerPriority.hotTheater).toBe(55);
+    expect(STRAITDESK_CONFIG.overlay.bannerPriority.ultraLite).toBe(65);
   });
 });

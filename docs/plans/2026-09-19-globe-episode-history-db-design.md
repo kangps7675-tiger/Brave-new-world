@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-19  
 **Status:** Validated (brainstorming)  
-**Product:** Brave New World (멋진 신세계) — Korea-first **지정학 + 지경학** explainer
+**Product:** Strait Desk — Korea-first **지정학 + 지경학** explainer
 
 ---
 

@@ -19,7 +19,7 @@ import { clampToFirstImpression } from "@/lib/firstImpression";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /** 세션당 1회 — 재방문·리프레시에서 다시 연출하지 않음 */
-const SESSION_KEY = "geowatch-first-impression-v1";
+const SESSION_KEY = "straitdesk-first-impression-v1";
 
 function sessionAlreadyDone(): boolean {
   if (typeof window === "undefined") return true;

@@ -18,9 +18,9 @@ const DailyRankSharePanel = dynamic(
   { ssr: false },
 );
 
-const PEAK_SHOWN_KEY = "geowatch-peak-end-shown-v1";
+const PEAK_SHOWN_KEY = "straitdesk-peak-end-shown-v1";
 /** 이 세션에서 「오늘의 브리핑」게이지를 닫았는지 */
-const GAUGE_DISMISSED_KEY = "geowatch-briefing-gauge-dismissed-v1";
+const GAUGE_DISMISSED_KEY = "straitdesk-briefing-gauge-dismissed-v1";
 const SESSION_START = Date.now();
 const PEAK_AFTER_MS = 90_000;
 
@@ -64,8 +64,8 @@ export function DailyBriefingChrome({
 
   useEffect(() => {
     const onProg = () => refresh();
-    window.addEventListener("geowatch-briefing-progress", onProg);
-    return () => window.removeEventListener("geowatch-briefing-progress", onProg);
+    window.addEventListener("straitdesk-briefing-progress", onProg);
+    return () => window.removeEventListener("straitdesk-briefing-progress", onProg);
   }, [refresh]);
 
   /** Peak-End: 의미 있는 세션 뒤·백그라운드 복귀 시 1회 제안 */
@@ -93,15 +93,15 @@ export function DailyBriefingChrome({
       if (document.visibilityState === "hidden") {
         // 이탈 직전 신호 — 복귀 시 카드를 띄울 플래그
         try {
-          sessionStorage.setItem("geowatch-peak-pending", "1");
+          sessionStorage.setItem("straitdesk-peak-pending", "1");
         } catch {
           /* ignore */
         }
         return;
       }
       try {
-        if (sessionStorage.getItem("geowatch-peak-pending") === "1") {
-          sessionStorage.removeItem("geowatch-peak-pending");
+        if (sessionStorage.getItem("straitdesk-peak-pending") === "1") {
+          sessionStorage.removeItem("straitdesk-peak-pending");
           maybeOffer();
         }
       } catch {

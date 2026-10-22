@@ -241,7 +241,7 @@ export function shouldOfferIntelDeskTip(): boolean {
   try {
     // 동적 import 순환 회피 — 키를 직접 본다
     const tourDone =
-      window.localStorage.getItem("geowatch-first-visit-tour-v1") === "1";
+      window.localStorage.getItem("straitdesk-first-visit-tour-v1") === "1";
     const uxGuideDone =
       window.localStorage.getItem("cv-ux-guide-brief-v1") === "1";
     // 둘 다 끝냈으면 이미 익숙한 유저 → 설명창 자동 노출 없음

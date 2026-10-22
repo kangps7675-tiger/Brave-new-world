@@ -3,7 +3,7 @@
  * fetch 래퍼 → 배지 컴포넌트 연결. 컴포넌트 의존 없이 lib에 둔다.
  */
 
-export const LAYER_CACHE_META_EVENT = "geowatch-layer-cache-meta";
+export const LAYER_CACHE_META_EVENT = "straitdesk-layer-cache-meta";
 
 export type LayerCacheMetaDetail = {
   fromCache: boolean;

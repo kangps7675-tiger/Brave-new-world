@@ -3,7 +3,7 @@
  * 서버 .env ANTHROPIC_API_KEY 와 분리.
  */
 
-const STORAGE_KEY = "bnw-user-anthropic-api-key";
+const STORAGE_KEY = "straitdesk-user-anthropic-api-key";
 
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
