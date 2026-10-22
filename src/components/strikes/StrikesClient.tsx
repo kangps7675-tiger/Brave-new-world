@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { MatchStatus, ScoredCandidate } from "@/lib/strikeMatch/scoreCandidates";
+import type { CandidateWeather } from "@/lib/strikeSnapshot";
 import {
   WAR_RISK_REGION_LABEL_KO,
   WAR_RISK_REGION_PAGE,
@@ -23,8 +24,8 @@ type Strike = {
     detail: string | null;
   };
   status: MatchStatus;
-  top: ScoredCandidate | null;
-  candidates: ScoredCandidate[];
+  top: (ScoredCandidate & { weather?: CandidateWeather }) | null;
+  candidates: Array<ScoredCandidate & { weather?: CandidateWeather }>;
   nearbyCount: number;
   limits: string[];
   /** 선명을 기사에서 가져와 AIS 위치로 검증한 경우의 출처 */
@@ -98,7 +99,17 @@ function fmtRate(q: Quote): string {
   return q.rateHighPct !== null ? `${q.ratePct}–${q.rateHighPct}%` : `${q.ratePct}%`;
 }
 
-function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
+function weatherLine(w: CandidateWeather): string | null {
+  const parts = [
+    w.waveHeightM != null ? `파고 ${w.waveHeightM.toFixed(1)} m` : null,
+    w.windKn != null ? `바람 ${w.windKn} kn` : null,
+    w.visibilityKm != null ? `시정 ${w.visibilityKm >= 10 ? Math.round(w.visibilityKm) : w.visibilityKm.toFixed(1)} km` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+function CandidateRow({ c, first }: { c: ScoredCandidate & { weather?: CandidateWeather }; first?: boolean }) {
+  const wx = c.weather ? weatherLine(c.weather) : null;
   return (
     <div className={first ? "" : "border-t border-white/10 pt-3"}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -119,6 +130,12 @@ function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
             </li>
           ))}
       </ul>
+      {wx ? (
+        <p className="mt-1.5 text-xs text-white/45">
+          이 배 위치의 바다 · {wx}
+          {c.weather?.at ? ` (Datalastic, ${c.weather.at.slice(5, 16).replace("T", " ")} UTC 조회값 — 사건 순간의 값이 아님)` : ""}
+        </p>
+      ) : null}
     </div>
   );
 }

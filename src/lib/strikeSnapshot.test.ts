@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DatalasticVessel } from "@/lib/datalasticAis";
 import {
+  attachWeather,
+  planWeatherCells,
+  weatherCell,
   EVENT_MIN_REMAINING_CREDITS,
   SNAPSHOT_RADIUS_LATE_NM,
   SNAPSHOT_RADIUS_NM,
@@ -127,5 +130,39 @@ describe("misc", () => {
     expect(isStrikeType("Boarding")).toBe(true);
     expect(isStrikeType("Suspicious Activity")).toBe(false);
     expect(isStrikeType(null)).toBe(false);
+  });
+});
+
+describe("후보 날씨 격자", () => {
+  const wx = { at: "2026-10-22T00:00:00.000Z", waveHeightM: 1, wavePeriodS: 5, swellHeightM: 0.3, windKn: 10, windDirDeg: 90, visibilityKm: 10 };
+  const cands = [
+    { mmsi: "1", name: null, imo: null, distNm: 1 },
+    { mmsi: "2", name: null, imo: null, distNm: 2 },
+    { mmsi: "3", name: null, imo: null, distNm: 3 },
+  ];
+
+  it("같은 칸의 선박은 한 번만 부른다", () => {
+    const pos = new Map([
+      ["1", { lat: 13.05, lng: 42.8 }],
+      ["2", { lat: 13.1, lng: 42.85 }],
+      ["3", { lat: 14.0, lng: 43.5 }],
+    ]);
+    expect(planWeatherCells(cands, pos).map((c) => c.key)).toEqual(["13.00,42.75", "14.00,43.50"]);
+  });
+
+  it("상한을 넘는 칸은 부르지 않는다", () => {
+    const pos = new Map(cands.map((c, i) => [c.mmsi, { lat: 10 + i, lng: 40 }]));
+    expect(planWeatherCells(cands, pos, 2)).toHaveLength(2);
+  });
+
+  it("못 받은 칸의 후보에는 날씨를 붙이지 않는다(옆 칸 값으로 대신하지 않음)", () => {
+    const pos = new Map([
+      ["1", { lat: 13.0, lng: 42.75 }],
+      ["2", { lat: 20.0, lng: 40.0 }],
+    ]);
+    const key = weatherCell(13.0, 42.75).key;
+    const out = attachWeather(cands.slice(0, 2), pos, new Map([[key, wx]]));
+    expect(out[0]!.weather).toEqual(wx);
+    expect(out[1]!.weather).toBeUndefined();
   });
 });

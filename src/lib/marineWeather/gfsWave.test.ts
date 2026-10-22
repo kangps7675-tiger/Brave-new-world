@@ -61,3 +61,20 @@ describe("gfsWave", () => {
     }
   });
 });
+
+describe("대양 해역 변수 제한", () => {
+  it("MARINE_REGION_FIELDS 의 변수는 모두 WAVE_FIELDS 에 있다", async () => {
+    const { MARINE_REGION_FIELDS } = await import("./zones");
+    const { WAVE_FIELDS } = await import("./gfsWave");
+    const keys = new Set(WAVE_FIELDS.map((f) => f.key));
+    for (const list of Object.values(MARINE_REGION_FIELDS)) for (const k of list ?? []) expect(keys.has(k)).toBe(true);
+  });
+
+  it("파일당 NOMADS 요청 수가 50 을 넘지 않는다 (Workers 서브요청 한도 여유)", async () => {
+    const { MARINE_REGIONS, MARINE_REGION_FIELDS } = await import("./zones");
+    const { WAVE_FIELDS } = await import("./gfsWave");
+    let jobs = 0;
+    for (const r of MARINE_REGIONS) jobs += MARINE_REGION_FIELDS[r]?.length ?? WAVE_FIELDS.length;
+    expect(jobs).toBeLessThanOrEqual(45);
+  });
+});

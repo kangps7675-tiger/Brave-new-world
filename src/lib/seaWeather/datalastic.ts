@@ -10,7 +10,8 @@
  * `ocean_current_velocity` 는 단위가 불확실해 쓰지 않는다.
  */
 
-import { MARINE_POINTS, type MarineRegion } from "@/lib/marineWeather/zones";
+import type { CandidateWeather } from "../strikeSnapshot";
+import { MARINE_POINTS, type MarineRegion } from "../marineWeather/zones";
 
 const BASE = "https://api.datalastic.com/api/v0";
 
@@ -104,3 +105,17 @@ export async function fetchSeaWeather(
 
 /** km/h → 노트 */
 export const kmhToKnots = (kmh: number): number => kmh / 1.852;
+
+/** 화면·저장용 — 풍속은 노트로, 시정은 km 로 */
+export function toCandidateWeather(now: SeaWeatherNow): CandidateWeather {
+  const r1 = (v: number | null) => (v === null ? null : Math.round(v * 10) / 10);
+  return {
+    at: now.at,
+    waveHeightM: r1(now.waveHeightM),
+    wavePeriodS: r1(now.wavePeriodS),
+    swellHeightM: r1(now.swellHeightM),
+    windKn: now.windKmh === null ? null : Math.round(kmhToKnots(now.windKmh)),
+    windDirDeg: now.windDirDeg === null ? null : Math.round(now.windDirDeg),
+    visibilityKm: r1(now.visibilityKm),
+  };
+}

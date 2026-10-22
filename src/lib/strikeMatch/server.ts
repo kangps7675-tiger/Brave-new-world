@@ -7,7 +7,8 @@
 
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import type { AppDb } from "@/db/client";
-import { aisPositionHistory, aisVessels, strikeNamed, ukmtoIncidents, vesselIdentity } from "@/db/schema";
+import { aisPositionHistory, aisVessels, strikeNamed, strikeSnapshot, ukmtoIncidents, vesselIdentity } from "@/db/schema";
+import type { CandidateWeather } from "@/lib/strikeSnapshot";
 import { extractShipName } from "@/lib/strikeMatch/shipName";
 import {
   GENERIC_NAMES,
@@ -38,11 +39,14 @@ export type StrikeCase = {
   detail: string | null;
 };
 
+/** 후보 + (스냅샷 때 받아 둔) 그 위치의 날씨 */
+export type WeatheredCandidate = ScoredCandidate & { weather?: CandidateWeather };
+
 export type StrikeMatchResult = {
   incident: StrikeCase;
   status: MatchStatus;
-  top: ScoredCandidate | null;
-  candidates: ScoredCandidate[];
+  top: WeatheredCandidate | null;
+  candidates: WeatheredCandidate[];
   nearbyCount: number;
   /** 근거 한계 — 숨기지 않는다 */
   limits: string[];
@@ -89,6 +93,27 @@ export async function loadVerifiedNames(db: AppDb, incidentId: string): Promise<
   } catch {
     return [];
   }
+}
+
+/** 스냅샷 때 후보 선박 위치에서 받아 둔 날씨 (mmsi → 날씨). 스냅샷 전이거나 테이블이 없으면 빈 맵. */
+export async function loadCandidateWeather(db: AppDb, incidentId: string): Promise<Map<string, CandidateWeather>> {
+  const out = new Map<string, CandidateWeather>();
+  try {
+    const rows = await db
+      .select({ candidates: strikeSnapshot.candidates })
+      .from(strikeSnapshot)
+      .where(eq(strikeSnapshot.incidentId, incidentId))
+      .limit(1);
+    const arr = JSON.parse(rows[0]?.candidates ?? "[]") as unknown;
+    if (Array.isArray(arr)) {
+      for (const c of arr as Array<{ mmsi?: unknown; weather?: CandidateWeather }>) {
+        if (typeof c?.mmsi === "string" && c.weather) out.set(c.mmsi, c.weather);
+      }
+    }
+  } catch {
+    // 테이블 없음·깨진 JSON — 날씨 없이 진행
+  }
+  return out;
 }
 
 function toCase(r: UkmtoRow): StrikeCase | null {
@@ -283,11 +308,14 @@ export async function matchStrikeCase(
   if (!scoringName) limits.push("경보에 선명이 없어 '확인'은 불가 — 항적 정황으로만 판단");
   if (s.top && !s.top.imo) limits.push("1순위 후보의 IMO 미수신 — MMSI 로만 식별");
 
+  const wx = await loadCandidateWeather(db, c.id);
+  const withWx = (x: ScoredCandidate): WeatheredCandidate => (wx.has(x.mmsi) ? { ...x, weather: wx.get(x.mmsi)! } : x);
+
   return {
     incident: c,
     status: s.status,
-    top: s.top,
-    candidates: candidates.slice(0, 10),
+    top: s.top ? withWx(s.top) : null,
+    candidates: candidates.slice(0, 10).map(withWx),
     nearbyCount: s.nearbyCount,
     limits,
     ...(nameSource ? { nameSource } : {}),
