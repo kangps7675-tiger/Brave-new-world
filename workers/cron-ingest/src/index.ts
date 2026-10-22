@@ -281,7 +281,7 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
 
     // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS/GDELT
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
-    const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
+    const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 80)));
     const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
     // 허브를 2등분해 10분 크론마다 번갈아 호출 — 허브당 20분 주기, 호출량 절반.
     const hubSlice = Math.floor(Date.now() / (10 * 60_000)) % 2;

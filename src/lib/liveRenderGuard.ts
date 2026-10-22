@@ -29,7 +29,7 @@ const AIS_HTML_DISPLAY_BY_TIER: Record<GlobeLodTier, number> = {
 };
 
 /** fetch max(liveAisFetchMax)와 맞춤 — display가 fetch에 막히지 않게 */
-const AIS_DISPLAY_CEILING = 1500;
+const AIS_DISPLAY_CEILING = 3000;
 
 /**
  * Cesium 민항 billboard 예산 (이름은 과거 HTML 마커 시절 잔재).
@@ -126,7 +126,7 @@ export function liveAisPollMs(): number {
 }
 
 export function liveAisFetchMax(): number {
-  return isClientApiStubMode() ? 280 : 1500;
+  return isClientApiStubMode() ? 280 : 3000;
 }
 
 /** 화면 AIS 마커 상한 (Cesium billboard — 줌아웃에서도 전 지구 트랙 유지) */
@@ -156,7 +156,7 @@ export function liveAirTrafficPollMs(): number {
 }
 
 export function liveAirTrafficFetchMax(): number {
-  return isClientApiStubMode() ? 350 : 800;
+  return isClientApiStubMode() ? 350 : 3000;
 }
 
 export function liveAirTrafficDisplayMax(tier: GlobeLodTier, ultraLite?: boolean): number {
