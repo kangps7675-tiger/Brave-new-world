@@ -23,7 +23,7 @@ export {
 export const SHADOW_FLEET_VIEWBOX = { width: 64, height: 64 } as const;
 
 /** 옆모습 — 가늘고 긴 상선 비율 */
-export const SHADOW_FLEET_MARKER_SIZE = { width: 64, height: 36 } as const;
+export const SHADOW_FLEET_MARKER_SIZE = { width: 64, height: 35 } as const;
 
 export const SHADOW_FLEET_REFERENCE = {
   description:
@@ -44,9 +44,9 @@ export type ShadowFleetDrawing = {
  * Farnborough 위장형 — 풍선형 금지, 긴 직사각형 헐 + 갑판 상부구조.
  */
 const SIDE_E: ShadowFleetDrawing = {
-  // 날카로운 함수 → 평갑판 → 거의 수직 함미 · 낮은 흘수(풍선 타원 금지)
+  // 날카롭게 기울어진 함수(raked stem) → 완만한 현호 갑판 → 수직 트랜섬 함미 · 낮은 건현(타원·풍선 금지)
   hull:
-    "M 1.5,41 L 3,34 L 6,30 L 11,28 L 18,27.5 L 46,27.5 L 54,28 L 58.5,29.5 L 61,33 L 62,38 L 61.5,43 L 58,45 L 48,45.5 L 20,45.5 L 10,44.5 L 4,43 L 1.5,41.5 Z",
+    "M 1.5,26 L 8,27.5 L 56,27.5 L 62.5,26.5 L 61.5,37 L 9.5,37 Z",
   details: [
     // 잭스태프
     "M 5.5,27.5 L 6.3,27.5 L 6.05,16 L 5.35,16 Z",
@@ -93,7 +93,7 @@ const SIDE_E: ShadowFleetDrawing = {
 /** W: SIDE_E 좌우 반전 (x' = 64 − x) */
 const SIDE_W: ShadowFleetDrawing = {
   hull:
-    "M 62.5,41 L 61,34 L 58,30 L 53,28 L 46,27.5 L 18,27.5 L 10,28 L 5.5,29.5 L 3,33 L 2,38 L 2.5,43 L 6,45 L 16,45.5 L 44,45.5 L 54,44.5 L 60,43 L 62.5,41.5 Z",
+    "M 62.5,26 L 56,27.5 L 8,27.5 L 1.5,26.5 L 2.5,37 L 54.5,37 Z",
   details: [
     "M 58.5,27.5 L 57.7,27.5 L 57.95,16 L 58.65,16 Z",
     "M 55,24 L 49,24 L 49,27.5 L 55,27.5 Z",
