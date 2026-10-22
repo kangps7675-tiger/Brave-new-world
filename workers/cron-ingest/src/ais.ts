@@ -601,6 +601,11 @@ export async function fetchAisVessels(
     max,
   });
   // 이력(피격 매칭용)은 초크포인트 박스 안 선박을 솎아내지 않고 보존한다.
+  // Datalastic 은 유료 크레딧으로 받은 표본이라 솎아내기에서 지워지면 낭비다 — 솎은 뒤 되돌려 담는다
+  const thinnedIds = new Set(thinned.map((v) => v.id));
+  for (const v of merged) {
+    if (v.provider === "datalastic" && !thinnedIds.has(v.id)) thinned.push(v);
+  }
   const keptIds = new Set(thinned.map((v) => v.id));
   const historyVessels = [
     ...thinned,

@@ -1,12 +1,13 @@
 /**
- * Datalastic vessel_inradius 로 AISstream 공백 해역(홍해·바브엘만데브)을 채운다.
+ * Datalastic vessel_inradius 로 전 세계 주요 해역·먼바다 표본을 채운다(AISstream 공백 보강 포함).
  * 순수 로직(구역·파싱·예산 계산)은 src/lib/datalasticAis.ts.
  *
  * 비용 가드 (선박 1척 = 1크레딧):
  *  - datalastic_usage(월 집계)·datalastic_zone_poll(구역별 마지막 폴링) 테이블이 있어야만 호출한다 (migration 0037).
  *    테이블이 없거나 D1 이 실패하면 예산을 셀 수 없으므로 호출하지 않는다.
  *  - 남은 월 예산이 MIN_REMAINING_CREDITS 미만이면 호출하지 않는다. 월 예산 중 EVENT_RESERVE_CREDITS 는 사건 스냅샷용으로 남긴다.
- *  - 구역마다 DATALASTIC_POLL_HOURS(기본 6) 간격.
+ *  - 구역마다 pollHours(hot 24~48h, 기본 DATALASTIC_POLL_HOURS=72), 틱당 MAX_ZONES_PER_TICK 구역, 오래 못 본 구역 우선.
+ *  - 월 예산은 달의 경과 비율만큼만 쓴다(paceAllowance) — 월초 소진 방지.
  * 키가 없으면 아무것도 하지 않는다.
  */
 
@@ -14,6 +15,8 @@ import {
   DATALASTIC_ZONES,
   DEFAULT_MONTHLY_CREDITS,
   DEFAULT_POLL_HOURS,
+  MAX_ZONES_PER_TICK,
+  paceAllowance,
   canSpend,
   categoryFromType,
   monthKey,
@@ -82,13 +85,13 @@ export async function fetchDatalasticZones(
     };
   }
 
-  const due = zonesDue(DATALASTIC_ZONES, lastPolled, now.getTime(), pollHours);
+  const due = zonesDue(DATALASTIC_ZONES, lastPolled, now.getTime(), pollHours).slice(0, MAX_ZONES_PER_TICK);
   const rows = new Map<string, AisVesselRow>();
   let creditsSpent = 0;
 
   for (const zone of due) {
     // 사건 스냅샷용 예비분(EVENT_RESERVE_CREDITS)은 상시 폴링이 건드리지 않는다
-    const zoneBudget = Math.max(0, budget - EVENT_RESERVE_CREDITS);
+    const zoneBudget = Math.min(Math.max(0, budget - EVENT_RESERVE_CREDITS), paceAllowance(Math.max(0, budget - EVENT_RESERVE_CREDITS), now));
     if (!canSpend(used + creditsSpent, zoneBudget)) {
       errors.push(`datalastic: 상시 폴링 예산 소진(${used + creditsSpent}/${zoneBudget}, 사건용 ${EVENT_RESERVE_CREDITS} 별도) — ${zone.id} 이후 호출 중단`);
       break;

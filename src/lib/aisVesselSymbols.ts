@@ -232,7 +232,12 @@ export async function ensureAisSymbolImages(map: MapLike): Promise<void> {
   await Promise.all(jobs);
 }
 
-export type AisSymbolInput = AisVessel & { markerId?: string; displayKind?: string };
+export type AisSymbolInput = AisVessel & {
+  markerId?: string;
+  displayKind?: string;
+  /** 사건에 걸린 배: 1=확인·유력, 2=후보 */
+  incident?: 1 | 2;
+};
 
 export type AisSymbolModel = {
   /** 일반 상선 + 항모 — icon-rotate(heading), rotation-alignment: map */
@@ -279,6 +284,7 @@ export function buildAisSymbolModel(
   if (vessels.length === 0) return EMPTY_MODEL;
 
   const selectedMmsi = (options?.selectedMmsi || "").trim();
+  const hasIncident = vessels.some((v) => v.incident === 1 || v.incident === 2);
   const headingFeatures: GeoJSON.Feature[] = [];
   const aspectFeatures: GeoJSON.Feature[] = [];
   const items: AisSymbolInput[] = [];
@@ -299,7 +305,10 @@ export function buildAisSymbolModel(
     items.push(vessel);
     const selected = selectedMmsi !== "" && vessel.mmsi === selectedMmsi ? 1 : 0;
     const tag = aisTag(vessel);
-    const scale = selected ? 1.2 : 1;
+    const incident = vessel.incident === 1 || vessel.incident === 2 ? vessel.incident : 0;
+    const scale = incident === 1 ? 1.9 : incident === 2 ? 1.5 : selected ? 1.2 : 1;
+    // 사건 배가 있으면 나머지는 배경으로 물러난다
+    const dim = hasIncident && !incident && !selected ? 0.5 : 1;
 
     if (aspectHull) {
       // 저속에서도 침로 유지(allowStationaryHeading) — 기존 badge 생성 규칙과 동일
@@ -325,8 +334,9 @@ export function buildAisSymbolModel(
           icon,
           rotate: 0,
           // 침로 미상 — 기존 DOM 배지의 opacity 규칙 그대로(위장 0.78 / 군함·잠수함 0.72)
-          opacity: selected ? 1 : heading == null ? (disguised ? 0.78 : 0.72) : 1,
+          opacity: incident || selected ? 1 : (heading == null ? (disguised ? 0.78 : 0.72) : 1) * dim,
           selected,
+          incident,
           tag,
           scale,
         },
@@ -349,8 +359,9 @@ export function buildAisSymbolModel(
         icon,
         // 정박 중이면 원(회전 없음). 움직이는데 침로를 모르면 -20° 기울여 "미상" 표시
         rotate: stopped ? 0 : (heading ?? -20),
-        opacity: selected ? 1 : heading == null && !stopped ? 0.72 : 1,
+        opacity: incident || selected ? 1 : (heading == null && !stopped ? 0.72 : 1) * dim,
         selected,
+        incident,
         tag,
         scale,
       },

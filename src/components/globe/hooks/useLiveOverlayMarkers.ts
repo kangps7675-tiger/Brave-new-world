@@ -18,6 +18,7 @@ import {
   isOperationalCarrier,
 } from "@/lib/usCarrierMarkers";
 import { VIEWPORT_RADIUS_BY_TIER, pickInViewOrNearest } from "@/lib/viewportCull";
+import { useIncidentVessels } from "@/components/globe/hooks/useIncidentVessels";
 import type {
   AisGlobePoint,
   MilGlobePoint,
@@ -199,6 +200,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
 
   // AIS — 지정학 지도(MapLibre) 전용. 모드는 하나라 군함·상선을 모두 보이고,
   // 군/민 세부 토글(showAisMilitary/showAisCommercial)로만 거른다. 바닷길 보기도 같은 경로.
+  const incidentVessels = useIncidentVessels(showAis);
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
     // 군·민 세부 토글이 둘 다 꺼진 저장값은 의도된 상태가 아니다 — 전부 걸러 빈 화면이 되므로 둘 다 켠 것으로 본다
     const subBothOff = !showAisMilitary && !showAisCommercial;
@@ -222,8 +224,11 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
           liveAisDisplayMax(globeLodTier, ultraLite),
         )
       : [];
+    // 사건에 걸린 배는 필터·개수 컷과 상관없이 항상 넣고(같은 MMSI 는 사건 쪽으로 교체) incident 표시를 단다
+    const incidentMmsi = new Set(incidentVessels.map((v) => v.mmsi));
     const seen = new Set(live.map((v) => v.mmsi));
-    return [...live, ...disguised.filter((v) => !seen.has(v.mmsi))].map((vessel) => ({
+    const base = [...live, ...disguised.filter((v) => !seen.has(v.mmsi))].filter((v) => !incidentMmsi.has(v.mmsi));
+    return [...base, ...(showAis ? incidentVessels : [])].map((vessel) => ({
       ...vessel,
       markerId: vessel.disguised ? `disguised-${vessel.mmsi}` : `ais-${vessel.mmsi}`,
       displayKind: "ais" as const,
@@ -233,6 +238,7 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
     carrierAisMerge.matchedMmsi,
     disguisedVessels,
     globeLodTier,
+    incidentVessels,
     layerViewState,
     showAis,
     showAisCommercial,
