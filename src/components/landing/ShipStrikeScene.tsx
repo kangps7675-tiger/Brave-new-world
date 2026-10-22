@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { useAnyScroll } from "@/components/landing/LandingHip";
 
 /**
  * 상선이 드론·미사일·기뢰에 공격받는 장면(연출). 실제 사건 영상이 아니다(화면에 밝힌다).
@@ -1099,11 +1100,89 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
   );
 }
 
-/** 드론·미사일·기뢰 세 화면을 가로로 놓고, 하나씩 차례로 재생한다 */
+/** 고정 모드에서 한 장면에 주는 스크롤 길이(vh) */
+const PIN_STEP_VH = 70;
+
+/**
+ * 드론·미사일·기뢰 세 화면.
+ * 넓은 화면에서는 화면에 고정해 두고 스크롤로 한 장면씩 넘긴다 — 칸에 들어가면 그 장면이 처음부터 한 번 재생된다.
+ * (스크롤에 재생 시간을 묶지 않는다: 빨리 내리면 폭발이 휙 지나가고 천천히 내리면 끊긴다.)
+ * 좁은 화면·낮은 화면·움직임 줄이기에서는 예전처럼 세 장을 늘어놓고 차례로 재생한다.
+ */
 export function ShipStrikeScene() {
   const [idx, setIdx] = useState(0);
   const [reduced, setReduced] = useState(false);
-  useEffect(() => setReduced(prefersReducedMotion()), []);
+  const [pin, setPin] = useState(false);
+  const [step, setStep] = useState(0);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const sentinels = useRef<(HTMLSpanElement | null)[]>([]);
+  useEffect(() => {
+    const r = prefersReducedMotion();
+    setReduced(r);
+    const mq = window.matchMedia("(min-width: 1024px) and (min-height: 700px)");
+    const sync = () => setPin(!r && mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const N = THREATS.length;
+  useAnyScroll(() => {
+    if (!pin) return;
+    const el = outerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight || 1;
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - vh)));
+    const next = Math.min(N - 1, Math.floor(p * N));
+    setStep((prev) => (prev === next ? prev : next));
+  });
+
+  if (pin) {
+    const go = (i: number) => sentinels.current[i]?.scrollIntoView({ block: "start", behavior: "smooth" });
+    const t = THREATS[step]!;
+    return (
+      <div>
+        <div ref={outerRef} className="relative" style={{ height: `${100 + (N - 1) * PIN_STEP_VH}vh` }}>
+          {THREATS.map((_, i) => (
+            <span
+              key={i}
+              ref={(el) => {
+                sentinels.current[i] = el;
+              }}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 h-px w-px"
+              style={{ top: `calc(${(i + 0.5) / N} * (100% - 100vh))` }}
+            />
+          ))}
+          <div className="sticky top-0 flex h-screen flex-col items-center justify-center">
+            <div className="w-full" style={{ maxWidth: "min(100%, calc((100vh - 250px) / 0.62))" }}>
+              <StrikePanel key={t.kind} kind={t.kind} active reduced={false} onDone={() => {}} />
+            </div>
+            <div className="mt-5 flex items-center gap-3" role="tablist" aria-label="장면 선택">
+              {THREATS.map((x, i) => (
+                <button
+                  key={x.kind}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === step}
+                  aria-label={`${i + 1}번째 장면: ${x.title}`}
+                  onClick={() => go(i)}
+                  className={`h-2.5 cursor-pointer rounded-full border-0 p-0 transition-all ${i === step ? "w-8 bg-[#f87171]" : "w-2.5 bg-white/25 hover:bg-white/50"}`}
+                />
+              ))}
+              <span className="ml-2 text-micro tabular-nums text-[#8fa3b1]">
+                {step + 1} / {N}
+                {step < N - 1 ? " · 스크롤하면 다음 장면" : ""}
+              </span>
+            </div>
+            <p className="mb-0 mt-3 text-micro text-[#8fa3b1]">연출 장면이며 실제 사건 영상이 아닙니다.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="grid gap-6 md:grid-cols-3">
