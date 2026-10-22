@@ -26,7 +26,7 @@ const REDUCED_LIFT_MS = 250;
 const SHUTTER_MS = 650;
 const SHUTTER_SLATS = 12;
 const SHUTTER_W = 288;
-const FOG_W = 200;
+const FOG_W = 260;
 
 /**
  * 랜딩을 띄울지. 기본은 항상 띄운다. 공유된 장면 링크(?scene=1)도 마찬가지 — 링크를 받은 사람이
@@ -54,7 +54,7 @@ function buildNoise(w: number, h: number): Float32Array {
     return { g, cells };
   };
   const octaves = [lattice(4), lattice(8), lattice(16), lattice(32)];
-  const weights = [0.5, 0.27, 0.15, 0.08];
+  const weights = [0.46, 0.3, 0.16, 0.08];
   const out = new Float32Array(w * h);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -218,7 +218,9 @@ export function LandingCurtain({
     const w = FOG_W;
     const h = Math.max(60, Math.min(400, Math.round((FOG_W * window.innerHeight) / Math.max(1, window.innerWidth))));
     const pad = 40;
+    // 결이 다른 노이즈 두 겹을 반대 방향으로 흘려 솜뭉치가 서로 스치며 풀리는 느낌을 낸다
     const noise = buildNoise(w + pad, h);
+    const noise2 = buildNoise(w + pad, h);
     const img = ctx ? ctx.createImageData(w, h) : null;
     if (canvas) {
       canvas.width = w;
@@ -249,14 +251,18 @@ export function LandingCurtain({
         for (let y = 0; y < h; y++) {
           for (let x = 0; x < w; x++) {
             const i = y * w + x;
-            const n = noise[y * (w + pad) + x + drift];
-            const s = n * 0.7 + dist[i] * 0.3;
-            const a = cover * smooth(thr - 0.4, thr + 0.22, s);
+            const row = y * (w + pad);
+            const raw = noise[row + x + drift] * 0.62 + noise2[row + x + (pad - drift)] * 0.38;
+            // 중간값을 부풀려 덩어리(솜뭉치)는 도톰하게, 가장자리는 올이 풀리듯 옅게
+            const n = smooth(0.2, 0.8, raw);
+            const s = n * 0.72 + dist[i] * 0.28;
+            const a = cover * smooth(thr - 0.45, thr + 0.25, s);
             const p = i * 4;
-            data[p] = 204 + n * 38;
-            data[p + 1] = 212 + n * 32;
-            data[p + 2] = 218 + n * 28;
-            data[p + 3] = a * 248;
+            // 뭉친 곳은 하얗고 얇은 곳은 살짝 푸른 회색 — 솜털의 명암
+            data[p] = 214 + n * 36;
+            data[p + 1] = 222 + n * 29;
+            data[p + 2] = 230 + n * 23;
+            data[p + 3] = a * 244;
           }
         }
         ctx.putImageData(img, 0, 0);
