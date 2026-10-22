@@ -182,6 +182,7 @@ describe("buildAisSymbolModel", () => {
     const m = buildAisSymbolModel([vessel()], 0);
     expect(Object.keys(m.headingGeojson.features[0].properties ?? {}).sort()).toEqual([
       "icon",
+      "incident",
       "index",
       "opacity",
       "rotate",
@@ -203,5 +204,24 @@ describe("aisSymbolBearingBucket", () => {
   it("음수·360 이상도 0~360 범위로 정규화한다", () => {
     expect(aisSymbolBearingBucket(-10)).toBe(350);
     expect(aisSymbolBearingBucket(370)).toBe(10);
+  });
+});
+
+describe("incident 표시", () => {
+  it("사건 선박은 크게·불투명, 나머지는 흐려진다", () => {
+    const m = buildAisSymbolModel(
+      [vessel({ mmsi: "a" }), { ...vessel({ mmsi: "b" }), incident: 1 }, { ...vessel({ mmsi: "c" }), incident: 2 }],
+      0,
+    );
+    const by = (i: number) => m.headingGeojson.features[i].properties!;
+    expect(by(0).opacity).toBe(0.5);
+    expect(by(0).incident).toBe(0);
+    expect(by(1).scale).toBeGreaterThan(by(2).scale as number);
+    expect(by(1).opacity).toBe(1);
+    expect(by(2).incident).toBe(2);
+  });
+  it("사건 선박이 없으면 흐리게 하지 않는다", () => {
+    const m = buildAisSymbolModel([vessel({ mmsi: "a" })], 0);
+    expect(m.headingGeojson.features[0].properties?.opacity).toBe(1);
   });
 });

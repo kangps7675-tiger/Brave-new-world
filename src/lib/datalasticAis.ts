@@ -13,17 +13,57 @@
 
 import { validImo } from "../../workers/cron-ingest/src/vesselIdentity";
 
-export type DatalasticZone = { id: string; name: string; lat: number; lon: number; radiusNm: number };
+export type DatalasticZone = {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  radiusNm: number;
+  /** 이 구역만의 폴링 간격(시간). 없으면 기본값 */
+  pollHours?: number;
+};
 
-/** AISstream 이 비는 해역만. 반경 최대 50NM(API 한도). */
+/**
+ * 전 세계 주요 해역 + 먼바다 표본. 반경 최대 50NM(API 한도).
+ * 선박 1척=1크레딧이라 붐비는 구역이 비싸다 — 간격은 구역별(hot=짧게)·월 예산 페이싱(paceAllowance)으로 조절한다.
+ * 먼바다 구역은 배가 드물어 싸다 — 항로 사이 빈 곳을 채우는 용도.
+ */
 export const DATALASTIC_ZONES: DatalasticZone[] = [
-  { id: "bab-el-mandeb", name: "바브엘만데브", lat: 12.65, lon: 43.35, radiusNm: 40 },
-  { id: "red-sea-south", name: "홍해 남부", lat: 16.8, lon: 40.6, radiusNm: 50 },
-  { id: "red-sea-north", name: "홍해 북부", lat: 24.5, lon: 35.6, radiusNm: 50 },
+  // hot — 위험 해역
+  { id: "bab-el-mandeb", name: "바브엘만데브", lat: 12.65, lon: 43.35, radiusNm: 40, pollHours: 24 },
+  { id: "red-sea-south", name: "홍해 남부", lat: 16.8, lon: 40.6, radiusNm: 50, pollHours: 24 },
+  { id: "red-sea-north", name: "홍해 북부", lat: 24.5, lon: 35.6, radiusNm: 50, pollHours: 24 },
+  { id: "hormuz", name: "호르무즈", lat: 26.5, lon: 56.3, radiusNm: 50, pollHours: 24 },
+  { id: "gulf-of-oman", name: "오만만", lat: 24.8, lon: 58.8, radiusNm: 50, pollHours: 48 },
+  { id: "suez", name: "수에즈", lat: 30.0, lon: 32.55, radiusNm: 40, pollHours: 48 },
+  { id: "black-sea", name: "흑해", lat: 43.5, lon: 34.0, radiusNm: 50, pollHours: 48 },
+  // 전 지구 길목·항만권
+  { id: "malacca", name: "말라카·싱가포르", lat: 1.3, lon: 103.9, radiusNm: 50 },
+  { id: "taiwan-strait", name: "대만해협", lat: 24.5, lon: 119.5, radiusNm: 50 },
+  { id: "east-china-sea", name: "동중국해", lat: 31.0, lon: 123.0, radiusNm: 50 },
+  { id: "korea-strait", name: "대한해협", lat: 34.2, lon: 129.0, radiusNm: 50 },
+  { id: "arabian-sea", name: "아라비아해", lat: 17.0, lon: 66.0, radiusNm: 50 },
+  { id: "colombo", name: "스리랑카 남방", lat: 6.0, lon: 80.0, radiusNm: 50 },
+  { id: "mediterranean", name: "지중해 중부", lat: 35.5, lon: 14.5, radiusNm: 50 },
+  { id: "gibraltar", name: "지브롤터", lat: 36.0, lon: -5.6, radiusNm: 40 },
+  { id: "english-channel", name: "영국해협", lat: 50.5, lon: 0.5, radiusNm: 50 },
+  { id: "bosphorus", name: "보스포루스", lat: 41.1, lon: 29.1, radiusNm: 20 },
+  { id: "cape-good-hope", name: "희망봉", lat: -35.5, lon: 19.0, radiusNm: 50 },
+  { id: "panama-atlantic", name: "파나마 대서양측", lat: 9.4, lon: -79.8, radiusNm: 40 },
+  { id: "us-gulf", name: "미 멕시코만", lat: 28.5, lon: -94.0, radiusNm: 50 },
+  { id: "us-west", name: "미 서안(LA)", lat: 33.5, lon: -118.4, radiusNm: 50 },
+  { id: "us-east", name: "미 동안(뉴욕)", lat: 40.3, lon: -73.8, radiusNm: 50 },
+  // 먼바다 표본 (드물어 싸다)
+  { id: "n-atlantic", name: "북대서양", lat: 45.0, lon: -35.0, radiusNm: 50 },
+  { id: "s-atlantic", name: "남대서양", lat: -20.0, lon: -15.0, radiusNm: 50 },
+  { id: "n-pacific", name: "북태평양", lat: 35.0, lon: -160.0, radiusNm: 50 },
+  { id: "s-pacific", name: "남태평양", lat: -25.0, lon: -140.0, radiusNm: 50 },
+  { id: "indian-ocean", name: "인도양", lat: -15.0, lon: 75.0, radiusNm: 50 },
 ];
 
 export const DEFAULT_MONTHLY_CREDITS = 15_000;
-export const DEFAULT_POLL_HOURS = 6;
+/** 구역에 pollHours 가 없을 때의 기본 간격 — 전 지구 구역 수가 많아 길게 잡고, 실제 속도는 월 예산 페이싱이 조절한다 */
+export const DEFAULT_POLL_HOURS = 72;
 /** 한 번 호출이 최대 500척(=500크레딧)까지 나갈 수 있어, 남은 예산이 이보다 적으면 호출하지 않는다. */
 export const MIN_REMAINING_CREDITS = 150;
 
@@ -100,11 +140,32 @@ export function zonesDue(
   nowMs: number,
   pollHours: number,
 ): DatalasticZone[] {
-  return zones.filter((z) => {
-    const last = lastPolledAt[z.id];
-    const t = last ? Date.parse(last) : NaN;
-    return !Number.isFinite(t) || nowMs - t >= pollHours * 3_600_000;
-  });
+  const age = (z: DatalasticZone) => {
+    const t = lastPolledAt[z.id] ? Date.parse(lastPolledAt[z.id] as string) : NaN;
+    return Number.isFinite(t) ? nowMs - t : Number.POSITIVE_INFINITY;
+  };
+  return (
+    zones
+      .filter((z) => age(z) >= (z.pollHours ?? pollHours) * 3_600_000)
+      // 오래 못 본 구역부터 — 목록 뒤쪽 구역이 예산 때문에 영영 밀리지 않게
+      .sort((a, b) => age(b) / (b.pollHours ?? pollHours) - age(a) / (a.pollHours ?? pollHours))
+  );
+}
+
+/** 한 번의 cron 틱에서 부를 구역 수 상한 — 한 틱에 예산·시간을 몰아 쓰지 않는다 */
+export const MAX_ZONES_PER_TICK = 4;
+
+/**
+ * 월 예산 페이싱: 달의 경과 비율만큼만 누적 지출을 허용해 월초에 다 써버리지 않는다.
+ * 구역 하나가 최대 500척이라 한 구역분 여유(slack)를 더해 첫 호출이 막히지 않게 한다.
+ */
+export function paceAllowance(budget: number, now: Date, slack = 500): number {
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const start = Date.UTC(y, m, 1);
+  const end = Date.UTC(y, m + 1, 1);
+  const frac = Math.min(1, Math.max(0, (now.getTime() - start) / (end - start)));
+  return Math.min(budget, Math.floor(budget * frac) + slack);
 }
 
 export function canSpend(usedCredits: number, budget: number): boolean {

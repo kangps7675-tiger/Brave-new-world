@@ -161,6 +161,15 @@ const OsmBuildingsOverlay = dynamic(
 );
 
 /** symbol icon-size: ["zoom"]은 최상위 interpolate 입력으로만 쓸 수 있다 — 피처 scale 배수는 각 stop 출력 안에서 곱한다 */
+/** 사건에 걸린 배 — 1(확인·유력)은 빨강 링+글로우, 2(후보)는 호박색 링 */
+const INCIDENT_RING_PAINT = {
+  "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 9, 5, 14, 8, 20],
+  "circle-color": ["case", ["==", ["get", "incident"], 1], "rgba(239,68,68,0.22)", "rgba(245,158,11,0.16)"],
+  "circle-stroke-color": ["case", ["==", ["get", "incident"], 1], "rgba(248,113,113,0.98)", "rgba(251,191,36,0.9)"],
+  "circle-stroke-width": ["case", ["==", ["get", "incident"], 1], 2.2, 1.4],
+  "circle-pitch-alignment": "map",
+} as unknown as import("maplibre-gl").CircleLayerSpecification["paint"];
+
 const SYMBOL_SCALE: ExpressionSpecification = ["coalesce", ["get", "scale"], 1];
 
 /** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
@@ -3450,6 +3459,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             data={aisSymbolModel.headingGeojson}
           >
             <Layer
+              id="ais-heading-incident-ring"
+              type="circle"
+              filter={[">", ["get", "incident"], 0]}
+              paint={INCIDENT_RING_PAINT}
+            />
+            <Layer
               id={AIS_HEADING_SYMBOL_LAYER_ID}
               type="symbol"
               layout={{
@@ -3526,6 +3541,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             type="geojson"
             data={aisSymbolModel.aspectGeojson}
           >
+            <Layer
+              id="ais-aspect-incident-ring"
+              type="circle"
+              filter={[">", ["get", "incident"], 0]}
+              paint={INCIDENT_RING_PAINT}
+            />
             <Layer
               id={AIS_ASPECT_SYMBOL_LAYER_ID}
               type="symbol"

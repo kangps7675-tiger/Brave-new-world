@@ -7,6 +7,7 @@ import {
   monthKey,
   parseInradius,
   zonesDue,
+  paceAllowance,
 } from "@/lib/datalasticAis";
 
 // 2026-10-21 실제 응답 (키 제외)
@@ -95,10 +96,27 @@ describe("categoryFromType", () => {
 
 describe("zonesDue / canSpend / monthKey", () => {
   const now = Date.parse("2026-10-21T12:00:00Z");
-  it("기록 없으면 전부 due, 6시간 안이면 제외", () => {
-    expect(zonesDue(DATALASTIC_ZONES, {}, now, 6)).toHaveLength(DATALASTIC_ZONES.length);
-    const polled = { "bab-el-mandeb": "2026-10-21T08:00:00Z", "red-sea-south": "2026-10-21T05:00:00Z" };
-    expect(zonesDue(DATALASTIC_ZONES, polled, now, 6).map((z) => z.id)).toEqual(["red-sea-south", "red-sea-north"]);
+  it("기록 없으면 전부 due, 구역별 간격 안이면 제외, 오래 못 본 구역이 앞", () => {
+    expect(zonesDue(DATALASTIC_ZONES, {}, now, 72)).toHaveLength(DATALASTIC_ZONES.length);
+    const polled = {
+      "bab-el-mandeb": "2026-10-21T08:00:00Z", // hot 24h — 4시간 전이라 제외
+      "red-sea-south": "2026-10-19T12:00:00Z", // 48h 전 — 24h 간격이라 due
+    };
+    const due = zonesDue(DATALASTIC_ZONES, polled, now, 72).map((z) => z.id);
+    expect(due).not.toContain("bab-el-mandeb");
+    expect(due).toContain("red-sea-south");
+    // 기록 없는 구역(무한 age)이 기록 있는 구역보다 앞선다
+    expect(due.indexOf("red-sea-south")).toBeGreaterThan(due.indexOf("hormuz"));
+  });
+  it("구역 id 는 중복이 없고 반경은 API 한도(50NM) 이하", () => {
+    const ids = DATALASTIC_ZONES.map((z) => z.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const z of DATALASTIC_ZONES) expect(z.radiusNm).toBeLessThanOrEqual(50);
+  });
+  it("월 예산 페이싱: 월초엔 한 구역분만, 월말엔 전액", () => {
+    expect(paceAllowance(11_000, new Date("2026-10-01T00:00:00Z"))).toBe(500);
+    expect(paceAllowance(11_000, new Date("2026-10-16T12:00:00Z"))).toBeGreaterThan(5_000);
+    expect(paceAllowance(11_000, new Date("2026-10-31T23:59:00Z"))).toBe(11_000);
   });
   it("남은 예산이 150 미만이면 호출 안 함", () => {
     expect(canSpend(14_849, 15_000)).toBe(true);
