@@ -66,6 +66,8 @@ import {
   LABEL_TEXT_SIZE_BY_ZOOM,
   PATH_LINE_WIDTH_BY_ZOOM,
   RING_RADIUS_BY_ZOOM,
+  SEA_ALERT_RING_OPACITY_BY_ZOOM,
+  SEA_ALERT_RING_RADIUS_BY_ZOOM,
 } from "@/lib/mapGlobeLayers";
 import { firmsFireIconId, ensureFirmsFireImages } from "@/lib/firmsFireIcons";
 import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameIcon";
@@ -309,6 +311,7 @@ const INTERACTIVE_LAYERS = [
   "map-paths-crink-power-line-solid",
   "map-polygons-fill",
   "map-rings",
+  "map-rings-sea",
   "firms-flame",
   "liveua-strikes",
   "ukraine-macro-fill",
@@ -1123,6 +1126,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       lng: a.ringLng,
       color: a.ringColor,
       maxRadius: a.ringMaxRadius,
+      kind: (item) => (item as { pulseKind?: string }).pulseKind,
     });
   }, [ringsData]);
 
@@ -1738,7 +1742,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
-      if (layerId === "map-rings") return ringsData[index] ?? null;
+      if (layerId === "map-rings" || layerId === "map-rings-sea") return ringsData[index] ?? null;
       if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
         return aircraftSymbolsItems[index] ?? null;
       }
@@ -3730,8 +3734,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         {ringsGeoJson.features.length > 0 ? (
           <Source id="map-rings-source" type="geojson" data={ringsGeoJson}>
             <Layer
+              id="map-rings-sea"
+              type="circle"
+              filter={["==", ["get", "sea"], 1]}
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": SEA_ALERT_RING_RADIUS_BY_ZOOM,
+                "circle-opacity": SEA_ALERT_RING_OPACITY_BY_ZOOM,
+                "circle-stroke-width": 1,
+                "circle-stroke-color": ["get", "color"],
+                "circle-stroke-opacity": 0.8,
+              }}
+            />
+            <Layer
               id="map-rings"
               type="circle"
+              filter={["!=", ["get", "sea"], 1]}
               paint={{
                 "circle-color": ["get", "color"],
                 "circle-radius": RING_RADIUS_BY_ZOOM,

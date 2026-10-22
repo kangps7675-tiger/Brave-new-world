@@ -111,6 +111,20 @@ export const CIRCLE_RADIUS_BY_ZOOM: ZoomExpr = angularScaleByZoom(
   MAX_ANGULAR_POINT_RADIUS_PX,
 );
 
+/** 해역 경보 링 — 지리를 가리지 않게 줌인할수록 화면 반지름이 줄어든다 (RING_RADIUS_BY_ZOOM 은 줌인할수록 커져 48px 로 고정된다) */
+export const SEA_ALERT_RING_KINDS = new Set(["choke-glow", "ship-movement"]);
+
+export const SEA_ALERT_RING_RADIUS_BY_ZOOM: ZoomExpr = [
+  "interpolate", ["linear"], ["zoom"],
+  1.5, 22, 3, 24, 4, 20, 5, 15, 6, 11, 7, 8.5, 8, 7, 10, 5.5, 12, 4.5,
+];
+
+/** 줌인할수록 채움을 옅게 — 아래 지리(항구·해안선·선박)가 비쳐 보이게 */
+export const SEA_ALERT_RING_OPACITY_BY_ZOOM: ZoomExpr = [
+  "interpolate", ["linear"], ["zoom"],
+  1.5, 0.35, 4, 0.3, 6, 0.16, 8, 0.08, 10, 0.05,
+];
+
 export const RING_RADIUS_BY_ZOOM: ZoomExpr = angularScaleByZoom(
   "angularRadius",
   14,
@@ -511,6 +525,8 @@ export function buildRingsGeoJson<T>(
     lng: Accessor<T, number>;
     color: Accessor<T, string>;
     maxRadius: Accessor<T, number>;
+    /** 링 종류(pulseKind) — 해역 경보 링은 줌인할수록 줄어든다 */
+    kind?: Accessor<T, string | undefined>;
   },
 ): FeatureCollection<Point> {
   return {
@@ -525,6 +541,7 @@ export function buildRingsGeoJson<T>(
         index,
         color: accessors.color(item),
         angularRadius: accessors.maxRadius(item) * 0.35,
+        sea: SEA_ALERT_RING_KINDS.has(String(accessors.kind?.(item) ?? "")) ? 1 : 0,
       },
     })),
   };
