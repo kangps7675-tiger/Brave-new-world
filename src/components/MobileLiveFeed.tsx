@@ -135,7 +135,7 @@ export function MobileLiveFeed({ lang, items, shipIds, newsPool, newsRefs }: Pro
                       <span className="tabular-nums text-slate-400">{ago(it.at, now, en)}</span>
                       <span className="truncate text-slate-500">{it.place}</span>
                     </span>
-                    <span className="mt-1 line-clamp-3 block text-[13px] font-medium leading-snug text-slate-100">
+                    <span className="mt-1 line-clamp-3 block text-caption font-medium leading-snug text-slate-100">
                       {tr(it.title)}
                     </span>
                   </span>
@@ -296,7 +296,7 @@ function FeedDetail({
       )}
 
       <h2 className="text-[15px] font-semibold leading-snug text-slate-50">{title}</h2>
-      {body ? <p className="whitespace-pre-line text-[13px] leading-relaxed text-slate-300">{body}</p> : null}
+      {body ? <p className="whitespace-pre-line text-caption leading-relaxed text-slate-300">{body}</p> : null}
 
       {basis.length > 0 ? (
         <div className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
