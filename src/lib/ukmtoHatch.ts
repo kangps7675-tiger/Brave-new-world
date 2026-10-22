@@ -127,19 +127,31 @@ function grayColor(severity: number, alpha: number): string {
 /** 반경(도) — air-raid-focus와 비슷한 시·군 스케일 */
 const RADIUS_DEG = 0.4;
 const CIRCLE_SEGMENTS = 28;
+/** 이 줌까지는 기본 반경, 그 위로는 줌인할수록 지리 반경을 더 빨리 줄인다 */
+const SHRINK_FROM_ZOOM = 3;
+/** 줌 +1마다 지리 반경이 2^-1.5배 — 지리 반경이 2^-1이면 화면 크기는 그대로이므로 화면에서도 작아진다 */
+const SHRINK_PER_ZOOM = 1.5;
+const MIN_RADIUS_DEG = 0.004;
 
-function lngRadiusFor(lat: number): number {
-  // 위도 보정 — 고위도일수록 경도 1도 폭이 좁아지므로 화면상 원에 가깝게 늘려줌
-  return RADIUS_DEG / Math.max(0.15, Math.cos((lat * Math.PI) / 180));
+/** 줌인할수록 작아지는 반경(도). 0.5줌 단위로 양자화해 줌 중 매 프레임 재생성을 피한다. */
+export function ukmtoRadiusDegForZoom(zoom: number): number {
+  if (!Number.isFinite(zoom) || zoom <= SHRINK_FROM_ZOOM) return RADIUS_DEG;
+  const q = Math.round(zoom * 2) / 2;
+  return Math.max(MIN_RADIUS_DEG, RADIUS_DEG * 2 ** (-SHRINK_PER_ZOOM * (q - SHRINK_FROM_ZOOM)));
 }
 
-function circleOutlinePoints(lat: number, lng: number): { lat: number; lng: number }[] {
-  const lngRadius = lngRadiusFor(lat);
+function lngRadiusFor(lat: number, radiusDeg: number): number {
+  // 위도 보정 — 고위도일수록 경도 1도 폭이 좁아지므로 화면상 원에 가깝게 늘려줌
+  return radiusDeg / Math.max(0.15, Math.cos((lat * Math.PI) / 180));
+}
+
+function circleOutlinePoints(lat: number, lng: number, radiusDeg: number): { lat: number; lng: number }[] {
+  const lngRadius = lngRadiusFor(lat, radiusDeg);
   const points: { lat: number; lng: number }[] = [];
   for (let i = 0; i <= CIRCLE_SEGMENTS; i++) {
     const theta = (i / CIRCLE_SEGMENTS) * Math.PI * 2;
     points.push({
-      lat: lat + RADIUS_DEG * Math.sin(theta),
+      lat: lat + radiusDeg * Math.sin(theta),
       lng: lng + lngRadius * Math.cos(theta),
     });
   }
@@ -152,8 +164,8 @@ function circleOutlinePoints(lat: number, lng: number): { lat: number; lng: numb
  * 둘 다 u²+v²=1 대입 시 2u²-2cu+(c²-1)=0 → u=(c±√(2-c²))/2 로 동일한 형태.
  * |c|>√2 면 원과 안 만나므로 스킵.
  */
-function circleHatchSegments(lat: number, lng: number): { lat: number; lng: number }[][] {
-  const lngRadius = lngRadiusFor(lat);
+function circleHatchSegments(lat: number, lng: number, radiusDeg: number): { lat: number; lng: number }[][] {
+  const lngRadius = lngRadiusFor(lat, radiusDeg);
   const lines: { lat: number; lng: number }[][] = [];
   const step = 0.36;
 
@@ -169,8 +181,8 @@ function circleHatchSegments(lat: number, lng: number): { lat: number; lng: numb
       const u2 = (c - sq) / 2;
       const v2 = u2 - c;
       lines.push([
-        { lat: lat + v1 * RADIUS_DEG, lng: lng + u1 * lngRadius },
-        { lat: lat + v2 * RADIUS_DEG, lng: lng + u2 * lngRadius },
+        { lat: lat + v1 * radiusDeg, lng: lng + u1 * lngRadius },
+        { lat: lat + v2 * radiusDeg, lng: lng + u2 * lngRadius },
       ]);
     }
     // "\" 방향: u + v = c
@@ -180,8 +192,8 @@ function circleHatchSegments(lat: number, lng: number): { lat: number; lng: numb
       const u2 = (c - sq) / 2;
       const v2 = c - u2;
       lines.push([
-        { lat: lat + v1 * RADIUS_DEG, lng: lng + u1 * lngRadius },
-        { lat: lat + v2 * RADIUS_DEG, lng: lng + u2 * lngRadius },
+        { lat: lat + v1 * radiusDeg, lng: lng + u1 * lngRadius },
+        { lat: lat + v2 * radiusDeg, lng: lng + u2 * lngRadius },
       ]);
     }
   }
@@ -214,7 +226,10 @@ function makePath(
   };
 }
 
-export function ukmtoIncidentToHatchPaths(incident: UkmtoHatchIncident): TransportPath[] {
+export function ukmtoIncidentToHatchPaths(
+  incident: UkmtoHatchIncident,
+  radiusDeg: number = RADIUS_DEG,
+): TransportPath[] {
   if (!Number.isFinite(incident.lat) || !Number.isFinite(incident.lng)) return [];
   const severity = ukmtoIncidentSeverity(incident);
   const outlineColor = grayColor(severity, 0.92);
@@ -224,12 +239,12 @@ export function ukmtoIncidentToHatchPaths(incident: UkmtoHatchIncident): Transpo
   const outline = makePath(
     `ukmto-zone-${incident.id}`,
     label,
-    circleOutlinePoints(incident.lat, incident.lng),
+    circleOutlinePoints(incident.lat, incident.lng, radiusDeg),
     "dispute-zone",
     outlineColor,
   );
 
-  const hatches = circleHatchSegments(incident.lat, incident.lng).map((segment, i) =>
+  const hatches = circleHatchSegments(incident.lat, incident.lng, radiusDeg).map((segment, i) =>
     makePath(`ukmto-hatch-${incident.id}-${i}`, label, segment, "conflict-hatch", hatchColor),
   );
 

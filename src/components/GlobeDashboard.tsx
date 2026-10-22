@@ -4303,6 +4303,7 @@ export function GlobeDashboard({
     reefWatchFeatureMarkers,
     reefWatchTrafficMarkers,
   } = useEpisodePostureOverlays({
+    mapZoom,
     labelLanguage,
     isEconomyViewer,
     isMaritimeView,
