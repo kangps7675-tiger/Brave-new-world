@@ -198,12 +198,14 @@ export function useLiveOverlayMarkers(opts: UseLiveOverlayMarkersOptions) {
   // AIS — 지정학 지도(MapLibre) 전용. 모드는 하나라 군함·상선을 모두 보이고,
   // 군/민 세부 토글(showAisMilitary/showAisCommercial)로만 거른다. 바닷길 보기도 같은 경로.
   const aisDisplayPoints = useMemo<AisGlobePoint[]>(() => {
+    // 군·민 세부 토글이 둘 다 꺼진 저장값은 의도된 상태가 아니다 — 전부 걸러 빈 화면이 되므로 둘 다 켠 것으로 본다
+    const subBothOff = !showAisMilitary && !showAisCommercial;
     const live = showAis
       ? pickInViewOrNearest(
           aisVessels
             .filter((vessel) => !carrierAisMerge.matchedMmsi.has(vessel.mmsi))
             .filter((vessel) =>
-              vessel.category === "military" ? showAisMilitary : showAisCommercial,
+              subBothOff || (vessel.category === "military" ? showAisMilitary : showAisCommercial),
             ),
           layerViewState,
           VIEWPORT_RADIUS_BY_TIER[globeLodTier] + 6,
