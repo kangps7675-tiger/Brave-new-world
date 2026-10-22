@@ -216,6 +216,39 @@ export function IncidentVesselPanel({
               ))}
             </ul>
           ) : null}
+          {detail.reportedNames && detail.reportedNames.length > 0 ? (
+            <div className="mt-2 rounded-sm border border-sky-400/30 bg-sky-500/5 p-1.5">
+              <p className="text-micro font-medium text-sky-100/80">
+                {en ? "Names reported by press (position not verified)" : "기사가 보도한 선명 (위치 검증 전)"}
+              </p>
+              <ul className="mt-1 space-y-1">
+                {detail.reportedNames.map((r) => {
+                  const flag = flagFromMmsi(r.mmsi, en ? "en" : "ko");
+                  return (
+                    <li key={r.name} className="text-micro leading-snug text-amber-100/80">
+                      <span className="font-semibold text-amber-50">{r.name}</span>
+                      <span className="text-amber-200/60">
+                        {" · "}
+                        {en ? `${r.outlets} outlet(s)` : `매체 ${r.outlets}곳`}
+                        {r.imo ? ` · IMO ${r.imo}` : ""}
+                        {flag ? ` · ${en ? "flag(est.) " : "기국(추정) "}${flag}` : ""}
+                      </span>
+                      {r.sources[0] ? (
+                        <a href={r.sources[0].url} target="_blank" rel="noreferrer noopener" className="ml-1 text-sky-200/80 underline">
+                          {r.sources[0].outlet ?? (en ? "source" : "출처")}
+                        </a>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-1 text-micro text-amber-100/50">
+                {en
+                  ? "Not confirmed — the name has not been matched to the ship's position at the incident time."
+                  : "확정 아님 — 사건 시각 이 배의 위치와 맞춰 보지 못했어요(항적 자료 없음일 수 있음)."}
+              </p>
+            </div>
+          ) : null}
           {detail.limits.length > 0 ? (
             <p className="mt-1.5 text-micro leading-snug text-amber-100/50">
               {en ? "Limits: " : "한계: "}
