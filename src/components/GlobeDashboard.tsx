@@ -135,6 +135,7 @@ import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
 import { LiveFlashDesk } from "@/components/globe/LiveFlashDesk";
+import type { NewsRef } from "@/lib/news/vesselNews";
 import { SatelliteExitButton } from "@/components/globe/SatelliteExitButton";
 import { WarRiskStrip } from "@/components/globe/WarRiskStrip";
 import {
@@ -1412,6 +1413,26 @@ export function GlobeDashboard({
       ...(newsStreamPayload?.stateMedia ?? []),
     ],
     [newsStreamPayload],
+  );
+  /** 선박·군용기 패널의 "관련 기사" 후보 — RSS + liveuamap 속보 */
+  const vesselNewsPool = useMemo<NewsRef[]>(
+    () => [
+      ...deskNewsPool.map((n) => ({
+        id: n.id,
+        title: n.title,
+        link: n.link,
+        source: n.publisher || n.source,
+        at: Date.parse(n.pubDate),
+      })),
+      ...liveuaEvents.map((e) => ({
+        id: e.id,
+        title: e.title,
+        link: e.sourceUrl,
+        source: "Liveuamap",
+        at: Date.parse(e.publishedAt),
+      })),
+    ].filter((n) => Number.isFinite(n.at)),
+    [deskNewsPool, liveuaEvents],
   );
   const liveDeskShipIds = useMemo(() => new Set(incidentStackItems.map((i) => i.id)), [incidentStackItems]);
   /** 체크박스·카테고리 토글 = 유저 의도 → 전장 soft-apply가 덮지 않게 고정 */
@@ -7744,6 +7765,8 @@ export function GlobeDashboard({
           !isCompactUi &&
           showLayerHoverInfo &&
           hoverPointer &&
+          // 아무것도 없는 바다·땅 위의 기본 지역명 카드는 화면만 가려서 띄우지 않는다
+          (hoverCard.kind !== "ocean" || hoveredChokepointStress) &&
           (!regionNavSelection || hoveredPath?.kind === "axis-link") && (
           hoveredChokepointStress && showLogisticsStress ? (
             <CursorHoverCard visible x={hoverPointer.x} y={hoverPointer.y}>
@@ -8358,6 +8381,7 @@ export function GlobeDashboard({
                     }
                     ukmtoIncidents={ukmtoIncidents}
                     aisByChokeId={portWatchByChokeId}
+                    newsPool={vesselNewsPool}
                   />
                   {selected.kind === "ais" &&
                   Number.isFinite(selected.item.lat) &&
