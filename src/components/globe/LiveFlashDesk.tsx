@@ -11,6 +11,7 @@ import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
 import type { NewsStreamItem } from "@/lib/news/types";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { useTr } from "@/hooks/useTr";
+import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
 
 export type DeskCategory = "ship" | "strike" | "posture" | "front";
@@ -312,6 +313,13 @@ export function LiveFlashDesk({
               {en ? "No photo attached to the original report." : "원 보도에 첨부된 사진이 없습니다."}
             </p>
           )}
+          <IncidentMiniMap
+            item={item}
+            others={sorted}
+            lang={en ? "en" : "ko"}
+            kindLabel={en ? CAT_LABEL[cat].en : CAT_LABEL[cat].ko}
+            heightClass="h-40"
+          />
           <h2 className="text-base font-semibold leading-snug">{title}</h2>
           {body ? <p className="whitespace-pre-line text-meta leading-relaxed text-[#3d2a12]">{body}</p> : null}
           {basis.length > 0 ? (

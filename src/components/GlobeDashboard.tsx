@@ -135,6 +135,7 @@ import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
 import { LiveFlashDesk } from "@/components/globe/LiveFlashDesk";
+import { MobileLiveFeed } from "@/components/MobileLiveFeed";
 import type { NewsRef } from "@/lib/news/vesselNews";
 import { SatelliteExitButton } from "@/components/globe/SatelliteExitButton";
 import { WarRiskStrip } from "@/components/globe/WarRiskStrip";
@@ -6916,6 +6917,15 @@ export function GlobeDashboard({
               onViewerModeChange={handleViewerModeChange}
               labelLanguage={labelLanguage}
               onLabelLanguageChange={setLabelLanguage}
+              liveFeed={
+                <MobileLiveFeed
+                  lang={labelLanguage}
+                  items={liveDeskItems}
+                  shipIds={liveDeskShipIds}
+                  newsPool={deskNewsPool}
+                  newsRefs={vesselNewsPool}
+                />
+              }
             />
           ) : null}
       <section
