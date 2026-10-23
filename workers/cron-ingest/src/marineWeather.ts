@@ -128,35 +128,51 @@ export async function fetchAndUpsertMarineWeather(env: IngestEnv): Promise<{
   let workedCycle: string | null = null;
   let found = false;
 
-  for (const cycle of candidateCycles(new Date())) {
-    const { settled, any } = await settledHours(env.DB, cycle);
-    const pending = FORECAST_HOURS.filter((h) => !settled.has(h));
-    if (pending.length === 0) {
-      found = true;
-      break; // 가장 최신 사이클이 이미 다 찼다
-    }
+  // 위험 해역(risk)과 전 세계 확대 해역(global)은 파일을 따로 처리한다 — 한 번에 NOMADS 요청이 50개를 넘지 않게.
+  // global 파트의 완료 기록은 marine_weather_files 에 사이클 id 뒤에 "g" 를 붙여 남긴다 (마이그레이션 불필요).
+  const globalOn = !/^(false|0|off)$/i.test(v.MARINE_WEATHER_GLOBAL ?? "true");
+  const parts: Array<{ part: "risk" | "global"; suffix: string }> = [{ part: "risk", suffix: "" }];
+  if (globalOn && source !== "s3") parts.push({ part: "global", suffix: "g" });
 
-    let published = any;
-    for (const fh of pending) {
-      if (budget <= 0) break;
-      const out =
-        source === "s3"
-          ? await processWaveFile(cycle, fh, { base, grid })
-          : await processWaveFileFiltered(cycle, fh, { filterUrl: v.GFS_FILTER_URL?.trim() || undefined, grid });
-      if (out.kind === "not-published") break; // 이 예보시간 파일이 아직 안 올라옴 — 다음 틱에
-      published = true;
-      budget--;
-      files++;
-      workedCycle = cycle;
-      if (out.kind === "ok") {
-        await upsertRows(env.DB, out.rows);
-        rows += out.rows.length;
-        await markFile(env.DB, cycle, fh, "ok", `fields=${out.fields.join(",")}${out.errors.length ? ` errs=${out.errors.join(" | ")}` : ""}`);
-        if (out.errors.length) errors.push(`f${fh}: ${out.errors[0]}`);
-      } else {
-        await markFile(env.DB, cycle, fh, "error", out.error);
-        errors.push(`f${fh}: ${out.error}`);
+  for (const cycle of candidateCycles(new Date())) {
+    let anyPending = false;
+    let published = false;
+    let stop = false;
+    for (const { part, suffix } of parts) {
+      const fileCycle = cycle + suffix;
+      const { settled, any } = await settledHours(env.DB, fileCycle);
+      const pending = FORECAST_HOURS.filter((h) => !settled.has(h));
+      if (pending.length > 0) anyPending = true;
+      published = published || any;
+      for (const fh of pending) {
+        if (budget <= 0) break;
+        const out =
+          source === "s3"
+            ? await processWaveFile(cycle, fh, { base, grid })
+            : await processWaveFileFiltered(cycle, fh, { filterUrl: v.GFS_FILTER_URL?.trim() || undefined, grid, part });
+        if (out.kind === "not-published") {
+          stop = true; // 이 예보시간 파일이 아직 안 올라옴 — 다음 틱에 (뒤 파트도 마찬가지)
+          break;
+        }
+        published = true;
+        budget--;
+        files++;
+        workedCycle = cycle;
+        if (out.kind === "ok") {
+          await upsertRows(env.DB, out.rows);
+          rows += out.rows.length;
+          await markFile(env.DB, fileCycle, fh, "ok", `fields=${out.fields.join(",")}${out.errors.length ? ` errs=${out.errors.join(" | ")}` : ""}`);
+          if (out.errors.length) errors.push(`${part} f${fh}: ${out.errors[0]}`);
+        } else {
+          await markFile(env.DB, fileCycle, fh, "error", out.error);
+          errors.push(`${part} f${fh}: ${out.error}`);
+        }
       }
+      if (stop) break;
+    }
+    if (!anyPending) {
+      found = true;
+      break; // 가장 최신 사이클이 이미 다 찼다 (모든 파트)
     }
     // 이 사이클이 올라와 있으면 여기에 집중한다 (더 오래된 사이클을 채우지 않음)
     if (published) {

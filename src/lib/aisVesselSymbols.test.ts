@@ -44,13 +44,28 @@ describe("buildAisSymbolModel", () => {
     expect(m.headingGeojson.features[0].properties?.opacity).toBe(1);
   });
 
-  it("저속(<0.4kn)이라 침로 미상이면 -20° 기울이고 반투명 (기존 DOM 규칙)", () => {
+  it("저속(<0.4kn)이면 정박 원 아이콘 — 회전 없음·불투명 (마린트래픽식)", () => {
+    const m = buildAisSymbolModel([vessel({ courseOverGround: 90, speedOverGround: 0.1 })], 0);
+    const f = m.headingGeojson.features[0].properties;
+    expect(f?.icon).toBe(aisGenericIconId("cargo", true));
+    expect(f?.rotate).toBe(0);
+    expect(f?.opacity).toBe(1);
+  });
+
+  it("움직이는데 침로를 모르면 -20° 기울이고 반투명", () => {
     const m = buildAisSymbolModel(
-      [vessel({ courseOverGround: 90, speedOverGround: 0.1 })],
+      [vessel({ courseOverGround: null, trueHeading: null, speedOverGround: 8 })],
       0,
     );
-    expect(m.headingGeojson.features[0].properties?.rotate).toBe(-20);
-    expect(m.headingGeojson.features[0].properties?.opacity).toBe(0.72);
+    const f = m.headingGeojson.features[0].properties;
+    expect(f?.icon).toBe(aisGenericIconId("cargo", false));
+    expect(f?.rotate).toBe(-20);
+    expect(f?.opacity).toBe(0.72);
+  });
+
+  it("레저선(36·37)은 별도 버킷", () => {
+    const m = buildAisSymbolModel([vessel({ shipType: 37 })], 0);
+    expect(m.headingGeojson.features[0].properties?.icon).toBe(aisGenericIconId("pleasure"));
   });
 
   it("shipType별 색 버킷 아이콘 id를 부여한다", () => {
@@ -182,6 +197,7 @@ describe("buildAisSymbolModel", () => {
     const m = buildAisSymbolModel([vessel()], 0);
     expect(Object.keys(m.headingGeojson.features[0].properties ?? {}).sort()).toEqual([
       "icon",
+      "incident",
       "index",
       "opacity",
       "rotate",
@@ -203,5 +219,24 @@ describe("aisSymbolBearingBucket", () => {
   it("음수·360 이상도 0~360 범위로 정규화한다", () => {
     expect(aisSymbolBearingBucket(-10)).toBe(350);
     expect(aisSymbolBearingBucket(370)).toBe(10);
+  });
+});
+
+describe("incident 표시", () => {
+  it("사건 선박은 크게·불투명, 나머지는 흐려진다", () => {
+    const m = buildAisSymbolModel(
+      [vessel({ mmsi: "a" }), { ...vessel({ mmsi: "b" }), incident: 1 }, { ...vessel({ mmsi: "c" }), incident: 2 }],
+      0,
+    );
+    const by = (i: number) => m.headingGeojson.features[i].properties!;
+    expect(by(0).opacity).toBe(0.5);
+    expect(by(0).incident).toBe(0);
+    expect(by(1).scale).toBeGreaterThan(by(2).scale as number);
+    expect(by(1).opacity).toBe(1);
+    expect(by(2).incident).toBe(2);
+  });
+  it("사건 선박이 없으면 흐리게 하지 않는다", () => {
+    const m = buildAisSymbolModel([vessel({ mmsi: "a" })], 0);
+    expect(m.headingGeojson.features[0].properties?.opacity).toBe(1);
   });
 });

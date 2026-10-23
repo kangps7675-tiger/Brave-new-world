@@ -1,6 +1,6 @@
 /** 로컬 관심 신호 · 프로필 — 로그인 후 계정 문서로 동일 스키마 이전 가능 */
 
-export const INTEREST_STORAGE_KEY = "geowatch-interest-v1";
+export const INTEREST_STORAGE_KEY = "straitdesk-interest-v1";
 export const INTEREST_EVENTS_MAX = 200;
 export const INTEREST_BUCKETS_MAX = 40;
 

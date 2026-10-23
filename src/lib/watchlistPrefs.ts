@@ -5,7 +5,7 @@ import { recordInterestSymbol } from "@/lib/interest/recordInterest";
  * @see docs/retention-markets-roadmap.md
  */
 
-export const WATCHLIST_KEY = "geowatch-watch-symbols-v1";
+export const WATCHLIST_KEY = "straitdesk-watch-symbols-v1";
 export const WATCHLIST_MAX = 12;
 
 function canUseStorage(): boolean {

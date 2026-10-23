@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isApiStubMode } from "@/lib/apiStubMode";
-import { MARINE_REGIONS, type MarineRegion } from "@/lib/marineWeather/zones";
+import { RISK_MARINE_REGIONS, type MarineRegion } from "@/lib/marineWeather/zones";
 import { fetchSeaWeather, seaWeatherPoint, type SeaWeatherNow } from "@/lib/seaWeather/datalastic";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ const cache = new Map<MarineRegion, { at: number; now: SeaWeatherNow }>();
  */
 export async function GET(request: Request) {
   const raw = new URL(request.url).searchParams.get("region");
-  const region = MARINE_REGIONS.find((r) => r === raw);
+  const region = RISK_MARINE_REGIONS.find((r) => r === raw);
   if (!region) return NextResponse.json({ error: "region 이 필요합니다" }, { status: 400 });
   const point = seaWeatherPoint(region)!;
 
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     );
   }
   return NextResponse.json(
-    { enabled: r.reason !== "no-key", reason: r.reason, region, point, now: null },
+    { enabled: r.reason !== "no-key", reason: r.reason, ...("status" in r && r.status ? { status: r.status } : {}), region, point, now: null },
     { headers: { "Cache-Control": "public, s-maxage=60" } },
   );
 }

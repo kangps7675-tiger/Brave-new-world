@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { isApiStubMode } from "@/lib/apiStubMode";
+import { loadSeaAtIncident } from "@/lib/marineWeather/server";
 import { listStrikeCases, matchStrikeCase } from "@/lib/strikeMatch/server";
 import { warRiskRegionAt } from "@/lib/warRisk/regionGeo";
 
@@ -28,7 +29,8 @@ export async function GET(request: Request) {
     const strikes = [];
     for (const c of cases) {
       const m = await matchStrikeCase(db, c, { enrich: false });
-      strikes.push({ ...m, candidates: m.candidates.slice(0, 3), warRiskRegion: warRiskRegionAt(c.lat, c.lng) });
+      const seaAtIncident = await loadSeaAtIncident(db, c);
+      strikes.push({ ...m, candidates: m.candidates.slice(0, 3), warRiskRegion: warRiskRegionAt(c.lat, c.lng), seaAtIncident });
     }
     return NextResponse.json(
       { strikes, fetchedAt: new Date().toISOString() },

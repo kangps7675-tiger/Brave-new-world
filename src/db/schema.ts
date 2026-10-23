@@ -276,6 +276,62 @@ export const aisPositionHistory = sqliteTable(
   }),
 );
 
+/** 해역 대표 지점별 현재 해상·기상 — Datalastic /weather, Worker 가 6시간 간격으로 적재 (migration 0040). */
+export const seaWeatherNow = sqliteTable("sea_weather_now", {
+  pointId: text("point_id").primaryKey(),
+  region: text("region").notNull(),
+  checkedAt: text("checked_at").notNull(),
+  error: text("error"),
+  fetchedAt: text("fetched_at"),
+  at: text("at"),
+  waveHeightM: real("wave_height_m"),
+  wavePeriodS: real("wave_period_s"),
+  swellHeightM: real("swell_height_m"),
+  windKn: real("wind_kn"),
+  windDirDeg: real("wind_dir_deg"),
+  visibilityKm: real("visibility_km"),
+  pressureHpa: real("pressure_hpa"),
+  seaTempC: real("sea_temp_c"),
+});
+
+/** 피격 사건마다 한 번 찍는 Datalastic 스냅샷 + 후보 선박(날씨 포함) (migration 0038). */
+export const strikeSnapshot = sqliteTable("strike_snapshot", {
+  incidentId: text("incident_id").primaryKey(),
+  stage: integer("stage").notNull().default(1),
+  snapshotAt: text("snapshot_at").notNull(),
+  radiusNm: integer("radius_nm").notNull(),
+  vesselCount: integer("vessel_count").notNull().default(0),
+  credits: integer("credits").notNull().default(0),
+  candidates: text("candidates").notNull().default("[]"),
+  historyAt: text("history_at"),
+  historyCredits: integer("history_credits").notNull().default(0),
+  historyTries: integer("history_tries").notNull().default(0),
+  note: text("note"),
+});
+
+/** 뉴스에서 뽑은 피격선 이름 후보 + AIS 위치 검증 결과 (migration 0039). verified 만 선명 일치("확인")에 쓴다. */
+export const strikeNamed = sqliteTable(
+  "strike_named",
+  {
+    incidentId: text("incident_id").notNull(),
+    nameKey: text("name_key").notNull(),
+    name: text("name").notNull(),
+    imo: text("imo"),
+    outlets: integer("outlets").notNull().default(1),
+    sources: text("sources").notNull().default("[]"),
+    status: text("status").notNull().default("new"),
+    mmsi: text("mmsi"),
+    distKm: real("dist_km"),
+    offsetMin: integer("offset_min"),
+    tries: integer("tries").notNull().default(0),
+    checkedAt: text("checked_at"),
+    note: text("note"),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.incidentId, t.nameKey] }),
+  }),
+);
+
 /** 사건 조사용 군용기 항적 이력 — 30분 버킷당 기체 1행 (migration 0031) */
 export const adsbTrackHistory = sqliteTable(
   "adsb_track_history",

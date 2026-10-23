@@ -182,7 +182,7 @@ function asPolygonGeometry(
 }
 
 /**
- * DeepState history/last 페이로드 → BNW 우크라 전선 FeatureCollection (점령 fill만).
+ * DeepState history/last 페이로드 → Strait Desk 우크라 전선 FeatureCollection (점령 fill만).
  */
 export function deepstateToOccupiedGeoJson(
   payload: unknown,

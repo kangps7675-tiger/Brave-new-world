@@ -34,12 +34,12 @@ function extractConst(src, name) {
   return Number(m[1]);
 }
 
-/** SSOT: geowatch.config caps — layerExclusiveCap re-exports GEOWATCH_CONFIG */
+/** SSOT: straitdesk.config caps — layerExclusiveCap re-exports STRAITDESK_CONFIG */
 function extractConfigCap(configSrc, key) {
   const re = new RegExp(`${key}:\\s*(\\d+)`);
   const m = configSrc.match(re);
   if (!m) {
-    console.error(`[verify-product-spec] FAIL: caps.${key} not found in geowatch.config`);
+    console.error(`[verify-product-spec] FAIL: caps.${key} not found in straitdesk.config`);
     process.exitCode = 1;
     return null;
   }
@@ -49,7 +49,7 @@ function extractConfigCap(configSrc, key) {
 function mustExportCapAlias(capSrc, name, configToken) {
   if (!capSrc.includes(`export const ${name}`) || !capSrc.includes(configToken)) {
     console.error(
-      `[verify-product-spec] FAIL: ${name} must re-export ${configToken} from GEOWATCH_CONFIG`,
+      `[verify-product-spec] FAIL: ${name} must re-export ${configToken} from STRAITDESK_CONFIG`,
     );
     process.exitCode = 1;
     return false;
@@ -59,7 +59,7 @@ function mustExportCapAlias(capSrc, name, configToken) {
 }
 
 const capSrc = read("src/lib/layerExclusiveCap.ts");
-const configSrc = read("src/config/geowatch.config.ts");
+const configSrc = read("src/config/straitdesk.config.ts");
 const pkgSrc = read("src/lib/viewPackages.ts");
 const guardSrc = read("src/lib/liveRenderGuard.ts");
 const specSrc = read("src/lib/productSpec.ts");
@@ -91,8 +91,8 @@ mustInclude(
 mustInclude("src/lib/productSpec.ts", "newsRss: 150_000", "productSpec news poll");
 mustInclude("src/lib/liveRenderGuard.ts", "LIVE.newsRssMs", "liveRenderGuard news SSOT");
 mustInclude("src/lib/liveRenderGuard.ts", "LIVE.tzevaMs", "liveRenderGuard tzeva SSOT");
-mustInclude("src/config/geowatch.config.ts", "newsRssMs: 150_000", "config news 150s");
-mustInclude("src/config/geowatch.config.ts", "tzevaMs: 15_000", "config tzeva 15s");
+mustInclude("src/config/straitdesk.config.ts", "newsRssMs: 150_000", "config news 150s");
+mustInclude("src/config/straitdesk.config.ts", "tzevaMs: 15_000", "config tzeva 15s");
 mustInclude("docs/stub-off-checklist.md", `일반 **${DEFAULT}**`, "stub-off UI cap default");
 mustInclude("docs/stub-off-checklist.md", `Ultra-Lite **${ULTRA}**`, "stub-off UI cap ultra");
 mustInclude("docs/stub-off-checklist.md", `**${HARD}**`, "stub-off package hard");
@@ -104,7 +104,7 @@ mustInclude("README.md", `일반 **${DEFAULT}**`, "README default cap");
 mustInclude("README.md", `Ultra-Lite **${ULTRA}**`, "README ultra cap");
 mustInclude("README.md", `**${HARD}**`, "README hard cap");
 
-// liveRenderGuard stub-OFF path must read GEOWATCH_CONFIG.polling (SSOT)
+// liveRenderGuard stub-OFF path must read STRAITDESK_CONFIG.polling (SSOT)
 const checks = [
   ["liveTzevaPollMs", "LIVE.tzevaMs", "tzevaMs: 15_000"],
   ["liveTelegramPollMs", "LIVE.telegramMs", "telegramMs: 30_000"],

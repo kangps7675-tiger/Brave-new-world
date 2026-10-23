@@ -3,7 +3,8 @@
  *
  * 판정 원칙 (화면 문구와 직결 — 함부로 올리지 말 것):
  *  - confirmed(확인): 경보·기사에 나온 선명 = AIS 선명 + 사건 지점 근처에 실제로 있었음. 둘 다 있어야만.
- *  - likely(유력): 선명은 없지만 근처 + 사건 직후 행동 이상(급감속·급선회·신호 끊김) + 선종 불일치 아님
+ *  - likely(유력): 선명은 없지만 사건 지점 30km 안 + 사건 앞뒤 표본으로 확인된 급감속·급선회 + 선종 불일치 아님.
+ *                  신호 끊김만으로는 유력이 아니다(수신 공백과 구별 불가). 점수가 비슷한 다른 후보가 있으면 못 좁힘.
  *  - possible(가능성): 근처에 있었다는 것만 확인
  *  - 거리만 가깝다고 "맞았다"고 쓰지 않는다. 홍해·호르무즈는 배가 많아서 근처에 수십 척이 있다.
  *
@@ -98,6 +99,21 @@ export const DARK_GAP_MIN = 120;
 /** 사건 시각과 표본이 이보다 멀면 "그때 근처에 있었다"고 말하지 않는다 */
 const MAX_SAMPLE_OFFSET_MIN = 360;
 
+/**
+ * 화면에 "이 배"라고 한 척을 지목하는 판정(유력·확인)의 문턱 — 정확도가 커버리지보다 우선이다.
+ * 못 좁히면 '못 좁힘'으로 두고 후보만 보여 준다. 문턱을 낮추려면 실제 사건 정답으로 오탐률을 먼저 재야 한다.
+ */
+/** 유력: 사건 시각 추정 위치가 이 안이어야 한다 (UKMTO 좌표 오차를 감안해도 한 척으로 좁혀지는 거리) */
+export const LIKELY_MAX_KM = 30;
+/** 유력: 위치 추정에 쓴 표본이 사건과 이 이상 떨어져 있으면(보간이 아닌 경우) 근처에 있었다고 단정하지 않는다 */
+export const LIKELY_MAX_OFFSET_MIN = 60;
+/** 확인: 선명이 같아도 위치 표본이 이보다 멀면(보간이 아닌 경우) 확인하지 않는다 */
+export const CONFIRM_MAX_OFFSET_MIN = 180;
+/** 행동 변화(급감속·급선회)는 사건 앞뒤 가장 가까운 표본이 이 안에 있을 때만 믿는다 */
+export const BEHAVIOR_MAX_GAP_MIN = 90;
+/** 1순위와 점수 차가 이보다 작은 다른 후보가 있으면 하나로 못 좁힌 것 */
+export const RIVAL_SCORE_MARGIN = 15;
+
 function ms(iso: string): number {
   return Date.parse(iso);
 }
@@ -159,10 +175,17 @@ export function normalizeShipName(s: string | null | undefined): string {
     .trim();
 }
 
+/** 경보가 선명 대신 쓰는 일반 단어 — 이런 이름이 AIS 선명에 들어 있다고 같은 배가 아니다 */
+export const GENERIC_NAMES = new Set([
+  "MERCHANT", "TANKER", "TKR", "TUG", "CARGO", "VESSEL", "SHIP", "CONTAINER", "BULK", "CARRIER",
+  "UNKNOWN", "OIL TANKER", "CRUDE TANKER", "CONTAINER SHIP", "BULK CARRIER", "GENERAL CARGO",
+]);
+
 export function namesMatch(a: string | null, b: string | null): boolean {
   const x = normalizeShipName(a);
   const y = normalizeShipName(b);
   if (x.length < 3 || y.length < 3) return false;
+  if (GENERIC_NAMES.has(x) || GENERIC_NAMES.has(y)) return false;
   if (x === y) return true;
   // 부분 일치는 단어 경계 기준, 짧은 쪽이 5자 이상일 때만 ("STAR" 같은 흔한 단어 오매칭 방지)
   const [short, long] = x.length <= y.length ? [x, y] : [y, x];
@@ -206,9 +229,16 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
   const pre = pts.filter((p) => ms(p.sampledAt) <= atMs && atMs - ms(p.sampledAt) <= window);
   const post = pts.filter((p) => ms(p.sampledAt) > atMs && ms(p.sampledAt) - atMs <= window);
 
+  // 앞뒤 표본이 사건에서 멀면(수신 공백) 속도·방향 변화가 사건 때문인지 알 수 없다
+  const adjacent =
+    pre.length > 0 &&
+    post.length > 0 &&
+    atMs - ms(pre.at(-1)!.sampledAt) <= BEHAVIOR_MAX_GAP_MIN * MIN &&
+    ms(post[0]!.sampledAt) - atMs <= BEHAVIOR_MAX_GAP_MIN * MIN;
+
   const preSog = avg(pre.map((p) => p.sog).filter((v): v is number => v != null));
   const postSog = avg(post.map((p) => p.sog).filter((v): v is number => v != null));
-  if (preSog !== null && postSog !== null && preSog >= 7 && postSog <= Math.max(2, preSog * 0.35)) {
+  if (adjacent && preSog !== null && postSog !== null && preSog >= 7 && postSog <= Math.max(2, preSog * 0.35)) {
     out.push({
       key: "slowdown",
       ko: `사건 직후 속도가 ${preSog.toFixed(0)}노트에서 ${postSog.toFixed(0)}노트로 떨어짐 (멈추거나 표류)`,
@@ -218,7 +248,7 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
 
   const preCog = pre.at(-1)?.cog;
   const postCog = post[0]?.cog;
-  if (preCog != null && postCog != null && angleDiff(preCog, postCog) >= 60) {
+  if (adjacent && preCog != null && postCog != null && angleDiff(preCog, postCog) >= 60) {
     out.push({
       key: "turn",
       ko: `사건 직후 진행 방향이 ${Math.round(angleDiff(preCog, postCog))}° 바뀜 (회항·회피 기동 가능)`,
@@ -243,11 +273,33 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
   return out;
 }
 
-function verdictOf(signals: Signal[], d: number): Verdict {
+function verdictOf(
+  signals: Signal[],
+  d: number,
+  pos: { basis: "interpolated" | "nearest"; offsetMin: number },
+): Verdict {
   const has = (k: SignalKey) => signals.some((s) => s.key === k);
-  if (has("name_match") && d <= 150 && !has("military")) return "confirmed";
-  const behavior = has("slowdown") || has("turn") || has("dark_at_incident") || has("went_dark");
-  if (behavior && !has("type_mismatch") && !has("military") && d <= 60) return "likely";
+  const nearInTime = pos.basis === "interpolated";
+  if (
+    has("name_match") &&
+    d <= 150 &&
+    !has("military") &&
+    (nearInTime || pos.offsetMin <= CONFIRM_MAX_OFFSET_MIN)
+  ) {
+    return "confirmed";
+  }
+  // 신호 끊김(dark_at_incident·went_dark)만으로는 유력이 아니다 — 수신 공백일 뿐 피격 때문인지 알 수 없다.
+  // 급감속·급선회처럼 사건 앞뒤 표본으로 확인된 행동 변화가 있어야 한다.
+  const kinematic = has("slowdown") || has("turn");
+  if (
+    kinematic &&
+    !has("type_mismatch") &&
+    !has("military") &&
+    d <= LIKELY_MAX_KM &&
+    (nearInTime || pos.offsetMin <= LIKELY_MAX_OFFSET_MIN)
+  ) {
+    return "likely";
+  }
   return "possible";
 }
 
@@ -315,7 +367,7 @@ export function scoreCandidates(
       imo: v.imo,
       name: v.name,
       shipType: v.shipType,
-      verdict: verdictOf(signals, d),
+      verdict: verdictOf(signals, d, pos),
       score,
       distanceKm: Math.round(d * 10) / 10,
       positionBasis: pos.basis,
@@ -347,10 +399,15 @@ export function summarizeMatch(cands: ScoredCandidate[]): {
 } {
   const top = cands[0] ?? null;
   if (!top) return { status: "unknown", top: null, nearbyCount: 0 };
-  if (top.verdict === "confirmed") return { status: "confirmed", top, nearbyCount: cands.length };
-  if (top.verdict === "likely") {
-    const rivals = cands.filter((c) => c.verdict === "likely" && top.score - c.score < 15).length;
-    return { status: rivals > 1 ? "ambiguous" : "likely", top, nearbyCount: cands.length };
+  const nearbyCount = cands.length;
+  if (top.verdict === "confirmed") {
+    const twin = cands.slice(1).some((c) => c.verdict === "confirmed");
+    return { status: twin ? "ambiguous" : "confirmed", top, nearbyCount };
   }
-  return { status: "ambiguous", top, nearbyCount: cands.length };
+  if (top.verdict === "likely") {
+    // 점수가 비슷한 다른 후보가 하나라도 있으면(판정 등급과 무관) 한 척을 지목하지 않는다
+    const rival = cands.slice(1).some((c) => top.score - c.score < RIVAL_SCORE_MARGIN);
+    return { status: rival ? "ambiguous" : "likely", top, nearbyCount };
+  }
+  return { status: "ambiguous", top, nearbyCount };
 }

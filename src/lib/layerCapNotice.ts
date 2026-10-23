@@ -8,9 +8,9 @@
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import { isLayerCapCountedKey } from "@/lib/layerExclusiveCap";
 
-export const LAYER_CAP_REJECTED_EVENT = "geowatch-layer-cap-rejected";
-export const LAYER_CAP_EVICTED_EVENT = "geowatch-layer-cap-evicted";
-export const LAYER_CAP_UNDO_EVENT = "geowatch-layer-cap-undo";
+export const LAYER_CAP_REJECTED_EVENT = "straitdesk-layer-cap-rejected";
+export const LAYER_CAP_EVICTED_EVENT = "straitdesk-layer-cap-evicted";
+export const LAYER_CAP_UNDO_EVENT = "straitdesk-layer-cap-undo";
 
 export type LayerCapRejectedDetail = {
   /** 켜려다 거부된 레이어 prefs 키 */

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/hooks/useTr";
 import { useEffect } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
@@ -21,11 +22,13 @@ export function LiveuaFlashToast({ lang, event, onDismiss }: Props) {
     return () => window.clearTimeout(id);
   }, [event?.id, onDismiss, event]);
 
+  const trRaw = event ? event.titleKo?.trim() || event.title : null;
+  const tr = useTr([trRaw ? peelUrlsFromText(trRaw).text || trRaw : null], lang);
   if (!event) return null;
 
   const raw =
     lang === "ko" ? event.titleKo?.trim() || event.title : event.title;
-  const title = peelUrlsFromText(raw).text || raw;
+  const title = tr(peelUrlsFromText(raw).text || raw);
 
   return (
     <div

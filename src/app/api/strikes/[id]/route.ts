@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { isApiStubMode } from "@/lib/apiStubMode";
+import { loadSeaAtIncident } from "@/lib/marineWeather/server";
 import { getStrikeCase, matchStrikeCase } from "@/lib/strikeMatch/server";
 import { warRiskRegionAt } from "@/lib/warRisk/regionGeo";
 
@@ -27,8 +28,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const c = await getStrikeCase(db, params.id);
     if (!c) return NextResponse.json({ error: "not found" }, { status: 404 });
     const m = await matchStrikeCase(db, c, { radiusKm, hours, enrich: true });
+    const seaAtIncident = await loadSeaAtIncident(db, c);
     return NextResponse.json(
-      { strike: { ...m, warRiskRegion: warRiskRegionAt(c.lat, c.lng) } },
+      { strike: { ...m, warRiskRegion: warRiskRegionAt(c.lat, c.lng), seaAtIncident } },
       { headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1800" } },
     );
   } catch (e) {

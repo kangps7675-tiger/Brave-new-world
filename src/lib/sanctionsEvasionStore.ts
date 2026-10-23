@@ -3,7 +3,7 @@ import {
   type SanctionsEvasionSnapshot,
 } from "@/lib/sanctionsEvasionScore";
 
-const STORAGE_KEY = "geowatch-ses-daily-v1";
+const STORAGE_KEY = "straitdesk-ses-daily-v1";
 
 export type SanctionsEvasionEntry = {
   snapshot: SanctionsEvasionSnapshot | null;

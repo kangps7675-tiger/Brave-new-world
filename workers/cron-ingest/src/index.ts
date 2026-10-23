@@ -21,6 +21,7 @@ import {
   upsertTelegramAlerts,
 } from "./db";
 import { fetchAisVessels } from "./ais";
+import { spreadByGrid } from "./aisSpread";
 import { buildAisZoneCrossings } from "./aisZones";
 import { fetchAdsbAircraft } from "./adsb";
 import { fetchFirmsForTheaters } from "./firms";
@@ -34,6 +35,9 @@ import { recordHeartbeat } from "./pipelineHealth";
 import { curateLivingTaiwan } from "./livingTaiwan";
 import { fetchAndUpsertAirRaids } from "./airRaidIngest";
 import { fetchAndUpsertUkmto } from "./ukmto";
+import { runStrikeSnapshots } from "./strikeSnapshot";
+import { runSeaWeatherNow } from "./seaWeatherNow";
+import { runStrikeNames } from "./strikeNames";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
 import { fetchAndUpsertMarineWeather } from "./marineWeather";
@@ -214,6 +218,31 @@ async function runFastAlerts(env: IngestEnv): Promise<void> {
   } catch (error) {
     out.push(`ukmtoErr=${error instanceof Error ? error.message : "failed"}`);
   }
+  try {
+    const snap = await runStrikeSnapshots(env);
+    if (snap.snapshots + snap.shared + snap.histories > 0) {
+      out.push(`strikeSnap=${snap.snapshots}+${snap.shared}shared hist=${snap.histories} credits=${snap.credits}`);
+    }
+    if (snap.errors.length > 0) out.push(`strikeSnapErr=${snap.errors[0]}`);
+  } catch (error) {
+    out.push(`strikeSnapErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  try {
+    const names = await runStrikeNames(env);
+    if (names.searched + names.verified + names.rejected > 0) {
+      out.push(`strikeNames=search${names.searched} claims${names.claims} ok${names.verified} no${names.rejected} credits=${names.credits}`);
+    }
+    if (names.errors.length > 0) out.push(`strikeNamesErr=${names.errors[0]}`);
+  } catch (error) {
+    out.push(`strikeNamesErr=${error instanceof Error ? error.message : "failed"}`);
+  }
+  try {
+    const wx = await runSeaWeatherNow(env);
+    if (wx.fetched + wx.failed > 0) out.push(`seaWx=ok${wx.fetched} fail${wx.failed} credits=${wx.credits}`);
+    if (wx.errors.length > 0) out.push(`seaWxErr=${wx.errors[0]}`);
+  } catch (error) {
+    out.push(`seaWxErr=${error instanceof Error ? error.message : "failed"}`);
+  }
   const live = await warmEndpoint(env.LIVEUAMAP_SYNC_URL, env, "liveuamap");
   if (live) out.push(`liveuamap=${live.ok ? "ok" : "fail"}`);
   const feeds = await warmEndpoint(env.NEWFEEDS_SYNC_URL, env, "newfeeds-iran");
@@ -261,12 +290,21 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
 
     // ADS-B 먼저(빠른 HTTP) → AIS(WebSocket ~4s) → FIRMS/GDELT
     const milMax = Math.min(2000, Math.max(50, readIntVar(env, "ADSB_MIL_MAX", 1200)));
-    const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 40)));
+    const civPerHub = Math.min(80, Math.max(10, readIntVar(env, "ADSB_CIV_PER_HUB", 80)));
     const civMax = Math.min(5000, Math.max(50, readIntVar(env, "ADSB_CIV_MAX", 3000)));
     // 허브를 2등분해 10분 크론마다 번갈아 호출 — 허브당 20분 주기, 호출량 절반.
     const hubSlice = Math.floor(Date.now() / (10 * 60_000)) % 2;
     const adsb = await fetchAdsbAircraft(env, { milMax, civMax, civPerHub, hubSlice, hubSlices: 2 });
     adsbErrors.push(...adsb.errors.slice(0, 12));
+    // 유료 RapidAPI 보강(해운 위험 해역 3곳) — 허브 행 뒤에 붙여 같은 기체는 더 촘촘한 쪽 위치로 덮어쓴다
+    try {
+      const dens = await runAdsbxDensify(env);
+      if (dens.aircraft.length > 0) adsb.aircraft.push(...dens.aircraft);
+      if (dens.calls > 0) adsbErrors.push(`adsbxDens=calls${dens.calls} rows${dens.aircraft.length}`);
+      adsbErrors.push(...dens.errors);
+    } catch (error) {
+      adsbErrors.push(`adsbx-rapid: ${error instanceof Error ? error.message : "failed"}`);
+    }
     adsbCount = await upsertAdsbAircraft(env.DB, adsb.aircraft);
     try {
       await appendMilAdsbHistory(env.DB, adsb.aircraft);
@@ -299,7 +337,8 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
 
     aisCount = await upsertAisVessels(env.DB, ais.vessels);
     try {
-      await appendAisHistory(env.DB, ais.vessels);
+      // 이력은 솎아내기 전 초크포인트 선박까지 포함 — 피격 매칭 후보가 10° 셀 캡에 지워지지 않게
+      await appendAisHistory(env.DB, ais.historyVessels);
     } catch (error) {
       aisErrors.push(
         `track-history: ${error instanceof Error ? error.message : "append failed"}`,
@@ -1339,7 +1378,11 @@ const worker = {
       const category = url.searchParams.get("category") || "all";
       let vessels: Array<Record<string, unknown>> = [];
       try {
-        const rows = await readAisVessels(env.DB, { category, limit: max });
+        const pool = await readAisVessels(env.DB, { category, limit: Math.min(9000, max * 3) });
+        const rows = spreadByGrid(
+          pool as Array<Record<string, unknown> & { lat: number; lng: number }>,
+          max,
+        );
         vessels = rows.map((row) => ({
           id: row.id,
           mmsi: row.mmsi,

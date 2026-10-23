@@ -8,7 +8,7 @@
  * 서버 링버퍼(48h)보다 오래 들고 있을 이유가 없어 같은 기간으로 자른다.
  */
 
-const STORAGE_KEY = "bnw.liveua.readState.v1";
+const STORAGE_KEY = "straitdesk.liveua.readState.v1";
 const MAX_AGE_MS = 48 * 60 * 60 * 1000;
 const MAX_IDS = 800;
 

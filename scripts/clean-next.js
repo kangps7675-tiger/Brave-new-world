@@ -4,7 +4,7 @@ const os = require("os");
 const path = require("path");
 
 const nextDir = path.join(__dirname, "..", ".next");
-const tmpCache = path.join(os.tmpdir(), "geowatch-next-cache");
+const tmpCache = path.join(os.tmpdir(), "straitdesk-next-cache");
 
 for (const target of [nextDir, tmpCache]) {
   if (fs.existsSync(target)) {

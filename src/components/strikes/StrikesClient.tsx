@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { MatchStatus, ScoredCandidate } from "@/lib/strikeMatch/scoreCandidates";
+import type { CandidateWeather } from "@/lib/strikeSnapshot";
 import {
   WAR_RISK_REGION_LABEL_KO,
   WAR_RISK_REGION_PAGE,
@@ -23,12 +24,32 @@ type Strike = {
     detail: string | null;
   };
   status: MatchStatus;
-  top: ScoredCandidate | null;
-  candidates: ScoredCandidate[];
+  top: (ScoredCandidate & { weather?: CandidateWeather }) | null;
+  candidates: Array<ScoredCandidate & { weather?: CandidateWeather }>;
   nearbyCount: number;
   limits: string[];
+  /** 선명을 기사에서 가져와 AIS 위치로 검증한 경우의 출처 */
+  nameSource?: {
+    name: string;
+    outlets: number;
+    distKm: number | null;
+    sources: Array<{ url: string; outlet: string | null; headline: string; publishedAt: string | null }>;
+  };
   trackSource: string;
   warRiskRegion: WarRiskRegionId;
+  /** 사건 시각 근처 해상 분석값(NOAA GFS-Wave) — 없으면 null */
+  seaAtIncident?: {
+    pointId: string;
+    distKm: number;
+    validTime: string;
+    offsetMin: number;
+    hsM: number | null;
+    periodS: number | null;
+    windKn: number | null;
+    windDirDeg: number | null;
+    beaufort: number | null;
+    seaStateKo: string | null;
+  } | null;
 };
 
 type Quote = {
@@ -78,7 +99,17 @@ function fmtRate(q: Quote): string {
   return q.rateHighPct !== null ? `${q.ratePct}–${q.rateHighPct}%` : `${q.ratePct}%`;
 }
 
-function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
+function weatherLine(w: CandidateWeather): string | null {
+  const parts = [
+    w.waveHeightM != null ? `파고 ${w.waveHeightM.toFixed(1)} m` : null,
+    w.windKn != null ? `바람 ${w.windKn} kn` : null,
+    w.visibilityKm != null ? `시정 ${w.visibilityKm >= 10 ? Math.round(w.visibilityKm) : w.visibilityKm.toFixed(1)} km` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+function CandidateRow({ c, first }: { c: ScoredCandidate & { weather?: CandidateWeather }; first?: boolean }) {
+  const wx = c.weather ? weatherLine(c.weather) : null;
   return (
     <div className={first ? "" : "border-t border-white/10 pt-3"}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -99,6 +130,12 @@ function CandidateRow({ c, first }: { c: ScoredCandidate; first?: boolean }) {
             </li>
           ))}
       </ul>
+      {wx ? (
+        <p className="mt-1.5 text-xs text-white/45">
+          이 배 위치의 바다 · {wx}
+          {c.weather?.at ? ` (Datalastic, ${c.weather.at.slice(5, 16).replace("T", " ")} UTC 조회값 — 사건 순간의 값이 아님)` : ""}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -155,6 +192,19 @@ function StrikeCard({ s, latestQuote }: { s: Strike; latestQuote: Quote | null }
             <p className="text-sm text-white/45">{st.hint}</p>
           )}
         </div>
+        {view.nameSource && view.status === "confirmed" ? (
+          <p className="mt-2 text-xs leading-relaxed text-white/55">
+            선명 출처 · 기사 {view.nameSource.outlets}곳 보도, AIS 위치로 검증
+            {view.nameSource.sources.slice(0, 3).map((src) => (
+              <span key={src.url}>
+                {" · "}
+                <a href={src.url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4 hover:text-white">
+                  {src.outlet || "기사"}
+                </a>
+              </span>
+            ))}
+          </p>
+        ) : null}
         {open && others.length ? (
           <div className="mt-3 space-y-3">
             {others.map((c) => (
@@ -173,7 +223,26 @@ function StrikeCard({ s, latestQuote }: { s: Strike; latestQuote: Quote | null }
         </div>
       </section>
 
-      <section className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
+      <p className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
+        <span className="text-white/45">사건 당시 바다 · </span>
+        {view.seaAtIncident ? (
+          <>
+            <span className="font-medium text-white">
+              {view.seaAtIncident.hsM != null ? `파고 ${view.seaAtIncident.hsM.toFixed(1)} m` : "파고 자료 없음"}
+              {view.seaAtIncident.seaStateKo ? ` (${view.seaAtIncident.seaStateKo})` : ""}
+              {view.seaAtIncident.windKn != null ? ` · 바람 ${view.seaAtIncident.windKn} kn` : ""}
+            </span>
+            <span className="text-white/45">
+              {" "}
+              (모델 분석값, 사건 지점에서 약 {view.seaAtIncident.distKm} km 떨어진 대표 지점 · {view.seaAtIncident.validTime.slice(5, 16).replace("T", " ")} UTC)
+            </span>
+          </>
+        ) : (
+          <span className="text-white/45">자료 없음 (없다는 뜻이지 잔잔했다는 뜻이 아닙니다)</span>
+        )}
+      </p>
+
+      <section className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm">
         <span className="text-white/45">{WAR_RISK_REGION_LABEL_KO[view.warRiskRegion]} 전쟁위험 보험료 · </span>
         {latestQuote ? (
           <>

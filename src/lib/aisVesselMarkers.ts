@@ -240,18 +240,25 @@ function trackerArrowPath(kind: AisTrackerKind): string {
   }
 }
 
-export function aisShipIconSvg(color: string, size: number, military: boolean): string {
+export function aisShipIconSvg(
+  color: string,
+  size: number,
+  military: boolean,
+  stopped = false,
+): string {
   if (military) {
     return warshipProfileIconSvg(color, { width: size + 8, height: Math.round((size + 8) * 0.7) }, "e");
   }
   const w = size;
   const h = size;
-  // 코=+Y 델타 쐐기 — 기존 막대 화살보다 짧고, 전술 맵 마커에 가깝게.
-  const body = "M16 2.2 L25.5 26.5 L16 21.2 L6.5 26.5 Z";
+  const stroke = 'stroke="rgba(15,23,42,0.6)" stroke-width="1.1" stroke-linejoin="round"';
+  // 마린트래픽식: 움직이는 배는 코가 뾰족한 가늘고 긴 오각형(코=+Y 위), 정박·정지는 원.
+  const shape = stopped
+    ? `<circle cx="16" cy="16" r="6.2" fill="${color}" ${stroke}/>`
+    : `<path d="M16 1.8 L23 13 L21.5 29.5 L10.5 29.5 L9 13 Z" fill="${color}" ${stroke}/>`;
   return `
     <svg width="${w}" height="${h}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="${body}" fill="${color}" stroke="rgba(15,23,42,0.42)" stroke-width="1.05" stroke-linejoin="round"/>
-      <circle cx="16" cy="12.5" r="1.25" fill="rgba(255,255,255,0.42)"/>
+      ${shape}
     </svg>
   `.trim();
 }

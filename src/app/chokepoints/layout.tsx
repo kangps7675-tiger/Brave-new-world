@@ -12,6 +12,8 @@
  * 2. `.doc-surface` — body의 `user-select: none`(게임 셸)에서 빠져나온다.
  *    globals.css와 GameShellGuard.tsx의 예외 목록이 이 클래스와 한 쌍이다.
  */
+import { BackButton } from "@/components/chokepoints/BackButton";
+
 export default function ChokepointsLayout({
   children,
 }: {
@@ -19,6 +21,7 @@ export default function ChokepointsLayout({
 }) {
   return (
     <div lang="en" className="doc-surface">
+      <BackButton />
       {children}
     </div>
   );

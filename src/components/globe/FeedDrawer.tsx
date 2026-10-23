@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { FEED_TABS, hasUnread, nextOpenTab, type FeedTabId } from "@/lib/feedDrawer/tabs";
 
-const SEEN_KEY = "bnw-feed-drawer-seen-v1";
+const SEEN_KEY = "straitdesk-feed-drawer-seen-v1";
 
 function loadSeen(): Partial<Record<FeedTabId, string>> {
   try {

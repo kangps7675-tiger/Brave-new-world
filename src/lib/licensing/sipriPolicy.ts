@@ -16,10 +16,10 @@ export const SIPRI_POLICY = {
 } as const;
 
 /**
- * ON — 허브「무기거래」렌즈·호·패널.
+ * OFF — 2026-10-23 무기거래 점선(호)·패널을 지도에서 뺌.
  * (정적 축 관계망 axis-network · arms-embargo 구역과는 별개)
  */
-export const SIPRI_ARMS_LENS_ENABLED = true;
+export const SIPRI_ARMS_LENS_ENABLED = false;
 
 export const SIPRI_ARMS_LENS_DISABLED_KO =
   "SIPRI 무기거래 렌즈는 이용 허락 확인 전까지 일시 비활성화되어 있습니다.";

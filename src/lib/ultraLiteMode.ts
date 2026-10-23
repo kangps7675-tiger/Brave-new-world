@@ -9,8 +9,8 @@ import {
 } from "@/lib/layerPrefs";
 import { clampPrefsToActiveCap } from "@/lib/layerExclusiveCap";
 
-export const PERF_PREFS_KEY = "geowatch-perf-v23";
-const LEGACY_PERF_PREFS_KEYS = ["geowatch-perf-v22"] as const;
+export const PERF_PREFS_KEY = "straitdesk-perf-v23";
+const LEGACY_PERF_PREFS_KEYS = ["straitdesk-perf-v22"] as const;
 
 export type PerfPrefs = {
   /** 내장 그래픽·8GB RAM용 — 레이어 캡·핀 상한·무거운 레이어 강제 OFF */

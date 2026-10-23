@@ -35,6 +35,19 @@ export const ADSB_WORLD_HUBS: readonly AdsbWorldHub[] = [
   { id: "siberia", lat: 60, lng: 95 },
   { id: "australia", lat: -25, lng: 135 },
   { id: "nz", lat: -41, lng: 174 },
+  // 북극 — 극횡단 항공로·북극항로 위 기체 (수신기가 닿는 만큼만 잡힌다)
+  { id: "arctic-canada", lat: 72, lng: -95 },
+  { id: "greenland-svalbard", lat: 76, lng: 5 },
+  { id: "arctic-siberia", lat: 74, lng: 100 },
+  { id: "chukotka-bering", lat: 67, lng: -175 },
+  // 대양 한가운데 — 섬·원양 항로 위를 지나는 기체. 수신기가 닿는 만큼만 잡힌다 (지상 수신 한계).
+  { id: "north-atlantic", lat: 45, lng: -35 },
+  { id: "south-atlantic", lat: -20, lng: -15 },
+  { id: "central-indian", lat: -12, lng: 75 },
+  { id: "north-pacific", lat: 40, lng: 175 },
+  { id: "central-pacific", lat: 3, lng: -160 },
+  { id: "west-central-pacific", lat: 2, lng: 170 },
+  { id: "south-pacific", lat: -15, lng: -140 },
 ];
 
 export async function mapPool<T, R>(

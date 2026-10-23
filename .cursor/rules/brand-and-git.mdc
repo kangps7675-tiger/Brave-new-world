@@ -7,8 +7,7 @@ alwaysApply: true
 
 ## Brand
 
-- Public product name is **Strait Desk** (English and Korean). Former names: Strait Desk / GeoWatch — never use them as user-facing branding.
-- Never use **GeoWatch** / **geowatch** as user-facing branding, titles, package display name, or outbound User-Agent.
+- Public product name is **Strait Desk** (English and Korean). Never use any earlier name anywhere — user-facing or in code identifiers.
 - Prefer `@/lib/brand` (`BRAND_NAME`, `brandName()`, `BRAND_USER_AGENT`) for user-visible strings.
 - The name means "a desk watching the straits" (Strait = sea-lane chokepoints, Desk = situation-room desk). The old Huxley motif is retired.
 

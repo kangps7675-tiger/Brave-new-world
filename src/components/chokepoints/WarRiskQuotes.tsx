@@ -16,7 +16,7 @@ type Quote = {
   ratePrevPct: number | null;
   usdPerVoyage: number | null;
   direction: "up" | "down" | "flat" | null;
-  confidence: "strong" | "medium";
+  confidence: "strong" | "medium" | "headline";
   quote: string;
   headline: string;
   url: string;
@@ -128,6 +128,11 @@ export default function WarRiskQuotes({ slug }: { slug: string }) {
                   {q.confidence === "medium" ? (
                     <span className="rounded border border-white/15 px-1.5 text-micro uppercase text-white/40">
                       unclear basis
+                    </span>
+                  ) : null}
+                  {q.confidence === "headline" ? (
+                    <span className="rounded border border-white/15 px-1.5 text-micro uppercase text-white/40">
+                      no figure
                     </span>
                   ) : null}
                 </div>

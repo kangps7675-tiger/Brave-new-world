@@ -3,7 +3,7 @@
  * trackLayerToggle과 함께 빈도를 쌓아 카테고리 "추천 3개"에 쓴다.
  */
 
-const STORAGE_KEY = "geowatch-layer-toggle-popularity-v1";
+const STORAGE_KEY = "straitdesk-layer-toggle-popularity-v1";
 
 type PopularityMap = Record<string, number>;
 

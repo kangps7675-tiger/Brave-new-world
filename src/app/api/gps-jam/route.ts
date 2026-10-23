@@ -27,7 +27,7 @@ const GPSJAM_CDN = publicCacheHeaders(CDN_CACHE.gpsjam);
 const ATTRIBUTION =
   "GPS interference: GPSJam.org (John Wiseman) · ADS-B Exchange";
 const USER_AGENT =
-  "StraitDesk/1.0 (+https://bravenew.world; contact: kangps7675@gmail.com; non-commercial situational dashboard; GPSJam daily CSV)";
+  "StraitDesk/1.0 (+https://straitdesk.app; contact: kangps7675@gmail.com; non-commercial situational dashboard; GPSJam daily CSV)";
 
 type GpsJamSnapshot = {
   date: string;

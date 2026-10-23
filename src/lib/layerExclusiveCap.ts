@@ -1,16 +1,16 @@
-import { GEOWATCH_CONFIG } from "@/config/geowatch.config";
+import { STRAITDESK_CONFIG } from "@/config/straitdesk.config";
 import { CONFLICT_THEATER_PREF_KEY } from "@/lib/conflictEvents/theaterMeta";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /**
- * 레이어 동시 ON 캡 — 정본 `@/config/geowatch.config`
+ * 레이어 동시 ON 캡 — 정본 `@/config/straitdesk.config`
  * - 일반: fullModeMaxLayers
  * - Ultra-Lite: ultraLiteMaxLayers
  */
-export const ACTIVE_LAYER_CAP_DEFAULT = GEOWATCH_CONFIG.caps.fullModeMaxLayers;
+export const ACTIVE_LAYER_CAP_DEFAULT = STRAITDESK_CONFIG.caps.fullModeMaxLayers;
 
 /** ultra-lite — 무거운 폴링 레이어를 줄이는 소프트 상한 */
-export const ACTIVE_LAYER_CAP_ULTRA = GEOWATCH_CONFIG.caps.ultraLiteMaxLayers;
+export const ACTIVE_LAYER_CAP_ULTRA = STRAITDESK_CONFIG.caps.ultraLiteMaxLayers;
 
 /**
  * 캡 집계에서 제외:

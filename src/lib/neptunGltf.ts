@@ -162,7 +162,7 @@ function meshToGltfDataUri(
   }
 
   const gltf = {
-    asset: { version: "2.0", generator: "bnw-neptun-gltf" },
+    asset: { version: "2.0", generator: "straitdesk-neptun-gltf" },
     scene: 0,
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0 }],

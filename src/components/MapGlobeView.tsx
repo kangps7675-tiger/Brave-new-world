@@ -66,6 +66,8 @@ import {
   LABEL_TEXT_SIZE_BY_ZOOM,
   PATH_LINE_WIDTH_BY_ZOOM,
   RING_RADIUS_BY_ZOOM,
+  SEA_ALERT_RING_OPACITY_BY_ZOOM,
+  SEA_ALERT_RING_RADIUS_BY_ZOOM,
 } from "@/lib/mapGlobeLayers";
 import { firmsFireIconId, ensureFirmsFireImages } from "@/lib/firmsFireIcons";
 import { ensureStrikeFlameImage, STRIKE_FLAME_ICON_ID } from "@/lib/strikeFlameIcon";
@@ -161,6 +163,15 @@ const OsmBuildingsOverlay = dynamic(
 );
 
 /** symbol icon-size: ["zoom"]은 최상위 interpolate 입력으로만 쓸 수 있다 — 피처 scale 배수는 각 stop 출력 안에서 곱한다 */
+/** 사건에 걸린 배 — 1(확인·유력)은 빨강 링+글로우, 2(후보)는 호박색 링 */
+const INCIDENT_RING_PAINT = {
+  "circle-radius": ["interpolate", ["linear"], ["zoom"], 1.5, 9, 5, 14, 8, 20],
+  "circle-color": ["case", ["==", ["get", "incident"], 1], "rgba(239,68,68,0.22)", "rgba(245,158,11,0.16)"],
+  "circle-stroke-color": ["case", ["==", ["get", "incident"], 1], "rgba(248,113,113,0.98)", "rgba(251,191,36,0.9)"],
+  "circle-stroke-width": ["case", ["==", ["get", "incident"], 1], 2.2, 1.4],
+  "circle-pitch-alignment": "map",
+} as unknown as import("maplibre-gl").CircleLayerSpecification["paint"];
+
 const SYMBOL_SCALE: ExpressionSpecification = ["coalesce", ["get", "scale"], 1];
 
 /** fog + 인텔 우주 배경 + (지형만) 밝은 해양 — 지형 육지는 Liberty 배경색 유지 */
@@ -274,9 +285,12 @@ const TERRITORY_FILL_OPACITY = [
 /** 경계선은 줌인할수록 또렷하고 굵게 */
 const TERRITORY_LINE_WIDTH = ["interpolate", ["linear"], ["zoom"], 3, 1.2, 8, 1.8, 12, 2.6] as unknown as number;
 
-/** 군사기지·공항·항구 점 크기용 각반경 — 최소 반지름(2px)에서 시작해 줌인 때만 조금 커진다 */
+/** 군사기지 점 크기용 각반경 — 최소 반지름(2px)에서 시작해 줌인 때만 조금 커진다 */
 const SMALL_DOT_ANGULAR_RADIUS = 0.0003;
+/** 공항·항구는 그보다도 작게 — 최소 반지름 1.2px, 줌인 때도 천천히 커진다 (mapGlobeLayers의 TINY_DOT_ANGULAR_RADIUS_MAX 미만이어야 한다) */
+const PORT_AIRPORT_ANGULAR_RADIUS = 0.00012;
 const SMALL_DOT_KINDS: ReadonlySet<string> = new Set(["military-base", "airport", "port"]);
+const TINY_DOT_KINDS: ReadonlySet<string> = new Set(["airport", "port"]);
 
 type LiveuaStrikeMapItem = StrikeFlame;
 
@@ -297,6 +311,7 @@ const INTERACTIVE_LAYERS = [
   "map-paths-crink-power-line-solid",
   "map-polygons-fill",
   "map-rings",
+  "map-rings-sea",
   "firms-flame",
   "liveua-strikes",
   "ukraine-macro-fill",
@@ -530,11 +545,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       const m = map as unknown as BasemapMapLike;
       try {
         const w = window as Window & {
-          __GEOWATCH_MAP_PROJECTION?: () => unknown;
-          __GEOWATCH_FORCE_GLOBE?: () => void;
+          __STRAITDESK_MAP_PROJECTION?: () => unknown;
+          __STRAITDESK_FORCE_GLOBE?: () => void;
         };
-        w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
-        w.__GEOWATCH_FORCE_GLOBE = () => {
+        w.__STRAITDESK_MAP_PROJECTION = () => map.getProjection?.();
+        w.__STRAITDESK_FORCE_GLOBE = () => {
           applyBasemapGlobeProjection(m);
           try {
             map.setProjection?.({ type: "vertical-perspective" });
@@ -926,9 +941,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       radius: (item) =>
         item &&
         typeof item === "object" &&
-        SMALL_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
-          ? SMALL_DOT_ANGULAR_RADIUS
-          : a.pointRadius(item),
+        TINY_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
+          ? PORT_AIRPORT_ANGULAR_RADIUS
+          : SMALL_DOT_KINDS.has(String((item as { kind?: string }).kind ?? ""))
+            ? SMALL_DOT_ANGULAR_RADIUS
+            : a.pointRadius(item),
       kind: (item) =>
         item && typeof item === "object" && "kind" in item
           ? String((item as { kind?: string }).kind ?? "")
@@ -1109,6 +1126,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       lng: a.ringLng,
       color: a.ringColor,
       maxRadius: a.ringMaxRadius,
+      kind: (item) => (item as { pulseKind?: string }).pulseKind,
     });
   }, [ringsData]);
 
@@ -1205,6 +1223,49 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }),
     [aisSymbolVessels, mapBearingDeg, aisSymbolSelectedMmsi],
   );
+  /**
+   * 진단용 — 브라우저 콘솔에서 `__aisDebug()` 로 선박이 어느 단계에서 비는지 본다.
+   * (받은 선박 수 → 지도에 올린 점 수 → 아이콘 등록 → 실제 그려진 점 수). 호출할 때만 계산한다.
+   */
+  const aisDebugRef = useRef<() => unknown>(() => null);
+  aisDebugRef.current = () => {
+    const map = mapRef.current?.getMap();
+    const out: Record<string, unknown> = {
+      vesselsIn: aisSymbolVessels.length,
+      headingFeatures: aisSymbolModel.headingGeojson.features.length,
+      aspectFeatures: aisSymbolModel.aspectGeojson.features.length,
+      mapLoaded,
+    };
+    if (!map) return { ...out, map: "none" };
+    try {
+      const style = map.getStyle();
+      const layers = style?.layers?.filter((l: { id: string }) => /ais/i.test(l.id)).map((l: { id: string }) => l.id) ?? [];
+      const icons = [
+        ...new Set(
+          [...aisSymbolModel.headingGeojson.features, ...aisSymbolModel.aspectGeojson.features].map(
+            (f) => String((f.properties as { icon?: string } | null)?.icon),
+          ),
+        ),
+      ];
+      out.zoom = Number(map.getZoom().toFixed(2));
+      out.styleLoaded = map.isStyleLoaded();
+      out.layers = layers;
+      out.iconsUsed = icons.length;
+      out.iconsMissing = icons.filter((id) => !map.hasImage(id));
+      out.rendered = layers.length ? map.queryRenderedFeatures({ layers }).length : 0;
+      out.layerVisibility = layers.map((id: string) => map.getLayoutProperty(id, "visibility") ?? "visible");
+    } catch (error) {
+      out.error = String(error);
+    }
+    return out;
+  };
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    (window as unknown as { __aisDebug?: () => unknown }).__aisDebug = () => aisDebugRef.current();
+    return () => {
+      delete (window as unknown as { __aisDebug?: () => unknown }).__aisDebug;
+    };
+  }, []);
   const onAisSymbolClick = props.onAisSymbolClick as ((item: unknown) => void) | undefined;
   const onAisSymbolHover = props.onAisSymbolHover as
     | ((item: unknown | null) => void)
@@ -1420,11 +1481,11 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     // 진단 훅을 최우선 등록 (아래 setStyle 래핑이 실패해도 e2e/콘솔이 살도록)
     try {
       const w = window as Window & {
-        __GEOWATCH_MAP_PROJECTION?: () => unknown;
-        __GEOWATCH_FORCE_GLOBE?: () => void;
+        __STRAITDESK_MAP_PROJECTION?: () => unknown;
+        __STRAITDESK_FORCE_GLOBE?: () => void;
       };
-      w.__GEOWATCH_MAP_PROJECTION = () => map.getProjection?.();
-      w.__GEOWATCH_FORCE_GLOBE = () => {
+      w.__STRAITDESK_MAP_PROJECTION = () => map.getProjection?.();
+      w.__STRAITDESK_FORCE_GLOBE = () => {
         applyBasemapGlobeProjection(m);
         try {
           map.setProjection?.({ type: "vertical-perspective" });
@@ -1681,7 +1742,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
-      if (layerId === "map-rings") return ringsData[index] ?? null;
+      if (layerId === "map-rings" || layerId === "map-rings-sea") return ringsData[index] ?? null;
       if (layerId === AIRCRAFT_SYMBOL_LAYER_ID) {
         return aircraftSymbolsItems[index] ?? null;
       }
@@ -3407,6 +3468,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             data={aisSymbolModel.headingGeojson}
           >
             <Layer
+              id="ais-heading-incident-ring"
+              type="circle"
+              filter={[">", ["get", "incident"], 0]}
+              paint={INCIDENT_RING_PAINT}
+            />
+            <Layer
               id={AIS_HEADING_SYMBOL_LAYER_ID}
               type="symbol"
               layout={{
@@ -3483,6 +3550,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             type="geojson"
             data={aisSymbolModel.aspectGeojson}
           >
+            <Layer
+              id="ais-aspect-incident-ring"
+              type="circle"
+              filter={[">", ["get", "incident"], 0]}
+              paint={INCIDENT_RING_PAINT}
+            />
             <Layer
               id={AIS_ASPECT_SYMBOL_LAYER_ID}
               type="symbol"
@@ -3661,8 +3734,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         {ringsGeoJson.features.length > 0 ? (
           <Source id="map-rings-source" type="geojson" data={ringsGeoJson}>
             <Layer
+              id="map-rings-sea"
+              type="circle"
+              filter={["==", ["get", "sea"], 1]}
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": SEA_ALERT_RING_RADIUS_BY_ZOOM,
+                "circle-opacity": SEA_ALERT_RING_OPACITY_BY_ZOOM,
+                "circle-stroke-width": 1,
+                "circle-stroke-color": ["get", "color"],
+                "circle-stroke-opacity": 0.8,
+              }}
+            />
+            <Layer
               id="map-rings"
               type="circle"
+              filter={["!=", ["get", "sea"], 1]}
               paint={{
                 "circle-color": ["get", "color"],
                 "circle-radius": RING_RADIUS_BY_ZOOM,

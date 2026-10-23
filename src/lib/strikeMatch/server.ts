@@ -5,11 +5,14 @@
  *  신원: vessel_identity (aisstream 정적 메시지의 IMO, migration 0033) → 없으면 ais_vessels 의 선종
  */
 
-import { and, desc, gte, inArray, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import type { AppDb } from "@/db/client";
-import { aisPositionHistory, aisVessels, ukmtoIncidents, vesselIdentity } from "@/db/schema";
+import { aisPositionHistory, aisVessels, strikeNamed, strikeSnapshot, ukmtoIncidents, vesselIdentity } from "@/db/schema";
+import type { CandidateWeather } from "@/lib/strikeSnapshot";
 import { extractShipName } from "@/lib/strikeMatch/shipName";
 import {
+  GENERIC_NAMES,
+  normalizeShipName,
   scoreCandidates,
   summarizeMatch,
   type MatchStatus,
@@ -18,18 +21,9 @@ import {
   type VesselTrack,
 } from "@/lib/strikeMatch/scoreCandidates";
 import { datalasticEnabled, enrichWithDatalastic } from "@/lib/strikeMatch/datalastic";
+import { isStrikeType } from "@/lib/strikeMatch/strikeType";
 
-/**
- * 상선 피격으로 보는 UKMTO 유형 — 권고·의심활동은 "맞은 배"가 없을 수 있어 뺀다.
- * workers/cron-ingest/src/ukmto.ts 의 isPushWorthy 와 같은 기준 (어긋나면 푸시는 왔는데 피격 목록엔 없는 일이 생김)
- */
-const STRIKE_TYPE_RE = /attack|board|hijack|seiz|piracy|detain/i;
-const NON_STRIKE_RE = /advisory|suspicious|warning|approach/i;
-
-export function isStrikeType(typeName: string | null | undefined): boolean {
-  if (!typeName) return false;
-  return STRIKE_TYPE_RE.test(typeName) && !NON_STRIKE_RE.test(typeName);
-}
+export { isStrikeType };
 
 export type StrikeCase = {
   id: string;
@@ -45,18 +39,122 @@ export type StrikeCase = {
   detail: string | null;
 };
 
+/** 후보 + (스냅샷 때 받아 둔) 그 위치의 날씨 */
+export type WeatheredCandidate = ScoredCandidate & { weather?: CandidateWeather };
+
 export type StrikeMatchResult = {
   incident: StrikeCase;
   status: MatchStatus;
-  top: ScoredCandidate | null;
-  candidates: ScoredCandidate[];
+  top: WeatheredCandidate | null;
+  candidates: WeatheredCandidate[];
   nearbyCount: number;
   /** 근거 한계 — 숨기지 않는다 */
   limits: string[];
+  /** 선명을 기사에서 가져왔고 AIS 위치로 검증된 경우의 출처 (UKMTO 가 선명을 공개하지 않을 때) */
+  nameSource?: NameSource;
   trackSource: "ais_position_history" | "ais_position_history+datalastic";
+  /** 기사 보도 선명(위치 검증 전) — 확정 아님 */
+  reportedNames?: ReportedName[];
+};
+
+export type NameSource = {
+  name: string;
+  /** 같은 이름을 낸 서로 다른 매체 수 */
+  outlets: number;
+  /** 사건 시각 추정 위치와 사건 지점의 거리(km) — AIS 검증 */
+  distKm: number | null;
+  sources: Array<{ url: string; outlet: string | null; headline: string; publishedAt: string | null }>;
 };
 
 type UkmtoRow = typeof ukmtoIncidents.$inferSelect;
+
+/** UKMTO 가 선명 대신 쓰는 자리표시(".", "-", MERCHANT, TKR …)인가 */
+function reportedNameUnusable(name: string | null): boolean {
+  if (!name) return true;
+  const n = normalizeShipName(name);
+  return n.length < 3 || GENERIC_NAMES.has(n);
+}
+
+/** 기사에서 뽑고 AIS 위치로 검증된 선명 (migration 0039 전이면 빈 배열) */
+export async function loadVerifiedNames(db: AppDb, incidentId: string): Promise<NameSource[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(strikeNamed)
+      .where(and(eq(strikeNamed.incidentId, incidentId), eq(strikeNamed.status, "verified")));
+    return rows.map((r) => {
+      let sources: NameSource["sources"] = [];
+      try {
+        const parsed = JSON.parse(r.sources) as unknown;
+        if (Array.isArray(parsed)) sources = parsed as NameSource["sources"];
+      } catch {
+        // 깨진 JSON — 출처 없이 진행
+      }
+      return { name: r.name, outlets: r.outlets, distKm: r.distKm, sources };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export type ReportedName = {
+  name: string;
+  imo: string | null;
+  mmsi: string | null;
+  outlets: number;
+  /** new: 아직 위치 검증 전 · unresolved: 사건 시각 항적 자료가 없어 검증 못 함 */
+  status: "new" | "unresolved";
+  sources: NameSource["sources"];
+};
+
+/**
+ * 기사가 보도한 선명 중 아직 위치로 검증되지 않은 것. 확정이 아니라 "기사가 이렇게 보도했다"일 뿐이다.
+ * AIS 수신 공백으로 항적 후보가 없을 때도 사용자가 이름·IMO 단서를 볼 수 있게 한다. 테이블이 없으면 빈 배열.
+ */
+export async function loadReportedNames(db: AppDb, incidentId: string): Promise<ReportedName[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(strikeNamed)
+      .where(and(eq(strikeNamed.incidentId, incidentId), inArray(strikeNamed.status, ["new", "unresolved"])));
+    return rows
+      .sort((a, b) => b.outlets - a.outlets)
+      .slice(0, 3)
+      .map((r) => {
+        let sources: NameSource["sources"] = [];
+        try {
+          const parsed = JSON.parse(r.sources) as unknown;
+          if (Array.isArray(parsed)) sources = parsed as NameSource["sources"];
+        } catch {
+          // 깨진 JSON — 출처 없이 진행
+        }
+        return { name: r.name, imo: r.imo, mmsi: r.mmsi, outlets: r.outlets, status: r.status as "new" | "unresolved", sources };
+      });
+  } catch {
+    return [];
+  }
+}
+
+/** 스냅샷 때 후보 선박 위치에서 받아 둔 날씨 (mmsi → 날씨). 스냅샷 전이거나 테이블이 없으면 빈 맵. */
+export async function loadCandidateWeather(db: AppDb, incidentId: string): Promise<Map<string, CandidateWeather>> {
+  const out = new Map<string, CandidateWeather>();
+  try {
+    const rows = await db
+      .select({ candidates: strikeSnapshot.candidates })
+      .from(strikeSnapshot)
+      .where(eq(strikeSnapshot.incidentId, incidentId))
+      .limit(1);
+    const arr = JSON.parse(rows[0]?.candidates ?? "[]") as unknown;
+    if (Array.isArray(arr)) {
+      for (const c of arr as Array<{ mmsi?: unknown; weather?: CandidateWeather }>) {
+        if (typeof c?.mmsi === "string" && c.weather) out.set(c.mmsi, c.weather);
+      }
+    }
+  } catch {
+    // 테이블 없음·깨진 JSON — 날씨 없이 진행
+  }
+  return out;
+}
 
 function toCase(r: UkmtoRow): StrikeCase | null {
   const occurredAt = r.utcDateOfIncident || r.utcDateCreated;
@@ -202,12 +300,28 @@ export async function matchStrikeCase(
     limits.push(`AIS 위치 이력은 ${coverageStart.slice(0, 10)}부터 — 그 이전 사건은 항적 자료 없음`);
   }
 
+  // UKMTO 가 선명을 안 냈으면 기사에서 뽑아 AIS 로 검증한 이름을 쓴다 — 검증된 이름이 둘 이상이면 하나를 고르지 않는다
+  let nameSource: NameSource | undefined;
+  let scoringName = c.reportedVesselName;
+  if (reportedNameUnusable(c.reportedVesselName)) {
+    const named = await loadVerifiedNames(db, c.id);
+    if (named.length === 1) {
+      nameSource = named[0];
+      scoringName = named[0]!.name;
+      limits.push(
+        `선명은 기사 ${named[0]!.outlets}곳 보도 + AIS 위치 검증${named[0]!.distKm != null ? `(사건 시각 ${Math.round(named[0]!.distKm)}km 이내)` : ""} — UKMTO 는 선명을 공개하지 않음`,
+      );
+    } else if (named.length > 1) {
+      limits.push(`기사마다 다른 선명(${named.map((n) => n.name).join(", ")})이 검증돼 하나로 못 정함`);
+    }
+  }
+
   const incident: StrikeIncident = {
     lat: c.lat,
     lng: c.lng,
     atIso: c.occurredAt,
     vesselType: c.reportedVesselType,
-    vesselName: c.reportedVesselName,
+    vesselName: scoringName,
   };
   let candidates = scoreCandidates(incident, tracks, { radiusKm });
   let trackSource: StrikeMatchResult["trackSource"] = "ais_position_history";
@@ -231,16 +345,23 @@ export async function matchStrikeCase(
   if (s.status === "unknown" && coverageStart && c.occurredAt >= coverageStart) {
     limits.push("사건 주변에 AIS 기록이 없음 — 수신 공백일 수 있음 (\"아무 배도 없었다\"는 뜻이 아님)");
   }
-  if (!c.reportedVesselName) limits.push("경보에 선명이 없어 '확인'은 불가 — 항적 정황으로만 판단");
+  if (!scoringName) limits.push("경보에 선명이 없어 '확인'은 불가 — 항적 정황으로만 판단");
   if (s.top && !s.top.imo) limits.push("1순위 후보의 IMO 미수신 — MMSI 로만 식별");
+
+  const wx = await loadCandidateWeather(db, c.id);
+  // 검증된 이름이 있으면 그걸 쓰므로, 없을 때만 '보도 선명(미검증)'을 단서로 붙인다
+  const reportedNames = nameSource ? [] : await loadReportedNames(db, c.id);
+  const withWx = (x: ScoredCandidate): WeatheredCandidate => (wx.has(x.mmsi) ? { ...x, weather: wx.get(x.mmsi)! } : x);
 
   return {
     incident: c,
     status: s.status,
-    top: s.top,
-    candidates: candidates.slice(0, 10),
+    top: s.top ? withWx(s.top) : null,
+    candidates: candidates.slice(0, 10).map(withWx),
     nearbyCount: s.nearbyCount,
     limits,
+    ...(nameSource ? { nameSource } : {}),
+    ...(reportedNames.length ? { reportedNames } : {}),
     trackSource,
   };
 }

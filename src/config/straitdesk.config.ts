@@ -4,7 +4,7 @@
  * liveRenderGuard는 stub ON/OFF 분기를 유지한 채 이 값을 참조한다.
  */
 
-export const GEOWATCH_CONFIG = {
+export const STRAITDESK_CONFIG = {
   caps: {
     /** 일반 모드 레이어 동시 ON 상한 */
     fullModeMaxLayers: 30,
@@ -72,4 +72,4 @@ export const GEOWATCH_CONFIG = {
   },
 } as const;
 
-export type GeowatchConfig = typeof GEOWATCH_CONFIG;
+export type StraitDeskConfig = typeof STRAITDESK_CONFIG;

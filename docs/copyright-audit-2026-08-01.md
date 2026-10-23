@@ -1,6 +1,6 @@
 # 저작권 · 라이선스 감사 보고서 (2026-08-01)
 
-> 대상: `Brave-new-world`  / Brave New World
+> 대상: Strait Desk
 > 방법: 코드 정적 분석 + 기존 문서(`copyright-checklist.md`, `commercial-licensing.md`) 대조 + 라이선스 원문 확인
 > **법률 자문이 아닙니다.** 유료화 전 변호사 검토 필요.
 
@@ -122,7 +122,7 @@ SBAgro-Bold.otf / SBAgro-Bold.ttf
 
 - **RIDIBatang · Pretendard · Geist 는 SIL Open Font License 1.1** 이다. OFL 제2조는 폰트 파일을 재배포할 때 **저작권 고지와 라이선스 전문을 반드시 동봉**하도록 요구한다. 현재 상태는 형식 요건 위반이다.
 - `next/font/local` 로 로드하면 폰트가 **웹폰트로 서빙**된다. 이건 "사용"이 아니라 **"배포"** 축에 가깝다. 저장소 커밋은 더 명확한 배포다.
-- GitHub 저장소(`kangps7675-tiger/Brave-new-world`)가 공개라면 즉시 노출된다.
+- GitHub 저장소(`kangps7675-tiger/Strait-Desk`)가 공개라면 즉시 노출된다.
 - **Griun_PolSensibility-Rg.ttf** 는 출처·라이선스가 코드 어디에도 기록돼 있지 않다. 가장 위험한 항목이다.
 
 **조치**
@@ -141,7 +141,7 @@ SBAgro-Bold.otf / SBAgro-Bold.ttf
 ```ts
 const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${...}`;
 const res = await fetch(url, {
-  headers: { "User-Agent": "Mozilla/5.0 (compatible; BraveNewWorld/1.0)" },
+  headers: { "User-Agent": "Mozilla/5.0 (compatible; Strait Desk/1.0)" },
 ```
 
 **왜 문제인가**

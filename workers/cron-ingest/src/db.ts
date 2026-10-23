@@ -327,6 +327,9 @@ export async function upsertAdsbAircraft(db: D1Database, aircraft: AdsbAircraftR
   return written;
 }
 
+/** Datalastic 로 받은 선박을 지도 후보로 남기는 시간(구역 최장 폴링 간격 72h + 여유) */
+export const DATALASTIC_KEEP_HOURS = 96;
+
 export async function readAisVessels(
   db: D1Database,
   opts: { category?: string; limit: number; maxAgeMinutes?: number },
@@ -335,6 +338,8 @@ export async function readAisVessels(
   const cutoff = new Date(
     Date.now() - (opts.maxAgeMinutes ?? 180) * 60 * 1000,
   ).toISOString();
+  // Datalastic 구역 폴링은 24~72h 간격이라 3시간 컷이면 다음 폴링 전에 전부 사라진다 — 길게 보존
+  const dlCutoff = new Date(Date.now() - DATALASTIC_KEEP_HOURS * 3_600_000).toISOString();
   const category = opts.category && opts.category !== "all" ? opts.category : null;
   // commercial 필터는 type 미수신 other도 민간 후보로 포함 (프론트 matchesAisClassFilter와 동일)
   const rows = category === "commercial"
@@ -343,10 +348,10 @@ export async function readAisVessels(
           `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
                   ship_type, ship_type_label, category, provider, timestamp, ingested_at
            FROM ais_vessels
-           WHERE ingested_at >= ? AND category IN ('commercial', 'other')
+           WHERE (ingested_at >= ? OR (provider = 'datalastic' AND ingested_at >= ?)) AND category IN ('commercial', 'other')
            ORDER BY ingested_at DESC LIMIT ?`,
         )
-        .bind(cutoff, opts.limit)
+        .bind(cutoff, dlCutoff, opts.limit)
         .all<Record<string, unknown>>()
     : category
       ? await db
@@ -354,20 +359,20 @@ export async function readAisVessels(
             `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
                     ship_type, ship_type_label, category, provider, timestamp, ingested_at
              FROM ais_vessels
-             WHERE ingested_at >= ? AND category = ?
+             WHERE (ingested_at >= ? OR (provider = 'datalastic' AND ingested_at >= ?)) AND category = ?
              ORDER BY ingested_at DESC LIMIT ?`,
           )
-          .bind(cutoff, category, opts.limit)
+          .bind(cutoff, dlCutoff, category, opts.limit)
           .all<Record<string, unknown>>()
       : await db
           .prepare(
             `SELECT id, mmsi, ship_name, lat, lng, sog, cog, true_heading,
                     ship_type, ship_type_label, category, provider, timestamp, ingested_at
              FROM ais_vessels
-             WHERE ingested_at >= ?
+             WHERE ingested_at >= ? OR (provider = 'datalastic' AND ingested_at >= ?)
              ORDER BY ingested_at DESC LIMIT ?`,
           )
-          .bind(cutoff, opts.limit)
+          .bind(cutoff, dlCutoff, opts.limit)
           .all<Record<string, unknown>>();
   return rows.results ?? [];
 }
@@ -753,6 +758,12 @@ export function getAdsbApiKey(env: IngestEnv): string | null {
   // RapidAPI 키는 웹 쪽 사용자 조회(뷰포트·군용기)에서만 쓴다 — src/lib/adsbClient.ts.
   if (/^[0-9a-f]{8,12}msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(key)) return null;
   return key || null;
+}
+
+/** RapidAPI 로 산 ADS-B Exchange 키만 돌려준다 (보강 수집 전용 — 허브 폴링은 여전히 키 없이 adsb.lol) */
+export function getRapidAdsbKey(env: IngestEnv): string | null {
+  const key = (env.ADSBEXCHANGE_API_KEY || env.ADSB_API_KEY || env.ADSBX_API_KEY || "").trim();
+  return /^[0-9a-f]{8,12}msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(key) ? key : null;
 }
 
 export function getAisstreamKey(env: IngestEnv): string | null {

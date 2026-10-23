@@ -10,9 +10,9 @@ import type { ViewerMode } from "@/lib/viewPackages";
 import type { SpotlightPlacement } from "@/components/UiSpotlightCoachmark";
 import { firstScreenLayersTourBody } from "@/lib/layerOnboarding";
 
-export const FIRST_VISIT_TOUR_KEY = "geowatch-first-visit-tour-v1";
+export const FIRST_VISIT_TOUR_KEY = "straitdesk-first-visit-tour-v1";
 /** 둘러보기 권유 배너 — 거절/수락 시 다시 안 뜸 */
-export const TOUR_INVITE_KEY = "geowatch-tour-invite-v1";
+export const TOUR_INVITE_KEY = "straitdesk-tour-invite-v1";
 
 export type FirstVisitTourStepId =
   | "globe"

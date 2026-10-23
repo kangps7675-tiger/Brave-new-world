@@ -42,7 +42,7 @@ export function isMostlyEnglish(text: string): boolean {
  *
  * @see docs/copyright-audit-2026-08-01.md — R-2
  */
-const TRANSLATE_USER_AGENT = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
+const TRANSLATE_USER_AGENT = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Strait-Desk)";
 
 /**
  * ⚠️ `translate_a/single?client=gtx` 는 **공개 API가 아니라 웹 UI 내부 엔드포인트**다.

@@ -104,7 +104,7 @@ import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 import { visibleInterval } from "@/lib/visibleInterval";
 import { SHOW_INVESTMENT_UI } from "@/lib/investmentUi";
 
-const INTEL_DRAG_HINT_KEY = "geowatch-intel-drag-hint-v1";
+const INTEL_DRAG_HINT_KEY = "straitdesk-intel-drag-hint-v1";
 
 function readIntelDragHintDismissed(): boolean {
   if (typeof window === "undefined") return true;

@@ -1,5 +1,5 @@
 # Gitleaks — allow documented placeholders / geospatial false positives.
-title = "brave-new-world"
+title = "strait-desk"
 
 [[allowlists]]
 description = "Setup guide uses obviously fake example secrets"

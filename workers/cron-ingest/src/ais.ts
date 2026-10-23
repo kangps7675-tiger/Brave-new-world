@@ -1,4 +1,6 @@
 import { flushVesselIdentities, recordStaticIdentity } from "./vesselIdentity";
+import { fetchDatalasticZones } from "./datalastic";
+import { isHistoryKeepPoint } from "../../../src/lib/datalasticAis";
 import { thinWorldwide } from "../../../src/lib/adsbWorld";
 import type { AisVesselRow, IngestEnv } from "./env";
 import { getAisstreamKey, getMarineTrafficKey } from "./db";
@@ -25,6 +27,9 @@ export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[-45, -75], [-28, -50]], // South Cone
   [[42, -10], [58, 15]], // NW Europe / Channel
   [[48, 25], [62, 50]], // Baltic–Barents approaches
+  [[68, 10], [75, 50]], // 북극: 노르웨이 북부·바렌츠해·무르만스크 (북동항로 서쪽 입구)
+  [[76, 8], [81, 32]], // 북극: 스발바르
+  [[60, 168], [68, 180]], // 북극: 베링해 서쪽·추코트카 (북동항로 동쪽 출구)
   [[-5, -20], [18, 15]], // West Africa / Gulf of Guinea
   [[-12, 25], [12, 50]], // East Africa / Indian Ocean west
   [[-38, 10], [-18, 40]], // South Africa / Cape
@@ -83,6 +88,9 @@ export const AISSTREAM_BBOXES: Array<[[number, number], [number, number]]> = [
   [[-5, 130], [20, 175]], // 서태평양 적도
   [[-30, 50], [0, 95]], // 중부 인도양
   [[-45, 30], [-30, 110]], // 남인도양
+  [[-40, -160], [-10, -120]], // 남태평양 동부
+  [[15, -35], [35, -10]], // 아조레스·마데이라·카나리아 (북대서양 중부)
+  [[-30, 95], [-5, 130]], // 동인도양 (인도네시아·호주 서쪽)
 ];
 
 const AISSTREAM_BATCH_DURATION_MS = 12_000;
@@ -538,7 +546,7 @@ async function fetchAisstream(
 export async function fetchAisVessels(
   env: IngestEnv,
   max = 3000,
-): Promise<{ vessels: AisVesselRow[]; errors: string[] }> {
+): Promise<{ vessels: AisVesselRow[]; historyVessels: AisVesselRow[]; errors: string[] }> {
   const mtKey = getMarineTrafficKey(env);
   const aisstreamKey = getAisstreamKey(env);
   const errors: string[] = [];
@@ -568,6 +576,18 @@ export async function fetchAisVessels(
     }
   }
 
+  // AISstream 지상 수신이 없는 해역(홍해 등)만 Datalastic 으로 보강 — 키·예산 가드는 datalastic.ts
+  try {
+    const dl = await fetchDatalasticZones(env);
+    errors.push(...dl.errors);
+    for (const vessel of dl.vessels) {
+      byMmsi.set(vessel.mmsi, preferVesselRow(byMmsi.get(vessel.mmsi), vessel));
+    }
+    await flushVesselIdentities(env.DB);
+  } catch (error) {
+    errors.push(`datalastic: ${error instanceof Error ? error.message : "failed"}`);
+  }
+
   if (!mtKey && !aisstreamKey) {
     errors.push("MARINETRAFFIC_API_KEY and AISSTREAM_API_KEY missing — AIS skipped");
   } else if (!mtKey) {
@@ -583,5 +603,16 @@ export async function fetchAisVessels(
     perCell: 24,
     max,
   });
-  return { vessels: thinned, errors };
+  // 이력(피격 매칭용)은 초크포인트 박스 안 선박을 솎아내지 않고 보존한다.
+  // Datalastic 은 유료 크레딧으로 받은 표본이라 솎아내기에서 지워지면 낭비다 — 솎은 뒤 되돌려 담는다
+  const thinnedIds = new Set(thinned.map((v) => v.id));
+  for (const v of merged) {
+    if (v.provider === "datalastic" && !thinnedIds.has(v.id)) thinned.push(v);
+  }
+  const keptIds = new Set(thinned.map((v) => v.id));
+  const historyVessels = [
+    ...thinned,
+    ...merged.filter((v) => !keptIds.has(v.id) && isHistoryKeepPoint(v.lat, v.lng)),
+  ];
+  return { vessels: thinned, historyVessels, errors };
 }

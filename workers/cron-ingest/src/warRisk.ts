@@ -9,7 +9,7 @@
  */
 
 import type { IngestEnv } from "./env";
-import { extractWarRiskQuote } from "../../../src/lib/warRisk/extractPremium";
+import { extractWarRiskHeadline, extractWarRiskQuote } from "../../../src/lib/warRisk/extractPremium";
 import { parseRssItems, splitGoogleNewsTitle } from "../../../src/lib/warRisk/rss";
 
 // Google News RSS 는 Cloudflare Worker egress IP 에서 전부 HTTP 503 이라 Bing 뉴스 RSS 로 교체했다.
@@ -85,7 +85,9 @@ export async function rowsFromFeed(xml: string, feedName: string): Promise<WarRi
     const { headline, outlet } = splitGoogleNewsTitle(item.title);
     // 제목을 먼저, 요약을 뒤에 — 해역 판정이 제목 첫 지명을 따르도록
     const desc = item.description && !item.description.startsWith(headline) ? item.description : "";
-    const q = extractWarRiskQuote(desc ? `${headline}. ${desc}` : headline);
+    const text = desc ? `${headline}. ${desc}` : headline;
+    // 수치가 있으면 그것, 없으면 헤드라인 단계(ratePct=null)로 — 언론이 요율 대신 변동폭만 쓰는 경우가 많다
+    const q = extractWarRiskQuote(text) ?? extractWarRiskHeadline(text);
     if (!q) continue;
     rows.push({
       id: await sha1Hex(unwrapBingLink(item.link)),
@@ -96,7 +98,8 @@ export async function rowsFromFeed(xml: string, feedName: string): Promise<WarRi
       usd_per_voyage: q.usdPerVoyage,
       direction: q.direction,
       confidence: q.confidence,
-      quote: q.quote,
+      // 헤드라인 단계는 제목이 링크 줄에 이미 나오므로 근거 구절은 요약 쪽만 (240자 이내)
+      quote: q.confidence === "headline" ? (desc || headline).slice(0, 240) : q.quote,
       headline: headline.slice(0, 300),
       url: unwrapBingLink(item.link),
       outlet: item.source ?? outlet,

@@ -174,7 +174,7 @@ export function resolveHotTheaterFocus(
 }
 
 /** 세션당 1회 — 같은 탭에서 레이어를 반복 덮지 않음 */
-export const HOT_THEATER_SESSION_KEY = "geowatch-hot-theater-applied-v1";
+export const HOT_THEATER_SESSION_KEY = "straitdesk-hot-theater-applied-v1";
 
 export function hotTheaterSessionConsumed(): boolean {
   if (typeof window === "undefined") return true;

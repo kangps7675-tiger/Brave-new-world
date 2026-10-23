@@ -23,7 +23,7 @@ const FETCH_TIMEOUT_MS = 6000;
  * @see docs/copyright-audit-2026-08-01.md — R-2
  */
 const TELEGRAM_SCRAPE_USER_AGENT =
-  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world)";
+  "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Strait-Desk)";
 const MAX_TEXT = 4096;
 
 type ParsedPost = {
