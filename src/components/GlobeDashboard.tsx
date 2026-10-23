@@ -129,6 +129,7 @@ import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { IncidentStack } from "@/components/globe/IncidentStack";
 import { EventDock } from "@/components/globe/EventDock";
+import { SeaRegionPanel } from "@/components/globe/SeaRegionPanel";
 import { FeedDrawer } from "@/components/globe/FeedDrawer";
 import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
@@ -7340,6 +7341,9 @@ export function GlobeDashboard({
                 togglePref("showAirports", next);
               }}
             />
+            {isPhoneUi ? null : (
+              <SeaRegionPanel lang={labelLanguage} onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 1.2)} />
+            )}
             <EventDock
               compact={isPhoneUi}
               lang={labelLanguage}
