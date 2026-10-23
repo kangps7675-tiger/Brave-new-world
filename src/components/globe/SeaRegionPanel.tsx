@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AisVessel } from "@/data/geoTypes";
+import { RouteCheckBlock } from "@/components/globe/RouteCheckBlock";
 import { useFleetWatch } from "@/hooks/useFleetWatch";
 import { useSeaBrief } from "@/hooks/useSeaBrief";
 import { parseFleetInput } from "@/lib/myFleet";
@@ -195,6 +196,7 @@ export function SeaRegionPanel({ lang, onGoToLocation, vessels = [] }: Props) {
             </div>
           </>
         ) : null}
+        <RouteCheckBlock lang={lang} onShowRoute={onGoToLocation} />
         {fleetBlock}
       </div>
     </aside>

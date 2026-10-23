@@ -40,3 +40,11 @@ describe("computeSeaBrief", () => {
     expect(b.stance).toBe("caution");
   });
 });
+
+describe("공격 주체 근거", () => {
+  it("문구 근거가 있는 주체만 이유에 붙는다", () => {
+    const i = { ...rs("a", "Attack", 5), detail: "fired on by IRGC gunboats" };
+    const b = computeSeaBrief("red-sea", { incidents: [i], quotes: [], weather: null, now: NOW });
+    expect(b.reasons.join("\n")).toContain("공격 주체: 이란 측 1");
+  });
+});

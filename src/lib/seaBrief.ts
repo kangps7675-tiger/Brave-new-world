@@ -1,4 +1,5 @@
 import type { WarRiskRegionId } from "@/lib/warRisk/extractPremium";
+import { ACTOR_LABEL, countActors } from "@/lib/attackActor";
 import { warRiskRegionAt } from "@/lib/warRisk/regionGeo";
 
 /** 해역 판단 카드에 쓰는 해역 (보험 시장이 부르는 단위, regionGeo.ts와 같은 id) */
@@ -22,6 +23,7 @@ export type SeaIncident = {
   vesselName?: string | null;
   place?: string | null;
   utcDateOfIncident?: string | null;
+  detail?: string | null;
 };
 
 export type SeaQuote = {
@@ -65,6 +67,14 @@ function ts(s: string | null | undefined): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
+/** 해역·항로 판단이 같이 쓰는 규칙. 3건 이상이거나 3일 안 피격이면 우회 검토, 1건 이상이거나 보험료 상승이면 주의. (정답표로 검증하기 전의 임시 기준) */
+export function stanceFrom(x: { strikes30d: number; lastAgeDays: number | null; premiumUp: boolean; hasData: boolean }): SeaStance {
+  if (!x.hasData) return "nodata";
+  if (x.strikes30d >= 3 || (x.strikes30d >= 1 && x.lastAgeDays !== null && x.lastAgeDays <= 3)) return "avoid";
+  if (x.strikes30d >= 1 || x.premiumUp) return "caution";
+  return "normal";
+}
+
 export function computeSeaBrief(
   region: SeaRegion,
   input: { incidents: SeaIncident[]; quotes: SeaQuote[]; weather: SeaWx | null; now?: number },
@@ -90,16 +100,17 @@ export function computeSeaBrief(
     ? { ratePct: q.ratePct, prevPct: q.ratePrevPct, direction: q.direction, outlet: q.outlet, url: q.url, at: q.publishedAt }
     : null;
 
-  let stance: SeaStance;
-  if (input.incidents.length === 0 && !premium) stance = "nodata";
-  else if (cur >= 3 || (cur >= 1 && lastAgeDays !== null && lastAgeDays <= 3)) stance = "avoid";
-  else if (cur >= 1 || premium?.direction === "up") stance = "caution";
-  else stance = "normal";
+  const stance = stanceFrom({ strikes30d: cur, lastAgeDays, premiumUp: premium?.direction === "up", hasData: input.incidents.length > 0 || !!premium });
 
   const reasons: string[] = [];
   reasons.push(`최근 30일 피격·나포·승선 ${cur}건 (직전 30일 ${prev}건)`);
   if (last && lastAgeDays !== null) {
     reasons.push(`가장 최근: ${Math.floor(lastAgeDays)}일 전${last.i.vesselName ? ` · ${last.i.vesselName}` : ""}`);
+  }
+  if (cur > 0) {
+    const a = countActors(hard.filter((x) => now - x.t <= 30 * DAY).map((x) => x.i));
+    const parts = (Object.keys(a) as Array<keyof typeof a>).filter((k) => a[k] > 0).map((k) => `${ACTOR_LABEL[k].ko} ${a[k]}`);
+    reasons.push(`공격 주체: ${parts.join(" · ")} (UKMTO가 밝힌 것만)`);
   }
   if (premium?.ratePct != null) {
     const dir = premium.direction === "up" ? "상승" : premium.direction === "down" ? "하락" : "보합";
