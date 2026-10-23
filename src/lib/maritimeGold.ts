@@ -29,8 +29,12 @@ export function sameDate(goldDate: string, at: string): boolean {
  * 정밀도·재현율. 리뷰가 끝난(reviewed=true) 정답만 쓴다.
  * 정밀도는 정답표가 다루는 기간 안의 예측만 센다 (표 밖 기간의 맞는 예측을 오답으로 치지 않기 위해).
  */
-export function scoreAgainstGold(predicted: PredictedStrike[], gold: readonly GoldStrike[]): GoldScore {
-  const g = gold.filter((x) => x.reviewed);
+export function scoreAgainstGold(
+  predicted: PredictedStrike[],
+  gold: readonly GoldStrike[],
+  opts: { includeDraft?: boolean } = {},
+): GoldScore {
+  const g = opts.includeDraft ? [...gold] : gold.filter((x) => x.reviewed);
   const times = g.map((x) => Date.parse(x.date.length === 7 ? `${x.date}-01` : x.date)).filter(Number.isFinite);
   const lo = times.length ? Math.min(...times) : Infinity;
   const hi = times.length ? Math.max(...times) + 31 * 86_400_000 : -Infinity;

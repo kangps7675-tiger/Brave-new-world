@@ -4,7 +4,7 @@ import { MARITIME_GOLD } from "@/data/gold/maritimeStrikes";
 import { sameDate, scoreAgainstGold } from "./maritimeGold";
 
 const g = (vessel: string, date: string, reviewed = true): GoldStrike => ({
-  id: vessel, vessel, flag: null, date, place: "", outcome: "hit", sourceUrl: "u", reviewed,
+  id: vessel, vessel, flag: null, date, place: "", outcome: "hit", sourceUrls: ["u"], reviewed,
 });
 
 describe("scoreAgainstGold", () => {
@@ -40,8 +40,16 @@ describe("scoreAgainstGold", () => {
 });
 
 describe("MARITIME_GOLD 씨앗", () => {
-  it("모든 줄에 출처가 있고 id가 겹치지 않는다", () => {
-    expect(MARITIME_GOLD.every((x) => x.sourceUrl.startsWith("https://"))).toBe(true);
+  it("정답표는 30건 이상이고 모든 줄에 출처가 있고 id가 겹치지 않는다", () => {
+    expect(MARITIME_GOLD.every((x) => x.sourceUrls.length > 0 && x.sourceUrls.every((u) => u.startsWith("https://")))).toBe(true);
+    expect(MARITIME_GOLD.length).toBeGreaterThanOrEqual(30);
     expect(new Set(MARITIME_GOLD.map((x) => x.id)).size).toBe(MARITIME_GOLD.length);
+  });
+});
+
+describe("includeDraft", () => {
+  it("초안 포함 옵션을 주면 reviewed=false 줄도 점수에 쓴다", () => {
+    const s = scoreAgainstGold([{ vessel: "Sounion", at: "2024-08-21" }], [g("Sounion", "2024-08-21", false)], { includeDraft: true });
+    expect(s.matched).toBe(1);
   });
 });
