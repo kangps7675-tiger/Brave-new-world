@@ -24,6 +24,8 @@ export function deskCategory(item: StackItem, isShip: boolean): DeskCategory {
   return "front";
 }
 
+export const DESK_CATEGORY_ORDER: readonly DeskCategory[] = ["strike", "ship", "posture", "front"];
+
 const CAT_LABEL: Record<DeskCategory, { ko: string; en: string; cls: string }> = {
   ship: { ko: "선박", en: "Ship", cls: "bg-orange-500/25 text-orange-100" },
   strike: { ko: "타격", en: "Strike", cls: "bg-rose-500/30 text-rose-100" },
@@ -87,7 +89,15 @@ export function LiveFlashDesk({
     return () => window.clearInterval(t);
   }, []);
 
-  const sorted = useMemo(() => [...items].sort((a, b) => b.at - a.at), [items]);
+  // 카테고리별로 묶고(타격 → 선박 → 정세 → 전선), 각 묶음 안은 최신순. 이전/다음·방향키도 이 순서를 따른다.
+  const { sorted, groups } = useMemo(() => {
+    const byTime = [...items].sort((a, b) => b.at - a.at);
+    const gs = DESK_CATEGORY_ORDER.map((cat) => ({
+      cat,
+      items: byTime.filter((i) => deskCategory(i, shipIds.has(i.id)) === cat),
+    })).filter((g) => g.items.length > 0);
+    return { sorted: gs.flatMap((g) => g.items), groups: gs };
+  }, [items, shipIds]);
   // 창을 연 시점에 이미 있던 건은 NEW가 아니다
   const baseline = useRef<Set<string> | null>(null);
   if (baseline.current === null) baseline.current = new Set(items.map((i) => i.id));
@@ -206,45 +216,55 @@ export function LiveFlashDesk({
       >
         <p className="hidden items-center gap-1.5 px-1 pb-1 text-micro font-semibold sm:flex">
           <span className="h-2 w-2 animate-pulse rounded-full bg-rose-600" aria-hidden />
-          {en ? "LIVE · newest first" : "실시간 · 최신순"}
+          {en ? "LIVE · by category" : "실시간 · 분류별"}
           <span className="ml-auto tabular-nums text-[#5c4020]/75">{sorted.length}</span>
         </p>
-        {sorted.map((it) => {
-          const c = deskCategory(it, shipIds.has(it.id));
-          const thumb = photosOf(it)[0];
-          const isNew = !baseline.current!.has(it.id);
-          const on = it.id === item.id;
-          return (
-            <button
-              key={it.id}
-              type="button"
-              onClick={() => onSelect(it.id)}
-              aria-current={on}
-              className={`flex w-44 shrink-0 gap-1.5 rounded-sm border p-1 text-left sm:w-full ${
-                on ? "border-[#6b4a22] bg-[#f8eed4]" : "border-transparent hover:bg-[#f3e6c8]"
-              }`}
-            >
-              {thumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumb} alt="" className="h-12 w-12 shrink-0 rounded-sm object-cover" />
-              ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-[#d8c79c] text-micro text-[#5c4020]/60">
-                  {en ? "no photo" : "사진 없음"}
-                </span>
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1 text-micro">
-                  <span className={`rounded-sm px-1 ${CAT_LABEL[c].cls} bg-[#2a1c0a]`}>
-                    {en ? CAT_LABEL[c].en : CAT_LABEL[c].ko}
-                  </span>
-                  {isNew ? <span className="rounded-sm bg-rose-600 px-1 text-white">NEW</span> : null}
-                  <span className="ml-auto tabular-nums text-[#5c4020]/75">{ago(it.at, now, en)}</span>
-                </span>
-                <span className="line-clamp-2 text-micro font-medium leading-snug">{tr(it.title)}</span>
+        {groups.map((g) => (
+          <div key={g.cat} className="flex shrink-0 gap-1 sm:flex-col">
+            <p className="flex shrink-0 items-center gap-1 px-1 pt-1 text-micro font-semibold sm:sticky sm:top-0 sm:z-10 sm:bg-[#e9d9b4]">
+              <span className={`rounded-sm px-1 ${CAT_LABEL[g.cat].cls} bg-[#2a1c0a]`}>
+                {en ? CAT_LABEL[g.cat].en : CAT_LABEL[g.cat].ko}
               </span>
-            </button>
-          );
-        })}
+              <span className="tabular-nums text-[#5c4020]/75">{g.items.length}</span>
+            </p>
+          {g.items.map((it) => {
+            const c = g.cat;
+            const thumb = photosOf(it)[0];
+            const isNew = !baseline.current!.has(it.id);
+            const on = it.id === item.id;
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => onSelect(it.id)}
+                aria-current={on}
+                className={`flex w-44 shrink-0 gap-1.5 rounded-sm border p-1 text-left sm:w-full ${
+                  on ? "border-[#6b4a22] bg-[#f8eed4]" : "border-transparent hover:bg-[#f3e6c8]"
+                }`}
+              >
+                {thumb ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumb} alt="" className="h-12 w-12 shrink-0 rounded-sm object-cover" />
+                ) : (
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-[#d8c79c] text-micro text-[#5c4020]/60">
+                    {en ? "no photo" : "사진 없음"}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1 text-micro">
+                    <span className={`rounded-sm px-1 ${CAT_LABEL[c].cls} bg-[#2a1c0a]`}>
+                      {en ? CAT_LABEL[c].en : CAT_LABEL[c].ko}
+                    </span>
+                    {isNew ? <span className="rounded-sm bg-rose-600 px-1 text-white">NEW</span> : null}
+                    <span className="ml-auto tabular-nums text-[#5c4020]/75">{ago(it.at, now, en)}</span>
+                  </span>
+                  <span className="line-clamp-2 text-micro font-medium leading-snug">{tr(it.title)}</span>
+                </span>
+              </button>
+            );
+          })}
+          </div>
+        ))}
       </nav>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
