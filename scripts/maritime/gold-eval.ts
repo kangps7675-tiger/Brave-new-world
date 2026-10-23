@@ -21,15 +21,25 @@ if (!file) {
   process.exit(1);
 }
 
-type Row = { incidentTypeName?: string; vesselName?: string | null; utcDateOfIncident?: string | null };
+type Row = { incidentTypeName?: string; vesselName?: string | null; utcDateOfIncident?: string | null; lat?: number; lng?: number };
 const raw = JSON.parse(readFileSync(file, "utf8")) as Row[] | { incidents?: Row[] };
 const rows = Array.isArray(raw) ? raw : raw.incidents ?? [];
 
 const predicted: PredictedStrike[] = rows
   .filter((r) => ["Attack", "Hijack", "Boarding"].includes(r.incidentTypeName ?? "") && r.vesselName && r.utcDateOfIncident)
-  .map((r) => ({ vessel: r.vesselName!, at: r.utcDateOfIncident! }));
+  .map((r) => ({ vessel: r.vesselName!, at: r.utcDateOfIncident!, lat: r.lat, lng: r.lng }));
 
-const s = scoreAgainstGold(predicted, MARITIME_GOLD, { includeDraft });
+// 우리 데이터가 닿는 기간 안의 정답만 비교한다 (기간 밖 정답을 「놓쳤다」고 세지 않기 위해)
+const allRows = rows.map((r) => Date.parse(r.utcDateOfIncident ?? "")).filter(Number.isFinite);
+const lo = Math.min(...allRows) - 2 * 86_400_000;
+const hi = Math.max(...allRows) + 2 * 86_400_000;
+const goldInWindow = MARITIME_GOLD.filter((x) => {
+  const t = Date.parse(x.date.length === 7 ? `${x.date}-15` : x.date);
+  return Number.isFinite(t) && t >= lo && t <= hi;
+});
+console.log(`데이터 기간 ${new Date(lo + 2 * 86_400_000).toISOString().slice(0, 10)} ~ ${new Date(hi - 2 * 86_400_000).toISOString().slice(0, 10)} · 이 기간의 정답 ${goldInWindow.length}건 / 전체 ${MARITIME_GOLD.length}건`);
+
+const s = scoreAgainstGold(predicted, goldInWindow, { includeDraft });
 const pct = (x: number | null) => (x === null ? "계산 불가" : `${(x * 100).toFixed(1)}%`);
 
 console.log(`정답 ${s.goldCount}건${includeDraft ? " (초안 포함)" : " (reviewed=true만)"} · 비교 대상 예측 ${s.predictedCount}건 · 일치 ${s.matched}건`);

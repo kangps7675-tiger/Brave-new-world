@@ -53,3 +53,15 @@ describe("includeDraft", () => {
     expect(s.matched).toBe(1);
   });
 });
+
+describe("좌표 일치", () => {
+  const gg = { ...g("Seeder", "2026-08-31"), lat: 26.18, lng: 56.56 };
+  it("선명이 가려져도 같은 날 40해리 안이면 일치", () => {
+    const s = scoreAgainstGold([{ vessel: "tanker", at: "2026-08-31T05:00:00Z", lat: 26.3, lng: 56.4 }], [gg]);
+    expect(s.matched).toBe(1);
+  });
+  it("멀면 일치하지 않는다", () => {
+    const s = scoreAgainstGold([{ vessel: "tanker", at: "2026-08-31T05:00:00Z", lat: 24.0, lng: 52.0 }], [gg]);
+    expect(s.matched).toBe(0);
+  });
+});
