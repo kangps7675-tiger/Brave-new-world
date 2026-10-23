@@ -39,6 +39,7 @@
     "test:watch": "vitest",
     "backfill:ingest": "tsx scripts/backfill/seedCuratedEvents.ts && tsx scripts/backfill/ingestPortWatch.ts && tsx scripts/backfill/ingestFred.ts",
     "backfill:compute": "tsx scripts/backfill/computeOutcomes.ts",
+    "maritime:gold:eval": "tsx scripts/maritime/gold-eval.ts",
     "conflict:gold:eval": "vitest run src/lib/conflictEvents/conflictEvents.test.ts",
     "conflict:gold:sample": "tsx scripts/conflict-events/sample-gold.ts",
     "conflict:gold:sample:live": "tsx scripts/conflict-events/sample-gold.ts --live",
