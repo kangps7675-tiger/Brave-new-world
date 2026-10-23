@@ -15,6 +15,13 @@ import type { AisVessel } from "@/data/geoTypes";
 import { useTr } from "@/hooks/useTr";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { provenanceLines } from "@/lib/provenance";
+import {
+  DESK_HAIRLINE,
+  DESK_LABEL,
+  DESK_NUM,
+  DESK_PANEL,
+  LiveDot,
+} from "@/components/globe/desk/DeskPanel";
 
 const SEA_LABEL: Record<StackSea, { ko: string; en: string }> = {
   hormuz: { ko: "호르무즈", en: "Hormuz" },
@@ -105,22 +112,25 @@ export function IncidentStack({
 
   return (
     <section
-      className="pointer-events-auto flex w-[min(20rem,84vw)] flex-col overflow-hidden rounded-md border border-amber-600/35 bg-[#120e08]/92 shadow-lg backdrop-blur-md"
+      className={`${DESK_PANEL} flex w-[min(20rem,84vw)] flex-col`}
       aria-label={en ? "Vessel incident stack" : "선박 사건 스택"}
       data-incident-stack
     >
       <button
         type="button"
-        className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-micro text-amber-100/90 transition hover:bg-amber-500/10 ${
-          collapsed ? "" : "border-b border-amber-600/25"
+        className={`flex w-full items-center justify-between gap-2 bg-amber-500/[0.06] px-2 py-1 text-left transition hover:bg-amber-500/10 ${
+          collapsed ? "" : `border-b ${DESK_HAIRLINE}`
         }`}
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((v) => !v)}
       >
-        <span className="font-medium tracking-wide">{en ? "Vessel incidents" : "선박 사건"}</span>
-        <span className="flex items-center gap-1.5 tabular-nums text-amber-200/70">
+        <span className={`flex items-center gap-1.5 ${DESK_LABEL}`}>
+          <LiveDot on={items.length > 0} />
+          {en ? "Vessel incidents" : "선박 사건"}
+        </span>
+        <span className={`flex items-center gap-1.5 ${DESK_NUM} text-micro text-amber-200/70`}>
           {unreadCount > 0 ? (
-            <span className="rounded-sm bg-amber-600/80 px-1 text-micro text-black">
+            <span className="rounded-sm bg-amber-500 px-1 text-micro font-semibold text-black">
               {unreadCount}
             </span>
           ) : null}
@@ -139,7 +149,7 @@ export function IncidentStack({
           ) : null}
           {presentSeas.length > 0 ? (
             <div
-              className="flex flex-wrap gap-1 border-b border-amber-600/20 px-2.5 py-1.5"
+              className={`flex flex-wrap gap-0.5 border-b ${DESK_HAIRLINE} px-2 py-1`}
               role="group"
               aria-label={en ? "Sea filter" : "해역 필터"}
             >
@@ -150,10 +160,10 @@ export function IncidentStack({
                     key={s ?? "all"}
                     type="button"
                     aria-pressed={on}
-                    className={`rounded-sm border px-1.5 py-0.5 text-micro ${
+                    className={`rounded-[2px] border px-1.5 py-px font-mono text-micro uppercase tracking-wider ${
                       on
                         ? "border-amber-400/70 bg-amber-500/25 text-amber-50"
-                        : "border-amber-700/30 text-amber-200/70 hover:bg-amber-500/10"
+                        : "border-amber-700/25 text-amber-200/65 hover:bg-amber-500/10"
                     }`}
                     onClick={() => setSea(s)}
                   >
@@ -165,7 +175,7 @@ export function IncidentStack({
           ) : null}
 
           {onMarkAllRead && unreadCount > 0 ? (
-            <div className="flex items-center justify-between gap-2 border-b border-amber-600/20 px-2.5 py-1 text-micro text-amber-200/60">
+            <div className={`flex items-center justify-between gap-2 border-b ${DESK_HAIRLINE} px-2 py-0.5 text-micro text-amber-200/60`}>
               <span className="tabular-nums">
                 {en ? `${unreadCount} not opened` : `안 연 사건 ${unreadCount}`}
               </span>
@@ -195,7 +205,7 @@ export function IncidentStack({
                     <button
                       type="button"
                       aria-expanded={open}
-                      className={`flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-amber-500/10 ${
+                      className={`flex w-full items-start gap-2 border-b border-amber-600/10 px-2 py-1 text-left hover:bg-amber-500/10 ${
                         open ? "bg-amber-500/15" : ""
                       } ${isRead && !open ? "opacity-55 hover:opacity-90" : ""}`}
                       onClick={() => onSelect(open ? null : it.id)}
@@ -208,7 +218,7 @@ export function IncidentStack({
                               className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
                             />
                           ) : null}
-                          <span className="tabular-nums">{timeLabel(it.at, en)}</span>
+                          <span className={`${DESK_NUM} text-amber-200/90`}>{timeLabel(it.at, en)}</span>
                           <span>{it.place}</span>
                           {it.source === "ukmto" ? (
                             <span className="rounded-sm bg-orange-500/25 px-1 text-orange-100">
@@ -230,7 +240,7 @@ export function IncidentStack({
                             <span className="text-amber-200/60">✓ {en ? "Read" : "읽음"}</span>
                           ) : null}
                         </span>
-                        <span className="line-clamp-2 text-meta font-medium tracking-tight text-amber-50">
+                        <span className="line-clamp-1 text-meta font-medium tracking-tight text-amber-50">
                           {trRow(it.title)}
                         </span>
                       </span>
