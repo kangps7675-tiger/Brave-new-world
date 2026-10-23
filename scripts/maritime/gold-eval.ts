@@ -11,6 +11,8 @@
  */
 import { readFileSync } from "node:fs";
 import { MARITIME_GOLD } from "../../src/data/gold/maritimeStrikes";
+import { JMIC_2026 } from "../../src/data/gold/jmic2026";
+import { checkAgainstJmic } from "../../src/lib/jmicCheck";
 import { scoreAgainstGold, type PredictedStrike } from "../../src/lib/maritimeGold";
 
 const args = process.argv.slice(2);
@@ -21,7 +23,7 @@ if (!file) {
   process.exit(1);
 }
 
-type Row = { incidentTypeName?: string; vesselName?: string | null; utcDateOfIncident?: string | null; lat?: number; lng?: number };
+type Row = { incidentNumber?: number | null; incidentTypeName?: string; vesselName?: string | null; utcDateOfIncident?: string | null; lat?: number; lng?: number };
 const raw = JSON.parse(readFileSync(file, "utf8")) as Row[] | { incidents?: Row[] };
 const rows = Array.isArray(raw) ? raw : raw.incidents ?? [];
 
@@ -38,6 +40,19 @@ const goldInWindow = MARITIME_GOLD.filter((x) => {
   return Number.isFinite(t) && t >= lo && t <= hi;
 });
 console.log(`데이터 기간 ${new Date(lo + 2 * 86_400_000).toISOString().slice(0, 10)} ~ ${new Date(hi - 2 * 86_400_000).toISOString().slice(0, 10)} · 이 기간의 정답 ${goldInWindow.length}건 / 전체 ${MARITIME_GOLD.length}건`);
+
+if (args.includes("--jmic")) {
+  const c = checkAgainstJmic(
+    rows.map((r) => ({ incidentNumber: r.incidentNumber ?? null, incidentTypeName: r.incidentTypeName ?? "", vesselName: r.vesselName, utcDateOfIncident: r.utcDateOfIncident })),
+    JMIC_2026,
+  );
+  console.log(`\nJMIC 번호 대조: 표 ${c.jmicCount}건 중 DB에 있음 ${c.found}건, 없음 ${c.missing.length}건`);
+  if (c.missing.length) console.log(`  DB에 없는 번호: ${c.missing.map((m) => `${String(m.ref).padStart(3, "0")}(${m.date.slice(5)})`).join(" ")}`);
+  if (c.dateMismatch.length) console.log(`  날짜가 2일 넘게 다름 ${c.dateMismatch.length}건 (번호 체계가 다르다는 신호): ${c.dateMismatch.map((m) => `${m.row.ref} JMIC ${m.row.date} / DB ${m.dbDate.slice(0, 10)}`).join(", ")}`);
+  if (c.typeMismatch.length) console.log(`  유형이 다름 ${c.typeMismatch.length}건: ${c.typeMismatch.map((m) => `${m.row.ref} JMIC ${m.row.event} / DB ${m.dbType}`).join(", ")}`);
+  if (c.nameGains.length) console.log(`  JMIC가 가려진 선명을 아는 줄 ${c.nameGains.length}건: ${c.nameGains.map((m) => `${m.ref} ${m.dbName ?? "∅"}→${m.jmicName}`).join(", ")}`);
+  process.exit(0);
+}
 
 const s = scoreAgainstGold(predicted, goldInWindow, { includeDraft });
 const pct = (x: number | null) => (x === null ? "계산 불가" : `${(x * 100).toFixed(1)}%`);
