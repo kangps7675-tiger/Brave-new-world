@@ -140,6 +140,28 @@ const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
 ];
 
 /** 핵심 화면 말고도 들어가 볼 수 있는 기능들. href가 있으면 따로 열리는 페이지다. */
+/** 속보가 다루는 종류 — 사건 → 닿는 길목 → 해운에 주는 뜻 (예시는 패턴이지 실제 사건이 아니다) */
+const BREAKING_KINDS: { tag: string; title: string; body: string; flow: string }[] = [
+  {
+    tag: "타격 · 군사",
+    title: "드론·미사일이 실제로 떨어진 소식",
+    body: "발사 경고나 주장이 아니라, 떨어졌다는 보도가 확인된 것만 타격 속보로 올려요. 항구·에너지 시설·선박이 맞았는지가 핵심입니다.",
+    flow: "예) 항만 인근 타격 → 그 길목 통항·보험료에 압력",
+  },
+  {
+    tag: "정세 변화",
+    title: "협상·휴전·제재, 그리고 위협 발언",
+    body: "정상회담, 휴전·정전 협상, 제재, 대사 소환 같은 외교 움직임과 최후통첩·보복 선언 같은 강한 말을 따로 모아요. 좋은 쪽이든 나쁜 쪽이든 방향은 가리지 않습니다.",
+    flow: "예) 휴전 협상 진전 → 통항 재개 신호일 수 있음 · 최후통첩 → 위험 상승 신호일 수 있음",
+  },
+  {
+    tag: "길목 소식",
+    title: "해협을 지나는 배와 돈에 직접 닿는 소식",
+    body: "UKMTO 피습·승선·나포 경보와 항행 경보, 해협의 안보·경제 보도를 길목별로 묶어요. 에너지 공급망에 닿는 소식도 같이 봅니다.",
+    flow: "예) 해협 인근 경보 → 그 해역 브리프 · 근처 선박 항적 대조",
+  },
+];
+
 const BREAKING: { tag: string; title: string; body: string }[] = [
   {
     tag: "새 속보",
@@ -446,8 +468,25 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
         <div className={`${WRAP} py-24`}>
           <Reveal>
             <p className={EYEBROW}>속보 기능</p>
-            <h2 className={`${H2} max-w-[820px]`}>속보는 이렇게 알려 드립니다.</h2>
+            <h2 className={`${H2} max-w-[820px]`}>보험료만이 아니라, 항로에 닿는 정세 속보를 받습니다.</h2>
             <p className={`mt-5 mb-0 max-w-[720px] text-[17px] leading-[1.75] ${MUTED}`}>
+              중동, 러시아·우크라이나, 중국·대만, 한반도, 남아시아·동남아 같은 권역의 군사·외교 소식을 매체 수십 곳에서 받습니다. 우리가 먼저 묻는 건 하나예요. 이 소식이 어느 길목에 닿고, 배와 보험료에 무슨 뜻일까.
+            </p>
+          </Reveal>
+          <div className="mt-10 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
+            {BREAKING_KINDS.map((k, i) => (
+              <Reveal key={k.title} delay={(i % 3) * 80}>
+                <div className="h-full rounded-xl border border-[#f5c451]/25 bg-[#0a141f] p-6">
+                  <span className="block text-caption font-semibold text-[#f5c451]">{k.tag}</span>
+                  <h3 className="mb-0 mt-2 text-[19px] font-bold leading-snug text-white">{k.title}</h3>
+                  <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{k.body}</p>
+                  <p className="mb-0 mt-4 border-t border-white/10 pt-3 text-[14px] leading-[1.6] text-[#5eead4]">{k.flow}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <p className={`mb-0 mt-14 max-w-[720px] text-[17px] leading-[1.75] ${MUTED}`}>
               속보가 많을수록 정말 급한 것이 묻히기 쉬워요. 그래서 많이 띄우기보다, 한 번만 · 근거와 함께 · 급한 것만 알리는 쪽으로 만들었습니다.
             </p>
           </Reveal>
@@ -466,7 +505,7 @@ export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlac
           </div>
           <Reveal>
             <p className={`mt-8 mb-0 max-w-[820px] rounded-xl border border-white/10 bg-white/[0.03] p-5 text-[15px] leading-[1.7] ${MUTED}`}>
-              <strong className="text-white">아직 없는 것.</strong> 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시는 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 메일이 전부예요. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 안전한 것으로 오해하지 않게 합니다.
+              <strong className="text-white">아직 없는 것.</strong> 모든 정세 속보에 「어느 길목에 닿는가」 판정이 자동으로 붙는 건 아닙니다. 위치 태그와 길목별 묶음까지가 지금 범위예요. 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시는 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 메일이 전부예요. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 안전한 것으로 오해하지 않게 합니다.
             </p>
           </Reveal>
         </div>
