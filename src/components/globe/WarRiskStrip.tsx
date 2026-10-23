@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { formatUtcFull, parseTime } from "@/lib/provenance";
+import { DESK_HAIRLINE, DESK_NUM, DESK_PANEL, DeskPanelHeader } from "@/components/globe/desk/DeskPanel";
 
 /**
  * 선박 사건 옆 한 칸 — "보도 기준" 전쟁위험 보험료, 해역별 최신 한 건.
@@ -90,60 +91,58 @@ export function WarRiskStrip({ lang, compact = false }: { lang: LabelLanguage; c
   return (
     <section
       aria-label={en ? "War-risk insurance as reported" : "보도 기준 전쟁위험 보험료"}
-      className={`pointer-events-auto rounded-md border border-amber-600/35 bg-[#120e08]/92 ${compact ? "text-micro" : ""}`}
+      className={`${DESK_PANEL} w-[min(20rem,84vw)] self-end ${compact ? "text-micro" : ""}`}
     >
-      <header className="flex items-baseline justify-between gap-2 border-b border-amber-600/25 px-2.5 py-1.5">
-        <h3 className="text-meta font-semibold tracking-tight text-amber-100">
-          {en ? "War-risk premium (as reported)" : "전쟁위험 보험료 (보도 기준)"}
-        </h3>
-        <span className="text-micro text-amber-200/50">{en ? "% of hull value" : "선가 대비"}</span>
-      </header>
+      <DeskPanelHeader
+        label={en ? "War-risk premium · reported" : "전쟁위험 보험료 · 보도 기준"}
+        right={en ? "% hull" : "선가 대비"}
+      />
       {quotes === null ? (
-        <p className="px-2.5 py-2 text-micro text-amber-200/50">{en ? "Loading…" : "불러오는 중…"}</p>
+        <p className="px-2 py-1.5 text-micro text-amber-200/50">{en ? "Loading…" : "불러오는 중…"}</p>
       ) : rows.length === 0 ? (
-        <p className="px-2.5 py-2 text-micro text-amber-200/55">
+        <p className="px-2 py-1.5 text-micro text-amber-200/55">
           {en
             ? "No premium figure reported in the last 120 days."
             : "최근 120일간 보험료 수치가 보도된 해역이 없습니다."}
         </p>
       ) : (
-        <ul className="divide-y divide-amber-600/15">
+        <ul className={`divide-y divide-amber-600/15`}>
           {rows.slice(0, 4).map((q) => {
             const at = parseTime(q.publishedAt);
             return (
-              <li key={q.id} className="px-2.5 py-1.5">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-micro text-amber-200/70">
-                    {en ? REGION_LABEL[q.region]!.en : REGION_LABEL[q.region]!.ko}
-                  </span>
-                  <span className="tabular-nums text-meta font-semibold text-amber-50">
-                    {q.ratePrevPct !== null ? `${q.ratePrevPct}% → ` : ""}
-                    {fmtRate(q)}
-                  </span>
+              <li key={q.id} className="grid grid-cols-[4.2rem_1fr_auto] items-baseline gap-x-2 px-2 py-1">
+                <span className="truncate text-micro text-amber-200/70">
+                  {en ? REGION_LABEL[q.region]!.en : REGION_LABEL[q.region]!.ko}
+                </span>
+                <span className={`${DESK_NUM} text-meta font-semibold text-amber-50`}>
+                  {q.ratePrevPct !== null ? (
+                    <span className="font-normal text-amber-200/45">{q.ratePrevPct}% → </span>
+                  ) : null}
+                  {fmtRate(q)}
                   {q.direction ? (
-                    <span className={`text-micro ${ARROW_CLASS[q.direction] ?? ""}`}>{ARROW[q.direction]}</span>
+                    <span className={`ml-1 text-micro ${ARROW_CLASS[q.direction] ?? ""}`}>{ARROW[q.direction]}</span>
                   ) : null}
                   {q.confidence === "medium" ? (
-                    <span className="rounded-sm border border-amber-200/25 px-1 text-micro text-amber-200/55">
-                      {en ? "unclear basis" : "근거 불확실"}
+                    <span className="ml-1.5 rounded-sm border border-amber-200/25 px-1 font-sans text-micro font-normal text-amber-200/55">
+                      {en ? "unclear" : "근거 불확실"}
                     </span>
                   ) : null}
-                </div>
+                </span>
                 <a
                   href={q.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-0.5 block truncate text-micro text-amber-200/60 underline underline-offset-2 hover:text-amber-50"
-                  title={q.headline}
+                  className={`${DESK_NUM} max-w-[7.5rem] truncate text-micro text-amber-200/55 underline-offset-2 hover:text-amber-50 hover:underline`}
+                  title={`${q.outlet ?? "news"} — ${q.headline}`}
                 >
-                  {q.outlet ?? "news"} · {at != null ? formatUtcFull(at, lang) : "—"}
+                  {q.outlet ?? "news"} {at != null ? formatUtcFull(at, lang).slice(5, 10) : "—"}
                 </a>
               </li>
             );
           })}
         </ul>
       )}
-      <p className="border-t border-amber-600/15 px-2.5 py-1.5 text-micro leading-snug text-amber-200/45">
+      <p className={`border-t ${DESK_HAIRLINE} px-2 py-1 text-micro leading-snug text-amber-200/45`}>
         {en
           ? "Figures quoted in news reports, not a live market price. Actual quotes vary by vessel, owner, flag and broker."
           : "시세가 아니라 기사에 실린 수치입니다. 실제 견적은 선박·선주·국적·브로커마다 다릅니다."}
