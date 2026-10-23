@@ -7342,7 +7342,7 @@ export function GlobeDashboard({
               }}
             />
             {isPhoneUi ? null : (
-              <SeaRegionPanel lang={labelLanguage} onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 1.2)} />
+              <SeaRegionPanel lang={labelLanguage} vessels={aisVessels} onGoToLocation={(lat, lng) => unifiedFlyTo(lat, lng, 1.2)} />
             )}
             <EventDock
               compact={isPhoneUi}
