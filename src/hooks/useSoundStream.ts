@@ -16,6 +16,7 @@ import {
   writeSoundEnabled,
 } from "@/lib/soundPrefs";
 import { isZoomScaledSound, scaledSoundVolume } from "@/lib/soundDistanceScale";
+import { isWarCombatSound } from "@/lib/warSoundPolicy";
 
 /** 로컬/스트림 URL — 캐시 버스팅으로 예전 개짖음 MP3 무효화 */
 const AUDIO_URL_BUST = "v19-morse-553739-dark";
@@ -246,6 +247,7 @@ export function useSoundStream(options?: UseSoundStreamOptions) {
   const play = useCallback(
     async (eventId: AudioEventId, playOpts?: PlaySoundOptions) => {
       if (!enabledOptRef.current || !soundEnabledRef.current || !unlockedRef.current) return;
+      if (isWarCombatSound(eventId)) return;
       const gen = playGenRef.current;
       const def = AUDIO_MANIFEST[eventId] as AudioEventDef | undefined;
       if (!def) return;

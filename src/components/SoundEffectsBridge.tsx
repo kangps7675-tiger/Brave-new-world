@@ -23,12 +23,8 @@ import type { ViewerMode } from "@/lib/viewPackages";
 /** 공습경보·A급 속보 타전·양피지 UI 버스 — 티커/일반 UI 클릭음은 차단 */
 export const CV_SOUND_EVENT = "cv-sound";
 
-/** 버스 허용 이벤트 */
+/** 버스 허용 이벤트 — 공습 사이렌은 전쟁음 정책으로 제외 */
 const DASHBOARD_BUS_EVENT_IDS = new Set<AudioEventId>([
-  "tzeva-red-alert",
-  "tzeva-all-clear",
-  "neptun-air-alert",
-  "nato-perimeter-klaxon",
   "hero-breaking",
   "breaking-dark-bed",
   "parchment-unfold",

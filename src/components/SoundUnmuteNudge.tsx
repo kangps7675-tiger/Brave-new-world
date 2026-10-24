@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Z_ABOVE_NAV } from "@/lib/uiStack";
 import { useSoundEnabled } from "@/hooks/useSoundEnabled";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import { canShowNudge, markNudgeShown } from "@/lib/onboardingBudget";
 import { hasSoundChoice } from "@/lib/soundPrefs";
 import type { LabelLanguage } from "@/lib/layerPrefs";
@@ -27,6 +28,7 @@ export function SoundUnmuteNudge({ lang, ready }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (!ready || soundEnabled) return;
     // 유저가 한 번이라도 직접 골랐으면 다시 묻지 않는다
     if (hasSoundChoice()) return;

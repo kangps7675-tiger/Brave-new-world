@@ -3,6 +3,7 @@
 import { coerceViewerMode } from "@/lib/viewerModePolicy";
 import { useCallback, useEffect, startTransition, type MutableRefObject, type Dispatch, type SetStateAction } from "react";
 import { shouldOfferAirRaidCoach } from "@/components/AirRaidOnboardingCoach";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import { markQuickStartDone } from "@/components/QuickStartCoach";
 import { markViewerIntroDone } from "@/components/ViewerIntroOverlay";
 import type { LayerPanelTab } from "@/components/globe/LayerPanelHost";
@@ -566,7 +567,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     }
 
     const startTimer = window.setTimeout(() => {
-      setShowIntroHint(true);
+      if (AUTO_ENTRY_UX_ALERTS) setShowIntroHint(true);
       const orbit = entryOrbitCamera(size);
       flyTo(
         orbit.lat,
@@ -827,6 +828,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
 
   /** 공습경보 칩에 처음 다가갈 때만 1회 설명 (투어는 기능 안내에서 수동) */
   const maybeOfferAirRaidCoach = useCallback(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (isEconomyViewer) return;
     if (issueUiPausedForLamp) return;
     if (!firstImpression.onboardingReady) return;

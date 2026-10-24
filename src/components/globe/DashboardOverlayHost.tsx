@@ -1,6 +1,7 @@
 "use client";
 
 import { LAB_UI } from "@/lib/labFlag";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1562,7 +1563,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             markWeeklyRecapFolded(weeklyRecap.key);
             recordInterestNews(weeklyRecap.key, weeklyRecap.title || weeklyRecap.key);
             onSetWeeklyRecapCollapsed(true);
-            if (shouldOfferTourInvite()) {
+            if (AUTO_ENTRY_UX_ALERTS && shouldOfferTourInvite()) {
               window.setTimeout(() => onSetShowTourInvite(true), 450);
             }
           }}
@@ -1606,7 +1607,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetClearanceStatus(resolveClearanceStatus(prefs));
             onSetFoldedPeriodicBriefing(periodicBriefing);
             onSetPeriodicBriefing(null);
-            if (shouldOfferTourInvite()) {
+            if (AUTO_ENTRY_UX_ALERTS && shouldOfferTourInvite()) {
               window.setTimeout(() => onSetShowTourInvite(true), 450);
             }
           }}
@@ -1697,7 +1698,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               showFirstVisitTour,
           ),
           // 언어 게이트·양피지 준비 중엔 묻지 않는다 (첫 90초 주인공은 지도·속보)
-          ultraLiteOffer: ultraLiteOfferVisible && !showLanguageGate && !showPurposeJobGate && !showLampPreparing,
+          ultraLiteOffer: AUTO_ENTRY_UX_ALERTS && ultraLiteOfferVisible && !showLanguageGate && !showPurposeJobGate && !showLampPreparing,
           isEconomyViewer,
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,

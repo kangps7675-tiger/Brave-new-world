@@ -15,6 +15,7 @@ import { shouldOfferNeptunLiveBrief, markNeptunLiveBriefDone, buildNeptunLiveBri
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import { shouldOfferUxGuideBrief, markUxGuideBriefDone, buildUxGuideBriefContent, type UxGuideBriefContent } from "@/lib/uxGuideBrief";
 import type { ViewerMode } from "@/lib/viewPackages";
 
@@ -114,6 +115,7 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
    * 스텁·등불·속보·공습 브리프와 배제. 「실피드」와 「추정」을 한 장에.
    */
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (isEconomyViewer || isHistoryViewer || isSatelliteViewer) return;
     if (isLoading || loadError || !globeReady) return;
     if (entryGate !== null || showModePicker) return;
@@ -166,6 +168,7 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
    * 아마추어 성인용 · 등불/속보/공습 브리프와 배제.
    */
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (!showLeftPanel) return;
     if (isLoading || loadError || !globeReady) return;
     if (entryGate !== null || showModePicker) return;
@@ -212,6 +215,7 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
    * 등불·주간 회고가 끝난 뒤, 일반 유저 포함 모두에게 처음에 띄운다.
    */
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (isLoading || loadError || !globeReady) return;
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone || !langChoiceChecked) return;
