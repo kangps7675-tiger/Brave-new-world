@@ -123,6 +123,7 @@ import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchme
 import {
   type UxGuideBriefContent,
 } from "@/lib/uxGuideBrief";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
@@ -3687,7 +3688,7 @@ export function GlobeDashboard({
 
   /** 관측대 설명 카드 — 첫 방문 유저가 관측대를 처음 켤 때만 */
   useEffect(() => {
-    if (!isSatelliteViewer || isPhoneUi) {
+    if (!AUTO_ENTRY_UX_ALERTS || !isSatelliteViewer || isPhoneUi) {
       setIntelDeskTipVisible(false);
       return;
     }
