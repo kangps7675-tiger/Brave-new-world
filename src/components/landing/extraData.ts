@@ -123,3 +123,73 @@ export const EXTRA_BEATS: ExtraBeat[] = [
 export const EXTRA_CHART_LABEL = `호르무즈 전쟁위험 보험료율 보도 추이: ${EXTRA_BEATS.map(
   (b) => `${b.tick} ${b.approx ? "약 " : ""}${b.label}`,
 ).join(", ")}`;
+
+type ExtraCopy = Pick<ExtraBeat, "caption" | "tick" | "headline" | "summary" | "stamp" | "stampNote">;
+
+const EXTRA_EN: ExtraCopy[] = [
+  {
+    caption: "A tanker bound for Hormuz, before the war",
+    tick: "Before the war",
+    headline: "Before the war it was about 0.25% of hull value",
+    summary:
+      "War-risk cover for a Hormuz transit was about 0.25% of hull value before the war began on 28 February. On a $100 million tanker that is about $250,000.",
+    stamp: "The National · reported 17 July",
+    stampNote: "A figure looking back at the pre-war level",
+  },
+  {
+    caption: "When smoke rises past the horizon, the premium moves first",
+    tick: "15 Mar",
+    headline: "By mid-March it had jumped to 1–3%",
+    summary:
+      "Seoul Shinmun. The headline said “5–10 times,” but the body (0.25% to 1–3%) works out to about 4–12 times. The article did not say the figure was a share of hull value.",
+    stamp: "Seoul Shinmun · 15 March",
+    stampNote: "The headline multiple and the body figure do not match",
+  },
+  {
+    caption: "Ships delaying departure because cover lasts only hours",
+    tick: "2 Apr",
+    headline: "Early April: 7.5%, and cover lasts 12–24 hours",
+    summary:
+      "Interviews with the Lloyd’s Market Association and Marsh. Rates were moving so fast that cover lasted only 12–24 hours, and they expected it to stay above the pre-war level for a while even after a ceasefire.",
+    stamp: "Etoday · 2 April",
+    stampNote: "Written interview",
+  },
+  {
+    caption: "Ships moving again after the ceasefire",
+    tick: "Around June",
+    headline: "The ceasefire deal brought it back to about 2%",
+    summary:
+      "OpsCon said it fell to about 2% after the June US–Iran memorandum (The National dates it 17 June). This article does not give an exact date.",
+    stamp: "OpsCon · reported 14 July",
+    stampNote: "A figure looking back at the June level",
+  },
+  {
+    caption: "When a strike is reported, the baseline rate moves again",
+    tick: "14 Jul",
+    headline: "When the ceasefire broke, 5% became the new baseline",
+    summary:
+      "After two UAE tankers were hit by missiles on 13 July and the US moved to resume the blockade, brokers treated about 5% as the new baseline, OpsCon reported. It also mentions a peak of 10%.",
+    stamp: "OpsCon · 14 July",
+    stampNote: "Exclusive — not yet cross-checked in other outlets",
+  },
+  {
+    caption: "The rate still swings at night",
+    tick: "17 Jul",
+    headline: "3–10%… Marsh: “the rate is swinging”",
+    summary:
+      "Marcus Baker, Marsh’s global head of marine, cargo and logistics, said mid-July rates were 3–10% and moving sharply with the oil price. On a $100 million tanker one transit costs $3–10 million.",
+    stamp: "The National · 17 July",
+    stampNote: "Marsh quote, as a share of hull value",
+  },
+];
+
+export function extraText(i: number, lang: "ko" | "en"): ExtraBeat {
+  const b = EXTRA_BEATS[i]!;
+  if (lang !== "en") return b;
+  return { ...b, ...EXTRA_EN[i]! };
+}
+
+export function extraChartLabel(lang: "ko" | "en"): string {
+  if (lang !== "en") return EXTRA_CHART_LABEL;
+  return `Reported Hormuz war-risk rates: ${EXTRA_BEATS.map((b, i) => `${EXTRA_EN[i]!.tick} ${b.approx ? "about " : ""}${b.label}`).join(", ")}`;
+}

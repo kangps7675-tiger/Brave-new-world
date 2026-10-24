@@ -8,6 +8,7 @@ import {
   type StackItem,
   type StackSea,
 } from "@/lib/incidentStack/build";
+import { groupByHormuzAnchorage } from "@/lib/sea/anchorages";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
@@ -92,7 +93,7 @@ export function IncidentStack({
 }: Props) {
   const en = lang === "en";
   const [collapsed, setCollapsed] = useState(compact);
-  const [sea, setSea] = useState<StackSea | null>(null);
+  const [sea, setSea] = useState<StackSea | null>("hormuz");
 
   const presentSeas = useMemo(
     () => SEA_ORDER.filter((s) => items.some((i) => i.sea === s)),
@@ -108,6 +109,14 @@ export function IncidentStack({
     () => filterBySea(items, activeSea),
     [items, activeSea],
   );
+  const groups = useMemo(() => {
+    if (activeSea !== "hormuz") return [{ id: "all", name: null as string | null, items: visible }];
+    return groupByHormuzAnchorage(visible).map((g) => ({
+      id: g.id,
+      name: en ? `${g.nameEn} · ${g.items.length}` : `${g.nameKo} · ${g.items.length}건`,
+      items: g.items,
+    }));
+  }, [activeSea, visible, en]);
   const trRow = useTr(visible.map((i) => i.title), lang);
 
   return (
@@ -197,7 +206,13 @@ export function IncidentStack({
             <ul
               className={`intel-scroll-y ${compact ? "max-h-[45vh]" : "max-h-[min(60vh,30rem)]"} overflow-y-auto font-sans ${en ? "font-en" : ""}`}
             >
-              {visible.map((it) => {
+              {groups.flatMap((g) => [
+                g.name ? (
+                  <li key={`anchorage-${g.id}`} className="border-b border-amber-600/20 px-2 py-1 text-micro font-semibold text-amber-100/90">
+                    {g.name}
+                  </li>
+                ) : null,
+                ...g.items.map((it) => {
                 const isRead = readIds.has(it.id);
                 const open = selectedId === it.id;
                 return (
@@ -256,7 +271,8 @@ export function IncidentStack({
                     ) : null}
                   </li>
                 );
-              })}
+              }),
+              ])}
             </ul>
           )}
         </>

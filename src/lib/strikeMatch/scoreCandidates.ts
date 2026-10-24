@@ -59,6 +59,7 @@ export type Signal = {
   key: SignalKey;
   /** 비전문가용 한 줄 설명 */
   ko: string;
+  en?: string;
   weight: number;
 };
 
@@ -242,6 +243,7 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
     out.push({
       key: "slowdown",
       ko: `사건 직후 속도가 ${preSog.toFixed(0)}노트에서 ${postSog.toFixed(0)}노트로 떨어짐 (멈추거나 표류)`,
+      en: `Speed fell from ${preSog.toFixed(0)} kn to ${postSog.toFixed(0)} kn right after the event (stopped or drifting)`,
       weight: 25,
     });
   }
@@ -252,6 +254,7 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
     out.push({
       key: "turn",
       ko: `사건 직후 진행 방향이 ${Math.round(angleDiff(preCog, postCog))}° 바뀜 (회항·회피 기동 가능)`,
+      en: `Course changed ${Math.round(angleDiff(preCog, postCog))}° right after the event (possible turn-away)`,
       weight: 15,
     });
   }
@@ -264,11 +267,17 @@ export function behaviorSignals(points: TrackPoint[], atMs: number): Signal[] {
       out.push({
         key: "dark_at_incident",
         ko: `사건 시각을 끼고 AIS 신호가 ${Math.round(gap)}분 끊김`,
+        en: `AIS signal went dark for ${Math.round(gap)} minutes across the incident time`,
         weight: 15,
       });
     }
   } else if (last && !next && atMs - ms(last.sampledAt) <= 90 * MIN) {
-    out.push({ key: "went_dark", ko: "사건 직전까지 신호가 잡히다가 이후 끊김", weight: 10 });
+    out.push({
+      key: "went_dark",
+      ko: "사건 직전까지 신호가 잡히다가 이후 끊김",
+      en: "Signal was present until the incident, then went dark",
+      weight: 10,
+    });
   }
   return out;
 }
@@ -329,6 +338,7 @@ export function scoreCandidates(
       signals.push({
         key: "name_match",
         ko: `경보에 나온 선명(${incident.vesselName})과 AIS 선명(${v.name})이 같음`,
+        en: `The name in the alert (${incident.vesselName}) matches the AIS name (${v.name})`,
         weight: 50,
       });
     }
@@ -338,6 +348,9 @@ export function scoreCandidates(
       ko: `사건 시각에 사건 지점에서 약 ${d < 1 ? "1km 이내" : `${Math.round(d)}km`}${
         pos.basis === "nearest" ? ` (가장 가까운 위치 기록은 사건과 ${pos.offsetMin}분 차이)` : ""
       }`,
+      en: `About ${d < 1 ? "within 1 km" : `${Math.round(d)} km`} from the site at the incident time${
+        pos.basis === "nearest" ? ` (nearest position record is ${pos.offsetMin} min off)` : ""
+      }`,
       weight: nearW,
     });
 
@@ -346,17 +359,28 @@ export function scoreCandidates(
     // 군함은 아래 military 신호로 따로 낮추므로 선종 비교는 건너뛴다 (감점 중복 방지)
     if (wantType && g && !isMilitary) {
       if (g === wantType) {
-        signals.push({ key: "type_match", ko: `선종 일치 (${incident.vesselType})`, weight: 10 });
+        signals.push({
+          key: "type_match",
+          ko: `선종 일치 (${incident.vesselType})`,
+          en: `Ship type matches (${incident.vesselType})`,
+          weight: 10,
+        });
       } else {
         signals.push({
           key: "type_mismatch",
           ko: `선종 불일치 — 경보는 ${incident.vesselType}, AIS는 다른 선종`,
+          en: `Ship type mismatch — alert says ${incident.vesselType}, AIS is a different type`,
           weight: -25,
         });
       }
     }
     if (isMilitary) {
-      signals.push({ key: "military", ko: "군함·관공선 — 상선 피격 후보에서 낮춤", weight: -40 });
+      signals.push({
+        key: "military",
+        ko: "군함·관공선 — 상선 피격 후보에서 낮춤",
+        en: "Warship or government vessel — down-ranked as a merchant-ship hit",
+        weight: -40,
+      });
     }
 
     signals.push(...behaviorSignals(v.points, atMs));

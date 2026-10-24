@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 
 /**
  * 랜딩을 "힙하게" 만드는 조각들.
@@ -88,18 +90,26 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
     s.lastTop = top;
     s.vel = Math.max(-2, Math.min(2, s.vel + d * 0.004));
   });
+  const lang = useLandingLanguage();
   const words = [...MEGA, ...MEGA];
   return (
     <div className="py-6">
       <p className="mx-auto mb-3 max-w-[1200px] px-6 text-sm font-semibold text-[#8fa3b1]">
-        <span className="text-[#f5c451]">●</span> Strait Desk가 지켜보는 해운 길목 6곳 — {MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}
+        <span className="text-[#f5c451]">●</span>{" "}
+        {pick(
+          lang,
+          `Strait Desk가 지켜보는 해운 길목 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
+          "Six shipping passages on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
+        )}
       </p>
       <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <div ref={trackRef} className="flex w-max will-change-transform">
           {words.map((w, i) => (
             <span key={`${w.en}-${i}`} className="flex items-center whitespace-nowrap pr-10">
               <span className="landing-outline text-[clamp(56px,10vw,150px)] font-black uppercase leading-none tracking-[0.01em]">{w.en}</span>
-              <span className="ml-4 self-end pb-[0.6em] text-[clamp(15px,1.4vw,20px)] font-bold text-[#c9d5dd]">{w.ko}</span>
+              {lang === "ko" ? (
+                <span className="ml-4 self-end pb-[0.6em] text-[clamp(15px,1.4vw,20px)] font-bold text-[#c9d5dd]">{w.ko}</span>
+              ) : null}
               <span className="ml-10 inline-block h-4 w-4 rounded-full bg-[#f5c451]" />
             </span>
           ))}
@@ -142,6 +152,7 @@ export type StraitCard = { slug: string; name: string; en: string; what: string;
  * 휴대폰·동작 줄이기에서는 그냥 가로로 넘겨 보는 목록이다.
  */
 export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: ReactNode }) {
+  const lang = useLandingLanguage();
   const outerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [pin, setPin] = useState(false);
@@ -178,7 +189,7 @@ export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: R
               <Link
                 key={c.slug}
                 href={`/chokepoints/${c.slug}`}
-                data-reticle="열기"
+                data-reticle={pick(lang, "열기", "Open")}
                 className="group relative flex h-[min(56vh,420px)] w-[min(78vw,380px)] flex-none snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/12 bg-[#0a141f] p-7 text-white no-underline transition-colors hover:border-[#f5c451]/70"
               >
                 <span aria-hidden="true" className="landing-outline pointer-events-none absolute -bottom-8 -right-3 text-[170px] font-black leading-none opacity-30 transition-opacity group-hover:opacity-70">
@@ -192,7 +203,7 @@ export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: R
                   <span className="block text-[17px] font-semibold text-[#f5c451]">{c.stat}</span>
                   <span className="mt-2 block text-[15px] leading-relaxed text-[#a3b3bf]">{c.what}</span>
                   <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-white">
-                    해협 안내 열기 <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+                    {pick(lang, "해협 안내 열기", "Open the strait brief")} <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
                 </span>
               </Link>

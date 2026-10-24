@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { EMAIL_CONSENT } from "@/lib/emailConsent";
 
 /**
@@ -10,7 +12,8 @@ import { EMAIL_CONSENT } from "@/lib/emailConsent";
 export function LandingSignup() {
   const [consent, setConsent] = useState(false);
   const [phase, setPhase] = useState<"idle" | "sending" | "sent" | "invalid" | "down" | "consent">("idle");
-  const copy = EMAIL_CONSENT.ko;
+  const lang = useLandingLanguage();
+  const copy = EMAIL_CONSENT[lang];
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +30,7 @@ export function LandingSignup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: String(data.get("email") ?? ""),
-          lang: "ko",
+          lang,
           company: String(data.get("company") ?? ""),
           consent: true,
         }),
@@ -48,14 +51,18 @@ export function LandingSignup() {
       className="relative flex min-w-0 flex-[1_1_380px] flex-col gap-[18px] rounded-xl border border-white/12 bg-[#0a141f] p-8"
     >
       <div>
-        <h3 className="m-0 text-xl font-semibold text-white">매일 한 번, 메일로 받기</h3>
+        <h3 className="m-0 text-xl font-semibold text-white">{pick(lang, "매일 한 번, 메일로 받기", "Once a day, by email")}</h3>
         <p className="mt-2 text-[15px] leading-relaxed text-[#a3b3bf]">
-          새로 공격받은 배 소식과, 기사에 보도된 전쟁위험 보험료(전쟁 지역을 지나는 배가 따로 내는 보험료)를 하루 한 번 보내 드려요.
+          {pick(
+            lang,
+            "새로 공격받은 배 소식과, 기사에 보도된 전쟁위험 보험료(전쟁 지역을 지나는 배가 따로 내는 보험료)를 하루 한 번 보내 드려요.",
+            "Once a day: newly attacked ships, and the war-risk premium figures reported in the press.",
+          )}
         </p>
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="landing-email" className="text-[15px] font-semibold text-white">
-          업무용 이메일
+          {pick(lang, "업무용 이메일", "Work email")}
         </label>
         <input
           id="landing-email"
@@ -98,18 +105,18 @@ export function LandingSignup() {
         disabled={phase === "sending"}
         className="h-[54px] rounded-md border border-white/25 bg-transparent text-[17px] font-semibold text-white hover:border-white/60 disabled:opacity-60"
       >
-        {phase === "sending" ? "보내는 중…" : "메일 받기"}
+        {phase === "sending" ? pick(lang, "보내는 중…", "Sending…") : pick(lang, "메일 받기", "Get the email")}
       </button>
       <p aria-live="polite" className="m-0 min-h-[1.25rem] text-sm leading-relaxed">
         {phase === "sent" && (
           <span className="text-[#5eead4]">
-            받은편지함에서 확인 링크를 눌러 주세요. 이미 신청하셨다면 메일이 다시 가지 않습니다.
+            {pick(lang, "받은편지함에서 확인 링크를 눌러 주세요. 이미 신청하셨다면 메일이 다시 가지 않습니다.", "Open the confirmation link in your inbox. If you already signed up, we will not send it again.")}
           </span>
         )}
         {phase === "consent" && <span className="text-[#fca5a5]">{copy.required}</span>}
-        {phase === "invalid" && <span className="text-[#fca5a5]">이메일 주소를 다시 확인해 주세요.</span>}
+        {phase === "invalid" && <span className="text-[#fca5a5]">{pick(lang, "이메일 주소를 다시 확인해 주세요.", "Check the email address and try again.")}</span>}
         {phase === "down" && (
-          <span className="text-[#fca5a5]">지금은 신청을 받지 못하고 있어요. 잠시 뒤 다시 시도해 주세요.</span>
+          <span className="text-[#fca5a5]">{pick(lang, "지금은 신청을 받지 못하고 있어요. 잠시 뒤 다시 시도해 주세요.", "Sign-up is unavailable right now. Please try again in a moment.")}</span>
         )}
       </p>
     </form>

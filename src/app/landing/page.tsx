@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LandingOpenLink } from "@/components/landing/LandingOpenLink";
 import { LandingContent, type EnterPlace } from "@/components/landing/LandingContent";
 import { absoluteUrl } from "@/lib/siteUrl";
 
@@ -22,9 +22,7 @@ export default function LandingPage() {
   return (
     <LandingContent
       renderEnter={(place) => (
-        <Link href="/" className={ENTER_CLASS[place]}>
-          지구본 열기
-        </Link>
+        <LandingOpenLink className={ENTER_CLASS[place]} />
       )}
     />
   );

@@ -127,6 +127,7 @@ import {
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
+import { LANDING_LANG_EVENT, readLandingLanguageChoice } from "@/lib/landingLanguage";
 import { IncidentStack } from "@/components/globe/IncidentStack";
 import { EventDock } from "@/components/globe/EventDock";
 import { SeaRegionPanel } from "@/components/globe/SeaRegionPanel";
@@ -1027,7 +1028,8 @@ export function GlobeDashboard({
     !loadError &&
     globeReady &&
     entryGate === null &&
-    !showModePicker;
+    !showModePicker &&
+    !landingCurtainActive;
   const showPurposeJobGate =
     purposeJobChecked &&
     langChoiceChecked &&
@@ -1038,7 +1040,8 @@ export function GlobeDashboard({
     !loadError &&
     globeReady &&
     entryGate === null &&
-    !showModePicker;
+    !showModePicker &&
+    !landingCurtainActive;
   const [gdeltEvents, setGdeltEvents] = useState<ConflictEvent[]>([]);
   const [gdeltLoading, setGdeltLoading] = useState(false);
   const [gdeltError, setGdeltError] = useState<string | null>(null);
@@ -2439,6 +2442,28 @@ export function GlobeDashboard({
     },
     [togglePref],
   );
+
+  useEffect(() => {
+    const apply = (lang: LabelLanguage) => {
+      if (layerPrefsLiveRef.current.labelLanguage !== lang) {
+        confirmLabelLanguage(lang);
+        return;
+      }
+      setLangChoiceDone(true);
+      if (!readPurposeJobDone()) {
+        pendingQuietOverviewRef.current = true;
+        quietOverviewAppliedRef.current = false;
+      }
+    };
+    const onLandingLang = (event: Event) => {
+      const lang = (event as CustomEvent<LabelLanguage>).detail;
+      if (lang === "ko" || lang === "en") apply(lang);
+    };
+    window.addEventListener(LANDING_LANG_EVENT, onLandingLang);
+    const pending = readLandingLanguageChoice();
+    if (pending) apply(pending);
+    return () => window.removeEventListener(LANDING_LANG_EVENT, onLandingLang);
+  }, [confirmLabelLanguage]);
 
   const [regionNavSelection, setRegionNavSelection] = useState<NavSelection | null>(null);
   const [selectedAxisLink, setSelectedAxisLink] = useState<SelectedAxisLink | null>(null);

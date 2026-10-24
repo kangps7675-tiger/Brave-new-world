@@ -10,6 +10,7 @@ import { loadIncidentVessels, type IncidentVessel } from "@/lib/incidentVesselsC
 import { caseIdOfStackItem } from "@/lib/strikeMatch/matchedVessel";
 import { fetchShipPhotos, type ShipPhoto } from "@/lib/shipPhoto";
 import { loadStrikeDetail, type StrikeCandidateView, type StrikeDetailView } from "@/lib/strikeMatch/strikeDetailClient";
+import { strikeLimitEn } from "@/lib/strikeMatch/limitCopy";
 
 const TYPE_KO: Record<string, string> = {
   Fishing: "어선", Military: "군용", Sailing: "범선", Pleasure: "레저선", HSC: "고속선", Pilot: "도선선", SAR: "수색구조선",
@@ -127,7 +128,7 @@ function Row({
         <p className="mt-1 text-micro leading-snug text-amber-100/60">
           {c.signals
             .slice(0, 2)
-            .map((s) => s.ko)
+            .map((s) => (en ? s.en ?? s.ko : s.ko))
             .join(" · ")}
         </p>
       ) : null}
@@ -252,7 +253,7 @@ export function IncidentVesselPanel({
           {detail.limits.length > 0 ? (
             <p className="mt-1.5 text-micro leading-snug text-amber-100/50">
               {en ? "Limits: " : "한계: "}
-              {detail.limits.slice(0, 2).join(" / ")}
+              {detail.limits.slice(0, 2).map((l) => (en ? strikeLimitEn(l) : l)).join(" / ")}
             </p>
           ) : null}
           <p className="mt-1 text-micro text-amber-100/45">
