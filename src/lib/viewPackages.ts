@@ -673,9 +673,9 @@ export function resolveIntroFlyTarget(input: {
     }
     return {
       kind: "coords",
-      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (홍해·걸프·흑해 정면, 확대 없음)
-      lat: 20,
-      lng: 45,
+      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (호르무즈 정면, 확대 없음)
+      lat: 26.2,
+      lng: 56.4,
       altitude: entryBootAltitude(),
     };
   }
@@ -684,9 +684,9 @@ export function resolveIntroFlyTarget(input: {
   if (input.theater === "auto" || input.theater === "all") {
     return {
       kind: "coords",
-      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (홍해·걸프·흑해 정면, 확대 없음)
-      lat: 20,
-      lng: 45,
+      // ENTRY_GATE.bootLookAt 과 같은 전역 궤도 중심 (호르무즈 정면, 확대 없음)
+      lat: 26.2,
+      lng: 56.4,
       altitude: entryBootAltitude(),
     };
   }

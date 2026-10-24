@@ -44,8 +44,8 @@ type Props = {
 export function SeaRegionPanel({ lang, onGoToLocation, vessels = [] }: Props) {
   const en = lang === "en";
   const [open, setOpen] = useState(false);
-  const [region, setRegion] = useState<SeaRegion>("red-sea");
-  const { loading, brief } = useSeaBrief(region, open);
+  const [region, setRegion] = useState<SeaRegion>("hormuz");
+  const { loading, brief } = useSeaBrief(region, open, lang);
   const { fleet, setFleet, statuses, alerts } = useFleetWatch(vessels);
   const [fleetText, setFleetText] = useState("");
   const [notifPerm, setNotifPerm] = useState<string>(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
@@ -174,6 +174,16 @@ export function SeaRegionPanel({ lang, onGoToLocation, vessels = [] }: Props) {
               <span className={`rounded-sm px-2 py-1 text-caption font-bold ${st.cls}`}>{en ? st.en : st.ko}</span>
               <span className="text-meta text-sky-100/80">{en ? TREND[brief.trend].en : TREND[brief.trend].ko}</span>
             </div>
+            {brief.anchorages.length > 0 ? (
+              <ul className="space-y-0.5 text-meta text-sky-50/95">
+                {brief.anchorages.map((a) => (
+                  <li key={a.nameKo}>
+                    {en ? a.nameEn : a.nameKo} · {a.n}
+                    {en ? "" : "건"}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             <ul className="list-disc space-y-1 pl-4 text-meta leading-snug text-sky-50/95">
               {brief.reasons.map((x) => (
                 <li key={x}>{x}</li>

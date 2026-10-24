@@ -15,7 +15,7 @@ async function getJson<T>(url: string): Promise<T | null> {
 }
 
 /** 해역 하나의 판단 카드 재료를 모아 계산한다 (UKMTO·보험료·파고). 열려 있는 동안 5분마다 갱신. */
-export function useSeaBrief(region: SeaRegion, enabled: boolean): State {
+export function useSeaBrief(region: SeaRegion, enabled: boolean, lang: "ko" | "en" = "ko"): State {
   const [state, setState] = useState<State>({ loading: true, brief: null });
   useEffect(() => {
     if (!enabled) return;
@@ -33,6 +33,7 @@ export function useSeaBrief(region: SeaRegion, enabled: boolean): State {
           incidents: ukmto?.incidents ?? [],
           quotes: risk?.quotes ?? [],
           weather: wx?.now ? { waveHeightM: wx.now.waveHeightM ?? null, windKmh: wx.now.windKmh ?? null, at: wx.now.at ?? null } : null,
+          lang,
         }),
       });
     };
@@ -43,6 +44,6 @@ export function useSeaBrief(region: SeaRegion, enabled: boolean): State {
       alive = false;
       window.clearInterval(t);
     };
-  }, [region, enabled]);
+  }, [region, enabled, lang]);
   return state;
 }

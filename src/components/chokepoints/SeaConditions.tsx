@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { seaStateEn } from "@/lib/marineWeather/gfsWave";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { WAR_RISK_REGION_BY_SLUG } from "@/components/chokepoints/WarRiskQuotes";
 import type { ForecastCell, ForecastSummary } from "@/lib/marineWeather/summary";
 
@@ -33,34 +35,52 @@ function dirLabel(deg: number): string {
   return WIND_DIR[Math.round((((deg % 360) + 360) % 360) / 45) % 8]!;
 }
 
-function colLabel(h: number): string {
-  return h === 0 ? "지금" : `+${h}시간`;
+function colLabel(h: number, en: boolean): string {
+  if (h === 0) return en ? "Now" : "지금";
+  return en ? `+${h}h` : `+${h}시간`;
 }
 
-function Cell({ c }: { c: ForecastCell }) {
-  if (!c || (c.hsM == null && c.windKn == null)) return <span className="text-white/30">자료 없음</span>;
+function Cell({ c, en }: { c: ForecastCell; en: boolean }) {
+  if (!c || (c.hsM == null && c.windKn == null)) return <span className="text-white/30">{en ? "No data" : "자료 없음"}</span>;
+  const state = en ? seaStateEn(c.hsM) : c.seaStateKo;
   return (
     <div>
       <p className="font-medium text-white">
         {c.hsM != null ? `${c.hsM.toFixed(1)} m` : "—"}
-        {c.seaStateKo ? <span className="ml-1 text-xs font-normal text-white/45">{c.seaStateKo}</span> : null}
+        {state ? <span className="ml-1 text-xs font-normal text-white/45">{state}</span> : null}
       </p>
       <p className="text-xs text-white/50">
-        {c.windKn != null ? `바람 ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}${c.beaufort != null ? ` · 보퍼트 ${c.beaufort}` : ""}` : "바람 자료 없음"}
+        {c.windKn != null
+          ? en
+            ? `Wind ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}${c.beaufort != null ? ` · Beaufort ${c.beaufort}` : ""}`
+            : `바람 ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}${c.beaufort != null ? ` · 보퍼트 ${c.beaufort}` : ""}`
+          : en
+            ? "No wind data"
+            : "바람 자료 없음"}
       </p>
     </div>
   );
 }
 
-function NowCellView({ c }: { c: NowCell | undefined }) {
-  if (!c || (c.waveHeightM == null && c.windKn == null)) return <span className="text-white/30">자료 없음</span>;
+function NowCellView({ c, en }: { c: NowCell | undefined; en: boolean }) {
+  if (!c || (c.waveHeightM == null && c.windKn == null)) return <span className="text-white/30">{en ? "No data" : "자료 없음"}</span>;
   const t = c.at ?? c.fetchedAt;
   return (
     <div>
       <p className="font-medium text-white">{c.waveHeightM != null ? `${c.waveHeightM.toFixed(1)} m` : "—"}</p>
       <p className="text-xs text-white/50">
-        {c.windKn != null ? `바람 ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}` : "바람 자료 없음"}
-        {c.visibilityKm != null ? ` · 시정 ${c.visibilityKm >= 10 ? Math.round(c.visibilityKm) : c.visibilityKm.toFixed(1)} km` : ""}
+        {c.windKn != null
+          ? en
+            ? `Wind ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}`
+            : `바람 ${c.windKn} kn${c.windDirDeg != null ? ` ${dirLabel(c.windDirDeg)}` : ""}`
+          : en
+            ? "No wind data"
+            : "바람 자료 없음"}
+        {c.visibilityKm != null
+          ? en
+            ? ` · Visibility ${c.visibilityKm >= 10 ? Math.round(c.visibilityKm) : c.visibilityKm.toFixed(1)} km`
+            : ` · 시정 ${c.visibilityKm >= 10 ? Math.round(c.visibilityKm) : c.visibilityKm.toFixed(1)} km`
+          : ""}
       </p>
       {t ? <p className="text-micro text-white/30">{t.slice(5, 16).replace("T", " ")} UTC</p> : null}
     </div>
@@ -79,12 +99,26 @@ const EXTRA_BY_SLUG: Record<string, Array<{ region: string; title: string; sub: 
 };
 
 export default function SeaConditions({ slug }: { slug: string }) {
+  const en = useLandingLanguage() === "en";
   const main = WAR_RISK_REGION_BY_SLUG[slug];
   if (!main) return null;
-  const extras = EXTRA_BY_SLUG[slug] ?? [];
+  const extras = (EXTRA_BY_SLUG[slug] ?? []).map((e) => ({
+    ...e,
+    sub: en
+      ? e.region === "arabian-sea"
+        ? "Arabian Sea — after Hormuz, on the way into the Indian Ocean"
+        : slug === "suez-canal"
+          ? "Cape route — the sea you take when avoiding Suez and the Red Sea"
+          : "Cape route — the sea you take when avoiding the Red Sea"
+      : e.sub,
+  }));
   return (
     <>
-      <RegionBlock region={main} title="Sea conditions" sub="해상 상태 · 지금부터 72시간 — 우회·대기 판단 참고" />
+      <RegionBlock
+        region={main}
+        title="Sea conditions"
+        sub={en ? "Sea state from now through 72 hours — a guide for detour or delay, not a navigational forecast" : "해상 상태 · 지금부터 72시간 — 우회·대기 판단 참고"}
+      />
       {extras.map((e) => (
         <RegionBlock key={e.region} region={e.region} title={e.title} sub={e.sub} />
       ))}
@@ -93,6 +127,7 @@ export default function SeaConditions({ slug }: { slug: string }) {
 }
 
 function RegionBlock({ region, title, sub }: { region: string; title: string; sub: string }) {
+  const en = useLandingLanguage() === "en";
   const [data, setData] = useState<Payload | null | "error">(null);
 
   useEffect(() => {
@@ -129,26 +164,30 @@ function RegionBlock({ region, title, sub }: { region: string; title: string; su
       ) : !payload || !hasData ? (
         <p className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
           No sea-state forecast is available for this area right now.
-          <span className="mt-1 block text-white/40">지금은 이 해역의 해상 자료가 없습니다. (없다는 뜻이지 잔잔하다는 뜻이 아닙니다)</span>
+          {en ? null : (
+            <span className="mt-1 block text-white/40">지금은 이 해역의 해상 자료가 없습니다. (없다는 뜻이지 잔잔하다는 뜻이 아닙니다)</span>
+          )}
         </p>
       ) : (
         <>
           {peak ? (
             <p className="mt-4 text-sm text-white/70">
-              앞으로 72시간 중 가장 높은 파고는{" "}
-              <span className="font-semibold text-white">{peak.hsM.toFixed(1)} m</span> —{" "}
-              {nameOf(peak.pointId)?.nameKo ?? peak.pointId}, {peak.validTime.slice(5, 16).replace("T", " ")} UTC 무렵
+              {en ? "Highest waves in the next 72 hours: " : "앞으로 72시간 중 가장 높은 파고는 "}
+              <span className="font-semibold text-white">{peak.hsM.toFixed(1)} m</span>
+              {en ? " — " : " — "}
+              {(en ? nameOf(peak.pointId)?.nameEn : nameOf(peak.pointId)?.nameKo) ?? peak.pointId}, {peak.validTime.slice(5, 16).replace("T", " ")} UTC
+              {en ? "" : " 무렵"}
             </p>
           ) : null}
           <div className="mt-3 overflow-x-auto rounded-lg border border-white/10">
             <table className="w-full min-w-[34rem] text-left text-sm">
               <thead className="bg-white/[0.04] text-micro uppercase tracking-wide text-white/40">
                 <tr>
-                  <th className="px-3 py-2 font-normal">지점</th>
-                  {hasNow ? <th className="px-3 py-2 font-normal">현재 · Datalastic</th> : null}
+                  <th className="px-3 py-2 font-normal">{en ? "Point" : "지점"}</th>
+                  {hasNow ? <th className="px-3 py-2 font-normal">{en ? "Now · Datalastic" : "현재 · Datalastic"}</th> : null}
                   {payload.summary.offsetsH.map((h) => (
                     <th key={h} className="px-3 py-2 font-normal">
-                      {colLabel(h)}
+                      {colLabel(h, en)}
                     </th>
                   ))}
                 </tr>
@@ -157,17 +196,17 @@ function RegionBlock({ region, title, sub }: { region: string; title: string; su
                 {rows.map((p) => (
                   <tr key={p.pointId}>
                     <td className="px-3 py-2 align-top text-white/80">
-                      {nameOf(p.pointId)?.nameKo ?? p.pointId}
-                      <span className="block text-xs text-white/35">{nameOf(p.pointId)?.nameEn}</span>
+                      {en ? (nameOf(p.pointId)?.nameEn ?? p.pointId) : (nameOf(p.pointId)?.nameKo ?? p.pointId)}
+                      {en ? null : <span className="block text-xs text-white/35">{nameOf(p.pointId)?.nameEn}</span>}
                     </td>
                     {hasNow ? (
                       <td className="px-3 py-2 align-top">
-                        <NowCellView c={current[p.pointId]} />
+                        <NowCellView c={current[p.pointId]} en={en} />
                       </td>
                     ) : null}
                     {p.cells.map((c, i) => (
                       <td key={i} className="px-3 py-2 align-top">
-                        <Cell c={c} />
+                        <Cell c={c} en={en} />
                       </td>
                     ))}
                   </tr>
@@ -176,10 +215,9 @@ function RegionBlock({ region, title, sub }: { region: string; title: string; su
             </table>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-white/40">
-            {hasNow ? "‘현재’ 열은 Datalastic 값(6시간 간격 갱신, 열 안의 시각이 기준)이고, 나머지 열은 NOAA 예보입니다. " : ""}
-            모델 사이클 {payload.cycle ? cycleLabel(payload.cycle) : "자료 없음"} · 파고는 유의파고(가장 높은 1/3 파도의 평균) 기준 ·
-            전구 모델(격자 약 28km)이라 해협 안쪽·연안은 다를 수 있고 항해용 공식 예보를 대체하지 않습니다.
-            {hasNow ? "" : " 시정은 NOAA 모델에 없습니다."} 출처: {hasNow ? "Datalastic · " : ""}NOAA NCEP GFS-Wave.
+            {en
+              ? `${hasNow ? "The Now column is Datalastic (refreshed about every 6 hours; the time in the cell is the observation). Other columns are the NOAA forecast. " : ""}Model cycle ${payload.cycle ? cycleLabel(payload.cycle) : "unavailable"} · wave height is significant wave height (the average of the highest third of waves) · a global model (about 28 km grid), so conditions inside a strait or near the coast can differ, and this does not replace an official navigational forecast.${hasNow ? "" : " Visibility is not in the NOAA model."} Source: ${hasNow ? "Datalastic · " : ""}NOAA NCEP GFS-Wave.`
+              : `${hasNow ? "‘현재’ 열은 Datalastic 값(6시간 간격 갱신, 열 안의 시각이 기준)이고, 나머지 열은 NOAA 예보입니다. " : ""}모델 사이클 ${payload.cycle ? cycleLabel(payload.cycle) : "자료 없음"} · 파고는 유의파고(가장 높은 1/3 파도의 평균) 기준 · 전구 모델(격자 약 28km)이라 해협 안쪽·연안은 다를 수 있고 항해용 공식 예보를 대체하지 않습니다.${hasNow ? "" : " 시정은 NOAA 모델에 없습니다."} 출처: ${hasNow ? "Datalastic · " : ""}NOAA NCEP GFS-Wave.`}
           </p>
         </>
       )}

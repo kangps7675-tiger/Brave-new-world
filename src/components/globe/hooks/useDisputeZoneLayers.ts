@@ -298,7 +298,6 @@ export function useDisputeZoneLayers(opts: UseDisputeZoneLayersOptions) {
   }, [disputeZonePaths]);
 
   const armsEmbargoFramePaths = useMemo<TransportPath[]>(() => {
-    // 2026-10-23 무기 금수 테두리 점선 제거 — 항상 비움
     if (!showArmsEmbargo || !ARMS_EMBARGO_BORDERS_ENABLED) return [];
     const paths: TransportPath[] = [];
     for (const embargo of visibleArmsEmbargoZones) {
