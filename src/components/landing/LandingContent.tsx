@@ -19,6 +19,7 @@ import { ExtraEdition } from "@/components/landing/LandingExtra";
 import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
+import { LandingOpenLink } from "@/components/landing/LandingOpenLink";
 import { landingCopy } from "@/components/landing/landingCopy";
 import { useLandingLanguage } from "@/lib/landingLanguage";
 
@@ -40,6 +41,16 @@ const EYEBROW = "m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]"
 const H2 = "mt-4 mb-0 text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white";
 const WRAP = "mx-auto max-w-[1200px] px-6";
 const MUTED = "text-[#a3b3bf]";
+const ENTER_CLASS: Record<EnterPlace, string> = {
+  nav: "rounded-md bg-[#f5c451] px-[18px] py-3 font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
+  hero: "landing-cta-glow inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
+  footer:
+    "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
+};
+
+function defaultEnter(place: EnterPlace) {
+  return <LandingOpenLink className={ENTER_CLASS[place]} />;
+}
 
 const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
   {
@@ -109,7 +120,7 @@ const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
   },
 ];
 
-export function LandingContent({ renderEnter }: { renderEnter: (place: EnterPlace) => ReactNode }) {
+export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (place: EnterPlace) => ReactNode }) {
   const lang = useLandingLanguage();
   const copy = landingCopy(lang);
   useEffect(() => {
