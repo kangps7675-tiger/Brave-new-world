@@ -51,6 +51,7 @@ export type UseDisputeZoneLayersOptions = {
  * 국가 면·분쟁 구역(해칭)·오버레이 폴리곤·무기금수 프레임 memo 묶음.
  * GlobeDashboard에서 추출 (분리 Phase D).
  */
+const ARMS_EMBARGO_BORDERS_ENABLED = false;
 
 export function useDisputeZoneLayers(opts: UseDisputeZoneLayersOptions) {
   const {
@@ -297,7 +298,7 @@ export function useDisputeZoneLayers(opts: UseDisputeZoneLayersOptions) {
   }, [disputeZonePaths]);
 
   const armsEmbargoFramePaths = useMemo<TransportPath[]>(() => {
-    if (!showArmsEmbargo) return [];
+    if (!showArmsEmbargo || !ARMS_EMBARGO_BORDERS_ENABLED) return [];
     const paths: TransportPath[] = [];
     for (const embargo of visibleArmsEmbargoZones) {
       // 실전투·폭격(빨강) 국가와 겹치면 보라 금수 테두리는 표시하지 않음
