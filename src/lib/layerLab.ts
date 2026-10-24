@@ -15,7 +15,6 @@ import type { LayerPrefs } from "@/lib/layerPrefs";
 export const LAB_LAYER_KEYS = [
   "showAiDataCenters",
   "showAlliedLogisticsCorridors",
-  "showArmsEmbargo",
   "showAustraliaMilitaryBases",
   "showBriTradeConnectivity",
   "showChinaJapanIncidents",
@@ -127,7 +126,7 @@ export function enforceLabTier(prefs: LayerPrefs, lab: boolean = LAB_UI): LayerP
 const LAB_PANEL_ITEM_IDS: ReadonlySet<string> = new Set([
   "china-taiwan-incidents", "china-japan-incidents", "china-philippines-incidents",
   "us-china-incidents", "europe-drone-incidents", "nk-missile-tests", "lsib-boundary",
-  "diplomatic-tension", "island-chains", "escalation-signals", "conflict-zones", "arms-embargo",
+  "diplomatic-tension", "island-chains", "escalation-signals", "conflict-zones",
   "gdelt-diplomatic", "gdelt-ocean", "gdelt-protest", "subsea-pipelines", "resources",
   "gem-resources", "crink-osm-infra", "gta-interventions", "strategic-corridors",
   "allied-logistics-corridors", "sanctions-evasion-corridors", "logistics-stress", "gscpi-gauge",
