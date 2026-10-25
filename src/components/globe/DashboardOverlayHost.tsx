@@ -813,7 +813,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   const [futuresSpikeInsightOffer, setFuturesSpikeInsightOffer] =
     useState<SpikeTelegraphBannerOffer | null>(null);
   const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
-    gateClear && !futuresSpikeInsightOffer,
+    // 선물 급등 감지는 해운 사건 확인과 무관한 실험실 기능 — 켜 두면 1초마다 요청을 보낸다
+    // (1분에 약 53건). 첫 화면 요청 수가 91 → 38건으로 준다.
+    LAB_UI && gateClear && !futuresSpikeInsightOffer,
   );
 
   const dismissFuturesSpikeInsight = useCallback(() => {
