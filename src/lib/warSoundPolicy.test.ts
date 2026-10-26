@@ -8,6 +8,8 @@ describe("warSoundPolicy", () => {
     expect(isWarCombatSound("tzeva-red-alert")).toBe(true);
     expect(isWarCombatSound("neptun-air-alert")).toBe(true);
     expect(isWarCombatSound("neptun-impact")).toBe(true);
+    expect(isWarCombatSound("global-thunder-a")).toBe(true);
+    expect(isWarCombatSound("globe-global-thunder")).toBe(true);
   });
 
   it("keeps breaking-flash and lamp parchment cues", () => {

@@ -29,6 +29,11 @@ const WAR_COMBAT_SOUND_IDS = new Set<AudioEventId>([
   "mil-base-crowd",
   "mil-base-armor",
   "missile-silo",
+  // 전역 궤도 먼 천둥 — 게임 같다는 이유로 끔
+  "global-thunder-a",
+  "global-thunder-b",
+  "global-thunder-c",
+  "globe-global-thunder",
 ]);
 
 export function isWarCombatSound(eventId: AudioEventId): boolean {
