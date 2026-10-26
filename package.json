@@ -176,7 +176,7 @@
     "thumbs:bake-globe": "node scripts/bake-globe-thumbs.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
+    "@anthropic-ai/sdk": "^1.2.0",
     "@block65/webcrypto-web-push": "^1.0.2",
     "@deck.gl/core": "^9.3.10",
     "@deck.gl/geo-layers": "^9.3.10",
