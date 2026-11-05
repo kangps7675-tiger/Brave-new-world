@@ -3,6 +3,7 @@
 import { HoverHint } from "@/components/HoverHint";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useBasemapTone } from "@/hooks/useBasemapTone";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 type ViewModeSwitcherProps = {
@@ -23,7 +24,7 @@ export function ViewModeSwitcher({
   const { t } = useLocale();
   const light = useBasemapTone() === "light";
 
-  const MODES: Array<{ id: TopMode; label: string; hint: string }> = [
+  const ALL_MODES: Array<{ id: TopMode; label: string; hint: string }> = [
     {
       id: "conflict",
       label: t("modeConflict"),
@@ -40,6 +41,7 @@ export function ViewModeSwitcher({
       hint: t("modeEconomyHint"),
     },
   ];
+  const MODES = ALL_MODES.filter((m) => SATELLITE_ENABLED || m.id !== "satellite");
 
   /** 레거시 history/live 저장값 → 지정학·관측대 탭으로 표시 */
   const displayMode: TopMode =

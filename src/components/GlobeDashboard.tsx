@@ -591,6 +591,7 @@ import { useStableGlobeLayers } from "@/components/globe/hooks/useStableGlobeLay
 import { useStrategicPathLayers } from "@/components/globe/hooks/useStrategicPathLayers";
 import { useDisputeZoneLayers } from "@/components/globe/hooks/useDisputeZoneLayers";
 import { useBlocPolygonLayers } from "@/components/globe/hooks/useBlocPolygonLayers";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 
 export type { GlobeDashboardProps } from "@/components/globe/types";
 
@@ -7402,7 +7403,7 @@ export function GlobeDashboard({
               onGoToLocation={(it) => {
                 unifiedFlyTo(it.lat, it.lng, 0.5);
               }}
-              onViewSatellite={viewStackItemInSatellite}
+              onViewSatellite={SATELLITE_ENABLED ? viewStackItemInSatellite : undefined}
             />
             <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
             {feedDrawerActive ? (
@@ -7495,7 +7496,7 @@ export function GlobeDashboard({
           />
         ) : null}
 
-        {LAB_UI && observeTracksNudge && !isSatelliteViewer ? (
+        {SATELLITE_ENABLED && LAB_UI && observeTracksNudge && !isSatelliteViewer ? (
           <div
             className={`pointer-events-auto fixed right-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-teal-500/40 bg-[#041018]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
             style={{
@@ -7624,11 +7625,15 @@ export function GlobeDashboard({
                     setStrikeParchmentId(null);
                     unifiedFlyTo(it.lat, it.lng, 0.5);
                   }}
-                  onViewSatellite={(it) => {
-                    openEventCallout(calloutFromStackItem(it, labelLanguage));
-                    setStrikeParchmentId(null);
-                    viewStackItemInSatellite(it);
-                  }}
+                  onViewSatellite={
+                    SATELLITE_ENABLED
+                      ? (it) => {
+                          openEventCallout(calloutFromStackItem(it, labelLanguage));
+                          setStrikeParchmentId(null);
+                          viewStackItemInSatellite(it);
+                        }
+                      : undefined
+                  }
                 />
               );
             })()
@@ -7663,11 +7668,15 @@ export function GlobeDashboard({
               if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
               else unifiedFlyTo(it.lat, it.lng, 0.5);
             }}
-            onViewSatellite={(it) => {
-              // 속보창은 닫지 않는다 — 위성 실지도를 같이 본다
-              if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
-              else viewStackItemInSatellite(it);
-            }}
+            onViewSatellite={
+              SATELLITE_ENABLED
+                ? (it) => {
+                    // 속보창은 닫지 않는다 — 위성 실지도를 같이 본다
+                    if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
+                    else viewStackItemInSatellite(it);
+                  }
+                : undefined
+            }
           />
         ) : null}
 
@@ -8107,7 +8116,7 @@ export function GlobeDashboard({
           onChokepointDrill: chokepointStressGate
             ? () => openIntelDrill(chokepointStressGate)
             : undefined,
-          onChokepointOpenObserve: isSatelliteViewer
+          onChokepointOpenObserve: isSatelliteViewer || !SATELLITE_ENABLED
             ? undefined
             : () => {
                 setChokepointStressBriefing(null);

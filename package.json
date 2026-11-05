@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-maplibre-worker.mjs && node scripts/copy-cesium-assets.mjs",
+    "predev": "node scripts/copy-maplibre-worker.mjs",
     "cesium:assets": "node scripts/copy-cesium-assets.mjs",
     "osm:tiles:ensure": "node scripts/osm-tiles/ensure-planetiler.mjs",
     "osm:tiles:bake": "node scripts/osm-tiles/bake-osm-pmtiles.mjs",
@@ -29,7 +29,7 @@
     "dev:turbo": "next dev --turbo",
     "dev:webpack": "next dev",
     "dev:clean": "node scripts/clean-next.js && next dev",
-    "prebuild": "node scripts/copy-maplibre-worker.mjs && node scripts/copy-cesium-assets.mjs && node scripts/stamp-sw-version.mjs",
+    "prebuild": "node scripts/copy-maplibre-worker.mjs && node scripts/stamp-sw-version.mjs",
     "build": "node scripts/ci-build.js",
     "build:next": "next build",
     "build:cf": "opennextjs-cloudflare build",

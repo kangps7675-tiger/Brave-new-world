@@ -1,4 +1,5 @@
 import { LAB_UI } from "@/lib/labFlag";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 import type { ViewerMode } from "@/lib/viewPackages";
 
 /**
@@ -7,12 +8,14 @@ import type { ViewerMode } from "@/lib/viewPackages";
  * 바닷길(지경학)은 지정학 지도 안의 프리셋으로 만들 예정 — 별도 모드를 두지 않는다.
  */
 export function coerceViewerMode(mode: ViewerMode, lab: boolean = LAB_UI): ViewerMode {
+  if (mode === "satellite" && !SATELLITE_ENABLED) return "conflict";
   if (lab) return mode;
   return mode === "satellite" ? "satellite" : "conflict";
 }
 
 /** 저장된 모드·링크로 부팅할 때는 위성으로 바로 시작하지 않는다. */
 export function coerceBootViewerMode(mode: ViewerMode, lab: boolean = LAB_UI): ViewerMode {
+  if (mode === "satellite" && !SATELLITE_ENABLED) return "conflict";
   if (lab) return mode;
   return "conflict";
 }
