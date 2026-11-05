@@ -3,7 +3,7 @@ import type { SearchPlace } from "@/data/geoTypes";
 import {
   filterObservePlaceLabels,
   getObservePlaceLabelTier,
-} from "@/lib/cesiumObservePlaceLod";
+} from "@/lib/placeLabelLod";
 
 function place(
   partial: Partial<SearchPlace> &

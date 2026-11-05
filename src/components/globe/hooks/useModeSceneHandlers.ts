@@ -130,7 +130,6 @@ export type UseModeSceneHandlersOptions = {
   setLayerAltitude: Dispatch<SetStateAction<number>>;
   flyTo: (lat: number, lng: number, altitude?: number | undefined, durationMs?: number | undefined, camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined) => void;
   pendingObserveFlyRef: MutableRefObject<{ lat: number; lng: number; altitude?: number | undefined; durationMs?: number | undefined; camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined; subtitle: string; title: string; selection?: Selection | undefined; } | null>;
-  flushPendingCesiumFly: () => boolean;
   clearHubBriefTimer: () => void;
   clearFrictionEpisodeTimer: () => void;
   clearRegionNavSelection: () => void;
@@ -240,8 +239,6 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     setFilterCenter,
     setLayerAltitude,
     flyTo,
-    pendingObserveFlyRef,
-    flushPendingCesiumFly,
     clearHubBriefTimer,
     clearFrictionEpisodeTimer,
     clearRegionNavSelection,
@@ -504,31 +501,11 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     }
     if (job === "conflict" || job === "economy") {
       handleViewerModeChange(job);
-      // 관측(Cesium)에서 넘어오면 MapLibre 는 이 클릭 직후 마운트된다.
-      // 같은 틱의 flyTo 는 아직 없는 지도에 버려지므로 한 프레임 뒤에 보낸다.
       window.setTimeout(() => {
         flyTo(orbit.lat, orbit.lng, orbit.altitude, ENTRY_GATE.zoomOutFlyMs, {
           pitch: orbit.pitch,
         });
       }, 0);
-      return;
-    }
-    if (job === "satellite") {
-      if (!SATELLITE_ENABLED) return;
-      pendingObserveFlyRef.current = {
-        lat: orbit.lat,
-        lng: orbit.lng,
-        altitude: orbit.altitude,
-        durationMs: ENTRY_GATE.zoomOutFlyMs,
-        camera: { pitch: orbit.pitch },
-        subtitle: "",
-        title: "",
-      };
-      if (viewerMode !== "satellite") {
-        handleViewerModeChange("satellite");
-        return;
-      }
-      flushPendingCesiumFly();
       return;
     }
     if (job === "ask") {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import type { AisVessel, MilitaryAircraft, TransportPath } from "@/data/geoTypes";
 import type { Selection } from "@/components/globe/types";
-import type { ObserveLiveTrackKind, ObserveLiveTrackSpec } from "@/lib/cesiumTrackedEntity";
+type ObserveLiveTrackKind = "ais" | "aircraft" | "neptun";
 import type { NeptunLiveThreat } from "@/lib/neptun";
 import {
   GEV_AIR_TRAIL_COLOR,
@@ -58,13 +58,6 @@ type Options = {
   civAircraft: MilitaryAircraft[];
   neptunThreats?: NeptunLiveThreat[];
   flyTo: FlyToFn;
-  /**
-   * 관측(Cesium) 모드 전용. 있으면 2Hz flyTo chase 대신 trackedEntity follow.
-   * MapLibre 모드에서는 생략.
-   */
-  setLiveTrackFollow?: (spec: ObserveLiveTrackSpec | null) => void;
-  /** Cesium viewer ready — 부팅 전에 선택한 추적을 ready 후 재push */
-  cesiumTrackReady?: boolean;
   /** 사용자 드래그 중이면 추적 카메라 일시 정지 */
   isCameraMovingRef: MutableRefObject<boolean>;
   labelLanguage: "ko" | "en";
@@ -98,7 +91,7 @@ function neptunCourseDeg(threat: NeptunLiveThreat): number | null {
 
 /**
  * GEV식 클릭-투-트랙: AIS · OpenSky/ADS-B · NEPTUN.
- * Cesium에서는 trackedEntity 줌인+팔로우, MapLibre에서는 flyTo DR.
+ * flyTo로 dead-reckoning 추적.
  */
 export function useGevLiveTrack({
   selected,
@@ -108,8 +101,6 @@ export function useGevLiveTrack({
   civAircraft,
   neptunThreats = [],
   flyTo,
-  setLiveTrackFollow,
-  cesiumTrackReady = false,
   isCameraMovingRef,
   labelLanguage,
 }: Options) {
@@ -118,8 +109,6 @@ export function useGevLiveTrack({
   const [stale, setStale] = useState(false);
   const [followCamera, setFollowCamera] = useState(true);
   const fixRef = useRef<TrackFix | null>(null);
-  const setLiveTrackFollowRef = useRef(setLiveTrackFollow);
-  setLiveTrackFollowRef.current = setLiveTrackFollow;
 
   const trackId =
     selected?.kind === "ais"
@@ -143,7 +132,6 @@ export function useGevLiveTrack({
       setTrail([]);
       setStale(false);
       fixRef.current = null;
-      setLiveTrackFollowRef.current?.(null);
       return;
     }
     setTracking(true);
@@ -292,40 +280,8 @@ export function useGevLiveTrack({
     }
   }, [aisVessels, milAircraft, civAircraft, neptunThreats, tracking]); // eslint-disable-line react-hooks/exhaustive-deps -- poll sync only
 
-  // Cesium trackedEntity follow — fix/follow 변경 시 스펙 push
+  // DR 카메라 추적 (~2 Hz)
   useEffect(() => {
-    const push = setLiveTrackFollowRef.current;
-    if (!push) return;
-    if (!tracking || !fixRef.current) {
-      push(null);
-      return;
-    }
-    const fix = fixRef.current;
-    push({
-      entityId: fix.entityId,
-      kind: fix.kind,
-      follow: followCamera,
-      lat: fix.lat,
-      lng: fix.lng,
-      heightM: fix.heightM,
-      speedKn: fix.speedKn,
-      courseDeg: fix.courseDeg,
-    });
-  }, [
-    tracking,
-    followCamera,
-    selected,
-    aisVessels,
-    milAircraft,
-    civAircraft,
-    neptunThreats,
-    stale,
-    cesiumTrackReady,
-  ]);
-
-  // MapLibre 폴백: DR 카메라 추적 (~2 Hz)
-  useEffect(() => {
-    if (setLiveTrackFollowRef.current) return;
     if (!tracking || !followCamera) return;
     const tick = () => {
       const fix = fixRef.current;
@@ -342,13 +298,6 @@ export function useGevLiveTrack({
     const id = window.setInterval(tick, 2000);
     return () => window.clearInterval(id);
   }, [tracking, followCamera, flyTo, isCameraMovingRef]);
-
-  // 언마운트·모드 전환 시 Cesium 추적 해제
-  useEffect(() => {
-    return () => {
-      setLiveTrackFollowRef.current?.(null);
-    };
-  }, []);
 
   const hud: GevHudLines | null = useMemo(() => {
     if (!tracking || !selected) return null;
@@ -428,7 +377,6 @@ export function useGevLiveTrack({
     setTrail([]);
     setFollowCamera(false);
     fixRef.current = null;
-    setLiveTrackFollowRef.current?.(null);
   }, []);
 
   const toggleFollow = useCallback(() => {

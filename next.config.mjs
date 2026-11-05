@@ -114,7 +114,6 @@ const nextConfig = {
   // Use Terser so the production globe chunk remains valid JavaScript.
   swcMinify: false,
   transpilePackages: [
-    "cesium",
     "@deck.gl/core",
     "@deck.gl/mapbox",
     "@deck.gl/geo-layers",

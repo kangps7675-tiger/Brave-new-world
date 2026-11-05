@@ -8,7 +8,7 @@ import { MISSILE_EVENTS } from "@/data/missileReports";
 import {
   ballisticArcSamples,
   type BallisticArcSample,
-} from "@/lib/cesiumMissileLaunches";
+} from "@/lib/ballisticArc";
 
 export type NkMissileHistoryCard = {
   id: string;

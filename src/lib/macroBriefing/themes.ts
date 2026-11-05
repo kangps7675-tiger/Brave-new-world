@@ -1,4 +1,4 @@
-import { AIS_GATE_CENTERS } from "@/lib/cesiumAlerts";
+import { AIS_GATE_CENTERS } from "@/lib/observeAlerts";
 import type { ChokepointId } from "@/lib/news/chokepointNews";
 import {
   economyGenreLabel,

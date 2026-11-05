@@ -1,4 +1,4 @@
-import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
+import type { ObserveAlertItem } from "@/lib/observeAlerts";
 import type { AdapterDisconfirmOpts } from "@/lib/intelContract/adapterOpts";
 import { withComputedStats } from "@/lib/intelContract/bundleStats";
 import { resolveDisconfirmLog } from "@/lib/intelContract/disconfirmPass";
@@ -20,7 +20,7 @@ export type ChokepointStressLike = {
 };
 
 export function cesiumAlertToBundle(
-  item: CesiumAlertItem,
+  item: ObserveAlertItem,
   opts?: AdapterDisconfirmOpts,
 ): EvidenceBundle {
   const modality =
@@ -84,7 +84,7 @@ export function cesiumAlertToBundle(
 }
 
 export function gateCesiumAlert(
-  item: CesiumAlertItem,
+  item: ObserveAlertItem,
   opts?: AdapterDisconfirmOpts,
 ): GateResult {
   return evaluateGate(cesiumAlertToBundle(item, opts));

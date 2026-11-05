@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCesiumAlerts } from "./cesiumAlerts";
+import { buildObserveAlerts } from "./observeAlerts";
 import type { UkmtoIncidentPoint } from "./ukmtoHatch";
 
 function incident(partial: Partial<UkmtoIncidentPoint> & Pick<UkmtoIncidentPoint, "id" | "incidentTypeName">): UkmtoIncidentPoint {
@@ -18,9 +18,9 @@ function incident(partial: Partial<UkmtoIncidentPoint> & Pick<UkmtoIncidentPoint
   };
 }
 
-describe("buildCesiumAlerts", () => {
+describe("buildObserveAlerts", () => {
   it("puts high-threat UKMTO ahead of advisories and keeps AIS gates", () => {
-    const alerts = buildCesiumAlerts({
+    const alerts = buildObserveAlerts({
       lang: "ko",
       ukmtoIncidents: [
         incident({ id: "a", incidentTypeName: "Advisory", place: "안내" }),

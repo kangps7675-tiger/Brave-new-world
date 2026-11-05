@@ -10,7 +10,6 @@ import type {
   RussiaStrikeIncidentHtmlMarker,
   ViewState,
 } from "@/components/globe/types";
-import { pickCesiumMissileLaunches } from "@/lib/cesiumMissileLaunches";
 import {
   buildConflictEventClusters,
   clusterToMarker,
@@ -81,7 +80,6 @@ export function useIncidentMarkers(opts: UseIncidentMarkersOptions) {
     intelDisconfirmCorpus,
     layerViewState,
     globeLodTier,
-    isSatelliteViewer,
     layerPrefs,
     showChinaTaiwanIncidents,
     showChinaJapanIncidents,
@@ -153,22 +151,6 @@ export function useIncidentMarkers(opts: UseIncidentMarkersOptions) {
       displayKind: "korea-missile-incident" as const,
     }));
   }, [scoredEvents, showNorthKoreaMissileTests]);
-
-  const cesiumMissileLaunches = useMemo(
-    () =>
-      isSatelliteViewer && showNorthKoreaMissileTests
-        ? pickCesiumMissileLaunches(koreaMissileIncidentMarkers).map((m) => ({
-            id: m.id,
-            lat: m.lat,
-            lng: m.lng,
-            kind: m.kind,
-            intensity: m.intensity,
-            titleKo: m.titleKo,
-            titleEn: m.titleEn,
-          }))
-        : [],
-    [isSatelliteViewer, koreaMissileIncidentMarkers, showNorthKoreaMissileTests],
-  );
 
   const russiaStrikeIncidentMarkers = useMemo<RussiaStrikeIncidentHtmlMarker[]>(() => {
     if (conflictEventsReplaceLegacy() || !showUkraineStrikesOnRussia) return [];
@@ -253,7 +235,6 @@ export function useIncidentMarkers(opts: UseIncidentMarkersOptions) {
   return {
     chinaTheaterIncidentMarkers,
     koreaMissileIncidentMarkers,
-    cesiumMissileLaunches,
     russiaStrikeIncidentMarkers,
     europeDroneIncidentMarkers,
     conflictEventMarkers,

@@ -44,7 +44,7 @@ export const AIS_GATE_CENTERS: ReadonlyArray<{
   { id: "bering-strait", nameKo: "베링 해협", nameEn: "Bering Strait", lat: 65.6, lng: -168.7 },
 ];
 
-export type CesiumAlertKind =
+export type ObserveAlertKind =
   | "ukmto"
   | "navarea"
   | "portwatch"
@@ -53,9 +53,9 @@ export type CesiumAlertKind =
   | "dark-fleet"
   | "route";
 
-export type CesiumAlertItem = {
+export type ObserveAlertItem = {
   id: string;
-  kind: CesiumAlertKind;
+  kind: ObserveAlertKind;
   title: string;
   detail: string;
   lat: number;
@@ -63,7 +63,7 @@ export type CesiumAlertItem = {
   path?: { lat: number; lng: number }[];
 };
 
-const KIND_CAP: Record<CesiumAlertKind, number> = {
+const KIND_CAP: Record<ObserveAlertKind, number> = {
   ukmto: 5,
   navarea: 5,
   portwatch: 4,
@@ -73,7 +73,7 @@ const KIND_CAP: Record<CesiumAlertKind, number> = {
   route: 4,
 };
 
-function take(items: CesiumAlertItem[], kind: CesiumAlertKind): CesiumAlertItem[] {
+function take(items: ObserveAlertItem[], kind: ObserveAlertKind): ObserveAlertItem[] {
   return items.filter((item) => item.kind === kind).slice(0, KIND_CAP[kind]);
 }
 
@@ -84,7 +84,7 @@ function corridorPoints(corridor: (typeof STRATEGIC_CORRIDORS)[number]) {
   return corridor.waypoints;
 }
 
-export function buildCesiumAlerts(input: {
+export function buildObserveAlerts(input: {
   lang: "ko" | "en";
   ukmtoIncidents: UkmtoIncidentPoint[];
   navareaFeatures: NavareaFeaturePoint[];
@@ -92,12 +92,12 @@ export function buildCesiumAlerts(input: {
   disguisedVessels: AisVessel[];
   portWatchByChokeId: Record<string, ChokepointAisObservation>;
   assetByChokeId?: Record<string, ChokepointAssetVolatility>;
-}): CesiumAlertItem[] {
+}): ObserveAlertItem[] {
   const en = input.lang === "en";
   const ukmto = [...input.ukmtoIncidents]
     .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng))
     .sort((a, b) => Number(isUkmtoOfferWorthy(b.incidentTypeName)) - Number(isUkmtoOfferWorthy(a.incidentTypeName)))
-    .map((item): CesiumAlertItem => {
+    .map((item): ObserveAlertItem => {
       const typeLabel = localizeUkmtoIncidentType(item.incidentTypeName, input.lang);
       const place = localizeUkmtoPlaceText(
         item.place || item.region || "",
@@ -116,7 +116,7 @@ export function buildCesiumAlerts(input: {
   const navarea = input.navareaFeatures
     .filter((feature) => isSecurityCriticalNavarea(feature))
     .filter((feature) => feature.lat != null && feature.lng != null)
-    .map((feature): CesiumAlertItem => {
+    .map((feature): ObserveAlertItem => {
       const area =
         localizeNavareaDisplayText(feature.areaHint, input.lang) || feature.region;
       const detail = localizeNavareaDisplayText(
@@ -133,7 +133,7 @@ export function buildCesiumAlerts(input: {
       };
     });
 
-  const portwatch: CesiumAlertItem[] = [];
+  const portwatch: ObserveAlertItem[] = [];
   for (const point of LOGISTICS_RISK_POINTS) {
     const ais = input.portWatchByChokeId[point.id] ?? null;
     const asset = input.assetByChokeId?.[point.id] ?? null;
@@ -158,7 +158,7 @@ export function buildCesiumAlerts(input: {
     });
   }
 
-  const exercises: CesiumAlertItem[] = [];
+  const exercises: ObserveAlertItem[] = [];
   for (const ex of input.exercises) {
     const fly = exerciseFlyTarget(ex);
     if (!fly) continue;
@@ -172,7 +172,7 @@ export function buildCesiumAlerts(input: {
     });
   }
 
-  const gates = AIS_GATE_CENTERS.map((gate): CesiumAlertItem => ({
+  const gates = AIS_GATE_CENTERS.map((gate): ObserveAlertItem => ({
     id: `ais-gate:${gate.id}`,
     kind: "ais-gate",
     title: en ? gate.nameEn : gate.nameKo,
@@ -184,7 +184,7 @@ export function buildCesiumAlerts(input: {
   const dark = input.disguisedVessels
     .filter((vessel) => Number.isFinite(vessel.lat) && Number.isFinite(vessel.lng))
     .slice(0, KIND_CAP["dark-fleet"])
-    .map((vessel): CesiumAlertItem => ({
+    .map((vessel): ObserveAlertItem => ({
       id: `dark-fleet:${vessel.id}`,
       kind: "dark-fleet",
       title: vessel.shipName || vessel.mmsi,
@@ -193,7 +193,7 @@ export function buildCesiumAlerts(input: {
       lng: vessel.lng,
     }));
 
-  const routes: CesiumAlertItem[] = [];
+  const routes: ObserveAlertItem[] = [];
   for (const corridor of STRATEGIC_CORRIDORS) {
     if (
       corridor.mode !== "sea" &&

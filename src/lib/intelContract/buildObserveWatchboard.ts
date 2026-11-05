@@ -1,4 +1,4 @@
-import type { CesiumAlertItem } from "@/lib/cesiumAlerts";
+import type { ObserveAlertItem } from "@/lib/observeAlerts";
 import type {
   ConflictEventCluster,
   ConflictTheater,
@@ -139,7 +139,7 @@ function attachPirAndGaps(input: {
 export function buildObserveWatchboard(input: {
   liveuaEvents: LiveuamapEvent[];
   rssItems: NewsStreamItem[];
-  cesiumAlerts: CesiumAlertItem[];
+  cesiumAlerts: ObserveAlertItem[];
   /** 교차확인된 사건 클러스터 — Gate 통과분만 Active */
   conflictClusters?: ConflictEventCluster[];
   lang?: "ko" | "en";
