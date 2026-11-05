@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, type MutableRefObject, type RefObject } from "react";
-import type { CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import { useCallback, useEffect, type MutableRefObject } from "react";
 import type { Selection } from "@/components/globe/types";
 import type { FlyToConfirmOffer } from "@/components/FlyToConfirmBanner";
 import {
@@ -32,8 +31,6 @@ import {
   type WatchboardItem,
 } from "@/lib/intelContract";
 import { isPromotion } from "@/lib/intelContract/deskDynamics";
-import { canMountFullObserve } from "@/lib/observeAccess";
-import type { ViewerMode } from "@/lib/viewPackages";
 
 /** 속보·핀 시네마틱 진입 기본 고도 */
 export const INCIDENT_ENTRY_ALT = 0.85;
@@ -60,28 +57,9 @@ export type PendingObserveFly = {
   selection?: Selection;
 };
 
-function runObserveFly(
-  handle: CesiumGlobeHandle,
-  fly: Pick<PendingObserveFly, "lat" | "lng" | "altitude" | "durationMs" | "camera" | "descend">,
-) {
-  if (fly.descend) {
-    handle.descendTo(fly.lat, fly.lng);
-    return;
-  }
-  handle.flyTo(
-    fly.lat,
-    fly.lng,
-    fly.altitude,
-    resolveCinematicDurationMs(fly.durationMs),
-    resolveCinematicCamera(fly.camera),
-  );
-}
-
 export type UseFocusedSpaceNavigationOptions = {
-  cesiumGlobeRef: RefObject<CesiumGlobeHandle | null>;
   viewState: { lat: number; lng: number; altitude: number };
   labelLanguage: LabelLanguage;
-  viewerMode: ViewerMode;
   flyTo: (
     lat: number,
     lng: number,
@@ -121,11 +99,6 @@ export type UseFocusedSpaceNavigationOptions = {
 
   setFocusedLiveuaId: (id: string | null) => void;
   setSelected: (sel: Selection | null) => void;
-  setViewerMode: (mode: ViewerMode) => void;
-  setObserveEntryHadTarget: (value: boolean) => void;
-  observeUnlocked: boolean;
-  startObservePreview: () => void;
-  endObservePreview: () => void;
 
   watchGradePrevRef: MutableRefObject<Map<string, DisplayGrade>>;
   setDeskFocus: (focus: DeskFocus | null) => void;
@@ -138,10 +111,8 @@ export type UseFocusedSpaceNavigationOptions = {
  */
 export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions) {
   const {
-    cesiumGlobeRef,
     viewState,
     labelLanguage,
-    viewerMode,
     flyTo,
     incidentSpaceRef,
     setIncidentSpace,
@@ -158,11 +129,6 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
     setFlyToConfirmOffer,
     setFocusedLiveuaId,
     setSelected,
-    setViewerMode,
-    setObserveEntryHadTarget,
-    observeUnlocked,
-    startObservePreview,
-    endObservePreview,
     watchGradePrevRef,
     setDeskFocus,
     setPromotingItemId,
@@ -170,14 +136,6 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
 
   const incidentReturnView = useCallback(
     (lat: number, lng: number) => {
-      const pov = cesiumGlobeRef.current?.pointOfView();
-      if (pov && pov.altitude >= 1.8) {
-        return {
-          lat: pov.lat,
-          lng: pov.lng,
-          altitude: Math.min(pov.altitude, 7.2),
-        };
-      }
       if (viewState.altitude >= 1.8) {
         return {
           lat: viewState.lat,
@@ -187,7 +145,7 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       }
       return { lat, lng, altitude: 2.6 };
     },
-    [cesiumGlobeRef, viewState.altitude, viewState.lat, viewState.lng],
+    [viewState.altitude, viewState.lat, viewState.lng],
   );
 
   const enterFocusedSpace = useCallback(
@@ -266,42 +224,17 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
     focusAltitudeCeilingRef.current = null;
     setIncidentSpace(null);
     setFocusedLiveuaId(null);
-    if (viewerMode === "satellite") {
-      const fly = cesiumGlobeRef.current?.flyTo;
-      if (typeof fly === "function") {
-        fly(space.returnTo.lat, space.returnTo.lng, space.returnTo.altitude, 2400, {
-          pitch: 8,
-          bearing: 0,
-        });
-      }
-      return;
-    }
     flyTo(space.returnTo.lat, space.returnTo.lng, space.returnTo.altitude, 2400, {
       pitch: 8,
       bearing: 0,
     });
   }, [
-    cesiumGlobeRef,
     flyTo,
     focusAltitudeCeilingRef,
     incidentSpaceRef,
     setFocusedLiveuaId,
     setIncidentSpace,
-    viewerMode,
   ]);
-
-  const flushPendingCesiumFly = useCallback(() => {
-    const pending = pendingObserveFlyRef.current;
-    const handle = cesiumGlobeRef.current;
-    // flyTo 함수가 있어도 viewer 부팅 전이면 pointOfView 가 null — 대기열을 유지한다.
-    if (!pending || typeof handle?.flyTo !== "function" || !handle.pointOfView()) {
-      return false;
-    }
-    pendingObserveFlyRef.current = null;
-    runObserveFly(handle, pending);
-    if (pending.selection) setSelected(pending.selection);
-    return true;
-  }, [cesiumGlobeRef, pendingObserveFlyRef, setSelected]);
 
   const unifiedFlyTo = useCallback(
     (
@@ -310,45 +243,15 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
       altitude?: number,
       durationMs?: number,
       camera?: FlyCameraOpts,
-      flyOpts?: { descend?: boolean },
     ) => {
       // 사건·핀 기본은 직하. 궤도 연출이 필요하면 호출부가 camera를 명시한다.
       const dur = resolveCinematicDurationMs(
         durationMs ?? LOCATION_LOOK_DOWN.durationMs,
       );
       const cam = resolveCinematicCamera(camera ?? LOOK_DOWN_CAMERA);
-      // 사건 창(고도 천장으로 줌아웃을 막는 몰입 시점)은 위성(세슘) 전용이다.
-      // 일반 지도에서 "위치로 가기"로 확대한 뒤 줌아웃이 막히던 원인이 이것이었다.
-      if (dur > 0 && viewerMode === "satellite") {
-        enterFocusedSpace({
-          lat,
-          lng,
-          altitude: altitude ?? 1.18,
-          pitch: cam.pitch,
-        });
-      }
-      if (viewerMode === "satellite") {
-        const handle = cesiumGlobeRef.current;
-        const descend = Boolean(flyOpts?.descend);
-        if (typeof handle?.flyTo === "function" && handle.pointOfView()) {
-          runObserveFly(handle, { lat, lng, altitude, durationMs: dur, camera: cam, descend });
-          return;
-        }
-        pendingObserveFlyRef.current = {
-          lat,
-          lng,
-          altitude,
-          durationMs: dur,
-          camera: cam,
-          descend,
-          subtitle: "",
-          title: "",
-        };
-        return;
-      }
       flyTo(lat, lng, altitude, dur, cam);
     },
-    [cesiumGlobeRef, enterFocusedSpace, flyTo, pendingObserveFlyRef, viewerMode],
+    [flyTo],
   );
 
   /** 사건 포커스 시 송유·가스·해저관을 잠깐 켠다 (상시 난사 대신) */
@@ -385,8 +288,8 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
   }, [pipelineRevealTimerRef]);
 
   /**
-   * 속보·핀의 「위치로」— 관측이 아니면 모드를 바꾼 뒤, Cesium이 준비되는 즉시
-   * 그 좌표로 날아간다. 확인 배너를 한 번 더 거치면 이동이 중간에 끊긴다.
+   * 속보·핀의 「위치로」 — 지도를 그 좌표로 날리고, 선택이 있으면 같이 연다.
+   * (이름은 세슘 관측 시절 그대로다. 세슘 제거 뒤에는 모드 전환 없이 지도만 움직인다.)
    */
   const switchToObserveAndFly = useCallback(
     (
@@ -403,48 +306,16 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
         selection?: Selection;
       },
     ) => {
-      enterFocusedSpace({
+      flyTo(
         lat,
         lng,
-        altitude: opts.altitude ?? INCIDENT_ENTRY_ALT,
-        pitch: resolveCinematicCamera(opts.camera).pitch,
-        title: opts.title,
-        kicker: opts.kicker,
-      });
-      pendingObserveFlyRef.current = {
-        lat,
-        lng,
-        altitude: opts.altitude,
-        durationMs: opts.durationMs,
-        camera: opts.camera,
-        descend: opts.descend,
-        subtitle: opts.subtitle,
-        title: opts.title,
-        selection: opts.selection,
-      };
-      setObserveEntryHadTarget(true);
-      if (viewerMode !== "satellite") {
-        if (!canMountFullObserve(observeUnlocked)) {
-          startObservePreview();
-        } else {
-          endObservePreview();
-        }
-        setViewerMode("satellite");
-        return;
-      }
-      flushPendingCesiumFly();
+        opts.altitude ?? INCIDENT_ENTRY_ALT,
+        resolveCinematicDurationMs(opts.durationMs ?? LOCATION_LOOK_DOWN.durationMs),
+        resolveCinematicCamera(opts.camera ?? LOOK_DOWN_CAMERA),
+      );
+      if (opts.selection) setSelected(opts.selection);
     },
-    [
-      endObservePreview,
-      enterFocusedSpace,
-      flushPendingCesiumFly,
-      observeUnlocked,
-      pendingObserveFlyRef,
-      setObserveEntryHadTarget,
-      setViewerMode,
-      startObservePreview,
-      viewerMode,
-    ],
+    [flyTo, setSelected],
   );
 
   /** 워치보드 행 → DeskFocus + 시네마틱 진입 (왜? 드릴은 지구본 不动) */
@@ -489,25 +360,15 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
     setFlyToConfirmOffer(null);
     pendingObserveFlyRef.current = null;
     if (!offer) return;
-    const handle = cesiumGlobeRef.current;
-    if (typeof handle?.flyTo === "function") {
-      runObserveFly(handle, {
-        lat: offer.lat,
-        lng: offer.lng,
-        altitude: pending?.altitude,
-        durationMs: pending?.durationMs,
-        camera: pending?.camera,
-        descend: pending?.descend,
-      });
-    }
+    flyTo(
+      offer.lat,
+      offer.lng,
+      pending?.altitude,
+      resolveCinematicDurationMs(pending?.durationMs),
+      resolveCinematicCamera(pending?.camera),
+    );
     if (pending?.selection) setSelected(pending.selection);
-  }, [
-    cesiumGlobeRef,
-    flyToConfirmOffer,
-    pendingObserveFlyRef,
-    setFlyToConfirmOffer,
-    setSelected,
-  ]);
+  }, [flyTo, flyToConfirmOffer, pendingObserveFlyRef, setFlyToConfirmOffer, setSelected]);
 
   const dismissFlyToConfirm = useCallback(() => {
     setFlyToConfirmOffer(null);
@@ -523,6 +384,5 @@ export function useFocusedSpaceNavigation(opts: UseFocusedSpaceNavigationOptions
     focusWatchboardItem,
     acceptFlyToConfirm,
     dismissFlyToConfirm,
-    flushPendingCesiumFly,
   };
 }

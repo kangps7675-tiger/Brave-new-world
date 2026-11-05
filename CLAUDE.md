@@ -39,7 +39,7 @@
 
 새 레이어·패널·모드는 **케이스 파일(기사 확인)의 증거 또는 판정에 연결될 때만** 노출한다.
 연결되지 않으면 `src/lib/layerLab.ts`의 실험실(lab) 목록에 넣어 숨긴다(코드는 지우지 않는다, `NEXT_PUBLIC_LAB=1`로 풀림).
-화면 모드는 지정학 하나이며 위성(세슘)은 사건 카드의 "위성으로 보기"로만 들어간다(`src/lib/viewerModePolicy.ts`).
+화면 모드는 지정학 하나다(`src/lib/viewerModePolicy.ts`). 위성(세슘)은 2026-11-06에 제거했다.
 
 ## 2026-10-20 방향 번복 — 전체 버전 복원
 
@@ -56,12 +56,6 @@
 - 해운 화면에서는 지정학 개관(핵탄두 수·전략태세 라벨)을 숨기고 길목 콜아웃(`MARITIME_OVERVIEW_CALLOUTS`)을 띄운다. (좌측 「오늘의 GTS」 패널·「오늘의 브리핑」 게이지·「오늘의 등불뉴스」 접힘 탭은 2026-10-22 화면에서 뺐다 — `DashboardOverlayHost`)
 - 랜딩 문구(질문 넷·화면 읽는 법·불꽃)가 약속하는 레이어를 끄거나 실험실로 내리려면 랜딩 문구도 같이 고친다 (`src/lib/maritimeFirstScreen.test.ts`가 막는다).
 
-## 2026-10-21 세슘에는 선박(AIS)을 그리지 않는다
-
-세슘(위성)에는 선박 위치(AIS)를 그리지 않는다. 선박은 Datalastic·AISstream으로 보는 데이터이고, 지도(MapLibre)와 세슘에 둘 다 그리면 GPU가 무거워진다. 항공기·불꽃·해협 오버레이·라벨·사건 콜아웃 등 나머지는 세슘에도 그대로 그린다.
-- 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
-- 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
-
 ## 서비스명 = Strait Desk (2026-10-23 전면 교체 완료)
 
 서비스명은 **Strait Desk**뿐이다. 옛 이름은 화면·코드·문서·식별자 어디에도 남기지 않는다. 뜻: Strait=해협(길목), Desk=상황실의 데스크.
@@ -74,5 +68,7 @@
 
 세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
 - 1단계(완료): `src/lib/satelliteAccess.ts`의 `SATELLITE_ENABLED = false`로 위성 진입을 전부 막았다. 「위성으로 보기」 버튼, 위성 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목이 사라진다. `NEXT_PUBLIC_LAB=1`로도 안 열린다. 빌드(predev/prebuild)에서 세슘 에셋 복사도 뺐다.
-- 2단계(예정): `CesiumSatelliteGlobe`, 세슘 전용 훅, `cesiumObserveContent` 등 죽은 코드·`cesium` 패키지·테스트·문서를 묶음별 PR로 삭제한다.
-- 위의 "세슘에는 선박(AIS)을 그리지 않는다" 항목은 2단계에서 같이 정리한다.
+- 2단계(완료): `CesiumSatelliteGlobe`·세슘 전용 훅/라이브러리/테스트, `cesium` 패키지, `copy-cesium-assets` 스크립트, `GlobeDashboard`의 관측 독·시트렙북·LiveUA 플래시 카드 등 위성 전용 UI를 삭제했다. `GlobeMapCanvas`는 MapLibre만 그린다.
+  - 살린 것(세슘 이름이었지만 지도에서도 쓰는 순수 로직): `observeAlerts`, `ballisticArc`, `placeLabelLod`. `useGevLiveTrack`은 세슘 push를 빼고 MapLibre 추적만 남겼다.
+  - `useObserveAlertModel`은 에스컬레이션·해협 스트레스 판정 게이트만 남겼다. `switchToObserveAndFly`는 이름만 남고 지도 flyTo+선택으로 동작한다.
+  - 후속 정리 대상: 호출처가 없어진 컴포넌트(`ObserveSensorChips`, `ObserveLayerLegend`, `IntelWatchboard`, `TheaterSitrepBook`, `CaseFileDeskPanel`, `ObservePaywallOverlay` 등), `viewerMode === "satellite"` 분기·`isSatelliteViewer` 상수(항상 false), `next.config.mjs`의 `swcMinify: false`(세슘 WASM 때문이었음).

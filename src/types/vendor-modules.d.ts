@@ -3,4 +3,3 @@ declare module "@openhistoricalmap/maplibre-gl-dates" {
   export function filterByDate(map: MapLibreMap, date: string | Date): void;
 }
 
-declare module "cesium/Build/Cesium/Widgets/widgets.css";
