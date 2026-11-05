@@ -3,6 +3,7 @@
 import { brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
 
@@ -118,7 +119,7 @@ export function PurposeJobOverlay({
 
         {/* LTR: 전선 → 3D → 시장 → 묻기 (grid는 좌→우·위→아래) */}
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {JOBS.map((job) => (
+          {JOBS.filter((job) => SATELLITE_ENABLED || job.id !== "satellite").map((job) => (
             <button
               key={job.id}
               type="button"

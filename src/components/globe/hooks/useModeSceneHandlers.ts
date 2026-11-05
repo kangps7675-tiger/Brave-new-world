@@ -32,6 +32,7 @@ import { savePerfPrefs } from "@/lib/ultraLiteMode";
 import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersMaritimeFirstScreen } from "@/lib/viewPackages";
 import { applyViewerMode } from "@/lib/viewerChrome";
 import { rememberConflictTheater, rememberEconomyHub } from "@/lib/watchFocus";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 
 export type UseModeSceneHandlersOptions = {
   initialViewConfig: MergedViewConfig | null;
@@ -453,6 +454,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
   }
 
   function handleViewerModeChange(mode: ViewerMode) {
+    if (mode === "satellite" && !SATELLITE_ENABLED) return;
     if (historyStoryLockedRef.current) return;
     if (viewerMode === mode) return;
     trackModeSwitch(mode);
@@ -512,6 +514,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       return;
     }
     if (job === "satellite") {
+      if (!SATELLITE_ENABLED) return;
       pendingObserveFlyRef.current = {
         lat: orbit.lat,
         lng: orbit.lng,

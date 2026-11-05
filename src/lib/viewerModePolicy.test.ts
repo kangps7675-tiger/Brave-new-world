@@ -6,7 +6,7 @@ describe("viewerModePolicy", () => {
     expect(coerceViewerMode("economy", false)).toBe("conflict");
     expect(coerceViewerMode("history", false)).toBe("conflict");
     expect(coerceViewerMode("live", false)).toBe("conflict");
-    expect(coerceViewerMode("satellite", false)).toBe("satellite");
+    expect(coerceViewerMode("satellite", false)).toBe("conflict"); // 세슘 제거(스위치 꺼짐)
     expect(coerceViewerMode("conflict", false)).toBe("conflict");
   });
   it("부팅은 항상 지정학", () => {
@@ -15,6 +15,7 @@ describe("viewerModePolicy", () => {
   });
   it("lab에서는 그대로", () => {
     expect(coerceViewerMode("economy", true)).toBe("economy");
-    expect(coerceBootViewerMode("satellite", true)).toBe("satellite");
+    expect(coerceBootViewerMode("satellite", true)).toBe("conflict"); // 위성은 lab에서도 막힘
+    expect(coerceViewerMode("satellite", true)).toBe("conflict");
   });
 });

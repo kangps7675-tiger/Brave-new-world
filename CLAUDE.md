@@ -69,3 +69,10 @@
 - localStorage·IndexedDB 키는 `straitdesk-*`, 설정 파일은 `src/config/straitdesk.config.ts`, 도메인·UA 연락 URL은 `straitdesk.app`이다. 옛 키로 저장된 방문자 설정은 이어받지 않는다(초기화됨).
 - npm 패키지명은 `strait-desk`. 저장소명·Vercel/Cloudflare 프로젝트명은 대시보드에서 따로 바꿔야 한다.
 - 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다 — 디자인 교체가 필요하다.
+
+## 2026-11-06 세슘(위성) 제거 — 1단계
+
+세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
+- 1단계(완료): `src/lib/satelliteAccess.ts`의 `SATELLITE_ENABLED = false`로 위성 진입을 전부 막았다. 「위성으로 보기」 버튼, 위성 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목이 사라진다. `NEXT_PUBLIC_LAB=1`로도 안 열린다. 빌드(predev/prebuild)에서 세슘 에셋 복사도 뺐다.
+- 2단계(예정): `CesiumSatelliteGlobe`, 세슘 전용 훅, `cesiumObserveContent` 등 죽은 코드·`cesium` 패키지·테스트·문서를 묶음별 PR로 삭제한다.
+- 위의 "세슘에는 선박(AIS)을 그리지 않는다" 항목은 2단계에서 같이 정리한다.

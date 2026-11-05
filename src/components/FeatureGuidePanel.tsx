@@ -60,7 +60,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "창 안 왼쪽 목록은 타격 · 선박 · 정세 · 전선으로 묶여 있고, 묶음 안에서는 최신순입니다. 새로 들어온 건 NEW 표시가 붙습니다.",
       "목록에서 항목을 누르면 그 사건 하나에 대한 사진·본문·근거가 큰 양피지로 열리고, 지도는 그 지역으로 날아가 머뭅니다. 이전·다음 버튼과 위아래 방향키로 넘길 수 있습니다.",
       "사진은 속보 원문 사진을 먼저 쓰고, 없으면 같은 사건을 다룬 기사 사진을 출처와 함께 붙입니다. 현장 사진이 아닐 수 있는 경우에는 그렇다고 적습니다.",
-      "「위성으로 보기」를 누르면 같은 자리를 위성 지도로 봅니다. 한글 모드에서는 속보창의 제목·본문·근거가 모두 한글로 나옵니다.",
+      "한글 모드에서는 속보창의 제목·본문·근거가 모두 한글로 나옵니다.",
     ],
   },
   {
@@ -93,13 +93,6 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     steps: [
       "북동항로(러시아 북쪽 연안)와 북서항로(캐나다 북쪽 군도)가 항로선으로 그려져 있습니다. 선은 대략적인 경로이며 실제 항행 구간과 조금 다를 수 있습니다.",
       "북극권은 수신 기지국이 적어 AIS·항공기 신호가 듬성듬성합니다. 비어 있는 곳은 「배가 없다」가 아니라 「자료가 없다」입니다.",
-    ],
-  },
-  {
-    title: "위성 · 3D 건물",
-    steps: [
-      "사건 카드의 「위성으로 보기」를 누르면 위성 지도로 들어갑니다. 위성 화면에는 선박 항적을 그리지 않습니다(지도가 무거워지는 것을 막기 위해서입니다). 항공기·불꽃·사건 표시는 그대로입니다.",
-      "위성 화면에서 충분히 가까이 확대하면 구글의 3D 건물·지형이 기본으로 켜집니다. 끄는 설정은 위성 화면 안에 있습니다.",
     ],
   },
   {
@@ -154,7 +147,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "The list on its left is grouped into Strike · Ship · Posture · Front, newest first inside each group. New arrivals carry a NEW tag.",
       "Click an item to open one big parchment for that single event — photos, text, and basis — while the map flies there and stays. Use Previous / Next or the arrow keys to move through the list.",
       "Photos come from the original flash first; if none, a photo from an article on the same event is used with its source. When it may not be a scene photo, it says so.",
-      "“View on satellite” shows the same spot on the satellite map. In Korean mode everything in the desk is shown in Korean.",
+      "In Korean mode everything in the desk is shown in Korean.",
     ],
   },
   {
@@ -187,13 +180,6 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     steps: [
       "The Northern Sea Route (along Russia's north coast) and the Northwest Passage (through Canada's northern islands) are drawn as lane lines. They are approximate and may differ slightly from real transit paths.",
       "Few receivers cover the Arctic, so AIS and aircraft signals are sparse. Empty means “no data”, not “no ship”.",
-    ],
-  },
-  {
-    title: "Satellite · 3D buildings",
-    steps: [
-      "「View on satellite」 on an event card opens the satellite map. Ship tracks are not drawn there, to keep it light. Aircraft, flames, and event markers stay.",
-      "Zoom in close on satellite and Google's 3D buildings and terrain turn on by default. The setting to turn them off is inside the satellite view.",
     ],
   },
   {

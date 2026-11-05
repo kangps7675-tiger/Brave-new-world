@@ -19,7 +19,7 @@ type Props = {
   /** 일반 지도에서 그 위치로 */
   onGoToLocation: (item: StackItem) => void;
   /** 위성(세슘)으로 보기 */
-  onViewSatellite: (item: StackItem) => void;
+  onViewSatellite?: (item: StackItem) => void;
 };
 
 const SOURCE_LABEL: Record<StackItem["source"], { ko: string; en: string }> = {
@@ -137,9 +137,11 @@ export function StackItemParchment({
             {en ? "Read the source" : "원문 보기"}
           </a>
         ) : null}
-        <button type="button" className={btn} onClick={() => onViewSatellite(item)}>
-          {en ? "View in satellite" : "위성으로 보기"}
-        </button>
+        {onViewSatellite ? (
+          <button type="button" className={btn} onClick={() => onViewSatellite(item)}>
+            {en ? "View in satellite" : "위성으로 보기"}
+          </button>
+        ) : null}
         {note ? <p className="text-micro text-[#5c4020]/75">{note}</p> : null}
       </section>
     </div>

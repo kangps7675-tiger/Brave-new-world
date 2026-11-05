@@ -56,7 +56,7 @@ type Props = {
   onSelect: (id: string) => void;
   onClose: () => void;
   onGoToLocation: (item: StackItem) => void;
-  onViewSatellite: (item: StackItem) => void;
+  onViewSatellite?: (item: StackItem) => void;
   /** RSS 뉴스 풀 — 속보에 사진이 없을 때 같은 사건 기사의 사진을 레퍼런스와 함께 붙인다 */
   newsPool?: readonly NewsStreamItem[];
   /** 위성 모드에서는 지구본이 보이도록 좁게 */
@@ -367,16 +367,18 @@ export function LiveFlashDesk({
             >
               {en ? "Go to location" : "위치로 가기"}
             </button>
-            <button
-              type="button"
-              className={btn}
-              onClick={() => {
-                onViewSatellite(item);
-                if (collapseOnAction) setMinimized(true);
-              }}
-            >
-              {en ? "View in satellite" : "위성으로 보기"}
-            </button>
+            {onViewSatellite ? (
+              <button
+                type="button"
+                className={btn}
+                onClick={() => {
+                  onViewSatellite(item);
+                  if (collapseOnAction) setMinimized(true);
+                }}
+              >
+                {en ? "View in satellite" : "위성으로 보기"}
+              </button>
+            ) : null}
             {item.url && /^https?:\/\//i.test(item.url) ? (
               <a href={item.url} target="_blank" rel="noopener noreferrer" className={btn}>
                 {en ? "Source" : "원문"}
