@@ -5,11 +5,15 @@
  * 안쪽 wrangler 호출은 WRANGLER_RETRY_WRAPPED 로 통과시켜 루프를 막는다.
  */
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 
-const require = createRequire(import.meta.url);
-const wranglerJs = require.resolve("wrangler/bin/wrangler.js");
+// wrangler package.json exports가 ./bin/wrangler.js 를 열지 않는다.
+const wranglerJs = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../node_modules/wrangler/bin/wrangler.js",
+);
 const args = process.argv.slice(2);
 const isDeploy = args[0] === "deploy";
 const wrapped = process.env.WRANGLER_RETRY_WRAPPED === "1";
