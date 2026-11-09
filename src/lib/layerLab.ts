@@ -134,6 +134,7 @@ const LAB_PANEL_ITEM_IDS: ReadonlySet<string> = new Set([
   "military-bases-rok", "military-bases-japan", "military-bases-taiwan",
   "military-bases-philippines", "military-bases-australia", "military-bases-eastern-nato",
   "shipping", "logistics-risk", "war-zones", "oil-pipelines", "gas-pipelines", "lng-terminals", "nuclear", "critical-nodes", "east-asia-adiz",
+  "rail", "intel", "economic",
 ]);
 
 export function isLabPanelItem(id: string, _lab: boolean = LAB_UI): boolean {
