@@ -29,6 +29,7 @@
     "dev:turbo": "next dev --turbo",
     "dev:webpack": "next dev",
     "dev:clean": "node scripts/clean-next.js && next dev",
+    "postinstall": "node scripts/wrap-wrangler-bin.mjs",
     "prebuild": "node scripts/copy-maplibre-worker.mjs && node scripts/stamp-sw-version.mjs",
     "build": "node scripts/ci-build.js",
     "build:next": "next build",

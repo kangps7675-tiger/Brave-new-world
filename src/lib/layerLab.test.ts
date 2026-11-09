@@ -19,13 +19,12 @@ describe("layerLab", () => {
   it("증거·맥락·승격 레이어는 실험실에 없다", () => {
     for (const k of KEEP) expect(isLabLayerKey(k)).toBe(false);
   });
-  it("실험실 키는 강제 OFF, 증거 키는 유지", () => {
+  it("뺀 레이어는 lab 플래그가 켜져도 OFF, 증거 키는 유지", () => {
     const on = { ...DEFAULT_LAYER_PREFS, showAis: true, showGemSolar: true, showCrinkInfraRoad: true };
-    const out = enforceLabTier(on, false);
+    const out = enforceLabTier(on, true);
     expect(out.showGemSolar).toBe(false);
     expect(out.showCrinkInfraRoad).toBe(false);
     expect(out.showAis).toBe(true);
-    expect(enforceLabTier(on, true)).toBe(on);
   });
   it("바뀔 게 없으면 같은 객체", () => {
     const clean = Object.fromEntries(
