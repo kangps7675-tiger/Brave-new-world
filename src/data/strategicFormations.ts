@@ -325,21 +325,21 @@ export const STRATEGIC_OVERVIEW_CALLOUTS: SituationCallout[] = [
  */
 export const MARITIME_OVERVIEW_CALLOUTS: SituationCallout[] = [
   {
-    id: "overview-bab-el-mandeb",
-    theater: "middle-east",
-    lat: 13.2,
-    lng: 42.9,
-    title: "바브엘만데브 — 홍해 입구",
-    body: "예멘 후티 반군이 드론·미사일·무인 보트로 지나가는 상선을 공격해 온 길목입니다. 위험이 커지면 배들이 희망봉으로 돌아가 항해가 1~2주 길어집니다.",
-    side: "red",
-  },
-  {
     id: "overview-hormuz",
     theater: "middle-east",
     lat: 26.4,
     lng: 56.6,
     title: "호르무즈 해협",
     body: "걸프 산유국의 원유·LNG가 빠져나가는 유일한 바닷길입니다. 유조선 나포·기뢰·드론 위협이 나오면 이 해역 전쟁위험 보험료가 먼저 뜁니다.",
+    side: "red",
+  },
+  {
+    id: "overview-bab-el-mandeb",
+    theater: "middle-east",
+    lat: 13.2,
+    lng: 42.9,
+    title: "바브엘만데브 — 홍해 입구",
+    body: "예멘 후티 반군이 드론·미사일·무인 보트로 지나가는 상선을 공격해 온 길목입니다. 위험이 커지면 배들이 희망봉으로 돌아가 항해가 1~2주 길어집니다.",
     side: "red",
   },
   {

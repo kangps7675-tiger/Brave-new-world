@@ -16,7 +16,7 @@ export const SIPRI_POLICY = {
 } as const;
 
 /**
- * OFF — 2026-10-23 무기거래 점선(호)·패널을 지도에서 뺌.
+ * OFF — 무기거래 점선(호)·패널을 지도에서 뺌.
  * (정적 축 관계망 axis-network · arms-embargo 구역과는 별개)
  */
 export const SIPRI_ARMS_LENS_ENABLED = false;

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CHOKEPOINTS, FLOW_SOURCE, chokepointSceneHref } from "@/data/chokepoints";
 import { absoluteUrl } from "@/lib/siteUrl";
+import { KoOnly } from "@/components/i18n/Tx";
 
 /**
  * 초크포인트 인덱스 — `/chokepoints`
@@ -60,9 +61,11 @@ export default function ChokepointsIndex() {
           Five narrow places decide what the rest of the map costs. These are the only
           coordinates where the war and the money are the same coordinates.
         </p>
-        <p className="mt-2 text-sm text-white/40">
-          해상 초크포인트 — 전쟁과 돈이 같은 좌표에서 만나는 다섯 지점.
-        </p>
+        <KoOnly>
+          <p className="mt-2 text-sm text-white/40">
+            해상 초크포인트 — 전쟁과 돈이 같은 좌표에서 만나는 다섯 지점.
+          </p>
+        </KoOnly>
       </header>
 
       <ul className="mt-12 space-y-4">

@@ -1,15 +1,16 @@
 import type { WarRiskRegionId } from "@/lib/warRisk/extractPremium";
 import { ACTOR_LABEL, countActors } from "@/lib/attackActor";
+import { groupByHormuzAnchorage } from "@/lib/sea/anchorages";
 import { warRiskRegionAt } from "@/lib/warRisk/regionGeo";
 
 /** 해역 판단 카드에 쓰는 해역 (보험 시장이 부르는 단위, regionGeo.ts와 같은 id) */
-export const SEA_REGIONS = ["red-sea", "hormuz", "black-sea", "taiwan-strait", "malacca"] as const;
+export const SEA_REGIONS = ["hormuz", "red-sea", "black-sea", "taiwan-strait", "malacca"] as const;
 export type SeaRegion = (typeof SEA_REGIONS)[number];
 
 /** 카드를 열 때 지구본이 날아갈 중심점 */
 export const SEA_REGION_VIEW: Record<SeaRegion, { lat: number; lng: number }> = {
   "red-sea": { lat: 15, lng: 42 },
-  hormuz: { lat: 26.5, lng: 55.5 },
+  hormuz: { lat: 25.75, lng: 56.4 },
   "black-sea": { lat: 43.5, lng: 34 },
   "taiwan-strait": { lat: 24, lng: 119.5 },
   malacca: { lat: 3, lng: 100 },
@@ -56,6 +57,8 @@ export type SeaBrief = {
   reasons: string[];
   /** 이 판정이 말해 주지 못하는 것 */
   limits: string[];
+  /** 호르무즈만. 하사브·푸자이라·호르 파칸 정박지별 건수 */
+  anchorages: { nameKo: string; nameEn: string; n: number }[];
 };
 
 const HARD_TYPES = new Set(["Attack", "Hijack", "Boarding"]);
@@ -77,7 +80,7 @@ export function stanceFrom(x: { strikes30d: number; lastAgeDays: number | null; 
 
 export function computeSeaBrief(
   region: SeaRegion,
-  input: { incidents: SeaIncident[]; quotes: SeaQuote[]; weather: SeaWx | null; now?: number },
+  input: { incidents: SeaIncident[]; quotes: SeaQuote[]; weather: SeaWx | null; now?: number; lang?: "ko" | "en" },
 ): SeaBrief {
   const now = input.now ?? Date.now();
   const hard = input.incidents
@@ -101,31 +104,78 @@ export function computeSeaBrief(
     : null;
 
   const stance = stanceFrom({ strikes30d: cur, lastAgeDays, premiumUp: premium?.direction === "up", hasData: input.incidents.length > 0 || !!premium });
+  const en = input.lang === "en";
 
   const reasons: string[] = [];
-  reasons.push(`최근 30일 피격·나포·승선 ${cur}건 (직전 30일 ${prev}건)`);
+  reasons.push(
+    en
+      ? `Attacks, hijackings, and boardings in the last 30 days: ${cur} (previous 30 days: ${prev})`
+      : `최근 30일 피격·나포·승선 ${cur}건 (직전 30일 ${prev}건)`,
+  );
   if (last && lastAgeDays !== null) {
-    reasons.push(`가장 최근: ${Math.floor(lastAgeDays)}일 전${last.i.vesselName ? ` · ${last.i.vesselName}` : ""}`);
+    const days = Math.floor(lastAgeDays);
+    const vessel = last.i.vesselName ? ` · ${last.i.vesselName}` : "";
+    reasons.push(en ? `Most recent: ${days} day${days === 1 ? "" : "s"} ago${vessel}` : `가장 최근: ${days}일 전${vessel}`);
   }
   if (cur > 0) {
     const a = countActors(hard.filter((x) => now - x.t <= 30 * DAY).map((x) => x.i));
-    const parts = (Object.keys(a) as Array<keyof typeof a>).filter((k) => a[k] > 0).map((k) => `${ACTOR_LABEL[k].ko} ${a[k]}`);
-    reasons.push(`공격 주체: ${parts.join(" · ")} (UKMTO가 밝힌 것만)`);
+    const parts = (Object.keys(a) as Array<keyof typeof a>)
+      .filter((k) => a[k] > 0)
+      .map((k) => `${en ? ACTOR_LABEL[k].en : ACTOR_LABEL[k].ko} ${a[k]}`);
+    reasons.push(
+      en
+        ? `Attributed attackers: ${parts.join(" · ")} (only what UKMTO states)`
+        : `공격 주체: ${parts.join(" · ")} (UKMTO가 밝힌 것만)`,
+    );
   }
   if (premium?.ratePct != null) {
-    const dir = premium.direction === "up" ? "상승" : premium.direction === "down" ? "하락" : "보합";
-    reasons.push(`전쟁위험 보험료 선박가치의 ${premium.ratePct}% (${dir}, ${premium.outlet ?? "보도"})`);
+    const dir = en
+      ? premium.direction === "up"
+        ? "up"
+        : premium.direction === "down"
+          ? "down"
+          : "flat"
+      : premium.direction === "up"
+        ? "상승"
+        : premium.direction === "down"
+          ? "하락"
+          : "보합";
+    reasons.push(
+      en
+        ? `War-risk premium ${premium.ratePct}% of hull value (${dir}, ${premium.outlet ?? "press"})`
+        : `전쟁위험 보험료 선박가치의 ${premium.ratePct}% (${dir}, ${premium.outlet ?? "보도"})`,
+    );
   }
   if (input.weather?.waveHeightM != null && input.weather.waveHeightM >= 3) {
-    reasons.push(`파고 ${input.weather.waveHeightM}m — 우회·대기 판단에 영향`);
+    reasons.push(
+      en
+        ? `Wave height ${input.weather.waveHeightM}m — relevant to a divert-or-wait call`
+        : `파고 ${input.weather.waveHeightM}m — 우회·대기 판단에 영향`,
+    );
   }
 
-  const limits = [
-    "UKMTO가 공지한 사건만 셉니다. 공지가 없거나 늦은 사건은 빠집니다.",
-    "AIS 신호가 끊긴 구간은 「배가 없었다」가 아니라 「자료가 없다」입니다.",
-    "보험료는 공개 시세가 없어 언론 보도에서 뽑은 값입니다. 실제 항차 견적과 다릅니다.",
-    "참고용 판단입니다. 운항 결정은 선사·보험사 기준과 함께 보세요.",
-  ];
+  const anchorages =
+    region === "hormuz"
+      ? groupByHormuzAnchorage(hard.map((x) => x.i)).map((g) => ({
+          nameKo: g.nameKo,
+          nameEn: g.nameEn,
+          n: g.items.length,
+        }))
+      : [];
 
-  return { region, strikes30d: cur, strikesPrev30d: prev, lastStrikeAt: last ? last.i.utcDateOfIncident ?? null : null, lastStrikeVessel: last?.i.vesselName ?? null, trend, premium, weather: input.weather, stance, reasons, limits };
+  const limits = en
+    ? [
+        "Only incidents UKMTO has published are counted. Missing or late notices are left out.",
+        "A gap in AIS is “no data”, not “no ship was there”.",
+        "Premiums are figures taken from press reports, not a public quote. A real voyage quote will differ.",
+        "This is a reference call. Voyage decisions still sit with the owner and the insurer.",
+      ]
+    : [
+        "UKMTO가 공지한 사건만 셉니다. 공지가 없거나 늦은 사건은 빠집니다.",
+        "AIS 신호가 끊긴 구간은 「배가 없었다」가 아니라 「자료가 없다」입니다.",
+        "보험료는 공개 시세가 없어 언론 보도에서 뽑은 값입니다. 실제 항차 견적과 다릅니다.",
+        "참고용 판단입니다. 운항 결정은 선사·보험사 기준과 함께 보세요.",
+      ];
+
+  return { region, strikes30d: cur, strikesPrev30d: prev, lastStrikeAt: last ? last.i.utcDateOfIncident ?? null : null, lastStrikeVessel: last?.i.vesselName ?? null, trend, premium, weather: input.weather, stance, reasons, limits, anchorages };
 }

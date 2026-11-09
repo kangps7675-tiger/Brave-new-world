@@ -3,6 +3,7 @@
 import { coerceViewerMode } from "@/lib/viewerModePolicy";
 import { useCallback, useEffect, startTransition, type MutableRefObject, type Dispatch, type SetStateAction } from "react";
 import { shouldOfferAirRaidCoach } from "@/components/AirRaidOnboardingCoach";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import { markQuickStartDone } from "@/components/QuickStartCoach";
 import { markViewerIntroDone } from "@/components/ViewerIntroOverlay";
 import type { LayerPanelTab } from "@/components/globe/LayerPanelHost";
@@ -31,6 +32,7 @@ import { savePerfPrefs } from "@/lib/ultraLiteMode";
 import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersMaritimeFirstScreen } from "@/lib/viewPackages";
 import { applyViewerMode } from "@/lib/viewerChrome";
 import { rememberConflictTheater, rememberEconomyHub } from "@/lib/watchFocus";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 
 export type UseModeSceneHandlersOptions = {
   initialViewConfig: MergedViewConfig | null;
@@ -452,6 +454,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
   }
 
   function handleViewerModeChange(mode: ViewerMode) {
+    if (mode === "satellite" && !SATELLITE_ENABLED) return;
     if (historyStoryLockedRef.current) return;
     if (viewerMode === mode) return;
     trackModeSwitch(mode);
@@ -511,6 +514,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       return;
     }
     if (job === "satellite") {
+      if (!SATELLITE_ENABLED) return;
       pendingObserveFlyRef.current = {
         lat: orbit.lat,
         lng: orbit.lng,
@@ -566,7 +570,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     }
 
     const startTimer = window.setTimeout(() => {
-      setShowIntroHint(true);
+      if (AUTO_ENTRY_UX_ALERTS) setShowIntroHint(true);
       const orbit = entryOrbitCamera(size);
       flyTo(
         orbit.lat,
@@ -827,6 +831,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
 
   /** 공습경보 칩에 처음 다가갈 때만 1회 설명 (투어는 기능 안내에서 수동) */
   const maybeOfferAirRaidCoach = useCallback(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (isEconomyViewer) return;
     if (issueUiPausedForLamp) return;
     if (!firstImpression.onboardingReady) return;

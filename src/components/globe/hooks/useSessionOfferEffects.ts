@@ -23,6 +23,7 @@ import { type SentinelFlyTarget, SENTINEL_CYCLE_MS, fetchSentinelTour } from "@/
 import type { TensionHeatmapLayer } from "@/lib/tensionHeatmap";
 import { resolveTensionCutNav } from "@/lib/tensionSpikeCut";
 import { navSelectionFromId } from "@/lib/theaterFocus";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import { shouldOfferTourInvite } from "@/lib/tourInvite";
 import type { ViewTheaterChoice, ViewerMode } from "@/lib/viewPackages";
 import { loadWatchPins, formatWatchPinsLine } from "@/lib/watchFocus";
@@ -158,6 +159,7 @@ export function useSessionOfferEffects(opts: UseSessionOfferEffectsOptions) {
 
   /** 화면 투어 — 자동 풀투어 없음. 목적 카드·등불 settle 후 천천히 권유. */
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (isLoading || loadError || !globeReady) return;
     if (!langChoiceChecked || !langChoiceDone) return;
     if (!purposeJobChecked || !purposeJobDone || purposeJobForced) return;
@@ -227,6 +229,7 @@ export function useSessionOfferEffects(opts: UseSessionOfferEffectsOptions) {
 
   // 세션 1회: daily-ranks 핫 전장·초크 → 선택창 (수락 시에만 레이어·카메라)
   useEffect(() => {
+    if (!AUTO_ENTRY_UX_ALERTS) return;
     if (!globeReady || isLoading || entryGate !== null || showModePicker) return;
     if (hotTheaterSessionConsumed()) return;
     if (hotTheaterOffer) return;

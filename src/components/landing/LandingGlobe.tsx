@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { geoGraticule10, geoInterpolate, geoOrthographic, geoPath, type GeoPermissibleObjects } from "d3-geo";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { useScrollProgress } from "@/components/landing/LandingMotion";
 
 /**
@@ -76,6 +78,39 @@ export const HOTSPOTS: Hotspot[] = [
   },
 ];
 
+const HOTSPOT_EN: Record<string, Pick<Hotspot, "name" | "why" | "see">> = {
+  hormuz: {
+    name: "Strait of Hormuz",
+    why: "Effectively the only exit for Persian Gulf oil and LNG. About a fifth of the world's oil consumption passes through.",
+    see: "Tanker positions · maritime attack alerts · drone and missile strikes on Gulf plants",
+  },
+  bab: {
+    name: "Bab el-Mandeb",
+    why: "The gate into the Red Sea and the Suez Canal. When it turns dangerous, ships detour around the Cape and lose one to two weeks.",
+    see: "Houthi attack alerts · nearby merchant ships and warships · reported war-risk premiums",
+  },
+  blacksea: {
+    name: "Black Sea",
+    why: "The sea Ukrainian and Russian grain and oil leave through.",
+    see: "Strikes on ports and tankers · occupied areas of Ukraine · sea-drone reports",
+  },
+  suez: {
+    name: "Suez Canal",
+    why: "The shortest sea route between Asia and Europe. Risk in the Red Sea carries straight through.",
+    see: "Ship positions on the approaches · the same flow as Red Sea incidents",
+  },
+  malacca: {
+    name: "Strait of Malacca",
+    why: "The shortest route for Middle East oil bound for Korea, China, and Japan.",
+    see: "Ship position signals · piracy and seizure reports",
+  },
+  taiwan: {
+    name: "Taiwan Strait",
+    why: "A busy East Asian container route, beside the island that makes most advanced chips.",
+    see: "Chinese military flights and ships · exercise zones",
+  },
+};
+
 type Land = GeoPermissibleObjects;
 
 /**
@@ -96,6 +131,7 @@ const TRAVEL_MS = 1500;
 const HOLD_MS = 3800;
 
 export function LandingGlobe() {
+  const lang = useLandingLanguage();
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [land, setLand] = useState<Land | null>(null);
@@ -391,7 +427,9 @@ export function LandingGlobe() {
     dragRef.current = null;
   };
 
-  const h = HOTSPOTS[active];
+  const raw = HOTSPOTS[active];
+  const en = HOTSPOT_EN[raw.id];
+  const h = lang === "en" && en ? { ...raw, ...en } : raw;
 
   return (
     <div
@@ -407,7 +445,11 @@ export function LandingGlobe() {
         <canvas
           ref={canvasRef}
           role="img"
-          aria-label={`지구본. 지금 ${h.name}을 보여 주고 있습니다.`}
+          aria-label={
+            lang === "en"
+              ? `Globe. Now showing ${h.name}.`
+              : `지구본. 지금 ${h.name}을 보여 주고 있습니다.`
+          }
           className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -422,18 +464,27 @@ export function LandingGlobe() {
         >
           <p className="m-0 text-[15px] font-bold text-[#f5c451]">{h.name}</p>
           <p className="mb-0 mt-1 text-sm leading-snug text-[#d7e0e6]">{h.why}</p>
-          <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">지구본에서 보는 것 · {h.see}</p>
+          <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">
+            {pick(lang, "지구본에서 보는 것", "On the globe")} · {h.see}
+          </p>
         </div>
       </div>
       <p className="m-0 text-center text-caption text-[#7d8f9c]">
         <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#f87171] align-middle" />
         {incidentCount != null && incidentCount > 0
-          ? `붉은 점: 최근 60일 실제 UKMTO 해상 경보 ${incidentCount}건`
-          : "붉은 점: 최근 UKMTO 해상 경보"}
-        <span className="mx-2 text-white/20">|</span>흐르는 배와 점선 항로는 이해를 돕는 연출입니다
+          ? pick(
+              lang,
+              `붉은 점: 최근 60일 실제 UKMTO 해상 경보 ${incidentCount}건`,
+              `Red dots: ${incidentCount} real UKMTO maritime alerts in the last 60 days`,
+            )
+          : pick(lang, "붉은 점: 최근 UKMTO 해상 경보", "Red dots: recent UKMTO maritime alerts")}
+        <span className="mx-2 text-white/20">|</span>
+        {pick(lang, "흐르는 배와 점선 항로는 이해를 돕는 연출입니다", "Moving ships and dotted routes are illustrations, not live tracks")}
       </p>
-      <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label="길목 고르기">
-        {HOTSPOTS.map((s, i) => (
+      <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label={pick(lang, "길목 고르기", "Choose a passage")}>
+        {HOTSPOTS.map((s, i) => {
+          const label = lang === "en" ? (HOTSPOT_EN[s.id]?.name ?? s.name) : s.name;
+          return (
           <button
             key={s.id}
             type="button"
@@ -448,9 +499,10 @@ export function LandingGlobe() {
                 : "border-white/15 bg-transparent text-[#a3b3bf] hover:border-white/40 hover:text-white"
             }`}
           >
-            {s.name}
+            {label}
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

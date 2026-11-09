@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 
 /**
  * 초크포인트 페이지 — "보도 기준" 전쟁위험 보험료.
@@ -50,6 +51,7 @@ function fmtDate(iso: string | null): string {
 }
 
 export default function WarRiskQuotes({ slug }: { slug: string }) {
+  const en = useLandingLanguage() === "en";
   const region = WAR_RISK_REGION_BY_SLUG[slug];
   const [quotes, setQuotes] = useState<Quote[] | null>(null);
 
@@ -77,14 +79,16 @@ export default function WarRiskQuotes({ slug }: { slug: string }) {
   return (
     <section className="mt-12">
       <h2 className="text-xl font-semibold text-white">War-risk insurance, as reported</h2>
-      <p className="mt-1 text-sm text-white/45">보도 기준 전쟁위험 보험료</p>
+      <p className="mt-1 text-sm text-white/45">{en ? "War-risk premium, as reported" : "보도 기준 전쟁위험 보험료"}</p>
 
       {quotes === null ? (
         <p className="mt-4 text-sm text-white/40">Loading…</p>
       ) : quotes.length === 0 ? (
         <p className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
           No premium figure has been reported for this area in the last 180 days.
-          <span className="mt-1 block text-white/40">최근 180일간 이 해역의 보험료 수치가 보도된 기사가 없습니다.</span>
+          {en ? null : (
+            <span className="mt-1 block text-white/40">최근 180일간 이 해역의 보험료 수치가 보도된 기사가 없습니다.</span>
+          )}
         </p>
       ) : (
         <>
@@ -104,8 +108,9 @@ export default function WarRiskQuotes({ slug }: { slug: string }) {
               <p className="mt-1 text-xs text-white/45">
                 {fmtDate(latest.publishedAt)} · {latest.outlet ?? "news"}
                 {latest.ratePrevPct !== null ? ` · previously ${latest.ratePrevPct}%` : ""}
-                {" · "}선가 대비 {fmtRate(latest)} — 선가 1억 달러 배라면 항차당 약{" "}
-                {fmtUsd(((latest.rateHighPct ?? latest.ratePct ?? 0) / 100) * 100_000_000)}
+                {en
+                  ? ` · ${fmtRate(latest)} of hull value — about ${fmtUsd(((latest.rateHighPct ?? latest.ratePct ?? 0) / 100) * 100_000_000)} per voyage on a $100 million ship`
+                  : ` · 선가 대비 ${fmtRate(latest)} — 선가 1억 달러 배라면 항차당 약 ${fmtUsd(((latest.rateHighPct ?? latest.ratePct ?? 0) / 100) * 100_000_000)}`}
               </p>
             </div>
           ) : null}
@@ -154,9 +159,11 @@ export default function WarRiskQuotes({ slug }: { slug: string }) {
       <p className="mt-3 text-xs leading-relaxed text-white/35">
         These are figures quoted in news reports, not a live market price. Actual war-risk quotes vary by
         vessel, owner, flag and broker, and are usually set per voyage.
-        <span className="block">
-          시세가 아니라 기사에 실린 수치입니다. 실제 견적은 선박·선주·국적·브로커마다 다르고 보통 항차별로 정해집니다.
-        </span>
+        {en ? null : (
+          <span className="block">
+            시세가 아니라 기사에 실린 수치입니다. 실제 견적은 선박·선주·국적·브로커마다 다르고 보통 항차별로 정해집니다.
+          </span>
+        )}
       </p>
     </section>
   );

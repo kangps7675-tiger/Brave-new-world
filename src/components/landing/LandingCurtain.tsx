@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
-import { setLandingCurtainActive } from "@/lib/landingCurtainState";
 import { useDialog } from "@/hooks/useDialog";
+import { setLandingCurtainActive } from "@/lib/landingCurtainState";
+import { readLangChoiceDone } from "@/components/globe/formatters";
+import { loadLayerPrefs } from "@/lib/layerPrefs";
+import { landingCopy } from "@/components/landing/landingCopy";
 import { LandingContent, type EnterPlace } from "@/components/landing/LandingContent";
+import { publishLandingLanguage, readLandingLanguageChoice, useLandingLanguage } from "@/lib/landingLanguage";
 
 /**
  * 첫 화면 — 로딩 창 자리에 랜딩을 덮는다. 처음 온 사람뿐 아니라 매번 보인다:
@@ -103,17 +107,21 @@ export function LandingCurtain({
   /** 막이 떠 있는 동안 Tab이 아래 지구본 컨트롤로 새지 않게 가둔다. Esc로는 닫지 않는다. */
   const dialogRef = useDialog<HTMLDivElement>({ open: !lifting, closeOnEscape: false });
   // 막이 떠 있는 동안 속보 팝업·타전음을 막는다 (막이 언마운트되면 풀린다)
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLandingCurtainActive(true);
     return () => setLandingCurtainActive(false);
   }, []);
   const onLiftedRef = useRef(onLifted);
   onLiftedRef.current = onLifted;
 
+  const copy = landingCopy(useLandingLanguage());
   const pct = Math.min(100, Math.max(0, Math.round(progress)));
 
   const requestLift = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (!readLangChoiceDone()) {
+        publishLandingLanguage(readLandingLanguageChoice() ?? loadLayerPrefs().labelLanguage);
+      }
       const r = event.currentTarget.getBoundingClientRect();
       originRef.current = {
         x: (r.left + r.width / 2) / window.innerWidth,
@@ -211,9 +219,9 @@ export function LandingCurtain({
   }, [lift, finish, dialogRef]);
 
   const label = (place: EnterPlace) => {
-    if (ready || lifting) return "지구본 열기";
-    if (queued) return place === "nav" ? `곧 열려요 ${pct}%` : `준비되면 바로 열려요 · ${pct}%`;
-    return place === "nav" ? `지구본 ${pct}%` : `지구본 열기 · 준비 중 ${pct}%`;
+    if (ready || lifting) return copy.openGlobe;
+    if (queued) return place === "nav" ? copy.curtainSoonNav(pct) : copy.curtainSoon(pct);
+    return place === "nav" ? copy.curtainPct(pct) : copy.curtainPrep(pct);
   };
 
   return (
@@ -222,7 +230,7 @@ export function LandingCurtain({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Strait Desk 소개"
+        aria-label={copy.curtainAria}
         style={{
           position: "fixed",
           inset: 0,

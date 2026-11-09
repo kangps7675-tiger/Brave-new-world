@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useAnyScroll } from "@/components/landing/LandingHip";
 
@@ -31,21 +33,27 @@ import { useAnyScroll } from "@/components/landing/LandingHip";
 
 type Kind = "drone" | "missile" | "mine";
 
-export const THREATS: { kind: Kind; title: string; body: string }[] = [
+export const THREATS: { kind: Kind; title: string; body: string; titleEn: string; bodyEn: string }[] = [
   {
     kind: "drone",
     title: "자폭 드론 · 샤헤드 계열",
+    titleEn: "One-way drone · Shahed type",
     body: "이란이 설계한 샤헤드 계열 자폭 드론은 느리지만 싸고 멀리 날아옵니다. 예멘 후티는 이란제·이란 설계 드론으로 홍해의 상선을 공격해 왔습니다.",
+    bodyEn: "Shahed-type one-way drones, designed in Iran, are slow, cheap, and long-range. Yemen's Houthis have used Iranian-made and Iranian-designed drones against merchant ships in the Red Sea.",
   },
   {
     kind: "missile",
     title: "대함 미사일",
+    titleEn: "Anti-ship missile",
     body: "후티는 2023년 말부터 홍해와 아덴만을 지나는 상선에 대함 탄도·순항 미사일을 쏴 왔습니다. 바다 위를 낮게 날아와 몇 분 안에 닿습니다.",
+    bodyEn: "Since late 2023 the Houthis have fired anti-ship ballistic and cruise missiles at merchant ships in the Red Sea and the Gulf of Aden. They fly low and arrive in minutes.",
   },
   {
     kind: "mine",
     title: "기뢰",
+    titleEn: "Naval mine",
     body: "물속에 숨어 있다가 배 밑에서 터집니다. 1980년대 '유조선 전쟁' 때 걸프에서 상선과 군함이 기뢰에 맞았고, 호르무즈처럼 좁은 해협을 막는 데 쓰일 수 있습니다.",
+    bodyEn: "A mine waits under the water and detonates beneath the hull. In the 1980s Tanker War, merchant ships and warships hit mines in the Gulf. They can also close a narrow strait such as Hormuz.",
   },
 ];
 
@@ -1080,7 +1088,10 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
     };
   }, [kind, reduced]);
 
+  const lang = useLandingLanguage();
   const th = THREATS.find((t) => t.kind === kind)!;
+  const title = pick(lang, th.title, th.titleEn);
+  const body = pick(lang, th.body, th.bodyEn);
   const on = active || reduced;
   return (
     <figure className="m-0">
@@ -1090,11 +1101,16 @@ function StrikePanel({ kind, active, onDone, reduced }: { kind: Kind; active: bo
           on ? "border-[#f87171]/60 opacity-100" : "border-white/10 opacity-55"
         }`}
       >
-        <canvas ref={canvasRef} role="img" aria-label={`연출 장면: 상선이 ${th.title}에 공격받는 모습`} className="block w-full" />
+        <canvas
+          ref={canvasRef}
+          role="img"
+          aria-label={pick(lang, `연출 장면: 상선이 ${th.title}에 공격받는 모습`, `Illustration: a merchant ship under ${title}`)}
+          className="block w-full"
+        />
       </div>
       <figcaption className="mt-4">
-        <span className={`block text-[17px] font-bold transition-colors ${on ? "text-white" : "text-[#8fa3b1]"}`}>{th.title}</span>
-        <span className="mt-1.5 block text-[15px] leading-[1.7] text-[#a3b3bf]">{th.body}</span>
+        <span className={`block text-[17px] font-bold transition-colors ${on ? "text-white" : "text-[#8fa3b1]"}`}>{title}</span>
+        <span className="mt-1.5 block text-[15px] leading-[1.7] text-[#a3b3bf]">{body}</span>
       </figcaption>
     </figure>
   );
@@ -1110,6 +1126,7 @@ const PIN_STEP_VH = 70;
  * 좁은 화면·낮은 화면·움직임 줄이기에서는 예전처럼 세 장을 늘어놓고 차례로 재생한다.
  */
 export function ShipStrikeScene() {
+  const lang = useLandingLanguage();
   const [idx, setIdx] = useState(0);
   const [reduced, setReduced] = useState(false);
   const [pin, setPin] = useState(false);
@@ -1159,24 +1176,26 @@ export function ShipStrikeScene() {
             <div className="w-full" style={{ maxWidth: "min(100%, calc((100vh - 250px) / 0.62))" }}>
               <StrikePanel key={t.kind} kind={t.kind} active reduced={false} onDone={() => {}} />
             </div>
-            <div className="mt-5 flex items-center gap-3" role="tablist" aria-label="장면 선택">
+            <div className="mt-5 flex items-center gap-3" role="tablist" aria-label={pick(lang, "장면 선택", "Choose a scene")}>
               {THREATS.map((x, i) => (
                 <button
                   key={x.kind}
                   type="button"
                   role="tab"
                   aria-selected={i === step}
-                  aria-label={`${i + 1}번째 장면: ${x.title}`}
+                  aria-label={pick(lang, `${i + 1}번째 장면: ${x.title}`, `Scene ${i + 1}: ${x.titleEn}`)}
                   onClick={() => go(i)}
                   className={`h-2.5 cursor-pointer rounded-full border-0 p-0 transition-all ${i === step ? "w-8 bg-[#f87171]" : "w-2.5 bg-white/25 hover:bg-white/50"}`}
                 />
               ))}
               <span className="ml-2 text-micro tabular-nums text-[#8fa3b1]">
                 {step + 1} / {N}
-                {step < N - 1 ? " · 스크롤하면 다음 장면" : ""}
+                {step < N - 1 ? pick(lang, " · 스크롤하면 다음 장면", " · Scroll for the next scene") : ""}
               </span>
             </div>
-            <p className="mb-0 mt-3 text-micro text-[#8fa3b1]">연출 장면이며 실제 사건 영상이 아닙니다.</p>
+            <p className="mb-0 mt-3 text-micro text-[#8fa3b1]">
+              {pick(lang, "연출 장면이며 실제 사건 영상이 아닙니다.", "This is a staged scene, not footage of a real attack.")}
+            </p>
           </div>
         </div>
       </div>
@@ -1190,7 +1209,9 @@ export function ShipStrikeScene() {
           <StrikePanel key={t.kind} kind={t.kind} active={!reduced && i === idx} reduced={reduced} onDone={() => setIdx((i + 1) % THREATS.length)} />
         ))}
       </div>
-      <p className="mt-4 text-micro text-[#8fa3b1]">연출 장면이며 실제 사건 영상이 아닙니다.</p>
+      <p className="mt-4 text-micro text-[#8fa3b1]">
+        {pick(lang, "연출 장면이며 실제 사건 영상이 아닙니다.", "This is a staged scene, not footage of a real attack.")}
+      </p>
     </div>
   );
 }

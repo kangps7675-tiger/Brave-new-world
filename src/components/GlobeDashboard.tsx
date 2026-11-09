@@ -123,10 +123,12 @@ import { type AirRaidBriefingContent } from "@/components/AirRaidBriefingParchme
 import {
   type UxGuideBriefContent,
 } from "@/lib/uxGuideBrief";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 
 import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
+import { LANDING_LANG_EVENT, readLandingLanguageChoice } from "@/lib/landingLanguage";
 import { IncidentStack } from "@/components/globe/IncidentStack";
 import { EventDock } from "@/components/globe/EventDock";
 import { SeaRegionPanel } from "@/components/globe/SeaRegionPanel";
@@ -589,6 +591,7 @@ import { useStableGlobeLayers } from "@/components/globe/hooks/useStableGlobeLay
 import { useStrategicPathLayers } from "@/components/globe/hooks/useStrategicPathLayers";
 import { useDisputeZoneLayers } from "@/components/globe/hooks/useDisputeZoneLayers";
 import { useBlocPolygonLayers } from "@/components/globe/hooks/useBlocPolygonLayers";
+import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 
 export type { GlobeDashboardProps } from "@/components/globe/types";
 
@@ -1027,7 +1030,8 @@ export function GlobeDashboard({
     !loadError &&
     globeReady &&
     entryGate === null &&
-    !showModePicker;
+    !showModePicker &&
+    !landingCurtainActive;
   const showPurposeJobGate =
     purposeJobChecked &&
     langChoiceChecked &&
@@ -1038,7 +1042,8 @@ export function GlobeDashboard({
     !loadError &&
     globeReady &&
     entryGate === null &&
-    !showModePicker;
+    !showModePicker &&
+    !landingCurtainActive;
   const [gdeltEvents, setGdeltEvents] = useState<ConflictEvent[]>([]);
   const [gdeltLoading, setGdeltLoading] = useState(false);
   const [gdeltError, setGdeltError] = useState<string | null>(null);
@@ -2440,6 +2445,28 @@ export function GlobeDashboard({
     [togglePref],
   );
 
+  useEffect(() => {
+    const apply = (lang: LabelLanguage) => {
+      if (layerPrefsLiveRef.current.labelLanguage !== lang) {
+        confirmLabelLanguage(lang);
+        return;
+      }
+      setLangChoiceDone(true);
+      if (!readPurposeJobDone()) {
+        pendingQuietOverviewRef.current = true;
+        quietOverviewAppliedRef.current = false;
+      }
+    };
+    const onLandingLang = (event: Event) => {
+      const lang = (event as CustomEvent<LabelLanguage>).detail;
+      if (lang === "ko" || lang === "en") apply(lang);
+    };
+    window.addEventListener(LANDING_LANG_EVENT, onLandingLang);
+    const pending = readLandingLanguageChoice();
+    if (pending) apply(pending);
+    return () => window.removeEventListener(LANDING_LANG_EVENT, onLandingLang);
+  }, [confirmLabelLanguage]);
+
   const [regionNavSelection, setRegionNavSelection] = useState<NavSelection | null>(null);
   const [selectedAxisLink, setSelectedAxisLink] = useState<SelectedAxisLink | null>(null);
   const [selectedCorridor, setSelectedCorridor] = useState<SelectedCorridor | null>(null);
@@ -3662,7 +3689,7 @@ export function GlobeDashboard({
 
   /** 관측대 설명 카드 — 첫 방문 유저가 관측대를 처음 켤 때만 */
   useEffect(() => {
-    if (!isSatelliteViewer || isPhoneUi) {
+    if (!AUTO_ENTRY_UX_ALERTS || !isSatelliteViewer || isPhoneUi) {
       setIntelDeskTipVisible(false);
       return;
     }
@@ -7376,7 +7403,7 @@ export function GlobeDashboard({
               onGoToLocation={(it) => {
                 unifiedFlyTo(it.lat, it.lng, 0.5);
               }}
-              onViewSatellite={viewStackItemInSatellite}
+              onViewSatellite={SATELLITE_ENABLED ? viewStackItemInSatellite : undefined}
             />
             <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
             {feedDrawerActive ? (
@@ -7469,7 +7496,7 @@ export function GlobeDashboard({
           />
         ) : null}
 
-        {LAB_UI && observeTracksNudge && !isSatelliteViewer ? (
+        {SATELLITE_ENABLED && LAB_UI && observeTracksNudge && !isSatelliteViewer ? (
           <div
             className={`pointer-events-auto fixed right-3 ${zc("toast")} max-w-[min(20rem,72vw)] rounded-sm border border-teal-500/40 bg-[#041018]/92 px-3 py-2 shadow-lg backdrop-blur-sm`}
             style={{
@@ -7598,11 +7625,15 @@ export function GlobeDashboard({
                     setStrikeParchmentId(null);
                     unifiedFlyTo(it.lat, it.lng, 0.5);
                   }}
-                  onViewSatellite={(it) => {
-                    openEventCallout(calloutFromStackItem(it, labelLanguage));
-                    setStrikeParchmentId(null);
-                    viewStackItemInSatellite(it);
-                  }}
+                  onViewSatellite={
+                    SATELLITE_ENABLED
+                      ? (it) => {
+                          openEventCallout(calloutFromStackItem(it, labelLanguage));
+                          setStrikeParchmentId(null);
+                          viewStackItemInSatellite(it);
+                        }
+                      : undefined
+                  }
                 />
               );
             })()
@@ -7637,11 +7668,15 @@ export function GlobeDashboard({
               if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
               else unifiedFlyTo(it.lat, it.lng, 0.5);
             }}
-            onViewSatellite={(it) => {
-              // 속보창은 닫지 않는다 — 위성 실지도를 같이 본다
-              if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
-              else viewStackItemInSatellite(it);
-            }}
+            onViewSatellite={
+              SATELLITE_ENABLED
+                ? (it) => {
+                    // 속보창은 닫지 않는다 — 위성 실지도를 같이 본다
+                    if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
+                    else viewStackItemInSatellite(it);
+                  }
+                : undefined
+            }
           />
         ) : null}
 
@@ -8081,7 +8116,7 @@ export function GlobeDashboard({
           onChokepointDrill: chokepointStressGate
             ? () => openIntelDrill(chokepointStressGate)
             : undefined,
-          onChokepointOpenObserve: isSatelliteViewer
+          onChokepointOpenObserve: isSatelliteViewer || !SATELLITE_ENABLED
             ? undefined
             : () => {
                 setChokepointStressBriefing(null);
