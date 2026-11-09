@@ -9,17 +9,18 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 
-// wrangler package.json exports가 ./bin/wrangler.js 를 열지 않는다.
-const wranglerJs = path.resolve(
+// bin/wrangler.js 는 다른 프로세스를 띄우는 껍데기다.
+// 배포 명령은 그 안의 cli.js 를 직접 실행한다.
+const wranglerCli = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../node_modules/wrangler/bin/wrangler.js",
+  "../node_modules/wrangler/wrangler-dist/cli.js",
 );
 const args = process.argv.slice(2);
 const isDeploy = args[0] === "deploy";
 const wrapped = process.env.WRANGLER_RETRY_WRAPPED === "1";
 
 function run() {
-  return spawnSync(process.execPath, [wranglerJs, ...args], {
+  return spawnSync(process.execPath, ["--no-warnings", wranglerCli, ...args], {
     stdio: "inherit",
     env: process.env,
   });

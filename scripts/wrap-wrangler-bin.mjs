@@ -2,7 +2,7 @@
  * npm이 연결한 wrangler 실행 파일을 재시도 가리개로 바꾼다.
  * Workers Builds 배포 명령이 `npx wrangler deploy` 라서, 이 연결이 있어야 504 재시도가 탄다.
  */
-import { chmodSync, existsSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
@@ -27,6 +27,9 @@ exit $LASTEXITCODE
 `;
 
 const shPath = path.join(binDir, "wrangler");
+// .bin/wrangler 는 wrangler.js 로 가는 심볼릭 링크다.
+// 지하지 않고 쓰면 링크를 따라가 본체 파일이 셸 스크립트로 덮인다.
+if (existsSync(shPath)) unlinkSync(shPath);
 writeFileSync(shPath, sh, "utf8");
 try {
   chmodSync(shPath, 0o755);
