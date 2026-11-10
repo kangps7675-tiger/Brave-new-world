@@ -43,7 +43,7 @@ function DatesList({ beat, onPick }: { beat: number; onPick: (i: number) => void
               className="w-full rounded-sm border px-3 py-2 text-left"
               style={{ borderColor: on ? "#9b2a1c" : "rgba(26,21,14,.35)", background: on ? "rgba(155,42,28,.08)" : "transparent", ...PAPER }}
             >
-              <span className="block text-[13px] font-bold" style={{ color: "#9b2a1c" }}>{row.tick}</span>
+              <span className="block text-caption font-bold" style={{ color: "#9b2a1c" }}>{row.tick}</span>
               <span className="block text-[16px] font-black leading-snug" style={{ color: "#1a150e" }}>{row.headline}</span>
             </button>
           </li>
