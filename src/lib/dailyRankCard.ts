@@ -18,7 +18,7 @@ const COPY = {
       kicker: "오늘의 공급망 스트레스",
       title: "초크포인트 TOP 5",
     },
-    brand: "Strait Desk",
+    brand: "conflict-view",
     score: "점수",
   },
   en: {
@@ -30,7 +30,7 @@ const COPY = {
       kicker: "Supply-chain stress",
       title: "Chokepoint TOP 5",
     },
-    brand: "Strait Desk",
+    brand: "conflict-view",
     score: "Score",
   },
 } as const;

@@ -83,7 +83,7 @@ export async function renderCounterfactualInvestCard(
 
   ctx.fillStyle = "#475569";
   ctx.font = "400 14px Inter, sans-serif";
-  ctx.fillText("Strait Desk", 48, 380);
+  ctx.fillText("conflict-view", 48, 380);
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), "image/png");

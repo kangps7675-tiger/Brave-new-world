@@ -35,7 +35,7 @@ export async function renderGeopoliticsSenseCard(options: {
 
   ctx.fillStyle = "rgba(251, 191, 36, 0.9)";
   ctx.font = "600 16px Inter, Wanted Sans, sans-serif";
-  ctx.fillText(ko ? "Strait Desk · 지정학 감각 테스트" : "Strait Desk · Geopolitics sense", 48, 56);
+  ctx.fillText(ko ? "conflict-view · 지정학 감각 테스트" : "conflict-view · Geopolitics sense", 48, 56);
 
   ctx.fillStyle = "#f8fafc";
   ctx.font = "700 36px Inter, Wanted Sans, sans-serif";

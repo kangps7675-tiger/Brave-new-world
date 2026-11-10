@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 /**
- * D1 schema (Drizzle) — Strait Desk
+ * D1 schema (Drizzle) — conflict-view
  *
  * - firms_fires: Cron ingest 라이브 산불/열원 (NASA FIRMS)
  * - ukraine_control_paths: 점령/주장 테두리·빗금 사전계산 path

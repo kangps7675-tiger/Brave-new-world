@@ -3,7 +3,7 @@ import { LandingContent } from "@/components/landing/LandingContent";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
-  title: "Strait Desk — 정보기관 상황실처럼, 바다의 위험을 한눈에",
+  title: "conflict-view — 정보기관 상황실처럼, 바다의 위험을 한눈에",
   description:
     "어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지. 피격 경보·선박 위치·항구 타격·항행경보를 3D 지구본 한 화면에. 공개 정보(OSINT) 기반, 가입 없이 무료.",
   alternates: { canonical: absoluteUrl("/landing") },

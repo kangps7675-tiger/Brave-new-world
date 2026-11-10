@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 소스마다 응답 필드가 달라 느슨하게 받는다 */
-// NGA MSI(msi.nga.mil) 수집기 — Strait Desk ingest Worker용  [실응답 확인 2026-10-18]
+// NGA MSI(msi.nga.mil) 수집기 — conflict-view ingest Worker용  [실응답 확인 2026-10-18]
 //
 // ⚠ 항행 경보: /api/publications/broadcast-warn JSON API는 2024-05-10 이후 갱신 중단
 //   (/broadcast-warn/latest-warning → {"date":"2024-05-10T15:42:00Z"}).

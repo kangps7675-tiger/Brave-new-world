@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-이 프로젝트(Strait Desk)에서 에이전트가 작업할 때 지켜야 할 규칙.
+이 프로젝트(conflict-view, 임시 서비스명)에서 에이전트가 작업할 때 지켜야 할 규칙.
 
 ## 유저 인사이트 / 브리핑 설명 톤
 
@@ -39,7 +39,7 @@
 
 새 레이어·패널·모드는 **케이스 파일(기사 확인)의 증거 또는 판정에 연결될 때만** 노출한다.
 발전소·철도·케이블·사일로·국경선처럼 속보의 원본이 아닌 지도 백과는 넣지 않는다. 그 층은 `src/lib/layerLab.ts`에서 항상 꺼 두고, 데이터 파일은 저장소에 두지 않는다. `NEXT_PUBLIC_LAB=1`로 되살리지 않는다.
-화면 모드는 지정학 하나이며 위성(세슘)은 사건 카드의 "위성으로 보기"로만 들어간다(`src/lib/viewerModePolicy.ts`).
+화면 모드는 지정학 하나이며, 위성(세슘)은 2026-11-06부터 막혀 있다(아래 세슘 제거 항목).
 
 ## 2026-10-20 방향 번복 — 전체 버전 복원
 
@@ -48,13 +48,13 @@
 해역 축소판 코드와 이날 추가된 것(에너지 시설 피격, 양피지, 진영 면 등)은 복원 직전 `main` 커밋 이력에 남아 있다.
 복원하면서 유지한 수정: Google Fonts 로컬화(빌드 안정성), MapLibre 워커의 버전 경로(`/maplibre-gl/<버전>/`).
 
-## 2026-10-21 첫 화면 = 랜딩이 약속한 「해운 위험」
+## 2026-11-11 제품 방향 — 근거로 확인하는 지정학 속보 (첫 화면 = 속보 중심)
 
-랜딩(해운 위험 상황실)에서 들어온 신규 방문자는 지정학 상황판이 아니라 해운 화면을 본다. 전체 지정학 버전은 그대로 있고 메뉴·「무엇을 볼까요」로 바꾼다.
-- 신규 방문 레이어는 `layerPrefs.ts`의 `firstVisitLayerPrefs`(= `firstScreenLayers.ts`의 `FIRST_SCREEN_MARITIME_ON/OFF`)에서 정해진다. 지구본은 마운트 때 `loadLayerPrefs()`만 읽으므로 보기 패키지만 바꿔서는 첫 화면이 안 바뀐다.
-- 기본 패키지 `maritime`(viewPackages.ts), 언어 선택 직후 히어로·「처음 화면으로」도 `buildDomainOverviewPrefs(…, { maritime })`로 같은 레이어.
-- 해운 화면에서는 지정학 개관(핵탄두 수·전략태세 라벨)을 숨기고 길목 콜아웃(`MARITIME_OVERVIEW_CALLOUTS`)을 띄운다. (좌측 「오늘의 GTS」 패널·「오늘의 브리핑」 게이지·「오늘의 등불뉴스」 접힘 탭은 2026-10-22 화면에서 뺐다 — `DashboardOverlayHost`)
-- 랜딩 문구(질문 넷·화면 읽는 법·불꽃)가 약속하는 레이어를 끄거나 실험실로 내리려면 랜딩 문구도 같이 고친다 (`src/lib/maritimeFirstScreen.test.ts`가 막는다).
+「Conflict-view 큰 그림 정리」 문서대로 방향을 바꾼다. 지구본 위에 지정학 속보를 찍고, 소식마다 출처와 확인 상태(확인·유력·자료 없음)를 붙이며, 이메일 브리핑(주 4회)으로 이어 준다. 해운은 폐기하지 않고 첫 연재 주제로 둔다.
+- 랜딩 문구는 이 방향을 말한다. 아직 화면에 없는 것(국가 이니셔티브·분기점·시나리오·직접 판정·주 4회 메일)은 반드시 「준비 중」으로 적고, 이미 있는 것처럼 쓰지 않는다. 무료 범위는 미정이라고 쓴다.
+- 신규 방문자의 첫 지구본 화면도 해운이 아니라 속보 중심으로 바꾼다(2단계 작업). 그 전까지 `firstScreenLayers.ts`의 해운 첫 화면은 그대로이고, `src/lib/maritimeFirstScreen.test.ts`가 랜딩 약속과 첫 화면 레이어를 맞춰 지킨다. 레이어를 바꾸면 랜딩 문구와 이 테스트를 같이 고친다.
+- 새 레이어·패널은 위 「새 기능·레이어 추가 기준」을 그대로 따른다. 케이스 파일의 증거나 판정에 연결될 때만 노출한다.
+- 이메일: 지금 실제로 나가는 것은 매일 한 번의 해운 요약이다(`emailConsent.ts`의 동의 문구도 그 내용). 주 4회 지정학 브리핑 발송을 만들기 전에는 동의 문구와 랜딩 설명을 바꿔 쓰지 않는다.
 
 ## 2026-10-21 세슘에는 선박(AIS)을 그리지 않는다
 
@@ -62,13 +62,11 @@
 - 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
 - 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
 
-## 서비스명 = Strait Desk (2026-10-23 전면 교체 완료)
+## 서비스명 = conflict-view (임시, 2026-11-11)
 
-서비스명은 **Strait Desk**뿐이다. 옛 이름은 화면·코드·문서·식별자 어디에도 남기지 않는다. 뜻: Strait=해협(길목), Desk=상황실의 데스크.
-- 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)를 쓴다.
-- localStorage·IndexedDB 키는 `straitdesk-*`, 설정 파일은 `src/config/straitdesk.config.ts`, 도메인·UA 연락 URL은 `straitdesk.app`이다. 옛 키로 저장된 방문자 설정은 이어받지 않는다(초기화됨).
-- npm 패키지명은 `strait-desk`. 저장소명·Vercel/Cloudflare 프로젝트명은 대시보드에서 따로 바꿔야 한다.
-- 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다 — 디자인 교체가 필요하다.
+서비스명은 당분간 **conflict-view**다. 확정 이름이 아니므로 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)만 거쳐 쓴다. 옛 이름(Strait Desk·Brave New World·GeoWatch)은 화면에 남기지 않는다.
+- 인프라 식별자는 바꾸지 않는다: localStorage·IndexedDB 키 `straitdesk-*`, 설정 파일 `src/config/straitdesk.config.ts`, 도메인 `straitdesk.app`, 외부 호출 User-Agent `StraitDesk/…`, npm 패키지명 `strait-desk`. 바꾸면 방문자 설정이 초기화된다.
+- 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다. 이름이 정해지면 다시 만든다.
 
 ## 2026-11-06 세슘(위성) 제거 — 1단계
 

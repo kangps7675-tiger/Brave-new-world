@@ -117,7 +117,7 @@ export function UtilityChromeMenu({
   onOpenLayers,
   onOpenSettings,
   onOpenData,
-  siteName = "Strait Desk",
+  siteName = "conflict-view",
   menuAlign = "right",
 }: UtilityChromeMenuProps) {
   const copy = MENU_COPY[lang] ?? MENU_COPY.ko;
