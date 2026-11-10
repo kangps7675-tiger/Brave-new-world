@@ -21,6 +21,7 @@ import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
 import { LandingOpenLink } from "@/components/landing/LandingOpenLink";
 import { landingCopy } from "@/components/landing/landingCopy";
 import { useLandingLanguage } from "@/lib/landingLanguage";
+import { BRAND_NAME } from "@/lib/brand";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
 export type EnterPlace = "nav" | "hero" | "footer";
@@ -139,7 +140,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
               <circle cx="14" cy="14" r="6" fill="none" stroke="#5eead4" strokeWidth="2" strokeDasharray="3 3" />
               <circle cx="14" cy="14" r="2" fill="#f5c451" />
             </svg>
-            <span className="text-lg font-bold tracking-[-0.01em]">Strait Desk</span>
+            <span className="text-lg font-bold tracking-[-0.01em]">{BRAND_NAME[lang]}</span>
           </a>
           <div className="flex flex-wrap items-center gap-6 text-[15px]">
             <a href="#ask" className="hidden text-[#c9d5dd] no-underline hover:text-white md:inline">{copy.navAsk}</a>
@@ -425,7 +426,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         />
       </section>
 
-      {/* NAME — 왜 'Strait Desk'인가 */}
+      {/* NAME — 서비스 소개 */}
       <section id="name" className="border-y border-white/10 bg-[#081019]">
         <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
           <Reveal className="min-w-0 flex-[1_1_360px]">
@@ -516,7 +517,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
       <footer className="border-t border-white/10 bg-[#05080d] text-[#8796a3]">
         <div className={`${WRAP} flex flex-wrap justify-between gap-5 py-10 text-sm leading-[1.7]`}>
           <div>
-            <span className="font-semibold text-[#e6edf2]">Strait Desk</span> · PhilSolution
+            <span className="font-semibold text-[#e6edf2]">{BRAND_NAME[lang]}</span> · PhilSolution
           </div>
           <p className="m-0 max-w-[640px]">
             {copy.footer}

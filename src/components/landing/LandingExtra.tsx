@@ -6,6 +6,7 @@ import { useAnyScroll } from "@/components/landing/LandingHip";
 import { pick } from "@/components/landing/landingCopy";
 import { EXTRA_BEATS, extraText } from "@/components/landing/extraData";
 import { useLandingLanguage } from "@/lib/landingLanguage";
+import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * 호외 — 가까운 공식 일정 6건을 신문 지면으로 넘겨 본다.
@@ -43,7 +44,7 @@ function DatesList({ beat, onPick }: { beat: number; onPick: (i: number) => void
               className="w-full rounded-sm border px-3 py-2 text-left"
               style={{ borderColor: on ? "#9b2a1c" : "rgba(26,21,14,.35)", background: on ? "rgba(155,42,28,.08)" : "transparent", ...PAPER }}
             >
-              <span className="block text-[13px] font-bold" style={{ color: "#9b2a1c" }}>{row.tick}</span>
+              <span className="block text-caption font-bold" style={{ color: "#9b2a1c" }}>{row.tick}</span>
               <span className="block text-[16px] font-black leading-snug" style={{ color: "#1a150e" }}>{row.headline}</span>
             </button>
           </li>
@@ -170,7 +171,7 @@ export function ExtraEdition() {
                 className={`landing-ink m-0 mt-1 whitespace-nowrap font-black uppercase leading-[0.95] tracking-[0.02em] ${pin ? "text-[clamp(32px,min(6.4vw,8.6vh),96px)]" : "text-[clamp(28px,5.2vw,70px)]"}`}
                 style={SERIF}
               >
-                Strait Desk
+                {BRAND_NAME[lang]}
               </h3>
               <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={PAPER}>
                 {pick(
@@ -300,8 +301,8 @@ export function ExtraEdition() {
             <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={PAPER}>
               {pick(
                 lang,
-                "이 지면은 Strait Desk가 공식 글을 요약해 만든 화면이며 실제 신문이 아닙니다. 본문은 그 링크에 있습니다.",
-                "This page is a Strait Desk summary of official texts, not a real newspaper. The full text is at the link.",
+                `이 지면은 ${BRAND_NAME.ko}가 공식 글을 요약해 만든 화면이며 실제 신문이 아닙니다. 본문은 그 링크에 있습니다.`,
+                `This page is a ${BRAND_NAME.en} summary of official texts, not a real newspaper. The full text is at the link.`,
               )}
             </p>
           </div>

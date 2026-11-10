@@ -140,7 +140,7 @@ NAVAREA IV 100/26.
   });
 
   it("목록이 막히고 점검 파일도 막히면 목록을 다시 찌르지 않고 실패한다", async () => {
-    const f = vi.fn(async () => htmlRes(200));
+    const f = vi.fn(async (_url: string) => htmlRes(200));
     vi.stubGlobal("fetch", f);
     await expect(fetchNavWarn(["HYDROPAC"], ONCE)).rejects.toThrow(/WAF rejected/);
     expect(f).toHaveBeenCalledTimes(2);

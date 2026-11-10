@@ -1,4 +1,5 @@
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { BRAND_NAME } from "@/lib/brand";
 
 export function pick(lang: LabelLanguage, ko: string, en: string): string {
   return lang === "en" ? en : ko;
@@ -9,8 +10,8 @@ export function landingCopy(lang: LabelLanguage) {
   const t = (ko: string, english: string) => (en ? english : ko);
   return {
     pageTitle: t(
-      "Strait Desk — 정보기관 상황실처럼, 전선과 일정을 한눈에",
-      "Strait Desk — Like an intelligence watch floor, fronts and dates in one view",
+      `${BRAND_NAME.ko} — 정보기관 상황실처럼, 전선과 일정을 한눈에`,
+      `${BRAND_NAME.en} — Like an intelligence watch floor, fronts and dates in one view`,
     ),
     navAria: t("주 메뉴", "Main"),
     navAsk: t("무엇을 알려 주나", "What it shows"),
@@ -376,20 +377,20 @@ export function landingCopy(lang: LabelLanguage) {
       { slug: "taiwan-strait", name: t("대만해협", "Taiwan Strait"), en: "TAIWAN STRAIT", stat: t("지방공직 선거 2026년 11월 28일", "Local elections, 28 November 2026"), what: t("대만과 중국이 맞닿은 바다. 다음 공식 일정은 그 지방선거입니다.", "The water between Taiwan and China. The next official date is those local elections.") },
       { slug: "turkish-straits", name: t("튀르키예 해협", "Turkish Straits"), en: "BOSPORUS · DARDANELLES", stat: t("법령상 선거일 2028년 5월 7일", "The statutory election day is 7 May 2028"), what: t("흑해 전쟁과 지중해를 잇는 길. 조기 선거를 정하지 않으면 그 일요일입니다.", "The link between the Black Sea war and the Mediterranean. That Sunday holds unless an early election is called.") },
     ],
-    nameEyebrow: t("이름의 뜻", "The name"),
-    nameTitle: t("왜 ‘Strait Desk’인가요?", "Why “Strait Desk”?"),
-    nameSub: t("Strait Desk · 전선이 맞닿는 자리를 보는 상황실", "Strait Desk · a watch floor for where fronts meet"),
+    nameEyebrow: t("서비스 소개", "About"),
+    nameTitle: t("속보를 근거로 확인합니다.", "Geopolitical alerts, checked against evidence."),
+    nameSub: t(`${BRAND_NAME.ko} · 근거로 확인하는 지정학 속보`, `${BRAND_NAME.en} · geopolitical alerts, checked against evidence`),
     name1: t(
-      "Strait는 해협입니다. 바브엘만데브, 호르무즈, 대만해협처럼 전선이 좁은 바다에 모이는 자리입니다.",
-      "A strait is a narrow passage. Bab el-Mandeb, Hormuz, the Taiwan Strait: places where a front is forced into a narrow sea.",
+      "속보가 들어오면 출처와 위치를 함께 보여 줍니다.",
+      "When an alert comes in, we show its source and location.",
     ),
     name2: t(
-      "Desk는 상황실의 데스크입니다. 미사일 한 발이 전선을 바꾸고, 선거 하루가 그 나라의 다음 장을 여는데, 그 순간 한 책상 위에서 볼 속보·일정·헌법을 모아 둔 곳이에요.",
-      "Desk is the watch desk. One missile moves a front, and one election day opens a country’s next chapter. This is the table for the alert, the date, and the constitution.",
+      "선거 같은 공식 일정과 헌법 원문을 이어서 살펴봅니다.",
+      "We connect alerts to official dates, such as elections, and to constitutional texts.",
     ),
     name3: t(
-      "Strait Desk는 그 그림을 지구본 위에 한 화면으로 펼쳐 놓습니다. 어느 전선인지, 다음 일정은 언제인지, 근거와 한계까지 함께요.",
-      "Strait Desk lays that picture on one globe. Which front, when the next date is, with the evidence and the limits.",
+      "무엇이 확인됐고 무엇이 아직 불분명한지 출처와 함께 나란히 둡니다.",
+      "We show what is confirmed and what remains unclear, alongside the sources.",
     ),
     trustEyebrow: t("믿을 수 있나", "Can you trust it"),
     trustTitle1: t("비밀 자료는 없습니다.", "There is no secret material."),
@@ -462,6 +463,6 @@ export function landingCopy(lang: LabelLanguage) {
     curtainSoon: (pct: number) => (en ? `Opens as soon as it’s ready · ${pct}%` : `준비되면 바로 열려요 · ${pct}%`),
     curtainPct: (pct: number) => (en ? `Globe ${pct}%` : `지구본 ${pct}%`),
     curtainPrep: (pct: number) => (en ? `Open the globe · preparing ${pct}%` : `지구본 열기 · 준비 중 ${pct}%`),
-    curtainAria: t("Strait Desk 소개", "About Strait Desk"),
+    curtainAria: t(`${BRAND_NAME.ko} 소개`, `About ${BRAND_NAME.en}`),
   };
 }
