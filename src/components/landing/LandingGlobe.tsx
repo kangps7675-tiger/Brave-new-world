@@ -159,6 +159,20 @@ type Land = GeoPermissibleObjects;
 
 const TARGET_LAT_SHIFT = 6;
 
+/**
+ * 연출용 바닷길 — 배 점이 이 길을 따라 흐른다. 실제 AIS가 아니라 대표 항로를 그린 것이다(캡션에 밝힌다).
+ */
+const LANES: [number, number][][] = [
+  [[56.4, 26.3], [60, 22], [72, 12], [80, 6], [95, 5.5], [100.9, 2.6]],
+  [[100.9, 2.6], [105, 3], [110, 10], [116, 18], [119.6, 24.2], [123, 30]],
+  [[119.6, 24.2], [125, 28], [132, 32], [140, 35]],
+  [[32.4, 30.5], [33.6, 27.5], [37, 22], [40.5, 16], [43.4, 12.6], [50, 12.5], [56, 14], [60, 20], [56.4, 26.3]],
+  [[29, 41.1], [26, 39.5], [24, 36], [28, 34], [32.4, 31.3]],
+  [[29, 41.1], [31, 42.5], [34.5, 43.6], [37.8, 44.7]],
+  [[32.4, 31.3], [20, 34], [10, 37.5], [-5.6, 36]],
+  [[-5.6, 36], [-20, 40], [-45, 43], [-70, 41]],
+];
+
 /** 콜아웃이 다음 사건으로 넘어가는 주기 — 3초 */
 const CYCLE_MS = 3000;
 const TRAVEL_MS = 1200;
@@ -322,6 +336,35 @@ export function LandingGlobe() {
           0.04
         );
       };
+
+      // 바닷길(연출) + 그 위를 흐르는 배 — 분쟁 지역 사이로 상선이 오간다는 맥락만 준다
+      ctx.setLineDash([2, 4]);
+      ctx.strokeStyle = "rgba(147,197,253,0.2)";
+      ctx.lineWidth = 0.9;
+      LANES.forEach((lane) => {
+        ctx.beginPath();
+        path({ type: "LineString", coordinates: lane });
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      LANES.forEach((lane, li) => {
+        const segs = lane.length - 1;
+        for (let k = 0; k < 3; k++) {
+          const u = (((now / 1000) * 0.035 + k / 3 + li * 0.17) % 1) * segs;
+          const si = Math.min(segs - 1, Math.floor(u));
+          const [lng, lat] = geoInterpolate(lane[si], lane[si + 1])(u - si);
+          if (!front(lng, lat)) continue;
+          const q = projection([lng, lat]);
+          if (!q) continue;
+          const g = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+          g.addColorStop(0, "rgba(191,219,254,0.95)");
+          g.addColorStop(1, "rgba(147,197,253,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(q[0], q[1], 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
 
       // 분쟁 지역 주변의 작은 사건 점들 — 깜빡이며 "여러 곳에서 동시에 벌어진다"는 느낌만 준다
       const ping = (now % 1600) / 1600;
@@ -507,6 +550,8 @@ export function LandingGlobe() {
           "붉은 점은 대표 분쟁 지역을 고른 예시입니다. 실제 지구본에서는 속보가 들어오는 자리마다 찍혀요.",
           "Red dots are a sample of well-known conflict areas. On the real globe, a dot appears wherever an alert comes in.",
         )}
+        <span className="mx-2 text-white/20">|</span>
+        {pick(lang, "흐르는 파란 점과 점선 항로는 이해를 돕는 연출입니다", "Moving blue dots and dotted routes are illustrations, not live tracks")}
       </p>
       <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label={pick(lang, "분쟁 지역 고르기", "Choose a conflict area")}>
         {HOTSPOTS.map((s, i) => {
