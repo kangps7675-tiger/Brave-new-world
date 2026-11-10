@@ -1560,7 +1560,7 @@ export function GlobeDashboard({
       const saved = localStorage.getItem(DAILY_RANK_PANEL_KEY);
       // 해운 위험으로 시작하면 「오늘의 GTS」(지정학 긴장 순위)는 접어 둔다 — 왼쪽 절반을 가려 바다 판단을 방해한다.
       // 직접 열어 둔 적이 있으면("1") 그 선택을 따른다. 왼쪽 「오늘의 GTS」 버튼으로 언제든 다시 연다.
-      if (saved === "0" || (saved == null && viewPackages.includes("maritime"))) {
+      if (saved === "0" || (saved == null && (viewPackages.includes("maritime") || viewPackages.includes("breaking")))) {
         setShowDailyRankPanel(false);
       }
     } catch {

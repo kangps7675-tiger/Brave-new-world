@@ -29,7 +29,7 @@ import { canMountFullObserve, markObserveUnlocked } from "@/lib/observeAccess";
 import { type SceneMissionId, sceneMissionApply, asLayerPatch, softZoneForMission } from "@/lib/sceneMissions";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import { savePerfPrefs } from "@/lib/ultraLiteMode";
-import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersMaritimeFirstScreen } from "@/lib/viewPackages";
+import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersBreakingFirstScreen } from "@/lib/viewPackages";
 import { applyViewerMode } from "@/lib/viewerChrome";
 import { rememberConflictTheater, rememberEconomyHub } from "@/lib/watchFocus";
 import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
@@ -627,7 +627,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       labelLanguage: layerPrefsLiveRef.current.labelLanguage,
       ultraLite: ultraLiteRef.current,
       // 신규 방문·해운 패키지 — 랜딩이 약속한 해운 위험 첫 화면 (UKMTO·항행경보·AIS·항모·불꽃)
-      maritime: viewerMode === "conflict" && prefersMaritimeFirstScreen(),
+      breaking: viewerMode === "conflict" && prefersBreakingFirstScreen(),
     });
     applyLayerPrefs(overviewPrefs);
     const entryLook = entryOrbitCamera(size);
@@ -685,7 +685,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       labelLanguage: layerPrefsLiveRef.current.labelLanguage,
       ultraLite: ultraLiteRef.current,
       // 신규 방문·해운 패키지 — 랜딩이 약속한 해운 위험 첫 화면 (UKMTO·항행경보·AIS·항모·불꽃)
-      maritime: viewerMode === "conflict" && prefersMaritimeFirstScreen(),
+      breaking: viewerMode === "conflict" && prefersBreakingFirstScreen(),
     });
     applyLayerPrefs(overviewPrefs);
     const entryLook = entryOrbitCamera(size);

@@ -92,3 +92,44 @@ export const FIRST_SCREEN_MARITIME_OFF: BooleanLayerKey[] = [
   "showConflictTheaterJapan",
   "showConflictTheaterCaucasus",
 ];
+
+/**
+ * 속보 중심 첫 화면 — 신규 방문자가 처음 보는 지구본 (2026-11-11).
+ *
+ * 랜딩이 약속하는 것과 1:1: 속보가 찍힌 자리(전장 속보 핀·타격 불꽃) + 붉은 면(전쟁 중인 땅)
+ * + 빛나는 선(누가 누구를 돕나) + 항공모함·군용기. 해운은 첫 연재 주제라 해상 피습·항행경보는 같이 켠다.
+ * 선박 AIS는 무거워서 끈다(레이어 서랍에서 켠다). 판정·근거가 없는 지도 백과 레이어는 켜지 않는다.
+ */
+export const FIRST_SCREEN_BREAKING_ON: Partial<Record<BooleanLayerKey, boolean>> = {
+  showUkmtoIncidents: true,
+  showNavareaWarnings: true,
+  showUsCarriers: true,
+  showMilitaryActivity: true,
+  showUkraineControl: true,
+  showUkraineStrikesOnRussia: true,
+  showAxisNetwork: true,
+  showFirmsFires: true,
+  showConflictEvents: true,
+  showConflictTheaterIran: true,
+  showConflictTheaterLebanon: true,
+  showConflictTheaterSyria: true,
+  showConflictTheaterUkraine: true,
+  showConflictTheaterBlackSea: true,
+  showConflictTheaterTaiwan: true,
+  showConflictTheaterSouthChinaSea: true,
+  showConflictTheaterKorea: true,
+};
+
+/** 속보 첫 화면에서 끄는 기본값 — 속보를 가리는 잡음. 지우는 게 아니라 서랍에서 켠다. */
+export const FIRST_SCREEN_BREAKING_OFF: BooleanLayerKey[] = [
+  "showAis",
+  "showAisMilitary",
+  "showAisCommercial",
+  "showMilitaryBases",
+  "showAlliedBlocs",
+  "showAirTraffic",
+  "showGdeltWar",
+  "showTelegramOsint",
+  "showTzevaAdom",
+  "showNeptun",
+];

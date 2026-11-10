@@ -14,6 +14,8 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
   FIRST_SCREEN_LIVE_ON,
+  FIRST_SCREEN_BREAKING_OFF,
+  FIRST_SCREEN_BREAKING_ON,
   FIRST_SCREEN_MARITIME_OFF,
   FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
@@ -22,6 +24,7 @@ export const VIEW_CONFIG_KEY = "straitdesk-view-config-v1";
 export type ViewIntelTab = "news" | "video" | "telegram" | "viina";
 
 export type ViewPackageId =
+  | "breaking"
   | "maritime"
   | "conflict-watch"
   | "geo-trader"
@@ -39,6 +42,8 @@ export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "liv
 export const CONFLICT_VIEWER_PACKAGE = "frontline-live" as const;
 /** 해운 위험 — 랜딩이 약속한 첫 화면. 신규 방문 기본값 (viewerMode 는 conflict 계열) */
 export const MARITIME_VIEWER_PACKAGE = "maritime" as const;
+/** 속보 중심 — 신규 방문 기본값 (2026-11-11). viewerMode 는 conflict 계열 */
+export const BREAKING_VIEWER_PACKAGE = "breaking" as const;
 export const ECONOMY_VIEWER_PACKAGE = "geo-trader" as const;
 export const SATELLITE_VIEWER_PACKAGE = "satellite-eye" as const;
 export const LIVE_VIEWER_PACKAGE = "live-tracks" as const;
@@ -127,6 +132,21 @@ type ViewPackageDef = {
 };
 
 export const VIEW_PACKAGES: ViewPackageDef[] = [
+  {
+    id: "breaking",
+    label: "지정학 속보",
+    tagline: "속보 · 출처 · 확인 상태",
+    description: "전장 속보가 찍힌 자리 · 타격 불꽃 · 붉은 면 · 항모·군용기 · 해상 피습 경보",
+    layers: {
+      ...FIRST_SCREEN_BREAKING_ON,
+    },
+    layersOff: FIRST_SCREEN_BREAKING_OFF,
+    ui: {
+      showTicker: true,
+      defaultIntelTab: "news",
+      autoOpenIntelSheet: false,
+    },
+  },
   {
     id: "maritime",
     label: "해운 위험",
@@ -239,8 +259,8 @@ export const VIEW_PACKAGES: ViewPackageDef[] = [
 ];
 
 /** 패키지 선택 화면 기본 체크 — 첫 방문자에게 가장 직관적인 프리셋 */
-/** 신규 방문 기본 — 랜딩(해운 위험 상황실)에서 들어온 사람이 약속받은 화면을 본다 (2026-10-21) */
-export const RECOMMENDED_PACKAGE_ID: ViewPackageId = MARITIME_VIEWER_PACKAGE;
+/** 신규 방문 기본 — 랜딩(지정학 속보)에서 들어온 사람이 약속받은 화면을 본다 (2026-11-11) */
+export const RECOMMENDED_PACKAGE_ID: ViewPackageId = BREAKING_VIEWER_PACKAGE;
 
 export const DEFAULT_PACKAGE_SELECTION: ViewPackageId[] = [RECOMMENDED_PACKAGE_ID];
 
@@ -529,6 +549,12 @@ function mergeUi(
     ui.showTicker = false;
   }
 
+  if (ids.includes("breaking")) {
+    ui.showTicker = true;
+    ui.defaultIntelTab = "news";
+    ui.autoOpenIntelSheet = false;
+  }
+
   if (ids.includes("maritime")) {
     ui.showTicker = false;
     ui.defaultIntelTab = "news";
@@ -626,13 +652,13 @@ export function shouldShowModePicker(): boolean {
 export const shouldShowPackagePicker = shouldShowModePicker;
 
 /**
- * 지정학(conflict) 첫 화면을 해운 위험으로 보여 줄까 — 저장된 보기 설정이 없거나(신규) 해운 패키지를 고른 경우.
+ * 지정학(conflict) 첫 화면을 속보 중심으로 보여 줄까 — 저장된 보기 설정이 없거나(신규) 속보 패키지를 고른 경우.
  * 「무엇을 볼까요 → 전선·분쟁」을 고른 사람은 frontline-live 가 저장돼 있어 기존 지정학 히어로를 본다.
  */
-export function prefersMaritimeFirstScreen(): boolean {
+export function prefersBreakingFirstScreen(): boolean {
   const saved = loadViewConfig();
   if (!saved || saved.packages.length === 0) return true;
-  return saved.packages.includes(MARITIME_VIEWER_PACKAGE);
+  return saved.packages.includes(BREAKING_VIEWER_PACKAGE);
 }
 
 export function resolveMergedViewConfig(): MergedViewConfig {
@@ -640,8 +666,8 @@ export function resolveMergedViewConfig(): MergedViewConfig {
   if (saved && !saved.customizedLayers) {
     return mergeViewPackages(saved.packages, saved.theater, saved.economyHub ?? "auto");
   }
-  // 신규 방문(저장된 레이어 설정 없음) — 기본 패키지(해운 위험)로 시작한다.
-  // 레이어 자체는 loadLayerPrefs() 의 첫 방문 경로(firstVisitLayerPrefs)가 같은 해운 레이어를 돌려준다.
+  // 신규 방문(저장된 레이어 설정 없음) — 기본 패키지(속보 중심)로 시작한다.
+  // 레이어 자체는 loadLayerPrefs() 의 첫 방문 경로(firstVisitLayerPrefs)가 같은 속보 레이어를 돌려준다.
   // 여기서는 패키지·UI(뉴스 피드·「오늘의 GTS」 접힘 등)가 해운 기준으로 잡히게 한다.
   // 레이어를 직접 바꿔 둔 재방문자(저장값 있음)는 건드리지 않는다.
   const current = loadLayerPrefs();
