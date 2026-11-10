@@ -16,35 +16,19 @@
 
 | 서체 | 파일 | 저작권자 | 출처 |
 |------|------|----------|------|
-| Pretendard Variable | `PretendardVariable.ttf` | Copyright (c) 2021 Kil Hyung-jin | https://github.com/orioncactus/pretendard |
 | Geist Sans / Geist Mono | `GeistVF.woff` · `GeistMonoVF.woff` | Copyright (c) 2024 The Geist Project Authors (Vercel) | https://github.com/vercel/geist-font |
-| RIDIBatang (리디바탕) | `RIDIBatang.otf` | RIDI Corporation (리디주식회사) | https://ridicorp.com/ridibatang/ |
 
-Reserved Font Name: `Pretendard`, `RIDIBatang` — 수정본에 원래 이름을 쓸 수 없다.
-
----
-
-## 한국 무료 배포 서체
-
-| 서체 | 파일 | 권리자 | 라이선스 | 출처 |
-|------|------|--------|----------|------|
-| Gmarket Sans | `GmarketSansLight/Medium/Bold.otf` | 지마켓(Gmarket) | [`GmarketSans.txt`](./GmarketSans.txt) | https://company.gmarket.co.kr/company/about/company/company--font.asp |
-| SB 어그로 Bold | `SBAgro-Bold.ttf` · `.otf` | 샌드박스네트워크(Sandbox Network) | [`SBAggro.txt`](./SBAggro.txt) | https://sandbox.co.kr/font |
-
-두 서체 모두 **개인·기업 상업적 이용 무료**이나 **폰트 파일 자체의 유료 판매를 금지**한다.
-이 서비스는 폰트를 판매하지 않고 웹폰트로 서빙하므로 해당 조건을 충족한다.
+상황실 본문·헤드라인은 Wanted Sans(아래 CDN)다. Pretendard 가변 TTF, 리디바탕, Gmarket Sans, SB 어그로는 첫 화면에서 수 MB를 받아서 2026-11-11에 뺐다. 한글 명조가 필요한 양피지는 기기에 설치된 명조를 쓴다.
 
 ---
 
-## Google Fonts (CDN 로드 — 파일 미배포)
+## 라틴 전용 woff2 (저장소에 있음, 한글 없음)
 
-`next/font/google` 로 빌드 시점에 받아오는 서체. 저장소에 파일을 커밋하지 않는다.
-
-| 서체 | 라이선스 |
-|------|----------|
-| Inter | SIL OFL 1.1 |
-| Merriweather | SIL OFL 1.1 |
-| JetBrains Mono | SIL OFL 1.1 |
+| 서체 | 파일 | 라이선스 |
+|------|------|----------|
+| Inter | `Inter-latin-wght.woff2` | SIL OFL 1.1 |
+| Merriweather | `Merriweather-latin-wght.woff2` · italic | SIL OFL 1.1 |
+| JetBrains Mono | `JetBrainsMono-latin-wght.woff2` | SIL OFL 1.1 |
 
 ## jsDelivr CDN 로드 — 파일 미배포
 
@@ -59,3 +43,4 @@ Reserved Font Name: `Pretendard`, `RIDIBatang` — 수정본에 원래 이름을
 | 날짜 | 내용 |
 |------|------|
 | 2026-08-01 | 최초 작성. OFL 전문 동봉, 저작권자 명시. 출처 불명이던 미사용 폰트 `Griun_PolSensibility-Rg.ttf` 제거 (`docs/copyright-audit-2026-08-01.md` R-1) |
+| 2026-11-11 | Pretendard Variable, RIDIBatang, Gmarket Sans, SB 어그로 파일 제거. UI는 Wanted Sans. |
