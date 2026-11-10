@@ -140,11 +140,15 @@ NAVAREA IV 100/26.
   });
 
   it("목록이 막히고 점검 파일도 막히면 목록을 다시 찌르지 않고 실패한다", async () => {
-    const f = vi.fn(async (_url: string) => htmlRes(200));
+    const requestedUrls: string[] = [];
+    const f = vi.fn(async (url: string) => {
+      requestedUrls.push(url);
+      return htmlRes(200);
+    });
     vi.stubGlobal("fetch", f);
     await expect(fetchNavWarn(["HYDROPAC"], ONCE)).rejects.toThrow(/WAF rejected/);
     expect(f).toHaveBeenCalledTimes(2);
-    expect(String(f.mock.calls[1]?.[0])).toContain("/apology_objects/DailyMemPAC.txt");
+    expect(requestedUrls[1]).toContain("/apology_objects/DailyMemPAC.txt");
   });
 
   it("점검 페이지 원문은 유효 날짜가 최근일 때만 받는다", async () => {
