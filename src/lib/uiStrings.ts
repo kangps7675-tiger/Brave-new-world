@@ -195,7 +195,7 @@ const UI = {
     en: "Temporarily turned off: {names}.",
   },
   layerEvictUndo: { ko: "되돌리기", en: "Undo" },
-  layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
+  layerClickCautionTag: { ko: "부하 큼", en: "Heavy" },
   /** 활성 밀도 표시 — "상한" 단어 비노출 (P2-2) */
   layerCapTag: { ko: "가득", en: "Full" },
   layerCapDetailSuffix: { ko: "활성 {active}/{cap}", en: "on {active}/{cap}" },
@@ -205,8 +205,8 @@ const UI = {
     en: "Active layers {active}/{cap} — enabling more pauses less-used layers",
   },
   layerClickCautionHint: {
-    ko: "컴퓨터 사양이 안 좋으신가요? 빠끄!! Ultra-Lite인데 이거 켜면 렉 각입니다.",
-    en: "Low-spec PC? Hold up!! Turning this on in Ultra-Lite can lag hard.",
+    ko: "저사양 PC에서는 이 레이어를 켜면 화면이 느려질 수 있습니다.",
+    en: "On low-spec PCs, enabling this layer may slow the display.",
   },
   /** 분석 패널 섹션 라벨 (P1-5) */
   analysisOriginalName: { ko: "원본 이름", en: "Original name" },

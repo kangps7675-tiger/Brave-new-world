@@ -265,6 +265,15 @@ async function openLayerPanelReady(page: Page) {
   const panel = layerPanel(page);
   await expect(panel).toBeVisible({ timeout: 20_000 });
 
+  const advancedDrawer = panel.locator('details[data-testid="layer-panel-advanced"]');
+  if (await advancedDrawer.count()) {
+    const isOpen = await advancedDrawer.evaluate((el) => (el as HTMLDetailsElement).open);
+    if (!isOpen) {
+      await advancedDrawer.locator("summary").first().evaluate((el) => (el as HTMLElement).click());
+    }
+    await expect(advancedDrawer).toHaveJSProperty("open", true);
+  }
+
   const box = visibleLayerCheckbox(page);
   if (await box.isVisible().catch(() => false)) return box;
 

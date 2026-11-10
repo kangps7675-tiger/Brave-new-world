@@ -44,6 +44,8 @@ type MobileHomeViewProps = {
   onLabelLanguageChange: (lang: LabelLanguage) => void;
   /** 실시간 속보 피드(선박·타격·정세) — 있으면 첫 탭으로 */
   liveFeed?: ReactNode;
+  /** 지정학 탭 위. 외교와 전쟁 흐름. */
+  warFlows?: ReactNode;
 };
 
 /** 모바일 홈 3탭 */
@@ -220,6 +222,7 @@ export function MobileHomeView({
   labelLanguage,
   onLabelLanguageChange,
   liveFeed,
+  warFlows,
 }: MobileHomeViewProps) {
   const { payload, localizedTitle } = useNewsStreamContext();
   const { lang: locale } = useLocale();
@@ -621,8 +624,10 @@ export function MobileHomeView({
             </p>
           </div>
         ) : (
+        <div className="mt-3 space-y-3">
+        {tab === "conflict" ? warFlows : null}
         <div
-          className={`mt-3 flex items-center gap-2 rounded-xl border px-3 py-2.5 ${
+          className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${
             isLive
               ? "border-rose-400/40 bg-rose-500/10"
               : "border-white/10 bg-white/[0.04]"
@@ -650,6 +655,7 @@ export function MobileHomeView({
                     : `최신 ${agoLabel(freshest, lang)}`}
             </p>
           </div>
+        </div>
         )}
 
         {/* —— 지정학 —— */}

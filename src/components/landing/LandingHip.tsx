@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { pick } from "@/components/landing/landingCopy";
 import { useLandingLanguage } from "@/lib/landingLanguage";
+import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * 랜딩을 "힙하게" 만드는 조각들.
@@ -98,7 +99,7 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
         <span className="text-[#f5c451]">●</span>{" "}
         {pick(
           lang,
-          `conflict-view가 지켜보는 전선 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
+          `${BRAND_NAME.ko}가 지켜보는 전선 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
           "Six fronts on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
         )}
       </p>

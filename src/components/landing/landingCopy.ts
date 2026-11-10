@@ -1,4 +1,5 @@
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { BRAND_NAME } from "@/lib/brand";
 
 export function pick(lang: LabelLanguage, ko: string, en: string): string {
   return lang === "en" ? en : ko;
@@ -9,26 +10,25 @@ export function landingCopy(lang: LabelLanguage) {
   const t = (ko: string, english: string) => (en ? english : ko);
   return {
     pageTitle: t(
-      "conflict-view — 정보기관 상황실처럼, 전선과 일정을 한눈에",
-      "conflict-view — Like an intelligence watch floor, fronts and dates in one view",
+      `${BRAND_NAME.ko} — 정보기관 상황실처럼, 전선과 일정을 한눈에`,
+      `${BRAND_NAME.en} — Like an intelligence watch floor, fronts and dates in one view`,
     ),
     navAria: t("주 메뉴", "Main"),
-    navAsk: t("묻게 되는 것", "Questions"),
+    navAsk: t("무엇을 알려 주나", "What it shows"),
     navWho: t("누가 쓰나", "Who it's for"),
     navTrust: t("믿을 수 있나", "Can you trust it"),
     openGlobe: t("지구본 열기", "Open the globe"),
     sections: [
       { id: "top", label: t("처음", "Top") },
-      { id: "ask", label: t("묻게 되는 것", "Questions") },
-      { id: "flow", label: t("확인하는 과정", "How it is checked") },
+      { id: "ask", label: t("질문 넷", "Four questions") },
+      { id: "flow", label: t("경보가 뜨면", "When an alert hits") },
       { id: "front", label: t("1면", "Front page") },
       { id: "read", label: t("화면 읽는 법", "How to read it") },
       { id: "breaking", label: t("속보", "Alerts") },
       { id: "features", label: t("상세 기능", "Features") },
       { id: "devices", label: t("데스크톱·휴대폰", "Desktop and phone") },
       { id: "who", label: t("누가 쓰나", "Who it's for") },
-      { id: "extra", label: t("해운 연재", "Shipping series") },
-      { id: "soon", label: t("준비 중", "Coming") },
+      { id: "name", label: t("이름의 뜻", "The name") },
       { id: "trust", label: t("믿을 수 있나", "Trust") },
       { id: "faq", label: t("자주 묻는 질문", "FAQ") },
     ],
@@ -44,9 +44,12 @@ export function landingCopy(lang: LabelLanguage) {
     ),
     heroRead: t("화면 읽는 법 먼저 보기", "How to read the screen"),
     heroBeta: t("베타 기간에는 가입 없이 바로 볼 수 있어요.", "During beta you can look without signing up."),
+    threatEyebrow: t("전선에서 지금 쓰이는 것", "What the fronts are using"),
+    threatTitle: t("드론, 미사일, 기뢰가 전선에서 쓰입니다.", "Drones, missiles, and mines are in use on the fronts."),
     stats: [
       { n: 6, s: t("곳", "places"), label: t("지켜보는 길목", "Passages on watch") },
       { n: 8, s: t("종", "sources"), label: t("서로 맞춰 보는 공개 출처", "Public sources checked against each other") },
+      { n: 6, s: t("시간", "hours"), label: t("마다 새로 고르는 사진 뉴스", "Between each photo-news pick") },
       { n: 9, s: t("개", "tools"), label: t("핵심 화면 밖 상세 기능", "Tools beyond the main screen") },
     ],
     askEyebrow: t("경보 하나에 질문 넷", "Four questions, one alert"),
@@ -82,7 +85,7 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    flowEyebrow: t("확인하는 과정", "How one is checked"),
+    flowEyebrow: t("경보가 뜨면", "When an alert hits"),
     flowTitle: t(
       "전선 속보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.",
       "Scroll to see how one front-line alert unfolds on the globe.",
@@ -144,7 +147,7 @@ export function landingCopy(lang: LabelLanguage) {
       "지구본 위 무엇이든 누르면 설명 창이 열립니다. 위쪽 「묻기」에 \"홍해\", \"호르무즈\", \"대만\"처럼 적으면 그 전선으로 날아가요.",
       "Tap anything on the globe and an explanation opens. Type “Red Sea”, “Hormuz”, or “Taiwan” in Ask and the globe flies to that front.",
     ),
-    breakingEyebrow: t("속보", "Alerts"),
+    breakingEyebrow: t("속보 기능", "Alert tools"),
     breakingTitle: t(
       "전선에 닿는 군사·외교 속보를 받습니다.",
       "Military and diplomatic alerts that touch a front.",
@@ -249,54 +252,6 @@ export function landingCopy(lang: LabelLanguage) {
       "아직 없는 것. 모든 정세 속보에 「어느 전선에 닿는가」 판정이 자동으로 붙는 건 아닙니다. 위치 태그와 전선별 묶음까지가 지금 범위예요. 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시는 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 메일이 전부예요. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 끝난 것으로 오해하지 않게 합니다.",
       "Not yet. Not every political alert is automatically tagged with the front it touches. Location tags and grouping by front are the current range. There is no instant push for each alert. What exists is one daily “the picture changed” push and one daily email. If alerts are off-screen, the desk says more are waiting, so quiet does not look like over.",
     ),
-    soonEyebrow: t("준비 중", "In preparation"),
-    soonTitle: t("다음에 붙일 것들. 아직 화면에는 없습니다.", "What comes next. None of this is on screen yet."),
-    soon: [
-      {
-        tag: t("국가 이니셔티브", "National aims"),
-        title: t("각국이 공식 문서로 밝힌 목표를 국가 카드에", "Stated aims on each country card"),
-        body: t(
-          "미국·중국·러시아·NATO·한국 같은 세력이 안보전략, 국방백서, 당대회 보고서에 직접 적은 목표를 붙이고, 선언과 실제 행동을 나란히 놓아 맞는지 보여 드립니다.",
-          "Aims that powers such as the U.S., China, Russia, NATO, and Korea wrote into their own strategies, white papers, and congress reports, with stated words set next to actual behavior.",
-        ),
-      },
-      {
-        tag: t("분기점", "Turning points"),
-        title: t("한 번의 결과가 몇 해를 정하는 일정", "Dates that set a direction for years"),
-        body: t(
-          "미국 중간선거, 중국·북한 당대회, 러시아 두마 선거처럼 일정은 미리 알려져 있어요. 다음 분기점까지 남은 날을 세고, 결과가 나오면 무엇이 바뀌는지 이어서 따라갑니다.",
-          "U.S. midterms, Chinese and North Korean party congresses, Russian Duma elections. The dates are known ahead. Count down to the next one, then follow what changes after.",
-        ),
-      },
-      {
-        tag: t("시나리오", "Scenarios"),
-        title: t("점 예측이 아니라 갈래와 관찰 지표", "Branches and signals, not a point forecast"),
-        body: t(
-          "‘A가 일어난다’가 아니라 ‘A·B·C 중 지금은 B 쪽 근거가 더 쌓였다’로 보여 드립니다. 틀릴 수 있는 전제도 숨기지 않고 적습니다.",
-          "Not “A will happen” but “of A, B, and C, the evidence for B is stacking up.” The assumptions that could break it are written out.",
-        ),
-      },
-      {
-        tag: t("직접 판정", "Judge it yourself"),
-        title: t("근거를 보고 먼저 골라 보기", "Pick before you see ours"),
-        body: t(
-          "근거를 보고 ‘확인·유력·자료 없음’을 먼저 골라 본 뒤 서비스의 판정과 맞춰 봅니다. 점수나 순위는 없고, 왜 같고 왜 다른지만 보여 줍니다.",
-          "Look at the evidence, pick confirmed, likely, or no data, then compare with ours. No points or rankings. Only why they match or differ.",
-        ),
-      },
-      {
-        tag: t("아침 메일", "Morning email"),
-        title: t("주 4회, 읽는 데 3분이 안 걸리는 브리핑", "Four times a week, under three minutes"),
-        body: t(
-          "오늘의 큰 그림 한 줄, 핵심 사건 두세 개와 출처, 시나리오 한 컷, 원문 링크를 보내 드립니다. 가입이나 설치 없이 메일만으로 시작합니다.",
-          "One line of the big picture, two or three key events with sources, one scenario cut, and links to the originals. It starts with email only. No account, no install.",
-        ),
-      },
-    ],
-    soonNote: t(
-      "순서와 시기는 바뀔 수 있습니다. 준비되는 대로 이 페이지에 올립니다.",
-      "Order and timing may change. Each will be added here as it is ready.",
-    ),
     featuresEyebrow: t("상세 기능", "More tools"),
     featuresTitle: t("핵심 화면 말고도, 이런 기능이 있어요.", "Beyond the main screen, these tools are there."),
     features: [
@@ -359,7 +314,7 @@ export function landingCopy(lang: LabelLanguage) {
         href: "/investigate",
       },
       {
-        title: t("이메일 요약", "Email digest"),
+        title: t("하루 한 번 메일", "One email a day"),
         body: t(
           "전선에서 새로 확인된 공격을 매일 한 번 메일로 받습니다. 확인 링크를 눌러야 발송이 시작돼요.",
           "Newly confirmed attacks on the fronts, once a day. Mail starts only after you open the confirmation link.",
@@ -376,9 +331,9 @@ export function landingCopy(lang: LabelLanguage) {
       },
     ],
     devicesEyebrow: t("데스크톱 · 휴대폰", "Desktop and phone"),
-    devicesTitle1: t("근거 확인은 데스크톱에서,", "Checking evidence is a desktop job."),
+    devicesTitle1: t("상황실은 데스크톱에서,", "The watch floor is the desktop."),
     devicesTitle2: t("휴대폰은 주머니 속 알림창으로.", "The phone is an alert window in your pocket."),
-    deskTitle: t("데스크톱 — 근거를 따져 보는 화면", "Desktop — where evidence gets weighed"),
+    deskTitle: t("데스크톱 — 주로 쓰는 상황실", "Desktop — the desk you actually use"),
     desk: [
       t("3D 지구본 위에 전선·비행기·불꽃·경보를 모두 겹쳐 봅니다.", "Fronts, aircraft, flames, and alerts stacked on the 3D globe."),
       t("전선 속보, 국가 중대 일정, 뉴스 창을 옆에 띄워 두고 함께 봅니다.", "Front-line alerts, major dates, and the news pane stay open beside it."),
@@ -427,6 +382,21 @@ export function landingCopy(lang: LabelLanguage) {
       { slug: "taiwan-strait", name: t("대만해협", "Taiwan Strait"), en: "TAIWAN STRAIT", stat: t("지방공직 선거 2026년 11월 28일", "Local elections, 28 November 2026"), what: t("대만과 중국이 맞닿은 바다. 다음 공식 일정은 그 지방선거입니다.", "The water between Taiwan and China. The next official date is those local elections.") },
       { slug: "turkish-straits", name: t("튀르키예 해협", "Turkish Straits"), en: "BOSPORUS · DARDANELLES", stat: t("법령상 선거일 2028년 5월 7일", "The statutory election day is 7 May 2028"), what: t("흑해 전쟁과 지중해를 잇는 길. 조기 선거를 정하지 않으면 그 일요일입니다.", "The link between the Black Sea war and the Mediterranean. That Sunday holds unless an early election is called.") },
     ],
+    nameEyebrow: t("서비스 소개", "About"),
+    nameTitle: t("속보를 근거로 확인합니다.", "Geopolitical alerts, checked against evidence."),
+    nameSub: t(`${BRAND_NAME.ko} · 근거로 확인하는 지정학 속보`, `${BRAND_NAME.en} · geopolitical alerts, checked against evidence`),
+    name1: t(
+      "속보가 들어오면 출처와 위치를 함께 보여 줍니다.",
+      "When an alert comes in, we show its source and location.",
+    ),
+    name2: t(
+      "선거 같은 공식 일정과 헌법 원문을 이어서 살펴봅니다.",
+      "We connect alerts to official dates, such as elections, and to constitutional texts.",
+    ),
+    name3: t(
+      "무엇이 확인됐고 무엇이 아직 불분명한지 출처와 함께 나란히 둡니다.",
+      "We show what is confirmed and what remains unclear, alongside the sources.",
+    ),
     trustEyebrow: t("믿을 수 있나", "Can you trust it"),
     trustTitle1: t("비밀 자료는 없습니다.", "There is no secret material."),
     trustTitle2: t("공개 정보를 서로 맞춰 봅니다.", "Public sources are checked against each other."),
@@ -498,6 +468,6 @@ export function landingCopy(lang: LabelLanguage) {
     curtainSoon: (pct: number) => (en ? `Opens as soon as it’s ready · ${pct}%` : `준비되면 바로 열려요 · ${pct}%`),
     curtainPct: (pct: number) => (en ? `Globe ${pct}%` : `지구본 ${pct}%`),
     curtainPrep: (pct: number) => (en ? `Open the globe · preparing ${pct}%` : `지구본 열기 · 준비 중 ${pct}%`),
-    curtainAria: t("conflict-view 소개", "About conflict-view"),
+    curtainAria: t(`${BRAND_NAME.ko} 소개`, `About ${BRAND_NAME.en}`),
   };
 }

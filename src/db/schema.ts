@@ -884,6 +884,25 @@ export const dailyPredictionStats = sqliteTable(
  * 벙커 감성지수 — UTC 날짜·device당 STABLE | BUNKER 1표.
  * 집계: bunker / total = 패닉 %.
  */
+/**
+ * 하단 기사 반응. 사람·기사·이모지당 한 표.
+ * 놀람·흥미·더 보기는 등급이 아니다.
+ */
+export const newsArticleReactions = sqliteTable(
+  "news_article_reactions",
+  {
+    articleId: text("article_id").notNull(),
+    deviceId: text("device_id").notNull(),
+    /** surprised | interested | more */
+    reaction: text("reaction").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.articleId, t.deviceId, t.reaction] }),
+    articleIdx: index("idx_news_article_reactions_article").on(t.articleId),
+  }),
+);
+
 export const bunkerSentimentVotes = sqliteTable(
   "bunker_sentiment_votes",
   {

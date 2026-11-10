@@ -1,6 +1,5 @@
 "use client";
 
-import { BRAND_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { LandingGlobe } from "@/components/landing/LandingGlobe";
@@ -23,6 +22,7 @@ import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
 import { LandingOpenLink } from "@/components/landing/LandingOpenLink";
 import { landingCopy } from "@/components/landing/landingCopy";
 import { useLandingLanguage } from "@/lib/landingLanguage";
+import { BRAND_NAME } from "@/lib/brand";
 
 /** 지구본으로 들어가는 버튼 자리. 독립 페이지(/landing)와 첫 화면 막(LandingCurtain)이 서로 다른 버튼을 넣는다. */
 export type EnterPlace = "nav" | "hero" | "footer";
@@ -439,26 +439,20 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         />
       </section>
 
-      {/* SOON — 준비 중 (화면에 아직 없는 것) */}
-      <section id="soon" className="border-y border-white/10 bg-[#081019]">
-        <div className={`${WRAP} py-24`}>
-          <Reveal>
-            <p className={EYEBROW}>{copy.soonEyebrow}</p>
-            <h2 className={`${H2} max-w-[820px]`}>{copy.soonTitle}</h2>
+      {/* NAME — 서비스 소개 */}
+      <section id="name" className="border-y border-white/10 bg-[#081019]">
+        <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
+          <Reveal className="min-w-0 flex-[1_1_360px]">
+            <p className={EYEBROW}>{copy.nameEyebrow}</p>
+            <h2 className={H2}>
+              {copy.nameTitle}
+            </h2>
+            <p className={`mt-4 text-sm ${MUTED}`}>{copy.nameSub}</p>
           </Reveal>
-          <div className="mt-10 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
-            {copy.soon.map((x, i) => (
-              <Reveal key={x.tag} delay={(i % 3) * 80}>
-                <div className="h-full rounded-xl border border-dashed border-white/20 bg-[#0a141f] p-6">
-                  <span className="block text-caption font-semibold text-[#5eead4]">{x.tag}</span>
-                  <h3 className="mb-0 mt-2 text-[19px] font-bold leading-snug text-white">{x.title}</h3>
-                  <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{x.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal>
-            <p className={`mb-0 mt-8 text-[15px] ${MUTED}`}>{copy.soonNote}</p>
+          <Reveal delay={100} className="min-w-0 flex-[1.4_1_440px] space-y-5 text-[17px] leading-[1.85] text-[#d7e0e6]">
+            <p className="m-0">{copy.name1}</p>
+            <p className="m-0">{copy.name2}</p>
+            <p className="m-0 font-semibold text-white">{copy.name3}</p>
           </Reveal>
         </div>
       </section>
