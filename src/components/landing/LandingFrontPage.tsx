@@ -73,13 +73,13 @@ export function LandingFrontPage() {
       <div className="px-5 pb-6 pt-5 sm:px-8">
         {/* 제호 */}
         <div className="border-b-[3px] border-double pb-3 text-center" style={{ borderColor: INK }}>
-          <p className="m-0 text-[11px] font-semibold tracking-[0.3em]" style={{ color: RED }}>
+          <p className="m-0 text-micro font-semibold tracking-[0.3em]" style={{ color: RED }}>
             {pick(lang, "예시 지면 · 실제 사건 아님", "EXAMPLE PAGE · NOT A REAL EVENT")}
           </p>
           <p className="m-0 mt-1 text-[clamp(30px,5vw,52px)] font-black leading-none tracking-[-0.02em]" style={SERIF}>
             {BRAND_NAME[ko ? "ko" : "en"]}
           </p>
-          <p className="m-0 mt-1.5 text-[12px] tracking-[0.2em]" style={{ color: `${INK}b0` }}>
+          <p className="m-0 mt-1.5 text-meta tracking-[0.2em]" style={{ color: `${INK}b0` }}>
             {pick(lang, "오늘의 지정학 1면 · 근거로 확인한 속보", "TODAY’S GEOPOLITICS · ALERTS CHECKED AGAINST EVIDENCE")}
           </p>
         </div>
@@ -87,7 +87,7 @@ export function LandingFrontPage() {
         <div className="mt-5 grid gap-6 md:grid-cols-[1.7fr_1fr]">
           {/* 머리기사 */}
           <article className="min-w-0 md:border-r md:pr-6" style={{ borderColor: `${INK}40` }}>
-            <p className="m-0 text-[12px] font-bold tracking-[0.12em]" style={{ color: RED }}>
+            <p className="m-0 text-meta font-bold tracking-[0.12em]" style={{ color: RED }}>
               {pick(lang, "머리기사 · ○○ 지역", "LEAD · REGION ○○")}
             </p>
             <h3 className="mb-0 mt-2 text-[clamp(24px,3.2vw,38px)] font-black leading-[1.2] tracking-[-0.02em]" style={SERIF}>
@@ -105,7 +105,7 @@ export function LandingFrontPage() {
                 "We checked a viral claim of a ‘major explosion’ against three independent sources. Facility, early-morning time, and a new heat source at the coordinates line up, so it is marked likely. Casualty figures differ by source and are not settled.",
               )}
             </p>
-            <ul className="m-0 mt-3 list-none p-0 text-[13px] leading-[1.9]">
+            <ul className="m-0 mt-3 list-none p-0 text-caption leading-[1.9]">
               <li>
                 <b style={{ color: GREEN }}>✓</b> {pick(lang, "통신사 A — 같은 시설·시각", "Wire service A — same facility and time")}
               </li>
@@ -121,7 +121,7 @@ export function LandingFrontPage() {
           {/* 단신 */}
           <aside className="flex min-w-0 flex-col gap-5">
             <article>
-              <p className="m-0 text-[11px] font-bold tracking-[0.12em]" style={{ color: RED }}>
+              <p className="m-0 text-micro font-bold tracking-[0.12em]" style={{ color: RED }}>
                 {pick(lang, "단신 · △△ 해협", "BRIEF · △△ STRAIT")}
               </p>
               <h4 className="mb-0 mt-1 text-[17px] font-extrabold leading-snug" style={SERIF}>
@@ -134,7 +134,7 @@ export function LandingFrontPage() {
               </div>
             </article>
             <article className="border-t pt-4" style={{ borderColor: `${INK}40` }}>
-              <p className="m-0 text-[11px] font-bold tracking-[0.12em]" style={{ color: RED }}>
+              <p className="m-0 text-micro font-bold tracking-[0.12em]" style={{ color: RED }}>
                 {pick(lang, "단신 · □□ 접경", "BRIEF · □□ BORDER")}
               </p>
               <h4 className="mb-0 mt-1 text-[17px] font-extrabold leading-snug" style={SERIF}>
@@ -152,7 +152,7 @@ export function LandingFrontPage() {
         {/* 어긋남 + 준비 중 */}
         <div className="mt-6 grid gap-4 border-t-[3px] border-double pt-4 md:grid-cols-[1.7fr_1fr]" style={{ borderColor: INK }}>
           <div>
-            <p className="m-0 text-[12px] font-bold tracking-[0.12em]" style={{ color: RED }}>
+            <p className="m-0 text-meta font-bold tracking-[0.12em]" style={{ color: RED }}>
               {pick(lang, "출처끼리 어긋난 곳", "WHERE SOURCES DISAGREE")}
             </p>
             <div className="mt-2 grid grid-cols-[1fr_auto_auto] items-center gap-x-5 gap-y-1 text-[14px]">
@@ -164,15 +164,15 @@ export function LandingFrontPage() {
                 <b>B</b> {pick(lang, "12명", "12")}
               </span>
             </div>
-            <p className="mb-0 mt-2 text-[13px]" style={{ color: `${INK}c0` }}>
+            <p className="mb-0 mt-2 text-caption" style={{ color: `${INK}c0` }}>
               {pick(lang, "맞는 쪽을 고르지 않고 둘 다 싣는다.", "We do not pick a side. Both are printed.")}
             </p>
           </div>
           <div className="rounded-sm border border-dashed px-3 py-2" style={{ borderColor: `${INK}70` }}>
-            <p className="m-0 text-[11px] font-bold tracking-[0.12em]" style={{ color: GREEN }}>
+            <p className="m-0 text-micro font-bold tracking-[0.12em]" style={{ color: GREEN }}>
               {pick(lang, "준비 중", "IN PREPARATION")}
             </p>
-            <p className="mb-0 mt-1 text-[13px] leading-snug" style={{ color: `${INK}d0` }}>
+            <p className="mb-0 mt-1 text-caption leading-snug" style={{ color: `${INK}d0` }}>
               {pick(lang, "다음 분기점까지 남은 날 · 시나리오 갈래", "Days to the next turning point · scenario branches")}
             </p>
           </div>
