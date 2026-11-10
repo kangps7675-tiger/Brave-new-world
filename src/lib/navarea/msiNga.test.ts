@@ -223,6 +223,7 @@ describe("NGA MSI 수집기", () => {
       vi
         .fn()
         .mockResolvedValueOnce(htmlRes(200)) // navWarn 차단
+        .mockResolvedValueOnce(htmlRes(200)) // apology fallback도 차단
         .mockResolvedValueOnce(jsonRes({ modu: [{ name: "RIG A", latitude: 1, longitude: 2 }] })),
     );
     const { data, errors } = await fetchMsi(["navWarn", "modu"], ONCE);

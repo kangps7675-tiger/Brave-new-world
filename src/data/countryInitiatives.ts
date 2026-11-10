@@ -169,7 +169,7 @@ export const COUNTRY_INITIATIVES: readonly CountryInitiative[] = [
     basis: "document",
     scopeKo: "지방 공직과 헌법 문서",
     scopeEn: "Local offices and the constitutional texts",
-    name: /\btaiwan\b|대만|타이베이/,
+    name: /\btaiwan\b|대만|타이베이/i,
     goals: [],
     docUrl: "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=A0000001",
     docNameKo: "중화민국 헌법",
