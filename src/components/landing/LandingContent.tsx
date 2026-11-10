@@ -16,7 +16,6 @@ import {
 } from "@/components/landing/LandingMotion";
 import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
 import { ExtraEdition } from "@/components/landing/LandingExtra";
-import { ShipStrikeScene } from "@/components/landing/ShipStrikeScene";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
 import { LandingOpenLink } from "@/components/landing/LandingOpenLink";
@@ -190,17 +189,6 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
       </section>
 
       <LiveTicker />
-
-      {/* THREAT — 상선을 때리는 것들 (연출) */}
-      <section id="threat" className={`${WRAP} pb-6 pt-20`}>
-        <Reveal>
-          <p className={EYEBROW}>{copy.threatEyebrow}</p>
-          <h2 className={`${H2} max-w-[900px]`}>{copy.threatTitle}</h2>
-        </Reveal>
-        <div className="mt-10">
-          <ShipStrikeScene />
-        </div>
-      </section>
 
       {/* STATS — 숫자로 보는 범위 */}
       <section className={`${WRAP} grid gap-px py-14 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]`}>

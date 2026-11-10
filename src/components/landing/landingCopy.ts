@@ -19,7 +19,6 @@ export function landingCopy(lang: LabelLanguage) {
     openGlobe: t("지구본 열기", "Open the globe"),
     sections: [
       { id: "top", label: t("처음", "Top") },
-      { id: "threat", label: t("위협", "Threats") },
       { id: "ask", label: t("질문 넷", "Four questions") },
       { id: "flow", label: t("경보가 뜨면", "When an alert hits") },
       { id: "read", label: t("화면 읽는 법", "How to read it") },
@@ -44,8 +43,6 @@ export function landingCopy(lang: LabelLanguage) {
     ),
     heroRead: t("화면 읽는 법 먼저 보기", "How to read the screen"),
     heroBeta: t("베타 기간에는 가입 없이 바로 볼 수 있어요.", "During beta you can look without signing up."),
-    threatEyebrow: t("바다에서 지금 벌어지는 일", "What is happening at sea"),
-    threatTitle: t("상선은 드론, 미사일, 기뢰에 맞고 있습니다.", "Merchant ships are being hit by drones, missiles, and mines."),
     stats: [
       { n: 6, s: t("곳", "straits"), label: t("지켜보는 해운 길목", "Shipping chokepoints on watch") },
       { n: 8, s: t("종", "sources"), label: t("서로 맞춰 보는 공개 출처", "Public sources checked against each other") },
