@@ -11,7 +11,7 @@ import { useScrollProgress } from "@/components/landing/LandingMotion";
  * 랜딩 첫 화면의 돌아가는 지구본 — One Page Love의 DCS AML(천천히 도는 지구본)과
  * World Pollution(누를 수 있는 지점)을 섞었다.
  *
- * 해운 길목 6곳을 차례로 찾아가며 그 바다에서 지구본이 무엇을 보여 주는지 카드로 설명한다.
+ * 전선이 맞닿는 길목 6곳을 차례로 찾아가며 그 바다에서 지구본이 무엇을 보여 주는지 카드로 설명한다.
  * 점을 누르거나 아래 칩을 누르면 그곳으로 돌아가고, 끌어서 직접 돌릴 수도 있다.
  *
  * WebGL이 아니라 2D 캔버스다. 이 랜딩은 실제 지구본(MapLibre)이 아래에서 부팅하는 동안 덮여 있으므로
@@ -33,81 +33,81 @@ export const HOTSPOTS: Hotspot[] = [
     name: "호르무즈 해협",
     lng: 56.3,
     lat: 26.6,
-    why: "페르시아만 원유·LNG가 나가는 사실상 유일한 출구입니다. 세계 원유 소비량의 약 5분의 1이 지나갑니다.",
-    see: "유조선 위치 · 해상 피습 경보 · 걸프 정유소에 떨어진 드론·미사일",
+    why: "이란 앞의 좁은 바다입니다. 다음 의회·대통령 선거일은 아직 정해지지 않았습니다.",
+    see: "걸프 전선 · 떨어진 드론·미사일 · 2028년이라는 말만 있는 선거",
   },
   {
     id: "bab",
     name: "바브엘만데브 해협",
     lng: 43.4,
     lat: 12.6,
-    why: "홍해와 수에즈 운하로 들어가는 입구입니다. 이곳이 위험해지면 배들이 희망봉으로 돌아가 1~2주가 더 걸립니다.",
-    see: "후티 공격 경보 · 주변 상선과 군함 · 전쟁위험 보험료 보도",
+    why: "홍해로 들어가는 입구입니다. 예멘 전선이 이 바다까지 이어집니다.",
+    see: "후티의 공격 · 예멘에서 누가 해안을 쥐고 있는지",
   },
   {
     id: "blacksea",
     name: "흑해",
     lng: 34.5,
     lat: 43.6,
-    why: "우크라이나와 러시아의 곡물·원유가 세계로 나가는 바다입니다.",
-    see: "항구·유조선 타격 불꽃 · 우크라이나 점령 지역 · 해상 드론 속보",
+    why: "우크라이나와 러시아가 맞닿은 바다입니다. 대통령 선거일은 지났고, 계엄 중에는 선거를 하지 않습니다.",
+    see: "점령 지역 · 항구에 떨어진 타격 · 지난 선거일",
   },
   {
     id: "suez",
     name: "수에즈 운하",
     lng: 32.4,
     lat: 30.5,
-    why: "아시아와 유럽을 잇는 가장 짧은 바닷길입니다. 홍해 쪽 위험이 그대로 이어집니다.",
-    see: "운하 접근 해역의 배 위치 · 홍해 사건과 같은 흐름",
+    why: "아시아와 유럽이 맞닿는 운하입니다. 홍해 전선이 그대로 올라옵니다.",
+    see: "홍해 전선과 같은 속보 · 운하로 이어지는 타격",
   },
   {
     id: "malacca",
     name: "말라카 해협",
     lng: 100.9,
     lat: 2.6,
-    why: "중동 원유가 한국·중국·일본으로 오는 가장 짧은 길입니다.",
-    see: "배 위치 신호 · 해적·나포 소식",
+    why: "말레이시아·인도네시아·싱가포르가 맞닿고, 동아시아 전선으로 이어집니다.",
+    see: "이 길목의 안보 속보 · 동아시아로 이어지는 군사 움직임",
   },
   {
     id: "taiwan",
     name: "대만해협",
     lng: 119.6,
     lat: 24.2,
-    why: "동아시아 컨테이너선이 많이 지나고, 첨단 반도체 생산이 몰린 대만을 끼고 있습니다.",
-    see: "중국 군용기·군함 움직임 · 군사훈련 구역",
+    why: "대만과 중국이 맞닿은 바다입니다. 다음 공식 일정은 2026년 11월 28일 지방선거입니다.",
+    see: "중국 군용기·군함 · 군사훈련 구역 · 그 선거일",
   },
 ];
 
 const HOTSPOT_EN: Record<string, Pick<Hotspot, "name" | "why" | "see">> = {
   hormuz: {
     name: "Strait of Hormuz",
-    why: "Effectively the only exit for Persian Gulf oil and LNG. About a fifth of the world's oil consumption passes through.",
-    see: "Tanker positions · maritime attack alerts · drone and missile strikes on Gulf plants",
+    why: "The narrow sea off Iran. The next parliamentary and presidential polling day is not set.",
+    see: "The Gulf front · drones and missiles that landed · an election that has only been placed in 2028",
   },
   bab: {
     name: "Bab el-Mandeb",
-    why: "The gate into the Red Sea and the Suez Canal. When it turns dangerous, ships detour around the Cape and lose one to two weeks.",
-    see: "Houthi attack alerts · nearby merchant ships and warships · reported war-risk premiums",
+    why: "The gate into the Red Sea. Yemen’s front reaches this water.",
+    see: "Houthi attacks · who holds the Yemeni coast",
   },
   blacksea: {
     name: "Black Sea",
-    why: "The sea Ukrainian and Russian grain and oil leave through.",
-    see: "Strikes on ports and tankers · occupied areas of Ukraine · sea-drone reports",
+    why: "The sea where Ukraine and Russia meet. The presidential election day has passed, and elections are not held under martial law.",
+    see: "Occupied ground · strikes on ports · that passed election day",
   },
   suez: {
     name: "Suez Canal",
-    why: "The shortest sea route between Asia and Europe. Risk in the Red Sea carries straight through.",
-    see: "Ship positions on the approaches · the same flow as Red Sea incidents",
+    why: "The canal where Asia and Europe meet. The Red Sea front comes straight up it.",
+    see: "The same alerts as the Red Sea · strikes that reach the canal",
   },
   malacca: {
     name: "Strait of Malacca",
-    why: "The shortest route for Middle East oil bound for Korea, China, and Japan.",
-    see: "Ship position signals · piracy and seizure reports",
+    why: "Where Malaysia, Indonesia, and Singapore meet, on the way to the East Asian fronts.",
+    see: "Security alerts for this passage · military moves toward East Asia",
   },
   taiwan: {
     name: "Taiwan Strait",
-    why: "A busy East Asian container route, beside the island that makes most advanced chips.",
-    see: "Chinese military flights and ships · exercise zones",
+    why: "The water between Taiwan and China. The next official date is the local elections on 28 November 2026.",
+    see: "Chinese military flights and ships · exercise zones · that election day",
   },
 };
 
@@ -474,12 +474,12 @@ export function LandingGlobe() {
         {incidentCount != null && incidentCount > 0
           ? pick(
               lang,
-              `붉은 점: 최근 60일 실제 UKMTO 해상 경보 ${incidentCount}건`,
-              `Red dots: ${incidentCount} real UKMTO maritime alerts in the last 60 days`,
+              `붉은 점: 최근 60일 보고된 공격 ${incidentCount}건`,
+              `Red dots: ${incidentCount} reported attacks in the last 60 days`,
             )
-          : pick(lang, "붉은 점: 최근 UKMTO 해상 경보", "Red dots: recent UKMTO maritime alerts")}
+          : pick(lang, "붉은 점: 최근 보고된 공격", "Red dots: recently reported attacks")}
         <span className="mx-2 text-white/20">|</span>
-        {pick(lang, "흐르는 배와 점선 항로는 이해를 돕는 연출입니다", "Moving ships and dotted routes are illustrations, not live tracks")}
+        {pick(lang, "점선과 움직이는 점은 길목이 이어지는 자리를 보여주는 연출입니다", "Dotted lines and moving points show how the passages connect. They are not live tracks")}
       </p>
       <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label={pick(lang, "길목 고르기", "Choose a passage")}>
         {HOTSPOTS.map((s, i) => {

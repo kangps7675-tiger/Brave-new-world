@@ -55,8 +55,8 @@ export function LandingSignup() {
         <p className="mt-2 text-[15px] leading-relaxed text-[#a3b3bf]">
           {pick(
             lang,
-            "새로 공격받은 배 소식과, 기사에 보도된 전쟁위험 보험료(전쟁 지역을 지나는 배가 따로 내는 보험료)를 하루 한 번 보내 드려요.",
-            "Once a day: newly attacked ships, and the war-risk premium figures reported in the press.",
+            "전선에서 새로 확인된 공격을 하루 한 번 보내 드려요.",
+            "Once a day: newly confirmed attacks on the fronts.",
           )}
         </p>
       </div>
