@@ -15,6 +15,7 @@ import {
   TiltCard,
 } from "@/components/landing/LandingMotion";
 import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
+import { LandingFrontPage } from "@/components/landing/LandingFrontPage";
 import { ExtraEdition } from "@/components/landing/LandingExtra";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
@@ -235,6 +236,18 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         <div className="mt-16">
           <AlertScrolly />
         </div>
+      </section>
+
+      {/* FRONT — 오늘의 지정학 1면 (이메일 브리핑의 모양) */}
+      <section id="front" className={`${WRAP} pb-8 pt-20`}>
+        <Reveal>
+          <p className={EYEBROW}>{copy.frontEyebrow}</p>
+          <h2 className={`${H2} max-w-[860px]`}>{copy.frontTitle}</h2>
+          <p className={`mt-4 mb-0 max-w-[720px] text-[17px] leading-[1.75] ${MUTED}`}>{copy.frontLead}</p>
+        </Reveal>
+        <Reveal className="mt-12" delay={120}>
+          <LandingFrontPage />
+        </Reveal>
       </section>
 
       {/* READ — 화면 읽는 법 */}

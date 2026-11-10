@@ -20,11 +20,10 @@ export function landingCopy(lang: LabelLanguage) {
     openGlobe: t("지구본 열기", "Open the globe"),
     sections: [
       { id: "top", label: t("처음", "Top") },
-      { id: "threat", label: t("위협", "Threats") },
       { id: "ask", label: t("질문 넷", "Four questions") },
       { id: "flow", label: t("경보가 뜨면", "When an alert hits") },
+      { id: "front", label: t("1면", "Front page") },
       { id: "read", label: t("화면 읽는 법", "How to read it") },
-      { id: "extra", label: t("호외", "Extra") },
       { id: "breaking", label: t("속보", "Alerts") },
       { id: "features", label: t("상세 기능", "Features") },
       { id: "devices", label: t("데스크톱·휴대폰", "Desktop and phone") },
@@ -90,6 +89,12 @@ export function landingCopy(lang: LabelLanguage) {
     flowTitle: t(
       "전선 속보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.",
       "Scroll to see how one front-line alert unfolds on the globe.",
+    ),
+    frontEyebrow: t("이메일로 받게 될 모양", "What the email will look like"),
+    frontTitle: t("오늘의 지정학 1면, 이런 지면으로 옵니다.", "Today’s geopolitics front page. This is the shape it arrives in."),
+    frontLead: t(
+      "머리기사 한 건에 확인 상태 도장과 출처를 붙이고, 단신 몇 건과 출처끼리 어긋난 곳을 함께 싣습니다. 아래는 과정을 보여 드리려고 만든 가상의 예시 지면이에요. 주 4회 발송은 준비 중입니다.",
+      "One lead story with a status stamp and its sources, a few briefs, and the places where sources disagree. Below is an invented example page made to show the shape. The four-times-a-week send is in preparation.",
     ),
     readEyebrow: t("화면 읽는 법", "How to read the screen"),
     readTitle1: t("반짝이는 데는 다 이유가 있어요.", "Everything that glows is there for a reason."),
