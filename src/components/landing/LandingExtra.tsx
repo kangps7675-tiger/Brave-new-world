@@ -25,8 +25,8 @@ const MAX = 10; // 그래프 세로축(%)
 const INK = "#1a150e";
 const RED = "#9b2a1c";
 
-const GMARKET = { fontFamily: "var(--font-gmarket), var(--font-geist-sans), sans-serif" } as const;
-const BATANG = { fontFamily: "var(--font-letter-hand), 'Noto Serif KR', serif" } as const;
+const DESK = { fontFamily: "var(--font-wanted), var(--font-geist-sans), sans-serif" } as const;
+const PAPER = { fontFamily: "var(--font-letter-hand), Georgia, serif" } as const;
 const SERIF = { fontFamily: "var(--font-merriweather), Georgia, serif" } as const;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -64,7 +64,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
       {EXTRA_BEATS.map((_, i) => {
         const b = extraText(i, lang);
         return (
-        <text key={b.tick} x={x(i)} y={H - bottom + 26} textAnchor="middle" fontSize={15} fill={INK} fillOpacity={i <= beat ? 0.9 : 0.4} style={BATANG}>
+        <text key={b.tick} x={x(i)} y={H - bottom + 26} textAnchor="middle" fontSize={15} fill={INK} fillOpacity={i <= beat ? 0.9 : 0.4} style={PAPER}>
           {shortTick(b.tick)}
         </text>
         );
@@ -104,7 +104,7 @@ function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => 
               ) : (
                 <circle cx={cx} cy={y(b.lo)} r={8} fill={INK} />
               )}
-              <text x={i === 0 ? cx - 4 : cx} y={labelY} textAnchor={i === 0 ? "start" : "middle"} fontSize={cur ? 22 : 17} fill={cur ? RED : INK} style={GMARKET}>
+              <text x={i === 0 ? cx - 4 : cx} y={labelY} textAnchor={i === 0 ? "start" : "middle"} fontSize={cur ? 22 : 17} fill={cur ? RED : INK} style={DESK}>
                 {b.approx ? pick(lang, "약 ", "about ") : ""}
                 {b.label}
               </text>
@@ -247,7 +247,7 @@ export function ExtraEdition() {
             <div className={pin ? "relative mx-auto flex h-full max-w-[1320px] flex-col px-[clamp(24px,4vw,64px)] py-[clamp(14px,2.6vh,32px)]" : undefined}>
             {/* 제호 — 1950년대 신문 1면: 별 장식, 굵은 제호, 겹줄, 발행 줄 */}
             <header className="text-center">
-              <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={BATANG}>
+              <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={PAPER}>
                 <span className="w-[22%] text-left font-bold tracking-[0.12em]">{pick(lang, "★ 호외 ★", "★ EXTRA ★")}</span>
                 <span className="flex-1 text-center tracking-[0.18em]">EXTRA EDITION</span>
                 <span className="w-[22%] text-right">{beat + 1} / {N}</span>
@@ -258,7 +258,7 @@ export function ExtraEdition() {
               >
                 conflict-view
               </h3>
-              <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={BATANG}>
+              <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={PAPER}>
                 {pick(
                   lang,
                   `★ 해운 위험 속보 ★ 호르무즈 해협 · 전쟁위험 보험료 ★ ${b.tick} 보도 ★`,
@@ -271,13 +271,13 @@ export function ExtraEdition() {
               {/* 기사 */}
               <div className="min-w-0">
                 <div aria-live="polite">
-                  <p className="m-0 text-[14px] font-bold tracking-[0.04em]" style={{ ...BATANG, color: RED }}>
+                  <p className="m-0 text-[14px] font-bold tracking-[0.04em]" style={{ ...PAPER, color: RED }}>
                     {pick(lang, `${b.tick} 보도`, `Reported ${b.tick}`)}
                   </p>
                   <h4
                     key={`h-${beat}`}
                     className={`landing-headline landing-ink m-0 mt-2 font-black leading-[1.2] tracking-[-0.03em] ${pin ? "text-[clamp(30px,min(4vw,6vh),60px)]" : "text-[clamp(28px,3.4vw,46px)]"}`}
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {b.headline}
                   </h4>
@@ -296,14 +296,14 @@ export function ExtraEdition() {
                           <ExtraPhoto scene={b.scene} />
                         </div>
                       </div>
-                      <figcaption className="mt-1 text-caption leading-snug" style={BATANG}>
+                      <figcaption className="mt-1 text-caption leading-snug" style={PAPER}>
                         ▲ {b.caption} <span className="whitespace-nowrap">{pick(lang, "(편집부 일러스트)", "(desk illustration)")}</span>
                       </figcaption>
                     </figure>
                     <p
                       key={`s-${beat}`}
                       className={`landing-headline m-0 leading-[1.75] ${pin ? "text-[clamp(16px,2.2vh,21px)]" : "text-[16px]"}`}
-                      style={BATANG}
+                      style={PAPER}
                     >
                       {b.summary}
                     </p>
@@ -311,7 +311,7 @@ export function ExtraEdition() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <span key={`st-${beat}`} className="landing-stamp inline-block px-3 py-1.5 text-[14px] font-extrabold tracking-wide" style={GMARKET}>
+                  <span key={`st-${beat}`} className="landing-stamp inline-block px-3 py-1.5 text-[14px] font-extrabold tracking-wide" style={DESK}>
                     {b.stamp}
                   </span>
                   <a
@@ -324,7 +324,7 @@ export function ExtraEdition() {
                   </a>
                 </div>
                 {b.stampNote ? (
-                  <p className="m-0 mt-2 text-caption italic" style={BATANG}>
+                  <p className="m-0 mt-2 text-caption italic" style={PAPER}>
                     ※ {b.stampNote}
                   </p>
                 ) : null}
@@ -332,11 +332,11 @@ export function ExtraEdition() {
 
               {/* 인쇄 그래프 */}
               <div className="min-w-0 border-t border-[#1a150e]/40 pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
-                <p className="m-0 mb-1 text-[14px] font-bold" style={BATANG}>
+                <p className="m-0 mb-1 text-[14px] font-bold" style={PAPER}>
                   {pick(lang, "기사에 나온 전쟁위험 보험료율(%)", "War-risk rates quoted in the press (%)")}
                 </p>
                 <Chart beat={beat} onPick={go} narrow={narrow} />
-                <p className="m-0 mt-1 text-caption leading-snug" style={BATANG}>
+                <p className="m-0 mt-1 text-caption leading-snug" style={PAPER}>
                   {pick(
                     lang,
                     "세로 막대는 기사에 적힌 범위, 점은 기사에 적힌 값입니다. 점을 잇는 점선은 흐름을 보려는 선일 뿐, 그 사이 시세가 있다는 뜻이 아닙니다.",
@@ -370,7 +370,7 @@ export function ExtraEdition() {
                     onClick={() => go(beat - 1)}
                     disabled={beat === 0}
                     className="rounded border border-[#1a150e] px-3 py-1.5 text-[14px] font-bold disabled:opacity-30"
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {pick(lang, "◀ 이전", "◀ Previous")}
                   </button>
@@ -379,19 +379,19 @@ export function ExtraEdition() {
                     onClick={() => go(beat + 1)}
                     disabled={beat === N - 1}
                     className="rounded border border-[#1a150e] bg-[#1a150e] px-3 py-1.5 text-[14px] font-bold text-[#ecdfbd] disabled:opacity-30"
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {pick(lang, "다음 ▶", "Next ▶")}
                   </button>
                 </div>
               ) : (
-                <span className="text-caption lg:mr-[150px]" style={BATANG}>
+                <span className="text-caption lg:mr-[150px]" style={PAPER}>
                   {pick(lang, "스크롤하면 다음 속보가 넘어갑니다", "Scroll for the next report")}
                 </span>
               )}
             </div>
 
-            <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
+            <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={PAPER}>
               {pick(
                 lang,
                 "이 지면은 conflict-view가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.",

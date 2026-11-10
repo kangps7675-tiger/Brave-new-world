@@ -64,8 +64,12 @@
   /* 양피지 EN Merriweather */
   --font-parchment-en: var(--font-merriweather), var(--font-wanted), Georgia, "Times New Roman",
     serif;
-  /* 데이터 JetBrains Mono */
+  /* 데이터 JetBrains Mono — 좌표·수치 */
   --font-data-mono: var(--font-jetbrains-mono), var(--font-geist-mono), ui-monospace, monospace;
+  /* 예전 장식 서체 이름. 파일은 안 싣고, 상황실 고딕·기기 명조로 잇는다. */
+  --font-pretendard: "Pretendard", var(--font-wanted);
+  --font-gmarket: var(--font-wanted);
+  --font-letter-hand: "Nanum Myeongjo", "Apple Myungjo", Batang, Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -297,17 +301,16 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   font-style: normal;
 }
 
-/** 분쟁 외교사 11개 에피소드(역사 양피지) — RIDI Batang 명조 */
+/** 분쟁 외교사 11개 에피소드(역사 양피지) — 기기에 있는 명조 */
 .parchment-letter--history {
-  font-family: var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang",
-    serif;
+  font-family: var(--font-letter-hand), "Nanum Myeongjo", Batang, serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
 /** 역사 지도 영토 명칭 — 명조 필체 (한글 직립 · 라틴 이탤릭) */
 .history-polity-atlas-label {
-  font-family: var(--font-letter-hand), "RIDI Batang", var(--font-merriweather), Merriweather,
+  font-family: var(--font-letter-hand), var(--font-merriweather), Merriweather,
     "Nanum Myeongjo", "Gowun Batang", "Palatino Linotype", Palatino, serif;
   font-style: italic;
   font-weight: 400;
@@ -333,26 +336,23 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   letter-spacing: 0.08em;
 }
 
-/** 뉴스 헤드라인 — Gmarket Sans (신속속보·배너) */
+/** 뉴스 헤드라인 — Wanted Sans (상황실 고딕) */
 .font-news-headline {
-  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
-    "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/** 신속속보 양피지 — 헤드라인 Gmarket, 본문 Pretendard/Inter */
+/** 신속속보 양피지 — 헤드라인·본문 모두 상황실 고딕, 영문은 Inter */
 .parchment-letter--news-flash {
-  font-family: var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable",
-    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
 .parchment-letter--news-flash .welcome-letter-title,
 .parchment-letter--news-flash .welcome-letter-kicker {
-  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
-    "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 /** 영문 UI — Inter 우선, Wanted 폴백 */
@@ -378,7 +378,7 @@ main[data-ui-lang="en"] .parchment-letter--news-flash {
 
 main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-title,
 main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-kicker {
-  font-family: var(--font-gmarket), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-wanted), ui-sans-serif, system-ui, sans-serif;
 }
 
 main[data-viewer="economy"] .font-en,
@@ -386,7 +386,7 @@ main[data-viewer="economy"] .font-en,
   font-family: var(--font-ui-en);
 }
 
-/** EN 양피지 — Merriweather (RIDI 필체·Intel UI·신속속보 제외) */
+/** EN 양피지 — Merriweather (역사 명조·Intel UI·신속속보 제외) */
 main[data-ui-lang="en"]
   .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel):not(
     .parchment-letter--news-flash

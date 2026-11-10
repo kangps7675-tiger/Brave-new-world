@@ -95,14 +95,14 @@ export type ParchmentLetterProps = {
   /** 본문을 타자기처럼 한 글자씩 출력 (분쟁 외교사 등) */
   typewriter?: boolean;
   /**
-   * true면 반서방 11대·첫입장(한글) 등 RIDI Batang 필체.
+   * true면 반서방 11대·첫입장(한글) 등 기기 명조.
    * 기본(false)은 Wanted Sans / EN Merriweather.
    */
   historyHandFont?: boolean;
   /** true면 Intel UI(Inter) — 첫입장 영문 편지 등 */
   intelFont?: boolean;
   /**
-   * 신속속보 타전 — 뉴스 헤드라인(Gmarket)·본문(Pretendard/Inter).
+   * 신속속보 타전 — 헤드라인·한글 본문은 Wanted Sans, 영문 본문은 Inter.
    * title에 `\n`이 있으면 첫 줄=키커(소제목), 나머지=제목.
    */
   newsFlashFont?: boolean;
@@ -174,19 +174,19 @@ export function ParchmentLetter({
   /** 타이핑 중 본문 하단 자동 추적. 유저가 스크롤하면 false. */
   const autoScrollFollowRef = useRef(true);
   const programmaticScrollRef = useRef(false);
-  /** 신속속보 — Gmarket 헤드라인 + 가독성 본문 */
+  /** 신속속보 — 상황실 고딕. 영문 본문만 Inter */
   const newsHeadlineStack =
-    'var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+    'var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
   const newsBodyStack =
     lang === "en"
       ? "var(--font-intel)"
-      : 'var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+      : 'var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
   const parchmentStack = newsFlashFont
     ? newsBodyStack
     : intelFont
       ? "var(--font-intel)"
       : historyHandFont
-        ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif'
+        ? 'var(--font-letter-hand), "Nanum Myeongjo", Batang, serif'
         : lang === "en"
           ? "var(--font-parchment-en)"
           : 'var(--font-wanted), "Wanted Sans Variable", "Wanted Sans", sans-serif';

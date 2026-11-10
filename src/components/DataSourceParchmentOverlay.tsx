@@ -48,7 +48,7 @@ export function DataSourceParchmentOverlay(props: Props) {
     onClose: browse ? onDismiss : undefined,
   });
   const parchmentStack = ko
-    ? 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", serif'
+    ? 'var(--font-letter-hand), "Nanum Myeongjo", Batang, serif'
     : "var(--font-intel)";
   const ink = "#1a1208";
   const active = sections.find((s) => s.id === activeId) ?? sections[0]!;
