@@ -4,132 +4,52 @@ import { useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { useAnyScroll } from "@/components/landing/LandingHip";
 import { pick } from "@/components/landing/landingCopy";
-import { EXTRA_BEATS, extraChartLabel, extraText } from "@/components/landing/extraData";
+import { EXTRA_BEATS, extraText } from "@/components/landing/extraData";
 import { useLandingLanguage } from "@/lib/landingLanguage";
-import { ExtraPhoto } from "@/components/landing/LandingExtraPhoto";
 
 /**
- * 호외 — 호르무즈 전쟁위험 보험료 보도 6건을 신문 지면으로 넘겨 본다.
+ * 호외 — 가까운 공식 일정 6건을 신문 지면으로 넘겨 본다.
  *
  * - 데스크톱: 섹션이 화면에 붙는 동안 스크롤로 기사가 한 장씩 넘어간다.
- *   들어올 때는 "호외요" 하듯 빙글 돌며 커지고, 기사마다 도장이 쾅 찍히고, 인쇄 그래프에 점이 하나씩 찍힌다.
+ *   들어올 때는 "호외요" 하듯 빙글 돌며 커지고, 기사마다 도장이 쾅 찍힌다.
  * - 휴대폰·동작 줄이기: 붙지 않는다. 이전/다음 버튼이나 점을 눌러 넘긴다.
  *
  * 지면은 우리가 만든 화면이다(실제 신문 아님). 제호는 우리 이름을 쓰고, 기사 문장은 옮기지 않고 요약한다.
  */
 
 const N = EXTRA_BEATS.length;
-const MIN = 0;
-const MAX = 10; // 그래프 세로축(%)
 
-const INK = "#1a150e";
 const RED = "#9b2a1c";
 
-const GMARKET = { fontFamily: "var(--font-gmarket), var(--font-geist-sans), sans-serif" } as const;
-const BATANG = { fontFamily: "var(--font-letter-hand), 'Noto Serif KR', serif" } as const;
+const DESK = { fontFamily: "var(--font-wanted), var(--font-geist-sans), sans-serif" } as const;
+const PAPER = { fontFamily: "var(--font-letter-hand), Georgia, serif" } as const;
 const SERIF = { fontFamily: "var(--font-merriweather), Georgia, serif" } as const;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /** 좁은 화면에서는 가로를 줄여 글자가 작게 줄어들지 않게 하고, 날짜를 짧게 쓴다 */
-const shortTick = (t: string) => t.replace(/(\d+)월 (\d+)일/, "$1/$2");
-
-function Chart({ beat, onPick, narrow }: { beat: number; onPick: (i: number) => void; narrow: boolean }) {
+function DatesList({ beat, onPick }: { beat: number; onPick: (i: number) => void }) {
   const lang = useLandingLanguage();
-  const W = narrow ? 360 : 430;
-  const H = narrow ? 340 : 360;
-  const left = narrow ? 46 : 54;
-  const right = narrow ? 14 : 18;
-  const top = 52;
-  const bottom = narrow ? 46 : 54;
-  const pw = W - left - right;
-  const ph = H - top - bottom;
-  const x = (i: number) => left + (i + 0.5) * (pw / N);
-  const y = (v: number) => top + (1 - (v - MIN) / (MAX - MIN)) * ph;
-  const mid = (i: number) => (EXTRA_BEATS[i].lo + EXTRA_BEATS[i].hi) / 2;
-
-  const line: string[] = [];
-  for (let i = 0; i <= beat; i++) line.push(`${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(mid(i)).toFixed(1)}`);
-
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={extraChartLabel(lang)} className="block h-auto w-full">
-      {[0, 2, 4, 6, 8, 10].map((v) => (
-        <g key={v}>
-          <line x1={left} x2={W - right} y1={y(v)} y2={y(v)} stroke={INK} strokeOpacity={v === 0 ? 0.7 : 0.22} strokeDasharray={v === 0 ? undefined : "2 5"} />
-          <text x={left - 9} y={y(v) + 5} textAnchor="end" fontSize={15} fill={INK} fillOpacity={0.75} style={SERIF}>
-            {v}%
-          </text>
-        </g>
-      ))}
+    <ol className="m-0 grid list-none gap-2 p-0">
       {EXTRA_BEATS.map((_, i) => {
-        const b = extraText(i, lang);
+        const row = extraText(i, lang);
+        const on = i === beat;
         return (
-        <text key={b.tick} x={x(i)} y={H - bottom + 26} textAnchor="middle" fontSize={15} fill={INK} fillOpacity={i <= beat ? 0.9 : 0.4} style={BATANG}>
-          {shortTick(b.tick)}
-        </text>
+          <li key={row.url}>
+            <button
+              type="button"
+              onClick={() => onPick(i)}
+              className="w-full rounded-sm border px-3 py-2 text-left"
+              style={{ borderColor: on ? "#9b2a1c" : "rgba(26,21,14,.35)", background: on ? "rgba(155,42,28,.08)" : "transparent", ...PAPER }}
+            >
+              <span className="block text-[13px] font-bold" style={{ color: "#9b2a1c" }}>{row.tick}</span>
+              <span className="block text-[16px] font-black leading-snug" style={{ color: "#1a150e" }}>{row.headline}</span>
+            </button>
+          </li>
         );
       })}
-      {/* 기사 사이를 잇는 점선 — 흐름을 보기 위한 선일 뿐, 그 사이 시세는 없다 */}
-      <path d={line.join(" ")} fill="none" stroke={INK} strokeOpacity={0.5} strokeWidth={1.6} strokeDasharray="4 6" />
-      {EXTRA_BEATS.map((_, i) => {
-        const b = extraText(i, lang);
-        if (i > beat) return null;
-        const cur = i === beat;
-        const cx = x(i);
-        const range = b.hi > b.lo;
-        const ry = range ? Math.max(24, (y(b.lo) - y(b.hi)) / 2 + 14) : 20;
-        // 값 글자는 빨간 동그라미 위로 비켜 놓는다
-        const labelY = cur ? Math.min(y(b.hi) - 18, y(mid(i)) - ry - 8) : y(b.hi) - 18;
-        return (
-          <g
-            key={b.tick}
-            role="button"
-            tabIndex={0}
-            aria-label={pick(lang, `${b.tick} ${b.approx ? "약 " : ""}${b.label} 기사 보기`, `Open the ${b.tick} report, ${b.approx ? "about " : ""}${b.label}`)}
-            className="cursor-pointer outline-none [&:focus-visible_circle:last-child]:stroke-[#9b2a1c]"
-            onClick={() => onPick(i)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onPick(i);
-              }
-            }}
-          >
-            <g className="landing-dot-in">
-              {range ? (
-                <>
-                  <line x1={cx} x2={cx} y1={y(b.lo)} y2={y(b.hi)} stroke={INK} strokeWidth={9} strokeLinecap="round" />
-                  <circle cx={cx} cy={y(mid(i))} r={3.5} fill="#ecdfbd" />
-                </>
-              ) : (
-                <circle cx={cx} cy={y(b.lo)} r={8} fill={INK} />
-              )}
-              <text x={i === 0 ? cx - 4 : cx} y={labelY} textAnchor={i === 0 ? "start" : "middle"} fontSize={cur ? 22 : 17} fill={cur ? RED : INK} style={GMARKET}>
-                {b.approx ? pick(lang, "약 ", "about ") : ""}
-                {b.label}
-              </text>
-            </g>
-            {/* 지금 보는 기사: 빨간 펜 동그라미 */}
-            {cur ? (
-              <ellipse
-                key={`ring-${beat}`}
-                className="landing-pen"
-                cx={cx}
-                cy={y(mid(i))}
-                rx={range ? 22 : 20}
-                ry={ry}
-                fill="none"
-                stroke={RED}
-                strokeWidth={3}
-                strokeLinecap="round"
-                transform={`rotate(-8 ${cx} ${y(mid(i))})`}
-              />
-            ) : null}
-            <circle cx={cx} cy={y(mid(i))} r={26} fill="transparent" stroke="transparent" strokeWidth={2} />
-          </g>
-        );
-      })}
-    </svg>
+    </ol>
   );
 }
 
@@ -141,16 +61,10 @@ export function ExtraEdition() {
   const [p, setP] = useState(0);
   const [intro, setIntro] = useState(0);
   const [manual, setManual] = useState(0);
-  const [narrow, setNarrow] = useState(false);
 
   useEffect(() => {
     const ok = !prefersReducedMotion() && window.matchMedia("(min-width: 1024px) and (min-height: 700px)").matches;
     setPin(ok);
-    const mq = window.matchMedia("(max-width: 639px)");
-    const sync = () => setNarrow(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
   }, []);
 
   useAnyScroll(() => {
@@ -188,16 +102,16 @@ export function ExtraEdition() {
     <section id="extra" className="relative border-y border-white/10 bg-[#081019]">
       <div className="mx-auto max-w-[1200px] px-6 pb-10 pt-24">
         <p className="m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]">
-          {pick(lang, "공개 보도로 본 보험료", "Premiums, as reported")}
+          {pick(lang, "공식 글에 적힌 일정", "Dates written in official texts")}
         </p>
         <h2 className="mb-0 mt-4 max-w-[860px] text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white">
-          {pick(lang, "전쟁위험 보험료, 이렇게 널뛰었습니다.", "How the war-risk premium swung.")}
+          {pick(lang, "다음 일정은 이렇게 이어집니다.", "The next dates run like this.")}
         </h2>
         <p className="mb-0 mt-5 max-w-[720px] text-[18px] leading-[1.75] text-[#a3b3bf]">
           {pick(
             lang,
-            "호르무즈를 지날 때 내는 보험료는 전쟁 전 0.25% 안팎에서 한때 10%까지 올랐고, 휴전에 내렸다가 다시 올랐습니다. 공개 시세가 없는 숫자라서 우리는 기사에서 뽑아 날짜순으로 쌓고, 점마다 근거 기사를 붙여 둡니다.",
-            "Cover for a Hormuz transit rose from about 0.25% before the war to 10% at one point, fell with the ceasefire, then rose again. There is no public price, so we take the figures from articles, keep them in date order, and attach the source to every point.",
+            "선거와 당대회를 가까운 날부터 넘깁니다. 투표일이 없으면 그 글에 적힌 말만 둡니다. 우크라이나 대통령 선거는 그 일요일이 지났지만, 새 날짜가 나오기 전까지 남겨 둡니다.",
+            "Elections and party congresses, nearest first. If no polling day is set, only the wording in the official text stays. Ukraine’s presidential Sunday has passed, and the line stays until a new date is set.",
           )}
         </p>
       </div>
@@ -221,7 +135,7 @@ export function ExtraEdition() {
           <article
             className={pin ? "landing-paper relative h-full w-full" : "landing-paper mx-auto w-full max-w-[1080px] rounded-sm p-4 sm:p-7"}
             style={paperStyle}
-            aria-label={pick(lang, "호르무즈 전쟁위험 보험료 호외", "Hormuz war-risk premium extra")}
+            aria-label={pick(lang, "국가 중대 일정 호외", "Major dates extra")}
           >
             {pin ? (
               <>
@@ -247,7 +161,7 @@ export function ExtraEdition() {
             <div className={pin ? "relative mx-auto flex h-full max-w-[1320px] flex-col px-[clamp(24px,4vw,64px)] py-[clamp(14px,2.6vh,32px)]" : undefined}>
             {/* 제호 — 1950년대 신문 1면: 별 장식, 굵은 제호, 겹줄, 발행 줄 */}
             <header className="text-center">
-              <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={BATANG}>
+              <div className="flex items-center justify-between gap-3 text-caption leading-snug" style={PAPER}>
                 <span className="w-[22%] text-left font-bold tracking-[0.12em]">{pick(lang, "★ 호외 ★", "★ EXTRA ★")}</span>
                 <span className="flex-1 text-center tracking-[0.18em]">EXTRA EDITION</span>
                 <span className="w-[22%] text-right">{beat + 1} / {N}</span>
@@ -258,11 +172,11 @@ export function ExtraEdition() {
               >
                 conflict-view
               </h3>
-              <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={BATANG}>
+              <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={PAPER}>
                 {pick(
                   lang,
-                  `★ 해운 위험 속보 ★ 호르무즈 해협 · 전쟁위험 보험료 ★ ${b.tick} 보도 ★`,
-                  `★ Shipping-risk extra ★ Hormuz · war-risk premium ★ reported ${b.tick} ★`,
+                  `★ 공식 일정 ★ ${b.caption} ★ ${b.tick} ★`,
+                  `★ Official date ★ ${b.caption} ★ ${b.tick} ★`,
                 )}
               </div>
             </header>
@@ -271,13 +185,13 @@ export function ExtraEdition() {
               {/* 기사 */}
               <div className="min-w-0">
                 <div aria-live="polite">
-                  <p className="m-0 text-[14px] font-bold tracking-[0.04em]" style={{ ...BATANG, color: RED }}>
-                    {pick(lang, `${b.tick} 보도`, `Reported ${b.tick}`)}
+                  <p className="m-0 text-[14px] font-bold tracking-[0.04em]" style={{ ...PAPER, color: RED }}>
+                    {b.tick}
                   </p>
                   <h4
                     key={`h-${beat}`}
                     className={`landing-headline landing-ink m-0 mt-2 font-black leading-[1.2] tracking-[-0.03em] ${pin ? "text-[clamp(30px,min(4vw,6vh),60px)]" : "text-[clamp(28px,3.4vw,46px)]"}`}
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {b.headline}
                   </h4>
@@ -286,24 +200,16 @@ export function ExtraEdition() {
                     className={`landing-headline landing-ink m-0 mt-1 font-black leading-none tracking-[-0.03em] ${pin ? "text-[clamp(44px,min(6vw,9vh),104px)]" : "text-[clamp(40px,5vw,72px)]"}`}
                     style={{ ...SERIF, color: RED }}
                   >
-                    {b.approx ? <span className="mr-2 align-middle text-[0.3em] font-bold text-[#1a150e]">{pick(lang, "약", "about")}</span> : null}
                     {b.label}
                   </p>
                   <div className={`mt-3 grid gap-4 border-t-2 border-[#1a150e] pt-3 ${pin ? "sm:grid-cols-[auto_1fr]" : "sm:grid-cols-[1.05fr_1fr]"}`}>
-                    <figure key={`p-${beat}`} className="landing-headline m-0" style={pin ? { width: "calc(26vh * 1.48)" } : undefined}>
-                      <div className="landing-photo">
-                        <div className="landing-photo-in">
-                          <ExtraPhoto scene={b.scene} />
-                        </div>
-                      </div>
-                      <figcaption className="mt-1 text-caption leading-snug" style={BATANG}>
-                        ▲ {b.caption} <span className="whitespace-nowrap">{pick(lang, "(편집부 일러스트)", "(desk illustration)")}</span>
-                      </figcaption>
-                    </figure>
+                    <p className="m-0 text-[15px] font-bold leading-snug" style={PAPER}>
+                      {b.caption}
+                    </p>
                     <p
                       key={`s-${beat}`}
                       className={`landing-headline m-0 leading-[1.75] ${pin ? "text-[clamp(16px,2.2vh,21px)]" : "text-[16px]"}`}
-                      style={BATANG}
+                      style={PAPER}
                     >
                       {b.summary}
                     </p>
@@ -311,7 +217,7 @@ export function ExtraEdition() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <span key={`st-${beat}`} className="landing-stamp inline-block px-3 py-1.5 text-[14px] font-extrabold tracking-wide" style={GMARKET}>
+                  <span key={`st-${beat}`} className="landing-stamp inline-block px-3 py-1.5 text-[14px] font-extrabold tracking-wide" style={DESK}>
                     {b.stamp}
                   </span>
                   <a
@@ -320,11 +226,11 @@ export function ExtraEdition() {
                     rel="noopener noreferrer"
                     className="text-[14px] font-bold text-[#1a150e] underline decoration-[#9b2a1c] decoration-2 underline-offset-4 hover:text-[#9b2a1c]"
                   >
-                    {pick(lang, "원문 기사 보기 ↗", "Read the original ↗")}
+                    {pick(lang, "공식 글 열기 ↗", "Open the official text ↗")}
                   </a>
                 </div>
                 {b.stampNote ? (
-                  <p className="m-0 mt-2 text-caption italic" style={BATANG}>
+                  <p className="m-0 mt-2 text-caption italic" style={PAPER}>
                     ※ {b.stampNote}
                   </p>
                 ) : null}
@@ -332,15 +238,15 @@ export function ExtraEdition() {
 
               {/* 인쇄 그래프 */}
               <div className="min-w-0 border-t border-[#1a150e]/40 pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
-                <p className="m-0 mb-1 text-[14px] font-bold" style={BATANG}>
-                  {pick(lang, "기사에 나온 전쟁위험 보험료율(%)", "War-risk rates quoted in the press (%)")}
+                <p className="m-0 mb-1 text-[14px] font-bold" style={PAPER}>
+                  {pick(lang, "이 지면의 일정", "Dates on this page")}
                 </p>
-                <Chart beat={beat} onPick={go} narrow={narrow} />
-                <p className="m-0 mt-1 text-caption leading-snug" style={BATANG}>
+                <DatesList beat={beat} onPick={go} />
+                <p className="m-0 mt-1 text-caption leading-snug" style={PAPER}>
                   {pick(
                     lang,
-                    "세로 막대는 기사에 적힌 범위, 점은 기사에 적힌 값입니다. 점을 잇는 점선은 흐름을 보려는 선일 뿐, 그 사이 시세가 있다는 뜻이 아닙니다.",
-                    "A bar is the range quoted in an article. A dot is a single quoted figure. The dotted line only shows the sequence. It is not a price between those dates.",
+                    "줄을 누르면 그 일정으로 넘어갑니다. 투표일이 없는 나라는 그 글의 말만 적습니다.",
+                    "Choose a line to open that date. Where no polling day is set, only the official wording is shown.",
                   )}
                 </p>
               </div>
@@ -370,7 +276,7 @@ export function ExtraEdition() {
                     onClick={() => go(beat - 1)}
                     disabled={beat === 0}
                     className="rounded border border-[#1a150e] px-3 py-1.5 text-[14px] font-bold disabled:opacity-30"
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {pick(lang, "◀ 이전", "◀ Previous")}
                   </button>
@@ -379,23 +285,23 @@ export function ExtraEdition() {
                     onClick={() => go(beat + 1)}
                     disabled={beat === N - 1}
                     className="rounded border border-[#1a150e] bg-[#1a150e] px-3 py-1.5 text-[14px] font-bold text-[#ecdfbd] disabled:opacity-30"
-                    style={BATANG}
+                    style={PAPER}
                   >
                     {pick(lang, "다음 ▶", "Next ▶")}
                   </button>
                 </div>
               ) : (
-                <span className="text-caption lg:mr-[150px]" style={BATANG}>
+                <span className="text-caption lg:mr-[150px]" style={PAPER}>
                   {pick(lang, "스크롤하면 다음 속보가 넘어갑니다", "Scroll for the next report")}
                 </span>
               )}
             </div>
 
-            <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
+            <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={PAPER}>
               {pick(
                 lang,
-                "이 지면은 conflict-view가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.",
-                "This page is a conflict-view summary of public reports, not a real newspaper. The rates are not comparable one-to-one — each article uses its own basis.",
+                "이 지면은 conflict-view가 공식 글을 요약해 만든 화면이며 실제 신문이 아닙니다. 본문은 그 링크에 있습니다.",
+                "This page is a conflict-view summary of official texts, not a real newspaper. The full text is at the link.",
               )}
             </p>
           </div>
