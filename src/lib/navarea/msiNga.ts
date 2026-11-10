@@ -137,6 +137,13 @@ export interface MemoWarning extends NgaWarning {
   cancelAt?: string; // ISO ("CANCEL THIS MSG ..." 기준)
 }
 
+/** "IN FORCE AS OF 091540Z NOV 26" → ISO. 연도가 없으면 믿지 않는다. */
+export function memoAsOfIso(raw: string): string | undefined {
+  const m = raw.match(/IN FORCE AS OF\s+(\d{6,7}Z\s+[A-Z]{3}\s+\d{2,4})/);
+  if (!m) return;
+  return dtgToIso(m[1].replace(/\s+/g, " "));
+}
+
 export function parseDailyMemo(raw: string): { asOf?: string; warnings: MemoWarning[] } {
   const t = raw.replace(/\r/g, "");
   const asOf = t.match(/IN FORCE AS OF (\d{6,7}Z [A-Z]{3})/)?.[1];
@@ -222,16 +229,58 @@ export function classifySecurity(text: string): SecurityClass | null {
 
 const ALL_SERIES: NavSeries[] = ["NAVAREA IV", "NAVAREA XII", "HYDROLANT", "HYDROPAC", "HYDROARC"];
 
+type MemoFileNote = { lastModified?: string; warnings: number; stale?: boolean; via?: "api" | "apology" };
+
+function memoIsFresh(asOfIso: string | undefined, now: number, maxAgeMs: number): boolean {
+  if (!asOfIso) return false;
+  const at = Date.parse(asOfIso);
+  if (!Number.isFinite(at)) return false;
+  if (at > now + 2 * 86_400_000) return false;
+  return now - at <= maxAgeMs;
+}
+
+/**
+ * 포털이 점검 HTML을 줄 때 쓰는 대체 원문.
+ * 첫머리 날짜가 최근일 때만 경보를 돌려준다. 오래됐거나 날짜가 없으면 fresh=false.
+ */
+async function fetchApologyMemos(series: NavSeries[], opts: MsiFetchOptions) {
+  const warnings: MemoWarning[] = [];
+  const files: Record<string, MemoFileNote> = {};
+  const gapMs = opts.gapMs ?? 3_000;
+  const maxAgeMs = (opts.maxAgeDays ?? 7) * 86_400_000;
+  const now = opts.now ?? Date.now();
+  let fetched = 0;
+  let fresh = false;
+  for (const s of series) {
+    if (fetched && gapMs > 0) await sleep(gapMs);
+    fetched++;
+    const raw = await getText(`${ORIGIN}/apology_objects/${MEMO_FILES[s]}`, opts);
+    const parsed = parseDailyMemo(raw);
+    const asOfIso = memoAsOfIso(raw);
+    if (!memoIsFresh(asOfIso, now, maxAgeMs) || parsed.warnings.length === 0) {
+      files[s] = { lastModified: asOfIso, warnings: 0, stale: true, via: "apology" };
+      continue;
+    }
+    fresh = true;
+    files[s] = { lastModified: asOfIso, warnings: parsed.warnings.length, via: "apology" };
+    warnings.push(...parsed.warnings);
+  }
+  return { warnings, files, fresh };
+}
+
 /** Daily Memo 파일을 받아 경보 목록으로. 크론 어댑터(ngaWarningsToNavareaCollection)가 이걸 그대로 쓴다. */
 export async function fetchNavWarnMemos(series: NavSeries[] = ALL_SERIES, opts: MsiFetchOptions = {}) {
   // 파일 key는 media 목록에서 받아옴 (경로가 바뀌어도 따라가도록)
-  const media = (await getJson(SOURCES.navWarnMedia, opts)) as {
-    s3Key: string;
-    filenameBase: string;
-    lastModified: string;
-  }[];
+  let media: { s3Key: string; filenameBase: string; lastModified: string }[];
+  try {
+    media = (await getJson(SOURCES.navWarnMedia, opts)) as typeof media;
+  } catch (error) {
+    const apology = await fetchApologyMemos(series, opts).catch(() => null);
+    if (apology?.fresh) return { warnings: apology.warnings, files: apology.files };
+    throw error;
+  }
   const warnings: MemoWarning[] = [];
-  const files: Record<string, { lastModified?: string; warnings: number; stale?: boolean }> = {};
+  const files: Record<string, MemoFileNote> = {};
   const gapMs = opts.gapMs ?? 3_000;
   const maxAgeMs = (opts.maxAgeDays ?? 7) * 86_400_000;
   const now = opts.now ?? Date.now();
@@ -242,14 +291,14 @@ export async function fetchNavWarnMemos(series: NavSeries[] = ALL_SERIES, opts: 
     // 오래된 파일은 받지 않는다 — 그 리전은 교체 대상에서도 빠져 D1의 기존 스냅샷이 유지된다
     const modified = Date.parse(m.lastModified);
     if (Number.isFinite(modified) && now - modified > maxAgeMs) {
-      files[s] = { lastModified: m.lastModified, warnings: 0, stale: true };
+      files[s] = { lastModified: m.lastModified, warnings: 0, stale: true, via: "api" };
       continue;
     }
     if (fetched && gapMs > 0) await sleep(gapMs);
     fetched++;
     const raw = await getText(`${BASE}/download?key=${encodeURIComponent(m.s3Key)}&type=view`, opts);
     const parsed = parseDailyMemo(raw).warnings;
-    files[s] = { lastModified: m.lastModified, warnings: parsed.length };
+    files[s] = { lastModified: m.lastModified, warnings: parsed.length, via: "api" };
     warnings.push(...parsed);
   }
   return { warnings, files };
@@ -295,8 +344,9 @@ export async function fetchNgaSecurity(
   };
 }
 
-// ⚠ NGA 점검(503) 시 /apology_objects/DailyMem*.txt 대체 파일이 뜨지만 2026-10-18 확인 결과 3월 스냅샷(오래됨)
-//   → 대체 경로로 받지 말고, 수집 실패 시 D1의 기존 스냅샷을 그대로 유지할 것
+// 점검 페이지의 /apology_objects/DailyMem*.txt 는 2026-10-18에는 3월 분이었다.
+// 2026-11-10에는 같은 자리가 11월 9일 원문이었다. 받되, 첫머리 "IN FORCE AS OF"가
+// maxAgeDays(기본 7일) 안일 때만 쓴다. 날짜가 없거나 오래되면 실패로 넘겨 D1을 유지한다.
 
 // ── 3. MODU: 이동식 해양 시추설비 위치 ───────────────────────
 export interface ModuProps {

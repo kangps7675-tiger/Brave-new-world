@@ -1,6 +1,5 @@
 "use client";
 
-import { BRAND_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { LandingGlobe } from "@/components/landing/LandingGlobe";
@@ -27,8 +26,8 @@ import { useLandingLanguage } from "@/lib/landingLanguage";
 export type EnterPlace = "nav" | "hero" | "footer";
 
 /**
- * 랜딩 본문 — 해운업계 한 곳만 겨냥한다(2026-10-20 결정).
- * 피격 경보가 뜬 순간 운항·선적·보험 담당자가 묻는 질문에, 지구본의 무엇이 답하는지를 먼저 보여 준다.
+ * 랜딩 본문 — 전선, 다음 공식 일정, 헌법을 한 화면에서 읽게 한다.
+ * 속보가 뜬 순간 어느 전선인지, 다음 일정은 언제인지, 헌법에는 뭐라고 적혀 있는지를 먼저 보여 준다.
  * 구성(One Page Love식 한 장짜리): 첫 화면 → 경보 하나에 질문 넷 → 경보가 뜨면(반복 데모) → 화면 읽는 법
  * → 누가 쓰나 → 해협별 안내 → 출처·근거 → 자주 묻는 질문 → 마지막 버튼.
  *
@@ -65,7 +64,7 @@ const READ_CARDS: { title: string; body: string; mark: ReactNode }[] = [
   },
   {
     title: "불꽃 — 드론·미사일이 떨어진 곳",
-    body: "발사나 요격이 아니라 실제로 맞았다고 보도된 곳만 켭니다. 항구, 정유소, 바다 위 유조선처럼 해운과 닿은 타격도 함께 보여요.",
+    body: "발사나 요격이 아니라 실제로 맞았다고 보도된 곳만 켭니다. 항구, 정유소, 군 시설이 그 대상입니다.",
     mark: (
       <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
         <circle cx="20" cy="22" r="16" fill="#ff6a00" fillOpacity="0.25" />
@@ -140,7 +139,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
               <circle cx="14" cy="14" r="6" fill="none" stroke="#5eead4" strokeWidth="2" strokeDasharray="3 3" />
               <circle cx="14" cy="14" r="2" fill="#f5c451" />
             </svg>
-            <span className="text-lg font-bold tracking-[-0.01em]">{BRAND_NAME[lang]}</span>
+            <span className="text-lg font-bold tracking-[-0.01em]">Strait Desk</span>
           </a>
           <div className="flex flex-wrap items-center gap-6 text-[15px]">
             <a href="#ask" className="hidden text-[#c9d5dd] no-underline hover:text-white md:inline">{copy.navAsk}</a>
@@ -263,7 +262,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         </p>
       </section>
 
-      {/* EXTRA — 호외: 공개 보도로 본 보험료 */}
+      {/* EXTRA — 호외: 공식 일정 */}
       <ExtraEdition />
 
       {/* BREAKING — 속보 기능 설명 */}
@@ -426,26 +425,20 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         />
       </section>
 
-      {/* SOON — 준비 중 (화면에 아직 없는 것) */}
-      <section id="soon" className="border-y border-white/10 bg-[#081019]">
-        <div className={`${WRAP} py-24`}>
-          <Reveal>
-            <p className={EYEBROW}>{copy.soonEyebrow}</p>
-            <h2 className={`${H2} max-w-[820px]`}>{copy.soonTitle}</h2>
+      {/* NAME — 왜 'Strait Desk'인가 */}
+      <section id="name" className="border-y border-white/10 bg-[#081019]">
+        <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
+          <Reveal className="min-w-0 flex-[1_1_360px]">
+            <p className={EYEBROW}>{copy.nameEyebrow}</p>
+            <h2 className={H2}>
+              {copy.nameTitle}
+            </h2>
+            <p className={`mt-4 text-sm ${MUTED}`}>{copy.nameSub}</p>
           </Reveal>
-          <div className="mt-10 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
-            {copy.soon.map((x, i) => (
-              <Reveal key={x.tag} delay={(i % 3) * 80}>
-                <div className="h-full rounded-xl border border-dashed border-white/20 bg-[#0a141f] p-6">
-                  <span className="block text-caption font-semibold text-[#5eead4]">{x.tag}</span>
-                  <h3 className="mb-0 mt-2 text-[19px] font-bold leading-snug text-white">{x.title}</h3>
-                  <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{x.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal>
-            <p className={`mb-0 mt-8 text-[15px] ${MUTED}`}>{copy.soonNote}</p>
+          <Reveal delay={100} className="min-w-0 flex-[1.4_1_440px] space-y-5 text-[17px] leading-[1.85] text-[#d7e0e6]">
+            <p className="m-0">{copy.name1}</p>
+            <p className="m-0">{copy.name2}</p>
+            <p className="m-0 font-semibold text-white">{copy.name3}</p>
           </Reveal>
         </div>
       </section>
@@ -523,7 +516,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
       <footer className="border-t border-white/10 bg-[#05080d] text-[#8796a3]">
         <div className={`${WRAP} flex flex-wrap justify-between gap-5 py-10 text-sm leading-[1.7]`}>
           <div>
-            <span className="font-semibold text-[#e6edf2]">{BRAND_NAME[lang]}</span> · PhilSolution
+            <span className="font-semibold text-[#e6edf2]">Strait Desk</span> · PhilSolution
           </div>
           <p className="m-0 max-w-[640px]">
             {copy.footer}

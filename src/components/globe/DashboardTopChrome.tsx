@@ -1,7 +1,7 @@
 "use client";
 
 import { LAB_UI } from "@/lib/labFlag";
-import type { Dispatch, RefObject, SetStateAction } from "react";
+import type { Dispatch, ReactNode, RefObject, SetStateAction } from "react";
 import { useState } from "react";
 import { HoverNav } from "@/components/HoverNav";
 import { ViewModeSwitcher } from "@/components/ViewModeSwitcher";
@@ -75,6 +75,8 @@ export interface DashboardTopChromeProps {
   onToggleMacroBriefing?: () => void;
   /** 관측대 soft unlock — ViewModeSwitcher 잠금 표시 */
   observeUnlocked?: boolean;
+  /** 검색 아래. 지정학의 전쟁 흐름 네 갈래. */
+  belowNav?: ReactNode;
 }
 
 /**
@@ -127,6 +129,7 @@ export function DashboardTopChrome({
   macroBriefingOpen = false,
   onToggleMacroBriefing,
   observeUnlocked = false,
+  belowNav,
 }: DashboardTopChromeProps) {
   const [rightMetricsPinned, setRightMetricsPinned] = useState(false);
   if (intelSheetOpen) return null;
@@ -232,6 +235,7 @@ export function DashboardTopChrome({
         onAskLayersOpen={() => setAskLayersOpen(true)}
         askLayersLabel={t("askLayersButton", labelLanguage)}
         labelLanguage={labelLanguage}
+        belowNav={belowNav}
         onHistoryMapOpen={LAB_UI ? () => handleViewerModeChange("history") : undefined}
         leadingSlot={
           LAB_UI ? (

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { pick } from "@/components/landing/landingCopy";
+import { orderedSchedules } from "@/lib/majorSchedule";
 import { useLandingLanguage } from "@/lib/landingLanguage";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -86,15 +87,15 @@ const DEMO_STEPS = [
   {
     t: ["경보가 뜹니다", "An alert appears"],
     d: [
-      "UKMTO가 상선 피격을 보고하면 오른쪽 '선박 사건'에 새 카드가 올라오고, 지도에 그 자리가 표시됩니다.",
-      "When UKMTO reports a merchant ship hit, a new incident card appears and the spot is marked on the map.",
+      "전선에서 공격이 보고되면 오른쪽에 새 카드가 올라오고, 지도에 그 자리가 표시됩니다.",
+      "When an attack is reported on a front, a new card appears and the spot is marked on the map.",
     ],
   },
   {
-    t: ["주변 배가 보입니다", "Nearby ships appear"],
+    t: ["그 땅을 누가 쥐는지 보입니다", "Who holds the ground appears"],
     d: [
-      "그 시각 근처를 지나던 배들의 위치 신호(AIS)가 함께 떠서, 어떤 배들이 그 바다에 있었는지 봅니다.",
-      "AIS positions of ships that were nearby at that time appear with it, so you can see who was on that sea.",
+      "점령 지역과 무장세력 통제 구역이 같은 화면에 겹쳐, 그 전선을 누가 쥐고 있는지 봅니다.",
+      "Occupied ground and armed-group control stack on the same view, so you can see who holds that front.",
     ],
   },
   {
@@ -105,10 +106,10 @@ const DEMO_STEPS = [
     ],
   },
   {
-    t: ["보험료 흐름을 확인합니다", "Check the premium trend"],
+    t: ["다음 일정을 확인합니다", "Check the next date"],
     d: [
-      "기사에 보도된 전쟁위험 보험료를 날짜순으로, 출처 문장과 함께 봅니다.",
-      "War-risk figures reported in the press, in date order, with the source sentence.",
+      "그 나라의 다음 선거나 당대회를, 근거가 된 공식 글과 함께 봅니다.",
+      "That country’s next election or party congress, with the official text it comes from.",
     ],
   },
 ];
@@ -175,30 +176,30 @@ function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
           </g>
         </svg>
 
-        {/* 1: 선박 사건 카드 */}
+        {/* 1: 전선 속보 카드 */}
         <div
           className={`absolute right-3 top-3 w-[min(56%,230px)] rounded-md border border-[#f87171]/50 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
             at(0) ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >
-          <p className="m-0 text-caption font-bold text-[#fca5a5]">{pick(lang, "새 선박 사건 · UKMTO", "New ship incident · UKMTO")}</p>
+          <p className="m-0 text-caption font-bold text-[#fca5a5]">{pick(lang, "새 전선 속보", "New front-line alert")}</p>
           <p className="mb-0 mt-0.5 text-caption leading-snug text-[#d7e0e6]">
-            {pick(lang, "홍해 남부에서 상선이 공격받았다는 보고", "Report of a merchant ship attacked in the southern Red Sea")}
+            {pick(lang, "홍해 남부에서 공격이 보고되었습니다", "An attack was reported in the southern Red Sea")}
           </p>
         </div>
 
-        {/* 4: 보험료 줄 */}
+        {/* 4: 다음 일정 줄 */}
         <div
           className={`absolute bottom-3 left-3 right-3 rounded-md border border-white/12 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
             at(3) ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
           }`}
         >
           <p className="m-0 text-caption text-[#d7e0e6]">
-            <b className="text-white">{pick(lang, "전쟁위험 보험료(보도 기준)", "War-risk premium (as reported)")}</b>{" "}
-            {pick(lang, "홍해·아덴만", "Red Sea · Gulf of Aden")} <span className="text-[#f5c451]">{pick(lang, "[요율] ▲", "[rate] ▲")}</span>
+            <b className="text-white">{pick(lang, "다음 공식 일정", "Next official date")}</b>{" "}
+            {pick(lang, "대만 지방선거", "Taiwan local elections")} <span className="text-[#f5c451]">{pick(lang, "11월 28일", "28 Nov")}</span>
           </p>
           <p className="mb-0 mt-0.5 text-micro text-[#8fa3b1]">
-            {pick(lang, "출처: 해운 매체 기사 · 근거 문장 함께 표시", "Source: shipping-press article · the supporting sentence is shown with it")}
+            {pick(lang, "출처: 그 나라 공식 글", "Source: that country’s official text")}
           </p>
         </div>
       </div>
@@ -403,48 +404,17 @@ export function TiltCard({ children, className = "" }: { children: ReactNode; cl
 
 type TickerItem = { id: string; text: string };
 
-/**
- * 실제 UKMTO 최근 경보를 흐르는 띠로 보여 준다. 못 받아 오면 지구본이 지켜보는 것들의 목록으로 대신한다.
- */
+/** 가까운 공식 일정을 흐르는 띠로 보여 준다. */
 export function LiveTicker() {
   const lang = useLandingLanguage();
-  const [items, setItems] = useState<TickerItem[] | null>(null);
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/ukmto", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((p: { incidents?: Array<Record<string, unknown>> } | null) => {
-        if (!alive) return;
-        const rows = (p?.incidents ?? []).slice(0, 12).map((x, i) => {
-          const when = typeof x.utcDateOfIncident === "string" ? x.utcDateOfIncident.slice(0, 10) : "";
-          const kind = typeof x.incidentTypeName === "string" ? x.incidentTypeName : "Incident";
-          const where = (typeof x.place === "string" && x.place) || (typeof x.region === "string" && x.region) || "";
-          return { id: String(x.id ?? i), text: ["UKMTO", when, kind, where].filter(Boolean).join(" · ") };
-        });
-        setItems(rows);
-      })
-      .catch(() => alive && setItems([]));
-    return () => {
-      alive = false;
-    };
-  }, []);
-  const live = items && items.length > 0;
-  const list: TickerItem[] = live
-    ? items
-    : [
-        pick(lang, "해상 피습 경보", "Maritime attack alerts"),
-        pick(lang, "선박 위치 신호(AIS)", "Ship positions (AIS)"),
-        pick(lang, "군용기 위치 신호(ADS-B)", "Military aircraft (ADS-B)"),
-        pick(lang, "항구·정유소 타격", "Strikes on ports and plants"),
-        pick(lang, "국제 항행경보", "International navigational warnings"),
-        pick(lang, "전쟁위험 보험료 보도", "Reported war-risk premiums"),
-        pick(lang, "위성 화재 감지", "Satellite fire detections"),
-        pick(lang, "전선 속보", "Front-line reports"),
-      ].map((t) => ({ id: t, text: t }));
+  const list: TickerItem[] = orderedSchedules(Date.now()).map((row) => ({
+    id: row.id,
+    text: lang === "en" ? `${row.countryEn} · ${row.titleEn}` : `${row.countryKo} · ${row.titleKo}`,
+  }));
   return (
     <div
       className="relative overflow-hidden border-y border-white/10 bg-[#070d14] py-3"
-      aria-label={live ? pick(lang, "최근 UKMTO 경보", "Recent UKMTO alerts") : pick(lang, "지구본이 지켜보는 것", "What the globe watches")}
+      aria-label={pick(lang, "다음 공식 일정", "Next official dates")}
     >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#070d14] to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#070d14] to-transparent" />
@@ -453,9 +423,7 @@ export function LiveTicker() {
           <ul key={dup} aria-hidden={dup === 1 ? "true" : undefined} className="m-0 flex list-none items-center gap-10 p-0 pr-10">
             <li className="flex items-center gap-2 text-sm font-bold text-[#f87171]">
               <span className="inline-block h-2 w-2 rounded-full bg-[#f87171] motion-safe:animate-pulse" />
-              {live
-                ? pick(lang, "최근 UKMTO 경보 · 실제 데이터", "Recent UKMTO alerts · live data")
-                : pick(lang, "지구본이 지켜보는 것", "What the globe watches")}
+              {pick(lang, "다음 공식 일정", "Next official dates")}
             </li>
             {list.map((it) => (
               <li key={`${dup}-${it.id}`} className="whitespace-nowrap text-sm text-[#c9d5dd]">

@@ -7,6 +7,7 @@ import {
   fetchNavWarn,
   fetchNavWarnMemos,
   fetchPorts,
+  memoAsOfIso,
   parseDailyMemo,
 } from "./msiNga";
 import { ngaWarningsToNavareaCollection } from "./ngaMsi";
@@ -138,11 +139,37 @@ NAVAREA IV 100/26.
     expect((fc.features[0]!.properties as { date: string }).date).toBe("2026-10-16T16:21:00.000Z");
   });
 
-  it("목록 요청이 WAF에 막히면 재시도 없이 실패로 알린다", async () => {
+  it("목록이 막히고 점검 파일도 막히면 목록을 다시 찌르지 않고 실패한다", async () => {
     const f = vi.fn(async () => htmlRes(200));
     vi.stubGlobal("fetch", f);
     await expect(fetchNavWarn(["HYDROPAC"], ONCE)).rejects.toThrow(/WAF rejected/);
-    expect(f).toHaveBeenCalledTimes(1);
+    expect(f).toHaveBeenCalledTimes(2);
+    expect(String(f.mock.calls[1]?.[0])).toContain("/apology_objects/DailyMemPAC.txt");
+  });
+
+  it("점검 페이지 원문은 유효 날짜가 최근일 때만 받는다", async () => {
+    const f = vi
+      .fn()
+      .mockResolvedValueOnce(htmlRes(503))
+      .mockResolvedValueOnce(textRes(MEMO));
+    vi.stubGlobal("fetch", f);
+    const { warnings, files } = await fetchNavWarnMemos(["HYDROPAC"], {
+      ...ONCE,
+      now: Date.parse("2026-10-18T00:00:00Z"),
+    });
+    expect(memoAsOfIso(MEMO)).toBe("2026-10-17T06:00:00Z");
+    expect(warnings).toHaveLength(2);
+    expect(files.HYDROPAC?.via).toBe("apology");
+    expect(files.HYDROPAC?.stale).toBeUndefined();
+  });
+
+  it("점검 페이지 원문의 유효 날짜가 오래되면 받지 않고 실패한다", async () => {
+    const old = MEMO.replace("170600Z OCT 26", "170600Z MAR 26");
+    const f = vi.fn().mockResolvedValueOnce(htmlRes(503)).mockResolvedValueOnce(textRes(old));
+    vi.stubGlobal("fetch", f);
+    await expect(
+      fetchNavWarnMemos(["HYDROPAC"], { ...ONCE, now: Date.parse("2026-10-18T00:00:00Z") }),
+    ).rejects.toThrow(/WAF rejected/);
   });
 });
 

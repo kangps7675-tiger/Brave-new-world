@@ -54,7 +54,7 @@ const MEGA: { en: string; ko: string }[] = [
 ];
 
 /**
- * 거대한 외곽선 글자 띠 = 서비스가 지켜보는 해운 길목 이름. 무엇인지 알 수 있게 위에 제목, 단어마다 한글 이름을 붙인다.
+ * 거대한 외곽선 글자 띠 = 서비스가 지켜보는 전선 이름. 무엇인지 알 수 있게 위에 제목, 단어마다 한글 이름을 붙인다.
  * 기본으로 천천히 흐르고, 스크롤을 빨리 할수록 빨라지며 진행 방향으로 기운다.
  */
 export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
@@ -98,8 +98,8 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
         <span className="text-[#f5c451]">●</span>{" "}
         {pick(
           lang,
-          `conflict-view가 지켜보는 해운 길목 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
-          "Six shipping passages on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
+          `Strait Desk가 지켜보는 전선 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
+          "Six fronts on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
         )}
       </p>
       <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
@@ -203,7 +203,7 @@ export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: R
                   <span className="block text-[17px] font-semibold text-[#f5c451]">{c.stat}</span>
                   <span className="mt-2 block text-[15px] leading-relaxed text-[#a3b3bf]">{c.what}</span>
                   <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-white">
-                    {pick(lang, "해협 안내 열기", "Open the strait brief")} <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+                    {pick(lang, "전선 안내 열기", "Open the front brief")} <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
                 </span>
               </Link>

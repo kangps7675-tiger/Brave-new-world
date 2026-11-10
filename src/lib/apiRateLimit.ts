@@ -22,6 +22,7 @@ export const RATE_PRESETS = {
   /** 초단위 선물 SPIKE 폴링 (~1req/s) */
   stockFuturesLive: { key: "stock-futures-live", limit: 120, windowMs: 60_000 },
   stockReaction: { key: "stock-reaction", limit: 30, windowMs: 60_000 },
+  newsReaction: { key: "news-reaction", limit: 60, windowMs: 60_000 },
   sovereignRates: { key: "sovereign-rates", limit: 30, windowMs: 60_000 },
   reefwatch: { key: "reefwatch", limit: 20, windowMs: 60_000 },
   crossStrait: { key: "cross-strait", limit: 20, windowMs: 60_000 },

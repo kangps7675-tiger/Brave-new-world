@@ -13,6 +13,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { ArticleReactions } from "@/components/ArticleReactions";
 import { InterestRecommendChips } from "@/components/InterestRecommendChips";
 import { useInterestProfile } from "@/hooks/useInterestProfile";
 import {
@@ -2240,6 +2241,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-50">
                       {localizedTitle(hero!)}
                     </p>
+                    <ArticleReactions articleId={hero!.id} lang={lang === "en" ? "en" : "ko"} />
                   </div>
                   {(() => {
                     if (!onFlyToMap) return null;
@@ -2653,6 +2655,9 @@ function NewsRow({
           </span>
         </span>
       </a>
+      <div className="px-4 pb-2">
+        <ArticleReactions articleId={item.id} lang={lang === "en" ? "en" : "ko"} />
+      </div>
     </li>
   );
 }

@@ -9,26 +9,37 @@ import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
 import { fetchShipPhotos } from "@/lib/shipPhoto";
 import { findRelatedPhoto } from "@/lib/news/relatedPhoto";
 import type { NewsStreamItem } from "@/lib/news/types";
+import type { AisVessel, FirmsFire, MilitaryAircraft } from "@/data/geoTypes";
+import type { TelegramAlert } from "@/lib/telegramAlerts";
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { useTr } from "@/hooks/useTr";
+import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
+import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
 
-export type DeskCategory = "ship" | "strike" | "posture" | "front";
+export type DeskCategory = "ship" | "strike" | "posture" | "front" | "exercise" | "charge" | "closure";
 
 export function deskCategory(item: StackItem, isShip: boolean): DeskCategory {
   if (isShip) return "ship";
   const ev = item.liveua;
   if (ev && isMajorConfirmedStrike(ev)) return "strike";
-  if (ev && classifyRegionalPosture(ev)) return "posture";
+  const posture = classifyRegionalPosture(
+    ev ?? { title: item.title, body: item.detail ?? "", titleKo: "", bodyKo: "", tags: [], lat: item.lat, lng: item.lng },
+  );
+  if (posture?.kind === "exercise" || posture?.kind === "charge" || posture?.kind === "closure") return posture.kind;
+  if (posture) return "posture";
   return "front";
 }
 
-export const DESK_CATEGORY_ORDER: readonly DeskCategory[] = ["strike", "ship", "posture", "front"];
+export const DESK_CATEGORY_ORDER: readonly DeskCategory[] = ["strike", "ship", "charge", "exercise", "closure", "posture", "front"];
 
 const CAT_LABEL: Record<DeskCategory, { ko: string; en: string; cls: string }> = {
   ship: { ko: "선박", en: "Ship", cls: "bg-orange-500/25 text-orange-100" },
   strike: { ko: "타격", en: "Strike", cls: "bg-rose-500/30 text-rose-100" },
+  charge: { ko: "기소", en: "Charge", cls: "bg-violet-500/25 text-violet-100" },
+  exercise: { ko: "훈련", en: "Exercise", cls: "bg-teal-500/25 text-teal-100" },
+  closure: { ko: "폐쇄·항의", en: "Closure", cls: "bg-yellow-500/25 text-yellow-100" },
   posture: { ko: "정세", en: "Posture", cls: "bg-sky-500/25 text-sky-100" },
   front: { ko: "전선", en: "Front", cls: "bg-amber-500/25 text-amber-100" },
 };
@@ -59,6 +70,12 @@ type Props = {
   onViewSatellite?: (item: StackItem) => void;
   /** RSS 뉴스 풀 — 속보에 사진이 없을 때 같은 사건 기사의 사진을 레퍼런스와 함께 붙인다 */
   newsPool?: readonly NewsStreamItem[];
+  /** 받아 둔 선박 위치. 선박 사건의 둘째 칸이 이걸로 맞음·어긋남을 찍는다. */
+  vessels?: readonly AisVessel[] | null;
+  fires?: readonly FirmsFire[] | null;
+  aircraft?: readonly MilitaryAircraft[] | null;
+  posts?: readonly TelegramAlert[] | null;
+  front?: FrontMap;
   /** 위성 모드에서는 지구본이 보이도록 좁게 */
   narrow?: boolean;
   /** 폰: 위치로 가기·위성으로 보기 뒤에 창을 접어 지도를 보여 준다 */
@@ -79,6 +96,11 @@ export function LiveFlashDesk({
   onGoToLocation,
   onViewSatellite,
   newsPool = [],
+  vessels,
+  fires,
+  aircraft,
+  posts,
+  front,
   narrow = false,
   collapseOnAction = false,
 }: Props) {
@@ -342,6 +364,16 @@ export function LiveFlashDesk({
           />
           <h2 className="text-base font-semibold leading-snug">{title}</h2>
           {body ? <p className="whitespace-pre-line text-meta leading-relaxed text-[#3d2a12]">{body}</p> : null}
+          <CrossCheckSlots
+            en={en}
+            item={item}
+            place={cat}
+            vessels={vessels}
+            fires={fires}
+            aircraft={aircraft}
+            posts={posts}
+            front={front}
+          />
           {basis.length > 0 ? (
             <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60 px-2 py-1.5">
               <p className="text-micro font-semibold text-[#5c4020]/90">

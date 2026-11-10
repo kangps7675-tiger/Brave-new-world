@@ -18,6 +18,9 @@ import { fetchShipPhotos } from "@/lib/shipPhoto";
 const CAT: Record<DeskCategory, { ko: string; en: string; cls: string }> = {
   ship: { ko: "선박", en: "Ship", cls: "bg-orange-500/25 text-orange-100" },
   strike: { ko: "타격", en: "Strike", cls: "bg-rose-500/30 text-rose-100" },
+  charge: { ko: "기소", en: "Charge", cls: "bg-violet-500/25 text-violet-100" },
+  exercise: { ko: "훈련", en: "Exercise", cls: "bg-teal-500/25 text-teal-100" },
+  closure: { ko: "폐쇄·항의", en: "Closure", cls: "bg-yellow-500/25 text-yellow-100" },
   posture: { ko: "정세", en: "Posture", cls: "bg-sky-500/25 text-sky-100" },
   front: { ko: "전선", en: "Front", cls: "bg-amber-500/25 text-amber-100" },
 };

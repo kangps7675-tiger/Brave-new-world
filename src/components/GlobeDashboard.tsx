@@ -138,6 +138,9 @@ import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
 import { LiveFlashDesk } from "@/components/globe/LiveFlashDesk";
+import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
+import { BranchDesk } from "@/components/globe/BranchDesk";
+import { MajorScheduleDesk } from "@/components/globe/MajorScheduleDesk";
 import { MobileLiveFeed } from "@/components/MobileLiveFeed";
 import type { NewsRef } from "@/lib/news/vesselNews";
 import { SatelliteExitButton } from "@/components/globe/SatelliteExitButton";
@@ -549,6 +552,12 @@ import type {
 import { useGlobeCamera } from "@/components/globe/hooks/useGlobeCamera";
 import { useTheaterNavigation } from "@/components/globe/hooks/useTheaterNavigation";
 import { LayerPanelHost, type LayerPanelTab } from "@/components/globe/LayerPanelHost";
+import {
+  buildScenarioPrefs,
+  findScenarioPreset,
+  scenarioPresetsForMode,
+  type ScenarioPresetId,
+} from "@/lib/scenarioPresets";
 import {
   buildOverlayHostAlertProps,
   buildOverlayHostBreakingEscalationProps,
@@ -2565,6 +2574,26 @@ export function GlobeDashboard({
     historyImmersionActive,
     historyEpisodeActive,
   });
+
+  /**
+   * 주제 프리셋 칩 — 그 주제에 맞는 레이어만 한 번에 켜고 카메라를 옮긴다.
+   * 체크박스 draft 를 거치지 않고 커밋 경로(confirmLayerPanelDraft)와 같은 상태 정리를 한다.
+   */
+  const handleApplyScenarioPreset = useCallback(
+    (id: ScenarioPresetId) => {
+      const preset = findScenarioPreset(id);
+      if (!preset) return;
+      const next = buildScenarioPrefs(preset, layerPrefsLiveRef.current, ultraLiteRef.current);
+      deferLayerMapApplyRef.current = false;
+      applyLayerPrefs(next);
+      panelDraftPatchRef.current = {};
+      panelOpenSnapshotRef.current = { ...next };
+      syncFrozenCategoriesFromPrefs(next);
+      setLayerPanelDirty(false);
+      flyTo(preset.camera.lat, preset.camera.lng, preset.camera.altitude, 1200);
+    },
+    [applyLayerPrefs, flyTo, syncFrozenCategoriesFromPrefs],
+  );
 
   /**
    * 관측(Cesium) 모드 카메라·엔티티 클릭 브리지.
@@ -6729,6 +6758,15 @@ export function GlobeDashboard({
         onOpenSettings={() => openLeftDrawer("settings")}
         onOpenData={() => openLeftDrawer("data")}
         onOpenControlsGuide={() => setShowControlsGuide(true)}
+        belowNav={
+          viewerMode === "conflict" ? (
+            <>
+              <MajorScheduleDesk lang={labelLanguage} />
+              <BranchDesk lang={labelLanguage} items={deskNewsPool} />
+              <EventScenarioBoard lang={labelLanguage} items={deskNewsPool} />
+            </>
+          ) : undefined
+        }
         wtiScore={wtiSnapshot?.score ?? null}
         wtiDelta={wtiSnapshot?.deltaScore ?? null}
         wtiAsOf={wtiFetchedAt}
@@ -6953,6 +6991,15 @@ export function GlobeDashboard({
                   newsPool={deskNewsPool}
                   newsRefs={vesselNewsPool}
                 />
+              }
+              warFlows={
+                viewerMode === "conflict" ? (
+                  <>
+                    <MajorScheduleDesk lang={labelLanguage} />
+                    <BranchDesk lang={labelLanguage} items={deskNewsPool} />
+                    <EventScenarioBoard lang={labelLanguage} items={deskNewsPool} />
+                  </>
+                ) : null
               }
             />
           ) : null}
@@ -7404,6 +7451,7 @@ export function GlobeDashboard({
                 unifiedFlyTo(it.lat, it.lng, 0.5);
               }}
               onViewSatellite={SATELLITE_ENABLED ? viewStackItemInSatellite : undefined}
+              vessels={aisVessels}
             />
             <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
             {feedDrawerActive ? (
@@ -7664,6 +7712,11 @@ export function GlobeDashboard({
               setStackParchmentId(null);
               setFrontParchmentIndex(null);
             }}
+            vessels={aisVessels}
+            fires={firmsFires}
+            aircraft={milAircraft}
+            posts={telegramAlerts}
+            front={liveuaControlGeoJson}
             onGoToLocation={(it) => {
               if (isSatelliteViewer) focusStackItemInSpaceRef.current(it);
               else unifiedFlyTo(it.lat, it.lng, 0.5);
@@ -8235,6 +8288,11 @@ export function GlobeDashboard({
             openModePickerManual();
           }}
           onResetCheckboxSettings={handleResetCheckboxSettings}
+          scenarioPresets={scenarioPresetsForMode(viewerMode).filter(
+            (preset) =>
+              viewerMode !== "conflict" || ["taiwan", "hormuz", "ukraine", "korea"].includes(preset.id),
+          )}
+          onApplyScenarioPreset={handleApplyScenarioPreset}
           frozenPanelCategories={frozenPanelCategories}
           layerPanelSessionKey={layerPanelSessionRef.current}
           batchPending={batchPending}

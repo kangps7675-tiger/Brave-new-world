@@ -55,6 +55,9 @@ const REASON_LABEL = {
 const POSTURE_LABEL = {
   diplomacy: { ko: "외교 움직임", en: "Diplomatic move" },
   rhetoric: { ko: "공격적 언사", en: "Hostile rhetoric" },
+  exercise: { ko: "훈련", en: "Exercise" },
+  charge: { ko: "기소·체포", en: "Charge" },
+  closure: { ko: "폐쇄·항의", en: "Closure or protest" },
 } as const;
 
 type Props = {
