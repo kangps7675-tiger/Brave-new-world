@@ -9,83 +9,87 @@ export function landingCopy(lang: LabelLanguage) {
   const t = (ko: string, english: string) => (en ? english : ko);
   return {
     pageTitle: t(
-      "Strait Desk — 정보기관 상황실처럼, 바다의 위험을 한눈에",
-      "Strait Desk — Like an intelligence watch floor, sea risk in one view",
+      "conflict-view — 지정학 속보를 근거와 함께, 지구본 위에서",
+      "conflict-view — Geopolitical alerts with their evidence, on a globe",
     ),
     navAria: t("주 메뉴", "Main"),
-    navAsk: t("무엇을 알려 주나", "What it shows"),
+    navAsk: t("묻게 되는 것", "Questions"),
     navWho: t("누가 쓰나", "Who it's for"),
     navTrust: t("믿을 수 있나", "Can you trust it"),
     openGlobe: t("지구본 열기", "Open the globe"),
     sections: [
       { id: "top", label: t("처음", "Top") },
-      { id: "ask", label: t("질문 넷", "Four questions") },
-      { id: "flow", label: t("경보가 뜨면", "When an alert hits") },
+      { id: "ask", label: t("묻게 되는 것", "Questions") },
+      { id: "flow", label: t("확인하는 과정", "How it is checked") },
       { id: "read", label: t("화면 읽는 법", "How to read it") },
       { id: "extra", label: t("호외", "Extra") },
       { id: "breaking", label: t("속보", "Alerts") },
+      { id: "soon", label: t("준비 중", "Coming") },
       { id: "features", label: t("상세 기능", "Features") },
       { id: "devices", label: t("데스크톱·휴대폰", "Desktop and phone") },
       { id: "who", label: t("누가 쓰나", "Who it's for") },
-      { id: "name", label: t("이름의 뜻", "The name") },
       { id: "trust", label: t("믿을 수 있나", "Trust") },
       { id: "faq", label: t("자주 묻는 질문", "FAQ") },
     ],
     heroEyebrow: t(
-      "해운 위험 상황실 · 홍해 · 호르무즈 · 흑해 · 말라카",
-      "Shipping-risk desk · Red Sea · Hormuz · Black Sea · Malacca",
+      "지정학 속보 · 출처와 확인 상태 · 3D 지구본",
+      "Geopolitical alerts · sources and check status · 3D globe",
     ),
-    heroLine1: t("정보기관 상황실처럼,", "Like an intelligence watch floor,"),
-    heroLine2: t("바다의 위험을 한눈에.", "sea risk in one view."),
+    heroLine1: t("속보는 빠르게,", "Alerts, fast."),
+    heroLine2: t("근거는 직접 확인하세요.", "Evidence, yours to check."),
     heroBody: t(
-      "어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지. 피격 경보가 뜰 때 운항 담당자가 한꺼번에 찾던 답을 3D 지구본 한 화면에 모았습니다.",
-      "Which ship was hit, how dangerous that sea is right now, and how far war-risk premiums have moved. The answers an operator hunts for when a strike alert lands, on one 3D globe.",
+      "전쟁·외교·선거 소식이 어디서 벌어지는지 지구본 위에 찍고, 소식마다 출처와 확인 상태를 붙입니다. 믿을지는 근거를 보고 직접 정하세요.",
+      "War, diplomacy, and election news are pinned where they happen, each with its sources and a check status. Whether to believe it is your call, with the evidence in front of you.",
     ),
     heroRead: t("화면 읽는 법 먼저 보기", "How to read the screen"),
     heroBeta: t("베타 기간에는 가입 없이 바로 볼 수 있어요.", "During beta you can look without signing up."),
     stats: [
-      { n: 6, s: t("곳", "straits"), label: t("지켜보는 해운 길목", "Shipping chokepoints on watch") },
+      { n: 3, s: t("단계", "levels"), label: t("확인 · 유력 · 자료 없음으로 가르는 판정", "Confirmed, likely, no data: the check levels") },
+      { n: 6, s: t("곳", "straits"), label: t("먼저 깊게 다룬 해운 길목", "Shipping chokepoints covered first") },
       { n: 8, s: t("종", "sources"), label: t("서로 맞춰 보는 공개 출처", "Public sources checked against each other") },
-      { n: 6, s: t("시간", "hours"), label: t("마다 새로 고르는 사진 뉴스", "Between each photo-news pick") },
       { n: 9, s: t("개", "tools"), label: t("핵심 화면 밖 상세 기능", "Tools beyond the main screen") },
     ],
-    askEyebrow: t("경보 하나에 질문 넷", "Four questions, one alert"),
-    askTitle1: t("대형 선사는 비싼 해사 정보 서비스로 답을 얻습니다.", "Large lines buy expensive maritime intelligence for the answers."),
-    askTitle2: t("이제 뉴스 창 열 개 대신 지구본 하나면 됩니다.", "One globe now stands in for a row of news tabs."),
+    askEyebrow: t("속보를 읽다 보면", "Reading the news"),
+    askTitle1: t("소식은 쏟아지는데, 어디서 벌어진 일인지,", "The news pours in, but where it happened,"),
+    askTitle2: t("믿어도 되는지는 알기 어렵습니다.", "and whether to believe it, is hard to tell."),
     questions: [
       {
-        q: t("어느 배가 맞았나?", "Which ship was hit?"),
+        q: t("어디서 벌어진 일인가?", "Where did it happen?"),
         a: t(
-          "영국 해군 해상무역작전본부(UKMTO)와 미국 국가지리정보국(NGA)의 해상 경보를 지도에 찍고, 그 시각 주변을 지나던 배의 위치 신호(AIS)를 함께 띄웁니다.",
-          "UKMTO and U.S. NGA maritime warnings are pinned on the map, with the AIS of ships that were nearby at that time.",
+          "소식마다 위치를 찾아 지구본 위에 점으로 찍습니다. 같은 지역의 소식은 겹쳐 보여서, 무슨 일이 어디에 몰리는지 한눈에 들어와요.",
+          "Each item is located and pinned on the globe. Items from one region stack up, so you can see where events cluster.",
         ),
       },
       {
-        q: t("그 바다는 지금 얼마나 위험한가?", "How dangerous is that sea right now?"),
+        q: t("정말 확인된 일인가?", "Is it actually confirmed?"),
         a: t(
-          "최근 공격받은 배, 항구·정유소에 떨어진 드론·미사일, 국제 항행경보(NAVAREA)를 한 화면에 겹쳐 봅니다.",
-          "Recently attacked ships, drones and missiles that hit ports and refineries, and NAVAREA warnings, stacked on one screen.",
+          "소식마다 출처와 확인 상태를 붙입니다. 여러 출처가 맞으면 ‘확인’, 정황이 한쪽으로 좁혀지면 ‘유력’, 자료가 없으면 ‘자료 없음’이에요. 못 확인한 건 못 했다고 적습니다.",
+          "Every item carries its sources and a status. Several sources agree: confirmed. Circumstances point one way: likely. Nothing to check against: no data. What could not be checked says so.",
         ),
       },
       {
-        q: t("전쟁위험 보험료는 얼마나 올랐나?", "How far have war-risk premiums moved?"),
+        q: t("내가 직접 확인해 볼 수 있나?", "Can I check it myself?"),
         a: t(
-          "공개 시세가 없는 보험료를 해운·보험 매체 기사에서 찾아 날짜순으로 보여 줍니다. 어느 기사의 어떤 문장에서 나온 숫자인지도 함께 적어요. 해협별 페이지에서 볼 수 있습니다.",
-          "There is no public quote, so the figures come from shipping and insurance reports, in date order, with the sentence they came from. See them on each strait page.",
+          "점을 누르면 근거가 열리고 원문까지 갈 수 있어요. 근거를 보고 직접 판정해 보는 기능은 준비 중입니다.",
+          "Tap a pin and the evidence opens, with a link to the original. Judging it yourself before seeing ours is on the way.",
         ),
       },
       {
-        q: t("그대로 지나가도 될까?", "Can we still sail through?"),
+        q: t("그래서 앞으로 어떻게 되나?", "So where does it go from here?"),
         a: t(
-          "주변 군함·항공모함과 군용기 움직임, 그 바다에 영향을 주는 군사·외교 속보, 해역 날씨(파고·바람, 앞으로 72시간)까지 보고 판단할 수 있게 합니다.",
-          "Warships, carriers, and military aircraft nearby, the military and diplomatic alerts that touch that sea, and the weather — waves and wind, out to 72 hours.",
+          "지금은 사건과 근거까지예요. 각국이 공식 문서로 밝힌 전략 목표, 선거·당대회 같은 분기점, 갈래별 시나리오는 준비 중입니다.",
+          "For now: events and their evidence. National aims stated in official documents, turning points such as elections and party congresses, and scenarios by branch are in preparation.",
         ),
       },
     ],
-    flowEyebrow: t("경보가 뜨면", "When an alert hits"),
+    flowEyebrow: t("확인하는 과정", "How one is checked"),
     flowTitle: t(
-      "피격 경보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.",
-      "Scroll to see how one strike alert unfolds on the globe.",
+      "속보 하나가 근거로 확인되는 과정을, 내려 가며 보세요.",
+      "Scroll to see how one alert is checked against evidence.",
+    ),
+    flowNote: t(
+      "해운 피격 경보를 사례로 보여 드려요. 같은 방식을 지정학 전반으로 넓히고 있습니다.",
+      "The example is a maritime strike alert. The same method is being widened to geopolitics in general.",
     ),
     readEyebrow: t("화면 읽는 법", "How to read the screen"),
     readTitle1: t("반짝이는 데는 다 이유가 있어요.", "Everything that glows is there for a reason."),
@@ -94,36 +98,36 @@ export function landingCopy(lang: LabelLanguage) {
       {
         title: t("배 — 공격받은 배와 항공모함", "Ships — attacked vessels and carriers"),
         body: t(
-          "해상 피습 경보가 난 자리에 배 표시가 뜨고, 주변 배들의 위치 신호도 같이 보입니다. 이름이 붙은 큰 배는 항공모함이에요.",
-          "A ship mark appears where a maritime attack was reported, with nearby AIS. A large named ship is a carrier.",
+          "해상 피습 경보가 난 자리에 배 표시가 뜨고, 주변 배들의 위치 신호도 같이 보입니다. 이름이 붙은 큰 배는 항공모함이에요. 해운 연재의 핵심 표시입니다.",
+          "A ship mark appears where a maritime attack was reported, with nearby AIS. A large named ship is a carrier. This is the core mark of the shipping series.",
         ),
       },
       {
         title: t("불꽃 — 드론·미사일이 떨어진 곳", "Flames — where a drone or missile landed"),
         body: t(
-          "발사나 요격이 아니라 실제로 맞았다고 보도된 곳만 켭니다. 항구, 정유소, 바다 위 유조선처럼 해운과 닿은 타격도 함께 보여요.",
-          "Only places reported as actually hit, not launches or intercepts. Ports, refineries, and tankers at sea are included when shipping is involved.",
+          "발사나 요격이 아니라 실제로 맞았다고 보도된 곳만 켭니다. 도시, 발전소, 정유소, 항구, 바다 위 유조선까지 무엇이 맞았는지 눌러서 확인하세요.",
+          "Only places reported as actually hit, not launches or intercepts. Cities, power plants, refineries, ports, tankers at sea. Tap to see what was hit.",
         ),
       },
       {
         title: t("붉은 면 — 전쟁 중인 땅", "Red ground — land at war"),
         body: t(
-          "우크라이나 점령 지역, 예멘·레바논의 무장세력 통제 구역처럼 해안을 누가 쥐고 있는지 칠합니다. 그 앞바다가 왜 위험한지 바로 보여요.",
-          "Who holds the coast: occupied Ukraine, and armed-group control in Yemen and Lebanon. That is why the water in front of it is dangerous.",
+          "우크라이나 점령 지역, 예멘·레바논의 무장세력 통제 구역처럼 지금 누가 어디를 쥐고 있는지 칠합니다. 속보가 어느 전선에서 나왔는지 바로 보여요.",
+          "Who holds what right now: occupied Ukraine, and armed-group control in Yemen and Lebanon. You see at once which front an alert came from.",
         ),
       },
       {
         title: t("비행기 — 지금 떠 있는 군용기", "Aircraft — military planes in the air now"),
         body: t(
-          "항공기 위치 신호(ADS-B)로 해협 위를 나는 정찰기·급유기 같은 군용기를 보여 줍니다. 신호를 끈 비행기는 보이지 않아요.",
-          "ADS-B shows reconnaissance aircraft and tankers over the straits. A plane with its signal off is not on the map.",
+          "항공기 위치 신호(ADS-B)로 정찰기·급유기 같은 군용기를 보여 줍니다. 신호를 끈 비행기는 보이지 않아요.",
+          "ADS-B shows reconnaissance aircraft and tankers. A plane with its signal off is not on the map.",
         ),
       },
       {
         title: t("깜빡이는 점 — 방금 들어온 속보", "A blinking dot — an alert that just arrived"),
         body: t(
-          "해상·전선 속보가 가리키는 자리입니다. 테두리 색은 출처가 얼마나 탄탄한지를 뜻해요.",
-          "Where a maritime or front-line alert points. The ring color is how solid the sourcing is.",
+          "방금 들어온 속보가 가리키는 자리입니다. 테두리 색은 출처가 얼마나 탄탄한지, 즉 확인 상태를 뜻해요.",
+          "Where a fresh alert points. The ring color is how solid the sourcing is: its check status.",
         ),
       },
       {
@@ -138,26 +142,26 @@ export function landingCopy(lang: LabelLanguage) {
       "지구본 위 무엇이든 누르면 설명 창이 열립니다. 위쪽 「묻기」에 \"홍해\", \"호르무즈\"처럼 적으면 그 바다로 날아가요.",
       "Tap anything on the globe and an explanation opens. Type “Red Sea” or “Hormuz” in Ask and the globe flies there.",
     ),
-    breakingEyebrow: t("속보 기능", "Alert tools"),
+    breakingEyebrow: t("속보", "Alerts"),
     breakingTitle: t(
-      "보험료만이 아니라, 항로에 닿는 정세 속보를 받습니다.",
-      "Not only premiums. Political and military alerts that touch a route.",
+      "지정학 속보를 받아, 근거와 함께 보여 드립니다.",
+      "Geopolitical alerts, shown with their evidence.",
     ),
     breakingLead: t(
-      "중동, 러시아·우크라이나, 중국·대만, 한반도, 남아시아·동남아 같은 권역의 군사·외교 소식을 매체 수십 곳에서 받습니다. 우리가 먼저 묻는 건 하나예요. 이 소식이 어느 길목에 닿고, 배와 보험료에 무슨 뜻일까.",
-      "Military and diplomatic reports from the Middle East, Russia and Ukraine, China and Taiwan, the Korean peninsula, and South and Southeast Asia. The first question is which chokepoint it touches, and what it means for ships and premiums.",
+      "중동, 러시아·우크라이나, 중국·대만, 한반도, 남아시아·동남아 같은 권역의 군사·외교 소식을 매체 수십 곳에서 받습니다. 소식마다 위치와 출처, 확인 상태를 붙이고, 해운에 닿는 소식은 길목별로 따로 묶어요.",
+      "Military and diplomatic reports from the Middle East, Russia and Ukraine, China and Taiwan, the Korean peninsula, and South and Southeast Asia, from dozens of outlets. Each carries a location, its sources, and a check status. Items that touch shipping are grouped by chokepoint.",
     ),
     breakingKinds: [
       {
         tag: t("타격 · 군사", "Strikes"),
         title: t("드론·미사일이 실제로 떨어진 소식", "Drones and missiles that actually landed"),
         body: t(
-          "발사 경고나 주장이 아니라, 떨어졌다는 보도가 확인된 것만 타격 속보로 올려요. 항구·에너지 시설·선박이 맞았는지가 핵심입니다.",
-          "Not a launch warning or a claim. A strike alert is a report that something landed. What matters is whether a port, energy site, or ship was hit.",
+          "발사 경고나 주장이 아니라, 떨어졌다는 보도가 확인된 것만 타격 속보로 올려요. 무엇이 맞았는지가 핵심입니다.",
+          "Not a launch warning or a claim. A strike alert is a report that something landed. What matters is what was hit.",
         ),
         flow: t(
-          "예) 항만 인근 타격 → 그 길목 통항·보험료에 압력",
-          "Example: a hit near a port → pressure on transit and premiums at that chokepoint",
+          "예) 에너지 시설 타격 → 그 지역 공급과 가격에 압력",
+          "Example: a hit on an energy site → pressure on supply and prices in that region",
         ),
       },
       {
@@ -168,8 +172,8 @@ export function landingCopy(lang: LabelLanguage) {
           "Summits, ceasefire talks, sanctions, recalled ambassadors, ultimatums, and threats of retaliation. The direction does not matter. Both easing and worsening are collected.",
         ),
         flow: t(
-          "예) 휴전 협상 진전 → 통항 재개 신호일 수 있음 · 최후통첩 → 위험 상승 신호일 수 있음",
-          "Example: ceasefire progress can signal a return to transit · an ultimatum can signal rising risk",
+          "예) 휴전 협상 진전 → 긴장 완화 신호일 수 있음 · 최후통첩 → 위험 상승 신호일 수 있음",
+          "Example: ceasefire progress can signal easing · an ultimatum can signal rising risk",
         ),
       },
       {
@@ -240,8 +244,56 @@ export function landingCopy(lang: LabelLanguage) {
       },
     ],
     breakingLimit: t(
-      "아직 없는 것. 모든 정세 속보에 「어느 길목에 닿는가」 판정이 자동으로 붙는 건 아닙니다. 위치 태그와 길목별 묶음까지가 지금 범위예요. 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시는 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 메일이 전부예요. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 안전한 것으로 오해하지 않게 합니다.",
-      "Not yet. Not every political alert is automatically tagged with the chokepoint it touches. Location tags and grouping by strait are the current range. There is no instant push for each alert. What exists is one daily “the picture changed” push and one daily email. If alerts are off-screen, the desk says more are waiting, so quiet does not look like safe.",
+      "아직 없는 것. 모든 정세 속보에 「어느 길목에 닿는가」 판정이 자동으로 붙는 건 아닙니다. 위치 태그와 길목별 묶음까지가 지금 범위예요. 속보 하나하나를 휴대폰으로 즉시 보내 주는 푸시도 아직 없습니다. 지금은 하루 한 번의 상황 변화 푸시와 하루 한 번의 해운 요약 메일이 전부이고, 주 4회 지정학 브리핑 메일로 바꾸는 중입니다. 화면에 안 보이는 속보가 있으면 「N건 더 있음」으로 표시해, 조용하다고 안전한 것으로 오해하지 않게 합니다.",
+      "Not yet. Not every political alert is automatically tagged with the chokepoint it touches. Location tags and grouping by strait are the current range. There is no instant push for each alert. What exists is one daily “the picture changed” push and one daily shipping email, being changed into a four-times-a-week geopolitics briefing. If alerts are off-screen, the desk says more are waiting, so quiet does not look like safe.",
+    ),
+    soonEyebrow: t("준비 중", "In preparation"),
+    soonTitle: t("다음에 붙일 것들. 아직 화면에는 없습니다.", "What comes next. None of this is on screen yet."),
+    soon: [
+      {
+        tag: t("국가 이니셔티브", "National aims"),
+        title: t("각국이 공식 문서로 밝힌 목표를 국가 카드에", "Stated aims on each country card"),
+        body: t(
+          "미국·중국·러시아·NATO·한국 같은 세력이 안보전략, 국방백서, 당대회 보고서에 직접 적은 목표를 붙이고, 선언과 실제 행동을 나란히 놓아 맞는지 보여 드립니다.",
+          "Aims that powers such as the U.S., China, Russia, NATO, and Korea wrote into their own strategies, white papers, and congress reports, with stated words set next to actual behavior.",
+        ),
+      },
+      {
+        tag: t("분기점", "Turning points"),
+        title: t("한 번의 결과가 몇 해를 정하는 일정", "Dates that set a direction for years"),
+        body: t(
+          "미국 중간선거, 중국·북한 당대회, 러시아 두마 선거처럼 일정은 미리 알려져 있어요. 다음 분기점까지 남은 날을 세고, 결과가 나오면 무엇이 바뀌는지 이어서 따라갑니다.",
+          "U.S. midterms, Chinese and North Korean party congresses, Russian Duma elections. The dates are known ahead. Count down to the next one, then follow what changes after.",
+        ),
+      },
+      {
+        tag: t("시나리오", "Scenarios"),
+        title: t("점 예측이 아니라 갈래와 관찰 지표", "Branches and signals, not a point forecast"),
+        body: t(
+          "‘A가 일어난다’가 아니라 ‘A·B·C 중 지금은 B 쪽 근거가 더 쌓였다’로 보여 드립니다. 틀릴 수 있는 전제도 숨기지 않고 적습니다.",
+          "Not “A will happen” but “of A, B, and C, the evidence for B is stacking up.” The assumptions that could break it are written out.",
+        ),
+      },
+      {
+        tag: t("직접 판정", "Judge it yourself"),
+        title: t("근거를 보고 먼저 골라 보기", "Pick before you see ours"),
+        body: t(
+          "근거를 보고 ‘확인·유력·자료 없음’을 먼저 골라 본 뒤 서비스의 판정과 맞춰 봅니다. 점수나 순위는 없고, 왜 같고 왜 다른지만 보여 줍니다.",
+          "Look at the evidence, pick confirmed, likely, or no data, then compare with ours. No points or rankings. Only why they match or differ.",
+        ),
+      },
+      {
+        tag: t("아침 메일", "Morning email"),
+        title: t("주 4회, 읽는 데 3분이 안 걸리는 브리핑", "Four times a week, under three minutes"),
+        body: t(
+          "오늘의 큰 그림 한 줄, 핵심 사건 두세 개와 출처, 시나리오 한 컷, 원문 링크를 보내 드립니다. 가입이나 설치 없이 메일만으로 시작합니다.",
+          "One line of the big picture, two or three key events with sources, one scenario cut, and links to the originals. It starts with email only. No account, no install.",
+        ),
+      },
+    ],
+    soonNote: t(
+      "순서와 시기는 바뀔 수 있습니다. 준비되는 대로 이 페이지에 올립니다.",
+      "Order and timing may change. Each will be added here as it is ready.",
     ),
     featuresEyebrow: t("상세 기능", "More tools"),
     featuresTitle: t("핵심 화면 말고도, 이런 기능이 있어요.", "Beyond the main screen, these tools are there."),
@@ -257,13 +309,13 @@ export function landingCopy(lang: LabelLanguage) {
       {
         title: t("선박 사건 목록", "Vessel incidents"),
         body: t(
-          "해상 피습 경보와 해역 안 선박 속보가 오른쪽에 쌓입니다. 새 사건이 들어오면 큰 창으로 먼저 알려 드려요.",
-          "Attack warnings and ship alerts for that sea stack on the right. A new incident opens in a large window first.",
+          "해운 연재: 해상 피습 경보와 해역 안 선박 속보가 오른쪽에 쌓입니다. 새 사건이 들어오면 큰 창으로 먼저 알려 드려요.",
+          "Shipping series: attack warnings and ship alerts for that sea stack on the right. A new incident opens in a large window first.",
         ),
         where: t("지구본 오른쪽", "Right side of the globe"),
       },
       {
-        title: t("전쟁위험 보험료 줄", "War-risk premium line"),
+        title: t("전쟁위험 보험료 줄 (해운 연재)", "War-risk premium line (shipping series)"),
         body: t(
           "해역별로 기사에 보도된 보험료를 이전 값과 나란히 보여 주고, 어느 매체의 언제 기사인지 함께 적습니다.",
           "Reported premiums for each sea, next to the previous figure, with the outlet and the date.",
@@ -305,10 +357,10 @@ export function landingCopy(lang: LabelLanguage) {
         href: "/investigate",
       },
       {
-        title: t("하루 한 번 메일", "One email a day"),
+        title: t("이메일 요약", "Email digest"),
         body: t(
-          "새로 공격받은 배와 보도된 보험료를 매일 한 번 메일로 받습니다. 확인 링크를 눌러야 발송이 시작돼요.",
-          "Newly attacked ships and reported premiums, once a day. Mail starts only after you open the confirmation link.",
+          "지금 실제로 발송되는 것은 새로 공격받은 배와 보도된 보험료를 담은 해운 요약 메일입니다. 주 4회 지정학 브리핑으로 바꾸는 중이며, 확인 링크를 눌러야 발송이 시작돼요.",
+          "What is actually sent today is a shipping digest of newly attacked ships and reported premiums. It is being changed into a four-times-a-week geopolitics briefing. Mail starts only after you open the confirmation link.",
         ),
         where: t("이 페이지 맨 아래", "Bottom of this page"),
       },
@@ -322,13 +374,13 @@ export function landingCopy(lang: LabelLanguage) {
       },
     ],
     devicesEyebrow: t("데스크톱 · 휴대폰", "Desktop and phone"),
-    devicesTitle1: t("상황실은 데스크톱에서,", "The watch floor is the desktop."),
+    devicesTitle1: t("근거 확인은 데스크톱에서,", "Checking evidence is a desktop job."),
     devicesTitle2: t("휴대폰은 주머니 속 알림창으로.", "The phone is an alert window in your pocket."),
-    deskTitle: t("데스크톱 — 주로 쓰는 상황실", "Desktop — the desk you actually use"),
+    deskTitle: t("데스크톱 — 근거를 따져 보는 화면", "Desktop — where evidence gets weighed"),
     desk: [
       t("3D 지구본 위에 배·비행기·불꽃·경보를 모두 겹쳐 봅니다.", "Ships, aircraft, flames, and alerts stacked on the 3D globe."),
       t("선박 사건 목록, 보험료 줄, 뉴스 창을 옆에 띄워 두고 함께 봅니다.", "The incident list, the premium line, and the news pane stay open beside it."),
-      t("넓은 화면에서 해역 하나를 끝까지 따라가며 판단하는 데 맞춰져 있어요.", "A wide screen is for following one sea all the way through a decision."),
+      t("넓은 화면에서 사건 하나의 근거를 끝까지 따라가며 판단하는 데 맞춰져 있어요.", "A wide screen is for following one event\u2019s evidence all the way through."),
     ],
     phoneTitle: t("휴대폰 — 보조 알림창", "Phone — a secondary alert window"),
     phone: [
@@ -337,33 +389,33 @@ export function landingCopy(lang: LabelLanguage) {
       t("홈 화면에 추가하면 앱처럼 바로 열립니다. 자세히 볼 일은 데스크톱에서 이어서 보세요.", "Add it to the home screen and it opens like an app. The close reading still happens on the desktop."),
     ],
     whoEyebrow: t("누가 쓰나", "Who it's for"),
-    whoTitle1: t("그대로 지나갈지, 희망봉으로 돌아갈지,", "Sail through, go around the Cape,"),
-    whoTitle2: t("출항을 미룰지 정해야 하는 분들께", "or delay sailing — for the people who have to decide."),
+    whoTitle1: t("소식은 많고 시간은 없는데,", "Plenty of news, little time,"),
+    whoTitle2: t("무엇을 믿을지는 스스로 정하고 싶은 분들께", "and you still want to decide what to believe."),
     audiences: [
       {
-        who: t("해운사 운항·안전 담당", "Operations and security at a shipping line"),
+        who: t("국제 정세를 따라가는 일반 독자", "Readers who follow world affairs"),
         body: t(
-          "피격 경보가 뜬 직후, 우리 배가 그 해역에 있는지와 계속 지나가도 될지를 판단합니다.",
-          "Right after a strike alert: is one of our ships in that sea, and can it keep going.",
+          "뉴스 앱 알림만으로는 어디서 무슨 일이 벌어지는지 그려지지 않을 때, 지구본 위에서 위치와 출처를 함께 확인합니다.",
+          "When app alerts do not tell you where things are happening, check location and sources together on the globe.",
         ),
       },
       {
-        who: t("중소 해운기업·화주", "Smaller lines and cargo owners"),
+        who: t("지정학을 공부하는 학생·연구자", "Students and researchers of geopolitics"),
         body: t(
-          "배가 희망봉으로 돌아가거나 출항이 밀리면 선적 일정과 납기가 얼마나 늦어질지 미리 가늠합니다.",
-          "If ships divert via the Cape or sailings slip, how late the cargo and the delivery get.",
+          "사건마다 붙은 출처와 확인 상태를 따라가 원문까지 가 보고, 근거가 얇은 소식은 단서로만 다룹니다.",
+          "Follow each event to its sources and the original text, and treat thin claims as leads only.",
         ),
       },
       {
-        who: t("해상보험 실무자", "Marine insurance desks"),
+        who: t("해운·무역·보험 실무자", "Shipping, trade, and insurance practitioners"),
         body: t(
-          "해역별 피격 기록과 보도된 전쟁위험 보험료 흐름을 위험 평가와 요율 판단의 참고 자료로 씁니다.",
-          "Strike history by sea, and the reported path of war-risk premiums, as reference for risk and rating.",
+          "첫 연재 주제인 해운에서는 피격 선박 판정, 해역별 위험, 보도된 전쟁위험 보험료까지 한 흐름으로 볼 수 있습니다.",
+          "In the first series, shipping: ship-strike calls, risk by sea, and reported war-risk premiums in one flow.",
         ),
       },
     ],
-    straitsEyebrow: t("해협별로 보기", "Strait by strait"),
-    straitsTitle: t("배가 꼭 지나야 하는 길목, 하나씩 넘겨 보세요.", "The passages ships cannot avoid. Move through them one by one."),
+    straitsEyebrow: t("해운 연재 — 해협별로 보기", "Shipping series — strait by strait"),
+    straitsTitle: t("가장 먼저 깊게 다룬 주제, 배가 꼭 지나야 하는 길목입니다.", "The first topic covered in depth: passages ships cannot avoid."),
     straitOpen: t("해협 안내 열기", "Open the strait brief"),
     straits: [
       { slug: "strait-of-hormuz", name: t("호르무즈 해협", "Strait of Hormuz"), en: "STRAIT OF HORMUZ", stat: t("세계 원유 소비량의 약 5분의 1", "About a fifth of the world’s oil consumption"), what: t("페르시아만 원유·LNG가 바다로 나가는 사실상 유일한 출구.", "Effectively the only sea exit for Gulf oil and LNG.") },
@@ -373,27 +425,12 @@ export function landingCopy(lang: LabelLanguage) {
       { slug: "taiwan-strait", name: t("대만해협", "Taiwan Strait"), en: "TAIWAN STRAIT", stat: t("동아시아 컨테이너선의 길목", "A lane for East Asian container ships"), what: t("첨단 반도체 생산이 몰린 대만을 끼고 있는 바다.", "The water beside Taiwan, where advanced chipmaking is concentrated.") },
       { slug: "turkish-straits", name: t("튀르키예 해협", "Turkish Straits"), en: "BOSPORUS · DARDANELLES", stat: t("흑해와 지중해를 잇는 유일한 길", "The only link between the Black Sea and the Mediterranean"), what: t("우크라이나·러시아 곡물과 원유가 나가는 통로.", "The passage for Ukrainian and Russian grain and oil.") },
     ],
-    nameEyebrow: t("이름의 뜻", "The name"),
-    nameTitle: t("왜 ‘Strait Desk’인가요?", "Why “Strait Desk”?"),
-    nameSub: t("Strait Desk · 해협을 지켜보는 상황실", "Strait Desk · a watch floor for the straits"),
-    name1: t(
-      "Strait는 해협입니다. 바브엘만데브(홍해 입구)·호르무즈·말라카처럼, 세계 물동량의 큰 몫이 좁은 길목 몇 곳으로 몰려 지나갑니다.",
-      "A strait is a narrow passage. Bab el-Mandeb, Hormuz, Malacca: a large share of world trade is forced through a few of them.",
-    ),
-    name2: t(
-      "Desk는 상황실의 데스크입니다. 홍해의 미사일 한 발이 항로를 바꾸고 해협 하나가 막히면 보험료와 운임이 함께 뛰어오르는데, 경보가 뜬 순간 운항·선적·보험 담당자가 한 책상 위에서 확인해야 할 것들을 모아 둔 곳이에요.",
-      "Desk is the watch desk. One missile in the Red Sea reroutes ships, and one closed strait lifts premiums and freight together. This is the table where operations, cargo, and insurance check what they need the moment an alert lands.",
-    ),
-    name3: t(
-      "Strait Desk는 그 길목의 상황을 지구본 위에 한 화면으로 펼쳐 놓습니다. 어느 배가 맞았는지, 그 바다가 얼마나 위험한지를 근거와 한계까지 함께요.",
-      "Strait Desk lays that picture on one globe. Which ship was hit, and how dangerous the sea is, with the evidence and the limits.",
-    ),
     trustEyebrow: t("믿을 수 있나", "Can you trust it"),
     trustTitle1: t("비밀 자료는 없습니다.", "There is no secret material."),
     trustTitle2: t("공개 정보를 서로 맞춰 봅니다.", "Public sources are checked against each other."),
     trustBody: t(
-      "해군 경보, 배와 비행기의 위치 신호, 위성, 언론 보도처럼 공개된 정보(OSINT, 공개 출처 정보)를 한곳에 모으고 출처끼리 얼마나 맞는지 따져서 보여 줍니다. 데이터마다 어디서 왔고 어떤 한계가 있는지는 지구본 안 「데이터 출처」에서 확인할 수 있어요.",
-      "Naval warnings, ship and aircraft position signals, satellites, and press reports — public information, gathered in one place and weighed for how well the sources agree. Where each layer came from, and what it cannot say, is under Sources on the globe.",
+      "해군 경보, 배와 비행기의 위치 신호, 위성, 언론 보도처럼 공개된 정보(OSINT, 공개 출처 정보)를 한곳에 모으고 출처끼리 얼마나 맞는지 따져서 보여 줍니다. 근거를 보여 줄 수 없는 판정은 내놓지 않습니다. 데이터마다 어디서 왔고 어떤 한계가 있는지는 지구본 안 「데이터 출처」에서 확인할 수 있어요.",
+      "Naval warnings, ship and aircraft position signals, satellites, and press reports — public information, gathered in one place and weighed for how well the sources agree. A call with no evidence to show is not made. Where each layer came from, and what it cannot say, is under Sources on the globe.",
     ),
     sources: [
       ["UKMTO", t("영국 해군 해상 피습 경보", "UK naval warnings of attacks at sea")],
@@ -421,8 +458,8 @@ export function landingCopy(lang: LabelLanguage) {
       {
         q: t("돈을 내야 하나요?", "Do I have to pay?"),
         a: t(
-          "지금은 베타 기간이라 가입 없이 바로 볼 수 있습니다. 정식 출시 후에는 알림·해역 판단 같은 일부 기능이 유료가 될 예정이며, 시작 전에 미리 알려 드립니다.",
-          "Beta is open without an account. After launch, some tools such as alerts and the sea call are expected to be paid. That will be said before it starts.",
+          "지금은 베타 기간이라 가입 없이 바로 볼 수 있습니다. 무엇을 무료로 두고 무엇을 유료로 할지는 아직 정하지 않았어요. 정해지면 시작 전에 이 페이지에서 먼저 알려 드립니다.",
+          "Beta is open without an account. What stays free and what becomes paid is not decided yet. It will be announced on this page before anything changes.",
         ),
       },
       {
@@ -435,8 +472,8 @@ export function landingCopy(lang: LabelLanguage) {
       {
         q: t("얼마나 자주 새로 바뀌나요?", "How often does it change?"),
         a: t(
-          "출처마다 다릅니다. 배·비행기 위치와 전선 속보는 몇 분 단위로, 해상 경보와 보험료 보도는 새 소식이 나올 때마다 반영됩니다.",
-          "It depends on the source. Ship and aircraft positions and front-line alerts move on a scale of minutes. Maritime warnings and premium reports update when a new report appears.",
+          "출처마다 다릅니다. 배·비행기 위치와 전선 속보는 몇 분 단위로, 해상 경보와 보험료 보도는 새 소식이 나올 때마다 반영됩니다. 이메일 브리핑은 주 4회로 바꾸는 중이에요.",
+          "It depends on the source. Ship and aircraft positions and front-line alerts move on a scale of minutes. Maritime warnings and premium reports update when a new report appears. The email briefing is being moved to four times a week.",
         ),
       },
       {
@@ -447,20 +484,20 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    ctaTitle1: t("이 바다,", "This sea —"),
-    ctaTitle2: t("지금 지나가도 될까요?", "can we sail through it now?"),
+    ctaTitle1: t("오늘 세계에서", "What happened in the world"),
+    ctaTitle2: t("무슨 일이 있었는지, 근거와 함께.", "today, with the evidence."),
     ctaBody: t(
-      "지구본을 열고 해역을 하나 골라 보세요. 가입도, 설치도 필요 없어요.",
-      "Open the globe and pick a sea. No account, no install.",
+      "지구본을 열고 궁금한 지역을 눌러 보세요. 가입도, 설치도 필요 없어요.",
+      "Open the globe and tap a region you are curious about. No account, no install.",
     ),
     footer: t(
-      "공개 정보를 모아 보여 주는 서비스이며, 정부·정보기관과는 관계가 없습니다. 항행·보험에 관한 최종 판단은 이용자에게 있습니다.",
-      "A service that gathers public information. It has no relationship with a government or an intelligence service. The final call on navigation and insurance stays with you.",
+      "공개 정보를 모아 보여 주는 서비스이며, 정부·정보기관과는 관계가 없습니다. 판단과 그에 따른 결정은 이용자에게 있습니다.",
+      "A service that gathers public information. It has no relationship with a government or an intelligence service. The judgment, and any decision that follows, stays with you.",
     ),
     curtainSoonNav: (pct: number) => (en ? `Opening soon ${pct}%` : `곧 열려요 ${pct}%`),
     curtainSoon: (pct: number) => (en ? `Opens as soon as it’s ready · ${pct}%` : `준비되면 바로 열려요 · ${pct}%`),
     curtainPct: (pct: number) => (en ? `Globe ${pct}%` : `지구본 ${pct}%`),
     curtainPrep: (pct: number) => (en ? `Open the globe · preparing ${pct}%` : `지구본 열기 · 준비 중 ${pct}%`),
-    curtainAria: t("Strait Desk 소개", "About Strait Desk"),
+    curtainAria: t("conflict-view 소개", "About conflict-view"),
   };
 }

@@ -98,7 +98,7 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
         <span className="text-[#f5c451]">●</span>{" "}
         {pick(
           lang,
-          `Strait Desk가 지켜보는 해운 길목 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
+          `conflict-view가 지켜보는 해운 길목 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
           "Six shipping passages on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
         )}
       </p>

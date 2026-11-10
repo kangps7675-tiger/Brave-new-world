@@ -68,7 +68,7 @@ export function useFleetWatch(vessels: readonly AisVessel[]) {
       const key = `${a.entry.value}:${a.incident.id}`;
       if (done.has(key)) continue;
       done.add(key);
-      new Notification("Strait Desk · 내 배 근처 사건", {
+      new Notification("conflict-view · 내 배 근처 사건", {
         body: `${a.vesselName ?? a.entry.value} — ${a.incident.place ?? "사건 지점"}에서 ${a.distanceNm}해리 (${a.incident.incidentTypeName})`,
       });
     }

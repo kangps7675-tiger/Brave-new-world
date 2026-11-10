@@ -256,7 +256,7 @@ export function ExtraEdition() {
                 className={`landing-ink m-0 mt-1 whitespace-nowrap font-black uppercase leading-[0.95] tracking-[0.02em] ${pin ? "text-[clamp(32px,min(6.4vw,8.6vh),96px)]" : "text-[clamp(28px,5.2vw,70px)]"}`}
                 style={SERIF}
               >
-                Strait Desk
+                conflict-view
               </h3>
               <div className="mt-2 border-y-[3px] border-double border-[#1a150e] py-1 text-caption tracking-[0.06em]" style={BATANG}>
                 {pick(
@@ -394,8 +394,8 @@ export function ExtraEdition() {
             <p className="m-0 mt-3 border-t-2 border-[#1a150e] pt-2 text-caption leading-snug" style={BATANG}>
               {pick(
                 lang,
-                "이 지면은 Strait Desk가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.",
-                "This page is a Strait Desk summary of public reports, not a real newspaper. The rates are not comparable one-to-one — each article uses its own basis.",
+                "이 지면은 conflict-view가 공개 보도를 요약해 만든 화면이며 실제 신문이 아닙니다. 보험료율은 기사마다 기준(선가 대비 여부 등)이 달라 서로 단순 비교할 수 없습니다.",
+                "This page is a conflict-view summary of public reports, not a real newspaper. The rates are not comparable one-to-one — each article uses its own basis.",
               )}
             </p>
           </div>

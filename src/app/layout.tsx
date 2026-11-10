@@ -119,16 +119,16 @@ const sbAgro = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Strait Desk — The war and the money, on one globe",
+  title: "conflict-view — Geopolitical alerts, with the evidence, on a globe",
   description:
-    "전쟁과 이익이 같은 지도를 공유하는 3D 지구본 관측대. A 3D globe that overlays live conflict data with the trade, shipping and energy routes it disrupts.",
+    "지정학 속보를 출처와 확인 상태와 함께 지구본 위에서 보는 서비스. A 3D globe that pins geopolitical alerts to where they happen, each with its sources and a check status.",
   alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     type: "website",
-    siteName: "Strait Desk",
-    title: "Strait Desk — The war and the money, on one globe",
+    siteName: "conflict-view",
+    title: "conflict-view — Geopolitical alerts, with the evidence, on a globe",
     description:
-      "지정학으로 축과 전선을, 지경학으로 돈과 물류를 보는 실시간 3D 지구본. Live conflict, shipping, energy and market layers on a single interactive globe.",
+      "전쟁·외교·선거 소식을 출처와 확인 상태와 함께. Conflict, diplomacy, and election alerts with their sources and a check status, on one globe.",
     url: "/",
     locale: "ko_KR",
     // 영어권이 1차 타깃이므로 대체 로케일을 명시한다.
@@ -139,15 +139,15 @@ export const metadata: Metadata = {
         url: "/brand/og-1200x630.png",
         width: 1200,
         height: 630,
-        alt: "Strait Desk — a 3D globe overlaying war and trade",
+        alt: "conflict-view — a 3D globe of geopolitical alerts with evidence",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Strait Desk — The war and the money, on one globe",
+    title: "conflict-view — Geopolitical alerts, with the evidence, on a globe",
     description:
-      "Live conflict, shipping, energy and market layers on a single interactive 3D globe.",
+      "Geopolitical alerts with their sources and check status, on a single interactive 3D globe.",
     images: ["/brand/og-1200x630.png"],
   },
   icons: {
@@ -157,7 +157,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Strait Desk",
+    title: "conflict-view",
   },
   other: {
     "mobile-web-app-capable": "yes",

@@ -1878,7 +1878,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           typewriter={false}
           titleId="ux-guide-brief-title"
           backMark={labelLanguage === "en" ? "Guide" : "안내"}
-          backSub={"Strait Desk"}
+          backSub={"conflict-view"}
           zIndexClass="z-[900]"
         />
       ) : null}

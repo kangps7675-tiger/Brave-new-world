@@ -1,5 +1,6 @@
 "use client";
 
+import { BRAND_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { LandingGlobe } from "@/components/landing/LandingGlobe";
@@ -139,7 +140,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
               <circle cx="14" cy="14" r="6" fill="none" stroke="#5eead4" strokeWidth="2" strokeDasharray="3 3" />
               <circle cx="14" cy="14" r="2" fill="#f5c451" />
             </svg>
-            <span className="text-lg font-bold tracking-[-0.01em]">Strait Desk</span>
+            <span className="text-lg font-bold tracking-[-0.01em]">{BRAND_NAME[lang]}</span>
           </a>
           <div className="flex flex-wrap items-center gap-6 text-[15px]">
             <a href="#ask" className="hidden text-[#c9d5dd] no-underline hover:text-white md:inline">{copy.navAsk}</a>
@@ -425,20 +426,26 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         />
       </section>
 
-      {/* NAME — 왜 'Strait Desk'인가 */}
-      <section id="name" className="border-y border-white/10 bg-[#081019]">
-        <div className={`${WRAP} flex flex-wrap items-start gap-x-16 gap-y-8 py-24`}>
-          <Reveal className="min-w-0 flex-[1_1_360px]">
-            <p className={EYEBROW}>{copy.nameEyebrow}</p>
-            <h2 className={H2}>
-              {copy.nameTitle}
-            </h2>
-            <p className={`mt-4 text-sm ${MUTED}`}>{copy.nameSub}</p>
+      {/* SOON — 준비 중 (화면에 아직 없는 것) */}
+      <section id="soon" className="border-y border-white/10 bg-[#081019]">
+        <div className={`${WRAP} py-24`}>
+          <Reveal>
+            <p className={EYEBROW}>{copy.soonEyebrow}</p>
+            <h2 className={`${H2} max-w-[820px]`}>{copy.soonTitle}</h2>
           </Reveal>
-          <Reveal delay={100} className="min-w-0 flex-[1.4_1_440px] space-y-5 text-[17px] leading-[1.85] text-[#d7e0e6]">
-            <p className="m-0">{copy.name1}</p>
-            <p className="m-0">{copy.name2}</p>
-            <p className="m-0 font-semibold text-white">{copy.name3}</p>
+          <div className="mt-10 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
+            {copy.soon.map((x, i) => (
+              <Reveal key={x.tag} delay={(i % 3) * 80}>
+                <div className="h-full rounded-xl border border-dashed border-white/20 bg-[#0a141f] p-6">
+                  <span className="block text-caption font-semibold text-[#5eead4]">{x.tag}</span>
+                  <h3 className="mb-0 mt-2 text-[19px] font-bold leading-snug text-white">{x.title}</h3>
+                  <p className={`mb-0 mt-2 text-[15px] leading-[1.7] ${MUTED}`}>{x.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <p className={`mb-0 mt-8 text-[15px] ${MUTED}`}>{copy.soonNote}</p>
           </Reveal>
         </div>
       </section>
@@ -516,7 +523,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
       <footer className="border-t border-white/10 bg-[#05080d] text-[#8796a3]">
         <div className={`${WRAP} flex flex-wrap justify-between gap-5 py-10 text-sm leading-[1.7]`}>
           <div>
-            <span className="font-semibold text-[#e6edf2]">Strait Desk</span> · PhilSolution
+            <span className="font-semibold text-[#e6edf2]">{BRAND_NAME[lang]}</span> · PhilSolution
           </div>
           <p className="m-0 max-w-[640px]">
             {copy.footer}
