@@ -3,7 +3,7 @@ import {
   noteLayerAffinityAttendance,
 } from "@/lib/layerAffinityPrefs";
 import { enforceLabTier } from "@/lib/layerLab";
-import { FIRST_SCREEN_MARITIME_OFF, FIRST_SCREEN_MARITIME_ON } from "@/lib/firstScreenLayers";
+import { FIRST_SCREEN_BREAKING_OFF, FIRST_SCREEN_BREAKING_ON } from "@/lib/firstScreenLayers";
 import { stripLegacyConflictPrefs } from "@/lib/conflictEvents/flags";
 /*
  * 상업 게이트 — layerPrefGate 는 LayerPrefs 를 **타입으로만** 가져가므로
@@ -670,10 +670,10 @@ function settleLayerPrefDefaults(prefs: LayerPrefs): LayerPrefs {
  */
 export function firstVisitLayerPrefs(base: LayerPrefs): LayerPrefs {
   const next: LayerPrefs = { ...base };
-  for (const key of FIRST_SCREEN_MARITIME_OFF) {
+  for (const key of FIRST_SCREEN_BREAKING_OFF) {
     (next as Record<string, unknown>)[key] = false;
   }
-  for (const [key, on] of Object.entries(FIRST_SCREEN_MARITIME_ON)) {
+  for (const [key, on] of Object.entries(FIRST_SCREEN_BREAKING_ON)) {
     if (on === true) (next as Record<string, unknown>)[key] = true;
   }
   return next;
