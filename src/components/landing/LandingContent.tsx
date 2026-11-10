@@ -16,6 +16,7 @@ import {
   TiltCard,
 } from "@/components/landing/LandingMotion";
 import { Grain, Magnetic, MegaMarquee, StraitRail } from "@/components/landing/LandingHip";
+import { LandingFrontPage } from "@/components/landing/LandingFrontPage";
 import { ExtraEdition } from "@/components/landing/LandingExtra";
 import { LandingSignup } from "@/components/landing/LandingSignup";
 import { LandingLanguageNav } from "@/components/landing/LandingLanguageNav";
@@ -237,6 +238,18 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         </div>
       </section>
 
+      {/* FRONT — 오늘의 지정학 1면 (이메일 브리핑의 모양) */}
+      <section id="front" className={`${WRAP} pb-8 pt-20`}>
+        <Reveal>
+          <p className={EYEBROW}>{copy.frontEyebrow}</p>
+          <h2 className={`${H2} max-w-[860px]`}>{copy.frontTitle}</h2>
+          <p className={`mt-4 mb-0 max-w-[720px] text-[17px] leading-[1.75] ${MUTED}`}>{copy.frontLead}</p>
+        </Reveal>
+        <Reveal className="mt-12" delay={120}>
+          <LandingFrontPage />
+        </Reveal>
+      </section>
+
       {/* READ — 화면 읽는 법 */}
       <section id="read" className={`${WRAP} pb-20 pt-24`}>
         <p className={EYEBROW}>{copy.readEyebrow}</p>
@@ -262,9 +275,6 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
           {copy.readFoot}
         </p>
       </section>
-
-      {/* EXTRA — 호외: 공개 보도로 본 보험료 */}
-      <ExtraEdition />
 
       {/* BREAKING — 속보 기능 설명 */}
       <section id="breaking" className="border-t border-white/10 bg-[#0b0f14]">
@@ -425,6 +435,9 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
           }
         />
       </section>
+
+      {/* EXTRA — 해운 연재 첫 호: 호외 */}
+      <ExtraEdition />
 
       {/* SOON — 준비 중 (화면에 아직 없는 것) */}
       <section id="soon" className="border-y border-white/10 bg-[#081019]">

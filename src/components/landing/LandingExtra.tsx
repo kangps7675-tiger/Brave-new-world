@@ -188,7 +188,7 @@ export function ExtraEdition() {
     <section id="extra" className="relative border-y border-white/10 bg-[#081019]">
       <div className="mx-auto max-w-[1200px] px-6 pb-10 pt-24">
         <p className="m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]">
-          {pick(lang, "공개 보도로 본 보험료", "Premiums, as reported")}
+          {pick(lang, "해운 연재 · 첫 호 — 공개 보도로 본 보험료", "Shipping series, issue one — premiums as reported")}
         </p>
         <h2 className="mb-0 mt-4 max-w-[860px] text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white">
           {pick(lang, "전쟁위험 보험료, 이렇게 널뛰었습니다.", "How the war-risk premium swung.")}
