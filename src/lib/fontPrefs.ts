@@ -46,11 +46,11 @@ export const UI_FONT_PRESETS: UiFontPresetMeta[] = [
   },
   {
     id: "pretendard",
-    labelKo: "Pretendard",
-    labelEn: "Pretendard",
+    labelKo: "Pretendard (기기에 있을 때)",
+    labelEn: "Pretendard (if installed)",
     group: "readable",
     googleFamily: null,
-    stack: `var(--font-pretendard), "Pretendard", ${KO_FALLBACK}`,
+    stack: `"Pretendard", var(--font-wanted), ${KO_FALLBACK}`,
   },
   {
     id: "noto-sans-kr",
@@ -237,4 +237,4 @@ export function setUiFontPrefs(prefs: UiFontPrefs): UiFontPrefs {
  * beforeInteractive 부트 — localStorage 읽어 --font-ui 선적용 + Google link.
  * layout Script에 넣음 (로직은 여기 문자열과 동기 유지).
  */
-export const UI_FONT_BOOT_SCRIPT = `(function(){try{var k=${JSON.stringify(UI_FONT_PREFS_KEY)};var raw=localStorage.getItem(k);if(!raw)return;var p=JSON.parse(raw);var id=p&&p.presetId?String(p.presetId):"wanted";var custom=p&&typeof p.customFamily==="string"?p.customFamily.replace(/["'<>\\\\]/g,"").trim().slice(0,64):"";var ko='"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';var stacks={wanted:'var(--font-wanted),'+ko,pretendard:'var(--font-pretendard),"Pretendard",'+ko,"noto-sans-kr":'"Noto Sans KR",'+ko,"ibm-plex-sans":'"IBM Plex Sans",'+ko,"source-sans-3":'"Source Sans 3",'+ko,pixelify:'"Pixelify Sans",'+ko,system:'-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",'+ko};var google={wanted:null,pretendard:null,"noto-sans-kr":"Noto Sans KR","ibm-plex-sans":"IBM Plex Sans","source-sans-3":"Source Sans 3",pixelify:"Pixelify Sans",system:null};var stack=stacks[id]||stacks.wanted;var g=google[id]||null;if(id==="custom"&&custom){stack='"'+custom+'",'+ko;g=custom;}document.documentElement.style.setProperty("--font-ui",stack);document.documentElement.setAttribute("data-ui-font",id);if(g){var href="https://fonts.googleapis.com/css2?family="+encodeURIComponent(g).replace(/%20/g,"+")+":wght@400;500;600;700&display=swap";var link=document.createElement("link");link.id="cv-google-ui-font";link.rel="stylesheet";link.href=href;document.head.appendChild(link);}}catch(e){}})();`;
+export const UI_FONT_BOOT_SCRIPT = `(function(){try{var k=${JSON.stringify(UI_FONT_PREFS_KEY)};var raw=localStorage.getItem(k);if(!raw)return;var p=JSON.parse(raw);var id=p&&p.presetId?String(p.presetId):"wanted";var custom=p&&typeof p.customFamily==="string"?p.customFamily.replace(/["'<>\\\\]/g,"").trim().slice(0,64):"";var ko='"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';var stacks={wanted:'var(--font-wanted),'+ko,pretendard:'"Pretendard",var(--font-wanted),'+ko,"noto-sans-kr":'"Noto Sans KR",'+ko,"ibm-plex-sans":'"IBM Plex Sans",'+ko,"source-sans-3":'"Source Sans 3",'+ko,pixelify:'"Pixelify Sans",'+ko,system:'-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",'+ko};var google={wanted:null,pretendard:null,"noto-sans-kr":"Noto Sans KR","ibm-plex-sans":"IBM Plex Sans","source-sans-3":"Source Sans 3",pixelify:"Pixelify Sans",system:null};var stack=stacks[id]||stacks.wanted;var g=google[id]||null;if(id==="custom"&&custom){stack='"'+custom+'",'+ko;g=custom;}document.documentElement.style.setProperty("--font-ui",stack);document.documentElement.setAttribute("data-ui-font",id);if(g){var href="https://fonts.googleapis.com/css2?family="+encodeURIComponent(g).replace(/%20/g,"+")+":wght@400;500;600;700&display=swap";var link=document.createElement("link");link.id="cv-google-ui-font";link.rel="stylesheet";link.href=href;document.head.appendChild(link);}}catch(e){}})();`;

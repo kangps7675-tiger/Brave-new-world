@@ -128,7 +128,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
   }, [copy.pageTitle]);
   return (
     <div
-      className="min-h-[100dvh] w-full bg-[#05080d] text-[#e6edf2] font-[family-name:var(--font-pretendard),system-ui,sans-serif]"
+      className="min-h-[100dvh] w-full bg-[#05080d] text-[#e6edf2] font-[family-name:var(--font-ui),system-ui,sans-serif]"
       style={{ wordBreak: lang === "en" ? "normal" : "keep-all" }}
     >
       {/* NAV */}

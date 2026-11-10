@@ -18,9 +18,9 @@ const NAME_LINES = [
 
 const NAME_LINE_HOLD_MS = 3400;
 const NAME_LINE_FADE_MS = 480;
-/** 환영 편지와 같은 바탕. 모노·네온은 점수판처럼 보인다. */
+/** 상황실 고딕. 모노·네온은 점수판처럼 보인다. */
 const LOADING_PROSE_FONT =
-  'var(--font-letter-hand), "RIDIBatang", Georgia, "Times New Roman", serif';
+  'var(--font-wanted), var(--font-ui), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 const LOADING_FIGURE_FONT =
   'var(--font-wanted), var(--font-ui), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 

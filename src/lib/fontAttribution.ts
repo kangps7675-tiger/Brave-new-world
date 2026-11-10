@@ -11,8 +11,7 @@
  *   2. `public/licenses/fonts.md` (목록)
  *   3. `public/licenses/*.txt` (라이선스 전문 — 신규 라이선스인 경우)
  *
- * CDN 로드(next/font/google · jsDelivr)는 파일을 배포하지 않으므로 제외한다.
- * — Inter · Merriweather · JetBrains Mono · Wanted Sans
+ * jsDelivr로 받는 Wanted Sans는 파일을 배포하지 않으므로 이 목록에서 뺀다.
  *
  * @see docs/copyright-audit-2026-08-01.md — R-1
  * @see public/licenses/fonts.md
@@ -36,48 +35,40 @@ export type FontAttribution = {
 
 export const FONT_ATTRIBUTIONS: readonly FontAttribution[] = [
   {
-    family: "Pretendard",
-    holder: "Kil Hyung-jin",
-    license: "SIL OFL 1.1",
-    url: "https://github.com/orioncactus/pretendard",
-    files: ["PretendardVariable.ttf"],
-    usage: "지경학 내비게이션",
-  },
-  {
     family: "Geist / Geist Mono",
     holder: "The Geist Project Authors (Vercel)",
     license: "SIL OFL 1.1",
     url: "https://github.com/vercel/geist-font",
     files: ["GeistVF.woff", "GeistMonoVF.woff"],
-    usage: "기본 UI · 모노스페이스",
+    usage: "영문 폴백 · 모노스페이스",
   },
   {
-    family: "리디바탕 (RIDIBatang)",
-    holder: "리디주식회사",
+    family: "Inter",
+    holder: "The Inter Project Authors",
     license: "SIL OFL 1.1",
-    url: "https://ridicorp.com/ridibatang/",
-    files: ["RIDIBatang.otf"],
-    usage: "양피지 브리핑 필체",
+    url: "https://github.com/rsms/inter",
+    files: ["Inter-latin-wght.woff2"],
+    usage: "영문 UI",
   },
   {
-    family: "Gmarket Sans",
-    holder: "지마켓",
-    license: "무료 배포 (상업 이용 가능)",
-    url: "https://company.gmarket.co.kr/company/about/company/company--font.asp",
-    files: ["GmarketSansLight.otf", "GmarketSansMedium.otf", "GmarketSansBold.otf"],
-    usage: "뉴스 · 속보 헤드라인",
+    family: "Merriweather",
+    holder: "Sorkin Type",
+    license: "SIL OFL 1.1",
+    url: "https://github.com/SorkinType/Merriweather",
+    files: ["Merriweather-latin-wght.woff2", "Merriweather-latin-wght-italic.woff2"],
+    usage: "영문 브리핑",
   },
   {
-    family: "SB 어그로",
-    holder: "샌드박스네트워크",
-    license: "무료 배포 (상업 이용 가능)",
-    url: "https://sandbox.co.kr/font",
-    files: ["SBAgro-Bold.ttf"],
-    usage: "전쟁구역 사상자 수치",
+    family: "JetBrains Mono",
+    holder: "The JetBrains Mono Project Authors",
+    license: "SIL OFL 1.1",
+    url: "https://github.com/JetBrains/JetBrainsMono",
+    files: ["JetBrainsMono-latin-wght.woff2"],
+    usage: "좌표 · 수치",
   },
 ] as const;
 
-/** "Pretendard — Kil Hyung-jin · SIL OFL 1.1" */
+/** "Inter — The Inter Project Authors · SIL OFL 1.1" */
 export function formatFontCredit(credit: FontAttribution): string {
   return `${credit.family} — ${credit.holder} · ${credit.license}`;
 }
