@@ -80,7 +80,7 @@ export function NkMissileArcGraphic({
           {card.date ? `${card.date} · ` : ""}
           {body}
         </p>
-        <p className="text-[11px] text-amber-200/80">
+        <p className="text-micro text-amber-200/80">
           {ko
             ? "추정 궤적 · 실제 레이더 궤적이 아닙니다."
             : "Illustrative arc · not a radar track."}
