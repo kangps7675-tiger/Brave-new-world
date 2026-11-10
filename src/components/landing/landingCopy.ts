@@ -85,10 +85,14 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    flowEyebrow: t("경보가 뜨면", "When an alert hits"),
+    flowEyebrow: t("교차검증 과정", "The cross-check"),
     flowTitle: t(
-      "전선 속보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.",
-      "Scroll to see how one front-line alert unfolds on the globe.",
+      "속보 하나를 직접 확인하는 과정을, 한 단계씩 보세요.",
+      "Watch one alert get checked, one step at a time.",
+    ),
+    flowNote: t(
+      "예시 속보로 보여 드립니다. 단계를 누르면 그 장면으로 가고, 마우스를 올리면 멈춰요. 6·7단계(직접 판정)는 준비 중입니다.",
+      "Shown with an example alert. Click a step to jump to it; hover to pause. Steps 6 and 7 (judging it yourself) are in preparation.",
     ),
     frontEyebrow: t("이메일로 받게 될 모양", "What the email will look like"),
     frontTitle: t("오늘의 지정학 1면, 이런 지면으로 옵니다.", "Today’s geopolitics front page. This is the shape it arrives in."),
