@@ -2,13 +2,17 @@
 
 import { useEffect, useId, useState } from "react";
 import { NATIONAL_CONSTITUTIONS } from "@/data/nationalConstitutions";
+import { BranchDesk } from "@/components/globe/BranchDesk";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import type { NewsStreamItem } from "@/lib/news/types";
 import { nextSchedule, orderedSchedules } from "@/lib/majorSchedule";
 import { zc } from "@/lib/uiStack";
 
 type Props = {
   lang: LabelLanguage;
   now?: number;
+  /** note 창의 「분기점」 탭이 연결 기사를 읽을 때 쓰는 뉴스 풀. */
+  items?: readonly NewsStreamItem[];
   /**
    * inline: 목록이 제자리에서 펼쳐진다(휴대폰 목록용).
    * note: 접힌 상태는 가로로 긴 쪽지 하나이고, 눌러야 창이 열린다.
@@ -18,6 +22,7 @@ type Props = {
 };
 
 type Panel = "dates" | "laws";
+type NoteTab = Panel | "branch";
 
 function nextLine(en: boolean, next: ReturnType<typeof nextSchedule>): string {
   if (!next) return en ? "No upcoming official date is on this list." : "이 목록에 다가오는 공식 일정이 없습니다.";
@@ -98,7 +103,7 @@ function DateList({ en, now }: { en: boolean; now: number }) {
 }
 
 /** 지정학 화면의 국가 중대 일정. 지도 핀은 만들지 않는다. */
-export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }: Props) {
+export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline", items = [] }: Props) {
   const en = lang === "en";
   const next = nextSchedule(now);
   const windowId = useId();
@@ -109,7 +114,7 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
 
   // note: 창이 열렸는지, 열렸다면 어느 탭인지
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<Panel>("dates");
+  const [tab, setTab] = useState<NoteTab>("dates");
 
   useEffect(() => {
     if (variant !== "note" || !open) return;
@@ -121,7 +126,7 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
   }, [variant, open]);
 
   if (variant === "note") {
-    const label = en ? "Open national political calendars" : "각국 정치일정 바로보기";
+    const label = en ? "Political calendars · branch points" : "각국 정치일정·분기점 바로보기";
     return (
       <section className="pointer-events-auto relative shrink-0" aria-label={en ? "Major national dates" : "국가 중대 일정"} data-major-schedules>
         {/* 접힌 상태: 크기가 늘 고정인 쪽지. 창이 열려도 높이가 바뀌지 않는다. */}
@@ -139,7 +144,7 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
           <div
             id={windowId}
             role="dialog"
-            aria-label={en ? "National political calendars" : "각국 정치일정"}
+            aria-label={en ? "Political calendars and branch points" : "각국 정치일정과 분기점"}
             className={`absolute left-0 top-full ${zc("panel")} mt-1 max-h-[min(70vh,40rem)] w-[min(44rem,calc(100vw-2rem))] overflow-y-auto rounded-md border border-[#6b4a22]/35 bg-[#f3e6c8]/98 p-2 text-[#2a1c0a] shadow-xl`}
             data-major-schedules-window
           >
@@ -156,7 +161,7 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
               </button>
             </div>
             <div className="mt-1.5 flex gap-1" role="tablist">
-              {(["dates", "laws"] as const).map((id) => (
+              {(["dates", "branch", "laws"] as const).map((id) => (
                 <button
                   key={id}
                   type="button"
@@ -167,11 +172,23 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
                   }`}
                   onClick={() => setTab(id)}
                 >
-                  {id === "dates" ? (en ? "Dates" : "일정") : en ? "Constitutions" : "헌법"}
+                  {id === "dates"
+                    ? en
+                      ? "Dates"
+                      : "일정"
+                    : id === "branch"
+                      ? en
+                        ? "Branch points"
+                        : "분기점"
+                      : en
+                        ? "Constitutions"
+                        : "헌법"}
                 </button>
               ))}
             </div>
-            {tab === "dates" ? <DateList en={en} now={now} /> : <ConstitutionList en={en} />}
+            {tab === "dates" ? <DateList en={en} now={now} /> : null}
+            {tab === "branch" ? <BranchDesk lang={lang} items={[...items]} now={now} embedded /> : null}
+            {tab === "laws" ? <ConstitutionList en={en} /> : null}
           </div>
         ) : null}
       </section>
