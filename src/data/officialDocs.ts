@@ -67,7 +67,7 @@ export const ISSUERS: readonly Issuer[] = [
   issuer("it", "country", "이탈리아", "Italy"),
   issuer("nato", "organization", "나토", "NATO"),
   issuer("eu", "organization", "EU", "European Union", [
-    { url: "https://skribi.consilium.europa.eu/en/rss/pressreleases.ashx", label: "EU 이사회 보도자료", verified: false },
+    { url: "https://www.consilium.europa.eu/en/rss/pressreleases.ashx", label: "EU 이사회 보도자료", verified: false },
   ]),
 ];
 

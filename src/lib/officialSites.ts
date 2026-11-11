@@ -100,7 +100,8 @@ export const FEED_CANDIDATES: Record<string, string[]> = {
   "https://en.kremlin.ru": ["http://en.kremlin.ru/events/president/news/feed"],
   "https://www.mid.ru/en/": ["https://www.mid.ru/en/rss/"],
   "https://www.nato.int": ["https://www.nato.int/cps/rss/en/natohq/rssFeed.xsl/rssFeed.xml"],
-  "https://www.consilium.europa.eu": ["https://skribi.consilium.europa.eu/en/rss/pressreleases.ashx"],
+  "https://www.consilium.europa.eu": ["https://www.consilium.europa.eu/en/rss/pressreleases.ashx", "https://skribi.consilium.europa.eu/en/rss/pressreleases.ashx"],
+  "https://www.defense.gov": ["https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=9&Site=945&max=10", "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10"],
   "https://www.diplomatie.gouv.fr/en/": ["https://www.diplomatie.gouv.fr/en/backend-fd.php3"],
   "https://www.auswaertiges-amt.de/en": [
     "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Pressemitteilungen_Reden.xml",
