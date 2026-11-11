@@ -2469,3 +2469,26 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
   .landing-pen { stroke-dashoffset: 0; animation: none; }
   .landing-stamp { animation: none; opacity: 0.88; transform: rotate(-4deg); }
 }
+
+
+/* 속보 양피지가 열릴 때 가장자리에서 미끄러져 들어온다. 지구본 영역은 건드리지 않는 오버레이 전환이다. */
+@keyframes flash-desk-enter {
+  from {
+    transform: translate3d(2.5rem, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.flash-desk-enter {
+  animation: flash-desk-enter 280ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-desk-enter {
+    animation: none;
+  }
+}

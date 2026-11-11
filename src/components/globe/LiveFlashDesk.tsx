@@ -16,6 +16,10 @@ import { useTr } from "@/hooks/useTr";
 import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { FlashEvidence } from "@/components/globe/FlashEvidence";
+import { nearbyItems } from "@/lib/flashNeon";
+import { computeFlashVerdict, flashVerdictBasis, flashVerdictLabel, type FlashVerdict } from "@/lib/news/flashVerdict";
+import { OFFICIAL_DOCS } from "@/data/officialDocs";
+import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
 import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
@@ -44,6 +48,12 @@ const CAT_LABEL: Record<DeskCategory, { ko: string; en: string; cls: string }> =
   closure: { ko: "폐쇄·항의", en: "Closure", cls: "bg-yellow-500/25 text-yellow-100" },
   posture: { ko: "정세", en: "Posture", cls: "bg-sky-500/25 text-sky-100" },
   front: { ko: "전선", en: "Front", cls: "bg-amber-500/25 text-amber-100" },
+};
+
+const VERDICT_CLS: Record<FlashVerdict, string> = {
+  confirmed: "bg-emerald-700",
+  likely: "bg-amber-600",
+  nodata: "bg-stone-500",
 };
 
 function ago(at: number, now: number, en: boolean): string {
@@ -210,6 +220,15 @@ export function LiveFlashDesk({
   const btn =
     "rounded-sm border border-[#6b4a22]/40 bg-[#efe0bc]/95 px-2.5 py-0.5 text-micro text-[#3d2a12] hover:bg-[#e8d6a8] disabled:opacity-40";
   const shownPhoto = photos[Math.min(photoIdx, Math.max(0, photos.length - 1))];
+  // 맨 위 판정 머리: 같은 사건을 다룬 독립 매체가 몇 곳인지 센 것(맞다/틀리다의 판정이 아니다)
+  const flashText = `${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`;
+  const evidenceArticles = articlesForFlash(flashText, item.at, newsPool, item.liveua?.sourceUrl);
+  const evidenceDocCount = docsForFlash(flashText, OFFICIAL_DOCS).length;
+  const verdictInfo = computeFlashVerdict(
+    evidenceArticles.map((r) => ({ publisher: r.source, source: r.source, trustTier: r.tier })),
+  );
+  const verdictShown = evidenceDocCount > 0 && verdictInfo.verdict === "nodata" ? { ...verdictInfo, partyOnly: true } : verdictInfo;
+  const nearby = nearbyItems(item, sorted, now);
 
   if (minimized) {
     return (
@@ -230,7 +249,7 @@ export function LiveFlashDesk({
 
   return (
     <aside
-      className={`pointer-events-auto fixed inset-x-2 bottom-2 top-16 flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/55 bg-[#f3e6c8] text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 ${narrow ? "sm:w-[min(40rem,60vw)]" : "sm:w-[min(56rem,calc(100vw-1.5rem))]"} sm:flex-row ${zc("alert")}`}
+      className={`flash-desk-enter pointer-events-auto fixed inset-x-2 bottom-2 top-16 flex flex-col overflow-hidden rounded-md border border-[#6b4a22]/55 bg-[#f3e6c8] text-[#2a1c0a] shadow-2xl sm:left-auto sm:right-3 ${narrow ? "sm:w-[min(40rem,60vw)]" : "sm:w-[min(56rem,calc(100vw-1.5rem))]"} sm:flex-row ${zc("alert")}`}
       aria-label={en ? "Live flash desk" : "실시간 속보창"}
       data-live-flash-desk
     >
@@ -306,6 +325,19 @@ export function LiveFlashDesk({
           </span>
         </header>
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+          <div className="flex flex-wrap items-center gap-2" data-flash-verdict={verdictShown.verdict}>
+            <span className={`rounded-sm px-1.5 py-0.5 text-micro font-semibold text-white ${VERDICT_CLS[verdictShown.verdict]}`}>
+              {flashVerdictLabel(verdictShown.verdict, en ? "en" : "ko")}
+            </span>
+            <span className="text-micro text-[#5c4020]">
+              {flashVerdictBasis(verdictShown, en ? "en" : "ko")}
+              {evidenceDocCount > 0
+                ? en
+                  ? ` · ${evidenceDocCount} official source document${evidenceDocCount > 1 ? "s" : ""}`
+                  : ` · 정부 1차 원문 ${evidenceDocCount}건`
+                : ""}
+            </span>
+          </div>
           {ev?.videoUrl ? (
             <video
               className="aspect-[16/9] w-full rounded-sm bg-black object-contain"
@@ -384,6 +416,32 @@ export function LiveFlashDesk({
             newsPool={newsPool}
           />
           <EventScenarioBoard variant="accordion" lang={en ? "en" : "ko"} items={newsPool} />
+          {nearby.length > 0 ? (
+            <section data-flash-nearby>
+              <p className="px-0.5 text-micro font-semibold text-[#5c4020]">
+                {en ? "Nearby, last 7 days" : "같은 지역 최근 사건"}
+              </p>
+              <ul className="mt-1 grid gap-1">
+                {nearby.map((row) => (
+                  <li key={row.id}>
+                    <button
+                      type="button"
+                      className="w-full rounded-sm border border-[#6b4a22]/20 bg-[#f7edd4]/70 px-2 py-1 text-left hover:bg-[#efe0bc]"
+                      onClick={() => onSelect(row.id)}
+                    >
+                      <span className="flex items-center gap-1 text-micro">
+                        <span className={`rounded-sm px-1 ${CAT_LABEL[deskCategory(row, shipIds.has(row.id))].cls} bg-[#2a1c0a]`}>
+                          {en ? CAT_LABEL[deskCategory(row, shipIds.has(row.id))].en : CAT_LABEL[deskCategory(row, shipIds.has(row.id))].ko}
+                        </span>
+                        <span className="ml-auto tabular-nums text-[#5c4020]/75">{ago(row.at, now, en)}</span>
+                      </span>
+                      <span className="mt-0.5 line-clamp-2 block text-micro leading-snug">{tr(row.title)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {basis.length > 0 ? (
             <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60 px-2 py-1.5">
               <p className="text-micro font-semibold text-[#5c4020]/90">

@@ -135,7 +135,8 @@ import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { LiveuaFlashParchment } from "@/components/globe/LiveuaFlashParchment";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
-import { LiveFlashDesk } from "@/components/globe/LiveFlashDesk";
+import { LiveFlashDesk, deskCategory } from "@/components/globe/LiveFlashDesk";
+import { buildFlashNeonPoints } from "@/lib/flashNeon";
 import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
 import { BranchDesk } from "@/components/globe/BranchDesk";
 import { MajorScheduleDesk } from "@/components/globe/MajorScheduleDesk";
@@ -3802,7 +3803,7 @@ export function GlobeDashboard({
     }
     const core =
       isViinaCloseZoom && showUkraineControl
-        ? (["map-points", "map-gem-facilities", "map-paths", "map-rings", "firms-flame", "liveua-strikes"] as const)
+        ? (["map-points", "map-gem-facilities", "map-paths", "map-rings", "firms-flame", "liveua-strikes", "flash-neon"] as const)
         : ([
             "map-points",
             "map-gem-facilities",
@@ -3811,6 +3812,7 @@ export function GlobeDashboard({
             "map-rings",
             "firms-flame",
             "liveua-strikes",
+            "flash-neon",
           ] as const);
     return [...core, ...blocFills];
   }, [
@@ -6396,6 +6398,31 @@ export function GlobeDashboard({
     year: historyYear,
   });
 
+  /** 속보 한 건을 좌측 양피지로 연다 — 지도 네온·속보 목록·불꽃이 모두 이 한 길을 쓴다 */
+  const selectDeskItem = (id: string) => {
+    setStackParchmentId(id);
+    setFrontParchmentIndex(null);
+    setStackSelectedId(id);
+    markLiveuaRead(id);
+    // 누를 때마다 그 지역으로 — 다른 속보를 누르기 전까지 거기 머문다
+    const picked = liveDeskItems.find((x) => x.id === id);
+    if (picked && Number.isFinite(picked.lat) && Number.isFinite(picked.lng)) {
+      if (isSatelliteViewer) focusStackItemInSpaceRef.current(picked);
+      else unifiedFlyTo(picked.lat, picked.lng, 0.5);
+    }
+  };
+  /** 지도 위 속보 지점(네온). 열려 있는 사건은 흰 고리로 표시 */
+  const flashNeonData = useMemo(
+    () =>
+      buildFlashNeonPoints(
+        liveDeskItems,
+        (id) => deskCategory(liveDeskItems.find((x) => x.id === id)!, liveDeskShipIds.has(id)),
+        Date.now(),
+        deskOpenId,
+      ),
+    [deskOpenId, liveDeskItems, liveDeskShipIds],
+  );
+
   const mapGlobeProps = useGlobeMapGlobeProps({
     showLeftPanel,
     globeTextures,
@@ -6412,7 +6439,14 @@ export function GlobeDashboard({
     liveuaStrikesMapData,
     eventCallout,
     onDismissEventCallout: dismissEventCallout,
-    onLiveuaStrikeClick: (item: unknown) => setStrikeParchmentId((item as StrikeFlame).id),
+    onLiveuaStrikeClick: (item: unknown) => {
+      const id = (item as StrikeFlame).id;
+      // 속보창에 같은 사건이 있으면 좌측 양피지로, 없으면 기존 큰 양피지로
+      if (liveDeskItems.some((x) => x.id === id)) selectDeskItem(id);
+      else setStrikeParchmentId(id);
+    },
+    flashNeonData,
+    onFlashNeonClick: selectDeskItem,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -6958,7 +6992,10 @@ export function GlobeDashboard({
 
         {!isSatelliteViewer ? (
           <div
-            className={`pointer-events-none fixed ${isPhoneUi ? "inset-x-3 flex flex-col justify-end gap-2" : "right-3 flex flex-col gap-2"} ${zc("mapControl")}`}
+            className={`pointer-events-none fixed ${isPhoneUi ? "inset-x-3 flex flex-col justify-end gap-2" : "right-3 flex flex-col gap-2"} ${zc("mapControl")} ${
+              isPhoneUi ? "" : "transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none"
+            } ${!isPhoneUi && deskOpenId != null ? "translate-x-[calc(100%+1.5rem)] opacity-0 [&_*]:!pointer-events-none" : ""}`}
+            aria-hidden={!isPhoneUi && deskOpenId != null ? true : undefined}
             style={
               isPhoneUi
                 ? {
@@ -7263,18 +7300,7 @@ export function GlobeDashboard({
             items={liveDeskItems}
             shipIds={liveDeskShipIds}
             selectedId={deskOpenId}
-            onSelect={(id) => {
-              setStackParchmentId(id);
-              setFrontParchmentIndex(null);
-              setStackSelectedId(id);
-              markLiveuaRead(id);
-              // 누를 때마다 그 지역으로 — 다른 속보를 누르기 전까지 거기 머문다
-              const picked = liveDeskItems.find((x) => x.id === id);
-              if (picked && Number.isFinite(picked.lat) && Number.isFinite(picked.lng)) {
-                if (isSatelliteViewer) focusStackItemInSpaceRef.current(picked);
-                else unifiedFlyTo(picked.lat, picked.lng, 0.5);
-              }
-            }}
+            onSelect={selectDeskItem}
             onClose={() => {
               setStackParchmentId(null);
               setFrontParchmentIndex(null);

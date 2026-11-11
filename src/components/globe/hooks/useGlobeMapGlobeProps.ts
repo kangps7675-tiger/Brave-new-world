@@ -163,6 +163,8 @@ export interface UseGlobeMapGlobePropsParams {
   eventCallout: unknown;
   onDismissEventCallout: () => void;
   onLiveuaStrikeClick: (item: unknown) => void;
+  flashNeonData: unknown[];
+  onFlashNeonClick: (id: string) => void;
   viewState: ViewState;
   basemapTone: BasemapTone;
   firmsCombatFireIds: string[];
@@ -261,6 +263,8 @@ export function useGlobeMapGlobeProps(
     eventCallout,
     onDismissEventCallout,
     onLiveuaStrikeClick,
+    flashNeonData,
+    onFlashNeonClick,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -365,6 +369,8 @@ export function useGlobeMapGlobeProps(
     firmsFiresData: historyOn ? [] : firmsDisplayPoints,
     liveuaStrikesData: historyOn ? [] : liveuaStrikesMapData,
     onLiveuaStrikeClick,
+    flashNeonData: historyOn ? [] : flashNeonData,
+    onFlashNeonClick,
     eventCallout,
     onDismissEventCallout,
     firmsLat: (fire: FirmsFireGlobePoint) => fire.lat,
