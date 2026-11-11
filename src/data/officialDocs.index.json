@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "us-gb-de-fr-it-jp-ca-20261111-2f5b4f",
+    "issuerIds": [
+      "us",
+      "gb",
+      "de",
+      "fr",
+      "it",
+      "jp",
+      "ca"
+    ],
+    "kind": "joint-statement",
+    "weight": "agreed",
+    "title": "Joint declaration following the G7 Foreign Ministers' Meeting in Paris",
+    "publishedAt": "2026-11-11",
+    "sourceUrl": "https://www.gov.uk/government/news/joint-declaration-following-the-g7-foreign-ministers-meeting-in-paris",
+    "fetchedAt": "2026-11-11",
+    "sha256": "2f5b4f734d141cfeeeaa15c9f25192095f3322f4edb9dc2c87de2f6eca9a6bad",
+    "language": "en",
+    "keywords": [
+      "g7 foreign ministers",
+      "g7 declaration"
+    ],
+    "relatedTags": [],
+    "terms": "Open Government Licence v3.0 (gov.uk 게시물, 출처 표시 조건으로 재사용 허용). 원문 출처: 영국 외무영연방개발부(FCDO)"
+  }
+]
