@@ -20,6 +20,8 @@ type Props = {
   lang: LabelLanguage;
   items: NewsStreamItem[];
   now?: number;
+  /** embedded: 정치일정 창 안의 탭으로 들어갈 때. 바깥 테두리·배경 없이 내용만 그린다. */
+  embedded?: boolean;
 };
 
 const PHASE_KO: Record<BranchPhase, string> = { preview: "예고", day: "당일", aftermath: "사후" };
@@ -80,7 +82,7 @@ function CheckList({ checks, en, later }: { checks: readonly BranchCheck[]; en: 
 }
 
 /** 예고·당일·사후와 국가 카드의 다음 분기점. 지난 선거의 의석·헌법은 출처가 있을 때만 적는다. */
-export function BranchDesk({ lang, items, now = Date.now() }: Props) {
+export function BranchDesk({ lang, items, now = Date.now(), embedded = false }: Props) {
   const en = lang === "en";
   const [panel, setPanel] = useState<"card" | "after" | null>(null);
   const [countryId, setCountryId] = useState<string | null>(null);
@@ -98,7 +100,11 @@ export function BranchDesk({ lang, items, now = Date.now() }: Props) {
 
   return (
     <section
-      className="pointer-events-auto w-full max-w-3xl rounded-md border border-[#6b4a22]/35 bg-[#f3e6c8]/95 p-2 text-[#2a1c0a] shadow-lg"
+      className={
+        embedded
+          ? "pt-1.5 text-[#2a1c0a]"
+          : "pointer-events-auto w-full max-w-3xl rounded-md border border-[#6b4a22]/35 bg-[#f3e6c8]/95 p-2 text-[#2a1c0a] shadow-lg"
+      }
       aria-label={en ? "Branch points" : "분기점"}
       data-branch-desk
     >
