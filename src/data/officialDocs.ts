@@ -91,6 +91,8 @@ export type OfficialDocMeta = {
   language: string;
   /** 이 문서를 붙일 사건·지역 태그(eventScenarios의 RARE id와 같은 말을 쓴다). */
   relatedTags: string[];
+  /** 원문 페이지의 대표 이미지(있을 때만). 권리는 발행 기관에 있다. */
+  imageUrl?: string;
   /** 문서에서 가져온 이용 조건 메모 */
   terms: string;
 };

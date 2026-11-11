@@ -118,6 +118,16 @@ function sameEvent(a: Mark, b: Mark): boolean {
   return false;
 }
 
+/** 두 글이 같은 사건을 말하는지(희귀 지명 하나, 또는 같은 나라+같은 행동). 속보와 기사·문서를 잇는 데 쓴다. */
+export function sameEventText(a: string, b: string): boolean {
+  return sameEvent(mark(a), mark(b));
+}
+
+/** 글에서 읽힌 희귀 지명 태그(RARE의 id). 문서의 relatedTags와 맞대는 데 쓴다. */
+export function rareTagsOf(text: string): string[] {
+  return Array.from(mark(text).rare);
+}
+
 function pathOf(title: string): ScenarioPath | null {
   if (HEDGE.test(title) || !SPEECH.test(title)) return null;
   for (const row of PATHS) if (row.re.test(title)) return row.path;

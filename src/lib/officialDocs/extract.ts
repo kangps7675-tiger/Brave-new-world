@@ -66,3 +66,9 @@ export function pickDate(html: string): string | null {
   }
   return null;
 }
+
+/** 페이지의 대표 이미지 주소(og:image). https만 받는다. */
+export function pickImage(html: string): string | null {
+  const url = metaContent(html, "og:image");
+  return url && /^https:\/\//i.test(url) ? url : null;
+}
