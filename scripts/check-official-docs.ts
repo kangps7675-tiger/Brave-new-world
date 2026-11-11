@@ -37,11 +37,15 @@ const DEFAULT_TARGETS = [
   "https://mea.gov.in/",
   "https://mfa.gov.ua/en",
   "https://www.mfa.gov.tr/",
-  "https://en.mfa.ir/",
+  "https://en.mfa.gov.ir/",
   "https://www.dfat.gov.au/",
   "https://www.diplomatie.gouv.fr/en/",
   "https://www.auswaertiges-amt.de/en",
   "https://www.esteri.it/en/",
+  // 외교부 말고도 1차 원문이 나오는 곳: 국방부·총리실·장관 사이트
+  "https://www.defense.gov",
+  "https://www.foreignminister.gov.au/",
+  "https://japan.kantei.go.jp/",
 ];
 
 const BOILERPLATE = /(enable javascript|cookies? (policy|settings|consent)|access denied|just a moment|captcha|403 forbidden|404 not found)/i;
@@ -61,7 +65,7 @@ type FeedReport = {
   sample: Array<{ title: string; kind: string; date: string | null; url: string }>;
   deep?: Array<{ url: string; titleFound: boolean; dateFound: boolean; textChars: number; boilerplate: boolean; head: string; error?: string }>;
 };
-type SiteReport = { target: string; issuer: string | null; reachable: boolean; error?: string; feedsFound: number; feeds: FeedReport[]; via?: string };
+type SiteReport = { target: string; issuer: string | null; reachable: boolean; error?: string; feedsFound: number; feeds: FeedReport[]; via?: string; failedCandidates?: string[] };
 
 async function checkFeed(url: string, issuer: string, deep: boolean): Promise<FeedReport> {
   try {
@@ -118,6 +122,7 @@ async function checkSite(target: string, deep: boolean): Promise<SiteReport> {
   for (const url of urls.slice(0, 3)) reports.push(await checkFeed(url, issuer ?? "xx", deep));
   // 발견된 피드가 없거나 전부 못 읽을 때: 알려진 후보와 흔한 경로를 두드려 본다(접속이 안 되는 사이트도 후보 피드는 따로 열릴 수 있다).
   let via = "발견";
+  const failedCandidates: string[] = [];
   if (!reports.some((r) => r.ok)) {
     const tried = new Set(urls);
     const guesses = [...(FEED_CANDIDATES[target] ?? []), ...(reachable ? COMMON_FEED_PATHS.map((p) => new URL(p, target).toString()) : [])].filter((u) => !tried.has(u));
@@ -127,11 +132,13 @@ async function checkSite(target: string, deep: boolean): Promise<SiteReport> {
         reports.push(r);
         via = "후보·흔한 경로";
         if (reports.filter((x) => x.ok).length >= 3) break;
+      } else if ((FEED_CANDIDATES[target] ?? []).includes(url)) {
+        failedCandidates.push(`${url} — ${r.error ?? "읽지 못함"}`);
       }
     }
   }
   const found = reports.filter((r) => r.ok).length;
-  return { target, issuer, reachable: reachable || found > 0, error, feedsFound: found, feeds: reports.filter((r) => r.ok || found === 0), via: found > 0 ? via : "-" };
+  return { target, issuer, reachable: reachable || found > 0, error, feedsFound: found, feeds: reports.filter((r) => r.ok || found === 0), via: found > 0 ? via : "-", failedCandidates };
 }
 
 async function main(): Promise<void> {
@@ -146,10 +153,12 @@ async function main(): Promise<void> {
     const who = r.issuer ? issuerNameKo(r.issuer) : "알 수 없음";
     if (!r.reachable) {
       console.log(`✗ ${who} ${target}: 접속 실패 (${r.error})`);
+      for (const line of r.failedCandidates ?? []) console.log(`    후보 실패: ${line}`);
       continue;
     }
     if (r.error) console.log(`  (첫 페이지는 안 열렸지만 피드 주소로는 읽힘: ${r.error})`);
     console.log(`${r.feedsFound > 0 ? "✓" : "–"} ${who} ${target}: 피드 ${r.feedsFound}개 (${r.via})`);
+    for (const line of r.failedCandidates ?? []) console.log(`    후보 실패: ${line}`);
     for (const f of r.feeds) {
       console.log(
         `    ${f.ok ? "·" : "✗"} ${f.url}  항목 ${f.items} · 날짜 ${(f.dateRate * 100).toFixed(0)}% · https ${(f.httpsRate * 100).toFixed(0)}% · 종류 ${JSON.stringify(f.kinds)}${f.error ? ` · ${f.error}` : ""}`,
