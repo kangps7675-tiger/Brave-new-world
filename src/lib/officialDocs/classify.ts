@@ -5,7 +5,7 @@ export function classifyDocKind(title: string): DocKind {
   const t = title.toLowerCase();
   if (/\b(joint (statement|declaration|communiqu[eé])|communiqu[eé]|summit declaration)\b|공동성명|공동선언|공동 ?발표/.test(t)) return "joint-statement";
   if (/\bfact ?sheet\b|팩트시트/.test(t)) return "factsheet";
-  if (/\breadout\b|회담 결과|회담 요약/.test(t)) return "readout";
+  if (/\b(readout|telephone conversation|phone (call|conversation)|call with|talks (with|between))\b|회담 결과|회담 요약|통화/.test(t)) return "readout";
   if (/\b(treaty|agreement|convention|memorandum of understanding)\b|조약|협정/.test(t)) return "treaty";
   if (/\b(remarks|speech|press conference|press briefing|briefing|address|interview|op-?ed)\b|연설|기자회견|브리핑|인터뷰/.test(t)) return "remarks";
   if (/\bstatement\b|성명|입장/.test(t)) return "statement";

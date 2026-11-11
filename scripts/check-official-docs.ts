@@ -33,7 +33,7 @@ const DEFAULT_TARGETS = [
   "https://www.mfa.gov.cn/eng/",
   "https://www.mofa.go.jp/",
   "https://www.mofa.go.kr/eng/",
-  "https://www.mofa.gov.tw/en/",
+  "https://en.mofa.gov.tw/",
   "https://mea.gov.in/",
   "https://mfa.gov.ua/en",
   "https://www.mfa.gov.tr/",
@@ -114,19 +114,24 @@ async function checkSite(target: string, deep: boolean): Promise<SiteReport> {
     reachable = false;
     error = (e as Error).message;
   }
-  // 첫 페이지에서 못 찾았거나 접속이 안 될 때: 알려진 후보와 흔한 경로를 두드려 본다.
-  const guesses = urls.length > 0 ? [] : [...(FEED_CANDIDATES[target] ?? []), ...(reachable ? COMMON_FEED_PATHS.map((p) => new URL(p, target).toString()) : [])];
   const reports: FeedReport[] = [];
   for (const url of urls.slice(0, 3)) reports.push(await checkFeed(url, issuer ?? "xx", deep));
-  for (const url of guesses) {
-    const r = await checkFeed(url, issuer ?? "xx", deep);
-    if (r.ok) {
-      reports.push(r);
-      if (reports.length >= 3) break;
+  // 발견된 피드가 없거나 전부 못 읽을 때: 알려진 후보와 흔한 경로를 두드려 본다(접속이 안 되는 사이트도 후보 피드는 따로 열릴 수 있다).
+  let via = "발견";
+  if (!reports.some((r) => r.ok)) {
+    const tried = new Set(urls);
+    const guesses = [...(FEED_CANDIDATES[target] ?? []), ...(reachable ? COMMON_FEED_PATHS.map((p) => new URL(p, target).toString()) : [])].filter((u) => !tried.has(u));
+    for (const url of guesses) {
+      const r = await checkFeed(url, issuer ?? "xx", deep);
+      if (r.ok) {
+        reports.push(r);
+        via = "후보·흔한 경로";
+        if (reports.filter((x) => x.ok).length >= 3) break;
+      }
     }
   }
-  const found = reports.length;
-  return { target, issuer, reachable: reachable || found > 0, error, feedsFound: found, feeds: reports, via: urls.length > 0 ? "발견" : found > 0 ? "후보·흔한 경로" : "-" } as SiteReport;
+  const found = reports.filter((r) => r.ok).length;
+  return { target, issuer, reachable: reachable || found > 0, error, feedsFound: found, feeds: reports.filter((r) => r.ok || found === 0), via: found > 0 ? via : "-" };
 }
 
 async function main(): Promise<void> {
@@ -143,7 +148,7 @@ async function main(): Promise<void> {
       console.log(`✗ ${who} ${target}: 접속 실패 (${r.error})`);
       continue;
     }
-    if (r.error) console.log(`  (첫 페이지는 실패: ${r.error} — 피드 주소로는 읽힘)`);
+    if (r.error) console.log(`  (첫 페이지는 안 열렸지만 피드 주소로는 읽힘: ${r.error})`);
     console.log(`${r.feedsFound > 0 ? "✓" : "–"} ${who} ${target}: 피드 ${r.feedsFound}개 (${r.via})`);
     for (const f of r.feeds) {
       console.log(
