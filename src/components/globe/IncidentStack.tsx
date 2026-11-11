@@ -10,7 +10,6 @@ import {
 } from "@/lib/incidentStack/build";
 import { groupByHormuzAnchorage } from "@/lib/sea/anchorages";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
-import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { ShipIncidentCard } from "@/components/globe/ShipIncidentCard";
 import { IncidentVesselPanel } from "@/components/globe/IncidentVesselPanel";
 import type { AisVessel } from "@/data/geoTypes";
@@ -54,8 +53,6 @@ type Props = {
   hideSatelliteCta?: boolean;
   /** 모바일: 처음엔 접힌 채로 하단에 둔다 */
   compact?: boolean;
-  /** 받아 둔 선박 위치. 둘째 칸이 이걸로 맞음·어긋남을 찍는다. */
-  vessels?: readonly AisVessel[] | null;
 };
 
 const VERDICT_LABEL = {
@@ -93,7 +90,6 @@ export function IncidentStack({
   onViewSatellite,
   hideSatelliteCta = false,
   compact = false,
-  vessels,
 }: Props) {
   const en = lang === "en";
   const [collapsed, setCollapsed] = useState(compact);
@@ -155,10 +151,7 @@ export function IncidentStack({
       {collapsed ? null : (
         <>
           {(focus ?? visible[0]) ? (
-            <>
-              <ShipIncidentCard lang={lang} item={(focus ?? visible[0])!} />
-              <CrossCheckSlots en={en} item={(focus ?? visible[0])!} place="ship" tone="ink" vessels={vessels} />
-            </>
+            <ShipIncidentCard lang={lang} item={(focus ?? visible[0])!} />
           ) : null}
           {focus && focus.source === "ukmto" && onFocusVessel ? (
             <IncidentVesselPanel lang={lang} item={focus} onFocusVessel={onFocusVessel} />
