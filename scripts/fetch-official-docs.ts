@@ -18,6 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ISSUERS, OFFICIAL_DOCS, isValidIssuerId, type DocKind, type IssuerId, type OfficialDocMeta } from "../src/data/officialDocs";
+import { getPage } from "../src/lib/officialDocs/http";
 import { discoverFeeds, officialSiteFromUrl } from "../src/lib/officialSites";
 import { issuerNameKo } from "../src/lib/countryName";
 import { classifyDocKind, weightOf } from "../src/lib/officialDocs/classify";
@@ -32,7 +33,6 @@ const FEEDS = path.join(ROOT, "src", "data", "officialFeeds.json");
 type ExtraFeed = { issuerId: IssuerId; url: string; label: string };
 const readExtraFeeds = (): ExtraFeed[] => JSON.parse(fs.readFileSync(FEEDS, "utf8")) as ExtraFeed[];
 const TEXT_DIR = path.join(ROOT, "public", "official-docs");
-const UA = "StraitDesk/1.0 official-docs";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -42,15 +42,8 @@ const flag = (name: string) => process.argv.includes(`--${name}`);
 const today = () => new Date().toISOString().slice(0, 10);
 
 async function get(url: string): Promise<{ body: string; type: string }> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const res = await fetch(url, { signal: controller.signal, headers: { "User-Agent": UA }, redirect: "follow" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return { body: await res.text(), type: res.headers.get("content-type") ?? "" };
-  } finally {
-    clearTimeout(timer);
-  }
+  const { body, type } = await getPage(url);
+  return { body, type };
 }
 
 async function collect(): Promise<void> {

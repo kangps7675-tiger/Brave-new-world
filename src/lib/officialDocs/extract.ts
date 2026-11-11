@@ -8,7 +8,7 @@ export function sha256Hex(text: string): string {
 function stripBlocks(html: string): string {
   return html
     .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/<(script|style|noscript|svg|nav|header|footer|aside|form|iframe)\b[\s\S]*?<\/\1>/gi, " ");
+    .replace(/<(script|style|noscript|svg|nav|header|footer|aside|iframe|select|button|textarea)\b[\s\S]*?<\/\1>/gi, " ");
 }
 
 function innerOf(html: string, tag: string): string | null {
@@ -17,18 +17,35 @@ function innerOf(html: string, tag: string): string | null {
 }
 
 /** 페이지에서 본문 텍스트만 뽑는다. <main>, 없으면 <article>, 없으면 <body> 순. 문단 경계는 줄바꿈으로 남긴다. */
-export function htmlToText(html: string): string {
-  const cleaned = stripBlocks(html);
-  const scope = innerOf(cleaned, "main") ?? innerOf(cleaned, "article") ?? innerOf(cleaned, "body") ?? cleaned;
+/** 공유 버튼·메뉴 글자처럼 문서 내용이 아닌 한 줄. 줄 전체가 이것일 때만 버린다. */
+const CHROME_LINE =
+  /^(share( on [a-z ]+)?|print|tweet|facebook|twitter|whatsapp|e-?mail|linkedin|skip to (main )?content|menu|search|back to top|read more|download( pdf)?)$/i;
+
+function blockToText(scope: string): string {
   const text = scope
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(p|div|li|h[1-6]|tr|section|blockquote)>/gi, "\n")
     .replace(/<[^>]+>/g, " ");
   return decodeHtmlEntities(text)
     .split("\n")
-    .map((line) => line.replace(/[ \t ]+/g, " ").trim())
-    .filter(Boolean)
+    .map((line) => line.replace(/[ \t\u00a0]+/g, " ").trim())
+    .filter((line) => line && !CHROME_LINE.test(line))
     .join("\n");
+}
+
+/**
+ * 페이지에서 본문 텍스트만 뽑는다. <main>, 없으면 <article>, 없으면 <body> 순. 문단 경계는 줄바꿈으로 남긴다.
+ * 어떤 사이트(ASP.NET 등)는 본문 전체를 <form> 하나로 감싸거나 <main>에 제목만 두므로,
+ * 좁은 범위에서 뽑은 글이 200자 미만이면 <body> 전체로 다시 뽑는다.
+ */
+export function htmlToText(html: string): string {
+  const cleaned = stripBlocks(html);
+  const narrow = innerOf(cleaned, "main") ?? innerOf(cleaned, "article");
+  if (narrow != null) {
+    const text = blockToText(narrow);
+    if (text.length >= 200) return text;
+  }
+  return blockToText(innerOf(cleaned, "body") ?? cleaned);
 }
 
 function metaContent(html: string, key: string): string | null {

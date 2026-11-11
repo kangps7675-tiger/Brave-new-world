@@ -28,6 +28,10 @@ const SPECIAL: Array<[RegExp, string]> = [
   [/(?:^|\.)(?:regjeringen\.no)$/, "no"],
   [/(?:^|\.)(?:government\.se|regeringen\.se)$/, "se"],
   [/(?:^|\.)(?:gov\.pl|premier\.gov\.pl)$/, "pl"],
+  [/(?:^|\.)(?:esteri|governo|quirinale|difesa)\.it$/, "it"],
+  [/(?:^|\.)(?:mfa|president|leader|irna|mod)\.ir$/, "ir"],
+  [/(?:^|\.)(?:gov|mfa|mod)\.il$/, "il"],
+  [/(?:^|\.)(?:mofa|mod)\.gov\.sa$/, "sa"],
 ];
 
 /** 국제기구·동맹. 나라가 아니라 기구 id로 돌려준다. */
@@ -81,3 +85,18 @@ export function discoverFeeds(html: string, baseUrl: string): Array<{ url: strin
   }
   return out;
 }
+
+/** 사이트가 첫 페이지에 피드 링크를 안 달아 둘 때 흔히 쓰는 경로. 점검 스크립트가 차례로 두드려 본다. */
+export const COMMON_FEED_PATHS = ["/feed", "/feed/", "/rss", "/rss/", "/rss.xml", "/atom.xml", "/index.xml", "/news/feed", "/en/feed", "/en/rss"];
+
+/**
+ * 첫 페이지 자동 발견이 안 되는 사이트에서 시도해 볼 피드 주소 "후보". 확인된 주소가 아니다.
+ * 점검(docs:check)이 실제로 읽히는지 가려 주고, 읽히는 것만 --add-feed로 등록한다.
+ */
+export const FEED_CANDIDATES: Record<string, string[]> = {
+  "https://www.state.gov": ["https://www.state.gov/rss-feed/press-releases/feed/"],
+  "https://www.whitehouse.gov": ["https://www.whitehouse.gov/news/feed/", "https://www.whitehouse.gov/briefing-room/feed/"],
+  "https://www.gov.uk": ["https://www.gov.uk/search/news-and-communications.atom"],
+  "https://en.kremlin.ru": ["http://en.kremlin.ru/events/president/news/feed"],
+  "https://www.mid.ru/en/": ["https://www.mid.ru/en/rss/"],
+};

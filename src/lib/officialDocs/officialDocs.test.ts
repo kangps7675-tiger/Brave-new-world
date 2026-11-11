@@ -71,6 +71,23 @@ describe("본문 뽑기", () => {
   });
 });
 
+describe("본문 뽑기: 사이트별 모양", () => {
+  it("본문 전체를 <form> 하나로 감싼 사이트(ASP.NET)에서도 글을 뽑는다", () => {
+    const body = "Statement of the Spokesperson. ".repeat(12);
+    const html = `<html><body><form id="f"><div class="c"><h1>제목</h1><p>${body}</p></div></form></body></html>`;
+    expect(htmlToText(html)).toContain("Statement of the Spokesperson.");
+  });
+  it("공유 버튼 줄은 버리고 본문은 남긴다", () => {
+    const html = "<body><main><p>Share on Facebook</p><p>Share</p><p>Real sentence one.</p></main></body>";
+    expect(htmlToText(html)).toBe("Real sentence one.");
+  });
+  it("<main>에 제목만 있으면 <body> 전체로 다시 뽑는다", () => {
+    const long = "Body text. ".repeat(30);
+    const html = `<body><main><h1>Title</h1></main><div><p>${long}</p></div></body>`;
+    expect(htmlToText(html)).toContain("Body text.");
+  });
+});
+
 describe("승인 검사", () => {
   const ok = {
     id: "us-20230512-abc123",
