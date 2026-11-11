@@ -330,10 +330,6 @@ import { resolveGeopoliticsRings } from "@/lib/deepDive/geopoliticsRings";
 import type { DeepDiveRing } from "@/lib/deepDive/rings";
 import { DeepDiveRingPanel } from "@/components/DeepDiveRingPanel";
 
-import {
-  type AxisArmsPayload,
-} from "@/lib/axisArmsPaths";
-
 import { hubById, selectionForArms, selectionForHubNetwork, type HubClaim } from "@/data/hubNav";
 import {
   preferredAxisHub,
