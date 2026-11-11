@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { OFFICIAL_DOCS, issuerById, officialDocTextPath, type OfficialDocMeta } from "@/data/officialDocs";
+import { OFFICIAL_DOCS, officialDocTextPath, type OfficialDocMeta } from "@/data/officialDocs";
+import { issuerNameEn, issuerNameKo } from "@/lib/countryName";
 import { KIND_KO, WEIGHT_KO } from "@/lib/officialDocs/classify";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import type { NewsStreamItem } from "@/lib/news/types";
@@ -30,7 +31,7 @@ function DocCard({ doc, en }: { doc: OfficialDocMeta; en: boolean }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
-  const issuers = doc.issuerIds.map((id) => (en ? issuerById(id)?.nameEn : issuerById(id)?.nameKo) ?? id).join(" · ");
+  const issuers = doc.issuerIds.map((id) => (en ? issuerNameEn(id) : issuerNameKo(id))).join(" · ");
 
   const toggle = () => {
     const next = !open;
@@ -125,8 +126,8 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
                 </p>
                 <p className="mt-0.5 text-micro text-[#5c4020]">
                   {row.source}
-                  {row.tier === 3 ? (
-                    <span className="ml-1 rounded-sm bg-[#6b4a22]/15 px-1">{en ? "Party outlet" : "당사자 매체"}</span>
+                  {row.label || row.tier === 3 ? (
+                    <span className="ml-1 rounded-sm bg-[#6b4a22]/15 px-1">{row.label ?? (en ? "Party outlet" : "당사자 매체")}</span>
                   ) : null}
                 </p>
               </li>
