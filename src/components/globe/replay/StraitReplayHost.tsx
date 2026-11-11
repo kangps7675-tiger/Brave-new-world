@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import type { CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import type { CesiumGlobeHandle } from "@/components/globe/satelliteHandle";
 import { StraitReplayPanel } from "@/components/globe/replay/StraitReplayPanel";
 import { useStraitReplay } from "@/components/globe/replay/useStraitReplay";
 import type { LabelLanguage } from "@/lib/layerPrefs";

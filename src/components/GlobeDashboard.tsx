@@ -62,7 +62,6 @@ import { DashboardOverlayHost } from "@/components/globe/DashboardOverlayHost";
 import { useSceneDeeplink } from "@/components/globe/hooks/useSceneDeeplink";
 import { useAmbientSoundSelectors } from "@/components/globe/hooks/useAmbientSoundSelectors";
 import { useMaritimeAlertBriefs } from "@/components/globe/hooks/useMaritimeAlertBriefs";
-import { useHybridIncidentPins } from "@/components/globe/hooks/useHybridIncidentPins";
 import { useLayerPanelCategories } from "@/components/globe/hooks/useLayerPanelCategories";
 
 import { useAirRaidAutoLayer } from "@/components/globe/hooks/useAirRaidAutoLayer";
@@ -125,7 +124,6 @@ import {
 } from "@/lib/uxGuideBrief";
 import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 
-import { liveuaConfirmedStrike, liveuaGroundAssault } from "@/lib/liveuamap/confirmedStrike";
 import { LiveuaFlashToast } from "@/components/globe/LiveuaFlashToast";
 import { useLandingCurtainActive } from "@/lib/landingCurtainState";
 import { LANDING_LANG_EVENT, readLandingLanguageChoice } from "@/lib/landingLanguage";
@@ -472,7 +470,7 @@ import { useLogisticsStressSiren } from "@/components/globe/hooks/useLogisticsSt
 import { useLogisticsAssetTickers } from "@/components/globe/hooks/useLogisticsAssetTickers";
 import { assetVolatilityHintForPoint } from "@/lib/assetVolatilityHint";
 import { useAdsbEmergencyAlert } from "@/components/globe/hooks/useAdsbEmergencyAlert";
-import type { CesiumEntitySelection, CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import type { CesiumGlobeHandle } from "@/components/globe/satelliteHandle";
 import { FlyToConfirmBanner, type FlyToConfirmOffer } from "@/components/FlyToConfirmBanner";
 import { useNatoPerimeterDroneAlert } from "@/components/globe/hooks/useNatoPerimeterDroneAlert";
 import { useUltraLiteAutoOffer } from "@/hooks/useUltraLiteAutoOffer";
@@ -607,7 +605,6 @@ export type { GlobeDashboardProps } from "@/components/globe/types";
 /** 좌하단 일일 랭킹·WTI·예측 패널 접기 선호 (텔레그램 패널 가림 방지) */
 const DAILY_RANK_PANEL_KEY = "cv-daily-rank-panel-open";
 
-const NO_CESIUM_FIRMS: never[] = [];
 
 export function GlobeDashboard({
   viinaMeta = null,
@@ -1013,7 +1010,7 @@ export function GlobeDashboard({
   const [selected, setSelected] = useState<Selection | null>(null);
   const [activeCaseOpen, setActiveCaseOpen] = useState(false);
   const [incidentPickActive, setIncidentPickActive] = useState(false);
-  const [pickedIncidentPoint, setPickedIncidentPoint] = useState<{
+  const [pickedIncidentPoint] = useState<{
     lat: number;
     lng: number;
     seq: number;
@@ -1347,7 +1344,6 @@ export function GlobeDashboard({
     markAllLiveuaRead,
     liveuaParchmentIndex,
     setLiveuaParchmentIndex,
-    focusedLiveuaId,
     setFocusedLiveuaId,
     focusedLiveuaEvent,
     resetLiveuaUi,
@@ -2011,49 +2007,8 @@ export function GlobeDashboard({
     newsStreamPayload?.verified,
   ]);
 
-  const liveuaPins = useMemo(
-    () =>
-      liveuaEvents
-        .filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng))
-        .slice(0, 120)
-        .map((e) => ({
-          id: e.id,
-          title: labelLanguage === "ko" ? e.titleKo?.trim() || e.title : e.title,
-          lat: e.lat,
-          lng: e.lng,
-          imageUrl: e.imageUrl,
-          publishedAt: e.publishedAt,
-        })),
-    [liveuaEvents, labelLanguage],
-  );
 
-  const hybridPins = useHybridIncidentPins({
-    liveuaEvents,
-    newsStreamPayload,
-    lang: labelLanguage === "en" ? "en" : "ko",
-    enabled: isSatelliteViewer,
-  });
 
-  const liveuaStrikes = useMemo(
-    () =>
-      liveuaEvents.flatMap((event) => {
-        const hit = liveuaConfirmedStrike(event);
-        if (!hit) return [];
-        const title =
-          labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title;
-        return [
-          {
-            id: event.id,
-            lat: event.lat,
-            lng: event.lng,
-            title,
-            kind: hit.kind,
-            publishedAt: event.publishedAt,
-          },
-        ];
-      }).slice(0, 200),
-    [liveuaEvents, labelLanguage],
-  );
 
   /**
    * 걸프·사우디·이라크 등 이란 외 지역의 공습 소식 — NewFeeds 전체 공격 분류를 10분마다 읽는다.
@@ -2105,24 +2060,6 @@ export function GlobeDashboard({
     [isSatelliteViewer, labelLanguage, liveuaEvents, newsStreamPayload, nfStrikeRaw, showUkraineControl],
   );
 
-  const liveuaGround = useMemo(
-    () =>
-      liveuaEvents.flatMap((event) => {
-        const hit = liveuaGroundAssault(event);
-        if (!hit) return [];
-        const title =
-          labelLanguage === "ko" ? event.titleKo?.trim() || event.title : event.title;
-        return [
-          {
-            id: event.id,
-            lat: event.lat,
-            lng: event.lng,
-            title,
-          },
-        ];
-      }).slice(0, 40),
-    [liveuaEvents, labelLanguage],
-  );
   useEffect(() => {
     if (!macroBriefingOpen) return;
     if (periodicBriefing || weeklyExpanded) return;
@@ -3004,41 +2941,6 @@ export function GlobeDashboard({
     flushPendingCesiumFly();
   }, [cesiumReady, flushPendingCesiumFly]);
 
-  const handleSelectCesiumEntity = useCallback(
-    (sel: CesiumEntitySelection) => {
-      // AIS / OpenSky(ADS-B) / NEPTUN 클릭 → 선택 + useGevLiveTrack가 줌인·팔로우
-      if (sel.kind === "ais") {
-        setSelected({ kind: "ais", item: sel.item });
-        return;
-      }
-      if (sel.kind === "mil") {
-        setSelected({ kind: "mil", item: sel.item, traffic: sel.traffic });
-        return;
-      }
-      if (sel.kind === "firms") {
-        const full =
-          firmsFires.find((f) => f.id === sel.item.id) ??
-          ({
-            id: sel.item.id,
-            lat: sel.item.lat,
-            lng: sel.item.lng,
-            frp: sel.item.frp ?? null,
-            brightness: null,
-            confidence: null,
-            acqDate: null,
-            acqTime: null,
-            satellite: null,
-            daynight: null,
-          } satisfies import("@/data/geoTypes").FirmsFire);
-        setSelected({ kind: "firms-fire", item: full });
-        return;
-      }
-      if (sel.kind === "neptun") {
-        setSelected({ kind: "neptun-threat", item: sel.item });
-      }
-    },
-    [firmsFires, setSelected],
-  );
 
   const { syncInfo, syncGeneration, forceSync } = useDataSync({
     mode: "default",
@@ -3931,7 +3833,6 @@ export function GlobeDashboard({
     contacts: gevContacts,
     stopTracking: stopGevTracking,
     toggleFollow: toggleGevFollow,
-    setFollowCamera: setGevFollowCamera,
   } = useGevLiveTrack({
     selected,
     setSelected,
@@ -4612,7 +4513,6 @@ export function GlobeDashboard({
   const {
     chinaTheaterIncidentMarkers,
     koreaMissileIncidentMarkers,
-    cesiumMissileLaunches,
     russiaStrikeIncidentMarkers,
     europeDroneIncidentMarkers,
     conflictEventMarkers,
@@ -4939,45 +4839,6 @@ export function GlobeDashboard({
     setUsCarriersLoading,
   });
 
-  /** Cesium 줌/팬 idle → LOD ref 동기화 + OpenSky 지역 densify 즉시 요청 */
-  const handleCesiumCameraIdle = useCallback(
-    (view: { lat: number; lng: number; altitude: number; heightM: number }) => {
-      const prevLat = layerCenterRef.current.lat;
-      const prevLng = layerCenterRef.current.lng;
-      const prevAlt = layerAltitudeRef.current;
-      const prevTier = getGlobeLod(prevAlt).tier;
-      const nextTier = getGlobeLod(view.altitude).tier;
-
-      layerCenterRef.current = { lat: view.lat, lng: view.lng };
-      layerAltitudeRef.current = view.altitude;
-      layerLodTierRef.current = nextTier;
-      setFilterCenter({ lat: view.lat, lng: view.lng });
-      setLayerAltitude(view.altitude);
-
-      // 관측(Cesium)은 레이어 토글과 무관하게 항공 항적을 폴링한다 (useLiveVesselAirPolling)
-      if (!showAirTraffic && !isSatelliteViewer) return;
-      const densifyNow = nextTier !== "global";
-      const densifyWas = prevTier !== "global";
-      const movedDeg = Math.hypot(view.lat - prevLat, view.lng - prevLng);
-      if (
-        densifyNow &&
-        (!densifyWas || movedDeg >= 1.2 || prevTier !== nextTier)
-      ) {
-        void refreshCivAircraft();
-      }
-    },
-    [
-      getGlobeLod,
-      layerAltitudeRef,
-      layerCenterRef,
-      layerLodTierRef,
-      isSatelliteViewer,
-      refreshCivAircraft,
-      setFilterCenter,
-      setLayerAltitude,
-      showAirTraffic,
-    ],
-  );
 
   // 지경학: 군용·전선 레이어가 soft patch 등으로 켜져도 즉시 OFF
   useEffect(() => {
@@ -5874,11 +5735,7 @@ export function GlobeDashboard({
     observeWatchboardItems,
     escalationIntel,
     chokepointStressGate,
-    cesiumChokeRings,
     straitTour,
-    straitPorts,
-    straitOverlaySegments,
-    straitLabels,
     openCesiumAlert,
   } = useObserveAlertModel({
     isSatelliteViewer,
@@ -7018,106 +6875,6 @@ export function GlobeDashboard({
           loadError={loadError}
           containerBackgroundColor={globeTextures.backgroundColor}
           satelliteMode={isSatelliteViewer}
-          aisVessels={aisVessels}
-          disguisedVessels={disguisedVessels}
-          milAircraft={milAircraft}
-          civAircraft={civAircraft}
-          showAis={false /* AIS는 지정학 지도(MapLibre)에서만 그린다 */}
-          showAisMilitary={showAisMilitary}
-          showAisCommercial={showAisCommercial}
-          showDisguisedVessels={false}
-          showMilitaryActivity={false /* ADS-B는 지정학 지도(MapLibre)에서만 */}
-          showAirTraffic={false}
-          cesiumUsCarriers={usCarriers}
-          showCesiumUsCarriers={isSatelliteViewer}
-          showNeptun={showNeptun}
-          neptunThreats={visibleNeptunThreats}
-          cesiumRef={cesiumGlobeRef}
-          onCesiumReady={() => setCesiumReady(true)}
-          onCesiumCameraIdle={handleCesiumCameraIdle}
-          onSelectCesiumEntity={handleSelectCesiumEntity}
-          onCesiumUserBreakFollow={() => setGevFollowCamera(false)}
-          alertPins={cesiumAlerts}
-          cameraCeilingM={
-            isSatelliteViewer && !isPhoneUi && incidentSpace
-              ? incidentSpace.ceilingAltitude * 6_371_000
-              : null
-          }
-          onSelectCesiumAlert={openCesiumAlert}
-          ukmtoIncidents={isSatelliteViewer ? ukmtoIncidents : undefined}
-          navareaFeatures={isSatelliteViewer ? navareaFeatures : undefined}
-          chokeRings={cesiumChokeRings}
-          straitOverlaySegments={
-            isSatelliteViewer ? straitOverlaySegments : undefined
-          }
-          straitLabels={isSatelliteViewer ? straitLabels : undefined}
-          straitPorts={isSatelliteViewer ? straitPorts : undefined}
-          liveuaPins={liveuaPins}
-          focusedLiveuaId={isSatelliteViewer ? focusedLiveuaId : null}
-          deskFocus={isSatelliteViewer ? deskFocus : null}
-          liveuaStrikes={isSatelliteViewer ? liveuaStrikes : []}
-          eventCallout={isSatelliteViewer ? eventCallout : null}
-          onDismissEventCallout={dismissEventCallout}
-          hybridPins={isSatelliteViewer ? hybridPins : []}
-          liveuaGround={isSatelliteViewer ? liveuaGround : []}
-          onPickGroundPoint={
-            isSatelliteViewer && incidentPickActive
-              ? (point) => {
-                  setPickedIncidentPoint((prev) => ({
-                    ...point,
-                    seq: (prev?.seq ?? 0) + 1,
-                  }));
-                  setIncidentPickActive(false);
-                }
-              : undefined
-          }
-          onSelectLiveuaPin={(id) => {
-            // 최근 속보 큐에 있으면 양피지, 오래된 핀은 포커스 카드
-            const energyIdx = liveuaBreakingEvents.findIndex((e) => e.id === id);
-            if (energyIdx >= 0) {
-              setFocusedLiveuaId(null);
-              setLiveuaParchmentIndex(energyIdx);
-              return;
-            }
-            if (liveuaEvents.some((e) => e.id === id)) {
-              setLiveuaParchmentIndex(null);
-              setFocusedLiveuaId(id);
-            }
-          }}
-          controlGeoJson={
-            isSatelliteViewer && showUkraineControl ? liveuaControlGeoJson : null
-          }
-          // NASA FIRMS는 MapLibre(지정학)에서만 — 위성(Cesium)에는 올리지 않는다
-          firmsFires={NO_CESIUM_FIRMS}
-          showFirmsFires={false}
-          missileLaunches={cesiumMissileLaunches}
-          showMissileLaunches={showNorthKoreaMissileTests}
-          neptunAlerts={neptunAlerts}
-          showAirRaidZones={showNeptun || neptunAlertCount > 0}
-          placeLabels={isSatelliteViewer ? labelPlaces : undefined}
-          placeLabelLang={labelLanguage}
-          showPlaceLabels={isSatelliteViewer && showCityLabels}
-          conflictEvents={
-            isSatelliteViewer
-              ? conflictEventMarkers.filter((m) => m.displayGrade !== "drop")
-              : undefined
-          }
-          showConflictEvents={isSatelliteViewer && showConflictEvents}
-          onSelectConflictEvent={(ev) => {
-            if (!Number.isFinite(ev.lat) || !Number.isFinite(ev.lng)) return;
-            void unifiedFlyTo(
-              ev.lat,
-              ev.lng,
-              0.12,
-              LOCATION_LOOK_DOWN.durationMs,
-              {
-                pitch: LOCATION_LOOK_DOWN.pitch,
-                bearing: LOCATION_LOOK_DOWN.bearing,
-                lookAt: LOCATION_LOOK_DOWN.lookAt,
-              },
-              { descend: true },
-            );
-          }}
           {...mapGlobeProps}
         />
 
